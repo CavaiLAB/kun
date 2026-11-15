@@ -55,7 +55,7 @@ yue 同时承担三种角色，三者缺一不可：
 | `@yue/data` | DataTable 基础版（TanStack Table v9：列 schema、服务端分页 / 排序 / 筛选、行选择、列显隐、固定列、空 / 加载 / 错误态、工具栏）；Tree / TreeSelect / Cascader；DatePicker / DateRange / TimePicker / TimeRange；Upload（分片 + MD5 秒传 + 进度 + 断点 + 预览）；ImagePreview |
 | `@yue/form` | Field 抽象 + react-hook-form 内核 + 解释型 JSON Schema 校验（不在运行期生成代码，R130）；SchemaForm 基础版 + `FormApi`；`dependencies` 基础联动；编辑 / 只读态引擎级能力；校验与脱敏规则目录；弹层 API `useModal / useDrawer / usePopup`；Message / Confirm / Notification 统一出口 |
 | `@yue/biz` | ApiSelect / `useRemoteOptions`、DictSelect、OrganizeSelect、UserSelect、RoleSelect、菜单 / 按钮授权树、IconPicker |
-| 认证页族 | 账号密码（含验证码策略）、SSO 跳转与回调、多租户二次选择、登录过期弹窗；可选：验证码登录、第三方登录按钮区、忘记密码、Captcha |
+| 认证页族 | 账号密码（含验证码策略）、SSO 跳转与回调、多租户二次选择、登录过期弹窗；可选：验证码登录、第三方登录按钮区、忘记密码、Captcha；逐页设计草案（未拍板）见 [auth-pages.md](auth-pages.md) |
 | `@yue/sdk` | 注册表 API（导航 / 设置 / 命令 / 快捷键 / 预览器 / 客户端动作 / 控件）、`PlatformClient`、request 拦截器链（鉴权刷新队列、租户头、大数处理）、i18n、mock 中间件、`.d.ts` 契约 |
 | 契约包 | 控件 manifest 格式、FormSchema / ListSchema 草案（含 `device`、`auth`）、SSE 事件 JSON Schema、权限码目录格式、Filter AST TS 类型（从后端 Schema 生成） |
 | 工程化 | §4 的 21 项基线全部就位 |

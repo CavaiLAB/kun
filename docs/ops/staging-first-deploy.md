@@ -57,8 +57,8 @@
      3. `--docker-server` 写不带端口的 `192.168.1.201`，与清单里的镜像引用一致。凭据对不对，要到首次同步、Pod 拉镜像时才见分晓：失败时 Pod 停在 `ImagePullBackOff`，`kubectl describe pod` 的事件里能看到 401。
 3. hub 证书与 vhost，分两步（部署仓库 `2-qian/README.md` 上线顺序第 4 步）：
    1. DNS 生效后，在 hub 控制台按部署仓库 `env-ds/edge/README.md` 跑 `deploy.sh --apply`，发布两个 vhost 的 `:80` 段。这一段只服务 ACME 验证、其余跳转 https，不引用证书。
-   2. 用 webroot 签发两个主机名的证书：`certbot certonly --webroot -w /var/www/letsencrypt -d <主机名>`，各一条。
-   3. 证书就位后，合并补 `443` 段的部署仓库 PR，再跑一次 `deploy.sh --apply`。
+   2. 用 DNS-01 签发两个主机名的证书，各一条。腾讯云对未接入备案的域名，在 80 端口间歇返回拦截页（2026-11-15 从 qd 实测 24 次里 18 次），webroot 验证多半失败。证书仍由 certbot 管理，路径不变；验证改用部署仓库 `env-ds/edge/qdal/certbot/` 下的两个钩子，经阿里云解析 API 增删 `_acme-challenge` TXT 记录（部署仓库 PR #105）。一次性准备与签发命令见部署仓库 `env-ds/edge/README.md`「证书」：RAM 子账号只授本域名解析记录的增删查，AccessKey 只在 hub 上交互配置。
+   3. 证书就位后，合并补 `443` 段的部署仓库 PR（#100），再跑一次 `deploy.sh --apply`。
 
    部署脚本先 `nginx -t`、自带备份，失败整体回滚。`443` 段引用的证书文件不存在时 `nginx -t` 必然失败，还会挡住 hub 上其它 vhost 的发布，所以 `443` 段不能先于证书合入。
 4. 系统组件修订的签名钥（R151 ①）。在 qd 上生成一次，私钥只留在 qd，不进集群、不进 git：

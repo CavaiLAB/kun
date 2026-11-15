@@ -336,20 +336,10 @@ public sealed partial class TenantSignupTests
     }
 
     // 平台链上本组件的超管旁路记录（引导时生命周期条目与租户主档的放行不算）。
-    private static async Task<AuditRecord[]> Bypasses(RunningApp business)
-    {
-        var source = Loader(business).GetContext("tenancy", ScopeKey.Global);
-        var records = new List<AuditRecord>(); long after = 0;
-        while (true)
-        {
-            var page = await source.Audit().ReadPlatformAsync(source, after, 200, cancellationToken: Ct);
-            records.AddRange(page.Select(entry => entry.Record));
-            if (page.Count < 200) break;
-            after = page[^1].Sequence;
-        }
-        return [.. records.Where(record => record.Payload.ValueKind == JsonValueKind.Object && record.Payload.TryGetProperty("permission", out var permission) &&
-            permission.GetString()!.StartsWith(Permission, StringComparison.Ordinal))];
-    }
+    private static async Task<AuditRecord[]> Bypasses(RunningApp business) =>
+        [.. (await ReadPlatformChain(Loader(business).GetContext("tenancy", ScopeKey.Global))).Select(entry => entry.Record)
+            .Where(record => record.Payload.ValueKind == JsonValueKind.Object && record.Payload.TryGetProperty("permission", out var permission) &&
+                permission.GetString()!.StartsWith(Permission, StringComparison.Ordinal))];
 
     private Task<string?> Owners(Guid tenant) => Text("SELECT string_agg(a.subject_id, ',' ORDER BY a.subject_id) FROM plugin_qian_authz.role_assignments a " +
         $"JOIN plugin_qian_authz.roles r ON a.role_id = r.id WHERE a.tenant_id = '{tenant}' AND r.code = 'tenant.owner'");

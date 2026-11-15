@@ -272,7 +272,8 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
 - 基线给 `qian-platform`、`qian-postgres`、`qian-redis` 都预置了 `minAvailable: 1` 的 PDB，而它们都只有一个副本：`kubectl drain` worker01 会一直等待。节点维护前先临时放宽或删除这三个 PDB，维护后恢复。
 - 网关的就绪依赖 hub 与身份发行方：hub 或身份服务故障时，网关被摘出 Service 端点，外壳整体不可用，连静态页也打不开。要改需要 Qian 侧调整就绪检查的口径。
 - 网关入口（`hosts/Qian.Gateway.Host/Program.cs`）没有像平台宿主那样拦截未处理异常：依赖挂载失败时，容器里的 PID 1 可能空转不退出，要等 90 秒启动探针超时才被重启。
-- 新 Pod 的地址要等 K3s 网络策略控制器写进 PG 的放行集合后才连得上，在此之前连接被拒（Connection refused）。2026-11-15 首次同步时，建角色 Job 一启动就连，两次都因此失败。三个发布 Job 与引导模板连 PG 前先用 `pg_isready` 等它可达，至多约 60 秒（部署仓库 PR #102）。两个 Deployment 不加等待：部署仓库门禁要求 Deployment 只用自身镜像，且每个容器都带三类探针。首次连库失败靠 kubelet 重启恢复。
+- 新 Pod 的地址要等 K3s 网络策略控制器写进 PG 的放行集合后才连得上，在此之前连接被拒（Connection refused）。2026-11-15 首次同步时，建角色 Job 一启动就连，两次都因此失败。三个发布 Job 与引导模板连 PG 前先用 `pg_isready` 等它可达，至多约 60 秒（部署仓库 PR #102）；之后的同步里三个 Job 都在重试 1 次（约 2 秒）后连上。两个 Deployment 不加等待：部署仓库门禁要求 Deployment 只用自身镜像，且每个容器都带三类探针。首次连库失败靠 kubelet 重启恢复：同一次同步里，网关首启时连 Redis 被拒（`RedisConnectionException`），进程以退出码 139 退出，4 秒后重启即恢复。
+- 环境 overlay 不给 events 配 broker，宿主就不登记 Outbox 投递服务（`QianOutboxRelay` 只随 `AddQianEventsBroker` 登记）。各组件 `outbox_messages` 里的集成事件只写不发：首次同步后，lifecycle 有 11 条 `plugin.activated` 事件停在待发状态。同进程形状里没有跨进程订阅者，功能不受影响，但这些表会随开户等操作一直增长。接 RabbitMQ 之前，接受这种增长或定期清理。
 - 平台镜像的三个 Job 也挂身份服务的签名、加密证书与客户端密钥（宿主装配身份分支时就读取）；修订 Job 与引导模板另挂在线登录的连接串，迁移 Job 不挂。
 - K3s 的 Secret 静态加密（`--secrets-encryption`）状态本次没有核对（需要 root）。
 - 没有装配 OpenAPI / proto 兼容检查器，组件跨版本升级会拒绝执行（fail-closed）；换镜像只能是同版本组件的重签与重装。

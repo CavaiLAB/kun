@@ -217,6 +217,7 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
   - 镜像按 digest 引用；
   - `runAsNonRoot` 且 UID 非 0；
   - `readOnlyRootFilesystem: true`。
+- **从外部探测外壳。** 网关只对接受 HTML 的 GET / HEAD 回落到外壳的 `index.html`。curl 缺省的 `Accept: */*` 得到 404（`application/problem+json`），不代表外壳不可用。探测首页要带 `-H 'Accept: text/html'`，或者取 `/app-config.json`。
 - **登录、开户与租户隔离（E2E）。**
   1. 平台运营经外壳登录进平台控制台；
   2. 新建管理员账号，开户并激活一个租户；

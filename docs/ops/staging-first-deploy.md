@@ -200,6 +200,11 @@ kubectl -n qian-staging logs job/<Job 名>
 1. 平台运营打开 `https://qian-staging.deepsingularity.cn`，跳到身份发行方的 `/login`，用初始密码登录，按提示改密；
 2. 回到外壳，进平台控制台（租户运营、开通申请）；
 3. 确认能登录后删除初始密码的 Secret 与引导 Job。之后的平台超管授予与撤销走平台运营流程。
+   ```bash
+   kubectl --context <上下文> -n qian-staging delete job qian-bootstrap-operator-1
+   kubectl --context <上下文> -n qian-staging delete secret qian-bootstrap-operator
+   ```
+   引导 Job 完成 24 小时后会被自动清理，Secret 不会，要手工删。清单里挂起的 CronJob 仍引用这个 Secret，属预期。日后带 `--app` 重跑第 4 节第 1 步的脚本，会按缺失项重新生成它（新的随机密码）；库里已有平台超管时引导 Job 拒绝执行，用不上它，照样删掉。
 
 ## 6 部署后检查
 

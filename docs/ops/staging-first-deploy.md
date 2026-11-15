@@ -137,6 +137,8 @@
 
 只做完整同步。选择性同步不执行 Sync 钩子，迁移与修订 Job 不会跑；工作负载是 Recreate，旧副本先停，新副本又因待执行的迁移拒绝启动，平台会中断到下一次完整同步。配置 ConfigMap 名带内容哈希，换配置后旧的那份要在同步时勾选 Prune 才会删除。
 
+做过选择性同步之后，Argo（v3.4.4）会把那次的对象清单留在 `status.operationState.operation.sync.resources` 里，下一次完整同步续跑时读回它，就成了跳过钩子的选择性同步：几秒内报成功，事件里是「Partial sync operation … succeeded」。2026-11-15 首次同步就因 10-11 基线选择性同步的残留空跑了两次。触发完整同步前先查这个字段，非空就删掉（命令见部署仓库 `2-qian/README.md` 发布步骤 5）。
+
 每一步都先经产品负责人确认再执行；做完用只读命令检查：
 ```bash
 kubectl -n qian-staging get jobs,pods -o wide
@@ -270,6 +272,7 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
 - 基线给 `qian-platform`、`qian-postgres`、`qian-redis` 都预置了 `minAvailable: 1` 的 PDB，而它们都只有一个副本：`kubectl drain` worker01 会一直等待。节点维护前先临时放宽或删除这三个 PDB，维护后恢复。
 - 网关的就绪依赖 hub 与身份发行方：hub 或身份服务故障时，网关被摘出 Service 端点，外壳整体不可用，连静态页也打不开。要改需要 Qian 侧调整就绪检查的口径。
 - 网关入口（`hosts/Qian.Gateway.Host/Program.cs`）没有像平台宿主那样拦截未处理异常：依赖挂载失败时，容器里的 PID 1 可能空转不退出，要等 90 秒启动探针超时才被重启。
+- 新 Pod 的地址要等 K3s 网络策略控制器写进 PG 的放行集合后才连得上，在此之前连接被拒（Connection refused）。2026-11-15 首次同步时，建角色 Job 一启动就连，两次都因此失败。三个发布 Job 与引导模板连 PG 前先用 `pg_isready` 等它可达，至多约 60 秒（部署仓库 PR #102）。两个 Deployment 不加等待：部署仓库门禁要求 Deployment 只用自身镜像，且每个容器都带三类探针。首次连库失败靠 kubelet 重启恢复。
 - 平台镜像的三个 Job 也挂身份服务的签名、加密证书与客户端密钥（宿主装配身份分支时就读取）；修订 Job 与引导模板另挂在线登录的连接串，迁移 Job 不挂。
 - K3s 的 Secret 静态加密（`--secrets-encryption`）状态本次没有核对（需要 root）。
 - 没有装配 OpenAPI / proto 兼容检查器，组件跨版本升级会拒绝执行（fail-closed）；换镜像只能是同版本组件的重签与重装。

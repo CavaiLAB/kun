@@ -290,7 +290,8 @@ public abstract partial class CustomerCommandTests
     }
 
     // 平台链上的全部记录：分页读到末尾（每页 200）。只读第一页时，链上记录一多，Assert.All 与「没有新增」恒真，Assert.Contains 与条数误报失败（S1-QA-024）。
-    private protected static async Task<List<AuditChainEntry>> ReadPlatformChain(IPluginContext source)
+    // CRM 测试读平台链只用这一个实现；PlatformIdentityHostTests 不在本类之下也要用，所以是 internal（S1-QA-025）。
+    internal static async Task<List<AuditChainEntry>> ReadPlatformChain(IPluginContext source)
     {
         var entries = new List<AuditChainEntry>(); long after = 0;
         while (true)

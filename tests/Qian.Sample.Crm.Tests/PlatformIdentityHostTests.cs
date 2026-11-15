@@ -501,11 +501,9 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
 
     private static string[] Ids(string list) => [.. JsonNode.Parse(list)!["items"]!.AsArray().Select(item => (string)item!["id"]!)];
 
-    private static async Task<IReadOnlyList<AuditRecord>> PlatformChain(PlatformRuntime runtime)
-    {
-        var producer = runtime.Global("audit");
-        return [.. (await producer.Audit().ReadPlatformAsync(producer, 0, 200, cancellationToken: Ct)).Select(entry => entry.Record)];
-    }
+    // 平台链上的全部记录：与 CRM 其它用例共用同一个分页读取，读到末尾；只读前 200 条时，「引导记录恰好一条」看不到后面的记录（S1-QA-025）。
+    private static async Task<IReadOnlyList<AuditRecord>> PlatformChain(PlatformRuntime runtime) =>
+        [.. (await CustomerCommandTests.ReadPlatformChain(runtime.Global("audit"))).Select(entry => entry.Record)];
 
     private static async Task<JsonElement> Json(HttpResponseMessage response, HttpStatusCode expected)
     {

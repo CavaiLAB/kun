@@ -6,6 +6,7 @@
 |---|---|---|
 | `research/baseline-digest.md` | 调研基线要点汇编：7 个领域（Kun 能力与差距、插件化与 Agent 架构、租户/身份/权限、在线开发、流程、数据/集成/报表、前端与 yue）的全貌、分级结论、难点与待拍板问题 | 草案 |
 | `decisions/key-decisions-v0.md` | 关键决策清单 D1–D18、Q1–Q18 默认与补充裁决；2026-10-06 全部获认可并转为 ADR-001…018，此后只作历史记录；D19 库优先、D20 组件模型 v2 为同日方向修正新增（ADR-019 / ADR-020，2026-10-07 Accepted） | 已认可（历史记录；D19 / D20 已拍板） |
+| [`decisions/framework-refinement-2026-10.md`](decisions/framework-refinement-2026-10.md) | 框架细化决策备忘录（2026-10-20）：Agent 框架口径下 K8s / Kun / Qian / iClaw / yue 五层定位，Kun 与 Qian 是否都需要（实测依赖）、网关选型、K3s 基础组件与容量、Serverless 三义落位、S1 剩余任务取舍、迁移步骤；§12 iClaw 既有 C# 实现的去向；待拍板 Q1–Q30。2026-11-15 删节后入库（本仓库公开，删去现网基础设施的运维细节，以及 iClaw 私有仓库与部署仓库的内部细节），文首的入库说明列出删节口径、候选任务号对照与写作之后的变化 | 草案，待产品负责人拍板（S1-DEC-035） |
 | `adr/` | 架构决策记录 ADR-001…022 + 索引 `adr/README.md`（Status / Context / Decision / Rationale / Consequences / 各阶段影响 / 待确认；ADR-020 组件模型 v2 部分取代 ADR-002 / 003、修订 ADR-014 / 019；ADR-019 / ADR-020 已于 2026-10-07 Accepted；ADR-021 产品族结构同日新增，修订 ADR-001 / 013） | 草案 v1（组件模型 v2 已定稿，2026-10-07） |
 | [`adr/ADR-022-rspress-unified-component-docs.md`](adr/ADR-022-rspress-unified-component-docs.md) | 统一 Rspress，替换 Storybook；能力实测、Props/离线限制与迁移验收 | 已确认；替换与正式站验收已于 2026-10-14 完成（S1-YUE-005） |
 | `prd/` | 产品需求文档：索引 `prd/README.md` + 17 章（01–17）+ 专题 spec | 草案 v1（组件模型 v2 已定稿（2026-10-07）：§02 / §03 / §07–§12、specs 已回填，待确认项全部拍板） |
@@ -14,6 +15,7 @@
 | `prd/specs/data-contracts.md` | Filter AST、字段运算符矩阵、系统变量、数据规则与 Record Hook / 事件信封契约；JSON 与 C# 类型同源分发 | S1-DATA-004 |
 | [`prd/specs/tenant-signup.md`](prd/specs/tenant-signup.md) | 租户自助开通专题 spec：申请状态机、组件 `qian.tenancy.signup` 四问、申请人与运营接口、申请人访问方式、通知、页面与视觉口径 | S1-DEC-032（D2–D8 待确认） |
 | `prd/specs/yue.md` | yue 组件库专题 spec：关键决策 D1–D16、六层分层、控件注册表契约、MF2 外壳与插槽、S1 最小集验收 | 草案 v1 |
+| [`prd/specs/auth-pages.md`](prd/specs/auth-pages.md) | 认证页族设计规格（2026-10-21）：登录 / 第二因子 / 租户选择与切换 / 强制改密 / 确认绑定 / 回调态 / 会话弹窗族 / 登出 / 设备码 / 授权同意的逐页版式、状态表、文案、安全与无障碍要点、验收映射；配套设计画板链接见文首。2026-11-15 入库，正文只删去一处括注；认证页此前已按各任务实现，本文没有与实现逐条核对 | 草案，待产品负责人确认（§8 D1–D14，S1-DEC-035） |
 | `prd/specs/docs-site.md` | 文档站信息架构与规范：七个部分（第 3 部分含「Kun 框架」镜像小节，§2b）、产品族地图与版本矩阵、组件页模板、frontmatter（含 `project`）、llms 产物、`website/` 骨架 | 已确认（2026-10-07；Kun 进站经 ADR-021 补充） |
 | `generated/` | `qian docs generate` 从实际 profile、配置 Schema 与 C# 事件代码派生的配置目录、模块图、事件图、seam 图，CI 重新生成并比对、漂移即失败；实现说明见 `../packages/Qian.Docs/README.md` | 生成物 |
 | `CHANGELOG.md` | 变更日志：对读者可见的变化（新文档与规格、新组件与命令、破坏性变更），按日期倒序；文档站首页「最新动态」取最近 4 条 | 持续更新 |

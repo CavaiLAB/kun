@@ -738,3 +738,15 @@ S1-IDP-017 开工前，执行会话就两件事给出推荐并请产品负责人
     - ① CRM 测试项目里现在有三份相同的平台链分页循环：`CustomerCommandTests.ReadPlatformChain`、`TenantAdminTests.PlatformChain`、`TenantSignupTests.Operations.cs` 的 `Bypasses`。可以统一用 `ReadPlatformChain`。
     - ② S1-DEP-011 新增的 `PlatformIdentityHostTests.PlatformChain` 只读平台链前 200 条，属同类读法；现在链短，不影响结论。`Qian.Lifecycle.Tests`、`Qian.Config.Tests` 等其它测试项目里也有单页读取，没有逐处核对。
     - ③ 本机 SDK 10.0.300 自带的 ILCompiler 10.0.8 命中公告 GHSA-p3jp-9v83-76w9，5 个 AOT 项目还原时报 NU1903，全方案 Release 构建在本机要关 NuGet 审计才能过；CI 按 `global.json` 装新 SDK，不受影响。
+
+### 产品负责人确认 R160（S1-QA-025 置 done；其它测试项目平台链单页读取的核对，2026-11-16）
+
+- R160（S1-QA-025 的收尾登记。产品负责人 2026-11-16 在主会话作答「置 done，结论一并登记」）：S1-QA-025 置 done。#315 合入 main 2c289ba138。
+  - 来源是 R159 的观察 ① 与 ②，产品负责人 2026-11-16 作答「统一并改掉」。CRM 测试项目读平台链现在只剩 `CustomerCommandTests.ReadPlatformChain` 一个实现，`PlatformIdentityHostTests.PlatformChain` 改为经它分页读完。
+  - 依据是执行会话自己的验证：长链复验五个用例、全方案 Release 从头重建 0 警告、CRM 测试模块全量 134 例全过，记在 S1-QA-025 的进度日志；#315 的 CI 10 项检查全部通过。没有另做独立的验收复核。
+  - R159 观察 ② 留下「其它测试项目里也有单页读取，没有逐处核对」。现已按 main 2c289ba138 逐处读过代码，没有做长链实验。范围是经 `ReadPlatformAsync` 读平台链的调用，6 个测试项目共 11 处；租户链的读取不在内。
+    - `Qian.Audit.Tests`、`Qian.Audit.Native.Tests`、`Qian.Authz.Tests` 共 8 处，每页 10 条：断言是不带条件的 `Assert.Single`、`Assert.Empty`，或与期望序列逐项相等。链超过一页时断言失败，不会放过。`tools/Qian.Audit.Native.Probe` 的一处比较条数等于 1，同理。
+    - `Qian.Lifecycle.Tests` 的 `LifecycleAuditTests.PlatformChain`，每页 100 条：各处比较的是条数、序号，或与期望的能力标识序列逐项相等。链超过一页时断言失败。
+    - `Qian.Config.Tests` 的 `RealApolloReleaseAuditTests`，每页 100 条：等不到记录会超时失败；随后「验链条数等于读到的条数」把整条链的长度钉住；「不含配置值」那条断言走 SQL 读全部平台行。
+    - `Qian.Gateway.Host.AotTests` 的 `GatewayHostTests`，经 `NativeAuditReader.Read` 每页 100 条：等不到新的发布记录会超时失败，验链也走全链；但末尾「`TenantId` 全为 null」与「审计链不能含凭据」两条断言只看前 100 条。链超过 100 条而发布记录仍落在前 100 条时，第 100 条之后的记录不受这两条检查。这条链现在有多长没有查到，CI 日志不打印用例输出。
+  - 观察，不阻断，没有立任务：`GatewayHostTests` 的那两条断言属 R159 说的同类读法。

@@ -8,6 +8,8 @@
 
 ## 产品族：Kun、Qian、yue 与周边仓库
 
+> **2026-11-17：Qian 将并入 Kun。** 产品负责人已裁定合并（[ADR-023](docs/adr/ADR-023-kun-qian-merge-blueprint.md)，Accepted）：合并后的仓库是 `idadawn/kun`，`Qian.*` 并入 `Kun.*`，一个包族、一条日历版本线，许可证全部改 MIT；前端框架由 yue 更名为 qian。蓝图分阶段落地，冻结窗口放在「初步可用」里程碑之后。下面的三层口径与表格是合并落地前的现状。
+
 三个名字、三层，不是一个大单仓（[ADR-021](docs/adr/ADR-021-product-family-structure.md)）。对外一句话：**Qian 平台基于 Kun 框架构建，前端使用 yue 组件库**。Kun 不是 Qian 的子项目（它有自己的下游与发布节奏），Qian 也不是 Kun 的扩展（它有自己的运行时与产品语义）。把它们关联起来的是四样东西：一个 GitHub 所有者 `idadawn`（2026-10-07 拍板，Kun 从 CavaiLAB 迁入，见任务 S1-PM-003）、一个文档站、一张自动生成的版本矩阵、一个任务看板。
 
 | 名字 | 层 | 是什么 | 仓库 | 版本 · 许可 | 文档在哪 |

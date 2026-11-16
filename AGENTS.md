@@ -9,6 +9,16 @@
 3. `docs/prd/specs/component-model.md`：开发者规格，实现时以它为准。
 4. `docs/prd/07-s1-foundation.md`：S1 每个组件的范围、技术落点与验收。
 5. `pm/README.md`：任务怎么管。
+6. `docs/adr/ADR-023-kun-qian-merge-blueprint.md`：合并蓝图（Qian 并入 Kun）。落地期间的规则见下一节。
+
+## 合并蓝图落地期间（ADR-023）
+
+产品负责人 2026-11-17 裁定 Qian 并入 Kun（`pm/tasks/S1-DEC-036.md` 的 D1–D14，蓝图是 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，Accepted）：合并后的仓库是 `idadawn/kun`；`Qian.*` 并入 `Kun.*`，一个包族、一条日历版本线；两边重叠的实现归并成一份；许可证全部改 MIT；前端框架由 yue 更名为 qian。蓝图分五个阶段落地，现在是阶段 0：蓝图已确认，本仓库的 ADR 与文档已回写，代码没有动。
+
+- 阶段 1 的冻结窗口放在「初步可用」里程碑（S1-DEC-033）当前在途任务收口之后。在那之前，本文件其余各节照旧执行：包名仍是 `Qian.*`，两道 .NET 门禁、`KunVersion` 单点钉版、Kun 文档镜像、yue 的目录与包名都不变。
+- 不要抢跑。包名、命名空间、目录、许可证字段、yue 的任何标识，只在对应阶段的任务里改：S1-KUN-019（阶段 1 冻结与导入）、S1-KUN-020（阶段 2 构建并轨）、S1-KUN-021（阶段 3 按域归并与改名）、S1-YUE-022（阶段 3 最后一批，前端更名）、S1-KUN-022（阶段 4 首个合并版）。
+- 运行期字面不随合并改名：组件 id 前缀 `qian.`、库 schema `plugin_qian_*`、Cookie 名、契约标识 `https://qian.dev/…` 与 `x-qian-*`、`.qian-plugin/plugin.json`、`qian` 命令行、`@qian/*` 导入名（ADR-023 D23.10、D23.18）。
+- 阶段 3 按域归并期间，功能任务避开正在归并的域；同一时间一个域只有一个归并批次。
 
 ## 任务流程（必须遵守）
 
@@ -32,7 +42,7 @@
 - Markdown 表格单元格里的反引号内若有竖线，写成 `\|`。
 - 组件设计先回答四个问题：文件夹里有哪些表面、装进哪个 profile、属于哪个 seam 的哪个角色、能否 `qian add`。凡是把能力绑死在特权内核、DI 扩展方法或数据库开关上的写法都是倒退。
 - 术语：平台插件（不是「系统插件」）、运行时 `Qian.Runtime`（不是「内核」）、profile（不是「可部署单元」）、`.qian-plugin/plugin.json`（不是 `qian-plugin.yaml`）、租户 scope patch（不是「租户开关」）。
-- 三层口径（ADR-021）：Kun = 框架层（底座 SDK）、Qian = 平台层、yue = 前端层；写「Qian 基于 Kun 构建」，不写「Kun 是 Qian 的子项目」或「Qian 是 Kun 的扩展」。Kun 的代码与文档改动去 kun 仓库提 PR，Qian 任务里只回链；文档站的「Kun 框架」小节（`website/docs/sdk/kun/`）是按 `KunVersion` 锁定版本生成的镜像，不要手改（唯一手写页 `with-qian.mdx` 除外）。
+- 口径（ADR-023 D23.6，取代 ADR-021 的三层口径）：Kun 是框架，内部分内核档与平台档；qian 是前端层（原名 yue）；「Qian」不再是平台层的名字。新写定位性的表述按这个口径，不再写「Qian 平台基于 Kun 构建」；描述现有代码时照实写现在的包名与目录。总名 Yi 之下怎么写待 S1-DEC-034。Kun 的代码与文档改动去 kun 仓库提 PR，Qian 任务里只回链；文档站的「Kun 框架」小节（`website/docs/sdk/kun/`）是按 `KunVersion` 锁定版本生成的镜像，不要手改（唯一手写页 `with-qian.mdx` 除外）。
 - Kun 版本单点：`Directory.Packages.props` 的 `<KunVersion>` 属性（S1-DOCS-005 加入，文档站的「Kun 框架」小节与 Kun API 参考按它生成）。全部 `Kun.*` 的 PackageVersion 引用 `$(KunVersion)`，`NuGet.config` 用 packageSourceMapping 把 `Kun.*` 映射到 nuget.org；Kun 正式版从 nuget.org 还原，只有需要 Kun 预发布版时才加 GitHub Packages 源（文档站的 DocFX 构建也复用此配置，届时 docs-site 工作流也要配该源的读凭据，R62）；之后升级 Kun 只改这一处（ADR-021 D21.3）。
 - 代码部分遵循 ADR-019：每个有代码的组件发 `Qian.<X>.Abstractions` + Provider 包；组件库只依赖 `Qian.Runtime`，不依赖 `qian.registry` / `qian.lifecycle`。
 - 两道 .NET 门禁会自动拦截（细节见 `tests/README.md`）：
@@ -41,7 +51,7 @@
 - 错误响应一律是 `contracts/v0/error-detail.schema.json` 的 ErrorDetail：用 `Qian.Runtime.Errors` 定义与登记错误码（大写下划线、全局唯一、在本组件 Definition 包里定义），HTTP 宿主装 `AddQianErrors()` + `UseQianErrors()`；不要自己拼 ProblemDetails 或 `{ error: ... }`。
 - 改了 `contracts/v0/` 的 Schema 必须同时改 fixture 与 `Qian.Runtime.Errors`，`dotnet test` 会校验 Schema、fixture 与内置错误码目录 `error-codes.json` 是否一致。
 - 集成测试用 `tests/Qian.Testing.Containers` 的 fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身），不要各自再写一套容器启动代码。
-- 已有决策不要重开。D1–D18 已获认可；ADR-019 / 020 / 021 均为 Accepted，ADR-019 / 020 的待拍板项已拍板并记录在各 ADR §7（对应 `S1-DEC-*` 已关闭）；仓库归属已拍板：产品族统一在 `idadawn`，Kun 从 CavaiLAB 迁入（ADR-021 §7，执行见 S1-PM-003）。`S1-DEC-001`–`S1-DEC-009` 已关闭；`S1-DEC-010`（contracts/v0 的 8 条默认裁决）待产品负责人拍板，拍板前按 `contracts/v0/README.md` 第 8 节的默认值实现。文档里标「已裁决（R{n}）」的是复核时的默认裁决，有异议时新建决策任务而不是直接改。
+- 已有决策不要重开。合并蓝图 ADR-023 于 2026-11-17 Accepted（S1-DEC-036 的 D1–D14 由产品负责人逐条裁定），部分取代 ADR-001 / ADR-021、修订 ADR-013 / ADR-019 / ADR-020。D1–D18 已获认可；ADR-019 / 020 / 021 均为 Accepted，ADR-019 / 020 的待拍板项已拍板并记录在各 ADR §7（对应 `S1-DEC-*` 已关闭）；仓库归属已拍板：产品族统一在 `idadawn`，Kun 从 CavaiLAB 迁入（ADR-021 §7，执行见 S1-PM-003）。`S1-DEC-001`–`S1-DEC-009` 已关闭；`S1-DEC-010`（contracts/v0 的 8 条默认裁决）待产品负责人拍板，拍板前按 `contracts/v0/README.md` 第 8 节的默认值实现。文档里标「已裁决（R{n}）」的是复核时的默认裁决，有异议时新建决策任务而不是直接改。
 
 ## 仓库布局
 

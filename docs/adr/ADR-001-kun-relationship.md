@@ -5,11 +5,14 @@ date: 2026-10-06
 decision_id: D1
 supersedes: none
 amended_by: ADR-021
+superseded_by: ADR-023（部分）
 ---
 
 # ADR-001 Qian 与 Kun 的关系
 
 > 2026-10-07 经 [ADR-021](ADR-021-product-family-structure.md) 修订：补充 Kun / Qian / yue 三层口径、产品族的关联方式（组织、文档站、版本矩阵、看板）、`KunVersion` 单点钉版与 Kun 文档进文档站的规则；D1.1–D1.8 原文不变。
+
+> **2026-11-17 部分被 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) 取代。** 产品负责人裁定 Qian 并入 Kun。D1.2 的消费方式，以及 §4 里否决单仓、否决「把 Kun 扩展为平台内核」的两条被取代；D1.1 的定位改按 ADR-023 D23.6。取代按 ADR-023 D23.15 分阶段落地：阶段 2 构建并轨之前，Qian 仍以 NuGet 包钉版消费 Kun。其余条目不变。
 
 ## 1 背景与问题（Context）
 
@@ -21,8 +24,8 @@ iClaw 以 `ProjectReference` 指向同级 `kun/` 目录并在 Docker 构建时�
 
 ## 2 决策（Decision）
 
-- **D1.1 定位**：Kun 是「微服务开发框架 / 底座 SDK」，不是平台内核。Qian 内核（插件注册表、生命周期、能力目录、租户目录、身份、权限、配置、审计装配）自成一层，Kun 模块是该层的实现依赖（v2 后此层 = `Qian.Runtime` + 平台插件 / `platform` profile base 组合包，Kun 的 `AddKunXxx()` 模块在 Qian 里被包装为插件，见 ADR-020 D20.1 / D20.10）。
-- **D1.2 消费方式**：Qian 以 NuGet 包 + CalVer 锁版本消费 Kun；禁止把 Kun 源码复制进 Qian 仓库或以 `ProjectReference` 引用。
+- 【经 ADR-023 修订：Kun 重新定位，见 D23.6】**D1.1 定位**：Kun 是「微服务开发框架 / 底座 SDK」，不是平台内核。Qian 内核（插件注册表、生命周期、能力目录、租户目录、身份、权限、配置、审计装配）自成一层，Kun 模块是该层的实现依赖（v2 后此层 = `Qian.Runtime` + 平台插件 / `platform` profile base 组合包，Kun 的 `AddKunXxx()` 模块在 Qian 里被包装为插件，见 ADR-020 D20.1 / D20.10）。
+- 【已被 ADR-023 取代，阶段 2 构建并轨之前照旧执行】**D1.2 消费方式**：Qian 以 NuGet 包 + CalVer 锁版本消费 Kun；禁止把 Kun 源码复制进 Qian 仓库或以 `ProjectReference` 引用。
 - **D1.3 对 Kun 的配套要求**：预发布 feed（`-beta.N`）、公共 API 兼容承诺、弃用窗口不少于 2 个小版本、完整变更日志。同日修复版 `-hotfix.N` 不属预发布 feed，推送 nuget.org，消费方式见 ADR-021 D21.3 补注（S1-DEC-019 R65）。
 - **D1.4 不推翻的核心设计**：四层依赖、`Result` 错误模型、显式注册的 Mediator、Outbox 表结构与稳定事件 ID、schema-per-service、RLS 双保险、PublicAPI 门禁，全部继承。
 - **D1.5 改变三件事**：(a) 不把「AOT 兼容」写成平台承诺——业务服务全部 JIT，AOT 只留网关与 gRPC 边缘；(b) Kun 的安全默认值（RLS 拦截器、租户模型缓存键、强制认证、限流挂载）在 Qian 应用模板里改为**强制装配 + 构建期检查**，而非 opt-in；(c) 对每组双胞胎 API 选定唯一一套 canonical 实现并写进规范（签发器见 ADR-010，审计见 ADR-009，存储用新线 `Kun.Storage.Abstractions`，`ITenantContext` 用 AsyncLocal 版）。
@@ -39,9 +42,9 @@ iClaw 以 `ProjectReference` 指向同级 `kun/` 目录并在 Docker 构建时�
 
 ## 4 备选方案与放弃原因（Alternatives）
 
-- **monorepo / ProjectReference 引用 Kun**（iClaw 现状）：破坏性变更直接打断 Qian 构建，镜像构建依赖私有仓，第三方无法依赖源码。放弃。
+- 【已被 ADR-023 取代】**monorepo / ProjectReference 引用 Kun**（iClaw 现状）：破坏性变更直接打断 Qian 构建，镜像构建依赖私有仓，第三方无法依赖源码。放弃。
 - **长期 fork Kun**：分叉后双方修复不再互通，加重单人维护问题。只作为 D1.7 的逾期退路，并设回合入期限。
-- **把 Kun 直接扩展为平台内核**：违背 Kun 的框架定位，插件、注册表、权限、元数据都不是框架职责。放弃。
+- 【已被 ADR-023 取代】**把 Kun 直接扩展为平台内核**：违背 Kun 的框架定位，插件、注册表、权限、元数据都不是框架职责。放弃。
 
 ## 5 后果与代价（Consequences）
 

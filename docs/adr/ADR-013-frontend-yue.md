@@ -4,12 +4,14 @@ status: Accepted
 date: 2026-10-06
 decision_id: D13
 supersedes: none
-amended_by: ADR-021、ADR-022
+amended_by: ADR-021、ADR-022、ADR-023
 ---
 
 # ADR-013 前端与 yue
 
 > 2026-10-07 经 [ADR-021](ADR-021-product-family-structure.md) 修订：D13.18 文档站的覆盖范围从「Qian 平台与 yue 组件」扩为整个产品族，底座框架 Kun 以镜像小节进入第 3 部分（规则见 specs/docs-site.md §2b）。
+
+> **2026-11-17 经 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) 修订。** 前端框架由 yue 更名为 qian（D23.17、D23.18）：8 个包改叫 `@idadawn/qian-<原名>`，UI 清单键 `engines.yue` 改为 `engines.qian`，许可证改为 MIT。更名排在合并阶段 3 的最后一批（S1-YUE-022），落地之前本文与代码里的 yue 字面不变。
 
 ## 1 背景与问题（Context）
 

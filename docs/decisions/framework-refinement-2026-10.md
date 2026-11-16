@@ -32,6 +32,7 @@
 >
 > - 2026-11-11 产品负责人定了「初步可用」里程碑的顺序：多租户、管理后台、模型服务（[S1-DEC-033](../../pm/tasks/S1-DEC-033.md) D1）。S1-DEC-033 D7 的推荐口径是这个里程碑先行、本文的待拍板项另行处理，D7 本身仍待确认。本文 §7、§8 的排期按「Agent 框架 v0」写，没有反映这个里程碑。
 > - staging 首次部署的形状已定为平台与身份同进程、网关独立（R143，[ADR-017](../adr/ADR-017-deployment.md) §10）。本文 §4 提的 f1 过渡变体是网关以库形态嵌进 platform 单 Pod，两者不同。
+> - 2026-11-17 产品负责人裁定 Qian 并入 Kun（[ADR-023](../adr/ADR-023-kun-qian-merge-blueprint.md)，Accepted）。本文 §3.3 (d) 对合仓的否决与 §9 Q4 的 Kun 路线（不合仓）由它取代；Q4 里的发版 B 与 e1 两项不在 ADR-023 的范围内，连同其余待拍板项仍由 S1-DEC-035 跟踪。
 > - §7.2 与 §8 里的任务状态是 2026-10-20 的看板。§8 步 6 列的 S1-IDP-003、S1-IDP-004、S1-IDP-005、S1-AZ-004、S1-CFG-003、S1-EVT-002、S1-GW-001 此后都已完成。现状以 `pm/tasks/` 为准。
 
 ---
@@ -120,7 +121,7 @@ e1 的安全约束（安全评审对连续方案第四条）：`/Users/dawn/proj
 | 选项 | 否决原因 |
 |---|---|
 | (c) 把 Qian 需要的 Kun 模块并入 Qian.*、Kun 只服务 iClaw | 搬迁约 14k 行源码 + 13–15k 行测试 + 83 个 packages 文件与 104 个 tests/samples 文件改命名空间，3–4 周 S1 停摆；S2S / Outbox / 租户上下文从此两份实现，ADR-016 D16.3 同形承诺只能靠人工对齐；收益到 S3 才兑现 |
-| (d) Kun 与 Qian 合并为单一包族 / 单仓 | ADR-001 §4 与 ADR-021 D21.2 两次否决，理由未变：iClaw 以 ProjectReference 指向 `../kun/src`；CalVer/MIT 与 SemVer/Apache-2.0 二选一会破坏 iClaw 还原 |
+| (d) Kun 与 Qian 合并为单一包族 / 单仓 | ADR-001 §4 与 ADR-021 D21.2 两次否决，理由未变：iClaw 以 ProjectReference 指向 `../kun/src`；CalVer/MIT 与 SemVer/Apache-2.0 二选一会破坏 iClaw 还原。（2026-11-17 补注：产品负责人已裁定 Qian 并入 Kun，本条否决由 ADR-023 取代） |
 | 「冻结 + 吸收即归档」（极简方案） | Agent v0 第一个 Kun 改动就落在 Kun.Security / Kun.Gateway——恰是 iClaw 以 ProjectReference 在用的模块；按规则整模块迁入 Qian 并归档，iClaw 仍从冻结树编译，即修订后 D1.2 要禁止的「两份并存」；同时删除 `Directory.Packages.props` 第 40–45 行会误删在用的 Kun.Caching（第 45 行）并打断 Kun.Identity 作 RP 的联调夹具 |
 | (e2) Wolverine 替换 Mediator / EventBus / Saga | Qian.Authz.Abstractions 的权限行为（S1-KUN-014）、Validation 行为与 PublicAPI 全部重做；iClaw 仍在 Kun.EventBus 上，事件信封同形变两套；只在 EVT-002/003 被可靠性缺口阻塞时以时间盒 spike 评估（Wolverine 6.51.1，2026-10-19，https://github.com/JasperFx/wolverine/releases） |
 
@@ -407,7 +408,7 @@ flowchart LR
 | Q1 | 整体定位与阶段顺序：是否接受「Agent 框架 = Qian 平台层 + 可替换宿主」，下一里程碑 = Agent 框架 v0，S1 拆为 S1-A / S1-B，S2 低代码其后（修订已认可的 D18.1 / D18.2 / D18.5 / §4）？ | 接受 | 维持原四段顺序，Agent 可见物推到 S4（两个阶段之后），iClaw 风险到 S4 才暴露；本文 §7 的取舍全部作废 |
 | Q2 | 首要用户是「开发者把 Qian 当 Agent 后端、宿主自带」（v0 不含 yue 外壳）还是「终端用户在 yue 里用 Agent」（v0.1 拉入 13d 外壳 + Qian 自带薄宿主，实质修改 D16.2）？ | 前者 | 后者增加 13d + 薄宿主，并需裁决 D16.2 边界 |
 | Q3 | 网关：维持 ADR-010 三层并按 Kun 2026.10.14 缩减 GW-001；允许 f1 过渡变体（附 §4.2 四条硬条件，仅 staging）；S4 / v0.1 Agent 入口为「Higress 通配路由 + ext-auth 准入 → qian.gateway」，Higress 不签发、不感知租户？ | 接受 | 不允许 f1 则 staging 需三个 Pod，容量 C 之外还要更多清退；接受单进程方案则 ADR-003 §4 作废并承担私钥同驻风险 |
-| Q4 | Kun 路线：定位改「产品族内核包族」（修 ADR-001 D1.1 / ADR-021 D21.1）；发版 A 归档 Saga / Sandbox / Dapper / Testing(.EFC) / 旧线 Storage（Sandbox 归档 = 确认沙箱永久归 CubeSandbox）；发版 B 放开 agent / act 签发；S2 初做 e1；不合仓、不冻结吸收？ | 接受 | 维持「通用框架」口径则继续为无消费者模块付 CI / AOT 矩阵成本；选冻结吸收则在第一个 Agent 改动上两份并存 |
+| Q4 | Kun 路线：定位改「产品族内核包族」（修 ADR-001 D1.1 / ADR-021 D21.1）；发版 A 归档 Saga / Sandbox / Dapper / Testing(.EFC) / 旧线 Storage（Sandbox 归档 = 确认沙箱永久归 CubeSandbox）；发版 B 放开 agent / act 签发；S2 初做 e1；不合仓、不冻结吸收？（2026-11-17 补注：Kun 路线由 ADR-023 取代，合仓并重新定位，归档名单见 D23.9；发版 B 与 e1 仍待拍板） | 接受 | 维持「通用框架」口径则继续为无消费者模块付 CI / AOT 矩阵成本；选冻结吸收则在第一个 Agent 改动上两份并存 |
 | Q5 | Agent 身份签发权与 act 方向：qian.identity 签外部 Agent 令牌、qian.gateway 签 S2S（含 principal_kind=agent + act）；`contracts/v0` 采用 RFC 8693 语义（sub = 委托人、act = 行事方）并补「agent ⇒ tenant_id 非 null、act 链同租户、scope ⊆ 委托人 scope」；iClaw 各签各的不互信？ | 接受 | 不裁决 sub / act 方向则 PEP 与审计 on_behalf_of 无法实现，IDP-012 不能开工 |
 | Q6 | S1 退出标准改写文本：保留「开发者写出多租户应用」；「qian add tenancy identity authz capabilities 30 分钟」（files 精简保留）；新增「任一 Streamable HTTP 宿主（2026-07-28 优先，2025-11-25 经混合模式）经每租户门面以委托身份调用写能力，租户 B 不可见，审计含 actor=agent / on_behalf_of / channel=mcp，断流重发不重复执行」；NTF / SCH / ENT / MGW-001 / 组织目录 / 企微 / OTP / 运营页面 / FILE-002/003 / AZ-005/007 延后 S1-B（修 D18.7）；SCH-003 砍掉改「明确不支持」？ | 接受 | 不改则看板与 PRD 自相矛盾；企微 / OTP 若坚持 S1 必做需加回 8d 并恢复 NTF-003 依赖 |
 | Q7 | 参考宿主：MAF .NET（`Microsoft.Agents.AI` 1.25.0，2026-10-14，https://www.nuget.org/packages/Microsoft.Agents.AI）、Claude Agent SDK（`mcpServers` 的 `type: http`，https://platform.claude.com/docs/en/agent-sdk/mcp）、OpenAI Agents SDK（`openai-agents` 0.24.0，2026-10-15，`MCPServerStreamableHttp`，https://pypi.org/project/openai-agents/）为 tools 路径必过，三者均未公开声明所支持的 MCP 协议修订版（§11 #29），iClaw Harness「有则测」；是否要求 iClaw 侧补 Streamable HTTP 客户端（5–8d，在 iClaw 仓）；是否允许 `samples/` 下放一个基于 MAF .NET 的薄演示宿主（非产品，ADR-023 写明）？ | 三宿主必过；iClaw 有则测；允许薄演示宿主 | 以 iClaw 为前置则里程碑绑在停滞仓库上 |

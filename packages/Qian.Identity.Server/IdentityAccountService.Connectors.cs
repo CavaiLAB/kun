@@ -189,7 +189,7 @@ internal sealed partial class IdentityAccountService
             await WriteAuditAsync(NewAudit(subject, "binding_required", null, Now, tenantId: tenantId), ct).ConfigureAwait(false);
             return new(flow.Id, null, null);
         }
-        var result = await SignInWithConnectorTicketAsync(flow, bound.Value.Person, bound.Value.Membership, [FederatedAmr], Now, "external_identity", context, ct).ConfigureAwait(false);
+        var result = await SignInWithConnectorTicketAsync(flow, bound.Value.Person, bound.Value.Membership, bound.Value.Revision, [FederatedAmr], Now, "external_identity", context, ct).ConfigureAwait(false);
         await FinishFlowAsync(flow.Id, result, ct).ConfigureAwait(false);
         return new(flow.Id, null, result.Status == SignInStatus.Authenticated ? result.Session : null);
     }
@@ -231,10 +231,12 @@ internal sealed partial class IdentityAccountService
         {
             using var neutral = TenantScope(null);
             await using var session = await OpenAsync(ct).ConfigureAwait(false);
+            // 连同这次认证所依据的身份修订（查找账号时读到的值）一起记进流程：确认绑定与随后签发会话都以它比对。
             var updated = await IdentitySql.ExecuteAsync(session.Context, $"""
-                UPDATE {ConnectorFlowsTable} SET person_id = @person, membership_id = @member, verified_at = @now, verified_amr = @amr
+                UPDATE {ConnectorFlowsTable} SET person_id = @person, membership_id = @member, verified_at = @now, verified_amr = @amr, person_revision = @revision
                 WHERE id = @id AND status = '{FlowBind}'
-                """, ct, ("person", person.Id), ("member", member.Id), ("now", now), ("amr", first.Verified!.Amr.Count == 0 ? new[] { PasswordAmr } : first.Verified.Amr.ToArray()), ("id", flow.Id)).ConfigureAwait(false);
+                """, ct, ("person", person.Id), ("member", member.Id), ("now", now), ("amr", first.Verified!.Amr.Count == 0 ? new[] { PasswordAmr } : first.Verified.Amr.ToArray()),
+                ("revision", person.IdentityRevision), ("id", flow.Id)).ConfigureAwait(false);
             if (updated != 1) return (null, await RejectAsync(subject, new QianError(IdentityErrors.ConnectorStateInvalid), "flow_state", person.Id, ct, null, tenantId).ConfigureAwait(false));
         }
         await WriteAuditAsync(NewAudit(subject, "verified", "connector_binding", now, person.Id, member.Id, tenantId), ct).ConfigureAwait(false);
@@ -264,17 +266,22 @@ internal sealed partial class IdentityAccountService
         var subject = new AuditSubject("connector_bind", flow.ClientId, "connector:" + Truncate(flow.ConnectorId, 48), null, null, context);
         if (await BindingGateAsync(flow, subject, tenantId, ct).ConfigureAwait(false) is { } closed) return closed;
         var now = Now;
-        if (mode == "link" && (flow.PersonId is null || flow.MembershipId is null || flow.VerifiedAt is not { } verifiedAt || now - verifiedAt > _account.Connectors.ReauthenticationWindow))
+        if (mode == "link" && (flow.PersonId is null || flow.MembershipId is null || flow.PersonRevision is null || flow.VerifiedAt is not { } verifiedAt ||
+            now - verifiedAt > _account.Connectors.ReauthenticationWindow))
             return await RejectAsync(subject, new QianError(PlatformErrors.Unauthenticated), "reauthentication_required", flow.PersonId, ct, null, tenantId).ConfigureAwait(false);
         if (mode == "create" && !await JitAllowedAsync(tenantId, ct).ConfigureAwait(false))
             return await RejectAsync(subject, new QianError(PlatformErrors.BusinessRuleViolated), "jit_disabled", null, ct, null, tenantId).ConfigureAwait(false);
         if (!await ClaimFlowAsync(flow.Id, FlowBind, now, false, ct).ConfigureAwait(false))
             return await RejectAsync(subject, new QianError(IdentityErrors.ConnectorStateInvalid), "flow_state", flow.PersonId, ct, null, tenantId).ConfigureAwait(false);
-        Guid personId, membershipId;
+        Guid personId, membershipId; long revision;
         try
         {
-            if (mode == "link") { personId = flow.PersonId!.Value; membershipId = flow.MembershipId!.Value; await LinkFlowIdentityAsync(tenantId, flow, personId, membershipId, ct).ConfigureAwait(false); }
-            else (personId, membershipId) = await ProvisionFromFlowAsync(tenantId, flow, ct).ConfigureAwait(false);
+            if (mode == "link")
+            {
+                (personId, membershipId, revision) = (flow.PersonId!.Value, flow.MembershipId!.Value, flow.PersonRevision!.Value);
+                await LinkFlowIdentityAsync(tenantId, flow, personId, membershipId, revision, ct).ConfigureAwait(false);
+            }
+            else (personId, membershipId, revision) = await ProvisionFromFlowAsync(tenantId, flow, ct).ConfigureAwait(false);
         }
         catch (QianErrorException failure)
         {
@@ -284,7 +291,7 @@ internal sealed partial class IdentityAccountService
         }
         var linked = mode == "link";
         var amr = linked ? [.. flow.VerifiedAmr.Where(value => value != FederatedAmr), FederatedAmr] : new[] { FederatedAmr };
-        var result = await SignInWithConnectorTicketAsync(flow, personId, membershipId, amr, linked ? flow.VerifiedAt!.Value : now,
+        var result = await SignInWithConnectorTicketAsync(flow, personId, membershipId, revision, amr, linked ? flow.VerifiedAt!.Value : now,
             linked ? "external_identity_linked" : "external_identity_jit", context, ct).ConfigureAwait(false);
         await FinishFlowAsync(flow.Id, result, ct).ConfigureAwait(false);
         return result;
@@ -305,7 +312,8 @@ internal sealed partial class IdentityAccountService
     }
 
     // 绑定键 tenant × connector × subject；已绑到同一成员时幂等，绑到别的成员时冲突（不透露是谁）。成员必须仍属于该 Person 且可用。
-    private async Task LinkFlowIdentityAsync(Guid tenantId, ConnectorFlowRow flow, Guid personId, Guid membershipId, CancellationToken ct)
+    // revision 是绑定所依据的身份修订：确认绑定时是前一步认证记下的值，JIT 时是刚建出的 Person 的值。
+    private async Task LinkFlowIdentityAsync(Guid tenantId, ConnectorFlowRow flow, Guid personId, Guid membershipId, long revision, CancellationToken ct)
     {
         using var scope = TenantScope(tenantId); using var origin = OpenOrigin(personId);
         await using var session = await OpenAsync(ct).ConfigureAwait(false);
@@ -313,11 +321,11 @@ internal sealed partial class IdentityAccountService
         await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         var member = await db.Memberships.AsNoTracking().SingleOrDefaultAsync(m => m.Id == membershipId && m.PersonId == personId, ct).ConfigureAwait(false);
         if (member is null || member.Status != AccountStatuses.Active) throw Error(IdentityErrors.NoAvailableTenant);
-        // 账号的密码在确认绑定前那次登录之后改过（本人改密、运营重置、认领），先前的确认作废，要重新登录。读 Person 加共享锁，
-        // 与改密、重置串行：要么绑定在先、随后被重置一并解除，要么重置在先、这里拒绝。
-        var changed = await IdentitySql.QueryAsync(db, $"SELECT password_changed_at FROM {IdentitySql.Persons} WHERE id = @person FOR SHARE",
-            reader => reader.IsDBNull(0) ? (DateTimeOffset?)null : reader.GetFieldValue<DateTimeOffset>(0), ct, ("person", personId)).ConfigureAwait(false);
-        if (changed is not [var passwordChangedAt] || passwordChangedAt > flow.VerifiedAt) throw Error(PlatformErrors.Unauthenticated);
+        // 账号的身份修订在确认绑定前那次认证之后变过（本人改密、运营重置、认领、解除外部身份绑定等），先前的确认作废，要重新登录。
+        // 读 Person 加共享锁，与这些写入串行：要么绑定在先、随后由它们处理（重置时一并解除），要么它们在先、这里拒绝。
+        var current = await IdentitySql.QueryAsync(db, $"SELECT identity_revision FROM {IdentitySql.Persons} WHERE id = @person FOR SHARE",
+            reader => reader.GetInt64(0), ct, ("person", personId)).ConfigureAwait(false);
+        if (current is not [var value] || value != revision) throw Error(PlatformErrors.Unauthenticated);
         var existing = await db.ExternalIdentities.AsNoTracking().SingleOrDefaultAsync(e => e.ConnectorId == flow.ConnectorId && e.Subject == flow.ExternalSubject, ct).ConfigureAwait(false);
         if (existing is not null) { if (existing.MembershipId == member.Id) return; throw Error(IdentityErrors.BindingConflict); }
         db.ExternalIdentities.Add(new ExternalIdentityRow
@@ -329,8 +337,8 @@ internal sealed partial class IdentityAccountService
         await transaction.CommitAsync(ct).ConfigureAwait(false);
     }
 
-    // JIT 建号：先过配额再建 Person（标识用上游邮箱，未验证；没有邮箱就用由绑定键派生的用户名），再建成员并绑定。
-    private async Task<(Guid Person, Guid Membership)> ProvisionFromFlowAsync(Guid tenantId, ConnectorFlowRow flow, CancellationToken ct)
+    // JIT 建号：先过配额再建 Person（标识用上游邮箱，未验证；没有邮箱就用由绑定键派生的用户名），再建成员并绑定。返回值带新 Person 的身份修订。
+    private async Task<(Guid Person, Guid Membership, long Revision)> ProvisionFromFlowAsync(Guid tenantId, ConnectorFlowRow flow, CancellationToken ct)
     {
         var profile = ReadProfile(flow.ExternalProfile);
         var name = profile.Name is { Length: > 0 and <= 200 } display && !display.Any(char.IsControl) ? display : profile.Username ?? "外部用户";
@@ -344,8 +352,8 @@ internal sealed partial class IdentityAccountService
             : new IdentifierInput(IdentifierKind.Username, "ext-" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(flow.ConnectorId + "\n" + flow.ExternalSubject)))[..20]);
         var person = await CreatePersonAsync(new CreatePerson(name, [identifier]) { RequirePasswordChange = false }, ct).ConfigureAwait(false);
         var member = await CreateMembershipCoreAsync(tenantId, person.Id, name, null, false, null, ct).ConfigureAwait(false);
-        await LinkFlowIdentityAsync(tenantId, flow, person.Id, member.Id, ct).ConfigureAwait(false);
-        return (person.Id, member.Id);
+        await LinkFlowIdentityAsync(tenantId, flow, person.Id, member.Id, person.IdentityRevision, ct).ConfigureAwait(false);
+        return (person.Id, member.Id, person.IdentityRevision);
     }
 
     private async Task<bool> JitAllowedAsync(Guid tenantId, CancellationToken ct)
@@ -369,8 +377,9 @@ internal sealed partial class IdentityAccountService
     // ---- 统一流水线：连接器票据 ----
 
     // 绑定已确认之后由服务端自己发一张一次性票据，再以 ConnectorId + 票据走 SignInAsync：审计、单端与并发策略、登录事件与密码登录同一路径。
-    private async Task<SignInResult> SignInWithConnectorTicketAsync(ConnectorFlowRow flow, Guid personId, Guid membershipId, IReadOnlyList<string> amr, DateTimeOffset authenticatedAt,
-        string reason, LoginContext context, CancellationToken ct)
+    // revision 是这次登录所依据的身份修订（查到绑定时、确认绑定前那次认证时或 JIT 建号时的值），记进票据，建立会话时比对。
+    private async Task<SignInResult> SignInWithConnectorTicketAsync(ConnectorFlowRow flow, Guid personId, Guid membershipId, long revision, IReadOnlyList<string> amr,
+        DateTimeOffset authenticatedAt, string reason, LoginContext context, CancellationToken ct)
     {
         var now = Now; var token = Base64Url(RandomNumberGenerator.GetBytes(32));
         {
@@ -379,7 +388,7 @@ internal sealed partial class IdentityAccountService
             session.Context.LoginTickets.Add(new LoginTicketRow
             {
                 TokenHash = SHA256.HashData(Encoding.ASCII.GetBytes(token)), Purpose = ConnectorPurpose, PersonId = personId, ClientId = flow.ClientId, DeviceType = flow.DeviceType,
-                TenantId = flow.TenantId, Choices = [$"m:{membershipId:D}:{flow.TenantId}"], Amr = [.. amr], AuthenticatedAt = authenticatedAt, Reason = reason,
+                TenantId = flow.TenantId, Choices = [$"m:{membershipId:D}:{flow.TenantId}"], Amr = [.. amr], AuthenticatedAt = authenticatedAt, PersonRevision = revision, Reason = reason,
                 RemoteAddress = Truncate(context.RemoteAddress, 64), UserAgent = Truncate(context.UserAgent, 256), CreatedAt = now, ExpiresAt = now + ConnectorTicketLifetime
             });
             await session.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -412,7 +421,7 @@ internal sealed partial class IdentityAccountService
             return await RejectAsync(subject, new QianError(IdentityErrors.AccountDisabled), "account_" + (person?.Status ?? "missing"), ticket.PersonId, ct).ConfigureAwait(false);
         if (HasEnrolledFactors(person))
             return await RejectAsync(subject, new QianError(IdentityErrors.MfaUnavailable), "mfa_unavailable", person.Id, ct).ConfigureAwait(false);
-        var state = new AuthState(ticket.PersonId, ticket.ClientId, ticket.DeviceType, ticket.Amr, ticket.Acr, ticket.AuthenticatedAt);
+        var state = new AuthState(ticket.PersonId, ticket.ClientId, ticket.DeviceType, ticket.Amr, ticket.Acr, ticket.AuthenticatedAt, ticket.Revision);
         return await EstablishAsync(subject, state, ticket.Choices[0], hash, ConnectorPurpose, null, ticket.Reason, ct).ConfigureAwait(false);
     }
 
@@ -524,13 +533,18 @@ internal sealed partial class IdentityAccountService
             ("expires", bindingExpires), ("id", flowId)).ConfigureAwait(false);
     }
 
-    // 已绑定的外部身份 → (Person, 成员)。外部身份是租户表，只在流程所属租户的作用域内查。
-    private async Task<(Guid Person, Guid Membership)?> FindBindingAsync(Guid tenantId, string connectorId, string subject, CancellationToken ct)
+    // 已绑定的外部身份 → (Person, 成员, 此刻 Person 的身份修订)。外部身份是租户表，只在流程所属租户的作用域内查。
+    // 绑定与修订在同一条语句里读出；解除绑定与递增修订同事务提交，所以读到的修订一定早于任何一次解除。
+    private async Task<(Guid Person, Guid Membership, long Revision)?> FindBindingAsync(Guid tenantId, string connectorId, string subject, CancellationToken ct)
     {
         using var scope = TenantScope(tenantId);
         await using var session = await OpenAsync(ct).ConfigureAwait(false);
-        var row = await session.Context.ExternalIdentities.AsNoTracking().SingleOrDefaultAsync(e => e.ConnectorId == connectorId && e.Subject == subject, ct).ConfigureAwait(false);
-        return row is null ? null : (row.PersonId, row.MembershipId);
+        var db = session.Context;
+        var row = await (from link in db.ExternalIdentities.AsNoTracking()
+                         join person in db.Persons.AsNoTracking() on link.PersonId equals person.Id
+                         where link.ConnectorId == connectorId && link.Subject == subject
+                         select new { link.PersonId, link.MembershipId, person.IdentityRevision }).SingleOrDefaultAsync(ct).ConfigureAwait(false);
+        return row is null ? null : (row.PersonId, row.MembershipId, row.IdentityRevision);
     }
 
     // ---- 小工具 ----

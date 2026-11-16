@@ -316,6 +316,121 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres) : IClassFixture
         Assert.Equal("bind", (await unlinked.View(again)).GetProperty("next").GetString());
     }
 
+    // ---- 身份修订：连接器登录所依据的修订在签发会话时复核 ----
+
+    private static async Task<long> Revision(AccountsHost.Running host, Guid person) =>
+        long.Parse(await host.Text("SELECT identity_revision FROM plugin_qian_identity.persons WHERE id = @p::uuid", ("p", person.ToString("D"))), System.Globalization.CultureInfo.InvariantCulture);
+
+    private static Task<string> LiveSessions(AccountsHost.Running host, Guid person) =>
+        host.Text("SELECT count(*) FROM plugin_qian_identity.sessions WHERE person_id = @p::uuid AND revoked_at IS NULL", ("p", person.ToString("D")));
+
+    // 回调停在「查到绑定之后、写入连接器票据之前」（语句闸门拦住票据写入），其间执行 between；放行后返回落点里的流程号。
+    private static async Task<Guid> CallbackAround(AccountsHost.Running host, AccountsHost.Browser browser, FakeConnector connector, string tenant, string subject, Func<Task> between)
+    {
+        var started = await browser.Begin(tenant, connector.Descriptor.Id);
+        var parameters = connector.Approve(started.RedirectUri, subject);
+        var hold = host.Gate.Arm(StatementGate.ConnectorTicketInsert);
+        var callback = Task.Run(() => browser.Landed(parameters, connector.Descriptor.Id), Ct);
+        await hold.Reached.WaitAsync(TimeSpan.FromSeconds(30), Ct);
+        try { await between(); }
+        finally { hold.Release(); }
+        return await callback;
+    }
+
+    // 解除外部身份绑定与递增身份修订同事务：解除之前查到绑定、还没签发会话的那次连接器登录，签发时修订对不上，不建立会话，流程以 LOGIN_TICKET_INVALID 结束。
+    [Fact]
+    public async Task 查到绑定之后_签发会话之前解除该绑定_这次登录不建立会话()
+    {
+        await using var setup = await Start();
+        var (host, connector, alpha) = (setup.Host, setup.Connector, setup.Alpha);
+        var (person, member) = (setup.First.Person.Id, setup.First.Member.Id);
+        var scope = alpha.Id.ToString("D");
+        using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
+        var before = await Revision(host, person);
+        var browser = host.NewBrowser();
+        var flow = await CallbackAround(host, browser, connector, "alpha", "ext-1", async () =>
+        {
+            using (host.Tenant.BeginScope(scope)) await host.Accounts.UnlinkExternalIdentityAsync(member, FakeConnector.DefaultId, "ext-1", Ct);
+        });
+        Assert.Equal(before + 1, await Revision(host, person));
+        Assert.False(browser.HasAccountCookie);
+        var view = await browser.View(flow);
+        Assert.Equal(("failed", IdentityErrors.LoginTicketInvalid.Code), (view.GetProperty("status").GetString(), view.GetProperty("error").GetProperty("code").GetString()));
+        Assert.Equal("0", await LiveSessions(host, person));
+        Assert.Equal("1", await host.Text("SELECT count(*) FROM plugin_qian_identity.login_audits WHERE person_id = @p::uuid AND reason = 'identity_changed'", ("p", person.ToString("D"))));
+        // 没有改动的绑定照常登录：重新绑定后经同一外部身份进入。
+        using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
+        var again = host.NewBrowser(); await again.Arrive(connector, "alpha", "ext-1");
+        Assert.True(again.HasAccountCookie);
+    }
+
+    // 运营重置带「解除外部身份绑定」时，绑定在重置提交之后逐租户解除。解除了绑定的那个事务递增身份修订并吊销该自然人的全部会话：
+    // 解除之前已建立的会话随之吊销；解除之前查到绑定、解除之后才签发的那次登录不建立会话。
+    [Fact]
+    public async Task 重置之后逐租户解除绑定_同事务递增身份修订并吊销会话_解除之前查到绑定的登录不建立会话()
+    {
+        await using var setup = await Start();
+        var (host, connector, alpha) = (setup.Host, setup.Connector, setup.Alpha);
+        var (person, member) = (setup.Second.Person.Id, setup.Second.Member.Id);
+        var scope = alpha.Id.ToString("D");
+        async Task Link() { using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-2"), Ct); }
+        async Task Reset(string password) { using var proof = Proof(password); await host.Accounts.ResetPasswordAsync(person, new PasswordReset(proof, "ops_reset"), Ct); }
+
+        await Link();
+        await Reset("Reset-Before-Unlink-1");
+        var early = host.NewBrowser(); await early.Arrive(connector, "alpha", "ext-2");
+        Assert.True(early.HasAccountCookie);
+        var sid = Guid.ParseExact(await host.Text("SELECT id::text FROM plugin_qian_identity.sessions WHERE person_id = @p::uuid AND revoked_at IS NULL", ("p", person.ToString("D"))), "D");
+        var before = await Revision(host, person);
+        await host.Service.UnlinkExternalIdentitiesAsync(person, [scope], Ct);
+        Assert.Equal(before + 1, await Revision(host, person));
+        Assert.Equal("password_reset", await host.Text("SELECT revoke_reason FROM plugin_qian_identity.sessions WHERE id = @sid::uuid", ("sid", sid.ToString("D"))));
+        Assert.Null(await host.Service.ValidateAsync(sid, person, member, Ct));
+        Assert.Equal("", await host.Bound(alpha.Id, FakeConnector.DefaultId, "ext-2"));
+        // 没有绑定可解除的租户什么也不做：不递增修订、不吊销会话。
+        await host.Service.UnlinkExternalIdentitiesAsync(person, [scope, setup.Beta.Id.ToString("D")], Ct);
+        Assert.Equal(before + 1, await Revision(host, person));
+
+        await Link();
+        await Reset("Reset-Before-Unlink-2");
+        var late = host.NewBrowser();
+        var flow = await CallbackAround(host, late, connector, "alpha", "ext-2", () => host.Service.UnlinkExternalIdentitiesAsync(person, [scope], Ct));
+        Assert.False(late.HasAccountCookie);
+        Assert.Equal(IdentityErrors.LoginTicketInvalid.Code, (await late.View(flow)).GetProperty("error").GetProperty("code").GetString());
+        Assert.Equal("0", await LiveSessions(host, person));
+        Assert.Equal("", await host.Bound(alpha.Id, FakeConnector.DefaultId, "ext-2"));
+    }
+
+    // 确认绑定以前一步认证时记下的身份修订为准：其间修订变了（这里是换绑手机号，不吊销会话、不作废流程），确认绑定 401，不落绑定；
+    // 没有记下修订的流程（加列之前认证的）同样要求重新认证，流程留在待确认，重新登录后照常确认。
+    [Fact]
+    public async Task 确认绑定前那次认证之后身份修订变化_确认绑定被拒且不落绑定_重新认证后照常确认()
+    {
+        await using var setup = await Start();
+        var (host, connector, alpha) = (setup.Host, setup.Connector, setup.Alpha);
+        var browser = host.NewBrowser();
+        var flow = await browser.Arrive(connector, "alpha", "ext-9");
+        Assert.Equal(HttpStatusCode.OK, (await browser.Verify(flow, setup.First.Phone, Password)).Status);
+        Assert.Equal("0", await host.Text("SELECT person_revision::text FROM plugin_qian_identity.connector_flows WHERE id = @id", ("id", flow)));
+        await host.Accounts.ReplaceIdentifierAsync(setup.First.Person.Id, IdentifierKind.Phone, setup.First.Phone, new IdentifierInput(IdentifierKind.Phone, NextPhone(), true), Ct);
+        var stale = await browser.Bind(flow, "link");
+        Assert.Equal((HttpStatusCode.Unauthorized, PlatformErrors.Unauthenticated.Code), (stale.Status, ConnectorFlow.Code(stale.Body)));
+        Assert.Equal("", await host.Bound(alpha.Id, FakeConnector.DefaultId, "ext-9"));
+        Assert.False(browser.HasAccountCookie);
+
+        var other = host.NewBrowser();
+        var legacy = await other.Arrive(connector, "alpha", "ext-10");
+        Assert.Equal(HttpStatusCode.OK, (await other.Verify(legacy, setup.Second.Phone, Password)).Status);
+        await host.Exec("UPDATE plugin_qian_identity.connector_flows SET person_revision = NULL WHERE id = @id", ("id", legacy));
+        var reauthenticate = await other.Bind(legacy, "link");
+        Assert.Equal((HttpStatusCode.Unauthorized, PlatformErrors.Unauthenticated.Code), (reauthenticate.Status, ConnectorFlow.Code(reauthenticate.Body)));
+        Assert.Equal("bind", (await other.View(legacy)).GetProperty("status").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await other.Verify(legacy, setup.Second.Phone, Password)).Status);
+        Assert.Equal(HttpStatusCode.OK, (await other.Bind(legacy, "link")).Status);
+        Assert.True(other.HasAccountCookie);
+        Assert.Equal(setup.Second.Member.Id.ToString("D"), await host.Bound(alpha.Id, FakeConnector.DefaultId, "ext-10"));
+    }
+
     [Fact]
     public async Task JIT建号缺省关闭_租户策略打开后建号并绑定_受配额约束()
     {

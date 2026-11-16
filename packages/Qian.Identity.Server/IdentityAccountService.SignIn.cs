@@ -71,7 +71,8 @@ internal sealed partial class IdentityAccountService
         if (first.Failure is { } failure) return failure;
         var (person, client, verified) = (first.Person!, first.Client!, first.Verified!);
         var amr = verified.Amr.Count == 0 ? [PasswordAmr] : verified.Amr.ToArray();
-        var state = new AuthState(person.Id, client.Application.ClientId!, DeviceTypeOf(client, context), amr, verified.Acr, Now);
+        // 认证所依据的身份修订取查找账号时读到的值（早于凭据验证）：此后修订一变，建立会话或兑现票据时就要求重新认证。
+        var state = new AuthState(person.Id, client.Application.ClientId!, DeviceTypeOf(client, context), amr, verified.Acr, Now, person.IdentityRevision);
         if (person.MustChangePassword)
             return await IssueAsync(subject, state, PasswordChangePurpose, input.TenantId, [], null, null, cancellationToken).ConfigureAwait(false);
         return await ContinueAsync(subject, state, input.TenantId, null, null, false, cancellationToken).ConfigureAwait(false);
@@ -137,7 +138,7 @@ internal sealed partial class IdentityAccountService
         // 只能在签发时确认过的集合内选；集合外的成员 ID 既可能是篡改，也可能属于别的账号。
         var index = ticket.Choices.ToList().FindIndex(c => c.Membership == selection.MembershipId);
         if (index < 0) return await RejectAsync(subject, Field(PlatformErrors.ValueNotAllowed, "#/membership_id"), "choice_unknown", ticket.PersonId, cancellationToken).ConfigureAwait(false);
-        var state = new AuthState(ticket.PersonId, ticket.ClientId, ticket.DeviceType, ticket.Amr, ticket.Acr, ticket.AuthenticatedAt);
+        var state = new AuthState(ticket.PersonId, ticket.ClientId, ticket.DeviceType, ticket.Amr, ticket.Acr, ticket.AuthenticatedAt, ticket.Revision);
         return await EstablishAsync(subject with { Stage = ticket.FromSession is null ? "select" : "switch" }, state, ticket.Choices[index], hash, SelectionPurpose, ticket.FromSession, null, cancellationToken).ConfigureAwait(false);
     }
 
@@ -154,29 +155,33 @@ internal sealed partial class IdentityAccountService
         try { CheckPassword(next); }
         catch (QianErrorException policy) { return await RejectAsync(subject, policy.Error, "password_policy", ticket.PersonId, cancellationToken).ConfigureAwait(false); }
         var now = Now;
+        long revision; string? refused = null;
         try
         {
             using var neutral = TenantScope(null); using var origin = OpenOrigin(ticket.PersonId);
             await using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
             var db = session.Context;
             await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-            // 改密与票据消费同事务：票据只能换一次密码，且改密失败不会烧掉票据。
-            if (!await ConsumeTicketAsync(db, hash, PasswordChangePurpose, now, cancellationToken).ConfigureAwait(false)) throw Error(IdentityErrors.LoginTicketInvalid);
+            // 先锁 Person 再消费票据，与重置、认领等「先锁 Person、再动票据」的写入同一顺序。改密与票据消费同事务：票据只能换一次密码，且改密失败不会烧掉票据。
             var row = await LockPersonAsync(db, ticket.PersonId, cancellationToken).ConfigureAwait(false);
+            if (!await ConsumeTicketAsync(db, hash, PasswordChangePurpose, now, cancellationToken).ConfigureAwait(false)) throw Error(IdentityErrors.LoginTicketInvalid);
             if (row.Status != AccountStatuses.Active) throw Error(IdentityErrors.AccountDisabled);
+            // 票据签发所依据的那次认证之后身份修订变过：按票据失效处理，要求重新登录。
+            if (row.IdentityRevision != ticket.Revision) { refused = "identity_changed"; throw Error(IdentityErrors.LoginTicketInvalid); }
             await EnsureNotReusedAsync(db, row, next, cancellationToken).ConfigureAwait(false);
             await SetPasswordAsync(db, row, next, false, now, cancellationToken).ConfigureAwait(false);
             row.IdentityRevision++;
+            revision = row.IdentityRevision;
             await RevokeSessionRowsAsync(db, row.Id, null, null, "password_changed", now, cancellationToken).ConfigureAwait(false);
             await SaveAsync(session, row, new IdentityPasswordChangedEvent(row.Id, row.IdentityRevision), cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (QianErrorException failure)
         {
-            return await RejectAsync(subject, failure.Error, failure.Error.Code == IdentityErrors.PasswordReused ? "password_reused" : "change_rejected", ticket.PersonId, cancellationToken).ConfigureAwait(false);
+            return await RejectAsync(subject, failure.Error, refused ?? (failure.Error.Code == IdentityErrors.PasswordReused ? "password_reused" : "change_rejected"), ticket.PersonId, cancellationToken).ConfigureAwait(false);
         }
-        // 改密之后继续同一登录流程（选择租户或直接建立会话）；认证时刻与方式沿用第一因子。
-        var state = new AuthState(ticket.PersonId, ticket.ClientId, ticket.DeviceType, ticket.Amr, ticket.Acr, ticket.AuthenticatedAt);
+        // 改密之后继续同一登录流程（选择租户或直接建立会话）；认证时刻与方式沿用第一因子，身份修订取这次改密之后的新值。
+        var state = new AuthState(ticket.PersonId, ticket.ClientId, ticket.DeviceType, ticket.Amr, ticket.Acr, ticket.AuthenticatedAt, revision);
         return await ContinueAsync(subject, state, ticket.TenantFilter, null, "initial_password_changed", false, cancellationToken).ConfigureAwait(false);
     }
 
@@ -185,11 +190,21 @@ internal sealed partial class IdentityAccountService
         ArgumentNullException.ThrowIfNull(current);
         context ??= new LoginContext();
         var subject = new AuditSubject("switch", current.ClientId, "switch", null, null, context);
-        // 切换只是换身份，不提升认证强度：当前会话必须仍然有效。
-        var validation = await ValidateAsync(current.SessionId, current.PersonId, current.MembershipId, cancellationToken).ConfigureAwait(false);
-        if (validation is null) return await RejectAsync(subject, new QianError(PlatformErrors.Unauthenticated), "session_invalid", current.PersonId, cancellationToken).ConfigureAwait(false);
-        var state = new AuthState(current.PersonId, current.ClientId, current.DeviceType, current.Amr, current.Acr, current.AuthenticatedAt);
+        // 切换只是换身份，不提升认证强度：当前会话必须仍然有效。身份修订在校验会话之前读取：整人吊销与递增修订在同一事务里提交，
+        // 所以读到修订之后若发生改密、重置之类的变更，要么会话校验已不通过，要么兑现选择票据时修订对不上。
+        var revision = await PersonRevisionAsync(current.PersonId, cancellationToken).ConfigureAwait(false);
+        var validation = revision is null ? null : await ValidateAsync(current.SessionId, current.PersonId, current.MembershipId, cancellationToken).ConfigureAwait(false);
+        if (revision is null || validation is null)
+            return await RejectAsync(subject, new QianError(PlatformErrors.Unauthenticated), "session_invalid", current.PersonId, cancellationToken).ConfigureAwait(false);
+        var state = new AuthState(current.PersonId, current.ClientId, current.DeviceType, current.Amr, current.Acr, current.AuthenticatedAt, revision.Value);
         return await ContinueAsync(subject, state, null, current.SessionId, "switch_begin", true, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<long?> PersonRevisionAsync(Guid personId, CancellationToken ct)
+    {
+        using var neutral = TenantScope(null);
+        await using var session = await OpenAsync(ct).ConfigureAwait(false);
+        return await session.Context.Persons.AsNoTracking().Where(p => p.Id == personId).Select(p => (long?)p.IdentityRevision).SingleOrDefaultAsync(ct).ConfigureAwait(false);
     }
 
     // ---- 限流：占位在先，验证在后 ----
@@ -360,7 +375,9 @@ internal sealed partial class IdentityAccountService
 
     // ---- 身份选择与会话建立 ----
 
-    private sealed record AuthState(Guid PersonId, string ClientId, string DeviceType, IReadOnlyList<string> Amr, string? Acr, DateTimeOffset AuthenticatedAt);
+    // Revision 是这次认证所依据的 Person 身份修订（不含成员修订）：第一因子取查找账号时的值，改密票据之后取改密后的值，切换取校验会话之前的值，
+    // 票据沿用签发时记下的值。建立会话时在 Person 行锁内比对。
+    private sealed record AuthState(Guid PersonId, string ClientId, string DeviceType, IReadOnlyList<string> Amr, string? Acr, DateTimeOffset AuthenticatedAt, long Revision);
 
     private sealed record Resolution(IReadOnlyList<TenantChoice> Choices, bool Blocked);
 
@@ -421,7 +438,7 @@ internal sealed partial class IdentityAccountService
         {
             TokenHash = SHA256.HashData(Encoding.ASCII.GetBytes(token)), Purpose = purpose, PersonId = state.PersonId, ClientId = state.ClientId, DeviceType = state.DeviceType,
             TenantId = tenantFilter?.ToString("D"), Choices = [.. choices.Select(ChoiceKey)], FromSessionId = fromSession, Amr = [.. state.Amr], Acr = state.Acr,
-            AuthenticatedAt = state.AuthenticatedAt, RemoteAddress = Truncate(subject.Context.RemoteAddress, 64), UserAgent = Truncate(subject.Context.UserAgent, 256),
+            AuthenticatedAt = state.AuthenticatedAt, PersonRevision = state.Revision, RemoteAddress = Truncate(subject.Context.RemoteAddress, 64), UserAgent = Truncate(subject.Context.UserAgent, 256),
             CreatedAt = now, ExpiresAt = expires
         });
         session.Context.LoginAudits.Add(NewAudit(subject with { ClientId = state.ClientId }, purpose == SelectionPurpose ? "selection_required" : "password_change_required", reason, now, state.PersonId));
@@ -437,15 +454,20 @@ internal sealed partial class IdentityAccountService
     {
         var now = Now;
         subject = subject with { ClientId = state.ClientId };
+        string? refused = null;
         try
         {
             using var scope = TenantScope(pick.Tenant); using var origin = OpenOrigin(state.PersonId);
             await using var session = await OpenAsync(ct).ConfigureAwait(false);
             var db = session.Context;
             await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
-            if (ticketHash is not null && !await ConsumeTicketAsync(db, ticketHash, ticketPurpose!, now, ct).ConfigureAwait(false)) throw Error(IdentityErrors.LoginTicketInvalid);
+            // 先锁 Person 再消费票据，与改密、重置、认领、解除外部身份绑定这些「先锁 Person、再动票据与会话」的写入同一顺序；
+            // 从这里到提交，这个人的凭据与身份修订都不会再变。
             var person = await LockPersonAsync(db, state.PersonId, ct).ConfigureAwait(false);
+            if (ticketHash is not null && !await ConsumeTicketAsync(db, ticketHash, ticketPurpose!, now, ct).ConfigureAwait(false)) throw Error(IdentityErrors.LoginTicketInvalid);
             if (person.Status != AccountStatuses.Active) throw Error(IdentityErrors.AccountDisabled);
+            // 认证所依据的身份修订已经变了（认证之后改过密码、被重置或认领、换过标识、解除过外部身份绑定等）：按票据失效处理，要求重新认证。
+            if (person.IdentityRevision != state.Revision) { refused = "identity_changed"; throw Error(IdentityErrors.LoginTicketInvalid); }
             MembershipRow? member = null;
             if (pick.Membership is { } membershipId)
             {
@@ -482,7 +504,7 @@ internal sealed partial class IdentityAccountService
         catch (QianErrorException failure)
         {
             var code = failure.Error.Code;
-            return await RejectAsync(subject, failure.Error, code == IdentityErrors.LoginTicketInvalid ? "ticket_invalid" : code == IdentityErrors.TenantNotActive ? "tenant_not_active" : code == IdentityErrors.AccountDisabled ? "account_disabled" : "no_membership",
+            return await RejectAsync(subject, failure.Error, refused ?? (code == IdentityErrors.LoginTicketInvalid ? "ticket_invalid" : code == IdentityErrors.TenantNotActive ? "tenant_not_active" : code == IdentityErrors.AccountDisabled ? "account_disabled" : "no_membership"),
                 state.PersonId, ct).ConfigureAwait(false);
         }
     }
@@ -490,7 +512,7 @@ internal sealed partial class IdentityAccountService
     // ---- 票据 ----
 
     private sealed record TicketState(string ClientId, string DeviceType, Guid PersonId, Guid? TenantFilter, IReadOnlyList<(Guid? Membership, Guid? Tenant)> Choices,
-        Guid? FromSession, IReadOnlyList<string> Amr, string? Acr, DateTimeOffset AuthenticatedAt, string? Reason = null);
+        Guid? FromSession, IReadOnlyList<string> Amr, string? Acr, DateTimeOffset AuthenticatedAt, long Revision, string? Reason = null);
 
     private static string Base64Url(byte[] value) => Convert.ToBase64String(value).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
@@ -507,8 +529,9 @@ internal sealed partial class IdentityAccountService
         var now = Now;
         using var neutral = TenantScope(null);
         await using var session = await OpenAsync(ct).ConfigureAwait(false);
+        // 没有记下身份修订的票据（加列之前签发的）一律不兑换。
         var row = await session.Context.LoginTickets.AsNoTracking()
-            .SingleOrDefaultAsync(t => t.TokenHash == hash && t.Purpose == purpose && t.ConsumedAt == null && t.ExpiresAt > now, ct).ConfigureAwait(false);
+            .SingleOrDefaultAsync(t => t.TokenHash == hash && t.Purpose == purpose && t.ConsumedAt == null && t.ExpiresAt > now && t.PersonRevision != null, ct).ConfigureAwait(false);
         if (row is null) return null;
         var choices = new List<(Guid? Membership, Guid? Tenant)>();
         foreach (var item in row.Choices)
@@ -518,7 +541,7 @@ internal sealed partial class IdentityAccountService
             if (parts.Length == 3 && parts[0] == "m" && Guid.TryParseExact(parts[1], "D", out var membership) && Guid.TryParseExact(parts[2], "D", out var tenant)) choices.Add((membership, tenant));
         }
         return new TicketState(row.ClientId, row.DeviceType, row.PersonId, Guid.TryParseExact(row.TenantId, "D", out var filter) ? filter : null, choices, row.FromSessionId,
-            row.Amr, row.Acr, row.AuthenticatedAt, row.Reason);
+            row.Amr, row.Acr, row.AuthenticatedAt, row.PersonRevision!.Value, row.Reason);
     }
 
     private static async Task<bool> ConsumeTicketAsync(IdentityDbContext db, byte[] hash, string purpose, DateTimeOffset now, CancellationToken ct) =>

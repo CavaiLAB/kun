@@ -10,7 +10,7 @@ public sealed class IdentityMigrationTests
     public void 协议持久表和后通道队列有完整迁移且模型无漂移()
     {
         using var context = new IdentityDesignTimeFactory().CreateDbContext([]);
-        Assert.False(context.Database.HasPendingModelChanges()); Assert.Equal(6, context.Database.GetMigrations().Count());
+        Assert.False(context.Database.HasPendingModelChanges()); Assert.Equal(7, context.Database.GetMigrations().Count());
         var script = context.GetService<IMigrator>().GenerateScript();
         Assert.Contains("plugin_qian_identity", script, StringComparison.Ordinal);
         Assert.Contains("logout_deliveries", script, StringComparison.Ordinal);
@@ -49,5 +49,8 @@ public sealed class IdentityMigrationTests
         Assert.Contains("ix_connector_flows_state_hash", script, StringComparison.Ordinal);
         Assert.Contains("ck_connector_flows_status", script, StringComparison.Ordinal);
         Assert.Contains("purpose IN ('selection', 'password_change', 'connector')", script, StringComparison.Ordinal);
+        // 票据与流程记下认证所依据的身份修订；可空，加列之前的行没有这个值，按失效处理。
+        Assert.Contains("ALTER TABLE plugin_qian_identity.login_tickets ADD person_revision bigint;", script, StringComparison.Ordinal);
+        Assert.Contains("ALTER TABLE plugin_qian_identity.connector_flows ADD person_revision bigint;", script, StringComparison.Ordinal);
     }
 }

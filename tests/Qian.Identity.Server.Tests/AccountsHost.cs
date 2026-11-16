@@ -63,7 +63,8 @@ internal static class AccountsHost
         builder.Services.AddKunEventBus(events => events.RegisterIdentityEvents());
         builder.Services.AddKunMediator(mediator => { if (identityEvents) mediator.AddQianIdentityEvents(); });
         builder.Services.AddQianEvents();
-        builder.Services.AddQianData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
+        var gate = new StatementGate();
+        builder.Services.AddQianData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema).AddInterceptors(gate));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddAuthentication("qian.identity.signin").AddCookie("qian.identity.signin");
         builder.Services.AddHttpClient();
@@ -115,13 +116,15 @@ internal static class AccountsHost
         var clock = new ManualClock(new DateTimeOffset(DateTimeOffset.UtcNow.UtcTicks / TimeSpan.TicksPerSecond * TimeSpan.TicksPerSecond, TimeSpan.Zero));
         var service = app.Services.GetRequiredService<IdentityAccountGate>().Service!;
         service.Clock = clock;
-        return new Running(app, loader, issuer, secret, cert, tenancy, clock, service, postgres, logs, logoutTokens);
+        return new Running(app, loader, issuer, secret, cert, tenancy, clock, service, postgres, logs, logoutTokens, gate);
     }
 
     internal sealed class Running(WebApplication app, PluginLoader loader, string issuer, string secret, X509Certificate2 certificate, FakeTenancy tenancy, ManualClock clock,
-        IdentityAccountService service, PostgresFixture postgres, CapturedLogs logs, System.Collections.Concurrent.ConcurrentQueue<string> logoutTokens) : IAsyncDisposable
+        IdentityAccountService service, PostgresFixture postgres, CapturedLogs logs, System.Collections.Concurrent.ConcurrentQueue<string> logoutTokens, StatementGate gate) : IAsyncDisposable
     {
         private readonly List<HttpClient> _browsers = [];
+        /// <summary>身份数据库的语句闸门（缺省不拦截），用来确定地编排并发步骤。</summary>
+        internal StatementGate Gate => gate;
         internal string Issuer => issuer;
         internal string Secret => secret;
         internal FakeTenancy Tenants => tenancy;

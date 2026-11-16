@@ -544,6 +544,10 @@ namespace Qian.Identity.Server.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("person_id");
 
+                    b.Property<long?>("PersonRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("person_revision");
+
                     b.Property<string>("RemoteAddress")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
@@ -889,6 +893,10 @@ namespace Qian.Identity.Server.Migrations
                     b.Property<Guid>("PersonId")
                         .HasColumnType("uuid")
                         .HasColumnName("person_id");
+
+                    b.Property<long?>("PersonRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("person_revision");
 
                     b.Property<string>("Purpose")
                         .IsRequired()

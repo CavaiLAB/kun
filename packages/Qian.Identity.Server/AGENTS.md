@@ -7,6 +7,7 @@
 - 凭据只存 Argon2id；不记录、不返回密码、验证码、票据、原始标识与原始 sid（日志与审计只留类型 + 掩码 / sid 哈希）。对外投影只含掩码。
 - 登录失败对外一律 `INVALID_CREDENTIALS`；账号状态只在凭据验证通过之后暴露。一次登录调用恰好一条 `LoginAudit`。
 - 限流是「占位在先、验证在后」；锁定事件只在验证确认失败之后发。改动限流、票据或会话建立顺序必须配并发测试。
+- 建立会话与兑现登录票据（改密、选择、连接器）一律先锁 Person 再消费票据，并在行锁内比对登录状态或票据记下的 Person 身份修订（`login_tickets.person_revision`、`connector_flows.person_revision`）。新增建会话或签发票据的入口要记下认证所依据的修订；新增会改变登录依据的写入（凭据、标识、外部身份）要在同一事务里递增 Person 修订。
 - 会话的事实来源是 PostgreSQL 的 `sessions` 表；Redis 索引与墓碑是派生数据，只用来加速，绝不据它放行，Redis 故障必须退回数据库。新增任何吊销来源都走 `RevokeSessionRowsAsync`（即时写 `revoked_at`，与引起它的变更同事务），协议族、后通道、索引与事件由 `IdentitySessionProcessor` 幂等收尾，不要在请求路径里同步做。
 - 旁路写事件必须在会话所属租户的作用域内（`TenantScope` 加 `EventEnvelopeScope`），行为主体取吊销者；后台工作（旁路、对账）用 `_background` 互斥并在卸载时排空（`CloseAsync`），新增后台工作必须遵守，否则卸载会撞上被释放的数据会话。
 - 日志点只用 `[LoggerMessage]`，参数不得是会话标识或 Guid（`SessionLogHygieneTests` 扫描把关）；管理面的判定是内置规则，集中在 `ResolveCallerAsync` 与端点的 `Scope`，不要在别处加分支，待 PEP 接入后统一换成权限点。

@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using Npgsql;
 using Qian.Identity.Abstractions;
 using Qian.Testing.Containers;
@@ -192,19 +194,46 @@ public sealed class LoginRevisionTests(PostgresFixture postgres) : IClassFixture
         Assert.Equal(await Revision(host, person.Id), established.Session.IdentityRevision);
     }
 
+    // 票据记下签发时的身份修订。没有记下修订的票据（加列之前签发的）一律按票据无效拒绝，与账号此刻的修订是多少无关：
+    // 修订仍为 0 的账号同样不兑换，选择票据与改密票据都是如此；修订变过之后也一样。
     [Fact]
     public async Task 票据记下签发时的身份修订_没有记下修订的票据一律不兑换()
     {
         await using var world = await TwoTenants(postgres);
         var (host, _, _, person, phone, inA, _) = world;
+        static byte[] Hash(LoginTicket ticket) => SHA256.HashData(Encoding.ASCII.GetBytes(ticket.Token));
+        Task<string> Recorded(LoginTicket ticket) =>
+            host.Text("SELECT coalesce(person_revision::text, 'null') FROM plugin_qian_identity.login_tickets WHERE token_hash = @h", ("h", Hash(ticket)));
+        Task Forget(LoginTicket ticket) => host.Exec("UPDATE plugin_qian_identity.login_tickets SET person_revision = NULL WHERE token_hash = @h", ("h", Hash(ticket)));
+        Task<string> TicketInvalid() => host.Text("SELECT count(*) FROM plugin_qian_identity.login_audits WHERE outcome = 'failure' AND reason = 'ticket_invalid'");
+
+        // 修订仍为 0：选择票据与改密票据都记下 0，抹掉之后都不兑换。
+        Assert.Equal(0, await Revision(host, person.Id));
+        var selection = (await Login(host, phone)).Ticket!;
+        Assert.Equal("0", await Recorded(selection));
+        await Forget(selection);
+        Assert.Equal("LOGIN_TICKET_INVALID", Code(await Pick(host, selection, inA.Id)));
+        await host.Exec("UPDATE plugin_qian_identity.persons SET must_change_password = true WHERE id = @p::uuid", ("p", Id(person.Id)));
+        var pending = (await Login(host, phone)).Ticket!;
+        Assert.Equal((LoginTicketPurpose.PasswordChange, "0"), (pending.Purpose, await Recorded(pending)));
+        await Forget(pending);
+        Assert.Equal("LOGIN_TICKET_INVALID", Code(await Change(host, pending, "Brand-New-Pass-7")));
+        Assert.Equal(0, await Revision(host, person.Id));
+        Assert.Equal("0", await LiveSessions(host, person.Id));
+        Assert.Equal("2", await TicketInvalid());
+        await host.Exec("UPDATE plugin_qian_identity.persons SET must_change_password = false WHERE id = @p::uuid", ("p", Id(person.Id)));
+
+        // 修订变过之后同样如此。
         var replacement = NextPhone();
         await host.Accounts.ReplaceIdentifierAsync(person.Id, IdentifierKind.Phone, phone, new IdentifierInput(IdentifierKind.Phone, replacement, true), Ct);
         phone = replacement;
-        var selection = await Login(host, phone);
-        Assert.Equal("1", await host.Text("SELECT person_revision::text FROM plugin_qian_identity.login_tickets WHERE person_id = @p::uuid", ("p", Id(person.Id))));
-        await host.Exec("UPDATE plugin_qian_identity.login_tickets SET person_revision = NULL WHERE person_id = @p::uuid", ("p", Id(person.Id)));
-        Assert.Equal("LOGIN_TICKET_INVALID", Code(await Pick(host, selection.Ticket!, inA.Id)));
+        selection = (await Login(host, phone)).Ticket!;
+        Assert.Equal("1", await Recorded(selection));
+        await Forget(selection);
+        Assert.Equal("LOGIN_TICKET_INVALID", Code(await Pick(host, selection, inA.Id)));
         Assert.Equal("0", await LiveSessions(host, person.Id));
+        Assert.Equal("3", await TicketInvalid());
+        Assert.Equal("0", await Audits(host, person.Id, "identity_changed"));
         Assert.Equal(SignInStatus.Authenticated, (await Pick(host, (await Login(host, phone)).Ticket!, inA.Id)).Status);
     }
 

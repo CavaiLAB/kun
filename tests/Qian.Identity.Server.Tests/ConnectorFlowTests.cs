@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
 using Qian.Runtime.Errors;
@@ -11,7 +12,8 @@ namespace Qian.Identity.Server.Tests;
 
 // 连接器 TCK 与绑定流程（S1-IDP-007）：真实 PostgreSQL + 身份服务 HTTP 面，假连接器模拟上游。
 // TCK 三项：清单校验、state 篡改拒绝、回调幂等；其余覆盖确认绑定、冲突、过期、重新认证窗口、取消、JIT 与租户 scope 过滤。
-public sealed class ConnectorFlowTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
+// Redis 只给需要会话索引的用例（解除绑定之后的旁路收尾）。
+public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture redis) : IClassFixture<PostgresFixture>, IClassFixture<RedisFixture>
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
@@ -22,9 +24,9 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres) : IClassFixture
     }
 
     // alpha 租户里两个账号；连接器挂在全局 scope。
-    private async Task<Setup> Start(IdentityAccountOptions? options = null)
+    private async Task<Setup> Start(IdentityAccountOptions? options = null, string? redisConnection = null)
     {
-        var host = await AccountsHost.Start(postgres, options);
+        var host = await AccountsHost.Start(postgres, options, redis: redisConnection);
         var connector = new FakeConnector();
         await host.MountAsync(ConnectorsPlugin.Define("connectors", ScopeKey.Global, connector));
         var alpha = host.Tenants.Add("alpha"); var beta = host.Tenants.Add("beta");
@@ -324,12 +326,14 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres) : IClassFixture
     private static Task<string> LiveSessions(AccountsHost.Running host, Guid person) =>
         host.Text("SELECT count(*) FROM plugin_qian_identity.sessions WHERE person_id = @p::uuid AND revoked_at IS NULL", ("p", person.ToString("D")));
 
-    // 回调停在「查到绑定之后、写入连接器票据之前」（语句闸门拦住票据写入），其间执行 between；放行后返回落点里的流程号。
-    private static async Task<Guid> CallbackAround(AccountsHost.Running host, AccountsHost.Browser browser, FakeConnector connector, string tenant, string subject, Func<Task> between)
+    // 回调停在「查到绑定之后、签发会话之前」，其间执行 between；放行后返回落点里的流程号。停点有两个：
+    // binding 停在查找绑定的那条语句执行完之后（绑定与身份修订已经读出，回调还没拿到结果）；ticket 停在写入连接器票据之前。
+    private static async Task<Guid> CallbackAround(AccountsHost.Running host, AccountsHost.Browser browser, FakeConnector connector, string tenant, string subject, Func<Task> between,
+        string pause = "ticket")
     {
         var started = await browser.Begin(tenant, connector.Descriptor.Id);
         var parameters = connector.Approve(started.RedirectUri, subject);
-        var hold = host.Gate.Arm(StatementGate.ConnectorTicketInsert);
+        var hold = pause == "binding" ? host.Gate.Arm(StatementGate.BindingLookup, StatementGate.Moment.AfterExecution) : host.Gate.Arm(StatementGate.ConnectorTicketInsert);
         var callback = Task.Run(() => browser.Landed(parameters, connector.Descriptor.Id), Ct);
         await hold.Reached.WaitAsync(TimeSpan.FromSeconds(30), Ct);
         try { await between(); }
@@ -338,8 +342,11 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres) : IClassFixture
     }
 
     // 解除外部身份绑定与递增身份修订同事务：解除之前查到绑定、还没签发会话的那次连接器登录，签发时修订对不上，不建立会话，流程以 LOGIN_TICKET_INVALID 结束。
-    [Fact]
-    public async Task 查到绑定之后_签发会话之前解除该绑定_这次登录不建立会话()
+    // 解除放在两个停点上各做一次：紧挨着查到绑定（查找绑定的语句刚执行完），以及紧挨着签发会话（写入连接器票据之前）。
+    [Theory]
+    [InlineData("binding")]
+    [InlineData("ticket")]
+    public async Task 查到绑定之后_签发会话之前解除该绑定_这次登录不建立会话(string pause)
     {
         await using var setup = await Start();
         var (host, connector, alpha) = (setup.Host, setup.Connector, setup.Alpha);
@@ -351,7 +358,7 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres) : IClassFixture
         var flow = await CallbackAround(host, browser, connector, "alpha", "ext-1", async () =>
         {
             using (host.Tenant.BeginScope(scope)) await host.Accounts.UnlinkExternalIdentityAsync(member, FakeConnector.DefaultId, "ext-1", Ct);
-        });
+        }, pause);
         Assert.Equal(before + 1, await Revision(host, person));
         Assert.False(browser.HasAccountCookie);
         var view = await browser.View(flow);
@@ -399,6 +406,91 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres) : IClassFixture
         Assert.Equal(IdentityErrors.LoginTicketInvalid.Code, (await late.View(flow)).GetProperty("error").GetProperty("code").GetString());
         Assert.Equal("0", await LiveSessions(host, person));
         Assert.Equal("", await host.Bound(alpha.Id, FakeConnector.DefaultId, "ext-2"));
+    }
+
+    // 建立会话与重置时的逐租户解除绑定都先锁 Person。会话写入停在闸门上（建立会话的事务此时持有 Person 行锁）时发起解除：
+    // 解除等建立会话提交之后才拿到行锁，随后递增身份修订，并吊销包括这个新会话在内的全部会话。
+    [Fact]
+    public async Task 建立会话持有Person行锁时逐租户解除绑定_解除在其提交之后完成_新会话随之吊销()
+    {
+        await using var setup = await Start();
+        var (host, alpha) = (setup.Host, setup.Alpha);
+        var (person, phone, member) = (setup.First.Person.Id, setup.First.Phone, setup.First.Member.Id);
+        var scope = alpha.Id.ToString("D");
+        using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
+        var before = await Revision(host, person);
+        var hold = host.Gate.Arm(StatementGate.SessionInsert);
+        var signIn = Task.Run(() => host.SignIn.SignInAsync(Input(phone, Password, "web", alpha.Id), SessionSupport.Net, Ct).AsTask(), Ct);
+        var unlink = Task.CompletedTask;
+        try
+        {
+            await hold.Reached.WaitAsync(TimeSpan.FromSeconds(30), Ct);
+            unlink = Task.Run(() => host.Service.UnlinkExternalIdentitiesAsync(person, [scope], Ct), Ct);
+            // 等解除确实停在建立会话的事务持有的行锁上（pg_locks 里出现等待该事务号的请求，Person 行的 xmax 就是持锁的事务），再放行会话写入。
+            for (var attempt = 0; !unlink.IsCompleted && await host.Text("""
+                SELECT count(*)::text FROM pg_locks WHERE locktype = 'transactionid' AND NOT granted
+                  AND transactionid::text = (SELECT xmax::text FROM plugin_qian_identity.persons WHERE id = @p::uuid)
+                """, ("p", person.ToString("D"))) == "0"; attempt++)
+            {
+                Assert.True(attempt < 500, "解除没有在等建立会话的事务持有的行锁");
+                await Task.Delay(20, Ct);
+            }
+            Assert.False(unlink.IsCompleted, "解除没有停在建立会话的事务持有的行锁上");
+        }
+        finally { hold.Release(); }
+        var established = await signIn;
+        Assert.Equal(SignInStatus.Authenticated, established.Status);
+        await unlink;
+        var sid = established.Session!.SessionId;
+        Assert.Equal(before + 1, await Revision(host, person));
+        Assert.Equal("password_reset", await host.Text("SELECT revoke_reason FROM plugin_qian_identity.sessions WHERE id = @sid::uuid", ("sid", sid.ToString("D"))));
+        Assert.Null(await host.Service.ValidateAsync(sid, person, member, Ct));
+        Assert.Equal("0", await LiveSessions(host, person));
+        Assert.Equal("", await host.Bound(alpha.Id, FakeConnector.DefaultId, "ext-1"));
+    }
+
+    // 逐租户解除绑定吊销的会话，旁路收尾与其他吊销来源一致：协议授权族与令牌吊销、Redis 索引移出并留下墓碑、吊销事件在会话所属租户内发布、
+    // RP 收到后通道登出令牌。解除提交之后立即唤醒会话中心的后台处理器，不等下一次轮询：这里停掉宿主自带的处理器，先看唤醒信号，再亲手跑一轮旁路。
+    [Fact]
+    public async Task 逐租户解除绑定吊销会话之后立即唤醒处理器_旁路收尾照常送达()
+    {
+        await using var setup = await Start(redisConnection: redis.ConnectionString);
+        var (host, alpha) = (setup.Host, setup.Alpha);
+        var (person, phone, member) = (setup.First.Person.Id, setup.First.Phone, setup.First.Member.Id);
+        var scope = alpha.Id.ToString("D");
+        using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
+        var browser = host.NewBrowser();
+        var (sid, _) = await SessionSupport.SignIn(host, browser, phone, alpha.Id);
+        var index = host.Redis!.GetDatabase();
+        Task<string> Authorizations() => host.Text("SELECT coalesce(string_agg(status, ',' ORDER BY id), '') FROM plugin_qian_identity.open_iddict_authorizations WHERE subject = @p", ("p", person.ToString("D")));
+        Task<string> ValidTokens() => host.Text("SELECT count(*) FROM plugin_qian_identity.open_iddict_tokens WHERE subject = @p AND status = 'valid'", ("p", person.ToString("D")));
+        Assert.Equal("valid", await Authorizations());
+        Assert.NotEqual("0", await ValidTokens());
+        Assert.NotNull(index.SortedSetScore(RedisSessionIndex.PersonKey(person), sid.ToString("N")));
+
+        await SessionSupport.StopProcessor(host);
+        var signal = host.Services.GetRequiredService<SessionSignal>();
+        await signal.WaitAsync(TimeSpan.Zero, Ct); // 清掉此前可能留下的信号
+        await host.Service.UnlinkExternalIdentitiesAsync(person, [scope], Ct);
+        Assert.True(await signal.WaitAsync(TimeSpan.Zero, Ct), "解除提交之后没有唤醒会话中心的处理器");
+        // 吊销已即时生效，旁路还没跑：授权族仍有效，没有墓碑，也没有事件。
+        Assert.Equal("password_reset", await host.Text("SELECT revoke_reason FROM plugin_qian_identity.sessions WHERE id = @sid::uuid", ("sid", sid.ToString("D"))));
+        Assert.Equal("valid", await Authorizations());
+        Assert.False(index.KeyExists(RedisSessionIndex.TombstoneKey(sid)));
+        Assert.Null(await SessionSupport.Revoked(host, sid));
+
+        Assert.Equal(1, await host.Service.ProcessRevocationsAsync(10, Ct));
+        Assert.Equal("revoked", await Authorizations());
+        Assert.Equal("0", await ValidTokens());
+        Assert.True(index.KeyExists(RedisSessionIndex.TombstoneKey(sid)));
+        Assert.Null(index.SortedSetScore(RedisSessionIndex.PersonKey(person), sid.ToString("N")));
+        var revoked = await SessionSupport.Revoked(host, sid);
+        Assert.NotNull(revoked);
+        Assert.Equal((alpha.Id, "password_reset", Qian.Events.EventActorKind.Service), (revoked.TenantId, revoked.Payload.GetProperty("reason").GetString(), revoked.Actor.Kind));
+        await SessionSupport.Eventually(() => Task.FromResult(!host.LogoutTokens.IsEmpty), SessionSupport.Settle, "RP 收到后通道登出令牌");
+        using var kun = host.Kun("web");
+        var logout = await kun.ValidateLogoutTokenAsync(Assert.Single(host.LogoutTokens), Ct);
+        Assert.Equal((person.ToString("D"), sid.ToString("D")), (logout.Subject, logout.SessionId));
     }
 
     // 确认绑定以前一步认证时记下的身份修订为准：其间修订变了（这里是换绑手机号，不吊销会话、不作废流程），确认绑定 401，不落绑定；

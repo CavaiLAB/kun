@@ -394,6 +394,27 @@ public sealed class SignInPipelineTests(PostgresFixture postgres) : IClassFixtur
         Assert.Equal("UNAUTHENTICATED", Code(await host.SignIn.BeginSwitchAsync(switched, Net, Ct)));
     }
 
+    // 切换票据以发起切换的会话为依据：它在兑换之前失效（这里是登出该会话；强制下线某个会话、被挤下线同理），切换不建立新会话。
+    [Fact]
+    public async Task 发起切换的会话在兑换之前失效_切换票据不能兑现_会话仍有效时照常切换()
+    {
+        await using var world = await TwoTenants(postgres);
+        var (host, _, _, person, phone, inA, inB) = world;
+        var inAlpha = (await Pick(host, (await Right(host, phone)).Ticket!, inA.Id)).Session!;
+        var begin = await host.SignIn.BeginSwitchAsync(inAlpha, Net, Ct);
+        Assert.Equal(SignInStatus.SelectionRequired, begin.Status);
+        await host.Service.RevokeSessionsAsync(new SessionRevocation(person.Id, inAlpha.SessionId, "logout", "logout:switch-test"), Ct);
+        Assert.Equal("LOGIN_TICKET_INVALID", Code(await Pick(host, begin.Ticket!, inB.Id)));
+        Assert.Equal("0", await host.Text("SELECT count(*) FROM plugin_qian_identity.sessions WHERE revoked_at IS NULL"));
+        Assert.Equal("session_invalid", await host.Text("SELECT reason FROM plugin_qian_identity.login_audits WHERE stage = 'switch' AND outcome = 'failure'"));
+
+        var again = (await Pick(host, (await Right(host, phone)).Ticket!, inA.Id)).Session!;
+        var next = await host.SignIn.BeginSwitchAsync(again, Net, Ct);
+        var switched = await Pick(host, next.Ticket!, inB.Id);
+        Assert.Equal((SignInStatus.Authenticated, inB.Id), (switched.Status, switched.Session!.MembershipId));
+        Assert.Null(await host.Service.ValidateAsync(again.SessionId, person.Id, inA.Id, Ct));
+    }
+
     [Fact]
     public async Task 租户处于pending_grace_suspended时新登录被拒_trial与active放行_选择期间被冻结则选择失败且票据保留()
     {

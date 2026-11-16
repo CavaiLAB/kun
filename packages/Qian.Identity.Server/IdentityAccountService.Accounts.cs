@@ -280,21 +280,29 @@ internal sealed partial class IdentityAccountService
     }
 
     // 解除该 Person 在各租户的全部外部身份绑定（R163）。外部身份是租户表（强制 RLS），逐个租户在各自的作用域与事务里软删除。
-    // 放在重置提交之后：重置已作废未用完的登录票据与进行中的绑定流程，确认绑定也会因密码已改而拒绝，此后不会再有新绑定落库。
+    // 放在重置提交之后：重置已作废未用完的登录票据与进行中的绑定流程，确认绑定也会因身份修订已变而拒绝，此后不会再有新绑定落库。
+    // 解除了绑定的那个事务先锁 Person，同时递增身份修订并吊销他的全部会话，效果与重置一致：凭这些绑定的会话与登录流程都要重新认证。
     // 中途失败时异常照常抛出，调用方（运营指定管理员）随之中止，用同一个初始密码重试即可收敛。
-    private async Task UnlinkExternalIdentitiesAsync(Guid personId, IReadOnlyList<string> tenantIds, CancellationToken ct)
+    internal async Task UnlinkExternalIdentitiesAsync(Guid personId, IReadOnlyList<string> tenantIds, CancellationToken ct)
     {
+        var revoked = 0;
         foreach (var raw in tenantIds)
         {
             if (!Guid.TryParseExact(raw, "D", out var tenantId) || tenantId == Guid.Empty) continue;
-            using var scope = TenantScope(tenantId);
+            using var scope = TenantScope(tenantId); using var origin = OpenOrigin();
             await using var session = await OpenAsync(ct).ConfigureAwait(false);
             var db = session.Context;
+            await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+            var person = await LockPersonAsync(db, personId, ct).ConfigureAwait(false);
             var links = await db.ExternalIdentities.Where(e => e.PersonId == personId).ToListAsync(ct).ConfigureAwait(false);
             if (links.Count == 0) continue;
             db.ExternalIdentities.RemoveRange(links);
+            person.IdentityRevision++;
+            revoked += await RevokeSessionRowsAsync(db, personId, null, null, "password_reset", Now, ct).ConfigureAwait(false);
             await session.SaveChangesAsync(ct).ConfigureAwait(false);
+            await transaction.CommitAsync(ct).ConfigureAwait(false);
         }
+        if (revoked > 0) _signal.Notify();
     }
 
     // 本人认领账号：申请人已用验证码证明持有这个标识，而它在该自然人上还没有经本人验证。一个事务里换成申请人的密码与显示名、
@@ -423,6 +431,7 @@ internal sealed partial class IdentityAccountService
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    // 解除一个外部身份绑定，同事务递增该 Person 的身份修订：解除之前查到这个绑定、还没建立会话的连接器登录要重新认证。已建立的会话不吊销。
     public async ValueTask UnlinkExternalIdentityAsync(Guid membershipId, string connectorId, string subject, CancellationToken cancellationToken = default)
     {
         var tenantId = RequireTenant();
@@ -430,14 +439,18 @@ internal sealed partial class IdentityAccountService
         await using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
         var db = session.Context;
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        var owner = await db.ExternalIdentities.AsNoTracking().Where(e => e.MembershipId == membershipId && e.ConnectorId == connectorId && e.Subject == subject)
+            .Select(e => (Guid?)e.PersonId).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false) ?? throw Error(PlatformErrors.NotFound);
+        // 先锁 Person 再动绑定，与重置、确认绑定同一顺序；锁住之后重新读绑定，期间已被别处解除的按不存在处理。
+        var person = await LockPersonAsync(db, owner, cancellationToken).ConfigureAwait(false);
         var target = await db.ExternalIdentities.SingleOrDefaultAsync(e => e.MembershipId == membershipId && e.ConnectorId == connectorId && e.Subject == subject, cancellationToken).ConfigureAwait(false)
             ?? throw Error(PlatformErrors.NotFound);
         // 守卫：解绑后仍要留有登录方式——密码、本租户其他外部身份，或可用于找回的已验证联系方式。
-        var person = await db.Persons.AsNoTracking().SingleAsync(p => p.Id == target.PersonId, cancellationToken).ConfigureAwait(false);
         var otherLinks = await db.ExternalIdentities.AsNoTracking().CountAsync(e => e.PersonId == target.PersonId && e.Id != target.Id, cancellationToken).ConfigureAwait(false);
         var verifiedContacts = await db.Identifiers.AsNoTracking().CountAsync(i => i.PersonId == target.PersonId && i.VerifiedAt != null && (i.Kind == "phone" || i.Kind == "email"), cancellationToken).ConfigureAwait(false);
         if (person.PasswordHash is null && otherLinks == 0 && verifiedContacts == 0) throw Error(IdentityErrors.LastLoginMethod);
         db.ExternalIdentities.Remove(target);
+        person.IdentityRevision++;
         await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }

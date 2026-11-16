@@ -177,6 +177,8 @@ internal sealed class LoginTicketRow
     public string[] Amr { get; set; } = [];
     public string? Acr { get; set; }
     public DateTimeOffset AuthenticatedAt { get; set; }
+    // 签发所依据的那次认证时 Person 的身份修订（不含成员修订）。兑换时在 Person 行锁内与当前值比对，不一致即失效；为空的票据不兑换。
+    public long? PersonRevision { get; set; }
     // 兑换成功时写进登录审计的原因（如连接器登录的「已绑定」「刚确认绑定」「JIT 建号」）。
     public string? Reason { get; set; }
     public string? RemoteAddress { get; set; }
@@ -213,11 +215,12 @@ internal sealed class ConnectorFlowRow
     public string? ExternalUnionId { get; set; }
     // 掩码后的展示资料（显示名、掩码邮箱、用户名），JSON；不存原始断言。
     public string? ExternalProfile { get; set; }
-    // 确认绑定前登录的已有账号（新鲜一因子认证）。
+    // 确认绑定前登录的已有账号（新鲜一因子认证），以及那次认证时它的身份修订：确认绑定与随后签发会话都以此比对。
     public Guid? PersonId { get; set; }
     public Guid? MembershipId { get; set; }
     public DateTimeOffset? VerifiedAt { get; set; }
     public string[] VerifiedAmr { get; set; } = [];
+    public long? PersonRevision { get; set; }
     public string? RemoteAddress { get; set; }
     public string? UserAgent { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

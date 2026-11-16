@@ -5,11 +5,14 @@ date: 2026-10-07
 decision_id: D21
 supersedes: none
 amends: ADR-001, ADR-013
+superseded_by: ADR-023（部分）
 ---
 
 # ADR-021 产品族结构：Kun / Qian / yue 的定位、仓库关系与统一文档
 
 > 起因：产品负责人 2026-10-07 提问「Kun 和 Qian 如何定位？是不是创建一个大的项目把各个子项目关联起来？Kun 也需要体现在文档中。」本 ADR 回答这三问，修订 [ADR-001](ADR-001-kun-relationship.md)（补充口径与文档规则，D1.1–D1.8 不变）与 [ADR-013](ADR-013-frontend-yue.md) D13.18（文档站范围扩为产品族）。仓库归属已于同日由产品负责人拍板：产品族统一在 `idadawn`，Kun 迁入（§2 D21.2、§7；执行见任务 S1-PM-003）。
+
+> **2026-11-17 部分被 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) 取代。** D21.1 的三层口径改为「Kun 是框架，内部分内核档与平台档；qian 是前端层（原名 yue）」；D21.2 的不建大单仓改为 Qian 并入 `idadawn/kun`；D21.3 的 `KunVersion` 单点钉版与包源映射在合并阶段 2 构建并轨时作废；D21.4 的 Kun 文档镜像小节在阶段 1 导入后撤销，改为同仓来源。对应阶段落地之前照旧执行。D21.5、D21.6 不变。
 
 ## 1 背景与问题（Context）
 
@@ -25,7 +28,7 @@ amends: ADR-001, ADR-013
 
 ## 2 决策（Decision）
 
-- **D21.1 三层口径**。
+- 【已被 ADR-023 D23.6 取代】**D21.1 三层口径**。
 
   | 层 | 名字 | 是什么 | 什么内容归它 | 版本 |
   |---|---|---|---|---|
@@ -34,13 +37,13 @@ amends: ADR-001, ADR-013
   | 前端层 | yue | React 组件库与外壳 | UI 组件、表单 / 表格 / 弹层引擎、MF2 外壳与插槽 | SemVer（Changesets） |
 
   对外一句话：「**Qian 平台基于 Kun 框架构建，前端使用 yue 组件库**」。不说「Kun 是 Qian 的子项目」（Kun 有独立下游与发布节奏），也不说「Qian 是 Kun 的扩展」（Qian 有自己的运行时与产品语义）。归属判据沿用决策清单 D19 的分界：无产品观点的通用基础设施上游进 Kun，带多租户 / 业务语义的是 Qian 包。ADR-001 D1.1–D1.8 不变。
-- **D21.2 不建大单仓、不建 submodule 元仓库**（ADR-001 §4 已否决单仓）。「大项目」= **产品族**，用四样东西关联：
+- 【已被 ADR-023 D23.1 取代，阶段 1 导入之前照旧执行】**D21.2 不建大单仓、不建 submodule 元仓库**（ADR-001 §4 已否决单仓）。「大项目」= **产品族**，用四样东西关联：
   1. **一个 GitHub 所有者：`idadawn`**（产品负责人 2026-10-07 拍板）。iClaw 源码、部署仓库、MaaS、Qian 都已在 `idadawn`，只有 Kun 还在公司级、内容驳杂的 CavaiLAB 组织，所以是 **Kun 迁回 `idadawn`**，而不是 Qian 迁出。迁后产品族全部仓库同一所有者：一个 GitHub Packages 命名空间（`Qian.*` 的 S1 包、Kun 的镜像与预发布包；`Qian.*` 包公开可见但安装需令牌，R93）、一段源配置加一份 `packageSourceMapping`；官方市场仓库定名 `idadawn/qian-plugins`。Kun 正式版的主渠道是公开的 nuget.org，迁移不影响任何消费者。执行与核验见 S1-PM-003。
   2. **一个文档站**：「Qian 文档」覆盖整个产品族。Kun 为第 3 部分 SDK 的第一节 `/sdk/kun/`（导航名「Kun 框架」），内容按 Qian 锁定的 Kun 版本从 kun 仓库镜像并经 DocFX 生成 API（D21.4）。站名不改，首页一句话定位点明基于 Kun、前端 yue。
   3. **一张版本矩阵**：`/start/versions` 自动生成：每个 Qian 版本对应的 Kun CalVer、`Qian.*`、`@yue/*`、.NET SDK、Node、K3s 基线；来源是仓库内的钉版文件（`Directory.Packages.props`、`global.json`、pnpm catalog）。
   4. **一个看板**：跨仓库工作在 Qian 的 `pm/` 跟踪（KUN 领域），kun 仓库的 PR 写进任务 `refs` 与进度日志回链；不另建 GitHub Project。
-- **D21.3 Kun 版本单点钉死**。`Directory.Packages.props` 定义 `<KunVersion>`，全部 `Kun.*` 的 PackageVersion 引用 `$(KunVersion)`；`NuGet.config` 的 Kun 源与 `packageSourceMapping` 在首个引用 `Kun.*` 的任务加入（既有约定）；文档同步脚本与版本矩阵读同一属性。升级 Kun = 改这一处 → TCK 两种模式通过 → Kun 文档镜像自动跟随（CI 比对 tag）。补注（S1-DEC-019 R65，2026-10-13）：Kun 的同日修复版 `-hotfix.N` 是推送 nuget.org 的正式修复，NuGet 按预发布排序；`Kun.*` 一律以 `[$(KunVersion)]` 精确钉定，不依赖最新稳定版排序，钉在修复版上时于 Kun 下一个无后缀正式版发布后升级回来。
-- **D21.4 Kun 文档进站规则**（细则见 [specs/docs-site.md §2b](../prd/specs/docs-site.md)）：
+- 【已被 ADR-023 D23.12 取代，阶段 2 构建并轨之前照旧执行】**D21.3 Kun 版本单点钉死**。`Directory.Packages.props` 定义 `<KunVersion>`，全部 `Kun.*` 的 PackageVersion 引用 `$(KunVersion)`；`NuGet.config` 的 Kun 源与 `packageSourceMapping` 在首个引用 `Kun.*` 的任务加入（既有约定）；文档同步脚本与版本矩阵读同一属性。升级 Kun = 改这一处 → TCK 两种模式通过 → Kun 文档镜像自动跟随（CI 比对 tag）。补注（S1-DEC-019 R65，2026-10-13）：Kun 的同日修复版 `-hotfix.N` 是推送 nuget.org 的正式修复，NuGet 按预发布排序；`Kun.*` 一律以 `[$(KunVersion)]` 精确钉定，不依赖最新稳定版排序，钉在修复版上时于 Kun 下一个无后缀正式版发布后升级回来。
+- 【已被 ADR-023 D23.13 取代，阶段 1 导入之前照旧执行】**D21.4 Kun 文档进站规则**（细则见 [specs/docs-site.md §2b](../prd/specs/docs-site.md)）：
   - 真相源在 kun 仓库 `docs/`，Qian 站**只镜像不改写**，与第 7 部分镜像 `docs/` 同一原则；改 Kun 文档去 kun 仓库提 PR。Qian 自写的只有一页「与 Qian 的关系」（Kun 模块 ↔ 平台插件 / seam 映射、canonical API 选择、Qian 的强制装配与禁用项、补丁包状态）以及首页与导航文案。
   - 镜像范围是白名单：README 的定位与模块矩阵、上手教程、模块地图、设计说明与 Kun 的 ADR、指南、可观测、安全、白皮书、变更日志与发布说明。不镜像面向其它下游的差距分析、路线图与 backlog、AOT 审计与基准报告、贡献者文档、各级 `AGENTS.md`。
   - 每页横幅注明来源路径与 Kun 版本、「Kun 文档与代码不一致处以代码为准（ADR-001 D1.8）」、指向「与 Qian 的关系」页；frontmatter `project: kun`、`version: <CalVer>`、`source: <owner>/kun@<tag>:<path>`。

@@ -23,9 +23,13 @@ public interface ITenantAdministration
     ValueTask<TenantAdminAccount> CreateAccountAsync(CreateTenantAdminAccount request, CancellationToken cancellationToken = default);
     /// <summary>读取租户当前管理员；成员已不可解析时不列出。</summary>
     ValueTask<TenantAdminList> GetAsync(Guid id, CancellationToken cancellationToken = default);
-    /// <summary>替换租户管理员（S1 单管理员，Q12）：新管理员得到 tenant.owner，原管理员撤销 tenant.owner 与管理员标志、保留成员身份；同一请求可重试收敛。</summary>
+    /// <summary>
+    /// 替换租户管理员（S1 单管理员，Q12）：新管理员得到 tenant.owner，原管理员撤销 tenant.owner 与管理员标志、保留成员身份；同一请求可重试收敛。
+    /// 请求带 <see cref="TenantAdminDesignation.InitialPassword"/> 时要为已有账号设定凭据，调用方在 qian.tenancy:admin:assign 之外还须经旁路判定
+    /// qian.tenancy:admin:reset-credential（R165），两项都放行才能调用。
+    /// </summary>
     ValueTask<TenantAdminList> ReplaceAsync(Guid id, ReplaceTenantAdmins request, string actor, CancellationToken cancellationToken = default);
-    /// <summary>重置当前管理员的密码：旧密码立即失效、下次登录强制改密、吊销该自然人的全部会话；成员不是当前管理员时返回 NOT_FOUND。</summary>
+    /// <summary>重置当前管理员的密码：旧密码立即失效、下次登录强制改密、吊销该自然人的全部会话；成员不是当前管理员时返回 NOT_FOUND。调用方须经旁路判定 qian.tenancy:admin:reset-credential。</summary>
     ValueTask ResetPasswordAsync(Guid id, Guid membershipId, ResetTenantAdminPassword request, string actor, CancellationToken cancellationToken = default);
     /// <summary>
     /// 运营开户前核对开户请求与指定的管理员账号（R163，与 <see cref="ReplaceAsync"/> 同一口径）。先做不改动任何东西的判定：
@@ -33,6 +37,7 @@ public interface ITenantAdministration
     /// 账号的手机号、邮箱全部经本人验证时直接任管理员，给了 <see cref="TenantAdministrator.InitialPassword"/> 反而拒绝；否则只靠外部身份登录的账号不能任管理员，
     /// 其余账号必须给初始密码：密码重置为它、下次登录强制修改，解除它在各租户的外部身份绑定，并在平台审计链记一条带自然人 id 的重置。
     /// 账号不存在或身份组件缺席时不做判定，交给开通编排；此时给了初始密码返回 INPUT_INVALID。
+    /// 请求带初始密码时，调用方在 qian.tenancy:tenant:create 之外还须经旁路判定 qian.tenancy:admin:reset-credential（R165），两项都放行才能调用。
     /// </summary>
     ValueTask PrepareAdministratorAsync(CreateTenant request, string actor, CancellationToken cancellationToken = default);
 }

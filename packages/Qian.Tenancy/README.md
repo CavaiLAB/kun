@@ -145,6 +145,14 @@ R113 的处理顺序固定为：认证及平台主体检查 → 请求绑定与�
 - 重置先于建成员。之后的步骤失败（如满额）时重置不回退，用同一个初始密码重试即可收敛。
 - 运营页面在这样的账号上多出初始密码一栏，提示写明外部身份登录的绑定一并解除；抽屉里刚新建的账号沿用刚设的初始密码，不再询问。
 
+**设定凭据的权限（R165）**：运营端为已有账号设定凭据的入口统一要求 `qian.tenancy:admin:reset-credential`。重置管理员密码本就用这个权限点；开户与更换管理员的请求带 `initialPassword` 时，同样要它：
+
+- 本操作的权限点（`tenant:create` / `admin:assign`）放行之后，再经同一个超管旁路判定 reset-credential，两项都放行才执行。旁路资源分别是 `tenancy/tenants` 与 `tenancy/tenants/{id}/admins`。
+- 缺这项权限返回 403 `AUTHZ_DENIED`，`pointer` 指向请求里的初始密码字段（`#/administrator/initialPassword` 或 `#/items/0/initialPassword`）。此时什么都还没执行：不设密码、不解除绑定、不建租户、不换管理员。开户入口的这次判定在 `PrepareAdministratorAsync` 之前。
+- 放行与其它旁路放行一样，在平台链上留一条 `bypass=superadmin` 记录，`payload.permission` 为 reset-credential；拒绝原因只进结构化日志。
+- 不带 `initialPassword` 的请求不受影响。新建账号（`admin:create`）设的是新账号的初始密码，不在此列。
+- 运营页面收到这种 403 时，在开户与更换管理员的抽屉里提示还需要这项权限。
+
 账号、成员与凭据都经 qian.identity 的端口读写，本组件只改 `tenant_admins` 指针。`ITenantAdministration` 由 TenancyPlugin 提供（服务键 `TenancyAdministration`）；身份组件缺席时这组接口返回 404。响应只有掩码标识，原值与密码不出身份组件。身份组件给出的错误位置换成运营请求体的字段，例如 `#/initialPassword`、`#/newPassword`、`#/identifier`。
 
 替换按「新管理员成员 → 新 tenant.owner → 撤销原管理员的 tenant.owner 与管理员标志 → 改指针 → 租户链补 admin.assign」的顺序执行。每步幂等、指针最后才改，中途失败用同一请求重试即可收敛。它与开通续跑共用同一把租户会话锁；开通第 05–07 步没有全部成功时返回 409，先续跑开通。

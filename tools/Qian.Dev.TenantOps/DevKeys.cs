@@ -13,6 +13,8 @@ internal static class DevKeys
     internal const string OperationsAudience = "qian-dev-tenant-ops";
     internal const string BusinessAudience = "qian.sample.crm";
     internal const string Superadmin = "root";
+    // 受限运营：持平台超管，但运营入口不给它 qian.tenancy:admin:reset-credential（见 DevLimitedOperator.cs）。
+    internal const string LimitedOperator = "ops-limited";
     private const string KeyFile = "ops-signing-key.pem";
 
     internal static RsaSecurityKey LoadOrCreate(string state)

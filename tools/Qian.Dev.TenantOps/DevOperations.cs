@@ -26,7 +26,9 @@ internal static partial class DevOperations
         string repository, string url, Action<ILoggingBuilder> logging, CancellationToken ct)
     {
         await PrepareAsync(loader, services, platform, repository, ct).ConfigureAwait(false);
-        var app = TenantOperationsHost.Build(() => loader.GetContext("tenancy", ScopeKey.Global), new TokenValidationParameters
+        // 受限运营（S1-TEN-027）也持平台超管，运营入口的旁路只扣它的 reset-credential。
+        await GrantSuperadminAsync(services, DevKeys.LimitedOperator, ct).ConfigureAwait(false);
+        var app = TenantOperationsHost.Build(() => new DevLimitedOperatorContext(loader.GetContext("tenancy", ScopeKey.Global)), new TokenValidationParameters
         {
             ValidateIssuer = true, ValidIssuer = DevKeys.Issuer, ValidateAudience = true, ValidAudience = DevKeys.OperationsAudience,
             ValidateLifetime = true, ValidateIssuerSigningKey = true, IssuerSigningKey = DevKeys.PublicOnly(key),

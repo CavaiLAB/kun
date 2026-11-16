@@ -1,14 +1,20 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Authorization;
 using Kun.Core.MultiTenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Qian.Audit;
+using Qian.Authz;
+using Qian.Authz.Abstractions;
 using Qian.Capabilities;
+using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
 using Qian.Runtime.Errors;
@@ -362,17 +368,125 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         Assert.NotEqual("INVALID_CREDENTIALS", Failure(await SignInAs(superPhone, IdentityPassword)));
     }
 
+    private const string CreatePermission = "qian.tenancy:tenant:create", AssignPermission = "qian.tenancy:admin:assign", CredentialPermission = "qian.tenancy:admin:reset-credential";
+    private const string NextPassword = "Next-Designated-2026";
+
+    // R165：运营端为已有账号设定凭据的入口统一要求 reset-credential。开户与更换管理员带了初始密码，本操作的权限点放行之后还要这一项，
+    // 缺了就 403、什么都不改。平台目前只有超管一个平台角色，运营持有哪些权限点由 OperatorGrants 在真实旁路之前收窄。
+    [Fact]
+    public async Task 带初始密码的开户与更换管理员另要重置凭据权限_只有开户或只有指定权限时403且什么都不改_两项都有时照常_不带初始密码不受影响()
+    {
+        var grants = new OperatorGrants(); var logs = new OperationsLog();
+        await using var ops = await StartOps(grants, logs);
+        var (business, client) = (ops.Business, ops.Client);
+        var root = business.Token(null, "", "root", "user");
+        var source = business.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("tenancy", ScopeKey.Global);
+        var tenants = business.App.Services.GetRequiredService<ITenantContext>();
+        // 两位运营都持平台超管，经 OperatorGrants 只留下各自的权限点：opener 只能开户，assigner 只能指定管理员。
+        var roles = new PostgresPlatformRoleStore(business.App.Services.GetRequiredService<IDataService>(), tenants, ops.Platform.AuthzRole);
+        foreach (var name in new[] { "opener", "assigner" }) await roles.AssignSuperadminAsync(name, "operator", Ct);
+        grants.Limit("opener", CreatePermission); grants.Limit("assigner", AssignPermission);
+        var (opener, assigner) = (business.Token(null, "", "opener", "user"), business.Token(null, "", "assigner", "user"));
+        Task<HttpResponseMessage> Open(string token, string code, Guid subject, string? initialPassword) => Send(client, HttpMethod.Post, "/api/tenancy/tenants", token,
+            new CreateTenant(code, "凭据权限 " + code) { Administrator = new(Guid.CreateVersion7(), subject.ToString("D")) { InitialPassword = initialPassword } });
+        Task<HttpResponseMessage> Replace(string token, string tenant, Guid subject, string? initialPassword) => Send(client, HttpMethod.Put, Admins(tenant), token,
+            new ReplaceTenantAdmins([new(subject) { InitialPassword = initialPassword }]));
+        Task<string?> Tenants(string code) => Text($"SELECT count(*)::text FROM plugin_qian_tenancy.tenants WHERE code = '{code}'");
+        Task<string?> Pointer(string tenant) => Text($"SELECT membership_id::text FROM plugin_qian_tenancy.tenant_admins WHERE tenant_id = '{tenant}'");
+        Task<string?> Members(string tenant, Guid person) => Text($"SELECT count(*)::text FROM plugin_qian_identity.memberships WHERE tenant_id = '{tenant}' AND person_id = '{person}'");
+        Task<string?> Links(Guid person) => Text($"SELECT count(*)::text FROM plugin_qian_identity.external_identities WHERE person_id = '{person}' AND NOT is_deleted");
+        async Task<SignInStatus> SignInAs(string identifier, string password)
+        {
+            using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(password));
+            return (await business.Identity.SignIn.SignInAsync(new LoginInput("web", null, null, null, proof) { Identifier = identifier }, new LoginContext(), Ct)).Status;
+        }
+        // 运营新建的账号：手机号未经本人验证，指定它任管理员要带初始密码（R163）。
+        async Task<(Guid Subject, string Phone)> Unverified(string name)
+        {
+            var phone = NewPhone();
+            var account = await Read<TenantAdminAccount>(await Send(client, HttpMethod.Post, Accounts, root, new CreateTenantAdminAccount(name, TenantAdminIdentifierKind.Phone, phone, TemporaryPassword)), HttpStatusCode.Created);
+            return (account.SubjectId, phone);
+        }
+        // 平台链上这位运营的旁路放行，按链上顺序列出权限点与资源。
+        async Task<(string Permission, string? Resource)[]> Allowed(string actor) => [.. (await ReadPlatformChain(source)).Select(entry => entry.Record)
+            .Where(record => record.CapabilityId == "qian.authz/superadmin.bypass" && record.ActorId == actor)
+            .Select(record => (record.Payload.GetProperty("permission").GetString()!, record.Resource))];
+        int Denials(string actor, string permission) => logs.Entries.Count(entry => Equals(entry["Subject"], actor) && Equals(entry["Permission"], permission));
+
+        // 一、开户。目标账号的手机号未经本人验证，并在租户 A 绑了外部身份。只有开户权限的运营带初始密码：403，pointer 指向初始密码；
+        // 什么都没改：没有建租户，账号的密码与外部身份绑定都在，平台链上没有重置记录。
+        var (subject, phone) = await Unverified("待指定");
+        var elsewhere = await Join(business, A, subject, "A 的成员");
+        async Task Link()
+        {
+            using (tenants.BeginScope(A)) await business.Identity.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(elsewhere.Id, "oidc", "upstream-" + Guid.NewGuid().ToString("N")), Ct);
+        }
+        await Link();
+        Assert.Equal("#/administrator/initialPassword", await Rejected(await Open(opener, "credopen", subject, DesignatedPassword), HttpStatusCode.Forbidden, "AUTHZ_DENIED"));
+        Assert.Equal(("0", "1"), (await Tenants("credopen"), await Links(subject)));
+        Assert.Equal((SignInStatus.PasswordChangeRequired, SignInStatus.Failed), (await SignInAs(phone, TemporaryPassword), await SignInAs(phone, DesignatedPassword)));
+        Assert.DoesNotContain(await ReadPlatformChain(source), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password");
+        // 不带初始密码的开户不受影响：手机号经本人验证的账号直接任管理员。
+        var (vouched, _) = await NewPerson(business, "已验证");
+        await Read<TenantDescriptor>(await Open(opener, "credplain", vouched.Id, null), HttpStatusCode.Created);
+        // 两项权限都有时照常：同一租户号开户成功（前面被拒的请求没有留下开户输入），账号的密码设为初始密码，外部身份绑定解除，平台链记下重置。
+        grants.Limit("opener", CreatePermission, CredentialPermission);
+        var credited = (await Read<TenantDescriptor>(await Open(opener, "credopen", subject, DesignatedPassword), HttpStatusCode.Created)).Id.ToString();
+        Assert.Equal("0", await Links(subject));
+        Assert.Equal((SignInStatus.PasswordChangeRequired, SignInStatus.Failed), (await SignInAs(phone, DesignatedPassword), await SignInAs(phone, TemporaryPassword)));
+        Assert.Equal(subject, Assert.Single(await ReadPlatformChain(source), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password").Record.Payload.GetProperty("subjectId").GetGuid());
+
+        // 二、更换管理员。只有指定权限的运营带初始密码指定三种账号（现任管理员、另一个未经本人验证的账号、已验证的账号），都是 403，pointer 指向初始密码；
+        // 已验证的账号带初始密码本应 400，缺这项权限时先得到 403。
+        var current = await Pointer(credited);
+        await Link();
+        var (other, otherPhone) = await Unverified("另一位");
+        foreach (var target in new[] { subject, other, vouched.Id })
+            Assert.Equal("#/items/0/initialPassword", await Rejected(await Replace(assigner, credited, target, NextPassword), HttpStatusCode.Forbidden, "AUTHZ_DENIED"));
+        // 什么都没改：指针不变，另一位没有成为成员，两人的密码与现任管理员的外部身份绑定都在，租户链上没有重置记录。
+        Assert.Equal((current, "0", "1"), (await Pointer(credited), await Members(credited, other), await Links(subject)));
+        Assert.Equal((SignInStatus.PasswordChangeRequired, SignInStatus.Failed), (await SignInAs(phone, DesignatedPassword), await SignInAs(phone, NextPassword)));
+        Assert.Equal(SignInStatus.PasswordChangeRequired, await SignInAs(otherPhone, TemporaryPassword));
+        using (tenants.BeginScope(credited))
+            Assert.DoesNotContain(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password");
+        // 不带初始密码的更换不受影响。
+        var plain = Assert.Single((await Read<TenantAdminList>(await Replace(assigner, credited, vouched.Id, null), HttpStatusCode.OK)).Items);
+        Assert.Equal(plain.MembershipId.ToString(), await Pointer(credited));
+        // 重置管理员密码本就要这一项：assigner 没有，403。本操作的权限点先判：opener 没有指定权限，带初始密码也只在这一步被拒。两处都不带 pointer。
+        Assert.Null(await Rejected(await Send(client, HttpMethod.Post, Reset(credited, plain.MembershipId), assigner, new ResetTenantAdminPassword(TemporaryPassword)),
+            HttpStatusCode.Forbidden, "AUTHZ_DENIED"));
+        Assert.Null(await Rejected(await Replace(opener, credited, subject, NextPassword), HttpStatusCode.Forbidden, "AUTHZ_DENIED"));
+        // 两项权限都有时照常：换回原管理员，密码设为新的初始密码、外部身份绑定解除，租户链记下带自然人 id 的重置。
+        grants.Limit("assigner", AssignPermission, CredentialPermission);
+        var restored = Assert.Single((await Read<TenantAdminList>(await Replace(assigner, credited, subject, NextPassword), HttpStatusCode.OK)).Items);
+        Assert.Equal((subject, restored.MembershipId.ToString(), "0"), (restored.SubjectId, await Pointer(credited), await Links(subject)));
+        Assert.Equal((SignInStatus.PasswordChangeRequired, SignInStatus.Failed), (await SignInAs(phone, NextPassword), await SignInAs(phone, DesignatedPassword)));
+        using (tenants.BeginScope(credited))
+            Assert.Equal(subject, Assert.Single(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password")
+                .Record.Payload.GetProperty("subjectId").GetGuid());
+
+        // 平台链：每次放行一条旁路记录，reset-credential 只在两项都有时出现，资源分别是租户集合与目标租户的 admins 集合。
+        // 拒绝不写审计，原因只进结构化日志：opener 在开户时缺 reset-credential 一次、更换时缺指定权限一次；assigner 缺 reset-credential 四次（三次更换、一次重置）。
+        var tenantPath = "tenancy/tenants/" + credited;
+        var (openerAllowed, assignerAllowed) = (await Allowed("opener"), await Allowed("assigner"));
+        Assert.Equal([(CreatePermission, "tenancy/tenants"), (CreatePermission, "tenancy/tenants"), (CreatePermission, "tenancy/tenants"), (CredentialPermission, "tenancy/tenants")], openerAllowed);
+        Assert.Equal([.. Enumerable.Repeat((AssignPermission, (string?)tenantPath), 5), (CredentialPermission, tenantPath + "/admins")], assignerAllowed);
+        Assert.Equal((1, 1, 4), (Denials("opener", CredentialPermission), Denials("opener", AssignPermission), Denials("assigner", CredentialPermission)));
+        Assert.True((await source.Audit().VerifyPlatformAsync(source, Ct)).Valid);
+    }
+
     private static string Admins(string tenant) => $"/api/tenancy/tenants/{tenant}/admins";
     private static string Reset(string tenant, Guid membership) => $"{Admins(tenant)}/{membership}:reset-password";
 
-    private async Task<Ops> StartOps()
+    private async Task<Ops> StartOps(OperatorGrants? grants = null, OperationsLog? logs = null)
     {
         var platform = new LifecyclePlatform { Management = true };
         RunningApp? business = null;
         try
         {
             business = await Start(lifecycle: platform, identity: true);
-            var management = await ManagementHost(business, platform);
+            var loader = business.App.Services.GetRequiredService<CrmCommandRuntime>().Loader;
+            var management = await ManagementHost(business, platform, logs, grants is null ? null : () => new GrantedContext(loader.GetContext("tenancy", ScopeKey.Global), grants));
             return new Ops(platform, business, management, new HttpClient { BaseAddress = new Uri(management.Urls.Single()) });
         }
         catch
@@ -388,6 +502,49 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         {
             Client.Dispose(); await Management.StopAsync(Ct); await Management.DisposeAsync(); await Business.DisposeAsync(); Platform.Dispose();
         }
+    }
+
+    // 运营持有的平台权限点。平台目前只有超管一个平台角色，持角色即持全部已登记的权限点；用例经它收窄某位运营的权限点。
+    // 收窄之外的判定原样交给真实旁路（持角色核对与平台链审计照常），收窄掉的权限点按旁路拒绝处理：不写审计，原因为 withheld。
+    private sealed class OperatorGrants
+    {
+        private readonly ConcurrentDictionary<string, string[]> _limits = new(StringComparer.Ordinal);
+        internal void Limit(string subject, params string[] permissions) => _limits[subject] = permissions;
+        internal bool Withheld(SuperadminAccess access) => _limits.TryGetValue(access.Subject.Id, out var permitted) && !permitted.Contains(access.Permission, StringComparer.Ordinal);
+    }
+
+    private sealed class GrantedBypass(ISuperadminBypass inner, OperatorGrants grants) : ISuperadminBypass
+    {
+        public ValueTask<PermissionDecision> AuthorizeAsync(SuperadminAccess access, CancellationToken cancellationToken = default) =>
+            grants.Withheld(access) ? ValueTask.FromResult(new PermissionDecision(false, "withheld", [])) : inner.AuthorizeAsync(access, cancellationToken);
+    }
+
+    // 运营入口每个请求解析的 qian.tenancy 上下文：只把超管旁路换成 GrantedBypass，其余原样转发。
+    private sealed class GrantedContext(IPluginContext inner, OperatorGrants grants) : IPluginContext
+    {
+        public PluginEntry Entry => inner.Entry;
+        public ScopeKey Scope => inner.Scope;
+        public IServiceProvider Services => inner.Services;
+        public ILogger Logger => inner.Logger;
+        public TService Inject<TService>(ServiceKey key) where TService : class => Wrap(key, inner.Inject<TService>(key))!;
+        public TService? TryInject<TService>(ServiceKey key) where TService : class => Wrap(key, inner.TryInject<TService>(key));
+        private TService? Wrap<TService>(ServiceKey key, TService? service) where TService : class =>
+            key == AuthzDefinition.SuperadminBypassKey && service is ISuperadminBypass bypass ? (TService)(object)new GrantedBypass(bypass, grants) : service;
+        public IRegistrationHandle<TService> Provide<TService>(ServiceKey key, TService instance) where TService : class => inner.Provide(key, instance);
+        public IRegistrationHandle<TService> Provide<TService>(ServiceKey key, string name, TService instance) where TService : class => inner.Provide(key, name, instance);
+        public TService Inject<TService>(ServiceKey key, string name) where TService : class => inner.Inject<TService>(key, name);
+        public ValueTask<TService> WhenReadyAsync<TService>(ServiceKey key, CancellationToken ct) where TService : class => inner.WhenReadyAsync<TService>(key, ct);
+        public void Effect(IDisposable disposer) => inner.Effect(disposer);
+        public void Effect(Action dispose) => inner.Effect(dispose);
+        public void Effect(Func<ValueTask> disposeAsync) => inner.Effect(disposeAsync);
+        public IDisposable On<TPayload, TResult>(QianEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
+        public IDisposable On<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
+        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
+        public ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
+        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct) => inner.DispatchAsync(evt, payload, terminal, ct);
+        public IPluginContext Scoped(ScopeKey scope) => inner.Scoped(scope);
+        public IDisposable Restrict(ScopeKey scope, Func<Registration, bool> keep) => inner.Restrict(scope, keep);
+        public IReadOnlyList<Registration> List(ServiceKey key) => inner.List(key);
     }
 
     // 平台链上管理员维护的超管旁路记录；引导时安装、激活 system 组件的生命周期条目（S1-RT-037）与租户主档的放行不算。

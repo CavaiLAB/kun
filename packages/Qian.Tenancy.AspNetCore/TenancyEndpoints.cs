@@ -52,7 +52,7 @@ public static partial class TenancyEndpoints
             {
                 if (input.Administrator is null || input.Isolation != TenantIsolation.Row)
                     throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
-            }))).Produces<TenantDescriptor>(StatusCodes.Status201Created);
+            }, Credential(input.Administrator?.InitialPassword, "tenancy/tenants", "#/administrator/initialPassword")))).Produces<TenantDescriptor>(StatusCodes.Status201Created);
         Bind(endpoints.MapGet("/api/tenancy/tenants/{id:guid}", (HttpContext http, Guid id) =>
             Respond(http, source, "read", id, async (ctx, _) => Results.Ok(await ctx.Tenancy().GetByIdAsync(id, http.RequestAborted).ConfigureAwait(false)
                 ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound)))))).Produces<TenantDescriptor>();
@@ -70,11 +70,17 @@ public static partial class TenancyEndpoints
         .Produces<ErrorDetail>(403, ErrorDetailJson.MediaType).Produces<ErrorDetail>(404, ErrorDetailJson.MediaType).Produces<ErrorDetail>(409, ErrorDetailJson.MediaType);
     // 租户主档、状态与设置的权限点是 qian.tenancy:tenant:<action>，旁路审计的资源是目标租户路径。
     private static Task<IResult> Respond(HttpContext http, Func<HttpContext, IPluginContext> source, string action, Guid? id,
-        Func<IPluginContext, Principal, Task<IResult>> execute, Action? validate = null) =>
-        Execute(http, source, "qian.tenancy:tenant:" + action, id is null ? "tenancy/tenants" : "tenancy/tenants/" + id, execute, validate);
+        Func<IPluginContext, Principal, Task<IResult>> execute, Action? validate = null, CredentialSetting? credential = null) =>
+        Execute(http, source, "qian.tenancy:tenant:" + action, id is null ? "tenancy/tenants" : "tenancy/tenants/" + id, execute, validate, credential);
+    // 运营端为已有账号设定凭据统一要求的权限点（R165），与重置管理员密码的入口相同。
+    private const string CredentialPermission = "qian.tenancy:admin:reset-credential";
+    // 请求要为已有账号设定凭据：开户与更换管理员时带了初始密码（R163）。Pointer 是该字段在请求体里的位置。
+    private sealed record CredentialSetting(string Resource, string Pointer);
+    private static CredentialSetting? Credential(string? initialPassword, string resource, string pointer) => initialPassword is null ? null : new(resource, pointer);
     // R113 的处理顺序：认证及平台主体检查 → 输入校验 → 组件上下文核对 → 超管旁路与审计 → 执行。
+    // 请求要设定凭据时，本操作的权限点放行之后，再经同一旁路判定 CredentialPermission（R165），两项都放行才执行。
     private static async Task<IResult> Execute(HttpContext http, Func<HttpContext, IPluginContext> source, string permission, string resource,
-        Func<IPluginContext, Principal, Task<IResult>> execute, Action? validate = null)
+        Func<IPluginContext, Principal, Task<IResult>> execute, Action? validate = null, CredentialSetting? credential = null)
     {
         http.Response.Headers.CacheControl = "private, no-store";
         try
@@ -88,12 +94,23 @@ public static partial class TenancyEndpoints
             var ctx = source(http);
             if (ctx.Scope != ScopeKey.Global || ctx.Entry.Plugin != "qian.tenancy")
             { Denied("context_mismatch"); throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
-            var decision = await ctx.Inject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey).AuthorizeAsync(
-                new SuperadminAccess(new AuthorizationSubject(principal.Subject, null, "user"), permission, null, resource, "api"), http.RequestAborted).ConfigureAwait(false);
+            var bypass = ctx.Inject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey);
+            var subject = new AuthorizationSubject(principal.Subject, null, "user");
+            var decision = await bypass.AuthorizeAsync(new SuperadminAccess(subject, permission, null, resource, "api"), http.RequestAborted).ConfigureAwait(false);
             if (!decision.Allow)
             {
                 LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), decision.Reason, principal.Subject, permission);
                 throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+            }
+            if (credential is not null)
+            {
+                // 放行同样由旁路写进平台审计链；拒绝时还什么都没执行，响应的 pointer 指向初始密码字段，页面据此提示缺的是这项权限。
+                var setting = await bypass.AuthorizeAsync(new SuperadminAccess(subject, CredentialPermission, null, credential.Resource, "api"), http.RequestAborted).ConfigureAwait(false);
+                if (!setting.Allow)
+                {
+                    LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), setting.Reason, principal.Subject, CredentialPermission);
+                    throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied) { Pointer = credential.Pointer });
+                }
             }
             void Denied(string reason) => LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), reason, principal.Subject, permission);
             using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.tenancy", EventActor.User(principal.Subject)));

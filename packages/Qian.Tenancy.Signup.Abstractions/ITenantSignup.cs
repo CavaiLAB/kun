@@ -9,7 +9,7 @@ public interface ITenantSignup
 {
     /// <summary>发验证码；号码已注册与否结果相同。超限抛 RATE_LIMITED（Data 带 <see cref="TenancySignupErrors.RetryAfterDataKey"/>），没有发件端口抛 SIGNUP_UNAVAILABLE。</summary>
     ValueTask<SignupVerificationTicket> StartVerificationAsync(StartSignupVerification request, SignupRequestContext context, CancellationToken cancellationToken = default);
-    /// <summary>核验验证码并建立申请人会话；验证码单次有效，错误达到上限即作废。号码的账号停用、锁定或是平台身份时抛 SIGNUP_ACCOUNT_UNAVAILABLE。</summary>
+    /// <summary>核验验证码并建立申请人会话；验证码单次有效，错误达到上限即作废。号码的账号停用、锁定、是平台身份，或号码在账号上未经本人验证而账号已加入企业时，抛 SIGNUP_ACCOUNT_UNAVAILABLE。</summary>
     ValueTask<SignupSessionGrant> OpenSessionAsync(OpenSignupSession request, SignupRequestContext context, CancellationToken cancellationToken = default);
     /// <summary>读取当前申请人；会话无效返回 null。</summary>
     ValueTask<SignupApplicant?> GetApplicantAsync(string sessionToken, CancellationToken cancellationToken = default);

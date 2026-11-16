@@ -26,7 +26,7 @@ public static class TenancySignupErrors
     public static readonly ErrorCode CodeExpired = ErrorCode.Protocol("SIGNUP_CODE_EXPIRED", 400, Owner,
         Text("验证码已失效", "Verification code expired"),
         Text("验证码已过期或已失效，请重新获取。", "The verification code has expired or is no longer valid; request a new one."));
-    /// <summary>该号码对应的账号已停用、锁定，或是平台身份（Q12：平台身份不进租户），不能申请开通。</summary>
+    /// <summary>该号码对应的账号已停用、锁定，或是平台身份（Q12：平台身份不进租户），或号码在账号上未经本人验证而账号已加入企业（R163），不能申请开通。</summary>
     public static readonly ErrorCode AccountUnavailable = ErrorCode.Protocol("SIGNUP_ACCOUNT_UNAVAILABLE", 403, Owner,
         Text("账号不可申请", "Account unavailable"),
         Text("该手机号对应的账号当前不能申请开通企业，请联系平台运营。", "The account bound to this phone number cannot apply for a new organization; contact platform operations."));

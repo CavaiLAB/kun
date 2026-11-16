@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://qian.dev/contracts/identity/v1/directory.member.status_changed.v1.schema.json",
-  "description": "成员状态或目录删除标记已变化；deleted 为 true 表示已从目录删除（禁用 + 标记）。",
+  "description": "成员状态或目录删除标记已变化；deleted 为 true 表示已从目录删除（禁用 + 标记）。deleted 由 true 变为 false 表示被删的成员经新增成员按标识恢复（R163），status 为 active。",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -75,6 +75,15 @@ class Browser:
         return json.loads(payload) if payload else None
 
 
+def wants_initial_password(payload: bytes) -> bool:
+    try:
+        error = json.loads(payload)
+    except ValueError:
+        return False
+    return error.get("code") == "INPUT_INVALID" and any(
+        item.get("pointer") == "#/administrator/initialPassword" for item in error.get("errors") or [])
+
+
 def path_of(url: str) -> str:
     parsed = urllib.parse.urlsplit(url)
     return parsed.path + ("?" + parsed.query if parsed.query else "")
@@ -164,10 +173,17 @@ class Run:
                                {"displayName": display_name, "identifierKind": "username", "identifier": username, "initialPassword": password}, csrf, expected=201)
         return created["subjectId"]
 
-    def open_tenant(self, browser: Browser, csrf: dict, code: str, name: str, administrator: str) -> str:
-        created = browser.json("POST", self.shell + "/api/tenancy/tenants",
-                               {"code": code, "name": name, "administrator": {"membershipId": uuid7(), "subjectId": administrator}}, csrf, expected=201)
-        tenant = created["id"]
+    def open_tenant(self, browser: Browser, csrf: dict, code: str, name: str, administrator: str, password: str) -> str:
+        # 指定的账号需要初始密码时，服务端以字段错误 #/administrator/initialPassword 指明（R163）；按这个字段错误补带初始密码重发。
+        url = self.shell + "/api/tenancy/tenants"
+        body = {"code": code, "name": name, "administrator": {"membershipId": uuid7(), "subjectId": administrator}}
+        status, _, payload = browser.send("POST", url, body, csrf)
+        if status == 400 and wants_initial_password(payload):
+            body["administrator"]["initialPassword"] = password
+            status, _, payload = browser.send("POST", url, body, csrf)
+        if status != 201:
+            raise Failed(f"{browser.name}: POST {path_of(url)} 期望 201，实际 {status}：{payload[:500].decode('utf-8', 'replace')}")
+        tenant = json.loads(payload)["id"]
         active = browser.json("POST", self.shell + f"/api/tenancy/tenants/{tenant}:activate", {}, csrf)
         if active.get("status") != "active":
             raise Failed(f"租户 {code} 激活后的状态是 {active.get('status')}。")
@@ -229,8 +245,8 @@ def main() -> int:
         initial = new_password()
         admin_a = run.new_admin(operator, csrf, "甲方管理员", f"e2e{run.suffix}a", initial)
         admin_b = run.new_admin(operator, csrf, "乙方管理员", f"e2e{run.suffix}b", initial)
-        tenant_a = run.open_tenant(operator, csrf, f"e2e{run.suffix}a", f"E2E 甲方 {run.suffix}", admin_a)
-        tenant_b = run.open_tenant(operator, csrf, f"e2e{run.suffix}b", f"E2E 乙方 {run.suffix}", admin_b)
+        tenant_a = run.open_tenant(operator, csrf, f"e2e{run.suffix}a", f"E2E 甲方 {run.suffix}", admin_a, initial)
+        tenant_b = run.open_tenant(operator, csrf, f"e2e{run.suffix}b", f"E2E 乙方 {run.suffix}", admin_b, initial)
         listed = [item["id"] for item in operator.json("GET", run.shell + "/api/tenancy/tenants?keyword=e2e" + run.suffix)["items"]]
         if tenant_a not in listed or tenant_b not in listed:
             raise Failed(f"运营列表里找不到新开的租户：{listed}")
@@ -269,7 +285,7 @@ def main() -> int:
         if (status, code) != (503, "SIGNUP_UNAVAILABLE"):
             raise Failed(f"发验证码期望 503 SIGNUP_UNAVAILABLE，实际 {status} {code}")
         admin_c = run.new_admin(operator, run.csrf(operator), "丙方管理员", f"e2e{run.suffix}c", initial)
-        tenant_c = run.open_tenant(operator, run.csrf(operator), f"e2e{run.suffix}c", f"E2E 丙方 {run.suffix}", admin_c)
+        tenant_c = run.open_tenant(operator, run.csrf(operator), f"e2e{run.suffix}c", f"E2E 丙方 {run.suffix}", admin_c, initial)
         run.step("D4：发验证码 503 SIGNUP_UNAVAILABLE，之后运营开户照常", signup=[status, code], tenant=tenant_c)
     except Failed as error:
         print(f"[失败] {error}", file=sys.stderr)

@@ -27,6 +27,14 @@ public interface ITenantAdministration
     ValueTask<TenantAdminList> ReplaceAsync(Guid id, ReplaceTenantAdmins request, string actor, CancellationToken cancellationToken = default);
     /// <summary>重置当前管理员的密码：旧密码立即失效、下次登录强制改密、吊销该自然人的全部会话；成员不是当前管理员时返回 NOT_FOUND。</summary>
     ValueTask ResetPasswordAsync(Guid id, Guid membershipId, ResetTenantAdminPassword request, string actor, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// 运营开户前核对开户请求与指定的管理员账号（R163，与 <see cref="ReplaceAsync"/> 同一口径）。先做不改动任何东西的判定：
+    /// 输入不合格返回 INPUT_INVALID，租户号已被另一份开户输入占用返回 CONFLICT，账号具备平台访问资格或不是启用状态返回 INPUT_INVALID（位置 #/administrator/subjectId）。
+    /// 账号的手机号、邮箱全部经本人验证时直接任管理员，给了 <see cref="TenantAdministrator.InitialPassword"/> 反而拒绝；否则只靠外部身份登录的账号不能任管理员，
+    /// 其余账号必须给初始密码：密码重置为它、下次登录强制修改，解除它在各租户的外部身份绑定，并在平台审计链记一条带自然人 id 的重置。
+    /// 账号不存在或身份组件缺席时不做判定，交给开通编排；此时给了初始密码返回 INPUT_INVALID。
+    /// </summary>
+    ValueTask PrepareAdministratorAsync(CreateTenant request, string actor, CancellationToken cancellationToken = default);
 }
 
 /// <summary>登录标识的类型。</summary>
@@ -71,7 +79,16 @@ public sealed record TenantAdminList(IReadOnlyList<TenantAdmin> Items);
 
 /// <summary>指定一位管理员：已存在的自然人。</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TenantAdminDesignation(Guid SubjectId);
+public sealed record TenantAdminDesignation(Guid SubjectId)
+{
+    /// <summary>
+    /// 初始密码（R163）：账号的联系方式没有全部经本人验证（或一个都没有）时必填；给了就把账号的密码重置为它、下次登录强制修改（与运营重置密码相同）。
+    /// </summary>
+    [MinLength(8), MaxLength(1024)]
+    public string? InitialPassword { get; init; }
+    /// <summary>不输出初始密码。</summary>
+    public override string ToString() => $"TenantAdminDesignation {{ SubjectId = {SubjectId} }}";
+}
 
 /// <summary>替换租户管理员；S1 恰好一项（单管理员，Q12），多管理员与邀请在 S3。</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

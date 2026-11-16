@@ -273,6 +273,7 @@ export interface components {
                 /** Format: uuid */
                 membershipId: string;
                 subjectId: string;
+                initialPassword?: string | null;
             };
             quotas?: {
                 /** @default null */
@@ -391,6 +392,7 @@ export interface components {
             items: {
                 /** Format: uuid */
                 subjectId: string;
+                initialPassword?: string | null;
             }[];
         };
         H23c7f11ec74b95209c749beb6fc14fd174ee7732d194121e24b269c2dff60f2c: {

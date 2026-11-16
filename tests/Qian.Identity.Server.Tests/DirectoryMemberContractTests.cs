@@ -53,10 +53,10 @@ public sealed partial class DirectoryMemberContractTests
         Assert.Equal("directory.members.add", add["operationId"]!.GetValue<string>());
         Assert.Equal("write", add["x-qian-side-effect"]!.GetValue<string>());
         Assert.Equal(DirectoryAddCapability.Definition.Id, add["x-qian-capability"]!.GetValue<string>());
-        // 请求：与服务端绑定的请求体逐字段一致，必填只有标识与显示名，不允许多余字段（因此也没有租户字段）。
+        // 请求：与服务端绑定的请求体逐字段一致，必填是标识、显示名与初始密码，不允许多余字段（因此也没有租户字段）。
         var request = contract.Resolve(add["requestBody"]!["content"]!["application/json"]!["schema"]!);
         Assert.Equal(Bound(typeof(IdentityDirectoryEndpoints.AddMemberBody)), Names(request, "properties"));
-        Assert.Equal(["display_name", "identifier"], Names(request, "required"));
+        Assert.Equal(["display_name", "identifier", "initial_password"], Names(request, "required"));
         Assert.False(request["additionalProperties"]!.GetValue<bool>());
         Assert.DoesNotContain(Names(request, "properties"), name => name.Contains("tenant", StringComparison.OrdinalIgnoreCase));
         // 响应：与新增结果及成员投影的序列化逐字段一致，全部必填；Membership 与目录查询契约是同一份定义。

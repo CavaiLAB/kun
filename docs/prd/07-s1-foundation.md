@@ -327,7 +327,7 @@ S1 的 profile 与组合包落位（R31；三节点 K3s 的现实仍然成立：
 
 **设计理念**。组织树、岗位、用户档案是 RBAC 主体、审批人解析与数据权限变量的基础主体；ADR-012 要求「组织模型含岗位/责任岗位/组织类型与上级查询契约」在 S1 落地。档案与凭据分离：HR 字段不进平台插件。S1 把目录作为 `qian.identity` 的子模块交付，不独立成插件（ADR-003 已裁决，R1；见章末待确认第 2 条）。
 
-**范围与边界**。✅ 做：单棵组织树（类型为租户可配字典，层级上限默认 9，路径冗余，主管字段，子树有人则拒删）；岗位树（默认岗位、责任岗位标记、责任人）；用户档案 `UserProfile`（1:1 Membership，姓名、拼音、联系方式、扩展 jsonb）；成员多组织多岗位归属 + 主归属；用户状态机 `启用 ⇄ 禁用 → 锁定`，「删除」= 禁用 + 标记；用户组（纯集合，P1）；派生查询契约（直属主管、上级链、部门负责人、`@下属 / @子孙`）；目录变更事件（CloudEvents）；批量操作三态结果；成员管理最小集（S1-DEC-033 D5 自 S3 提前，R145）：租户管理员直接新增成员（新建账号或绑定已有自然人，受用户配额约束；新成员默认获得 `tenant.user`，由 `qian.identity` 经授权端口授予，R158）与成员管理页（列表、新增、启停、组织与岗位归属）。❌ 不做：岗位/角色约束互斥、基数、先决（S3）；Excel 导入向导（S2，框架契约在 7.2.1）；工作交接（S3，扩展点 `IUserAssetHandover` S2 预留）；目录同步企微/钉钉/飞书/SCIM/LDAP（S3）；面向全体成员的通讯录页面（S3）；邀请链接、自助加入与退出（S3，见 7.3）。
+**范围与边界**。✅ 做：单棵组织树（类型为租户可配字典，层级上限默认 9，路径冗余，主管字段，子树有人则拒删）；岗位树（默认岗位、责任岗位标记、责任人）；用户档案 `UserProfile`（1:1 Membership，姓名、拼音、联系方式、扩展 jsonb）；成员多组织多岗位归属 + 主归属；用户状态机 `启用 ⇄ 禁用 → 锁定`，「删除」= 禁用 + 标记；用户组（纯集合，P1）；派生查询契约（直属主管、上级链、部门负责人、`@下属 / @子孙`）；目录变更事件（CloudEvents）；批量操作三态结果；成员管理最小集（S1-DEC-033 D5 自 S3 提前，R145）：租户管理员直接新增成员（只新建账号，已有账号的人加入别的租户走 S3 的邀请链接；本租户从目录删除的成员按标识恢复原成员，恢复后角色只保留 `tenant.user`；受用户配额约束，已从目录删除的成员不计；新成员默认获得 `tenant.user`，由 `qian.identity` 经授权端口授予，R158 / R163）与成员管理页（列表、新增、启停、组织与岗位归属）。❌ 不做：岗位/角色约束互斥、基数、先决（S3）；Excel 导入向导（S2，框架契约在 7.2.1）；工作交接（S3，扩展点 `IUserAssetHandover` S2 预留）；目录同步企微/钉钉/飞书/SCIM/LDAP（S3）；面向全体成员的通讯录页面（S3）；邀请链接、自助加入与退出（S3，见 7.3）。
 
 **技术落点**。表 `organizations`（含 `path`、`org_type`、`manager_membership_id`、`responsible_position_id`）、`org_types`、`positions`、`groups`、`member_relations`（membership × objectType × objectId × isPrimary）、`user_profiles`；API `GET /api/directory/orgs/tree`、`/orgs/{id}/members`、`/members/{id}/manager`、`/members/{id}/superiors`、`/positions/{id}/holders`、`/me/subordinates?depth=`；事件 `directory.org.*`、`directory.position.*`、`directory.member.*.v1`；SCIM 2.0 核心 schema 作为对外契约（S3 实现 Server）。责任人解析契约在 S1 定义、S2 由流程消费。
 
@@ -340,7 +340,7 @@ S1 的 profile 与组合包落位（R31；三节点 K3s 的现实仍然成立：
 - [ ] IT：`/members/{id}/superiors` 按岗位链返回上级责任人序列；主归属变化后结果随之变化。
 - [ ] IT：批量禁用 10 人其中 2 人为租户管理员，返回 `PARTIAL_SUCCESS` + 逐条 items[]。
 - [ ] E2E：参考应用用 `OrganizeSelect` 选部门、`UserSelect` 选人，数据来自本租户目录。
-- [ ] E2E：租户管理员在成员管理页新增成员（新建账号与绑定已有自然人两条路径），新成员能登录本租户；用户配额已满时返回结构化错误且无写入（S1-IDP-017 / S1-IDP-018，R145）。
+- [ ] E2E：租户管理员在成员管理页新增成员，新成员能登录本租户；手机号或用户名已被占用时返回结构化错误；本租户删过的成员按标识恢复原成员；用户配额已满时返回结构化错误且无写入（S1-IDP-017 / S1-IDP-018，R145 / R163）。
 
 ### 7.5 qian.authz 鉴权引擎（P0 · S1）
 

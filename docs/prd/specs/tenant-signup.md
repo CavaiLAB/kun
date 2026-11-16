@@ -6,7 +6,7 @@
 
 ✅ S1 做：
 
-- 申请人在公开页面验证手机号、设置密码并提交企业开通申请；手机号已属既有账号时，以该账号申请。
+- 申请人在公开页面验证手机号、设置密码并提交企业开通申请；手机号已属既有账号且已在该账号上经本人验证时，以该账号申请；号码在既有账号上但未经本人验证、账号也没有加入任何企业时，申请人按新账号填写，提交即认领该账号；账号已加入企业时不认领，按账号不可申请处理（R163）。
 - 申请人查看进度、撤回待审核的申请；被驳回后看到原因，并可另交一条新申请。
 - 平台运营在平台控制台的「开通申请」页列表、筛选、查看自动检查，通过（可修正租户号、选试用或正式、有效期、用户配额）或驳回（原因对申请人可见）；开通失败时重试。
 - 通过后复用 `qian.tenancy` 的开通编排建租户与管理员成员，再激活为试用或正式；结果通知申请人。
@@ -76,11 +76,11 @@
 | 接口 | 说明 |
 |---|---|
 | `POST /api/signup/verifications` `{phone}` | 发验证码 → 202 `{id, expiresAt, resendAfter}`。号码已注册与否响应完全相同；超限 429 `RATE_LIMITED`（带 `Retry-After`）；没有发件端口 503 `SIGNUP_UNAVAILABLE` |
-| `POST /api/signup/session` `{verificationId, code}` | 核验 → 200 申请人视图 `{phone(掩码), existingAccount, displayName?}` 并写会话 Cookie；错误码 `SIGNUP_CODE_INVALID`（含剩余次数）、`SIGNUP_CODE_EXPIRED`；该号码的账号已停用、锁定或是平台身份时 403 `SIGNUP_ACCOUNT_UNAVAILABLE` |
+| `POST /api/signup/session` `{verificationId, code}` | 核验 → 200 申请人视图 `{phone(掩码), existingAccount, displayName?}` 并写会话 Cookie（`existingAccount` 只在号码已在该账号上经本人验证时为 true）；错误码 `SIGNUP_CODE_INVALID`（含剩余次数）、`SIGNUP_CODE_EXPIRED`；该号码的账号已停用、锁定、是平台身份，或号码在账号上未经本人验证而账号已加入企业时，403 `SIGNUP_ACCOUNT_UNAVAILABLE` |
 | `GET` / `DELETE /api/signup/session` | 读当前申请人 / 退出 |
 | `GET /api/signup/code-availability?code=` | `{code, available, reason?}`，reason 为 `invalid` / `reserved` / `taken`；按来源地址限流 |
 | `GET /api/signup/me/applications` | 本人的申请，新的在前 |
-| `POST /api/signup/me/applications` | 提交。新账号必填 `displayName`、`password`，已有账号不得带；共有 `email?`、`companyName`、`code`、`industry?`、`size`、`description?`、`acceptTerms: true` → 201。错误：`SIGNUP_APPLICATION_OPEN`（已有进行中的申请）、`SIGNUP_CODE_TAKEN`（`#/code`）、`PASSWORD_POLICY_VIOLATION`（`#/password`） |
+| `POST /api/signup/me/applications` | 提交。新账号必填 `displayName`、`password`，已有账号不得带；号码在既有账号上但未经本人验证（账号没有加入任何企业）时按新账号填写，提交即认领该账号：换成申请人的密码与显示名、号码标为已验证，认领在提交时生效，不等运营审核，之后驳回或撤回也不回退（R163）；提交时账号已加入企业则 403 `SIGNUP_ACCOUNT_UNAVAILABLE`；共有 `email?`、`companyName`、`code`、`industry?`、`size`、`description?`、`acceptTerms: true` → 201。错误：`SIGNUP_APPLICATION_OPEN`（已有进行中的申请）、`SIGNUP_CODE_TAKEN`（`#/code`）、`PASSWORD_POLICY_VIOLATION`（`#/password`） |
 | `POST /api/signup/me/applications/{id}:withdraw` | 撤回 submitted 的申请；其它状态 409 `SIGNUP_STATE_CONFLICT` |
 
 ### 5.2 平台运营（经网关，平台主体 + 超管旁路 + 平台审计链，R113 同序）
@@ -103,7 +103,7 @@
 
 - 写请求只收 `application/json`，并核对 `Origin`（或 `Sec-Fetch-Site`）为同源；会话 Cookie `HttpOnly`、`SameSite=Strict`、`Path=/api/signup`，回环地址之外必须 `Secure`。
 - 验证码只存加盐哈希，单次有效；发送与核验按手机号和来源地址限流；响应不区分号码是否已注册，核验通过后才告诉申请人「将以既有账号申请」。
-- 密码只经身份组件的建账号端口落为 Argon2id 哈希，本组件不保存、不记录；密码策略错误原样转出。
+- 密码只经身份组件的建账号或认领端口落为 Argon2id 哈希，本组件不保存、不记录；密码策略错误原样转出。
 - 申请人只能读写本人的申请；运营接口对申请人会话一律 401。
 
 ### 6.2 申请人访问（不新增登录会话）

@@ -210,6 +210,32 @@ public sealed class SignInHttpTests(PostgresFixture postgres) : IClassFixture<Po
     }
 
     [Fact]
+    public async Task 重置密码之后此前发出的登录票据作废_改密票据不能改掉运营设的密码_选择票据不能建立会话()
+    {
+        await using var host = await AccountsHost.Start(postgres);
+        var first = host.Tenants.Add("ticket-first"); var second = host.Tenants.Add("ticket-second");
+        // 改密票据：初始密码账号登录拿到票据，随后运营重置密码；票据不能再用，运营设的密码照常要求改密。
+        var (person, phone) = await CreatePerson(host, requireChange: true);
+        await Join(host, first, person.Id);
+        var pending = await host.NewBrowser().Login(phone, Password);
+        Assert.Equal("password_change_required", pending.Body.GetProperty("status").GetString());
+        using (var reset = Proof("Reset-By-Ops-2026")) await host.Accounts.ResetPasswordAsync(person.Id, new PasswordReset(reset, "ops_reset"), Ct);
+        var stale = await host.NewBrowser().Json(HttpMethod.Post, "api/identity/login/password", new { ticket = pending.Body.GetProperty("ticket").GetString(), new_password = "Through-Old-Ticket-1" });
+        Assert.Equal((HttpStatusCode.Unauthorized, "LOGIN_TICKET_INVALID"), (stale.Status, Code(stale.Body)));
+        Assert.Equal("password_change_required", (await host.NewBrowser().Login(phone, "Reset-By-Ops-2026")).Body.GetProperty("status").GetString());
+        // 选择票据：两个租户的成员登录后待选择，随后运营重置密码；票据不能再建立会话。
+        var (member, memberPhone) = await CreatePerson(host, "李四");
+        await Join(host, first, member.Id); var other = await Join(host, second, member.Id);
+        var browser = host.NewBrowser();
+        var login = await browser.Login(memberPhone, Password);
+        Assert.Equal("selection_required", login.Body.GetProperty("status").GetString());
+        using (var reset = Proof("Reset-By-Ops-2027")) await host.Accounts.ResetPasswordAsync(member.Id, new PasswordReset(reset, "ops_reset"), Ct);
+        var selected = await browser.Select(login.Body.GetProperty("ticket").GetString()!, other.Id);
+        Assert.Equal((HttpStatusCode.Unauthorized, "LOGIN_TICKET_INVALID"), (selected.Status, Code(selected.Body)));
+        Assert.False(browser.HasAccountCookie);
+    }
+
+    [Fact]
     public async Task 会话被吊销_账号停用或租户冻结后_授权端点不再签发_me返回401_旧刷新被拒_Cookie随之清除()
     {
         await using var host = await AccountsHost.Start(postgres);

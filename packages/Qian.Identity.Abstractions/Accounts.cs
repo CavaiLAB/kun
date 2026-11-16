@@ -66,8 +66,23 @@ public sealed record PasswordReset(AuthenticationProof New, string Reason)
 {
     /// <summary>重置后是否强制下次登录改密。</summary>
     public bool RequireChange { get; init; } = true;
+    /// <summary>
+    /// 同时解除该 Person 在各租户的全部外部身份绑定（R163：运营指定租户管理员时的重置用它，凭据从此由运营设定的密码起算）。
+    /// 缺省 false：本人忘记密码时的运营重置不动绑定。
+    /// </summary>
+    public bool UnlinkExternalIdentities { get; init; }
     /// <inheritdoc />
     public override string ToString() => "PasswordReset(redacted)";
+}
+
+/// <summary>
+/// 本人认领账号：调用方已用验证码证明申请人持有 <see cref="Identifier"/>（手机号或邮箱），而这个标识在 <see cref="PersonId"/> 上还没有经本人验证。
+/// 认领后账号的密码换成 <see cref="Password"/>（不要求再改）、显示名换成 <see cref="DisplayName"/>、该标识标为已验证。
+/// </summary>
+public sealed record PersonClaim(Guid PersonId, string Identifier, string DisplayName, AuthenticationProof Password)
+{
+    /// <inheritdoc />
+    public override string ToString() => "PersonClaim(redacted)";
 }
 
 /// <summary>外部身份绑定：同租户内 connector × subject 唯一，绑定须显式确认，软删除。</summary>
@@ -84,6 +99,18 @@ public interface IIdentityAccounts
     ValueTask<Person> CreatePersonAsync(CreatePerson request, CancellationToken cancellationToken = default);
     /// <summary>按手机、邮箱或用户名解析 Person；不存在返回 null。</summary>
     ValueTask<Person?> FindPersonAsync(string identifier, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// 该手机号或邮箱是否已由本人验证（验证码核验，或经可信身份源确认）。用户名没有核验流程，返回 false；
+    /// 标识不存在、格式不符也是 false。缺省实现返回 false：不提供这项查询的身份 Provider 都按未验证处理。
+    /// </summary>
+    ValueTask<bool> IsIdentifierVerifiedAsync(string identifier, CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
+    /// <summary>
+    /// 本人认领账号（见 <see cref="PersonClaim"/>）：一个事务里换密码、换显示名、把标识标为已验证；与改密一样使既有会话失效，并递增身份修订。
+    /// 标识不属于这个自然人、已经验证过，自然人不是启用的普通账号，或已加入任何租户（登录索引非空）时返回 CONFLICT，什么都不改。
+    /// 缺省实现返回 IDENTITY_OPERATION_UNSUPPORTED。
+    /// </summary>
+    ValueTask<Person> ClaimPersonAsync(PersonClaim claim, CancellationToken cancellationToken = default) =>
+        throw new Qian.Runtime.Errors.QianErrorException(new Qian.Runtime.Errors.QianError(IdentityErrors.OperationUnsupported));
     /// <summary>
     /// Person 已加入的租户（登录索引：建立过成员身份的租户，含成员已停用的），供平台审核「申请人是否已加入其它企业」这类只读检查；
     /// Person 不存在返回空集合。缺省实现返回 null，表示该身份 Provider 不提供这项查询，调用方按「无法判定」处理。

@@ -29,9 +29,9 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
     public async ValueTask<TenantDescriptor> ProvisionAsync(CreateTenant request, TenantAdministrator administrator, string actor, CancellationToken cancellationToken = default)
     {
         Check(); ArgumentNullException.ThrowIfNull(request); ArgumentNullException.ThrowIfNull(administrator);
-        PostgresTenantDirectory.ValidateCode(request.Code); PostgresTenantDirectory.ValidateName(request.Name); ValidateActor(actor);
-        if (request.Isolation != TenantIsolation.Row || administrator.MembershipId == Guid.Empty || string.IsNullOrWhiteSpace(administrator.SubjectId) || administrator.SubjectId.Length > 200 || administrator.SubjectId.Any(char.IsControl))
-            throw Error(PlatformErrors.InputInvalid);
+        Validate(request, administrator); ValidateActor(actor);
+        // 初始密码由运营入口用掉（ITenantAdministration.PrepareAdministratorAsync），不进开通编排：开户输入要落库，用于同号重试的幂等比对。
+        if (administrator.InitialPassword is not null || request.Administrator?.InitialPassword is not null) throw Error(PlatformErrors.InputInvalid);
         var input = JsonSerializer.Serialize(new ProvisionInput(request, administrator));
         var id = await Locked("code:" + request.Code, async () =>
         {
@@ -191,6 +191,25 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
     }
 
     private Task<T> Locked<T>(string key, Func<Task<T>> work, CancellationToken ct) => TenancyLocks.RunAsync(context, key, work, ct);
+
+    // 开户输入的校验，开通编排与运营入口的预判共用。
+    private static void Validate(CreateTenant request, TenantAdministrator administrator)
+    {
+        PostgresTenantDirectory.ValidateCode(request.Code); PostgresTenantDirectory.ValidateName(request.Name);
+        if (request.Isolation != TenantIsolation.Row || administrator.MembershipId == Guid.Empty || string.IsNullOrWhiteSpace(administrator.SubjectId) || administrator.SubjectId.Length > 200 || administrator.SubjectId.Any(char.IsControl))
+            throw Error(PlatformErrors.InputInvalid);
+    }
+
+    // 运营入口在设定指定账号的密码之前调用（R163）：不改动任何东西，先报开通一定会失败的情形——输入不合格，或租户号已被另一份开户输入占用。
+    // 同一份输入的重试不算占用，开通照常从中断处继续。预判与开通之间租户号仍可能被并发占用，那时开通返回 CONFLICT。
+    internal static async Task PrecheckAsync(IPluginContext context, CreateTenant request, TenantAdministrator administrator, CancellationToken ct)
+    {
+        Validate(request, administrator);
+        await using var lookup = await context.Data().OpenAsync<TenancyDbContext>(ct).ConfigureAwait(false);
+        var existing = await lookup.Context.Tenants.AsNoTracking().SingleOrDefaultAsync(x => x.Code == request.Code, ct).ConfigureAwait(false);
+        if (existing is not null && (existing.ProvisionInput is null || JsonSerializer.Deserialize<ProvisionInput>(existing.ProvisionInput) != new ProvisionInput(request, administrator)))
+            throw Error(PlatformErrors.Conflict);
+    }
     private static void ValidateActor(string actor)
     { if (string.IsNullOrWhiteSpace(actor) || actor.Length > 200 || actor.Any(char.IsControl)) throw Error(PlatformErrors.InputInvalid); }
     private static QianErrorException Error(ErrorCode code) => new(new QianError(code));

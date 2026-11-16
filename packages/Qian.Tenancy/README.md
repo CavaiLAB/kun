@@ -129,19 +129,30 @@ R113 的处理顺序固定为：认证及平台主体检查 → 请求绑定与�
 
 运营入口新增五个操作，同在 `MapQianTenancy` 里，沿用 R113 的处理顺序与超管旁路审计，权限点为 `qian.tenancy:admin:<action>`（read / create / assign / reset-credential）：
 
-- `POST /api/tenancy/admin-accounts:lookup`：按手机号、邮箱或用户名查找可任管理员的账号。标识放请求体，不进 URL 与访问日志；不存在、已清除或具备平台访问资格的都是 404。
-- `POST /api/tenancy/admin-accounts`：经 `IIdentityAccounts.CreatePersonAsync` 新建自然人，一个登录标识加初始密码，下次登录强制改密，不建成员。运营录入的手机号、邮箱没有经过验证码核验，按未验证保存。
+- `POST /api/tenancy/admin-accounts:lookup`：按手机号、邮箱或用户名查找可任管理员的账号。标识放请求体，不进 URL 与访问日志；不存在、已清除、具备平台访问资格或只靠外部身份登录（见下文）的都是 404。
+- `POST /api/tenancy/admin-accounts`：经 `IIdentityAccounts.CreatePersonAsync` 新建自然人，一个登录标识加初始密码，下次登录强制改密，不建成员。运营新建账号的手机号、邮箱按未验证保存，用这样的账号开户或更换管理员时要带初始密码（见下文「指定账号的初始密码」）。
 - `GET/PUT /api/tenancy/tenants/{id}/admins`：读取与替换租户管理员。S1 单管理员（Q12），`items` 恰好一项，契约写明 `minItems` / `maxItems` 为 1；多管理员属于以后放宽。
 - `POST /api/tenancy/tenants/{id}/admins/{membershipId}:reset-password`：重置当前管理员的密码。
+
+**指定账号的初始密码（R163）**：开户请求的 `administrator` 与更换管理员请求的 `items[0]` 都有可选字段 `initialPassword`，按账号的情况处理（位置分别是 `#/administrator/…` 与 `#/items/0/…`）：
+
+- 账号有手机号或邮箱且全部经本人验证：不重置，也不收初始密码，给了返回 400 `INPUT_INVALID`（`VALUE_NOT_ALLOWED`，位置 `initialPassword`）。
+- 账号设有密码、但联系方式没有全部经本人验证（例如运营新建的账号）：初始密码必填，缺了返回 400（`REQUIRED`）。给了就先经 `IIdentityAccounts.ResetPasswordAsync` 把密码重置为它，并解除该账号在各租户的全部外部身份绑定（`PasswordReset.UnlinkExternalIdentities`）：下次登录强制改密，既有会话与此前发出的登录票据失效。之后才建成员、授 `tenant.owner`。
+- 只靠外部身份登录、没有密码也没有经本人验证的联系方式的账号（连接器首登建出的）不能被指定：查找返回 404，开户与更换返回 400（位置 `subjectId`）。
+- 重置写审计并带上账号：更换管理员时记在该租户的链上（`qian.tenancy/admin.reset-password`，载荷带 `subjectId` 与 `designation: true`），开户时记在平台链上（租户还没建成）。
+- 开户时这一步由 `ITenantAdministration.PrepareAdministratorAsync(request, actor)` 在开通编排之前做：先做开户请求的校验，租户号已被别的开户占用时返回 409（同一开户请求的重试照常放行）；再判账号资格，平台身份、停用或锁定的账号返回 400；都通过才重置。账号不存在或身份组件缺席时不判定，交给开通编排。
+- 初始密码按密码策略校验，错误位置换成上面两个字段。它只在运营入口用掉：开通编排不接受它（给了返回 400），保存的开户输入里也没有它。
+- 重置先于建成员。之后的步骤失败（如满额）时重置不回退，用同一个初始密码重试即可收敛。
+- 运营页面在这样的账号上多出初始密码一栏，提示写明外部身份登录的绑定一并解除；抽屉里刚新建的账号沿用刚设的初始密码，不再询问。
 
 账号、成员与凭据都经 qian.identity 的端口读写，本组件只改 `tenant_admins` 指针。`ITenantAdministration` 由 TenancyPlugin 提供（服务键 `TenancyAdministration`）；身份组件缺席时这组接口返回 404。响应只有掩码标识，原值与密码不出身份组件。身份组件给出的错误位置换成运营请求体的字段，例如 `#/initialPassword`、`#/newPassword`、`#/identifier`。
 
 替换按「新管理员成员 → 新 tenant.owner → 撤销原管理员的 tenant.owner 与管理员标志 → 改指针 → 租户链补 admin.assign」的顺序执行。每步幂等、指针最后才改，中途失败用同一请求重试即可收敛。它与开通续跑共用同一把租户会话锁；开通第 05–07 步没有全部成功时返回 409，先续跑开通。
 
-- 新成员经身份组件的计数锁与配额判定，满额返回 422 `CARDINALITY_USER_LIMIT`，此时什么都没改；已是成员的人不占新名额。
+- 新成员经身份组件的计数锁与配额判定，满额返回 422 `CARDINALITY_USER_LIMIT`，此时成员、授权与指针都没改（需要初始密码时，账号的密码已按上文重置）；已是成员的人不占新名额。
 - 建立或绑定成员用 `IIdentityAccounts.CreateMembershipAsync`，不用开户的 `ITenantMembershipProvisioner`：后者要求调用方先给成员 ID，替换为已在租户内的成员会冲突。两者走同一把计数锁与配额判定。
 - 原管理员保留成员身份与其它角色，会话不吊销；授权变更照常递增 identity_revision（PRD 13.3.3）。
-- 平台身份、停用或锁定的账号不能被指定，返回 400，pointer `#/items/0/subjectId`。
+- 平台身份、停用或锁定的账号与只靠外部身份登录的账号不能被指定，返回 400，pointer `#/items/0/subjectId`。
 
 重置只对当前管理员：路径里的成员 ID 须等于指针，否则 404，免得借任一租户的路径重置任意自然人的密码。重置经 `IIdentityAccounts.ResetPasswordAsync`：旧密码立即失效，下次登录强制改密，该自然人的全部会话吊销。自然人全局唯一，他在其它租户的登录也随之改变。租户链补 admin.reset-password，只记成员指针，不含密码。
 

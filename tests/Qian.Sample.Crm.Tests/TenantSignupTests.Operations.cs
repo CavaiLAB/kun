@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Qian.Audit;
 using Qian.Identity.Abstractions;
@@ -22,6 +23,116 @@ public sealed partial class TenantSignupTests
 
     private static string Detail(Guid id) => $"{Applications}/{id}";
     private static string Act(Guid id, string action) => $"{Applications}/{id}:{action}";
+
+    // R163：号码在既有账号上没有经本人验证、账号也没有加入任何企业时，核验过验证码的申请人按新账号填写姓名与密码，提交时认领这个账号，
+    // 批准后新租户的管理员就是这个自然人。已加入企业的账号不认领，按账号不可申请拒绝。
+    [Fact]
+    public async Task 号码在既有账号上未经本人验证时按新账号填写_提交即认领该账号_换成申请人的密码与姓名并标为已验证_批准后申请人以自己的密码登录新租户_已加入企业的账号不认领()
+    {
+        await using var ops = await StartOps();
+        var (business, client) = (ops.Business, ops.Client);
+        var accounts = business.Identity.Accounts;
+        string Root() => business.Token(null, "", "root", "user");
+        const string previous = "Previous-Pass-1"; const string chosen = "Claimant-Pass-2026";
+        async Task<Person> Unverified(string number, string name)
+        {
+            using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(previous));
+            return await accounts.CreatePersonAsync(new CreatePerson(name, [new IdentifierInput(IdentifierKind.Phone, number, false)]) { InitialPassword = proof, RequirePasswordChange = false }, Ct);
+        }
+        static string? Failure(SignInResult result) => result.Error?.Code.Code;
+        async Task<string> ClaimDirectly(Guid person, string number, string name)
+        {
+            using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes("Direct-Claim-2026"));
+            return (await Assert.ThrowsAsync<Qian.Runtime.Errors.QianErrorException>(() =>
+                accounts.ClaimPersonAsync(new PersonClaim(person, number, name, proof), Ct).AsTask())).Error.Code.Code;
+        }
+
+        // 已加入企业的账号：核验时按账号不可申请拒绝（403），端口同样拒绝（CONFLICT）；密码、姓名与号码状态都不变。
+        var memberPhone = NewPhone();
+        var member = await Unverified(memberPhone, "企业成员");
+        await Join(business, A, member.Id, "A 的成员");
+        using (var blocked = new Browser(business.Client.BaseAddress!))
+        {
+            var challenge = await SendCode(blocked, memberPhone);
+            await Rejected(await blocked.Send(HttpMethod.Post, Session, new { verificationId = challenge, code = ops.Outbox.Code(challenge) }), HttpStatusCode.Forbidden, "SIGNUP_ACCOUNT_UNAVAILABLE");
+            Assert.Null(blocked.Token);
+        }
+        Assert.Equal("CONFLICT", await ClaimDirectly(member.Id, memberPhone, "认领人"));
+        Assert.Equal((SignInStatus.Authenticated, false, "企业成员"), ((await SignIn(business, memberPhone, previous)).Status,
+            await accounts.IsIdentifierVerifiedAsync(memberPhone, Ct), (await accounts.FindPersonAsync(memberPhone, Ct))!.DisplayName));
+        // 核验之后、提交之前加入了企业：提交同样按账号不可申请拒绝，什么都不改。
+        var latePhone = NewPhone();
+        var late = await Unverified(latePhone, "后来加入");
+        using (var lateBrowser = new Browser(business.Client.BaseAddress!))
+        {
+            Assert.Equal((Mask(latePhone), false), Applicant(await Verify(ops, lateBrowser, latePhone)));
+            await Join(business, A, late.Id, "后来加入");
+            await Rejected(await Submit(lateBrowser, Body("lateco", company: "后来科技", name: "认领人", password: chosen)), HttpStatusCode.Forbidden, "SIGNUP_ACCOUNT_UNAVAILABLE");
+        }
+        Assert.Equal((SignInStatus.Authenticated, false), ((await SignIn(business, latePhone, previous)).Status, await accounts.IsIdentifierVerifiedAsync(latePhone, Ct)));
+        Assert.Equal("0", await Text($"SELECT count(*) FROM {Schema}.applications WHERE code = 'lateco'"));
+
+        // 没有加入企业的账号：它登录不了任何租户，密码对不对看错误码（对了 NO_AVAILABLE_TENANT，不对 INVALID_CREDENTIALS）。
+        var phone = NewPhone();
+        var original = await Unverified(phone, "原来的姓名");
+        Assert.Equal("NO_AVAILABLE_TENANT", Failure(await SignIn(business, phone, previous)));
+        Assert.False(await accounts.IsIdentifierVerifiedAsync(phone, Ct));
+        // 核验通过：申请人看到新账号表单，没有那个账号的姓名。
+        using var browser = new Browser(business.Client.BaseAddress!);
+        var applicant = await Verify(ops, browser, phone);
+        Assert.Equal((Mask(phone), false), Applicant(applicant));
+        Assert.False(applicant.TryGetProperty("displayName", out var shown) && shown.ValueKind == JsonValueKind.String);
+        // 按既有账号提交（不带姓名与密码）是缺必填；弱密码按密码策略拒绝、位置在申请的字段上；两次都什么都不改。
+        Assert.Equal("#/displayName", (await Rejected(await Submit(browser, ExistingBody("claimco")), HttpStatusCode.BadRequest, "INPUT_INVALID")).Field());
+        Assert.Equal("#/password", (await Rejected(await Submit(browser, Body("claimco", name: "认领人", password: "short")), HttpStatusCode.UnprocessableEntity, "PASSWORD_POLICY_VIOLATION")).Field());
+        Assert.Equal("NO_AVAILABLE_TENANT", Failure(await SignIn(business, phone, previous)));
+        Assert.Equal("0", await Text($"SELECT count(*) FROM {Schema}.applications WHERE code = 'claimco'"));
+        // 提交：认领原账号，不新建自然人；号码标为已验证，换成申请人的姓名与密码，原密码不能再登录。
+        var id = (await Json(await Submit(browser, Body("claimco", company: "认领科技", name: "认领人", password: chosen)), HttpStatusCode.Created)).GetProperty("id").GetGuid();
+        Assert.Equal(original.Id.ToString("D"), await Text($"SELECT person_id::text FROM {Schema}.applications WHERE id = '{id}'"));
+        Assert.Equal("1", await Text($"SELECT count(*) FROM plugin_qian_identity.person_identifiers WHERE value = '+86{phone}'"));
+        Assert.True(await accounts.IsIdentifierVerifiedAsync(phone, Ct));
+        Assert.Equal("认领人", (await accounts.FindPersonAsync(phone, Ct))!.DisplayName);
+        Assert.Equal(("INVALID_CREDENTIALS", "NO_AVAILABLE_TENANT"), (Failure(await SignIn(business, phone, previous)), Failure(await SignIn(business, phone, chosen))));
+        // 号码经本人验证之后不能再被认领：端口直接拒绝（CONFLICT），姓名与密码都不变。
+        Assert.Equal("CONFLICT", await ClaimDirectly(original.Id, phone, "又一个人"));
+        Assert.Equal(("认领人", "NO_AVAILABLE_TENANT"), ((await accounts.FindPersonAsync(phone, Ct))!.DisplayName, Failure(await SignIn(business, phone, chosen))));
+        // 之后这个号码就是经本人验证的既有账号：同一会话再读申请人，是「以既有账号申请」。
+        Assert.True((await Json(await browser.Send(HttpMethod.Get, Session), HttpStatusCode.OK)).GetProperty("existingAccount").GetBoolean());
+        // 运营看到的申请人：自然人原本就在（已有账号），联系人是认领人。
+        var profile = (await Json(await Operate(client, HttpMethod.Get, Detail(id), Root()), HttpStatusCode.OK)).GetProperty("applicant");
+        Assert.Equal((original.Id, "认领人", true), (profile.GetProperty("subjectId").GetGuid(), profile.GetProperty("contactName").GetString(), profile.GetProperty("existingAccount").GetBoolean()));
+        // 批准：新租户的管理员就是这个自然人，申请人用自己设的密码登录；原密码不能再登录。
+        var approved = await Json(await Operate(client, HttpMethod.Post, Act(id, "approve"), Root(), new { plan = "trial" }), HttpStatusCode.OK);
+        var tenant = approved.GetProperty("provisioning").GetProperty("tenantId").GetGuid();
+        Assert.Equal(original.Id.ToString("D"), await Owners(tenant));
+        async Task<SignInResult> Into(string password)
+        {
+            using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(password));
+            return await business.Identity.SignIn.SignInAsync(new LoginInput("web", tenant, null, null, proof) { Identifier = phone }, new LoginContext(), Ct);
+        }
+        Assert.Equal((SignInStatus.Authenticated, tenant), ((await Into(chosen)).Status, (await Into(chosen)).Session!.TenantId));
+        Assert.Equal(SignInStatus.Failed, (await Into(previous)).Status);
+
+        // 运营入口新建的账号走同一条路：申请人按新账号填写，提交即认领。
+        // 运营新建的账号首次登录必须改密，登录时拿到改密票据；认领之后这张票据作废，认领后也不再要求改密。
+        const string opsInitial = "Ops-Initial-2026"; const string opsChosen = "Ops-Claimant-2026";
+        var opsPhone = NewPhone();
+        var opsSubject = (await Json(await Operate(client, HttpMethod.Post, "/api/tenancy/admin-accounts", Root(),
+            new { displayName = "运营代建", identifierKind = "phone", identifier = opsPhone, initialPassword = opsInitial }), HttpStatusCode.Created)).GetProperty("subjectId").GetGuid();
+        Assert.False(await accounts.IsIdentifierVerifiedAsync(opsPhone, Ct));
+        var opsPending = await SignIn(business, opsPhone, opsInitial);
+        Assert.Equal(SignInStatus.PasswordChangeRequired, opsPending.Status);
+        using var second = new Browser(business.Client.BaseAddress!);
+        Assert.Equal((Mask(opsPhone), false), Applicant(await Verify(ops, second, opsPhone)));
+        var claimed = (await Json(await Submit(second, Body("opsclaim", company: "代建认领", name: "代建认领人", password: opsChosen)), HttpStatusCode.Created)).GetProperty("id").GetGuid();
+        Assert.Equal(opsSubject.ToString("D"), await Text($"SELECT person_id::text FROM {Schema}.applications WHERE id = '{claimed}'"));
+        Assert.True(await accounts.IsIdentifierVerifiedAsync(opsPhone, Ct));
+        Assert.Equal("代建认领人", (await accounts.FindPersonAsync(opsPhone, Ct))!.DisplayName);
+        using (var through = new AuthenticationProof(Encoding.UTF8.GetBytes("Through-Old-Ticket-1")))
+            Assert.Equal("LOGIN_TICKET_INVALID", Failure(await business.Identity.SignIn.ChangeInitialPasswordAsync(new InitialPasswordChange(opsPending.Ticket!.Token, through), new LoginContext(), Ct)));
+        Assert.Equal(("INVALID_CREDENTIALS", "NO_AVAILABLE_TENANT"), (Failure(await SignIn(business, opsPhone, opsInitial)), Failure(await SignIn(business, opsPhone, opsChosen))));
+    }
 
     [Fact]
     public async Task 运营审核_只收平台超管且每次放行一条平台旁路记录_列表计数筛选与自动检查_通过即建租户与管理员成员申请人可登录_租户号冲突先修正_驳回原因可见备注不可见并释放租户号_发件端口缺席不阻断()

@@ -1816,6 +1816,14 @@
               },
               "subjectId": {
                 "type": "string"
+              },
+              "initialPassword": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 8,
+                "maxLength": 1024
               }
             },
             "required": [
@@ -2355,6 +2363,14 @@
                 "subjectId": {
                   "type": "string",
                   "format": "uuid"
+                },
+                "initialPassword": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 8,
+                  "maxLength": 1024
                 }
               },
               "required": [

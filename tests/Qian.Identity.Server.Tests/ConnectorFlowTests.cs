@@ -275,6 +275,47 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres) : IClassFixture
         Assert.Equal(HttpStatusCode.NotFound, (await host.NewBrowser().Bind(cancelled, "link")).Status);
     }
 
+    // 重置密码吊销该自然人的全部会话：用原密码确认过、还没确认绑定的流程一并作废；流程在吊销之后才落下认证结果（与重置并发）时，确认绑定按密码变更时间拒绝。
+    // 重置可选一并解除该自然人在各租户的外部身份绑定（运营指定管理员时用），缺省保留。
+    [Fact]
+    public async Task 重置密码后待确认的绑定流程作废_可选一并解除外部身份绑定_缺省保留()
+    {
+        await using var setup = await Start();
+        var (host, connector, alpha, beta) = (setup.Host, setup.Connector, setup.Alpha, setup.Beta);
+        var browser = host.NewBrowser();
+        var flow = await browser.Arrive(connector, "alpha", "ext-1");
+        Assert.Equal(HttpStatusCode.OK, (await browser.Verify(flow, setup.First.Phone, Password)).Status);
+        host.Clock.Advance(TimeSpan.FromSeconds(1));
+        using (var reset = Proof("Reset-By-Ops-2026")) await host.Accounts.ResetPasswordAsync(setup.First.Person.Id, new PasswordReset(reset, "ops_reset"), Ct);
+        Assert.Equal("cancelled", (await browser.View(flow)).GetProperty("status").GetString());
+        Assert.Equal(IdentityErrors.ConnectorStateInvalid.Code, ConnectorFlow.Code((await browser.Bind(flow, "link")).Body));
+        await host.Exec("UPDATE plugin_qian_identity.connector_flows SET status = 'bind', completed_at = NULL WHERE id = @id", ("id", flow));
+        var stale = await browser.Bind(flow, "link");
+        Assert.Equal((HttpStatusCode.Unauthorized, PlatformErrors.Unauthenticated.Code), (stale.Status, ConnectorFlow.Code(stale.Body)));
+        Assert.Equal("", await host.Bound(alpha.Id, FakeConnector.DefaultId, "ext-1"));
+        Assert.False(browser.HasAccountCookie);
+
+        // 乙在 alpha 与 beta 各绑一个外部身份。缺省的重置不动绑定，外部登录照常进入；带解除选项的重置在各租户都解除，外部登录重新进入确认绑定。
+        var inBeta = await Join(host, beta, setup.Second.Person.Id, "乙在 beta");
+        foreach (var (tenant, subject) in new[] { ("alpha", "ext-2"), ("beta", "ext-3") })
+        {
+            var binder = host.NewBrowser();
+            var started = await binder.Arrive(connector, tenant, subject);
+            Assert.Equal(HttpStatusCode.OK, (await binder.Verify(started, setup.Second.Phone, Password)).Status);
+            Assert.Equal(HttpStatusCode.OK, (await binder.Bind(started, "link")).Status);
+        }
+        async Task<(string, string)> Links() => (await host.Bound(alpha.Id, FakeConnector.DefaultId, "ext-2"), await host.Bound(beta.Id, FakeConnector.DefaultId, "ext-3"));
+        using (var keep = Proof("Reset-Keeps-Links-1")) await host.Accounts.ResetPasswordAsync(setup.Second.Person.Id, new PasswordReset(keep, "ops_reset") { RequireChange = false }, Ct);
+        Assert.Equal((setup.Second.Member.Id.ToString("D"), inBeta.Id.ToString("D")), await Links());
+        var kept = host.NewBrowser(); await kept.Arrive(connector, "alpha", "ext-2");
+        Assert.True(kept.HasAccountCookie);
+        using (var designation = Proof("Reset-Unlinks-1")) await host.Accounts.ResetPasswordAsync(setup.Second.Person.Id, new PasswordReset(designation, "tenant_admin_designation") { UnlinkExternalIdentities = true }, Ct);
+        Assert.Equal(("", ""), await Links());
+        var unlinked = host.NewBrowser(); var again = await unlinked.Arrive(connector, "alpha", "ext-2");
+        Assert.False(unlinked.HasAccountCookie);
+        Assert.Equal("bind", (await unlinked.View(again)).GetProperty("next").GetString());
+    }
+
     [Fact]
     public async Task JIT建号缺省关闭_租户策略打开后建号并绑定_受配额约束()
     {

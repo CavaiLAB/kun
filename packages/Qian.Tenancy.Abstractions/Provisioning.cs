@@ -1,4 +1,5 @@
 using Qian.Runtime;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace Qian.Tenancy;
@@ -16,7 +17,17 @@ public static class TenantProvisioning
 
 /// <summary>可信运营方给出的管理员主体及成员指针；不代表 Identity 已创建该成员。</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TenantAdministrator(Guid MembershipId, string SubjectId);
+public sealed record TenantAdministrator(Guid MembershipId, string SubjectId)
+{
+    /// <summary>
+    /// 运营开户时给指定账号设的初始密码（R163）：账号没有经本人验证的联系方式时必填，运营入口先把账号的密码重置为它、下次登录强制修改。
+    /// 只在运营开户请求里出现，由运营入口用掉；开通编排不接受它，保存的开户输入里也没有它。
+    /// </summary>
+    [MinLength(8), MaxLength(1024), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? InitialPassword { get; init; }
+    /// <summary>不输出初始密码。</summary>
+    public override string ToString() => $"TenantAdministrator {{ MembershipId = {MembershipId}, SubjectId = {SubjectId} }}";
+}
 
 /// <summary>持久化步骤表驱动的租户级开通；同号同请求重试幂等，不负责激活租户。</summary>
 public interface ITenantProvisioning

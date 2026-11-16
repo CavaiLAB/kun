@@ -44,7 +44,7 @@ internal static class IdentityDirectoryEndpoints
         {
             items = await directory.QueryMembersAsync(MemberQuery(http), ct).ConfigureAwait(false)
         })));
-        // 新增成员（S1-IDP-017）：手机号或用户名已对应自然人时绑定为本租户成员，否则新建自然人并设初始密码、首次登录强制修改；只收本租户管理员。
+        // 新增成员（S1-IDP-017，R163）：新建自然人并设初始密码、首次登录强制修改；标识已被占用时拒绝，本租户从目录删除的成员按标识恢复；只收本租户管理员。
         endpoints.MapPost(Prefix + "/members", (Delegate)AddMember);
         endpoints.MapGet(Prefix + "/orgs/{id:guid}/members", (Delegate)((HttpContext http, Guid id) => Run(http, false, async (directory, ct) => new
         {
@@ -122,12 +122,12 @@ internal static class IdentityDirectoryEndpoints
         return Results.Json(await action(service, caller, http.RequestAborted).ConfigureAwait(false), Json);
     }
 
-    // 审计输入的脱敏投影：初始密码按敏感字段遮盖，哈希里没有它；字段都可缺省，缺失与非法由业务规则给出结构化错误。
+    // 审计输入的脱敏投影：初始密码按敏感字段遮盖，哈希里没有它；投影里字段都可缺省，缺失与非法由业务规则给出结构化错误。
     private static readonly AuditInputProjection AddMemberProjection = new(JsonElement.Parse("""
         {"type":"object","additionalProperties":false,"properties":{"identifier":{"type":"string"},"display_name":{"type":"string"},"initial_password":{"type":"string","sensitive":true},"account":{"type":"string"}}}
         """), isCommand: true);
 
-    // 请求体 {identifier, display_name, initial_password?, account?}，租户只取自会话；响应 {membership, person_created, granted_roles}，不含密码。
+    // 请求体 {identifier, display_name, initial_password, account?}，租户只取自会话；响应 {membership, person_created, restored, granted_roles}，不含密码。
     // 防伪与请求体检查在前，管理员资格（实时校验会话）在读请求体之前；审计与标准能力共用 DirectoryMemberAddition。
     private static async Task<IResult> AddMember(HttpContext http)
     {

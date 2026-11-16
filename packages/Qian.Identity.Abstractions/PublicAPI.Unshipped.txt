@@ -822,6 +822,8 @@ override Qian.Identity.Abstractions.PasswordChange.ToString() -> string!
 Qian.Identity.Abstractions.CreatePerson.InitialPassword.init -> void
 Qian.Identity.Abstractions.CreatePerson.RequirePasswordChange.get -> bool
 Qian.Identity.Abstractions.PasswordReset.RequireChange.init -> void
+Qian.Identity.Abstractions.PasswordReset.UnlinkExternalIdentities.get -> bool
+Qian.Identity.Abstractions.PasswordReset.UnlinkExternalIdentities.init -> void
 override Qian.Identity.Abstractions.InitialPasswordChange.ToString() -> string!
 Qian.Identity.Abstractions.CreatePerson.RequirePasswordChange.init -> void
 override Qian.Identity.Abstractions.PasswordReset.ToString() -> string!
@@ -841,6 +843,8 @@ Qian.Identity.Abstractions.Person.PlatformAccess.get -> bool
 Qian.Identity.Abstractions.CreateMembership.IsTenantAdministrator.init -> void
 Qian.Identity.Abstractions.Person.Identifiers.get -> System.Collections.Generic.IReadOnlyList<Qian.Identity.Abstractions.IdentifierView!>!
 Qian.Identity.Abstractions.Person.PlatformAccess.init -> void
+Qian.Identity.Abstractions.Person.HasPassword.get -> bool
+Qian.Identity.Abstractions.Person.HasPassword.init -> void
 Qian.Identity.Abstractions.Person.Identifiers.init -> void
 Qian.Identity.Abstractions.Membership.Account.get -> string!
 Qian.Identity.Abstractions.TenantSelection.TenantSelection(string! Ticket, System.Guid? MembershipId) -> void
@@ -1630,5 +1634,25 @@ static Qian.Identity.Abstractions.DirectoryMemberAdded.operator !=(Qian.Identity
 static Qian.Identity.Abstractions.DirectoryMemberAdded.operator ==(Qian.Identity.Abstractions.DirectoryMemberAdded? left, Qian.Identity.Abstractions.DirectoryMemberAdded? right) -> bool
 static Qian.Identity.Abstractions.DirectoryMemberInput.operator !=(Qian.Identity.Abstractions.DirectoryMemberInput? left, Qian.Identity.Abstractions.DirectoryMemberInput? right) -> bool
 static Qian.Identity.Abstractions.DirectoryMemberInput.operator ==(Qian.Identity.Abstractions.DirectoryMemberInput? left, Qian.Identity.Abstractions.DirectoryMemberInput? right) -> bool
-static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryMemberExists -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryMemberIneligible -> Qian.Runtime.Errors.ErrorCode!
+Qian.Identity.Abstractions.DirectoryMemberAdded.Restored.get -> bool
+Qian.Identity.Abstractions.DirectoryMemberAdded.Restored.init -> void
+Qian.Identity.Abstractions.IIdentityAccounts.IsIdentifierVerifiedAsync(string! identifier, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+Qian.Identity.Abstractions.IIdentityAccounts.ClaimPersonAsync(Qian.Identity.Abstractions.PersonClaim! claim, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Identity.Abstractions.Person!>
+Qian.Identity.Abstractions.PersonClaim
+Qian.Identity.Abstractions.PersonClaim.<Clone>$() -> Qian.Identity.Abstractions.PersonClaim!
+Qian.Identity.Abstractions.PersonClaim.Deconstruct(out System.Guid PersonId, out string! Identifier, out string! DisplayName, out Qian.Identity.Abstractions.AuthenticationProof! Password) -> void
+Qian.Identity.Abstractions.PersonClaim.DisplayName.get -> string!
+Qian.Identity.Abstractions.PersonClaim.DisplayName.init -> void
+Qian.Identity.Abstractions.PersonClaim.Equals(Qian.Identity.Abstractions.PersonClaim? other) -> bool
+Qian.Identity.Abstractions.PersonClaim.Identifier.get -> string!
+Qian.Identity.Abstractions.PersonClaim.Identifier.init -> void
+Qian.Identity.Abstractions.PersonClaim.Password.get -> Qian.Identity.Abstractions.AuthenticationProof!
+Qian.Identity.Abstractions.PersonClaim.Password.init -> void
+Qian.Identity.Abstractions.PersonClaim.PersonClaim(System.Guid PersonId, string! Identifier, string! DisplayName, Qian.Identity.Abstractions.AuthenticationProof! Password) -> void
+Qian.Identity.Abstractions.PersonClaim.PersonId.get -> System.Guid
+Qian.Identity.Abstractions.PersonClaim.PersonId.init -> void
+override Qian.Identity.Abstractions.PersonClaim.Equals(object? obj) -> bool
+override Qian.Identity.Abstractions.PersonClaim.GetHashCode() -> int
+override Qian.Identity.Abstractions.PersonClaim.ToString() -> string!
+static Qian.Identity.Abstractions.PersonClaim.operator !=(Qian.Identity.Abstractions.PersonClaim? left, Qian.Identity.Abstractions.PersonClaim? right) -> bool
+static Qian.Identity.Abstractions.PersonClaim.operator ==(Qian.Identity.Abstractions.PersonClaim? left, Qian.Identity.Abstractions.PersonClaim? right) -> bool

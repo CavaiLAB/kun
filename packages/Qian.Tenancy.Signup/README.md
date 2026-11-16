@@ -38,11 +38,11 @@ app.MapQianTenancySignupOperations(_ => loader.GetContext("tenancy.signup", Scop
 | 接口 | 结果 |
 |---|---|
 | `POST /api/signup/verifications` `{phone}` | 202 `{id, expiresAt, resendAfter}`；号码已注册与否响应相同。超限 429 `RATE_LIMITED`（`Retry-After`），没有发件端口 503 `SIGNUP_UNAVAILABLE` |
-| `POST /api/signup/session` `{verificationId, code}` | 200 `{phone, existingAccount, displayName?}` 并写会话 Cookie；`SIGNUP_CODE_INVALID`（文案含剩余次数）、`SIGNUP_CODE_EXPIRED`、403 `SIGNUP_ACCOUNT_UNAVAILABLE` |
+| `POST /api/signup/session` `{verificationId, code}` | 200 `{phone, existingAccount, displayName?}` 并写会话 Cookie（`existingAccount` 只在号码已在该账号上经本人验证时为 true，见下文「既有账号」）；`SIGNUP_CODE_INVALID`（文案含剩余次数）、`SIGNUP_CODE_EXPIRED`、403 `SIGNUP_ACCOUNT_UNAVAILABLE` |
 | `GET` / `DELETE /api/signup/session` | 当前申请人（无效会话 401）/ 退出（204） |
 | `GET /api/signup/code-availability?code=` | `{code, available, reason?}`，reason 为 `invalid` / `reserved` / `taken`；按来源地址限流 |
 | `GET /api/signup/me/applications` | `{items}`，本人的申请，新的在前；`failed` 显示为 `provisioning` |
-| `POST /api/signup/me/applications` | 201 申请；新号码必填 `displayName`、`password`，既有账号不得带。`SIGNUP_APPLICATION_OPEN`、`SIGNUP_CODE_TAKEN`（`#/code`）、`PASSWORD_POLICY_VIOLATION`（`#/password`） |
+| `POST /api/signup/me/applications` | 201 申请；新号码与待认领的账号必填 `displayName`、`password`，既有账号不得带。`SIGNUP_APPLICATION_OPEN`、`SIGNUP_CODE_TAKEN`（`#/code`）、`PASSWORD_POLICY_VIOLATION`（`#/password`） |
 | `POST /api/signup/me/applications/{id}:withdraw` | 200 申请；只对 `submitted`，否则 409 `SIGNUP_STATE_CONFLICT`；不是本人的 404 |
 
 平台运营（规格 §5.2；R113 同序：认证与平台主体 → 输入校验 → 组件上下文 → 超管旁路与平台审计 → 执行）：
@@ -60,7 +60,8 @@ app.MapQianTenancySignupOperations(_ => loader.GetContext("tenancy.signup", Scop
 
 - 写请求只收 `application/json`，`Origin`（缺省时 `Sec-Fetch-Site`）必须同源；会话 Cookie `qian.signup`：`HttpOnly`、`SameSite=Strict`、`Path=/api/signup`，回环之外 `Secure`。令牌只存 SHA-256，提交后轮换并绑定到申请人的自然人。
 - 验证码只存 HMAC-SHA256 加盐哈希，单次有效，错误达到上限即作废；发送按手机号（重发间隔、每小时次数）与来源地址（每小时次数）限流，核验次数随之受限。响应不区分号码是否已注册，核验通过后才告诉申请人「将以既有账号申请」。
-- 密码只交给身份组件的建账号端口（Argon2id），本组件不保存、不记录；密码策略错误原样转出（位置换成 `#/password`）。
+- 密码只交给身份组件的建账号或认领端口（Argon2id），本组件不保存、不记录；密码策略错误原样转出（位置换成 `#/password`）。
+- **既有账号（R163）**：号码属于既有账号时，经 `IIdentityAccounts.IsIdentifierVerifiedAsync` 按原值判断它是否已在该账号上经本人验证。验证过：以该账号申请，不再填姓名与密码。没验证过、账号也没有加入任何企业：申请人视图按新号码显示，申请人照新账号填写姓名与密码，提交即经 `ClaimPersonAsync` 认领这个账号，换成申请人的密码与显示名、号码标为已验证；认领在提交时生效，不等运营审核，申请之后被驳回或撤回也不回退。没验证过而账号已加入企业：不认领，核验与提交都返回 403 `SIGNUP_ACCOUNT_UNAVAILABLE`——已在企业中使用的账号，凭据由本人或企业管理员维护。前两种情况运营审核时看到的申请人资料里 `existingAccount` 都为 true。
 - 申请人只能读写本人的申请，别人的申请与不存在同为 404；运营接口对申请人会话一律 401（不认这个 Cookie）。
 - 运营端点只收人类平台用户：租户主体与 Agent 403、无凭据 401；请求体任何未知字段（含 `tenantId` / `tenant_id` / `id`）在绑定时 400。通过、驳回、重试在平台审计链各有一条超管旁路记录。
 

@@ -313,6 +313,11 @@ internal sealed partial class IdentityAccountService
         await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         var member = await db.Memberships.AsNoTracking().SingleOrDefaultAsync(m => m.Id == membershipId && m.PersonId == personId, ct).ConfigureAwait(false);
         if (member is null || member.Status != AccountStatuses.Active) throw Error(IdentityErrors.NoAvailableTenant);
+        // 账号的密码在确认绑定前那次登录之后改过（本人改密、运营重置、认领），先前的确认作废，要重新登录。读 Person 加共享锁，
+        // 与改密、重置串行：要么绑定在先、随后被重置一并解除，要么重置在先、这里拒绝。
+        var changed = await IdentitySql.QueryAsync(db, $"SELECT password_changed_at FROM {IdentitySql.Persons} WHERE id = @person FOR SHARE",
+            reader => reader.IsDBNull(0) ? (DateTimeOffset?)null : reader.GetFieldValue<DateTimeOffset>(0), ct, ("person", personId)).ConfigureAwait(false);
+        if (changed is not [var passwordChangedAt] || passwordChangedAt > flow.VerifiedAt) throw Error(PlatformErrors.Unauthenticated);
         var existing = await db.ExternalIdentities.AsNoTracking().SingleOrDefaultAsync(e => e.ConnectorId == flow.ConnectorId && e.Subject == flow.ExternalSubject, ct).ConfigureAwait(false);
         if (existing is not null) { if (existing.MembershipId == member.Id) return; throw Error(IdentityErrors.BindingConflict); }
         db.ExternalIdentities.Add(new ExternalIdentityRow

@@ -224,7 +224,7 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
                 """;
             var before = long.Parse(Assert.Single(await Strings(membershipRevision)), System.Globalization.CultureInfo.InvariantCulture);
             var successor = await NewAdmin(operatorBrowser, shell, operatorCsrf, "甲方新管理员", "acmenext");
-            await Send(operatorBrowser, shell, operatorCsrf, HttpMethod.Put, $"api/tenancy/tenants/{tenantA}/admins", new { items = new[] { new { subjectId = successor } } }, HttpStatusCode.OK);
+            await Send(operatorBrowser, shell, operatorCsrf, HttpMethod.Put, $"api/tenancy/tenants/{tenantA}/admins", new { items = new[] { new { subjectId = successor, initialPassword = AdminInitial } } }, HttpStatusCode.OK);
             var after = long.Parse(Assert.Single(await Strings(membershipRevision)), System.Globalization.CultureInfo.InvariantCulture);
             Assert.True(after > before, $"成员修订没有递增：{before} → {after}");
             // PEP 下限高于原管理员手里令牌的修订（自然人修订 + 变更前的成员修订），不高于身份侧的当前修订（撤管理员标志时身份侧可能再递增一次，下限只随 Authz 的那次传播抬高）。
@@ -438,11 +438,11 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
         Guid.Parse((string)(await Send(browser, shell, csrf, HttpMethod.Post, "api/tenancy/admin-accounts",
             new { displayName, identifierKind = "username", identifier = username, initialPassword = AdminInitial }, HttpStatusCode.Created))["subjectId"]!);
 
-    // 开户并激活；开通编排的步骤里没有失败，成员（05）与 tenant.owner（07）两步都成功——这两步要同进程的身份端口与 Authz。
+    // 开户并激活（运营新建的用户名账号没有经本人验证的联系方式，开户带初始密码，R163）；开通编排的步骤里没有失败，成员（05）与 tenant.owner（07）两步都成功——这两步要同进程的身份端口与 Authz。
     private static async Task<Guid> OpenTenant(HttpClient browser, Uri shell, (string Header, string Token) csrf, PlatformRuntime runtime, string code, string name, Guid administrator)
     {
         var created = await Send(browser, shell, csrf, HttpMethod.Post, "api/tenancy/tenants",
-            new { code, name, administrator = new { membershipId = Guid.CreateVersion7(), subjectId = administrator.ToString("D") } }, HttpStatusCode.Created);
+            new { code, name, administrator = new { membershipId = Guid.CreateVersion7(), subjectId = administrator.ToString("D"), initialPassword = AdminInitial } }, HttpStatusCode.Created);
         var id = Guid.Parse((string)created["id"]!);
         var steps = await runtime.Global("tenancy").Inject<ITenantProvisioning>(TenantProvisioning.Key).GetStepsAsync(id, Ct);
         Assert.DoesNotContain(steps, step => step.Status == "failed");

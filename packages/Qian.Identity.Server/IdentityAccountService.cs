@@ -108,16 +108,28 @@ internal sealed partial class IdentityAccountService : IIdentityService, IIdenti
         if (revoked > 0) _signal.Notify();
     }
 
-    private static Task<int> RevokeSessionRowsAsync(IdentityDbContext db, Guid personId, Guid? sessionId, Guid? membershipId, string reason, DateTimeOffset now, CancellationToken ct, Guid? tenantId = null) =>
-        IdentitySql.ExecuteAsync(db, $"""
+    // 吊销会话。整人吊销（不限会话、成员与租户：改密、重置、认领、停用、全部登出）时，该自然人未用完的登录票据（改密、选择、连接器）
+    // 一并作废，已用账号密码确认、还没点确认的绑定流程一并取消：此前登录拿到的票据与确认不能再改密、建立会话或落下绑定。返回吊销的会话数。
+    private static async Task<int> RevokeSessionRowsAsync(IdentityDbContext db, Guid personId, Guid? sessionId, Guid? membershipId, string reason, DateTimeOffset now, CancellationToken ct, Guid? tenantId = null)
+    {
+        var revoked = await IdentitySql.ExecuteAsync(db, $"""
             UPDATE {IdentitySql.Sessions} SET revoked_at = @now, revoke_reason = @reason, revoked_by = @by
             WHERE person_id = @person AND revoked_at IS NULL AND (@sid::uuid IS NULL OR id = @sid) AND (@membership::uuid IS NULL OR membership_id = @membership)
               AND (@tenant::text IS NULL OR tenant_id = @tenant)
-            """, ct, ("now", now), ("reason", reason), ("by", RevokedByActor()), ("person", personId), ("sid", sessionId), ("membership", membershipId), ("tenant", tenantId?.ToString("D")));
+            """, ct, ("now", now), ("reason", reason), ("by", RevokedByActor()), ("person", personId), ("sid", sessionId), ("membership", membershipId), ("tenant", tenantId?.ToString("D"))).ConfigureAwait(false);
+        if (sessionId is null && membershipId is null && tenantId is null)
+        {
+            await IdentitySql.ExecuteAsync(db, $"UPDATE {IdentitySql.Tickets} SET consumed_at = @now WHERE person_id = @person AND consumed_at IS NULL", ct,
+                ("now", now), ("person", personId)).ConfigureAwait(false);
+            await IdentitySql.ExecuteAsync(db, $"UPDATE {IdentitySql.ConnectorFlows} SET status = 'cancelled', completed_at = @now WHERE person_id = @person AND status = 'bind'", ct,
+                ("now", now), ("person", personId)).ConfigureAwait(false);
+        }
+        return revoked;
+    }
 
     // ---- ITenantUserCounter ----
 
-    /// <summary>当前租户的真实成员数：含租户管理员，不含具备平台访问资格的 Person，已清除的成员不计。</summary>
+    /// <summary>当前租户计入用户配额的成员数：含租户管理员与停用、锁定的成员；不含具备平台访问资格的 Person，已清除与已从目录删除的成员不计。</summary>
     public async ValueTask<int> CountUsersAsync(CancellationToken cancellationToken = default)
     {
         var tenantId = RequireTenant();
@@ -127,10 +139,11 @@ internal sealed partial class IdentityAccountService : IIdentityService, IIdenti
         return await CountMembersAsync(session.Context, cancellationToken).ConfigureAwait(false);
     }
 
+    // 从目录删除即释放名额（R163）：被删的人之后经新增成员按标识恢复，恢复时重新占用名额。
     private static Task<int> CountMembersAsync(IdentityDbContext db, CancellationToken ct) =>
         (from member in db.Memberships.AsNoTracking()
          join person in db.Persons.AsNoTracking() on member.PersonId equals person.Id
-         where member.Status != AccountStatuses.Purged && !person.PlatformAccess
+         where member.Status != AccountStatuses.Purged && !member.DirectoryDeleted && !person.PlatformAccess
          select member.Id).CountAsync(ct);
 
     // ---- 投影 ----
@@ -149,7 +162,7 @@ internal sealed partial class IdentityAccountService : IIdentityService, IIdenti
         string? Masked(IdentifierKind kind) => views.FirstOrDefault(v => v.Kind == kind)?.Masked;
         var username = identifiers.FirstOrDefault(i => i.Kind == "username")?.Value;
         return new Person(row.Id, row.DisplayName, username, Masked(IdentifierKind.Email), Masked(IdentifierKind.Phone), row.IdentityRevision)
-        { Status = row.Status, PlatformAccess = row.PlatformAccess, Identifiers = views };
+        { Status = row.Status, PlatformAccess = row.PlatformAccess, Identifiers = views, HasPassword = row.PasswordHash is not null };
     }
 
     private static Membership ToMembership(MembershipRow row) =>

@@ -4,8 +4,9 @@ import { DataTable, type DataColumn, type DataTableQuery } from '@idadawn/yue-da
 import { FeedbackProvider, SchemaForm, useConfirm, useDrawer } from '@idadawn/yue-form';
 import { HttpResponseError, PlatformError, type PlatformClient } from '@idadawn/yue-sdk';
 import type { paths } from './api.generated';
-import { accountSchema, activateSchema, createSchema, editSchema, legalActions, lookupSchema, resetSchema, type AccountRequest, type ActivateRequest, type AdminAccount, type CreateRequest,
-  type LookupRequest, type Quota, type ResetRequest, type StateMachine, type Tenant, type TenantAction, type TenantAdmin, type TenantCounts, type UpdateRequest } from './contracts';
+import { accountSchema, activateSchema, createSchema, createWithPasswordSchema, designateSchema, editSchema, legalActions, lookupSchema, needsInitialPassword, resetSchema, type AccountRequest, type ActivateRequest,
+  type AdminAccount, type CreateRequest, type LookupRequest, type Quota, type ReplaceRequest, type ResetRequest, type StateMachine, type Tenant, type TenantAction, type TenantAdmin, type TenantCounts,
+  type UpdateRequest } from './contracts';
 import { i18n } from './i18n';
 
 interface Issue { status?: number; code?: string; message: string }
@@ -20,6 +21,8 @@ function conflict(error: PlatformError, creating = false): string {
   return error.detail.code === 'CONFLICT' ? i18n.t(creating ? 'tenant.duplicate' : 'tenant.conflict') : error.message;
 }
 function data<T>(result: { data?: T }): T { if (result.data === undefined) throw new Error('tenant.contract.response'); return result.data; }
+// 服务端字段错误的位置：有逐项错误取逐项，否则取顶层位置。
+function pointers(error: PlatformError): string[] { return error.detail.errors?.map((item) => item.pointer) ?? (error.detail.pointer ? [error.detail.pointer] : []); }
 const tone = { pending: 'neutral', trial: 'info', active: 'ok', grace: 'warn', suspended: 'error' } as const;
 // 页签顺序按运营关注度：全部、正常、试用、待激活、宽限期、已冻结。
 const tabs = ['all', 'active', 'trial', 'pending', 'grace', 'suspended'] as const;
@@ -274,27 +277,43 @@ function TenantForm({ creating = false, refresh, onSubmit, ...props }: Component
 }
 
 // 新建租户：先选定管理员，再填主档。成员 ID 在选定管理员时生成一次，同一份开户请求重复提交保持幂等。
+// 管理员账号没有经本人验证的手机号或邮箱时，开户要给它设初始密码（R163）：抽屉里刚新建的账号沿用刚设的初始密码，不再询问；查到的账号多出初始密码一栏。
+// 页面的判断与服务端不一致时以服务端为准：服务端指出缺初始密码，就保留已填的主档、补出这一栏。
+interface Chosen { account: AdminAccount; membershipId: string; password?: string; ask: boolean; draft?: Record<string, unknown> }
 function CreateTenant({ api, refresh, done }: { api: Api; refresh(): void; done(): void }) {
-  const [chosen, setChosen] = useState<{ account: AdminAccount; membershipId: string }>();
-  if (!chosen) return <AdminPicker api={api} onPick={(account) => setChosen({ account, membershipId: crypto.randomUUID() })} />;
+  const [chosen, setChosen] = useState<Chosen>();
+  if (!chosen) return <AdminPicker api={api} onPick={(account, password) => setChosen({ account, membershipId: crypto.randomUUID(), password, ask: password === undefined && needsInitialPassword(account) })} />;
   return <div className="grid gap-5">
-    <DetailSection title={i18n.t('tenant.admin')}><AccountCard account={chosen.account} action={<Button variant="link" size="sm" className="h-7 px-2" onClick={() => setChosen(undefined)}>{i18n.t('tenant.adminRepick')}</Button>} /></DetailSection>
-    <TenantForm creating refresh={refresh} schema={createSchema} i18n={i18n} initialValues={{ isolation: 'row' }} testId="tenant-create-form" onSubmit={async (values) => {
-      await api.POST('/api/tenancy/tenants', { body: { ...values, administrator: { membershipId: chosen.membershipId, subjectId: chosen.account.subjectId } } as CreateRequest });
-      done();
-    }} />
+    <DetailSection title={i18n.t('tenant.admin')}>
+      <AccountCard account={chosen.account} action={<Button variant="link" size="sm" className="h-7 px-2" onClick={() => setChosen(undefined)}>{i18n.t('tenant.adminRepick')}</Button>} />
+      {chosen.ask && <p className="text-sm text-muted-foreground" data-testid="tenant-admin-password-hint">{i18n.t('tenant.adminPasswordRequired')}</p>}
+    </DetailSection>
+    <TenantForm key={chosen.ask ? 'ask' : 'plain'} creating refresh={refresh} schema={chosen.ask ? createWithPasswordSchema : createSchema} i18n={i18n} testId="tenant-create-form"
+      initialValues={chosen.ask ? { isolation: 'row', ...chosen.draft, administrator: {} } : { isolation: 'row' }} onSubmit={async (values) => {
+        const { administrator, ...record } = values as Record<string, unknown> & { administrator?: { initialPassword?: string } };
+        const initialPassword = chosen.password ?? administrator?.initialPassword;
+        try {
+          await api.POST('/api/tenancy/tenants', { body: { ...record, administrator: { membershipId: chosen.membershipId, subjectId: chosen.account.subjectId, ...(initialPassword ? { initialPassword } : {}) } } as CreateRequest });
+        } catch (error) {
+          if (chosen.ask || chosen.password !== undefined || !(error instanceof PlatformError) || !pointers(error).includes('#/administrator/initialPassword')) throw error;
+          setChosen({ ...chosen, ask: true, draft: record });
+          return;
+        }
+        done();
+      }} />
   </div>;
 }
 
-// 管理员账号经身份组件选择或新建：先按登录标识查找；没有合适的账号时新建（初始密码，首次登录强制修改）。
+// 管理员账号经身份组件选择或新建：先按登录标识查找；没有合适的账号时新建（初始密码，首次登录强制修改），新建的账号连同刚设的初始密码交给调用方。
 // 这两张是抽屉里的中间步骤，按钮留在表单内（inlineActions），页脚只给最终提交用；两张表单的 key 不同，切换时不沿用另一张的表单状态。
-function AdminPicker({ api, onPick }: { api: Api; onPick(account: AdminAccount): void | Promise<void> }) {
+function AdminPicker({ api, onPick }: { api: Api; onPick(account: AdminAccount, password?: string): void | Promise<void> }) {
   const [creating, setCreating] = useState(false);
   const [found, setFound] = useState<AdminAccount | null>();
   if (creating) return <div className="grid gap-4">
     <p className="text-sm text-muted-foreground">{i18n.t('tenant.adminCreateHint')}</p>
     <SchemaForm key="account" inlineActions schema={accountSchema} i18n={i18n} initialValues={{ identifierKind: 'phone' }} testId="tenant-admin-account-form" submitLabel={i18n.t('tenant.adminCreate')} onSubmit={async (values) => {
-      await onPick(data(await api.POST('/api/tenancy/admin-accounts', { body: values as AccountRequest })));
+      const request = values as AccountRequest;
+      await onPick(data(await api.POST('/api/tenancy/admin-accounts', { body: request })), request.initialPassword);
     }} />
     <Button variant="link" className="justify-self-start px-0" onClick={() => setCreating(false)}>{i18n.t('tenant.adminBack')}</Button>
   </div>;
@@ -312,17 +331,47 @@ function AdminPicker({ api, onPick }: { api: Api; onPick(account: AdminAccount):
 }
 
 // 替换管理员：新管理员得到 tenant.owner，原管理员撤销 owner 与管理员标志；满额、开通未完成等拒绝显示服务端原文。
+// 选定的账号没有经本人验证的手机号或邮箱时，再单独一步给它设初始密码（R163）；抽屉里刚新建的账号沿用刚设的初始密码。服务端指出缺初始密码时同样补出这一步。
+const designationPointer = '#/items/0/initialPassword';
+function relocated(error: PlatformError): PlatformError {
+  const move = (pointer: string) => pointer === designationPointer ? '#/initialPassword' : pointer;
+  const detail = { ...error.detail };
+  if (detail.pointer) detail.pointer = move(detail.pointer);
+  if (detail.errors) detail.errors = detail.errors.map((item) => ({ ...item, pointer: move(item.pointer) })) as typeof detail.errors;
+  return new PlatformError(detail);
+}
 function ReplaceAdmin({ api, tenant, machine, done }: { api: Api; tenant: Pick<Tenant, 'id'>; machine?: StateMachine; done(): void }) {
   const confirm = useConfirm();
   const [failure, setFailure] = useState<string>();
-  return <div className="grid gap-4">
-    <AdminPicker api={api} onPick={async (account) => {
+  const [pending, setPending] = useState<AdminAccount>();
+  async function designate(account: AdminAccount, initialPassword?: string) {
+    if (needsConfirmation(machine, 'assign-admin') && !await confirm({ title: i18n.t('tenant.confirmAssign'), description: i18n.t('tenant.confirmAssignDescription') })) return;
+    await api.PUT('/api/tenancy/tenants/{id}/admins', { params: { path: { id: tenant.id } }, body: { items: [{ subjectId: account.subjectId, ...(initialPassword ? { initialPassword } : {}) }] } as ReplaceRequest });
+    done();
+  }
+  if (pending) return <div className="grid gap-4">
+    <AccountCard account={pending} action={<Button variant="link" size="sm" className="h-7 px-2" onClick={() => { setFailure(undefined); setPending(undefined); }}>{i18n.t('tenant.adminRepick')}</Button>} />
+    <p className="text-sm text-muted-foreground" data-testid="tenant-admin-password-hint">{i18n.t('tenant.adminPasswordRequired')}</p>
+    <SchemaForm key={pending.subjectId} schema={designateSchema} i18n={i18n} testId="tenant-admin-designate-form" submitLabel={i18n.t('tenant.adminUse')} onSubmit={async (values) => {
       setFailure(undefined);
-      if (needsConfirmation(machine, 'assign-admin') && !await confirm({ title: i18n.t('tenant.confirmAssign'), description: i18n.t('tenant.confirmAssignDescription') })) return;
-      try {
-        await api.PUT('/api/tenancy/tenants/{id}/admins', { params: { path: { id: tenant.id } }, body: { items: [{ subjectId: account.subjectId }] } });
-        done();
-      } catch (error) { setFailure(issue(error).message); }
+      try { await designate(pending, (values as { initialPassword: string }).initialPassword); }
+      catch (error) {
+        // 初始密码的字段错误换成本表单的位置，显示在这一栏；其余拒绝显示服务端原文。
+        if (error instanceof PlatformError && pointers(error).includes(designationPointer)) throw relocated(error);
+        setFailure(issue(error).message);
+      }
+    }} />
+    {failure && <Alert tone="error" role="alert">{failure}</Alert>}
+  </div>;
+  return <div className="grid gap-4">
+    <AdminPicker api={api} onPick={async (account, password) => {
+      setFailure(undefined);
+      if (password === undefined && needsInitialPassword(account)) { setPending(account); return; }
+      try { await designate(account, password); }
+      catch (error) {
+        if (password === undefined && error instanceof PlatformError && pointers(error).includes(designationPointer)) setPending(account);
+        else setFailure(issue(error).message);
+      }
     }} />
     {failure && <Alert tone="error" role="alert">{failure}</Alert>}
   </div>;

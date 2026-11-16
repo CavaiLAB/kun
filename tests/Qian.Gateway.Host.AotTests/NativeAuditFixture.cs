@@ -17,8 +17,18 @@ namespace Qian.Gateway.Host.AotTests;
 internal sealed class NativeAuditReader(ServiceProvider provider, PluginLoader loader, AuditConsumer consumer) : IAsyncDisposable
 {
     private static readonly string[] s_bindings = ["audit_tenant", "audit_platform"];
-    internal async Task<IReadOnlyList<AuditChainEntry>> Read(CancellationToken ct) =>
-        await consumer.Context!.Audit().ReadPlatformAsync(consumer.Context!, 0, 100, cancellationToken: ct);
+    // 平台链上的全部记录：分页读到末尾（每页 100）。只读第一页时，读回之后的「TenantId 全为 null」「审计链不能含凭据」看不到第 100 条之后的记录（S1-QA-026）。
+    internal async Task<IReadOnlyList<AuditChainEntry>> Read(CancellationToken ct)
+    {
+        var entries = new List<AuditChainEntry>(); long after = 0;
+        while (true)
+        {
+            var page = await consumer.Context!.Audit().ReadPlatformAsync(consumer.Context!, after, 100, cancellationToken: ct);
+            entries.AddRange(page);
+            if (page.Count < 100) return entries;
+            after = page[^1].Sequence;
+        }
+    }
     internal Task<AuditChainVerification> Verify(CancellationToken ct) => consumer.Context!.Audit().VerifyPlatformAsync(consumer.Context!, ct);
     internal static async Task<NativeAuditReader> Start(NativeAuditDatabase database, CancellationToken ct)
     {

@@ -98,7 +98,7 @@ public sealed partial class IdentityAuthzTests
             var changed = JsonSerializer.SerializeToElement(new { idempotencyKey = key, membershipIds = new[] { regular.Id }, reason = "changed" });
             Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, current, id, changed, key, Ct).AsTask())).Error.Code.Code);
             Assert.Single(await AdminRows("SELECT idempotency_key FROM plugin_qian_capabilities.invoke_receipts WHERE capability_id = '" + id + "'"));
-            var records = (await caller.Audit().ReadAsync(0, 100, cancellationToken: Ct)).Where(row => row.Record.CapabilityId == id).ToArray();
+            var records = (await ReadTenantChain(caller.Audit())).Where(row => row.Record.CapabilityId == id).ToArray();
             Assert.Equal(2, records.Length); Assert.DoesNotContain("private-reason-sentinel", JsonSerializer.Serialize(records), StringComparison.Ordinal);
             await WaitDirectoryRevocation();
             Assert.Single(await AdminRows("SELECT id FROM plugin_qian_identity.outbox_messages WHERE event_type_id = 'identity.session_revoked.v1'"));

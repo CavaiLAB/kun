@@ -106,7 +106,7 @@ public sealed partial class TenantOperationsTests
             Assert.All(log.Values, value => Assert.DoesNotContain("测试敏感内容", value?.ToString() ?? "", StringComparison.Ordinal));
             using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id.ToString()))
             {
-                Assert.DoesNotContain(await source.Audit().ReadAsync(0, 100, cancellationToken: Ct), record => record.Record.CapabilityId == "qian.tenancy/settings.write");
+                Assert.DoesNotContain(await ReadTenantChain(source.Audit()), record => record.Record.CapabilityId == "qian.tenancy/settings.write");
                 Assert.True((await source.Audit().VerifyAsync(Ct)).Valid);
             }
             Assert.Contains(await ReadPlatformChain(source), entry =>
@@ -121,7 +121,7 @@ public sealed partial class TenantOperationsTests
         Assert.Equal(1, (await recovered.Content.ReadFromJsonAsync<TenantSettingsDocument>(Ct))!.Revision);
         using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id.ToString()))
         {
-            var completion = Assert.Single(await source.Audit().ReadAsync(0, 100, cancellationToken: Ct), entry => entry.Record.CapabilityId == "qian.tenancy/settings.write");
+            var completion = Assert.Single(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/settings.write");
             Assert.Equal(1, completion.Record.Payload.GetProperty("revision").GetInt32());
             Assert.True((await source.Audit().VerifyAsync(Ct)).Valid);
         }

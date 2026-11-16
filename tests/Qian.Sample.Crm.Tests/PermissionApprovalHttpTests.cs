@@ -184,7 +184,7 @@ public abstract partial class CustomerCommandTests
         using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenantId))
         {
             Assert.True((await audit.VerifyAsync(Ct)).Valid);
-            return [.. (await audit.ReadAsync(0, 500, cancellationToken: Ct)).Where(entry => entry.Record.CapabilityId == "qian.lifecycle/permissions.approve")];
+            return [.. (await ReadTenantChain(audit)).Where(entry => entry.Record.CapabilityId == "qian.lifecycle/permissions.approve")];
         }
     }
 

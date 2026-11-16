@@ -267,7 +267,7 @@ public abstract partial class CustomerCommandTests
                 events = await session.Context.OutboxMessages.Where(row => row.TenantId == tenantId).Select(row => row.Payload).ToListAsync(Ct);
             }
             var trail = Runtime(host).Source().Audit();
-            var records = (await trail.ReadAsync(0, 200, cancellationToken: Ct)).Select(entry => entry.Record).ToArray();
+            var records = (await ReadTenantChain(trail)).Select(entry => entry.Record).ToArray();
             Assert.True((await trail.VerifyAsync(Ct)).Valid);
             return (records, await Decisions(host, tenantId), [.. events.Select(text => JsonSerializer.Deserialize<JsonElement>(text))]);
         }

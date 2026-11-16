@@ -133,7 +133,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         // 租户链：每次指针变化补一条 admin.assign，只记成员指针，没有登录标识。平台链：每次放行都有超管旁路记录。
         using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id))
         {
-            var assigned = (await source.Audit().ReadAsync(0, 100, cancellationToken: Ct)).Where(entry => entry.Record.CapabilityId == "qian.tenancy/admin.assign").Select(entry => entry.Record).ToArray();
+            var assigned = (await ReadTenantChain(source.Audit())).Where(entry => entry.Record.CapabilityId == "qian.tenancy/admin.assign").Select(entry => entry.Record).ToArray();
             Assert.Equal([(memberB, memberA), (memberA, memberB)], assigned.Select(record =>
                 (record.Payload.GetProperty("membershipId").GetGuid(), record.Payload.GetProperty("previousMembershipId").GetGuid())));
             Assert.All(assigned, record =>
@@ -218,7 +218,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         // 租户链记 admin.reset-password（只有成员指针），平台链记 reset-credential 的超管旁路；两条链都没有密码。
         using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id))
         {
-            var record = Assert.Single(await source.Audit().ReadAsync(0, 100, cancellationToken: Ct), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password").Record;
+            var record = Assert.Single(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password").Record;
             Assert.Equal(("user", "root", "api", "success", member), (record.ActorType, record.ActorId, record.Channel, record.Result, record.Payload.GetProperty("membershipId").GetGuid()));
             Assert.DoesNotContain(TemporaryPassword, record.Payload.GetRawText(), StringComparison.Ordinal);
         }

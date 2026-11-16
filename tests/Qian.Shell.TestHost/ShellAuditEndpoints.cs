@@ -62,7 +62,15 @@ internal static class ShellAuditEndpoints
             using var scope = tenant.BeginScope(tenantId);
             var audit = consumer.Context!.Audit();
             var verification = await audit.VerifyAsync(http.RequestAborted);
-            var entries = await audit.ReadAsync(0, 100, cancellationToken: http.RequestAborted);
+            // 租户链分页读到末尾（每页 100）：只返回第一页时，链超过一页后调用方取的「最后一条」不是最新写入的那条（S1-QA-027）。
+            var entries = new List<AuditChainEntry>(); long after = 0;
+            while (true)
+            {
+                var page = await audit.ReadAsync(after, 100, cancellationToken: http.RequestAborted);
+                entries.AddRange(page);
+                if (page.Count < 100) break;
+                after = page[^1].Sequence;
+            }
             return Results.Json(new { valid = verification.Valid, checkedEntries = verification.CheckedEntries,
                 records = entries.Select(e => new { sequence = e.Sequence, contentHash = e.ContentHash, actorId = e.Record.ActorId,
                     tenantId = e.Record.TenantId, capabilityId = e.Record.CapabilityId, payload = e.Record.Payload }) });

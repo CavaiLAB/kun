@@ -112,7 +112,15 @@ public sealed partial class PatchPersistenceTests
         Assert.Empty(await Outbox(running.Host.Services, tenant, HttpTenantB));
         using (tenant.BeginScope(HttpTenantA))
         {
-            var audits = await running.Root.Audit().ReadAsync(0, 100, cancellationToken: Ct);
+            // 租户链分页读到末尾（每页 100）：只读第一页时，下面的「全部带超管旁路标记」看不到第一页之后的记录（S1-QA-027）。
+            var audits = new List<AuditChainEntry>(); long after = 0;
+            while (true)
+            {
+                var page = await running.Root.Audit().ReadAsync(after, 100, cancellationToken: Ct);
+                audits.AddRange(page);
+                if (page.Count < 100) break;
+                after = page[^1].Sequence;
+            }
             Assert.Contains(audits, item => item.Record.Payload.GetProperty("permission").GetString() == RegistryDefinition.ScopeWritePermission);
             Assert.All(audits, item => Assert.Equal("superadmin", item.Record.Payload.GetProperty("bypass").GetString()));
             Assert.True((await running.Root.Audit().VerifyAsync(Ct)).Valid);

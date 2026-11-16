@@ -581,3 +581,8 @@ override Qian.Tenancy.TenantSummary.GetHashCode() -> int
 override Qian.Tenancy.TenantSummary.ToString() -> string!
 static Qian.Tenancy.TenantSummary.operator !=(Qian.Tenancy.TenantSummary? left, Qian.Tenancy.TenantSummary? right) -> bool
 static Qian.Tenancy.TenantSummary.operator ==(Qian.Tenancy.TenantSummary? left, Qian.Tenancy.TenantSummary? right) -> bool
+Qian.Tenancy.ITenantAdministration.PrepareAdministratorAsync(Qian.Tenancy.CreateTenant! request, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Qian.Tenancy.TenantAdminDesignation.InitialPassword.get -> string?
+Qian.Tenancy.TenantAdminDesignation.InitialPassword.init -> void
+Qian.Tenancy.TenantAdministrator.InitialPassword.get -> string?
+Qian.Tenancy.TenantAdministrator.InitialPassword.init -> void

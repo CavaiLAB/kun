@@ -16,7 +16,7 @@
 | `directory.position.created.v1` / `updated.v1` / `moved.v1` / `deleted.v1` | 岗位的同类变化，规则同组织；被删的岗位若是某组织的责任岗位，该组织另发一条 `directory.org.updated.v1` |
 | `directory.member.created.v1` | 成员加入租户 |
 | `directory.member.relations_changed.v1` | 成员的组织、岗位、用户组归属集合变化（集合不变不发），同时带替换前后的完整归属（含主归属标记） |
-| `directory.member.status_changed.v1` | 成员启用、停用、锁定、从目录删除或重新启用 |
+| `directory.member.status_changed.v1` | 成员启用、停用、锁定、从目录删除或重新启用；新增成员恢复本租户删过的成员时同样发这一种，`deleted` 由 true 变为 false（R163） |
 | `directory.member.profile_updated.v1` | 档案内容变化（内容不变不发）；载荷只有成员标识，消费方按需回读 |
 
 载荷只带 id 与结构字段（path、depth、父节点、责任岗位、主管、状态、归属），不带组织名、岗位名、姓名、账号与联系方式；消费方需要名称时经目录查询回读。每条载荷都带 `directory_revision`：本租户目录修订号，每次目录写入加一，同一次写入发出的多条事件共用一个修订号，消费方据此排序、去重。事件与目录写入在同一事务进入 Outbox，写入失败不留事件。平台账号的停用、锁定（运营经 `SetPersonStatusAsync` 改账号层状态）不改成员状态，也不发目录事件（R156）；派生查询仍把这样的人算作不在任（R154）。需要知道责任人是否在任的消费方（如 S2 的审批派单）在用时调用派生查询，不靠目录事件缓存。
@@ -31,9 +31,9 @@
 
 [directory-members.openapi.json](directory-members.openapi.json) 是「新增成员」的 OpenAPI 3.1 契约（S1-IDP-017）：
 - **操作**：`POST /api/directory/members`，标 `x-qian-side-effect: write`；`x-qian-capability` 指向规则相同的标准能力 `qian.identity.server/directory.member.add`。
-- **请求**：标识、显示名、初始密码（writeOnly）与可选账号，不允许多余字段，所以也没有租户字段。
-- **响应**：`membership`、`person_created`、`granted_roles`。`membership` 与目录查询契约的 `Membership` 是同一份定义。
-- **错误**：一律是 ErrorDetail，字段错误的位置用请求字段名。
+- **请求**：标识、显示名、初始密码（必填，writeOnly）与可选账号，不允许多余字段，所以也没有租户字段。
+- **响应**：`membership`、`person_created`、`restored`、`granted_roles`。`membership` 与目录查询契约的 `Membership` 是同一份定义。`restored` 为 true 表示恢复了本租户从目录删除的原成员，恢复后角色只保留 `tenant.user`（R163）。
+- **错误**：一律是 ErrorDetail，字段错误的位置用请求字段名。满额返回 422 `CARDINALITY_USER_LIMIT`；标识已被占用返回 409 `IDENTIFIER_IN_USE`；指定的账号已被本租户别的成员占用返回 409 `ACCOUNT_IN_USE`，先于标识判定（R163）。
 
 `Qian.Identity.Server.Tests` 的 `DirectoryMemberContractTests` 核对以下几项：契约登记的操作与实际端点一致；请求 Schema 与服务端绑定的请求体逐字段一致；响应 Schema 与新增结果的序列化逐字段一致；`Membership` 与查询契约结构相同；示例符合 Schema。`DirectoryMemberAddTests` 里的真实响应同样按契约 Schema 校验。
 

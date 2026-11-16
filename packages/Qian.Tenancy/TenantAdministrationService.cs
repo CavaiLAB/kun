@@ -37,7 +37,8 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
         var identifier = request.Identifier?.Trim();
         if (string.IsNullOrEmpty(identifier) || identifier.Length > 254 || identifier.Any(char.IsControl)) throw Invalid("#/identifier");
         var person = await Accounts.FindPersonAsync(identifier, cancellationToken).ConfigureAwait(false);
-        return person is null || !Eligible(person) ? null : Account(person);
+        // 只靠外部身份登录、又没有经本人验证的联系方式的账号不能任管理员（R163），查找同样不返回。
+        return person is null || !Eligible(person) || !Vouched(person) && !person.HasPassword ? null : Account(person);
     }
 
     public async ValueTask<TenantAdminAccount> CreateAccountAsync(CreateTenantAdminAccount request, CancellationToken cancellationToken = default)
@@ -71,7 +72,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
     public async ValueTask<TenantAdminList> ReplaceAsync(Guid id, ReplaceTenantAdmins request, string actor, CancellationToken cancellationToken = default)
     {
         Check(); ArgumentNullException.ThrowIfNull(request); ValidateActor(actor);
-        if (request.Items is not [{ SubjectId: var subjectId }] || subjectId == Guid.Empty) throw Invalid("#/items");
+        if (request.Items is not [{ SubjectId: var subjectId } designation] || subjectId == Guid.Empty) throw Invalid("#/items");
         await Existing(id, cancellationToken).ConfigureAwait(false);
         return await TenancyLocks.RunAsync(context, "tenant:" + id, async () =>
         {
@@ -81,9 +82,12 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
             // 平台身份不能当租户管理员（Q12：平台超管对租户不可见、不计配额）；停用或锁定的账号登录不了，指定了也没有意义。
             var person = await identity.GetPersonAsync(subjectId, cancellationToken).ConfigureAwait(false);
             if (person is null || !Eligible(person) || person.Status != AccountStatuses.Active) throw Invalid("#/items/0/subjectId");
+            // 没有经本人验证的手机号或邮箱的账号，先按初始密码重置、在本租户的审计链记下被重置的自然人，再建成员、授 owner（R163）。
+            if (await DesignateAsync(person, designation.InitialPassword, "#/items/0/initialPassword", "#/items/0/subjectId", cancellationToken).ConfigureAwait(false))
+                await AuditAsync(id, actor, ResetPasswordCapability, person.Id.ToString("D"), JsonSerializer.SerializeToElement(new { subjectId = person.Id, designation = true })).ConfigureAwait(false);
             var grants = context.Scoped(new ScopeKey("tenant", id.ToString())).Inject<ITenantRoleGrant>(TenantRoleGrant.Key);
             var subject = person.Id.ToString("D");
-            // 已是成员时幂等返回并补上管理员标志；新成员经配额判定，满额 CARDINALITY_USER_LIMIT，此时什么都还没改。
+            // 已是成员时幂等返回并补上管理员标志；新成员经配额判定，满额 CARDINALITY_USER_LIMIT，此时成员、授权与指针都还没改（需要时密码已重置）。
             var membership = await accounts.CreateMembershipAsync(new CreateMembership(person.Id, person.DisplayName) { IsTenantAdministrator = true }, cancellationToken).ConfigureAwait(false);
             await grants.AssignAsync(Owner, "user", subject, actor, cancellationToken).ConfigureAwait(false);
             var previous = await PointerAsync(cancellationToken).ConfigureAwait(false);
@@ -123,6 +127,69 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
             catch (QianErrorException error) { throw Remap(error, PasswordPointers); }
         }
         await AuditAsync(id, actor, "qian.tenancy/admin.reset-password", membershipId.ToString("D"), JsonSerializer.SerializeToElement(new { membershipId })).ConfigureAwait(false);
+    }
+
+    public async ValueTask PrepareAdministratorAsync(CreateTenant request, string actor, CancellationToken cancellationToken = default)
+    {
+        Check(); ArgumentNullException.ThrowIfNull(request); ValidateActor(actor);
+        var administrator = request.Administrator ?? throw Error(PlatformErrors.InputInvalid);
+        const string passwordPointer = "#/administrator/initialPassword", subjectPointer = "#/administrator/subjectId";
+        // 先做不改动任何东西的判定：开通一定会失败（输入不合格、租户号已被另一份开户输入占用）时，不去动指定账号的密码。
+        var designated = administrator with { InitialPassword = null };
+        await TenantProvisioningOrchestrator.PrecheckAsync(context, request with { Administrator = designated }, designated, cancellationToken).ConfigureAwait(false);
+        // 主体不是自然人 id、身份组件缺席或自然人不存在：这里不判定（开通编排第 05 步会失败或按组件缺席跳过），也就没有账号可以重置。
+        var person = Guid.TryParseExact(administrator.SubjectId, "D", out var subjectId) && subjectId != Guid.Empty &&
+            context.TryInject<IIdentityService>(IdentityDefinition.Key) is { } identity ? await identity.GetPersonAsync(subjectId, cancellationToken).ConfigureAwait(false) : null;
+        if (person is null)
+        {
+            if (administrator.InitialPassword is not null) throw Invalid(passwordPointer);
+            return;
+        }
+        // 平台身份与停用、锁定的账号不能任租户管理员（与更换管理员相同），在动它的密码之前拒绝。
+        if (!Eligible(person) || person.Status != AccountStatuses.Active) throw Invalid(subjectPointer);
+        if (await DesignateAsync(person, administrator.InitialPassword, passwordPointer, subjectPointer, cancellationToken).ConfigureAwait(false))
+            await PlatformAuditAsync(actor, person.Id).ConfigureAwait(false);
+    }
+
+    // 运营指定管理员（开户与更换）共用（R163），返回是否重置了密码，调用方据此写审计：
+    // - 手机号、邮箱全部经本人验证的账号：直接任管理员，不重置；给了初始密码反而拒绝。
+    // - 只靠外部身份登录（没有密码）的账号：不能任管理员。
+    // - 其余账号：必须给初始密码，重置为它、下次登录强制修改（与运营重置密码相同），并解除它在各租户的外部身份绑定。
+    private async Task<bool> DesignateAsync(Person person, string? initialPassword, string passwordPointer, string subjectPointer, CancellationToken ct)
+    {
+        if (Vouched(person))
+        {
+            if (initialPassword is not null) throw Field(PlatformErrors.ValueNotAllowed, passwordPointer);
+            return false;
+        }
+        if (!person.HasPassword) throw Invalid(subjectPointer);
+        if (initialPassword is null) throw Field(PlatformErrors.Required, passwordPointer);
+        using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(initialPassword));
+        try { await Accounts.ResetPasswordAsync(person.Id, new PasswordReset(proof, "tenant_admin_designation") { UnlinkExternalIdentities = true }, ct).ConfigureAwait(false); }
+        catch (QianErrorException error) { throw Remap(error, new Dictionary<string, string>(StringComparer.Ordinal) { ["#/new_password"] = passwordPointer }); }
+        return true;
+    }
+
+    // 开户时的重置记在平台审计链（租户还没建成），带被重置的自然人 id；更换管理员时的重置记在该租户的审计链，能力名相同。
+    private Task PlatformAuditAsync(string actor, Guid personId)
+    {
+        var subject = personId.ToString("D");
+        var record = new AuditRecord(Guid.CreateVersion7(), null, "user", actor, null, ResetPasswordCapability, "v1",
+            Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(subject))), "api", "admins", "success",
+            ActivityTraceId.CreateRandom().ToHexString(), DateTimeOffset.UtcNow, JsonSerializer.SerializeToElement(new { subjectId = personId, designation = true }));
+        return TenantAuditCompletion.AppendAsync(context, record, (entry, token) => context.Audit().AppendPlatformAsync(context, entry, token));
+    }
+
+    private const string ResetPasswordCapability = "qian.tenancy/admin.reset-password";
+
+    private static QianErrorException Field(ErrorCode code, string pointer) =>
+        new(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(code, pointer)] });
+
+    // 可以直接任管理员的账号：至少有一个手机号或邮箱，且手机号、邮箱都经本人验证过。用户名没有核验流程，不算。
+    private static bool Vouched(Person person)
+    {
+        var contacts = person.Identifiers.Where(item => item.Kind is IdentifierKind.Phone or IdentifierKind.Email).ToArray();
+        return contacts.Length > 0 && contacts.All(item => item.Verified);
     }
 
     private void Check()

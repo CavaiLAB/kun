@@ -20,7 +20,7 @@ internal sealed class DirectoryAddCapability(IPluginContext owner, IdentityAccou
 {
     internal const string Permission = "qian.identity.server:member:create";
     internal static CapabilityContract Definition { get; } = new("qian.identity.server",
-        """{"name":"directory.member.add","description":"在当前租户新增成员：手机号或用户名已对应自然人时绑定为本租户成员，否则新建自然人并设初始密码、首次登录强制修改；受用户配额约束，新成员获得初始角色 tenant.user。","sideEffect":"write","policyHint":"confirm","idempotent":true,"async":"none","requiredScopes":[],"requiredSecrets":[],"dataClassification":"pii","costTier":"low","contractVersion":"directory-v1","audit":true,"agent":{"expose":false,"requiresConfirmation":true},"binding":{"kind":"command","id":"qian.identity.server/directory.member.add"},"requiredPermission":"qian.identity.server:member:create"}""",
+        """{"name":"directory.member.add","description":"在当前租户新增成员：新建自然人并设初始密码、首次登录强制修改；手机号或用户名已被占用时返回冲突；本租户从目录删除的成员按标识恢复原成员。受用户配额约束，新成员获得初始角色 tenant.user。","sideEffect":"write","policyHint":"confirm","idempotent":true,"async":"none","requiredScopes":[],"requiredSecrets":[],"dataClassification":"pii","costTier":"low","contractVersion":"directory-v1","audit":true,"agent":{"expose":false,"requiresConfirmation":true},"binding":{"kind":"command","id":"qian.identity.server/directory.member.add"},"requiredPermission":"qian.identity.server:member:create"}""",
         DirectoryCapabilityJson.Default.AddDirectoryMember, DirectoryCapabilityJson.Default.DirectoryMemberAddResult, ["initialPassword"]);
     // 能力输入是 camelCase：身份组件按 HTTP 请求（snake_case）给出的错误位置换成能力输入的字段。
     private static readonly Dictionary<string, string> Pointers = new(StringComparer.Ordinal)
@@ -56,7 +56,7 @@ internal sealed class DirectoryAddCapability(IPluginContext owner, IdentityAccou
         }
         catch (QianErrorException error) { throw DirectoryMemberAddition.Remap(error, Pointers); }
         var membership = added.Membership;
-        return JsonSerializer.SerializeToElement(new DirectoryMemberAddResult(membership.Id, membership.PersonId, membership.Account, membership.Status, added.PersonCreated, added.GrantedRoles),
+        return JsonSerializer.SerializeToElement(new DirectoryMemberAddResult(membership.Id, membership.PersonId, membership.Account, membership.Status, added.PersonCreated, added.Restored, added.GrantedRoles),
             DirectoryCapabilityJson.Default.DirectoryMemberAddResult);
     }
 
@@ -68,7 +68,7 @@ internal sealed class DirectoryAddCapability(IPluginContext owner, IdentityAccou
 }
 
 // 新增成员的执行与审计，HTTP 入口与标准能力共用（S1-IDP-017 验收 6）。记录进目标租户的审计链：操作人是 actor，租户是 tenant_id，
-// 成员在 payload 里（成员 id、自然人 id、是否新建、本次授予的角色），不含标识原值、姓名与密码；输入只留脱敏投影的哈希。
+// 成员在 payload 里（成员 id、自然人 id、是否新建、是否恢复、本次授予的角色），不含标识原值、姓名与密码；输入只留脱敏投影的哈希。
 // 开始记录写不进去就不执行；业务失败记 failure（只有稳定错误码），成功记 success。收尾写入有 5 秒上限，不受调用方取消影响。
 internal static class DirectoryMemberAddition
 {
@@ -96,7 +96,7 @@ internal static class DirectoryMemberAddition
             using var finish = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             await audit.AppendAsync(Record("success", JsonSerializer.SerializeToElement(new
             {
-                attempt, membershipId = added.Membership.Id, personId = added.Membership.PersonId, personCreated = added.PersonCreated, grantedRoles = added.GrantedRoles
+                attempt, membershipId = added.Membership.Id, personId = added.Membership.PersonId, personCreated = added.PersonCreated, restored = added.Restored, grantedRoles = added.GrantedRoles
             })), finish.Token).ConfigureAwait(false);
         }
         return added;
@@ -117,8 +117,8 @@ internal static class DirectoryMemberAddition
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-internal sealed record AddDirectoryMember(Guid IdempotencyKey, string Identifier, string DisplayName, string? InitialPassword = null, string? Account = null)
+internal sealed record AddDirectoryMember(Guid IdempotencyKey, string Identifier, string DisplayName, string InitialPassword, string? Account = null)
 {
     public override string ToString() => "AddDirectoryMember(redacted)";
 }
-internal sealed record DirectoryMemberAddResult(Guid MembershipId, Guid PersonId, string Account, string Status, bool PersonCreated, IReadOnlyList<string> GrantedRoles);
+internal sealed record DirectoryMemberAddResult(Guid MembershipId, Guid PersonId, string Account, string Status, bool PersonCreated, bool Restored, IReadOnlyList<string> GrantedRoles);

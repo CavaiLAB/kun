@@ -23,6 +23,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
 {
     private const string Accounts = "/api/tenancy/admin-accounts";
     private const string TemporaryPassword = "Temp-Pass-2026";
+    private const string DesignatedPassword = "Designated-Pass-2026";
 
     [Fact]
     public async Task 管理员维护只对平台超管开放_账号经身份组件查找或新建后开户_替换管理员转移owner_满额与开通未完成时拒绝_端点进契约()
@@ -83,10 +84,22 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         var (superadmin, superPhone) = await NewPerson(business, "平台超管", platform: true);
         await Rejected(await Send(client, HttpMethod.Post, Accounts + ":lookup", root, new TenantAdminAccountLookup(superPhone)), HttpStatusCode.NotFound, "NOT_FOUND");
 
-        // 新建的账号作开户管理员：成员、指针与 tenant.owner 由开通编排第 05–07 步完成。
+        // 新建的账号作开户管理员：它的手机号没有经本人验证，开户请求必须带初始密码（R163）。缺了就 400，什么都不建，账号的密码不变。
         var memberA = Guid.CreateVersion7();
+        Assert.Equal("#/administrator/initialPassword", await Rejected(await Send(client, HttpMethod.Post, "/api/tenancy/tenants", root,
+            new CreateTenant("admins", "管理员租户") { Administrator = new(memberA, accountA.SubjectId.ToString("D")) }), HttpStatusCode.BadRequest, "INPUT_INVALID"));
+        Assert.Equal("0", await Text("SELECT count(*)::text FROM plugin_qian_tenancy.tenants WHERE code = 'admins'"));
+        var pending = await SignInAs(phone, TemporaryPassword);
+        Assert.Equal(SignInStatus.PasswordChangeRequired, pending.Status);
+        // 带了初始密码：开户前把账号的密码重置为它、下次登录强制修改；之后成员、指针与 tenant.owner 由开通编排第 05–07 步完成。初始密码不进保存的开户输入。
         var tenant = await Read<TenantDescriptor>(await Send(client, HttpMethod.Post, "/api/tenancy/tenants", root,
-            new CreateTenant("admins", "管理员租户") { Administrator = new(memberA, accountA.SubjectId.ToString("D")) }), HttpStatusCode.Created);
+            new CreateTenant("admins", "管理员租户") { Administrator = new(memberA, accountA.SubjectId.ToString("D")) { InitialPassword = DesignatedPassword } }), HttpStatusCode.Created);
+        // 重置之前登录拿到的改密票据随之作废，不能用它改掉运营设的初始密码。
+        using (var through = new AuthenticationProof(Encoding.UTF8.GetBytes("Through-Old-Ticket-1")))
+            Assert.Equal("LOGIN_TICKET_INVALID", (await business.Identity.SignIn.ChangeInitialPasswordAsync(new InitialPasswordChange(pending.Ticket!.Token, through), new LoginContext(), Ct)).Error!.Code.Code);
+        Assert.Equal(SignInStatus.Failed, (await SignInAs(phone, TemporaryPassword)).Status);
+        Assert.Equal(SignInStatus.PasswordChangeRequired, (await SignInAs(phone, DesignatedPassword)).Status);
+        Assert.Equal("0", await Text($"SELECT count(*)::text FROM plugin_qian_tenancy.tenants WHERE code = 'admins' AND provision_input::text LIKE '%{DesignatedPassword}%'"));
         var id = tenant.Id.ToString();
         var initial = Assert.Single((await Read<TenantAdminList>(await Send(client, HttpMethod.Get, Admins(id), root), HttpStatusCode.OK)).Items);
         Assert.Equal((memberA, accountA.SubjectId, "管理员甲", AccountStatuses.Active), (initial.MembershipId, initial.SubjectId, initial.DisplayName, initial.Status));
@@ -97,6 +110,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         Assert.Equal(("管理员甲", 1), (listed.GetProperty("administratorName").GetString(), listed.GetProperty("usersUsed").GetInt32()));
 
         // 替换为已有账号：新管理员建立成员并得到 tenant.owner；原管理员撤销 owner 与管理员标志，成员身份保留。
+        // 乙的手机号经本人验证过，不需要初始密码，凭据也不动。
         var (personB, phoneB) = await NewPerson(business, "管理员乙");
         Assert.Equal((personB.Id, "管理员乙"), await Lookup(phoneB));
         var replaced = Assert.Single((await Read<TenantAdminList>(await Send(client, HttpMethod.Put, Admins(id), root, new ReplaceTenantAdmins([new(personB.Id)])), HttpStatusCode.OK)).Items);
@@ -105,6 +119,8 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         Assert.Equal(memberB.ToString(), await Text($"SELECT membership_id::text FROM plugin_qian_tenancy.tenant_admins WHERE tenant_id = '{id}'"));
         Assert.Equal(personB.Id.ToString("D"), await Owners(id));
         Assert.Equal(("false|active", "true|active"), (await Member(memberA), await Member(memberB)));
+        // 乙的密码没有被重置：原密码照常通过第一因子，只因唯一的租户还待激活而进不去（TENANT_NOT_ACTIVE，不是 INVALID_CREDENTIALS）。
+        Assert.Equal("TENANT_NOT_ACTIVE", (await SignInAs(phoneB, IdentityPassword)).Error!.Code.Code);
         // 同一请求重试收敛：成员与指针不变，不重复记审计。
         Assert.Equal(memberB, Assert.Single((await Read<TenantAdminList>(await Send(client, HttpMethod.Put, Admins(id), root, new ReplaceTenantAdmins([new(personB.Id)])), HttpStatusCode.OK)).Items).MembershipId);
         Assert.Equal("2", await Text($"SELECT count(*)::text FROM plugin_qian_identity.memberships WHERE tenant_id = '{id}'"));
@@ -126,8 +142,15 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         await Rejected(await Send(client, HttpMethod.Put, Admins(id), root, new ReplaceTenantAdmins([new(personC.Id)])), HttpStatusCode.UnprocessableEntity, "CARDINALITY_USER_LIMIT");
         Assert.Equal((memberB.ToString(), personB.Id.ToString("D"), "0"), (await Text($"SELECT membership_id::text FROM plugin_qian_tenancy.tenant_admins WHERE tenant_id = '{id}'"),
             await Owners(id), await Text($"SELECT count(*)::text FROM plugin_qian_identity.memberships WHERE tenant_id = '{id}' AND person_id = '{personC.Id}'")));
-        Assert.Equal(memberA, Assert.Single((await Read<TenantAdminList>(await Send(client, HttpMethod.Put, Admins(id), root, new ReplaceTenantAdmins([new(accountA.SubjectId)])), HttpStatusCode.OK)).Items).MembershipId);
+        // 换回甲：他的手机号仍没有经本人验证，同样必须给初始密码；缺了就 400，指针与 owner 都不变。
+        Assert.Equal("#/items/0/initialPassword", await Rejected(await Send(client, HttpMethod.Put, Admins(id), root,
+            new ReplaceTenantAdmins([new(accountA.SubjectId)])), HttpStatusCode.BadRequest, "INPUT_INVALID"));
+        Assert.Equal((memberB.ToString(), personB.Id.ToString("D")), (await Text($"SELECT membership_id::text FROM plugin_qian_tenancy.tenant_admins WHERE tenant_id = '{id}'"), await Owners(id)));
+        Assert.Equal(memberA, Assert.Single((await Read<TenantAdminList>(await Send(client, HttpMethod.Put, Admins(id), root,
+            new ReplaceTenantAdmins([new(accountA.SubjectId) { InitialPassword = TemporaryPassword }])), HttpStatusCode.OK)).Items).MembershipId);
         Assert.Equal(accountA.SubjectId.ToString("D"), await Owners(id));
+        Assert.Equal(SignInStatus.Failed, (await SignInAs(phone, DesignatedPassword)).Status);
+        Assert.Equal(SignInStatus.PasswordChangeRequired, (await SignInAs(phone, TemporaryPassword)).Status);
         Assert.Equal(("true|active", "false|active"), (await Member(memberA), await Member(memberB)));
 
         // 租户链：每次指针变化补一条 admin.assign，只记成员指针，没有登录标识。平台链：每次放行都有超管旁路记录。
@@ -167,6 +190,11 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         Task<string?> Owners(string tenantId) => Text("SELECT string_agg(a.subject_id, ',' ORDER BY a.subject_id) FROM plugin_qian_authz.role_assignments a " +
             $"JOIN plugin_qian_authz.roles r ON a.role_id = r.id WHERE a.tenant_id = '{tenantId}' AND r.code = 'tenant.owner'");
         Task<string?> Member(Guid membership) => Text($"SELECT is_tenant_administrator::text || '|' || status FROM plugin_qian_identity.memberships WHERE id = '{membership}'");
+        async Task<SignInResult> SignInAs(string identifier, string password)
+        {
+            using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(password));
+            return await business.Identity.SignIn.SignInAsync(new LoginInput("web", null, null, null, proof) { Identifier = identifier }, new LoginContext(), Ct);
+        }
         async Task<Guid> Disabled()
         {
             var (person, _) = await NewPerson(business, "已停用");
@@ -241,6 +269,97 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
             using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(password));
             return await business.Identity.SignIn.SignInAsync(new LoginInput("web", null, null, null, proof) { Identifier = identifier }, new LoginContext(), Ct);
         }
+    }
+
+    // R163：运营指定管理员（开户与更换）按账号情况处理。
+    [Fact]
+    public async Task 指定管理员按账号情况处理_已验证账号不重置也不收初始密码_只靠外部身份登录的账号不能指定_重置解除外部身份绑定并留审计_开户先判租户号与账号资格()
+    {
+        await using var ops = await StartOps();
+        var (business, client) = (ops.Business, ops.Client);
+        var root = business.Token(null, "", "root", "user");
+        var source = business.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("tenancy", ScopeKey.Global);
+        var accounts = business.Identity.Accounts;
+        static string? Failure(SignInResult result) => result.Error?.Code.Code;
+        async Task<SignInResult> SignInAs(string identifier, string password)
+        {
+            using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(password));
+            return await business.Identity.SignIn.SignInAsync(new LoginInput("web", null, null, null, proof) { Identifier = identifier }, new LoginContext(), Ct);
+        }
+        Task<HttpResponseMessage> Open(string code, Guid subject, string? initialPassword) => Send(client, HttpMethod.Post, "/api/tenancy/tenants", root,
+            new CreateTenant(code, "指定核对 " + code) { Administrator = new(Guid.CreateVersion7(), subject.ToString("D")) { InitialPassword = initialPassword } });
+        Task<HttpResponseMessage> Replace(string tenant, Guid subject, string? initialPassword) => Send(client, HttpMethod.Put, Admins(tenant), root,
+            new ReplaceTenantAdmins([new(subject) { InitialPassword = initialPassword }]));
+        Task<string?> Tenants(string code) => Text($"SELECT count(*)::text FROM plugin_qian_tenancy.tenants WHERE code = '{code}'");
+        Task<string?> Links(Guid person) => Text($"SELECT count(*)::text FROM plugin_qian_identity.external_identities WHERE person_id = '{person}' AND NOT is_deleted");
+        async Task<(string? Pointer, string? Code)> FieldOf(HttpResponseMessage response)
+        {
+            using (response)
+            {
+                var body = await response.Content.ReadAsStringAsync(Ct);
+                Assert.True(response.StatusCode == HttpStatusCode.BadRequest, body);
+                var error = ErrorDetailJson.Deserialize(body)!;
+                Assert.Equal("INPUT_INVALID", error.Code);
+                return error.Errors is [var first, ..] ? (first.Pointer, first.Code) : (error.Pointer, null);
+            }
+        }
+        async Task<TenantAdminAccount> NewAccount(string name, string number) =>
+            await Read<TenantAdminAccount>(await Send(client, HttpMethod.Post, Accounts, root, new CreateTenantAdminAccount(name, TenantAdminIdentifierKind.Phone, number, TemporaryPassword)), HttpStatusCode.Created);
+
+        // 手机号经本人验证的账号：直接任管理员、不重置；开户与更换时给了初始密码反而 400（VALUE_NOT_ALLOWED），什么都不改。
+        var (vouched, vouchedPhone) = await NewPerson(business, "已验证");
+        Assert.Equal(("#/administrator/initialPassword", "VALUE_NOT_ALLOWED"), await FieldOf(await Open("vouched", vouched.Id, DesignatedPassword)));
+        Assert.Equal("0", await Tenants("vouched"));
+        var id = (await Read<TenantDescriptor>(await Open("vouched", vouched.Id, null), HttpStatusCode.Created)).Id.ToString();
+        Assert.Equal(("#/items/0/initialPassword", "VALUE_NOT_ALLOWED"), await FieldOf(await Replace(id, vouched.Id, DesignatedPassword)));
+        Assert.Equal(("TENANT_NOT_ACTIVE", "INVALID_CREDENTIALS"), (Failure(await SignInAs(vouchedPhone, IdentityPassword)), Failure(await SignInAs(vouchedPhone, DesignatedPassword))));
+
+        // 只靠外部身份登录、没有经本人验证的联系方式的账号（连接器首登建出的那种：没有密码，邮箱未验证）：查找不返回，开户与更换都不能指定。
+        var email = "ext" + Guid.NewGuid().ToString("N")[..10] + "@example.test";
+        var external = await accounts.CreatePersonAsync(new CreatePerson("外部身份", [new IdentifierInput(IdentifierKind.Email, email, false)]), Ct);
+        await Rejected(await Send(client, HttpMethod.Post, Accounts + ":lookup", root, new TenantAdminAccountLookup(email)), HttpStatusCode.NotFound, "NOT_FOUND");
+        Assert.Equal("#/administrator/subjectId", await Rejected(await Open("external", external.Id, DesignatedPassword), HttpStatusCode.BadRequest, "INPUT_INVALID"));
+        Assert.Equal("0", await Tenants("external"));
+        Assert.Equal("#/items/0/subjectId", await Rejected(await Replace(id, external.Id, DesignatedPassword), HttpStatusCode.BadRequest, "INPUT_INVALID"));
+        Assert.Equal("true", await Text($"SELECT (password_hash IS NULL)::text FROM plugin_qian_identity.persons WHERE id = '{external.Id}'"));
+
+        // 有密码、手机号未经本人验证的账号，在租户 A 有成员身份并绑了外部身份：更换时必须给初始密码；给了就重置、
+        // 解除它在各租户的外部身份绑定，并在本租户的审计链记一条带自然人 id 的重置（不含密码）。
+        var phoneC = NewPhone();
+        var created = await NewAccount("待指定", phoneC);
+        var elsewhere = await Join(business, A, created.SubjectId, "A 的成员");
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(A))
+            await accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(elsewhere.Id, "oidc", "upstream-" + Guid.NewGuid().ToString("N")), Ct);
+        Assert.Equal("1", await Links(created.SubjectId));
+        Assert.Equal(("#/items/0/initialPassword", "REQUIRED"), await FieldOf(await Replace(id, created.SubjectId, null)));
+        Assert.Equal("1", await Links(created.SubjectId));
+        await Read<TenantAdminList>(await Replace(id, created.SubjectId, DesignatedPassword), HttpStatusCode.OK);
+        Assert.Equal("0", await Links(created.SubjectId));
+        Assert.Equal((SignInStatus.PasswordChangeRequired, "INVALID_CREDENTIALS"), ((await SignInAs(phoneC, DesignatedPassword)).Status, Failure(await SignInAs(phoneC, TemporaryPassword))));
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id))
+        {
+            var reset = Assert.Single(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password").Record;
+            Assert.Equal(("user", "root", "success", created.SubjectId), (reset.ActorType, reset.ActorId, reset.Result, reset.Payload.GetProperty("subjectId").GetGuid()));
+            Assert.DoesNotContain(DesignatedPassword, reset.Payload.GetRawText(), StringComparison.Ordinal);
+        }
+
+        // 开户时同样：重置记在平台审计链（租户还没建成），带自然人 id。
+        var phoneD = NewPhone();
+        var designated = await NewAccount("开户指定", phoneD);
+        await Read<TenantDescriptor>(await Open("designated", designated.SubjectId, DesignatedPassword), HttpStatusCode.Created);
+        var platform = Assert.Single((await ReadPlatformChain(source)).Select(entry => entry.Record), record => record.CapabilityId == "qian.tenancy/admin.reset-password" &&
+            record.Payload.GetProperty("subjectId").GetGuid() == designated.SubjectId);
+        Assert.Equal(((string?)null, "root"), (platform.TenantId, platform.ActorId));
+
+        // 开通一定会失败时先拒绝、不动账号：租户号已被另一份开户占用 409；平台身份 400。两者的密码都没有被改。
+        var phoneE = NewPhone();
+        var taken = await NewAccount("撞号", phoneE);
+        await Rejected(await Open("designated", taken.SubjectId, DesignatedPassword), HttpStatusCode.Conflict, "CONFLICT");
+        Assert.Equal(SignInStatus.PasswordChangeRequired, (await SignInAs(phoneE, TemporaryPassword)).Status);
+        var (superadmin, superPhone) = await NewPerson(business, "平台超管", platform: true);
+        Assert.Equal("#/administrator/subjectId", await Rejected(await Open("superadmin", superadmin.Id, DesignatedPassword), HttpStatusCode.BadRequest, "INPUT_INVALID"));
+        Assert.Equal("0", await Tenants("superadmin"));
+        Assert.NotEqual("INVALID_CREDENTIALS", Failure(await SignInAs(superPhone, IdentityPassword)));
     }
 
     private static string Admins(string tenant) => $"/api/tenancy/tenants/{tenant}/admins";

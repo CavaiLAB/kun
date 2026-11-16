@@ -157,6 +157,11 @@ public sealed partial class TenantOperationsTests
         }
         Assert.Equal(first, await provisioning.ProvisionAsync(new("c", "C"), firstAdmin, "operator", Ct));
         await AssertCode(PlatformErrors.Conflict, () => provisioning.ProvisionAsync(new("c", "different"), firstAdmin, "operator", Ct).AsTask());
+        // 开通编排不接受初始密码（R163）：它只在运营入口用掉、不进保存的开户输入；不论放在请求的 administrator 还是单独的管理员参数里，都拒绝且什么都不建。
+        var withPassword = new TenantAdministrator(Guid.CreateVersion7(), ownerD.Id.ToString("D")) { InitialPassword = "Never-Persisted-2026" };
+        await AssertCode(PlatformErrors.InputInvalid, () => provisioning.ProvisionAsync(new("e", "E"), withPassword, "operator", Ct).AsTask());
+        await AssertCode(PlatformErrors.InputInvalid, () => provisioning.ProvisionAsync(new("e", "E") { Administrator = withPassword }, withPassword with { InitialPassword = null }, "operator", Ct).AsTask());
+        Assert.Null(await source.Tenancy().GetAsync("e", Ct));
         using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(first.Id.ToString()))
             await AssertCode(PlatformErrors.AuthzDenied, () => provisioning.RetryAsync(second.Id, "operator", Ct).AsTask());
         // R95（真实租户目录）：租户仍是 pending，管理员凭据正确也不能登录；激活后经同一条登录流水线登录，会话指向本租户与刚建立的成员。

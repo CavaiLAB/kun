@@ -43,7 +43,10 @@ public static partial class TenancyEndpoints
             Respond(http, source, "create", null, async (ctx, principal) =>
             {
                 var administrator = input.Administrator ?? throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
-                var result = await ctx.Inject<ITenantProvisioning>(TenantProvisioning.Key).ProvisionAsync(input, administrator, principal.Subject, http.RequestAborted).ConfigureAwait(false);
+                // 先按 R163 核对开户请求与指定的管理员账号（需要时用初始密码设定它的密码）；初始密码到此为止，不交给开通编排。
+                await ctx.Inject<ITenantAdministration>(TenantAdministration.Key).PrepareAdministratorAsync(input, principal.Subject, http.RequestAborted).ConfigureAwait(false);
+                var designated = administrator with { InitialPassword = null };
+                var result = await ctx.Inject<ITenantProvisioning>(TenantProvisioning.Key).ProvisionAsync(input with { Administrator = designated }, designated, principal.Subject, http.RequestAborted).ConfigureAwait(false);
                 return Results.Created("/api/tenancy/tenants/" + result.Id, result);
             }, () =>
             {

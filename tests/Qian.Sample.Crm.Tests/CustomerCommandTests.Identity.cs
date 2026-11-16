@@ -178,7 +178,7 @@ public abstract partial class CustomerCommandTests
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
         {
-            app.MapWhen(http => http.Request.Path.StartsWithSegments("/api/identity") || http.Request.Path.StartsWithSegments("/connect") || http.Request.Path.StartsWithSegments("/.well-known"), branch =>
+            app.MapWhen(http => http.Request.Path.StartsWithSegments("/api/identity") || http.Request.Path.StartsWithSegments("/api/directory") || http.Request.Path.StartsWithSegments("/connect") || http.Request.Path.StartsWithSegments("/.well-known"), branch =>
             {
                 branch.UseQianIdentityServer(); branch.UseRouting(); branch.UseAuthentication();
                 branch.UseEndpoints(endpoints => { endpoints.MapQianIdentityServer(); endpoints.MapQianIdentityAccounts(); });

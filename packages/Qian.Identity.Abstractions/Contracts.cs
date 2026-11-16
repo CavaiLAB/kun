@@ -95,6 +95,8 @@ public sealed record Person(Guid Id, string DisplayName, string? UserName, strin
     public bool PlatformAccess { get; init; }
     /// <summary>全部有效标识的掩码视图。</summary>
     public IReadOnlyList<IdentifierView> Identifiers { get; init; } = [];
+    /// <summary>是否设有密码；只靠外部身份登录的账号（连接器首登建出的）为 false。</summary>
+    public bool HasPassword { get; init; }
 }
 /// <summary>租户成员投影。</summary>
 public sealed record Membership(Guid Id, Guid PersonId, Guid TenantId, string DisplayName, string Status, bool IsTenantAdministrator)

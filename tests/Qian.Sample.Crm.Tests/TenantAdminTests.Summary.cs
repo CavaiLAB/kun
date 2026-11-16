@@ -20,7 +20,7 @@ public sealed partial class TenantAdminTests
         var account = await Read<TenantAdminAccount>(await Send(client, HttpMethod.Post, Accounts, root,
             new CreateTenantAdminAccount("管理员甲", TenantAdminIdentifierKind.Phone, NewPhone(), TemporaryPassword)), HttpStatusCode.Created);
         var first = await Read<TenantDescriptor>(await Send(client, HttpMethod.Post, "/api/tenancy/tenants", root,
-            new CreateTenant("summarya", "摘要甲") { Administrator = new(Guid.CreateVersion7(), account.SubjectId.ToString("D")), Quotas = new TenantQuotas(20) }), HttpStatusCode.Created);
+            new CreateTenant("summarya", "摘要甲") { Administrator = new(Guid.CreateVersion7(), account.SubjectId.ToString("D")) { InitialPassword = TemporaryPassword }, Quotas = new TenantQuotas(20) }), HttpStatusCode.Created);
         var until = DateTimeOffset.UtcNow.AddDays(30);
         Assert.Equal(TenantStatus.Trial, (await Read<TenantDescriptor>(await Send(client, HttpMethod.Post, $"/api/tenancy/tenants/{first.Id}:activate", root,
             new ActivateTenant(Trial: true, ValidUntil: until)), HttpStatusCode.OK)).Status);

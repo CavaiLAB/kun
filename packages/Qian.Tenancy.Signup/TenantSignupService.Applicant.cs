@@ -79,17 +79,19 @@ internal sealed partial class TenantSignupService
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             phone = row.Phone;
         }
-        // 核验通过之后才看号码是否已有账号：已有且可申请时以该自然人申请，停用、锁定或平台身份拒绝。
+        // 核验通过之后才看号码是否已有账号：已有且可申请时以该自然人申请（号码在账号上未经本人验证的，提交时认领）；
+        // 停用、锁定、平台身份，以及号码未经本人验证而账号已加入企业的，拒绝（见 AvailableAsync）。
         var person = await Accounts.FindPersonAsync(phone, cancellationToken).ConfigureAwait(false);
-        if (person is not null && !Eligible(person)) throw Error(TenancySignupErrors.AccountUnavailable);
+        if (person is not null && !await AvailableAsync(phone, person, cancellationToken).ConfigureAwait(false)) throw Error(TenancySignupErrors.AccountUnavailable);
         var (token, expires) = await IssueSessionAsync(phone, person?.Id, null, cancellationToken).ConfigureAwait(false);
-        return new SignupSessionGrant(token, expires, Applicant(phone, person));
+        return new SignupSessionGrant(token, expires, await ApplicantAsync(phone, person, cancellationToken).ConfigureAwait(false));
     }
 
     public async ValueTask<SignupApplicant?> GetApplicantAsync(string sessionToken, CancellationToken cancellationToken = default)
     {
         Check();
-        return await ResolveAsync(sessionToken, cancellationToken).ConfigureAwait(false) is { } resolved ? Applicant(resolved.Session.Phone, resolved.Person) : null;
+        return await ResolveAsync(sessionToken, cancellationToken).ConfigureAwait(false) is { } resolved
+            ? await ApplicantAsync(resolved.Session.Phone, resolved.Person, cancellationToken).ConfigureAwait(false) : null;
     }
 
     public async ValueTask CloseSessionAsync(string sessionToken, CancellationToken cancellationToken = default)
@@ -128,16 +130,18 @@ internal sealed partial class TenantSignupService
         Check(); ArgumentNullException.ThrowIfNull(request);
         var resolved = await ResolveAsync(sessionToken, cancellationToken).ConfigureAwait(false) ?? throw Error(PlatformErrors.Unauthenticated);
         var input = ValidateSubmission(request);
-        var existing = resolved.Person;
+        var found = resolved.Person;
+        if (found is not null && !await AvailableAsync(resolved.Session.Phone, found, cancellationToken).ConfigureAwait(false)) throw Error(TenancySignupErrors.AccountUnavailable);
+        var existing = await ReusableAsync(resolved.Session.Phone, found, cancellationToken).ConfigureAwait(false);
         if (existing is not null)
         {
             // 以既有账号申请：不建新账号、不改密码，姓名与密码都不得出现。
-            if (!Eligible(existing)) throw Error(TenancySignupErrors.AccountUnavailable);
             if (request.DisplayName is not null) throw SignupRules.Invalid(PlatformErrors.ValueNotAllowed, "#/displayName");
             if (request.Password is not null) throw SignupRules.Invalid(PlatformErrors.ValueNotAllowed, "#/password");
         }
         else
         {
+            // 新号码，或认领号码未经本人验证的既有账号：姓名与密码都必填。
             if (request.DisplayName is null) throw SignupRules.Invalid(PlatformErrors.Required, "#/displayName");
             if (!SignupRules.IsName(request.DisplayName, 200)) throw SignupRules.Invalid(PlatformErrors.PatternMismatch, "#/displayName");
             if (string.IsNullOrEmpty(request.Password)) throw SignupRules.Invalid(PlatformErrors.Required, "#/password");
@@ -145,9 +149,11 @@ internal sealed partial class TenantSignupService
         // 提交全局串行：先判定进行中的申请与租户号，再建账号，避免判定通过、账号已建、申请却因并发冲突没建成。
         return await LockedAsync("submit", async () =>
         {
-            if (existing is not null && await HasOpenAsync(existing.Id, cancellationToken).ConfigureAwait(false)) throw Error(TenancySignupErrors.ApplicationOpen);
+            if (found is not null && await HasOpenAsync(found.Id, cancellationToken).ConfigureAwait(false)) throw Error(TenancySignupErrors.ApplicationOpen);
             if (await TakenAsync(input.Code, null, cancellationToken).ConfigureAwait(false)) throw CodeTaken();
-            var person = existing ?? await CreatePersonAsync(resolved.Session.Phone, request.DisplayName!.Trim(), request.Password!, cancellationToken).ConfigureAwait(false);
+            var person = existing ?? (found is not null
+                ? await ClaimAsync(found.Id, resolved.Session.Phone, request.DisplayName!.Trim(), request.Password!, cancellationToken).ConfigureAwait(false)
+                : await CreatePersonAsync(resolved.Session.Phone, request.DisplayName!.Trim(), request.Password!, cancellationToken).ConfigureAwait(false));
             var now = _clock.GetUtcNow();
             SignupApplicationRow row;
             await using (var session = await OpenAsync(cancellationToken).ConfigureAwait(false))
@@ -158,7 +164,7 @@ internal sealed partial class TenantSignupService
                 row = new SignupApplicationRow
                 {
                     Number = SignupRules.Number(now, sequence), PersonId = person.Id, CompanyName = input.CompanyName, Code = input.Code, Industry = input.Industry, Size = request.Size,
-                    Description = input.Description, ContactName = person.DisplayName, Phone = resolved.Session.Phone, Email = input.Email, ExistingAccount = existing is not null, SubmittedAt = now
+                    Description = input.Description, ContactName = person.DisplayName, Phone = resolved.Session.Phone, Email = input.Email, ExistingAccount = found is not null, SubmittedAt = now
                 };
                 db.Applications.Add(row);
                 try { await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false); }
@@ -225,6 +231,33 @@ internal sealed partial class TenantSignupService
         }
         catch (QianErrorException error) { throw Remap(error); }
     }
+
+    // 号码刚经验证码核验，而它在这个账号上没有经本人验证：申请人认领这个账号（R163），换成他设的密码与填写的姓名，
+    // 号码标为已验证。
+    private async Task<Person> ClaimAsync(Guid personId, string phone, string displayName, string password, CancellationToken ct)
+    {
+        using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(password));
+        try { return await Accounts.ClaimPersonAsync(new PersonClaim(personId, phone, displayName, proof), ct).ConfigureAwait(false); }
+        // 端口在锁住账号后复核：期间账号加入了企业、被停用或号码已被验证时不认领，按账号不可申请处理。
+        catch (QianErrorException error) when (error.Error.Code == PlatformErrors.Conflict) { throw Error(TenancySignupErrors.AccountUnavailable); }
+        catch (QianErrorException error) { throw Remap(error); }
+    }
+
+    // 账号能否用于自助开通：启用的普通账号；号码在账号上未经本人验证时，还须没有加入任何企业（R163）——已在企业中使用的账号，
+    // 凭据由本人或企业管理员维护，不经自助开通认领。身份组件不提供企业查询时按不能判定处理，同样拒绝。
+    private async Task<bool> AvailableAsync(string phone, Person person, CancellationToken ct)
+    {
+        if (!Eligible(person)) return false;
+        if (await Accounts.IsIdentifierVerifiedAsync(phone, ct).ConfigureAwait(false)) return true;
+        return await Accounts.ListPersonTenantsAsync(person.Id, ct).ConfigureAwait(false) is { Count: 0 };
+    }
+
+    // 号码在账号上经本人验证过，才「以既有账号申请」；否则按新账号填写，提交时认领（见 ClaimAsync）。
+    private async Task<Person?> ReusableAsync(string phone, Person? person, CancellationToken ct) =>
+        person is not null && await Accounts.IsIdentifierVerifiedAsync(phone, ct).ConfigureAwait(false) ? person : null;
+
+    private async Task<SignupApplicant> ApplicantAsync(string phone, Person? person, CancellationToken ct) =>
+        Applicant(phone, await ReusableAsync(phone, person, ct).ConfigureAwait(false));
 
     private async Task<bool> HasOpenAsync(Guid personId, CancellationToken ct)
     {

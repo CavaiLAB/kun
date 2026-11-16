@@ -91,8 +91,8 @@ SUBJECT="$(field subjectId)"
 call "1.3 按登录标识查找账号（POST /api/tenancy/admin-accounts:lookup）：标识放请求体，响应只有掩码" POST /api/tenancy/admin-accounts:lookup 200 \
   "{\"identifier\":\"admin$CODE\"}"
 check "找到的账号" "$(field subjectId)" "$SUBJECT"
-call "1.4 新建（POST /api/tenancy/tenants）：开通编排同步执行，返回 pending" POST /api/tenancy/tenants 201 \
-  "{\"code\":\"$CODE\",\"name\":\"Acme 手测租户\",\"administrator\":{\"membershipId\":\"$(uuid)\",\"subjectId\":\"$SUBJECT\"},\"quotas\":{\"users\":5}}"
+call "1.4 新建（POST /api/tenancy/tenants）：开通编排同步执行，返回 pending；管理员账号没有经本人验证的联系方式，须带初始密码（下次登录强制修改）" POST /api/tenancy/tenants 201 \
+  "{\"code\":\"$CODE\",\"name\":\"Acme 手测租户\",\"administrator\":{\"membershipId\":\"$(uuid)\",\"subjectId\":\"$SUBJECT\",\"initialPassword\":\"Init-Pass-2026\"},\"quotas\":{\"users\":5}}"
 TENANT="$(field id)"
 [ -n "$TENANT" ] || stop "新建租户没有成功，后面的步骤都依赖它，走查到此停止。"
 check "新租户状态" "$(field status)" pending
@@ -144,8 +144,8 @@ call "5.2 重置管理员密码（POST …/admins/{membershipId}:reset-password�
 call "5.3 再建一个账号，准备替换管理员" POST /api/tenancy/admin-accounts 201 \
   "{\"displayName\":\"Acme 新管理员\",\"identifierKind\":\"username\",\"identifier\":\"deputy$CODE\",\"initialPassword\":\"Init-Pass-2026\"}"
 DEPUTY="$(field subjectId)"
-call "5.4 更换管理员（PUT …/admins）：新管理员得到 tenant.owner，原管理员撤销 owner 与管理员标志、保留成员身份" PUT "/api/tenancy/tenants/$TENANT/admins" 200 \
-  "{\"items\":[{\"subjectId\":\"$DEPUTY\"}]}"
+call "5.4 更换管理员（PUT …/admins）：新管理员得到 tenant.owner，原管理员撤销 owner 与管理员标志、保留成员身份；新账号同样须带初始密码" PUT "/api/tenancy/tenants/$TENANT/admins" 200 \
+  "{\"items\":[{\"subjectId\":\"$DEPUTY\",\"initialPassword\":\"Init-Pass-2026\"}]}"
 check "新管理员" "$(field items.0.subjectId)" "$DEPUTY"
 call "5.5 反例：请求体带目标租户字段，返回 400（目标租户只取自路径）" PUT "/api/tenancy/tenants/$TENANT/admins" 400 \
   "{\"items\":[{\"subjectId\":\"$DEPUTY\"}],\"tenantId\":\"$TENANT\"}"

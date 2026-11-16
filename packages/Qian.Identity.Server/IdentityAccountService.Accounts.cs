@@ -135,6 +135,16 @@ internal sealed partial class IdentityAccountService
         return id is null ? null : await LoadPersonAsync(session.Context, id.Value, cancellationToken).ConfigureAwait(false);
     }
 
+    // 只有手机号与邮箱有本人核验：VerifiedAt 由验证码核验或可信身份源写入。用户名建档即记为已验证（没有核验流程），这里不算。
+    public async ValueTask<bool> IsIdentifierVerifiedAsync(string identifier, CancellationToken cancellationToken = default)
+    {
+        if (IdentifierRules.Classify(identifier, _account.DefaultPhoneCountryCode) is not { Kind: IdentifierKind.Phone or IdentifierKind.Email } classified) return false;
+        using var neutral = TenantScope(null);
+        await using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        var kind = IdentifierRules.KindName(classified.Kind);
+        return await session.Context.Identifiers.AsNoTracking().AnyAsync(i => i.Kind == kind && i.Value == classified.Value && i.VerifiedAt != null, cancellationToken).ConfigureAwait(false);
+    }
+
     // 登录索引即 Person 上的租户集合（建立成员时同事务追加，只增不减）；只读，不进入任何租户作用域。
     public async ValueTask<IReadOnlyList<Guid>?> ListPersonTenantsAsync(Guid personId, CancellationToken cancellationToken = default)
     {
@@ -266,6 +276,55 @@ internal sealed partial class IdentityAccountService
         await RevokeSessionRowsAsync(db, personId, null, null, "password_reset", now, cancellationToken).ConfigureAwait(false);
         await SaveAsync(session, row, new IdentityPasswordChangedEvent(personId, row.IdentityRevision), cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        if (reset.UnlinkExternalIdentities) await UnlinkExternalIdentitiesAsync(personId, row.TenantIds, cancellationToken).ConfigureAwait(false);
+    }
+
+    // 解除该 Person 在各租户的全部外部身份绑定（R163）。外部身份是租户表（强制 RLS），逐个租户在各自的作用域与事务里软删除。
+    // 放在重置提交之后：重置已作废未用完的登录票据与进行中的绑定流程，确认绑定也会因密码已改而拒绝，此后不会再有新绑定落库。
+    // 中途失败时异常照常抛出，调用方（运营指定管理员）随之中止，用同一个初始密码重试即可收敛。
+    private async Task UnlinkExternalIdentitiesAsync(Guid personId, IReadOnlyList<string> tenantIds, CancellationToken ct)
+    {
+        foreach (var raw in tenantIds)
+        {
+            if (!Guid.TryParseExact(raw, "D", out var tenantId) || tenantId == Guid.Empty) continue;
+            using var scope = TenantScope(tenantId);
+            await using var session = await OpenAsync(ct).ConfigureAwait(false);
+            var db = session.Context;
+            var links = await db.ExternalIdentities.Where(e => e.PersonId == personId).ToListAsync(ct).ConfigureAwait(false);
+            if (links.Count == 0) continue;
+            db.ExternalIdentities.RemoveRange(links);
+            await session.SaveChangesAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    // 本人认领账号：申请人已用验证码证明持有这个标识，而它在该自然人上还没有经本人验证。一个事务里换成申请人的密码与显示名、
+    // 标识标为已验证；与改密一样使既有会话失效，并递增身份修订。已加入企业的账号不认领（R163）：它的凭据由本人或企业管理员维护。
+    public async ValueTask<Person> ClaimPersonAsync(PersonClaim claim, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(claim);
+        var name = claim.DisplayName?.Trim();
+        if (string.IsNullOrEmpty(name) || name.Length > 200 || name.Any(char.IsControl)) throw IdentifierRules.Invalid("#/display_name");
+        if (IdentifierRules.Classify(claim.Identifier, _account.DefaultPhoneCountryCode) is not { Kind: IdentifierKind.Phone or IdentifierKind.Email } identifier)
+            throw IdentifierRules.Invalid("#/identifier");
+        using var next = PasswordSecret.From(claim.Password);
+        CheckPassword(next);
+        var now = Now;
+        using var neutral = TenantScope(null); using var origin = OpenOrigin(claim.PersonId);
+        await using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        var db = session.Context;
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        var person = await LockPersonAsync(db, claim.PersonId, cancellationToken).ConfigureAwait(false);
+        if (person.Status != AccountStatuses.Active || person.PlatformAccess || person.TenantIds.Length > 0) throw Error(PlatformErrors.Conflict);
+        var kind = IdentifierRules.KindName(identifier.Kind);
+        var owned = await db.Identifiers.SingleOrDefaultAsync(i => i.Kind == kind && i.Value == identifier.Value, cancellationToken).ConfigureAwait(false);
+        if (owned is null || owned.PersonId != person.Id || owned.VerifiedAt is not null) throw Error(PlatformErrors.Conflict);
+        owned.VerifiedAt = now; person.DisplayName = name;
+        await SetPasswordAsync(db, person, next, false, now, cancellationToken).ConfigureAwait(false);
+        person.IdentityRevision++;
+        await RevokeSessionRowsAsync(db, person.Id, null, null, "account_claimed", now, cancellationToken).ConfigureAwait(false);
+        await SaveAsync(session, person, new IdentityPasswordChangedEvent(person.Id, person.IdentityRevision), cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return (await LoadPersonAsync(db, person.Id, cancellationToken).ConfigureAwait(false))!;
     }
 
     // ---- 状态 ----

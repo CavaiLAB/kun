@@ -793,3 +793,12 @@ S1-IDP-017 返工开工前，执行会话就四件事给出推荐并请产品负
   - 单点突变（复核方在独立工作区按最终代码改写锚点，不改代码的基线 58 例全过）：第一轮存活的 16 处全部被抓住；复核方另拟 16 处，覆盖返工新加的判定与审计，全部被抓住。
   - #321「请确认的几处取舍」三处按缺省维持（未经产品负责人逐条确认）：运营指定时重置先于建成员，之后的步骤失败时重置不回退；能力入口直接调绑定时缺初始密码，返回不带位置的 `INPUT_INVALID`；「不取成员计数锁」的突变与原写法行为等价，用例改为直接核对加锁协议。
   - S1-IDP-018 依赖本任务，前置已满足。
+
+### 产品负责人裁决 R165（运营端设定账号凭据的权限，2026-11-17）
+
+- R165（S1-TEN-027。产品负责人 2026-11-17 在复核会话作答「另要重置凭据权限」）：运营端为已有账号设定凭据的入口统一要求 `qian.tenancy:admin:reset-credential`。
+  - 运营开户（`POST /api/tenancy/tenants`）与更换管理员（`PUT /api/tenancy/tenants/{id}/admins`）的请求带 `initialPassword` 时，按 R163 ② 与 ⑤ 会把指定账号的密码设为它，并解除它的外部身份绑定。这两个请求因此在各自的权限点（`qian.tenancy:tenant:create`、`qian.tenancy:admin:assign`）之外，还要与重置管理员密码（`POST /api/tenancy/tenants/{id}/admins/{membershipId}:reset-password`）同一个权限点。
+  - 判定经同一个平台超管旁路，在执行之前做。缺这项权限返回 403 `AUTHZ_DENIED`，什么都不改：不设密码、不解除绑定、不建租户、不换管理员；开户入口在 `ITenantAdministration.PrepareAdministratorAsync` 之前判定。放行与其它旁路放行一样记在平台审计链上，拒绝原因只进结构化日志。
+  - 不带 `initialPassword` 的请求不受影响。
+  - 运营页面缺这项权限时，在开户与更换管理员的抽屉里给出提示。
+  - 口径写进 `packages/Qian.Tenancy/README.md` 与 `ITenantAdministration` 的接口说明。

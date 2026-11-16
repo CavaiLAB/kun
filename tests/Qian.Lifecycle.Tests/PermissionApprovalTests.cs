@@ -423,12 +423,21 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
     private static PermissionGrants FullGrants() => Grants(FullPermissionsPlatform, ["qian.sample.crm:customer"], FullEgress,
         [new SecretGrant("db/token", "tenant"), new SecretGrant("oss/*", "platform")], ["https://api.example.test"]);
 
-    // 当前租户链上的批准条目（调用方已进入租户上下文）；读之前先验整条链。
+    // 当前租户链上的批准条目（调用方已进入租户上下文）；读之前先验整条链，再分页读到末尾（每页 100）。
+    // 只读第一页时，筛出来的批准条目不含第一页之后的，「重复批准不再记」这类条数断言看不到多出来的条目（S1-QA-027）。
     private static async Task<AuditChainEntry[]> ApprovalAudit(LifecycleHost host)
     {
         var audit = host.Runtime.GetContext("audit", ScopeKey.Global).Audit();
         Assert.True((await audit.VerifyAsync(Ct)).Valid);
-        return [.. (await audit.ReadAsync(0, 100, cancellationToken: Ct)).Where(entry => entry.Record.CapabilityId == ApprovalAuditCapability)];
+        var entries = new List<AuditChainEntry>(); long after = 0;
+        while (true)
+        {
+            var page = await audit.ReadAsync(after, 100, cancellationToken: Ct);
+            entries.AddRange(page);
+            if (page.Count < 100) break;
+            after = page[^1].Sequence;
+        }
+        return [.. entries.Where(entry => entry.Record.CapabilityId == ApprovalAuditCapability)];
     }
 
     // 批准条目：租户链、主体即批准人、资源同判定资源、通道 api；输入哈希是规范化本次内容的 SHA-256，载荷带组件、版本、渠道与本次、上一次的内容。

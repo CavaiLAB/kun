@@ -64,14 +64,14 @@ public sealed partial class TenantOperationsTests
             await AssertCode(PlatformErrors.AuthzDenied, () => scoped.DispatchAsync(Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantProvisioned,
                 new Qian.Surfaces.Abstractions.HookNotification(scoped, descriptor.Id.ToString(), JsonSerializer.SerializeToElement(new { }), Ct), Ct).AsTask());
             // 租户链上只有 Tenancy 第 03 步为 system 组件开通时 Lifecycle 记的开通条目（S1-RT-037），被拒的派发没有留下记录。
-            Assert.All(await source.Audit().ReadAsync(0, 50, cancellationToken: Ct), entry => Assert.Equal("qian.lifecycle/tenant-plugin.provision", entry.Record.CapabilityId));
+            Assert.All(await ReadTenantChain(source.Audit()), entry => Assert.Equal("qian.lifecycle/tenant-plugin.provision", entry.Record.CapabilityId));
         }
         await provisioning.RetryAsync(descriptor.Id, "platform-operator", Ct);
         Assert.Equal("succeeded", (await provisioning.GetStepsAsync(descriptor.Id, Ct)).Single(step => step.Step == "04:provisioned").Status);
         int chainLength;
         using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id.ToString()))
         {
-            var entries = await source.Audit().ReadAsync(0, 50, cancellationToken: Ct);
+            var entries = await ReadTenantChain(source.Audit());
             var audit = Assert.Single(entries, entry => entry.Record.Channel == "hook");
             Assert.Equal(("hook", "platform-operator", "qian.sample.crm/customer.list"), (audit.Record.Channel, audit.Record.ActorId, audit.Record.CapabilityId));
             chainLength = entries.Count;
@@ -87,7 +87,7 @@ public sealed partial class TenantOperationsTests
         await provisioning.RetryAsync(descriptor.Id, "platform-operator", Ct);
         using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id.ToString()))
         {
-            var entries = await source.Audit().ReadAsync(0, 50, cancellationToken: Ct);
+            var entries = await ReadTenantChain(source.Audit());
             Assert.Single(entries, entry => entry.Record.Channel == "hook"); Assert.Equal(chainLength, entries.Count);
         }
     }

@@ -506,7 +506,7 @@ public abstract partial class CustomerCommandTests
                 events = await session.Context.OutboxMessages.Where(row => row.TenantId == tenantId).Select(row => row.Payload).ToListAsync(Ct);
             }
             var trail = platform.Runtime.Global("audit").Scoped(new ScopeKey("tenant", tenantId)).Audit();
-            var records = (await trail.ReadAsync(0, 200, cancellationToken: Ct)).Select(entry => entry.Record).ToArray();
+            var records = (await ReadTenantChain(trail)).Select(entry => entry.Record).ToArray();
             Assert.True((await trail.VerifyAsync(Ct)).Valid);
             return (records, [.. records.Where(record => record.CapabilityId == AuthzEnforcement.DecisionCapabilityId).Select(record => (record.ActorId, record.Result,
                 record.Payload.GetProperty("entryPoint").GetString()!, record.Payload.GetProperty("target").GetString()!, record.Payload.GetProperty("reason").GetString()!))],

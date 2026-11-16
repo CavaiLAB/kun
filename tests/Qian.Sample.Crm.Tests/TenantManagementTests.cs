@@ -302,4 +302,18 @@ public abstract partial class CustomerCommandTests
             after = page[^1].Sequence;
         }
     }
+
+    // 当前租户链上的全部记录：分页读到末尾（每页 200），调用方已进入要读的租户上下文。只读第一页时，链上记录一多，
+    // 「不含」「全部满足」「先筛再断言」「条数不变」这几类断言看不到第一页之后的记录（S1-QA-027）。CRM 测试里对读回结果做这几类断言的读取都走这里。
+    internal static async Task<List<AuditChainEntry>> ReadTenantChain(IAuditReader audit)
+    {
+        var entries = new List<AuditChainEntry>(); long after = 0;
+        while (true)
+        {
+            var page = await audit.ReadAsync(after, 200, cancellationToken: Ct);
+            entries.AddRange(page);
+            if (page.Count < 200) return entries;
+            after = page[^1].Sequence;
+        }
+    }
 }

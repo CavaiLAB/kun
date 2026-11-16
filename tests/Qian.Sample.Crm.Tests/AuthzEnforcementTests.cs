@@ -178,7 +178,7 @@ public abstract partial class CustomerCommandTests
     // 当前租户链里的决策日志（按链序）。
     private protected static async Task<(string Actor, string Result, string EntryPoint, string Target, string Reason)[]> Decisions(RunningApp host, string tenantId)
     {
-        var records = await Runtime(host).Loader.GetContext("authz", Qian.Runtime.ScopeKey.Global).Scoped(new Qian.Runtime.ScopeKey("tenant", tenantId)).Audit().ReadAsync(0, 100, cancellationToken: Ct);
+        var records = await ReadTenantChain(Runtime(host).Loader.GetContext("authz", Qian.Runtime.ScopeKey.Global).Scoped(new Qian.Runtime.ScopeKey("tenant", tenantId)).Audit());
         return [.. records.Select(entry => entry.Record).Where(record => record.CapabilityId == AuthzEnforcement.DecisionCapabilityId)
             .Select(record => (record.ActorId, record.Result, record.Payload.GetProperty("entryPoint").GetString()!, record.Payload.GetProperty("target").GetString()!, record.Payload.GetProperty("reason").GetString()!))];
     }

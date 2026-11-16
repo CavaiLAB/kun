@@ -92,7 +92,7 @@ public sealed partial class IdentityAuthzTests
             current.Snapshot = administrator.Principal!;
             Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller.Scoped(new ScopeKey("tenant", B)), request, Ct).AsTask())).Error.Code.Code);
             Assert.Equal("0", await Persons(phone));
-            Assert.DoesNotContain((await caller.Audit().ReadAsync(0, 200, cancellationToken: Ct)), row => row.Record.CapabilityId == id);
+            Assert.DoesNotContain(await ReadTenantChain(caller.Audit()), row => row.Record.CapabilityId == id);
             // 管理员经标准入口新增：新建自然人，初始角色 tenant.user 已经授予——有参考应用的 customer:read，没有 customer:write。
             var first = await service.InvokeAsync(caller, current, id, request, key, Ct);
             Assert.False(first.Replayed);
@@ -121,7 +121,7 @@ public sealed partial class IdentityAuthzTests
                 JsonSerializer.SerializeToElement(new { idempotencyKey = Guid.CreateVersion7(), identifier = NewPhone(), displayName = "缺密码" }), null, Ct).AsTask());
             Assert.Equal(("INPUT_INVALID", "#/initialPassword"), (missing.Error.Code.Code, Assert.Single(missing.Error.Errors).Pointer));
             // 审计进甲方的链：操作人是管理员，成员在载荷里；成功两次（新建、绑定）各有开始与成功记录，失败一次有开始与失败记录；任何记录都不含初始密码。
-            var records = (await caller.Audit().ReadAsync(0, 200, cancellationToken: Ct)).Where(row => row.Record.CapabilityId == id).Select(row => row.Record).ToArray();
+            var records = (await ReadTenantChain(caller.Audit())).Where(row => row.Record.CapabilityId == id).Select(row => row.Record).ToArray();
             Assert.All(records, record => Assert.Equal((A, "user", admin.Id.ToString("D"), "api"), (record.TenantId!, record.ActorType, record.ActorId, record.Channel)));
             var successes = records.Where(record => record.Result == "success").ToArray();
             Assert.Equal(2, successes.Length);

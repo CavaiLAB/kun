@@ -490,7 +490,12 @@ internal sealed partial class IdentityAccountService
                 CreatedAt = now, AuthenticatedAt = state.AuthenticatedAt, LastSeenAt = now, AbsoluteExpiresAt = expires
             });
             person.LastLoginAt = now;
-            if (replaceSession is { } old) await RevokeSessionRowsAsync(db, person.Id, old, null, "switch", now, ct).ConfigureAwait(false);
+            // 切换租户以发起切换的会话为依据：它必须仍然有效（没有登出、被强制下线或被挤下线），与新会话同事务吊销；已失效就按票据失效处理。
+            if (replaceSession is { } old && await RevokeSessionRowsAsync(db, person.Id, old, null, "switch", now, ct).ConfigureAwait(false) != 1)
+            {
+                refused = "session_invalid";
+                throw Error(IdentityErrors.LoginTicketInvalid);
+            }
             // 并发上限与单端模式：踢人和建会话在同一事务里，Person 行已锁，同一人的并发登录串行，上限不会被击穿。
             var evicted = await EvictForNewSessionAsync(db, person.Id, state.DeviceType, now, ct).ConfigureAwait(false);
             db.LoginAudits.Add(NewAudit(subject, "success", reason, now, person.Id, member?.Id, pick.Tenant, sid));

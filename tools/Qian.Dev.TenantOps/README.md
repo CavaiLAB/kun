@@ -72,6 +72,7 @@ export TOKEN=$(scripts/dev-tenant-ops.sh token)
 令牌默认 8 小时有效。`token` 还能签别的身份，用来看 403：
 
 - `--sub intruder`：不是平台超管的用户；
+- `--sub ops-limited`：受限运营。它持平台超管，但运营入口不给它 `qian.tenancy:admin:reset-credential`，用来看带初始密码开户与更换管理员时的 403 与页面提示（R165）。平台目前只有超管一个平台角色，这个收窄只在本宿主的运营入口里做；页面开发代理的请求头 `x-qian-dev-principal: limited` 即这个身份；
 - `--tenant <租户 id>`：带 `tenant_id` 的租户主体；
 - `--kind service`：服务主体；
 - `--ttl 60`：有效期，单位分钟。

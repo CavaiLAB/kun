@@ -31,6 +31,7 @@ i18n.addLanguagePack('zh-CN', {
   'tenant.detailAction': '详情', 'tenant.detailBasic': '基本信息', 'tenant.createHint': '先选定管理员账号，再填写租户号、名称与配额。',
   'tenant.adminPickHint': '按登录标识查找已有账号；没有合适的账号时新建一个。', 'tenant.adminCreateHint': '新账号用初始密码登录，首次登录必须修改密码。',
   'tenant.adminPasswordRequired': '该账号没有经本人验证的手机号或邮箱，需要给它设一个初始密码：账号的密码随即重置为这个密码，管理员下次登录时必须修改；该账号的全部登录会话立即失效，外部身份登录的绑定一并解除。',
+  'tenant.adminPasswordDenied': '设定初始密码还需要重置管理员密码的权限（qian.tenancy:admin:reset-credential）。请联系平台管理员授予，或改选手机号、邮箱都已经本人验证的账号。',
 });
 i18n.addLanguagePack('zh-TW', {
   'tenant.brand': 'Qian 乾', 'tenant.context': '平台營運', 'tenant.title': '租戶管理', 'tenant.subtitle': '管理租戶主檔、狀態與配額。自助申請的租戶在審核通過後出現在這裡。',
@@ -63,6 +64,7 @@ i18n.addLanguagePack('zh-TW', {
   'tenant.detailAction': '詳情', 'tenant.detailBasic': '基本資訊', 'tenant.createHint': '先選定管理員帳號，再填寫租戶號、名稱與配額。',
   'tenant.adminPickHint': '依登入識別查找既有帳號；沒有合適的帳號時新增一個。', 'tenant.adminCreateHint': '新帳號以初始密碼登入，首次登入必須修改密碼。',
   'tenant.adminPasswordRequired': '該帳號沒有經本人驗證的手機號碼或電子郵件，需要為它設定初始密碼：帳號的密碼隨即重設為這個密碼，管理員下次登入時必須修改；該帳號的全部登入工作階段立即失效，外部身分登入的綁定一併解除。',
+  'tenant.adminPasswordDenied': '設定初始密碼還需要重設管理員密碼的權限（qian.tenancy:admin:reset-credential）。請聯絡平台管理員授予，或改選手機號碼、電子郵件都已經本人驗證的帳號。',
 });
 i18n.addLanguagePack('en-US', {
   'tenant.brand': 'Qian', 'tenant.context': 'Platform operations', 'tenant.title': 'Tenants', 'tenant.subtitle': 'Manage tenant records, status and quotas. Self-service applications appear here once approved.',
@@ -95,4 +97,5 @@ i18n.addLanguagePack('en-US', {
   'tenant.detailAction': 'Details', 'tenant.detailBasic': 'Basics', 'tenant.createHint': 'Pick the administrator account first, then fill in the code, name and quota.',
   'tenant.adminPickHint': 'Find an existing account by its sign-in identifier, or create a new one.', 'tenant.adminCreateHint': 'The new account signs in with the initial password and must change it at first sign-in.',
   'tenant.adminPasswordRequired': 'This account has no phone number or email verified by its owner, so give it an initial password. The account password is reset to it and the administrator must change it at next sign-in; every session of the account ends immediately and its external sign-in links are removed.',
+  'tenant.adminPasswordDenied': 'Setting an initial password also requires the permission to reset administrator passwords (qian.tenancy:admin:reset-credential). Ask a platform administrator to grant it, or choose an account whose phone number and email are all verified by its owner.',
 });

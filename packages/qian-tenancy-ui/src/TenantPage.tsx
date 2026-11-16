@@ -23,6 +23,8 @@ function conflict(error: PlatformError, creating = false): string {
 function data<T>(result: { data?: T }): T { if (result.data === undefined) throw new Error('tenant.contract.response'); return result.data; }
 // 服务端字段错误的位置：有逐项错误取逐项，否则取顶层位置。
 function pointers(error: PlatformError): string[] { return error.detail.errors?.map((item) => item.pointer) ?? (error.detail.pointer ? [error.detail.pointer] : []); }
+// 开户与更换管理员带初始密码时另要重置凭据的权限（R165）：缺这项权限时服务端返回 403，pointer 指向请求里的初始密码字段。
+function credentialDenied(error: unknown, pointer: string): boolean { return error instanceof PlatformError && error.status === 403 && pointers(error).includes(pointer); }
 const tone = { pending: 'neutral', trial: 'info', active: 'ok', grace: 'warn', suspended: 'error' } as const;
 // 页签顺序按运营关注度：全部、正常、试用、待激活、宽限期、已冻结。
 const tabs = ['all', 'active', 'trial', 'pending', 'grace', 'suspended'] as const;
@@ -279,28 +281,33 @@ function TenantForm({ creating = false, refresh, onSubmit, ...props }: Component
 // 新建租户：先选定管理员，再填主档。成员 ID 在选定管理员时生成一次，同一份开户请求重复提交保持幂等。
 // 管理员账号没有经本人验证的手机号或邮箱时，开户要给它设初始密码（R163）：抽屉里刚新建的账号沿用刚设的初始密码，不再询问；查到的账号多出初始密码一栏。
 // 页面的判断与服务端不一致时以服务端为准：服务端指出缺初始密码，就保留已填的主档、补出这一栏。
+// 运营缺重置凭据的权限时，带初始密码的开户被拒（R165），抽屉里提示还需要这项权限，已填的内容保留。
 interface Chosen { account: AdminAccount; membershipId: string; password?: string; ask: boolean; draft?: Record<string, unknown> }
 function CreateTenant({ api, refresh, done }: { api: Api; refresh(): void; done(): void }) {
   const [chosen, setChosen] = useState<Chosen>();
+  const [denied, setDenied] = useState(false);
   if (!chosen) return <AdminPicker api={api} onPick={(account, password) => setChosen({ account, membershipId: crypto.randomUUID(), password, ask: password === undefined && needsInitialPassword(account) })} />;
   return <div className="grid gap-5">
     <DetailSection title={i18n.t('tenant.admin')}>
-      <AccountCard account={chosen.account} action={<Button variant="link" size="sm" className="h-7 px-2" onClick={() => setChosen(undefined)}>{i18n.t('tenant.adminRepick')}</Button>} />
+      <AccountCard account={chosen.account} action={<Button variant="link" size="sm" className="h-7 px-2" onClick={() => { setDenied(false); setChosen(undefined); }}>{i18n.t('tenant.adminRepick')}</Button>} />
       {chosen.ask && <p className="text-sm text-muted-foreground" data-testid="tenant-admin-password-hint">{i18n.t('tenant.adminPasswordRequired')}</p>}
     </DetailSection>
     <TenantForm key={chosen.ask ? 'ask' : 'plain'} creating refresh={refresh} schema={chosen.ask ? createWithPasswordSchema : createSchema} i18n={i18n} testId="tenant-create-form"
       initialValues={chosen.ask ? { isolation: 'row', ...chosen.draft, administrator: {} } : { isolation: 'row' }} onSubmit={async (values) => {
         const { administrator, ...record } = values as Record<string, unknown> & { administrator?: { initialPassword?: string } };
         const initialPassword = chosen.password ?? administrator?.initialPassword;
+        setDenied(false);
         try {
           await api.POST('/api/tenancy/tenants', { body: { ...record, administrator: { membershipId: chosen.membershipId, subjectId: chosen.account.subjectId, ...(initialPassword ? { initialPassword } : {}) } } as CreateRequest });
         } catch (error) {
+          if (credentialDenied(error, '#/administrator/initialPassword')) { setDenied(true); return; }
           if (chosen.ask || chosen.password !== undefined || !(error instanceof PlatformError) || !pointers(error).includes('#/administrator/initialPassword')) throw error;
           setChosen({ ...chosen, ask: true, draft: record });
           return;
         }
         done();
       }} />
+    {denied && <Alert tone="error" role="alert" testId="tenant-admin-password-denied">{i18n.t('tenant.adminPasswordDenied')}</Alert>}
   </div>;
 }
 
@@ -356,7 +363,8 @@ function ReplaceAdmin({ api, tenant, machine, done }: { api: Api; tenant: Pick<T
       setFailure(undefined);
       try { await designate(pending, (values as { initialPassword: string }).initialPassword); }
       catch (error) {
-        // 初始密码的字段错误换成本表单的位置，显示在这一栏；其余拒绝显示服务端原文。
+        // 缺重置凭据的权限（R165）时提示还需要这项权限；初始密码的字段错误换成本表单的位置，显示在这一栏；其余拒绝显示服务端原文。
+        if (credentialDenied(error, designationPointer)) { setFailure(i18n.t('tenant.adminPasswordDenied')); return; }
         if (error instanceof PlatformError && pointers(error).includes(designationPointer)) throw relocated(error);
         setFailure(issue(error).message);
       }
@@ -369,7 +377,8 @@ function ReplaceAdmin({ api, tenant, machine, done }: { api: Api; tenant: Pick<T
       if (password === undefined && needsInitialPassword(account)) { setPending(account); return; }
       try { await designate(account, password); }
       catch (error) {
-        if (password === undefined && error instanceof PlatformError && pointers(error).includes(designationPointer)) setPending(account);
+        if (credentialDenied(error, designationPointer)) setFailure(i18n.t('tenant.adminPasswordDenied'));
+        else if (password === undefined && error instanceof PlatformError && pointers(error).includes(designationPointer)) setPending(account);
         else setFailure(issue(error).message);
       }
     }} />

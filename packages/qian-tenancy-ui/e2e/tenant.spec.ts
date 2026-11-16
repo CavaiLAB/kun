@@ -276,6 +276,35 @@ test('R110 真实宿主七步与管理员维护：列表、创建、迁移、并
   const designatedC = await signIn('adminc', 'Designated-C-2026');
   expect(designatedC.body).toMatchObject({ status: 'password_change_required' });
   await designatedC.session.dispose();
+  // R165：带初始密码开户或更换管理员另要重置凭据的权限。换成本机手测宿主的受限运营（持平台超管、但不持 reset-credential）：两处都得到真实 403，
+  // pointer 指向初始密码；抽屉里提示还需要这项权限，已填的内容保留。什么都没改：没有建租户，A 的管理员与乙的密码都不变。
+  const credentialHint = '设定初始密码还需要重置管理员密码的权限（qian.tenancy:admin:reset-credential）。请联系平台管理员授予，或改选手机号、邮箱都已经本人验证的账号。';
+  await context.setExtraHTTPHeaders({ 'x-qian-dev-principal': 'limited' });
+  await form('tenantlimited', '受限运营', '20', 'adminb', 'Designated-L-2026');
+  const refusedOpen = page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/tenancy/tenants');
+  await dialog.getByRole('button', { name: '保存', exact: true }).click();
+  expect(await (await refusedOpen).json()).toMatchObject({ status: 403, code: 'AUTHZ_DENIED', pointer: '#/administrator/initialPassword' });
+  await expect(dialog.getByTestId('tenant-admin-password-denied')).toHaveText(credentialHint);
+  await expect(dialog.getByLabel('租户号')).toHaveValue('tenantlimited');
+  await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await act(rowA, '更换管理员');
+  await pick('adminb');
+  await dialog.getByLabel('初始密码').fill('Designated-L-2026');
+  await dialog.getByRole('button', { name: '选为管理员', exact: true }).click();
+  const refusedAssign = page.waitForResponse((response) => response.request().method() === 'PUT' && new URL(response.url()).pathname === '/api/tenancy/tenants/' + a.id + '/admins');
+  await confirmation.getByRole('button', { name: '确认', exact: true }).click();
+  expect(await (await refusedAssign).json()).toMatchObject({ status: 403, code: 'AUTHZ_DENIED', pointer: '#/items/0/initialPassword' });
+  await expect(dialog.getByText(credentialHint, { exact: true })).toBeVisible();
+  await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await context.setExtraHTTPHeaders({});
+  expect((await (await context.request.get(baseURL + '/api/tenancy/tenants?keyword=tenantlimited')).json()).total).toBe(0);
+  const adminsA = await (await context.request.get(baseURL + '/api/tenancy/tenants/' + a.id + '/admins')).json();
+  expect(adminsA.items.map((item: { displayName: string }) => item.displayName)).toEqual(['管理员甲']);
+  const unchangedB = await signIn('adminb', 'Next-Pass-B-2026');
+  expect(unchangedB).toMatchObject({ status: 200, body: { status: 'authenticated' } });
+  await unchangedB.session.dispose();
 
   // 第 1 步服务端分页：再建 13 个（租户号排在 tenanta / tenantb 之后），共 15 个。
   // 总数取自响应而不是本页行数；第 2 页与每页条数都以 skip / take 交给宿主。

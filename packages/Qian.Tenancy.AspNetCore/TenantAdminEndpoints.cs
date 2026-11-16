@@ -13,6 +13,7 @@ public static partial class TenancyEndpoints
     // 管理员维护（S1-TEN-010）：账号查找与新建是平台级操作，旁路审计的资源为 tenancy/admin-accounts；其余按目标租户路径授权。
     // 权限点为 qian.tenancy:admin:<action>。运营入口只收 user 主体，Agent 与委托调用一律拒绝（替换与重置按 R52 即 humanOnly）。
     // 重置密码的动作叫 reset-credential：组件表面的明文扫描把以 password 结尾的键当敏感字段，权限风险表里不能出现 reset-password 键。
+    // 更换管理员时带了初始密码，还要 reset-credential（R165），旁路资源为该租户的 admins 集合。
     private static void MapAdministrators(IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         const string accounts = "tenancy/admin-accounts";
@@ -33,7 +34,8 @@ public static partial class TenancyEndpoints
                     ValidateBody(input);
                     if (input.Items is not [{ SubjectId: var subject }] || subject == Guid.Empty)
                         throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/items/0/subjectId" });
-                }))).Produces<TenantAdminList>().Produces<ErrorDetail>(422, ErrorDetailJson.MediaType);
+                }, Credential(input.Items is [{ InitialPassword: { } password }] ? password : null, "tenancy/tenants/" + id + "/admins", "#/items/0/initialPassword"))))
+            .Produces<TenantAdminList>().Produces<ErrorDetail>(422, ErrorDetailJson.MediaType);
         Bind(endpoints.MapPost("/api/tenancy/tenants/{id:guid}/admins/{membershipId:guid}:reset-password", (HttpContext http, Guid id, Guid membershipId, ResetTenantAdminPassword input) =>
             Execute(http, source, Admin("reset-credential"), "tenancy/tenants/" + id + "/admins/" + membershipId, async (ctx, principal) =>
             {

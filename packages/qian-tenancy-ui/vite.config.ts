@@ -18,15 +18,16 @@ function loopbackOnly(): Plugin {
 }
 const state = process.env.QIAN_DEV_STATE ?? resolve(root, '.qian-dev/tenant-ops');
 const tokens = new Map<string, { value: string; expires: number; stamp: number }>();
+// 开发身份：platform 是平台超管 root；limited 是本机手测宿主的受限运营 ops-limited（持平台超管、但不持 reset-credential，S1-TEN-027）；tenant 是租户主体；none 不带令牌。
 function token(mode: string, tenant: string): string | undefined {
   if (mode === 'none') return;
-  if (mode !== 'platform' && mode !== 'tenant') throw new Error('未知开发身份');
+  if (mode !== 'platform' && mode !== 'tenant' && mode !== 'limited') throw new Error('未知开发身份');
   if (mode === 'tenant' && !/^[0-9a-f-]{36}$/i.test(tenant)) throw new Error('开发租户 ID 无效');
   const stamp = statSync(resolve(state, 'ops-signing-key.pem')).mtimeMs;
   const key = mode + ':' + tenant;
   const cached = tokens.get(key);
   if (cached && cached.stamp === stamp && cached.expires > Date.now()) return cached.value;
-  const args = ['token', ...(mode === 'tenant' ? ['--tenant', tenant] : [])];
+  const args = ['token', ...(mode === 'tenant' ? ['--tenant', tenant] : []), ...(mode === 'limited' ? ['--sub', 'ops-limited'] : [])];
   // 令牌只留在 Vite 的服务端内存，不输出到日志、不返回给浏览器。
   const value = execFileSync(resolve(root, 'scripts/dev-tenant-ops.sh'), args, { cwd: root, encoding: 'utf8', env: { ...process.env, QIAN_DEV_STATE: state }, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   tokens.set(key, { value, stamp, expires: Date.now() + 3_600_000 });

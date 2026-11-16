@@ -173,7 +173,8 @@ kubectl -n qian-staging logs job/<Job 名>
    - 在线副本不挂迁移属主与管理员的凭据。
    - 离线 DDL 不做跨版本的表结构升级，详见[平台宿主的 Job](../../hosts/Qian.Platform.Host/README.md#job)。
 5. **系统组件修订 Job（钩子，-1，`--install-system-revisions`）。** 每次同步都跑，在迁移之后。
-   - 它按签名清单把镜像预装的 system 级组件装成修订并激活：同摘要已激活则不动，新摘要安装后激活。
+   - 它按签名清单把镜像预装的 system 级组件装成修订并激活：同摘要已激活则不动，新版本的新摘要安装后激活。
+   - 同一版本换了摘要（组件文件夹变了、版本号没变）装不进去：Lifecycle 拒绝把同一版本装成另一个制品，authz 的权限目录也按组件版本不可变（内容不同返回 CONFLICT，平台插件树挂不起来）。在已有数据的库上，这时 Job 必然失败，处理见第 7 节「同版本换摘要」。
    - 签名清单缺项、验签失败或摘要对不上，都会列出组件并以退出码 1 失败。此时先核对签名清单 ConfigMap 是否对应当前平台镜像 digest。
 6. **在线副本。** `qian-platform` 与 `qian-gateway` 两个 Deployment，都用 Recreate、钉在 worker01，`/readyz` 返回 `ready` 后才就绪。
    - 平台在线副本启动时只校验（受限角色、模型、没有待执行的迁移），不建表；迁移没跑或没跑完就拒绝启动。
@@ -243,9 +244,17 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
 
 ## 7 回退
 
-- **只换回应用版本。** 在部署仓库把 `images` 段的 digest 改回上一版（git revert 那次写回），合并后同步；然后对上一版平台镜像重跑系统组件修订 Job。旧修订仍在 Lifecycle 里，Job 会把它切回激活。
+- **只换回应用版本。** 在部署仓库把 `images` 段的 digest 改回上一版（git revert 那次写回），合并后同步；然后对上一版平台镜像重跑系统组件修订 Job。上一版的修订仍在 Lifecycle 里时，Job 会把它切回激活；两版之间有组件版本号没变而文件夹变了的，回退同样走不通，按下面「同版本换摘要」处理。
   - 迁移只向前：上一版能跑在新表结构上时才能直接回退。
   - 离线 DDL 不做跨版本升级，所以首个版本之后凡是改表结构的部署，都要在迁移 Job 前先备份：在 `qian-postgres` Pod 里用 `pg_dump`，备份落在 qd 之外。
+- **同版本换摘要（清库重来）。** 新镜像里有 system 级组件的文件夹变了而版本号没变时，系统组件修订 Job 在已有数据的库上必然失败；钩子失败会中止同步，工作负载不变。组件版本规则改好之前，staging 清库重来（2026-11-17 部署 main 9399cf9584 时由产品负责人确认），每次都要先经产品负责人确认：
+  1. 用 `pg_dump` 备份，备份落在 qd 之外；
+  2. 删除 `qian` 库里全部 `plugin_qian_*` schema，库、角色与 Redis 保留；
+  3. 重新做一次完整同步：迁移 Job 从空库首装，修订 Job 全新安装并激活；
+  4. 带 `--app` 重跑第 4 节第 1 步的 Secret 脚本，它只补回初始密码的 Secret；按第 5 节重新引导平台运营；
+  5. 跑 E2E（首登改密），然后删除初始密码的 Secret 与引导 Job。
+
+  staging 上的账号、租户与审计链随之清空。
 - **撤掉整套应用。** 停止同步，再 revert 部署仓库里本任务新增的应用清单：两个 Deployment、Job、ConfigMap、Ingress、应用的网络策略。按基线手册，Namespace、PVC 与基线 Secret 一律不删。hub 上撤掉两个 vhost 时，`deploy.sh` 不会删除 live 目录里多出的文件：先在部署仓库删掉两个文件，再在 hub 上手工删除 `/etc/nginx/conf.d/` 里对应的两个文件，`nginx -t` 后 reload。
 - **数据恢复。** 用迁移前的 `pg_dump` 恢复；没有备份时只能清库重来（staging 可以接受，但要先经产品负责人确认）。
 - **签名钥泄露或丢失。** 在 qd 上重新生成钥对，换掉信任根公钥的 Secret，对当前镜像重签并重跑系统组件修订 Job。旧修订的签名不会被重新核验；正式的信任根轮换归 S1-DEP-005。
@@ -282,4 +291,4 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
 - 环境 overlay 不给 events 配 broker，宿主就不登记 Outbox 投递服务（`QianOutboxRelay` 只随 `AddQianEventsBroker` 登记）。各组件 `outbox_messages` 里的集成事件只写不发：首次同步后，lifecycle 有 11 条 `plugin.activated` 事件停在待发状态。同进程形状里没有跨进程订阅者，功能不受影响，但这些表会随开户等操作一直增长。接 RabbitMQ 之前，接受这种增长或定期清理。
 - 平台镜像的三个 Job 也挂身份服务的签名、加密证书与客户端密钥（宿主装配身份分支时就读取）；修订 Job 与引导模板另挂在线登录的连接串，迁移 Job 不挂。
 - K3s 的 Secret 静态加密（`--secrets-encryption`）状态本次没有核对（需要 root）。
-- 没有装配 OpenAPI / proto 兼容检查器，组件跨版本升级会拒绝执行（fail-closed）；换镜像只能是同版本组件的重签与重装。
+- 没有装配 OpenAPI / proto 兼容检查器，组件跨版本升级会拒绝执行（fail-closed）；同一版本又不能换摘要（第 4 节第 5 步）。所以 system 级组件的文件夹一变，已有数据的 staging 只能清库重来（第 7 节「同版本换摘要」）；摘要不变的重签（例如签名清单只换 source）可以原地进行。

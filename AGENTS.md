@@ -15,9 +15,10 @@
 
 产品负责人 2026-11-17 裁定 Qian 并入 Kun（`pm/tasks/S1-DEC-036.md` 的 D1–D14，蓝图是 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，Accepted）：`Qian.*` 并入 `Kun.*`，一个包族、一条日历版本线；两边重叠的实现归并成一份；许可证全部改 MIT；前端框架由 yue 更名为 qian。同一天又裁定（`pm/tasks/S1-DEC-038.md` 的 D17、D18）：合并后的仓库是 `CavaiLAB/kun`，不是蓝图原来写的 `idadawn/kun`；前端迁往 `CavaiLAB/qian`；迁移现在开始，不再等「初步可用」里程碑收口。
 
-- 迁移分批做，执行计划在 `CavaiLAB/kun` 的 `docs/migration-plan.md`：历史导入（B1）→ 整理与切换（B2）→ 构建并轨（B3）→ 七个域的归并与改名（B4–B10）→ 前端目录移出（B11）→ 首个合并版（B12）。对应的任务是 S1-KUN-019（B1、B2）、S1-KUN-018（B2 里旧 kun 仓库的收尾）、S1-KUN-020（B3）、S1-KUN-021（B4–B10）、S1-KUN-022（B12）。前端的迁移另有计划，任务是 S1-YUE-022。
+- 迁移分批做，执行计划在 `CavaiLAB/kun` 的 `docs/migration-plan.md`：历史导入（B1）→ 整理与切换（B2）→ 构建并轨（B3）→ 七个域的归并与改名（B4–B10）→ 前端目录移出（B11）→ 首个合并版（B12）。对应的任务是 S1-KUN-019（B1、B2）、S1-KUN-018（B2 里旧 kun 仓库的收尾）、S1-KUN-020（B3）、S1-KUN-021（B4–B10）、S1-KUN-022（B12）。前端只迁框架库，计划在 `CavaiLAB/qian` 的 `docs/migration.md`，任务是 S1-YUE-022 至 S1-YUE-026。
 - 本仓库进入收口期。历史导入合入 `CavaiLAB/kun` 之前，这里照常开发；合入之后，这里只收在途任务的收尾（验收登记、置 done）与紧急修复，新的功能任务到 `CavaiLAB/kun` 开工。收口期合入这里的改动由迁移会话再同步过去，不用自己搬。产品负责人宣布冻结之后，本仓库归档为只读。
 - 不要在本仓库里改名。包名、命名空间、目录、许可证字段、yue 的任何标识，都在新仓库的对应批次里改；到归档为止，本仓库的包名仍是 `Qian.*`，两道 .NET 门禁、`KunVersion` 单点钉版、Kun 文档镜像、yue 的目录与包名都不变，本文件其余各节照旧执行。
+- 迁往前端仓库的路径自提交 `aafa0cc5ab` 起在本仓库冻结，不再合入改动：`packages/yue/*`、`apps/yue-playground`、`packages/qian-plugin-sdk`、`packages/qian-runtime`、`tests/gates/yue`、`scripts/yue-visual.mjs`、`.changeset/`，以及 yue、runtime-ts、runtime-ts-release、plugin-sdk-release 四个工作流。确有改动要进，先告诉前端迁移的会话，由它重跑导入补齐。其余的前端路径（外壳应用与外壳工具包、三个界面包、参考应用的远程模块、文档站）留在后端仓库，照常开发；yue 的标识在这些路径里的改名由前端计划的任务承载。
 - 迁移任务（S1-KUN-018 至 S1-KUN-022）的任务文件：历史导入合入之前在本仓库改，合入之后只在 `CavaiLAB/kun` 改，免得再同步时两边改了同一个文件。
 - 运行期字面不随合并改名：组件 id 前缀 `qian.`、库 schema `plugin_qian_*`、Cookie 名、契约标识 `https://qian.dev/…` 与 `x-qian-*`、`.qian-plugin/plugin.json`、`qian` 命令行、`@qian/*` 导入名（ADR-023 D23.10、D23.18）。
 - 按域归并期间（B4–B10），功能任务避开正在归并的域；同一时间一个域只有一个归并批次。

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {PluginLoader} from '../../qian-runtime/dist/index.js';
+import {PluginLoader} from '@cavailab/qian-runtime';
 import {SurfaceRegistrationSession,validateComponent} from '../dist/index.js';
 const plugin='test.session',keep=plugin+'/keep',keys=['Skills','Tools'];
 const first='当用户需要核对第一版租户资料时读取已授权内容并给出完整结果。',second='当用户需要核对第二版租户资料时按更新后的规则读取内容并给出完整结果。';

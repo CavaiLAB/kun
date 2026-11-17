@@ -13,5 +13,5 @@
     "api:update": "api-extractor run --local"
   },
   "dependencies": { "ajv": "8.20.0", "jsonc-parser": "3.3.1", "yaml": "2.9.1" },
-  "devDependencies": { "@microsoft/api-extractor": "7.59.4", "@types/node": "24.19.1", "typescript": "6.0.3" }
+  "devDependencies": { "@cavailab/qian-runtime": "0.2.0", "@microsoft/api-extractor": "7.59.4", "@types/node": "24.19.1", "typescript": "6.0.3" }
 }

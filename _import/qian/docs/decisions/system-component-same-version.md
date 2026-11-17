@@ -11,7 +11,7 @@
 - `qian.identity.server`（S1-IDP-017）：`metadata/permissions.json` 新增 `member:create`，`metadata/roles.json` 把它授给 `tenant.owner` 与 `tenant.admin`，另加工具 `tools/directory.member.add.json`。
 - `qian.tenancy`：契约 `contracts/http-v1.openapi.json` 的两处请求体加了可选字段 `initialPassword`。
 
-staging 库里已有这两个组件 `1.0.0` 的权限目录与修订，系统组件修订 Job 失败，钩子失败中止同步，工作负载没有变。产品负责人确认后删除 8 个 `plugin_qian_*` schema、清库重来，部署与 E2E 随后通过。过程与证据在 qian#324（已合入）：`pm/tasks/S1-DEP-011.md` 的进度日志，以及[运维手册](../ops/staging-first-deploy.md)第 4、7、9 节。
+staging 库里已有这两个组件 `1.0.0` 的权限目录与修订，系统组件修订 Job 失败，钩子失败中止同步，工作负载没有变。产品负责人确认后删除 8 个 `plugin_qian_*` schema、清库重来，部署与 E2E 随后通过。过程与证据在 idadawn/qian#324（已合入）：`pm/tasks/S1-DEP-011.md` 的进度日志，以及[运维手册](../ops/staging-first-deploy.md)第 4、7、9 节。
 
 这件事会反复出现。签名脚本覆盖的 13 个 system 级 module 组件，自建立以来版本号从没改过，全是 `1.0.0`。近一个月（10-17 起，不计合并提交）里，`qian.identity.server` 的文件夹被 8 个提交改过，`qian.tenancy` 7 个，`qian.authz`、`qian.config`、`qian.files`、`qian.lifecycle` 各 4 个。照现在的做法，带功能的 staging 部署几乎每次都要清库。
 
@@ -192,7 +192,7 @@ staging 库里已有这两个组件 `1.0.0` 的权限目录与修订，系统组
 
 ## 6 参考
 
-- qian#324：staging 部署 `9399cf9584` 的进度日志，手册第 4、7、9 节补的同版本换摘要限制与清库步骤。
+- idadawn/qian#324：staging 部署 `9399cf9584` 的进度日志，手册第 4、7、9 节补的同版本换摘要限制与清库步骤。
 - [运维手册](../ops/staging-first-deploy.md)、[平台宿主 README](../../hosts/Qian.Platform.Host/README.md)、[Lifecycle README](../../packages/Qian.Lifecycle/README.md)、[Authz README](../../packages/Qian.Authz/README.md)、[ADR-017](../adr/ADR-017-deployment.md)、[PRD 7.2.1](../prd/07-s1-foundation.md)。
 - 代码位置（main `041e97a04e`）：
   - 2.1：[PostgresPermissionCatalogStore.cs L14–28](https://github.com/idadawn/qian/blob/041e97a04eba5b4d3d8be5a5ead1e481906c676e/packages/Qian.Authz/PostgresPermissionCatalogStore.cs#L14-L28)、[PlatformRuntime.cs L77–82](https://github.com/idadawn/qian/blob/041e97a04eba5b4d3d8be5a5ead1e481906c676e/hosts/Qian.Platform.Host/PlatformRuntime.cs#L77-L82)、[PlatformComponents.cs L122](https://github.com/idadawn/qian/blob/041e97a04eba5b4d3d8be5a5ead1e481906c676e/hosts/Qian.Platform.Host/PlatformComponents.cs#L122)、[AuthzPlugin.cs L37–42 与 L86–93](https://github.com/idadawn/qian/blob/041e97a04eba5b4d3d8be5a5ead1e481906c676e/packages/Qian.Authz/AuthzPlugin.cs#L37-L93)、[capabilities 清单 L17](https://github.com/idadawn/qian/blob/041e97a04eba5b4d3d8be5a5ead1e481906c676e/plugins/qian.capabilities/.qian-plugin/plugin.json#L17)、[PlatformRuntime.cs L98–101](https://github.com/idadawn/qian/blob/041e97a04eba5b4d3d8be5a5ead1e481906c676e/hosts/Qian.Platform.Host/PlatformRuntime.cs#L98-L101)、[PermissionCatalogPersistenceTests.cs L38–55](https://github.com/idadawn/qian/blob/041e97a04eba5b4d3d8be5a5ead1e481906c676e/tests/Qian.Authz.Tests/PermissionCatalogPersistenceTests.cs#L38-L55)。

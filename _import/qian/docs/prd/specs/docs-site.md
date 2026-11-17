@@ -242,7 +242,7 @@ website/
 
 ## 7 门禁
 
-S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整站点实测 96.2 MB / 756 个页面（#95 合并时口径）（知识库收录 754 页），其中离线 Monaco / Babel 15.6 MB、API 参考目录 20.1 MB、yue 页面与完整属性表 7.7 MB；保留约 24 MB 的后续收集空间。编辑器继续点击后按需加载、全量同源，完整 TypeScript worker 约 5.75 MB，删除其余语言并不足以降到 90 MB，故本次选用预算调整路线，保留现有编辑能力。共享继承属性表已经去重，预算仍校验全部未压缩文件且超限必败；S1-DOCS-002 开工前须完成此整改，后续正常增长仍需逐次说明，不能自动放宽。
+S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整站点实测 96.2 MB / 756 个页面（idadawn/qian#95 合并时口径）（知识库收录 754 页），其中离线 Monaco / Babel 15.6 MB、API 参考目录 20.1 MB、yue 页面与完整属性表 7.7 MB；保留约 24 MB 的后续收集空间。编辑器继续点击后按需加载、全量同源，完整 TypeScript worker 约 5.75 MB，删除其余语言并不足以降到 90 MB，故本次选用预算调整路线，保留现有编辑能力。共享继承属性表已经去重，预算仍校验全部未压缩文件且超限必败；S1-DOCS-002 开工前须完成此整改，后续正常增长仍需逐次说明，不能自动放宽。
 
 - `scripts/check_docs.py` 覆盖 `website/docs`：禁用词、表格、断链、frontmatter 必填与枚举（§4）；生成目录在 CI 里构建后显式检查（`scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api`）。
 - CI 构建站点后 `pnpm --filter website check`：`llms.txt`、`llms-full.txt`、每页 `.md`、`kb-index.json`、`sitemap.xml` 齐全；索引里每页的 `.md` 与 HTML 都在且 `sha256` 一致，`llms.txt`、`llms-full.txt`、`sitemap.xml` 收录每页，产物里没有索引外的 `.md`；每页 `.md` 没有 JSX / ESM 残留与空标题、空列表项，代码块不少于源页（§5.1）。
@@ -262,11 +262,11 @@ S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整�
 
 ## 修订历史
 
-- 2026-10-15：S1-RT-021：§7 注明 96.2 MB / 756 页是 #95 合并时的实测口径。
+- 2026-10-15：S1-RT-021：§7 注明 96.2 MB / 756 页是 idadawn/qian#95 合并时的实测口径。
 - 2026-10-15：S1-QA-010：§3 共用示例改为预览工具栏切换 scenarios.json 状态；§6 自研 iframe 预览与 TypeScript checker、页面路径 `yue/core/<name>.mdx`；§7 预算按 R55 调为 120 MB。
 - 2026-10-07：首版。信息架构（七个部分）由产品负责人确认；frontmatter 字段与 S1-DOCS-003 对齐。
 - 2026-10-07：新增 §2a 首页与顶部产品导航（借鉴对标产品文档首页：三条起步命令、编码代理配置、五栏产品能力、无公司信息、无对应能力移除、规划能力打阶段标记）；第 3 部分「Agent SDK + 模型服务 SDK」合并为对外名称「AI SDK」。
 - 2026-10-09：S1-DOCS-006：§2b.4 写明版本矩阵的钉版文件（含 `deploy/baseline.json`）与产品族页同 README 的单测核对；`llms.txt` 先按 project 再按部分分节；§6、§7、§8 相应更新。
 - 2026-10-09：S1-DOCS-003：§4 补校验器规则与 frontmatter 的 YAML 子集；§5 新增 5.1 知识库导入契约（五个机器可读文件、`kb-index.json` 字段、`.md` 地址规则、sitemap 的 lastmod）；§6、§7、§8 相应更新。
-- 2026-10-08：S1-DOCS-005（PR #4）未决问题裁决 R54–R62（S1-DEC-011）：API 参考不进侧栏、API 页不渲染侧栏（R54）；产物总大小预算（R55）；API 参考路径统一在 `/sdk/api/`（R56）；Kun 小节排在 SDK 概览页之后（R57）；Kun ADR 白名单收小写文件名（R58）；上游问题与第三方 `cref`（R59）；构建依赖与 fork / Dependabot（R60）；`KunVersion` 与包源映射（R62）。§2、§2b、§6、§7 相应更新。
+- 2026-10-08：S1-DOCS-005（PR idadawn/qian#4）未决问题裁决 R54–R62（S1-DEC-011）：API 参考不进侧栏、API 页不渲染侧栏（R54）；产物总大小预算（R55）；API 参考路径统一在 `/sdk/api/`（R56）；Kun 小节排在 SDK 概览页之后（R57）；Kun ADR 白名单收小写文件名（R58）；上游问题与第三方 `cref`（R59）；构建依赖与 fork / Dependabot（R60）；`KunVersion` 与包源映射（R62）。§2、§2b、§6、§7 相应更新。
 - 2026-10-07：Kun 进站与产品族页（ADR-021）：第 3 部分新增第一节「Kun 框架」`/sdk/kun/`，按 `KunVersion` 从 kun 仓库镜像 + DocFX，取代首版「Kun 外链不重写」；第 1 部分新增产品族地图 `/start/family` 与版本矩阵 `/start/versions`；frontmatter 新增 `project` / `source`；§1、§2a、§2b、§5、§6、§7、§8 相应更新。

@@ -20,7 +20,7 @@ updated: 2026-10-08
 
 ## 背景
 
-产品负责人要求 Kun 体现在文档中。首版规格写的「Kun 外链不重写」作废：Kun 没有自己的文档站，读者与 SDK 读者重叠。按 ADR-021 D21.4，真相源仍在 kun 仓库 `docs/`，Qian 文档站按 `Directory.Packages.props` 的 `KunVersion` 锁定版本把白名单内容镜像为第 3 部分第一节「Kun 框架」`/sdk/kun/`，并用 DocFX 生成 `Kun.*` API 参考；Qian 只手写一页「与 Qian 的关系」。S1-DOCS-001（PR #3）里 `sdk/index.md` 与 `start/hosts.md` 的「Kun 的 API 本站不重写」措辞一并改掉。
+产品负责人要求 Kun 体现在文档中。首版规格写的「Kun 外链不重写」作废：Kun 没有自己的文档站，读者与 SDK 读者重叠。按 ADR-021 D21.4，真相源仍在 kun 仓库 `docs/`，Qian 文档站按 `Directory.Packages.props` 的 `KunVersion` 锁定版本把白名单内容镜像为第 3 部分第一节「Kun 框架」`/sdk/kun/`，并用 DocFX 生成 `Kun.*` API 参考；Qian 只手写一页「与 Qian 的关系」。S1-DOCS-001（PR idadawn/qian#3）里 `sdk/index.md` 与 `start/hosts.md` 的「Kun 的 API 本站不重写」措辞一并改掉。
 
 ## 验收
 
@@ -39,4 +39,4 @@ updated: 2026-10-08
 - 2026-10-08 claude：开始
 - 2026-10-08 claude：实现完成并本地验证，提交评审：Directory.Packages.props 加 KunVersion 2026.9.13；Kun 小节按白名单镜像 36 页 + 手写 with-qian，DocFX 从同版本 Kun.* 包生成 API 参考（32 个包、341 个类型，不进侧栏）；门禁与单测齐。第 7 条的工作流与 README §6 已就绪，Secret KUN_DOCS_DEPLOY_KEY 待仓库管理员创建（代理不经手凭据），CI 通过后勾选
 - 2026-10-08 claude：仓库管理员已在 idadawn/kun 加只读 deploy key、在 idadawn/qian 设 Secret KUN_DOCS_DEPLOY_KEY；docs-site 重跑（run 37680214386 第 2 次）凭据检查与 kun v2026.9.13 检出通过，Linux 上 .NET 安装、类型检查、单测通过，第 7 条勾选
-- 2026-10-08 claude：完成：已合并 PR #4
+- 2026-10-08 claude：完成：已合并 PR idadawn/qian#4

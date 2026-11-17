@@ -132,20 +132,14 @@ docs-site.md §5.1 是契约，这里只说实现：
 
 ## 6 托管与预览：K3s 静态托管
 
-验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选 **K3s 静态托管**：仓库私有、文档面向内部团队，入口与任务看板一致（WireGuard 与公司内网），不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同，细节见 [deploy/docs-site/README.md](../deploy/docs-site/README.md)。
+验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选的是 **K3s 静态托管**：文档面向内部团队，入口与任务看板一致，不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同：CI 构建，git-sync 拉取，nginx 提供。原 Qian 仓库归档之后（迁移执行计划 B2），文档站的源码在 `CavaiLAB/kun` 的过渡目录 `_import/qian/` 下，由那边的主干构建与发布，细节见 [deploy/docs-site/README.md](../deploy/docs-site/README.md)。
 
-- CI（`.github/workflows/docs-site.yml`）：PR 与 `main` 上类型检查、单测、构建（含断链检查）、产物检查、Kun 镜像页的文档门禁；同仓库分支的 PR 发布预览并在 PR 里留链接，合并到 `main` 后发布正式站点，PR 关闭后删除预览。只有改到 `website/`、`docs/`、依赖清单、`Directory.Packages.props`（`KunVersion`）、`deploy/docs-site/` 或该工作流时才触发。
-- CI 读 kun 仓库用**只读 deploy key**：私钥存在本仓库的 Actions Secret `KUN_DOCS_DEPLOY_KEY`，公钥加在 `idadawn/kun` 的 Deploy keys（不给写权限）。工作流按 `KunVersion` 检出 tag `v<KunVersion>` 的全部历史到 `.kun/`（镜像页的 `updated` 取每个文件的最后提交日期），检出后不保留凭据。Secret 缺失时构建直接失败；fork 来的 PR 与 Dependabot 拿不到 Actions Secret，文档站不在 fork 上构建，Dependabot 接入时在 Dependabot secrets 里再配一份（R60）。由仓库管理员在本机执行一次：
-
-  ```bash
-  ssh-keygen -t ed25519 -N '' -C 'qian docs-site CI (read-only)' -f kun-docs-key
-  gh repo deploy-key add kun-docs-key.pub --repo idadawn/kun --title 'qian docs-site CI (read-only)'
-  gh secret set KUN_DOCS_DEPLOY_KEY --repo idadawn/qian < kun-docs-key
-  rm kun-docs-key kun-docs-key.pub
-  ```
-
-- 发布目标是 `docs-site` 分支：根目录是正式站点，`pr-preview/pr-<n>/` 是预览（构建时 `DOCS_BASE=/pr-preview/pr-<n>/`）。分支只保留一个提交（`deploy/docs-site/publish.sh`）。
-- 集群里 git-sync 每 60 秒拉取该分支，nginx 提供访问：正式站点 <http://10.78.1.161:30820/>（WireGuard）、<http://192.168.1.211/>（公司内网）；预览在其后加 `pr-preview/pr-<n>/`。
+- CI：仓库根的 `qian-docs-site` 工作流（`.github/workflows/qian-docs-site.yml`；原件 `_import/qian/.github/workflows/docs-site.yml` 留作对照，GitHub 不读它）。PR 与 `main` 上类型检查、单测、构建（含断链检查）、产物检查、生成页（含 Kun 镜像页）的文档门禁与浏览器交互验收。只有改到 `_import/qian/` 下的 `website/`、`packages/yue/`、`docs/`、依赖清单、`Directory.Packages.props`（`KunVersion`）、`deploy/docs-site/` 或工作流本身时才触发。
+- 发布：只在 `main` 上发布正式站点，把构建产物推到 `CavaiLAB/kun` 的 `docs-site` 分支的根目录（`deploy/docs-site/publish.sh`，分支只保留一个提交）。集群里 git-sync 每 60 秒经 HTTPS 匿名拉取该分支，nginx 提供访问。
+- 部署：集群里的应用由 Argo CD 管。Application 登记在部署仓库，跟踪 `CavaiLAB/kun` 主干上的 `_import/qian/deploy/docs-site/`，清单的改动合入主干后自动同步。
+- PR 预览：现在没有接，接不接由产品负责人定。原仓库的做法是同仓库分支的 PR 发布到 `pr-preview/pr-<n>/`、在 PR 里留访问链接、PR 关闭后删除预览；`CavaiLAB/kun` 是公开仓库，PR 评论人人可见，所以没有照搬。PR 上的构建仍带 `pr-preview/pr-<n>/` 前缀（`DOCS_BASE`），前缀检查照跑；nginx 与 `publish.sh` 仍支持这个路径，接回只改工作流。
+- 「Kun 框架」小节的来源：工作流按 `KunVersion` 经 HTTPS 只读检出 `idadawn/kun` 的 tag `v<KunVersion>` 到 `.kun/`（已归档的公开仓库，用缺省的 `GITHUB_TOKEN`），不再用原来的只读 deploy key 与 Actions Secret `KUN_DOCS_DEPLOY_KEY`。
+- 访问入口在内网，写在 `deploy/docs-site/README.md`，本文与工作流都不写。
 
 ## 7 门禁
 

@@ -81,7 +81,7 @@ id 规则：`S<阶段>-<领域>-<三位序号>`。领域代码与 PRD §07 小�
 
 | 想做什么 | 命令 |
 |---|---|
-| 看进度 | 集群看板 <http://10.78.1.161:30810/>（进度表在其 `/STATUS.md`）；或本地 `python3 scripts/pm.py build` 后双击 `pm/index.html`；或 `python3 scripts/pm.py stats` 打印进度表 |
+| 看进度 | 集群看板（内网，入口见 [deploy/pm-board/README.md](../deploy/pm-board/README.md)；进度表在其 `/STATUS.md`）；或本地 `python3 scripts/pm.py build` 后双击 `pm/index.html`；或 `python3 scripts/pm.py stats` 打印进度表 |
 | 找能开始的任务 | 看板「待办」列已按可做先后排序（绿色「可开始」在前，之后是「第 n 批」）；进度表的「接下来可做」表；或 `python3 scripts/pm.py list --status todo` |
 | 认领并开始 | `python3 scripts/pm.py set S1-RT-001 --status doing --owner 你的名字 --by 你的名字 --note "开始"` |
 | 记录进展 | `python3 scripts/pm.py set S1-RT-001 --by 你的名字 --note "runtime 骨架可编译"` |
@@ -167,7 +167,7 @@ python3 scripts/pm.py set <ID> --status doing --owner <你的代理名> --by <�
 
 看板页面不依赖任何外部资源（数据内嵌在 `index.html` 里），生成后放在哪里都能打开：
 
-- K3s（已部署）：WireGuard 侧打开 <http://10.78.1.161:30810/>，公司内网打开 <http://192.168.1.210/>。看板 Pod 按 `main` 的任务文件自行生成，`main` 有新提交后一分钟左右更新。清单与说明见 [deploy/pm-board/README.md](../deploy/pm-board/README.md)；
+- K3s（已部署，内网访问，入口见 [deploy/pm-board/README.md](../deploy/pm-board/README.md)）：原 Qian 仓库归档之后，看板 Pod 经 HTTPS 匿名拉取 `CavaiLAB/kun` 的 `main`，按其中 `_import/qian/pm/tasks/` 的任务文件自行生成，`main` 有新提交后一分钟左右更新。集群里的应用由 Argo CD 管：Application 登记在部署仓库，跟踪 `CavaiLAB/kun` 主干上的 `_import/qian/deploy/pm-board/`，清单的改动合入主干后自动同步。清单与说明见上面的 README；
 - 本地：`python3 scripts/pm.py build` 后双击 `pm/index.html`；
-- CI 产物：docs-and-pm 工作流每次运行都上传 `pm-board`，下载后离线打开；
+- CI 产物：`CavaiLAB/kun` 仓库根的 `qian-docs-and-pm` 工作流（原件 `.github/workflows/docs-and-pm.yml` 留作对照，GitHub 不读它）每次运行都上传 `pm-board`，下载后离线打开；
 - 其他静态托管：`python3 scripts/pm.py build --out <目录>`，再发布该目录。

@@ -5,8 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Testcontainers 4.0 transitively requests vulnerable SSH.NET 2023; retain the audit gate. -->
-    <PackageReference Include="SSH.NET" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\Kun.Storage\Kun.Storage.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
@@ -15,7 +13,6 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="Testcontainers.Minio" />
     <PackageReference Include="coverlet.collector" />
   </ItemGroup>
 

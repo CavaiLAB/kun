@@ -1,22 +1,23 @@
 using System.Text;
 using Amazon.S3;
 using FluentAssertions;
+using Kun.IntegrationTests.Fixtures;
 using Kun.Storage.S3;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Testcontainers.Minio;
 using Xunit;
 
 namespace Kun.IntegrationTests.Storage;
 
 /// <summary>
-/// End-to-end integration test for <see cref="S3FileStorage"/> against a MinIO container.
+/// End-to-end integration test for <see cref="S3FileStorage"/> against an S3-compatible server
+/// container (<see cref="S3CompatibleServer"/>; the class name predates the switch away from MinIO).
 /// Covers the M1 invariant: all four canonical active web content types must round-trip
 /// and their presigned download URL must carry <c>response-content-disposition=attachment</c>.
 /// </summary>
 public sealed class S3FileStorageMinioTests : IAsyncLifetime
 {
-    private MinioContainer? _container;
+    private S3CompatibleServer? _server;
     private AmazonS3Client? _s3;
     private S3FileStorage? _storage;
     private const string BucketName = "kun-storage-tests";
@@ -25,35 +26,24 @@ public sealed class S3FileStorageMinioTests : IAsyncLifetime
     {
         try
         {
-            _container = new MinioBuilder()
-                .WithImage("minio/minio:RELEASE.2024-06-13T22-53-53Z")
-                .WithUsername("kunadmin")
-                .WithPassword("kunadmin-secret")
-                .Build();
+            _server = S3CompatibleServer.Create();
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            Assert.Skip("Docker is not available on this host — integration test requires Docker.");
+            ContainerRuntime.ReportUnavailable("Docker is not available on this host — integration test requires Docker.");
             return;
         }
 
-        try
-        {
-            await _container.StartAsync(TestContext.Current.CancellationToken);
-        }
-        catch (Exception ex) when (ex.GetType().Name.Contains("Docker", StringComparison.OrdinalIgnoreCase))
-        {
-            Assert.Skip($"Docker is not available on this host: {ex.Message}");
-            return;
-        }
+        // Image pull or startup failures propagate and fail the test; they are not "Docker unavailable".
+        await _server.StartAsync(TestContext.Current.CancellationToken);
 
         var options = new S3StorageOptions
         {
             BucketName = BucketName,
-            ServiceUrl = new Uri(_container.GetConnectionString(), UriKind.Absolute),
+            ServiceUrl = new Uri(_server.Endpoint, UriKind.Absolute),
             ForcePathStyle = true,
-            AccessKey = "kunadmin",
-            SecretKey = "kunadmin-secret",
+            AccessKey = S3CompatibleServer.AccessKey,
+            SecretKey = S3CompatibleServer.SecretKey,
             Region = "us-east-1",
         };
 
@@ -82,9 +72,9 @@ public sealed class S3FileStorageMinioTests : IAsyncLifetime
     public async ValueTask DisposeAsync()
     {
         _s3?.Dispose();
-        if (_container is not null)
+        if (_server is not null)
         {
-            await _container.DisposeAsync();
+            await _server.DisposeAsync();
         }
     }
 
@@ -97,7 +87,7 @@ public sealed class S3FileStorageMinioTests : IAsyncLifetime
     {
         if (_storage is null)
         {
-            Assert.Skip("Container was not started (Docker unavailable).");
+            ContainerRuntime.ReportUnavailable("Container was not started (Docker unavailable).");
             return;
         }
 

@@ -67,7 +67,7 @@ public sealed class EventVersioningTests : IAsyncLifetime
 
         if (string.IsNullOrEmpty(_rabbitmq.ConnectionString))
         {
-            Assert.Skip("Docker not available.");
+            ContainerRuntime.ReportUnavailable("Docker not available.");
             return;
         }
 
@@ -134,7 +134,7 @@ public sealed class EventVersioningTests : IAsyncLifetime
 
         if (_host is null)
         {
-            Assert.Skip("Docker not available.");
+            ContainerRuntime.ReportUnavailable("Docker not available.");
             return;
         }
 

@@ -84,7 +84,7 @@ public sealed class SchemaPerServiceTests(PostgresFixture fx)
     {
         if (string.IsNullOrEmpty(fx.ConnectionString))
         {
-            Assert.Skip("Postgres fixture did not start (Docker unavailable).");
+            ContainerRuntime.ReportUnavailable("Postgres fixture did not start (Docker unavailable).");
             return;
         }
 
@@ -148,7 +148,7 @@ public sealed class SchemaPerServiceTests(PostgresFixture fx)
     {
         if (string.IsNullOrEmpty(fx.ConnectionString))
         {
-            Assert.Skip("Postgres fixture did not start (Docker unavailable).");
+            ContainerRuntime.ReportUnavailable("Postgres fixture did not start (Docker unavailable).");
             return;
         }
 

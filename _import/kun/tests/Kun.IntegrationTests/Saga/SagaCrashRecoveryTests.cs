@@ -18,6 +18,7 @@
 using FluentAssertions;
 using Kun.Core.Time;
 using Kun.EntityFrameworkCore;
+using Kun.IntegrationTests.Fixtures;
 using Kun.Saga;
 using Kun.Saga.Abstractions;
 using Kun.Saga.Persistence;
@@ -45,7 +46,7 @@ public sealed class SagaCrashRecoveryTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
 
         if (string.IsNullOrEmpty(_fixture.ConnectionString))
-            Assert.Skip("Docker unavailable.");
+            ContainerRuntime.ReportUnavailable("Docker unavailable.");
 
         var sagaId = Guid.NewGuid();
 

@@ -5,6 +5,7 @@ using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
+using Kun.IntegrationTests.Fixtures;
 using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -94,7 +95,7 @@ public sealed class OutboxAtomicityTests : IAsyncLifetime
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            Assert.Skip("Docker is not available on this host — integration test requires Docker (runs in CI).");
+            ContainerRuntime.ReportUnavailable("Docker is not available on this host — integration test requires Docker (runs in CI).");
             return;
         }
 

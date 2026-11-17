@@ -47,7 +47,7 @@ public sealed class TenantRlsInterceptorPgBouncerTests(PgBouncerPostgresFixture 
     {
         if (string.IsNullOrEmpty(fx.BouncerConnectionString))
         {
-            Assert.Skip("PgBouncer fixture did not start (Docker unavailable).");
+            ContainerRuntime.ReportUnavailable("PgBouncer fixture did not start (Docker unavailable).");
             return;
         }
 

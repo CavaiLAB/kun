@@ -76,7 +76,7 @@ public sealed class OutboxPublisherResilienceTests : IAsyncLifetime
 
         if (string.IsNullOrEmpty(_rabbitmq.ConnectionString))
         {
-            Assert.Skip("Docker not available.");
+            ContainerRuntime.ReportUnavailable("Docker not available.");
             return;
         }
 

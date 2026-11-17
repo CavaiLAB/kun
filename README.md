@@ -2,7 +2,7 @@
 
 [匠心智能体平台](https://github.com/CavaiLAB/jiangxin)的企业级后端框架：为 Agent 时代构建的多租户平台框架，.NET 10。
 
-> **状态：规划稿（2026-11-17）。本仓库目前只有框架级文档，没有代码。**
+> **状态：迁移进行中（2026-11-17 起）。代码按[迁移执行计划](docs/migration-plan.md)分批迁入；历史导入的那一批合入之前，本仓库仍只有框架级文档。**
 >
 > 代码在两个原仓库里：[`idadawn/kun`](https://github.com/idadawn/kun)（原 Kun 框架）与 [`idadawn/qian`](https://github.com/idadawn/qian)（原 Qian 平台的后端）。它们按合并蓝图导入这里并归并。
 >

@@ -166,10 +166,10 @@ internal static partial class Contracts
     {
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "Qian.slnx")))
+            if (File.Exists(Path.Combine(dir.FullName, "Qian.slnf")))
                 return dir.FullName;
         }
-        throw new InvalidOperationException("找不到仓库根目录（Qian.slnx）。");
+        throw new InvalidOperationException("找不到仓库根目录（Qian.slnf）。");
     }
 
     [GeneratedRegex("\\.v[1-9][0-9]*$")]

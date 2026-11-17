@@ -23,14 +23,14 @@
     <ProjectReference Include="../../packages/Qian.Capabilities/Qian.Capabilities.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
-    <PackageReference Include="Kun.Security" />
-    <PackageReference Include="Kun.MultiTenancy" />
+    <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
+    <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
     <PackageReference Include="JsonSchema.Net" />
   </ItemGroup>
   <!-- dotnet ef 设计时入口（FilesDesignTimeFactory）：经 AddQianData 取上下文，迁移模型与运行时一致。 -->
   <ItemGroup>
-    <PackageReference Include="Kun.EventBus" />
+    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
   </ItemGroup>
 </Project>

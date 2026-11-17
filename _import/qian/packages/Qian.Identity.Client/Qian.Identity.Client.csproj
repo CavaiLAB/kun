@@ -8,9 +8,9 @@
     <ProjectReference Include="../Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" />
     <ProjectReference Include="../Qian.Plugin.Sdk.Generators/Qian.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
-    <PackageReference Include="Kun.Identity" />
-    <PackageReference Include="Kun.Identity.AspNetCore" />
-    <PackageReference Include="Kun.Security" />
+    <ProjectReference Include="../../../../src/Kun.Identity/Kun.Identity.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Identity.AspNetCore/Kun.Identity.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
     <InternalsVisibleTo Include="Qian.Identity.Client.Tests" />
   </ItemGroup>
 </Project>

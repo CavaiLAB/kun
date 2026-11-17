@@ -62,7 +62,7 @@ public sealed class DataPermissionMetadataTests
     private static string FindRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Qian.slnx"))) directory = directory.Parent;
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Qian.slnf"))) directory = directory.Parent;
         return directory?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
     }
 }

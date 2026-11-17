@@ -17,9 +17,9 @@
 （list package 读的也是它），包与项目两类依赖一并检查，并报出从被检查方到违规依赖的完整路径。
 
 用法（仓库根目录）：
-  python3 scripts/check_deps.py                         还原 Qian.slnx 后检查
+  python3 scripts/check_deps.py                         还原 Qian.slnf 后检查
   python3 scripts/check_deps.py --no-restore            CI 已还原 / 构建时直接检查
-  python3 scripts/check_deps.py --solution x.slnx --json
+  python3 scripts/check_deps.py --solution x.slnf --json
 退出码：0 通过；1 有违规；2 工具出错（还原失败、缺 assets 文件等）。
 """
 from __future__ import annotations
@@ -195,6 +195,11 @@ def _rel(path: Path) -> str:
 
 def solution_projects(solution: Path) -> List[Path]:
     text = solution.read_text(encoding="utf-8-sig")
+    if solution.suffix.lower() == ".slnf":
+        # 解决方案筛选文件：项目路径相对它筛选的那个解决方案所在的目录（Qian.slnf 筛选仓库根的 Kun.slnx）。
+        document = json.loads(text)["solution"]
+        base = (solution.parent / document["path"].replace("\\", "/")).parent
+        return [(base / p.replace("\\", "/")).resolve() for p in document["projects"]]
     if solution.suffix.lower() == ".slnx":
         paths = [e.get("Path") for e in ET.fromstring(text).iter("Project") if e.get("Path")]
     else:
@@ -237,7 +242,7 @@ def _load(path: Path) -> dict:
 
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Qian 包依赖图门禁")
-    parser.add_argument("--solution", default="Qian.slnx", help="解决方案文件（.slnx / .sln），默认 Qian.slnx")
+    parser.add_argument("--solution", default="Qian.slnf", help="解决方案或筛选文件（.slnf / .slnx / .sln），默认 Qian.slnf")
     parser.add_argument("--no-restore", action="store_true", help="跳过 dotnet restore（已还原时使用）")
     parser.add_argument("--json", action="store_true", help="以 JSON 输出检查结果")
     args = parser.parse_args(argv)

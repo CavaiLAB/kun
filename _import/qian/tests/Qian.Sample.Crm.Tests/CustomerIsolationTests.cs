@@ -156,7 +156,7 @@ public sealed class CustomerIsolationTests(PostgresFixture postgres) : IClassFix
             roles = Array.Empty<string>(), scope, session_id = jti, iat = now, nbf = now, exp = now + 60, jti
         });
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         Assert.NotNull(root);
         var schema = JsonSchema.FromText(File.ReadAllText(Path.Combine(root.FullName, "contracts/v0/s2s-claims.schema.json")),
             new BuildOptions { SchemaRegistry = new SchemaRegistry() });

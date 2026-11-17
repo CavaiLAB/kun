@@ -255,7 +255,7 @@ public sealed class SchemaPatternTests
     public void 跨语言向量与等价类表由本实现生成_与仓库文件逐字一致()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         Assert.NotNull(root);
         foreach (var (relative, content) in new[] { ("tck/profiles/key-vectors.json", Vectors()), ("packages/qian-surfaces/src/ordinal-case.ts", CaseTable()) })
         {

@@ -93,8 +93,8 @@ public sealed class GatewayPackageAotPublishTests
     private static string LocateRepository()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-            if (File.Exists(Path.Combine(directory.FullName, "Kun.sln"))) return directory.FullName;
-        throw new InvalidOperationException("Cannot locate Kun.sln");
+            if (File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) return directory.FullName;
+        throw new InvalidOperationException("Cannot locate Kun.slnx");
     }
 
     private static async Task<(int ExitCode, string Output)> RunAsync(string directory, string executable, TimeSpan timeout, params string[] arguments)

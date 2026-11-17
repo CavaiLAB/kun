@@ -1,7 +1,7 @@
-"""dotnet 工作流脚本 scripts/dotnet_ci.py 的自测（S1-QA-021）：触发过滤自检认得的各类写法，与 verify 对 Qian.slnx 外测试项目的告警。
+"""dotnet 工作流脚本 scripts/dotnet_ci.py 的自测（S1-QA-021）：触发过滤自检认得的各类写法，与 verify 对 Qian.slnf 外测试项目的告警。
 
 运行：python3 -m unittest discover -s tests/gates -v
-在临时目录里搭一个 git 跟踪的最小仓库（Qian.slnx、dotnet.yml、pm/、docs/、根目录 Markdown 与样例源码），把脚本的仓库根换成它再跑。
+在临时目录里搭一个 git 跟踪的最小仓库（Qian.slnf、dotnet.yml、pm/、docs/、根目录 Markdown 与样例源码），把脚本的仓库根换成它再跑。
 每类写法都有一条会被拦下的样例（去掉对应的识别规则，用例即失败），并配不该拦的对照：过滤重新纳入了该文件、路径不在仓库根上、
 或者根本不是读取。只依赖标准库与 git。
 """
@@ -47,12 +47,12 @@ jobs:
       - run: dotnet test --project tests/Sample.AotTests -c Release --report-xunit-trx
 """
 
-# 照仓库里测试的写法从 AppContext.BaseDirectory 向上找 Qian.slnx：根目录文件名只在这样定位了仓库根的文件里算引用。
+# 照仓库里测试的写法从 AppContext.BaseDirectory 向上找 Qian.slnf：根目录文件名只在这样定位了仓库根的文件里算引用。
 LOCATOR = """\
     private static string RepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Qian.slnx"))) directory = directory.Parent;
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Qian.slnf"))) directory = directory.Parent;
         return directory!.FullName;
     }
 """
@@ -75,7 +75,8 @@ class Sandbox:
         self.root = Path(tempfile.mkdtemp(prefix="qian-dotnet-ci-"))
         case.addCleanup(shutil.rmtree, self.root, True)
         subprocess.run(["git", "init", "-q", str(self.root)], check=True)
-        self.write("Qian.slnx", '<Solution>\n  <Project Path="tests/Sample.Tests/Sample.Tests.csproj" />\n</Solution>\n')
+        # 与仓库里的 Qian.slnf 同形：筛选它所在目录的 Kun.slnx（临时仓库里不必真有），项目路径相对那个目录。
+        self.write("Qian.slnf", '{"solution": {"path": "Kun.slnx", "projects": ["tests/Sample.Tests/Sample.Tests.csproj"]}}\n')
         self.write("tests/Sample.Tests/Sample.Tests.csproj", XUNIT_PROJECT)
         self.write("AGENTS.md", "# 约定\n")
         self.write("README.md", "# 仓库\n")
@@ -96,7 +97,7 @@ class Sandbox:
 
     def patched(self) -> contextlib.AbstractContextManager:
         subprocess.run(["git", "-C", str(self.root), "add", "-A"], check=True)
-        return mock.patch.multiple(dotnet_ci, ROOT=self.root, SOLUTION=self.root / "Qian.slnx",
+        return mock.patch.multiple(dotnet_ci, ROOT=self.root, SOLUTION=self.root / "Qian.slnf",
                                    WORKFLOW=self.root / ".github" / "workflows" / "dotnet.yml")
 
     def passes(self):
@@ -182,7 +183,7 @@ class CsharpReferenceTests(unittest.TestCase):
                     'var schema = File.ReadAllText(Path.Combine(root, "contracts/v0/sample.schema.json"));')
         counts = self.box.passes()
         self.assertEqual(0, counts["重新纳入"])
-        self.assertEqual(2, counts[".NET 源码"])  # Qian.slnx 与 contracts 下的 schema
+        self.assertEqual(2, counts[".NET 源码"])  # Qian.slnf 与 contracts 下的 schema
 
     def test_strings_and_characters_before_the_literal_do_not_derail_the_lexer(self) -> None:
         read = 'File.ReadAllText(Path.Combine(root, "{}"));'.format
@@ -339,7 +340,7 @@ class PythonReferenceTests(unittest.TestCase):
 
 
 class VerifyTests(unittest.TestCase):
-    """verify 对 tests/ 下引用 xunit.v3 却不在 Qian.slnx 里的测试项目告警（门禁样例与专属作业运行的项目除外）。"""
+    """verify 对 tests/ 下引用 xunit.v3 却不在 Qian.slnf 里的测试项目告警（门禁样例与专属作业运行的项目除外）。"""
 
     TRX = ('<?xml version="1.0" encoding="utf-8"?>\n'
            '<TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">\n'
@@ -364,20 +365,20 @@ class VerifyTests(unittest.TestCase):
     def test_gates_samples_dedicated_jobs_and_support_projects_are_not_reported(self) -> None:
         summary, problems, warnings = self.verify()
         self.assertEqual(([], []), (problems, warnings))
-        self.assertNotIn("不在 Qian.slnx 里", "\n".join(summary))
+        self.assertNotIn("不在 Qian.slnf 里", "\n".join(summary))
 
     def test_test_project_outside_the_solution_is_reported_by_name(self) -> None:
         self.box.write("tests/Extra.Tests/Extra.Tests.csproj", XUNIT_PROJECT)
         summary, problems, warnings = self.verify()
         self.assertEqual([], problems)
         self.assertEqual(1, len(warnings))
-        self.assertIn("1 个测试项目不在 Qian.slnx 里", warnings[0])
+        self.assertIn("1 个测试项目不在 Qian.slnf 里", warnings[0])
         self.assertIn("：Extra.Tests。", warnings[0])
-        self.assertIn("tests/ 下不在 Qian.slnx 里、没有任何分片运行的测试项目：Extra.Tests。", summary)
+        self.assertIn("tests/ 下不在 Qian.slnf 里、没有任何分片运行的测试项目：Extra.Tests。", summary)
         output = io.StringIO()
         with self.box.patched(), mock.patch.object(dotnet_ci, "SHARDS", {"a": None}), contextlib.redirect_stdout(output):
             self.assertEqual(0, dotnet_ci.main(["verify", str(self.results), "--summary", str(self.box.root / "summary.md")]))
-        self.assertIn("::warning::tests/ 下有 1 个测试项目不在 Qian.slnx 里", output.getvalue())
+        self.assertIn("::warning::tests/ 下有 1 个测试项目不在 Qian.slnf 里", output.getvalue())
 
 
 if __name__ == "__main__":

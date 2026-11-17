@@ -1,1 +1,1 @@
-<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="Kun.Storage" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../../../../../../src/Kun.Storage/Kun.Storage.csproj" /></ItemGroup></Project>

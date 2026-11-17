@@ -82,7 +82,7 @@ internal sealed class DirectoryAgentContract
     private static string FindRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-            if (File.Exists(Path.Combine(directory.FullName, "Qian.slnx"))) return directory.FullName;
-        throw new InvalidOperationException("找不到仓库根目录（Qian.slnx）。");
+            if (File.Exists(Path.Combine(directory.FullName, "Qian.slnf"))) return directory.FullName;
+        throw new InvalidOperationException("找不到仓库根目录（Qian.slnf）。");
     }
 }

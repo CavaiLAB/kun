@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Qian .NET 包族锁步发布的核对工具（S1-RT-014，ADR-019 D19.7、ADR-021）。只依赖标准库。
 
-包族 = Qian.slnx 里 QianIsPackage=true 的全部项目（判定见 Directory.Build.targets，与 scripts/check_deps.py 同一口径）。
+包族 = Qian.slnf 里 QianIsPackage=true 的全部项目（判定见 Directory.Build.targets，与 scripts/check_deps.py 同一口径）。
 发布工作流 .github/workflows/dotnet-release.yml 依次调用：
 
   python3 scripts/dotnet_release.py check-version --version 0.1.0 [--feed URL --token-env NAME]
@@ -416,13 +416,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     version_parser = commands.add_parser("check-version", help="版本号格式，以及包源里尚无该版本")
     version_parser.add_argument("--version", required=True)
-    version_parser.add_argument("--solution", default="Qian.slnx")
+    version_parser.add_argument("--solution", default="Qian.slnf")
     version_parser.add_argument("--feed", help="NuGet v3 服务索引，例如 https://nuget.pkg.github.com/idadawn/index.json")
     version_parser.add_argument("--token-env", help="保存包源令牌的环境变量名")
     packages_parser = commands.add_parser("verify-packages", help="核对打出的制品")
     packages_parser.add_argument("--version", required=True)
     packages_parser.add_argument("--dir", required=True, type=Path)
-    packages_parser.add_argument("--solution", default="Qian.slnx")
+    packages_parser.add_argument("--solution", default="Qian.slnf")
     consumer_parser = commands.add_parser("verify-consumer", help="干净消费者项目从给定源真实还原、构建并运行")
     consumer_parser.add_argument("--version", required=True)
     consumer_parser.add_argument("--source", required=True, help="NuGet v3 服务索引地址或本地目录")
@@ -433,7 +433,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     feed_parser.add_argument("--version", required=True)
     feed_parser.add_argument("--repository", required=True, help="owner/repo，例如 idadawn/qian")
     feed_parser.add_argument("--token-env", required=True, help="保存 GitHub 令牌的环境变量名")
-    feed_parser.add_argument("--solution", default="Qian.slnx")
+    feed_parser.add_argument("--solution", default="Qian.slnf")
     args = parser.parse_args(argv)
 
     try:

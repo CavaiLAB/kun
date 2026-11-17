@@ -17,8 +17,8 @@ public sealed partial class SessionLogHygieneTests(PostgresFixture postgres, Red
     private static string Root()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
-        return root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录（Qian.slnx）。");
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
+        return root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录（Qian.slnf）。");
     }
 
     [GeneratedRegex(@"\b(?:_logger|logger|Logger)\s*\.\s*(?:Log\w*|BeginScope)\s*\(", RegexOptions.CultureInvariant)]

@@ -4,8 +4,8 @@
     <Description>Qian 最小运行时：插件装载、服务键、事件与可逆副作用。</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Kun.Core" />
-    <PackageReference Include="Kun.Mediator" />
+    <ProjectReference Include="../../../../src/Kun.Core/Kun.Core.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <ProjectReference Include="../Qian.Runtime.Errors/Qian.Runtime.Errors.csproj" />
   </ItemGroup>

@@ -81,7 +81,7 @@ public sealed partial class TenantDirectoryTests
     private static string RepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Qian.slnx"))) directory = directory.Parent;
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Qian.slnf"))) directory = directory.Parent;
         return directory?.FullName ?? throw new InvalidOperationException("仓库根目录不存在。");
     }
 }

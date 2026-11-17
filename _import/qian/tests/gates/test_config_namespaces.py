@@ -26,7 +26,7 @@ def run_tool(*args):
 class ConfigNamespaceGateTests(unittest.TestCase):
     def test_repository_profiles_derive_skeletons(self):
         """CI 对仓库 profile 推导骨架：Schema 可解释、只写默认值与注释，敏感键不给值。"""
-        self.assertTrue(TOOL.exists(), "Build Qian.slnx in Release before running gates")
+        self.assertTrue(TOOL.exists(), "Build Qian.slnf in Release before running gates")
         with tempfile.TemporaryDirectory() as temporary:
             result = run_tool(ROOT, "--out", temporary)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -42,7 +42,7 @@ class ConfigNamespaceGateTests(unittest.TestCase):
             self.assertFalse(any(item["profile"] == "standalone" and item["namespaces"] for item in report["profiles"]))
 
     def test_schema_change_against_protocol_double_fails_on_missing_and_extra_keys(self):
-        self.assertTrue(TOOL.exists(), "Build Qian.slnx in Release before running gates")
+        self.assertTrue(TOOL.exists(), "Build Qian.slnf in Release before running gates")
         with tempfile.TemporaryDirectory() as temporary, ApolloMock() as apollo:
             repo = Path(temporary)
             for name in (".qian-plugin/plugin.json", "schemas/config.schema.json"):

@@ -7,6 +7,6 @@
     <ProjectReference Include="../Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../Qian.Plugin.Sdk.AspNetCore/Qian.Plugin.Sdk.AspNetCore.csproj" />
     <PackageReference Include="Grpc.AspNetCore.Server" />
-    <PackageReference Include="Kun.Security" />
+    <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
   </ItemGroup>
 </Project>

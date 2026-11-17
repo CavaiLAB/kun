@@ -191,7 +191,7 @@ internal sealed class WorkerProcess : IAsyncDisposable
     public static async Task<WorkerProcess> Start(HostConfig config, params string[] warmupTenants)
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         var executable = Path.Combine(root!.FullName, "tests/Qian.Scheduler.TestHost/bin/Release/net10.0/Qian.Scheduler.TestHost.dll");
         var start = new ProcessStartInfo("dotnet") { RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
         start.ArgumentList.Add(executable); start.ArgumentList.Add("--worker");

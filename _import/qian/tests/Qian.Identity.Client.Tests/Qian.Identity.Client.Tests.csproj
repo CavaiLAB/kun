@@ -11,8 +11,8 @@
     <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
     <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
     <PackageReference Include="xunit.v3" />
-    <PackageReference Include="Kun.Gateway" />
-    <PackageReference Include="Kun.Mediator" />
+    <ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
     <PackageReference Include="StackExchange.Redis" />
     <PackageReference Include="JsonSchema.Net" />
   </ItemGroup>

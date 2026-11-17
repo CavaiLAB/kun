@@ -11,8 +11,8 @@
     <ProjectReference Include="../../tools/Qian.Config.Tool/Qian.Config.Tool.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.AspNetCore/Qian.Config.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
-    <PackageReference Include="Kun.Configuration" />
-    <PackageReference Include="Kun.Security" />
+    <ProjectReference Include="../../../../src/Kun.Configuration/Kun.Configuration.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 </Project>

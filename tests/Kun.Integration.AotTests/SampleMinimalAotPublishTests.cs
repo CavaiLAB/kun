@@ -134,7 +134,7 @@ public sealed class SampleMinimalAotPublishTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "Kun.sln")))
+            if (File.Exists(Path.Combine(dir.FullName, "Kun.slnx")))
             {
                 return dir.FullName;
             }
@@ -143,7 +143,7 @@ public sealed class SampleMinimalAotPublishTests
         }
 
         throw new InvalidOperationException(
-            $"Could not locate Kun.sln starting from {AppContext.BaseDirectory}");
+            $"Could not locate Kun.slnx starting from {AppContext.BaseDirectory}");
     }
 
     private static bool IsPlatformLinkerAvailable()

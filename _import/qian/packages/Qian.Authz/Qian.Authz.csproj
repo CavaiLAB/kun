@@ -10,7 +10,7 @@
     <!-- 授权变更后经身份端口递增 identity_revision（S1-DEC-027）：只用 Definition 里的 IIdentityAccounts 与服务键。 -->
     <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
     <PackageReference Include="JsonSchema.Net" />
-    <PackageReference Include="Kun.Caching" />
+    <ProjectReference Include="../../../../src/Kun.Caching/Kun.Caching.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
   <ItemGroup><EmbeddedResource Include="../../schemas/v2/authz-*.schema.json" LogicalName="schemas/%(Filename)%(Extension)" /></ItemGroup>

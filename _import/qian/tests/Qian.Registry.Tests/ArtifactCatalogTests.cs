@@ -137,7 +137,7 @@ public sealed partial class PatchPersistenceTests
     private static (Dictionary<string, ReadOnlyMemory<byte>> Files, string Digest, JsonElement Fixture) ArtifactFixture()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         var fixture = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(Path.Combine(root!.FullName, "tck/registry-artifacts/content.json")));
         var files = fixture.GetProperty("files").EnumerateObject().ToDictionary(property => property.Name,
             property => (ReadOnlyMemory<byte>)Encoding.UTF8.GetBytes(property.Value.GetString()!), StringComparer.Ordinal);

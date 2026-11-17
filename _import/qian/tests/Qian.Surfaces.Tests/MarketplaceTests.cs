@@ -11,7 +11,7 @@ public sealed class MarketplaceTests
     public void SharedMarketplaceVectors_UseTheSameDiagnostics()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         Assert.NotNull(root);
         using var vectors = JsonDocument.Parse(File.ReadAllText(Path.Combine(root.FullName, "tck/marketplaces/cases.json")));
         var validator = new SurfaceValidator(); var report = new JsonObject();

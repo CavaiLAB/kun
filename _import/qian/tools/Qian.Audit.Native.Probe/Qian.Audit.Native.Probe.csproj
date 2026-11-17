@@ -6,6 +6,6 @@
   <ItemGroup>
     <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
     <ProjectReference Include="../../packages/Qian.Data.Native.Postgres/Qian.Data.Native.Postgres.csproj" />
-    <PackageReference Include="Kun.MultiTenancy" />
+    <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
   </ItemGroup>
 </Project>

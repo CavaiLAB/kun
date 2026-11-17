@@ -517,7 +517,7 @@ public abstract partial class CustomerCommandTests
     private protected static string RepositoryRoot()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         return root?.FullName ?? throw new InvalidOperationException("找不到契约根目录。");
     }
 }

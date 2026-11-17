@@ -5,6 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" />
-    <PackageReference Include="Kun.EventBus.Abstractions" />
+    <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
   </ItemGroup>
 </Project>

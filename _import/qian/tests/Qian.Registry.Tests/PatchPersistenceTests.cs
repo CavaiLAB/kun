@@ -379,7 +379,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         internal TestProfile()
         {
             var root = new DirectoryInfo(AppContext.BaseDirectory);
-            while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+            while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
             var template = Path.Combine(root!.FullName, "tck/profiles/base");
             foreach (var source in System.IO.Directory.EnumerateFiles(template, "*", SearchOption.AllDirectories))
             {

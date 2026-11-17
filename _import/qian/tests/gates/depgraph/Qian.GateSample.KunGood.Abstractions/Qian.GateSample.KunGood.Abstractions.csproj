@@ -4,6 +4,6 @@
     <Description>Definition 的 Kun 直接依赖门禁样例</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Kun.Storage.Abstractions" />
+    <ProjectReference Include="../../../../../../src/Kun.Storage.Abstractions/Kun.Storage.Abstractions.csproj" />
   </ItemGroup>
 </Project>

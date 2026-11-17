@@ -66,11 +66,18 @@ class SiteContentTests(unittest.TestCase):
         ]
         self.assertEqual(self.errors_for(good), [])
 
-    def test_yue_routes_come_from_catalog_and_api_files_must_exist(self) -> None:
-        write(self.tmp / "packages/yue/core/docs/catalog.json", '{"Button": {}}')
+    def test_core_routes_come_from_installed_manifest_and_api_files_must_exist(self) -> None:
+        write(self.tmp / "website/node_modules/@cavailab/qian-core/dist/qian-manifest.json", '[{"name": "Button", "props": {}}]')
         write(self.tmp / "website/docs/components/yue/api/native-123456abcdef.mdx", "# 属性")
-        self.assertEqual(self.errors_for(["/components/yue/core/button", "/components/yue/tokens", "/components/yue/api/native-123456abcdef"]), [])
+        self.assertEqual(self.errors_for(["/components/yue/core/button", "/components/yue/tokens", "/components/yue/core/shared-api",
+                                          "/components/yue/api/native-123456abcdef"]), [])
         for route in ["/components/yue/core/invented", "/components/yue/api/native-000000000000"]:
+            self.assertTrue(self.errors_for([route]), route)
+
+    def test_core_routes_deferred_without_installed_manifest(self) -> None:
+        # 只跑文档门禁的作业不装文档站依赖：core 组件路由交给构建时的断链检查，其它生成路由照样要登记过。
+        self.assertEqual(self.errors_for(["/components/yue/core/button", "/components/yue/core/invented", "/components/yue/tokens"]), [])
+        for route in ["/components/yue/core/Button", "/components/yue/core/a/b", "/components/yue/undeclared", "/components/platform/qian.nope"]:
             self.assertTrue(self.errors_for([route]), route)
 
     def test_yue_package_routes_must_be_declared_by_collector(self) -> None:

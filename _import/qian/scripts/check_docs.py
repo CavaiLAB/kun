@@ -52,6 +52,10 @@ SITE_HANDWRITTEN = {"sdk/kun/with-qian.mdx"}
 # 单个生成文件（相对 website/docs）：版本矩阵由 website/scripts/build-versions.ts 从钉版文件产出（docs-site.md §2b.4）
 SITE_GENERATED_FILES = {"start/versions.md"}
 PAGE_SUFFIXES = (".md", ".mdx")
+# core 的组件页由文档站按前端框架的组件目录生成；组件名取文档站安装的 @cavailab/qian-core 自带的组件清单（版本钉在
+# pnpm-workspace.yaml 的版本目录）。只跑文档门禁、不装 Node 依赖的作业里没有这份清单，core 组件路由交给文档站构建时的断链检查。
+CORE_MANIFEST = Path("website/node_modules/@cavailab/qian-core/dist/qian-manifest.json")
+CORE_COMPONENT_ROUTE = re.compile(r"/components/yue/core/[a-z0-9-]+")
 
 
 def generated_part(path: Path) -> str | None:
@@ -150,12 +154,16 @@ def generated_routes() -> frozenset[str]:
     routes |= {f"/components/platform/{cid}" for cid in re.findall(r"\bid: '(qian\.[a-z0-9.-]+)'", collect)}
     # 非 core 包的文档源由收集器显式登记；预生成检查也只接受这些已声明的路由。
     routes |= {f"/components/{slug}" for slug in re.findall(r"\bpath: '(yue/[a-z0-9-]+)\.(?:md|mdx)'", collect)}
-    catalog = ROOT / "packages/yue/core/docs/catalog.json"
-    if catalog.is_file():
-        names = json.loads(catalog.read_text(encoding="utf-8"))
-        routes |= {f"/components/yue/core/{name.lower()}" for name in names}
-        routes |= {"/components/yue/tokens", "/components/yue/core/shared-api"}
+    routes |= {"/components/yue/tokens", "/components/yue/core/shared-api"}
+    manifest = ROOT / CORE_MANIFEST
+    if manifest.is_file():
+        routes |= {f"/components/yue/core/{item['name'].lower()}" for item in json.loads(manifest.read_text(encoding="utf-8"))}
     return frozenset(routes)
+
+
+def core_components_known() -> bool:
+    """文档站的依赖装了没有：没装就列不出 core 的组件名（见 CORE_MANIFEST）。"""
+    return (ROOT / CORE_MANIFEST).is_file()
 
 
 def site_page_exists(base: Path) -> bool:
@@ -180,6 +188,8 @@ def route_exists(route: str) -> bool:
     if re.fullmatch(r"/components/yue/api/native-[0-9a-f]{12}", route):
         return site_page_exists(SITE_DOCS / route.lstrip("/"))
     if route.startswith(("/cli/", "/components/")):
+        if CORE_COMPONENT_ROUTE.fullmatch(route) and not core_components_known():
+            return True  # 延后到文档站构建时的断链检查
         return route in generated_routes()
     for part in ("sdk/kun", "sdk/api"):
         if route.startswith(f"/{part}/") and not mirror_generated(part):

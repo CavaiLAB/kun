@@ -113,6 +113,7 @@ distributed system where correctness matters.
 
 - [Kun ADR-015 Outbox pattern design](../adr/kun/ADR-015-Outbox-pattern.md) — full design walk-through: type
   surface, atomicity boundary, publisher pump, consumer idempotency, rejected alternatives.
-- `kun/CLAUDE.md` §Outbox — normative rules (atomicity, stable event IDs, idempotent consumers,
-  W3C trace propagation). The rules constrain; this primer explains the problem; the ADR explains
-  the design.
+- [AGENTS.md](../../AGENTS.md#运行时约定) §运行时约定 (the Outbox rule) — normative rules (atomicity,
+  stable event IDs, idempotent consumers); how the W3C trace context crosses the outbox is shown in the
+  [tracing tour](../guides/tracing-tour.md). The rules constrain; this primer explains the problem; the
+  ADR explains the design.

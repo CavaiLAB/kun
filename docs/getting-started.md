@@ -292,5 +292,6 @@ publishes, so a single `TraceId` threads through HTTP ingress → CQRS handler �
 - **Module map** — [`docs/design/module-map.md`](design/module-map.md) shows the
   full dependency graph and which modules are AOT candidates.
 
-- **CLAUDE.md** — the binding architectural rules that every code contribution must satisfy,
-  including the four-layer dependency constraint and AOT restrictions.
+- **Root [AGENTS.md](../AGENTS.md#原-kun-的构建测试与代码约定)**, section 原 Kun 的构建、测试与代码约定 — the binding
+  architectural rules that every code contribution must satisfy, including the four-layer dependency
+  constraint and AOT restrictions.

@@ -211,7 +211,7 @@ public async ValueTask<Result<OrderDto>> Handle(...)
 }
 ```
 
-把校验放进 Validator；Handler 里用 `Result<TValue>.Fail(Error.Validation(...))` 直接返回。`kun/CLAUDE.md` §Architectural constraints："Business failures use `Result` / `Result<T>`, not exceptions." 抛异常会破坏下游 `Match / Bind / Tap` 组合链（Kun ADR-011）。
+把校验放进 Validator；Handler 里用 `Result<TValue>.Fail(Error.Validation(...))` 直接返回。根 [AGENTS.md](../../AGENTS.md#运行时约定)「运行时约定」：业务失败返回 `Result` / `Result<T>`，异常只留给系统性故障（并发、网络、基础设施）。抛异常会破坏下游 `Match / Bind / Tap` 组合链（Kun ADR-011）。
 
 ### 3. 在 Validator 里调数据库 / 外部服务
 

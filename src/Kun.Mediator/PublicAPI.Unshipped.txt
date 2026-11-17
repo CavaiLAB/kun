@@ -20,3 +20,4 @@ Kun.Mediator.CapabilityDescriptor.RequestSchema.get -> System.Text.Json.Nodes.Js
 Kun.Mediator.CapabilityDescriptor.ResponseSchema.get -> System.Text.Json.Nodes.JsonNode!
 Kun.Mediator.KunMediatorBuilder.AddRequestHandler<TRequest, TResponse, THandler>(string! capabilityId, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TRequest>! request, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TResponse>! response) -> Kun.Mediator.KunMediatorBuilder!
 Kun.Mediator.ICapabilityRegistry
+virtual Kun.Mediator.RequestHandlerDelegate<TResponse>.Invoke() -> System.Threading.Tasks.ValueTask<TResponse>

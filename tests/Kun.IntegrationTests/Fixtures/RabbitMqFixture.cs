@@ -28,7 +28,7 @@ public sealed class RabbitMqFixture : IAsyncLifetime
     {
         try
         {
-            var builder = new RabbitMqBuilder().WithImage("rabbitmq:3.13-management");
+            var builder = new RabbitMqBuilder("rabbitmq:3.13-management");
             if (PreservePortAcrossRestarts)
             {
                 // 先选取当前宿主的空闲端口，再将该端口写进 Docker HostConfig；

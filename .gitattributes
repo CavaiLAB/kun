@@ -25,7 +25,3 @@
 *.ico binary
 *.snk binary
 *.pfx binary
-
-# 本仓库加（B2）：以上是原 Kun 的规则。原 Qian 没有 .gitattributes，
-# 下一行把这些属性对 _import/qian/ 恢复为未指定；该目录搬空后删掉。
-_import/qian/** !text !eol !diff !merge !binary

@@ -211,8 +211,7 @@ public sealed class KunCacheBackendTests : IClassFixture<RedisFixture>
 /// <summary>xUnit shared fixture that spins up a throwaway Redis container once per test class.</summary>
 public sealed class RedisFixture : IAsyncLifetime
 {
-    private readonly RedisContainer _container = new RedisBuilder()
-        .WithImage("redis:7-alpine")
+    private readonly RedisContainer _container = new RedisBuilder("redis:7-alpine")
         .Build();
 
     public string ConnectionString => _container.GetConnectionString();

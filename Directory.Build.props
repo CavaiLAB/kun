@@ -1,5 +1,12 @@
 <Project>
 
+  <!--
+    仓库的 .NET 构建基线，原 Kun 与 _import/qian/ 下的原 Qian 共用（S1-KUN-020）。
+    这里只放两边都要的：目标框架、质量门槛、确定性构建。
+    原 Kun 的版本、包元数据与 README 打包在 src/Directory.Build.props，只对原 Kun 的包生效；
+    原 Qian 的打包设置在 _import/qian/Directory.Build.props，它先导入本文件。
+  -->
+
   <PropertyGroup Label="Targeting">
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
@@ -9,10 +16,15 @@
 
   <PropertyGroup Label="Quality">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
+    <!-- 缺 XML 注释只告警不阻断。 -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS1591</WarningsNotAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- 带后缀的 AnalysisLevel 同时决定分析模式；不再另写 AnalysisMode（写了也会被它盖过）。 -->
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <!-- 包漏洞审计覆盖直接与传递依赖；命中即随 TreatWarningsAsErrors 让还原失败。 -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
   </PropertyGroup>
 
   <!--
@@ -57,51 +69,5 @@
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
-
-  <PropertyGroup Label="Versioning">
-    <!--
-      Current milestone: 0.1.0-phase1 (first NeuroAgent-integration-ready Kun release;
-      see CHANGELOG.md and docs/whitepaper.md §13).
-
-      Resolution precedence:
-        1. Explicit -p:Version=… on the command line overrides everything
-           (release.yml derives it from the git tag, e.g. v0.1.0-phase1 → 0.1.0-phase1).
-        2. Otherwise VersionPrefix + VersionSuffix compose the SemVer.
-        3. CI without an explicit suffix → VersionPrefix only (no local default pollution).
-        4. Local dev → VersionPrefix-phase1 so dotnet pack produces nupkgs
-           that match the current milestone without the developer remembering a flag.
-    -->
-    <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix Condition="'$(VersionSuffix)' == '' AND '$(CI)' != 'true'">phase1</VersionSuffix>
-  </PropertyGroup>
-
-  <PropertyGroup Label="NuGet Package Metadata">
-    <Authors>Kun Framework Contributors</Authors>
-    <Company>Kun Framework</Company>
-    <Product>Kun Framework</Product>
-    <Copyright>Copyright © Kun Framework Contributors</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/idadawn/kun</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/idadawn/kun.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(IsPackable)' == 'true'">
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(HasPublicApi)' == 'true'">
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="PublicAPI.Shipped.txt" Condition="Exists('PublicAPI.Shipped.txt')" />
-    <AdditionalFiles Include="PublicAPI.Unshipped.txt" Condition="Exists('PublicAPI.Unshipped.txt')" />
-  </ItemGroup>
 
 </Project>

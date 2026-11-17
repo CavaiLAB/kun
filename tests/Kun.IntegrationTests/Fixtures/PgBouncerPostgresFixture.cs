@@ -38,8 +38,7 @@ public sealed class PgBouncerPostgresFixture : IAsyncLifetime
             _network = new NetworkBuilder().WithName($"kun-rls-{Guid.NewGuid():N}").Build();
             await _network.CreateAsync(ct);
 
-            _postgres = new PostgreSqlBuilder()
-                .WithImage("postgres:16")
+            _postgres = new PostgreSqlBuilder("postgres:16")
                 .WithNetwork(_network)
                 .WithNetworkAliases("pg")
                 .WithDatabase("kun")
@@ -54,8 +53,7 @@ public sealed class PgBouncerPostgresFixture : IAsyncLifetime
             // Superuser DDL still runs via DirectConnectionString.
             await ProvisionAppRoleAsync(ct);
 
-            _pgBouncer = new ContainerBuilder()
-                .WithImage("edoburu/pgbouncer:latest")
+            _pgBouncer = new ContainerBuilder("edoburu/pgbouncer:latest")
                 .WithNetwork(_network)
                 .WithEnvironment("DB_HOST", "pg")
                 .WithEnvironment("DB_PORT", "5432")
@@ -81,7 +79,7 @@ public sealed class PgBouncerPostgresFixture : IAsyncLifetime
                 // that gap reaches whole seconds, and the first test connections hit
                 // a half-started listener and die with kernel resets ("Exception
                 // while reading from stream") faster than any in-test retry budget.
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6432))
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(6432))
                 .Build();
             await _pgBouncer.StartAsync(ct);
 

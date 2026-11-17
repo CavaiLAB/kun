@@ -102,9 +102,10 @@ dotnet build -c Release /warnaserror
 # ---------------------------------------------------------------------------
 # Phase 2: tests
 # ---------------------------------------------------------------------------
-log "Phase 2/5 · dotnet test (unit only; IntegrationTests / Sample.Tests / Integration.AotTests filtered out)"
-dotnet test -c Release --no-build --verbosity minimal \
-  --filter "FullyQualifiedName!~Kun.IntegrationTests&FullyQualifiedName!~Kun.Sample.Tests&FullyQualifiedName!~Kun.Integration.AotTests"
+log "Phase 2/5 · dotnet test (unit only; IntegrationTests / Sample.Tests / Integration.AotTests left out)"
+# Microsoft.Testing.Platform (global.json test.runner): the unit projects are listed in
+# tests/kun-unit.slnf, which leaves out the same three projects the old VSTest filter excluded.
+dotnet test --solution tests/kun-unit.slnf -c Release --no-build
 
 # ---------------------------------------------------------------------------
 # Phase 3: AOT publish sweep

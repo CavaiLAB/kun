@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <IsAotCandidate>false</IsAotCandidate>
     <Description>
@@ -25,11 +26,8 @@
       see it. Resolving the sample via filesystem also keeps this
       test project free of AOT analyzer pressure on its own.
     -->
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.v3" />
-    <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
-    <PackageReference Include="coverlet.collector" />
   </ItemGroup>
 
 </Project>

@@ -260,8 +260,7 @@ internal sealed class SagaPostgresFixture : IAsyncLifetime
     {
         try
         {
-            _container = new PostgreSqlBuilder()
-                .WithImage("postgres:16")
+            _container = new PostgreSqlBuilder("postgres:16")
                 .WithDatabase("kun_saga_test")
                 .WithUsername("kun")
                 .WithPassword("kun_secret")

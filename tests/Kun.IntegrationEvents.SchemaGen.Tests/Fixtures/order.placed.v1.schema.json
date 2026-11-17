@@ -1,0 +1,188 @@
+{
+  "type": "object",
+  "properties": {
+    "OrderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "Sku": {
+      "type": "string"
+    },
+    "Quantity": {
+      "type": "integer"
+    },
+    "Amount": {
+      "type": "number"
+    },
+    "At": {
+      "type": "object",
+      "properties": {
+        "DateTime": {
+          "$ref": "#/$defs/dateTime",
+          "readOnly": true
+        },
+        "UtcDateTime": {
+          "$ref": "#/$defs/dateTime",
+          "readOnly": true
+        },
+        "LocalDateTime": {
+          "$ref": "#/$defs/dateTime",
+          "readOnly": true
+        },
+        "Date": {
+          "$ref": "#/$defs/dateTime",
+          "readOnly": true
+        },
+        "Day": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "DayOfWeek": {
+          "readOnly": true,
+          "enum": [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
+          ]
+        },
+        "DayOfYear": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Hour": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Millisecond": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Microsecond": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Nanosecond": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Minute": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Month": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Offset": {
+          "$ref": "#/$defs/timeSpan",
+          "readOnly": true
+        },
+        "TotalOffsetMinutes": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Second": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Ticks": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "UtcTicks": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "TimeOfDay": {
+          "$ref": "#/$defs/timeSpan",
+          "readOnly": true
+        },
+        "Year": {
+          "type": "integer",
+          "readOnly": true
+        }
+      }
+    },
+    "Note": {
+      "type": [
+        "null",
+        "string"
+      ]
+    }
+  },
+  "$defs": {
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "timeSpan": {
+      "type": "object",
+      "properties": {
+        "Ticks": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Days": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Hours": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Milliseconds": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Microseconds": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Nanoseconds": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Minutes": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "Seconds": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "TotalDays": {
+          "type": "number",
+          "readOnly": true
+        },
+        "TotalHours": {
+          "type": "number",
+          "readOnly": true
+        },
+        "TotalMilliseconds": {
+          "type": "number",
+          "readOnly": true
+        },
+        "TotalMicroseconds": {
+          "type": "number",
+          "readOnly": true
+        },
+        "TotalNanoseconds": {
+          "type": "number",
+          "readOnly": true
+        },
+        "TotalMinutes": {
+          "type": "number",
+          "readOnly": true
+        },
+        "TotalSeconds": {
+          "type": "number",
+          "readOnly": true
+        }
+      }
+    }
+  }
+}

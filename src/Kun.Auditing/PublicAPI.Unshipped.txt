@@ -94,3 +94,19 @@ override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SaveChangesCan
 override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SaveChangesCanceledAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.TransactionalAuditingSaveChangesInterceptor(Kun.Auditing.IAuditableEntityRegistry! registry, Kun.Core.MultiTenancy.ITenantContext! tenant, Kun.Core.Security.ICurrentUser! user, Kun.Auditing.AuditContext! auditContext, System.TimeProvider! clock) -> void
 Kun.Auditing.Events.AuditEventIntegrationEventV2.AuditEventIntegrationEventV2(System.Guid Id, string? TenantId, string? UserId, string! ActorType, string? ActorId, string! Action, string! ResourceType, string? ResourceId, string? TraceId, string? IpAddress, System.DateTimeOffset CreatedAt) -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.<Clone>$() -> Kun.Auditing.Events.AuditEventIntegrationEvent!
+Kun.Auditing.Events.AuditEventIntegrationEvent.Deconstruct(out System.Guid? TenantId, out System.Guid? UserId, out string! ActorType, out string? ActorId, out string! Action, out string? ResourceType, out string? ResourceId, out string! Outcome, out string? TraceId, out System.Text.Json.JsonDocument? Metadata, out string? IpAddress, out string? UserAgent, out System.DateTimeOffset CreatedAt) -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.Equals(Kun.Auditing.Events.AuditEventIntegrationEvent? other) -> bool
+Kun.Auditing.Events.AuditEventIntegrationEventV2.<Clone>$() -> Kun.Auditing.Events.AuditEventIntegrationEventV2!
+Kun.Auditing.Events.AuditEventIntegrationEventV2.Deconstruct(out System.Guid Id, out string? TenantId, out string? UserId, out string! ActorType, out string? ActorId, out string! Action, out string! ResourceType, out string? ResourceId, out string? TraceId, out string? IpAddress, out System.DateTimeOffset CreatedAt) -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.Equals(Kun.Auditing.Events.AuditEventIntegrationEventV2? other) -> bool
+override Kun.Auditing.Events.AuditEventIntegrationEvent.Equals(object? obj) -> bool
+override Kun.Auditing.Events.AuditEventIntegrationEvent.GetHashCode() -> int
+override Kun.Auditing.Events.AuditEventIntegrationEvent.ToString() -> string!
+override Kun.Auditing.Events.AuditEventIntegrationEventV2.Equals(object? obj) -> bool
+override Kun.Auditing.Events.AuditEventIntegrationEventV2.GetHashCode() -> int
+override Kun.Auditing.Events.AuditEventIntegrationEventV2.ToString() -> string!
+static Kun.Auditing.Events.AuditEventIntegrationEvent.operator !=(Kun.Auditing.Events.AuditEventIntegrationEvent? left, Kun.Auditing.Events.AuditEventIntegrationEvent? right) -> bool
+static Kun.Auditing.Events.AuditEventIntegrationEvent.operator ==(Kun.Auditing.Events.AuditEventIntegrationEvent? left, Kun.Auditing.Events.AuditEventIntegrationEvent? right) -> bool
+static Kun.Auditing.Events.AuditEventIntegrationEventV2.operator !=(Kun.Auditing.Events.AuditEventIntegrationEventV2? left, Kun.Auditing.Events.AuditEventIntegrationEventV2? right) -> bool
+static Kun.Auditing.Events.AuditEventIntegrationEventV2.operator ==(Kun.Auditing.Events.AuditEventIntegrationEventV2? left, Kun.Auditing.Events.AuditEventIntegrationEventV2? right) -> bool

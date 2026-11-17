@@ -86,8 +86,7 @@ public sealed class SpecificationEvaluatorTests : IAsyncLifetime
     {
         try
         {
-            _postgres = new PostgreSqlBuilder()
-                .WithImage("postgres:16")
+            _postgres = new PostgreSqlBuilder("postgres:16")
                 .WithDatabase("kun_test")
                 .WithUsername("kun")
                 .WithPassword("kun_secret")

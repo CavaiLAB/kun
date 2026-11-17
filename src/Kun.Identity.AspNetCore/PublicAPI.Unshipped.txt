@@ -56,3 +56,11 @@ Kun.Identity.AspNetCore.OidcLogoutEndpoint
 static Kun.Identity.AspNetCore.OidcLogoutEndpoint.MapKunBackChannelLogout(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, string! pattern, string! clientName) -> Microsoft.AspNetCore.Builder.IEndpointConventionBuilder!
 const Kun.Identity.AspNetCore.KunIdentityAspNetCoreServiceCollectionExtensions.CookieScheme = "KunCookieAuth" -> string!
 Kun.Identity.AspNetCore.KunCurrentUser.PrincipalKind.get -> string!
+Kun.Identity.AspNetCore.ChallengePayload.<Clone>$() -> Kun.Identity.AspNetCore.ChallengePayload!
+Kun.Identity.AspNetCore.ChallengePayload.Deconstruct(out string! Client, out string! CodeVerifier, out string! State, out string! Nonce, out string! ReturnUrl) -> void
+Kun.Identity.AspNetCore.ChallengePayload.Equals(Kun.Identity.AspNetCore.ChallengePayload? other) -> bool
+override Kun.Identity.AspNetCore.ChallengePayload.Equals(object? obj) -> bool
+override Kun.Identity.AspNetCore.ChallengePayload.GetHashCode() -> int
+override Kun.Identity.AspNetCore.ChallengePayload.ToString() -> string!
+static Kun.Identity.AspNetCore.ChallengePayload.operator !=(Kun.Identity.AspNetCore.ChallengePayload? left, Kun.Identity.AspNetCore.ChallengePayload? right) -> bool
+static Kun.Identity.AspNetCore.ChallengePayload.operator ==(Kun.Identity.AspNetCore.ChallengePayload? left, Kun.Identity.AspNetCore.ChallengePayload? right) -> bool

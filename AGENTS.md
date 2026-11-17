@@ -17,7 +17,7 @@
 
 原仓库归档之后的规矩：
 
-- 两个原仓库 2026-11-17 冻结，【待写实：归档日期】归档为只读。最后一次同步的来源头是 `idadawn/kun` 的 【待写实：原 Kun 最终头】 与 `idadawn/qian` 的 【待写实：原 Qian 最终头】，`_import/kun/`、`_import/qian/` 在同步时与这两个头的树逐字节相同。原 Kun 与原 Qian 的源码、文档与任务文件从此以本仓库为准，原仓库不再接受改动。
+- 两个原仓库 2026-11-17 冻结，同日归档为只读。最后一次同步的来源头是归档时的最终头：`idadawn/kun` 的 `51b480775c` 与 `idadawn/qian` 的 `5954ec3b86`，`_import/kun/`、`_import/qian/` 在同步时与这两个头的树逐字节相同。原 Kun 与原 Qian 的源码、文档与任务文件从此以本仓库为准，原仓库不再接受改动。
 - 过渡目录里的内容从此在本仓库改，在本仓库开 PR。改的是文件内容；过渡目录本身的搬动与拆分属于后面的批次（见最后一条），不要顺手做。
 - 两份 `AGENTS.md` 里构建、测试与代码约定的部分照用。任务文件照原 Qian 的 `pm/README.md` 改：任务文件在 `_import/qian/pm/tasks/` 下，`pm.py` 在 `_import/qian/` 下运行（如 `cd _import/qian && python3 scripts/pm.py validate`），`set` 与 `add` 要带 `--by`，生成物不进 git。迁移任务（S1-KUN-018–022）的文件也在这里改（迁移执行计划第 3 节第 7 条）。两份 `AGENTS.md` 里讲提 PR、发版、发布文档站的部分说的是原仓库，在本仓库以本文件与迁移执行计划为准。
 - 两个原仓库冻结时写的去处说明随最后一次同步带了进来，在本仓库不适用：`_import/kun/` 的 `README.md`、`AGENTS.md`、`CLAUDE.md` 开头那一段，`_import/qian/` 的 `README.md` 开头那一段与 `AGENTS.md` 的「本仓库已冻结」一节。原 Kun 的自管任务队列（`_import/kun/.autonomy/`）与第三方生成的代理配置（如 `_import/kun/.claude/CLAUDE.md`）按合并蓝图在 B2 的整理里删除，在那之前也不要照着用。
@@ -30,7 +30,7 @@
 ## 要改文档
 
 1. 先读 [README.md](README.md) 与平台总览仓库的[名称对照](https://github.com/CavaiLAB/jiangxin/blob/main/docs/glossary.md)。「Qian」换了所指：以前指基于 Kun 的平台层，现在只作前端框架的名字；原来叫 Qian 的后端并入 Kun。组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留；`qian` 命令行与 `@qian/*` 导入名本次不改。
-2. 合并蓝图是 `idadawn/qian` 主干上的 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在同一仓库的 `pm/tasks/S1-DEC-036.md`（D1–D14）。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
+2. 合并蓝图是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）；两者与已归档的 `idadawn/qian` 里的同名文件内容相同。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
 3. 文档用中文，不写参考平台和对标项目的名字。
 4. 分清「已定」「提议」「待定」。说现状的时候写清是「已有」（在原仓库里已经实现）还是「规划」。
 5. 平台级的口径（名称、三个框架的分工、Agent 协同）在 [jiangxin](https://github.com/CavaiLAB/jiangxin) 里改，这里只引用。

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://qian.dev/schemas/plugin/v2",
+  "id": "qian.config",
+  "version": "1.0.0",
+  "description": "提供 qian.config 的实际代码入口与配置契约；安装状态按组件验收门管理。",
+  "author": {
+    "name": "Qian"
+  },
+  "license": "Apache-2.0",
+  "interface": {
+    "displayName": "config",
+    "category": "platform"
+  },
+  "inject": [],
+  "provides": [
+    "Config"
+  ],
+  "policy": {
+    "tier": "system",
+    "sandbox": "none",
+    "authentication": "ON_INSTALL",
+    "required": false
+  },
+  "scopes": [
+    "global"
+  ],
+  "engines": {
+    "kun": ">=2026.10.14"
+  },
+  "runtime": {
+    "form": "module",
+    "entry": "Qian.Config.Apollo.ConfigurationPlugin, Qian.Config.Apollo",
+    "nuget": [
+      {
+        "id": "Qian.Config.Apollo",
+        "version": "0.2.0",
+        "digest": "sha256:f33c5ddd54e540605fb4943ab24075fb9b5008a8e285b3804c4ab95622e58aab"
+      }
+    ],
+    "configSchema": "./schemas/config.schema.json"
+  },
+  "x-qian-generated": {
+    "$generated": true,
+    "fields": [
+      "/inject",
+      "/provides",
+      "/runtime/form",
+      "/runtime/entry",
+      "/runtime/configSchema"
+    ],
+    "tools": [],
+    "metadata": {
+      "metadata/events.json": {
+        "$generated": true,
+        "component": "qian.config",
+        "source": "Qian.Config.Apollo.ConfigurationPlugin, Qian.Config.Apollo",
+        "sha256": "29e18d84ad191d035566d3f4535b4dc74fc3359787351a7358d8cb9396bafe58",
+        "fields": [
+          ""
+        ]
+      },
+      "schemas/config.schema.json": {
+        "$generated": true,
+        "component": "qian.config",
+        "source": "Qian.Config.Apollo.ConfigurationPlugin, Qian.Config.Apollo",
+        "sha256": "c5beb9c0117ee4d3e4df51dc1a51f234b9adac206442d93ffb74c9682568651e",
+        "fields": [
+          ""
+        ]
+      }
+    }
+  }
+}

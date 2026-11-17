@@ -1,0 +1,259 @@
+# 测试与门禁
+
+> 对应任务 S1-QA-001。依据：[PRD §14 质量与评估](../docs/prd/14-quality.md)（测试金字塔、C1 PublicAPI、C10 测试门禁、C19 依赖图断言）、[ADR-019](../docs/adr/ADR-019-library-first-packages.md) D19.7 / D19.8、[组件模型规格](../docs/prd/specs/component-model.md) §6.1 与 §10.3。
+
+## 1 目录
+
+```text
+tests/
+  Directory.Build.props                       测试项目公共设置：不打包、不要求 XML 注释
+  Qian.Testing.Containers/                    集成测试共用的 Testcontainers fixture（不打包）
+    ApolloMock/apollo_mock.py                 Apollo 协议替身，在容器里运行
+  Qian.Testing.Containers.IntegrationTests/   fixture 自身的集成测试与单元测试
+  Qian.Identity.Server.Tests/                 真实 OpenIddict + PostgreSQL + Kun 客户端协议验收、跨宿主吊销、后通道与密钥轮换；账号模型（Argon2id、标识与绑定守卫、sub 不碰撞、配额）、统一登录流水线（审计、限流与并发、强制改密、租户选择与切换、MFA 不降级）与账号 HTTP 面端到端（可控时钟 + 可控租户目录）、会话中心（吊销即时与旁路、并发上限与单端、租户冻结、真实 Redis 索引与宕机降级、管理面、多副本竞争、日志卫生）
+  Qian.Identity.Client.Tests/                 依赖方：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码与 qian.sid 会话、篡改 nonce / iss / state 重放、刷新单飞与轮换（真实 Redis）、登出防伪、卸载、后通道登出；会话主体经 Kun 网关签发器铸 S2S 后下游接受；S2S 契约逐条违约与透传拒绝
+  Qian.Identity.Client.Standalone.Tests/      独立宿主 E2E：只引用 Qian.Identity.Client，对接 Dex（DexFixture）完成登录与登出，并断言依赖闭包
+  Qian.Authz.Tests/                           授权：权限目录与默认角色、RBAC 判定与快照缓存（真实 PostgreSQL + Redis，两宿主授予 / 撤销传播）、平台超管旁路（专用平台登录 + 真实 Audit 插件）
+  Qian.Data.AspNetCore.Tests/                 数据端点：基准类型目录（无数据库）与数据连接档案（真实 PostgreSQL、挂载式密钥、连通测试）
+  Qian.Data.Native.Postgres.Tests/            NativeData：受限登录、精确 RLS 策略、租户/平台原始 SQL、事务与可撤销会话生命周期（真实 PostgreSQL）
+  Qian.Data.Native.Postgres.AotTests/         独立原生持续门：运行严格发布的 Linux 二进制，复用共享 fixture 验证真实数据库；不在常规解决方案测试中跳过
+  Qian.Lifecycle.Tests/                       生命周期：验签与信任根轮换（真实 PostgreSQL）、GitOps 执行器（本机裸仓库 + K3s 单节点集群）、Local 执行器
+  Qian.Runtime.Errors.Tests/                  contracts/v0 契约测试（Schema、fixture、语义规则、内置错误码目录）与 ErrorDetail 内存宿主测试
+  Qian.Runtime.Tests/                         最小运行时单元测试与 tck/runtime/*.scenario.yml 的 .NET harness
+  Qian.Common.Tests/                          packages/Common 共享内部源文件的测试，直接编译源文件；并生成 CLI 移植比对用的 tck/profiles/key-vectors.json 与等价类表
+  gates/                                      门禁自测：样例项目 + Python 测试，不在 Qian.slnx 里
+    depgraph/                                 依赖图门禁样例（good.slnx 合规、bad.slnx 违规）
+    publicapi/                                PublicAPI 门禁样例
+    yue/                                      yue 前端门禁自测（分层边界、循环依赖样例、包形状），由 pnpm yue:test 跑
+```
+
+## 2 本地运行
+
+```bash
+dotnet build Qian.slnx -c Release
+python3 scripts/check_deps.py --no-restore
+python3 -m unittest discover -s tests/gates -v
+dotnet test --solution Qian.slnx -c Release --no-build
+```
+
+- 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Qian.Capabilities.Tests` 与 `Qian.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
+  - `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
+  - `python3 scripts/prepare_contract_tools.py --destination <目录>`，再导出 `QIAN_BUF_PATH=<目录>/buf` 与 `QIAN_OASDIFF_PATH=<目录>/oasdiff`：能力契约的真实兼容检查器，缺失时相关用例按设计拒绝跳过。
+- `dotnet test` 走 Microsoft Testing Platform（[global.json](../global.json) 的 `test.runner`）；xUnit v3 测试项目是可执行程序，csproj 里写 `<OutputType>Exe</OutputType>`。
+- 单跑一个测试项目用 `dotnet run --project tests/<X>.Tests -c Release`；`dotnet test <项目路径>` 或 `dotnet test --project …` 在部分机器上会报「运行了零个测试、退出码 5」，以 `--solution` 或 `dotnet run` 的结果为准。
+- CLI 的私有源 E2E（`packages/qian-cli/test/private-feed.e2e.mjs`）不随 `pnpm --filter qian test` 运行，单独用 `QIAN_FEED_TOKEN=<读包令牌> pnpm --filter qian test:feed`；本机可取 `gh auth token`（需 `read:packages`）。令牌只放环境变量，缺失即失败、不跳过。网络很慢时可另设 `QIAN_PACKAGE_TIMEOUT`（整数秒，缺省 600）放宽 CLI 包管理器操作的超时。
+- 集成测试需要 Docker。本机没有 Docker 时集成测试**跳过**；在 CI（`CI=true`）或设置了 `QIAN_REQUIRE_DOCKER=1` 时**直接失败**，不会悄悄跳过（C10：集成测试必须跑）。
+- 首次运行要拉镜像，之后整套测试十秒左右。
+
+## 3 写一个集成测试
+
+整组测试共享一套容器：在测试项目里声明一次 collection，测试类挂上它。
+
+```csharp
+[CollectionDefinition(Name)]
+public sealed class SharedInfrastructure : ICollectionFixture<InfrastructureFixture>
+{
+    public const string Name = "shared-infrastructure";
+}
+
+[Collection(SharedInfrastructure.Name)]
+public sealed class OrderVisibilityTests(InfrastructureFixture infra)
+{
+    [Fact]
+    public async Task Tenant_a_cannot_read_tenant_b()
+    {
+        // 建表、迁移、造数用超级用户；被测代码一律用受 RLS 约束的应用角色。
+        var admin = infra.Postgres.ConnectionString;
+        var app = infra.Postgres.AppConnectionString;
+        // ...
+    }
+}
+```
+
+只用一个依赖时，也可以把单个 fixture 直接当 class fixture 用。
+
+| fixture | 默认镜像（覆盖用的环境变量） | 提供什么 |
+|---|---|---|
+| `PostgresFixture` | `postgres:16-alpine`（`QIAN_TEST_IMAGE_POSTGRES`） | `ConnectionString`：超级用户，做 DDL 与造数；`AppConnectionString`：应用角色 `qian_app`（NOSUPERUSER NOBYPASSRLS，只有 DML 权限）。验证 RLS 必须用应用角色——超级用户会绕过 `FORCE ROW LEVEL SECURITY` |
+| `RedisFixture` | `redis:7-alpine`（`QIAN_TEST_IMAGE_REDIS`） | `ConnectionString` |
+| `RabbitMqFixture` | `rabbitmq:4.3-alpine`（`QIAN_TEST_IMAGE_RABBITMQ`） | `ConnectionString`（AMQP URI）；`Container` 可停启 broker，做「重启后消息不丢」这类韧性测试 |
+| `ApolloFixture` | `python:3.13-alpine` 运行 `apollo_mock.py`（`QIAN_TEST_IMAGE_APOLLO_MOCK`） | `ConfigServiceUri`（即客户端的 `Apollo__ConfigServer__0`）；`PublishAsync`、`DeleteAsync`、`SetAccessKeyAsync`、`SetHoldAsync`、`ResetAsync` |
+| `InfrastructureFixture` | 以上四个并行启动 | `Postgres`、`Redis`、`RabbitMq`、`Apollo` |
+| `K3sFixture` | `rancher/k3s:v1.31.5-k3s1`（`QIAN_TEST_IMAGE_K3S`），特权容器 | `Kubeconfig`（API Server 已映射到宿主端口）；`KubectlAsync` 在容器内执行 kubectl（含 kustomize），`CopyAsync` 写入待 apply 的清单。K3s 启动时会短暂占满 CPU，容器在就绪前自行退出时重建，最多三次（只重建容器，不重试断言）；用例里的工作负载镜像由集群自行拉取，需要出网 |
+| `DexFixture` | `ghcr.io/dexidp/dex:v2.41.1`（`QIAN_TEST_IMAGE_DEX`） | 独立实现的外部 OIDC 发行方（S1-IDP-005 的独立宿主 E2E）：`Issuer`、`RedirectUri`（登记给公开 PKCE 客户端 `ClientId` 的唯一回调，依赖方须在该端口以 HTTPS 监听）、`Email` / `Password`（本地密码库用户，口令每次随机、配置里只有 bcrypt 哈希）。issuer 要写进配置，宿主端口在启动前选定，不用随机映射 |
+
+- 版本：PostgreSQL 16、Redis 7 与部署基线一致（ADR-017 D17.2）；RabbitMQ 取当前 4.x 稳定线。环境变量用来与 staging 对齐或换内网镜像源。
+- 容器口令每次运行随机生成，仓库里没有写死的凭据。
+- 启动失败只在环境原因下重试（S1-QA-011）：
+  - Ryuk 初始化失败：Testcontainers 在每个测试进程第一次启动容器时初始化 Ryuk（资源回收容器），等待连接确认的超时写死为 60 秒，宿主繁忙（如多个会话并发跑容器测试）时会耗尽，抛 `ResourceReaperException`。
+  - Docker API 请求超时：Docker 守护进程在 Docker 客户端的请求超时内没有响应，抛 `TaskCanceledException`，内层为 `HttpRequestException`。本次启动自己的取消令牌触发的取消不算。
+  - 遇到上面两类，所有 fixture 都先释放这次启动拿到的资源，退避后从头再来，最多三次；每次重试记一条诊断消息。
+    - 基类只释放主容器：先调用 `OnDisposingAsync`，再释放主容器，最后调用 `OnDisposedAsync`。`OnStartingAsync` 准备的依赖容器与网络、`StartAlongsideAsync` 与主容器并行启动的同级容器，由 fixture 自己在这两个钩子里释放，例如 `RealApolloFixture` 在 `OnDisposingAsync` 里释放 AdminService 与 Portal、在 `OnDisposedAsync` 里释放 MySQL 与网络。新写 fixture 时两个钩子要能处理尚未启动完的状态。
+    - 主容器与同级容器都结束才判定成败，失败时不会释放仍在启动的容器；两者都失败时，按先出错的那个判定是否重试（S1-QA-020）。
+  - 容器在就绪前自行退出：只在 fixture 声明了 `StartAttempts` 时重试，目前只有 K3s。
+  - 其他错误、以及测试已取消时，不重试。
+  - 这里只重试启动，不重试断言，与下一条「安全类用例不允许重试通过」不冲突。
+- PRD §14.2.1 的约定照旧：多副本用同一套容器起 2–3 个宿主实例，不用「单实例 + 顺序调用」冒充；集成测试默认在两个租户下运行（租户夹具随租户组件补上）；安全类用例不允许重试通过。
+
+### Apollo 协议替身
+
+PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qian.Testing.Containers/ApolloMock/apollo_mock.py) 只依赖 Python 标准库，实现 Apollo「其它语言客户端接入」HTTP 协议里客户端会用到的部分：
+
+| 接口 | 行为 |
+|---|---|
+| `GET /configs/{appId}/{cluster}/{namespace}` | 返回 `configurations` 与 `releaseKey`；带相同 `releaseKey` 返回 304；未发布或已撤下返回 404 |
+| `GET /configfiles/json/{appId}/{cluster}/{namespace}` | 配置的 JSON 视图 |
+| `GET /notifications/v2` | 长轮询：客户端落后时立即返回新通知号；否则挂起（默认 60 秒，与 Apollo 服务端相同）直到有发布，超时返回 304 |
+| `GET /services/config` | Meta Server，返回本服务地址 |
+| 访问密钥 | `SetAccessKeyAsync` 之后，请求必须带 `Timestamp` 与 `Authorization: Apollo {appId}:{签名}` 头；签名 = Base64(HMAC-SHA1(密钥, 时间戳 + 换行 + 路径与查询串))，时间差超过 60 秒或签名不符返回 401 |
+
+不覆盖：灰度发布与 label 规则、Portal / Admin Service 接口、多实例 Meta Server、增量同步。自研 Apollo provider（S1-CFG-001）若要对真实服务端做契约测试，需另起 Apollo；官方 quick-start 镜像默认要配一个 MySQL 容器（只切换到 H2 配置组仍会去连 MySQL，已实测）。
+
+### CRM 参考宿主验收的用例写法
+
+`Qian.Sample.Crm.Tests` 的 `CustomerCommandTests` 是抽象的公共基类：`Start()` 起完整宿主，另有各主题共用的辅助方法、常量与探针类型，本身不含用例。用例分在八个 sealed 主题类里，各自一个 `PostgresFixture` 容器，主题之间并行、主题内串行（S1-QA-017）；主题类与各自的范围见 [CustomerCommandTests.cs](Qian.Sample.Crm.Tests/CustomerCommandTests.cs) 开头的注释。
+
+- 新用例写进对应的主题类，即文件里 `public sealed partial class <主题类>` 那一部分；配套的辅助方法、常量与探针类型照旧写进同一文件里基类的 `public abstract partial class CustomerCommandTests` 部分。
+- 基类不放 `[Fact]` / `[Theory]`：xUnit 按继承发现测试方法，写在基类的用例会在八个主题类各跑一遍。
+- 照拆类前的写法声明 `sealed partial class CustomerCommandTests` 会与抽象基类冲突，编译报 CS0418；漏写 `sealed` 的 `partial class CustomerCommandTests` 却能静默编译通过（`abstract` 写在其他部分上同样生效），里面的用例就进了基类。后一种由守卫用例 `CustomerCommandLayoutTests` 拦下，它断言基类不含测试方法（S1-QA-020）。
+- 新增主题类前先看耗时：程序集并发上限 `MaxThreads = 8`，xUnit 按集合分槽位（这里一个类一个集合），类多于 8 个时排在后面的类要等前面的类跑完；各类的耗时分布与重新平衡见 S1-QA-019。
+
+### 调度验收的用例写法
+
+`Qian.Scheduler.Tests` 的用例按主题分在四个 sealed 类里，各自一个 `SchedulerFixture`（独立的 PostgreSQL 容器、角色与 schema），类之间并行、类内串行（S1-QA-022）；各类的范围见 [SchedulerScenario.cs](Qian.Scheduler.Tests/SchedulerScenario.cs) 开头的注释。
+
+- 共用的租户、作业目标与参数是静态类 `SchedulerScenario` 的只读成员，各文件 `using static` 引用；没有公共基类，新用例直接写进对应主题类。
+- 分钟验收 `SchedulerMinuteTests` 要等两个真实分钟边界（CI 上 90–143 秒），是程序集的长杆，独占一个类；不往里加用例，其他类的总时长也要留在它之下。
+- 同一个类的用例共用一个库：用到库的用例都先 `Reset()` 清表，有的还建删触发器、改授权，所以只能串行。要并行就新开类、配自己的夹具，并同步调高程序集并发上限 `MaxThreads`（现为 4，按容器数定）。
+- 接管与准备用例的时序判据建立在测试宿主的 6 秒租约（`HostConfig.LeaseSeconds`）上：续租后至少还剩 3 秒才算观测到有效续租，有效准备只留 1.5 秒、小于首个续租周期 2 秒。改租约要同步重算这些阈值。
+
+## 4 门禁
+
+### 4.1 PublicAPI（C1 / G4）
+
+- **Qian 包** = 项目里写了 `<IsPackable>true</IsPackable>` 且包名以 `Qian.` 开头。根目录 [Directory.Build.props](../Directory.Build.props) 默认不打包，宿主、样例、测试都不算 Qian 包。
+- Qian 包自动接入 `Microsoft.CodeAnalysis.PublicApiAnalyzers`（[Directory.Build.targets](../Directory.Build.targets)）。项目目录必须有 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`，缺了报 QIAN0001。
+- 新增公共 API 没登记报 RS0016，登记了但代码里已删除报 RS0017，都是编译错误。新 API 先登记进 Unshipped，发布时并入 Shipped；破坏性变更要引用 ADR（C1）。IDE 对 RS0016 的代码修复「添加到公共 API」会生成登记行。
+
+一个 Qian 包目录至少有：
+
+```text
+<包目录>/
+  Qian.Foo.Abstractions.csproj    含 <IsPackable>true</IsPackable>
+  PublicAPI.Shipped.txt           #nullable enable
+  PublicAPI.Unshipped.txt         #nullable enable，之后逐行登记新 API
+```
+
+### 4.2 依赖图（C19 / G3）
+
+[scripts/check_deps.py](../scripts/check_deps.py) 检查解决方案里的每个 Qian 包：
+
+- 允许的 Qian 依赖只有 `Qian.Runtime`（及 `Qian.Runtime.*`）、`Qian.Plugin.Sdk`（及 `Qian.Plugin.Sdk.*`）和任何 `*.Abstractions`。平台插件包 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities` 与所有 Provider 包，出现在传递依赖里即违规。Definition 的 Kun 直接依赖另受下述规则约束；第三方包与 Kun 传递依赖不在该附加规则范围内。
+- 组合包 `Qian.Bundle.*` 不检查：它的职责就是把一组 Provider 一起装（组件模型规格 §7.3）。
+- 数据来自各项目的 `obj/project.assets.json`。`dotnet list package --include-transitive` 只列 NuGet 包，看不到 ProjectReference 带进来的项目，而仓库内组件之间多是项目引用，所以直接读 NuGet 还原产物，包与项目两类依赖一并检查。
+- 失败时打印从被检查方到违规依赖的完整路径，例如 `Qian.GateSample.Reports → Qian.GateSample.Files.Abstractions → Qian.GateSample.Authz`；加 `--json` 输出机器可读结果。修法：改为依赖对方的 `.Abstractions` 包。
+
+### Definition 的 Kun 直接依赖（S1-KUN-010）
+
+Definition 只允许直接引用 `Kun.*.Abstractions`，`PackageReference` 与 `ProjectReference` 均检查。Provider 使用 Kun 实现包不受此附加规则影响。现有公开契约的以下例外按完整「消费包 → 依赖包」登记在 `DEFINITION_KUN_EXCEPTIONS`，每条有理由，不能扩大为包名前缀豁免：
+
+| 消费包 | 允许的 Kun 直接依赖 | 保留理由 |
+|---|---|---|
+| `Qian.Tenancy.Abstractions` | `Kun.Core` | 复用零外部依赖的租户契约 |
+| `Qian.Authz.Abstractions` | `Kun.Authorization` | 复用框架权限、数据与字段判定端口，避免复制接口 |
+| `Qian.Data.Abstractions` | `Kun.EntityFrameworkCore` | 已发布的 QianDbContext 基类与同上下文工作单元契约 |
+| `Qian.Data.Abstractions` | `Kun.MultiTenancy.EntityFrameworkCore` | 启动期校验 RLS 双拦截器与模型缓存键，维持隔离安全 |
+
+Data 的两项依赖保留现有实现与公开 API；本任务不通过删除启动校验或复制基类来消除依赖。后续若移动数据基类，应先提供兼容迁移再删除对应白名单。身份事件入口已改为 `Kun.EventBus.Abstractions`，不在例外内。
+
+### 4.3 门禁自测
+
+`tests/gates` 下的样例项目专门证明门禁拦得住违规，CI 每次都跑（`python3 -m unittest discover -s tests/gates -v`）：
+
+| 样例 | 期望 |
+|---|---|
+| `depgraph/kun.slnx` | 真实 Kun 包：Storage 抽象可引用，EventBus 实现被 Definition 规则拒绝 |
+| `depgraph/good.slnx` | 通过；其中组合包与不打包的宿主引用 Provider 不算违规 |
+| `depgraph/bad.slnx` | 4 处违规：Definition 依赖 Provider、Provider 依赖平台插件、Provider 依赖另一个 Provider、经 Definition 传递依赖 Provider |
+| `publicapi/Qian.GateSample.Declared` | 构建通过 |
+| `publicapi/Qian.GateSample.Undeclared` | RS0016，构建失败 |
+| `publicapi/Qian.GateSample.Stale` | RS0017，构建失败 |
+| `publicapi/Qian.GateSample.NoApiFiles` | QIAN0001，构建失败 |
+| `publicapi/GateSample.NotPackable` | 构建通过：不打包的项目不受约束 |
+| `test_check_deps.py` 的 `SdkBoundaryTests` / `RealSdkClosureTests` | SDK 经 Definition、第三方包或另一个 SDK 包间接带入 Provider 与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities` 都报出完整路径；仓库里真实的 `Qian.Plugin.Sdk`、`.AspNetCore`、`.Generators` 在 `Qian.slnx` 的门禁范围内，其完整传递依赖只有 Runtime / SDK / Definition 与第三方包（S1-RT-014） |
+| `test_dotnet_release.py`（合成 `.nupkg`，不需要 dotnet 与网络） | 包族锁步发布的制品核对：缺包、多包、版本不一致、包族内依赖下限未钉同一版本或指向包族外、源生成器包带 `lib/` 或不是开发依赖、许可证与仓库地址缺失都失败；版本号须为不带前缀与构建元数据的 SemVer 2.0；推送后的包源核对缺包、仓库关联不符、可见性与仓库不一致或缺版本都失败（S1-RT-014） |
+| `test_check_docs.py`（不用样例项目，临时目录里搭最小仓库） | 文档门禁对文档站内容生效：站内路由、`/design/` 镜像路由与生成页路由的解析，生成目录跳过，禁用词在 `.mdx` 与站点源码里同样拦截（S1-DOCS-001）；Kun 小节的路由在生成前交给构建时的断链检查，显式给出的生成目录照查，生成目录里的文件进 Git 即失败，禁用词整词匹配（S1-DOCS-005） |
+| `test_dotnet_ci.py`（临时目录里搭 git 跟踪的最小仓库） | 触发过滤自检认得 §5.1 列的每类写法：.NET 源码的单个字面量、`Path.Combine` 分段、`../` 相对路径、插值前缀与洞后段、定位了仓库根的文件里的根目录 Markdown，csproj 的 `None` / `Content` / `Update`（含通配），工作流直接运行的脚本、unittest 收集的模块与它们导入的模块；对照样例不拦：注释、夹在变量后的段、不定位仓库根的 `README.md`、临时目录上的路径、被测试换掉仓库根的模块。`verify` 对 `Qian.slnx` 外的测试项目按名字告警，门禁样例与专属作业运行的项目除外（S1-QA-021） |
+
+## 5 CI
+
+[.github/workflows/dotnet.yml](../.github/workflows/dotnet.yml) 拆成并行的作业（S1-QA-018），每个作业限时 20 分钟（PRD §14.2.1）：
+
+- 构建与门禁：还原 → 构建（PublicAPI 门禁）→ 入口清单 → 明文密钥扫描 → namespace 骨架 → 依赖图门禁 → 门禁自测 → 触发过滤自检。
+- 单元与集成测试，分三个分片：各自还原、构建，再用 `scripts/dotnet_ci.py shard` 写出的解决方案筛选文件只跑本分片的模块。作业开头在后台预拉本分片用到的测试镜像，测试前有界等待。分片清单是脚本里的 `SHARDS`，新加的测试项目不用登记，自动落入其余分片。
+  - 测试命令带 `-p:QianTrxPerModule=true`，每个模块的 TRX 按项目名命名（`<项目名>.trx`，见 [Directory.Build.props](Directory.Build.props)）。xUnit 缺省文件名只有用户、机器和时间戳，同时启动的模块会撞名，后写完的覆盖先写完的（S1-QA-017）。
+- 测试分片汇总核对：`Qian.slnx` 里每个测试项目恰好在所属分片跑过一次、没有失败；各分片的 TRX 与证据合并为 `test-results` 构件。`tests/` 下引用 xunit.v3 却不在 `Qian.slnx` 里的测试项目哪个分片都不跑，汇总核对按名字告警；门禁样例 `tests/gates/**` 与 dotnet.yml 里由专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。
+
+### 5.1 触发过滤与写法约定
+
+只改 `pm/**`、`docs/**` 或根目录 Markdown 的 PR 不触发这个工作流，push 到 main 不过滤。工作流读到的这类文件在 `pull_request.paths` 里重新纳入：
+
+| 重新纳入 | 读取方 |
+|---|---|
+| `docs/generated/**` | `Qian.Tenancy.Tests` 的 `TenancyConfigurationTests` 读 `docs/generated/config-catalog.md`，核对 tenancy 的实际配置与发布的配置目录一致。`Qian.Docs.Tests` 只用样例项目测生成器，不读这个目录；派生文档与源码是否一致（新鲜度）由 [documentation.yml](../.github/workflows/documentation.yml) 重新生成后比对，它自带 `docs/generated/**` 路径过滤 |
+| `docs/ops/configuration-runbook.md` | `Qian.Sample.Crm.Tests` 的 `CapabilityInvokeTests` 原样执行手册里的过期回执清理 SQL |
+
+测试或门禁新读一个这类文件时，把它加进 `pull_request.paths`。门禁作业的触发过滤自检（`python3 scripts/dotnet_ci.py paths-check`）从下面三处找写成仓库路径的引用，对得上 git 跟踪的文件、而只改该文件的 PR 不触发本工作流即失败：
+
+- .NET 源码：git 跟踪的 `*.cs` 里的字符串字面量（注释不算）。
+  - 含 `/` 或 `\` 的字面量，去掉开头的 `./`、`../` 后按仓库相对路径算：`"docs/x.md"`、`"../docs/x.md"`、`@"..\docs\x.md"`。
+  - `Path.Combine` / `Path.Join` 从第一个实参或紧跟它起的连续字面量段拼成一条路径：`Path.Combine(root, "docs", "prd", "x.md")`。后面还有变量时按目录前缀算，如 `Path.Combine(root, "pm", "tasks", name)` 算 `pm/tasks/` 下的全部文件；夹在变量之后的段相对未知目录，不算。
+  - 插值字符串的常量前缀，如 `$"docs/prd/{name}.md"` 算 `docs/prd/` 起头的全部文件；插值洞后以 `/` 起头的段，如 `$"{root}/docs/x.md"`。`+` 拼接同理：`root + "/docs/x.md"`，字面量后面还接 `+` 时按前缀算。
+  - 单写一个根目录文件名（`"AGENTS.md"`、`Path.Combine(root, "README.md")`）只在本文件定位了仓库根时算：写到 `"Qian.slnx"`（向上找仓库根），或用到名为 `RepositoryRoot` / `RepoRoot` 的辅助方法。`README.md` 这类常见名字在别处多半指临时目录或包里的文件，如 `Qian.Lifecycle.Tests` 的临时部署仓库。
+- MSBuild 项：`*.csproj`、`*.props`、`*.targets` 里 `Include`、`Update`、`Project` 属性指向的文件，相对本文件所在目录解析，认得通配与 `$(MSBuildThisFileDirectory)`、`$(MSBuildProjectDirectory)`，含其他属性的路径跳过。`.props` / `.targets` 里的相对路径实际按导入它的项目目录求值，这里写路径用 `$(MSBuildThisFileDirectory)` 起头，自检才对得上。
+- 本工作流运行的 Python：`run:` 里 `python3 <脚本>` 直接运行的脚本、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
+  - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（工作流在仓库根运行）。
+  - 临时目录等别的锚上拼的路径不算。被测试按名字加载、又被该测试换成临时目录的模块级名字，在函数里不算：`test_check_docs.py` 把 `check_docs.ROOT` 换掉，`check_docs.py` 函数里读的 `docs/` 就是临时目录。
+
+写法约定：读取仓库里的文件，写成仓库根（或上面的锚）后跟常量路径段。自检认不出的写法：路径来自变量、配置、命令行参数或文件内容，目录枚举后按名字筛选（如 `Directory.GetFiles(root)`），以及经外部程序间接读取（测试调用的 qian CLI 是 TypeScript，不在扫描范围）。这些情况改用常量路径，或者手工把读到的文件加进 `pull_request.paths`。各类写法的正反例见 [gates/test_dotnet_ci.py](gates/test_dotnet_ci.py)。
+
+本机照 CI 只跑一个分片：`python3 scripts/dotnet_ci.py shard a --out /tmp/a.slnf && dotnet test --solution /tmp/a.slnf -c Release --no-build`。仓库暂无自托管 runner，先用 GitHub 托管的 ubuntu-latest（自带 Docker）；自托管 runner 就位后只需改 `runs-on`。
+
+包族发布不在 PR 门禁里：[.github/workflows/dotnet-release.yml](../.github/workflows/dotnet-release.yml) 只从 main 手动触发，把全部 Qian 包以同一版本发到 GitHub Packages，核对包源里的版本、仓库关联与可见性，并在干净消费者项目里从该源真实还原、构建、运行（S1-RT-014，ADR-019 D19.7）；做法与失败处理见 [SDK 文档「包族发布」](../packages/Qian.Plugin.Sdk/README.md#包族发布)。
+
+
+## 旧 Kun API 门禁（S1-KUN-006、S1-KUN-004）
+
+根目录 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030，应用于包、宿主和测试。`tests/gates/bannedapi` 的负例引用已发布 Kun 2026.10.9 的旧仓储／存储接口，正例引用新存储包，避免凭虚构类型验证门禁。Kun 2026.10.9 起旧接口自带 `KUNLEGACY001` Obsolete，负例会同时报 KUNLEGACY001 与 RS0030 / QIAN0002，门禁只断言后两者，叠加后判定不变（S1-KUN-009）。
+
+命名空间以源码为准：旧存储 `Kun.Storage` 包的接口是 `Kun.Storage.Abstractions.IFileStorage`；新 `Kun.Storage.Abstractions` 包的接口是 `Kun.Storage.IFileStorage`。标准分析器覆盖符号使用（例如 typeof、调用、构造）；`tools/Qian.Build.Analyzers` 使用同一清单补齐未使用的参数、字段、返回类型等声明，并发出 QIAN0002。负例包含纯参数声明，不依赖上游新包的 Obsolete 标记。
+
+执行 `python3 -m unittest discover -s tests/gates`，同时验证依赖图、PublicAPI 与旧 API 的正反例。后续发布 Kun 新包时仍只通过 `Directory.Packages.props` 的 KunVersion 升级；此任务不伪装成已经消费上游新实现。
+
+S1-KUN-004 补充旧 Identity / Security S2S 签发器、旧注册方法及旧校验/JWKS 子模块的禁用清单。新增正反例使用当前 KunVersion 锁定的真实发布包：两套旧签发器和旧工厂方法产生 RS0030，网关 S2sTokenIssuer 正常编译。负例主动关闭 TreatWarningsAsErrors 仍无法绕过；上游后续版本附带的 KUNS2S001 也被单列为错误。这里验证的是编译边界，不代表已发布或消费尚未发布的上游改动。
+
+S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` 与挂它的 `AddKunServiceAuth`（把入站 Authorization 原样转给下一跳）。S2S 令牌按跳签发、`aud` 只绑一个下游，透传在编译期就拒绝；负例 `LegacyS2sPropagation` 引用该处理器，产生 RS0030。
+
+## 数据安全编译门禁（S1-DATA-001）
+
+`DataBoundaryAnalyzer` 对非测试项目中直接或间接继承 EF `DbContext`、却不继承 `QianDbContext` 的上下文报 QIAN0003。测试项目可定义验证用的上下文；编译样例显式设置 `IsTestProject=false` 模拟在线代码，不因位于 tests 目录而豁免。
+
+全仓库对 EF `IgnoreQueryFilters` 的调用和方法委托引用报 QIAN0004，按语义符号识别，其他类的同名方法不误报。`test_data_boundary.py` 验证五组真实 EF 正反例，负例即使关闭 TreatWarningsAsErrors 也必须失败。真库隔离测试使用受限应用角色的原生 SQL，不调用过滤器旁路。
+
+### 受保护命令注册门禁（S1-AZ-001）
+
+QIAN0005 在全部代码树检查真正的 Kun `AddRequestHandler`：受保护请求或未确定请求类型的泛型封装必须改用 `Qian.Authz.Abstractions.AddAuthorizedHandler`，同一入口将处理器与权限行为登记到同一个 builder。两个重载、方法组引用、生成代码均受检查；关闭警告即错误不会降低规则。
+
+`python3 -m unittest discover -s tests/gates -p test_authorized_handler.py` 编译八组真实样例：直接注册、能力注册、委托引用、泛型包装、应用伪造桥接类必须失败；安全入口、普通请求及无关同名方法必须通过。运行时拒绝/放行顺序由 Qian.Authz.Abstractions.Tests 验证。
+
+### 集成事件发布位置门禁（S1-EVT-001）
+
+QIAN0006 落实「集成事件只能在命令 handler 同 scope 发出」：对 Kun `IIntegrationEventBus.Publish` 与 `IOutboxWriter.Enqueue` 的调用和方法组引用，只允许出现在写命令 handler（处理 Kun `ICommand`，或处理 `[Capability]` 且 SideEffect 不为 read 的请求）与领域事件通知 handler 内；直接向 Kun 缓冲器追加消息（`IntegrationEventBuffer.Add`、`IIntegrationEventOutbox.Add`）会绕过 v1 信封，只允许出现在 Outbox 写入端（实现 `IOutboxWriter` 或 `IIntegrationEventBus` 的类型）里。测试项目（引用了 xUnit 的编译）不受检查。运行时由 SDK 命令管道开启的事件来源作用域兜底，作用域外发布被拒绝。
+
+`python3 -m unittest discover -s tests/gates -p test_event_publish_scope.py` 编译 `tests/gates/events` 下八组真实样例：命令 handler、领域事件 handler、写能力和无关同名方法必须通过；查询 handler、只读能力、后台服务和直接写缓冲器必须以 QIAN0006 失败。
+
+### 能力契约的真实兼容检查
+
+运行 `Qian.Capabilities.Tests` 和客户目录契约挂载用例前，先执行 `python3 scripts/prepare_contract_tools.py --destination /tmp/qian-contract-tools`，再设置 `QIAN_OASDIFF_PATH=/tmp/qian-contract-tools/oasdiff`（Windows 使用对应 exe）。下载版本与 SHA-256 固定在 `scripts/contract-tools.lock.json`，不会运行远程安装脚本。全部 .NET 测试也需要此环境变量；工具缺失按失败处理。CI 已包含安装步骤。
+
+proto 与反射用例还需设置 `QIAN_BUF_PATH=/tmp/qian-contract-tools/buf`（Windows 使用 buf.exe）；同一安装脚本会下载并核验该二进制。运行全部 .NET 测试时同时提供 QIAN_OASDIFF_PATH 与 QIAN_BUF_PATH。

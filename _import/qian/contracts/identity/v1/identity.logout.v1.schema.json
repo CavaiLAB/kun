@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qian.dev/contracts/identity/v1/identity.logout.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "person_id",
+    "identity_revision",
+    "session_id",
+    "reason"
+  ],
+  "properties": {
+    "person_id": {
+      "$ref": "https://qian.dev/contracts/v0/s2s-claims.schema.json#/$defs/Uuid"
+    },
+    "identity_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "session_id": {
+      "$ref": "https://qian.dev/contracts/v0/s2s-claims.schema.json#/$defs/Uuid"
+    },
+    "membership_id": {
+      "$ref": "https://qian.dev/contracts/v0/s2s-claims.schema.json#/$defs/Uuid"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

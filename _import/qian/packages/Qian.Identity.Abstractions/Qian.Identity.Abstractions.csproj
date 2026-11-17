@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>身份 seam、claim、连接器和认证因子端口及稳定事件。</Description></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" />
+    <PackageReference Include="Kun.EventBus.Abstractions" />
+    <EmbeddedResource Include="../../contracts/identity/v1/*.schema.json" LogicalName="identity/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

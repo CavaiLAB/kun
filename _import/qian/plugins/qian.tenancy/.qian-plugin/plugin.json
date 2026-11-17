@@ -1,0 +1,70 @@
+{
+  "$schema": "https://qian.dev/schemas/plugin/v2",
+  "id": "qian.tenancy",
+  "version": "1.0.0",
+  "description": "提供 qian.tenancy 的实际代码入口与配置契约；安装状态按组件验收门管理。",
+  "author": {
+    "name": "Qian"
+  },
+  "license": "Apache-2.0",
+  "interface": {
+    "displayName": "tenancy",
+    "category": "platform"
+  },
+  "inject": [
+    "Data"
+  ],
+  "provides": [
+    "CommandTenancy",
+    "Tenancy",
+    "TenancyAdministration",
+    "TenancyLifecycle",
+    "TenancyOperations",
+    "TenancyProvisioning",
+    "TenancyQuota",
+    "TenancySettings",
+    "TenancySettingsOperations",
+    "TenancySummary"
+  ],
+  "policy": {
+    "tier": "system",
+    "sandbox": "none",
+    "authentication": "ON_INSTALL",
+    "required": false
+  },
+  "scopes": [
+    "global"
+  ],
+  "runtime": {
+    "form": "module",
+    "entry": "Qian.Tenancy.TenancyComponent, Qian.Tenancy",
+    "configSchema": "./schemas/config.schema.json"
+  },
+  "x-qian-generated": {
+    "$generated": true,
+    "fields": [
+      "/inject",
+      "/provides",
+      "/runtime/form",
+      "/runtime/entry",
+      "/runtime/configSchema"
+    ],
+    "tools": [
+      "tools/tenant.scan-expired.json"
+    ],
+    "metadata": {
+      "schemas/config.schema.json": {
+        "$generated": true,
+        "component": "qian.tenancy",
+        "source": "Qian.Tenancy.TenancyComponent, Qian.Tenancy",
+        "sha256": "975144a064a433188b6c395f2dc06824a3e3b9756203fcf0086bd9fca9534d12",
+        "fields": [
+          ""
+        ]
+      }
+    }
+  },
+  "surfaces": {
+    "ui": "./ui/manifest.json"
+  }
+}

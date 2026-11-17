@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "store": {
+      "type": "string",
+      "const": "pg"
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

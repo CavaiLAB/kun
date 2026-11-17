@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><Using Include="Xunit" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../samples/Qian.Sample.Crm/Qian.Sample.Crm.csproj" />
+    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../../packages/Qian.Capabilities/Qian.Capabilities.csproj" />
+    <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
+    <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
+    <ProjectReference Include="../../packages/Qian.Lifecycle/Qian.Lifecycle.csproj" />
+    <ProjectReference Include="../../packages/Qian.Lifecycle.AspNetCore/Qian.Lifecycle.AspNetCore.csproj" />
+    <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
+    <PackageReference Include="BouncyCastle.Cryptography" />
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="JsonSchema.Net" />
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="../../packages/Qian.Surfaces.Hosting/Qian.Surfaces.Hosting.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../packages/Qian.Tenancy.AspNetCore/Qian.Tenancy.AspNetCore.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../packages/Qian.Registry.AspNetCore/Qian.Registry.AspNetCore.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../packages/Qian.Tenancy.Signup/Qian.Tenancy.Signup.csproj" /></ItemGroup>
+  <ItemGroup><Compile Include="../Shared/IdentityProtocolHost.cs" Link="IdentityProtocolHost.cs" /><Compile Include="../Shared/LoopbackPort.cs" Link="LoopbackPort.cs" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../packages/Qian.Identity.Server/Qian.Identity.Server.csproj" />
+    <ProjectReference Include="../../packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
+    <ProjectReference Include="../../packages/Qian.Gateway/Qian.Gateway.csproj" />
+    <ProjectReference Include="../../hosts/Qian.Platform.Host/Qian.Platform.Host.csproj" />
+    <PackageReference Include="StackExchange.Redis" />
+    <PackageReference Include="Kun.Identity" />
+    <PackageReference Include="Kun.Gateway" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../Shared/GatewayTestHost.cs" Link="GatewayTestHost.cs" />
+    <Compile Include="../Qian.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityAccountHost.cs" />
+  </ItemGroup>
+</Project>

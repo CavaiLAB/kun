@@ -1,0 +1,85 @@
+import { createServer } from 'node:http';
+import { mkdirSync, readFileSync, statSync } from 'node:fs';
+import { resolve, extname, sep } from 'node:path';
+const root = resolve(import.meta.dirname, '../../..');
+const app = resolve(root, 'apps/qian-shell/dist/acceptance');
+const remote = resolve(root, 'packages/qian-tenancy-ui/dist/remote');
+const evidence = resolve(root, 'apps/qian-shell/acceptance-results');
+mkdirSync(evidence, { recursive: true });
+const manifest = JSON.parse(readFileSync(resolve(root, 'plugins/qian.tenancy/ui/manifest.json'), 'utf8'));
+if (!process.env.QIAN_MF_AUDIT_STATE) throw new Error('缺少真实审计验收宿主状态文件');
+const audit = JSON.parse(readFileSync(process.env.QIAN_MF_AUDIT_STATE, 'utf8'));
+const backend = new URL(audit.url);
+if (backend.protocol !== 'http:' || !['127.0.0.1', '[::1]'].includes(backend.hostname) || backend.username || backend.password || backend.search || backend.hash) throw new Error('审计验收代理只允许无凭据的回环 HTTP 地址');
+async function proxyAudit(request, response, path, token) {
+  const origin = request.headers.origin;
+  if (origin && origin !== `http://${request.headers.host}`) { response.writeHead(403).end(); return; }
+  let body = '';
+  for await (const chunk of request) { body += chunk; if (body.length > 16384) { response.writeHead(413).end(); return; } }
+  const upstream = await fetch(new URL(path, backend), { method: request.method, redirect: 'error', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, ...(body ? { body } : {}) });
+  response.writeHead(upstream.status, { 'Content-Type': upstream.headers.get('content-type') ?? 'application/json' });
+  response.end(Buffer.from(await upstream.arrayBuffer()));
+}
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.zip': 'application/zip', '.ts': 'text/plain' };
+// 外壳的写请求（审计上报、桥接写能力）先取防伪令牌再带头发出；夹具与网关 BFF 一样对缺头的写请求回 403。
+const CSRF = { headerName: 'X-CSRF-TOKEN', token: 'shell-acceptance-csrf' };
+const json = (response, value, status = 200) => { response.writeHead(status, { 'Content-Type': 'application/json' }); response.end(JSON.stringify(value)); };
+const server = createServer(async (request, response) => {
+  const url = new URL(request.url, 'http://127.0.0.1');
+  const scenario = (request.headers.cookie ?? '').match(/(?:^|; )mf-scenario=([^;]+)/)?.[1] ?? 'a';
+  response.setHeader('Cache-Control', 'no-store');
+  // 同源运行时配置（K8s ConfigMap 的替身）：这里只给品牌，四个地址取缺省值（/api、/auth、/api/shell/bootstrap、/api/shell/audit/remote-rejected）。
+  if (url.pathname === '/app-config.json') { json(response, scenario === 'config-bad' ? { apiBase: 'https://evil.example/api' } : { brand: 'Qian 控制台' }); return; }
+  if (url.pathname === '/auth/csrf' && request.method === 'GET') { json(response, CSRF); return; }
+  if (request.method === 'POST' && url.pathname.startsWith('/api/') && request.headers[CSRF.headerName.toLowerCase()] !== CSRF.token) { response.writeHead(403).end(); return; }
+  if (url.pathname === '/api/capabilities' && request.method === 'GET') { json(response, { items: [] }); return; }
+  if (url.pathname === '/api/shell/bootstrap') {
+    const a = '11111111-1111-4111-8111-111111111111', b = '22222222-2222-4222-8222-222222222222';
+    const scope = `tenant:${a}`;
+    const selected = structuredClone(manifest);
+    if (scenario === 'bad') selected.engines.yue = '^99.0.0';
+    if (scenario === 'shadow') selected.pages[0].nav.title = '租户专属管理';
+    const permissions = ['qian.tenancy:tenant:read'];
+    if (scenario === 'bridge') {
+      selected.bridge.slots.push('qian.shell.command/v1');
+      selected.bridge.capabilities.push({ id: 'qian.acceptance/ping', permission: 'qian.acceptance:ping:write', sideEffect: 'write' });
+      permissions.push('qian.acceptance:ping:write');
+    }
+    const registrations = [{ id: 'qian.tenancy', version: '1.0.0', scope, manifest: selected }];
+    if (scenario === 'shadow') registrations.unshift({ id: 'qian.tenancy', version: '1.0.0', scope: 'global', manifest });
+    // 与网关 bootstrap 同形：会话快照、上下文、远程、挂载 / 权益、权限；能力导航为 null 时外壳按已登记远程的清单算菜单（夹具没有能力目录）。
+    const tenant = scenario === 'b' ? b : a;
+    json(response, { session: { subject: 'shell-acceptance-user', kind: 'user', tenantId: tenant, membershipId: 'member-a', identityRevision: 1, displayName: '验收用户' },
+      context: { tenant: { id: tenant, name: '验收租户' }, membership: { id: 'member-a', permissions }, app: null, locale: 'zh-CN', theme: 'light' },
+      remotes: registrations, mounted: registrations.map(({ scope, id }) => `${scope}|${id}`), entitled: registrations.map(({ scope, id }) => `${scope}|${id}`), permissions, navigation: null, managed: false }); return;
+  }
+  if (url.pathname === '/api/shell/audit/remote-rejected' && request.method === 'POST') {
+    await proxyAudit(request, response, '/api/shell/audit/remote-rejected', audit.writerToken); return;
+  }
+  if (url.pathname === '/__acceptance/audit' && request.method === 'GET') { await proxyAudit(request, response, '/__acceptance/audit', audit.readerToken); return; }
+  // 专用于桥接 HTTP 契约的验收能力，不是生产 tenancy 命令或身份授权替身。
+  if (url.pathname === '/api/capabilities/qian.acceptance/ping/invoke' && request.method === 'POST' && scenario === 'bridge') {
+    let text = ''; for await (const chunk of request) text += chunk;
+    const input = JSON.parse(text);
+    if (input.message !== 'window-bridge' || input.idempotencyKey !== request.headers['idempotency-key'] || request.headers['x-tenant-id'] !== '11111111-1111-4111-8111-111111111111') { response.writeHead(400).end(); return; }
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify({ channel: 'window-bridge-http', idempotencyKey: input.idempotencyKey, tenant: request.headers['x-tenant-id'] })); return;
+  }
+  // 新建租户先选管理员（S1-TEN-010）：查找账号按任意标识回同一个账号，只让表单校验用例走到租户主档，不是身份组件替身。
+  if (url.pathname === '/api/tenancy/admin-accounts:lookup' && request.method === 'POST') {
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify({ subjectId: '33333333-3333-4333-8333-333333333333', displayName: '验收管理员', status: 'active', identifiers: [{ kind: 'username', masked: 'ac****in', verified: false }] })); return;
+  }
+  if (url.pathname === '/api/tenancy/tenants') { response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ items: [], total: 0 })); return; }
+  if (url.pathname === '/api/tenancy/meta/state-machine') { response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ transitions: [], actions: [], states: [] })); return; }
+  const remoteRequest = url.pathname.startsWith('/remotes/qian.tenancy/');
+  const base = remoteRequest ? remote : app;
+  const relative = remoteRequest ? url.pathname.slice('/remotes/qian.tenancy/'.length) : url.pathname.slice(1);
+  let file = resolve(base, relative || 'index.html');
+  if (!file.startsWith(base + sep)) { response.writeHead(403).end(); return; }
+  try { if (!statSync(file).isFile()) throw new Error('not a file'); }
+  catch { if (remoteRequest || extname(file)) { response.writeHead(404).end(); return; } file = resolve(app, 'index.html'); }
+  response.setHeader('Content-Type', types[extname(file)] ?? 'application/octet-stream'); response.end(readFileSync(file));
+});
+server.listen(Number(process.env.QIAN_MF_PORT ?? 5180), '127.0.0.1');
+const stop = () => server.close(() => process.exit(0)); process.on('SIGTERM', stop); process.on('SIGINT', stop);

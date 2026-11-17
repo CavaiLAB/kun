@@ -1,0 +1,56 @@
+{
+  "$schema": "https://qian.dev/schemas/plugin/v2",
+  "id": "qian.registry",
+  "version": "1.0.0",
+  "description": "提供 qian.registry 的实际代码入口与配置契约；安装状态按组件验收门管理。",
+  "author": {
+    "name": "Qian"
+  },
+  "license": "Apache-2.0",
+  "interface": {
+    "displayName": "registry",
+    "category": "platform"
+  },
+  "inject": [
+    "Data"
+  ],
+  "provides": [
+    "Registry"
+  ],
+  "policy": {
+    "tier": "system",
+    "sandbox": "none",
+    "authentication": "ON_INSTALL",
+    "required": true
+  },
+  "scopes": [
+    "global"
+  ],
+  "runtime": {
+    "form": "module",
+    "entry": "Qian.Registry.RegistryComponent, Qian.Registry",
+    "configSchema": "./schemas/config.schema.json"
+  },
+  "x-qian-generated": {
+    "$generated": true,
+    "fields": [
+      "/inject",
+      "/provides",
+      "/runtime/form",
+      "/runtime/entry",
+      "/runtime/configSchema"
+    ],
+    "tools": [],
+    "metadata": {
+      "schemas/config.schema.json": {
+        "$generated": true,
+        "component": "qian.registry",
+        "source": "Qian.Registry.RegistryComponent, Qian.Registry",
+        "sha256": "b6d2cd16ca154b7cb1f166c7df05b03e646bc0536e314be8b0e897d90f66507c",
+        "fields": [
+          ""
+        ]
+      }
+    }
+  }
+}

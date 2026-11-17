@@ -1,0 +1,10 @@
+- id: config
+  plugin: qian.config
+  config: {}
+- id: tenancy
+  plugin: qian.tenancy
+  config:
+    initializationCapabilities: []
+- id: data
+  plugin: qian.data
+  config: {}

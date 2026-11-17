@@ -1,0 +1,65 @@
+{
+  "$schema": "https://qian.dev/schemas/plugin/v2",
+  "id": "qian.events",
+  "version": "1.0.0",
+  "description": "提供 qian.events 的实际代码入口与配置契约；安装状态按组件验收门管理。",
+  "author": {
+    "name": "Qian"
+  },
+  "license": "Apache-2.0",
+  "interface": {
+    "displayName": "events",
+    "category": "platform"
+  },
+  "inject": [],
+  "provides": [
+    "Events"
+  ],
+  "policy": {
+    "tier": "system",
+    "sandbox": "none",
+    "authentication": "ON_INSTALL",
+    "required": false
+  },
+  "scopes": [
+    "global",
+    "tenant"
+  ],
+  "engines": {
+    "kun": ">=2026.10.14"
+  },
+  "runtime": {
+    "form": "module",
+    "entry": "Qian.Events.EventsPlugin, Qian.Events",
+    "nuget": [
+      {
+        "id": "Qian.Events",
+        "version": "0.2.0",
+        "digest": "sha256:4f240d801a199f669966406f92099f62095cc98de8b0274a25c23fb246c62c65"
+      }
+    ],
+    "configSchema": "./schemas/config.schema.json"
+  },
+  "x-qian-generated": {
+    "$generated": true,
+    "fields": [
+      "/inject",
+      "/provides",
+      "/runtime/form",
+      "/runtime/entry",
+      "/runtime/configSchema"
+    ],
+    "tools": [],
+    "metadata": {
+      "schemas/config.schema.json": {
+        "$generated": true,
+        "component": "qian.events",
+        "source": "Qian.Events.EventsPlugin, Qian.Events",
+        "sha256": "c450e9dabab8975d5ff0664774f7d0feb49b5ca3100f86bcd726060b465bf0e5",
+        "fields": [
+          ""
+        ]
+      }
+    }
+  }
+}

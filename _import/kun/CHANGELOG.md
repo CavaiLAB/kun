@@ -12,6 +12,11 @@
 - 只对该项目关闭中央传递钉版（`CentralPackageTransitivePinningEnabled=false`）：它的依赖闭包只有 Aspire 自己的包，仓库给库包定的传递钉版会把 Aspire 13 要求的依赖版本往下压（NU1109）。中央钉版本身不变，其余项目解析出的依赖不变。
 - 升级后 `KubernetesClient` 解析到不再触发 NU1902 的版本，移除该项目原有的 NU1902 忽略。保持 NuGet 安全审计和警告即错误，不新增忽略，不升级 SDK 或其他依赖族。
 
+### Fixed — 集成测试的对象存储改用有公开来源的 S3 兼容服务（S1-KUN-019）
+
+- `Kun.IntegrationTests` 的存储测试原来用 `minio/minio` 镜像，它已从 Docker Hub 删除，Quay 上的同名镜像要登录才能拉，没有本地缓存的执行环境拉不到：5 个测试失败，另外 6 个把拉取失败当成没有 Docker 而跳过。改用 RustFS 1.0.6（Apache-2.0），镜像 `ghcr.io/rustfs/rustfs:1.0.6` 钉到摘要，匿名可拉；三个存储测试类共用 `Fixtures/S3CompatibleServer.cs`，`MinioFixture` 改名为 `S3StorageFixture`，断言不变。测试包由 `Testcontainers.Minio` 换成同版本的通用 `Testcontainers`，中央版本删去 `Testcontainers.Minio`。
+- 拉不到镜像、容器起不来不再算作跳过。只有本机确实没有容器环境时才跳过，环境变量 `CI` 为真时这种情况也算失败（`Fixtures/ContainerRuntime.cs`）。
+
 ## [2026.10.25] - 2026-10-25
 
 ### Fixed — 数据约定与实体审计不再占用当前主体 / 租户端口（S1-KUN-017）

@@ -54,7 +54,7 @@ dotnet test -c Release --no-build
 dotnet format --verify-no-changes
 ```
 
-Integration tests (`tests/Kun.IntegrationTests`) require Docker + Testcontainers and skip gracefully when Docker is unavailable — CI runs them; local iteration can exclude the project with `--filter "FullyQualifiedName!~IntegrationTests"`.
+Integration tests (`tests/Kun.IntegrationTests`) require Docker + Testcontainers and skip only when no container runtime is available (with `CI` set that fails instead; image pull failures always fail) — CI runs them; local iteration can exclude the project with `--filter "FullyQualifiedName!~IntegrationTests"`.
 
 CI additionally runs AOT publish with `/warnaserror` over the AOT-candidate modules (`Kun.Core`, `Kun.Mediator`, `Kun.Validation`, `Kun.EventBus`, `Kun.EventBus.RabbitMQ`, `Kun.Dapper`, `Kun.Saga`, `Kun.Security`, `Kun.Grpc`, `Kun.Gateway`, `Kun.Audit`). `Kun.EntityFrameworkCore` and `Kun.Storage` are trim-safe-only. Any new reflection or unannotated JSON serialization will fail the AOT gate.
 
@@ -71,6 +71,6 @@ CI additionally runs AOT publish with `/warnaserror` over the AOT-candidate modu
 
 ### External
 
-- .NET 10 SDK (`10.0.100`), EF Core 10, Dapper AOT, YARP 2.x, Grpc.AspNetCore, RabbitMQ.Client 7.x, StackExchange.Redis, OpenTelemetry 1.x, .NET Aspire 13.x (samples), AWSSDK.S3 (Kun.Storage), xunit.v3 + Testcontainers (tests, including Testcontainers.Minio).
+- .NET 10 SDK (`10.0.100`), EF Core 10, Dapper AOT, YARP 2.x, Grpc.AspNetCore, RabbitMQ.Client 7.x, StackExchange.Redis, OpenTelemetry 1.x, .NET Aspire 13.x (samples), AWSSDK.S3 (Kun.Storage), xunit.v3 + Testcontainers (tests; the storage integration tests run RustFS as the S3-compatible server).
 
 <!-- MANUAL: -->

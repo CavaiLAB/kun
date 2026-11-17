@@ -5,7 +5,7 @@
 
 ## Purpose
 
-Integration tests that require real infrastructure. Runs against Testcontainers PostgreSQL, RabbitMQ, Redis — never mocks. Covers Outbox atomicity (aggregate + outbox commit together), tenant query filter enforcement, idempotent consumer behavior under message redelivery, Saga end-to-end flows including background services, and gRPC contract tests.
+Integration tests that require real infrastructure. Runs against Testcontainers PostgreSQL, RabbitMQ, Redis and an S3-compatible server (RustFS, `Fixtures/S3CompatibleServer.cs`) — never mocks. Covers Outbox atomicity (aggregate + outbox commit together), tenant query filter enforcement, idempotent consumer behavior under message redelivery, Saga end-to-end flows including background services, and gRPC contract tests.
 
 ## Key Files
 
@@ -26,6 +26,7 @@ Integration tests that require real infrastructure. Runs against Testcontainers 
   4. Assert the expected integration event was consumed.
 - **Tenant-isolation test pattern**: create data for tenant A, set `ITenantContext` to tenant B, assert query returns nothing, then flip back and assert visibility.
 - **Docker must be running** on the test runner. CI declares service containers in `.github/workflows/ci.yml`; locally you need Docker Desktop / equivalent.
+- **Skip only when there is no container runtime.** Route that case through `ContainerRuntime.ReportUnavailable` (`Fixtures/ContainerRuntime.cs`): locally it skips (xunit.v3 1.0.0 reports a skip raised inside a class or collection fixture as a fixture failure), and with `CI` set it fails. Never catch image pull or container startup failures and skip — let them fail the test.
 
 ### Testing Requirements
 
@@ -50,7 +51,7 @@ Tests are slow relative to unit projects — expect minutes, not seconds. Run th
 ### External
 
 - `xunit.v3`, `FluentAssertions`
-- `Testcontainers.PostgreSql`, `Testcontainers.RabbitMq`, `Testcontainers.Redis`
+- `Testcontainers.PostgreSql`, `Testcontainers.RabbitMq`, `Testcontainers.Redis`, `Testcontainers` (generic containers: PgBouncer, RustFS)
 - `Microsoft.AspNetCore.Mvc.Testing`
 
 <!-- MANUAL: -->

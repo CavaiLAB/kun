@@ -1,9 +1,11 @@
 # ADR-005: Introduce `Kun.Caching` Module
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-005」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-22
 **Author**: claude-kun (Kun framework specialist)
-**Context**: `neuroagent-csharp` has been calling `services.AddStackExchangeRedisCache(...)` directly from each service's `Program.cs` and hand-rolling `IDistributedCache`-based cache-aside logic (P1-CS-REDIS). Each service repeats the same serialization, key-prefixing, TTL-normalization, and single-flight boilerplate. Kun Framework has no unified cache abstraction — consumers choose between raw `IMemoryCache`, raw `IDistributedCache`, or the OSS `HybridCache` preview. This ADR introduces `Kun.Caching` to consolidate the pattern.
+**Context**: ［下游的 C# 服务］ has been calling `services.AddStackExchangeRedisCache(...)` directly from each service's `Program.cs` and hand-rolling `IDistributedCache`-based cache-aside logic (P1-CS-REDIS). Each service repeats the same serialization, key-prefixing, TTL-normalization, and single-flight boilerplate. Kun Framework has no unified cache abstraction — consumers choose between raw `IMemoryCache`, raw `IDistributedCache`, or the OSS `HybridCache` preview. This ADR introduces `Kun.Caching` to consolidate the pattern.
 
 ---
 
@@ -130,7 +132,7 @@ services.AddKunCaching(o =>
 
 ## Follow-ups
 
-1. **Migrate `neuroagent-csharp` services** off hand-rolled
+1. **Migrate ［下游的 C# 服务］** off hand-rolled
    `AddStackExchangeRedisCache` to
    `services.AddKunCaching(...).UseRedis(...)`.
 2. **Source-generated JSON serializer** example — demonstrate a
@@ -150,7 +152,7 @@ services.AddKunCaching(o =>
 ## References
 
 - Handoff: task brief P1-KN-Caching
-- `neuroagent-csharp/src/Services/*/Program.cs` — the current
+- ［下游 C# 服务各自的 `Program.cs`］ — the current
   `AddStackExchangeRedisCache` registrations being abstracted
 - `Kun.Audit` / `Kun.Storage` / `Kun.Observability` — fluent-builder DI
   pattern reused here

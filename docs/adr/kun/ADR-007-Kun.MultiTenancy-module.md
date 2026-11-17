@@ -1,9 +1,11 @@
 # ADR-007: Introduce `Kun.MultiTenancy` and `Kun.MultiTenancy.EntityFrameworkCore` Modules
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-007」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-22
 **Author**: claude-kun (Kun framework specialist)
-**Context**: The `ITenantContext` abstraction has lived in `Kun.Core` since day one, and `Kun.EntityFrameworkCore.KunDbContext` auto-applies a tenant global query filter in `OnModelCreating`. But the pieces that turn a JWT `tid` claim or `X-Tenant-Id` header into an ambient `ITenantContext` have so far been re-implemented in each consumer service — `neuroagent-csharp/ServiceDefaults` resolves from claims, `Kun.Security.JwtTenantContext` resolves per-request on HTTP, and Edge / Platform / Storage each register their own `AddHttpContextAccessor` + manual claim inspection. Similarly, the SaveChanges-time auto-fill that injects the current tenant on insert was not shipped with the framework; each consumer either forgets it or reimplements it.
+**Context**: The `ITenantContext` abstraction has lived in `Kun.Core` since day one, and `Kun.EntityFrameworkCore.KunDbContext` auto-applies a tenant global query filter in `OnModelCreating`. But the pieces that turn a JWT `tid` claim or `X-Tenant-Id` header into an ambient `ITenantContext` have so far been re-implemented in each consumer service — ［下游 C# 服务里的公共装配代码］ resolves from claims, `Kun.Security.JwtTenantContext` resolves per-request on HTTP, and Edge / Platform / Storage each register their own `AddHttpContextAccessor` + manual claim inspection. Similarly, the SaveChanges-time auto-fill that injects the current tenant on insert was not shipped with the framework; each consumer either forgets it or reimplements it.
 
 ---
 
@@ -128,7 +130,7 @@ empty-string both read as "unset" to downstream code.
 
 ### Positive
 
-- `neuroagent-csharp/ServiceDefaults` sheds its hand-rolled claim
+- ［下游 C# 服务里的公共装配代码］ sheds its hand-rolled claim
   resolution, `AddHttpContextAccessor` registration, and the
   per-service `AsyncLocal` plumbing.
 - `KunMultiTenantModelCacheKeyFactory` prevents a silent data-leak
@@ -164,7 +166,7 @@ empty-string both read as "unset" to downstream code.
 
 ## Follow-ups
 
-1. **Migrate `neuroagent-csharp/ServiceDefaults`** off its hand-rolled
+1. **Migrate ［下游 C# 服务里的公共装配代码］** off its hand-rolled
    tenant-resolution helper onto `AddKunMultiTenancy`.
 2. **`UseKunMultiTenancy()` on `DbContextOptionsBuilder`** — a single
    extension that wires both the interceptor and the

@@ -1,9 +1,11 @@
 # ADR-004: Introduce `Kun.Observability` Module
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-004」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-22
 **Author**: claude-kun (Kun framework specialist)
-**Context**: `neuroagent-csharp` has been maintaining a `ServiceDefaults/Extensions.cs::ConfigureOpenTelemetry` helper that stitches together the OpenTelemetry SDK, four instrumentation packages, and an OTLP exporter. Every new consumer repository re-copies the same boilerplate. `samples/Kun.Sample.Shared/OpenTelemetryExtensions.cs` carries a partial twin that lacks EF Core and runtime instrumentation. `docs/observability/tracing-tour.md` already references an `AddKunObservability` extension as if it exists — this ADR makes that reference load-bearing.
+**Context**: ［下游的 C# 服务］ has been maintaining a `ServiceDefaults/Extensions.cs::ConfigureOpenTelemetry` helper that stitches together the OpenTelemetry SDK, four instrumentation packages, and an OTLP exporter. Every new consumer repository re-copies the same boilerplate. `samples/Kun.Sample.Shared/OpenTelemetryExtensions.cs` carries a partial twin that lacks EF Core and runtime instrumentation. `docs/observability/tracing-tour.md` already references an `AddKunObservability` extension as if it exists — this ADR makes that reference load-bearing.
 
 ---
 
@@ -24,7 +26,7 @@ The module owns:
   single place.
 - Per-instrumentation toggles (`IncludeAspNetCore`,
   `IncludeHttpClient`, `IncludeEfCore`, `IncludeRuntime`) that default
-  to `true` so zero-config matches neuroagent's current shape.
+  to `true` so zero-config matches ［下游的 C# 服务］'s current shape.
 - Per-pillar toggles (`TracingEnabled`, `MetricsEnabled`,
   `LoggingEnabled`) for background workers or specialized hosts that
   only need a subset.
@@ -66,7 +68,7 @@ module.
 
 | Alternative | Why Rejected |
 |-------------|--------------|
-| A. Keep a per-consumer `ConfigureOpenTelemetry` helper | Drift between services. Four different service repos would maintain near-duplicate wiring. Already observed in the neuroagent-csharp vs. `Kun.Sample.Shared` divergence. |
+| A. Keep a per-consumer `ConfigureOpenTelemetry` helper | Drift between services. Four different service repos would maintain near-duplicate wiring. Already observed in the ［下游的 C# 服务］ vs. `Kun.Sample.Shared` divergence. |
 | B. Put the wiring in `Kun.AspNetCore` | `Kun.AspNetCore` is host-layer and specific to HTTP. A background worker that wants OTel without ASP.NET Core would still pay the transitive dependency. Observability is a distinct concern. |
 | C. Leave it in `Kun.Sample.Shared` | Samples are opinionated; copying an opinion into production services is a known anti-pattern. The framework needs a first-class module. |
 | D. **New `Kun.Observability` module (selected)** | Clean separation from host layer; consumers opt in via a single `Add…` call; options carry the choice of pillars and instrumentation set. |
@@ -96,7 +98,7 @@ any custom propagator.
 
 ### Positive
 
-- neuroagent-csharp and any future consumer repo can replace the
+- ［下游的 C# 服务］ and any future consumer repo can replace the
   hand-rolled OTel helper with a single line.
 - Framework upgrades that add a new ActivitySource only need a patch
   to `KunActivitySources.All` — consumers pick it up automatically.
@@ -123,7 +125,7 @@ any custom propagator.
 
 ## Follow-ups
 
-1. **Migrate `neuroagent-csharp/ServiceDefaults`** to call
+1. **Migrate ［下游 C# 服务里的公共装配代码］** to call
    `builder.Services.AddKunObservability(o => o.ServiceName = …)`
    instead of the current local helper.
 2. **Retire `samples/Kun.Sample.Shared/OpenTelemetryExtensions.cs`**
@@ -142,7 +144,7 @@ any custom propagator.
 - Handoff: task brief P1-KN-Observability
 - `docs/observability/tracing-tour.md` — span catalog the module must
   keep current
-- `neuroagent-csharp/src/NeuroAgent.ServiceDefaults/Extensions.cs` —
+- ［下游 C# 服务里的公共装配代码］ —
   the pattern being abstracted
 - `samples/Kun.Sample.Shared/OpenTelemetryExtensions.cs` — to be
   retired

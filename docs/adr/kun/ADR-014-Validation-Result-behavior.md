@@ -1,5 +1,7 @@
 # ADR-014: Result-returning validation pipeline behavior
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-014」。2026-11-18 搬入本仓库，正文照原文。
+
 **Status**: Accepted
 **Date**: 2026-04-24
 **Author**: claude-kun (Kun framework specialist)

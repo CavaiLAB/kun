@@ -1,9 +1,11 @@
 # ADR-003: Introduce `Kun.Audit` and `Kun.Audit.EntityFrameworkCore` Modules
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-003」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-22
 **Author**: claude-kun (Kun framework specialist)
-**Context**: `neuroagent-phase1-gap.md` §2 flagged audit logging as missing for P1-CS-019. An initial attempt by the business-services pane (glm) to build the feature inside `neuroagent-csharp` stalled at the framework boundary: per the 路由边界铁律 in the project `CLAUDE.md`, cross-cutting capabilities that could be reused by other services must land in `kun/`, not as a private fork inside a consumer repository. Handoff `P1-KN-Audit-handoff.md` captured the expected deliverables.
+**Context**: ［第一阶段差距盘点］ §2 flagged audit logging as missing for P1-CS-019. An initial attempt by the business-services pane (glm) to build the feature inside ［下游的 C# 服务］ stalled at the framework boundary: per the 路由边界铁律 in the project `CLAUDE.md`, cross-cutting capabilities that could be reused by other services must land in `kun/`, not as a private fork inside a consumer repository. Handoff `P1-KN-Audit-handoff.md` captured the expected deliverables.
 
 ---
 
@@ -172,7 +174,7 @@ append-only index design is already partition-friendly.
   they do for `Kun.EventBus` / `Kun.EventBus.RabbitMQ`.
 - Full-AOT consumers retain an audit option (EventBusAuditWriter).
 - Unblocks P1-CS-019 / 020 / 021 / 022 without forking audit logic in
-  `neuroagent-csharp`.
+  ［下游的 C# 服务］.
 
 ### Negative / Trade-offs
 
@@ -213,8 +215,8 @@ append-only index design is already partition-friendly.
 
 ## References
 
-- Handoff brief: `/home/dawn/project/neuroagent/.omc/autopilot/P1-KN-Audit-handoff.md`
-- Gap audit: `docs/neuroagent-phase1-gap.md` §2, §3.2, §4 "需新建"
+- Handoff brief: ［下游仓库里的交接说明］
+- Gap audit: ［第一阶段差距盘点］ §2, §3.2, §4 "需新建"
 - Layering rule: `CLAUDE.md` §Architectural constraints (Four-layer dependency flow)
 - AOT rule: `CLAUDE.md` §Architectural constraints (AOT compatibility)
 - Related ADR: `ADR-001-Kun.Identity-module-decision.md` — the counterpart

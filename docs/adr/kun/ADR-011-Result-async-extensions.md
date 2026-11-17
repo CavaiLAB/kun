@@ -1,5 +1,7 @@
 # ADR-011: `Result<T>` composition extensions (sync + async)
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-011」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-24
 **Author**: claude-kun (Kun framework specialist)
@@ -23,7 +25,7 @@ if (session.IsFailure) return session.Error;
 return Result<SessionDto>.Ok(MapToDto(session.Value));
 ```
 
-`neuroagent-csharp` Edge, Platform, and the forthcoming gateway
+［下游的 C# 服务］ Edge, Platform, and the forthcoming gateway
 handlers all repeat variants of this. The drift is exactly what
 ADR-010 warned about for cookie sessions — *the framework is
 consumed as a dependency; every re-invented abstraction downstream
@@ -207,7 +209,7 @@ refactors, and requires runtime type inspection (breaks AOT).
 ## Impact on existing code
 
 - No existing code changes — this ADR is purely additive.
-- `neuroagent-csharp` does **not** get migrated in this ADR's
+- ［下游的 C# 服务］ does **not** get migrated in this ADR's
   scope. A follow-up ralplan will sweep hand-rolled patterns
   after at least one `-beta` of Kun ships the extensions.
 - `PublicAPI.Shipped.txt` stays untouched; new methods are all in
@@ -228,7 +230,7 @@ refactors, and requires runtime type inspection (breaks AOT).
 
 ## Follow-ups
 
-- **F1**: Migrate `neuroagent-csharp` Edge / Platform handlers off
+- **F1**: Migrate ［下游的 C# 服务］ Edge / Platform handlers off
   the hand-rolled pattern (separate P1 task, not self-managed).
 - **F2**: Evaluate LINQ `Select` / `SelectMany` in a separate
   opt-in namespace once ADR-011 ships.

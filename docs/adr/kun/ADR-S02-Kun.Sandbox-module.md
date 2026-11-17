@@ -1,21 +1,23 @@
 # ADR-S02: Introduce `Kun.Sandbox` Module — E2B-compatible sandbox abstraction for Kun consumers
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-S02」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-23
 **Author**: claude-kun (Kun framework specialist)
 **Related specs**:
-- `NeuroAgent_Sandbox_Spec_v1.1.md` §2 / §4 / §14 (E2B-compatible surface)
+- ［智能体引擎的沙箱规格 v1.1］ §2 / §4 / §14 (E2B-compatible surface)
 - `ADR-S01-E2B-compatible-API.md` (Supervisor REST API adopts E2B v2 shape)
 
 ---
 
 ## 1. Context
 
-NeuroAgent is building a self-hosted Sandbox Supervisor that exposes an
+［智能体引擎］ is building a self-hosted Sandbox Supervisor that exposes an
 E2B-compatible REST API (see ADR-S01). The *Python* harness
-(`neuroagent-python`) will drive that Supervisor through an E2B-style
+(［SanYuanAgent］) will drive that Supervisor through an E2B-style
 SDK. But sandbox usage is not a Python-only concern: the **C# business
-services** in `neuroagent-csharp` have first-class "run this code / run
+services** in ［下游的 C# 服务］ have first-class "run this code / run
 this command / produce these files" scenarios that today are pushed up
 to the Python harness even when the business logic lives in .NET:
 
@@ -56,7 +58,7 @@ relative to the Supervisor spec.
 
 Provide a .NET-idiomatic sandbox abstraction that:
 
-1. Lets any C# service in `neuroagent-csharp` (or a future Kun consumer)
+1. Lets any C# service in ［下游的 C# 服务］ (or a future Kun consumer)
    create sandboxes, run processes, read/write files, and kill
    sandboxes — without knowing whether the backend is a local stub, the
    self-hosted Supervisor, or E2B Cloud.
@@ -66,7 +68,7 @@ Provide a .NET-idiomatic sandbox abstraction that:
 3. Preserves Kun's AOT / zero-reflection posture — callable from
    `Kun.Gateway`, `Kun.AspNetCore`, or any AOT-strict service.
 4. Does **not** ship a runtime. The runtime lives in
-   `neuroagent-python/sandbox_supervisor` (Python, per Spec v1.1 §14).
+   ［SanYuanAgent 的沙箱 Supervisor］ (Python, per Spec v1.1 §14).
    `Kun.Sandbox` is abstraction + client.
 
 ## 3. Decision Drivers
@@ -91,7 +93,7 @@ consumer re-learns the E2B schema.
 
 ### Option 2 — Kun hosts the *runtime* (port the Python Supervisor into .NET)
 **Rejected.** The Supervisor runtime is deliberately owned by
-`neuroagent-python` because it manages Docker / gVisor / Envoy /
+［SanYuanAgent］ because it manages Docker / gVisor / Envoy /
 Browser CDP proxying — all concerns where the Python ecosystem is
 stronger and the team's existing ops playbook is already invested.
 Re-implementing in .NET gives no consumer value, doubles the operational
@@ -107,7 +109,7 @@ surface, and violates Spec v1.1 §14 "Supervisor is Python".
 - **Implementations** (pluggable):
   - `InMemorySandboxProvider` — fake for unit tests; no Docker, no network.
   - `SupervisorSandboxProvider` — HTTP client against
-    `/v2/sandboxes/*` on the NeuroAgent Supervisor (Phase 1 production path).
+    `/v2/sandboxes/*` on the ［智能体引擎］ Supervisor (Phase 1 production path).
   - `E2BCloudSandboxProvider` — skeleton that throws `NotImplementedException`;
     to be filled in when Phase 2+ Mode D is actually scoped.
 - **DI** — `services.AddKunSandbox(opts => opts.UseSupervisor(url, cert) | opts.UseE2BCloud(key, team) | opts.UseInMemory())`.
@@ -153,10 +155,10 @@ src/Kun.Sandbox/
 
 Record fields carry `[JsonPropertyName]` attributes that emit
 **camelCase** at the JSON boundary (matching E2B) while keeping
-idiomatic PascalCase inside the .NET code. NeuroAgent extensions
+idiomatic PascalCase inside the .NET code. ［智能体引擎］ extensions
 (secret scope, browser, egress, max commands) live under a
-`NeuroagentExtension` property on `SandboxCreateOptions` serialised as
-the `neuroagent` sub-object — exactly mirroring the spec.
+［智能体引擎扩展属性］ on `SandboxCreateOptions` serialised as
+the ［智能体引擎扩展字段］ sub-object — exactly mirroring the spec.
 
 ## 6. Consequences
 
@@ -209,7 +211,7 @@ the `neuroagent` sub-object — exactly mirroring the spec.
 ## 8. Validation
 
 - Spec alignment: `SandboxCreateOptions` JSON payload (camelCase,
-  `cpuCount`/`memoryMB`/`timeoutMs`/`envs`/`metadata`/`neuroagent.*`)
+  `cpuCount`/`memoryMB`/`timeoutMs`/`envs`/`metadata`/［智能体引擎扩展字段及其子字段］)
   matches the request body in Spec v1.1 §4.3 byte-for-byte.
 - AOT: CI AOT-publish matrix adds `Kun.Sandbox` and runs
   `dotnet publish -p:PublishAot=true /warnaserror` with zero warnings.
@@ -221,7 +223,7 @@ the `neuroagent` sub-object — exactly mirroring the spec.
 ## 9. References
 
 - ADR-S01-E2B-compatible-API.md (parent, Supervisor REST shape)
-- NeuroAgent_Sandbox_Spec_v1.1.md §§1.3, 2, 4, 12, 14, 17
+- ［智能体引擎的沙箱规格 v1.1］ §§1.3, 2, 4, 12, 14, 17
 - ADR-009-Kun.Configuration-module.md (sibling example of an
   Abstraction-layer module with pluggable backends)
 - [E2B Cloud API docs](https://e2b.dev/docs/api/v2) — tracked external

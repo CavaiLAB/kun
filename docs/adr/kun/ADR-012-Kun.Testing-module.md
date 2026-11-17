@@ -1,5 +1,7 @@
 # ADR-012: Introduce `Kun.Testing` module
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-012」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-24
 **Author**: claude-kun (Kun framework specialist)
@@ -17,7 +19,7 @@ Assert.Contains(order.DomainEvents, e => e is OrderPlacedEvent);
 
 FluentAssertions is present, but `Result<T>` / `IAggregateRoot` are
 not first-class shapes to it. So the same 3-line block gets retyped
-in every test file. `neuroagent-csharp` tests show the same pattern.
+in every test file. ［下游的 C# 服务］ tests show the same pattern.
 ADR-010 warned about consumer drift at the session layer and ADR-011
 fixed it at the `Result` composition layer — this ADR closes the
 third obvious drift surface at the **assertion** layer.
@@ -140,7 +142,7 @@ information a reviewer needs without spelunking into source.
 - Smoke-adopt in `tests/Kun.Core.Tests` only during the KN-SELF-002
   implementation — 3–5 call sites, not a mass convert, to prove the
   dependency shape works.
-- Other `tests/Kun.*.Tests` and `neuroagent-csharp` tests migrate
+- Other `tests/Kun.*.Tests` and ［下游的 C# 服务］ tests migrate
   lazily — no repo-wide sweep planned. The ADR sets the default;
   callers converge naturally when they touch each file.
 - No version cadence promise: `Kun.Testing` rides the same `-beta` /
@@ -217,5 +219,5 @@ trivially reversible — each site still compiles with the old
 - **F2**: Mass-adopt sweep across `tests/Kun.*.Tests` projects after
   KN-SELF-002 ships — possibly delegated to a claude-kun follow-up
   self-managed task (KN-SELF-xxx).
-- **F3**: `neuroagent-csharp` adoption tracked separately as a P1
+- **F3**: ［下游的 C# 服务］ adoption tracked separately as a P1
   task if tests drift persists.

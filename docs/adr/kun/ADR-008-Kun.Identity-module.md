@@ -1,12 +1,14 @@
 # ADR-008: Introduce `Kun.Identity` Module — Reversing ADR-001
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-008」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 > Implementation update (S1-KUN-004): the [identity client guide](../guides/identity-client.md) and [canonical S2S guide](../security/s2s-jwt.md) supersede the legacy issuer and incomplete cookie-flow examples below. The original rationale is retained as history.
 
 **Status**: Accepted
 **Date**: 2026-04-22
 **Author**: claude-kun (Kun framework specialist)
 **Supersedes (partially)**: [ADR-001](./ADR-001-Kun.Identity-module-decision.md) — *Do Not Introduce a New `Kun.Identity` Module*
-**Context**: ADR-001 (Apr 2026) declined to create a `Kun.Identity` module because Phase 1 identity needs were fully covered by `Kun.Gateway` (OIDC → S2S JWT translation) and `Kun.Security` (S2S JWT validation + JWKS). That decision explicitly anticipated a revisit: *"If future phases need cross-cutting identity abstractions (e.g., `IPermissionChecker` with policy store), we will revisit this ADR."* Consumer-side divergence observed across three neuroagent-csharp services has now materialised exactly that signal.
+**Context**: ADR-001 (Apr 2026) declined to create a `Kun.Identity` module because Phase 1 identity needs were fully covered by `Kun.Gateway` (OIDC → S2S JWT translation) and `Kun.Security` (S2S JWT validation + JWKS). That decision explicitly anticipated a revisit: *"If future phases need cross-cutting identity abstractions (e.g., `IPermissionChecker` with policy store), we will revisit this ADR."* Consumer-side divergence observed across three ［下游的 C# 服务］ has now materialised exactly that signal.
 
 ---
 
@@ -14,7 +16,7 @@
 
 Three concrete divergences drove the revisit:
 
-1. **Three near-duplicate `AddJwtBearer` configurations.** `neuroagent-csharp` Edge, Platform, and Notification services each hand-roll `services.AddAuthentication().AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts => ...)`. The issuer / audience / JWKS URL pointing at Authentik is copied verbatim; the clock-skew and expiry-required flags differ slightly; each service reaches a subtly different security posture. The only way to pull these back into a single policy is a framework abstraction.
+1. **Three near-duplicate `AddJwtBearer` configurations.** ［下游的 C# 服务］ Edge, Platform, and Notification services each hand-roll `services.AddAuthentication().AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts => ...)`. The issuer / audience / JWKS URL pointing at Authentik is copied verbatim; the clock-skew and expiry-required flags differ slightly; each service reaches a subtly different security posture. The only way to pull these back into a single policy is a framework abstraction.
 2. **Per-service `S2SJwtIssuer` wiring.** The existing `Kun.Security.S2SJwt.S2SJwtIssuer` exists as an implementation, but the public DI surface is verbose (`services.AddOptions<S2SJwtOptions>()...` + manual key loading). Consumers have been wrapping it with small adapter helpers — five different helpers, five different signatures.
 3. **OIDC code-exchange lives nowhere.** Authentik supports both client-credentials (used by the gateway) and authorization-code flows. The code-flow exchange is not covered by either `Kun.Gateway` or `Kun.Security` today, so Edge open-coded an `HttpClient.PostAsync` against `/application/o/token/` with inline form encoding. That code has drifted into five subtle variants across services.
 
@@ -124,7 +126,7 @@ ADR-001 asked for.
 
 ## Follow-ups
 
-1. **Migrate `neuroagent-csharp` services** off their hand-rolled
+1. **Migrate ［下游的 C# 服务］** off their hand-rolled
    `AddAuthentication().AddJwtBearer` helpers onto
    `AddKunIdentity(id => id.AddJwtBearer(...))`.
 2. **Retire Edge's hand-rolled OIDC code exchange** in favour of

@@ -1,5 +1,7 @@
 # ADR-010: Add Cookie Session + `IAuthenticatedUser` to `Kun.Identity`
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-010」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 > Implementation update (S1-KUN-004): the [identity client guide](../guides/identity-client.md) and [canonical S2S guide](../security/s2s-jwt.md) supersede the legacy issuer and incomplete cookie-flow examples below. The original rationale is retained as history.
 
 **Status**: Accepted
@@ -7,7 +9,7 @@
 **Author**: claude-kun (Kun framework specialist)
 **Extends**: [ADR-008](./ADR-008-Kun.Identity-module.md) — *Introduce `Kun.Identity` Module*
 **Supersedes**: none
-**Context**: `neuroagent-csharp` Edge and Platform each ship an `/auth/callback?code=…` endpoint that exchanges an Authentik OIDC code for tokens, drops them into an ASP.NET Core cookie, and restores `HttpContext.User` on subsequent requests. The OIDC exchange now lives behind `Kun.Identity.IOidcClient` (ADR-008) but **the cookie session half is still hand-rolled per service** — each service calls `AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)` with subtly different options, invents its own `ISessionStore`-like shape (or worse, writes refresh tokens directly into the cookie), and exposes `ICurrentUser` via per-service adapters. The consumer drift `ADR-008` was supposed to close is re-emerging one layer up.
+**Context**: ［下游的 C# 服务］ Edge and Platform each ship an `/auth/callback?code=…` endpoint that exchanges an Authentik OIDC code for tokens, drops them into an ASP.NET Core cookie, and restores `HttpContext.User` on subsequent requests. The OIDC exchange now lives behind `Kun.Identity.IOidcClient` (ADR-008) but **the cookie session half is still hand-rolled per service** — each service calls `AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)` with subtly different options, invents its own `ISessionStore`-like shape (or worse, writes refresh tokens directly into the cookie), and exposes `ICurrentUser` via per-service adapters. The consumer drift `ADR-008` was supposed to close is re-emerging one layer up.
 
 ---
 
@@ -203,7 +205,7 @@ This is a strict superset — no breaking change, no cast chains.
   directly.
 - Unblocks `kimi`'s `P0-AUTH-VERIFY` — the consumer will call
   `id.AddCookieSession(...)` + `app.UseKunCookieAuth()` rather than
-  re-implementing the wiring inside `neuroagent-csharp/Identity/`.
+  re-implementing the wiring inside ［下游 C# 服务的 `Identity/` 目录］.
 
 ### Negative / Trade-offs
 
@@ -235,7 +237,7 @@ This is a strict superset — no breaking change, no cast chains.
 
 ## Follow-ups
 
-1. **Consume in `neuroagent-csharp` Edge + Platform** — replace the hand-rolled
+1. **Consume in ［下游的 C# 服务］ Edge + Platform** — replace the hand-rolled
    cookie registrations with `AddCookieSession(...)` + `UseKunCookieAuth()`.
    This is the P0-AUTH-VERIFY work that unblocks immediately after C5
    of this task lands.

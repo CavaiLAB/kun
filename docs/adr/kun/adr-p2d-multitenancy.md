@@ -1,5 +1,7 @@
 # ADR: P2-D SaaS 多租户 3-策略架构
 
+> 本文是原 Kun 的决策记录，2026-11-18 搬入本仓库，正文照原文。
+
 **Status**: Part 1 Accepted (2026-04-23) · Part 2 Accepted (2026-04-23) · Part 3 Accepted (2026-04-23)
 **Phase**: 2 （白皮书 §12.2 乘风破浪）
 **Scope**: `Kun.Core.MultiTenancy` + `Kun.EntityFrameworkCore.MultiTenancy`（未来）

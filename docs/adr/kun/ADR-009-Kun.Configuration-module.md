@@ -1,9 +1,11 @@
 # ADR-009: Introduce `Kun.Configuration` Module
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-009」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-23
 **Author**: claude-kun (Kun framework specialist)
-**Context**: Every consumer service in `neuroagent-csharp` (Edge, Platform, Notification, Storage, Gateway) reads strongly-typed options from configuration, but the wiring has drifted across three patterns: `Configure<T>(configuration.GetSection(...))` without any validation, hand-rolled `IValidateOptions<T>` implementations that miss cross-cutting attributes, and an inconsistent mix of `[Required]` from `System.ComponentModel.DataAnnotations` with `.ValidateDataAnnotations()` sometimes attached and sometimes not. The resulting failure modes at startup — silent defaults for missing secrets, runtime `NullReferenceException` on first use, or obscure "The field X is required" errors that don't say *where* X lives in `appsettings.json` — have cost operators real time.
+**Context**: Every consumer service in ［下游的 C# 服务］ (Edge, Platform, Notification, Storage, Gateway) reads strongly-typed options from configuration, but the wiring has drifted across three patterns: `Configure<T>(configuration.GetSection(...))` without any validation, hand-rolled `IValidateOptions<T>` implementations that miss cross-cutting attributes, and an inconsistent mix of `[Required]` from `System.ComponentModel.DataAnnotations` with `.ValidateDataAnnotations()` sometimes attached and sometimes not. The resulting failure modes at startup — silent defaults for missing secrets, runtime `NullReferenceException` on first use, or obscure "The field X is required" errors that don't say *where* X lives in `appsettings.json` — have cost operators real time.
 
 ---
 
@@ -53,7 +55,7 @@ The operator now has the exact key to fix in `appsettings.json`.
 | Dimension | DataAnnotations | FluentValidation |
 |-----------|----------------|-------------------|
 | AOT posture | Reflection-based but quarantinable behind `[RequiresUnreferencedCode]` + `[DynamicallyAccessedMembers(All)]` | Entirely reflection-based; not AOT-clean without significant source-gen investment |
-| API familiarity | Already used across `neuroagent-csharp` | Would add a new validator DSL for consumers to learn |
+| API familiarity | Already used across ［下游的 C# 服务］ | Would add a new validator DSL for consumers to learn |
 | Startup cost | Built into `Microsoft.Extensions.Options.DataAnnotations` | Additional package + scan |
 | Cross-field rules | Custom `ValidationAttribute` works but is clunky | First-class |
 
@@ -132,7 +134,7 @@ that implements the same interface — no change to the core.
 
 ## Follow-ups
 
-1. **Migrate `neuroagent-csharp/ServiceDefaults`** off hand-rolled
+1. **Migrate ［下游 C# 服务里的公共装配代码］** off hand-rolled
    `Configure<T>(GetSection(...))` onto `AddKunOptions<T>`.
 2. **FluentValidation adapter module** (`Kun.Configuration.FluentValidation`)
    if a second consumer needs cross-field / async rules that are

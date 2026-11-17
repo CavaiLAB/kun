@@ -1,9 +1,11 @@
 # ADR-006: Introduce `Kun.RateLimit` Module
 
+> 本文是原 Kun 的决策记录，引用时写「Kun ADR-006」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
+
 **Status**: Accepted
 **Date**: 2026-04-22
 **Author**: claude-kun (Kun framework specialist)
-**Context**: `neuroagent-csharp/src/NeuroAgent.ServiceDefaults/Extensions.cs` has been carrying an `AddNeuroAgentRateLimiter` helper that hand-wires `AddRateLimiter(...)` + `AddPolicy("api", ...)` + `AddPolicy("auth", ...)` with tenant / ip partitioning for each consumer service (P1-CS-RATELIMIT). `Kun.Gateway` ships its own YARP-oriented `AddKunRateLimiter` but that extension is hard-coded to a single `kun-default` policy with 100 req/min and is tightly coupled to the Gateway's partition resolver abstraction. Neither pattern serves non-gateway ASP.NET Core services that need named windows with different partitioning per window.
+**Context**: ［下游 C# 服务里的公共装配代码］ has been carrying ［下游自写的限流装配方法］ that hand-wires `AddRateLimiter(...)` + `AddPolicy("api", ...)` + `AddPolicy("auth", ...)` with tenant / ip partitioning for each consumer service (P1-CS-RATELIMIT). `Kun.Gateway` ships its own YARP-oriented `AddKunRateLimiter` but that extension is hard-coded to a single `kun-default` policy with 100 req/min and is tightly coupled to the Gateway's partition resolver abstraction. Neither pattern serves non-gateway ASP.NET Core services that need named windows with different partitioning per window.
 
 ---
 
@@ -71,7 +73,7 @@ The module owns:
 |-------------|--------------|
 | A. Extend `Kun.Gateway.AddKunRateLimiter` | Gateway's extension is hard-coded to one policy and one `IRateLimitPartitionResolver` registration. Generalising it would bloat a host-layer module with concerns that belong in an Abstraction/Infrastructure module. |
 | B. Reuse `Kun.Gateway.IRateLimitPartitionResolver` in a shared module | The resolver interface is open-set; every consumer that adds a new partition source (e.g. "API key") has to register a resolver impl. That's the wrong tradeoff for 95% of consumers who only want tenant / user / ip. The enum in this module captures the common cases directly. |
-| C. Leave it in `ServiceDefaults` per consumer | That is the status quo being replaced; it cost neuroagent-csharp a redundant helper in every service with hard-coded limits. |
+| C. Leave it in `ServiceDefaults` per consumer | That is the status quo being replaced; it cost ［下游的 C# 服务］ a redundant helper in every service with hard-coded limits. |
 | D. **New `Kun.RateLimit` module (selected)** | Clean separation from the Gateway (which stays a YARP-specific host module); single-call registration for any ASP.NET Core service; closed-set partition enum keeps the API AOT-strict. |
 
 ---
@@ -79,7 +81,7 @@ The module owns:
 ## Design Notes
 
 - **Fixed window**, not sliding / token-bucket / concurrency. Matches
-  neuroagent-csharp's existing behaviour and what most HTTP APIs
+  ［下游的 C# 服务］'s existing behaviour and what most HTTP APIs
   actually want. Extending `WindowRule` with an `Algorithm` enum is a
   follow-up once there is a concrete need.
 - **`Retry-After` header always present on 429**. The middleware
@@ -99,7 +101,7 @@ The module owns:
 
 ### Positive
 
-- neuroagent-csharp's `AddNeuroAgentRateLimiter` can be replaced by a
+- ［下游自写的限流装配方法］ can be replaced by a
   three-line `AddKunRateLimit(opts => ...)`.
 - Framework-level ergonomics: named windows match the `.RequireRateLimiting("api")`
   decoration that ASP.NET Core already expects.
@@ -128,8 +130,8 @@ The module owns:
 
 ## Follow-ups
 
-1. **Migrate `neuroagent-csharp/ServiceDefaults`** off
-   `AddNeuroAgentRateLimiter` onto `AddKunRateLimit`.
+1. **Migrate ［下游 C# 服务里的公共装配代码］** off
+   ［下游自写的限流装配方法］ onto `AddKunRateLimit`.
 2. **Sliding / token-bucket variants**: extend `WindowRule` with an
    `Algorithm` enum when a consumer requires it; today's single
    algorithm keeps the surface narrow.
@@ -144,7 +146,7 @@ The module owns:
 ## References
 
 - Handoff: task brief P1-KN-RateLimit
-- `neuroagent-csharp/src/NeuroAgent.ServiceDefaults/Extensions.cs` —
-  `AddNeuroAgentRateLimiter` being abstracted
+- ［下游 C# 服务里的公共装配代码］ —
+  ［下游自写的限流装配方法］ being abstracted
 - `src/Kun.Gateway/RateLimiting/KunRateLimiterExtensions.cs` — the
   sibling YARP-specific extension that stays in place

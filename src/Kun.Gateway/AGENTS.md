@@ -1,0 +1,102 @@
+# Kun.Gateway
+
+## Purpose
+
+YARP-based API gateway. Validates external IdP-issued JWTs from incoming client requests, mints short-lived S2S JWTs via `S2sTokenIssuer` and replaces the Authorization header on forwarded requests (via the internal `S2sAuthTransform`), applies rate limiting (ASP.NET Core Rate Limiting, tenant-partitioned by default), and exposes a JWKS endpoint so downstream services can validate the S2S tokens.
+
+## Key Files
+
+| File | Description |
+|------|-------------|
+| `Kun.Gateway.csproj` | `IsAotCandidate=true`, `Sdk=Microsoft.NET.Sdk.Web`, `OutputType=Exe` |
+| `Program.cs` | Composition root: external JWT bearer + YARP + rate limiter + JWKS endpoint |
+| `Configuration/KunGatewayOptions.cs` | Options for external IdP, internal issuer/audience, key file paths |
+| `S2sTokenIssuer.cs` | Issues internal S2S JWTs through the shared hot-reloading signing ring (RS256, 60 s TTL) |
+| `Transforms/S2sAuthTransform.cs` | Internal YARP `RequestTransform`; replaces `Authorization` header with minted S2S JWT |
+| `Endpoints/JwksEndpoint.cs` | `MapKunJwks()` extension; serves `/.well-known/jwks.json` from the active/overlap signing ring |
+| `RateLimiting/IRateLimitPartitionResolver.cs` | Pluggable partition-key interface |
+| `RateLimiting/Resolvers/TenantRateLimitPartitionResolver.cs` | Partitions by `tenant_id` claim; falls back to `"anonymous"` |
+| `RateLimiting/Resolvers/IpRateLimitPartitionResolver.cs` | Partitions by normalized `RemoteIpAddress`; raw forwarding headers are never trusted |
+| `RateLimiting/KunRateLimiterExtensions.cs` | `AddKunRateLimiter()` — fixed-window 100 req/min, policy name `kun-default` |
+| `DependencyInjection/KunGatewayServiceCollectionExtensions.cs` | `AddKunGateway()` — registers options, issuer, resolver, YARP with transform |
+| `appsettings.json` | Skeleton config: KunGateway section + sample YARP routes/clusters |
+
+## For AI Agents
+
+### Working In This Directory
+
+- **YARP transform**: the internal `S2sAuthTransform` runs on every forwarded request; it reads `HttpContext.User`, asks `S2sTokenIssuer.IssueFor(principal)` for a token, and writes `Authorization: Bearer {token}` on the outbound request — replacing any existing Authorization header.
+- **JWKS for S2S keys** is served from `/.well-known/jwks.json`. The `kid` is a SHA-256 hash of the RSA modulus (first 16 Base64Url chars) for stable identification across restarts.
+- **Canonical S2S**: only authenticated user/service principals with complete scope/session/revision/tenant context may be issued. aud/roles are arrays, UUIDs are canonical, lifetime is 1–300 seconds; arbitrary forwarded/trace claims are not supported. See GATEWAY.md.
+- **Rate limiting** partitions by `tenant_id` claim (default) or IP. Override by registering your own `IRateLimitPartitionResolver` singleton before `AddKunGateway`.
+- **Do NOT use `AddKunServiceAuthentication`** here — that extension is for downstream services validating *incoming* S2S tokens. The gateway validates *external* IdP tokens directly via `AddJwtBearer`.
+- **`S2sAuthTransform` is `internal sealed`** — it is wired by `AddKunGateway` and does not need to be referenced directly.
+
+### Configuration
+
+```json
+{
+  "KunGateway": {
+    "ExternalIssuer": "https://login.example.com",
+    "ExternalAudience": "my-api",
+    "ExternalJwksUri": "https://login.example.com/.well-known/openid-configuration",
+    "InternalIssuer": "kun-gateway",
+    "InternalAudience": "kun-internal",
+    "SigningKeyPath": "/etc/kun/gateway-private.pem",
+    "PublicKeyPath": "/etc/kun/gateway-public.pem"
+  }
+}
+```
+
+### Testing Requirements
+
+Gateway-level integration tests (auth transform, rate limiter, JWKS rotation) belong in `tests/Kun.IntegrationTests`. Unit tests for `S2sTokenIssuer`, `TenantRateLimitPartitionResolver`, and `IpRateLimitPartitionResolver` live in `tests/Kun.Gateway.Tests`.
+
+### Common Patterns
+
+- Custom rate limiting: register `IRateLimitPartitionResolver` before calling `AddKunRateLimiter()`.
+- Key rotation: atomically replace `SigningKeyPath`; `S2sSigningKeyRing` reloads on signing/JWKS access without restart (default minimum interval one second). Old public keys overlap for five minutes; invalid replacements retain the last good key. Restart loses overlap history, so coordinate replicas and restarts.
+- `AddKunGateway` applies authenticated/default-rate policies to routes unless explicitly configured. Public routes require `AuthorizationPolicy: "Anonymous"`; anonymous forwarding strips Authorization.
+- `UseForwardedHeaders` must precede auth and rate limiting. `TrustedProxyAddresses` / `TrustedProxyNetworks` default to empty (processing disabled); never clear KnownProxies alone and assume it means deny all.
+- The standalone host calls `AddKunObservability` with EF instrumentation disabled and remains Native AOT gated.
+
+## gRPC-Web Support
+
+The gateway transparently proxies gRPC-Web requests (browser clients using `grpc-web` or `grpc-web+proto` content types over HTTP/1.1) to backend gRPC services (HTTP/2).
+
+**How it works:**
+
+1. `UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true })` is registered in the pipeline after `UseRateLimiter()` and before `MapReverseProxy()`.
+2. The middleware detects `Content-Type: application/grpc-web` or `application/grpc-web+proto` and translates the framing to standard gRPC (`application/grpc`) automatically.
+3. YARP then forwards the translated request to the backend cluster, which must be configured for HTTP/2 (`HttpRequest.Version = "2"`).
+
+**No per-route opt-in is needed** — `DefaultEnabled = true` covers all routes. The backend cluster must specify HTTP/2:
+
+```json
+"catalog-grpc-cluster": {
+  "HttpRequest": {
+    "Version": "2",
+    "VersionPolicy": "RequestVersionOrHigher"
+  },
+  "Destinations": {
+    "catalog-grpc-1": { "Address": "http://catalog-service:8090" }
+  }
+}
+```
+
+**AOT note:** `Grpc.AspNetCore.Web` is AOT-safe for the gateway use case — it translates HTTP framing only and does not deserialize gRPC message payloads. `IsAotCandidate=true` is retained.
+
+## Dependencies
+
+### Internal
+
+- `Kun.Core` — base types.
+- `Kun.Observability` — standalone host telemetry.
+- `Kun.Security` — `S2sTokenOptions`, JWKS provider pattern.
+
+### External
+
+- `Yarp.ReverseProxy` (2.2.0)
+- `Microsoft.AspNetCore.Authentication.JwtBearer` (10.0.0)
+- `Microsoft.IdentityModel.Tokens` (8.2.0)
+- `Grpc.AspNetCore.Web` (2.67.0)

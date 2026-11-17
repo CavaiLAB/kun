@@ -1,0 +1,86 @@
+# .NET
+bin/
+obj/
+out/
+publish/
+artifacts/
+BenchmarkDotNet.Artifacts/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+*.swp
+*~
+
+# Testing
+[Tt]est[Rr]esult*/
+coverage/
+*.coverage
+*.coveragexml
+TestResults/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# AOT / Publish
+*.pdb
+*.dSYM/
+
+# Aspire
+aspire-dashboard*/
+*.aspire/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.*.Local.json
+*.user.props
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude (keep skills; ignore local agent chatter)
+.claude/logs/
+.claude/cache/
+
+# OMC (oh-my-claudecode) local session cache
+.omc/
+
+# Gateway dev-mode RSA key pair (auto-generated on first launch)
+src/Kun.Gateway/certs/
+
+# Clawhip local state
+.clawhip/
+
+# Python release preflight tests
+__pycache__/
+
+# ---- 本仓库加的（B2 整理，2026-11-17）----
+# 以上规则来自原 Kun，随原 Kun 提到仓库根。原 Qian 的过渡目录 _import/qian/ 有它自己的 .gitignore，
+# 根上的规则不作用到它：比如上面的 packages/ 会把 _import/qian/packages/ 整个忽略掉。下面这条匹配
+# _import/qian/ 下的全部路径，让根上的规则对它们不再生效；_import/qian/.gitignore 的优先级高于根上的，
+# 照旧生效。代价：本机的全局忽略规则（core.excludesFile、.git/info/exclude）在 _import/qian/ 下不再生效。
+# _import/qian/ 搬空之后删掉这一段。
+!/_import/qian/**

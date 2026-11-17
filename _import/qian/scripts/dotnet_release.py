@@ -48,7 +48,7 @@ SEMVER = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$")
 GENERATORS = "Qian.Plugin.Sdk.Generators"
-LICENSE = "Apache-2.0"
+LICENSE = "MIT"
 REPOSITORY = "https://github.com/idadawn/qian.git"
 CONSUMER_PACKAGES = ("Qian.Plugin.Sdk", GENERATORS, "Qian.Data")
 

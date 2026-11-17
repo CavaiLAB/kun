@@ -4,10 +4,18 @@ description: Kun、Qian、yue 三层与周边仓库（官方市场、Agent 运�
 part: start
 project: qian
 audience: [developer, operator, isv, decision-maker]
-updated: 2026-10-09
+updated: 2026-11-18
 ---
 
 # 产品族
+
+> **合并后的去处（2026-11-17 起）**：Qian 并入 Kun（[ADR-023](/design/adr/adr-023-kun-qian-merge-blueprint)，S1-DEC-038 D17、D18）。原 Kun 仓库 `idadawn/kun` 与原 Qian 仓库 `idadawn/qian` 当天归档为只读。
+>
+> - 两个原仓库的后端都带历史迁入 [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun)：原 Kun 的代码在仓库根；原 Qian 的 .NET 代码、外壳应用、本站、命令行、契约、部署清单、任务与看板、决策记录与设计文档暂放在 `_import/qian/` 下，由后续批次提出过渡目录，`Qian.*` 改名为 `Kun.*` 也在这些批次里做。本站与任务看板现在由 `CavaiLAB/kun` 的主干发布。
+> - 前端框架库（yue 的八个包、组件演练场、前端插件开发包、TypeScript 运行时）迁往 [`CavaiLAB/qian`](https://github.com/CavaiLAB/qian)，在那边由 yue 改名为 qian。「Qian」以后只作前端框架的名字。
+> - 迁移怎么分批，见 `CavaiLAB/kun` 的[迁移执行计划](https://github.com/CavaiLAB/kun/blob/main/docs/migration-plan.md)。
+>
+> 下面的表格与「四样东西把它们关联起来」一节是合并之前的原状，表里写「本仓库」的指原 Qian 仓库。
 
 三个名字、三层，不是一个大单仓（[ADR-021](/design/adr/adr-021-product-family-structure)）。对外一句话：**Qian 平台基于 Kun 框架构建，前端使用 yue 组件库**。Kun 不是 Qian 的子项目（它有自己的下游与发布节奏），Qian 也不是 Kun 的扩展（它有自己的运行时、插件与产品面）。
 

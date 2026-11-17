@@ -38,7 +38,7 @@
   新建决策任务并把当前任务标 `blocked`。
 - `pm/index.html`、`pm/tasks.json`、`pm/STATUS.md` 是生成物，不进 git（S1-PM-004），不要提交，也不要手改：
   - 本地想看看板，运行 `python3 scripts/pm.py build`，结果已被 `.gitignore` 忽略；
-  - 集群看板由看板 Pod 按 `main` 自行生成；
+  - 集群看板由看板 Pod 按 `CavaiLAB/kun` 主干上 `_import/qian/pm/tasks/` 的任务文件自行生成（内网访问，入口见 `deploy/pm-board/README.md`；应用由 Argo CD 管，Application 在部署仓库）；
   - 早先开出的分支合入 `main` 时，若这三个文件出现「一边修改、一边删除」的冲突，直接 `git rm` 它们。
 
 ## 写文档与代码的硬规则
@@ -70,7 +70,9 @@ scripts/     pm.py、check_docs.py、check_deps.py（依赖图门禁）
 tests/       Testcontainers fixture、集成测试、门禁自测（见 tests/README.md）；tests/gates/yue/ 是 yue 门禁自测
 website/     文档站（Rspress 2.0，见 website/README.md 与 website/AGENTS.md）；components/、cli/、design/、sdk/kun/（with-qian.mdx 除外）、sdk/api/ 为生成目录
 deploy/      开发期工具的 K3s 清单：pm-board/（看板）、docs-site/（文档站）；images/ 是 profile 镜像模板与供应链门禁（见 deploy/images/README.md）
-.github/     CI：文档门禁 + 任务校验 + 看板新鲜度；dotnet 构建、门禁与测试；文档站构建、预览与发布；yue 八项门禁矩阵；镜像供应链自检；本机租户运营手测环境冒烟
+.github/     原 Qian 的工作流原件，在 CavaiLAB/kun 里 GitHub 不读：检查接在仓库根的 .github/workflows/qian-*.yml
+             （文档门禁、任务校验与看板生成；dotnet 构建、门禁与测试；文档站构建与发布；yue 八项门禁矩阵；本机租户运营手测环境冒烟等），
+             在 _import/qian/ 下运行；文档站的 PR 预览、镜像供应链自检与三条发布工作流没有接（见根 AGENTS.md 与迁移执行计划）
 Qian.slnx、global.json、Directory.Build.props / .targets、Directory.Packages.props、NuGet.config
              .NET 构建基线：net10.0、警告即错误、中央包版本、PublicAPI 门禁
 ```

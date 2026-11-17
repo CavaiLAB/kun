@@ -3,6 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsAotCandidate>true</IsAotCandidate>
+    <!-- Kun.Gateway 既是 NuGet 库，也是独立宿主。引用它的项目（_import/qian 下按 NativeAOT 自包含发布的网关宿主，S1-KUN-020）
+         只把它当库用，SDK 对「自包含程序引用非自包含的可执行项目」的检查（NETSDK1150）不适用。 -->
+    <ShouldBeValidatedAsExecutableReference>false</ShouldBeValidatedAsExecutableReference>
     <HasPublicApi>true</HasPublicApi>
     <IsPackable>true</IsPackable>
     <PackageReadmeFile>GATEWAY.md</PackageReadmeFile>

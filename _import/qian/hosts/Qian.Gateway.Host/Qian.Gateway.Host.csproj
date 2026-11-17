@@ -14,4 +14,15 @@
     <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
+  <!--
+    原 Qian 改为项目引用 Kun 源码之后（S1-KUN-020），经 Qian.Gateway 引到的 Kun.Gateway 是项目引用。它同时是独立宿主，
+    SDK 会把它的启动器与 runtimeconfig 当作被引用的可执行程序复制进本宿主的发布目录。这里只把它当库用，按包引用时
+    发布目录里也没有这两个文件，所以从发布清单里去掉。
+  -->
+  <Target Name="QianRemoveReferencedKunGatewayHost" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(ResolvedFileToPublish.RelativePath)' == 'Kun.Gateway' or '%(ResolvedFileToPublish.RelativePath)' == 'Kun.Gateway.exe' or '%(ResolvedFileToPublish.RelativePath)' == 'Kun.Gateway.runtimeconfig.json' or '%(ResolvedFileToPublish.RelativePath)' == 'Kun.Gateway.deps.json'" />
+    </ItemGroup>
+  </Target>
 </Project>

@@ -48,7 +48,7 @@ public sealed class PgBouncerCompatTests(PgBouncerPostgresFixture fx) : IAsyncLi
     {
         if (string.IsNullOrEmpty(fx.BouncerConnectionString))
         {
-            Assert.Skip("PgBouncer fixture did not start (Docker unavailable).");
+            ContainerRuntime.ReportUnavailable("PgBouncer fixture did not start (Docker unavailable).");
             return;
         }
 

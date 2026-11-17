@@ -95,7 +95,7 @@ public sealed class PgBouncerPostgresFixture : IAsyncLifetime
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            Assert.Skip("Docker not available — PgBouncer integration test requires Docker (runs in CI).");
+            ContainerRuntime.ReportUnavailable("Docker not available — PgBouncer integration test requires Docker (runs in CI).");
         }
     }
 

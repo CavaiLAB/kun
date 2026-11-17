@@ -43,7 +43,7 @@ public sealed class RabbitMqFixture : IAsyncLifetime
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            Assert.Skip("Docker is not available on this host — integration test requires Docker (runs in CI).");
+            ContainerRuntime.ReportUnavailable("Docker is not available on this host — integration test requires Docker (runs in CI).");
             return;
         }
 

@@ -25,6 +25,7 @@ using Kun.Core.Time;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EventBus.DependencyInjection;
+using Kun.IntegrationTests.Fixtures;
 using Kun.Mediator.DependencyInjection;
 using Kun.Saga.Abstractions;
 using Kun.Saga.DependencyInjection;
@@ -268,7 +269,7 @@ internal sealed class SagaPostgresFixture : IAsyncLifetime
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            Assert.Skip("Docker is not available on this host — integration test requires Docker.");
+            ContainerRuntime.ReportUnavailable("Docker is not available on this host — integration test requires Docker.");
             return;
         }
 

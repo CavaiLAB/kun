@@ -3,18 +3,19 @@ using System.Net.Http.Headers;
 using System.Text;
 using Amazon.S3;
 using FluentAssertions;
+using Kun.IntegrationTests.Fixtures;
 using Kun.Storage;
 using Kun.Storage.S3;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Testcontainers.Minio;
 using Xunit;
 
 namespace Kun.IntegrationTests.Storage;
 
 /// <summary>
 /// End-to-end integration test for <see cref="S3FileStorage.GetPresignedPostUploadAsync"/>
-/// against MinIO. The acceptance criterion under test: an oversized multipart POST is
+/// against an S3-compatible server container (<see cref="S3CompatibleServer"/>; the class name
+/// predates the switch away from MinIO). The acceptance criterion under test: an oversized multipart POST is
 /// rejected by S3 itself (HTTP 400 / EntityTooLarge) because the <c>content-length-range</c>
 /// condition is baked into the signed policy — the framework does NOT need to pre-validate
 /// the body size.
@@ -22,10 +23,10 @@ namespace Kun.IntegrationTests.Storage;
 public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
 {
     private const string BucketName = "kun-storage-post-tests";
-    private const string AccessKey = "kunadmin";
-    private const string SecretKey = "kunadmin-secret";
+    private const string AccessKey = S3CompatibleServer.AccessKey;
+    private const string SecretKey = S3CompatibleServer.SecretKey;
 
-    private MinioContainer? _container;
+    private S3CompatibleServer? _server;
     private AmazonS3Client? _s3;
     private S3FileStorage? _storage;
 
@@ -33,32 +34,21 @@ public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
     {
         try
         {
-            _container = new MinioBuilder()
-                .WithImage("minio/minio:RELEASE.2024-06-13T22-53-53Z")
-                .WithUsername(AccessKey)
-                .WithPassword(SecretKey)
-                .Build();
+            _server = S3CompatibleServer.Create();
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            Assert.Skip("Docker is not available on this host — integration test requires Docker.");
+            ContainerRuntime.ReportUnavailable("Docker is not available on this host — integration test requires Docker.");
             return;
         }
 
-        try
-        {
-            await _container.StartAsync(TestContext.Current.CancellationToken);
-        }
-        catch (Exception ex) when (ex.GetType().Name.Contains("Docker", StringComparison.OrdinalIgnoreCase))
-        {
-            Assert.Skip($"Docker is not available on this host: {ex.Message}");
-            return;
-        }
+        // Image pull or startup failures propagate and fail the test; they are not "Docker unavailable".
+        await _server.StartAsync(TestContext.Current.CancellationToken);
 
         var options = new S3StorageOptions
         {
             BucketName = BucketName,
-            ServiceUrl = new Uri(_container.GetConnectionString(), UriKind.Absolute),
+            ServiceUrl = new Uri(_server.Endpoint, UriKind.Absolute),
             ForcePathStyle = true,
             AccessKey = AccessKey,
             SecretKey = SecretKey,
@@ -85,9 +75,9 @@ public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
     public async ValueTask DisposeAsync()
     {
         _s3?.Dispose();
-        if (_container is not null)
+        if (_server is not null)
         {
-            await _container.DisposeAsync();
+            await _server.DisposeAsync();
         }
     }
 
@@ -96,7 +86,7 @@ public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
     {
         if (_storage is null)
         {
-            Assert.Skip("Container was not started (Docker unavailable).");
+            ContainerRuntime.ReportUnavailable("Container was not started (Docker unavailable).");
             return;
         }
 
@@ -125,7 +115,7 @@ public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
     {
         if (_storage is null)
         {
-            Assert.Skip("Container was not started (Docker unavailable).");
+            ContainerRuntime.ReportUnavailable("Container was not started (Docker unavailable).");
             return;
         }
 
@@ -147,7 +137,7 @@ public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
         using var response = await http.PostAsync(presigned.Url, content, TestContext.Current.CancellationToken);
 
         // Per AWS spec, an oversized body produces 400 Bad Request (EntityTooLarge);
-        // MinIO mirrors that. The framework itself never saw the body — S3 rejected it.
+        // the S3-compatible test server mirrors that. The framework itself never saw the body — S3 rejected it.
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
             "the signed policy's content-length-range must cause S3 to reject oversized uploads at the edge");
 

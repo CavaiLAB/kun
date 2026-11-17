@@ -7,6 +7,7 @@ using Kun.Dapper.Npgsql;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EventBus.DependencyInjection;
+using Kun.IntegrationTests.Fixtures;
 using Kun.Mediator.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,7 +86,7 @@ public sealed class DapperAotQueryTests : IAsyncLifetime
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            Assert.Skip("Docker is not available on this host — integration test requires Docker (runs in CI).");
+            ContainerRuntime.ReportUnavailable("Docker is not available on this host — integration test requires Docker (runs in CI).");
             return;
         }
 

@@ -13,6 +13,7 @@
 using FluentAssertions;
 using Kun.Core.Time;
 using Kun.EntityFrameworkCore;
+using Kun.IntegrationTests.Fixtures;
 using Kun.Saga.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,7 +53,7 @@ public sealed class SagaCompensationIdempotencyTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
 
         if (string.IsNullOrEmpty(_fixture.ConnectionString))
-            Assert.Skip("Docker unavailable.");
+            ContainerRuntime.ReportUnavailable("Docker unavailable.");
 
         var context = new SampleSagaContext
         {
@@ -101,7 +102,7 @@ public sealed class SagaCompensationIdempotencyTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
 
         if (string.IsNullOrEmpty(_fixture.ConnectionString))
-            Assert.Skip("Docker unavailable.");
+            ContainerRuntime.ReportUnavailable("Docker unavailable.");
 
         // Compensate a step whose Execute never ran — context flags all false.
         var context = new SampleSagaContext { SagaId = Guid.NewGuid() };
@@ -124,7 +125,7 @@ public sealed class SagaCompensationIdempotencyTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
 
         if (string.IsNullOrEmpty(_fixture.ConnectionString))
-            Assert.Skip("Docker unavailable.");
+            ContainerRuntime.ReportUnavailable("Docker unavailable.");
 
         // Simulate at-least-once delivery: two Compensate entries for same (sagaId, stepIndex=0).
         // Verifies there is no unique constraint preventing duplicate entries.

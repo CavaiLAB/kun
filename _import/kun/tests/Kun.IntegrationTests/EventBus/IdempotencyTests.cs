@@ -64,7 +64,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
 
         if (string.IsNullOrEmpty(_rabbitmq.ConnectionString) || string.IsNullOrEmpty(_redis.ConnectionString))
         {
-            Assert.Skip("Docker not available.");
+            ContainerRuntime.ReportUnavailable("Docker not available.");
             return;
         }
 
@@ -132,7 +132,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
 
         if (_host is null)
         {
-            Assert.Skip("Docker not available.");
+            ContainerRuntime.ReportUnavailable("Docker not available.");
             return;
         }
 

@@ -11,15 +11,15 @@ using Xunit;
 namespace Kun.IntegrationTests.Storage;
 
 /// <summary>
-/// Round-trips <see cref="S3FileStorage"/> against a live MinIO container.
+/// Round-trips <see cref="S3FileStorage"/> against a live S3-compatible server container (<see cref="S3StorageFixture"/>).
 /// </summary>
-public sealed class S3FileStorageIntegrationTests : IClassFixture<MinioFixture>
+public sealed class S3FileStorageIntegrationTests : IClassFixture<S3StorageFixture>
 {
-    private readonly MinioFixture _fixture;
+    private readonly S3StorageFixture _fixture;
     private readonly S3FileStorage _storage;
     private readonly CancellationToken _ct;
 
-    public S3FileStorageIntegrationTests(MinioFixture fixture)
+    public S3FileStorageIntegrationTests(S3StorageFixture fixture)
     {
         _fixture = fixture;
         _storage = new S3FileStorage(

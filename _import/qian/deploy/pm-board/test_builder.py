@@ -3,8 +3,10 @@
     python3 -m unittest discover -s deploy/pm-board -p 'test_*.py' -v
 
 每个用例在临时目录里搭出 git-sync 的布局（/git/.worktrees/<提交> + /git/current 链接），
-检出里放一个假的 scripts/pm.py，按检出里的 mode 文件模拟三种情形：正常生成、任务文件校验不过、
+检出里放一个假的 <前缀>/scripts/pm.py，按检出里的 mode 文件模拟三种情形：正常生成、任务文件校验不过、
 生成途中 git-sync 同步到新提交（先改指 current，再删旧检出）。另有一个用例确认收到 SIGTERM 立即退出。
+全部用例跑两遍：前缀为空（检出根，原 Qian 仓库的布局）与前缀 _import/qian（迁入 CavaiLAB/kun 后的布局）；
+另有用例核对 /site/source 链接与 BOARD_PREFIX 的规整。
 """
 from __future__ import annotations
 
@@ -24,7 +26,10 @@ import builder
 FAKE_PM = '''\
 import os, pathlib, shutil, sys
 
-checkout = pathlib.Path(__file__).resolve().parents[1]
+# 假 pm.py 在 <检出>/<前缀>/scripts/ 下；检出目录是 .worktrees 下的那一层
+here = pathlib.Path(__file__).resolve()
+root = here.parents[1]
+checkout = next(p for p in here.parents if p.parent.name == ".worktrees")
 out = pathlib.Path(sys.argv[sys.argv.index("--out") + 1])
 mode = (checkout / "mode").read_text(encoding="utf-8").strip()
 if mode == "invalid":
@@ -35,7 +40,7 @@ if mode == "switch":
     os.symlink(os.environ["BOARD_TEST_NEXT"], link + ".tmp")
     os.replace(link + ".tmp", link)
     shutil.rmtree(checkout)
-    list((checkout / "pm" / "tasks").iterdir())
+    list((root / "pm" / "tasks").iterdir())
 out.mkdir(parents=True)
 for name in ("index.html", "tasks.json", "STATUS.md"):
     (out / name).write_text(checkout.name, encoding="utf-8")
@@ -46,6 +51,8 @@ A, B, C = "a" * 40, "b" * 40, "c" * 40
 
 
 class BuilderTest(unittest.TestCase):
+    PREFIX = ""  # 检出根：原 Qian 仓库的布局
+
     def setUp(self) -> None:
         # macOS 的临时目录经过 /var → /private/var 链接，builder 比较的是 realpath
         root = os.path.realpath(tempfile.mkdtemp(prefix="pm-board-builder-"))
@@ -58,6 +65,8 @@ class BuilderTest(unittest.TestCase):
         for patcher in (
             mock.patch.object(builder, "GIT_LINK", self.link),
             mock.patch.object(builder, "SITE", self.site),
+            mock.patch.object(builder, "PREFIX", self.PREFIX),
+            mock.patch.object(builder, "_missing", None),
             mock.patch.dict(os.environ, {"BOARD_TEST_LINK": self.link}),
         ):
             patcher.start()
@@ -65,9 +74,12 @@ class BuilderTest(unittest.TestCase):
 
     def checkout(self, rev: str, mode: str = "ok") -> str:
         path = os.path.join(self.git, ".worktrees", rev)
-        os.makedirs(os.path.join(path, "scripts"))
-        os.makedirs(os.path.join(path, "pm", "tasks"))
-        with open(os.path.join(path, "scripts", "pm.py"), "w", encoding="utf-8") as f:
+        root = os.path.join(path, self.PREFIX)
+        os.makedirs(os.path.join(root, "scripts"))
+        os.makedirs(os.path.join(root, "pm", "tasks"))
+        with open(os.path.join(root, "pm", "tasks", f"{rev[:5]}.md"), "w", encoding="utf-8") as f:
+            f.write(rev)
+        with open(os.path.join(root, "scripts", "pm.py"), "w", encoding="utf-8") as f:
             f.write(FAKE_PM)
         with open(os.path.join(path, "mode"), "w", encoding="utf-8") as f:
             f.write(mode)
@@ -146,13 +158,46 @@ class BuilderTest(unittest.TestCase):
         self.assertIn(f"已上线 {C[:9]}", log)
         self.assertEqual(self.served(), C)
 
+    def test_source_link_follows_current_into_prefix(self) -> None:
+        """/site/source 指向 /git/current/<前缀>：nginx 的 /tasks/ 总是取最新同步到的提交的任务源文件。"""
+        builder.link_source()
+        source = os.path.join(self.site, "source")
+        self.assertEqual(os.readlink(source), os.path.join(self.link, self.PREFIX) if self.PREFIX else self.link)
+        seen = self.published()
+        tasks = os.path.join(source, "pm", "tasks")
+        self.assertEqual(os.listdir(tasks), [f"{A[:5]}.md"])
+
+        self.point(self.checkout(B))
+        self.assertEqual(os.listdir(tasks), [f"{B[:5]}.md"])
+        # 再建一次（容器重启）是原子替换，不报错；生成新版、清理旧版时也不动它
+        builder.link_source()
+        seen, _ = self.check(seen)
+        self.assertEqual(sorted(os.listdir(self.site)), sorted([B, "current", "source"]))
+        self.assertTrue(os.path.islink(source))
+
+    def test_checkout_without_pm_script_under_prefix_is_not_built(self) -> None:
+        """检出里在前缀下找不到 scripts/pm.py（例如前缀配错）时不生成、不记成处理过，只记一次日志。"""
+        wrong = os.path.join(self.git, ".worktrees", A)
+        os.makedirs(os.path.join(wrong, "elsewhere", "scripts"))
+        self.point(wrong)
+        seen, log = self.check(None)
+        self.assertIsNone(seen)
+        script = os.path.join(self.PREFIX, "scripts", "pm.py")
+        self.assertIn(f"检出 {A[:9]} 里没有 {script}，不生成，继续提供上一版", log)
+        self.assertEqual(os.listdir(self.site), [])
+        # 同一检出不再记；换成布局正确的提交后照常生成
+        self.assertEqual(self.check(None), (None, ""))
+        self.point(self.checkout(B))
+        seen, log = self.check(None)
+        self.assertIn(f"已上线 {B[:9]}", log)
+
     def test_exits_promptly_on_sigterm(self) -> None:
         """收到 SIGTERM 立即退出：容器里的 1 号进程不处理 SIGTERM 就会忽略它，Pod 要等宽限期满才被强杀。
 
         这里 builder 不是 1 号进程，没有处理函数时会被 SIGTERM 直接杀掉（返回码 -15），所以以返回码 0 与退出日志为准。
         """
         env = dict(os.environ, BOARD_GIT_LINK=self.link, BOARD_SITE=self.site, BOARD_PERIOD="60",
-                   PYTHONDONTWRITEBYTECODE="1")
+                   BOARD_PREFIX=self.PREFIX, PYTHONDONTWRITEBYTECODE="1")
         proc = subprocess.Popen([sys.executable, "-u", builder.__file__], env=env, text=True,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.addCleanup(proc.kill)
@@ -161,6 +206,25 @@ class BuilderTest(unittest.TestCase):
         out, _ = proc.communicate(timeout=5)
         self.assertEqual(proc.returncode, 0, out)
         self.assertIn("收到 SIGTERM，退出", out)
+        self.assertTrue(os.path.islink(os.path.join(self.site, "source")), "启动时应先建好 /site/source")
+
+
+class PrefixedBuilderTest(BuilderTest):
+    """迁入 CavaiLAB/kun 后的布局：scripts/pm.py 与 pm/tasks/ 在检出的 _import/qian/ 下。"""
+    PREFIX = os.path.join("_import", "qian")
+
+
+class BoardPrefixTest(unittest.TestCase):
+    def test_normalizes_relative_prefix(self) -> None:
+        self.assertEqual(builder.board_prefix(""), "")
+        self.assertEqual(builder.board_prefix("."), "")
+        self.assertEqual(builder.board_prefix(" _import/qian/ "), os.path.join("_import", "qian"))
+        self.assertEqual(builder.board_prefix("_import/./qian"), os.path.join("_import", "qian"))
+
+    def test_rejects_prefix_outside_checkout(self) -> None:
+        for value in ("/abs", "..", "../qian", "_import/../../qian"):
+            with self.subTest(value=value), self.assertRaises(SystemExit):
+                builder.board_prefix(value)
 
 
 if __name__ == "__main__":

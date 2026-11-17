@@ -6,15 +6,19 @@ name: qian-surfaces
 # （比较步骤按工作目录读 TestResults/，报告必须写进 _import/qian/TestResults/）；路径过滤末尾加上本文件。检查本身不变。
 # 「私有源已发布组件的 qian add E2E」照原件用本次运行的 GITHUB_TOKEN（packages: read）读 idadawn 名下 GitHub Packages 上
 # 已发布的公开 Qian.* 包；包源地址在原 Qian 的测试代码里，没有改。
+# S1-YUE-025：TypeScript 运行时改装 CavaiLAB/qian 发布在 GitHub Packages 上的 @cavailab/qian-runtime（命令行与校验库测试的开发依赖），
+# 运行时一致性用例的 TS 一侧随命令行测试跑：去掉构建 packages/qian-runtime 一步，路径过滤去掉它、改看整个 tck/runtime/；
+# 两个作业都要装 GitHub Packages 上的公开包：权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
 
 on:
   push:
     branches: [main]
-    paths: ['_import/qian/packages/Qian.Surfaces*/**', '_import/qian/packages/Qian.Runtime/**', '_import/qian/packages/qian-surfaces/**', '_import/qian/packages/Qian.Profiles*/**', '_import/qian/packages/qian-cli/**', '_import/qian/profiles/**', '_import/qian/plugins/**', '_import/qian/tck/profiles/**', '_import/qian/tck/registry-artifacts/**', '_import/qian/tests/Qian.Profiles.Tests/**', '_import/qian/package.json', '_import/qian/schemas/v2/**', '_import/qian/tck/surfaces/**', '_import/qian/tck/runtime/hotreload.json', '_import/qian/tck/runtime/skill-only.json', '_import/qian/packages/qian-runtime/**', '_import/qian/tck/marketplaces/**', '_import/qian/contracts/v0/**', '_import/qian/tests/Qian.Surfaces.Tests/**', '_import/qian/scripts/generate_surface_fixtures.py', '_import/qian/packages/Common/**', '_import/qian/pnpm*', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/.github/workflows/surfaces.yml', '.github/workflows/qian-surfaces.yml']
+    paths: ['_import/qian/packages/Qian.Surfaces*/**', '_import/qian/packages/Qian.Runtime/**', '_import/qian/packages/qian-surfaces/**', '_import/qian/packages/Qian.Profiles*/**', '_import/qian/packages/qian-cli/**', '_import/qian/profiles/**', '_import/qian/plugins/**', '_import/qian/tck/profiles/**', '_import/qian/tck/registry-artifacts/**', '_import/qian/tests/Qian.Profiles.Tests/**', '_import/qian/package.json', '_import/qian/schemas/v2/**', '_import/qian/tck/surfaces/**', '_import/qian/tck/runtime/**', '_import/qian/tck/marketplaces/**', '_import/qian/contracts/v0/**', '_import/qian/tests/Qian.Surfaces.Tests/**', '_import/qian/scripts/generate_surface_fixtures.py', '_import/qian/packages/Common/**', '_import/qian/pnpm*', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/.github/workflows/surfaces.yml', '.github/workflows/qian-surfaces.yml']
   pull_request:
-    paths: ['_import/qian/packages/Qian.Surfaces*/**', '_import/qian/packages/Qian.Runtime/**', '_import/qian/packages/qian-surfaces/**', '_import/qian/packages/Qian.Profiles*/**', '_import/qian/packages/qian-cli/**', '_import/qian/profiles/**', '_import/qian/plugins/**', '_import/qian/tck/profiles/**', '_import/qian/tck/registry-artifacts/**', '_import/qian/tests/Qian.Profiles.Tests/**', '_import/qian/package.json', '_import/qian/schemas/v2/**', '_import/qian/tck/surfaces/**', '_import/qian/tck/runtime/hotreload.json', '_import/qian/tck/runtime/skill-only.json', '_import/qian/packages/qian-runtime/**', '_import/qian/tck/marketplaces/**', '_import/qian/contracts/v0/**', '_import/qian/tests/Qian.Surfaces.Tests/**', '_import/qian/scripts/generate_surface_fixtures.py', '_import/qian/packages/Common/**', '_import/qian/pnpm*', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/.github/workflows/surfaces.yml', '.github/workflows/qian-surfaces.yml']
+    paths: ['_import/qian/packages/Qian.Surfaces*/**', '_import/qian/packages/Qian.Runtime/**', '_import/qian/packages/qian-surfaces/**', '_import/qian/packages/Qian.Profiles*/**', '_import/qian/packages/qian-cli/**', '_import/qian/profiles/**', '_import/qian/plugins/**', '_import/qian/tck/profiles/**', '_import/qian/tck/registry-artifacts/**', '_import/qian/tests/Qian.Profiles.Tests/**', '_import/qian/package.json', '_import/qian/schemas/v2/**', '_import/qian/tck/surfaces/**', '_import/qian/tck/runtime/**', '_import/qian/tck/marketplaces/**', '_import/qian/contracts/v0/**', '_import/qian/tests/Qian.Surfaces.Tests/**', '_import/qian/scripts/generate_surface_fixtures.py', '_import/qian/packages/Common/**', '_import/qian/pnpm*', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/.github/workflows/surfaces.yml', '.github/workflows/qian-surfaces.yml']
 permissions:
   contents: read
+  packages: read
 concurrency:
   group: qian-surfaces-${{ github.ref }}
   cancel-in-progress: true
@@ -34,16 +38,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
           version: 12.9.1
           package_json_file: _import/qian/package.json
       - run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: 共用样例新鲜度
         run: |
           python3 scripts/generate_surface_fixtures.py
           git diff --exit-code -- tck/surfaces
-      - run: pnpm --filter ./packages/qian-runtime build
       - run: pnpm --filter @qian/surfaces build
       - run: pnpm --filter @qian/surfaces check:api
       - name: TypeScript 样例与 JCS
@@ -83,11 +90,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
           version: 12.9.1
           package_json_file: _import/qian/package.json
       - run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: 构建 CLI
         run: pnpm --filter qian... build
       - name: 空白宿主经签名市场安装 data / events / config、data / files（standalone）与 identity，运行 Provider 后逆序卸载

@@ -2,16 +2,19 @@ name: qian-shell-auth
 # 原 Qian 的 shell-auth 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
 # 原件在 _import/qian/.github/workflows/shell-auth.yml，不动；GitHub 只读仓库根的 .github/workflows/。
 # 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、上传路径加 _import/qian/ 前缀；
-# 路径过滤末尾加上本文件。检查本身不变：原样执行 pnpm yue:auth（外壳认证真实流程验收，验收范围见原件的注释）。
+# 路径过滤末尾加上本文件。检查本身不变：执行 pnpm shell:auth（原件里叫 pnpm yue:auth；外壳认证真实流程验收，验收范围见原件的注释）。
+# S1-YUE-025：前端框架改装 CavaiLAB/qian 发布在 GitHub Packages 上的 @cavailab/qian-*（公开包，用本次运行的 GITHUB_TOKEN 只读安装：
+# 权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）；路径过滤去掉迁走的目录。
 on:
   push:
     branches: [main]
-    paths: ['_import/qian/apps/qian-shell/**', '_import/qian/packages/qian-shell-kit/**', '_import/qian/packages/qian-plugin-sdk/**', '_import/qian/packages/qian-runtime/**', '_import/qian/packages/qian-identity-ui/**', '_import/qian/samples/qian-sample-crm-ui/**', '_import/qian/packages/qian-tenancy-ui/**', '_import/qian/packages/qian-tenancy-signup-ui/**', '_import/qian/packages/yue/**', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.Shell/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-shell.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/.github/workflows/shell-auth.yml', '.github/workflows/qian-shell-auth.yml']
+    paths: ['_import/qian/apps/qian-shell/**', '_import/qian/packages/qian-shell-kit/**', '_import/qian/packages/qian-identity-ui/**', '_import/qian/samples/qian-sample-crm-ui/**', '_import/qian/packages/qian-tenancy-ui/**', '_import/qian/packages/qian-tenancy-signup-ui/**', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.Shell/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-shell.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/.github/workflows/shell-auth.yml', '.github/workflows/qian-shell-auth.yml']
   pull_request:
-    paths: ['_import/qian/apps/qian-shell/**', '_import/qian/packages/qian-shell-kit/**', '_import/qian/packages/qian-plugin-sdk/**', '_import/qian/packages/qian-runtime/**', '_import/qian/packages/qian-identity-ui/**', '_import/qian/samples/qian-sample-crm-ui/**', '_import/qian/packages/qian-tenancy-ui/**', '_import/qian/packages/qian-tenancy-signup-ui/**', '_import/qian/packages/yue/**', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.Shell/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-shell.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/.github/workflows/shell-auth.yml', '.github/workflows/qian-shell-auth.yml']
+    paths: ['_import/qian/apps/qian-shell/**', '_import/qian/packages/qian-shell-kit/**', '_import/qian/packages/qian-identity-ui/**', '_import/qian/samples/qian-sample-crm-ui/**', '_import/qian/packages/qian-tenancy-ui/**', '_import/qian/packages/qian-tenancy-signup-ui/**', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.Shell/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-shell.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/.github/workflows/shell-auth.yml', '.github/workflows/qian-shell-auth.yml']
   workflow_dispatch:
 permissions:
   contents: read
+  packages: read
 concurrency:
   group: qian-shell-auth-${{ github.ref }}
   cancel-in-progress: true
@@ -35,15 +38,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          registry-url: https://npm.pkg.github.com
+          scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
           version: 12.9.1
           package_json_file: _import/qian/package.json
       - run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm --filter qian-shell exec playwright install --with-deps chromium
       - run: pnpm exec turbo run typecheck --filter=@qian/identity-ui --filter=@qian/shell-kit --filter=@qian/sample-crm-ui --filter=@qian/tenancy-ui --filter=@qian/tenancy-signup-ui --filter=qian-shell
       - name: 真实流程验收（与本机 scripts/dev-shell.sh e2e 同一入口）
-        run: pnpm yue:auth
+        run: pnpm shell:auth
       - uses: actions/upload-artifact@v4
         if: always()
         with:

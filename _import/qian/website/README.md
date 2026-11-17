@@ -15,7 +15,7 @@ Rspress 2.0（`@rspress/core` 2.0.23，React 19，MDX）。内置全文搜索（
 
 两者缺一构建即失败，不跳过、不回退 `main`（docs-site.md §2b.1）。
 
-组件目录里 qian 组件库（原 yue）的页面、演示与目录（见文末「qian 组件库（原 yue）的组件文档与交互」）另外需要 **CavaiLAB/qian 的检出**：前端框架已迁到那个仓库，本站按 `pnpm-workspace.yaml` 版本目录里 `@cavailab/qian-core` 的版本检出它的同名标签 `@cavailab/qian-core@<版本>`，组件源码、示例与场景清单都从检出取（组件页来源定下来之前的过渡做法）。环境变量 `QIAN_DOCS_PATH` 指向本机检出（停在该标签，并在检出里运行过 `pnpm install --frozen-lockfile --filter "./packages/qian/*"`）；不设时脚本用 HTTPS 浅克隆到 `website/.cache/qian-repo` 并装依赖。检出的版本对不上、依赖没装，构建即失败。脚本把 `website/.cache/qian-source` 链接到检出，演示的样式扫描、类型检查与浏览器验收都经它读。
+组件目录里 qian 组件库（原 yue）的页面、演示与目录（见文末「qian 组件库（原 yue）的组件文档与交互」）另外需要 **CavaiLAB/qian 的检出**：前端框架已迁到那个仓库，本站按 `pnpm-workspace.yaml` 版本目录里 `@cavailab/qian-core` 的版本检出它的同名标签 `@cavailab/qian-core@<版本>`，组件源码、示例与场景清单都从检出取（组件页来源定下来之前的过渡做法）。环境变量 `QIAN_DOCS_PATH` 指向本机检出（停在该标签，并在检出里运行过 `pnpm install --frozen-lockfile --filter "./packages/qian/*"`）；不设时脚本用 HTTPS 克隆到 `website/.cache/qian-repo`（完整历史、不预取文件内容，页面的更新日期要用）并装依赖。检出的版本对不上、依赖没装，构建即失败。脚本把 `website/.cache/qian-source` 链接到检出，演示的样式扫描、类型检查与浏览器验收都经它读。
 
 仓库根目录的 `pnpm install` 要从 GitHub Packages 装文档站依赖的 `@cavailab/qian-core`、`@cavailab/qian-tokens`，令牌的配置见仓库 README「前端依赖与包源」。
 

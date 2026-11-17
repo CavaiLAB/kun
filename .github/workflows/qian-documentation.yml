@@ -5,15 +5,19 @@ name: qian-documentation
 # 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、上传路径加 _import/qian/ 前缀；
 # 路径过滤末尾加上本文件。检查本身不变。派生文档新鲜度用 git status 看 docs/generated，pathspec 相对工作目录，
 # 看的仍是 _import/qian/docs/generated。
+# S1-YUE-025：TypeScript 运行时改装 CavaiLAB/qian 发布在 GitHub Packages 上的 @cavailab/qian-runtime，去掉构建 packages/qian-runtime 一步；
+# 命令行测试里有运行时一致性用例的 TS 一侧，路径过滤加上 tck/runtime/；装依赖要读 GitHub Packages 上的公开包：权限加 packages: read，
+# setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
 
 on:
   push:
     branches: [main]
-    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
+    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/tck/runtime/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
   pull_request:
-    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
+    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/tck/runtime/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
 permissions:
   contents: read
+  packages: read
 concurrency:
   group: qian-documentation-${{ github.ref }}
   cancel-in-progress: true
@@ -33,13 +37,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
           version: 12.9.1
           package_json_file: _import/qian/package.json
       - run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm --filter qian... build
-      - run: pnpm --filter ./packages/qian-runtime build
       - name: 语义绑定及错误反例
         run: dotnet run --project tests/Qian.Docs.Tests -c Release
       - name: CLI 与文档模板验收

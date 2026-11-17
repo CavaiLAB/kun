@@ -63,7 +63,10 @@ const dependenciesInstalled = (dir: string): boolean => fs.existsSync(path.join(
 /** 只装 8 个层包的依赖，按检出里 qian 自己的锁文件（公共 npm 源上的包，不需要令牌）。 */
 export const QIAN_INSTALL_ARGS = ['install', '--frozen-lockfile', '--filter', './packages/qian/*'] as const;
 
-/** 没给 QIAN_DOCS_PATH 时的兜底：浅克隆该标签到缓存目录并装依赖；缓存停在别的版本就重新克隆。 */
+/**
+ * 没给 QIAN_DOCS_PATH 时的兜底：克隆该标签到缓存目录并装依赖；缓存停在别的版本就重新克隆。
+ * 要完整历史（不取文件内容的部分克隆，同 kun.ts）：页面的 updated 取文件在该标签上的最后提交日期，浅克隆只剩标签那一个提交。
+ */
 function cachedClone(version: string): string {
   const tag = qianTag(version);
   const current = fs.existsSync(path.join(qianPackageDir(CACHE_CLONE, 'core'), 'package.json'))
@@ -73,7 +76,7 @@ function cachedClone(version: string): string {
     fs.rmSync(CACHE_CLONE, { recursive: true, force: true });
     fs.mkdirSync(path.dirname(CACHE_CLONE), { recursive: true });
     try {
-      execFileSync('git', ['clone', '--quiet', '--depth', '1', '--branch', tag, `${QIAN_REPO_URL}.git`, CACHE_CLONE], { stdio: ['ignore', 'pipe', 'pipe'] });
+      execFileSync('git', ['clone', '--quiet', '--filter=blob:none', '--branch', tag, `${QIAN_REPO_URL}.git`, CACHE_CLONE], { stdio: ['ignore', 'pipe', 'pipe'] });
     } catch (error) {
       throw new Error(`没有设置 QIAN_DOCS_PATH，自动克隆 ${QIAN_REPO_URL} 的标签 ${tag} 也失败了；把 QIAN_DOCS_PATH 指向本机的检出（website/README.md）：${(error as Error).message}`);
     }

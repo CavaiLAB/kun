@@ -1,0 +1,112 @@
+name: qian-ui
+
+# 外壳与界面包的门禁（S1-YUE-025 新增，没有原件）。前端框架迁到 CavaiLAB/qian 后，删掉的 qian-yue.yml 里覆盖留在本仓库的
+# 外壳应用、外壳接线、三个界面包、参考应用远程模块与真实目录验收页的几项由这里接着查：lint（含令牌门禁）、typecheck、unit、
+# boundaries、circular，另加 build。前端框架本身的门禁（a11y、lighthouse、publint、视觉回归）随源码归 CavaiLAB/qian。
+# 脚本见 _import/qian/package.json 的 ui:*；门禁自测在 _import/qian/tests/gates/ui/。
+# 依赖里有 CavaiLAB/qian 发布在 GitHub Packages 上的公开包 @cavailab/qian-*：用本次运行的 GITHUB_TOKEN 只读安装
+# （权限 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）。
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - "_import/qian/apps/**"
+      - "_import/qian/packages/qian-tenancy-ui/**"
+      - "_import/qian/packages/qian-tenancy-signup-ui/**"
+      - "_import/qian/packages/qian-identity-ui/**"
+      - "_import/qian/packages/qian-shell-kit/**"
+      - "_import/qian/samples/qian-sample-crm-ui/**"
+      - "_import/qian/tests/directory-e2e/**"
+      - "_import/qian/tests/gates/ui/**"
+      - "_import/qian/tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json"
+      - "_import/qian/plugins/qian.tenancy/contracts/**"
+      - "_import/qian/plugins/qian.tenancy.signup/contracts/**"
+      - "_import/qian/tools/openapi-codegen/**"
+      - "_import/qian/website/demo/**"
+      - "_import/qian/scripts/ui-tokens.mjs"
+      - "_import/qian/eslint.config.mjs"
+      - "_import/qian/eslint.boundaries.config.mjs"
+      - "_import/qian/eslint.i18n.mjs"
+      - "_import/qian/.dependency-cruiser.cjs"
+      - "_import/qian/vitest.config.ts"
+      - "_import/qian/tsconfig.base.json"
+      - "_import/qian/turbo.json"
+      - "_import/qian/.npmrc"
+      - "_import/qian/package.json"
+      - "_import/qian/pnpm-lock.yaml"
+      - "_import/qian/pnpm-workspace.yaml"
+      - ".github/workflows/qian-ui.yml"
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: qian-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+  CI: true
+
+defaults:
+  run:
+    working-directory: _import/qian
+
+jobs:
+  gate:
+    name: 门禁 (${{ matrix.gate }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        gate: [lint, typecheck, unit, boundaries, circular, build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: '@cavailab'
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: _import/qian/package.json
+      - name: pnpm 缓存目录
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('_import/qian/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+      - run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Playwright Chromium（unit 里的界面包浏览器测试）
+        if: matrix.gate == 'unit'
+        run: pnpm --filter @qian/identity-ui exec playwright install --with-deps chromium
+
+      - name: lint（令牌门禁 + ESLint）
+        if: matrix.gate == 'lint'
+        run: pnpm ui:lint
+      - name: typecheck（各包 + 门禁自测）
+        if: matrix.gate == 'typecheck'
+        run: pnpm ui:typecheck
+      - name: unit（契约生成物、门禁自测、外壳接线、界面包浏览器测试）
+        if: matrix.gate == 'unit'
+        run: pnpm ui:test
+      - name: boundaries（依赖边界）
+        if: matrix.gate == 'boundaries'
+        run: pnpm ui:boundaries
+      - name: circular（循环依赖）
+        if: matrix.gate == 'circular'
+        run: pnpm ui:circular
+      - name: build（外壳、界面包与参考远程的构建）
+        if: matrix.gate == 'build'
+        run: pnpm ui:build

@@ -17,13 +17,19 @@ name: qian-docs-site
 #   公开仓库的 PR 评论人人可见，要不要接、评论里写什么由产品负责人定，所以原件发布作业里预览的分支、PR 评论一步与
 #   「删除预览」作业都没有接，触发类型里也就没有只为删除预览而设的 closed，构建作业也不用跳过 closed。
 #   PR 上的构建仍带 /pr-preview/pr-<n>/ 前缀，前缀检查照跑。接回时照原件补齐这几处即可。
+# - 组件目录（S1-YUE-025）：qian 组件库（原 yue）的源码迁到了 CavaiLAB/qian。构建按 pnpm-workspace.yaml 版本目录里
+#   @cavailab/qian-core 的版本，检出 CavaiLAB/qian 的同名标签 @cavailab/qian-core@<版本> 到 _import/qian/.qian（公开仓库，
+#   缺省的 GITHUB_TOKEN 经 HTTPS 只读检出；要完整历史，组件页的 updated 取文件在该标签上的最后提交日期），在检出里按它自己的
+#   锁文件装 packages/qian/* 的依赖（公共 npm 源），QIAN_DOCS_PATH 指向它（website/README.md §1）。本仓库的依赖里有 GitHub Packages
+#   上的公开包 @cavailab/qian-*：工作流权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
+#   路径过滤去掉迁走的 packages/yue/，加上浏览器验收引用的外壳 e2e/settle.ts。
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - "_import/qian/website/**"
-      - "_import/qian/packages/yue/**"
+      - "_import/qian/apps/qian-shell/e2e/settle.ts"
       - "_import/qian/docs/**"
       - "_import/qian/package.json"
       - "_import/qian/pnpm-lock.yaml"
@@ -36,7 +42,7 @@ on:
     branches: [main]
     paths:
       - "_import/qian/website/**"
-      - "_import/qian/packages/yue/**"
+      - "_import/qian/apps/qian-shell/e2e/settle.ts"
       - "_import/qian/docs/**"
       - "_import/qian/package.json"
       - "_import/qian/pnpm-lock.yaml"
@@ -49,6 +55,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: qian-docs-site-${{ github.event.pull_request.number || github.ref }}
@@ -71,6 +78,7 @@ jobs:
     env:
       DOCS_BASE: ${{ github.event_name == 'pull_request' && format('/pr-preview/pr-{0}/', github.event.pull_request.number) || '/' }}
       KUN_DOCS_PATH: ${{ github.workspace }}/_import/qian/.kun
+      QIAN_DOCS_PATH: ${{ github.workspace }}/_import/qian/.qian
     steps:
       - uses: actions/checkout@v4
 
@@ -94,6 +102,26 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: 读前端框架版本（版本目录里的 @cavailab/qian-core）
+        id: qian
+        run: |
+          version="$(sed -n 's/^[[:space:]]*"@cavailab\/qian-core":[[:space:]]*\([^[:space:]#]*\).*/\1/p' pnpm-workspace.yaml | head -n 1)"
+          if [ -z "$version" ]; then
+            echo "::error file=_import/qian/pnpm-workspace.yaml::版本目录里缺少 @cavailab/qian-core：组件目录按它检出 CavaiLAB/qian 的同名标签"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # 全部历史：组件页的 updated 取源文件在该标签上的最后提交日期
+      - name: 检出 CavaiLAB/qian 的 @cavailab/qian-core@${{ steps.qian.outputs.version }}
+        uses: actions/checkout@v4
+        with:
+          repository: CavaiLAB/qian
+          ref: refs/tags/@cavailab/qian-core@${{ steps.qian.outputs.version }}
+          path: _import/qian/.qian
+          fetch-depth: 0
+          persist-credentials: false
+
       # DocFX 从 Kun.* 包生成 API 参考（website/.config/dotnet-tools.json 锁定 docfx 版本）
       - uses: actions/setup-dotnet@v4
         with:
@@ -108,6 +136,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: _import/qian/package.json
@@ -117,11 +147,18 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: pnpm-${{ runner.os }}-${{ hashFiles('_import/qian/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('_import/qian/pnpm-lock.yaml', '_import/qian/.qian/pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
 
       - name: 安装依赖
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm install --frozen-lockfile
+
+      # 只装 8 个层包的依赖，按检出里 qian 自己的锁文件（website/scripts/qian.ts 的 QIAN_INSTALL_ARGS）
+      - name: 安装组件文档源的依赖（CavaiLAB/qian 检出）
+        working-directory: _import/qian/.qian
+        run: pnpm install --frozen-lockfile --filter "./packages/qian/*"
 
       - name: 类型检查
         run: pnpm --filter website typecheck

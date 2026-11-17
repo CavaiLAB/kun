@@ -1,6 +1,15 @@
 <!-- Parent: ../AGENTS.md -->
 <!-- Generated: 2026-04-18 | Updated: 2026-04-25 -->
 
+> [!IMPORTANT]
+> **This repository is frozen and will be archived as read-only. Kun has moved to [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun).**
+>
+> - The full history of this repository has been imported into `CavaiLAB/kun`; original commit SHAs are unchanged. It currently lives under `_import/kun/` there and will later be moved to the repository root.
+> - Frozen since 2026-11-17: this repository accepts no further changes and will then be archived as read-only. Open issues and pull requests in [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun). Agents: do not create branches, commits or pull requests here.
+> - Published packages and version tags are unchanged. The version tags have also been carried over to `CavaiLAB/kun` and point to the same commits.
+> - Downstream projects that reference this repository's source by commit or tag keep working: after archiving, the repository stays readable and clonable, and its content no longer changes.
+> - If you are reading this inside `CavaiLAB/kun` under `_import/kun/`: this notice came in with the imported history and does not apply there. The root `AGENTS.md` of `CavaiLAB/kun` says how the rest of this file is used.
+
 # Kun Framework
 
 ## Purpose

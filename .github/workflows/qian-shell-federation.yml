@@ -2,17 +2,16 @@ name: qian-shell-federation
 # 原 Qian 的 shell-federation 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
 # 原件在 _import/qian/.github/workflows/shell-federation.yml，不动；GitHub 只读仓库根的 .github/workflows/。
 # 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、上传路径加 _import/qian/ 前缀；
-# 路径过滤末尾加上本文件。检查本身不变：原样执行 pnpm yue:mf（MF2 真实制品与审计链）。
+# 路径过滤末尾加上本文件。检查本身不变：执行 pnpm shell:federation（原件里叫 pnpm yue:mf；MF2 真实制品与审计链）。
+# S1-YUE-025：前端框架改装 CavaiLAB/qian 发布在 GitHub Packages 上的 @cavailab/qian-*（公开包，用本次运行的 GITHUB_TOKEN 只读安装：
+# 权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）；路径过滤去掉迁走的目录。
 on:
   push:
     branches: [main]
     paths: &paths
       - "_import/qian/apps/qian-shell/**"
       - "_import/qian/packages/qian-shell-kit/**"
-      - "_import/qian/packages/qian-plugin-sdk/**"
-      - "_import/qian/packages/qian-runtime/**"
       - "_import/qian/packages/qian-tenancy-ui/**"
-      - "_import/qian/packages/yue/**"
       - "_import/qian/plugins/qian.shell/**"
       - "_import/qian/plugins/qian.tenancy/ui/**"
       - "_import/qian/tests/Qian.Shell.TestHost/**"
@@ -33,6 +32,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  packages: read
 concurrency:
   group: qian-shell-federation-${{ github.ref }}
   cancel-in-progress: true
@@ -56,12 +56,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: _import/qian/package.json
       - run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm --filter qian-shell exec playwright install --with-deps chromium
-      - run: pnpm yue:mf
+      - run: pnpm shell:federation
       - name: 保留浏览器与无凭据验收报告
         if: always()
         uses: actions/upload-artifact@v4

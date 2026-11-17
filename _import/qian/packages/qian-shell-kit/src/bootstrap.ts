@@ -1,5 +1,5 @@
-import { HttpResponseError, type PlatformClient } from '@idadawn/yue-sdk';
-import type { RemoteRegistration, ShellContext } from '@idadawn/qian-plugin-sdk';
+import { HttpResponseError, type PlatformClient } from '@cavailab/qian-sdk';
+import type { RemoteRegistration, ShellContext } from '@cavailab/qian-plugin-sdk';
 import { isBffSession, toBffSession, type BffSession } from './bff-session';
 import { isNavigationItem, type NavigationCatalogItem } from './navigation';
 

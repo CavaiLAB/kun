@@ -1,4 +1,6 @@
 // Rspress 同源 iframe 资源；它是文档站的一部分，不是独立应用或部署入口。
+// 演示与示例源码来自 CavaiLAB/qian 的检出（qian.ts）：@cavailab/qian-* 的导出入口全部指到检出里的源码，只有一份；
+// 检出里的组件与第三方库也引 react，dedupe 让它们与演示入口共用本站的一份。
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -7,13 +9,16 @@ import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginTailwindcss } from '@rsbuild/plugin-tailwindcss';
 import { readYueDocs } from './yue-docs.ts';
 import { WEBSITE_ROOT } from './repo.ts';
+import { openQian, qianPackageDir, qianSourceAliases } from './qian.ts';
 const require = createRequire(import.meta.url);
 const cache = path.join(WEBSITE_ROOT, '.cache/yue');
 fs.mkdirSync(cache, { recursive: true });
-const data = readYueDocs();
-const dataSource = fs.readFileSync(path.join(WEBSITE_ROOT, '../packages/yue/data/docs/examples/data-demo.tsx'), 'utf8');
-const shellSource = fs.readFileSync(path.join(WEBSITE_ROOT, '../packages/yue/shell/docs/examples/shell-demo.tsx'), 'utf8');
-const bizSource = fs.readFileSync(path.join(WEBSITE_ROOT, '../packages/yue/biz/docs/examples/biz-demo.tsx'), 'utf8');
+const qian = openQian();
+const data = readYueDocs(qian);
+const example = (name: 'data' | 'shell' | 'biz' | 'form', file: string) => fs.readFileSync(path.join(qianPackageDir(qian.dir, name), 'docs/examples', file), 'utf8');
+const dataSource = example('data', 'data-demo.tsx');
+const shellSource = example('shell', 'shell-demo.tsx');
+const bizSource = example('biz', 'biz-demo.tsx');
 const bizComponents = ['ApiSelect', 'DictSelect', 'OrganizeSelect', 'UserSelect', 'RoleSelect', 'AuthorizationTree', 'IconPicker'];
 const dataComponents = ['DataTable', 'Tree', 'TreeSelect', 'Cascader', 'DatePicker', 'DateRange', 'TimePicker', 'TimeRange', 'Upload', 'ImagePreview'];
 fs.writeFileSync(path.join(cache, 'sources.json'), JSON.stringify({
@@ -21,7 +26,7 @@ fs.writeFileSync(path.join(cache, 'sources.json'), JSON.stringify({
   ...Object.fromEntries(dataComponents.map(name => [name, dataSource])),
   ...Object.fromEntries(['AppShell', 'Authentication', 'FallbackPage'].map(name => [name, shellSource])),
   ...Object.fromEntries(bizComponents.map(name => [name, bizSource])),
-  SchemaForm: fs.readFileSync(path.join(WEBSITE_ROOT, '../packages/yue/form/docs/examples/schema-form-demo.tsx'), 'utf8'),
+  SchemaForm: example('form', 'schema-form-demo.tsx'),
 }));
 const vendor = path.join(WEBSITE_ROOT, 'docs/public/yue-vendor');
 fs.rmSync(vendor, { recursive: true, force: true });
@@ -39,8 +44,8 @@ const rsbuild = await createRsbuild({ rsbuildConfig: {
   server: { publicDir: false },
   plugins: [pluginReact(), pluginTailwindcss()],
   source: { entry: { index: path.join(WEBSITE_ROOT, 'demo/main.tsx') } },
-  resolve: { alias: { 'yue-demo-sources': path.join(cache, 'sources.json') } },
+  resolve: { alias: { 'yue-demo-sources': path.join(cache, 'sources.json'), ...qianSourceAliases(qian.dir) }, dedupe: ['react', 'react-dom'] },
   output: { distPath: { root: path.join(WEBSITE_ROOT, 'docs/public/yue-demo') }, assetPrefix: './', cleanDistPath: true, copy: [] },
-  html: { title: 'yue 交互演示', template: path.join(WEBSITE_ROOT, 'demo/index.html') },
+  html: { title: 'qian 组件交互演示', template: path.join(WEBSITE_ROOT, 'demo/index.html') },
 } });
 await rsbuild.build();

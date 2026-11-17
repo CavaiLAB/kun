@@ -20,7 +20,7 @@ internal static class ShellAuditEndpoints
     private static readonly string[] s_fields = ["name", "remoteId", "scope", "reason", "code", "hostVersion", "requiredVersion"];
 
     internal static void Map(WebApplication app, AuditConsumer consumer, AsyncLocalTenantContext tenant, JsonWebTokenHandler tokens,
-        TokenValidationParameters validation, string yueVersion)
+        TokenValidationParameters validation, string qianVersion)
     {
         app.MapPost("/api/shell/audit/remote-rejected", async (HttpContext http) =>
         {
@@ -41,12 +41,12 @@ internal static class ShellAuditEndpoints
                 // 可信验收快照：仅租户 A 的 qian.tenancy 被挂载；bad 场景的引擎范围由服务端固定，不能由报告改变。
                 if (tenantId != TenantA || json.GetProperty("scope").GetString() != "tenant:" + tenantId) return Error(PlatformErrors.AuthzDenied);
                 if (json.GetProperty("name").GetString() != "shell.remote.rejected" || json.GetProperty("remoteId").GetString() != "qian.tenancy" ||
-                    json.GetProperty("reason").GetString() != "engines.yue" || json.GetProperty("code").GetString() != "INPUT_INVALID" ||
-                    json.GetProperty("hostVersion").GetString() != yueVersion || json.GetProperty("requiredVersion").GetString() != "^99.0.0")
+                    json.GetProperty("reason").GetString() != "engines.qian" || json.GetProperty("code").GetString() != "INPUT_INVALID" ||
+                    json.GetProperty("hostVersion").GetString() != qianVersion || json.GetProperty("requiredVersion").GetString() != "^99.0.0")
                     return Error(PlatformErrors.InputInvalid);
                 using var scope = tenant.BeginScope(tenantId);
                 var metadata = JsonSerializer.SerializeToElement(new { name = "shell.remote.rejected", remoteId = "qian.tenancy", scope = "tenant:" + tenantId,
-                    reason = "engines.yue", code = "INPUT_INVALID", hostVersion = yueVersion, requiredVersion = "^99.0.0", source = "browser-report" });
+                    reason = "engines.qian", code = "INPUT_INVALID", hostVersion = qianVersion, requiredVersion = "^99.0.0", source = "browser-report" });
                 var record = new AuditRecord(Guid.NewGuid(), tenantId, "user", identity.FindFirst("sub")!.Value, null,
                     "qian.shell.remote.rejected", "1.0.0", Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(metadata))), "ui", "qian.tenancy",
                     "reported-rejected", ActivityTraceId.CreateRandom().ToString(), DateTimeOffset.UtcNow, metadata);

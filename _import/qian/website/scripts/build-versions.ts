@@ -1,6 +1,6 @@
 // 版本矩阵（docs-site.md §2b.4，ADR-021 D21.2 第 3 条）：从仓库里的钉版文件产出 docs/start/versions.md，不手改。
 // 来源：Directory.Packages.props（KunVersion）、packages/*/*.csproj（Qian.* 包清单与版本）、global.json（.NET SDK）、
-// package.json（Node、pnpm）、pnpm-workspace.yaml 与工作区里的 yue 包（@idadawn/yue-*，文档简称 @yue/*）、deploy/baseline.json（K3s）。
+// package.json（Node、pnpm）、pnpm-workspace.yaml 版本目录里的前端框架包（@cavailab/qian-*，原名 yue）、deploy/baseline.json（K3s）。
 import fs from 'node:fs';
 import path from 'node:path';
 import { readKunVersion } from './kun.ts';
@@ -19,7 +19,8 @@ export interface VersionMatrix {
   docVersion: string;
   kun: string;
   qian: PackageVersion[];
-  yue: PackageVersion[];
+  /** 前端框架（@cavailab/qian-*）。 */
+  frontend: PackageVersion[];
   dotnetSdk: string;
   dotnetRollForward: string;
   node: string;
@@ -50,30 +51,17 @@ export function readQianPackages(repoRoot: string = REPO_ROOT): PackageVersion[]
   return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** 工作区里的 yue 包：按 pnpm-workspace.yaml 的 packages 通配找 package.json，名字以 @idadawn/yue- 开头的（S1-YUE-003 拍板的 GitHub Packages scope；兼容文档简称 @yue/）。 */
-export const YUE_NAME_PREFIXES = ['@idadawn/yue-', '@yue/'] as const;
-export const isYuePackageName = (name: string | undefined): name is string => !!name && YUE_NAME_PREFIXES.some((p) => name.startsWith(p));
-export function readYuePackages(repoRoot: string = REPO_ROOT): PackageVersion[] {
+/**
+ * 前端框架的包：pnpm-workspace.yaml 版本目录（catalog）里的 @cavailab/qian-*，写精确版本（S1-YUE-025）。
+ * 包的源码在 CavaiLAB/qian（原名 yue，设计文档里简称 @yue/<包>），本仓库按钉住的版本消费。
+ */
+export const FRONTEND_PACKAGE_PREFIX = '@cavailab/qian-';
+export function readFrontendPackages(repoRoot: string = REPO_ROOT): PackageVersion[] {
   const workspace = path.join(repoRoot, 'pnpm-workspace.yaml');
   if (!fs.existsSync(workspace)) return [];
-  const globs = [...fs.readFileSync(workspace, 'utf8').matchAll(/^\s*-\s*['"]?([^'"\s#]+)['"]?\s*$/gm)].map((m) => m[1] ?? '');
-  const out: PackageVersion[] = [];
-  for (const glob of globs) {
-    const [prefix] = glob.split('*');
-    const base = path.join(repoRoot, prefix ?? '');
-    const candidates = glob.includes('*')
-      ? fs.existsSync(base)
-        ? fs.readdirSync(base, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => path.join(base, d.name))
-        : []
-      : [base];
-    for (const dir of candidates) {
-      const pkg = path.join(dir, 'package.json');
-      if (!fs.existsSync(pkg)) continue;
-      const json = JSON.parse(fs.readFileSync(pkg, 'utf8')) as { name?: string; version?: string };
-      if (isYuePackageName(json.name)) out.push({ name: json.name, version: json.version ?? null });
-    }
-  }
-  return out.sort((a, b) => a.name.localeCompare(b.name));
+  const catalog = /^catalog:[ \t]*\n((?:[ \t]+.*\n|[ \t]*\n)*)/m.exec(fs.readFileSync(workspace, 'utf8'))?.[1] ?? '';
+  const entries = [...catalog.matchAll(/^[ \t]+["']?(@cavailab\/qian-[a-z0-9-]+)["']?[ \t]*:[ \t]*["']?([^"'\s#]+)["']?/gm)];
+  return entries.map((m) => ({ name: m[1] ?? '', version: m[2] ?? null })).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function readVersionMatrix(repoRoot: string = REPO_ROOT): VersionMatrix {
@@ -87,7 +75,7 @@ export function readVersionMatrix(repoRoot: string = REPO_ROOT): VersionMatrix {
     docVersion: 'main',
     kun: readKunVersion(repoRoot),
     qian: readQianPackages(repoRoot),
-    yue: readYuePackages(repoRoot),
+    frontend: readFrontendPackages(repoRoot),
     dotnetSdk: sdk,
     dotnetRollForward: globalJson.sdk?.rollForward ?? '',
     node: rootPkg.engines?.node ?? '',
@@ -96,7 +84,7 @@ export function readVersionMatrix(repoRoot: string = REPO_ROOT): VersionMatrix {
     sources: {
       kun: 'Directory.Packages.props',
       qian: 'packages/*/*.csproj',
-      yue: 'pnpm-workspace.yaml',
+      frontend: 'pnpm-workspace.yaml',
       dotnet: 'global.json',
       node: 'package.json',
       k3s: 'deploy/baseline.json',
@@ -116,12 +104,12 @@ function summarize(packages: PackageVersion[], unreleased: string, none: string)
 /** 版本矩阵页：一张矩阵表 + 来源表 + 包清单。multi-version 开启后每个文档版本一行。 */
 export function renderVersionsPage(m: VersionMatrix, updated: string): string {
   const qianSummary = summarize(m.qian, '未发布，开发版 main', '尚无可打包的 Qian.* 项目');
-  const yueSummary = summarize(m.yue, '未发布，开发版 main', '未建立（S1-YUE-003 起）');
+  const frontendSummary = summarize(m.frontend, '未写版本', '版本目录里没有');
   const packageList = (packages: PackageVersion[]) => packages.map((p) => `- \`${p.name}\`${p.version ? ` ${p.version}` : '（未发布）'}`).join('\n');
   return [
     '---',
     `title: ${yamlString('版本矩阵')}`,
-    `description: ${yamlString('当前文档版本对应的 Kun、Qian.*、@yue/*、.NET SDK、Node 与 K3s 基线，由仓库钉版文件生成。')}`,
+    `description: ${yamlString('当前文档版本对应的 Kun、Qian.*、@cavailab/qian-*、.NET SDK、Node 与 K3s 基线，由仓库钉版文件生成。')}`,
     'part: start',
     'project: qian',
     'audience: [developer, operator]',
@@ -136,9 +124,9 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '',
     'Kun 的同日修复版 `-hotfix.N` 是推送 nuget.org 的正式修复，但 NuGet 按预发布排序；`Kun.*` 一律以 `[$(KunVersion)]` 精确钉定，不依赖最新稳定版排序（ADR-021 D21.3 补注）。',
     '',
-    '| 文档版本 | Kun | Qian.* | @yue/* | .NET SDK | Node / pnpm | K3s |',
+    '| 文档版本 | Kun | Qian.* | @cavailab/qian-* | .NET SDK | Node / pnpm | K3s |',
     '|---|---|---|---|---|---|---|',
-    `| ${m.docVersion}（开发版） | ${cell(m.kun)} | ${cell(qianSummary)} | ${cell(yueSummary)} | ${cell(m.dotnetSdk)}${m.dotnetRollForward ? `（rollForward ${cell(m.dotnetRollForward)}）` : ''} | ${cell(m.node || '未钉版')} / ${cell(m.pnpm || '未钉版')} | ${m.k3s ? cell(m.k3s) : '未钉版'} |`,
+    `| ${m.docVersion}（开发版） | ${cell(m.kun)} | ${cell(qianSummary)} | ${cell(frontendSummary)} | ${cell(m.dotnetSdk)}${m.dotnetRollForward ? `（rollForward ${cell(m.dotnetRollForward)}）` : ''} | ${cell(m.node || '未钉版')} / ${cell(m.pnpm || '未钉版')} | ${m.k3s ? cell(m.k3s) : '未钉版'} |`,
     '',
     '多版本（docs-site.md §5）开启后每个文档版本一行；现在只有开发版 `main`。',
     '',
@@ -148,7 +136,7 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '|---|---|---|',
     `| Kun | \`${m.sources.kun}\` | \`<KunVersion>\`，CalVer；升级 Kun 只改这一处（ADR-021 D21.3） |`,
     `| Qian.* | \`${m.sources.qian}\` | 写了 \`<IsPackable>true</IsPackable>\` 的项目；版本随首个包族发布钉在 \`Directory.Build.props\` |`,
-    `| @yue/* | \`${m.sources.yue}\` | 工作区里名字以 \`@idadawn/yue-\` 开头的包（npm 包名；文档里 \`@yue/<包>\` 是简称，S1-YUE-003 建立） |`,
+    `| @cavailab/qian-* | \`${m.sources.frontend}\` | 版本目录（catalog）里的前端框架包，写精确版本；源码在 CavaiLAB/qian（原名 yue，设计文档里 \`@yue/<包>\` 是简称） |`,
     `| .NET SDK | \`${m.sources.dotnet}\` | \`sdk.version\` 与 \`rollForward\` |`,
     `| Node / pnpm | \`${m.sources.node}\` | \`engines.node\` 与 \`packageManager\` |`,
     `| K3s | \`${m.sources.k3s}\` | 部署基线（S1-DEP-001）；集群本身在部署仓库 \`idadawn/iclaw-deploy\` |`,
@@ -157,9 +145,9 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '',
     m.qian.length > 0 ? packageList(m.qian) : '- （尚无可打包的项目）',
     '',
-    '## yue 包清单',
+    '## 前端框架包清单',
     '',
-    m.yue.length > 0 ? packageList(m.yue) : '- （未建立，S1-YUE-003 起）',
+    m.frontend.length > 0 ? packageList(m.frontend) : '- （版本目录里没有）',
     '',
   ].join('\n');
 }

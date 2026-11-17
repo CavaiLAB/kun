@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@import '@cavailab/qian-tokens/theme.css';
+/* 框架组件的工具类：扫安装目录里本包依赖的 @cavailab/qian-* 的 dist（pnpm 的链接会被跟随），依赖要覆盖页面实际渲染的框架包（biz 与它渲染的 core、data）。 */
+@source '../node_modules/@cavailab';
+
+body { @apply font-sans text-sm bg-background text-foreground; }

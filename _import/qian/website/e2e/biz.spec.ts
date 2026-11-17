@@ -1,7 +1,7 @@
-import { settleVisuals } from '../../apps/yue-playground/e2e/settle';
+import { settleVisuals } from '../../apps/qian-shell/e2e/settle';
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import scenarios from '../../packages/yue/biz/docs/scenarios.json' with { type: 'json' };
+import scenarios from '../.cache/qian-source/packages/qian/biz/docs/scenarios.json' with { type: 'json' };
 
 // 业务选择器的文档场景：每个场景实际打开选择器（或展开授权树）并选中一项，再跑 axe（critical / serious = 0）。
 const labels: Record<string, string> = { ApiSelect: '客户', DictSelect: '组织类型', UserSelect: '成员', RoleSelect: '角色', IconPicker: '菜单图标' };

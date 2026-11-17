@@ -11,10 +11,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@idadawn/yue-core": "workspace:^",
-    "@idadawn/yue-sdk": "workspace:^",
-    "@idadawn/yue-shell": "workspace:^",
-    "@idadawn/yue-tokens": "workspace:^",
+    "@cavailab/qian-core": "catalog:",
+    "@cavailab/qian-form": "catalog:",
+    "@cavailab/qian-sdk": "catalog:",
+    "@cavailab/qian-shell": "catalog:",
+    "@cavailab/qian-tokens": "catalog:",
     "@qian/shell-kit": "workspace:^"
   },
   "peerDependencies": {

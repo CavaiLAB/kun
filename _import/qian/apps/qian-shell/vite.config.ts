@@ -6,19 +6,21 @@ import { defineConfig, type Plugin } from 'vite';
 
 // Qian 外壳（S1-YUE-012）：构建产物不含任何环境值。运行时配置是同源 /app-config.json（K8s ConfigMap；本机联调是 tools/Qian.Dev.Shell 状态目录里的文件），
 // 安全策略是构建期写进 index.html 的 meta CSP（内联脚本只有首帧主题脚本，按内容哈希放行）；frame-ancestors 只能走响应头，由网关静态托管统一下发。
-const yueVersion = (JSON.parse(readFileSync(new URL('../../packages/yue/shell/package.json', import.meta.url), 'utf8')) as { version: string }).version;
+// 外壳报给插件开发包、登记共享依赖用的前端框架版本：取安装目录里 @cavailab/qian-shell 的版本（8 个层包同一版本，版本钉在 pnpm-workspace.yaml 的版本目录）。
+// 包的 exports 不导出 package.json，按 pnpm 的直接依赖链接读。
+const qianVersion = (JSON.parse(readFileSync(new URL('./node_modules/@cavailab/qian-shell/package.json', import.meta.url), 'utf8')) as { version: string }).version;
 const gateway = process.env.QIAN_DEV_SHELL_URL ?? 'https://localhost:5443';
 if (!['127.0.0.1', 'localhost', '::1', '[::1]'].includes(new URL(gateway).hostname)) throw new Error('开发代理仅允许本机网关');
 
 /** 首帧主题：样式与模块脚本之前按已存偏好设好 data-theme，避免暗色用户看到一帧亮色。放在 charset / viewport 之后，不挤出前 1024 字节。 */
 function firstFrame(): Plugin {
-  const script = readFileSync(new URL(import.meta.resolve('@idadawn/yue-tokens/theme-init.js')), 'utf8');
+  const script = readFileSync(new URL(import.meta.resolve('@cavailab/qian-tokens/theme-init.js')), 'utf8');
   return { name: 'qian-shell-first-frame', transformIndexHtml: { order: 'pre', handler: html => html.replace('<meta name="referrer" content="no-referrer" />', match => `${match}\n    <script>${script}</script>`) } };
 }
 
 /**
  * 构建期 meta CSP：只允许同源脚本与按哈希列出的内联脚本（首帧主题脚本）；连接、图片、字体都只许同源（data: 用于内联图标与字体）。
- * 不放行 'unsafe-eval'：外壳、插件 SDK 与共享给远程页面（如租户运营）在外壳源执行的 @idadawn/yue-form 都不在运行期生成代码——清单校验构建期预编译，
+ * 不放行 'unsafe-eval'：外壳、插件 SDK 与共享给远程页面（如租户运营）在外壳源执行的 @cavailab/qian-form 都不在运行期生成代码——清单校验构建期预编译，
  * 客户端动作参数与 SchemaForm 的表单 Schema 解释执行（S1-YUE-014 撤销了此前登记的这一例外）。运行时配置是 /app-config.json 数据，只解析、校验，从不求值。
  */
 const CSP_DIRECTIVES = (hashes: readonly string[]) => [
@@ -47,7 +49,7 @@ function devAppConfig(): Plugin {
 }
 
 export default defineConfig({
-  define: { __YUE_VERSION__: JSON.stringify(yueVersion) },
+  define: { __QIAN_VERSION__: JSON.stringify(qianVersion) },
   plugins: [firstFrame(), contentSecurityPolicy(), devAppConfig(), react(), tailwindcss()],
   server: {
     host: '127.0.0.1', port: Number(process.env.QIAN_DEV_UI_PORT ?? 5179), strictPort: true,

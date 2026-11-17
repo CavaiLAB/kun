@@ -12,7 +12,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 // 正式站点挂在根路径；PR 预览挂在 /pr-preview/pr-<n>/，由 CI 经 DOCS_BASE 传入（见 README「托管与预览」）。
 const base = process.env.DOCS_BASE ?? '/';
 
-// 明暗两态：Rspress 在首帧前给 html 加 dark 类，@idadawn/yue-tokens 的语义层同时认 html.dark 与 html[data-theme="dark"]
+// 明暗两态：Rspress 在首帧前给 html 加 dark 类，@cavailab/qian-tokens 的语义层同时认 html.dark 与 html[data-theme="dark"]
 // （specs/yue.md §3.5），所以不再需要把 dark 类同步到 data-theme 的桥接脚本（S1-DOCS-004）。
 
 export default defineConfig({

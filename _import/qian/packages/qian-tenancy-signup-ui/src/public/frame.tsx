@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { Avatar, AvatarFallback, Button, Icon, Steps, type StepStatus } from '@idadawn/yue-core';
-import { AuthLayout, PlainLayout } from '@idadawn/yue-shell';
+import { Avatar, AvatarFallback, Button, Icon, Steps, type StepStatus } from '@cavailab/qian-core';
+import { AuthLayout, PlainLayout } from '@cavailab/qian-shell';
 import type { Applicant } from '../contracts';
 import { i18n } from '../i18n';
 

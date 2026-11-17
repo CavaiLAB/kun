@@ -1,8 +1,10 @@
-import { HttpResponseError, PlatformClient, PlatformError, type ErrorDetail, type RequestTransport } from '@idadawn/yue-sdk';
+import { HttpResponseError, PlatformClient, PlatformError, type ErrorDetail, type RequestTransport } from '@cavailab/qian-sdk';
+import type { Client } from 'openapi-fetch';
 import type { paths } from './api.generated';
 import { i18n } from './i18n';
 
-export function apiOf(client: PlatformClient) { return client.api<paths>(); }
+// 返回类型显式写出：远程模块要生成类型声明（@mf-types），openapi-fetch 是 @cavailab/qian-sdk 的依赖，推断的类型从本包引不到（TS2883）。
+export function apiOf(client: PlatformClient): Client<paths> { return client.api<paths>(); }
 export type Api = ReturnType<typeof apiOf>;
 
 /** 申请人公开页的客户端：同源、只靠宿主写的 HttpOnly 会话 Cookie，不持有也不发送任何令牌。 */

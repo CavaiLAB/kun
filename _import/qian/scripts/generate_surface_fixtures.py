@@ -192,7 +192,7 @@ case('metadata-json-bom',base({'metadata/roles.json':chr(0xfeff)+js([{'name':'re
 UI_BASE = {
  '$schema':'https://qian.dev/schemas/ui/v2',
  'federation':{'manifest':'/remotes/example/mf-manifest.json','exposes':['Page','Widget','Settings']},
- 'engines':{'yue':'^0.1.0'},
+ 'engines':{'qian':'^0.1.0'},
  'pages':[{'route':'/example','expose':'Page','permission':'qian.example:item:read','nav':{'title':'示例','icon':'folder','order':1}}]
 }
 UI_BRIDGE = {
@@ -224,7 +224,7 @@ UI_WIDGETS['settingsCards']=[{'expose':'Settings','scope':'tenant','permission':
 ui_case('spec-widgets-settings',UI_WIDGETS,runtime=False)
 ui_case('bridge-contributions',UI_FULL)
 ui_case('declared-custom-path',UI_FULL,file='frontend/entry.json',declared=True)
-ui_bad('missing-engine',lambda d:d['engines'].pop('yue'),'/engines/yue')
+ui_bad('missing-engine',lambda d:d['engines'].pop('qian'),'/engines/qian')
 ui_bad('unknown-field',lambda d:d.update(hidden=True),'/hidden')
 ui_bad('unknown-nav-field',lambda d:d['pages'][0]['nav'].update(hidden=True),'/pages/0/nav/hidden')
 ui_bad('bad-schema',lambda d:d.update({'$schema':'https://qian.dev/schemas/ui/v99'}),'/$schema')

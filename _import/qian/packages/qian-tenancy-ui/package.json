@@ -13,13 +13,13 @@
     "build:remote": "vite build --config vite.remote.config.ts && node scripts/verify-remote-types.mjs"
   },
   "dependencies": {
-    "@idadawn/yue-core": "workspace:^",
-    "@idadawn/yue-form": "workspace:^",
-    "@idadawn/yue-data": "workspace:^",
-    "@idadawn/yue-sdk": "workspace:^",
-    "@idadawn/yue-contracts": "workspace:^",
-    "@idadawn/yue-tokens": "workspace:^",
-    "@idadawn/qian-plugin-sdk": "workspace:^"
+    "@cavailab/qian-core": "catalog:",
+    "@cavailab/qian-form": "catalog:",
+    "@cavailab/qian-data": "catalog:",
+    "@cavailab/qian-sdk": "catalog:",
+    "@cavailab/qian-contracts": "catalog:",
+    "@cavailab/qian-tokens": "catalog:",
+    "@cavailab/qian-plugin-sdk": "catalog:"
   },
   "peerDependencies": {
     "react": "^19.0.0",

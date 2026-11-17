@@ -15,13 +15,17 @@ Rspress 2.0（`@rspress/core` 2.0.23，React 19，MDX）。内置全文搜索（
 
 两者缺一构建即失败，不跳过、不回退 `main`（docs-site.md §2b.1）。
 
+组件目录里 qian 组件库（原 yue）的页面、演示与目录（见文末「qian 组件库（原 yue）的组件文档与交互」）另外需要 **CavaiLAB/qian 的检出**：前端框架已迁到那个仓库，本站按 `pnpm-workspace.yaml` 版本目录里 `@cavailab/qian-core` 的版本检出它的同名标签 `@cavailab/qian-core@<版本>`，组件源码、示例与场景清单都从检出取（组件页来源定下来之前的过渡做法）。环境变量 `QIAN_DOCS_PATH` 指向本机检出（停在该标签，并在检出里运行过 `pnpm install --frozen-lockfile --filter "./packages/qian/*"`）；不设时脚本用 HTTPS 克隆到 `website/.cache/qian-repo`（完整历史、不预取文件内容，页面的更新日期要用）并装依赖。检出的版本对不上、依赖没装，构建即失败。脚本把 `website/.cache/qian-source` 链接到检出，演示的样式扫描、类型检查与浏览器验收都经它读。
+
+仓库根目录的 `pnpm install` 要从 GitHub Packages 装文档站依赖的 `@cavailab/qian-core`、`@cavailab/qian-tokens`，令牌的配置见仓库 README「前端依赖与包源」。
+
 ```bash
 pnpm install                       # 仓库根目录，一次即可
 pnpm --filter website dev          # 本地预览，改 website/docs 实时刷新
 pnpm --filter website build        # 产出 website/doc_build（纯静态；末尾产出 kb-index.json 与 sitemap.xml）
 pnpm --filter website kb-index     # 只重新产出 kb-index.json 与 sitemap.xml（需先 build）
 pnpm --filter website preview      # 本地起服务看构建结果
-pnpm --filter website typecheck    # tsc：主题组件与生成脚本
+pnpm --filter website typecheck    # 先核对 qian 检出，再 tsc（tsconfig.check.json）：主题组件、生成脚本与演示
 pnpm --filter website test         # 生成脚本单测（node --test）
 pnpm --filter website check        # 构建产物检查，见 §7
 ```
@@ -42,7 +46,8 @@ website/
   package.json  tsconfig.json
   README.md  AGENTS.md
   .config/dotnet-tools.json    DocFX 版本（本地 dotnet 工具）
-  .cache/                      生成缓存，不进 Git：kun-repo/（未设 KUN_DOCS_PATH 时的 kun 克隆）、kun-api/（DocFX 构建与结果）
+  .cache/                      生成缓存，不进 Git：kun-repo/（未设 KUN_DOCS_PATH 时的 kun 克隆）、kun-api/（DocFX 构建与结果）、
+                               qian-repo/（未设 QIAN_DOCS_PATH 时的 CavaiLAB/qian 检出）、qian-source（指向检出的链接）、yue/（演示的源码表）
   docs/
     index.mdx                  首页（docs-site.md §2a）
     sitemap.mdx                站点地图（页脚入口）
@@ -65,6 +70,7 @@ website/
     collect-components.ts      收集组件文件夹 → docs/components/（S1-DOCS-002 前为规划清单的占位页）
     sync-specs.ts              component-model.md → docs/cli/；docs/ → docs/design/
     kun.ts                     读 KunVersion、打开 kun 仓库的 tag v<KunVersion>（KUN_DOCS_PATH 或缓存克隆）
+    qian.ts                    读版本目录里 @cavailab/qian-core 的版本、打开 CavaiLAB/qian 的同名标签检出（QIAN_DOCS_PATH 或缓存克隆）
     sync-kun-docs.ts           kun 仓库 v<KunVersion> 的白名单文档 → docs/sdk/kun/（docs-site.md §2b）
     build-kun-api.ts           同版本 Kun.* 包 → DocFX → docs/sdk/api/kun/ 与 docs/sdk/api/index.md
     build-kb-index.ts          构建后：页面源 + .md 产物 → doc_build/kb-index.json 与 sitemap.xml（§4a）
@@ -74,7 +80,7 @@ website/
     check-site.ts              构建产物检查
     *.test.ts  fixtures.ts     生成脚本单测；fixtures.ts 在临时目录里搭样例 kun 仓库
     build-kb-index.ts          后续：产出 kb-index.json（S1-DOCS-003）
-    build-versions.ts          仓库钉版文件（Directory.Packages.props、csproj、global.json、package.json、pnpm 工作区、deploy/baseline.json）→ docs/start/versions.md
+    build-versions.ts          仓库钉版文件（Directory.Packages.props、csproj、global.json、package.json、pnpm 版本目录、deploy/baseline.json）→ docs/start/versions.md
     llms.ts                    llms.txt 的排版：先按 project（Qian → Kun → yue）再按部分分节
   theme/
     index.tsx  index.css       主题覆盖：令牌映射、建设期横幅、版本说明、首页组件
@@ -126,9 +132,9 @@ docs-site.md §5.1 是契约，这里只说实现：
 
 ## 5 主题与令牌
 
-- 令牌取值来自工作区包 `@idadawn/yue-tokens`（文档简称 `@yue/tokens`，S1-YUE-004）：`theme/index.css` 第一行导入它的 CSS，其余只把语义令牌（`--yue-primary`、`--yue-background`、`--yue-border` 等）映射到 Rspress 的主题变量；颜色令牌按 yue 规格存成可加透明度的 oklch 分量，映射时写成 `oklch(var(--yue-<role>))`。开发期导入的是包里提交的 `src/index.css`，不需要先构建令牌包。
+- 令牌取值来自已发布的 `@cavailab/qian-tokens`（原 `@idadawn/yue-tokens`，设计文档简称 `@yue/tokens`；版本钉在 `pnpm-workspace.yaml` 的版本目录）：`theme/index.css` 第一行导入它的 CSS，其余只把语义令牌（`--qian-primary`、`--qian-background`、`--qian-border` 等）映射到 Rspress 的主题变量；颜色令牌存成可加透明度的 oklch 分量，映射时写成 `oklch(var(--qian-<role>))`。站点自己的变量用 `--docs-` 前缀（如 `--docs-card-min`），`--qian-` 只给框架令牌。
 - 明暗两态：Rspress 在首帧前给 `html` 加 `dark` 类，令牌包的语义层同时认 `html.dark` 与 `html[data-theme="dark"]`（specs/yue.md §3.5），不闪烁，也不需要桥接脚本（S1-DOCS-004 删除）。
-- 改令牌值去改 `packages/yue/tokens`（`pnpm --filter @idadawn/yue-tokens tokens:generate` 重新生成 CSS）；docs-site 工作流在令牌包变化时同样触发。
+- 令牌值在 CavaiLAB/qian 的 `packages/qian/tokens` 里改，发新版本后改版本目录的版本号；docs-site 工作流在 `pnpm-workspace.yaml` 变化时触发。
 
 ## 6 托管与预览：K3s 静态托管
 
@@ -164,11 +170,11 @@ CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内�
 - Kun 的文档只改 kun 仓库（提 PR），站内随 `KunVersion` 升级更新；`website/docs/sdk/kun/` 只有 `with-qian.mdx` 是手写的，`sdk/api/` 全部生成。
 - 没有的能力不写成已有：S1 建设期的命令与组件按目标形态写，并在页面里说明尚未可用。
 
-## yue 组件文档与交互（S1-YUE-005）
+## qian 组件库（原 yue）的组件文档与交互（S1-YUE-005）
 
-唯一使用入口是本站 `/components/yue/`，不是另一个应用。`packages/yue/core/docs/` 保存用途说明、普通 React 示例与 126 条状态清单；`scripts/yue-docs.ts` 收集页面并从 TypeScript checker 提取全部 141 个公开组件/组合部件。DOM 属性按完整声明去重到站内通用属性页，不能因缺注释或继承来源而遗漏。默认值只取源码与 JSDoc。
+唯一使用入口是本站 `/components/yue/`，不是另一个应用（路由与 frontmatter 的 `project: yue` 在组件页来源定下来之前不改）。组件源码、示例与场景清单在 CavaiLAB/qian 的检出里（§1）：`packages/qian/core/docs/` 保存用途说明、普通 React 示例与 128 条状态清单（原 126 条加 Steps 2 条）；`scripts/yue-docs.ts` 收集页面并从 TypeScript checker 提取全部公开组件/组合部件。form、data、shell、biz 的包级页取检出里各包的 `docs/index.mdx`，frontmatter 的 `project` 改回 `yue` 并补 `source`。DOM 属性按完整声明去重到站内通用属性页，不能因缺注释或继承来源而遗漏。默认值只取源码与 JSDoc。
 
-`pnpm --filter website build` 先执行 `demos:build`：Rsbuild 将同一份真实组件编译为页面内 iframe，输出到 `docs/public/yue-demo/`；Babel、Monaco、字体与 worker 复制到 `docs/public/yue-vendor/`，仅打开编辑器时加载，随相同站点前缀部署。两目录均为忽略的生成物；不引入第二个服务、文档入口或产品身份。浏览器编辑仅允许已预打包的 React/core/tokens 模块，异常在演示区域显示，重置恢复原始例子。
+`pnpm --filter website build` 先执行 `demos:build`：Rsbuild 将检出里的真实组件编译为页面内 iframe，`@cavailab/qian-*` 的每个导出入口都指到检出的源码、react 只用本站一份（`resolve.dedupe`），输出到 `docs/public/yue-demo/`；Babel、Monaco、字体与 worker 复制到 `docs/public/yue-vendor/`，仅打开编辑器时加载，随相同站点前缀部署。两目录均为忽略的生成物；不引入第二个服务、文档入口或产品身份。浏览器编辑仅允许已预打包的 React/core/tokens 模块，异常在演示区域显示，重置恢复原始例子。
 
 SSR/SSG-MD 保留用途、源码和完整 API，纯交互 UI 在 Markdown 中只输出说明。SSG-MD 表格的对齐空格在生成后收敛，单元格与 fenced code 内容不变，再生成知识库哈希；全站保持 120 MB 预算（S1-QA-010 按 R55 调整，构成与原因见 docs-site.md §7）。
 

@@ -1,0 +1,31 @@
+{
+  "name": "@qian/directory-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "真实目录选择器验收（S1-IDP-010 验收 2）：OrganizeSelect、UserSelect 经 PlatformClient 访问本机真实身份宿主的目录 API。只给 E2E 用，不构建、不部署。",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "e2e:directory": "node scripts/directory-e2e.mjs"
+  },
+  "dependencies": {
+    "@cavailab/qian-biz": "catalog:",
+    "@cavailab/qian-core": "catalog:",
+    "@cavailab/qian-data": "catalog:",
+    "@cavailab/qian-sdk": "catalog:",
+    "@cavailab/qian-tokens": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

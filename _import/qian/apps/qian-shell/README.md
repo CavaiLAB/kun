@@ -1,6 +1,6 @@
 # qian-shell（Qian 外壳）
 
-Qian 唯一可部署的外壳入口（S1-YUE-012 把 S1-YUE-001 的 MF2 静态宿主与 S1-YUE-002 的薄入口融合于此，`apps/qian-shell-auth` 已撤销）。通用 UI 来自 [`@idadawn/yue-shell`](../../packages/yue/shell/README.md)，Qian 专有接线来自私有包 [`@qian/shell-kit`](../../packages/qian-shell-kit/README.md)，远程模块的加载、插槽与桥接来自 [前端插件 SDK](../../packages/qian-plugin-sdk/README.md) 的 `ShellHost`。属于 `platform` 的 shell 组合包，由网关进程以产品扩展同源提供（[Qian.Gateway](../../packages/Qian.Gateway/README.md) 的 `UseQianShell` / `MapQianShell`）；不是独立 profile。
+Qian 唯一可部署的外壳入口（S1-YUE-012 把 S1-YUE-001 的 MF2 静态宿主与 S1-YUE-002 的薄入口融合于此，`apps/qian-shell-auth` 已撤销）。通用 UI 来自前端框架的 [`@cavailab/qian-shell`](https://github.com/CavaiLAB/qian/blob/main/packages/qian/shell/README.md)（CavaiLAB/qian 发布的包），Qian 专有接线来自私有包 [`@qian/shell-kit`](../../packages/qian-shell-kit/README.md)，远程模块的加载、插槽与桥接来自 [前端插件 SDK](https://github.com/CavaiLAB/qian/blob/main/packages/qian-plugin-sdk/README.md)（`@cavailab/qian-plugin-sdk`）的 `ShellHost`。属于 `platform` 的 shell 组合包，由网关进程以产品扩展同源提供（[Qian.Gateway](../../packages/Qian.Gateway/README.md) 的 `UseQianShell` / `MapQianShell`）；不是独立 profile。
 
 ## 启动顺序
 
@@ -12,11 +12,11 @@ Qian 唯一可部署的外壳入口（S1-YUE-012 把 S1-YUE-001 的 MF2 静态�
 
 - **运行时配置**：只有一份 JSON（K8s ConfigMap 挂成同源 `/app-config.json`）：`apiBase`（缺省 `/api`）、`authBase`（`/auth`）、`bootstrapUrl`（`/api/shell/bootstrap`）、`auditUrl`（`/api/shell/audit/remote-rejected`）、可选 `brand` / `locale` / `managed`。四个地址统一做同源路径校验（拒绝绝对源、`//`、反斜杠、查询串、片段、空白与控制字符、点段、结尾斜杠），未知字段拒绝。`locale` 只是部署缺省：用户保存过的语言优先，且不写进偏好存储。改文件后刷新页面即生效，不重编译。
 - **规范路径**：契约、远程模块与 `bridge.invoke` 一律写 `/api/...`；外壳平台客户端的中间件把它映射到 `apiBase`，远程模块不感知部署前缀。写请求（非 GET / HEAD / OPTIONS）每次先取一枚新的防伪令牌（`GET {authBase}/csrf`）再带头发出。
-- **安全策略**：构建产物 `index.html` 带 meta CSP（`vite.config.ts` 构建期写入）：`script-src 'self'` 加首帧主题脚本的 sha256，`connect-src` / `img-src` / `font-src` 只许同源（图片与字体另许 `data:`），`object-src 'none'`、`base-uri 'none'`、`frame-src 'none'`、`form-action 'self'`。`frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff` 由网关静态托管的响应头下发。`scripts/verify-dist.mjs` 在每次构建后断言这些指令、script-src 除 `'self'` 外只有内联脚本的哈希且一一对应、入口只引用同源资源、正式产物没有验收控制面、首屏 JS gzip ≤ 250 KiB。不放行 `'unsafe-eval'`：外壳、插件 SDK 与共享给远程页面在外壳源执行的 `@idadawn/yue-form` 都不在运行期生成代码——清单校验构建期预编译，客户端动作参数与 SchemaForm 的表单 Schema 解释执行（S1-YUE-014 撤销了此前登记的这一例外）；`e2e/federation.spec.ts` 在每个用例里收集 `securitypolicyviolation`，结束时必须为零，其中一步在租户运营远程页面里真实提交一次 SchemaForm 校验。运行时配置是 JSON 数据，只解析与校验，从不求值。
+- **安全策略**：构建产物 `index.html` 带 meta CSP（`vite.config.ts` 构建期写入）：`script-src 'self'` 加首帧主题脚本的 sha256，`connect-src` / `img-src` / `font-src` 只许同源（图片与字体另许 `data:`），`object-src 'none'`、`base-uri 'none'`、`frame-src 'none'`、`form-action 'self'`。`frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff` 由网关静态托管的响应头下发。`scripts/verify-dist.mjs` 在每次构建后断言这些指令、script-src 除 `'self'` 外只有内联脚本的哈希且一一对应、入口只引用同源资源、正式产物没有验收控制面、首屏 JS gzip ≤ 250 KiB。不放行 `'unsafe-eval'`：外壳、插件 SDK 与共享给远程页面在外壳源执行的 `@cavailab/qian-form` 都不在运行期生成代码——清单校验构建期预编译，客户端动作参数与 SchemaForm 的表单 Schema 解释执行（S1-YUE-014 撤销了此前登记的这一例外）；`e2e/federation.spec.ts` 在每个用例里收集 `securitypolicyviolation`，结束时必须为零，其中一步在租户运营远程页面里真实提交一次 SchemaForm 校验。运行时配置是 JSON 数据，只解析与校验，从不求值。
 - **会话**：网关 BFF 的 HttpOnly Cookie `qian.sid`，浏览器零令牌（存储、URL、iframe、响应体都没有令牌，`document.cookie` 看不到 `qian.sid`）。首次加载就没有会话时顶层跳 `{authBase}/login?returnTo=当前路径`。
-- **刷新合并与粘性结束**：`PlatformClient({ sessionProvider })` 把并发 401 合并成一次会话刷新（先取防伪令牌再 `POST {authBase}/session/refresh`），成功重放并通知外壳重拉 bootstrap（进行中的一轮结束后再完整拉一次）；失败或重放仍 401 只弹一次「登录已过期」对话框。工作台从未就绪（首载、整页重载）时由 `@qian/shell-kit` 的会话过期守卫区分：依赖方说会话已结束才顶层跳登录；依赖方刷新成功、重放仍 401（平台表面拒绝）只弹对话框，不跳转，否则账号 Cookie 仍有效时登录端点静默签码、回调后照样 401，整页无界循环。会话结束对外壳是粘性的：之后刷新通知与排队的重拉都不再发起请求，只有整页重新登录才复位（`packages/yue/sdk/README.md` 的宿主契约）。
+- **刷新合并与粘性结束**：`PlatformClient({ sessionProvider })` 把并发 401 合并成一次会话刷新（先取防伪令牌再 `POST {authBase}/session/refresh`），成功重放并通知外壳重拉 bootstrap（进行中的一轮结束后再完整拉一次）；失败或重放仍 401 只弹一次「登录已过期」对话框。工作台从未就绪（首载、整页重载）时由 `@qian/shell-kit` 的会话过期守卫区分：依赖方说会话已结束才顶层跳登录；依赖方刷新成功、重放仍 401（平台表面拒绝）只弹对话框，不跳转，否则账号 Cookie 仍有效时登录端点静默签码、回调后照样 401，整页无界循环。会话结束对外壳是粘性的：之后刷新通知与排队的重拉都不再发起请求，只有整页重新登录才复位（CavaiLAB/qian 的 `packages/qian/sdk/README.md` 的宿主契约）。
 - **远程模块**：bootstrap 的 `remotes` 按 `scope|id` 与版本、清单比对差异后登记或卸载；菜单命中的页面才 `loadSlot`（manifest → remoteEntry → expose），未挂载、无权益或无权限的远程完全不请求。已加载的页面只要还在宿主里（同一 bridge）就继续用，重拉 bootstrap 不会让页面重新挂载；加载失败对同一页面是粘性的，显示「插件未能加载」。远程页面收到外壳的平台客户端与宿主闭包绑定的 bridge；`window.__qian.bridge` 只含受控调用入口。
-- **菜单与路由**：真实平台给出能力导航（含菜单偏好与权限过滤）时以它为准，否则由宿主按已登记远程的清单、挂载、权益与权限算出。路由是 `@idadawn/yue-shell` 的最小历史路由：按 pathname 精确匹配、再最长前缀；根路径带查询串仍是工作台；未命中走 404 兜底，渲染异常由错误边界兜成 500 页。
+- **菜单与路由**：真实平台给出能力导航（含菜单偏好与权限过滤）时以它为准，否则由宿主按已登记远程的清单、挂载、权益与权限算出。路由是 `@cavailab/qian-shell` 的最小历史路由：按 pathname 精确匹配、再最长前缀；根路径带查询串仍是工作台；未命中走 404 兜底，渲染异常由错误边界兜成 500 页。
 - **租户首页**（S1-TEN-021）：本租户摘要可用时，工作台先显示欢迎区，会话、权限与可用页面卡片照常列在下面。欢迎区包括：
   - 试用提示：剩余天数按自然日向上取整，7 天内转为警示色，并给出到期日；宽限期另有提示。
   - 问候与开通引导：管理员已就绪；成员数大于 1 视为已邀请同事；「开始使用应用」只链接菜单里第一个已有页面。
@@ -28,7 +28,6 @@ Qian 唯一可部署的外壳入口（S1-YUE-012 把 S1-YUE-001 的 MF2 静态�
 ## 构建与制品
 
 ```bash
-pnpm --filter @idadawn/qian-runtime build
 pnpm --filter qian-shell build                 # vite build + scripts/verify-dist.mjs
 pnpm --filter @qian/tenancy-ui build:remote
 node apps/qian-shell/scripts/package-static.mjs
@@ -46,8 +45,8 @@ node apps/qian-shell/scripts/package-static.mjs
 
 | 门禁 | 入口 | 内容 |
 |---|---|---|
-| `pnpm yue:mf`（CI `shell-federation`） | `scripts/e2e.mjs` → `playwright.config.ts` + `e2e/` | 夹具 bootstrap（`scripts/serve-acceptance.mjs`）+ 真实审计宿主：官方租户远程按页面加载；共享 React、PlatformClient、SDK 与 Button 引用一致；scope 遮蔽与卸载恢复；租户 B 未挂载时 manifest 请求为零；`engines.yue` 拒绝并在控制台与真实 PostgreSQL 审计链留痕；window bridge 的 getContext / navigate / invoke 与撤销；运行时配置不合法时只有配置错误页、零请求；全程零 CSP 违规（含一次真实 SchemaForm 提交校验）；首屏 JS gzip ≤ 250 KiB（`acceptance-results/first-screen.json`）。验收控制面只由 `--mode acceptance` 引用。 |
-| `pnpm yue:auth`（CI `shell-auth`） | `scripts/e2e-auth.mjs` → `playwright.auth.config.ts` + `e2e-auth/` | 对 `tools/Qian.Dev.Shell` 拉起的真实 qian.identity + 平台表面宿主 + 上游 Dex + 网关 BFF 跑完整浏览器流程，见下表。失败时宿主、PostgreSQL 与 Dex 的日志在 `TestResults/shell-auth/logs`。只跑某个文件或用例时把参数交给 Playwright：`pnpm --filter qian-shell e2e:auth -- e2e-auth/signup.spec.ts`。 |
+| `pnpm shell:federation`（CI `qian-shell-federation`） | `scripts/e2e.mjs` → `playwright.config.ts` + `e2e/` | 夹具 bootstrap（`scripts/serve-acceptance.mjs`）+ 真实审计宿主：官方租户远程按页面加载；共享 React、PlatformClient、SDK 与 Button 引用一致；scope 遮蔽与卸载恢复；租户 B 未挂载时 manifest 请求为零；`engines.qian` 拒绝并在控制台与真实 PostgreSQL 审计链留痕；window bridge 的 getContext / navigate / invoke 与撤销；运行时配置不合法时只有配置错误页、零请求；全程零 CSP 违规（含一次真实 SchemaForm 提交校验）；首屏 JS gzip ≤ 250 KiB（`acceptance-results/first-screen.json`）。验收控制面只由 `--mode acceptance` 引用。 |
+| `pnpm shell:auth`（CI `qian-shell-auth`） | `scripts/e2e-auth.mjs` → `playwright.auth.config.ts` + `e2e-auth/` | 对 `tools/Qian.Dev.Shell` 拉起的真实 qian.identity + 平台表面宿主 + 上游 Dex + 网关 BFF 跑完整浏览器流程，见下表。失败时宿主、PostgreSQL 与 Dex 的日志在 `TestResults/shell-auth/logs`。只跑某个文件或用例时把参数交给 Playwright：`pnpm --filter qian-shell e2e:auth -- e2e-auth/signup.spec.ts`。 |
 
 真实流程（S1-YUE-002 验收 1–4）：
 

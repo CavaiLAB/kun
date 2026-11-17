@@ -12,11 +12,11 @@
 | Qian 对 Kun 的选用与约束 | `website/docs/sdk/kun/with-qian.mdx`（只转述 ADR-001 / ADR-021 与 PRD §07，不另立规则） | — |
 | Kun 镜像的白名单、侧栏与横幅 | `docs/prd/specs/docs-site.md` §2b 与 `website/scripts/sync-kun-docs.ts` 一起改 | 生成出来的页面 |
 | CLI 命令与清单字段 | `docs/prd/specs/component-model.md`（站内 `/cli/` 自动同步） | `website/docs/cli/` |
-| 组件页 | yue core：`packages/yue/core/docs/` 与 `website/scripts/yue-docs.ts`；其它组件：`collect-components.ts` 的规划清单，S1-DOCS-002 后改为组件目录 | `website/docs/components/` |
+| 组件页 | qian 组件库（原 yue）：源码与文档在 CavaiLAB/qian（提 PR），站内按版本目录里 `@cavailab/qian-core` 的版本检出同名标签生成，生成规则在 `website/scripts/yue-docs.ts`、`qian.ts`；其它组件：`collect-components.ts` 的规划清单，S1-DOCS-002 后改为组件目录 | `website/docs/components/` |
 | 首页 | `website/docs/index.mdx`（结构按 docs-site.md §2a） | — |
 | 产品族地图 | `website/docs/start/family.md` 与仓库 `README.md` 的「产品族」表一起改（单测核对前五列一致） | — |
 | 版本矩阵 | 对应的钉版文件（`Directory.Packages.props`、`global.json`、`package.json`、`deploy/baseline.json` 等） | `website/docs/start/versions.md`（生成，不进 Git） |
-| 颜色与样式 | `website/theme/index.css`，只引用 `--yue-*` 语义令牌 | 在组件里写死颜色 |
+| 颜色与样式 | `website/theme/index.css`，只引用 `--qian-*` 语义令牌；站点自己的变量用 `--docs-` 前缀 | 在组件里写死颜色 |
 
 `components/`、`cli/`、`design/`、`sdk/kun/`（`with-qian.mdx` 除外）、`sdk/api/` 与 `start/versions.md` 由构建前的脚本生成，不进 Git（进了文档门禁即失败）；手改会在下一次构建时被覆盖。
 
@@ -36,7 +36,7 @@
 
 ## 提交前
 
-构建要读 kun 仓库并跑 DocFX：需要 .NET SDK，并让 `KUN_DOCS_PATH` 指向本机 kun 克隆（或能用 SSH 克隆 `idadawn/kun`），见 [README.md](README.md) §1。
+构建要读 kun 仓库并跑 DocFX：需要 .NET SDK，并让 `KUN_DOCS_PATH` 指向本机 kun 克隆（或能用 SSH 克隆 `idadawn/kun`）；还要读 CavaiLAB/qian 的检出：`QIAN_DOCS_PATH` 指向停在对应标签、装好依赖的检出（或能用 HTTPS 克隆），见 [README.md](README.md) §1。
 
 ```bash
 python3 scripts/check_docs.py

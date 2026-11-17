@@ -1,2 +1,2 @@
 /// <reference types="vite/client" />
-declare const __YUE_VERSION__: string;
+declare const __QIAN_VERSION__: string;

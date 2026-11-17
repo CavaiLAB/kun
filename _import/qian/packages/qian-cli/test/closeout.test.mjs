@@ -74,16 +74,18 @@ test('安装末检只覆盖受影响组件，返回默认提示词、密钥和 p
  }finally{f.dispose();}
 });
 
-test('engines 使用真实宿主 Runtime 包版本，缺证据、不兼容与未许可预发布均拒绝',()=>{
+test('engines.qian 使用宿主实际安装的前端框架版本，缺证据、不兼容与未许可预发布均拒绝',()=>{
  const f=fixture();try{
-  f.component('guide',{engines:{qian:'>=0.1.1 <0.2.0'}});
+  // engines.qian 只约束声明了界面表面的组件。
+  const surfaces={ui:'./ui/manifest.json'},directory=f.component('guide',{engines:{qian:'>=0.2.0 <0.3.0'},surfaces});
+  write(directory,'ui/manifest.json',JSON.stringify({$schema:'https://qian.dev/schemas/ui/v2',federation:{manifest:'/remotes/test.guide/mf-manifest.json',exposes:['Page']},engines:{qian:'^0.2.0'},pages:[{route:'/guide',expose:'Page',permission:'test.guide:item:read',nav:{title:'指引'}}]}));
   rejected(f.run(['add','guide','--yes']),'SURFACE_ENGINE_INCOMPATIBLE');
-  const runtime=JSON.parse(readFileSync(path.join(repo,'packages/qian-runtime/package.json'),'utf8'));
-  write(f.host,'node_modules/@idadawn/qian-runtime/package.json',JSON.stringify({name:runtime.name,version:runtime.version}));
-  const installed=f.run(['add','guide','--yes']);assert.equal(installed.status,0,installed.stderr);assert.equal(JSON.parse(installed.stdout).verification[0].engines[0].version,runtime.version);
-  write(f.host,'node_modules/@idadawn/qian-runtime/package.json',JSON.stringify({name:runtime.name,version:'0.1.2-beta.1'}));
-  assert.throws(()=>verifyComponentEngines({engines:{qian:'^0.1.0'}},readHostEngineVersions(f.host)),error=>error.diagnostics[0].error.errors[0].code==='SURFACE_ENGINE_INCOMPATIBLE');
-  verifyComponentEngines({engines:{qian:'>=0.1.2-beta.1 <0.2.0'}},readHostEngineVersions(f.host));
+  const core={name:'@cavailab/qian-core',version:'0.2.0'};
+  write(f.host,'node_modules/@cavailab/qian-core/package.json',JSON.stringify(core));
+  const installed=f.run(['add','guide','--yes']);assert.equal(installed.status,0,installed.stderr);assert.equal(JSON.parse(installed.stdout).verification[0].engines[0].version,core.version);
+  write(f.host,'node_modules/@cavailab/qian-core/package.json',JSON.stringify({...core,version:'0.2.1-beta.1'}));
+  assert.throws(()=>verifyComponentEngines({engines:{qian:'^0.2.0'},surfaces},readHostEngineVersions(f.host)),error=>error.diagnostics[0].error.errors[0].code==='SURFACE_ENGINE_INCOMPATIBLE');
+  verifyComponentEngines({engines:{qian:'>=0.2.1-beta.1 <0.3.0'},surfaces},readHostEngineVersions(f.host));
   rejected(f.run(['add','guide','--yes']),'SURFACE_ENGINE_INCOMPATIBLE');
   assert.equal(JSON.parse(readFileSync(path.join(f.host,'.qian/lock.json'),'utf8')).plugins[0].version,'1.0.0');
  }finally{f.dispose();}

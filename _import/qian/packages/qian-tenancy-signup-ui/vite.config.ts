@@ -11,7 +11,7 @@ if (!['127.0.0.1', 'localhost', '::1', '[::1]'].includes(new URL(api).hostname))
 export default defineConfig({
   base: '/signup/',
   plugins: [
-    { name: 'yue-first-frame', transformIndexHtml: { order: 'pre', handler: () => [{ tag: 'script', children: readFileSync(new URL(import.meta.resolve('@idadawn/yue-tokens/theme-init.js')), 'utf8'), injectTo: 'head-prepend' }] } },
+    { name: 'qian-first-frame', transformIndexHtml: { order: 'pre', handler: () => [{ tag: 'script', children: readFileSync(new URL(import.meta.resolve('@cavailab/qian-tokens/theme-init.js')), 'utf8'), injectTo: 'head-prepend' }] } },
     react(), tailwindcss(),
   ],
   server: { host: '127.0.0.1', port: Number(process.env.QIAN_DEV_UI_PORT ?? 5179), strictPort: true, proxy: { '/api/signup': { target: api, changeOrigin: false } } },

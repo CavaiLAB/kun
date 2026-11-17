@@ -1,6 +1,6 @@
-import type { PlatformI18n } from '@idadawn/yue-sdk';
+import type { PlatformI18n } from '@cavailab/qian-sdk';
 
-/** 外壳自身的词条；外壳与通用文案来自 @idadawn/yue-shell / @idadawn/yue-sdk 的语言包。 */
+/** 外壳自身的词条；外壳与通用文案来自 @cavailab/qian-shell / @cavailab/qian-sdk 的语言包。 */
 export function installAppLanguagePacks(i18n: PlatformI18n): void {
   i18n.addLanguagePack('zh-CN', {
     'app.workspace': '工作台', 'app.workspaceHelp': '能力导航、有效权限与会话都来自真实平台接口；页面内容由远程模块按需加载。',

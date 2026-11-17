@@ -7,15 +7,17 @@ import {assertNoLinks,within,sha256} from './marketplace-files.js';
 import {installObject,installFailure,type InstallObject} from './installed-components.js';
 import {marketDiagnostic,MarketplaceFailure} from './marketplaces.js';
 
-export interface EngineEvidence {engine:'qian'|'kun'|'yue';version:string;package:string;source:string}
+export interface EngineEvidence {engine:'qian'|'kun';version:string;package:string;source:string}
 export interface EnginePlan {evidence:EngineEvidence[];pending:EngineEvidence['engine'][]}
-const runtimePackages:Record<string,EngineEvidence['engine']>={'qian.runtime':'qian','kun.core':'kun','@qian/runtime':'qian','@idadawn/qian-runtime':'qian','@yue/core':'yue','@idadawn/yue-core':'yue'};
+// kun 是 Kun 框架，证据是 NuGet 的 Kun.Core；qian 是前端框架（8 个层包同一版本），证据是 npm 的 @cavailab/qian-core。
+// 平台运行时（Qian.Runtime、@cavailab/qian-runtime）不当引擎证据：它不在 Kun 的日历版本线上，并进去之前没有单独的版本检查。
+const enginePackages:Record<string,EngineEvidence['engine']>={'kun.core':'kun','@cavailab/qian-core':'qian'};
 /** 版本只来自宿主实际还原结果与实际 npm 包，不能以 CLI 的 package.json 代替。 */
 export function engineEvidenceFromAssets(data:unknown,source:string):EngineEvidence[] {
  const result:EngineEvidence[]=[];
  for(const[name,entry]of Object.entries(installObject(installObject(data).libraries))){
   if(!['package','project'].includes(String(installObject(entry).type)))continue;
-  const slash=name.lastIndexOf('/'),pkg=name.slice(0,slash).toLowerCase(),version=name.slice(slash+1),engine=runtimePackages[pkg];
+  const slash=name.lastIndexOf('/'),pkg=name.slice(0,slash).toLowerCase(),version=name.slice(slash+1),engine=enginePackages[pkg];
   if(engine&&valid(version))result.push({engine,version,package:pkg,source});
  }
  return result;
@@ -27,10 +29,10 @@ export function readHostEngineVersions(root:string,workspace?:PackageWorkspace):
   let data:unknown;try{data=JSON.parse(readFileSync(assets,'utf8'));}catch{installFailure('project.assets.json','宿主运行时版本记录无效。','SURFACE_ENGINE_INCOMPATIBLE');}
   evidence.push(...engineEvidenceFromAssets(data,path.relative(root,assets).split(path.sep).join('/')));
  }
- for(const[pkg,engine]of Object.entries(runtimePackages).filter(([name])=>name.startsWith('@'))){
+ for(const[pkg,engine]of Object.entries(enginePackages).filter(([name])=>name.startsWith('@'))){
   const relative='node_modules/'+pkg+'/package.json',file=path.join(root,relative);assertNoLinks(file);if(!existsSync(file))continue;
-  let data:InstallObject;try{data=installObject(JSON.parse(readFileSync(file,'utf8')));}catch{installFailure(relative,'实际 npm 运行时包声明无效。','SURFACE_ENGINE_INCOMPATIBLE');}
-  if(data.name!==pkg||typeof data.version!=='string'||!valid(data.version))installFailure(relative,'实际 npm 运行时包身份或版本无效。','SURFACE_ENGINE_INCOMPATIBLE');
+  let data:InstallObject;try{data=installObject(JSON.parse(readFileSync(file,'utf8')));}catch{installFailure(relative,'实际 npm 引擎包声明无效。','SURFACE_ENGINE_INCOMPATIBLE');}
+  if(data.name!==pkg||typeof data.version!=='string'||!valid(data.version))installFailure(relative,'实际 npm 引擎包身份或版本无效。','SURFACE_ENGINE_INCOMPATIBLE');
   evidence.push({engine,version:data.version,package:pkg,source:relative});
  }
  return evidence;
@@ -50,15 +52,15 @@ export function planEngineVerification(current:readonly EngineEvidence[],workspa
   if(!restoring.has(kind(item.package))||direct&&valid(direct.version)&&direct.version===item.version)evidence.push(item);
  }
  for(const reference of planned){
-  const pkg=key(reference.name),engine=runtimePackages[pkg];if(!engine)continue;
+  const pkg=key(reference.name),engine=enginePackages[pkg];if(!engine)continue;
   if(!evidence.some(item=>item.package===pkg))evidence.push({engine,version:reference.version,package:pkg,source:'package-plan/'+reference.kind});
  }
- // 某生态发生还原时，其未由精确直接引用钉定的传递运行时可能变化；即使候选预检有版本也不能代替宿主结果。
- const possible:EngineEvidence['engine'][]=[...restoring.has('nuget')?['qian','kun'] as const:[],...restoring.has('npm')?['qian','yue'] as const:[]];
+ // 某生态发生还原时，其未由精确直接引用钉定的传递引擎包可能变化；即使候选预检有版本也不能代替宿主结果。
+ const possible:EngineEvidence['engine'][]=[...restoring.has('nuget')?['kun'] as const:[],...restoring.has('npm')?['qian'] as const:[]];
  const pending=[...new Set(possible)].filter(engine=>!evidence.some(item=>item.engine===engine));
  return{evidence,pending};
 }
-/** 实际 Runtime 改变时，只用安装锁中的清单与挂载记录定位额外受影响的组件/profile。 */
+/** 实际引擎版本改变时，只用安装锁中的清单与挂载记录定位额外受影响的组件/profile。 */
 export function affectedEngineInstallations(root:string,plugins:readonly InstallObject[],before:readonly EngineEvidence[],after:readonly EngineEvidence[]):Map<string,Set<string>> {
  const versions=(values:readonly EngineEvidence[],engine:string)=>JSON.stringify(values.filter(item=>item.engine===engine).map(item=>item.package+'@'+item.version).sort());
  const changed=new Set([...before,...after].map(item=>item.engine).filter(engine=>versions(before,engine)!==versions(after,engine)));
@@ -69,13 +71,13 @@ export function affectedEngineInstallations(root:string,plugins:readonly Install
   for(const value of record.files){
    const item=installObject(value);if(typeof item.path!=='string'||item.path!=='.qian-plugin/plugin.json'&&!item.path.endsWith('/.qian-plugin/plugin.json'))continue;
    const relative='.qian/plugins/'+record.id+'/'+item.path,file=within(root,relative);let bytes:Buffer;
-   try{bytes=readFileSync(file);}catch{installFailure(relative,'已安装清单缺失或不可读，不能判断运行时升级影响。','SURFACE_LOCAL_MODIFIED');}
-   if(bytes.length!==item.bytes||sha256(bytes)!==item.sha256)installFailure(relative,'已安装清单被修改，不能判断运行时升级影响。','SURFACE_LOCAL_MODIFIED');
+   try{bytes=readFileSync(file);}catch{installFailure(relative,'已安装清单缺失或不可读，不能判断引擎升级影响。','SURFACE_LOCAL_MODIFIED');}
+   if(bytes.length!==item.bytes||sha256(bytes)!==item.sha256)installFailure(relative,'已安装清单被修改，不能判断引擎升级影响。','SURFACE_LOCAL_MODIFIED');
    const parsed=parseSurface(relative,bytes.toString('utf8'));
    if(!parsed.syntax||parsed.diagnostics.some(item=>item.severity==='error'))throw new MarketplaceFailure([...parsed.diagnostics]);
    const manifest=installObject(parsed.syntax.data),runtime=installObject(manifest.runtime),surfaces=installObject(manifest.surfaces);
    relevant=Object.keys(installObject(manifest.engines)).some(engine=>changed.has(engine as EngineEvidence['engine'])&&
-    (engine!=='kun'||Array.isArray(runtime.nuget)&&runtime.nuget.length>0)&&(engine!=='yue'||surfaces.ui!==undefined));
+    (engine!=='kun'||Array.isArray(runtime.nuget)&&runtime.nuget.length>0)&&(engine!=='qian'||surfaces.ui!==undefined));
    if(relevant)break;
   }
   if(!relevant)continue;
@@ -87,16 +89,16 @@ export function affectedEngineInstallations(root:string,plugins:readonly Install
  }
  return affected;
 }
-/** 无代码投影不再要求被移除的 Kun/UI 运行时，但 qian 范围仍约束承载表面的实际 Runtime。 */
+/** kun 只约束带 NuGet 运行时的组件，qian 只约束声明了界面表面的组件；无代码投影去掉了这两部分，也就不再要求。 */
 export function verifyComponentEngines(manifest:InstallObject,evidence:readonly EngineEvidence[],file='.qian-plugin/plugin.json',pending:readonly EngineEvidence['engine'][]=[]):EngineEvidence['engine'][] {
  const runtime=installObject(manifest.runtime),surfaces=installObject(manifest.surfaces);
  const deferred:EngineEvidence['engine'][]=[];
  for(const[engine,range]of Object.entries(installObject(manifest.engines))){
   if(typeof range!=='string'||!validRange(range))throw new MarketplaceFailure([marketDiagnostic(file,'/engines/'+engine,'engines 必须为可解析的 SemVer 范围。','SURFACE_ENGINE_INCOMPATIBLE')]);
-  if(engine==='kun'&&(!Array.isArray(runtime.nuget)||!runtime.nuget.length)||engine==='yue'&&surfaces.ui===undefined)continue;
+  if(engine==='kun'&&(!Array.isArray(runtime.nuget)||!runtime.nuget.length)||engine==='qian'&&surfaces.ui===undefined)continue;
   const versions=evidence.filter(item=>item.engine===engine);
   if(!versions.length&&pending.includes(engine as EngineEvidence['engine'])){deferred.push(engine as EngineEvidence['engine']);continue;}
-  if(!versions.length)throw new MarketplaceFailure([marketDiagnostic(file,'/engines/'+engine,'无法从所选 profile 的实际宿主还原记录确认 '+engine+' 版本；先还原宿主运行时依赖。','SURFACE_ENGINE_INCOMPATIBLE')]);
+  if(!versions.length)throw new MarketplaceFailure([marketDiagnostic(file,'/engines/'+engine,'无法从所选 profile 的实际宿主还原记录确认 '+engine+' 版本；先还原宿主依赖。','SURFACE_ENGINE_INCOMPATIBLE')]);
   if(versions.some(item=>!satisfies(item.version,range)))throw new MarketplaceFailure([marketDiagnostic(file,'/engines/'+engine,'组件要求 '+engine+' '+range+'，宿主已确认或计划钉定版本为 '+[...new Set(versions.map(item=>item.version))].join('、')+'。','SURFACE_ENGINE_INCOMPATIBLE')]);
  }
  return deferred;

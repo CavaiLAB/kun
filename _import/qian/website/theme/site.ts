@@ -9,14 +9,15 @@ export const DEFAULT_SITE_URL = 'http://10.78.1.161:30820';
 export const FAMILY_REPOS: readonly { name: string; url?: string; note?: string }[] = [
   { name: 'Qian', url: REPO_URL },
   { name: 'Kun', url: 'https://github.com/idadawn/kun' },
-  { name: 'yue', url: REPO_URL, note: 'Qian 仓库内' },
+  { name: 'yue', url: 'https://github.com/CavaiLAB/qian', note: '现名 qian 组件库' },
   { name: 'qian-plugins' }, // 官方市场仓库 idadawn/qian-plugins，建仓后补 url
 ];
 
-/** 许可证（docs-site.md §2a.1）：Qian（含 yue）Apache-2.0，Kun MIT。 */
+/** 许可证（docs-site.md §2a.1）：Qian Apache-2.0，Kun MIT；前端组件库（原 yue）迁到 CavaiLAB/qian、更名 qian 后为 MIT。 */
 export const LICENSES = [
   { project: 'Qian', name: 'Apache-2.0', url: 'https://www.apache.org/licenses/LICENSE-2.0' },
   { project: 'Kun', name: 'MIT', url: 'https://opensource.org/license/mit' },
+  { project: 'qian 组件库（原 yue）', name: 'MIT', url: 'https://opensource.org/license/mit' },
 ] as const;
 
 /** 第 2、3、4 部分随 Qian 包族的 SemVer 多版本发布，其余部分只有当前版（docs-site.md §5）。 */

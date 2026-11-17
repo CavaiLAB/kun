@@ -1,7 +1,7 @@
-import { Button, Icon, isIconName } from '@idadawn/yue-core/shell';
-import type { PlatformI18n } from '@idadawn/yue-sdk';
-import { Page, PageHeader } from '@idadawn/yue-shell/layout';
-import type { ShellMenuItem } from '@idadawn/yue-shell/menu';
+import { Button, Icon, isIconName } from '@cavailab/qian-core/shell';
+import type { PlatformI18n } from '@cavailab/qian-sdk';
+import { Page, PageHeader } from '@cavailab/qian-shell/layout';
+import type { ShellMenuItem } from '@cavailab/qian-shell/menu';
 import type { BffSession } from '@qian/shell-kit';
 
 // 平台身份的首页（平台控制台，S1-YUE-018）。持平台超管时 bootstrap 不代管：列出平台组件交给外壳的页面（与侧栏同一份菜单，来自 Capabilities 的平台控制台目录，
@@ -51,7 +51,7 @@ export function PlatformHome({ i18n, session, menu, managed, onNavigate }: Platf
         <h2 id="console-pages-title" className="text-lg font-semibold">{i18n.t('console.pages')}</h2>
         {menu.length === 0 ? <p className="text-sm text-muted-foreground">{i18n.t('common.empty')}</p>
           : <ul className="grid gap-2 sm:grid-cols-2">{menu.map(item => {
-            // 与侧栏同一规则（yue-shell 的 AppShell）：有文案用文案，否则按词条键翻译。
+            // 与侧栏同一规则（@cavailab/qian-shell 的 AppShell）：有文案用文案，否则按词条键翻译。
             const title = item.label ?? i18n.t(item.labelKey);
             return <li key={item.id} data-route={item.target} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
               <span className="flex min-w-0 items-center gap-2"><Icon name={isIconName(item.icon) ? item.icon : 'dashboard'} /><span className="truncate">{title}</span></span>

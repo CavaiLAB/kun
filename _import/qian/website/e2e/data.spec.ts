@@ -1,14 +1,14 @@
-import { settleVisuals } from '../../apps/yue-playground/e2e/settle';
+import { settleVisuals } from '../../apps/qian-shell/e2e/settle';
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import scenarios from '../../packages/yue/data/docs/scenarios.json' with { type: 'json' };
+import scenarios from '../.cache/qian-source/packages/qian/data/docs/scenarios.json' with { type: 'json' };
 
 for (const scenario of scenarios) test(`${scenario.component}/${scenario.state} 数据组件文档场景`, async ({ page }) => {
   await page.goto(`yue-demo/index.html?component=${scenario.component}&state=${scenario.state}&theme=${scenario.theme}`);
   if (scenario.component === 'DataTable') {
-    if (scenario.state === 'Loading') await expect(page.getByTestId('yue-data-table-loading')).toBeVisible();
-    else if (scenario.state === 'Empty') await expect(page.getByTestId('yue-data-table-empty')).toBeVisible();
-    else if (scenario.state === 'Error') await expect(page.getByTestId('yue-data-table-error')).toBeVisible();
+    if (scenario.state === 'Loading') await expect(page.getByTestId('qian-data-table-loading')).toBeVisible();
+    else if (scenario.state === 'Empty') await expect(page.getByTestId('qian-data-table-empty')).toBeVisible();
+    else if (scenario.state === 'Error') await expect(page.getByTestId('qian-data-table-error')).toBeVisible();
     else if (scenario.state === 'Tools') {
       // 工具行右端的刷新按钮重新取数；「显示列」之后接 toolbarEnd，comfortable 行距让单元格上下各 14px。
       await expect(page.getByText('共 24 条')).toBeVisible();

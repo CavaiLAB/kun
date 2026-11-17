@@ -4,7 +4,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {PluginLoader} from '../../qian-runtime/dist/index.js';
+import {PluginLoader} from '@cavailab/qian-runtime';
 import {HotReloadSurfacePlugin,validateComponent,readSurfaceRuntimeDiagnostics,validateSurfaceSchema} from '../dist/index.js';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
 const spec=JSON.parse(readFileSync(path.join(root,'tck/runtime/hotreload.json'),'utf8'));

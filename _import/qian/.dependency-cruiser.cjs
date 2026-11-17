@@ -1,5 +1,5 @@
-// 循环依赖门禁（pnpm yue:circular）：packages/yue/* 与 apps/* 的 import 图不得有环、不得引到解析不到的模块。
-// 分层方向由 eslint-plugin-boundaries 管（packages/yue/boundaries.config.mjs），这里不重复。
+// 循环依赖门禁（pnpm ui:circular）：外壳与界面包（范围同 eslint.boundaries.config.mjs 的 UI_ROOTS）的 import 图不得有环、不得引到解析不到的模块。
+// 依赖方向由 eslint-plugin-boundaries 管（eslint.boundaries.config.mjs），这里不重复；自测在 tests/gates/ui/circular.test.ts。
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
   forbidden: [
@@ -13,13 +13,13 @@ module.exports = {
     {
       name: 'not-to-unresolvable',
       severity: 'error',
-      comment: 'import 的模块必须能解析到（包没装、路径写错、还没建的 @yue 包）',
+      comment: 'import 的模块必须能解析到（包没装、路径写错、迁走的旧包名）',
       from: {},
       to: { couldNotResolve: true },
     },
   ],
   options: {
-    includeOnly: '^(packages/yue|packages/qian-tenancy-ui|packages/qian-tenancy-signup-ui|packages/qian-identity-ui|packages/qian-plugin-sdk|packages/qian-shell-kit|samples/qian-sample-crm-ui|apps)/',
+    includeOnly: '^(apps|packages/qian-tenancy-ui|packages/qian-tenancy-signup-ui|packages/qian-identity-ui|packages/qian-shell-kit|samples/qian-sample-crm-ui|tests/directory-e2e)/',
     exclude: { path: ['node_modules', '/dist/', '\\.d\\.ts$'] },
     doNotFollow: { path: ['node_modules'] },
     tsPreCompilationDeps: true,

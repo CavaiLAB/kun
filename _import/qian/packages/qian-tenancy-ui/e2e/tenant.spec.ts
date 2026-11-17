@@ -158,10 +158,10 @@ test('R110 真实宿主七步与管理员维护：列表、创建、迁移、并
   await expect(rowA.getByText('正常', { exact: true })).toBeVisible();
   // 状态页签：计数来自宿主按状态的统计（A 已恢复为正常，B 仍待激活）；切换页签以 status 交给宿主过滤。
   const tab = (name: RegExp) => page.getByRole('tab', { name });
-  await expect(tab(/^全部/).getByTestId('yue-tabs-tab-count')).toHaveText('2');
-  await expect(tab(/^正常/).getByTestId('yue-tabs-tab-count')).toHaveText('1');
-  await expect(tab(/^待激活/).getByTestId('yue-tabs-tab-count')).toHaveText('1');
-  await expect(tab(/^已冻结/).getByTestId('yue-tabs-tab-count')).toHaveText('0');
+  await expect(tab(/^全部/).getByTestId('qian-tabs-tab-count')).toHaveText('2');
+  await expect(tab(/^正常/).getByTestId('qian-tabs-tab-count')).toHaveText('1');
+  await expect(tab(/^待激活/).getByTestId('qian-tabs-tab-count')).toHaveText('1');
+  await expect(tab(/^已冻结/).getByTestId('qian-tabs-tab-count')).toHaveText('0');
   await tab(/^待激活/).click();
   await expect.poll(() => lists.at(-1)).toEqual({ skip: '0', take: '10', status: 'pending' });
   await expect(rowA).toHaveCount(0); await expect(rowB).toBeVisible();

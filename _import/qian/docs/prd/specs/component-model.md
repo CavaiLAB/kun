@@ -2,7 +2,7 @@
 
 > 状态：草案 v2（2026-10-06；2026-10-07 §13 待确认项全部拍板）。依据 [ADR-020 组件模型 v2](../../adr/ADR-020-component-model-v2.md)（Accepted）为唯一权威决策；兼引 [ADR-019 库优先](../../adr/ADR-019-library-first-packages.md)（代码部分的打包规则）、[ADR-002](../../adr/ADR-002-plugin-model.md)（信任等级、从代码派生、digest 引用等被保留并映射到新字段的条目）、[ADR-016](../../adr/ADR-016-iclaw-boundary.md)（工具元数据、事件信封、MCP 版本）。本 spec 取代 [`plugin-manifest.md`](plugin-manifest.md)（v1）为权威规格；v1 保留为字段迁移对照（§3.6）。
 >
-> 读者：组件作者（.NET / TypeScript）、`Qian.Runtime` 与 `@qian/runtime` 的实现者、`qian` CLI 与市场仓库维护者、TCK 编写者。写法是「可直接照着实现」：每种文件格式给完整示例，每个运行时 API 给签名与语义表，每条规则给校验点。ADR-020 §7 的待确认项已于 2026-10-07 全部拍板，结论登记在 §13，正文标「→ §13」处以该节结论为准；本 spec 不自行新增决策。被借鉴的商业低代码产品一律称「参考平台」，被对标的 Agent 生态项目一律称「对标项目」。
+> 读者：组件作者（.NET / TypeScript）、`Qian.Runtime` 与 `@cavailab/qian-runtime` 的实现者、`qian` CLI 与市场仓库维护者、TCK 编写者。写法是「可直接照着实现」：每种文件格式给完整示例，每个运行时 API 给签名与语义表，每条规则给校验点。ADR-020 §7 的待确认项已于 2026-10-07 全部拍板，结论登记在 §13，正文标「→ §13」处以该节结论为准；本 spec 不自行新增决策。被借鉴的商业低代码产品一律称「参考平台」，被对标的 Agent 生态项目一律称「对标项目」。
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### 1.1 范围
 
-本 spec 定义七件事，全部为 S1 交付（字段级的 S1 / S2 / S3 分级在各表中单独标注）：① 组件文件夹布局与每种表面的文件格式（§2、§4）；② 清单 `.qian-plugin/plugin.json` 的字段、约束与 JSON Schema 2020-12（§3）；③ `Qian.Runtime`（.NET 10）与 `@qian/runtime`（TS）的最小 API、五种分发模式、scope 与生命周期语义（§5）；④ seam 三角色的包命名与依赖规则，以及 Files / Identity / Authz 三个 S1 seam 的落位（§6）；⑤ profile、组合包、patch 的格式、叠加顺序、`dump-config` 与租户 scope patch 的存储形态（§7）；⑥ 目录市场与 CLI（§8、§9）；⑦ 校验器、TCK、CI 门禁与安全规则（§10、§11）。
+本 spec 定义七件事，全部为 S1 交付（字段级的 S1 / S2 / S3 分级在各表中单独标注）：① 组件文件夹布局与每种表面的文件格式（§2、§4）；② 清单 `.qian-plugin/plugin.json` 的字段、约束与 JSON Schema 2020-12（§3）；③ `Qian.Runtime`（.NET 10）与 `@cavailab/qian-runtime`（TS）的最小 API、五种分发模式、scope 与生命周期语义（§5）；④ seam 三角色的包命名与依赖规则，以及 Files / Identity / Authz 三个 S1 seam 的落位（§6）；⑤ profile、组合包、patch 的格式、叠加顺序、`dump-config` 与租户 scope patch 的存储形态（§7）；⑥ 目录市场与 CLI（§8、§9）；⑦ 校验器、TCK、CI 门禁与安全规则（§10、§11）。
 
 适用对象：全部官方组件（原 ADR-003 的 18 个平台插件——旧称「系统插件」，现为 `platform` profile base 组合包的内容，R31）、S1 参考应用 `qian.sample.crm`、S2 起的低代码元数据组件、S3 起的第三方组件。
 
@@ -41,7 +41,7 @@
 | patch | 按 `(scope, id)` 定位条目并替换其整个 `config`、禁用它或插入新条目的一条记录；文件形态 `qian.patch.yml`，数据库形态为租户 scope patch 表，同一 JSON Schema | §7.4、§7.6 |
 | 市场条目 | `.qian/marketplace.json` 的 `plugins[]` 一项：只有 `name`、`source`、`policy`、`category`、`interface` | §8 |
 | 插件树 | 按 profile → 组合包 → profile patch → home patch → `--patch` overlay（运行中再叠租户 scope patch）层叠出的全部条目；`qian dump-config` 打印的就是它 | §7.1、§7.5 |
-| 运行时 | `Qian.Runtime` / `@qian/runtime`：上下文、服务注册、类型化事件、可逆副作用、装载器；极小、无业务语义，是组件库唯一必需的 Qian 依赖 | §5 |
+| 运行时 | `Qian.Runtime` / `@cavailab/qian-runtime`：上下文、服务注册、类型化事件、可逆副作用、装载器；极小、无业务语义，是组件库唯一必需的 Qian 依赖 | §5 |
 
 ---
 
@@ -113,7 +113,7 @@
   "description": "多租户文件服务：租户前缀、配额、上传策略、文件元数据与预览票据；存储后端可选本地盘 / S3 / OSS",
   "author": { "name": "Qian Platform Team", "url": "https://docs.example.internal/qian" },
   "license": "Apache-2.0",
-  "engines": { "qian": ">=1.0 <2", "kun": ">=2026.9", "yue": "^1.0" },
+  "engines": { "kun": ">=2026.9", "qian": "^1.0" },
   "interface": {
     "displayName": "文件存储",
     "category": "storage",
@@ -167,7 +167,6 @@
   "description": "租户上线核对技能：按清单检查身份连接器、默认角色、文件配额与通知渠道是否就绪",
   "author": { "name": "Example Ops", "email": "ops@example.com" },
   "license": "MIT",
-  "engines": { "qian": ">=1.0 <2" },
   "interface": { "displayName": "租户上线核对", "category": "operations", "brandColor": "#7C3AED",
                  "defaultPrompt": ["用 tenant-onboarding 技能检查租户 t-001 是否可以上线"] },
   "surfaces": { "skills": "./skills", "commands": "./commands" },
@@ -190,7 +189,7 @@
   "description": "base 组合包：原 18 个平台插件按 seam 拆包——注册表、生命周期、能力目录、钩子桥接、租户、身份客户端、鉴权、数据、文件、配置、事件、审计、可观测、通知、调度、实时、授权 v0",
   "author": { "name": "Qian Platform Team" },
   "license": "Apache-2.0",
-  "engines": { "qian": ">=1.0 <2", "kun": ">=2026.9" },
+  "engines": { "kun": ">=2026.9" },
   "interface": { "displayName": "平台 base 组合包", "category": "bundle", "icon": "./assets/icon.svg" },
   "surfaces": { "patch": "./config/qian.patch.yml", "skills": "./skills", "commands": "./commands", "hooks": "./hooks/hooks.json" },
   "runtime": {
@@ -226,7 +225,7 @@
 | `description` | `string`，10–500 字 | 是 | 面向人；模型看 `skills` / `tools` 的描述 | S1 |
 | `author` | `{ name, email?, url? }` | 是 | 市场的 `publisher.verified` 在 S3 另行维护，不在清单 | S1 |
 | `license` | SPDX 或 `LicenseRef-*` | 是 | Qian 包族许可证已定为 Apache-2.0（→ §13 第 6 条），官方组件写 `Apache-2.0`；S3 商业组件的许可证另定 | S1 |
-| `engines` | `{ qian?, kun?, yue? }` SemVer range | 否 | 沿 v1 保留；有 `ui` 表面时 `yue` 必填，有 `runtime.nuget` 时 `kun` 必填 | S1 |
+| `engines` | `{ kun?, qian? }` SemVer range | 否 | `kun` 是 Kun 框架的版本，有 `runtime.nuget` 时必填；`qian` 是前端框架（`@cavailab/qian-*`）的版本，与 `ui/manifest.json` 的 `engines.qian` 同义，有 `ui` 表面时必填。平台运行时（`Qian.Runtime`）不单独声明：它将并入 Kun 的日历版本线、由 `kun` 覆盖（ADR-023 D23.18），并入之前没有单独的版本检查。v1 的 `yue` 键已改名为 `qian`，原指平台运行时的 `qian` 不再保留 | S1 |
 
 **展示（`interface`）**
 
@@ -300,7 +299,7 @@
                 "properties": { "name": { "type": "string" }, "email": { "type": "string", "format": "email" }, "url": { "type": "string", "format": "uri" } } },
     "license": { "type": "string" },
     "engines": { "type": "object", "additionalProperties": false,
-                 "properties": { "qian": { "type": "string" }, "kun": { "type": "string" }, "yue": { "type": "string" } } },
+                 "properties": { "qian": { "type": "string" }, "kun": { "type": "string" } } },
     "interface": { "type": "object", "required": ["displayName", "category"], "additionalProperties": false,
       "properties": { "displayName": { "type": "string", "maxLength": 40 }, "category": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
         "defaultPrompt": { "type": "array", "maxItems": 5, "items": { "type": "string" } }, "icon": { "$ref": "#/$defs/relPath" },
@@ -358,7 +357,7 @@
 | `distribution` | S2 低代码表面的属性，不在清单根 | ADR-014 修订后由 `qian.metadata` spec 定义 |
 | `displayName` / `description`（多语言映射） | `interface.displayName`、根 `description`；多语言放 `interface.locales` | — |
 | `publisher` / `icon` / `links` / `categories` | 删除（S3 市场维护）/ `interface.icon` / `author.url` / `interface.category` | — |
-| `engines.*` | `engines.*` | 保留 |
+| `engines.*` | `engines.kun`、`engines.qian` | `kun` 不变；`yue`（前端框架）改名 `qian`；原指平台运行时的 `qian` 去掉，将并入 `kun`（§3.4 `engines`） |
 | `dependencies[]` | `inject[]` | 依赖服务键而非具体组件（D20.4） |
 | `provides.capabilities[]`（含 Agent 字段） | `tools/<name>.json`（§4.6） | `sideEffect`、`policyHint`、`idempotent`、`requiredScopes`、`requiredPermission`、`requiredSecrets`、`dataClassification`、`schemaSha256`、`contractVersion`、`agent{ expose, requiresConfirmation }` 字段名不变 |
 | `provides.events` / `permissions` / `defaultRoles` / `messageTypes` | `metadata/events.json` / `permissions.json` / `roles.json` / `message-types.json` | 已裁决（R37） |
@@ -610,7 +609,7 @@ Agent 宿主事件（大驼峰）由 Agent 运行时定义并透传：校验器�
   "pages": [{ "route": "/files", "expose": "FilesPage", "permission": "qian.files:file:read", "nav": { "title": "文件", "icon": "folder", "order": 40 } }],
   "widgets": [{ "type": "qian.file", "expose": "FileFieldWidget" }],
   "settingsCards": [{ "expose": "FilesSettingsCard", "scope": "tenant", "permission": "qian.files:settings:write" }],
-  "engines": { "yue": "^1.0" }
+  "engines": { "qian": "^1.0" }
 }
 ```
 
@@ -689,9 +688,9 @@ public interface IRegistrationHandle<TService> : IDisposable where TService : cl
 
 与 Kun 的衔接：`Provide` 底层是 .NET DI keyed services 的可撤销封装；进程内事件直接分发，需跨进程的集成事件由 `qian.events` 插件桥接到 `Kun.Mediator` + Outbox（运行时本身不依赖 RabbitMQ）。实现类用 `[QianPlugin("<component-id>")]` 标注，源生成器据此派生 `runtime.entry`、`inject[]`、`provides[]`（静态分析 `Provide` 调用）。
 
-### 5.3 `@qian/runtime`（TypeScript）最小 API 草图
+### 5.3 `@cavailab/qian-runtime`（TypeScript）最小 API 草图
 
-S1-DEC-014 已于 2026-10-11 批准：本节的 `@qian/runtime` 是逻辑导入名；GitHub Packages 私有源中的物理包名为 `@idadawn/qian-runtime`，消费者用 npm alias `"@qian/runtime": "npm:@idadawn/qian-runtime@<固定版本>"` 安装。包所有者、源码关联与真实消费验收见 ADR-021 D21.6，运行时语义不变。
+S1-DEC-014 于 2026-10-11 批准的写法是：逻辑导入名 `@qian/runtime`，物理包 `@idadawn/qian-runtime`，消费者用 npm alias 安装。前端迁到 CavaiLAB/qian 后（S1-YUE-025）包名是 `@cavailab/qian-runtime`，发在 GitHub Packages，按这个名字直接导入、不再用 alias；`@qian/*` 只留给本仓库的包。包所有者、源码关联与真实消费验收见 ADR-021 D21.6，运行时语义不变。
 
 ```ts
 export type ServiceKey<T = unknown> = string & { readonly __type?: T };                 // "files"
@@ -725,7 +724,7 @@ export interface Context {
 }
 ```
 
-TS 侧服务键小驼峰（`files`），.NET 侧大驼峰（`Files`）；两侧 Definition 包各自声明常量，文档生成器把它们对应到同一 seam。S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现，公共 API 为 `@qian/runtime`，薄适配层对齐本节与 ADR-020 的语义（ADR-020 §7 第 1 条，→ §13）；本节 API 语义、§5.4–§5.6 与 §10.2 TCK 以我们的语义为准，不随实现变化，若 TCK 对不上可换为自研实现而不改任何组件代码。
+TS 侧服务键小驼峰（`files`），.NET 侧大驼峰（`Files`）；两侧 Definition 包各自声明常量，文档生成器把它们对应到同一 seam。S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现，公共 API 为 `@cavailab/qian-runtime`，薄适配层对齐本节与 ADR-020 的语义（ADR-020 §7 第 1 条，→ §13）；本节 API 语义、§5.4–§5.6 与 §10.2 TCK 以我们的语义为准，不随实现变化，若 TCK 对不上可换为自研实现而不改任何组件代码。
 
 ### 5.4 五种分发模式
 
@@ -800,7 +799,7 @@ public sealed class FilesPlugin : IQianPlugin<FilesConfig>
 ### 5.8 示例：TS 插件——把平台文件 API 包装为外壳的 `ctx.files`
 
 ```ts
-import type { QianPlugin } from "@qian/runtime";
+import type { QianPlugin } from "@cavailab/qian-runtime";
 import { filesKey, type FileClient } from "@qian/files-abstractions";
 import { httpKey } from "@qian/http-abstractions";
 import { identityEvents } from "@qian/identity-abstractions";
@@ -942,7 +941,7 @@ health:
 { "name": "@qian/bundle-shell-base", "version": "1.0.0",
   "files": [".qian-plugin", "config", "skills", "ui", "assets", "README.md", "AGENTS.md"],
   "qian": { "component": ".qian-plugin/plugin.json" },
-  "peerDependencies": { "@qian/runtime": "^1" },
+  "peerDependencies": { "@cavailab/qian-runtime": "^1" },
   "dependencies": { "@qian/shell": "^1.0.0", "@qian/files-client": "^1.0.0" } }
 ```
 
@@ -1090,7 +1089,7 @@ S1-DEC-029 已确认当前开发模板分期：gateway 与 standalone 补齐真�
 
 平台插件三件套 `qian.registry` / `qian.lifecycle` / `qian.capabilities` 的包名与服务键为 `Qian.Registry`（`ctx.Registry`）、`Qian.Lifecycle`（`ctx.Lifecycle`）、`Qian.Capabilities`（`ctx.Capabilities`），只进 `platform` profile（base 组合包），不供消费者独立安装（R34）；其它 profile 由 `Qian.Runtime` 的装载器直接从文件 patch 装树，没有数据库注册表与租户 scope patch。
 
-S2 新增 profile `lowcode`（含 `qian.bundle.lowcode` 与 `qian.bundle.file-preview`）与 `workflow`（`qian.bundle.workflow`）（R31；ADR-020 §6）。前端外壳自身也是一棵由 `@qian/runtime` 装载的插件树（D20.2），其 profile 随 `qian.bundle.shell` 内置。
+S2 新增 profile `lowcode`（含 `qian.bundle.lowcode` 与 `qian.bundle.file-preview`）与 `workflow`（`qian.bundle.workflow`）（R31；ADR-020 §6）。前端外壳自身也是一棵由 `@cavailab/qian-runtime` 装载的插件树（D20.2），其 profile 随 `qian.bundle.shell` 内置。
 
 ---
 
@@ -1223,7 +1222,7 @@ npx qian@latest [--skill <name>]… [--agent <name>]… [--command <name>]… [-
 ```text
 1 Resolve  按 §8.3 在市场定位条目 → 按 source 取得组件文件夹（local 直接读；url 下载归档；git-subdir 浅克隆到缓存）
 2 Verify   市场签名（§11.5）→ source.digest 与实际内容 → 读 plugin.json → Schema + 语义校验（§10.1）
-           → tier × form × sandbox（§11.1）→ engines 与当前 profile 运行时版本比对
+           → tier × form × sandbox（§11.1）→ engines 与宿主实际还原的版本比对（kun 读 NuGet 还原记录里的 Kun.Core，qian 读 npm 安装的 @cavailab/qian-core）
 3 Plan     计算并打印变更集：
            · 复制到 .qian/plugins/<component-id>/ 的表面文件（skills、agents、commands、hooks、.mcp.json、tools、metadata、schemas、assets、README、AGENTS）
            · 加入的 NuGet（dotnet add package）/ npm（npm i）依赖 = runtime.nuget[] / npm[]（--no-code 跳过）
@@ -1283,7 +1282,7 @@ npx qian@latest [--skill <name>]… [--agent <name>]… [--command <name>]… [-
 | `.mcp.json` | `mcp/v2` | `stdio` 仅非平台 profile；敏感头 / env 必须 `secretRef://`；`url` 域名在 `policy.egress` |
 | `tools/*.json` | `tool/v2` | `inputSchema` 合法且 `additionalProperties: false`；无租户字段；`sideEffect ≠ read ⇒ idempotent ∧ idempotencyKey`；`description ≥ 10 字`；`schemaSha256` 回写一致；`binding` 可解析 |
 | `metadata/*.json` | 各自 Schema | 权限点 `<component-id>:<resource>:<action>` 且前缀 = 本组件 id；事件 id 全局唯一；角色模板只引用本组件或已 `inject` seam 的权限点 |
-| `ui/manifest.json` | `ui/v2` | `engines.yue` 必填；`exposes` 与 `federation.manifest` 一致 |
+| `ui/manifest.json` | `ui/v2` | `engines.qian`（前端框架版本）必填；`exposes` 与 `federation.manifest` 一致 |
 | `qian.patch.yml` / `qian.profile.yml` | `patch/v2` / `profile/v2` | 条目 `scope.kind ∈ scopes[]`；`plugin` 可解析；`config` 过 `configSchema`；S1 拒绝 `hmr.code: true`；`build.aot: true` 时树中无非 AOT 组件 |
 | `marketplace.json` | `marketplace/v2` | `name` 唯一；`source` 按类型必填项；`category ∈ categories[]`；条目 `policy` 与组件清单不一致 warning |
 | 全部文件 | — | 密钥扫描：疑似密钥键名（`secret / token / password / key`）的值必须 `secretRef://`；高熵字符串拒绝；任何输入 Schema 禁止租户字段 |
@@ -1326,7 +1325,7 @@ TCK 是**语言无关的场景文件**（`tck/runtime/*.scenario.yml`：给定�
 |---|---|---|
 | G1 清单派生一致 | 源生成器重新派生 `runtime.entry`、`inject[]`、`provides[]`、代码派生的 `tools/*.json`、`configSchema`，与仓库比对 | 任一差异 |
 | G2 文档新鲜度 | `qian.docs` 重新产出配置目录（全部 `configSchema` 汇编）、模块图（条目 × `inject / provides`）、事件图（事件 × 生产方 × 消费方 × 模式）、seam 图（Definition × Provider × Consumer），与 `docs/generated/` 比对 | 任一差异（D20.9） |
-| G3 依赖图 | `dotnet list package --include-transitive` + npm lockfile：Abstractions 不含 Provider；Provider 不含其它 Provider；任何 `Qian.*` / `@qian/*` 库不含 `qian.registry` / `qian.lifecycle` / `qian.capabilities` 的包；组件库对 Qian 的唯一依赖是 `Qian.Runtime` / `@qian/runtime` | 任一违反（D20.10、ADR-019 D19.8） |
+| G3 依赖图 | `dotnet list package --include-transitive` + npm lockfile：Abstractions 不含 Provider；Provider 不含其它 Provider；任何 `Qian.*` / `@qian/*` 库不含 `qian.registry` / `qian.lifecycle` / `qian.capabilities` 的包；组件库对 Qian 的唯一依赖是 `Qian.Runtime` / `@cavailab/qian-runtime` | 任一违反（D20.10、ADR-019 D19.8） |
 | G4 公共 API | `Microsoft.CodeAnalysis.PublicApiAnalyzers` 覆盖全部 `Qian.*`；`api-extractor` 覆盖全部 `@qian/*` | 未登记的公共 API 变更 |
 | G5 事件模式一致 | 全部 `ctx.On` 调用点的模式字面量 vs 事件定义处 | 不一致（D20.3） |
 | G6 校验器全绿 | 对仓库内全部组件、profile、patch、marketplace 运行 §10.1 | 任一 error |
@@ -1386,7 +1385,7 @@ TCK 是**语言无关的场景文件**（`tck/runtime/*.scenario.yml`：给定�
 
 - [ ] **Schema**：`plugin/v2`、`hooks/v2`、`mcp/v2`、`tool/v2`、`ui/v2`、`patch/v2`、`profile/v2`、`marketplace/v2` 八份 Schema 入库并托管；§3.1–§3.3 三个示例校验通过；去掉 `id`、把 `runtime.image` 改为 tag 引用、让 `inject` 与 `provides` 相交、给 `community` 组件写 `runtime.form: module`，四个变体各自失败并返回带 pointer 的错误（UT）。
 - [ ] **表面校验**：§4.1–§4.7 示例全部通过；`SKILL.md` 的 `name` 与目录名不一致、`community` 组件命令含内联 shell、`.mcp.json` 的 `env` 写明文 token、`tools/upload.json` 的 `inputSchema` 加 `tenantId`，四个变体各自失败（UT）。
-- [ ] **运行时 TCK**：§10.2 T01–T24 在 `Qian.Runtime` 与 `@qian/runtime` 两个 harness 全部通过（TCK）。
+- [ ] **运行时 TCK**：§10.2 T01–T24 在 `Qian.Runtime` 与 `@cavailab/qian-runtime` 两个 harness 全部通过（TCK）。
 - [ ] **示例插件**：§5.7 与 §5.8 原样编译通过并在 `minimal` profile 下 `Ready`；把 `files` 条目的 Provider 换成内存实现后，`qian.sample.crm` 的附件上传用例不改代码仍通过（IT）。
 - [ ] **seam 依赖图**：G3 对全部 `Qian.*` / `@qian/*` 包通过；故意让 `Qian.Files` 引用 `Qian.Authz` 时 G3 失败（CI）。
 - [ ] **profile 与 patch**：五个 profile 与组合包入库；`qian --profile platform dump-config` 输出通过 `patch/v2` 校验，任一条目复制为 patch 记录后再次 `dump-config` 结果不变；T15 在真实文件上复现（E2E）。
@@ -1404,7 +1403,7 @@ TCK 是**语言无关的场景文件**（`tck/runtime/*.scenario.yml`：给定�
 
 本节登记 [ADR-020 §7](../../adr/ADR-020-component-model-v2.md) 八条待确认项的拍板结论及其在本 spec 的落位；本 spec 不新增决策，正文按下列结论书写，理由与可回退条件见 ADR-020 §7。
 
-1. 已拍板（ADR-020 §7 第 1 条）：TypeScript 侧 `@qian/runtime` 为公共 API 包，S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现，薄适配层对齐 §5.3–§5.6 语义，TCK（§10.2）以我们的语义为准；.NET 侧 `Qian.Runtime` 自研不变。
+1. 已拍板（ADR-020 §7 第 1 条）：TypeScript 侧 `@cavailab/qian-runtime`（原 `@qian/runtime`）为公共 API 包，S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现，薄适配层对齐 §5.3–§5.6 语义，TCK（§10.2）以我们的语义为准；.NET 侧 `Qian.Runtime` 自研不变。
 2. 已拍板（ADR-020 §7 第 2 条）：清单为 `.qian-plugin/plugin.json`（JSON，§3），profile 与 patch 继续用 YAML（§7）；`qian doctor --migrate-manifest` 负责从 v1 YAML 迁移（§3.6）。
 3. 已拍板（ADR-020 §7 第 3 条）：`qian` CLI 为单一 Node / TypeScript 实现、发布到 npm，`npx qian@latest` 为一键入口，Node ≥ 22 为前置；`dotnet qian` 薄包装为 S1 可选 P2（§9.1）。
 4. 已拍板（ADR-020 §7 第 4 条）：官方市场仓库为与 Qian 同组织下的独立仓库 `qian-plugins`，根目录 `.qian/marketplace.json`，S1 私有、S3 随许可证评估公开；社区发现用 GitHub topic `qian-plugin`（§8.3、§8.4）。组织名已定：产品族统一在 `idadawn`（ADR-021，2026-10-07 拍板），示例地址据此写定。

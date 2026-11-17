@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Spinner } from '@idadawn/yue-core';
+import { Alert, Button, Spinner } from '@cavailab/qian-core';
 import { CUSTOMER_WRITE, type CustomerPage, type RemotePageProps } from './contracts';
 import './remote.css';
 

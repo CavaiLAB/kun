@@ -5,7 +5,7 @@ import {spawnSync} from 'node:child_process';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {PluginLoader} from '../../qian-runtime/dist/index.js';
+import {PluginLoader} from '@cavailab/qian-runtime';
 import {HotReloadSurfacePlugin} from '../../qian-surfaces/dist/index.js';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
 const spec=JSON.parse(readFileSync(path.join(root,'tck/runtime/skill-only.json'),'utf8'));

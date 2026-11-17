@@ -1,8 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type ComponentProps, type ReactNode } from 'react';
-import { Alert, Avatar, AvatarFallback, avatarTint, Badge, Button, cn, Descriptions, Icon, IconButton, Input, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Result, Spinner, Tabs, TabsList, TabsTab } from '@idadawn/yue-core';
-import { DataTable, type DataColumn, type DataTableQuery } from '@idadawn/yue-data';
-import { FeedbackProvider, SchemaForm, useConfirm, useDrawer } from '@idadawn/yue-form';
-import { HttpResponseError, PlatformError, type PlatformClient } from '@idadawn/yue-sdk';
+import { Alert, Avatar, AvatarFallback, avatarTint, Badge, Button, cn, Descriptions, Icon, IconButton, Input, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Result, Spinner, Tabs, TabsList, TabsTab } from '@cavailab/qian-core';
+import { DataTable, type DataColumn, type DataTableQuery } from '@cavailab/qian-data';
+import { FeedbackProvider, SchemaForm, useConfirm, useDrawer } from '@cavailab/qian-form';
+import { HttpResponseError, PlatformError, type PlatformClient } from '@cavailab/qian-sdk';
 import type { paths } from './api.generated';
 import { accountSchema, activateSchema, createSchema, createWithPasswordSchema, designateSchema, editSchema, legalActions, lookupSchema, needsInitialPassword, resetSchema, type AccountRequest, type ActivateRequest,
   type AdminAccount, type CreateRequest, type LookupRequest, type Quota, type ReplaceRequest, type ResetRequest, type StateMachine, type Tenant, type TenantAction, type TenantAdmin, type TenantCounts,

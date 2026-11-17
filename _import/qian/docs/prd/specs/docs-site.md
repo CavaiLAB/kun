@@ -22,7 +22,7 @@
 |---|---|---|---|---|---|
 | 1 | 开始 | `/start/` | 30 分钟跑通 `qian add identity authz files`；核心概念五页：组件、表面、scope、seam、profile / patch；产品族地图 `/start/family`（Kun / Qian / yue 与周边仓库的层次与关系）与版本矩阵 `/start/versions`（§2b.4） | 手写 MDX（版本矩阵生成） | 否 |
 | 2 | 组件目录 | `/components/` | 每个组件一页（模板见 §3）：yue UI 组件带活演示与 props 表；平台插件（身份、鉴权、文件、配置、事件…）同一模板 | 从各组件文件夹自动收集（S1-DOCS-002），**生成目录勿手改** | 是，随包版本 |
-| 3 | SDK | `/sdk/` | **Kun 框架**（第一节 `/sdk/kun/`，排在本部分概览页之后（已裁决 R57）：底座框架的概览、模块地图、上手、指南、安全、Kun 的 ADR、变更日志与 API，按锁定版本从 kun 仓库镜像，另有唯一手写页「与 Qian 的关系」，规则见 §2b）、后端 SDK（.NET：`Qian.Runtime`、`Qian.Plugin.Sdk`、`Qian.*`）、前端 SDK（`@qian/runtime`、`@qian/plugin-sdk`、`@yue/sdk`、MF2 远程模块）、AI SDK（对外统一名称，见 2a.2：在插件与前端里调模型 / Embedding 与能力契约、配额；写 skills / agents / commands / hooks / tools 表面、工具副作用与策略、能力目录、MCP 门面、iClaw 接入；不教写 Agent loop）；每节「编程模型 → 示例 → API 参考」；API 参考统一挂在 `/sdk/api/` 下：`kun/`、`dotnet/`、`frontend/`、`http/`（平台 OpenAPI），不另设顶层 `/api/`（已裁决 R56） | 手写 MDX + TypeDoc / DocFX 生成 + Kun 镜像（§2b） | 是（Kun 小节随该 Qian 版本的 `KunVersion`） |
+| 3 | SDK | `/sdk/` | **Kun 框架**（第一节 `/sdk/kun/`，排在本部分概览页之后（已裁决 R57）：底座框架的概览、模块地图、上手、指南、安全、Kun 的 ADR、变更日志与 API，按锁定版本从 kun 仓库镜像，另有唯一手写页「与 Qian 的关系」，规则见 §2b）、后端 SDK（.NET：`Qian.Runtime`、`Qian.Plugin.Sdk`、`Qian.*`）、前端 SDK（`@cavailab/qian-runtime`、`@cavailab/qian-plugin-sdk`、`@cavailab/qian-sdk`、MF2 远程模块）、AI SDK（对外统一名称，见 2a.2：在插件与前端里调模型 / Embedding 与能力契约、配额；写 skills / agents / commands / hooks / tools 表面、工具副作用与策略、能力目录、MCP 门面、iClaw 接入；不教写 Agent loop）；每节「编程模型 → 示例 → API 参考」；API 参考统一挂在 `/sdk/api/` 下：`kun/`、`dotnet/`、`frontend/`、`http/`（平台 OpenAPI），不另设顶层 `/api/`（已裁决 R56） | 手写 MDX + TypeDoc / DocFX 生成 + Kun 镜像（§2b） | 是（Kun 小节随该 Qian 版本的 `KunVersion`） |
 | 4 | CLI 与规格 | `/cli/` | `qian` 十个命令；`plugin.json`、`marketplace.json`、profile / patch 字段参考 | 从 `docs/prd/specs/component-model.md` 同步，不另写 | 是 |
 | 5 | 运维 | `/ops/` | profile 部署到 K3s、Apollo、升级与回切、模型网关接线（GPUStack → Higress）、监控与审计 | 手写 MDX | 否 |
 | 6 | 市场与 ISV | `/marketplace/` | 组件上架流程、信任等级、签名、租户私有市场；S3 前只放规则 | 手写 MDX | 否 |
@@ -125,7 +125,7 @@ Kun 是 Qian 的底座框架，没有自己的文档站，读者与本站 SDK �
 ### 2b.4 产品族页
 
 - `/start/family`（手写）：Kun / Qian / yue 与周边仓库（官方市场、Agent 运行时、部署与模型服务）的层、是什么、仓库、版本与许可、文档位置；与仓库 README 的「产品族」表同一内容。
-- `/start/versions`（生成）：每个文档版本对应的 Kun CalVer（`KunVersion`）、`Qian.*` 版本、`@yue/*` 版本、.NET SDK（`global.json`）、Node、K3s 基线；由 `build-versions.ts` 从仓库钉版文件产出，不手改。钉版文件：`Directory.Packages.props`（Kun）、`packages/*/*.csproj` 与 `Directory.Build.props`（`Qian.*`，写了 `IsPackable` 的项目；版本随首个包族发布钉入）、`pnpm-workspace.yaml` 里的 `@yue/*` 包、`global.json`、根 `package.json`（`engines.node`、`packageManager`）、`deploy/baseline.json`（K3s，S1-DEP-001 维护）。多版本开启前只有 `main`（开发版）一行。产品族页的表与仓库 README 的「产品族」表前五列由单测核对一致（`website/scripts/family.test.ts`）。
+- `/start/versions`（生成）：每个文档版本对应的 Kun CalVer（`KunVersion`）、`Qian.*` 版本、`@cavailab/qian-*` 版本、.NET SDK（`global.json`）、Node、K3s 基线；由 `build-versions.ts` 从仓库钉版文件产出，不手改。钉版文件：`Directory.Packages.props`（Kun）、`packages/*/*.csproj` 与 `Directory.Build.props`（`Qian.*`，写了 `IsPackable` 的项目；版本随首个包族发布钉入）、`pnpm-workspace.yaml` 版本目录里的 `@cavailab/qian-*` 包、`global.json`、根 `package.json`（`engines.node`、`packageManager`）、`deploy/baseline.json`（K3s，S1-DEP-001 维护）。多版本开启前只有 `main`（开发版）一行。产品族页的表与仓库 README 的「产品族」表前五列由单测核对一致（`website/scripts/family.test.ts`）。
 
 ## 3 组件页模板
 
@@ -237,7 +237,7 @@ website/
     sync-kun-docs.ts           kun 仓库 v<KunVersion> 的 docs/ 白名单 → docs/sdk/kun/（§2b）
     build-versions.ts          Directory.Packages.props / csproj / global.json / package.json / pnpm 工作区 / deploy/baseline.json → docs/start/versions.md
   demo/                        普通 React iframe 预览、状态工具栏与离线编辑运行
-  theme/                       主题覆盖：接入 @yue/tokens、首页的「复制为 Markdown」（文档页由 llmsUI 注入）、AskDocs 挂载点；自定义组件带 SSG-MD 分支
+  theme/                       主题覆盖：接入 @cavailab/qian-tokens、首页的「复制为 Markdown」（文档页由 llmsUI 注入）、AskDocs 挂载点；自定义组件带 SSG-MD 分支
 ```
 
 ## 7 门禁

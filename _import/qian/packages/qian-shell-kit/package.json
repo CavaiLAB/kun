@@ -12,9 +12,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@idadawn/qian-plugin-sdk": "workspace:^",
-    "@idadawn/yue-sdk": "workspace:^",
-    "@idadawn/yue-shell": "workspace:^"
+    "@cavailab/qian-plugin-sdk": "catalog:",
+    "@cavailab/qian-sdk": "catalog:",
+    "@cavailab/qian-shell": "catalog:"
   },
   "peerDependencies": {
     "react": "^19.0.0",

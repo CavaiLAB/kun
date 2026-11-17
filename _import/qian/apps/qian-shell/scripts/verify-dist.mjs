@@ -6,7 +6,7 @@ import { gzipSync } from 'node:zlib';
 // 外壳构建产物的静态断言（pnpm --filter qian-shell build 之后自动运行）：
 // 1. index.html 有且只有一条 meta CSP，紧跟 charset；指令按白名单逐条核对，不得重复声明，名单外的指令（script-src-elem / script-src-attr 等
 //    放宽写法）一律拒绝；script-src 只有 'self' 与内联脚本的 sha256（与每段内联脚本一一对应），'unsafe-eval' 等例外一律拒绝
-//    （S1-YUE-014 撤销了此前为 yue-form 运行期编译表单 Schema 登记的 'unsafe-eval'，见 vite.config.ts）；
+//    （S1-YUE-014 撤销了此前为表单包（当时的 yue-form）运行期编译表单 Schema 登记的 'unsafe-eval'，见 vite.config.ts）；
 // 2. 不再有旧的 /app-conf.js、/app-config.js 脚本注入，运行时配置只走 /app-config.json；入口引用的脚本与样式全部同源；referrer 策略为 no-referrer；
 // 3. 正式产物不含验收控制面（__qianAcceptance / installAcceptance）；
 // 4. 首屏 JS（入口模块 + modulepreload）gzip 合计 ≤ 250 KiB（运行期同口径由 e2e/federation.spec.ts 在浏览器里再量一次）。

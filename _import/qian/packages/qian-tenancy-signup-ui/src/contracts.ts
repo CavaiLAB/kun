@@ -1,5 +1,5 @@
 import contract from './http-contract.generated.json';
-import type { FormSchema, UiNode } from '@idadawn/yue-contracts';
+import type { FormSchema, UiNode } from '@cavailab/qian-contracts';
 import type { paths } from './api.generated';
 
 type Json<P extends keyof paths, M extends 'get' | 'post', C extends number> = paths[P][M] extends { responses: Record<C, { content: { 'application/json': infer T } }> } ? T : never;

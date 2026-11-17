@@ -1,9 +1,10 @@
-// yue 文档的源均在组件目录；使用 TypeScript checker 保留继承、泛型、回调和无注释属性。
+// 基础组件页的源在 CavaiLAB/qian 检出的 core 包目录（检出与版本见 qian.ts）；使用 TypeScript checker 保留继承、泛型、回调和无注释属性。
 import fs from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
 import { createHash } from 'node:crypto';
-import { REPO_ROOT, REPO_URL, DEFAULT_BRANCH, repoFileDate, yamlString, type GeneratedFile } from './repo.ts';
+import { yamlString, type GeneratedFile } from './repo.ts';
+import { openQian, qianFileDate, qianPackageDir, qianSource, type QianCheckout } from './qian.ts';
 
 export interface Scenario { id: string; component: string; state: string; theme: string; props: { disabled?: boolean; invalid?: boolean } }
 export interface PropDoc { name: string; type: string; description: string; required: boolean; defaultValue: string; inherited: boolean; native: boolean }
@@ -23,9 +24,9 @@ export function publicType(type: string): string {
   });
 }
 const cache = new Map<string, YueData>();
-export function readYueDocs(repoRoot = REPO_ROOT): YueData {
-  if (cache.has(repoRoot)) return cache.get(repoRoot)!;
-  const core = path.join(repoRoot, 'packages/yue/core');
+export function readYueDocs(qian: QianCheckout = openQian()): YueData {
+  if (cache.has(qian.dir)) return cache.get(qian.dir)!;
+  const core = qianPackageDir(qian.dir, 'core');
   const catalog = readJson<Record<string, { label: string; description: string }>>(path.join(core, 'docs/catalog.json'));
   const manifests = readJson<Record<string, { a11y: { keyboard: string[] } }>>(path.join(core, 'src/manifest-catalog.json'));
   const scenarios = readJson<Scenario[]>(path.join(core, 'docs/scenarios.json'));
@@ -85,14 +86,14 @@ export function readYueDocs(repoRoot = REPO_ROOT): YueData {
     if (!demo) throw new Error(`组件缺少共用示例 ${name}`);
     let source = printer.printNode(ts.EmitHint.Unspecified, demo, exampleFile).replace(/^export /, '').replace(`function ${functionName}`, 'export default function Example');
     if (['Toast', 'Notification'].includes(name)) source = `${printer.printNode(ts.EmitHint.Unspecified, functions.get('ToastButton')!, exampleFile)}\n${source}`;
-    source = `import { useId, useState } from 'react';\nimport * as C from '@idadawn/yue-core';\n\ninterface DemoProps { disabled?: boolean; invalid?: boolean; rootProps?: Record<string, unknown> }\n\n${source}`;
+    source = `import { useId, useState } from 'react';\nimport * as C from '@cavailab/qian-core';\n\ninterface DemoProps { disabled?: boolean; invalid?: boolean; rootProps?: Record<string, unknown> }\n\n${source}`;
     const parts = apis.filter(api => api.name === name || (api.name.startsWith(name) && !names.includes(api.name) && !names.some(other => other !== name && other.startsWith(name) && api.name.startsWith(other)))).map(api => api.name);
     const states = scenarios.filter(s => s.component === name);
     if (!states.some(s => s.state === 'Default') || !states.some(s => s.state === 'Dark')) throw new Error(`组件缺少明暗场景 ${name}`);
     return { name, ...catalog[name]!, source, parts, keyboard: manifests[name]!.a11y.keyboard, scenarios: states };
   });
   const data = { docs, apis, scenarios, version: readJson<{ version: string }>(path.join(core, 'package.json')).version };
-  cache.set(repoRoot, data);
+  cache.set(qian.dir, data);
   return data;
 }
 
@@ -111,9 +112,9 @@ function apiTable(api: ComponentApi): string {
   const native = api.props.filter(p => p.native);
   return `### ${api.name}\n\n${rows(api.props.filter(p => !p.native))}\n\n${native.length ? `[继承的 DOM / ARIA / 事件属性（${native.length} 项）](/components/yue/api/native-${nativeId(api)})：从相同的 TypeScript 声明提取，完整类型与说明只存一份。` : ''}\n`;
 }
-export function collectYuePages(repoRoot = REPO_ROOT): GeneratedFile[] {
-  const data = readYueDocs(repoRoot);
-  const front = (title: string, description: string, component = '@idadawn/yue-core') => `---\ntitle: ${yamlString(title)}\ndescription: ${yamlString(description)}\npart: components\nproject: yue\naudience: [developer]\nupdated: ${repoFileDate('packages/yue/core/docs/catalog.json', repoRoot)}\nversion: ${data.version}\ncomponent: ${yamlString(component)}\nsource: ${yamlString(`${REPO_URL.replace('https://github.com/', '')}@${DEFAULT_BRANCH}:${component === '@idadawn/yue-tokens' ? 'packages/yue/tokens' : 'packages/yue/core'}`)}\n---\n`;
+export function collectYuePages(qian: QianCheckout = openQian()): GeneratedFile[] {
+  const data = readYueDocs(qian);
+  const front = (title: string, description: string, component = '@cavailab/qian-core') => `---\ntitle: ${yamlString(title)}\ndescription: ${yamlString(description)}\npart: components\nproject: yue\naudience: [developer]\nupdated: ${qianFileDate(qian, 'packages/qian/core/docs/catalog.json')}\nversion: ${data.version}\ncomponent: ${yamlString(component)}\nsource: ${yamlString(qianSource(qian, component === '@cavailab/qian-tokens' ? 'packages/qian/tokens' : 'packages/qian/core'))}\n---\n`;
   const files = data.docs.map(doc => ({ path: `yue/core/${doc.name.toLowerCase()}.mdx`, content: `${front(`${doc.name} ${doc.label}`, doc.description, doc.name)}
 import { ComponentDemo } from '@theme';
 
@@ -126,10 +127,10 @@ ${doc.description}
 ## 安装
 
 \`\`\`bash
-pnpm add @idadawn/yue-core @idadawn/yue-tokens
+pnpm add @cavailab/qian-core @cavailab/qian-tokens
 \`\`\`
 
-包通过 GitHub Packages 分发，配置方式见 [yue 组件库](/components/yue/)。引入令牌 CSS，并用 Tailwind v4 扫描组件包源码；React 19 为 peer 依赖。
+包发在 GitHub Packages 上，包源与令牌的配置见 [qian 组件库](/components/yue/)。宿主导入 \`@cavailab/qian-tokens/theme.css\`，并用 Tailwind v4 的 \`@source\` 扫描安装目录里组件包的 \`dist\`；React 19 为 peer 依赖。
 
 ## 用法与源码
 
@@ -161,7 +162,7 @@ ${doc.keyboard.map(key => `- ${key}`).join('\n') || '展示内容不接管键盘
 
 ## 模型体验
 
-组件清单通过 \`@idadawn/yue-core/manifest.json\` 分发；模型选择已登记属性、slots 与 events，函数回调由宿主提供。
+组件清单通过 \`@cavailab/qian-core/manifest.json\` 分发；模型选择已登记属性、slots 与 events，函数回调由宿主提供。
 
 ## 已知限制与延期项
 
@@ -169,7 +170,7 @@ ${doc.keyboard.map(key => `- ${key}`).join('\n') || '展示内容不接管键盘
 
 ## 变更
 
-本页对应 \`@idadawn/yue-core@${data.version}\`；组件行为与示例以源码版本为准。
+本页对应 \`@cavailab/qian-core@${data.version}\`，由 CavaiLAB/qian 该版本标签上的源码生成；组件行为与示例以该版本为准。
 ` }));
   const shared = data.apis.filter(api => !data.docs.some(doc => doc.parts.includes(api.name)));
   files.push({ path: 'yue/core/shared-api.mdx', content: `${front('通用上下文 API', '组件共用的上下文与公开属性。')}\n# 通用上下文 API\n\n${shared.map(apiTable).join('\n')}` });
@@ -179,6 +180,6 @@ ${doc.keyboard.map(key => `- ${key}`).join('\n') || '展示内容不接管键盘
     files.push({ path: `yue/api/native-${id}.mdx`, content: `${front('通用 DOM 属性 ' + api.name, '从真实 React TypeScript 声明提取的继承属性、回调与完整类型。').replace('\n---\n', '\nsidebar: false\n---\n')}\n# 通用 DOM 属性\n\n以下组件共享完全相同的继承属性与实例类型：${consumers.map(n => '`' + n + '`').join('、')}。\n\n${rows(api.props.filter(p => p.native))}\n` });
   }
   files.push({ path: 'yue/core/_meta.json', content: JSON.stringify([...data.docs.map(d => d.name.toLowerCase()), 'shared-api'], null, 2) });
-  files.push({ path: 'yue/tokens.mdx', content: `${front('设计令牌', '查看 yue 三层设计令牌及明暗主题。', '@idadawn/yue-tokens')}\nimport { ComponentDemo } from '@theme';\n\n# 设计令牌\n\n三层令牌共用一个目录，切换明暗主题可查看语义色与组件令牌。\n\n<ComponentDemo name="Tokens" />\n\n## 模型体验\n\n引用语义令牌实现主题一致性。\n\n## 已知限制与延期项\n\n品牌值由宿主提供，组件不自行更换品牌。\n` });
+  files.push({ path: 'yue/tokens.mdx', content: `${front('设计令牌', '查看 qian 三层设计令牌及明暗主题。', '@cavailab/qian-tokens')}\nimport { ComponentDemo } from '@theme';\n\n# 设计令牌\n\n三层令牌共用一个目录，切换明暗主题可查看语义色与组件令牌。\n\n<ComponentDemo name="Tokens" />\n\n## 模型体验\n\n引用语义令牌实现主题一致性。\n\n## 已知限制与延期项\n\n品牌值由宿主提供，组件不自行更换品牌。\n` });
   return files;
 }

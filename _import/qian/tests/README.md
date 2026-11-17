@@ -24,7 +24,8 @@ tests/
   gates/                                      门禁自测：样例项目 + Python 测试，不在 Qian.slnx 里
     depgraph/                                 依赖图门禁样例（good.slnx 合规、bad.slnx 违规）
     publicapi/                                PublicAPI 门禁样例
-    yue/                                      yue 前端门禁自测（分层边界、循环依赖样例、包形状），由 pnpm yue:test 跑
+    ui/                                       外壳与界面包的门禁自测（依赖边界、循环依赖样例、文案规则、令牌、外壳产物校验、钉住的副本），由 pnpm ui:test 跑
+  directory-e2e/                              真实目录验收页（私有工作区包 @qian/directory-e2e）：起本机真实身份宿主跑 OrganizeSelect、UserSelect，pnpm --filter @qian/directory-e2e e2e:directory
 ```
 
 ## 2 本地运行
@@ -37,7 +38,7 @@ dotnet test --solution Qian.slnx -c Release --no-build
 ```
 
 - 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Qian.Capabilities.Tests` 与 `Qian.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
-  - `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
+  - `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
   - `python3 scripts/prepare_contract_tools.py --destination <目录>`，再导出 `QIAN_BUF_PATH=<目录>/buf` 与 `QIAN_OASDIFF_PATH=<目录>/oasdiff`：能力契约的真实兼容检查器，缺失时相关用例按设计拒绝跳过。
 - `dotnet test` 走 Microsoft Testing Platform（[global.json](../global.json) 的 `test.runner`）；xUnit v3 测试项目是可执行程序，csproj 里写 `<OutputType>Exe</OutputType>`。
 - 单跑一个测试项目用 `dotnet run --project tests/<X>.Tests -c Release`；`dotnet test <项目路径>` 或 `dotnet test --project …` 在部分机器上会报「运行了零个测试、退出码 5」，以 `--solution` 或 `dotnet run` 的结果为准。

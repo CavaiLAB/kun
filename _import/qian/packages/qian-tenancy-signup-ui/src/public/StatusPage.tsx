@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
-import { Alert, Button, Descriptions, Icon, Result, Spinner, Steps, type IconName, type StepItem, type StepStatus } from '@idadawn/yue-core';
-import { useConfirm } from '@idadawn/yue-form';
-import type { PlatformClient } from '@idadawn/yue-sdk';
+import { Alert, Button, Descriptions, Icon, Result, Spinner, Steps, type IconName, type StepItem, type StepStatus } from '@cavailab/qian-core';
+import { useConfirm } from '@cavailab/qian-form';
+import type { PlatformClient } from '@cavailab/qian-sdk';
 import { apiOf, data, day, issue, moment, unauthenticated, type Api, type Issue } from '../api';
 import type { Applicant, ApplicationStatus, MyApplication } from '../contracts';
 import { i18n } from '../i18n';

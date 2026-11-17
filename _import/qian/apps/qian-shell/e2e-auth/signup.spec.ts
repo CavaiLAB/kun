@@ -60,7 +60,7 @@ async function review(browser: Browser, company: string, act: (drawer: Locator, 
     await page.goto('/');
     await expect(page).toHaveURL(loginPage);
     await fillLogin(page, operator);
-    await page.getByTestId('yue-app-shell-sidebar').getByRole('link', { name: '开通申请', exact: true }).click();
+    await page.getByTestId('qian-app-shell-sidebar').getByRole('link', { name: '开通申请', exact: true }).click();
     const remote = page.getByTestId('qian-tenancy-signup-remote');
     await expect(remote).toBeVisible();
     const row = remote.getByRole('row').filter({ hasText: company });

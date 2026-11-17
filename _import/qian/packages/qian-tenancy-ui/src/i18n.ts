@@ -1,4 +1,4 @@
-import { createDataI18n } from '@idadawn/yue-data';
+import { createDataI18n } from '@cavailab/qian-data';
 export const i18n = createDataI18n();
 i18n.addLanguagePack('zh-CN', {
   'tenant.brand': 'Qian 乾', 'tenant.context': '平台运营', 'tenant.title': '租户管理', 'tenant.subtitle': '管理租户主档、状态与配额。自助申请的租户在审核通过后出现在这里。',

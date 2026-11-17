@@ -9,7 +9,8 @@ namespace Qian.Identity.Server.Tests;
 
 // 目录查询的 Agent 契约（S1-IDP-010 验收 4）：contracts/identity/v1/directory.openapi.json 与 IdentityDirectoryEndpoints 的 GET 端点逐一对应，
 // 每个查询带意图式 description 与请求 / 响应示例，示例符合契约 Schema，契约 Schema 与目录记录的序列化逐字段一致；
-// yue 业务组件契约（packages/yue/biz/contracts/biz.openapi.json）的目录部分与它逐字段一致。真实响应的符合性在 DirectoryQueryTests 里验。
+// 前端框架业务组件包的契约（@cavailab/qian-biz 的 contracts/biz.openapi.json，钉住的副本在本项目 Contracts/ 下）的目录部分与它逐字段一致。
+// 真实响应的符合性在 DirectoryQueryTests 里验。
 public sealed partial class DirectoryAgentContractTests
 {
     private static readonly Guid A = Guid.Parse("0193a000-0000-7000-8000-000000000001"), B = Guid.Parse("0193a000-0000-7000-8000-000000000002"),
@@ -135,10 +136,11 @@ public sealed partial class DirectoryAgentContractTests
     }
 
     [Fact]
-    public void yue业务组件契约的目录部分与目录契约逐字段一致()
+    public void 前端业务组件契约的目录部分与目录契约逐字段一致()
     {
         var identity = DirectoryAgentContract.Load();
-        var biz = DirectoryAgentContract.Load("packages/yue/biz/contracts/biz.openapi.json");
+        // 本测试所在的 CI 分片不装 Node 依赖，读钉住的副本；副本与安装目录里同版本的包逐字节相同，由 tests/gates/ui/pins.test.ts 核对。
+        var biz = DirectoryAgentContract.Load("tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json");
         var shared = biz.Operations().Where(operation => operation.Path.StartsWith("/api/directory/", StringComparison.Ordinal)).ToArray();
         Assert.True(shared.Length >= 4, "业务组件契约的目录路径数：" + shared.Length);
         foreach (var (path, method, operation) in shared)

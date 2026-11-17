@@ -25,7 +25,7 @@
 |---|---|---|---|---|---|
 | Kun | 框架层（底座） | .NET 10 云原生微服务框架，32 个 `Kun.*` 模块：Mediator、Outbox、Saga、多租户与 RLS、网关与 S2S、存储、缓存、可观测 | `idadawn/kun`（2026-10-08 从 CavaiLAB 迁回，旧地址重定向） | CalVer · MIT · 正式包（含同日修复版 `-hotfix.N`）在 nuget.org | 文档站第 3 部分「Kun 框架」，按 `KunVersion` 锁定版本从 kun 仓库 `docs/` 镜像 |
 | Qian | 平台层 | 基于 Kun 的多租户 PaaS：`Qian.Runtime` + 平台插件 + profile + `qian` CLI + 目录市场 | `idadawn/qian`（本仓库） | SemVer 锁步 · Apache-2.0 | 本仓库 `docs/` 与文档站全部七个部分 |
-| yue | 前端层 | React 组件库与外壳，`@yue/*` | 本仓库（pnpm workspace，S1 第 2 波建立） | SemVer（Changesets）· Apache-2.0 | 文档站第 2 部分（活演示 + props 表） |
+| yue | 前端层 | React 组件库与外壳，现名 qian，`@cavailab/qian-*` | `CavaiLAB/qian`（2026-11 迁出；本仓库装 GitHub Packages 上的已发布包） | SemVer · MIT | 文档站第 2 部分（活演示 + props 表） |
 | `qian-plugins` | 市场 | 官方目录市场 `.qian/marketplace.json` | `idadawn/qian-plugins`（S1 私有，待建） | — | 文档站第 6 部分 |
 | iClaw | 兄弟系统 | Agent 运行时与 AI 资产控制面；Qian 不写 Agent loop（ADR-016） | `idadawn/iclaw` | — | 文档站 AI SDK「Agent 运行时对接」 |
 | 部署与模型服务 | 运维 | GitOps 部署仓库（ADR-017）；GPUStack + Higress 模型服务（ADR-015） | `idadawn/iclaw-deploy`、`idadawn/MaaS` | — | 文档站第 5 部分 |
@@ -42,11 +42,29 @@ Kun 的版本只在 `Directory.Packages.props` 的 `KunVersion` 写一次；升�
 | `tests/` | 集成测试共用的 Testcontainers fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身）、门禁自测 | [tests/README.md](tests/README.md) |
 | `AGENTS.md` | 给 Codex、Claude Code 等编码代理的入口约定（`CLAUDE.md` 指向它） | [AGENTS.md](AGENTS.md) |
 | `website/` | 文档站（Rspress 2.0）：七个部分、首页、主题；设计文档在站内「设计与路线」镜像 | [website/README.md](website/README.md) |
-| `packages/yue/` · `apps/` | yue 前端工作区：`@yue/*` 八个 S1 包的骨架（pnpm workspace + `catalog:` + Turborepo）、六层分层边界、八项 CI 门禁、Base UI 验证门靶场 | [packages/yue/README.md](packages/yue/README.md) |
+| `apps/` | 外壳应用 `qian-shell`（pnpm workspace + `catalog:` + Turborepo）；前端框架（原 yue，现名 qian）已迁到 `CavaiLAB/qian`，这里装已发布的 `@cavailab/qian-*`，见下文「前端依赖与包源」 | [apps/qian-shell/README.md](apps/qian-shell/README.md) · [前端框架](https://github.com/CavaiLAB/qian/blob/main/packages/qian/README.md) |
 | `.github/` | CI：文档门禁 + 任务校验 + 生成看板（上传为产物）；.NET 构建、PublicAPI 与依赖图门禁、单元与集成测试；文档站构建、PR 预览与发布 | — |
 | `deploy/` | 开发期工具的 K3s 清单：`pm-board/` 把看板放进集群、`docs-site/` 托管文档站（都是 git-sync + nginx） | [deploy/pm-board/README.md](deploy/pm-board/README.md) · [deploy/docs-site/README.md](deploy/docs-site/README.md) |
 
 代码目录（`packages/`、`plugins/`、`profiles/`、`samples/`）由 S1 第一波任务建立，布局以 [组件模型规格](docs/prd/specs/component-model.md) 为准。
+
+## 前端依赖与包源
+
+前端框架（原 yue，现名 qian）在 [`CavaiLAB/qian`](https://github.com/CavaiLAB/qian) 开发与发布。本目录的外壳应用、三个界面包、外壳接线、参考应用的远程模块、文档站与真实目录验收页装它发布在 GitHub Packages 上的 `@cavailab/qian-*`：版本只在 `pnpm-workspace.yaml` 的版本目录里钉一次（精确版本，升级走 PR）；命令行与校验库的测试用的 `@cavailab/qian-runtime` 写在它们各自的 `package.json` 里。
+
+GitHub Packages 的 npm 源连公开包也要令牌（有 `read:packages` 即可）。仓库里的 `.npmrc` 只写作用域 `@cavailab:registry=https://npm.pkg.github.com`；令牌行要放用户级配置，因为 10.34.2 起的 pnpm 10、11.5.3 起的 pnpm 11，以及 pnpm 12 不展开仓库 `.npmrc` 认证行里的环境变量（安全公告 GHSA-3qhv-2rgh-x77r；11.0.0–11.5.2 仍会展开），会提示 `Ignored project-level auth setting … environment variables are not expanded in repository-controlled registry credentials`，接着 401；详见 [CavaiLAB/qian 迁移说明第 2 节](https://github.com/CavaiLAB/qian/blob/main/docs/migrating-from-yue.md#2-包名与安装)。本机的一种做法：在 `~/.npmrc`（或 `NPM_CONFIG_USERCONFIG` 指向的文件）里写一行引用环境变量、不写令牌本身：
+
+```ini
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
+```
+
+```bash
+NODE_AUTH_TOKEN=$(gh auth token) pnpm install
+```
+
+CI 里由 `actions/setup-node` 的 `registry-url` 写同样的用户级配置，`pnpm install` 带 `NODE_AUTH_TOKEN`（本次运行的 `GITHUB_TOKEN`），作业权限 `packages: read`。
+
+升级（比如 0.2.1 → 0.2.2）：版本目录的 9 条、`minimumReleaseAgeExclude` 里同名的 10 条、`packages/qian-cli` 与 `packages/qian-surfaces` 的 `@cavailab/qian-runtime` 一起改。pnpm 12 默认拦发布不满一天的包（`minimumReleaseAge`），刚发的版本靠 `minimumReleaseAgeExclude` 放行；`pnpm install` 会先按新的排除清单检查旧锁文件，旧版本发布也不满一天时报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`。这时解析期间先留着旧版本的排除条目，装完删掉，再跑 `pnpm install --frozen-lockfile` 确认新锁文件过策略。文档站读版本目录检出同名标签，不用另改。
 
 ## 从哪里开始读
 

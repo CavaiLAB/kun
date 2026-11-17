@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from 'react';
-import { Alert, Button, Input, Label } from '@idadawn/yue-core';
+import { Alert, Button, Input, Label } from '@cavailab/qian-core';
 import type { RemotePageProps } from './contracts';
 import './remote.css';
 

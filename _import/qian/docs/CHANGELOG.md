@@ -8,7 +8,7 @@
 
 ## 2026-11-03 管理台样式刷新：外壳、表格、抽屉与步骤条（S1-YUE-017）
 
-[yue 外壳](../packages/yue/shell/README.md)改为白色侧栏（品牌、工作区卡片、分组导航带图标与角标、底部账号卡）加 56px 顶栏（侧栏开关、面包屑、站内信、主题与语言图标菜单），主区使用新令牌 `--yue-canvas` 画布底色。[core](../packages/yue/core/README.md) 新增 Steps 与单选菜单，Badge、Alert、Result、Tabs、Sheet、Pagination、Descriptions 换新样式；DataTable 改为卡片，抽屉表单的按钮固定在页脚。原有属性保持兼容，视觉基线随之更新。
+[yue 外壳](https://github.com/CavaiLAB/kun/blob/5954ec3b86d814d36a639129bfc08345262ee588/packages/yue/shell/README.md)改为白色侧栏（品牌、工作区卡片、分组导航带图标与角标、底部账号卡）加 56px 顶栏（侧栏开关、面包屑、站内信、主题与语言图标菜单），主区使用新令牌 `--yue-canvas` 画布底色。[core](https://github.com/CavaiLAB/kun/blob/5954ec3b86d814d36a639129bfc08345262ee588/packages/yue/core/README.md) 新增 Steps 与单选菜单，Badge、Alert、Result、Tabs、Sheet、Pagination、Descriptions 换新样式；DataTable 改为卡片，抽屉表单的按钮固定在页脚。原有属性保持兼容，视觉基线随之更新。
 
 ## 2026-11-03 租户自助开通规格：注册申请、平台审核与首次进入（S1-DEC-032）
 
@@ -76,7 +76,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-15 数据契约冻结、组件元数据与文档预算整改（S1-QA-010）
 
-[data/v1 契约](../contracts/data/v1/README.md) 按 R80 明确 frozen 状态、修订规则和已知例外，统一 `$id` 前缀并补结构测试；[yue manifest](../packages/yue/core/README.md) 的属性元数据（含嵌套）递归取自 TS 注释，不存在的属性拒绝导出；[文档站预算](prd/specs/docs-site.md#7-门禁) 按 R55 调为 120 MB，idadawn/qian#95 合并时实测 96.2 MB。
+[data/v1 契约](../contracts/data/v1/README.md) 按 R80 明确 frozen 状态、修订规则和已知例外，统一 `$id` 前缀并补结构测试；[yue manifest](https://github.com/CavaiLAB/kun/blob/5954ec3b86d814d36a639129bfc08345262ee588/packages/yue/core/README.md) 的属性元数据（含嵌套）递归取自 TS 注释，不存在的属性拒绝导出；[文档站预算](prd/specs/docs-site.md#7-门禁) 按 R55 调为 120 MB，idadawn/qian#95 合并时实测 96.2 MB。
 
 ## 2026-10-15 数据连接连通测试的出网约束与凭据错误（S1-DATA-005）
 
@@ -89,7 +89,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-14 yue 组件文档迁入 Rspress（S1-YUE-005）
 
-51 个组件入口、141 个公开组件/部件的 Props、令牌页与可编辑的真实演示统一进入现有 Rspress。共用示例及 126 个状态场景迁移到独立 Playwright，离线编辑器资源随站点发布；移除旧文档应用与依赖，保留原有八项门禁。使用说明见 [core 主文档](../packages/yue/core/README.md)。
+51 个组件入口、141 个公开组件/部件的 Props、令牌页与可编辑的真实演示统一进入现有 Rspress。共用示例及 126 个状态场景迁移到独立 Playwright，离线编辑器资源随站点发布；移除旧文档应用与依赖，保留原有八项门禁。使用说明见 [core 主文档](https://github.com/CavaiLAB/kun/blob/5954ec3b86d814d36a639129bfc08345262ee588/packages/yue/core/README.md)。
 ## 2026-10-14 身份事件载荷不再重复信封字段（S1-DEC-020、S1-IDP-011）
 
 破坏性变更：五类身份事件的载荷去掉 `event_id`、`occurred_at`、`tenant_id`，构造参数随之减少，`IdentityIntegrationEvent` 不再实现 Kun 的 `IIntegrationEvent`；三项只由 Qian.Events 写入端生成在信封上。v1 尚无生产方、消费方与已发布包，按 S1-DEC-020 就地修正，此后的破坏性变化才升 v2。见 [身份事件契约](../contracts/identity/v1/README.md) 与 [ADR-008](adr/ADR-008-events-messaging.md) D8.7。
@@ -118,7 +118,7 @@ KunVersion 升为 2026.10.14，身份契约改用 `Kun.EventBus.Abstractions`。
 
 ## 2026-10-14 yue 基础组件与 Storybook（S1-YUE-005）
 
-[core 组件库](../packages/yue/core/README.md) 补齐 51 个组件入口、统一令牌、可寻址部件和机器清单；Storybook 10 覆盖明暗与交互状态，附令牌页、Schema 生成类型和真实构建页面的键盘/无障碍门禁。
+[core 组件库](https://github.com/CavaiLAB/kun/blob/5954ec3b86d814d36a639129bfc08345262ee588/packages/yue/core/README.md) 补齐 51 个组件入口、统一令牌、可寻址部件和机器清单；Storybook 10 覆盖明暗与交互状态，附令牌页、Schema 生成类型和真实构建页面的键盘/无障碍门禁。
 
 ## 2026-10-14 集成事件组件 Qian.Events（S1-EVT-001）
 

@@ -93,7 +93,7 @@ app.UseQianErrors(); app.UseAuthentication(); app.UseAuthorization();
 | `POST {PathPrefix}/logout` | 删除本地会话与 Cookie，204。有会话时必须带防伪请求头 `X-CSRF-TOKEN`，否则 400。 |
 | `GET {PathPrefix}/csrf` | 已认证时返回 `{ headerName, token }`。 |
 | `GET {PathPrefix}/session` | 当前会话的规范身份快照 `{ subject, kind, tenantId, membershipId, identityRevision, displayName }`（displayName 取 id_token 的 `name`）；不含令牌、会话标识或 Cookie 值；没有会话或令牌校验失败即 401 `UNAUTHENTICATED`。外壳据此渲染用户菜单并决定是否发起登录。 |
-| `POST {PathPrefix}/session/refresh` | 强制单飞刷新服务端访问令牌（与到期前刷新共用同一队列），成功回新快照；刷新失败即会话结束：401 且 Cookie 删除。必须带防伪请求头。供外壳在 API 401 后探测一次、权限变更后换新修订（S1-YUE-002：浏览器侧并发 401 由 `@yue/sdk` 的 `sessionProvider` 合并成一次调用）。 |
+| `POST {PathPrefix}/session/refresh` | 强制单飞刷新服务端访问令牌（与到期前刷新共用同一队列），成功回新快照；刷新失败即会话结束：401 且 Cookie 删除。必须带防伪请求头。供外壳在 API 401 后探测一次、权限变更后换新修订（S1-YUE-002：浏览器侧并发 401 由 `@cavailab/qian-sdk` 的 `sessionProvider` 合并成一次调用）。 |
 | `POST {PathPrefix}/backchannel-logout` | OIDC 后通道登出：验签 `logout_token` 后按 issuer + sid 吊销本地会话（发行方须登记该地址）。 |
 
 回调的拒绝都是 ErrorDetail：`AUTH_CONNECTOR_STATE_INVALID`（422，state 缺失 / 不匹配 / 过期 / 重放，或缺 code）、`OIDC_ISSUER_MISMATCH`（400）、`AUTH_CONNECTOR_DENIED`（422，发行方以 OAuth 错误结束授权；`error` 只记进日志，协议定义之外的值记为 `server_error`，不进文案）、`OIDC_TOKEN_INVALID`（401，换码失败或令牌校验未过，含 nonce 不符）、`BAD_GATEWAY`（502，发行方不可达）。state 失效与发行方拒绝和身份服务的连接器回调（S1-IDP-007）共用同一组 `AUTH_CONNECTOR_*` 码，外壳回调页只需识别一套。日志只记拒绝类别、错误类型与 sid 的 SHA-256，不记令牌、授权码、state、口令或原始会话标识；回调地址的查询串会被 ASP.NET Core 的请求日志打印，所以本包把 `Microsoft.AspNetCore.Hosting.Diagnostics` 限到 Warning（与身份服务一致）。

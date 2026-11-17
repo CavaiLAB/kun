@@ -1,6 +1,6 @@
 # 运行时场景格式 v1
 
-权威语义见 [规格 §10.2](../../docs/prd/specs/component-model.md#102-运行时语义-tck)。场景数据不包含 .NET 类型名或代码。`.NET harness` 位于 [RuntimeScenarioTests.cs](../../tests/Qian.Runtime.Tests/RuntimeScenarioTests.cs)，TS 适配器为 `harness-ts.mjs`（由 S1-RT-003 的测试入口传入真实运行时和解析器）。两侧从相同的 YAML 读取断言，不复制另一份预期数据；每个核心场景先解析交付的 minimal profile 与其空组合包。
+权威语义见 [规格 §10.2](../../docs/prd/specs/component-model.md#102-运行时语义-tck)。场景数据不包含 .NET 类型名或代码。`.NET harness` 位于 [RuntimeScenarioTests.cs](../../tests/Qian.Runtime.Tests/RuntimeScenarioTests.cs)，TS 适配器为 `harness-ts.mjs`（由测试入口传入真实运行时和解析器：本仓库是 `packages/qian-cli/test/runtime-tck.test.mjs`，对包源上的 `@cavailab/qian-runtime` 跑；CavaiLAB/qian 的运行时 CI 也检出本仓库读同一组数据）。两侧从相同的 YAML 读取断言，不复制另一份预期数据；每个核心场景先解析交付的 minimal profile 与其空组合包。
 
 每个 `*.scenario.yml` 是独立场景；YAML 标量保留 string / number / boolean / null 类型，UTF-8。未知版本或操作必须报错。
 
@@ -59,7 +59,7 @@ scope 写作 `global` 或 `tenant:id`、`app:id`、`agent-session:id`。服务�
 
 ## 尚未完成的产品验收
 
-S1-RT-003 已合并并完成 `@idadawn/qian-runtime@0.1.0` 私有发布与逻辑别名消费。[主线双侧 CI](https://github.com/idadawn/qian/actions/runs/38146040203) 已持续执行同一组数据：现有 23 个 YAML 场景加 T15–T17 的 3 个装配场景，TS 共 34 项测试、.NET 运行时共 46 项测试通过。
+S1-RT-003 已合并并完成 `@idadawn/qian-runtime@0.1.0` 私有发布与逻辑别名消费。[主线双侧 CI](https://github.com/idadawn/qian/actions/runs/38146040203) 已持续执行同一组数据：现有 23 个 YAML 场景加 T15–T17 的 3 个装配场景，TS 共 34 项测试、.NET 运行时共 46 项测试通过。前端迁到 CavaiLAB/qian 后（S1-YUE-025），TS 运行时改名 `@cavailab/qian-runtime`、由那边发布；本仓库的 TS 一侧随命令行测试（CI `qian-surfaces`、`qian-documentation`）对包源的固定版本跑，.NET 一侧仍是 `Qian.Runtime.Tests`（CI `qian-dotnet`）。
 
 真实目录、提示词与执行已有下节的产品联调场景；核心运行时的双侧语义与产品 HTTP 联调分别给出证据，不能互相替代。T19 有双侧实际文件监视证据；T23 有下节的同组真实 Provider 双宿主对照。RT-009 的完整 hooks/生产触发仍需收尾，ADR-019 的 Files/Authz/Identity.Client 独立安装和文件上传验收由 QA-003/QA-005 跟踪。
 

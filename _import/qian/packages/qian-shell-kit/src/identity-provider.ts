@@ -1,6 +1,6 @@
-import { HttpResponseError, isErrorDetail, parsePlatformJson, PlatformError } from '@idadawn/yue-sdk';
-import type { AuthProvider, AuthResult, AuthSession, AuthTenant, PasswordCredentials } from '@idadawn/yue-shell';
-import { safeNavigationUrl } from '@idadawn/yue-shell/menu';
+import { HttpResponseError, isErrorDetail, parsePlatformJson, PlatformError } from '@cavailab/qian-sdk';
+import type { AuthProvider, AuthResult, AuthSession, AuthTenant, PasswordCredentials } from '@cavailab/qian-shell';
+import { safeNavigationUrl } from '@cavailab/qian-shell/menu';
 
 /** 身份服务 `POST /api/identity/login` 等接口返回的可选身份（成员或平台身份）。 */
 export interface IdentityChoice { membershipId: string | null; tenantId: string | null; tenantCode: string | null; tenantName: string | null; displayName: string; platform: boolean; tenantAdmin: boolean }

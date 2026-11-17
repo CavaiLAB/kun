@@ -1,6 +1,6 @@
-import { Alert, Badge, Button, cn, Descriptions, Icon } from '@idadawn/yue-core/shell';
-import type { PlatformI18n } from '@idadawn/yue-sdk';
-import type { ShellMenuItem } from '@idadawn/yue-shell/menu';
+import { Alert, Badge, Button, cn, Descriptions, Icon } from '@cavailab/qian-core/shell';
+import type { PlatformI18n } from '@cavailab/qian-sdk';
+import type { ShellMenuItem } from '@cavailab/qian-shell/menu';
 
 /** 本租户摘要（S1-TEN-021）：租户主档、到期、用户用量与管理员；接口只让租户主体读本租户。 */
 export interface TenantSummary {

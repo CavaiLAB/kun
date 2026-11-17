@@ -1,8 +1,8 @@
 # When to use `ICurrentUser` vs `IAuthenticatedUser`
 
 **Status**: guidance (not an ADR — implements the direction set in
-[ADR-008](../adr/kun/ADR-008-Kun.Identity-module.md) and
-[ADR-010](../adr/kun/ADR-010-Kun.Identity-cookie-session.md))
+[Kun ADR-008](../adr/kun/ADR-008-Kun.Identity-module.md) and
+[Kun ADR-010](../adr/kun/ADR-010-Kun.Identity-cookie-session.md))
 **Last touched**: 2026-10-25 (S1-KUN-017：端口登记与次序)
 
 Kun Framework exposes two user-context interfaces. They are **not**
@@ -71,7 +71,7 @@ Happens rarely. When you need a new field:
 - ❌ **`ICurrentUserEx` / `IEnhancedCurrentUser` / `ICurrentUserV2`** —
   every one of these reinvents `IAuthenticatedUser`. If
   `IAuthenticatedUser` is missing a field, **add the field to
-  `IAuthenticatedUser`** after reading ADR-010, don't fork.
+  `IAuthenticatedUser`** after reading Kun ADR-010, don't fork.
 - ❌ **A per-service `ICurrentUser` subinterface in
   a downstream consumer** — consumer
   services get no value from owning the abstraction.
@@ -90,12 +90,12 @@ Happens rarely. When you need a new field:
 ## If you think you need something new
 
 1. Read this doc end-to-end. Yes, including the anti-patterns.
-2. Read ADR-008 and ADR-010.
+2. Read Kun ADR-008 and Kun ADR-010.
 3. Post the proposed field + its source (JWT claim / cookie /
    header / derived) in the PR description and call out which
    interface it belongs to per the decision rules above.
 4. If none of the rules fit, write an ADR that supersedes / extends
-   ADR-010 with the new concern — **before** adding code.
+   Kun ADR-010 with the new concern — **before** adding code.
 
 If the addition is still ambiguous after all that, leave the code
 as-is and raise it at the next framework review. The cost of one

@@ -206,7 +206,7 @@ public async Task PlaceOrder_stages_OrderPlaced_in_outbox()
 
 `OutboxPublisherBackgroundService` 拉到这一行时，会用 `ActivityContext.TryParse(TraceParent, TraceState, out var ctx)` 还原出 parent context，创建 publish span 作为它的 child。broker 把两个 header 透传到 consumer 侧，consumer 端同样还原后，handler 的所有 span 挂回原请求的 trace 里。
 
-这不同于 ADR-013 的 baggage 富化——baggage 是 **请求作用域**的用户维度（`tenant.id` / `user.id`），跟 trace 上下文是两回事。Outbox 传的是 **trace 上下文本身**。两者互不干扰。
+这不同于 Kun ADR-013 的 baggage 富化——baggage 是 **请求作用域**的用户维度（`tenant.id` / `user.id`），跟 trace 上下文是两回事。Outbox 传的是 **trace 上下文本身**。两者互不干扰。
 
 ## 反模式
 
@@ -249,7 +249,7 @@ public ValueTask HandleAsync(OrderPlacedIntegrationEvent e, MessageContext ctx, 
 
 ## 边界 / 后续
 
-ADR-015 还有两个 follow-up 未 ship：
+Kun ADR-015 还有两个 follow-up 未 ship：
 
 - **§F1 — 死信（dead-letter）**：`MaxAttempts` 次重试后消息进入 `Failed` 状态，目前没有自动 DLQ 表或告警。需要人工捞出来。
 - **§F2 — 按租户批次优先级**：目前 `ReadPendingBatchAsync` 按 `OccurredAt` 排序，没有 tenant-level 权重调度。时敏型 webhook SLA 下游有需求时再做。
@@ -258,7 +258,7 @@ ADR-015 还有两个 follow-up 未 ship：
 
 ## 相关
 
-- [ADR-015 Outbox pattern design](../adr/kun/ADR-015-Outbox-pattern.md) — 完整设计文档，normative。
+- [Kun ADR-015 Outbox pattern design](../adr/kun/ADR-015-Outbox-pattern.md) — 完整设计文档，normative。
 - [why-outbox.md](../design/why-outbox.md) — 入门 primer，解释"为什么不直接双写"。
 - [src/Kun.EventBus/AGENTS.md](../../src/Kun.EventBus/AGENTS.md) — abstraction 层约定 + 本指南的一句交叉链接。
 - [src/Kun.EventBus.RabbitMQ/AGENTS.md](../../src/Kun.EventBus.RabbitMQ/AGENTS.md) — broker 具体接线。

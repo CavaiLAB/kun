@@ -122,7 +122,7 @@ graph TD
     style Saga fill:#fff4d6
 ```
 
-当前配置与权限端口增量见 [ADR-016](../adr/kun/ADR-016-platform-ports.md)：Kun 只提供权限端口和接入点，平台负责引擎；Apollo 以独立标准配置源落位。
+当前配置与权限端口增量见 [Kun ADR-016](../adr/kun/ADR-016-platform-ports.md)：Kun 只提供权限端口和接入点，平台负责引擎；Apollo 以独立标准配置源落位。
 
 ### 3.2 模块职责清单
 
@@ -1093,15 +1093,15 @@ app.Run();
 
 | ADR / 文档 | 主题 |
 |---|---|
-| [ADR-001 — Kun.Identity 决策](../adr/kun/ADR-001-Kun.Identity-module-decision.md) | 是否新增 `Kun.Identity`（最终接受为外部 OIDC 客户端抽象） |
-| [ADR-003 — Kun.Audit 模块](../adr/kun/ADR-003-Kun.Audit-module.md) | 审计写入器抽象 + EF/EventBus 后端拆分 |
-| [ADR-004 — Kun.Observability 模块](../adr/kun/ADR-004-Kun.Observability-module.md) | 为什么把 OTel 从 `Kun.Sample.Shared` 抽出来 |
-| [ADR-005 — Kun.Caching 模块](../adr/kun/ADR-005-Kun.Caching-module.md) | 统一 `IKunCache` vs 直接 `IMemoryCache` / `IDistributedCache` 的权衡 |
-| [ADR-006 — Kun.RateLimit 模块](../adr/kun/ADR-006-Kun.RateLimit-module.md) | 基于 `.NET 10 RateLimiter` 的租户分区策略 |
-| [ADR-007 — Kun.MultiTenancy 模块](../adr/kun/ADR-007-Kun.MultiTenancy-module.md) | 租户过滤器在 EF Core 全局查询过滤器里实现 |
-| [ADR-008 — Kun.Identity 模块](../adr/kun/ADR-008-Kun.Identity-module.md) | `Kun.Identity` 实际模块落地与 ADR-001 的关系 |
-| [ADR-009 — Kun.Configuration 模块](../adr/kun/ADR-009-Kun.Configuration-module.md) | 强类型 Options 的 fail-fast 验证策略 |
-| [ADR-S02 — Kun.Sandbox 模块](../adr/kun/ADR-S02-Kun.Sandbox-module.md) | E2B v2 兼容 abstraction 与 Supervisor 后端 |
+| [Kun ADR-001 — Kun.Identity 决策](../adr/kun/ADR-001-Kun.Identity-module-decision.md) | 是否新增 `Kun.Identity`（最终接受为外部 OIDC 客户端抽象） |
+| [Kun ADR-003 — Kun.Audit 模块](../adr/kun/ADR-003-Kun.Audit-module.md) | 审计写入器抽象 + EF/EventBus 后端拆分 |
+| [Kun ADR-004 — Kun.Observability 模块](../adr/kun/ADR-004-Kun.Observability-module.md) | 为什么把 OTel 从 `Kun.Sample.Shared` 抽出来 |
+| [Kun ADR-005 — Kun.Caching 模块](../adr/kun/ADR-005-Kun.Caching-module.md) | 统一 `IKunCache` vs 直接 `IMemoryCache` / `IDistributedCache` 的权衡 |
+| [Kun ADR-006 — Kun.RateLimit 模块](../adr/kun/ADR-006-Kun.RateLimit-module.md) | 基于 `.NET 10 RateLimiter` 的租户分区策略 |
+| [Kun ADR-007 — Kun.MultiTenancy 模块](../adr/kun/ADR-007-Kun.MultiTenancy-module.md) | 租户过滤器在 EF Core 全局查询过滤器里实现 |
+| [Kun ADR-008 — Kun.Identity 模块](../adr/kun/ADR-008-Kun.Identity-module.md) | `Kun.Identity` 实际模块落地与 Kun ADR-001 的关系 |
+| [Kun ADR-009 — Kun.Configuration 模块](../adr/kun/ADR-009-Kun.Configuration-module.md) | 强类型 Options 的 fail-fast 验证策略 |
+| [Kun ADR-S02 — Kun.Sandbox 模块](../adr/kun/ADR-S02-Kun.Sandbox-module.md) | E2B v2 兼容 abstraction 与 Supervisor 后端 |
 | [AOT 一致性审计 2026-04-23](https://github.com/CavaiLAB/kun/blob/51b480775c/docs/architecture/AOT-audit-2026-04-23.md) | 全模块 AOT 状态矩阵 + CI 矩阵的来源 |
 
 ### 13.5 消费侧对接清单

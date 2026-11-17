@@ -211,7 +211,7 @@ public async ValueTask<Result<OrderDto>> Handle(...)
 }
 ```
 
-把校验放进 Validator；Handler 里用 `Result<TValue>.Fail(Error.Validation(...))` 直接返回。`kun/CLAUDE.md` §Architectural constraints："Business failures use `Result` / `Result<T>`, not exceptions." 抛异常会破坏下游 `Match / Bind / Tap` 组合链（ADR-011）。
+把校验放进 Validator；Handler 里用 `Result<TValue>.Fail(Error.Validation(...))` 直接返回。`kun/CLAUDE.md` §Architectural constraints："Business failures use `Result` / `Result<T>`, not exceptions." 抛异常会破坏下游 `Match / Bind / Tap` 组合链（Kun ADR-011）。
 
 ### 3. 在 Validator 里调数据库 / 外部服务
 
@@ -235,8 +235,8 @@ Validator 只处理"请求形状合法性"（类型、范围、非空、正则�
 
 ## 相关
 
-- [ADR-011 Result async extensions](../adr/kun/ADR-011-Result-async-extensions.md)—`Result<T>` 的 `Map/Bind/Tap/Ensure/Match` 组合面。
-- [ADR-014 Validation Result behavior](../adr/kun/ADR-014-Validation-Result-behavior.md)—两个 Result 版 Behavior 的设计决策。
+- [Kun ADR-011 Result async extensions](../adr/kun/ADR-011-Result-async-extensions.md)—`Result<T>` 的 `Map/Bind/Tap/Ensure/Match` 组合面。
+- [Kun ADR-014 Validation Result behavior](../adr/kun/ADR-014-Validation-Result-behavior.md)—两个 Result 版 Behavior 的设计决策。
 - [src/Kun.Validation/](../../src/Kun.Validation/)—Validator 规范、错误码命名模式。
 - [src/Kun.Testing/](../../src/Kun.Testing/)—`ResultAssertions.ShouldBeFailure` 等断言帮助。
 - [docs/design/when-to-use-currentuser.md](../design/when-to-use-currentuser.md)—Kun 选型指南的样板格式，本文跟它的结构一致。

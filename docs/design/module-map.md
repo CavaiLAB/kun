@@ -29,7 +29,7 @@
 | `Kun.Authorization` | 权限判定、数据谓词与字段策略端口，无权限引擎 | `IPermissionChecker`、`IDataPermissionFilter`、`IFieldPolicy` | true，CI 验证 |
 | `Kun.Configuration.Apollo` | HTTP 配置源、长轮询、签名和缓存 | `AddApollo`、`ApolloOptions` | true，CI 验证 |
 
-Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语义与迁移见 [ADR-016](../adr/kun/ADR-016-platform-ports.md)。历史 Phase 1 表保留为原始版本快照。
+Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语义与迁移见 [Kun ADR-016](../adr/kun/ADR-016-platform-ports.md)。历史 Phase 1 表保留为原始版本快照。
 
 ### 持久化（Infrastructure 层）
 

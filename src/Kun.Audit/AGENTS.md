@@ -1,6 +1,3 @@
-<!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-22 | Updated: 2026-04-25 -->
-
 # Kun.Audit
 
 ## Purpose
@@ -14,21 +11,8 @@ Two complementary halves of the framework audit story live here:
 ## Layer and AOT
 
 - Layer: **Abstraction** (depends on `Kun.Core` + `Kun.Mediator` + `Kun.EventBus` only)
-- `<IsAotCandidate>true</IsAotCandidate>` — strict AOT.
-- Reflection is forbidden. JSON serialization for `AuditLog` integration events must go through a caller-provided `JsonTypeInfo` registered in the consumer's `JsonSerializerContext`.
 
 ## Key Types
-
-### Writer/reader abstraction (audit-log channel)
-
-| Type | Purpose |
-|------|---------|
-| `AuditLog` | POCO record persisted / published per audit event. Implements `IMultiTenant` so it participates in `KunDbContext` tenant filters when stored inside a `KunDbContext`-derived context. |
-| `IAuditWriter` | Abstraction for persisting / publishing an audit log entry. |
-| `IAuditReader` | Abstraction for querying audit log entries (pagination + filter). |
-| `AuditableAttribute` | Declarative marker for Command / endpoint handlers that want a canonical `action` / `resourceType` emitted. The attribute is consumed by the Mediator pipeline behavior in consumer code — this module only declares it. |
-| `NullAuditWriter` | Default writer; drops entries. Registered when consumers don't explicitly configure a backend so that interceptor wiring stays safe. |
-| `EventBusAuditWriter` | Opt-in writer that stages the `AuditLog` as an integration event via `IIntegrationEventBus`. Requires the consumer to register `kun.audit.record.v1` with `IEventTypeRegistry`. |
 
 ### Hash-chain primitives (tamper-evident operation audit)
 
@@ -49,37 +33,17 @@ Two complementary halves of the framework audit story live here:
 |------|---|
 | `DependencyInjection/KunAuditServiceCollectionExtensions.cs` | `AddKunAudit()` + `UseEventBus()` + `AddAuditBehavior<TCommand, TResponse>()` |
 
-## Identifiers (stable)
-
-- Integration event type: `kun.audit.record.v1`
-- Actor type constants: `user`, `system`, `service` (see `AuditActorType`).
-
 ## Wiring
 
 ```csharp
-// Writer/reader channel:
-services.AddKunAudit(options =>
-{
-    options.DefaultActorType = AuditActorType.User;
-    options.CaptureEntityPayload = true;
-});
-
-// Opt-in fan-out via Outbox / EventBus:
-services.AddKunAudit().UseEventBus();
-
-// EF Core interceptor (separate module):
-services.AddKunAuditEntityFrameworkCore();
-
 // Tamper-evident hash-chain opt-in per command:
 services.AddKunMediator(m => m.AddAuditBehavior<CreateOrderCommand, Result<Guid>>());
 ```
 
 ## For AI Agents
 
-- Don't add EF Core references here — EF concerns go in `Kun.Audit.EntityFrameworkCore`. Layering is enforced by CI.
 - New members on `IAuditWriter` / `IAuditReader` / `IAuditSink` / `IAuditChainState` are **public API changes** — update `PublicAPI.Unshipped.txt` when adding.
 - Keep `AuditLog` / `AuditEntry` as POCOs with no ORM / JSON attributes. Persistence mapping lives in the EF Core adapter.
-- **AOT rule**: no `JsonSerializer.Serialize(obj)` without a `JsonTypeInfo`. The abstractions accept already-serialized `PayloadJson` strings so the serialization decision belongs to the interceptor / consumer.
 - **`TryAdd` every default in `AddKunAudit`**: in-memory chain state/sink + null writer are for tests / single-instance dev only. Production deployments override — never swap the `TryAdd` for `Add`, or you break extensibility.
 - **Audit failure must never break a command**: `AuditLogPipelineBehavior` wraps the audit write in its own try/catch that logs at Warning. If you add new sinks / chain states, preserve that contract — the handler's outcome is authoritative.
 - **Preserve the original exception**: when the handler throws, the behaviour captures it, writes the audit row with `Outcome=Exception` + `ErrorCode=<ExceptionTypeName>`, then rethrows via `ExceptionDispatchInfo.Capture(ex).Throw()` so the original stack trace is preserved.
@@ -109,8 +73,6 @@ services.AddKunMediator(m => m.AddAuditBehavior<CreateOrderCommand, Result<Guid>
 - `Microsoft.Extensions.DependencyInjection.Abstractions`
 - `Microsoft.Extensions.Logging.Abstractions`
 - `Microsoft.Extensions.Options`
-
-<!-- MANUAL: -->
 
 ## S1-KUN-005 当前入口
 

@@ -1,6 +1,3 @@
-<!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-18 | Updated: 2026-04-18 -->
-
 # Kun.Gateway
 
 ## Purpose
@@ -28,7 +25,6 @@ YARP-based API gateway. Validates external IdP-issued JWTs from incoming client 
 
 ### Working In This Directory
 
-- **This module issues S2S tokens; it does not trust any inbound S2S token.** Inbound traffic must present a valid *external* JWT (IdP-signed) or be rate-limited anonymous traffic for public endpoints.
 - **YARP transform**: the internal `S2sAuthTransform` runs on every forwarded request; it reads `HttpContext.User`, asks `S2sTokenIssuer.IssueFor(principal)` for a token, and writes `Authorization: Bearer {token}` on the outbound request — replacing any existing Authorization header.
 - **JWKS for S2S keys** is served from `/.well-known/jwks.json`. The `kid` is a SHA-256 hash of the RSA modulus (first 16 Base64Url chars) for stable identification across restarts.
 - **Canonical S2S**: only authenticated user/service principals with complete scope/session/revision/tenant context may be issued. aud/roles are arrays, UUIDs are canonical, lifetime is 1–300 seconds; arbitrary forwarded/trace claims are not supported. See GATEWAY.md.
@@ -56,14 +52,8 @@ YARP-based API gateway. Validates external IdP-issued JWTs from incoming client 
 
 Gateway-level integration tests (auth transform, rate limiter, JWKS rotation) belong in `tests/Kun.IntegrationTests`. Unit tests for `S2sTokenIssuer`, `TenantRateLimitPartitionResolver`, and `IpRateLimitPartitionResolver` live in `tests/Kun.Gateway.Tests`.
 
-CI's AOT publish pass includes this project — verify locally with:
-```bash
-dotnet publish src/Kun.Gateway -c Release -p:PublishAot=true /warnaserror
-```
-
 ### Common Patterns
 
-- YARP config in `appsettings.json`; dynamic config can use `IProxyConfigProvider` if needed.
 - Custom rate limiting: register `IRateLimitPartitionResolver` before calling `AddKunRateLimiter()`.
 - Key rotation: atomically replace `SigningKeyPath`; `S2sSigningKeyRing` reloads on signing/JWKS access without restart (default minimum interval one second). Old public keys overlap for five minutes; invalid replacements retain the last good key. Restart loses overlap history, so coordinate replicas and restarts.
 - `AddKunGateway` applies authenticated/default-rate policies to routes unless explicitly configured. Public routes require `AuthorizationPolicy: "Anonymous"`; anonymous forwarding strips Authorization.
@@ -110,5 +100,3 @@ The gateway transparently proxies gRPC-Web requests (browser clients using `grpc
 - `Microsoft.AspNetCore.Authentication.JwtBearer` (10.0.0)
 - `Microsoft.IdentityModel.Tokens` (8.2.0)
 - `Grpc.AspNetCore.Web` (2.67.0)
-
-<!-- MANUAL: -->

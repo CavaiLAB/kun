@@ -1,6 +1,3 @@
-<!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-18 | Updated: 2026-04-18 -->
-
 # Kun.EntityFrameworkCore
 
 ## Purpose
@@ -32,6 +29,10 @@ Write-side persistence for Kun Framework: `KunDbContext` base with automatic `IM
 - `IntegrationEventOutboxAccumulator` uses `JsonSerializer.Serialize<TEvent>` (generic overload) — NOT the non-generic overload, to satisfy CA2263.
 - `TenantRlsConnectionInterceptor` is **opt-in**. The EF global query filter in `KunDbContext` is the first isolation layer; the interceptor is a *second* layer that pairs with RLS policies defined on the database schema. Wiring is explicit — `AddKunEntityFrameworkCore` registers the interceptor as Scoped but does not attach it to any `DbContextOptionsBuilder`. Callers do that per context: `opts.AddInterceptors(sp.GetRequiredService<TenantRlsConnectionInterceptor>())`. See `docs/security/multi-tenancy-rls.md` for the policy template.
 
+`AddKunTenantRls<TContext>()` 自动装配 RLS 双拦截器与 `KunMultiTenantModelCacheKeyFactory`；上文手动接线说明仅适用于无泛型旧入口。`KunDbContext` 已实现 `IKunMultiTenantDbContext`。
+
+租户查询过滤器通过 DbContext 自身的 `TenantIdForModelCacheKey` 读取当前访问器；不能把 `ITenantContext` 实例常量存进共享模型，后者会在多宿主或 scoped 访问器场景复用已经失效的租户上下文。
+
 ### Testing Requirements
 Integration tests require Docker + Testcontainers and are tracked separately (M2 2.4).
 
@@ -43,13 +44,5 @@ Integration tests require Docker + Testcontainers and are tracked separately (M2
 - `Kun.Mediator` — `IPipelineBehavior`
 
 ### External
-- `Microsoft.EntityFrameworkCore`
-- `Microsoft.EntityFrameworkCore.Relational`
 - `Microsoft.Extensions.DependencyInjection.Abstractions`
 - `Microsoft.Extensions.Logging.Abstractions`
-
-<!-- MANUAL: -->
-
-`AddKunTenantRls<TContext>()` 自动装配 RLS 双拦截器与 `KunMultiTenantModelCacheKeyFactory`；上文手动接线说明仅适用于无泛型旧入口。`KunDbContext` 已实现 `IKunMultiTenantDbContext`。
-
-租户查询过滤器通过 DbContext 自身的 `TenantIdForModelCacheKey` 读取当前访问器；不能把 `ITenantContext` 实例常量存进共享模型，后者会在多宿主或 scoped 访问器场景复用已经失效的租户上下文。

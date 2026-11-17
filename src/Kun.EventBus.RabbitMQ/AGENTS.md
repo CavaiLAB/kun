@@ -1,6 +1,3 @@
-<!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-18 | Updated: 2026-04-18 -->
-
 # Kun.EventBus.RabbitMQ
 
 ## Purpose
@@ -80,5 +77,3 @@ Exchange type is `topic`; routing key = stable event ID. Consumer queues are nam
 - `Microsoft.Extensions.Hosting.Abstractions`
 - `Microsoft.Extensions.Logging.Abstractions`
 - `Microsoft.Extensions.Options`
-
-<!-- MANUAL: Integration tests deferred to Kun.IntegrationTests (M3 3.4 — requires Docker). -->

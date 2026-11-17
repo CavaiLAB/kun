@@ -1,6 +1,3 @@
-<!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-18 | Updated: 2026-04-18 -->
-
 # Kun.Grpc
 
 ## Purpose
@@ -26,18 +23,8 @@ Host-layer integration with gRPC (Grpc.AspNetCore). Provides three server interc
 
 ### Working In This Directory
 
-- **Result → gRPC status mapping**:
-  - `Validation`   → `StatusCode.InvalidArgument`
-  - `NotFound`     → `StatusCode.NotFound`
-  - `Conflict`     → `StatusCode.FailedPrecondition`
-  - `Unauthorized` → `StatusCode.Unauthenticated`
-  - `Forbidden`    → `StatusCode.PermissionDenied`
-  - `Unavailable`  → `StatusCode.Unavailable`
-  - `Failure` / unknown → `StatusCode.Internal`
 - The three interceptors are **`internal`** (not `public`) — the public API analyzer (RS0016/RS0017) cannot track overrides of generic virtual methods from external base classes. They are exposed to `Kun.Grpc.Tests` via `InternalsVisibleTo`.
-- Handler code returns `Result<T>`; gRPC endpoints call `.EnsureSuccess()` and let the interceptor do the translation. Don't `try/catch (ResultFailureException)` inside the endpoint.
 - `Kun.Security.DependencyInjection.KunSecurityServiceCollectionExtensions.AddKunSecurity()` must be called separately to wire up `JwtTenantContext`/`JwtCurrentUser`.
-- gRPC 2.67.x in this repo — use `Grpc.AspNetCore` server side, `Grpc.Net.Client` client side.
 
 ### Testing Requirements
 
@@ -65,5 +52,3 @@ The interceptors execute in registration order: Tracing → Auth → ResultMappi
 
 - `Grpc.AspNetCore` (server-side gRPC, `Grpc.Core.Interceptors.Interceptor`)
 - `Microsoft.AspNetCore.App` (framework reference — `HttpContext`, `ServerCallContext.GetHttpContext()`)
-
-<!-- MANUAL: -->

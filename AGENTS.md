@@ -13,12 +13,15 @@
 
 ## 合并蓝图落地期间（ADR-023）
 
-产品负责人 2026-11-17 裁定 Qian 并入 Kun（`pm/tasks/S1-DEC-036.md` 的 D1–D14，蓝图是 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，Accepted）：合并后的仓库是 `idadawn/kun`；`Qian.*` 并入 `Kun.*`，一个包族、一条日历版本线；两边重叠的实现归并成一份；许可证全部改 MIT；前端框架由 yue 更名为 qian。蓝图分五个阶段落地，现在是阶段 0：蓝图已确认，本仓库的 ADR 与文档已回写，代码没有动。
+产品负责人 2026-11-17 裁定 Qian 并入 Kun（`pm/tasks/S1-DEC-036.md` 的 D1–D14，蓝图是 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，Accepted）：`Qian.*` 并入 `Kun.*`，一个包族、一条日历版本线；两边重叠的实现归并成一份；许可证全部改 MIT；前端框架由 yue 更名为 qian。同一天又裁定（`pm/tasks/S1-DEC-038.md` 的 D17、D18）：合并后的仓库是 `CavaiLAB/kun`，不是蓝图原来写的 `idadawn/kun`；前端迁往 `CavaiLAB/qian`；迁移现在开始，不再等「初步可用」里程碑收口。
 
-- 阶段 1 的冻结窗口放在「初步可用」里程碑（S1-DEC-033）当前在途任务收口之后。在那之前，本文件其余各节照旧执行：包名仍是 `Qian.*`，两道 .NET 门禁、`KunVersion` 单点钉版、Kun 文档镜像、yue 的目录与包名都不变。
-- 不要抢跑。包名、命名空间、目录、许可证字段、yue 的任何标识，只在对应阶段的任务里改：S1-KUN-019（阶段 1 冻结与导入）、S1-KUN-020（阶段 2 构建并轨）、S1-KUN-021（阶段 3 按域归并与改名）、S1-YUE-022（阶段 3 最后一批，前端更名）、S1-KUN-022（阶段 4 首个合并版）。
+- 迁移分批做，执行计划在 `CavaiLAB/kun` 的 `docs/migration-plan.md`：历史导入（B1）→ 整理与切换（B2）→ 构建并轨（B3）→ 七个域的归并与改名（B4–B10）→ 前端目录移出（B11）→ 首个合并版（B12）。对应的任务是 S1-KUN-019（B1、B2）、S1-KUN-018（B2 里旧 kun 仓库的收尾）、S1-KUN-020（B3）、S1-KUN-021（B4–B10）、S1-KUN-022（B12）。前端只迁框架库，计划在 `CavaiLAB/qian` 的 `docs/migration.md`，任务是 S1-YUE-022 至 S1-YUE-026。
+- 本仓库进入收口期。历史导入合入 `CavaiLAB/kun` 之前，这里照常开发；合入之后，这里只收在途任务的收尾（验收登记、置 done）与紧急修复，新的功能任务到 `CavaiLAB/kun` 开工。收口期合入这里的改动由迁移会话再同步过去，不用自己搬。产品负责人宣布冻结之后，本仓库归档为只读。
+- 不要在本仓库里改名。包名、命名空间、目录、许可证字段、yue 的任何标识，都在新仓库的对应批次里改；到归档为止，本仓库的包名仍是 `Qian.*`，两道 .NET 门禁、`KunVersion` 单点钉版、Kun 文档镜像、yue 的目录与包名都不变，本文件其余各节照旧执行。
+- 迁往前端仓库的路径自提交 `aafa0cc5ab` 起在本仓库冻结，不再合入改动：`packages/yue/*`、`apps/yue-playground`、`packages/qian-plugin-sdk`、`packages/qian-runtime`、`tests/gates/yue`、`scripts/yue-visual.mjs`、`.changeset/`，以及 yue、runtime-ts、runtime-ts-release、plugin-sdk-release 四个工作流。确有改动要进，先告诉前端迁移的会话，由它重跑导入补齐。其余的前端路径（外壳应用与外壳工具包、三个界面包、参考应用的远程模块、文档站）留在后端仓库，照常开发；yue 的标识在这些路径里的改名由前端计划的任务承载。
+- 迁移任务（S1-KUN-018 至 S1-KUN-022）的任务文件：历史导入合入之前在本仓库改，合入之后只在 `CavaiLAB/kun` 改，免得再同步时两边改了同一个文件。
 - 运行期字面不随合并改名：组件 id 前缀 `qian.`、库 schema `plugin_qian_*`、Cookie 名、契约标识 `https://qian.dev/…` 与 `x-qian-*`、`.qian-plugin/plugin.json`、`qian` 命令行、`@qian/*` 导入名（ADR-023 D23.10、D23.18）。
-- 阶段 3 按域归并期间，功能任务避开正在归并的域；同一时间一个域只有一个归并批次。
+- 按域归并期间（B4–B10），功能任务避开正在归并的域；同一时间一个域只有一个归并批次。
 
 ## 任务流程（必须遵守）
 
@@ -51,7 +54,7 @@
 - 错误响应一律是 `contracts/v0/error-detail.schema.json` 的 ErrorDetail：用 `Qian.Runtime.Errors` 定义与登记错误码（大写下划线、全局唯一、在本组件 Definition 包里定义），HTTP 宿主装 `AddQianErrors()` + `UseQianErrors()`；不要自己拼 ProblemDetails 或 `{ error: ... }`。
 - 改了 `contracts/v0/` 的 Schema 必须同时改 fixture 与 `Qian.Runtime.Errors`，`dotnet test` 会校验 Schema、fixture 与内置错误码目录 `error-codes.json` 是否一致。
 - 集成测试用 `tests/Qian.Testing.Containers` 的 fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身），不要各自再写一套容器启动代码。
-- 已有决策不要重开。合并蓝图 ADR-023 于 2026-11-17 Accepted（S1-DEC-036 的 D1–D14 由产品负责人逐条裁定），部分取代 ADR-001 / ADR-021、修订 ADR-013 / ADR-019 / ADR-020。D1–D18 已获认可；ADR-019 / 020 / 021 均为 Accepted，ADR-019 / 020 的待拍板项已拍板并记录在各 ADR §7（对应 `S1-DEC-*` 已关闭）；仓库归属已拍板：产品族统一在 `idadawn`，Kun 从 CavaiLAB 迁入（ADR-021 §7，执行见 S1-PM-003）。`S1-DEC-001`–`S1-DEC-009` 已关闭；`S1-DEC-010`（contracts/v0 的 8 条默认裁决）待产品负责人拍板，拍板前按 `contracts/v0/README.md` 第 8 节的默认值实现。文档里标「已裁决（R{n}）」的是复核时的默认裁决，有异议时新建决策任务而不是直接改。
+- 已有决策不要重开。合并蓝图 ADR-023 于 2026-11-17 Accepted（S1-DEC-036 的 D1–D14 由产品负责人逐条裁定），部分取代 ADR-001 / ADR-021、修订 ADR-013 / ADR-019 / ADR-020。D1–D18 已获认可；ADR-019 / 020 / 021 均为 Accepted，ADR-019 / 020 的待拍板项已拍板并记录在各 ADR §7（对应 `S1-DEC-*` 已关闭）；仓库归属已拍板：产品族统一在 `idadawn`，Kun 从 CavaiLAB 迁入（ADR-021 §7，执行见 S1-PM-003）；合并后的仓库在 `CavaiLAB/kun`（S1-DEC-038 D17 改写）。`S1-DEC-001`–`S1-DEC-009` 已关闭；`S1-DEC-010`（contracts/v0 的 8 条默认裁决）待产品负责人拍板，拍板前按 `contracts/v0/README.md` 第 8 节的默认值实现。文档里标「已裁决（R{n}）」的是复核时的默认裁决，有异议时新建决策任务而不是直接改。
 
 ## 仓库布局
 

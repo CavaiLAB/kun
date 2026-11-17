@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.5" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsAspireHost>true</IsAspireHost>
@@ -7,8 +7,9 @@
     <IsPackable>false</IsPackable>
     <UserSecretsId>kun-sample-apphost</UserSecretsId>
     <Description>Kun Framework — .NET Aspire AppHost orchestrating Catalog, Order, Gateway with PostgreSQL, RabbitMQ, Redis.</Description>
-    <!-- NU1902: transitive KubernetesClient vulnerability via Aspire.Hosting.AppHost — suppressed for dev-only host -->
-    <NoWarn>$(NoWarn);NU1902</NoWarn>
+    <!-- 本项目的依赖闭包只有 Aspire 自己的包（项目资源不进 NuGet 依赖图）。仓库的中央传递钉版是给 Kun 库包定的，
+         套在这里会把 Aspire 13 要求的依赖版本往下压（NU1109）。只对本项目关闭传递钉版；NuGet 安全审计与警告即错误不变。 -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" />

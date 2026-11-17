@@ -19,9 +19,7 @@ spec:
           protocol: UDP
         - port: 53
           protocol: TCP
-    # git-sync 拉取 GitHub（SSH 22；若改用 HTTPS 则为 443）
+    # git-sync 经 HTTPS 拉取 GitHub（443）
     - ports:
-        - port: 22
-          protocol: TCP
         - port: 443
           protocol: TCP

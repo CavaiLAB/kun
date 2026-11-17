@@ -20,6 +20,7 @@ import datetime as dt
 import html
 import json
 import os
+import posixpath
 import re
 import sys
 from pathlib import Path
@@ -28,7 +29,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TASKS_DIR = ROOT / "pm" / "tasks"
 PM_DIR = ROOT / "pm"
 TEMPLATE = PM_DIR / "_template.html"
-REPO_BLOB = "https://github.com/idadawn/qian/blob/main/"
+# 看板上任务文件与 refs 的链接指向本仓库 main 上的文件；ROOT 在仓库里的前缀由 repo_prefix() 算出，不在别处写
+REPO_BLOB = "https://github.com/CavaiLAB/kun/blob/main/"
 
 STATUSES = ["todo", "doing", "review", "done", "blocked"]
 STAGES = ["S1", "S2", "S3", "S4"]
@@ -260,13 +262,35 @@ def _order_ranks(tasks: list[dict]) -> dict[str, int]:
     return {t["id"]: rank(t["id"]) for t in tasks}
 
 
+def repo_prefix(root: Path) -> str:
+    """root（pm.py 的上一级，任务文件与 refs 都相对它写）在仓库里的目录，POSIX 写法；root 就是仓库根时为空串。
+
+    仓库根取 root 往上第一个有 .git 的目录：普通克隆里 .git 是目录，git worktree 里是文件。看板 Pod 里 git-sync 把每个
+    提交检出成 worktree（/git/.worktrees/<提交>，其中的 .git 是文件），builder 运行检出里的 <BOARD_PREFIX>/scripts/pm.py，
+    这里得出的就是 BOARD_PREFIX。只看文件系统、不调 git（builder 的镜像里没有 git）。现在原 Qian 在过渡目录里，得出
+    _import/qian；pm/ 与 scripts/pm.py 搬走后随之改变，不用改别处。往上找不到 .git（不在 git 检出里）时把 root 当作仓库根。
+    """
+    for directory in (root, *root.parents):
+        if (directory / ".git").exists():
+            return "" if directory == root else root.relative_to(directory).as_posix()
+    return ""
+
+
+def blob_url(prefix: str, rel: str) -> str:
+    """相对 ROOT 的路径在本仓库 main 上的 GitHub 地址；refs 里 # 之后的小节号照旧去掉。"""
+    path = posixpath.normpath(posixpath.join(prefix, rel.split("#")[0]))
+    return REPO_BLOB + ("" if path == "." else path)
+
+
 def export(tasks: list[dict]) -> list[dict]:
     done_ids = {t["id"] for t in tasks if t["status"] == "done"}
     ranks = _order_ranks(tasks)
+    prefix = repo_prefix(ROOT)
     rows = []
     for t in tasks:
         acc_total = len(re.findall(r"^\s*-\s+\[( |x|X)\]", t["_body"], re.M))
         acc_done = len(re.findall(r"^\s*-\s+\[(x|X)\]", t["_body"], re.M))
+        task_file = f"pm/tasks/{t['_file']}"
         rows.append({
             "id": t["id"], "title": t["title"], "status": t["status"], "stage": t["stage"],
             "area": t["area"], "areaName": AREAS.get(t["area"], t["area"]), "wave": t["wave"],
@@ -275,9 +299,9 @@ def export(tasks: list[dict]) -> list[dict]:
             "blockedBy": [d for d in t["depends"] if d not in done_ids],
             "order": ranks[t["id"]],
             "readyNow": t["status"] == "todo" and not [d for d in t["depends"] if d not in done_ids],
-            "refs": [{"path": str(r), "url": REPO_BLOB + str(r).split("#")[0]} for r in t["refs"]],
+            "refs": [{"path": str(r), "url": blob_url(prefix, str(r))} for r in t["refs"]],
             "updated": str(t["updated"]), "acceptance": {"done": acc_done, "total": acc_total},
-            "bodyHtml": _md_to_html(t["_body"]), "file": f"pm/tasks/{t['_file']}",
+            "bodyHtml": _md_to_html(t["_body"]), "file": task_file, "fileUrl": blob_url(prefix, task_file),
         })
     return rows
 

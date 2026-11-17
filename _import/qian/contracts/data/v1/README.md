@@ -14,7 +14,7 @@ S1-DATA-003 在同目录增加三份文件，同样嵌入 Qian.Data.Abstractions
 
 ## 冻结与修订
 
-全部 Schema 为 JSON Schema 2020-12，`$id` 统一为 `https://qian.dev/contracts/data/v1/<文件名>`。冻结标记实际随 PR #95 于 **2026-10-15** 落盘，批准依据为 [R80](../../../docs/decisions/key-decisions-v0.md#验收复核裁决-r80s1-qa-010-复核2026-10-15)：`x-status: frozen` 表示只允许向后兼容增量，与 v0 的冻结语义一致；v0 已于 2026-10-24 由 S1-AGT-005 显式改写为 frozen。它们与发布的 C# 契约、矩阵和 fixture 共同构成 v1 的消费边界；`fixtures/field-types.json` 是过滤正反例使用的可信字段目录，测试直接读取。
+全部 Schema 为 JSON Schema 2020-12，`$id` 统一为 `https://qian.dev/contracts/data/v1/<文件名>`。冻结标记实际随 PR idadawn/qian#95 于 **2026-10-15** 落盘，批准依据为 [R80](../../../docs/decisions/key-decisions-v0.md#验收复核裁决-r80s1-qa-010-复核2026-10-15)：`x-status: frozen` 表示只允许向后兼容增量，与 v0 的冻结语义一致；v0 已于 2026-10-24 由 S1-AGT-005 显式改写为 frozen。它们与发布的 C# 契约、矩阵和 fixture 共同构成 v1 的消费边界；`fixtures/field-types.json` 是过滤正反例使用的可信字段目录，测试直接读取。
 
 R80 记录的两条例外及当前状态：
 

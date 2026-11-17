@@ -13,9 +13,21 @@ allowBuilds:
   unrs-resolver: true
   esbuild: true # Vite 工具链，校验/安装官方平台二进制
 
-# 版本目录：前端依赖只在这里钉一次，各包的 package.json 写 "catalog:"。版本矩阵页从这里读 @idadawn/yue-* 的工作区包。
+# 版本目录：前端依赖只在这里钉一次，各包的 package.json 写 "catalog:"。
 # typescript 钉 6.0.x：typescript-eslint 8 只支持 < 6.1。
 catalog:
+  # 前端框架（CavaiLAB/qian 发布在 GitHub Packages，包源见 .npmrc）：写精确版本，不写范围，升级走 PR、这几行一起改（S1-YUE-025）。
+  # 文档站按 @cavailab/qian-core 的版本检出 CavaiLAB/qian 的同名标签取组件文档源；版本矩阵页也从这里读。
+  # 命令行与校验库的测试另在各自的 package.json 里直接写 @cavailab/qian-runtime 的版本。
+  "@cavailab/qian-tokens": 0.2.0
+  "@cavailab/qian-contracts": 0.2.0
+  "@cavailab/qian-sdk": 0.2.0
+  "@cavailab/qian-core": 0.2.0
+  "@cavailab/qian-form": 0.2.0
+  "@cavailab/qian-data": 0.2.0
+  "@cavailab/qian-shell": 0.2.0
+  "@cavailab/qian-biz": 0.2.0
+  "@cavailab/qian-plugin-sdk": 0.2.0
   react: 19.3.0
   react-dom: 19.3.0
   "@types/react": ^19.2.18

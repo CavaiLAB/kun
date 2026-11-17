@@ -8,10 +8,10 @@
 
 | 位置 | 内容 | 怎么构建与测试 |
 |---|---|---|
-| 仓库根 | 原 Kun 框架（`idadawn/kun`）：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.sln` 与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「原 Kun 的构建、测试与代码约定」，命令在仓库根运行 |
+| 仓库根 | 原 Kun 框架（`idadawn/kun`）：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.slnx`（原 Qian 的项目也在里面）与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「原 Kun 的构建、测试与代码约定」，命令在仓库根运行 |
 | `_import/qian/` | 原 Qian 的整棵树（`idadawn/qian`）：.NET 包、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
 
-构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）与 `Directory.Packages.props`（中央包版本）两边共用，`_import/qian/` 下的同名文件先导入根上的，只留原 Qian 自己的打包设置与按包引用 Kun 时的 `KunVersion`；原 Kun 的版本与包元数据在 `src/Directory.Build.props`。`_import/qian/` 另有自己的 `global.json`、`NuGet.config`、带 `root = true` 的 `.editorconfig` 与 pnpm 工作区，它的脚本把 `_import/qian/` 当作根。在仓库根上跑 `dotnet`，构建的是原 Kun 的 `Kun.sln`；原 Qian 的命令一律在 `_import/qian/` 下跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 来自原 Kun，规则对 `_import/qian/` 同样生效。
+构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）与 `global.json` 两边共用；原 Kun 的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含原 Kun 与原 Qian 的全部项目。原 Qian 改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它的筛选文件，列出原 Qian 的项目，原 Qian 的脚本与测试以它所在的目录为根；新加原 Qian 的项目要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props` 与 `Directory.Packages.props` 先导入根上的，前者只留原 Qian 的打包设置，后者只留一个给文档站读的 `KunVersion`，构建不读它，由门禁自测保证。`_import/qian/global.json` 暂留，内容与根上的相同；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建原 Qian 时在 `_import/qian/` 下用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。原 Qian 的其余命令一律在 `_import/qian/` 下跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 来自原 Kun，规则对 `_import/qian/` 同样生效。
 
 两边的检查接在仓库根的 `.github/workflows/` 里：`kun-ci.yml` 对应原 Kun 的，在仓库根运行；`qian-*.yml` 对应原 Qian 的，在 `_import/qian/` 下运行。原 Kun 的 `.github/` 原件在 `.github/originals/kun/`，原 Qian 的在 `_import/qian/.github/`，GitHub 都不读。每个根工作流的开头写着它对应哪个原件、相对原件改了什么；原 Kun 没接的工作流与模板见 `.github/originals/kun/README.md`。
 
@@ -39,10 +39,11 @@
 dotnet restore
 dotnet build -c Release
 dotnet test --solution tests/kun-unit.slnf -c Release --no-build
-dotnet format --verify-no-changes
+dotnet format --verify-no-changes --exclude _import/qian
 ```
 
-- `tests/kun-unit.slnf` 列出除 `Kun.IntegrationTests`、`Kun.Sample.Tests`、`Kun.Integration.AotTests` 之外的全部测试项目，即单元测试；新加单元测试项目时同时加进这个文件。覆盖率加 `--coverlet --coverlet-output-format cobertura`（单元测试项目都引用了 coverlet.MTP）。
+- 不带参数的 `dotnet restore`、`dotnet build` 用的是 `Kun.slnx`，原 Qian 的项目也一起构建。格式检查排除 `_import/qian`，与 CI 一致：原 Qian 有自己的 `.editorconfig`，格式门禁不管它。
+- `tests/kun-unit.slnf` 列出原 Kun 除 `Kun.IntegrationTests`、`Kun.Sample.Tests`、`Kun.Integration.AotTests` 之外的全部测试项目，即单元测试；新加单元测试项目时同时加进这个文件。覆盖率加 `--coverlet --coverlet-output-format cobertura`（单元测试项目都引用了 coverlet.MTP）。
 - 单个测试项目：`dotnet test --project tests/Kun.Mediator.Tests -c Release`；单个测试类或方法用 xunit 的筛选参数，如 `--filter-class "*.类名"`、`--filter-method "*.类名.方法名"`。
 - 集成测试（`tests/Kun.IntegrationTests`）用 Testcontainers 起容器，对象存储测试用 RustFS 作 S3 兼容服务。本机没有容器环境时跳过；设了 `CI` 时改为失败；拉不到镜像一律失败。跑法：`dotnet test --project tests/Kun.IntegrationTests -c Release`。
 - `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑。

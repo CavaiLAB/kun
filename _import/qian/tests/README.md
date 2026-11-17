@@ -21,7 +21,7 @@ tests/
   Qian.Runtime.Errors.Tests/                  contracts/v0 契约测试（Schema、fixture、语义规则、内置错误码目录）与 ErrorDetail 内存宿主测试
   Qian.Runtime.Tests/                         最小运行时单元测试与 tck/runtime/*.scenario.yml 的 .NET harness
   Qian.Common.Tests/                          packages/Common 共享内部源文件的测试，直接编译源文件；并生成 CLI 移植比对用的 tck/profiles/key-vectors.json 与等价类表
-  gates/                                      门禁自测：样例项目 + Python 测试，不在 Qian.slnx 里
+  gates/                                      门禁自测：样例项目 + Python 测试，不在 Kun.slnx 与 Qian.slnf 里
     depgraph/                                 依赖图门禁样例（good.slnx 合规、bad.slnx 违规）
     publicapi/                                PublicAPI 门禁样例
     ui/                                       外壳与界面包的门禁自测（依赖边界、循环依赖样例、文案规则、令牌、外壳产物校验、钉住的副本），由 pnpm ui:test 跑
@@ -31,11 +31,13 @@ tests/
 ## 2 本地运行
 
 ```bash
-dotnet build Qian.slnx -c Release
+dotnet build Qian.slnf -c Release
 python3 scripts/check_deps.py --no-restore
 python3 -m unittest discover -s tests/gates -v
-dotnet test --solution Qian.slnx -c Release --no-build
+dotnet test --solution Qian.slnf -c Release --no-build
 ```
+
+- `Qian.slnf` 是仓库根 `Kun.slnx` 的解决方案筛选文件，列出原 Qian 的全部项目；原 Qian 改为项目引用仓库根 `src/` 下的 Kun 源码（S1-KUN-020），构建时引用到的 Kun 项目跟着构建。新加项目要同时加进 `Kun.slnx` 与 `Qian.slnf`，`tests/gates/test_build_merge.py` 会核对。
 
 - 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Qian.Capabilities.Tests` 与 `Qian.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
   - `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
@@ -181,10 +183,10 @@ Data 的两项依赖保留现有实现与公开 API；本任务不通过删除�
 | `publicapi/Qian.GateSample.Stale` | RS0017，构建失败 |
 | `publicapi/Qian.GateSample.NoApiFiles` | QIAN0001，构建失败 |
 | `publicapi/GateSample.NotPackable` | 构建通过：不打包的项目不受约束 |
-| `test_check_deps.py` 的 `SdkBoundaryTests` / `RealSdkClosureTests` | SDK 经 Definition、第三方包或另一个 SDK 包间接带入 Provider 与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities` 都报出完整路径；仓库里真实的 `Qian.Plugin.Sdk`、`.AspNetCore`、`.Generators` 在 `Qian.slnx` 的门禁范围内，其完整传递依赖只有 Runtime / SDK / Definition 与第三方包（S1-RT-014） |
+| `test_check_deps.py` 的 `SdkBoundaryTests` / `RealSdkClosureTests` | SDK 经 Definition、第三方包或另一个 SDK 包间接带入 Provider 与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities` 都报出完整路径；仓库里真实的 `Qian.Plugin.Sdk`、`.AspNetCore`、`.Generators` 在 `Qian.slnf` 的门禁范围内，其完整传递依赖只有 Runtime / SDK / Definition 与第三方包（S1-RT-014） |
 | `test_dotnet_release.py`（合成 `.nupkg`，不需要 dotnet 与网络） | 包族锁步发布的制品核对：缺包、多包、版本不一致、包族内依赖下限未钉同一版本或指向包族外、源生成器包带 `lib/` 或不是开发依赖、许可证与仓库地址缺失都失败；版本号须为不带前缀与构建元数据的 SemVer 2.0；推送后的包源核对缺包、仓库关联不符、可见性与仓库不一致或缺版本都失败（S1-RT-014） |
 | `test_check_docs.py`（不用样例项目，临时目录里搭最小仓库） | 文档门禁对文档站内容生效：站内路由、`/design/` 镜像路由与生成页路由的解析，生成目录跳过，禁用词在 `.mdx` 与站点源码里同样拦截（S1-DOCS-001）；Kun 小节的路由在生成前交给构建时的断链检查，显式给出的生成目录照查，生成目录里的文件进 Git 即失败，禁用词整词匹配（S1-DOCS-005） |
-| `test_dotnet_ci.py`（临时目录里搭 git 跟踪的最小仓库） | 触发过滤自检认得 §5.1 列的每类写法：.NET 源码的单个字面量、`Path.Combine` 分段、`../` 相对路径、插值前缀与洞后段、定位了仓库根的文件里的根目录 Markdown，csproj 的 `None` / `Content` / `Update`（含通配），工作流直接运行的脚本、unittest 收集的模块与它们导入的模块；对照样例不拦：注释、夹在变量后的段、不定位仓库根的 `README.md`、临时目录上的路径、被测试换掉仓库根的模块。`verify` 对 `Qian.slnx` 外的测试项目按名字告警，门禁样例与专属作业运行的项目除外（S1-QA-021） |
+| `test_dotnet_ci.py`（临时目录里搭 git 跟踪的最小仓库） | 触发过滤自检认得 §5.1 列的每类写法：.NET 源码的单个字面量、`Path.Combine` 分段、`../` 相对路径、插值前缀与洞后段、定位了仓库根的文件里的根目录 Markdown，csproj 的 `None` / `Content` / `Update`（含通配），工作流直接运行的脚本、unittest 收集的模块与它们导入的模块；对照样例不拦：注释、夹在变量后的段、不定位仓库根的 `README.md`、临时目录上的路径、被测试换掉仓库根的模块。`verify` 对 `Qian.slnf` 外的测试项目按名字告警，门禁样例与专属作业运行的项目除外（S1-QA-021） |
 
 ## 5 CI
 
@@ -193,7 +195,7 @@ Data 的两项依赖保留现有实现与公开 API；本任务不通过删除�
 - 构建与门禁：还原 → 构建（PublicAPI 门禁）→ 入口清单 → 明文密钥扫描 → namespace 骨架 → 依赖图门禁 → 门禁自测 → 触发过滤自检。
 - 单元与集成测试，分三个分片：各自还原、构建，再用 `scripts/dotnet_ci.py shard` 写出的解决方案筛选文件只跑本分片的模块。作业开头在后台预拉本分片用到的测试镜像，测试前有界等待。分片清单是脚本里的 `SHARDS`，新加的测试项目不用登记，自动落入其余分片。
   - 测试命令带 `-p:QianTrxPerModule=true`，每个模块的 TRX 按项目名命名（`<项目名>.trx`，见 [Directory.Build.props](Directory.Build.props)）。xUnit 缺省文件名只有用户、机器和时间戳，同时启动的模块会撞名，后写完的覆盖先写完的（S1-QA-017）。
-- 测试分片汇总核对：`Qian.slnx` 里每个测试项目恰好在所属分片跑过一次、没有失败；各分片的 TRX 与证据合并为 `test-results` 构件。`tests/` 下引用 xunit.v3 却不在 `Qian.slnx` 里的测试项目哪个分片都不跑，汇总核对按名字告警；门禁样例 `tests/gates/**` 与 dotnet.yml 里由专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。
+- 测试分片汇总核对：`Qian.slnf` 里每个测试项目恰好在所属分片跑过一次、没有失败；各分片的 TRX 与证据合并为 `test-results` 构件。`tests/` 下引用 xunit.v3 却不在 `Qian.slnf` 里的测试项目哪个分片都不跑，汇总核对按名字告警；门禁样例 `tests/gates/**` 与 dotnet.yml 里由专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。
 
 ### 5.1 触发过滤与写法约定
 
@@ -210,7 +212,7 @@ Data 的两项依赖保留现有实现与公开 API；本任务不通过删除�
   - 含 `/` 或 `\` 的字面量，去掉开头的 `./`、`../` 后按仓库相对路径算：`"docs/x.md"`、`"../docs/x.md"`、`@"..\docs\x.md"`。
   - `Path.Combine` / `Path.Join` 从第一个实参或紧跟它起的连续字面量段拼成一条路径：`Path.Combine(root, "docs", "prd", "x.md")`。后面还有变量时按目录前缀算，如 `Path.Combine(root, "pm", "tasks", name)` 算 `pm/tasks/` 下的全部文件；夹在变量之后的段相对未知目录，不算。
   - 插值字符串的常量前缀，如 `$"docs/prd/{name}.md"` 算 `docs/prd/` 起头的全部文件；插值洞后以 `/` 起头的段，如 `$"{root}/docs/x.md"`。`+` 拼接同理：`root + "/docs/x.md"`，字面量后面还接 `+` 时按前缀算。
-  - 单写一个根目录文件名（`"AGENTS.md"`、`Path.Combine(root, "README.md")`）只在本文件定位了仓库根时算：写到 `"Qian.slnx"`（向上找仓库根），或用到名为 `RepositoryRoot` / `RepoRoot` 的辅助方法。`README.md` 这类常见名字在别处多半指临时目录或包里的文件，如 `Qian.Lifecycle.Tests` 的临时部署仓库。
+  - 单写一个根目录文件名（`"AGENTS.md"`、`Path.Combine(root, "README.md")`）只在本文件定位了仓库根时算：写到 `"Qian.slnf"`（向上找仓库根），或用到名为 `RepositoryRoot` / `RepoRoot` 的辅助方法。`README.md` 这类常见名字在别处多半指临时目录或包里的文件，如 `Qian.Lifecycle.Tests` 的临时部署仓库。
 - MSBuild 项：`*.csproj`、`*.props`、`*.targets` 里 `Include`、`Update`、`Project` 属性指向的文件，相对本文件所在目录解析，认得通配与 `$(MSBuildThisFileDirectory)`、`$(MSBuildProjectDirectory)`，含其他属性的路径跳过。`.props` / `.targets` 里的相对路径实际按导入它的项目目录求值，这里写路径用 `$(MSBuildThisFileDirectory)` 起头，自检才对得上。
 - 本工作流运行的 Python：`run:` 里 `python3 <脚本>` 直接运行的脚本、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
   - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（工作流在仓库根运行）。

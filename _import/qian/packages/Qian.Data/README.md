@@ -4,7 +4,7 @@ Data seam 的 Provider，配合 Qian.Data.Abstractions 的安全上下文、服�
 
 ## 跨宿主租户模型
 
-租户查询过滤器必须从当前执行查询的 DbContext 读取租户。相同上下文类型和租户在不同宿主中复用 EF 模型时，不能保留第一次建模时的访问器实例；旧访问器退出或切换租户不应改变新请求的条件。`CrossHostTenantModelTests` 以真实受限 PostgreSQL 角色验证模型复用，并让第二宿主编译不同形状的查询，覆盖旧查询缓存可能掩盖的问题。Qian 通过唯一 `KunVersion` 消费此框架修复，仍保留 RLS 双拦截器与模型缓存门禁。
+租户查询过滤器必须从当前执行查询的 DbContext 读取租户。相同上下文类型和租户在不同宿主中复用 EF 模型时，不能保留第一次建模时的访问器实例；旧访问器退出或切换租户不应改变新请求的条件。`CrossHostTenantModelTests` 以真实受限 PostgreSQL 角色验证模型复用，并让第二宿主编译不同形状的查询，覆盖旧查询缓存可能掩盖的问题。Qian 通过项目引用仓库里的 Kun 源码消费此框架修复，仍保留 RLS 双拦截器与模型缓存门禁。
 
 ## 安全装配
 
@@ -13,7 +13,7 @@ services.AddQianData<AppDbContext>((sp, options) => options
     .UseNpgsql(connectionString).UseKunSchema("plugin_example"));
 ```
 
-业务上下文继承 QianDbContext。独立宿主可直接注入 IDataService，无需挂载平台插件。装配复用当前 KunVersion 的 AddKunTenantRls、AddKunDataConventions 与租户字段拦截器，强制模型缓存键、Qian 模型定制器、应用角色检查和迁移生成器。派生上下文漏调 base 仍保留租户/软删过滤，并与业务过滤条件取交集；采用 snake_case、Guid v7、可空审计主体和 xmin。每个上下文使用同一个 plugin_ 前缀 schema，租户列非空且默认具有索引。
+业务上下文继承 QianDbContext。独立宿主可直接注入 IDataService，无需挂载平台插件。装配复用 Kun 的 AddKunTenantRls、AddKunDataConventions 与租户字段拦截器，强制模型缓存键、Qian 模型定制器、应用角色检查和迁移生成器。派生上下文漏调 base 仍保留租户/软删过滤，并与业务过滤条件取交集；采用 snake_case、Guid v7、可空审计主体和 xmin。每个上下文使用同一个 plugin_ 前缀 schema，租户列非空且默认具有索引。
 
 启动会构建模型并打开真实连接，只读取角色属性，不建表或迁移；上下文带有迁移时还核对数据库没有未应用的迁移（见下文多副本迁移协调）。登录角色及当前角色必须均为 NOSUPERUSER / NOBYPASSRLS，预打开连接也检查；同步/异步新开连接遇高权限角色立即拒绝并关闭。
 

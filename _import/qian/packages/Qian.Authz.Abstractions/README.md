@@ -42,7 +42,7 @@ Authz seam 的 Definition，承接 ADR-006、ADR-019 与 S1-AZ-001。文件夹�
 
 ## 框架依赖与模型体验
 
-直接引用只有 Qian.Runtime 与 Kun.Authorization，全部 Kun 版本沿根目录 KunVersion。Mediator 桥接复用 Qian.Runtime 已有的 Kun.Mediator / Kun.Core 依赖，不引入 Registry、Lifecycle、数据库或 ASP.NET Provider。
+直接引用只有 Qian.Runtime 与 Kun.Authorization，Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020）。Mediator 桥接复用 Qian.Runtime 已有的 Kun.Mediator / Kun.Core 依赖，不引入 Registry、Lifecycle、数据库或 ASP.NET Provider。
 
 模型可读取权限名称、风险、step-up 和错误词汇；Definition 不赋予模型管理授权或执行工具的能力。Check 等工具发布和完整平台的真实权限过滤仍有各自验收门。
 

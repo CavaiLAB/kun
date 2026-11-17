@@ -59,7 +59,7 @@ restriction 谓词应为无副作用的纯函数，抛异常时记录日志并�
 
 `KunErrorBridge.ToQianError()` 按 `ErrorType` 映射内置码；未指定领域错误码的 `DomainException` 映射到 `BUSINESS_RULE_VIOLATED`。原始 Kun 文案不进入 ErrorDetail。Kun 校验异常的 HTTP 桥接由 `Qian.Runtime.Errors.AspNetCore` 承担，只有该包引用 `Kun.Validation`。
 
-`KunVersion` 复用根目录属性，正式版 `Kun.*` 显式从 nuget.org 还原。启动诊断新增的 `DEPENDENCY_MISSING`、`DEPENDENCY_CYCLE` 与注册冲突码均在平台目录中，owner 为 `qian.runtime`。
+Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020），不再从 nuget.org 还原 `Kun.*`。启动诊断新增的 `DEPENDENCY_MISSING`、`DEPENDENCY_CYCLE` 与注册冲突码均在平台目录中，owner 为 `qian.runtime`。
 
 ## 验证与已知限制
 

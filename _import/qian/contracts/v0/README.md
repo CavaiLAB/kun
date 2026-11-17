@@ -180,7 +180,7 @@ S1-RT-001 引入 Kun 2026.9.13 正式包（从 nuget.org 还原）：`Qian.Runti
 
 ## 7 校验与测试
 
-`tests/Qian.Runtime.Errors.Tests`（随 `dotnet test --solution Qian.slnx` 运行）：
+`tests/Qian.Runtime.Errors.Tests`（随 `dotnet test --solution Qian.slnf` 运行）：
 
 - 每份 Schema 通过 2020-12 元 Schema 校验，带 `$id`、`title`、`description`、`x-status: frozen`；测试清单必须覆盖本目录全部 Schema，冻结标记缺失或退回 draft 即失败。声明了 `properties` 的 object 全部关闭。
 - 每条 fixture：正例过 Schema 与语义规则，反例被 Schema 拒绝，语义反例过 Schema 但违反语义规则。

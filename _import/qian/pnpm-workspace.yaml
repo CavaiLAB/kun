@@ -20,15 +20,15 @@ catalog:
   # 前端框架（CavaiLAB/qian 发布在 GitHub Packages，包源见 .npmrc）：写精确版本，不写范围，升级走 PR、这几行一起改（S1-YUE-025）。
   # 文档站按 @cavailab/qian-core 的版本检出 CavaiLAB/qian 的同名标签取组件文档源；版本矩阵页也从这里读。
   # 命令行与校验库的测试另在各自的 package.json 里直接写 @cavailab/qian-runtime 的版本。
-  "@cavailab/qian-tokens": 0.2.0
-  "@cavailab/qian-contracts": 0.2.0
-  "@cavailab/qian-sdk": 0.2.0
-  "@cavailab/qian-core": 0.2.0
-  "@cavailab/qian-form": 0.2.0
-  "@cavailab/qian-data": 0.2.0
-  "@cavailab/qian-shell": 0.2.0
-  "@cavailab/qian-biz": 0.2.0
-  "@cavailab/qian-plugin-sdk": 0.2.0
+  "@cavailab/qian-tokens": 0.2.1
+  "@cavailab/qian-contracts": 0.2.1
+  "@cavailab/qian-sdk": 0.2.1
+  "@cavailab/qian-core": 0.2.1
+  "@cavailab/qian-form": 0.2.1
+  "@cavailab/qian-data": 0.2.1
+  "@cavailab/qian-shell": 0.2.1
+  "@cavailab/qian-biz": 0.2.1
+  "@cavailab/qian-plugin-sdk": 0.2.1
   react: 19.3.0
   react-dom: 19.3.0
   "@types/react": ^19.2.18
@@ -70,16 +70,16 @@ minimumReleaseAgeExclude:
   - lossless-json@4.3.2
   - "@tanstack/react-virtual@3.14.21"
   - "@tanstack/virtual-core@3.19.6"
-  - "@cavailab/qian-biz@0.2.0"
-  - "@cavailab/qian-contracts@0.2.0"
-  - "@cavailab/qian-core@0.2.0"
-  - "@cavailab/qian-data@0.2.0"
-  - "@cavailab/qian-form@0.2.0"
-  - "@cavailab/qian-plugin-sdk@0.2.0"
-  - "@cavailab/qian-runtime@0.2.0"
-  - "@cavailab/qian-sdk@0.2.0"
-  - "@cavailab/qian-shell@0.2.0"
-  - "@cavailab/qian-tokens@0.2.0"
+  - "@cavailab/qian-biz@0.2.1"
+  - "@cavailab/qian-contracts@0.2.1"
+  - "@cavailab/qian-core@0.2.1"
+  - "@cavailab/qian-data@0.2.1"
+  - "@cavailab/qian-form@0.2.1"
+  - "@cavailab/qian-plugin-sdk@0.2.1"
+  - "@cavailab/qian-runtime@0.2.1"
+  - "@cavailab/qian-sdk@0.2.1"
+  - "@cavailab/qian-shell@0.2.1"
+  - "@cavailab/qian-tokens@0.2.1"
 
 # OpenAPI 生成器的 peer 仅支持 TypeScript 5；隔离工具，不改变工作区 TypeScript 6 编译基线。
 catalogs:

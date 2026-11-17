@@ -3,7 +3,7 @@
 // @cavailab/qian-core@<版本>，在检出里按 qian 自己的锁文件装依赖（API 表要 TypeScript checker 读源码，默认值取源码解构，
 // 已发布的包只有 dist）。这是组件页来源定下来之前的过渡做法（F5）。
 // CI 把标签检出到 _import/qian/.qian、装好依赖，经 QIAN_DOCS_PATH 传进来；本机可把 QIAN_DOCS_PATH 指向自己的检出
-// （停在该标签、装好依赖），都没有时 HTTPS 浅克隆到 website/.cache/qian-repo 并装依赖。
+// （停在该标签、装好依赖），都没有时把该标签克隆到 website/.cache/qian-repo（完整历史、不取文件内容的部分克隆）并装依赖。
 // 生成器、演示的样式扫描、类型检查与浏览器验收都经固定的相对链接 website/.cache/qian-source 读检出。
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';

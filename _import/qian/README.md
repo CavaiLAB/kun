@@ -64,6 +64,8 @@ NODE_AUTH_TOKEN=$(gh auth token) pnpm install
 
 CI 里由 `actions/setup-node` 的 `registry-url` 写同样的用户级配置，`pnpm install` 带 `NODE_AUTH_TOKEN`（本次运行的 `GITHUB_TOKEN`），作业权限 `packages: read`。
 
+升级（比如 0.2.1 → 0.2.2）：版本目录的 9 条、`minimumReleaseAgeExclude` 里同名的 10 条、`packages/qian-cli` 与 `packages/qian-surfaces` 的 `@cavailab/qian-runtime` 一起改。pnpm 12 默认拦发布不满一天的包（`minimumReleaseAge`），刚发的版本靠 `minimumReleaseAgeExclude` 放行；`pnpm install` 会先按新的排除清单检查旧锁文件，旧版本发布也不满一天时报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`。这时解析期间先留着旧版本的排除条目，装完删掉，再跑 `pnpm install --frozen-lockfile` 确认新锁文件过策略。文档站读版本目录检出同名标签，不用另改。
+
 ## 从哪里开始读
 
 1. [ADR-020 组件模型 v2](docs/adr/ADR-020-component-model-v2.md)：一切皆插件、声明式表面、`qian add` 一键安装、目录市场、seam 三角色、scope、profile / patch。

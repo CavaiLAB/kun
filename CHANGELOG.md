@@ -1,5 +1,7 @@
 # Changelog
 
+> 本文件是原 Kun 的变更记录，随原 Kun 提到本仓库根上续写。旧条目照原文，2026-11-18 清理了引擎与下游产品的名字，方括号里是整理时替换的说法。
+
 本文档记录 Kun Framework 的所有显著变更。
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号采用 **CalVer**（`vYYYY.M.D[-hotfix.N|-beta.N]`，从 `main` 打 tag，见 `CONTRIBUTING.md`）；更早的历史条目遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
@@ -148,7 +150,7 @@
 
 ### Changed — 仓库地址
 
-- 仓库于 2026-10-08 从 CavaiLAB 组织迁回 `idadawn/kun`（<https://github.com/idadawn/kun>），与 iclaw、iclaw-deploy 同一所有者；旧地址自动重定向。GitHub Packages 镜像自下一个版本起发布在 idadawn 名下，nuget.org 上的 `Kun.*` 不受影响。本文件的版本比较链接已改为新地址。
+- 仓库于 2026-10-08 从 CavaiLAB 组织迁回 `idadawn/kun`（<https://github.com/idadawn/kun>），与［下游的智能体产品］、［部署仓库］同一所有者；旧地址自动重定向。GitHub Packages 镜像自下一个版本起发布在 idadawn 名下，nuget.org 上的 `Kun.*` 不受影响。本文件的版本比较链接已改为新地址。
 
 ### Fixed — 发布配置隔离
 
@@ -337,7 +339,7 @@
   implementations (`SupervisorSandboxProvider`,
   `E2BCloudSandboxProvider`, `InMemorySandboxProvider`), the
   E2B-shaped DTOs (`SandboxCreateOptions`,
-  `NeuroagentSandboxExtension`, `SecretScopeConfig`,
+  ［智能体引擎的沙箱扩展类型］, `SecretScopeConfig`,
   `BrowserSessionConfig`, `FileEntry`, `ProcessRunOptions`,
   `ProcessResult`), `KunSandboxOptions`, and the
   `AddKunSandbox` extension. 120 entries; auto-emitted by
@@ -545,7 +547,7 @@
   `OperationCanceledException`, null-argument guards.
 - **Scope note**: additive only. `Kun.Core` stays AOT-candidate with
   zero third-party deps; `PublicAPI.Unshipped.txt` listing every new
-  symbol. Migration of `neuroagent-csharp` handlers off hand-rolled
+  symbol. Migration of ［下游的 C# 服务］ handlers off hand-rolled
   patterns is a separate follow-up task (ADR-011 §Follow-ups F1).
 
 ### Added — P2-A Part 2 benchmarks CI workflow (2026-04-24)
@@ -902,7 +904,7 @@ but the new capabilities below require explicit opt-in:
 
 ### Highlights (2026-04-24 / 04-25)
 
-**Phase 1 neuroagent-consumer gap fully closed.** Five tickets landed in one burst (23 commits on `main`, all pushed to `origin`):
+**Phase 1 ［下游的智能体产品］ consumer gap fully closed.** Five tickets landed in one burst (23 commits on `main`, all pushed to `origin`):
 
 - **P1-KN-001** `Kun.Storage` — new 15th module (`IFileStorage` 7-method contract + `ContentDispositionPolicy` + S3/MinIO/Local backends).
 - **P1-KN-002** S2S JWT claims alignment (`Kun.Security.S2SJwt` rewritten around `S2SJwtIssueRequest`, emits `roles`/`membership_id`/`trace_id`, default TTL 15 min, multi-aud header bug fixed).
@@ -925,7 +927,7 @@ Framework module count: 13 → 15. Test projects: 11 → 13. Validation / AOT pu
 
 ### Added — Kun.EntityFrameworkCore tenant-RLS interceptor (Phase 1 P1-CS-011)
 
-- New `Kun.EntityFrameworkCore.Interceptors.TenantRlsConnectionInterceptor`: opt-in EF `DbConnectionInterceptor` that pushes `ITenantContext.TenantId` into the PostgreSQL session variable `app.current_tenant_id` on connection open and RESETs it on close. Gives NeuroAgent a second isolation layer behind the existing EF global query filter when paired with RLS policies on the database schema.
+- New `Kun.EntityFrameworkCore.Interceptors.TenantRlsConnectionInterceptor`: opt-in EF `DbConnectionInterceptor` that pushes `ITenantContext.TenantId` into the PostgreSQL session variable `app.current_tenant_id` on connection open and RESETs it on close. Gives ［下游的智能体产品］ a second isolation layer behind the existing EF global query filter when paired with RLS policies on the database schema.
 - Activates only on Npgsql connections (nominal FQN check) so `Kun.EntityFrameworkCore` does not need a direct Npgsql package dependency; MySQL / SQL Server / other providers silently no-op.
 - Tenant id is whitelisted against `^[A-Za-z0-9._-]{1,128}$` before inlining into the `SET` command (PostgreSQL `SET` cannot be parameterised); unsafe values throw `InvalidOperationException` rather than being coerced.
 - Registered as Scoped by `AddKunEntityFrameworkCore`; callers opt in per `DbContextOptionsBuilder` via `opts.AddInterceptors(sp.GetRequiredService<TenantRlsConnectionInterceptor>())`.
@@ -946,7 +948,7 @@ Framework module count: 13 → 15. Test projects: 11 → 13. Validation / AOT pu
 - New claim emission, aligned with SAD v3.0 §12: `roles` (multi-valued), `membership_id`, `trace_id` — all optional via the request record. Pre-existing `sub`, `jti`, `tenant_id`, `scope`, `session_id` remain.
 - Multi-audience tokens now fold `aud` into the payload as a JSON array (previously, multi-audience tokens leaked `aud` into the JWT *header* — correctness bug, now fixed).
 - `S2SJwtOptions.DefaultLifetimeSeconds` default bumped from 300 → **900** (15 minutes) per SAD §12; individual calls can still override via `S2SJwtIssueRequest.Lifetime`.
-- `docs/security/s2s-jwt.md` extended with a NeuroAgent Set B section explaining why both `Kun.Gateway.S2sTokenIssuer` (RS256, 60s) and `Kun.Security.S2SJwt.S2SJwtIssuer` (ES256, 15min) coexist and when to use each.
+- `docs/security/s2s-jwt.md` extended with a ［下游的智能体产品］ Set B section explaining why both `Kun.Gateway.S2sTokenIssuer` (RS256, 60s) and `Kun.Security.S2SJwt.S2SJwtIssuer` (ES256, 15min) coexist and when to use each.
 
 ### Added — Kun.Storage (Phase 1 P1-KN-001)
 
@@ -960,7 +962,7 @@ Framework module count: 13 → 15. Test projects: 11 → 13. Validation / AOT pu
 - **Tests**:
   - `tests/Kun.Storage.Tests`: ContentDispositionPolicy matrix, LocalFileStorage round-trips + traversal + attachment enforcement, mocked-S3 unit tests, DI resolution tests.
   - `tests/Kun.IntegrationTests/Storage/S3FileStorageIntegrationTests.cs` + `Fixtures/MinioFixture.cs`: MinIO Testcontainer with real `HttpClient` round-trips against presigned URLs.
-- **Docs**: new `src/Kun.Storage/AGENTS.md`, module added to `src/AGENTS.md`, README, `docs/architecture/module-map.md`; `docs/neuroagent-phase1-gap.md` updated to mark P1-KN-001 complete.
+- **Docs**: new `src/Kun.Storage/AGENTS.md`, module added to `src/AGENTS.md`, README, `docs/architecture/module-map.md`; ［第一阶段差距盘点］ updated to mark P1-KN-001 complete.
 
 ### Merge — main → develop reconciliation (2026-04-25, `sync-main-into-develop`)
 
@@ -1200,7 +1202,7 @@ Framework module count: 13 → 15. Test projects: 11 → 13. Validation / AOT pu
 
 ## [0.1.0-phase1] - 2026-04-23
 
-Phase 1 首个可对 NeuroAgent 集成发版。10 个新模块落地（Storage / Identity /
+Phase 1 首个可对［下游的智能体产品］集成发版。10 个新模块落地（Storage / Identity /
 MultiTenancy / Audit / RateLimit / Caching / Observability / Security / Configuration /
 Sandbox），全仓 AOT 一致性通过审计，Directory.Build.props 统一 AOT 策略，CI 新增
 `aot-audit` 矩阵 job 与 `sample-aot-integration` job。

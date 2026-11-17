@@ -1,5 +1,14 @@
 # Qian（乾）
 
+> [!IMPORTANT]
+> **本仓库已冻结，将归档为只读。后端已迁往 [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun)，前端框架库迁往 [`CavaiLAB/qian`](https://github.com/CavaiLAB/qian)。**
+>
+> - 后端，也就是前端框架库以外的全部内容（.NET 代码、外壳应用、文档站、命令行、契约、部署清单、任务与看板、决策记录与设计文档），已带完整历史迁入 `CavaiLAB/kun`，原提交的 SHA 不变。目前放在那边的 `_import/qian/` 目录下，后续批次再把它们提出过渡目录；做法见那边的[迁移执行计划](https://github.com/CavaiLAB/kun/blob/main/docs/migration-plan.md)。
+> - 前端框架库（yue 的八个包、组件演练场、前端插件开发包、TypeScript 运行时）迁往 `CavaiLAB/qian`，计划见那边的 [`docs/migration.md`](https://github.com/CavaiLAB/qian/blob/main/docs/migration.md)。
+> - 本仓库自 2026-11-17 起冻结，不再合入任何改动，随后归档为只读。任务与看板随后端到 `CavaiLAB/kun` 继续，任务 id 不变；改动请到这两个新仓库提 PR。
+> - 下文是冻结时的原状。其中把合并后的仓库写作 `idadawn/kun` 的地方，以本段为准（S1-DEC-038 D17）。
+> - 在 `CavaiLAB/kun` 的 `_import/qian/` 下读到这段的，这段说明是随历史一起带进去的，在那边不适用。
+
 基于 Kun（.NET 10 云原生微服务框架）构建的 PaaS 平台：以「一切皆插件」组织一切能力，组件先是文件夹里的清单与声明式表面、一条命令就能装进任何项目；先做面向开发人员的技术底座，再做低代码构建与应用市场，终态是 AI 原生的 Agent 平台。
 
 - 产品 = Qian · 底座框架 = Kun · 前端组件库 = yue · 运行时 = `Qian.Runtime` · 组件 ID 前缀 = `qian.` · 包前缀 = `Qian.*` / `@qian/*` / `@yue/*`

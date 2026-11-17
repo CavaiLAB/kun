@@ -1,6 +1,6 @@
 # 认证页族（qian.identity 同源）
 
-qian-identity 宿主同源托管的静态制品：登录（账号密码、连接器按钮）、多租户二次选择、强制改密、连接器落点，以及外壳切换租户用的选择页（S1-YUE-002；界面控件来自 [`@idadawn/yue-shell`](../yue/shell/README.md) 的认证页族，身份服务同源 AuthProvider 来自私有包 [`@qian/shell-kit`](../qian-shell-kit/README.md) 的 `@qian/shell-kit/identity`）。凭据只与发行方同源：页面直接调同源 `/api/identity/*`（防伪令牌 cookie-to-header，账号 Cookie 由服务端写入、HttpOnly），不持有任何令牌，也没有环境值进入构建产物。
+qian-identity 宿主同源托管的静态制品：登录（账号密码、连接器按钮）、多租户二次选择、强制改密、连接器落点，以及外壳切换租户用的选择页（S1-YUE-002；界面控件来自 [`@cavailab/qian-shell`](https://github.com/CavaiLAB/qian/blob/main/packages/qian/shell/README.md) 的认证页族，身份服务同源 AuthProvider 来自私有包 [`@qian/shell-kit`](../qian-shell-kit/README.md) 的 `@qian/shell-kit/identity`）。凭据只与发行方同源：页面直接调同源 `/api/identity/*`（防伪令牌 cookie-to-header，账号 Cookie 由服务端写入、HttpOnly），不持有任何令牌，也没有环境值进入构建产物。
 
 ## 路由与入口
 
@@ -18,9 +18,9 @@ qian-identity 宿主同源托管的静态制品：登录（账号密码、连接
 
 ## 验证
 
-入口边界与完整登录 / 选择 / 切换 / SSO（真实上游 Dex）流程在 [apps/qian-shell](../../apps/qian-shell/README.md) 的真实流程验收里覆盖（`pnpm yue:auth`）；本包的组件测试（`src/*.browser.test.tsx`，Vitest browser mode，项目 `identity-ui-browser`，随根 `pnpm yue:test` 运行）用替身 provider 覆盖连接器落点的等待 / 确认绑定 / 放弃 / 错误态与登录页连接器区的租户代码（含全局目录为空、租户过滤为空）；顶层跳转只经 `src/navigation.ts` 的出口。控件级用例在 `packages/yue/shell`。lint、typecheck、分层、循环依赖与构建接入 yue 门禁。
+入口边界与完整登录 / 选择 / 切换 / SSO（真实上游 Dex）流程在 [apps/qian-shell](../../apps/qian-shell/README.md) 的真实流程验收里覆盖（`pnpm shell:auth`）；本包的组件测试（`src/*.browser.test.tsx`，Vitest browser mode，项目 `identity-ui-browser`，随根 `pnpm ui:test` 运行）用替身 provider 覆盖连接器落点的等待 / 确认绑定 / 放弃 / 错误态与登录页连接器区的租户代码（含全局目录为空、租户过滤为空）；顶层跳转只经 `src/navigation.ts` 的出口。控件级用例在 CavaiLAB/qian 的 `packages/qian/shell`。lint、typecheck、依赖边界、循环依赖与构建接入外壳与界面包的门禁（根 `pnpm ui:*`，CI `qian-ui`）。
 
 ## 已知限制
 
 - 连接器区的租户代码由用户填写；按租户专属登录地址预填、或经授权请求的 `login_hint` 带入，待产品裁决。
-- 验证码登录、忘记密码与 Captcha 为后续范围（同 `@idadawn/yue-shell`）。
+- 验证码登录、忘记密码与 Captcha 为后续范围（同 `@cavailab/qian-shell`）。

@@ -40,4 +40,4 @@ app.MapQianFiles(
 - 只为 local 后端提供直传网关；s3 / oss 的直传直接指向对象存储（S1-FILE-002），届时 `TransferSource` 可不设。
 - 没有列表端点（也没有对应能力）；按业务对象列文件由业务组件保存文件 ID 后自行查询。
 - 直传地址是持有即可用的短时凭证：上传不超过 15 分钟、下载不超过 5 分钟，泄露期间任何人都能用；需要更短时限时由后续任务调整，不在端点上另加开关。
-- 分片上传、秒传协议（yue Upload 组件契约）归 S1-FILE-003；yue Upload 的端到端与 `qian add files` 端到端不在本任务。
+- 分片上传、秒传协议（`@cavailab/qian-data` 的 Upload 组件契约）归 S1-FILE-003；Upload 组件的端到端与 `qian add files` 端到端不在本任务。

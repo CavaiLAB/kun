@@ -1,6 +1,6 @@
 # 租户运营页面
 
-这是 qian.tenancy 的 ui 表面源码，作为私有 pnpm 工作区包交付。页面使用 @yue/form 的 SchemaForm、@yue/data 的 DataTable 与 @yue/sdk 的 PlatformClient，表单校验和 TypeScript 类型均从 [运营 HTTP 契约](../../plugins/qian.tenancy/contracts/http-v1.openapi.json) 派生。后端契约由 TEN-011 统一收口，页面只消费；源码可用于 platform 的运营入口，MF2、ui/manifest.json 与 qian add 的 UI 分发仍由 YUE-001 交付，此处不创建第二份清单。
+这是 qian.tenancy 的 ui 表面源码，作为私有 pnpm 工作区包交付。页面使用 `@cavailab/qian-form` 的 SchemaForm、`@cavailab/qian-data` 的 DataTable 与 `@cavailab/qian-sdk` 的 PlatformClient（CavaiLAB/qian 发布的前端框架包），表单校验和 TypeScript 类型均从 [运营 HTTP 契约](../../plugins/qian.tenancy/contracts/http-v1.openapi.json) 派生。后端契约由 TEN-011 统一收口，页面只消费；源码可用于 platform 的运营入口，MF2、ui/manifest.json 与 qian add 的 UI 分发仍由 YUE-001 交付，此处不创建第二份清单。
 
 ## 本机运行
 
@@ -32,7 +32,7 @@
 
 `pnpm --filter @qian/tenancy-ui e2e` 创建独立临时状态目录、随机回环端口和自有 PostgreSQL 容器，复用 up 启动真实 Kestrel/RS256/受限数据库与平台授权链，再执行 Playwright 七步验收与管理员维护验收，最后关闭自有宿主和容器。管理员维护部分：租户 A 在开户抽屉里新建管理员账号，租户 B 按登录标识选择已有账号；两位管理员经身份组件的账号接口（统一登录流水线）登录、首次登录先改初始密码，`/api/identity/me` 与目录成员列表都只有本租户；页面重置 A 的管理员密码（详情抽屉）与更换 B 的管理员（行内「更多」菜单）都要二次确认，重置后旧密码与原会话立即失效、临时密码登录必须先改密；换成手测宿主的受限运营（持平台超管、但不持 reset-credential）后，带初始密码开户与更换管理员都得到真实 403，抽屉里显示缺权限的提示，租户、管理员与账号密码都不变；激活、冻结、恢复同样经「更多」菜单，菜单只列当前状态的合法迁移。验收另外记录列表请求的完整查询串，断言翻页、每页条数和筛选都以 `skip` / `take` / `keyword` / `status` 交给服务端执行，而不是在前端过滤。无替身响应；非法字段测试仅改出站请求以验证真实 400。产物在 TestResults/tenant-ui，HTTP 证据仅含方法、路径、状态码，不记录令牌。CI 使用同一入口。
 
-修改服务端契约后运行 `pnpm --filter @qian/tenancy-ui contracts:generate`；contracts:check 同时校验类型和运行时 JSON 副本的新鲜度。分层、lint、类型、循环依赖和构建均接入 yue 门禁；本页真实宿主 E2E 独立于靶场。
+修改服务端契约后运行 `pnpm --filter @qian/tenancy-ui contracts:generate`；contracts:check 同时校验类型和运行时 JSON 副本的新鲜度。依赖边界、lint、类型、循环依赖和构建均接入外壳与界面包的门禁（根 `pnpm ui:*`，CI `qian-ui`）；本页真实宿主 E2E 单独跑（CI `qian-tenant-ui`）。
 
 ## 官方 MF2 远程（S1-YUE-001）
 

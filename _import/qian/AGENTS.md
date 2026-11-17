@@ -63,14 +63,16 @@
 ```text
 docs/        设计文档：decisions（决策清单）、adr、prd（含 specs）、migration、research、ROADMAP.md
 contracts/   冻结契约 v0：S2S claim、事件信封、ErrorDetail 与错误码目录、能力条目的 JSON Schema + fixture（见 contracts/v0/README.md）
-packages/    .NET 组件库（NuGet 包），如 Qian.Runtime.Errors；packages/yue/ 是 yue 前端工作区（@yue/* 八个包、分层矩阵，见 packages/yue/README.md 与 packages/yue/AGENTS.md）
-apps/        前端应用：yue-playground（Base UI 验证门与门禁靶场）
+packages/    .NET 组件库（NuGet 包），如 Qian.Runtime.Errors；packages/qian-* 是 Node 包：命令行、声明式表面校验库、外壳接线与三个界面包。
+             前端框架（原 yue，现名 qian）已迁到 CavaiLAB/qian，这里装已发布的 @cavailab/qian-*（见 README.md「前端依赖与包源」）
+apps/        外壳应用 qian-shell（模块联邦宿主，见 apps/qian-shell/README.md）
 pm/          任务与看板（见 pm/README.md）
 scripts/     pm.py、check_docs.py、check_deps.py（依赖图门禁）
-tests/       Testcontainers fixture、集成测试、门禁自测（见 tests/README.md）；tests/gates/yue/ 是 yue 门禁自测
+tests/       Testcontainers fixture、集成测试、门禁自测（见 tests/README.md）；tests/gates/ui/ 是外壳与界面包的门禁自测，tests/directory-e2e/ 是真实目录验收页
 website/     文档站（Rspress 2.0，见 website/README.md 与 website/AGENTS.md）；components/、cli/、design/、sdk/kun/（with-qian.mdx 除外）、sdk/api/ 为生成目录
 deploy/      开发期工具的 K3s 清单：pm-board/（看板）、docs-site/（文档站）；images/ 是 profile 镜像模板与供应链门禁（见 deploy/images/README.md）
-.github/     CI：文档门禁 + 任务校验 + 看板新鲜度；dotnet 构建、门禁与测试；文档站构建、预览与发布；yue 八项门禁矩阵；镜像供应链自检；本机租户运营手测环境冒烟
+.github/     CI：文档门禁 + 任务校验 + 看板新鲜度；dotnet 构建、门禁与测试；文档站构建、预览与发布；镜像供应链自检；本机租户运营手测环境冒烟
+             （yue 八项门禁随前端框架迁走；外壳与界面包的门禁在 CavaiLAB/kun 根上的 qian-ui.yml）
 Qian.slnx、global.json、Directory.Build.props / .targets、Directory.Packages.props、NuGet.config
              .NET 构建基线：net10.0、警告即错误、中央包版本、PublicAPI 门禁
 ```
@@ -83,16 +85,16 @@ Qian.slnx、global.json、Directory.Build.props / .targets、Directory.Packages.
 python3 scripts/check_docs.py && python3 scripts/pm.py validate && python3 scripts/pm.py build
 ```
 
-改了文档站（`website/`）或想看设计文档在站内的效果时再跑（需要 Node、pnpm、.NET SDK 与 kun 仓库的读权限：`KUN_DOCS_PATH` 指向本机 kun 克隆，见 `website/README.md` §1）：
+改了文档站（`website/`）或想看设计文档在站内的效果时再跑（需要 Node、pnpm、.NET SDK 与 kun 仓库的读权限：`KUN_DOCS_PATH` 指向本机 kun 克隆；还要 CavaiLAB/qian 的检出：`QIAN_DOCS_PATH`，见 `website/README.md` §1；装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：
 
 ```bash
 pnpm install && pnpm --filter website typecheck && pnpm --filter website test && pnpm --filter website build && pnpm --filter website check
 ```
 
-改了 yue 前端工作区（`packages/yue/`、`apps/`）再跑八项门禁（Playwright Chromium 与本机 Chrome 见 `packages/yue/README.md` §3）：
+改了外壳与界面包（`apps/`、`packages/qian-tenancy-ui`、`packages/qian-tenancy-signup-ui`、`packages/qian-identity-ui`、`packages/qian-shell-kit`、`samples/qian-sample-crm-ui`、`tests/directory-e2e`）再跑门禁（界面包的浏览器测试要 Playwright Chromium：`pnpm --filter @qian/identity-ui exec playwright install chromium`；外壳联邦验收要 .NET SDK 与 Docker）：
 
 ```bash
-pnpm yue:gates
+pnpm ui:gates
 python3 scripts/check_docs.py website/docs/sdk/kun website/docs/sdk/api
 ```
 

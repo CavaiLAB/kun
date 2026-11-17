@@ -34,7 +34,7 @@ updated: 2026-10-08
 
 ## 前端
 
-前端用 React + [yue 组件库](/components/yue/)。外壳 [qian.shell](/components/platform/qian.shell) 是 MF2 宿主：插件的界面以远程模块按需加载，挂到版本化插槽上（[ADR-013](/design/adr/adr-013-frontend-yue)）。前端外壳自身也是一棵由 `@qian/runtime` 装载的插件树，编程模型见 [前端 SDK](/sdk/frontend/)。
+前端用 React + [yue 组件库](/components/yue/)。外壳 [qian.shell](/components/platform/qian.shell) 是 MF2 宿主：插件的界面以远程模块按需加载，挂到版本化插槽上（[ADR-013](/design/adr/adr-013-frontend-yue)）。前端外壳自身也是一棵由 `@cavailab/qian-runtime` 装载的插件树，编程模型见 [前端 SDK](/sdk/frontend/)。
 
 ## 与 Kun 的关系
 

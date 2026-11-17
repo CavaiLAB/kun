@@ -137,7 +137,7 @@ Capabilities 同时提供 `Contracts` 服务键（`ctx.Contracts()` / `IContract
 
 偏好更新与 `qian.capabilities/navigation.preference` 审计在同一个 PostgreSQL Serializable 事务中提交。审计只写已知非敏感输入的规范化哈希，字段为 hidden、order 和 ASCII 资源引用，payload 不复制输入。审计失败时偏好回滚；序列化、死锁及目标键冲突会重新验证资格并重试整笔更新，耗尽后返回 CONFLICT。宿主需给本上下文的受限应用角色配置既有审计事务函数权限，不授予审计历史 DML。
 
-真实 Kestrel/PostgreSQL 用例覆盖两个租户、两个服务主体的展示隔离，版本化租户菜单替换、禁用不回退、restriction、卸载、偏好恢复、审计失败回滚和并发更新单行；外壳目录另有用例覆盖只列本租户实际挂载的组件、restrict 与卸载后不出现、未挂载组件的远程地址不交出；平台控制台目录的用例（`tests/Qian.Sample.Crm.Tests/PlatformConsoleTests.cs`）覆盖持角色的平台身份拿到两个平台组件的远程、菜单与权限码且不写审计，不持角色为空、撤销角色后立即为空，租户主体、服务与 Agent 404，租户外壳目录与菜单不含平台组件。前端远程模块的真实加载与用户交互登录由外壳的真实流程验收（`apps/qian-shell`，`pnpm yue:auth`）覆盖。
+真实 Kestrel/PostgreSQL 用例覆盖两个租户、两个服务主体的展示隔离，版本化租户菜单替换、禁用不回退、restriction、卸载、偏好恢复、审计失败回滚和并发更新单行；外壳目录另有用例覆盖只列本租户实际挂载的组件、restrict 与卸载后不出现、未挂载组件的远程地址不交出；平台控制台目录的用例（`tests/Qian.Sample.Crm.Tests/PlatformConsoleTests.cs`）覆盖持角色的平台身份拿到两个平台组件的远程、菜单与权限码且不写审计，不持角色为空、撤销角色后立即为空，租户主体、服务与 Agent 404，租户外壳目录与菜单不含平台组件。前端远程模块的真实加载与用户交互登录由外壳的真实流程验收（`apps/qian-shell`，`pnpm shell:auth`）覆盖。
 
 ## proto 与实际 gRPC 服务探测
 

@@ -8,7 +8,7 @@
 - 文中的 IDP-012 是[框架细化备忘录](../../decisions/framework-refinement-2026-10.md) §8 的候选任务号，指拟新建的「agent 客户端与 token exchange」，这个任务还没有建档。看板上的 S1-IDP-012 是另一件事（拆分部署下授权变更到身份修订递增）。
 - 文中的 Q5、Q20、Q22、Q25 指备忘录 §9 的待拍板项，也都没有拍板。
 
-设计画板（13 块：登录页密码态 / 暗色 / 手机单一方式与凭据错误 / 仅企业 IdP 与会话失效横幅、第二因子 TOTP、租户选择、强制修改密码、确认绑定、连接器回调错误、登录过期弹窗、租户切换器与代管横幅、设备码、授权同意）：<https://claude.ai/artifact/6So7dKqETKHjXEukWXmu3m>（私有链接，所有者分享后他人才能打开；取值只用 `@yue/tokens` 的 light / dark 语义色）。
+设计画板（13 块：登录页密码态 / 暗色 / 手机单一方式与凭据错误 / 仅企业 IdP 与会话失效横幅、第二因子 TOTP、租户选择、强制修改密码、确认绑定、连接器回调错误、登录过期弹窗、租户切换器与代管横幅、设备码、授权同意）：<https://claude.ai/artifact/6So7dKqETKHjXEukWXmu3m>（私有链接，所有者分享后他人才能打开；取值只用 `@cavailab/qian-tokens` 的 light / dark 语义色）。
 
 与既有文档的关系：
 
@@ -21,14 +21,14 @@
 | `docs/decisions/framework-refinement-2026-10.md` §7.3 / Q20 / Q22 | Agent 时代新增的设备码（RFC 8628）/ loopback PKCE 取令牌页与授权同意页；备忘录尚未拍板，本文按其默认建议预留并标条件 |
 | `contracts/v0` | 全部错误响应为 ErrorDetail（必填 `type` / `title` / `status` / `code` / `message` / `trace_id`，可选 `detail` / `instance` / `pointer` / `allowed` / `errors[]`；业务错误只用 409 / 422；封闭对象）；本文新增的 `AUTH_*` 码为提案，需登记进 `error-codes.json` |
 
-三层口径：Kun = 框架层（`Kun.Identity.AspNetCore` RP 侧 Cookie 会话、`Identity.Client`），Qian = 平台层（`qian.identity` 唯一 issuer、`qian.tenancy`、`qian.realtime`），yue = 前端层（`@yue/shell` 认证页族、`@yue/form` 登录表单、`@yue/core` 组件、`@yue/tokens` 令牌、`@yue/sdk` i18n / `PlatformClient`）。
+三层口径：Kun = 框架层（`Kun.Identity.AspNetCore` RP 侧 Cookie 会话、`Identity.Client`），Qian = 平台层（`qian.identity` 唯一 issuer、`qian.tenancy`、`qian.realtime`），yue = 前端层（`@cavailab/qian-shell` 认证页族、`@cavailab/qian-form` 登录表单、`@cavailab/qian-core` 组件、`@cavailab/qian-tokens` 令牌、`@cavailab/qian-sdk` i18n / `PlatformClient`）。
 
 ## 1 设计原则
 
 1. **服务端是唯一裁判**：锁定、延时、仅企业 IdP（D5.13）、绑定唯一、租户状态、会话吊销、强制改密全部由平台层判定；前端隐藏、禁用、倒计时只是体验层（PRD 13.10 第 4 条）。页面按服务端返回的「下一步」（`next ∈ { done, mfa, select_tenant, change_password, bind, enroll_totp }`）机械推进，不自判策略；刷新页面重新 GET 当前 flow 即可恢复到同一步。
 2. **能力驱动而非配置驱动**：登录方式、连接器、验证码开关、密码策略全部来自 `getLoginOptions({ tenantHint })` 按租户 scope 下发；未挂载的连接器在 DOM 中不存在（PRD 7.4.2「与不存在无法区分」）。只有一种方式时版式仍成立（S1-A 首屏只有密码 + 通用 OIDC）。
 3. **防枚举优先于友好**：账号不存在 / 密码错误 / 账号已锁定 / 延时中 / 仅企业 IdP / 租户不可登录，在凭据校验通过之前一律同码同文案（`AUTH_CREDENTIALS_INVALID`）；锁定通知只经 7.12 带外送达；发码对未知标识同响应且不发码；不显示剩余尝试次数；租户状态与成员状态只在主因子校验通过之后可见。
-4. **错误即 ErrorDetail**：`code` 决定 UI 分支，`message` 为可见文案，`pointer` / `errors[]` 经 `@yue/form` 落到字段，`trace_id` 折叠在「错误编号」后供报障；非 ErrorDetail 响应只显示状态级通用文案；未知 `code` 走通用错误态而不是白屏。
+4. **错误即 ErrorDetail**：`code` 决定 UI 分支，`message` 为可见文案，`pointer` / `errors[]` 经 `@cavailab/qian-form` 落到字段，`trace_id` 折叠在「错误编号」后供报障；非 ErrorDetail 响应只显示状态级通用文案；未知 `code` 走通用错误态而不是白屏。
 5. **凭据只与 issuer 同源**：密码、验证码、绑定票据、选择令牌只在 `qian.identity` 宿主的同源页面与 HttpOnly Cookie 中流转，永不经过依赖方（外壳）的 JavaScript；外壳只做 RP 侧（跳转、回调、过期弹窗、切换器、代管横幅）。令牌不进 localStorage / URL / iframe，权限不进令牌（ADR-006），登录页 `frame-ancestors 'none'`。
 6. **可解释的拒绝、显式的同意**（PRD 11.1.4、D5.11）：每个拒绝态在同一版式用 Alert + 按钮态说明原因与下一步，不用弹窗遮盖；外部身份绑定、第三方 / Agent 客户端授权、设备码批准都要用户看见对象后显式点一次，没有静默绑定、没有预勾选、没有「记住此决定」（S1）。
 7. **Agent 时代原则**：开发者与 Agent 客户端走标准取令牌通道（授权码 + PKCE S256、RFC 8628 设备码、RFC 8252 loopback），不发静态 API Key；同意页诚实展示 client（来自注册表）、scope（目录人话 + 副作用等级）、resource（RFC 8707 受众）与委托语义（有效权限 = 委托人权限 ∩ scope，`humanOnly` 一律拒绝，PRD 13.11）；浏览器端永不显示或接收令牌。
@@ -37,7 +37,7 @@
 
 ## 2 信息架构
 
-阶段列同时给旧 S1 的 P 级与备忘录 §7.2 的 S1-A / S1-B 口径（备忘录未拍板前两套并列；Q6 拍板后以 S1-A / S1-B 为准）。宿主列：`identity` = `qian.identity` 宿主同源挂载的 `@yue/shell` 认证页库；`shell` = `qian.shell` 外壳；`cli` = `qian` CLI 内置静态页。
+阶段列同时给旧 S1 的 P 级与备忘录 §7.2 的 S1-A / S1-B 口径（备忘录未拍板前两套并列；Q6 拍板后以 S1-A / S1-B 为准）。宿主列：`identity` = `qian.identity` 宿主同源挂载的 `@cavailab/qian-shell` 认证页库；`shell` = `qian.shell` 外壳；`cli` = `qian` CLI 内置静态页。
 
 | 路由 | 页面 | 阶段 | 宿主 | 用途 | 归属任务 |
 |---|---|---|---|---|---|
@@ -147,15 +147,15 @@ flowchart TD
 
 通用约定（各页不重复）：
 
-- 版式：发行方页面统一 `AuthLayout`（需新增，放 `@yue/shell`）——页面背景 `--yue-background`；≥ `--yue-p-breakpoint-md`（48rem）单张 `Card` 居中、宽 25rem（同意页 32rem）；≥ `--yue-p-breakpoint-lg`（64rem）左侧品牌栏约 40%（`--yue-sidebar` / `--yue-sidebar-foreground`，只放平台标识、名称、一句定位、环境标识）；< `--yue-p-breakpoint-sm`（40rem，含 375px）单列、无卡片边框与阴影、16px 侧边距、品牌栏收成顶部一行、按钮全宽。三种断点共用同一 DOM。
+- 版式：发行方页面统一 `AuthLayout`（需新增，放 `@cavailab/qian-shell`）——页面背景 `--qian-background`；≥ `--qian-p-breakpoint-md`（48rem）单张 `Card` 居中、宽 25rem（同意页 32rem）；≥ `--qian-p-breakpoint-lg`（64rem）左侧品牌栏约 40%（`--qian-sidebar` / `--qian-sidebar-foreground`，只放平台标识、名称、一句定位、环境标识）；< `--qian-p-breakpoint-sm`（40rem，含 375px）单列、无卡片边框与阴影、16px 侧边距、品牌栏收成顶部一行、按钮全宽。三种断点共用同一 DOM。
 - 标题层级：每页一个 `h1`（可见或 `sr-only`，如「登录到 {租户名}」）；`CardTitle` 渲染为 `h3`、`Result` 标题为 `h2`，都不作页面标题。
-- 表单：登录 / 改密 / 找回密码 / 绑定表单经 `@yue/form`（shell → form 是分层规则唯一例外）；`INPUT_INVALID` 的 `errors[].pointer` 由 `@yue/form` 统一映射到 `FieldError`；提交失败焦点移到首个无效控件（`aria-invalid` + `aria-describedby`），只有整体错误（锁定、仅企业 IdP、服务不可用）才把焦点移到 `tabIndex=-1` 的 Alert 容器。
+- 表单：登录 / 改密 / 找回密码 / 绑定表单经 `@cavailab/qian-form`（shell → form 是分层规则唯一例外）；`INPUT_INVALID` 的 `errors[].pointer` 由 `@cavailab/qian-form` 统一映射到 `FieldError`；提交失败焦点移到首个无效控件（`aria-invalid` + `aria-describedby`），只有整体错误（锁定、仅企业 IdP、服务不可用）才把焦点移到 `tabIndex=-1` 的 Alert 容器。
 - 错误展示：`AuthErrorNotice`（需新增，组合件）= `Alert tone=error role="alert"` + `message` + 折叠行「错误编号 {trace_id}」（`Button variant=ghost size=sm`「复制」，图标需新增 copy）；`Alert` 内不放 muted 色文字（对比度单测不覆盖 muted on tone-bg）；倒计时不放进 `role=alert` 容器，单独 `aria-live=polite` 区域每 10 秒更新一次。
-- 消息出口：Toast / 确认走 `@yue/form` 的 `useMessage` / `useConfirm`（`@yue/core` 的 `Toast` 无 `tone`）。
-- 按钮：`Button` 变体只有 `primary | secondary | outline | ghost | destructive`；文本链接用 `variant=ghost size=sm`；高度沿用 `--yue-button-height`（36px，`size=lg` 40px），目标尺寸按 WCAG 2.2 2.5.8（≥ 24×24），不覆盖为 44px。
+- 消息出口：Toast / 确认走 `@cavailab/qian-form` 的 `useMessage` / `useConfirm`（`@cavailab/qian-core` 的 `Toast` 无 `tone`）。
+- 按钮：`Button` 变体只有 `primary | secondary | outline | ghost | destructive`；文本链接用 `variant=ghost size=sm`；高度沿用 `--qian-button-height`（36px，`size=lg` 40px），目标尺寸按 WCAG 2.2 2.5.8（≥ 24×24），不覆盖为 44px。
 - `data-testid`：`auth-<page>-<element>`（如 `auth-login-identifier`、`auth-login-submit`、`auth-login-connector-{connectorId}`、`auth-mfa-code`、`auth-select-tenant-item-{membershipId}`），不含用户数据；连接器 id 可以、displayName 不行。
 - 加载：`getLoginOptions` / `getFlow` 未返回前 `Skeleton`（`aria-hidden`）占位，避免方式闪烁；提交中 `Button loading`（自带 `aria-busy` 与 spinner，不再嵌 `Spinner`），字段 `readOnly`。
-- 文案：zh-CN 为主，关键处给 en-US；zh-TW 由 `auth.*` 命名空间按 `@yue/sdk` 内置用词（登入 / 載入 / 搜尋 / 重新整理）翻译，通用键复用 `common.cancel` / `common.retry` / `common.unauthorized`；按钮内文案不换行，en-US 长句在 25rem 卡内允许两行。
+- 文案：zh-CN 为主，关键处给 en-US；zh-TW 由 `auth.*` 命名空间按 `@cavailab/qian-sdk` 内置用词（登入 / 載入 / 搜尋 / 重新整理）翻译，通用键复用 `common.cancel` / `common.retry` / `common.unauthorized`；按钮内文案不换行，en-US 长句在 25rem 卡内允许两行。
 
 ### 4.1 登录页 `/login?flow=`（S1-P0）
 
@@ -176,7 +176,7 @@ flowchart TD
 | 密码面板 | `Field`「账号」`Input`（`autocomplete=username`，占位「用户名 / 手机号 / 邮箱」）；`Field`「密码」`InputPassword`（`autocomplete=current-password`，`showLabel`「显示密码」`hideLabel`「隐藏密码」）；Captcha 槽位（需新增 `CaptchaField`）；`Button ghost sm`「忘记密码」；`Button primary` 全宽「登录」 | 密码允许粘贴；不做前端哈希 |
 | 验证码面板（S1-P1） | `Segmented`「手机」「邮箱」（仅两渠道都启用时）；`Field`「手机号」`Input`（`autocomplete=tel inputmode=tel`）+ `Button outline`「获取验证码」（倒计时）；`Field`「验证码」`PinInput length=6`（`label`「6 位验证码」`getSlotLabel`「第 {i} 位」，`autocomplete=one-time-code`）；`Button primary`「登录」 | 6 位填满不自动提交（WCAG 3.2.2） |
 | 连接器区 | `Separator` + muted 文本「或使用企业身份源」+ `Button outline` 全宽 × N「使用 {displayName} 登录」 | 列表只来自 `options.connectors`；图标需新增（Icon 入口无品牌图形），S1 可纯文字；idpOnly 时该区成为主体 |
-| 页脚 | `Select`（`aria-label`「语言」，zh-CN / zh-TW / en-US）、`IconButton`（主题三态 light / dark / system，经 `@yue/tokens` `ThemeController`，图标需新增）、`options.links` 帮助 / 隐私、版本号 | 主题偏好写 localStorage `yue-theme`（非敏感） |
+| 页脚 | `Select`（`aria-label`「语言」，zh-CN / zh-TW / en-US）、`IconButton`（主题三态 light / dark / system，经 `@cavailab/qian-tokens` `ThemeController`，图标需新增）、`options.links` 帮助 / 隐私、版本号 | 主题偏好写 localStorage `qian-theme`（非敏感） |
 | 技术详情（折叠） | `Accordion`「技术详情」+ `Descriptions`（发行方、flow、client_id、trace_id、环境） | 非生产默认展开；生产默认折叠，由 `__APP_CONF__.support.showTechDetails` 门控（D7） |
 
 **状态表**：
@@ -189,7 +189,7 @@ flowchart TD
 | 单一方式 | `options.factors` 只有密码且无连接器 | 不渲染 Tabs 与连接器区，版式不塌 | — |
 | 仅企业 IdP | `options.idpOnly`（需 tenantHint） | 凭据卡不渲染；`Alert tone=info`「该租户仅允许通过企业身份源登录」+ 连接器按钮；不自动跳转 | — |
 | 本地校验错误 | 空值 / 格式 | `FieldError`「请输入账号」「请输入密码」，焦点到首个无效控件 | — |
-| 字段错误 | 400 `errors[]` 带 pointer | 经 `@yue/form` 落到 `#/identifier` / `#/secret` / `#/captcha` | `INPUT_INVALID` |
+| 字段错误 | 400 `errors[]` 带 pointer | 经 `@cavailab/qian-form` 落到 `#/identifier` / `#/secret` / `#/captcha` | `INPUT_INVALID` |
 | 凭据无效 | 密码错 / 账号不存在 / 锁定中 / 延时中 / 无 tenantHint 的仅企业 IdP 账号 | `AuthErrorNotice`「账号或密码不正确」；密码框清空并聚焦；不显示剩余次数 | `AUTH_CREDENTIALS_INVALID`（422） |
 | 限流 / 延时 | 429 + `Retry-After` | `Alert tone=warn`「尝试过于频繁，请 {n} 秒后重试」；主按钮 `disabled` 至归零；倒计时区 `aria-live=polite` 每 10 秒播报 | `RATE_LIMITED`（既有，429） |
 | 需图形验证码 | 策略开关或阈值 | 插入 `CaptchaField` 并聚焦；「请输入图形验证码后再试」 | `AUTH_CAPTCHA_REQUIRED`（422） |
@@ -238,7 +238,7 @@ flowchart TD
 - localStorage 只存租户号与上次方式与主题偏好；账号、密码、令牌一律不落盘；S1 不做「记住我 / 记住账号」。
 - Captcha 自托管（D5.10，不接外部 SaaS）；图片不含账号信息；发码端点平台级防线（每 IP 与全局预算、未知标识不发码且同响应、尝试上限）。
 
-**无障碍要点**：`Field` 自动关联 label / description / error；`autocomplete` 用 WHATWG HTML Living Standard token；Tabs 方向键漫游；连接器按钮可访问名称含身份源名；图形验证码无音频替代（WCAG 2.2 1.1.1 / 3.3.8 缺口）→ 默认关、只按策略开、优先延时 / 锁定（§7）；对比度由 `@yue/tokens` 单测覆盖的语义成对令牌保证；`motion-reduce` 下无过渡。
+**无障碍要点**：`Field` 自动关联 label / description / error；`autocomplete` 用 WHATWG HTML Living Standard token；Tabs 方向键漫游；连接器按钮可访问名称含身份源名；图形验证码无音频替代（WCAG 2.2 1.1.1 / 3.3.8 缺口）→ 默认关、只按策略开、优先延时 / 锁定（§7）；对比度由 `@cavailab/qian-tokens` 单测覆盖的语义成对令牌保证；`motion-reduce` 下无过渡。
 
 **接触点**：`AuthProvider.interaction.getLoginOptions({ tenantHint })` → `GET /account/login-options?tenant=`；`getFlow(flow)` → `GET /account/flows/{flow}`；`getAntiforgery()`；`signIn(flow, { factor: 'password' | 'sms_otp' | 'email_otp', identifier, secret, captchaTicket? })` → `POST /account/flows/{flow}/signin`；`sendOtp(flow, { channel, identifier, purpose: 'login' })` → `POST /account/flows/{flow}/otp`；`getCaptcha()` → `GET /account/captcha`；`beginConnector(flow, connectorId)`；`complete(flow)` → `POST /account/flows/{flow}/complete`（返回 `return_to`）。路径为提案，由 IDP-003 / 006 / 007 登记。
 
@@ -408,7 +408,7 @@ flowchart TD
 
 **无障碍要点**：`role=status` 进度；错误态标题容器聚焦。
 
-**接触点**：`AuthProvider.rp.beginLogin({ returnTo, tenantHint?, prompt? })` → `GET /auth/login`（网关生成 PKCE + state 后 302 `/connect/authorize`）；`completeLogin(url)`；`TokenProvider.getAccessToken / refreshAccessToken`（`@yue/sdk` `PlatformClient` 的 `tokenProvider`，合并并发；`onSessionExpired` 只触发一次）。
+**接触点**：`AuthProvider.rp.beginLogin({ returnTo, tenantHint?, prompt? })` → `GET /auth/login`（网关生成 PKCE + state 后 302 `/connect/authorize`）；`completeLogin(url)`；`TokenProvider.getAccessToken / refreshAccessToken`（`@cavailab/qian-sdk` `PlatformClient` 的 `tokenProvider`，合并并发；`onSessionExpired` 只触发一次）。
 
 ### 4.8 会话弹窗族（S1-P0，外壳全局）
 
@@ -424,7 +424,7 @@ flowchart TD
 |---|---|---|---|
 | 登录过期 | 刷新队列合并并发 401，refresh 失败一次 | 弹过期对话框，只弹一个；打开时焦点在「重新登录」 | `UNAUTHENTICATED`（401） |
 | 重试成功 | 已在其他标签页登录 | 关闭对话框，队列请求重放 | — |
-| 离线 | 网络断开 | 不弹过期，显示外壳离线兜底横幅（S1-YUE-002 兜底页范围，非 `@yue/core` 组件）；恢复后再判定 | — |
+| 离线 | 网络断开 | 不弹过期，显示外壳离线兜底横幅（S1-YUE-002 兜底页范围，非 `@cavailab/qian-core` 组件）；恢复后再判定 | — |
 | 强制下线（有实时通道） | `logout(reason)` | ≤ 3s：清内存令牌 → 取消在途请求 → 阻断路由 → 跳 `/login`（服务端写一次性登出提示 Cookie；降级 `?reason=` 白名单） | `identity.logout.v1`（`reason` 枚举需登记） |
 | 强制下线（无实时通道，v0 主路径） | 下一次请求 401 | 刷新失败 → 过期对话框文案改为服务端 `message` | `UNAUTHENTICATED` + `AUTH_SESSION_REVOKED` 子码（提案） |
 | 权限变更 | `identityRevisionChanged` | 不弹窗、不跳转：静默刷新令牌 + 重载菜单 / 权限快照 + Toast | `authz.grant.changed.v1` / `authz.role.changed.v1` |
@@ -467,7 +467,7 @@ flowchart TD
 
 **用途**：RP 发起登出的确认页；GET 只展示表单，POST 带 antiforgery（`Qian.Identity.Server` 既有）；后通道登出对用户静默。
 
-**版式**：服务端渲染的极简 HTML（不加载 React），引用 `@yue/tokens` 生成的 CSS 变量 + 一份 `auth.css`，版式与 `AuthLayout` 一致；需为此页单独加截图基线（yue 视觉门禁对 16px 图标有盲区）。
+**版式**：服务端渲染的极简 HTML（不加载 React），引用 `@cavailab/qian-tokens` 生成的 CSS 变量 + 一份 `auth.css`，版式与 `AuthLayout` 一致；需为此页单独加截图基线（yue 视觉门禁对 16px 图标有盲区）。
 
 **元素清单**：`h1`「退出登录？」；说明「将结束您在 {client} 的登录；已连接的其他应用会同步退出」（`id_token_hint` 解析失败则省略 client）；`<form method=post>` + 隐藏 antiforgery 字段；按钮「取消」「退出」；完成态「已退出登录」+「重新登录」；携带已注册 `post_logout_redirect_uri` 时自动跳转前有 `role=status` 提示。
 
@@ -531,7 +531,7 @@ flowchart TD
 
 **用途**：租户策略要求两步验证且无因子时的首次登录绑定；不可跳过；7.4.1 E2E「TOTP 绑定与校验」依赖本页。
 
-**元素清单**：`Alert tone=info`「您的租户要求启用两步验证」；`CardTitle`「启用身份验证器」+ `CardDescription`「用身份验证器应用扫描二维码」；`img`（服务端返回 SVG data URI，`alt`「TOTP 绑定二维码」，不新增组件）；`Button ghost sm`「无法扫码？」→ 手动密钥（`--yue-p-font-mono` 4 位分组 + `Button ghost sm`「复制密钥」，图标需新增）；`Field` + `PinInput length=6`「输入应用显示的 6 位动态码」；`Button primary`「启用并继续」；`Button ghost sm`「退出登录」。
+**元素清单**：`Alert tone=info`「您的租户要求启用两步验证」；`CardTitle`「启用身份验证器」+ `CardDescription`「用身份验证器应用扫描二维码」；`img`（服务端返回 SVG data URI，`alt`「TOTP 绑定二维码」，不新增组件）；`Button ghost sm`「无法扫码？」→ 手动密钥（`--qian-p-font-mono` 4 位分组 + `Button ghost sm`「复制密钥」，图标需新增）；`Field` + `PinInput length=6`「输入应用显示的 6 位动态码」；`Button primary`「启用并继续」；`Button ghost sm`「退出登录」。
 
 **状态表**：
 
@@ -556,7 +556,7 @@ flowchart TD
 
 **用途**：`qian login` 设备码路径（RFC 8628，IETF 2019-08）；输入 user_code → 登录 → 同意 → 回终端；loopback PKCE（RFC 8252，IETF 2017-10）回跳后由 CLI 渲染本地完成页。前提：`IdentityServerHosting` 当前只启用 AuthorizationCode / RefreshToken / ClientCredentials 三种 flow，设备授权端点与显式同意需随 IDP-012 开启。
 
-**元素清单**：`h1`「授权命令行或 Agent」+ 说明「在终端运行 qian login 后，输入终端显示的代码」；`Field`「设备代码」：两组 `PinInput length=4`（8 槽 `size-10` + 间距在 375px 溢出）或单个 `Input`（mono、`autocapitalize=characters`、`autocomplete=off`、占位「WDJB-MJHT」）+ `FieldDescription`「不区分大小写，可省略连字符」；`Alert tone=warn role=note`（常驻）「只输入您自己终端上显示的代码；他人发给您的代码不要输入」；`Button primary`「继续」；确认页（`/device/confirm`，凭服务端 flow 渲染，user_code 不进 URL）：客户端卡（`Avatar` + 名称 + `Badge`「命令行」/「Agent」+ 发布者 + 信任等级）+「以 {displayName}（{tenant}）的身份」+ 多 Membership 时 `Select` + 请求发起时间与 IP 归属 + 权限 / 资源列表（同 §4.16）+ `Button primary`「授权」+ `Button outline`「拒绝」；完成：`Result tone=ok`「已授权，请回到终端继续」/ `Result tone=neutral`「已拒绝，终端不会获得访问权限」；CLI 本地完成页：静态 HTML ≤ 4KB、内联 `@yue/tokens` 语义变量两态，「登录完成，可以回到终端」/「登录失败」/「您拒绝了授权」。
+**元素清单**：`h1`「授权命令行或 Agent」+ 说明「在终端运行 qian login 后，输入终端显示的代码」；`Field`「设备代码」：两组 `PinInput length=4`（8 槽 `size-10` + 间距在 375px 溢出）或单个 `Input`（mono、`autocapitalize=characters`、`autocomplete=off`、占位「WDJB-MJHT」）+ `FieldDescription`「不区分大小写，可省略连字符」；`Alert tone=warn role=note`（常驻）「只输入您自己终端上显示的代码；他人发给您的代码不要输入」；`Button primary`「继续」；确认页（`/device/confirm`，凭服务端 flow 渲染，user_code 不进 URL）：客户端卡（`Avatar` + 名称 + `Badge`「命令行」/「Agent」+ 发布者 + 信任等级）+「以 {displayName}（{tenant}）的身份」+ 多 Membership 时 `Select` + 请求发起时间与 IP 归属 + 权限 / 资源列表（同 §4.16）+ `Button primary`「授权」+ `Button outline`「拒绝」；完成：`Result tone=ok`「已授权，请回到终端继续」/ `Result tone=neutral`「已拒绝，终端不会获得访问权限」；CLI 本地完成页：静态 HTML ≤ 4KB、内联 `@cavailab/qian-tokens` 语义变量两态，「登录完成，可以回到终端」/「登录失败」/「您拒绝了授权」。
 
 **状态表**：
 
@@ -607,21 +607,21 @@ flowchart TD
 
 ## 5 视觉规范
 
-只引用 `@yue/tokens`（`packages/yue/tokens/src/registry.json`）：
+只引用 `@cavailab/qian-tokens`（CavaiLAB/qian 的 `packages/qian/tokens/src/registry.json`）：
 
 | 项 | 令牌 / 取值 | 说明 |
 |---|---|---|
-| 品牌色 | `--yue-primary` / `--yue-primary-foreground`；`brands.default → blue`（oklch 色相 260，chroma .18）；light 用 brand-600、dark 用 brand-400 | 主按钮、焦点环 `--yue-ring`（3px）、`Badge tone=info`；连接器按钮一律 `outline`，不用各家品牌色填充 |
-| 中性色 | `--yue-background` / `--yue-foreground` / `--yue-card` / `--yue-border` / `--yue-muted` / `--yue-muted-foreground` / `--yue-sidebar` | neutral 调色板色相 260、chroma 0 |
-| 状态色 | `--yue-error` / `--yue-error-bg`、`--yue-warn` / `-bg`、`--yue-info` / `-bg`、`--yue-ok` / `-bg`；`Tone = ok \| warn \| error \| info \| neutral` | `Alert` / `Badge` / `Tag` / `Result` 的 `tone` 已映射；`Alert` 内文字只用 tone 色不用 muted |
-| 圆角 | `--yue-radius` = `--yue-p-radius-base` = 0.625rem；按钮 `--yue-button-radius` 与输入 `--yue-input-radius` = `calc(var(--yue-radius) − 2px)`；`Card` 用 `rounded-xl`（主题映射 `calc(--radius + 4px)`） | 任务文本中的「.5rem」是 `--yue-p-radius-md`，不是组件默认圆角 |
-| 字体 | `--yue-p-font-sans`（系统栈含 PingFang SC / Microsoft YaHei / Noto Sans CJK SC）；`--yue-p-font-mono`（租户号、user_code、密钥、trace_id） | h1 `--yue-p-font-size-xl` font-semibold；正文 `--yue-p-font-size-sm`；行高 `--yue-p-line-height-normal` |
-| 间距与高度 | 字段间 `--yue-p-space-4`，分区 `--yue-p-space-6`，卡片内边距 `--yue-p-space-6`；控件高度 `--yue-button-height`（2.25rem）；`PinInput` 槽 `size-10` | 不覆盖为 44px |
-| 阴影 / 层级 | `--yue-p-shadow-sm`；弹窗 `--yue-p-z-modal` | — |
-| 明暗 | `html.dark` + `color-scheme`，首帧防闪烁脚本（需 CSP nonce / hash）；偏好经 `ThemeController`（localStorage `yue-theme`，light / dark / system 三态）；`data-theme` / `.dark` 是脚本输出不是覆盖入口 | 登录页宿主与外壳不同源，偏好不共享：登录域默认跟随系统 + 自带切换（D8） |
+| 品牌色 | `--qian-primary` / `--qian-primary-foreground`；`brands.default → blue`（oklch 色相 260，chroma .18）；light 用 brand-600、dark 用 brand-400 | 主按钮、焦点环 `--qian-ring`（3px）、`Badge tone=info`；连接器按钮一律 `outline`，不用各家品牌色填充 |
+| 中性色 | `--qian-background` / `--qian-foreground` / `--qian-card` / `--qian-border` / `--qian-muted` / `--qian-muted-foreground` / `--qian-sidebar` | neutral 调色板色相 260、chroma 0 |
+| 状态色 | `--qian-error` / `--qian-error-bg`、`--qian-warn` / `-bg`、`--qian-info` / `-bg`、`--qian-ok` / `-bg`；`Tone = ok \| warn \| error \| info \| neutral` | `Alert` / `Badge` / `Tag` / `Result` 的 `tone` 已映射；`Alert` 内文字只用 tone 色不用 muted |
+| 圆角 | `--qian-radius` = `--qian-p-radius-base` = 0.625rem；按钮 `--qian-button-radius` 与输入 `--qian-input-radius` = `calc(var(--qian-radius) − 2px)`；`Card` 用 `rounded-xl`（主题映射 `calc(--radius + 4px)`） | 任务文本中的「.5rem」是 `--qian-p-radius-md`，不是组件默认圆角 |
+| 字体 | `--qian-p-font-sans`（系统栈含 PingFang SC / Microsoft YaHei / Noto Sans CJK SC）；`--qian-p-font-mono`（租户号、user_code、密钥、trace_id） | h1 `--qian-p-font-size-xl` font-semibold；正文 `--qian-p-font-size-sm`；行高 `--qian-p-line-height-normal` |
+| 间距与高度 | 字段间 `--qian-p-space-4`，分区 `--qian-p-space-6`，卡片内边距 `--qian-p-space-6`；控件高度 `--qian-button-height`（2.25rem）；`PinInput` 槽 `size-10` | 不覆盖为 44px |
+| 阴影 / 层级 | `--qian-p-shadow-sm`；弹窗 `--qian-p-z-modal` | — |
+| 明暗 | `html.dark` + `color-scheme`，首帧防闪烁脚本（需 CSP nonce / hash）；偏好经 `ThemeController`（localStorage `qian-theme`，light / dark / system 三态）；`data-theme` / `.dark` 是脚本输出不是覆盖入口 | 登录页宿主与外壳不同源，偏好不共享：登录域默认跟随系统 + 自带切换（D8） |
 | 品牌区与租户品牌预留 | S1 平台级一套，来自 `__APP_CONF__.brand`；S3 租户品牌经 `data-brand`（registry `brands: default / teal`）由服务端按租户下发；只保留注入点 | 不做营销区、插画、公告位 |
-| 动效 | 只用 `--yue-p-duration-normal` + `--yue-p-ease-standard` 的透明度 / 高度过渡（标识态 ↔ 验证码态）；`motion-reduce` 全部关闭 | `Button loading` 的 spinner 自带 `motion-reduce:animate-none` |
-| 响应式断点 | `--yue-p-breakpoint-sm` 40rem / `md` 48rem / `lg` 64rem / `xl` 80rem | < sm：单列、无卡片边框、16px 侧边距、按钮全宽、连接器纵向堆叠、`Descriptions` 改纵向、mono 长串 `break-all`；md–lg：单卡居中；≥ lg：分栏 + 品牌栏；≥ xl 只增留白 |
+| 动效 | 只用 `--qian-p-duration-normal` + `--qian-p-ease-standard` 的透明度 / 高度过渡（标识态 ↔ 验证码态）；`motion-reduce` 全部关闭 | `Button loading` 的 spinner 自带 `motion-reduce:animate-none` |
+| 响应式断点 | `--qian-p-breakpoint-sm` 40rem / `md` 48rem / `lg` 64rem / `xl` 80rem | < sm：单列、无卡片边框、16px 侧边距、按钮全宽、连接器纵向堆叠、`Descriptions` 改纵向、mono 长串 `break-all`；md–lg：单卡居中；≥ lg：分栏 + 品牌栏；≥ xl 只增留白 |
 | 门禁 | 认证页族补 375×667 与 1440×900 的 axe + 截图基线（现有 Playwright 只跑 Desktop Chrome） | 登出页（服务端 HTML）单独加基线 |
 
 ## 6 验收映射
@@ -646,7 +646,7 @@ flowchart TD
 | S1-IDP-006 | 发码对未知标识同响应且不发码、每 IP 与全局预算、尝试上限（send-code 四条防线）；`AUTH_OTP_INVALID` 不区分错误与过期；找回密码对无渠道 / 仅企业 IdP 账号同响应；TOTP 绑定页二维码以 SVG data URI 返回；step-up 因子 S1 只接受密码 / TOTP |
 | S1-IDP-007 | 绑定票据有效期（建议 10 分钟）与 `AUTH_BINDING_CONFLICT`（409）/ `AUTH_BINDING_EXPIRED`；回调处理后 302 到 `/login/connector/{id}?flow=` 读 `next`；上游 `error_description` 不透传 |
 | S1-IDP-008 | 工作台免登失败态文案与「改用其他方式登录」出口；企微 JS SDK 域名只在连接器对当前 `tenant_hint` 挂载时进 CSP |
-| S1-YUE-006 | 新增组合件（`AuthLayout`、`AuthErrorNotice`、`CountdownText`、`CaptchaField`、`PasswordPolicyChecklist`、连接器按钮图标槽）放 `@yue/shell`，各带 `*.browser.test.tsx` / `*.ssr.test.tsx` / 场景登记；Icon 入口扩 copy / refresh / sun / moon / search；登录表单经 `@yue/form`；`auth.*` 三语言包；375×667 与 1440×900 axe + 截图基线；每页一个 `h1`；testId 命名 `auth-<page>-<element>` |
+| S1-YUE-006 | 新增组合件（`AuthLayout`、`AuthErrorNotice`、`CountdownText`、`CaptchaField`、`PasswordPolicyChecklist`、连接器按钮图标槽）放 `@cavailab/qian-shell`，各带 `*.browser.test.tsx` / `*.ssr.test.tsx` / 场景登记；Icon 入口扩 copy / refresh / sun / moon / search；登录表单经 `@cavailab/qian-form`；`auth.*` 三语言包；375×667 与 1440×900 axe + 截图基线；每页一个 `h1`；testId 命名 `auth-<page>-<element>` |
 | S1-YUE-002 | 平台代管横幅（数据来自 `qian.tenancy`）；上次登录提示 Toast；无实时通道时的两档验收（≤ 3s 仅在有通道时）；`returnTo` 白名单；`BroadcastChannel` 多标签同步 |
 | IDP-012（候选） | 设备授权端点与显式 `ConsentType` 开启；`/device`、`/consent`、`/connect/error` 页面；`identity.consent.v1` 审计事件；user_code 不进日志与 URL |
 
@@ -669,13 +669,13 @@ flowchart TD
 | 个人中心（资料、改密、社交账号绑定解绑、TOTP 管理、会话列表与下线、换绑） | 归 IDP-006 个人中心最小集，不在本页族 |
 | 管理员重置他人密码 / MFA、批量强制下线、在线用户 | TEN-010 / IDP-004 管理面，`humanOnly`（13.5） |
 | 「同时退出所有设备」勾选项 | S1 不在登出页；revoke-all 归个人中心 |
-| 新增 `@yue/core` 组件 | 不新增；组合件全部放 `@yue/shell`（§5.5 首屏预算）；Steps 用 `ol` + `aria-current`，二维码用服务端 SVG |
+| 新增 `@cavailab/qian-core` 组件 | 不新增；组合件全部放 `@cavailab/qian-shell`（§5.5 首屏预算）；Steps 用 `ol` + `aria-current`，二维码用服务端 SVG |
 
 ## 8 待产品负责人确认
 
 | 编号 | 问题 | 默认建议 |
 |---|---|---|
-| D1 | 认证页族宿主：凭据页面（登录 / MFA / 选租户 / 改密 / 绑定 / 设备码 / 同意）由 `qian.identity` 宿主同源挂载 `@yue/shell` 认证页库（identity profile 提供静态制品），外壳只做 RP 侧；S1-YUE-002 / YUE-006 / IDP-003 的任务文本「登录在外壳」需改口；R31「shell 制品随 platform 镜像经 gateway 提供」需补 identity 侧托管一条 | 接受同源托管；若否，外壳跨源 POST 凭据的 CSRF / SameSite 方案须重做且「密码不经 RP JavaScript」前提失效 |
+| D1 | 认证页族宿主：凭据页面（登录 / MFA / 选租户 / 改密 / 绑定 / 设备码 / 同意）由 `qian.identity` 宿主同源挂载 `@cavailab/qian-shell` 认证页库（identity profile 提供静态制品），外壳只做 RP 侧；S1-YUE-002 / YUE-006 / IDP-003 的任务文本「登录在外壳」需改口；R31「shell 制品随 platform 镜像经 gateway 提供」需补 identity 侧托管一条 | 接受同源托管；若否，外壳跨源 POST 凭据的 CSRF / SameSite 方案须重做且「密码不经 RP JavaScript」前提失效 |
 | D2 | 面向终端用户的租户叫法：按 11.2 词表用「租户」、按 7.3 租户主档用「租户号」；或在词表新增「组织 = 租户的用户可见别名」并把 7.4.3 的「组织」改称「部门」 | 用「租户」；不单方面改词表 |
 | D3 | 防枚举口径：凭据校验前一律 `AUTH_CREDENTIALS_INVALID`，锁定 / 停用 / 租户状态 / 仅企业 IdP 只在凭据正确后可见；锁定通知只经 7.12；不给具体解锁时间 | 接受；代价是输错密码的被锁用户只看到「账号或密码不正确」，靠短信知晓 |
 | D4 | `login-options` 对已知租户号返回租户名、LOGO 与连接器列表，等于公开「该租户存在且用哪家 IdP」；对标项目普遍接受此暴露 | 接受，按 IP 限流 + 未知即默认集；S3 域名验证后收紧 |
@@ -701,16 +701,16 @@ flowchart TD
 | 5 | 租户状态词「已到期」、缺「只读」 | 待激活 / 宽限 / 只读 / 冻结 / 注销 | 7.3 状态机 |
 | 6 | `Button variant=link` | 不存在；用 `ghost size=sm` | `button.tsx` 变体 primary / secondary / outline / ghost / destructive |
 | 7 | `tone=warning / success / destructive`、`Toast tone=` | `Tone = ok \| warn \| error \| info \| neutral`；`Toast` 无 tone，消息走 `useMessage` | `tokens.ts`、`notification.tsx` |
-| 8 | 「`DropdownMenu` 不存在」（评审）与「`menuitemradio`」（设计） | `index.ts` 以别名导出 `DropdownMenu*`；但无 RadioItem，当前项用可见文本 + `aria-current` | `packages/yue/core/src/index.ts`、`menu.tsx` |
+| 8 | 「`DropdownMenu` 不存在」（评审）与「`menuitemradio`」（设计） | `index.ts` 以别名导出 `DropdownMenu*`；但无 RadioItem，当前项用可见文本 + `aria-current` | CavaiLAB/qian 的 `packages/qian/core/src/index.ts`、`menu.tsx` |
 | 9 | 「Result 标题为 h1」「CardTitle 承载页面标题」 | `Result` 为 `section` + `h2`，`CardTitle` 为 `h3`；每页另设 `h1` | `feedback.tsx`、`layout.tsx` |
 | 10 | 「Esc 不关闭以符合 alertdialog 语义」 | APG Alert Dialog 模式 Esc 关闭；禁用 Esc 是产品决策，经受控 `open` 实现 | WAI-ARIA APG；Base UI AlertDialog |
 | 11 | 「只新增 Captcha 与连接器图标」 | Icon 入口仅 14 个图形，还缺 copy / refresh / sun / moon / search | `icon.tsx` |
-| 12 | 「全部页面只用 @yue/core」 | 登录表单必须经 `@yue/form`（shell → form 唯一例外） | yue.md §3.1；S1-YUE-006 |
+| 12 | 「全部页面只用 @cavailab/qian-core」 | 登录表单必须经 `@cavailab/qian-form`（shell → form 唯一例外） | yue.md §3.1；S1-YUE-006 |
 | 13 | 「对比度 ≥ 4.5:1 由 tokens CI 单测保证」用于 Alert 内 muted 文字 | 单测只覆盖 `contrastWith` 成对令牌；Alert 内不用 muted 色 | `tokens.test.ts` |
 | 14 | 同意页「默认焦点在允许但 Enter 不触发」 | 默认焦点「拒绝」，两按钮正常响应；破坏性 scope 勾选前「允许」禁用 | WCAG 2.2 2.1.1；原生 button 语义 |
 | 15 | `PinInput length=8`（4-4 分组、自动大写） | 8 槽 376px 在 375px 溢出；无分组 / 大写能力；改两组 4 位或 mono `Input` | `input.tsx` `size-10 gap-2` |
-| 16 | 「按钮 44px（移动）/ 40px（桌面）」「按钮 `--yue-radius`」「radius .5rem」 | `--yue-button-height` 36px、`size=lg` 40px；按钮圆角 `--yue-button-radius`；`--yue-radius` = 0.625rem | `registry.json` |
-| 17 | 「页脚 Toggle 只写 data-theme」「尊重 data-theme 覆盖」 | 经 `ThemeController.setTheme`，写 localStorage `yue-theme`；`data-theme` 是输出 | `theme.ts` / `theme-init.js` |
+| 16 | 「按钮 44px（移动）/ 40px（桌面）」「按钮 `--qian-radius`」「radius .5rem」 | `--qian-button-height` 36px、`size=lg` 40px；按钮圆角 `--qian-button-radius`；`--qian-radius` = 0.625rem | `registry.json` |
+| 17 | 「页脚 Toggle 只写 data-theme」「尊重 data-theme 覆盖」 | 经 `ThemeController.setTheme`，写 localStorage `qian-theme`；`data-theme` 是输出 | `theme.ts` / `theme-init.js` |
 | 18 | 「Spinner size=lg」、提交态「disabled + 内嵌 Spinner」 | `Spinner` 无 size、`label` 必填；提交用 `Button loading` | `feedback.tsx`、`button.tsx` |
 | 19 | 「PinInput 每格有 aria-label」 | 第 1 格无 `aria-label`，依赖 sr-only 整组 label | `input.tsx` |
 | 20 | 禁用项用 Tooltip 提供原因 | disabled 元素不可聚焦、Tooltip 不可达；原因作常驻可见文本 | `tooltip.tsx` |

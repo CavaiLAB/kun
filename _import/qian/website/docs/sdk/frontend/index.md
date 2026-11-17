@@ -1,6 +1,6 @@
 ---
 title: 前端 SDK
-description: "@qian/runtime 与 @qian/plugin-sdk 的编程模型：外壳是一棵插件树，插件界面以 MF2 远程模块加载并挂到版本化插槽。"
+description: "@cavailab/qian-runtime 与 @cavailab/qian-plugin-sdk 的编程模型：外壳是一棵插件树，插件界面以 MF2 远程模块加载并挂到版本化插槽。"
 part: sdk
 project: qian
 audience: [developer]
@@ -9,16 +9,16 @@ updated: 2026-10-07
 
 # 前端 SDK
 
-前端外壳自身也是一棵由 `@qian/runtime` 装载的插件树，与后端同一套语义：上下文、服务注册、类型化事件、可逆副作用、scope。
+前端外壳自身也是一棵由 `@cavailab/qian-runtime` 装载的插件树，与后端同一套语义：上下文、服务注册、类型化事件、可逆副作用、scope。
 
 | 包 | 内容 |
 |---|---|
-| `@qian/runtime` | 运行时：上下文 `ctx`、`provide` / `inject`、事件、副作用、装载器 |
-| `@qian/plugin-sdk` | 插件开发包的前端部分：与外壳交互的桥接 API（随 qian.shell 提供，PRD §7.15） |
-| `@yue/sdk` | 注册表 API、`PlatformClient`、请求拦截器链（鉴权刷新、租户头）、i18n |
+| `@cavailab/qian-runtime` | 运行时：上下文 `ctx`、`provide` / `inject`、事件、副作用、装载器 |
+| `@cavailab/qian-plugin-sdk` | 插件开发包的前端部分：与外壳交互的桥接 API（随 qian.shell 提供，PRD §7.15） |
+| `@cavailab/qian-sdk` | 注册表 API、`PlatformClient`、请求拦截器链（鉴权刷新、租户头）、i18n |
 
 - **服务键**：TS 侧小驼峰（`files`），.NET 侧大驼峰（`Files`），两侧各自声明常量，文档生成器把它们对应到同一 seam。`ctx.files` 是代理属性，等价于 `ctx.inject("files")`。
-- **远程模块**：外壳 [qian.shell](/components/platform/qian.shell) 是 MF2 宿主，按需加载插件的远程模块；`react`、`react-dom`、`@yue/*`、`@qian/plugin-sdk` 作为共享单例。
+- **远程模块**：外壳 [qian.shell](/components/platform/qian.shell) 是 MF2 宿主，按需加载插件的远程模块；`react`、`react-dom`、`@cavailab/qian-*`（含 `@cavailab/qian-plugin-sdk`）作为共享单例。
 - **插槽**：导航、设置、用户菜单、命令、预览等插槽都带版本号与输入数据 Schema。
 
 ## API 草图

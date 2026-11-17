@@ -7,7 +7,7 @@
 - `ui/manifest.json`：`federation.manifest` 指向 `/remotes/qian.sample.crm/mf-manifest.json`；两页分别要求 `qian.sample.crm:customer:read` / `customer:write`；`bridge` 声明插槽、可导航路由、通知与两项能力（`customer.list` 只读、`customer.create` 写）。
 - `src/customers.tsx`（`CustomersPage`）：经 `bridge.invoke` 调 `qian.sample.crm/customer.list`，加载中、失败、空列表与列表四态；有写权限时显示「新建客户」。
 - `src/create-customer.tsx`（`CreateCustomerPage`）：表单经 `bridge.invoke` 调 `customer.create`（写能力，幂等键由外壳补上），成功后回到列表。
-- `vite.remote.config.ts`：React、`@idadawn/yue-*` 与插件 SDK 全部由外壳共享（singleton、`import: false`），制品里只有两页自己的代码；产物在 `dist/remote/`，不交付 `index.html`。
+- `vite.remote.config.ts`：React、`@cavailab/qian-*` 与插件 SDK `@cavailab/qian-plugin-sdk` 全部由外壳共享（singleton、`import: false`），制品里只有两页自己的代码；产物在 `dist/remote/`，不交付 `index.html`。
 
 ## 构建与托管
 

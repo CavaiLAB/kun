@@ -36,7 +36,7 @@ if (result.IsValid)
 
 `ui/manifest.json` 默认被发现，也可由 `surfaces.ui` 指定组件内其它 JSON 文件；两端真正读取内容、校验 `ui/v2` 并返回 `kind: ui` 文档。清单须有 `$schema`、`federation.manifest/exposes` 与 `engines.qian`（前端框架版本），保留规格中的 pages、widgets、settingsCards。桥接字段可省略以描述只供静态索引的 UI；声明 contributions 时必须同时声明完整 bridge。未知字段、缺少必填属性、非法路由、未声明 expose、重复路由/控件类型/同 scope 设置卡片/插槽贡献、重复桥接能力和桥接未允许的插槽均拒绝。公共校验不联网读取 MF 清单，也不等同于加载器验证远程产物、版本或来源。
 
-浏览器 `@idadawn/qian-plugin-sdk` 仅导入由 `schemas/v2/ui.schema.json` 生成的纯 TS 数据副本，构建与测试先做漂移检查，不依赖 Node 表面包。六类版本插槽 Schema 也从同一份定义派生；当前加载器要求显式 bridge，并明确拒绝尚未实现的非空 widgets/settingsCards，不能把静态索引通过解释成这些运行能力已经实现。两侧共用 UI 正负 fixture，SDK另标注静态合法但当前运行态不支持的用例。
+浏览器侧的前端插件 SDK `@cavailab/qian-plugin-sdk`（CavaiLAB/qian 发布）仅导入由 `schemas/v2/ui.schema.json` 生成的纯 TS 数据副本，构建与测试先做漂移检查，不依赖 Node 表面包。六类版本插槽 Schema 也从同一份定义派生；当前加载器要求显式 bridge，并明确拒绝尚未实现的非空 widgets/settingsCards，不能把静态索引通过解释成这些运行能力已经实现。两侧共用 UI 正负 fixture，SDK另标注静态合法但当前运行态不支持的用例。
 
 `metadata/*.json` 使用同一个 JSON 解析器和路径边界，支持显式目录（包含组件根目录），只读取该目录第一层 JSON 文件；返回 `kind: metadata` 的原始文档快照，并应用通用敏感值检查。目录指向文件、重复键、非法 JSON 或链接均被拒绝。权限点、默认角色、事件等业务 Schema 由各 seam 在登记/发布时验证；解析通过不代表角色授权或安装准入通过。
 

@@ -9,7 +9,8 @@ data:
       server_name _;
 
       # builder 容器把看板生成到 /site/current（符号链接指向最近一次生成的提交）；
-      # 任务源文件仍取 git-sync 的检出 /git/current（符号链接指向最新提交）
+      # 任务源文件仍取 git-sync 的最新检出：/site/source 是 builder 建的链接，指向 /git/current/<前缀>
+      #（前缀见 deployment.yaml 里 builder 的 BOARD_PREFIX），这里不写前缀
       root /site/current;
       index index.html;
       autoindex off;
@@ -39,6 +40,6 @@ data:
       location = /index.html { }
       location = /tasks.json { }
       location = /STATUS.md { default_type text/markdown; }
-      location /tasks/ { alias /git/current/pm/tasks/; default_type text/markdown; }
+      location /tasks/ { alias /site/source/pm/tasks/; default_type text/markdown; }
       location / { return 404; }
     }

@@ -1,61 +1,78 @@
 <Project>
 
+  <!--
+    中央包版本，原 Kun 与 _import/qian/ 下的原 Qian 共用（S1-KUN-020）：csproj 里的 PackageReference 不写 Version，版本只在这里改。
+    两边同名不同版的包取高的一边；为免传递钉版判为降级（NU1109），同一族的包一起对齐：
+    Microsoft.Extensions.* 与 Microsoft.AspNetCore.*、EF Core 一族到 10.0.12，Microsoft.IdentityModel.* 到 8.19.2，
+    Microsoft.CodeAnalysis.CSharp 随 EF Core Design 到 5.0.0。
+    _import/qian/Directory.Packages.props 先导入本文件，只留原 Qian 按包引用 Kun 时的 KunVersion 与 Kun.* 精确版本。
+  -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
   <ItemGroup Label="Microsoft Extensions">
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.KeyPerFile" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup Label="ASP.NET Core">
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
-    <!-- Microsoft.AspNetCore.OpenApi 10.0.0 传递引入 Microsoft.OpenApi 2.0.0，命中
-         GHSA-v5pm-xwqc-g5wc（NU1903，restore 期即失败）。传递钉版到已修复的 2.7.5，
-         与 iclaw services/csharp 同款处理。 -->
-    <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <!--
+      原 Qian 的契约测试与能力目录直接用 3.x。Microsoft.AspNetCore.OpenApi 10.0.x 的源生成器要求 [2.12.0, 3.0.0)，
+      所以引用它的原 Kun 项目（Kun.Sample.Catalog、Kun.Sample.Tests、Kun.IntegrationTests）用 VersionOverride 留在 2.x。
+      2.x 里早期版本有已公开的漏洞公告，NuGetAudit 照开，覆盖到的版本都要过审计。
+    -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="3.10.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup Label="EF Core (Write Side)">
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <!-- 只给 dotnet ef 设计时入口用（PrivateAssets=all），与运行时 EF Core 同版本。 -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="10.0.0" />
   </ItemGroup>
 
-  <ItemGroup Label="Dapper AOT (Read Side)">
+  <ItemGroup Label="Dapper AOT (Read Side) / Clients">
     <PackageVersion Include="Dapper" Version="2.1.35" />
     <PackageVersion Include="Dapper.AOT" Version="1.0.31" />
-    <PackageVersion Include="Npgsql" Version="10.0.0" />
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
     <PackageVersion Include="MySqlConnector" Version="2.3.7" />
   </ItemGroup>
 
   <ItemGroup Label="gRPC">
     <PackageVersion Include="Grpc.AspNetCore" Version="2.67.0" />
+    <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.67.0" />
     <PackageVersion Include="Grpc.AspNetCore.Web" Version="2.67.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.67.0" />
     <PackageVersion Include="Grpc.Net.ClientFactory" Version="2.67.0" />
+    <PackageVersion Include="Grpc.Reflection" Version="2.67.0" />
     <PackageVersion Include="Grpc.Tools" Version="2.67.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.28.3" />
+    <PackageVersion Include="Google.Protobuf" Version="3.36.2" />
   </ItemGroup>
 
   <ItemGroup Label="Gateway / YARP">
@@ -63,7 +80,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Messaging">
-    <PackageVersion Include="RabbitMQ.Client" Version="7.0.0" />
+    <PackageVersion Include="RabbitMQ.Client" Version="7.2.2" />
   </ItemGroup>
 
   <ItemGroup Label="Object Storage (Kun.Storage.S3 / Kun.Storage.Oss)">
@@ -72,25 +89,32 @@
     <PackageVersion Include="Aliyun.OSS.SDK.NetCore" Version="2.14.1" />
   </ItemGroup>
 
-  <ItemGroup Label="Integration Event Schema Generation (P1-1 SchemaGen)">
-    <PackageVersion Include="JsonSchema.Net" Version="7.2.3" />
-    <PackageVersion Include="JsonSchema.Net.Generation" Version="4.5.1" />
+  <ItemGroup Label="JSON Schema (integration event SchemaGen, contract tests)">
+    <PackageVersion Include="JsonSchema.Net" Version="9.4.0" />
+    <!-- 与 JsonSchema.Net 9 配套；4.x 在 9 之下运行期缺方法（MissingMethodException）。 -->
+    <PackageVersion Include="JsonSchema.Net.Generation" Version="7.4.0" />
   </ItemGroup>
 
   <ItemGroup Label="Cache / Redis">
-    <PackageVersion Include="StackExchange.Redis" Version="2.8.16" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.13.17" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.12" />
   </ItemGroup>
 
-  <ItemGroup Label="Authentication">
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.2.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.2.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.2.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.2.0" />
-    <!-- Catalog/Order 的 EF Design/Roslyn 工具链经 Microsoft.Build.Tasks.Core 17.14.28
-         引入 Pkcs 9.0.0；9.0.21 修复 GHSA-2fmv-rv2c-59x7 / GHSA-846f-f764-76mx。
-         保留 NuGetAudit 和 warnings-as-errors，通过中央传递钉定修复。 -->
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
+  <ItemGroup Label="Authentication / Identity">
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
+    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.19.2" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.19.2" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.19.2" />
+    <PackageVersion Include="OpenIddict.Server.AspNetCore" Version="7.7.2" />
+    <PackageVersion Include="OpenIddict.EntityFrameworkCore" Version="7.7.2" />
+    <!-- Ed25519 分离签名验签（qian.lifecycle）：.NET 10 没有独立的 Ed25519 API。 -->
+    <PackageVersion Include="BouncyCastle.Cryptography" Version="2.7.0" />
+    <!--
+      EF Design / Roslyn 工具链经 Microsoft.Build.Tasks.Core 传递引入 Pkcs 与 Xml 的 9.0.x（NU1902 / NU1903），
+      钉到已修复的版本（GHSA-2fmv-rv2c-59x7、GHSA-846f-f764-76mx 均在 10.0.13 修复）；NuGetAudit 与警告即错误照开。
+    -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup Label="OpenTelemetry">
@@ -113,8 +137,15 @@
     <PackageVersion Include="Aspire.Hosting.Redis" Version="13.6.5" />
   </ItemGroup>
 
-  <ItemGroup Label="Analyzers">
-    <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
+  <ItemGroup Label="Scheduling">
+    <PackageVersion Include="Quartz" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Analyzers / Gates">
+    <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
+    <!-- 原 Qian 的自有分析器与源生成器编译用；EF Core Design 10.0.11 起依赖 Roslyn 5.0.0，钉得更低会被判为降级。 -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup Label="Benchmarks">
@@ -122,18 +153,24 @@
   </ItemGroup>
 
   <ItemGroup Label="Testing">
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-    <PackageVersion Include="xunit.v3" Version="1.0.0" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0" />
+    <!-- xunit.v3 4.x 只支持 Microsoft.Testing.Platform 运行器（global.json 的 test.runner），测试项目是 Exe。 -->
+    <PackageVersion Include="xunit.v3" Version="4.0.1" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="4.0.1" />
+    <PackageVersion Include="xunit.v3.assert" Version="4.0.1" />
+    <!-- 覆盖率随 Microsoft.Testing.Platform 换成 coverlet.MTP；命令行参数见 kun-ci 的单元测试步骤。 -->
+    <PackageVersion Include="coverlet.MTP" Version="10.0.1" />
     <PackageVersion Include="FluentAssertions" Version="7.0.0" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
-    <PackageVersion Include="Testcontainers" Version="4.0.0" />
+    <PackageVersion Include="Testcontainers" Version="4.15.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
+    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.15.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.15.0" />
+    <!-- qian.lifecycle GitOps 执行器验收：真实 K3s 代替 Argo 收敛并提供 K8s API 与服务代理。 -->
+    <PackageVersion Include="Testcontainers.K3s" Version="4.15.0" />
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.0.0" />
-    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.0.0" />
-    <PackageVersion Include="Testcontainers.Redis" Version="4.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+    <PackageVersion Include="SemanticVersioning" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

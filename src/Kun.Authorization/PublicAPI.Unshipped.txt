@@ -57,3 +57,43 @@ Kun.Authorization.PermissionDecision.PermissionDecision(bool Allow, string! Reas
 Kun.Authorization.PermissionRequest.PermissionRequest(Kun.Authorization.AuthorizationSubject! Subject, string! Permission, string? ResourceId = null) -> void
 Kun.Authorization.DataPermissionPredicate.DataPermissionPredicate(string! Operator, string? Field, System.Text.Json.JsonElement? Value, System.Collections.Generic.IReadOnlyList<Kun.Authorization.DataPermissionPredicate!>! Children) -> void
 Kun.Authorization.AuthorizationSubject.AuthorizationSubject(string! Id, string? TenantId, string! Kind = "user") -> void
+Kun.Authorization.AuthorizationSubject.<Clone>$() -> Kun.Authorization.AuthorizationSubject!
+Kun.Authorization.AuthorizationSubject.Deconstruct(out string! Id, out string? TenantId, out string! Kind) -> void
+Kun.Authorization.AuthorizationSubject.Equals(Kun.Authorization.AuthorizationSubject? other) -> bool
+Kun.Authorization.DataPermissionPredicate.<Clone>$() -> Kun.Authorization.DataPermissionPredicate!
+Kun.Authorization.DataPermissionPredicate.Deconstruct(out string! Operator, out string? Field, out System.Text.Json.JsonElement? Value, out System.Collections.Generic.IReadOnlyList<Kun.Authorization.DataPermissionPredicate!>! Children) -> void
+Kun.Authorization.DataPermissionPredicate.Equals(Kun.Authorization.DataPermissionPredicate? other) -> bool
+Kun.Authorization.FieldDecision.<Clone>$() -> Kun.Authorization.FieldDecision!
+Kun.Authorization.FieldDecision.Deconstruct(out System.Collections.Generic.IReadOnlyList<string!>! Readable, out System.Collections.Generic.IReadOnlyList<string!>! Writable, out System.Collections.Generic.IReadOnlyList<string!>! Masked) -> void
+Kun.Authorization.FieldDecision.Equals(Kun.Authorization.FieldDecision? other) -> bool
+Kun.Authorization.PermissionDecision.<Clone>$() -> Kun.Authorization.PermissionDecision!
+Kun.Authorization.PermissionDecision.Deconstruct(out bool Allow, out string! Reason, out System.Collections.Generic.IReadOnlyList<string!>! MatchedPolicies) -> void
+Kun.Authorization.PermissionDecision.Equals(Kun.Authorization.PermissionDecision? other) -> bool
+Kun.Authorization.PermissionRequest.<Clone>$() -> Kun.Authorization.PermissionRequest!
+Kun.Authorization.PermissionRequest.Deconstruct(out Kun.Authorization.AuthorizationSubject! Subject, out string! Permission, out string? ResourceId) -> void
+Kun.Authorization.PermissionRequest.Equals(Kun.Authorization.PermissionRequest? other) -> bool
+override Kun.Authorization.AuthorizationSubject.Equals(object? obj) -> bool
+override Kun.Authorization.AuthorizationSubject.GetHashCode() -> int
+override Kun.Authorization.AuthorizationSubject.ToString() -> string!
+override Kun.Authorization.DataPermissionPredicate.Equals(object? obj) -> bool
+override Kun.Authorization.DataPermissionPredicate.GetHashCode() -> int
+override Kun.Authorization.DataPermissionPredicate.ToString() -> string!
+override Kun.Authorization.FieldDecision.Equals(object? obj) -> bool
+override Kun.Authorization.FieldDecision.GetHashCode() -> int
+override Kun.Authorization.FieldDecision.ToString() -> string!
+override Kun.Authorization.PermissionDecision.Equals(object? obj) -> bool
+override Kun.Authorization.PermissionDecision.GetHashCode() -> int
+override Kun.Authorization.PermissionDecision.ToString() -> string!
+override Kun.Authorization.PermissionRequest.Equals(object? obj) -> bool
+override Kun.Authorization.PermissionRequest.GetHashCode() -> int
+override Kun.Authorization.PermissionRequest.ToString() -> string!
+static Kun.Authorization.AuthorizationSubject.operator !=(Kun.Authorization.AuthorizationSubject? left, Kun.Authorization.AuthorizationSubject? right) -> bool
+static Kun.Authorization.AuthorizationSubject.operator ==(Kun.Authorization.AuthorizationSubject? left, Kun.Authorization.AuthorizationSubject? right) -> bool
+static Kun.Authorization.DataPermissionPredicate.operator !=(Kun.Authorization.DataPermissionPredicate? left, Kun.Authorization.DataPermissionPredicate? right) -> bool
+static Kun.Authorization.DataPermissionPredicate.operator ==(Kun.Authorization.DataPermissionPredicate? left, Kun.Authorization.DataPermissionPredicate? right) -> bool
+static Kun.Authorization.FieldDecision.operator !=(Kun.Authorization.FieldDecision? left, Kun.Authorization.FieldDecision? right) -> bool
+static Kun.Authorization.FieldDecision.operator ==(Kun.Authorization.FieldDecision? left, Kun.Authorization.FieldDecision? right) -> bool
+static Kun.Authorization.PermissionDecision.operator !=(Kun.Authorization.PermissionDecision? left, Kun.Authorization.PermissionDecision? right) -> bool
+static Kun.Authorization.PermissionDecision.operator ==(Kun.Authorization.PermissionDecision? left, Kun.Authorization.PermissionDecision? right) -> bool
+static Kun.Authorization.PermissionRequest.operator !=(Kun.Authorization.PermissionRequest? left, Kun.Authorization.PermissionRequest? right) -> bool
+static Kun.Authorization.PermissionRequest.operator ==(Kun.Authorization.PermissionRequest? left, Kun.Authorization.PermissionRequest? right) -> bool

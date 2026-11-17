@@ -113,7 +113,6 @@ Kun.Gateway.RateLimiting.RedisFixedWindowRateLimitStore
 Kun.Gateway.RateLimiting.RedisFixedWindowRateLimitStore.RedisFixedWindowRateLimitStore(StackExchange.Redis.IConnectionMultiplexer! redis, Microsoft.Extensions.Options.IOptions<Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions!>! options) -> void
 Kun.Gateway.RateLimiting.RedisFixedWindowRateLimitStore.HitAsync(string! partitionKey, System.TimeSpan window, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Gateway.RateLimiting.RateLimitHitResult>!
 static Kun.Gateway.RateLimiting.KunRateLimiterExtensions.AddKunRedisRateLimitStore(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-
 Kun.Gateway.Configuration.KunGatewayOptions.ForwardedClaimTypes.get -> string![]!
 Kun.Gateway.Configuration.KunGatewayOptions.ForwardedClaimTypes.set -> void
 Kun.Gateway.Configuration.KunGatewayOptions.TrustedProxyAddresses.set -> void
@@ -128,3 +127,10 @@ Kun.Gateway.Configuration.KunGatewayOptions.KeyReloadInterval.get -> System.Time
 Kun.Gateway.Configuration.KunGatewayOptions.KeyReloadInterval.set -> void
 Kun.Gateway.S2sTokenIssuer.Dispose() -> void
 Kun.Gateway.S2sTokenIssuer.IssueForAudienceAsync(System.Security.Claims.ClaimsPrincipal! externalPrincipal, string! audience, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+Kun.Gateway.RateLimiting.RateLimitHitResult.Deconstruct(out long Count, out System.TimeSpan ResetsIn) -> void
+Kun.Gateway.RateLimiting.RateLimitHitResult.Equals(Kun.Gateway.RateLimiting.RateLimitHitResult other) -> bool
+override Kun.Gateway.RateLimiting.RateLimitHitResult.GetHashCode() -> int
+static Kun.Gateway.RateLimiting.RateLimitHitResult.operator !=(Kun.Gateway.RateLimiting.RateLimitHitResult left, Kun.Gateway.RateLimiting.RateLimitHitResult right) -> bool
+static Kun.Gateway.RateLimiting.RateLimitHitResult.operator ==(Kun.Gateway.RateLimiting.RateLimitHitResult left, Kun.Gateway.RateLimiting.RateLimitHitResult right) -> bool
+~override Kun.Gateway.RateLimiting.RateLimitHitResult.Equals(object obj) -> bool
+~override Kun.Gateway.RateLimiting.RateLimitHitResult.ToString() -> string

@@ -107,3 +107,19 @@ static Kun.Security.S2SJwt.KunSecurityS2SJwtServiceCollectionExtensions.AddS2SJw
 Kun.Security.Authentication.PrincipalClaims
 static Kun.Security.Authentication.PrincipalClaims.TryRead(System.Security.Claims.ClaimsPrincipal? principal, out string? subjectId, out string? tenantId, out string? principalKind) -> bool
 Kun.Security.Security.JwtCurrentUser.PrincipalKind.get -> string!
+Kun.Security.S2SJwt.S2SJwtIssueRequest.<Clone>$() -> Kun.Security.S2SJwt.S2SJwtIssueRequest!
+Kun.Security.S2SJwt.S2SJwtIssueRequest.Deconstruct(out string! UserId, out string! TenantId, out System.Collections.Generic.IReadOnlyList<string!>! Audience, out System.Collections.Generic.IReadOnlyList<string!>? Roles, out System.Collections.Generic.IReadOnlyList<string!>? Scopes, out string? SessionId, out string? MembershipId, out string? ProjectId, out string? TraceId, out System.TimeSpan? Lifetime) -> void
+Kun.Security.S2SJwt.S2SJwtIssueRequest.Equals(Kun.Security.S2SJwt.S2SJwtIssueRequest? other) -> bool
+Kun.Security.S2sTokenOptions.<Clone>$() -> Kun.Security.S2sTokenOptions!
+Kun.Security.S2sTokenOptions.Equals(Kun.Security.S2sTokenOptions? other) -> bool
+Kun.Security.S2sTokenOptions.S2sTokenOptions() -> void
+override Kun.Security.S2SJwt.S2SJwtIssueRequest.Equals(object? obj) -> bool
+override Kun.Security.S2SJwt.S2SJwtIssueRequest.GetHashCode() -> int
+override Kun.Security.S2SJwt.S2SJwtIssueRequest.ToString() -> string!
+override Kun.Security.S2sTokenOptions.Equals(object? obj) -> bool
+override Kun.Security.S2sTokenOptions.GetHashCode() -> int
+override Kun.Security.S2sTokenOptions.ToString() -> string!
+static Kun.Security.S2SJwt.S2SJwtIssueRequest.operator !=(Kun.Security.S2SJwt.S2SJwtIssueRequest? left, Kun.Security.S2SJwt.S2SJwtIssueRequest? right) -> bool
+static Kun.Security.S2SJwt.S2SJwtIssueRequest.operator ==(Kun.Security.S2SJwt.S2SJwtIssueRequest? left, Kun.Security.S2SJwt.S2SJwtIssueRequest? right) -> bool
+static Kun.Security.S2sTokenOptions.operator !=(Kun.Security.S2sTokenOptions? left, Kun.Security.S2sTokenOptions? right) -> bool
+static Kun.Security.S2sTokenOptions.operator ==(Kun.Security.S2sTokenOptions? left, Kun.Security.S2sTokenOptions? right) -> bool

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.RateLimiting;
 using FluentAssertions;
@@ -153,8 +154,9 @@ public sealed class GatewayBoundaryTests
         var token = (await host.Client.GetStringAsync("/public", TestContext.Current.CancellationToken))["Bearer ".Length..];
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
         var payload = JsonNode.Parse(jwt.Payload.SerializeToJson())!;
+        using var payloadDocument = JsonDocument.Parse(jwt.Payload.SerializeToJson());
         var schema = JsonSchema.FromFile(Path.Combine(AppContext.BaseDirectory, "Fixtures", "s2s-claims.schema.json"));
-        schema.Evaluate(payload).IsValid.Should().BeTrue(payload.ToJsonString());
+        schema.Evaluate(payloadDocument.RootElement).IsValid.Should().BeTrue(payload.ToJsonString());
         payload["aud"].Should().BeOfType<JsonArray>().Which.Should().HaveCount(1);
         payload["roles"].Should().BeOfType<JsonArray>().Which.Should().HaveCount(roles);
         (payload["exp"]!.GetValue<long>() - payload["iat"]!.GetValue<long>()).Should().BeInRange(1, 300);

@@ -45,8 +45,7 @@ internal sealed class S3CompatibleServer : IAsyncDisposable
     /// <see cref="ArgumentException"/>，调用方据此交给 <see cref="ContainerRuntime.ReportUnavailable"/>。
     /// </summary>
     public static S3CompatibleServer Create() =>
-        new(new ContainerBuilder()
-            .WithImage(Image)
+        new(new ContainerBuilder(Image)
             .WithPortBinding(S3Port, assignRandomHostPort: true)
             .WithEnvironment("RUSTFS_ACCESS_KEY", AccessKey)
             .WithEnvironment("RUSTFS_SECRET_KEY", SecretKey)

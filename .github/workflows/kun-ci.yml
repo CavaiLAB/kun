@@ -13,8 +13,13 @@ name: kun-ci
 #   - 原件不设路径过滤（原仓库里每个改动都属于原 Kun）。这里只在原 Kun 的代码、构建文件与本文件改动时运行：
 #     只改 _import/ 下的原 Qian、只改文档（仓库根的说明文件、docs/、各目录里的 Markdown）都不触发。
 #     打进网关包的 src/Kun.Gateway/GATEWAY.md 例外，打包冒烟会用到它；
-#   - 显式写出 permissions: contents: read。
-# 命令都在仓库根运行，与原件相同；作业、步骤、命令与测试过滤条件照原件，不增不减。
+#   - 显式写出 permissions: contents: read；
+#   - 构建并轨（S1-KUN-020）：测试运行器统一到 Microsoft.Testing.Platform（global.json 的 test.runner），
+#     xunit.v3 4.x 不再支持 VSTest。按全名子串排除的 --filter 改为解决方案筛选文件 tests/kun-unit.slnf：
+#     它列出 Kun.sln 里除 Kun.IntegrationTests、Kun.Sample.Tests、Kun.Integration.AotTests 之外的全部测试项目，
+#     与原件的排除条件等价。覆盖率由 coverlet.collector 换成 coverlet.MTP，文件名带时间戳，上传匹配式随之改，
+#     找不到文件即失败；集成测试与 AOT 测试用 --project 指定项目。
+# 命令都在仓库根运行，与原件相同；作业与步骤照原件，不增不减，测试命令按上一条改写。
 # 没接的原 Kun 工作流：benchmarks.yml（基准，只在自托管 runner 上跑）、oss-live-smoke.yml（对象存储实测，
 # 要自托管 runner 与 OSS_SMOKE_* 密钥）、release.yml（发版，推 nuget.org 与 GitHub Packages）、
 # release-drafter.yml（发布说明草稿），说明见 .github/originals/kun/README.md。
@@ -88,28 +93,32 @@ jobs:
       #   service-discovery env vars (services__catalog__*, etc.) that CI does
       #   not set. TODO: add a dedicated integration-compose job that wires the
       #   Aspire manifest so Sample.Tests can run in CI.
+      # tests/kun-unit.slnf lists every test project in Kun.sln except the three
+      # above, which is what the original --filter excluded (S1-KUN-020).
       - name: Unit Tests
         run: >
           dotnet test
+          --solution tests/kun-unit.slnf
           --configuration Release
           --no-build
-          --verbosity minimal
-          --collect:"XPlat Code Coverage"
-          --filter "FullyQualifiedName!~Kun.IntegrationTests&FullyQualifiedName!~Kun.Sample.Tests&FullyQualifiedName!~Kun.Integration.AotTests"
+          --coverlet
+          --coverlet-output-format cobertura
+          --results-directory TestResults/unit
 
-      # Testcontainers integration tests — ubuntu-24.04 自带 Docker（原件跑在自带 Docker 的 qd runner 上）。
+      # Testcontainers integration tests — ubuntu-24.04 自带 Docker（原件跑在自带 Docker 的自托管 runner 上）。
       - name: Integration Tests (Testcontainers)
         run: >
-          dotnet test tests/Kun.IntegrationTests
+          dotnet test
+          --project tests/Kun.IntegrationTests/Kun.IntegrationTests.csproj
           --configuration Release
           --no-build
-          --verbosity minimal
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: '**/coverage.cobertura.xml'
+          path: TestResults/unit/coverage.cobertura.*.xml
+          if-no-files-found: error
 
   # Full-module AOT audit — every IsAotCandidate=true project is fanned
   # out across a job matrix so a trim / AOT regression in one module
@@ -209,10 +218,10 @@ jobs:
 
       - name: Run AOT integration tests
         run: >
-          dotnet test tests/Kun.Integration.AotTests/Kun.Integration.AotTests.csproj
+          dotnet test
+          --project tests/Kun.Integration.AotTests/Kun.Integration.AotTests.csproj
           --configuration Release
           --no-build
-          --verbosity minimal
 
   format:
     name: Code Format

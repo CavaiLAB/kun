@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
-using System.Text.Json.Nodes;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Json.Schema;
 using Kun.Configuration.Extensions;
@@ -85,8 +85,10 @@ public sealed class LastGoodOptionsTests
         Assert.Equal("Service", entry.Section);
         Assert.Equal("https://json-schema.org/draft/2020-12/schema", (string?)schema["$schema"]);
         var validator = JsonSchema.FromText(schema.ToJsonString());
-        Assert.True(validator.Evaluate(JsonNode.Parse("""{"Retries":3,"Endpoint":"https://test"}""")).IsValid);
-        Assert.False(validator.Evaluate(JsonNode.Parse("""{"Retries":"bad","Endpoint":"https://test"}""")).IsValid);
+        using var valid = JsonDocument.Parse("""{"Retries":3,"Endpoint":"https://test"}""");
+        using var invalid = JsonDocument.Parse("""{"Retries":"bad","Endpoint":"https://test"}""");
+        Assert.True(validator.Evaluate(valid.RootElement).IsValid);
+        Assert.False(validator.Evaluate(invalid.RootElement).IsValid);
         schema["title"] = "mutated";
         Assert.Null(entry.Export()["title"]);
     }

@@ -128,3 +128,19 @@ Kun.Audit.AuditEntry.ActorType.get -> string!
 Kun.Audit.Behaviors.AuditLogPipelineBehavior<TRequest, TResponse>.AuditLogPipelineBehavior(Kun.Audit.IAuditSink! sink, Kun.Audit.IAuditChainState! chain, Kun.Core.MultiTenancy.ITenantContext! tenantContext, Kun.Core.Security.ICurrentUser! currentUser, System.TimeProvider! clock, Microsoft.Extensions.Logging.ILogger<Kun.Audit.Behaviors.AuditLogPipelineBehavior<TRequest, TResponse>!>! logger, Microsoft.Extensions.Options.IOptions<Kun.Audit.DependencyInjection.KunAuditOptions!>! options) -> void
 Kun.Audit.AuditEntry.ActorType.init -> void
 static Kun.Audit.AuditContentHasher.Compute(Kun.Audit.AuditEntry! entry) -> string!
+Kun.Audit.AuditEntry.<Clone>$() -> Kun.Audit.AuditEntry!
+Kun.Audit.AuditEntry.Deconstruct(out System.Guid Id, out string? TenantId, out string? ActorId, out string! CommandName, out System.DateTimeOffset OccurredAt, out long LatencyMs, out Kun.Audit.AuditOutcome Outcome, out string? ErrorCode, out string? PrevHash, out string! ContentHash) -> void
+Kun.Audit.AuditEntry.Equals(Kun.Audit.AuditEntry? other) -> bool
+Kun.Audit.AuditQuery.<Clone>$() -> Kun.Audit.AuditQuery!
+Kun.Audit.AuditQuery.Deconstruct(out string! TenantId, out string? ActorId, out string? Action, out string? ResourceType, out string? ResourceId, out System.DateTimeOffset? From, out System.DateTimeOffset? To, out int Limit) -> void
+Kun.Audit.AuditQuery.Equals(Kun.Audit.AuditQuery? other) -> bool
+override Kun.Audit.AuditEntry.Equals(object? obj) -> bool
+override Kun.Audit.AuditEntry.GetHashCode() -> int
+override Kun.Audit.AuditEntry.ToString() -> string!
+override Kun.Audit.AuditQuery.Equals(object? obj) -> bool
+override Kun.Audit.AuditQuery.GetHashCode() -> int
+override Kun.Audit.AuditQuery.ToString() -> string!
+static Kun.Audit.AuditEntry.operator !=(Kun.Audit.AuditEntry? left, Kun.Audit.AuditEntry? right) -> bool
+static Kun.Audit.AuditEntry.operator ==(Kun.Audit.AuditEntry? left, Kun.Audit.AuditEntry? right) -> bool
+static Kun.Audit.AuditQuery.operator !=(Kun.Audit.AuditQuery? left, Kun.Audit.AuditQuery? right) -> bool
+static Kun.Audit.AuditQuery.operator ==(Kun.Audit.AuditQuery? left, Kun.Audit.AuditQuery? right) -> bool

@@ -219,3 +219,43 @@ Kun.Identity.Implementations.Session.RedisSessionStore.TryUseNonceAsync(string! 
 Kun.Identity.Configuration.KunCookieAuthOptions.RequireAntiforgery.get -> bool
 Kun.Identity.Configuration.KunCookieAuthOptions.RequireAntiforgery.set -> void
 Kun.Identity.Configuration.KunCookieSessionBuilder.UseRedisStore(string! keyPrefix) -> Kun.Identity.Configuration.KunCookieSessionBuilder!
+Kun.Identity.Abstractions.OidcCodeExchange.<Clone>$() -> Kun.Identity.Abstractions.OidcCodeExchange!
+Kun.Identity.Abstractions.OidcCodeExchange.Deconstruct(out string! Code, out string! RedirectUri, out string! CodeVerifier, out string! ExpectedNonce) -> void
+Kun.Identity.Abstractions.OidcCodeExchange.Equals(Kun.Identity.Abstractions.OidcCodeExchange? other) -> bool
+Kun.Identity.Abstractions.OidcConfiguration.<Clone>$() -> Kun.Identity.Abstractions.OidcConfiguration!
+Kun.Identity.Abstractions.OidcConfiguration.Deconstruct(out string! Issuer, out string! AuthorizationEndpoint, out string! TokenEndpoint, out string? UserInfoEndpoint, out string! JwksUri) -> void
+Kun.Identity.Abstractions.OidcConfiguration.Equals(Kun.Identity.Abstractions.OidcConfiguration? other) -> bool
+Kun.Identity.Abstractions.OidcLogoutToken.<Clone>$() -> Kun.Identity.Abstractions.OidcLogoutToken!
+Kun.Identity.Abstractions.OidcLogoutToken.Deconstruct(out string! Issuer, out string? Subject, out string? SessionId, out string! TokenId, out System.DateTimeOffset ExpiresAt) -> void
+Kun.Identity.Abstractions.OidcLogoutToken.Equals(Kun.Identity.Abstractions.OidcLogoutToken? other) -> bool
+Kun.Identity.Abstractions.OidcTokenResponse.<Clone>$() -> Kun.Identity.Abstractions.OidcTokenResponse!
+Kun.Identity.Abstractions.OidcTokenResponse.Deconstruct(out string! AccessToken, out string? IdToken, out string? RefreshToken, out string! TokenType, out int ExpiresIn) -> void
+Kun.Identity.Abstractions.OidcTokenResponse.Equals(Kun.Identity.Abstractions.OidcTokenResponse? other) -> bool
+Kun.Identity.Abstractions.Session.SessionData.<Clone>$() -> Kun.Identity.Abstractions.Session.SessionData!
+Kun.Identity.Abstractions.Session.SessionData.Deconstruct(out string! UserId, out string? TenantId, out string? Email, out string? Name, out System.Collections.Generic.IReadOnlyList<string!>! Roles, out string! AccessToken, out string? RefreshToken, out System.DateTimeOffset ExpiresAt) -> void
+Kun.Identity.Abstractions.Session.SessionData.Equals(Kun.Identity.Abstractions.Session.SessionData? other) -> bool
+override Kun.Identity.Abstractions.OidcCodeExchange.Equals(object? obj) -> bool
+override Kun.Identity.Abstractions.OidcCodeExchange.GetHashCode() -> int
+override Kun.Identity.Abstractions.OidcCodeExchange.ToString() -> string!
+override Kun.Identity.Abstractions.OidcConfiguration.Equals(object? obj) -> bool
+override Kun.Identity.Abstractions.OidcConfiguration.GetHashCode() -> int
+override Kun.Identity.Abstractions.OidcConfiguration.ToString() -> string!
+override Kun.Identity.Abstractions.OidcLogoutToken.Equals(object? obj) -> bool
+override Kun.Identity.Abstractions.OidcLogoutToken.GetHashCode() -> int
+override Kun.Identity.Abstractions.OidcLogoutToken.ToString() -> string!
+override Kun.Identity.Abstractions.OidcTokenResponse.Equals(object? obj) -> bool
+override Kun.Identity.Abstractions.OidcTokenResponse.GetHashCode() -> int
+override Kun.Identity.Abstractions.OidcTokenResponse.ToString() -> string!
+override Kun.Identity.Abstractions.Session.SessionData.Equals(object? obj) -> bool
+override Kun.Identity.Abstractions.Session.SessionData.GetHashCode() -> int
+override Kun.Identity.Abstractions.Session.SessionData.ToString() -> string!
+static Kun.Identity.Abstractions.OidcCodeExchange.operator !=(Kun.Identity.Abstractions.OidcCodeExchange? left, Kun.Identity.Abstractions.OidcCodeExchange? right) -> bool
+static Kun.Identity.Abstractions.OidcCodeExchange.operator ==(Kun.Identity.Abstractions.OidcCodeExchange? left, Kun.Identity.Abstractions.OidcCodeExchange? right) -> bool
+static Kun.Identity.Abstractions.OidcConfiguration.operator !=(Kun.Identity.Abstractions.OidcConfiguration? left, Kun.Identity.Abstractions.OidcConfiguration? right) -> bool
+static Kun.Identity.Abstractions.OidcConfiguration.operator ==(Kun.Identity.Abstractions.OidcConfiguration? left, Kun.Identity.Abstractions.OidcConfiguration? right) -> bool
+static Kun.Identity.Abstractions.OidcLogoutToken.operator !=(Kun.Identity.Abstractions.OidcLogoutToken? left, Kun.Identity.Abstractions.OidcLogoutToken? right) -> bool
+static Kun.Identity.Abstractions.OidcLogoutToken.operator ==(Kun.Identity.Abstractions.OidcLogoutToken? left, Kun.Identity.Abstractions.OidcLogoutToken? right) -> bool
+static Kun.Identity.Abstractions.OidcTokenResponse.operator !=(Kun.Identity.Abstractions.OidcTokenResponse? left, Kun.Identity.Abstractions.OidcTokenResponse? right) -> bool
+static Kun.Identity.Abstractions.OidcTokenResponse.operator ==(Kun.Identity.Abstractions.OidcTokenResponse? left, Kun.Identity.Abstractions.OidcTokenResponse? right) -> bool
+static Kun.Identity.Abstractions.Session.SessionData.operator !=(Kun.Identity.Abstractions.Session.SessionData? left, Kun.Identity.Abstractions.Session.SessionData? right) -> bool
+static Kun.Identity.Abstractions.Session.SessionData.operator ==(Kun.Identity.Abstractions.Session.SessionData? left, Kun.Identity.Abstractions.Session.SessionData? right) -> bool

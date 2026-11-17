@@ -20,6 +20,8 @@
     <PackageReference Include="Npgsql" />
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <!-- Microsoft.AspNetCore.OpenApi 10.0.x 要求 Microsoft.OpenApi [2.12.0, 3.0.0)；中央版本是原 Qian 用的 3.x，这里留在 2.x（S1-KUN-020）。 -->
+    <PackageReference Include="Microsoft.OpenApi" VersionOverride="2.13.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="All" />
     <ProjectReference Include="..\..\src\Kun.Grpc\Kun.Grpc.csproj" />
   </ItemGroup>

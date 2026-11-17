@@ -5,5 +5,19 @@ Kun.Validation.Behaviors.ValidationResultPipelineBehavior<TRequest, TValue>.Vali
 Kun.Validation.Behaviors.ValidationResultPipelineBehavior<TRequest>
 Kun.Validation.Behaviors.ValidationResultPipelineBehavior<TRequest>.Handle(TRequest request, Kun.Mediator.RequestHandlerDelegate<Kun.Core.Results.Result>! next, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kun.Core.Results.Result>
 Kun.Validation.Behaviors.ValidationResultPipelineBehavior<TRequest>.ValidationResultPipelineBehavior(System.Collections.Generic.IEnumerable<Kun.Validation.IValidator<TRequest>!>! validators) -> void
+Kun.Validation.ValidationError.<Clone>$() -> Kun.Validation.ValidationError!
+Kun.Validation.ValidationError.Deconstruct(out string! PropertyName, out string! Code, out string! Message) -> void
+Kun.Validation.ValidationError.Equals(Kun.Validation.ValidationError? other) -> bool
+Kun.Validation.ValidationResult.Equals(Kun.Validation.ValidationResult other) -> bool
+override Kun.Validation.ValidationError.Equals(object? obj) -> bool
+override Kun.Validation.ValidationError.GetHashCode() -> int
+override Kun.Validation.ValidationError.ToString() -> string!
+override Kun.Validation.ValidationResult.GetHashCode() -> int
 static Kun.Validation.DependencyInjection.KunValidationServiceCollectionExtensions.AddValidationResultBehavior<TRequest, TValue>(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
 static Kun.Validation.DependencyInjection.KunValidationServiceCollectionExtensions.AddValidationResultBehavior<TRequest>(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
+static Kun.Validation.ValidationError.operator !=(Kun.Validation.ValidationError? left, Kun.Validation.ValidationError? right) -> bool
+static Kun.Validation.ValidationError.operator ==(Kun.Validation.ValidationError? left, Kun.Validation.ValidationError? right) -> bool
+static Kun.Validation.ValidationResult.operator !=(Kun.Validation.ValidationResult left, Kun.Validation.ValidationResult right) -> bool
+static Kun.Validation.ValidationResult.operator ==(Kun.Validation.ValidationResult left, Kun.Validation.ValidationResult right) -> bool
+~override Kun.Validation.ValidationResult.Equals(object obj) -> bool
+~override Kun.Validation.ValidationResult.ToString() -> string

@@ -1,0 +1,35 @@
+{
+  "solution": {
+    "path": "../Kun.sln",
+    "projects": [
+      "tests/Kun.AspNetCore.Tests/Kun.AspNetCore.Tests.csproj",
+      "tests/Kun.Audit.Tests/Kun.Audit.Tests.csproj",
+      "tests/Kun.Auditing.Tests/Kun.Auditing.Tests.csproj",
+      "tests/Kun.Caching.Tests/Kun.Caching.Tests.csproj",
+      "tests/Kun.Configuration.Tests/Kun.Configuration.Tests.csproj",
+      "tests/Kun.Core.Tests/Kun.Core.Tests.csproj",
+      "tests/Kun.Dapper.Tests/Kun.Dapper.Tests.csproj",
+      "tests/Kun.EntityFrameworkCore.Tests/Kun.EntityFrameworkCore.Tests.csproj",
+      "tests/Kun.EventBus.Abstractions.Tests/Kun.EventBus.Abstractions.Tests.csproj",
+      "tests/Kun.EventBus.Tests/Kun.EventBus.Tests.csproj",
+      "tests/Kun.Gateway.Tests/Kun.Gateway.Tests.csproj",
+      "tests/Kun.Grpc.Tests/Kun.Grpc.Tests.csproj",
+      "tests/Kun.Identity.Tests/Kun.Identity.Tests.csproj",
+      "tests/Kun.Mediator.Tests/Kun.Mediator.Tests.csproj",
+      "tests/Kun.MultiTenancy.Tests/Kun.MultiTenancy.Tests.csproj",
+      "tests/Kun.Observability.Tests/Kun.Observability.Tests.csproj",
+      "tests/Kun.RateLimit.Tests/Kun.RateLimit.Tests.csproj",
+      "tests/Kun.Saga.Tests/Kun.Saga.Tests.csproj",
+      "tests/Kun.Sandbox.Tests/Kun.Sandbox.Tests.csproj",
+      "tests/Kun.Security.Tests/Kun.Security.Tests.csproj",
+      "tests/Kun.Storage.Abstractions.Tests/Kun.Storage.Abstractions.Tests.csproj",
+      "tests/Kun.Storage.Local.Tests/Kun.Storage.Local.Tests.csproj",
+      "tests/Kun.Storage.Oss.Tests/Kun.Storage.Oss.Tests.csproj",
+      "tests/Kun.Storage.S3.Tests/Kun.Storage.S3.Tests.csproj",
+      "tests/Kun.Storage.Tests/Kun.Storage.Tests.csproj",
+      "tests/Kun.Testing.EntityFrameworkCore.Tests/Kun.Testing.EntityFrameworkCore.Tests.csproj",
+      "tests/Kun.Testing.Tests/Kun.Testing.Tests.csproj",
+      "tests/Kun.Validation.Tests/Kun.Validation.Tests.csproj"
+    ]
+  }
+}

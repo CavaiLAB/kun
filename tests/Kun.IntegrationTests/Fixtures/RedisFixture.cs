@@ -19,8 +19,7 @@ public sealed class RedisFixture : IAsyncLifetime
     {
         try
         {
-            _container = new RedisBuilder()
-                .WithImage("redis:7-alpine")
+            _container = new RedisBuilder("redis:7-alpine")
                 .Build();
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))

@@ -76,3 +76,30 @@ Kun.Core.MultiTenancy.TenantIdValidation
 static Kun.Core.MultiTenancy.TenantIdValidation.IsValid(string? tenantId) -> bool
 Kun.Core.Security.ICurrentUser.PrincipalKind.get -> string!
 Kun.Core.Security.AnonymousCurrentUser.PrincipalKind.get -> string!
+Kun.Core.MultiTenancy.TenantInfo.<Clone>$() -> Kun.Core.MultiTenancy.TenantInfo!
+Kun.Core.MultiTenancy.TenantInfo.Equals(Kun.Core.MultiTenancy.TenantInfo? other) -> bool
+Kun.Core.Results.Error.<Clone>$() -> Kun.Core.Results.Error!
+Kun.Core.Results.Error.Deconstruct(out string! Code, out string! Message, out Kun.Core.Results.ErrorType Type) -> void
+Kun.Core.Results.Error.Equals(Kun.Core.Results.Error? other) -> bool
+Kun.Core.Results.Result.Equals(Kun.Core.Results.Result other) -> bool
+Kun.Core.Results.Result<T>.Equals(Kun.Core.Results.Result<T> other) -> bool
+override Kun.Core.MultiTenancy.TenantInfo.Equals(object? obj) -> bool
+override Kun.Core.MultiTenancy.TenantInfo.GetHashCode() -> int
+override Kun.Core.MultiTenancy.TenantInfo.ToString() -> string!
+override Kun.Core.Results.Error.Equals(object? obj) -> bool
+override Kun.Core.Results.Error.GetHashCode() -> int
+override Kun.Core.Results.Error.ToString() -> string!
+override Kun.Core.Results.Result.GetHashCode() -> int
+override Kun.Core.Results.Result<T>.GetHashCode() -> int
+static Kun.Core.MultiTenancy.TenantInfo.operator !=(Kun.Core.MultiTenancy.TenantInfo? left, Kun.Core.MultiTenancy.TenantInfo? right) -> bool
+static Kun.Core.MultiTenancy.TenantInfo.operator ==(Kun.Core.MultiTenancy.TenantInfo? left, Kun.Core.MultiTenancy.TenantInfo? right) -> bool
+static Kun.Core.Results.Error.operator !=(Kun.Core.Results.Error? left, Kun.Core.Results.Error? right) -> bool
+static Kun.Core.Results.Error.operator ==(Kun.Core.Results.Error? left, Kun.Core.Results.Error? right) -> bool
+static Kun.Core.Results.Result.operator !=(Kun.Core.Results.Result left, Kun.Core.Results.Result right) -> bool
+static Kun.Core.Results.Result.operator ==(Kun.Core.Results.Result left, Kun.Core.Results.Result right) -> bool
+static Kun.Core.Results.Result<T>.operator !=(Kun.Core.Results.Result<T> left, Kun.Core.Results.Result<T> right) -> bool
+static Kun.Core.Results.Result<T>.operator ==(Kun.Core.Results.Result<T> left, Kun.Core.Results.Result<T> right) -> bool
+~override Kun.Core.Results.Result.Equals(object obj) -> bool
+~override Kun.Core.Results.Result.ToString() -> string
+~override Kun.Core.Results.Result<T>.Equals(object obj) -> bool
+~override Kun.Core.Results.Result<T>.ToString() -> string

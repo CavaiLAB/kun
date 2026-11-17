@@ -6,7 +6,7 @@ Two complementary halves of the framework audit story live here:
 
 1. **Audit-log abstractions** (`Kun.Audit.Abstractions`): `IAuditWriter`, `IAuditReader`, `AuditableAttribute`, and the `AuditLog` POCO. EF Core integration lives in the sibling `Kun.Audit.EntityFrameworkCore` module; integration-event fan-out is provided by `EventBusAuditWriter` which depends only on `Kun.EventBus`.
 
-2. **Tamper-evident hash-chained operation audit** (`Kun.Audit`): `IAuditSink` + `IAuditChainState` + `AuditContentHasher` + `AuditLogPipelineBehavior<TRequest, TResponse>`. Satisfies SAD v3.0 §15.5 (`audit.operations` + hash chain) for NeuroAgent Phase 1 (P1-CS-019). A Mediator pipeline behaviour captures each command's actor / tenant / timing / outcome, pushes it through `IAuditChainState.AppendAsync`, and writes one `AuditEntry` to `IAuditSink`. Each entry's `ContentHash` is SHA-256 over `prevHash || canonicalFields`, so retroactive tampering with any row invalidates every following row.
+2. **Tamper-evident hash-chained operation audit** (`Kun.Audit`): `IAuditSink` + `IAuditChainState` + `AuditContentHasher` + `AuditLogPipelineBehavior<TRequest, TResponse>`. Satisfies the downstream operation-audit contract (`audit.operations` + hash chain). A Mediator pipeline behaviour captures each command's actor / tenant / timing / outcome, pushes it through `IAuditChainState.AppendAsync`, and writes one `AuditEntry` to `IAuditSink`. Each entry's `ContentHash` is SHA-256 over `prevHash || canonicalFields`, so retroactive tampering with any row invalidates every following row.
 
 ## Layer and AOT
 

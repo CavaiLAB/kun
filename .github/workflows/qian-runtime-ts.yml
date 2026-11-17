@@ -1,0 +1,59 @@
+name: qian-runtime-ts
+# 原 Qian 的 runtime-ts 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
+# 原件在 _import/qian/.github/workflows/runtime-ts.yml，不动；GitHub 只读仓库根的 .github/workflows/。
+# 它查的 TypeScript 运行时（packages/qian-runtime）归前端仓库 CavaiLAB/qian：在本仓库里只读，改动去前端仓库做；
+# 本文件随前端目录在 B11 由前端计划的执行会话删除。发布用的 runtime-ts-release 没有接。
+# 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、GITHUB_WORKSPACE 下的打包目录、上传路径
+# 加 _import/qian/ 前缀；路径过滤末尾加上本文件。检查本身不变。
+on:
+  push:
+    branches: [main]
+    paths: ['_import/qian/packages/qian-runtime/**', '_import/qian/packages/Qian.Runtime/**', '_import/qian/tck/runtime/**', '_import/qian/tck/profiles/**', '_import/qian/packages/qian-cli/**', '_import/qian/packages/qian-surfaces/**', '_import/qian/packages/Qian.Profiles*/**', '_import/qian/packages/Qian.Surfaces*/**', '_import/qian/tests/Qian.Runtime.Tests/**', '_import/qian/contracts/v0/**', '_import/qian/pnpm*', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/.github/workflows/runtime-ts.yml', '_import/qian/.github/workflows/runtime-ts-release.yml', '.github/workflows/qian-runtime-ts.yml']
+  pull_request:
+    paths: ['_import/qian/packages/qian-runtime/**', '_import/qian/packages/Qian.Runtime/**', '_import/qian/tck/runtime/**', '_import/qian/tck/profiles/**', '_import/qian/packages/qian-cli/**', '_import/qian/packages/qian-surfaces/**', '_import/qian/packages/Qian.Profiles*/**', '_import/qian/packages/Qian.Surfaces*/**', '_import/qian/tests/Qian.Runtime.Tests/**', '_import/qian/contracts/v0/**', '_import/qian/pnpm*', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/.github/workflows/runtime-ts.yml', '_import/qian/.github/workflows/runtime-ts-release.yml', '.github/workflows/qian-runtime-ts.yml']
+permissions:
+  contents: read
+concurrency:
+  group: qian-runtime-ts-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    working-directory: _import/qian
+jobs:
+  runtime:
+    name: TS 运行时与共用 TCK
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: _import/qian/global.json
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          package_json_file: _import/qian/package.json
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @qian/surfaces build
+      - run: pnpm --filter qian build
+      - run: pnpm --filter ./packages/qian-runtime build
+      - run: pnpm --filter ./packages/qian-runtime check:api
+      - run: pnpm --filter ./packages/qian-runtime test:types
+      - run: pnpm --filter ./packages/qian-runtime test
+      - name: 同一组 YAML 的 .NET 侧
+        run: dotnet run --project tests/Qian.Runtime.Tests -c Release
+      - run: pnpm --filter ./packages/qian-runtime exec playwright install --with-deps chromium
+      - run: pnpm --filter ./packages/qian-runtime test:browser
+      - name: 验证可分发包含类型和许可证
+        run: |
+          mkdir -p TestResults
+          pnpm --filter ./packages/qian-runtime pack --pack-destination "$GITHUB_WORKSPACE/_import/qian/TestResults"
+          node --check packages/qian-runtime/scripts/publish.mjs
+          node packages/qian-runtime/scripts/verify-consumer.mjs "file:$GITHUB_WORKSPACE/_import/qian/TestResults/idadawn-qian-runtime-$(node -p 'require("./packages/qian-runtime/package.json").version').tgz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qian-runtime-package
+          path: _import/qian/TestResults/*.tgz

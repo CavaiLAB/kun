@@ -2,11 +2,11 @@
 
 [匠心智能体平台](https://github.com/CavaiLAB/jiangxin)的企业级后端框架：为 Agent 时代构建的多租户平台框架，.NET 10。
 
-> **状态：迁移进行中（2026-11-17 起）。代码按[迁移执行计划](docs/migration-plan.md)分批迁入；历史导入的那一批合入之前，本仓库仍只有框架级文档。**
+> **状态：迁移进行中（2026-11-17 起）。两个原仓库已带历史导入过渡目录：[`idadawn/kun`](https://github.com/idadawn/kun)（原 Kun 框架）在 `_import/kun/`，[`idadawn/qian`](https://github.com/idadawn/qian)（原 Qian 平台）在 `_import/qian/`。接下来按[迁移执行计划](docs/migration-plan.md)整理、并轨，再按域归并与改名。**
 >
-> 代码在两个原仓库里：[`idadawn/kun`](https://github.com/idadawn/kun)（原 Kun 框架）与 [`idadawn/qian`](https://github.com/idadawn/qian)（原 Qian 平台的后端）。它们按合并蓝图导入这里并归并。
+> 两个原仓库现在处于收口期，只收在途任务的收尾与紧急修复；产品负责人宣布冻结后做最后一次同步，原仓库归档为只读。在那之前，过渡目录里的文件不改，原 Kun 与原 Qian 的最新源码以原仓库为准。
 >
-> `CavaiLAB/kun` 这个地址以前会跳转到 `idadawn/kun`，本仓库建立之后不再跳转。要取现在的 Kun 源码，请直接用 `idadawn/kun`。
+> `CavaiLAB/kun` 这个地址以前会跳转到 `idadawn/kun`，本仓库建立之后不再跳转。
 
 ## 定位
 

@@ -223,7 +223,7 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
 - **D23.13 仓库布局与历史**。
   1. 目标布局：`src/` 放全部 .NET 包，一个包一个目录；`tests/` 放测试、TCK 与门禁自测；`hosts/`、`samples/`、`tools/`、`benchmarks/`；`packages/` 只留前端工作区（前端 qian（原名 yue）、TS 运行时、插件 SDK、命令行）；`apps/`、`website/`、`contracts/`、`schemas/`、`plugins/`、`profiles/`、`tck/`、`deploy/`、`docs/`、`pm/`、`scripts/`。
   2. 两边顶层有 14 个同名项，不能直接叠在一起。分两步：先保留历史把 Qian 整棵树导入 kun 仓库的一个子目录；再随各域批次把项目挪到目标位置，全部挪完后子目录消失。
-  3. 历史 PR 号：任务文件里有 721 处落在 #62–#321，kun 仓库今后会把这些号发给别的 PR。导入时把任务文件与文档里的历史 `#N` 改写为 `idadawn/qian#N`，`idadawn/qian` 归档为只读。
+  3. 历史 PR 号：任务文件里有 721 处落在 idadawn/qian#62–idadawn/qian#321，kun 仓库今后会把这些号发给别的 PR。导入时把任务文件与文档里的历史 `#N` 改写为 `idadawn/qian#N`，`idadawn/qian` 归档为只读。
   4. ADR：Qian 的 ADR-001 至 ADR-023 保留编号，它们被 PRD 与任务大量引用。Kun 的 17 份 ADR 有 15 个编号与之重叠，移入 `docs/adr/kun/`，引用时写「Kun ADR-0xx」。此后新 ADR 接着 ADR-024 编。
   5. 看板整体搬入，任务 id 不变；看板、文档站、发版工作流与部署清单里 92 个文件写着的 `idadawn/qian` 改指 kun 仓库。文档站「Kun 框架」镜像小节（ADR-021 D21.4）撤销，改为同仓来源；Kun 文档里写给特定下游的内容改写后再进站。
   6. Kun 仓库里的自管任务队列与第三方生成的代理配置删除，任务管理统一到 `pm/`。

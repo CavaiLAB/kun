@@ -79,7 +79,7 @@ Kun 关键路径上有一组在「K3s 多副本 + 多租户」下必然触发的
 1. 上游 PR 优先：改动提到 kun 仓库，Kun 发版后改 `KunVersion` 升级，本小节随之更新。
 2. 每项设 1 个迭代的回合入期限；逾期未合入，由 Qian 维护 `Kun.<Module>.Patches` 补丁包（同名命名空间 + `[Obsolete]` 转发），并记录回合入日期。
 
-截至 2026-10-25 的状态：§07 7.1 的七个修复任务（S1-KUN-001–007）都已随 Kun 发布并由 Qian 升级消费；之后又有六项 7.1 之外的后续修复（S1-KUN-011–014、S1-KUN-016–017）与事件总线抽象拆包（S1-KUN-010）。当前锁定 Kun 2026.10.25，已包含上述修复及 Definition 包依赖门禁。Qian 没有任何补丁包。最新状态以任务看板为准（[pm/STATUS.md](https://github.com/idadawn/qian/blob/main/pm/STATUS.md)）。
+截至 2026-10-25 的状态：§07 7.1 的七个修复任务（S1-KUN-001–007）都已随 Kun 发布并由 Qian 升级消费；之后又有六项 7.1 之外的后续修复（S1-KUN-011–014、S1-KUN-016–017）与事件总线抽象拆包（S1-KUN-010）。当前锁定 Kun 2026.10.25，已包含上述修复及 Definition 包依赖门禁。Qian 没有任何补丁包。最新状态以任务看板为准（[pm/STATUS.md](https://github.com/CavaiLAB/kun/blob/main/_import/qian/pm/STATUS.md)）。
 
 | 任务 | 修复项（§07 7.1） | 状态 | 补丁包 |
 |---|---|---|---|
@@ -88,7 +88,7 @@ Kun 关键路径上有一组在「K3s 多副本 + 多租户」下必然触发的
 | S1-KUN-003 | 第 4 项 网关加固、第 5 项 gRPC 流式拦截器 | 已完成：上游 [idadawn/kun#49](https://github.com/idadawn/kun/pull/49) 随 Kun 2026.10.11 发布，Qian 已升级（随 S1-AZ-001 消费）；第 4 项里的 `client_credentials` / 机器身份签发端点按 ADR-010 D10.5 移交 `qian.identity`（S1-IDP-002） | 无 |
 | S1-KUN-004 | 第 6 项 Identity 客户端链路、第 7 项 S2S 签发器收敛 | 已完成：上游 [idadawn/kun#51](https://github.com/idadawn/kun/pull/51) 随 Kun 2026.10.11 发布；废弃的 S2S 签发器经 Banned API 与 `KUNS2S001` 在 Qian 全仓升为编译错误；真实 `qian-identity` 的 PKCE 联调按 S1-DEC-015 留在 S1-IDP-002 | 无 |
 | S1-KUN-005 | 第 8 项 审计收敛、第 9 项 数据约定 | 已完成：上游 [idadawn/kun#45](https://github.com/idadawn/kun/pull/45) 随 Kun 2026.10.9 发布，Qian 已升级（S1-KUN-009）；snake_case / Guid v7 / `xmin` 约定为显式 opt-in，由 S1-DATA-001 装配 | 无 |
-| S1-KUN-006 | 第 10–13 项 配置、鉴权端口、能力目录、废弃 API；另含 `KunExceptionHandler` 走 `IProblemDetailsService` | 已完成：上游 [idadawn/kun#47](https://github.com/idadawn/kun/pull/47) 随 Kun 2026.10.9 发布，Qian 已升级（S1-KUN-009）；Qian 侧 Banned API 分析器与门禁样例随 PR #14 交付；`PermissionBehavior` 须逐命令或全局注册，由 S1-AZ-001 装配 | 无 |
+| S1-KUN-006 | 第 10–13 项 配置、鉴权端口、能力目录、废弃 API；另含 `KunExceptionHandler` 走 `IProblemDetailsService` | 已完成：上游 [idadawn/kun#47](https://github.com/idadawn/kun/pull/47) 随 Kun 2026.10.9 发布，Qian 已升级（S1-KUN-009）；Qian 侧 Banned API 分析器与门禁样例随 PR idadawn/qian#14 交付；`PermissionBehavior` 须逐命令或全局注册，由 S1-AZ-001 装配 | 无 |
 | S1-KUN-007 | 第 3 项 Saga 其余修补（P1） | 已完成：上游 [idadawn/kun#50](https://github.com/idadawn/kun/pull/50) 随 Kun 2026.10.11 发布；Qian 不引用 `Kun.Saga`（开通编排由 `qian.lifecycle` 承担） | 无 |
 | S1-KUN-010 | 7.1 之外：事件总线抽象拆包与 Definition 包依赖门禁 | 已完成：上游 [idadawn/kun#59](https://github.com/idadawn/kun/pull/59) 随 Kun 2026.10.14 发布；Qian 已升级并验证仅依赖抽象的消费方 | 无 |
 | S1-KUN-011 | 7.1 之外：EF 租户过滤器读当前 DbContext | 已完成：上游 [idadawn/kun#54](https://github.com/idadawn/kun/pull/54) 随 Kun 2026.10.12-hotfix.2 发布，Qian 已升级并补跨宿主回归 | 无 |

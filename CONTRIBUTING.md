@@ -1,5 +1,7 @@
 # 贡献指南
 
+> 本指南来自原 Kun（`idadawn/kun`，已归档）。开发环境、分层原则、AOT 约定与提交规范照旧适用；分支策略、发布与版本规范、Pull Request 流程三节记的是原仓库的做法，在本仓库以根 [AGENTS.md](AGENTS.md) 与[迁移执行计划](docs/migration-plan.md)为准：PR 一律用合并提交合入，合并由产品负责人发话；发版工作流接不接、怎么接在 B12 之前由产品负责人定。
+
 感谢您对 **Kun Framework** 的关注！
 
 ## 📋 行为准则
@@ -17,7 +19,7 @@
 ### 推荐工具
 
 - **Visual Studio 2026** / **JetBrains Rider 2026.x** / **VS Code + C# Dev Kit**
-- **Claude Code** —— 仓库 `.claude/skills/` 下已预置 Kun 专属技能包，可大幅提升 Claude 生成代码的合规度
+- **编码代理**（Claude Code、Codex 等）—— 先读根 [AGENTS.md](AGENTS.md)，原 Kun 的构建、测试与代码约定在其中一节
 
 ### 初始构建
 
@@ -52,30 +54,9 @@ Kun.Core
 - ✅ 必须使用 `[DapperAot]` 特性标注读侧查询方法
 - ✅ CI 会对 AOT 候选服务执行 `dotnet publish -p:PublishAot=true`，零警告才允许合入
 
-## 🤖 使用 Claude Skills
+## 🤖 编码代理
 
-仓库根目录下 `.claude/skills/` 提供了 6 个 Kun 专属技能包。
-
-### 使用 Claude Code
-
-在仓库根目录运行 Claude Code，技能包自动加载。推荐在以下场景显式要求 Claude 参考对应技能：
-
-| 任务 | 触发技能 |
-| :--- | :--- |
-| 新增聚合根、值对象、领域事件 | `kun-ddd-modeling` |
-| 编写 Command / Query Handler | `kun-cqrs-mediator` |
-| 发布集成事件 / 处理消费 | `kun-outbox-events` |
-| 实现跨服务长事务 | `kun-saga` |
-| 编写测试 | `kun-testing` |
-| 任何涉及框架整体约定的工作 | `kun-framework-conventions` |
-
-### 验证规范遵循
-
-在提交 PR 前，建议在 Claude Code 中运行：
-
-```
-> 请根据 .claude/skills/kun-framework-conventions 检查我刚才的改动是否符合框架约定
-```
+原 Kun 的 `.claude/skills/` 技能包已按合并蓝图删除（D23.13 第 6 点）。编码代理（Claude Code 与 Codex 共用）改照根 [AGENTS.md](AGENTS.md) 的「原 Kun 的构建、测试与代码约定」一节做；提交 PR 前照那一节自查分层、AOT、命名与测试。
 
 ## 📝 提交规范
 
@@ -116,9 +97,11 @@ Closes #42
 
 ## 🔀 分支策略（Hard rule）
 
+> 这一节记的是原仓库的做法。本仓库以根 AGENTS.md 为准：一批一个 PR，PR 一律用合并提交合入（下表的 Squash / rebase merge 在本仓库不用），合并由产品负责人发话。
+
 **`main` 不是开发分支。任何人、任何时候、任何理由都不在 `main` 上直接 `commit` 或 `push`**——包括小范围文档修改、紧急修复、"就一条 commit" 都不行。
 
-> **2026-06-11 起**：本仓与下游 `idadawn/iclaw` 同步采用 **trunk-based** 模型，原 `develop` 分支已删除，git-flow 作废。`main` 是唯一长期分支。
+> **2026-06-11 起**：原仓库与下游同步采用 **trunk-based** 模型，原 `develop` 分支已删除，git-flow 作废。`main` 是唯一长期分支。
 
 所有改动走短命分支 + PR：
 
@@ -132,11 +115,13 @@ Closes #42
 | 维护者 | Squash / rebase merge 到 `main`，随手删除短命分支 |
 | 维护者（发版时） | 在 `main` 上打 CalVer tag（见下节），tag push 触发 Release workflow |
 
-**为什么**：下游消费方（`idadawn/iclaw` 的 `services/csharp` 及其 CI）经 `ProjectReference` 直接消费 `main`，`main` 必须始终可构建。该策略同时是将来要开启的 GitHub 分支保护（PR-required + status-checks-required）的编码契约：**规则先于工具落地**，工具开启前也不得违反。
+**为什么**：下游服务及其 CI 经 `ProjectReference` 直接消费 `main`，`main` 必须始终可构建。该策略同时是将来要开启的 GitHub 分支保护（PR-required + status-checks-required）的编码契约：**规则先于工具落地**，工具开启前也不得违反。
 
 **AI Agent 特别提醒**：会话启动前先跑 `git branch --show-current`；如果是 `main`，第一步必须是 `git pull && git checkout -b <type>/<task>`；从未 commit 过主分支。
 
 ## 🏷️ 发布与版本规范
+
+> 这一节记的是原仓库的发版做法。本仓库的发版工作流还没接，接不接、怎么接在 B12 之前由产品负责人定（迁移执行计划第 4、8 节）。
 
 **使用 CalVer 日期，tag 一律在 `main` 上打；同日补丁使用 NuGet 兼容的 `hotfix.N` 后缀**。CLI 与 CI 共用 `scripts/release_version.py` 校验（需要 Python 3.9+，见 `.github/workflows/release.yml`）：
 
@@ -159,6 +144,8 @@ Closes #42
 
 ## 🔀 Pull Request 流程
 
+> 这一节记的是原仓库的做法。在本仓库：PR 一律用合并提交合入，合并由产品负责人发话（根 AGENTS.md）。
+
 1. **Fork 仓库**（或用内部分支），从最新 `main` 切出特性分支：`feat/xxx` / `fix/xxx` / `docs/xxx` / `chore/xxx` — **绝不直接在 `main` 上提交**
 2. **编写代码 + 测试**。任何新功能必须附带测试。
 3. **本地验证**：
@@ -174,7 +161,7 @@ Closes #42
 
 ## 🧪 测试要求
 
-参见 [kun-testing skill](.claude/skills/kun-testing/SKILL.md)。简而言之：
+参见根 [AGENTS.md 的「原 Kun 的构建、测试与代码约定」](AGENTS.md#原-kun-的构建测试与代码约定)。简而言之：
 
 - **领域变更** → 领域单元测试（纯内存、无容器）
 - **跨层变更**（仓储、Outbox、Saga）→ Testcontainers 集成测试

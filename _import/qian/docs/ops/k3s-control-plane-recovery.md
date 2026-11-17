@@ -197,7 +197,7 @@ for i in $(seq 1 288); do date -u +%FT%TZ; systemctl show k3s -p NRestarts; kube
 
 ## 9 已批准的文档站缓存隔离试验
 
-产品负责人已在聊天中回复「批准试验并完成验收」。[已审核补丁](proposals/dep007-docs-tmpfs.patch)已通过 Qian PR #131 落地，后续 PR #134 持久配置 SSH443；实际部署、最终观察起点与提前关闭结果见第 10 节及 S1-DEP-007 日志。方案 B 的控制面拓扑决策不重开。
+产品负责人已在聊天中回复「批准试验并完成验收」。[已审核补丁](proposals/dep007-docs-tmpfs.patch)已通过 Qian PR idadawn/qian#131 落地，后续 PR idadawn/qian#134 持久配置 SSH443；实际部署、最终观察起点与提前关闭结果见第 10 节及 S1-DEP-007 日志。方案 B 的控制面拓扑决策不重开。
 
 I/O取样将高峰中的git/git-sync进程对应到`qian-tools/qian-docs-site`的磁盘`emptyDir`。同步22:28:38至22:29:24 UTC与75条告警重合；11:44:34 UTC另一个五秒样本中NVMe平均await为104.13ms，也与新告警邻近。其他同步曾有大批写入却没有etcd告警，因此这是隔离试验的依据，尚不是单一根因的证明。父进程回收子进程后可能包含子进程I/O计数，不能相加当成设备写入总量。
 
@@ -221,7 +221,7 @@ I/O取样将高峰中的git/git-sync进程对应到`qian-tools/qian-docs-site`�
 
 产品负责人在已获知尚未满 24 小时后明确回复「直接关闭吧」，据此关闭 [S1-DEP-007](../../pm/tasks/S1-DEP-007.md)。最终连续窗口为 `2026-10-15T15:39:17.970161Z` 至已复核样本 `2026-10-16T11:49:29.746773Z`：243 个样本、约 20 小时 10 分钟，全部健康；独立 slow_apply 与有界 journal 的慢请求、WAL 慢同步、ReadIndex / 领导权告警均为 0。原计划最早在 `2026-10-16T15:39:17.970161Z` 满 24 小时，此段剩余观测未作为关闭前提继续执行，不能写作完整 24 小时验收通过。此前失败窗口保留，不合并计时。
 
-交付状态为 qd 单控制面 / 单成员 etcd、三个 agent；四 Node UID、41 个 PVC 身份与绑定保留，prod / staging 数据协议和业务健康抽查通过。qd 与两台 worker agent 没有新增重启。文档站实际为 4Gi tmpfs、git-sync 2Gi / 5Gi、CPU 10m / 300m，原 Pod 两容器重启计数为 0，最近内存事件 max / oom / oom_kill 为 0；正式页、构建信息和既有预览可访问。Qian PR #131 / #134 与部署仓 PR #94 / #95 的生效时间和因果边界均见任务日志。
+交付状态为 qd 单控制面 / 单成员 etcd、三个 agent；四 Node UID、41 个 PVC 身份与绑定保留，prod / staging 数据协议和业务健康抽查通过。qd 与两台 worker agent 没有新增重启。文档站实际为 4Gi tmpfs、git-sync 2Gi / 5Gi、CPU 10m / 300m，原 Pod 两容器重启计数为 0，最近内存事件 max / oom / oom_kill 为 0；正式页、构建信息和既有预览可访问。Qian PR idadawn/qian#131 / idadawn/qian#134 与部署仓 PR #94 / #95 的生效时间和因果边界均见任务日志。
 
 最终窗口内两次 Git fetch 重试已恢复，未见工作树重置 / Pod 重启，告警当时缺少连续 HTTP 监测，不能宣称站点全程 HTTP 200。旧磁盘缓存写入与慢请求的相关性仍不等于唯一根因；初期即时压力正常也不能排除历史本机 I/O 停顿。最新异机备份、SHA-256、历史告警与临时 I/O 缺口均在任务关闭摘要中保留。
 

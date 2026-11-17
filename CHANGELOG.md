@@ -1,5 +1,7 @@
 # Changelog
 
+> 本文件是原 Kun 的变更记录，随原 Kun 提到本仓库根上续写。旧条目照原文，2026-11-18 清理了引擎与下游产品的名字，方括号里是整理时替换的说法；条目里原 Kun 仓库的 PR 编号写成 `idadawn/kun#N`，「review #N」是代码审查条目的序号，不是 PR。
+
 本文档记录 Kun Framework 的所有显著变更。
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号采用 **CalVer**（`vYYYY.M.D[-hotfix.N|-beta.N]`，从 `main` 打 tag，见 `CONTRIBUTING.md`）；更早的历史条目遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
@@ -94,7 +96,7 @@
 - 内存与 Redis 会话增加原子续期、按用户吊销及带重放保护的后通道登出；吊销后续期不得复活会话。默认验证 cookie 写请求的防跨站令牌；sid 日志只记 SHA256 与错误类型，并加入静态门禁。
 - 网关统一封闭 S2S 形状：aud/roles 数组、规范 UUID、用户/服务主体、会话/修订/成员上下文、1–300 秒 TTL 与每跳受众。拒绝缺失身份，不再转发任意 permission/email/trace 字段；两套旧签发入口标 KUNS2S001。
 - Sandbox 默认模板改为 kun-default，增加调用方命名的 JSON 扩展并防止覆盖核心字段；保留显式旧扩展的兼容序列化，标记废弃。
-- 此版本有迁移要求：规范身份字段、旧 cookie 重新登录、Redis 新键空间和原子接口、Data Protection 共享密钥。详见 [Identity 客户端指南](_import/kun/docs/guides/identity-client.md)。框架协议夹具不能替代尚未交付的真实 Qian 身份服务联调。
+- 此版本有迁移要求：规范身份字段、旧 cookie 重新登录、Redis 新键空间和原子接口、Data Protection 共享密钥。详见 [Identity 客户端指南](docs/guides/identity-client.md)。框架协议夹具不能替代尚未交付的真实 Qian 身份服务联调。
 
 ### Fixed — 网关与流式 gRPC 边界（S1-KUN-003）
 
@@ -124,7 +126,7 @@
 ### Fixed — 审计原子性与数据约定（S1-KUN-005）
 
 - `AddKunAuditing<TContext>()` 将实体 `AuditLog` 与 `kun.audit.event.v2` Outbox 消息直接登记到业务上下文；保存失败会撤销暂存记录，避免重试生成重复审计。租户、用户来自当前上下文，v2 支持字符串标识；旧 v1 类型保留读取兼容。
-- 事后写入的 `AuditSaveChangesInterceptor`、旧 `UseEventBus()` 与 `kun.audit.record.v1` 路径标记废弃，迁移指引见 [审计文档](_import/kun/docs/security/audit-log.md)。
+- 事后写入的 `AuditSaveChangesInterceptor`、旧 `UseEventBus()` 与 `kun.audit.record.v1` 路径标记废弃，迁移指引见 [审计文档](docs/security/audit-log.md)。
 - `PostgresAuditChain` 在事务里按租户行锁串行化读取链头、写记录并推进链头，保存原始时间 ticks，支持多副本与哈希重放。`AuditEntry.ActorType` 支持 `agent` 并纳入新哈希，历史 unknown 条目维持旧算法。
 - `EfAuditReader<TContext>` 在数据库端按当前租户、主体、资源、时间窗口过滤并限量。
 - 显式数据约定提供 snake_case、Guid v7 默认主键、可空审计主体及 PostgreSQL `xmin`；`SaveChangesResultAsync()` 将并发冲突映射为 `Result` 的 Conflict。已有非空主键保持不变，旧非空数值主体需要显式迁移。
@@ -133,7 +135,7 @@
 - Catalog 真库测试确认旧领域通知路径会丢失集成事件；领域通知改为提交前同 scope 派发，失败时禁止提交半个通知链。
 - 默认 EF Outbox 存储使用 PostgreSQL `FOR UPDATE SKIP LOCKED` 领取与提交批次；新增持久化 `NextAttemptAt` 指数退避，附两份示例迁移。自定义非事务存储不再默认无锁。
 - RabbitMQ 开启发布确认与 mandatory 路由，消费者成功后才记录幂等并 ack，失败经持久化 quorum 队列退避后进 DLX；保留共享连接自动恢复。业务 handler 仍需幂等。
-- 恢复原先跳过的幂等测试，补齐双副本发布、handler 失败重试与 broker 重启验收；见 [消息指南](_import/kun/docs/guides/outbox-and-integration-events.md) 的迁移边界。
+- 恢复原先跳过的幂等测试，补齐双副本发布、handler 失败重试与 broker 重启验收；见 [消息指南](docs/guides/outbox-and-integration-events.md) 的迁移边界。
 
 ## [2026.10.8] - 2026-10-08
 
@@ -148,7 +150,7 @@
 
 ### Changed — 仓库地址
 
-- 仓库于 2026-10-08 从 CavaiLAB 组织迁回 `idadawn/kun`（<https://github.com/idadawn/kun>），与 iclaw、iclaw-deploy 同一所有者；旧地址自动重定向。GitHub Packages 镜像自下一个版本起发布在 idadawn 名下，nuget.org 上的 `Kun.*` 不受影响。本文件的版本比较链接已改为新地址。
+- 仓库于 2026-10-08 从 CavaiLAB 组织迁回 `idadawn/kun`（<https://github.com/idadawn/kun>），与［下游的智能体产品］、［部署仓库］同一所有者；旧地址自动重定向。GitHub Packages 镜像自下一个版本起发布在 idadawn 名下，nuget.org 上的 `Kun.*` 不受影响。本文件的版本比较链接已改为新地址。
 
 ### Fixed — 发布配置隔离
 
@@ -156,7 +158,7 @@
 
 ### Fixed — 文档
 
-- 修正本文件两处越出仓库根目录的相对链接；`docs/architecture/when-to-use-currentuser.md` 的决策表补齐两行缺失的列（#42）。
+- 修正本文件两处越出仓库根目录的相对链接；`docs/architecture/when-to-use-currentuser.md` 的决策表补齐两行缺失的列（idadawn/kun#42）。
 
 ## [2026.9.13] - 2026-09-13
 
@@ -175,30 +177,30 @@
 
 ### Added — OSS Live Smoke 按需 CI 工作流
 
-- 新增 `.github/workflows/oss-live-smoke.yml`：把既有的 `OssFileStorageLiveSmokeTests`（实弹 OSS 预签名 PUT/GET 验证）接入 `workflow_dispatch` + 每日定时（03:27 UTC）的可选 job。此前该测试只能在本地或下游消费者手动跑，从不被任何 CI 触发（见 PR #12 遗留的"实弹 OSS e2e"项）。
+- 新增 `.github/workflows/oss-live-smoke.yml`：把既有的 `OssFileStorageLiveSmokeTests`（实弹 OSS 预签名 PUT/GET 验证）接入 `workflow_dispatch` + 每日定时（03:27 UTC）的可选 job。此前该测试只能在本地或下游消费者手动跑，从不被任何 CI 触发（见 PR idadawn/kun#12 遗留的"实弹 OSS e2e"项）。
 - 仅当配置了 `OSS_SMOKE_*` 四个仓库 secrets 时真正验证；缺失时测试自跳过，job 仍绿，并由 "Check credentials" 步骤打印警告，避免把"跳过"误读为"已验证"。定时任务以 `if: github.repository == 'idadawn/kun'` 限定，fork 不触发。
 
 ## [2026.6.12] - 2026-06-12
 
 首个 CalVer 版本，也是全部可打包模块首次推送 NuGet.org 的正式版。除下列当日变更外，本版还包含此前积压在 Unreleased 的全部 2026-04-22 ～ 04-24 交付（见本节后半部分）。
 
-### Fixed — Kun.sln 完整性：20 个 src/tests 项目纳入 CI 构建与测试门禁 (#24)
+### Fixed — Kun.sln 完整性：20 个 src/tests 项目纳入 CI 构建与测试门禁 (idadawn/kun#24)
 
 - `Kun.sln` 此前缺失 11 个 src 项目（Audit.EntityFrameworkCore、Caching、Configuration、Identity、Identity.AspNetCore、MultiTenancy、MultiTenancy.EntityFrameworkCore、Observability、RateLimit、Sandbox、Storage）与 9 个测试项目——CI 按 sln 构建，这些测试（200+ 用例，仅 Kun.Identity.Tests 即 47 个）从未在 CI 运行，src 侧仅靠 AOT audit 矩阵兜底。
 - 同步修复缺失测试项目在 Release + TreatWarningsAsErrors 下积累的分析器违规（CA1305 / CA1861 / IDE0005）。
 
-### Added — benchmarks 项目纳入 CI 编译门禁 (#25)
+### Added — benchmarks 项目纳入 CI 编译门禁 (idadawn/kun#25)
 
 - `Kun.Benchmarks` 与 `Kun.Benchmarks.Grpc` 加入 `Kun.sln`，并修复其相对 `Kun.Storage` 现行 API 的编译漂移，防止基准代码静默腐烂。
 
-### Fixed — Kun.Observability 稳定版打包被 NU5104 阻断 (#26)
+### Fixed — Kun.Observability 稳定版打包被 NU5104 阻断 (idadawn/kun#26)
 
 - `OpenTelemetry.Instrumentation.EntityFrameworkCore` 上游从未发布稳定版（beta-only，当前 1.15.1-beta.1）。`Kun.Observability` 入 sln 后首次被 `dotnet pack` 打包，即触发 NU5104（稳定包不得携带预发布依赖）并被 TreatWarningsAsErrors 升级为错误，阻断发版。在该 csproj 定点 `NoWarn` 并以注释记录上游现状（上游转正后应回顾移除）。
 
-### Fixed — 测试稳定性：消除两处高频 CI flaky (#27 / #28 / #29)
+### Fixed — 测试稳定性：消除两处高频 CI flaky (idadawn/kun#27 / idadawn/kun#28 / idadawn/kun#29)
 
-- `LogBaggageEnrichmentTests` 从未启动自身 trace 管道，依赖同程序集并行测试的进程级 ActivitySource 监听器“碰巧在场”；无监听器瞬间 `StartActivity` 返回 null，断言失败。现于 `BuildLoggerFactory` 中 eager resolve `TracerProvider` 使测试自给自足，静默 null 守卫改为显式断言 (#27)。
-- PgBouncer 100 并发压测的 TCP+auth 风暴在高负载共享 runner 上压垮单线程 pgbouncer 的 accept 循环，内核重置表现为 `Exception while reading from stream`：并发收敛到 30 限流闸门（仍高于 25 个后端槽，连接换绑的被测语义不变）+ 仅对 transient 异常 ≤3 次退避重试，prepared-statement 错误（PostgresException）永不重试 (#28)；fixture 补 `UntilPortIsAvailable(6432)` 等待策略，关闭“容器进程已起、监听 socket 未绑定”的启动竞态窗口 (#29)。
+- `LogBaggageEnrichmentTests` 从未启动自身 trace 管道，依赖同程序集并行测试的进程级 ActivitySource 监听器“碰巧在场”；无监听器瞬间 `StartActivity` 返回 null，断言失败。现于 `BuildLoggerFactory` 中 eager resolve `TracerProvider` 使测试自给自足，静默 null 守卫改为显式断言 (idadawn/kun#27)。
+- PgBouncer 100 并发压测的 TCP+auth 风暴在高负载共享 runner 上压垮单线程 pgbouncer 的 accept 循环，内核重置表现为 `Exception while reading from stream`：并发收敛到 30 限流闸门（仍高于 25 个后端槽，连接换绑的被测语义不变）+ 仅对 transient 异常 ≤3 次退避重试，prepared-statement 错误（PostgresException）永不重试 (idadawn/kun#28)；fixture 补 `UntilPortIsAvailable(6432)` 等待策略，关闭“容器进程已起、监听 socket 未绑定”的启动竞态窗口 (idadawn/kun#29)。
 
 ### Added — Kun.Testing.EntityFrameworkCore module with OutboxAssertions (2026-04-24)
 
@@ -337,7 +339,7 @@
   implementations (`SupervisorSandboxProvider`,
   `E2BCloudSandboxProvider`, `InMemorySandboxProvider`), the
   E2B-shaped DTOs (`SandboxCreateOptions`,
-  `NeuroagentSandboxExtension`, `SecretScopeConfig`,
+  ［智能体引擎的沙箱扩展类型］, `SecretScopeConfig`,
   `BrowserSessionConfig`, `FileEntry`, `ProcessRunOptions`,
   `ProcessResult`), `KunSandboxOptions`, and the
   `AddKunSandbox` extension. 120 entries; auto-emitted by
@@ -545,7 +547,7 @@
   `OperationCanceledException`, null-argument guards.
 - **Scope note**: additive only. `Kun.Core` stays AOT-candidate with
   zero third-party deps; `PublicAPI.Unshipped.txt` listing every new
-  symbol. Migration of `neuroagent-csharp` handlers off hand-rolled
+  symbol. Migration of ［下游的 C# 服务］ handlers off hand-rolled
   patterns is a separate follow-up task (ADR-011 §Follow-ups F1).
 
 ### Added — P2-A Part 2 benchmarks CI workflow (2026-04-24)
@@ -836,7 +838,7 @@ but the new capabilities below require explicit opt-in:
    - Chain `.UseKunSchema("catalog")` on the options builder alongside
      `.UseNpgsql(...)`.
    - Regenerate migrations so they emit `schema: "catalog"` — see
-     [docs/schema-per-service.md](_import/kun/docs/schema-per-service.md).
+     [docs/schema-per-service.md](docs/guides/schema-per-service.md).
    - `SchemaConsistencyInterceptor` auto-registers via `KunDbContext.OnConfiguring`
      and will throw at first `SaveChangesAsync` if you miss either step.
 2. **trace_id claim** (P0-2). `S2sTokenIssuer` now emits a `trace_id` claim
@@ -902,7 +904,7 @@ but the new capabilities below require explicit opt-in:
 
 ### Highlights (2026-04-24 / 04-25)
 
-**Phase 1 neuroagent-consumer gap fully closed.** Five tickets landed in one burst (23 commits on `main`, all pushed to `origin`):
+**Phase 1 ［下游的智能体产品］ consumer gap fully closed.** Five tickets landed in one burst (23 commits on `main`, all pushed to `origin`):
 
 - **P1-KN-001** `Kun.Storage` — new 15th module (`IFileStorage` 7-method contract + `ContentDispositionPolicy` + S3/MinIO/Local backends).
 - **P1-KN-002** S2S JWT claims alignment (`Kun.Security.S2SJwt` rewritten around `S2SJwtIssueRequest`, emits `roles`/`membership_id`/`trace_id`, default TTL 15 min, multi-aud header bug fixed).
@@ -925,7 +927,7 @@ Framework module count: 13 → 15. Test projects: 11 → 13. Validation / AOT pu
 
 ### Added — Kun.EntityFrameworkCore tenant-RLS interceptor (Phase 1 P1-CS-011)
 
-- New `Kun.EntityFrameworkCore.Interceptors.TenantRlsConnectionInterceptor`: opt-in EF `DbConnectionInterceptor` that pushes `ITenantContext.TenantId` into the PostgreSQL session variable `app.current_tenant_id` on connection open and RESETs it on close. Gives NeuroAgent a second isolation layer behind the existing EF global query filter when paired with RLS policies on the database schema.
+- New `Kun.EntityFrameworkCore.Interceptors.TenantRlsConnectionInterceptor`: opt-in EF `DbConnectionInterceptor` that pushes `ITenantContext.TenantId` into the PostgreSQL session variable `app.current_tenant_id` on connection open and RESETs it on close. Gives ［下游的智能体产品］ a second isolation layer behind the existing EF global query filter when paired with RLS policies on the database schema.
 - Activates only on Npgsql connections (nominal FQN check) so `Kun.EntityFrameworkCore` does not need a direct Npgsql package dependency; MySQL / SQL Server / other providers silently no-op.
 - Tenant id is whitelisted against `^[A-Za-z0-9._-]{1,128}$` before inlining into the `SET` command (PostgreSQL `SET` cannot be parameterised); unsafe values throw `InvalidOperationException` rather than being coerced.
 - Registered as Scoped by `AddKunEntityFrameworkCore`; callers opt in per `DbContextOptionsBuilder` via `opts.AddInterceptors(sp.GetRequiredService<TenantRlsConnectionInterceptor>())`.
@@ -946,7 +948,7 @@ Framework module count: 13 → 15. Test projects: 11 → 13. Validation / AOT pu
 - New claim emission, aligned with SAD v3.0 §12: `roles` (multi-valued), `membership_id`, `trace_id` — all optional via the request record. Pre-existing `sub`, `jti`, `tenant_id`, `scope`, `session_id` remain.
 - Multi-audience tokens now fold `aud` into the payload as a JSON array (previously, multi-audience tokens leaked `aud` into the JWT *header* — correctness bug, now fixed).
 - `S2SJwtOptions.DefaultLifetimeSeconds` default bumped from 300 → **900** (15 minutes) per SAD §12; individual calls can still override via `S2SJwtIssueRequest.Lifetime`.
-- `docs/security/s2s-jwt.md` extended with a NeuroAgent Set B section explaining why both `Kun.Gateway.S2sTokenIssuer` (RS256, 60s) and `Kun.Security.S2SJwt.S2SJwtIssuer` (ES256, 15min) coexist and when to use each.
+- `docs/security/s2s-jwt.md` extended with a ［下游的智能体产品］ Set B section explaining why both `Kun.Gateway.S2sTokenIssuer` (RS256, 60s) and `Kun.Security.S2SJwt.S2SJwtIssuer` (ES256, 15min) coexist and when to use each.
 
 ### Added — Kun.Storage (Phase 1 P1-KN-001)
 
@@ -960,7 +962,7 @@ Framework module count: 13 → 15. Test projects: 11 → 13. Validation / AOT pu
 - **Tests**:
   - `tests/Kun.Storage.Tests`: ContentDispositionPolicy matrix, LocalFileStorage round-trips + traversal + attachment enforcement, mocked-S3 unit tests, DI resolution tests.
   - `tests/Kun.IntegrationTests/Storage/S3FileStorageIntegrationTests.cs` + `Fixtures/MinioFixture.cs`: MinIO Testcontainer with real `HttpClient` round-trips against presigned URLs.
-- **Docs**: new `src/Kun.Storage/AGENTS.md`, module added to `src/AGENTS.md`, README, `docs/architecture/module-map.md`; `docs/neuroagent-phase1-gap.md` updated to mark P1-KN-001 complete.
+- **Docs**: new `src/Kun.Storage/AGENTS.md`, module added to `src/AGENTS.md`, README, `docs/architecture/module-map.md`; ［第一阶段差距盘点］ updated to mark P1-KN-001 complete.
 
 ### Merge — main → develop reconciliation (2026-04-25, `sync-main-into-develop`)
 
@@ -1200,12 +1202,12 @@ Framework module count: 13 → 15. Test projects: 11 → 13. Validation / AOT pu
 
 ## [0.1.0-phase1] - 2026-04-23
 
-Phase 1 首个可对 NeuroAgent 集成发版。10 个新模块落地（Storage / Identity /
+Phase 1 首个可对［下游的智能体产品］集成发版。10 个新模块落地（Storage / Identity /
 MultiTenancy / Audit / RateLimit / Caching / Observability / Security / Configuration /
 Sandbox），全仓 AOT 一致性通过审计，Directory.Build.props 统一 AOT 策略，CI 新增
 `aot-audit` 矩阵 job 与 `sample-aot-integration` job。
 
-[Unreleased]: https://github.com/idadawn/kun/compare/v2026.10.25...HEAD
+[Unreleased]: https://github.com/CavaiLAB/kun/compare/v2026.10.25...HEAD
 [2026.10.25]: https://github.com/idadawn/kun/compare/v2026.10.23...v2026.10.25
 [2026.10.23]: https://github.com/idadawn/kun/compare/v2026.10.14...v2026.10.23
 [2026.10.14]: https://github.com/idadawn/kun/compare/v2026.10.13...v2026.10.14

@@ -6,6 +6,8 @@
 **作者**: Manus AI
 **日期**: 2026年4月18日
 
+> 本文是原 Kun 2026-04 的设计白皮书，2026-11-18 搬入本仓库。Kun 的定位与路线已由合并蓝图改写，见[框架架构](../architecture.md)与[迁移与归并](../migration.md)；第 2–11 章讲的构建块设计仍适用，第 12、13 章是当时的路线与交付清单。
+
 ---
 
 ## 1. 框架愿景与定位
@@ -1020,7 +1022,7 @@ CI 流水线中对所有应当走 AOT 的服务执行 `dotnet publish -p:Publish
 
 ## 13. Phase 1 Deliverables（`0.1.0-phase1` 交付清单）
 
-§12 的 Phase 1 描述的是**方向**；本章记录 `0.1.0-phase1` tag 实际**交付**的内容，供下游（NeuroAgent Phase 1）作为消费清单。
+§12 的 Phase 1 描述的是**方向**；本章记录 `0.1.0-phase1` tag 实际**交付**的内容，供下游作为消费清单。
 
 ### 13.1 Phase 1 交付的新模块
 
@@ -1043,7 +1045,7 @@ CI 流水线中对所有应当走 AOT 的服务执行 `dotnet publish -p:Publish
 
 ### 13.2 最小集成示例：Sandbox + Audit + Security 组合根
 
-这是 NeuroAgent Phase 1 `csharp` 消费侧最常见的组合：外部 JWT 由网关校验，内部 S2S JWT 由下游 `Kun.Security` 认证，业务操作记入 `Kun.Audit`，并在 `Kun.Sandbox` 里执行不可信代码。
+这是 Phase 1 下游 C# 服务最常见的组合：外部 JWT 由网关校验，内部 S2S JWT 由下游 `Kun.Security` 认证，业务操作记入 `Kun.Audit`，并在 `Kun.Sandbox` 里执行不可信代码。
 
 ```csharp
 using Kun.Audit.DependencyInjection;
@@ -1055,7 +1057,7 @@ using Kun.Security.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1) 观测：traces + metrics + logs，一条调用栈贯穿全部模块
-builder.Services.AddKunObservability("neuroagent-agent");
+builder.Services.AddKunObservability("agent-service");
 
 // 2) 零信任：校验网关签发的 S2S JWT，注入 ITenantContext + ICurrentUser
 builder.Services
@@ -1071,7 +1073,7 @@ builder.Services.AddKunSecurity();
 //    UseEventBus() 会把审计条目作为集成事件经 Outbox 发出，NullAuditWriter 是默认 fallback
 builder.Services.AddKunAudit().UseEventBus();
 
-// 4) Sandbox：NeuroAgent 调用远端 Supervisor 起沙箱执行 agent 产出的代码
+// 4) Sandbox：调用远端 Supervisor 起沙箱执行 agent 产出的代码
 builder.Services.AddKunSandbox(opts => opts.UseSupervisor(
     baseUrl: new Uri("https://sandbox-supervisor.internal:8443/")));
 
@@ -1102,11 +1104,11 @@ app.Run();
 | [ADR-S02 — Kun.Sandbox 模块](../adr/kun/ADR-S02-Kun.Sandbox-module.md) | E2B v2 兼容 abstraction 与 Supervisor 后端 |
 | [AOT 一致性审计 2026-04-23](https://github.com/CavaiLAB/kun/blob/51b480775c/docs/architecture/AOT-audit-2026-04-23.md) | 全模块 AOT 状态矩阵 + CI 矩阵的来源 |
 
-### 13.5 消费侧对接清单（neuroagent-csharp）
+### 13.5 消费侧对接清单
 
 - 在 `Directory.Packages.props` 里固定 `Kun.*` 包版本到 `0.1.0-phase1`。
-- 任何需要框架变更的工作单独派任务到 `claude-kun`（见 `neuroagent/CLAUDE.md` §路由边界铁律），**不要**在 `neuroagent-csharp` 里 fork Kun 抽象。
-- 集成事件在 Phase 1 固定通过 `IEventTypeRegistry` 注册稳定 ID；Phase 2 的事件版本迁移由 `kun-outbox-events` skill 指导。
+- 需要框架变更的，到 Kun 仓库提 issue 或 PR，**不要**在下游仓库里 fork Kun 抽象。
+- 集成事件在 Phase 1 固定通过 `IEventTypeRegistry` 注册稳定 ID；事件版本迁移见 [Outbox 与集成事件指南](../guides/outbox-and-integration-events.md)。
 
 ---
 

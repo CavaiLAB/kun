@@ -73,7 +73,7 @@ Happens rarely. When you need a new field:
   `IAuthenticatedUser` is missing a field, **add the field to
   `IAuthenticatedUser`** after reading ADR-010, don't fork.
 - ❌ **A per-service `ICurrentUser` subinterface in
-  `neuroagent-csharp` (or any downstream consumer)** — consumer
+  a downstream consumer** — consumer
   services get no value from owning the abstraction.
 - ❌ **`ClaimsPrincipal` injection as a first-class service** —
   always go through `IAuthenticatedUser.Principal`. Direct

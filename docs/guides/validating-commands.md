@@ -6,7 +6,7 @@
 
 ## 适用对象
 
-在 `neuroagent-csharp` 或其他下游服务里新加一条 Command/Query，打算：
+在下游服务里新加一条 Command/Query，打算：
 
 - 用 `IRequest<Result>` 或 `IRequest<Result<TValue>>` 返回业务结果（而不是抛 `ValidationException` 让 ASP.NET / gRPC 中间件翻译）；
 - 在 Handler 之外把"请求形状合法性"（非空、长度、枚举范围等）挡住；

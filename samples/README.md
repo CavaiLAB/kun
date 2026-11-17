@@ -19,4 +19,4 @@ dotnet run --project Kun.Sample.AppHost
 
 ## 参与
 
-欢迎提交 PR 补充示例！请遵循 [`.claude/skills/`](../.claude/skills/) 中的框架约定。
+欢迎提交 PR 补充示例！请遵循根 [AGENTS.md 的「原 Kun 的构建、测试与代码约定」](../AGENTS.md#原-kun-的构建测试与代码约定)。

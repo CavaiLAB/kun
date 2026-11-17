@@ -23,7 +23,7 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 
 ## 开发规范
 
-所有开发必须遵循根目录下 [`.claude/skills/`](../.claude/skills/) 的约定。核心约束：
+所有开发必须遵循根 [AGENTS.md 的「原 Kun 的构建、测试与代码约定」](../AGENTS.md#原-kun-的构建测试与代码约定)。核心约束：
 
 - **Kun.Core 零第三方依赖**
 - **领域层不得携带 ORM / JSON / 验证属性**

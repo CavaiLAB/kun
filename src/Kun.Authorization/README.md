@@ -8,7 +8,7 @@
 
 三个入口在缺少引擎时拒绝，且在 handler 前判定。基础 HTTP/Mediator 适配器沿用现有用户身份上下文；服务或 Agent 的复杂主体与委托策略由平台身份及权限实现补充。权限集合不从令牌直接推导。
 
-设计与兼容说明见 [ADR-016](../../_import/kun/docs/architecture/ADR-016-platform-ports.md)。
+设计与兼容说明见 [ADR-016](../../docs/adr/kun/ADR-016-platform-ports.md)。
 
 ## 主体维度
 

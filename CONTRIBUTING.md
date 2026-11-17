@@ -161,7 +161,7 @@ Closes #42
 
 ## 🧪 测试要求
 
-参见 [kun-testing skill](.claude/skills/kun-testing/SKILL.md)。简而言之：
+参见根 [AGENTS.md 的「原 Kun 的构建、测试与代码约定」](AGENTS.md#原-kun-的构建测试与代码约定)。简而言之：
 
 - **领域变更** → 领域单元测试（纯内存、无容器）
 - **跨层变更**（仓储、Outbox、Saga）→ Testcontainers 集成测试

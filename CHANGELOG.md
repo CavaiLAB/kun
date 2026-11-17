@@ -1,6 +1,6 @@
 # Changelog
 
-> 本文件是原 Kun 的变更记录，随原 Kun 提到本仓库根上续写。旧条目照原文，2026-11-18 清理了引擎与下游产品的名字，方括号里是整理时替换的说法。
+> 本文件是原 Kun 的变更记录，随原 Kun 提到本仓库根上续写。旧条目照原文，2026-11-18 清理了引擎与下游产品的名字，方括号里是整理时替换的说法；条目里原 Kun 仓库的 PR 编号写成 `idadawn/kun#N`，「review #N」是代码审查条目的序号，不是 PR。
 
 本文档记录 Kun Framework 的所有显著变更。
 
@@ -158,7 +158,7 @@
 
 ### Fixed — 文档
 
-- 修正本文件两处越出仓库根目录的相对链接；`docs/architecture/when-to-use-currentuser.md` 的决策表补齐两行缺失的列（#42）。
+- 修正本文件两处越出仓库根目录的相对链接；`docs/architecture/when-to-use-currentuser.md` 的决策表补齐两行缺失的列（idadawn/kun#42）。
 
 ## [2026.9.13] - 2026-09-13
 
@@ -177,30 +177,30 @@
 
 ### Added — OSS Live Smoke 按需 CI 工作流
 
-- 新增 `.github/workflows/oss-live-smoke.yml`：把既有的 `OssFileStorageLiveSmokeTests`（实弹 OSS 预签名 PUT/GET 验证）接入 `workflow_dispatch` + 每日定时（03:27 UTC）的可选 job。此前该测试只能在本地或下游消费者手动跑，从不被任何 CI 触发（见 PR #12 遗留的"实弹 OSS e2e"项）。
+- 新增 `.github/workflows/oss-live-smoke.yml`：把既有的 `OssFileStorageLiveSmokeTests`（实弹 OSS 预签名 PUT/GET 验证）接入 `workflow_dispatch` + 每日定时（03:27 UTC）的可选 job。此前该测试只能在本地或下游消费者手动跑，从不被任何 CI 触发（见 PR idadawn/kun#12 遗留的"实弹 OSS e2e"项）。
 - 仅当配置了 `OSS_SMOKE_*` 四个仓库 secrets 时真正验证；缺失时测试自跳过，job 仍绿，并由 "Check credentials" 步骤打印警告，避免把"跳过"误读为"已验证"。定时任务以 `if: github.repository == 'idadawn/kun'` 限定，fork 不触发。
 
 ## [2026.6.12] - 2026-06-12
 
 首个 CalVer 版本，也是全部可打包模块首次推送 NuGet.org 的正式版。除下列当日变更外，本版还包含此前积压在 Unreleased 的全部 2026-04-22 ～ 04-24 交付（见本节后半部分）。
 
-### Fixed — Kun.sln 完整性：20 个 src/tests 项目纳入 CI 构建与测试门禁 (#24)
+### Fixed — Kun.sln 完整性：20 个 src/tests 项目纳入 CI 构建与测试门禁 (idadawn/kun#24)
 
 - `Kun.sln` 此前缺失 11 个 src 项目（Audit.EntityFrameworkCore、Caching、Configuration、Identity、Identity.AspNetCore、MultiTenancy、MultiTenancy.EntityFrameworkCore、Observability、RateLimit、Sandbox、Storage）与 9 个测试项目——CI 按 sln 构建，这些测试（200+ 用例，仅 Kun.Identity.Tests 即 47 个）从未在 CI 运行，src 侧仅靠 AOT audit 矩阵兜底。
 - 同步修复缺失测试项目在 Release + TreatWarningsAsErrors 下积累的分析器违规（CA1305 / CA1861 / IDE0005）。
 
-### Added — benchmarks 项目纳入 CI 编译门禁 (#25)
+### Added — benchmarks 项目纳入 CI 编译门禁 (idadawn/kun#25)
 
 - `Kun.Benchmarks` 与 `Kun.Benchmarks.Grpc` 加入 `Kun.sln`，并修复其相对 `Kun.Storage` 现行 API 的编译漂移，防止基准代码静默腐烂。
 
-### Fixed — Kun.Observability 稳定版打包被 NU5104 阻断 (#26)
+### Fixed — Kun.Observability 稳定版打包被 NU5104 阻断 (idadawn/kun#26)
 
 - `OpenTelemetry.Instrumentation.EntityFrameworkCore` 上游从未发布稳定版（beta-only，当前 1.15.1-beta.1）。`Kun.Observability` 入 sln 后首次被 `dotnet pack` 打包，即触发 NU5104（稳定包不得携带预发布依赖）并被 TreatWarningsAsErrors 升级为错误，阻断发版。在该 csproj 定点 `NoWarn` 并以注释记录上游现状（上游转正后应回顾移除）。
 
-### Fixed — 测试稳定性：消除两处高频 CI flaky (#27 / #28 / #29)
+### Fixed — 测试稳定性：消除两处高频 CI flaky (idadawn/kun#27 / idadawn/kun#28 / idadawn/kun#29)
 
-- `LogBaggageEnrichmentTests` 从未启动自身 trace 管道，依赖同程序集并行测试的进程级 ActivitySource 监听器“碰巧在场”；无监听器瞬间 `StartActivity` 返回 null，断言失败。现于 `BuildLoggerFactory` 中 eager resolve `TracerProvider` 使测试自给自足，静默 null 守卫改为显式断言 (#27)。
-- PgBouncer 100 并发压测的 TCP+auth 风暴在高负载共享 runner 上压垮单线程 pgbouncer 的 accept 循环，内核重置表现为 `Exception while reading from stream`：并发收敛到 30 限流闸门（仍高于 25 个后端槽，连接换绑的被测语义不变）+ 仅对 transient 异常 ≤3 次退避重试，prepared-statement 错误（PostgresException）永不重试 (#28)；fixture 补 `UntilPortIsAvailable(6432)` 等待策略，关闭“容器进程已起、监听 socket 未绑定”的启动竞态窗口 (#29)。
+- `LogBaggageEnrichmentTests` 从未启动自身 trace 管道，依赖同程序集并行测试的进程级 ActivitySource 监听器“碰巧在场”；无监听器瞬间 `StartActivity` 返回 null，断言失败。现于 `BuildLoggerFactory` 中 eager resolve `TracerProvider` 使测试自给自足，静默 null 守卫改为显式断言 (idadawn/kun#27)。
+- PgBouncer 100 并发压测的 TCP+auth 风暴在高负载共享 runner 上压垮单线程 pgbouncer 的 accept 循环，内核重置表现为 `Exception while reading from stream`：并发收敛到 30 限流闸门（仍高于 25 个后端槽，连接换绑的被测语义不变）+ 仅对 transient 异常 ≤3 次退避重试，prepared-statement 错误（PostgresException）永不重试 (idadawn/kun#28)；fixture 补 `UntilPortIsAvailable(6432)` 等待策略，关闭“容器进程已起、监听 socket 未绑定”的启动竞态窗口 (idadawn/kun#29)。
 
 ### Added — Kun.Testing.EntityFrameworkCore module with OutboxAssertions (2026-04-24)
 
@@ -1207,7 +1207,7 @@ MultiTenancy / Audit / RateLimit / Caching / Observability / Security / Configur
 Sandbox），全仓 AOT 一致性通过审计，Directory.Build.props 统一 AOT 策略，CI 新增
 `aot-audit` 矩阵 job 与 `sample-aot-integration` job。
 
-[Unreleased]: https://github.com/idadawn/kun/compare/v2026.10.25...HEAD
+[Unreleased]: https://github.com/CavaiLAB/kun/compare/v2026.10.25...HEAD
 [2026.10.25]: https://github.com/idadawn/kun/compare/v2026.10.23...v2026.10.25
 [2026.10.23]: https://github.com/idadawn/kun/compare/v2026.10.14...v2026.10.23
 [2026.10.14]: https://github.com/idadawn/kun/compare/v2026.10.13...v2026.10.14

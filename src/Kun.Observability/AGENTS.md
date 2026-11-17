@@ -5,8 +5,8 @@
 | Type | Purpose |
 |------|---------|
 | `Enrichment.KunBaggageKeys` | Public constants (`tenant.id`, `user.id`, `outbox.message_id`) — canonical baggage keys the framework mirrors onto Kun-sourced span tags when the enricher is enabled. |
-| `Enrichment.KunBaggageActivityProcessor` | Internal `BaseProcessor<Activity>` that runs at `OnEnd` for Kun-owned sources and mirrors whitelisted baggage entries onto span tags. Opt-in via `KunObservabilityOptions.EnrichActivitiesFromBaggage`. See [ADR-013](../../_import/kun/docs/architecture/ADR-013-Kun.Observability-enricher.md). |
-| `Enrichment.KunBaggageLogRecordProcessor` | Internal `BaseProcessor<LogRecord>` that runs at `OnEnd`, reads `Activity.Current?.Baggage`, and mirrors whitelisted keys onto `LogRecord.Attributes` *if not already set by the log statement*. Opt-in via `KunObservabilityOptions.EnrichLogsFromBaggage`. See [ADR-013 §F1 resolution](../../_import/kun/docs/architecture/ADR-013-Kun.Observability-enricher.md). |
+| `Enrichment.KunBaggageActivityProcessor` | Internal `BaseProcessor<Activity>` that runs at `OnEnd` for Kun-owned sources and mirrors whitelisted baggage entries onto span tags. Opt-in via `KunObservabilityOptions.EnrichActivitiesFromBaggage`. See [ADR-013](../../docs/adr/kun/ADR-013-Kun.Observability-enricher.md). |
+| `Enrichment.KunBaggageLogRecordProcessor` | Internal `BaseProcessor<LogRecord>` that runs at `OnEnd`, reads `Activity.Current?.Baggage`, and mirrors whitelisted keys onto `LogRecord.Attributes` *if not already set by the log statement*. Opt-in via `KunObservabilityOptions.EnrichLogsFromBaggage`. See [ADR-013 §F1 resolution](../../docs/adr/kun/ADR-013-Kun.Observability-enricher.md). |
 
 ## Default Toggles
 

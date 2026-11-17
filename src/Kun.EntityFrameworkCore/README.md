@@ -112,5 +112,6 @@ The fixture and the acceptance test are in
   override + migrations regeneration walkthrough.
 - [docs/guides/read-side-patterns.md](../../_import/kun/docs/guides/read-side-patterns.md) —
   the Dapper read-side pairs with this package via CQRS.
-- [CLAUDE.md](../../_import/kun/CLAUDE.md) §"Outbox (atomicity is the whole point)" — the
+- [AGENTS.md](../../AGENTS.md#运行时约定) §运行时约定 (the Outbox rule) and
+  [Kun ADR-015](../../docs/adr/kun/ADR-015-Outbox-pattern.md) — the
   architectural invariants this package enforces.

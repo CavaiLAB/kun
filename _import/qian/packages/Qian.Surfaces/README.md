@@ -34,7 +34,7 @@ if (result.IsValid)
 
 支持 skill、agent、command 的 front matter 与原样正文，以及 hooks、MCP、tool、UI、patch、metadata；清单接受缺省或覆盖的表面指针。JSON 重复键、YAML 重复键或 alias 被拒绝；单文件最多 1 MiB，容器最多嵌套 64 层。字符串与键名不能含未成对的 UTF-16 代理项（`\u` 转义出的 D800–DFFF 码元没有配对）：JSON 在所在行报「JSON 字符串或键名含未成对的代理项。」，语法错误、过深与非有限数值优先；YAML 双引号标量里的这类转义按语法错误报在标量起始行（YamlDotNet 拒绝，`yaml` 包原本接受），转义的代理对照常解码；直接传入的字符串含字面量的未成对代理项时按值无效处理。致命错误（语法、大小、嵌套、值、代理项）只报告它自己，先前发现的重复键不再列出。两端的检查顺序与行号约定见下文。路径须存在于组件内，不能逃逸或经过符号链接，检查大小写以保持跨平台一致。
 
-`ui/manifest.json` 默认被发现，也可由 `surfaces.ui` 指定组件内其它 JSON 文件；两端真正读取内容、校验 `ui/v2` 并返回 `kind: ui` 文档。清单须有 `$schema`、`federation.manifest/exposes` 与 `engines.yue`，保留规格中的 pages、widgets、settingsCards。桥接字段可省略以描述只供静态索引的 UI；声明 contributions 时必须同时声明完整 bridge。未知字段、缺少必填属性、非法路由、未声明 expose、重复路由/控件类型/同 scope 设置卡片/插槽贡献、重复桥接能力和桥接未允许的插槽均拒绝。公共校验不联网读取 MF 清单，也不等同于加载器验证远程产物、版本或来源。
+`ui/manifest.json` 默认被发现，也可由 `surfaces.ui` 指定组件内其它 JSON 文件；两端真正读取内容、校验 `ui/v2` 并返回 `kind: ui` 文档。清单须有 `$schema`、`federation.manifest/exposes` 与 `engines.qian`（前端框架版本），保留规格中的 pages、widgets、settingsCards。桥接字段可省略以描述只供静态索引的 UI；声明 contributions 时必须同时声明完整 bridge。未知字段、缺少必填属性、非法路由、未声明 expose、重复路由/控件类型/同 scope 设置卡片/插槽贡献、重复桥接能力和桥接未允许的插槽均拒绝。公共校验不联网读取 MF 清单，也不等同于加载器验证远程产物、版本或来源。
 
 浏览器 `@idadawn/qian-plugin-sdk` 仅导入由 `schemas/v2/ui.schema.json` 生成的纯 TS 数据副本，构建与测试先做漂移检查，不依赖 Node 表面包。六类版本插槽 Schema 也从同一份定义派生；当前加载器要求显式 bridge，并明确拒绝尚未实现的非空 widgets/settingsCards，不能把静态索引通过解释成这些运行能力已经实现。两侧共用 UI 正负 fixture，SDK另标注静态合法但当前运行态不支持的用例。
 

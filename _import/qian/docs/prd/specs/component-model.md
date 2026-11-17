@@ -113,7 +113,7 @@
   "description": "多租户文件服务：租户前缀、配额、上传策略、文件元数据与预览票据；存储后端可选本地盘 / S3 / OSS",
   "author": { "name": "Qian Platform Team", "url": "https://docs.example.internal/qian" },
   "license": "Apache-2.0",
-  "engines": { "qian": ">=1.0 <2", "kun": ">=2026.9", "yue": "^1.0" },
+  "engines": { "kun": ">=2026.9", "qian": "^1.0" },
   "interface": {
     "displayName": "文件存储",
     "category": "storage",
@@ -167,7 +167,6 @@
   "description": "租户上线核对技能：按清单检查身份连接器、默认角色、文件配额与通知渠道是否就绪",
   "author": { "name": "Example Ops", "email": "ops@example.com" },
   "license": "MIT",
-  "engines": { "qian": ">=1.0 <2" },
   "interface": { "displayName": "租户上线核对", "category": "operations", "brandColor": "#7C3AED",
                  "defaultPrompt": ["用 tenant-onboarding 技能检查租户 t-001 是否可以上线"] },
   "surfaces": { "skills": "./skills", "commands": "./commands" },
@@ -190,7 +189,7 @@
   "description": "base 组合包：原 18 个平台插件按 seam 拆包——注册表、生命周期、能力目录、钩子桥接、租户、身份客户端、鉴权、数据、文件、配置、事件、审计、可观测、通知、调度、实时、授权 v0",
   "author": { "name": "Qian Platform Team" },
   "license": "Apache-2.0",
-  "engines": { "qian": ">=1.0 <2", "kun": ">=2026.9" },
+  "engines": { "kun": ">=2026.9" },
   "interface": { "displayName": "平台 base 组合包", "category": "bundle", "icon": "./assets/icon.svg" },
   "surfaces": { "patch": "./config/qian.patch.yml", "skills": "./skills", "commands": "./commands", "hooks": "./hooks/hooks.json" },
   "runtime": {
@@ -226,7 +225,7 @@
 | `description` | `string`，10–500 字 | 是 | 面向人；模型看 `skills` / `tools` 的描述 | S1 |
 | `author` | `{ name, email?, url? }` | 是 | 市场的 `publisher.verified` 在 S3 另行维护，不在清单 | S1 |
 | `license` | SPDX 或 `LicenseRef-*` | 是 | Qian 包族许可证已定为 Apache-2.0（→ §13 第 6 条），官方组件写 `Apache-2.0`；S3 商业组件的许可证另定 | S1 |
-| `engines` | `{ qian?, kun?, yue? }` SemVer range | 否 | 沿 v1 保留；有 `ui` 表面时 `yue` 必填，有 `runtime.nuget` 时 `kun` 必填 | S1 |
+| `engines` | `{ kun?, qian? }` SemVer range | 否 | `kun` 是 Kun 框架的版本，有 `runtime.nuget` 时必填；`qian` 是前端框架（`@cavailab/qian-*`）的版本，与 `ui/manifest.json` 的 `engines.qian` 同义，有 `ui` 表面时必填。平台运行时（`Qian.Runtime`）不单独声明：它将并入 Kun 的日历版本线、由 `kun` 覆盖（ADR-023 D23.18），并入之前没有单独的版本检查。v1 的 `yue` 键已改名为 `qian`，原指平台运行时的 `qian` 不再保留 | S1 |
 
 **展示（`interface`）**
 
@@ -300,7 +299,7 @@
                 "properties": { "name": { "type": "string" }, "email": { "type": "string", "format": "email" }, "url": { "type": "string", "format": "uri" } } },
     "license": { "type": "string" },
     "engines": { "type": "object", "additionalProperties": false,
-                 "properties": { "qian": { "type": "string" }, "kun": { "type": "string" }, "yue": { "type": "string" } } },
+                 "properties": { "qian": { "type": "string" }, "kun": { "type": "string" } } },
     "interface": { "type": "object", "required": ["displayName", "category"], "additionalProperties": false,
       "properties": { "displayName": { "type": "string", "maxLength": 40 }, "category": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
         "defaultPrompt": { "type": "array", "maxItems": 5, "items": { "type": "string" } }, "icon": { "$ref": "#/$defs/relPath" },
@@ -358,7 +357,7 @@
 | `distribution` | S2 低代码表面的属性，不在清单根 | ADR-014 修订后由 `qian.metadata` spec 定义 |
 | `displayName` / `description`（多语言映射） | `interface.displayName`、根 `description`；多语言放 `interface.locales` | — |
 | `publisher` / `icon` / `links` / `categories` | 删除（S3 市场维护）/ `interface.icon` / `author.url` / `interface.category` | — |
-| `engines.*` | `engines.*` | 保留 |
+| `engines.*` | `engines.kun`、`engines.qian` | `kun` 不变；`yue`（前端框架）改名 `qian`；原指平台运行时的 `qian` 去掉，将并入 `kun`（§3.4 `engines`） |
 | `dependencies[]` | `inject[]` | 依赖服务键而非具体组件（D20.4） |
 | `provides.capabilities[]`（含 Agent 字段） | `tools/<name>.json`（§4.6） | `sideEffect`、`policyHint`、`idempotent`、`requiredScopes`、`requiredPermission`、`requiredSecrets`、`dataClassification`、`schemaSha256`、`contractVersion`、`agent{ expose, requiresConfirmation }` 字段名不变 |
 | `provides.events` / `permissions` / `defaultRoles` / `messageTypes` | `metadata/events.json` / `permissions.json` / `roles.json` / `message-types.json` | 已裁决（R37） |
@@ -610,7 +609,7 @@ Agent 宿主事件（大驼峰）由 Agent 运行时定义并透传：校验器�
   "pages": [{ "route": "/files", "expose": "FilesPage", "permission": "qian.files:file:read", "nav": { "title": "文件", "icon": "folder", "order": 40 } }],
   "widgets": [{ "type": "qian.file", "expose": "FileFieldWidget" }],
   "settingsCards": [{ "expose": "FilesSettingsCard", "scope": "tenant", "permission": "qian.files:settings:write" }],
-  "engines": { "yue": "^1.0" }
+  "engines": { "qian": "^1.0" }
 }
 ```
 
@@ -1223,7 +1222,7 @@ npx qian@latest [--skill <name>]… [--agent <name>]… [--command <name>]… [-
 ```text
 1 Resolve  按 §8.3 在市场定位条目 → 按 source 取得组件文件夹（local 直接读；url 下载归档；git-subdir 浅克隆到缓存）
 2 Verify   市场签名（§11.5）→ source.digest 与实际内容 → 读 plugin.json → Schema + 语义校验（§10.1）
-           → tier × form × sandbox（§11.1）→ engines 与当前 profile 运行时版本比对
+           → tier × form × sandbox（§11.1）→ engines 与宿主实际还原的版本比对（kun 读 NuGet 还原记录里的 Kun.Core，qian 读 npm 安装的 @cavailab/qian-core）
 3 Plan     计算并打印变更集：
            · 复制到 .qian/plugins/<component-id>/ 的表面文件（skills、agents、commands、hooks、.mcp.json、tools、metadata、schemas、assets、README、AGENTS）
            · 加入的 NuGet（dotnet add package）/ npm（npm i）依赖 = runtime.nuget[] / npm[]（--no-code 跳过）
@@ -1283,7 +1282,7 @@ npx qian@latest [--skill <name>]… [--agent <name>]… [--command <name>]… [-
 | `.mcp.json` | `mcp/v2` | `stdio` 仅非平台 profile；敏感头 / env 必须 `secretRef://`；`url` 域名在 `policy.egress` |
 | `tools/*.json` | `tool/v2` | `inputSchema` 合法且 `additionalProperties: false`；无租户字段；`sideEffect ≠ read ⇒ idempotent ∧ idempotencyKey`；`description ≥ 10 字`；`schemaSha256` 回写一致；`binding` 可解析 |
 | `metadata/*.json` | 各自 Schema | 权限点 `<component-id>:<resource>:<action>` 且前缀 = 本组件 id；事件 id 全局唯一；角色模板只引用本组件或已 `inject` seam 的权限点 |
-| `ui/manifest.json` | `ui/v2` | `engines.yue` 必填；`exposes` 与 `federation.manifest` 一致 |
+| `ui/manifest.json` | `ui/v2` | `engines.qian`（前端框架版本）必填；`exposes` 与 `federation.manifest` 一致 |
 | `qian.patch.yml` / `qian.profile.yml` | `patch/v2` / `profile/v2` | 条目 `scope.kind ∈ scopes[]`；`plugin` 可解析；`config` 过 `configSchema`；S1 拒绝 `hmr.code: true`；`build.aot: true` 时树中无非 AOT 组件 |
 | `marketplace.json` | `marketplace/v2` | `name` 唯一；`source` 按类型必填项；`category ∈ categories[]`；条目 `policy` 与组件清单不一致 warning |
 | 全部文件 | — | 密钥扫描：疑似密钥键名（`secret / token / password / key`）的值必须 `secretRef://`；高熵字符串拒绝；任何输入 Schema 禁止租户字段 |

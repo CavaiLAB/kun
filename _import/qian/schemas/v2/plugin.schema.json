@@ -67,9 +67,6 @@
         },
         "kun": {
           "type": "string"
-        },
-        "yue": {
-          "type": "string"
         }
       }
     },

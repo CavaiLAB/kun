@@ -404,7 +404,7 @@ public abstract partial class CustomerCommandTests
               new { id = "qian.sample.crm.http/v1", kind = "openapi", path = "./contracts/rest-v1.openapi.json" } }));
         Write("plugins/crm/contracts/http-v1.openapi.json", contract.GetRawText());
         Write("plugins/crm/contracts/rest-v1.openapi.json", (await app.Services.GetRequiredService<IHttpContractSource>().CompileDocumentAsync("qian.sample.crm", Ct)).GetRawText());
-        Write("plugins/crm/ui/manifest.json", """{"$schema":"https://qian.dev/schemas/ui/v2","federation":{"manifest":"/remotes/qian.sample.crm/mf-manifest.json","exposes":["CustomersPage"]},"engines":{"yue":"^0.1.0"},"pages":[{"route":"/customers","expose":"CustomersPage","permission":"qian.sample.crm:customer:read","nav":{"title":"客户","icon":"users","order":10}}]}""");
+        Write("plugins/crm/ui/manifest.json", """{"$schema":"https://qian.dev/schemas/ui/v2","federation":{"manifest":"/remotes/qian.sample.crm/mf-manifest.json","exposes":["CustomersPage"]},"engines":{"qian":"^0.2.0"},"pages":[{"route":"/customers","expose":"CustomersPage","permission":"qian.sample.crm:customer:read","nav":{"title":"客户","icon":"users","order":10}}]}""");
         // 平台控制台（S1-YUE-018）：Tenancy 带上仓库里的 UI 清单（清单 scopes 只含 global，即平台组件）；开通申请组件只登记预装绑定，由用例登记数据上下文后挂载。
         // 开通申请不是经 Lifecycle 安装的 system 制品：标 official，租户开通第 03 步不会去给它开通。
         if (platform.Console)

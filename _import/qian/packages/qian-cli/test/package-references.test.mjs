@@ -4,7 +4,7 @@ import {parsePackageReference,collectPackageReferences,collectRuntimePackageRefe
 
 test('精确引用支持 CalVer、预发布与 npm scope，保留发布者声明',()=>{
  assert.deepEqual(parsePackageReference('nuget','Kun.Core@2026.10.12'),{kind:'nuget',name:'Kun.Core',version:'2026.10.12',specification:'Kun.Core@2026.10.12'});
- assert.equal(parsePackageReference('npm','@idadawn/qian-runtime@0.1.0-beta.1').name,'@idadawn/qian-runtime');
+ assert.equal(parsePackageReference('npm','@cavailab/qian-runtime@0.1.0-beta.1').name,'@cavailab/qian-runtime');
  assert.equal(parsePackageReference('npm','semver@7.7.4').version,'7.7.4');
 });
 
@@ -23,7 +23,7 @@ test('包管理器启动前拒绝参数注入、范围、别名、Git 与本地�
 
 test('共享包按真实名称语义去重并记录全部所有者，冲突不会静默改写版本',()=>{
  const components=[
-  {id:'qian.first',packages:{nuget:['Kun.Core@2026.10.12'],npm:['@idadawn/qian-runtime@0.1.0']}},
+  {id:'qian.first',packages:{nuget:['Kun.Core@2026.10.12'],npm:['@cavailab/qian-runtime@0.1.0']}},
   {id:'qian.second',packages:{nuget:['kun.core@2026.10.12'],npm:[]}}
  ];
  const collected=collectPackageReferences(components);

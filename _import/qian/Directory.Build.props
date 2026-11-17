@@ -37,7 +37,7 @@
     <IsPackable>false</IsPackable>
     <Authors>Qian Contributors</Authors>
     <Product>Qian</Product>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/idadawn/qian.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

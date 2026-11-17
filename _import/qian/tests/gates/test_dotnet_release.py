@@ -87,9 +87,9 @@ class PackageVerificationTests(unittest.TestCase):
 
     def test_license_and_repository_link_are_required(self):
         self.write_family()
-        self.write("Qian.Runtime", repository="https://example.com/qian.git", license_expression="MIT")
+        self.write("Qian.Runtime", repository="https://example.com/qian.git", license_expression="Apache-2.0")
         message = self.failures()
-        self.assertIn("Qian.Runtime 的许可证不是 Apache-2.0", message)
+        self.assertIn("Qian.Runtime 的许可证不是 MIT", message)
         self.assertIn("GitHub Packages 无法关联到仓库", message)
 
 

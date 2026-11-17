@@ -1,1 +1,11 @@
-["architecture", "agent-support", "migration", "migration-plan"]
+[
+  "architecture",
+  "agent-support",
+  "getting-started",
+  { "type": "dir", "name": "guides", "label": "指南" },
+  { "type": "dir", "name": "security", "label": "安全" },
+  { "type": "dir", "name": "design", "label": "设计说明" },
+  { "type": "dir", "name": "adr", "label": "决策记录" },
+  "migration",
+  "migration-plan"
+]

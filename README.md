@@ -92,6 +92,7 @@ Kun 由两部分归并而成：
 - [框架架构](docs/architecture.md)：两档分层、运行时模型、包的形态与命名、请求怎么走、能力域、对智能体的支撑。
 - [对智能体的支撑：Agent 接入与模型服务](docs/agent-support.md)：怎么接住集群里和设备上的 Agent，模型服务怎么提供，设备上的本机模型怎么算。
 - [迁移与归并](docs/migration.md)：两边各有什么，哪些已定、哪些待定，分几步并。
+- 原 Kun 的文档（2026-11 由原仓库整理进来，多数是英文）：[入门](docs/getting-started.md)、[模块地图](docs/design/module-map.md)、[设计白皮书](docs/design/whitepaper.md)；指南、安全与设计说明分别在 `docs/guides/`、`docs/security/`、`docs/design/`，原 Kun 的决策记录在 `docs/adr/kun/`，引用时写「Kun ADR-0xx」。
 - [平台总览](https://github.com/CavaiLAB/jiangxin)：理念、总体架构、插件模型、Agent 协同、路线。
 
-合并蓝图的全文是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受；裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。两者与已归档的 `idadawn/qian` 里的同名文件内容相同。详细的设计文档（决策记录、组件模型规格、各能力域的规格）已随代码导入过渡目录：原 Qian 的在 `_import/qian/docs/`，原 Kun 的在 `_import/kun/docs/`。
+合并蓝图的全文是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受；裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。两者与已归档的 `idadawn/qian` 里的同名文件内容相同。详细的设计文档（决策记录、组件模型规格、各能力域的规格）：原 Qian 的随代码导入了过渡目录 `_import/qian/docs/`；原 Kun 的已整理进 `docs/`，见上面的列表。

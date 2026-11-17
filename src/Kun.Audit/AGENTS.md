@@ -6,7 +6,7 @@ Two complementary halves of the framework audit story live here:
 
 1. **Audit-log abstractions** (`Kun.Audit.Abstractions`): `IAuditWriter`, `IAuditReader`, `AuditableAttribute`, and the `AuditLog` POCO. EF Core integration lives in the sibling `Kun.Audit.EntityFrameworkCore` module; integration-event fan-out is provided by `EventBusAuditWriter` which depends only on `Kun.EventBus`.
 
-2. **Tamper-evident hash-chained operation audit** (`Kun.Audit`): `IAuditSink` + `IAuditChainState` + `AuditContentHasher` + `AuditLogPipelineBehavior<TRequest, TResponse>`. Satisfies SAD v3.0 §15.5 (`audit.operations` + hash chain) for NeuroAgent Phase 1 (P1-CS-019). A Mediator pipeline behaviour captures each command's actor / tenant / timing / outcome, pushes it through `IAuditChainState.AppendAsync`, and writes one `AuditEntry` to `IAuditSink`. Each entry's `ContentHash` is SHA-256 over `prevHash || canonicalFields`, so retroactive tampering with any row invalidates every following row.
+2. **Tamper-evident hash-chained operation audit** (`Kun.Audit`): `IAuditSink` + `IAuditChainState` + `AuditContentHasher` + `AuditLogPipelineBehavior<TRequest, TResponse>`. Satisfies the downstream operation-audit contract (`audit.operations` + hash chain). A Mediator pipeline behaviour captures each command's actor / tenant / timing / outcome, pushes it through `IAuditChainState.AppendAsync`, and writes one `AuditEntry` to `IAuditSink`. Each entry's `ContentHash` is SHA-256 over `prevHash || canonicalFields`, so retroactive tampering with any row invalidates every following row.
 
 ## Layer and AOT
 
@@ -76,4 +76,4 @@ services.AddKunMediator(m => m.AddAuditBehavior<CreateOrderCommand, Result<Guid>
 
 ## S1-KUN-005 当前入口
 
-实体审计使用 `Kun.Auditing.AddKunAuditing<TContext>()` 同事务写 `AuditLog` + Outbox；旧事后拦截器和 `kun.audit.record.v1` 路径仅保留兼容并标记废弃。命令审计提供 `UsePostgresChain()` 持久化实现；`ActorType` 含 `agent`，使用 `AuditContentHasher.Compute(entry)` 校验新旧条目。具体装配及迁移以 [审计文档](../../_import/kun/docs/security/audit-log.md) 为准。
+实体审计使用 `Kun.Auditing.AddKunAuditing<TContext>()` 同事务写 `AuditLog` + Outbox；旧事后拦截器和 `kun.audit.record.v1` 路径仅保留兼容并标记废弃。命令审计提供 `UsePostgresChain()` 持久化实现；`ActorType` 含 `agent`，使用 `AuditContentHasher.Compute(entry)` 校验新旧条目。具体装配及迁移以 [审计文档](../../docs/security/audit-log.md) 为准。

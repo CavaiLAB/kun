@@ -1,16 +1,15 @@
 # AGENTS.md：给编码代理的入口说明
 
-这个仓库是 **Kun** 的新家：匠心智能体平台的企业级后端框架（.NET 10）。**两个原仓库的代码已带历史迁入本仓库，原仓库已归档为只读。原 Kun 的代码已提到仓库根，它的文档暂留 `_import/kun/`；原 Qian 仍在过渡目录 `_import/qian/`，正按迁移执行计划分批并轨、归并与改名。**
+这个仓库是 **Kun** 的新家：匠心智能体平台的企业级后端框架（.NET 10）。**两个原仓库的代码已带历史迁入本仓库，原仓库已归档为只读。原 Kun 已提到仓库根，它的文档整理进了 `docs/`；原 Qian 仍在过渡目录 `_import/qian/`，正按迁移执行计划分批并轨、归并与改名。**
 
 ## 要改代码
 
-迁移已于 2026-11-17 启动，分批的做法见[迁移执行计划](docs/migration-plan.md)。历史导入（计划里的 B1）把两个原仓库的 `main` 带历史导入了两个过渡目录，原提交的 SHA 原样保留；B2 的整理随后把原 Kun 由 `_import/kun/` 提到了仓库根（git 识别为改名，看导入前的历史用 `git log --follow -m -- <路径>`）：
+迁移已于 2026-11-17 启动，分批的做法见[迁移执行计划](docs/migration-plan.md)。历史导入（计划里的 B1）把两个原仓库的 `main` 带历史导入了两个过渡目录，原提交的 SHA 原样保留；B2 的整理随后把原 Kun 由 `_import/kun/` 提到了仓库根、把它的文档整理进了 `docs/`（git 识别为改名，看导入前的历史用 `git log --follow -m -- <路径>`）：
 
 | 位置 | 内容 | 怎么构建与测试 |
 |---|---|---|
-| 仓库根 | 原 Kun 框架（`idadawn/kun`）：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.sln` 与构建基线 | 见下面「原 Kun 的构建、测试与代码约定」，命令在仓库根运行 |
+| 仓库根 | 原 Kun 框架（`idadawn/kun`）：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.sln` 与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「原 Kun 的构建、测试与代码约定」，命令在仓库根运行 |
 | `_import/qian/` | 原 Qian 的整棵树（`idadawn/qian`）：.NET 包、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
-| `_import/kun/` | 原 Kun 余下的原件：`README.md`、`CLAUDE.md` 与 `docs/`（含 17 份决策记录），由整理的第二段处理 | 没有可构建的内容 |
 
 两边各用各的构建基线。仓库根上的 `global.json`、`Directory.Build.props`、`Directory.Packages.props`、`.editorconfig` 是原 Kun 的；`_import/qian/` 有自己的一套（`global.json`、`Directory.*.props`、`NuGet.config`、带 `root = true` 的 `.editorconfig`、pnpm 工作区），它的脚本把 `_import/qian/` 当作根。在仓库根上跑 `dotnet`，构建的是原 Kun 的 `Kun.sln`；原 Qian 的命令一律在 `_import/qian/` 下跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 也来自原 Kun，末尾各有一段让它们不作用到 `_import/qian/`，`_import/qian/` 搬空之前不要删。
 
@@ -21,16 +20,16 @@
 - 两个原仓库 2026-11-17 冻结，同日归档为只读。最后一次同步的来源头是归档时的最终头：`idadawn/kun` 的 `51b480775c` 与 `idadawn/qian` 的 `5954ec3b86`，同步时 `_import/kun/`、`_import/qian/` 与这两个头的树逐字节相同。原 Kun 与原 Qian 的源码、文档与任务文件从此以本仓库为准，原仓库不再接受改动。
 - 原 Kun 与原 Qian 的内容从此在本仓库改，在本仓库开 PR。`_import/qian/` 里改的是文件内容；它的搬动与拆分属于后面的批次（见最后一条），不要顺手做。
 - 原 Kun 的约定已并进本文件（下一节），`_import/qian/AGENTS.md` 里构建、测试与代码约定的部分照用。任务文件照原 Qian 的 `pm/README.md` 改：任务文件在 `_import/qian/pm/tasks/` 下，`pm.py` 在 `_import/qian/` 下运行（如 `cd _import/qian && python3 scripts/pm.py validate`），`set` 与 `add` 要带 `--by`，生成物不进 git。迁移任务（S1-KUN-018–022）的文件也在这里改（迁移执行计划第 3 节第 7 条）。原 Qian 的 `AGENTS.md` 与仓库根上原 Kun 的 `CONTRIBUTING.md` 里讲提 PR、分支、发版、发布文档站的部分说的是原仓库，在本仓库以本文件与迁移执行计划为准。
-- 两个原仓库冻结时写的去处说明随最后一次同步带了进来，在本仓库不适用：`_import/kun/` 的 `README.md`、`CLAUDE.md` 开头那一段，`_import/qian/` 的 `README.md` 开头那一段与 `AGENTS.md` 的「本仓库已冻结」一节。原 Kun 的自管任务队列与第三方生成的代理配置已按合并蓝图删除（D23.13 第 6 点），任务管理统一到 `_import/qian/pm/`；原 Kun 各层工具生成的 `AGENTS.md` 也一并删了，模块目录里留下的 `AGENTS.md` 只有生成之后写进去的模块规则。
+- 两个原仓库冻结时写的去处说明随最后一次同步带了进来，在本仓库不适用：`_import/qian/` 的 `README.md` 开头那一段与 `AGENTS.md` 的「本仓库已冻结」一节（原 Kun 的 `README.md`、`CLAUDE.md` 原件已在整理的第二段删除）。原 Kun 的自管任务队列（含 `docs/roadmap/BACKLOG.md`）与第三方生成的代理配置已按合并蓝图删除（D23.13 第 6 点），任务管理统一到 `_import/qian/pm/`；原 Kun 各层工具生成的 `AGENTS.md` 也一并删了，模块目录里留下的 `AGENTS.md` 只有生成之后写进去的模块规则。
 - 归前端仓库 `CavaiLAB/qian` 的路径在这里只读，改前端去那边改：`_import/qian/packages/yue/`、`_import/qian/apps/yue-playground/`、`_import/qian/packages/qian-plugin-sdk/`、`_import/qian/packages/qian-runtime/`、`_import/qian/tests/gates/yue/`、`_import/qian/scripts/yue-visual.mjs`、`_import/qian/.changeset/`，以及原 Qian 的 yue、runtime-ts、runtime-ts-release、plugin-sdk-release 四个工作流（仓库根上对应 `qian-yue.yml` 与 `qian-runtime-ts.yml`，两个发布的没有接）。它们在 B11 由前端计划的执行会话删除。外壳应用与外壳工具包、三个界面包、参考应用的远程模块、文档站、命令行、声明式表面的校验库留在本仓库。
 - 一批一个 PR。本仓库的 PR 一律用合并提交合入，不压缩、不变基，否则导入的历史会丢。除迁移批次的 PR 之外，不要新建顶层代码目录，也不要把代码搬出 `_import/qian/`。
-- 不要抢跑：整理的第二段（原 Kun 留在 `_import/kun/` 的文档与说明怎么放、树内的历史 PR 编号改写成带仓库名的形式、指向原仓库的地址改指本仓库、原 Qian 文档站的「Kun 框架」小节改为同仓来源、导入的文档里写给特定下游的内容怎么处理）由计划指定的执行会话做；构建并轨是 B3；包名、命名空间与类型名的改名是 B4–B10。
+- 不要抢跑：整理的第二段（树内的历史 PR 编号改写成带仓库名的形式、指向原仓库的地址改指本仓库、原 Qian 文档站的「Kun 框架」小节改为同仓来源、导入的文档里写给特定下游的内容怎么处理）由计划指定的执行会话做，原 Kun 一侧已经做完（文档整理进 `docs/`，`_import/kun/` 已搬空）；构建并轨是 B3；包名、命名空间与类型名的改名是 B4–B10。
 
 目标仓库已定为本仓库（产品负责人，2026-11-17）。合并蓝图里写的 `idadawn/kun` 以[迁移与归并](docs/migration.md)第 6 节与迁移执行计划为准。
 
 ## 原 Kun 的构建、测试与代码约定
 
-本节并自原 Kun 的 `CLAUDE.md` 与根上那份 `AGENTS.md`（后者是工具生成的，已删除；原文见 git 历史，原 Kun 最终头 `51b480775c` 上的同名文件）。完整的说明看 `_import/kun/` 下的原件：`CLAUDE.md`、`README.md` 与 `docs/`。原件里写的路径相对原 Kun 的根：代码与构建文件现在在仓库根，`docs/` 在 `_import/kun/docs/`。搬到根上的文件也照此理解：其中说明文件里指向原 Kun 文档的链接已改指 `_import/kun/` 下，代码注释里写的 `docs/…` 没有改，指的就是 `_import/kun/docs/…`；`CONTRIBUTING.md`、`src/README.md`、`samples/README.md` 与 `scripts/check-layering.sh` 的注释里提到的 `.claude/skills/` 已经删除，照本节做。原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。合并蓝图落地之后，分层规则由显式的档位表与门禁取代（D23.7、D23.14，B3 落地），包名与命名空间在 B4–B10 改；在那之前照下面的做。
+本节并自原 Kun 的 `CLAUDE.md` 与根上那份 `AGENTS.md`（两份都已删除；原文见 git 历史，原 Kun 最终头 `51b480775c` 上的同名文件，如 `git show 51b480775c:CLAUDE.md`）。原 Kun 的文档已整理进 `docs/`：入门在 `docs/getting-started.md`，指南、安全与设计说明在 `docs/guides/`、`docs/security/`、`docs/design/`，决策记录在 `docs/adr/kun/`（引用时写「Kun ADR-0xx」）；AOT 审计、基准结果、路线图、发版手册与发布说明等历史文档已删除，原文同样在 `51b480775c`。代码与构建文件注释里写的 `docs/…` 是原 Kun 的旧路径，没有改：`docs/architecture/` 下的 `ADR-*`、`adr-*` 现在在 `docs/adr/kun/`，其余的在 `docs/design/`；`docs/observability/`、`docs/schema-per-service.md`、`docs/openapi-template.md` 在 `docs/guides/`；`docs/whitepaper.md` 在 `docs/design/`；别的路径不变。`scripts/check-layering.sh` 的注释里提到的 `.claude/skills/` 已经删除，照本节做。原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。合并蓝图落地之后，分层规则由显式的档位表与门禁取代（D23.7、D23.14，B3 落地），包名与命名空间在 B4–B10 改；在那之前照下面的做。
 
 ### 构建与测试
 
@@ -61,7 +60,7 @@ dotnet format --verify-no-changes
 - AOT 按项目选择：项目文件里只写 `<IsAotCandidate>true|false</IsAotCandidate>`，`Directory.Build.props` 据此打开或关闭 `IsAotCompatible`、`IsTrimmable` 与裁剪、AOT、单文件分析器；不要在项目文件里重复写这些属性，也不要在库上设 `PublishAot`。
 - 包版本统一写在 `Directory.Packages.props`（中央包管理），项目里写 `<PackageReference Include="X" />`，不带 `Version`。加新包先查这里有没有；AOT 候选模块还要核对新包的 AOT 兼容性。
 - 公共 API 要写 XML 文档注释；带 `PublicAPI.Shipped.txt`、`PublicAPI.Unshipped.txt` 的项目，改公共 API 要同步这两份清单。
-- 改一个模块之前，先读它目录里的说明文件（`AGENTS.md`、`README.md`）与 `_import/kun/docs/` 下对应的设计文档，也读要引用的模块的。
+- 改一个模块之前，先读它目录里的说明文件（`AGENTS.md`、`README.md`）与 `docs/` 下对应的设计说明、指南与 Kun 决策记录，也读要引用的模块的。
 
 ### AOT 候选模块里不许用的写法
 
@@ -101,5 +100,5 @@ dotnet format --verify-no-changes
 3. 文档用中文，不写参考平台和对标项目的名字。
 4. 分清「已定」「提议」「待定」。说现状的时候写清是「已有」（在原仓库里已经实现）还是「规划」。
 5. 平台级的口径（名称、三个框架的分工、Agent 协同）在 [jiangxin](https://github.com/CavaiLAB/jiangxin) 里改，这里只引用。
-6. 在 `docs/` 下新增文档，要在 `docs/_meta.json` 里加上它的文件名（不带扩展名）。这个文件定这些文档在平台文档站侧栏里的顺序；漏列的话，文档站升级到这个版本时构建会报错。
+6. 在 `docs/` 下新增文档，要在 `docs/_meta.json` 里加上它的文件名（不带扩展名）。这个文件定这些文档在平台文档站侧栏里的顺序；漏列的话，文档站升级到这个版本时构建会报错。子目录在 `docs/_meta.json` 里写成对象，如 `{ "type": "dir", "name": "guides", "label": "指南" }`，label 用中文；在子目录里加文档不用改顶层这一份。子目录自己的 `_meta.json` 可以不写，不写就按文件名排；写了就要列全，漏列的页面会从侧栏里消失，构建不报错。
 7. 改动走分支和 PR，不直接推 `main`。建仓期间的初始文档除外，见平台总览的[协作约定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/07-governance.md)第 2 节。

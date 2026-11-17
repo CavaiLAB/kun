@@ -155,7 +155,12 @@ public sealed class GatewayBoundaryTests
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
         var payload = JsonNode.Parse(jwt.Payload.SerializeToJson())!;
         using var payloadDocument = JsonDocument.Parse(jwt.Payload.SerializeToJson());
-        var schema = JsonSchema.FromFile(Path.Combine(AppContext.BaseDirectory, "Fixtures", "s2s-claims.schema.json"));
+        // JsonSchema.Net 9 registers every built schema by its $id in a shared registry and refuses to
+        // overwrite it, so the second theory case would throw. Build into a fresh registry each time,
+        // with remote fetching off (same convention as the _import/qian packages).
+        var schema = JsonSchema.FromFile(
+            Path.Combine(AppContext.BaseDirectory, "Fixtures", "s2s-claims.schema.json"),
+            new BuildOptions { SchemaRegistry = new SchemaRegistry { Fetch = (_, _) => null } });
         schema.Evaluate(payloadDocument.RootElement).IsValid.Should().BeTrue(payload.ToJsonString());
         payload["aud"].Should().BeOfType<JsonArray>().Which.Should().HaveCount(1);
         payload["roles"].Should().BeOfType<JsonArray>().Which.Should().HaveCount(roles);

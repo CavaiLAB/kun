@@ -51,7 +51,7 @@ dotnet workload update
 ## Clone and build
 
 ```bash
-git clone https://github.com/idadawn/kun.git
+git clone https://github.com/CavaiLAB/kun.git
 cd kun
 dotnet restore
 dotnet build -c Release

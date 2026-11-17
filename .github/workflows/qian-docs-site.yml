@@ -1,15 +1,22 @@
 name: qian-docs-site
 
-# 原 Qian 的 docs-site 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
+# 原 Qian 的 docs-site 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019），B2 切换时接上正式站点的发布。
 # 原件在 _import/qian/.github/workflows/docs-site.yml，不动；GitHub 只读仓库根的 .github/workflows/。
-# 只接「构建与检查」作业，不从本仓库发布文档站：原件的「发布」（推 docs-site 分支、在 PR 里留预览链接）与
-# 「删除预览」两个作业没有接，触发类型里也就去掉了只为删除预览而设的 closed；访问入口的两个环境变量只给发布作业用，一并去掉。
-# 文档站切到本仓库发布是 B2 的事（看板、文档站、发版工作流改指本仓库）。
-# 其余改动只在位置：run 步骤的工作目录、路径过滤、缓存键、package.json、github.workspace 下的路径、
-# 浏览器验收容器挂载的目录、上传路径都加了 _import/qian/ 前缀；路径过滤末尾加上本文件。
-# 「Kun 框架」小节照原件按 Directory.Packages.props 的 KunVersion 检出 idadawn/kun 的 tag：idadawn/kun 现在是公开仓库，
-# 用缺省的 GITHUB_TOKEN 经 HTTPS 只读检出，不需要原件的 deploy key（Secret KUN_DOCS_DEPLOY_KEY 本仓库没有），
-# 所以原件「检查 kun 仓库只读凭据」一步没有接；检出位置放在 _import/qian/.kun，与原件相对原 Qian 根的位置一致。
+# 相对原件改了这些：
+# - 位置：run 步骤的工作目录、路径过滤、缓存键、package.json、github.workspace 下的路径、
+#   浏览器验收容器挂载的目录、上传路径都加了 _import/qian/ 前缀；路径过滤末尾加上本文件。
+# - 「Kun 框架」小节照原件按 Directory.Packages.props 的 KunVersion 检出 idadawn/kun 的 tag：idadawn/kun 现在是公开仓库，
+#   用缺省的 GITHUB_TOKEN 经 HTTPS 只读检出，不需要原件的 deploy key（Secret KUN_DOCS_DEPLOY_KEY 本仓库没有），
+#   所以原件「检查 kun 仓库只读凭据」一步没有接；检出位置放在 _import/qian/.kun，与原件相对原 Qian 根的位置一致。
+# - 发布（B2 接上）：与原件一样只在 main 上发布正式站点（push 到 main，或在 main 上手动触发），用
+#   _import/qian/deploy/docs-site/publish.sh main 把构建产物推到本仓库的 docs-site 分支，集群里的 git-sync 拉这个分支
+#  （_import/qian/deploy/docs-site/）。作业权限只要 contents: write（原件另有 pull-requests: write，只给 PR 评论用）。
+#   运行摘要只写发布的路径与来源提交，不写访问入口：原件的 DOCS_ORIGIN_WG、DOCS_ORIGIN_LAN 是内网地址，本仓库公开，
+#   这两个环境变量不接。
+# - PR 预览暂不发布：原件对同仓库分支的 PR 发布 /pr-preview/pr-<n>/、在 PR 里留带内网入口的评论、PR 关闭时删除预览。
+#   公开仓库的 PR 评论人人可见，要不要接、评论里写什么由产品负责人定，所以原件发布作业里预览的分支、PR 评论一步与
+#   「删除预览」作业都没有接，触发类型里也就没有只为删除预览而设的 closed，构建作业也不用跳过 closed。
+#   PR 上的构建仍带 /pr-preview/pr-<n>/ 前缀，前缀检查照跑。接回时照原件补齐这几处即可。
 
 on:
   pull_request:
@@ -158,3 +165,34 @@ jobs:
           name: docs-site
           path: _import/qian/website/doc_build
           retention-days: 7
+
+  publish:
+    name: 发布
+    needs: build
+    # 只在 main 上发布正式站点；PR 预览暂不发布（见文件头）
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs-site
+          path: ${{ runner.temp }}/docs-site
+
+      - name: 推送到 docs-site 分支
+        env:
+          DOCS_SOURCE_SHA: ${{ github.sha }}
+        run: deploy/docs-site/publish.sh main "$RUNNER_TEMP/docs-site"
+
+      - name: 记录发布结果
+        run: |
+          {
+            echo "### 文档站已发布"
+            echo ""
+            echo "- 分支 \`docs-site\` 的根目录，来源提交 \`${GITHUB_SHA:0:12}\`"
+            echo ""
+            echo "git-sync 每 60 秒拉取一次 docs-site 分支，推送后约一分钟可见；访问入口见 _import/qian/deploy/docs-site/README.md。"
+          } >> "$GITHUB_STEP_SUMMARY"

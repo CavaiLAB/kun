@@ -4,7 +4,7 @@
 
 | File | Description |
 |------|-------------|
-| `Kun.Saga.csproj` | `IsAotCandidate=false` (transitive EF Core — see the original Kun [AOT audit (2026-04-23)](https://github.com/CavaiLAB/kun/blob/51b480775c/docs/architecture/AOT-audit-2026-04-23.md); follow-up `P2-KN-Saga-EF-Split` will restore AOT candidacy by extracting `Kun.Saga.EntityFrameworkCore`) |
+| `Kun.Saga.csproj` | `IsAotCandidate=false` (transitive EF Core — see the original Kun [AOT audit (2026-04-23)](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md); follow-up `P2-KN-Saga-EF-Split` will restore AOT candidacy by extracting `Kun.Saga.EntityFrameworkCore`) |
 
 ## For AI Agents
 

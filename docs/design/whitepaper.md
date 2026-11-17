@@ -1087,7 +1087,7 @@ app.Run();
 
 ### 13.3 AOT 一致性状态
 
-`0.1.0-phase1` 通过原 Kun 的 [AOT 一致性审计](https://github.com/CavaiLAB/kun/blob/51b480775c/docs/architecture/AOT-audit-2026-04-23.md) 做了一次全仓扫描：18 个 AOT 候选模块 ILC 零 trim/AOT warning；非 AOT 模块（`Kun.AspNetCore` / `Kun.EntityFrameworkCore` 家族 / `Kun.Dapper` / `Kun.Saga`）均有记录的技术原因。CI 的 `aot-audit` 矩阵 job 对这 18 个模块分别执行 `dotnet publish -p:PublishAot=true -p:TreatWarningsAsErrors=true`；`sample-aot-integration` job 对 `Kun.Sample.Minimal` 做 end-to-end 原生 publish + 执行验证。
+`0.1.0-phase1` 通过原 Kun 的 [AOT 一致性审计](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md) 做了一次全仓扫描：18 个 AOT 候选模块 ILC 零 trim/AOT warning；非 AOT 模块（`Kun.AspNetCore` / `Kun.EntityFrameworkCore` 家族 / `Kun.Dapper` / `Kun.Saga`）均有记录的技术原因。CI 的 `aot-audit` 矩阵 job 对这 18 个模块分别执行 `dotnet publish -p:PublishAot=true -p:TreatWarningsAsErrors=true`；`sample-aot-integration` job 对 `Kun.Sample.Minimal` 做 end-to-end 原生 publish + 执行验证。
 
 ### 13.4 Phase 1 ADR / 设计文档索引
 
@@ -1102,7 +1102,7 @@ app.Run();
 | [Kun ADR-008 — Kun.Identity 模块](../adr/kun/ADR-008-Kun.Identity-module.md) | `Kun.Identity` 实际模块落地与 Kun ADR-001 的关系 |
 | [Kun ADR-009 — Kun.Configuration 模块](../adr/kun/ADR-009-Kun.Configuration-module.md) | 强类型 Options 的 fail-fast 验证策略 |
 | [Kun ADR-S02 — Kun.Sandbox 模块](../adr/kun/ADR-S02-Kun.Sandbox-module.md) | E2B v2 兼容 abstraction 与 Supervisor 后端 |
-| [AOT 一致性审计 2026-04-23](https://github.com/CavaiLAB/kun/blob/51b480775c/docs/architecture/AOT-audit-2026-04-23.md) | 全模块 AOT 状态矩阵 + CI 矩阵的来源 |
+| [AOT 一致性审计 2026-04-23](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md) | 全模块 AOT 状态矩阵 + CI 矩阵的来源 |
 
 ### 13.5 消费侧对接清单
 

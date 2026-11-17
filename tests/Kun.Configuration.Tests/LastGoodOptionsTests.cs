@@ -84,7 +84,8 @@ public sealed class LastGoodOptionsTests
         var schema = entry.Export();
         Assert.Equal("Service", entry.Section);
         Assert.Equal("https://json-schema.org/draft/2020-12/schema", (string?)schema["$schema"]);
-        var validator = JsonSchema.FromText(schema.ToJsonString());
+        // Fresh registry per build: JsonSchema.Net 9 refuses to register the same $id twice.
+        var validator = JsonSchema.FromText(schema.ToJsonString(), new BuildOptions { SchemaRegistry = new SchemaRegistry { Fetch = (_, _) => null } });
         using var valid = JsonDocument.Parse("""{"Retries":3,"Endpoint":"https://test"}""");
         using var invalid = JsonDocument.Parse("""{"Retries":"bad","Endpoint":"https://test"}""");
         Assert.True(validator.Evaluate(valid.RootElement).IsValid);

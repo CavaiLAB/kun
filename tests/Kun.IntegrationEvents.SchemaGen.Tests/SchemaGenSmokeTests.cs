@@ -41,7 +41,8 @@ public sealed class SchemaGenSmokeTests
             var sample = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "order.placed.v1.schema.json")));
             Assert.True(JsonNode.DeepEquals(sample, exported), exported?.ToJsonString());
 
-            var schema = JsonSchema.FromFile(exportedPath);
+            // Fresh registry per build: JsonSchema.Net 9 refuses to register the same $id twice.
+            var schema = JsonSchema.FromFile(exportedPath, new BuildOptions { SchemaRegistry = new SchemaRegistry { Fetch = (_, _) => null } });
             using var valid = JsonDocument.Parse("""{"OrderId":"3f2b8c1e-9d4a-4f6b-8a2e-1c5d7e9f0a3b","Sku":"SKU-1","Quantity":2,"Amount":9.5,"At":{},"Note":null}""");
             using var invalid = JsonDocument.Parse("""{"OrderId":"3f2b8c1e-9d4a-4f6b-8a2e-1c5d7e9f0a3b","Sku":"SKU-1","Quantity":"two","Amount":9.5,"At":{},"Note":null}""");
             Assert.True(schema.Evaluate(valid.RootElement).IsValid);

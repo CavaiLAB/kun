@@ -15,6 +15,7 @@
       "tests/Kun.Gateway.Tests/Kun.Gateway.Tests.csproj",
       "tests/Kun.Grpc.Tests/Kun.Grpc.Tests.csproj",
       "tests/Kun.Identity.Tests/Kun.Identity.Tests.csproj",
+      "tests/Kun.IntegrationEvents.SchemaGen.Tests/Kun.IntegrationEvents.SchemaGen.Tests.csproj",
       "tests/Kun.Mediator.Tests/Kun.Mediator.Tests.csproj",
       "tests/Kun.MultiTenancy.Tests/Kun.MultiTenancy.Tests.csproj",
       "tests/Kun.Observability.Tests/Kun.Observability.Tests.csproj",

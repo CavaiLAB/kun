@@ -1,3 +1,12 @@
+> [!IMPORTANT]
+> **本仓库已冻结，将归档为只读。Kun 已迁往 [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun)。**
+>
+> - 本仓库的完整历史已带入 `CavaiLAB/kun`，原提交的 SHA 不变。目前放在那边的 `_import/kun/` 目录下，随后提到仓库根。
+> - 本仓库自 2026-11-17 起冻结，不再接受任何改动，随后归档为只读。issue 与 PR 请到 [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun) 提。
+> - 已发布的包与版本标签都不变。版本标签也已带到 `CavaiLAB/kun`，指向相同的提交。
+> - 按提交或标签引用本仓库源码的下游照旧可用：归档之后本仓库仍可读取与克隆，内容不再变化。
+> - 在 `CavaiLAB/kun` 的 `_import/kun/` 下读到这段的，这段说明是随历史一起带进去的，在那边不适用。
+
 <div align="center">
 
 # Kun Framework

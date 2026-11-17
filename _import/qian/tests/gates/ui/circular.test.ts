@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { UI_ROOTS } from '../../../eslint.boundaries.config.mjs';
 
-// 循环依赖门禁自测：真跑一遍 depcruise，样例 a ↔ b 必须被 no-circular 拦下；真实工作区必须通过。
+// 循环依赖门禁自测：真跑一遍 depcruise，样例 a ↔ b 必须被 no-circular 拦下；真实的外壳与界面包必须通过。
 const ROOT = path.resolve(__dirname, '../../..');
 const BIN = path.join(ROOT, 'node_modules', '.bin', 'depcruise');
 
@@ -13,13 +14,13 @@ function depcruise(config: string, ...targets: string[]) {
 
 describe('循环依赖门禁（dependency-cruiser）', () => {
   it('样例 a ↔ b 被 no-circular 拦下', () => {
-    const r = depcruise('tests/gates/yue/depcruise.fixture.cjs', 'tests/gates/yue/fixtures/cycle');
+    const r = depcruise('tests/gates/ui/depcruise.fixture.cjs', 'tests/gates/ui/fixtures/cycle');
     expect(r.status).not.toBe(0);
     expect(r.out).toContain('no-circular');
   });
 
-  it('真实的 packages/yue 与 apps 通过', () => {
-    const r = depcruise('.dependency-cruiser.cjs', 'packages/yue', 'apps');
+  it('真实的外壳与界面包通过', () => {
+    const r = depcruise('.dependency-cruiser.cjs', ...UI_ROOTS);
     expect(r.out).not.toContain('error');
     expect(r.status).toBe(0);
   });

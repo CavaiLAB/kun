@@ -1,3 +1,5 @@
+// 界面包的文案规则（根 eslint.config.mjs 引用，自测在 tests/gates/ui/i18n.test.ts）。原在 yue 的 sdk 包里，
+// 前端框架迁到 CavaiLAB/qian 后那边留着自己的一份（packages/qian/sdk/eslint-i18n.mjs，不随包发布），这里给外壳与界面包留一份。
 /** 组件里的可见文字必须由宿主 label 或 i18n 提供；示例、测试和语言资源不在规则作用域。 */
 export const noHardcodedText = {
   meta: { type: /** @type {const} */ ('problem'), schema: [], messages: { hardcoded: '组件文案必须使用 i18n key 或注入的 label，不能硬编码。' } },

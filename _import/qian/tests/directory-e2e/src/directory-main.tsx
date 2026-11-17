@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { OrganizeSelect, UserSelect, createBizI18n } from '@idadawn/yue-biz';
-import { PlatformClient } from '@idadawn/yue-sdk';
+import { OrganizeSelect, UserSelect, createBizI18n } from '@cavailab/qian-biz';
+import { PlatformClient } from '@cavailab/qian-sdk';
 import './index.css';
 
-// 真实目录验收页（S1-IDP-010 验收 2，R109）：只在 E2E 的开发服务器上用（vite.directory.config.ts），不进靶场的生产构建。
+// 真实目录验收页（S1-IDP-010 验收 2，R109）：只在 E2E 的开发服务器上用（vite.directory.config.ts），不构建、不部署。
 // 取数经 PlatformClient 走同源 Cookie：/api/identity 与 /api/directory 由开发服务器代理到本机真实身份宿主，不带令牌、不带租户头，租户只取自登录会话。
 const client = new PlatformClient({ baseUrl: location.origin });
 const i18n = createBizI18n();

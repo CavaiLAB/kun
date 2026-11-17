@@ -1,19 +1,18 @@
-// 前端工作区（packages/yue/*、apps/*、Qian 前端包与参考应用的远程模块）的 ESLint 配置：代码规则 + yue 分层边界。
-// 只跑边界门禁用 eslint.boundaries.config.mjs；文档站 website/ 不在此列。
+// 外壳与界面包（apps/*、可部署的前端包、外壳接线、参考应用的远程模块与真实目录验收页）的 ESLint 配置：代码规则 + 依赖边界 + 文案规则。
+// 只跑边界门禁用 eslint.boundaries.config.mjs；文档站 website/ 不在此列。前端框架本身（CavaiLAB/qian）的规则在那个仓库里查。
 import js from '@eslint/js';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import { yueBoundariesConfig } from './packages/yue/boundaries.config.mjs';
-import { noHardcodedText } from './packages/yue/sdk/eslint-i18n.mjs';
+import { UI_ROOTS, uiBoundariesConfig } from './eslint.boundaries.config.mjs';
+import { noHardcodedText } from './eslint.i18n.mjs';
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', 'website/**', '**/.turbo/**', '**/playwright-report/**', '**/test-results/**', '**/.lighthouseci/**', 'tests/gates/yue/fixtures/**'],
+    ignores: ['**/node_modules/**', '**/dist/**', 'website/**', '**/.turbo/**', '**/playwright-report/**', '**/test-results/**', 'tests/gates/ui/fixtures/**'],
   },
   {
-    files: ['packages/yue/**/*.{ts,tsx,mts}', 'apps/**/*.{ts,tsx,mts}', 'packages/qian-tenancy-ui/**/*.{ts,tsx,mts}', 'packages/qian-tenancy-signup-ui/**/*.{ts,tsx,mts}', 'packages/qian-plugin-sdk/**/*.{ts,tsx,mts}', 'packages/qian-identity-ui/**/*.{ts,tsx,mts}',
-      'packages/qian-shell-kit/**/*.{ts,tsx,mts}', 'samples/qian-sample-crm-ui/**/*.{ts,tsx,mts}'],
+    files: UI_ROOTS.map((root) => `${root}/**/*.{ts,tsx,mts}`),
     extends: [js.configs.recommended, ...tseslint.configs.recommended, reactHooks.configs.flat.recommended],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
     rules: {
@@ -24,15 +23,15 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/yue/**/*.mjs', 'apps/**/*.mjs', 'packages/qian-tenancy-ui/**/*.mjs', 'packages/qian-tenancy-signup-ui/**/*.mjs', 'packages/qian-plugin-sdk/**/*.mjs', 'packages/qian-identity-ui/**/*.mjs', 'packages/qian-shell-kit/**/*.mjs', 'samples/qian-sample-crm-ui/**/*.mjs', '**/*.cjs'],
+    files: [...UI_ROOTS.map((root) => `${root}/**/*.mjs`), '**/*.cjs'],
     extends: [js.configs.recommended],
     languageOptions: { globals: { ...globals.node } },
   },
-  ...yueBoundariesConfig,
+  ...uiBoundariesConfig,
   {
-    files: ['packages/yue/{sdk,shell,data,form,biz}/src/**/*.{ts,tsx}', 'packages/qian-tenancy-ui/src/**/*.{ts,tsx}', 'packages/qian-tenancy-signup-ui/src/**/*.{ts,tsx}', 'packages/qian-identity-ui/src/**/*.{ts,tsx}'],
+    files: ['packages/qian-tenancy-ui/src/**/*.{ts,tsx}', 'packages/qian-tenancy-signup-ui/src/**/*.{ts,tsx}', 'packages/qian-identity-ui/src/**/*.{ts,tsx}'],
     ignores: ['**/*.test.ts', '**/*.test.tsx', '**/test/**', '**/*.generated.ts', '**/i18n.ts', '**/locales.ts'],
-    plugins: { 'yue-i18n': { rules: { 'no-hardcoded-text': noHardcodedText } } },
-    rules: { 'yue-i18n/no-hardcoded-text': 'error' },
+    plugins: { 'qian-i18n': { rules: { 'no-hardcoded-text': noHardcodedText } } },
+    rules: { 'qian-i18n/no-hardcoded-text': 'error' },
   },
 );

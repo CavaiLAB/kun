@@ -143,7 +143,7 @@ test('R109 真实目录：OrganizeSelect 选部门、UserSelect 选人，经 Pla
   await expect.poll(() => optionTexts(page)).toEqual(['李四lisi', '王五wangwu', '张三zhangsan', '赵六zhaoliu']);
   await page.keyboard.type('外');
   await expect.poll(() => calls).toContain(`/api/directory/members?q=${encodeURIComponent('外')}&offset=0&limit=51`);
-  await expect(page.getByTestId('yue-user-select-empty').last()).toHaveText('暂无数据');
+  await expect(page.getByTestId('qian-user-select-empty').last()).toHaveText('暂无数据');
   await expect(page.getByRole('option')).toHaveCount(0);
   await page.keyboard.press('Backspace');
   await page.keyboard.type('张');

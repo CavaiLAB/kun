@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": false,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": [
+      "vite/client",
+      "node"
+    ]
+  },
+  "include": [
+    "src",
+    "e2e-directory",
+    "vite.directory.config.ts",
+    "playwright.directory.config.ts"
+  ]
+}

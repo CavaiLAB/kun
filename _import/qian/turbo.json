@@ -7,9 +7,6 @@
     },
     "typecheck": {
       "dependsOn": ["^build"]
-    },
-    "publint": {
-      "dependsOn": ["build"]
     }
   }
 }

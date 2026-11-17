@@ -1,33 +1,11 @@
 <Project>
 
   <!--
-    Qian 仓库的 .NET 构建基线（S1-QA-001），沿用 Kun 的约定：net10.0、可空引用、警告即错误、中央包版本。
+    原 Qian 的 .NET 构建基线（S1-QA-001）。目标框架、质量门槛（可空引用、警告即错误、分析级别、包漏洞审计）
+    与确定性构建已并到仓库根的 Directory.Build.props（S1-KUN-020），这里先导入它，只留原 Qian 自己的打包设置。
     「是不是 Qian 包」与 PublicAPI 门禁的判定在 Directory.Build.targets：那里才能看到项目里写的 IsPackable / PackageId。
   -->
-
-  <PropertyGroup Label="Targeting">
-    <TargetFramework>net10.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Quality">
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- 缺 XML 注释只告警不阻断；API 参考由 DocFX 从注释生成（S1-DOCS-002）。 -->
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS1591</WarningsNotAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <!-- 包漏洞审计覆盖直接与传递依赖；命中即随 TreatWarningsAsErrors 让还原失败。 -->
-    <NuGetAudit>true</NuGetAudit>
-    <NuGetAuditMode>all</NuGetAuditMode>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Deterministic Build">
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-  </PropertyGroup>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup Label="Packaging">
     <!--

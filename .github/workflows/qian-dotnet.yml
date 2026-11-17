@@ -6,6 +6,8 @@ name: qian-dotnet
 # 都加了 _import/qian/ 前缀；路径过滤末尾加上本文件。原件对 push 到 main 不设路径过滤（原仓库里每个改动都属于原 Qian），
 # 这里改为 _import/qian/** 与本文件。作业、步骤、命令照原件，检查本身不变；作业与步骤的用意见原件的注释。
 # 「触发过滤自检」（scripts/dotnet_ci.py paths-check）核对的是原件的路径过滤；本文件的过滤是原件逐条加前缀，两者等价。
+# S1-KUN-020：原 Qian 的构建基线与中央包版本并到了仓库根（_import/qian 下的同名文件先导入根上的），
+# 所以路径过滤另加仓库根的 Directory.Build.props、Directory.Packages.props 与 global.json，根上这几个文件一改也跑本工作流。
 # S1-YUE-025：分片 b 构建真实 doctor 客户端时要装 GitHub Packages 上的公开包 @cavailab/qian-*（命令行测试的开发依赖与工作区里的界面包）：
 # 测试作业的权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
 
@@ -15,6 +17,9 @@ on:
     paths:
       - '_import/qian/**'
       - '.github/workflows/qian-dotnet.yml'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
   pull_request:
     # 只改任务文件、设计文档或原 Qian 根目录 Markdown 的 PR 不跑本工作流（原件的规则，逐条加前缀）。
     paths:
@@ -25,6 +30,9 @@ on:
       - '_import/qian/docs/generated/**'
       - '_import/qian/docs/ops/configuration-runbook.md'
       - '.github/workflows/qian-dotnet.yml'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
 
 permissions:
   contents: read

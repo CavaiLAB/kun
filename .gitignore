@@ -39,7 +39,8 @@ TestResults/
 *.nupkg
 *.snupkg
 .nuget/
-packages/
+# 只忽略仓库根的旧式 NuGet 包目录；_import/qian/packages/ 是原 Qian 的包项目目录（S1-KUN-020）。
+/packages/
 
 # AOT / Publish
 *.pdb
@@ -76,11 +77,3 @@ src/Kun.Gateway/certs/
 
 # Python release preflight tests
 __pycache__/
-
-# ---- 本仓库加的（B2 整理，2026-11-17）----
-# 以上规则来自原 Kun，随原 Kun 提到仓库根。原 Qian 的过渡目录 _import/qian/ 有它自己的 .gitignore，
-# 根上的规则不作用到它：比如上面的 packages/ 会把 _import/qian/packages/ 整个忽略掉。下面这条匹配
-# _import/qian/ 下的全部路径，让根上的规则对它们不再生效；_import/qian/.gitignore 的优先级高于根上的，
-# 照旧生效。代价：本机的全局忽略规则（core.excludesFile、.git/info/exclude）在 _import/qian/ 下不再生效。
-# _import/qian/ 搬空之后删掉这一段。
-!/_import/qian/**

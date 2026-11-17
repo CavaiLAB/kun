@@ -76,7 +76,9 @@ deploy/      开发期工具的 K3s 清单：pm-board/（看板）、docs-site/�
              在 _import/qian/ 下运行；文档站的 PR 预览、镜像供应链自检与 dotnet-release 发布工作流没有接（见根 AGENTS.md 与迁移执行计划）。
              yue 八项门禁与 TS 运行时、插件开发包的工作流随前端框架迁到 CavaiLAB/qian；外壳与界面包的门禁在仓库根的 qian-ui.yml（没有原件）
 Qian.slnx、global.json、Directory.Build.props / .targets、Directory.Packages.props、NuGet.config
-             .NET 构建基线：net10.0、警告即错误、中央包版本、PublicAPI 门禁
+             .NET 构建基线：net10.0、警告即错误、中央包版本、PublicAPI 门禁。目标框架、质量门槛与中央包版本
+             已并到 CavaiLAB/kun 仓库根的同名文件（S1-KUN-020），这里的 Directory.Build.props 与 Directory.Packages.props
+             先导入根上的，只留原 Qian 的打包设置与 KunVersion
 ```
 
 代码目录 `packages/` 已建立（一个包一个目录：`packages/<包名>/<包名>.csproj`，测试在 `tests/<包名>.Tests/`）；`plugins/`、`profiles/`、`samples/` 在 S1 第一波任务中建立，布局以 `docs/prd/specs/component-model.md` §2 与 §7 为准。

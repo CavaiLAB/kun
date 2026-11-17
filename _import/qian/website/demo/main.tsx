@@ -1,22 +1,23 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
-import * as Core from '@idadawn/yue-core';
-import * as Form from '@idadawn/yue-form';
-import * as Sdk from '@idadawn/yue-sdk';
-import * as Data from '@idadawn/yue-data';
-import * as Shell from '@idadawn/yue-shell';
-import * as Biz from '@idadawn/yue-biz';
-import { SHELL_DEMOS } from '../../packages/yue/shell/docs/examples/shell-demo';
-import shellScenarios from '../../packages/yue/shell/docs/scenarios.json';
-import { DATA_DEMOS } from '../../packages/yue/data/docs/examples/data-demo';
-import dataScenarios from '../../packages/yue/data/docs/scenarios.json';
-import SchemaFormDemo from '../../packages/yue/form/docs/examples/schema-form-demo';
-import formScenarios from '../../packages/yue/form/docs/scenarios.json';
-import { BIZ_DEMOS } from '../../packages/yue/biz/docs/examples/biz-demo';
-import bizScenarios from '../../packages/yue/biz/docs/scenarios.json';
-import { TOKEN_REGISTRY, initializeTheme } from '@idadawn/yue-tokens';
-import { DEMOS, type DemoProps } from '../../packages/yue/core/docs/examples/catalog';
-import scenarios from '../../packages/yue/core/docs/scenarios.json';
+// 组件与示例来自 CavaiLAB/qian 的检出（website/.cache/qian-source，见 scripts/qian.ts）；@cavailab/qian-* 在构建与类型检查里都指到检出的源码。
+import * as Core from '@cavailab/qian-core';
+import * as Form from '@cavailab/qian-form';
+import * as Sdk from '@cavailab/qian-sdk';
+import * as Data from '@cavailab/qian-data';
+import * as Shell from '@cavailab/qian-shell';
+import * as Biz from '@cavailab/qian-biz';
+import { SHELL_DEMOS } from '../.cache/qian-source/packages/qian/shell/docs/examples/shell-demo';
+import shellScenarios from '../.cache/qian-source/packages/qian/shell/docs/scenarios.json';
+import { DATA_DEMOS } from '../.cache/qian-source/packages/qian/data/docs/examples/data-demo';
+import dataScenarios from '../.cache/qian-source/packages/qian/data/docs/scenarios.json';
+import SchemaFormDemo from '../.cache/qian-source/packages/qian/form/docs/examples/schema-form-demo';
+import formScenarios from '../.cache/qian-source/packages/qian/form/docs/scenarios.json';
+import { BIZ_DEMOS } from '../.cache/qian-source/packages/qian/biz/docs/examples/biz-demo';
+import bizScenarios from '../.cache/qian-source/packages/qian/biz/docs/scenarios.json';
+import { TOKEN_REGISTRY, initializeTheme } from '@cavailab/qian-tokens';
+import { DEMOS, type DemoProps } from '../.cache/qian-source/packages/qian/core/docs/examples/catalog';
+import scenarios from '../.cache/qian-source/packages/qian/core/docs/scenarios.json';
 import sources from 'yue-demo-sources';
 import './index.css';
 
@@ -25,7 +26,7 @@ const name = query.get('component') ?? 'Button';
 const initialState = query.get('state') ?? (name === 'Tokens' ? 'Light' : name === 'FallbackPage' ? 'Forbidden' : 'Default');
 const themes = ['light', 'dark'] as const;
 const labels: Record<string, string> = { Default: '默认', Light: '明亮', Dark: '暗色', Disabled: '禁用', Error: '错误', Hover: '悬停', Readonly: '只读', Loading: '加载', Empty: '空', Compact: '紧凑', Multiple: '多选', Managed: '平台代管', Offline: '离线', MultiTenant: '多租户', CallbackFailure: '回调失败', Forbidden: '403 无权限', NotFound: '404 不存在', ServerError: '500 错误' };
-const modules: Record<string, unknown> = { react: React, '@idadawn/yue-core': Core, '@idadawn/yue-form': Form, '@idadawn/yue-data': Data, '@idadawn/yue-sdk': Sdk, '@idadawn/yue-shell': Shell, '@idadawn/yue-biz': Biz, '@idadawn/yue-tokens': { TOKEN_REGISTRY, initializeTheme } };
+const modules: Record<string, unknown> = { react: React, '@cavailab/qian-core': Core, '@cavailab/qian-form': Form, '@cavailab/qian-data': Data, '@cavailab/qian-sdk': Sdk, '@cavailab/qian-shell': Shell, '@cavailab/qian-biz': Biz, '@cavailab/qian-tokens': { TOKEN_REGISTRY, initializeTheme } };
 const states = [...scenarios, ...formScenarios, ...dataScenarios, ...shellScenarios, ...bizScenarios].filter(s => s.component === name);
 let editorPromise: Promise<void> | undefined;
 function script(url: string) {
@@ -43,7 +44,7 @@ async function loadEditor() {
   return editorPromise;
 }
 function Tokens() {
-  return <div><h1 className="mb-4 text-xl font-semibold">yue 设计令牌</h1><div className="grid grid-cols-2 gap-3">{TOKEN_REGISTRY.semantics.filter(token => token.kind === 'color').map(token => <div key={token.name} className="rounded-lg p-4" style={token.contrast === 'text' ? { background: `oklch(var(${token.contrastWith}))`, color: `oklch(var(${token.name}))` } : { background: 'var(--background)', color: 'var(--foreground)', border: `3px solid oklch(var(${token.name}))` }}><strong className="break-all text-sm">{token.name}</strong><p className="mt-2 text-xs">{token.meaning}</p></div>)}</div><h2 className="mt-6 font-semibold">组件令牌</h2><dl>{TOKEN_REGISTRY.components.map(token => <div key={token.name}><dt>{token.name}</dt><dd>{token.meaning}：{token.value}</dd></div>)}</dl></div>;
+  return <div><h1 className="mb-4 text-xl font-semibold">qian 设计令牌</h1><div className="grid grid-cols-2 gap-3">{TOKEN_REGISTRY.semantics.filter(token => token.kind === 'color').map(token => <div key={token.name} className="rounded-lg p-4" style={token.contrast === 'text' ? { background: `oklch(var(${token.contrastWith}))`, color: `oklch(var(${token.name}))` } : { background: 'var(--background)', color: 'var(--foreground)', border: `3px solid oklch(var(${token.name}))` }}><strong className="break-all text-sm">{token.name}</strong><p className="mt-2 text-xs">{token.meaning}</p></div>)}</div><h2 className="mt-6 font-semibold">组件令牌</h2><dl>{TOKEN_REGISTRY.components.map(token => <div key={token.name}><dt>{token.name}</dt><dd>{token.meaning}：{token.value}</dd></div>)}</dl></div>;
 }
 class Boundary extends React.Component<{ children: React.ReactNode }, { error: string }> {
   state = { error: '' };

@@ -1,7 +1,7 @@
-import { settleVisuals } from '../../apps/yue-playground/e2e/settle';
+import { settleVisuals } from '../../apps/qian-shell/e2e/settle';
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import scenarios from '../../packages/yue/form/docs/scenarios.json' with { type: 'json' };
+import scenarios from '../.cache/qian-source/packages/qian/form/docs/scenarios.json' with { type: 'json' };
 
 for (const scenario of scenarios) test(`SchemaForm/${scenario.state} 文档场景`, async ({ page }) => {
   await page.goto(`yue-demo/index.html?component=SchemaForm&state=${scenario.state}&theme=${scenario.theme}`);

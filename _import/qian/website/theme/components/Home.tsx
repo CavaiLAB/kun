@@ -50,7 +50,7 @@ export function HomeSection({ id, title, lead, children }: { id: string; title: 
 }
 
 export function CardGrid({ min, children }: { min?: string; children: ReactNode }) {
-  const style = min ? ({ '--qian-card-min': min } as CSSProperties) : undefined;
+  const style = min ? ({ '--docs-card-min': min } as CSSProperties) : undefined;
   return (
     <div className="qian-card-grid" style={style}>
       {children}

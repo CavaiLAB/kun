@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import { collectYuePages, readYueDocs } from './yue-docs.ts';
 import path from 'node:path';
+import { QIAN_REPO_URL, openQian, qianPackageDir, qianSource, type QianCheckout } from './qian.ts';
 import { REPO_ROOT, repoFileDate, yamlString, type GeneratedFile } from './repo.ts';
 import { designRoute } from './sync-specs.ts';
 
@@ -51,17 +52,31 @@ export const PLATFORM_COMPONENTS: PlannedComponent[] = [
 ];
 
 export const YUE_PACKAGES: Array<{ name: string; stage: Stage; summary: string }> = [
-  { name: '@idadawn/yue-tokens', stage: 'S1', summary: '三层设计令牌（primitive → semantic → component）、明暗两态与首帧防闪烁。' },
-  { name: '@idadawn/yue-core', stage: 'S1', summary: '52 个基础组件：按钮、输入、选择、弹层、反馈、导航等。' },
-  { name: '@idadawn/yue-shell', stage: 'S1', summary: 'AppShell 单一侧栏布局、页面骨架、租户切换器与兜底页。' },
-  { name: '@idadawn/yue-data', stage: 'S1', summary: 'DataTable 基础版、树与级联、日期时间、分片上传。' },
-  { name: '@idadawn/yue-form', stage: 'S1', summary: 'SchemaForm 基础版、校验与基础联动、弹层 API。' },
-  { name: '@idadawn/yue-biz', stage: 'S1', summary: '业务选择器（远程选项、字典、组织、用户、角色）、菜单与按钮授权树、IconPicker。' },
-  { name: '@idadawn/yue-sdk', stage: 'S1', summary: '注册表 API、PlatformClient、请求拦截器链与 i18n。' },
+  { name: '@cavailab/qian-tokens', stage: 'S1', summary: '三层设计令牌（primitive → semantic → component）、明暗两态与首帧防闪烁。' },
+  { name: '@cavailab/qian-core', stage: 'S1', summary: '52 个基础组件：按钮、输入、选择、弹层、反馈、导航等。' },
+  { name: '@cavailab/qian-shell', stage: 'S1', summary: 'AppShell 单一侧栏布局、页面骨架、租户切换器与兜底页。' },
+  { name: '@cavailab/qian-data', stage: 'S1', summary: 'DataTable 基础版、树与级联、日期时间、分片上传。' },
+  { name: '@cavailab/qian-form', stage: 'S1', summary: 'SchemaForm 基础版、校验与基础联动、弹层 API。' },
+  { name: '@cavailab/qian-biz', stage: 'S1', summary: '业务选择器（远程选项、字典、组织、用户、角色）、菜单与按钮授权树、IconPicker。' },
+  { name: '@cavailab/qian-sdk', stage: 'S1', summary: '注册表 API、PlatformClient、请求拦截器链与 i18n。' },
 ];
 
 const PLACEHOLDER_NOTE =
   '> 占位页：组件文件夹尚未建立。S1-DOCS-002 起本页由收集脚本从组件文件夹生成，按[组件页模板](/design/prd/specs/docs-site)固定九节：用途、安装、配置、表面、API、示例、模型体验、已知限制与延期项、变更。';
+
+/**
+ * form、data、shell、biz 的包级文档页取自 CavaiLAB/qian 检出里的 docs/index.mdx。那边更名时把 frontmatter 的 project 改成了 qian；
+ * 本站的 /components/yue/ 小节在组件页来源定下来之前（F5）仍归 project: yue，这里改回，并补上来源。
+ */
+function packagePage(qian: QianCheckout, name: 'form' | 'data' | 'shell' | 'biz'): string {
+  const file = `packages/qian/${name}/docs/index.mdx`;
+  const text = fs.readFileSync(path.join(qianPackageDir(qian.dir, name), 'docs/index.mdx'), 'utf8');
+  const end = text.indexOf('\n---\n', 4);
+  if (!text.startsWith('---\n') || end < 0) throw new Error(`${file} 缺 frontmatter`);
+  const front = text.slice(0, end).replace(/^project: qian$/m, 'project: yue');
+  if (!/^project: yue$/m.test(front)) throw new Error(`${file} 的 frontmatter 没有 project`);
+  return `${front}\nsource: ${yamlString(qianSource(qian, file))}${text.slice(end)}`;
+}
 
 function refLinks(refs: PlannedComponent['refs'], repoRoot: string): string {
   return refs
@@ -136,30 +151,33 @@ export function collectComponents(repoRoot: string = REPO_ROOT): GeneratedFile[]
     ].join('\n'),
   });
 
-  files.push({ path: 'yue/form.mdx', content: fs.readFileSync(path.join(repoRoot, 'packages/yue/form/docs/index.mdx'), 'utf8') });
+  const qian = openQian();
+  files.push({ path: 'yue/form.mdx', content: packagePage(qian, 'form') });
 
-  files.push({ path: 'yue/data.mdx', content: fs.readFileSync(path.join(repoRoot, 'packages/yue/data/docs/index.mdx'), 'utf8') });
+  files.push({ path: 'yue/data.mdx', content: packagePage(qian, 'data') });
 
-  files.push({ path: 'yue/shell.mdx', content: fs.readFileSync(path.join(repoRoot, 'packages/yue/shell/docs/index.mdx'), 'utf8') });
+  files.push({ path: 'yue/shell.mdx', content: packagePage(qian, 'shell') });
 
-  files.push({ path: 'yue/biz.mdx', content: fs.readFileSync(path.join(repoRoot, 'packages/yue/biz/docs/index.mdx'), 'utf8') });
+  files.push({ path: 'yue/biz.mdx', content: packagePage(qian, 'biz') });
 
   const yueRows = YUE_PACKAGES.map((p) => `| \`${p.name}\` | ${p.stage} | ${p.summary} |`).join('\n');
   files.push({
     path: 'yue/index.md',
     content: [
       '---',
-      `title: ${yamlString('yue 组件库')}`,
-      `description: ${yamlString('yue 组件库各包的目录；组件页带活演示与 props 表。')}`,
+      `title: ${yamlString('qian 组件库（原 yue）')}`,
+      `description: ${yamlString('qian 组件库（原 yue）各包的目录；组件页带活演示与 props 表。')}`,
       'part: components',
       'project: yue',
       'audience: [developer]',
       `updated: ${repoFileDate(SELF, repoRoot)}`,
       '---',
       '',
-      '# yue 组件库',
+      '# qian 组件库（原 yue）',
       '',
-      `yue 是 Qian 的前端组件库（[ADR-013](${designRoute('docs/adr/ADR-013-frontend-yue.md')})、[yue 专题规格](${designRoute('docs/prd/specs/yue.md')})）。包发 GitHub Packages，包名 \`@idadawn/yue-<包>\`，设计文档里的 \`@yue/<包>\` 是同一个包的简称。core 已提供 51 个组件入口，每页包含真实交互演示、源码与完整 Props。安装前请在项目 .npmrc 配置 @idadawn:registry=https://npm.pkg.github.com，并由本机 npm 登录提供读包权限。下表是 S1 各包的范围。`,
+      `qian 组件库（原名 yue）是 Qian 的前端组件库（[ADR-013](${designRoute('docs/adr/ADR-013-frontend-yue.md')})、[yue 专题规格](${designRoute('docs/prd/specs/yue.md')})），源码在 [CavaiLAB/qian](${QIAN_REPO_URL})；本小节由它的标签 \`${qian.tag}\` 生成（版本钉在 \`pnpm-workspace.yaml\` 的版本目录）。包发在 GitHub Packages，包名 \`@cavailab/qian-<包>\`；设计文档写于更名之前，里面的 \`@yue/<包>\`、\`@idadawn/yue-<包>\` 指同一个包。core 提供 ${readYueDocs().docs.length} 个组件入口，每页包含真实交互演示、源码与完整 Props。`,
+      '',
+      '安装前在项目的 `.npmrc` 写 `@cavailab:registry=https://npm.pkg.github.com`；令牌行 `//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}` 写进用户级配置（`~/.npmrc`）——10.34.2 起的 pnpm 10、11.5.3 起的 pnpm 11，以及 pnpm 12 不展开仓库里 `.npmrc` 认证行的环境变量（安全公告 GHSA-3qhv-2rgh-x77r；11.0.0–11.5.2 仍会展开）——再把有 `read:packages` 权限的个人访问令牌（classic）放进环境变量 `NODE_AUTH_TOKEN`。从这个包源安装公开包也要令牌，详见 [CavaiLAB/qian 迁移说明第 2 节](' + QIAN_REPO_URL + '/blob/main/docs/migrating-from-yue.md#2-包名与安装)。下表是 S1 各包的范围。',
       '',
       '| 包 | 阶段 | 内容 |',
       '|---|---|---|',
@@ -167,7 +185,7 @@ export function collectComponents(repoRoot: string = REPO_ROOT): GeneratedFile[]
       '',
       '## 基础组件',
       '',
-      ...readYueDocs(repoRoot).docs.map(d => `- [${d.name} ${d.label}](/components/yue/core/${d.name.toLowerCase()})：${d.description}`),
+      ...readYueDocs().docs.map(d => `- [${d.name} ${d.label}](/components/yue/core/${d.name.toLowerCase()})：${d.description}`),
       '',
       '- [设计令牌](/components/yue/tokens)',
       '- [SchemaForm 表单与弹层](/components/yue/form)',
@@ -183,7 +201,7 @@ export function collectComponents(repoRoot: string = REPO_ROOT): GeneratedFile[]
     content: [
       '---',
       `title: ${yamlString('组件目录')}`,
-      `description: ${yamlString('每个组件一页：怎么装、怎么配、暴露了什么；平台插件与 yue 组件用同一模板。')}`,
+      `description: ${yamlString('每个组件一页：怎么装、怎么配、暴露了什么；平台插件与 qian 组件库用同一模板。')}`,
       'part: components',
       'project: qian',
       'audience: [developer, operator, isv]',
@@ -195,15 +213,15 @@ export function collectComponents(repoRoot: string = REPO_ROOT): GeneratedFile[]
       '「组件怎么用」只写在这一部分：每个组件一页，讲用途、安装（`qian add <id>`）、配置、表面、API、示例、模型体验与已知限制。编程模型与 API 原理在 [SDK](/sdk/)，命令与清单字段在 [CLI 与规格](/cli/)。',
       '',
       `- [平台插件](/components/platform/)：${PLATFORM_COMPONENTS.length} 个规划中的组件`,
-      '- [yue 组件库](/components/yue/)：前端组件与外壳',
+      '- [qian 组件库（原 yue）](/components/yue/)：前端组件与外壳',
       '',
       '本部分随 Qian 包族的 SemVer 多版本发布；首个版本发布前只有开发版。',
       '',
     ].join('\n'),
   });
 
-  files.push({ path: '_meta.json', content: `${JSON.stringify(['index', { type: 'dir', name: 'platform', label: '平台插件' }, { type: 'dir', name: 'yue', label: 'yue 组件库' }], null, 2)}\n` });
+  files.push({ path: '_meta.json', content: `${JSON.stringify(['index', { type: 'dir', name: 'platform', label: '平台插件' }, { type: 'dir', name: 'yue', label: 'qian 组件库（原 yue）' }], null, 2)}\n` });
   files.push({ path: 'platform/_meta.json', content: `${JSON.stringify(['index', ...PLATFORM_COMPONENTS.map((c) => c.id)], null, 2)}\n` });
   files.push({ path: 'yue/_meta.json', content: `${JSON.stringify(['index', 'tokens', 'form', 'data', 'shell', 'biz', { type: 'dir', name: 'core', label: '基础组件' }], null, 2)}\n` });
-  return [...files, ...collectYuePages(repoRoot)];
+  return [...files, ...collectYuePages(qian)];
 }

@@ -1,7 +1,7 @@
-import { settleVisuals } from '../../apps/yue-playground/e2e/settle';
+import { settleVisuals } from '../../apps/qian-shell/e2e/settle';
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
-import scenarios from '../../packages/yue/core/docs/scenarios.json' with { type: 'json' };
+import scenarios from '../.cache/qian-source/packages/qian/core/docs/scenarios.json' with { type: 'json' };
 import { exercise } from './interactions';
 for (const scenario of scenarios) {
   test(`${scenario.id} 真实 Rspress 交互与无障碍`, async ({ page }) => {

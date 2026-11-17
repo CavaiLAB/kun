@@ -476,7 +476,7 @@ export function apiReferenceFiles(kun: KunCheckout, kunApi: KunApiResult): Gener
         '|---|---|---|',
         `| Kun（\`Kun.*\`，按 \`KunVersion\` 锁定） | [Kun API 参考](${KUN_API_ROUTE}) | 已生成：${kunApi.packages.length} 个包、${kunApi.types} 个类型，${kun.tag}（${KUN_OWNER_REPO}） |`,
         '| Qian 后端（`Qian.*`） | `/sdk/api/dotnet/` | 随 S1-DOCS-002 |',
-        '| 前端（`@qian/*`、`@yue/*`） | `/sdk/api/frontend/` | 随 S1-DOCS-002 |',
+        '| 前端（`@qian/*`、`@cavailab/qian-*`） | `/sdk/api/frontend/` | 随 S1-DOCS-002 |',
         '| 平台 HTTP API（OpenAPI） | `/sdk/api/http/` | 随 S1-DOCS-002 |',
         '',
       ].join('\n'),

@@ -23,6 +23,8 @@ website/docs/sdk/kun/*
 !website/docs/sdk/kun/with-qian.mdx
 website/docs/sdk/api/
 website/.cache/
+# 文档站 CI 把 CavaiLAB/qian 的组件文档源检出到这里（website/scripts/qian.ts）；本机用 QIAN_DOCS_PATH 或 website/.cache/qian-repo
+/.qian/
 
 # yue 前端工作区（S1-YUE-003）：构建产物、Turborepo 缓存、测试与 Lighthouse 报告
 packages/yue/*/dist/

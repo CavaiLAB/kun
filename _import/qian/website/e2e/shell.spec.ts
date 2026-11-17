@@ -1,15 +1,15 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import scenarios from '../../packages/yue/shell/docs/scenarios.json' with { type: 'json' };
-import { settleVisuals } from '../../apps/yue-playground/e2e/settle';
+import scenarios from '../.cache/qian-source/packages/qian/shell/docs/scenarios.json' with { type: 'json' };
+import { settleVisuals } from '../../apps/qian-shell/e2e/settle';
 
 for (const scenario of scenarios) for (const theme of ['light', 'dark']) test(`${scenario.id} ${theme} Rspress 场景与真实操作`, async ({ page }) => {
   await page.goto(`yue-demo/index.html?component=${scenario.component}&state=${scenario.state}&theme=${theme}`);
   if (scenario.component === 'AppShell') {
     await page.getByRole('link', { name: '应用设置', exact: true }).click(); await expect(page.getByRole('heading', { name: '应用设置', exact: true })).toBeVisible();
     await page.getByRole('button', { name: '读取受保护数据' }).click(); await expect(page.getByText('请求租户：tenant-a', { exact: true })).toBeVisible();
-    if (scenario.state === 'Managed') await expect(page.getByTestId('yue-app-shell-managed')).toBeVisible();
-    if (scenario.state === 'Offline') await expect(page.getByTestId('yue-offline-banner')).toBeVisible();
+    if (scenario.state === 'Managed') await expect(page.getByTestId('qian-app-shell-managed')).toBeVisible();
+    if (scenario.state === 'Offline') await expect(page.getByTestId('qian-offline-banner')).toBeVisible();
     await page.getByRole('button', { name: '模拟会话过期' }).click(); await expect(page.getByRole('alertdialog', { name: '登录已过期' })).toBeVisible();
   } else if (scenario.component === 'Authentication') {
     if (scenario.state === 'CallbackFailure') {
@@ -20,7 +20,7 @@ for (const scenario of scenarios) for (const theme of ['light', 'dark']) test(`$
       await expect(page.getByRole('heading', { name: '工作台', exact: true })).toBeVisible();
     }
   } else {
-    await expect(page.getByTestId('yue-fallback-page')).toBeVisible(); await page.getByRole('button', { name: '重试' }).focus();
+    await expect(page.getByTestId('qian-fallback-page')).toBeVisible(); await page.getByRole('button', { name: '重试' }).focus();
   }
   await settleVisuals(page); const axe = await new AxeBuilder({ page }).analyze(); expect(axe.violations.filter(value => ['critical', 'serious'].includes(value.impact ?? ''))).toEqual([]);
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -38,7 +38,7 @@ test('静态 Rspress 外壳文档可发现，三个 iframe 使用同源示例且
   await auth.getByRole('button', { name: '用户菜单' }).click(); await auth.getByRole('menuitem', { name: '退出登录' }).click();
   await auth.getByRole('button', { name: '单点登录', exact: true }).click(); await expect(auth.getByRole('heading', { name: '工作台', exact: true })).toBeVisible();
   const fallback = page.frameLocator('iframe[title="FallbackPage 交互预览"]');
-  for (const state of ['Forbidden', 'NotFound', 'ServerError', 'Offline']) { await fallback.getByLabel('示例状态').selectOption(state); await expect(fallback.getByTestId('yue-fallback-page')).toBeVisible(); }
+  for (const state of ['Forbidden', 'NotFound', 'ServerError', 'Offline']) { await fallback.getByLabel('示例状态').selectOption(state); await expect(fallback.getByTestId('qian-fallback-page')).toBeVisible(); }
   const result = await new AxeBuilder({ page }).analyze(); expect(result.violations.filter(value => ['critical', 'serious'].includes(value.impact ?? ''))).toEqual([]);
 });
 

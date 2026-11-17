@@ -1,11 +1,17 @@
 @import 'tailwindcss';
-@import '@idadawn/yue-tokens/theme.css';
-@source '../../packages/yue/core';
-@source '../../packages/yue/form';
-@source '../../packages/yue/shell';
-@source '../../packages/yue/data';
-@source '../../packages/yue/biz';
-@source '../../packages/yue/tokens';
+/* 令牌与组件源码都取 CavaiLAB/qian 的检出（website/.cache/qian-source，见 scripts/qian.ts），与演示用的是同一份。 */
+@import '../.cache/qian-source/packages/qian/tokens/src/theme.css';
+@source '../.cache/qian-source/packages/qian/core/src';
+@source '../.cache/qian-source/packages/qian/core/docs';
+@source '../.cache/qian-source/packages/qian/form/src';
+@source '../.cache/qian-source/packages/qian/form/docs';
+@source '../.cache/qian-source/packages/qian/shell/src';
+@source '../.cache/qian-source/packages/qian/shell/docs';
+@source '../.cache/qian-source/packages/qian/data/src';
+@source '../.cache/qian-source/packages/qian/data/docs';
+@source '../.cache/qian-source/packages/qian/biz/src';
+@source '../.cache/qian-source/packages/qian/biz/docs';
+@source '../.cache/qian-source/packages/qian/tokens/src';
 @source './main.tsx';
 body { margin: 0; @apply font-sans text-sm bg-background text-foreground; }
 .demo-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .75rem 1rem; border-bottom: 1px solid var(--border); font-size: .875rem; }

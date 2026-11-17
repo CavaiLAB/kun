@@ -1458,27 +1458,12 @@ importers:
 
   website:
     dependencies:
-      '@idadawn/yue-biz':
-        specifier: workspace:^
-        version: link:../packages/yue/biz
-      '@idadawn/yue-core':
-        specifier: workspace:*
-        version: link:../packages/yue/core
-      '@idadawn/yue-data':
-        specifier: workspace:*
-        version: link:../packages/yue/data
-      '@idadawn/yue-form':
-        specifier: workspace:*
-        version: link:../packages/yue/form
-      '@idadawn/yue-sdk':
-        specifier: workspace:*
-        version: link:../packages/yue/sdk
-      '@idadawn/yue-shell':
-        specifier: workspace:^
-        version: link:../packages/yue/shell
-      '@idadawn/yue-tokens':
-        specifier: workspace:*
-        version: link:../packages/yue/tokens
+      '@cavailab/qian-core':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-tokens':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@mdx-js/react':
         specifier: 3.1.1
         version: 3.1.1(@types/react@19.3.0)(react@19.3.0)

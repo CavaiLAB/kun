@@ -24,7 +24,8 @@ export interface LlmsTxtInput {
 export const PROJECT_ORDER: ReadonlyArray<{ id: string; label: string }> = [
   { id: 'qian', label: 'Qian' },
   { id: 'kun', label: 'Kun' },
-  { id: 'yue', label: 'yue' },
+  // project 仍叫 yue（/components/yue/ 小节，组件页来源定下来之前不改）；显示名用更名后的组件库名。
+  { id: 'yue', label: 'qian 组件库（原 yue）' },
 ];
 
 function projectOf(page: LlmsPage): string {

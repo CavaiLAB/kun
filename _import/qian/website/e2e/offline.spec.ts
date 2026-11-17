@@ -1,4 +1,4 @@
-import { settleVisuals } from '../../apps/yue-playground/e2e/settle';
+import { settleVisuals } from '../../apps/qian-shell/e2e/settle';
 import { expect, test } from '@playwright/test';
 
 test('断外网后加载本地编辑器、修改代码并真实运行', async ({ page, baseURL }) => {
@@ -32,7 +32,7 @@ test('属性表、继承回调、源码和 Markdown 同步', async ({ page, requ
     for (const prop of props) await expect(page.getByRole('cell', { name: prop, exact: true }).first()).toBeVisible();
     const markdown = await (await request.get(`${route}.md`)).text();
     for (const prop of props) expect(markdown).toContain(prop);
-    expect(markdown).toContain("@idadawn/yue-core");
+    expect(markdown).toContain("@cavailab/qian-core");
     expect(markdown).not.toContain('<ComponentDemo');
     expect(markdown).not.toContain('.pnpm');
     await expect(page.locator('table a[href^="mailto:"]')).toHaveCount(0);

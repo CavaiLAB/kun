@@ -1,42 +1,42 @@
-@import '@idadawn/yue-tokens/index.css';
+@import '@cavailab/qian-tokens/index.css';
 
 /*
- * Rspress 主题变量 → yue 语义令牌（取值来自第一行导入的 @idadawn/yue-tokens）。只引用语义层（--yue-<role>），
- * 颜色令牌按 yue 规格存成可加透明度的 oklch 分量（如 `.43 .144 260`），这里一律写成 oklch(var(--yue-<role>))；
+ * Rspress 主题变量 → qian 语义令牌（取值来自第一行导入的 @cavailab/qian-tokens）。只引用语义层（--qian-<role>），
+ * 颜色令牌按 qian 规格存成可加透明度的 oklch 分量（如 `.43 .144 260`），这里一律写成 oklch(var(--qian-<role>))；
  * 明暗两态由令牌包在 html.dark（Rspress 的明暗类）下切换，
  * 这里不写暗色分支。Rspress 的默认变量挂在 :where(...) 上、优先级为 0，:root 足以覆盖。
  */
 :root {
-  --rp-font-family-base: var(--yue-p-font-sans);
-  --rp-font-family-mono: var(--yue-p-font-mono);
-  --rp-c-brand: oklch(var(--yue-primary));
-  --rp-c-brand-light: color-mix(in oklch, oklch(var(--yue-primary)) 80%, white);
-  --rp-c-brand-lighter: color-mix(in oklch, oklch(var(--yue-primary)) 30%, white);
-  --rp-c-brand-dark: color-mix(in oklch, oklch(var(--yue-primary)) 85%, black);
-  --rp-c-brand-darker: color-mix(in oklch, oklch(var(--yue-primary)) 70%, black);
-  --rp-c-brand-tint: color-mix(in oklch, oklch(var(--yue-primary)) 16%, transparent);
+  --rp-font-family-base: var(--qian-p-font-sans);
+  --rp-font-family-mono: var(--qian-p-font-mono);
+  --rp-c-brand: oklch(var(--qian-primary));
+  --rp-c-brand-light: color-mix(in oklch, oklch(var(--qian-primary)) 80%, white);
+  --rp-c-brand-lighter: color-mix(in oklch, oklch(var(--qian-primary)) 30%, white);
+  --rp-c-brand-dark: color-mix(in oklch, oklch(var(--qian-primary)) 85%, black);
+  --rp-c-brand-darker: color-mix(in oklch, oklch(var(--qian-primary)) 70%, black);
+  --rp-c-brand-tint: color-mix(in oklch, oklch(var(--qian-primary)) 16%, transparent);
 
-  --rp-c-bg: oklch(var(--yue-background));
-  --rp-c-bg-soft: oklch(var(--yue-muted));
-  --rp-c-text-1: oklch(var(--yue-foreground));
-  --rp-c-text-2: oklch(var(--yue-muted-foreground));
-  --rp-c-divider-light: oklch(var(--yue-border));
+  --rp-c-bg: oklch(var(--qian-background));
+  --rp-c-bg-soft: oklch(var(--qian-muted));
+  --rp-c-text-1: oklch(var(--qian-foreground));
+  --rp-c-text-2: oklch(var(--qian-muted-foreground));
+  --rp-c-divider-light: oklch(var(--qian-border));
 
-  --rp-home-hero-secondary-color: oklch(var(--yue-info));
+  --rp-home-hero-secondary-color: oklch(var(--qian-info));
 }
 
 /* 建设期横幅用「提醒」语气的语义色；选择器加倍是为了不依赖与 Rspress 样式的加载先后。 */
 :root:root {
-  --rp-banner-background: oklch(var(--yue-warn-bg));
+  --rp-banner-background: oklch(var(--qian-warn-bg));
 }
 
 .rp-banner.rp-banner,
 .rp-banner.rp-banner .rp-banner__link {
-  color: oklch(var(--yue-warn));
+  color: oklch(var(--qian-warn));
 }
 
 .rp-banner.rp-banner {
-  border-bottom: 1px solid color-mix(in oklch, oklch(var(--yue-warn)) 25%, transparent);
+  border-bottom: 1px solid color-mix(in oklch, oklch(var(--qian-warn)) 25%, transparent);
 }
 
 /* ---------------------------------------------------------------- 首页（pageType: custom） */
@@ -46,7 +46,7 @@
   max-width: 1152px;
   margin: 0 auto;
   padding: 0 16px 48px;
-  color: oklch(var(--yue-foreground));
+  color: oklch(var(--qian-foreground));
 }
 
 .qian-home-hero {
@@ -59,7 +59,7 @@
   font-size: clamp(2rem, 5vw, 3rem);
   line-height: 1.2;
   font-weight: 700;
-  color: oklch(var(--yue-foreground));
+  color: oklch(var(--qian-foreground));
 }
 
 .qian-home-hero p {
@@ -67,7 +67,7 @@
   margin: 16px auto 0;
   font-size: 1.125rem;
   line-height: 1.7;
-  color: oklch(var(--yue-muted-foreground));
+  color: oklch(var(--qian-muted-foreground));
 }
 
 .qian-home-search {
@@ -77,10 +77,10 @@
   width: min(560px, 100%);
   margin: 28px auto 0;
   padding: 12px 16px;
-  border: 1px solid oklch(var(--yue-border));
-  border-radius: var(--yue-radius);
-  background: oklch(var(--yue-card));
-  color: oklch(var(--yue-muted-foreground));
+  border: 1px solid oklch(var(--qian-border));
+  border-radius: var(--qian-radius);
+  background: oklch(var(--qian-card));
+  color: oklch(var(--qian-muted-foreground));
   font-size: 1rem;
   text-align: left;
   cursor: pointer;
@@ -88,14 +88,14 @@
 
 .qian-home-search:hover,
 .qian-home-search:focus-visible {
-  border-color: oklch(var(--yue-ring));
+  border-color: oklch(var(--qian-ring));
   outline: none;
 }
 
 .qian-home-search kbd {
   margin-left: auto;
   padding: 2px 6px;
-  border: 1px solid oklch(var(--yue-border));
+  border: 1px solid oklch(var(--qian-border));
   border-radius: 4px;
   font-family: var(--rp-font-family-mono);
   font-size: 0.75rem;
@@ -109,29 +109,29 @@
   margin: 0 0 6px;
   font-size: 1.5rem;
   font-weight: 650;
-  color: oklch(var(--yue-foreground));
+  color: oklch(var(--qian-foreground));
   border: 0;
   padding: 0;
 }
 
 .qian-home-section > .qian-home-lead {
   margin: 0 0 20px;
-  color: oklch(var(--yue-muted-foreground));
+  color: oklch(var(--qian-muted-foreground));
 }
 
 .qian-card-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--qian-card-min, 260px)), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--docs-card-min, 260px)), 1fr));
 }
 
 .qian-card {
   min-width: 0;
   padding: 20px;
-  border: 1px solid oklch(var(--yue-border));
-  border-radius: var(--yue-radius);
-  background: oklch(var(--yue-card));
-  color: oklch(var(--yue-card-foreground));
+  border: 1px solid oklch(var(--qian-border));
+  border-radius: var(--qian-radius);
+  background: oklch(var(--qian-card));
+  color: oklch(var(--qian-card-foreground));
 }
 
 .qian-card > h3 {
@@ -165,8 +165,8 @@
   gap: 8px 24px;
   margin-top: 64px;
   padding-top: 24px;
-  border-top: 1px solid oklch(var(--yue-border));
-  color: oklch(var(--yue-muted-foreground));
+  border-top: 1px solid oklch(var(--qian-border));
+  color: oklch(var(--qian-muted-foreground));
   font-size: 0.875rem;
 }
 
@@ -179,7 +179,7 @@
 }
 
 .qian-home-footer-label {
-  color: oklch(var(--yue-foreground));
+  color: oklch(var(--qian-foreground));
   font-weight: 500;
 }
 
@@ -188,7 +188,7 @@
 }
 
 .qian-home-footer a:hover {
-  color: oklch(var(--yue-primary));
+  color: oklch(var(--qian-primary));
 }
 
 /* ---------------------------------------------------------------- 文档页 */
@@ -196,10 +196,10 @@
 .qian-part-notice {
   margin: 0 0 24px;
   padding: 8px 12px;
-  border-left: 3px solid oklch(var(--yue-info));
+  border-left: 3px solid oklch(var(--qian-info));
   border-radius: 4px;
-  background: oklch(var(--yue-info-bg));
-  color: oklch(var(--yue-foreground));
+  background: oklch(var(--qian-info-bg));
+  color: oklch(var(--qian-foreground));
   font-size: 0.875rem;
   line-height: 1.6;
 }
@@ -226,13 +226,13 @@
   grid-template-columns: 7.5em 1fr;
   gap: 12px;
   padding: 12px 16px;
-  border: 1px solid oklch(var(--yue-border));
-  border-radius: var(--yue-radius);
-  background: oklch(var(--yue-card));
+  border: 1px solid oklch(var(--qian-border));
+  border-radius: var(--qian-radius);
+  background: oklch(var(--qian-card));
 }
 
 .qian-latest time {
-  color: oklch(var(--yue-muted-foreground));
+  color: oklch(var(--qian-muted-foreground));
   font-variant-numeric: tabular-nums;
 }
 
@@ -242,7 +242,7 @@
 
 .qian-latest p {
   margin: 4px 0 0;
-  color: oklch(var(--yue-muted-foreground));
+  color: oklch(var(--qian-muted-foreground));
   line-height: 1.6;
 }
 
@@ -253,41 +253,41 @@
   }
 }
 
-/* 实际文档页的代码与辅助文字也遵守 yue 对比度，保留 Shiki 的语法分组。 */
+/* 实际文档页的代码与辅助文字也遵守 qian 令牌的对比度，保留 Shiki 的语法分组。 */
 :root:root {
-  --rp-c-text-3: oklch(var(--yue-muted-foreground));
-  --shiki-background: oklch(var(--yue-muted));
-  --shiki-foreground: oklch(var(--yue-foreground));
-  --shiki-token-constant: oklch(var(--yue-foreground));
-  --shiki-token-string: oklch(var(--yue-foreground));
-  --shiki-token-comment: oklch(var(--yue-muted-foreground));
-  --shiki-token-keyword: oklch(var(--yue-primary));
-  --shiki-token-parameter: oklch(var(--yue-foreground));
-  --shiki-token-function: oklch(var(--yue-primary));
-  --shiki-token-string-expression: oklch(var(--yue-foreground));
-  --shiki-token-punctuation: oklch(var(--yue-foreground));
-  --shiki-token-link: oklch(var(--yue-primary));
+  --rp-c-text-3: oklch(var(--qian-muted-foreground));
+  --shiki-background: oklch(var(--qian-muted));
+  --shiki-foreground: oklch(var(--qian-foreground));
+  --shiki-token-constant: oklch(var(--qian-foreground));
+  --shiki-token-string: oklch(var(--qian-foreground));
+  --shiki-token-comment: oklch(var(--qian-muted-foreground));
+  --shiki-token-keyword: oklch(var(--qian-primary));
+  --shiki-token-parameter: oklch(var(--qian-foreground));
+  --shiki-token-function: oklch(var(--qian-primary));
+  --shiki-token-string-expression: oklch(var(--qian-foreground));
+  --shiki-token-punctuation: oklch(var(--qian-foreground));
+  --shiki-token-link: oklch(var(--qian-primary));
 }
-.rp-header-anchor:focus-visible { opacity: 1; outline: 2px solid oklch(var(--yue-ring)); outline-offset: 2px; }
+.rp-header-anchor:focus-visible { opacity: 1; outline: 2px solid oklch(var(--qian-ring)); outline-offset: 2px; }
 :root:root {
-  --rp-container-info-text: oklch(var(--yue-info));
-  --rp-container-info-bg: oklch(var(--yue-info-bg));
-  --rp-container-tip-text: oklch(var(--yue-ok));
-  --rp-container-tip-bg: oklch(var(--yue-ok-bg));
-  --rp-container-warning-text: oklch(var(--yue-warn));
-  --rp-container-warning-bg: oklch(var(--yue-warn-bg));
-  --rp-container-danger-text: oklch(var(--yue-error));
-  --rp-container-danger-bg: oklch(var(--yue-error-bg));
+  --rp-container-info-text: oklch(var(--qian-info));
+  --rp-container-info-bg: oklch(var(--qian-info-bg));
+  --rp-container-tip-text: oklch(var(--qian-ok));
+  --rp-container-tip-bg: oklch(var(--qian-ok-bg));
+  --rp-container-warning-text: oklch(var(--qian-warn));
+  --rp-container-warning-bg: oklch(var(--qian-warn-bg));
+  --rp-container-danger-text: oklch(var(--qian-error));
+  --rp-container-danger-bg: oklch(var(--qian-error-bg));
 }
 .rp-social-links .rp-social-links__icon { display: flex; width: 20px; height: 20px; }
 .rp-social-links .rp-social-links__icon svg { display: block; width: 100%; height: 100%; }
 
 .rp-switch-appearance { border: 0; background: transparent; }
-.rp-switch-appearance:focus-visible { outline: 2px solid oklch(var(--yue-ring)); outline-offset: 2px; }
-.rp-switch-appearance { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; color: oklch(var(--yue-muted-foreground)); cursor: pointer; }
+.rp-switch-appearance:focus-visible { outline: 2px solid oklch(var(--qian-ring)); outline-offset: 2px; }
+.rp-switch-appearance { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; color: oklch(var(--qian-muted-foreground)); cursor: pointer; }
 .rp-switch-appearance svg { width: 20px; height: 20px; }
 .rp-switch-appearance__icon--sun { display: block; }
 .rp-switch-appearance__icon--moon, html.dark .rp-switch-appearance__icon--sun { display: none; }
 html.dark .rp-switch-appearance__icon--moon { display: block; }
 /* 快捷键文字初次出现不淡入，避免过渡帧降低文本对比度。 */
-.rp-search-button .rp-search-button__hotkey { color: oklch(var(--yue-muted-foreground)); background: oklch(var(--yue-muted)); transition: none; }
+.rp-search-button .rp-search-button__hotkey { color: oklch(var(--qian-muted-foreground)); background: oklch(var(--qian-muted)); transition: none; }

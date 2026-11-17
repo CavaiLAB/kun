@@ -15,6 +15,7 @@
 
 产品负责人 2026-11-17 裁定 Qian 并入 Kun（`pm/tasks/S1-DEC-036.md` 的 D1–D14，蓝图是 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，Accepted）：`Qian.*` 并入 `Kun.*`，一个包族、一条日历版本线；两边重叠的实现归并成一份；许可证全部改 MIT；前端框架由 yue 更名为 qian。同一天又裁定（`pm/tasks/S1-DEC-038.md` 的 D17、D18）：合并后的仓库是 `CavaiLAB/kun`，不是蓝图原来写的 `idadawn/kun`；前端迁往 `CavaiLAB/qian`；迁移现在开始，不再等「初步可用」里程碑收口。历史导入当天合入 `CavaiLAB/kun`（CavaiLAB/kun#3），产品负责人随后宣布冻结。
 
+- 本节的「本仓库」指 `idadawn/qian`。在 `CavaiLAB/kun` 的 `_import/qian/` 下读到这里的：本节随历史一起带了过去，冻结的说法在那边不适用，以那边根上的 `AGENTS.md` 为准。
 - 迁移分批做，执行计划在 `CavaiLAB/kun` 的 `docs/migration-plan.md`：历史导入（B1，已完成）→ 切换与整理（B2，从冻结开始）→ 构建并轨（B3）→ 七个域的归并与改名（B4–B10）→ 前端目录移出（B11）→ 首个合并版（B12）。对应的任务是 S1-KUN-019（B1、B2）、S1-KUN-018（B2 里旧 kun 仓库的收尾）、S1-KUN-020（B3）、S1-KUN-021（B4–B10）、S1-KUN-022（B12）。前端只迁框架库，计划在 `CavaiLAB/qian` 的 `docs/migration.md`，任务是 S1-YUE-022 至 S1-YUE-026。
 - 本仓库自 2026-11-17 起冻结，不再合入任何改动，代码、文档、任务文件都一样。原因：最后一次同步之后本仓库就归档，而 `CavaiLAB/kun` 的过渡目录 `_import/qian/` 在归档之前也不改内容（最后一次同步要拿树对象逐个核对），所以从冻结到归档这段时间两边都不收改动。唯一的例外是写明去处的那一个 PR（README 顶部的说明、本节，以及 S1-KUN-018、S1-KUN-019 的任务文件），它合入之后随最后一次同步进入新仓库，然后由产品负责人把本仓库归档为只读。
 - 归档之后，代码、任务文件、决策记录都到 `CavaiLAB/kun` 的 `_import/qian/` 下改，在那边开 PR：任务文件在 `_import/qian/pm/tasks/` 下，`pm.py` 在 `_import/qian/` 下运行。后续批次会把它们提出过渡目录。在那边本文件哪些部分照用，以 `CavaiLAB/kun` 根上的 `AGENTS.md` 为准。

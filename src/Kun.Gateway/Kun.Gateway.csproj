@@ -3,8 +3,10 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsAotCandidate>true</IsAotCandidate>
-    <!-- Kun.Gateway 既是 NuGet 库，也是独立宿主。引用它的项目（_import/qian 下按 NativeAOT 自包含发布的网关宿主，S1-KUN-020）
-         只把它当库用，SDK 对「自包含程序引用非自包含的可执行项目」的检查（NETSDK1150）不适用。 -->
+    <!-- Kun.Gateway 既是 NuGet 库，也是独立宿主。_import/qian 下的项目只把它当库引用（S1-KUN-020），其中网关宿主按 NativeAOT
+         自包含发布；SDK 对「自包含程序引用非自包含的可执行项目」的检查（NETSDK1150）对库引用不适用。它作为宿主的文件
+         （appsettings.json、启动器、deps.json、runtimeconfig.json 等）由 _import/qian/Directory.Build.targets 挡在引用方的
+         输出目录与发布目录外，与按包引用时一致。 -->
     <ShouldBeValidatedAsExecutableReference>false</ShouldBeValidatedAsExecutableReference>
     <HasPublicApi>true</HasPublicApi>
     <IsPackable>true</IsPackable>

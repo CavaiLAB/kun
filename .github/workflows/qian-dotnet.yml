@@ -297,6 +297,13 @@ jobs:
         run: dotnet publish hosts/Qian.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/gateway-host"
       - name: 核验实际原生产物
         run: test -x "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host" && test ! -e "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host.dll"
+      # Kun.Gateway 改为项目引用后（S1-KUN-020），它作为宿主的文件不进发布目录，appsettings.json 是本宿主自己的那份，与按包引用时一致。
+      - name: 核验发布目录里没有 Kun.Gateway 的宿主文件
+        run: |
+          for name in Kun.Gateway Kun.Gateway.deps.json Kun.Gateway.runtimeconfig.json Kun.Gateway.staticwebassets.endpoints.json; do
+            if [ -e "$RUNNER_TEMP/gateway-host/$name" ]; then echo "发布目录里有 Kun.Gateway 的宿主文件：$name" >&2; exit 1; fi
+          done
+          cmp "$RUNNER_TEMP/gateway-host/appsettings.json" hosts/Qian.Gateway.Host/appsettings.json
       - name: 原生网关运行真实 Apollo、受限 PG、Redis 与身份登录换签
         env:
           QIAN_REQUIRE_DOCKER: '1'

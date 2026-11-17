@@ -5,9 +5,11 @@ name: kun-ci
 # 相对原件的改动：
 #   - runs-on 由自托管的 [self-hosted, qd] 改为 GitHub 托管的 ubuntu-24.04（本仓库没有接自托管 runner）。
 #     qd 是 Ubuntu 24.04，这里钉同一个 LTS：这是托管 runner 里与原件最接近的环境，也不会随 ubuntu-latest
-#     改指向（现在已是 ubuntu-26.04）而漂移。钉版没有解决 Sample AOT Integration 的 MSB4216：网关包独立
-#     消费者的 NativeAOT 发布在 ubuntu-24.04 与 ubuntu-26.04 的托管 runner 上都起不来 .NET 任务宿主，
-#     同一 SDK 10.0.404 在 qd 上通过，原因见 B1 的 PR；
+#     改指向（现在已是 ubuntu-26.04）而漂移。钉版本身与 Sample AOT Integration 的 MSB4216 无关，见下一条；
+#   - Sample AOT Integration 的 setup-dotnet 装到独立目录（DOTNET_INSTALL_DIR），目录里只有 global.json 解析出的 SDK。
+#     托管镜像预装了 .NET SDK 11.0.100，qd 上没有。网关包独立消费者在仓库外（没有 global.json）发布时会选到它，
+#     而外层 dotnet test 传下来的 MSBuildSDKsPath、MSBuildExtensionsPath 指向 10.0.404，MSBuild 11 去起 10.0.404
+#     的 .NET 任务宿主，握手对不上（MSB4216）。装到独立目录后仓库内外都用 10.0.404，与 qd 上的情形一致；
 #   - run 步骤的工作目录、global.json、上传路径加 _import/kun/ 前缀；
 #   - 原件不设路径过滤（原仓库里每个改动都属于原 Kun），这里改为只在 _import/kun/** 或本文件改动时运行；
 #   - 显式写出 permissions: contents: read。
@@ -175,6 +177,9 @@ jobs:
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
+        env:
+          # 只装 global.json 解析出的 SDK，不用托管镜像预装的那一套（其中有 SDK 11.0.100），原因见文件开头。
+          DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
         with:
           global-json-file: _import/kun/global.json
 

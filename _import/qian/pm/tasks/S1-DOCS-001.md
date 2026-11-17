@@ -39,4 +39,4 @@ updated: 2026-10-08
 - 2026-10-07 claude：开始。托管选 K3s 静态托管（照 deploy/pm-board 的 git-sync + nginx）：CI 把构建产物推到 docs-site 分支，PR 预览在 /pr-preview/pr-<n>/；主题色先用占位令牌（按 specs/yue.md 命名），@yue/tokens 发布后替换
 - 2026-10-07 claude：站点、七个部分、首页、主题、搜索/高亮/Mermaid、check_docs 扩展完成并本地验证；主题色接 yue 语义令牌（占位实现），换正式包拆为 S1-DOCS-004；CI 预览与发布待本 PR 的 CI 与集群部署证实后勾选
 - 2026-10-08 claude：合入 main（ADR-021）并按 docs-site.md 修订改文案（Kun 进站指向 S1-DOCS-005、首页定位与产品族页脚、手写页补 project: qian）；deploy/docs-site 已部署到 K3s，PR 预览 http://10.78.1.161:30820/pr-preview/pr-3/ 可访问，第 5 条勾选；正式站点根目录待合并后由 CI 发布
-- 2026-10-08 claude：已合并 PR #3
+- 2026-10-08 claude：已合并 PR idadawn/qian#3

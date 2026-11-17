@@ -477,14 +477,14 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 对应 §14 的层级与门禁；证据按「PR、命令、环境、结果」四件事留存。
 
 **令牌与主题**
-- [x] `@yue/tokens` 三层令牌生成 CSS 变量与 TS 类型；明暗两态对比度单测 WCAG AA ≥ 4.5:1 全部通过（CI）——PR #32，`packages/yue/tokens/src/tokens.test.ts`，CI `yue` 的 unit 门禁
+- [x] `@yue/tokens` 三层令牌生成 CSS 变量与 TS 类型；明暗两态对比度单测 WCAG AA ≥ 4.5:1 全部通过（CI）——PR idadawn/qian#32，`packages/yue/tokens/src/tokens.test.ts`，CI `yue` 的 unit 门禁
 - [x] 令牌命名冲突单测通过；不存在同名异义——同上，另由 `packages/yue/tokens/scripts/check-tokens.mjs` 在 lint 门禁扫描工作区全部 CSS
 - [x] `data-theme / data-brand` 运行时注入生效：切换后无需刷新且无首帧闪烁（Playwright 用例）——`apps/yue-playground/e2e/theme.spec.ts` 的首帧状态快照，CI `yue` 的 a11y 门禁
-- [x] 对比度门禁按文字 / 控件边界 / 装饰三类取阈值（4.5:1 / 3:1 / 豁免），语义令牌明度对齐 shadcn neutral，`theme.css` 与系统字体栈到位（R116 / R117，S1-YUE-011）——PR #185，`packages/yue/tokens/src/registry.json` 的 `contrast` 字段与 `tokens.test.ts`，CI `yue` 的 unit / lint 门禁
+- [x] 对比度门禁按文字 / 控件边界 / 装饰三类取阈值（4.5:1 / 3:1 / 豁免），语义令牌明度对齐 shadcn neutral，`theme.css` 与系统字体栈到位（R116 / R117，S1-YUE-011）——PR idadawn/qian#185，`packages/yue/tokens/src/registry.json` 的 `contrast` 字段与 `tokens.test.ts`，CI `yue` 的 unit / lint 门禁
 
 **基础组件**
 - [ ] `@yue/core` S1 清单 51 个组件全部有 Rspress 共用示例（默认 / 暗色及 `docs/scenarios.json` 中登记的适用状态）与 manifest
-- [x] 51 个组件 className 配方与 shadcn base-nova 生成物逐个一致，任意值 `*-[var(--x)]` 清零，弹层 Trigger 不带裸按钮基类（R117，S1-YUE-011）——PR #186，`packages/yue/core/docs/visual-reference.json` 对照 51 个组件，基线 `apps/yue-playground/visual/__snapshots__/`
+- [x] 51 个组件 className 配方与 shadcn base-nova 生成物逐个一致，任意值 `*-[var(--x)]` 清零，弹层 Trigger 不带裸按钮基类（R117，S1-YUE-011）——PR idadawn/qian#186，`packages/yue/core/docs/visual-reference.json` 对照 51 个组件，基线 `apps/yue-playground/visual/__snapshots__/`
 - [ ] 全部组件 axe critical = 0；Menu / Select / Combobox / Tabs / Tooltip / Tree 键盘路径用例通过（验证门）
 - [ ] 每个组件暴露 `data-slot` 与稳定 `data-testid`
 - [ ] 组件文案 100% 走 i18n key；硬编码文案 lint 为零
@@ -503,7 +503,7 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 - [ ] 校验规则目录与脱敏规则目录可枚举（带 id 与参数 Schema），前后端同一份
 
 **业务选择器与认证**
-- [x] OrganizeSelect / UserSelect / RoleSelect 经 `PlatformClient` 取数，不直连 URL（S1-YUE-010，PR #298：对 `@yue/sdk` 的 mock 中间件验收；真实目录数据的 E2E 在 S1-IDP-010）
+- [x] OrganizeSelect / UserSelect / RoleSelect 经 `PlatformClient` 取数，不直连 URL（S1-YUE-010，PR idadawn/qian#298：对 `@yue/sdk` 的 mock 中间件验收；真实目录数据的 E2E 在 S1-IDP-010）
 - [ ] 菜单 / 按钮授权树完成一次真实授权并在服务端生效（不是仅前端勾选）
 - [ ] 账号密码 + SSO（通用 OIDC）+ 多租户选择 + 登录过期弹窗 E2E 通过；令牌不出现在 URL
 
@@ -517,7 +517,7 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 - [ ] CI 门禁矩阵全部启用：lint、typecheck、unit、a11y、Lighthouse（script 体积 error 级）、边界检查、publint、循环依赖、i18n 硬编码（S1-YUE-003 已启用前八项，工作流 `yue`；i18n 硬编码 lint 待 `@yue/sdk` 的 i18n 落地后加入）
 - [ ] Changesets 发包到私有 npm 成功一次；`0.x` 版本策略写入 CONTRIBUTING（S1-YUE-003 已配置 Changesets 与 `0.x` 策略，见 `packages/yue/README.md`「版本策略」；发包渠道待定，见该节「发布」）
 - [ ] 现有 Rspress 站点覆盖全部 core 组件、完整 props 表与令牌页，离线演示可用；Storybook 应用、依赖与 CI 入口清零
-- [x] 视觉回归基线建立（S1-YUE-011 承担，不再可选：51 个组件页与 DataTable / SchemaForm 示例明暗两态截图基线进仓库并进 CI，样式变更须更新基线并列出变化页面）——PR #186 / #187，CI `yue` 的「视觉回归」作业，`apps/yue-playground/visual.config.ts` `maxDiffPixels: 0`，162 张基线与 6 个隐藏关闭图标反例（R118）
+- [x] 视觉回归基线建立（S1-YUE-011 承担，不再可选：51 个组件页与 DataTable / SchemaForm 示例明暗两态截图基线进仓库并进 CI，样式变更须更新基线并列出变化页面）——PR idadawn/qian#186 / idadawn/qian#187，CI `yue` 的「视觉回归」作业，`apps/yue-playground/visual.config.ts` `maxDiffPixels: 0`，162 张基线与 6 个隐藏关闭图标反例（R118）
 
 ---
 

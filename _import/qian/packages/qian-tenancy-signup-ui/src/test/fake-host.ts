@@ -1,4 +1,4 @@
-import type { RequestTransport } from '@idadawn/yue-sdk';
+import type { RequestTransport } from '@cavailab/qian-sdk';
 import type { ApplicationDetail, ApplicationRow, MyApplication } from '../contracts';
 
 /** 组件测试用的替身宿主：按契约应答开通申请接口，状态在内存里；真实宿主上的流程在 apps/qian-shell 的 e2e-auth。 */

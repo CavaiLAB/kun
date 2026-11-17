@@ -198,6 +198,33 @@ catalogs:
     '@base-ui/react':
       specifier: 1.8.0
       version: 1.8.0
+    '@cavailab/qian-biz':
+      specifier: 0.2.0
+      version: 0.2.0
+    '@cavailab/qian-contracts':
+      specifier: 0.2.0
+      version: 0.2.0
+    '@cavailab/qian-core':
+      specifier: 0.2.0
+      version: 0.2.0
+    '@cavailab/qian-data':
+      specifier: 0.2.0
+      version: 0.2.0
+    '@cavailab/qian-form':
+      specifier: 0.2.0
+      version: 0.2.0
+    '@cavailab/qian-plugin-sdk':
+      specifier: 0.2.0
+      version: 0.2.0
+    '@cavailab/qian-sdk':
+      specifier: 0.2.0
+      version: 0.2.0
+    '@cavailab/qian-shell':
+      specifier: 0.2.0
+      version: 0.2.0
+    '@cavailab/qian-tokens':
+      specifier: 0.2.0
+      version: 0.2.0
     '@module-federation/enhanced':
       specifier: 2.9.2
       version: 2.9.2
@@ -390,33 +417,33 @@ importers:
 
   apps/qian-shell:
     dependencies:
-      '@idadawn/qian-plugin-sdk':
-        specifier: workspace:^
-        version: link:../../packages/qian-plugin-sdk
-      '@idadawn/yue-biz':
-        specifier: workspace:^
-        version: link:../../packages/yue/biz
-      '@idadawn/yue-contracts':
-        specifier: workspace:^
-        version: link:../../packages/yue/contracts
-      '@idadawn/yue-core':
-        specifier: workspace:^
-        version: link:../../packages/yue/core
-      '@idadawn/yue-data':
-        specifier: workspace:^
-        version: link:../../packages/yue/data
-      '@idadawn/yue-form':
-        specifier: workspace:^
-        version: link:../../packages/yue/form
-      '@idadawn/yue-sdk':
-        specifier: workspace:^
-        version: link:../../packages/yue/sdk
-      '@idadawn/yue-shell':
-        specifier: workspace:^
-        version: link:../../packages/yue/shell
-      '@idadawn/yue-tokens':
-        specifier: workspace:^
-        version: link:../../packages/yue/tokens
+      '@cavailab/qian-biz':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-contracts':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-core':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-data':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-form':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-plugin-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(@rspack/core@2.2.8(@module-federation/runtime-tools@2.9.2)(@swc/helpers@0.5.23))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-shell':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-tokens':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@module-federation/enhanced':
         specifier: 'catalog:'
         version: 2.9.2(@rspack/core@2.2.8(@module-federation/runtime-tools@2.9.2)(@swc/helpers@0.5.23))(typescript@6.0.3)
@@ -561,18 +588,21 @@ importers:
 
   packages/qian-identity-ui:
     dependencies:
-      '@idadawn/yue-core':
-        specifier: workspace:^
-        version: link:../yue/core
-      '@idadawn/yue-sdk':
-        specifier: workspace:^
-        version: link:../yue/sdk
-      '@idadawn/yue-shell':
-        specifier: workspace:^
-        version: link:../yue/shell
-      '@idadawn/yue-tokens':
-        specifier: workspace:^
-        version: link:../yue/tokens
+      '@cavailab/qian-core':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-form':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-shell':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-tokens':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@qian/shell-kit':
         specifier: workspace:^
         version: link:../qian-shell-kit
@@ -696,15 +726,15 @@ importers:
 
   packages/qian-shell-kit:
     dependencies:
-      '@idadawn/qian-plugin-sdk':
-        specifier: workspace:^
-        version: link:../qian-plugin-sdk
-      '@idadawn/yue-sdk':
-        specifier: workspace:^
-        version: link:../yue/sdk
-      '@idadawn/yue-shell':
-        specifier: workspace:^
-        version: link:../yue/shell
+      '@cavailab/qian-plugin-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(@rspack/core@2.2.8(@module-federation/runtime-tools@2.9.2)(@swc/helpers@0.5.23))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-shell':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -752,30 +782,30 @@ importers:
 
   packages/qian-tenancy-signup-ui:
     dependencies:
-      '@idadawn/qian-plugin-sdk':
-        specifier: workspace:^
-        version: link:../qian-plugin-sdk
-      '@idadawn/yue-contracts':
-        specifier: workspace:^
-        version: link:../yue/contracts
-      '@idadawn/yue-core':
-        specifier: workspace:^
-        version: link:../yue/core
-      '@idadawn/yue-data':
-        specifier: workspace:^
-        version: link:../yue/data
-      '@idadawn/yue-form':
-        specifier: workspace:^
-        version: link:../yue/form
-      '@idadawn/yue-sdk':
-        specifier: workspace:^
-        version: link:../yue/sdk
-      '@idadawn/yue-shell':
-        specifier: workspace:^
-        version: link:../yue/shell
-      '@idadawn/yue-tokens':
-        specifier: workspace:^
-        version: link:../yue/tokens
+      '@cavailab/qian-contracts':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-core':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-data':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-form':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-plugin-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(@rspack/core@2.2.8(@module-federation/runtime-tools@2.9.2)(@swc/helpers@0.5.23))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-shell':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-tokens':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
       '@module-federation/vite':
         specifier: 'catalog:'
@@ -810,6 +840,9 @@ importers:
       axe-core:
         specifier: 'catalog:'
         version: 4.14.0
+      openapi-fetch:
+        specifier: 'catalog:'
+        version: 0.17.0
       playwright:
         specifier: 'catalog:'
         version: 1.64.0
@@ -834,27 +867,27 @@ importers:
 
   packages/qian-tenancy-ui:
     dependencies:
-      '@idadawn/qian-plugin-sdk':
-        specifier: workspace:^
-        version: link:../qian-plugin-sdk
-      '@idadawn/yue-contracts':
-        specifier: workspace:^
-        version: link:../yue/contracts
-      '@idadawn/yue-core':
-        specifier: workspace:^
-        version: link:../yue/core
-      '@idadawn/yue-data':
-        specifier: workspace:^
-        version: link:../yue/data
-      '@idadawn/yue-form':
-        specifier: workspace:^
-        version: link:../yue/form
-      '@idadawn/yue-sdk':
-        specifier: workspace:^
-        version: link:../yue/sdk
-      '@idadawn/yue-tokens':
-        specifier: workspace:^
-        version: link:../yue/tokens
+      '@cavailab/qian-contracts':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-core':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-data':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-form':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-plugin-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(@rspack/core@2.2.8(@module-federation/runtime-tools@2.9.2)(@swc/helpers@0.5.23))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-tokens':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
       '@axe-core/playwright':
         specifier: 'catalog:'
@@ -1361,18 +1394,18 @@ importers:
 
   samples/qian-sample-crm-ui:
     dependencies:
-      '@idadawn/qian-plugin-sdk':
-        specifier: workspace:^
-        version: link:../../packages/qian-plugin-sdk
-      '@idadawn/yue-core':
-        specifier: workspace:^
-        version: link:../../packages/yue/core
-      '@idadawn/yue-sdk':
-        specifier: workspace:^
-        version: link:../../packages/yue/sdk
-      '@idadawn/yue-tokens':
-        specifier: workspace:^
-        version: link:../../packages/yue/tokens
+      '@cavailab/qian-core':
+        specifier: 'catalog:'
+        version: 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-plugin-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(@rspack/core@2.2.8(@module-federation/runtime-tools@2.9.2)(@swc/helpers@0.5.23))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-sdk':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-tokens':
+        specifier: 'catalog:'
+        version: 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
       '@module-federation/vite':
         specifier: 'catalog:'
@@ -1690,6 +1723,61 @@ packages:
 
   '@cacheable/utils@2.5.0':
     resolution: {integrity: sha512-buipgOVDkkPXNR5+xBpDw7Zk2n1EvU7qBJCNUcL7rhQ//kfpOXPAvQ511Os0vpLYJ1pZnvudNytkQt2hst3wqA==}
+
+  '@cavailab/qian-biz@0.2.0':
+    resolution: {integrity: sha512-Ax66fNqlE/k7DIbO9fGLy9fgeXCEzOwPj6mYtHLAQXMyrx8ZrWIj0+HAA2MDcK9FU3gVJYaMT62n11zqKoxV4A==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-biz/0.2.0/8dfa545fdd49db549cf56ab14663204f3ef5638f}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
+
+  '@cavailab/qian-contracts@0.2.0':
+    resolution: {integrity: sha512-/hS6KAC/Rd+igXLZcP+kOQaG1ytGkRVfxsQ5vPFMiiywFLyDH9c4kPanfmIIGqYX1U11WLinpsz2+0Y6FLpxZQ==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-contracts/0.2.0/467fcab26db1933caed6694d2b5f86721d237a21}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
+
+  '@cavailab/qian-core@0.2.0':
+    resolution: {integrity: sha512-pCbW5F7O2VDVLyXtq/TLR4QNENeLq6vLdJLon9t+ny88QBfaGtVrcSBNXOi9A4VnfLbQWlx3yGKLgd8o0v6g3w==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-core/0.2.0/d23e84bf4315e1179f9261d948735f2112e82cf7}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
+
+  '@cavailab/qian-data@0.2.0':
+    resolution: {integrity: sha512-0LDxDDA3msEHjns4AimaVNLjAMU0WB2aZfAWUz2Jd0JX8dQwrOAv4+TeImPAMb766dSAzMtCDVDLSydUKVzGpQ==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-data/0.2.0/ea5ca696d59cac56b5421098d82dc3d65fbffad6}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
+
+  '@cavailab/qian-form@0.2.0':
+    resolution: {integrity: sha512-q+hXaPXf0o9CtUcKJU7bujhi3jvCe5cW0s4E36nxj12GPxzrRpYGwE185sYPyNcc3a5aN6Yca/e1xbq169dJgg==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-form/0.2.0/ca90841f3d738b797a26c85ad9e5b26649e7368a}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
+
+  '@cavailab/qian-plugin-sdk@0.2.0':
+    resolution: {integrity: sha512-BDtlFzWNg73FeQ3bsX1j9q83hzxLYHeWKfMmcShRfrV3d0xEMW0+u+LvQvKtR2fqsbuCzmpoPZYKaGej5Z5QYg==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-plugin-sdk/0.2.0/ea62a3194c5ba9f1d501c2294df50bca4a2e2323}
+
+  '@cavailab/qian-runtime@0.2.0':
+    resolution: {integrity: sha512-3ppyoYJcujEEjk8JGCwH8kDKcMK+zPvFKTej7n7tYK5zI6jF63174mEBUWbUKmEje6GXyqEEpAUF9tBjU+SyDg==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-runtime/0.2.0/29ab6e70f126574bb2e4ca49f28d631b8fa0838a}
+    engines: {node: '>=22'}
+
+  '@cavailab/qian-sdk@0.2.0':
+    resolution: {integrity: sha512-SwMgYUiWZVr6kU9Y79cQCaVkRzKccDCXEg2F71ctKEzsv0avDDhqWcXD/WzmKESYxuPM5tNeVRnP67Xm9z+fmQ==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-sdk/0.2.0/2c21d7c2cd5af5b395b4a5c94d88d9459c6ad395}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
+
+  '@cavailab/qian-shell@0.2.0':
+    resolution: {integrity: sha512-FdyjtNMNw6EGrKyY8jjr8XhjVtC7okh85dwfD+5J9BKCWqjjv70Ls1WZC7e4aYH8y+jq+q63goT5B8EYDEzAIw==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-shell/0.2.0/d5232e68f8940bd2e78d45bf6c35f8d68487770b}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
+
+  '@cavailab/qian-tokens@0.2.0':
+    resolution: {integrity: sha512-0RkX0ASiD7AFLU7f/W2RGb1x5zOLUAjxglZYg/SzyhubTdMhDC6RPSBXwqODWGQuGM9eXvdCcoxFjSBpRaRGQQ==, tarball: https://npm.pkg.github.com/download/@cavailab/qian-tokens/0.2.0/42342c7020bec636fe58289e095eba664f1a603a}
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
 
   '@changesets/apply-release-plan@8.1.1':
     resolution: {integrity: sha512-nk2Hbq3M9NeHMdaIRBDvawKrQJzXB9sGyBUE5yWnIKtvdcNCPj75zBekJYr0gTT2ecJH3eFeTrc8eisPImcv0Q==}
@@ -6570,6 +6658,120 @@ snapshots:
     dependencies:
       hashery: 1.5.1
       keyv: 5.6.0
+
+  '@cavailab/qian-biz@0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)':
+    dependencies:
+      '@cavailab/qian-core': 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-data': 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-sdk': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+    transitivePeerDependencies:
+      - '@date-fns/tz'
+      - '@types/react'
+      - date-fns
+      - typescript
+
+  '@cavailab/qian-contracts@0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+
+  '@cavailab/qian-core@0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      '@base-ui/react': 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-contracts': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-tokens': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      clsx: 2.1.1
+      lucide-react: 1.56.0(@types/react@19.3.0)(react@19.3.0)
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+      react-resizable-panels: 4.14.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      tailwind-merge: 3.7.0
+    transitivePeerDependencies:
+      - '@date-fns/tz'
+      - '@types/react'
+      - date-fns
+
+  '@cavailab/qian-data@0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)':
+    dependencies:
+      '@cavailab/qian-contracts': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-core': 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-sdk': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@tanstack/react-table': 9.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@tanstack/react-virtual': 3.14.21(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+    transitivePeerDependencies:
+      - '@date-fns/tz'
+      - '@types/react'
+      - date-fns
+      - typescript
+
+  '@cavailab/qian-form@0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)':
+    dependencies:
+      '@cavailab/qian-contracts': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-core': 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-sdk': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+      react-hook-form: 7.90.0(@types/react@19.3.0)(react@19.3.0)
+    transitivePeerDependencies:
+      - '@date-fns/tz'
+      - '@types/react'
+      - date-fns
+      - typescript
+
+  '@cavailab/qian-plugin-sdk@0.2.0(@rspack/core@2.2.8(@module-federation/runtime-tools@2.9.2)(@swc/helpers@0.5.23))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)':
+    dependencies:
+      '@cavailab/qian-runtime': 0.2.0
+      '@cavailab/qian-sdk': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@module-federation/enhanced': 2.9.2(@rspack/core@2.2.8(@module-federation/runtime-tools@2.9.2)(@swc/helpers@0.5.23))(typescript@6.0.3)
+      semver: 7.8.5
+    transitivePeerDependencies:
+      - '@rspack/core'
+      - bufferutil
+      - react
+      - react-dom
+      - typescript
+      - utf-8-validate
+      - vue-tsc
+      - webpack
+
+  '@cavailab/qian-runtime@0.2.0':
+    dependencies:
+      cosmokit: 1.6.2
+
+  '@cavailab/qian-sdk@0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)':
+    dependencies:
+      '@cavailab/qian-contracts': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-tokens': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      i18next: 26.4.7(typescript@6.0.3)
+      lossless-json: 4.3.2
+      openapi-fetch: 0.17.0
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+    transitivePeerDependencies:
+      - typescript
+
+  '@cavailab/qian-shell@0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)':
+    dependencies:
+      '@cavailab/qian-core': 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@cavailab/qian-form': 0.2.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      '@cavailab/qian-sdk': 0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+    transitivePeerDependencies:
+      - '@date-fns/tz'
+      - '@types/react'
+      - date-fns
+      - typescript
+
+  '@cavailab/qian-tokens@0.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+      tw-animate-css: 1.4.0
 
   '@changesets/apply-release-plan@8.1.1':
     dependencies:

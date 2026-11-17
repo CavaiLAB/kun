@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { Button } from '@idadawn/yue-core';
-import { SchemaForm, type FormApi } from '@idadawn/yue-form';
-import { PlatformError, type ErrorDetail } from '@idadawn/yue-sdk';
+import { Button } from '@cavailab/qian-core';
+import { SchemaForm, type FormApi } from '@cavailab/qian-form';
+import { PlatformError, type ErrorDetail } from '@cavailab/qian-sdk';
 import { data, fieldError, issue, type Api } from '../api';
 import { verifySchema, type Applicant } from '../contracts';
 import { i18n } from '../i18n';

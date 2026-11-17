@@ -1,5 +1,5 @@
-import { createI18n } from '@idadawn/yue-sdk';
-import { installShellLanguagePacks } from '@idadawn/yue-shell';
+import { createI18n } from '@cavailab/qian-sdk';
+import { installShellLanguagePacks } from '@cavailab/qian-shell';
 
 /** 认证页族复用外壳的认证文案，只补页面自身的少量词条；语言取浏览器首选，缺省简体中文。 */
 function initialLocale(): 'zh-CN' | 'zh-TW' | 'en-US' {

@@ -1,6 +1,6 @@
-import { HttpResponseError, PlatformClient, PlatformError } from '@idadawn/yue-sdk';
-import { ShellHost, type RemoteRegistration, type ShellContext, type ShellScope } from '@idadawn/qian-plugin-sdk';
-import { createBrowserRouter, type ShellRouter } from '@idadawn/yue-shell/router';
+import { HttpResponseError, PlatformClient, PlatformError } from '@cavailab/qian-sdk';
+import { ShellHost, type RemoteRegistration, type ShellContext, type ShellScope } from '@cavailab/qian-plugin-sdk';
+import { createBrowserRouter, type ShellRouter } from '@cavailab/qian-shell/router';
 import { apiPrefixMiddleware, createBffSessionClient, createSessionExpiryGuard, csrfMiddleware, fetchBootstrap, type AppConfig, type BffSessionClient, type ShellBootstrap } from '@qian/shell-kit';
 import { createHostFederation } from './shared';
 import type { TenantSummary } from './welcome';
@@ -65,7 +65,7 @@ export function createShellRuntime(config: AppConfig) {
   });
   const federation = createHostFederation();
   const host = new ShellHost({
-    yueVersion: __YUE_VERSION__, baseUrl: location.origin, federation: federation.transport, client, getContext: context,
+    qianVersion: __QIAN_VERSION__, baseUrl: location.origin, federation: federation.transport, client, getContext: context,
     isMounted: (id, scope) => view?.mounted.includes(key(id, scope)) ?? false,
     isEntitled: (id, scope) => view?.entitled.includes(key(id, scope)) ?? false,
     hasPermission: permission => view?.permissions.includes(permission) ?? false,

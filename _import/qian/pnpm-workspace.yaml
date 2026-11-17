@@ -87,6 +87,16 @@ minimumReleaseAgeExclude:
   - lossless-json@4.3.2
   - "@tanstack/react-virtual@3.14.21"
   - "@tanstack/virtual-core@3.19.6"
+  - "@cavailab/qian-biz@0.2.0"
+  - "@cavailab/qian-contracts@0.2.0"
+  - "@cavailab/qian-core@0.2.0"
+  - "@cavailab/qian-data@0.2.0"
+  - "@cavailab/qian-form@0.2.0"
+  - "@cavailab/qian-plugin-sdk@0.2.0"
+  - "@cavailab/qian-runtime@0.2.0"
+  - "@cavailab/qian-sdk@0.2.0"
+  - "@cavailab/qian-shell@0.2.0"
+  - "@cavailab/qian-tokens@0.2.0"
 
 # OpenAPI 生成器的 peer 仅支持 TypeScript 5；隔离工具，不改变工作区 TypeScript 6 编译基线。
 catalogs:

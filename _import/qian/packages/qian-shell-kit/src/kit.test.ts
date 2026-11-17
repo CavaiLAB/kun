@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PlatformClient } from '@idadawn/yue-sdk';
+import { PlatformClient } from '@cavailab/qian-sdk';
 import { apiPrefixMiddleware, createBffSessionClient, createSessionExpiryGuard, csrfMiddleware, fetchBootstrap, isShellBootstrap, loadAppConfig, mapApiPath, parseAppConfig, toMenu, type BffSession, type NavigationCatalogItem } from './index';
 import { createIdentityAuthProvider, PLATFORM_TENANT } from './identity-provider';
 

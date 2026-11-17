@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { ShellHost } from '@idadawn/qian-plugin-sdk';
+import type { ShellHost } from '@cavailab/qian-plugin-sdk';
 import { loadAppConfig, type AppConfig } from '@qian/shell-kit';
 import { ConfigError, ShellApplication } from './app';
 import { createShellRuntime } from './runtime';

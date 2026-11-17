@@ -1,4 +1,4 @@
-import type { RequestMiddleware } from '@idadawn/yue-sdk';
+import type { RequestMiddleware } from '@cavailab/qian-sdk';
 import type { BffSessionClient } from './bff-session';
 
 /** 规范路径 `/api/...` 换到网关上的 API 挂载前缀；不在 `/api` 下的路径原样返回。 */

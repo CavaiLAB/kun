@@ -1,22 +1,22 @@
 import { lazy, Suspense, useEffect, useState, useSyncExternalStore, type ComponentType } from 'react';
-import { Alert, Avatar, AvatarFallback, Breadcrumb, Button, Icon, MenuItem, Spinner } from '@idadawn/yue-core/shell';
-import { createI18n, type PlatformClient, type PlatformI18n } from '@idadawn/yue-sdk';
-import { initializeTheme } from '@idadawn/yue-tokens';
-import { AppShell, LocaleMenu, Page, PreferenceControls, WorkspaceCard } from '@idadawn/yue-shell/layout';
-import { initPreferences, PreferencesProvider, usePreferences } from '@idadawn/yue-shell/preferences';
-import { FallbackPage, OfflineBanner, ShellErrorBoundary } from '@idadawn/yue-shell/fallback';
-import { installShellLanguagePacks } from '@idadawn/yue-shell/locales';
-import { InboxPopover } from '@idadawn/yue-shell/inbox';
-import { matchMenuItem, useRoutePath } from '@idadawn/yue-shell/router';
-import type { ShellMenuItem } from '@idadawn/yue-shell/menu';
+import { Alert, Avatar, AvatarFallback, Breadcrumb, Button, Icon, MenuItem, Spinner } from '@cavailab/qian-core/shell';
+import { createI18n, type PlatformClient, type PlatformI18n } from '@cavailab/qian-sdk';
+import { initializeTheme } from '@cavailab/qian-tokens';
+import { AppShell, LocaleMenu, Page, PreferenceControls, WorkspaceCard } from '@cavailab/qian-shell/layout';
+import { initPreferences, PreferencesProvider, usePreferences } from '@cavailab/qian-shell/preferences';
+import { FallbackPage, OfflineBanner, ShellErrorBoundary } from '@cavailab/qian-shell/fallback';
+import { installShellLanguagePacks } from '@cavailab/qian-shell/locales';
+import { InboxPopover } from '@cavailab/qian-shell/inbox';
+import { matchMenuItem, useRoutePath } from '@cavailab/qian-shell/router';
+import type { ShellMenuItem } from '@cavailab/qian-shell/menu';
 import { toMenu, type BffSession } from '@qian/shell-kit';
-import type { RemoteBridge, SlotContribution } from '@idadawn/qian-plugin-sdk';
+import type { RemoteBridge, SlotContribution } from '@cavailab/qian-plugin-sdk';
 import { installAppLanguagePacks } from './locales';
 import type { ShellRuntime, ShellState } from './runtime';
 import type { TenantSummary } from './welcome';
 
 // 会话过期对话框只在会话结束时需要：按需加载，不进首屏。
-const SessionExpiredDialog = lazy(() => import('@idadawn/yue-shell/session-dialog').then(module => ({ default: module.SessionExpiredDialog })));
+const SessionExpiredDialog = lazy(() => import('@cavailab/qian-shell/session-dialog').then(module => ({ default: module.SessionExpiredDialog })));
 // 平台身份的首页（平台控制台，S1-YUE-018）只给平台会话：同样按需加载，不进租户会话的首屏。
 const PlatformHome = lazy(() => import('./console').then(module => ({ default: module.PlatformHome })));
 // 企业首页的欢迎区要等本租户摘要（bootstrap 之后才拉），会话信息页从账号菜单进入：两者都按需加载，不占首屏预算。

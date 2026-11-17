@@ -1,7 +1,7 @@
-import { Button, Descriptions, Icon } from '@idadawn/yue-core/shell';
-import type { PlatformI18n } from '@idadawn/yue-sdk';
-import { Page, PageHeader } from '@idadawn/yue-shell/layout';
-import type { ShellMenuItem } from '@idadawn/yue-shell/menu';
+import { Button, Descriptions, Icon } from '@cavailab/qian-core/shell';
+import type { PlatformI18n } from '@cavailab/qian-sdk';
+import { Page, PageHeader } from '@cavailab/qian-shell/layout';
+import type { ShellMenuItem } from '@cavailab/qian-shell/menu';
 import type { BffSession } from '@qian/shell-kit';
 import type { ShellState } from './runtime';
 

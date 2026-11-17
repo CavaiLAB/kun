@@ -21,7 +21,10 @@ using Qian.Testing.NativeAudit;
 if (args.Length != 2 || args[0] != "--state") throw new ArgumentException("需要 --state 指定临时验收状态文件。");
 var state = Path.GetFullPath(args[1]);
 var repository = FindRepository();
-var yueVersion = JsonDocument.Parse(File.ReadAllText(Path.Combine(repository, "packages/yue/core/package.json"))).RootElement.GetProperty("version").GetString()!;
+// 外壳报给插件开发包的前端框架版本，取外壳安装目录里基础组件包的版本（8 个层包同一版本，钉在 pnpm-workspace.yaml 的版本目录）。
+var corePackage = Path.Combine(repository, "apps/qian-shell/node_modules/@cavailab/qian-core/package.json");
+if (!File.Exists(corePackage)) throw new InvalidOperationException("外壳安装目录里没有 @cavailab/qian-core：先在 _import/qian 下 pnpm install（包源与令牌见 README）。");
+var qianVersion = JsonDocument.Parse(File.ReadAllText(corePackage)).RootElement.GetProperty("version").GetString()!;
 await using var postgres = new PostgresFixture();
 await postgres.InitializeAsync();
 var database = await NativeAuditDatabase.Create(postgres, CancellationToken.None);
@@ -60,7 +63,7 @@ var validation = new TokenValidationParameters
     IssuerSigningKey = key, ValidAlgorithms = [SecurityAlgorithms.RsaSha256], ClockSkew = TimeSpan.Zero
 };
 app.UseQianErrors();
-ShellAuditEndpoints.Map(app, consumer, tenant, tokens, validation, yueVersion);
+ShellAuditEndpoints.Map(app, consumer, tenant, tokens, validation, qianVersion);
 await app.StartAsync();
 Directory.CreateDirectory(Path.GetDirectoryName(state)!);
 var temporary = state + ".tmp";
@@ -69,7 +72,7 @@ var payload = JsonSerializer.Serialize(new
     url = app.Urls.Single(),
     tenantA = ShellAuditEndpoints.TenantA, tenantB = ShellAuditEndpoints.TenantB,
     writerToken = Token(ShellAuditEndpoints.TenantA, "report"), writerTokenB = Token(ShellAuditEndpoints.TenantB, "report"),
-    readerToken = Token(ShellAuditEndpoints.TenantA, "read"), yueVersion
+    readerToken = Token(ShellAuditEndpoints.TenantA, "read"), qianVersion
 });
 try
 {

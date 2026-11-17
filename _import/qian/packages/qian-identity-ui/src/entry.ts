@@ -1,4 +1,4 @@
-import { safeNavigationUrl } from '@idadawn/yue-shell';
+import { safeNavigationUrl } from '@cavailab/qian-shell';
 
 /** 认证页族的入口参数：账号 Cookie 挑战的 ReturnUrl（或选择页的 return_url）须是同源的授权端点地址，client_id 取自其查询串。 */
 export interface AuthorizeEntry { returnUrl: string; clientId: string }

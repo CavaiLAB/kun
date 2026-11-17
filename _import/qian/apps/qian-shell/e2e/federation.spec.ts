@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
-import { settleVisuals } from '../../yue-playground/e2e/settle';
+import { settleVisuals } from './settle';
 
 interface Control {
   identity(): Promise<{ button: boolean; react: boolean; client: boolean; sdk: boolean }>;
@@ -103,7 +103,7 @@ test('实际 MF 远程通过 window bridge 正向调用；跨 scope 与卸载后
   expect(await page.evaluate(() => window.__qianAcceptance.windowCallerRejected())).toBe(true);
 });
 test('MF 预加载读取真实 manifest/types，运行时贡献仍等待页面需要', async ({ page, request }) => {
-  await page.goto('/'); await expect(page.getByTestId('yue-app-shell')).toBeVisible();
+  await page.goto('/'); await expect(page.getByTestId('qian-app-shell')).toBeVisible();
   const manifestResponse = page.waitForResponse((response) => response.url().endsWith('/remotes/qian.tenancy/mf-manifest.json'));
   await page.evaluate(() => window.__qianAcceptance.preload());
   const manifest = await (await manifestResponse).json();
@@ -127,11 +127,11 @@ test('真实浏览器的租户贡献遮蔽全局，卸载后全局导航和远�
 test('租户 B 未挂载，导航和预加载都不请求 mf-manifest.json', async ({ page, context }) => {
   await context.addCookies([{ name: 'mf-scenario', value: 'b', url: 'http://127.0.0.1:5180' }]);
   const remotes: string[] = []; page.on('request', (request) => { if (request.url().includes('/remotes/')) remotes.push(request.url()); });
-  await page.goto('/tenants'); await expect(page.getByTestId('yue-app-shell')).toBeVisible();
+  await page.goto('/tenants'); await expect(page.getByTestId('qian-app-shell')).toBeVisible();
   await page.evaluate(() => window.__qianAcceptance.preload());
   await expect(page.getByRole('link', { name: '租户管理' })).toHaveCount(0); expect(remotes).toEqual([]);
 });
-test('不匹配 yue 版本先拒绝，控制台与真实 PostgreSQL Audit 链留痕且没有远程网络', async ({ page, context, request }) => {
+test('不匹配 qian 版本先拒绝，控制台与真实 PostgreSQL Audit 链留痕且没有远程网络', async ({ page, context, request }) => {
   const before = await (await request.get('/__acceptance/audit')).json();
   await context.addCookies([{ name: 'mf-scenario', value: 'bad', url: 'http://127.0.0.1:5180' }]);
   const remotes: string[] = [], errors: string[] = [];
@@ -144,7 +144,7 @@ test('不匹配 yue 版本先拒绝，控制台与真实 PostgreSQL Audit 链留
   const record = after.records.at(-1);
   expect(record.tenantId).toBe('11111111-1111-4111-8111-111111111111');
   expect(record.actorId).toBe('shell-acceptance-user');
-  expect(record.payload).toMatchObject({ name: 'shell.remote.rejected', remoteId: 'qian.tenancy', scope: 'tenant:11111111-1111-4111-8111-111111111111', reason: 'engines.yue', requiredVersion: '^99.0.0', code: 'INPUT_INVALID' });
+  expect(record.payload).toMatchObject({ name: 'shell.remote.rejected', remoteId: 'qian.tenancy', scope: 'tenant:11111111-1111-4111-8111-111111111111', reason: 'engines.qian', requiredVersion: '^99.0.0', code: 'INPUT_INVALID' });
   expect(record.contentHash).toMatch(/^[0-9a-f]{64}$/);
   writeFileSync(new URL('../acceptance-results/audit-chain.json', import.meta.url), JSON.stringify({ before: before.checkedEntries, after }, null, 2));
 });
@@ -153,6 +153,6 @@ test('运行时配置不合法（apiBase 指向别的源）：只渲染配置错
   const calls: string[] = []; page.on('request', (request) => { const path = new URL(request.url()).pathname; if (/^\/(api|auth|remotes)\//.test(path)) calls.push(path); });
   await page.goto('/');
   await expect(page.getByTestId('shell-config-error')).toBeVisible();
-  await expect(page.getByTestId('yue-app-shell')).toHaveCount(0);
+  await expect(page.getByTestId('qian-app-shell')).toHaveCount(0);
   expect(calls).toEqual([]);
 });

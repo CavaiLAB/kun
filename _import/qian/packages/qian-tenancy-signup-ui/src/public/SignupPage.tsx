@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Alert, Avatar, AvatarFallback, Button, Checkbox, cn, Icon, Spinner, type IconName } from '@idadawn/yue-core';
-import { SchemaForm, type FieldAdornment, type FormApi, type FormValues } from '@idadawn/yue-form';
-import { PlatformError, type PlatformClient } from '@idadawn/yue-sdk';
+import { Alert, Avatar, AvatarFallback, Button, Checkbox, cn, Icon, Spinner, type IconName } from '@cavailab/qian-core';
+import { SchemaForm, type FieldAdornment, type FormApi, type FormValues } from '@cavailab/qian-form';
+import { PlatformError, type PlatformClient } from '@cavailab/qian-sdk';
 import { apiOf, data, fieldError, issue, unauthenticated, type Api, type Issue } from '../api';
 import { accountSchema, companyFields, existingAccountSchema, industries, openStatuses, type Applicant, type MyApplication, type SubmitRequest } from '../contracts';
 import { i18n } from '../i18n';

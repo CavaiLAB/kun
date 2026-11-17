@@ -1,4 +1,4 @@
-import type { PlatformClient, RemoteBridge } from '@idadawn/qian-plugin-sdk';
+import type { PlatformClient, RemoteBridge } from '@cavailab/qian-plugin-sdk';
 import type TenantRemote from '../dist/remote/@mf-types/TenantPage';
 import type { TenantRemoteProps } from '../dist/remote/@mf-types/TenantPage';
 

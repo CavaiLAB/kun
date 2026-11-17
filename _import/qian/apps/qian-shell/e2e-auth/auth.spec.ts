@@ -102,7 +102,7 @@ test('验收 1 / 3 / 4：真实 OIDC 登录、多租户选择、远程页面真�
   await expect(page).toHaveURL(origin + '/');
   await expect(page.getByTestId('shell-home')).toBeVisible();
   await expect(page.getByTestId('shell-breadcrumb')).toHaveText('工作台');
-  const nav = page.getByTestId('yue-app-shell-sidebar').getByRole('link');
+  const nav = page.getByTestId('qian-app-shell-sidebar').getByRole('link');
   await expect(nav).toHaveText(['工作台', '客户', '新建客户']);
   await expect(page.getByRole('link', { name: '工作台', exact: true })).toHaveAttribute('aria-current', 'page');
   await accessible(page, '工作台');
@@ -297,7 +297,7 @@ test('验收 1 / 3 / 4：真实 OIDC 登录、多租户选择、远程页面真�
   await page.getByRole('button', { name: '主题' }).click();
   await page.getByRole('menuitemradio', { name: '明亮' }).click();
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe('light');
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('yue.preferences.qian-shell') ?? '{}') as unknown)).toEqual({ theme: 'light', locale: 'zh-CN', sidebarCollapsed: false });
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('qian.preferences.qian-shell') ?? '{}') as unknown)).toEqual({ theme: 'light', locale: 'zh-CN', sidebarCollapsed: false });
   // 代码审查项的自动检查：期间所有同源 JSON 响应体都不含令牌；存储、URL、iframe 同样干净。
   for (const body of bodies) expect(body).not.toMatch(tokenLike);
   await noCredentials(page, '全程');
@@ -309,7 +309,7 @@ test('验收 1 / 3 / 4：真实 OIDC 登录、多租户选择、远程页面真�
     writeFileSync(conf, JSON.stringify({ apiBase: '/api-alt', brand: 'Qian 乾（alt）' }) + '\n');
     const mark = apiCalls.length;
     await page.reload();
-    await expect(page.getByTestId('yue-app-shell-sidebar')).toContainText('Qian 乾（alt）');
+    await expect(page.getByTestId('qian-app-shell-sidebar')).toContainText('Qian 乾（alt）');
     await expect(nav).toHaveText(['工作台', '客户']);
     await expect.poll(() => apiCalls.slice(mark).filter(call => call.path.startsWith('/api-alt/') && call.status === 200).length).toBeGreaterThanOrEqual(2);
     expect(apiCalls.slice(mark).filter(call => call.path === '/api-alt/shell/bootstrap' && call.status === 200)).toHaveLength(1);
@@ -327,14 +327,14 @@ test('验收 1 / 3 / 4：真实 OIDC 登录、多租户选择、远程页面真�
 test('平台控制台（operator 持平台超管）：侧栏只有「租户管理」「开通申请」、不代管；打开租户管理经 MF2 按需加载租户运营远程并列出真实租户，开通申请页同样可用；不出现过期对话框，零令牌', async ({ page, baseURL }) => {
   const origin = baseURL!.replace(/\/$/, '');
   const { refreshes, apiCalls, bodies, remotes } = observe(page, origin);
-  const nav = page.getByTestId('yue-app-shell-sidebar').getByRole('link');
+  const nav = page.getByTestId('qian-app-shell-sidebar').getByRole('link');
   await page.goto('/');
   await expect(page).toHaveURL(loginPage);
   await fillLogin(page, operator);
   // 平台身份没有租户成员身份，不经过选择页。网关的 bootstrap 只问平台控制台目录：持平台超管即交出平台组件（租户运营、开通申请）的远程、菜单与权限码，不代管。
   await expect(page).toHaveURL(origin + '/');
   await expect(page.getByRole('heading', { name: '平台控制台', exact: true })).toBeVisible();
-  await expect(page.getByTestId('yue-app-shell-managed')).toHaveCount(0);
+  await expect(page.getByTestId('qian-app-shell-managed')).toHaveCount(0);
   await expect(nav).toHaveText(['工作台', '租户管理', '开通申请']);
   await expect(page.getByTestId('console-pages').getByRole('listitem')).toHaveCount(2);
   const sessionCard = page.getByTestId('shell-session');
@@ -380,12 +380,12 @@ test('不持平台超管的平台身份（visitor）：只有代管横幅、说�
   // 否则就会弹过期对话框），外壳也不再拉能力目录。
   await expect(page).toHaveURL(origin + '/');
   await expect(page.getByRole('heading', { name: '平台工作台', exact: true })).toBeVisible();
-  await expect(page.getByTestId('yue-app-shell-managed')).toContainText('当前处于平台代管模式');
+  await expect(page.getByTestId('qian-app-shell-managed')).toContainText('当前处于平台代管模式');
   const sessionCard = page.getByTestId('shell-session');
   await expect(sessionCard.locator('[data-field=displayName]')).toHaveText('平台访客');
   await expect(sessionCard.locator('[data-field=tenantId]')).toHaveText('平台身份');
   await expect(sessionCard.locator('[data-field=kind]')).toHaveText('user');
-  await expect(page.getByTestId('yue-app-shell-sidebar').getByRole('link')).toHaveText(['工作台']);
+  await expect(page.getByTestId('qian-app-shell-sidebar').getByRole('link')).toHaveText(['工作台']);
   await expect(page.getByTestId('console-pages')).toHaveCount(0);
   await expect(page.getByTestId('shell-permissions')).toHaveCount(0);
   await expect(page.getByTestId('shell-pages')).toHaveCount(0);
@@ -507,7 +507,7 @@ test('验收 1（SSO 跳转回调）：连接器按钮 → Dex 上游登录 → 
   const sessionCard = page.getByTestId('shell-session');
   await expect(sessionCard.locator('[data-field=displayName]')).toHaveText('演示用户');
   await expect(sessionCard.locator('[data-field=kind]')).toHaveText('user');
-  await expect(page.getByTestId('yue-app-shell-sidebar').getByRole('link')).toHaveText(['工作台', '客户', '新建客户']);
+  await expect(page.getByTestId('qian-app-shell-sidebar').getByRole('link')).toHaveText(['工作台', '客户', '新建客户']);
   await noCredentials(page, 'SSO 首次登录后');
   // 2. 再次：清掉全部 Cookie（网关会话、账号 Cookie、浏览器流程密钥）后重走；绑定已存在，回调直接签发会话，落点读到完成态即回授权请求，不再确认绑定。
   // 落点一读到完成态就跳走，事后在外壳源上查不到它：途中记录主框架经过的地址，并在每个文档里观察是否出现过绑定卡片。
@@ -533,7 +533,7 @@ test('验收 1（SSO 跳转回调）：连接器按钮 → Dex 上游登录 → 
   await expect(sessionCard.locator('[data-field=displayName]')).toHaveText('演示用户');
   expect(visited.filter(url => landing.test(url)), '第二遍经过连接器落点').toHaveLength(1);
   expect(bindSeen, '第二遍的落点不出现绑定卡片').toEqual([]);
-  await expect(page.getByTestId('yue-app-shell-sidebar').getByRole('link')).toHaveText(['工作台', '客户', '新建客户']);
+  await expect(page.getByTestId('qian-app-shell-sidebar').getByRole('link')).toHaveText(['工作台', '客户', '新建客户']);
   await expect.poll(() => apiCalls.filter(call => bootstrapPath.test(call.path) && call.status === 200).length).toBeGreaterThanOrEqual(2);
   for (const body of bodies) expect(body).not.toMatch(tokenLike);
   await noCredentials(page, 'SSO 再次登录后');
@@ -543,7 +543,7 @@ test('验收 2（S1-YUE-012 补验）：甲方已挂载参考应用时远程按�
   const origin = baseURL!.replace(/\/$/, '');
   const { remotes, bodies } = observe(page, origin);
   const sessionCard = page.getByTestId('shell-session');
-  const nav = page.getByTestId('yue-app-shell-sidebar').getByRole('link');
+  const nav = page.getByTestId('qian-app-shell-sidebar').getByRole('link');
   await page.goto('/');
   await expect(page).toHaveURL(loginPage);
   await fillLogin(page);

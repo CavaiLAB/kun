@@ -1,5 +1,5 @@
-import { HttpResponseError, isErrorDetail, parsePlatformJson, PlatformError, type SessionProvider } from '@idadawn/yue-sdk';
-import { safeNavigationUrl } from '@idadawn/yue-shell/menu';
+import { HttpResponseError, isErrorDetail, parsePlatformJson, PlatformError, type SessionProvider } from '@cavailab/qian-sdk';
+import { safeNavigationUrl } from '@cavailab/qian-shell/menu';
 
 /**
  * 依赖方（Identity.Client）`GET {authBase}/session` 的快照：规范身份字段加显示名，不含令牌。

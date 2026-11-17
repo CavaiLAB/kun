@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { Button, Result } from '@idadawn/yue-core';
-import { FeedbackProvider } from '@idadawn/yue-form';
-import type { PlatformClient } from '@idadawn/yue-sdk';
+import { Button, Result } from '@cavailab/qian-core';
+import { FeedbackProvider } from '@cavailab/qian-form';
+import type { PlatformClient } from '@cavailab/qian-sdk';
 import { i18n } from '../i18n';
 import { SignupPage } from './SignupPage';
 import { StatusPage } from './StatusPage';

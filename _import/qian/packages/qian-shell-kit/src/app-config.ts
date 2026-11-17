@@ -1,4 +1,4 @@
-import type { Locale } from '@idadawn/yue-sdk';
+import type { Locale } from '@cavailab/qian-sdk';
 
 /**
  * 外壳运行时配置：同源 `/app-config.json`（K8s ConfigMap 挂成的文件，网关每次现读、`no-store`）的已校验形状。

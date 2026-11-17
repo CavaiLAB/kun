@@ -1,6 +1,6 @@
-import { Button } from '@idadawn/yue-core';
+import { Button } from '@cavailab/qian-core';
 import * as React from 'react';
-import { PlatformClient, SDK_VERSION, type BridgeCaller, type PublicBridge, type RemoteBridge } from '@idadawn/qian-plugin-sdk';
+import { PlatformClient, SDK_VERSION, type BridgeCaller, type PublicBridge, type RemoteBridge } from '@cavailab/qian-plugin-sdk';
 import { ApplicationsPage } from './operator/ApplicationsPage';
 import './remote.css';
 

@@ -7,7 +7,7 @@ const read = async () => {
   const response = await fetch(new URL('/__acceptance/audit', url), { headers: { Authorization: `Bearer ${state.readerToken}` }, redirect: 'error' });
   assert.equal(response.status, 200); return response.json();
 };
-const report = { name: 'shell.remote.rejected', remoteId: 'qian.tenancy', scope: `tenant:${state.tenantA}`, reason: 'engines.yue', code: 'INPUT_INVALID', hostVersion: state.yueVersion, requiredVersion: '^99.0.0' };
+const report = { name: 'shell.remote.rejected', remoteId: 'qian.tenancy', scope: `tenant:${state.tenantA}`, reason: 'engines.qian', code: 'INPUT_INVALID', hostVersion: state.qianVersion, requiredVersion: '^99.0.0' };
 const before = await read();
 for (const [token, body, expected] of [
   [null, report, 401], [state.readerToken, report, 401], [state.writerTokenB, report, 403],

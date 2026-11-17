@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { initializeTheme } from '@idadawn/yue-tokens';
+import { initializeTheme } from '@cavailab/qian-tokens';
 import { App } from './App';
 import { i18n } from './i18n';
 import { preferences } from './preferences';

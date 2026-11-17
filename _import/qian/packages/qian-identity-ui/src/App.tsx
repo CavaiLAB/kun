@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
-import { Alert, Avatar, AvatarFallback, Button, Field, FieldError, FieldLabel, Icon, Input, Spinner } from '@idadawn/yue-core';
-import { HttpResponseError, PlatformError } from '@idadawn/yue-sdk';
-import { Authentication, AuthLayout, PasswordLogin, PlainLayout, PreferenceControls, PreferencesProvider, safeNavigationUrl, TenantSelection, type AuthTenant } from '@idadawn/yue-shell';
+import { Alert, Avatar, AvatarFallback, Button, Field, FieldError, FieldLabel, Icon, Input, Spinner } from '@cavailab/qian-core';
+import { HttpResponseError, PlatformError } from '@cavailab/qian-sdk';
+import { Authentication, AuthLayout, PasswordLogin, PlainLayout, PreferenceControls, PreferencesProvider, safeNavigationUrl, TenantSelection, type AuthTenant } from '@cavailab/qian-shell';
 import { createIdentityAuthProvider, type ConnectorFlow, type IdentityAuthProvider, type IdentityConnector } from '@qian/shell-kit/identity';
 import { authorizeEntry, loginUrl, type AuthorizeEntry } from './entry';
 import { i18n } from './i18n';

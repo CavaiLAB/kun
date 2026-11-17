@@ -12,7 +12,7 @@ const proxy = Object.fromEntries(['/api/identity', '/connect', '/.well-known'].m
 export default defineConfig({
   base: '/login/',
   plugins: [
-    { name: 'yue-first-frame', transformIndexHtml: { order: 'pre', handler: () => [{ tag: 'script', children: readFileSync(new URL(import.meta.resolve('@idadawn/yue-tokens/theme-init.js')), 'utf8'), injectTo: 'head-prepend' }] } },
+    { name: 'qian-first-frame', transformIndexHtml: { order: 'pre', handler: () => [{ tag: 'script', children: readFileSync(new URL(import.meta.resolve('@cavailab/qian-tokens/theme-init.js')), 'utf8'), injectTo: 'head-prepend' }] } },
     react(), tailwindcss(),
   ],
   server: { host: '127.0.0.1', port: Number(process.env.QIAN_DEV_UI_PORT ?? 5178), strictPort: true, proxy },

@@ -14,14 +14,14 @@
     "contracts:check": "pnpm --workspace-root openapi:generate --source plugins/qian.tenancy.signup/contracts/http-v1.openapi.json --output packages/qian-tenancy-signup-ui/src/api.generated.ts --schema-output packages/qian-tenancy-signup-ui/src/http-contract.generated.json --check"
   },
   "dependencies": {
-    "@idadawn/yue-core": "workspace:^",
-    "@idadawn/yue-form": "workspace:^",
-    "@idadawn/yue-data": "workspace:^",
-    "@idadawn/yue-sdk": "workspace:^",
-    "@idadawn/yue-shell": "workspace:^",
-    "@idadawn/yue-contracts": "workspace:^",
-    "@idadawn/yue-tokens": "workspace:^",
-    "@idadawn/qian-plugin-sdk": "workspace:^"
+    "@cavailab/qian-core": "catalog:",
+    "@cavailab/qian-form": "catalog:",
+    "@cavailab/qian-data": "catalog:",
+    "@cavailab/qian-sdk": "catalog:",
+    "@cavailab/qian-shell": "catalog:",
+    "@cavailab/qian-contracts": "catalog:",
+    "@cavailab/qian-tokens": "catalog:",
+    "@cavailab/qian-plugin-sdk": "catalog:"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -39,6 +39,7 @@
     "tailwindcss": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@module-federation/vite": "catalog:",
+    "openapi-fetch": "catalog:",
     "vitest": "catalog:",
     "@vitest/browser": "catalog:",
     "@vitest/browser-playwright": "catalog:",

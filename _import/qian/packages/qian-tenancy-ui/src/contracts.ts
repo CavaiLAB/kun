@@ -1,5 +1,5 @@
 import contract from './http-contract.generated.json';
-import type { FormSchema, UiNode } from '@idadawn/yue-contracts';
+import type { FormSchema, UiNode } from '@cavailab/qian-contracts';
 import type { paths } from './api.generated';
 
 export type Tenant = NonNullable<paths['/api/tenancy/tenants']['get']['responses'][200]['content']['application/json']['items']>[number];

@@ -1,4 +1,4 @@
-import { createDataI18n } from '@idadawn/yue-data';
+import { createDataI18n } from '@cavailab/qian-data';
 
 /** 公开页语言取浏览器首选（缺省简体中文）；运营页由外壳上下文的 locale 切换。 */
 function initialLocale(): 'zh-CN' | 'zh-TW' | 'en-US' {

@@ -37,7 +37,7 @@ const server = createServer(async (request, response) => {
     const a = '11111111-1111-4111-8111-111111111111', b = '22222222-2222-4222-8222-222222222222';
     const scope = `tenant:${a}`;
     const selected = structuredClone(manifest);
-    if (scenario === 'bad') selected.engines.yue = '^99.0.0';
+    if (scenario === 'bad') selected.engines.qian = '^99.0.0';
     if (scenario === 'shadow') selected.pages[0].nav.title = '租户专属管理';
     const permissions = ['qian.tenancy:tenant:read'];
     if (scenario === 'bridge') {

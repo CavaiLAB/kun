@@ -1,4 +1,4 @@
-import type { ShellMenuItem } from '@idadawn/yue-shell/menu';
+import type { ShellMenuItem } from '@cavailab/qian-shell/menu';
 
 /** 能力导航目录 `GET /api/capabilities/navigation` 的条目（服务端已按调用者权限、租户 scope 与菜单偏好过滤排序）；bootstrap 的 `navigation` 与之逐项相同。 */
 export interface NavigationCatalogItem { resourceRef: string; pluginId: string; route: string; title: string; icon: string | null; order: number }

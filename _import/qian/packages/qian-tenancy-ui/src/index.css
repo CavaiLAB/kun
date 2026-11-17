@@ -1,5 +1,6 @@
 @import 'tailwindcss';
-@import '@idadawn/yue-tokens/theme.css';
-@source '../../yue';
+@import '@cavailab/qian-tokens/theme.css';
+/* 框架组件的工具类：扫安装目录里本包依赖的 @cavailab/qian-* 的 dist（pnpm 的链接会被跟随），依赖要覆盖页面实际渲染的框架包。 */
+@source '../node_modules/@cavailab';
 
-body { margin: 0; background: oklch(var(--yue-muted)); color: var(--foreground); font-family: system-ui, sans-serif; }
+body { margin: 0; background: oklch(var(--qian-muted)); color: var(--foreground); font-family: system-ui, sans-serif; }

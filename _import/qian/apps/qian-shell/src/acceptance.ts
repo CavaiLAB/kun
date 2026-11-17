@@ -1,6 +1,6 @@
-import { Button } from '@idadawn/yue-core/shell';
+import { Button } from '@cavailab/qian-core/shell';
 import * as React from 'react';
-import { PlatformClient, SDK_VERSION, type BridgeCaller, type RemoteBridge, type RemoteRegistration, type ShellScope } from '@idadawn/qian-plugin-sdk';
+import { PlatformClient, SDK_VERSION, type BridgeCaller, type RemoteBridge, type RemoteRegistration, type ShellScope } from '@cavailab/qian-plugin-sdk';
 import type { ShellRuntime } from './runtime';
 
 /** 只在 --mode acceptance 产物中引用；生产构建经 scripts/verify-dist.mjs 断言没有此控制面。 */

@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { PlatformClient } from '@idadawn/yue-sdk';
+import { PlatformClient } from '@cavailab/qian-sdk';
 import { TenantPage } from './TenantPage';
 import { i18n } from './i18n';
 import './index.css';

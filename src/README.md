@@ -30,4 +30,4 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 - **AOT 候选模块禁止运行时反射**
 - **CI 强制 AOT 零警告发布**
 
-详见 [CONTRIBUTING.md](../CONTRIBUTING.md) 与 [`docs/architecture/module-map.md`](../docs/architecture/module-map.md)。
+详见 [CONTRIBUTING.md](../CONTRIBUTING.md) 与 [`docs/architecture/module-map.md`](../_import/kun/docs/architecture/module-map.md)。

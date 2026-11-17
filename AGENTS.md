@@ -30,7 +30,7 @@
 
 ## 原 Kun 的构建、测试与代码约定
 
-本节并自原 Kun 的 `CLAUDE.md` 与根上那份 `AGENTS.md`（后者是工具生成的，已删除；原文见 git 历史，原 Kun 最终头 `51b480775c` 上的同名文件）。完整的说明看 `_import/kun/` 下的原件：`CLAUDE.md`、`README.md` 与 `docs/`。原件里写的路径相对原 Kun 的根：代码与构建文件现在在仓库根，`docs/` 在 `_import/kun/docs/`；原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。合并蓝图落地之后，分层规则由显式的档位表与门禁取代（D23.7、D23.14，B3 落地），包名与命名空间在 B4–B10 改；在那之前照下面的做。
+本节并自原 Kun 的 `CLAUDE.md` 与根上那份 `AGENTS.md`（后者是工具生成的，已删除；原文见 git 历史，原 Kun 最终头 `51b480775c` 上的同名文件）。完整的说明看 `_import/kun/` 下的原件：`CLAUDE.md`、`README.md` 与 `docs/`。原件里写的路径相对原 Kun 的根：代码与构建文件现在在仓库根，`docs/` 在 `_import/kun/docs/`。搬到根上的文件也照此理解：其中说明文件里指向原 Kun 文档的链接已改指 `_import/kun/` 下，代码注释里写的 `docs/…` 没有改，指的就是 `_import/kun/docs/…`；`CONTRIBUTING.md`、`src/README.md`、`samples/README.md` 与 `scripts/check-layering.sh` 的注释里提到的 `.claude/skills/` 已经删除，照本节做。原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。合并蓝图落地之后，分层规则由显式的档位表与门禁取代（D23.7、D23.14，B3 落地），包名与命名空间在 B4–B10 改；在那之前照下面的做。
 
 ### 构建与测试
 

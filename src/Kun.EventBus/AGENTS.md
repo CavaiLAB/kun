@@ -3,7 +3,7 @@
 ## Purpose
 
 > **For consumers wiring their first integration event**: read
-> [`docs/guides/outbox-and-integration-events.md`](../../docs/guides/outbox-and-integration-events.md)
+> [`docs/guides/outbox-and-integration-events.md`](../../_import/kun/docs/guides/outbox-and-integration-events.md)
 > first. It walks end-to-end: atomicity boundary, stable-event-ID rule,
 > publish/consume worked examples, testing via `OutboxAssertions`,
 > W3C trace propagation, and four common anti-patterns.
@@ -18,7 +18,7 @@
 
 ### Working In This Directory
 
-- **The Outbox contract** (this module defines the shape, `Kun.EntityFrameworkCore` writes, `Kun.EventBus.RabbitMQ` publishes): message row carries `Id`, `EventTypeId` (stable string), `Payload` (JSON), `TraceParent`/`TraceState` (W3C), `OccurredAt`, `PublishedAt`, `Status`. Full design walk-through — type surface, atomicity boundary, publisher pump, rejected alternatives — in [ADR-015 Outbox pattern design](../../docs/architecture/ADR-015-Outbox-pattern.md).
+- **The Outbox contract** (this module defines the shape, `Kun.EntityFrameworkCore` writes, `Kun.EventBus.RabbitMQ` publishes): message row carries `Id`, `EventTypeId` (stable string), `Payload` (JSON), `TraceParent`/`TraceState` (W3C), `OccurredAt`, `PublishedAt`, `Status`. Full design walk-through — type surface, atomicity boundary, publisher pump, rejected alternatives — in [ADR-015 Outbox pattern design](../../_import/kun/docs/architecture/ADR-015-Outbox-pattern.md).
 
 ### Testing Requirements
 

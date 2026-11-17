@@ -26,8 +26,6 @@
 *.snk binary
 *.pfx binary
 
-# ---- 本仓库加的（B2 整理，2026-11-17）----
-# 以上规则来自原 Kun，随原 Kun 提到仓库根。原 Qian 的过渡目录 _import/qian/ 没有 .gitattributes，
-# 它的文件在原仓库里不带任何属性。下面这行把上面用到的属性对它恢复为未指定，换行与差异的处理与原仓库相同。
-# _import/qian/ 搬空之后删掉这一段。
+# 本仓库加（B2）：以上是原 Kun 的规则。原 Qian 没有 .gitattributes，
+# 下一行把这些属性对 _import/qian/ 恢复为未指定；该目录搬空后删掉。
 _import/qian/** !text !eol !diff !merge !binary

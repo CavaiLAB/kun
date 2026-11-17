@@ -6,6 +6,12 @@
 
 ## [Unreleased]
 
+### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
+
+- 样例编排宿主 `samples/Kun.Sample.AppHost` 的 Aspire 从 9.0.0 升到 13.6.5（`Aspire.AppHost.Sdk` 与中央版本里的 `Aspire.Hosting.AppHost` / `PostgreSQL` / `RabbitMQ` / `Redis`），修复 NuGet 审计报出的 [GHSA-4g86-54fm-h9h8](https://github.com/advisories/GHSA-4g86-54fm-h9h8)（`Aspire.Dashboard.Sdk.*`，严重）与 [GHSA-f7vh-h5g3-7jrh](https://github.com/advisories/GHSA-f7vh-h5g3-7jrh)（`Aspire.Hosting`、`Aspire.Hosting.AppHost`，高）。这两条公告发布后，`dotnet restore` 在警告即错误下失败，CI 的构建、测试与格式检查随之失败。编排代码不用改，资源、依赖与启动顺序不变。
+- 只对该项目关闭中央传递钉版（`CentralPackageTransitivePinningEnabled=false`）：它的依赖闭包只有 Aspire 自己的包，仓库给库包定的传递钉版会把 Aspire 13 要求的依赖版本往下压（NU1109）。中央钉版本身不变，其余项目解析出的依赖不变。
+- 升级后 `KubernetesClient` 解析到不再触发 NU1902 的版本，移除该项目原有的 NU1902 忽略。保持 NuGet 安全审计和警告即错误，不新增忽略，不升级 SDK 或其他依赖族。
+
 ## [2026.10.25] - 2026-10-25
 
 ### Fixed — 数据约定与实体审计不再占用当前主体 / 租户端口（S1-KUN-017）

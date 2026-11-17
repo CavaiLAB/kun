@@ -71,6 +71,6 @@ CI additionally runs AOT publish with `/warnaserror` over the AOT-candidate modu
 
 ### External
 
-- .NET 10 SDK (`10.0.100`), EF Core 10, Dapper AOT, YARP 2.x, Grpc.AspNetCore, RabbitMQ.Client 7.x, StackExchange.Redis, OpenTelemetry 1.x, .NET Aspire 9.x (samples), AWSSDK.S3 (Kun.Storage), xunit.v3 + Testcontainers (tests, including Testcontainers.Minio).
+- .NET 10 SDK (`10.0.100`), EF Core 10, Dapper AOT, YARP 2.x, Grpc.AspNetCore, RabbitMQ.Client 7.x, StackExchange.Redis, OpenTelemetry 1.x, .NET Aspire 13.x (samples), AWSSDK.S3 (Kun.Storage), xunit.v3 + Testcontainers (tests, including Testcontainers.Minio).
 
 <!-- MANUAL: -->

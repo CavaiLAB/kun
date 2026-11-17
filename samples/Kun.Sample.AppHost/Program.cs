@@ -1,6 +1,6 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Infrastructure — containers persist across AppHost restarts (Aspire 9
+// Infrastructure — containers persist across AppHost restarts (Aspire
 // ContainerLifetime.Persistent) + named data volumes so state survives restarts
 // and subsequent launches attach in ~2s instead of re-pulling/re-initializing.
 var postgres = builder.AddPostgres("postgres")

@@ -113,7 +113,7 @@ _or_
 |---|---|---|
 | .NET SDK | `10.0.100+` | `global.json` rollForward: latestFeature |
 | `TargetFramework` | `net10.0` | |
-| .NET Aspire | `9.0.0` | |
+| .NET Aspire | `13.6.5` | |
 | … | | |
 
 ---

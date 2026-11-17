@@ -3,7 +3,7 @@
 ## Purpose
 
 > **For consumers wiring their first integration event**: read
-> [`docs/guides/outbox-and-integration-events.md`](../../_import/kun/docs/guides/outbox-and-integration-events.md)
+> [`docs/guides/outbox-and-integration-events.md`](../../docs/guides/outbox-and-integration-events.md)
 > first. It walks end-to-end: atomicity boundary, stable-event-ID rule,
 > publish/consume worked examples, testing via `OutboxAssertions`,
 > W3C trace propagation, and four common anti-patterns.

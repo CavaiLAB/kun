@@ -5,7 +5,7 @@
 
 ## Phase 1 模块矩阵
 
-图例：AOT 状态 ✅=IsAotCandidate=true（CI `aot-audit` 每次 publish 强制零 trim/AOT warning）；⚠️=trim-safe 但非 AOT（见 `docs/architecture/AOT-audit-2026-04-23.md`）。
+图例：AOT 状态 ✅=IsAotCandidate=true（CI `aot-audit` 每次 publish 强制零 trim/AOT warning）；⚠️=trim-safe 但非 AOT（见原 Kun 的 [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775c/docs/architecture/AOT-audit-2026-04-23.md)）。
 
 ### Core 层
 
@@ -29,7 +29,7 @@
 | `Kun.Authorization` | 权限判定、数据谓词与字段策略端口，无权限引擎 | `IPermissionChecker`、`IDataPermissionFilter`、`IFieldPolicy` | true，CI 验证 |
 | `Kun.Configuration.Apollo` | HTTP 配置源、长轮询、签名和缓存 | `AddApollo`、`ApolloOptions` | true，CI 验证 |
 
-Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语义与迁移见 [ADR-016](ADR-016-platform-ports.md)。历史 Phase 1 表保留为原始版本快照。
+Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语义与迁移见 [ADR-016](../adr/kun/ADR-016-platform-ports.md)。历史 Phase 1 表保留为原始版本快照。
 
 ### 持久化（Infrastructure 层）
 

@@ -3,7 +3,7 @@
 > `Kun.Gateway.RateLimiting` 把 ASP.NET Core 内置的 RateLimiter 包装成**策略 × 分区**的两维组合：
 > 三种分区解析（partition resolver）× 三种限流策略（limiter policy）= 九种可选配置，配合 Redis 后端做跨 Pod 计数共享。
 >
-> 参考：`docs/architecture/why-cqrs.md` · 白皮书 §12.2
+> 参考：`docs/design/why-cqrs.md` · 白皮书 §12.2
 
 ## 分区解析 (IRateLimitPartitionResolver)
 

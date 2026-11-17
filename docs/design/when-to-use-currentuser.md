@@ -1,8 +1,8 @@
 # When to use `ICurrentUser` vs `IAuthenticatedUser`
 
 **Status**: guidance (not an ADR — implements the direction set in
-[ADR-008](./ADR-008-Kun.Identity-module.md) and
-[ADR-010](./ADR-010-Kun.Identity-cookie-session.md))
+[ADR-008](../adr/kun/ADR-008-Kun.Identity-module.md) and
+[ADR-010](../adr/kun/ADR-010-Kun.Identity-cookie-session.md))
 **Last touched**: 2026-10-25 (S1-KUN-017：端口登记与次序)
 
 Kun Framework exposes two user-context interfaces. They are **not**
@@ -55,10 +55,10 @@ Happens rarely. When you need a new field:
 
 1. **Is it present on S2S JWT claims?** → add to `ICurrentUser` and
    to every implementation. Update
-   `docs/architecture/ADR-008-Kun.Identity-module.md` with the
+   `docs/adr/kun/ADR-008-Kun.Identity-module.md` with the
    rationale.
 2. **Is it browser / cookie only?** → add to `IAuthenticatedUser`.
-   Update `docs/architecture/ADR-010-Kun.Identity-cookie-session.md`.
+   Update `docs/adr/kun/ADR-010-Kun.Identity-cookie-session.md`.
 3. **Is it a concern of a different subsystem?** (tracing, tenancy,
    feature flags) → add it to the subsystem's own abstraction
    (`ITenantContext`, `ITracedCurrentUser`, …) and have the

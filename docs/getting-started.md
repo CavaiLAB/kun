@@ -285,11 +285,11 @@ publishes, so a single `TraceId` threads through HTTP ingress → CQRS handler �
   [README](../samples/Kun.Sample.Catalog/README.md) walks through the file structure.
 
 - **Architecture essays** — understand the design trade-offs:
-  - [Why CQRS?](architecture/why-cqrs.md)
-  - [Why Outbox?](architecture/why-outbox.md)
-  - [Why Saga Orchestration?](architecture/why-saga.md)
+  - [Why CQRS?](design/why-cqrs.md)
+  - [Why Outbox?](design/why-outbox.md)
+  - [Why Saga Orchestration?](design/why-saga.md)
 
-- **Module map** — [`docs/architecture/module-map.md`](architecture/module-map.md) shows the
+- **Module map** — [`docs/design/module-map.md`](design/module-map.md) shows the
   full dependency graph and which modules are AOT candidates.
 
 - **CLAUDE.md** — the binding architectural rules that every code contribution must satisfy,

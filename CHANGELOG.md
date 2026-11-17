@@ -96,7 +96,7 @@
 - 内存与 Redis 会话增加原子续期、按用户吊销及带重放保护的后通道登出；吊销后续期不得复活会话。默认验证 cookie 写请求的防跨站令牌；sid 日志只记 SHA256 与错误类型，并加入静态门禁。
 - 网关统一封闭 S2S 形状：aud/roles 数组、规范 UUID、用户/服务主体、会话/修订/成员上下文、1–300 秒 TTL 与每跳受众。拒绝缺失身份，不再转发任意 permission/email/trace 字段；两套旧签发入口标 KUNS2S001。
 - Sandbox 默认模板改为 kun-default，增加调用方命名的 JSON 扩展并防止覆盖核心字段；保留显式旧扩展的兼容序列化，标记废弃。
-- 此版本有迁移要求：规范身份字段、旧 cookie 重新登录、Redis 新键空间和原子接口、Data Protection 共享密钥。详见 [Identity 客户端指南](_import/kun/docs/guides/identity-client.md)。框架协议夹具不能替代尚未交付的真实 Qian 身份服务联调。
+- 此版本有迁移要求：规范身份字段、旧 cookie 重新登录、Redis 新键空间和原子接口、Data Protection 共享密钥。详见 [Identity 客户端指南](docs/guides/identity-client.md)。框架协议夹具不能替代尚未交付的真实 Qian 身份服务联调。
 
 ### Fixed — 网关与流式 gRPC 边界（S1-KUN-003）
 
@@ -126,7 +126,7 @@
 ### Fixed — 审计原子性与数据约定（S1-KUN-005）
 
 - `AddKunAuditing<TContext>()` 将实体 `AuditLog` 与 `kun.audit.event.v2` Outbox 消息直接登记到业务上下文；保存失败会撤销暂存记录，避免重试生成重复审计。租户、用户来自当前上下文，v2 支持字符串标识；旧 v1 类型保留读取兼容。
-- 事后写入的 `AuditSaveChangesInterceptor`、旧 `UseEventBus()` 与 `kun.audit.record.v1` 路径标记废弃，迁移指引见 [审计文档](_import/kun/docs/security/audit-log.md)。
+- 事后写入的 `AuditSaveChangesInterceptor`、旧 `UseEventBus()` 与 `kun.audit.record.v1` 路径标记废弃，迁移指引见 [审计文档](docs/security/audit-log.md)。
 - `PostgresAuditChain` 在事务里按租户行锁串行化读取链头、写记录并推进链头，保存原始时间 ticks，支持多副本与哈希重放。`AuditEntry.ActorType` 支持 `agent` 并纳入新哈希，历史 unknown 条目维持旧算法。
 - `EfAuditReader<TContext>` 在数据库端按当前租户、主体、资源、时间窗口过滤并限量。
 - 显式数据约定提供 snake_case、Guid v7 默认主键、可空审计主体及 PostgreSQL `xmin`；`SaveChangesResultAsync()` 将并发冲突映射为 `Result` 的 Conflict。已有非空主键保持不变，旧非空数值主体需要显式迁移。
@@ -135,7 +135,7 @@
 - Catalog 真库测试确认旧领域通知路径会丢失集成事件；领域通知改为提交前同 scope 派发，失败时禁止提交半个通知链。
 - 默认 EF Outbox 存储使用 PostgreSQL `FOR UPDATE SKIP LOCKED` 领取与提交批次；新增持久化 `NextAttemptAt` 指数退避，附两份示例迁移。自定义非事务存储不再默认无锁。
 - RabbitMQ 开启发布确认与 mandatory 路由，消费者成功后才记录幂等并 ack，失败经持久化 quorum 队列退避后进 DLX；保留共享连接自动恢复。业务 handler 仍需幂等。
-- 恢复原先跳过的幂等测试，补齐双副本发布、handler 失败重试与 broker 重启验收；见 [消息指南](_import/kun/docs/guides/outbox-and-integration-events.md) 的迁移边界。
+- 恢复原先跳过的幂等测试，补齐双副本发布、handler 失败重试与 broker 重启验收；见 [消息指南](docs/guides/outbox-and-integration-events.md) 的迁移边界。
 
 ## [2026.10.8] - 2026-10-08
 
@@ -838,7 +838,7 @@ but the new capabilities below require explicit opt-in:
    - Chain `.UseKunSchema("catalog")` on the options builder alongside
      `.UseNpgsql(...)`.
    - Regenerate migrations so they emit `schema: "catalog"` — see
-     [docs/schema-per-service.md](_import/kun/docs/schema-per-service.md).
+     [docs/schema-per-service.md](docs/guides/schema-per-service.md).
    - `SchemaConsistencyInterceptor` auto-registers via `KunDbContext.OnConfiguring`
      and will throw at first `SaveChangesAsync` if you miss either step.
 2. **trace_id claim** (P0-2). `S2sTokenIssuer` now emits a `trace_id` claim

@@ -111,7 +111,7 @@ distributed system where correctness matters.
 
 ## See also
 
-- [ADR-015 Outbox pattern design](./ADR-015-Outbox-pattern.md) — full design walk-through: type
+- [ADR-015 Outbox pattern design](../adr/kun/ADR-015-Outbox-pattern.md) — full design walk-through: type
   surface, atomicity boundary, publisher pump, consumer idempotency, rejected alternatives.
 - `kun/CLAUDE.md` §Outbox — normative rules (atomicity, stable event IDs, idempotent consumers,
   W3C trace propagation). The rules constrain; this primer explains the problem; the ADR explains

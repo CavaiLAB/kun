@@ -13,7 +13,7 @@ services.AddKunAudit().UseEntityFramework<AppDbContext>();
 services.AddKunEventBus(registry => registry.RegisterAuditing());
 ```
 
-`AddKunAuditing<TContext>()` 与 `AddKunDataConventions<TContext>()` 不登记 `ITenantContext`、`ICurrentUser` 这两个端口，由宿主提供可信实现（`AddKunSecurity()`、`AddKunMultiTenancy()` 等），在数据组件之前或之后登记都生效（见 [When to use ICurrentUser](../architecture/when-to-use-currentuser.md) 的「端口登记与次序」）。拦截器在上下文创建时按需解析：宿主没有登记 `ICurrentUser` 时按匿名记录；`KunDbContext` 的构造本身需要 `ITenantContext`，单租户宿主显式登记 `NullTenantContext.Instance`。`AddKunAuditing<TContext>()` 在宿主 `OnModelCreating` 前登记 `AuditLog`，使 `KunDbContext` 对它应用租户过滤。多租户宿主仍需装配 `AddKunTenantRls<TContext>()` 和数据库 RLS 策略。
+`AddKunAuditing<TContext>()` 与 `AddKunDataConventions<TContext>()` 不登记 `ITenantContext`、`ICurrentUser` 这两个端口，由宿主提供可信实现（`AddKunSecurity()`、`AddKunMultiTenancy()` 等），在数据组件之前或之后登记都生效（见 [When to use ICurrentUser](../design/when-to-use-currentuser.md) 的「端口登记与次序」）。拦截器在上下文创建时按需解析：宿主没有登记 `ICurrentUser` 时按匿名记录；`KunDbContext` 的构造本身需要 `ITenantContext`，单租户宿主显式登记 `NullTenantContext.Instance`。`AddKunAuditing<TContext>()` 在宿主 `OnModelCreating` 前登记 `AuditLog`，使 `KunDbContext` 对它应用租户过滤。多租户宿主仍需装配 `AddKunTenantRls<TContext>()` 和数据库 RLS 策略。
 
 - 每个被 `AddAuditable<TEntity>()` 声明的实体变更生成一行 `audit_logs` 与一行 Outbox，二者共享 Guid v7 标识。
 - `kun.audit.event.v2` 使用字符串 `tenantId` / `userId`，从上下文填写；`AuditContext` 可覆盖 actor、来源 IP 与 trace，`ActorType` 支持 `user/service/agent/system`。

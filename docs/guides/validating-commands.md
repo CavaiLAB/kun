@@ -2,7 +2,7 @@
 
 > 怎么在一个 Command/Query Handler 上挂校验，并且让失败以 `Result.Fail(Error.Validation(...))` 而不是异常的形式流到调用方。
 >
-> 参考：`docs/architecture/ADR-011-Result-async-extensions.md` · `docs/architecture/ADR-014-Validation-Result-behavior.md` · `src/Kun.Validation/AGENTS.md`
+> 参考：`docs/adr/kun/ADR-011-Result-async-extensions.md` · `docs/adr/kun/ADR-014-Validation-Result-behavior.md` · `src/Kun.Validation/AGENTS.md`
 
 ## 适用对象
 
@@ -235,8 +235,8 @@ Validator 只处理"请求形状合法性"（类型、范围、非空、正则�
 
 ## 相关
 
-- [ADR-011 Result async extensions](../architecture/ADR-011-Result-async-extensions.md)—`Result<T>` 的 `Map/Bind/Tap/Ensure/Match` 组合面。
-- [ADR-014 Validation Result behavior](../architecture/ADR-014-Validation-Result-behavior.md)—两个 Result 版 Behavior 的设计决策。
-- [src/Kun.Validation/AGENTS.md](../../src/Kun.Validation/AGENTS.md)—Validator 规范、错误码命名模式。
-- [src/Kun.Testing/AGENTS.md](../../src/Kun.Testing/AGENTS.md)—`ResultAssertions.ShouldBeFailure` 等断言帮助。
-- [docs/architecture/when-to-use-currentuser.md](../architecture/when-to-use-currentuser.md)—Kun 选型指南的样板格式，本文跟它的结构一致。
+- [ADR-011 Result async extensions](../adr/kun/ADR-011-Result-async-extensions.md)—`Result<T>` 的 `Map/Bind/Tap/Ensure/Match` 组合面。
+- [ADR-014 Validation Result behavior](../adr/kun/ADR-014-Validation-Result-behavior.md)—两个 Result 版 Behavior 的设计决策。
+- [src/Kun.Validation/](../../src/Kun.Validation/)—Validator 规范、错误码命名模式。
+- [src/Kun.Testing/](../../src/Kun.Testing/)—`ResultAssertions.ShouldBeFailure` 等断言帮助。
+- [docs/design/when-to-use-currentuser.md](../design/when-to-use-currentuser.md)—Kun 选型指南的样板格式，本文跟它的结构一致。

@@ -21,7 +21,7 @@ EF Core 10 write-side persistence for the Kun Framework.
   caller bypasses the EF global query filter.
 - `UseKunSchema` extension — wires `MigrationsHistoryTableSchema` through the
   relational provider, for schema-per-service deployments. See
-  [docs/schema-per-service.md](../../_import/kun/docs/schema-per-service.md) in the repo.
+  [docs/guides/schema-per-service.md](../../docs/guides/schema-per-service.md) in the repo.
 
 ## Requirements
 
@@ -108,9 +108,9 @@ The fixture and the acceptance test are in
 
 ## See also
 
-- [docs/schema-per-service.md](../../_import/kun/docs/schema-per-service.md) — schema
+- [docs/guides/schema-per-service.md](../../docs/guides/schema-per-service.md) — schema
   override + migrations regeneration walkthrough.
-- [docs/guides/read-side-patterns.md](../../_import/kun/docs/guides/read-side-patterns.md) —
+- [docs/guides/read-side-patterns.md](../../docs/guides/read-side-patterns.md) —
   the Dapper read-side pairs with this package via CQRS.
 - [AGENTS.md](../../AGENTS.md#运行时约定) §运行时约定 (the Outbox rule) and
   [Kun ADR-015](../../docs/adr/kun/ADR-015-Outbox-pattern.md) — the

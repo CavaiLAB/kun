@@ -124,7 +124,7 @@ Note: these spans are started by the `SagaStepExecutor` background service polli
 background service does **not** restore a producer trace context from the saga instance row — the
 saga spans therefore appear as root spans or under whatever ambient activity the poll loop happens
 to inherit. Cross-trace correlation via `saga.saga_id` is the intended mechanism; see the
-[saga_id as cross-trace correlation](#sagaid-as-cross-trace-correlation) section below.
+[saga_id as cross-trace correlation](#saga_id-as-cross-trace-correlation) section below.
 
 ---
 

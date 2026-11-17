@@ -2,7 +2,7 @@
 
 > Kun Framework 通过 `Kun.Core.MultiTenancy` + `Kun.EntityFrameworkCore.MultiTenancy` 提供三种 SaaS 数据隔离策略：**Shared** / **SchemaPerTenant** / **DatabasePerTenant**。本文档帮你在合规、运维成本、租户规模三个维度上做出取舍，并给出各自的落地配方。
 >
-> 参考：[`docs/architecture/adr-p2d-multitenancy.md`](../architecture/adr-p2d-multitenancy.md) · 白皮书 §12.2
+> 参考：[`docs/adr/kun/adr-p2d-multitenancy.md`](../adr/kun/adr-p2d-multitenancy.md) · 白皮书 §12.2
 
 ---
 
@@ -195,4 +195,4 @@ appsettings.json：
 - `src/Kun.Core/MultiTenancy/` — `ITenantContext`、`TenantIsolationStrategy`、`TenantInfo`、`ITenantProvisioner`、`NullTenantProvisioner`
 - `src/Kun.EntityFrameworkCore/MultiTenancy/` — 全部三种策略的运行时件（`KunMultiTenancyOptions`、`ITenantDbContextFactory<T>`、`TenantAwareModelCacheKeyFactory`、`SchemaPerTenantProvisioner<T>`、`DatabasePerTenantProvisioner<T>`、`IDbConnectionResolver`、`OptionsBasedTenantConnectionResolver`、`TenantsConnectionOptions`、`KunMultiTenancyServiceCollectionExtensions`）
 - `src/Kun.EntityFrameworkCore/Interceptors/TenantRlsTransactionInterceptor.cs` — Shared 策略的 RLS defence-in-depth
-- `docs/architecture/adr-p2d-multitenancy.md` — 设计取舍完整 ADR
+- `docs/adr/kun/adr-p2d-multitenancy.md` — 设计取舍完整 ADR

@@ -2,7 +2,7 @@
 
 This guide covers the recommended patterns for query handlers in Kun. It assumes you understand
 the write/read split; for the reasoning behind that split see
-[docs/architecture/why-cqrs.md](../architecture/why-cqrs.md).
+[docs/design/why-cqrs.md](../design/why-cqrs.md).
 
 ---
 

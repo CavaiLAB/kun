@@ -215,7 +215,7 @@ this ADR land as part of KN-SELF-011 AC-2.
   Tests cover every helper × overload × pass/fail path
   (11 tests; `UseInMemoryDatabase` for the `DbContext`
   overload fixture). See also
-  [docs/guides/validating-commands.md](../guides/validating-commands.md)
+  [docs/guides/validating-commands.md](../../guides/validating-commands.md)
   for the validation-side sibling guide that KN-SELF-013
   shipped.
 

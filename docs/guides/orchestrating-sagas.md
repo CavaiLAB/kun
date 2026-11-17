@@ -2,7 +2,7 @@
 
 > 怎么在 Kun 里定义一个中心协调的 Saga：按顺序执行多个可补偿步骤，任一步骤失败时反向运行 `CompensateAsync`，进程重启后继续，超时自动回滚。
 >
-> 参考：`docs/architecture/why-saga.md` · `src/Kun.Saga/AGENTS.md`
+> 参考：`docs/design/why-saga.md` · `src/Kun.Saga/AGENTS.md`
 
 ## 适用对象
 
@@ -17,7 +17,7 @@
 
 ## Orchestration 而不是 Choreography
 
-Kun 的 Saga 是 **中心编排** 模型。每一步由中心 `SagaOrchestrator` 主动驱动；步骤不知道下一个是谁，也不发 event 让别人"订阅下一步"。Choreography（每步发 event、大家各自订阅）在框架里明确不支持——它把流程散到 N 个消费者里，状态不可见、补偿顺序混乱、链路超时无法统一检测。详见 [`docs/architecture/why-saga.md`](../architecture/why-saga.md)。
+Kun 的 Saga 是 **中心编排** 模型。每一步由中心 `SagaOrchestrator` 主动驱动；步骤不知道下一个是谁，也不发 event 让别人"订阅下一步"。Choreography（每步发 event、大家各自订阅）在框架里明确不支持——它把流程散到 N 个消费者里，状态不可见、补偿顺序混乱、链路超时无法统一检测。详见 [`docs/design/why-saga.md`](../design/why-saga.md)。
 
 ## `ISaga` + `ISagaStep` 接口
 
@@ -357,14 +357,14 @@ public async ValueTask ExecuteAsync(OrderCreationContext ctx, CancellationToken 
 
 ## 边界 / 后续
 
-- **`P2-KN-Saga-EF-Split`**：目前 `Kun.Saga` 因为传递依赖 EF Core 被标 `IsAotCandidate=false`。未来会拆出 `Kun.Saga.EntityFrameworkCore`（和 `Kun.Testing.EntityFrameworkCore` 一样的模式）把 abstraction 层恢复 AOT。见 `docs/architecture/AOT-audit-2026-04-23.md` 跟踪项。
+- **`P2-KN-Saga-EF-Split`**：目前 `Kun.Saga` 因为传递依赖 EF Core 被标 `IsAotCandidate=false`。未来会拆出 `Kun.Saga.EntityFrameworkCore`（和 `Kun.Testing.EntityFrameworkCore` 一样的模式）把 abstraction 层恢复 AOT。见原 Kun 的 [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775c/docs/architecture/AOT-audit-2026-04-23.md) 跟踪项。
 - **测试 helper 未 ship**：Saga 侧目前没有对应的 `Kun.Testing.Saga`（类似 KN-SELF-016 给 Outbox 准备的 `OutboxAssertions`）。消费者今天要测 saga 的话手写断言：`dbContext.Set<SagaInstance>().Single(i => i.Id == sagaId).State.Should().Be(SagaState.Completed)`。有具体消费者痛点时再独立跟一个 KN-SELF。
 - **Saga 版本演进**：目前没有显式的版本字段。实际做法是 **新建一个 saga 类型**（`OrderCreationSagaV2`）而不是原地改 `OrderCreationSaga.Steps`；在途旧 saga 会按旧代码走完。若出现需要在线 migrate 的需求再做版本化。
 
 ## 相关
 
-- [docs/architecture/why-saga.md](../architecture/why-saga.md) — 入门 primer，解释"为什么是 Orchestration 不是 Choreography"、"为什么不是 2PC"。
+- [docs/design/why-saga.md](../design/why-saga.md) — 入门 primer，解释"为什么是 Orchestration 不是 Choreography"、"为什么不是 2PC"。
 - [src/Kun.Saga/AGENTS.md](../../src/Kun.Saga/AGENTS.md) — 模块内约定 + 本指南的一句交叉链接。
 - [docs/guides/outbox-and-integration-events.md](./outbox-and-integration-events.md) — Saga 的 step 执行器靠 Outbox 驱动；理解 Saga 前先把 Outbox 吃透。
 - [docs/guides/validating-commands.md](./validating-commands.md) — 同家族的 Validation 指南，结构参考。
-- [docs/architecture/AOT-audit-2026-04-23.md](../architecture/AOT-audit-2026-04-23.md) — `P2-KN-Saga-EF-Split` 跟踪。
+- [原 Kun 的 AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775c/docs/architecture/AOT-audit-2026-04-23.md) — `P2-KN-Saga-EF-Split` 跟踪。

@@ -2,7 +2,7 @@
 
 > 怎么在一个 Kun 服务里把一条领域事件翻译成跨服务的 Integration Event，让它原子地落库、异步地发到 RabbitMQ，并且在消费端幂等。
 >
-> 参考：`docs/architecture/ADR-015-Outbox-pattern.md` · `docs/architecture/why-outbox.md` · `src/Kun.EventBus/AGENTS.md`
+> 参考：`docs/adr/kun/ADR-015-Outbox-pattern.md` · `docs/design/why-outbox.md` · `src/Kun.EventBus/AGENTS.md`
 
 ## 适用对象
 
@@ -258,12 +258,12 @@ ADR-015 还有两个 follow-up 未 ship：
 
 ## 相关
 
-- [ADR-015 Outbox pattern design](../architecture/ADR-015-Outbox-pattern.md) — 完整设计文档，normative。
-- [why-outbox.md](../architecture/why-outbox.md) — 入门 primer，解释"为什么不直接双写"。
+- [ADR-015 Outbox pattern design](../adr/kun/ADR-015-Outbox-pattern.md) — 完整设计文档，normative。
+- [why-outbox.md](../design/why-outbox.md) — 入门 primer，解释"为什么不直接双写"。
 - [src/Kun.EventBus/AGENTS.md](../../src/Kun.EventBus/AGENTS.md) — abstraction 层约定 + 本指南的一句交叉链接。
 - [src/Kun.EventBus.RabbitMQ/AGENTS.md](../../src/Kun.EventBus.RabbitMQ/AGENTS.md) — broker 具体接线。
 - [src/Kun.EntityFrameworkCore/AGENTS.md](../../src/Kun.EntityFrameworkCore/AGENTS.md) — 原子边界的具体落库位置。
-- [src/Kun.Testing.EntityFrameworkCore/AGENTS.md](../../src/Kun.Testing.EntityFrameworkCore/AGENTS.md) — `OutboxAssertions` 测试 helper。
+- [src/Kun.Testing.EntityFrameworkCore/Outbox/OutboxAssertions.cs](../../src/Kun.Testing.EntityFrameworkCore/Outbox/OutboxAssertions.cs) — `OutboxAssertions` 测试 helper。
 - [docs/guides/validating-commands.md](./validating-commands.md) — 同家族的 Validation 指南（KN-SELF-013），结构参考。
 
 

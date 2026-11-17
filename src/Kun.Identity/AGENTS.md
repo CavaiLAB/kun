@@ -8,7 +8,7 @@
 
 ## Relationship to Kun ADR-001 / Kun.Security
 
-S1-KUN-004 retires both legacy issuer surfaces with KUNS2S001. Use Kun.Gateway.S2sTokenIssuer and its canonical payload/JWKS ring. The Identity module retains OIDC validation and session responsibilities, not a competing issuer. Current usage and migration: [identity client guide](../../_import/kun/docs/guides/identity-client.md).
+S1-KUN-004 retires both legacy issuer surfaces with KUNS2S001. Use Kun.Gateway.S2sTokenIssuer and its canonical payload/JWKS ring. The Identity module retains OIDC validation and session responsibilities, not a competing issuer. Current usage and migration: [identity client guide](../../docs/guides/identity-client.md).
 
 ## For AI Agents
 

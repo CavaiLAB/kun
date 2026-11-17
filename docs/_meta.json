@@ -1,1 +1,7 @@
-["architecture", "agent-support", "migration", "migration-plan"]
+[
+  "architecture",
+  "agent-support",
+  { "type": "dir", "name": "adr", "label": "决策记录" },
+  "migration",
+  "migration-plan"
+]

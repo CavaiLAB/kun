@@ -1,0 +1,49 @@
+name: qian-docs-and-pm
+
+# 原 Qian 的 docs-and-pm 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
+# 原件在 _import/qian/.github/workflows/docs-and-pm.yml，不动；GitHub 只读仓库根的 .github/workflows/。
+# 相对原件只改了位置：run 步骤的工作目录加 _import/qian/ 前缀；原件不设路径过滤（原仓库里每个改动都属于原 Qian），
+# 这里改为 _import/qian/** 与本文件；显式写出 permissions: contents: read。
+# 检查本身不变：文档门禁、任务文件校验、生成看板（只上传为产物）、看板 builder 自测。
+
+on:
+  push:
+    branches: [main, "docs/**", "feat/**", "fix/**"]
+    paths:
+      - '_import/qian/**'
+      - '.github/workflows/qian-docs-and-pm.yml'
+  pull_request:
+    paths:
+      - '_import/qian/**'
+      - '.github/workflows/qian-docs-and-pm.yml'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: _import/qian
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 文档门禁（禁用词 / 表格 / 链接）
+        run: python3 scripts/check_docs.py
+      - name: 任务文件校验
+        run: python3 scripts/pm.py validate
+      # 看板生成物不进 git（S1-PM-004）：这里只确认能生成，并把看板上传为产物，可下载后离线打开
+      - name: 生成看板
+        run: python3 scripts/pm.py build --out "$RUNNER_TEMP/pm-board"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pm-board
+          path: ${{ runner.temp }}/pm-board
+          retention-days: 14
+      # 看板 Pod 的构建容器（deploy/pm-board/builder.py）的自测，只用标准库（S1-PM-005）
+      - name: 看板 builder 自测
+        run: python3 -m unittest discover -s deploy/pm-board -p 'test_*.py' -v

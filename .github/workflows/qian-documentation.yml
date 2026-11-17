@@ -1,0 +1,67 @@
+name: qian-documentation
+
+# 原 Qian 的 documentation 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
+# 原件在 _import/qian/.github/workflows/documentation.yml，不动；GitHub 只读仓库根的 .github/workflows/。
+# 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、上传路径加 _import/qian/ 前缀；
+# 路径过滤末尾加上本文件。检查本身不变。派生文档新鲜度用 git status 看 docs/generated，pathspec 相对工作目录，
+# 看的仍是 _import/qian/docs/generated。
+
+on:
+  push:
+    branches: [main]
+    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
+  pull_request:
+    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
+permissions:
+  contents: read
+concurrency:
+  group: qian-documentation-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    working-directory: _import/qian
+jobs:
+  event-contracts:
+    name: 派生文档与事件模式校验
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: _import/qian/global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          package_json_file: _import/qian/package.json
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter qian... build
+      - run: pnpm --filter ./packages/qian-runtime build
+      - name: 语义绑定及错误反例
+        run: dotnet run --project tests/Qian.Docs.Tests -c Release
+      - name: CLI 与文档模板验收
+        run: pnpm --filter qian test
+      - name: 当前源码声明与调用模式必须一致
+        run: |
+          mkdir -p TestResults
+          pnpm exec qian docs generate --profile platform --json > TestResults/docs-report.json 2> TestResults/docs-diagnostics.json || { cat TestResults/docs-diagnostics.json; exit 1; }
+      # G2 文档新鲜度（ADR-020 D20.9、组件模型规格 §10.3、PRD §14 C18）：上一步已按当前源码重写 docs/generated，有修改或新文件即失败。
+      - name: 派生文档新鲜度：docs/generated 必须与重新生成的结果一致
+        run: |
+          drift="$(git status --porcelain -- docs/generated)"
+          if [ -n "$drift" ]; then
+            echo "$drift"
+            git --no-pager diff --stat -- docs/generated
+            echo "::error::docs/generated 与源码派生结果不一致：先 pnpm --filter qian... build，再 pnpm exec qian docs generate --profile platform，提交 docs/generated；也可下载本次运行的 derived-docs-and-events 产物（ADR-020 D20.9 / 组件模型规格 §10.3 G2）。"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: derived-docs-and-events
+          path: |
+            _import/qian/docs/generated/
+            _import/qian/TestResults/docs-*.json

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>租户主档、目录及入口传播 Provider。</Description></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Qian.Tenancy.Abstractions/Qian.Tenancy.Abstractions.csproj" />
+    <ProjectReference Include="../Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" />
+    <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
+    <ProjectReference Include="../Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
+    <ProjectReference Include="../Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
+    <ProjectReference Include="../Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
+    <ProjectReference Include="../Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
+    <!-- 管理员维护（S1-TEN-010）经身份端口读写账号、成员与凭据；只依赖 Definition，不引用身份 Provider。 -->
+    <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
+    <PackageReference Include="Kun.MultiTenancy" /><PackageReference Include="Grpc.AspNetCore.Server" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <InternalsVisibleTo Include="Qian.Tenancy.Tests" />
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="../Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Qian.Plugin.Sdk.Generators/Qian.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

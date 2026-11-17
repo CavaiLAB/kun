@@ -1,0 +1,96 @@
+name: qian-surfaces
+
+# 原 Qian 的 surfaces 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
+# 原件在 _import/qian/.github/workflows/surfaces.yml，不动；GitHub 只读仓库根的 .github/workflows/。
+# 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、GITHUB_WORKSPACE 下的报告路径加 _import/qian/ 前缀
+# （比较步骤按工作目录读 TestResults/，报告必须写进 _import/qian/TestResults/）；路径过滤末尾加上本文件。检查本身不变。
+# 「私有源已发布组件的 qian add E2E」照原件用本次运行的 GITHUB_TOKEN（packages: read）读 idadawn 名下 GitHub Packages 上
+# 已发布的公开 Qian.* 包；包源地址在原 Qian 的测试代码里，没有改。
+
+on:
+  push:
+    branches: [main]
+    paths: ['_import/qian/packages/Qian.Surfaces*/**', '_import/qian/packages/Qian.Runtime/**', '_import/qian/packages/qian-surfaces/**', '_import/qian/packages/Qian.Profiles*/**', '_import/qian/packages/qian-cli/**', '_import/qian/profiles/**', '_import/qian/plugins/**', '_import/qian/tck/profiles/**', '_import/qian/tck/registry-artifacts/**', '_import/qian/tests/Qian.Profiles.Tests/**', '_import/qian/package.json', '_import/qian/schemas/v2/**', '_import/qian/tck/surfaces/**', '_import/qian/tck/runtime/hotreload.json', '_import/qian/tck/runtime/skill-only.json', '_import/qian/packages/qian-runtime/**', '_import/qian/tck/marketplaces/**', '_import/qian/contracts/v0/**', '_import/qian/tests/Qian.Surfaces.Tests/**', '_import/qian/scripts/generate_surface_fixtures.py', '_import/qian/packages/Common/**', '_import/qian/pnpm*', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/.github/workflows/surfaces.yml', '.github/workflows/qian-surfaces.yml']
+  pull_request:
+    paths: ['_import/qian/packages/Qian.Surfaces*/**', '_import/qian/packages/Qian.Runtime/**', '_import/qian/packages/qian-surfaces/**', '_import/qian/packages/Qian.Profiles*/**', '_import/qian/packages/qian-cli/**', '_import/qian/profiles/**', '_import/qian/plugins/**', '_import/qian/tck/profiles/**', '_import/qian/tck/registry-artifacts/**', '_import/qian/tests/Qian.Profiles.Tests/**', '_import/qian/package.json', '_import/qian/schemas/v2/**', '_import/qian/tck/surfaces/**', '_import/qian/tck/runtime/hotreload.json', '_import/qian/tck/runtime/skill-only.json', '_import/qian/packages/qian-runtime/**', '_import/qian/tck/marketplaces/**', '_import/qian/contracts/v0/**', '_import/qian/tests/Qian.Surfaces.Tests/**', '_import/qian/scripts/generate_surface_fixtures.py', '_import/qian/packages/Common/**', '_import/qian/pnpm*', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/.github/workflows/surfaces.yml', '.github/workflows/qian-surfaces.yml']
+permissions:
+  contents: read
+concurrency:
+  group: qian-surfaces-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    working-directory: _import/qian
+jobs:
+  parity:
+    name: 声明式表面双侧一致性
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: _import/qian/global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          package_json_file: _import/qian/package.json
+      - run: pnpm install --frozen-lockfile
+      - name: 共用样例新鲜度
+        run: |
+          python3 scripts/generate_surface_fixtures.py
+          git diff --exit-code -- tck/surfaces
+      - run: pnpm --filter ./packages/qian-runtime build
+      - run: pnpm --filter @qian/surfaces build
+      - run: pnpm --filter @qian/surfaces check:api
+      - name: TypeScript 样例与 JCS
+        run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/hotreload-ts.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/surfaces-ts.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/markets-ts.json" pnpm --filter @qian/surfaces test
+      - name: .NET 样例、JCS 与 scope/effect
+        run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/hotreload-dotnet.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/surfaces-dotnet.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/markets-dotnet.json" dotnet run --project tests/Qian.Surfaces.Tests -c Release
+      - name: 精确比较自动热重载场景
+        run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/hotreload-dotnet.json TestResults/hotreload-ts.json
+      - name: 精确比较诊断
+        run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/surfaces-dotnet.json TestResults/surfaces-ts.json
+      - name: 精确比较市场文件规则
+        run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/markets-dotnet.json TestResults/markets-ts.json
+      - name: profile CLI 构建与验收
+        run: |
+          pnpm --filter qian... build
+          QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/skill-only-ts.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/profiles-ts.json" pnpm --filter qian test
+      - name: profile .NET 装配与真实 Runtime 装载
+        run: QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/skill-only-dotnet.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/profiles-dotnet.json" dotnet run --project tests/Qian.Profiles.Tests -c Release
+      - name: 精确比较 minimal 无代码技能与隔离
+        run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/skill-only-dotnet.json TestResults/skill-only-ts.json
+      - name: 精确比较 profile 来源、配置和诊断
+        run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/profiles-dotnet.json TestResults/profiles-ts.json
+
+  private-feed:
+    name: 私有源已发布组件的 qian add E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # 只读私有 NuGet 源（GitHub Packages）；令牌经环境变量传给 NuGet.Config 的 %QIAN_FEED_TOKEN% 引用，不写进文件。
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: _import/qian/global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          package_json_file: _import/qian/package.json
+      - run: pnpm install --frozen-lockfile
+      - name: 构建 CLI
+        run: pnpm --filter qian... build
+      - name: 空白宿主经签名市场安装 data / events / config、data / files（standalone）与 identity，运行 Provider 后逆序卸载
+        env:
+          QIAN_FEED_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm --filter qian test:feed

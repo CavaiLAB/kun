@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><NoWarn>$(NoWarn);CS1591</NoWarn></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../packages/Qian.Data/Qian.Data.csproj" />
+    <ProjectReference Include="../../packages/Qian.Events/Qian.Events.csproj" />
+    <ProjectReference Include="../../packages/Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../../packages/Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
+    <PackageReference Include="Kun.Security" />
+    <PackageReference Include="Kun.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../packages/Qian.Plugin.Sdk.Generators/Qian.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../packages/Qian.Authz/Qian.Authz.csproj" />
+    <ProjectReference Include="../../packages/Qian.Authz.AspNetCore/Qian.Authz.AspNetCore.csproj" />
+    <ProjectReference Include="../../packages/Qian.Audit/Qian.Audit.csproj" />
+    <ProjectReference Include="../../packages/Qian.Tenancy/Qian.Tenancy.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <EmbeddedResource Include="metadata/*.json" LogicalName="crm.metadata.%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Qian.Sample.Crm.Tests" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../packages/Qian.Plugin.Sdk.AspNetCore/Qian.Plugin.Sdk.AspNetCore.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../packages/Qian.Tenancy.AspNetCore/Qian.Tenancy.AspNetCore.csproj" />
+    <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
+  </ItemGroup>
+</Project>

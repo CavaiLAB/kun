@@ -1,0 +1,55 @@
+name: qian-dev-tenant-ops
+
+# 原 Qian 的 dev-tenant-ops 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
+# 原件在 _import/qian/.github/workflows/dev-tenant-ops.yml，不动；GitHub 只读仓库根的 .github/workflows/。
+# 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 加 _import/qian/ 前缀；路径过滤末尾加上本文件。
+# 检查本身不变：原样执行 scripts/dev-tenant-ops.sh smoke（脚本按自身位置定原 Qian 的根）。
+
+on:
+  push:
+    branches: [main]
+    paths: ['_import/qian/packages/**', '_import/qian/samples/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/.github/workflows/dev-tenant-ops.yml', '.github/workflows/qian-dev-tenant-ops.yml']
+  pull_request:
+    paths: ['_import/qian/packages/**', '_import/qian/samples/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/.github/workflows/dev-tenant-ops.yml', '.github/workflows/qian-dev-tenant-ops.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qian-dev-tenant-ops-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+defaults:
+  run:
+    working-directory: _import/qian
+
+jobs:
+  smoke:
+    name: 手测环境冒烟（up + walkthrough）
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: _import/qian/global.json
+
+      - name: 起环境、走查、停宿主（与本机 scripts/dev-tenant-ops.sh smoke 同一条命令）
+        env:
+          QIAN_DEV_SMOKE_LOG: ${{ runner.temp }}/dev-tenant-ops-up.log
+        run: scripts/dev-tenant-ops.sh smoke
+
+      - name: 失败时上传宿主日志
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-tenant-ops-up-log
+          path: ${{ runner.temp }}/dev-tenant-ops-up.log
+          if-no-files-found: ignore

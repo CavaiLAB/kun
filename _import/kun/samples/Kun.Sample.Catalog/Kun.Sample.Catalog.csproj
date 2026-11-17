@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsAotCandidate>false</IsAotCandidate>
+    <IsPackable>false</IsPackable>
+    <Description>Kun Framework sample: Catalog service demonstrating DDD + CQRS + Outbox over EF Core + PostgreSQL.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kun.Core\Kun.Core.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Observability\Kun.Observability.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Mediator\Kun.Mediator.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Validation\Kun.Validation.csproj" />
+    <ProjectReference Include="..\..\src\Kun.EventBus\Kun.EventBus.csproj" />
+    <ProjectReference Include="..\..\src\Kun.EntityFrameworkCore\Kun.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Dapper\Kun.Dapper.csproj" />
+    <ProjectReference Include="..\..\src\Kun.AspNetCore\Kun.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Audit\Kun.Audit.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Sandbox\Kun.Sandbox.csproj" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="All" />
+    <ProjectReference Include="..\..\src\Kun.Grpc\Kun.Grpc.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="Protos\catalog.proto" GrpcServices="Server" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,1769 @@
+[
+  {
+    "name": "profile-layer",
+    "files": {},
+    "patches": [],
+    "home": false,
+    "expect": true,
+    "port": 3,
+    "marker": "profile"
+  },
+  {
+    "name": "bundle-order",
+    "files": {
+      "profiles/test/qian.patch.yml": "[]\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": true,
+    "port": 2,
+    "marker": "bundle-two"
+  },
+  {
+    "name": "home-layer",
+    "files": {},
+    "patches": [],
+    "home": true,
+    "expect": true,
+    "port": 4,
+    "marker": "home"
+  },
+  {
+    "name": "missing-home",
+    "files": {
+      "home/qian.patch.yml": "null\n"
+    },
+    "patches": [],
+    "home": true,
+    "expect": false
+  },
+  {
+    "name": "absent-home",
+    "files": {},
+    "patches": [],
+    "home": true,
+    "expect": true,
+    "missingHome": true,
+    "port": 3,
+    "marker": "profile"
+  },
+  {
+    "name": "overlay-order",
+    "files": {
+      "first.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 5,\n      \"marker\": \"first\"\n    }\n  }\n]\n",
+      "second.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 6\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "first.yml",
+      "second.yml"
+    ],
+    "home": true,
+    "expect": true,
+    "port": 6,
+    "marker": "default",
+    "noObsolete": true
+  },
+  {
+    "name": "insert",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"extra\",\n    \"plugin\": \"test.other\",\n    \"config\": {}\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true,
+    "count": 3
+  },
+  {
+    "name": "missing-plugin",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"extra\",\n    \"config\": {}\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/plugin"
+  },
+  {
+    "name": "missing-config",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"extra\",\n    \"plugin\": \"test.other\"\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config"
+  },
+  {
+    "name": "invalid-type",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": \"bad\"\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/port"
+  },
+  {
+    "name": "missing-required",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config"
+  },
+  {
+    "name": "extra-property",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"unexpected\": true\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false
+  },
+  {
+    "name": "required-disable",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"disabled\": true\n  }\n]\n",
+      "plugins/settings/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"provides\": [\n    \"Settings\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": true\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0"
+  },
+  {
+    "name": "required-replace",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"plugin\": \"test.other\"\n  }\n]\n",
+      "plugins/settings/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"provides\": [\n    \"Settings\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": true\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0"
+  },
+  {
+    "name": "same-layer-duplicate",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 7\n    }\n  },\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 8\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/1/id"
+  },
+  {
+    "name": "scope-shadow",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"scope\": \"tenant:t1\",\n    \"plugin\": \"test.settings\",\n    \"config\": {\n      \"port\": 7\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true,
+    "count": 3
+  },
+  {
+    "name": "scope-denied",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"scope\": \"tenant:t1\",\n    \"plugin\": \"test.settings\",\n    \"config\": {\n      \"port\": 7\n    }\n  }\n]\n",
+      "plugins/settings/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"provides\": [\n    \"Settings\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\"\n  ]\n}\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/scope"
+  },
+  {
+    "name": "disable-consumer",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"consumer\",\n    \"disabled\": true\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true,
+    "count": 1
+  },
+  {
+    "name": "reenable",
+    "files": {
+      "off.yml": "[\n  {\n    \"id\": \"consumer\",\n    \"disabled\": true\n  }\n]\n",
+      "on.yml": "[\n  {\n    \"id\": \"consumer\",\n    \"disabled\": false\n  }\n]\n"
+    },
+    "patches": [
+      "off.yml",
+      "on.yml"
+    ],
+    "home": false,
+    "expect": true,
+    "count": 2
+  },
+  {
+    "name": "missing-dependency",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"disabled\": true\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "profiles/test/qian.profile.yml#/bundles"
+  },
+  {
+    "name": "dependency-cycle",
+    "files": {
+      "plugins/settings/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [\n    \"Consumer\"\n  ],\n  \"provides\": [\n    \"Settings\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n",
+      "plugins/consumer/.qian-plugin/plugin.json": "{\n  \"id\": \"test.consumer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [\n    \"Settings\"\n  ],\n  \"provides\": [\n    \"Consumer\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": false,
+    "pointer": "profiles/test/qian.profile.yml#/bundles"
+  },
+  {
+    "name": "duplicate-provider",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"another\",\n    \"plugin\": \"test.settings\",\n    \"config\": {\n      \"port\": 9\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "profiles/test/qian.profile.yml#/bundles"
+  },
+  {
+    "name": "unknown-component",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"extra\",\n    \"plugin\": \"test.absent\",\n    \"config\": {}\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/plugin"
+  },
+  {
+    "name": "version-range",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"plugin\": \"test.settings@^1.0.0\"\n  }\n]\n",
+      "plugins/settings-new/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"1.2.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"provides\": [\n    \"Settings\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n",
+      "plugins/settings-new/schemas/config.schema.json": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\": \"object\",\n  \"required\": [\n    \"port\"\n  ],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"port\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"maximum\": 65535\n    },\n    \"marker\": {\n      \"type\": \"string\",\n      \"default\": \"default\"\n    },\n    \"obsolete\": {\n      \"type\": \"string\"\n    },\n    \"nested\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"name\": {\n          \"type\": \"string\",\n          \"default\": \"fresh\"\n        }\n      },\n      \"additionalProperties\": false,\n      \"default\": {}\n    },\n    \"secret\": {\n      \"type\": \"string\",\n      \"x-qian-sensitive\": true\n    }\n  }\n}\n",
+      "plugins/settings-next/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"2.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"provides\": [\n    \"Settings\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n",
+      "plugins/settings-next/schemas/config.schema.json": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\": \"object\",\n  \"required\": [\n    \"port\"\n  ],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"port\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"maximum\": 65535\n    },\n    \"marker\": {\n      \"type\": \"string\",\n      \"default\": \"default\"\n    },\n    \"obsolete\": {\n      \"type\": \"string\"\n    },\n    \"nested\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"name\": {\n          \"type\": \"string\",\n          \"default\": \"fresh\"\n        }\n      },\n      \"additionalProperties\": false,\n      \"default\": {}\n    },\n    \"secret\": {\n      \"type\": \"string\",\n      \"x-qian-sensitive\": true\n    }\n  }\n}\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true,
+    "version": "1.2.0"
+  },
+  {
+    "name": "duplicate-version",
+    "files": {
+      "plugins/duplicate/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"provides\": [],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": false
+  },
+  {
+    "name": "hmr-code-rejected",
+    "files": {
+      "profiles/test/qian.profile.yml": "{\n  \"name\": \"test\",\n  \"bundles\": [\n    \"test.bundle.one\",\n    \"test.bundle.two\"\n  ],\n  \"patch\": \"./qian.patch.yml\",\n  \"hmr\": {\n    \"code\": true\n  },\n  \"build\": {\n    \"aot\": false\n  },\n  \"hooks\": {\n    \"allowCommand\": false\n  }\n}\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": false
+  },
+  {
+    "name": "aot-code-rejected",
+    "files": {
+      "profiles/test/qian.profile.yml": "{\n  \"name\": \"test\",\n  \"bundles\": [\n    \"test.bundle.one\",\n    \"test.bundle.two\"\n  ],\n  \"patch\": \"./qian.patch.yml\",\n  \"hmr\": {\n    \"surfaces\": true,\n    \"code\": false\n  },\n  \"build\": {\n    \"aot\": true\n  },\n  \"hooks\": {\n    \"allowCommand\": false\n  }\n}\n",
+      "plugins/consumer/.qian-plugin/plugin.json": "{\n  \"id\": \"test.consumer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [\n    \"Settings\"\n  ],\n  \"provides\": [],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ],\n  \"runtime\": {\n    \"form\": \"module\",\n    \"entry\": \"Test.Consumer\"\n  }\n}\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": false
+  },
+  {
+    "name": "aot-declared",
+    "files": {
+      "profiles/test/qian.profile.yml": "{\n  \"name\": \"test\",\n  \"bundles\": [\n    \"test.bundle.one\",\n    \"test.bundle.two\"\n  ],\n  \"patch\": \"./qian.patch.yml\",\n  \"hmr\": {\n    \"surfaces\": true,\n    \"code\": false\n  },\n  \"build\": {\n    \"aot\": true\n  },\n  \"hooks\": {\n    \"allowCommand\": false\n  }\n}\n",
+      "plugins/consumer/.qian-plugin/plugin.json": "{\n  \"id\": \"test.consumer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [\n    \"Settings\"\n  ],\n  \"provides\": [],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ],\n  \"runtime\": {\n    \"form\": \"module\",\n    \"entry\": \"Test.Consumer\"\n  },\n  \"x-aot\": true\n}\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "skeleton-warning",
+    "files": {
+      "plugins/consumer/.qian-plugin/plugin.json": "{\n  \"id\": \"test.consumer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [\n    \"Settings\"\n  ],\n  \"provides\": [],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ],\n  \"x-skeleton\": true\n}\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": true,
+    "warnings": 1
+  },
+  {
+    "name": "secret-reference",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"secret\": \"secretRef://tenant/t1/db\"\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "plaintext-secret",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"secret\": \"DO-NOT-LEAK\"\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/secret"
+  },
+  {
+    "name": "escaped-pointer",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a/b~c\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"a/b~c\": {\n      \"type\": \"string\"\n    }\n  }\n}\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false
+  },
+  {
+    "name": "yaml-duplicate",
+    "files": {
+      "ops.yml": "- id: settings\n  config:\n    port: 1\n    port: 2\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false
+  },
+  {
+    "name": "empty-tree",
+    "files": {
+      "profiles/test/qian.profile.yml": "{\n  \"name\": \"test\",\n  \"bundles\": []\n}\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": true,
+    "count": 0
+  },
+  {
+    "name": "secret-array",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"keys\": [\n        \"DO-NOT-LEAK\"\n      ]\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"keys\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/keys/0"
+  },
+  {
+    "name": "secret-ref-schema",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"key\": \"DO-NOT-LEAK\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"$defs\": {\"secret\": {\"type\": \"string\", \"x-qian-sensitive\": true}}, \"properties\": {\"key\": {\"$ref\": \"#/$defs/secret\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/key"
+  },
+  {
+    "name": "initial-required-disable",
+    "files": {
+      "plugins/consumer/.qian-plugin/plugin.json": "{\"id\": \"test.consumer\", \"version\": \"1.0.0\", \"description\": \"\\u4f9b profile \\u88c5\\u914d TCK \\u4f7f\\u7528\\u7684\\u771f\\u5b9e\\u9759\\u6001\\u6e05\\u5355\", \"author\": {\"name\": \"Qian\"}, \"license\": \"MIT\", \"interface\": {\"displayName\": \"profile \\u6d4b\\u8bd5\", \"category\": \"test\"}, \"inject\": [\"Settings\"], \"provides\": [], \"policy\": {\"tier\": \"private\", \"sandbox\": \"none\", \"authentication\": \"ON_INSTALL\", \"required\": true}, \"scopes\": [\"global\", \"tenant\"]}",
+      "plugins/one/config/qian.patch.yml": "[{\"id\": \"consumer\", \"plugin\": \"test.consumer\", \"config\": {}, \"disabled\": true}]"
+    },
+    "patches": [],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/one/config/qian.patch.yml#/0"
+  },
+  {
+    "name": "resolve-final-active-tree",
+    "files": {
+      "first.yml": "[{\"id\": \"extra\", \"plugin\": \"test.not-yet-installed\", \"config\": {}}]",
+      "second.yml": "[{\"id\": \"extra\", \"plugin\": \"test.other\", \"config\": {}}]"
+    },
+    "patches": [
+      "first.yml",
+      "second.yml"
+    ],
+    "home": false,
+    "expect": true,
+    "count": 3
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-config-replaces-after-home",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "settings",
+            "config": {
+              "port": 23
+            }
+          }
+        ]
+      }
+    ],
+    "expect": true,
+    "count": 3,
+    "port": 4,
+    "disabledCount": 0
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-missing-config-inherits-global",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "settings",
+            "note": "tenant-note"
+          }
+        ]
+      }
+    ],
+    "expect": true,
+    "count": 3,
+    "port": 4,
+    "disabledCount": 0
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-disabled-keeps-global-and-suppression",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "settings",
+            "disabled": true
+          }
+        ]
+      }
+    ],
+    "expect": true,
+    "count": 2,
+    "disabledCount": 1
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-new-entry-requires-config",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "extra",
+            "plugin": "test.other"
+          }
+        ]
+      }
+    ],
+    "expect": false,
+    "pointer": "registry/tenant-a.json#/0/config"
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-cannot-change-owner",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "settings",
+            "scope": "tenant:b",
+            "disabled": true
+          }
+        ]
+      }
+    ],
+    "expect": false,
+    "pointer": "registry/tenant-a.json#/0/scope"
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-cannot-write-global",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "settings",
+            "scope": "global",
+            "disabled": true
+          }
+        ]
+      }
+    ],
+    "expect": false,
+    "pointer": "registry/tenant-a.json#/0/scope"
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-layer-cannot-be-global",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "global",
+          "id": ""
+        },
+        "source": "registry/tenant-a.json",
+        "patches": []
+      }
+    ],
+    "expect": false,
+    "pointer": "registry/scope-patches.json#/scope"
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-config-secret-is-rejected",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "settings",
+            "config": {
+              "port": 23,
+              "secret": "DO-NOT-LEAK"
+            }
+          }
+        ]
+      }
+    ],
+    "expect": false,
+    "pointer": "registry/tenant-a.json#/0/config/secret"
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
+    "name": "scope-duplicate-identity-rejected",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "settings",
+            "disabled": true
+          },
+          {
+            "id": "settings",
+            "disabled": false
+          }
+        ]
+      }
+    ],
+    "expect": false,
+    "pointer": "registry/tenant-a.json#/1/id"
+  },
+  {
+    "files": {
+      "plugins/settings/.qian-plugin/plugin.json": "{\"id\": \"test.settings\", \"version\": \"1.0.0\", \"description\": \"\\u4f9b profile \\u88c5\\u914d TCK \\u4f7f\\u7528\\u7684\\u771f\\u5b9e\\u9759\\u6001\\u6e05\\u5355\", \"author\": {\"name\": \"Qian\"}, \"license\": \"MIT\", \"interface\": {\"displayName\": \"profile \\u6d4b\\u8bd5\", \"category\": \"test\"}, \"inject\": [], \"provides\": [\"Settings\"], \"policy\": {\"tier\": \"system\", \"sandbox\": \"none\", \"authentication\": \"ON_INSTALL\", \"required\": true}, \"scopes\": [\"global\", \"tenant\"]}"
+    },
+    "patches": [],
+    "home": true,
+    "name": "scope-required-cannot-be-disabled",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "tenant",
+          "id": "a"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": [
+          {
+            "id": "settings",
+            "disabled": true
+          }
+        ]
+      }
+    ],
+    "expect": false,
+    "pointer": "registry/tenant-a.json#/0"
+  },
+  {
+    "name": "sensitive-pattern-ecma-dialect",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"endpoints\": {\n        \"é\": \"DO-NOT-LEAK\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"secret\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^legacy_\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^\\\\W+$\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^[a-z]+$\": {\"type\": \"string\"}}}, \"limits\": {\"type\": \"object\", \"properties\": {\"size\": {\"type\": \"string\"}}, \"additionalProperties\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/endpoints/é",
+    "reason": "敏感配置必须为 secretRef，不能打印或保存明文。"
+  },
+  {
+    "name": "sensitive-pattern-ignore-case",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"endpoints\": {\n        \"Legacy_billing\": \"DO-NOT-LEAK\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"secret\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^legacy_\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^\\\\W+$\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^[a-z]+$\": {\"type\": \"string\"}}}, \"limits\": {\"type\": \"object\", \"properties\": {\"size\": {\"type\": \"string\"}}, \"additionalProperties\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/endpoints/Legacy_billing",
+    "reason": "敏感配置必须为 secretRef，不能打印或保存明文。"
+  },
+  {
+    "name": "sensitive-property-ignore-case",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"Secret\": \"DO-NOT-LEAK\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"secret\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^legacy_\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^\\\\W+$\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^[a-z]+$\": {\"type\": \"string\"}}}, \"limits\": {\"type\": \"object\", \"properties\": {\"size\": {\"type\": \"string\"}}, \"additionalProperties\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/Secret",
+    "reason": "敏感配置必须为 secretRef，不能打印或保存明文。"
+  },
+  {
+    "name": "sensitive-additional-exact-only",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"limits\": {\n        \"Size\": \"DO-NOT-LEAK\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"secret\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^legacy_\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^\\\\W+$\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^[a-z]+$\": {\"type\": \"string\"}}}, \"limits\": {\"type\": \"object\", \"properties\": {\"size\": {\"type\": \"string\"}}, \"additionalProperties\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/limits/Size",
+    "reason": "敏感配置必须为 secretRef，不能打印或保存明文。"
+  },
+  {
+    "name": "sensitive-pattern-folded-negation",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"endpoints\": {\n        \"abc\": \"DO-NOT-LEAK\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^[^a-z]+$\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/endpoints/abc",
+    "reason": "敏感配置必须为 secretRef，不能打印或保存明文。"
+  },
+  {
+    "name": "sensitive-property-supplementary-case",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"𐐀\": \"DO-NOT-LEAK\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"𐐨\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/𐐀",
+    "reason": "敏感配置必须为 secretRef，不能打印或保存明文。"
+  },
+  {
+    "name": "sensitive-property-ordinal-only",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"\\u00df\": \"plain\",\n      \"\\u017f\": \"plain\",\n      \"\\u0131\": \"plain\",\n      \"\\u212a\": \"plain\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"ss\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"s\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"i\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"k\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "sensitive-unstable-key",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"endpoints\": {\n        \"İstanbul\": \"DO-NOT-LEAK\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"secret\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^legacy_\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^\\\\W+$\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^[a-z]+$\": {\"type\": \"string\"}}}, \"limits\": {\"type\": \"object\", \"properties\": {\"size\": {\"type\": \"string\"}}, \"additionalProperties\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/endpoints/İstanbul",
+    "reason": "键名含各正则方言判断不同的字符，按敏感配置处理，必须为 secretRef。"
+  },
+  {
+    "name": "sensitive-unsupported-before-unstable",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"endpoints\": {\n        \"İstanbul\": \"secretRef://platform/settings/istanbul\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^(?=x)x\": {\"x-qian-sensitive\": true}}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/endpoints/patternProperties/^(?=x)x",
+    "reason": "组件 config.schema 的 patternProperties 含不支持的正则写法，只接受 ECMA-262 可移植子集。"
+  },
+  {
+    "name": "sensitive-pattern-unsupported",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"endpoints\": {\n        \"x\": \"secretRef://platform/settings/x\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^(?=x)x\": {\"x-qian-sensitive\": true}}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/endpoints/patternProperties/^(?=x)x",
+    "reason": "组件 config.schema 的 patternProperties 含不支持的正则写法，只接受 ECMA-262 可移植子集。"
+  },
+  {
+    "name": "sensitive-pattern-over-size",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"endpoints\": {\n        \"x\": \"plain\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^x{1001}\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/endpoints/patternProperties/^x{1001}",
+    "reason": "组件 config.schema 的 patternProperties 含不支持的正则写法，只接受 ECMA-262 可移植子集。"
+  },
+  {
+    "name": "sensitive-flag-not-boolean",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"secret\": \"secretRef://platform/settings/secret\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"secret\": {\"type\": \"string\", \"x-qian-sensitive\": \"true\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "profiles/test/qian.profile.yml#",
+    "reason": "profile 或组件内容无法解析。"
+  },
+  {
+    "name": "sensitive-key-references",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"port\": 80,\n      \"Secret\": \"secretRef://platform/settings/secret\",\n      \"endpoints\": {\n        \"orders\": \"plain\",\n        \"Legacy_billing\": \"secretRef://platform/billing/legacy\",\n        \"é\": \"secretRef://platform/billing/accent\",\n        \"a\\u00a0b\": \"secretRef://platform/billing/spaced\",\n        \"İstanbul\": \"secretRef://platform/billing/istanbul\"\n      },\n      \"limits\": {\n        \"size\": \"large\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"port\": {\"type\": \"integer\"}, \"secret\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"^legacy_\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^\\\\W+$\": {\"type\": \"string\", \"x-qian-sensitive\": true}, \"^[a-z]+$\": {\"type\": \"string\"}}}, \"limits\": {\"type\": \"object\", \"properties\": {\"size\": {\"type\": \"string\"}}, \"additionalProperties\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "config-diagnostics-required-with-child",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"required\": [\"b\"], \"properties\": {\"a\": {\"type\": \"string\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-diagnostics-required-each-once",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"required\": [\"a\", \"b\"]}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-diagnostics-ordinal-order",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"b\": 1,\n      \"1\": 1,\n      \"a\": 1,\n      \"10\": 1,\n      \"2\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"additionalProperties\": {\"type\": \"string\"}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/10",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-diagnostics-own-assertion-with-children",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"arr\": [\n        1,\n        1,\n        \"x\"\n      ]\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"arr\": {\"type\": \"array\", \"items\": {\"type\": \"number\"}, \"uniqueItems\": true}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/arr",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-diagnostics-property-names-at-key",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"obj\": {\n        \"A\": 1,\n        \"b\": 2\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"obj\": {\"type\": \"object\", \"propertyNames\": {\"pattern\": \"^[a-z]+$\"}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/obj/A",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "schema-rule-unevaluated-properties",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1,\n      \"x\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {}}, \"unevaluatedProperties\": false}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/unevaluatedProperties",
+    "reason": "组件 config.schema 不支持 unevaluatedProperties 关键字。"
+  },
+  {
+    "name": "config-diagnostics-contains-at-array",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"arr\": [\n        1,\n        2\n      ]\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"arr\": {\"type\": \"array\", \"contains\": {\"type\": \"string\"}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/arr",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-diagnostics-combinator-summary",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"anyOf\": [{\"properties\": {\"a\": {\"type\": \"string\"}}}, {\"properties\": {\"a\": {\"type\": \"boolean\"}}}]}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-diagnostics-if-condition-ignored",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 2\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"if\": {\"properties\": {\"a\": {\"const\": 1}}}, \"then\": {}, \"else\": {\"required\": [\"z\"]}, \"required\": [\"b\"]}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-diagnostics-passing-branch-ignored",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"required\": [\"b\"], \"anyOf\": [{\"properties\": {\"a\": {\"type\": \"string\"}}}, {}]}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-pattern-end-anchor",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"a\\n\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\", \"pattern\": \"^a$\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-pattern-dot-line-terminator",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"a\\u2028b\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\", \"pattern\": \"^a.b$\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-pattern-space-unicode",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"\\u3000\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\", \"pattern\": \"^\\\\s+$\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "config-pattern-code-units",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"😀\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\", \"pattern\": \"^.$\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-pattern-key-additional",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\\n\": \"x\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"patternProperties\": {\"^a$\": {\"type\": \"string\"}}, \"additionalProperties\": false}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a\n",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-pattern-linear-time",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\", \"pattern\": \"^(a|a)*$\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "schema-pattern-unsupported",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"x\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\", \"pattern\": \"(?i)abc\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/pattern",
+    "reason": "组件 config.schema 的 pattern 含不支持的正则写法，只接受 ECMA-262 可移植子集。"
+  },
+  {
+    "name": "schema-pattern-properties-unsupported",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"endpoints\": {\n        \"x\": 1\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"endpoints\": {\"type\": \"object\", \"patternProperties\": {\"(?i)a\": {}}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/endpoints/patternProperties/(?i)a",
+    "reason": "组件 config.schema 的 patternProperties 含不支持的正则写法，只接受 ECMA-262 可移植子集。"
+  },
+  {
+    "name": "schema-pattern-dialect-only",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"pattern\": \"^\\\\u{41}$\"}, \"b\": {\"pattern\": \"[\\\\w-.]\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/pattern",
+    "reason": "组件 config.schema 的 pattern 含不支持的正则写法，只接受 ECMA-262 可移植子集。"
+  },
+  {
+    "name": "schema-pattern-ordinal-order",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"b\": {\"pattern\": \"(?i)b\"}, \"1\": {\"pattern\": \"(?=x)\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/1/pattern",
+    "reason": "组件 config.schema 的 pattern 含不支持的正则写法，只接受 ECMA-262 可移植子集。"
+  },
+  {
+    "name": "schema-pattern-referenced-elsewhere",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"$ref\": \"#/x-shared\", \"x-shared\": {\"pattern\": \"(?=a)\"}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/$ref",
+    "reason": "组件 config.schema 的 $ref 须为 #/ 开头、指向本文档内子 Schema 位置（对象或布尔值）的 JSON Pointer。"
+  },
+  {
+    "name": "sensitive-config-key-ordinal",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"limits\": {\n        \"b\": \"DO-NOT-LEAK\",\n        \"1\": \"DO-NOT-LEAK\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"limits\": {\"type\": \"object\", \"additionalProperties\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/limits/1",
+    "reason": "敏感配置必须为 secretRef，不能打印或保存明文。"
+  },
+  {
+    "name": "sensitive-pattern-ordinal",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"m\": {\n        \"b1\": {\n          \"p\": \"DO-NOT-LEAK\",\n          \"q\": \"DO-NOT-LEAK\"\n        }\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"m\": {\"type\": \"object\", \"patternProperties\": {\"b\": {\"type\": \"object\", \"properties\": {\"p\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}, \"1\": {\"type\": \"object\", \"properties\": {\"q\": {\"type\": \"string\", \"x-qian-sensitive\": true}}}}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/m/b1/q",
+    "reason": "敏感配置必须为 secretRef，不能打印或保存明文。"
+  },
+  {
+    "name": "config-semantics-items-after-prefix",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"arr\": [\n        \"a\",\n        1,\n        2\n      ]\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"arr\": {\"prefixItems\": [{\"type\": \"string\"}], \"items\": {\"type\": \"string\"}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/arr/1",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-items-false-after-prefix",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"arr\": [\n        1,\n        2,\n        3\n      ]\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"arr\": {\"prefixItems\": [{}], \"items\": false}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/arr/2",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-length-code-points",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"e\\u0301\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"maxLength\": 1}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-length-surrogate-pair",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"😀\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"maxLength\": 1}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "config-semantics-multiple-of-decimal",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 0.3\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"multipleOf\": 0.1}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "config-semantics-number-double",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 9007199254740992\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"const\": 9007199254740993}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "config-semantics-const-beyond-decimal",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1e+30\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"const\": 1e30}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "config-semantics-const-tiny",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 0\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"const\": 1e-30}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-unique-items-prefix",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"arr\": [\n        {\n          \"x\": 1\n        },\n        {\n          \"x\": 1\n        }\n      ]\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"arr\": {\"prefixItems\": [{\"type\": \"object\"}, {\"type\": \"object\"}], \"items\": {\"type\": \"string\"}, \"uniqueItems\": true}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/arr",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-own-to-string",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": {\n        \"toString\": \"y\"\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"enum\": [{\"toString\": \"x\"}]}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-inherited-name",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"required\": [\"constructor\"]}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-contains-ref",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"arr\": [\n        1,\n        2\n      ]\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"$defs\": {\"s\": {\"type\": \"string\"}}, \"properties\": {\"arr\": {\"contains\": {\"$ref\": \"#/$defs/s\"}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/arr",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-property-names-ref",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"obj\": {\n        \"A\": 1,\n        \"b\": 2\n      }\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"$defs\": {\"k\": {\"pattern\": \"^[a-z]+$\"}}, \"properties\": {\"obj\": {\"propertyNames\": {\"$ref\": \"#/$defs/k\"}}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/obj/A",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-one-of-ambiguous",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"oneOf\": [{\"type\": \"object\"}, {\"type\": \"object\"}, {\"properties\": {\"a\": false}}]}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-dependent-schemas-escaped-key",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a/b\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"dependentSchemas\": {\"a/b\": {\"required\": [\"c\"]}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-pattern-properties-slash",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a/b\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"patternProperties\": {\"^a/b$\": {\"type\": \"string\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a~1b",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-default-null",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"default\": null, \"const\": true}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "config-semantics-if-with-pattern-properties",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"anyOf\": [{\"if\": {\"required\": [\"A\"]}, \"then\": {\"properties\": {\"a\": {}}}}], \"patternProperties\": {\"^a\": {}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true
+  },
+  {
+    "name": "schema-rule-meta-schema",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"multipleOf\": 0}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#",
+    "reason": "组件 config.schema 不符合 JSON Schema 2020-12 的元 Schema。"
+  },
+  {
+    "name": "schema-rule-dialect",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"$schema\": \"http://json-schema.org/draft-07/schema#\", \"type\": \"object\"}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/$schema",
+    "reason": "组件 config.schema 只接受 JSON Schema 2020-12，$schema 须为 https://json-schema.org/draft/2020-12/schema。"
+  },
+  {
+    "name": "schema-rule-identifier",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"$id\": \"https://example.com/a\", \"type\": \"string\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/$id",
+    "reason": "组件 config.schema 不支持 $id 关键字。"
+  },
+  {
+    "name": "schema-rule-nullable",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": null\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\", \"nullable\": true}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/nullable",
+    "reason": "组件 config.schema 不支持 nullable 关键字。"
+  },
+  {
+    "name": "schema-rule-unevaluated-items",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"arr\": {\"prefixItems\": [{}], \"unevaluatedItems\": false}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/arr/unevaluatedItems",
+    "reason": "组件 config.schema 不支持 unevaluatedItems 关键字。"
+  },
+  {
+    "name": "schema-rule-enum-empty",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"enum\": []}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/enum",
+    "reason": "组件 config.schema 的 enum 须为非空数组。"
+  },
+  {
+    "name": "schema-rule-ref-unresolvable",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"$ref\": \"#/$defs/missing\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/$ref",
+    "reason": "组件 config.schema 的 $ref 须为 #/ 开头、指向本文档内子 Schema 位置（对象或布尔值）的 JSON Pointer。"
+  },
+  {
+    "name": "schema-rule-ref-trailing-newline",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"x\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"$defs\": {\"a\\n\": {\"type\": \"string\"}}, \"properties\": {\"a\": {\"$ref\": \"#/$defs/a\\n\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/$ref",
+    "reason": "组件 config.schema 的 $ref 须为 #/ 开头、指向本文档内子 Schema 位置（对象或布尔值）的 JSON Pointer。"
+  },
+  {
+    "name": "schema-rule-ref-encoded-newline",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": {}\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"allOf\": [{\"type\": \"object\"}], \"properties\": {\"a\": {\"$ref\": \"#/allOf/0%0A\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/$ref",
+    "reason": "组件 config.schema 的 $ref 须为 #/ 开头、指向本文档内子 Schema 位置（对象或布尔值）的 JSON Pointer。"
+  },
+  {
+    "name": "schema-rule-ref-root-slash",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"x\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"\": {\"type\": \"string\"}, \"properties\": {\"a\": {\"$ref\": \"#/\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/$ref",
+    "reason": "组件 config.schema 的 $ref 须为 #/ 开头、指向本文档内子 Schema 位置（对象或布尔值）的 JSON Pointer。"
+  },
+  {
+    "name": "schema-rule-ref-outside-schema",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"x\"\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"x\": {\"minLength\": -1}, \"properties\": {\"a\": {\"$ref\": \"#/x\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/a/$ref",
+    "reason": "组件 config.schema 的 $ref 须为 #/ 开头、指向本文档内子 Schema 位置（对象或布尔值）的 JSON Pointer。"
+  },
+  {
+    "name": "schema-rule-ref-cycle",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"$defs\": {\"a\": {\"allOf\": [{\"$ref\": \"#/$defs/a\"}]}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/$defs/a/allOf/0/$ref",
+    "reason": "组件 config.schema 的引用构成循环：子 Schema 不经属性或数组项又回到了自身。"
+  },
+  {
+    "name": "schema-rule-proto-key",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"__proto__\": {\"type\": \"string\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "plugins/settings/schemas/config.schema.json#/properties/__proto__",
+    "reason": "组件 config.schema 的 properties 不能以 __proto__ 为键名。"
+  },
+  {
+    "name": "schema-file-duplicate-key",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\"}}, \"properties\": {\"a\": {\"type\": \"number\"}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "profiles/test/qian.profile.yml#",
+    "reason": "profile 或组件内容无法解析。"
+  },
+  {
+    "name": "schema-file-number-out-of-range",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"properties\": {\"a\": {\"maximum\": 1e400}}}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "profiles/test/qian.profile.yml#",
+    "reason": "profile 或组件内容无法解析。"
+  },
+  {
+    "name": "schema-file-lone-surrogate",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {}\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": "{\"type\": \"object\", \"description\": \"\\ud800\"}"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "profiles/test/qian.profile.yml#",
+    "reason": "profile 或组件内容无法解析。"
+  },
+  {
+    "name": "schema-file-utf8-bom",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": {
+        "base64": "77u/eyJ0eXBlIjogIm9iamVjdCIsICJwcm9wZXJ0aWVzIjogeyJhIjogeyJ0eXBlIjogInN0cmluZyJ9fX0="
+      }
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#/0/config/a",
+    "reason": "条目配置不符合组件 config.schema。"
+  },
+  {
+    "name": "schema-file-utf16-bom",
+    "files": {
+      "ops.yml": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": 1\n    }\n  }\n]\n",
+      "plugins/settings/schemas/config.schema.json": {
+        "base64": "//57ACIAdAB5AHAAZQAiADoAIAAiAG8AYgBqAGUAYwB0ACIALAAgACIAcAByAG8AcABlAHIAdABpAGUAcwAiADoAIAB7ACIAYQAiADoAIAB7ACIAdAB5AHAAZQAiADoAIAAiAHMAdAByAGkAbgBnACIAfQB9AH0A"
+      }
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "profiles/test/qian.profile.yml#",
+    "reason": "profile 或组件内容无法解析。"
+  },
+  {
+    "name": "patch-unpaired-surrogate-json-value",
+    "files": {
+      "ops.json": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"a\": \"x\\ud800\"\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.json"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.json#",
+    "reason": "JSON 字符串或键名含未成对的代理项。"
+  },
+  {
+    "name": "patch-unpaired-surrogate-json-key",
+    "files": {
+      "ops.json": "[\n  {\n    \"id\": \"settings\",\n    \"config\": {\n      \"\\udc00\": 1\n    }\n  }\n]\n"
+    },
+    "patches": [
+      "ops.json"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.json#",
+    "reason": "JSON 字符串或键名含未成对的代理项。"
+  },
+  {
+    "name": "patch-unpaired-surrogate-yaml",
+    "files": {
+      "ops.yml": "- id: settings\n  config:\n    a: \"x\\ud800\"\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": false,
+    "pointer": "ops.yml#",
+    "reason": "YAML 语法无效或存在重复键。"
+  },
+  {
+    "name": "optional-inject-present",
+    "files": {
+      "plugins/observer/.qian-plugin/plugin.json": "{\n  \"id\": \"test.observer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"optionalInject\": [\n    \"Settings\"\n  ],\n  \"provides\": [],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n",
+      "plugins/one/config/qian.patch.yml": "[\n  {\n    \"id\": \"observer\",\n    \"plugin\": \"test.observer\",\n    \"config\": {}\n  },\n  {\n    \"id\": \"consumer\",\n    \"plugin\": \"test.consumer\",\n    \"config\": {}\n  },\n  {\n    \"id\": \"settings\",\n    \"plugin\": \"test.settings@^1\",\n    \"config\": {\n      \"port\": 1,\n      \"marker\": \"bundle-one\",\n      \"obsolete\": \"remove\"\n    }\n  }\n]\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": true,
+    "count": 3
+  },
+  {
+    "name": "optional-inject-absent",
+    "files": {
+      "plugins/observer/.qian-plugin/plugin.json": "{\n  \"id\": \"test.observer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"optionalInject\": [\n    \"Missing\"\n  ],\n  \"provides\": [],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n",
+      "ops.yml": "[\n  {\n    \"id\": \"observer\",\n    \"plugin\": \"test.observer\",\n    \"config\": {}\n  }\n]\n"
+    },
+    "patches": [
+      "ops.yml"
+    ],
+    "home": false,
+    "expect": true,
+    "count": 3
+  },
+  {
+    "name": "optional-inject-cycle-tolerated",
+    "files": {
+      "plugins/settings/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"optionalInject\": [\n    \"Consumer\"\n  ],\n  \"provides\": [\n    \"Settings\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n",
+      "plugins/consumer/.qian-plugin/plugin.json": "{\n  \"id\": \"test.consumer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [\n    \"Settings\"\n  ],\n  \"provides\": [\n    \"Consumer\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": true,
+    "count": 2
+  },
+  {
+    "name": "optional-inject-cycle-reverse",
+    "files": {
+      "plugins/settings/.qian-plugin/plugin.json": "{\n  \"id\": \"test.settings\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [],\n  \"optionalInject\": [\n    \"Consumer\"\n  ],\n  \"provides\": [\n    \"Settings\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n",
+      "plugins/consumer/.qian-plugin/plugin.json": "{\n  \"id\": \"test.consumer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"供 profile 装配 TCK 使用的真实静态清单\",\n  \"author\": {\n    \"name\": \"Qian\"\n  },\n  \"license\": \"MIT\",\n  \"interface\": {\n    \"displayName\": \"profile 测试\",\n    \"category\": \"test\"\n  },\n  \"inject\": [\n    \"Settings\"\n  ],\n  \"provides\": [\n    \"Consumer\"\n  ],\n  \"policy\": {\n    \"tier\": \"private\",\n    \"sandbox\": \"none\",\n    \"authentication\": \"ON_INSTALL\",\n    \"required\": false\n  },\n  \"scopes\": [\n    \"global\",\n    \"tenant\"\n  ]\n}\n",
+      "plugins/one/config/qian.patch.yml": "[\n  {\n    \"id\": \"settings\",\n    \"plugin\": \"test.settings@^1\",\n    \"config\": {\n      \"port\": 1,\n      \"marker\": \"bundle-one\",\n      \"obsolete\": \"remove\"\n    }\n  },\n  {\n    \"id\": \"consumer\",\n    \"plugin\": \"test.consumer\",\n    \"config\": {}\n  }\n]\n"
+    },
+    "patches": [],
+    "home": false,
+    "expect": true,
+    "count": 2
+  }
+]

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://qian.dev/schemas/plugin/v2",
+  "id": "qian.data",
+  "version": "1.0.0",
+  "description": "提供 qian.data 的实际代码入口与配置契约；安装状态按组件验收门管理。",
+  "author": {
+    "name": "Qian"
+  },
+  "license": "Apache-2.0",
+  "interface": {
+    "displayName": "data",
+    "category": "platform"
+  },
+  "inject": [],
+  "provides": [
+    "Data"
+  ],
+  "policy": {
+    "tier": "system",
+    "sandbox": "none",
+    "authentication": "ON_INSTALL",
+    "required": false,
+    "permissions": {
+      "secrets": [
+        {
+          "name": "data/*",
+          "scope": "tenant"
+        }
+      ]
+    }
+  },
+  "scopes": [
+    "global",
+    "tenant"
+  ],
+  "engines": {
+    "kun": ">=2026.10.14"
+  },
+  "runtime": {
+    "form": "module",
+    "entry": "Qian.Data.DataPlugin, Qian.Data",
+    "nuget": [
+      {
+        "id": "Qian.Data",
+        "version": "0.2.0",
+        "digest": "sha256:fcfd40d9c749ce25fcde1d0905eb7e76ba496efa7a2bb52bc33afcdd0a329cf0"
+      }
+    ],
+    "configSchema": "./schemas/config.schema.json"
+  },
+  "x-qian-generated": {
+    "$generated": true,
+    "fields": [
+      "/inject",
+      "/provides",
+      "/runtime/form",
+      "/runtime/entry",
+      "/runtime/configSchema"
+    ],
+    "tools": [],
+    "metadata": {
+      "schemas/config.schema.json": {
+        "$generated": true,
+        "component": "qian.data",
+        "source": "Qian.Data.DataPlugin, Qian.Data",
+        "sha256": "0339669f195115415707bf18043ce222ee9d299046f53d0824c5873210f2ea98",
+        "fields": [
+          ""
+        ]
+      }
+    }
+  }
+}

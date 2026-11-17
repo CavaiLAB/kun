@@ -1,0 +1,45 @@
+[
+  {
+    "resource": "customer",
+    "actions": [
+      "read"
+    ],
+    "risk": {
+      "read": "low"
+    },
+    "stepUp": [],
+    "terminals": {
+      "read": []
+    }
+  },
+  {
+    "resource": "customer",
+    "actions": [
+      "write"
+    ],
+    "risk": {
+      "write": "low"
+    },
+    "stepUp": [],
+    "terminals": {
+      "write": []
+    }
+  },
+  {
+    "resource": "customer",
+    "actions": [
+      "export"
+    ],
+    "risk": {
+      "export": "high"
+    },
+    "stepUp": [
+      "export"
+    ],
+    "terminals": {
+      "export": [
+        "web"
+      ]
+    }
+  }
+]

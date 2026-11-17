@@ -1,0 +1,4 @@
+[
+  { "resource": "diagnostics", "actions": ["read"] },
+  { "resource": "install", "actions": ["approve"] }
+]

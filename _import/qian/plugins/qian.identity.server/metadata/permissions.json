@@ -1,0 +1,28 @@
+[
+  {
+    "resource": "member",
+    "actions": [
+      "create"
+    ],
+    "risk": {
+      "create": "medium"
+    },
+    "stepUp": [],
+    "terminals": {
+      "create": []
+    }
+  },
+  {
+    "resource": "member",
+    "actions": [
+      "disable"
+    ],
+    "risk": {
+      "disable": "low"
+    },
+    "stepUp": [],
+    "terminals": {
+      "disable": []
+    }
+  }
+]

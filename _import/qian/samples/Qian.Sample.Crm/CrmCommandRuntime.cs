@@ -1,0 +1,87 @@
+using System.Text.Json;
+using Kun.Core.MultiTenancy;
+using Qian.Audit;
+using Qian.Authz;
+using Qian.Authz.Abstractions;
+using Qian.Data;
+using Qian.Events;
+using Qian.Plugin.Sdk;
+using Qian.Runtime;
+using Qian.Runtime.Errors;
+using Qian.Tenancy;
+
+namespace Qian.Sample.Crm;
+
+/// <summary>参考宿主的实际插件树；不宣称完整 platform 或 Identity 服务已部署。</summary>
+public sealed class CrmCommandRuntime(IServiceProvider services, ITenantContext tenant) : IHostedService, IAsyncDisposable
+{
+    private readonly PluginLoader _loader = new(services);
+    private IDisposable? _permissions;
+    internal PluginLoader Loader => _loader;
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        // 端点的权限判定器（RequireKunPermission）读宿主的同一份活动登记表。宿主自己也持有一份同内容登记（与 Provider 共享租约），
+        // authz 组件卸载后业务端点仍按依赖缺失返回 404，而不是因声明撤销先在端点判定处报 403（T23 的 dependency-removed）。
+        var catalog = CrmPermissions.Compile();
+        _permissions = services.GetRequiredService<IPermissionRegistry>().Register(catalog.Version, catalog.Permissions);
+        IReadOnlyList<PluginDefinition> providers = [
+            Define("data", "qian.data", new DataPlugin(), [DataDefinition.Key]),
+            Define("events", "qian.events", new EventsPlugin(), [EventsDefinition.Key]),
+            // 声明 Tenancy 的全部输出（与 TenancyComponent 的 Provides 一致）：依赖开通编排、状态机或运营端口的组件（如 qian.tenancy.signup）挂进同一棵树时按声明校验依赖。
+            Define("tenancy", "qian.tenancy", new TenancyPlugin(), TenancyKeys, TenancyConfiguration(services.GetRequiredService<IConfiguration>())),
+            // 完整 Authz Provider：持久化并登记本应用 metadata 编译出的权限目录、注册命令 PEP、提供 ctx.Authz，并监听 tenant/provisioned 实例化默认角色。
+            // 与分发入口使用同一组服务输出；这个程序化适配器额外接受本应用的权限目录。
+            Define("authz", "qian.authz", new AuthzPlugin([catalog]), [CommandPolicies.AuthorizationKey, AuthzDefinition.Key, AuthzDefinition.PermissionsKey, AuthzDefinition.ResourceTypesKey, AuthzDefinition.SuperadminBypassKey, AuthzDefinition.SuperadminCheckKey, AuthzEnforcement.Key, TenantRoleGrant.Key], AuthzConfiguration(services.GetRequiredService<IConfiguration>())),
+            Define("audit", "qian.audit", new AuditPlugin(), [AuditDefinition.Key, CommandPolicies.AuditKey]),
+            Define("crm", "qian.sample.crm", new CrmPlugin(), [CrmDefinition.Key])];
+        var assembly = services.GetService<ICrmRuntimeAssembly>();
+        if (assembly is not null) providers = await assembly.ComposeAsync(_loader, providers, cancellationToken).ConfigureAwait(false);
+        await _loader.MountAsync(providers, cancellationToken).ConfigureAwait(false);
+        foreach (var definition in providers)
+            if (_loader.GetState(definition.Entry.Id, definition.Entry.Scope) != PluginState.Ready)
+                throw new InvalidOperationException("参考宿主必要组件未就绪：" + definition.Entry.Id, _loader.GetFailure(definition.Entry.Id, definition.Entry.Scope));
+        if (assembly is not null) await assembly.ReadyAsync(_loader, cancellationToken).ConfigureAwait(false);
+    }
+    public IPluginContext Source()
+    {
+        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        try
+        {
+            // 平台宿主经 Lifecycle 把组件挂进租户 scope 时优先用该租户自己的条目（版本可能与全局不同），否则用全局条目。
+            var scope = new ScopeKey("tenant", tenant.TenantId!);
+            var context = _loader.DumpConfig().Any(entry => entry.Id == "crm" && entry.Scope == scope)
+                ? _loader.GetContext("crm", scope) : _loader.GetContext("crm", ScopeKey.Global).Scoped(scope);
+            _ = context.Inject<ICrmCommands>(CrmDefinition.Key); return context;
+        }
+        catch (Exception error) when (error is ServiceNotReadyException or KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
+        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+    }
+    // 当前租户视角的 authz 组件上下文（me/permissions 用）；授权组件未挂载或已卸载时与不存在同为 404。
+    internal IPluginContext AuthzSource()
+    {
+        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        try { return _loader.GetContext("authz", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenant.TenantId!)); }
+        catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
+        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+    }
+    public Task StopAsync(CancellationToken cancellationToken) => DisposeAsync().AsTask();
+    public async ValueTask DisposeAsync()
+    {
+        await _loader.DisposeAsync().ConfigureAwait(false); Interlocked.Exchange(ref _permissions, null)?.Dispose();
+    }
+    // Tenancy 条目声明的全部服务输出；平台控制台（S1-YUE-018）的验收宿主把同一条目换成带 UI 清单的包装时沿用同一组声明。
+    internal static IReadOnlyList<ServiceKey> TenancyKeys { get; } = [TenancyDefinition.Key, TenantSettings.Key, TenantSettings.OperationsKey, TenantSettings.QuotaKey, TenantLifecycle.Key,
+        TenantOperations.Key, TenantAdministration.Key, TenantProvisioning.Key, CommandPolicies.TenancyKey];
+    // 决策审计采样（S1-AZ-004）：放行判定写入审计链的比例，缺省 1 全记；拒绝必记，不受此项影响。
+    internal static JsonElement AuthzConfiguration(IConfiguration configuration) => JsonSerializer.SerializeToElement(new
+    {
+        decisionLogSampling = configuration.GetValue<double?>("Authz:DecisionLogSampling") ?? 1d
+    });
+    internal static JsonElement TenancyConfiguration(IConfiguration configuration) => JsonSerializer.SerializeToElement(new
+    {
+        resolver = new { mode = configuration["Tenancy:Resolver:Mode"] ?? "production", allowHeaderFallback = configuration.GetValue<bool>("Tenancy:Resolver:AllowHeaderFallback") },
+        initializationCapabilities = configuration.GetSection("Tenancy:InitializationCapabilities").Get<string[]>() ?? []
+    });
+    private static PluginDefinition Define(string id, string component, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
+        new PluginEntry(id, component, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
+}

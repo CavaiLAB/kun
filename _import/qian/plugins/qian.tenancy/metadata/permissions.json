@@ -1,0 +1,36 @@
+[
+  {
+    "resource": "tenant",
+    "actions": [
+      "read",
+      "create",
+      "edit",
+      "activate",
+      "suspend",
+      "resume",
+      "scan"
+    ],
+    "risk": {
+      "create": "critical",
+      "edit": "high",
+      "suspend": "critical",
+      "activate": "high",
+      "resume": "high",
+      "scan": "high"
+    }
+  },
+  {
+    "resource": "admin",
+    "actions": [
+      "read",
+      "create",
+      "assign",
+      "reset-credential"
+    ],
+    "risk": {
+      "create": "high",
+      "assign": "critical",
+      "reset-credential": "critical"
+    }
+  }
+]

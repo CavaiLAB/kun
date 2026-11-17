@@ -1,0 +1,70 @@
+{
+  "$schema": "https://qian.dev/schemas/plugin/v2",
+  "id": "qian.identity.connector.oidc",
+  "version": "1.0.0",
+  "description": "提供 qian.identity.connector.oidc 的实际代码入口与配置契约；安装状态按组件验收门管理。",
+  "author": {
+    "name": "Qian"
+  },
+  "license": "Apache-2.0",
+  "interface": {
+    "displayName": "identity.connector.oidc",
+    "category": "platform"
+  },
+  "inject": [
+    "Config",
+    "Identity"
+  ],
+  "provides": [
+    "Identity.Connectors:oidc"
+  ],
+  "policy": {
+    "tier": "system",
+    "sandbox": "none",
+    "authentication": "ON_INSTALL",
+    "required": false,
+    "egress": [
+      "idp.example.internal:443"
+    ],
+    "permissions": {
+      "secrets": [
+        {
+          "name": "identity/oidc/client-secret",
+          "scope": "platform"
+        }
+      ]
+    }
+  },
+  "scopes": [
+    "global",
+    "tenant"
+  ],
+  "x-skeleton": true,
+  "runtime": {
+    "form": "module",
+    "entry": "Qian.Identity.Connector.Oidc.OidcConnectorComponent, Qian.Identity.Connector.Oidc",
+    "configSchema": "./schemas/config.schema.json"
+  },
+  "x-qian-generated": {
+    "$generated": true,
+    "fields": [
+      "/inject",
+      "/provides",
+      "/runtime/form",
+      "/runtime/entry",
+      "/runtime/configSchema"
+    ],
+    "tools": [],
+    "metadata": {
+      "schemas/config.schema.json": {
+        "$generated": true,
+        "component": "qian.identity.connector.oidc",
+        "source": "Qian.Identity.Connector.Oidc.OidcConnectorComponent, Qian.Identity.Connector.Oidc",
+        "sha256": "14b4c669025a857e0c46599b0b3062443a05f4401e35d6aac52e8512abf6e9d1",
+        "fields": [
+          ""
+        ]
+      }
+    }
+  }
+}

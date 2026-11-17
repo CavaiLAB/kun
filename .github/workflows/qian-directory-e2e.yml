@@ -1,0 +1,47 @@
+name: qian-directory-e2e
+# 原 Qian 的 directory-e2e 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
+# 原件在 _import/qian/.github/workflows/directory-e2e.yml，不动；GitHub 只读仓库根的 .github/workflows/。
+# 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、上传路径加 _import/qian/ 前缀；
+# 路径过滤末尾加上本文件。检查本身不变。
+on:
+  push:
+    branches: [main]
+    paths: ['_import/qian/apps/yue-playground/directory.html', '_import/qian/apps/yue-playground/src/directory-main.tsx', '_import/qian/apps/yue-playground/src/index.css', '_import/qian/apps/yue-playground/vite.config.ts', '_import/qian/apps/yue-playground/vite.directory.config.ts', '_import/qian/apps/yue-playground/playwright.directory.config.ts', '_import/qian/apps/yue-playground/e2e-directory/**', '_import/qian/apps/yue-playground/scripts/directory-e2e.mjs', '_import/qian/apps/yue-playground/package.json', '_import/qian/packages/yue/**', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/tools/openapi-codegen/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/turbo.json', '_import/qian/.github/workflows/directory-e2e.yml', '.github/workflows/qian-directory-e2e.yml']
+  pull_request:
+    paths: ['_import/qian/apps/yue-playground/directory.html', '_import/qian/apps/yue-playground/src/directory-main.tsx', '_import/qian/apps/yue-playground/src/index.css', '_import/qian/apps/yue-playground/vite.config.ts', '_import/qian/apps/yue-playground/vite.directory.config.ts', '_import/qian/apps/yue-playground/playwright.directory.config.ts', '_import/qian/apps/yue-playground/e2e-directory/**', '_import/qian/apps/yue-playground/scripts/directory-e2e.mjs', '_import/qian/apps/yue-playground/package.json', '_import/qian/packages/yue/**', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/tools/openapi-codegen/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/turbo.json', '_import/qian/.github/workflows/directory-e2e.yml', '.github/workflows/qian-directory-e2e.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: qian-directory-e2e-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    working-directory: _import/qian
+jobs:
+  acceptance:
+    name: 真实目录选择器验收
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: _import/qian/global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+          package_json_file: _import/qian/package.json
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter yue-playground exec playwright install --with-deps chromium
+      - run: pnpm --filter @idadawn/yue-biz contracts:check && pnpm --filter yue-playground typecheck
+      - run: pnpm --filter yue-playground e2e:directory
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: directory-e2e
+          path: _import/qian/TestResults/directory-e2e/
+          if-no-files-found: ignore

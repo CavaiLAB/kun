@@ -1,0 +1,43 @@
+{
+  "name": "@qian/tenancy-ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "e2e": "node scripts/e2e.mjs",
+    "contracts:generate": "pnpm --workspace-root openapi:generate --source plugins/qian.tenancy/contracts/http-v1.openapi.json --output packages/qian-tenancy-ui/src/api.generated.ts --schema-output packages/qian-tenancy-ui/src/http-contract.generated.json",
+    "contracts:check": "pnpm --workspace-root openapi:generate --source plugins/qian.tenancy/contracts/http-v1.openapi.json --output packages/qian-tenancy-ui/src/api.generated.ts --schema-output packages/qian-tenancy-ui/src/http-contract.generated.json --check",
+    "build:remote": "vite build --config vite.remote.config.ts && node scripts/verify-remote-types.mjs"
+  },
+  "dependencies": {
+    "@idadawn/yue-core": "workspace:^",
+    "@idadawn/yue-form": "workspace:^",
+    "@idadawn/yue-data": "workspace:^",
+    "@idadawn/yue-sdk": "workspace:^",
+    "@idadawn/yue-contracts": "workspace:^",
+    "@idadawn/yue-tokens": "workspace:^",
+    "@idadawn/qian-plugin-sdk": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "tailwindcss": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@playwright/test": "catalog:",
+    "@axe-core/playwright": "catalog:",
+    "@module-federation/vite": "catalog:"
+  }
+}

@@ -1,0 +1,174 @@
+name: qian-yue
+
+# 原 Qian 的 yue 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
+# 原件在 _import/qian/.github/workflows/yue.yml，不动；GitHub 只读仓库根的 .github/workflows/。
+# yue 前端框架的包（packages/yue/*）、组件演练场（apps/yue-playground）与门禁自测（tests/gates/yue）归前端仓库 CavaiLAB/qian：
+# 在本仓库里只读，改动去前端仓库做；本文件随前端目录在 B11 由前端计划的执行会话删除。
+# 门禁矩阵也覆盖留在本仓库的外壳应用与界面包，在 B11 之前照原件一起查。
+# 相对原件只改了位置：run 步骤的工作目录、路径过滤、缓存键、package.json、上传路径加 _import/qian/ 前缀；
+# 路径过滤末尾加上本文件。检查本身不变：lint、typecheck、unit、a11y、lighthouse、boundaries、publint、circular 八项与视觉回归。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "_import/qian/scripts/yue-visual.mjs"
+      - "_import/qian/packages/yue/**"
+      - "_import/qian/packages/qian-tenancy-ui/**"
+      - "_import/qian/packages/qian-identity-ui/**"
+      - "_import/qian/packages/qian-shell-kit/**"
+      - "_import/qian/samples/qian-sample-crm-ui/**"
+      - "_import/qian/schemas/v2/ui.schema.json"
+      - "_import/qian/packages/qian-plugin-sdk/**"
+      - "_import/qian/packages/qian-runtime/**"
+      - "_import/qian/tools/openapi-codegen/**"
+      - "_import/qian/apps/**"
+      - "_import/qian/tests/gates/yue/**"
+      - "_import/qian/package.json"
+      - "_import/qian/pnpm-lock.yaml"
+      - "_import/qian/pnpm-workspace.yaml"
+      - "_import/qian/turbo.json"
+      - "_import/qian/eslint.config.mjs"
+      - "_import/qian/eslint.boundaries.config.mjs"
+      - "_import/qian/.dependency-cruiser.cjs"
+      - "_import/qian/vitest.config.ts"
+      - "_import/qian/.github/workflows/yue.yml"
+      - ".github/workflows/qian-yue.yml"
+  pull_request:
+    paths:
+      - "_import/qian/scripts/yue-visual.mjs"
+      - "_import/qian/packages/yue/**"
+      - "_import/qian/packages/qian-tenancy-ui/**"
+      - "_import/qian/packages/qian-identity-ui/**"
+      - "_import/qian/packages/qian-shell-kit/**"
+      - "_import/qian/samples/qian-sample-crm-ui/**"
+      - "_import/qian/schemas/v2/ui.schema.json"
+      - "_import/qian/packages/qian-plugin-sdk/**"
+      - "_import/qian/packages/qian-runtime/**"
+      - "_import/qian/tools/openapi-codegen/**"
+      - "_import/qian/apps/**"
+      - "_import/qian/tests/gates/yue/**"
+      - "_import/qian/package.json"
+      - "_import/qian/pnpm-lock.yaml"
+      - "_import/qian/pnpm-workspace.yaml"
+      - "_import/qian/turbo.json"
+      - "_import/qian/eslint.config.mjs"
+      - "_import/qian/eslint.boundaries.config.mjs"
+      - "_import/qian/.dependency-cruiser.cjs"
+      - "_import/qian/vitest.config.ts"
+      - "_import/qian/.github/workflows/yue.yml"
+      - ".github/workflows/qian-yue.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qian-yue-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+  CI: true
+
+defaults:
+  run:
+    working-directory: _import/qian
+
+jobs:
+  gate:
+    name: 门禁 (${{ matrix.gate }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        gate: [lint, typecheck, unit, a11y, lighthouse, boundaries, publint, circular]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: _import/qian/package.json
+      - name: pnpm 缓存目录
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('_import/qian/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+      - run: pnpm install --frozen-lockfile
+
+      - name: Playwright Chromium（unit / a11y）
+        if: matrix.gate == 'unit' || matrix.gate == 'a11y'
+        run: pnpm --filter yue-playground exec playwright install --with-deps chromium
+
+      - name: 构建靶场（a11y / lighthouse）
+        if: matrix.gate == 'a11y' || matrix.gate == 'lighthouse'
+        run: pnpm --filter yue-playground build
+
+      - name: lint
+        if: matrix.gate == 'lint'
+        run: pnpm yue:lint
+      - name: typecheck
+        if: matrix.gate == 'typecheck'
+        run: pnpm yue:typecheck
+      - name: unit（Vitest：门禁自测、SSR、浏览器测试）
+        if: matrix.gate == 'unit'
+        run: |
+          pnpm --filter @idadawn/yue-contracts contracts:check
+          node --test packages/qian-plugin-sdk/scripts/private-publication.test.mjs
+          pnpm yue:test
+      - name: a11y（Playwright + axe，critical / serious = 0）
+        if: matrix.gate == 'a11y'
+        run: pnpm yue:a11y
+      - name: lighthouse（首屏 script 体积预算）
+        if: matrix.gate == 'lighthouse'
+        run: pnpm yue:lighthouse
+      - name: boundaries（分层边界）
+        if: matrix.gate == 'boundaries'
+        run: pnpm yue:boundaries
+      - name: publint（发布形状，先 build）
+        if: matrix.gate == 'publint'
+        run: pnpm yue:publint
+      - name: circular（循环依赖）
+        if: matrix.gate == 'circular'
+        run: pnpm yue:circular
+
+      - name: 上传报告
+        if: failure() && (matrix.gate == 'a11y' || matrix.gate == 'lighthouse')
+        uses: actions/upload-artifact@v4
+        with:
+          name: yue-${{ matrix.gate }}-report
+          path: |
+            _import/qian/apps/yue-playground/playwright-report
+            _import/qian/apps/yue-playground/test-results
+            _import/qian/apps/yue-playground/.lighthouseci
+          if-no-files-found: ignore
+
+  visual:
+    name: 视觉回归
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: _import/qian/package.json
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter yue-playground build
+      - name: 在统一 Linux 浏览器与系统字体环境校验基线
+        run: pnpm yue:visual
+      - name: 上传视觉差异与追踪
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yue-visual-report
+          path: _import/qian/apps/yue-playground/.visual-results/results
+          if-no-files-found: ignore

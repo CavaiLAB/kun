@@ -5,8 +5,9 @@ metadata:
 spec:
   replicas: 1
   # 滚动更新（S1-PM-005）：新 Pod 就绪（首版看板生成完）后才停旧 Pod；新 Pod 拉不到镜像或排不上时，旧版照常提供看板。
-  # 前提是 qd 的 CPU 请求余量放得下第二个 Pod：2026-10-16 qd 已请求 7980m / 8000m，所以三个容器各只请求 5m
-  #（实测 git-sync 4m、builder 1m、nginx 1m），一个 Pod 共 15m。余量不足时新 Pod 停在 Pending，不影响旧版。
+  # 前提是 qd 的 CPU 请求余量放得下第二个 Pod。2026-11-17 qd 已请求 7995m / 8000m，只剩 5m，产品负责人定三个容器
+  # 各请求 1m（原为 5m；2026-11-17 实测 git-sync 0m、builder 1m、nginx 1m），一个 Pod 共 3m；CPU 上限不变。
+  # 余量不足时新 Pod 停在 Pending，不影响旧版。
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -57,7 +58,8 @@ spec:
             - name: repo
               mountPath: /git
           resources:
-            requests: { cpu: 5m, memory: 32Mi }
+            # CPU 请求 1m：qd 余量只剩 5m，2026-11-17 产品负责人定为 1m（实测 0–1m），上限不变，见上面 strategy 的注释
+            requests: { cpu: 1m, memory: 32Mi }
             limits: { cpu: 200m, memory: 128Mi }
           securityContext:
             allowPrivilegeEscalation: false
@@ -84,7 +86,8 @@ spec:
               mountPath: /opt/builder
               readOnly: true
           resources:
-            requests: { cpu: 5m, memory: 32Mi }
+            # CPU 请求 1m：qd 余量只剩 5m，2026-11-17 产品负责人定为 1m（实测 0–1m），上限不变，见上面 strategy 的注释
+            requests: { cpu: 1m, memory: 32Mi }
             limits: { cpu: 500m, memory: 128Mi }
           securityContext:
             allowPrivilegeEscalation: false
@@ -120,7 +123,8 @@ spec:
             httpGet: { path: /healthz, port: http }
             periodSeconds: 30
           resources:
-            requests: { cpu: 5m, memory: 16Mi }
+            # CPU 请求 1m：qd 余量只剩 5m，2026-11-17 产品负责人定为 1m（实测 0–1m），上限不变，见上面 strategy 的注释
+            requests: { cpu: 1m, memory: 16Mi }
             limits: { cpu: 100m, memory: 64Mi }
           securityContext:
             allowPrivilegeEscalation: false

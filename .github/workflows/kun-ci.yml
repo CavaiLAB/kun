@@ -1,7 +1,7 @@
 name: kun-ci
 
-# 原 Kun 的 CI，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
-# 原件在 _import/kun/.github/workflows/ci.yml，不动；GitHub 只读仓库根的 .github/workflows/。
+# 原 Kun 的 CI，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）；B2 把原 Kun 提到仓库根之后改为在仓库根运行。
+# 原件在 .github/originals/kun/workflows/ci.yml，不动（B2 从 _import/kun/.github/ 挪过去，GitHub 不读那一层）。
 # 相对原件的改动：
 #   - runs-on 由自托管的 [self-hosted, qd] 改为 GitHub 托管的 ubuntu-24.04（本仓库没有接自托管 runner）。
 #     qd 是 Ubuntu 24.04，这里钉同一个 LTS：这是托管 runner 里与原件最接近的环境，也不会随 ubuntu-latest
@@ -10,25 +10,37 @@ name: kun-ci
 #     托管镜像预装了 .NET SDK 11.0.100，qd 上没有。网关包独立消费者在仓库外（没有 global.json）发布时会选到它，
 #     而外层 dotnet test 传下来的 MSBuildSDKsPath、MSBuildExtensionsPath 指向 10.0.404，MSBuild 11 去起 10.0.404
 #     的 .NET 任务宿主，握手对不上（MSB4216）。装到独立目录后仓库内外都用 10.0.404，与 qd 上的情形一致；
-#   - run 步骤的工作目录、global.json、上传路径加 _import/kun/ 前缀；
-#   - 原件不设路径过滤（原仓库里每个改动都属于原 Kun），这里改为只在 _import/kun/** 或本文件改动时运行；
+#   - 原件不设路径过滤（原仓库里每个改动都属于原 Kun）。这里只在原 Kun 的代码、构建文件与本文件改动时运行：
+#     只改 _import/ 下的原 Qian、只改文档（仓库根的说明文件、docs/、各目录里的 Markdown）都不触发。
+#     打进网关包的 src/Kun.Gateway/GATEWAY.md 例外，打包冒烟会用到它；
 #   - 显式写出 permissions: contents: read。
-# 作业、步骤、命令与测试过滤条件照原件，不增不减。
+# 命令都在仓库根运行，与原件相同；作业、步骤、命令与测试过滤条件照原件，不增不减。
 # 没接的原 Kun 工作流：benchmarks.yml（基准，只在自托管 runner 上跑）、oss-live-smoke.yml（对象存储实测，
 # 要自托管 runner 与 OSS_SMOKE_* 密钥）、release.yml（发版，推 nuget.org 与 GitHub Packages）、
-# release-drafter.yml（发布说明草稿）。
+# release-drafter.yml（发布说明草稿），说明见 .github/originals/kun/README.md。
 
 on:
   push:
     branches: [main, develop]
-    paths:
-      - '_import/kun/**'
+    paths: &kun-paths
+      - 'src/**'
+      - 'tests/**'
+      - 'samples/**'
+      - 'benchmarks/**'
+      - 'tools/**'
+      - 'scripts/**'
+      - '!**/*.md'
+      - 'src/Kun.Gateway/GATEWAY.md'
+      - 'Kun.sln'
+      - 'global.json'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - '.editorconfig'
+      - '.gitattributes'
       - '.github/workflows/kun-ci.yml'
   pull_request:
     branches: [main, develop]
-    paths:
-      - '_import/kun/**'
-      - '.github/workflows/kun-ci.yml'
+    paths: *kun-paths
 
 permissions:
   contents: read
@@ -37,10 +49,6 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-
-defaults:
-  run:
-    working-directory: _import/kun
 
 jobs:
   build:
@@ -56,7 +64,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/kun/global.json
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore
@@ -101,7 +109,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: '_import/kun/**/coverage.cobertura.xml'
+          path: '**/coverage.cobertura.xml'
 
   # Full-module AOT audit — every IsAotCandidate=true project is fanned
   # out across a job matrix so a trim / AOT regression in one module
@@ -146,7 +154,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/kun/global.json
+          global-json-file: global.json
 
       - name: Install NativeAOT prerequisites
         # ubuntu-24.04 自带 clang 与 zlib1g-dev，通常跳过；缺失时才 sudo apt（托管 runner 有免密 sudo）。
@@ -181,7 +189,7 @@ jobs:
           # 只装 global.json 解析出的 SDK，不用托管镜像预装的那一套（其中有 SDK 11.0.100），原因见文件开头。
           DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
         with:
-          global-json-file: _import/kun/global.json
+          global-json-file: global.json
 
       - name: Install NativeAOT prerequisites
         # ubuntu-24.04 自带 clang 与 zlib1g-dev，通常跳过；缺失时才 sudo apt（托管 runner 有免密 sudo）。
@@ -214,7 +222,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/kun/global.json
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore

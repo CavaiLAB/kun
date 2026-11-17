@@ -1,0 +1,101 @@
+using System.Text.Json.Serialization;
+using Kun.Gateway.Configuration;
+using Kun.Gateway.Jwks;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+
+namespace Kun.Gateway.Endpoints;
+
+/// <summary>
+/// Extension methods for mapping the public JWKS endpoint.
+/// </summary>
+public static class JwksEndpoint
+{
+    /// <summary>
+    /// Maps <c>/.well-known/jwks.json</c> — returns the gateway's RSA public key as a JSON Web Key Set.
+    /// The <c>kid</c> is derived from the SHA-256 hash of the RSA modulus for stable key identification.
+    /// Response is cached by <see cref="JwksResponseBuilder"/> and only rebuilt when the
+    /// underlying public-key file is modified.
+    /// </summary>
+    /// <param name="endpoints">The endpoint route builder.</param>
+    /// <param name="additionalGate">
+    /// Optional predicate evaluated on each request. Return <see langword="false"/> to respond 404.
+    /// Typical use is a production-only allow-list (e.g. loopback only when this route is
+    /// supposed to be reachable only via mesh-internal hops). When <see langword="null"/>,
+    /// no additional gating is applied.
+    /// </param>
+    /// <returns>The <see cref="IEndpointConventionBuilder"/> for the mapped route.</returns>
+    public static IEndpointConventionBuilder MapKunJwks(
+        this IEndpointRouteBuilder endpoints,
+        Func<HttpContext, bool>? additionalGate = null)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+
+        // 显式选择 RequestDelegate 重载；普通 NuGet 包不能依赖消费宿主重生成库内端点。
+        RequestDelegate handler = httpContext =>
+        {
+            var options = httpContext.RequestServices.GetRequiredService<IOptions<KunGatewayOptions>>();
+            var builder = httpContext.RequestServices.GetRequiredService<JwksResponseBuilder>();
+            if (additionalGate is not null && !additionalGate(httpContext))
+            {
+                return Results.NotFound().ExecuteAsync(httpContext);
+            }
+
+            var keySet = httpContext.RequestServices.GetService<S2sSigningKeyRing>()?.PublicKeys() ?? builder.Build(options.Value.PublicKeyPath);
+            httpContext.Response.Headers.CacheControl = "no-store";
+            return Results.Json(keySet, JwksJsonContext.Default.JwksResponse).ExecuteAsync(httpContext);
+        };
+        return endpoints.MapGet("/.well-known/jwks.json", handler).AllowAnonymous();
+    }
+}
+
+/// <summary>AOT-serializable JWKS response envelope.</summary>
+[JsonSerializable(typeof(JwksResponse))]
+internal sealed partial class JwksJsonContext : JsonSerializerContext { }
+
+/// <summary>JSON Web Key Set response model.</summary>
+public sealed class JwksResponse
+{
+    /// <summary>The list of public JSON Web Keys.</summary>
+    [JsonPropertyName("keys")]
+    public required IReadOnlyList<JwkDto> Keys { get; init; }
+}
+
+/// <summary>A single JSON Web Key entry in the JWKS response.</summary>
+public sealed class JwkDto
+{
+    /// <summary>Initializes the DTO from a <see cref="JsonWebKey"/>.</summary>
+    public JwkDto(JsonWebKey jwk)
+    {
+        Kty = jwk.Kty;
+        Use = jwk.Use;
+        Kid = jwk.KeyId;
+        Alg = jwk.Alg;
+        N = jwk.N;
+        E = jwk.E;
+    }
+
+    /// <summary>Key type (e.g. <c>RSA</c>).</summary>
+    [JsonPropertyName("kty")]
+    public string Kty { get; }
+
+    /// <summary>Key use (e.g. <c>sig</c>).</summary>
+    [JsonPropertyName("use")]
+    public string? Use { get; }
+
+    /// <summary>Key ID.</summary>
+    [JsonPropertyName("kid")]
+    public string? Kid { get; }
+
+    /// <summary>Algorithm (e.g. <c>RS256</c>).</summary>
+    [JsonPropertyName("alg")]
+    public string? Alg { get; }
+
+    /// <summary>RSA modulus (Base64Url-encoded).</summary>
+    [JsonPropertyName("n")]
+    public string? N { get; }
+
+    /// <summary>RSA public exponent (Base64Url-encoded).</summary>
+    [JsonPropertyName("e")]
+    public string? E { get; }
+}

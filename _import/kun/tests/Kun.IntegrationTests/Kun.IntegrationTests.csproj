@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../samples/Kun.Sample.Catalog/Kun.Sample.Catalog.csproj" />
+    <ProjectReference Include="../../src/Kun.AspNetCore/Kun.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Grpc/Kun.Grpc.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.AspNetCore/Kun.Identity.AspNetCore.csproj" />
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
+    <PackageReference Include="Google.Protobuf" />
+    <Protobuf Include="Grpc/streaming.proto" GrpcServices="Both" />
+    <ProjectReference Include="../../src/Kun.Configuration/Kun.Configuration.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Apollo/Kun.Configuration.Apollo.csproj" />
+    <!-- Testcontainers 4.0 transitively requests vulnerable SSH.NET 2023; retain the audit gate. -->
+    <PackageReference Include="SSH.NET" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\Kun.Auditing\Kun.Auditing.csproj" />
+    <ProjectReference Include="..\..\src\Kun.EntityFrameworkCore\Kun.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Dapper\Kun.Dapper.csproj" />
+    <ProjectReference Include="..\..\src\Kun.EventBus.RabbitMQ\Kun.EventBus.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Saga\Kun.Saga.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Security\Kun.Security.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Gateway\Kun.Gateway.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Storage\Kun.Storage.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Storage.Abstractions\Kun.Storage.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Storage.S3\Kun.Storage.S3.csproj" />
+    <PackageReference Include="JsonSchema.Net" PrivateAssets="all" />
+    <None Update="Fixtures/s2s-claims.schema.json" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.RabbitMq" />
+    <PackageReference Include="Testcontainers.Redis" />
+    <PackageReference Include="Testcontainers.Minio" />
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+</Project>

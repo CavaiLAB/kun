@@ -1,0 +1,194 @@
+# 贡献指南
+
+感谢您对 **Kun Framework** 的关注！
+
+## 📋 行为准则
+
+本项目采用 [Contributor Covenant](https://www.contributor-covenant.org/) 行为准则。请保持专业、尊重与建设性。
+
+## 🛠️ 开发环境
+
+### 必需工具
+
+- **.NET 10 SDK** (`10.0.100` 或更高) —— 版本在 `global.json` 中锁定
+- **Docker** —— 运行集成测试（Testcontainers）
+- **Git**
+
+### 推荐工具
+
+- **Visual Studio 2026** / **JetBrains Rider 2026.x** / **VS Code + C# Dev Kit**
+- **Claude Code** —— 仓库 `.claude/skills/` 下已预置 Kun 专属技能包，可大幅提升 Claude 生成代码的合规度
+
+### 初始构建
+
+```bash
+dotnet restore
+dotnet build
+dotnet test
+```
+
+## 🏗️ 分层原则（非常重要）
+
+Kun Framework 严格遵守分层依赖，**任何 PR 违反这些规则都会被拒绝**：
+
+```
+Kun.Core
+  └─ Kun.Mediator / Kun.Infrastructure / Kun.EventBus / Kun.Security / Kun.Validation
+       └─ Kun.EntityFrameworkCore / Kun.Dapper / Kun.EventBus.RabbitMQ / Kun.Saga
+            └─ Kun.AspNetCore / Kun.Grpc / Kun.Gateway
+```
+
+- **`Kun.Core` 零依赖**：不引用任何第三方包（连 EF Core、Dapper 都不行）
+- **领域层零基础设施**：`AggregateRoot` 等基类绝不携带 ORM / JSON / 验证框架的任何属性
+- **持久化映射下沉**：`IEntityTypeConfiguration<T>` 位于 `Kun.EntityFrameworkCore` 或业务项目的 Infrastructure 层
+
+## 🎯 AOT 兼容性约定
+
+每个模块的 csproj 会声明 `<IsAotCandidate>true</IsAotCandidate>`。**AOT 候选模块中**：
+
+- ❌ 禁止使用运行时反射（`Activator.CreateInstance`、`Type.GetMethod`、`MakeGenericType` 等）
+- ❌ 禁止在运行时生成 IL（`System.Reflection.Emit`）
+- ✅ 必须使用 `JsonSerializerContext` 源生成而非默认 `JsonSerializer.Serialize`
+- ✅ 必须使用 `[DapperAot]` 特性标注读侧查询方法
+- ✅ CI 会对 AOT 候选服务执行 `dotnet publish -p:PublishAot=true`，零警告才允许合入
+
+## 🤖 使用 Claude Skills
+
+仓库根目录下 `.claude/skills/` 提供了 6 个 Kun 专属技能包。
+
+### 使用 Claude Code
+
+在仓库根目录运行 Claude Code，技能包自动加载。推荐在以下场景显式要求 Claude 参考对应技能：
+
+| 任务 | 触发技能 |
+| :--- | :--- |
+| 新增聚合根、值对象、领域事件 | `kun-ddd-modeling` |
+| 编写 Command / Query Handler | `kun-cqrs-mediator` |
+| 发布集成事件 / 处理消费 | `kun-outbox-events` |
+| 实现跨服务长事务 | `kun-saga` |
+| 编写测试 | `kun-testing` |
+| 任何涉及框架整体约定的工作 | `kun-framework-conventions` |
+
+### 验证规范遵循
+
+在提交 PR 前，建议在 Claude Code 中运行：
+
+```
+> 请根据 .claude/skills/kun-framework-conventions 检查我刚才的改动是否符合框架约定
+```
+
+## 📝 提交规范
+
+本仓库使用 [Conventional Commits](https://www.conventionalcommits.org/)：
+
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+[optional footer]
+```
+
+**Type** 取值：
+
+- `feat`: 新功能
+- `fix`: Bug 修复
+- `docs`: 文档变更
+- `refactor`: 重构（非功能变更）
+- `perf`: 性能优化
+- `test`: 测试相关
+- `build`: 构建系统 / 依赖变更
+- `ci`: CI 配置变更
+- `chore`: 其他杂项
+
+**Scope** 通常是模块名去掉 `Kun.` 前缀：`mediator`、`saga`、`eventbus`、`security`、`gateway` 等。
+
+**示例**：
+
+```
+feat(saga): add timeout detection background service
+
+Implements SagaTimeoutDetector that scans SagaInstance table every 5s
+and triggers compensation for instances where TimeoutAt < UtcNow.
+
+Closes #42
+```
+
+## 🔀 分支策略（Hard rule）
+
+**`main` 不是开发分支。任何人、任何时候、任何理由都不在 `main` 上直接 `commit` 或 `push`**——包括小范围文档修改、紧急修复、"就一条 commit" 都不行。
+
+> **2026-06-11 起**：本仓与下游 `idadawn/iclaw` 同步采用 **trunk-based** 模型，原 `develop` 分支已删除，git-flow 作废。`main` 是唯一长期分支。
+
+所有改动走短命分支 + PR：
+
+| 角色 | 动作 |
+|------|------|
+| 开发者 | 从 `main` 切出 `feat/xxx` / `fix/xxx` / `docs/xxx` / `chore/xxx` 短命分支 |
+| 开发者 | 在特性分支上提交、push |
+| 开发者 | 向 **`main`** 提 PR，链接相关 Issue，填写 PR 模板 |
+| CI | `build` / `test` / `dotnet format` / AOT publish / layering 全部绿 |
+| 维护者 | 至少一位 Approve |
+| 维护者 | Squash / rebase merge 到 `main`，随手删除短命分支 |
+| 维护者（发版时） | 在 `main` 上打 CalVer tag（见下节），tag push 触发 Release workflow |
+
+**为什么**：下游消费方（`idadawn/iclaw` 的 `services/csharp` 及其 CI）经 `ProjectReference` 直接消费 `main`，`main` 必须始终可构建。该策略同时是将来要开启的 GitHub 分支保护（PR-required + status-checks-required）的编码契约：**规则先于工具落地**，工具开启前也不得违反。
+
+**AI Agent 特别提醒**：会话启动前先跑 `git branch --show-current`；如果是 `main`，第一步必须是 `git pull && git checkout -b <type>/<task>`；从未 commit 过主分支。
+
+## 🏷️ 发布与版本规范
+
+**使用 CalVer 日期，tag 一律在 `main` 上打；同日补丁使用 NuGet 兼容的 `hotfix.N` 后缀**。CLI 与 CI 共用 `scripts/release_version.py` 校验（需要 Python 3.9+，见 `.github/workflows/release.yml`）：
+
+| Tag 形式 | 语义 | 示例 |
+| :--- | :--- | :--- |
+| `vYYYY.M.D` | 正式版本 | `v2026.6.12` |
+| `vYYYY.M.D-hotfix.N` | 同日正式修复 / 旧版本热修 | `v2026.6.12-hotfix.2` |
+| `vYYYY.M.D-beta.N` | 预发布（GitHub Release 标 prerelease） | `v2026.6.12-beta.1` |
+
+规则：
+
+- 月、日**不补零**，日期必须有效，后缀序号为无前导零的正整数。
+- 所有 tag 必须指向 `main` 上可达的 commit；其它形式（含旧的 `vX.Y.Z`、`-alpha`、`-rc`）一律被 Release workflow 拒绝。
+- 旧版本紧急修复：在独立分支完成修复与 CI，经 PR 合入 `main` 后，从已验证提交打补丁 tag，随后清理分支。
+- **NuGet 排序注意**：`-hotfix.N` 在项目语义中是正式修复版、推送 nuget.org，但 NuGet 按带后缀版本排序，低于同日无后缀版本。NuGet 消费端必须显式钉定修复版，不能依赖最新版排序；日期递进的版本继续使用无后缀格式。
+- **修复版之后补发正式版**：发布 `-hotfix.N` 之后，下一个工作日补发无后缀正式版，即使没有其他变更，让 nuget.org 的最新稳定版包含该修复；钉在修复版上的消费端在正式版发布后升级回无后缀版本。首例：`2026.10.12-hotfix.3` 之后补发 `2026.10.13`。
+- `v2026.10.12-2` 的纯数字后缀已被 nuget.org 包清单校验拒绝。该失败标签保留历史，禁止重写或继续发布同类标签。字母加点分段后缀遵循 [NuGet 版本规则](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#semantic-versioning-200)。
+- 推送前校验全部发行包和符号包的实际版本、Kun 内部依赖版本及发行物闭包；缺包或混入其它版本即停止。beta 仅推送 GitHub Packages，GitHub Release 标记为 prerelease。
+- 历史 SemVer tag（`v0.1.0` 等）保留不动，仅作存档；2026-06-11 前的「`main`→稳定 / `develop`→`-beta`」策略作废。
+
+## 🔀 Pull Request 流程
+
+1. **Fork 仓库**（或用内部分支），从最新 `main` 切出特性分支：`feat/xxx` / `fix/xxx` / `docs/xxx` / `chore/xxx` — **绝不直接在 `main` 上提交**
+2. **编写代码 + 测试**。任何新功能必须附带测试。
+3. **本地验证**：
+   ```bash
+   dotnet build -c Release
+   dotnet test
+   # AOT 服务额外验证
+   dotnet publish src/Kun.Gateway -c Release -p:PublishAot=true
+   ```
+4. **提交 PR**：填写 PR 模板，链接相关 Issue，说明影响范围与测试情况
+5. **CI 全绿**：构建、测试、AOT 发布零警告、格式检查通过
+6. **代码审查**：至少一位维护者 Approve 后方可合并
+
+## 🧪 测试要求
+
+参见 [kun-testing skill](.claude/skills/kun-testing/SKILL.md)。简而言之：
+
+- **领域变更** → 领域单元测试（纯内存、无容器）
+- **跨层变更**（仓储、Outbox、Saga）→ Testcontainers 集成测试
+- **gRPC 服务变更** → 契约测试验证 Proto 不破坏兼容性
+
+## 🐛 报告问题
+
+提交 Issue 时请包含：
+
+- 使用的 `.NET` 版本与 `Kun.*` NuGet 版本
+- 最小可复现仓库 / 代码片段
+- 预期行为与实际行为
+- 如涉及运行时错误：完整堆栈与日志
+
+## 📄 许可证
+
+通过提交 PR，您同意将您的贡献以 [MIT 许可证](LICENSE) 发布。

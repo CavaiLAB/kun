@@ -2,7 +2,7 @@
 
 运行：python3 -m unittest discover -s tests/gates -v
 只测门禁的判定逻辑（漂移比对、漏洞阈值与豁免、root 判定、运行期证据），不需要 Docker；
-构建、签名与验签的端到端由 .github/workflows/images.yml 的 selfcheck 真跑。
+构建、签名与验签的端到端由仓库根 ci.yml 的镜像自检作业（scripts/images.py selfcheck）真跑。
 """
 from __future__ import annotations
 

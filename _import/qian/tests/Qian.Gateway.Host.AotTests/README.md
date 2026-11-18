@@ -13,10 +13,10 @@ dotnet publish hosts/Qian.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarnin
 QIAN_REQUIRE_DOCKER=1 QIAN_GATEWAY_HOST_EXECUTABLE=/tmp/qian-gateway-native/Qian.Gateway.Host dotnet test --project tests/Qian.Gateway.Host.AotTests -c Release --report-xunit-trx
 ```
 
-macOS 用固定 Linux 验收镜像运行同一 driver；Docker socket 只交给测试编排进程，生产进程仍通过临时 Secret 文件读取业务凭据：
+macOS 用固定 Linux 验收镜像运行同一 driver；Docker socket 只交给测试编排进程，生产进程仍通过临时 Secret 文件读取业务凭据。镜像的构建上下文是仓库根（`../..`），本目录的项目从源码编译仓库根 `src/` 下的 Kun 项目：
 
 ```bash
-docker build -f hosts/Qian.Gateway.Host/Dockerfile.acceptance -t qian-gateway-host-acceptance:local .
+docker build -f hosts/Qian.Gateway.Host/Dockerfile.acceptance -t qian-gateway-host-acceptance:local ../..
 docker run --rm --entrypoint dotnet -v /var/run/docker.sock:/var/run/docker.sock -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal -e QIAN_REQUIRE_DOCKER=1 -e QIAN_GATEWAY_HOST_EXECUTABLE=/gateway/Qian.Gateway.Host qian-gateway-host-acceptance:local test --project tests/Qian.Gateway.Host.AotTests -c Release --no-build --report-xunit-trx
 ```
 

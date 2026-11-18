@@ -1,13 +1,13 @@
 name: qian-dev-tenant-ops
 
-# 原 Qian 的 dev-tenant-ops 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
-# 原件在 _import/qian/.github/workflows/dev-tenant-ops.yml，不动；GitHub 只读仓库根的 .github/workflows/。
-# 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 加 _import/qian/ 前缀；路径过滤末尾加上本文件。
-# 检查本身不变：原样执行 scripts/dev-tenant-ops.sh smoke（脚本按自身位置定原 Qian 的根）。
-# S1-KUN-020：改由 ci.yml 调用（workflow_call，留着手动触发），推送与拉取请求的触发、并发组都由 ci.yml 管；
-# 路径过滤搬进区域表 scripts/ci_changes.py 的 dev-tenant-ops 区域，另加仓库根的 .NET 构建基线、Kun.slnx、src/；
-# 去掉指向已不存在的 _import/qian/NuGet.config 的一条；
-# setup-dotnet 改读仓库根的 global.json。
+# 租户运营手测环境的冒烟：原样执行 scripts/dev-tenant-ops.sh smoke（脚本按自身位置定 _import/qian/ 为根）。
+# 由 ci.yml 调用，在 _import/qian/ 下运行。
+# 原件在 _import/qian/.github/workflows/dev-tenant-ops.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
+# - 触发：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
+#   路径过滤在区域表 scripts/ci_changes.py 的 dev-tenant-ops 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
+#   Kun.slnx 与 src/；指向已不存在的 _import/qian/NuGet.config 的一条删掉。
+# - 位置：run 步骤的工作目录加 _import/qian/ 前缀；setup-dotnet 读仓库根的 global.json。
+# 检查本身不变。
 
 on:
   # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 dev-tenant-ops），并发组由 ci.yml 统一管（S1-KUN-020）。

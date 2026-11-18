@@ -26,8 +26,10 @@ what ships on the wire — including anything `Results.Problem`, `Produces`,
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-// Core Kun services (mediator, validation, EF, …) first.
-builder.Services.AddKunAspNetCore();
+// Core Kun services (errors, mediator, validation, EF, …) first.
+// AddKunErrors (Kun.Errors.AspNetCore) writes every error response as a
+// problem+json ErrorDetail.
+builder.Services.AddKunErrors();
 builder.Services.AddKunMediator(/* handlers */);
 
 // OpenAPI last — it reads endpoint metadata at request time, so order
@@ -36,7 +38,7 @@ builder.Services.AddKunMediator(/* handlers */);
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
-app.UseExceptionHandler();
+app.UseKunErrors();
 
 // Gate the endpoint on Development by default so production deployments
 // don't silently ship the document. Flip this on explicitly for staging

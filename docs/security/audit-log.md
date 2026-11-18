@@ -30,7 +30,7 @@ services.AddKunEventBus(registry => registry.RegisterAuditing());
 - 主体支持 `string`、`Guid?`、`long?`、`int?`。匿名或系统操作写 null，不用空 Guid 或 0 冒充主体；无法转换的已认证主体拒绝保存。
 - 主体取自上下文创建时解析到的 `ICurrentUser`；宿主没有登记身份适配器时按匿名写 null。数据约定不登记 `ICurrentUser`，身份适配器与它的登记先后不影响结果。
 - C# 无约束泛型的 `T?` 不会把值类型自动变成可空值类型。已有 `AggregateRoot<TKey>`（Guid 主体）需显式迁移为 `AggregateRoot<TKey, Guid?>`，并生成相应数据库迁移；旧公共基类保持兼容。
-- 审计实体映射 shadow `KunRowVersion` 至 PostgreSQL `xmin`。冲突保留 `DbUpdateConcurrencyException`；需要 Result 边界时调用 `SaveChangesResultAsync()`，映射为 `data.concurrency_conflict` / `Conflict`，不自动覆盖获胜写入。
+- 审计实体映射 shadow `KunRowVersion` 至 PostgreSQL `xmin`。冲突保留 `DbUpdateConcurrencyException`；需要 Result 边界时调用 `SaveChangesResultAsync()`，映射为平台错误码 `CONFLICT`（409），不自动覆盖获胜写入。
 
 ## 命令审计哈希链
 

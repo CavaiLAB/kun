@@ -31,6 +31,15 @@
 
 Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语义与迁移见 [Kun ADR-016](../adr/kun/ADR-016-platform-ports.md)。历史 Phase 1 表保留为原始版本快照。
 
+### 错误模型合一（S1-KUN-023）
+
+| 模块 | 职责 | 主要 API | AOT |
+|---|---|---|---|
+| `Kun.Errors` | 错误码与错误码目录、`Error`、`ErrorException`、RFC 9457 problem+json 的 `ErrorDetail`；零依赖 | `ErrorCode`、`ErrorCatalog`、`Error`、`ErrorException`、`PlatformErrors` | true，CI 验证 |
+| `Kun.Errors.AspNetCore` | HTTP 错误映射：`ErrorException` 与框架自己产生的错误一律写成 `ErrorDetail` | `AddKunErrors`、`UseKunErrors`、`KunResults.Error` | true，CI 验证 |
+
+`Kun.Core` 的 `Error`、`ErrorType`、`ResultFailureException` 与 `DomainException` 删除，`Result` 失败时带 `Kun.Errors` 的 `Error`；`Kun.Validation` 的 `ValidationError`、`ValidationException` 删除，校验失败给 `INPUT_INVALID` 与逐项字段错误（字段级错误码 + JSON Pointer）；`Kun.AspNetCore` 只做端点映射（`MapCommand`、`MapQuery`），`AddKunAspNetCore`、异常处理器与 `ToProblemDetails` 删除；`Kun.Grpc` 按错误码的 HTTP 状态映射 gRPC 状态码。上面 Phase 1 表里这几行按原样保留。
+
 ### 持久化（Infrastructure 层）
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |

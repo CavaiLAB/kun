@@ -174,7 +174,7 @@ describe('构建产物里的 Kun 版本检查', () => {
   const banner = (tag: string) => `<p>本页镜像自 kun 仓库 <a><code>docs/x.md</code></a>（<code>${tag}</code>）。</p>`;
   const files = ['sdk/kun/index.html', 'sdk/kun/with-qian.html', 'sdk/api/kun/index.html', 'start/index.html'];
 
-  it('横幅里的 tag 与 KunVersion 一致时通过，手写页不查', () => {
+  it('横幅里的 tag 与 Kun 最新的发布版一致时通过，手写页不查', () => {
     const html: Record<string, string> = { 'sdk/kun/index.html': banner('v2026.9.13'), 'sdk/api/kun/index.html': banner('v2026.9.13') };
     assert.deepEqual(checkKunPages(files, (rel) => html[rel] ?? '', '2026.9.13'), []);
   });
@@ -183,7 +183,7 @@ describe('构建产物里的 Kun 版本检查', () => {
     const html: Record<string, string> = { 'sdk/kun/index.html': banner('v2026.6.12'), 'sdk/api/kun/index.html': '<p>手加的页面</p>' };
     const errors = checkKunPages(files, (rel) => html[rel] ?? '', '2026.9.13');
     assert.equal(errors.length, 2, errors.join('\n'));
-    assert.match(errors[0] ?? '', /v2026\.6\.12 与 KunVersion 2026\.9\.13 不一致/);
+    assert.match(errors[0] ?? '', /v2026\.6\.12 与 Kun 最新的发布版 2026\.9\.13（仓库根 CHANGELOG\.md）不一致/);
     assert.match(errors[1] ?? '', /不是镜像页也不是手写页/);
   });
 });

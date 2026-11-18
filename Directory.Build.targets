@@ -84,9 +84,10 @@
 
       - 平台档的包（KunTier=platform）；
       - 宿主：项目文件里写了 <KunHost>true</KunHost> 的可执行项目；
-      - 过渡期：_import/qian/ 下不打包的项目，即测试、工具、样例。各域批次把它们挪出过渡目录时按归属重定。
+      - 过渡期：_import/qian/ 下的全部项目，内核档的包也在内。那里的包不定义被禁的类型，接着零命中，却够得着被禁的入口
+        与规则管的写法（如令牌透传、IgnoreQueryFilters），所以全部受检；各域批次把包搬出过渡目录时再按归属收窄。
 
-    Kun 的项目与内核档的包不接：被禁的类型就定义在内核档的模块里。Kun 旧类型上的 Obsolete 诊断号（如 KUNS2S001、
+    仓库根上 Kun 的项目不接：被禁的类型就定义在 src/ 下。Kun 旧类型上的 Obsolete 诊断号（如 KUNS2S001、
     KUNLEGACY001）在哪里都随 TreatWarningsAsErrors 报错；接了分析器的项目另把 KUNS2S001 单列为错误。
   -->
   <PropertyGroup Label="分析器作用域">
@@ -94,7 +95,7 @@
     <_KunProjectDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)'))</_KunProjectDirectory>
     <_KunPlatformAnalyzers>false</_KunPlatformAnalyzers>
     <_KunPlatformAnalyzers Condition="'$(KunTier)' == 'platform' or '$(KunHost)' == 'true'">true</_KunPlatformAnalyzers>
-    <_KunPlatformAnalyzers Condition="'$(IsPackable)' != 'true' and $(_KunProjectDirectory.StartsWith('$(_KunTransitionalDirectory)'))">true</_KunPlatformAnalyzers>
+    <_KunPlatformAnalyzers Condition="$(_KunProjectDirectory.StartsWith('$(_KunTransitionalDirectory)'))">true</_KunPlatformAnalyzers>
   </PropertyGroup>
 
   <ItemGroup Label="分析器作用域" Condition="'$(_KunPlatformAnalyzers)' == 'true'">

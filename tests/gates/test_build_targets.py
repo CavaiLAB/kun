@@ -32,14 +32,6 @@ NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI"
 PROPERTIES = ("IsPackable", "KunTier", "KunHost", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
               "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
 ITEMS = ("PackageReference", "ProjectReference", "AdditionalFiles")
-
-# 去内核档的 Qian 包（合并蓝图 D23.9，B3 方案附录 A）：不接禁用符号与平台分析器（D23.14 第 4 点）。
-# 它们现在零命中；被禁的类型定义在内核档的模块里。这份名单变了，说明有包换了档位，要复核它该不该受检。
-KERNEL_QIAN_PACKAGES = {
-    "Qian.Audit.Abstractions", "Qian.Audit.Native", "Qian.Config.Secrets", "Qian.Data.Native.Abstractions",
-    "Qian.Data.Native.Postgres", "Qian.Events", "Qian.Events.Abstractions", "Qian.Gateway", "Qian.Gateway.Abstractions",
-    "Qian.Plugin.Sdk", "Qian.Plugin.Sdk.Generators", "Qian.Runtime", "Qian.Runtime.Errors", "Qian.Runtime.Errors.AspNetCore",
-}
 HOSTS = {"Qian.Platform.Host", "Qian.Gateway.Host"}
 
 
@@ -189,13 +181,12 @@ class PublicApiTests(unittest.TestCase):
 
 @NEEDS_DOTNET
 class AnalyzerScopeTests(unittest.TestCase):
-    """禁用符号与平台分析器只接平台档的包、宿主与 _import/qian/ 下不打包的项目。"""
+    """禁用符号与平台分析器只接平台档的包、宿主与 _import/qian/ 下的全部项目。"""
 
     def test_scope_follows_tier_host_and_transitional_directory(self):
         banned = (ROOT / "BannedSymbols.txt").resolve()
         for path, (props, items) in evaluated().items():
-            expected = (props.get("KunTier") == "platform" or is_true(props, "KunHost")
-                        or (TRANSITIONAL in path.parents and not is_true(props, "IsPackable")))
+            expected = props.get("KunTier") == "platform" or is_true(props, "KunHost") or TRANSITIONAL in path.parents
             with self.subTest(project=path.stem):
                 self.assertEqual(expected, is_true(props, "_KunPlatformAnalyzers"))
                 self.assertEqual(expected, "Microsoft.CodeAnalysis.BannedApiAnalyzers" in package_ids(items))
@@ -203,12 +194,15 @@ class AnalyzerScopeTests(unittest.TestCase):
                 if path.resolve() != ANALYZERS.resolve():
                     self.assertEqual(expected, ANALYZERS.resolve() in analyzer_references(items, path))
 
-    def test_hosts_kernel_packages_and_kun_projects(self):
+    def test_hosts_transitional_directory_and_kun_projects(self):
         projects = evaluated()
         self.assertEqual(HOSTS, {p.stem for p, (props, _) in projects.items() if is_true(props, "KunHost")})
-        unchecked = {p.stem for p, (props, _) in projects.items()
-                     if TRANSITIONAL in p.parents and is_true(props, "IsPackable") and not is_true(props, "_KunPlatformAnalyzers")}
-        self.assertEqual(KERNEL_QIAN_PACKAGES, unchecked)
+        # 过渡期 _import/qian/ 下的项目全部受检，内核档的包也在内：它们不定义被禁的类型，却够得着被禁的入口。
+        # 有人按档位或 IsPackable 把过渡目录下的包放出去，这里列出漏接的项目。各域批次把包搬出过渡目录时再按归属收窄。
+        transitional = {p: props for p, (props, _) in projects.items() if TRANSITIONAL in p.parents}
+        self.assertTrue(any(is_true(props, "IsPackable") and props.get("KunTier") == "kernel" for props in transitional.values()),
+                        "_import/qian/ 下已没有内核档的包：按归属重定作用域，再改这里")
+        self.assertEqual(set(), {p.stem for p, props in transitional.items() if not is_true(props, "_KunPlatformAnalyzers")})
         self.assertEqual(set(), {p.stem for p, (props, _) in projects.items()
                                  if TRANSITIONAL not in p.parents and is_true(props, "_KunPlatformAnalyzers")})
 

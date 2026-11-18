@@ -1,7 +1,7 @@
 ---
 id: S1-DOCS-009
 title: 文档站改指本仓库：仓库链接与「Kun 框架」小节的来源，清掉同批页面里旧名字的描述
-status: review
+status: done
 stage: S1
 area: DOCS
 wave: 4
@@ -27,7 +27,7 @@ updated: 2026-11-19
 - [x] 改动前后各生成一次「Kun 框架」小节比对，除链接地址外内容相同，有差别逐条写在 PR 正文
 - [x] 手写页、README、脚本与测试里指向两个旧仓库的文字和链接改掉；指向历史的改成本仓库里同一提交的固定链接
 - [x] 同批页面里旧名字的描述按规矩清掉，只改措辞、不改意思；改完再扫一遍，剩下的每一处在 PR 正文里说明为什么保留
-- [ ] `pnpm --filter website test`、`python3 scripts/check_docs.py`、`python3 scripts/pm.py validate` 通过，PR 的 CI 全绿
+- [x] `pnpm --filter website test`、`python3 scripts/check_docs.py`、`python3 scripts/pm.py validate` 通过，PR 的 CI 全绿
 
 ## 进度日志
 
@@ -35,3 +35,4 @@ updated: 2026-11-19
 - 2026-11-19 claude：开工：先给「Kun 框架」小节、Kun API 参考、设计与 CLI 镜像页拍改动前的基线，再改 site.ts、repo.ts、kun.ts 与工作流
 - 2026-11-19 claude：转 review：CavaiLAB/kun#29 开出。Kun 小节改动前后比对只差地址与 source，外加概览页一处前端旧名；历史 PR 链接改成本仓库的合并提交；剩余命中逐条写在 PR 正文第 3 节。验收第 4 条差产品族表：前五列与 _import/qian/README.md 由单测核对，README 在范围外，已问计划会话；第 6 条等 CI
 - 2026-11-19 claude：按计划会话答复改产品族表：_import/qian/README.md 同名表只动对应格子（Kun、Qian 两行的仓库列，前端那行的名字与迁出说明，市场那行的账号名），family.md 同步；按产品负责人答复，两张表都删掉私有产品与部署仓库的两行。family.md 表格上方加一句分清平台 Qian 与前端 qian，「合并前原状」那句改成与新表一致。验收第 4 条勾上
+- 2026-11-19 claude：置 done，完成：产品负责人 2026-11-19 发话，与 S1-DOCS-008 一并置 done。CavaiLAB/kun#29 于 2026-11-18 17:30 UTC 合入主干 daf1bbd2ac。验收第 6 条勾上：PR 头 22696a6e57 上 12 项检查 11 项通过、1 项跳过（`qian-docs-site` 的「发布」只在主干推送时跑）；`qian-docs-site` 的「构建与检查」跑 `pnpm --filter website test`，`qian-docs-and-pm` 的 check 作业跑 `python3 scripts/check_docs.py` 与 `python3 scripts/pm.py validate`。合入后主干上 `qian-docs-and-pm`、`qian-dotnet`、`qian-docs-site` 三次运行都成功，文档站的「发布」也在其中

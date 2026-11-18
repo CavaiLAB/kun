@@ -10,7 +10,7 @@
 | ` global/lifecycle ` | ` qian.lifecycle@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/capabilities ` | ` qian.capabilities@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/hooks ` | ` qian.hooks@1.0.0 ` | 0（bundle） | 配置骨架 |
-| ` global/tenancy ` | ` qian.tenancy@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/tenancy ` | ` qian.tenancy@2.0.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/identity ` | ` qian.identity.client@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/authz ` | ` qian.authz@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/data ` | ` qian.data@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |

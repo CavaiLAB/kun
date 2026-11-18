@@ -5,7 +5,7 @@ description: Qian 的开始、组件目录、SDK、CLI 与规格、运维、市�
 part: start
 project: qian
 audience: [developer, operator, isv, agent, decision-maker]
-updated: 2026-10-08
+updated: 2026-11-19
 ---
 
 import { Badge, Card, CardGrid, HomeFooter, HomeHero, HomeSection, LatestChanges } from '@theme';
@@ -18,7 +18,7 @@ import { Badge, Card, CardGrid, HomeFooter, HomeHero, HomeSection, LatestChanges
 
 <HomeHero
   title="Qian 文档"
-  tagline="Qian 平台基于 Kun 框架构建，前端使用 yue 组件库：组件一条命令装进任何项目，组合起来就是为 Agent 时代准备的多租户平台。"
+  tagline="Qian 平台基于 Kun 框架构建，前端使用 qian 组件库：组件一条命令装进任何项目，组合起来就是为 Agent 时代准备的多租户平台。"
 />
 
 <HomeSection id="get-started" title="三条起步命令" lead="命令与「开始」部分同源；S1 建设期内随任务陆续可用。">
@@ -103,13 +103,13 @@ curl "$MODEL_GATEWAY/v1/chat/completions" \
 </Card>
 <Card title="构建应用">
 
-- [宿主与框架](/start/hosts)：独立模式、platform profile、React + yue、[与 Kun 的关系](/sdk/kun/with-qian)
+- [宿主与框架](/start/hosts)：独立模式、platform profile、React + qian 组件库、[与 Kun 的关系](/sdk/kun/with-qian)
 - [Kun 框架](/sdk/kun/)：Qian 的底座，.NET 10 微服务框架的模块地图、指南、安全与 [API](/sdk/api/kun/)
 - [组件与 qian add](/components/)：一条命令安装，装上即可用
 - [能力与函数](/sdk/dotnet/capabilities)：能力目录；`function` 表面（S2）
 - [事件与中间件](/sdk/dotnet/events)：五种分发模式，`waterfall` 即环绕中间件
 - [profile 与 patch](/start/concepts/profile)：环境 = profile + 分层 patch
-- [yue 与微前端](/sdk/frontend/)：组件库、外壳与远程模块
+- [qian 组件库与微前端](/sdk/frontend/)：组件库、外壳与远程模块
 - [存储](/components/platform/qian.files)：文件与数据，租户隔离默认开启
 - [低代码](/design/prd/08-s2-lowcode)：表单与列表（S2）
 

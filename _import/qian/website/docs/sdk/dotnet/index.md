@@ -4,7 +4,7 @@ description: Qian.Runtime 的编程模型：插件、共享上下文 ctx、服�
 part: sdk
 project: qian
 audience: [developer]
-updated: 2026-10-22
+updated: 2026-11-19
 ---
 
 # 后端 SDK（.NET）
@@ -13,7 +13,7 @@ updated: 2026-10-22
 
 ## 安装
 
-`Qian.*` 包族以同一 SemVer 版本发布在 GitHub Packages 的 NuGet 源（ADR-019 D19.7），包随公开仓库 `idadawn/qian` 公开可见；Kun 正式包在 nuget.org。项目的 `nuget.config` 用 `packageSourceMapping` 把 `Qian.*` 指向该源，从 GitHub Packages 安装需要带 `read:packages` 权限的 GitHub 令牌：
+`Qian.*` 包族以同一 SemVer 版本发布在 GitHub Packages 的 NuGet 源（ADR-019 D19.7），包公开可见；Kun 正式包在 nuget.org。项目的 `nuget.config` 用 `packageSourceMapping` 把 `Qian.*` 指向该源，从 GitHub Packages 安装需要带 `read:packages` 权限的 GitHub 令牌：
 
 ```xml
 <packageSources>

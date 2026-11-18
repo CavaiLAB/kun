@@ -10,12 +10,12 @@ Rspress 2.0（`@rspress/core` 2.0.23，React 19，MDX）。内置全文搜索（
 
 「Kun 框架」小节与 Kun API 参考（§3）另外需要：
 
-- **kun 仓库**（私有，`idadawn/kun`）：环境变量 `KUN_DOCS_PATH` 指向本机克隆（要有 tag `v<KunVersion>`，没有就先 `git -C <克隆> fetch --tags`）；不设时脚本用 SSH 克隆到 `website/.cache/kun-repo`，需要对该仓库有读权限。
+- **Kun 的 tag `v<KunVersion>`**：在本仓库里（随历史导入，提交号不变），脚本默认读本仓库；本仓库缺这个 tag（浅克隆、没取标签）时从 `origin` 只取这一个 tag 与它的历史。浅克隆里 tag 的历史不全时直接失败（页面的 `updated` 会算错），先 `git fetch --unshallow`。也可以用环境变量 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆，这时缺 tag 直接失败、不去取。
 - **.NET SDK**（版本见根目录 `global.json`）：DocFX 是 `website/.config/dotnet-tools.json` 锁定的本地工具，首次构建时自动 `dotnet tool restore`，并从 nuget.org 还原同版本的 `Kun.*` 包。
 
 两者缺一构建即失败，不跳过、不回退 `main`（docs-site.md §2b.1）。
 
-组件目录里 qian 组件库（原 yue）的页面、演示与目录（见文末「qian 组件库（原 yue）的组件文档与交互」）另外需要 **CavaiLAB/qian 的检出**：前端框架已迁到那个仓库，本站按 `pnpm-workspace.yaml` 版本目录里 `@cavailab/qian-core` 的版本检出它的同名标签 `@cavailab/qian-core@<版本>`，组件源码、示例与场景清单都从检出取（组件页来源定下来之前的过渡做法）。环境变量 `QIAN_DOCS_PATH` 指向本机检出（停在该标签，并在检出里运行过 `pnpm install --frozen-lockfile --filter "./packages/qian/*"`）；不设时脚本用 HTTPS 克隆到 `website/.cache/qian-repo`（完整历史、不预取文件内容，页面的更新日期要用）并装依赖。检出的版本对不上、依赖没装，构建即失败。脚本把 `website/.cache/qian-source` 链接到检出，演示的样式扫描、类型检查与浏览器验收都经它读。
+组件目录里 qian 组件库的页面、演示与目录（见文末「qian 组件库的组件文档与交互」）另外需要 **CavaiLAB/qian 的检出**：前端框架已迁到那个仓库，本站按 `pnpm-workspace.yaml` 版本目录里 `@cavailab/qian-core` 的版本检出它的同名标签 `@cavailab/qian-core@<版本>`，组件源码、示例与场景清单都从检出取（组件页来源定下来之前的过渡做法）。环境变量 `QIAN_DOCS_PATH` 指向本机检出（停在该标签，并在检出里运行过 `pnpm install --frozen-lockfile --filter "./packages/qian/*"`）；不设时脚本用 HTTPS 克隆到 `website/.cache/qian-repo`（完整历史、不预取文件内容，页面的更新日期要用）并装依赖。检出的版本对不上、依赖没装，构建即失败。脚本把 `website/.cache/qian-source` 链接到检出，演示的样式扫描、类型检查与浏览器验收都经它读。
 
 仓库根目录的 `pnpm install` 要从 GitHub Packages 装文档站依赖的 `@cavailab/qian-core`、`@cavailab/qian-tokens`，令牌的配置见仓库 README「前端依赖与包源」。
 
@@ -46,7 +46,7 @@ website/
   package.json  tsconfig.json
   README.md  AGENTS.md
   .config/dotnet-tools.json    DocFX 版本（本地 dotnet 工具）
-  .cache/                      生成缓存，不进 Git：kun-repo/（未设 KUN_DOCS_PATH 时的 kun 克隆）、kun-api/（DocFX 构建与结果）、
+  .cache/                      生成缓存，不进 Git：kun-api/（DocFX 构建与结果）、
                                qian-repo/（未设 QIAN_DOCS_PATH 时的 CavaiLAB/qian 检出）、qian-source（指向检出的链接）、yue/（演示的源码表）
   docs/
     index.mdx                  首页（docs-site.md §2a）
@@ -69,7 +69,7 @@ website/
   scripts/
     collect-components.ts      收集组件文件夹 → docs/components/（S1-DOCS-002 前为规划清单的占位页）
     sync-specs.ts              component-model.md → docs/cli/；docs/ → docs/design/
-    kun.ts                     读 KunVersion、打开 kun 仓库的 tag v<KunVersion>（KUN_DOCS_PATH 或缓存克隆）
+    kun.ts                     读 KunVersion、打开本仓库里 Kun 的 tag v<KunVersion>（缺了从 origin 取；或 KUN_DOCS_PATH 指定的克隆）
     qian.ts                    读版本目录里 @cavailab/qian-core 的版本、打开 CavaiLAB/qian 的同名标签检出（QIAN_DOCS_PATH 或缓存克隆）
     sync-kun-docs.ts           kun 仓库 v<KunVersion> 的白名单文档 → docs/sdk/kun/（docs-site.md §2b）
     build-kun-api.ts           同版本 Kun.* 包 → DocFX → docs/sdk/api/kun/ 与 docs/sdk/api/index.md
@@ -81,7 +81,7 @@ website/
     *.test.ts  fixtures.ts     生成脚本单测；fixtures.ts 在临时目录里搭样例 kun 仓库
     build-kb-index.ts          后续：产出 kb-index.json（S1-DOCS-003）
     build-versions.ts          仓库钉版文件（Directory.Packages.props、csproj、global.json、package.json、pnpm 版本目录、deploy/baseline.json）→ docs/start/versions.md
-    llms.ts                    llms.txt 的排版：先按 project（Qian → Kun → yue）再按部分分节
+    llms.ts                    llms.txt 的排版：先按 project（PROJECT_ORDER）再按部分分节
   theme/
     index.tsx  index.css       主题覆盖：令牌映射、建设期横幅、版本说明、首页组件
     components/                首页区块、最新动态、版本说明、站点地图
@@ -106,7 +106,7 @@ website/
 - `design/`：`docs/` 下每个 `.md` 一页，文件名转小写、`README.md` 转 `index.md`（`docs/adr/ADR-015-model-gateway.md` → `/design/adr/adr-015-model-gateway`）。正文里指向 `docs/` 内的相对链接改写为站内路由，指向仓库其他位置的改写为 GitHub 地址；每页开头注明源文件。侧栏顺序与名称由脚本生成的 `_meta.json` 决定。
 - `cli/`：按 `component-model.md` 的二级标题拆页，标题整体升一级；章节与页面的对应写在 `CLI_PAGES`，规格改了章节编号要同步这里（找不到章节时构建失败）。
 - `components/`：S1-DOCS-002 之前仓库里还没有组件文件夹，脚本按 PRD §7 与组件模型规格 §7.7 的规划清单生成占位页，让首页与其他部分的链接有落点；S1-DOCS-002 把数据源换成各组件文件夹，页面改为 docs-site.md §3 的九节模板。
-- `sdk/kun/`（docs-site.md §2b、ADR-021）：读根目录 `Directory.Packages.props` 的 `KunVersion`（缺失、为空或不是 CalVer 都直接失败），从 kun 仓库的 tag `v<KunVersion>` 按白名单（`sync-kun-docs.ts` 的 `KUN_WHITELIST`，即 §2b.2 的表）取文件（Kun 的 ADR 文件名大小写不统一，`ADR-*.md` 与 `adr-*.md` 都收，R58），`AGENTS.md`、`CLAUDE.md` 永不进站。**只镜像、不改写**：每页加镜像横幅（源文件与 tag、「Kun 文档与代码不一致处以代码为准」、改动提到 kun 仓库）与 frontmatter（`project: kun`、`source: idadawn/kun@v<版本>:<路径>`、`updated` 取源文件在该 tag 上的最后提交日期）；slug 一律小写、`.` 与空格转短横线；指向白名单内文件的相对链接改写为站内路由，其余改写为该 tag 的 GitHub 地址。为让 MDX 能编译只做两处机械处理并打警告：正文里不是 HTML 标签的尖括号（`Result<T>`）转义，列数不足的表格行补空单元格。上游问题只告警不失败，源头修复提到 kun 仓库（R59）。侧栏顺序与名称写在脚本里（概览 → 与 Qian 的关系 → 上手 → 模块地图 → 指南 → 安全 → 设计说明与 ADR → 白皮书 → 变更日志与发布说明 → API 参考）。白名单要改，docs-site.md §2b.2 与脚本两处一起改。
+- `sdk/kun/`（docs-site.md §2b、ADR-021）：读根目录 `Directory.Packages.props` 的 `KunVersion`（缺失、为空或不是 CalVer 都直接失败），从 kun 仓库的 tag `v<KunVersion>` 按白名单（`sync-kun-docs.ts` 的 `KUN_WHITELIST`，即 §2b.2 的表）取文件（Kun 的 ADR 文件名大小写不统一，`ADR-*.md` 与 `adr-*.md` 都收，R58），`AGENTS.md`、`CLAUDE.md` 永不进站。**只镜像、不改写**：每页加镜像横幅（源文件与 tag、「Kun 文档与代码不一致处以代码为准」、改动提到 kun 仓库）与 frontmatter（`project: kun`、`source: CavaiLAB/kun@v<版本>:<路径>`、`updated` 取源文件在该 tag 上的最后提交日期）；slug 一律小写、`.` 与空格转短横线；指向白名单内文件的相对链接改写为站内路由，其余改写为该 tag 的 GitHub 地址。为让 MDX 能编译只做两处机械处理并打警告：正文里不是 HTML 标签的尖括号（`Result<T>`）转义，列数不足的表格行补空单元格。上游问题只告警不失败，源头修复提到 kun 仓库（R59）。侧栏顺序与名称写在脚本里（概览 → 与 Qian 的关系 → 上手 → 模块地图 → 指南 → 安全 → 设计说明与 ADR → 白皮书 → 变更日志与发布说明 → API 参考）。白名单要改，docs-site.md §2b.2 与脚本两处一起改。
 - `sdk/api/`：DocFX 从 nuget.org 上同版本的 `Kun.*` 包（tag 上 `src/<名>/<名>.csproj` 的全部项目）的 DLL 与 XML 注释生成 Markdown（`docfx metadata`，`outputFormat: markdown`），脚本再转成站内页面：每个命名空间一页、每个类型一页，xref 改写为站内路由与成员锚点，BCL 类型链到 learn.microsoft.com。DocFX 在 `website/.cache/kun-api/build` 的隔离目录里构建，用存根的 `Directory.Build.*` 与关掉中央包管理的 `Directory.Packages.props` 隔开仓库根的 .NET 构建基线（`NuGet.config` 与 `global.json` 仍用仓库根的）。API 页**不进侧栏**，命名空间页与类型页也不渲染侧栏（frontmatter `sidebar: false`），只有 `/sdk/api/` 与 `/sdk/api/kun/` 两个概览页保留侧栏（R54）：Rspress 把整棵侧栏渲染进每一页，几百个类型进侧栏会让产物膨胀数倍；入口是 SDK 侧栏末尾的「API 参考」、Kun 小节概览与各页之间的链接。将来的 `Qian.*`、前端包与平台 HTTP API 的参考同样放在 `/sdk/api/` 下（R56）。
 - 只重写内容有变化的文件、删除多余的旧文件，`dev` 不会因重新生成而反复重启。
 
@@ -128,28 +128,28 @@ docs-site.md §5.1 是契约，这里只说实现：
 - JSX 容器（`Card` 等）内部的 Markdown 里的行内组件不会被渲染，会原样进 `.md`（Rspress `remarkSplitMdx` 只处理顶层段落里的行内 JSX），所以首页卡片正文里的阶段标记写成文字，`Badge` 只放在 JSX 属性里。
 - `themeConfig.llmsUI` 在每个文档页标题下放「复制为 Markdown」与「复制 Markdown 链接」；首页是 `pageType: custom`，`HomeHero` 里手动放同一组按钮。`viewOptions` 只留 `markdownLink`，不放外部 AI 服务入口（站内「问 AI」是 S2-DOCS-001）。
 - `scripts/build-kb-index.ts` 在 `rspress build` 之后运行（`build` 脚本末尾）：遍历 `website/docs` 的页面源（含生成页），解析 frontmatter（`scripts/repo.ts` 的 `parseFrontmatter`，与 `scripts/check_docs.py` 同一套 YAML 子集），读对应 `.md` 算 sha256，写 `kb-index.json`；再按 frontmatter `updated` 写 `sitemap.xml`（绝对地址 = `DOCS_SITE_URL`（默认 `theme/site.ts` 的 `DEFAULT_SITE_URL`）+ `DOCS_BASE` + 路由）。缺 `.md`、frontmatter 不合法、产物里有没来源的 `.md` 都让构建失败。
-- 生成页的 frontmatter 由各生成器补齐：组件占位页与 CLI 页写 `project` / `audience` / `updated`（取源文件最后提交日期，`repoFileDate`），设计文档镜像页合成 `title`（源 frontmatter 或一级标题）、`description`（首段去标记截到 120 字）、`updated`、`source`（`idadawn/qian@main:<路径>`）并保留源文件自带的其它字段（ADR 的 `status`、`date` 等）。
+- 生成页的 frontmatter 由各生成器补齐：组件占位页与 CLI 页写 `project` / `audience` / `updated`（取源文件最后提交日期，`repoFileDate`），设计文档镜像页合成 `title`（源 frontmatter 或一级标题）、`description`（首段去标记截到 120 字）、`updated`、`source`（`CavaiLAB/kun@main:_import/qian/<路径>`）并保留源文件自带的其它字段（ADR 的 `status`、`date` 等）。
 
 ## 5 主题与令牌
 
-- 令牌取值来自已发布的 `@cavailab/qian-tokens`（原 `@idadawn/yue-tokens`，设计文档简称 `@yue/tokens`；版本钉在 `pnpm-workspace.yaml` 的版本目录）：`theme/index.css` 第一行导入它的 CSS，其余只把语义令牌（`--qian-primary`、`--qian-background`、`--qian-border` 等）映射到 Rspress 的主题变量；颜色令牌存成可加透明度的 oklch 分量，映射时写成 `oklch(var(--qian-<role>))`。站点自己的变量用 `--docs-` 前缀（如 `--docs-card-min`），`--qian-` 只给框架令牌。
+- 令牌取值来自已发布的 `@cavailab/qian-tokens`（版本钉在 `pnpm-workspace.yaml` 的版本目录）：`theme/index.css` 第一行导入它的 CSS，其余只把语义令牌（`--qian-primary`、`--qian-background`、`--qian-border` 等）映射到 Rspress 的主题变量；颜色令牌存成可加透明度的 oklch 分量，映射时写成 `oklch(var(--qian-<role>))`。站点自己的变量用 `--docs-` 前缀（如 `--docs-card-min`），`--qian-` 只给框架令牌。
 - 明暗两态：Rspress 在首帧前给 `html` 加 `dark` 类，令牌包的语义层同时认 `html.dark` 与 `html[data-theme="dark"]`（specs/yue.md §3.5），不闪烁，也不需要桥接脚本（S1-DOCS-004 删除）。
 - 令牌值在 CavaiLAB/qian 的 `packages/qian/tokens` 里改，发新版本后改版本目录的版本号；docs-site 工作流在 `pnpm-workspace.yaml` 变化时触发。
 
 ## 6 托管与预览：K3s 静态托管
 
-验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选的是 **K3s 静态托管**：文档面向内部团队，入口与任务看板一致，不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同：CI 构建，git-sync 拉取，nginx 提供。原 Qian 仓库归档之后（迁移执行计划 B2），文档站的源码在 `CavaiLAB/kun` 的过渡目录 `_import/qian/` 下，由那边的主干构建与发布，细节见 [deploy/docs-site/README.md](../deploy/docs-site/README.md)。
+验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选的是 **K3s 静态托管**：文档面向内部团队，入口与任务看板一致，不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同：CI 构建，git-sync 拉取，nginx 提供。旧仓库归档之后（迁移执行计划 B2），文档站的源码在 `CavaiLAB/kun` 的过渡目录 `_import/qian/` 下，由本仓库的主干构建与发布，细节见 [deploy/docs-site/README.md](../deploy/docs-site/README.md)。
 
-- CI：仓库根的 `qian-docs-site` 工作流（`.github/workflows/qian-docs-site.yml`；原件 `_import/qian/.github/workflows/docs-site.yml` 留作对照，GitHub 不读它）。PR 与 `main` 上类型检查、单测、构建（含断链检查）、产物检查、生成页（含 Kun 镜像页）的文档门禁与浏览器交互验收。只有改到 `_import/qian/` 下的 `website/`、`packages/yue/`、`docs/`、依赖清单、`Directory.Packages.props`（`KunVersion`）、`deploy/docs-site/` 或工作流本身时才触发。
+- CI：仓库根的 `qian-docs-site` 工作流（`.github/workflows/qian-docs-site.yml`；原件 `_import/qian/.github/workflows/docs-site.yml` 留作对照，GitHub 不读它）。PR 与 `main` 上类型检查、单测、构建（含断链检查）、产物检查、生成页（含 Kun 镜像页）的文档门禁与浏览器交互验收。只有改到 `_import/qian/` 下的 `website/`、`docs/`、依赖清单、`Directory.Packages.props`（`KunVersion`）、`deploy/docs-site/`、浏览器验收引用的 `apps/qian-shell/e2e/settle.ts` 或工作流本身时才触发。
 - 发布：只在 `main` 上发布正式站点，把构建产物推到 `CavaiLAB/kun` 的 `docs-site` 分支的根目录（`deploy/docs-site/publish.sh`，分支只保留一个提交）。集群里 git-sync 每 60 秒经 HTTPS 匿名拉取该分支，nginx 提供访问。
 - 部署：集群里的应用由 Argo CD 管。Application 登记在部署仓库，跟踪 `CavaiLAB/kun` 主干上的 `_import/qian/deploy/docs-site/`，清单的改动合入主干后自动同步。
 - PR 预览：现在没有接，接不接由产品负责人定。原仓库的做法是同仓库分支的 PR 发布到 `pr-preview/pr-<n>/`、在 PR 里留访问链接、PR 关闭后删除预览；`CavaiLAB/kun` 是公开仓库，PR 评论人人可见，所以没有照搬。PR 上的构建仍带 `pr-preview/pr-<n>/` 前缀（`DOCS_BASE`），前缀检查照跑；nginx 与 `publish.sh` 仍支持这个路径，接回只改工作流。
-- 「Kun 框架」小节的来源：工作流按 `KunVersion` 经 HTTPS 只读检出 `idadawn/kun` 的 tag `v<KunVersion>` 到 `.kun/`（已归档的公开仓库，用缺省的 `GITHUB_TOKEN`），不再用原来的只读 deploy key 与 Actions Secret `KUN_DOCS_DEPLOY_KEY`。
+- 「Kun 框架」小节的来源：Kun 的 tag `v<KunVersion>` 随历史导入在本仓库（提交号不变），工作流只从本仓库取这一个 tag 与它的历史，生成脚本直接读本仓库（`scripts/kun.ts`），不另外检出，也不要凭据。
 - 访问入口在内网，写在 `deploy/docs-site/README.md`，本文与工作流都不写。
 
 ## 7 门禁
 
-CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内运行，与 yue 视觉门使用同一浏览器和系统字体；源码只读挂载，只有测试报告目录可写。这样避免每次执行都从系统镜像源下载字体和浏览器依赖而耗尽作业时限。全部用例、断言和 15 分钟作业上限保留；升级 Playwright 时须同步文档浏览器与视觉镜像版本。
+CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内运行，与前端框架的视觉门使用同一浏览器和系统字体；源码只读挂载，只有测试报告目录可写。这样避免每次执行都从系统镜像源下载字体和浏览器依赖而耗尽作业时限。全部用例、断言和 15 分钟作业上限保留；升级 Playwright 时须同步文档浏览器与视觉镜像版本。
 
 | 检查 | 内容 | 在哪跑 |
 |---|---|---|
@@ -157,20 +157,20 @@ CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内�
 | `scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md` | 生成页（含源不在本仓库的 Kun 镜像页与 API 参考、版本矩阵）构建后显式检查一遍，frontmatter 也查（显式给出的生成目录与文件照查） | docs-site 工作流 |
 | Rspress 断链检查 | 构建时检查全站（含生成页）的站内链接，断链即构建失败 | docs-site 工作流 |
 | `pnpm --filter website check` | 七个部分与首页、404、站点地图齐全；`lang="zh"`；不引用外部资源；站内引用都带部署前缀；搜索索引存在；C# / TypeScript / JSON / YAML / Bash 都有被高亮的代码块；`/sdk/kun/` 与 `/sdk/api/kun/` 下除手写页外每页都有镜像或生成横幅，横幅里的 tag 等于 `v<KunVersion>`（白名单外的页面混进来即失败）；产物总大小不超过预算（`SITE_SIZE_BUDGET_MB`，120 MB，R55），超出时报出最大的目录；机器可读产物（§4a）：`llms.txt`、`llms-full.txt`、`kb-index.json`、`sitemap.xml` 齐全，索引里每页的 `.md` 与 HTML 都在且 sha256 一致、三个清单都收录每页、没有索引外的 `.md`，每页 `.md` 无 JSX / ESM 残留、无空标题空列表项、代码块不少于源页 | docs-site 工作流 |
-| `pnpm --filter website test` | 路径映射、链接改写、章节拆分、生成目录写入、组件占位页；Kun：`KunVersion` 缺失或无效、tag 不存在即失败，白名单与排除、slug 与路由、横幅与 frontmatter（`updated` 取文件日期）、链接改写、DocFX 输出转换（含 API 页 `sidebar: false`）；产物体积预算；frontmatter 子集解析、知识库索引与 sitemap、Markdown 产物质量与同步检查；版本矩阵的读取与渲染、llms.txt 分节、产品族页与 README 一致 | docs-site 工作流 |
+| `pnpm --filter website test` | 路径映射、链接改写、章节拆分、生成目录写入、组件占位页；Kun：`KunVersion` 缺失或无效、tag 不存在即失败，默认读本仓库的 tag（缺了从 origin 取，浅克隆里历史不全即失败），白名单与排除、slug 与路由、横幅与 frontmatter（`updated` 取文件日期）、链接改写、DocFX 输出转换（含 API 页 `sidebar: false`）；产物体积预算；frontmatter 子集解析、知识库索引与 sitemap、Markdown 产物质量与同步检查；版本矩阵的读取与渲染、llms.txt 分节、产品族页与 README 一致 | docs-site 工作流 |
 | `tests/gates/test_check_docs.py` | check_docs.py 的站内路由解析、生成目录跳过、Kun 路由延后解析、禁用词整词匹配、生成文件进 Git 即失败、frontmatter 解析与校验 | dotnet 工作流（门禁自测） |
 
 ## 8 写页面
 
 - 手写页放在对应部分的目录下，用 `.md`；要用组件（`Badge`、卡片等）时才用 `.mdx`。
-- frontmatter 先写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`、`audience`、`updated`，`scripts/check_docs.py` 会查（docs-site.md §4）；只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串几种写法。手写页的 `project` 都是 `qian`（`kun` 属于 Kun 镜像页，`yue` 属于 yue 组件页）。规划中的能力加 `stage`，S2 及以后的再加 `tag: S2` 等，侧栏会显示阶段标记。完整字段见 docs-site.md §4（校验随 S1-DOCS-003 上线）。
+- frontmatter 先写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`、`audience`、`updated`，`scripts/check_docs.py` 会查（docs-site.md §4）；只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串几种写法。手写页的 `project` 都是 `qian`（`kun` 属于 Kun 镜像页，`yue` 属于 qian 组件库的组件页）。规划中的能力加 `stage`，S2 及以后的再加 `tag: S2` 等，侧栏会显示阶段标记。完整字段见 docs-site.md §4（校验随 S1-DOCS-003 上线）。
 - 站内链接写绝对路由（`/start/hosts`、`/design/adr/adr-016-iclaw-boundary`），不带 `.md` 或 `.html`。
 - 卡片等 JSX 容器内部的 Markdown 里不放行内组件（`Badge` 等），阶段标记写成「（S2）」这样的文字；否则 `.md` 产物里会原样残留，产物检查会拦（§4a）。
 - 设计文档、规格与变更日志只改仓库 `docs/`，不要改 `website/docs/design/`、`cli/`、`components/`。
 - Kun 的文档只改 kun 仓库（提 PR），站内随 `KunVersion` 升级更新；`website/docs/sdk/kun/` 只有 `with-qian.mdx` 是手写的，`sdk/api/` 全部生成。
 - 没有的能力不写成已有：S1 建设期的命令与组件按目标形态写，并在页面里说明尚未可用。
 
-## qian 组件库（原 yue）的组件文档与交互（S1-YUE-005）
+## qian 组件库的组件文档与交互（S1-YUE-005）
 
 唯一使用入口是本站 `/components/yue/`，不是另一个应用（路由与 frontmatter 的 `project: yue` 在组件页来源定下来之前不改）。组件源码、示例与场景清单在 CavaiLAB/qian 的检出里（§1）：`packages/qian/core/docs/` 保存用途说明、普通 React 示例与 128 条状态清单（原 126 条加 Steps 2 条）；`scripts/yue-docs.ts` 收集页面并从 TypeScript checker 提取全部公开组件/组合部件。form、data、shell、biz 的包级页取检出里各包的 `docs/index.mdx`，frontmatter 的 `project` 改回 `yue` 并补 `source`。DOM 属性按完整声明去重到站内通用属性页，不能因缺注释或继承来源而遗漏。默认值只取源码与 JSDoc。
 

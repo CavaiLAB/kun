@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { renderLlmsTxt } from './llms.ts';
 
 describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
-  it('先 Qian 再 Kun 再 yue，每个项目下按部分分节；没写 project 的页归 Qian', () => {
+  it('先 Qian 再 Kun 再 qian 组件库，每个项目下按部分分节；没写 project 的页归 Qian', () => {
     const txt = renderLlmsTxt({
       title: 'Qian 文档',
       description: '一句话。',
@@ -17,7 +17,7 @@ describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
         },
         {
           title: '组件目录',
-          pages: [{ routePath: '/components/yue/', link: '/components/yue/index.md', title: 'qian 组件库（原 yue）', frontmatter: { project: 'yue' } }],
+          pages: [{ routePath: '/components/yue/', link: '/components/yue/index.md', title: 'qian 组件库', frontmatter: { project: 'yue' } }],
         },
         {
           title: 'SDK',
@@ -51,9 +51,9 @@ describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
         '',
         '- [Kun 框架](/sdk/kun/index.md): 镜像',
         '',
-        '## qian 组件库（原 yue） · 组件目录',
+        '## qian 组件库 · 组件目录',
         '',
-        '- [qian 组件库（原 yue）](/components/yue/index.md)',
+        '- [qian 组件库](/components/yue/index.md)',
         '',
       ].join('\n'),
     );

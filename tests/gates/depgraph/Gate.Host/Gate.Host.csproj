@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <Description>门禁自测样例：宿主：不打包，不记档位，不受检查</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Gate.Delta/Gate.Delta.csproj" />
+    <ProjectReference Include="../Gate.Grove/Gate.Grove.csproj" />
+  </ItemGroup>
+
+</Project>

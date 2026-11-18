@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：（违规 C）零依赖的包以 PrivateAssets=all 引用运行时库仍算依赖；同样写法的分析器只在构建时用，不算</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>contract</KunRole>
+    <KunZeroDependency>true</KunZeroDependency>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

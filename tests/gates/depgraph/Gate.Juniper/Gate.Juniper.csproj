@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：（违规 K）内核档提供者经 Gate.Ivy 传递依赖平台档契约</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Gate.Ivy/Gate.Ivy.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：平台档提供者，依赖平台档契约与内核档提供者</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>platform</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Gate.Cedar/Gate.Cedar.csproj" />
+    <ProjectReference Include="../Gate.Birch/Gate.Birch.csproj" />
+  </ItemGroup>
+
+</Project>

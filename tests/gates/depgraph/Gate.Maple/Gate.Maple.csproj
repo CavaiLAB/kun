@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：（违规 D）平台档契约直接依赖 Gate.Elm.Abstractions，后者声明为提供者</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>platform</KunTier>
+    <KunRole>contract</KunRole>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Gate.Elm.Abstractions/Gate.Elm.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

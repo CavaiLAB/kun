@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：（例外失效）四条例外：边已没了、边还在但不违规、缺理由、规则写错</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
+  <ItemGroup Label="档位例外">
+    <KunTierException Include="Gate.Cedar" Rule="K" Until="B9" Reason="样例：边已经没了" />
+    <KunTierException Include="Gate.Birch" Rule="K" Until="B9" Reason="样例：边还在，但内核档依赖内核档不违规" />
+    <KunTierException Include="Gate.Birch" Rule="D" Until="B9" />
+    <KunTierException Include="Gate.Birch" Rule="Z" Until="B9" Reason="样例：规则写错" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Gate.Birch/Gate.Birch.csproj" />
+  </ItemGroup>
+
+</Project>

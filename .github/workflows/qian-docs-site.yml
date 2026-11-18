@@ -3,8 +3,8 @@ name: qian-docs-site
 # _import/qian/ 的文档站：构建、检查与发布。B1 历史导入时接到仓库根（迁移执行计划 B1，S1-KUN-019），B2 切换时接上正式站点的发布。
 # 原件在 _import/qian/.github/workflows/docs-site.yml，不动；GitHub 只读仓库根的 .github/workflows/。
 # 相对原件改了这些：
-# - 位置：run 步骤的工作目录、路径过滤、缓存键、package.json、github.workspace 下的路径、
-#   浏览器验收容器挂载的目录、上传路径都加了 _import/qian/ 前缀；路径过滤末尾加上本文件。
+# - 位置：run 步骤的工作目录、缓存键、package.json、github.workspace 下的路径、浏览器验收容器挂载的目录、
+#   上传路径都加了 _import/qian/ 前缀；路径过滤见最后「触发」一条。
 # - 「Kun 框架」小节照原件按 Directory.Packages.props 的 KunVersion 取 Kun 的 tag，但不再另外检出 kun 仓库：两个旧仓库的
 #   历史与版本标签已带着原提交号导入本仓库，同名 tag 指向同一提交，所以只从本仓库取这一个 tag 与它的历史，生成脚本
 #  （_import/qian/website/scripts/kun.ts）直接读本仓库，不设 KUN_DOCS_PATH。原件的 deploy key 与「检查 kun 仓库只读凭据」
@@ -25,8 +25,9 @@ name: qian-docs-site
 #   上的公开包 @cavailab/qian-*：工作流权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
 #   路径过滤去掉迁走的组件库目录，加上浏览器验收引用的外壳 e2e/settle.ts。
 # - 触发（S1-KUN-020）：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管。
-#   路径过滤在区域表 scripts/ci_changes.py 的 docs-site 区域：上面说的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建
-#   基线、Kun.slnx、src/ 与 _import/qian/.npmrc。setup-dotnet 读仓库根的 global.json。
+#   路径过滤在区域表 scripts/ci_changes.py 的 docs-site 区域：原件的过滤逐条加 _import/qian/ 前缀（去掉迁走的组件库目录、
+#   加上外壳 e2e/settle.ts，见上一条），另加本文件、仓库根的 .NET 构建基线、Kun.slnx、src/ 与 _import/qian/.npmrc。
+#   setup-dotnet 读仓库根的 global.json。
 #   推 main 时的发布作业照旧：被调用时 github.event_name 与 github.ref 是 ci.yml 这次运行的，调用作业给 contents: write。
 
 on:

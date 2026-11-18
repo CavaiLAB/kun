@@ -1,35 +1,35 @@
 # AGENTS.md：给编码代理的入口说明
 
-这个仓库是 **Kun** 的新家：匠心智能体平台的企业级后端框架（.NET 10）。**两个原仓库的代码已带历史迁入本仓库，原仓库已归档为只读。原 Kun 已提到仓库根，它的文档整理进了 `docs/`；原 Qian 仍在过渡目录 `_import/qian/`，正按迁移执行计划分批并轨、归并与改名。**
+这个仓库是 **Kun**：匠心智能体平台的企业级后端框架（.NET 10）。**两个原仓库的代码已带历史迁入本仓库，原仓库已归档为只读。Kun 框架的代码在仓库根，文档在 `docs/`；平台代码与工具仍在过渡目录 `_import/qian/`，正按迁移执行计划分批并轨，再按域归并到 `Kun.*` 名下。**
 
 ## 要改代码
 
-迁移已于 2026-11-17 启动，分批的做法见[迁移执行计划](docs/migration-plan.md)。历史导入（计划里的 B1）把两个原仓库的 `main` 带历史导入了两个过渡目录，原提交的 SHA 原样保留；B2 的整理随后把原 Kun 由 `_import/kun/` 提到了仓库根、把它的文档整理进了 `docs/`（git 识别为改名，看导入前的历史用 `git log --follow -m -- <路径>`）：
+迁移已于 2026-11-17 启动，分批的做法见[迁移执行计划](docs/migration-plan.md)。历史导入（计划里的 B1）把两个原仓库的 `main` 带历史导入了两个过渡目录，原提交的 SHA 原样保留；B2 的整理随后把 Kun 框架由 `_import/kun/` 提到了仓库根、把它的文档整理进了 `docs/`（git 把这些搬动记成文件重命名，看导入前的历史用 `git log --follow -m -- <路径>`）：
 
 | 位置 | 内容 | 怎么构建与测试 |
 |---|---|---|
-| 仓库根 | 原 Kun 框架（`idadawn/kun`）：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.slnx`（原 Qian 的项目也在里面）与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「原 Kun 的构建、测试与代码约定」，命令在仓库根运行 |
-| `_import/qian/` | 原 Qian 的整棵树（`idadawn/qian`）：.NET 包、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
+| 仓库根 | Kun 框架：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.slnx`（`_import/qian/` 下的 .NET 项目也在里面）与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「Kun 框架的构建、测试与代码约定」，命令在仓库根运行 |
+| `_import/qian/` | 平台代码与工具：.NET 包、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
 
-构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）与 `global.json` 两边共用；原 Kun 的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含原 Kun 与原 Qian 的全部项目。原 Qian 改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它的筛选文件，列出原 Qian 的项目，原 Qian 的脚本与测试以它所在的目录为根；新加原 Qian 的项目要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props` 与 `Directory.Packages.props` 先导入根上的，前者只留原 Qian 的打包设置，后者只留一个给文档站读的 `KunVersion`，构建不读它，由门禁自测保证。`_import/qian/global.json` 暂留，内容与根上的相同；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建原 Qian 时在 `_import/qian/` 下用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。原 Qian 的其余命令一律在 `_import/qian/` 下跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 来自原 Kun，规则对 `_import/qian/` 同样生效。
+构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）与 `global.json` 两边共用；`src/` 下 Kun 包的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含仓库根与 `_import/qian/` 下的全部项目。`_import/qian/` 下的项目改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它们的筛选文件，列出 `_import/qian/` 下的项目，那里的脚本与测试以它所在的目录为根；在 `_import/qian/` 下新加项目，要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props` 与 `Directory.Packages.props` 先导入根上的，前者只留那里的打包设置，后者只留一个给文档站读的 `KunVersion`，构建不读它，由门禁自测保证。`_import/qian/global.json` 暂留，内容与根上的相同；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建 `_import/qian/` 下的项目时，在那里用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。`_import/qian/` 的其余命令一律在那里跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 对 `_import/qian/` 同样生效。
 
-两边的检查接在仓库根的 `.github/workflows/` 里：`kun-ci.yml` 对应原 Kun 的，在仓库根运行；`qian-*.yml` 对应原 Qian 的，在 `_import/qian/` 下运行。原 Kun 的 `.github/` 原件在 `.github/originals/kun/`，原 Qian 的在 `_import/qian/.github/`，GitHub 都不读。每个根工作流的开头写着它对应哪个原件、相对原件改了什么；原 Kun 没接的工作流与模板见 `.github/originals/kun/README.md`。
+两边的检查接在仓库根的 `.github/workflows/` 里：`kun-ci.yml` 管仓库根上的 Kun 框架，在仓库根运行；`qian-*.yml` 管 `_import/qian/`，在那里运行。两边导入时带来的 `.github/` 原件，Kun 框架的在 `.github/originals/kun/`，平台的在 `_import/qian/.github/`，GitHub 都不读。每个根工作流的开头写着它对应哪个原件、相对原件改了什么；Kun 框架没接的工作流与模板见 `.github/originals/kun/README.md`。
 
 原仓库归档之后的规矩：
 
-- 两个原仓库 2026-11-17 冻结，同日归档为只读。最后一次同步的来源头是归档时的最终头：`idadawn/kun` 的 `51b480775c` 与 `idadawn/qian` 的 `5954ec3b86`，同步时 `_import/kun/`、`_import/qian/` 与这两个头的树逐字节相同。原 Kun 与原 Qian 的源码、文档与任务文件从此以本仓库为准，原仓库不再接受改动。
-- 原 Kun 与原 Qian 的内容从此在本仓库改，在本仓库开 PR。`_import/qian/` 里改的是文件内容；它的搬动与拆分属于后面的批次（见最后一条），不要顺手做。
-- 原 Kun 的约定已并进本文件（下一节），`_import/qian/AGENTS.md` 里构建、测试与代码约定的部分照用。任务文件照原 Qian 的 `pm/README.md` 改：任务文件在 `_import/qian/pm/tasks/` 下，`pm.py` 在 `_import/qian/` 下运行（如 `cd _import/qian && python3 scripts/pm.py validate`），`set` 与 `add` 要带 `--by`，生成物不进 git。迁移任务（S1-KUN-018–022）的文件也在这里改（迁移执行计划第 3 节第 7 条）。原 Qian 的 `AGENTS.md` 与仓库根上原 Kun 的 `CONTRIBUTING.md` 里讲提 PR、分支、发版、发布文档站的部分说的是原仓库，在本仓库以本文件与迁移执行计划为准。
-- 两个原仓库冻结时写的去处说明随最后一次同步带了进来，在本仓库不适用：`_import/qian/` 的 `README.md` 开头那一段与 `AGENTS.md` 的「本仓库已冻结」一节（原 Kun 的 `README.md`、`CLAUDE.md` 原件已在整理的第二段删除）。原 Kun 的自管任务队列（含 `docs/roadmap/BACKLOG.md`）与第三方生成的代理配置已按合并蓝图删除（D23.13 第 6 点），任务管理统一到 `_import/qian/pm/`；原 Kun 各层工具生成的 `AGENTS.md` 也一并删了，模块目录里留下的 `AGENTS.md` 只有生成之后写进去的模块规则。
-- 前端框架（原 yue，现名 qian）在 `CavaiLAB/qian`，改前端框架去那边改。原来在 `_import/qian/` 下归它的 `packages/yue/`、`apps/yue-playground/`、`packages/qian-plugin-sdk/`、`packages/qian-runtime/`、`tests/gates/yue/`、`scripts/yue-visual.mjs`、`.changeset/`，与原 Qian 的 yue、runtime-ts、runtime-ts-release、plugin-sdk-release 四个工作流（仓库根上的 `qian-yue.yml`、`qian-runtime-ts.yml`），已在 B11 由前端计划的执行会话删除（S1-YUE-025）。外壳应用与外壳工具包、三个界面包、参考应用的远程模块、文档站、命令行、声明式表面的校验库留在本仓库，装 `CavaiLAB/qian` 发布在 GitHub Packages 上的 `@cavailab/qian-*`：版本钉在 `_import/qian/pnpm-workspace.yaml` 的版本目录，装依赖要令牌（见 `_import/qian/README.md`「前端依赖与包源」），外壳与界面包的门禁在 `qian-ui.yml`。
+- 两个原仓库 2026-11-17 冻结，同日归档为只读。最后一次同步的来源头是归档时的最终头：Kun 框架那一支的 `51b480775c` 与平台那一支的 `5954ec3b86`，两个提交都在本仓库的历史里；同步时 `_import/kun/`、`_import/qian/` 与这两个头的树逐字节相同。两边的源码、文档与任务文件从此以本仓库为准，原仓库不再接受改动。
+- 两边的内容从此在本仓库改，在本仓库开 PR。`_import/qian/` 里改的是文件内容；它的搬动与拆分属于后面的批次（见最后一条），不要顺手做。
+- Kun 框架的约定已并进本文件（下一节），`_import/qian/AGENTS.md` 里构建、测试与代码约定的部分照用。任务文件照 `_import/qian/pm/README.md` 改：任务文件在 `_import/qian/pm/tasks/` 下，`pm.py` 在 `_import/qian/` 下运行（如 `cd _import/qian && python3 scripts/pm.py validate`），`set` 与 `add` 要带 `--by`，生成物不进 git。迁移任务（S1-KUN-018–022）的文件也在这里改（迁移执行计划第 3 节第 7 条）。`_import/qian/AGENTS.md` 与仓库根的 `CONTRIBUTING.md` 里讲提 PR、分支、发版、发布文档站的部分说的是原仓库，在本仓库以本文件与迁移执行计划为准。
+- 两个原仓库冻结时写的去处说明随最后一次同步带了进来，在本仓库不适用：`_import/qian/` 的 `README.md` 开头那一段与 `AGENTS.md` 的「本仓库已冻结」一节（Kun 框架那一份 `README.md`、`CLAUDE.md` 原件已在整理的第二段删除）。Kun 框架自管的任务队列（含 `docs/roadmap/BACKLOG.md`）与第三方生成的代理配置已按合并蓝图删除（D23.13 第 6 点），任务管理统一到 `_import/qian/pm/`；各层工具给 Kun 框架生成的 `AGENTS.md` 也一并删了，模块目录里留下的 `AGENTS.md` 只有生成之后写进去的模块规则。
+- 前端框架 qian 在 `CavaiLAB/qian`，改前端框架去那边改。`_import/qian/` 下归它的部分（框架包与演练场、TypeScript 运行时、前端插件开发包、对应的门禁与视觉回归脚本、`.changeset/`，以及四个工作流和它们在仓库根上的两份接入）已在 B11 由前端计划的执行会话删除（见迁移执行计划的 B11）。外壳应用与外壳工具包、三个界面包、参考应用的远程模块、文档站、命令行、声明式表面的校验库留在本仓库，装 `CavaiLAB/qian` 发布在 GitHub Packages 上的 `@cavailab/qian-*`：版本钉在 `_import/qian/pnpm-workspace.yaml` 的版本目录，装依赖要令牌（见 `_import/qian/README.md`「前端依赖与包源」），外壳与界面包的门禁在 `qian-ui.yml`。
 - 一批一个 PR。本仓库的 PR 一律用合并提交合入，不压缩、不变基，否则导入的历史会丢。除迁移批次的 PR 之外，不要新建顶层代码目录，也不要把代码搬出 `_import/qian/`。
-- 不要抢跑：整理的第二段（树内的历史 PR 编号改写成带仓库名的形式、指向原仓库的地址改指本仓库、原 Qian 文档站的「Kun 框架」小节改为同仓来源、导入的文档里写给特定下游的内容怎么处理）由计划指定的执行会话做，原 Kun 一侧已经做完（文档整理进 `docs/`，`_import/kun/` 已搬空）；构建并轨是 B3；包名、命名空间与类型名的改名是 B4–B10。
+- 不要抢跑：整理的第二段（树内的历史 PR 编号改写成带仓库名的形式、指向原仓库的地址改指本仓库、`_import/qian/` 下文档站的「Kun 框架」小节改为同仓来源、导入的文档里写给特定下游的内容怎么处理）由计划指定的执行会话做，Kun 框架一侧已经做完（文档整理进 `docs/`，`_import/kun/` 已搬空）；构建并轨是 B3；包名、命名空间与类型名统一到 Kun 下是 B4–B10。
 
-目标仓库已定为本仓库（产品负责人，2026-11-17）。合并蓝图里写的 `idadawn/kun` 以[迁移与归并](docs/migration.md)第 6 节与迁移执行计划为准。
+目标仓库已定为本仓库（产品负责人，2026-11-17）。合并蓝图里写的目标仓库以[迁移与归并](docs/migration.md)第 6 节与迁移执行计划为准。
 
-## 原 Kun 的构建、测试与代码约定
+## Kun 框架的构建、测试与代码约定
 
-本节并自原 Kun 的 `CLAUDE.md` 与根上那份 `AGENTS.md`（两份都已删除；原文见 git 历史，原 Kun 最终头 `51b480775c` 上的同名文件，如 `git show 51b480775c:CLAUDE.md`）。原 Kun 的文档已整理进 `docs/`：入门在 `docs/getting-started.md`，指南、安全与设计说明在 `docs/guides/`、`docs/security/`、`docs/design/`，决策记录在 `docs/adr/kun/`（引用时写「Kun ADR-0xx」）；AOT 审计、基准结果、路线图、发版手册与发布说明等历史文档已删除，原文同样在 `51b480775c`。代码与构建文件注释里写的 `docs/…` 是原 Kun 的旧路径，没有改：`docs/architecture/` 下的 `ADR-*`、`adr-*` 现在在 `docs/adr/kun/`，其余的在 `docs/design/`；`docs/observability/`、`docs/schema-per-service.md`、`docs/openapi-template.md` 在 `docs/guides/`；`docs/whitepaper.md` 在 `docs/design/`；别的路径不变。`scripts/check-layering.sh` 的注释里提到的 `.claude/skills/` 已经删除，照本节做。原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。合并蓝图落地之后，分层规则由显式的档位表与门禁取代（D23.7、D23.14，B3 落地），包名与命名空间在 B4–B10 改；在那之前照下面的做。
+本节并自 Kun 框架的 `CLAUDE.md` 与根上那份 `AGENTS.md`（两份都已删除；原文见 git 历史，Kun 框架那一支的最终头 `51b480775c` 上的同名文件，如 `git show 51b480775c:CLAUDE.md`）。Kun 框架的文档已整理进 `docs/`：入门在 `docs/getting-started.md`，指南、安全与设计说明在 `docs/guides/`、`docs/security/`、`docs/design/`，决策记录在 `docs/adr/kun/`（引用时写「Kun ADR-0xx」）；AOT 审计、基准结果、路线图、发版手册与发布说明等历史文档已删除，原文同样在 `51b480775c`。代码与构建文件注释里写的 `docs/…` 是整理之前的路径，没有改：`docs/architecture/` 下的 `ADR-*`、`adr-*` 现在在 `docs/adr/kun/`，其余的在 `docs/design/`；`docs/observability/`、`docs/schema-per-service.md`、`docs/openapi-template.md` 在 `docs/guides/`；`docs/whitepaper.md` 在 `docs/design/`；别的路径不变。`scripts/check-layering.sh` 的注释里提到的 `.claude/skills/` 已经删除，照本节做。原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。合并蓝图落地之后，分层规则由显式的档位表与门禁取代（D23.7、D23.14，B3 落地），包名与命名空间在 B4–B10 改；在那之前照下面的做。
 
 ### 构建与测试
 
@@ -42,8 +42,8 @@ dotnet test --solution tests/kun-unit.slnf -c Release --no-build
 dotnet format --verify-no-changes --exclude _import/qian
 ```
 
-- 不带参数的 `dotnet restore`、`dotnet build` 用的是 `Kun.slnx`，原 Qian 的项目也一起构建。格式检查排除 `_import/qian`，与 CI 一致：原 Qian 有自己的 `.editorconfig`，格式门禁不管它。
-- `tests/kun-unit.slnf` 列出原 Kun 除 `Kun.IntegrationTests`、`Kun.Sample.Tests`、`Kun.Integration.AotTests` 之外的全部测试项目，即单元测试；新加单元测试项目时同时加进这个文件。覆盖率加 `--coverlet --coverlet-output-format cobertura`（单元测试项目都引用了 coverlet.MTP）。
+- 不带参数的 `dotnet restore`、`dotnet build` 用的是 `Kun.slnx`，`_import/qian/` 下的项目也一起构建。格式检查排除 `_import/qian`，与 CI 一致：`_import/qian/` 有自己的 `.editorconfig`，格式门禁不管它。
+- `tests/kun-unit.slnf` 列出 Kun 框架除 `Kun.IntegrationTests`、`Kun.Sample.Tests`、`Kun.Integration.AotTests` 之外的全部测试项目，即单元测试；新加单元测试项目时同时加进这个文件。覆盖率加 `--coverlet --coverlet-output-format cobertura`（单元测试项目都引用了 coverlet.MTP）。
 - 单个测试项目：`dotnet test --project tests/Kun.Mediator.Tests -c Release`；单个测试类或方法用 xunit 的筛选参数，如 `--filter-class "*.类名"`、`--filter-method "*.类名.方法名"`。
 - 集成测试（`tests/Kun.IntegrationTests`）用 Testcontainers 起容器，对象存储测试用 RustFS 作 S3 兼容服务。本机没有容器环境时跳过；设了 `CI` 时改为失败；拉不到镜像一律失败。跑法：`dotnet test --project tests/Kun.IntegrationTests -c Release`。
 - `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑。
@@ -51,7 +51,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 
 ### 分层与依赖
 
-- 依赖只能向下（原 Kun 的四层，列的是最初的模块）：宿主层（`Kun.AspNetCore`、`Kun.Grpc`、`Kun.Gateway`）→ 基础设施层（`Kun.EntityFrameworkCore`、`Kun.Dapper`、`Kun.EventBus.RabbitMQ`、`Kun.Saga`）→ 抽象层（`Kun.Mediator`、`Kun.Infrastructure`、`Kun.EventBus`、`Kun.Security`、`Kun.Validation`）→ 核心层（`Kun.Core`）。
+- 依赖只能向下（Kun 框架的四层，列的是最初的模块）：宿主层（`Kun.AspNetCore`、`Kun.Grpc`、`Kun.Gateway`）→ 基础设施层（`Kun.EntityFrameworkCore`、`Kun.Dapper`、`Kun.EventBus.RabbitMQ`、`Kun.Saga`）→ 抽象层（`Kun.Mediator`、`Kun.Infrastructure`、`Kun.EventBus`、`Kun.Security`、`Kun.Validation`）→ 核心层（`Kun.Core`）。
 - `Kun.Core` 只依赖 BCL，不加第三方包引用（分层检查脚本把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
 - 新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。
 - 蓝图的归档名单里有 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9），各域批次会把它们移出解决方案。
@@ -73,7 +73,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 ### 运行时约定
 
 - 命令与查询分离。`Kun.Mediator` 的处理器在编译期由源生成器发现，不要改回反射解析。写侧（命令处理器）用 `Kun.EntityFrameworkCore`：仓储、规约、变更跟踪，在 `SaveChangesAsync` 里登记 Outbox；读侧（查询处理器）用 `Kun.Dapper`：原生 SQL、DTO 投影、不加载聚合。查询处理器里不用 EF Core，命令处理器里不用 Dapper。
-- Outbox：集成事件与业务数据在同一事务里落库，事件类型用稳定的字符串 id（如 `order.placed.v1`），不用程序集限定名；优先用 `[IntegrationEventId("order.placed.v1")]` 特性加 `Register<TEvent>()`。消费端先查成功标记，再执行处理器、写成功标记、确认消息；业务副作用、标记与确认之间仍有重放窗口，写类处理器必须幂等。设计说明见原 Kun 的 ADR-015。
+- Outbox：集成事件与业务数据在同一事务里落库，事件类型用稳定的字符串 id（如 `order.placed.v1`），不用程序集限定名；优先用 `[IntegrationEventId("order.placed.v1")]` 特性加 `Register<TEvent>()`。消费端先查成功标记，再执行处理器、写成功标记、确认消息；业务副作用、标记与确认之间仍有重放窗口，写类处理器必须幂等。设计说明见 Kun ADR-015。
 - Saga 只做编排：一个 Saga 是有序的步骤，每步有执行与补偿；补偿从失败的那一步起逆序执行，补偿本身要幂等，没执行过的步骤也要能安全补偿。
 - 服务间零信任：外部令牌只在 `Kun.Gateway` 校验；网关用自己的私钥签发内部短期令牌（RS256 或 ES256，不用 HS256），下游经 `Kun.Security` 校验。身份（`sub`、`tenant_id`）只从内部令牌的声明里取，不信 `X-User-Id` 这类请求头。
 - 多租户：`Kun.Core` 的 `ITenantContext` 贯穿全栈；实现 `IMultiTenant` 的实体自动带 `TenantId` 查询过滤器，除明确的管理场景外不要用 `IgnoreQueryFilters()`；可以再加 PostgreSQL 行级安全作纵深防御。租户号改为只收 Guid 是 B5 的事（D23.5）。
@@ -93,12 +93,12 @@ dotnet format --verify-no-changes --exclude _import/qian
 | Saga 与步骤 | `{名词}Saga` / `{动词}Step` | `OrderCreationSaga` / `ReserveInventoryStep` |
 | Outbox 的稳定事件 id | `{上下文}.{名字}.v{n}` | `order.placed.v1` |
 
-提交信息用 Conventional Commits：`<type>(<scope>): <subject>`，原 Kun 模块的 scope 是模块名去掉 `Kun.` 前缀（如 `feat(saga): …`），末尾带任务 id（原 Qian 的约定，如 `[S1-KUN-019]`）。
+提交信息用 Conventional Commits：`<type>(<scope>): <subject>`，Kun 框架模块的 scope 是模块名去掉 `Kun.` 前缀（如 `feat(saga): …`），末尾带任务 id（任务看板的约定，如 `[S1-KUN-019]`）。
 
 ## 要改文档
 
-1. 先读 [README.md](README.md) 与平台总览仓库的[名称对照](https://github.com/CavaiLAB/jiangxin/blob/main/docs/glossary.md)。「Qian」换了所指：以前指基于 Kun 的平台层，现在只作前端框架的名字；原来叫 Qian 的后端并入 Kun。组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留；`qian` 命令行与 `@qian/*` 导入名本次不改。
-2. 合并蓝图是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）；两者与已归档的 `idadawn/qian` 里的同名文件内容相同。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
+1. 先读 [README.md](README.md) 与平台总览仓库的[名称对照](https://github.com/CavaiLAB/jiangxin/blob/main/docs/glossary.md)。「Qian」只作前端框架的名字，`_import/qian/` 下的平台后端并入 Kun。组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留；`qian` 命令行与 `@qian/*` 导入名本次不改。
+2. 合并蓝图是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
 3. 文档用中文，不写参考平台和对标项目的名字。
 4. 分清「已定」「提议」「待定」。说现状的时候写清是「已有」（在原仓库里已经实现）还是「规划」。
 5. 平台级的口径（名称、三个框架的分工、Agent 协同）在 [jiangxin](https://github.com/CavaiLAB/jiangxin) 里改，这里只引用。

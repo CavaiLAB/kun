@@ -7,6 +7,11 @@
     <Description>Kun Framework testing helpers: fluent assertion extensions for Result&lt;T&gt; and IAggregateRoot domain events. Framework-agnostic — throws KunAssertionException on mismatch so consumers with xUnit, NUnit, or MSTest all surface failures uniformly. Depends on Kun.Core only.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
   </ItemGroup>

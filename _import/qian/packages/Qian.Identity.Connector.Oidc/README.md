@@ -39,7 +39,7 @@ Apply 按配置构造 `OidcIdentityConnector`，以配置的 `name`（缺省 `oi
 
 ## 依赖边界
 
-只依赖 `Qian.Identity.Abstractions`、`Qian.Config.Abstractions`（secretRef 与密钥解析端口）与 `Microsoft.IdentityModel.JsonWebTokens`；不依赖 `Qian.Identity.Server` 实现包，CI 的依赖图门禁与 `tests/gates/test_check_deps.py` 的 `RealConnectorClosureTests` 对此把关。
+只依赖 `Qian.Identity.Abstractions`、`Qian.Config.Abstractions`（secretRef 与密钥解析端口）与 `Microsoft.IdentityModel.JsonWebTokens`；不依赖 `Qian.Identity.Server` 实现包，CI 的依赖门禁（仓库根的 `scripts/check_deps.py`，平台档包不依赖别的平台档提供者）与仓库根 `tests/gates/test_check_deps.py` 的 `RealGraphTests` 对此把关。
 
 ## 验收
 

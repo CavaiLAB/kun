@@ -7,6 +7,11 @@
     <Description>Kun Framework — gRPC host integration: Result→RpcException mapping, auth/tracing interceptors.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../Kun.Authorization/Kun.Authorization.csproj" />
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />

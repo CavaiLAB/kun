@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>true</IsPackable><Description>权限目录、默认角色模板与租户授权 Provider。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />

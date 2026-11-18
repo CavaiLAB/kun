@@ -7,6 +7,11 @@
     <Description>RabbitMQ broker adapter for Kun Framework event bus.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Kun.IntegrationTests" />
   </ItemGroup>

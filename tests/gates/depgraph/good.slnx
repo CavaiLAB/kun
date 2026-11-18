@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="Gate.Amber/Gate.Amber.csproj" />
+  <Project Path="Gate.Birch/Gate.Birch.csproj" />
+  <Project Path="Gate.Cedar/Gate.Cedar.csproj" />
+  <Project Path="Gate.Delta/Gate.Delta.csproj" />
+  <Project Path="Gate.Grove/Gate.Grove.csproj" />
+  <Project Path="Gate.Hazel/Gate.Hazel.csproj" />
+  <Project Path="Gate.Host/Gate.Host.csproj" />
+</Solution>

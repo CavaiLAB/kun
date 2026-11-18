@@ -5,4 +5,9 @@
     <Description>门禁自测样例：登记了已删除的公共 API，构建应因 RS0017 失败</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>platform</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
 </Project>

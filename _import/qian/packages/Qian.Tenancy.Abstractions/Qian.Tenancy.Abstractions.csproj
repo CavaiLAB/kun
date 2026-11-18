@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>true</IsPackable><Description>租户主档目录与严格租户上下文传播契约。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>contract</KunRole></PropertyGroup>
   <ItemGroup><ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" /><ProjectReference Include="../../../../src/Kun.Core/Kun.Core.csproj" /><ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" /></ItemGroup>
   <ItemGroup><EmbeddedResource Include="TenantStateMetadata.schema.json" LogicalName="Qian.Tenancy.StateMachineSchema" /></ItemGroup>

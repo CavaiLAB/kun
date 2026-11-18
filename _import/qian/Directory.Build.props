@@ -10,7 +10,7 @@
   <PropertyGroup Label="Packaging">
     <!--
       默认不打包。Qian 组件包在 csproj 里显式写 <IsPackable>true</IsPackable>，
-      随即进入 PublicAPI 门禁（Directory.Build.targets）与依赖图门禁（scripts/check_deps.py）。
+      随即进入 PublicAPI 门禁（Directory.Build.targets），并且要写档位与角色，进入依赖门禁（仓库根的 scripts/check_deps.py）。
     -->
     <IsPackable>false</IsPackable>
     <Authors>Qian Contributors</Authors>

@@ -7,6 +7,11 @@
     <Description>EF Core 10 write-side persistence for Kun Framework: KunDbContext, atomic Outbox integration, tenant filters.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\Kun.MultiTenancy.EntityFrameworkCore\Kun.MultiTenancy.EntityFrameworkCore.csproj" />

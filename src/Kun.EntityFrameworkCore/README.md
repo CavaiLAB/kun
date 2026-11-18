@@ -104,7 +104,8 @@ The fixture and the acceptance test are in
   defined. Not a default because it adds one `set_config` round-trip per
   transaction.
 - Never introduce new `PackageReference` to `Kun.Core` — the framework
-  enforces this via `scripts/check-layering.sh` in CI.
+  enforces this in CI via the dependency gate `scripts/check_deps.py`
+  (rule C for packages that declare `KunZeroDependency`).
 
 ## See also
 

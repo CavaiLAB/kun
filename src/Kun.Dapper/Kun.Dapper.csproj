@@ -13,6 +13,10 @@
     <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — Dapper read-side abstractions: connection factory, pagination, and DI extensions.</Description>
   </PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
     <PackageReference Include="Dapper" />

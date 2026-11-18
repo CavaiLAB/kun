@@ -1,0 +1,9 @@
+<Project>
+
+  <!--
+    门禁自测的样例项目：只继承仓库根的构建基线，不继承 tests/Directory.Build.props（那里把项目当成测试项目）。
+    仓库根的 Directory.Build.targets 与中央包版本照常生效，与真实的包一样。
+  -->
+  <Import Project="../../Directory.Build.props" />
+
+</Project>

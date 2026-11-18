@@ -11,7 +11,7 @@
 | 仓库根 | Kun 框架：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.slnx`（`_import/qian/` 下的 .NET 项目也在里面）与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「Kun 框架的构建、测试与代码约定」，命令在仓库根运行 |
 | `_import/qian/` | 平台代码与工具：.NET 包、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
 
-构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）与 `global.json` 两边共用；`src/` 下 Kun 包的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含仓库根与 `_import/qian/` 下的全部项目。`_import/qian/` 下的项目改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它们的筛选文件，列出 `_import/qian/` 下的项目，那里的脚本与测试以它所在的目录为根；在 `_import/qian/` 下新加项目，要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props` 与 `Directory.Packages.props` 先导入根上的，前者只留那里的打包设置，后者只留一个给文档站读的 `KunVersion`，构建不读它，由门禁自测保证。`_import/qian/global.json` 暂留，内容与根上的相同；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建 `_import/qian/` 下的项目时，在那里用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。`_import/qian/` 的其余命令一律在那里跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 对 `_import/qian/` 同样生效。
+构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Build.targets`（可打包项目的档位声明检查）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）与 `global.json` 两边共用；`src/` 下 Kun 包的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含仓库根与 `_import/qian/` 下的全部项目。`_import/qian/` 下的项目改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它们的筛选文件，列出 `_import/qian/` 下的项目，那里的脚本与测试以它所在的目录为根；在 `_import/qian/` 下新加项目，要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props`、`Directory.Build.targets` 与 `Directory.Packages.props` 先导入根上的：第一个只留那里的打包设置，第二个留那里的 PublicAPI 门禁、分析器与网关引用的处理，第三个只留一个给文档站读的 `KunVersion`，构建不读它，由门禁自测保证。`_import/qian/global.json` 暂留，内容与根上的相同；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建 `_import/qian/` 下的项目时，在那里用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。`_import/qian/` 的其余命令一律在那里跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 对 `_import/qian/` 同样生效。
 
 检查只有一个入口：仓库根的 `.github/workflows/ci.yml`（S1-KUN-020）。它先跑变更检测，按区域表 `scripts/ci_changes.py` 把改动的文件归到各个区域（.NET 的构建、门禁、测试与原生发布，镜像自检，文档与看板，文档站，各项前端验收等），只跑涉及的区域的作业；推 `main` 与手动触发时全部区域都跑。前端与文档的检查是 `.github/workflows/` 下的 `qian-*.yml`，只由 `ci.yml` 调用，在 `_import/qian/` 下运行；其余作业直接写在 `ci.yml` 里，仓库根上的 Kun 框架与 `_import/qian/` 下的 .NET 项目都在其中。两边导入时带来的 `.github/` 原件，Kun 框架的在 `.github/originals/kun/`，平台的在 `_import/qian/.github/`，GitHub 都不读；`ci.yml` 与 `qian-*.yml` 的开头写着对应哪个原件、相对原件改了什么，Kun 框架没接的工作流与模板见 `.github/originals/kun/README.md`。
 
@@ -35,7 +35,7 @@
 
 ## Kun 框架的构建、测试与代码约定
 
-本节并自 Kun 框架的 `CLAUDE.md` 与根上那份 `AGENTS.md`（两份都已删除；原文见 git 历史，Kun 框架那一支的最终头 `51b480775c` 上的同名文件，如 `git show 51b480775c:CLAUDE.md`）。Kun 框架的文档已整理进 `docs/`：入门在 `docs/getting-started.md`，指南、安全与设计说明在 `docs/guides/`、`docs/security/`、`docs/design/`，决策记录在 `docs/adr/kun/`（引用时写「Kun ADR-0xx」）；AOT 审计、基准结果、路线图、发版手册与发布说明等历史文档已删除，原文同样在 `51b480775c`。代码与构建文件注释里写的 `docs/…` 是整理之前的路径，没有改：`docs/architecture/` 下的 `ADR-*`、`adr-*` 现在在 `docs/adr/kun/`，其余的在 `docs/design/`；`docs/observability/`、`docs/schema-per-service.md`、`docs/openapi-template.md` 在 `docs/guides/`；`docs/whitepaper.md` 在 `docs/design/`；别的路径不变。`scripts/check-layering.sh` 的注释里提到的 `.claude/skills/` 已经删除，照本节做。原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。合并蓝图落地之后，分层规则由显式的档位表与门禁取代（D23.7、D23.14，B3 落地），包名与命名空间在 B4–B10 改；在那之前照下面的做。
+本节并自 Kun 框架的 `CLAUDE.md` 与根上那份 `AGENTS.md`（两份都已删除；原文见 git 历史，Kun 框架那一支的最终头 `51b480775c` 上的同名文件，如 `git show 51b480775c:CLAUDE.md`）。Kun 框架的文档已整理进 `docs/`：入门在 `docs/getting-started.md`，指南、安全与设计说明在 `docs/guides/`、`docs/security/`、`docs/design/`，决策记录在 `docs/adr/kun/`（引用时写「Kun ADR-0xx」）；AOT 审计、基准结果、路线图、发版手册与发布说明等历史文档已删除，原文同样在 `51b480775c`。代码与构建文件注释里写的 `docs/…` 是整理之前的路径，没有改：`docs/architecture/` 下的 `ADR-*`、`adr-*` 现在在 `docs/adr/kun/`，其余的在 `docs/design/`；`docs/observability/`、`docs/schema-per-service.md`、`docs/openapi-template.md` 在 `docs/guides/`；`docs/whitepaper.md` 在 `docs/design/`；别的路径不变。原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。原件里的分层规则已由档位与依赖门禁取代（D23.7、D23.14，见下面「档位与依赖」）；包名与命名空间在 B4–B10 改，在那之前照下面的做。
 
 ### 构建与测试
 
@@ -53,7 +53,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 单个测试项目：`dotnet test --project tests/Kun.Mediator.Tests -c Release`；单个测试类或方法用 xunit 的筛选参数，如 `--filter-class "*.类名"`、`--filter-method "*.类名.方法名"`。
 - 集成测试（`tests/Kun.IntegrationTests`）用 Testcontainers 起容器，对象存储测试用 RustFS 作 S3 兼容服务。本机没有容器环境时跳过；设了 `CI` 时改为失败；拉不到镜像一律失败。跑法：`dotnet test --project tests/Kun.IntegrationTests -c Release`。
 - `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑。
-- CI（`ci.yml` 的 dotnet 区域）另外：逐个 AOT 候选模块做 NativeAOT 发布，警告即错误（模块清单见 AOT 审计作业的矩阵）；跑 `tests/Kun.Integration.AotTests`（样例与网关包的 NativeAOT 发布并运行）；检查分层（`scripts/check-layering.sh`）与身份模块的日志隐私和产品中立（`scripts/check-identity-boundaries.py`）。单元测试与集成测试在测试分片 k 里跑：每个模块各写一份 TRX 与覆盖率，覆盖率上传前核对 `tests/kun-unit.slnf` 里每个测试项目恰好一份；汇总作业再核对每个模块都跑过、没有失败。提交前至少跑一遍格式检查。
+- CI（`ci.yml` 的 dotnet 区域）另外：逐个 AOT 候选模块做 NativeAOT 发布，警告即错误（模块清单见 AOT 审计作业的矩阵）；跑 `tests/Kun.Integration.AotTests`（样例与网关包的 NativeAOT 发布并运行）；按档位检查依赖（`scripts/check_deps.py`，见下面「档位与依赖」）与身份模块的日志隐私和产品中立（`scripts/check-identity-boundaries.py`）。单元测试与集成测试在测试分片 k 里跑：每个模块各写一份 TRX 与覆盖率，覆盖率上传前核对 `tests/kun-unit.slnf` 里每个测试项目恰好一份；汇总作业再核对每个模块都跑过、没有失败。提交前至少跑一遍格式检查。
 - 基准与对象存储实测不进 CI（S1-DEC-038 D21），在本机跑。基准：`dotnet run -c Release --project benchmarks/Kun.Benchmarks -- --filter '*'`，gRPC 的基准换成 `benchmarks/Kun.Benchmarks.Grpc`，结果写在当前目录的 `BenchmarkDotNet.Artifacts/`。对象存储实测连真实的 OSS 桶，四个 `OSS_SMOKE_*` 环境变量都设了才跑，缺一个就跳过（CI 的分片 k 里没有它们，这组用例跳过）：
 
   ```bash
@@ -61,10 +61,29 @@ dotnet format --verify-no-changes --exclude _import/qian
     dotnet test --project tests/Kun.Storage.Oss.Tests -c Release --filter-class "*.OssFileStorageLiveSmokeTests"
   ```
 
-### 分层与依赖
+### 档位与依赖
 
-- 依赖只能向下（Kun 框架的四层，列的是最初的模块）：宿主层（`Kun.AspNetCore`、`Kun.Grpc`、`Kun.Gateway`）→ 基础设施层（`Kun.EntityFrameworkCore`、`Kun.Dapper`、`Kun.EventBus.RabbitMQ`、`Kun.Saga`）→ 抽象层（`Kun.Mediator`、`Kun.Infrastructure`、`Kun.EventBus`、`Kun.Security`、`Kun.Validation`）→ 核心层（`Kun.Core`）。
-- `Kun.Core` 只依赖 BCL，不加第三方包引用（分层检查脚本把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
+包分内核档与平台档（合并蓝图 D23.7），依赖规则按档位与角色定，写在各项目文件里，门禁不看包名（D23.14 第 1 点）。原件里 Kun 框架的四层方向由它取代。
+
+- 每个可打包的项目都在项目文件里写档位与角色（`<PropertyGroup Label="档位">`）：
+  - `KunTier`：`kernel` 是内核档，放通用机制，不知道租户目录、人员、角色、组件清单这些产品概念；`platform` 是平台档，带产品语义，以组件形式装配；
+  - `KunRole`：`contract` 是契约，`provider` 是提供者；
+  - `Kun.Core` 另写 `<KunZeroDependency>true</KunZeroDependency>`。
+
+  没写或取值不对（区分大小写），构建报 KUNTIER001、KUNTIER002（仓库根的 `Directory.Build.targets`）。测试、工具、宿主、样例不打包，不写。新包的档位按蓝图 D23.9 的归并对照定，各批次开工时按依赖图复核。
+- 依赖门禁 `scripts/check_deps.py` 读各项目的 `obj/project.assets.json`，包与项目两类依赖都查：
+
+  | 规则 | 内容 |
+  |---|---|
+  | K | 内核档包的传递依赖里不得有平台档的包 |
+  | P | 平台档包的传递依赖里，平台档的包只能是契约；内核档的包不限 |
+  | D | 契约包对内核档包的直接依赖只能是契约 |
+  | C | 零依赖的包不得有项目引用，包引用只许 `Microsoft.Extensions.*` |
+
+  D、C 不计只在构建时用的包引用，即 `PrivateAssets="all"` 而且不带编译、运行时程序集的，比如分析器。`PrivateAssets="all"` 引用运行时库照样算：它不进 nuspec，使用方拿不到它，包会坏。
+- 暂时去不掉的违规边记成例外，写在边起点的项目文件里，一条边一项：`<KunTierException Include="被依赖的包" Rule="K" Until="B5" Reason="…" />`。三个属性都必填，`Until` 写最早能去掉的批次。K、P 查传递依赖时跳过记了例外的边，所以只在出问题的那条边的起点记一次。边没了或者不再违规，门禁报例外已失效，要删掉；例外只减不增，现有的用 `git grep KunTierException` 查。
+- 本机跑：`python3 scripts/check_deps.py`（先还原 `Kun.slnx`，已还原时加 `--no-restore`）。自测与样例在 `tests/gates/`：`python3 -m unittest discover -s tests/gates -v`。
+- `Kun.Core` 只依赖 BCL，不加第三方包引用（规则 C 把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
 - 新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。
 - 蓝图的归档名单里有 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9），各域批次会把它们移出解决方案。
 

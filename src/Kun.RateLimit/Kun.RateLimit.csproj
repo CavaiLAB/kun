@@ -7,6 +7,11 @@
     <Description>Kun Framework unified rate limiting: AddKunRateLimit configures Microsoft.AspNetCore.RateLimiting with per-tenant / per-user / per-IP partitioning, multiple named windows, 429 + Retry-After semantics, and a pluggable OnRejected hook.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>

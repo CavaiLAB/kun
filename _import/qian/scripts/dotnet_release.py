@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Qian .NET 包族锁步发布的核对工具（S1-RT-014，ADR-019 D19.7、ADR-021）。只依赖标准库。
 
-包族 = Qian.slnf 里 QianIsPackage=true 的全部项目（判定见 Directory.Build.targets，与 scripts/check_deps.py 同一口径）。
+包族 = Qian.slnf 里 QianIsPackage=true 的全部项目（判定见 Directory.Build.targets）。
 发布工作流 .github/workflows/dotnet-release.yml 依次调用：
 
   python3 scripts/dotnet_release.py check-version --version 0.1.0 [--feed URL --token-env NAME]
@@ -39,9 +39,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts"))
-
-import check_deps  # noqa: E402
 
 # SemVer 2.0（semver.org 给出的正则），不带 v 前缀与构建元数据：NuGet 归一化时会丢掉 +metadata，同一版本只能发一次。
 SEMVER = re.compile(
@@ -57,11 +54,43 @@ class Failure(Exception):
     """核对不通过。"""
 
 
+class ToolError(Exception):
+    """工具层面的失败（读不到项目属性等），不是核对不通过。"""
+
+
+def _env() -> Dict[str, str]:
+    env = dict(os.environ)
+    env.update({"DOTNET_CLI_UI_LANGUAGE": "en", "DOTNET_NOLOGO": "1", "DOTNET_CLI_TELEMETRY_OPTOUT": "1"})
+    return env
+
+
+def solution_projects(solution: Path) -> List[Path]:
+    """解决方案或筛选文件里的项目；筛选文件里的路径相对它筛选的那个解决方案所在的目录（Qian.slnf 筛选仓库根的 Kun.slnx）。"""
+    text = solution.read_text(encoding="utf-8-sig")
+    if solution.suffix.lower() == ".slnf":
+        document = json.loads(text)["solution"]
+        base = (solution.parent / document["path"].replace("\\", "/")).parent
+        return [(base / p.replace("\\", "/")).resolve() for p in document["projects"]]
+    if solution.suffix.lower() == ".slnx":
+        paths = [e.get("Path") for e in ET.fromstring(text).iter("Project") if e.get("Path")]
+    else:
+        paths = re.findall(r'^Project\("\{[^}]+\}"\)\s*=\s*"[^"]*",\s*"([^"]+\.(?:cs|fs|vb)proj)"', text, re.M)
+    return [(solution.parent / p.replace("\\", "/")).resolve() for p in paths]
+
+
+def _properties(project: Path) -> Dict[str, str]:
+    cmd = ["dotnet", "msbuild", str(project), "-nologo", "-getProperty:QianIsPackage", "-getProperty:QianPackageId"]
+    result = subprocess.run(cmd, capture_output=True, text=True, env=_env())
+    if result.returncode != 0:
+        raise ToolError(f"读取项目属性失败：{project}\n{result.stdout}{result.stderr}")
+    return json.loads(result.stdout)["Properties"]
+
+
 def family(solution: Path) -> List[str]:
     """包族的包名，按名称排序。读项目属性，不需要已还原。"""
-    projects = check_deps.solution_projects(solution)
+    projects = solution_projects(solution)
     with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 4)) as pool:
-        props = list(pool.map(check_deps._properties, projects))
+        props = list(pool.map(_properties, projects))
     return sorted((p["QianPackageId"] for p in props if p.get("QianIsPackage") == "true"), key=str.lower)
 
 
@@ -306,7 +335,7 @@ def verify_consumer(version: str, source: str, token_variable: Optional[str], at
     for name in ("Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props"):
         (work / name).write_text("<Project />\n", encoding="utf-8")
     (work / "global.json").write_text((ROOT / "global.json").read_text(encoding="utf-8"), encoding="utf-8")
-    env = dict(check_deps._env(), NUGET_PACKAGES=str(work / ".packages"), NUGET_HTTP_CACHE_PATH=str(work / ".http-cache"),
+    env = dict(_env(), NUGET_PACKAGES=str(work / ".packages"), NUGET_HTTP_CACHE_PATH=str(work / ".http-cache"),
                NUGET_SCRATCH=str(work / ".scratch"), NUGET_PLUGINS_CACHE_PATH=str(work / ".plugins-cache"))
 
     for attempt in range(1, attempts + 1):
@@ -462,7 +491,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     except Failure as failure:
         print(str(failure), file=sys.stderr)
         return 1
-    except (check_deps.GateError, OSError, subprocess.SubprocessError, json.JSONDecodeError, zipfile.BadZipFile) as error:
+    except (ToolError, OSError, subprocess.SubprocessError, json.JSONDecodeError, zipfile.BadZipFile) as error:
         print(f"发布核对出错：{error}", file=sys.stderr)
         return 2
     return 0

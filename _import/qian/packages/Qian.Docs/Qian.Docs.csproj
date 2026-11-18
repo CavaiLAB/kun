@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>true</IsPackable><Description>读取 profile、配置 Schema 与 C# 事件代码的静态文档生成器。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Docs.Abstractions/Qian.Docs.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" />

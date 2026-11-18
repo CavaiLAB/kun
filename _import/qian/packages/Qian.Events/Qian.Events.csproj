@@ -3,6 +3,14 @@
     <IsPackable>true</IsPackable>
     <Description>Qian 事件组件：入队时生成 v1 信封、按租约领取 Outbox 并经 publisher confirm 发往 RabbitMQ；消费端手动确认、退避重试、死信、Redis 幂等与租户回灌。</Description>
   </PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+  <ItemGroup Label="档位例外">
+    <KunTierException Include="Qian.Data.Abstractions" Rule="K" Until="B5" Reason="Outbox 写入端挂在 QianDbContext 与数据上下文目录上；B5 数据层的 EF 部分并入 Kun.EntityFrameworkCore 后改指内核档，最晚 B6 事件一域并轨" />
+    <KunTierException Include="Qian.Tenancy.Abstractions" Rule="K" Until="B5" Reason="订阅端经 ITenantContextPropagator 恢复租户上下文；B5 上下文传播并入 Kun.MultiTenancy，最晚 B6 事件一域并轨" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" />

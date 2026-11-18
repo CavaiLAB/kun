@@ -20,6 +20,11 @@
     <NoWarn>$(NoWarn);NU5104</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="GATEWAY.md" Pack="true" PackagePath="/" />
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：（违规 R）可打包却没写档位与角色</Description>
+  </PropertyGroup>
+
+</Project>

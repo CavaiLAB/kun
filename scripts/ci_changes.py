@@ -44,8 +44,8 @@ def q(*patterns: str) -> Tuple[str, ...]:
 
 # 凡要构建 .NET 的区域都含这一组：_import/qian 下的项目从源码编译 src/ 下的 Kun 项目，
 # 仓库根的构建基线、中央包版本、包源、格式规则与 SDK 版本一改，构建就跟着变。
-DOTNET_BASE: Tuple[str, ...] = ("src/**", "Kun.slnx", "Directory.Build.props", "Directory.Packages.props",
-                                "global.json", "NuGet.config", ".editorconfig")
+DOTNET_BASE: Tuple[str, ...] = ("src/**", "Kun.slnx", "Directory.Build.props", "Directory.Build.targets",
+                                "Directory.Packages.props", "global.json", "NuGet.config", ".editorconfig")
 # 装 GitHub Packages 上的 @cavailab/qian-* 的区域都含这一组：包源写在这个文件里。
 NPMRC: Tuple[str, ...] = (Q + ".npmrc",)
 # 这些文件一改，全部区域都算改动：作业的定义、区域表本身或共用的复合动作变了。

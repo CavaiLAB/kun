@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：内核档提供者依赖平台档契约，记了一条生效的例外</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
+  <ItemGroup Label="档位例外">
+    <KunTierException Include="Gate.Cedar" Rule="K" Until="B9" Reason="样例：生效的例外" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Gate.Cedar/Gate.Cedar.csproj" />
+  </ItemGroup>
+
+</Project>

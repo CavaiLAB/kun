@@ -1,8 +1,12 @@
 <Project>
 
+  <!-- 仓库根的 Directory.Build.targets：可打包项目的档位声明检查（S1-KUN-020）。 -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
+
   <!--
     Qian 包的判定：IsPackable=true 且包名以 Qian. 开头。
-    QianIsPackage / QianPackageId 也是 scripts/check_deps.py 读取的属性（dotnet msbuild -getProperty），改名要两边一起改。
+    QianIsPackage / QianPackageId 也是 scripts/dotnet_release.py 读取的属性（dotnet msbuild -getProperty），改名要两边一起改。
+    依赖门禁不用这两个属性，按项目文件里写的档位检查，见仓库根的 scripts/check_deps.py。
     PackageId 的 SDK 默认值在本文件之后才赋，这里按 PackageId → AssemblyName → 项目名依次兜底。
   -->
   <PropertyGroup Label="Qian package">

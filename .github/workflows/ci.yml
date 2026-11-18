@@ -19,12 +19,14 @@ name: ci
 # .NET 作业统一在 ubuntu-24.04 上跑，SDK 由复合动作 .github/actions/setup-dotnet 按仓库根的 global.json 装到独立目录。
 #
 # 原件（不动，GitHub 不读）与相对原件的改动：
-# - .github/originals/kun/workflows/ci.yml：还原与构建、发版脚本自测、网关打包冒烟、分层与身份边界检查并进「构建与门禁」，
-#   单元与集成测试成为测试分片 k，格式、AOT 审计、样例 AOT 集成各占一个作业。runs-on 由自托管 runner 改为 ubuntu-24.04；
+# - .github/originals/kun/workflows/ci.yml：还原与构建、发版脚本自测、网关打包冒烟、身份边界检查并进「构建与门禁」；分层检查
+#   由仓库根按档位检查的依赖门禁（scripts/check_deps.py）取代，其中规则 C 管 Kun.Core 的零依赖。单元与集成测试成为测试分片 k，
+#   格式、AOT 审计、样例 AOT 集成各占一个作业。runs-on 由自托管 runner 改为 ubuntu-24.04；
 #   测试运行器是 Microsoft.Testing.Platform，单元测试照 tests/kun-unit.slnf 跑，每个模块各写一份 TRX 与覆盖率，覆盖率核对份数、
 #   去掉文件名里的时间戳之后上传；推 develop 分支不再触发。
 # - _import/qian/.github/workflows/dotnet.yml：构建与门禁、测试分片 a/b/c、汇总核对、四个原生发布作业，命令照原件，在
-#   _import/qian 下运行。「构建与门禁」的还原与构建换成仓库根的 Kun.slnx，测试分片用 Qian.slnf；runs-on 由 ubuntu-latest
+#   _import/qian 下运行。「构建与门禁」的还原与构建换成仓库根的 Kun.slnx，测试分片用 Qian.slnf；依赖图门禁换成仓库根
+#   按档位检查的依赖门禁，覆盖 Kun.slnx 里全部可打包项目，自测在仓库根的 tests/gates；runs-on 由 ubuntu-latest
 #   改为 ubuntu-24.04；汇总核对另核分片 k；触发过滤自检读区域表里的 dotnet 区域。
 # - _import/qian/.github/workflows/images.yml：镜像自检，构建上下文改为仓库根（只接自检，不接推送与正式签名）。
 # - _import/qian/.github/workflows/ 下其余 10 个：.github/workflows/qian-<名字>.yml，由本文件调用，改动写在各自的文件头。
@@ -115,9 +117,6 @@ jobs:
           dotnet pack src/Kun.Gateway -c Release --no-build --no-restore -o artifacts/gateway-package
           test -f artifacts/gateway-package/Kun.Gateway.*.nupkg
 
-      - name: Kun.Core 不带第三方包引用
-        run: bash scripts/check-layering.sh
-
       - name: 身份日志隐私与产品中立的缺省值
         run: python3 scripts/check-identity-boundaries.py
 
@@ -133,9 +132,11 @@ jobs:
         working-directory: _import/qian
         run: dotnet tools/Qian.Config.Tool/bin/Release/net10.0/Qian.Config.Tool.dll . --out TestResults/evidence/apollo-namespaces
 
-      - name: 依赖图门禁
-        working-directory: _import/qian
-        run: python3 scripts/check_deps.py --solution Qian.slnf --no-restore
+      - name: 依赖门禁（Kun.slnx 里每个可打包项目按档位与角色检查）
+        run: python3 scripts/check_deps.py --no-restore
+
+      - name: 依赖门禁自测（仓库根 tests/gates 的样例项目与真实依赖图）
+        run: python3 -m unittest discover -s tests/gates -v
 
       - name: 门禁自测（tests/gates 样例项目）
         working-directory: _import/qian

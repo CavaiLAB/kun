@@ -1,0 +1,31 @@
+<Project>
+
+  <!--
+    档位声明（S1-KUN-020；合并蓝图 D23.7、D23.14 第 1 点）。
+    可打包的项目必须在项目文件里写档位与角色，依赖门禁 scripts/check_deps.py 按它们检查依赖，不看包名：
+
+      KunTier            kernel（内核档）或 platform（平台档）
+      KunRole            contract（契约）或 provider（提供者）
+      KunZeroDependency  写 true 的包不得有项目引用，包引用只许 Microsoft.Extensions.*；不写即 false
+
+    依赖规则的例外写成 KunTierException 项，同样在项目文件里，写法见 scripts/check_deps.py。
+    这里只查写没写、取值对不对，区分大小写：没写 KunTier 或 KunRole 报 KUNTIER001，取值不对报 KUNTIER002。
+    不打包的项目（测试、工具、宿主、样例）不记档位。
+    _import/qian/Directory.Build.targets 先导入本文件。
+  -->
+  <Target Name="KunRequireTierDeclaration" BeforeTargets="CoreCompile" Condition="'$(IsPackable)' == 'true'">
+    <Error Code="KUNTIER001"
+           Condition="'$(KunTier)' == '' or '$(KunRole)' == ''"
+           Text="$(MSBuildProjectName) 可打包，项目文件里必须写档位 KunTier（kernel 或 platform）与角色 KunRole（contract 或 provider）。做法见仓库根 AGENTS.md「档位与依赖」。" />
+    <Error Code="KUNTIER002"
+           Condition="'$(KunTier)' != '' and !$([System.String]::Copy('|kernel|platform|').Contains('|$(KunTier)|'))"
+           Text="$(MSBuildProjectName) 的 KunTier 是「$(KunTier)」，只能写 kernel 或 platform（区分大小写）。" />
+    <Error Code="KUNTIER002"
+           Condition="'$(KunRole)' != '' and !$([System.String]::Copy('|contract|provider|').Contains('|$(KunRole)|'))"
+           Text="$(MSBuildProjectName) 的 KunRole 是「$(KunRole)」，只能写 contract 或 provider（区分大小写）。" />
+    <Error Code="KUNTIER002"
+           Condition="'$(KunZeroDependency)' != '' and !$([System.String]::Copy('|true|false|').Contains('|$(KunZeroDependency)|'))"
+           Text="$(MSBuildProjectName) 的 KunZeroDependency 是「$(KunZeroDependency)」，只能写 true 或 false，或者不写。" />
+  </Target>
+
+</Project>

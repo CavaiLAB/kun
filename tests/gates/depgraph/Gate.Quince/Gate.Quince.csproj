@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：（违规 R）档位写成 Kernel，大小写不对</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>Kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
+</Project>

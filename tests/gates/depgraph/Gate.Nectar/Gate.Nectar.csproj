@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：（违规 C）零依赖的包带了项目引用与 Microsoft.Extensions.* 以外的包引用</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>contract</KunRole>
+    <KunZeroDependency>true</KunZeroDependency>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Gate.Amber/Gate.Amber.csproj" />
+    <PackageReference Include="Dapper" />
+  </ItemGroup>
+
+</Project>

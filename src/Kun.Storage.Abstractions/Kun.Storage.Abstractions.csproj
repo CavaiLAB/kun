@@ -7,4 +7,9 @@
     <Description>Kun Framework — object-storage abstractions: IFileStorage contract, presigned URL records, upload constraints, and the ActiveWebContentTypes set used to force-download rendered web payloads.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>contract</KunRole>
+  </PropertyGroup>
+
 </Project>

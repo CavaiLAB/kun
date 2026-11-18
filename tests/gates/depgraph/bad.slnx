@@ -1,0 +1,18 @@
+<Solution>
+  <Project Path="Gate.Amber/Gate.Amber.csproj" />
+  <Project Path="Gate.Birch/Gate.Birch.csproj" />
+  <Project Path="Gate.Cedar/Gate.Cedar.csproj" />
+  <Project Path="Gate.Delta/Gate.Delta.csproj" />
+  <Project Path="Gate.Ivy/Gate.Ivy.csproj" />
+  <Project Path="Gate.Juniper/Gate.Juniper.csproj" />
+  <Project Path="Gate.Kelp/Gate.Kelp.csproj" />
+  <Project Path="Gate.Laurel/Gate.Laurel.csproj" />
+  <Project Path="Gate.Elm.Abstractions/Gate.Elm.Abstractions.csproj" />
+  <Project Path="Gate.Maple/Gate.Maple.csproj" />
+  <Project Path="Gate.Nectar/Gate.Nectar.csproj" />
+  <Project Path="Gate.Rowan/Gate.Rowan.csproj" />
+  <Project Path="Gate.Sorrel/Gate.Sorrel.csproj" />
+  <Project Path="Gate.Oak/Gate.Oak.csproj" />
+  <Project Path="Gate.Pine/Gate.Pine.csproj" />
+  <Project Path="Gate.Quince/Gate.Quince.csproj" />
+</Solution>

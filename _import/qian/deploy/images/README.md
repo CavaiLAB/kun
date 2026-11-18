@@ -63,7 +63,7 @@ AOT 模板的构建上下文白名单放行了网关宿主（`hosts/Qian.Gateway
 
 结果写到 `TestResults/images/evidence.json`（构建证据、两个镜像的 digest、SBOM 与扫描摘要、各门禁与反例结果），逐条命令与输出写到同目录的 `commands.log`；CI 把整个目录上传为 `image-selfcheck` 产物。PR 运行里构建的是 GitHub 合成的合并提交，证据另记 PR 头与 base 的 SHA 和运行号。工作流按路径触发，也可手动运行；新披露的漏洞不会自动触发重扫，产品镜像上线后（S1-DEP-008 / S1-DEP-005）要加定时扫描。
 
-自检签名用本次运行临时签发的 CA：证书的 SAN 是发布工作流身份 `https://github.com/idadawn/qian/.github/workflows/images.yml@refs/heads/main`，OIDC issuer 扩展是 `https://token.actions.githubusercontent.com`。cosign 的外网访问被不可达代理阻断，不申请 OIDC 令牌，也不写公共透明日志。正式发布改用 GitHub OIDC 无密钥签名，签名记录会写进公共 Rekor 日志，属于对外操作，要在 S1-DEP-008 由产品负责人确认后启用；验签约束的身份与 issuer 形式不变。
+自检签名用本次运行临时签发的 CA：证书的 SAN 是模拟的发布工作流身份 `https://github.com/CavaiLAB/kun/.github/workflows/ci.yml@refs/heads/main`（本仓库镜像作业所在的工作流），OIDC issuer 扩展是 `https://token.actions.githubusercontent.com`。cosign 的外网访问被不可达代理阻断，不申请 OIDC 令牌，也不写公共透明日志。正式发布改用 GitHub OIDC 无密钥签名，签名记录会写进公共 Rekor 日志，属于对外操作，要在 S1-DEP-008 由产品负责人确认后启用；验签约束的身份与 issuer 形式不变。
 
 ### 本机运行
 

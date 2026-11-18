@@ -265,7 +265,7 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
             Assert.Equal(["global|qian.tenancy"], granted["mounted"]!.AsArray().Select(item => (string)item!));
             Assert.Equal(granted["mounted"]!.ToJsonString(), granted["entitled"]!.ToJsonString());
             var console = Assert.Single(granted["remotes"]!.AsArray())!;
-            Assert.Equal(("qian.tenancy", "1.0.0", "global"), ((string?)console["id"], (string?)console["version"], (string?)console["scope"]));
+            Assert.Equal(("qian.tenancy", "2.0.0", "global"), ((string?)console["id"], (string?)console["version"], (string?)console["scope"]));
             Assert.True(JsonNode.DeepEquals(JsonNode.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins", "qian.tenancy", "ui", "manifest.json"))), console["manifest"]));
             Assert.Equal(["/tenants"], granted["navigation"]!.AsArray().Select(item => (string)item!["route"]!));
             Assert.Equal(["qian.tenancy:tenant:read"], granted["permissions"]!.AsArray().Select(item => (string)item!));

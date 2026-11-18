@@ -6,7 +6,7 @@
 **作者**: Manus AI
 **日期**: 2026年4月18日
 
-> 本文是原 Kun 2026-04 的设计白皮书，2026-11-18 搬入本仓库。Kun 的定位与路线已由合并蓝图改写，见[框架架构](../architecture.md)与[迁移与归并](../migration.md)；第 2–11 章讲的构建块设计仍适用，第 12、13 章是当时的路线与交付清单。
+> 本文是 Kun 框架 2026-04 的设计白皮书。Kun 的定位与路线已由合并蓝图改写，见[框架架构](../architecture.md)与[迁移与归并](../migration.md)；第 2–11 章讲的构建块设计仍适用，第 12、13 章是当时的路线与交付清单。
 
 ---
 
@@ -1087,7 +1087,7 @@ app.Run();
 
 ### 13.3 AOT 一致性状态
 
-`0.1.0-phase1` 通过原 Kun 的 [AOT 一致性审计](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md) 做了一次全仓扫描：18 个 AOT 候选模块 ILC 零 trim/AOT warning；非 AOT 模块（`Kun.AspNetCore` / `Kun.EntityFrameworkCore` 家族 / `Kun.Dapper` / `Kun.Saga`）均有记录的技术原因。CI 的 `aot-audit` 矩阵 job 对这 18 个模块分别执行 `dotnet publish -p:PublishAot=true -p:TreatWarningsAsErrors=true`；`sample-aot-integration` job 对 `Kun.Sample.Minimal` 做 end-to-end 原生 publish + 执行验证。
+`0.1.0-phase1` 通过 [AOT 一致性审计](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md) 做了一次全仓扫描：18 个 AOT 候选模块 ILC 零 trim/AOT warning；非 AOT 模块（`Kun.AspNetCore` / `Kun.EntityFrameworkCore` 家族 / `Kun.Dapper` / `Kun.Saga`）均有记录的技术原因。CI 的 `aot-audit` 矩阵 job 对这 18 个模块分别执行 `dotnet publish -p:PublishAot=true -p:TreatWarningsAsErrors=true`；`sample-aot-integration` job 对 `Kun.Sample.Minimal` 做 end-to-end 原生 publish + 执行验证。
 
 ### 13.4 Phase 1 ADR / 设计文档索引
 

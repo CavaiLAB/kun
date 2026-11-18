@@ -357,7 +357,7 @@ public async ValueTask ExecuteAsync(OrderCreationContext ctx, CancellationToken 
 
 ## 边界 / 后续
 
-- **`P2-KN-Saga-EF-Split`**：目前 `Kun.Saga` 因为传递依赖 EF Core 被标 `IsAotCandidate=false`。未来会拆出 `Kun.Saga.EntityFrameworkCore`（和 `Kun.Testing.EntityFrameworkCore` 一样的模式）把 abstraction 层恢复 AOT。见原 Kun 的 [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md) 跟踪项。
+- **`P2-KN-Saga-EF-Split`**：目前 `Kun.Saga` 因为传递依赖 EF Core 被标 `IsAotCandidate=false`。未来会拆出 `Kun.Saga.EntityFrameworkCore`（和 `Kun.Testing.EntityFrameworkCore` 一样的模式）把 abstraction 层恢复 AOT。见历史文档 [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md) 的跟踪项。
 - **测试 helper 未 ship**：Saga 侧目前没有对应的 `Kun.Testing.Saga`（类似 KN-SELF-016 给 Outbox 准备的 `OutboxAssertions`）。消费者今天要测 saga 的话手写断言：`dbContext.Set<SagaInstance>().Single(i => i.Id == sagaId).State.Should().Be(SagaState.Completed)`。有具体消费者痛点时再独立跟一个 KN-SELF。
 - **Saga 版本演进**：目前没有显式的版本字段。实际做法是 **新建一个 saga 类型**（`OrderCreationSagaV2`）而不是原地改 `OrderCreationSaga.Steps`；在途旧 saga 会按旧代码走完。若出现需要在线 migrate 的需求再做版本化。
 
@@ -367,4 +367,4 @@ public async ValueTask ExecuteAsync(OrderCreationContext ctx, CancellationToken 
 - [src/Kun.Saga/AGENTS.md](../../src/Kun.Saga/AGENTS.md) — 模块内约定 + 本指南的一句交叉链接。
 - [docs/guides/outbox-and-integration-events.md](./outbox-and-integration-events.md) — Saga 的 step 执行器靠 Outbox 驱动；理解 Saga 前先把 Outbox 吃透。
 - [docs/guides/validating-commands.md](./validating-commands.md) — 同家族的 Validation 指南，结构参考。
-- [原 Kun 的 AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md) — `P2-KN-Saga-EF-Split` 跟踪。
+- [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md)（历史文档）— `P2-KN-Saga-EF-Split` 跟踪。

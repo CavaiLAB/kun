@@ -1,7 +1,7 @@
 <Project>
 
   <!--
-    中央包版本，原 Kun 与 _import/qian/ 下的原 Qian 共用（S1-KUN-020）：csproj 里的 PackageReference 不写 Version，版本只在这里改。
+    中央包版本，仓库根与 _import/qian/ 下的项目共用（S1-KUN-020）：csproj 里的 PackageReference 不写 Version，版本只在这里改。
     两边同名不同版的包取高的一边；为免传递钉版判为降级（NU1109），同一族的包一起对齐：
     Microsoft.Extensions.* 与 Microsoft.AspNetCore.*、EF Core 一族到 10.0.12，Microsoft.IdentityModel.* 到 8.19.2，
     Microsoft.CodeAnalysis.CSharp 随 EF Core Design 到 5.0.0。
@@ -39,8 +39,8 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <!--
-      原 Qian 的契约测试与能力目录直接用 3.x。Microsoft.AspNetCore.OpenApi 10.0.x 的源生成器要求 [2.12.0, 3.0.0)，
-      所以引用它的原 Kun 项目（Kun.Sample.Catalog、Kun.Sample.Tests、Kun.IntegrationTests）用 VersionOverride 留在 2.x。
+      _import/qian/ 下的契约测试与能力目录直接用 3.x。Microsoft.AspNetCore.OpenApi 10.0.x 的源生成器要求 [2.12.0, 3.0.0)，
+      所以仓库根上引用它的项目（Kun.Sample.Catalog、Kun.Sample.Tests、Kun.IntegrationTests）用 VersionOverride 留在 2.x。
       2.x 里早期版本有已公开的漏洞公告，NuGetAudit 照开，覆盖到的版本都要过审计。
     -->
     <PackageVersion Include="Microsoft.OpenApi" Version="3.10.2" />
@@ -144,7 +144,7 @@
   <ItemGroup Label="Analyzers / Gates">
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
-    <!-- 原 Qian 的自有分析器与源生成器编译用；EF Core Design 10.0.11 起依赖 Roslyn 5.0.0，钉得更低会被判为降级。 -->
+    <!-- _import/qian/ 下自有的分析器与源生成器编译用；EF Core Design 10.0.11 起依赖 Roslyn 5.0.0，钉得更低会被判为降级。 -->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
   </ItemGroup>
 

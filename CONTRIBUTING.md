@@ -1,6 +1,6 @@
 # 贡献指南
 
-> 本指南来自原 Kun（`idadawn/kun`，已归档）。开发环境、分层原则、AOT 约定与提交规范照旧适用；分支策略、发布与版本规范、Pull Request 流程三节记的是原仓库的做法，在本仓库以根 [AGENTS.md](AGENTS.md) 与[迁移执行计划](docs/migration-plan.md)为准：PR 一律用合并提交合入，合并由产品负责人发话；发版工作流接不接、怎么接在 B12 之前由产品负责人定。
+> 本指南写的是仓库根上的 Kun 框架。开发环境、分层原则、AOT 约定与提交规范照旧适用；分支策略、发布与版本规范、Pull Request 流程三节记的是原仓库的做法，在本仓库以根 [AGENTS.md](AGENTS.md) 与[迁移执行计划](docs/migration-plan.md)为准：PR 一律用合并提交合入，合并由产品负责人发话；发版工作流接不接、怎么接在 B12 之前由产品负责人定。
 
 感谢您对 **Kun Framework** 的关注！
 
@@ -19,7 +19,7 @@
 ### 推荐工具
 
 - **Visual Studio 2026** / **JetBrains Rider 2026.x** / **VS Code + C# Dev Kit**
-- **编码代理**（Claude Code、Codex 等）—— 先读根 [AGENTS.md](AGENTS.md)，原 Kun 的构建、测试与代码约定在其中一节
+- **编码代理**（Claude Code、Codex 等）—— 先读根 [AGENTS.md](AGENTS.md)，Kun 框架的构建、测试与代码约定在其中一节
 
 ### 初始构建
 
@@ -56,7 +56,7 @@ Kun.Core
 
 ## 🤖 编码代理
 
-原 Kun 的 `.claude/skills/` 技能包已按合并蓝图删除（D23.13 第 6 点）。编码代理（Claude Code 与 Codex 共用）改照根 [AGENTS.md](AGENTS.md) 的「原 Kun 的构建、测试与代码约定」一节做；提交 PR 前照那一节自查分层、AOT、命名与测试。
+`.claude/skills/` 下的技能包已按合并蓝图删除（D23.13 第 6 点）。编码代理（Claude Code 与 Codex 共用）改照根 [AGENTS.md](AGENTS.md) 的「Kun 框架的构建、测试与代码约定」一节做；提交 PR 前照那一节自查分层、AOT、命名与测试。
 
 ## 📝 提交规范
 
@@ -161,7 +161,7 @@ Closes #42
 
 ## 🧪 测试要求
 
-参见根 [AGENTS.md 的「原 Kun 的构建、测试与代码约定」](AGENTS.md#原-kun-的构建测试与代码约定)。简而言之：
+参见根 [AGENTS.md 的「Kun 框架的构建、测试与代码约定」](AGENTS.md#kun-框架的构建测试与代码约定)。简而言之：
 
 - **领域变更** → 领域单元测试（纯内存、无容器）
 - **跨层变更**（仓储、Outbox、Saga）→ Testcontainers 集成测试

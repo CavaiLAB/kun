@@ -1,6 +1,6 @@
 # Changelog
 
-> 本文件是原 Kun 的变更记录，随原 Kun 提到本仓库根上续写。旧条目照原文，2026-11-18 清理了引擎与下游产品的名字，方括号里是整理时替换的说法；条目里原 Kun 仓库的 PR 编号写成 `idadawn/kun#N`，「review #N」是代码审查条目的序号，不是 PR。
+> 本文件是 Kun 框架的变更记录。旧条目照原文，只替换了引擎与下游产品的名字（2026-11-18）和旧的仓库地址（2026-11-19），方括号里是整理时替换的说法；旧条目里的 PR 编号换成了本仓库里对应的合并提交，「review #N」是代码审查条目的序号，不是 PR。
 
 本文档记录 Kun Framework 的所有显著变更。
 
@@ -150,7 +150,7 @@
 
 ### Changed — 仓库地址
 
-- 仓库于 2026-10-08 从 CavaiLAB 组织迁回 `idadawn/kun`（<https://github.com/idadawn/kun>），与［下游的智能体产品］、［部署仓库］同一所有者；旧地址自动重定向。GitHub Packages 镜像自下一个版本起发布在 idadawn 名下，nuget.org 上的 `Kun.*` 不受影响。本文件的版本比较链接已改为新地址。
+- 仓库于 2026-10-08 从 CavaiLAB 组织迁回［个人账号名下］，与［下游的智能体产品］、［部署仓库］同一所有者；旧地址自动重定向。GitHub Packages 镜像自下一个版本起发布在［该账号］名下，nuget.org 上的 `Kun.*` 不受影响。本文件的版本比较链接已改为新地址。
 
 ### Fixed — 发布配置隔离
 
@@ -158,7 +158,7 @@
 
 ### Fixed — 文档
 
-- 修正本文件两处越出仓库根目录的相对链接；`docs/architecture/when-to-use-currentuser.md` 的决策表补齐两行缺失的列（idadawn/kun#42）。
+- 修正本文件两处越出仓库根目录的相对链接；`docs/architecture/when-to-use-currentuser.md` 的决策表补齐两行缺失的列（合并提交 [`53d3613`](https://github.com/CavaiLAB/kun/commit/53d36131153003950f9c5252416a88a559f04f5c)）。
 
 ## [2026.9.13] - 2026-09-13
 
@@ -177,30 +177,30 @@
 
 ### Added — OSS Live Smoke 按需 CI 工作流
 
-- 新增 `.github/workflows/oss-live-smoke.yml`：把既有的 `OssFileStorageLiveSmokeTests`（实弹 OSS 预签名 PUT/GET 验证）接入 `workflow_dispatch` + 每日定时（03:27 UTC）的可选 job。此前该测试只能在本地或下游消费者手动跑，从不被任何 CI 触发（见 PR idadawn/kun#12 遗留的"实弹 OSS e2e"项）。
-- 仅当配置了 `OSS_SMOKE_*` 四个仓库 secrets 时真正验证；缺失时测试自跳过，job 仍绿，并由 "Check credentials" 步骤打印警告，避免把"跳过"误读为"已验证"。定时任务以 `if: github.repository == 'idadawn/kun'` 限定，fork 不触发。
+- 新增 `.github/workflows/oss-live-smoke.yml`：把既有的 `OssFileStorageLiveSmokeTests`（实弹 OSS 预签名 PUT/GET 验证）接入 `workflow_dispatch` + 每日定时（03:27 UTC）的可选 job。此前该测试只能在本地或下游消费者手动跑，从不被任何 CI 触发（见合并提交 [`3affc05`](https://github.com/CavaiLAB/kun/commit/3affc05568f1c9f749418a282cae502d10d4a5be) 那个 PR 遗留的"实弹 OSS e2e"项）。
+- 仅当配置了 `OSS_SMOKE_*` 四个仓库 secrets 时真正验证；缺失时测试自跳过，job 仍绿，并由 "Check credentials" 步骤打印警告，避免把"跳过"误读为"已验证"。定时任务以 `github.repository` 等于［当时的仓库］为条件，fork 不触发。
 
 ## [2026.6.12] - 2026-06-12
 
 首个 CalVer 版本，也是全部可打包模块首次推送 NuGet.org 的正式版。除下列当日变更外，本版还包含此前积压在 Unreleased 的全部 2026-04-22 ～ 04-24 交付（见本节后半部分）。
 
-### Fixed — Kun.sln 完整性：20 个 src/tests 项目纳入 CI 构建与测试门禁 (idadawn/kun#24)
+### Fixed — Kun.sln 完整性：20 个 src/tests 项目纳入 CI 构建与测试门禁 (合并提交 [`0d8916d`](https://github.com/CavaiLAB/kun/commit/0d8916d8a55f22d019ac7d3dcfb05fbdc0a78a3e))
 
 - `Kun.sln` 此前缺失 11 个 src 项目（Audit.EntityFrameworkCore、Caching、Configuration、Identity、Identity.AspNetCore、MultiTenancy、MultiTenancy.EntityFrameworkCore、Observability、RateLimit、Sandbox、Storage）与 9 个测试项目——CI 按 sln 构建，这些测试（200+ 用例，仅 Kun.Identity.Tests 即 47 个）从未在 CI 运行，src 侧仅靠 AOT audit 矩阵兜底。
 - 同步修复缺失测试项目在 Release + TreatWarningsAsErrors 下积累的分析器违规（CA1305 / CA1861 / IDE0005）。
 
-### Added — benchmarks 项目纳入 CI 编译门禁 (idadawn/kun#25)
+### Added — benchmarks 项目纳入 CI 编译门禁 (合并提交 [`a46c52f`](https://github.com/CavaiLAB/kun/commit/a46c52faf5ba17f933d77216ef6372ac22446ee2))
 
 - `Kun.Benchmarks` 与 `Kun.Benchmarks.Grpc` 加入 `Kun.sln`，并修复其相对 `Kun.Storage` 现行 API 的编译漂移，防止基准代码静默腐烂。
 
-### Fixed — Kun.Observability 稳定版打包被 NU5104 阻断 (idadawn/kun#26)
+### Fixed — Kun.Observability 稳定版打包被 NU5104 阻断 (合并提交 [`f53b178`](https://github.com/CavaiLAB/kun/commit/f53b178840f8fa6adf9c2dbf0f9425635e880f74))
 
 - `OpenTelemetry.Instrumentation.EntityFrameworkCore` 上游从未发布稳定版（beta-only，当前 1.15.1-beta.1）。`Kun.Observability` 入 sln 后首次被 `dotnet pack` 打包，即触发 NU5104（稳定包不得携带预发布依赖）并被 TreatWarningsAsErrors 升级为错误，阻断发版。在该 csproj 定点 `NoWarn` 并以注释记录上游现状（上游转正后应回顾移除）。
 
-### Fixed — 测试稳定性：消除两处高频 CI flaky (idadawn/kun#27 / idadawn/kun#28 / idadawn/kun#29)
+### Fixed — 测试稳定性：消除两处高频 CI flaky (合并提交 [`8551293`](https://github.com/CavaiLAB/kun/commit/85512932c6a413c1de6985bb1214b0728ee4054a) / [`54e2fde`](https://github.com/CavaiLAB/kun/commit/54e2fde7337dd6196065138d8cd15c8853240803) / [`45182cf`](https://github.com/CavaiLAB/kun/commit/45182cfdb144259b89cc729b0fe1714e1394cc5e))
 
-- `LogBaggageEnrichmentTests` 从未启动自身 trace 管道，依赖同程序集并行测试的进程级 ActivitySource 监听器“碰巧在场”；无监听器瞬间 `StartActivity` 返回 null，断言失败。现于 `BuildLoggerFactory` 中 eager resolve `TracerProvider` 使测试自给自足，静默 null 守卫改为显式断言 (idadawn/kun#27)。
-- PgBouncer 100 并发压测的 TCP+auth 风暴在高负载共享 runner 上压垮单线程 pgbouncer 的 accept 循环，内核重置表现为 `Exception while reading from stream`：并发收敛到 30 限流闸门（仍高于 25 个后端槽，连接换绑的被测语义不变）+ 仅对 transient 异常 ≤3 次退避重试，prepared-statement 错误（PostgresException）永不重试 (idadawn/kun#28)；fixture 补 `UntilPortIsAvailable(6432)` 等待策略，关闭“容器进程已起、监听 socket 未绑定”的启动竞态窗口 (idadawn/kun#29)。
+- `LogBaggageEnrichmentTests` 从未启动自身 trace 管道，依赖同程序集并行测试的进程级 ActivitySource 监听器“碰巧在场”；无监听器瞬间 `StartActivity` 返回 null，断言失败。现于 `BuildLoggerFactory` 中 eager resolve `TracerProvider` 使测试自给自足，静默 null 守卫改为显式断言 (合并提交 [`8551293`](https://github.com/CavaiLAB/kun/commit/85512932c6a413c1de6985bb1214b0728ee4054a))。
+- PgBouncer 100 并发压测的 TCP+auth 风暴在高负载共享 runner 上压垮单线程 pgbouncer 的 accept 循环，内核重置表现为 `Exception while reading from stream`：并发收敛到 30 限流闸门（仍高于 25 个后端槽，连接换绑的被测语义不变）+ 仅对 transient 异常 ≤3 次退避重试，prepared-statement 错误（PostgresException）永不重试 (合并提交 [`54e2fde`](https://github.com/CavaiLAB/kun/commit/54e2fde7337dd6196065138d8cd15c8853240803))；fixture 补 `UntilPortIsAvailable(6432)` 等待策略，关闭“容器进程已起、监听 socket 未绑定”的启动竞态窗口 (合并提交 [`45182cf`](https://github.com/CavaiLAB/kun/commit/45182cfdb144259b89cc729b0fe1714e1394cc5e))。
 
 ### Added — Kun.Testing.EntityFrameworkCore module with OutboxAssertions (2026-04-24)
 
@@ -1208,15 +1208,15 @@ Sandbox），全仓 AOT 一致性通过审计，Directory.Build.props 统一 AOT
 `aot-audit` 矩阵 job 与 `sample-aot-integration` job。
 
 [Unreleased]: https://github.com/CavaiLAB/kun/compare/v2026.10.25...HEAD
-[2026.10.25]: https://github.com/idadawn/kun/compare/v2026.10.23...v2026.10.25
-[2026.10.23]: https://github.com/idadawn/kun/compare/v2026.10.14...v2026.10.23
-[2026.10.14]: https://github.com/idadawn/kun/compare/v2026.10.13...v2026.10.14
-[2026.10.13]: https://github.com/idadawn/kun/compare/v2026.10.12-hotfix.3...v2026.10.13
-[2026.10.12-hotfix.3]: https://github.com/idadawn/kun/compare/v2026.10.12-hotfix.2...v2026.10.12-hotfix.3
-[2026.10.12-hotfix.2]: https://github.com/idadawn/kun/compare/v2026.10.12...v2026.10.12-hotfix.2
-[2026.10.12]: https://github.com/idadawn/kun/compare/v2026.10.11...v2026.10.12
-[2026.10.11]: https://github.com/idadawn/kun/compare/v2026.10.9...v2026.10.11
-[2026.10.9]: https://github.com/idadawn/kun/compare/v2026.10.8...v2026.10.9
-[2026.10.8]: https://github.com/idadawn/kun/compare/v2026.9.13...v2026.10.8
-[2026.9.13]: https://github.com/idadawn/kun/compare/v2026.6.12...v2026.9.13
-[0.1.0-phase1]: https://github.com/idadawn/kun/releases/tag/v0.1.0-phase1
+[2026.10.25]: https://github.com/CavaiLAB/kun/compare/v2026.10.23...v2026.10.25
+[2026.10.23]: https://github.com/CavaiLAB/kun/compare/v2026.10.14...v2026.10.23
+[2026.10.14]: https://github.com/CavaiLAB/kun/compare/v2026.10.13...v2026.10.14
+[2026.10.13]: https://github.com/CavaiLAB/kun/compare/v2026.10.12-hotfix.3...v2026.10.13
+[2026.10.12-hotfix.3]: https://github.com/CavaiLAB/kun/compare/v2026.10.12-hotfix.2...v2026.10.12-hotfix.3
+[2026.10.12-hotfix.2]: https://github.com/CavaiLAB/kun/compare/v2026.10.12...v2026.10.12-hotfix.2
+[2026.10.12]: https://github.com/CavaiLAB/kun/compare/v2026.10.11...v2026.10.12
+[2026.10.11]: https://github.com/CavaiLAB/kun/compare/v2026.10.9...v2026.10.11
+[2026.10.9]: https://github.com/CavaiLAB/kun/compare/v2026.10.8...v2026.10.9
+[2026.10.8]: https://github.com/CavaiLAB/kun/compare/v2026.9.13...v2026.10.8
+[2026.9.13]: https://github.com/CavaiLAB/kun/compare/v2026.6.12...v2026.9.13
+[0.1.0-phase1]: https://github.com/CavaiLAB/kun/tree/741c68caa6d6a1c0ef9cb016554258ef2fff1d20

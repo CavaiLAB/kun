@@ -5,7 +5,7 @@
 
 ## Phase 1 模块矩阵
 
-图例：AOT 状态 ✅=IsAotCandidate=true（CI `aot-audit` 每次 publish 强制零 trim/AOT warning）；⚠️=trim-safe 但非 AOT（见原 Kun 的 [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md)）。
+图例：AOT 状态 ✅=IsAotCandidate=true（CI `aot-audit` 每次 publish 强制零 trim/AOT warning）；⚠️=trim-safe 但非 AOT（见历史文档 [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md)）。
 
 ### Core 层
 

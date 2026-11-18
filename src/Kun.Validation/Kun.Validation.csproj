@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
     <Description>Kun Framework validation: IValidator&lt;T&gt;, ValidationResult, Mediator pipeline behavior. AOT-safe, source-generator-based validators are a follow-up.</Description>
   </PropertyGroup>

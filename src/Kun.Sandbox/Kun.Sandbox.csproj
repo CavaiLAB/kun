@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
     <Description>Kun Framework sandbox client abstractions with portable create/process/file APIs, explicitly named provider extensions, an in-memory test backend, a configured supervisor client, and a future cloud-provider placeholder. Does not host a sandbox runtime.</Description>
   </PropertyGroup>

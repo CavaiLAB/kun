@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>false</IsPackable>
     <Description>Shared helpers for Kun Framework sample services — OpenTelemetry wiring.</Description>
   </PropertyGroup>

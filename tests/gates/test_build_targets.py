@@ -1,8 +1,11 @@
-"""仓库根 Directory.Build.targets 里的公共 API 门禁的自测（S1-KUN-020）。
+"""仓库根 Directory.Build.targets 里的公共 API 门禁、AOT 守卫与清单的自测（S1-KUN-020）。
 
 运行（仓库根目录）：python3 -m unittest discover -s tests/gates -v
-读 Kun.slnx 里每个项目求值后的属性与项（dotnet msbuild -getProperty / -getItem，不需要还原）。
-要 dotnet；CI 上缺 dotnet 直接失败而不是跳过。
+- AOT 清单核对逻辑（scripts/aot_projects.py 的 check）用合成数据验证，不需要 dotnet；
+- AOT 守卫用 tests/gates/aot 下的样例项目，只跑守卫目标，不编译；
+- 其余读 Kun.slnx 里每个项目求值后的属性与项（dotnet msbuild -getProperty / -getItem，不需要还原）。
+  冒烟宿主没跟上清单时这里失败。
+要 dotnet 的几组在 CI 上缺 dotnet 直接失败而不是跳过。
 """
 from __future__ import annotations
 
@@ -19,10 +22,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import aot_projects  # noqa: E402
 import check_deps  # noqa: E402
 
+AOT_SAMPLES = ROOT / "tests" / "gates" / "aot"
 NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI") == "true", "本机没有 dotnet")
-PROPERTIES = ("IsPackable", "HasPublicApi")
+PROPERTIES = ("IsPackable", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
+              "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
 ITEMS = ("PackageReference",)
 
 
@@ -52,6 +58,92 @@ def is_true(props: dict, name: str) -> bool:
 
 def package_ids(items: dict) -> set:
     return {i["Identity"] for i in items.get("PackageReference", [])}
+
+
+def msbuild_targets(project: Path, targets: str, *args: str):
+    result = subprocess.run(["dotnet", "msbuild", str(project), f"-t:{targets}", "-nologo", *args],
+                            capture_output=True, text=True, env=check_deps._env())
+    return result.returncode, result.stdout + result.stderr
+
+
+class AotListCheckTests(unittest.TestCase):
+    """scripts/aot_projects.py 的核对逻辑，合成数据。"""
+
+    def project(self, name, compatible=True, packable=True):
+        return aot_projects.Project((ROOT / "src" / name / f"{name}.csproj").resolve(), compatible, packable, name)
+
+    def test_matching_smoke_host_passes(self):
+        alpha, beta, other = self.project("Gate.Alpha"), self.project("Gate.Beta"), self.project("Gate.Other", compatible=False)
+        self.assertEqual([], aot_projects.check([alpha, beta, other], [alpha.path, beta.path], ["Gate.Alpha", "Gate.Beta"]))
+
+    def test_missing_extra_and_unpackable_entries_are_reported(self):
+        alpha, beta = self.project("Gate.Alpha"), self.project("Gate.Beta", packable=False)
+        other = self.project("Gate.Other", compatible=False)
+        problems = aot_projects.check([alpha, beta, other], [alpha.path, other.path], ["Gate.Alpha", "Gate.Other"])
+        for text in ("src/Gate.Beta/Gate.Beta.csproj 写了 IsAotCompatible=true，却不可打包",
+                     "冒烟宿主没有引用清单里的 src/Gate.Beta/Gate.Beta.csproj",
+                     "冒烟宿主引用了不在清单里的 src/Gate.Other/Gate.Other.csproj",
+                     "冒烟宿主没有扎根程序集 Gate.Beta",
+                     "冒烟宿主扎根了不在清单里的程序集 Gate.Other"):
+            self.assertTrue(any(text in p for p in problems), (text, problems))
+        self.assertEqual(5, len(problems), problems)
+
+
+@NEEDS_DOTNET
+class AotGuardTests(unittest.TestCase):
+    """仓库根 Directory.Build.targets 的 KunAotGuard，用 tests/gates/aot 下的样例项目。"""
+
+    def guard(self, name: str, *args: str):
+        return msbuild_targets(AOT_SAMPLES / name / f"{name}.csproj", "KunAotGuard", *args)
+
+    def test_guard_rejects_old_switch_publish_aot_on_packages_and_muted_analyzers(self):
+        for name, code in {"Gate.AotLegacy": "KUNAOT001", "Gate.AotPackagePublish": "KUNAOT002", "Gate.AotMuted": "KUNAOT003"}.items():
+            with self.subTest(sample=name):
+                returncode, output = self.guard(name)
+                self.assertNotEqual(0, returncode, output)
+                self.assertIn(f"error {code}", output)
+
+    def test_guard_allows_compatible_libraries_hosts_and_publish_aot_from_the_command_line(self):
+        # 命令行上的 PublishAot 会作为全局属性传给每个被引用的库（如 tests/Kun.Integration.AotTests 发布样例时），不能拦。
+        for name, args in (("Gate.AotLibrary", ()), ("Gate.AotLibrary", ("-p:PublishAot=true",)), ("Gate.AotHost", ())):
+            with self.subTest(sample=name, args=args):
+                returncode, output = self.guard(name, *args)
+                self.assertEqual(0, returncode, output)
+                self.assertNotIn("error KUNAOT", output)
+
+    def test_projects_in_both_trees_import_the_root_guards(self):
+        for project in ("src/Kun.Core/Kun.Core.csproj", "_import/qian/packages/Qian.Runtime.Errors/Qian.Runtime.Errors.csproj"):
+            with self.subTest(project=project):
+                returncode, output = msbuild_targets(ROOT / project, "KunAotGuard;KunRequirePublicApiFiles")
+                self.assertEqual(0, returncode, output)
+
+
+@NEEDS_DOTNET
+class AotListTests(unittest.TestCase):
+    """真实的 AOT 清单与冒烟宿主 tests/Kun.AotSmoke。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.projects = [aot_projects.Project(path, is_true(props, "IsAotCompatible"), is_true(props, "IsPackable"), path.stem)
+                        for path, (props, _) in evaluated().items()]
+
+    def test_smoke_host_references_and_roots_exactly_the_list(self):
+        references, roots = aot_projects.smoke_host()
+        self.assertEqual([], aot_projects.check(self.projects, references, roots))
+
+    def test_list_content(self):
+        names = {p.name for p in aot_projects.aot_projects(self.projects)}
+        self.assertIn("Kun.Identity.AspNetCore", names)  # 旧的四份清单都漏了它（S1-KUN-015）
+        self.assertNotIn("Kun.Auditing", names)  # EF 拦截器带出 IL2091；B6 并入平台档，不做 AOT（D23.9）
+        self.assertTrue({"Qian.Gateway", "Qian.Identity.Client", "Qian.Runtime.Errors"} <= names)
+
+    def test_compatible_projects_keep_the_analyzers_on_and_nobody_writes_the_old_switch(self):
+        for path, (props, _) in evaluated().items():
+            with self.subTest(project=path.stem):
+                self.assertEqual("", props.get("IsAotCandidate", ""))
+                if is_true(props, "IsAotCompatible"):
+                    for name in ("IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer"):
+                        self.assertTrue(is_true(props, name), name)
 
 
 @NEEDS_DOTNET

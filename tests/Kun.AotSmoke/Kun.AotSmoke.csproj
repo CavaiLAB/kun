@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    AOT 冒烟宿主（S1-KUN-020）。
+    引用 AOT 清单里的每一个项目（项目文件里写了 IsAotCompatible=true 的，scripts/aot_projects.py 列出），并对每个程序集
+    整体扎根（TrimmerRootAssembly），让 ILC 把整个程序集分析一遍，而不只是某个宿主用到的那部分。CI 的「AOT 冒烟宿主」作业
+    原生发布它（linux-x64；ILC 有任何警告即失败，逐条列出，不按程序集合并成一条），然后运行，见 Program.cs。
+
+    项目引用必须正好等于清单：库写上 IsAotCompatible=true 时把它加进来，去掉时从这里删掉。
+    门禁自测（仓库根的 tests/gates）与 scripts/aot_projects.py 的核对模式（CI 发布前先跑）都查这一点。
+    Kun.Gateway 同时是宿主，它的启动器、runtimeconfig 与 appsettings.json 会跟着进发布目录；冒烟宿主不读它们。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPublishable>true</IsPublishable>
+    <PublishAot>true</PublishAot>
+    <IlcTreatWarningsAsErrors>true</IlcTreatWarningsAsErrors>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- 清单里仓库根 src/ 下的项目。 -->
+  <ItemGroup>
+    <ProjectReference Include="../../src/Kun.Audit/Kun.Audit.csproj" />
+    <ProjectReference Include="../../src/Kun.Authorization/Kun.Authorization.csproj" />
+    <ProjectReference Include="../../src/Kun.Caching/Kun.Caching.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Apollo/Kun.Configuration.Apollo.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration/Kun.Configuration.csproj" />
+    <ProjectReference Include="../../src/Kun.Core/Kun.Core.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus.RabbitMQ/Kun.EventBus.RabbitMQ.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../src/Kun.Gateway/Kun.Gateway.csproj" />
+    <ProjectReference Include="../../src/Kun.Grpc/Kun.Grpc.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.AspNetCore/Kun.Identity.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity/Kun.Identity.csproj" />
+    <ProjectReference Include="../../src/Kun.Infrastructure/Kun.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Kun.Mediator/Kun.Mediator.csproj" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <ProjectReference Include="../../src/Kun.Observability/Kun.Observability.csproj" />
+    <ProjectReference Include="../../src/Kun.RateLimit/Kun.RateLimit.csproj" />
+    <ProjectReference Include="../../src/Kun.Sandbox/Kun.Sandbox.csproj" />
+    <ProjectReference Include="../../src/Kun.Security/Kun.Security.csproj" />
+    <ProjectReference Include="../../src/Kun.Storage.Abstractions/Kun.Storage.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Kun.Storage.Local/Kun.Storage.Local.csproj" />
+    <ProjectReference Include="../../src/Kun.Storage/Kun.Storage.csproj" />
+    <ProjectReference Include="../../src/Kun.Testing/Kun.Testing.csproj" />
+    <ProjectReference Include="../../src/Kun.Validation/Kun.Validation.csproj" />
+  </ItemGroup>
+
+  <!-- 清单里 _import/qian/ 下的项目。 -->
+  <ItemGroup>
+    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Data.Native.Abstractions/Qian.Data.Native.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Data.Native.Postgres/Qian.Data.Native.Postgres.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Gateway.Abstractions/Qian.Gateway.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Gateway/Qian.Gateway.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Runtime.Errors/Qian.Runtime.Errors.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_KunAotSmokeAssembly Include="@(ProjectReference->'%(Filename)')" />
+    <TrimmerRootAssembly Include="@(_KunAotSmokeAssembly)" />
+  </ItemGroup>
+
+  <!-- 运行时核对用的程序集清单，与扎根的程序集是同一份。 -->
+  <Target Name="KunAotSmokeWriteAssemblyList" BeforeTargets="BeforeCompile">
+    <PropertyGroup>
+      <_KunAotSmokeListFile>$(IntermediateOutputPath)AotSmokeAssemblies.g.cs</_KunAotSmokeListFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <_KunAotSmokeLine Include="// &lt;auto-generated/&gt;" />
+      <_KunAotSmokeLine Include="internal static class AotSmokeAssemblies" />
+      <_KunAotSmokeLine Include="{" />
+      <_KunAotSmokeLine Include="internal static readonly string[] Names =" />
+      <_KunAotSmokeLine Include="[" />
+      <_KunAotSmokeLine Include="@(_KunAotSmokeAssembly->'&quot;%(Identity)&quot;,')" />
+      <_KunAotSmokeLine Include="]%3B" />
+      <_KunAotSmokeLine Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(_KunAotSmokeListFile)" Lines="@(_KunAotSmokeLine)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(_KunAotSmokeListFile)" />
+      <FileWrites Include="$(_KunAotSmokeListFile)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

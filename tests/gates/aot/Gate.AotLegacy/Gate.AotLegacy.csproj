@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <IsAotCandidate>true</IsAotCandidate>
+    <Description>AOT 守卫的自测样例：还写着已经不用的 IsAotCandidate，构建报 KUNAOT001</Description>
+  </PropertyGroup>
+
+</Project>

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
     <Description>Kun Framework typed-options validation: AddKunOptions&lt;T&gt;(section) wires BindConfiguration + ValidateDataAnnotations + ValidateOnStart in a single call, plus [RequiredConfig] / [UrlConfig] / [NonEmptyStringConfig] attributes that produce section-qualified error messages.</Description>
     <!-- SYSLIB1100/1101/1104 are Configuration-Binder source-generator diagnostics emitted

@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <Description>Kun Framework testing helpers for EF-persisted Outbox state: fluent OutboxAssertions (Have / ExactlyOne / None) on both DbContext and IEnumerable&lt;OutboxMessage&gt;. Sibling to Kun.Testing but takes EF Core as a dependency — consequently IsAotCandidate=false to match Kun.EntityFrameworkCore. Throws KunAssertionException on mismatch so consumers with xUnit, NUnit, or MSTest all surface failures uniformly.</Description>
+    <Description>Kun Framework testing helpers for EF-persisted Outbox state: fluent OutboxAssertions (Have / ExactlyOne / None) on both DbContext and IEnumerable&lt;OutboxMessage&gt;. Sibling to Kun.Testing but takes EF Core as a dependency — consequently not AOT-compatible, like Kun.EntityFrameworkCore. Throws KunAssertionException on mismatch so consumers with xUnit, NUnit, or MSTest all surface failures uniformly.</Description>
   </PropertyGroup>
 
   <PropertyGroup Label="档位">

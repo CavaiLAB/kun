@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>false</IsPackable>
     <Description>Kun Framework sample: Catalog service demonstrating DDD + CQRS + Outbox over EF Core + PostgreSQL.</Description>
   </PropertyGroup>

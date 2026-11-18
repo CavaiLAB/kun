@@ -2,7 +2,7 @@
 
   <!--
     仓库的构建守卫与门禁，仓库根与 _import/qian/ 下的项目共用（S1-KUN-020）。_import/qian/Directory.Build.targets 先导入本文件。
-    依次是：档位声明、公共 API。
+    依次是：档位声明、公共 API、AOT。
   -->
 
   <!--
@@ -53,6 +53,28 @@
     <Error Code="QIAN0001"
            Condition="!Exists('$(MSBuildProjectDirectory)/PublicAPI.Shipped.txt') or !Exists('$(MSBuildProjectDirectory)/PublicAPI.Unshipped.txt')"
            Text="$(MSBuildProjectName) 可打包（IsPackable=true），项目目录下必须有 PublicAPI.Shipped.txt 与 PublicAPI.Unshipped.txt，首行写 #nullable enable。做法见仓库根 AGENTS.md「项目文件与包」。" />
+  </Target>
+
+  <!--
+    AOT（S1-KUN-020）。
+    AOT 兼容的库在项目文件里写 <IsAotCompatible>true</IsAotCompatible>，这些项目就是清单，没有别的副本：
+    scripts/aot_projects.py 列出它们；tests/Kun.AotSmoke 引用其中每一个并整体扎根，CI 原生发布后运行它；
+    门禁自测核对它的项目引用正好等于清单。下面三种情况构建报错：
+
+      KUNAOT001  还写着 IsAotCandidate：这个开关已经不用，写了也不生效
+      KUNAOT002  可打包的库在项目文件里写了 PublishAot（命令行上给的不算，见仓库根 Directory.Build.props）
+      KUNAOT003  写了 IsAotCompatible=true，却关掉了 IsTrimmable 或裁剪、AOT、单文件分析器
+  -->
+  <Target Name="KunAotGuard" BeforeTargets="CoreCompile">
+    <Error Code="KUNAOT001"
+           Condition="'$(IsAotCandidate)' != ''"
+           Text="$(MSBuildProjectName) 还写着 IsAotCandidate。这个开关已经不用：AOT 兼容的库在项目文件里写 IsAotCompatible=true，不兼容的什么都不写。" />
+    <Error Code="KUNAOT002"
+           Condition="'$(IsPackable)' == 'true' and '$(PublishAot)' == 'true' and '$(_KunPublishAotFromCommandLine)' != 'true'"
+           Text="$(MSBuildProjectName) 可打包，项目文件里不能写 PublishAot：它是原生发布可执行项目的开关，只写在那样的项目里。库兼容 AOT 就写 IsAotCompatible=true。" />
+    <Error Code="KUNAOT003"
+           Condition="'$(IsAotCompatible)' == 'true' and ('$(IsTrimmable)' == 'false' or '$(EnableTrimAnalyzer)' == 'false' or '$(EnableAotAnalyzer)' == 'false' or '$(EnableSingleFileAnalyzer)' == 'false')"
+           Text="$(MSBuildProjectName) 写了 IsAotCompatible=true，就不能关掉 IsTrimmable 或裁剪、AOT、单文件分析器。不兼容 AOT 就去掉 IsAotCompatible。" />
   </Target>
 
 </Project>

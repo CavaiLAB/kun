@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
     <Description>Kun Framework unified OpenTelemetry wiring: AddKunObservability hooks up traces, metrics, and logs with OTLP export and pre-registers all Kun ActivitySources (Mediator, EventBus.Outbox, Grpc, Saga).</Description>
     <!-- NU5104: OpenTelemetry.Instrumentation.EntityFrameworkCore has never shipped

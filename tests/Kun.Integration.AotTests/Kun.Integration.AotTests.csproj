@@ -3,7 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
-    <IsAotCandidate>false</IsAotCandidate>
     <Description>
       AOT publish integration tests — shells out to `dotnet publish
       -p:PublishAot=true` on Kun.Sample.Minimal and asserts the

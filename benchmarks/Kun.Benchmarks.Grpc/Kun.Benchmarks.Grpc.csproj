@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>false</IsPackable>
     <!-- BenchmarkDotNet conventions: benchmarks are instance methods even when they
          don't touch instance state (runner uses a single instance per benchmark),

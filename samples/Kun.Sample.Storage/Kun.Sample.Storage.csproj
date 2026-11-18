@@ -10,7 +10,6 @@
       force-download rule end-to-end against the local filesystem — no S3 credentials
       required.
     -->
-    <IsAotCandidate>false</IsAotCandidate>
     <Description>Sample Minimal API that wires Kun.Storage.Local and demonstrates the force-download rule for active-web content types (text/html, image/svg+xml, application/xhtml+xml, application/xml).</Description>
   </PropertyGroup>
 

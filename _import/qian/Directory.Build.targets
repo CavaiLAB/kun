@@ -1,8 +1,8 @@
 <Project>
 
   <!--
-    仓库根的 Directory.Build.targets（S1-KUN-020）：档位声明与公共 API 门禁。
-    这两项对仓库根与本目录下的项目一视同仁，按 IsPackable 与档位判定，不看包名。
+    仓库根的 Directory.Build.targets（S1-KUN-020）：档位声明、公共 API 门禁与 AOT 守卫。
+    这几项对仓库根与本目录下的项目一视同仁，按 IsPackable 与档位判定，不看包名。
   -->
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
 

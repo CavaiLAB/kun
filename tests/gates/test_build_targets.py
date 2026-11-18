@@ -42,7 +42,7 @@ SMOKE_PROPERTIES = ("PublishAot", "NoWarn", "WarningsNotAsErrors", "SuppressTrim
 # SDK 自己加进 NoWarn 的：ILLink 包的 Microsoft.NET.ILLink.targets 对 PublishTrimmed 的项目压掉 IL2121（多余的
 # UnconditionalSuppressMessage），不是分析结果。那个文件还原之后才导入，没还原时 NoWarn 里没有它。
 SDK_IL_NOWARN = {"IL2121"}
-ILC_MUTING_SWITCHES = ("--nowarn", "--nowarnaserr", "--notrimwarn", "--noaotwarn", "--singlewarn")
+ILC_MUTING_SWITCHES = ("--nowarn", "--nowarnaserr", "--notrimwarn", "--noaotwarn", "--singlewarn", "--singlewarnassembly")
 
 
 def msbuild_evaluate(project: Path, properties=(), items=()) -> dict:
@@ -93,6 +93,17 @@ def il_codes(value: str) -> list:
     return sorted({code.upper() for code in re.split(r"[;,\s]+", value) if re.fullmatch(r"(?i)IL\d+", code)})
 
 
+def ilc_argument(item: str) -> str:
+    """IlcArg 一项是 ILC 参数文件（rsp）里的一行，ILC 把一行当一个参数，先去掉两端的空白与双引号。"""
+    return item.strip().strip('"')
+
+
+def ilc_switch(item: str) -> str:
+    """IlcArg 项里的开关名。开关与值用冒号或等号连写（--nowarn:IL2026、--nowarn=IL2026），或分写两项（--nowarn、IL2026，
+    前一项就是开关）。同一行里用空白隔开的写法 ILC 不认（整行当成输入文件，编译失败），这里也按开关算，宁可多报。"""
+    return re.split(r"[:=\s]", ilc_argument(item), maxsplit=1)[0]
+
+
 def smoke_host_muting(props: dict, items: dict) -> list:
     """冒烟宿主压掉或放过裁剪、AOT、单文件警告的写法，没有即空列表。
 
@@ -117,9 +128,14 @@ def smoke_host_muting(props: dict, items: dict) -> list:
         problems.append("TrimmerSingleWarn 不是 false：警告按程序集合并成一条")
     problems += [f"{name} 不是 true" for name in ("EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
                  if not is_true(props, name)]
-    switches = sorted({i["Identity"] for i in items.get("IlcArg", []) if i["Identity"].split(":", 1)[0] in ILC_MUTING_SWITCHES})
+    arguments = [i["Identity"] for i in items.get("IlcArg", [])]
+    switches = sorted({a for a in arguments if ilc_switch(a) in ILC_MUTING_SWITCHES})
     if switches:
         problems.append(f"直接给 ILC 加了 {'、'.join(switches)}")
+    # ILC 会展开参数文件里的 @文件，那个文件里的开关这里看不到。
+    nested = sorted({a for a in arguments if ilc_argument(a).startswith("@")})
+    if nested:
+        problems.append(f"让 ILC 另读参数文件 {'、'.join(nested)}，里面的开关查不到")
     return problems
 
 
@@ -155,7 +171,19 @@ class SmokeHostMutingCheckTests(unittest.TestCase):
 
     def test_sdk_defaults_pass(self):
         # IL2121 是 SDK 自己压的；IlcTreatWarningsAsErrors 不写时 ILC 取 TreatWarningsAsErrors。
-        self.assertEqual([], smoke_host_muting(self.CLEAN, {"IlcArg": [{"Identity": "--nosinglewarnassembly:Kun.Core"}]}))
+        # --nosinglewarnassembly 把某个程序集的警告展开，--warnaserr 把警告算成错误，都不放过警告。
+        allowed = ("--nosinglewarnassembly:Kun.Core", "--nosinglewarnassembly=Kun.Core", "--warnaserr:IL2026")
+        self.assertEqual([], smoke_host_muting(self.CLEAN, {"IlcArg": [{"Identity": a} for a in allowed]}))
+
+    def test_switches_are_read_like_ilc_does(self):
+        for item in ("--nowarn:IL2026", "--nowarn=IL2026", "--nowarn IL2026", "--nowarn", '"--nowarn=IL2026"',
+                     "--singlewarnassembly:Kun.Core", "--singlewarnassembly=Kun.Core"):
+            with self.subTest(item=item):
+                self.assertEqual([f"直接给 ILC 加了 {item}"], smoke_host_muting(self.CLEAN, {"IlcArg": [{"Identity": item}]}))
+
+    def test_nested_response_file_is_reported(self):
+        self.assertEqual(["让 ILC 另读参数文件 @extra.rsp，里面的开关查不到"],
+                         smoke_host_muting(self.CLEAN, {"IlcArg": [{"Identity": "@extra.rsp"}]}))
 
     def test_codes_are_split_like_ilc_does(self):
         props = dict(self.CLEAN, NoWarn="CS1591,il2026 IL3050;IL2121", WarningsNotAsErrors="IL2104")

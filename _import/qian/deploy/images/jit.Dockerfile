@@ -14,7 +14,10 @@ FROM ${SDK_IMAGE} AS build
 ARG PROJECT
 ARG ASSEMBLY
 WORKDIR /src
+# 构建上下文是仓库根（S1-KUN-020）：本目录的项目从源码编译仓库根 src/ 下的 Kun 项目，也要仓库根的构建基线与包源。
+# PROJECT 写相对 _import/qian 的路径，在那里发布。
 COPY . .
+WORKDIR /src/_import/qian
 # 入口固定为 /app/entrypoint：指向 apphost 的符号链接，apphost 按自身真实文件名找到同名程序集。
 # /probe 是写探针目录，运行期证据用它区分「根文件系统只读」与「没有写权限」。
 RUN --mount=type=cache,id=qian-nuget,target=/root/.nuget/packages \
@@ -26,6 +29,7 @@ RUN --mount=type=cache,id=qian-nuget,target=/root/.nuget/packages \
 
 FROM ${RUNTIME_IMAGE}
 ARG SOURCE_SHA
+# Kun 与本目录在同一仓库、从同一提交编译：KUN_VERSION 是源码提交，与 SOURCE_SHA 相同，标签 io.qian.kun-version 照旧保留。
 ARG KUN_VERSION
 ARG PROFILE_REVISION
 ARG PLUGINS_REVISION
@@ -41,8 +45,8 @@ WORKDIR /app
 COPY --from=build /out/ /app/
 COPY --from=build --chown=$APP_UID:$APP_UID /probe /app/.write-probe
 # profile、组合包与组件清单随镜像发布（环境级 overlay 由 ConfigMap 挂载），漂移门禁在镜像内对它们执行 dump-config。
-COPY profiles/ /app/qian/profiles/
-COPY plugins/ /app/qian/plugins/
+COPY _import/qian/profiles/ /app/qian/profiles/
+COPY _import/qian/plugins/ /app/qian/plugins/
 COPY --from=web / /app/web/
 ENV QIAN_ROOT=/app/qian
 USER $APP_UID

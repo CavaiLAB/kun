@@ -1,23 +1,24 @@
 name: qian-shell-auth
-# 原 Qian 的 shell-auth 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
-# 原件在 _import/qian/.github/workflows/shell-auth.yml，不动；GitHub 只读仓库根的 .github/workflows/。
-# 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、上传路径加 _import/qian/ 前缀；
-# 路径过滤末尾加上本文件。检查本身不变：执行 pnpm shell:auth（原件里叫 pnpm yue:auth；外壳认证真实流程验收，验收范围见原件的注释）。
-# S1-YUE-025：前端框架改装 CavaiLAB/qian 发布在 GitHub Packages 上的 @cavailab/qian-*（公开包，用本次运行的 GITHUB_TOKEN 只读安装：
-# 权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）；路径过滤去掉迁走的目录。
+
+# 外壳认证验收：执行 pnpm shell:auth，跑外壳认证的真实流程（验收范围见原件的注释）。
+# 由 ci.yml 调用，在 _import/qian/ 下运行。
+# 原件在 _import/qian/.github/workflows/shell-auth.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
+# - 触发：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
+#   路径过滤在区域表 scripts/ci_changes.py 的 shell-auth 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
+#   Kun.slnx、src/ 与 _import/qian/.npmrc；指向已不存在的 _import/qian/NuGet.config 的一条删掉。
+# - 位置：run 步骤的工作目录、package.json 与上传路径加 _import/qian/ 前缀；setup-dotnet 读仓库根的 global.json。
+# - 前端框架迁出（B11，见迁移执行计划）之后：前端框架装 CavaiLAB/qian 发布在 GitHub Packages 上的公开包
+#   @cavailab/qian-*，用本次运行的 GITHUB_TOKEN 只读安装：权限加 packages: read，setup-node 写用户级的
+#   包源认证，pnpm install 带 NODE_AUTH_TOKEN；区域里去掉迁走的目录。
+# 检查本身不变。
+
 on:
-  push:
-    branches: [main]
-    paths: ['_import/qian/apps/qian-shell/**', '_import/qian/packages/qian-shell-kit/**', '_import/qian/packages/qian-identity-ui/**', '_import/qian/samples/qian-sample-crm-ui/**', '_import/qian/packages/qian-tenancy-ui/**', '_import/qian/packages/qian-tenancy-signup-ui/**', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.Shell/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-shell.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/.github/workflows/shell-auth.yml', '.github/workflows/qian-shell-auth.yml']
-  pull_request:
-    paths: ['_import/qian/apps/qian-shell/**', '_import/qian/packages/qian-shell-kit/**', '_import/qian/packages/qian-identity-ui/**', '_import/qian/samples/qian-sample-crm-ui/**', '_import/qian/packages/qian-tenancy-ui/**', '_import/qian/packages/qian-tenancy-signup-ui/**', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.Shell/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-shell.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/.github/workflows/shell-auth.yml', '.github/workflows/qian-shell-auth.yml']
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 shell-auth），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 permissions:
   contents: read
   packages: read
-concurrency:
-  group: qian-shell-auth-${{ github.ref }}
-  cancel-in-progress: true
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -34,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/qian/global.json
+          global-json-file: global.json
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

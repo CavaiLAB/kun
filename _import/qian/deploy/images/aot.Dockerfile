@@ -14,7 +14,10 @@ ARG PROJECT
 ARG ASSEMBLY
 ARG TARGETARCH
 WORKDIR /src
+# 构建上下文是仓库根（S1-KUN-020）：本目录的项目从源码编译仓库根 src/ 下的 Kun 项目，也要仓库根的构建基线与包源。
+# PROJECT 写相对 _import/qian 的路径，在那里发布。
 COPY . .
+WORKDIR /src/_import/qian
 # 项目必须在 csproj 里声明 PublishAot：命令行传 -p:PublishAot=true 会作为全局属性波及被引用的分析器项目
 # （netstandard2.0），报 NETSDK1207。发布后若还有同名托管程序集，说明没走 NativeAOT，直接失败。
 RUN --mount=type=cache,id=qian-nuget,target=/root/.nuget/packages \
@@ -29,6 +32,7 @@ RUN --mount=type=cache,id=qian-nuget,target=/root/.nuget/packages \
 
 FROM ${RUNTIME_IMAGE}
 ARG SOURCE_SHA
+# Kun 与本目录在同一仓库、从同一提交编译：KUN_VERSION 是源码提交，与 SOURCE_SHA 相同，标签 io.qian.kun-version 照旧保留。
 ARG KUN_VERSION
 ARG PROFILE_REVISION
 ARG PLUGINS_REVISION
@@ -43,8 +47,8 @@ LABEL org.opencontainers.image.source="https://github.com/idadawn/qian" \
 WORKDIR /app
 COPY --from=build /out/ /app/
 COPY --from=build --chown=$APP_UID:$APP_UID /probe /app/.write-probe
-COPY profiles/ /app/qian/profiles/
-COPY plugins/ /app/qian/plugins/
+COPY _import/qian/profiles/ /app/qian/profiles/
+COPY _import/qian/plugins/ /app/qian/plugins/
 COPY --from=web / /app/web/
 ENV QIAN_ROOT=/app/qian
 USER $APP_UID

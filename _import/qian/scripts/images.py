@@ -4,12 +4,13 @@
   python3 scripts/images.py build --kind jit|aot --project <csproj> --assembly <程序集名> --tag <registry/名称:标签> [--web <目录>]
   python3 scripts/images.py selfcheck --tools <目录> [--out TestResults/images] [--fail-on high]
 
-build：按 deploy/images/<kind>.Dockerfile 构建并推送，输出按 digest 的引用与构建证据（源码 SHA、KunVersion、
-profile 与组件目录的 git 树修订）。推到哪个 registry 由 --tag 决定；向外部 registry 发布归 S1-DEP-008 / S1-DEP-005。
+build：按 deploy/images/<kind>.Dockerfile 构建并推送，输出按 digest 的引用与构建证据（源码 SHA、
+profile 与组件目录的 git 树修订）。构建上下文是仓库根（S1-KUN-020）：本目录的项目从源码编译仓库根 src/ 下的 Kun 项目；
+--project 写相对本目录（_import/qian）的路径。推到哪个 registry 由 --tag 决定；向外部 registry 发布归 S1-DEP-008 / S1-DEP-005。
 --web 给出前端构建产物目录（S1-DEP-011），以命名构建上下文 web 送入镜像的 /app/web，证据里记该目录的 D4 摘要；
 不给时送一个空目录（总是显式给出，避免 BuildKit 把空阶段与上一次的前端层当成同一缓存）。
 
-selfcheck：CI 自检（.github/workflows/images.yml）。在本机起临时 registry，构建 JIT 与 AOT 两个自检镜像，依次跑：
+selfcheck：CI 自检（仓库根 .github/workflows/ci.yml 的镜像自检作业）。在本机起临时 registry，构建 JIT 与 AOT 两个自检镜像，依次跑：
   1. Syft 按 digest 生成 SBOM，Grype 扫描；达到 --fail-on 的漏洞即失败，豁免写在
      deploy/images/vulnerability-allowlist.json，必须带理由与 YYYY-MM-DD 期限，过期失效；
      反例：已知含严重漏洞的组件清单经同一 Grype 与阈值判定，必须报出违规；
@@ -42,6 +43,8 @@ import urllib.error
 import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
+# 仓库根：镜像的构建上下文（S1-KUN-020）。
+REPO = ROOT.parents[1]
 # 临时 registry 用 distribution 项目在 GHCR 发布的官方镜像，避开 Docker Hub 的拉取限流与镜像站差异。
 REGISTRY_IMAGE = "ghcr.io/distribution/distribution:3.0.0@sha256:4ba3adf47f5c866e9a29288c758c5328ef03396cb8f5f6454463655fa8bc83e2"
 PROFILES = ("platform", "identity", "gateway", "standalone", "minimal")
@@ -216,15 +219,14 @@ def ci_context(environ=os.environ):
 
 
 def build_evidence():
-    """源码 SHA、KunVersion 与 profile / 组件目录的 git 树修订；工作区改过这两个目录时如实标出；CI 里另记运行信息。"""
+    """源码 SHA 与 profile / 组件目录的 git 树修订；工作区改过这两个目录时如实标出；CI 里另记运行信息。
+    Kun 与本目录在同一仓库、从同一提交编译，kunVersion 记源码 SHA（镜像标签 io.qian.kun-version 的值）。"""
     def git(*args):
         return run(["git", *args]).stdout.strip()
-    props = (ROOT / "Directory.Packages.props").read_text(encoding="utf-8")
-    match = re.search(r"<KunVersion>([^<]+)</KunVersion>", props)
-    if match is None:
-        raise StepFailed("Directory.Packages.props 里没有 KunVersion。")
-    evidence = {"sourceSha": git("rev-parse", "HEAD"), "kunVersion": match.group(1),
-                "profileRevision": git("rev-parse", "HEAD:profiles"), "pluginsRevision": git("rev-parse", "HEAD:plugins"),
+    source = git("rev-parse", "HEAD")
+    # git 在本目录运行：HEAD:./<目录> 相对本目录解析，不带 ./ 时相对仓库根，找不到 profiles 与 plugins。
+    evidence = {"sourceSha": source, "kunVersion": source,
+                "profileRevision": git("rev-parse", "HEAD:./profiles"), "pluginsRevision": git("rev-parse", "HEAD:./plugins"),
                 "profileTreeDirty": bool(git("status", "--porcelain", "--", "profiles", "plugins"))}
     ci = ci_context()
     if ci:
@@ -261,7 +263,7 @@ def docker_build(kind, project, assembly, tag, evidence, role, log=None, web=Non
                    "--build-arg", f"PROJECT={project}", "--build-arg", f"ASSEMBLY={assembly}",
                    "--build-arg", f"SOURCE_SHA={evidence['sourceSha']}", "--build-arg", f"KUN_VERSION={evidence['kunVersion']}",
                    "--build-arg", f"PROFILE_REVISION={evidence['profileRevision']}",
-                   "--build-arg", f"PLUGINS_REVISION={evidence['pluginsRevision']}", "--build-arg", f"IMAGE_ROLE={role}", "."]
+                   "--build-arg", f"PLUGINS_REVISION={evidence['pluginsRevision']}", "--build-arg", f"IMAGE_ROLE={role}", REPO]
         run(command, env={"DOCKER_BUILDKIT": "1"}, log=log)
 
 
@@ -528,7 +530,7 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     build = sub.add_parser("build", help="按模板构建并推送一个 profile 镜像")
     build.add_argument("--kind", choices=("jit", "aot"), required=True)
-    build.add_argument("--project", required=True, help="仓库内的 csproj 相对路径")
+    build.add_argument("--project", required=True, help="csproj 相对 _import/qian 的路径")
     build.add_argument("--assembly", required=True, help="程序集名（apphost 或原生可执行文件名）")
     build.add_argument("--tag", required=True, help="registry/名称:标签")
     build.add_argument("--role", choices=("product", "selfcheck"), default="product")

@@ -157,7 +157,7 @@
     <PackageVersion Include="xunit.v3" Version="4.0.1" />
     <PackageVersion Include="xunit.v3.extensibility.core" Version="4.0.1" />
     <PackageVersion Include="xunit.v3.assert" Version="4.0.1" />
-    <!-- 覆盖率随 Microsoft.Testing.Platform 换成 coverlet.MTP；命令行参数见 kun-ci 的单元测试步骤。 -->
+    <!-- 覆盖率随 Microsoft.Testing.Platform 换成 coverlet.MTP；命令行参数见 .github/workflows/ci.yml 里测试分片 k 的单元测试步骤。 -->
     <PackageVersion Include="coverlet.MTP" Version="10.0.1" />
     <PackageVersion Include="FluentAssertions" Version="7.0.0" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />

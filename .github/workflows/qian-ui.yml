@@ -1,53 +1,22 @@
 name: qian-ui
 
-# 外壳与界面包的门禁（S1-YUE-025 新增，没有原件）。前端框架迁到 CavaiLAB/qian 后，删掉的 qian-yue.yml 里覆盖留在本仓库的
-# 外壳应用、外壳接线、三个界面包、参考应用远程模块与真实目录验收页的几项由这里接着查：lint（含令牌门禁）、typecheck、unit、
-# boundaries、circular，另加 build。前端框架本身的门禁（a11y、lighthouse、publint、视觉回归）随源码归 CavaiLAB/qian。
-# 脚本见 _import/qian/package.json 的 ui:*；门禁自测在 _import/qian/tests/gates/ui/。
+# 外壳与界面包的门禁，没有原件，前端框架迁出（B11，见迁移执行计划）时新加。前端框架迁到 CavaiLAB/qian 时删掉了查它的
+# 那份工作流，其中覆盖留在本仓库的外壳应用、外壳接线、三个界面包、参考应用远程模块与真实目录验收页的几项由这里接着查：
+# lint（含令牌门禁）、typecheck、unit、boundaries、circular，另加 build。前端框架本身的门禁（a11y、lighthouse、publint、
+# 视觉回归）随源码归 CavaiLAB/qian。脚本见 _import/qian/package.json 的 ui:*；门禁自测在 _import/qian/tests/gates/ui/。
 # 依赖里有 CavaiLAB/qian 发布在 GitHub Packages 上的公开包 @cavailab/qian-*：用本次运行的 GITHUB_TOKEN 只读安装
 # （权限 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）。
+# 由 ci.yml 调用（S1-KUN-020）：只留 workflow_call 与 workflow_dispatch，推送与拉取请求的触发、路径过滤与并发组都由
+# ci.yml 管，路径过滤在区域表 scripts/ci_changes.py 的 ui 区域。
 
 on:
-  push:
-    branches: [main]
-    paths: &paths
-      - "_import/qian/apps/**"
-      - "_import/qian/packages/qian-tenancy-ui/**"
-      - "_import/qian/packages/qian-tenancy-signup-ui/**"
-      - "_import/qian/packages/qian-identity-ui/**"
-      - "_import/qian/packages/qian-shell-kit/**"
-      - "_import/qian/samples/qian-sample-crm-ui/**"
-      - "_import/qian/tests/directory-e2e/**"
-      - "_import/qian/tests/gates/ui/**"
-      - "_import/qian/tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json"
-      - "_import/qian/plugins/qian.tenancy/contracts/**"
-      - "_import/qian/plugins/qian.tenancy.signup/contracts/**"
-      - "_import/qian/tools/openapi-codegen/**"
-      - "_import/qian/website/demo/**"
-      - "_import/qian/scripts/ui-tokens.mjs"
-      - "_import/qian/eslint.config.mjs"
-      - "_import/qian/eslint.boundaries.config.mjs"
-      - "_import/qian/eslint.i18n.mjs"
-      - "_import/qian/.dependency-cruiser.cjs"
-      - "_import/qian/vitest.config.ts"
-      - "_import/qian/tsconfig.base.json"
-      - "_import/qian/turbo.json"
-      - "_import/qian/.npmrc"
-      - "_import/qian/package.json"
-      - "_import/qian/pnpm-lock.yaml"
-      - "_import/qian/pnpm-workspace.yaml"
-      - ".github/workflows/qian-ui.yml"
-  pull_request:
-    paths: *paths
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 ui），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
-
-concurrency:
-  group: qian-ui-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   TURBO_TELEMETRY_DISABLED: 1

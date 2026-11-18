@@ -17,7 +17,7 @@
 
 ## 可以固定的构建与验收约定
 
-1. 构建入口、运行镜像模板与门禁由 S1-DEP-003 先行交付，用自检镜像验证；三个宿主与组件闭包就绪后，在 S1-DEP-008 接入各自的发布入口。依赖与构建版本锁定，源码 SHA、KunVersion 和 profile 修订均写入构建证据。
+1. 构建入口、运行镜像模板与门禁由 S1-DEP-003 先行交付，用自检镜像验证；三个宿主与组件闭包就绪后，在 S1-DEP-008 接入各自的发布入口。依赖与构建版本锁定，源码 SHA 和 profile 修订均写入构建证据。
 2. 多阶段构建；platform/identity 使用 JIT，gateway 使用 Linux NativeAOT 与 distroless 运行镜像。S1-GW-001 已在实际生产宿主上完成完整依赖原生运行并恢复默认 AOT；S1-DEP-008 仍须在最终产品镜像上复验。以非 root UID 启动，以只读根文件系统运行，只为明确需要写入的目录提供临时卷。
 3. profile、组合包、组件清单与对应 patch 随镜像发布；环境 overlay 以 ConfigMap 挂载。分别在源码树与镜像内执行同一 dump-config 合成，比较解析后的结构与来源层，阻止配置漂移。
 4. 镜像构建成功后按不可变 digest 生成 Syft SBOM，执行漏洞扫描，生成 Cosign 签名和 SBOM 关联证明。验签必须约束 CI 发布者身份/issuer，不能只确认某处存在一个签名文件。
@@ -29,12 +29,12 @@
 | 文件 | 作用 |
 |---|---|
 | `jit.Dockerfile` / `aot.Dockerfile` | 两种运行镜像模板。都是多阶段构建；JIT 运行在 `aspnet:10.0-noble-chiseled-extra`，NativeAOT 运行在 distroless 的 `runtime-deps:10.0-noble-chiseled`；基础镜像按多架构索引摘要钉定 |
-| `*.Dockerfile.dockerignore` | 构建上下文白名单，只送 .NET 源码、Schema、profile 与组件目录；新增宿主项目时在这里放行 |
+| `*.Dockerfile.dockerignore` | 构建上下文白名单。上下文是仓库根（S1-KUN-020），只送仓库根的构建基线、包源与 `src/` 下的 Kun 源码，以及本目录的 .NET 源码、Schema、profile 与组件目录；新增宿主项目时在这里放行，写 `_import/qian/` 开头的路径 |
 | `vulnerability-allowlist.json` | 漏洞豁免清单，默认为空 |
 | `../../scripts/images.py` | 统一构建入口 `build` 与 CI 自检 `selfcheck` |
 | `../../scripts/image-tools.lock.json` | syft、grype、cosign 的锁定版本与各平台归档 sha256，由 `prepare_image_tools.py` 下载校验 |
 | `../../tools/Qian.Image.SelfCheck*` | 自检程序：`dump-config` 合成 profile，`self-report` 自报运行期身份与文件系统状态 |
-| `../../.github/workflows/images.yml` | CI 自检 |
+| `../../../../.github/workflows/ci.yml` | CI 自检：镜像自检作业 `images-selfcheck` 运行 `selfcheck` |
 
 ### 构建入口
 
@@ -42,12 +42,12 @@
 python3 scripts/images.py build --kind jit --project <csproj> --assembly <程序集名> --tag <registry/名称:标签>
 ```
 
-`build` 构建并推送镜像，输出按 digest 的引用和构建证据（源码 SHA、KunVersion、profile 与组件目录的 git 树修订）。推到哪个 registry 由 `--tag` 决定；向外部 registry 发布归 S1-DEP-008 与 S1-DEP-005。两种模板的运行约定相同：
+`build` 构建并推送镜像，输出按 digest 的引用和构建证据（源码 SHA、profile 与组件目录的 git 树修订）。构建上下文是仓库根：本目录的项目从源码编译仓库根 `src/` 下的 Kun 项目，`--project` 照旧写相对本目录的路径。推到哪个 registry 由 `--tag` 决定；向外部 registry 发布归 S1-DEP-008 与 S1-DEP-005。两种模板的运行约定相同：
 
 - 入口固定为 `/app/entrypoint`；用户为 chiseled 镜像内置的非 root 用户 `$APP_UID`；
 - profile 与组件目录随镜像发布到 `/app/qian`（`QIAN_ROOT`），环境级 overlay 由 ConfigMap 挂载后经 `--patch` 传入；
 - 部署时 `readOnlyRootFilesystem: true`，只为标签 `io.qian.writable-paths` 列出的目录（目前只有 `/tmp`）挂临时卷；
-- 标签记录源码 SHA（`org.opencontainers.image.revision`）、KunVersion、profile 与组件目录修订和镜像角色（`io.qian.image-role`：`product` 或 `selfcheck`）；
+- 标签记录源码 SHA（`org.opencontainers.image.revision`）、Kun 的源码提交（`io.qian.kun-version`，Kun 与本目录同仓同提交编译，值与源码 SHA 相同）、profile 与组件目录修订和镜像角色（`io.qian.image-role`：`product` 或 `selfcheck`）；
 - 前端构建产物（S1-DEP-011）经 `--web <目录>` 以命名构建上下文 `web` 送入 `/app/web`，构建证据记该目录的 D4 摘要（`webDigest`）；不给 `--web` 时送空目录。平台镜像的目录里是 `identity/`（`packages/qian-identity-ui/dist`）与 `signup/`（`packages/qian-tenancy-signup-ui/dist/public`），网关镜像是 `shell/`（`apps/qian-shell/dist/host`）与 `remotes/qian.tenancy/`、`remotes/qian.tenancy.signup/`（两个 UI 包的 `dist/remote`）。前端在构建机之外先用 pnpm 构建好再拷过去，组装与构建命令见 [staging 运维手册](../../docs/ops/staging-first-deploy.md)。
 
 AOT 模板的构建上下文白名单放行了网关宿主（`hosts/Qian.Gateway.Host`）与全部 `contracts/`（S1-DEP-011），`--kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Qian.Gateway.Host` 可以直接构建 qian-gateway；JIT 模板早已放行平台宿主（S1-DEP-009）。

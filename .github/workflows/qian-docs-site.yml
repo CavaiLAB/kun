@@ -1,10 +1,10 @@
 name: qian-docs-site
 
-# 原 Qian 的 docs-site 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019），B2 切换时接上正式站点的发布。
+# _import/qian/ 的文档站：构建、检查与发布。B1 历史导入时接到仓库根（迁移执行计划 B1，S1-KUN-019），B2 切换时接上正式站点的发布。
 # 原件在 _import/qian/.github/workflows/docs-site.yml，不动；GitHub 只读仓库根的 .github/workflows/。
 # 相对原件改了这些：
-# - 位置：run 步骤的工作目录、路径过滤、缓存键、package.json、github.workspace 下的路径、
-#   浏览器验收容器挂载的目录、上传路径都加了 _import/qian/ 前缀；路径过滤末尾加上本文件。
+# - 位置：run 步骤的工作目录、缓存键、package.json、github.workspace 下的路径、浏览器验收容器挂载的目录、
+#   上传路径都加了 _import/qian/ 前缀；路径过滤见最后「触发」一条。
 # - 「Kun 框架」小节照原件按 Directory.Packages.props 的 KunVersion 取 Kun 的 tag，但不再另外检出 kun 仓库：两个旧仓库的
 #   历史与版本标签已带着原提交号导入本仓库，同名 tag 指向同一提交，所以只从本仓库取这一个 tag 与它的历史，生成脚本
 #  （_import/qian/website/scripts/kun.ts）直接读本仓库，不设 KUN_DOCS_PATH。原件的 deploy key 与「检查 kun 仓库只读凭据」
@@ -18,49 +18,26 @@ name: qian-docs-site
 #   公开仓库的 PR 评论人人可见，要不要接、评论里写什么由产品负责人定，所以原件发布作业里预览的分支、PR 评论一步与
 #   「删除预览」作业都没有接，触发类型里也就没有只为删除预览而设的 closed，构建作业也不用跳过 closed。
 #   PR 上的构建仍带 /pr-preview/pr-<n>/ 前缀，前缀检查照跑。接回时照原件补齐这几处即可。
-# - 组件目录（S1-YUE-025）：qian 组件库（原 yue）的源码迁到了 CavaiLAB/qian。构建按 pnpm-workspace.yaml 版本目录里
+# - 组件目录：qian 组件库的源码在 CavaiLAB/qian（B11 迁出，见迁移执行计划）。构建按 pnpm-workspace.yaml 版本目录里
 #   @cavailab/qian-core 的版本，检出 CavaiLAB/qian 的同名标签 @cavailab/qian-core@<版本> 到 _import/qian/.qian（公开仓库，
 #   缺省的 GITHUB_TOKEN 经 HTTPS 只读检出；要完整历史，组件页的 updated 取文件在该标签上的最后提交日期），在检出里按它自己的
 #   锁文件装 packages/qian/* 的依赖（公共 npm 源），QIAN_DOCS_PATH 指向它（website/README.md §1）。本仓库的依赖里有 GitHub Packages
 #   上的公开包 @cavailab/qian-*：工作流权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
-#   路径过滤去掉迁走的 packages/yue/，加上浏览器验收引用的外壳 e2e/settle.ts。
+#   路径过滤去掉迁走的组件库目录，加上浏览器验收引用的外壳 e2e/settle.ts。
+# - 触发（S1-KUN-020）：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管。
+#   路径过滤在区域表 scripts/ci_changes.py 的 docs-site 区域：原件的过滤逐条加 _import/qian/ 前缀（去掉迁走的组件库目录、
+#   加上外壳 e2e/settle.ts，见上一条），另加本文件、仓库根的 .NET 构建基线、Kun.slnx、src/ 与 _import/qian/.npmrc。
+#   setup-dotnet 读仓库根的 global.json。
+#   推 main 时的发布作业照旧：被调用时 github.event_name 与 github.ref 是 ci.yml 这次运行的，调用作业给 contents: write。
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - "_import/qian/website/**"
-      - "_import/qian/apps/qian-shell/e2e/settle.ts"
-      - "_import/qian/docs/**"
-      - "_import/qian/package.json"
-      - "_import/qian/pnpm-lock.yaml"
-      - "_import/qian/pnpm-workspace.yaml"
-      - "_import/qian/deploy/docs-site/**"
-      - "_import/qian/Directory.Packages.props"
-      - "_import/qian/.github/workflows/docs-site.yml"
-      - ".github/workflows/qian-docs-site.yml"
-  push:
-    branches: [main]
-    paths:
-      - "_import/qian/website/**"
-      - "_import/qian/apps/qian-shell/e2e/settle.ts"
-      - "_import/qian/docs/**"
-      - "_import/qian/package.json"
-      - "_import/qian/pnpm-lock.yaml"
-      - "_import/qian/pnpm-workspace.yaml"
-      - "_import/qian/deploy/docs-site/**"
-      - "_import/qian/Directory.Packages.props"
-      - "_import/qian/.github/workflows/docs-site.yml"
-      - ".github/workflows/qian-docs-site.yml"
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 docs-site），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
-
-concurrency:
-  group: qian-docs-site-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   DOTNET_NOLOGO: true
@@ -121,14 +98,14 @@ jobs:
       # DocFX 从 Kun.* 包生成 API 参考（website/.config/dotnet-tools.json 锁定 docfx 版本）
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/qian/global.json
+          global-json-file: global.json
       - uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
           key: nuget-docs-${{ runner.os }}-${{ steps.kun.outputs.version }}-${{ hashFiles('_import/qian/website/.config/dotnet-tools.json') }}
           restore-keys: nuget-docs-${{ runner.os }}-
 
-      # 先装 Node 24 再装 pnpm：pnpm 版本取自原 Qian 根目录 package.json 的 packageManager，它本身要求较新的 Node
+      # 先装 Node 24 再装 pnpm：pnpm 版本取自 _import/qian/package.json 的 packageManager，它本身要求较新的 Node
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -168,7 +145,7 @@ jobs:
       - name: 产物检查（离线、前缀、搜索索引、代码高亮、Kun 版本）
         run: pnpm --filter website check
 
-      # Kun 镜像页与 API 参考的源不在原 Qian 里，生成后单独过文档门禁（禁用词、表格、断链）
+      # Kun 镜像页与 API 参考的源不在 _import/qian/ 里，生成后单独过文档门禁（禁用词、表格、断链）
       - name: 生成页过文档门禁（frontmatter、禁用词、链接；源不在本仓库的 Kun 页也在内）
         run: python3 scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md
 

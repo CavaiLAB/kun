@@ -1,0 +1,722 @@
+name: ci
+
+# 全部检查都由这个工作流跑（S1-KUN-020）。每个拉取请求、每次推 main、每次手动触发都跑。
+#
+# - 变更检测（changes）按 scripts/ci_changes.py 的区域表算出哪些区域改动了；推 main 与手动触发时全部区域都跑。
+#   区域表与本文件的结构各有自测（scripts/tests/test_ci_changes.py、test_ci_workflow.py），变更检测每次都先跑它们。
+# - 其余作业都依赖变更检测，按所属区域决定跑不跑：.NET 的构建、门禁、格式、测试分片、原生发布在本文件里；
+#   镜像自检也在本文件里；前端与文档的 10 个工作流由本文件调用（uses），它们的触发只剩 workflow_call 与 workflow_dispatch。
+# - 最后一个作业「CI 汇总」等全部作业结束：变更检测没有成功、或任一作业失败或取消，就失败；跳过算通过。
+#   它的作业 id（summary）与名字（「CI 汇总」）固定不改：规则集里的必需检查按名字认它。
+# - 拉取请求触发不设 paths、paths-ignore 与 branches 过滤：只改文档或任务文件的 PR 也会跑出「CI 汇总」。
+#   提交说明里不要写 [skip ci] 一类的跳过标记：设为必需检查后，跳过的 PR 会一直停在「等待」。
+# - 以后开合并队列时，要给本文件加 merge_group 触发，「CI 汇总」才会在队列里出结果。
+#
+# 权限：顶层只给 contents: read。调用前端与文档工作流的作业各给 packages: read（它们装 GitHub Packages 上的
+# @cavailab/qian-*）；调用文档站的作业另给 contents: write，被调用方只有推 main 时的发布作业用它。
+# 被调用工作流里的作业权限只能比调用方给的低。
+#
+# .NET 作业统一在 ubuntu-24.04 上跑，SDK 由复合动作 .github/actions/setup-dotnet 按仓库根的 global.json 装到独立目录。
+#
+# 原件（不动，GitHub 不读）与相对原件的改动：
+# - .github/originals/kun/workflows/ci.yml：还原与构建、发版脚本自测、网关打包冒烟、分层与身份边界检查并进「构建与门禁」，
+#   单元与集成测试成为测试分片 k，格式、AOT 审计、样例 AOT 集成各占一个作业。runs-on 由自托管 runner 改为 ubuntu-24.04；
+#   测试运行器是 Microsoft.Testing.Platform，单元测试照 tests/kun-unit.slnf 跑，每个模块各写一份 TRX 与覆盖率，覆盖率核对份数、
+#   去掉文件名里的时间戳之后上传；推 develop 分支不再触发。
+# - _import/qian/.github/workflows/dotnet.yml：构建与门禁、测试分片 a/b/c、汇总核对、四个原生发布作业，命令照原件，在
+#   _import/qian 下运行。「构建与门禁」的还原与构建换成仓库根的 Kun.slnx，测试分片用 Qian.slnf；runs-on 由 ubuntu-latest
+#   改为 ubuntu-24.04；汇总核对另核分片 k；触发过滤自检读区域表里的 dotnet 区域。
+# - _import/qian/.github/workflows/images.yml：镜像自检，构建上下文改为仓库根（只接自检，不接推送与正式签名）。
+# - _import/qian/.github/workflows/ 下其余 10 个：.github/workflows/qian-<名字>.yml，由本文件调用，改动写在各自的文件头。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 拉取请求上新提交取消旧运行；推 main 不取消，以免打断文档站发布。
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  changes:
+    name: 变更检测
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      dotnet: ${{ steps.detect.outputs.dotnet }}
+      images: ${{ steps.detect.outputs.images }}
+      docs-and-pm: ${{ steps.detect.outputs.docs-and-pm }}
+      docs-site: ${{ steps.detect.outputs.docs-site }}
+      documentation: ${{ steps.detect.outputs.documentation }}
+      dev-tenant-ops: ${{ steps.detect.outputs.dev-tenant-ops }}
+      directory-e2e: ${{ steps.detect.outputs.directory-e2e }}
+      shell-auth: ${{ steps.detect.outputs.shell-auth }}
+      shell-federation: ${{ steps.detect.outputs.shell-federation }}
+      surfaces: ${{ steps.detect.outputs.surfaces }}
+      tenant-ui: ${{ steps.detect.outputs.tenant-ui }}
+      ui: ${{ steps.detect.outputs.ui }}
+    steps:
+      # 拉取请求检出的是合并提交，取两层：HEAD^1 是目标分支，对它求差就是本 PR 带来的改动。
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 区域表与 ci.yml 的自测
+        run: python3 -m unittest discover -s scripts/tests -p 'test_ci_*.py' -v
+
+      - name: 按区域表算出要跑的区域（推 main 与手动触发时全部区域）
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = pull_request ]; then
+            python3 scripts/ci_changes.py detect --base HEAD^1 --head HEAD
+          else
+            python3 scripts/ci_changes.py detect --all
+          fi
+
+  dotnet-build:
+    name: 构建与门禁
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-dotnet
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 还原
+        run: dotnet restore Kun.slnx
+
+      - name: 发版脚本与制品校验自测
+        run: python3 -m unittest discover -s scripts/tests -p 'test_release_version.py' -v
+
+      - name: 构建（Release；_import/qian 下 Qian 包未登记的公共 API 即编译失败）
+        run: dotnet build Kun.slnx -c Release --no-restore
+
+      - name: 网关打包冒烟
+        run: |
+          dotnet pack src/Kun.Gateway -c Release --no-build --no-restore -o artifacts/gateway-package
+          test -f artifacts/gateway-package/Kun.Gateway.*.nupkg
+
+      - name: Kun.Core 不带第三方包引用
+        run: bash scripts/check-layering.sh
+
+      - name: 身份日志隐私与产品中立的缺省值
+        run: python3 scripts/check-identity-boundaries.py
+
+      - name: 动态发现全部代码入口并校验唯一清单与实现构件分类
+        working-directory: _import/qian
+        run: python3 scripts/check_plugin_manifests.py
+
+      - name: 仓库 profile 生效配置的明文密钥扫描（S1-CFG-002）
+        working-directory: _import/qian
+        run: dotnet tools/Qian.Secrets.Tool/bin/Release/net10.0/Qian.Secrets.Tool.dll --profiles .
+
+      - name: 由组件 config.schema 推导各 profile 的 Apollo namespace 骨架（S1-CFG-003，随测试结果上传）
+        working-directory: _import/qian
+        run: dotnet tools/Qian.Config.Tool/bin/Release/net10.0/Qian.Config.Tool.dll . --out TestResults/evidence/apollo-namespaces
+
+      - name: 依赖图门禁
+        working-directory: _import/qian
+        run: python3 scripts/check_deps.py --solution Qian.slnf --no-restore
+
+      - name: 门禁自测（tests/gates 样例项目）
+        working-directory: _import/qian
+        run: python3 -m unittest discover -s tests/gates -v
+
+      - name: 触发过滤自检（_import/qian 下测试读到的 pm/、docs/ 与 Markdown 改动仍落进 dotnet 区域）
+        working-directory: _import/qian
+        run: python3 scripts/dotnet_ci.py paths-check
+
+      - name: 上传 namespace 骨架
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-gates
+          path: _import/qian/TestResults/
+          if-no-files-found: ignore
+
+  dotnet-format:
+    name: 格式
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-dotnet
+
+      - name: 还原
+        run: dotnet restore Kun.slnx
+
+      - name: 核对格式（_import/qian 有自己的 .editorconfig，不在这道门禁里）
+        run: dotnet format Kun.slnx --verify-no-changes --no-restore --exclude _import/qian
+
+  dotnet-test:
+    name: 测试（分片 ${{ matrix.shard }}）
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: a
+          - shard: b
+            doctor: true # Sample.Crm 与 Registry 的用例调真实 qian CLI
+          - shard: c
+          - shard: k # 仓库根 tests/ 下的单元测试（tests/kun-unit.slnf，收覆盖率）与集成测试
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 后台顺序预拉本分片用到的测试镜像（与还原、构建并行，记录在 RUNNER_TEMP/prefetch）
+        if: matrix.shard != 'k'
+        working-directory: _import/qian
+        run: |
+          mkdir -p "$RUNNER_TEMP/prefetch"
+          setsid nohup python3 scripts/dotnet_ci.py prefetch ${{ matrix.shard }} --state "$RUNNER_TEMP/prefetch" \
+            > "$RUNNER_TEMP/prefetch/output.log" 2>&1 < /dev/null &
+
+      - uses: ./.github/actions/setup-dotnet
+
+      - uses: actions/setup-node@v4
+        if: matrix.doctor
+        with:
+          node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@cavailab'
+      - uses: pnpm/action-setup@v4
+        if: matrix.doctor
+        with:
+          version: 12.9.1
+          package_json_file: _import/qian/package.json
+      - name: 构建真实 doctor 客户端供宿主验收
+        if: matrix.doctor
+        working-directory: _import/qian
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm install --frozen-lockfile && pnpm --filter qian... build
+
+      - name: 还原
+        if: matrix.shard != 'k'
+        working-directory: _import/qian
+        run: dotnet restore Qian.slnf
+
+      - name: 构建
+        if: matrix.shard != 'k'
+        working-directory: _import/qian
+        run: dotnet build Qian.slnf -c Release --no-restore
+
+      - name: 安装固定摘要的真实 OpenAPI 兼容检查器
+        if: matrix.shard != 'k'
+        working-directory: _import/qian
+        run: python3 scripts/prepare_contract_tools.py --destination "$RUNNER_TEMP/qian-contract-tools"
+
+      - name: 等待镜像预拉结束（至多 120 秒，超时照常测试，没拉完的由 Testcontainers 补拉）
+        if: matrix.shard != 'k'
+        working-directory: _import/qian
+        run: python3 scripts/dotnet_ci.py wait-prefetch --state "$RUNNER_TEMP/prefetch" --timeout 120
+
+      - name: 单元与集成测试（本分片的模块，共享容器与真实 Apollo）
+        if: matrix.shard != 'k'
+        working-directory: _import/qian
+        env:
+          QIAN_BUF_PATH: ${{ runner.temp }}/qian-contract-tools/buf
+          QIAN_OASDIFF_PATH: ${{ runner.temp }}/qian-contract-tools/oasdiff
+          QIAN_TEST_EVIDENCE_DIR: ${{ github.workspace }}/_import/qian/TestResults/evidence
+          QIAN_PRODUCT_FILTER_REPORT: ${{ github.workspace }}/_import/qian/TestResults/evidence/product-capability-filter.json
+          QIAN_PROFILE_EQUIVALENCE_REPORT: ${{ github.workspace }}/_import/qian/TestResults/evidence/profile-equivalence.json
+        run: |
+          python3 scripts/dotnet_ci.py shard ${{ matrix.shard }} --out "$RUNNER_TEMP/tests.slnf"
+          dotnet test --solution "$RUNNER_TEMP/tests.slnf" -c Release --no-build --results-directory TestResults --report-xunit-trx -p:QianTrxPerModule=true
+
+      - name: 还原与构建分片 k 的测试项目
+        if: matrix.shard == 'k'
+        run: |
+          python3 _import/qian/scripts/dotnet_ci.py shard k --out "$RUNNER_TEMP/tests.slnf"
+          dotnet restore "$RUNNER_TEMP/tests.slnf"
+          dotnet build "$RUNNER_TEMP/tests.slnf" -c Release --no-restore
+
+      - name: 单元测试（每个模块写一份 TRX、一份覆盖率）
+        if: matrix.shard == 'k'
+        run: >
+          dotnet test
+          --solution tests/kun-unit.slnf
+          -c Release
+          --no-build
+          --results-directory TestResults/unit
+          --report-xunit-trx
+          -p:QianTrxPerModule=true
+          --coverlet
+          --coverlet-output-format cobertura
+          -p:CoveragePerModule=true
+
+      # ubuntu-24.04 自带 Docker，Testcontainers 按需起容器，不用 services。
+      - name: 集成测试（Testcontainers）
+        if: matrix.shard == 'k'
+        run: >
+          dotnet test
+          --project tests/Kun.IntegrationTests/Kun.IntegrationTests.csproj
+          -c Release
+          --no-build
+          --results-directory TestResults/integration
+          --report-xunit-trx
+          -p:QianTrxPerModule=true
+
+      - name: 核对覆盖率份数（tests/kun-unit.slnf 里每个测试项目恰好一份），通过后文件名去掉时间戳
+        if: matrix.shard == 'k'
+        run: python3 _import/qian/scripts/dotnet_ci.py coverage TestResults/unit
+
+      - name: 上传覆盖率
+        if: matrix.shard == 'k'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: TestResults/unit/*.coverage.cobertura.xml
+          if-no-files-found: error
+
+      - name: 上传测试结果
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.shard }}
+          path: ${{ matrix.shard == 'k' && 'TestResults/' || '_import/qian/TestResults/' }}
+          if-no-files-found: ignore
+
+  dotnet-test-summary:
+    name: 测试分片汇总核对
+    needs: [changes, dotnet-build, dotnet-test]
+    if: ${{ !cancelled() && needs.changes.outputs.dotnet == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 下载各分片的测试结果
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: ${{ runner.temp }}/test-results
+
+      - name: 每个测试项目恰好在所属分片跑过一次、没有失败（Qian.slnf 的测试项目与分片 k 的项目；少一个模块即失败）
+        working-directory: _import/qian
+        run: python3 scripts/dotnet_ci.py verify "$RUNNER_TEMP/test-results"
+
+      - name: 合并为 test-results 构件（各分片的 TRX、覆盖率与证据、门禁作业的 namespace 骨架）
+        if: always()
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: test-results
+          pattern: test-results-*
+
+  # 每个 IsAotCandidate=true 的 src/ 项目各占矩阵的一格，一个模块的裁剪或 AOT 回退不会掩盖另一个，
+  # 失败直接指到出问题的项目。模块状况见 docs/architecture/AOT-audit-2026-04-23.md；有意不进 AOT 的模块
+  # （AspNetCore、Dapper、Saga、EntityFrameworkCore 及其适配器）不在矩阵里，由构建与门禁作业覆盖。
+  aot-audit:
+    name: AOT 审计（${{ matrix.module }}）
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - Kun.Audit
+          - Kun.Authorization
+          - Kun.Configuration.Apollo
+          - Kun.Caching
+          - Kun.Configuration
+          - Kun.Core
+          - Kun.EventBus
+          - Kun.EventBus.Abstractions
+          - Kun.EventBus.RabbitMQ
+          - Kun.Gateway
+          - Kun.Grpc
+          - Kun.Identity
+          - Kun.Infrastructure
+          - Kun.Mediator
+          - Kun.MultiTenancy
+          - Kun.Observability
+          - Kun.RateLimit
+          - Kun.Sandbox
+          - Kun.Security
+          - Kun.Storage
+          - Kun.Validation
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-dotnet
+
+      - name: NativeAOT 工具链（ubuntu-24.04 自带 clang 与 zlib1g-dev，缺失时才安装）
+        run: |
+          if ! command -v clang >/dev/null 2>&1 || [ ! -f /usr/include/zlib.h ]; then
+            sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+          fi
+
+      - name: 发布 AOT（裁剪与 AOT 警告为零，警告即错误）
+        run: |
+          dotnet publish "src/${{ matrix.module }}" \
+            -c Release \
+            -r linux-x64 \
+            -p:PublishAot=true \
+            -p:TreatWarningsAsErrors=true
+
+  # 跑 Kun.Integration.AotTests：原生发布 samples/Kun.Sample.Minimal 并执行产物；同时普通打包 Kun.Gateway，
+  # 再发布独立 NuGet 消费者并请求原生 JWKS 端点。见 tests/Kun.Integration.AotTests/AGENTS.md。
+  sample-aot:
+    name: 样例 NativeAOT 集成
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-dotnet
+
+      - name: NativeAOT 工具链（ubuntu-24.04 自带 clang 与 zlib1g-dev，缺失时才安装）
+        run: |
+          if ! command -v clang >/dev/null 2>&1 || [ ! -f /usr/include/zlib.h ]; then
+            sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+          fi
+
+      - name: 还原
+        run: dotnet restore tests/Kun.Integration.AotTests/Kun.Integration.AotTests.csproj
+
+      - name: 构建
+        run: >
+          dotnet build tests/Kun.Integration.AotTests/Kun.Integration.AotTests.csproj
+          --configuration Release
+          --no-restore
+
+      - name: 运行 AOT 集成测试
+        run: >
+          dotnet test
+          --project tests/Kun.Integration.AotTests/Kun.Integration.AotTests.csproj
+          --configuration Release
+          --no-build
+
+  identity-aot:
+    name: 身份依赖方组件 NativeAOT 冒烟
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: _import/qian
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-dotnet
+
+      - name: NativeAOT 工具链（ubuntu-24.04 自带 clang 与 zlib，缺失时才安装）
+        run: |
+          if ! command -v clang >/dev/null 2>&1 || [ ! -f /usr/include/zlib.h ]; then
+            sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+          fi
+
+      - name: 发布 linux-x64 NativeAOT（ILC 有任何 IL 警告即失败）
+        run: dotnet publish tools/Qian.Identity.Client.AotSmoke -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/identity-aot"
+
+      - name: 产物是原生可执行文件
+        run: |
+          test -x "$RUNNER_TEMP/identity-aot/Qian.Identity.Client.AotSmoke"
+          if [ -e "$RUNNER_TEMP/identity-aot/Qian.Identity.Client.AotSmoke.dll" ]; then
+            echo "没有按 NativeAOT 发布：csproj 需声明 PublishAot" >&2
+            exit 1
+          fi
+
+      - name: 运行原生二进制：挂载组件并做启动与端点冒烟
+        run: '"$RUNNER_TEMP/identity-aot/Qian.Identity.Client.AotSmoke"'
+
+  native-data-aot:
+    name: 原生数据严格发布与真实 PostgreSQL 验收
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: _import/qian
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-dotnet
+      - name: NativeAOT 工具链
+        run: |
+          if ! command -v clang >/dev/null 2>&1 || [ ! -f /usr/include/zlib.h ]; then
+            sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+          fi
+      - name: 严格发布 Linux 原生探针
+        run: dotnet publish tools/Qian.Data.Native.Probe -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/native-data"
+      - name: 核验产物形态
+        run: test -x "$RUNNER_TEMP/native-data/Qian.Data.Native.Probe" && test ! -e "$RUNNER_TEMP/native-data/Qian.Data.Native.Probe.dll"
+      - name: 原生进程执行真实受限 PostgreSQL 事务与隔离
+        env:
+          QIAN_REQUIRE_DOCKER: '1'
+          QIAN_NATIVE_DATA_EXECUTABLE: ${{ runner.temp }}/native-data/Qian.Data.Native.Probe
+        run: dotnet test --project tests/Qian.Data.Native.Postgres.AotTests -c Release --report-xunit-trx --results-directory TestResults/native-data-aot
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-data-aot-results
+          path: _import/qian/TestResults/native-data-aot/
+
+  gateway-host-aot:
+    name: 生产网关完整 NativeAOT 与真实依赖验收
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: _import/qian
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-dotnet
+      - name: NativeAOT 工具链
+        run: |
+          if ! command -v clang >/dev/null 2>&1 || [ ! -f /usr/include/zlib.h ]; then
+            sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+          fi
+      - name: 严格发布实际生产宿主
+        run: dotnet publish hosts/Qian.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/gateway-host"
+      - name: 核验实际原生产物
+        run: test -x "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host" && test ! -e "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host.dll"
+      # Kun.Gateway 是项目引用（S1-KUN-020），它作为宿主的文件不进发布目录，appsettings.json 是本宿主自己的那份。
+      - name: 核验发布目录里没有 Kun.Gateway 的宿主文件
+        run: |
+          for name in Kun.Gateway Kun.Gateway.deps.json Kun.Gateway.runtimeconfig.json Kun.Gateway.staticwebassets.endpoints.json; do
+            if [ -e "$RUNNER_TEMP/gateway-host/$name" ]; then echo "发布目录里有 Kun.Gateway 的宿主文件：$name" >&2; exit 1; fi
+          done
+          cmp "$RUNNER_TEMP/gateway-host/appsettings.json" hosts/Qian.Gateway.Host/appsettings.json
+      - name: 原生网关运行真实 Apollo、受限 PG、Redis 与身份登录换签
+        env:
+          QIAN_REQUIRE_DOCKER: '1'
+          QIAN_GATEWAY_HOST_EXECUTABLE: ${{ runner.temp }}/gateway-host/Qian.Gateway.Host
+        run: dotnet test --project tests/Qian.Gateway.Host.AotTests -c Release --report-xunit-trx --results-directory TestResults/gateway-host-aot
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gateway-host-aot-results
+          path: _import/qian/TestResults/gateway-host-aot/
+
+  native-audit-aot:
+    name: 原生审计严格发布与真实 PostgreSQL 验收
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: _import/qian
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-dotnet
+      - name: NativeAOT 工具链
+        run: |
+          if ! command -v clang >/dev/null 2>&1 || [ ! -f /usr/include/zlib.h ]; then
+            sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+          fi
+      - name: 严格发布 Linux 原生探针
+        run: dotnet publish tools/Qian.Audit.Native.Probe -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/native-audit"
+      - name: 核验产物形态
+        run: test -x "$RUNNER_TEMP/native-audit/Qian.Audit.Native.Probe" && test ! -e "$RUNNER_TEMP/native-audit/Qian.Audit.Native.Probe.dll"
+      - name: 原生进程执行真实受限 PostgreSQL 审计链与业务事务
+        env:
+          QIAN_REQUIRE_DOCKER: '1'
+          QIAN_NATIVE_AUDIT_EXECUTABLE: ${{ runner.temp }}/native-audit/Qian.Audit.Native.Probe
+        run: dotnet test --project tests/Qian.Audit.Native.AotTests -c Release --report-xunit-trx --results-directory TestResults/native-audit-aot
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-audit-aot-results
+          path: _import/qian/TestResults/native-audit-aot/
+
+  # profile 镜像构建与供应链门禁自检（S1-DEP-003 / R106），作业与 _import/qian/.github/workflows/images.yml 相同。
+  # JIT 与 NativeAOT 两个自检镜像以仓库根为构建上下文，只推到本作业里的临时 registry，不发布任何镜像；
+  # 签名用本作业临时签发的 CA，不申请 OIDC 令牌，也不写公共透明日志。
+  images-selfcheck:
+    name: 镜像自检
+    needs: changes
+    if: needs.changes.outputs.images == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: _import/qian
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-dotnet
+      - name: 门禁判定逻辑自测
+        run: python3 -m unittest discover -s tests/gates -p 'test_images.py' -v
+      - name: 准备 syft / grype / cosign（锁定版本，校验 sha256）
+        run: python3 scripts/prepare_image_tools.py --destination "$RUNNER_TEMP/image-tools"
+      - name: 构建自检镜像，跑 SBOM、扫描、签名验签、漂移与运行期门禁及反例
+        run: python3 scripts/images.py selfcheck --tools "$RUNNER_TEMP/image-tools" --out "$GITHUB_WORKSPACE/_import/qian/TestResults/images"
+      - name: 上传证据（evidence.json、SBOM、扫描报告、命令日志）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-selfcheck
+          path: _import/qian/TestResults/images/
+          if-no-files-found: ignore
+
+  docs-and-pm:
+    name: 文档门禁、任务文件与看板
+    needs: changes
+    if: needs.changes.outputs.docs-and-pm == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-docs-and-pm.yml
+
+  docs-site:
+    name: 文档站
+    needs: changes
+    if: needs.changes.outputs.docs-site == 'true'
+    permissions:
+      contents: write
+      packages: read
+    uses: ./.github/workflows/qian-docs-site.yml
+
+  documentation:
+    name: 派生文档与事件模式
+    needs: changes
+    if: needs.changes.outputs.documentation == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-documentation.yml
+
+  dev-tenant-ops:
+    name: 租户运营手测环境
+    needs: changes
+    if: needs.changes.outputs.dev-tenant-ops == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-dev-tenant-ops.yml
+
+  directory-e2e:
+    name: 目录选择器验收
+    needs: changes
+    if: needs.changes.outputs.directory-e2e == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-directory-e2e.yml
+
+  shell-auth:
+    name: 外壳认证验收
+    needs: changes
+    if: needs.changes.outputs.shell-auth == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-shell-auth.yml
+
+  shell-federation:
+    name: 外壳联邦验收
+    needs: changes
+    if: needs.changes.outputs.shell-federation == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-shell-federation.yml
+
+  surfaces:
+    name: 声明式表面
+    needs: changes
+    if: needs.changes.outputs.surfaces == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-surfaces.yml
+
+  tenant-ui:
+    name: 租户运营页面验收
+    needs: changes
+    if: needs.changes.outputs.tenant-ui == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-tenant-ui.yml
+
+  ui:
+    name: 外壳与界面包门禁
+    needs: changes
+    if: needs.changes.outputs.ui == 'true'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/qian-ui.yml
+
+  summary:
+    name: CI 汇总
+    if: always()
+    needs:
+      - changes
+      - dotnet-build
+      - dotnet-format
+      - dotnet-test
+      - dotnet-test-summary
+      - aot-audit
+      - sample-aot
+      - identity-aot
+      - native-data-aot
+      - gateway-host-aot
+      - native-audit-aot
+      - images-selfcheck
+      - docs-and-pm
+      - docs-site
+      - documentation
+      - dev-tenant-ops
+      - directory-e2e
+      - shell-auth
+      - shell-federation
+      - surfaces
+      - tenant-ui
+      - ui
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+
+      - name: 判定：变更检测成功，且没有失败或取消的作业（跳过算通过）
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: python3 scripts/ci_changes.py summary

@@ -1,25 +1,25 @@
 name: qian-directory-e2e
-# 原 Qian 的 directory-e2e 工作流，B1 历史导入时接到本仓库（迁移执行计划 B1，S1-KUN-019）。
-# 原件在 _import/qian/.github/workflows/directory-e2e.yml，不动；GitHub 只读仓库根的 .github/workflows/。
-# 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 与 package.json、上传路径加 _import/qian/ 前缀；
-# 路径过滤末尾加上本文件。检查本身不变。
-# S1-YUE-025：验收页与用例从演练场移到私有工作区包 tests/directory-e2e（@qian/directory-e2e），组件改装 CavaiLAB/qian 发布在
-# GitHub Packages 上的 @cavailab/qian-*（公开包，用本次运行的 GITHUB_TOKEN 只读安装：权限加 packages: read，setup-node 写用户级的
-# 包源认证，pnpm install 带 NODE_AUTH_TOKEN）；原件对 yue biz 包跑的 contracts:check 归前端仓库，这里换成核对钉住的 biz 契约副本
-# 与安装的包一致（tests/gates/ui/pins.test.ts）；路径过滤随之改指新位置。
+
+# 真实目录选择器验收：验收页与用例在私有工作区包 tests/directory-e2e（@qian/directory-e2e）。
+# 由 ci.yml 调用，在 _import/qian/ 下运行。
+# 原件在 _import/qian/.github/workflows/directory-e2e.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
+# - 触发：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
+#   路径过滤在区域表 scripts/ci_changes.py 的 directory-e2e 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
+#   Kun.slnx、src/ 与 _import/qian/.npmrc；指向已不存在的 _import/qian/NuGet.config 的一条删掉。
+# - 位置：run 步骤的工作目录、package.json 与上传路径加 _import/qian/ 前缀；setup-dotnet 读仓库根的 global.json。
+# - 前端框架迁出（B11，见迁移执行计划）之后：验收页与用例移进 tests/directory-e2e；组件装 CavaiLAB/qian 发布在
+#   GitHub Packages 上的公开包 @cavailab/qian-*，用本次运行的 GITHUB_TOKEN 只读安装：权限加 packages: read，
+#   setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。原件核对 biz 契约的一步（contracts:check）随前端
+#   框架归 CavaiLAB/qian，这里改为核对钉住的 biz 契约副本与安装的包一致（tests/gates/ui/pins.test.ts）。
+# 检查本身不变。
+
 on:
-  push:
-    branches: [main]
-    paths: ['_import/qian/tests/directory-e2e/**', '_import/qian/tests/gates/ui/pins.test.ts', '_import/qian/tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/tools/openapi-codegen/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/turbo.json', '_import/qian/.github/workflows/directory-e2e.yml', '.github/workflows/qian-directory-e2e.yml']
-  pull_request:
-    paths: ['_import/qian/tests/directory-e2e/**', '_import/qian/tests/gates/ui/pins.test.ts', '_import/qian/tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/tools/openapi-codegen/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/turbo.json', '_import/qian/.github/workflows/directory-e2e.yml', '.github/workflows/qian-directory-e2e.yml']
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 directory-e2e），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 permissions:
   contents: read
   packages: read
-concurrency:
-  group: qian-directory-e2e-${{ github.ref }}
-  cancel-in-progress: true
 defaults:
   run:
     working-directory: _import/qian
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/qian/global.json
+          global-json-file: global.json
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

@@ -8,7 +8,7 @@
 
   <!--
     过渡用的 KunVersion，任何构建都不读它。读它的只有：文档站（「Kun 框架」小节、Kun API 参考、版本矩阵，
-    website/scripts/kun.ts 等）、根上的 qian-docs-site 工作流、scripts/check_docs.py，以及镜像构建证据 scripts/images.py。
+    website/scripts/kun.ts 等）、根上的 qian-docs-site 工作流与 scripts/check_docs.py。
     tests/gates/test_build_merge.py 保证没有 csproj、props 或 targets 引用 $(KunVersion)。
     文档站改读别处之后删除本属性，由计划会话在 B3 之后另排。
   -->

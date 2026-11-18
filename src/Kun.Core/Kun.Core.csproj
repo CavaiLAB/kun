@@ -7,4 +7,10 @@
     <Description>Kun Framework core abstractions: domain building blocks, CQRS contracts, Result pattern, ITenantContext. Zero third-party dependencies.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>contract</KunRole>
+    <KunZeroDependency>true</KunZeroDependency>
+  </PropertyGroup>
+
 </Project>

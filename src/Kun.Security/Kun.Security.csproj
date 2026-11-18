@@ -7,6 +7,11 @@
     <Description>Kun Framework — zero-trust internal auth: S2S JWT validation, JWKS, tenant/user context from claims.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\Kun.MultiTenancy\Kun.MultiTenancy.csproj" />

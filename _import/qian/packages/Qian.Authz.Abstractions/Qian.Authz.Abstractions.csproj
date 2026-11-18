@@ -3,6 +3,10 @@
     <IsPackable>true</IsPackable>
     <Description>Qian 权限 seam、规范权限点与错误契约；复用 Kun.Authorization 端口。</Description>
   </PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>platform</KunTier>
+    <KunRole>contract</KunRole>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" />
     <ProjectReference Include="../../../../src/Kun.Authorization/Kun.Authorization.csproj" />

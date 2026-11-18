@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>true</IsPackable><Description>Qian 平台能力目录与统一可见性判定。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Capabilities.Abstractions/Qian.Capabilities.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" />

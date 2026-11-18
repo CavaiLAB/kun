@@ -7,6 +7,11 @@
     <Description>Kun Framework — integration event bus contracts: Outbox schema, event-type registry, publisher abstractions.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kun.EventBus.Abstractions\Kun.EventBus.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />

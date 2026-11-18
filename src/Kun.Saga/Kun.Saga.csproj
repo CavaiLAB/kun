@@ -15,6 +15,11 @@
     <Description>Saga Orchestration engine for Kun Framework: steps, compensation, timeouts, state persistence.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\Kun.EventBus\Kun.EventBus.csproj" />

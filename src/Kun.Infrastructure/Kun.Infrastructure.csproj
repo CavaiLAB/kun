@@ -7,6 +7,11 @@
     <Description>Repository, Unit of Work, Specification, and IProcessedMessageStore abstractions.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
   </ItemGroup>

@@ -7,6 +7,11 @@
     <Description>Kun Framework — ASP.NET Core integration for Kun.Identity cookie sessions: UseKunCookieAuth middleware, SignInHelper, ChallengeHelper (PKCE), and KunCurrentUser (IAuthenticatedUser resolver). AOT-strict by construction — no reflection, no JsonSerializer.Serialize(obj).</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <!--
       The FrameworkReference transitively supplies

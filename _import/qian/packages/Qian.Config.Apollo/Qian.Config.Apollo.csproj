@@ -2,6 +2,10 @@
   <PropertyGroup><IsPackable>true</IsPackable><Description>Qian 的 Apollo/标准配置 Provider、租户灰度求值、受限草稿编辑与发布审计。</Description>
     <!-- 启用裁剪与 AOT 静态分析；只读 Apollo 路径已由 GW-001 原生宿主验收，可选管理入口不因此自动获得原生发布证据。 -->
     <IsAotCompatible>true</IsAotCompatible></PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>platform</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Data.Native.Abstractions/Qian.Data.Native.Abstractions.csproj" />

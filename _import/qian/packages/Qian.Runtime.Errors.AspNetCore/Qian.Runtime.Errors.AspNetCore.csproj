@@ -13,6 +13,11 @@
     <Description>Qian 结构化错误的 ASP.NET Core 映射：problem+json 输出、异常与状态码兜底、ProblemDetails 规范化。</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>

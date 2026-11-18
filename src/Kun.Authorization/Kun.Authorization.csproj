@@ -5,5 +5,9 @@
     <IsPackable>true</IsPackable>
     <Description>权限判定、数据与字段策略端口；权限引擎由宿主提供。</Description>
   </PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>contract</KunRole>
+  </PropertyGroup>
   <ItemGroup><ProjectReference Include="../Kun.Core/Kun.Core.csproj" /></ItemGroup>
 </Project>

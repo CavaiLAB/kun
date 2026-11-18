@@ -7,6 +7,11 @@
     <Description>Kun Framework identity facade: IJwtValidator (external Bearer validation with JWKS), IJwtIssuer (S2S token minting), IOidcClient (OIDC discovery + code exchange), and AddKunIdentity fluent DI. Unifies the Authentik/JWT/OIDC configuration that consumer services had been hand-rolling per repo.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\Kun.Caching\Kun.Caching.csproj" />

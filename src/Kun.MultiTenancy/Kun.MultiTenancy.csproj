@@ -7,6 +7,11 @@
     <Description>Kun Framework multi-tenancy: ITenantResolver (JWT claim / HTTP header / fallback), AsyncLocal-backed ITenantContext, and the UseKunMultiTenancy middleware that scopes tenant identity across the request pipeline. EF Core query-filter + SaveChanges interceptor live in Kun.MultiTenancy.EntityFrameworkCore.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
   </ItemGroup>

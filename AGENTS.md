@@ -97,7 +97,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 
 ## 要改文档
 
-1. 先读 [README.md](README.md) 与平台总览仓库的[名称对照](https://github.com/CavaiLAB/jiangxin/blob/main/docs/glossary.md)。「Qian」只作前端框架的名字，`_import/qian/` 下的平台后端并入 Kun。组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留；`qian` 命令行与 `@qian/*` 导入名本次不改。
+1. 先读 [README.md](README.md) 与平台总览仓库的[术语表](https://github.com/CavaiLAB/jiangxin/blob/main/docs/glossary.md)。「Qian」只作前端框架的名字，`_import/qian/` 下的平台后端并入 Kun。组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留；`qian` 命令行与 `@qian/*` 导入名本次不改。
 2. 合并蓝图是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
 3. 文档用中文，不写参考平台和对标项目的名字。
 4. 分清「已定」「提议」「待定」。说现状的时候写清是「已有」（在原仓库里已经实现）还是「规划」。

@@ -72,7 +72,7 @@ public sealed class S2sTokenIssuer : IDisposable
         "Use the 4-arg constructor that accepts an IS2sPrincipalResolver. " +
         "The 3-arg overload will be removed in 0.2.0.",
         DiagnosticId = "KUN0002",
-        UrlFormat = "https://github.com/idadawn/kun/issues")]
+        UrlFormat = "https://github.com/CavaiLAB/kun/issues")]
     public S2sTokenIssuer(
         IOptions<KunGatewayOptions> options,
         IHostEnvironment env,

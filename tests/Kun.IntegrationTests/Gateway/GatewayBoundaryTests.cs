@@ -148,7 +148,7 @@ public sealed class GatewayBoundaryTests
     [InlineData("service", true, 1)]
     public async Task Gateway_S2sPayload_MatchesFrozen202012Contract(string kind, bool platform, int roles)
     {
-        // Frozen source: idadawn/qian 5eaed840, contracts/v0/s2s-claims.schema.json.
+        // Frozen source: contracts/v0/s2s-claims.schema.json at 5eaed840 (platform history; now _import/qian/contracts/v0/).
         await using var host = await BoundaryHost.StartAsync();
         host.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", host.Token(kind, platform, roles));
         var token = (await host.Client.GetStringAsync("/public", TestContext.Current.CancellationToken))["Bearer ".Length..];

@@ -1,9 +1,9 @@
 <Project>
 
   <!--
-    原 Kun 的包（src/ 下）专用的版本、包元数据、README 打包与公共 API 清单。
+    src/ 下 Kun 包专用的版本、包元数据、README 打包与公共 API 清单。
     仓库根的 Directory.Build.props 只放两边共用的基线（S1-KUN-020）；这些设置原来也写在那里，
-    挪到这里是为了不让 _import/qian/ 下原 Qian 的包吃到原 Kun 的版本号、元数据与 README。
+    挪到这里是为了不让 _import/qian/ 下的包吃到 Kun 包的版本号、元数据与 README。
   -->
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
@@ -27,8 +27,8 @@
     <Product>Kun Framework</Product>
     <Copyright>Copyright © Kun Framework Contributors</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/idadawn/kun</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/idadawn/kun.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/CavaiLAB/kun</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/CavaiLAB/kun.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>

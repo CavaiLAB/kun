@@ -39,7 +39,7 @@ TestResults/
 *.nupkg
 *.snupkg
 .nuget/
-# 只忽略仓库根的旧式 NuGet 包目录；_import/qian/packages/ 是原 Qian 的包项目目录（S1-KUN-020）。
+# 只忽略仓库根的旧式 NuGet 包目录；_import/qian/packages/ 放的是包项目（S1-KUN-020）。
 /packages/
 
 # AOT / Publish

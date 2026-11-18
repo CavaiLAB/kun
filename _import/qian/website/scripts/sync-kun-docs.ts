@@ -399,7 +399,7 @@ function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: Mirro
     banner(kun, 'README.md', '本页由 kun 仓库的定位与模块矩阵拼装，来源'),
     '',
     ...(tagline ? [`> ${tagline}`, ''] : []),
-    'Kun 是 Qian 的底座框架：Qian 平台基于 Kun 框架构建，前端使用 yue 组件库（[ADR-021](/design/adr/adr-021-product-family-structure)）。' +
+    'Kun 是 Qian 的底座框架：Qian 平台基于 Kun 框架构建，前端使用 qian 组件库（[ADR-021](/design/adr/adr-021-product-family-structure)）。' +
       `本节按仓库 \`Directory.Packages.props\` 的 \`KunVersion\` 镜像 kun 仓库 **${kun.tag}** 的文档，与 Qian 实际依赖的 Kun 是同一版本；` +
       `Kun 的代码与文档改动去 [kun 仓库](${KUN_REPO_URL})提。`,
     '',

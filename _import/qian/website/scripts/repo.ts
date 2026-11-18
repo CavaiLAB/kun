@@ -4,9 +4,12 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_BRANCH, REPO_URL } from '../theme/site.ts';
+import { DEFAULT_BRANCH, REPO_SUBDIR, REPO_URL } from '../theme/site.ts';
 
-export { DEFAULT_BRANCH, REPO_URL };
+export { DEFAULT_BRANCH, REPO_SUBDIR, REPO_URL };
+
+/** 仓库坐标 owner/repo，用于生成页 frontmatter 的 source（docs-site.md §4）。 */
+export const OWNER_REPO = new URL(REPO_URL).pathname.replace(/^\/+|\/+$/g, '');
 
 export const WEBSITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const REPO_ROOT = path.resolve(WEBSITE_ROOT, '..');
@@ -111,11 +114,16 @@ export function toPosix(p: string): string {
   return p.split(path.sep).join('/');
 }
 
-/** 仓库内路径 → GitHub 上的地址（目录用 tree，文件用 blob）。 */
+/** REPO_ROOT 下的路径 → 在本仓库里的路径（加上 REPO_SUBDIR 前缀，用 / 分隔）。 */
+export function repoPath(repoRelPath: string): string {
+  const rel = toPosix(repoRelPath).replace(/\/$/, '');
+  return rel === '' ? REPO_SUBDIR : `${REPO_SUBDIR}/${rel}`;
+}
+
+/** REPO_ROOT 下的路径 → GitHub 上的地址（目录用 tree，文件用 blob）。 */
 export function githubUrl(repoRelPath: string, isDir: boolean): string {
   const kind = isDir ? 'tree' : 'blob';
-  const rel = toPosix(repoRelPath).replace(/\/$/, '');
-  return `${REPO_URL}/${kind}/${DEFAULT_BRANCH}/${rel}`;
+  return `${REPO_URL}/${kind}/${DEFAULT_BRANCH}/${repoPath(repoRelPath)}`;
 }
 
 /** 把源 Markdown 里的一个链接目标映射成站内路由或外部地址；返回 null 表示保持原样。 */

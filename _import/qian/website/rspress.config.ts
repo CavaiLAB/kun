@@ -20,12 +20,12 @@ export default defineConfig({
   base,
   lang: 'zh',
   title: 'Qian 文档',
-  description: 'Qian 平台基于 Kun 框架构建，前端使用 yue 组件库。这里是它的组件、SDK、CLI、运维与设计文档。',
+  description: 'Qian 平台基于 Kun 框架构建，前端使用 qian 组件库。这里是它的组件、SDK、CLI、运维与设计文档。',
   icon: '/logo.svg',
   logo: '/logo.svg',
   logoText: 'Qian 文档',
   // 机器可读（docs-site.md §2a.1、S1-DOCS-003）：SSG-MD 在构建期把每页渲染成 .md，并产出 llms.txt 与 llms-full.txt；
-  // kb-index.json 与 sitemap.xml 由 scripts/build-kb-index.ts 在构建后产出；llms.txt 先按 project 分（Qian → Kun → yue）再按部分分节（ADR-021 D21.5）。
+  // kb-index.json 与 sitemap.xml 由 scripts/build-kb-index.ts 在构建后产出；llms.txt 先按 project 分（scripts/llms.ts 的 PROJECT_ORDER）再按部分分节（ADR-021 D21.5）。
   llms: { llmsTxt: renderLlmsTxt },
   route: {
     // 不用 cleanUrls：产物里的链接带 .html，任何静态服务器（含 python3 -m http.server）都能直接打开。

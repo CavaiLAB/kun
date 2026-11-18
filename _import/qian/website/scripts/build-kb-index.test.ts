@@ -34,7 +34,7 @@ describe('知识库索引（docs-site.md §4a）', () => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), 'qian-kb-out-'));
     write(docs, 'index.mdx', PAGE('首页', 'pageType: custom\n'));
     write(docs, 'start/index.md', PAGE('开始'));
-    write(docs, 'start/hosts.md', PAGE('宿主', 'version: "1.2.3"\nsource: "idadawn/qian@main:docs/x.md"\n'));
+    write(docs, 'start/hosts.md', PAGE('宿主', 'version: "1.2.3"\nsource: "CavaiLAB/kun@main:_import/qian/docs/x.md"\n'));
     write(docs, 'start/_meta.json', '[]');
     write(docs, 'public/logo.svg', '<svg/>');
     write(docs, 'ops/missing-md.md', PAGE('没产物'));
@@ -62,7 +62,7 @@ describe('知识库索引（docs-site.md §4a）', () => {
     assert.equal(hosts.project, 'qian');
     assert.deepEqual(hosts.audience, ['developer']);
     assert.equal(hosts.version, '1.2.3');
-    assert.equal(hosts.source, 'idadawn/qian@main:docs/x.md');
+    assert.equal(hosts.source, 'CavaiLAB/kun@main:_import/qian/docs/x.md');
     assert.equal(hosts.updated, '2026-10-09');
     assert.equal(hosts.sha256, sha256('# start/hosts\n'));
     assert.equal(hosts.bytes, Buffer.byteLength('# start/hosts\n'));

@@ -4,7 +4,7 @@ description: "@cavailab/qian-runtime 与 @cavailab/qian-plugin-sdk 的编程模�
 part: sdk
 project: qian
 audience: [developer]
-updated: 2026-10-07
+updated: 2026-11-19
 ---
 
 # 前端 SDK
@@ -45,4 +45,4 @@ export interface Context {
 }
 ```
 
-组件的界面怎么写、组件怎么演示，见 [yue 组件库](/components/yue/)；API 参考（TypeDoc 生成）随 S1-DOCS-002 上线。
+组件的界面怎么写、组件怎么演示，见 [qian 组件库](/components/yue/)；API 参考（TypeDoc 生成）随 S1-DOCS-002 上线。

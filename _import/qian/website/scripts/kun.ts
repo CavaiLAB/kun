@@ -1,15 +1,16 @@
-// Kun 小节的公共部分（docs-site.md §2b，ADR-021 D21.3 / D21.4）：读 KunVersion、打开 kun 仓库、在 tag 上读文件。
-// kun 仓库是私有的：CI 用只读 deploy key 检出后经 KUN_DOCS_PATH 传进来；本地可把 KUN_DOCS_PATH 指向自己的克隆，
-// 都没有时用 SSH 克隆到 website/.cache/kun-repo。只读 tag 上的对象，不读工作区，所以克隆停在哪个分支都不影响结果。
+// Kun 小节的公共部分（docs-site.md §2b，ADR-021 D21.3 / D21.4）：读 KunVersion、打开带 Kun 版本标签的 git 仓库、在标签上读文件。
+// Kun 的版本标签 v<KunVersion> 在本仓库里（随历史导入，提交号不变），所以默认就读本仓库：本地开发与 CI 都不用另外克隆；
+// 本仓库缺这个标签时（如浅克隆）从 origin 只取这一个标签与它的历史。也可以用 KUN_DOCS_PATH 指向另一个有该标签的克隆。
+// 只读标签上的对象，不读工作区，所以检出停在哪个分支都不影响结果。
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT, WEBSITE_ROOT } from './repo.ts';
+import { OWNER_REPO, REPO_ROOT, REPO_URL, WEBSITE_ROOT } from './repo.ts';
 
-export const KUN_OWNER_REPO = 'idadawn/kun';
-export const KUN_REPO_URL = `https://github.com/${KUN_OWNER_REPO}`;
-export const KUN_CLONE_URL = `git@github.com:${KUN_OWNER_REPO}.git`;
-/** 生成过程的缓存（kun 克隆、API 参考），不进 Git。 */
+/** Kun 的源码与版本标签所在的仓库，就是本仓库。 */
+export const KUN_OWNER_REPO = OWNER_REPO;
+export const KUN_REPO_URL = REPO_URL;
+/** 生成过程的缓存（API 参考），不进 Git。 */
 export const CACHE_DIR = path.join(WEBSITE_ROOT, '.cache');
 
 const KUN_VERSION_RE = /<KunVersion>\s*([^<\s]*)\s*<\/KunVersion>/;
@@ -65,38 +66,66 @@ function isGitRepo(dir: string): boolean {
   }
 }
 
-/** 没给 KUN_DOCS_PATH 时的兜底：无 blob 克隆到缓存目录，缺 tag 就 fetch。需要本机对 kun 仓库有 SSH 读权限。 */
-function cachedClone(tag: string, cacheDir: string): string {
-  const dir = path.join(cacheDir, 'kun-repo');
-  if (!isGitRepo(dir)) {
-    fs.rmSync(dir, { recursive: true, force: true });
-    fs.mkdirSync(cacheDir, { recursive: true });
-    try {
-      execFileSync('git', ['clone', '--quiet', '--filter=blob:none', '--no-checkout', KUN_CLONE_URL, dir], {
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-    } catch (error) {
-      throw new Error(
-        `没有设置 KUN_DOCS_PATH，自动克隆 ${KUN_CLONE_URL} 也失败了。把 KUN_DOCS_PATH 指向本机的 kun 克隆，` +
-          `或确认对 ${KUN_OWNER_REPO} 有读权限（website/README.md §6）：${(error as Error).message}`,
-      );
-    }
+/** git 命令要在仓库顶层跑：在子目录里，ls-tree 只列该子目录，log 的路径也按子目录算。裸仓库没有顶层，原样用。 */
+function topLevel(dir: string): string {
+  try {
+    return git(dir, ['rev-parse', '--show-toplevel']).trim() || dir;
+  } catch {
+    return dir;
   }
-  if (tagCommit(dir, tag) === null) git(dir, ['fetch', '--quiet', '--tags', 'origin']);
-  return dir;
 }
 
-/** 打开 kun 仓库并确认 tag v<version> 存在；不存在即失败。 */
-export function openKun(version: string, env: NodeJS.ProcessEnv = process.env, cacheDir: string = CACHE_DIR): KunCheckout {
+/** 本仓库缺标签时从 origin 只取这一个标签。不带 --depth：浅克隆里取到的也是该标签的完整历史。 */
+function fetchTag(dir: string, tag: string): void {
+  try {
+    git(dir, ['fetch', '--quiet', '--no-tags', 'origin', `+refs/tags/${tag}:refs/tags/${tag}`]);
+  } catch (error) {
+    throw new Error(
+      `本仓库没有 tag ${tag}，从 origin 取也失败了。先手动取：git fetch origin tag ${tag}，` +
+        `或把 KUN_DOCS_PATH 指向有这个 tag 的克隆（website/README.md §1）：${(error as Error).message}`,
+    );
+  }
+}
+
+/** 浅克隆里该提交的历史可能被截断：镜像页的 updated 取文件在 tag 上的最后提交日期，历史不全会算错，所以直接失败。 */
+function assertFullHistory(dir: string, commit: string, tag: string): void {
+  const shallowFile = path.resolve(dir, git(dir, ['rev-parse', '--git-path', 'shallow']).trim());
+  if (!fs.existsSync(shallowFile)) return;
+  for (const boundary of fs.readFileSync(shallowFile, 'utf8').split('\n').filter(Boolean)) {
+    let truncated = true;
+    try {
+      git(dir, ['merge-base', '--is-ancestor', boundary, commit]);
+    } catch {
+      truncated = false;
+    }
+    if (truncated) {
+      throw new Error(`${dir} 是浅克隆，tag ${tag} 的历史不全（镜像页的 updated 会算错）；先取完整历史：git -C ${dir} fetch --unshallow`);
+    }
+  }
+}
+
+/**
+ * 打开 Kun 的版本标签 v<version> 所在的仓库并确认标签存在；不存在即失败。
+ * 默认是 repoRoot 所在的 git 仓库（本仓库），缺标签时从 origin 取；KUN_DOCS_PATH 指定的克隆不去取，缺标签直接失败。
+ */
+export function openKun(version: string, env: NodeJS.ProcessEnv = process.env, repoRoot: string = REPO_ROOT): KunCheckout {
   const tag = `v${version}`;
   const fromEnv = env.KUN_DOCS_PATH;
-  const dir = fromEnv ? path.resolve(fromEnv) : cachedClone(tag, cacheDir);
-  if (!isGitRepo(dir)) throw new Error(`KUN_DOCS_PATH=${dir} 不是 git 仓库`);
-  const commit = tagCommit(dir, tag);
-  if (commit === null) {
-    const hint = fromEnv ? `；本机克隆可先 git -C ${dir} fetch --tags` : '';
-    throw new Error(`kun 仓库里没有 tag ${tag}（Directory.Packages.props 的 KunVersion = ${version}）${hint}`);
+  const given = path.resolve(fromEnv || repoRoot);
+  if (!isGitRepo(given)) {
+    throw new Error(fromEnv ? `KUN_DOCS_PATH=${given} 不是 git 仓库` : `${given} 不在 git 仓库里：Kun 小节要读本仓库的 tag ${tag}`);
   }
+  const dir = topLevel(given);
+  let commit = tagCommit(dir, tag);
+  if (commit === null && !fromEnv) {
+    fetchTag(dir, tag);
+    commit = tagCommit(dir, tag);
+  }
+  if (commit === null) {
+    const hint = fromEnv ? `；本机克隆可先 git -C ${dir} fetch origin tag ${tag}` : '';
+    throw new Error(`${fromEnv ? 'KUN_DOCS_PATH 指向的克隆' : '本仓库'}里没有 tag ${tag}（Directory.Packages.props 的 KunVersion = ${version}）${hint}`);
+  }
+  assertFullHistory(dir, commit, tag);
   const date = git(dir, ['log', '-1', '--format=%cs', commit]).trim();
   return { dir, version, tag, commit, date };
 }
@@ -115,7 +144,7 @@ export function kunFileDate(kun: KunCheckout, file: string): string {
   return git(kun.dir, ['log', '-1', '--format=%cs', kun.commit, '--', file]).trim() || kun.date;
 }
 
-/** kun 仓库该 tag 上的文件或目录地址。 */
+/** 该 tag 上的文件或目录地址（路径按 tag 指向的那个提交里的布局）。 */
 export function kunGithubUrl(kun: KunCheckout, file: string, isDir = false): string {
   const rel = file.replace(/\/$/, '');
   return `${KUN_REPO_URL}/${isDir ? 'tree' : 'blob'}/${kun.tag}${rel === '' || rel === '.' ? '' : `/${rel}`}`;

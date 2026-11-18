@@ -5,9 +5,10 @@ name: qian-docs-site
 # 相对原件改了这些：
 # - 位置：run 步骤的工作目录、路径过滤、缓存键、package.json、github.workspace 下的路径、
 #   浏览器验收容器挂载的目录、上传路径都加了 _import/qian/ 前缀；路径过滤末尾加上本文件。
-# - 「Kun 框架」小节照原件按 Directory.Packages.props 的 KunVersion 检出 idadawn/kun 的 tag：idadawn/kun 现在是公开仓库，
-#   用缺省的 GITHUB_TOKEN 经 HTTPS 只读检出，不需要原件的 deploy key（Secret KUN_DOCS_DEPLOY_KEY 本仓库没有），
-#   所以原件「检查 kun 仓库只读凭据」一步没有接；检出位置放在 _import/qian/.kun，与原件相对原 Qian 根的位置一致。
+# - 「Kun 框架」小节照原件按 Directory.Packages.props 的 KunVersion 取 Kun 的 tag，但不再另外检出 kun 仓库：两个旧仓库的
+#   历史与版本标签已带着原提交号导入本仓库，同名 tag 指向同一提交，所以只从本仓库取这一个 tag 与它的历史，生成脚本
+#  （_import/qian/website/scripts/kun.ts）直接读本仓库，不设 KUN_DOCS_PATH。原件的 deploy key 与「检查 kun 仓库只读凭据」
+#   一步都用不上，没有接。
 # - 发布（B2 接上）：与原件一样只在 main 上发布正式站点（push 到 main，或在 main 上手动触发），用
 #   _import/qian/deploy/docs-site/publish.sh main 把构建产物推到本仓库的 docs-site 分支，集群里的 git-sync 拉这个分支
 #  （_import/qian/deploy/docs-site/）。作业权限只要 contents: write（原件另有 pull-requests: write，只给 PR 评论用）。
@@ -77,7 +78,6 @@ jobs:
     timeout-minutes: 15
     env:
       DOCS_BASE: ${{ github.event_name == 'pull_request' && format('/pr-preview/pr-{0}/', github.event.pull_request.number) || '/' }}
-      KUN_DOCS_PATH: ${{ github.workspace }}/_import/qian/.kun
       QIAN_DOCS_PATH: ${{ github.workspace }}/_import/qian/.qian
     steps:
       - uses: actions/checkout@v4
@@ -92,15 +92,11 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      # 全部历史：镜像页的 updated 取源文件在该 tag 上的最后提交日期
-      - name: 检出 kun 仓库 v${{ steps.kun.outputs.version }}
-        uses: actions/checkout@v4
-        with:
-          repository: idadawn/kun
-          ref: v${{ steps.kun.outputs.version }}
-          path: _import/qian/.kun
-          fetch-depth: 0
-          persist-credentials: false
+      # 全部历史：镜像页的 updated 取源文件在该 tag 上的最后提交日期。不带 --depth，浅检出里取到的也是这个 tag 的完整历史
+      - name: 取本仓库的 Kun 标签 v${{ steps.kun.outputs.version }}
+        env:
+          KUN_TAG: v${{ steps.kun.outputs.version }}
+        run: git fetch --no-tags origin "+refs/tags/$KUN_TAG:refs/tags/$KUN_TAG"
 
       - name: 读前端框架版本（版本目录里的 @cavailab/qian-core）
         id: qian

@@ -4,7 +4,7 @@ description: 同一组 Qian 组件的两种用法：装进自己的 ASP.NET Core
 part: start
 project: qian
 audience: [developer, operator]
-updated: 2026-10-08
+updated: 2026-11-19
 ---
 
 # 宿主与框架
@@ -34,10 +34,10 @@ updated: 2026-10-08
 
 ## 前端
 
-前端用 React + [yue 组件库](/components/yue/)。外壳 [qian.shell](/components/platform/qian.shell) 是 MF2 宿主：插件的界面以远程模块按需加载，挂到版本化插槽上（[ADR-013](/design/adr/adr-013-frontend-yue)）。前端外壳自身也是一棵由 `@cavailab/qian-runtime` 装载的插件树，编程模型见 [前端 SDK](/sdk/frontend/)。
+前端用 React + [qian 组件库](/components/yue/)。外壳 [qian.shell](/components/platform/qian.shell) 是 MF2 宿主：插件的界面以远程模块按需加载，挂到版本化插槽上（[ADR-013](/design/adr/adr-013-frontend-yue)）。前端外壳自身也是一棵由 `@cavailab/qian-runtime` 装载的插件树，编程模型见 [前端 SDK](/sdk/frontend/)。
 
 ## 与 Kun 的关系
 
-Qian 平台基于 Kun 框架构建，前端使用 yue 组件库（[ADR-021](/design/adr/adr-021-product-family-structure)）。Kun 是 .NET 10 云原生微服务开发框架，是 `Qian.Runtime` 与平台插件的**实现依赖**，以 NuGet + CalVer 锁版本消费；`Kun.*` 不改，它的 `AddKunXxx()` 模块在 Qian 里包装成插件（[ADR-001](/design/adr/adr-001-kun-relationship)、[ADR-020 D20.10](/design/adr/adr-020-component-model-v2)）。
+Qian 平台基于 Kun 框架构建，前端使用 qian 组件库（[ADR-021](/design/adr/adr-021-product-family-structure)）。Kun 是 .NET 10 云原生微服务开发框架，是 `Qian.Runtime` 与平台插件的**实现依赖**，以 NuGet + CalVer 锁版本消费；`Kun.*` 不改，它的 `AddKunXxx()` 模块在 Qian 里包装成插件（[ADR-001](/design/adr/adr-001-kun-relationship)、[ADR-020 D20.10](/design/adr/adr-020-component-model-v2)）。
 
 Kun 的文档在 SDK 部分的 [Kun 框架](/sdk/kun/) 小节：按 `KunVersion` 锁定的版本从 kun 仓库镜像，与 Qian 实际依赖的 Kun 是同一版本。Kun 模块与平台插件、seam 的对应，Qian 选定的 canonical API 与禁用项，见[与 Qian 的关系](/sdk/kun/with-qian)。

@@ -4,7 +4,7 @@ description: 表面是组件对外暴露的一类声明式内容：skills、agen
 part: start
 project: qian
 audience: [developer, agent]
-updated: 2026-10-07
+updated: 2026-11-19
 ---
 
 # 表面
@@ -19,7 +19,7 @@ updated: 2026-10-07
 | `hooks` | `hooks/hooks.json` | `ctx.Hooks` |
 | `mcpServers` | `.mcp.json` | `ctx.McpServers` |
 | `tools` | `tools/<name>.json` | `ctx.Tools`（kind = tool） |
-| `ui` | `ui/manifest.json` | `ctx.Ui`（yue 外壳） |
+| `ui` | `ui/manifest.json` | `ctx.Ui`（前端外壳） |
 | `metadata` | `metadata/*.json` | 权限点、事件类型、消息类型等，进鉴权 / 事件 / 通知各自的注册表 |
 | `schemas` | `schemas/*.schema.json` | 契约仓库 |
 | `patch` | `config/qian.patch.yml` | 插件树（组件自带的默认条目） |

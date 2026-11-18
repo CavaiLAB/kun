@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, it } from 'node:test';
-import { REPO_URL } from './repo.ts';
 import {
   CLI_PAGES,
   designPagePath,
@@ -62,8 +61,8 @@ describe('makeDocsResolver', () => {
   });
 
   it('docs/ 之外与没有 README 的目录 → GitHub 地址', () => {
-    assert.equal(resolve('../../pm/x.md'), `${REPO_URL}/blob/main/pm/x.md`);
-    assert.equal(resolve('../d/'), `${REPO_URL}/tree/main/docs/d`);
+    assert.equal(resolve('../../pm/x.md'), 'https://github.com/CavaiLAB/kun/blob/main/_import/qian/pm/x.md');
+    assert.equal(resolve('../d/'), 'https://github.com/CavaiLAB/kun/tree/main/_import/qian/docs/d');
   });
 
   it('外部地址与纯锚点不改', () => {

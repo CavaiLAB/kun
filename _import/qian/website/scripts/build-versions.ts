@@ -1,6 +1,6 @@
 // 版本矩阵（docs-site.md §2b.4，ADR-021 D21.2 第 3 条）：从仓库里的钉版文件产出 docs/start/versions.md，不手改。
 // 来源：Directory.Packages.props（KunVersion）、packages/*/*.csproj（Qian.* 包清单与版本）、global.json（.NET SDK）、
-// package.json（Node、pnpm）、pnpm-workspace.yaml 版本目录里的前端框架包（@cavailab/qian-*，原名 yue）、deploy/baseline.json（K3s）。
+// package.json（Node、pnpm）、pnpm-workspace.yaml 版本目录里的前端框架包（@cavailab/qian-*）、deploy/baseline.json（K3s）。
 import fs from 'node:fs';
 import path from 'node:path';
 import { readKunVersion } from './kun.ts';
@@ -53,7 +53,7 @@ export function readQianPackages(repoRoot: string = REPO_ROOT): PackageVersion[]
 
 /**
  * 前端框架的包：pnpm-workspace.yaml 版本目录（catalog）里的 @cavailab/qian-*，写精确版本（S1-YUE-025）。
- * 包的源码在 CavaiLAB/qian（原名 yue，设计文档里简称 @yue/<包>），本仓库按钉住的版本消费。
+ * 包的源码在 CavaiLAB/qian，本仓库按钉住的版本消费。
  */
 export const FRONTEND_PACKAGE_PREFIX = '@cavailab/qian-';
 export function readFrontendPackages(repoRoot: string = REPO_ROOT): PackageVersion[] {
@@ -136,7 +136,7 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '|---|---|---|',
     `| Kun | \`${m.sources.kun}\` | \`<KunVersion>\`，CalVer；升级 Kun 只改这一处（ADR-021 D21.3） |`,
     `| Qian.* | \`${m.sources.qian}\` | 写了 \`<IsPackable>true</IsPackable>\` 的项目；版本随首个包族发布钉在 \`Directory.Build.props\` |`,
-    `| @cavailab/qian-* | \`${m.sources.frontend}\` | 版本目录（catalog）里的前端框架包，写精确版本；源码在 CavaiLAB/qian（原名 yue，设计文档里 \`@yue/<包>\` 是简称） |`,
+    `| @cavailab/qian-* | \`${m.sources.frontend}\` | 版本目录（catalog）里的前端框架包，写精确版本；源码在 CavaiLAB/qian |`,
     `| .NET SDK | \`${m.sources.dotnet}\` | \`sdk.version\` 与 \`rollForward\` |`,
     `| Node / pnpm | \`${m.sources.node}\` | \`engines.node\` 与 \`packageManager\` |`,
     `| K3s | \`${m.sources.k3s}\` | 部署基线（S1-DEP-001）；集群本身在部署仓库 \`idadawn/iclaw-deploy\` |`,

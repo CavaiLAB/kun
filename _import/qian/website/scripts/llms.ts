@@ -1,4 +1,4 @@
-// llms.txt 的排版（docs-site.md §5、ADR-021 D21.5）：先按 project 分（Qian → Kun → yue），每个项目下再按顶部导航的部分分节，
+// llms.txt 的排版（docs-site.md §5、ADR-021 D21.5）：先按 project 分（顺序与显示名见 PROJECT_ORDER），每个项目下再按顶部导航的部分分节，
 // 一节一个 H2「<项目> · <部分>」，每页一行 `- [标题](<md 地址>): 摘要`。给 rspress.config.ts 的 llms.llmsTxt 用，纯函数便于单测。
 
 export interface LlmsPage {
@@ -24,8 +24,8 @@ export interface LlmsTxtInput {
 export const PROJECT_ORDER: ReadonlyArray<{ id: string; label: string }> = [
   { id: 'qian', label: 'Qian' },
   { id: 'kun', label: 'Kun' },
-  // project 仍叫 yue（/components/yue/ 小节，组件页来源定下来之前不改）；显示名用更名后的组件库名。
-  { id: 'yue', label: 'qian 组件库（原 yue）' },
+  // 这个 project 的 id 与 /components/yue/ 的路由一样，组件页来源定下来之前不改；显示名用组件库现在的名字。
+  { id: 'yue', label: 'qian 组件库' },
 ];
 
 function projectOf(page: LlmsPage): string {

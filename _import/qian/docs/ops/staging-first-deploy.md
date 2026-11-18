@@ -74,9 +74,11 @@
 
 镜像在 qd 上构建：qd 是 amd64、有 Docker、到得了 Harbor，而 Mac 到不了 192.168.1.x。qd 没有 Node，前端在开发机上构建好再拷过去。构建入口是 [scripts/images.py](../../scripts/images.py) 的 `build`，模板与构建上下文见 [deploy/images](../../deploy/images/README.md)。
 
-1. 前端（开发机，Qian 仓库根目录，检出要构建的提交）：
+源码取本仓库 [CavaiLAB/kun](https://github.com/CavaiLAB/kun) 里要部署的提交。两个镜像从同一个提交构建、一起换：外壳与远程打在网关镜像里，界面清单在平台镜像的组件文件夹里，外壳按界面清单的 `engines.qian` 决定装不装远程，新旧两边混用时远程会被拒绝。平台代码在过渡目录 `_import/qian/`：下面的前端命令与 `scripts/…` 都在这个目录下运行，`--project` 也相对它；镜像的构建上下文是仓库根，由 `images.py` 自己取，前端产物经 `--web` 另行送入。
+
+1. 前端（开发机，在本仓库的 `_import/qian/` 下，检出要构建的提交）。前端框架的包 `@cavailab/qian-*` 装自 GitHub Packages，那里的 npm 源连公开包也要令牌（有 `read:packages` 即可）：照 [README「前端依赖与包源」](../../README.md#前端依赖与包源)，在用户级 npm 配置里写一行引用环境变量 `NODE_AUTH_TOKEN` 的令牌行；仓库里的 `.npmrc` 只写包源，不写令牌。
    ```bash
-   pnpm install --frozen-lockfile
+   NODE_AUTH_TOKEN=$(gh auth token) pnpm install --frozen-lockfile
    ```
    ```bash
    pnpm exec turbo run build --filter=qian-shell --filter=@qian/identity-ui --filter=@qian/tenancy-ui --filter=@qian/tenancy-signup-ui
@@ -87,7 +89,7 @@
    ```bash
    pnpm --filter @qian/tenancy-signup-ui run build:remote
    ```
-   组装两个目录，分别作为两个镜像的 `--web`：
+   组装两个目录，分别作为两个镜像的 `--web`（来源相对 `_import/qian/`）：
 
    | 目录 | 内容 | 来源 |
    |---|---|---|
@@ -97,27 +99,25 @@
    | `web-gateway/remotes/qian.tenancy` | 租户运营远程 | `packages/qian-tenancy-ui/dist/remote` |
    | `web-gateway/remotes/qian.tenancy.signup` | 开通申请远程 | `packages/qian-tenancy-signup-ui/dist/remote` |
 
-2. 把源码与前端制品送到 qd。用 `git bundle` 送源码，是为了保留提交历史：构建证据要记源码 SHA。
+2. 在 qd 上检出源码，再把前端制品拷过去。本仓库是公开的，qd 直接从 GitHub 克隆。构建证据要记源码 SHA，所以要用 git 检出，不能只拷一份源码树；已有检出时先 `git -C kun-build/kun fetch origin`，再检出。
    ```bash
-   git bundle create qian.bundle <分支>
+   ssh qd 'git clone --filter=blob:none --no-checkout https://github.com/CavaiLAB/kun.git kun-build/kun && git -C kun-build/kun checkout --detach <提交>'
    ```
    ```bash
-   rsync -a qian.bundle web-platform web-gateway qd:qian-build/
+   rsync -a web-platform web-gateway qd:kun-build/
+   ```
+   还没推到 GitHub 的提交，改用 `git bundle create kun.bundle <分支>` 打包拷过去，在 qd 上 `git clone -b <分支> kun.bundle kun`。
+3. 构建与推送（qd 的 `~/kun-build/kun/_import/qian`）。`build` 构建完即推送到标签所在的仓库，再从推送结果取 digest。推送的标签写 `192.168.1.201:80/…`：Harbor 只开 HTTP 80，qd 的 Docker 用 containerd 镜像存储，不带端口时先连 443、连不上也不回落到 HTTP（与部署仓库流水线的 `HARBOR_PUSH_HOST` 相同）。清单里写不带端口的 `192.168.1.201/qian/…@sha256:…`，节点的 `registries.yaml` 把它映射到 HTTP 端点，两种写法是同一个仓库、同一个 digest。
+   ```bash
+   python3 scripts/images.py build --kind jit --project hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag 192.168.1.201:80/qian/qian-platform:<短 SHA> --web ~/kun-build/web-platform
    ```
    ```bash
-   ssh qd 'cd qian-build && git clone -b <分支> qian.bundle qian'
+   python3 scripts/images.py build --kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Qian.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ~/kun-build/web-gateway
    ```
-3. 构建与推送（qd 的 `~/qian-build/qian`）。`build` 构建完即推送到标签所在的仓库，再从推送结果取 digest。推送的标签写 `192.168.1.201:80/…`：Harbor 只开 HTTP 80，qd 的 Docker 用 containerd 镜像存储，不带端口时先连 443、连不上也不回落到 HTTP（与部署仓库流水线的 `HARBOR_PUSH_HOST` 相同）。清单里写不带端口的 `192.168.1.201/qian/…@sha256:…`，节点的 `registries.yaml` 把它映射到 HTTP 端点，两种写法是同一个仓库、同一个 digest。
-   ```bash
-   python3 scripts/images.py build --kind jit --project hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag 192.168.1.201:80/qian/qian-platform:<短 SHA> --web ../web-platform
-   ```
-   ```bash
-   python3 scripts/images.py build --kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Qian.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ../web-gateway
-   ```
-   - 每条命令打印一段 JSON：`ref` 是按 digest 的引用，`build` 是构建证据（源码 SHA、KunVersion、profile 与组件目录修订、`webDigest`）。两段都记进任务进度日志。
+   - 每条命令打印一段 JSON：`ref` 是按 digest 的引用，`build` 是构建证据（源码 SHA、profile 与组件目录的树修订、`webDigest` 等）。两段都记进任务进度日志。
    - 推送失败时命令以非零退出、不打印 JSON，镜像留在本机；修好仓库权限后重跑，BuildKit 缓存让重跑很快。
    - 清单只按 `ref` 里的 digest 引用镜像，标签只用来推送。部署仓库里 digest 只写在 `env-ds/qian-staging/kustomization.yaml` 的 `images` 段这一处。
-4. 签名清单（qd）。对推送后的同一个 digest 生成签名清单并自查，结果放进部署仓库的签名清单 ConfigMap：
+4. 签名清单（qd，同一目录）。对推送后的同一个 digest 生成签名清单并自查，结果放进部署仓库的签名清单 ConfigMap：
    ```bash
    python3 scripts/sign-system-revisions.py sign --key ~/.qian/staging-system-revisions.pem --image 192.168.1.201:80/qian/qian-platform@sha256:<digest> --out system-revisions.json
    ```
@@ -125,6 +125,11 @@
    python3 scripts/sign-system-revisions.py verify --public-key ~/.qian/staging-system-revisions.pub.pem --signatures system-revisions.json --image 192.168.1.201:80/qian/qian-platform@sha256:<digest>
    ```
    签名清单是公开数据（组件标识、版本、目录摘要与签名），可以进 git。平台镜像里的组件文件夹一变，摘要就变，所以每换一次平台镜像都要重签。
+5. 部署前检查（qd，同一目录；第 2 步之后、构建之前就能跑）。拿部署仓库 main 上现用的签名清单（`env-ds/qian-staging/config/system-revisions.signatures.json`）核对新检出的组件文件夹：
+   ```bash
+   python3 scripts/sign-system-revisions.py verify --public-key ~/.qian/staging-system-revisions.pub.pem --signatures <现用的签名清单> --plugins plugins
+   ```
+   通过说明 system 级组件的文件夹都没变，可以原地换镜像。报出的组件就是文件夹变了：「摘要不一致」是版本号没升，修订 Job 在已有数据的库上必然失败；「没有签名」是升了版本或新加的组件，Job 会成功，但已有租户对升了版本的组件静默失权（第 9 节）。S1-DEP-013 落地之前，已有组件的文件夹一变，就按第 7 节「同版本换摘要」清库重来，先经产品负责人确认。
 
 ## 4 部署顺序
 
@@ -175,6 +180,7 @@ kubectl -n qian-staging logs job/<Job 名>
 5. **系统组件修订 Job（钩子，-1，`--install-system-revisions`）。** 每次同步都跑，在迁移之后。
    - 它按签名清单把镜像预装的 system 级组件装成修订并激活：同摘要已激活则不动，新版本的新摘要安装后激活。
    - 同一版本换了摘要（组件文件夹变了、版本号没变）装不进去：Lifecycle 拒绝把同一版本装成另一个制品，authz 的权限目录也按组件版本不可变（内容不同返回 CONFLICT，平台插件树挂不起来）。在已有数据的库上，这时 Job 必然失败，处理见第 7 节「同版本换摘要」。
+   - 文件夹变了、版本也升了（R167 要求的做法），Job 会成功，同步也是 Synced，但已有租户对该组件静默失权（第 9 节）。S1-DEP-013 落地之前同样按第 7 节清库，不能原地部署。要不要清库，部署前用第 3 节第 5 步的检查确定。
    - 签名清单缺项、验签失败或摘要对不上，都会列出组件并以退出码 1 失败。此时先核对签名清单 ConfigMap 是否对应当前平台镜像 digest。
 6. **在线副本。** `qian-platform` 与 `qian-gateway` 两个 Deployment，都用 Recreate、钉在 worker01，`/readyz` 返回 `ready` 后才就绪。
    - 平台在线副本启动时只校验（受限角色、模型、没有待执行的迁移），不建表；迁移没跑或没跑完就拒绝启动。
@@ -244,10 +250,14 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
 
 ## 7 回退
 
-- **只换回应用版本。** 在部署仓库把 `images` 段的 digest 改回上一版（git revert 那次写回），合并后同步；然后对上一版平台镜像重跑系统组件修订 Job。上一版的修订仍在 Lifecycle 里时，Job 会把它切回激活；两版之间有组件版本号没变而文件夹变了的，回退同样走不通，按下面「同版本换摘要」处理。
+- **只换回应用版本。** 在部署仓库把 `images` 段的 digest 改回上一版（git revert 那次写回），合并后同步；然后对上一版平台镜像重跑系统组件修订 Job。上一版的修订仍在 Lifecycle 里时，Job 会把它切回激活；两版之间有 system 级组件的文件夹变了的（不论版本号升没升），S1-DEP-013 落地之前回退同样走不通，按下面「同版本换摘要」处理。
   - 迁移只向前：上一版能跑在新表结构上时才能直接回退。
   - 离线 DDL 不做跨版本升级，所以首个版本之后凡是改表结构的部署，都要在迁移 Job 前先备份：在 `qian-postgres` Pod 里用 `pg_dump`，备份落在 qd 之外。
-- **同版本换摘要（清库重来）。** 新镜像里有 system 级组件的文件夹变了而版本号没变时，系统组件修订 Job 在已有数据的库上必然失败；钩子失败会中止同步，工作负载不变。组件版本规则改好之前（R167：S1-DEP-013 落地之前），staging 清库重来（2026-11-17 部署 main 9399cf9584 时由产品负责人确认），每次都要先经产品负责人确认：
+- **同版本换摘要（清库重来）。** 新镜像里有 system 级组件的文件夹变了（第 3 节第 5 步的检查报出组件）时，组件版本规则改好之前（R167：S1-DEP-013 落地之前），staging 清库重来（2026-11-17 部署 main 9399cf9584 时由产品负责人确认），不论版本号升没升，每次都要先经产品负责人确认：
+  - 版本号没变：系统组件修订 Job 在已有数据的库上必然失败；钩子失败会中止同步，工作负载不变。
+  - 版本号升了：Job 会成功，但已有租户对该组件的全部权限点都被拒绝（第 9 节）。这种情况不会自己失败，所以清库要排在同步之前做。
+
+  步骤：
   1. 用 `pg_dump` 备份，备份落在 qd 之外；
   2. 删除 `qian` 库里全部 `plugin_qian_*` schema，库、角色与 Redis 保留；
   3. 重新做一次完整同步：迁移 Job 从空库首装，修订 Job 全新安装并激活；
@@ -291,7 +301,7 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
 - 环境 overlay 不给 events 配 broker，宿主就不登记 Outbox 投递服务（`QianOutboxRelay` 只随 `AddQianEventsBroker` 登记）。各组件 `outbox_messages` 里的集成事件只写不发：首次同步后，lifecycle 有 11 条 `plugin.activated` 事件停在待发状态。同进程形状里没有跨进程订阅者，功能不受影响，但这些表会随开户等操作一直增长。接 RabbitMQ 之前，接受这种增长或定期清理。
 - 平台镜像的三个 Job 也挂身份服务的签名、加密证书与客户端密钥（宿主装配身份分支时就读取）；修订 Job 与引导模板另挂在线登录的连接串，迁移 Job 不挂。
 - K3s 的 Secret 静态加密（`--secrets-encryption`）状态本次没有核对（需要 root）。
-- system 级组件的文件夹一变，已有数据的 staging 只能清库重来（第 7 节「同版本换摘要」）；摘要不变的重签（例如签名清单只换 source）可以原地进行。
+- system 级组件的文件夹一变，已有数据的 staging 只能清库重来（第 7 节「同版本换摘要」）；摘要不变的重签（例如签名清单只换 source）可以原地进行。变没变，部署前用第 3 节第 5 步的检查看。
   - 同一版本不能换摘要（第 4 节第 5 步）。
   - 只升版本也不行：修订 Job 会成功，但已有租户的授权策略与开通记录停在旧版本，没有生产路径把它们升上来，这些租户对该组件的全部权限点都会被拒绝（S1-DEC-037）。按 R167，门禁与护栏归 S1-DEP-012，租户对齐归 S1-DEP-013；S1-DEP-013 落地前照第 7 节处理。
   - 平台宿主每个组件只预装一个版本，挂载时的契约准入找不到基线，升版本时既不做契约兼容比较、也不拦；宿主没有装配 OpenAPI / proto 兼容检查器，这一点在升版本时不起作用。

@@ -1,4 +1,5 @@
-// 第 3 部分「Kun 框架」小节（docs-site.md §2b，ADR-021 D21.4）：按 KunVersion 把 kun 仓库 tag 上白名单内的文档镜像到 docs/sdk/kun/。
+// 第 3 部分「Kun 框架」小节（docs-site.md §2b，ADR-021 D21.4）：把 Kun 最新发布版的 tag 上白名单内的文档镜像到 docs/sdk/kun/，
+// 版本取仓库根 CHANGELOG.md 里最新的发布段（scripts/kun.ts 的 readKunVersion）。
 // 只镜像不改写：正文原样保留，只做站点需要的机械处理——链接改写、来源横幅、frontmatter、
 // 把正文里形如 <T> 的非 HTML 尖括号转义（否则会被当成 HTML 标签吞掉）、按 GFM 规则给少列的表格行补空单元格。
 // 唯一的手写页 with-qian.mdx 不由这里生成，写入时保留。
@@ -400,7 +401,7 @@ function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: Mirro
     '',
     ...(tagline ? [`> ${tagline}`, ''] : []),
     'Kun 是 Qian 的底座框架：Qian 平台基于 Kun 框架构建，前端使用 qian 组件库（[ADR-021](/design/adr/adr-021-product-family-structure)）。' +
-      `本节按仓库 \`Directory.Packages.props\` 的 \`KunVersion\` 镜像 kun 仓库 **${kun.tag}** 的文档，与 Qian 实际依赖的 Kun 是同一版本；` +
+      `本节镜像 kun 仓库 **${kun.tag}** 的文档，这是 Kun 最新的发布版，取仓库根 \`CHANGELOG.md\` 里最新的发布段；` +
       `Kun 的代码与文档改动去 [kun 仓库](${KUN_REPO_URL})提。`,
     '',
     '## 本节内容',

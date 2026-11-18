@@ -4,7 +4,7 @@ description: 写组件的编程模型与 API：底座 Kun 框架、后端 .NET�
 part: sdk
 project: qian
 audience: [developer, agent]
-updated: 2026-10-08
+updated: 2026-11-19
 ---
 
 # SDK
@@ -20,4 +20,4 @@ updated: 2026-10-08
 
 [API 参考](/sdk/api/)由工具生成，不手写：.NET 包用 DocFX，TypeScript 包用 TypeDoc。[Kun 的 API 参考](/sdk/api/kun/)已生成，`Qian.*` 与前端包的随 S1-DOCS-002 加入。
 
-「Kun 框架」小节的内容按仓库 `Directory.Packages.props` 里 `KunVersion` 锁定的版本从 kun 仓库镜像，API 参考由 DocFX 从同一版本的 `Kun.*` 包生成，与 Qian 实际依赖的 Kun 始终是同一版本（[ADR-021](/design/adr/adr-021-product-family-structure)）。
+「Kun 框架」小节的内容按 Kun 最新的发布版（仓库根 `CHANGELOG.md` 里最新的发布段）从 kun 仓库镜像，API 参考由 DocFX 从同一版本的 `Kun.*` 包生成（[ADR-021](/design/adr/adr-021-product-family-structure)）。`Qian.*` 直接引用同一仓库里 Kun 的源码，不另钉 Kun 的版本。

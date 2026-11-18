@@ -3,7 +3,7 @@
 // 3. 离线可用：脚本、样式、字体、图片不引用外部地址（普通超链接不算）；
 // 4. 站内引用都带部署前缀（DOCS_BASE，PR 预览为 /pr-preview/pr-<n>/）；
 // 5. 全文搜索索引已生成；6. Shiki 高亮覆盖 C# / TypeScript / JSON / YAML / Bash；
-// 7. Kun 小节与 Kun API 参考（docs-site.md §2b）：每页横幅里的 tag 与 Directory.Packages.props 的 KunVersion 一致，
+// 7. Kun 小节与 Kun API 参考（docs-site.md §2b）：每页横幅里的 tag 与 Kun 最新的发布版（仓库根 CHANGELOG.md）一致，
 //    sdk/kun/ 下除手写页外都是镜像页（白名单外的文件进站即失败）；
 // 8. 产物总大小不超过预算（R55），挡住「同一块内容被重复渲染进每一页」这类结构性膨胀；
 // 9. 机器可读产物（docs-site.md §4a）：llms.txt、llms-full.txt、每页 .md、kb-index.json、sitemap.xml 齐全且与源文档同步，
@@ -169,7 +169,7 @@ export function checkMachineReadable(files: readonly string[], read: (rel: strin
   return errors;
 }
 
-/** Kun 页面的横幅（scripts/sync-kun-docs.ts、build-kun-api.ts 生成）都写了 tag：它必须正好是 v<KunVersion>。 */
+/** Kun 页面的横幅（scripts/sync-kun-docs.ts、build-kun-api.ts 生成）都写了 tag：它必须正好是 v<Kun 最新的发布版>。 */
 export function checkKunPages(files: readonly string[], read: (rel: string) => string, kunVersion: string): string[] {
   const errors: string[] = [];
   const tag = `v${kunVersion}`;
@@ -184,7 +184,7 @@ export function checkKunPages(files: readonly string[], read: (rel: string) => s
     }
     const tags = [...banner.matchAll(/<code>(v\d[^<]*)<\/code>/g)].map((m) => m[1]);
     if (!tags.includes(tag) || tags.some((t) => t !== tag)) {
-      errors.push(`${rel}：横幅里的 Kun 版本 ${tags.join('、') || '（无）'} 与 KunVersion ${kunVersion} 不一致`);
+      errors.push(`${rel}：横幅里的 Kun 版本 ${tags.join('、') || '（无）'} 与 Kun 最新的发布版 ${kunVersion}（仓库根 CHANGELOG.md）不一致`);
     }
   }
   if (kunPages.length === 0) errors.push('没有 Kun 小节页面（sdk/kun/、sdk/api/kun/）');

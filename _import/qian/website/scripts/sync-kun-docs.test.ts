@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { after, before, describe, it } from 'node:test';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { cloneRepo, makeKunRepo, makeRepoRoot } from './fixtures.ts';
 import { kunFileDate, listKunFiles, openKun, readKunVersion, type KunCheckout } from './kun.ts';
@@ -83,13 +84,16 @@ function fixture(): string {
   ]);
 }
 
-describe('KunVersion 与 kun 仓库', () => {
-  it('KunVersion 缺失即失败，不回退 main', () => {
-    assert.throws(() => readKunVersion(makeRepoRoot('<PropertyGroup />')), /没有 <KunVersion>/);
-    assert.throws(() => readKunVersion(makeRepoRoot('<PropertyGroup><KunVersion></KunVersion></PropertyGroup>')), /没有 <KunVersion>/);
-    assert.throws(() => readKunVersion(makeRepoRoot('<PropertyGroup><KunVersion>main</KunVersion></PropertyGroup>')), /CalVer/);
-    assert.equal(readKunVersion(makeRepoRoot('<PropertyGroup><KunVersion>2026.9.13</KunVersion></PropertyGroup>')), '2026.9.13');
-    assert.equal(readKunVersion(makeRepoRoot('<PropertyGroup><KunVersion>2026.10.12-hotfix.2</KunVersion></PropertyGroup>')), '2026.10.12-hotfix.2');
+describe('Kun 的版本与 kun 仓库', () => {
+  it('版本取 CHANGELOG.md 里最新的发布段；没有已发布的段即失败，不回退 main', () => {
+    const changelog = (...headings: string[]) => ['# Changelog', '', ...headings.flatMap((h) => [h, '', '- 条目', ''])].join('\n');
+    assert.throws(() => readKunVersion(fs.mkdtempSync(path.join(os.tmpdir(), 'qian-root-empty-'))), /没有已发布的版本段/);
+    assert.throws(() => readKunVersion(makeRepoRoot(changelog('## [Unreleased]'))), /没有已发布的版本段/);
+    assert.throws(() => readKunVersion(makeRepoRoot(changelog('## [Unreleased]', '## [main] - 2026-09-13'))), /CalVer/);
+    assert.equal(readKunVersion(makeRepoRoot(changelog('## [Unreleased]', '## [2026.9.13] - 2026-09-13', '## [2026.6.12] - 2026-06-12'))), '2026.9.13');
+    assert.equal(readKunVersion(makeRepoRoot(changelog('## [2026.10.12-hotfix.2] - 2026-10-12', '## [2026.10.12] - 2026-10-12'))), '2026.10.12-hotfix.2');
+    // 正文里的二级标题、### 小节标题不算版本段
+    assert.equal(readKunVersion(makeRepoRoot(changelog('## [Unreleased]', '### [2026.11.1] 不是版本段', '## [2026.10.25] - 2026-10-25'))), '2026.10.25');
   });
 
   it('tag 不存在即失败', () => {

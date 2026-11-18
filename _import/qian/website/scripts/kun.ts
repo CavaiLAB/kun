@@ -1,11 +1,12 @@
-// Kun 小节的公共部分（docs-site.md §2b，ADR-021 D21.3 / D21.4）：读 KunVersion、打开带 Kun 版本标签的 git 仓库、在标签上读文件。
-// Kun 的版本标签 v<KunVersion> 在本仓库里（随历史导入，提交号不变），所以默认就读本仓库：本地开发与 CI 都不用另外克隆；
+// Kun 小节的公共部分（docs-site.md §2b，ADR-021 D21.4）：读 Kun 最新的发布版、打开带 Kun 版本标签的 git 仓库、在标签上读文件。
+// 版本取仓库根 CHANGELOG.md 里最新的发布段：发版脚本（仓库根 scripts/release.sh）把 [Unreleased] 改成 [<版本>]，
+// 并在同一提交上打 v<版本> 标签。标签在本仓库里，所以默认就读本仓库：本地开发与 CI 都不用另外克隆；
 // 本仓库缺这个标签时（如浅克隆）从 origin 只取这一个标签与它的历史。也可以用 KUN_DOCS_PATH 指向另一个有该标签的克隆。
 // 只读标签上的对象，不读工作区，所以检出停在哪个分支都不影响结果。
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { OWNER_REPO, REPO_ROOT, REPO_URL, WEBSITE_ROOT } from './repo.ts';
+import { OWNER_REPO, REPO_ROOT, REPO_URL, REPOSITORY_ROOT, WEBSITE_ROOT } from './repo.ts';
 
 /** Kun 的源码与版本标签所在的仓库，就是本仓库。 */
 export const KUN_OWNER_REPO = OWNER_REPO;
@@ -13,18 +14,19 @@ export const KUN_REPO_URL = REPO_URL;
 /** 生成过程的缓存（API 参考），不进 Git。 */
 export const CACHE_DIR = path.join(WEBSITE_ROOT, '.cache');
 
-const KUN_VERSION_RE = /<KunVersion>\s*([^<\s]*)\s*<\/KunVersion>/;
+/** CHANGELOG.md 的版本段标题：## [2026.10.25] - 2026-10-25；第一个不是 [Unreleased] 的就是最新的发布版。 */
+const RELEASE_HEADING_RE = /^## \[([^\]\n]*)\]/gm;
 
-/** 读仓库根 Directory.Packages.props 的 <KunVersion>；缺失即失败，不回退 main（docs-site.md §2b.1）。 */
-export function readKunVersion(repoRoot: string = REPO_ROOT): string {
-  const file = path.join(repoRoot, 'Directory.Packages.props');
+/** Kun 最新的发布版：仓库根 CHANGELOG.md 里第一个已发布的版本段。没有即失败，不回退 main（docs-site.md §2b.1）。 */
+export function readKunVersion(repositoryRoot: string = REPOSITORY_ROOT): string {
+  const file = path.join(repositoryRoot, 'CHANGELOG.md');
   const text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  const version = KUN_VERSION_RE.exec(text)?.[1] ?? '';
+  const version = [...text.matchAll(RELEASE_HEADING_RE)].map((m) => (m[1] ?? '').trim()).find((v) => v.toLowerCase() !== 'unreleased') ?? '';
   if (version === '') {
-    throw new Error(`${file} 里没有 <KunVersion>：Kun 文档按它锁定的版本镜像，缺失时构建失败，不回退 main（docs-site.md §2b.1）`);
+    throw new Error(`${file} 里没有已发布的版本段（## [版本] - 日期）：Kun 文档按最新的发布版镜像，没有时构建失败，不回退 main（docs-site.md §2b.1）`);
   }
   if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
-    throw new Error(`KunVersion 写成了「${version}」，应为 kun 的 CalVer 版本号，如 2026.9.13`);
+    throw new Error(`${file} 里最新的发布段写成了「${version}」，应为 Kun 的 CalVer 版本号，如 2026.9.13`);
   }
   return version;
 }
@@ -33,7 +35,7 @@ export interface KunCheckout {
   /** 本地 git 仓库目录。 */
   dir: string;
   version: string;
-  /** v<KunVersion> */
+  /** v<版本> */
   tag: string;
   /** tag 指向的提交。 */
   commit: string;
@@ -123,7 +125,7 @@ export function openKun(version: string, env: NodeJS.ProcessEnv = process.env, r
   }
   if (commit === null) {
     const hint = fromEnv ? `；本机克隆可先 git -C ${dir} fetch origin tag ${tag}` : '';
-    throw new Error(`${fromEnv ? 'KUN_DOCS_PATH 指向的克隆' : '本仓库'}里没有 tag ${tag}（Directory.Packages.props 的 KunVersion = ${version}）${hint}`);
+    throw new Error(`${fromEnv ? 'KUN_DOCS_PATH 指向的克隆' : '本仓库'}里没有 tag ${tag}（仓库根 CHANGELOG.md 最新的发布版 = ${version}）${hint}`);
   }
   assertFullHistory(dir, commit, tag);
   const date = git(dir, ['log', '-1', '--format=%cs', commit]).trim();

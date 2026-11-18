@@ -8,14 +8,14 @@
 |---|---|---|
 | 开始、SDK、运维、市场的页面 | `website/docs/{start,sdk,ops,marketplace}/` | — |
 | ADR、PRD、规格、路线图、变更日志 | 仓库 `docs/`（站内 `/design/` 自动镜像） | `website/docs/design/` |
-| Kun 的文档 | kun 仓库（提 PR）；站内「Kun 框架」小节与 Kun API 参考按 `KunVersion` 生成，升级只改根目录 `Directory.Packages.props` 的 `KunVersion` | `website/docs/sdk/kun/`（`with-qian.mdx` 除外）、`website/docs/sdk/api/` |
+| Kun 的文档 | kun 仓库（提 PR）；站内「Kun 框架」小节与 Kun API 参考按 Kun 最新的发布版生成，版本取仓库根 `CHANGELOG.md` 里最新的发布段，Kun 发版后自动跟随 | `website/docs/sdk/kun/`（`with-qian.mdx` 除外）、`website/docs/sdk/api/` |
 | Qian 对 Kun 的选用与约束 | `website/docs/sdk/kun/with-qian.mdx`（只转述 ADR-001 / ADR-021 与 PRD §07，不另立规则） | — |
 | Kun 镜像的白名单、侧栏与横幅 | `docs/prd/specs/docs-site.md` §2b 与 `website/scripts/sync-kun-docs.ts` 一起改 | 生成出来的页面 |
 | CLI 命令与清单字段 | `docs/prd/specs/component-model.md`（站内 `/cli/` 自动同步） | `website/docs/cli/` |
 | 组件页 | qian 组件库：源码与文档在 CavaiLAB/qian（提 PR），站内按版本目录里 `@cavailab/qian-core` 的版本检出同名标签生成，生成规则在 `website/scripts/yue-docs.ts`、`qian.ts`；其它组件：`collect-components.ts` 的规划清单，S1-DOCS-002 后改为组件目录 | `website/docs/components/` |
 | 首页 | `website/docs/index.mdx`（结构按 docs-site.md §2a） | — |
 | 产品族地图 | `website/docs/start/family.md` 与仓库 `README.md` 的「产品族」表一起改（单测核对前五列一致） | — |
-| 版本矩阵 | 对应的钉版文件（`Directory.Packages.props`、`global.json`、`package.json`、`deploy/baseline.json` 等） | `website/docs/start/versions.md`（生成，不进 Git） |
+| 版本矩阵 | 对应的钉版文件（仓库根的 `CHANGELOG.md` 与 `global.json`，本目录的 `package.json`、`deploy/baseline.json` 等） | `website/docs/start/versions.md`（生成，不进 Git） |
 | 颜色与样式 | `website/theme/index.css`，只引用 `--qian-*` 语义令牌；站点自己的变量用 `--docs-` 前缀 | 在组件里写死颜色 |
 
 `components/`、`cli/`、`design/`、`sdk/kun/`（`with-qian.mdx` 除外）、`sdk/api/` 与 `start/versions.md` 由构建前的脚本生成，不进 Git（进了文档门禁即失败）；手改会在下一次构建时被覆盖。
@@ -36,7 +36,7 @@
 
 ## 提交前
 
-构建要读 Kun 的 tag `v<KunVersion>` 并跑 DocFX：需要 .NET SDK；tag 在本仓库里，脚本默认读本仓库（缺了从 `origin` 取），也可以让 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆；还要读 CavaiLAB/qian 的检出：`QIAN_DOCS_PATH` 指向停在对应标签、装好依赖的检出（或能用 HTTPS 克隆），见 [README.md](README.md) §1。
+构建要读 Kun 最新发布版的 tag `v<版本>`（版本取仓库根 `CHANGELOG.md`）并跑 DocFX：需要 .NET SDK；tag 在本仓库里，脚本默认读本仓库（缺了从 `origin` 取），也可以让 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆；还要读 CavaiLAB/qian 的检出：`QIAN_DOCS_PATH` 指向停在对应标签、装好依赖的检出（或能用 HTTPS 克隆），见 [README.md](README.md) §1。
 
 ```bash
 python3 scripts/check_docs.py

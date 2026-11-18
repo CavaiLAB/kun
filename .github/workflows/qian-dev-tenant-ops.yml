@@ -4,21 +4,18 @@ name: qian-dev-tenant-ops
 # 原件在 _import/qian/.github/workflows/dev-tenant-ops.yml，不动；GitHub 只读仓库根的 .github/workflows/。
 # 相对原件只改了位置：run 步骤的工作目录、路径过滤、global.json 加 _import/qian/ 前缀；路径过滤末尾加上本文件。
 # 检查本身不变：原样执行 scripts/dev-tenant-ops.sh smoke（脚本按自身位置定原 Qian 的根）。
+# S1-KUN-020：改由 ci.yml 调用（workflow_call，留着手动触发），推送与拉取请求的触发、并发组都由 ci.yml 管；
+# 路径过滤搬进区域表 scripts/ci_changes.py 的 dev-tenant-ops 区域，另加仓库根的 .NET 构建基线、Kun.slnx、src/；
+# 去掉指向已不存在的 _import/qian/NuGet.config 的一条；
+# setup-dotnet 改读仓库根的 global.json。
 
 on:
-  push:
-    branches: [main]
-    paths: ['_import/qian/packages/**', '_import/qian/samples/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/.github/workflows/dev-tenant-ops.yml', '.github/workflows/qian-dev-tenant-ops.yml']
-  pull_request:
-    paths: ['_import/qian/packages/**', '_import/qian/samples/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/.github/workflows/dev-tenant-ops.yml', '.github/workflows/qian-dev-tenant-ops.yml']
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 dev-tenant-ops），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
-
-concurrency:
-  group: qian-dev-tenant-ops-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   DOTNET_NOLOGO: true
@@ -39,7 +36,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/qian/global.json
+          global-json-file: global.json
 
       - name: 起环境、走查、停宿主（与本机 scripts/dev-tenant-ops.sh smoke 同一条命令）
         env:

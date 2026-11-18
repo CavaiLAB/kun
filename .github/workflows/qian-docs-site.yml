@@ -24,43 +24,18 @@ name: qian-docs-site
 #   锁文件装 packages/qian/* 的依赖（公共 npm 源），QIAN_DOCS_PATH 指向它（website/README.md §1）。本仓库的依赖里有 GitHub Packages
 #   上的公开包 @cavailab/qian-*：工作流权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
 #   路径过滤去掉迁走的 packages/yue/，加上浏览器验收引用的外壳 e2e/settle.ts。
+# S1-KUN-020：改由 ci.yml 调用（workflow_call，留着手动触发），推送与拉取请求的触发、并发组都由 ci.yml 管；
+# 路径过滤搬进区域表 scripts/ci_changes.py 的 docs-site 区域，另加仓库根的 .NET 构建基线、Kun.slnx、src/ 与 _import/qian/.npmrc；
+# setup-dotnet 改读仓库根的 global.json。
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - "_import/qian/website/**"
-      - "_import/qian/apps/qian-shell/e2e/settle.ts"
-      - "_import/qian/docs/**"
-      - "_import/qian/package.json"
-      - "_import/qian/pnpm-lock.yaml"
-      - "_import/qian/pnpm-workspace.yaml"
-      - "_import/qian/deploy/docs-site/**"
-      - "_import/qian/Directory.Packages.props"
-      - "_import/qian/.github/workflows/docs-site.yml"
-      - ".github/workflows/qian-docs-site.yml"
-  push:
-    branches: [main]
-    paths:
-      - "_import/qian/website/**"
-      - "_import/qian/apps/qian-shell/e2e/settle.ts"
-      - "_import/qian/docs/**"
-      - "_import/qian/package.json"
-      - "_import/qian/pnpm-lock.yaml"
-      - "_import/qian/pnpm-workspace.yaml"
-      - "_import/qian/deploy/docs-site/**"
-      - "_import/qian/Directory.Packages.props"
-      - "_import/qian/.github/workflows/docs-site.yml"
-      - ".github/workflows/qian-docs-site.yml"
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 docs-site），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
-
-concurrency:
-  group: qian-docs-site-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   DOTNET_NOLOGO: true
@@ -121,7 +96,7 @@ jobs:
       # DocFX 从 Kun.* 包生成 API 参考（website/.config/dotnet-tools.json 锁定 docfx 版本）
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/qian/global.json
+          global-json-file: global.json
       - uses: actions/cache@v4
         with:
           path: ~/.nuget/packages

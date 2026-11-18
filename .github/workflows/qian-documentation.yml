@@ -8,19 +8,16 @@ name: qian-documentation
 # S1-YUE-025：TypeScript 运行时改装 CavaiLAB/qian 发布在 GitHub Packages 上的 @cavailab/qian-runtime，去掉构建 packages/qian-runtime 一步；
 # 命令行测试里有运行时一致性用例的 TS 一侧，路径过滤加上 tck/runtime/；装依赖要读 GitHub Packages 上的公开包：权限加 packages: read，
 # setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
+# S1-KUN-020：改由 ci.yml 调用（workflow_call），推送与拉取请求的触发、并发组都由 ci.yml 管；
+# 路径过滤搬进区域表 scripts/ci_changes.py 的 documentation 区域，另加仓库根的 .NET 构建基线、Kun.slnx、src/ 与 _import/qian/.npmrc；
+# setup-dotnet 改读仓库根的 global.json。
 
 on:
-  push:
-    branches: [main]
-    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/tck/runtime/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnf', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
-  pull_request:
-    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/tck/runtime/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnf', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 documentation），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
 permissions:
   contents: read
   packages: read
-concurrency:
-  group: qian-documentation-${{ github.ref }}
-  cancel-in-progress: true
 defaults:
   run:
     working-directory: _import/qian
@@ -33,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/qian/global.json
+          global-json-file: global.json
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

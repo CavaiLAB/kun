@@ -5,37 +5,17 @@ name: qian-shell-federation
 # 路径过滤末尾加上本文件。检查本身不变：执行 pnpm shell:federation（原件里叫 pnpm yue:mf；MF2 真实制品与审计链）。
 # S1-YUE-025：前端框架改装 CavaiLAB/qian 发布在 GitHub Packages 上的 @cavailab/qian-*（公开包，用本次运行的 GITHUB_TOKEN 只读安装：
 # 权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）；路径过滤去掉迁走的目录。
+# S1-KUN-020：改由 ci.yml 调用（workflow_call，留着手动触发），推送与拉取请求的触发、并发组都由 ci.yml 管；
+# 路径过滤搬进区域表 scripts/ci_changes.py 的 shell-federation 区域，另加仓库根的 .NET 构建基线、Kun.slnx、src/ 与 _import/qian/.npmrc；
+# setup-dotnet 改读仓库根的 global.json。
+
 on:
-  push:
-    branches: [main]
-    paths: &paths
-      - "_import/qian/apps/qian-shell/**"
-      - "_import/qian/packages/qian-shell-kit/**"
-      - "_import/qian/packages/qian-tenancy-ui/**"
-      - "_import/qian/plugins/qian.shell/**"
-      - "_import/qian/plugins/qian.tenancy/ui/**"
-      - "_import/qian/tests/Qian.Shell.TestHost/**"
-      - "_import/qian/tests/Qian.Testing.Containers/**"
-      - "_import/qian/tests/Shared/NativeAuditDatabase.cs"
-      - "_import/qian/packages/Qian.Audit*/**"
-      - "_import/qian/packages/Qian.Data.Native*/**"
-      - "_import/qian/packages/Qian.Runtime*/**"
-      - "_import/qian/Directory.*"
-      - "_import/qian/global.json"
-      - "_import/qian/pnpm-lock.yaml"
-      - "_import/qian/pnpm-workspace.yaml"
-      - "_import/qian/package.json"
-      - "_import/qian/.github/workflows/shell-federation.yml"
-      - ".github/workflows/qian-shell-federation.yml"
-  pull_request:
-    paths: *paths
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 shell-federation），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 permissions:
   contents: read
   packages: read
-concurrency:
-  group: qian-shell-federation-${{ github.ref }}
-  cancel-in-progress: true
 defaults:
   run:
     working-directory: _import/qian
@@ -52,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/qian/global.json
+          global-json-file: global.json
       - uses: actions/setup-node@v4
         with:
           node-version: 24

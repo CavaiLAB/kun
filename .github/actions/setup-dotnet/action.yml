@@ -1,0 +1,13 @@
+name: setup-dotnet
+description: 按仓库根的 global.json 把 .NET SDK 装到 runner.temp/dotnet，只用这一套 SDK（S1-KUN-020）。
+# 托管镜像预装了更新的 SDK（11.x）。仓库外的消费者（没有 global.json 的临时目录）发布时会选到它，而外层 dotnet test
+# 传下来的 MSBuildSDKsPath 指向 global.json 解析出的版本，MSBuild 去起另一版本的 .NET 任务宿主，握手对不上（MSB4216）。
+# 装到独立目录后仓库内外都用 global.json 的版本。ci.yml 的 .NET 作业都用它。
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v4
+      env:
+        DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
+      with:
+        global-json-file: global.json

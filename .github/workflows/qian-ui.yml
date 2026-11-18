@@ -6,48 +6,17 @@ name: qian-ui
 # 脚本见 _import/qian/package.json 的 ui:*；门禁自测在 _import/qian/tests/gates/ui/。
 # 依赖里有 CavaiLAB/qian 发布在 GitHub Packages 上的公开包 @cavailab/qian-*：用本次运行的 GITHUB_TOKEN 只读安装
 # （权限 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）。
+# S1-KUN-020：改由 ci.yml 调用（workflow_call，留着手动触发），推送与拉取请求的触发、并发组都由 ci.yml 管；
+# 路径过滤搬进区域表 scripts/ci_changes.py 的 ui 区域。
 
 on:
-  push:
-    branches: [main]
-    paths: &paths
-      - "_import/qian/apps/**"
-      - "_import/qian/packages/qian-tenancy-ui/**"
-      - "_import/qian/packages/qian-tenancy-signup-ui/**"
-      - "_import/qian/packages/qian-identity-ui/**"
-      - "_import/qian/packages/qian-shell-kit/**"
-      - "_import/qian/samples/qian-sample-crm-ui/**"
-      - "_import/qian/tests/directory-e2e/**"
-      - "_import/qian/tests/gates/ui/**"
-      - "_import/qian/tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json"
-      - "_import/qian/plugins/qian.tenancy/contracts/**"
-      - "_import/qian/plugins/qian.tenancy.signup/contracts/**"
-      - "_import/qian/tools/openapi-codegen/**"
-      - "_import/qian/website/demo/**"
-      - "_import/qian/scripts/ui-tokens.mjs"
-      - "_import/qian/eslint.config.mjs"
-      - "_import/qian/eslint.boundaries.config.mjs"
-      - "_import/qian/eslint.i18n.mjs"
-      - "_import/qian/.dependency-cruiser.cjs"
-      - "_import/qian/vitest.config.ts"
-      - "_import/qian/tsconfig.base.json"
-      - "_import/qian/turbo.json"
-      - "_import/qian/.npmrc"
-      - "_import/qian/package.json"
-      - "_import/qian/pnpm-lock.yaml"
-      - "_import/qian/pnpm-workspace.yaml"
-      - ".github/workflows/qian-ui.yml"
-  pull_request:
-    paths: *paths
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 ui），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
-
-concurrency:
-  group: qian-ui-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   TURBO_TELEMETRY_DISABLED: 1

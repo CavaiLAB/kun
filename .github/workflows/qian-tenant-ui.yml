@@ -5,19 +5,18 @@ name: qian-tenant-ui
 # 路径过滤末尾加上本文件。检查本身不变：页面七步跑在 dev-tenant-ops.sh 装配的真实宿主上。
 # S1-YUE-025：前端框架改装 CavaiLAB/qian 发布在 GitHub Packages 上的 @cavailab/qian-*（公开包，用本次运行的 GITHUB_TOKEN 只读安装：
 # 权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）；路径过滤去掉迁走的目录。
+# S1-KUN-020：改由 ci.yml 调用（workflow_call，留着手动触发），推送与拉取请求的触发、并发组都由 ci.yml 管；
+# 路径过滤搬进区域表 scripts/ci_changes.py 的 tenant-ui 区域，另加仓库根的 .NET 构建基线、Kun.slnx、src/ 与 _import/qian/.npmrc；
+# 去掉指向已不存在的 _import/qian/NuGet.config 的一条；
+# setup-dotnet 改读仓库根的 global.json。
+
 on:
-  push:
-    branches: [main]
-    paths: ['_import/qian/packages/qian-tenancy-ui/**', '_import/qian/turbo.json', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/tools/openapi-codegen/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/.github/workflows/tenant-ui.yml', '.github/workflows/qian-tenant-ui.yml']
-  pull_request:
-    paths: ['_import/qian/packages/qian-tenancy-ui/**', '_import/qian/turbo.json', '_import/qian/packages/Qian.*/**', '_import/qian/packages/Common/**', '_import/qian/samples/Qian.Sample.Crm/**', '_import/qian/plugins/**', '_import/qian/schemas/**', '_import/qian/contracts/**', '_import/qian/tools/Qian.Dev.TenantOps/**', '_import/qian/tools/Qian.Build.Analyzers/**', '_import/qian/tools/openapi-codegen/**', '_import/qian/scripts/dev-tenant-ops.sh', '_import/qian/Directory.*.props', '_import/qian/Directory.Build.targets', '_import/qian/global.json', '_import/qian/NuGet.config', '_import/qian/BannedSymbols.txt', '_import/qian/.editorconfig', '_import/qian/package.json', '_import/qian/pnpm-lock.yaml', '_import/qian/pnpm-workspace.yaml', '_import/qian/.github/workflows/tenant-ui.yml', '.github/workflows/qian-tenant-ui.yml']
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 tenant-ui），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
   workflow_dispatch:
 permissions:
   contents: read
   packages: read
-concurrency:
-  group: qian-tenant-ui-${{ github.ref }}
-  cancel-in-progress: true
 defaults:
   run:
     working-directory: _import/qian
@@ -30,7 +29,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          global-json-file: _import/qian/global.json
+          global-json-file: global.json
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

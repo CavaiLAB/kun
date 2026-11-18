@@ -5,17 +5,13 @@ name: qian-docs-and-pm
 # 相对原件只改了位置：run 步骤的工作目录加 _import/qian/ 前缀；原件不设路径过滤（原仓库里每个改动都属于原 Qian），
 # 这里改为 _import/qian/** 与本文件；显式写出 permissions: contents: read。
 # 检查本身不变：文档门禁、任务文件校验、生成看板（只上传为产物）、看板 builder 自测。
+# S1-KUN-020：改由 ci.yml 调用（workflow_call），推送与拉取请求的触发、并发组都由 ci.yml 管；
+# 路径过滤搬进区域表 scripts/ci_changes.py 的 docs-and-pm 区域；
+# 推 docs/**、feat/**、fix/** 分支不再触发。
 
 on:
-  push:
-    branches: [main, "docs/**", "feat/**", "fix/**"]
-    paths:
-      - '_import/qian/**'
-      - '.github/workflows/qian-docs-and-pm.yml'
-  pull_request:
-    paths:
-      - '_import/qian/**'
-      - '.github/workflows/qian-docs-and-pm.yml'
+  # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 docs-and-pm），并发组由 ci.yml 统一管（S1-KUN-020）。
+  workflow_call:
 
 permissions:
   contents: read

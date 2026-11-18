@@ -1,6 +1,6 @@
+using Kun.Errors.AspNetCore;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Errors.Tests;
 

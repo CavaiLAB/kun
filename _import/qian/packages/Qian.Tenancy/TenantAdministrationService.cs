@@ -10,7 +10,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy;
 
@@ -58,7 +58,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
             { InitialPassword = proof, RequirePasswordChange = true }, cancellationToken).ConfigureAwait(false);
             return Account(person);
         }
-        catch (QianErrorException error) { throw Remap(error, AccountPointers); }
+        catch (ErrorException error) { throw Remap(error, AccountPointers); }
     }
 
     public async ValueTask<TenantAdminList> GetAsync(Guid id, CancellationToken cancellationToken = default)
@@ -97,7 +97,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
             {
                 await grants.RevokeAsync(Owner, "user", prior.PersonId.ToString("D"), actor, cancellationToken).ConfigureAwait(false);
                 try { await accounts.SetTenantAdministratorAsync(old, false, cancellationToken).ConfigureAwait(false); }
-                catch (QianErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { /* 原成员已清除或已从目录删除，没有标志可撤销 */ }
+                catch (ErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { /* 原成员已清除或已从目录删除，没有标志可撤销 */ }
             }
             if (previous != membership.Id)
             {
@@ -124,7 +124,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
         using (var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(request.NewPassword)))
         {
             try { await Accounts.ResetPasswordAsync(person.Id, new PasswordReset(proof, "tenant_admin_reset"), cancellationToken).ConfigureAwait(false); }
-            catch (QianErrorException error) { throw Remap(error, PasswordPointers); }
+            catch (ErrorException error) { throw Remap(error, PasswordPointers); }
         }
         await AuditAsync(id, actor, "qian.tenancy/admin.reset-password", membershipId.ToString("D"), JsonSerializer.SerializeToElement(new { membershipId })).ConfigureAwait(false);
     }
@@ -166,7 +166,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
         if (initialPassword is null) throw Field(PlatformErrors.Required, passwordPointer);
         using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(initialPassword));
         try { await Accounts.ResetPasswordAsync(person.Id, new PasswordReset(proof, "tenant_admin_designation") { UnlinkExternalIdentities = true }, ct).ConfigureAwait(false); }
-        catch (QianErrorException error) { throw Remap(error, new Dictionary<string, string>(StringComparer.Ordinal) { ["#/new_password"] = passwordPointer }); }
+        catch (ErrorException error) { throw Remap(error, new Dictionary<string, string>(StringComparer.Ordinal) { ["#/new_password"] = passwordPointer }); }
         return true;
     }
 
@@ -182,8 +182,8 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
 
     private const string ResetPasswordCapability = "qian.tenancy/admin.reset-password";
 
-    private static QianErrorException Field(ErrorCode code, string pointer) =>
-        new(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(code, pointer)] });
+    private static ErrorException Field(ErrorCode code, string pointer) =>
+        new(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(code, pointer)] });
 
     // 可以直接任管理员的账号：至少有一个手机号或邮箱，且手机号、邮箱都经本人验证过。用户名没有核验流程，不算。
     private static bool Vouched(Person person)
@@ -249,20 +249,20 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
     {
         IdentifierKind.Phone => TenantAdminIdentifierKind.Phone, IdentifierKind.Email => TenantAdminIdentifierKind.Email, _ => TenantAdminIdentifierKind.Username
     }, item.Masked, item.Verified)).ToArray());
-    private static QianErrorException Remap(QianErrorException error, Dictionary<string, string> pointers)
+    private static ErrorException Remap(ErrorException error, Dictionary<string, string> pointers)
     {
         // 映射表之外的位置换成整个请求体，不把身份组件内部的字段名带进运营契约。
         string Map(string pointer) => pointers.TryGetValue(pointer, out var mapped) ? mapped : "#";
         var source = error.Error;
         if (source.Pointer is null && source.Errors.Count == 0) return error;
-        return new QianErrorException(new QianError(source.Code, source.Args)
+        return new ErrorException(new Error(source.Code, source.Args)
         {
             Pointer = source.Pointer is null ? null : Map(source.Pointer), Allowed = source.Allowed,
-            Errors = [.. source.Errors.Select(item => new QianFieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
+            Errors = [.. source.Errors.Select(item => new FieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
         }, error);
     }
     private static void ValidateActor(string actor)
     { if (string.IsNullOrWhiteSpace(actor) || actor.Length > 200 || actor.Any(char.IsControl)) throw Error(PlatformErrors.InputInvalid); }
-    private static QianErrorException Invalid(string pointer) => new(new QianError(PlatformErrors.InputInvalid) { Pointer = pointer });
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Invalid(string pointer) => new(new Error(PlatformErrors.InputInvalid) { Pointer = pointer });
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 }

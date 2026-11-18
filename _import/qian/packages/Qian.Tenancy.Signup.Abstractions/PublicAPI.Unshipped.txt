@@ -652,13 +652,13 @@ static Qian.Tenancy.Signup.StartSignupVerification.operator ==(Qian.Tenancy.Sign
 static Qian.Tenancy.Signup.SubmitSignupApplication.operator !=(Qian.Tenancy.Signup.SubmitSignupApplication? left, Qian.Tenancy.Signup.SubmitSignupApplication? right) -> bool
 static Qian.Tenancy.Signup.SubmitSignupApplication.operator ==(Qian.Tenancy.Signup.SubmitSignupApplication? left, Qian.Tenancy.Signup.SubmitSignupApplication? right) -> bool
 static Qian.Tenancy.Signup.TenancySignupDefinition.TenancySignup(this Qian.Runtime.IPluginContext! context) -> Qian.Tenancy.Signup.ITenantSignup!
-static Qian.Tenancy.Signup.TenancySignupErrors.All.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.ErrorCode!>!
+static Qian.Tenancy.Signup.TenancySignupErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
 static readonly Qian.Tenancy.Signup.TenancySignupDefinition.Key -> Qian.Runtime.ServiceKey
 static readonly Qian.Tenancy.Signup.TenancySignupDefinition.MessengerKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Tenancy.Signup.TenancySignupErrors.AccountUnavailable -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Tenancy.Signup.TenancySignupErrors.ApplicationOpen -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Tenancy.Signup.TenancySignupErrors.CodeExpired -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Tenancy.Signup.TenancySignupErrors.CodeInvalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Tenancy.Signup.TenancySignupErrors.CodeTaken -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Tenancy.Signup.TenancySignupErrors.StateConflict -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Tenancy.Signup.TenancySignupErrors.Unavailable -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Tenancy.Signup.TenancySignupErrors.AccountUnavailable -> Kun.Errors.ErrorCode!
+static readonly Qian.Tenancy.Signup.TenancySignupErrors.ApplicationOpen -> Kun.Errors.ErrorCode!
+static readonly Qian.Tenancy.Signup.TenancySignupErrors.CodeExpired -> Kun.Errors.ErrorCode!
+static readonly Qian.Tenancy.Signup.TenancySignupErrors.CodeInvalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Tenancy.Signup.TenancySignupErrors.CodeTaken -> Kun.Errors.ErrorCode!
+static readonly Qian.Tenancy.Signup.TenancySignupErrors.StateConflict -> Kun.Errors.ErrorCode!
+static readonly Qian.Tenancy.Signup.TenancySignupErrors.Unavailable -> Kun.Errors.ErrorCode!

@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Qian.Events;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
@@ -514,11 +514,11 @@ public sealed class SignInPipelineTests(PostgresFixture postgres) : IClassFixtur
         var (person, phone) = await CreatePerson(host);
         await Join(host, tenant, person.Id);
         Assert.Equal("password", string.Join(',', host.Factors.List().Select(f => f.Id)));
-        var conflict = Assert.Throws<QianErrorException>(() => host.Factors.Register(new CodeFactor("password", "x")));
+        var conflict = Assert.Throws<ErrorException>(() => host.Factors.Register(new CodeFactor("password", "x")));
         Assert.Equal("REGISTRATION_CONFLICT", conflict.Error.Code.Code);
         var registration = host.Factors.Register(new CodeFactor("otp", "123456"));
         Assert.Equal("otp,password", string.Join(',', host.Factors.List().Select(f => f.Id)));
-        Assert.Throws<QianErrorException>(() => host.Factors.Register(new CodeFactor("otp", "other")));
+        Assert.Throws<ErrorException>(() => host.Factors.Register(new CodeFactor("otp", "other")));
 
         LoginInput Otp(string code) => new("web", null, null, "otp", Proof(code)) { Identifier = phone };
         var good = await host.SignIn.SignInAsync(Otp("123456"), Net, Ct);
@@ -605,7 +605,7 @@ public sealed class SignInPipelineTests(PostgresFixture postgres) : IClassFixtur
         var tenant = host.Tenants.Add("acme");
         var (person, phone) = await CreatePerson(host);
         await Join(host, tenant, person.Id);
-        var failure = await Assert.ThrowsAsync<QianErrorException>(async () => await host.Service.IssueCaptchaAsync(Ct));
+        var failure = await Assert.ThrowsAsync<ErrorException>(async () => await host.Service.IssueCaptchaAsync(Ct));
         Assert.Equal("NOT_FOUND", failure.Error.Code.Code);
         Assert.Equal(SignInStatus.Authenticated, (await Right(host, phone)).Status);
     }
@@ -687,6 +687,6 @@ public sealed class SignInPipelineTests(PostgresFixture postgres) : IClassFixtur
         public Task<AuthenticationResult> VerifyAsync(AuthenticationProof proof, AuthenticationFactorContext context, CancellationToken cancellationToken = default) =>
             Task.FromResult(Encoding.UTF8.GetString(proof.Data.Span) == code
                 ? new AuthenticationResult(true, null, ["otp"], "2")
-                : new AuthenticationResult(false, new QianError(IdentityErrors.InvalidCredentials), [], null));
+                : new AuthenticationResult(false, new Error(IdentityErrors.InvalidCredentials), [], null));
     }
 }

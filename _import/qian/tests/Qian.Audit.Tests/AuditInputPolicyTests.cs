@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Qian.Common;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Tests;
 
@@ -96,7 +96,7 @@ public sealed class AuditInputPolicyTests
             for (var attempt = 0; attempt < 2; attempt++)
             {
                 var schema = JsonSerializer.SerializeToElement(new { patternProperties = new Dictionary<string, object> { [pattern] = new { sensitive = true } } });
-                Assert.Equal("AUDIT_SCHEMA_INVALID", Assert.Throws<QianErrorException>(() => new AuditInputPolicy(schema, true)).Error.Code.Code);
+                Assert.Equal("AUDIT_SCHEMA_INVALID", Assert.Throws<ErrorException>(() => new AuditInputPolicy(schema, true)).Error.Code.Code);
             }
         for (var index = 0; index <= SchemaPattern.CacheSize; index++) _ = AuditInputPolicy.Pattern($"^bounded_{index}$");
         Assert.InRange(SchemaPattern.Cached, 1, SchemaPattern.CacheSize);
@@ -120,12 +120,12 @@ public sealed class AuditInputPolicyTests
         // 依赖升级若改变验证器方言（例如 \w 不再只认 ASCII），这里先失败，提醒同步脱敏方言。
         var strict = new AuditInputPolicy(Json("""{"type":"object","patternProperties":{"^\\w$":{"type":"string"}},"additionalProperties":false}"""), true);
         Assert.Equal("x", strict.Redact(Json("""{"a":"x"}""")).GetProperty("a").GetString());
-        Assert.Equal("INPUT_INVALID", Assert.Throws<QianErrorException>(() => strict.Redact(Json("""{"é":"x"}"""))).Error.Code.Code);
+        Assert.Equal("INPUT_INVALID", Assert.Throws<ErrorException>(() => strict.Redact(Json("""{"é":"x"}"""))).Error.Code.Code);
         // 各方言含义不同或无法线性执行的写法在构造策略时拒绝。
         foreach (var pattern in new[] { "\\bkey", "(?i)secret", "[]a]", "\\p{L}", "(?<name>a)", "[a-z-[aeiou]]", "a{", "\\A", "😀" })
         {
             var schema = JsonSerializer.SerializeToElement(new { patternProperties = new Dictionary<string, object> { [pattern] = new { sensitive = true } } });
-            Assert.Equal("AUDIT_SCHEMA_INVALID", Assert.Throws<QianErrorException>(() => new AuditInputPolicy(schema, true)).Error.Code.Code);
+            Assert.Equal("AUDIT_SCHEMA_INVALID", Assert.Throws<ErrorException>(() => new AuditInputPolicy(schema, true)).Error.Code.Code);
         }
     }
 
@@ -143,11 +143,11 @@ public sealed class AuditInputPolicyTests
         ];
         foreach (var schema in schemas)
         {
-            var error = Assert.Throws<QianErrorException>(() => new AuditInputPolicy(Json(schema), true));
+            var error = Assert.Throws<ErrorException>(() => new AuditInputPolicy(Json(schema), true));
             Assert.Equal("AUDIT_SCHEMA_INVALID", error.Error.Code.Code); Assert.DoesNotContain("private-marker", error.Message);
         }
         var catalog = ErrorCatalog.CreateDefault(); using var registration = AuditErrors.Register(catalog);
-        Assert.Equal(400, catalog.CreateDetail(new QianError(AuditErrors.SchemaInvalid), new string('1', 32)).Status);
+        Assert.Equal(400, catalog.CreateDetail(new Error(AuditErrors.SchemaInvalid), new string('1', 32)).Status);
     }
 
     [Fact]
@@ -156,11 +156,11 @@ public sealed class AuditInputPolicyTests
         var policy = new AuditInputPolicy(Json("""{"type":"object","required":["password"],"properties":{"password":{"type":"string","sensitive":true}},"additionalProperties":false}"""), true);
         foreach (var source in new[] { "{}", "{\"password\":12}", "{\"password\":\"secret-a\",\"extra\":\"secret-b\"}" })
         {
-            var error = Assert.Throws<QianErrorException>(() => policy.InputHash(Json(source)));
+            var error = Assert.Throws<ErrorException>(() => policy.InputHash(Json(source)));
             Assert.Equal("INPUT_INVALID", error.Error.Code.Code); Assert.DoesNotContain("secret", error.Message);
         }
         var sensitiveRoot = new AuditInputPolicy(Json("""{"sensitive":true}"""), true);
-        Assert.Equal("INPUT_INVALID", Assert.Throws<QianErrorException>(() => sensitiveRoot.InputHash(Json("{\"x\":1,\"x\":2}"))).Error.Code.Code);
+        Assert.Equal("INPUT_INVALID", Assert.Throws<ErrorException>(() => sensitiveRoot.InputHash(Json("{\"x\":1,\"x\":2}"))).Error.Code.Code);
     }
 
     [Fact]

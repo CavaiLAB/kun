@@ -1,4 +1,4 @@
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Signup;
 
@@ -9,7 +9,7 @@ public static class TenancySignupErrors
     private const string Owner = TenancySignupDefinition.ComponentId;
 
     /// <summary>
-    /// RATE_LIMITED 的 <see cref="QianErrorException"/> 在 <see cref="Exception.Data"/> 里以此键携带建议等待的整秒数（int），宿主据此写 Retry-After 头。
+    /// RATE_LIMITED 的 <see cref="ErrorException"/> 在 <see cref="Exception.Data"/> 里以此键携带建议等待的整秒数（int），宿主据此写 Retry-After 头。
     /// </summary>
     public const string RetryAfterDataKey = "qian.signup.retryAfter";
 

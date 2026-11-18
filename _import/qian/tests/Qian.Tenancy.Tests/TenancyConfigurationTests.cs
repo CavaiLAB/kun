@@ -4,7 +4,7 @@ using Qian.Data;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 
 namespace Qian.Tenancy.Tests;
@@ -46,7 +46,7 @@ public sealed partial class TenantDirectoryTests
         var tenantDefinition = Definition("tenancy", new TenancyPlugin(), [TenancyDefinition.Key]);
         var scope = new ScopeKey("tenant", Guid.NewGuid().ToString());
         await loader.MountAsync([tenantDefinition with { Entry = tenantDefinition.Entry with { Scope = scope } }], Ct);
-        Assert.Equal("INPUT_INVALID", Assert.IsType<QianErrorException>(loader.GetFailure("tenancy", scope)).Error.Code.Code);
+        Assert.Equal("INPUT_INVALID", Assert.IsType<ErrorException>(loader.GetFailure("tenancy", scope)).Error.Code.Code);
     }
 
     [Theory]
@@ -75,7 +75,7 @@ public sealed partial class TenantDirectoryTests
         await loader.MountAsync([Definition("data", new DataPlugin(), [DataDefinition.Key]),
             definition with { Entry = definition.Entry with { Config = JsonSerializer.Deserialize<JsonElement>(json) } }], Ct);
         Assert.Equal(PluginState.Failed, loader.GetState("tenancy", ScopeKey.Global));
-        Assert.Equal("INPUT_INVALID", Assert.IsType<QianErrorException>(loader.GetFailure("tenancy", ScopeKey.Global)).Error.Code.Code);
+        Assert.Equal("INPUT_INVALID", Assert.IsType<ErrorException>(loader.GetFailure("tenancy", ScopeKey.Global)).Error.Code.Code);
     }
 
     private static string RepositoryRoot()

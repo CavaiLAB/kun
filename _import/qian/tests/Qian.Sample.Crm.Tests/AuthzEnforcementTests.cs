@@ -19,7 +19,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Plugin.Sdk;
 using Qian.Plugin.Sdk.AspNetCore;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Sample.Crm.Tests;
 

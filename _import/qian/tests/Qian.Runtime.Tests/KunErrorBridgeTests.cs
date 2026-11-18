@@ -1,7 +1,7 @@
 using System.Xml.Linq;
 using Kun.Core.Domain;
 using Kun.Core.Results;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Runtime.Tests;
 
@@ -45,7 +45,7 @@ public sealed class KunErrorBridgeTests
         var project = XDocument.Load(Path.Combine(directory, "Qian.Runtime.csproj"));
         Assert.Equal(["Microsoft.Extensions.DependencyInjection"],
             project.Descendants("PackageReference").Select(e => (string)e.Attribute("Include")!));
-        Assert.Equal(["_import/qian/packages/Qian.Runtime.Errors/Qian.Runtime.Errors.csproj", "src/Kun.Core/Kun.Core.csproj", "src/Kun.Mediator/Kun.Mediator.csproj"],
+        Assert.Equal(["src/Kun.Errors/Kun.Errors.csproj", "src/Kun.Core/Kun.Core.csproj", "src/Kun.Mediator/Kun.Mediator.csproj"],
             project.Descendants("ProjectReference")
                 .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
                 .Order(StringComparer.Ordinal));

@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Secrets;
 
@@ -12,7 +12,7 @@ public sealed class MountedSecretStore
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(rootDirectory);
         var root = new DirectoryInfo(Path.GetFullPath(rootDirectory));
-        if (!root.Exists || root.LinkTarget is not null) throw new QianErrorException(new QianError(SecretErrors.Unavailable));
+        if (!root.Exists || root.LinkTarget is not null) throw new ErrorException(new Error(SecretErrors.Unavailable));
         _root = Path.TrimEndingDirectorySeparator(Canonical(root.FullName, 0));
     }
     /// <summary>可信宿主的低层读取入口；组件应使用带权限检查的 ISecretResolver。</summary>
@@ -25,15 +25,15 @@ public sealed class MountedSecretStore
             var path = Resolve(location);
             await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete,
                 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            if (stream.Length is 0 or > 1024 * 1024) throw new QianErrorException(new QianError(SecretErrors.Unavailable));
+            if (stream.Length is 0 or > 1024 * 1024) throw new ErrorException(new Error(SecretErrors.Unavailable));
             bytes = new byte[checked((int)stream.Length)];
             await stream.ReadExactlyAsync(bytes, cancellationToken).ConfigureAwait(false);
             return new SecretValue(bytes);
         }
-        catch (FileNotFoundException) { throw new QianErrorException(new QianError(SecretErrors.NotFound)); }
-        catch (DirectoryNotFoundException) { throw new QianErrorException(new QianError(SecretErrors.NotFound)); }
-        catch (UnauthorizedAccessException) { throw new QianErrorException(new QianError(SecretErrors.Unavailable)); }
-        catch (IOException) { throw new QianErrorException(new QianError(SecretErrors.Unavailable)); }
+        catch (FileNotFoundException) { throw new ErrorException(new Error(SecretErrors.NotFound)); }
+        catch (DirectoryNotFoundException) { throw new ErrorException(new Error(SecretErrors.NotFound)); }
+        catch (UnauthorizedAccessException) { throw new ErrorException(new Error(SecretErrors.Unavailable)); }
+        catch (IOException) { throw new ErrorException(new Error(SecretErrors.Unavailable)); }
         finally { if (bytes is not null) CryptographicOperations.ZeroMemory(bytes); }
     }
 
@@ -46,17 +46,17 @@ public sealed class MountedSecretStore
             var info = Directory.Exists(current) ? (FileSystemInfo)new DirectoryInfo(current) : new FileInfo(current);
             if (info.LinkTarget is not null)
                 current = info.ResolveLinkTarget(returnFinalTarget: false)?.FullName
-                    ?? throw new QianErrorException(new QianError(SecretErrors.NotFound));
+                    ?? throw new ErrorException(new Error(SecretErrors.NotFound));
             current = Canonical(current, 0);
             if (!current.StartsWith(_root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
-                throw new QianErrorException(new QianError(SecretErrors.AccessDenied));
+                throw new ErrorException(new Error(SecretErrors.AccessDenied));
         }
         return current;
     }
 
     private static string Canonical(string path, int links)
     {
-        if (links > 40) throw new QianErrorException(new QianError(SecretErrors.AccessDenied));
+        if (links > 40) throw new ErrorException(new Error(SecretErrors.AccessDenied));
         var full = Path.GetFullPath(path);
         var root = Path.GetPathRoot(full)!;
         var parts = full[root.Length..].Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
@@ -67,7 +67,7 @@ public sealed class MountedSecretStore
             FileSystemInfo info = Directory.Exists(current) ? new DirectoryInfo(current) : new FileInfo(current);
             if (info.LinkTarget is null) continue;
             var target = info.ResolveLinkTarget(returnFinalTarget: false)?.FullName
-                ?? throw new QianErrorException(new QianError(SecretErrors.NotFound));
+                ?? throw new ErrorException(new Error(SecretErrors.NotFound));
             return Canonical(Path.Combine([target, .. parts[(index + 1)..]]), links + 1);
         }
         return current;

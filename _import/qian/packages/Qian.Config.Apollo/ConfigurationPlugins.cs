@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Apollo;
 

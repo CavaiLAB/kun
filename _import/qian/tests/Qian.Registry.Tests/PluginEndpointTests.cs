@@ -18,7 +18,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;
 
@@ -74,7 +74,7 @@ public sealed partial class PatchPersistenceTests
         var jwk = JsonWebKeyConverter.ConvertFromRSASecurityKey(new RsaSecurityKey(publicOnly) { KeyId = key.KeyId });
         var jwks = new JsonWebKeySet(JsonSerializer.Serialize(new { keys = new[] { new { kty = jwk.Kty, kid = jwk.Kid, n = jwk.N, e = jwk.E } } }));
         var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
-        builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddQianErrors(); builder.Services.AddKunSecurity();
+        builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunErrors(); builder.Services.AddKunSecurity();
         builder.Services.AddScoped<TenantRequestBoundary>();
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
         { options.Issuer = "registry-http-test"; options.Audience = "registry-http"; options.StaticKeySet = jwks; });
@@ -82,7 +82,7 @@ public sealed partial class PatchPersistenceTests
         builder.Services.AddQianPluginEndpoints(_ => running.Root);
         configureServices?.Invoke(builder.Services);
         var app = builder.Build(); var calls = 0;
-        app.UseQianErrors();
+        app.UseKunErrors();
         if (middleware && beforeRouting) app.UseQianPluginEndpoints();
         app.UseRouting(); app.UseAuthentication();
         app.Use((context, next) => context.RequestServices.GetRequiredService<TenantRequestBoundary>().InvokeAsync(context, next));

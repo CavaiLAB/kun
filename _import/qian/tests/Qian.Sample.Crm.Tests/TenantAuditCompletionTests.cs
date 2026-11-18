@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Audit;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;
@@ -45,8 +45,8 @@ public sealed partial class TenantOperationsTests
         try { await Assert.ThrowsAsync<DbUpdateException>(() => scan.InvokeAsync(scheduler, input, Ct).AsTask()); }
         finally { await Admin("DROP TRIGGER reject_expiry ON plugin_qian_tenancy.tenants; DROP FUNCTION plugin_qian_tenancy.reject_expiry();"); }
         Assert.Equal(TenantStatus.Active, (await source.Tenancy().GetByIdAsync(Guid.Parse(B), Ct))!.Status);
-        await Assert.ThrowsAsync<QianErrorException>(() => scan.InvokeAsync(loader.GetContext("registry", ScopeKey.Global), input, Ct).AsTask());
-        await Assert.ThrowsAsync<QianErrorException>(() => scan.InvokeAsync(scheduler,
+        await Assert.ThrowsAsync<ErrorException>(() => scan.InvokeAsync(loader.GetContext("registry", ScopeKey.Global), input, Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => scan.InvokeAsync(scheduler,
             JsonSerializer.SerializeToElement(new { idempotencyKey = Guid.CreateVersion7(), limit = 0 }), Ct).AsTask());
         var entries = (await ReadPlatformChain(source))
             .Where(entry => entry.Record.CapabilityId == scan.Contract.Id).Select(entry => entry.Record).ToArray();

@@ -4,7 +4,7 @@ using System.Text.Json;
 using Npgsql;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeAudit;
 
@@ -46,7 +46,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
         { Assert.Equal(index == 0 ? null : rows[index - 1].ContentHash, rows[index].PreviousHash); Assert.Equal(AuditCanonicalizer.Hash(rows[index].Record, rows[index].Sequence, rows[index].PreviousHash), rows[index].ContentHash); }
         Assert.Equal(new AuditChainVerification(true, 160, null, null), await first.Audit.VerifyAsync(Ct));
         Assert.Equal(rows[0].ContentHash, (await first.Audit.AppendAsync(rows[0].Record, Ct)).ContentHash);
-        Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => first.Audit.AppendAsync(Record(id: rows[0].Record.Id, payload: "{\"changed\":true}"), Ct))).Error.Code.Code);
+        Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => first.Audit.AppendAsync(Record(id: rows[0].Record.Id, payload: "{\"changed\":true}"), Ct))).Error.Code.Code);
         await Admin("UPDATE plugin_qian_audit.audit_entries SET payload='{\"tampered\":true}' WHERE seq=130");
         Assert.Equal(new AuditChainVerification(false, 129, 130, "content_mismatch"), await first.Audit.VerifyAsync(Ct));
     }
@@ -75,7 +75,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
         await Admin("DROP TRIGGER reject_append ON plugin_qian_audit.audit_entries");
         Assert.Equal(2, (await host.Audit.AppendAsync(Record(), Ct)).Sequence);
         await Admin("UPDATE plugin_qian_audit.audit_chain_state SET tip_seq=50");
-        Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendAsync(Record(), Ct))).Error.Code.Code);
+        Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendAsync(Record(), Ct))).Error.Code.Code);
         Assert.Equal("tip_mismatch", (await host.Audit.VerifyAsync(Ct)).Reason);
     }
 
@@ -85,8 +85,8 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
         var db = await NativeAuditDatabase.Create(postgres, Ct); await using var host = await NativeAuditTestHost.Create(db, Ct);
         await host.Audit.AppendPlatformAsync(host.Caller, Record(null), Ct);
         using (host.Tenant.BeginScope(A))
-        { await host.Audit.AppendAsync(Record(), Ct); await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendAsync(Record(B), Ct));
-          await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendPlatformAsync(host.Caller, Record(null), Ct)); }
+        { await host.Audit.AppendAsync(Record(), Ct); await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendAsync(Record(B), Ct));
+          await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendPlatformAsync(host.Caller, Record(null), Ct)); }
         using (host.Tenant.BeginScope(B)) { Assert.Empty(await host.Audit.ReadAsync(0, 10, cancellationToken: Ct)); await host.Audit.AppendAsync(Record(B), Ct); }
         Assert.Single(await host.Audit.ReadPlatformAsync(host.Caller, 0, 10, cancellationToken: Ct));
         Assert.True((await host.Audit.VerifyPlatformAsync(host.Caller, Ct)).Valid);
@@ -158,7 +158,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
             _ => throw new ArgumentException("未知反例", nameof(violation))
         };
         await Admin(sql);
-        using (host.Tenant.BeginScope(A)) await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendAsync(Record(), Ct));
+        using (host.Tenant.BeginScope(A)) await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendAsync(Record(), Ct));
         await host.Loader.UnmountAsync("audit", ScopeKey.Global, Ct); await host.MountAudit(Ct);
         Assert.Equal(PluginState.Failed, host.Loader.GetState("audit", ScopeKey.Global));
         if (violation is "membership" or "membership-nologin")
@@ -189,7 +189,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
         await using var host = await NativeAuditTestHost.Create(db, Ct, scopedTenant: A, platformBinding: false);
         using var tenant = host.Tenant.BeginScope(A); var service = host.Audit;
         await service.AppendAsync(Record(), Ct); Assert.True((await service.VerifyAsync(Ct)).Valid);
-        await Assert.ThrowsAsync<QianErrorException>(() => service.AppendPlatformAsync(host.Caller.Scoped(ScopeKey.Global), Record(null), Ct));
+        await Assert.ThrowsAsync<ErrorException>(() => service.AppendPlatformAsync(host.Caller.Scoped(ScopeKey.Global), Record(null), Ct));
         var observer = host.Loader.GetContext("data", ScopeKey.Global).Scoped(new ScopeKey("tenant", A));
         var sameNameNewDefinition = QianEvent.Define<string, object?>(CommandEvents.Dispatching.Name, DispatchMode.Waterfall);
         Assert.ThrowsAny<Exception>(() => observer.On(sameNameNewDefinition, DispatchMode.Waterfall,

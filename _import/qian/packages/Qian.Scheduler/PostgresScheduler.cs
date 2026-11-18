@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Scheduler;
@@ -35,7 +35,7 @@ internal sealed class PostgresScheduler(IPluginContext owner, ITenantContext ten
     {
         var tenantId = CheckCaller(caller); ValidateKey(key); options ??= new JobOptions(); ValidateOptions(options);
         var descriptor = await caller.Tenancy().GetByIdAsync(Guid.Parse(tenantId), ct).ConfigureAwait(false);
-        if (descriptor?.Status is not (TenantStatus.Active or TenantStatus.Trial)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (descriptor?.Status is not (TenantStatus.Active or TenantStatus.Trial)) throw new ErrorException(new Error(PlatformErrors.NotFound));
         var job = Resolve(caller, target);
         var input = Input(job, parameters, Guid.NewGuid());
         if (!JsonSchema.FromText(job.Capability.InputSchema.ToJsonString(), new BuildOptions { SchemaRegistry = new SchemaRegistry { Fetch = (_, _) => null } }).Evaluate(input).IsValid) throw JobSchedule.Invalid();
@@ -50,7 +50,7 @@ internal sealed class PostgresScheduler(IPluginContext owner, ITenantContext ten
         var existing = await session.Context.Definitions.SingleOrDefaultAsync(x => x.BusinessKey == key, ct).ConfigureAwait(false);
         if (existing is not null)
         {
-            if (existing.Fingerprint != fingerprint) throw new QianErrorException(new QianError(PlatformErrors.Conflict));
+            if (existing.Fingerprint != fingerprint) throw new ErrorException(new Error(PlatformErrors.Conflict));
             return new ScheduledJob(existing.Id, key);
         }
         var id = Guid.CreateVersion7(); first = Microseconds(first);
@@ -78,7 +78,7 @@ internal sealed class PostgresScheduler(IPluginContext owner, ITenantContext ten
     {
         ArgumentNullException.ThrowIfNull(caller);
         if (!Guid.TryParseExact(tenant.TenantId, "D", out _) || caller.Scope != new ScopeKey("tenant", tenant.TenantId) ||
-            !ReferenceEquals(caller.TryInject<IScheduler>(SchedulerDefinition.Key), this)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            !ReferenceEquals(caller.TryInject<IScheduler>(SchedulerDefinition.Key), this)) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return tenant.TenantId;
     }
     internal static JobContract Resolve(IPluginContext caller, string target)
@@ -86,7 +86,7 @@ internal sealed class PostgresScheduler(IPluginContext owner, ITenantContext ten
         if (string.IsNullOrWhiteSpace(target) || target.Length > 300 || target.Contains(':', StringComparison.Ordinal) || target.Contains('\\', StringComparison.Ordinal) || target.Count(c => c == '/') != 1) throw JobSchedule.Invalid();
         var job = caller.List(JobBindingRegistration.Key).SingleOrDefault(x => x.Name == target)?.Value as JobContract;
         var binding = caller.List(CapabilityBindingRegistration.Key).SingleOrDefault(x => x.Name == target)?.Value as IExecutableCapability;
-        if (job is null || binding is null || !ReferenceEquals(job.Capability, binding.Contract)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (job is null || binding is null || !ReferenceEquals(job.Capability, binding.Contract)) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return job;
     }
     internal static JsonElement Input(JobContract job, JsonElement parameters, Guid runId)

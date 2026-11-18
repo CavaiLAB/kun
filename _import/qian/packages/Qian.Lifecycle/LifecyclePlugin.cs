@@ -7,7 +7,7 @@ using Qian.Config;
 using Qian.Data;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -33,7 +33,7 @@ public sealed class LifecyclePlugin(LifecycleRuntimeOptions options) : IQianPlug
     {
         ArgumentNullException.ThrowIfNull(ctx); ArgumentNullException.ThrowIfNull(options);
         ct.ThrowIfCancellationRequested();
-        if (ctx.Scope != ScopeKey.Global) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (ctx.Scope != ScopeKey.Global) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var settings = LifecycleSettings.Parse(config);
         var time = ctx.Services.GetService<TimeProvider>() ?? TimeProvider.System;
         var executor = settings.Executor?.Create(ctx, time);

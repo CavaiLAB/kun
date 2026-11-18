@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Events;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Identity.Server;

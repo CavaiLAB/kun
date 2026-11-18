@@ -11,7 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using Qian.Testing.Containers;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.Tests;
 

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Qian.Plugin.Sdk.AspNetCore;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Files.Tests;
@@ -140,13 +140,13 @@ public sealed partial class FilesAcceptanceTests(PostgresFixture postgres) : ICl
         })
         {
             using var document = JsonDocument.Parse(config);
-            var error = Assert.Throws<QianErrorException>(() => FilesConfiguration.Read(document.RootElement));
+            var error = Assert.Throws<ErrorException>(() => FilesConfiguration.Read(document.RootElement));
             Assert.Equal((PlatformErrors.InputInvalid, pointer), (error.Error.Code, error.Error.Pointer));
         }
         // storage 的成员由选用的后端在挂载时校验：local 后端同样拒绝未知字段。
         using (var storage = JsonDocument.Parse("""{"kind":"local","root":"/srv/files","endpoint":"http://127.0.0.1/files/blobs/","forceDownload":false}"""))
         {
-            var error = Assert.Throws<QianErrorException>(() =>
+            var error = Assert.Throws<ErrorException>(() =>
                 new LocalFileBackendFactory(default).Create(new FileBackendContext(storage.RootElement, TimeProvider.System, host.Services)));
             Assert.Equal((PlatformErrors.InputInvalid, "#/storage/forceDownload"), (error.Error.Code, error.Error.Pointer));
         }

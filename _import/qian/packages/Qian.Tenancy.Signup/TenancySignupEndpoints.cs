@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
 using Qian.Capabilities;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Tenancy.Signup;
 
@@ -36,7 +36,7 @@ public static partial class TenancySignupEndpoints
     private static ITenantSignup Service(HttpContext http, Func<HttpContext, IPluginContext> source)
     {
         var ctx = source(http);
-        if (ctx.Scope != ScopeKey.Global || ctx.Entry.Plugin != TenancySignupDefinition.ComponentId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (ctx.Scope != ScopeKey.Global || ctx.Entry.Plugin != TenancySignupDefinition.ComponentId) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return ctx.TenancySignup();
     }
 
@@ -46,7 +46,7 @@ public static partial class TenancySignupEndpoints
         var results = new List<ValidationResult>();
         if (Validator.TryValidateObject(body, new ValidationContext(body), results, validateAllProperties: true)) return;
         var member = results[0].MemberNames.FirstOrDefault();
-        throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = member is null ? "#" : "#/" + JsonNamingPolicy.CamelCase.ConvertName(member) });
+        throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = member is null ? "#" : "#/" + JsonNamingPolicy.CamelCase.ConvertName(member) });
     }
 
     private static void ValidateQuery(HttpContext http, string name, object? value)
@@ -54,18 +54,18 @@ public static partial class TenancySignupEndpoints
         var parameter = http.GetEndpoint()!.Metadata.OfType<IParameterBindingMetadata>().Single(item => item.Name == name).ParameterInfo;
         if (value is null && parameter.HasDefaultValue && parameter.DefaultValue is null) return;
         if (parameter.GetCustomAttributes<ValidationAttribute>().Any(rule => !rule.IsValid(value)))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/" + name });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/" + name });
     }
 
     // 没有请求体的写操作：请求体可以缺省、为空或是空对象，带任何字段一律 400（与有请求体的接口拒绝未知字段同口径）。
     private static async Task EnsureEmptyBodyAsync(HttpRequest request, bool requireJson)
     {
-        if (requireJson && !request.HasJsonContentType()) throw new QianErrorException(new QianError(PlatformErrors.UnsupportedMediaType));
-        if (request.ContentLength is > 1024) throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        if (requireJson && !request.HasJsonContentType()) throw new ErrorException(new Error(PlatformErrors.UnsupportedMediaType));
+        if (request.ContentLength is > 1024) throw new ErrorException(new Error(PlatformErrors.BadRequest));
         using var reader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
         var buffer = new char[1025]; var length = 0; int read;
         while (length < buffer.Length && (read = await reader.ReadAsync(buffer.AsMemory(length), request.HttpContext.RequestAborted).ConfigureAwait(false)) > 0) length += read;
-        if (length > 1024) throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        if (length > 1024) throw new ErrorException(new Error(PlatformErrors.BadRequest));
         var text = new string(buffer, 0, length);
         if (string.IsNullOrWhiteSpace(text)) return;
         try
@@ -74,14 +74,14 @@ public static partial class TenancySignupEndpoints
             if (document.RootElement.ValueKind == JsonValueKind.Object && !document.RootElement.EnumerateObject().Any()) return;
         }
         catch (JsonException) { }
-        throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        throw new ErrorException(new Error(PlatformErrors.BadRequest));
     }
 
-    private static QianErrorResult Failure(HttpContext http, QianErrorException error)
+    private static KunErrorResult Failure(HttpContext http, ErrorException error)
     {
         if (error.Error.Code == PlatformErrors.RateLimited && error.Data[TenancySignupErrors.RetryAfterDataKey] is int seconds)
             http.Response.Headers.RetryAfter = seconds.ToString(CultureInfo.InvariantCulture);
-        return QianResults.Error(error.Error);
+        return KunResults.Error(error.Error);
     }
 
     // 回环地址上的本机联调（请求的主机名与连接都是回环）可以不带 Secure；其余一律 Secure。

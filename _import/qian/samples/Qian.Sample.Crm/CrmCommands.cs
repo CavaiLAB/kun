@@ -5,7 +5,7 @@ using Kun.Core.Cqrs;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Qian.Plugin.Sdk;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Sample.Crm;
 
@@ -19,13 +19,13 @@ internal sealed class CreateCustomerHandler(CommandDataSession<CrmDbContext> wor
     public async ValueTask<CustomerItem> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
     {
         if (request.IdempotencyKey == Guid.Empty || string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 200 || request.Name.Any(char.IsControl))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var name = request.Name.Trim(); var fingerprint = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(name)));
         var db = work.Context;
         var receipt = await db.CustomerReceipts.SingleOrDefaultAsync(row => row.IdempotencyKey == request.IdempotencyKey, cancellationToken).ConfigureAwait(false);
         if (receipt is not null)
         {
-            if (receipt.RequestHash != fingerprint) throw new QianErrorException(new QianError(PlatformErrors.Conflict));
+            if (receipt.RequestHash != fingerprint) throw new ErrorException(new Error(PlatformErrors.Conflict));
             return new CustomerItem(receipt.CustomerId, receipt.TenantId!, receipt.Name);
         }
         var customer = new Customer(Guid.CreateVersion7(), name);
@@ -58,14 +58,14 @@ public sealed record CustomerPurgeResult(int Purged);
 internal sealed class PurgeCustomersHandler : IRequestHandler<PurgeCustomersCommand, CustomerPurgeResult>
 {
     public ValueTask<CustomerPurgeResult> Handle(PurgeCustomersCommand request, CancellationToken cancellationToken) =>
-        throw new QianErrorException(new QianError(PlatformErrors.Unavailable));
+        throw new ErrorException(new Error(PlatformErrors.Unavailable));
 }
 
 internal sealed class ListCustomersHandler(CommandDataSession<CrmDbContext> work) : IRequestHandler<ListCustomersQuery, CustomerPage>
 {
     public async ValueTask<CustomerPage> Handle(ListCustomersQuery request, CancellationToken cancellationToken)
     {
-        if (request.Skip < 0 || request.Take is < 1 or > 100) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (request.Skip < 0 || request.Take is < 1 or > 100) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var query = work.Context.Customers.AsNoTracking(); var total = await query.CountAsync(cancellationToken).ConfigureAwait(false);
         var rows = await query.TagWith(CrmApplication.ListQueryTag).OrderBy(customer => customer.Id).Skip(request.Skip).Take(request.Take)
             .Select(customer => new CustomerItem(customer.Id, customer.TenantId!, customer.Name)).ToArrayAsync(cancellationToken).ConfigureAwait(false);
@@ -77,7 +77,7 @@ internal sealed class GetCustomerHandler(CommandDataSession<CrmDbContext> work) 
     public async ValueTask<CustomerItem> Handle(GetCustomerQuery request, CancellationToken cancellationToken) =>
         await work.Context.Customers.AsNoTracking().Where(customer => customer.Id == request.Id)
             .Select(customer => new CustomerItem(customer.Id, customer.TenantId!, customer.Name)).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false)
-        ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
 }
 
 /// <summary>参考应用的稳定事件 ID；破坏性载荷改动必须升版本，不能原地改名。</summary>

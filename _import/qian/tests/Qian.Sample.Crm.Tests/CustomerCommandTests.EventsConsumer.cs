@@ -135,7 +135,7 @@ public sealed partial class EventTests
         var duplicate = crafted[2].Envelope.EventId;
         var denied = probe.Scopes.Where(scope => scope.EventId == duplicate).ToArray();
         Assert.Equal(2, denied.Length);
-        Assert.All(denied, scope => Assert.Equal((Guid.Parse(A), nameof(Qian.Runtime.Errors.QianErrorException)), (scope.Authorized, scope.Rejected)));
+        Assert.All(denied, scope => Assert.Equal((Guid.Parse(A), nameof(Kun.Errors.ErrorException)), (scope.Authorized, scope.Rejected)));
         Assert.DoesNotContain(probe.Scopes, scope => crafted.Where(item => item.Name != "duplicate").Any(item => item.Envelope.EventId == scope.EventId));
         await using var keys = await ConnectionMultiplexer.ConnectAsync(redis.ConnectionString);
         foreach (var (_, envelope, _, _) in crafted)

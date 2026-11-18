@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config.Apollo;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Config.Tests;
@@ -151,7 +151,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         using var services = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
         var standalone = services.GetRequiredService<IConfigService>();
         Assert.Equal("safe", standalone.GetRequiredValue("Feature:Mode"));
-        var error = Assert.Throws<QianErrorException>(() => standalone.GetRequiredValue("Missing"));
+        var error = Assert.Throws<ErrorException>(() => standalone.GetRequiredValue("Missing"));
         Assert.Equal("CONFIG_REQUIRED_MISSING", error.Error.Code.Code);
         await using var runtime = new PluginLoader(services);
         await runtime.MountAsync([new PluginDefinition(new PluginEntry("config", "qian.config", "1.0.0", ScopeKey.Global, 0,
@@ -178,7 +178,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         {
             var args = new Dictionary<string, string> { ["Apollo:AppId"] = "test", ["Apollo:Env"] = "UAT", ["Apollo:ConfigServer:0"] = "http://localhost:1/" };
             args[key] = value;
-            var error = Assert.Throws<QianErrorException>(() => new ConfigurationBuilder().AddQianConfigurationSources(
+            var error = Assert.Throws<ErrorException>(() => new ConfigurationBuilder().AddQianConfigurationSources(
                 new QianConfigurationOptions { BasePath = directory, ResolveAccessKey = _ => "synthetic-unused", Arguments = args.Select(pair => "--" + pair.Key + "=" + pair.Value).ToArray() }));
             Assert.Equal("CONFIG_BOOTSTRAP_INVALID", error.Error.Code.Code);
         }

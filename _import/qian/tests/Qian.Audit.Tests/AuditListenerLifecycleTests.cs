@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Tests;
 

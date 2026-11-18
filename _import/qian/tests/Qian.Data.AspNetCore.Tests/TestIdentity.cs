@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Data.AspNetCore.Tests;
 
@@ -26,7 +26,7 @@ internal static class TestIdentity
 
     public static void Add(IServiceCollection services)
     {
-        services.AddQianErrors();
+        services.AddKunErrors();
         services.AddKunSecurity();
         services.AddKunMultiTenancy(options => options.FallbackTenantId = null);
         services.AddAuthentication(SchemeName).AddScheme<AuthenticationSchemeOptions, Handler>(SchemeName, null);
@@ -36,7 +36,7 @@ internal static class TestIdentity
 
     public static void Use(WebApplication app)
     {
-        app.UseQianErrors();
+        app.UseKunErrors();
         app.UseAuthentication();
         app.UseKunMultiTenancy();
         app.UseAuthorization();

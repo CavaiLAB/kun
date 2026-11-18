@@ -1,7 +1,7 @@
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Secrets;
 
@@ -94,7 +94,7 @@ public sealed class SecretResolverFactory : ISecretResolverFactory
             result?.Dispose();
             var failure = error switch
             {
-                QianErrorException qian => qian,
+                ErrorException qian => qian,
                 ObjectDisposedException or ServiceNotReadyException => Error(SecretErrors.AccessDenied),
                 _ => Error(SecretErrors.Unavailable)
             };
@@ -119,7 +119,7 @@ public sealed class SecretResolverFactory : ISecretResolverFactory
         try { return SecretReference.Parse(value); }
         catch (Exception error) when (error is FormatException or ArgumentException) { throw Error(SecretErrors.InvalidReference); }
     }
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
     private sealed record Binding(SecretReference Reference, string Path, KubernetesSecretLocation Location, string? TenantId);
     private sealed class Bound(SecretResolverFactory owner, string caller, Func<string?> tenant, Action check) : ISecretResolver
     {

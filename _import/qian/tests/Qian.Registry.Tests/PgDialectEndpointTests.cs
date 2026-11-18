@@ -12,7 +12,7 @@ using Qian.Data;
 using Qian.Data.AspNetCore;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 
 namespace Qian.Registry.Tests;
@@ -66,7 +66,7 @@ public sealed partial class PatchPersistenceTests
             await running.Runtime.UnmountAsync("pg", ScopeKey.Global, Ct);
             Assert.Empty(running.Root.List(DataDialectContract.Key));
             Assert.Null(dialects.Find("pg"));
-            Assert.Equal(DataErrors.DialectNotFound, Assert.Throws<QianErrorException>(() =>
+            Assert.Equal(DataErrors.DialectNotFound, Assert.Throws<ErrorException>(() =>
                 running.Host.Services.GetRequiredService<IDataTypeCatalog>().MapField("pg", new DataFieldDefinition("json"))).Error.Code);
             await AssertCatalog([]);
         }

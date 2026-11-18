@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Apollo;
 
@@ -134,6 +134,6 @@ public static class QianConfigurationExtensions
     }
     private static string Required(IConfiguration configuration, string key) =>
         configuration[key] is { Length: > 0 } value && !string.IsNullOrWhiteSpace(value) ? value : throw Invalid(key);
-    internal static QianErrorException Invalid(string key) => new(new QianError(ConfigErrors.BootstrapInvalid,
+    internal static ErrorException Invalid(string key) => new(new Error(ConfigErrors.BootstrapInvalid,
         new Dictionary<string, string> { ["key"] = key }));
 }

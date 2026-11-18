@@ -7,7 +7,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -66,7 +66,7 @@ internal sealed partial class LifecycleController
         var patch = await registry.GetScopePatchAsync(scope, entryId, cancellationToken).ConfigureAwait(false);
         if (expectedRevision is { } expected && patch?.Patch.TryGetProperty("disabled", out var disabled) == true && disabled.ValueKind == JsonValueKind.True)
         {
-            if (expected != patch.Revision) throw new QianErrorException(new QianError(RegistryErrors.RevisionConflict));
+            if (expected != patch.Revision) throw new ErrorException(new Error(RegistryErrors.RevisionConflict));
             return new MountResult(Name(scope), entryId, patch.Revision, MountStates.Unmounted, null);
         }
         var revision = await registry.UnmountAsync(scope, entryId, expectedRevision ?? patch?.Revision ?? 0, actor, cancellationToken).ConfigureAwait(false);
@@ -96,13 +96,13 @@ internal sealed partial class LifecycleController
             await registry.SynchronizeAsync(scope, ct).ConfigureAwait(false);
             return null;
         }
-        catch (Exception error) when (error is QianErrorException or InvalidOperationException && error is not ObjectDisposedException && !ct.IsCancellationRequested)
+        catch (Exception error) when (error is ErrorException or InvalidOperationException && error is not ObjectDisposedException && !ct.IsCancellationRequested)
         {
             if (error.Data["reasonCode"] is string code)
                 return new RegistryScopeDiagnostic(Name(scope), error.Data["entryId"] as string, error.Data["plugin"] as string, error.Data["revision"] as int?, code, Now());
             var recorded = await registry.GetScopeDiagnosticsAsync(scope, ct).ConfigureAwait(false);
             return recorded.Count > 0 ? recorded[0] : new RegistryScopeDiagnostic(Name(scope), null, null, null,
-                error is QianErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code, Now());
+                error is ErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code, Now());
         }
     }
 
@@ -135,7 +135,7 @@ internal sealed partial class LifecycleController
             policy.TryGetProperty("required", out var required) && required.ValueKind == JsonValueKind.True)) return;
         await using var session = await context.Data().OpenAsync<LifecycleDbContext>(ct).ConfigureAwait(false);
         var install = await session.Context.Installs.AsNoTracking().SingleOrDefaultAsync(item => item.PluginId == pluginId, ct).ConfigureAwait(false)
-            ?? throw new QianErrorException(new QianError(LifecycleErrors.NotEntitled));
+            ?? throw new ErrorException(new Error(LifecycleErrors.NotEntitled));
         if (install.State != TenantInstallStates.Installed || install.Version != version) throw Conflict("组件未开通到该版本，请先开通或升级。");
     }
 
@@ -153,7 +153,7 @@ internal sealed partial class LifecycleController
         ArgumentNullException.ThrowIfNull(user);
         var principal = user.Principal;
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || !tenant.IsMultiTenant || string.IsNullOrWhiteSpace(tenant.TenantId))
-            throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+            throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         var tenantId = tenant.TenantId;
         if (scope.Kind != "tenant" || scope.Id != tenantId) throw NotFound();
         await AuthorizeAsync(tenantId, user, LifecycleDefinition.DiagnosticsReadPermission, "lifecycle/diagnostics:" + scope.Kind + ":" + scope.Id, ct).ConfigureAwait(false);
@@ -167,7 +167,7 @@ internal sealed partial class LifecycleController
     {
         ArgumentNullException.ThrowIfNull(user);
         var principal = user.Principal;
-        if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         if (tenant.TenantId != tenantId || principal.Actor is not null) throw NotFound();
         PermissionDecision decision; string via;
         if (principal.Kind == PrincipalKind.User && principal.TenantId is null)

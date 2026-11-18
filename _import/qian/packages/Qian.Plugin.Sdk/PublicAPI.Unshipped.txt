@@ -138,14 +138,14 @@ Qian.Plugin.Sdk.QianConfigSchemaAttribute.QianConfigSchemaAttribute(string! json
 Qian.Plugin.Sdk.QianPluginAttribute.MetadataTypes.get -> System.Type![]!
 Qian.Plugin.Sdk.QianPluginAttribute.MetadataTypes.set -> void
 static Qian.Plugin.Sdk.ComponentMetadataDeclarations.Event<TPayload, TResult>(Qian.Runtime.QianEvent<TPayload, TResult>! value, Qian.Runtime.DispatchMode mode, string! source) -> System.Text.Json.Nodes.JsonObject!
-static readonly Qian.Plugin.Sdk.ManifestErrors.ComponentMismatch -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Plugin.Sdk.ManifestErrors.Field -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Plugin.Sdk.ManifestErrors.HandwrittenConflict -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Plugin.Sdk.ManifestErrors.ManifestDuplicate -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Plugin.Sdk.ManifestErrors.ManifestInvalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Plugin.Sdk.ManifestErrors.MetadataInvalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Plugin.Sdk.ManifestErrors.MetadataMissing -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Plugin.Sdk.ManifestErrors.PathEscape -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Plugin.Sdk.ManifestErrors.ComponentMismatch -> Kun.Errors.ErrorCode!
+static readonly Qian.Plugin.Sdk.ManifestErrors.Field -> Kun.Errors.ErrorCode!
+static readonly Qian.Plugin.Sdk.ManifestErrors.HandwrittenConflict -> Kun.Errors.ErrorCode!
+static readonly Qian.Plugin.Sdk.ManifestErrors.ManifestDuplicate -> Kun.Errors.ErrorCode!
+static readonly Qian.Plugin.Sdk.ManifestErrors.ManifestInvalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Plugin.Sdk.ManifestErrors.MetadataInvalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Plugin.Sdk.ManifestErrors.MetadataMissing -> Kun.Errors.ErrorCode!
+static readonly Qian.Plugin.Sdk.ManifestErrors.PathEscape -> Kun.Errors.ErrorCode!
 Qian.Plugin.Sdk.ContributesAttribute.RegistryType.get -> System.Type?
 Qian.Plugin.Sdk.ContributesAttribute.RegistryType.set -> void
 Qian.Plugin.Sdk.CapabilitySourceAttribute

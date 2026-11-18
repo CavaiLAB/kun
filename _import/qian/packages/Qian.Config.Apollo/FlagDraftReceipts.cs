@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Qian.Data.Native;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Apollo;
 
@@ -91,5 +91,5 @@ internal sealed class FlagDraftReceipts(IPluginContext owner, ApolloFlagManageme
     }
     internal static string RequestHash(string name, string ruleHash) => Hash(name + "\n" + ruleHash);
     private static string Hash(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 }

@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Json.Schema;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.Abstractions.Tests;
 
@@ -29,8 +29,8 @@ public sealed class AuthzErrorTests
             {
                 var culture = CultureInfo.GetCultureInfo(locale);
                 var error = code.Kind == ErrorKind.Field
-                    ? new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(code, "metadata/permissions.json#/0", args)] }
-                    : new QianError(code, args);
+                    ? new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(code, "metadata/permissions.json#/0", args)] }
+                    : new Error(code, args);
                 var detail = catalog.CreateDetail(error, new string('a', 32), culture);
                 using var rendered = JsonDocument.Parse(ErrorDetailJson.Serialize(detail));
                 Assert.True(detailSchema.Evaluate(rendered.RootElement).IsValid);

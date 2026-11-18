@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using static Qian.Runtime.Tests.LifecycleTests;
 
 namespace Qian.Runtime.Tests;
@@ -35,7 +35,7 @@ public sealed class RegistrationHandleTests
                 try { seen.TryAdd(observer.Inject<string>(new("X")), 0); }
                 catch (ServiceNotReadyException) { Interlocked.Increment(ref misses); }
                 try { seen.TryAdd(observer.Inject<string>(new("Tools"), "first"), 0); }
-                catch (QianErrorException) { Interlocked.Increment(ref misses); }
+                catch (ErrorException) { Interlocked.Increment(ref misses); }
                 if (observer.TryInject<string>(new("X")) is null || observer.Services.GetKeyedService<string>(new ServiceKey("Tools:first")) is null) Interlocked.Increment(ref misses);
                 if (!observer.List(new("Tools")).Select(item => item.Name).SequenceEqual(["first", "second"])) Interlocked.Increment(ref misses);
             }

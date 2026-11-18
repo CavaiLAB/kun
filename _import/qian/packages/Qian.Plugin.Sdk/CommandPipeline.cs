@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Qian.Data;
 using Qian.Authz.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Kun.Core.Results;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
@@ -45,7 +45,7 @@ public static class QianCommandRegistration
         builder.AddPipelineBehavior<TRequest, TResponse, CapabilityDispatchBehavior<TRequest, TResponse>>();
         builder.AddPipelineBehavior<TRequest, TResponse, CommandSaveBehavior<TRequest, TResponse, TContext>>();
         return builder.AddAuthorizedHandler<TRequest, TResponse, CommandHandlerProxy<TRequest, TResponse, THandler>>(
-            error => throw new QianErrorException(new QianError(error.Type == ErrorType.Unauthorized ? PlatformErrors.Unauthenticated : PlatformErrors.AuthzDenied)),
+            error => throw new ErrorException(new Error(error.Type == ErrorType.Unauthorized ? PlatformErrors.Unauthenticated : PlatformErrors.AuthzDenied)),
             contract.Id, request, response, tenantInitialization: true);
     }
 }
@@ -185,7 +185,7 @@ internal sealed class CommandSaveBehavior<TRequest, TResponse, TContext>(Command
         var result = await next().ConfigureAwait(false);
         if (invocation.Contract.Metadata.GetProperty("sideEffect").GetString() == "read")
         {
-            if (work.Current.Context.ChangeTracker.HasChanges()) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            if (work.Current.Context.ChangeTracker.HasChanges()) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
             return result;
         }
         await work.Current.SaveChangesAsync(invocation.CancellationToken).ConfigureAwait(false); return result;

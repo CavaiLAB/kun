@@ -16,7 +16,7 @@ using Qian.Identity.Abstractions;
 using Qian.Identity.Connector.Oidc;
 using Qian.Identity.Server;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -96,7 +96,7 @@ internal sealed class DevIdentity(Uri issuer, Uri callback, string uiDist, strin
     {
         public async ValueTask<SecretValue> ResolveAsync(string requested, CancellationToken cancellationToken = default)
         {
-            if (requested != reference) throw new QianErrorException(new QianError(SecretErrors.AccessDenied));
+            if (requested != reference) throw new ErrorException(new Error(SecretErrors.AccessDenied));
             var text = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
             return new SecretValue(Encoding.UTF8.GetBytes(text.Trim()));
         }

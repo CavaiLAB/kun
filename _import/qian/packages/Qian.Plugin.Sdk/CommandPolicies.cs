@@ -1,5 +1,5 @@
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Plugin.Sdk;
 
@@ -44,7 +44,7 @@ public static class CommandPolicies
 
     internal static PolicySnapshot Require(IPluginContext source) => new(source,
         source.TryInject<PolicyLease>(TenancyKey) ?? throw Denied(), source.TryInject<PolicyLease>(AuthorizationKey) ?? throw Denied(), source.TryInject<PolicyLease>(AuditKey) ?? throw Denied());
-    internal static QianErrorException Denied() => new(new QianError(PlatformErrors.AuthzDenied));
+    internal static ErrorException Denied() => new(new Error(PlatformErrors.AuthzDenied));
     private static (string Owner, ServiceKey Key, int Priority) Definition(CommandPolicyKind kind) => kind switch
     {
         CommandPolicyKind.Tenancy => ("qian.tenancy", TenancyKey, 300),

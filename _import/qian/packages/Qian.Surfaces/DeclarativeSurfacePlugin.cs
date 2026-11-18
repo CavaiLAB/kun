@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces;
@@ -28,7 +28,7 @@ public sealed class DeclarativeSurfacePlugin : IQianPlugin
     {
         ct.ThrowIfCancellationRequested();
         if (!_component.Manifest.GetProperty("scopes").EnumerateArray().Any(scope => scope.GetString() == ctx.Scope.Kind))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         foreach (var registration in _registrations) ctx.Provide(registration.Key, registration.Name, registration.Document);
         return ValueTask.CompletedTask;
     }

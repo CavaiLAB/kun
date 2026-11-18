@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Connector.Oidc.Tests;
 
@@ -42,7 +42,7 @@ public sealed class OidcConnectorTests : IDisposable
         var parameters = new Dictionary<string, string>(StringComparer.Ordinal) { ["code"] = code, ["state"] = state };
         if (tamper is not null) parameters = tamper(parameters);
         try { return (await _connector.CompleteSignInAsync(new ConnectorCallback(context, parameters), Ct), null); }
-        catch (QianErrorException error) { return (null, error.Error.Code); }
+        catch (ErrorException error) { return (null, error.Error.Code); }
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public sealed class OidcConnectorTests : IDisposable
         var challenge = await _connector.BeginSignInAsync(context, Ct);
         var (code, state, _) = _op.Authorize(challenge.RedirectUri!);
         var swapped = context with { CodeVerifier = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(32)) };
-        var error = await Assert.ThrowsAsync<QianErrorException>(() =>
+        var error = await Assert.ThrowsAsync<ErrorException>(() =>
             _connector.CompleteSignInAsync(new ConnectorCallback(swapped, new Dictionary<string, string> { ["code"] = code, ["state"] = state }), Ct));
         Assert.Equal(PlatformErrors.BadGateway, error.Error.Code);
     }
@@ -197,7 +197,7 @@ public sealed class OidcConnectorTests : IDisposable
     public async Task 发现文档issuer不一致时不出站()
     {
         _op.DiscoveryIssuer = FakeOpenIdProvider.Issuer + "/";
-        var error = await Assert.ThrowsAsync<QianErrorException>(() => _connector.BeginSignInAsync(Context(), Ct));
+        var error = await Assert.ThrowsAsync<ErrorException>(() => _connector.BeginSignInAsync(Context(), Ct));
         Assert.Equal(PlatformErrors.BadGateway, error.Error.Code);
     }
 
@@ -237,7 +237,7 @@ public sealed class OidcConnectorTests : IDisposable
         var context = Context();
         var challenge = await connector.BeginSignInAsync(context, Ct);
         var (code, state, _) = _op.Authorize(challenge.RedirectUri!);
-        await Assert.ThrowsAsync<QianErrorException>(() => connector.CompleteSignInAsync(new ConnectorCallback(context, new Dictionary<string, string> { ["code"] = code, ["state"] = state }), Ct));
+        await Assert.ThrowsAsync<ErrorException>(() => connector.CompleteSignInAsync(new ConnectorCallback(context, new Dictionary<string, string> { ["code"] = code, ["state"] = state }), Ct));
         Assert.False(_op.Hits.ContainsKey(FakeOpenIdProvider.Issuer + "/protocol/openid-connect/token"));
     }
 }

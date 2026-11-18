@@ -7,7 +7,7 @@ using Npgsql;
 using NpgsqlTypes;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Tests;
 
@@ -65,7 +65,7 @@ public sealed partial class AuditStoreTests
             await using var transaction = await connection.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
             var replay = await audit.AppendPlatformEnlistedAsync(platform.Producer, committed, transaction, Ct);
             Assert.Equal((2L, first.ContentHash, AuditCanonicalizer.Hash(committed, 2, first.ContentHash)), (replay.Sequence, replay.PreviousHash, replay.ContentHash));
-            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(committed.Id, "{\"changed\":true}"), transaction, Ct))).Error.Code.Code);
+            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(committed.Id, "{\"changed\":true}"), transaction, Ct))).Error.Code.Code);
             await transaction.RollbackAsync(Ct);
         }
         Assert.Equal(new AuditChainVerification(true, 3, null, null), await audit.VerifyPlatformAsync(platform.Producer, Ct));
@@ -74,7 +74,7 @@ public sealed partial class AuditStoreTests
         await using (var connection = await platform.OpenProducer())
         {
             await using var transaction = await connection.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
-            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(), transaction, Ct))).Error.Code.Code);
+            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(), transaction, Ct))).Error.Code.Code);
             await transaction.RollbackAsync(Ct);
         }
     }
@@ -89,7 +89,7 @@ public sealed partial class AuditStoreTests
         {
             await using (var weak = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, Ct))
             {
-                Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(), weak, Ct))).Error.Code.Code);
+                Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(), weak, Ct))).Error.Code.Code);
                 await weak.RollbackAsync(Ct);
             }
             var tenantConsumer = new AuditConsumer();
@@ -266,7 +266,7 @@ public sealed partial class AuditStoreTests
         // 迁移参数：三个角色两两分离，函数属主须是 NOLOGIN。
         foreach (var (platformRole, writer, producer) in new[] { ("role_a", "role_a", "role_b"), ("role_a", "role_b", "role_a"), ("role_a", "role_b", "role_b") })
             Assert.Throws<ArgumentException>(() => AuditPlatformAccess.CreateMigrationSql(platformRole, writer, producer));
-        Assert.Throws<QianErrorException>(() => AuditPlatformAccess.CreateMigrationSql("role_a", "Bad", "role_c"));
+        Assert.Throws<ErrorException>(() => AuditPlatformAccess.CreateMigrationSql("role_a", "Bad", "role_c"));
         await Assert.ThrowsAsync<PostgresException>(() => Admin("BEGIN;" + AuditPlatformAccess.CreateMigrationSql(platform.PlatformRole, platform.ProducerRole, "qian_app") + "COMMIT;"));
     }
 
@@ -389,7 +389,7 @@ public sealed partial class AuditStoreTests
         "platform.operation", "1.0.0", new string('1', 64), "api", null, "success", new string('2', 32), DateTimeOffset.UtcNow, CanonicalizerTests.Json(payload));
 
     private static async Task AssertDenied(Func<Task> call) =>
-        Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(call)).Error.Code.Code);
+        Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(call)).Error.Code.Code);
 
     private static async Task AssertRowSecurity(Func<Task> call)
     {

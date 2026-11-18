@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Runtime.Errors.AspNetCore;
+namespace Kun.Errors.AspNetCore;
 
 /// <summary>按错误码目录渲染并写出 ErrorDetail。</summary>
 internal static class ErrorWriter
 {
     private static readonly object s_traceIdKey = new();
 
-    public static Task WriteAsync(HttpContext http, QianError error, CancellationToken cancellationToken)
+    public static Task WriteAsync(HttpContext http, Error error, CancellationToken cancellationToken)
     {
         var catalog = http.RequestServices.GetRequiredService<ErrorCatalog>();
         var culture = CultureInfo.CurrentUICulture;
@@ -40,17 +40,17 @@ internal static class ErrorWriter
     }
 }
 
-/// <summary>把 <see cref="QianErrorException"/> 与请求体解析失败写成 ErrorDetail；其余异常交给默认处理（规范为 INTERNAL）。</summary>
+/// <summary>把 <see cref="ErrorException"/> 与请求体解析失败写成 ErrorDetail；其余异常交给默认处理（规范为 INTERNAL）。</summary>
 internal sealed class QianExceptionHandler : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var error = exception switch
         {
-            QianErrorException q => q.Error,
+            ErrorException q => q.Error,
             Kun.Validation.ValidationException validation => validation.ToQianError(),
             BadHttpRequestException b when PlatformErrors.ForStatus(b.StatusCode).Status == b.StatusCode
-                => new QianError(PlatformErrors.ForStatus(b.StatusCode)),
+                => new Error(PlatformErrors.ForStatus(b.StatusCode)),
             _ => null,
         };
         if (error is null || httpContext.Response.HasStarted)

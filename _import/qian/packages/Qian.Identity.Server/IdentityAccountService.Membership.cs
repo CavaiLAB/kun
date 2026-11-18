@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Identity.Server;

@@ -61,7 +61,7 @@ public sealed class HotReloadTests
             await runtime.UnmountAsync(entry, scope, Ct);
             Assert.Equal(spec.GetProperty("expectedCodeDisposalsAfterUnmount").GetInt32(), code.Disposals);
             Assert.Empty(runtime.DumpConfig());
-            Assert.Throws<Qian.Runtime.Errors.QianErrorException>(() => monitor.Read());
+            Assert.Throws<Kun.Errors.ErrorException>(() => monitor.Read());
             if (Environment.GetEnvironmentVariable("QIAN_HOT_RELOAD_REPORT") is { Length: > 0 } report)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(report))!);

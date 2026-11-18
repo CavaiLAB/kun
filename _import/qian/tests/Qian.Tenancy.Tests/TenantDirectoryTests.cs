@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Tenancy.Tests;
@@ -46,7 +46,7 @@ public sealed partial class TenantDirectoryTests(PostgresFixture postgres) : ICl
         async Task<string?> Create(PostgresTenantDirectory store)
         {
             try { await store.CreateAsync(new("tenant1", "租户一"), Ct); return null; }
-            catch (QianErrorException error) { return error.Error.Code.Code; }
+            catch (ErrorException error) { return error.Error.Code.Code; }
         }
     }
 
@@ -58,7 +58,7 @@ public sealed partial class TenantDirectoryTests(PostgresFixture postgres) : ICl
         await using var session = await host.Services.GetRequiredService<IDataService>().OpenAsync<TenancyDbContext>(Ct);
         var row = await session.Context.Tenants.SingleAsync(Ct); var revision = session.Context.Entry(row).Property<uint>(KunDataConventions.RowVersionPropertyName).CurrentValue;
         await store.UpdateAsync(created.Id, new("新名称", revision), Ct);
-        var conflict = await Assert.ThrowsAsync<QianErrorException>(() => store.UpdateAsync(created.Id, new("过期名称", revision), Ct));
+        var conflict = await Assert.ThrowsAsync<ErrorException>(() => store.UpdateAsync(created.Id, new("过期名称", revision), Ct));
         Assert.Equal("PRECONDITION_FAILED", conflict.Error.Code.Code); Assert.Equal("新名称", (await store.GetAsync("tenant1", Ct))!.Name);
         row.Code = "mutated"; await Assert.ThrowsAsync<InvalidOperationException>(() => session.SaveChangesAsync(Ct));
         await using var other = await host.Services.GetRequiredService<IDataService>().OpenAsync<TenancyDbContext>(Ct);
@@ -71,9 +71,9 @@ public sealed partial class TenantDirectoryTests(PostgresFixture postgres) : ICl
     {
         using var host = Host(); await host.StartAsync(Ct); await Prepare(host); var store = Store(host);
         foreach (var code in new[] { "", "TENANT", "a-b", "租户", "has space", new string('a', 65) })
-            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<QianErrorException>(() => store.CreateAsync(new(code, "name"), Ct))).Error.Code.Code);
+            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<ErrorException>(() => store.CreateAsync(new(code, "name"), Ct))).Error.Code.Code);
         foreach (var isolation in new[] { TenantIsolation.Schema, TenantIsolation.Database, (TenantIsolation)99 })
-            await Assert.ThrowsAsync<QianErrorException>(() => store.CreateAsync(new("tenant1", "name", isolation), Ct));
+            await Assert.ThrowsAsync<ErrorException>(() => store.CreateAsync(new("tenant1", "name", isolation), Ct));
         await using var session = await host.Services.GetRequiredService<IDataService>().OpenAsync<TenancyDbContext>(Ct);
         Assert.Empty(await session.Context.Tenants.ToArrayAsync(Ct));
     }

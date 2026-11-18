@@ -11,8 +11,8 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Identity.Server;
 
@@ -94,7 +94,7 @@ public static class IdentityAccountEndpoints
             var challenge = await Service(http).IssueCaptchaAsync(http.RequestAborted).ConfigureAwait(false);
             return Results.Json(new { id = challenge.Id, image = "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(challenge.ImageSvg)), expires_at = challenge.ExpiresAt });
         }
-        catch (QianErrorException error) { return QianResults.Error(error.Error); }
+        catch (ErrorException error) { return KunResults.Error(error.Error); }
     }
 
     private static async Task<IResult> Login(HttpContext http)
@@ -130,15 +130,15 @@ public static class IdentityAccountEndpoints
     private static async Task<IResult> Switch(HttpContext http)
     {
         if (await Guard(http).ConfigureAwait(false) is { } rejected) return rejected;
-        if (await CurrentSession(http).ConfigureAwait(false) is not { } current) return QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
+        if (await CurrentSession(http).ConfigureAwait(false) is not { } current) return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
         return await Complete(http, await Service(http).BeginSwitchAsync(current, ContextOf(http), http.RequestAborted).ConfigureAwait(false)).ConfigureAwait(false);
     }
 
     private static async Task<IResult> Me(HttpContext http)
     {
-        if (await CurrentSession(http).ConfigureAwait(false) is not { } current) return QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
+        if (await CurrentSession(http).ConfigureAwait(false) is not { } current) return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
         var validation = await Service(http).ValidateAsync(current.SessionId, current.PersonId, current.MembershipId, http.RequestAborted).ConfigureAwait(false);
-        if (validation is null) return QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
+        if (validation is null) return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
         return Results.Json(new
         {
             person_id = current.PersonId, tenant_id = validation.TenantId, membership_id = validation.MembershipId, identity_revision = validation.IdentityRevision,
@@ -149,13 +149,13 @@ public static class IdentityAccountEndpoints
     private static async Task<IResult> ChangeOwnPassword(HttpContext http)
     {
         if (await Guard(http).ConfigureAwait(false) is { } rejected) return rejected;
-        if (await CurrentSession(http).ConfigureAwait(false) is not { } current) return QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
+        if (await CurrentSession(http).ConfigureAwait(false) is not { } current) return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
         var body = await Read<ChangeOwnBody>(http).ConfigureAwait(false);
         if (body?.CurrentPassword is null || body.NewPassword is null) return BadInput();
         using var existing = new AuthenticationProof(Encoding.UTF8.GetBytes(body.CurrentPassword));
         using var next = new AuthenticationProof(Encoding.UTF8.GetBytes(body.NewPassword));
         try { await Service(http).ChangePasswordAsync(current.PersonId, new PasswordChange(existing, next), http.RequestAborted).ConfigureAwait(false); }
-        catch (QianErrorException error) { return QianResults.Error(error.Error); }
+        catch (ErrorException error) { return KunResults.Error(error.Error); }
         // 改密使该 Person 的全部会话失效，当前 Cookie 随之作废，需要重新登录。
         await http.SignOutAsync(http.RequestServices.GetRequiredService<IdentityServerOptions>().SignInScheme).ConfigureAwait(false);
         return Results.NoContent();
@@ -166,22 +166,22 @@ public static class IdentityAccountEndpoints
     // 写接口：JSON、体积上限与防伪令牌。登录会写会话 Cookie，缺少防伪令牌就是登录型 CSRF（把受害者登进攻击者的账号）。
     internal static async Task<IResult?> Guard(HttpContext http)
     {
-        if (!http.Request.HasJsonContentType()) return QianResults.Error(new QianError(PlatformErrors.UnsupportedMediaType));
+        if (!http.Request.HasJsonContentType()) return KunResults.Error(new Error(PlatformErrors.UnsupportedMediaType));
         if (http.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } limit) limit.MaxRequestBodySize = MaxBodyBytes;
         if (http.Request.ContentLength is > MaxBodyBytes)
         {
             // 超限的请求体不读取也不排空：响应后直接关闭连接，否则服务器在收尾时才发现超限，会把已写好的 413 连同连接一起丢掉。
             http.Response.Headers.Connection = "close";
-            return QianResults.Error(new QianError(PlatformErrors.PayloadTooLarge));
+            return KunResults.Error(new Error(PlatformErrors.PayloadTooLarge));
         }
-        if (!await http.RequestServices.GetRequiredService<IAntiforgery>().IsRequestValidAsync(http).ConfigureAwait(false)) return QianResults.Error(new QianError(PlatformErrors.InputInvalid));
+        if (!await http.RequestServices.GetRequiredService<IAntiforgery>().IsRequestValidAsync(http).ConfigureAwait(false)) return KunResults.Error(new Error(PlatformErrors.InputInvalid));
         return null;
     }
 
     // 无请求体的写接口（如吊销会话）：只要求防伪令牌，不要求 JSON 请求体。
     internal static async Task<IResult?> GuardAction(HttpContext http)
     {
-        if (!await http.RequestServices.GetRequiredService<IAntiforgery>().IsRequestValidAsync(http).ConfigureAwait(false)) return QianResults.Error(new QianError(PlatformErrors.InputInvalid));
+        if (!await http.RequestServices.GetRequiredService<IAntiforgery>().IsRequestValidAsync(http).ConfigureAwait(false)) return KunResults.Error(new Error(PlatformErrors.InputInvalid));
         return null;
     }
 
@@ -192,7 +192,7 @@ public static class IdentityAccountEndpoints
         catch (BadHttpRequestException) { return null; }
     }
 
-    internal static QianErrorResult BadInput() => QianResults.Error(new QianError(PlatformErrors.BadRequest));
+    internal static KunErrorResult BadInput() => KunResults.Error(new Error(PlatformErrors.BadRequest));
 
     internal static LoginContext ContextOf(HttpContext http) => new(http.Connection.RemoteIpAddress?.ToString(), http.Request.Headers.UserAgent.ToString());
 
@@ -212,7 +212,7 @@ public static class IdentityAccountEndpoints
                 return Results.Json(new SignInView("password_change_required", result.Ticket!.Token, result.Ticket.ExpiresAt), JsonOptions);
             default:
                 if (result.RetryAfter is { } wait) http.Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
-                return QianResults.Error(result.Error!);
+                return KunResults.Error(result.Error!);
         }
     }
 

@@ -34,8 +34,8 @@ using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;
@@ -112,7 +112,7 @@ internal sealed class FilesHost : IAsyncDisposable
         var builder = WebApplication.CreateBuilder();
         builder.Logging.ClearProviders();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
-        builder.Services.AddQianErrors();
+        builder.Services.AddKunErrors();
         // 身份适配器登记在数据约定之前，次序已不承重：Kun 2026.10.25 起数据约定不再以匿名兜底占住框架当前主体端口（S1-KUN-017），先后都生效。
         builder.Services.AddKunSecurity();
         builder.Services.AddHttpContextAccessor();
@@ -167,7 +167,7 @@ internal sealed class FilesHost : IAsyncDisposable
             });
         });
         var app = builder.Build();
-        app.UseQianErrors();
+        app.UseKunErrors();
         app.UseAuthentication();
         app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"), branch => branch.UseKunMultiTenancy());
         app.UseAuthorization();
@@ -392,29 +392,29 @@ internal sealed class FilesHostRuntime(IServiceProvider services, ITenantContext
 
     internal IPluginContext Source()
     {
-        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         try
         {
             var context = _loader.GetContext("files", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenant.TenantId!));
             _ = context.Inject<IFileService>(FilesDefinition.Key); return context;
         }
         catch (Exception error) when (error is ServiceNotReadyException or KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     internal IPluginContext TransferSource()
     {
         try { return _loader.GetContext("files", ScopeKey.Global); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     internal IPluginContext AuthzSource()
     {
-        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         try { return _loader.GetContext("authz", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenant.TenantId!)); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     public ValueTask DisposeAsync() => _loader.DisposeAsync();

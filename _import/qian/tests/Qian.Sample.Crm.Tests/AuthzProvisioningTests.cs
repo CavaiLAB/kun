@@ -9,7 +9,7 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Sample.Crm.Tests;
@@ -125,7 +125,7 @@ public abstract partial class CustomerCommandTests
 
     private protected static async Task AssertInvalid(IPluginContext source, string subject)
     {
-        var error = await Assert.ThrowsAsync<QianErrorException>(async () => await Provision(source, subject));
+        var error = await Assert.ThrowsAsync<ErrorException>(async () => await Provision(source, subject));
         Assert.Equal(PlatformErrors.InputInvalid, error.Error.Code);
     }
 

@@ -1,4 +1,4 @@
-namespace Qian.Runtime.Errors;
+namespace Kun.Errors;
 
 /// <summary>错误码类别（contracts/v0/error-catalog.schema.json 的 <c>kind</c>）。</summary>
 public enum ErrorKind

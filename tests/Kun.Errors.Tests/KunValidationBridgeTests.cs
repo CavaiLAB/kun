@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 
-namespace Qian.Runtime.Errors.Tests;
+namespace Kun.Errors.Tests;
 
 public sealed class KunValidationBridgeTests
 {
@@ -47,10 +47,10 @@ public sealed class KunValidationBridgeTests
         builder.WebHost.UseTestServer();
         builder.Logging.ClearProviders();
         builder.Services.AddExceptionHandler<CatchAllHandler>();
-        builder.Services.AddQianErrors();
-        builder.Services.AddQianErrors();
+        builder.Services.AddKunErrors();
+        builder.Services.AddKunErrors();
         await using var app = builder.Build();
-        app.UseQianErrors();
+        app.UseKunErrors();
         app.MapGet("/validate", string () => throw new ValidationException([
             new("Items[0].Name", "REQUIRED", "private message"),
             new("Amount", "OUT_OF_RANGE", "private message")

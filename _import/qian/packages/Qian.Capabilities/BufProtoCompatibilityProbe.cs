@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities;
 
@@ -128,7 +128,7 @@ public sealed partial class BufProtoCompatibilityProbe : IProtoCompatibilityProb
         var output = Path.Combine(directory, "descriptor.bin");
         var result = await ContractToolProcess.RunAsync(_executable, module.FullName,
             ["build", ".", "--config", config, "--as-file-descriptor-set", "--exclude-source-info", "--disable-symlinks", "--output", output], ct).ConfigureAwait(false);
-        if (result.Exit != 0) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (result.Exit != 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var info = new FileInfo(output);
         if (!info.Exists || info.Length is 0 or > 64 * 1024 * 1024) throw new InvalidOperationException("proto 编译结果大小无效。");
         return await File.ReadAllBytesAsync(output, ct).ConfigureAwait(false);

@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Signup;
 
@@ -88,8 +88,8 @@ internal static partial class SignupRules
     internal static string Number(DateTimeOffset day, int sequence) =>
         "AP-" + day.UtcDateTime.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-" + sequence.ToString("D4", CultureInfo.InvariantCulture);
 
-    internal static QianErrorException Invalid(ErrorCode field, string pointer) =>
-        new(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(field, pointer)] });
+    internal static ErrorException Invalid(ErrorCode field, string pointer) =>
+        new(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(field, pointer)] });
 
     [GeneratedRegex(@"\A\+[1-9][0-9]{6,14}\z", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking)]
     private static partial Regex PhonePattern();

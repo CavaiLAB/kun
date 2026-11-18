@@ -1,4 +1,4 @@
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Runtime;
 
@@ -32,7 +32,7 @@ internal sealed partial class PluginContext
         => Provide(Named(key, name), instance);
 
     public TService Inject<TService>(ServiceKey key, string name) where TService : class
-        => TryInject<TService>(Named(key, name)) ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        => TryInject<TService>(Named(key, name)) ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
 
     private static ServiceKey Named(ServiceKey key, string name)
     {

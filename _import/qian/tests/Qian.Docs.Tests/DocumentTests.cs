@@ -3,7 +3,7 @@ using Json.Schema;
 using Qian.Docs.Abstractions;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 
 namespace Qian.Docs.Tests;

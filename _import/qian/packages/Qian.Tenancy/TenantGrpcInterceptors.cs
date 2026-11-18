@@ -3,7 +3,7 @@ using System.Text;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Kun.Core.MultiTenancy;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy;
 
@@ -46,7 +46,7 @@ public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interce
                 result = await continuation().ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
-        catch (QianErrorException error) when (error.Error.Code.Code == "UNAUTHENTICATED")
+        catch (ErrorException error) when (error.Error.Code.Code == "UNAUTHENTICATED")
         {
             var trace = Activity.Current?.TraceId.ToHexString() ?? ActivityTraceId.CreateRandom().ToHexString();
             var detail = _errors.CreateDetail(error.Error, trace, instance: context.Method);

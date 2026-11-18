@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Files;
 
@@ -65,8 +65,8 @@ internal static partial class FilesConfiguration
 
     internal static string OwnerOf(string purpose) => purpose.Split('/', 2)[0];
 
-    private static QianErrorException Invalid(string member) =>
-        new(new QianError(PlatformErrors.InputInvalid) { Pointer = member.Length == 0 ? "#" : "#/" + member });
+    private static ErrorException Invalid(string member) =>
+        new(new Error(PlatformErrors.InputInvalid) { Pointer = member.Length == 0 ? "#" : "#/" + member });
 
     [GeneratedRegex(@"^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+/[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$", RegexOptions.CultureInvariant)]
     private static partial Regex Purpose();

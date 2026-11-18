@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Identity.Client.Tests;
 
@@ -240,7 +240,7 @@ internal sealed class Downstream : IAsyncDisposable
         builder.Services.AddQianIdentityS2s(new IdentityS2sOptions { Issuer = GatewayKeys.IssuerName, Audience = audience, SigningKeys = gateway.Jwks });
         builder.Services.AddAuthorization(); builder.Services.AddHttpClient();
         var app = builder.Build();
-        app.UseQianErrors(); app.UseAuthentication(); app.UseAuthorization();
+        app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();
         app.MapGet("/whoami", (ICurrentUser user) => user.Principal is { } principal
             ? Results.Json(new { subject = principal.Subject, kind = principal.Kind.ToString(), tenant = principal.TenantId, membership = principal.MembershipId,
                 revision = principal.IdentityRevision, session = principal.SessionId, tokenId = principal.TokenId, scope = principal.Scope, userId = user.UserId })

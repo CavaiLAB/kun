@@ -1,6 +1,6 @@
 using Kun.Core.Domain;
 using Kun.Core.Results;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Runtime;
 
@@ -8,11 +8,11 @@ namespace Qian.Runtime;
 public static class KunErrorBridge
 {
     /// <summary>按 ErrorType 映射；成功结果的 Error.None 不能作为错误转换。</summary>
-    public static QianError ToQianError(this Error error)
+    public static Error ToQianError(this Error error)
     {
         ArgumentNullException.ThrowIfNull(error);
         if (error == Error.None) throw new ArgumentException("成功结果的 Error.None 不能转换为错误。", nameof(error));
-        return new QianError(error.Type switch
+        return new Error(error.Type switch
         {
             ErrorType.Validation => PlatformErrors.InputInvalid,
             ErrorType.NotFound => PlatformErrors.NotFound,
@@ -25,9 +25,9 @@ public static class KunErrorBridge
     }
 
     /// <summary>未提供领域 Definition 错误码的领域异常，使用通用 422 业务码。</summary>
-    public static QianError ToQianError(this DomainException exception)
+    public static Error ToQianError(this DomainException exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
-        return new QianError(PlatformErrors.BusinessRuleViolated);
+        return new Error(PlatformErrors.BusinessRuleViolated);
     }
 }

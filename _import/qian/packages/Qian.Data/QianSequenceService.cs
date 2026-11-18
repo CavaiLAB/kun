@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data;
 
@@ -92,7 +92,7 @@ internal sealed partial class QianSequenceService(IServiceScopeFactory scopes, I
             await using (var reader = await read.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                    throw new QianErrorException(new QianError(DataErrors.SequenceRuleNotFound, new Dictionary<string, string> { ["rule"] = ruleCode }));
+                    throw new ErrorException(new Error(DataErrors.SequenceRuleNotFound, new Dictionary<string, string> { ["rule"] = ruleCode }));
                 pattern = reader.GetString(0);
                 revision = reader.GetInt32(1);
             }
@@ -106,7 +106,7 @@ internal sealed partial class QianSequenceService(IServiceScopeFactory scopes, I
                 """, cancellationToken, ("tenant", tenantId), ("code", ruleCode), ("revision", revision), ("scope", scopeKey), ("period", period)).ConfigureAwait(false),
                 System.Globalization.CultureInfo.InvariantCulture);
             if (value > parsed.MaxValue)
-                throw new QianErrorException(new QianError(DataErrors.SequenceExhausted, new Dictionary<string, string> { ["rule"] = ruleCode }));
+                throw new ErrorException(new Error(DataErrors.SequenceExhausted, new Dictionary<string, string> { ["rule"] = ruleCode }));
             return parsed.Format(local, value);
         }
         finally { await context.Database.CloseConnectionAsync().ConfigureAwait(false); }
@@ -123,8 +123,8 @@ internal sealed partial class QianSequenceService(IServiceScopeFactory scopes, I
             throw Invalid("规则编码须以小写字母开头，由小写字母、数字或 _ . - 组成，不超过 64 个字符。");
     }
 
-    private static QianErrorException Invalid(string reason) =>
-        new(new QianError(DataErrors.SequenceRuleInvalid, new Dictionary<string, string> { ["reason"] = reason }));
+    private static ErrorException Invalid(string reason) =>
+        new(new Error(DataErrors.SequenceRuleInvalid, new Dictionary<string, string> { ["reason"] = reason }));
 
     private static async Task<object?> ScalarAsync(DbConnection connection, string sql, CancellationToken cancellationToken, params (string Name, object Value)[] parameters)
     {

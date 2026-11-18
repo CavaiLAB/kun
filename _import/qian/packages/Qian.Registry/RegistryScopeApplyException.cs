@@ -3,7 +3,7 @@ using Qian.Runtime;
 
 namespace Qian.Registry;
 
-// scope 条目 Apply 失败：带条目 ID、组件@版本、scope patch 修订与原因码（失败为 QianErrorException 时取其错误码，否则 INTERNAL）。
+// scope 条目 Apply 失败：带条目 ID、组件@版本、scope patch 修订与原因码（失败为 ErrorException 时取其错误码，否则 INTERNAL）。
 // 同样的值写入 Data，供管理面诊断出口（S1-RT-005）读取；不包含配置、连接或底层异常文本。
 internal sealed class RegistryScopeApplyException : InvalidOperationException
 {

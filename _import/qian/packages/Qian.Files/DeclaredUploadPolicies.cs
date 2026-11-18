@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using SemanticVersion = SemanticVersioning.Version;
 
 namespace Qian.Files;
@@ -67,6 +67,6 @@ internal sealed class DeclaredUploadPolicies(Func<IRegistryService?> registry)
         return policies;
     }
 
-    private static QianErrorException Invalid(string pluginId, string member) =>
-        new(new QianError(PlatformErrors.InputInvalid) { Pointer = pluginId + "/" + MetadataPath + "#" + (member.Length == 0 ? "" : "/" + member) });
+    private static ErrorException Invalid(string pluginId, string member) =>
+        new(new Error(PlatformErrors.InputInvalid) { Pointer = pluginId + "/" + MetadataPath + "#" + (member.Length == 0 ? "" : "/" + member) });
 }

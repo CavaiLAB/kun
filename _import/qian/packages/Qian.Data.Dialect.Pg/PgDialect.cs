@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Qian.Config;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.Dialect.Pg;
 
@@ -45,7 +45,7 @@ public sealed class PgDialect : IDataDialect
         catch (InvalidOperationException error) when (error is not ObjectDisposedException)
         {
             // PG 口令是文本；不是 UTF-8 的密钥在连接前就拒绝。
-            throw new QianErrorException(new QianError(DataErrors.ConnectionCredentialInvalid), error);
+            throw new ErrorException(new Error(DataErrors.ConnectionCredentialInvalid), error);
         }
         var builder = new NpgsqlConnectionStringBuilder
         {
@@ -109,10 +109,10 @@ public sealed class PgDialect : IDataDialect
         }
     }
 
-    private static QianErrorException Unreachable(Exception inner) => new(new QianError(DataErrors.ConnectionUnreachable), inner);
+    private static ErrorException Unreachable(Exception inner) => new(new Error(DataErrors.ConnectionUnreachable), inner);
 
-    private static QianErrorException Rejected(string reason, Exception? inner) =>
-        new(new QianError(DataErrors.ConnectionRejected, new Dictionary<string, string> { ["reason"] = reason }), inner);
+    private static ErrorException Rejected(string reason, Exception? inner) =>
+        new(new Error(DataErrors.ConnectionRejected, new Dictionary<string, string> { ["reason"] = reason }), inner);
 
     private static DbDialect Read()
     {

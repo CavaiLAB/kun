@@ -17,7 +17,7 @@ using Qian.Capabilities;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 using Qian.Testing.Containers;
 

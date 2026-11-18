@@ -2,7 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Kun.MultiTenancy;
 using Microsoft.AspNetCore.Http;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Tests;
 
@@ -24,7 +24,7 @@ public sealed class TenantBoundaryTests
         {
             var http = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }; http.Request.Headers["X-Tenant-Id"] = A.ToString();
             var called = false;
-            var error = await Assert.ThrowsAsync<QianErrorException>(() => boundary.InvokeAsync(http, _ => { called = true; return Task.CompletedTask; }));
+            var error = await Assert.ThrowsAsync<ErrorException>(() => boundary.InvokeAsync(http, _ => { called = true; return Task.CompletedTask; }));
             Assert.Equal("UNAUTHENTICATED", error.Error.Code.Code); Assert.False(called); Assert.Null(tenant.TenantId);
         }
     }
@@ -44,7 +44,7 @@ public sealed class TenantBoundaryTests
         Assert.Null(tenant.TenantId);
         using (tenant.BeginScope(B.ToString()))
         {
-            await Assert.ThrowsAsync<QianErrorException>(() => boundary.InvokeAsync(new DefaultHttpContext { User = Principal(A) }, _ => Task.CompletedTask));
+            await Assert.ThrowsAsync<ErrorException>(() => boundary.InvokeAsync(new DefaultHttpContext { User = Principal(A) }, _ => Task.CompletedTask));
             Assert.Equal(B.ToString(), tenant.TenantId);
         }
     }
@@ -69,18 +69,18 @@ public sealed class TenantBoundaryTests
     public void 缺少重复空值跨租户传播均拒绝_不能从消息获得另一个租户权限()
     {
         var tenant = new AsyncLocalTenantContext(); var propagator = new TenantContextPropagator(tenant);
-        Assert.Throws<QianErrorException>(() => propagator.Write(Json("{}")));
-        Assert.Throws<QianErrorException>(() => propagator.WriteHeaders());
+        Assert.Throws<ErrorException>(() => propagator.Write(Json("{}")));
+        Assert.Throws<ErrorException>(() => propagator.WriteHeaders());
         foreach (var input in new[] { "{}", "{\"tenant_id\":null}", "{\"tenant_id\":\"default\"}",
             $$"""{"tenant_id":"{{B}}"}""", $$"""{"tenant_id":"{{A}}","tenant_id":"{{A}}"}""" })
-            Assert.Throws<QianErrorException>(() => propagator.BeginScope(Json(input), A));
-        Assert.Throws<QianErrorException>(() => propagator.BeginScope([new("tenant_id", A.ToString()), new("tenant_id", A.ToString())], A));
-        Assert.Throws<QianErrorException>(() => propagator.BeginScope([new("tenant_id", A.ToString())], Guid.Empty));
+            Assert.Throws<ErrorException>(() => propagator.BeginScope(Json(input), A));
+        Assert.Throws<ErrorException>(() => propagator.BeginScope([new("tenant_id", A.ToString()), new("tenant_id", A.ToString())], A));
+        Assert.Throws<ErrorException>(() => propagator.BeginScope([new("tenant_id", A.ToString())], Guid.Empty));
         Assert.Null(tenant.TenantId);
         using (tenant.BeginScope(A.ToString()))
         {
-            Assert.Throws<QianErrorException>(() => propagator.Write(Json($$"""{"tenant_id":"{{B}}"}""")));
-            Assert.Throws<QianErrorException>(() => propagator.BeginScope(Json($$"""{"tenant_id":"{{B}}"}"""), B));
+            Assert.Throws<ErrorException>(() => propagator.Write(Json($$"""{"tenant_id":"{{B}}"}""")));
+            Assert.Throws<ErrorException>(() => propagator.BeginScope(Json($$"""{"tenant_id":"{{B}}"}"""), B));
             Assert.Equal(A.ToString(), tenant.TenantId);
         }
     }

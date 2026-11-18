@@ -11,7 +11,7 @@ using System.Text;
 using Qian.Data;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Tenancy;
@@ -119,19 +119,19 @@ internal sealed class TenantSettingsService(IPluginContext context, PostgresTena
         var scope = Scope(); var limits = await Limits(Guid.Parse(scope.Id!), cancellationToken).ConfigureAwait(false);
         TenantQuotaRules.Check(limits, currentUsers, kind);
     }
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 }
 internal static class TenantQuotaRules
 {
     internal static string Serialize(TenantQuotas? quotas)
     {
-        if (quotas?.Users < 0) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (quotas?.Users < 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         return JsonSerializer.Serialize(quotas ?? new TenantQuotas(), JsonSerializerOptions.Web);
     }
     internal static void Check(TenantQuotas quotas, int users, TenantMemberKind kind)
     {
-        if (users < 0 || !Enum.IsDefined(kind)) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (users < 0 || !Enum.IsDefined(kind)) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         if (kind != TenantMemberKind.PlatformSuperadmin && quotas.Users is { } limit && users >= limit)
-            throw new QianErrorException(new QianError(TenancyErrors.UserLimit, new Dictionary<string, string> { ["limit"] = limit.ToString(System.Globalization.CultureInfo.InvariantCulture) }));
+            throw new ErrorException(new Error(TenancyErrors.UserLimit, new Dictionary<string, string> { ["limit"] = limit.ToString(System.Globalization.CultureInfo.InvariantCulture) }));
     }
 }

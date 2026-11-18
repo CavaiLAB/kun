@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Qian.Plugin.Sdk;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Capabilities;
@@ -16,7 +16,7 @@ public static class CapabilityContractCompiler
         if (contracts.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != contracts.Count ||
             contracts.Select(item => item.ComponentId).Distinct(StringComparer.Ordinal).Count() > 1) throw Error(PlatformErrors.InputInvalid);
         try { return CapabilityOpenApi.Build(contracts.Select(contract => Describe(contract, schemas, hasher))); }
-        catch (CapabilityContractException error) { throw new QianErrorException(new QianError(PlatformErrors.InputInvalid), error); }
+        catch (CapabilityContractException error) { throw new ErrorException(new Error(PlatformErrors.InputInvalid), error); }
     }
 
     // 由契约生成目录条目；不合格时抛 CapabilityContractException，位置以能力 ID 为文件指向条目内的出错处。
@@ -61,5 +61,5 @@ public static class CapabilityContractCompiler
                 error.Error.Pointer is { } pointer && ErrorPointer.IsValid(pointer) ? pointer : Locate(contract.Id, []), rule)
             : null;
 
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 }

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Plugin.Sdk.AspNetCore;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.AspNetCore;
 
@@ -88,7 +88,7 @@ public static class DataEndpoints
     private static RouteHandlerBuilder Tenant(RouteHandlerBuilder builder) => builder.AddEndpointFilter(async (context, next) =>
     {
         if (string.IsNullOrEmpty(context.HttpContext.RequestServices.GetRequiredService<ITenantContext>().TenantId))
-            throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+            throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         return await next(context).ConfigureAwait(false);
     });
 
@@ -101,27 +101,27 @@ public static class DataEndpoints
     // 先按成员白名单检查（password 等未声明成员一律拒绝，并指出位置），再按源生成元数据反序列化。
     private static async Task<DataConnectionDraft> ReadDraftAsync(HttpContext http)
     {
-        if (!http.Request.HasJsonContentType()) throw new QianErrorException(new QianError(PlatformErrors.UnsupportedMediaType));
+        if (!http.Request.HasJsonContentType()) throw new ErrorException(new Error(PlatformErrors.UnsupportedMediaType));
         JsonDocument document;
         try { document = await JsonDocument.ParseAsync(http.Request.Body, default, http.RequestAborted).ConfigureAwait(false); }
-        catch (JsonException) { throw new QianErrorException(new QianError(PlatformErrors.BadRequest)); }
+        catch (JsonException) { throw new ErrorException(new Error(PlatformErrors.BadRequest)); }
         using (document)
         {
             var root = document.RootElement;
-            if (root.ValueKind != JsonValueKind.Object) throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
-            var errors = new List<QianFieldError>();
+            if (root.ValueKind != JsonValueKind.Object) throw new ErrorException(new Error(PlatformErrors.BadRequest));
+            var errors = new List<FieldError>();
             foreach (var member in root.EnumerateObject())
                 if (!DraftMembers.Contains(member.Name, StringComparer.Ordinal))
-                    errors.Add(new QianFieldError(PlatformErrors.UnknownProperty, ErrorPointer.Input(member.Name)));
+                    errors.Add(new FieldError(PlatformErrors.UnknownProperty, ErrorPointer.Input(member.Name)));
             foreach (var name in RequiredMembers)
                 if (!root.TryGetProperty(name, out var value) || value.ValueKind == JsonValueKind.Null)
-                    errors.Add(new QianFieldError(PlatformErrors.Required, ErrorPointer.Input(name)));
+                    errors.Add(new FieldError(PlatformErrors.Required, ErrorPointer.Input(name)));
             if (errors.Count == 0)
             {
                 try { return root.Deserialize(DataContractJson.ConnectionDraftTypeInfo)!; }
-                catch (JsonException error) { errors.Add(new QianFieldError(PlatformErrors.TypeMismatch, Pointer(error.Path))); }
+                catch (JsonException error) { errors.Add(new FieldError(PlatformErrors.TypeMismatch, Pointer(error.Path))); }
             }
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = errors });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = errors });
         }
     }
 

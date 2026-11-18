@@ -26,7 +26,7 @@ using Qian.Config.AspNetCore;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Config.Tests;
 
@@ -173,7 +173,7 @@ public sealed class ConfigEndpointsTests
             var jwk = JsonWebKeyConverter.ConvertFromRSASecurityKey(new RsaSecurityKey(publicOnly) { KeyId = key.KeyId });
             var jwks = new JsonWebKeySet(JsonSerializer.Serialize(new { keys = new[] { new { kty = jwk.Kty, kid = jwk.Kid, n = jwk.N, e = jwk.E } } }));
             var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
-            builder.Services.AddKunSecurity(); builder.Services.AddHttpContextAccessor(); builder.Services.AddQianErrors(_ => { });
+            builder.Services.AddKunSecurity(); builder.Services.AddHttpContextAccessor(); builder.Services.AddKunErrors(_ => { });
             builder.Services.AddScoped<ICurrentUser, TokenUser>(); builder.Services.AddQianHttpContracts();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
             { options.Issuer = "config-http-test"; options.Audience = "config-http"; options.StaticKeySet = jwks; });
@@ -190,7 +190,7 @@ public sealed class ConfigEndpointsTests
                 };
             });
             var app = builder.Build();
-            app.UseQianErrors(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
+            app.UseKunErrors(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
             app.MapQianConfig(_ => surface.Context!);
             try
             {

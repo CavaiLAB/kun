@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.Abstractions.Tests;
 
@@ -123,7 +123,7 @@ public sealed class DataTypeContractTests
 
     private static void AssertRejected(DbDialect dialect, DataFieldDefinition field, params (string Pointer, ErrorCode Code)[] expected)
     {
-        var error = Assert.Throws<QianErrorException>(() => Map(dialect, field)).Error;
+        var error = Assert.Throws<ErrorException>(() => Map(dialect, field)).Error;
         Assert.Equal(DataErrors.FieldDefinitionInvalid, error.Code);
         Assert.Equal(field.Type, error.Args["type"]);
         Assert.Equal(expected, error.Errors.Select(item => (item.Pointer, item.Code)).Take(expected.Length).ToArray());

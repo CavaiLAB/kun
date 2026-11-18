@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Data.Dialect.Pg;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.AspNetCore.Tests;
 
@@ -100,18 +100,18 @@ public sealed class MetaTypesEndpointTests : IAsyncLifetime
         AssertRejected(catalog, new DataFieldDefinition("bigint", Maximum: 9223372036854775808m), "#/maximum");
         AssertRejected(catalog, new DataFieldDefinition("decimal", Precision: 6, Scale: 2, Maximum: 10000m), "#/maximum");
         AssertRejected(catalog, new DataFieldDefinition("bool", Length: 1), "#/length");
-        var unknown = Assert.Throws<QianErrorException>(() => catalog.MapField("pg", new DataFieldDefinition("money"))).Error;
+        var unknown = Assert.Throws<ErrorException>(() => catalog.MapField("pg", new DataFieldDefinition("money"))).Error;
         Assert.Equal(DataErrors.FieldDefinitionInvalid, unknown.Code);
         Assert.Equal("#/type", Assert.Single(unknown.Errors).Pointer);
         Assert.Equal(10, unknown.Errors[0].Allowed!.Count);
-        Assert.Equal(DataErrors.DialectNotFound, Assert.Throws<QianErrorException>(() => catalog.MapField("mysql", new DataFieldDefinition("int"))).Error.Code);
+        Assert.Equal(DataErrors.DialectNotFound, Assert.Throws<ErrorException>(() => catalog.MapField("mysql", new DataFieldDefinition("int"))).Error.Code);
     }
 
     [Fact]
     public void 方言注册表同名独占_释放句柄后才能重新注册()
     {
         var registry = _app.Services.GetRequiredService<IDataDialectRegistry>();
-        var conflict = Assert.Throws<QianErrorException>(() => registry.Register("pg", new PgDialect())).Error;
+        var conflict = Assert.Throws<ErrorException>(() => registry.Register("pg", new PgDialect())).Error;
         Assert.Equal(PlatformErrors.RegistrationConflict, conflict.Code);
         Assert.Equal("Data.Dialects:pg", conflict.Args["key"]);
         Assert.Throws<QianDataMisconfiguredException>(() => registry.Register("postgres", new PgDialect()));
@@ -132,7 +132,7 @@ public sealed class MetaTypesEndpointTests : IAsyncLifetime
 
     private static void AssertRejected(IDataTypeCatalog catalog, DataFieldDefinition field, string pointer)
     {
-        var error = Assert.Throws<QianErrorException>(() => catalog.MapField("pg", field)).Error;
+        var error = Assert.Throws<ErrorException>(() => catalog.MapField("pg", field)).Error;
         Assert.Equal(DataErrors.FieldDefinitionInvalid, error.Code);
         Assert.Contains(error.Errors, item => item.Pointer == pointer);
     }

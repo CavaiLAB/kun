@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces.Hosting;
@@ -58,7 +58,7 @@ public sealed class HookBridgePlugin : IQianPlugin, ISurfaceRuntimeValidator
         var visible = owner.Scoped(notification.Source.Scope);
         SurfaceDocument document;
         try { document = visible.Inject<SurfaceDocument>(SurfaceKeys.Hooks, name); }
-        catch (QianErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { return JsonSerializer.SerializeToElement<object?>(null); }
+        catch (ErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { return JsonSerializer.SerializeToElement<object?>(null); }
         if (!document.Data.GetProperty("hooks").TryGetProperty(eventName, out var groups)) return JsonSerializer.SerializeToElement<object?>(null);
         ValidateTargets(visible, groups);
         var result = JsonSerializer.SerializeToElement<object?>(null);
@@ -74,5 +74,5 @@ public sealed class HookBridgePlugin : IQianPlugin, ISurfaceRuntimeValidator
         }
         return result;
     }
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }

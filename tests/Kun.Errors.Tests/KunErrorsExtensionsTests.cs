@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 
-namespace Qian.Runtime.Errors.Tests;
+namespace Kun.Errors.Tests;
 
-public sealed class QianErrorsExtensionsTests
+public sealed class KunErrorsExtensionsTests
 {
     [Fact]
     public void Repeated_calls_share_one_catalog_and_one_exception_handler()
     {
         var services = new ServiceCollection();
-        services.AddQianErrors(c => c.Register(ErrorCatalogTests.QuotaExceeded));
-        services.AddQianErrors();
+        services.AddKunErrors(c => c.Register(ErrorCatalogTests.QuotaExceeded));
+        services.AddKunErrors();
 
         using var provider = services.BuildServiceProvider();
         var catalog = Assert.Single(provider.GetServices<ErrorCatalog>());
@@ -26,6 +26,6 @@ public sealed class QianErrorsExtensionsTests
         var services = new ServiceCollection();
         services.AddSingleton(_ => new ErrorCatalog());
 
-        Assert.Throws<InvalidOperationException>(() => services.AddQianErrors());
+        Assert.Throws<InvalidOperationException>(() => services.AddKunErrors());
     }
 }

@@ -511,7 +511,7 @@ Qian.Identity.Abstractions.Principal.Issuer.get -> string!
 Qian.Identity.Abstractions.AuthenticationProof.Dispose() -> void
 Qian.Identity.Abstractions.AuthenticationResult.Acr.get -> string?
 Qian.Identity.Abstractions.AuthenticationResult.Succeeded.get -> bool
-Qian.Identity.Abstractions.AuthenticationResult.Error.get -> Qian.Runtime.Errors.QianError?
+Qian.Identity.Abstractions.AuthenticationResult.Error.get -> Kun.Errors.Error?
 Qian.Identity.Abstractions.AuthenticationResult.Acr.init -> void
 Qian.Identity.Abstractions.AuthenticationResult.Succeeded.init -> void
 Qian.Identity.Abstractions.AuthenticationResult.Amr.get -> System.Collections.Generic.IReadOnlyList<string!>!
@@ -520,7 +520,7 @@ Qian.Identity.Abstractions.AuthenticationResult.Amr.init -> void
 static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.SigningIn -> Qian.Runtime.QianEvent<Qian.Identity.Abstractions.LoginInput!, Qian.Identity.Abstractions.SignInResult!>!
 Qian.Identity.Abstractions.SignInResult.Succeeded.get -> bool
 Qian.Identity.Abstractions.SignInResult.Principal.get -> Qian.Identity.Abstractions.Principal?
-Qian.Identity.Abstractions.SignInResult.Error.get -> Qian.Runtime.Errors.QianError?
+Qian.Identity.Abstractions.SignInResult.Error.get -> Kun.Errors.Error?
 Qian.Identity.Abstractions.SignInResult.Succeeded.init -> void
 Qian.Identity.Abstractions.SignInResult.Principal.init -> void
 Qian.Identity.Abstractions.SignInResult.Error.init -> void
@@ -532,7 +532,7 @@ override Qian.Identity.Abstractions.SignInResult.GetHashCode() -> int
 override Qian.Identity.Abstractions.SignInResult.Equals(object? obj) -> bool
 Qian.Identity.Abstractions.SignInResult.Equals(Qian.Identity.Abstractions.SignInResult? other) -> bool
 Qian.Identity.Abstractions.SignInResult.<Clone>$() -> Qian.Identity.Abstractions.SignInResult!
-Qian.Identity.Abstractions.SignInResult.Deconstruct(out bool Succeeded, out Qian.Identity.Abstractions.Principal? Principal, out Qian.Runtime.Errors.QianError? Error) -> void
+Qian.Identity.Abstractions.SignInResult.Deconstruct(out bool Succeeded, out Qian.Identity.Abstractions.Principal? Principal, out Kun.Errors.Error? Error) -> void
 Qian.Identity.Abstractions.AuthenticationResult
 override Qian.Identity.Abstractions.AuthenticationResult.ToString() -> string!
 static Qian.Identity.Abstractions.AuthenticationResult.operator !=(Qian.Identity.Abstractions.AuthenticationResult? left, Qian.Identity.Abstractions.AuthenticationResult? right) -> bool
@@ -541,10 +541,10 @@ override Qian.Identity.Abstractions.AuthenticationResult.GetHashCode() -> int
 override Qian.Identity.Abstractions.AuthenticationResult.Equals(object? obj) -> bool
 Qian.Identity.Abstractions.AuthenticationResult.Equals(Qian.Identity.Abstractions.AuthenticationResult? other) -> bool
 Qian.Identity.Abstractions.AuthenticationResult.<Clone>$() -> Qian.Identity.Abstractions.AuthenticationResult!
-Qian.Identity.Abstractions.AuthenticationResult.Deconstruct(out bool Succeeded, out Qian.Runtime.Errors.QianError? Error, out System.Collections.Generic.IReadOnlyList<string!>! Amr, out string? Acr) -> void
-Qian.Identity.Abstractions.AuthenticationResult.AuthenticationResult(bool Succeeded, Qian.Runtime.Errors.QianError? Error, System.Collections.Generic.IReadOnlyList<string!>! Amr, string? Acr) -> void
+Qian.Identity.Abstractions.AuthenticationResult.Deconstruct(out bool Succeeded, out Kun.Errors.Error? Error, out System.Collections.Generic.IReadOnlyList<string!>! Amr, out string? Acr) -> void
+Qian.Identity.Abstractions.AuthenticationResult.AuthenticationResult(bool Succeeded, Kun.Errors.Error? Error, System.Collections.Generic.IReadOnlyList<string!>! Amr, string? Acr) -> void
 Qian.Identity.Abstractions.IAuthenticatorFactor.VerifyAsync(Qian.Identity.Abstractions.AuthenticationProof! proof, Qian.Identity.Abstractions.AuthenticationFactorContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Identity.Abstractions.AuthenticationResult!>!
-Qian.Identity.Abstractions.SignInResult.SignInResult(bool Succeeded, Qian.Identity.Abstractions.Principal? Principal, Qian.Runtime.Errors.QianError? Error) -> void
+Qian.Identity.Abstractions.SignInResult.SignInResult(bool Succeeded, Qian.Identity.Abstractions.Principal? Principal, Kun.Errors.Error? Error) -> void
 const Qian.Identity.Abstractions.AccountStatuses.Disabled = "disabled" -> string!
 const Qian.Identity.Abstractions.AccountStatuses.Locked = "locked" -> string!
 const Qian.Identity.Abstractions.AccountStatuses.Purged = "purged" -> string!
@@ -694,35 +694,35 @@ Qian.Identity.Abstractions.CaptchaAnswer.Answer.init -> void
 Qian.Identity.Abstractions.CaptchaAnswer.ChallengeId.get -> string!
 Qian.Identity.Abstractions.CaptchaAnswer.ChallengeId.init -> void
 Qian.Identity.Abstractions.TenantSelection
-static readonly Qian.Identity.Abstractions.IdentityErrors.InvalidCredentials -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.InvalidCredentials -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.InitialPasswordChange
 static Qian.Identity.Abstractions.TenantSelection.operator !=(Qian.Identity.Abstractions.TenantSelection? left, Qian.Identity.Abstractions.TenantSelection? right) -> bool
-static readonly Qian.Identity.Abstractions.IdentityErrors.AccountLocked -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.AccountLocked -> Kun.Errors.ErrorCode!
 static Qian.Identity.Abstractions.InitialPasswordChange.operator !=(Qian.Identity.Abstractions.InitialPasswordChange? left, Qian.Identity.Abstractions.InitialPasswordChange? right) -> bool
 static Qian.Identity.Abstractions.TenantSelection.operator ==(Qian.Identity.Abstractions.TenantSelection? left, Qian.Identity.Abstractions.TenantSelection? right) -> bool
-static readonly Qian.Identity.Abstractions.IdentityErrors.AccountDisabled -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.LoginTicketInvalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.AccountDisabled -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.LoginTicketInvalid -> Kun.Errors.ErrorCode!
 static Qian.Identity.Abstractions.InitialPasswordChange.operator ==(Qian.Identity.Abstractions.InitialPasswordChange? left, Qian.Identity.Abstractions.InitialPasswordChange? right) -> bool
 override Qian.Identity.Abstractions.TenantSelection.GetHashCode() -> int
-static readonly Qian.Identity.Abstractions.IdentityErrors.TenantNotActive -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.TenantNotActive -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.TenantChoice
 override Qian.Identity.Abstractions.InitialPasswordChange.GetHashCode() -> int
 override Qian.Identity.Abstractions.TenantSelection.Equals(object? obj) -> bool
-static readonly Qian.Identity.Abstractions.IdentityErrors.NoAvailableTenant -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.NoAvailableTenant -> Kun.Errors.ErrorCode!
 override Qian.Identity.Abstractions.TenantChoice.ToString() -> string!
 override Qian.Identity.Abstractions.InitialPasswordChange.Equals(object? obj) -> bool
 Qian.Identity.Abstractions.TenantSelection.Equals(Qian.Identity.Abstractions.TenantSelection? other) -> bool
-static readonly Qian.Identity.Abstractions.IdentityErrors.CaptchaRequired -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.CaptchaRequired -> Kun.Errors.ErrorCode!
 static Qian.Identity.Abstractions.TenantChoice.operator !=(Qian.Identity.Abstractions.TenantChoice? left, Qian.Identity.Abstractions.TenantChoice? right) -> bool
 Qian.Identity.Abstractions.InitialPasswordChange.Equals(Qian.Identity.Abstractions.InitialPasswordChange? other) -> bool
 Qian.Identity.Abstractions.TenantSelection.<Clone>$() -> Qian.Identity.Abstractions.TenantSelection!
 static Qian.Identity.Abstractions.TenantChoice.operator ==(Qian.Identity.Abstractions.TenantChoice? left, Qian.Identity.Abstractions.TenantChoice? right) -> bool
 Qian.Identity.Abstractions.TenantSelection.Deconstruct(out string! Ticket, out System.Guid? MembershipId) -> void
 Qian.Identity.Abstractions.InitialPasswordChange.<Clone>$() -> Qian.Identity.Abstractions.InitialPasswordChange!
-static readonly Qian.Identity.Abstractions.IdentityErrors.CaptchaInvalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.CaptchaInvalid -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.InitialPasswordChange.Deconstruct(out string! Ticket, out Qian.Identity.Abstractions.AuthenticationProof! NewPassword) -> void
 override Qian.Identity.Abstractions.TenantChoice.GetHashCode() -> int
-static readonly Qian.Identity.Abstractions.IdentityErrors.MfaUnavailable -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.MfaUnavailable -> Kun.Errors.ErrorCode!
 override Qian.Identity.Abstractions.TenantChoice.Equals(object? obj) -> bool
 Qian.Identity.Abstractions.LoginTicket
 Qian.Identity.Abstractions.TenantChoice.Equals(Qian.Identity.Abstractions.TenantChoice? other) -> bool
@@ -730,19 +730,19 @@ Qian.Identity.Abstractions.TenantChoice.<Clone>$() -> Qian.Identity.Abstractions
 static Qian.Identity.Abstractions.LoginTicket.operator !=(Qian.Identity.Abstractions.LoginTicket? left, Qian.Identity.Abstractions.LoginTicket? right) -> bool
 static Qian.Identity.Abstractions.LoginTicket.operator ==(Qian.Identity.Abstractions.LoginTicket? left, Qian.Identity.Abstractions.LoginTicket? right) -> bool
 Qian.Identity.Abstractions.TenantChoice.Deconstruct(out System.Guid? MembershipId, out System.Guid? TenantId, out string? TenantCode, out string? TenantName, out string! DisplayName, out bool IsPlatform, out bool IsTenantAdministrator) -> void
-static readonly Qian.Identity.Abstractions.IdentityErrors.PasswordPolicyViolation -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.PasswordPolicyViolation -> Kun.Errors.ErrorCode!
 override Qian.Identity.Abstractions.LoginTicket.GetHashCode() -> int
-static readonly Qian.Identity.Abstractions.IdentityErrors.PasswordReused -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.PasswordReused -> Kun.Errors.ErrorCode!
 override Qian.Identity.Abstractions.LoginTicket.Equals(object? obj) -> bool
-static readonly Qian.Identity.Abstractions.IdentityErrors.CurrentPasswordInvalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.CurrentPasswordInvalid -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.LoginTicket.Equals(Qian.Identity.Abstractions.LoginTicket? other) -> bool
-static readonly Qian.Identity.Abstractions.IdentityErrors.IdentifierInUse -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.IdentifierInUse -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.LoginTicket.<Clone>$() -> Qian.Identity.Abstractions.LoginTicket!
 Qian.Identity.Abstractions.LoginTicket.Deconstruct(out Qian.Identity.Abstractions.LoginTicketPurpose Purpose, out string! Token, out System.DateTimeOffset ExpiresAt) -> void
-static readonly Qian.Identity.Abstractions.IdentityErrors.LastVerifiedIdentifier -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.LastLoginMethod -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.LastVerifiedIdentifier -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.LastLoginMethod -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.CaptchaAnswer
-static readonly Qian.Identity.Abstractions.IdentityErrors.AccountInUse -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.AccountInUse -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.IdentityErrors
 static Qian.Identity.Abstractions.CaptchaAnswer.operator !=(Qian.Identity.Abstractions.CaptchaAnswer? left, Qian.Identity.Abstractions.CaptchaAnswer? right) -> bool
 static Qian.Identity.Abstractions.CaptchaAnswer.operator ==(Qian.Identity.Abstractions.CaptchaAnswer? left, Qian.Identity.Abstractions.CaptchaAnswer? right) -> bool
@@ -852,7 +852,7 @@ Qian.Identity.Abstractions.Membership.Account.init -> void
 Qian.Identity.Abstractions.Membership.IdentityRevision.get -> long
 Qian.Identity.Abstractions.Membership.IdentityRevision.init -> void
 override Qian.Identity.Abstractions.TenantSelection.ToString() -> string!
-static Qian.Identity.Abstractions.IdentityErrors.All.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.ErrorCode!>!
+static Qian.Identity.Abstractions.IdentityErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
 Qian.Identity.Abstractions.CaptchaAnswer.CaptchaAnswer(string! ChallengeId, string! Answer) -> void
 Qian.Identity.Abstractions.AccountSession.AccountSession(System.Guid PersonId, System.Guid? TenantId, System.Guid? MembershipId, System.Guid SessionId, long IdentityRevision, System.Collections.Generic.IReadOnlyList<string!>! Amr, string? Acr, System.DateTimeOffset AuthenticatedAt, System.DateTimeOffset ExpiresAt, string! ClientId, string! DeviceType) -> void
 override Qian.Identity.Abstractions.CaptchaAnswer.ToString() -> string!
@@ -879,7 +879,7 @@ override Qian.Identity.Abstractions.AccountSession.ToString() -> string!
 Qian.Identity.Abstractions.LoginContext.DeviceType.get -> string?
 Qian.Identity.Abstractions.LoginContext.DeviceType.init -> void
 override Qian.Identity.Abstractions.LoginTicket.ToString() -> string!
-static Qian.Identity.Abstractions.IdentityErrors.Register(Qian.Runtime.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Qian.Identity.Abstractions.IdentityErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 static Qian.Identity.Abstractions.SignInResult.Authenticated(Qian.Identity.Abstractions.AccountSession! session) -> Qian.Identity.Abstractions.SignInResult!
 static Qian.Identity.Abstractions.SignInResult.SelectionRequired(Qian.Identity.Abstractions.LoginTicket! ticket, System.Collections.Generic.IReadOnlyList<Qian.Identity.Abstractions.TenantChoice!>! choices) -> Qian.Identity.Abstractions.SignInResult!
 static Qian.Identity.Abstractions.SignInResult.PasswordChangeRequired(Qian.Identity.Abstractions.LoginTicket! ticket) -> Qian.Identity.Abstractions.SignInResult!
@@ -890,12 +890,12 @@ Qian.Identity.Abstractions.IAuthenticatorFactorRegistry.Find(string! id) -> Qian
 Qian.Identity.Abstractions.IAuthenticatorFactorRegistry.Register(Qian.Identity.Abstractions.IAuthenticatorFactor! factor) -> System.IDisposable!
 Qian.Identity.Abstractions.IAuthenticatorFactorRegistry.List() -> System.Collections.Generic.IReadOnlyList<Qian.Identity.Abstractions.FactorDescriptor!>!
 Qian.Identity.Abstractions.SignInResult.RetryAfter.get -> System.TimeSpan?
-static Qian.Identity.Abstractions.SignInResult.Failure(Qian.Runtime.Errors.QianError! error, System.TimeSpan? retryAfter = null) -> Qian.Identity.Abstractions.SignInResult!
+static Qian.Identity.Abstractions.SignInResult.Failure(Kun.Errors.Error! error, System.TimeSpan? retryAfter = null) -> Qian.Identity.Abstractions.SignInResult!
 Qian.Identity.Abstractions.SignInResult.RetryAfter.init -> void
 Qian.Identity.Abstractions.IIdentityAccounts.BumpIdentityRevisionAsync(System.Guid personId, string! reason, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<long>
-static readonly Qian.Identity.Abstractions.IdentityErrors.OidcIssuerMismatch -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.OidcTokenInvalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.OperationUnsupported -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.OidcIssuerMismatch -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.OidcTokenInvalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.OperationUnsupported -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.ConnectorContext.CodeVerifier.get -> string?
 Qian.Identity.Abstractions.ConnectorContext.CodeVerifier.init -> void
 Qian.Identity.Abstractions.ConnectorDescriptor.CallbackTemplate.get -> string!
@@ -908,16 +908,16 @@ const Qian.Identity.Abstractions.ConnectorTerminals.Mobile = "mobile" -> string!
 const Qian.Identity.Abstractions.ConnectorTerminals.Pc = "pc" -> string!
 const Qian.Identity.Abstractions.ConnectorTerminals.Workbench = "workbench" -> string!
 static Qian.Identity.Abstractions.ConnectorManifest.CallbackPath(string! connectorId) -> string!
-static Qian.Identity.Abstractions.ConnectorManifest.Check(Qian.Identity.Abstractions.ConnectorDescriptor! descriptor) -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.QianFieldError!>!
+static Qian.Identity.Abstractions.ConnectorManifest.Check(Qian.Identity.Abstractions.ConnectorDescriptor! descriptor) -> System.Collections.Generic.IReadOnlyList<Kun.Errors.FieldError!>!
 static Qian.Identity.Abstractions.ConnectorManifest.IsValidId(string? id) -> bool
 static Qian.Identity.Abstractions.ConnectorManifest.Validate(Qian.Identity.Abstractions.ConnectorDescriptor! descriptor) -> void
 static Qian.Identity.Abstractions.ConnectorTerminals.All.get -> System.Collections.Generic.IReadOnlyList<string!>!
 static Qian.Identity.Abstractions.IdentityDefinition.IdentityConnectors(this Qian.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityConnectorRegistry!
 static readonly Qian.Identity.Abstractions.IdentityDefinition.ConnectorsKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Identity.Abstractions.IdentityErrors.BindingConflict -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.BindingExpired -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.ConnectorDenied -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.ConnectorStateInvalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.BindingConflict -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.BindingExpired -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.ConnectorDenied -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.ConnectorStateInvalid -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.DirectoryBatchItem
 Qian.Identity.Abstractions.DirectoryBatchItem.<Clone>$() -> Qian.Identity.Abstractions.DirectoryBatchItem!
 Qian.Identity.Abstractions.DirectoryBatchItem.Deconstruct(out System.Guid MembershipId, out bool Succeeded, out string? ErrorCode) -> void
@@ -1203,11 +1203,11 @@ static Qian.Identity.Abstractions.UserProfile.operator ==(Qian.Identity.Abstract
 static Qian.Identity.Abstractions.UserProfileInput.operator !=(Qian.Identity.Abstractions.UserProfileInput? left, Qian.Identity.Abstractions.UserProfileInput? right) -> bool
 static Qian.Identity.Abstractions.UserProfileInput.operator ==(Qian.Identity.Abstractions.UserProfileInput? left, Qian.Identity.Abstractions.UserProfileInput? right) -> bool
 static readonly Qian.Identity.Abstractions.IdentityDefinition.DirectoryKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryAdministratorProtected -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryCycle -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryDepthExceeded -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryHasMembers -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryTransitionInvalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryAdministratorProtected -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryCycle -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryDepthExceeded -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryHasMembers -> Kun.Errors.ErrorCode!
+static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryTransitionInvalid -> Kun.Errors.ErrorCode!
 Qian.Identity.Abstractions.IIdentityAccounts.SetTenantAdministratorAsync(System.Guid membershipId, bool administrator, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Identity.Abstractions.Membership!>
 Qian.Identity.Abstractions.DirectoryEventIds
 Qian.Identity.Abstractions.DirectoryIntegrationEvent

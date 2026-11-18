@@ -11,8 +11,8 @@ using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Shell.TestHost;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeAudit;
@@ -34,7 +34,7 @@ builder.Logging.ClearProviders();
 var tenant = new AsyncLocalTenantContext();
 builder.Services.AddSingleton<ITenantContext>(tenant);
 builder.Services.AddSingleton(ErrorCatalog.CreateDefault());
-builder.Services.AddQianErrors();
+builder.Services.AddKunErrors();
 var guard = NativeAuditStorage.ExpectedGuard(database.Roles);
 NativeDataTable[] tables = [new(NativeAuditStorage.Schema, "audit_entries", NativeAuditStorage.GuardPolicy, guard, guard),
     new(NativeAuditStorage.Schema, "audit_chain_state", NativeAuditStorage.GuardPolicy, guard, guard)];
@@ -62,7 +62,7 @@ var validation = new TokenValidationParameters
     ValidateLifetime = true, RequireExpirationTime = true, RequireSignedTokens = true, ValidateIssuerSigningKey = true,
     IssuerSigningKey = key, ValidAlgorithms = [SecurityAlgorithms.RsaSha256], ClockSkew = TimeSpan.Zero
 };
-app.UseQianErrors();
+app.UseKunErrors();
 ShellAuditEndpoints.Map(app, consumer, tenant, tokens, validation, qianVersion);
 await app.StartAsync();
 Directory.CreateDirectory(Path.GetDirectoryName(state)!);

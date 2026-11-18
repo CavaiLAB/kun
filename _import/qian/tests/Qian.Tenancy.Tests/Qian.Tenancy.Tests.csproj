@@ -4,7 +4,7 @@
   <ItemGroup>
     <ProjectReference Include="../../packages/Qian.Tenancy/Qian.Tenancy.csproj" />
     <ProjectReference Include="../../packages/Qian.Data/Qian.Data.csproj" />
-    <ProjectReference Include="../../packages/Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" /><PackageReference Include="Grpc.Net.Client" />
     <PackageReference Include="Microsoft.Extensions.Hosting" /><PackageReference Include="xunit.v3" />

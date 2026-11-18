@@ -8,7 +8,7 @@ using Npgsql;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Signup;
 
@@ -90,11 +90,11 @@ internal sealed partial class TenantSignupService : ITenantSignup, IDisposable
     // 平台身份不进租户（Q12）；停用、锁定、已清除的账号不能申请。
     private static bool Eligible(Person person) => person.Status == AccountStatuses.Active && !person.PlatformAccess;
 
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 
-    private static QianErrorException RateLimited(TimeSpan retryAfter)
+    private static ErrorException RateLimited(TimeSpan retryAfter)
     {
-        var error = new QianErrorException(new QianError(PlatformErrors.RateLimited));
+        var error = new ErrorException(new Error(PlatformErrors.RateLimited));
         error.Data[TenancySignupErrors.RetryAfterDataKey] = (int)Math.Clamp(Math.Ceiling(retryAfter.TotalSeconds), 1, 86400);
         return error;
     }
@@ -110,15 +110,15 @@ internal sealed partial class TenantSignupService : ITenantSignup, IDisposable
     private static readonly Dictionary<string, string> AccountPointers = new(StringComparer.Ordinal)
     { ["#/display_name"] = "#/displayName", ["#/new_password"] = "#/password", ["#/identifiers"] = "#", ["#/identifiers/0/value"] = "#" };
 
-    private static QianErrorException Remap(QianErrorException error)
+    private static ErrorException Remap(ErrorException error)
     {
         string Map(string pointer) => AccountPointers.TryGetValue(pointer, out var mapped) ? mapped : "#";
         var source = error.Error;
         if (source.Pointer is null && source.Errors.Count == 0) return error;
-        return new QianErrorException(new QianError(source.Code, source.Args)
+        return new ErrorException(new Error(source.Code, source.Args)
         {
             Pointer = source.Pointer is null ? null : Map(source.Pointer), Allowed = source.Allowed,
-            Errors = [.. source.Errors.Select(item => new QianFieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
+            Errors = [.. source.Errors.Select(item => new FieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
         }, error);
     }
 

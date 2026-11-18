@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Signup;
 
@@ -72,7 +72,7 @@ internal sealed partial class TenantSignupService
                 if (row.Attempts >= _options.MaxAttempts) row.ConsumedAt = now;
                 await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-                throw new QianErrorException(new QianError(TenancySignupErrors.CodeInvalid, new Dictionary<string, string> { ["remaining"] = Text(_options.MaxAttempts - row.Attempts) }));
+                throw new ErrorException(new Error(TenancySignupErrors.CodeInvalid, new Dictionary<string, string> { ["remaining"] = Text(_options.MaxAttempts - row.Attempts) }));
             }
             row.ConsumedAt = now;
             await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -229,7 +229,7 @@ internal sealed partial class TenantSignupService
             return await Accounts.CreatePersonAsync(new CreatePerson(displayName, [new IdentifierInput(IdentifierKind.Phone, phone, true)])
             { InitialPassword = proof, RequirePasswordChange = false, PlatformAccess = false }, ct).ConfigureAwait(false);
         }
-        catch (QianErrorException error) { throw Remap(error); }
+        catch (ErrorException error) { throw Remap(error); }
     }
 
     // 号码刚经验证码核验，而它在这个账号上没有经本人验证：申请人认领这个账号（R163），换成他设的密码与填写的姓名，
@@ -239,8 +239,8 @@ internal sealed partial class TenantSignupService
         using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(password));
         try { return await Accounts.ClaimPersonAsync(new PersonClaim(personId, phone, displayName, proof), ct).ConfigureAwait(false); }
         // 端口在锁住账号后复核：期间账号加入了企业、被停用或号码已被验证时不认领，按账号不可申请处理。
-        catch (QianErrorException error) when (error.Error.Code == PlatformErrors.Conflict) { throw Error(TenancySignupErrors.AccountUnavailable); }
-        catch (QianErrorException error) { throw Remap(error); }
+        catch (ErrorException error) when (error.Error.Code == PlatformErrors.Conflict) { throw Error(TenancySignupErrors.AccountUnavailable); }
+        catch (ErrorException error) { throw Remap(error); }
     }
 
     // 账号能否用于自助开通：启用的普通账号；号码在账号上未经本人验证时，还须没有加入任何企业（R163）——已在企业中使用的账号，
@@ -273,7 +273,7 @@ internal sealed partial class TenantSignupService
         return await session.Context.Applications.AnyAsync(a => a.Code == code && SignupStatuses.Open.Contains(a.Status) && a.Id != except, ct).ConfigureAwait(false);
     }
 
-    private static QianErrorException CodeTaken() => new(new QianError(TenancySignupErrors.CodeTaken) { Pointer = "#/code" });
+    private static ErrorException CodeTaken() => new(new Error(TenancySignupErrors.CodeTaken) { Pointer = "#/code" });
 
     private sealed record Resolved(SignupSessionRow Session, Person? Person);
 

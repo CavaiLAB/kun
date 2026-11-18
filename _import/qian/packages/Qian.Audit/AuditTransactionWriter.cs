@@ -4,7 +4,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Npgsql;
 using NpgsqlTypes;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit;
 
@@ -109,5 +109,5 @@ internal static class AuditTransactionWriter
         using var document = JsonDocument.Parse(json); var row = document.RootElement;
         return AuditProtocol.ReadEntry(row);
     }
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 }

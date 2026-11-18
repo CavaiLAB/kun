@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.Native.Postgres;
 
@@ -44,6 +44,6 @@ public sealed class NativeDataComponent : IQianPlugin
 
 internal static class NativeErrors
 {
-    internal static QianErrorException Invalid() => new(new QianError(NativeDataErrors.Misconfigured));
-    internal static QianErrorException Denied() => new(new QianError(PlatformErrors.AuthzDenied));
+    internal static ErrorException Invalid() => new(new Error(NativeDataErrors.Misconfigured));
+    internal static ErrorException Denied() => new(new Error(PlatformErrors.AuthzDenied));
 }

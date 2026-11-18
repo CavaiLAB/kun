@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Qian.Events;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Signup;
 
@@ -170,13 +170,13 @@ internal sealed partial class TenantSignupService
         catch (Exception error)
         {
             // 只记稳定原因码，不记异常消息：Qian 错误码、编排步骤的原因码，其余一律 step_failed（与开通编排的步骤表同口径）。
-            failure = error switch { QianErrorException qian => qian.Error.Code.Code, StepIncompleteException step => step.Reason, _ => "step_failed" };
+            failure = error switch { ErrorException qian => qian.Error.Code.Code, StepIncompleteException step => step.Reason, _ => "step_failed" };
             cause = error;
             // 编排在第 01 步之后失败时没有返回租户：按租户号找回它建的那个租户（CONFLICT 表示同号租户不是这份输入建的，不认领）。
             if (tenantId is null && failure != PlatformErrors.Conflict.Code)
             {
                 try { tenantId = (await Directory.GetAsync(row.Code, ct).ConfigureAwait(false))?.Id; }
-                catch (QianErrorException) { }
+                catch (ErrorException) { }
             }
         }
         await using (var session = await OpenAsync(ct).ConfigureAwait(false))
@@ -224,7 +224,7 @@ internal sealed partial class TenantSignupService
                 {
                     steps = [.. (await Provisioning.GetStepsAsync(tenant, ct).ConfigureAwait(false)).Select(step => new SignupProvisionStep(step.Step, step.Status, step.Attempts) { Reason = step.Reason })];
                 }
-                catch (QianErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { }
+                catch (ErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { }
             }
             provisioning = new SignupProvisioning(row.Attempts, steps) { TenantId = row.ProvisionedTenantId, MembershipId = row.MembershipId, FailureReason = row.FailureReason };
         }

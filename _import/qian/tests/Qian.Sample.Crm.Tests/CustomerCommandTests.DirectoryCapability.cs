@@ -14,7 +14,7 @@ using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 
 namespace Qian.Sample.Crm.Tests;
@@ -74,17 +74,17 @@ public sealed partial class IdentityAuthzTests
             var check = schema.Evaluate(entry, new EvaluationOptions { OutputFormat = OutputFormat.List }); Assert.True(check.IsValid, JsonSerializer.Serialize(check));
             var key = Guid.CreateVersion7(); var input = JsonSerializer.SerializeToElement(new { idempotencyKey = key, membershipIds = new[] { adminMember.Id, targetMember.Id }, reason = "private-reason-sentinel" });
             current.Snapshot = nonAdministrator.Principal!;
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
             current.Snapshot = administrator.Principal!;
-            Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller.Scoped(new ScopeKey("tenant", B)), input, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller.Scoped(new ScopeKey("tenant", B)), input, Ct).AsTask())).Error.Code.Code);
             // 已认证主体快照里的会话必须确实属于此人，不能仅凭几个已知 UUID 通过身份校验。
             var forged = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(administrator.Principal, IdentityJson.PrincipalTypeInfo))!;
             forged["session_id"] = nonAdministrator.Principal.SessionId;
             current.Snapshot = forged.Deserialize(IdentityJson.PrincipalTypeInfo)!;
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
             current.Snapshot = administrator.Principal!;
             var smuggled = JsonSerializer.SerializeToElement(new { idempotencyKey = key, membershipIds = new[] { targetMember.Id }, reason = "test", tenantId = B, sessionId = administrator.Principal.SessionId });
-            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, current, id, smuggled, key, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<ErrorException>(() => service.InvokeAsync(caller, current, id, smuggled, key, Ct).AsTask())).Error.Code.Code);
             Assert.Empty(await AdminRows("SELECT idempotency_key FROM plugin_qian_capabilities.invoke_receipts WHERE capability_id = '" + id + "'"));
             var first = await service.InvokeAsync(caller, current, id, input, key, Ct);
             Assert.False(first.Replayed); Assert.Equal("PARTIAL_SUCCESS", first.Output.GetProperty("status").GetString());
@@ -96,7 +96,7 @@ public sealed partial class IdentityAuthzTests
             Assert.True(replay.Replayed); Assert.True(JsonElement.DeepEquals(first.Output, replay.Output));
             Assert.Equal(AccountStatuses.Active, (await loader.GetContext("identity", ScopeKey.Global).Identity().GetMembershipAsync(targetMember.Id, Ct))!.Status);
             var changed = JsonSerializer.SerializeToElement(new { idempotencyKey = key, membershipIds = new[] { regular.Id }, reason = "changed" });
-            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, current, id, changed, key, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => service.InvokeAsync(caller, current, id, changed, key, Ct).AsTask())).Error.Code.Code);
             Assert.Single(await AdminRows("SELECT idempotency_key FROM plugin_qian_capabilities.invoke_receipts WHERE capability_id = '" + id + "'"));
             var records = (await ReadTenantChain(caller.Audit())).Where(row => row.Record.CapabilityId == id).ToArray();
             Assert.Equal(2, records.Length); Assert.DoesNotContain("private-reason-sentinel", JsonSerializer.Serialize(records), StringComparison.Ordinal);
@@ -104,9 +104,9 @@ public sealed partial class IdentityAuthzTests
             Assert.Single(await AdminRows("SELECT id FROM plugin_qian_identity.outbox_messages WHERE event_type_id = 'identity.session_revoked.v1'"));
             // 即使可信宿主仍持旧快照，已被服务器撤销的管理员会话也不能再次执行新键。
             await loader.GetContext("identity", ScopeKey.Global).Identity().RevokeSessionsAsync(new SessionRevocation(admin.Id, Guid.Parse(administrator.Principal!.SessionId), "test_revoke", Guid.NewGuid().ToString()), Ct);
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
             await loader.UnmountAsync("identity", ScopeKey.Global, Ct);
-            Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
         }
         finally { accessor.HttpContext = before; }
 

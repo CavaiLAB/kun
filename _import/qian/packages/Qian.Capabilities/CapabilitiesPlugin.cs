@@ -9,7 +9,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Tenancy;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Capabilities;
@@ -28,7 +28,7 @@ public sealed class CapabilitiesPlugin : IQianPlugin
     public async ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(ctx); ct.ThrowIfCancellationRequested();
-        if (ctx.Scope != ScopeKey.Global) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (ctx.Scope != ScopeKey.Global) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var options = CapabilitiesOptions.Parse(config);
         ctx.Effect(CapabilitiesErrors.Register(ctx.Services.GetRequiredService<ErrorCatalog>()));
         var loggers = ctx.Services.GetService<ILoggerFactory>();

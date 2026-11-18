@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Plugin.Sdk.Tests;
 
@@ -27,7 +27,7 @@ public sealed class CommandBoundaryTests
         using var provider = services.BuildServiceProvider(); await using var runtime = new PluginLoader(provider);
         await runtime.MountAsync([Define("source", "qian.sdk-tests", source)], ct);
         using var scope = tenant.BeginScope(Tenant);
-        var error = await Assert.ThrowsAsync<QianErrorException>(() => provider.GetRequiredService<ISender>().Send(new CreateRequest(Guid.CreateVersion7(), "never execute"), ct).AsTask());
+        var error = await Assert.ThrowsAsync<ErrorException>(() => provider.GetRequiredService<ISender>().Send(new CreateRequest(Guid.CreateVersion7(), "never execute"), ct).AsTask());
         Assert.Equal("AUTHZ_DENIED", error.Error.Code.Code); Assert.Equal(0, provider.GetRequiredService<HandlerCounter>().Calls); Assert.Equal(0, provider.GetRequiredService<HandlerCounter>().Constructors);
         // 故意不登记数据 Provider；若管道提前打开业务连接，这里会得到不同的错误。
     }
@@ -62,7 +62,7 @@ public sealed class CommandBoundaryTests
         using var provider = new ServiceCollection().BuildServiceProvider(); await using var runtime = new PluginLoader(provider);
         await runtime.MountAsync([Define("foreign", "qian.sdk-tests", new ForeignPolicy())], ct);
         Assert.Equal(PluginState.Failed, runtime.GetState("foreign", ScopeKey.Global));
-        Assert.Equal("AUTHZ_DENIED", Assert.IsType<QianErrorException>(runtime.GetFailure("foreign", ScopeKey.Global)).Error.Code.Code);
+        Assert.Equal("AUTHZ_DENIED", Assert.IsType<ErrorException>(runtime.GetFailure("foreign", ScopeKey.Global)).Error.Code.Code);
     }
 
     private const string Tenant = "01900000-0000-7000-8000-000000000001";

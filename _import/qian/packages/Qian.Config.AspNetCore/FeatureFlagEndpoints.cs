@@ -9,8 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Capabilities;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Config.AspNetCore;
 
@@ -30,11 +30,11 @@ public static class FeatureFlagEndpoints
                 var principal = user?.Principal;
                 if (user is not { IsAuthenticated: true } || principal is null || user.UserId != principal.Subject ||
                     http.User.Identity?.IsAuthenticated != true || http.User.FindFirst("sub")?.Value != principal.Subject)
-                    throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+                    throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
                 if (principal.TenantId is not null || principal.Kind != PrincipalKind.User || principal.Actor is not null ||
                     http.User.Claims.Any(claim => claim.Type == "tenant_id" && !string.IsNullOrEmpty(claim.Value)))
-                    throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
-                if (!http.Request.HasJsonContentType()) throw new QianErrorException(new QianError(PlatformErrors.UnsupportedMediaType));
+                    throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
+                if (!http.Request.HasJsonContentType()) throw new ErrorException(new Error(PlatformErrors.UnsupportedMediaType));
                 var bytes = new byte[65_537]; var length = 0;
                 while (length < bytes.Length)
                 {
@@ -42,18 +42,18 @@ public static class FeatureFlagEndpoints
                     if (read == 0) break;
                     length += read;
                 }
-                if (length == bytes.Length) throw new QianErrorException(new QianError(PlatformErrors.PayloadTooLarge));
+                if (length == bytes.Length) throw new ErrorException(new Error(PlatformErrors.PayloadTooLarge));
                 FeatureFlagDraft request;
                 try { request = JsonSerializer.Deserialize(bytes.AsSpan(0, length), FlagHttpJson.Default.FeatureFlagDraft) ?? throw new JsonException(); }
-                catch (JsonException) { throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)); }
+                catch (JsonException) { throw new ErrorException(new Error(PlatformErrors.InputInvalid)); }
                 var context = source(http);
-                if (context.Scope != ScopeKey.Global) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                if (context.Scope != ScopeKey.Global) throw new ErrorException(new Error(PlatformErrors.NotFound));
                 var result = await context.Inject<IFeatureFlagDrafts>(FeatureFlagManagement.Key).SetAsync(request, http.RequestAborted).ConfigureAwait(false);
                 await Results.Json(result, FlagHttpJson.Default.FeatureFlagDraftResult).ExecuteAsync(http).ConfigureAwait(false);
             }
-            catch (QianErrorException error) { await QianResults.Error(error.Error).ExecuteAsync(http).ConfigureAwait(false); }
+            catch (ErrorException error) { await KunResults.Error(error.Error).ExecuteAsync(http).ConfigureAwait(false); }
             catch (Exception error) when (error is ObjectDisposedException or ServiceNotReadyException or KeyNotFoundException)
-            { await QianResults.Error(new QianError(PlatformErrors.NotFound)).ExecuteAsync(http).ConfigureAwait(false); }
+            { await KunResults.Error(new Error(PlatformErrors.NotFound)).ExecuteAsync(http).ConfigureAwait(false); }
         })).RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = "Bearer" })
             .WithMetadata(new PlatformHttpContract("qian.config.flags"), new RequiresPermissionAttribute(FeatureFlagManagement.SetPermission))
             .WithMetadata(new Microsoft.AspNetCore.Http.Metadata.AcceptsMetadata(["application/json"], typeof(FeatureFlagDraft), false),

@@ -1,5 +1,5 @@
 using Qian.Profiles.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Docs.Abstractions;

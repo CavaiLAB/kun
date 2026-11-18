@@ -3,7 +3,7 @@ using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Registry;
 
@@ -15,7 +15,7 @@ internal sealed partial class RegistryService
         ArgumentNullException.ThrowIfNull(user); ArgumentNullException.ThrowIfNull(request);
         var principal = user.Principal;
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject)
-            throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+            throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         // 目标只来自路径；普通租户不能靠路径切换上下文，平台主体也不能从委托或服务身份升级为超管。
         if (!Guid.TryParseExact(tenantId, "D", out var tenantGuid) || tenantGuid.ToString("D") != tenantId ||
             scope.Kind != "tenant" || scope.Id != tenantId || principal.Actor is not null ||
@@ -29,7 +29,7 @@ internal sealed partial class RegistryService
         {
             // R32：只有同时持有诊断读取权限者可获知原因，其他主体仍只看到 404。
             await AuthorizeAsync(scope, user, cancellationToken).ConfigureAwait(false);
-            throw new QianErrorException(new QianError(RegistryErrors.NotEntitled,
+            throw new ErrorException(new Error(RegistryErrors.NotEntitled,
                 new Dictionary<string, string> { ["reason"] = "权益服务不可用，拒绝租户 scope 写入。" }));
         }
         if (string.IsNullOrWhiteSpace(entryId) || entryId.Length > 128 || entryId.Any(char.IsControl)) throw NotFound();
@@ -38,7 +38,7 @@ internal sealed partial class RegistryService
             !patch.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.String || id.GetString() != entryId)
             throw Invalid("#/patch", "patch.id 必须与路径条目一致，revision 必须为非负整数。");
         if (System.Text.Encoding.UTF8.GetByteCount(patch.GetRawText()) > 1_048_576)
-            throw new QianErrorException(new QianError(PlatformErrors.PayloadTooLarge));
+            throw new ErrorException(new Error(PlatformErrors.PayloadTooLarge));
         // 先用同一 patch/v2 解析器校验所有字段；禁用入口不能静默吞掉非法配置、租户字段或未知字段。
         var read = _options.Surfaces.Parse("registry/scope-patches.json", patch.GetRawText());
         if (read.Syntax is null || read.Diagnostics.Any(item => item.Severity == "error") ||
@@ -57,8 +57,8 @@ internal sealed partial class RegistryService
                 ? await lifecycle.UnmountAtRevisionAsync(scope, entryId, request.Revision, principal.Subject, cancellationToken).ConfigureAwait(false)
                 : await lifecycle.MountAtRevisionAsync(scope, patch, request.Revision, principal.Subject, cancellationToken).ConfigureAwait(false);
         }
-        catch (QianErrorException error) when (error.Error.Code.Code == RegistryErrors.RevisionConflict.Code)
-        { throw new QianErrorException(new QianError(PlatformErrors.Conflict)); }
+        catch (ErrorException error) when (error.Error.Code.Code == RegistryErrors.RevisionConflict.Code)
+        { throw new ErrorException(new Error(PlatformErrors.Conflict)); }
         return new RegistryScopePatchResult(result.Scope, result.EntryId, result.Revision, result.State, result.ReasonCode);
     }
 }

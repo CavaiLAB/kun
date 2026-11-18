@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Client;
 
@@ -43,5 +43,5 @@ internal sealed class IdentityClientService(IHttpContextAccessor accessor, IServ
     public IIdentityConnector? Find(string name) => null;
     public IReadOnlyList<ConnectorDescriptor> List() => [];
 
-    private static QianErrorException Unsupported() => new(new QianError(IdentityErrors.OperationUnsupported));
+    private static ErrorException Unsupported() => new(new Error(IdentityErrors.OperationUnsupported));
 }

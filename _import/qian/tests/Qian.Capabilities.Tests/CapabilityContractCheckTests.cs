@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using Qian.Plugin.Sdk;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 
 namespace Qian.Capabilities.Tests;
@@ -51,7 +51,7 @@ public sealed class CapabilityContractCheckTests
         validator.Prepare(validKey, valid.GetProperty("inputSchema"));
         Assert.True(validator.IsPrepared(validKey));
         validator.Validate(valid, Json("""{"a":{},"b":{"q":"s"},"x/y":1}"""));
-        Assert.Equal("TYPE_MISMATCH", Assert.Throws<QianErrorException>(() => validator.Validate(valid, Json("""{"b":{"q":1}}"""))).Error.Errors![0].Code.Code);
+        Assert.Equal("TYPE_MISMATCH", Assert.Throws<ErrorException>(() => validator.Validate(valid, Json("""{"b":{"q":1}}"""))).Error.Errors![0].Code.Code);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class CapabilityContractCheckTests
         Assert.Equal(3, logger.Messages.Count);
 
         // HTTP 契约生成走同一套检查，按 INPUT_INVALID 报告，登记拒绝留在 InnerException。
-        var openApi = Assert.Throws<QianErrorException>(() => CapabilityContractCompiler.CreateOpenApi([contract], new SurfaceValidator(), new ToolContractHasher()));
+        var openApi = Assert.Throws<ErrorException>(() => CapabilityContractCompiler.CreateOpenApi([contract], new SurfaceValidator(), new ToolContractHasher()));
         Assert.Equal("INPUT_INVALID", openApi.Error.Code.Code);
         Assert.Equal("tenant-field", Assert.IsType<CapabilityContractException>(openApi.InnerException).Rule);
     }
@@ -166,7 +166,7 @@ public sealed class CapabilityContractCheckTests
         Assert.Equal([true, false, false, true, true], entries.Select(entry => validator.IsPrepared(Key(entry))));
         Assert.Equal(3, validator.Count);
         // 被淘汰的在执行时重新编译，结论不变；这次淘汰的是此时最久没用的第 0 个。
-        Assert.Equal("TYPE_MISMATCH", Assert.Throws<QianErrorException>(() => validator.Validate(entries[1], Json("""{"p1":1}"""))).Error.Errors![0].Code.Code);
+        Assert.Equal("TYPE_MISMATCH", Assert.Throws<ErrorException>(() => validator.Validate(entries[1], Json("""{"p1":1}"""))).Error.Errors![0].Code.Code);
         Assert.Equal([false, true, false, true, true], entries.Select(entry => validator.IsPrepared(Key(entry))));
         Assert.Throws<ArgumentOutOfRangeException>(() => new CapabilityInputValidator(capacity: 0));
     }
@@ -186,7 +186,7 @@ public sealed class CapabilityContractCheckTests
         Assert.Contains("qian.test", message, StringComparison.Ordinal); Assert.Contains("probe.amounts", message, StringComparison.Ordinal);
         Assert.Equal((LogLevel.Error, 2), (logger.Levels.Single(), logger.Events.Single()));
         // S1-RT-021 用来触发的输入（uniqueItems 比较 1e400）现在求值前就按 BAD_REQUEST 拒绝，不再走到这里。
-        Assert.Equal("BAD_REQUEST", Assert.Throws<QianErrorException>(() => validator.Validate(entry, Json("""{"amounts":[1e400,1e401]}"""))).Error.Code.Code);
+        Assert.Equal("BAD_REQUEST", Assert.Throws<ErrorException>(() => validator.Validate(entry, Json("""{"amounts":[1e400,1e401]}"""))).Error.Code.Code);
         Assert.Single(logger.Messages);
     }
 
@@ -207,13 +207,13 @@ public sealed class CapabilityContractCheckTests
             // 不在比较位置上的超大数同样拒绝：规则只看输入本身，与 Schema 无关。
             (fixedValue, """{"x":1,"y":{"z":[0,1e29]}}"""),
         })
-            Assert.Equal("BAD_REQUEST", Assert.Throws<QianErrorException>(() => validator.Validate(entry, Json(input))).Error.Code.Code);
+            Assert.Equal("BAD_REQUEST", Assert.Throws<ErrorException>(() => validator.Validate(entry, Json(input))).Error.Code.Code);
         Assert.Empty(logger.Messages);
 
         // decimal.MaxValue 本身与下溢的 1e-400（按 0 比较）照常进入校验：通过，或按 Schema 报字段级错误。
         validator.Validate(unique, Json("""{"x":[79228162514264337593543950335,-79228162514264337593543950335,1e-400]}"""));
-        Assert.Equal([("VALUE_NOT_ALLOWED", "#/x")], Fields(Assert.Throws<QianErrorException>(() => validator.Validate(choice, Json("""{"x":79228162514264337593543950335}""")))));
-        Assert.Equal([("VALUE_NOT_ALLOWED", "#/x")], Fields(Assert.Throws<QianErrorException>(() => validator.Validate(fixedValue, Json("""{"x":1e-400}""")))));
+        Assert.Equal([("VALUE_NOT_ALLOWED", "#/x")], Fields(Assert.Throws<ErrorException>(() => validator.Validate(choice, Json("""{"x":79228162514264337593543950335}""")))));
+        Assert.Equal([("VALUE_NOT_ALLOWED", "#/x")], Fields(Assert.Throws<ErrorException>(() => validator.Validate(fixedValue, Json("""{"x":1e-400}""")))));
         Assert.Empty(logger.Messages);
     }
 
@@ -290,7 +290,7 @@ public sealed class CapabilityContractCheckTests
         });
     }
 
-    private static (string Code, string Pointer)[] Fields(QianErrorException error) =>
+    private static (string Code, string Pointer)[] Fields(ErrorException error) =>
         error.Error.Errors!.Select(item => (item.Code.Code, item.Pointer)).ToArray();
 
     private static JsonElement Json(string text)

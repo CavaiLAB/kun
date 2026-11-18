@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Abstractions.Tests;
 
@@ -74,7 +74,7 @@ public sealed class ConnectorManifestTests
             Pointers(Descriptor(schema: Schema("""{"type":"object","additionalProperties":false,"properties":{"apiKey":{"type":"string","x-qian-sensitive":true}}}"""))));
         Assert.Equal(["#/configSchema/properties/privateKey/pattern"],
             Pointers(Descriptor(schema: Schema("""{"type":"object","additionalProperties":false,"properties":{"privateKey":{"type":"string","x-qian-sensitive":true,"pattern":".*"}}}"""))));
-        var error = Assert.Throws<QianErrorException>(() => ConnectorManifest.Validate(Descriptor(id: "Bad", schema: Schema("""{"type":"object"}"""))));
+        var error = Assert.Throws<ErrorException>(() => ConnectorManifest.Validate(Descriptor(id: "Bad", schema: Schema("""{"type":"object"}"""))));
         Assert.Equal(PlatformErrors.InputInvalid, error.Error.Code);
         Assert.Equal(["#/id", "#/configSchema/additionalProperties"], error.Error.Errors!.Select(e => e.Pointer));
     }
@@ -143,11 +143,11 @@ public sealed class ConnectorManifestTests
         throw new InvalidOperationException("找不到仓库根目录。");
     }
 
-    private static async Task<QianErrorException> Mount(PluginLoader runtime, string id, IQianPlugin plugin)
+    private static async Task<ErrorException> Mount(PluginLoader runtime, string id, IQianPlugin plugin)
     {
         await runtime.MountAsync([new(new PluginEntry(id, "test.connectors", "1.0.0", ScopeKey.Global, 0, Schema("{}")), plugin, [])], Ct);
         Assert.Equal(PluginState.Failed, runtime.GetState(id, ScopeKey.Global));
-        return Assert.IsType<QianErrorException>(runtime.GetFailure(id, ScopeKey.Global));
+        return Assert.IsType<ErrorException>(runtime.GetFailure(id, ScopeKey.Global));
     }
 
     private sealed class Registers(params (string Name, IIdentityConnector Connector)[] connectors) : IQianPlugin

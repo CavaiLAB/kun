@@ -2,7 +2,7 @@ using System.Collections.Frozen;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Apollo;
 
@@ -26,7 +26,7 @@ internal sealed partial class FeatureFlagsService : IFeatureFlags, IDisposable
         catch (InvalidDataException)
         {
             _reload.Dispose();
-            throw new QianErrorException(new QianError(ConfigErrors.ReloadRejected,
+            throw new ErrorException(new Error(ConfigErrors.ReloadRejected,
                 new Dictionary<string, string> { ["section"] = FeatureFlagRules.Namespace }));
         }
         catch { _reload.Dispose(); throw; }

@@ -11,7 +11,7 @@ using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 var stage = "平台检查";
 try
@@ -57,7 +57,7 @@ try
         var conflicting = new AuditRecord(record.Id, a, "service", "conflicting", null, record.CapabilityId, record.ContractVersion,
             record.InputHash, record.Channel, record.Resource, record.Result, record.TraceId, record.OccurredAt, record.Payload);
         try { await audit.AppendAsync(conflicting); throw new InvalidOperationException("冲突未拒绝"); }
-        catch (QianErrorException error) when (error.Error.Code.Code == "CONFLICT") { }
+        catch (ErrorException error) when (error.Error.Code.Code == "CONFLICT") { }
         var read = await audit.ReadAsync(0, 10);
         Ensure(read.Count == 1 && read[0].ContentHash == AuditProtocol.Hash(read[0].Record, 1, null), "全部字段可读且共享协议重放");
         Ensure((await audit.VerifyAsync()) is { Valid: true, CheckedEntries: 1 }, "租户全链验证");

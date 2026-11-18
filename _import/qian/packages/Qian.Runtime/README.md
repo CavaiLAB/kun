@@ -1,6 +1,6 @@
 # Qian.Runtime
 
-依据：[组件模型规格 §5](../../docs/prd/specs/component-model.md#5-运行时模型)。此包提供 .NET 10 的上下文、服务键、事件、效果栈与装载器，引用已有的 `Qian.Runtime.Errors`。
+依据：[组件模型规格 §5](../../docs/prd/specs/component-model.md#5-运行时模型)。此包提供 .NET 10 的上下文、服务键、事件、效果栈与装载器，引用已有的 `Kun.Errors`。
 
 ## 装配位置
 
@@ -51,13 +51,13 @@ emit 使用 `Func<P, ValueTask>`；waterfall 使用 `Func<P, Func<ValueTask<R>>,
 
 ## scope 与模型体验
 
-`Scoped` 共享条目效果栈，指定的 tenant、app 与 agent-session 彼此独立。同 `(key, name)` 的 scoped 注册遮蔽全局注册；restriction 只过滤目标 scope 的全局注册，多条取交集。目录 `List`、注入和事件执行使用同一可见性规则。被过滤的具名注册与不存在的注册均抛携带 `NOT_FOUND` 的 `QianErrorException`，不暴露过滤原因。监听器目录名为条目 id 加本次 Apply 内的事件序号；同条目不同 scope 的同序号监听器可遮蔽。
+`Scoped` 共享条目效果栈，指定的 tenant、app 与 agent-session 彼此独立。同 `(key, name)` 的 scoped 注册遮蔽全局注册；restriction 只过滤目标 scope 的全局注册，多条取交集。目录 `List`、注入和事件执行使用同一可见性规则。被过滤的具名注册与不存在的注册均抛携带 `NOT_FOUND` 的 `ErrorException`，不暴露过滤原因。监听器目录名为条目 id 加本次 Apply 内的事件序号；同条目不同 scope 的同序号监听器可遮蔽。
 
 restriction 谓词应为无副作用的纯函数，抛异常时记录日志并按不可见处理。模型可见工具与目录消费方每次调用时都从当前 scope 重新解析；业务鉴权与租户策略由相应插件的事件监听器实施。scope 不推测任何业务 lineage。
 
 ## 错误桥接与包源
 
-`KunErrorBridge.ToQianError()` 按 `ErrorType` 映射内置码；未指定领域错误码的 `DomainException` 映射到 `BUSINESS_RULE_VIOLATED`。原始 Kun 文案不进入 ErrorDetail。Kun 校验异常的 HTTP 桥接由 `Qian.Runtime.Errors.AspNetCore` 承担，只有该包引用 `Kun.Validation`。
+`KunErrorBridge.ToQianError()` 按 `ErrorType` 映射内置码；未指定领域错误码的 `DomainException` 映射到 `BUSINESS_RULE_VIOLATED`。原始 Kun 文案不进入 ErrorDetail。Kun 校验异常的 HTTP 桥接由 `Kun.Errors.AspNetCore` 承担，只有该包引用 `Kun.Validation`。
 
 Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020），不再从 nuget.org 还原 `Kun.*`。启动诊断新增的 `DEPENDENCY_MISSING`、`DEPENDENCY_CYCLE` 与注册冲突码均在平台目录中，owner 为 `qian.runtime`。
 

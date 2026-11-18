@@ -6,7 +6,7 @@ using Qian.Data;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 
@@ -44,7 +44,7 @@ public sealed partial class PatchPersistenceTests
         await writer.PutAsync(TenantA, "shared", Patch("""{"id":"shared","disabled":true}"""), 2, "operator-a", Ct);
         await WithinFiveSeconds(() => !running.Commands(TenantA).Contains("test.shared/hello", StringComparer.Ordinal));
         Assert.Equal(["test.private/hello"], running.Commands(TenantA));
-        var hidden = Assert.Throws<QianErrorException>(() => running.Root.Scoped(TenantA).Inject<SurfaceDocument>(SurfaceKeys.Commands, "test.shared/hello"));
+        var hidden = Assert.Throws<ErrorException>(() => running.Root.Scoped(TenantA).Inject<SurfaceDocument>(SurfaceKeys.Commands, "test.shared/hello"));
         Assert.Equal("NOT_FOUND", hidden.Error.Code.Code);
         Assert.Equal(["test.shared/hello"], running.Commands(TenantB));
 

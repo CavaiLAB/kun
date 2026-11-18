@@ -6,8 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Authz.AspNetCore;
 
@@ -27,9 +27,9 @@ public static class AuthzEndpoints
             http.Response.Headers.CacheControl = "private, no-store";
             var user = http.RequestServices.GetRequiredService<ICurrentUser>();
             var principal = user.Principal;
-            if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject) return QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
+            if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject) return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
             // S1 不接受委托令牌与 Agent 主体，不能把未实现的委托解析静默当成普通调用。
-            if (principal.Actor is not null || principal.Kind is not (PrincipalKind.User or PrincipalKind.Service)) return QianResults.Error(new QianError(PlatformErrors.AuthzDenied));
+            if (principal.Actor is not null || principal.Kind is not (PrincipalKind.User or PrincipalKind.Service)) return KunResults.Error(new Error(PlatformErrors.AuthzDenied));
             var subject = new AuthorizationSubject(principal.Subject, principal.TenantId, principal.Kind == PrincipalKind.User ? "user" : "service");
             try
             {
@@ -38,22 +38,22 @@ public static class AuthzEndpoints
                     grant.Definition.PluginId + ":" + grant.Definition.Resource, grant.Definition.Action, grant.Definition.Risk, grant.Definition.RequiresStepUp,
                     grant.Definition.Terminals, grant.Allowed, grant.Reason)).ToArray())), AuthzHttpJson.Default.AuthzPermissionList);
             }
-            catch (QianErrorException error) { return QianResults.Error(error.Error); }
+            catch (ErrorException error) { return KunResults.Error(error.Error); }
             // 授权组件尚未就绪或已卸载时与不存在无法区分。
-            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
         }).RequireAuthorization().Produces<AuthzPermissionList>();
         endpoints.MapGet("/api/authz/meta", (HttpContext http) =>
         {
             http.Response.Headers.CacheControl = "private, no-store";
             var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
-            if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject) return QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
-            if (principal.Actor is not null || principal.Kind is not (PrincipalKind.User or PrincipalKind.Service)) return QianResults.Error(new QianError(PlatformErrors.AuthzDenied));
+            if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject) return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
+            if (principal.Actor is not null || principal.Kind is not (PrincipalKind.User or PrincipalKind.Service)) return KunResults.Error(new Error(PlatformErrors.AuthzDenied));
             try
             {
                 _ = source(http).Authz(); // 必须有当前 scope 可见且仍挂载的真实 Provider。
                 return Results.Json(DataScopeContracts.Metadata, AuthzHttpJson.Default.JsonElement);
             }
-            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
         }).RequireAuthorization();
         return endpoints;
     }

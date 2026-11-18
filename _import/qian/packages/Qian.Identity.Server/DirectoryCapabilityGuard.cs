@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server;
 
@@ -34,6 +34,6 @@ internal static class DirectoryCapabilityGuard
         return (tenantId, personId);
     }
 
-    internal static QianErrorException Missing() => new(new QianError(PlatformErrors.NotFound));
-    internal static QianErrorException Denied() => new(new QianError(PlatformErrors.AuthzDenied));
+    internal static ErrorException Missing() => new(new Error(PlatformErrors.NotFound));
+    internal static ErrorException Denied() => new(new Error(PlatformErrors.AuthzDenied));
 }

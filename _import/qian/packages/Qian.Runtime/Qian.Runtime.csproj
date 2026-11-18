@@ -12,6 +12,6 @@
     <ProjectReference Include="../../../../src/Kun.Core/Kun.Core.csproj" />
     <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <ProjectReference Include="../Qian.Runtime.Errors/Qian.Runtime.Errors.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Errors/Kun.Errors.csproj" />
   </ItemGroup>
 </Project>

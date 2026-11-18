@@ -20,15 +20,15 @@ Qian.Authz.Abstractions.PermissionRisk.High = 2 -> Qian.Authz.Abstractions.Permi
 Qian.Authz.Abstractions.PermissionRisk.Low = 0 -> Qian.Authz.Abstractions.PermissionRisk
 Qian.Authz.Abstractions.PermissionRisk.Medium = 1 -> Qian.Authz.Abstractions.PermissionRisk
 static Qian.Authz.Abstractions.AuthzDefinition.Authz(this Qian.Runtime.IPluginContext! context) -> Qian.Authz.Abstractions.IAuthzService!
-static Qian.Authz.Abstractions.AuthzErrors.All.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.ErrorCode!>!
-static Qian.Authz.Abstractions.AuthzErrors.Register(Qian.Runtime.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Qian.Authz.Abstractions.AuthzErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
+static Qian.Authz.Abstractions.AuthzErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 static Qian.Authz.Abstractions.PermissionCode.Format(string! pluginId, string! resource, string! action) -> string!
 static Qian.Authz.Abstractions.PermissionCode.IsValid(string? value) -> bool
 static readonly Qian.Authz.Abstractions.AuthzDefinition.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Authz.Abstractions.AuthzErrors.CardinalityUserLimit -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Authz.Abstractions.AuthzErrors.ConstraintMutex -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Authz.Abstractions.AuthzErrors.Denied -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Authz.Abstractions.AuthzErrors.PartialSuccess -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Authz.Abstractions.AuthzErrors.CardinalityUserLimit -> Kun.Errors.ErrorCode!
+static readonly Qian.Authz.Abstractions.AuthzErrors.ConstraintMutex -> Kun.Errors.ErrorCode!
+static readonly Qian.Authz.Abstractions.AuthzErrors.Denied -> Kun.Errors.ErrorCode!
+static readonly Qian.Authz.Abstractions.AuthzErrors.PartialSuccess -> Kun.Errors.ErrorCode!
 Qian.Authz.Abstractions.AuthorizedHandlerRegistration
 static Qian.Authz.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Core.Results.Error!, TResponse>! denied) -> Kun.Mediator.KunMediatorBuilder!
 static Qian.Authz.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Core.Results.Error!, TResponse>! denied, string! capabilityId, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TRequest>! request, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TResponse>! response) -> Kun.Mediator.KunMediatorBuilder!
@@ -53,7 +53,7 @@ Qian.Authz.Abstractions.RoleTemplate.Grants.get -> System.Collections.Generic.IR
 Qian.Authz.Abstractions.RoleTemplate.Patterns.get -> System.Collections.Generic.IReadOnlyList<string!>!
 Qian.Authz.Abstractions.RoleTemplate.Role.get -> string!
 Qian.Authz.Abstractions.RoleTemplate.RoleTemplate(string! role, System.Collections.Generic.IReadOnlyList<string!>! patterns, System.Collections.Generic.IReadOnlyList<string!>! grants) -> void
-static readonly Qian.Authz.Abstractions.AuthzErrors.MetadataInvalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Authz.Abstractions.AuthzErrors.MetadataInvalid -> Kun.Errors.ErrorCode!
 Qian.Authz.Abstractions.IPermissionRegistry
 Qian.Authz.Abstractions.IPermissionRegistry.Find(string! code, string! version) -> Qian.Authz.Abstractions.PermissionDefinition?
 Qian.Authz.Abstractions.IPermissionRegistry.List(string! pluginId, string! version) -> System.Collections.Generic.IReadOnlyList<Qian.Authz.Abstractions.PermissionDefinition!>!
@@ -331,8 +331,8 @@ static Qian.Authz.Abstractions.EnforcementSubject.operator ==(Qian.Authz.Abstrac
 static Qian.Authz.Abstractions.RoleBinding.operator !=(Qian.Authz.Abstractions.RoleBinding? left, Qian.Authz.Abstractions.RoleBinding? right) -> bool
 static Qian.Authz.Abstractions.RoleBinding.operator ==(Qian.Authz.Abstractions.RoleBinding? left, Qian.Authz.Abstractions.RoleBinding? right) -> bool
 static readonly Qian.Authz.Abstractions.AuthzEnforcement.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Authz.Abstractions.AuthzErrors.LastAdministratorLockout -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Authz.Abstractions.AuthzErrors.ScopeMismatch -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Authz.Abstractions.AuthzErrors.LastAdministratorLockout -> Kun.Errors.ErrorCode!
+static readonly Qian.Authz.Abstractions.AuthzErrors.ScopeMismatch -> Kun.Errors.ErrorCode!
 static readonly Qian.Authz.Abstractions.AuthzRuntimeEvents.Checking -> Qian.Runtime.QianEvent<Qian.Authz.Abstractions.EnforcementRequest!, Qian.Authz.Abstractions.AuthorizationExplanation!>!
 static readonly Qian.Authz.Abstractions.AuthzRuntimeEvents.Decided -> Qian.Runtime.QianEvent<Qian.Authz.Abstractions.AuthorizationDecision!, object?>!
 virtual Qian.Authz.Abstractions.AuthzIntegrationEvent.EqualityContract.get -> System.Type!

@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -332,7 +332,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
                 scope = tenant.BeginScope(id.ToString("D"));
             }
         }
-        catch (Exception error) when (error is QianErrorException or QianEventsException or ArgumentException or JsonException)
+        catch (Exception error) when (error is ErrorException or QianEventsException or ArgumentException or JsonException)
         {
             throw new DeliveryRejectedException("tenant_rejected", error);
         }
@@ -379,7 +379,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     internal static bool IsDeterministic(Exception error) => error switch
     {
         QianEventsException => true,
-        QianErrorException { Error.Code.Retryable: var retryable } => !retryable,
+        ErrorException { Error.Code.Retryable: var retryable } => !retryable,
         InvalidOperationException when error.GetType() == typeof(InvalidOperationException) => error.InnerException is null || IsDeterministic(error.InnerException),
         InvalidOperationException => false,
         ArgumentException or JsonException or NotSupportedException => true,

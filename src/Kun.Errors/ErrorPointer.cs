@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Qian.Runtime.Errors;
+namespace Kun.Errors;
 
 /// <summary>
 /// 构造 <c>pointer</c>：RFC 6901 JSON Pointer 的 URI 片段形式，可带文档前缀。

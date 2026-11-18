@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Qian.Registry;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Lifecycle.Tests;
@@ -87,7 +87,7 @@ public sealed class SignatureTests(PostgresFixture postgres) : IClassFixture<Pos
 
     internal static async Task AssertCode(ErrorCode code, Func<Task> action)
     {
-        var error = await Assert.ThrowsAsync<QianErrorException>(action);
+        var error = await Assert.ThrowsAsync<ErrorException>(action);
         Assert.Equal(code.Code, error.Error.Code.Code);
     }
 }

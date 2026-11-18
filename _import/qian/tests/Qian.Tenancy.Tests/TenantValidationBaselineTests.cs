@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Tests;
 
@@ -25,9 +25,9 @@ public sealed partial class TenantDirectoryTests
         };
         foreach (var name in names)
         {
-            var create = await Assert.ThrowsAsync<QianErrorException>(() => store.CreateAsync(new("rejected", name), Ct));
+            var create = await Assert.ThrowsAsync<ErrorException>(() => store.CreateAsync(new("rejected", name), Ct));
             Assert.Equal("INPUT_INVALID", create.Error.Code.Code);
-            var update = await Assert.ThrowsAsync<QianErrorException>(() => store.UpdateAsync(valid.Id, new(name, valid.Revision), Ct));
+            var update = await Assert.ThrowsAsync<ErrorException>(() => store.UpdateAsync(valid.Id, new(name, valid.Revision), Ct));
             Assert.Equal("INPUT_INVALID", update.Error.Code.Code);
             Assert.Null(await store.GetAsync("rejected", Ct));
             Assert.Equal(valid, await store.GetByIdAsync(valid.Id, Ct));

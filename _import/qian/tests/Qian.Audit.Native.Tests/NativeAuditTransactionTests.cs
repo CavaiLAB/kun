@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Sample.Crm;
 using Qian.Testing.NativeAudit;
 
@@ -70,26 +70,26 @@ public sealed partial class NativeAuditStoreTests
         await using var external = new NpgsqlConnection(db.TenantConnection); await external.OpenAsync(Ct);
         await Execute(external, $"SELECT set_config('app.current_tenant_id','{A}',false)");
         await using (var weak = await external.BeginTransactionAsync(IsolationLevel.ReadCommitted, Ct))
-        { await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendEnlistedAsync(Record(), weak, Ct)); Assert.NotNull(weak.Connection); await weak.RollbackAsync(Ct); }
+        { await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendEnlistedAsync(Record(), weak, Ct)); Assert.NotNull(weak.Connection); await weak.RollbackAsync(Ct); }
         await using (var tx = await external.BeginTransactionAsync(IsolationLevel.Serializable, Ct))
         {
             await Execute(external, $"SELECT set_config('app.current_tenant_id','{B}',true)");
-            await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendEnlistedAsync(Record(), tx, Ct));
+            await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendEnlistedAsync(Record(), tx, Ct));
             await Execute(external, $"SELECT set_config('app.current_tenant_id','{A}',true)");
-            await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendEnlistedAsync(Record(B), tx, Ct));
+            await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendEnlistedAsync(Record(B), tx, Ct));
             Assert.Equal(1, (await host.Audit.AppendEnlistedAsync(Record(), tx, Ct)).Sequence); await tx.RollbackAsync(Ct);
         }
         await using (var admin = new NpgsqlConnection(postgres.ConnectionString))
         {
             await admin.OpenAsync(Ct); await Execute(admin, $"SELECT set_config('app.current_tenant_id','{A}',false)");
             await using var tx = await admin.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
-            await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendEnlistedAsync(Record(), tx, Ct));
+            await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendEnlistedAsync(Record(), tx, Ct));
         }
         await Admin($"GRANT {db.Roles.TenantLogin} TO qian_app");
         await using var impersonator = new NpgsqlConnection(postgres.AppConnectionString); await impersonator.OpenAsync(Ct);
         await Execute(impersonator, $"SET ROLE {db.Roles.TenantLogin}; SELECT set_config('app.current_tenant_id','{A}',false)");
         await using var forged = await impersonator.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
-        await Assert.ThrowsAsync<QianErrorException>(() => host.Audit.AppendEnlistedAsync(Record(), forged, Ct));
+        await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendEnlistedAsync(Record(), forged, Ct));
         Assert.Equal(0L, await Scalar(impersonator, "SELECT count(*) FROM plugin_qian_audit.audit_entries"));
         Assert.Equal("42501", (await Assert.ThrowsAsync<PostgresException>(() => Execute(impersonator, "SELECT * FROM plugin_qian_audit.native_tip(gen_random_uuid())"))).SqlState);
     }

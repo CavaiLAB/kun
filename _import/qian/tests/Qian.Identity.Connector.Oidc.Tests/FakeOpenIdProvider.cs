@@ -161,7 +161,7 @@ internal sealed class FakeSecrets : ISecretResolver
     public ValueTask<SecretValue> ResolveAsync(string reference, CancellationToken cancellationToken = default)
     {
         Resolved.Enqueue(reference);
-        if (reference != FakeOpenIdProvider.SecretRef) throw new Qian.Runtime.Errors.QianErrorException(new Qian.Runtime.Errors.QianError(SecretErrors.AccessDenied));
+        if (reference != FakeOpenIdProvider.SecretRef) throw new Kun.Errors.ErrorException(new Kun.Errors.Error(SecretErrors.AccessDenied));
         return ValueTask.FromResult(new SecretValue(Encoding.UTF8.GetBytes(FakeOpenIdProvider.ClientSecret)));
     }
 }

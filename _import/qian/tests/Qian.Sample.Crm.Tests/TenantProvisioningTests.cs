@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Lifecycle;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;
@@ -105,14 +105,14 @@ public sealed partial class TenantOperationsTests
         var (ownerC, phoneC) = await NewPerson(host, "owner-c"); var (ownerD, _) = await NewPerson(host, "owner-d");
         var firstAdmin = new TenantAdministrator(Guid.CreateVersion7(), ownerC.Id.ToString("D"));
         // 尚无激活制品，真实 Lifecycle 在第 3 步拒绝，不用替身冒充上游。
-        await Assert.ThrowsAsync<QianErrorException>(() => provisioning.ProvisionAsync(new("c", "C"), firstAdmin, "operator", Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => provisioning.ProvisionAsync(new("c", "C"), firstAdmin, "operator", Ct).AsTask());
         var first = (await source.Tenancy().GetAsync("c", Ct))!;
         var failed = await provisioning.GetStepsAsync(first.Id, Ct);
         Assert.Equal([("01:directory", "succeeded", 1), ("02:isolation", "succeeded", 1)], failed.Take(2).Select(s => (s.Step, s.Status, s.Attempts)));
         Assert.Contains(failed, step => step.Step == "03:components" && step.Status == "failed" && step.Attempts == 1);
         Assert.Contains(failed, step => step.Step == "03:component:qian.audit" && step.Status == "failed" && step.Attempts == 1);
         var secondAdmin = new TenantAdministrator(Guid.CreateVersion7(), ownerD.Id.ToString("D"));
-        await Assert.ThrowsAsync<QianErrorException>(() => provisioning.ProvisionAsync(new("d", "D"), secondAdmin, "operator", Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => provisioning.ProvisionAsync(new("d", "D"), secondAdmin, "operator", Ct).AsTask());
         var second = (await source.Tenancy().GetAsync("d", Ct))!;
 
         var lifecycle = LifecyclePlatform.Lifecycle(host);

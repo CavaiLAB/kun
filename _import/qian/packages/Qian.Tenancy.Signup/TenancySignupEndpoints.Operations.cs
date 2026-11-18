@@ -11,8 +11,8 @@ using Qian.Capabilities;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Tenancy.Signup;
 
@@ -75,29 +75,29 @@ public static partial class TenancySignupEndpoints
         {
             var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
             if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || http.User.Identity?.IsAuthenticated != true ||
-                http.User.FindFirst("sub")?.Value != principal.Subject) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+                http.User.FindFirst("sub")?.Value != principal.Subject) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
             void Denied(string reason) => LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Signup.Operations"), reason, principal.Subject, permission);
             if (principal.TenantId is not null || principal.Actor is not null || principal.Kind != PrincipalKind.User ||
                 http.User.Claims.Any(claim => claim.Type == "tenant_id" && !string.IsNullOrEmpty(claim.Value)) ||
                 http.RequestServices.GetRequiredService<ITenantContext>().TenantId is not null)
-            { Denied("tenant_principal"); throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied)); }
+            { Denied("tenant_principal"); throw new ErrorException(new Error(PlatformErrors.AuthzDenied)); }
             validate?.Invoke();
             if (validateAsync is not null) await validateAsync().ConfigureAwait(false);
             var ctx = source(http);
             if (ctx.Scope != ScopeKey.Global || ctx.Entry.Plugin != TenancySignupDefinition.ComponentId)
-            { Denied("context_mismatch"); throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+            { Denied("context_mismatch"); throw new ErrorException(new Error(PlatformErrors.NotFound)); }
             // 超管旁路是可选依赖：所在 profile 没有 Authz 时运营接口与不存在相同。
-            var bypass = ctx.TryInject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey) ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            var bypass = ctx.TryInject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey) ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
             var decision = await bypass.AuthorizeAsync(new SuperadminAccess(new AuthorizationSubject(principal.Subject, null, "user"), permission, null,
                 id is null ? "signup/applications" : "signup/applications/" + id.Value.ToString("D"), "api"), http.RequestAborted).ConfigureAwait(false);
-            if (!decision.Allow) { Denied(decision.Reason ?? "denied"); throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied)); }
+            if (!decision.Allow) { Denied(decision.Reason ?? "denied"); throw new ErrorException(new Error(PlatformErrors.AuthzDenied)); }
             var service = ctx.TenancySignup();
             using var origin = EventEnvelopeScope.Begin(new EventOrigin(TenancySignupDefinition.ComponentId, EventActor.User(principal.Subject)));
             return await execute(service, principal).ConfigureAwait(false);
         }
-        catch (QianErrorException error) { return Failure(http, error); }
+        catch (ErrorException error) { return Failure(http, error); }
         catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException)
-        { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+        { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
     }
 
     [LoggerMessage(EventId = 1001, Level = LogLevel.Warning, Message = "开通申请运营授权拒绝：{Reason}；主体 {Subject}；权限 {Permission}")]

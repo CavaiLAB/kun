@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Scheduler;
@@ -32,10 +32,10 @@ public sealed class SchedulerPlugin : IQianPlugin
     public async ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(ctx);
-        if (ctx.Scope != ScopeKey.Global) throw new QianErrorException(new QianError(SchedulerErrors.Misconfigured));
+        if (ctx.Scope != ScopeKey.Global) throw new ErrorException(new Error(SchedulerErrors.Misconfigured));
         var settings = SchedulerSettings.Read(config);
         var tenant = ctx.Services.GetRequiredService<ITenantContext>();
-        if (tenant.TenantId is not null) throw new QianErrorException(new QianError(SchedulerErrors.Misconfigured));
+        if (tenant.TenantId is not null) throw new ErrorException(new Error(SchedulerErrors.Misconfigured));
         await using (var session = await ctx.Data().OpenAsync<SchedulerWorkerDbContext>(ct).ConfigureAwait(false))
         {
             await session.Context.Database.OpenConnectionAsync(ct).ConfigureAwait(false);

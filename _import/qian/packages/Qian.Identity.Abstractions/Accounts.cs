@@ -110,7 +110,7 @@ public interface IIdentityAccounts
     /// 缺省实现返回 IDENTITY_OPERATION_UNSUPPORTED。
     /// </summary>
     ValueTask<Person> ClaimPersonAsync(PersonClaim claim, CancellationToken cancellationToken = default) =>
-        throw new Qian.Runtime.Errors.QianErrorException(new Qian.Runtime.Errors.QianError(IdentityErrors.OperationUnsupported));
+        throw new Kun.Errors.ErrorException(new Kun.Errors.Error(IdentityErrors.OperationUnsupported));
     /// <summary>
     /// Person 已加入的租户（登录索引：建立过成员身份的租户，含成员已停用的），供平台审核「申请人是否已加入其它企业」这类只读检查；
     /// Person 不存在返回空集合。缺省实现返回 null，表示该身份 Provider 不提供这项查询，调用方按「无法判定」处理。

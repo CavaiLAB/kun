@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Runtime.Errors.Tests;
+namespace Kun.Errors.Tests;
 
 /// <summary>contracts/v0 的冻结文件：Schema 本身合规、正例全过、反例全拒、语义反例过 Schema 但违反语义规则。</summary>
 public sealed class ContractSchemaTests

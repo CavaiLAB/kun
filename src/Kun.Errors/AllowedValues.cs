@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Text.Json;
 
-namespace Qian.Runtime.Errors;
+namespace Kun.Errors;
 
 /// <summary>构造 <c>allowed</c>（允许的取值，1–100 个 JSON 值）。</summary>
 public static class AllowedValues

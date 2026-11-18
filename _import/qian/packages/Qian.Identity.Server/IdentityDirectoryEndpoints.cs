@@ -10,8 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Events;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Identity.Server;
 
@@ -65,7 +65,7 @@ internal static class IdentityDirectoryEndpoints
         endpoints.MapGet(Prefix + "/members/{id:guid}/relations", (Delegate)((HttpContext http, Guid id) => Run(http, false, async (directory, ct) => new { items = await directory.GetRelationsAsync(id, ct).ConfigureAwait(false) })));
         endpoints.MapPut(Prefix + "/members/{id:guid}/relations", (Delegate)((HttpContext http, Guid id) => Write<RelationsBody>(http, async (directory, request, ct) => new { items = await directory.SetRelationsAsync(id, request.Items, ct).ConfigureAwait(false) })));
         endpoints.MapGet(Prefix + "/members/{id:guid}/profile", (Delegate)((HttpContext http, Guid id) => Run(http, true, async (directory, ct) =>
-            await directory.GetProfileAsync(id, ct).ConfigureAwait(false) ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound)))));
+            await directory.GetProfileAsync(id, ct).ConfigureAwait(false) ?? throw new ErrorException(new Error(PlatformErrors.NotFound)))));
         endpoints.MapPut(Prefix + "/members/{id:guid}/profile", (Delegate)((HttpContext http, Guid id) => Write<UserProfileInput>(http, async (directory, request, ct) => await directory.SetProfileAsync(id, request, ct).ConfigureAwait(false))));
         endpoints.MapPost(Prefix + "/members/{id:guid}/status", (Delegate)((HttpContext http, Guid id) => Write<StatusBody>(http, async (directory, request, ct) => await directory.SetDirectoryMemberStatusAsync(id, request.Status, request.Reason, ct).ConfigureAwait(false))));
         endpoints.MapPost(Prefix + "/members:disable", (Delegate)((HttpContext http) => Write<DisableBody>(http, async (directory, request, ct) => await directory.DisableMembersAsync(request.MembershipIds, request.Reason, ct).ConfigureAwait(false))));
@@ -83,17 +83,17 @@ internal static class IdentityDirectoryEndpoints
     private sealed record DisableBody(IReadOnlyList<Guid> MembershipIds, string Reason);
 
     private static int Page(HttpContext http, string key, int fallback) => !http.Request.Query.TryGetValue(key, out var value) ? fallback :
-        int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) ? parsed : throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) ? parsed : throw new ErrorException(new Error(PlatformErrors.BadRequest));
     private static bool Descendants(HttpContext http) => !http.Request.Query.TryGetValue("descendants", out var value) ? false :
-        bool.TryParse(value, out var parsed) ? parsed : throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        bool.TryParse(value, out var parsed) ? parsed : throw new ErrorException(new Error(PlatformErrors.BadRequest));
     // 单值参数重复出现即 400，不猜取哪一个。
     private static string? One(HttpContext http, string key) => !http.Request.Query.TryGetValue(key, out var value) ? null :
-        value.Count == 1 ? value[0] : throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        value.Count == 1 ? value[0] : throw new ErrorException(new Error(PlatformErrors.BadRequest));
     private static Guid? Uuid(HttpContext http, string key) => One(http, key) is not { } value ? null :
-        Guid.TryParseExact(value, "D", out var parsed) ? parsed : throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        Guid.TryParseExact(value, "D", out var parsed) ? parsed : throw new ErrorException(new Error(PlatformErrors.BadRequest));
     // 可重复的 id 参数（?ids=a&ids=b）；每项必须是规范 UUID，数量与重复由 DirectoryMemberQuery 的规则判定。
     private static Guid[]? Ids(HttpContext http, string key) => !http.Request.Query.TryGetValue(key, out var values) ? null :
-        [.. values.Select(value => Guid.TryParseExact(value, "D", out var parsed) ? parsed : throw new QianErrorException(new QianError(PlatformErrors.BadRequest)))];
+        [.. values.Select(value => Guid.TryParseExact(value, "D", out var parsed) ? parsed : throw new ErrorException(new Error(PlatformErrors.BadRequest)))];
     // 按 id 批量不分页，总是回这批 id 里的全部可见成员：同时带 offset / limit 说明调用方以为会分页，400，不猜按哪一种处理。
     private static readonly string[] PagingKeys = ["offset", "limit"];
     private static DirectoryMemberQuery MemberQuery(HttpContext http)
@@ -103,7 +103,7 @@ internal static class IdentityDirectoryEndpoints
         return new DirectoryMemberQuery { Keyword = One(http, "q"), MembershipIds = ids, PersonIds = persons, Offset = Page(http, "offset", 0), Limit = Page(http, "limit", 50) };
     }
     private static int? Depth(HttpContext http) => One(http, "depth") is not { } value ? null :
-        int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) ? parsed : throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) ? parsed : throw new ErrorException(new Error(PlatformErrors.BadRequest));
 
     private static Task<IResult> Run(HttpContext http, bool administrator, Func<IIdentityDirectory, CancellationToken, Task<object>> action) =>
         Run(http, administrator, (directory, _, ct) => action(directory, ct));
@@ -114,9 +114,9 @@ internal static class IdentityDirectoryEndpoints
         if (service is null) return Results.NotFound();
         if (await IdentityAccountEndpoints.CurrentSession(http).ConfigureAwait(false) is not { } current ||
             await service.ResolveCallerAsync(current, http.RequestAborted).ConfigureAwait(false) is not { } caller)
-            return QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
+            return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
         if (caller.TenantId is not { } tenant || caller.MembershipId is null || administrator && !caller.TenantAdministrator)
-            return QianResults.Error(new QianError(PlatformErrors.AuthzDenied));
+            return KunResults.Error(new Error(PlatformErrors.AuthzDenied));
         using var scope = http.RequestServices.GetRequiredService<ITenantContext>().BeginScope(tenant.ToString("D"));
         using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.identity", EventActor.User(caller.PersonId.ToString("D"))));
         return Results.Json(await action(service, caller, http.RequestAborted).ConfigureAwait(false), Json);
@@ -134,7 +134,7 @@ internal static class IdentityDirectoryEndpoints
         if (await IdentityAccountEndpoints.Guard(http).ConfigureAwait(false) is { } rejected) return rejected;
         return await Run(http, true, async (_, caller, ct) =>
         {
-            var body = await IdentityAccountEndpoints.Read<AddMemberBody>(http, Json).ConfigureAwait(false) ?? throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+            var body = await IdentityAccountEndpoints.Read<AddMemberBody>(http, Json).ConfigureAwait(false) ?? throw new ErrorException(new Error(PlatformErrors.BadRequest));
             var service = IdentityAccountEndpoints.Service(http); var tenant = caller.TenantId!.Value;
             var fingerprint = AddMemberProjection.InputHash(JsonSerializer.SerializeToElement(body, Json))!;
             using var password = body.InitialPassword is null ? null : new AuthenticationProof(Encoding.UTF8.GetBytes(body.InitialPassword));
@@ -148,9 +148,9 @@ internal static class IdentityDirectoryEndpoints
         if (await IdentityAccountEndpoints.Guard(http).ConfigureAwait(false) is { } rejected) return rejected;
         return await Run(http, true, async (IIdentityDirectory directory, CancellationToken ct) =>
         {
-            var body = await IdentityAccountEndpoints.Read<T>(http, Json).ConfigureAwait(false) ?? throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+            var body = await IdentityAccountEndpoints.Read<T>(http, Json).ConfigureAwait(false) ?? throw new ErrorException(new Error(PlatformErrors.BadRequest));
             try { return await action(directory, body, ct).ConfigureAwait(false); }
-            catch (ArgumentNullException) { throw new QianErrorException(new QianError(PlatformErrors.BadRequest)); }
+            catch (ArgumentNullException) { throw new ErrorException(new Error(PlatformErrors.BadRequest)); }
         }).ConfigureAwait(false);
     }
 

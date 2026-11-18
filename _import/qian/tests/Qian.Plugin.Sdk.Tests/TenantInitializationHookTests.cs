@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 using Qian.Testing;
 
@@ -23,14 +23,14 @@ public sealed class TenantInitializationHookTests
         var source = loader.GetContext("producer", ScopeKey.Global).Scoped(new ScopeKey("tenant", Guid.NewGuid().ToString()));
         var target = loader.GetContext("target", ScopeKey.Global).Inject<IHookHandler>(HookDefinition.Handlers, "qian.sdk-tests/init");
         using var grant = TenantInitializationAccess.Begin(source, "operator", new HashSet<string> { fixture.Binding.Contract.Id });
-        var error = await Assert.ThrowsAsync<QianErrorException>(() => target.InvokeAsync(new HookNotification(source, source.Scope.Id!,
+        var error = await Assert.ThrowsAsync<ErrorException>(() => target.InvokeAsync(new HookNotification(source, source.Scope.Id!,
             JsonSerializer.SerializeToElement(new { }), TestContext.Current.CancellationToken), TestContext.Current.CancellationToken).AsTask());
         Assert.Equal("AUTHZ_DENIED", error.Error.Code.Code);
         Assert.Equal(0, fixture.Binding.Calls);
         fixture.Binding.SetSideEffect("write");
         await target.InvokeAsync(new HookNotification(source, source.Scope.Id!, JsonSerializer.SerializeToElement(new { }), TestContext.Current.CancellationToken), TestContext.Current.CancellationToken);
         Assert.Equal(1, fixture.Binding.Calls);
-        await Assert.ThrowsAsync<QianErrorException>(() => target.InvokeAsync(new HookNotification(source, source.Scope.Id!,
+        await Assert.ThrowsAsync<ErrorException>(() => target.InvokeAsync(new HookNotification(source, source.Scope.Id!,
             JsonSerializer.SerializeToElement(new { }), TestContext.Current.CancellationToken), TestContext.Current.CancellationToken).AsTask());
         Assert.Equal(1, fixture.Binding.Calls);
     }

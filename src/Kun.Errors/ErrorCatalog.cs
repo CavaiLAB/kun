@@ -6,7 +6,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Qian.Runtime.Errors;
+namespace Kun.Errors;
 
 /// <summary>
 /// 错误码目录：全局唯一的错误码登记处，渲染 <see cref="ErrorDetail"/>，并导出
@@ -89,23 +89,23 @@ public sealed partial class ErrorCatalog
     /// <param name="culture">文案语言；默认 <see cref="CultureInfo.CurrentUICulture"/>，找不到时回退 zh-CN。</param>
     /// <param name="instance">出错的请求路径。</param>
     /// <exception cref="InvalidOperationException">错误码未登记。</exception>
-    public ErrorDetail CreateDetail(QianError error, string traceId, CultureInfo? culture = null, string? instance = null)
+    public ErrorDetail CreateDetail(Error error, string traceId, CultureInfo? culture = null, string? instance = null)
     {
         ArgumentNullException.ThrowIfNull(error);
         if (traceId is null || !TraceIdPattern().IsMatch(traceId))
             throw new ArgumentException($"'{traceId}' 不是 W3C trace-id（32 位小写十六进制）。", nameof(traceId));
         EnsureRegistered(error.Code);
 
-        List<FieldError>? errors = null;
+        List<FieldErrorDetail>? errors = null;
         if (error.Errors.Count > 0)
         {
             if (error.Pointer is not null || error.Allowed is not null)
                 throw new ArgumentException("有 errors 时顶层 pointer / allowed 由 errors[0] 决定，不要另设。", nameof(error));
-            errors = new List<FieldError>(error.Errors.Count);
+            errors = new List<FieldErrorDetail>(error.Errors.Count);
             foreach (var item in error.Errors)
             {
                 EnsureRegistered(item.Code);
-                errors.Add(new FieldError
+                errors.Add(new FieldErrorDetail
                 {
                     Code = item.Code.Code,
                     Message = item.Code.FormatMessage(culture, item.Args),

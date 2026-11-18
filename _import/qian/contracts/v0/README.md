@@ -25,7 +25,7 @@ fixture 文件形状统一为 `[{ "name": "<这条样例说明什么>", "data": 
 
 - 全部 Schema 为 JSON Schema 2020-12，`$id` 前缀 `https://qian.dev/contracts/v0/`（标识符，不要求可解引用）。跨文件引用：`error-catalog` → `error-detail`，`event-envelope` → `s2s-claims`，`capability-entry` → 2020-12 元 Schema，`capability-catalog` → `capability-entry`。
 - 声明了 `properties` 的 object 一律 `additionalProperties: false`。开放容器只有三处，都由别处的 Schema 约束内容：事件 `payload`（事件目录中该 `type` 的 Schema）、能力的 `inputSchema` / `outputSchema`（它们本身是 Schema 文档）、多语言文案（语言标签 → 文本）。
-- 状态 `x-status: frozen`：2026-10-24 由 [S1-AGT-005](../../pm/tasks/S1-AGT-005.md) 按 R53 / R80 / R119 统一冻结六份 Schema；五个第 1 波消费方（S1-RT-004 registry、S1-IDP-001 identity、S1-AZ-001 authz、S1-EVT-001 events、S1-GW-001 gateway）均已 done。此后只允许向后兼容增量（additive-only）与不改变语义的说明修正，不得恢复 draft；破坏性变更新开 `contracts/v1/`，不覆盖 v0。修订须在同一 PR 同步 fixture、`Qian.Runtime.Errors` 与已知消费方，并说明兼容性。
+- 状态 `x-status: frozen`：2026-10-24 由 [S1-AGT-005](../../pm/tasks/S1-AGT-005.md) 按 R53 / R80 / R119 统一冻结六份 Schema；五个第 1 波消费方（S1-RT-004 registry、S1-IDP-001 identity、S1-AZ-001 authz、S1-EVT-001 events、S1-GW-001 gateway）均已 done。此后只允许向后兼容增量（additive-only）与不改变语义的说明修正，不得恢复 draft；破坏性变更新开 `contracts/v1/`，不覆盖 v0。修订须在同一 PR 同步 fixture、`Kun.Errors` 与已知消费方，并说明兼容性。
 - 线上成员名：错误体、S2S claim、事件信封用 snake_case（与 iClaw 同形）；能力条目用 camelCase（与 `plugin.json` 和 tool/v2 一致）。
 - 契约格式（7.18）：HTTP 接口 OpenAPI 3.1 + `operationId`；数据 JSON Schema 2020-12 + `additionalProperties: false`。
 
@@ -98,7 +98,7 @@ fixture 文件形状统一为 `[{ "name": "<这条样例说明什么>", "data": 
 
 ### 3.6 .NET 用法
 
-包 `Qian.Runtime.Errors`（无 ASP.NET Core 依赖，Definition 包登记错误码只需它）与 `Qian.Runtime.Errors.AspNetCore`（HTTP 映射）。
+包 `Kun.Errors`（无 ASP.NET Core 依赖，Definition 包登记错误码只需它）与 `Kun.Errors.AspNetCore`（HTTP 映射）。
 
 ```csharp
 // Definition 包：定义本组件的错误码
@@ -111,18 +111,18 @@ public static class FilesErrors
 }
 
 // 宿主装配
-builder.Services.AddQianErrors(catalog => catalog.Register(FilesErrors.QuotaExceeded));
-app.UseRequestLocalization();   // 放在 UseQianErrors 之前，错误文案才会按请求语言渲染
-app.UseQianErrors();            // = UseExceptionHandler() + UseStatusCodePages()
+builder.Services.AddKunErrors(catalog => catalog.Register(FilesErrors.QuotaExceeded));
+app.UseRequestLocalization();   // 放在 UseKunErrors 之前，错误文案才会按请求语言渲染
+app.UseKunErrors();            // = UseExceptionHandler() + UseStatusCodePages()
 
 // 业务代码：抛出或返回
-throw new QianErrorException(new QianError(FilesErrors.QuotaExceeded, new Dictionary<string, string> { ["remaining"] = "1024" })
+throw new ErrorException(new Error(FilesErrors.QuotaExceeded, new Dictionary<string, string> { ["remaining"] = "1024" })
 {
     Pointer = ErrorPointer.Input("sizeBytes"),
 });
-return QianResults.Error(new QianError(PlatformErrors.InputInvalid)
+return KunResults.Error(new Error(PlatformErrors.InputInvalid)
 {
-    Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("purpose")) { Allowed = AllowedValues.Of("attachment", "avatar") }],
+    Errors = [new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("purpose")) { Allowed = AllowedValues.Of("attachment", "avatar") }],
 });
 ```
 
@@ -130,7 +130,7 @@ return QianResults.Error(new QianError(PlatformErrors.InputInvalid)
 
 ### 3.7 与 Kun 的衔接
 
-`Kun.AspNetCore` 用 ASP.NET Core 的 `AddProblemDetails()`；`AddQianErrors` 在同一个 `IProblemDetailsService` 上做后置规范化，不另起一套。规范化规则：扩展成员 `code` 是已登记、非字段级、状态码一致且无占位符的错误码时保留，否则按状态码兜底；`title` / `detail` / `message` 一律取错误码目录的文案，其余扩展成员丢弃。
+`Kun.AspNetCore` 用 ASP.NET Core 的 `AddProblemDetails()`；`AddKunErrors` 在同一个 `IProblemDetailsService` 上做后置规范化，不另起一套。规范化规则：扩展成员 `code` 是已登记、非字段级、状态码一致且无占位符的错误码时保留，否则按状态码兜底；`title` / `detail` / `message` 一律取错误码目录的文案，其余扩展成员丢弃。
 
 | Kun `ErrorType` | Kun 状态码 | Qian 错误码 | 类别 |
 |---|---|---|---|
@@ -143,7 +143,7 @@ return QianResults.Error(new QianError(PlatformErrors.InputInvalid)
 | `Failure` | 500 | `INTERNAL` | 协议 |
 | `DomainException` | 400 | 组件登记的 422 业务码，缺省 `BUSINESS_RULE_VIOLATED` | 业务 |
 
-S1-RT-001 引入 Kun 2026.9.13 正式包（从 nuget.org 还原）：`Qian.Runtime.KunErrorBridge` 按上表将 `Error` 映射为 `QianError`；`Qian.Runtime.Errors.AspNetCore.KunValidationErrorBridge` 将 `ValidationException.Errors` 转为至多 100 项字段错误，属性路径如 `Items[0].Name` 转为 `#/Items/0/Name`。已知平台字段码保留，未知码统一为 `VALUE_NOT_ALLOWED`，不输出原始错误文案。`AddQianErrors()` 优先处理 Qian 错误与 Kun 校验异常，其他异常继续进入宿主处理链。上游 `KunExceptionHandler` 改用 `IProblemDetailsService` 属于 S1-KUN-006；本任务不改 Kun 源码。
+S1-RT-001 引入 Kun 2026.9.13 正式包（从 nuget.org 还原）：`Qian.Runtime.KunErrorBridge` 按上表将 `Error` 映射为 `Error`；`Kun.Errors.AspNetCore.KunValidationErrorBridge` 将 `ValidationException.Errors` 转为至多 100 项字段错误，属性路径如 `Items[0].Name` 转为 `#/Items/0/Name`。已知平台字段码保留，未知码统一为 `VALUE_NOT_ALLOWED`，不输出原始错误文案。`AddKunErrors()` 优先处理 Qian 错误与 Kun 校验异常，其他异常继续进入宿主处理链。上游 `KunExceptionHandler` 改用 `IProblemDetailsService` 属于 S1-KUN-006；本任务不改 Kun 源码。
 
 ## 4 S2S claim
 

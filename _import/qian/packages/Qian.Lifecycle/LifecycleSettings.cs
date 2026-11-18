@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Qian.Config;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -40,9 +40,9 @@ internal sealed class LifecycleSettings
         Text(value, pointer) is var text && SecretReference.IsValid(text) && text.StartsWith("secretRef://platform/", StringComparison.Ordinal)
             ? text : throw Invalid(pointer, "必须是 secretRef://platform/… 引用。");
 
-    internal static QianErrorException Invalid(string pointer, string reason) => new(new QianError(PlatformErrors.InputInvalid)
+    internal static ErrorException Invalid(string pointer, string reason) => new(new Error(PlatformErrors.InputInvalid)
     {
-        Errors = [new QianFieldError(LifecycleErrors.Invalid, "plugins/qian.lifecycle/config" + pointer, new Dictionary<string, string> { ["reason"] = reason })]
+        Errors = [new FieldError(LifecycleErrors.Invalid, "plugins/qian.lifecycle/config" + pointer, new Dictionary<string, string> { ["reason"] = reason })]
     });
 }
 

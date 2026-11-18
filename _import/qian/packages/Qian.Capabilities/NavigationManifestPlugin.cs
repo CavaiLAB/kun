@@ -3,7 +3,7 @@ using System.Text.Json;
 using Qian.Authz.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Capabilities;
@@ -82,7 +82,7 @@ public sealed class NavigationManifestPlugin : IQianPlugin
         }
         return Array.AsReadOnly(result.ToArray());
     }
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }
 internal sealed record ShellRemoteContribution(string PluginId, JsonElement Manifest, bool Platform, IReadOnlyList<string> Permissions);
 internal sealed record NavigationContribution(string PluginId, string Route, string Title, string? Icon, int Order, string Permission, bool Platform)

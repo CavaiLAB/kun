@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz;
 
@@ -56,7 +56,7 @@ internal sealed class IdentityRevisionPropagation(IPluginContext owner, IDataSer
         {
             Exception failure;
             try { await action(budget).ConfigureAwait(false); return true; }
-            catch (QianErrorException error) { Skip(error.Error.Code.Code); return false; }
+            catch (ErrorException error) { Skip(error.Error.Code.Code); return false; }
             catch (Exception error) when (error is ObjectDisposedException or ServiceNotReadyException) { Skip(step + "_unavailable"); return false; }
             catch (Exception error) { failure = error; }
             try { await Task.Delay(TimeSpan.FromMilliseconds(Math.Min(400, 50 << Math.Min(attempt - 1, 3))), budget).ConfigureAwait(false); }

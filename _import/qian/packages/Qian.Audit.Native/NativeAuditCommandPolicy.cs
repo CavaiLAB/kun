@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Qian.Plugin.Sdk;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Native;
 
@@ -21,11 +21,11 @@ internal sealed class NativeAuditCommandPolicy(IAuditService audit)
         var inputHash = policy.InputHash(invocation.Input); var result = await next().ConfigureAwait(false);
         if (inputHash is null) return result;
         var principal = invocation.Principal;
-        if (principal.Actor is not null) throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+        if (principal.Actor is not null) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         var actor = principal.Kind switch
         {
             Qian.Identity.Abstractions.PrincipalKind.User => "user", Qian.Identity.Abstractions.PrincipalKind.Service => "service",
-            Qian.Identity.Abstractions.PrincipalKind.Agent => "agent", _ => throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied))
+            Qian.Identity.Abstractions.PrincipalKind.Agent => "agent", _ => throw new ErrorException(new Error(PlatformErrors.AuthzDenied))
         };
         var buffer = new ArrayBufferWriter<byte>();
         using (var writer = new Utf8JsonWriter(buffer))

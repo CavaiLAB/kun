@@ -43,7 +43,7 @@ public sealed partial class SurfaceValidator
             }
         }
         return new(diagnostics.Any(item => item.Severity == "error") ? null : data, diagnostics.OrderBy(item => item.Error.Pointer, StringComparer.Ordinal).ToArray());
-        void Error(string pointer, Qian.Runtime.Errors.ErrorCode code, string message)
+        void Error(string pointer, Kun.Errors.ErrorCode code, string message)
             => diagnostics.Add(Diagnostics.Create(file, pointer, Diagnostics.Line(parsed.Syntax.Lines, pointer), code, message, trace));
     }
 

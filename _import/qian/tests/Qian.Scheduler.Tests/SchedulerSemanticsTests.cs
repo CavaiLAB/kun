@@ -6,7 +6,7 @@ using Npgsql;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Scheduler.TestHost;
 using static Qian.Scheduler.Tests.SchedulerScenario;
 
@@ -30,7 +30,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         using (producer.Tenant.BeginScope(TenantA))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
-            var conflict = await Assert.ThrowsAsync<QianErrorException>(() => caller.Scheduler().ScheduleOnce(caller, "same", due.AddMinutes(1), Target, Parameters, cancellationToken: Ct).AsTask());
+            var conflict = await Assert.ThrowsAsync<ErrorException>(() => caller.Scheduler().ScheduleOnce(caller, "same", due.AddMinutes(1), Target, Parameters, cancellationToken: Ct).AsTask());
             Assert.Equal("CONFLICT", conflict.Error.Code.Code);
             Assert.True(await caller.Scheduler().Cancel(caller, "same", Ct)); Assert.True(await caller.Scheduler().Cancel(caller, "same", Ct));
         }
@@ -50,11 +50,11 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
         using var scope = producer.Tenant.BeginScope(TenantA); var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
         foreach (var target in new[] { "https://example.com/job", "http://localhost/run", "https://127.0.0.1/run", "file:///tmp/job", "//example.com/run", "qian.missing/run" })
-            await Assert.ThrowsAsync<QianErrorException>(() => caller.Scheduler().ScheduleOnce(caller, "invalid", DateTimeOffset.UtcNow.AddMinutes(1), target, Parameters, cancellationToken: Ct).AsTask());
+            await Assert.ThrowsAsync<ErrorException>(() => caller.Scheduler().ScheduleOnce(caller, "invalid", DateTimeOffset.UtcNow.AddMinutes(1), target, Parameters, cancellationToken: Ct).AsTask());
         var good = PostgresScheduler.Resolve(caller, Target); Assert.Equal("probe", good.Code);
         using (producer.Caller.Restrict(new ScopeKey("tenant", TenantA), registration => registration.Key != JobBindingRegistration.Key))
         {
-            var error = await Assert.ThrowsAsync<QianErrorException>(() => caller.Scheduler().ScheduleOnce(caller, "hidden", DateTimeOffset.UtcNow, Target, Parameters, cancellationToken: Ct).AsTask());
+            var error = await Assert.ThrowsAsync<ErrorException>(() => caller.Scheduler().ScheduleOnce(caller, "hidden", DateTimeOffset.UtcNow, Target, Parameters, cancellationToken: Ct).AsTask());
             Assert.Equal("NOT_FOUND", error.Error.Code.Code);
         }
         await producer.Runtime.UnmountAsync("probe", ScopeKey.Global, Ct);
@@ -72,7 +72,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         Assert.Equal(new DateTimeOffset(2026, 10, 23, 12, 1, 0, TimeSpan.Zero), JobSchedule.Next("0 * * * * ?", now));
         Assert.Equal(new DateTimeOffset(2027, 1, 1, 0, 0, 0, TimeSpan.Zero), JobSchedule.Next("0 0 0 1 1 ? 2027", now));
         Assert.Null(JobSchedule.Next("0 0 0 1 1 ? 2025", now));
-        Assert.Throws<QianErrorException>(() => JobSchedule.Validate("* * * * *"));
+        Assert.Throws<ErrorException>(() => JobSchedule.Validate("* * * * *"));
         Assert.Equal(now.AddSeconds(15), SchedulerWorker.NextOccurrence("interval:50000000", now, now.AddSeconds(12)));
     }
 

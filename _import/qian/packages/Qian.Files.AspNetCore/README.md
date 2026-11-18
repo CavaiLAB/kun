@@ -25,7 +25,7 @@ app.MapQianFiles(
 - 申请只收 JSON（其他类型 415），请求体上限 16 KiB，未知字段 `INPUT_INVALID`。完成与删除可带 `Idempotency-Key` 头（GUID），缺省由端点生成；两者都按状态幂等。
 - 响应一律 `Cache-Control: private, no-store`。
 
-宿主须先装认证、可信租户边界（例如只对 `/api` 分支 `UseKunMultiTenancy`）、PEP（`AddQianAuthzEnforcement` + `UseQianAuthzEnforcement`，生产模式）与 ErrorDetail 中间件（`AddQianErrors` / `UseQianErrors`）。
+宿主须先装认证、可信租户边界（例如只对 `/api` 分支 `UseKunMultiTenancy`）、PEP（`AddQianAuthzEnforcement` + `UseQianAuthzEnforcement`，生产模式）与 ErrorDetail 中间件（`AddKunErrors` / `UseKunErrors`）。
 
 ## 直传 / 直下端点
 

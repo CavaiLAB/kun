@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Signup;
 
@@ -180,7 +180,7 @@ internal sealed partial record TenancySignupOptions
     private static string CountryCode(JsonElement value) =>
         value.ValueKind == JsonValueKind.String && value.GetString() is { } code && CountryCodePattern().IsMatch(code) ? code : throw Invalid();
 
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }
 
 internal sealed partial record TenancySignupOptions

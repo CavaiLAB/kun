@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 
-namespace Qian.Runtime.Errors.Tests;
+namespace Kun.Errors.Tests;
 
 /// <summary>错误码定义、目录登记、渲染与 JSON 导出。</summary>
 public sealed class ErrorCatalogTests
@@ -153,7 +153,7 @@ public sealed class ErrorCatalogTests
     {
         var catalog = ErrorCatalog.CreateDefault();
         catalog.Register(QuotaExceeded);
-        var error = new QianError(QuotaExceeded, new Dictionary<string, string> { ["remaining"] = "1048576" })
+        var error = new Error(QuotaExceeded, new Dictionary<string, string> { ["remaining"] = "1048576" })
         {
             Pointer = ErrorPointer.Input("sizeBytes"),
         };
@@ -171,12 +171,12 @@ public sealed class ErrorCatalogTests
     public void Field_errors_render_with_top_level_pointer_and_allowed_from_the_first_item()
     {
         var catalog = ErrorCatalog.CreateDefault();
-        var error = new QianError(PlatformErrors.InputInvalid)
+        var error = new Error(PlatformErrors.InputInvalid)
         {
             Errors =
             [
-                new QianFieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("purpose")) { Allowed = AllowedValues.Of("attachment", "avatar", "export") },
-                new QianFieldError(PlatformErrors.Required, ErrorPointer.Input("idempotencyKey")),
+                new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("purpose")) { Allowed = AllowedValues.Of("attachment", "avatar", "export") },
+                new FieldError(PlatformErrors.Required, ErrorPointer.Input("idempotencyKey")),
             ],
         };
 
@@ -194,19 +194,19 @@ public sealed class ErrorCatalogTests
     {
         var catalog = ErrorCatalog.CreateDefault();
 
-        Assert.Throws<ArgumentException>(() => new QianError(PlatformErrors.Required));
-        Assert.Throws<ArgumentException>(() => new QianFieldError(PlatformErrors.NotFound, "#/id"));
-        Assert.Throws<ArgumentException>(() => new QianError(QuotaExceeded));
-        Assert.Throws<ArgumentException>(() => new QianError(PlatformErrors.Conflict) { Pointer = "/sizeBytes" });
-        Assert.Throws<ArgumentException>(() => new QianError(PlatformErrors.Conflict) { Allowed = [] });
+        Assert.Throws<ArgumentException>(() => new Error(PlatformErrors.Required));
+        Assert.Throws<ArgumentException>(() => new FieldError(PlatformErrors.NotFound, "#/id"));
+        Assert.Throws<ArgumentException>(() => new Error(QuotaExceeded));
+        Assert.Throws<ArgumentException>(() => new Error(PlatformErrors.Conflict) { Pointer = "/sizeBytes" });
+        Assert.Throws<ArgumentException>(() => new Error(PlatformErrors.Conflict) { Allowed = [] });
         Assert.Throws<InvalidOperationException>(() =>
-            catalog.CreateDetail(new QianError(QuotaExceeded, new Dictionary<string, string> { ["remaining"] = "1" }), TraceId));
-        Assert.Throws<ArgumentException>(() => catalog.CreateDetail(new QianError(PlatformErrors.Conflict), "not-a-trace-id"));
+            catalog.CreateDetail(new Error(QuotaExceeded, new Dictionary<string, string> { ["remaining"] = "1" }), TraceId));
+        Assert.Throws<ArgumentException>(() => catalog.CreateDetail(new Error(PlatformErrors.Conflict), "not-a-trace-id"));
         Assert.Throws<ArgumentException>(() => catalog.CreateDetail(
-            new QianError(PlatformErrors.InputInvalid)
+            new Error(PlatformErrors.InputInvalid)
             {
                 Pointer = "#/a",
-                Errors = [new QianFieldError(PlatformErrors.Required, "#/b")],
+                Errors = [new FieldError(PlatformErrors.Required, "#/b")],
             },
             TraceId));
     }
@@ -227,7 +227,7 @@ public sealed class ErrorCatalogTests
     [Fact]
     public void Detail_round_trips_through_json_without_null_members()
     {
-        var detail = ErrorCatalog.CreateDefault().CreateDetail(new QianError(PlatformErrors.Conflict), TraceId);
+        var detail = ErrorCatalog.CreateDefault().CreateDetail(new Error(PlatformErrors.Conflict), TraceId);
 
         var json = ErrorDetailJson.Serialize(detail);
         var back = ErrorDetailJson.Deserialize(json)!;

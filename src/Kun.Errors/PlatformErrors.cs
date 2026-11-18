@@ -1,4 +1,4 @@
-namespace Qian.Runtime.Errors;
+namespace Kun.Errors;
 
 /// <summary>
 /// 平台内置错误码（归属 <c>qian.runtime</c>），冻结在 contracts/v0/error-codes.json。

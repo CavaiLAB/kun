@@ -6,7 +6,7 @@ using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server;
 
@@ -37,8 +37,8 @@ internal sealed class DirectoryDisableCapability(IPluginContext owner, IdentityA
         var (tenantId, personId) = await DirectoryCapabilityGuard.AuthorizeAsync(caller, accounts, Permission, linked.Token).ConfigureAwait(false);
         DisableDirectoryMembers request;
         try { request = input.Deserialize(DirectoryCapabilityJson.Default.DisableDirectoryMembers) ?? throw new JsonException(); }
-        catch (JsonException) { throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)); }
-        if (request.IdempotencyKey == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        catch (JsonException) { throw new ErrorException(new Error(PlatformErrors.InputInvalid)); }
+        if (request.IdempotencyKey == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.identity", EventActor.User(personId.ToString("D"))));
         // 与现有独立写能力相同：开始审计失败则不执行；回执重放发生在此绑定之前，不重复写审计或发吊销事件。
         var audit = caller.Audit(); var attempt = Guid.CreateVersion7(); var trace = System.Diagnostics.ActivityTraceId.CreateRandom().ToHexString();
@@ -63,7 +63,7 @@ internal sealed class DirectoryDisableCapability(IPluginContext owner, IdentityA
         if (Interlocked.Exchange(ref _disposed, 1) == 0) { _lifetime.Source.Cancel(); _lifetime.Source.Dispose(); }
     }
     private static (CancellationTokenSource Source, CancellationToken Token) CreateLifetime() { var source = new CancellationTokenSource(); return (source, source.Token); }
-    private static QianErrorException Missing() => DirectoryCapabilityGuard.Missing();
+    private static ErrorException Missing() => DirectoryCapabilityGuard.Missing();
 }
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 internal sealed record DisableDirectoryMembers(Guid IdempotencyKey, IReadOnlyList<Guid> MembershipIds, string Reason);

@@ -16,7 +16,7 @@ using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 
 namespace Qian.Sample.Crm.Tests;
@@ -89,25 +89,25 @@ public sealed partial class IdentityAuthzTests
             var request = JsonSerializer.SerializeToElement(new { idempotencyKey = key, identifier = phone, displayName = "新同事", initialPassword = initial });
             // 非管理员（有权限点）、管理员但没有权限点（未授任何角色）与跨租户作用域：都被拒，不建自然人与成员，不写审计。
             current.Snapshot = nonAdministrator.Principal!;
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, request, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, request, Ct).AsTask())).Error.Code.Code);
             current.Snapshot = unauthorized.Principal!;
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, request, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, request, Ct).AsTask())).Error.Code.Code);
             current.Snapshot = administrator.Principal!;
-            Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller.Scoped(new ScopeKey("tenant", B)), request, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller.Scoped(new ScopeKey("tenant", B)), request, Ct).AsTask())).Error.Code.Code);
             Assert.Equal("0", await Persons(phone));
             Assert.DoesNotContain(await ReadTenantChain(caller.Audit()), row => row.Record.CapabilityId == id);
             // 守卫核对服务端会话与身份修订：快照里的身份修订落后于服务端（如授权变更之后）一律拒绝；带 act 的委托主体同样拒绝（S1 不执行 Agent 委托）。
             await host.Identity.Accounts.BumpIdentityRevisionAsync(admin.Id, "member-add-acceptance", Ct);
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, request, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, request, Ct).AsTask())).Error.Code.Code);
             administrator = await DirectoryUser(host, adminPhone, A); current.Snapshot = administrator.Principal!;
             var delegated = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(administrator.Principal, IdentityJson.PrincipalTypeInfo))!;
             delegated[IdentityClaimNames.Actor] = new System.Text.Json.Nodes.JsonObject { [IdentityClaimNames.Subject] = "agent-member-add", [IdentityClaimNames.PrincipalKind] = "agent" };
             current.Snapshot = delegated.Deserialize(IdentityJson.PrincipalTypeInfo)!;
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, request, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, request, Ct).AsTask())).Error.Code.Code);
             current.Snapshot = administrator.Principal!;
             // 幂等键不能为空：直接调用绑定也拒绝，不执行、不写审计。
             var emptyKey = JsonSerializer.SerializeToElement(new { idempotencyKey = Guid.Empty, identifier = phone, displayName = "新同事", initialPassword = initial });
-            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, emptyKey, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, emptyKey, Ct).AsTask())).Error.Code.Code);
             Assert.Equal("0", await Persons(phone));
             Assert.DoesNotContain(await ReadTenantChain(caller.Audit()), row => row.Record.CapabilityId == id);
             // 管理员经标准入口新增：新建自然人，初始角色 tenant.user 已经授予——有参考应用的 customer:read，没有 customer:write。
@@ -126,26 +126,26 @@ public sealed partial class IdentityAuthzTests
                 $"AND payload LIKE '%{newMember:D}%'"))!);
             Assert.Equal((EventActorKind.User, admin.Id.ToString("D")), (created.Actor.Kind, created.Actor.Id));
             // 能力标 pii：回执只记「已执行」不存响应体（组件规格 §9.5），同键同输入得到 409 CAPABILITY_REPLAY_UNAVAILABLE、不再执行；改输入 409 CONFLICT。
-            var replay = await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, current, id, request, key, Ct).AsTask());
+            var replay = await Assert.ThrowsAsync<ErrorException>(() => service.InvokeAsync(caller, current, id, request, key, Ct).AsTask());
             Assert.Equal(("CAPABILITY_REPLAY_UNAVAILABLE", "data_classification"), (replay.Error.Code.Code, replay.Error.Args["reason"]));
             Assert.Equal("1", await Persons(phone));
             var changed = JsonSerializer.SerializeToElement(new { idempotencyKey = key, identifier = NewPhone(), displayName = "另一个人", initialPassword = initial });
-            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, current, id, changed, key, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => service.InvokeAsync(caller, current, id, changed, key, Ct).AsTask())).Error.Code.Code);
             // 号码已被占用：返回 IDENTIFIER_IN_USE，甲方不授予任何角色；错误位置换成能力输入的字段。
             var outsiderPhone = await Text($"SELECT value FROM plugin_qian_identity.person_identifiers WHERE person_id = '{outsider.Id:D}'");
-            var taken = await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, current, id,
+            var taken = await Assert.ThrowsAsync<ErrorException>(() => service.InvokeAsync(caller, current, id,
                 JsonSerializer.SerializeToElement(new { idempotencyKey = Guid.CreateVersion7(), identifier = outsiderPhone, displayName = "老员工（甲方）", initialPassword = initial }), null, Ct).AsTask());
             Assert.Equal(("IDENTIFIER_IN_USE", "#/identifier"), (taken.Error.Code.Code, taken.Error.Pointer));
             Assert.Equal(("", ""), (await Roles(outsider.Id, A), await Roles(outsider.Id, B)));
             Assert.Equal("0", await Text($"SELECT count(*) FROM plugin_qian_identity.memberships WHERE tenant_id = '{A}' AND person_id = '{outsider.Id:D}'"));
             // 重复新增同样是已被占用。缺初始密码：标准入口先按输入 Schema 拒绝并指出字段，直接调用绑定在反序列化时拒绝（必填构造参数）；都不执行、不写审计。
-            var duplicate = await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, current, id,
+            var duplicate = await Assert.ThrowsAsync<ErrorException>(() => service.InvokeAsync(caller, current, id,
                 JsonSerializer.SerializeToElement(new { idempotencyKey = Guid.CreateVersion7(), identifier = phone, displayName = "再加一次", initialPassword = initial }), null, Ct).AsTask());
             Assert.Equal(("IDENTIFIER_IN_USE", "#/identifier"), (duplicate.Error.Code.Code, duplicate.Error.Pointer));
             var withoutPassword = JsonSerializer.SerializeToElement(new { idempotencyKey = Guid.CreateVersion7(), identifier = NewPhone(), displayName = "缺密码" });
-            var missing = await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, current, id, withoutPassword, null, Ct).AsTask());
+            var missing = await Assert.ThrowsAsync<ErrorException>(() => service.InvokeAsync(caller, current, id, withoutPassword, null, Ct).AsTask());
             Assert.Equal(("INPUT_INVALID", "#/initialPassword"), (missing.Error.Code.Code, Assert.Single(missing.Error.Errors).Pointer));
-            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, withoutPassword, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, withoutPassword, Ct).AsTask())).Error.Code.Code);
             // 审计进甲方的链：操作人是管理员，成员在载荷里；成功一次有开始与成功记录，被占用两次各有开始与失败记录、失败记录带实际的错误码；任何记录都不含初始密码。
             var records = (await ReadTenantChain(caller.Audit())).Where(row => row.Record.CapabilityId == id).Select(row => row.Record).ToArray();
             Assert.All(records, record => Assert.Equal((A, "user", admin.Id.ToString("D"), "api"), (record.TenantId!, record.ActorType, record.ActorId, record.Channel)));

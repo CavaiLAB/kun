@@ -11,7 +11,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Registry.Tests;
 
@@ -47,7 +47,7 @@ public sealed partial class PatchPersistenceTests
         Assert.Equal(DeclaredConnectSrc, declared.Ui.ConnectSrc);
         Assert.Equal("2.0.0", (await running.Registry.GetArtifactPermissionsAsync(candidate, Ct))!.Version);
         Assert.Null(await running.Registry.GetArtifactPermissionsAsync("sha256:" + new string('0', 64), Ct));
-        Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<QianErrorException>(() => running.Registry.GetArtifactPermissionsAsync("sha256:ABC", Ct).AsTask())).Error.Code.Code);
+        Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<ErrorException>(() => running.Registry.GetArtifactPermissionsAsync("sha256:ABC", Ct).AsTask())).Error.Code.Code);
 
         await using var http = await StartManagementHost(running, tenant);
         var path = "/api/registry/plugins/acme.connector/versions/1.0.0/permissions";

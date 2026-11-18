@@ -280,7 +280,7 @@ internal static class AccountsHost
             ctx.Provide<ITenantQuota>(TenantSettings.QuotaKey, this);
             ctx.Provide<ITenantSettings>(TenantSettings.Key, this);
             // 与真实 Tenancy 组件一样登记配额错误码，经 HTTP 返回时才不会落成 INTERNAL。
-            ctx.Effect(ctx.Services.GetRequiredService<Qian.Runtime.Errors.ErrorCatalog>().Register(TenancyErrors.UserLimit));
+            ctx.Effect(ctx.Services.GetRequiredService<Kun.Errors.ErrorCatalog>().Register(TenancyErrors.UserLimit));
             return ValueTask.CompletedTask;
         }
 
@@ -316,7 +316,7 @@ internal static class AccountsHost
         {
             var id = Guid.ParseExact(tenant.TenantId!, "D");
             if (kind != TenantMemberKind.PlatformSuperadmin && _tenants[id].Limit is { } limit && currentUsers >= limit)
-                throw new Qian.Runtime.Errors.QianErrorException(new Qian.Runtime.Errors.QianError(TenancyErrors.UserLimit, new Dictionary<string, string> { ["limit"] = limit.ToString(System.Globalization.CultureInfo.InvariantCulture) }));
+                throw new Kun.Errors.ErrorException(new Kun.Errors.Error(TenancyErrors.UserLimit, new Dictionary<string, string> { ["limit"] = limit.ToString(System.Globalization.CultureInfo.InvariantCulture) }));
             return ValueTask.CompletedTask;
         }
     }

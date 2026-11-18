@@ -4,7 +4,7 @@ using Kun.Core.MultiTenancy;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.Native.Postgres.Tests;
 
@@ -28,7 +28,7 @@ public sealed class NativeConfigurationTests
         await loader.MountAsync([new(new PluginEntry("native", "qian.data.native", "1.0.0", ScopeKey.Global, 0, config.RootElement.Clone()),
             new NativeDataComponent(), [NativeDataDefinition.Key])], TestContext.Current.CancellationToken);
         Assert.Equal(PluginState.Failed, loader.GetState("native", ScopeKey.Global));
-        var error = Assert.IsType<QianErrorException>(loader.GetFailure("native", ScopeKey.Global));
+        var error = Assert.IsType<ErrorException>(loader.GetFailure("native", ScopeKey.Global));
         Assert.Equal("NATIVE_DATA_MISCONFIGURED", error.Error.Code.Code);
         Assert.DoesNotContain(password, error.ToString(), StringComparison.Ordinal);
     }

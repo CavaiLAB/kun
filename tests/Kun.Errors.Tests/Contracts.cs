@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Json.Schema;
 
-namespace Qian.Runtime.Errors.Tests;
+namespace Kun.Errors.Tests;
 
 /// <summary>读取 contracts/v0：Schema（共用一个注册表以解析跨文件 $ref）、fixture，以及 Schema 表达不了的语义规则。</summary>
 internal static partial class Contracts

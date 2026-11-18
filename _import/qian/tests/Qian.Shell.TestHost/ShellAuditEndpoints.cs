@@ -7,8 +7,8 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Audit;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Shell.TestHost;
 
@@ -88,7 +88,7 @@ internal static class ShellAuditEndpoints
             result.ClaimsIdentity.FindFirst("tenant_id")?.Value is not (TenantA or TenantB)) return null;
         return result.ClaimsIdentity;
     }
-    private static QianErrorResult Error(ErrorCode code) => QianResults.Error(new QianError(code));
+    private static KunErrorResult Error(ErrorCode code) => KunResults.Error(new Error(code));
 }
 
 internal sealed class AuditConsumer : IQianPlugin

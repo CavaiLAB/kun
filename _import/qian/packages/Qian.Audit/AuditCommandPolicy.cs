@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Qian.Plugin.Sdk;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit;
 
@@ -17,13 +17,13 @@ internal sealed class AuditCommandPolicy(IAuditService audit)
         if (inputHash is null) return result;
         var principal = invocation.Principal;
         // S1 不接受 act 委托令牌，不能把未实现的委托解析静默记成普通调用。
-        if (principal.Actor is not null) throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+        if (principal.Actor is not null) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         var actor = principal.Kind switch
         {
             Qian.Identity.Abstractions.PrincipalKind.User => "user",
             Qian.Identity.Abstractions.PrincipalKind.Service => "service",
             Qian.Identity.Abstractions.PrincipalKind.Agent => "agent",
-            _ => throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied))
+            _ => throw new ErrorException(new Error(PlatformErrors.AuthzDenied))
         };
         var record = new AuditRecord(invocation.Id, principal.TenantId, actor, principal.Subject, null,
             invocation.Contract.Id, metadata.GetProperty("contractVersion").GetString()!, inputHash, invocation.Channel, null,

@@ -6,7 +6,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Files;
 
@@ -60,10 +60,10 @@ internal sealed class FilesCapabilitySource(Func<IServiceProvider, IPluginContex
         try
         {
             return source(services).TryInject<IFileService>(FilesDefinition.Key) is FileService files ? files.Runtime
-                : throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                : throw new ErrorException(new Error(PlatformErrors.NotFound));
         }
         catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 }
 
@@ -73,24 +73,24 @@ internal sealed class PresignUploadHandler(CommandDataSession<FilesDbContext> wo
     public async ValueTask<PresignedUpload> Handle(PresignUploadCommand request, CancellationToken cancellationToken)
     {
         var runtime = source.Resolve(services); var db = work.Context;
-        var tenantId = tenant.TenantId ?? throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        var tenantId = tenant.TenantId ?? throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         var policy = Validate(request, runtime, out var name, out var contentType, out var sha256);
         var now = runtime.Clock.GetUtcNow().UtcDateTime;
         var fingerprint = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', request.Purpose, name, request.Size, contentType, sha256))));
         var existing = await db.Files.SingleOrDefaultAsync(file => file.IdempotencyKey == request.IdempotencyKey, cancellationToken).ConfigureAwait(false);
         if (existing is not null)
         {
-            if (existing.RequestHash != fingerprint || existing.Status != FileStatus.Uploading) throw new QianErrorException(new QianError(PlatformErrors.Conflict));
-            if (existing.UploadExpiresAt <= now) throw new QianErrorException(new QianError(FilesErrors.UploadExpired));
+            if (existing.RequestHash != fingerprint || existing.Status != FileStatus.Uploading) throw new ErrorException(new Error(PlatformErrors.Conflict));
+            if (existing.UploadExpiresAt <= now) throw new ErrorException(new Error(FilesErrors.UploadExpired));
             return await Sign(runtime, existing, existing.UploadExpiresAt - now, cancellationToken).ConfigureAwait(false);
         }
         if (policy.MaxCount is { } maxCount &&
             await FilesRuntime.Counted(db.Files, now).CountAsync(file => file.Purpose == policy.Purpose, cancellationToken).ConfigureAwait(false) >= maxCount)
-            throw new QianErrorException(new QianError(FilesErrors.CountExceeded, new Dictionary<string, string> { ["maxCount"] = Text(maxCount) }) { Pointer = ErrorPointer.Input("purpose") });
+            throw new ErrorException(new Error(FilesErrors.CountExceeded, new Dictionary<string, string> { ["maxCount"] = Text(maxCount) }) { Pointer = ErrorPointer.Input("purpose") });
         var limit = await runtime.QuotaLimitAsync(cancellationToken).ConfigureAwait(false);
         var used = await FilesRuntime.Counted(db.Files, now).SumAsync(file => file.Size, cancellationToken).ConfigureAwait(false);
         if (used + request.Size > limit)
-            throw new QianErrorException(new QianError(FilesErrors.QuotaExceeded, new Dictionary<string, string> { ["remaining"] = Text(Math.Max(0, limit - used)) })
+            throw new ErrorException(new Error(FilesErrors.QuotaExceeded, new Dictionary<string, string> { ["remaining"] = Text(Math.Max(0, limit - used)) })
             { Pointer = ErrorPointer.Input("size") });
         var id = Guid.CreateVersion7(); var storageKey = FileKeys.Storage(FileKeys.Directory(tenantId, FilesConfiguration.OwnerOf(policy.Purpose), now), id, contentType);
         var file = new FileObject(id)
@@ -117,19 +117,19 @@ internal sealed class PresignUploadHandler(CommandDataSession<FilesDbContext> wo
         if (policy is null)
         {
             var known = runtime.Policies.List().Take(AllowedValues.MaxCount).Select(item => item.Purpose).ToArray();
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid)
             {
-                Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("purpose")) { Allowed = known.Length == 0 ? null : AllowedValues.Of(known) }]
+                Errors = [new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("purpose")) { Allowed = known.Length == 0 ? null : AllowedValues.Of(known) }]
             });
         }
         name = (request.Name ?? "").Trim();
         if (name.Length is 0 or > 255 || name.Any(c => char.IsControl(c) || c is '/' or '\\') || name is "." or "..") throw Invalid("name");
         if (request.Size < 1) throw Invalid("size");
         if (request.Size > policy.MaxSize)
-            throw new QianErrorException(new QianError(FilesErrors.TooLarge, new Dictionary<string, string> { ["maxSize"] = Text(policy.MaxSize) }) { Pointer = ErrorPointer.Input("size") });
+            throw new ErrorException(new Error(FilesErrors.TooLarge, new Dictionary<string, string> { ["maxSize"] = Text(policy.MaxSize) }) { Pointer = ErrorPointer.Input("size") });
         contentType = ContentSniffer.Normalize(request.ContentType) ?? throw Invalid("contentType");
         if (!ContentSniffer.Allows(policy, contentType))
-            throw new QianErrorException(new QianError(FilesErrors.TypeNotAllowed, new Dictionary<string, string> { ["contentType"] = contentType })
+            throw new ErrorException(new Error(FilesErrors.TypeNotAllowed, new Dictionary<string, string> { ["contentType"] = contentType })
             {
                 Pointer = ErrorPointer.Input("contentType"), Allowed = AllowedValues.Of(policy.AllowedTypes.Take(AllowedValues.MaxCount).ToArray())
             });
@@ -138,9 +138,9 @@ internal sealed class PresignUploadHandler(CommandDataSession<FilesDbContext> wo
         return policy;
     }
 
-    internal static QianErrorException Invalid(string member) => new(new QianError(PlatformErrors.InputInvalid)
+    internal static ErrorException Invalid(string member) => new(new Error(PlatformErrors.InputInvalid)
     {
-        Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input(member))]
+        Errors = [new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input(member))]
     });
 
     internal static string Text(long value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -154,9 +154,9 @@ internal sealed class CompleteUploadHandler(CommandDataSession<FilesDbContext> w
         if (request.IdempotencyKey == Guid.Empty) throw PresignUploadHandler.Invalid("idempotencyKey");
         var runtime = source.Resolve(services);
         var file = await work.Context.Files.SingleOrDefaultAsync(row => row.Id == request.FileId, cancellationToken).ConfigureAwait(false)
-            ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
         if (file.Status != FileStatus.Uploading) return file.Describe();
-        if (runtime.Clock.GetUtcNow().UtcDateTime > file.UploadExpiresAt + FilesRuntime.CompleteGrace) throw new QianErrorException(new QianError(FilesErrors.UploadExpired));
+        if (runtime.Clock.GetUtcNow().UtcDateTime > file.UploadExpiresAt + FilesRuntime.CompleteGrace) throw new ErrorException(new Error(FilesErrors.UploadExpired));
         await UploadVerifier.VerifyAsync(runtime, file, cancellationToken).ConfigureAwait(false);
         if (file.Status == FileStatus.Available)
             work.Outbox.Enqueue(new FileObjectCreatedEvent(file.Id, file.PluginId, file.Purpose, file.Size, file.ContentType, file.Sha256));
@@ -168,7 +168,7 @@ internal sealed class GetFileHandler(CommandDataSession<FilesDbContext> work) : 
 {
     public async ValueTask<FileDescriptor> Handle(GetFileQuery request, CancellationToken cancellationToken) =>
         (await work.Context.Files.AsNoTracking().SingleOrDefaultAsync(row => row.Id == request.FileId, cancellationToken).ConfigureAwait(false)
-            ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound))).Describe();
+            ?? throw new ErrorException(new Error(PlatformErrors.NotFound))).Describe();
 }
 
 internal sealed class DownloadUrlHandler(CommandDataSession<FilesDbContext> work, FilesCapabilitySource source, IServiceProvider services)
@@ -178,9 +178,9 @@ internal sealed class DownloadUrlHandler(CommandDataSession<FilesDbContext> work
     {
         var runtime = source.Resolve(services);
         var file = await work.Context.Files.AsNoTracking().SingleOrDefaultAsync(row => row.Id == request.FileId, cancellationToken).ConfigureAwait(false)
-            ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
         if (file.Status != FileStatus.Available)
-            throw new QianErrorException(new QianError(FilesErrors.NotAvailable, new Dictionary<string, string> { ["status"] = file.Status }));
+            throw new ErrorException(new Error(FilesErrors.NotAvailable, new Dictionary<string, string> { ["status"] = file.Status }));
         var transfer = await runtime.Backend.CreateDownloadAsync(file.StorageKey, file.Name, FilesRuntime.DownloadLifetime, cancellationToken).ConfigureAwait(false);
         return new DownloadTicket(transfer.Url, transfer.ExpiresAt);
     }
@@ -193,7 +193,7 @@ internal sealed class DeleteFileHandler(CommandDataSession<FilesDbContext> work)
         if (request.IdempotencyKey == Guid.Empty) throw PresignUploadHandler.Invalid("idempotencyKey");
         // 软删的行被全局过滤器隐藏：重复删除返回 404，不会再次产生副作用（QIAN0004 不允许绕过过滤器取回原行）。
         var file = await work.Context.Files.SingleOrDefaultAsync(row => row.Id == request.FileId, cancellationToken).ConfigureAwait(false)
-            ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
         var published = file.Status == FileStatus.Available;
         file.SoftDelete();
         if (published) work.Outbox.Enqueue(new FileObjectDeletedEvent(file.Id, file.PluginId, file.Purpose));
@@ -221,7 +221,7 @@ internal static class UploadVerifier
     {
         Stream staging;
         try { staging = await runtime.Backend.OpenReadAsync(file.UploadKey, cancellationToken).ConfigureAwait(false); }
-        catch (FileNotFoundException) { throw new QianErrorException(new QianError(FilesErrors.UploadIncomplete)); }
+        catch (FileNotFoundException) { throw new ErrorException(new Error(FilesErrors.UploadIncomplete)); }
         await using (staging.ConfigureAwait(false))
         {
             var head = new byte[ContentSniffer.HeadLength]; var length = 0;

@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Abstractions;
 
@@ -161,7 +161,7 @@ public sealed record ExternalAssertion(string Issuer, string Subject, string? Un
 /// <summary>
 /// 上游连接器 SPI；方法名按组件模型 §6.3，与 PRD 7.4.2 的 <c>BeginChallengeAsync</c> / <c>HandleCallbackAsync</c> 一一对应，
 /// 免登（<c>ExchangeImplicitAsync</c>）与目录同步拆为可选扩展接口。连接器无状态：state、nonce、PKCE verifier 由身份服务生成、保存并校验，
-/// 回调只在关联状态核对通过后才交给连接器。协议失败抛 <see cref="QianErrorException"/>：nonce 不符用
+/// 回调只在关联状态核对通过后才交给连接器。协议失败抛 <see cref="ErrorException"/>：nonce 不符用
 /// <see cref="IdentityErrors.ConnectorStateInvalid"/>，上游响应无效或签名不符用 BAD_GATEWAY，上游超时用 GATEWAY_TIMEOUT。
 /// </summary>
 public interface IIdentityConnector
@@ -192,7 +192,7 @@ public sealed record AuthenticationFactorContext(Guid PersonId, string ClientId,
 /// <summary>因子挑战投影，不包含验证答案。</summary>
 public sealed record AuthenticationChallenge(string Id, DateTimeOffset ExpiresAt, JsonElement PublicParameters);
 /// <summary>因子验证结果，平台签发与会话策略由身份服务统一执行。</summary>
-public sealed record AuthenticationResult(bool Succeeded, QianError? Error, IReadOnlyList<string> Amr, string? Acr);
+public sealed record AuthenticationResult(bool Succeeded, Error? Error, IReadOnlyList<string> Amr, string? Acr);
 /// <summary>临时认证材料，不可 JSON 序列化或打印，使用后清零。</summary>
 public sealed class AuthenticationProof : IDisposable
 {

@@ -1,6 +1,6 @@
 using Kun.Authorization;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.Abstractions;
 
@@ -54,7 +54,7 @@ internal static class TenantInitializationAuthorization
     internal static string ActorKind => Active ? CurrentInvocation.Value!.Grant.ActorKind : throw Denied();
     internal static string Tenant => CurrentInvocation.Value is { } invocation && Allows(invocation.Capability, invocation.Grant.Source.Scope)
         ? invocation.Grant.Source.Scope.Id! : throw Denied();
-    private static QianErrorException Denied() => new(new QianError(PlatformErrors.AuthzDenied));
+    private static ErrorException Denied() => new(new Error(PlatformErrors.AuthzDenied));
     private abstract class Lifetime
     {
         private int _closed;

@@ -1,7 +1,7 @@
 using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Qian.Events;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -93,7 +93,7 @@ public sealed record RecordHookContext(Guid TenantId, RecordActor Actor, string 
 /// <summary>before Hook 可以拒绝或替换载荷；执行器须对改写结果重新执行字段权限、校验与业务主键检查。</summary>
 public sealed class RecordHookResult
 {
-    private RecordHookResult(bool allowed, JsonElement? payload, QianError? error)
+    private RecordHookResult(bool allowed, JsonElement? payload, Error? error)
     {
         Allowed = allowed;
         Payload = payload?.Clone();
@@ -104,7 +104,7 @@ public sealed class RecordHookResult
     /// <summary>可选替换对象；null 表示沿用原始 Proposed。</summary>
     public JsonElement? Payload { get; }
     /// <summary>拒绝原因；由宿主映射为统一 ErrorDetail。</summary>
-    public QianError? Error { get; }
+    public Error? Error { get; }
     /// <summary>允许继续；可给出替换对象，不能以数组或标量替换记录。</summary>
     public static RecordHookResult Accept(JsonElement? payload = null)
     {
@@ -112,7 +112,7 @@ public sealed class RecordHookResult
         return new(true, payload, null);
     }
     /// <summary>拒绝并要求执行器回滚；错误必须来自已登记的组件错误目录。</summary>
-    public static RecordHookResult Reject(QianError error)
+    public static RecordHookResult Reject(Error error)
     {
         ArgumentNullException.ThrowIfNull(error);
         return new(false, null, error);

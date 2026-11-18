@@ -16,8 +16,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Model;
 using Yarp.ReverseProxy.Transforms;
@@ -43,7 +43,7 @@ public static class GatewayHosting
         var snapshot = GatewayConfigurationReader.Copy(configuration);
         services.AddSingleton(new GatewayRuntime(snapshot));
         services.AddHealthChecks().AddCheck<GatewayMountHealthCheck>("qian.gateway", tags: ["ready"]);
-        services.AddQianErrors();
+        services.AddKunErrors();
         services.AddSingleton<IS2sPrincipalResolver, GatewayPrincipalResolver>();
         services.AddSingleton<IRateLimitPartitionResolver, IpRateLimitPartitionResolver>();
         services.AddSingleton<GatewayShellClient>();
@@ -106,7 +106,7 @@ public static class GatewayHosting
     {
         ArgumentNullException.ThrowIfNull(app);
         var runtime = app.ApplicationServices.GetRequiredService<GatewayRuntime>();
-        app.UseQianErrors();
+        app.UseKunErrors();
         app.Use(async (http, next) =>
         {
             if (http.GetEndpoint()?.Metadata.GetMetadata<GatewayEndpoint>() is not null && !runtime.IsReady)
@@ -125,7 +125,7 @@ public static class GatewayHosting
                     http.Items[GatewayRuntime.TokenKey] = await http.RequestServices.GetRequiredService<S2sTokenIssuer>()
                         .IssueForAudienceAsync(http.User, endpoint.Audience, http.RequestAborted).ConfigureAwait(false);
                 }
-                catch (InvalidOperationException) { throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated)); }
+                catch (InvalidOperationException) { throw new ErrorException(new Error(PlatformErrors.Unauthenticated)); }
             }
             await next(http).ConfigureAwait(false);
         });
@@ -143,7 +143,7 @@ public static class GatewayHosting
             Predicate = registration => registration.Tags.Contains("ready"),
             ResponseWriter = (http, report) => report.Status == HealthStatus.Healthy
                 ? http.Response.WriteAsync("Healthy", http.RequestAborted)
-                : QianResults.Error(new QianError(PlatformErrors.Unavailable)).ExecuteAsync(http)
+                : KunResults.Error(new Error(PlatformErrors.Unavailable)).ExecuteAsync(http)
         }).AllowAnonymous();
         var runtime = endpoints.ServiceProvider.GetRequiredService<GatewayRuntime>();
         var proxy = endpoints.MapReverseProxy();
@@ -176,9 +176,9 @@ public static class GatewayHosting
                 request.ProxyRequest.Headers.TryAddWithoutValidation("X-Forwarded-Proto", request.HttpContext.Request.Scheme);
                 request.ProxyRequest.Headers.TryAddWithoutValidation("X-Forwarded-Host", new Uri(runtime.Configuration.Issuer).Authority);
                 if (!runtime.IsReady || request.HttpContext.User.Identity?.IsAuthenticated != true)
-                    throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+                    throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
                 if (request.HttpContext.Items[GatewayRuntime.TokenKey] is not string token)
-                    throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+                    throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
                 request.ProxyRequest.Headers.TryAddWithoutValidation("Authorization", "Bearer " + token);
                 return ValueTask.CompletedTask;
             });

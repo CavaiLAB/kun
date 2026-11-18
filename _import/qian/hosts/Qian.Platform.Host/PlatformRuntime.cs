@@ -9,7 +9,7 @@ using Qian.Lifecycle;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 
@@ -49,7 +49,7 @@ public sealed class PlatformRuntime : IHostedService, IAsyncDisposable
     {
         try { return Loader.GetContext(id, ScopeKey.Global); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException or ServiceNotReadyException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public sealed class PlatformRuntime : IHostedService, IAsyncDisposable
     /// </summary>
     public IPluginContext Tenant(string id)
     {
-        if (!Guid.TryParseExact(_tenant.TenantId, "D", out var parsed) || parsed == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!Guid.TryParseExact(_tenant.TenantId, "D", out var parsed) || parsed == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         var scope = new ScopeKey("tenant", _tenant.TenantId!);
         try
         {
@@ -66,7 +66,7 @@ public sealed class PlatformRuntime : IHostedService, IAsyncDisposable
                 ? Loader.GetContext(id, scope) : Loader.GetContext(id, ScopeKey.Global).Scoped(scope);
         }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException or ServiceNotReadyException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     /// <inheritdoc />

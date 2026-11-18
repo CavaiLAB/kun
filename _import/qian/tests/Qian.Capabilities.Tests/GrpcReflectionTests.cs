@@ -87,7 +87,7 @@ public sealed class GrpcReflectionTests
             Assert.Same(baseline.Definition.Plugin, new ContractAdmission(repository, null).Admit(baseline.Definition.Plugin, "test.rpc", "0.9.0"));
             await runtime.MountAsync([candidate.Definition with { Plugin = new ContractAdmission(repository, null).Admit(candidate.Definition.Plugin, "test.rpc", "1.0.0") }], Ct);
             Assert.Equal(PluginState.Failed, runtime.GetState("remote", ScopeKey.Global));
-            var unavailable = Assert.IsType<Qian.Runtime.Errors.QianErrorException>(runtime.GetFailure("remote", ScopeKey.Global));
+            var unavailable = Assert.IsType<Kun.Errors.ErrorException>(runtime.GetFailure("remote", ScopeKey.Global));
             Assert.Equal(("PRECONDITION_FAILED", "#/contracts/test.rpc.api~1v1"), (unavailable.Error.Code.Code, unavailable.Error.Pointer));
             await runtime.UnmountAsync("remote", ScopeKey.Global, Ct);
             var admitted = new ContractAdmission(repository, new Peers(probe)).Admit(candidate.Definition.Plugin, "test.rpc", "1.0.0");

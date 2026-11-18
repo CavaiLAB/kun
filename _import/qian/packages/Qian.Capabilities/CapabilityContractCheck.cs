@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Qian.Plugin.Sdk;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Capabilities;
@@ -45,7 +45,7 @@ internal sealed partial class CapabilityContractCheck(ISurfaceReader schemas, IT
         }
         catch (CapabilityContractException error) { rejected = error; }
         // 元数据读不成条目等其余失败同样按不合格处理，不外溢成目录请求的失败。
-        catch (Exception error) when (error is QianErrorException or JsonException or ArgumentException or InvalidOperationException or KeyNotFoundException)
+        catch (Exception error) when (error is ErrorException or JsonException or ArgumentException or InvalidOperationException or KeyNotFoundException)
         { rejected = new CapabilityContractException(contract.ComponentId, contract.Name, CapabilityContractCompiler.Locate(contract.Id, []), "contract-invalid", error); }
         if (logger is not null) Log.Rejected(logger, contract.Id, rejected.Rule, rejected.Location);
         return new Outcome(null, new Rejection(rejected.Location, rejected.Rule, rejected.InnerException));

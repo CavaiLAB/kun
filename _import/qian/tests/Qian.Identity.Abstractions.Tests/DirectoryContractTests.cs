@@ -1,4 +1,4 @@
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Abstractions.Tests;
 
@@ -13,7 +13,7 @@ public sealed class DirectoryContractTests
     public void 整棵子树深度校验(int parent, int height, bool allowed)
     {
         if (allowed) DirectoryRules.ValidateDepth(parent, height);
-        else Assert.Equal("DIRECTORY_DEPTH_EXCEEDED", Assert.Throws<QianErrorException>(() => DirectoryRules.ValidateDepth(parent, height)).Error.Code.Code);
+        else Assert.Equal("DIRECTORY_DEPTH_EXCEEDED", Assert.Throws<ErrorException>(() => DirectoryRules.ValidateDepth(parent, height)).Error.Code.Code);
     }
     [Fact]
     public void 状态机及操作安全元数据明确_物理清除无执行入口()

@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data;
 
@@ -57,7 +57,7 @@ public sealed record DialectTypeMapping(string Type, string NativeType, DataType
         ArgumentNullException.ThrowIfNull(field);
         if (type.Code != Type || field.Type != Type)
             throw new ArgumentException("字段定义、基准类型与映射必须是同一个基准类型。", nameof(field));
-        var errors = new List<QianFieldError>();
+        var errors = new List<FieldError>();
         var length = Limited(type, DataTypeFacets.Length, field.Length, Length, "#/length", errors);
         var precision = Limited(type, DataTypeFacets.Precision, field.Precision, Precision, "#/precision", errors);
         int? scale = null;
@@ -74,11 +74,11 @@ public sealed record DialectTypeMapping(string Type, string NativeType, DataType
         }
         CheckRange(type, field, precision, scale, errors);
         if (errors.Count > 0)
-            throw new QianErrorException(new QianError(DataErrors.FieldDefinitionInvalid, new Dictionary<string, string> { ["type"] = Type }) { Errors = errors });
+            throw new ErrorException(new Error(DataErrors.FieldDefinitionInvalid, new Dictionary<string, string> { ["type"] = Type }) { Errors = errors });
         return new DataFieldMapping(Type, NativeType, length, precision, scale);
     }
 
-    private static int? Limited(BaseDataType type, string facet, int? value, DataTypeLimit? limit, string pointer, List<QianFieldError> errors)
+    private static int? Limited(BaseDataType type, string facet, int? value, DataTypeLimit? limit, string pointer, List<FieldError> errors)
     {
         if (!type.Accepts(facet) || limit is null)
         {
@@ -90,7 +90,7 @@ public sealed record DialectTypeMapping(string Type, string NativeType, DataType
         return actual;
     }
 
-    private void CheckRange(BaseDataType type, DataFieldDefinition field, int? precision, int? scale, List<QianFieldError> errors)
+    private void CheckRange(BaseDataType type, DataFieldDefinition field, int? precision, int? scale, List<FieldError> errors)
     {
         if (!type.Accepts(DataTypeFacets.Range))
         {
@@ -105,7 +105,7 @@ public sealed record DialectTypeMapping(string Type, string NativeType, DataType
             if (bound < bounds.Min || bound > bounds.Max || bounds.FractionDigits is { } digits && decimal.Round(bound, digits) != bound)
                 errors.Add(OutOfRange(DataTypeFacets.Range, pointer, bounds.Min, bounds.Max));
         }
-        if (field.Minimum > field.Maximum) errors.Add(new QianFieldError(DataErrors.FieldRangeInverted, "#/minimum"));
+        if (field.Minimum > field.Maximum) errors.Add(new FieldError(DataErrors.FieldRangeInverted, "#/minimum"));
     }
 
     // decimal(p, s) 可表示 ±(10^(p-s) − 10^-s)，上下限的小数位不超过 s。
@@ -123,7 +123,7 @@ public sealed record DialectTypeMapping(string Type, string NativeType, DataType
         return value;
     }
 
-    private static QianFieldError OutOfRange(string facet, string pointer, decimal min, decimal max) =>
+    private static FieldError OutOfRange(string facet, string pointer, decimal min, decimal max) =>
         new(DataErrors.FieldOutOfRange, pointer, new Dictionary<string, string>
         {
             ["facet"] = facet,
@@ -131,7 +131,7 @@ public sealed record DialectTypeMapping(string Type, string NativeType, DataType
             ["max"] = max.ToString(CultureInfo.InvariantCulture)
         });
 
-    private static QianFieldError Unsupported(BaseDataType type, string facet, string pointer) =>
+    private static FieldError Unsupported(BaseDataType type, string facet, string pointer) =>
         new(DataErrors.FieldFacetUnsupported, pointer, new Dictionary<string, string> { ["facet"] = facet, ["type"] = type.Code });
 }
 

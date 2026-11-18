@@ -5,7 +5,7 @@ using Json.Schema;
 using Json.Schema.Keywords;
 using Qian.Common;
 using Qian.Profiles.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 using VersionRange = SemanticVersioning.Range;
 using SemanticVersion = SemanticVersioning.Version;
@@ -631,7 +631,7 @@ public sealed class ProfileLoader(ISurfaceReader reader) : IProfileLoader
         private void Error(string file, string pointer, string message, string severity)
         {
             var display = Display(file); var prefix = string.Join('/', display.Split('/').Select(Uri.EscapeDataString));
-            var error = new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(ProfileErrors.Invalid, prefix + "#" + pointer, new Dictionary<string, string> { ["reason"] = message })] };
+            var error = new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(ProfileErrors.Invalid, prefix + "#" + pointer, new Dictionary<string, string> { ["reason"] = message })] };
             _diagnostics.Add(new SurfaceDiagnostic(display, _sources.TryGetValue(display, out var source) ? Line(source.Lines, pointer) : 1, severity, _catalog.CreateDetail(error, _trace)));
         }
         private void Fail(string file, string pointer, string message) { Error(file, pointer, message, "error"); throw new CompositionFailed(); }

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config.Apollo;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Secrets.Tests;
 
@@ -65,7 +65,7 @@ public sealed partial class SecretResolverTests
         Directory.Delete(Path.Combine(directory, "..data"));
         Directory.CreateSymbolicLink(Path.Combine(directory, "..data"), files.Outside);
         await File.WriteAllTextAsync(Path.Combine(files.Outside, "password"), "outside-must-not-be-read", TestContext.Current.CancellationToken);
-        var denied = await Assert.ThrowsAsync<QianErrorException>(async () => await store.ReadAsync(location, TestContext.Current.CancellationToken));
+        var denied = await Assert.ThrowsAsync<ErrorException>(async () => await store.ReadAsync(location, TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_ACCESS_DENIED", denied.Error.Code.Code);
         Assert.DoesNotContain("outside-must", denied.ToString(), StringComparison.Ordinal);
     }
@@ -80,10 +80,10 @@ public sealed partial class SecretResolverTests
         var tenant = new Tenant { TenantId = "a" };
         var resolver = factory.ForHost("qian.consumer", tenant);
         using (var value = await resolver.ResolveAsync("secretRef://tenant/db/token", TestContext.Current.CancellationToken)) Assert.Equal("synthetic-a", value.RevealUtf8());
-        var denied = await Assert.ThrowsAsync<QianErrorException>(async () => await resolver.ResolveAsync("secretRef://tenant/b/db/token", TestContext.Current.CancellationToken));
+        var denied = await Assert.ThrowsAsync<ErrorException>(async () => await resolver.ResolveAsync("secretRef://tenant/b/db/token", TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_ACCESS_DENIED", denied.Error.Code.Code);
         var unapproved = factory.ForHost("qian.declared", tenant);
-        await Assert.ThrowsAsync<QianErrorException>(async () => await unapproved.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ErrorException>(async () => await unapproved.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
         tenant.TenantId = "b";
         using (var value = await resolver.ResolveAsync("secretRef://tenant/db/token", TestContext.Current.CancellationToken)) Assert.Equal("synthetic-b", value.RevealUtf8());
         Assert.Equal(4, observer.Events.Count);
@@ -98,11 +98,11 @@ public sealed partial class SecretResolverTests
         var tenant = new Tenant { TenantId = "a" };
         var observer = new Observer();
         var resolver = new SecretResolverFactory(Options(files.Root), observer).ForHost("qian.consumer", tenant);
-        var missing = await Assert.ThrowsAsync<QianErrorException>(async () => await resolver.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
+        var missing = await Assert.ThrowsAsync<ErrorException>(async () => await resolver.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_NOT_FOUND", missing.Error.Code.Code);
         files.Write("a", "synthetic-secret");
         var auditFailure = new SecretResolverFactory(Options(files.Root), new FailingObserver()).ForHost("qian.consumer", tenant);
-        var error = await Assert.ThrowsAsync<QianErrorException>(async () => await auditFailure.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ErrorException>(async () => await auditFailure.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_UNAVAILABLE", error.Error.Code.Code);
         Assert.DoesNotContain("synthetic-secret", error.ToString(), StringComparison.Ordinal);
     }
@@ -127,7 +127,7 @@ public sealed partial class SecretResolverTests
         using (var value = await context.ResolveSecretAsync("secretRef://tenant/db/token", TestContext.Current.CancellationToken)) Assert.Equal("synthetic-secret", value.RevealUtf8());
         var saved = context.Config().Secrets!.ForPlugin(context);
         await runtime.UnmountAsync("config", ScopeKey.Global, TestContext.Current.CancellationToken);
-        var denied = await Assert.ThrowsAsync<QianErrorException>(async () => await saved.ResolveAsync("secretRef://tenant/db/token", TestContext.Current.CancellationToken));
+        var denied = await Assert.ThrowsAsync<ErrorException>(async () => await saved.ResolveAsync("secretRef://tenant/db/token", TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_ACCESS_DENIED", denied.Error.Code.Code);
     }
 
@@ -148,7 +148,7 @@ public sealed partial class SecretResolverTests
             Bindings = [new("secretRef://dev/app/token", new("qian", "a", "token"))],
             Policies = [new("qian.consumer", [new("app/*", "dev")], [new("app/*", "dev")])]
         };
-        var denied = await Assert.ThrowsAsync<QianErrorException>(async () => await new SecretResolverFactory(options, new Observer())
+        var denied = await Assert.ThrowsAsync<ErrorException>(async () => await new SecretResolverFactory(options, new Observer())
             .ForHost("qian.consumer").ResolveAsync("secretRef://dev/app/token", TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_ACCESS_DENIED", denied.Error.Code.Code);
         var grants = new List<SecretGrant>(declared);
@@ -158,7 +158,7 @@ public sealed partial class SecretResolverTests
             Policies = [new("qian.consumer", grants, [new("app/*", "dev")])]
         }, new Observer());
         grants.Add(new("app/*", "dev"));
-        await Assert.ThrowsAsync<QianErrorException>(async () => await factory.ForHost("qian.consumer")
+        await Assert.ThrowsAsync<ErrorException>(async () => await factory.ForHost("qian.consumer")
             .ResolveAsync("secretRef://dev/app/token", TestContext.Current.CancellationToken));
         using var services = new ServiceCollection().AddQianSecrets(options).BuildServiceProvider();
         Assert.Throws<InvalidOperationException>(() => services.GetRequiredService<ISecretResolverFactory>());

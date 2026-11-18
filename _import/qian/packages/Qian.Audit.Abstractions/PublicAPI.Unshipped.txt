@@ -53,8 +53,8 @@ static Qian.Audit.AuditChainEntry.operator ==(Qian.Audit.AuditChainEntry? left, 
 static Qian.Audit.AuditChainVerification.operator !=(Qian.Audit.AuditChainVerification? left, Qian.Audit.AuditChainVerification? right) -> bool
 static Qian.Audit.AuditChainVerification.operator ==(Qian.Audit.AuditChainVerification? left, Qian.Audit.AuditChainVerification? right) -> bool
 Qian.Audit.AuditErrors
-static Qian.Audit.AuditErrors.Register(Qian.Runtime.Errors.ErrorCatalog! catalog) -> System.IDisposable!
-static readonly Qian.Audit.AuditErrors.SchemaInvalid -> Qian.Runtime.Errors.ErrorCode!
+static Qian.Audit.AuditErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static readonly Qian.Audit.AuditErrors.SchemaInvalid -> Kun.Errors.ErrorCode!
 Qian.Audit.AuditDefinition
 Qian.Audit.IAuditReader
 Qian.Audit.IAuditReader.ReadAsync(long afterSequence, int take, string? onBehalfOf = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Qian.Audit.AuditChainEntry!>!>!
@@ -78,7 +78,7 @@ Qian.Audit.AuditInputProjection.InputHash(System.Text.Json.JsonElement input) ->
 Qian.Audit.AuditInputProjection.Redact(System.Text.Json.JsonElement input) -> System.Text.Json.JsonElement
 static Qian.Audit.AuditProtocol.Content(Qian.Audit.AuditRecord! record, long sequence) -> string!
 static Qian.Audit.AuditProtocol.Canonicalize(System.Text.Json.JsonElement value) -> string!
-static readonly Qian.Audit.NativeAuditErrors.Misconfigured -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Audit.NativeAuditErrors.Misconfigured -> Kun.Errors.ErrorCode!
 Qian.Audit.NativeAuditErrors
 static Qian.Audit.AuditProtocol.ReadEntry(System.Text.Json.JsonElement row) -> Qian.Audit.AuditChainEntry!
 Qian.Audit.IAuditWriter.AppendPlatformEnlistedAsync(Qian.Runtime.IPluginContext! producer, Qian.Audit.AuditRecord! record, System.Data.Common.DbTransaction! transaction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainEntry!>!

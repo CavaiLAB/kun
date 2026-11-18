@@ -5,7 +5,7 @@ using Qian.Audit;
 using Qian.Data;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -42,7 +42,7 @@ internal sealed partial class LifecycleController
             var install = await db.Installs.SingleOrDefaultAsync(item => item.PluginId == pluginId, cancellationToken).ConfigureAwait(false);
             // 已开通：重复开通直接返回，不认领执行记录、不调用钩子、不写任何记录。
             if (install is { State: TenantInstallStates.Installed }) return Plan.Done(install.View());
-            if (install is { State: TenantInstallStates.Upgrading }) throw new QianErrorException(new QianError(LifecycleErrors.InProgress));
+            if (install is { State: TenantInstallStates.Upgrading }) throw new ErrorException(new Error(LifecycleErrors.InProgress));
             string version;
             if (install is { State: TenantInstallStates.Provisioning, TargetVersion: { } target })
             {
@@ -60,7 +60,7 @@ internal sealed partial class LifecycleController
                 if (install is null)
                 {
                     // policy.required 的平台组件与宿主预装的 system 级组件恒视为已授权（组件规格 plugin-manifest 4.5，R151 ②）；其余组件须先经 qian.entitlement 授权。
-                    if (!active.Required && !SystemPreinstalled(active)) throw new QianErrorException(new QianError(LifecycleErrors.NotEntitled));
+                    if (!active.Required && !SystemPreinstalled(active)) throw new ErrorException(new Error(LifecycleErrors.NotEntitled));
                     install = new TenantInstallRow { TenantId = tenantId, PluginId = pluginId };
                     db.Installs.Add(install);
                 }
@@ -126,7 +126,7 @@ internal sealed partial class LifecycleController
         {
             if (plan.Attempt is { } attempt) await Execute(tenantId, pluginId, LifecycleHooks.TenantUpgrade, fromVersion, toVersion, attempt, cancellationToken).ConfigureAwait(false);
         }
-        catch (QianErrorException)
+        catch (ErrorException)
         {
             await Settle(audit, tenantId, pluginId, fromVersion, toVersion, actor, false, [], cancellationToken).ConfigureAwait(false);
             throw;
@@ -150,7 +150,7 @@ internal sealed partial class LifecycleController
             }
             failure = await Synchronize(registry, scopeKey, cancellationToken).ConfigureAwait(false);
         }
-        catch (QianErrorException error)
+        catch (ErrorException error)
         {
             // 写入本身被拒（如新版本的配置 Schema 不接受原配置）：同样整体撤回。
             failure = new RegistryScopeDiagnostic(Name(scopeKey), current, pluginId + "@" + toVersion, null, error.Error.Code.Code, Now());
@@ -164,7 +164,7 @@ internal sealed partial class LifecycleController
             int? revision = failure.Revision ?? (rewritten.Any(item => item.EntryId == entryId) ? rewritten.First(item => item.EntryId == entryId).Revision : null);
             await RecordFailure(scopeKey, entryId, failure.Plugin ?? pluginId + "@" + toVersion, revision, failure.ReasonCode, cancellationToken).ConfigureAwait(false);
             await Settle(audit, tenantId, pluginId, fromVersion, toVersion, actor, false, [], cancellationToken).ConfigureAwait(false);
-            throw new QianErrorException(new QianError(LifecycleErrors.MountFailed, new Dictionary<string, string> { ["entryId"] = entryId, ["reasonCode"] = failure.ReasonCode }));
+            throw new ErrorException(new Error(LifecycleErrors.MountFailed, new Dictionary<string, string> { ["entryId"] = entryId, ["reasonCode"] = failure.ReasonCode }));
         }
         return await Settle(audit, tenantId, pluginId, fromVersion, toVersion, actor, true, rewritten.Select(item => item.EntryId).ToArray(), cancellationToken).ConfigureAwait(false);
     }
@@ -282,7 +282,7 @@ internal sealed partial class LifecycleController
         var now = Now();
         var run = await db.Runs.SingleOrDefaultAsync(item => item.PluginId == pluginId && item.Hook == hook && item.ToVersion == toVersion, ct).ConfigureAwait(false);
         if (run is { Status: LifecycleRunStates.Succeeded }) return null;
-        if (run is { Status: LifecycleRunStates.Running } && run.StartedAt + settings.RunLease > now) throw new QianErrorException(new QianError(LifecycleErrors.InProgress));
+        if (run is { Status: LifecycleRunStates.Running } && run.StartedAt + settings.RunLease > now) throw new ErrorException(new Error(LifecycleErrors.InProgress));
         if (run is null)
         {
             run = new LifecycleRunRow { TenantId = tenantId, PluginId = pluginId, Hook = hook, ToVersion = toVersion, IdempotencyKey = IdempotencyKey(tenantId, pluginId, hook, toVersion) };
@@ -313,7 +313,7 @@ internal sealed partial class LifecycleController
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception error)
         {
-            reason = error is QianErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code;
+            reason = error is ErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code;
             LifecycleLog.HookFailed(context.Logger, error, hook, pluginId, toVersion);
         }
         await Locked(["install", tenantId, pluginId], async session =>
@@ -325,7 +325,7 @@ internal sealed partial class LifecycleController
             await Save(session, null, ct).ConfigureAwait(false);
             return 0;
         }, ct).ConfigureAwait(false);
-        if (reason is not null) throw new QianErrorException(new QianError(LifecycleErrors.HookFailed, new Dictionary<string, string> { ["hook"] = hook, ["reasonCode"] = reason }));
+        if (reason is not null) throw new ErrorException(new Error(LifecycleErrors.HookFailed, new Dictionary<string, string> { ["hook"] = hook, ["reasonCode"] = reason }));
     }
 
     private void Touch(TenantInstallRow row, string actor)

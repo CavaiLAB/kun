@@ -4,7 +4,7 @@ using Kun.Core.MultiTenancy;
 using Qian.Capabilities;
 using Qian.Profiles.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Registry;
 
@@ -27,9 +27,9 @@ internal sealed partial class RegistryScopeReconciler(
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             if (scope.Kind is not ("tenant" or "app" or "agent-session") || string.IsNullOrWhiteSpace(tenantId) ||
-                (scope.Kind == "tenant" && scope.Id != tenantId)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                (scope.Kind == "tenant" && scope.Id != tenantId)) throw new ErrorException(new Error(PlatformErrors.NotFound));
             if (!_scopes.TryGetValue(scope, out var state)) _scopes.Add(scope, state = new ScopeState(tenantId, scope));
-            if (state.TenantId != tenantId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            if (state.TenantId != tenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
             await Refresh(state, linked.Token).ConfigureAwait(false);
         }
         finally { _gate.Release(); }
@@ -42,12 +42,12 @@ internal sealed partial class RegistryScopeReconciler(
         try
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            if (scope.Kind != "tenant" || scope.Id != tenantId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            if (scope.Kind != "tenant" || scope.Id != tenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
             if (!_scopes.TryGetValue(scope, out var state)) _scopes.Add(scope, state = new ScopeState(tenantId, scope));
-            if (state.TenantId != tenantId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            if (state.TenantId != tenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
             // 与装载保持同一锁，不能在坏配置撤销局部条目的中途读到旧绑定。
             try { await Refresh(state, linked.Token).ConfigureAwait(false); }
-            catch (Exception error) when (state.Blocked && !linked.IsCancellationRequested && error is QianErrorException or InvalidOperationException) { return []; }
+            catch (Exception error) when (state.Blocked && !linked.IsCancellationRequested && error is ErrorException or InvalidOperationException) { return []; }
             linked.Token.ThrowIfCancellationRequested();
             if (state.Blocked) return [];
             var live = runtime.DumpConfig().ToDictionary(entry => (entry.Scope, entry.Id));
@@ -99,7 +99,7 @@ internal sealed partial class RegistryScopeReconciler(
             var live = runtime.DumpConfig();
             var global = live.SingleOrDefault(entry => entry.Scope == ScopeKey.Global && entry.Id == entryId);
             if (!installed.Contains(entryId) && global is null && !state.Mounted.ContainsKey(entryId) && !state.Sources.ContainsKey(entryId) && !state.Disabled.ContainsKey(entryId))
-                throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                throw new ErrorException(new Error(PlatformErrors.NotFound));
             if (state.Blocked) throw Reason(RegistryErrors.NotMounted, "租户 scope patch 无法装配，本 scope 的条目已全部撤下", PatchFile + "#");
             if (state.Mounted.ContainsKey(entryId) && live.SingleOrDefault(entry => entry.Scope == scope && entry.Id == entryId) is { } local)
                 return Judge(state, local, true, state.Sources.GetValueOrDefault(entryId));
@@ -124,11 +124,11 @@ internal sealed partial class RegistryScopeReconciler(
     private async ValueTask<ScopeState> Inspected(string tenantId, ScopeKey scope, CancellationToken ct)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        if (scope.Kind != "tenant" || scope.Id != tenantId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (scope.Kind != "tenant" || scope.Id != tenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
         if (!_scopes.TryGetValue(scope, out var state)) _scopes.Add(scope, state = new ScopeState(tenantId, scope));
-        if (state.TenantId != tenantId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (state.TenantId != tenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
         try { await Refresh(state, ct).ConfigureAwait(false); }
-        catch (Exception error) when (state.Blocked && !ct.IsCancellationRequested && error is QianErrorException or InvalidOperationException) { }
+        catch (Exception error) when (state.Blocked && !ct.IsCancellationRequested && error is ErrorException or InvalidOperationException) { }
         ct.ThrowIfCancellationRequested();
         return state;
     }
@@ -157,8 +157,8 @@ internal sealed partial class RegistryScopeReconciler(
         return layer is null ? "被平台 profile 禁用" : $"被平台 profile 的 {layer.Kind} 层禁用（{layer.Path}）";
     }
 
-    private static QianErrorException Reason(Qian.Runtime.Errors.ErrorCode code, string reason, string? pointer) =>
-        new(new QianError(code, new Dictionary<string, string> { ["reason"] = reason }) { Pointer = pointer });
+    private static ErrorException Reason(Kun.Errors.ErrorCode code, string reason, string? pointer) =>
+        new(new Error(code, new Dictionary<string, string> { ["reason"] = reason }) { Pointer = pointer });
 
     internal async ValueTask RefreshAllAsync(CancellationToken ct)
     {
@@ -186,9 +186,9 @@ internal sealed partial class RegistryScopeReconciler(
             using var current = tenant.BeginScope(state.TenantId);
             var (result, rows) = await composer.LoadWithPatchesAsync(state.Scope, ct).ConfigureAwait(false);
             var revisions = rows.ToDictionary(row => row.EntryId, row => row.Revision, StringComparer.Ordinal);
-            if (!result.IsValid) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)
+            if (!result.IsValid) throw new ErrorException(new Error(PlatformErrors.InputInvalid)
             {
-                Errors = result.Diagnostics.Where(d => d.Severity == "error").Select(d => new QianFieldError(RegistryErrors.Invalid,
+                Errors = result.Diagnostics.Where(d => d.Severity == "error").Select(d => new FieldError(RegistryErrors.Invalid,
                     d.Error.Pointer ?? "registry/scope-patches.json#", new Dictionary<string, string> { ["reason"] = "scope 配置无法装配。" })).ToArray()
             });
             var name = state.Scope.Kind + ":" + state.Scope.Id;
@@ -250,7 +250,7 @@ internal sealed partial class RegistryScopeReconciler(
         // 自带原因码的失败（如能力契约在登记阶段被拒绝，Data["reasonCode"] 为 INPUT_INVALID）沿用其错误码，其余按 INTERNAL。
         var reason = failure switch
         {
-            QianErrorException qian => qian.Error.Code.Code,
+            ErrorException qian => qian.Error.Code.Code,
             { } other when other.Data["reasonCode"] is string code && code.Length <= 64 && ReasonCodePattern().IsMatch(code) => code,
             _ => PlatformErrors.Internal.Code
         };
@@ -265,7 +265,7 @@ internal sealed partial class RegistryScopeReconciler(
         state.Failures.Clear();
         state.Failures.Add(error is RegistryScopeApplyException apply
             ? new RegistryScopeDiagnostic(name, apply.EntryId, apply.Plugin, apply.Revision, apply.ReasonCode, DateTimeOffset.UtcNow)
-            : new RegistryScopeDiagnostic(name, null, null, null, error is QianErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code, DateTimeOffset.UtcNow));
+            : new RegistryScopeDiagnostic(name, null, null, null, error is ErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code, DateTimeOffset.UtcNow));
     }
 
     private PluginDefinition Resolve(ResolvedProfileEntry entry, ScopeKey scope)
@@ -361,7 +361,7 @@ internal sealed partial class RegistryScopeReconciler(
     {
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) =>
-            throw new QianErrorException(new QianError(PlatformErrors.Unavailable) { Pointer = ErrorPointer.Input("contracts") });
+            throw new ErrorException(new Error(PlatformErrors.Unavailable) { Pointer = ErrorPointer.Input("contracts") });
     }
 
     private sealed class ScopedPlugin(IQianPlugin inner) : IQianPlugin

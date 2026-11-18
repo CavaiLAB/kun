@@ -5,9 +5,9 @@ Qian.Docs.Abstractions.EventSite.File.init -> void
 Qian.Docs.Abstractions.EventSite.Line.get -> int
 Qian.Docs.Abstractions.EventMap.Mode.get -> string!
 Qian.Docs.Abstractions.EventSite.Symbol.init -> void
-static readonly Qian.Docs.Abstractions.DocumentErrors.Declaration -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Docs.Abstractions.DocumentErrors.ModeMismatch -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Docs.Abstractions.DocumentErrors.Source -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Docs.Abstractions.DocumentErrors.Declaration -> Kun.Errors.ErrorCode!
+static readonly Qian.Docs.Abstractions.DocumentErrors.ModeMismatch -> Kun.Errors.ErrorCode!
+static readonly Qian.Docs.Abstractions.DocumentErrors.Source -> Kun.Errors.ErrorCode!
 Qian.Docs.Abstractions.EventMap.Name.get -> string!
 Qian.Docs.Abstractions.EventMap
 Qian.Docs.Abstractions.EventSite.Line.init -> void
@@ -34,7 +34,7 @@ Qian.Docs.Abstractions.EventMap.<Clone>$() -> Qian.Docs.Abstractions.EventMap!
 Qian.Docs.Abstractions.EventSite.<Clone>$() -> Qian.Docs.Abstractions.EventSite!
 Qian.Docs.Abstractions.EventSite.Deconstruct(out string! File, out int Line, out string! Symbol) -> void
 Qian.Docs.Abstractions.EventMap.Deconstruct(out string! Name, out string! Mode, out Qian.Docs.Abstractions.EventSite! Declaration, out System.Collections.Generic.IReadOnlyList<Qian.Docs.Abstractions.EventSite!>! Producers, out System.Collections.Generic.IReadOnlyList<Qian.Docs.Abstractions.EventSite!>! Consumers) -> void
-static readonly Qian.Docs.Abstractions.DocumentErrors.Dynamic -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Docs.Abstractions.DocumentErrors.Dynamic -> Kun.Errors.ErrorCode!
 Qian.Docs.Abstractions.EventMap.Declaration.get -> Qian.Docs.Abstractions.EventSite!
 Qian.Docs.Abstractions.EventMap.Declaration.init -> void
 Qian.Docs.Abstractions.EventMap.Producers.get -> System.Collections.Generic.IReadOnlyList<Qian.Docs.Abstractions.EventSite!>!
@@ -51,7 +51,7 @@ Qian.Docs.Abstractions.IDocumentGenerator.Generate(Qian.Docs.Abstractions.Docume
 override Qian.Docs.Abstractions.DocumentResult.GetHashCode() -> int
 override Qian.Docs.Abstractions.DocumentResult.Equals(object? obj) -> bool
 Qian.Docs.Abstractions.DocumentResult.Equals(Qian.Docs.Abstractions.DocumentResult? other) -> bool
-static Qian.Docs.Abstractions.DocumentErrors.All.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.ErrorCode!>!
+static Qian.Docs.Abstractions.DocumentErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
 Qian.Docs.Abstractions.DocumentResult.<Clone>$() -> Qian.Docs.Abstractions.DocumentResult!
 Qian.Docs.Abstractions.DocumentResult.Deconstruct(out System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Documents, out System.Collections.Generic.IReadOnlyList<Qian.Docs.Abstractions.EventMap!>! Events, out System.Collections.Generic.IReadOnlyList<Qian.Surfaces.Abstractions.SurfaceDiagnostic!>! Diagnostics) -> void
 Qian.Docs.Abstractions.EventMap.EventMap(string! Name, string! Mode, Qian.Docs.Abstractions.EventSite! Declaration, System.Collections.Generic.IReadOnlyList<Qian.Docs.Abstractions.EventSite!>! Producers, System.Collections.Generic.IReadOnlyList<Qian.Docs.Abstractions.EventSite!>! Consumers) -> void

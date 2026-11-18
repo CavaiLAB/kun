@@ -18,7 +18,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Sample.Crm.Tests;
@@ -396,10 +396,10 @@ public sealed partial class CapabilityTests(PostgresFixture postgres) : Customer
                 var delegated = new DirectUser(DirectPrincipal(actor));
                 foreach (var id in new[] { CreateId, probe.Id })
                 {
-                    var denied = await Assert.ThrowsAsync<QianErrorException>(() => service.InvokeAsync(caller, delegated, id, input, Guid.CreateVersion7(), Ct).AsTask());
+                    var denied = await Assert.ThrowsAsync<ErrorException>(() => service.InvokeAsync(caller, delegated, id, input, Guid.CreateVersion7(), Ct).AsTask());
                     Assert.Equal("NOT_FOUND", denied.Error.Code.Code);
                 }
-                Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<QianErrorException>(() => service.ListAsync(caller, delegated, cancellationToken: Ct).AsTask())).Error.Code.Code);
+                Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<ErrorException>(() => service.ListAsync(caller, delegated, cancellationToken: Ct).AsTask())).Error.Code.Code);
             }
             Assert.Equal(0, probe.Calls);
             // 对照：同一主体去掉 Actor 后经同一端口执行，说明拒绝来自委托判定而不是装配。

@@ -29,8 +29,8 @@ using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy.AspNetCore;
@@ -168,14 +168,14 @@ internal sealed class FilesPlatform : IAsyncDisposable
             };
             options.Events = new JwtBearerEvents { OnTokenValidated = context => { PlatformOperator.Capture(context); return Task.CompletedTask; } };
         });
-        builder.Services.AddAuthorization(); builder.Services.AddQianErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.PropertyNameCaseInsensitive = false;
             options.SerializerOptions.RespectRequiredConstructorParameters = true;
             options.SerializerOptions.RespectNullableAnnotations = true;
         });
-        _operations = builder.Build(); _operations.UseQianErrors(); _operations.UseAuthentication(); _operations.UseAuthorization();
+        _operations = builder.Build(); _operations.UseKunErrors(); _operations.UseAuthentication(); _operations.UseAuthorization();
         _operations.MapQianTenancy(_ => loader.GetContext("tenancy", ScopeKey.Global));
         await _operations.StartAsync(ct);
         Client = new HttpClient { BaseAddress = new Uri(Assert.Single(_operations.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses)) };

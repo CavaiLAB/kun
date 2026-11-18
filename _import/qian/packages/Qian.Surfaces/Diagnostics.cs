@@ -1,4 +1,4 @@
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces;
@@ -16,9 +16,9 @@ internal static class Diagnostics
     internal static SurfaceDiagnostic Create(string file, string pointer, int line, ErrorCode code, string reason, string traceId, string severity = "error")
     {
         var prefix = string.Join('/', file.Replace('\\', '/').Split('/').Select(Uri.EscapeDataString));
-        var error = new QianError(PlatformErrors.InputInvalid)
+        var error = new Error(PlatformErrors.InputInvalid)
         {
-            Errors = [new QianFieldError(code, prefix + "#" + pointer, new Dictionary<string, string> { ["reason"] = reason })]
+            Errors = [new FieldError(code, prefix + "#" + pointer, new Dictionary<string, string> { ["reason"] = reason })]
         };
         return new SurfaceDiagnostic(file, Math.Max(1, line), severity, Catalog.CreateDetail(error, traceId));
     }

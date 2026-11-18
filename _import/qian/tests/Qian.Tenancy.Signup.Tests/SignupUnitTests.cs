@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Qian.Authz.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Signup.Tests;
 
@@ -61,7 +61,7 @@ public sealed class SignupUnitTests
                      new { code = new { reserved = new[] { "ops", "ops" } } }, new { code = new { reserved = new[] { "Ops" } } }, new { verification = new { length = 3 } },
                      new { verification = new { extra = true } }, new { session = new { lifetimeMinutes = 2 } }, new { defaultCountryCode = "086" }, new { tenantId = "x" }
                  })
-            Assert.Equal(PlatformErrors.InputInvalid, Assert.Throws<QianErrorException>(() => TenancySignupOptions.Read(JsonSerializer.SerializeToElement(invalid))).Error.Code);
+            Assert.Equal(PlatformErrors.InputInvalid, Assert.Throws<ErrorException>(() => TenancySignupOptions.Read(JsonSerializer.SerializeToElement(invalid))).Error.Code);
     }
 
     [Theory]

@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Lifecycle.AspNetCore;
 
@@ -31,13 +31,13 @@ public static class LifecycleEndpoints
             var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId;
             var text = requested.Count == 0 ? "tenant:" + tenant : requested.Count == 1 ? requested[0] ?? "" : "";
             var parts = text.Split(':', 2);
-            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0) return QianResults.Error(new QianError(PlatformErrors.NotFound));
+            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0) return KunResults.Error(new Error(PlatformErrors.NotFound));
             var items = await lifecycle.GetDiagnosticsAsync(new ScopeKey(parts[0], parts[1]), user, http.RequestAborted).ConfigureAwait(false);
             return Results.Json(new LifecycleDiagnosticList(items), LifecycleHttpJson.Default.LifecycleDiagnosticList);
         })).RequireAuthorization().Produces<LifecycleDiagnosticList>();
         endpoints.MapGet(Approvals, (HttpContext http, string tenantId, string pluginId, string version) => Respond(http, async (lifecycle, user) =>
             await lifecycle.GetPermissionApprovalAsync(tenantId, pluginId, version, user, http.RequestAborted).ConfigureAwait(false) is { } view
-                ? Results.Json(view, LifecycleHttpJson.Default.PermissionApprovalView) : QianResults.Error(new QianError(PlatformErrors.NotFound))))
+                ? Results.Json(view, LifecycleHttpJson.Default.PermissionApprovalView) : KunResults.Error(new Error(PlatformErrors.NotFound))))
             .RequireAuthorization().Produces<PermissionApprovalView>();
         endpoints.MapPut(Approvals, (HttpContext http, string tenantId, string pluginId, string version) => Respond(http, async (lifecycle, user) =>
         {
@@ -54,9 +54,9 @@ public static class LifecycleEndpoints
         {
             http.Response.Headers.CacheControl = "private, no-store";
             try { return await handle(source(http).Lifecycle(), http.RequestServices.GetRequiredService<ICurrentUser>()).ConfigureAwait(false); }
-            catch (QianErrorException error) { return QianResults.Error(error.Error); }
+            catch (ErrorException error) { return KunResults.Error(error.Error); }
             // 生命周期或注册表尚未就绪、已停止时与不存在无法区分。
-            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
         }
     }
 }

@@ -4,7 +4,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit;
 
@@ -118,7 +118,7 @@ internal class PostgresAuditStore<TContext>(IDataService data, ITenantContext te
                     if (AuditCanonicalizer.Hash(ToEntry(row).Record, row.Sequence, row.PreviousHash) != row.ContentHash)
                         return new(false, sequence, row.Sequence, "content_mismatch");
                 }
-                catch (Exception error) when (error is QianErrorException or JsonException)
+                catch (Exception error) when (error is ErrorException or JsonException)
                 { return new(false, sequence, row.Sequence, "invalid_record"); }
                 sequence = row.Sequence; hash = row.ContentHash;
             }
@@ -144,7 +144,7 @@ internal class PostgresAuditStore<TContext>(IDataService data, ITenantContext te
         return Guid.TryParseExact(owner, "D", out var id) && id != Guid.Empty && owner == id.ToString("D") ? owner! : throw Error(PlatformErrors.Unauthenticated);
     }
     private static bool Retryable(PostgresException error) => error.SqlState is PostgresErrorCodes.SerializationFailure or PostgresErrorCodes.DeadlockDetected;
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
     private static AuditEntryRow ToRow(AuditRecord record, long sequence, string? previous, string hash, string key) => new()
     {
         Id = record.Id, TenantId = record.TenantId, ChainKey = key, Sequence = sequence, PreviousHash = previous, ContentHash = hash,

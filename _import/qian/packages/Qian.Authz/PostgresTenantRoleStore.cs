@@ -5,7 +5,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Events;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz;
 
@@ -48,13 +48,13 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
     {
         Identifier(subjectId);
         if (subjectType is not ("user" or "organization" or "position" or "group" or "service" or "agent") || (validFrom is not null && validTo <= validFrom))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         return Write(actor, async (db, owner, changes) =>
         {
             if (scope is { } bound && bound != new ScopeKey("tenant", owner))
-                throw new QianErrorException(new QianError(AuthzErrors.ScopeMismatch, new Dictionary<string, string> { ["scope"] = bound.Kind + ":" + bound.Id }) { Pointer = "#/scope" });
+                throw new ErrorException(new Error(AuthzErrors.ScopeMismatch, new Dictionary<string, string> { ["scope"] = bound.Kind + ":" + bound.Id }) { Pointer = "#/scope" });
             var role = await db.Roles.SingleOrDefaultAsync(row => row.Code == roleCode, ct).ConfigureAwait(false)
-                ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
             var existing = await db.RoleAssignments.SingleOrDefaultAsync(row => row.RoleId == role.Id && row.SubjectType == subjectType && row.SubjectId == subjectId, ct).ConfigureAwait(false);
             var from = validFrom?.ToUniversalTime(); var to = validTo?.ToUniversalTime();
             if (existing is null)
@@ -79,7 +79,7 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
     internal async Task<bool> RevokeAsync(string roleCode, string subjectType, string subjectId, string actor, CancellationToken ct)
     {
         Identifier(subjectId);
-        if (subjectType is not ("user" or "organization" or "position" or "group" or "service" or "agent")) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (subjectType is not ("user" or "organization" or "position" or "group" or "service" or "agent")) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var removed = false;
         await Write(actor, async (db, _, changes) =>
         {
@@ -105,8 +105,8 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
                           (assignment.ValidFrom == null || assignment.ValidFrom <= now) && (assignment.ValidTo == null || assignment.ValidTo > now)
                       select assignment.Id).AnyAsync(ct).ConfigureAwait(false);
     }
-    private static QianErrorException Lockout(string roleCode) =>
-        new(new QianError(AuthzErrors.LastAdministratorLockout, new Dictionary<string, string> { ["role"] = roleCode }));
+    private static ErrorException Lockout(string roleCode) =>
+        new(new Error(AuthzErrors.LastAdministratorLockout, new Dictionary<string, string> { ["role"] = roleCode }));
 
     // Authz 视角的租户成员（持有本租户角色绑定的主体）；平台超管的绑定是平台行，按 RLS 与查询投影都不会出现在这里。
     internal async Task<IReadOnlyList<TenantRoleMember>> ListMembersAsync(CancellationToken ct)
@@ -130,14 +130,14 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
     private static async Task InstallCore(AuthzDbContext db, string owner, string pluginId, string version, string? expectedVersion, string actor, Changes changes, CancellationToken ct)
     {
         var source = await db.Catalogs.AsNoTracking().SingleOrDefaultAsync(row => row.PluginId == pluginId && row.Version == version, ct).ConfigureAwait(false)
-            ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
         var catalog = JsonSerializer.Deserialize<PermissionCatalog>(source.Snapshot, JsonSerializerOptions.Web)!;
         var install = await db.PolicyInstalls.SingleOrDefaultAsync(row => row.PluginId == pluginId, ct).ConfigureAwait(false);
         if (install?.Version == version) return;
-        if (install?.Version != expectedVersion) throw new QianErrorException(new QianError(PlatformErrors.Conflict));
-        if (catalog.Roles.Any(role => role.Role.StartsWith("platform.", StringComparison.Ordinal))) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (install?.Version != expectedVersion) throw new ErrorException(new Error(PlatformErrors.Conflict));
+        if (catalog.Roles.Any(role => role.Role.StartsWith("platform.", StringComparison.Ordinal))) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var permissions = catalog.Permissions.Select(permission => permission.Code).ToHashSet(StringComparer.Ordinal);
-        if (catalog.Roles.Any(role => role.Grants.Any(grant => !permissions.Contains(grant)))) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (catalog.Roles.Any(role => role.Grants.Any(grant => !permissions.Contains(grant)))) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var roles = await db.Roles.ToDictionaryAsync(role => role.Code, StringComparer.Ordinal, ct).ConfigureAwait(false);
         // 同一事务里先前步骤新建、尚未保存的角色（开通时的内置角色、前一个组件模板的角色）也要复用，不能重复建出。
         foreach (var local in db.Roles.Local) roles.TryAdd(local.Code, local);
@@ -161,7 +161,7 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
             install = new TenantPolicyInstallRow { TenantId = owner, PluginId = pluginId };
             db.PolicyInstalls.Add(install);
         }
-        if (install.Revision == int.MaxValue) throw new QianErrorException(new QianError(PlatformErrors.Conflict));
+        if (install.Revision == int.MaxValue) throw new ErrorException(new Error(PlatformErrors.Conflict));
         install.Version = version; install.Revision++; install.UpdatedBy = actor;
     }
 
@@ -219,16 +219,16 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
     }
     private string Owner()
     {
-        if (string.IsNullOrWhiteSpace(tenant.TenantId)) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (string.IsNullOrWhiteSpace(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         Identifier(tenant.TenantId); return tenant.TenantId;
     }
     private void CheckOwner(string owner)
     {
-        if (tenant.TenantId != owner) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (tenant.TenantId != owner) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
     }
     private static void Identifier(string value)
     {
-        if (string.IsNullOrWhiteSpace(value) || value.Length > 200 || value.Any(char.IsControl)) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 200 || value.Any(char.IsControl)) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
     }
 
     // 一次写入里待发出的授权事件；修订号只在递增后才知道，所以到 Raise 时才填入并挂到修订行上。

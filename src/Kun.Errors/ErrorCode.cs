@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Qian.Runtime.Errors;
+namespace Kun.Errors;
 
 /// <summary>
 /// 一个登记在错误码目录里的稳定错误码：类别、状态码、归属组件与多语言文案。
@@ -9,7 +9,7 @@ namespace Qian.Runtime.Errors;
 /// </summary>
 /// <remarks>
 /// 文案以 BCP 47 语言标签为键，<c>zh-CN</c> 必填；文案模板里的 <c>{name}</c> 是占位符，
-/// 各语言的占位符集合必须相同，出错方按名字提供参数（<see cref="QianError"/>）。
+/// 各语言的占位符集合必须相同，出错方按名字提供参数（<see cref="Error"/>）。
 /// </remarks>
 public sealed partial class ErrorCode : IEquatable<ErrorCode>
 {

@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using Json.Schema;
 using Microsoft.Extensions.Logging;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities;
 
@@ -57,7 +57,7 @@ internal sealed partial class CapabilityInputValidator
     internal void Validate(JsonElement entry, JsonElement input)
     {
         var source = entry.GetProperty("inputSchema");
-        if (Unreadable(input, 0)) throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        if (Unreadable(input, 0)) throw new ErrorException(new Error(PlatformErrors.BadRequest));
         var schema = Compile(entry.GetProperty("schemaSha256").GetString()!, source);
         EvaluationResults results;
         try { results = _evaluate(schema, input, new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical, RequireFormatValidation = true }); }
@@ -72,7 +72,7 @@ internal sealed partial class CapabilityInputValidator
         new Walker(source, input).Visit(results, source, BaseUri, null, [], [], found);
         // 只有组合关键字失败、没有更具体的子项时，整个输入按取值不允许处理。
         if (found.Errors.Count == 0) found.Add(PlatformErrors.ValueNotAllowed, []);
-        throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)
+        throw new ErrorException(new Error(PlatformErrors.InputInvalid)
         { Errors = found.Errors.Values.OrderBy(error => error.Pointer, StringComparer.Ordinal).ThenBy(error => error.Code.Code, StringComparer.Ordinal).Take(100).ToArray() });
     }
 
@@ -196,13 +196,13 @@ internal sealed partial class CapabilityInputValidator
     {
         // 判别字段（const / enum）不符的位置及其深度：选 anyOf / oneOf 分支时用来判断分支对不对得上。
         private readonly Dictionary<string, int> _discriminators = new(StringComparer.Ordinal);
-        internal Dictionary<string, QianFieldError> Errors { get; } = new(StringComparer.Ordinal);
+        internal Dictionary<string, FieldError> Errors { get; } = new(StringComparer.Ordinal);
 
         internal void Add(ErrorCode code, string[] segments, IReadOnlyList<JsonElement>? allowed = null, bool discriminator = false) =>
-            Add(new QianFieldError(code, Pointer(segments)) { Allowed = allowed }, segments.Length, discriminator);
+            Add(new FieldError(code, Pointer(segments)) { Allowed = allowed }, segments.Length, discriminator);
 
         // 同一位置只记最先发现（外层优先）的违反项。
-        internal void Add(QianFieldError error, int depth, bool discriminator)
+        internal void Add(FieldError error, int depth, bool discriminator)
         {
             if (Errors.TryAdd(error.Pointer, error) && discriminator) _discriminators[error.Pointer] = depth;
         }
@@ -227,7 +227,7 @@ internal sealed partial class CapabilityInputValidator
             {
                 var lists = tied.Select(own => own.Errors[pointer].Allowed).ToArray();
                 var values = lists.Any(list => list is null) ? [] : lists.SelectMany(list => list!).DistinctBy(value => value.GetRawText(), StringComparer.Ordinal).ToArray();
-                into.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, pointer) { Allowed = values.Length is > 0 and <= AllowedValues.MaxCount ? values : null },
+                into.Add(new FieldError(PlatformErrors.ValueNotAllowed, pointer) { Allowed = values.Length is > 0 and <= AllowedValues.MaxCount ? values : null },
                     tied[0]._discriminators[pointer], discriminator: true);
             }
             return common.Length != 0;

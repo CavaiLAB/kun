@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities;
 
@@ -35,7 +35,7 @@ public sealed partial class OpenApiContractPlugin : IQianPlugin
         ArgumentException.ThrowIfNullOrWhiteSpace(pluginId); ArgumentException.ThrowIfNullOrWhiteSpace(baselineVersion);
         ArgumentException.ThrowIfNullOrWhiteSpace(candidateVersion); ArgumentException.ThrowIfNullOrWhiteSpace(contractId);
         if (!ContractIdPattern().IsMatch(contractId) || repository.Find(pluginId, baselineVersion, contractId) is not { Kind: "openapi" } ||
-            repository.Find(pluginId, candidateVersion, contractId) is not { Kind: "openapi" }) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            repository.Find(pluginId, candidateVersion, contractId) is not { Kind: "openapi" }) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return new OpenApiContractPlugin(inner, repository, pluginId, baselineVersion, candidateVersion, contractId);
     }
     /// <inheritdoc />
@@ -45,11 +45,11 @@ public sealed partial class OpenApiContractPlugin : IQianPlugin
     {
         ArgumentNullException.ThrowIfNull(ctx);
         if ((_expectedPlugin is not null && ctx.Entry.Plugin != _expectedPlugin) || (_expectedVersion is not null && ctx.Entry.Version != _expectedVersion))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         if (!_contractId.StartsWith(ctx.Entry.Plugin + "/", StringComparison.Ordinal) && !_contractId.StartsWith(ctx.Entry.Plugin + ".", StringComparison.Ordinal))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var result = await _check(ct).ConfigureAwait(false);
-        if (!result.IsCompatible) throw new QianErrorException(new QianError(PlatformErrors.PreconditionFailed)
+        if (!result.IsCompatible) throw new ErrorException(new Error(PlatformErrors.PreconditionFailed)
             { Pointer = ErrorPointer.Input("contracts", _contractId) });
         ct.ThrowIfCancellationRequested();
         await _inner.ApplyAsync(ctx, config, ct).ConfigureAwait(false);

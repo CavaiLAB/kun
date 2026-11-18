@@ -23,8 +23,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Testing.Containers;
 
 namespace Qian.Tenancy.Tests;
@@ -82,10 +82,10 @@ public sealed class TenantHttpBoundaryTests(PostgresFixture postgres) : IClassFi
                 ValidateIssuerSigningKey = true, IssuerSigningKey = new RsaSecurityKey(rsa), ValidAlgorithms = [SecurityAlgorithms.RsaSha256]
             };
         });
-        builder.Services.AddAuthorization(); builder.Services.AddQianErrors();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors();
         var app = builder.Build();
         var boundary = new TenantRequestBoundary(app.Services.GetRequiredService<ITenantContext>());
-        app.UseQianErrors(); app.UseAuthentication();
+        app.UseKunErrors(); app.UseAuthentication();
         app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"), branch => branch.Use(boundary.InvokeAsync));
         app.UseAuthorization();
         app.MapGet("/api/records/{id:guid}", async (Guid id, ITenantContext tenant, IDataService data, CancellationToken ct) =>
@@ -93,7 +93,7 @@ public sealed class TenantHttpBoundaryTests(PostgresFixture postgres) : IClassFi
             calls.Enqueue(tenant.TenantId!);
             await using var session = await data.OpenAsync<BoundaryRecordsDbContext>(ct);
             var row = await session.Context.Records.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
-            return row is null ? (IResult)QianResults.Error(new QianError(PlatformErrors.NotFound)) : Results.Ok(new Record(row.Id, row.TenantId, row.Text));
+            return row is null ? (IResult)KunResults.Error(new Error(PlatformErrors.NotFound)) : Results.Ok(new Record(row.Id, row.TenantId, row.Text));
         }).RequireAuthorization();
         return app;
     }

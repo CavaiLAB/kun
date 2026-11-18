@@ -12,7 +12,7 @@ Qian.Surfaces.Abstractions.SurfaceDocument
 Qian.Surfaces.Abstractions.SurfaceDocument.Data.init -> void
 Qian.Surfaces.Abstractions.ParsedComponent.Documents.init -> void
 Qian.Surfaces.Abstractions.SurfaceDocument.Body.get -> string!
-Qian.Surfaces.Abstractions.SurfaceDiagnostic.Error.get -> Qian.Runtime.Errors.ErrorDetail!
+Qian.Surfaces.Abstractions.SurfaceDiagnostic.Error.get -> Kun.Errors.ErrorDetail!
 Qian.Surfaces.Abstractions.SurfaceDiagnostic.Line.get -> int
 Qian.Surfaces.Abstractions.SurfaceDocument.Kind.get -> string!
 Qian.Surfaces.Abstractions.SurfaceDocument.Body.init -> void
@@ -56,7 +56,7 @@ Qian.Surfaces.Abstractions.SurfaceParseResult.Diagnostics.init -> void
 Qian.Surfaces.Abstractions.SurfaceDiagnostic.Equals(Qian.Surfaces.Abstractions.SurfaceDiagnostic? other) -> bool
 Qian.Surfaces.Abstractions.SurfaceDiagnostic.<Clone>$() -> Qian.Surfaces.Abstractions.SurfaceDiagnostic!
 Qian.Surfaces.Abstractions.SurfaceValidationResult
-Qian.Surfaces.Abstractions.SurfaceDiagnostic.Deconstruct(out string! File, out int Line, out string! Severity, out Qian.Runtime.Errors.ErrorDetail! Error) -> void
+Qian.Surfaces.Abstractions.SurfaceDiagnostic.Deconstruct(out string! File, out int Line, out string! Severity, out Kun.Errors.ErrorDetail! Error) -> void
 override Qian.Surfaces.Abstractions.SurfaceValidationResult.ToString() -> string!
 Qian.Surfaces.Abstractions.SurfaceValidationResult.Component.get -> Qian.Surfaces.Abstractions.ParsedComponent?
 Qian.Surfaces.Abstractions.SurfaceValidationResult.Component.init -> void
@@ -95,22 +95,22 @@ override Qian.Surfaces.Abstractions.SurfaceSyntax.Equals(object? obj) -> bool
 Qian.Surfaces.Abstractions.SurfaceSyntax.Equals(Qian.Surfaces.Abstractions.SurfaceSyntax? other) -> bool
 Qian.Surfaces.Abstractions.SurfaceSyntax.<Clone>$() -> Qian.Surfaces.Abstractions.SurfaceSyntax!
 Qian.Surfaces.Abstractions.SurfaceSyntax.Deconstruct(out System.Text.Json.JsonElement Data, out string! Body, out System.Collections.Generic.IReadOnlyDictionary<string!, int>! Lines) -> void
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Syntax -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Path -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Name -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Secret -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Policy -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Hash -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Reference -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Syntax -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Path -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Name -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Secret -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Policy -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Hash -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Reference -> Kun.Errors.ErrorCode!
 Qian.Surfaces.Abstractions.ISurfaceReader.Parse(string! file, string! content, bool markdown = false, string? traceId = null) -> Qian.Surfaces.Abstractions.SurfaceParseResult!
 Qian.Surfaces.Abstractions.ISurfaceReader.ValidateSchema(string! schema, string! file, System.Text.Json.JsonElement data, string? traceId = null) -> System.Collections.Generic.IReadOnlyList<Qian.Surfaces.Abstractions.SurfaceDiagnostic!>!
 Qian.Surfaces.Abstractions.ISurfaceValidator.ValidateComponent(string! directory, Qian.Surfaces.Abstractions.SurfaceValidationOptions? options = null) -> Qian.Surfaces.Abstractions.SurfaceValidationResult!
 Qian.Surfaces.Abstractions.SurfaceValidationOptions.Profile.get -> string!
-static Qian.Surfaces.Abstractions.SurfaceErrors.All.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.ErrorCode!>!
+static Qian.Surfaces.Abstractions.SurfaceErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
 Qian.Surfaces.Abstractions.SurfaceErrors
 Qian.Surfaces.Abstractions.SurfaceDocument.SurfaceDocument(string! Kind, string! Name, string! File, System.Text.Json.JsonElement Data, string! Body) -> void
 Qian.Surfaces.Abstractions.SurfaceParseResult.SurfaceParseResult(Qian.Surfaces.Abstractions.SurfaceSyntax? Syntax, System.Collections.Generic.IReadOnlyList<Qian.Surfaces.Abstractions.SurfaceDiagnostic!>! Diagnostics) -> void
-Qian.Surfaces.Abstractions.SurfaceDiagnostic.SurfaceDiagnostic(string! File, int Line, string! Severity, Qian.Runtime.Errors.ErrorDetail! Error) -> void
+Qian.Surfaces.Abstractions.SurfaceDiagnostic.SurfaceDiagnostic(string! File, int Line, string! Severity, Kun.Errors.ErrorDetail! Error) -> void
 Qian.Surfaces.Abstractions.ParsedComponent.ParsedComponent(string! Id, System.Text.Json.JsonElement Manifest, System.Collections.Generic.IReadOnlyList<Qian.Surfaces.Abstractions.SurfaceDocument!>! Documents) -> void
 Qian.Surfaces.Abstractions.SurfaceSyntax.SurfaceSyntax(System.Text.Json.JsonElement Data, string! Body, System.Collections.Generic.IReadOnlyDictionary<string!, int>! Lines) -> void
 Qian.Surfaces.Abstractions.SurfaceValidationOptions.AllowCommandHooks.get -> bool
@@ -132,7 +132,7 @@ Qian.Surfaces.Abstractions.SurfaceValidationOptions.TraceId.get -> string?
 Qian.Surfaces.Abstractions.SurfaceValidationOptions.CatalogComplete.get -> bool
 Qian.Surfaces.Abstractions.SurfaceValidationOptions.Capabilities.init -> void
 Qian.Surfaces.Abstractions.SurfaceValidationOptions.CatalogComplete.init -> void
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Schema -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Schema -> Kun.Errors.ErrorCode!
 Qian.Surfaces.Abstractions.ParsedComponent.Profile.init -> void
 Qian.Surfaces.Abstractions.ParsedComponent.Profile.get -> string!
 Qian.Surfaces.Abstractions.MarketplaceValidationResult
@@ -179,11 +179,11 @@ static Qian.Surfaces.Abstractions.SurfaceRuntimeDiagnostics.Read(Qian.Runtime.IP
 static Qian.Surfaces.Abstractions.SurfaceRuntimeDiagnostics.ScopeName(Qian.Runtime.ScopeKey scope) -> string!
 Qian.Surfaces.Abstractions.SurfaceValidationOptions.ServiceKeys.get -> System.Collections.Generic.IReadOnlyList<string!>?
 Qian.Surfaces.Abstractions.SurfaceValidationOptions.ServiceKeys.init -> void
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Signature -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Digest -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.InstallationBusy -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Modified -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Profile -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Recovery -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.PackageUnavailable -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Engine -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Signature -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Digest -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.InstallationBusy -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Modified -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Profile -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Recovery -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.PackageUnavailable -> Kun.Errors.ErrorCode!
+static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Engine -> Kun.Errors.ErrorCode!

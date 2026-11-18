@@ -1,25 +1,25 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Qian.Runtime.Errors.AspNetCore;
+namespace Kun.Errors.AspNetCore;
 
 /// <summary>端点返回错误的结果工厂。</summary>
-public static class QianResults
+public static class KunResults
 {
     /// <summary>把一次出错写成 problem+json 的 ErrorDetail（状态码取错误码的状态码）。</summary>
-    public static QianErrorResult Error(QianError error) => new(error);
+    public static KunErrorResult Error(Error error) => new(error);
 }
 
 /// <summary>写出 ErrorDetail 的 <see cref="IResult"/>。</summary>
-public sealed class QianErrorResult : IResult, IStatusCodeHttpResult, IContentTypeHttpResult
+public sealed class KunErrorResult : IResult, IStatusCodeHttpResult, IContentTypeHttpResult
 {
-    internal QianErrorResult(QianError error)
+    internal KunErrorResult(Error error)
     {
         ArgumentNullException.ThrowIfNull(error);
         Error = error;
     }
 
     /// <summary>出错内容。</summary>
-    public QianError Error { get; }
+    public Error Error { get; }
 
     /// <inheritdoc />
     public int? StatusCode => Error.Code.Status;

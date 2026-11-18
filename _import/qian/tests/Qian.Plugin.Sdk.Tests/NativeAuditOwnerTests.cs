@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Plugin.Sdk.Tests;
 
@@ -19,7 +19,7 @@ public sealed class NativeAuditOwnerTests
         var entry = new PluginEntry("policy", component, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { }));
         await loader.MountAsync([new PluginDefinition(entry, new Policy(kind), [])], TestContext.Current.CancellationToken);
         Assert.Equal(allowed ? PluginState.Ready : PluginState.Failed, loader.GetState("policy", ScopeKey.Global));
-        if (!allowed) Assert.Equal("AUTHZ_DENIED", Assert.IsType<QianErrorException>(loader.GetFailure("policy", ScopeKey.Global)).Error.Code.Code);
+        if (!allowed) Assert.Equal("AUTHZ_DENIED", Assert.IsType<ErrorException>(loader.GetFailure("policy", ScopeKey.Global)).Error.Code.Code);
     }
 
     [Fact]

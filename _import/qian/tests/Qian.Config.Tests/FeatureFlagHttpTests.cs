@@ -16,7 +16,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Config.AspNetCore;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 using Qian.Testing.Containers;
 
 namespace Qian.Config.Tests;
@@ -38,7 +38,7 @@ public sealed class FeatureFlagHttpTests(PostgresFixture postgres) : IClassFixtu
         using var rsa = RSA.Create(2048); var key = new RsaSecurityKey(rsa) { KeyId = "flags-http" };
         var builder = WebApplication.CreateSlimBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
         builder.Services.AddSingleton<IHttpContextAccessor>(accessor); builder.Services.AddScoped<ICurrentUser, TokenUser>();
-        builder.Services.AddQianErrors(_ => { });
+        builder.Services.AddKunErrors(_ => { });
         builder.Services.AddAuthentication("Cookies").AddCookie("Cookies").AddJwtBearer("Bearer", options =>
         {
             options.MapInboundClaims = false;
@@ -56,7 +56,7 @@ public sealed class FeatureFlagHttpTests(PostgresFixture postgres) : IClassFixtu
         });
         builder.Services.AddAuthorization();
         await using var app = builder.Build();
-        app.UseQianErrors(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
+        app.UseKunErrors(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
         app.MapQianFeatureFlags(_ => management.Context);
         app.MapPost("/fixture-cookie", async (HttpContext http) =>
         {

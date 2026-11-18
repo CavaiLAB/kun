@@ -13,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Testing.Containers;
 
@@ -51,7 +51,7 @@ public sealed partial class PermissionCatalogPersistenceTests(PostgresFixture po
         Assert.Equal("high", export.Risk); Assert.True(export.StepUp); Assert.Equal("web", Json(export.Terminals)[0].GetString());
         var owner = await session.Context.PolicyPacks.SingleAsync(row => row.Role == "tenant.owner", Ct); Assert.Equal(3, Json(owner.Grants).GetArrayLength());
         var readBack = await store.GetAsync("qian.sample.crm", "1.0.0", Ct); Assert.NotNull(readBack); Assert.Equal(3, readBack.Permissions.Count);
-        var conflict = await Assert.ThrowsAsync<QianErrorException>(() => store.PutAsync(Catalog(risk: "critical"), Ct)); Assert.Equal("CONFLICT", conflict.Error.Code.Code);
+        var conflict = await Assert.ThrowsAsync<ErrorException>(() => store.PutAsync(Catalog(risk: "critical"), Ct)); Assert.Equal("CONFLICT", conflict.Error.Code.Code);
         Assert.Equal(PermissionRisk.High, (await store.GetAsync("qian.sample.crm", "1.0.0", Ct))!.Permissions.Single(permission => permission.Action == "export").Risk);
         await store.PutAsync(Catalog("2.0.0", "critical"), Ct);
         Assert.Equal(2, await session.Context.Catalogs.CountAsync(Ct));
@@ -72,7 +72,7 @@ public sealed partial class PermissionCatalogPersistenceTests(PostgresFixture po
         async Task<string?> Write(PostgresPermissionCatalogStore store, string risk)
         {
             try { await store.PutAsync(Catalog(risk: risk), Ct); return null; }
-            catch (QianErrorException error) { return error.Error.Code.Code; }
+            catch (ErrorException error) { return error.Error.Code.Code; }
         }
     }
 

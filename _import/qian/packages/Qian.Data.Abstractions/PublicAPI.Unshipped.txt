@@ -2,10 +2,10 @@
 Qian.Data.QianDataModelExtensions
 static Qian.Data.QianDataModelExtensions.UseQianDataModel(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! options) -> Microsoft.EntityFrameworkCore.DbContextOptionsBuilder!
 Qian.Data.DataErrors
-static readonly Qian.Data.DataErrors.Misconfigured -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.Misconfigured -> Kun.Errors.ErrorCode!
 Qian.Data.QianDataMisconfiguredException
 Qian.Data.QianDataMisconfiguredException.QianDataMisconfiguredException(string! reason) -> void
-Qian.Data.QianDataMisconfiguredException.Error.get -> Qian.Runtime.Errors.QianError!
+Qian.Data.QianDataMisconfiguredException.Error.get -> Kun.Errors.Error!
 Qian.Data.QianDbContext
 Qian.Data.QianDbContext.QianDbContext(Microsoft.EntityFrameworkCore.DbContextOptions! options, Kun.Core.MultiTenancy.ITenantContext! tenantContext) -> void
 override sealed Qian.Data.QianDbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! optionsBuilder) -> void
@@ -84,10 +84,10 @@ static Qian.Data.SequencePattern.Parse(string! pattern) -> Qian.Data.SequencePat
 static Qian.Data.SequencePattern.TryParse(string? pattern, out Qian.Data.SequencePattern? result, out string! error) -> bool
 static Qian.Data.SequenceRule.operator !=(Qian.Data.SequenceRule? left, Qian.Data.SequenceRule? right) -> bool
 static Qian.Data.SequenceRule.operator ==(Qian.Data.SequenceRule? left, Qian.Data.SequenceRule? right) -> bool
-static readonly Qian.Data.DataErrors.IdWorkerUnavailable -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.SequenceExhausted -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.SequenceRuleInvalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.SequenceRuleNotFound -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.IdWorkerUnavailable -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.SequenceExhausted -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.SequenceRuleInvalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.SequenceRuleNotFound -> Kun.Errors.ErrorCode!
 Qian.Data.DataContractJson
 Qian.Data.DataContractSchemas
 Qian.Data.DataRulePolicy
@@ -219,7 +219,7 @@ Qian.Data.RecordHookContext.TenantId.get -> System.Guid
 Qian.Data.RecordHookContext.TenantId.init -> void
 Qian.Data.RecordHookResult
 Qian.Data.RecordHookResult.Allowed.get -> bool
-Qian.Data.RecordHookResult.Error.get -> Qian.Runtime.Errors.QianError?
+Qian.Data.RecordHookResult.Error.get -> Kun.Errors.Error?
 Qian.Data.RecordHookResult.Payload.get -> System.Text.Json.JsonElement?
 const Qian.Data.RecordChangedPayload.EventType = "qian.record.changed.v1" -> string!
 override Qian.Data.DataRulePolicy.Equals(object? obj) -> bool
@@ -286,7 +286,7 @@ static Qian.Data.RecordEventRegistration.RegisterRecordEvents(this Kun.EventBus.
 static Qian.Data.RecordHookContext.operator !=(Qian.Data.RecordHookContext? left, Qian.Data.RecordHookContext? right) -> bool
 static Qian.Data.RecordHookContext.operator ==(Qian.Data.RecordHookContext? left, Qian.Data.RecordHookContext? right) -> bool
 static Qian.Data.RecordHookResult.Accept(System.Text.Json.JsonElement? payload = null) -> Qian.Data.RecordHookResult!
-static Qian.Data.RecordHookResult.Reject(Qian.Runtime.Errors.QianError! error) -> Qian.Data.RecordHookResult!
+static Qian.Data.RecordHookResult.Reject(Kun.Errors.Error! error) -> Qian.Data.RecordHookResult!
 static Qian.Data.DataContractSchemas.EventEnvelopeV0.get -> string!
 static Qian.Data.DataContractSchemas.S2sClaimsV0.get -> string!
 Qian.Data.RecordChangedPayload.EnsureConsistentContext(Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
@@ -600,7 +600,7 @@ static Qian.Data.DataContractJson.FieldMappingTypeInfo.get -> System.Text.Json.S
 static Qian.Data.DataContractSchemas.BaseDataTypes.get -> string!
 static Qian.Data.DataContractSchemas.DataConnection.get -> string!
 static Qian.Data.DataContractSchemas.DataTypes.get -> string!
-static Qian.Data.DataErrors.TypesAndConnections.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.ErrorCode!>!
+static Qian.Data.DataErrors.TypesAndConnections.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
 static Qian.Data.DataFieldDefinition.operator !=(Qian.Data.DataFieldDefinition? left, Qian.Data.DataFieldDefinition? right) -> bool
 static Qian.Data.DataFieldDefinition.operator ==(Qian.Data.DataFieldDefinition? left, Qian.Data.DataFieldDefinition? right) -> bool
 static Qian.Data.DataFieldMapping.operator !=(Qian.Data.DataFieldMapping? left, Qian.Data.DataFieldMapping? right) -> bool
@@ -617,17 +617,17 @@ static Qian.Data.DbDialect.operator !=(Qian.Data.DbDialect? left, Qian.Data.DbDi
 static Qian.Data.DbDialect.operator ==(Qian.Data.DbDialect? left, Qian.Data.DbDialect? right) -> bool
 static Qian.Data.DialectTypeMapping.operator !=(Qian.Data.DialectTypeMapping? left, Qian.Data.DialectTypeMapping? right) -> bool
 static Qian.Data.DialectTypeMapping.operator ==(Qian.Data.DialectTypeMapping? left, Qian.Data.DialectTypeMapping? right) -> bool
-static readonly Qian.Data.DataErrors.ConnectionNameConflict -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.ConnectionNotFound -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.ConnectionRejected -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.ConnectionUnreachable -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.DialectNotFound -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.FieldDefinitionInvalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.FieldFacetUnsupported -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.FieldOutOfRange -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.FieldRangeInverted -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.TypeNotFound -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.TypeProtected -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.ConnectionCredentialInvalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Data.DataErrors.ConnectionTargetDenied -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.ConnectionNameConflict -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.ConnectionNotFound -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.ConnectionRejected -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.ConnectionUnreachable -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.DialectNotFound -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.FieldDefinitionInvalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.FieldFacetUnsupported -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.FieldOutOfRange -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.FieldRangeInverted -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.TypeNotFound -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.TypeProtected -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.ConnectionCredentialInvalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Data.DataErrors.ConnectionTargetDenied -> Kun.Errors.ErrorCode!
 static readonly Qian.Data.DataDialectContract.Key -> Qian.Runtime.ServiceKey

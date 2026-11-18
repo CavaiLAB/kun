@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using Qian.Config;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -87,7 +87,7 @@ internal sealed class GitOpsDeploymentExecutor(GitOpsSettings settings, IPluginC
                 healthDetail = handle.HealthPath + " HTTP " + ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture);
             }
         }
-        catch (Exception error) when (error is HttpRequestException or TaskCanceledException or JsonException or QianErrorException or IOException && !cancellationToken.IsCancellationRequested)
+        catch (Exception error) when (error is HttpRequestException or TaskCanceledException or JsonException or ErrorException or IOException && !cancellationToken.IsCancellationRequested)
         {
             LifecycleLog.ObserveFailed(context.Logger, error, handle.Workload);
             return new DeploymentHealth(ready, false, "k8s api unreachable");
@@ -197,8 +197,8 @@ internal sealed class GitOpsDeploymentExecutor(GitOpsSettings settings, IPluginC
         return (process.ExitCode, (await output.ConfigureAwait(false)).Trim(), (await error.ConfigureAwait(false)).Trim());
     }
 
-    internal static QianErrorException Unavailable(string reason) =>
-        new(new QianError(LifecycleErrors.DeploymentUnavailable, new Dictionary<string, string> { ["reason"] = reason }));
+    internal static ErrorException Unavailable(string reason) =>
+        new(new Error(LifecycleErrors.DeploymentUnavailable, new Dictionary<string, string> { ["reason"] = reason }));
 
     public void Dispose() { Interlocked.Exchange(ref _client, null)?.Dispose(); _gate.Dispose(); }
 }

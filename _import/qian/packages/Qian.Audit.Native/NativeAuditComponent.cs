@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Data.Native;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Native;
 
@@ -48,7 +48,7 @@ public sealed class NativeAuditPlugin : IQianPlugin
         ctx.Provide<IAuditService>(AuditDefinition.Key, service);
         CommandPolicies.Register(ctx, CommandPolicyKind.Audit, new NativeAuditCommandPolicy(service).Handle);
     }
-    private static QianErrorException Misconfigured() => new(new QianError(NativeAuditErrors.Misconfigured));
+    private static ErrorException Misconfigured() => new(new Error(NativeAuditErrors.Misconfigured));
 }
 
 internal sealed class NativeAuditService(IPluginContext owner, ITenantContext tenant, NativeAuditSettings settings) : IAuditService, IAsyncDisposable
@@ -113,7 +113,7 @@ internal sealed class NativeAuditService(IPluginContext owner, ITenantContext te
         try { try { await _stop.CancelAsync().ConfigureAwait(false); } finally { await _drained.Task.ConfigureAwait(false); _stop.Dispose(); } _closed.TrySetResult(); }
         catch (Exception error) { _closed.TrySetException(error); throw; }
     }
-    private static QianErrorException Denied() => new(new QianError(PlatformErrors.AuthzDenied));
+    private static ErrorException Denied() => new(new Error(PlatformErrors.AuthzDenied));
 }
 
 internal sealed record NativeAuditSettings(string TenantBinding, string? PlatformBinding, NativeAuditRoles Roles, int MaxAttempts)

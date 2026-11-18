@@ -22,7 +22,7 @@ using Qian.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Registry.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;
 
@@ -114,7 +114,7 @@ public sealed partial class TenantOperationsTests
             Assert.Equal("pg", await source.Inject<ITenantSettings>(TenantSettings.Key).Get<string>("qian.audit", "chain.store", Ct));
             Assert.Contains(await source.Audit().ReadAsync(0, 20, cancellationToken: Ct), record => record.Record.CapabilityId == "qian.tenancy/settings.write" && record.Record.Resource == "qian.audit");
             var quota = source.Inject<ITenantQuota>(TenantSettings.QuotaKey);
-            Assert.Equal("CARDINALITY_USER_LIMIT", (await Assert.ThrowsAsync<QianErrorException>(() => quota.EnsureCanAddUserAsync(5, TenantMemberKind.Administrator, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("CARDINALITY_USER_LIMIT", (await Assert.ThrowsAsync<ErrorException>(() => quota.EnsureCanAddUserAsync(5, TenantMemberKind.Administrator, Ct).AsTask())).Error.Code.Code);
             await quota.EnsureCanAddUserAsync(5, TenantMemberKind.PlatformSuperadmin, Ct);
         }
         using (var view = await business.Get(a.Id.ToString(), "/api/registry/scopes/tenant:" + a.Id + "/entries"))

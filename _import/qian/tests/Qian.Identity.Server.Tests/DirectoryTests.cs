@@ -198,7 +198,7 @@ public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<Pos
         using var scope = host.Tenant.BeginScope(tenant.Id.ToString("D")); var directory = host.Service;
         await directory.SetOrganizationTypeAsync(new("dept", "部门"), Ct); var root = await directory.CreateOrganizationAsync(new("根", "dept"), Ct);
         var a = await directory.CreateOrganizationAsync(new("甲", "dept", root.Id), Ct); var b = await directory.CreateOrganizationAsync(new("乙", "dept", root.Id), Ct);
-        async Task<string> Outcome(Func<Task> action) { try { await action(); return "success"; } catch (Qian.Runtime.Errors.QianErrorException error) { return error.Error.Code.Code; } }
+        async Task<string> Outcome(Func<Task> action) { try { await action(); return "success"; } catch (Kun.Errors.ErrorException error) { return error.Error.Code.Code; } }
         var raced = await Task.WhenAll(Outcome(() => directory.DeleteOrganizationAsync(a.Id, Ct).AsTask()), Outcome(() => directory.SetRelationsAsync(member.Id, [new("organization", a.Id)], Ct).AsTask()));
         Assert.Contains("success", raced); Assert.Contains(raced, outcome => outcome is "NOT_FOUND" or "DIRECTORY_HAS_MEMBERS");
         await directory.SetRelationsAsync(member.Id, [], Ct);

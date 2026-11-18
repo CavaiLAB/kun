@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Qian.Capabilities;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Tenancy.Signup;
 
@@ -81,21 +81,21 @@ public static partial class TenancySignupEndpoints
         http.Response.Headers.CacheControl = "no-store";
         try
         {
-            if (write && !SameOrigin(http.Request)) throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+            if (write && !SameOrigin(http.Request)) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             validate?.Invoke();
             if (validateAsync is not null) await validateAsync().ConfigureAwait(false);
             var service = Service(http, source);
             var result = await execute(service, new SignupRequestContext(http.Connection.RemoteIpAddress?.ToString())).ConfigureAwait(false);
             return result;
         }
-        catch (QianErrorException error)
+        catch (ErrorException error)
         {
             // 会话无效时顺带清掉浏览器里的旧 Cookie。
             if (error.Error.Code == PlatformErrors.Unauthenticated) ClearCookie(http);
             return Failure(http, error);
         }
         catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException)
-        { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+        { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
     }
 
     // 同源：Origin 与请求的协议 + 主机一致；浏览器不带 Origin 时看 Sec-Fetch-Site。两者都没有的请求不是同源页面发出的，拒绝。
@@ -110,10 +110,10 @@ public static partial class TenancySignupEndpoints
 
     private static string? Token(HttpContext http) => http.Request.Cookies.TryGetValue(CookieName, out var token) && !string.IsNullOrEmpty(token) ? token : null;
 
-    private static QianErrorResult Unauthenticated(HttpContext http)
+    private static KunErrorResult Unauthenticated(HttpContext http)
     {
         ClearCookie(http);
-        return QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
+        return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
     }
 
     private static void WriteCookie(HttpContext http, SignupSessionGrant grant) => http.Response.Cookies.Append(CookieName, grant.Token, new CookieOptions

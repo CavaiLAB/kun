@@ -5,7 +5,7 @@ using Qian.Testing.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Qian.Config.Apollo;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Tests;
 
@@ -50,7 +50,7 @@ public sealed class RealApolloPortalProtocolTests(RealApolloPortalFixture apollo
             await changed.Task.WaitAsync(TimeSpan.FromSeconds(60), ct);
             Assert.True(host.Context.Config().Flags.IsEnabled("managed-preview", Guid.NewGuid()));
             host.Secrets.Token = apollo.UnauthorizedToken;
-            var rejected = await Assert.ThrowsAsync<QianErrorException>(() => host.Drafts.SetAsync(new FeatureFlagDraft
+            var rejected = await Assert.ThrowsAsync<ErrorException>(() => host.Drafts.SetAsync(new FeatureFlagDraft
                 { Name = "rejected", Rule = new FeatureFlagPolicy { Default = true }, Confirmed = true, IdempotencyKey = Guid.NewGuid() }, ct).AsTask());
             Assert.Equal("AUTHZ_DENIED", rejected.Error.Code.Code);
             Assert.DoesNotContain(apollo.UnauthorizedToken, rejected.ToString(), StringComparison.Ordinal);

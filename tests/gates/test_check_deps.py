@@ -320,7 +320,7 @@ class RealGraphTests(unittest.TestCase):
 
     def test_declared_roles_and_exceptions(self):
         # 计划会话复核附录 A 时定的归类（B3 PR-4）：这 4 个包记契约，组件建在它们上面；Kun.Authorization 本来就记契约。
-        expected = {"Qian.Runtime": ("kernel", "contract"), "Qian.Runtime.Errors": ("kernel", "contract"),
+        expected = {"Qian.Runtime": ("kernel", "contract"), "Kun.Errors": ("kernel", "contract"),
                     "Kun.Mediator": ("kernel", "contract"), "Qian.Plugin.Sdk.AspNetCore": ("platform", "contract"),
                     "Kun.Authorization": ("kernel", "contract"), "Kun.Core": ("kernel", "contract")}
         self.assertEqual(expected, {n: (self.packages[n].tier, self.packages[n].role) for n in expected})
@@ -336,7 +336,7 @@ class RealGraphTests(unittest.TestCase):
             ("Qian.Authz.AspNetCore", "Qian.Registry"): "P",  # 平台档提供者 → 别的平台组件的提供者
             ("Qian.Runtime", "Qian.Events"): "D",  # 内核档契约 → 内核档提供者
             ("Kun.Mediator", "Kun.EventBus"): "D",
-            ("Qian.Runtime.Errors", "Qian.Tenancy.Abstractions"): "K",  # 内核档 → 平台档
+            ("Kun.Errors", "Qian.Tenancy.Abstractions"): "K",  # 内核档 → 平台档
         }
         for (subject, target), rule in cases.items():
             with self.subTest(edge=f"{subject} → {target}"):

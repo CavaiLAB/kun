@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Json.Schema;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Native.Tests;
 
@@ -22,12 +22,12 @@ public sealed class NativeAuditConfigurationTests
         using var document = JsonDocument.Parse(json);
         Assert.Equal(valid, JsonSchema.FromText(NativeAuditConfiguration.Schema).Evaluate(document.RootElement).IsValid);
         if (valid) Assert.NotNull(NativeAuditSettings.Read(document.RootElement));
-        else Assert.Throws<QianErrorException>(() => NativeAuditSettings.Read(document.RootElement));
+        else Assert.Throws<ErrorException>(() => NativeAuditSettings.Read(document.RootElement));
     }
     [Theory]
     [InlineData("same", "same", null)]
     [InlineData("tenant", "owner", "tenant")]
     [InlineData("tenant", "owner", "owner")]
     [InlineData("bad';drop", "owner", null)]
-    public void 凭据角色不能复用或注入SQL(string tenant, string writer, string? platform) => Assert.Throws<QianErrorException>(() => new NativeAuditRoles(tenant, writer, platform));
+    public void 凭据角色不能复用或注入SQL(string tenant, string writer, string? platform) => Assert.Throws<ErrorException>(() => new NativeAuditRoles(tenant, writer, platform));
 }

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Identity.Server;
 
@@ -47,9 +47,9 @@ internal static class IdentitySessionEndpoints
         return await Service(http).ResolveCallerAsync(current, http.RequestAborted).ConfigureAwait(false);
     }
 
-    private static QianErrorResult Unauthenticated() => QianResults.Error(new QianError(PlatformErrors.Unauthenticated));
+    private static KunErrorResult Unauthenticated() => KunResults.Error(new Error(PlatformErrors.Unauthenticated));
 
-    private static QianErrorResult Denied() => QianResults.Error(new QianError(PlatformErrors.AuthzDenied));
+    private static KunErrorResult Denied() => KunResults.Error(new Error(PlatformErrors.AuthzDenied));
 
     private static SessionBody Body(IdentityAccountService.SessionView view, Guid currentSession) =>
         new(view.Id, view.PersonId, view.MembershipId, view.TenantId, view.ClientId, view.DeviceType, view.RemoteAddress, view.UserAgent,
@@ -60,7 +60,7 @@ internal static class IdentitySessionEndpoints
     {
         if (await Caller(http).ConfigureAwait(false) is not { } caller) return Unauthenticated();
         Guid person = caller.PersonId;
-        if (http.Request.Query.TryGetValue("person", out var raw) && !Guid.TryParseExact(raw.ToString(), "D", out person)) return QianResults.Error(new QianError(PlatformErrors.BadRequest));
+        if (http.Request.Query.TryGetValue("person", out var raw) && !Guid.TryParseExact(raw.ToString(), "D", out person)) return KunResults.Error(new Error(PlatformErrors.BadRequest));
         if (!Scope(http, caller, person, out var tenant, out var denied)) return denied!;
         var views = await Service(http).ListViewsAsync(person, tenant, http.RequestAborted).ConfigureAwait(false);
         return Results.Json(new { sessions = views.Select(view => Body(view, caller.SessionId)) }, IdentityAccountEndpoints.JsonOptions);
@@ -75,7 +75,7 @@ internal static class IdentitySessionEndpoints
         var view = await service.FindViewAsync(sid, http.RequestAborted).ConfigureAwait(false);
         // 看不见的会话和不存在的会话同样回 404，不让调用者探测别人的会话。
         if (view is null || !(view.PersonId == caller.PersonId || caller.Platform || caller.TenantAdministrator && view.TenantId is { } tenant && tenant == caller.TenantId))
-            return QianResults.Error(new QianError(PlatformErrors.NotFound));
+            return KunResults.Error(new Error(PlatformErrors.NotFound));
         var revoked = await service.RevokeForAsync(caller.PersonId, view.PersonId, view.Id, null, view.PersonId == caller.PersonId ? "user_revoke" : "admin_revoke", http.RequestAborted).ConfigureAwait(false);
         if (view.Id == caller.SessionId) await SignOut(http).ConfigureAwait(false);
         return Results.Json(new { revoked }, IdentityAccountEndpoints.JsonOptions);
@@ -103,13 +103,13 @@ internal static class IdentitySessionEndpoints
             tenant = null;
             if (http.Request.Query.TryGetValue("tenant_id", out var raw))
             {
-                if (!Guid.TryParseExact(raw.ToString(), "D", out var parsed)) return QianResults.Error(new QianError(PlatformErrors.BadRequest));
+                if (!Guid.TryParseExact(raw.ToString(), "D", out var parsed)) return KunResults.Error(new Error(PlatformErrors.BadRequest));
                 tenant = parsed;
             }
         }
         else if (caller.TenantAdministrator) tenant = caller.TenantId;
         else return Denied();
-        if (!Page(http, "limit", 50, 1, MaxPage, out var limit) || !Page(http, "offset", 0, 0, int.MaxValue, out var offset)) return QianResults.Error(new QianError(PlatformErrors.BadRequest));
+        if (!Page(http, "limit", 50, 1, MaxPage, out var limit) || !Page(http, "offset", 0, 0, int.MaxValue, out var offset)) return KunResults.Error(new Error(PlatformErrors.BadRequest));
         var users = await Service(http).OnlineUsersAsync(tenant, limit, offset, http.RequestAborted).ConfigureAwait(false);
         return Results.Json(new { users = users.Select(user => new OnlineBody(user.PersonId, user.DisplayName, user.TenantId, user.Sessions, user.DeviceTypes, user.LastSeenAt)) }, IdentityAccountEndpoints.JsonOptions);
     }
@@ -123,7 +123,7 @@ internal static class IdentitySessionEndpoints
         {
             if (!http.Request.Query.TryGetValue("tenant_id", out var raw)) return true;
             if (Guid.TryParseExact(raw.ToString(), "D", out var parsed)) { tenant = parsed; return true; }
-            denied = QianResults.Error(new QianError(PlatformErrors.BadRequest));
+            denied = KunResults.Error(new Error(PlatformErrors.BadRequest));
             return false;
         }
         if (caller.TenantAdministrator && caller.TenantId is { } own) { tenant = own; return true; }

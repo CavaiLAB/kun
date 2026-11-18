@@ -11,7 +11,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Lifecycle;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Sample.Crm.Tests;
 
@@ -43,7 +43,7 @@ public sealed partial class LifecycleProfileTests
         using (EventEnvelopeScope.Begin(Operator))
         {
             // 权益之后还有批准：未批准时开通被拒，缺失项写进错误。
-            var denied = await Assert.ThrowsAsync<QianErrorException>(() => lifecycle.ProvisionAsync(A, Connector, "operator", Ct).AsTask());
+            var denied = await Assert.ThrowsAsync<ErrorException>(() => lifecycle.ProvisionAsync(A, Connector, "operator", Ct).AsTask());
             Assert.Equal((LifecycleErrors.PermissionsUnapproved.Code, "platform notify:send, tenant:read; egress api.example.test; secrets tenant:connector/token"),
                 (denied.Error.Code.Code, denied.Error.Args["missing"]));
         }

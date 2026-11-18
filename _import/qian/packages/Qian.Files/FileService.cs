@@ -3,7 +3,7 @@ using Kun.Mediator;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Files;
@@ -36,7 +36,7 @@ internal sealed class FilesRuntime(TimeProvider clock, FileBackendRegistry backe
             }
             catch (ServiceNotReadyException) { }
             catch (KeyNotFoundException) { }
-            catch (QianErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { }
+            catch (ErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { }
         }
         return defaultQuota;
     }
@@ -101,9 +101,9 @@ internal sealed class FileService(ISender sender, FilesRuntime runtime) : IFileS
         sender.Send(new QuotaQuery(), cancellationToken);
 
     // 完成时隔离的文件：状态已随能力事务提交，再以对应业务错误告知调用方。
-    internal static QianErrorException QuarantineError(FileDescriptor file) => new(file.QuarantineReason == FileQuarantineReason.TypeNotAllowed
-        ? new QianError(FilesErrors.TypeNotAllowed, new Dictionary<string, string> { ["contentType"] = file.ContentType })
-        : new QianError(FilesErrors.ChecksumMismatch));
+    internal static ErrorException QuarantineError(FileDescriptor file) => new(file.QuarantineReason == FileQuarantineReason.TypeNotAllowed
+        ? new Error(FilesErrors.TypeNotAllowed, new Dictionary<string, string> { ["contentType"] = file.ContentType })
+        : new Error(FilesErrors.ChecksumMismatch));
 
     // SERIALIZABLE 冲突（配额与幂等键的并发判定）整笔回滚，按同一幂等键重发；用尽后返回 409。
     private static async ValueTask<T> Retry<T>(Func<ValueTask<T>> send, CancellationToken cancellationToken)
@@ -113,7 +113,7 @@ internal sealed class FileService(ISender sender, FilesRuntime runtime) : IFileS
             try { return await send().ConfigureAwait(false); }
             catch (Exception error) when (attempt < 5 && Retryable(error))
             { await Task.Delay(10 * (attempt + 1), cancellationToken).ConfigureAwait(false); }
-            catch (Exception error) when (Retryable(error)) { throw new QianErrorException(new QianError(PlatformErrors.Conflict)); }
+            catch (Exception error) when (Retryable(error)) { throw new ErrorException(new Error(PlatformErrors.Conflict)); }
         }
     }
 
@@ -138,11 +138,11 @@ internal sealed class UploadPolicyRegistry(DeclaredUploadPolicies? declared = nu
     public IDisposable Register(UploadPolicy policy)
     {
         ArgumentNullException.ThrowIfNull(policy);
-        if (FilesConfiguration.ValidatePolicy(policy) is { } invalid) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/" + invalid });
+        if (FilesConfiguration.ValidatePolicy(policy) is { } invalid) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/" + invalid });
         var copy = policy with { AllowedTypes = Array.AsReadOnly(policy.AllowedTypes.ToArray()) };
         var purpose = copy.Purpose;
         lock (_gate)
-            if (!_items.TryAdd(purpose, copy)) throw new QianErrorException(new QianError(PlatformErrors.RegistrationConflict, Conflict(FilesDefinition.PoliciesKey, purpose)));
+            if (!_items.TryAdd(purpose, copy)) throw new ErrorException(new Error(PlatformErrors.RegistrationConflict, Conflict(FilesDefinition.PoliciesKey, purpose)));
         return new Release(() => { lock (_gate) if (_items.TryGetValue(purpose, out var current) && ReferenceEquals(current, copy)) _items.Remove(purpose); });
     }
     public UploadPolicy? Find(string purpose)
@@ -170,9 +170,9 @@ internal sealed class FileBackendRegistry : IFileBackendRegistry
     {
         ArgumentNullException.ThrowIfNull(factory);
         if (string.IsNullOrEmpty(name) || name.Length > 32 || !name.All(c => char.IsAsciiLetterLower(c) || char.IsAsciiDigit(c) || c == '-') || !char.IsAsciiLetterLower(name[0]))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/name" });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/name" });
         lock (_gate)
-            if (!_items.TryAdd(name, factory)) throw new QianErrorException(new QianError(PlatformErrors.RegistrationConflict, UploadPolicyRegistry.Conflict(FilesDefinition.BackendsKey, name)));
+            if (!_items.TryAdd(name, factory)) throw new ErrorException(new Error(PlatformErrors.RegistrationConflict, UploadPolicyRegistry.Conflict(FilesDefinition.BackendsKey, name)));
         return new Release(() => { lock (_gate) if (_items.TryGetValue(name, out var current) && ReferenceEquals(current, factory)) _items.Remove(name); });
     }
     public IFileBackendFactory? Find(string name) { lock (_gate) return _items.GetValueOrDefault(name); }

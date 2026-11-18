@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.MultiTenancy;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Registry.Tests;
 

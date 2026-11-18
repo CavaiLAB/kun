@@ -3,7 +3,7 @@ using System.Data.Common;
 using System.Text.Json;
 using Qian.Data.Native;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Native;
 
@@ -35,7 +35,7 @@ internal sealed class NativeAuditStore(INativeDataService data, NativeAuditSetti
                         await session.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
                         await Execute(session.Connection, null, "SELECT pg_catalog.pg_advisory_unlock(pg_catalog.hashtextextended(@key,0))", CancellationToken.None, ("key", key)).ConfigureAwait(false);
                     }
-                    catch (Exception cleanup) when (cleanup is DbException or InvalidOperationException or OperationCanceledException or QianErrorException) { }
+                    catch (Exception cleanup) when (cleanup is DbException or InvalidOperationException or OperationCanceledException or ErrorException) { }
                 }
             }
             catch (DbException error) when (attempt < settings.MaxAttempts && error.SqlState is "40001" or "40P01")
@@ -130,7 +130,7 @@ internal sealed class NativeAuditStore(INativeDataService data, NativeAuditSetti
                     if (AuditProtocol.Hash(entry.Record, current, hash) != entry.ContentHash) return new(false, sequence, current, "content_mismatch");
                     sequence = current; hash = entry.ContentHash;
                 }
-                catch (Exception error) when (error is JsonException or QianErrorException) { return new(false, sequence, current, "invalid_record"); }
+                catch (Exception error) when (error is JsonException or ErrorException) { return new(false, sequence, current, "invalid_record"); }
             }
         }
         return tipSequence == sequence && tipHash == hash ? new(true, sequence, null, null) : new(false, sequence, sequence + 1, "tip_mismatch");
@@ -159,5 +159,5 @@ internal sealed class NativeAuditStore(INativeDataService data, NativeAuditSetti
     { await using var command = Command(connection, transaction, sql, parameters); await command.ExecuteNonQueryAsync(ct).ConfigureAwait(false); }
     internal static AuditChainEntry Parse(string json) { using var document = JsonDocument.Parse(json); return AuditProtocol.ReadEntry(document.RootElement); }
     private static string ChainKey(string? tenant) => tenant is null ? "platform" : "tenant:" + tenant;
-    internal static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    internal static ErrorException Error(ErrorCode code) => new(new Error(code));
 }

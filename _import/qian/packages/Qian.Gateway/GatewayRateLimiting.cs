@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Model;
 
@@ -115,7 +115,7 @@ internal sealed class GatewayRateLimitPolicy(GatewayConfiguration configuration,
         cancellationToken.ThrowIfCancellationRequested();
         var seconds = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retry) ? Math.Max(1, Math.Ceiling(retry.TotalSeconds)) : 1;
         context.HttpContext.Response.Headers.RetryAfter = seconds.ToString(CultureInfo.InvariantCulture);
-        await QianResults.Error(new QianError(PlatformErrors.RateLimited)).ExecuteAsync(context.HttpContext).ConfigureAwait(false);
+        await KunResults.Error(new Error(PlatformErrors.RateLimited)).ExecuteAsync(context.HttpContext).ConfigureAwait(false);
     }
 }
 
@@ -135,11 +135,11 @@ internal sealed class GatewayRedisRateLimiter(IRedisRateLimitStore store, string
         try
         {
             var hit = await store.HitAsync(key, window, cancellationToken).ConfigureAwait(false);
-            if (hit.Count < 1 || hit.ResetsIn < TimeSpan.Zero) throw new QianErrorException(new QianError(PlatformErrors.Unavailable));
+            if (hit.Count < 1 || hit.ResetsIn < TimeSpan.Zero) throw new ErrorException(new Error(PlatformErrors.Unavailable));
             return new GatewayRateLimitLease(hit.Count <= limit, hit.ResetsIn);
         }
-        catch (RedisException) { throw new QianErrorException(new QianError(PlatformErrors.Unavailable)); }
-        catch (TimeoutException) { throw new QianErrorException(new QianError(PlatformErrors.Unavailable)); }
+        catch (RedisException) { throw new ErrorException(new Error(PlatformErrors.Unavailable)); }
+        catch (TimeoutException) { throw new ErrorException(new Error(PlatformErrors.Unavailable)); }
         finally
         {
             Interlocked.Exchange(ref _lastUse, Stopwatch.GetTimestamp());

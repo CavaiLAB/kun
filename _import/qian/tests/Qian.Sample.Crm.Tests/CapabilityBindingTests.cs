@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Sample.Crm.Tests;
 
@@ -32,11 +32,11 @@ public sealed partial class CapabilityTests
         using (runtime.Loader.GetContext("data", ScopeKey.Global).Restrict(new ScopeKey("tenant", A), registration => registration.Key != CapabilityBindingRegistration.Key))
         {
             Assert.Empty(caller.List(CapabilityBindingRegistration.Key));
-            Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
+            Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
         }
-        Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller.Scoped(ScopeKey.Global), input, Ct).AsTask())).Error.Code.Code);
+        Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller.Scoped(ScopeKey.Global), input, Ct).AsTask())).Error.Code.Code);
         await runtime.Loader.UnmountAsync("crm", ScopeKey.Global, Ct);
-        Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<QianErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
+        Assert.Equal("NOT_FOUND", (await Assert.ThrowsAsync<ErrorException>(() => binding.InvokeAsync(caller, input, Ct).AsTask())).Error.Code.Code);
         await using var data = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
         Assert.Empty(await data.Context.Customers.ToListAsync(Ct));
     }

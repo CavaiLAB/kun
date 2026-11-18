@@ -12,7 +12,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.Tests;
 
@@ -242,7 +242,7 @@ public sealed partial class SuperadminBypassTests
         // 守卫一：S1 的权限点全部租户专属，绑定到租户之下的子作用域（应用、Agent 会话）或别的租户一律 422，pointer 指向 scope，不递增修订。
         foreach (var bound in new[] { new ScopeKey("app", "crm"), new ScopeKey("agent-session", "s-1"), new ScopeKey("tenant", B) })
         {
-            var error = await Assert.ThrowsAsync<QianErrorException>(async () => await grant.BindAsync(new RoleBinding("tenant.user", "user", "alice", "operator", bound), Ct));
+            var error = await Assert.ThrowsAsync<ErrorException>(async () => await grant.BindAsync(new RoleBinding("tenant.user", "user", "alice", "operator", bound), Ct));
             Assert.Equal(("AUTHZ_SCOPE_MISMATCH", 422, "#/scope", bound.Kind + ":" + bound.Id), (error.Error.Code.Code, error.Error.Code.Status, error.Error.Pointer, error.Error.Args["scope"]));
         }
         Assert.DoesNotContain(await roles.ListMembersAsync(Ct), member => member.SubjectId == "alice"); Assert.Equal(revision, await Revision(data, A));
@@ -250,19 +250,19 @@ public sealed partial class SuperadminBypassTests
         Assert.Contains(await roles.ListMembersAsync(Ct), member => member.SubjectId == "alice");
 
         // 守卫二：唯一持有成员管理权限的绑定不可移除，也不可用有效期上限降级；加入第二个管理员后才能移除，之后那个管理员又成为最后一个。
-        var lockout = await Assert.ThrowsAsync<QianErrorException>(() => roles.RevokeAsync("tenant.owner", "user", "owner-a", "operator", Ct));
+        var lockout = await Assert.ThrowsAsync<ErrorException>(() => roles.RevokeAsync("tenant.owner", "user", "owner-a", "operator", Ct));
         Assert.Equal(("AUTHZ_LAST_ADMIN_LOCKOUT", 409, "tenant.owner"), (lockout.Error.Code.Code, lockout.Error.Code.Status, lockout.Error.Args["role"]));
-        var downgrade = await Assert.ThrowsAsync<QianErrorException>(async () => await grant.BindAsync(new RoleBinding("tenant.owner", "user", "owner-a", "operator", ValidTo: DateTimeOffset.UtcNow.AddHours(1)), Ct));
+        var downgrade = await Assert.ThrowsAsync<ErrorException>(async () => await grant.BindAsync(new RoleBinding("tenant.owner", "user", "owner-a", "operator", ValidTo: DateTimeOffset.UtcNow.AddHours(1)), Ct));
         Assert.Equal("AUTHZ_LAST_ADMIN_LOCKOUT", downgrade.Error.Code.Code);
         Assert.Contains(await roles.ListMembersAsync(Ct), member => member.SubjectId == "owner-a" && member.Roles.Contains("tenant.owner"));
         // 已过期的管理员绑定不算在内；普通角色随便撤。
         await grant.BindAsync(new RoleBinding("tenant.admin", "user", "expired-admin", "operator", ValidFrom: DateTimeOffset.UtcNow.AddHours(-2), ValidTo: DateTimeOffset.UtcNow.AddHours(-1)), Ct);
-        Assert.Equal("AUTHZ_LAST_ADMIN_LOCKOUT", (await Assert.ThrowsAsync<QianErrorException>(() => roles.RevokeAsync("tenant.owner", "user", "owner-a", "operator", Ct))).Error.Code.Code);
+        Assert.Equal("AUTHZ_LAST_ADMIN_LOCKOUT", (await Assert.ThrowsAsync<ErrorException>(() => roles.RevokeAsync("tenant.owner", "user", "owner-a", "operator", Ct))).Error.Code.Code);
         Assert.True(await roles.RevokeAsync("tenant.user", "user", "alice", "operator", Ct));
         await grant.AssignAsync("tenant.admin", "user", "admin-a", "operator", Ct);
         Assert.True(await roles.RevokeAsync("tenant.owner", "user", "owner-a", "operator", Ct));
         await grant.BindAsync(new RoleBinding("tenant.admin", "user", "admin-a", "operator", ValidFrom: DateTimeOffset.UtcNow.AddMinutes(-1)), Ct);
-        Assert.Equal("AUTHZ_LAST_ADMIN_LOCKOUT", (await Assert.ThrowsAsync<QianErrorException>(() => roles.RevokeAsync("tenant.admin", "user", "admin-a", "operator", Ct))).Error.Code.Code);
+        Assert.Equal("AUTHZ_LAST_ADMIN_LOCKOUT", (await Assert.ThrowsAsync<ErrorException>(() => roles.RevokeAsync("tenant.admin", "user", "admin-a", "operator", Ct))).Error.Code.Code);
         Assert.Equal(["admin-a", "expired-admin"], (await roles.ListMembersAsync(Ct)).Select(member => member.SubjectId).Order(StringComparer.Ordinal));
     }
 

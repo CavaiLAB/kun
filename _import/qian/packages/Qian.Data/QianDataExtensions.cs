@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data;
 

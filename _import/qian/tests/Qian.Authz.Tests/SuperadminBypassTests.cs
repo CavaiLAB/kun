@@ -25,7 +25,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Events;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Testing.Containers;
 
@@ -61,7 +61,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
             await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
             await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
             // 平台角色只能在无租户上下文的平台运营流程里授予，不能从某个租户的请求里顺手提升。
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => platformRoles.AssignSuperadminAsync("root", "platform-operator", Ct))).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => platformRoles.AssignSuperadminAsync("root", "platform-operator", Ct))).Error.Code.Code);
         }
         await platformRoles.AssignSuperadminAsync("root", "platform-operator", Ct);
         using (tenant.BeginScope(A))
@@ -230,7 +230,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
                 .AuthorizeAsync(new SuperadminAccess(Root, Read, A, null, "api"), Ct)).Reason);
             var expression = await ctx.Authz().DataPermissions.GetExpressionAsync<string>(owner, Ct);
             Assert.False(expression.Compile()("any-row"));
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(async () => await ctx.Authz().DataPermissions.GetPredicateAsync(owner, Ct))).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(async () => await ctx.Authz().DataPermissions.GetPredicateAsync(owner, Ct))).Error.Code.Code);
             var fields = await ctx.Authz().Fields.EvaluateAsync(owner, ["name", "phone"], Ct);
             Assert.Empty(fields.Readable); Assert.Empty(fields.Writable); Assert.Empty(fields.Masked);
         }
@@ -244,7 +244,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         {
             await runtime.MountAsync([new PluginDefinition(new PluginEntry(id, "qian.authz", "1.0.0", scope, 0, JsonSerializer.SerializeToElement(config)), new AuthzPlugin(), AuthzKeys)], Ct);
             Assert.Equal(PluginState.Failed, runtime.GetState(id, scope));
-            Assert.Equal("INPUT_INVALID", Assert.IsType<QianErrorException>(runtime.GetFailure(id, scope)).Error.Code.Code);
+            Assert.Equal("INPUT_INVALID", Assert.IsType<ErrorException>(runtime.GetFailure(id, scope)).Error.Code.Code);
             await runtime.UnmountAsync(id, scope, Ct);
         }
         await runtime.MountAsync([Define("shared-login", new AuthzPlugin(), AuthzKeys, new { platformRole = "qian_app" })], Ct);

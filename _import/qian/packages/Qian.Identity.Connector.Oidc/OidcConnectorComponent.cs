@@ -2,7 +2,7 @@ using Qian.Config;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using System.Text.Json;
 
 namespace Qian.Identity.Connector.Oidc;
@@ -20,8 +20,8 @@ public sealed class OidcConnectorComponent : IQianPlugin
     public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
     {
         if (OidcConnectorOptions.FromConfig(config).Name != "oidc")
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)
-            { Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, "#/name")] });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid)
+            { Errors = [new FieldError(PlatformErrors.ValueNotAllowed, "#/name")] });
         return new OidcConnectorPlugin().ApplyAsync(ctx, config, ct);
     }
 }

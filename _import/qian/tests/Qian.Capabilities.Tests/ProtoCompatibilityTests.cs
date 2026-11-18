@@ -1,5 +1,5 @@
 using System.Text;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities.Tests;
 
@@ -21,10 +21,10 @@ public sealed class ProtoCompatibilityTests
     public async Task 缺失导入和语法错误不得当作兼容_源路径不能越界()
     {
         var probe = Probe();
-        await Assert.ThrowsAsync<QianErrorException>(() => probe.CompileAsync(Source("invalid syntax"), Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => probe.CompileAsync(Source("invalid syntax"), Ct).AsTask());
         var missing = new ProtoContractSet(new Dictionary<string, ReadOnlyMemory<byte>>
             { ["service.proto"] = Encoding.UTF8.GetBytes("syntax = \"proto3\"; import \"missing.proto\"; package sample.v1;") });
-        await Assert.ThrowsAsync<QianErrorException>(() => probe.CompileAsync(missing, Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => probe.CompileAsync(missing, Ct).AsTask());
         Assert.Throws<ArgumentException>(() => new ProtoContractSet(new Dictionary<string, ReadOnlyMemory<byte>> { ["../escape.proto"] = Encoding.UTF8.GetBytes("bad") }));
     }
     private static ProtoContractSet Source(string fields) => new(new Dictionary<string, ReadOnlyMemory<byte>>

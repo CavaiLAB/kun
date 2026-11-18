@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit;
 
@@ -53,7 +53,7 @@ public sealed class AuditRecord
     public override string ToString() => "AuditRecord(redacted)";
     private static string Text(string value, int max) => !string.IsNullOrWhiteSpace(value) && value.Length <= max && !value.Any(char.IsControl) ? value : throw Invalid();
     private static bool Hex(string value, int length) => value is not null && value.Length == length && value.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }
 
 /// <summary>持久化的链节点；序号和前序都参与哈希验证。</summary>

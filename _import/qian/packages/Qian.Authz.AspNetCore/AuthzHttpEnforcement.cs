@@ -8,8 +8,8 @@ using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Authz.AspNetCore;
 
@@ -19,14 +19,14 @@ internal static class HttpEnforcement
     private static readonly object FailureKey = new();
 
     // 主体不可信时返回要写出的错误；返回 null 表示 subject 可用。
-    internal static QianError? ReadSubject(HttpContext http, out EnforcementSubject subject)
+    internal static Error? ReadSubject(HttpContext http, out EnforcementSubject subject)
     {
         subject = null!;
         var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || http.User.Identity?.IsAuthenticated != true ||
             !Kun.Security.Authentication.PrincipalClaims.TryRead(http.User, out var claimSubject, out var claimTenant, out var claimKind) ||
             claimSubject != principal.Subject || claimTenant != principal.TenantId || claimKind != Kind(principal.Kind))
-            return new QianError(PlatformErrors.Unauthenticated);
+            return new Error(PlatformErrors.Unauthenticated);
         subject = new EnforcementSubject(principal.Subject, principal.TenantId, Kind(principal.Kind), principal.IdentityRevision, principal.Actor is not null);
         return null;
     }
@@ -36,7 +36,7 @@ internal static class HttpEnforcement
         IAuthzEnforcement enforcement;
         try { enforcement = source.Source(http).Enforcement(); }
         // 授权组件尚未就绪或已卸载时与不存在无法区分（与 me/permissions、T23 的 dependency-removed 一致）。
-        catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException) { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException) { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
         return await enforcement.EnforceAsync(new EnforcementRequest(subject, permission, null, "api", entryPoint, target), http.RequestAborted).ConfigureAwait(false);
     }
 
@@ -45,14 +45,14 @@ internal static class HttpEnforcement
     {
         IAuthzEnforcement enforcement;
         try { enforcement = source.Source(http).Enforcement(); }
-        catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException) { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException) { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
         return await enforcement.CheckIdentityRevisionAsync(new EnforcementRequest(subject, null, null, "api", AuthzEnforcement.HttpEntryPoint, target), http.RequestAborted).ConfigureAwait(false);
     }
 
     internal static string Target(HttpContext http) => http.Request.Method + " " + ((http.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? http.Request.Path.Value ?? "/");
     internal static string Kind(PrincipalKind kind) => kind switch { PrincipalKind.User => "user", PrincipalKind.Service => "service", _ => "agent" };
-    internal static void Fail(HttpContext http, QianError error) => http.Items[FailureKey] = error;
-    internal static QianError? Failure(HttpContext http) => http.Items.TryGetValue(FailureKey, out var value) ? value as QianError : null;
+    internal static void Fail(HttpContext http, Error error) => http.Items[FailureKey] = error;
+    internal static Error? Failure(HttpContext http) => http.Items.TryGetValue(FailureKey, out var value) ? value as Error : null;
 }
 
 /// <summary>ASP.NET Core 授权处理器：对 <c>RequireQianPermission</c> 声明的每个权限点执行一次判定。</summary>
@@ -65,9 +65,9 @@ internal sealed class QianPermissionHandler(AuthzEnforcementSource source) : Aut
         {
             var decision = await HttpEnforcement.EnforceAsync(http, source, subject, requirement.Permission, AuthzEnforcement.HttpEntryPoint, HttpEnforcement.Target(http)).ConfigureAwait(false);
             if (decision.Allow) context.Succeed(requirement);
-            else Deny(context, http, new QianError(Denial(decision)), decision.Reason);
+            else Deny(context, http, new Error(Denial(decision)), decision.Reason);
         }
-        catch (QianErrorException error) { Deny(context, http, error.Error, error.Error.Code.Code); }
+        catch (ErrorException error) { Deny(context, http, error.Error, error.Error.Code.Code); }
     }
     // 审计组件已卸载时整个入口不可用，与不存在同为 404（S1-AUD-001）；旧令牌（identity_revision 低于下限）401，客户端据此换令牌（S1-DEC-027）；
     // 其余拒绝 403。gRPC 拦截器按同一映射给出 NotFound / Unauthenticated / PermissionDenied。
@@ -77,7 +77,7 @@ internal sealed class QianPermissionHandler(AuthzEnforcementSource source) : Aut
         AuthzEnforcement.StaleIdentityRevision => PlatformErrors.Unauthenticated,
         _ => PlatformErrors.AuthzDenied
     };
-    private static void Deny(AuthorizationHandlerContext context, HttpContext http, QianError error, string reason)
+    private static void Deny(AuthorizationHandlerContext context, HttpContext http, Error error, string reason)
     {
         HttpEnforcement.Fail(http, error);
         context.Fail(new AuthorizationFailureReason(null!, reason));
@@ -92,7 +92,7 @@ internal sealed class QianAuthzResultHandler(AuthorizationMiddlewareResultHandle
         if (!authorizeResult.Succeeded && HttpEnforcement.Failure(context) is { } error && !context.Response.HasStarted)
         {
             context.Response.Headers.CacheControl = "private, no-store";
-            return QianResults.Error(error).ExecuteAsync(context);
+            return KunResults.Error(error).ExecuteAsync(context);
         }
         return fallback.HandleAsync(next, context, policy, authorizeResult);
     }
@@ -114,15 +114,15 @@ internal sealed partial class UndeclaredPermissionMiddleware(RequestDelegate nex
             await HttpEnforcement.CheckRevisionAsync(context, source, current, HttpEnforcement.Target(context)).ConfigureAwait(false) is { } stale)
         {
             context.Response.Headers.CacheControl = "private, no-store";
-            throw new QianErrorException(new QianError(QianPermissionHandler.Denial(stale)));
+            throw new ErrorException(new Error(QianPermissionHandler.Denial(stale)));
         }
         if (endpoint.Metadata.GetMetadata<PluginEndpointBinding>() is null || endpoint.Metadata.GetMetadata<PermissionEnforcedInHandlerAttribute>() is not null)
         { await next(context).ConfigureAwait(false); return; }
         var target = HttpEnforcement.Target(context);
         if (!source.IsProduction(context.RequestServices)) { LogUndeclared(logger, target); await next(context).ConfigureAwait(false); return; }
-        if (HttpEnforcement.ReadSubject(context, out var subject) is { } unauthenticated) throw new QianErrorException(unauthenticated);
+        if (HttpEnforcement.ReadSubject(context, out var subject) is { } unauthenticated) throw new ErrorException(unauthenticated);
         var decision = await HttpEnforcement.EnforceAsync(context, source, subject, null, AuthzEnforcement.HttpEntryPoint, target).ConfigureAwait(false);
-        if (!decision.Allow) throw new QianErrorException(new QianError(QianPermissionHandler.Denial(decision)));
+        if (!decision.Allow) throw new ErrorException(new Error(QianPermissionHandler.Denial(decision)));
         await next(context).ConfigureAwait(false);
     }
     [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "组件端点 {Target} 没有声明权限点；开发模式放行，生产模式将缺省拒绝。")]

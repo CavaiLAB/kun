@@ -1,18 +1,18 @@
 using System.Text.RegularExpressions;
 using Kun.Validation;
 
-namespace Qian.Runtime.Errors.AspNetCore;
+namespace Kun.Errors.AspNetCore;
 
 /// <summary>Kun 字段校验异常的封闭契约桥接；不输出异常原文与自由扩展成员。</summary>
 public static partial class KunValidationErrorBridge
 {
     /// <summary>按输入顺序保留至多 100 项；已知字段码保留，其它码映射到 VALUE_NOT_ALLOWED。</summary>
-    public static QianError ToQianError(this ValidationException exception)
+    public static Error ToQianError(this ValidationException exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
-        return new QianError(PlatformErrors.InputInvalid)
+        return new Error(PlatformErrors.InputInvalid)
         {
-            Errors = exception.Errors.Take(100).Select(error => new QianFieldError(FieldCode(error.Code), Pointer(error.PropertyName))).ToArray(),
+            Errors = exception.Errors.Take(100).Select(error => new FieldError(FieldCode(error.Code), Pointer(error.PropertyName))).ToArray(),
         };
     }
 

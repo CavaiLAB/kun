@@ -12,7 +12,7 @@ using Qian.Audit;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Lifecycle.Tests;
@@ -464,9 +464,9 @@ public sealed class LifecycleAuditTests(PostgresFixture postgres) : IClassFixtur
     private static (string, string?, string?) Pick3(TenantPluginInstallView view) => (view.State, view.Version, view.TargetVersion);
     private static (string, int) PickRun(LifecycleRunView run) => (run.Status, run.Attempts);
 
-    private static async Task<QianError> AssertCode(ErrorCode code, Func<Task> action)
+    private static async Task<Error> AssertCode(ErrorCode code, Func<Task> action)
     {
-        var error = await Assert.ThrowsAsync<QianErrorException>(action);
+        var error = await Assert.ThrowsAsync<ErrorException>(action);
         Assert.Equal(code.Code, error.Error.Code.Code);
         return error.Error;
     }
@@ -478,7 +478,7 @@ public sealed class LifecycleAuditTests(PostgresFixture postgres) : IClassFixtur
         internal int Provisions => Volatile.Read(ref _provisions);
         public ValueTask<JsonElement?> InvokeAsync(LifecycleHookContext context, CancellationToken cancellationToken)
         {
-            if (context.Hook == LifecycleHooks.TenantProvision && Interlocked.Increment(ref _provisions) == 1) throw new QianErrorException(new QianError(PlatformErrors.Unavailable));
+            if (context.Hook == LifecycleHooks.TenantProvision && Interlocked.Increment(ref _provisions) == 1) throw new ErrorException(new Error(PlatformErrors.Unavailable));
             return ValueTask.FromResult<JsonElement?>(null);
         }
     }
@@ -493,7 +493,7 @@ public sealed class LifecycleAuditTests(PostgresFixture postgres) : IClassFixtur
         public ValueTask<JsonElement?> InvokeAsync(LifecycleHookContext context, CancellationToken cancellationToken)
         {
             var attempt = _calls.AddOrUpdate(context.Hook, 1, (_, previous) => previous + 1);
-            if (FailUpgradeOnce && context.Hook == LifecycleHooks.TenantUpgrade && attempt == 1) throw new QianErrorException(new QianError(PlatformErrors.Unavailable));
+            if (FailUpgradeOnce && context.Hook == LifecycleHooks.TenantUpgrade && attempt == 1) throw new ErrorException(new Error(PlatformErrors.Unavailable));
             return ValueTask.FromResult<JsonElement?>(null);
         }
     }

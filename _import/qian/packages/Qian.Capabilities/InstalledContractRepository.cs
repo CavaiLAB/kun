@@ -5,7 +5,7 @@ using Microsoft.OpenApi;
 using Qian.Registry;
 using Qian.Surfaces.Abstractions;
 using Json.Schema;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities;
 
@@ -67,7 +67,7 @@ internal sealed partial class InstalledContractRepository : IContractRepository,
     {
         EnsureActive();
         if (Find(pluginId, version, contractId) is not { Kind: "proto" } || !_protoSources.TryGetValue((pluginId, version), out var source))
-            throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            throw new ErrorException(new Error(PlatformErrors.NotFound));
         return source;
     }
     internal async ValueTask ValidateProtoAsync(CancellationToken ct)
@@ -91,8 +91,8 @@ internal sealed partial class InstalledContractRepository : IContractRepository,
         EnsureActive();
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token);
         linked.Token.ThrowIfCancellationRequested();
-        var baseline = Find(pluginId, baselineVersion, contractId) ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
-        var candidate = Find(pluginId, candidateVersion, contractId) ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        var baseline = Find(pluginId, baselineVersion, contractId) ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
+        var candidate = Find(pluginId, candidateVersion, contractId) ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
         if (baseline.Kind != "openapi" || candidate.Kind != "openapi") throw Invalid();
         if (_probe is null) throw new InvalidOperationException("宿主尚未装配真实 OpenAPI 契约检查器。");
         var before = Parse(baseline.Path, baseline.ReadContent(), _reader);
@@ -137,7 +137,7 @@ internal sealed partial class InstalledContractRepository : IContractRepository,
     }
     private static (CancellationTokenSource, CancellationToken) CreateLifetime()
     { var source = new CancellationTokenSource(); return (source, source.Token); }
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
     [GeneratedRegex("^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+/v[1-9][0-9]*$", RegexOptions.CultureInvariant)]
     private static partial Regex ContractId();
 }

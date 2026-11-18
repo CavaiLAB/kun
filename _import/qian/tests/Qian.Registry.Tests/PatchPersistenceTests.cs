@@ -23,7 +23,7 @@ using Qian.Events;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Qian.Testing.Containers;
@@ -117,7 +117,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
                 await repository.PutAsync(TenantA, "files", JsonSerializer.SerializeToElement(new { id = "files", config = new { value } }), existing ? 1 : 0, "actor", Ct);
                 return null;
             }
-            catch (QianErrorException error) { return error.Error.Code.Code; }
+            catch (ErrorException error) { return error.Error.Code.Code; }
         }
     }
 
@@ -136,7 +136,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
             """{"id":"files","disabled":"DO-NOT-LEAK"}"""
         })
         {
-            var error = await Assert.ThrowsAsync<QianErrorException>(() => repository.PutAsync(TenantA, "files", Patch(invalid), 0, "actor", Ct));
+            var error = await Assert.ThrowsAsync<ErrorException>(() => repository.PutAsync(TenantA, "files", Patch(invalid), 0, "actor", Ct));
             Assert.Equal("INPUT_INVALID", error.Error.Code.Code); Assert.NotEmpty(error.Error.Errors);
             Assert.All(error.Error.Errors, field => Assert.StartsWith("registry/scope-patches.json#", field.Pointer, StringComparison.Ordinal));
             Assert.DoesNotContain("DO-NOT-LEAK", error.ToString(), StringComparison.Ordinal);
@@ -229,7 +229,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         var first = await writer.PutAsync(TenantA, "settings", Patch("""{"id":"settings","config":{"port":29}}"""), 0, "actor", Ct);
         await using var listener = new NpgsqlConnection(postgres.AppConnectionString); await listener.OpenAsync(Ct);
         await using (var listen = new NpgsqlCommand("LISTEN " + PostgresPatchRepository.ChangeChannel, listener)) await listen.ExecuteNonQueryAsync(Ct);
-        var invalid = await Assert.ThrowsAsync<QianErrorException>(() => writer.PutAsync(TenantA, "settings", Patch("""{"id":"settings","config":{"port":29,"secret":"DO-NOT-LEAK"}}"""), first.Revision, "actor", Ct));
+        var invalid = await Assert.ThrowsAsync<ErrorException>(() => writer.PutAsync(TenantA, "settings", Patch("""{"id":"settings","config":{"port":29,"secret":"DO-NOT-LEAK"}}"""), first.Revision, "actor", Ct));
         Assert.Equal("INPUT_INVALID", invalid.Error.Code.Code); Assert.DoesNotContain("DO-NOT-LEAK", invalid.ToString(), StringComparison.Ordinal);
         Assert.False(await listener.WaitAsync(300, Ct));
         var kept = await repository.GetAsync(TenantA, "settings", Ct); Assert.Equal(first.Revision, kept!.Revision);
@@ -261,7 +261,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
                 await target.PutAsync(TenantA, id, JsonSerializer.SerializeToElement(new { id, plugin = "test.settings", config = new { port = 31 } }), 0, "actor", Ct);
                 return null;
             }
-            catch (QianErrorException error) { return error.Error.Code.Code; }
+            catch (ErrorException error) { return error.Error.Code.Code; }
         }
     }
 
@@ -429,7 +429,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
     }
     private static async Task AssertCode(ErrorCode code, Func<Task> action)
     {
-        var error = await Assert.ThrowsAsync<QianErrorException>(action); Assert.Equal(code.Code, error.Error.Code.Code);
+        var error = await Assert.ThrowsAsync<ErrorException>(action); Assert.Equal(code.Code, error.Error.Code.Code);
     }
     private sealed class ReadBarrier : DbCommandInterceptor
     {

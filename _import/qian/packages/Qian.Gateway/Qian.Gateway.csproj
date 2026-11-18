@@ -10,7 +10,7 @@
     <ProjectReference Include="../Qian.Gateway.Abstractions/Qian.Gateway.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" />
     <ProjectReference Include="../Qian.Plugin.Sdk.Generators/Qian.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" />

@@ -51,7 +51,7 @@ builder.Services.AddQianIdentityS2s(new IdentityS2sOptions
 {
     Issuer = "https://gateway.example.com/s2s", Audience = "qian-platform", JwksUri = new Uri("http://gateway.internal/.well-known/jwks.json")
 });
-app.UseQianErrors(); app.UseAuthentication(); app.UseAuthorization();
+app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();
 ```
 
 通过校验的请求，`ICurrentUser.Principal` 是令牌载荷的规范快照（与 AZ-004 的 PEP 交叉比对的字段一致）。两种装配可在同一宿主共存，缺省认证方案取先登记者，端点可显式指定方案。

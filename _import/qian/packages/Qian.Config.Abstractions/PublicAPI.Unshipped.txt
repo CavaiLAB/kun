@@ -1,29 +1,29 @@
 #nullable enable
-static readonly Qian.Config.SecretErrors.Exposed -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Config.SecretErrors.SchemaInvalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Config.SecretErrors.Exposed -> Kun.Errors.ErrorCode!
+static readonly Qian.Config.SecretErrors.SchemaInvalid -> Kun.Errors.ErrorCode!
 Qian.Config.IConfigService.ReadSection(string! path) -> System.Collections.Generic.IReadOnlyDictionary<string!, string?>!
 Qian.Config.IConfigService
 Qian.Config.ConfigDefinition
 static readonly Qian.Config.ConfigDefinition.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Config.ConfigErrors.BootstrapInvalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Config.ConfigErrors.BootstrapInvalid -> Kun.Errors.ErrorCode!
 Qian.Config.IConfigService.GetValue(string! key) -> string?
-static readonly Qian.Config.ConfigErrors.RequiredMissing -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Config.ConfigErrors.RequiredMissing -> Kun.Errors.ErrorCode!
 Qian.Config.IConfigService.GetRequiredValue(string! key) -> string!
 static Qian.Config.ConfigDefinition.Config(this Qian.Runtime.IPluginContext! context) -> Qian.Config.IConfigService!
 Qian.Config.IConfigService.GetReloadToken() -> Microsoft.Extensions.Primitives.IChangeToken!
 Qian.Config.ConfigErrors
-static Qian.Config.ConfigErrors.Register(Qian.Runtime.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Qian.Config.ConfigErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 Qian.Config.ISecretResolver
 Qian.Config.SecretValueJsonConverter
 Qian.Config.SecretValue
 Qian.Config.ISecretResolverFactory
 Qian.Config.ISecretAccessObserver
 Qian.Config.SecretErrors
-static readonly Qian.Config.SecretErrors.InvalidReference -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Config.SecretErrors.AccessDenied -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Config.SecretErrors.InvalidReference -> Kun.Errors.ErrorCode!
+static readonly Qian.Config.SecretErrors.AccessDenied -> Kun.Errors.ErrorCode!
 Qian.Config.SecretValueJsonConverter.SecretValueJsonConverter() -> void
-static readonly Qian.Config.SecretErrors.NotFound -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Config.SecretErrors.Unavailable -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Config.SecretErrors.NotFound -> Kun.Errors.ErrorCode!
+static readonly Qian.Config.SecretErrors.Unavailable -> Kun.Errors.ErrorCode!
 Qian.Config.SecretAccessEvent
 override Qian.Config.SecretAccessEvent.ToString() -> string!
 static Qian.Config.SecretAccessEvent.operator !=(Qian.Config.SecretAccessEvent? left, Qian.Config.SecretAccessEvent? right) -> bool
@@ -63,7 +63,7 @@ Qian.Config.ISecretResolver.ResolveAsync(string! reference, System.Threading.Can
 Qian.Config.SecretAccessEvent.SecretAccessEvent(string! Caller, string! Reference, string? TenantId, bool Allowed, string! Outcome) -> void
 Qian.Config.ISecretResolverFactory.ForPlugin(Qian.Runtime.IPluginContext! context) -> Qian.Config.ISecretResolver!
 Qian.Config.SecretGrant.SecretGrant(string! Name, string! Scope) -> void
-static Qian.Config.SecretErrors.Register(Qian.Runtime.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Qian.Config.SecretErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 Qian.Config.ISecretResolverFactory.ForHost(string! policyId, Kun.Core.MultiTenancy.ITenantContext? tenantContext = null) -> Qian.Config.ISecretResolver!
 override Qian.Config.SecretValueJsonConverter.Read(ref System.Text.Json.Utf8JsonReader reader, System.Type! typeToConvert, System.Text.Json.JsonSerializerOptions! options) -> Qian.Config.SecretValue!
 Qian.Config.SecretReference.Scope.get -> string!
@@ -125,7 +125,7 @@ override Qian.Config.ConfigReloadFailed.GetHashCode() -> int
 override Qian.Config.ConfigReloadFailed.ToString() -> string!
 static Qian.Config.ConfigReloadFailed.operator !=(Qian.Config.ConfigReloadFailed? left, Qian.Config.ConfigReloadFailed? right) -> bool
 static Qian.Config.ConfigReloadFailed.operator ==(Qian.Config.ConfigReloadFailed? left, Qian.Config.ConfigReloadFailed? right) -> bool
-static readonly Qian.Config.ConfigErrors.ReloadRejected -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Config.ConfigErrors.ReloadRejected -> Kun.Errors.ErrorCode!
 static readonly Qian.Config.ConfigRuntimeEvents.ReloadFailed -> Qian.Runtime.QianEvent<Qian.Config.ConfigReloadFailed!, object?>!
 
 Qian.Config.IFeatureFlags

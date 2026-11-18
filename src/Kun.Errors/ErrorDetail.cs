@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace Qian.Runtime.Errors;
+namespace Kun.Errors;
 
 /// <summary>
 /// 错误响应体（contracts/v0/error-detail.schema.json）：RFC 9457 problem+json 的 Qian 配置文件。
@@ -65,11 +65,11 @@ public sealed class ErrorDetail
     /// <summary>逐项的字段错误。</summary>
     [JsonPropertyName("errors")]
     [JsonPropertyOrder(10)]
-    public IReadOnlyList<FieldError>? Errors { get; init; }
+    public IReadOnlyList<FieldErrorDetail>? Errors { get; init; }
 }
 
 /// <summary><see cref="ErrorDetail.Errors"/> 中的一项。</summary>
-public sealed class FieldError
+public sealed class FieldErrorDetail
 {
     /// <summary>错误码。</summary>
     [JsonPropertyName("code")]

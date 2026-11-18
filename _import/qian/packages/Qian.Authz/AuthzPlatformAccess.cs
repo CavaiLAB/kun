@@ -1,6 +1,6 @@
 using System.Data.Common;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz;
 
@@ -70,6 +70,6 @@ public static class AuthzPlatformAccess
     internal static void ValidateRoleName(string role)
     {
         if (role is not { Length: > 0 and <= 63 } || role[0] is < 'a' or > 'z' || role.Any(c => !(c is >= 'a' and <= 'z' or >= '0' and <= '9' or '_')))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
     }
 }

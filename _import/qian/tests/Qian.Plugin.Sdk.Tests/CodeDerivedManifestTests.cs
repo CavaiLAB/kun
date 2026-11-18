@@ -108,7 +108,7 @@ public sealed partial class CodeDerivedManifestTests
             Assert.True(tool["x-qian-generated"]!["$generated"]!.GetValue<bool>());
         }
         var validation = new SurfaceValidator().ValidateComponent(component, new SurfaceValidationOptions { Capabilities = expected.Select(item => Component + "/" + item.Name).ToArray() });
-        Assert.True(validation.IsValid, string.Join('\n', validation.Diagnostics.Select(d => Qian.Runtime.Errors.ErrorDetailJson.Serialize(d.Error))));
+        Assert.True(validation.IsValid, string.Join('\n', validation.Diagnostics.Select(d => Kun.Errors.ErrorDetailJson.Serialize(d.Error))));
 
         var unchanged = await Tool("check", assembly, component);
         Assert.Equal(0, unchanged.ExitCode);

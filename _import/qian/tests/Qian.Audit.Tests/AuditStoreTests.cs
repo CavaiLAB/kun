@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Audit.Tests;
@@ -45,14 +45,14 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
     public async Task Agent委托字段可分页查询_原生SQL隔离租户_缺租户不能进入平台链()
     {
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host); var store = Store(host, tenant);
-        Assert.Equal("UNAUTHENTICATED", (await Assert.ThrowsAsync<QianErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(), Ct))).Error.Code.Code);
+        Assert.Equal("UNAUTHENTICATED", (await Assert.ThrowsAsync<ErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(), Ct))).Error.Code.Code);
         using (tenant.BeginScope(A))
         {
             await store.AppendAsync(CanonicalizerTests.Record(actorType: "agent", onBehalfOf: "person-a"), Ct);
             await store.AppendAsync(CanonicalizerTests.Record(onBehalfOf: "person-b"), Ct);
             var entry = Assert.Single(await store.ReadAsync(0, 10, "person-a", Ct)); Assert.Equal("agent", entry.Record.ActorType);
             Assert.Equal("crm.customer.create", entry.Record.CapabilityId); Assert.Equal("1.0.0", entry.Record.ContractVersion);
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(tenant: B), Ct))).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(tenant: B), Ct))).Error.Code.Code);
         }
         using (tenant.BeginScope(B)) { Assert.Empty(await store.ReadAsync(0, 10, null, Ct)); await store.AppendAsync(CanonicalizerTests.Record(tenant: B), Ct); }
         await using var app = new NpgsqlConnection(postgres.AppConnectionString); await app.OpenAsync(Ct);
@@ -73,7 +73,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
         Assert.Equal(new AuditChainVerification(true, 1, null, null), await store.VerifyAsync(Ct));
         await Admin("DROP TRIGGER reject_append ON plugin_qian_audit.audit_entries;");
         Assert.Equal(2, (await store.AppendAsync(CanonicalizerTests.Record(), Ct)).Sequence);
-        Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(id: first.Record.Id, payload: "{\"changed\":true}"), Ct))).Error.Code.Code);
+        Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(id: first.Record.Id, payload: "{\"changed\":true}"), Ct))).Error.Code.Code);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
         Assert.Equal(new AuditChainVerification(true, 0, null, null), await store.VerifyAsync(Ct));
         Assert.Equal(1, (await store.AppendAsync(CanonicalizerTests.Record(), Ct).WaitAsync(TimeSpan.FromSeconds(5), Ct)).Sequence);
         await Admin("UPDATE plugin_qian_audit.audit_chain_state SET tip_seq = 9;");
-        Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(), Ct))).Error.Code.Code);
+        Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(), Ct))).Error.Code.Code);
         Assert.Equal("tip_mismatch", (await store.VerifyAsync(Ct)).Reason);
     }
 

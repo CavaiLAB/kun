@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Qian.Config;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Connector.Oidc;
 
@@ -33,29 +33,29 @@ public sealed class OidcConnectorOptions
     public override string ToString() => "OidcConnectorOptions(redacted)";
 
     /// <summary>逐项检查，返回字段错误（pointer 指向配置成员）；空列表表示通过。明文密钥在这里被拒绝。</summary>
-    public IReadOnlyList<QianFieldError> Check()
+    public IReadOnlyList<FieldError> Check()
     {
-        var errors = new List<QianFieldError>();
-        if (!ConnectorManifest.IsValidId(Name)) errors.Add(new QianFieldError(PlatformErrors.PatternMismatch, "#/name"));
-        if (string.IsNullOrWhiteSpace(DisplayName)) errors.Add(new QianFieldError(PlatformErrors.Required, "#/displayName"));
-        else if (DisplayName.Length > 64 || DisplayName.Any(char.IsControl)) errors.Add(new QianFieldError(PlatformErrors.OutOfRange, "#/displayName"));
-        if (string.IsNullOrEmpty(Issuer)) errors.Add(new QianFieldError(PlatformErrors.Required, "#/issuer"));
-        else if (!IsAllowedEndpoint(Issuer, RequireHttps, out _)) errors.Add(new QianFieldError(PlatformErrors.FormatInvalid, "#/issuer"));
-        if (string.IsNullOrWhiteSpace(ClientId)) errors.Add(new QianFieldError(PlatformErrors.Required, "#/clientId"));
-        else if (ClientId.Length > 256 || ClientId.Any(char.IsControl)) errors.Add(new QianFieldError(PlatformErrors.OutOfRange, "#/clientId"));
-        if (string.IsNullOrEmpty(ClientSecret)) errors.Add(new QianFieldError(PlatformErrors.Required, "#/clientSecret"));
-        else if (!SecretReference.IsValid(ClientSecret)) errors.Add(new QianFieldError(PlatformErrors.FormatInvalid, "#/clientSecret"));
-        if (Scopes is null || !Scopes.Contains("openid", StringComparer.Ordinal)) errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, "#/scopes"));
-        else if (Scopes.Count > 32) errors.Add(new QianFieldError(PlatformErrors.OutOfRange, "#/scopes"));
+        var errors = new List<FieldError>();
+        if (!ConnectorManifest.IsValidId(Name)) errors.Add(new FieldError(PlatformErrors.PatternMismatch, "#/name"));
+        if (string.IsNullOrWhiteSpace(DisplayName)) errors.Add(new FieldError(PlatformErrors.Required, "#/displayName"));
+        else if (DisplayName.Length > 64 || DisplayName.Any(char.IsControl)) errors.Add(new FieldError(PlatformErrors.OutOfRange, "#/displayName"));
+        if (string.IsNullOrEmpty(Issuer)) errors.Add(new FieldError(PlatformErrors.Required, "#/issuer"));
+        else if (!IsAllowedEndpoint(Issuer, RequireHttps, out _)) errors.Add(new FieldError(PlatformErrors.FormatInvalid, "#/issuer"));
+        if (string.IsNullOrWhiteSpace(ClientId)) errors.Add(new FieldError(PlatformErrors.Required, "#/clientId"));
+        else if (ClientId.Length > 256 || ClientId.Any(char.IsControl)) errors.Add(new FieldError(PlatformErrors.OutOfRange, "#/clientId"));
+        if (string.IsNullOrEmpty(ClientSecret)) errors.Add(new FieldError(PlatformErrors.Required, "#/clientSecret"));
+        else if (!SecretReference.IsValid(ClientSecret)) errors.Add(new FieldError(PlatformErrors.FormatInvalid, "#/clientSecret"));
+        if (Scopes is null || !Scopes.Contains("openid", StringComparer.Ordinal)) errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, "#/scopes"));
+        else if (Scopes.Count > 32) errors.Add(new FieldError(PlatformErrors.OutOfRange, "#/scopes"));
         else
             for (var i = 0; i < Scopes.Count; i++)
                 if (Scopes[i] is not { Length: > 0 and <= 128 } scope || !scope.All(c => c is '!' or >= '#' and <= '[' or >= ']' and <= '~'))
-                    errors.Add(new QianFieldError(PlatformErrors.PatternMismatch, ErrorPointer.Input("scopes", i)));
-        if (Terminals is null || Terminals.Count == 0) errors.Add(new QianFieldError(PlatformErrors.Required, "#/terminals"));
+                    errors.Add(new FieldError(PlatformErrors.PatternMismatch, ErrorPointer.Input("scopes", i)));
+        if (Terminals is null || Terminals.Count == 0) errors.Add(new FieldError(PlatformErrors.Required, "#/terminals"));
         else
             for (var i = 0; i < Terminals.Count; i++)
                 if (!ConnectorTerminals.All.Contains(Terminals[i]) || Terminals.Take(i).Contains(Terminals[i]))
-                    errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("terminals", i)));
+                    errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("terminals", i)));
         return errors;
     }
 
@@ -63,20 +63,20 @@ public sealed class OidcConnectorOptions
     public void Validate()
     {
         var errors = Check();
-        if (errors.Count > 0) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [.. errors.Take(100)] });
+        if (errors.Count > 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [.. errors.Take(100)] });
     }
 
     /// <summary>从组件配置（camelCase，与配置 Schema 同形）解析并校验；未知成员按 UNKNOWN_PROPERTY 拒绝。</summary>
     public static OidcConnectorOptions FromConfig(JsonElement config)
     {
         if (config.ValueKind != JsonValueKind.Object)
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(PlatformErrors.TypeMismatch, "#")] });
-        var errors = new List<QianFieldError>();
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.TypeMismatch, "#")] });
+        var errors = new List<FieldError>();
         string? Text(string name)
         {
             if (!config.TryGetProperty(name, out var value)) return null;
             if (value.ValueKind == JsonValueKind.String) return value.GetString();
-            errors.Add(new QianFieldError(PlatformErrors.TypeMismatch, "#/" + name));
+            errors.Add(new FieldError(PlatformErrors.TypeMismatch, "#/" + name));
             return null;
         }
         string[]? List(string name)
@@ -84,18 +84,18 @@ public sealed class OidcConnectorOptions
             if (!config.TryGetProperty(name, out var value)) return null;
             if (value.ValueKind == JsonValueKind.Array && value.EnumerateArray().All(item => item.ValueKind == JsonValueKind.String))
                 return [.. value.EnumerateArray().Select(item => item.GetString()!)];
-            errors.Add(new QianFieldError(PlatformErrors.TypeMismatch, "#/" + name));
+            errors.Add(new FieldError(PlatformErrors.TypeMismatch, "#/" + name));
             return null;
         }
         foreach (var property in config.EnumerateObject())
             if (property.Name is not ("name" or "displayName" or "issuer" or "clientId" or "clientSecret" or "scopes" or "terminals" or "requireHttps"))
-                errors.Add(new QianFieldError(PlatformErrors.UnknownProperty, ErrorPointer.Input(property.Name)));
+                errors.Add(new FieldError(PlatformErrors.UnknownProperty, ErrorPointer.Input(property.Name)));
         var defaults = new OidcConnectorOptions();
         var requireHttps = defaults.RequireHttps;
         if (config.TryGetProperty("requireHttps", out var flag))
         {
             if (flag.ValueKind is JsonValueKind.True or JsonValueKind.False) requireHttps = flag.GetBoolean();
-            else errors.Add(new QianFieldError(PlatformErrors.TypeMismatch, "#/requireHttps"));
+            else errors.Add(new FieldError(PlatformErrors.TypeMismatch, "#/requireHttps"));
         }
         var options = new OidcConnectorOptions
         {
@@ -103,7 +103,7 @@ public sealed class OidcConnectorOptions
             ClientSecret = Text("clientSecret") ?? "", Scopes = List("scopes") ?? defaults.Scopes, Terminals = List("terminals") ?? defaults.Terminals, RequireHttps = requireHttps
         };
         errors.AddRange(options.Check());
-        if (errors.Count > 0) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [.. errors.Take(100)] });
+        if (errors.Count > 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [.. errors.Take(100)] });
         return options;
     }
 

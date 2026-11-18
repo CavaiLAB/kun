@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server;
 
@@ -105,6 +105,6 @@ internal static partial class IdentifierRules
     private static partial Regex PhonePattern();
 
     /// <summary>输入非法时的字段错误，不回显原值。</summary>
-    internal static QianErrorException Invalid(string pointer) =>
-        new(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(PlatformErrors.PatternMismatch, pointer)] });
+    internal static ErrorException Invalid(string pointer) =>
+        new(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.PatternMismatch, pointer)] });
 }

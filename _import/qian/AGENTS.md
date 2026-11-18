@@ -54,8 +54,8 @@
   - 可打包的项目（写了 `<IsPackable>true</IsPackable>`）都必须带 `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`，新公共 API 未登记即编译失败；
   - 可打包的项目都要在项目文件里写档位与角色（`KunTier`、`KunRole`），仓库根的 `scripts/check_deps.py` 按它们检查依赖，不看包名：内核档不依赖平台档，平台档只依赖内核档与平台档的契约包，契约包直接依赖的内核档包只能是契约。写法、例外与本机跑法见仓库根 `AGENTS.md`「档位与依赖」；
   - 禁用符号与平台分析器（RS0030、QIAN0002–QIAN0006）接平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`）；过渡期本目录下的项目全部接入，去内核档的包也在内，各域批次把包搬出本目录时再按归属收窄。新写的宿主要写 `KunHost`。
-- 错误响应一律是 `contracts/v0/error-detail.schema.json` 的 ErrorDetail：用 `Qian.Runtime.Errors` 定义与登记错误码（大写下划线、全局唯一、在本组件 Definition 包里定义），HTTP 宿主装 `AddQianErrors()` + `UseQianErrors()`；不要自己拼 ProblemDetails 或 `{ error: ... }`。
-- 改了 `contracts/v0/` 的 Schema 必须同时改 fixture 与 `Qian.Runtime.Errors`，`dotnet test` 会校验 Schema、fixture 与内置错误码目录 `error-codes.json` 是否一致。
+- 错误响应一律是 `contracts/v0/error-detail.schema.json` 的 ErrorDetail：用 `Kun.Errors` 定义与登记错误码（大写下划线、全局唯一、在本组件 Definition 包里定义），HTTP 宿主装 `AddKunErrors()` + `UseKunErrors()`；不要自己拼 ProblemDetails 或 `{ error: ... }`。
+- 改了 `contracts/v0/` 的 Schema 必须同时改 fixture 与 `Kun.Errors`，`dotnet test` 会校验 Schema、fixture 与内置错误码目录 `error-codes.json` 是否一致。
 - 集成测试用 `tests/Qian.Testing.Containers` 的 fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身），不要各自再写一套容器启动代码。
 - 已有决策不要重开。合并蓝图 ADR-023 于 2026-11-17 Accepted（S1-DEC-036 的 D1–D14 由产品负责人逐条裁定），部分取代 ADR-001 / ADR-021、修订 ADR-013 / ADR-019 / ADR-020。D1–D18 已获认可；ADR-019 / 020 / 021 均为 Accepted，ADR-019 / 020 的待拍板项已拍板并记录在各 ADR §7（对应 `S1-DEC-*` 已关闭）；仓库归属已拍板：产品族统一在 `idadawn`，Kun 从 CavaiLAB 迁入（ADR-021 §7，执行见 S1-PM-003）；合并后的仓库在 `CavaiLAB/kun`（S1-DEC-038 D17 改写）。`S1-DEC-001`–`S1-DEC-009` 已关闭；`S1-DEC-010`（contracts/v0 的 8 条默认裁决）待产品负责人拍板，拍板前按 `contracts/v0/README.md` 第 8 节的默认值实现。文档里标「已裁决（R{n}）」的是复核时的默认裁决，有异议时新建决策任务而不是直接改。
 
@@ -64,7 +64,7 @@
 ```text
 docs/        设计文档：decisions（决策清单）、adr、prd（含 specs）、migration、research、ROADMAP.md
 contracts/   冻结契约 v0：S2S claim、事件信封、ErrorDetail 与错误码目录、能力条目的 JSON Schema + fixture（见 contracts/v0/README.md）
-packages/    .NET 组件库（NuGet 包），如 Qian.Runtime.Errors；packages/qian-* 是 Node 包：命令行、声明式表面校验库、外壳接线与三个界面包。
+packages/    .NET 组件库（NuGet 包），如 Kun.Errors；packages/qian-* 是 Node 包：命令行、声明式表面校验库、外壳接线与三个界面包。
              前端框架（原 yue，现名 qian）已迁到 CavaiLAB/qian，这里装已发布的 @cavailab/qian-*（见 README.md「前端依赖与包源」）
 apps/        外壳应用 qian-shell（模块联邦宿主，见 apps/qian-shell/README.md）
 pm/          任务与看板（见 pm/README.md）

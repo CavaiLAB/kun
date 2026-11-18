@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Json.Schema;
 using Microsoft.Extensions.Logging;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities.Tests;
 
@@ -26,7 +26,7 @@ public sealed class CapabilityInputTests
               "items":{"type":"array","maxItems":2,"items":{"type":"object","additionalProperties":false,"required":["sku"],"properties":{"sku":{"type":"string"}}}},
               "a~b/c":{"type":"string"}}}
             """);
-        var error = Assert.Throws<QianErrorException>(() => new CapabilityInputValidator().Validate(entry, Json("""
+        var error = Assert.Throws<ErrorException>(() => new CapabilityInputValidator().Validate(entry, Json("""
             {"id":"not-a-uuid","name":"A","code":"ABC","tag":"AB","kind":"c","fixed":2,"count":11,"items":[{"qty":1},{"sku":3}],"a~b/c":1,"extra":true}
             """)));
         Assert.Equal("INPUT_INVALID", error.Error.Code.Code);
@@ -164,9 +164,9 @@ public sealed class CapabilityInputTests
         var entry = Entry("""{"type":"object","additionalProperties":false,"properties":{"name":{"type":"string"}}}""");
         var validator = new CapabilityInputValidator();
         Assert.Equal([("TYPE_MISMATCH", "#")], Codes(() => validator.Validate(entry, Json("[]"))));
-        var duplicate = Assert.Throws<QianErrorException>(() => validator.Validate(entry, Json("""{"name":"a","name":"b"}""")));
+        var duplicate = Assert.Throws<ErrorException>(() => validator.Validate(entry, Json("""{"name":"a","name":"b"}""")));
         Assert.Equal("BAD_REQUEST", duplicate.Error.Code.Code);
-        var nested = Assert.Throws<QianErrorException>(() => validator.Validate(entry, Json("""{"name":"a","x":[{"k":1,"k":2}]}""")));
+        var nested = Assert.Throws<ErrorException>(() => validator.Validate(entry, Json("""{"name":"a","x":[{"k":1,"k":2}]}""")));
         Assert.Equal("BAD_REQUEST", nested.Error.Code.Code);
         var many = "{" + string.Join(",", Enumerable.Range(0, 150).Select(index => "\"p" + index.ToString("D3", System.Globalization.CultureInfo.InvariantCulture) + "\":1")) + "}";
         var capped = Codes(() => validator.Validate(entry, Json(many)));
@@ -176,7 +176,7 @@ public sealed class CapabilityInputTests
         // 成员名或字符串含孤立的 UTF-16 代理项（JSON 里的 \ud800 转义）：读不成确定的值，按无法解析的请求处理，不是服务端错误。
         var lone = "\\" + "ud800";
         foreach (var text in new[] { "{\"" + lone + "\":1}", "{\"name\":\"" + lone + "\"}", "{\"name\":\"a\",\"x\":[\"" + lone + "x\"]}" })
-            Assert.Equal("BAD_REQUEST", Assert.Throws<QianErrorException>(() => validator.Validate(entry, Json(text))).Error.Code.Code);
+            Assert.Equal("BAD_REQUEST", Assert.Throws<ErrorException>(() => validator.Validate(entry, Json(text))).Error.Code.Code);
         // 库无法可靠求值的 Schema（patternProperties / dependentSchemas 的键含 / 或 ~）编译前即拒绝，不放过约束；登记期检查见 CapabilityContractCheckTests。
         foreach (var schema in new[] {
             """{"type":"object","patternProperties":{"^a/b$":{"type":"string"}}}""", """{"type":"object","properties":{"p":{"patternProperties":{"^a~b$":{}}}}}""",
@@ -205,11 +205,11 @@ public sealed class CapabilityInputTests
             var value = Json(config);
             Assert.Equal(ttl is not null, schema.Evaluate(value).IsValid);
             if (ttl is { } expected) { Assert.Equal(expected, CapabilitiesOptions.Parse(value).CatalogTtlMs); continue; }
-            var error = Assert.Throws<QianErrorException>(() => CapabilitiesOptions.Parse(value));
+            var error = Assert.Throws<ErrorException>(() => CapabilitiesOptions.Parse(value));
             Assert.Equal("INPUT_INVALID", error.Error.Code.Code);
             Assert.Equal((code, pointer), (Assert.Single(error.Error.Errors!).Code.Code, error.Error.Errors![0].Pointer));
         }
-        var duplicate = Assert.Throws<QianErrorException>(() => CapabilitiesOptions.Parse(Json("""{"catalogTtlMs":1,"catalogTtlMs":2}""")));
+        var duplicate = Assert.Throws<ErrorException>(() => CapabilitiesOptions.Parse(Json("""{"catalogTtlMs":1,"catalogTtlMs":2}""")));
         Assert.Equal("BAD_REQUEST", duplicate.Error.Code.Code);
     }
 
@@ -232,7 +232,7 @@ public sealed class CapabilityInputTests
             var value = Json(config);
             Assert.Equal(limit is not null, schema.Evaluate(value).IsValid);
             if (limit is { } expected) { Assert.Equal(expected, CapabilitiesOptions.Parse(value).ReceiptMaxBytes); continue; }
-            var error = Assert.Throws<QianErrorException>(() => CapabilitiesOptions.Parse(value));
+            var error = Assert.Throws<ErrorException>(() => CapabilitiesOptions.Parse(value));
             Assert.Equal((code, "#/receiptMaxBytes"), (Assert.Single(error.Error.Errors!).Code.Code, error.Error.Errors![0].Pointer));
         }
         Assert.Equal(2500, CapabilitiesOptions.Parse(Json("""{"receiptMaxBytes":1024,"catalogTtlMs":2500}""")).CatalogTtlMs);
@@ -308,9 +308,9 @@ public sealed class CapabilityInputTests
     private static (string Code, string Pointer)[] Codes(Action action) =>
         Fields(action).Select(item => (item.Code.Code, item.Pointer)).ToArray();
 
-    private static IReadOnlyList<QianFieldError> Fields(Action action)
+    private static IReadOnlyList<FieldError> Fields(Action action)
     {
-        var error = Assert.Throws<QianErrorException>(action);
+        var error = Assert.Throws<ErrorException>(action);
         Assert.Equal("INPUT_INVALID", error.Error.Code.Code);
         return error.Error.Errors!;
     }

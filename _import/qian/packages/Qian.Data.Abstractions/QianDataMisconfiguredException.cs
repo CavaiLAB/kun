@@ -1,4 +1,4 @@
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data;
 
@@ -129,9 +129,9 @@ public sealed class QianDataMisconfiguredException : InvalidOperationException
     /// <summary>指定缺失或被覆盖的安全配置。</summary>
     public QianDataMisconfiguredException(string reason) : base($"数据组件未满足安全装配要求：{reason}")
     {
-        Error = new QianError(DataErrors.Misconfigured, new Dictionary<string, string> { ["reason"] = reason });
+        Error = new Error(DataErrors.Misconfigured, new Dictionary<string, string> { ["reason"] = reason });
     }
 
     /// <summary>供宿主记录的统一错误详情。</summary>
-    public QianError Error { get; }
+    public Error Error { get; }
 }

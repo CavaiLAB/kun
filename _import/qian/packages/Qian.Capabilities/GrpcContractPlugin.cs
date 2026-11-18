@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities;
 
@@ -27,10 +27,10 @@ public sealed class GrpcContractPlugin : IQianPlugin
     public async ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(ctx);
-        if (ctx.Entry.Plugin != _plugin || ctx.Entry.Version != _candidate) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (ctx.Entry.Plugin != _plugin || ctx.Entry.Version != _candidate) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         if (!(await _repository.CheckProtoAsync(_plugin, _baseline, _candidate, _contract, ct).ConfigureAwait(false)).IsCompatible ||
             !(await _peer.CheckAsync(_repository.GetProtoSource(_plugin, _candidate, _contract), ct).ConfigureAwait(false)).IsCompatible)
-            throw new QianErrorException(new QianError(PlatformErrors.PreconditionFailed) { Pointer = ErrorPointer.Input("contracts", _contract) });
+            throw new ErrorException(new Error(PlatformErrors.PreconditionFailed) { Pointer = ErrorPointer.Input("contracts", _contract) });
         ct.ThrowIfCancellationRequested(); await _inner.ApplyAsync(ctx, config, ct).ConfigureAwait(false);
     }
 }

@@ -310,7 +310,7 @@ static Qian.Lifecycle.DeploymentRequest.operator ==(Qian.Lifecycle.DeploymentReq
 static Qian.Lifecycle.LifecycleDefinition.Lifecycle(this Qian.Runtime.IPluginContext! context) -> Qian.Lifecycle.IPluginLifecycleController!
 static Qian.Lifecycle.LifecycleDiagnosticView.operator !=(Qian.Lifecycle.LifecycleDiagnosticView? left, Qian.Lifecycle.LifecycleDiagnosticView? right) -> bool
 static Qian.Lifecycle.LifecycleDiagnosticView.operator ==(Qian.Lifecycle.LifecycleDiagnosticView? left, Qian.Lifecycle.LifecycleDiagnosticView? right) -> bool
-static Qian.Lifecycle.LifecycleErrors.Register(Qian.Runtime.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Qian.Lifecycle.LifecycleErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 static Qian.Lifecycle.LifecycleEvents.RegisterLifecycleEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
 static Qian.Lifecycle.LifecyclePluginActivated.operator !=(Qian.Lifecycle.LifecyclePluginActivated? left, Qian.Lifecycle.LifecyclePluginActivated? right) -> bool
 static Qian.Lifecycle.LifecyclePluginActivated.operator ==(Qian.Lifecycle.LifecyclePluginActivated? left, Qian.Lifecycle.LifecyclePluginActivated? right) -> bool
@@ -325,17 +325,17 @@ static Qian.Lifecycle.PluginRevisionView.operator ==(Qian.Lifecycle.PluginRevisi
 static Qian.Lifecycle.TenantPluginInstallView.operator !=(Qian.Lifecycle.TenantPluginInstallView? left, Qian.Lifecycle.TenantPluginInstallView? right) -> bool
 static Qian.Lifecycle.TenantPluginInstallView.operator ==(Qian.Lifecycle.TenantPluginInstallView? left, Qian.Lifecycle.TenantPluginInstallView? right) -> bool
 static readonly Qian.Lifecycle.LifecycleDefinition.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Lifecycle.LifecycleErrors.ArtifactUnsigned -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.DeploymentUnavailable -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.HookFailed -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.InProgress -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.AuditUnavailable -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.MountFailed -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.NotEntitled -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.RevisionNotDeployed -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.SignatureInvalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.StateConflict -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Lifecycle.LifecycleErrors.Invalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.ArtifactUnsigned -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.DeploymentUnavailable -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.HookFailed -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.InProgress -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.AuditUnavailable -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.MountFailed -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.NotEntitled -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.RevisionNotDeployed -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.SignatureInvalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.StateConflict -> Kun.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.Invalid -> Kun.Errors.ErrorCode!
 Qian.Lifecycle.IPluginLifecycleController.ApprovePermissionsAsync(string! tenantId, string! pluginId, string! version, Qian.Lifecycle.PermissionGrants? grants, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PermissionApprovalView!>
 Qian.Lifecycle.IPluginLifecycleController.GetApprovedPermissionsAsync(string! tenantId, string! pluginId, string! version, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PermissionApprovalView?>
 Qian.Lifecycle.IPluginLifecycleController.GetPermissionApprovalAsync(string! tenantId, string! pluginId, string! version, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PermissionApprovalView?>
@@ -413,6 +413,6 @@ static Qian.Lifecycle.SecretGrant.operator !=(Qian.Lifecycle.SecretGrant? left, 
 static Qian.Lifecycle.SecretGrant.operator ==(Qian.Lifecycle.SecretGrant? left, Qian.Lifecycle.SecretGrant? right) -> bool
 static Qian.Lifecycle.UiGrants.operator !=(Qian.Lifecycle.UiGrants? left, Qian.Lifecycle.UiGrants? right) -> bool
 static Qian.Lifecycle.UiGrants.operator ==(Qian.Lifecycle.UiGrants? left, Qian.Lifecycle.UiGrants? right) -> bool
-static readonly Qian.Lifecycle.LifecycleErrors.PermissionsUnapproved -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Lifecycle.LifecycleErrors.PermissionsUnapproved -> Kun.Errors.ErrorCode!
 Qian.Lifecycle.IPluginLifecycleController.MountAtRevisionAsync(Qian.Runtime.ScopeKey scope, System.Text.Json.JsonElement entry, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>
 Qian.Lifecycle.IPluginLifecycleController.UnmountAtRevisionAsync(Qian.Runtime.ScopeKey scope, string! entryId, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>

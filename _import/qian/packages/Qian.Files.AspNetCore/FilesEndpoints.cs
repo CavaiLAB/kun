@@ -8,7 +8,7 @@ using Qian.Authz.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Files.AspNetCore;
 
@@ -37,7 +37,7 @@ public static class FilesEndpoints
     /// 以及 <see cref="FilesEndpointOptions.TransferSource"/> 非空时 local 后端的 PUT / GET {TransferPath}/{key}。
     /// <paramref name="source"/> 返回当前请求可注入 Files 的组件上下文（请求租户收窄）；<paramref name="requirePermission"/> 由宿主把权限点接到 PEP，
     /// 例如 <c>(endpoint, permission) =&gt; endpoint.RequireQianPermission(permission)</c>（Qian.Authz.AspNetCore）。只加元数据而不接 PEP 的回调在构建端点时即被拒绝。
-    /// 宿主须先装配认证、可信租户边界、PEP 与 ErrorDetail 中间件（AddQianErrors / UseQianErrors）。
+    /// 宿主须先装配认证、可信租户边界、PEP 与 ErrorDetail 中间件（AddKunErrors / UseKunErrors）。
     /// </summary>
     public static IEndpointRouteBuilder MapQianFiles(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source,
         Action<RouteHandlerBuilder, string> requirePermission, FilesEndpointOptions? options = null)
@@ -108,15 +108,15 @@ public static class FilesEndpoints
             return result switch
             {
                 FileTransferResult.Stored => Results.StatusCode(StatusCodes.Status201Created),
-                FileTransferResult.Conflict => throw new QianErrorException(new QianError(PlatformErrors.Conflict)),
-                FileTransferResult.TooLarge => throw new QianErrorException(new QianError(PlatformErrors.PayloadTooLarge)),
-                _ => throw new QianErrorException(new QianError(PlatformErrors.NotFound))
+                FileTransferResult.Conflict => throw new ErrorException(new Error(PlatformErrors.Conflict)),
+                FileTransferResult.TooLarge => throw new ErrorException(new Error(PlatformErrors.PayloadTooLarge)),
+                _ => throw new ErrorException(new Error(PlatformErrors.NotFound))
             };
         }).WithMetadata(new PermissionEnforcedInHandlerAttribute(Reason), new DisableRequestSizeLimitAttribute()).AllowAnonymous().ExcludeFromDescription();
         endpoints.MapGet(prefix + "/{**key}", async (HttpContext http, string key) =>
         {
             var download = await Gateway(http, source).OpenAsync(Request(http, key), http.RequestAborted).ConfigureAwait(false)
-                ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
             // 附件下载、禁止嗅探、沙箱化：即使浏览器直接打开，活跃内容也不会在本站源下执行。
             http.Response.Headers.ContentDisposition = download.ContentDisposition;
             http.Response.Headers.XContentTypeOptions = "nosniff";
@@ -131,14 +131,14 @@ public static class FilesEndpoints
     {
         try { return source(http).Inject<IFileService>(FilesDefinition.Key); }
         catch (Exception error) when (error is ServiceNotReadyException or KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     private static IFileTransferGateway Gateway(HttpContext http, Func<HttpContext, IPluginContext> source)
     {
-        try { return source(http).Inject<IFileService>(FilesDefinition.Key).Transfer ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        try { return source(http).Inject<IFileService>(FilesDefinition.Key).Transfer ?? throw new ErrorException(new Error(PlatformErrors.NotFound)); }
         catch (Exception error) when (error is ServiceNotReadyException or KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     // 查询参数与请求头只取单值；重复参数让签名校验失败（缺字段），不在端点里猜哪一个才算数。
@@ -154,13 +154,13 @@ public static class FilesEndpoints
 
     private static async Task<PresignUploadRequest> ReadAsync(HttpContext http)
     {
-        if (!http.Request.HasJsonContentType()) throw new QianErrorException(new QianError(PlatformErrors.UnsupportedMediaType));
+        if (!http.Request.HasJsonContentType()) throw new ErrorException(new Error(PlatformErrors.UnsupportedMediaType));
         try
         {
             return await JsonSerializer.DeserializeAsync(http.Request.Body, FilesContractJson.PresignUploadRequestTypeInfo, http.RequestAborted).ConfigureAwait(false)
-                ?? throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+                ?? throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         }
-        catch (JsonException) { throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)); }
+        catch (JsonException) { throw new ErrorException(new Error(PlatformErrors.InputInvalid)); }
     }
 
     // complete 与 delete 天然按状态幂等；客户端可用 Idempotency-Key 头带自己的键，缺省由端点生成。
@@ -168,7 +168,7 @@ public static class FilesEndpoints
     {
         if (!http.Request.Headers.TryGetValue(IdempotencyHeader, out var values)) return Guid.CreateVersion7();
         return values.Count == 1 && Guid.TryParse(values[0], out var key) && key != Guid.Empty ? key
-            : throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+            : throw new ErrorException(new Error(PlatformErrors.BadRequest));
     }
 
     private static IResult Json<T>(HttpContext http, T value, System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> typeInfo, int status = StatusCodes.Status200OK)

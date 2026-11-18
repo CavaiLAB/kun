@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Identity.Server;
 
@@ -56,7 +56,7 @@ internal static class IdentityConnectorEndpoints
 
     private static IdentityAccountService? Accounts(HttpContext http) => http.RequestServices.GetRequiredService<IdentityAccountGate>().Service;
 
-    private static QianErrorResult NotFound() => QianResults.Error(new QianError(PlatformErrors.NotFound));
+    private static KunErrorResult NotFound() => KunResults.Error(new Error(PlatformErrors.NotFound));
 
     // 登录页的连接器区：只来自服务端，按租户号对应的 scope 过滤；未知租户号回落全局集合，不报错也不泄露租户是否存在。
     private static async Task<IResult> List(HttpContext http, string? tenant)
@@ -94,7 +94,7 @@ internal static class IdentityConnectorEndpoints
                 IdentityAccountEndpoints.ContextOf(http), http.RequestAborted).ConfigureAwait(false);
             return Results.Json(new { flow = start.Flow, redirect_uri = start.RedirectUri.AbsoluteUri, expires_at = start.ExpiresAt }, IdentityAccountEndpoints.JsonOptions);
         }
-        catch (QianErrorException error) { return QianResults.Error(error.Error); }
+        catch (ErrorException error) { return KunResults.Error(error.Error); }
     }
 
     // 上游回调：处理后 302 回界面落点（?flow=），由流程的 next 驱动下一步；state 无效（未知、过期之外的篡改、别的浏览器）直接 422。
@@ -113,7 +113,7 @@ internal static class IdentityConnectorEndpoints
         if (malformed) parameters.Remove("state");
         var result = await accounts.CompleteConnectorAsync(connectorId, parameters, BrowserSecret(http), CallbackUri(http, connectorId), IdentityAccountEndpoints.ContextOf(http),
             http.RequestAborted).ConfigureAwait(false);
-        if (result.Flow is not { } flow) return QianResults.Error(result.Error ?? new QianError(PlatformErrors.NotFound));
+        if (result.Flow is not { } flow) return KunResults.Error(result.Error ?? new Error(PlatformErrors.NotFound));
         if (result.Session is { } session) await SignInAsync(http, session).ConfigureAwait(false);
         return Results.Redirect(Landing(http, accounts, connectorId, flow));
     }
@@ -141,7 +141,7 @@ internal static class IdentityConnectorEndpoints
         if (failure is not null)
         {
             if (failure.RetryAfter is { } wait) http.Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
-            return QianResults.Error(failure.Error!);
+            return KunResults.Error(failure.Error!);
         }
         return Results.Json(Render(http, view!), IdentityAccountEndpoints.JsonOptions);
     }
@@ -155,7 +155,7 @@ internal static class IdentityConnectorEndpoints
         if (body is null) return IdentityAccountEndpoints.BadInput();
         var result = await accounts.ConfirmConnectorBindingAsync(flow, BrowserSecret(http), body.Mode, IdentityAccountEndpoints.ContextOf(http), http.RequestAborted).ConfigureAwait(false);
         if (result is null) return Results.NoContent();
-        if (result.Status != SignInStatus.Authenticated) return QianResults.Error(result.Error ?? new QianError(PlatformErrors.Internal));
+        if (result.Status != SignInStatus.Authenticated) return KunResults.Error(result.Error ?? new Error(PlatformErrors.Internal));
         var session = result.Session!;
         await SignInAsync(http, session).ConfigureAwait(false);
         var view = await accounts.GetConnectorFlowAsync(flow, BrowserSecret(http), http.RequestAborted).ConfigureAwait(false);

@@ -12,9 +12,9 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 
-namespace Qian.Runtime.Errors.Tests;
+namespace Kun.Errors.Tests;
 
 /// <summary>
 /// 内存宿主里的真实 HTTP 响应：业务错误与协议错误都写成符合 ErrorDetail Schema 的 problem+json，
@@ -37,7 +37,7 @@ public sealed class ErrorResponseTests : IAsyncLifetime
         var builder = WebApplication.CreateSlimBuilder(new WebApplicationOptions { EnvironmentName = "Production" });
         builder.WebHost.UseTestServer();
         builder.Logging.ClearProviders();
-        builder.Services.AddQianErrors(catalog =>
+        builder.Services.AddKunErrors(catalog =>
         {
             catalog.Register(ErrorCatalogTests.QuotaExceeded);
             catalog.Register(OrderLocked);
@@ -47,8 +47,8 @@ public sealed class ErrorResponseTests : IAsyncLifetime
         builder.Services.AddRequestLocalization(o => o.SetDefaultCulture("zh-CN").AddSupportedCultures("zh-CN", "en").AddSupportedUICultures("zh-CN", "en"));
 
         _app = builder.Build();
-        _app.UseRequestLocalization();   // 在 UseQianErrors 之外，错误文案才能按请求语言渲染
-        _app.UseQianErrors();
+        _app.UseRequestLocalization();   // 在 UseKunErrors 之外，错误文案才能按请求语言渲染
+        _app.UseKunErrors();
         _app.UseAuthentication();
         _app.UseAuthorization();
 
@@ -56,22 +56,22 @@ public sealed class ErrorResponseTests : IAsyncLifetime
         {
             if (request.SizeBytes > 1024)
             {
-                throw new QianErrorException(new QianError(ErrorCatalogTests.QuotaExceeded, new Dictionary<string, string> { ["remaining"] = "1024" })
+                throw new ErrorException(new Error(ErrorCatalogTests.QuotaExceeded, new Dictionary<string, string> { ["remaining"] = "1024" })
                 {
                     Pointer = ErrorPointer.Input("sizeBytes"),
                 });
             }
             return Results.Ok();
         });
-        _app.MapPost("/validate", () => QianResults.Error(new QianError(PlatformErrors.InputInvalid)
+        _app.MapPost("/validate", () => KunResults.Error(new Error(PlatformErrors.InputInvalid)
         {
             Errors =
             [
-                new QianFieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("purpose")) { Allowed = AllowedValues.Of("attachment", "avatar", "export") },
-                new QianFieldError(PlatformErrors.Required, ErrorPointer.Input("idempotencyKey")),
+                new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("purpose")) { Allowed = AllowedValues.Of("attachment", "avatar", "export") },
+                new FieldError(PlatformErrors.Required, ErrorPointer.Input("idempotencyKey")),
             ],
         }));
-        _app.MapGet("/orders/1", () => QianResults.Error(new QianError(OrderLocked)));
+        _app.MapGet("/orders/1", () => KunResults.Error(new Error(OrderLocked)));
         _app.MapGet("/secure", () => "ok").RequireAuthorization();
         _app.MapGet("/forbidden", () => Results.Forbid()).RequireAuthorization();
         _app.MapGet("/boom", string () => throw new InvalidOperationException("Host=db;Password=s3cret"));

@@ -3,7 +3,7 @@ using Npgsql;
 using Qian.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server;
 
@@ -31,7 +31,7 @@ internal sealed partial class IdentityAccountService
             : secret.Length > policy.MaxLength ? "maxLength=" + policy.MaxLength
             : secret.HasControl ? "noControlCharacters" : secret.HasEdgeWhitespace ? "noEdgeWhitespace" : null;
         if (rule is not null)
-            throw new QianErrorException(new QianError(IdentityErrors.PasswordPolicyViolation, new Dictionary<string, string> { ["rule"] = rule }) { Pointer = "#/new_password" });
+            throw new ErrorException(new Error(IdentityErrors.PasswordPolicyViolation, new Dictionary<string, string> { ["rule"] = rule }) { Pointer = "#/new_password" });
     }
 
     // 新密码不得与当前密码或最近 HistorySize 个密码相同；比较的是哈希，历史里没有明文。
@@ -42,7 +42,7 @@ internal sealed partial class IdentityAccountService
         if (person.PasswordHash is not null && !hashes.Contains(person.PasswordHash)) hashes.Add(person.PasswordHash);
         foreach (var hash in hashes)
             if (Argon2idPasswordHasher.Verify(hash, next.Bytes))
-                throw new QianErrorException(new QianError(IdentityErrors.PasswordReused, new Dictionary<string, string> { ["count"] = _account.Password.HistorySize.ToString(System.Globalization.CultureInfo.InvariantCulture) }) { Pointer = "#/new_password" });
+                throw new ErrorException(new Error(IdentityErrors.PasswordReused, new Dictionary<string, string> { ["count"] = _account.Password.HistorySize.ToString(System.Globalization.CultureInfo.InvariantCulture) }) { Pointer = "#/new_password" });
     }
 
     // 设置密码的唯一入口：写哈希与历史、清失败计数；mustChange 控制是否强制下次改密。
@@ -228,7 +228,7 @@ internal sealed partial class IdentityAccountService
     private static void EnsureNotLastVerified(PersonIdentifierRow target, List<PersonIdentifierRow> remaining)
     {
         if (remaining.Count == 0 || (target.VerifiedAt is not null && remaining.All(i => i.VerifiedAt is null)))
-            throw new QianErrorException(new QianError(IdentityErrors.LastVerifiedIdentifier) { Pointer = "#/value" });
+            throw new ErrorException(new Error(IdentityErrors.LastVerifiedIdentifier) { Pointer = "#/value" });
     }
 
     // ---- 凭据 ----
@@ -240,10 +240,10 @@ internal sealed partial class IdentityAccountService
         CheckPassword(next);
         // 当前密码的校验与登录共用同一套限流：猜测当前密码也计入错误次数。
         var throttle = await VerifyWithThrottleAsync(personId, async token => await VerifyStoredPasswordAsync(personId, current, token).ConfigureAwait(false)
-            ? new AuthenticationResult(true, null, [PasswordAmr], null) : new AuthenticationResult(false, new QianError(IdentityErrors.CurrentPasswordInvalid), [], null),
+            ? new AuthenticationResult(true, null, [PasswordAmr], null) : new AuthenticationResult(false, new Error(IdentityErrors.CurrentPasswordInvalid), [], null),
             cancellationToken).ConfigureAwait(false);
         if (throttle.Locked) throw Error(IdentityErrors.AccountLocked);
-        if (throttle.Result is not { Succeeded: true }) throw new QianErrorException(new QianError(IdentityErrors.CurrentPasswordInvalid) { Pointer = "#/current_password" });
+        if (throttle.Result is not { Succeeded: true }) throw new ErrorException(new Error(IdentityErrors.CurrentPasswordInvalid) { Pointer = "#/current_password" });
         var now = Now;
         using var neutral = TenantScope(null); using var origin = OpenOrigin(personId);
         await using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -340,7 +340,7 @@ internal sealed partial class IdentityAccountService
     public async ValueTask<Person> SetPersonStatusAsync(Guid personId, string status, string reason, CancellationToken cancellationToken = default)
     {
         if (status is not (AccountStatuses.Active or AccountStatuses.Disabled or AccountStatuses.Locked))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, "#/status")] });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.ValueNotAllowed, "#/status")] });
         if (string.IsNullOrWhiteSpace(reason) || reason.Length > 32) throw IdentifierRules.Invalid("#/reason");
         var now = Now;
         using var neutral = TenantScope(null); using var origin = OpenOrigin();
@@ -367,7 +367,7 @@ internal sealed partial class IdentityAccountService
     private async ValueTask<Membership> SetMembershipStatusCoreAsync(Guid membershipId, string status, string reason, bool directoryRules, bool deleted, CancellationToken cancellationToken)
     {
         if (status is not (AccountStatuses.Active or AccountStatuses.Disabled or AccountStatuses.Locked))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, "#/status")] });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.ValueNotAllowed, "#/status")] });
         if (string.IsNullOrWhiteSpace(reason) || reason.Length > 32) throw IdentifierRules.Invalid("#/reason");
         var tenantId = RequireTenant(); var now = Now;
         Membership result;

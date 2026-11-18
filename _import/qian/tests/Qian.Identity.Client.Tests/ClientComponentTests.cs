@@ -4,7 +4,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Client.Tests;
 
@@ -67,7 +67,7 @@ public sealed class ClientComponentTests
         var scope = violation == "tenant-scope" ? new ScopeKey("tenant", Guid.CreateVersion7().ToString("D")) : ScopeKey.Global;
         await loader.MountAsync([new(new PluginEntry("identity", "qian.identity.client", "1.0.0", scope, 0, JsonSerializer.SerializeToElement(config)), new IdentityClientPlugin(), [IdentityDefinition.Key])], Ct);
         Assert.Equal(PluginState.Failed, loader.GetState("identity", scope));
-        var failure = Assert.IsType<QianErrorException>(loader.GetFailure("identity", scope));
+        var failure = Assert.IsType<ErrorException>(loader.GetFailure("identity", scope));
         Assert.Equal("INPUT_INVALID", failure.Error.Code.Code);
         Assert.DoesNotContain("synthetic-plaintext-secret", failure.ToString(), StringComparison.Ordinal);
         Assert.False(services.GetRequiredService<IdentityClientRuntime>().Active);
@@ -91,7 +91,7 @@ public sealed class ClientComponentTests
             () => identity.ListSessionsAsync(Guid.CreateVersion7(), Ct), () => identity.RevokeSessionsAsync(new(Guid.CreateVersion7(), null, "test", "key"), Ct),
             () => { identity.Connectors.Register("oidc", null!); return Task.CompletedTask; }
         })
-            Assert.Equal("IDENTITY_OPERATION_UNSUPPORTED", (await Assert.ThrowsAsync<QianErrorException>(call)).Error.Code.Code);
+            Assert.Equal("IDENTITY_OPERATION_UNSUPPORTED", (await Assert.ThrowsAsync<ErrorException>(call)).Error.Code.Code);
         Assert.True(services.GetRequiredService<IdentityClientRuntime>().Active);
         await loader.UnmountAsync("identity", ScopeKey.Global, Ct);
         Assert.False(services.GetRequiredService<IdentityClientRuntime>().Active);

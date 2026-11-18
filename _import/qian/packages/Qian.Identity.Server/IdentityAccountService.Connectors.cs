@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Identity.Server;
@@ -68,9 +68,9 @@ internal sealed partial class IdentityAccountService
     internal async Task<ConnectorStart> BeginConnectorAsync(string connectorId, string? clientId, string? tenantCode, string? returnUrl, string browserSecret, Uri callbackUri,
         LoginContext context, CancellationToken ct)
     {
-        if (FindClient(clientId) is not { } client) throw new QianErrorException(Field(PlatformErrors.ValueNotAllowed, "#/client_id"));
-        if (string.IsNullOrWhiteSpace(tenantCode)) throw new QianErrorException(Field(PlatformErrors.Required, "#/tenant"));
-        if (returnUrl is not null && !IsLocalReturnUrl(returnUrl)) throw new QianErrorException(Field(PlatformErrors.ValueNotAllowed, "#/return_url"));
+        if (FindClient(clientId) is not { } client) throw new ErrorException(Field(PlatformErrors.ValueNotAllowed, "#/client_id"));
+        if (string.IsNullOrWhiteSpace(tenantCode)) throw new ErrorException(Field(PlatformErrors.Required, "#/tenant"));
+        if (returnUrl is not null && !IsLocalReturnUrl(returnUrl)) throw new ErrorException(Field(PlatformErrors.ValueNotAllowed, "#/return_url"));
         var tenant = await FindTenantAsync(tenantCode, ct).ConfigureAwait(false) ?? throw Error(PlatformErrors.NotFound);
         var connector = ConnectorsIn(tenant.Id).Find(connectorId) ?? throw Error(PlatformErrors.NotFound);
         var now = Now; var flowId = Guid.CreateVersion7(now);
@@ -122,7 +122,7 @@ internal sealed partial class IdentityAccountService
     // ---- 回调 ----
 
     /// <summary>回调结果：Flow 非空时 302 回界面落点（Session 非空先写账号 Cookie）；Flow 为空时以 Error 直接响应。</summary>
-    internal sealed record ConnectorCallbackResult(Guid? Flow, QianError? Error, AccountSession? Session);
+    internal sealed record ConnectorCallbackResult(Guid? Flow, Error? Error, AccountSession? Session);
 
     /// <summary>
     /// 统一回调 <c>/connect/callback/{connectorId}</c>：校验 state（未知、属于别的连接器或别的浏览器一律 AUTH_CONNECTOR_STATE_INVALID，流程不受影响）；
@@ -135,7 +135,7 @@ internal sealed partial class IdentityAccountService
     {
         ArgumentNullException.ThrowIfNull(parameters);
         context ??= new LoginContext();
-        if (!ConnectorManifest.IsValidId(connectorId)) return new(null, new QianError(PlatformErrors.NotFound), null);
+        if (!ConnectorManifest.IsValidId(connectorId)) return new(null, new Error(PlatformErrors.NotFound), null);
         var subject = new AuditSubject("connector", null, "connector:" + Truncate(connectorId, 48), null, null, context);
         var hash = parameters.TryGetValue("state", out var state) ? TicketHash(state) : null;
         var flow = hash is null ? null : await LoadFlowAsync(f => f.StateHash == hash, ct).ConfigureAwait(false);
@@ -147,7 +147,7 @@ internal sealed partial class IdentityAccountService
         if (ConnectorsIn(tenantId).Find(connectorId) is not { } connector)
         {
             await WriteAuditAsync(NewAudit(subject, "failure", "connector_unavailable", Now, tenantId: tenantId), ct).ConfigureAwait(false);
-            return new(null, new QianError(PlatformErrors.NotFound), null);
+            return new(null, new Error(PlatformErrors.NotFound), null);
         }
         // 快路径：已离开 pending 的流程直接回落点；真正的幂等保证是下面的条件抢占。
         if (flow.Status != FlowPending) return new(flow.Id, null, null);
@@ -197,7 +197,7 @@ internal sealed partial class IdentityAccountService
     private async Task<ConnectorCallbackResult> RejectCallbackAsync(AuditSubject subject, string reason, CancellationToken ct)
     {
         await WriteAuditAsync(NewAudit(subject, "failure", reason, Now), ct).ConfigureAwait(false);
-        return new(null, new QianError(IdentityErrors.ConnectorStateInvalid), null);
+        return new(null, new Error(IdentityErrors.ConnectorStateInvalid), null);
     }
 
     private static bool IsUsable(ExternalAssertion? assertion) =>
@@ -212,7 +212,7 @@ internal sealed partial class IdentityAccountService
         ArgumentNullException.ThrowIfNull(input);
         context ??= new LoginContext();
         var flow = await LoadFlowAsync(f => f.Id == flowId, ct).ConfigureAwait(false);
-        if (flow is null || !SameBrowser(flow, browserSecret)) return (null, SignInResult.Failure(new QianError(PlatformErrors.NotFound)));
+        if (flow is null || !SameBrowser(flow, browserSecret)) return (null, SignInResult.Failure(new Error(PlatformErrors.NotFound)));
         var tenantId = TenantOf(flow);
         var (kind, masked) = IdentifierRules.MaskInput(input.Identifier, _account.DefaultPhoneCountryCode);
         var subject = new AuditSubject("connector_verify", flow.ClientId, input.FactorId ?? PasswordFactorId, kind, masked, context);
@@ -226,7 +226,7 @@ internal sealed partial class IdentityAccountService
             await using var session = await OpenAsync(ct).ConfigureAwait(false);
             member = await session.Context.Memberships.AsNoTracking().SingleOrDefaultAsync(m => m.PersonId == person.Id && m.Status == AccountStatuses.Active, ct).ConfigureAwait(false);
         }
-        if (member is null) return (null, await RejectAsync(subject, new QianError(IdentityErrors.NoAvailableTenant), "no_membership", person.Id, ct, null, tenantId).ConfigureAwait(false));
+        if (member is null) return (null, await RejectAsync(subject, new Error(IdentityErrors.NoAvailableTenant), "no_membership", person.Id, ct, null, tenantId).ConfigureAwait(false));
         var now = Now;
         {
             using var neutral = TenantScope(null);
@@ -237,7 +237,7 @@ internal sealed partial class IdentityAccountService
                 WHERE id = @id AND status = '{FlowBind}'
                 """, ct, ("person", person.Id), ("member", member.Id), ("now", now), ("amr", first.Verified!.Amr.Count == 0 ? new[] { PasswordAmr } : first.Verified.Amr.ToArray()),
                 ("revision", person.IdentityRevision), ("id", flow.Id)).ConfigureAwait(false);
-            if (updated != 1) return (null, await RejectAsync(subject, new QianError(IdentityErrors.ConnectorStateInvalid), "flow_state", person.Id, ct, null, tenantId).ConfigureAwait(false));
+            if (updated != 1) return (null, await RejectAsync(subject, new Error(IdentityErrors.ConnectorStateInvalid), "flow_state", person.Id, ct, null, tenantId).ConfigureAwait(false));
         }
         await WriteAuditAsync(NewAudit(subject, "verified", "connector_binding", now, person.Id, member.Id, tenantId), ct).ConfigureAwait(false);
         return (await GetConnectorFlowAsync(flow.Id, browserSecret, ct).ConfigureAwait(false), null);
@@ -252,7 +252,7 @@ internal sealed partial class IdentityAccountService
     {
         context ??= new LoginContext();
         var flow = await LoadFlowAsync(f => f.Id == flowId, ct).ConfigureAwait(false);
-        if (flow is null || !SameBrowser(flow, browserSecret)) return SignInResult.Failure(new QianError(PlatformErrors.NotFound));
+        if (flow is null || !SameBrowser(flow, browserSecret)) return SignInResult.Failure(new Error(PlatformErrors.NotFound));
         if (mode is not ("link" or "create" or "cancel")) return SignInResult.Failure(Field(PlatformErrors.ValueNotAllowed, "#/mode"));
         if (mode == "cancel")
         {
@@ -268,11 +268,11 @@ internal sealed partial class IdentityAccountService
         var now = Now;
         if (mode == "link" && (flow.PersonId is null || flow.MembershipId is null || flow.PersonRevision is null || flow.VerifiedAt is not { } verifiedAt ||
             now - verifiedAt > _account.Connectors.ReauthenticationWindow))
-            return await RejectAsync(subject, new QianError(PlatformErrors.Unauthenticated), "reauthentication_required", flow.PersonId, ct, null, tenantId).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(PlatformErrors.Unauthenticated), "reauthentication_required", flow.PersonId, ct, null, tenantId).ConfigureAwait(false);
         if (mode == "create" && !await JitAllowedAsync(tenantId, ct).ConfigureAwait(false))
-            return await RejectAsync(subject, new QianError(PlatformErrors.BusinessRuleViolated), "jit_disabled", null, ct, null, tenantId).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(PlatformErrors.BusinessRuleViolated), "jit_disabled", null, ct, null, tenantId).ConfigureAwait(false);
         if (!await ClaimFlowAsync(flow.Id, FlowBind, now, false, ct).ConfigureAwait(false))
-            return await RejectAsync(subject, new QianError(IdentityErrors.ConnectorStateInvalid), "flow_state", flow.PersonId, ct, null, tenantId).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(IdentityErrors.ConnectorStateInvalid), "flow_state", flow.PersonId, ct, null, tenantId).ConfigureAwait(false);
         Guid personId, membershipId; long revision;
         try
         {
@@ -283,7 +283,7 @@ internal sealed partial class IdentityAccountService
             }
             else (personId, membershipId, revision) = await ProvisionFromFlowAsync(tenantId, flow, ct).ConfigureAwait(false);
         }
-        catch (QianErrorException failure)
+        catch (ErrorException failure)
         {
             await SetFlowStatusAsync(flow.Id, FlowProcessing, FlowFailed, failure.Error.Code, null, ct).ConfigureAwait(false);
             var reason = failure.Error.Code == IdentityErrors.BindingConflict ? "binding_conflict" : mode == "create" ? "jit_rejected" : "link_rejected";
@@ -301,12 +301,12 @@ internal sealed partial class IdentityAccountService
     private async Task<SignInResult?> BindingGateAsync(ConnectorFlowRow flow, AuditSubject subject, Guid tenantId, CancellationToken ct)
     {
         if (flow.Status == FlowFailed && flow.ErrorCode == IdentityErrors.BindingExpired.Code)
-            return await RejectAsync(subject, new QianError(IdentityErrors.BindingExpired), "binding_expired", null, ct, null, tenantId).ConfigureAwait(false);
-        if (flow.Status != FlowBind) return await RejectAsync(subject, new QianError(IdentityErrors.ConnectorStateInvalid), "flow_state", null, ct, null, tenantId).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(IdentityErrors.BindingExpired), "binding_expired", null, ct, null, tenantId).ConfigureAwait(false);
+        if (flow.Status != FlowBind) return await RejectAsync(subject, new Error(IdentityErrors.ConnectorStateInvalid), "flow_state", null, ct, null, tenantId).ConfigureAwait(false);
         if (flow.BindingExpiresAt is not { } expires || expires <= Now)
         {
             await SetFlowStatusAsync(flow.Id, FlowBind, FlowFailed, IdentityErrors.BindingExpired, null, ct).ConfigureAwait(false);
-            return await RejectAsync(subject, new QianError(IdentityErrors.BindingExpired), "binding_expired", null, ct, null, tenantId).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(IdentityErrors.BindingExpired), "binding_expired", null, ct, null, tenantId).ConfigureAwait(false);
         }
         return null;
     }
@@ -369,7 +369,7 @@ internal sealed partial class IdentityAccountService
     {
         if (settings is null) return false;
         try { return await settings.Get<bool?>(pluginId, "connectors:jitProvisioning", ct).ConfigureAwait(false) == true; }
-        catch (QianErrorException) { return false; }
+        catch (ErrorException) { return false; }
         catch (JsonException) { return false; }
         catch (InvalidOperationException) { return false; }
     }
@@ -410,7 +410,7 @@ internal sealed partial class IdentityAccountService
         var hash = TicketHash(token);
         var ticket = hash is null ? null : await PeekTicketAsync(hash, ConnectorPurpose, ct).ConfigureAwait(false);
         if (hash is null || ticket is null || ticket.ClientId != input.ClientId || ticket.Choices.Count != 1 || ticket.Choices[0].Tenant is not { } tenant || tenant != input.TenantId)
-            return await RejectAsync(subject, new QianError(IdentityErrors.LoginTicketInvalid), "ticket_invalid", ticket?.PersonId, ct).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(IdentityErrors.LoginTicketInvalid), "ticket_invalid", ticket?.PersonId, ct).ConfigureAwait(false);
         PersonRow? person;
         {
             using var neutral = TenantScope(null);
@@ -418,9 +418,9 @@ internal sealed partial class IdentityAccountService
             person = await session.Context.Persons.AsNoTracking().SingleOrDefaultAsync(p => p.Id == ticket.PersonId, ct).ConfigureAwait(false);
         }
         if (person is null || person.Status != AccountStatuses.Active)
-            return await RejectAsync(subject, new QianError(IdentityErrors.AccountDisabled), "account_" + (person?.Status ?? "missing"), ticket.PersonId, ct).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(IdentityErrors.AccountDisabled), "account_" + (person?.Status ?? "missing"), ticket.PersonId, ct).ConfigureAwait(false);
         if (HasEnrolledFactors(person))
-            return await RejectAsync(subject, new QianError(IdentityErrors.MfaUnavailable), "mfa_unavailable", person.Id, ct).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(IdentityErrors.MfaUnavailable), "mfa_unavailable", person.Id, ct).ConfigureAwait(false);
         var state = new AuthState(ticket.PersonId, ticket.ClientId, ticket.DeviceType, ticket.Amr, ticket.Acr, ticket.AuthenticatedAt, ticket.Revision);
         return await EstablishAsync(subject, state, ticket.Choices[0], hash, ConnectorPurpose, null, ticket.Reason, ct).ConfigureAwait(false);
     }
@@ -434,7 +434,7 @@ internal sealed partial class IdentityAccountService
     // ---- 流程视图 ----
 
     internal sealed record ConnectorFlowView(Guid Id, string ConnectorId, string? ConnectorName, string? Protocol, string? TenantCode, string? TenantName, string Status, string Next,
-        DateTimeOffset ExpiresAt, ConnectorBindingView? Binding, QianError? Error, string? UpstreamDescription, string? ReturnUrl);
+        DateTimeOffset ExpiresAt, ConnectorBindingView? Binding, Error? Error, string? UpstreamDescription, string? ReturnUrl);
 
     internal sealed record ConnectorBindingView(string? DisplayName, string? Email, string? Username, DateTimeOffset ExpiresAt, bool AllowJit, bool Verified,
         string? AccountDisplayName, string? Account);
@@ -472,12 +472,12 @@ internal sealed partial class IdentityAccountService
                 await JitAllowedAsync(tenantId, ct).ConfigureAwait(false), verified, verified ? accountName : null, verified ? account : null);
         }
         // 流程视图内嵌的 ErrorDetail 不带参数：带占位符的错误码（如配额）退回同状态码的通用码。
-        QianError? error = null;
+        Error? error = null;
         if (flow.Status == FlowFailed)
         {
             var known = flow.ErrorCode is { } code && _ctx.Services.GetService<ErrorCatalog>() is { } catalog && catalog.TryGet(code, out var registered) && registered.Kind != ErrorKind.Field
                 ? registered : PlatformErrors.BadGateway;
-            error = new QianError(known.Parameters.Count == 0 ? known : PlatformErrors.ForStatus(known.Status ?? 500));
+            error = new Error(known.Parameters.Count == 0 ? known : PlatformErrors.ForStatus(known.Status ?? 500));
         }
         var next = flow.Status switch
         {
@@ -581,12 +581,12 @@ internal sealed partial class IdentityAccountService
 
     private static ErrorCode ConnectorFailure(Exception error) => error switch
     {
-        QianErrorException failure when ConnectorErrors.Contains(failure.Error.Code) => failure.Error.Code,
+        ErrorException failure when ConnectorErrors.Contains(failure.Error.Code) => failure.Error.Code,
         OperationCanceledException or TimeoutException => PlatformErrors.GatewayTimeout,
         _ => PlatformErrors.BadGateway
     };
 
-    private static string FailureType(Exception error) => error is QianErrorException failure ? failure.Error.Code.Code : error.GetType().Name;
+    private static string FailureType(Exception error) => error is ErrorException failure ? failure.Error.Code.Code : error.GetType().Name;
 
     private static Guid TenantOf(ConnectorFlowRow flow) =>
         Guid.ParseExact(flow.TenantId ?? throw new InvalidOperationException("连接器流程缺少所属租户。"), "D");

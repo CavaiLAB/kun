@@ -50,4 +50,4 @@ static Qian.Scheduler.ScheduledJob.operator !=(Qian.Scheduler.ScheduledJob? left
 static Qian.Scheduler.ScheduledJob.operator ==(Qian.Scheduler.ScheduledJob? left, Qian.Scheduler.ScheduledJob? right) -> bool
 static Qian.Scheduler.SchedulerDefinition.Scheduler(this Qian.Runtime.IPluginContext! context) -> Qian.Scheduler.IScheduler!
 static readonly Qian.Scheduler.SchedulerDefinition.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Scheduler.SchedulerErrors.Misconfigured -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Scheduler.SchedulerErrors.Misconfigured -> Kun.Errors.ErrorCode!

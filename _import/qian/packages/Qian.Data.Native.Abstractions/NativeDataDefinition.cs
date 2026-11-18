@@ -1,7 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.Native;
 

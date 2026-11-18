@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Json.Schema;
 using Qian.Common;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit;
 
@@ -225,8 +225,8 @@ public sealed class AuditInputProjection
         try { return SchemaPattern.Compile(pattern); }
         catch (Exception error) when (error is ArgumentException or NotSupportedException) { throw InvalidSchema(); }
     }
-    private static QianErrorException InvalidSchema() => new(new QianError(AuditErrors.SchemaInvalid));
-    private static QianErrorException InvalidInput() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException InvalidSchema() => new(new Error(AuditErrors.SchemaInvalid));
+    private static ErrorException InvalidInput() => new(new Error(PlatformErrors.InputInvalid));
     private sealed class Budget
     {
         private int _remaining = 100000;

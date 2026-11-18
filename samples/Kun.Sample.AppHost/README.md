@@ -79,7 +79,7 @@ Service endpoints (ports are dynamic — read them from the Dashboard Endpoints 
 
 ## Notes
 
-- This project is `IsAotCandidate=false`. AOT is not applicable to Aspire AppHost projects.
+- This project sets neither `IsAotCompatible` nor `PublishAot`. AOT is not applicable to Aspire AppHost projects.
 - Connection strings and service discovery URLs are injected automatically by Aspire at runtime.
   Do not hardcode ports or hostnames in service configuration.
 - Do not add business logic to this file. It is pure orchestration.

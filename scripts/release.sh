@@ -14,9 +14,11 @@
 #   2. dotnet test (unit tests; IntegrationTests / Sample.Tests /
 #      Integration.AotTests filtered out — the maintainer runs those in
 #      CI via the Build & Test + sample-aot-integration jobs)
-#   3. dotnet publish -p:PublishAot=true /warnaserror for every AOT-candidate
-#      module. Skipped only when clang / gcc is missing on PATH; the CI
-#      aot-audit matrix is the authoritative gate in that case.
+#   3. dotnet publish -p:PublishAot=true /warnaserror for every project in the
+#      AOT list (projects whose csproj sets IsAotCompatible=true, listed by
+#      scripts/aot_projects.py). Skipped only when clang / gcc is missing on
+#      PATH; the CI AOT smoke host job (tests/Kun.AotSmoke) is the
+#      authoritative gate in any case.
 #   4. CHANGELOG.md: rename [Unreleased] → [<version>] with today's date
 #   5. git commit + annotated tag (NO push)
 #   6. Print explicit maintainer-review-required push instructions
@@ -36,30 +38,6 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 VERSION="${1:?Usage: bash scripts/release.sh <version>  (e.g. 2026.6.12 or 2026.6.12-beta.1)}"
 TAG="v$VERSION"
-
-# AOT-candidate modules — must stay in sync with .github/workflows/ci.yml
-# aot-audit matrix and docs/architecture/AOT-audit-2026-04-23.md. Intentionally
-# excludes AspNetCore / Dapper / Saga / EntityFrameworkCore family (non-AOT by design).
-AOT_MODULES=(
-  Kun.Audit
-  Kun.Caching
-  Kun.Configuration
-  Kun.Core
-  Kun.EventBus
-  Kun.EventBus.RabbitMQ
-  Kun.Gateway
-  Kun.Grpc
-  Kun.Identity
-  Kun.Infrastructure
-  Kun.Mediator
-  Kun.MultiTenancy
-  Kun.Observability
-  Kun.RateLimit
-  Kun.Sandbox
-  Kun.Security
-  Kun.Storage
-  Kun.Validation
-)
 
 log()  { printf '\n\033[1;34m▶ %s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m⚠ %s\033[0m\n' "$*" >&2; }
@@ -110,19 +88,28 @@ dotnet test --solution tests/kun-unit.slnf -c Release --no-build
 # ---------------------------------------------------------------------------
 # Phase 3: AOT publish sweep
 # ---------------------------------------------------------------------------
-log "Phase 3/5 · AOT publish sweep (${#AOT_MODULES[@]} modules)"
+# The AOT list has a single source: projects whose csproj sets
+# IsAotCompatible=true, listed by scripts/aot_projects.py (one project file per
+# line, relative to the repository root). There is no copy of it in this script.
+AOT_PROJECTS="$(python3 "$(dirname "${BASH_SOURCE[0]}")/aot_projects.py")"
+if [ -z "$AOT_PROJECTS" ]; then
+  err "scripts/aot_projects.py listed no AOT projects"
+  exit 1
+fi
+log "Phase 3/5 · AOT publish sweep ($(printf '%s\n' "$AOT_PROJECTS" | wc -l | tr -d ' ') projects)"
 
 if ! command -v clang >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1; then
   warn "No clang / gcc on PATH — skipping AOT publish sweep."
-  warn "The CI aot-audit matrix (ubuntu-latest) is the authoritative AOT gate."
+  warn "The CI AOT smoke host job (tests/Kun.AotSmoke) is the authoritative AOT gate."
   warn "Install build-essential + clang + zlib1g-dev to run this phase locally."
 else
-  for mod in "${AOT_MODULES[@]}"; do
-    log "    AOT publish: $mod"
-    dotnet publish "src/$mod" -c Release -r linux-x64 \
+  # dotnet reads from /dev/null so it cannot swallow the rest of the list on stdin.
+  while IFS= read -r project; do
+    log "    AOT publish: $project"
+    dotnet publish "$project" -c Release -r linux-x64 \
       -p:PublishAot=true -p:TreatWarningsAsErrors=true \
-      --verbosity minimal --nologo
-  done
+      --verbosity minimal --nologo < /dev/null
+  done <<< "$AOT_PROJECTS"
 fi
 
 # ---------------------------------------------------------------------------

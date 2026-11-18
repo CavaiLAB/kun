@@ -20,7 +20,7 @@ Write-side persistence for Kun Framework: `KunDbContext` base with automatic `IM
 ## For AI Agents
 
 ### Working In This Directory
-- **NOT AOT-candidate** (`<IsAotCandidate>false</IsAotCandidate>`) — EF Core uses runtime expression trees. Do not add AOT annotations.
+- **Not AOT-compatible** (the csproj does not set `IsAotCompatible`) — EF Core uses runtime expression trees. Do not add AOT annotations.
 - All persistence mapping lives in `IEntityTypeConfiguration<T>` — never add `[Table]`/`[Column]`/`[Key]` attributes to domain types in `Kun.Core`.
 - `EfUnitOfWork.SaveChangesAsync` is the single transaction boundary. Domain event collection, outbox flush, and `DbContext.SaveChangesAsync` must stay in one call — do not split.
 - `UnitOfWorkPipelineBehavior` should be registered after validation behaviors, before logging behaviors.

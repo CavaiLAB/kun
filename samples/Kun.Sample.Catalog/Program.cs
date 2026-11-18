@@ -143,7 +143,7 @@ using (var scope = app.Services.CreateScope())
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 // MapCommand/MapQuery require JsonTypeInfo for AOT-safe serialisation.
-// This sample is NOT AOT (IsAotCandidate=false) but we still supply a
+// This sample is NOT AOT (no IsAotCompatible / PublishAot) but we still supply a
 // JsonSerializerContext to satisfy the method signature.
 app.MapCommand<CreateProductCommand, Guid>(
     "/products",

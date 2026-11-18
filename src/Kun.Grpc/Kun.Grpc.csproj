@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
-    <HasPublicApi>true</HasPublicApi>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
     <Description>Kun Framework — gRPC host integration: Result→RpcException mapping, auth/tracing interceptors.</Description>
   </PropertyGroup>

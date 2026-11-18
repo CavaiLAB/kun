@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <Description>AOT 守卫的自测样例：可打包、AOT 兼容的库：只写 IsAotCompatible=true，守卫放行；命令行上给 PublishAot 也放行</Description>
+  </PropertyGroup>
+
+</Project>

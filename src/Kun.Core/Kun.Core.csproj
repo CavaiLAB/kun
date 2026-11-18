@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework core abstractions: domain building blocks, CQRS contracts, Result pattern, ITenantContext. Zero third-party dependencies.</Description>
   </PropertyGroup>
 

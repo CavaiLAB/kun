@@ -3,7 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsAspireHost>true</IsAspireHost>
-    <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>false</IsPackable>
     <UserSecretsId>kun-sample-apphost</UserSecretsId>
     <Description>Kun Framework — .NET Aspire AppHost orchestrating Catalog, Order, Gateway with PostgreSQL, RabbitMQ, Redis.</Description>

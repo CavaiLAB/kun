@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — ASP.NET Core integration for Kun.Identity cookie sessions: UseKunCookieAuth middleware, SignInHelper, ChallengeHelper (PKCE), and KunCurrentUser (IAuthenticatedUser resolver). AOT-strict by construction — no reflection, no JsonSerializer.Serialize(obj).</Description>
   </PropertyGroup>
 

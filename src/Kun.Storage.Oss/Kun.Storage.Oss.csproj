@@ -2,13 +2,11 @@
 
   <PropertyGroup>
     <!--
-      IsAotCandidate=false: Aliyun.OSS.SDK.NetCore uses reflection-based marshalling and
+      IsAotCompatible is not set: Aliyun.OSS.SDK.NetCore uses reflection-based marshalling and
       synchronous HttpWebRequest internals that are not trim- or AOT-safe, mirroring the
-      Kun.Storage.S3 posture (see AGENTS.md). Excluded from the AOT-publish zero-warning matrix.
+      Kun.Storage.S3 posture (see AGENTS.md). Not in the AOT smoke host (tests/Kun.AotSmoke).
     -->
-    <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — Alibaba Cloud OSS (native Aliyun SDK) IFileStorage implementation. Forces Content-Disposition: attachment on presigned download URLs for active-web content types (text/html, image/svg+xml, application/xhtml+xml, application/xml). Native (not S3-compatible) because OSS validates presigned URLs with its own signature, not AWS SigV4. Not AOT-compatible.</Description>
   </PropertyGroup>
 

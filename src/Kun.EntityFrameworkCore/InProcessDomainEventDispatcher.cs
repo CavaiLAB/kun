@@ -13,7 +13,7 @@ namespace Kun.EntityFrameworkCore;
 /// <remarks>
 /// <see cref="IPublisher.Publish{TNotification}"/> is a generic method keyed on the
 /// concrete notification type at runtime. Because <c>Kun.EntityFrameworkCore</c> is not
-/// an AOT candidate (<c>IsAotCandidate=false</c>), reflection is permitted here to
+/// AOT-compatible (its project file does not set <c>IsAotCompatible</c>), reflection is permitted here to
 /// invoke <c>Publish</c> with the exact concrete type so the Mediator dispatcher can
 /// resolve the correct <see cref="INotificationHandler{T}"/> registrations.
 /// </remarks>

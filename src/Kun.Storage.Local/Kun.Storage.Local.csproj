@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — local-filesystem IFileStorage implementation. Intended for development, tests, and single-node deployments; not for multi-node production (no replication). Serves presigned URLs via a developer-configured base URL and an HTTP endpoint implemented by the host.</Description>
   </PropertyGroup>
 

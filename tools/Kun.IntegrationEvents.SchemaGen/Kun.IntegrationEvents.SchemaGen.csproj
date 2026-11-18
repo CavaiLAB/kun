@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>false</IsPackable>
     <IsPublishable>true</IsPublishable>
     <Description>Kun Framework: console tool that exports draft JSON Schema files for every integration event registered in an IEventTypeRegistry produced by a consumer assembly.</Description>

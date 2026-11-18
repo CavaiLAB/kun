@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableAotAnalyzer>false</EnableAotAnalyzer>
+    <Description>AOT 守卫的自测样例：写了 IsAotCompatible=true 却关掉 AOT 分析器，构建报 KUNAOT003</Description>
+  </PropertyGroup>
+
+</Project>

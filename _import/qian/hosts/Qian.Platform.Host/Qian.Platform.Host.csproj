@@ -2,6 +2,8 @@
   <!-- platform profile 的生产宿主（S1-DEP-009，qian-platform 镜像，JIT）：按 platform profile 装配平台插件树，只接受网关 S2S。 -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- 宿主：禁用符号与平台分析器按它接入（仓库根的 Directory.Build.targets，S1-KUN-020）。 -->
+    <KunHost>true</KunHost>
     <Description>platform profile 的生产宿主：能力目录、导航、外壳目录、有效权限与平台运营接口。</Description>
   </PropertyGroup>
   <ItemGroup>

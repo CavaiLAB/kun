@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PublishAot>true</PublishAot>
+    <Description>AOT 守卫的自测样例：可打包的库在项目文件里写了 PublishAot，构建报 KUNAOT002</Description>
+  </PropertyGroup>
+
+</Project>

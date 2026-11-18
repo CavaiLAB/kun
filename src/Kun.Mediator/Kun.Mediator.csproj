@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>High-performance, reflection-free CQRS dispatcher for Kun Framework. AOT-native alternative to MediatR.</Description>
   </PropertyGroup>
 

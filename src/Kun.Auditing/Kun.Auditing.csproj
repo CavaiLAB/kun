@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <!-- 不写 IsAotCompatible：EF 的 SaveChanges 拦截器带出 IL2091。按合并蓝图 D23.9，它在 B6 并入平台档的 Kun.Audit.EntityFrameworkCore，不做 AOT（S1-KUN-020）。 -->
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — audit logging: EF SaveChanges interceptor, AuditEventIntegrationEvent (kun.audit.event.v1) via Outbox, explicit AddAuditable&lt;T&gt; registration (no runtime reflection).</Description>
   </PropertyGroup>
 

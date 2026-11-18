@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
+    <Description>AOT 守卫的自测样例：要原生发布的可执行项目：不打包，PublishAot 写在这里，守卫放行</Description>
+  </PropertyGroup>
+
+</Project>

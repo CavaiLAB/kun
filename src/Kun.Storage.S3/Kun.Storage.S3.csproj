@@ -2,16 +2,14 @@
 
   <PropertyGroup>
     <!--
-      IsAotCandidate=false: AWSSDK.S3 uses runtime reflection for request/response
+      IsAotCompatible is not set: AWSSDK.S3 uses runtime reflection for request/response
       marshalling that is not trim- or AOT-safe. This module is therefore the first
       non-AOT library module in the Kun repository (see open-questions.md A6). It is
-      explicitly excluded from the `.github/workflows/ci.yml` AOT-publish zero-warning
-      matrix. See AGENTS.md for rationale and a future-work note on migrating to a
-      native HTTP signing client if AOT becomes a requirement.
+      not in the AOT smoke host (tests/Kun.AotSmoke). See AGENTS.md for rationale and
+      a future-work note on migrating to a native HTTP signing client if AOT becomes a
+      requirement.
     -->
-    <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — Amazon S3 / S3-compatible (MinIO) IFileStorage implementation. Forces Content-Disposition: attachment on presigned download URLs for active-web content types (text/html, image/svg+xml, application/xhtml+xml, application/xml). Not AOT-compatible.</Description>
   </PropertyGroup>
 

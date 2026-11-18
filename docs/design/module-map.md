@@ -5,7 +5,7 @@
 
 ## Phase 1 模块矩阵
 
-图例：AOT 状态 ✅=IsAotCandidate=true（CI `aot-audit` 每次 publish 强制零 trim/AOT warning）；⚠️=trim-safe 但非 AOT（见历史文档 [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md)）。
+图例：AOT 状态 ✅=项目文件写了 `IsAotCompatible=true`（普通构建就开着裁剪、AOT 与单文件分析器；CI 的 AOT 冒烟宿主 `tests/Kun.AotSmoke` 整体扎根原生发布，ILC 零警告）；⚠️=trim-safe 但非 AOT（见历史文档 [AOT 审计（2026-04-23）](https://github.com/CavaiLAB/kun/blob/51b480775cce05bf889ead14a86749e610503628/docs/architecture/AOT-audit-2026-04-23.md)）。
 
 ### Core 层
 
@@ -47,7 +47,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.EventBus.RabbitMQ` | RabbitMQ broker 适配 + 消费者 + DLQ | 下游服务间事件总线的默认 broker | `AddRabbitMq(...)` / `.Subscribe<TEvent, THandler>()` | ✅ | — |
 | `Kun.Saga` | Saga Orchestration（步骤 / 反向补偿 / 超时 / 实例持久化） | 跨服务长事务（下单-支付-发货） | `AddKunSaga()` / `ISagaStep<TContext>` | ⚠️ trim-safe | 18 |
 
-> **Kun.Saga Phase 1 为 `IsAotCandidate=false`**：其 `Persistence/Ef/` 透传 EF Core 的 IL2091/IL2060/IL2026。Phase 2 有计划拆分 `Kun.Saga.EntityFrameworkCore`（见 AOT 审计报告 §RED 与跟进编号 `P2-KN-Saga-EF-Split`）。
+> **Kun.Saga Phase 1 不写 `IsAotCompatible`**：其 `Persistence/Ef/` 透传 EF Core 的 IL2091/IL2060/IL2026。Phase 2 有计划拆分 `Kun.Saga.EntityFrameworkCore`（见 AOT 审计报告 §RED 与跟进编号 `P2-KN-Saga-EF-Split`）。
 
 ### 宿主与通信（Host 层）
 
@@ -80,7 +80,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 > **测试列的口径**：统计每个 `tests/Kun.*.Tests` 项目下标记为 `[Fact]` / `[Theory]` 的测试方法数（`grep -c '\[Fact\b\|\[Theory\b'`）。这是"测试用例数"的近似值，不是行覆盖率；行覆盖率请看 CI `coverage.cobertura.xml` 构建产物。单元格内 `—` 表示该模块暂无 `*.Tests` 项目（`Kun.Infrastructure` / `Kun.EntityFrameworkCore` / `Kun.EventBus.RabbitMQ` / `Kun.Audit.EntityFrameworkCore` / `Kun.MultiTenancy.EntityFrameworkCore` — 它们的覆盖由 `Kun.IntegrationTests` / 邻近模块的测试间接覆盖）。
 
-### 非 AOT 白名单（`IsAotCandidate=false`，有明确原因）
+### 非 AOT 白名单（不写 `IsAotCompatible`，有明确原因）
 
 | 模块 | 原因 |
 |---|---|
@@ -90,6 +90,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Audit.EntityFrameworkCore` | 透传 EF Core |
 | `Kun.MultiTenancy.EntityFrameworkCore` | 全局查询过滤器使用 `Expression.Property` / `Expression.Lambda` |
 | `Kun.Saga` | `Persistence/Ef/` 透传 EF Core；Phase 2 跟进拆分 |
+| `Kun.Auditing` | EF 的 SaveChanges 拦截器带出 IL2091；按合并蓝图 D23.9 在 B6 并入平台档的 `Kun.Audit.EntityFrameworkCore` |
 
 ## 依赖关系图
 

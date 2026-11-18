@@ -5,7 +5,6 @@
     <IsPackable>false</IsPackable>
     <IsPublishable>true</IsPublishable>
     <!-- Opt into AOT for this sample so it doubles as an AOT smoke-test for Kun.Mediator. -->
-    <IsAotCandidate>true</IsAotCandidate>
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
     <Description>Minimal AOT-publishable console sample wiring KunMediator with Logging / Performance / Tracing behaviors. Used as the 0.1.0-alpha.1 AOT canary.</Description>

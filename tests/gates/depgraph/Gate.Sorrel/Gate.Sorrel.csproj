@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>门禁自测样例：（违规 C）零依赖的包以 PrivateAssets=all 引用运行时库仍算依赖；同样写法的分析器只在构建时用，不算</Description>
+    <Description>门禁自测样例：（违规 C）零依赖的包以 PrivateAssets=all 引用运行时库仍算依赖；同样写法的分析器只在构建时用，不算。这里的分析器是仓库根 Directory.Build.targets 给每个可打包项目加的 PublicApiAnalyzers，项目文件里不再重复写</Description>
   </PropertyGroup>
 
   <PropertyGroup Label="档位">
@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

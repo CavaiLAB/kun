@@ -21,7 +21,8 @@ name: ci
 # 原件（不动，GitHub 不读）与相对原件的改动：
 # - .github/originals/kun/workflows/ci.yml：还原与构建、发版脚本自测、网关打包冒烟、身份边界检查并进「构建与门禁」；分层检查
 #   由仓库根按档位检查的依赖门禁（scripts/check_deps.py）取代，其中规则 C 管 Kun.Core 的零依赖。单元与集成测试成为测试分片 k，
-#   格式、AOT 审计、样例 AOT 集成各占一个作业。runs-on 由自托管 runner 改为 ubuntu-24.04；
+#   格式、样例 AOT 集成各占一个作业；AOT 审计逐个模块发布的 21 格矩阵换成 AOT 冒烟宿主（tests/Kun.AotSmoke，清单是
+#   项目文件里写了 IsAotCompatible=true 的项目，由 scripts/aot_projects.py 列出）。runs-on 由自托管 runner 改为 ubuntu-24.04；
 #   测试运行器是 Microsoft.Testing.Platform，单元测试照 tests/kun-unit.slnf 跑，每个模块各写一份 TRX 与覆盖率，覆盖率核对份数、
 #   去掉文件名里的时间戳之后上传；推 develop 分支不再触发。
 # - _import/qian/.github/workflows/dotnet.yml：构建与门禁、测试分片 a/b/c、汇总核对、四个原生发布作业，命令照原件，在
@@ -340,40 +341,16 @@ jobs:
           name: test-results
           pattern: test-results-*
 
-  # 每个 IsAotCandidate=true 的 src/ 项目各占矩阵的一格，一个模块的裁剪或 AOT 回退不会掩盖另一个，
-  # 失败直接指到出问题的项目。模块状况见 docs/architecture/AOT-audit-2026-04-23.md；有意不进 AOT 的模块
-  # （AspNetCore、Dapper、Saga、EntityFrameworkCore 及其适配器）不在矩阵里，由构建与门禁作业覆盖。
-  aot-audit:
-    name: AOT 审计（${{ matrix.module }}）
+  # AOT 冒烟宿主（S1-KUN-020）：tests/Kun.AotSmoke 引用 AOT 清单里的每一个项目（项目文件里写了 IsAotCompatible=true 的，
+  # scripts/aot_projects.py 列出），对每个程序集整体扎根，原生发布后运行。ILC 有任何裁剪或 AOT 警告即失败，逐条列出。
+  # 发布前先核对冒烟宿主的项目引用正好等于清单。裁剪、AOT、单文件分析器在普通构建里就开着，由「构建与门禁」覆盖；
+  # 有意不进 AOT 的模块（AspNetCore、Dapper、Saga、EntityFrameworkCore 及其适配器等）不写 IsAotCompatible，不在清单里。
+  aot-smoke:
+    name: AOT 冒烟宿主
     needs: changes
     if: needs.changes.outputs.dotnet == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        module:
-          - Kun.Audit
-          - Kun.Authorization
-          - Kun.Configuration.Apollo
-          - Kun.Caching
-          - Kun.Configuration
-          - Kun.Core
-          - Kun.EventBus
-          - Kun.EventBus.Abstractions
-          - Kun.EventBus.RabbitMQ
-          - Kun.Gateway
-          - Kun.Grpc
-          - Kun.Identity
-          - Kun.Infrastructure
-          - Kun.Mediator
-          - Kun.MultiTenancy
-          - Kun.Observability
-          - Kun.RateLimit
-          - Kun.Sandbox
-          - Kun.Security
-          - Kun.Storage
-          - Kun.Validation
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -385,13 +362,28 @@ jobs:
             sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
           fi
 
-      - name: 发布 AOT（裁剪与 AOT 警告为零，警告即错误）
+      - name: 冒烟宿主的项目引用正好等于 AOT 清单
+        run: python3 scripts/aot_projects.py --check
+
+      - name: 发布 linux-x64 NativeAOT（ILC 有任何 IL 警告即失败）
+        run: >
+          dotnet publish tests/Kun.AotSmoke/Kun.AotSmoke.csproj
+          -c Release
+          -r linux-x64
+          -p:IlcTreatWarningsAsErrors=true
+          -p:TrimmerSingleWarn=false
+          -o "$RUNNER_TEMP/aot-smoke"
+
+      - name: 产物是原生可执行文件
         run: |
-          dotnet publish "src/${{ matrix.module }}" \
-            -c Release \
-            -r linux-x64 \
-            -p:PublishAot=true \
-            -p:TreatWarningsAsErrors=true
+          test -x "$RUNNER_TEMP/aot-smoke/Kun.AotSmoke"
+          if [ -e "$RUNNER_TEMP/aot-smoke/Kun.AotSmoke.dll" ]; then
+            echo "没有按 NativeAOT 发布：tests/Kun.AotSmoke 的项目文件要写 PublishAot" >&2
+            exit 1
+          fi
+
+      - name: 运行原生二进制：清单里的程序集都在原生映像里
+        run: '"$RUNNER_TEMP/aot-smoke/Kun.AotSmoke"'
 
   # 跑 Kun.Integration.AotTests：原生发布 samples/Kun.Sample.Minimal 并执行产物；同时普通打包 Kun.Gateway，
   # 再发布独立 NuGet 消费者并请求原生 JWKS 端点。见 tests/Kun.Integration.AotTests/AGENTS.md。
@@ -693,7 +685,7 @@ jobs:
       - dotnet-format
       - dotnet-test
       - dotnet-test-summary
-      - aot-audit
+      - aot-smoke
       - sample-aot
       - identity-aot
       - native-data-aot

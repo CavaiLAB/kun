@@ -42,8 +42,8 @@ public sealed class SampleMinimalAotPublishTests
         // `dotnet build` (not publish) runs the trim / AOT / single-file
         // analyzers but skips the ILC → clang native pipeline, so it
         // completes in seconds even on dev laptops without clang.
-        // Directory.Build.props already enables EnableTrimAnalyzer +
-        // EnableAotAnalyzer for IsAotCandidate=true projects.
+        // -p:PublishAot=true below enables EnableTrimAnalyzer +
+        // EnableAotAnalyzer for the sample and the libraries it references.
         var sampleProj = LocateSampleProject();
 
         var (exitCode, stdout, stderr) = await RunDotnetAsync(

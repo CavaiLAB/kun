@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework unified cache abstraction — IKunCache (Get/Set/Remove/GetOrSet) with MemoryKunCache and Redis implementations, key-prefix + default-TTL, single-flight GetOrSet, optional Redis-failure fallback to in-memory.</Description>
   </PropertyGroup>
 

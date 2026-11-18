@@ -22,7 +22,6 @@ tests/
   Qian.Runtime.Tests/                         最小运行时单元测试与 tck/runtime/*.scenario.yml 的 .NET harness
   Qian.Common.Tests/                          packages/Common 共享内部源文件的测试，直接编译源文件；并生成 CLI 移植比对用的 tck/profiles/key-vectors.json 与等价类表
   gates/                                      门禁自测：样例项目 + Python 测试，不在 Kun.slnx 与 Qian.slnf 里
-    depgraph/                                 依赖图门禁样例（good.slnx 合规、bad.slnx 违规）
     publicapi/                                PublicAPI 门禁样例
     ui/                                       外壳与界面包的门禁自测（依赖边界、循环依赖样例、文案规则、令牌、外壳产物校验、钉住的副本），由 pnpm ui:test 跑
   directory-e2e/                              真实目录验收页（私有工作区包 @qian/directory-e2e）：起本机真实身份宿主跑 OrganizeSelect、UserSelect，pnpm --filter @qian/directory-e2e e2e:directory
@@ -32,7 +31,7 @@ tests/
 
 ```bash
 dotnet build Qian.slnf -c Release
-python3 scripts/check_deps.py --no-restore
+python3 ../../scripts/check_deps.py --no-restore
 python3 -m unittest discover -s tests/gates -v
 dotnet test --solution Qian.slnf -c Release --no-build
 ```
@@ -149,25 +148,12 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 ### 4.2 依赖图（C19 / G3）
 
-[scripts/check_deps.py](../scripts/check_deps.py) 检查解决方案里的每个 Qian 包：
+依赖门禁已移到仓库根（S1-KUN-020）：[scripts/check_deps.py](../../../scripts/check_deps.py) 检查 `Kun.slnx` 里每个可打包的项目，按项目文件里写的档位（`KunTier`：内核档或平台档）与角色（`KunRole`：契约或提供者）判定，不再按 `Qian.` 前缀与 `.Abstractions` 后缀。规则、例外的写法与本机跑法见仓库根 [AGENTS.md](../../../AGENTS.md)「档位与依赖」，自测与样例在仓库根的 `tests/gates/`。
 
-- 允许的 Qian 依赖只有 `Qian.Runtime`（及 `Qian.Runtime.*`）、`Qian.Plugin.Sdk`（及 `Qian.Plugin.Sdk.*`）和任何 `*.Abstractions`。平台插件包 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities` 与所有 Provider 包，出现在传递依赖里即违规。Definition 的 Kun 直接依赖另受下述规则约束；第三方包与 Kun 传递依赖不在该附加规则范围内。
-- 组合包 `Qian.Bundle.*` 不检查：它的职责就是把一组 Provider 一起装（组件模型规格 §7.3）。
-- 数据来自各项目的 `obj/project.assets.json`。`dotnet list package --include-transitive` 只列 NuGet 包，看不到 ProjectReference 带进来的项目，而仓库内组件之间多是项目引用，所以直接读 NuGet 还原产物，包与项目两类依赖一并检查。
-- 失败时打印从被检查方到违规依赖的完整路径，例如 `Qian.GateSample.Reports → Qian.GateSample.Files.Abstractions → Qian.GateSample.Authz`；加 `--json` 输出机器可读结果。修法：改为依赖对方的 `.Abstractions` 包。
-
-### Definition 的 Kun 直接依赖（S1-KUN-010）
-
-Definition 只允许直接引用 `Kun.*.Abstractions`，`PackageReference` 与 `ProjectReference` 均检查。Provider 使用 Kun 实现包不受此附加规则影响。现有公开契约的以下例外按完整「消费包 → 依赖包」登记在 `DEFINITION_KUN_EXCEPTIONS`，每条有理由，不能扩大为包名前缀豁免：
-
-| 消费包 | 允许的 Kun 直接依赖 | 保留理由 |
-|---|---|---|
-| `Qian.Tenancy.Abstractions` | `Kun.Core` | 复用零外部依赖的租户契约 |
-| `Qian.Authz.Abstractions` | `Kun.Authorization` | 复用框架权限、数据与字段判定端口，避免复制接口 |
-| `Qian.Data.Abstractions` | `Kun.EntityFrameworkCore` | 已发布的 QianDbContext 基类与同上下文工作单元契约 |
-| `Qian.Data.Abstractions` | `Kun.MultiTenancy.EntityFrameworkCore` | 启动期校验 RLS 双拦截器与模型缓存键，维持隔离安全 |
-
-Data 的两项依赖保留现有实现与公开 API；本任务不通过删除启动校验或复制基类来消除依赖。后续若移动数据基类，应先提供兼容迁移再删除对应白名单。身份事件入口已改为 `Kun.EventBus.Abstractions`，不在例外内。
+- 本目录的项目写了 `<IsPackable>true</IsPackable>`，就要同时写档位与角色，否则构建报 KUNTIER001。
+- 原来按名字的几条规则这样对应：组件之间只经契约包引用、不依赖平台插件 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，对应规则 P（平台档包只依赖内核档的包与平台档的契约包）；Definition 的 Kun 直接依赖对应规则 D（契约包直接依赖的内核档包只能是契约）。
+- 原来白名单里的四条边：`Kun.Core`、`Kun.Authorization` 记为契约，`Qian.Tenancy.Abstractions → Kun.Core` 与 `Qian.Authz.Abstractions → Kun.Authorization` 不再需要；`Qian.Data.Abstractions` 的两条记成档位例外，写在它的项目文件里。
+- 组合包 `Qian.Bundle.*` 不再整包豁免。现在一个也没有，以后加了同样要写档位。
 
 ### 4.3 门禁自测
 
@@ -175,15 +161,12 @@ Data 的两项依赖保留现有实现与公开 API；本任务不通过删除�
 
 | 样例 | 期望 |
 |---|---|
-| `depgraph/kun.slnx` | 真实 Kun 包：Storage 抽象可引用，EventBus 实现被 Definition 规则拒绝 |
-| `depgraph/good.slnx` | 通过；其中组合包与不打包的宿主引用 Provider 不算违规 |
-| `depgraph/bad.slnx` | 4 处违规：Definition 依赖 Provider、Provider 依赖平台插件、Provider 依赖另一个 Provider、经 Definition 传递依赖 Provider |
 | `publicapi/Qian.GateSample.Declared` | 构建通过 |
 | `publicapi/Qian.GateSample.Undeclared` | RS0016，构建失败 |
 | `publicapi/Qian.GateSample.Stale` | RS0017，构建失败 |
 | `publicapi/Qian.GateSample.NoApiFiles` | QIAN0001，构建失败 |
 | `publicapi/GateSample.NotPackable` | 构建通过：不打包的项目不受约束 |
-| `test_check_deps.py` 的 `SdkBoundaryTests` / `RealSdkClosureTests` | SDK 经 Definition、第三方包或另一个 SDK 包间接带入 Provider 与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities` 都报出完整路径；仓库里真实的 `Qian.Plugin.Sdk`、`.AspNetCore`、`.Generators` 在 `Qian.slnf` 的门禁范围内，其完整传递依赖只有 Runtime / SDK / Definition 与第三方包（S1-RT-014） |
+| 仓库根 `tests/gates/test_check_deps.py` 与 `tests/gates/depgraph/` | 依赖门禁的自测（见仓库根 `AGENTS.md`「档位与依赖」）。S1-RT-014（SDK 包族的完整传递依赖里没有平台档的提供者，也没有 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`）与 S1-IDP-007（OIDC 连接器不依赖 `Qian.Identity.Server`）两条验收在它的 `RealGraphTests` 里，读真实依赖图 |
 | `test_dotnet_release.py`（合成 `.nupkg`，不需要 dotnet 与网络） | 包族锁步发布的制品核对：缺包、多包、版本不一致、包族内依赖下限未钉同一版本或指向包族外、源生成器包带 `lib/` 或不是开发依赖、许可证与仓库地址缺失都失败；版本号须为不带前缀与构建元数据的 SemVer 2.0；推送后的包源核对缺包、仓库关联不符、可见性与仓库不一致或缺版本都失败（S1-RT-014） |
 | `test_check_docs.py`（不用样例项目，临时目录里搭最小仓库） | 文档门禁对文档站内容生效：站内路由、`/design/` 镜像路由与生成页路由的解析，生成目录跳过，禁用词在 `.mdx` 与站点源码里同样拦截（S1-DOCS-001）；Kun 小节的路由在生成前交给构建时的断链检查，显式给出的生成目录照查，生成目录里的文件进 Git 即失败，禁用词整词匹配（S1-DOCS-005） |
 | `test_dotnet_ci.py`（临时目录里搭 git 跟踪的最小仓库） | 触发过滤自检认得 §5.1 列的每类写法：.NET 源码的单个字面量、`Path.Combine` 分段、`../` 相对路径、插值前缀与洞后段、定位了仓库根的文件里的根目录 Markdown，csproj 的 `None` / `Content` / `Update`（含通配），工作流直接运行的脚本、unittest 收集的模块与它们导入的模块；对照样例不拦：注释、夹在变量后的段、不定位仓库根的 `README.md`、临时目录上的路径、被测试换掉仓库根的模块。`verify` 对 `Qian.slnf` 外的测试项目按名字告警，门禁样例与专属作业运行的项目除外（S1-QA-021）。匹配式取自仓库根区域表里的 dotnet 区域，只看 dotnet 区域的作业运行的脚本（含在仓库根运行的）；`verify` 另核分片 k，`coverage` 核对每个单元测试项目恰好一份覆盖率（S1-KUN-020） |
@@ -192,7 +175,7 @@ Data 的两项依赖保留现有实现与公开 API；本任务不通过删除�
 
 仓库根 [ci.yml](../../../.github/workflows/ci.yml) 的 dotnet 区域拆成并行的作业（S1-QA-018、S1-KUN-020），本目录的步骤在 `_import/qian` 下运行。测试分片每个限时 20 分钟（PRD §14.2.1）；构建与门禁要构建整个 `Kun.slnx`，限时 30 分钟：
 
-- 构建与门禁：还原与构建仓库根的 `Kun.slnx`（PublicAPI 门禁）→ 仓库根的几道检查（发版脚本自测、网关打包冒烟、分层、身份边界）→ 入口清单 → 明文密钥扫描 → namespace 骨架 → 依赖图门禁 → 门禁自测 → 触发过滤自检。
+- 构建与门禁：还原与构建仓库根的 `Kun.slnx`（PublicAPI 门禁）→ 仓库根的几道检查（发版脚本自测、网关打包冒烟、身份边界）→ 入口清单 → 明文密钥扫描 → namespace 骨架 → 仓库根的依赖门禁与它的自测 → 本目录的门禁自测 → 触发过滤自检。
 - 单元与集成测试，本目录的项目分三个分片（a、b、c）：各自还原、构建，再用 `scripts/dotnet_ci.py shard` 写出的解决方案筛选文件只跑本分片的模块。作业开头在后台预拉本分片用到的测试镜像，测试前有界等待。分片清单是脚本里的 `SHARDS`，新加的测试项目不用登记，自动落入其余分片。
   - 测试命令带 `-p:QianTrxPerModule=true`，每个模块的 TRX 按项目名命名（`<项目名>.trx`，见 [Directory.Build.props](Directory.Build.props)）。xUnit 缺省文件名只有用户、机器和时间戳，同时启动的模块会撞名，后写完的覆盖先写完的（S1-QA-017）。
 - 分片 k 跑仓库根 `tests/` 下的测试：`tests/kun-unit.slnf` 的单元测试收覆盖率，每个模块一份 TRX、一份覆盖率（开关在仓库根的 `tests/Directory.Build.props`），上传前用 `scripts/dotnet_ci.py coverage` 核对每个测试项目恰好一份，通过后文件名去掉时间戳；`tests/Kun.IntegrationTests` 用 Testcontainers 起容器。
@@ -232,7 +215,7 @@ Data 的两项依赖保留现有实现与公开 API；本任务不通过删除�
 
 命名空间以源码为准：旧存储 `Kun.Storage` 包的接口是 `Kun.Storage.Abstractions.IFileStorage`；新 `Kun.Storage.Abstractions` 包的接口是 `Kun.Storage.IFileStorage`。标准分析器覆盖符号使用（例如 typeof、调用、构造）；`tools/Qian.Build.Analyzers` 使用同一清单补齐未使用的参数、字段、返回类型等声明，并发出 QIAN0002。负例包含纯参数声明，不依赖上游新包的 Obsolete 标记。
 
-执行 `python3 -m unittest discover -s tests/gates`，同时验证依赖图、PublicAPI 与旧 API 的正反例。后续发布 Kun 新包时仍只通过 `Directory.Packages.props` 的 KunVersion 升级；此任务不伪装成已经消费上游新实现。
+执行 `python3 -m unittest discover -s tests/gates`，同时验证 PublicAPI 与旧 API 的正反例（依赖门禁的自测在仓库根的 `tests/gates/`）。后续发布 Kun 新包时仍只通过 `Directory.Packages.props` 的 KunVersion 升级；此任务不伪装成已经消费上游新实现。
 
 S1-KUN-004 补充旧 Identity / Security S2S 签发器、旧注册方法及旧校验/JWKS 子模块的禁用清单。新增正反例使用当前 KunVersion 锁定的真实发布包：两套旧签发器和旧工厂方法产生 RS0030，网关 S2sTokenIssuer 正常编译。负例主动关闭 TreatWarningsAsErrors 仍无法绕过；上游后续版本附带的 KUNS2S001 也被单列为错误。这里验证的是编译边界，不代表已发布或消费尚未发布的上游改动。
 

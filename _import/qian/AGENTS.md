@@ -52,7 +52,7 @@
 - 代码部分遵循 ADR-019：每个有代码的组件发 `Qian.<X>.Abstractions` + Provider 包；组件库只依赖 `Qian.Runtime`，不依赖 `qian.registry` / `qian.lifecycle`。
 - 两道 .NET 门禁会自动拦截（细节见 `tests/README.md`）：
   - 写了 `<IsPackable>true</IsPackable>` 且包名以 `Qian.` 开头的项目就是 Qian 包，必须带 `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`，新公共 API 未登记即编译失败；
-  - `scripts/check_deps.py` 要求 Qian 包只依赖 `Qian.Runtime*`、`Qian.Plugin.Sdk*` 与 `*.Abstractions`，依赖 Provider 或 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities` 即失败（组合包 `Qian.Bundle.*` 除外）。
+  - 可打包的项目都要在项目文件里写档位与角色（`KunTier`、`KunRole`），仓库根的 `scripts/check_deps.py` 按它们检查依赖，不看包名：内核档不依赖平台档，平台档只依赖内核档与平台档的契约包，契约包直接依赖的内核档包只能是契约。写法、例外与本机跑法见仓库根 `AGENTS.md`「档位与依赖」。
 - 错误响应一律是 `contracts/v0/error-detail.schema.json` 的 ErrorDetail：用 `Qian.Runtime.Errors` 定义与登记错误码（大写下划线、全局唯一、在本组件 Definition 包里定义），HTTP 宿主装 `AddQianErrors()` + `UseQianErrors()`；不要自己拼 ProblemDetails 或 `{ error: ... }`。
 - 改了 `contracts/v0/` 的 Schema 必须同时改 fixture 与 `Qian.Runtime.Errors`，`dotnet test` 会校验 Schema、fixture 与内置错误码目录 `error-codes.json` 是否一致。
 - 集成测试用 `tests/Qian.Testing.Containers` 的 fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身），不要各自再写一套容器启动代码。
@@ -67,7 +67,7 @@ packages/    .NET 组件库（NuGet 包），如 Qian.Runtime.Errors；packages/
              前端框架（原 yue，现名 qian）已迁到 CavaiLAB/qian，这里装已发布的 @cavailab/qian-*（见 README.md「前端依赖与包源」）
 apps/        外壳应用 qian-shell（模块联邦宿主，见 apps/qian-shell/README.md）
 pm/          任务与看板（见 pm/README.md）
-scripts/     pm.py、check_docs.py、check_deps.py（依赖图门禁）
+scripts/     pm.py、check_docs.py、dotnet_ci.py 等（依赖门禁在仓库根的 scripts/check_deps.py）
 tests/       Testcontainers fixture、集成测试、门禁自测（见 tests/README.md）；tests/gates/ui/ 是外壳与界面包的门禁自测，tests/directory-e2e/ 是真实目录验收页
 website/     文档站（Rspress 2.0，见 website/README.md 与 website/AGENTS.md）；components/、cli/、design/、sdk/kun/（with-qian.mdx 除外）、sdk/api/ 为生成目录
 deploy/      开发期工具的 K3s 清单：pm-board/（看板）、docs-site/（文档站）；images/ 是 profile 镜像模板与供应链门禁（见 deploy/images/README.md）
@@ -107,7 +107,7 @@ python3 scripts/check_docs.py website/docs/sdk/kun website/docs/sdk/api
 改了 .NET 代码时再跑（集成测试需要 Docker）：
 
 ```bash
-dotnet build Qian.slnf -c Release && python3 scripts/check_deps.py --no-restore && python3 -m unittest discover -s tests/gates && dotnet test --solution Qian.slnf -c Release --no-build
+dotnet build Qian.slnf -c Release && python3 ../../scripts/check_deps.py --no-restore && python3 -m unittest discover -s tests/gates && dotnet test --solution Qian.slnf -c Release --no-build
 ```
 
 <!-- BEGIN:turborepo-agent-rules -->

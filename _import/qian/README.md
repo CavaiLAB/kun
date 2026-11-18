@@ -36,7 +36,7 @@ Kun 的版本只在 `Directory.Packages.props` 的 `KunVersion` 写一次；升�
 |---|---|---|
 | `docs/` | 决策清单、21 份 ADR、PRD 17 章与四份专题规格、迁移方案、路线图 | [docs/README.md](docs/README.md) |
 | `pm/` | 任务文件与看板模板（任务即文件，git 是唯一真相源；看板与进度表按需生成，不进 git） | [pm/README.md](pm/README.md) · [看板](http://10.78.1.161:30810/) |
-| `scripts/` | `pm.py`（任务校验 / 生成 / 改状态）、`check_docs.py`（文档门禁）、`check_deps.py`（.NET 依赖图门禁） | — |
+| `scripts/` | `pm.py`（任务校验 / 生成 / 改状态）、`check_docs.py`（文档门禁）；.NET 依赖门禁在仓库根的 `scripts/check_deps.py` | — |
 | `tests/` | 集成测试共用的 Testcontainers fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身）、门禁自测 | [tests/README.md](tests/README.md) |
 | `AGENTS.md` | 给 Codex、Claude Code 等编码代理的入口约定（`CLAUDE.md` 指向它） | [AGENTS.md](AGENTS.md) |
 | `website/` | 文档站（Rspress 2.0）：七个部分、首页、主题；设计文档在站内「设计与路线」镜像 | [website/README.md](website/README.md) |

@@ -4,7 +4,7 @@
 // 两个目录都不进 Git，构建前由 sources-plugin.ts 调用重新生成。
 import fs from 'node:fs';
 import path from 'node:path';
-import { DEFAULT_BRANCH, REPO_ROOT, REPO_URL, githubUrl, parseFrontmatter, plainText, repoFileDate, rewriteLinks, splitFrontmatter, toPosix, type GeneratedFile, type LinkResolver, yamlString } from './repo.ts';
+import { DEFAULT_BRANCH, OWNER_REPO, REPO_ROOT, githubUrl, parseFrontmatter, plainText, repoFileDate, repoPath, rewriteLinks, splitFrontmatter, toPosix, type GeneratedFile, type LinkResolver, yamlString } from './repo.ts';
 import { firstParagraph, truncate } from './sync-kun-docs.ts';
 
 export const COMPONENT_MODEL_SPEC = 'docs/prd/specs/component-model.md';
@@ -103,7 +103,7 @@ export function listDocsSources(repoRoot: string = REPO_ROOT): string[] {
 }
 
 function sourceNote(repoRelPath: string): string {
-  return `> 本页由构建脚本镜像自仓库 [\`${repoRelPath}\`](${githubUrl(repoRelPath, false)})，请修改源文件，不要改本页。`;
+  return `> 本页由构建脚本镜像自仓库 [\`${repoPath(repoRelPath)}\`](${githubUrl(repoRelPath, false)})，请修改源文件，不要改本页。`;
 }
 
 /** 在第一个一级标题之后插入一段说明；没有一级标题时放在正文最前。 */
@@ -122,8 +122,6 @@ export function mirrorDoc(repoRelPath: string, source: string, repoRoot: string 
   return `---\n${designFrontmatter(repoRelPath, frontmatter, body, repoRoot)}\n---\n${withNote}`;
 }
 
-/** 仓库坐标 owner/repo，用于镜像页的 source 字段。 */
-const QIAN_OWNER_REPO = new URL(REPO_URL).pathname.replace(/^\/+|\/+$/g, '');
 const DESIGN_FRONTMATTER_KEYS = new Set(['title', 'description', 'part', 'project', 'audience', 'updated', 'source']);
 
 /**
@@ -146,7 +144,7 @@ export function designFrontmatter(repoRelPath: string, sourceFrontmatter: string
     'project: qian',
     'audience: [decision-maker, developer]',
     `updated: ${repoFileDate(repoRelPath, repoRoot)}`,
-    `source: ${yamlString(`${QIAN_OWNER_REPO}@${DEFAULT_BRANCH}:${repoRelPath}`)}`,
+    `source: ${yamlString(`${OWNER_REPO}@${DEFAULT_BRANCH}:${repoPath(repoRelPath)}`)}`,
   ];
   for (const line of sourceFrontmatter.split('\n')) {
     const key = /^([A-Za-z_][\w-]*):/.exec(line)?.[1];
@@ -315,7 +313,7 @@ export function syncCli(repoRoot: string = REPO_ROOT): GeneratedFile[] {
         '',
         `# ${page.title}`,
         '',
-        `> 本页由构建脚本同步自 [组件模型规格 §${page.section}](${specRoute})（仓库 \`${COMPONENT_MODEL_SPEC}\`），不另写；请修改规格源文件。`,
+        `> 本页由构建脚本同步自 [组件模型规格 §${page.section}](${specRoute})（仓库 \`${repoPath(COMPONENT_MODEL_SPEC)}\`），不另写；请修改规格源文件。`,
         '',
         content,
         '',

@@ -10,7 +10,6 @@
     -->
     <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — Dapper read-side abstractions: connection factory, pagination, and DI extensions.</Description>
   </PropertyGroup>
   <PropertyGroup Label="档位">

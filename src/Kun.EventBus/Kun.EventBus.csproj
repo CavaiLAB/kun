@@ -3,7 +3,6 @@
   <PropertyGroup>
     <IsAotCandidate>true</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — integration event bus contracts: Outbox schema, event-type registry, publisher abstractions.</Description>
   </PropertyGroup>
 

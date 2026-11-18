@@ -8,7 +8,6 @@
     -->
     <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Kun Framework — Alibaba Cloud OSS (native Aliyun SDK) IFileStorage implementation. Forces Content-Disposition: attachment on presigned download URLs for active-web content types (text/html, image/svg+xml, application/xhtml+xml, application/xml). Native (not S3-compatible) because OSS validates presigned URLs with its own signature, not AWS SigV4. Not AOT-compatible.</Description>
   </PropertyGroup>
 

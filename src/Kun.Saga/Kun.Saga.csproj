@@ -11,7 +11,6 @@
     -->
     <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>Saga Orchestration engine for Kun Framework: steps, compensation, timeouts, state persistence.</Description>
   </PropertyGroup>
 

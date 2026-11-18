@@ -10,7 +10,6 @@
       helper). Until that work is scheduled, this module is trim-safe only.
     -->
     <IsAotCandidate>false</IsAotCandidate>
-    <HasPublicApi>true</HasPublicApi>
     <IsPackable>true</IsPackable>
     <Description>Kun Framework — ASP.NET Core integration: Minimal API extensions, ProblemDetails, global exception handler.</Description>
     <!-- RS0036: ProblemDetails in ASP.NET Core is not nullable-annotated; suppress missing annotation warning -->

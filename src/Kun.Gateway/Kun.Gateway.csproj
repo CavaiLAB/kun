@@ -8,7 +8,6 @@
          （appsettings.json、启动器、deps.json、runtimeconfig.json 等）由 _import/qian/Directory.Build.targets 挡在引用方的
          输出目录与发布目录外，与按包引用时一致。 -->
     <ShouldBeValidatedAsExecutableReference>false</ShouldBeValidatedAsExecutableReference>
-    <HasPublicApi>true</HasPublicApi>
     <IsPackable>true</IsPackable>
     <PackageReadmeFile>GATEWAY.md</PackageReadmeFile>
     <!-- 普通 NuGet 制品也包含宿主配置绑定；不能等消费者 PublishAot 时才生成。 -->

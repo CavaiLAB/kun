@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <IsAotCandidate>true</IsAotCandidate><HasPublicApi>true</HasPublicApi><IsPackable>true</IsPackable>
+    <IsAotCandidate>true</IsAotCandidate><IsPackable>true</IsPackable>
     <Description>Apollo HTTP 配置源：长轮询、AccessKey 签名、多 namespace 合并与本地缓存。</Description>
   </PropertyGroup>
   <PropertyGroup Label="档位">

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <IsAotCandidate>false</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>EF Core 10 write-side persistence for Kun Framework: KunDbContext, atomic Outbox integration, tenant filters.</Description>
   </PropertyGroup>
 

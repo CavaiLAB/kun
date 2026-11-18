@@ -3,7 +3,6 @@
   <PropertyGroup>
     <IsAotCandidate>true</IsAotCandidate>
     <IsPackable>true</IsPackable>
-    <HasPublicApi>true</HasPublicApi>
     <Description>RabbitMQ broker adapter for Kun Framework event bus.</Description>
   </PropertyGroup>
 

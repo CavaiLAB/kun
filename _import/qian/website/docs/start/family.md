@@ -39,8 +39,8 @@ Kun   框架层   .NET 10 微服务框架（Kun.*），Qian 的底座
 不建大单仓、不建 submodule 元仓库（ADR-021 D21.2）：
 
 1. **一个 GitHub 所有者**：产品族全部仓库同一所有者，一个 GitHub Packages 命名空间、一段源配置。Kun 正式版的主渠道是公开的 nuget.org。
-2. **一个文档站**：就是本站。Kun 是第 3 部分 SDK 的第一节，内容按 Qian 锁定的 Kun 版本从 kun 仓库镜像。
+2. **一个文档站**：就是本站。Kun 是第 3 部分 SDK 的第一节，内容按 Kun 最新的发布版从 kun 仓库镜像。
 3. **一张版本矩阵**：[版本矩阵](/start/versions)由仓库钉版文件生成——哪个 Qian 配哪个 Kun、.NET SDK、Node、K3s 基线。
 4. **一个看板**：跨仓库工作在 Qian 仓库的 `pm/` 跟踪，kun 仓库的 PR 回链到任务。
 
-Kun 的版本只在 `Directory.Packages.props` 的 `KunVersion` 写一次；升级 Kun = 改这一处、跑 TCK、文档自动跟随。要改 Kun 的代码或文档，去 kun 仓库提 PR，Qian 的任务里只回链。本页与仓库 README 的「产品族」表同一内容，改一处要同步另一处（有单测核对）。
+Kun 与 Qian 在同一个仓库里：`Qian.*` 直接引用仓库根 `src/` 下的 Kun 源码，不另钉 Kun 的版本；「Kun 框架」小节按 Kun 最新的发布版（仓库根 `CHANGELOG.md` 里最新的发布段）镜像。要改 Kun 的代码或文档，去 kun 仓库提 PR，Qian 的任务里只回链。本页与仓库 README 的「产品族」表同一内容，改一处要同步另一处（有单测核对）。

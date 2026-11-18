@@ -5,10 +5,10 @@ name: qian-docs-site
 # 相对原件改了这些：
 # - 位置：run 步骤的工作目录、缓存键、package.json、github.workspace 下的路径、浏览器验收容器挂载的目录、
 #   上传路径都加了 _import/qian/ 前缀；路径过滤见最后「触发」一条。
-# - 「Kun 框架」小节照原件按 Directory.Packages.props 的 KunVersion 取 Kun 的 tag，但不再另外检出 kun 仓库：两个旧仓库的
-#   历史与版本标签已带着原提交号导入本仓库，同名 tag 指向同一提交，所以只从本仓库取这一个 tag 与它的历史，生成脚本
-#  （_import/qian/website/scripts/kun.ts）直接读本仓库，不设 KUN_DOCS_PATH。原件的 deploy key 与「检查 kun 仓库只读凭据」
-#   一步都用不上，没有接。
+# - 「Kun 框架」小节按 Kun 最新的发布版取 Kun 的 tag：原件读 Directory.Packages.props 的 KunVersion，B3 之后它已删除，
+#   改读仓库根 CHANGELOG.md 里最新的发布段（发版脚本 scripts/release.sh 写入，同一提交打 v<版本> 标签）。不再另外检出
+#   kun 仓库：版本标签在本仓库里，所以只从本仓库取这一个 tag 与它的历史，生成脚本（_import/qian/website/scripts/kun.ts）
+#   直接读本仓库，不设 KUN_DOCS_PATH。原件的 deploy key 与「检查 kun 仓库只读凭据」一步都用不上，没有接。
 # - 发布（B2 接上）：与原件一样只在 main 上发布正式站点（push 到 main，或在 main 上手动触发），用
 #   _import/qian/deploy/docs-site/publish.sh main 把构建产物推到本仓库的 docs-site 分支，集群里的 git-sync 拉这个分支
 #  （_import/qian/deploy/docs-site/）。作业权限只要 contents: write（原件另有 pull-requests: write，只给 PR 评论用）。
@@ -26,8 +26,8 @@ name: qian-docs-site
 #   路径过滤去掉迁走的组件库目录，加上浏览器验收引用的外壳 e2e/settle.ts。
 # - 触发（S1-KUN-020）：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管。
 #   路径过滤在区域表 scripts/ci_changes.py 的 docs-site 区域：原件的过滤逐条加 _import/qian/ 前缀（去掉迁走的组件库目录、
-#   加上外壳 e2e/settle.ts，见上一条），另加本文件、仓库根的 .NET 构建基线、Kun.slnx、src/ 与 _import/qian/.npmrc。
-#   setup-dotnet 读仓库根的 global.json。
+#   加上外壳 e2e/settle.ts，见上一条），另加本文件、仓库根的 .NET 构建基线、Kun.slnx、src/、_import/qian/.npmrc 与
+#   仓库根的 CHANGELOG.md（Kun 最新发布版的来源）。setup-dotnet 与版本矩阵都读仓库根的 global.json。
 #   推 main 时的发布作业照旧：被调用时 github.event_name 与 github.ref 是 ci.yml 这次运行的，调用作业给 contents: write。
 
 on:
@@ -59,12 +59,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 读 KunVersion
+      # 与 website/scripts/kun.ts 的 readKunVersion 同一规则：第一个不是 [Unreleased] 的「## [版本]」段
+      - name: 读 Kun 最新的发布版（仓库根 CHANGELOG.md）
         id: kun
         run: |
-          version="$(sed -n 's:.*<KunVersion>\(.*\)</KunVersion>.*:\1:p' Directory.Packages.props | head -n 1)"
+          version="$(sed -n 's/^## \[\([^]]*\)\].*/\1/p' "$GITHUB_WORKSPACE/CHANGELOG.md" | grep -v -i -x 'unreleased' | head -n 1 || true)"
           if [ -z "$version" ]; then
-            echo "::error file=_import/qian/Directory.Packages.props::缺少 <KunVersion>：Kun 小节按它镜像，不回退 main（docs-site.md §2b.1）"
+            echo "::error file=CHANGELOG.md::CHANGELOG.md 里没有已发布的版本段：Kun 小节按最新的发布版镜像，不回退 main（docs-site.md §2b.1）"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"

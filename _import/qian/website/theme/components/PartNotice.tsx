@@ -1,5 +1,5 @@
 // 第 2、3、4 部分每页顶部的版本说明（docs-site.md §5）。首个包族版本发布后改为版本切换。
-// Kun 小节与 Kun API 参考（frontmatter project: kun）不显示：它们按 KunVersion 镜像，各页横幅已写明版本（§2b）。
+// Kun 小节与 Kun API 参考（frontmatter project: kun）不显示：它们按 Kun 最新的发布版镜像，各页横幅已写明版本（§2b）。
 import { usePage } from '@rspress/core/runtime';
 import { Link } from '@rspress/core/theme';
 import { VERSIONED_PARTS } from '../site';

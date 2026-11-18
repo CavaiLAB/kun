@@ -43,9 +43,9 @@ export function cloneRepo(source: string, args: string[] = []): string {
   return dir;
 }
 
-/** 写一个只含 <KunVersion> 的 Directory.Packages.props，返回其所在目录（当作仓库根）。 */
-export function makeRepoRoot(propsBody: string): string {
+/** 写一个只含给定内容的 CHANGELOG.md，返回其所在目录（当作仓库根）。 */
+export function makeRepoRoot(changelog: string): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'qian-root-fixture-'));
-  fs.writeFileSync(path.join(dir, 'Directory.Packages.props'), `<Project>\n${propsBody}\n</Project>\n`);
+  fs.writeFileSync(path.join(dir, 'CHANGELOG.md'), changelog);
   return dir;
 }

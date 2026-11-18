@@ -9,13 +9,13 @@ updated: 2026-11-19
 
 # 与 Qian 的关系
 
-本页是「Kun 框架」小节里唯一由 Qian 手写的一页，其余页面都按锁定版本从 kun 仓库镜像（[ADR-021 D21.4](/design/adr/adr-021-product-family-structure)）。它回答：写 Qian 组件时，Kun 的哪些模块会用到、用哪一套 API、哪些写法被禁止。
+本页是「Kun 框架」小节里唯一由 Qian 手写的一页，其余页面都按 Kun 最新的发布版从 kun 仓库镜像（[ADR-021 D21.4](/design/adr/adr-021-product-family-structure)）。它回答：写 Qian 组件时，Kun 的哪些模块会用到、用哪一套 API、哪些写法被禁止。
 
 ## 定位
 
 - **三层**：Kun 是框架层（底座 SDK），Qian 是平台层，前端层是 qian 组件库。Qian 平台基于 Kun 框架构建；Kun 不是 Qian 的子项目，Qian 也不是 Kun 的扩展（[ADR-021 D21.1](/design/adr/adr-021-product-family-structure)）。
 - **Kun 是实现依赖，不是平台内核**：Qian 的运行时 `Qian.Runtime` 与平台插件自成一层，Kun 模块是它们的实现依赖；Kun 的 `AddKunXxx()` 模块在 Qian 里被包装为插件，`Kun.*` 本身不改（[ADR-001 D1.1](/design/adr/adr-001-kun-relationship)、[ADR-020 D20.10](/design/adr/adr-020-component-model-v2)）。
-- **锁版本消费**：Qian 以 NuGet 包 + CalVer 锁版本消费 Kun，不复制 Kun 源码、不用 `ProjectReference`（ADR-001 D1.2）。版本只写在仓库根 `Directory.Packages.props` 的 `KunVersion` 一处，全部 `Kun.*` 包引用它；本小节其余页面与 [Kun API 参考](/sdk/api/kun/) 按同一版本镜像，各页顶部写明版本（[ADR-021 D21.3](/design/adr/adr-021-product-family-structure)）。
+- **同仓引用源码**：Kun 与 Qian 在同一个仓库里，`Qian.*` 直接引用仓库根 `src/` 下的 Kun 源码，不另钉 Kun 的版本（构建并轨 S1-KUN-020；ADR-023 D23.12 取代了 ADR-001 D1.2 的锁版本消费与 ADR-021 D21.3 的版本单点）。本小节其余页面与 [Kun API 参考](/sdk/api/kun/) 按 Kun 最新的发布版镜像，各页顶部写明版本。
 - **以代码为准**：Kun 文档与代码不一致时以代码为准，文档声称但代码不存在的能力不当作已有（ADR-001 D1.8）。
 
 ## 模块与平台插件、seam 的对应
@@ -76,7 +76,7 @@ Kun 的安全默认值大多是 opt-in；在 Qian 里改为**强制装配 + 构�
 
 Kun 关键路径上有一组在「K3s 多副本 + 多租户」下必然触发的缺口，S1 必须先修（§07 7.1 列了 13 项，ADR-001 D1.6）。修复通道（ADR-001 D1.7）：
 
-1. 上游 PR 优先：改动提到 kun 仓库，Kun 发版后改 `KunVersion` 升级，本小节随之更新。
+1. 上游 PR 优先：改动提到 kun 仓库。构建并轨之后 Qian 直接引用同一仓库里 Kun 的源码，改动合入即用上；本小节随 Kun 的下一个发布版更新。
 2. 每项设 1 个迭代的回合入期限；逾期未合入，由 Qian 维护 `Kun.<Module>.Patches` 补丁包（同名命名空间 + `[Obsolete]` 转发），并记录回合入日期。
 
 截至 2026-10-25 的状态：§07 7.1 的七个修复任务（S1-KUN-001–007）都已随 Kun 发布并由 Qian 升级消费；之后又有六项 7.1 之外的后续修复（S1-KUN-011–014、S1-KUN-016–017）与事件总线抽象拆包（S1-KUN-010）。当前锁定 Kun 2026.10.25，已包含上述修复及 Definition 包依赖门禁。Qian 没有任何补丁包。最新状态以任务看板为准（怎么看，见 [pm/README 第 4 节](https://github.com/CavaiLAB/kun/blob/main/_import/qian/pm/README.md#4-日常怎么用)）。
@@ -100,7 +100,7 @@ Kun 关键路径上有一组在「K3s 多副本 + 多租户」下必然触发的
 
 ## 版本与升级
 
-- 当前锁定的版本写在本小节每页顶部的横幅里，与 `Directory.Packages.props` 的 `KunVersion` 一致；CI 比对二者，不一致即构建失败。
-- 升级 Kun：改 `KunVersion` 一处 → TCK 两种模式通过 → 本小节与 API 参考在下一次构建时自动镜像新版本（ADR-021 D21.3）。
+- 本小节镜像的版本写在每页顶部的横幅里，是 Kun 最新的发布版，取仓库根 `CHANGELOG.md` 里最新的发布段；CI 比对二者，不一致即构建失败。
+- Kun 发版（仓库根的发版脚本 `scripts/release.sh` 把版本写进 `CHANGELOG.md`，并在同一提交上打 `v<版本>` 标签）之后，本小节与 API 参考在下一次构建时自动镜像新版本。
 - 要改 Kun 的代码或文档，去 kun 仓库提 PR，Qian 的任务里只回链。
-- Kun 的同日修复版 `-hotfix.N` 是推送 nuget.org 的正式修复，但 NuGet 按预发布排序、低于同日无后缀版本。`Directory.Packages.props` 的全部 `Kun.*` 用 `[$(KunVersion)]` 精确钉定，不依赖「最新稳定版」排序；钉在修复版上时，Kun 发布下一个无后缀正式版后升级回无后缀版本（S1-DEC-019 R65）。
+- Kun 的同日修复版 `-hotfix.N` 是推送 nuget.org 的正式修复，但 NuGet 按预发布排序、低于同日无后缀版本；最新的发布版按 `CHANGELOG.md` 里的先后算，不按 NuGet 的排序。

@@ -25,9 +25,11 @@ updated: 2026-11-19
 - [x] `src/Directory.Build.props` 的项目地址与仓库地址改指本仓库
 - [x] 改完按四类说法再扫一遍，剩下的每一处在 PR 正文里按「保留 / 不动」说明
 - [ ] `python3 scripts/check_docs.py` 与 `python3 scripts/pm.py validate` 通过，PR 的 CI 全绿
+- [x] 只改文字和链接：文件名、目录名与文档站路由都不改；名字里带旧名的，当作带旧名的标识，跟以后的批次一起改
 
 ## 进度日志
 
 - 2026-11-19 claude：创建任务
 - 2026-11-19 claude：开工：扫出 24 个文件，逐处改写
 - 2026-11-19 claude：转 review：CavaiLAB/kun#28 开出。23 个文件只改措辞，包元数据与 KUN0002 的帮助链接改指本仓库；固定链接逐个核对过，剩余命中按保留 / 不动写在 PR 正文。验收前四条勾上，第五条里 check_docs 与 validate 已过，CI 结果待补
+- 2026-11-19 claude：补两件，都是计划会话提的。一是只改文字和链接、文件名、目录名与路由不改：本 PR 没有改名或搬动；5 个标题锚点随标题变（AGENTS.md 讲约定的那一节，CHANGELOG 4 个带旧 PR 编号的标题），查过 CavaiLAB/qian、CavaiLAB/jiangxin 与 GitHub 代码搜索，没有外部引用。二是 AGENTS.md 指向平台总览 docs/glossary.md 的链接文字改为「术语表」，跟 CavaiLAB/jiangxin#21 改过的页面标题一致，地址不变

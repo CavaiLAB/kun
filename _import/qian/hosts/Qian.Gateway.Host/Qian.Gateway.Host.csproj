@@ -2,6 +2,8 @@
   <!-- 启用严格发布目标不代表验收完成；默认 profile 的 AOT 标记须等完整原生运行通过后恢复。 -->
   <PropertyGroup>
     <OutputType>Exe</OutputType><Description>gateway profile 的真实业务宿主。</Description>
+    <!-- 宿主：禁用符号与平台分析器按它接入（仓库根的 Directory.Build.targets，S1-KUN-020）。 -->
+    <KunHost>true</KunHost>
     <PublishAot>true</PublishAot><IlcTreatWarningsAsErrors>true</IlcTreatWarningsAsErrors>
     <TrimmerSingleWarn>false</TrimmerSingleWarn><InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>

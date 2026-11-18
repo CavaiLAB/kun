@@ -43,9 +43,10 @@ def q(*patterns: str) -> Tuple[str, ...]:
 
 
 # 凡要构建 .NET 的区域都含这一组：_import/qian 下的项目从源码编译 src/ 下的 Kun 项目，
-# 仓库根的构建基线、中央包版本、包源、格式规则与 SDK 版本一改，构建就跟着变。
+# 仓库根的构建基线、中央包版本、包源、格式规则、禁用符号清单与 SDK 版本一改，构建就跟着变。
 DOTNET_BASE: Tuple[str, ...] = ("src/**", "Kun.slnx", "Directory.Build.props", "Directory.Build.targets",
-                                "Directory.Packages.props", "global.json", "NuGet.config", ".editorconfig")
+                                "Directory.Packages.props", "global.json", "NuGet.config", ".editorconfig",
+                                "BannedSymbols.txt")
 # 装 GitHub Packages 上的 @cavailab/qian-* 的区域都含这一组：包源写在这个文件里。
 NPMRC: Tuple[str, ...] = (Q + ".npmrc",)
 # 这些文件一改，全部区域都算改动：作业的定义、区域表本身或共用的复合动作变了。
@@ -83,8 +84,7 @@ AREAS: Dict[str, Area] = {
               "scripts/prepare_image_tools.py", "scripts/image-tools.lock.json", "tests/gates/test_images.py",
               "profiles/**", "plugins/**", "packages/Qian.Profiles*/**", "packages/Qian.Surfaces*/**",
               "packages/Qian.Runtime/**", "packages/Qian.Runtime.Errors/**", "packages/Common/**", "schemas/**",
-              "contracts/v0/**", "*.props", "*.targets", "global.json", "BannedSymbols.txt", ".editorconfig",
-              ".github/workflows/images.yml"),
+              "contracts/v0/**", "*.props", "*.targets", "global.json", ".editorconfig", ".github/workflows/images.yml"),
             DOTNET_BASE,
         ),
         original="images.yml", builds_dotnet=True),
@@ -116,7 +116,7 @@ AREAS: Dict[str, Area] = {
         (
             q("packages/**", "samples/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "scripts/dev-tenant-ops.sh", "*.props", "*.targets", "global.json",
-              "BannedSymbols.txt", ".editorconfig", ".github/workflows/dev-tenant-ops.yml"),
+              ".editorconfig", ".github/workflows/dev-tenant-ops.yml"),
             (".github/workflows/qian-dev-tenant-ops.yml",),
             DOTNET_BASE,
         ),
@@ -128,7 +128,7 @@ AREAS: Dict[str, Area] = {
               "tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json", "packages/Qian.*/**", "packages/Common/**",
               "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
-              "Directory.*.props", "Directory.Build.targets", "global.json", "BannedSymbols.txt", ".editorconfig",
+              "Directory.*.props", "Directory.Build.targets", "global.json", ".editorconfig",
               "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "turbo.json", ".github/workflows/directory-e2e.yml"),
             (".github/workflows/qian-directory-e2e.yml",),
             DOTNET_BASE, NPMRC,
@@ -141,7 +141,7 @@ AREAS: Dict[str, Area] = {
               "samples/qian-sample-crm-ui/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
               "packages/Qian.*/**", "packages/Common/**", "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**",
               "contracts/**", "tools/Qian.Dev.Shell/**", "tools/Qian.Dev.TenantOps/**", "tools/Qian.Build.Analyzers/**",
-              "scripts/dev-shell.sh", "Directory.*.props", "Directory.Build.targets", "global.json", "BannedSymbols.txt",
+              "scripts/dev-shell.sh", "Directory.*.props", "Directory.Build.targets", "global.json",
               ".editorconfig", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/shell-auth.yml"),
             (".github/workflows/qian-shell-auth.yml",),
             DOTNET_BASE, NPMRC,
@@ -178,7 +178,7 @@ AREAS: Dict[str, Area] = {
             q("packages/qian-tenancy-ui/**", "turbo.json", "packages/Qian.*/**", "packages/Common/**",
               "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
-              "Directory.*.props", "Directory.Build.targets", "global.json", "BannedSymbols.txt", ".editorconfig",
+              "Directory.*.props", "Directory.Build.targets", "global.json", ".editorconfig",
               "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/tenant-ui.yml"),
             (".github/workflows/qian-tenant-ui.yml",),
             DOTNET_BASE, NPMRC,

@@ -1,10 +1,10 @@
-"""仓库根 Directory.Build.targets 里的公共 API 门禁、AOT 守卫与清单的自测（S1-KUN-020）。
+"""仓库根 Directory.Build.targets 里的公共 API 门禁、AOT 守卫与清单、禁用符号与平台分析器的作用域的自测（S1-KUN-020）。
 
 运行（仓库根目录）：python3 -m unittest discover -s tests/gates -v
 - AOT 清单核对逻辑（scripts/aot_projects.py 的 check）用合成数据验证，不需要 dotnet；
 - AOT 守卫用 tests/gates/aot 下的样例项目，只跑守卫目标，不编译；
 - 其余读 Kun.slnx 里每个项目求值后的属性与项（dotnet msbuild -getProperty / -getItem，不需要还原）。
-  冒烟宿主没跟上清单时这里失败。
+  包换了档位、宿主漏写 KunHost、冒烟宿主没跟上清单时这里失败。
 要 dotnet 的几组在 CI 上缺 dotnet 直接失败而不是跳过。
 """
 from __future__ import annotations
@@ -26,10 +26,21 @@ import aot_projects  # noqa: E402
 import check_deps  # noqa: E402
 
 AOT_SAMPLES = ROOT / "tests" / "gates" / "aot"
+TRANSITIONAL = ROOT / "_import" / "qian"
+ANALYZERS = TRANSITIONAL / "tools" / "Qian.Build.Analyzers" / "Qian.Build.Analyzers.csproj"
 NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI") == "true", "本机没有 dotnet")
-PROPERTIES = ("IsPackable", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
+PROPERTIES = ("IsPackable", "KunTier", "KunHost", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
               "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
-ITEMS = ("PackageReference",)
+ITEMS = ("PackageReference", "ProjectReference", "AdditionalFiles")
+
+# 去内核档的 Qian 包（合并蓝图 D23.9，B3 方案附录 A）：不接禁用符号与平台分析器（D23.14 第 4 点）。
+# 它们现在零命中；被禁的类型定义在内核档的模块里。这份名单变了，说明有包换了档位，要复核它该不该受检。
+KERNEL_QIAN_PACKAGES = {
+    "Qian.Audit.Abstractions", "Qian.Audit.Native", "Qian.Config.Secrets", "Qian.Data.Native.Abstractions",
+    "Qian.Data.Native.Postgres", "Qian.Events", "Qian.Events.Abstractions", "Qian.Gateway", "Qian.Gateway.Abstractions",
+    "Qian.Plugin.Sdk", "Qian.Plugin.Sdk.Generators", "Qian.Runtime", "Qian.Runtime.Errors", "Qian.Runtime.Errors.AspNetCore",
+}
+HOSTS = {"Qian.Platform.Host", "Qian.Gateway.Host"}
 
 
 def msbuild_evaluate(project: Path, properties=(), items=()) -> dict:
@@ -58,6 +69,15 @@ def is_true(props: dict, name: str) -> bool:
 
 def package_ids(items: dict) -> set:
     return {i["Identity"] for i in items.get("PackageReference", [])}
+
+
+def additional_files(items: dict) -> set:
+    return {Path(i.get("FullPath") or i["Identity"]).resolve() for i in items.get("AdditionalFiles", [])}
+
+
+def analyzer_references(items: dict, project: Path) -> set:
+    return {(project.parent / i["Identity"]).resolve() for i in items.get("ProjectReference", [])
+            if i.get("OutputItemType") == "Analyzer"}
 
 
 def msbuild_targets(project: Path, targets: str, *args: str):
@@ -165,6 +185,36 @@ class PublicApiTests(unittest.TestCase):
                 self.assertEqual("", props.get("HasPublicApi", ""))
                 if not is_true(props, "IsPackable"):
                     self.assertNotIn("Microsoft.CodeAnalysis.PublicApiAnalyzers", package_ids(items))
+
+
+@NEEDS_DOTNET
+class AnalyzerScopeTests(unittest.TestCase):
+    """禁用符号与平台分析器只接平台档的包、宿主与 _import/qian/ 下不打包的项目。"""
+
+    def test_scope_follows_tier_host_and_transitional_directory(self):
+        banned = (ROOT / "BannedSymbols.txt").resolve()
+        for path, (props, items) in evaluated().items():
+            expected = (props.get("KunTier") == "platform" or is_true(props, "KunHost")
+                        or (TRANSITIONAL in path.parents and not is_true(props, "IsPackable")))
+            with self.subTest(project=path.stem):
+                self.assertEqual(expected, is_true(props, "_KunPlatformAnalyzers"))
+                self.assertEqual(expected, "Microsoft.CodeAnalysis.BannedApiAnalyzers" in package_ids(items))
+                self.assertEqual(expected, banned in additional_files(items))
+                if path.resolve() != ANALYZERS.resolve():
+                    self.assertEqual(expected, ANALYZERS.resolve() in analyzer_references(items, path))
+
+    def test_hosts_kernel_packages_and_kun_projects(self):
+        projects = evaluated()
+        self.assertEqual(HOSTS, {p.stem for p, (props, _) in projects.items() if is_true(props, "KunHost")})
+        unchecked = {p.stem for p, (props, _) in projects.items()
+                     if TRANSITIONAL in p.parents and is_true(props, "IsPackable") and not is_true(props, "_KunPlatformAnalyzers")}
+        self.assertEqual(KERNEL_QIAN_PACKAGES, unchecked)
+        self.assertEqual(set(), {p.stem for p, (props, _) in projects.items()
+                                 if TRANSITIONAL not in p.parents and is_true(props, "_KunPlatformAnalyzers")})
+
+    def test_banned_symbols_list_lives_at_the_root(self):
+        self.assertTrue((ROOT / "BannedSymbols.txt").is_file())
+        self.assertFalse((TRANSITIONAL / "BannedSymbols.txt").exists())
 
 
 if __name__ == "__main__":

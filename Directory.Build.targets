@@ -2,7 +2,7 @@
 
   <!--
     仓库的构建守卫与门禁，仓库根与 _import/qian/ 下的项目共用（S1-KUN-020）。_import/qian/Directory.Build.targets 先导入本文件。
-    依次是：档位声明、公共 API、AOT。
+    依次是：档位声明、公共 API、AOT、禁用符号与平台分析器的作用域。
   -->
 
   <!--
@@ -76,5 +76,40 @@
            Condition="'$(IsAotCompatible)' == 'true' and ('$(IsTrimmable)' == 'false' or '$(EnableTrimAnalyzer)' == 'false' or '$(EnableAotAnalyzer)' == 'false' or '$(EnableSingleFileAnalyzer)' == 'false')"
            Text="$(MSBuildProjectName) 写了 IsAotCompatible=true，就不能关掉 IsTrimmable 或裁剪、AOT、单文件分析器。不兼容 AOT 就去掉 IsAotCompatible。" />
   </Target>
+
+  <!--
+    禁用符号与平台分析器的作用域（S1-KUN-020；合并蓝图 D23.14 第 4 点）。
+    仓库根的 BannedSymbols.txt（Microsoft.CodeAnalysis.BannedApiAnalyzers，RS0030）与 _import/qian/tools/Qian.Build.Analyzers
+    （QIAN0002–QIAN0006）只接下面三类项目，诊断号不变：
+
+      - 平台档的包（KunTier=platform）；
+      - 宿主：项目文件里写了 <KunHost>true</KunHost> 的可执行项目；
+      - 过渡期：_import/qian/ 下不打包的项目，即测试、工具、样例。各域批次把它们挪出过渡目录时按归属重定。
+
+    Kun 的项目与内核档的包不接：被禁的类型就定义在内核档的模块里。Kun 旧类型上的 Obsolete 诊断号（如 KUNS2S001、
+    KUNLEGACY001）在哪里都随 TreatWarningsAsErrors 报错；接了分析器的项目另把 KUNS2S001 单列为错误。
+  -->
+  <PropertyGroup Label="分析器作用域">
+    <_KunTransitionalDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '_import', 'qian'))</_KunTransitionalDirectory>
+    <_KunProjectDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)'))</_KunProjectDirectory>
+    <_KunPlatformAnalyzers>false</_KunPlatformAnalyzers>
+    <_KunPlatformAnalyzers Condition="'$(KunTier)' == 'platform' or '$(KunHost)' == 'true'">true</_KunPlatformAnalyzers>
+    <_KunPlatformAnalyzers Condition="'$(IsPackable)' != 'true' and $(_KunProjectDirectory.StartsWith('$(_KunTransitionalDirectory)'))">true</_KunPlatformAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup Label="分析器作用域" Condition="'$(_KunPlatformAnalyzers)' == 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup Label="分析器作用域" Condition="'$(_KunPlatformAnalyzers)' == 'true' and '$(MSBuildProjectName)' != 'Qian.Build.Analyzers'">
+    <CompilerVisibleProperty Include="IsTestProject" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)_import/qian/tools/Qian.Build.Analyzers/Qian.Build.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <PropertyGroup Label="分析器作用域" Condition="'$(_KunPlatformAnalyzers)' == 'true'">
+    <WarningsAsErrors>$(WarningsAsErrors);RS0030;QIAN0002;QIAN0003;QIAN0004;QIAN0005;QIAN0006;KUNS2S001</WarningsAsErrors>
+  </PropertyGroup>
 
 </Project>

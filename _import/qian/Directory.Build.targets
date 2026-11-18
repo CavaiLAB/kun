@@ -1,8 +1,8 @@
 <Project>
 
   <!--
-    仓库根的 Directory.Build.targets（S1-KUN-020）：档位声明、公共 API 门禁与 AOT 守卫。
-    这几项对仓库根与本目录下的项目一视同仁，按 IsPackable 与档位判定，不看包名。
+    仓库根的 Directory.Build.targets（S1-KUN-020）：档位声明、公共 API 门禁、AOT 守卫，以及禁用符号与平台分析器的作用域。
+    这几项对仓库根与本目录下的项目一视同仁，按 IsPackable、档位与 KunHost 判定，不看包名。
   -->
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
 
@@ -18,20 +18,6 @@
     <QianPackageId Condition="'$(QianPackageId)' == ''">$(MSBuildProjectName)</QianPackageId>
     <QianIsPackage Condition="'$(IsPackable)' == 'true' and $(QianPackageId.StartsWith('Qian.'))">true</QianIsPackage>
     <QianIsPackage Condition="'$(QianIsPackage)' == ''">false</QianIsPackage>
-  </PropertyGroup>
-
-  <!-- 旧 Kun 入口在全部代码树（含宿主与测试）禁用，避免换包名或关闭打包绕过。 -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Qian.Build.Analyzers'">
-    <CompilerVisibleProperty Include="IsTestProject" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)tools/Qian.Build.Analyzers/Qian.Build.Analyzers.csproj"
-                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
-  <PropertyGroup>
-    <WarningsAsErrors>$(WarningsAsErrors);RS0030;QIAN0002;QIAN0003;QIAN0004;QIAN0005;QIAN0006;KUNS2S001</WarningsAsErrors>
   </PropertyGroup>
 
   <!--

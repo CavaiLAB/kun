@@ -50,7 +50,7 @@ public sealed class AuthorizedHandlerTests
             .Single(value => value.Name == "AddAuthorizedHandler" && value.GetParameters().Length == 6)
             .MakeGenericMethod(typeof(ProtectedCommand), typeof(int), typeof(Handler));
         var invocation = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(null,
-            [builder, (Func<Kun.Core.Results.Error, int>)(_ => -1), "qian.sample.crm/export", AuthzTestJson.Default.ProtectedCommand, AuthzTestJson.Default.Int32, true]));
+            [builder, (Func<Kun.Errors.Error, int>)(_ => -1), "qian.sample.crm/export", AuthzTestJson.Default.ProtectedCommand, AuthzTestJson.Default.Int32, true]));
         Assert.Equal("Kun 权限行为登记类型与预期不一致。", Assert.IsType<InvalidOperationException>(invocation.InnerException).Message);
         Assert.True(services.Replaced);
     }

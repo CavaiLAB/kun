@@ -1,3 +1,5 @@
+using Kun.Errors;
+
 namespace Kun.Core.Results;
 
 /// <summary>

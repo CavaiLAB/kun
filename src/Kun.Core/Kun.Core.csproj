@@ -3,8 +3,13 @@
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <Description>Kun Framework core abstractions: domain building blocks, CQRS contracts, Result pattern, ITenantContext. Zero third-party dependencies.</Description>
+    <Description>Kun Framework core abstractions: domain building blocks, CQRS contracts, Result pattern carrying Kun.Errors errors, ITenantContext. Zero third-party dependencies.</Description>
   </PropertyGroup>
+
+  <!-- Result 带 Kun.Errors 的 Error。Kun.Errors 同样零依赖，规则 C 允许零依赖的包互相引用（S1-KUN-023）。 -->
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Errors/Kun.Errors.csproj" />
+  </ItemGroup>
 
   <PropertyGroup Label="档位">
     <KunTier>kernel</KunTier>

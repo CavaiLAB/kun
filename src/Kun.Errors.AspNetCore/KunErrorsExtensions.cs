@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace Kun.Errors.AspNetCore;
 
-/// <summary>装配 Qian 结构化错误。</summary>
+/// <summary>装配 Kun 结构化错误（ErrorDetail）。</summary>
 public static class KunErrorsExtensions
 {
     /// <summary>
@@ -37,9 +37,9 @@ public static class KunErrorsExtensions
 
         services.AddProblemDetails();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<ProblemDetailsOptions>, NormalizeProblemDetails>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IExceptionHandler, QianExceptionHandler>());
-        // 已知 Qian / Kun 校验异常先进入封闭契约；不认识的异常仍交给后续宿主处理器。
-        var handler = services.Single(d => d.ServiceType == typeof(IExceptionHandler) && d.ImplementationType == typeof(QianExceptionHandler));
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IExceptionHandler, ErrorExceptionHandler>());
+        // ErrorException（含校验失败）先进入封闭契约；不认识的异常仍交给后续宿主处理器。
+        var handler = services.Single(d => d.ServiceType == typeof(IExceptionHandler) && d.ImplementationType == typeof(ErrorExceptionHandler));
         services.Remove(handler);
         services.Insert(0, handler);
         return services;

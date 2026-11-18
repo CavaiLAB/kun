@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Qian 结构化错误契约（S1-AGT-001，PRD 7.18 第 2 项）：ErrorDetail、错误码目录与多语言文案导出。
-    线上形状以 contracts/v0/error-detail.schema.json 与 error-catalog.schema.json 为准。
-    不依赖 ASP.NET Core：Definition 包登记自己的错误码只需要本包；HTTP 映射在 Kun.Errors.AspNetCore。
+    Kun 的错误模型（S1-AGT-001，PRD 7.18 第 2 项）：错误码与错误码目录、一次出错（Error）及携带它的异常、
+    ErrorDetail 与多语言文案导出。线上形状以 contracts/v0/error-detail.schema.json 与 error-catalog.schema.json 为准。
+    零依赖：只用 BCL，不依赖 ASP.NET Core。组件登记自己的错误码只需要本包；Kun.Core 的 Result 带这里的 Error；
+    HTTP 映射在 Kun.Errors.AspNetCore。
   -->
 
   <PropertyGroup>
@@ -12,13 +13,14 @@
     <RootNamespace>Kun.Errors</RootNamespace>
     <!-- CA1720：Pointer 是契约成员名（RFC 9457 / contracts/v0 的 pointer），不是类型名。 -->
     <NoWarn>$(NoWarn);CA1720</NoWarn>
-    <Description>Qian 结构化错误：RFC 9457 problem+json 的 ErrorDetail 配置文件、错误码目录与多语言文案 JSON 导出。</Description>
+    <Description>Kun 结构化错误：错误码目录、Error 与 ErrorException、RFC 9457 problem+json 的 ErrorDetail 配置文件与多语言文案 JSON 导出。零依赖。</Description>
   </PropertyGroup>
 
-  <!-- 记契约：组件建在它上面，与 Kun.Core 同理，旧门禁对运行时与 SDK 一律放行（S1-KUN-020，B3 PR-4 归类）。 -->
+  <!-- 记契约：Kun.Core 与组件都建在它上面。零依赖（规则 C）：Kun.Core 也是零依赖，可以引用它（S1-KUN-023）。 -->
   <PropertyGroup Label="档位">
     <KunTier>kernel</KunTier>
     <KunRole>contract</KunRole>
+    <KunZeroDependency>true</KunZeroDependency>
   </PropertyGroup>
 
   <ItemGroup>

@@ -40,15 +40,17 @@ internal static class ErrorWriter
     }
 }
 
-/// <summary>把 <see cref="ErrorException"/> 与请求体解析失败写成 ErrorDetail；其余异常交给默认处理（规范为 INTERNAL）。</summary>
-internal sealed class QianExceptionHandler : IExceptionHandler
+/// <summary>
+/// 把 <see cref="ErrorException"/>（含 Kun.Validation 的校验失败与 <c>Result&lt;T&gt;.EnsureSuccess()</c> 抛出的）
+/// 与请求体解析失败写成 ErrorDetail；其余异常交给默认处理（规范为 INTERNAL）。
+/// </summary>
+internal sealed class ErrorExceptionHandler : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var error = exception switch
         {
-            ErrorException q => q.Error,
-            Kun.Validation.ValidationException validation => validation.ToQianError(),
+            ErrorException e => e.Error,
             BadHttpRequestException b when PlatformErrors.ForStatus(b.StatusCode).Status == b.StatusCode
                 => new Error(PlatformErrors.ForStatus(b.StatusCode)),
             _ => null,

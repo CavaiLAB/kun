@@ -1,47 +1,48 @@
 using System.Net;
 using System.Text.Json;
-using Kun.Validation;
+using Kun.Errors.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Errors.Tests;
 
-public sealed class KunValidationBridgeTests
+/// <summary>
+/// 带逐项字段错误的 <see cref="ErrorException"/>（Kun.Validation 的校验失败就是这种形状）：
+/// 先于宿主自己的兜底异常处理写成 ErrorDetail，100 项字段错误仍在冻结契约之内。
+/// </summary>
+public sealed class ErrorExceptionHandlerTests
 {
-    [Theory]
-    [InlineData("Items[0].Name", "#/Items/0/Name")]
-    [InlineData("a/b~c", "#/a~1b~0c")]
-    [InlineData("", "#")]
-    [InlineData("odd[not-an-index]", "#/odd%5Bnot-an-index%5D")]
-    public void Property_paths_become_escaped_pointers(string property, string expectedLocation)
-    {
-        var error = new ValidationException([new(property, "REQUIRED", "private")]).ToQianError();
-        Assert.Same(PlatformErrors.InputInvalid, error.Code);
-        var field = Assert.Single(error.Errors);
-        Assert.Equal(expectedLocation, field.Pointer);
-        Assert.Same(PlatformErrors.Required, field.Code);
-    }
-
     [Fact]
-    public void Field_errors_remain_within_the_frozen_contract()
+    public void An_error_with_100_field_errors_stays_within_the_frozen_contract()
     {
-        var error = new ValidationException(Enumerable.Range(0, 110).Select(i => new ValidationError($"Items[{i}]", "kun.custom", "private")).ToArray()).ToQianError();
-        Assert.Equal(100, error.Errors.Count);
-        Assert.All(error.Errors, e => Assert.Same(PlatformErrors.ValueNotAllowed, e.Code));
+        var error = new Error(PlatformErrors.InputInvalid)
+        {
+            Errors = Enumerable.Range(0, 100).Select(i => new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("items", i))).ToArray(),
+        };
+
         var detail = ErrorCatalog.CreateDefault().CreateDetail(error, new string('a', 32));
         var body = JsonSerializer.SerializeToElement(detail, ErrorDetailJson.TypeInfo);
+
         Assert.Empty(Contracts.Validate("error-detail", body));
         Assert.Empty(Contracts.CheckSemantics("error-detail", body));
-        Assert.Equal("#/Items/0", body.GetProperty("pointer").GetString());
+        Assert.Equal("#/items/0", body.GetProperty("pointer").GetString());
+        Assert.Equal(100, body.GetProperty("errors").GetArrayLength());
     }
 
     [Fact]
-    public async Task Real_validation_exception_response_is_normalized_before_a_catch_all_handler()
+    public void More_than_100_field_errors_are_rejected()
+    {
+        var errors = Enumerable.Range(0, 101).Select(i => new FieldError(PlatformErrors.Required, ErrorPointer.Input("items", i))).ToArray();
+
+        Assert.Throws<ArgumentException>(() => new Error(PlatformErrors.InputInvalid) { Errors = errors });
+    }
+
+    [Fact]
+    public async Task Error_exception_response_is_written_before_a_catch_all_handler()
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseTestServer();
@@ -51,23 +52,27 @@ public sealed class KunValidationBridgeTests
         builder.Services.AddKunErrors();
         await using var app = builder.Build();
         app.UseKunErrors();
-        app.MapGet("/validate", string () => throw new ValidationException([
-            new("Items[0].Name", "REQUIRED", "private message"),
-            new("Amount", "OUT_OF_RANGE", "private message")
-        ]));
+        app.MapGet("/validate", string () => throw new ErrorException(new Error(PlatformErrors.InputInvalid)
+        {
+            Errors =
+            [
+                new FieldError(PlatformErrors.Required, ErrorPointer.Input("items", 0, "name")),
+                new FieldError(PlatformErrors.OutOfRange, ErrorPointer.Input("amount")),
+            ],
+        }));
         await app.StartAsync(TestContext.Current.CancellationToken);
         using var client = app.GetTestClient();
+
         using var response = await client.GetAsync(new Uri("/validate", UriKind.Relative), TestContext.Current.CancellationToken);
+
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(ErrorDetailJson.MediaType, response.Content.Headers.ContentType?.MediaType);
-        var raw = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.DoesNotContain("private", raw, StringComparison.Ordinal);
-        using var document = JsonDocument.Parse(raw);
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         var body = document.RootElement;
         Assert.Empty(Contracts.Validate("error-detail", body));
         Assert.Empty(Contracts.CheckSemantics("error-detail", body));
         Assert.Equal("INPUT_INVALID", body.GetProperty("code").GetString());
-        Assert.Equal("#/Items/0/Name", body.GetProperty("pointer").GetString());
+        Assert.Equal("#/items/0/name", body.GetProperty("pointer").GetString());
         Assert.Equal("OUT_OF_RANGE", body.GetProperty("errors")[1].GetProperty("code").GetString());
     }
 

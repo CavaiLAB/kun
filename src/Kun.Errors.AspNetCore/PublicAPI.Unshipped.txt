@@ -9,5 +9,3 @@ static Kun.Errors.AspNetCore.KunErrorsExtensions.AddKunErrors(this Microsoft.Ext
 static Kun.Errors.AspNetCore.KunErrorsExtensions.UseKunErrors(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 Kun.Errors.AspNetCore.KunResults
 static Kun.Errors.AspNetCore.KunResults.Error(Kun.Errors.Error! error) -> Kun.Errors.AspNetCore.KunErrorResult!
-Kun.Errors.AspNetCore.KunValidationErrorBridge
-static Kun.Errors.AspNetCore.KunValidationErrorBridge.ToQianError(this Kun.Validation.ValidationException! exception) -> Kun.Errors.Error!

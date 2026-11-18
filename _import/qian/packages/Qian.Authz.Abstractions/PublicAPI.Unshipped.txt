@@ -30,8 +30,8 @@ static readonly Qian.Authz.Abstractions.AuthzErrors.ConstraintMutex -> Kun.Error
 static readonly Qian.Authz.Abstractions.AuthzErrors.Denied -> Kun.Errors.ErrorCode!
 static readonly Qian.Authz.Abstractions.AuthzErrors.PartialSuccess -> Kun.Errors.ErrorCode!
 Qian.Authz.Abstractions.AuthorizedHandlerRegistration
-static Qian.Authz.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Core.Results.Error!, TResponse>! denied) -> Kun.Mediator.KunMediatorBuilder!
-static Qian.Authz.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Core.Results.Error!, TResponse>! denied, string! capabilityId, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TRequest>! request, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TResponse>! response) -> Kun.Mediator.KunMediatorBuilder!
+static Qian.Authz.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Errors.Error!, TResponse>! denied) -> Kun.Mediator.KunMediatorBuilder!
+static Qian.Authz.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Errors.Error!, TResponse>! denied, string! capabilityId, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TRequest>! request, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TResponse>! response) -> Kun.Mediator.KunMediatorBuilder!
 Qian.Authz.Abstractions.PermissionAttribute
 Qian.Authz.Abstractions.PermissionAttribute.Action.get -> string!
 Qian.Authz.Abstractions.PermissionAttribute.PermissionAttribute(string! resource, string! action) -> void

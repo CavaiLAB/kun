@@ -5,6 +5,7 @@ using Kun.Core.MultiTenancy;
 using Kun.Core.Results;
 using Kun.Core.Security;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
@@ -35,7 +36,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         var userResult = await userHost.Services.GetRequiredService<ISender>().Send(new KindBoundaryCommand(), Ct);
         var serviceResult = await serviceHost.Services.GetRequiredService<ISender>().Send(new KindBoundaryCommand(), Ct);
         Assert.True(userResult.IsSuccess); Assert.False(serviceResult.IsSuccess);
-        Assert.Equal(ErrorType.Forbidden, serviceResult.Error.Type);
+        Assert.Same(PlatformErrors.AuthzDenied, serviceResult.Error.Code);
         Assert.Equal(1, userHost.Services.GetRequiredService<KindBoundaryCounter>().Calls);
         Assert.Equal(0, serviceHost.Services.GetRequiredService<KindBoundaryCounter>().Calls);
     }

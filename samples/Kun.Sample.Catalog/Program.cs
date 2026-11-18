@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Kun.AspNetCore.DependencyInjection;
 using Kun.AspNetCore.Endpoints;
 using Kun.Audit.DependencyInjection;
 using Kun.Core.Domain;
@@ -9,6 +8,7 @@ using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Behaviors;
 using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors.AspNetCore;
 using Kun.EventBus.DependencyInjection;
 using Kun.Grpc.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
@@ -41,8 +41,8 @@ var writeCs = builder.Configuration.GetConnectionString("CatalogDb")
 
 var readCs = builder.Configuration.GetConnectionString("CatalogDbRead") ?? writeCs;
 
-// ── ASP.NET Core / Kun infrastructure ────────────────────────────────────────
-builder.Services.AddKunAspNetCore();
+// ── Structured errors (problem+json ErrorDetail; validation failures → INPUT_INVALID) ─
+builder.Services.AddKunErrors();
 
 // ── Multi-tenancy (null/single-tenant for this sample) ───────────────────────
 builder.Services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
@@ -127,7 +127,7 @@ builder.Services.AddOpenApi();
 // ── Build ─────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-app.UseExceptionHandler();
+app.UseKunErrors();
 
 if (app.Environment.IsDevelopment())
 {

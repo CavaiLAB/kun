@@ -51,9 +51,9 @@ public static class KunValidationServiceCollectionExtensions
     /// <summary>
     /// Registers <see cref="ValidationResultPipelineBehavior{TRequest, TValue}"/>
     /// for the given request whose response is <c>Result&lt;TValue&gt;</c>. On
-    /// validator failure the behaviour returns
-    /// <c>Result&lt;TValue&gt;.Fail(Error.Validation("request.invalid", ...))</c>
-    /// instead of throwing <see cref="ValidationException"/>. Do <b>not</b>
+    /// validator failure the behaviour returns a failed <c>Result&lt;TValue&gt;</c> carrying
+    /// <c>INPUT_INVALID</c> with the field errors instead of throwing
+    /// <see cref="Kun.Errors.ErrorException"/>. Do <b>not</b>
     /// also call <see cref="AddValidationBehavior{TRequest, TResponse}"/> for
     /// the same request type — pick one. See
     /// <c>docs/architecture/ADR-014-Validation-Result-behavior.md</c>.

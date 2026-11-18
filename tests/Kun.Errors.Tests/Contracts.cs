@@ -16,7 +16,8 @@ internal static partial class Contracts
 
     public static string RepoRoot { get; } = FindRepoRoot();
 
-    public static string V0 => Path.Combine(RepoRoot, "contracts", "v0");
+    /// <summary>冻结契约所在目录（前端仓库按这里的路径钉住其中几个文件）。</summary>
+    public static string V0 => Path.Combine(RepoRoot, "_import", "qian", "contracts", "v0");
 
     public static JsonSchema Schema(string name) => s_loaded.Value.Schemas[name];
 
@@ -166,10 +167,10 @@ internal static partial class Contracts
     {
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "Qian.slnf")))
+            if (File.Exists(Path.Combine(dir.FullName, "Kun.slnx")))
                 return dir.FullName;
         }
-        throw new InvalidOperationException("找不到仓库根目录（Qian.slnf）。");
+        throw new InvalidOperationException("找不到仓库根目录（Kun.slnx）。");
     }
 
     [GeneratedRegex("\\.v[1-9][0-9]*$")]

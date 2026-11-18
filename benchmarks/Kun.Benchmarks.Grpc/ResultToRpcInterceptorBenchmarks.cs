@@ -1,5 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using Kun.Core.Results;
+using Kun.Errors;
 
 namespace Kun.Benchmarks.Grpc;
 
@@ -40,8 +41,8 @@ public class ResultToRpcInterceptorBenchmarks
     [Benchmark]
     public string ResultFailThenError()
     {
-        var result = Result<int>.Fail(Error.NotFound("bench.notfound", "benchmark not-found sample"));
-        return result.IsFailure ? result.Error.Code : "ok";
+        var result = Result<int>.Fail(new Error(PlatformErrors.NotFound));
+        return result.IsFailure ? result.Error.Code.Code : "ok";
     }
 
     [Benchmark]

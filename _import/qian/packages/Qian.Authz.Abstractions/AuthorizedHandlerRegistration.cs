@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Authorization;
 using Kun.Core.Cqrs;
-using Kun.Core.Results;
+using Kun.Errors;
 using Kun.Mediator;
 using Kun.Mediator.Behaviors;
 using Microsoft.Extensions.DependencyInjection;

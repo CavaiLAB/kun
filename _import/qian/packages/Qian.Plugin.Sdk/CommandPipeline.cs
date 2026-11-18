@@ -13,7 +13,6 @@ using Microsoft.Extensions.Hosting;
 using Qian.Data;
 using Qian.Authz.Abstractions;
 using Kun.Errors;
-using Kun.Core.Results;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
 using Qian.Events;
@@ -45,7 +44,7 @@ public static class QianCommandRegistration
         builder.AddPipelineBehavior<TRequest, TResponse, CapabilityDispatchBehavior<TRequest, TResponse>>();
         builder.AddPipelineBehavior<TRequest, TResponse, CommandSaveBehavior<TRequest, TResponse, TContext>>();
         return builder.AddAuthorizedHandler<TRequest, TResponse, CommandHandlerProxy<TRequest, TResponse, THandler>>(
-            error => throw new ErrorException(new Error(error.Type == ErrorType.Unauthorized ? PlatformErrors.Unauthenticated : PlatformErrors.AuthzDenied)),
+            error => throw new ErrorException(error),
             contract.Id, request, response, tenantInitialization: true);
     }
 }

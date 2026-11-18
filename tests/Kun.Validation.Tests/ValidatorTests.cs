@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Kun.Errors;
 using Xunit;
 
 namespace Kun.Validation.Tests;
@@ -13,13 +14,13 @@ internal sealed class CreateUserValidator : IValidator<CreateUserCommand>
 {
     public ValueTask<ValidationResult> ValidateAsync(CreateUserCommand instance, CancellationToken ct = default)
     {
-        var errors = new List<ValidationError>();
+        var errors = new List<FieldError>();
         if (string.IsNullOrWhiteSpace(instance.Email))
-            errors.Add(new ValidationError(nameof(instance.Email), "email.required", "Email is required."));
+            errors.Add(new FieldError(PlatformErrors.Required, ErrorPointer.Input("email")));
         else if (!instance.Email.Contains('@'))
-            errors.Add(new ValidationError(nameof(instance.Email), "email.format", "Email must contain '@'."));
+            errors.Add(new FieldError(PlatformErrors.FormatInvalid, ErrorPointer.Input("email")));
         if (instance.Age < 0)
-            errors.Add(new ValidationError(nameof(instance.Age), "age.negative", "Age must be >= 0."));
+            errors.Add(new FieldError(PlatformErrors.OutOfRange, ErrorPointer.Input("age")));
         return ValueTask.FromResult(errors.Count == 0 ? ValidationResult.Success : ValidationResult.Failure(errors));
     }
 }
@@ -42,7 +43,7 @@ public sealed class ValidationResultTests
     [Fact]
     public void ValidationResult_Failure_WithEmptyErrors_Throws()
     {
-        var act = () => ValidationResult.Failure(Array.Empty<ValidationError>());
+        var act = () => ValidationResult.Failure(Array.Empty<FieldError>());
 
         act.Should().Throw<ArgumentException>()
             .WithMessage("*at least one error*");
@@ -51,13 +52,13 @@ public sealed class ValidationResultTests
     [Fact]
     public void ValidationResult_Failure_WithErrors_IsValidFalseAndMatchesInput()
     {
-        var errors = new[] { new ValidationError("Email", "email.required", "Email is required.") };
+        var errors = new[] { new FieldError(PlatformErrors.Required, ErrorPointer.Input("email")) };
 
         var result = ValidationResult.Failure(errors);
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().HaveCount(1);
-        result.Errors[0].Code.Should().Be("email.required");
+        result.Errors.Should().ContainSingle()
+            .Which.Should().BeSameAs(errors[0]);
     }
 }
 
@@ -79,30 +80,30 @@ public sealed class ValidatorTests
     }
 
     [Fact]
-    public async Task Validator_EmptyEmail_ReturnsFailureWithEmailRequired()
+    public async Task Validator_EmptyEmail_ReturnsRequiredAtEmail()
     {
         var result = await _validator.ValidateAsync(new CreateUserCommand("", 25), TestContext.Current.CancellationToken);
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.Code == "email.required");
+        result.Errors.Should().ContainSingle(e => e.Code == PlatformErrors.Required && e.Pointer == "#/email");
     }
 
     [Fact]
-    public async Task Validator_MissingAtSign_ReturnsFailureWithEmailFormat()
+    public async Task Validator_MissingAtSign_ReturnsFormatInvalidAtEmail()
     {
         var result = await _validator.ValidateAsync(new CreateUserCommand("notanemail", 25), TestContext.Current.CancellationToken);
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.Code == "email.format");
+        result.Errors.Should().ContainSingle(e => e.Code == PlatformErrors.FormatInvalid && e.Pointer == "#/email");
     }
 
     [Fact]
-    public async Task Validator_NegativeAge_ReturnsFailureWithAgeNegative()
+    public async Task Validator_NegativeAge_ReturnsOutOfRangeAtAge()
     {
         var result = await _validator.ValidateAsync(new CreateUserCommand("user@example.com", -1), TestContext.Current.CancellationToken);
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.Code == "age.negative");
+        result.Errors.Should().ContainSingle(e => e.Code == PlatformErrors.OutOfRange && e.Pointer == "#/age");
     }
 
     [Fact]
@@ -111,32 +112,6 @@ public sealed class ValidatorTests
         var result = await _validator.ValidateAsync(new CreateUserCommand("", -5), TestContext.Current.CancellationToken);
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().HaveCount(2);
-        result.Errors.Should().Contain(e => e.Code == "email.required");
-        result.Errors.Should().Contain(e => e.Code == "age.negative");
-    }
-}
-
-// ---------------------------------------------------------------------------
-// ValidationException unit tests
-// ---------------------------------------------------------------------------
-
-public sealed class ValidationExceptionTests
-{
-    [Fact]
-    public void ValidationException_CarriesErrors()
-    {
-        var errors = new[]
-        {
-            new ValidationError("Email", "email.required", "Email is required."),
-            new ValidationError("Age", "age.negative", "Age must be >= 0.")
-        };
-
-        var ex = new ValidationException(errors);
-
-        ex.Errors.Should().HaveCount(2);
-        ex.Errors[0].Code.Should().Be("email.required");
-        ex.Errors[1].Code.Should().Be("age.negative");
-        ex.Message.Should().Contain("2 error(s)");
+        result.Errors.Select(e => e.Pointer).Should().Equal("#/email", "#/age");
     }
 }

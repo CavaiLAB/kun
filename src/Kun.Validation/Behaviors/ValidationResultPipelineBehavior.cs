@@ -1,5 +1,6 @@
 using Kun.Core.Cqrs;
 using Kun.Core.Results;
+using Kun.Errors;
 using Kun.Mediator;
 
 namespace Kun.Validation.Behaviors;
@@ -8,8 +9,8 @@ namespace Kun.Validation.Behaviors;
 /// Non-generic variant of
 /// <see cref="ValidationResultPipelineBehavior{TRequest, TValue}"/> for
 /// handlers whose response is the non-generic <see cref="Result"/>
-/// (void commands with no return value). Returns
-/// <c>Result.Fail(Error.Validation("request.invalid", …))</c>
+/// (void commands with no return value). Returns a failed <see cref="Result"/>
+/// carrying <see cref="PlatformErrors.InputInvalid"/> with the field errors
 /// instead of throwing when validators report errors. Closes ADR-014
 /// §F1 follow-up.
 /// </summary>
@@ -39,7 +40,7 @@ public sealed class ValidationResultPipelineBehavior<TRequest> : IPipelineBehavi
         ArgumentNullException.ThrowIfNull(next);
         if (_validators.Length == 0) return await next().ConfigureAwait(false);
 
-        List<ValidationError>? allErrors = null;
+        List<FieldError>? allErrors = null;
         for (var i = 0; i < _validators.Length; i++)
         {
             var result = await _validators[i]
@@ -53,10 +54,7 @@ public sealed class ValidationResultPipelineBehavior<TRequest> : IPipelineBehavi
         }
 
         if (allErrors is { Count: > 0 })
-        {
-            var message = string.Join("; ", allErrors.Select(e => e.Message));
-            return Result.Fail(Error.Validation("request.invalid", message));
-        }
+            return Result.Fail(ValidationErrors.ToError(allErrors));
 
         return await next().ConfigureAwait(false);
     }
@@ -64,8 +62,8 @@ public sealed class ValidationResultPipelineBehavior<TRequest> : IPipelineBehavi
 
 /// <summary>
 /// Pipeline behavior that runs every registered <see cref="IValidator{T}"/>
-/// against the incoming request and returns
-/// <c>Result&lt;TValue&gt;.Fail(Error.Validation("request.invalid", …))</c>
+/// against the incoming request and returns a failed <see cref="Result{TValue}"/>
+/// carrying <see cref="PlatformErrors.InputInvalid"/> with the field errors (at most 100)
 /// instead of throwing when any report errors. Companion to the
 /// exception-throwing <see cref="ValidationPipelineBehavior{TRequest, TResponse}"/>
 /// for handlers that deliberately compose via <see cref="Result{T}"/>
@@ -106,7 +104,7 @@ public sealed class ValidationResultPipelineBehavior<TRequest, TValue> : IPipeli
         ArgumentNullException.ThrowIfNull(next);
         if (_validators.Length == 0) return await next().ConfigureAwait(false);
 
-        List<ValidationError>? allErrors = null;
+        List<FieldError>? allErrors = null;
         for (var i = 0; i < _validators.Length; i++)
         {
             var result = await _validators[i]
@@ -120,10 +118,7 @@ public sealed class ValidationResultPipelineBehavior<TRequest, TValue> : IPipeli
         }
 
         if (allErrors is { Count: > 0 })
-        {
-            var message = string.Join("; ", allErrors.Select(e => e.Message));
-            return Result<TValue>.Fail(Error.Validation("request.invalid", message));
-        }
+            return Result<TValue>.Fail(ValidationErrors.ToError(allErrors));
 
         return await next().ConfigureAwait(false);
     }

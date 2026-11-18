@@ -3,8 +3,8 @@ using System.Text.Json;
 namespace Kun.Errors;
 
 /// <summary>
-/// 一次出错：哪个错误码、文案参数、出错位置与允许值。由 <see cref="ErrorCatalog.CreateDetail"/> 渲染为
-/// <see cref="ErrorDetail"/>；在 ASP.NET Core 中直接抛 <see cref="ErrorException"/> 或返回结果即可。
+/// 一次出错：哪个错误码、文案参数、出错位置与允许值。进程内由 <c>Kun.Core.Results.Result</c> 携带或随
+/// <see cref="ErrorException"/> 抛出；对外由 <see cref="ErrorCatalog.CreateDetail"/> 渲染为 <see cref="ErrorDetail"/>。
 /// </summary>
 /// <remarks>
 /// 字段错误有多个时放进 <see cref="Errors"/>，此时顶层 <see cref="Pointer"/> / <see cref="Allowed"/> 留空，
@@ -36,6 +36,12 @@ public sealed class Error
 
     /// <summary>文案参数。</summary>
     public IReadOnlyDictionary<string, string> Args { get; }
+
+    /// <summary>
+    /// 按当前界面语言（<see cref="System.Globalization.CultureInfo.CurrentUICulture"/>）渲染的文案，找不到时回退 zh-CN。
+    /// 供日志、gRPC 状态说明这类进程内用途；HTTP 响应体由错误码目录渲染（<see cref="ErrorCatalog.CreateDetail"/>）。
+    /// </summary>
+    public string Message => Code.FormatMessage(null, Args);
 
     /// <summary>出错的输入位置（见 <see cref="ErrorPointer"/>）。</summary>
     public string? Pointer
@@ -116,7 +122,11 @@ public sealed class FieldError
     }
 }
 
-/// <summary>携带 <see cref="Error"/> 的异常：业务代码抛出后由宿主的错误映射写成 problem+json。</summary>
+/// <summary>
+/// 携带 <see cref="Error"/> 的异常，Kun 只有这一个带错误码的异常：业务代码直接抛出，或由
+/// <c>Result&lt;T&gt;.EnsureSuccess()</c> 在失败时抛出；HTTP 宿主由 Kun.Errors.AspNetCore 写成 problem+json，
+/// gRPC 宿主由 Kun.Grpc 的拦截器转成对应的状态码。
+/// </summary>
 public sealed class ErrorException : Exception
 {
     /// <summary>以一次出错创建异常；异常消息为错误码与 zh-CN 文案，只用于日志。</summary>

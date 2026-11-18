@@ -8,6 +8,7 @@ using FluentAssertions;
 using global::Grpc.Core;
 using global::Grpc.Net.Client;
 using Kun.Core.Results;
+using Kun.Errors;
 using Kun.Grpc.DependencyInjection;
 using Kun.IntegrationTests.Grpc.Generated;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -56,7 +57,7 @@ public sealed class StreamingInterceptorsTests
         var failed = () => host.InvokeAsync(shape, "tenant-a");
         var error = await failed.Should().ThrowAsync<RpcException>();
         error.Which.StatusCode.Should().Be(StatusCode.NotFound);
-        error.Which.Trailers.Should().Contain(entry => entry.Key == "kun-error-code" && entry.Value == "probe.missing");
+        error.Which.Trailers.Should().Contain(entry => entry.Key == "kun-error-code" && entry.Value == "NOT_FOUND");
     }
 
     private sealed class Calls
@@ -73,7 +74,7 @@ public sealed class StreamingInterceptorsTests
         {
             Interlocked.Increment(ref calls.Executed);
             calls.ActivityNames.Enqueue(Activity.Current?.OperationName);
-            if (calls.Fail) Result<string>.Fail(Error.NotFound("probe.missing", "Missing probe")).EnsureSuccess();
+            if (calls.Fail) Result<string>.Fail(new Error(PlatformErrors.NotFound)).EnsureSuccess();
         }
         public override Task<Probe> Unary(Probe request, ServerCallContext context) { Enter(); return Task.FromResult(new Probe { Value = request.Value }); }
         public override async Task Server(Probe request, IServerStreamWriter<Probe> responseStream, ServerCallContext context)

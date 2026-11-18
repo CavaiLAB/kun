@@ -55,9 +55,9 @@ emit 使用 `Func<P, ValueTask>`；waterfall 使用 `Func<P, Func<ValueTask<R>>,
 
 restriction 谓词应为无副作用的纯函数，抛异常时记录日志并按不可见处理。模型可见工具与目录消费方每次调用时都从当前 scope 重新解析；业务鉴权与租户策略由相应插件的事件监听器实施。scope 不推测任何业务 lineage。
 
-## 错误桥接与包源
+## 错误与包源
 
-`KunErrorBridge.ToQianError()` 按 `ErrorType` 映射内置码；未指定领域错误码的 `DomainException` 映射到 `BUSINESS_RULE_VIOLATED`。原始 Kun 文案不进入 ErrorDetail。Kun 校验异常的 HTTP 桥接由 `Kun.Errors.AspNetCore` 承担，只有该包引用 `Kun.Validation`。
+运行时报错一律抛 `Kun.Errors` 的 `ErrorException`；Kun 的 `Result` 带的也是同一个 `Error`，两边之间没有转换。HTTP 映射只在 `Kun.Errors.AspNetCore`。
 
 Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020），不再从 nuget.org 还原 `Kun.*`。启动诊断新增的 `DEPENDENCY_MISSING`、`DEPENDENCY_CYCLE` 与注册冲突码均在平台目录中，owner 为 `qian.runtime`。
 
@@ -65,4 +65,4 @@ Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020），不再从 nug
 
 运行 `dotnet run --project tests/Qian.Runtime.Tests -c Release`，执行 [语言无关场景](../../tck/runtime/README.md) 与 .NET 单元测试。
 
-本任务只实现 .NET 最小运行时。TS harness 属于 S1-RT-003，完整 TCK 属于 S1-QA-002；profile/patch 解析、清单/configSchema 校验、声明式表面重载由对应装配器任务提供，传入本包前完成。代码实例随宿主程序集加载，S1 代码更新通过进程重启。已有对象引用的业务执行仍由调用方的权限检查负责，运行时不代理任意对象的方法。KunExceptionHandler 的上游修正见 S1-KUN-006。
+本任务只实现 .NET 最小运行时。TS harness 属于 S1-RT-003，完整 TCK 属于 S1-QA-002；profile/patch 解析、清单/configSchema 校验、声明式表面重载由对应装配器任务提供，传入本包前完成。代码实例随宿主程序集加载，S1 代码更新通过进程重启。已有对象引用的业务执行仍由调用方的权限检查负责，运行时不代理任意对象的方法。

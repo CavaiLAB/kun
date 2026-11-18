@@ -133,11 +133,11 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 ### 4.1 PublicAPI（C1 / G4）
 
-- **Qian 包** = 项目里写了 `<IsPackable>true</IsPackable>` 且包名以 `Qian.` 开头。根目录 [Directory.Build.props](../Directory.Build.props) 默认不打包，宿主、样例、测试都不算 Qian 包。
-- Qian 包自动接入 `Microsoft.CodeAnalysis.PublicApiAnalyzers`（[Directory.Build.targets](../Directory.Build.targets)）。项目目录必须有 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`，缺了报 QIAN0001。
+- 受约束的是**可打包的项目**：项目里写了 `<IsPackable>true</IsPackable>`，不看包名，仓库根 `src/` 下的 Kun 包同样受约束（S1-KUN-020）。本目录的 [Directory.Build.props](../Directory.Build.props) 默认不打包，宿主、样例、测试都不受约束。
+- 可打包的项目自动接入 `Microsoft.CodeAnalysis.PublicApiAnalyzers`（仓库根的 `Directory.Build.targets`）。项目目录必须有 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`，缺了报 QIAN0001。
 - 新增公共 API 没登记报 RS0016，登记了但代码里已删除报 RS0017，都是编译错误。新 API 先登记进 Unshipped，发布时并入 Shipped；破坏性变更要引用 ADR（C1）。IDE 对 RS0016 的代码修复「添加到公共 API」会生成登记行。
 
-一个 Qian 包目录至少有：
+一个可打包项目的目录至少有：
 
 ```text
 <包目录>/
@@ -175,11 +175,12 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 仓库根 [ci.yml](../../../.github/workflows/ci.yml) 的 dotnet 区域拆成并行的作业（S1-QA-018、S1-KUN-020），本目录的步骤在 `_import/qian` 下运行。测试分片每个限时 20 分钟（PRD §14.2.1）；构建与门禁要构建整个 `Kun.slnx`，限时 30 分钟：
 
-- 构建与门禁：还原与构建仓库根的 `Kun.slnx`（PublicAPI 门禁）→ 仓库根的几道检查（发版脚本自测、网关打包冒烟、身份边界）→ 入口清单 → 明文密钥扫描 → namespace 骨架 → 仓库根的依赖门禁与它的自测 → 本目录的门禁自测 → 触发过滤自检。
+- 构建与门禁：还原与构建仓库根的 `Kun.slnx`（公共 API 门禁、AOT 守卫与分析器都在构建里）→ 仓库根的几道检查（发版脚本自测、网关打包冒烟、身份边界）→ 入口清单 → 明文密钥扫描 → namespace 骨架 → 仓库根的依赖门禁与它的自测 → 本目录的门禁自测 → 触发过滤自检。
 - 单元与集成测试，本目录的项目分三个分片（a、b、c）：各自还原、构建，再用 `scripts/dotnet_ci.py shard` 写出的解决方案筛选文件只跑本分片的模块。作业开头在后台预拉本分片用到的测试镜像，测试前有界等待。分片清单是脚本里的 `SHARDS`，新加的测试项目不用登记，自动落入其余分片。
   - 测试命令带 `-p:QianTrxPerModule=true`，每个模块的 TRX 按项目名命名（`<项目名>.trx`，见 [Directory.Build.props](Directory.Build.props)）。xUnit 缺省文件名只有用户、机器和时间戳，同时启动的模块会撞名，后写完的覆盖先写完的（S1-QA-017）。
 - 分片 k 跑仓库根 `tests/` 下的测试：`tests/kun-unit.slnf` 的单元测试收覆盖率，每个模块一份 TRX、一份覆盖率（开关在仓库根的 `tests/Directory.Build.props`），上传前用 `scripts/dotnet_ci.py coverage` 核对每个测试项目恰好一份，通过后文件名去掉时间戳；`tests/Kun.IntegrationTests` 用 Testcontainers 起容器。
 - 测试分片汇总核对：`Qian.slnf` 里每个测试项目、分片 k 登记的每个测试项目，都恰好在所属分片跑过一次、没有失败；各分片的 TRX 与证据合并为 `test-results` 构件。`tests/` 下引用 xunit.v3 却不在 `Qian.slnf` 里的测试项目哪个分片都不跑，汇总核对按名字告警；门禁样例 `tests/gates/**` 与 ci.yml 里由 dotnet 区域的专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。
+- AOT 冒烟宿主：仓库根的 `tests/Kun.AotSmoke` 引用 AOT 清单里的每一个项目（项目文件里写了 `IsAotCompatible=true` 的，本目录的 8 个包也在里面），对每个程序集整体扎根，原生发布后运行，ILC 有任何警告即失败（S1-KUN-020）。清单与写法见仓库根 `AGENTS.md`「项目文件与包」。本目录的四个原生发布作业照旧。
 
 ### 5.1 触发过滤与写法约定
 
@@ -211,7 +212,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 ## 旧 Kun API 门禁（S1-KUN-006、S1-KUN-004）
 
-根目录 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030，应用于包、宿主和测试。`tests/gates/bannedapi` 的负例引用已发布 Kun 2026.10.9 的旧仓储／存储接口，正例引用新存储包，避免凭虚构类型验证门禁。Kun 2026.10.9 起旧接口自带 `KUNLEGACY001` Obsolete，负例会同时报 KUNLEGACY001 与 RS0030 / QIAN0002，门禁只断言后两者，叠加后判定不变（S1-KUN-009）。
+仓库根的 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030。作用域按档位（S1-KUN-020，仓库根的 `Directory.Build.targets`）：平台档的包、宿主（项目文件里写 `<KunHost>true</KunHost>`）与本目录下不打包的项目（测试、工具、样例）接入；去内核档的 14 个包与仓库根的 Kun 项目不接，被禁的类型就定义在内核档的模块里。下面几道分析器门禁（QIAN0002–QIAN0006）的作用域相同。`tests/gates/bannedapi` 的负例引用已发布 Kun 2026.10.9 的旧仓储／存储接口，正例引用新存储包，避免凭虚构类型验证门禁。Kun 2026.10.9 起旧接口自带 `KUNLEGACY001` Obsolete，负例会同时报 KUNLEGACY001 与 RS0030 / QIAN0002，门禁只断言后两者，叠加后判定不变（S1-KUN-009）。
 
 命名空间以源码为准：旧存储 `Kun.Storage` 包的接口是 `Kun.Storage.Abstractions.IFileStorage`；新 `Kun.Storage.Abstractions` 包的接口是 `Kun.Storage.IFileStorage`。标准分析器覆盖符号使用（例如 typeof、调用、构造）；`tools/Qian.Build.Analyzers` 使用同一清单补齐未使用的参数、字段、返回类型等声明，并发出 QIAN0002。负例包含纯参数声明，不依赖上游新包的 Obsolete 标记。
 
@@ -225,11 +226,11 @@ S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` �
 
 `DataBoundaryAnalyzer` 对非测试项目中直接或间接继承 EF `DbContext`、却不继承 `QianDbContext` 的上下文报 QIAN0003。测试项目可定义验证用的上下文；编译样例显式设置 `IsTestProject=false` 模拟在线代码，不因位于 tests 目录而豁免。
 
-全仓库对 EF `IgnoreQueryFilters` 的调用和方法委托引用报 QIAN0004，按语义符号识别，其他类的同名方法不误报。`test_data_boundary.py` 验证五组真实 EF 正反例，负例即使关闭 TreatWarningsAsErrors 也必须失败。真库隔离测试使用受限应用角色的原生 SQL，不调用过滤器旁路。
+接入分析器的项目里，对 EF `IgnoreQueryFilters` 的调用和方法委托引用报 QIAN0004，按语义符号识别，其他类的同名方法不误报。`test_data_boundary.py` 验证五组真实 EF 正反例，负例即使关闭 TreatWarningsAsErrors 也必须失败。真库隔离测试使用受限应用角色的原生 SQL，不调用过滤器旁路。
 
 ### 受保护命令注册门禁（S1-AZ-001）
 
-QIAN0005 在全部代码树检查真正的 Kun `AddRequestHandler`：受保护请求或未确定请求类型的泛型封装必须改用 `Qian.Authz.Abstractions.AddAuthorizedHandler`，同一入口将处理器与权限行为登记到同一个 builder。两个重载、方法组引用、生成代码均受检查；关闭警告即错误不会降低规则。
+QIAN0005 在接入分析器的项目里检查真正的 Kun `AddRequestHandler`：受保护请求或未确定请求类型的泛型封装必须改用 `Qian.Authz.Abstractions.AddAuthorizedHandler`，同一入口将处理器与权限行为登记到同一个 builder。两个重载、方法组引用、生成代码均受检查；关闭警告即错误不会降低规则。
 
 `python3 -m unittest discover -s tests/gates -p test_authorized_handler.py` 编译八组真实样例：直接注册、能力注册、委托引用、泛型包装、应用伪造桥接类必须失败；安全入口、普通请求及无关同名方法必须通过。运行时拒绝/放行顺序由 Qian.Authz.Abstractions.Tests 验证。
 

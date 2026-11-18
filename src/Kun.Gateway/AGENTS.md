@@ -8,7 +8,7 @@ YARP-based API gateway. Validates external IdP-issued JWTs from incoming client 
 
 | File | Description |
 |------|-------------|
-| `Kun.Gateway.csproj` | `IsAotCandidate=true`, `Sdk=Microsoft.NET.Sdk.Web`, `OutputType=Exe` |
+| `Kun.Gateway.csproj` | `IsAotCompatible=true`, `Sdk=Microsoft.NET.Sdk.Web`, `OutputType=Exe` |
 | `Program.cs` | Composition root: external JWT bearer + YARP + rate limiter + JWKS endpoint |
 | `Configuration/KunGatewayOptions.cs` | Options for external IdP, internal issuer/audience, key file paths |
 | `S2sTokenIssuer.cs` | Issues internal S2S JWTs through the shared hot-reloading signing ring (RS256, 60 s TTL) |
@@ -84,7 +84,7 @@ The gateway transparently proxies gRPC-Web requests (browser clients using `grpc
 }
 ```
 
-**AOT note:** `Grpc.AspNetCore.Web` is AOT-safe for the gateway use case — it translates HTTP framing only and does not deserialize gRPC message payloads. `IsAotCandidate=true` is retained.
+**AOT note:** `Grpc.AspNetCore.Web` is AOT-safe for the gateway use case — it translates HTTP framing only and does not deserialize gRPC message payloads. `IsAotCompatible=true` is retained.
 
 ## Dependencies
 

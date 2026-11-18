@@ -50,9 +50,10 @@
 - 口径（ADR-023 D23.6，取代 ADR-021 的三层口径）：Kun 是框架，内部分内核档与平台档；qian 是前端层（原名 yue）；「Qian」不再是平台层的名字。新写定位性的表述按这个口径，不再写「Qian 平台基于 Kun 构建」；描述现有代码时照实写现在的包名与目录。总名 Yi 之下怎么写待 S1-DEC-034。Kun 的代码与文档改动去 kun 仓库提 PR，Qian 任务里只回链；文档站的「Kun 框架」小节（`website/docs/sdk/kun/`）是按 `KunVersion` 锁定版本生成的镜像，不要手改（唯一手写页 `with-qian.mdx` 除外）。
 - Kun 的引用：构建并轨（S1-KUN-020）之后，`_import/qian/` 下的项目改为项目引用仓库根 `src/` 下的 Kun 源码，不再按包引用 Kun，也不再有 `Kun.*` 的版本条目。`Directory.Packages.props` 里留的 `<KunVersion>` 只给文档站（「Kun 框架」小节、Kun API 参考、版本矩阵）与 `scripts/check_docs.py` 读取，构建与镜像构建证据都不读它，由 `tests/gates/test_build_merge.py` 保证；原来的版本单点写法见 ADR-021 D21.3（已被 ADR-023 D23.12 取代）。包源配置在仓库根的 `NuGet.config`，只有 nuget.org。
 - 代码部分遵循 ADR-019：每个有代码的组件发 `Qian.<X>.Abstractions` + Provider 包；组件库只依赖 `Qian.Runtime`，不依赖 `qian.registry` / `qian.lifecycle`。
-- 两道 .NET 门禁会自动拦截（细节见 `tests/README.md`）：
-  - 写了 `<IsPackable>true</IsPackable>` 且包名以 `Qian.` 开头的项目就是 Qian 包，必须带 `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`，新公共 API 未登记即编译失败；
-  - 可打包的项目都要在项目文件里写档位与角色（`KunTier`、`KunRole`），仓库根的 `scripts/check_deps.py` 按它们检查依赖，不看包名：内核档不依赖平台档，平台档只依赖内核档与平台档的契约包，契约包直接依赖的内核档包只能是契约。写法、例外与本机跑法见仓库根 `AGENTS.md`「档位与依赖」。
+- 三道 .NET 门禁会自动拦截（细节见 `tests/README.md`，都在仓库根的 `Directory.Build.targets` 与 `scripts/` 下，不看包名）：
+  - 可打包的项目（写了 `<IsPackable>true</IsPackable>`）都必须带 `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`，新公共 API 未登记即编译失败；
+  - 可打包的项目都要在项目文件里写档位与角色（`KunTier`、`KunRole`），仓库根的 `scripts/check_deps.py` 按它们检查依赖，不看包名：内核档不依赖平台档，平台档只依赖内核档与平台档的契约包，契约包直接依赖的内核档包只能是契约。写法、例外与本机跑法见仓库根 `AGENTS.md`「档位与依赖」；
+  - 禁用符号与平台分析器（RS0030、QIAN0002–QIAN0006）只接平台档的包、宿主（项目文件里写 `<KunHost>true</KunHost>`）与本目录下不打包的项目（测试、工具、样例），去内核档的包不接。新写的宿主要写 `KunHost`。
 - 错误响应一律是 `contracts/v0/error-detail.schema.json` 的 ErrorDetail：用 `Qian.Runtime.Errors` 定义与登记错误码（大写下划线、全局唯一、在本组件 Definition 包里定义），HTTP 宿主装 `AddQianErrors()` + `UseQianErrors()`；不要自己拼 ProblemDetails 或 `{ error: ... }`。
 - 改了 `contracts/v0/` 的 Schema 必须同时改 fixture 与 `Qian.Runtime.Errors`，`dotnet test` 会校验 Schema、fixture 与内置错误码目录 `error-codes.json` 是否一致。
 - 集成测试用 `tests/Qian.Testing.Containers` 的 fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身），不要各自再写一套容器启动代码。
@@ -76,9 +77,10 @@ deploy/      开发期工具的 K3s 清单：pm-board/（看板）、docs-site/�
              在 _import/qian/ 下运行；文档站的 PR 预览、镜像供应链自检与 dotnet-release 发布工作流没有接（见根 AGENTS.md 与迁移执行计划）。
              yue 八项门禁与 TS 运行时、插件开发包的工作流随前端框架迁到 CavaiLAB/qian；外壳与界面包的门禁在仓库根的 qian-ui.yml（没有原件）
 Qian.slnf、global.json、Directory.Build.props / .targets、Directory.Packages.props
-             .NET 构建基线：net10.0、警告即错误、中央包版本、PublicAPI 门禁。目标框架、质量门槛、中央包版本与 NuGet.config
-             已并到 CavaiLAB/kun 仓库根（S1-KUN-020），这里的 Directory.Build.props 与 Directory.Packages.props
-             先导入根上的，只留原 Qian 的打包设置与给文档站读的 KunVersion。解决方案是仓库根的 Kun.slnx，
+             .NET 构建基线：net10.0、警告即错误、中央包版本。目标框架、质量门槛、中央包版本、NuGet.config、
+             公共 API 门禁、AOT 守卫、禁用符号清单与分析器作用域已并到 CavaiLAB/kun 仓库根（S1-KUN-020），
+             这里的 Directory.Build.props / .targets 与 Directory.Packages.props 先导入根上的，只留本目录的打包设置、
+             发版脚本读的包判定、网关引用的处理与给文档站读的 KunVersion。解决方案是仓库根的 Kun.slnx，
              Qian.slnf 是它的筛选文件：列出原 Qian 的项目，也是脚本与测试定位本目录的锚，新加项目要两处都加。
              global.json 暂留，内容与仓库根的相同
 ```

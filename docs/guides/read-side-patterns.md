@@ -296,7 +296,7 @@ Problems with this pattern:
 
 1. `CatalogDbContext` inherits `KunDbContext` which has global query filters, change tracking, and
    concurrency checks active. A query handler does not need any of this and pays the overhead.
-2. `Kun.EntityFrameworkCore` is not AOT-candidate (`IsAotCandidate=false`). Injecting it into a
+2. `Kun.EntityFrameworkCore` is not AOT-compatible (no `IsAotCompatible` in its csproj). Injecting it into a
    query handler that runs in an AOT-published service will fail at publish time with trim warnings
    or at runtime with reflection errors.
 3. `UnitOfWorkPipelineBehavior` calls `SaveChangesAsync` after every registered handler in the

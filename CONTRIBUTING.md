@@ -46,13 +46,13 @@ Kun.Core
 
 ## 🎯 AOT 兼容性约定
 
-每个模块的 csproj 会声明 `<IsAotCandidate>true</IsAotCandidate>`。**AOT 候选模块中**：
+AOT 兼容的模块在 csproj 里写 `<IsAotCompatible>true</IsAotCompatible>`，不兼容的不写（做法见根 [AGENTS.md](AGENTS.md)「项目文件与包」）。**AOT 兼容的模块中**：
 
 - ❌ 禁止使用运行时反射（`Activator.CreateInstance`、`Type.GetMethod`、`MakeGenericType` 等）
 - ❌ 禁止在运行时生成 IL（`System.Reflection.Emit`）
 - ✅ 必须使用 `JsonSerializerContext` 源生成而非默认 `JsonSerializer.Serialize`
 - ✅ 必须使用 `[DapperAot]` 特性标注读侧查询方法
-- ✅ CI 会对 AOT 候选服务执行 `dotnet publish -p:PublishAot=true`，零警告才允许合入
+- ✅ 普通构建就开着裁剪与 AOT 分析器；CI 再原生发布并运行 AOT 冒烟宿主 `tests/Kun.AotSmoke`（引用全部 AOT 兼容的模块并整体扎根），ILC 零警告才允许合入
 
 ## 🤖 编码代理
 

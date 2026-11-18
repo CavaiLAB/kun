@@ -11,7 +11,7 @@
 | 仓库根 | Kun 框架：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.slnx`（`_import/qian/` 下的 .NET 项目也在里面）与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「Kun 框架的构建、测试与代码约定」，命令在仓库根运行 |
 | `_import/qian/` | 平台代码与工具：.NET 包、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
 
-构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Build.targets`（可打包项目的档位声明检查）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）与 `global.json` 两边共用；`src/` 下 Kun 包的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含仓库根与 `_import/qian/` 下的全部项目。`_import/qian/` 下的项目改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它们的筛选文件，列出 `_import/qian/` 下的项目，那里的脚本与测试以它所在的目录为根；在 `_import/qian/` 下新加项目，要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props`、`Directory.Build.targets` 与 `Directory.Packages.props` 先导入根上的：第一个只留那里的打包设置，第二个留那里的 PublicAPI 门禁、分析器与网关引用的处理，第三个只留一个给文档站读的 `KunVersion`，构建不读它，由门禁自测保证。`_import/qian/global.json` 暂留，内容与根上的相同；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建 `_import/qian/` 下的项目时，在那里用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。`_import/qian/` 的其余命令一律在那里跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 对 `_import/qian/` 同样生效。
+构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Build.targets`（档位声明检查、公共 API 门禁、AOT 守卫，以及禁用符号与平台分析器的作用域）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）、`BannedSymbols.txt`（禁用符号清单）与 `global.json` 两边共用；`src/` 下 Kun 包的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含仓库根与 `_import/qian/` 下的全部项目。`_import/qian/` 下的项目改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它们的筛选文件，列出 `_import/qian/` 下的项目，那里的脚本与测试以它所在的目录为根；在 `_import/qian/` 下新加项目，要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props`、`Directory.Build.targets` 与 `Directory.Packages.props` 先导入根上的：第一个只留那里的打包设置，第二个只留发版脚本读的包判定与网关引用的处理，第三个只留一个给文档站读的 `KunVersion`，构建不读它，由门禁自测保证。`_import/qian/global.json` 暂留，内容与根上的相同；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建 `_import/qian/` 下的项目时，在那里用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。`_import/qian/` 的其余命令一律在那里跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 对 `_import/qian/` 同样生效。
 
 检查只有一个入口：仓库根的 `.github/workflows/ci.yml`（S1-KUN-020）。它先跑变更检测，按区域表 `scripts/ci_changes.py` 把改动的文件归到各个区域（.NET 的构建、门禁、测试与原生发布，镜像自检，文档与看板，文档站，各项前端验收等），只跑涉及的区域的作业；推 `main` 与手动触发时全部区域都跑。前端与文档的检查是 `.github/workflows/` 下的 `qian-*.yml`，只由 `ci.yml` 调用，在 `_import/qian/` 下运行；其余作业直接写在 `ci.yml` 里，仓库根上的 Kun 框架与 `_import/qian/` 下的 .NET 项目都在其中。两边导入时带来的 `.github/` 原件，Kun 框架的在 `.github/originals/kun/`，平台的在 `_import/qian/.github/`，GitHub 都不读；`ci.yml` 与 `qian-*.yml` 的开头写着对应哪个原件、相对原件改了什么，Kun 框架没接的工作流与模板见 `.github/originals/kun/README.md`。
 
@@ -53,7 +53,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 单个测试项目：`dotnet test --project tests/Kun.Mediator.Tests -c Release`；单个测试类或方法用 xunit 的筛选参数，如 `--filter-class "*.类名"`、`--filter-method "*.类名.方法名"`。
 - 集成测试（`tests/Kun.IntegrationTests`）用 Testcontainers 起容器，对象存储测试用 RustFS 作 S3 兼容服务。本机没有容器环境时跳过；设了 `CI` 时改为失败；拉不到镜像一律失败。跑法：`dotnet test --project tests/Kun.IntegrationTests -c Release`。
 - `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑。
-- CI（`ci.yml` 的 dotnet 区域）另外：逐个 AOT 候选模块做 NativeAOT 发布，警告即错误（模块清单见 AOT 审计作业的矩阵）；跑 `tests/Kun.Integration.AotTests`（样例与网关包的 NativeAOT 发布并运行）；按档位检查依赖（`scripts/check_deps.py`，见下面「档位与依赖」）与身份模块的日志隐私和产品中立（`scripts/check-identity-boundaries.py`）。单元测试与集成测试在测试分片 k 里跑：每个模块各写一份 TRX 与覆盖率，覆盖率上传前核对 `tests/kun-unit.slnf` 里每个测试项目恰好一份；汇总作业再核对每个模块都跑过、没有失败。提交前至少跑一遍格式检查。
+- CI（`ci.yml` 的 dotnet 区域）另外：原生发布并运行 AOT 冒烟宿主 `tests/Kun.AotSmoke`，ILC 有任何警告即失败（清单见下面「项目文件与包」）；跑 `tests/Kun.Integration.AotTests`（样例与网关包的 NativeAOT 发布并运行）；按档位检查依赖（`scripts/check_deps.py`，见下面「档位与依赖」）与身份模块的日志隐私和产品中立（`scripts/check-identity-boundaries.py`）。单元测试与集成测试在测试分片 k 里跑：每个模块各写一份 TRX 与覆盖率，覆盖率上传前核对 `tests/kun-unit.slnf` 里每个测试项目恰好一份；汇总作业再核对每个模块都跑过、没有失败。提交前至少跑一遍格式检查。
 - 基准与对象存储实测不进 CI（S1-DEC-038 D21），在本机跑。基准：`dotnet run -c Release --project benchmarks/Kun.Benchmarks -- --filter '*'`，gRPC 的基准换成 `benchmarks/Kun.Benchmarks.Grpc`，结果写在当前目录的 `BenchmarkDotNet.Artifacts/`。对象存储实测连真实的 OSS 桶，四个 `OSS_SMOKE_*` 环境变量都设了才跑，缺一个就跳过（CI 的分片 k 里没有它们，这组用例跳过）：
 
   ```bash
@@ -84,18 +84,20 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 暂时去不掉的违规边记成例外，写在边起点的项目文件里，一条边一项：`<KunTierException Include="被依赖的包" Rule="K" Until="B5" Reason="…" />`。三个属性都必填，`Until` 写最早能去掉的批次。K、P 查传递依赖时跳过记了例外的边，所以只在出问题的那条边的起点记一次。边没了或者不再违规，门禁报例外已失效，要删掉；例外只减不增，现有的用 `git grep KunTierException` 查。
 - 本机跑：`python3 scripts/check_deps.py`（先还原 `Kun.slnx`，已还原时加 `--no-restore`）。自测与样例在 `tests/gates/`：`python3 -m unittest discover -s tests/gates -v`。
 - `Kun.Core` 只依赖 BCL，不加第三方包引用（规则 C 把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
+- 禁用符号与平台分析器按档位接入（D23.14 第 4 点，仓库根的 `Directory.Build.targets`）：`BannedSymbols.txt`（RS0030）与 `_import/qian/tools/Qian.Build.Analyzers`（QIAN0002–QIAN0006）只接平台档的包、宿主（项目文件里写 `<KunHost>true</KunHost>`，现在是 `_import/qian/hosts/` 下的两个）与 `_import/qian/` 下不打包的项目（测试、工具、样例）。Kun 的项目与内核档的包不接，被禁的类型就定义在内核档的模块里；Kun 旧类型上的 `Obsolete` 诊断号（如 KUNS2S001、KUNLEGACY001）照旧随警告即错误报错。新写的宿主要写 `KunHost`。
 - 新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。
 - 蓝图的归档名单里有 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9），各域批次会把它们移出解决方案。
 
 ### 项目文件与包
 
 - `TargetFramework`、`Nullable`、`LangVersion`、`TreatWarningsAsErrors`、分析器只在 `Directory.Build.props` 里设，不写进单个项目文件。
-- AOT 按项目选择：项目文件里只写 `<IsAotCandidate>true|false</IsAotCandidate>`，`Directory.Build.props` 据此打开或关闭 `IsAotCompatible`、`IsTrimmable` 与裁剪、AOT、单文件分析器；不要在项目文件里重复写这些属性，也不要在库上设 `PublishAot`。
-- 包版本统一写在 `Directory.Packages.props`（中央包管理），项目里写 `<PackageReference Include="X" />`，不带 `Version`。加新包先查这里有没有；AOT 候选模块还要核对新包的 AOT 兼容性。
-- 公共 API 要写 XML 文档注释；带 `PublicAPI.Shipped.txt`、`PublicAPI.Unshipped.txt` 的项目，改公共 API 要同步这两份清单。
+- AOT 按项目选择：AOT 兼容的库在项目文件里写 `<IsAotCompatible>true</IsAotCompatible>`，SDK 据此打开 `IsTrimmable` 与裁剪、AOT、单文件三个分析器，普通构建里就查；不兼容的什么都不写，项目文件里写一句为什么。几条守卫在仓库根的 `Directory.Build.targets`：写了 `IsAotCandidate`（已经不用的开关）报 KUNAOT001；可打包的库在项目文件里写 `PublishAot` 报 KUNAOT002，它只写在要原生发布的可执行项目里；写了 `IsAotCompatible` 却关掉分析器报 KUNAOT003。
+- AOT 清单就是写了 `IsAotCompatible=true` 的项目，没有别的副本：`python3 scripts/aot_projects.py` 列出它们。AOT 冒烟宿主 `tests/Kun.AotSmoke` 引用其中每一个并整体扎根，CI 原生发布后运行它；它的项目引用必须正好等于清单，库加上或去掉 `IsAotCompatible` 时同时改它，`python3 scripts/aot_projects.py --check` 与 `tests/gates` 的自测核对。本机原生发布：`dotnet publish tests/Kun.AotSmoke -c Release`（要 clang；在 macOS 上发布的是本机架构，IL 分析与 CI 的 linux-x64 相同）。`scripts/release.sh` 发版前也按这份清单逐个发布。
+- 包版本统一写在 `Directory.Packages.props`（中央包管理），项目里写 `<PackageReference Include="X" />`，不带 `Version`。加新包先查这里有没有；AOT 兼容的模块还要核对新包的 AOT 兼容性。
+- 公共 API 要写 XML 文档注释。可打包的项目都要带 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`（仓库根 `Directory.Build.targets` 的公共 API 门禁，按 `IsPackable` 判定）：缺文件报 QIAN0001；新增公共 API 没登记报 RS0016，登记了却已删除报 RS0017，都是编译错误。新 API 先登记进 Unshipped，IDE 对 RS0016 的代码修复会生成登记行。
 - 改一个模块之前，先读它目录里的说明文件（`AGENTS.md`、`README.md`）与 `docs/` 下对应的设计说明、指南与 Kun 决策记录，也读要引用的模块的。
 
-### AOT 候选模块里不许用的写法
+### AOT 兼容模块里不许用的写法
 
 - 运行期反射：`Activator.CreateInstance`、`Type.GetMethod`、`MakeGenericType`、`Assembly.GetTypes`、`AppDomain.CurrentDomain.GetAssemblies`；`System.Reflection.Emit`。
 - 不带 `JsonTypeInfo` 的 `JsonSerializer.Serialize(obj)`：序列化走源生成的 `KunJsonContext`，被序列化的事件类型都要在里面登记。

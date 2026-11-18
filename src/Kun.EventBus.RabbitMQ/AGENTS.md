@@ -8,7 +8,7 @@ RabbitMQ broker adapter implementing `IIntegrationEventPublisher`. Publishes Out
 
 | File | Description |
 |------|-------------|
-| `Kun.EventBus.RabbitMQ.csproj` | `IsAotCandidate=true`; references `RabbitMQ.Client` 7.x, `Microsoft.Extensions.*` |
+| `Kun.EventBus.RabbitMQ.csproj` | `IsAotCompatible=true`; references `RabbitMQ.Client` 7.x, `Microsoft.Extensions.*` |
 | `RabbitMqConnectionProvider.cs` | Singleton lazy-open `IConnection` with `AutomaticRecoveryEnabled=true`; `IAsyncDisposable` |
 | `Options/RabbitMqOptions.cs` | `ConnectionString`, `ExchangeName`, `ConsumerName`, `PrefetchCount`, `MaxDeliveryAttempts`, `IdempotencyTtl` |
 | `Publishing/RabbitMqIntegrationEventPublisher.cs` | Implements `IIntegrationEventPublisher`; opens a channel per publish; declares exchange; writes trace/tenant headers |
@@ -26,7 +26,7 @@ RabbitMQ broker adapter implementing `IIntegrationEventPublisher`. Publishes Out
 
 ### Working In This Directory
 
-- **AOT-safe**: `IsAotCandidate=true`. No `Activator.CreateInstance`, no `MakeGenericType`, no `Type.GetMethod`. `TypedSubscriptionDispatcher<TEvent>` is registered at DI wire-up time (compile-time generic instantiation). `JsonTypeInfo<TEvent>` is passed by the caller from their `JsonSerializerContext`.
+- **AOT-safe**: `IsAotCompatible=true`. No `Activator.CreateInstance`, no `MakeGenericType`, no `Type.GetMethod`. `TypedSubscriptionDispatcher<TEvent>` is registered at DI wire-up time (compile-time generic instantiation). `JsonTypeInfo<TEvent>` is passed by the caller from their `JsonSerializerContext`.
 - **Trace context headers are mandatory**: on publish, copy `TraceParent`/`TraceState` from the Outbox row into AMQP `BasicProperties.Headers` as `traceparent`/`tracestate`. On consume, restore via `ActivityContext.TryParse`.
 - **Stable event IDs on the wire**: routing key = `message.EventTypeId` (e.g. `order.placed.v1`). `IEventTypeRegistry.Resolve(routingKey)` converts back to CLR type.
 - **幂等与确认**：先查成功记录，执行成功后才标记并 ack；失败经持久化 quorum 队列退避，重试副本被确认后才 ack 原消息。业务 handler 仍必须幂等。

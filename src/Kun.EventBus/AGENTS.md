@@ -12,7 +12,7 @@
 
 | File | Description |
 |------|-------------|
-| `Kun.EventBus.csproj` | `IsAotCandidate=true`, references `Kun.EventBus.Abstractions` |
+| `Kun.EventBus.csproj` | `IsAotCompatible=true`, references `Kun.EventBus.Abstractions` |
 
 ## For AI Agents
 

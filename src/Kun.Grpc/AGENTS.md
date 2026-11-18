@@ -12,7 +12,7 @@ Host-layer integration with gRPC (Grpc.AspNetCore). Provides three server interc
 
 | File | Description |
 |------|-------------|
-| `Kun.Grpc.csproj` | `IsAotCandidate=true`, `HasPublicApi=true`. References `Kun.Core`, `Kun.Security`, `Grpc.AspNetCore`, `Microsoft.AspNetCore.App` framework ref. |
+| `Kun.Grpc.csproj` | `IsAotCompatible=true`; packable, so the public API gate applies. References `Kun.Core`, `Kun.Security`, `Grpc.AspNetCore`, `Microsoft.AspNetCore.App` framework ref. |
 | `Interceptors/KunResultToRpcInterceptor.cs` | `internal sealed class`. Static helpers `MapErrorType(ErrorType)` and `ToRpcException(Error)` are testable via `InternalsVisibleTo`. |
 | `Interceptors/KunServerAuthInterceptor.cs` | `internal sealed class`. Checks `context.GetHttpContext().User` for `IsAuthenticated` and `tenant_id` claim. |
 | `Interceptors/KunTracingInterceptor.cs` | `internal sealed class`. Uses `ActivitySource("Kun.Grpc")`. |

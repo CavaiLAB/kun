@@ -6,7 +6,7 @@
 看板 Pod 里 git-sync 的检出（/git/.worktrees/<提交>，.git 是文件，上面还有 /git/.git 目录）、pm.py 就在仓库根、不在 git 检出里；
 再在 git-sync 的布局与仓库根的布局里各生成一次看板，核对 tasks.json 与看板页里的地址。只依赖标准库。
 
-不读仓库里 pm/ 下的文件：tests/gates 由 dotnet 工作流（仓库根的 qian-dotnet）跑，只改 pm/ 的 PR 不触发它，读了会被它的
+不读仓库里 pm/ 下的文件：tests/gates 由仓库根 ci.yml 的 dotnet 区域跑，只改 pm/ 的 PR 不跑这个区域，读了会被它的
 触发过滤自检（scripts/dotnet_ci.py paths-check）拦下。所以 pm.py 的路径常量在用例里都换成临时目录。
 """
 from __future__ import annotations

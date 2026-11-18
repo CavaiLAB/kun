@@ -13,7 +13,13 @@
 
 构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）与 `global.json` 两边共用；`src/` 下 Kun 包的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含仓库根与 `_import/qian/` 下的全部项目。`_import/qian/` 下的项目改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它们的筛选文件，列出 `_import/qian/` 下的项目，那里的脚本与测试以它所在的目录为根；在 `_import/qian/` 下新加项目，要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props` 与 `Directory.Packages.props` 先导入根上的，前者只留那里的打包设置，后者只留一个给文档站读的 `KunVersion`，构建不读它，由门禁自测保证。`_import/qian/global.json` 暂留，内容与根上的相同；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建 `_import/qian/` 下的项目时，在那里用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。`_import/qian/` 的其余命令一律在那里跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 对 `_import/qian/` 同样生效。
 
-两边的检查接在仓库根的 `.github/workflows/` 里：`kun-ci.yml` 管仓库根上的 Kun 框架，在仓库根运行；`qian-*.yml` 管 `_import/qian/`，在那里运行。两边导入时带来的 `.github/` 原件，Kun 框架的在 `.github/originals/kun/`，平台的在 `_import/qian/.github/`，GitHub 都不读。每个根工作流的开头写着它对应哪个原件、相对原件改了什么；Kun 框架没接的工作流与模板见 `.github/originals/kun/README.md`。
+检查只有一个入口：仓库根的 `.github/workflows/ci.yml`（S1-KUN-020）。它先跑变更检测，按区域表 `scripts/ci_changes.py` 把改动的文件归到各个区域（.NET 的构建、门禁、测试与原生发布，镜像自检，文档与看板，文档站，各项前端验收等），只跑涉及的区域的作业；推 `main` 与手动触发时全部区域都跑。前端与文档的检查是 `.github/workflows/` 下的 `qian-*.yml`，只由 `ci.yml` 调用，在 `_import/qian/` 下运行；其余作业直接写在 `ci.yml` 里，仓库根上的 Kun 框架与 `_import/qian/` 下的 .NET 项目都在其中。两边导入时带来的 `.github/` 原件，Kun 框架的在 `.github/originals/kun/`，平台的在 `_import/qian/.github/`，GitHub 都不读；`ci.yml` 与 `qian-*.yml` 的开头写着对应哪个原件、相对原件改了什么，Kun 框架没接的工作流与模板见 `.github/originals/kun/README.md`。
+
+最后一个作业「CI 汇总」汇总全部作业的结果，必需检查只设它一个：变更检测没有成功、或任一作业失败或取消，即不通过；没涉及而跳过的作业算通过。几条约定：
+
+- 「CI 汇总」这个检查名不改。分支保护按名字认必需检查，改了名，PR 会一直等一个不会出现的检查。
+- 提交说明里不写跳过 CI 的标记（`[skip ci]`、`[ci skip]`、`[no ci]`、`[skip actions]`、`[actions skip]`），PR 标题也不写，合并提交会带上它。带了标记，整次运行不触发，「CI 汇总」没有结果，PR 合不进去，`main` 上也不跑。
+- 加文件、挪目录时，让它落进区域表里合适的区域（要构建 .NET 的区域都含仓库根的构建基线、`Kun.slnx` 与 `src/`），或者明列进不跑检查的名单。区域表的自测与 `ci.yml` 的结构自测在 `scripts/tests/`，变更检测作业每次先跑，本机跑法 `python3 -m unittest discover -s scripts/tests -p 'test_ci_*.py' -v`；查一个区域管哪些文件用 `python3 scripts/ci_changes.py files <区域>`。
 
 原仓库归档之后的规矩：
 
@@ -47,7 +53,13 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 单个测试项目：`dotnet test --project tests/Kun.Mediator.Tests -c Release`；单个测试类或方法用 xunit 的筛选参数，如 `--filter-class "*.类名"`、`--filter-method "*.类名.方法名"`。
 - 集成测试（`tests/Kun.IntegrationTests`）用 Testcontainers 起容器，对象存储测试用 RustFS 作 S3 兼容服务。本机没有容器环境时跳过；设了 `CI` 时改为失败；拉不到镜像一律失败。跑法：`dotnet test --project tests/Kun.IntegrationTests -c Release`。
 - `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑。
-- CI（`kun-ci.yml`）另外：逐个 AOT 候选模块做 NativeAOT 发布，警告即错误（模块清单见工作流里的矩阵）；跑 `tests/Kun.Integration.AotTests`（样例与网关包的 NativeAOT 发布并运行）；检查分层（`scripts/check-layering.sh`）与身份模块的日志隐私和产品中立（`scripts/check-identity-boundaries.py`）。提交前至少跑一遍格式检查。
+- CI（`ci.yml` 的 dotnet 区域）另外：逐个 AOT 候选模块做 NativeAOT 发布，警告即错误（模块清单见 AOT 审计作业的矩阵）；跑 `tests/Kun.Integration.AotTests`（样例与网关包的 NativeAOT 发布并运行）；检查分层（`scripts/check-layering.sh`）与身份模块的日志隐私和产品中立（`scripts/check-identity-boundaries.py`）。单元测试与集成测试在测试分片 k 里跑：每个模块各写一份 TRX 与覆盖率，覆盖率上传前核对 `tests/kun-unit.slnf` 里每个测试项目恰好一份；汇总作业再核对每个模块都跑过、没有失败。提交前至少跑一遍格式检查。
+- 基准与对象存储实测不进 CI（S1-DEC-038 D21），在本机跑。基准：`dotnet run -c Release --project benchmarks/Kun.Benchmarks -- --filter '*'`，gRPC 的基准换成 `benchmarks/Kun.Benchmarks.Grpc`，结果写在当前目录的 `BenchmarkDotNet.Artifacts/`。对象存储实测连真实的 OSS 桶，四个 `OSS_SMOKE_*` 环境变量都设了才跑，缺一个就跳过（CI 的分片 k 里没有它们，这组用例跳过）：
+
+  ```bash
+  OSS_SMOKE_ENDPOINT=<端点> OSS_SMOKE_BUCKET=<桶> OSS_SMOKE_ACCESS_KEY_ID=<访问键> OSS_SMOKE_ACCESS_KEY_SECRET=<密钥> \
+    dotnet test --project tests/Kun.Storage.Oss.Tests -c Release --filter-class "*.OssFileStorageLiveSmokeTests"
+  ```
 
 ### 分层与依赖
 

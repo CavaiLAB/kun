@@ -140,7 +140,7 @@ docs-site.md §5.1 是契约，这里只说实现：
 
 验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选的是 **K3s 静态托管**：文档面向内部团队，入口与任务看板一致，不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同：CI 构建，git-sync 拉取，nginx 提供。旧仓库归档之后（迁移执行计划 B2），文档站的源码在 `CavaiLAB/kun` 的过渡目录 `_import/qian/` 下，由本仓库的主干构建与发布，细节见 [deploy/docs-site/README.md](../deploy/docs-site/README.md)。
 
-- CI：仓库根的 `qian-docs-site` 工作流（`.github/workflows/qian-docs-site.yml`；原件 `_import/qian/.github/workflows/docs-site.yml` 留作对照，GitHub 不读它）。PR 与 `main` 上类型检查、单测、构建（含断链检查）、产物检查、生成页（含 Kun 镜像页）的文档门禁与浏览器交互验收。只有改到 `_import/qian/` 下的 `website/`、`packages/yue/`、`docs/`、依赖清单、`Directory.Packages.props`（`KunVersion`）、`deploy/docs-site/` 或工作流本身时才触发。
+- CI：仓库根的 `qian-docs-site` 工作流（`.github/workflows/qian-docs-site.yml`，由 `ci.yml` 调用；原件 `_import/qian/.github/workflows/docs-site.yml` 留作对照，GitHub 不读它）。PR 与 `main` 上类型检查、单测、构建（含断链检查）、产物检查、生成页（含 Kun 镜像页）的文档门禁与浏览器交互验收。跑不跑由仓库根区域表 `scripts/ci_changes.py` 的 docs-site 区域决定：改到 `_import/qian/` 下的 `website/`、`docs/`、依赖清单、`Directory.Packages.props`（`KunVersion`）、`deploy/docs-site/`、`.npmrc` 或工作流本身时跑，仓库根的 .NET 构建基线、`Kun.slnx` 与 `src/` 改了也跑。
 - 发布：只在 `main` 上发布正式站点，把构建产物推到 `CavaiLAB/kun` 的 `docs-site` 分支的根目录（`deploy/docs-site/publish.sh`，分支只保留一个提交）。集群里 git-sync 每 60 秒经 HTTPS 匿名拉取该分支，nginx 提供访问。
 - 部署：集群里的应用由 Argo CD 管。Application 登记在部署仓库，跟踪 `CavaiLAB/kun` 主干上的 `_import/qian/deploy/docs-site/`，清单的改动合入主干后自动同步。
 - PR 预览：现在没有接，接不接由产品负责人定。原仓库的做法是同仓库分支的 PR 发布到 `pr-preview/pr-<n>/`、在 PR 里留访问链接、PR 关闭后删除预览；`CavaiLAB/kun` 是公开仓库，PR 评论人人可见，所以没有照搬。PR 上的构建仍带 `pr-preview/pr-<n>/` 前缀（`DOCS_BASE`），前缀检查照跑；nginx 与 `publish.sh` 仍支持这个路径，接回只改工作流。

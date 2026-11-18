@@ -61,7 +61,7 @@
     （含 bin/、obj/）下的复制项，这里一律去掉；本项目自己的复制在其后执行，读的是去掉以后的清单。
     MSBuild 在目标执行完时就定下了它的返回清单，AfterTargets 改不了交给上层引用方的那份，所以每个引用方各自过滤。
     原 Qian 里直接或传递引用 Kun.Gateway 的项目都在 _import/qian 下，都导入本文件；这些项目迁出 _import/qian 时，这段要跟着走。
-    tests/Qian.Gateway.Tests 核对输出目录，qian-dotnet 的生产网关作业核对发布目录。
+    tests/Qian.Gateway.Tests 核对输出目录，仓库根 ci.yml 的生产网关作业（gateway-host-aot）核对发布目录。
   -->
   <PropertyGroup Label="Kun.Gateway as library">
     <QianKunGatewayDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', 'src', 'Kun.Gateway'))</QianKunGatewayDirectory>

@@ -186,27 +186,28 @@ Data 的两项依赖保留现有实现与公开 API；本任务不通过删除�
 | `test_check_deps.py` 的 `SdkBoundaryTests` / `RealSdkClosureTests` | SDK 经 Definition、第三方包或另一个 SDK 包间接带入 Provider 与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities` 都报出完整路径；仓库里真实的 `Qian.Plugin.Sdk`、`.AspNetCore`、`.Generators` 在 `Qian.slnf` 的门禁范围内，其完整传递依赖只有 Runtime / SDK / Definition 与第三方包（S1-RT-014） |
 | `test_dotnet_release.py`（合成 `.nupkg`，不需要 dotnet 与网络） | 包族锁步发布的制品核对：缺包、多包、版本不一致、包族内依赖下限未钉同一版本或指向包族外、源生成器包带 `lib/` 或不是开发依赖、许可证与仓库地址缺失都失败；版本号须为不带前缀与构建元数据的 SemVer 2.0；推送后的包源核对缺包、仓库关联不符、可见性与仓库不一致或缺版本都失败（S1-RT-014） |
 | `test_check_docs.py`（不用样例项目，临时目录里搭最小仓库） | 文档门禁对文档站内容生效：站内路由、`/design/` 镜像路由与生成页路由的解析，生成目录跳过，禁用词在 `.mdx` 与站点源码里同样拦截（S1-DOCS-001）；Kun 小节的路由在生成前交给构建时的断链检查，显式给出的生成目录照查，生成目录里的文件进 Git 即失败，禁用词整词匹配（S1-DOCS-005） |
-| `test_dotnet_ci.py`（临时目录里搭 git 跟踪的最小仓库） | 触发过滤自检认得 §5.1 列的每类写法：.NET 源码的单个字面量、`Path.Combine` 分段、`../` 相对路径、插值前缀与洞后段、定位了仓库根的文件里的根目录 Markdown，csproj 的 `None` / `Content` / `Update`（含通配），工作流直接运行的脚本、unittest 收集的模块与它们导入的模块；对照样例不拦：注释、夹在变量后的段、不定位仓库根的 `README.md`、临时目录上的路径、被测试换掉仓库根的模块。`verify` 对 `Qian.slnf` 外的测试项目按名字告警，门禁样例与专属作业运行的项目除外（S1-QA-021） |
+| `test_dotnet_ci.py`（临时目录里搭 git 跟踪的最小仓库） | 触发过滤自检认得 §5.1 列的每类写法：.NET 源码的单个字面量、`Path.Combine` 分段、`../` 相对路径、插值前缀与洞后段、定位了仓库根的文件里的根目录 Markdown，csproj 的 `None` / `Content` / `Update`（含通配），工作流直接运行的脚本、unittest 收集的模块与它们导入的模块；对照样例不拦：注释、夹在变量后的段、不定位仓库根的 `README.md`、临时目录上的路径、被测试换掉仓库根的模块。`verify` 对 `Qian.slnf` 外的测试项目按名字告警，门禁样例与专属作业运行的项目除外（S1-QA-021）。匹配式取自仓库根区域表里的 dotnet 区域，只看 dotnet 区域的作业运行的脚本（含在仓库根运行的）；`verify` 另核分片 k，`coverage` 核对每个单元测试项目恰好一份覆盖率（S1-KUN-020） |
 
 ## 5 CI
 
-[.github/workflows/dotnet.yml](../.github/workflows/dotnet.yml) 拆成并行的作业（S1-QA-018），每个作业限时 20 分钟（PRD §14.2.1）：
+仓库根 [ci.yml](../../../.github/workflows/ci.yml) 的 dotnet 区域拆成并行的作业（S1-QA-018、S1-KUN-020），本目录的步骤在 `_import/qian` 下运行。测试分片每个限时 20 分钟（PRD §14.2.1）；构建与门禁要构建整个 `Kun.slnx`，限时 30 分钟：
 
-- 构建与门禁：还原 → 构建（PublicAPI 门禁）→ 入口清单 → 明文密钥扫描 → namespace 骨架 → 依赖图门禁 → 门禁自测 → 触发过滤自检。
-- 单元与集成测试，分三个分片：各自还原、构建，再用 `scripts/dotnet_ci.py shard` 写出的解决方案筛选文件只跑本分片的模块。作业开头在后台预拉本分片用到的测试镜像，测试前有界等待。分片清单是脚本里的 `SHARDS`，新加的测试项目不用登记，自动落入其余分片。
+- 构建与门禁：还原与构建仓库根的 `Kun.slnx`（PublicAPI 门禁）→ 仓库根的几道检查（发版脚本自测、网关打包冒烟、分层、身份边界）→ 入口清单 → 明文密钥扫描 → namespace 骨架 → 依赖图门禁 → 门禁自测 → 触发过滤自检。
+- 单元与集成测试，本目录的项目分三个分片（a、b、c）：各自还原、构建，再用 `scripts/dotnet_ci.py shard` 写出的解决方案筛选文件只跑本分片的模块。作业开头在后台预拉本分片用到的测试镜像，测试前有界等待。分片清单是脚本里的 `SHARDS`，新加的测试项目不用登记，自动落入其余分片。
   - 测试命令带 `-p:QianTrxPerModule=true`，每个模块的 TRX 按项目名命名（`<项目名>.trx`，见 [Directory.Build.props](Directory.Build.props)）。xUnit 缺省文件名只有用户、机器和时间戳，同时启动的模块会撞名，后写完的覆盖先写完的（S1-QA-017）。
-- 测试分片汇总核对：`Qian.slnf` 里每个测试项目恰好在所属分片跑过一次、没有失败；各分片的 TRX 与证据合并为 `test-results` 构件。`tests/` 下引用 xunit.v3 却不在 `Qian.slnf` 里的测试项目哪个分片都不跑，汇总核对按名字告警；门禁样例 `tests/gates/**` 与 dotnet.yml 里由专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。
+- 分片 k 跑仓库根 `tests/` 下的测试：`tests/kun-unit.slnf` 的单元测试收覆盖率，每个模块一份 TRX、一份覆盖率（开关在仓库根的 `tests/Directory.Build.props`），上传前用 `scripts/dotnet_ci.py coverage` 核对每个测试项目恰好一份，通过后文件名去掉时间戳；`tests/Kun.IntegrationTests` 用 Testcontainers 起容器。
+- 测试分片汇总核对：`Qian.slnf` 里每个测试项目、分片 k 登记的每个测试项目，都恰好在所属分片跑过一次、没有失败；各分片的 TRX 与证据合并为 `test-results` 构件。`tests/` 下引用 xunit.v3 却不在 `Qian.slnf` 里的测试项目哪个分片都不跑，汇总核对按名字告警；门禁样例 `tests/gates/**` 与 ci.yml 里由 dotnet 区域的专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。
 
 ### 5.1 触发过滤与写法约定
 
-只改 `pm/**`、`docs/**` 或根目录 Markdown 的 PR 不触发这个工作流，push 到 main 不过滤。工作流读到的这类文件在 `pull_request.paths` 里重新纳入：
+`ci.yml` 的变更检测按仓库根的区域表 [scripts/ci_changes.py](../../../scripts/ci_changes.py) 决定跑哪些区域。dotnet 区域管本目录的那一组（`q(…)`）不看 `pm/**`、`docs/**` 与本目录根上的 Markdown：只改这些文件的 PR 不跑 dotnet 区域的作业；推 main 时全部区域都跑。作业读到的这类文件在那一组里重新纳入：
 
 | 重新纳入 | 读取方 |
 |---|---|
-| `docs/generated/**` | `Qian.Tenancy.Tests` 的 `TenancyConfigurationTests` 读 `docs/generated/config-catalog.md`，核对 tenancy 的实际配置与发布的配置目录一致。`Qian.Docs.Tests` 只用样例项目测生成器，不读这个目录；派生文档与源码是否一致（新鲜度）由 [documentation.yml](../.github/workflows/documentation.yml) 重新生成后比对，它自带 `docs/generated/**` 路径过滤 |
+| `docs/generated/**` | `Qian.Tenancy.Tests` 的 `TenancyConfigurationTests` 读 `docs/generated/config-catalog.md`，核对 tenancy 的实际配置与发布的配置目录一致。`Qian.Docs.Tests` 只用样例项目测生成器，不读这个目录；派生文档与源码是否一致（新鲜度）由仓库根的 [qian-documentation.yml](../../../.github/workflows/qian-documentation.yml) 重新生成后比对，它所在的 documentation 区域含 `docs/generated/**` |
 | `docs/ops/configuration-runbook.md` | `Qian.Sample.Crm.Tests` 的 `CapabilityInvokeTests` 原样执行手册里的过期回执清理 SQL |
 
-测试或门禁新读一个这类文件时，把它加进 `pull_request.paths`。门禁作业的触发过滤自检（`python3 scripts/dotnet_ci.py paths-check`）从下面三处找写成仓库路径的引用，对得上 git 跟踪的文件、而只改该文件的 PR 不触发本工作流即失败：
+测试或门禁新读一个这类文件时，把它加进那一组（写相对本目录的路径）。门禁作业的触发过滤自检（`python3 scripts/dotnet_ci.py paths-check`）读这一组，从下面三处找写成仓库路径的引用，对得上 git 跟踪的文件、而只改该文件的 PR 不跑 dotnet 区域的作业即失败：
 
 - .NET 源码：git 跟踪的 `*.cs` 里的字符串字面量（注释不算）。
   - 含 `/` 或 `\` 的字面量，去掉开头的 `./`、`../` 后按仓库相对路径算：`"docs/x.md"`、`"../docs/x.md"`、`@"..\docs\x.md"`。
@@ -214,13 +215,13 @@ Data 的两项依赖保留现有实现与公开 API；本任务不通过删除�
   - 插值字符串的常量前缀，如 `$"docs/prd/{name}.md"` 算 `docs/prd/` 起头的全部文件；插值洞后以 `/` 起头的段，如 `$"{root}/docs/x.md"`。`+` 拼接同理：`root + "/docs/x.md"`，字面量后面还接 `+` 时按前缀算。
   - 单写一个根目录文件名（`"AGENTS.md"`、`Path.Combine(root, "README.md")`）只在本文件定位了仓库根时算：写到 `"Qian.slnf"`（向上找仓库根），或用到名为 `RepositoryRoot` / `RepoRoot` 的辅助方法。`README.md` 这类常见名字在别处多半指临时目录或包里的文件，如 `Qian.Lifecycle.Tests` 的临时部署仓库。
 - MSBuild 项：`*.csproj`、`*.props`、`*.targets` 里 `Include`、`Update`、`Project` 属性指向的文件，相对本文件所在目录解析，认得通配与 `$(MSBuildThisFileDirectory)`、`$(MSBuildProjectDirectory)`，含其他属性的路径跳过。`.props` / `.targets` 里的相对路径实际按导入它的项目目录求值，这里写路径用 `$(MSBuildThisFileDirectory)` 起头，自检才对得上。
-- 本工作流运行的 Python：`run:` 里 `python3 <脚本>` 直接运行的脚本、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
-  - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（工作流在仓库根运行）。
+- dotnet 区域的作业运行的 Python：`ci.yml` 里这些作业的 `run:` 里 `python3 <脚本>` 直接运行的脚本（在仓库根运行时写成 `_import/qian/<脚本>`）、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
+  - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（作业在 `_import/qian` 下运行这些脚本）。
   - 临时目录等别的锚上拼的路径不算。被测试按名字加载、又被该测试换成临时目录的模块级名字，在函数里不算：`test_check_docs.py` 把 `check_docs.ROOT` 换掉，`check_docs.py` 函数里读的 `docs/` 就是临时目录。
 
-写法约定：读取仓库里的文件，写成仓库根（或上面的锚）后跟常量路径段。自检认不出的写法：路径来自变量、配置、命令行参数或文件内容，目录枚举后按名字筛选（如 `Directory.GetFiles(root)`），以及经外部程序间接读取（测试调用的 qian CLI 是 TypeScript，不在扫描范围）。这些情况改用常量路径，或者手工把读到的文件加进 `pull_request.paths`。各类写法的正反例见 [gates/test_dotnet_ci.py](gates/test_dotnet_ci.py)。
+写法约定：读取仓库里的文件，写成仓库根（或上面的锚）后跟常量路径段。自检认不出的写法：路径来自变量、配置、命令行参数或文件内容，目录枚举后按名字筛选（如 `Directory.GetFiles(root)`），以及经外部程序间接读取（测试调用的 qian CLI 是 TypeScript，不在扫描范围）。这些情况改用常量路径，或者手工把读到的文件加进区域表的那一组。各类写法的正反例见 [gates/test_dotnet_ci.py](gates/test_dotnet_ci.py)。
 
-本机照 CI 只跑一个分片：`python3 scripts/dotnet_ci.py shard a --out /tmp/a.slnf && dotnet test --solution /tmp/a.slnf -c Release --no-build`。仓库暂无自托管 runner，先用 GitHub 托管的 ubuntu-latest（自带 Docker）；自托管 runner 就位后只需改 `runs-on`。
+本机照 CI 只跑一个分片：`python3 scripts/dotnet_ci.py shard a --out /tmp/a.slnf && dotnet test --solution /tmp/a.slnf -c Release --no-build`；仓库根测试的跑法见仓库根 `AGENTS.md` 的「构建与测试」。CI 在 GitHub 托管的 ubuntu-24.04 上跑（自带 Docker），不接自托管 runner（S1-DEC-038 D21）。
 
 包族发布不在 PR 门禁里：[.github/workflows/dotnet-release.yml](../.github/workflows/dotnet-release.yml) 只从 main 手动触发，把全部 Qian 包以同一版本发到 GitHub Packages，核对包源里的版本、仓库关联与可见性，并在干净消费者项目里从该源真实还原、构建、运行（S1-RT-014，ADR-019 D19.7）；做法与失败处理见 [SDK 文档「包族发布」](../packages/Qian.Plugin.Sdk/README.md#包族发布)。
 

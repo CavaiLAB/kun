@@ -1,10 +1,10 @@
 // 版本矩阵（docs-site.md §2b.4，ADR-021 D21.2 第 3 条）：从仓库里的钉版文件产出 docs/start/versions.md，不手改。
-// 来源：Directory.Packages.props（KunVersion）、packages/*/*.csproj（Qian.* 包清单与版本）、global.json（.NET SDK）、
+// 来源：仓库根的 CHANGELOG.md（Kun 最新的发布版）与 global.json（.NET SDK）；本目录的 packages/*/*.csproj（Qian.* 包清单与版本）、
 // package.json（Node、pnpm）、pnpm-workspace.yaml 版本目录里的前端框架包（@cavailab/qian-*）、deploy/baseline.json（K3s）。
 import fs from 'node:fs';
 import path from 'node:path';
 import { readKunVersion } from './kun.ts';
-import { REPO_ROOT, repoFileDate, yamlString, type GeneratedFile } from './repo.ts';
+import { REPO_ROOT, REPOSITORY_ROOT, repoFileDate, yamlString, type GeneratedFile } from './repo.ts';
 
 export const VERSIONS_PAGE = 'start/versions.md';
 
@@ -27,7 +27,7 @@ export interface VersionMatrix {
   pnpm: string;
   /** 部署基线里的 K3s 版本；没有基线文件时为 null。 */
   k3s: string | null;
-  /** 每一项的钉版文件（相对仓库根）。 */
+  /** 每一项的钉版文件：kun 与 dotnet 相对仓库的顶层，其余相对本目录（REPO_ROOT）。 */
   sources: Record<string, string>;
 }
 
@@ -64,8 +64,8 @@ export function readFrontendPackages(repoRoot: string = REPO_ROOT): PackageVersi
   return entries.map((m) => ({ name: m[1] ?? '', version: m[2] ?? null })).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function readVersionMatrix(repoRoot: string = REPO_ROOT): VersionMatrix {
-  const globalJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'global.json'), 'utf8')) as { sdk?: { version?: string; rollForward?: string } };
+export function readVersionMatrix(repoRoot: string = REPO_ROOT, repositoryRoot: string = REPOSITORY_ROOT): VersionMatrix {
+  const globalJson = JSON.parse(fs.readFileSync(path.join(repositoryRoot, 'global.json'), 'utf8')) as { sdk?: { version?: string; rollForward?: string } };
   const rootPkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')) as { packageManager?: string; engines?: { node?: string } };
   const baselineFile = path.join(repoRoot, 'deploy', 'baseline.json');
   const baseline = fs.existsSync(baselineFile) ? (JSON.parse(fs.readFileSync(baselineFile, 'utf8')) as { k3s?: string }) : {};
@@ -73,7 +73,7 @@ export function readVersionMatrix(repoRoot: string = REPO_ROOT): VersionMatrix {
   if (!sdk) throw new Error('global.json 里没有 sdk.version，版本矩阵缺 .NET SDK');
   return {
     docVersion: 'main',
-    kun: readKunVersion(repoRoot),
+    kun: readKunVersion(repositoryRoot),
     qian: readQianPackages(repoRoot),
     frontend: readFrontendPackages(repoRoot),
     dotnetSdk: sdk,
@@ -82,7 +82,7 @@ export function readVersionMatrix(repoRoot: string = REPO_ROOT): VersionMatrix {
     pnpm: (rootPkg.packageManager ?? '').replace(/^pnpm@/, ''),
     k3s: baseline.k3s ?? null,
     sources: {
-      kun: 'Directory.Packages.props',
+      kun: 'CHANGELOG.md',
       qian: 'packages/*/*.csproj',
       frontend: 'pnpm-workspace.yaml',
       dotnet: 'global.json',
@@ -120,9 +120,9 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '',
     '> 本页由 `website/scripts/build-versions.ts` 从仓库钉版文件生成（[ADR-021](/design/adr/adr-021-product-family-structure) D21.2 第 3 条），不要手改；改版本去改下表列出的源文件。',
     '',
-    '「哪个 Qian 配哪个 Kun」只看这一张表：Kun 的版本在 `Directory.Packages.props` 的 `KunVersion` 写一次，代码引用的 `Kun.*` 包、[Kun 框架](/sdk/kun/)小节与 [Kun API 参考](/sdk/api/kun/)都按它锁定。',
+    'Kun 与 `Qian.*` 在同一个仓库里，`Qian.*` 直接引用仓库根 `src/` 下的 Kun 源码，不另钉 Kun 的版本。表里的 Kun 是它最新的发布版，取仓库根 `CHANGELOG.md` 里最新的发布段；[Kun 框架](/sdk/kun/)小节与 [Kun API 参考](/sdk/api/kun/)都按它镜像。',
     '',
-    'Kun 的同日修复版 `-hotfix.N` 是推送 nuget.org 的正式修复，但 NuGet 按预发布排序；`Kun.*` 一律以 `[$(KunVersion)]` 精确钉定，不依赖最新稳定版排序（ADR-021 D21.3 补注）。',
+    'Kun 的同日修复版 `-hotfix.N` 是正式修复：最新的发布版按 `CHANGELOG.md` 里的先后算，不按 NuGet 的预发布排序。',
     '',
     '| 文档版本 | Kun | Qian.* | @cavailab/qian-* | .NET SDK | Node / pnpm | K3s |',
     '|---|---|---|---|---|---|---|',
@@ -134,10 +134,10 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '',
     '| 项 | 钉版文件 | 说明 |',
     '|---|---|---|',
-    `| Kun | \`${m.sources.kun}\` | \`<KunVersion>\`，CalVer；升级 Kun 只改这一处（ADR-021 D21.3） |`,
+    `| Kun | 仓库根的 \`${m.sources.kun}\` | 最新的发布段 \`## [版本] - 日期\`，CalVer；发版脚本 \`scripts/release.sh\` 写入，同一提交打 \`v<版本>\` 标签 |`,
     `| Qian.* | \`${m.sources.qian}\` | 写了 \`<IsPackable>true</IsPackable>\` 的项目；版本随首个包族发布钉在 \`Directory.Build.props\` |`,
     `| @cavailab/qian-* | \`${m.sources.frontend}\` | 版本目录（catalog）里的前端框架包，写精确版本；源码在 CavaiLAB/qian |`,
-    `| .NET SDK | \`${m.sources.dotnet}\` | \`sdk.version\` 与 \`rollForward\` |`,
+    `| .NET SDK | 仓库根的 \`${m.sources.dotnet}\` | \`sdk.version\` 与 \`rollForward\` |`,
     `| Node / pnpm | \`${m.sources.node}\` | \`engines.node\` 与 \`packageManager\` |`,
     `| K3s | \`${m.sources.k3s}\` | 部署基线（S1-DEP-001）；集群本身在部署仓库 \`idadawn/iclaw-deploy\` |`,
     '',
@@ -153,12 +153,16 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
 }
 
 /** 生成 docs/start/versions.md；updated 取各钉版文件中最新的提交日期。 */
-export function buildVersions(repoRoot: string = REPO_ROOT): GeneratedFile {
-  const matrix = readVersionMatrix(repoRoot);
-  const updated = ['Directory.Packages.props', 'Directory.Build.props', 'global.json', 'package.json', 'pnpm-workspace.yaml', 'deploy/baseline.json']
-    .filter((rel) => fs.existsSync(path.join(repoRoot, rel)))
-    .map((rel) => repoFileDate(rel, repoRoot))
+export function buildVersions(repoRoot: string = REPO_ROOT, repositoryRoot: string = REPOSITORY_ROOT): GeneratedFile {
+  const matrix = readVersionMatrix(repoRoot, repositoryRoot);
+  const sources: [string, string][] = [
+    ...['CHANGELOG.md', 'global.json'].map((rel): [string, string] => [repositoryRoot, rel]),
+    ...['Directory.Build.props', 'package.json', 'pnpm-workspace.yaml', 'deploy/baseline.json'].map((rel): [string, string] => [repoRoot, rel]),
+  ];
+  const updated = sources
+    .filter(([root, rel]) => fs.existsSync(path.join(root, rel)))
+    .map(([root, rel]) => repoFileDate(rel, root))
     .sort()
-    .at(-1) ?? repoFileDate('global.json', repoRoot);
+    .at(-1) ?? repoFileDate('global.json', repositoryRoot);
   return { path: VERSIONS_PAGE, content: renderVersionsPage(matrix, updated) };
 }

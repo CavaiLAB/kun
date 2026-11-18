@@ -40,7 +40,7 @@ dotnet test --solution Qian.slnf -c Release --no-build
 - 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Qian.Capabilities.Tests` 与 `Qian.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
   - `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
   - `python3 scripts/prepare_contract_tools.py --destination <目录>`，再导出 `QIAN_BUF_PATH=<目录>/buf` 与 `QIAN_OASDIFF_PATH=<目录>/oasdiff`：能力契约的真实兼容检查器，缺失时相关用例按设计拒绝跳过。
-- `dotnet test` 走 Microsoft Testing Platform（[global.json](../global.json) 的 `test.runner`）；xUnit v3 测试项目是可执行程序，csproj 里写 `<OutputType>Exe</OutputType>`。
+- `dotnet test` 走 Microsoft Testing Platform（仓库根 [global.json](../../../global.json) 的 `test.runner`）；xUnit v3 测试项目是可执行程序，csproj 里写 `<OutputType>Exe</OutputType>`。
 - 单跑一个测试项目用 `dotnet run --project tests/<X>.Tests -c Release`；`dotnet test <项目路径>` 或 `dotnet test --project …` 在部分机器上会报「运行了零个测试、退出码 5」，以 `--solution` 或 `dotnet run` 的结果为准。
 - CLI 的私有源 E2E（`packages/qian-cli/test/private-feed.e2e.mjs`）不随 `pnpm --filter qian test` 运行，单独用 `QIAN_FEED_TOKEN=<读包令牌> pnpm --filter qian test:feed`；本机可取 `gh auth token`（需 `read:packages`）。令牌只放环境变量，缺失即失败、不跳过。网络很慢时可另设 `QIAN_PACKAGE_TIMEOUT`（整数秒，缺省 600）放宽 CLI 包管理器操作的超时。
 - 集成测试需要 Docker。本机没有 Docker 时集成测试**跳过**；在 CI（`CI=true`）或设置了 `QIAN_REQUIRE_DOCKER=1` 时**直接失败**，不会悄悄跳过（C10：集成测试必须跑）。
@@ -211,13 +211,13 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 ## 旧 Kun API 门禁（S1-KUN-006、S1-KUN-004）
 
-仓库根的 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030。作用域按档位（S1-KUN-020，仓库根的 `Directory.Build.targets`）：平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`）接入；过渡期本目录下的项目全部接入，去内核档的包也在内，各域批次把包搬出本目录时再按归属收窄；仓库根的 Kun 项目不接，被禁的类型就定义在那里。下面几道分析器门禁（QIAN0002–QIAN0006）的作用域相同。`tests/gates/bannedapi` 的负例引用已发布 Kun 2026.10.9 的旧仓储／存储接口，正例引用新存储包，避免凭虚构类型验证门禁。Kun 2026.10.9 起旧接口自带 `KUNLEGACY001` Obsolete，负例会同时报 KUNLEGACY001 与 RS0030 / QIAN0002，门禁只断言后两者，叠加后判定不变（S1-KUN-009）。
+仓库根的 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030。作用域按档位（S1-KUN-020，仓库根的 `Directory.Build.targets`）：平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`）接入；过渡期本目录下的项目全部接入，去内核档的包也在内，各域批次把包搬出本目录时再按归属收窄；仓库根的 Kun 项目不接，被禁的类型就定义在那里。下面几道分析器门禁（QIAN0002–QIAN0006）的作用域相同。`tests/gates/bannedapi` 的负例项目引用仓库根 `src/` 下 Kun 的旧仓储／存储接口，正例引用新存储项目，避免凭虚构类型验证门禁。Kun 2026.10.9 起旧接口自带 `KUNLEGACY001` Obsolete，负例会同时报 KUNLEGACY001 与 RS0030 / QIAN0002，门禁只断言后两者，叠加后判定不变（S1-KUN-009）。
 
 命名空间以源码为准：旧存储 `Kun.Storage` 包的接口是 `Kun.Storage.Abstractions.IFileStorage`；新 `Kun.Storage.Abstractions` 包的接口是 `Kun.Storage.IFileStorage`。标准分析器覆盖符号使用（例如 typeof、调用、构造）；`tools/Qian.Build.Analyzers` 使用同一清单补齐未使用的参数、字段、返回类型等声明，并发出 QIAN0002。负例包含纯参数声明，不依赖上游新包的 Obsolete 标记。
 
-执行 `python3 -m unittest discover -s tests/gates`，同时验证 PublicAPI 与旧 API 的正反例（依赖门禁的自测在仓库根的 `tests/gates/`）。后续发布 Kun 新包时仍只通过 `Directory.Packages.props` 的 KunVersion 升级；此任务不伪装成已经消费上游新实现。
+执行 `python3 -m unittest discover -s tests/gates`，同时验证 PublicAPI 与旧 API 的正反例（依赖门禁的自测在仓库根的 `tests/gates/`）。样例按项目引用 Kun 源码，Kun 的改动合入即进入这些正反例。
 
-S1-KUN-004 补充旧 Identity / Security S2S 签发器、旧注册方法及旧校验/JWKS 子模块的禁用清单。新增正反例使用当前 KunVersion 锁定的真实发布包：两套旧签发器和旧工厂方法产生 RS0030，网关 S2sTokenIssuer 正常编译。负例主动关闭 TreatWarningsAsErrors 仍无法绕过；上游后续版本附带的 KUNS2S001 也被单列为错误。这里验证的是编译边界，不代表已发布或消费尚未发布的上游改动。
+S1-KUN-004 补充旧 Identity / Security S2S 签发器、旧注册方法及旧校验/JWKS 子模块的禁用清单。新增正反例引用仓库根 `src/` 下真实的 Kun 项目：两套旧签发器和旧工厂方法产生 RS0030，网关 S2sTokenIssuer 正常编译。负例主动关闭 TreatWarningsAsErrors 仍无法绕过；上游后续版本附带的 KUNS2S001 也被单列为错误。这里验证的是编译边界，不代表已发布或消费尚未发布的上游改动。
 
 S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` 与挂它的 `AddKunServiceAuth`（把入站 Authorization 原样转给下一跳）。S2S 令牌按跳签发、`aud` 只绑一个下游，透传在编译期就拒绝；负例 `LegacyS2sPropagation` 引用该处理器，产生 RS0030。
 

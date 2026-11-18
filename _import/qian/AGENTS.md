@@ -47,8 +47,8 @@
 - Markdown 表格单元格里的反引号内若有竖线，写成 `\|`。
 - 组件设计先回答四个问题：文件夹里有哪些表面、装进哪个 profile、属于哪个 seam 的哪个角色、能否 `qian add`。凡是把能力绑死在特权内核、DI 扩展方法或数据库开关上的写法都是倒退。
 - 术语：平台插件（不是「系统插件」）、运行时 `Qian.Runtime`（不是「内核」）、profile（不是「可部署单元」）、`.qian-plugin/plugin.json`（不是 `qian-plugin.yaml`）、租户 scope patch（不是「租户开关」）。
-- 口径（ADR-023 D23.6，取代 ADR-021 的三层口径）：Kun 是框架，内部分内核档与平台档；qian 是前端层（原名 yue）；「Qian」不再是平台层的名字。新写定位性的表述按这个口径，不再写「Qian 平台基于 Kun 构建」；描述现有代码时照实写现在的包名与目录。总名 Yi 之下怎么写待 S1-DEC-034。Kun 的代码与文档改动去 kun 仓库提 PR，Qian 任务里只回链；文档站的「Kun 框架」小节（`website/docs/sdk/kun/`）是按 `KunVersion` 锁定版本生成的镜像，不要手改（唯一手写页 `with-qian.mdx` 除外）。
-- Kun 的引用：构建并轨（S1-KUN-020）之后，`_import/qian/` 下的项目改为项目引用仓库根 `src/` 下的 Kun 源码，不再按包引用 Kun，也不再有 `Kun.*` 的版本条目。`Directory.Packages.props` 里留的 `<KunVersion>` 只给文档站（「Kun 框架」小节、Kun API 参考、版本矩阵）与 `scripts/check_docs.py` 读取，构建与镜像构建证据都不读它，由 `tests/gates/test_build_merge.py` 保证；原来的版本单点写法见 ADR-021 D21.3（已被 ADR-023 D23.12 取代）。包源配置在仓库根的 `NuGet.config`，只有 nuget.org。
+- 口径（ADR-023 D23.6，取代 ADR-021 的三层口径）：Kun 是框架，内部分内核档与平台档；qian 是前端层（原名 yue）；「Qian」不再是平台层的名字。新写定位性的表述按这个口径，不再写「Qian 平台基于 Kun 构建」；描述现有代码时照实写现在的包名与目录。总名 Yi 之下怎么写待 S1-DEC-034。Kun 的代码与文档改动去 kun 仓库提 PR，Qian 任务里只回链；文档站的「Kun 框架」小节（`website/docs/sdk/kun/`）是按 Kun 最新的发布版（仓库根 `CHANGELOG.md` 里最新的发布段）生成的镜像，不要手改（唯一手写页 `with-qian.mdx` 除外）。
+- Kun 的引用：构建并轨（S1-KUN-020）之后，`_import/qian/` 下的项目改为项目引用仓库根 `src/` 下的 Kun 源码，不再按包引用 Kun，也不再有 `Kun.*` 的版本条目。原来留给文档站读的 `<KunVersion>` 也已删除：文档站（「Kun 框架」小节、Kun API 参考、版本矩阵）改读仓库根 `CHANGELOG.md` 里 Kun 最新的发布版，`Directory.Packages.props` 只剩导入根上那份，`tests/gates/test_build_merge.py` 保证没有 MSBuild 文件再定义或引用 `KunVersion`；原来的版本单点写法见 ADR-021 D21.3（已被 ADR-023 D23.12 取代）。包源配置在仓库根的 `NuGet.config`，只有 nuget.org。
 - 代码部分遵循 ADR-019：每个有代码的组件发 `Qian.<X>.Abstractions` + Provider 包；组件库只依赖 `Qian.Runtime`，不依赖 `qian.registry` / `qian.lifecycle`。
 - 三道 .NET 门禁会自动拦截（细节见 `tests/README.md`，都在仓库根的 `Directory.Build.targets` 与 `scripts/` 下，不看包名）：
   - 可打包的项目（写了 `<IsPackable>true</IsPackable>`）都必须带 `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`，新公共 API 未登记即编译失败；
@@ -76,13 +76,13 @@ deploy/      开发期工具的 K3s 清单：pm-board/（看板）、docs-site/�
              （文档门禁、任务校验与看板生成；dotnet 构建、门禁与测试；文档站构建与发布；本机租户运营手测环境冒烟等），
              在 _import/qian/ 下运行；文档站的 PR 预览、镜像供应链自检与 dotnet-release 发布工作流没有接（见根 AGENTS.md 与迁移执行计划）。
              yue 八项门禁与 TS 运行时、插件开发包的工作流随前端框架迁到 CavaiLAB/qian；外壳与界面包的门禁在仓库根的 qian-ui.yml（没有原件）
-Qian.slnf、global.json、Directory.Build.props / .targets、Directory.Packages.props
+Qian.slnf、Directory.Build.props / .targets、Directory.Packages.props
              .NET 构建基线：net10.0、警告即错误、中央包版本。目标框架、质量门槛、中央包版本、NuGet.config、
              公共 API 门禁、AOT 守卫、禁用符号清单与分析器作用域已并到 CavaiLAB/kun 仓库根（S1-KUN-020），
              这里的 Directory.Build.props / .targets 与 Directory.Packages.props 先导入根上的，只留本目录的打包设置、
-             发版脚本读的包判定、网关引用的处理与给文档站读的 KunVersion。解决方案是仓库根的 Kun.slnx，
+             发版脚本读的包判定与网关引用的处理。解决方案是仓库根的 Kun.slnx，
              Qian.slnf 是它的筛选文件：列出原 Qian 的项目，也是脚本与测试定位本目录的锚，新加项目要两处都加。
-             global.json 暂留，内容与仓库根的相同
+             SDK 版本只钉在仓库根的 global.json，本目录没有另一份
 ```
 
 代码目录 `packages/` 已建立（一个包一个目录：`packages/<包名>/<包名>.csproj`，测试在 `tests/<包名>.Tests/`）；`plugins/`、`profiles/`、`samples/` 在 S1 第一波任务中建立，布局以 `docs/prd/specs/component-model.md` §2 与 §7 为准。

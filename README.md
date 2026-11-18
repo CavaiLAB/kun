@@ -19,7 +19,7 @@ Kun 由两部分归并而成：
 
 两者合成一个框架、一个包族 `Kun.*`、一条日历版本线。合并不是原样搬运：两边重叠的职责合成一份。
 
-在平台的理念「三元全智生命体」里，Kun 是「三元」的后端一半，也就是躯体。它为智能体提供身份与能力目录；模型服务也由它提供（已定）；Agent 之间的协同与人审提议也由它承担。它不写智能体的推理循环，那是 [SanYuanAgent](https://github.com/CavaiLAB/sanyuan-agent) 的事。
+在平台的理念「三元全智生命体」里，Kun 是「三元」的后端一半，也就是躯体。它为智能体提供身份与能力目录；模型服务也由它提供（已定）；Agent 之间的协同与人审提议也由它承担。人审的规则已定：发给 Agent 的内容、Agent 发出去的内容都要由人审核，起步出站、入站两道都必审，见平台总览的 [Agent 协同](https://github.com/CavaiLAB/jiangxin/blob/main/docs/04-agent-collaboration.md)第 4.2 节。它不写智能体的推理循环，那是 [SanYuanAgent](https://github.com/CavaiLAB/sanyuan-agent) 的事。
 
 ## 两档
 
@@ -48,7 +48,7 @@ Kun 由两部分归并而成：
 | 调度 | 定时与后台作业 |
 | 能力目录 | 每项能力登记输入输出 Schema、副作用等级、所需权限、是否对 Agent 暴露 |
 | 缓存与可观测 | 统一缓存；追踪、指标、日志 |
-| 对智能体的支撑 | `agent` 主体与委托链、Agent 归属与目录、协同信箱与人审、把能力目录暴露成工具；接住从设备上连进来的 Agent。大部分是规划；协同服务放在 Kun 是提议。见[对智能体的支撑](docs/agent-support.md) |
+| 对智能体的支撑 | `agent` 主体与委托链、Agent 归属与目录、协同信箱与人审、把能力目录暴露成工具；接住从设备上连进来的 Agent。大部分是规划：路线把 `agent` 主体与能力目录给 Agent 用排在里程碑 M1，协同与人审排在 M7，设备接入排在 M8（已定）；协同服务放在 Kun 是提议。见[对智能体的支撑](docs/agent-support.md) |
 | 模型服务 | 模型目录、调用入口、租户路由、配额与计量。由 Kun 提供是已定的，怎么做是规划；模型请求的转发仍由模型网关承担。见[对智能体的支撑](docs/agent-support.md) |
 
 ## 设计原则
@@ -63,7 +63,7 @@ Kun 由两部分归并而成：
 
 ## 已定与待定
 
-已定（产品负责人，2026-11-17）：
+已定（产品负责人，2026-11-17 起）：
 
 - 合并蓝图已接受，按阶段落地；两个原仓库 2026-11-17 冻结并归档为只读。
 - `_import/qian/` 下的平台后端并入 Kun；包名并为 `Kun.*`，一个包族，一条日历版本线；合并时归并重叠；Kun 重新定位，表述见上。
@@ -77,6 +77,7 @@ Kun 由两部分归并而成：
 - 合并后的 Kun 放在本仓库：Kun 框架与平台后端都迁入这里，取代蓝图里写的目标仓库（S1-DEC-038 D17）。先建仓库写文档，代码已带历史导入（B1，CavaiLAB/kun#3）。
 - 前端框架库迁往 `CavaiLAB/qian`，只迁框架库（S1-DEC-038 D18）：TypeScript 运行时与前端插件开发包随前端仓库；外壳应用与外壳工具包、三个组件界面包、参考应用的远程模块、文档站、命令行与声明式表面的校验库留在本仓库。
 - 模型服务由 Kun 提供。SanYuanAgent 是独立运行的 SDK，每个端都要用到它，包括机器人这类边缘设备；机器人本地可能还有小模型。
+- 2026-11-19 的平台级裁定（P22–P33，全文见平台总览的 [2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md)）里与 Kun 直接相关的：应用之间可以互相通讯，缺省是目录里看得到、调用与订阅按声明经批准放行（P26）；历史系统经连接器接进企业级框架，在企业内网的，连接器的执行部分装在内网、只向外连（P27）；每个 Agent 发出去的内容与发给 Agent 的内容都要人审，起步两道都必审（P28）；加一种 Agent 一级的范围（P29）；组件里新增「知识库」内容（P30）；路线重排，`agent` 主体在里程碑 M1 启用（P31）；交付给客户的可以是多租户的版本，也可以是单租户的版本（P33）。与过渡目录里决策记录的出入登记在 S1-DEC-038 D22–D26。
 
 待定：
 
@@ -91,6 +92,6 @@ Kun 由两部分归并而成：
 - [对智能体的支撑：Agent 接入与模型服务](docs/agent-support.md)：怎么接住集群里和设备上的 Agent，模型服务怎么提供，设备上的本机模型怎么算。
 - [迁移与归并](docs/migration.md)：两边各有什么，哪些已定、哪些待定，分几步并。
 - Kun 框架的文档（多数是英文）：[入门](docs/getting-started.md)、[模块地图](docs/design/module-map.md)、[设计白皮书](docs/design/whitepaper.md)；指南、安全与设计说明分别在 `docs/guides/`、`docs/security/`、`docs/design/`，Kun 框架的决策记录在 `docs/adr/kun/`，引用时写「Kun ADR-0xx」。
-- [平台总览](https://github.com/CavaiLAB/jiangxin)：理念、总体架构、插件模型、Agent 协同、路线。
+- [平台总览](https://github.com/CavaiLAB/jiangxin)：理念、角色与产品形态、总体架构、插件模型、应用互通、历史系统接入、Agent 协同、路线、平台级裁定。
 
 合并蓝图的全文是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受；裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。详细的设计文档（决策记录、组件模型规格、各能力域的规格）：平台部分的随代码导入了过渡目录 `_import/qian/docs/`；Kun 框架的已整理进 `docs/`，见上面的列表。

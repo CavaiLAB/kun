@@ -81,7 +81,7 @@ Registry 条目整体卸载时，宿主上下文工厂的失效也映射为 NOT_
 
 ## 包族发布
 
-`Qian.slnx` 里 `IsPackable=true` 且包名以 `Qian.` 开头的全部项目组成包族（与依赖图门禁同一口径），按 ADR-019 D19.7 以同一 SemVer 版本发到 GitHub Packages 的 NuGet 源 `https://nuget.pkg.github.com/idadawn/index.json`。GitHub 的 NuGet 包随关联仓库定可见性：`idadawn/qian` 是公开仓库，包随之公开可见（公开后不能改回私有），从该源安装仍需 GitHub 令牌；首个版本 0.1.0 发布时出现这一情况，产品负责人 2026-10-15 选择保留公开，与 ADR-019「S1 私有源」的出入记在 S1-RT-014 日志。发布只运行 main 上的 `dotnet-release` 工作流（手动触发，输入版本号），由 [scripts/dotnet_release.py](../../scripts/dotnet_release.py) 逐步核对：
+`Qian.slnf` 里 `IsPackable=true` 且包名以 `Qian.` 开头的全部项目组成包族（与依赖图门禁同一口径），按 ADR-019 D19.7 以同一 SemVer 版本发到 GitHub Packages 的 NuGet 源 `https://nuget.pkg.github.com/idadawn/index.json`。GitHub 的 NuGet 包随关联仓库定可见性：`idadawn/qian` 是公开仓库，包随之公开可见（公开后不能改回私有），从该源安装仍需 GitHub 令牌；首个版本 0.1.0 发布时出现这一情况，产品负责人 2026-10-15 选择保留公开，与 ADR-019「S1 私有源」的出入记在 S1-RT-014 日志。发布只运行 main 上的 `dotnet-release` 工作流（手动触发，输入版本号），由 [scripts/dotnet_release.py](../../scripts/dotnet_release.py) 逐步核对：
 
 1. 本提交的 dotnet 工作流已在 main 通过；版本号是不带 v 前缀与构建元数据的 SemVer 2.0，包族里任何包在包源里都还没有这个版本。
 2. 带版本号打包后核对制品：包族齐全、各一个、版本一致，包族内依赖的下限钉在同一版本，源生成器包只在 `analyzers/dotnet/cs` 下带自身分析器且是开发依赖，许可证与仓库地址齐全。
@@ -91,7 +91,7 @@ Registry 条目整体卸载时，宿主上下文工厂的失效也映射为 NOT_
 推送中途失败会在包源里留下部分包；同一版本不能再发，换新版本号重新触发。本机可用同一脚本预检（`--no-build` 只验打包形态，程序集版本仍是本地构建的版本）：
 
 ```bash
-dotnet pack Qian.slnx -c Release --no-build -p:Version=0.1.0-local.1 -o /tmp/qian-nupkgs
+dotnet pack Qian.slnf -c Release --no-build -p:Version=0.1.0-local.1 -o /tmp/qian-nupkgs
 python3 scripts/dotnet_release.py verify-packages --version 0.1.0-local.1 --dir /tmp/qian-nupkgs
 python3 scripts/dotnet_release.py verify-consumer --version 0.1.0-local.1 --source /tmp/qian-nupkgs
 ```
@@ -114,7 +114,7 @@ python3 scripts/dotnet_release.py verify-consumer --version 0.1.0-local.1 --sour
 
 专项覆盖实际编译生成与 JsonTypeInfo、审计默认值、元数据副本、错误声明诊断、代码删除与重复能力、服务注册不可静态证明时拒绝、唯一清单同步/漂移以及手写文件和路径保护。全仓代码组件 check 与实现构件分类已接入 CI；Qian.Data.Tests 另按仓库清单的 runtime.entry 装载真实 Provider（不直接构造具体类型），核对清单派生字段与生成元数据一致，挂载后的会话默认带租户填充、租户过滤与 RLS。按 S1-DEC-018，S1-RT-011 从私有源真实执行 `qian add data` 并运行 Provider 后，Data、Events 与 Config 已通过对应真实安装门并移除 x-skeleton；其余组件补齐元数据后继续保留原门状态。
 
-SDK 自身的依赖边界由 CI 的依赖图门禁守住：`Qian.Plugin.Sdk`、`.AspNetCore`、`.Generators` 的完整传递依赖里不能出现任何 Provider 包与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，门禁自测另断言这三个包在 `Qian.slnx` 的检查范围内（见 [tests/README.md](../../tests/README.md) 4.3）。
+SDK 自身的依赖边界由 CI 的依赖图门禁守住：`Qian.Plugin.Sdk`、`.AspNetCore`、`.Generators` 的完整传递依赖里不能出现任何 Provider 包与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，门禁自测另断言这三个包在 `Qian.slnf` 的检查范围内（见 [tests/README.md](../../tests/README.md) 4.3）。
 
 真实 CRM 已验证创建、同事务 Outbox/审计、错误回滚、幂等、并发租户与锁等待时卸载取消；列表与详情也通过同一真实管道，分别覆盖默认不审计和显式审计。查询会拒绝已跟踪的业务变更，且不开放 Outbox 写入端口。按 R94 推迟到 S2 的是 IQianPlugin 基类、客户端门面、生命周期钩子基类与 DI 注册代码生成；S1 以接口和 ctx.Inject 为准。QianJob 已随 S1-SCH-001 交付：在已有 Capability 的 partial 请求上标注 QianJob("code")，Apply 用 ProvideJob 同时登记真实能力与 local 作业目录；生成 metadata/jobs.json，目录同步、归属与手改保护沿用同一工具。调度及取消语义见 [Scheduler 主文档](../Qian.Scheduler/README.md)。UI/低代码与 Wasm 表面按各自 S2 规划，代码热装卸尚未承诺；动态注册不会自动变成清单模板。具名 seam 已由 Contributes 的独立声明覆盖，权限与事件已派生到各自 metadata 文件。应用/会话执行边界与完整平台验收继续按各自任务推进；这些局部验收不代替 QA-002。
 

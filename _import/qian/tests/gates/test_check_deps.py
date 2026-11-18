@@ -261,15 +261,15 @@ class RealSdkClosureTests(unittest.TestCase):
     }
 
     def test_real_sdk_closure_has_no_provider_or_platform_plugin(self):
-        solution = set(check_deps.solution_projects(ROOT / "Qian.slnx"))
+        solution = set(check_deps.solution_projects(ROOT / "Qian.slnf"))
         for package_id, relative in self.SDK_PROJECTS.items():
             with self.subTest(package=package_id):
                 project = (ROOT / relative).resolve()
-                self.assertIn(project, solution, "SDK 包必须在 Qian.slnx 里，CI 的依赖图门禁才会检查它")
+                self.assertIn(project, solution, "SDK 包必须在 Qian.slnf 里，CI 的依赖图门禁才会检查它")
                 props = check_deps._properties(project)
                 self.assertEqual(("true", package_id), (props.get("QianIsPackage"), props.get("QianPackageId")))
                 assets_file = Path(props["ProjectAssetsFile"])
-                self.assertTrue(assets_file.exists(), f"缺少 {assets_file}：先 dotnet restore Qian.slnx")
+                self.assertTrue(assets_file.exists(), f"缺少 {assets_file}：先 dotnet restore Qian.slnf")
                 assets = check_deps._load(assets_file)
                 closure = {key.split("/", 1)[0] for framework, entries in assets["targets"].items() if "/" not in framework for key in entries}
                 roles = {name: check_deps.role_of(name) for name in closure}
@@ -290,11 +290,11 @@ class RealConnectorClosureTests(unittest.TestCase):
 
     def test_oidc_connector_does_not_depend_on_identity_server(self):
         project = (ROOT / "packages/Qian.Identity.Connector.Oidc/Qian.Identity.Connector.Oidc.csproj").resolve()
-        self.assertIn(project, set(check_deps.solution_projects(ROOT / "Qian.slnx")), "连接器包必须在 Qian.slnx 里，CI 的依赖图门禁才会检查它")
+        self.assertIn(project, set(check_deps.solution_projects(ROOT / "Qian.slnf")), "连接器包必须在 Qian.slnf 里，CI 的依赖图门禁才会检查它")
         props = check_deps._properties(project)
         self.assertEqual(("true", "Qian.Identity.Connector.Oidc"), (props.get("QianIsPackage"), props.get("QianPackageId")))
         assets_file = Path(props["ProjectAssetsFile"])
-        self.assertTrue(assets_file.exists(), f"缺少 {assets_file}：先 dotnet restore Qian.slnx")
+        self.assertTrue(assets_file.exists(), f"缺少 {assets_file}：先 dotnet restore Qian.slnf")
         assets = check_deps._load(assets_file)
         closure = {key.split("/", 1)[0] for framework, entries in assets["targets"].items() if "/" not in framework for key in entries}
         self.assertNotIn("qian.identity.server", {name.lower() for name in closure})

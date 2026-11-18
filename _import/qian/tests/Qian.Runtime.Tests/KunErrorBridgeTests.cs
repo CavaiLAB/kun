@@ -33,30 +33,28 @@ public sealed class KunErrorBridgeTests
     }
 
     [Fact]
-    public void Runtime_dependency_boundary_and_Kun_versions_are_fixed()
+    public void Runtime_depends_on_Kun_only_through_Core_and_Mediator_projects()
     {
+        // 原 Qian 改为项目引用 Kun 源码（S1-KUN-020）：Qian.Runtime 对 Kun 只依赖仓库 src/ 下的 Kun.Core 与 Kun.Mediator，
+        // 资产文件里的 Kun.* 全是 project 类型。不再按包引用 Kun，也就不再用 KunVersion 钉版（见 tests/gates/test_build_merge.py）。
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         Assert.NotNull(root);
-        var project = XDocument.Load(Path.Combine(root.FullName, "packages/Qian.Runtime/Qian.Runtime.csproj"));
-        Assert.Equal(["Kun.Core", "Kun.Mediator", "Microsoft.Extensions.DependencyInjection"],
-            project.Descendants("PackageReference").Select(e => (string)e.Attribute("Include")!).Order(StringComparer.Ordinal));
-        Assert.EndsWith("Qian.Runtime.Errors.csproj", Assert.Single(project.Descendants("ProjectReference")).Attribute("Include")!.Value, StringComparison.Ordinal);
-        var versions = XDocument.Load(Path.Combine(root.FullName, "Directory.Packages.props"));
-        Assert.Single(versions.Descendants("KunVersion"));
-        Assert.All(versions.Descendants("PackageVersion").Where(e => e.Attribute("Include")!.Value.StartsWith("Kun.", StringComparison.Ordinal)),
-            package => Assert.Equal("[$(KunVersion)]", package.Attribute("Version")!.Value));
-        using var assets = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root.FullName, "packages/Qian.Runtime/obj/project.assets.json")));
-        var kunVersion = versions.Descendants("KunVersion").Single().Value;
-        Assert.All(assets.RootElement.GetProperty("libraries").EnumerateObject().Where(p => p.Name.StartsWith("Kun.", StringComparison.Ordinal)), package =>
-        {
-            Assert.Equal(kunVersion, package.Name.Split('/')[1]);
-            Assert.Equal("package", package.Value.GetProperty("type").GetString());
-        });
-        Assert.DoesNotContain(assets.RootElement.GetProperty("libraries").EnumerateObject(), p => p.Name.StartsWith("Kun.Validation/", StringComparison.Ordinal));
-        var nuget = XDocument.Load(Path.Combine(root.FullName, "NuGet.config"));
-        Assert.Equal("https://api.nuget.org/v3/index.json", Assert.Single(nuget.Descendants("packageSources").Elements("add")).Attribute("value")!.Value);
-        Assert.Contains(nuget.Descendants("packageSource").Single(e => e.Attribute("key")!.Value == "nuget.org").Elements("package"), p => p.Attribute("pattern")!.Value == "Kun.*");
+        var repository = Path.GetFullPath(Path.Combine(root.FullName, "..", ".."));
+        var directory = Path.Combine(root.FullName, "packages/Qian.Runtime");
+        var project = XDocument.Load(Path.Combine(directory, "Qian.Runtime.csproj"));
+        Assert.Equal(["Microsoft.Extensions.DependencyInjection"],
+            project.Descendants("PackageReference").Select(e => (string)e.Attribute("Include")!));
+        Assert.Equal(["_import/qian/packages/Qian.Runtime.Errors/Qian.Runtime.Errors.csproj", "src/Kun.Core/Kun.Core.csproj", "src/Kun.Mediator/Kun.Mediator.csproj"],
+            project.Descendants("ProjectReference")
+                .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
+                .Order(StringComparer.Ordinal));
+        using var assets = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(directory, "obj/project.assets.json")));
+        var kun = assets.RootElement.GetProperty("libraries").EnumerateObject().Where(p => p.Name.StartsWith("Kun.", StringComparison.Ordinal)).ToArray();
+        Assert.Contains(kun, p => p.Name.StartsWith("Kun.Core/", StringComparison.Ordinal));
+        Assert.Contains(kun, p => p.Name.StartsWith("Kun.Mediator/", StringComparison.Ordinal));
+        Assert.All(kun, library => Assert.Equal("project", library.Value.GetProperty("type").GetString()));
+        Assert.DoesNotContain(kun, p => p.Name.StartsWith("Kun.Validation/", StringComparison.Ordinal));
     }
 
     private sealed class SampleDomainException() : DomainException("private.domain", "private message");

@@ -5,8 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" />
-    <PackageReference Include="Kun.Authorization" />
-    <PackageReference Include="Kun.EventBus.Abstractions" />
+    <ProjectReference Include="../../../../src/Kun.Authorization/Kun.Authorization.csproj" />
+    <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="Qian.Plugin.Sdk" /><InternalsVisibleTo Include="Qian.Tenancy" /><InternalsVisibleTo Include="Qian.Authz" /></ItemGroup>
   <ItemGroup>

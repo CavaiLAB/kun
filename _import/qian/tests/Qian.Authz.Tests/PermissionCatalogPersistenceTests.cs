@@ -26,7 +26,7 @@ public sealed partial class PermissionCatalogPersistenceTests(PostgresFixture po
     private static PermissionCatalog Catalog(string version = "1.0.0", string risk = "high")
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         var directory = Path.Combine(root!.FullName, "samples/Qian.Sample.Crm/metadata");
         var permissions = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(directory, "permissions.json")))!;
         var export = permissions.AsArray().Single(resource => resource!["actions"]!.AsArray().Any(action => action!.GetValue<string>() == "export"))!;

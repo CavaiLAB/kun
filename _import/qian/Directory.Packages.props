@@ -1,43 +1,19 @@
 <Project>
 
   <!--
-    中央包版本已并到仓库根的 Directory.Packages.props（S1-KUN-020），这里先导入它。
-    本文件只留原 Qian 按包引用 Kun 时的版本单点；改为项目引用之后（S1-KUN-020 的下一步）删除这些条目。
+    中央包版本只有仓库根上那一份（S1-KUN-020），这里只导入它。
+    原 Qian 已改为项目引用 Kun 源码，不再按包引用 Kun，本文件也就不再有 Kun.* 的版本条目。
   -->
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Packages.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <!--
-    Kun 版本单点（ADR-021 D21.3）：全部 Kun.* 的 PackageVersion 使用 [$(KunVersion)] 精确范围，缺包即失败，
-    升级 Kun 只改这一处；文档站的「Kun 框架」小节与 Kun API 参考按它镜像 kun 仓库 tag v$(KunVersion)（docs-site.md §2b）。
+    过渡用的 KunVersion，任何构建都不读它。读它的只有：文档站（「Kun 框架」小节、Kun API 参考、版本矩阵，
+    website/scripts/kun.ts 等）、根上的 qian-docs-site 工作流、scripts/check_docs.py，以及镜像构建证据 scripts/images.py。
+    tests/gates/test_build_merge.py 保证没有 csproj、props 或 targets 引用 $(KunVersion)。
+    文档站改读别处之后删除本属性，由计划会话在 B3 之后另排。
   -->
   <PropertyGroup Label="Kun">
     <KunVersion>2026.10.25</KunVersion>
   </PropertyGroup>
-
-  <ItemGroup Label="Kun">
-    <PackageVersion Include="Kun.AspNetCore" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Authorization" Version="[$(KunVersion)]" />
-    <!-- 授权快照缓存（qian.authz，PRD 7.5「Redis，TTL 10 分钟」）：内存与 Redis 两种后端。 -->
-    <PackageVersion Include="Kun.Caching" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Configuration" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Configuration.Apollo" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Core" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.EntityFrameworkCore" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.EventBus" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.EventBus.Abstractions" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Gateway" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Identity" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Identity.AspNetCore" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Infrastructure" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Mediator" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.MultiTenancy" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.MultiTenancy.EntityFrameworkCore" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Security" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Storage" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Storage.Abstractions" Version="[$(KunVersion)]" />
-    <!-- qian.files 的 local 后端（S1-FILE-001）；s3 / oss 后端归 S1-FILE-002。 -->
-    <PackageVersion Include="Kun.Storage.Local" Version="[$(KunVersion)]" />
-    <PackageVersion Include="Kun.Validation" Version="[$(KunVersion)]" />
-  </ItemGroup>
 
 </Project>

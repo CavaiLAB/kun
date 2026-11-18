@@ -8,7 +8,7 @@
     <ProjectReference Include="../Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" />
     <ProjectReference Include="../Qian.Plugin.Sdk.Generators/Qian.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <PackageReference Include="Kun.Gateway" />
+    <ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" />
     <PackageReference Include="StackExchange.Redis" />
     <InternalsVisibleTo Include="Qian.Gateway.Tests" />
   </ItemGroup>

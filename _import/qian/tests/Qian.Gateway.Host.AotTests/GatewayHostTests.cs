@@ -162,7 +162,7 @@ public sealed class GatewayHostTests(PostgresFixture postgres, RedisFixture redi
     }
     private static string Root()
     {
-        var path = AppContext.BaseDirectory; while (!File.Exists(Path.Combine(path, "Qian.slnx"))) path = Directory.GetParent(path)!.FullName; return path;
+        var path = AppContext.BaseDirectory; while (!File.Exists(Path.Combine(path, "Qian.slnf"))) path = Directory.GetParent(path)!.FullName; return path;
     }
     private sealed class Downstream(WebApplication app, Uri jwks, HttpClient client) : IAsyncDisposable
     {

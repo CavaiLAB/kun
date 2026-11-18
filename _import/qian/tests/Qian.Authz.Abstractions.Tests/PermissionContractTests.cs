@@ -59,10 +59,16 @@ public sealed class PermissionContractTests
         Assert.Equal(typeof(IFieldPolicy), typeof(IAuthzService).GetProperty(nameof(IAuthzService.Fields))!.PropertyType);
         Assert.Equal(["BatchCheckAsync", "CheckAsync", "ExplainAsync", "ListAllowedActionsAsync", "ListPermissionsAsync"],
             typeof(IPermissionChecker).GetMethods().Select(m => m.Name).Order(StringComparer.Ordinal));
-        var project = XDocument.Load(Path.Combine(Root, "packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj"));
-        // Kun.EventBus.Abstractions 只为 authz.grant.changed.v1 / authz.role.changed.v1 的集成事件记录与登记入口（S1-AZ-004），仍是 Definition 允许的 Kun 抽象包。
-        Assert.Equal(["Kun.Authorization", "Kun.EventBus.Abstractions"], project.Descendants("PackageReference").Select(e => (string)e.Attribute("Include")!));
-        Assert.Equal(["../Qian.Runtime/Qian.Runtime.csproj"], project.Descendants("ProjectReference").Select(e => (string)e.Attribute("Include")!));
+        var directory = Path.Combine(Root, "packages/Qian.Authz.Abstractions");
+        var project = XDocument.Load(Path.Combine(directory, "Qian.Authz.Abstractions.csproj"));
+        // 原 Qian 改为项目引用 Kun 源码（S1-KUN-020）：Kun 的两个抽象改为引用仓库 src/ 下的项目，不再有包引用。
+        // Kun.EventBus.Abstractions 只为 authz.grant.changed.v1 / authz.role.changed.v1 的集成事件记录与登记入口（S1-AZ-004），仍是 Definition 允许的 Kun 抽象。
+        Assert.Empty(project.Descendants("PackageReference"));
+        var repository = Path.GetFullPath(Path.Combine(Root, "..", ".."));
+        Assert.Equal(["_import/qian/packages/Qian.Runtime/Qian.Runtime.csproj", "src/Kun.Authorization/Kun.Authorization.csproj", "src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj"],
+            project.Descendants("ProjectReference")
+                .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
+                .Order(StringComparer.Ordinal));
     }
 
     internal static string Root
@@ -70,7 +76,7 @@ public sealed class PermissionContractTests
         get
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
-            while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Qian.slnx"))) directory = directory.Parent;
+            while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Qian.slnf"))) directory = directory.Parent;
             return directory?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
         }
     }

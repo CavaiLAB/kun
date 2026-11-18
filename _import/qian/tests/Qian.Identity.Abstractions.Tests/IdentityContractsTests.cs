@@ -127,9 +127,15 @@ public sealed class IdentityContractsTests
     [Fact]
     public void DefinitionReferencesOnlyRuntimeAndFrameworkEventPort()
     {
-        var project = XDocument.Load(Path.Combine(Root, "packages/Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj"));
-        Assert.Equal(["../Qian.Runtime/Qian.Runtime.csproj"], project.Descendants("ProjectReference").Select(e => (string)e.Attribute("Include")!).ToArray());
-        Assert.Equal(["Kun.EventBus.Abstractions"], project.Descendants("PackageReference").Select(e => (string)e.Attribute("Include")!).ToArray());
+        var directory = Path.Combine(Root, "packages/Qian.Identity.Abstractions");
+        var project = XDocument.Load(Path.Combine(directory, "Qian.Identity.Abstractions.csproj"));
+        // 原 Qian 改为项目引用 Kun 源码（S1-KUN-020）：除 Kun 的事件端口（仓库 src/ 下的项目）外只引用 Qian.Runtime，没有包引用。
+        var repository = Path.GetFullPath(Path.Combine(Root, "..", ".."));
+        Assert.Equal(["_import/qian/packages/Qian.Runtime/Qian.Runtime.csproj", "src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj"],
+            project.Descendants("ProjectReference")
+                .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
+                .Order(StringComparer.Ordinal).ToArray());
+        Assert.Empty(project.Descendants("PackageReference"));
         Assert.DoesNotContain(typeof(IIdentityService).Assembly.GetReferencedAssemblies(), assembly => assembly.Name == "Kun.EventBus" || assembly.Name!.Contains("Redis", StringComparison.Ordinal) || assembly.Name.Contains("OpenIddict", StringComparison.Ordinal) || assembly.Name.Contains("EntityFrameworkCore", StringComparison.Ordinal) || assembly.Name.Contains("Identity.Server", StringComparison.Ordinal));
     }
 
@@ -200,7 +206,7 @@ public sealed class IdentityContractsTests
     private static string FindRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-            if (File.Exists(Path.Combine(directory.FullName, "Qian.slnx"))) return directory.FullName;
+            if (File.Exists(Path.Combine(directory.FullName, "Qian.slnf"))) return directory.FullName;
         throw new InvalidOperationException("找不到仓库根目录。");
     }
 }

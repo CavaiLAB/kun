@@ -10,8 +10,8 @@
     <ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Capabilities.Abstractions/Qian.Capabilities.Abstractions.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Kun.EventBus" />
-    <PackageReference Include="Kun.Mediator" />
+    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
   </ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="Qian.Registry.Tests" /><InternalsVisibleTo Include="Qian.Sample.Crm.Tests" /></ItemGroup>
   <ItemGroup>

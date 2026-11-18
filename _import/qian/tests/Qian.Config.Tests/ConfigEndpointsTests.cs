@@ -123,7 +123,7 @@ public sealed class ConfigEndpointsTests
     public void 权限点声明与组件元数据一致()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         using var permissions = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "plugins/qian.config/metadata/permissions.json")));
         var declared = permissions.RootElement.EnumerateArray().SelectMany(item => item.GetProperty("actions").EnumerateArray()
             .Select(action => "qian.config:" + item.GetProperty("resource").GetString() + ":" + action.GetString())).ToArray();

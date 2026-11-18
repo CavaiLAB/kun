@@ -11,7 +11,7 @@
 
 ## 用法
 
-构建 `Qian.slnx` 后：
+构建 `Qian.slnf` 后：
 
 ```bash
 dotnet tools/Qian.Config.Tool/bin/Release/net10.0/Qian.Config.Tool.dll . --out <目录>

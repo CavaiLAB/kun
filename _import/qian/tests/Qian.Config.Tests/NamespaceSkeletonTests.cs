@@ -220,7 +220,7 @@ public sealed class NamespaceSkeletonTests(ApolloFixture apollo) : IClassFixture
             _appId = appId;
             Root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "qian-skeleton-" + Guid.NewGuid().ToString("N"))).FullName;
             var source = new DirectoryInfo(AppContext.BaseDirectory);
-            while (source is not null && !File.Exists(Path.Combine(source.FullName, "Qian.slnx"))) source = source.Parent;
+            while (source is not null && !File.Exists(Path.Combine(source.FullName, "Qian.slnf"))) source = source.Parent;
             foreach (var file in new[] { ".qian-plugin/plugin.json", "schemas/config.schema.json" })
             {
                 var target = Path.Combine(Root, "plugins/qian.config.apollo", file);

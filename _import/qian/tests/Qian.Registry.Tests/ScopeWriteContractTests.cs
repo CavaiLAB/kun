@@ -39,7 +39,7 @@ public sealed class ScopeWriteContractTests
         Assert.Null(schema["properties"]!["tenant"]); Assert.Null(schema["properties"]!["tenant_id"]);
         Assert.False(schema["additionalProperties"]!.GetValue<bool>());
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         var file = Path.Combine(root!.FullName, "plugins/qian.registry/contracts/http-v1.openapi.json");
         if (Environment.GetEnvironmentVariable("QIAN_UPDATE_REGISTRY_CONTRACT") == "1")
         { Directory.CreateDirectory(Path.GetDirectoryName(file)!); File.WriteAllText(file, JsonSerializer.Serialize(contract, ContractJson) + "\n"); }

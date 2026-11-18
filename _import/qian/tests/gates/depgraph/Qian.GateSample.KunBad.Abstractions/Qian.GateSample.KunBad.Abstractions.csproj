@@ -4,6 +4,6 @@
     <Description>Definition 的 Kun 直接依赖门禁样例</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Kun.EventBus" />
+    <ProjectReference Include="../../../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
   </ItemGroup>
 </Project>

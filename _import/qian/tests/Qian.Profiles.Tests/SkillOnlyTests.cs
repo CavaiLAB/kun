@@ -13,7 +13,7 @@ public sealed class SkillOnlyTests
     public async Task 共享无代码技能组件_真实minimal装配进入dump与技能目录_租户隔离并可卸载()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         Assert.NotNull(root);
         using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(root.FullName, "tck/runtime/skill-only.json")));
         var spec = fixture.RootElement;

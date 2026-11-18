@@ -12,9 +12,9 @@ name: qian-documentation
 on:
   push:
     branches: [main]
-    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/tck/runtime/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
+    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/tck/runtime/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnf', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
   pull_request:
-    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/tck/runtime/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnx', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
+    paths: ['_import/qian/packages/**', '_import/qian/plugins/**', '_import/qian/profiles/**', '_import/qian/src/**', '_import/qian/tools/Qian.Docs.Tool/**', '_import/qian/tests/Qian.Docs.Tests/**', '_import/qian/schemas/**', '_import/qian/tck/runtime/**', '_import/qian/docs/generated/**', '_import/qian/*.props', '_import/qian/*.targets', '_import/qian/Qian.slnf', '_import/qian/global.json', '_import/qian/package.json', '_import/qian/pnpm*', '_import/qian/.github/workflows/documentation.yml', '.github/workflows/qian-documentation.yml']
 permissions:
   contents: read
   packages: read

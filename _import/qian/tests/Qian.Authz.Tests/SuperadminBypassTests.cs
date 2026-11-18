@@ -204,7 +204,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         var registry = host.Services.GetRequiredService<IPermissionRegistry>(); using var lease = registry.Register(catalog.Version, catalog.Permissions);
         await using var runtime = new PluginLoader(host.Services); var consumer = new Consumer();
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "plugins/qian.authz/.qian-plugin/plugin.json")));
         var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(AuthzComponent).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType)!).Create();
         var entryType = Type.GetType(manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!;
@@ -392,7 +392,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
     private static PermissionCatalog Catalog()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         var directory = Path.Combine(root!.FullName, "samples/Qian.Sample.Crm/metadata");
         return new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata("qian.sample.crm", "1.0.0",
             JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(Path.Combine(directory, "permissions.json"))),

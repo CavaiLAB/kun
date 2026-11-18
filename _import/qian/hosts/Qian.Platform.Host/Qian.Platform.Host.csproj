@@ -27,7 +27,7 @@
     <ProjectReference Include="../../packages/Qian.Identity.Server/Qian.Identity.Server.csproj" />
     <ProjectReference Include="../../packages/Qian.Tenancy.Signup/Qian.Tenancy.Signup.csproj" />
     <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
-    <PackageReference Include="Kun.Security" />
+    <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
   <ItemGroup>

@@ -12,6 +12,6 @@
     <ProjectReference Include="../../packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
     <ProjectReference Include="../../packages/Qian.Data/Qian.Data.csproj" />
     <ProjectReference Include="../../packages/Qian.Audit/Qian.Audit.csproj" />
-    <PackageReference Include="Kun.Gateway" />
+    <ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" />
   </ItemGroup>
 </Project>

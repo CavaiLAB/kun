@@ -2,7 +2,7 @@
 
 默认扫描层次 JSON；Apollo properties 导出为冒号层次键时加 `--apollo`，按大小写不敏感的路径匹配配置 Schema。
 
-构建 `Qian.slnx` 后，在 Apollo 配置发布前执行：
+构建 `Qian.slnf` 后，在 Apollo 配置发布前执行：
 
 ```bash
 dotnet tools/Qian.Secrets.Tool/bin/Release/net10.0/Qian.Secrets.Tool.dll candidate.json config.schema.json

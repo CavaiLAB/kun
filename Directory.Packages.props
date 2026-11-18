@@ -5,7 +5,7 @@
     两边同名不同版的包取高的一边；为免传递钉版判为降级（NU1109），同一族的包一起对齐：
     Microsoft.Extensions.* 与 Microsoft.AspNetCore.*、EF Core 一族到 10.0.12，Microsoft.IdentityModel.* 到 8.19.2，
     Microsoft.CodeAnalysis.CSharp 随 EF Core Design 到 5.0.0。
-    _import/qian/Directory.Packages.props 先导入本文件，只留原 Qian 按包引用 Kun 时的 KunVersion 与 Kun.* 精确版本。
+    _import/qian/Directory.Packages.props 先导入本文件，再留一个只给文档站读的 KunVersion，任何构建都不读它。
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

@@ -28,8 +28,8 @@
     <ProjectReference Include="../../packages/Qian.Gateway/Qian.Gateway.csproj" />
     <ProjectReference Include="../../hosts/Qian.Platform.Host/Qian.Platform.Host.csproj" />
     <PackageReference Include="StackExchange.Redis" />
-    <PackageReference Include="Kun.Identity" />
-    <PackageReference Include="Kun.Gateway" />
+    <ProjectReference Include="../../../../src/Kun.Identity/Kun.Identity.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../Shared/GatewayTestHost.cs" Link="GatewayTestHost.cs" />

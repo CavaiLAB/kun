@@ -31,7 +31,7 @@ class PluginManifestGateTests(unittest.TestCase):
         assembly = project.parent / "bin/Release/net10.0/Qian.New.dll"
         assembly.parent.mkdir(parents=True)
         assembly.touch()
-        (self.root / "Qian.slnx").write_text('<Solution><Project Path="packages/Qian.New/Qian.New.csproj" /></Solution>')
+        (self.root / "Qian.slnf").write_text('{"solution": {"path": "Kun.slnx", "projects": ["packages/Qian.New/Qian.New.csproj"]}}')
         manifest = self.root / "plugins/qian.new/.qian-plugin/plugin.json"
         manifest.parent.mkdir(parents=True)
         manifest.write_text('{"id":"qian.new"}')

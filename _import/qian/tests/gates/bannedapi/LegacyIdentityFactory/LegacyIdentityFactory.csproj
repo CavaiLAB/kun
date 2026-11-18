@@ -1,1 +1,1 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup><ItemGroup><PackageReference Include="Kun.Identity" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup><ItemGroup><ProjectReference Include="../../../../../../src/Kun.Identity/Kun.Identity.csproj" /></ItemGroup></Project>

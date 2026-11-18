@@ -8,6 +8,10 @@ name: qian-dotnet
 # 「触发过滤自检」（scripts/dotnet_ci.py paths-check）核对的是原件的路径过滤；本文件的过滤是原件逐条加前缀，两者等价。
 # S1-KUN-020：原 Qian 的构建基线与中央包版本并到了仓库根（_import/qian 下的同名文件先导入根上的），
 # 所以路径过滤另加仓库根的 Directory.Build.props、Directory.Packages.props 与 global.json，根上这几个文件一改也跑本工作流。
+# S1-KUN-020 第二步：原 Qian 改为项目引用 Kun 源码，解决方案换成仓库根的 Kun.slnx。本工作流改用它的筛选文件
+# _import/qian/Qian.slnf：还原、构建、依赖图门禁都用它，分片筛选文件由 scripts/dotnet_ci.py 从它生成，构建时连带构建
+# 引用到的 Kun 项目。路径过滤另加 Kun 的源码 src/**、Kun.slnx、仓库根的 NuGet.config 与 .editorconfig，这些一改，
+# 原 Qian 的构建跟着变。
 # S1-YUE-025：分片 b 构建真实 doctor 客户端时要装 GitHub Packages 上的公开包 @cavailab/qian-*（命令行测试的开发依赖与工作区里的界面包）：
 # 测试作业的权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
 
@@ -20,6 +24,10 @@ on:
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
       - 'global.json'
+      - 'NuGet.config'
+      - '.editorconfig'
+      - 'Kun.slnx'
+      - 'src/**'
   pull_request:
     # 只改任务文件、设计文档或原 Qian 根目录 Markdown 的 PR 不跑本工作流（原件的规则，逐条加前缀）。
     paths:
@@ -33,6 +41,10 @@ on:
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
       - 'global.json'
+      - 'NuGet.config'
+      - '.editorconfig'
+      - 'Kun.slnx'
+      - 'src/**'
 
 permissions:
   contents: read
@@ -67,10 +79,10 @@ jobs:
           python-version: "3.12"
 
       - name: 还原
-        run: dotnet restore Qian.slnx
+        run: dotnet restore Qian.slnf
 
       - name: 构建（PublicAPI 门禁：Qian 包未登记的公共 API 即编译失败）
-        run: dotnet build Qian.slnx -c Release --no-restore
+        run: dotnet build Qian.slnf -c Release --no-restore
 
       - name: 动态发现全部代码入口并校验唯一清单与实现构件分类
         run: python3 scripts/check_plugin_manifests.py
@@ -82,7 +94,7 @@ jobs:
         run: dotnet tools/Qian.Config.Tool/bin/Release/net10.0/Qian.Config.Tool.dll . --out TestResults/evidence/apollo-namespaces
 
       - name: 依赖图门禁
-        run: python3 scripts/check_deps.py --solution Qian.slnx --no-restore
+        run: python3 scripts/check_deps.py --solution Qian.slnf --no-restore
 
       - name: 门禁自测（tests/gates 样例项目）
         run: python3 -m unittest discover -s tests/gates -v
@@ -148,10 +160,10 @@ jobs:
         run: pnpm install --frozen-lockfile && pnpm --filter qian... build
 
       - name: 还原
-        run: dotnet restore Qian.slnx
+        run: dotnet restore Qian.slnf
 
       - name: 构建
-        run: dotnet build Qian.slnx -c Release --no-restore
+        run: dotnet build Qian.slnf -c Release --no-restore
 
       - name: 安装固定摘要的真实 OpenAPI 兼容检查器
         run: python3 scripts/prepare_contract_tools.py --destination "$RUNNER_TEMP/qian-contract-tools"
@@ -197,7 +209,7 @@ jobs:
           pattern: test-results-*
           path: ${{ runner.temp }}/test-results
 
-      - name: Qian.slnx 里每个测试项目恰好在所属分片跑过一次、没有失败（少一个模块即失败；tests/ 下不在 Qian.slnx 的测试项目告警）
+      - name: Qian.slnf 里每个测试项目恰好在所属分片跑过一次、没有失败（少一个模块即失败；tests/ 下不在 Qian.slnf 的测试项目告警）
         run: python3 scripts/dotnet_ci.py verify "$RUNNER_TEMP/test-results"
 
       - name: 合并为 test-results 构件（各分片的 TRX 与证据、门禁作业的 namespace 骨架）
@@ -285,6 +297,13 @@ jobs:
         run: dotnet publish hosts/Qian.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/gateway-host"
       - name: 核验实际原生产物
         run: test -x "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host" && test ! -e "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host.dll"
+      # Kun.Gateway 改为项目引用后（S1-KUN-020），它作为宿主的文件不进发布目录，appsettings.json 是本宿主自己的那份，与按包引用时一致。
+      - name: 核验发布目录里没有 Kun.Gateway 的宿主文件
+        run: |
+          for name in Kun.Gateway Kun.Gateway.deps.json Kun.Gateway.runtimeconfig.json Kun.Gateway.staticwebassets.endpoints.json; do
+            if [ -e "$RUNNER_TEMP/gateway-host/$name" ]; then echo "发布目录里有 Kun.Gateway 的宿主文件：$name" >&2; exit 1; fi
+          done
+          cmp "$RUNNER_TEMP/gateway-host/appsettings.json" hosts/Qian.Gateway.Host/appsettings.json
       - name: 原生网关运行真实 Apollo、受限 PG、Redis 与身份登录换签
         env:
           QIAN_REQUIRE_DOCKER: '1'

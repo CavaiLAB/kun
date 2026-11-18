@@ -16,9 +16,13 @@ name: kun-ci
 #   - 显式写出 permissions: contents: read；
 #   - 构建并轨（S1-KUN-020）：测试运行器统一到 Microsoft.Testing.Platform（global.json 的 test.runner），
 #     xunit.v3 4.x 不再支持 VSTest。按全名子串排除的 --filter 改为解决方案筛选文件 tests/kun-unit.slnf：
-#     它列出 Kun.sln 里除 Kun.IntegrationTests、Kun.Sample.Tests、Kun.Integration.AotTests 之外的全部测试项目，
+#     它列出原 Kun 除 Kun.IntegrationTests、Kun.Sample.Tests、Kun.Integration.AotTests 之外的全部测试项目，
 #     与原件的排除条件等价。覆盖率由 coverlet.collector 换成 coverlet.MTP，文件名带时间戳，上传匹配式随之改，
-#     找不到文件即失败；集成测试与 AOT 测试用 --project 指定项目。
+#     找不到文件即失败；集成测试与 AOT 测试用 --project 指定项目；
+#   - 构建并轨第二步（S1-KUN-020）：Kun.sln 换成 Kun.slnx，原 Qian 的 107 个项目也在里面，并改为项目引用 Kun 源码。
+#     所以「Build & Test」与「Code Format」不带参数的还原、构建是两棵树一起（每次多几分钟，流水线并轨后不再重复）；
+#     「Code Format」加 --exclude _import/qian，格式门禁照旧只管原 Kun 的代码（原 Qian 有自己的 .editorconfig）。
+#     路径过滤里的 Kun.sln 改为 Kun.slnx，另加仓库根的 NuGet.config：原 Kun 的还原从此读它。
 # 命令都在仓库根运行，与原件相同；作业与步骤照原件，不增不减，测试命令按上一条改写。
 # 没接的原 Kun 工作流：benchmarks.yml（基准，只在自托管 runner 上跑）、oss-live-smoke.yml（对象存储实测，
 # 要自托管 runner 与 OSS_SMOKE_* 密钥）、release.yml（发版，推 nuget.org 与 GitHub Packages）、
@@ -36,7 +40,8 @@ on:
       - 'scripts/**'
       - '!**/*.md'
       - 'src/Kun.Gateway/GATEWAY.md'
-      - 'Kun.sln'
+      - 'Kun.slnx'
+      - 'NuGet.config'
       - 'global.json'
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
@@ -93,7 +98,7 @@ jobs:
       #   service-discovery env vars (services__catalog__*, etc.) that CI does
       #   not set. TODO: add a dedicated integration-compose job that wires the
       #   Aspire manifest so Sample.Tests can run in CI.
-      # tests/kun-unit.slnf lists every test project in Kun.sln except the three
+      # tests/kun-unit.slnf lists every Kun test project in Kun.slnx except the three
       # above, which is what the original --filter excluded (S1-KUN-020).
       - name: Unit Tests
         run: >
@@ -237,7 +242,9 @@ jobs:
         run: dotnet restore
 
       - name: Verify format
-        run: dotnet format --verify-no-changes --no-restore
+        # Kun.slnx also holds the transitional _import/qian tree, which keeps its own .editorconfig;
+        # the format gate still covers the Kun code only (S1-KUN-020).
+        run: dotnet format --verify-no-changes --no-restore --exclude _import/qian
 
   layering:
     name: Layering Check

@@ -5,7 +5,7 @@
 
   python3 scripts/dotnet_ci.py shard <分片> --out <文件.slnf>
       写出分片的解决方案筛选文件，交给 dotnet test --solution。分片清单见 SHARDS；
-      其余分片是 Qian.slnx 里没登记到别的分片的全部项目（含非测试项目，由 dotnet test 自己识别测试模块），
+      其余分片是 Qian.slnf 里没登记到别的分片的全部项目（含非测试项目，由 dotnet test 自己识别测试模块），
       新加的测试项目不用登记也不会漏跑。
   python3 scripts/dotnet_ci.py images [<分片>]
       列出分片里的测试项目会拉的容器镜像，不给分片则列出全部。镜像名取 tests/Qian.Testing.Containers 里
@@ -16,9 +16,9 @@
   python3 scripts/dotnet_ci.py wait-prefetch --state <目录> [--timeout 秒]
       有界等待后台预拉结束并打印记录；超时或预拉进程已退出都照常返回 0。
   python3 scripts/dotnet_ci.py verify <结果目录>
-      汇总各分片上传的 TRX（每个分片一个子目录 test-results-<分片>）：Qian.slnx 里每个测试项目恰好在所属分片跑过一次、
+      汇总各分片上传的 TRX（每个分片一个子目录 test-results-<分片>）：Qian.slnf 里每个测试项目恰好在所属分片跑过一次、
       没有失败，少一个模块即不通过；分片、模块、用例数与耗时写进作业摘要。跳过的用例只告警；tests/ 下引用 xunit.v3
-      却不在 Qian.slnx 里的测试项目（哪个分片都不跑）也告警，门禁样例 tests/gates 与专属作业运行的项目除外。
+      却不在 Qian.slnf 里的测试项目（哪个分片都不跑）也告警，门禁样例 tests/gates 与专属作业运行的项目除外。
   python3 scripts/dotnet_ci.py paths-check
       dotnet.yml 的 pull_request 路径过滤不看 pm/、docs/ 与根目录 Markdown。工作流读到的这些文件必须被过滤重新纳入，
       否则只改它们的 PR 会漏跑读取它们的测试。核对 .NET 源码的字符串、MSBuild 项的路径与工作流运行的 Python
@@ -46,7 +46,8 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
-SOLUTION = ROOT / "Qian.slnx"
+# Qian.slnf：仓库根 Kun.slnx 的解决方案筛选文件，列出原 Qian 的全部项目，也是测试定位本目录用的锚（S1-KUN-020）。
+SOLUTION = ROOT / "Qian.slnf"
 WORKFLOW = ROOT / ".github" / "workflows" / "dotnet.yml"
 CONTAINERS = ROOT / "tests" / "Qian.Testing.Containers"
 
@@ -82,7 +83,7 @@ DEDICATED_TEST = re.compile(r"\bdotnet\s+test\b[^\n]*?\s--project\s+([^\s\"']+)"
 # 触发过滤自检
 CSHARP_STRING = re.compile(r'(\$+@|@\$+|\$+|@)?("{3,}|")')
 PATH_CALL = re.compile(r"\bPath\s*\.\s*(?:Combine|Join)\s*\(")
-ROOT_LOCATOR = re.compile(r'"Qian\.slnx"|Repo(?:sitory)?Root')
+ROOT_LOCATOR = re.compile(r'"Qian\.slnf"|Repo(?:sitory)?Root')
 ESCAPES = {"n": "\n", "r": "\r", "t": "\t", "0": "\0", "a": "\a", "b": "\b", "f": "\f", "v": "\v"}
 MSBUILD_PATH = re.compile(r'\b(?:Include|Update|Project)\s*=\s*"([^"]*)"')
 PYTHON_SCRIPT = re.compile(r"\bpython3?\s+(?:-[A-Za-z]\S*\s+)*([\w./-]+\.py)\b")
@@ -100,11 +101,29 @@ class ToolError(Exception):
 
 # ---------- 解决方案与分片 ----------
 
+def filter_document() -> Tuple[Path, List[str]]:
+    """读 Qian.slnf：它筛选的解决方案（仓库根的 Kun.slnx），与它列出的项目（路径相对那个解决方案所在的目录）。"""
+    try:
+        document = json.loads(SOLUTION.read_text(encoding="utf-8-sig"))
+        solution = (SOLUTION.parent / document["solution"]["path"].replace("\\", "/")).resolve()
+        listed = [str(project).replace("\\", "/") for project in document["solution"]["projects"]]
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+        raise ToolError(f"读不了 {SOLUTION.name}：{error}") from error
+    return solution, listed
+
+
 def solution_projects() -> List[str]:
-    """Qian.slnx 里全部项目的相对路径，保持文件里的顺序。"""
-    projects = [node.attrib["Path"] for node in ET.parse(SOLUTION).getroot().iter("Project")]
+    """Qian.slnf 里全部项目相对本目录（ROOT）的路径，保持文件里的顺序。"""
+    solution, listed = filter_document()
+    root = ROOT.resolve()
+    projects: List[str] = []
+    for raw in listed:
+        path = (solution.parent / raw).resolve()
+        if root not in path.parents:
+            raise ToolError(f"Qian.slnf 列出的 {raw} 不在 {root.name}/ 下。")
+        projects.append(path.relative_to(root).as_posix())
     if not projects:
-        raise ToolError("Qian.slnx 里没有项目。")
+        raise ToolError("Qian.slnf 里没有项目。")
     return projects
 
 
@@ -119,15 +138,15 @@ def is_test_project(project: str) -> bool:
 
 
 def test_projects() -> Dict[str, str]:
-    """Qian.slnx 里的测试项目：程序集名 → 项目路径。"""
+    """Qian.slnf 里的测试项目：程序集名 → 项目路径。"""
     found = {assembly_name(project): project for project in solution_projects() if is_test_project(project)}
     if not found:
-        raise ToolError("Qian.slnx 里没有识别出测试项目。")
+        raise ToolError("Qian.slnf 里没有识别出测试项目。")
     return found
 
 
 def unlisted_test_projects() -> List[str]:
-    """tests/ 下不在 Qian.slnx 里的测试项目：哪个分片都不跑，verify 也核对不到。门禁样例（tests/gates）与
+    """tests/ 下不在 Qian.slnf 里的测试项目：哪个分片都不跑，verify 也核对不到。门禁样例（tests/gates）与
     dotnet.yml 里专属作业用 dotnet test --project 运行的项目（目前是三个 *.AotTests）除外。"""
     listed = set(solution_projects())
     dedicated = {path.rstrip("/") for path in DEDICATED_TEST.findall(WORKFLOW.read_text(encoding="utf-8"))}
@@ -137,7 +156,7 @@ def unlisted_test_projects() -> List[str]:
 
 
 def assignment() -> Dict[str, str]:
-    """项目路径 → 分片。登记的名字必须是 Qian.slnx 里的项目，且只能登记一次。"""
+    """项目路径 → 分片。登记的名字必须是 Qian.slnf 里的项目，且只能登记一次。"""
     projects = solution_projects()
     by_name = {Path(project).stem: project for project in projects}
     rest = [shard for shard, names in SHARDS.items() if names is None]
@@ -147,7 +166,7 @@ def assignment() -> Dict[str, str]:
     for shard, names in SHARDS.items():
         for name in names or []:
             if name not in by_name:
-                raise ToolError(f"分片 {shard} 登记的 {name} 不在 Qian.slnx 里。")
+                raise ToolError(f"分片 {shard} 登记的 {name} 不在 Qian.slnf 里。")
             if by_name[name] in result:
                 raise ToolError(f"{name} 同时登记在分片 {result[by_name[name]]} 与 {shard}。")
             result[by_name[name]] = shard
@@ -167,7 +186,11 @@ def write_filter(shard: str, out: Path) -> None:
     projects = shard_projects(shard)
     tests = set(test_projects().values())
     out.parent.mkdir(parents=True, exist_ok=True)
-    document = {"solution": {"path": str(SOLUTION), "projects": projects}}
+    # 分片筛选文件与 Qian.slnf 一样筛选仓库根的 Kun.slnx，项目路径换算成相对 Kun.slnx 所在的目录。
+    solution, _ = filter_document()
+    root = ROOT.resolve()
+    listed = [Path(os.path.relpath(root / project, solution.parent)).as_posix() for project in projects]
+    document = {"solution": {"path": str(solution), "projects": listed}}
     out.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     names = [Path(project).stem for project in projects if project in tests]
     print(f"分片 {shard}：{len(names)} 个测试项目（筛选文件共 {len(projects)} 个项目）→ {out}")
@@ -392,8 +415,8 @@ def verify(results: Path) -> Tuple[List[str], List[str], List[str]]:
             problems.append(f"{module}（分片 {owners[expected[module]]}）没有测试结果。")
     unlisted = unlisted_test_projects()
     if unlisted:
-        warnings.append(f"tests/ 下有 {len(unlisted)} 个测试项目不在 Qian.slnx 里，哪个分片都不跑、也不在本核对范围内：{'、'.join(unlisted)}。"
-                        "加进 Qian.slnx，或在 dotnet.yml 里由专属作业 dotnet test --project 运行。")
+        warnings.append(f"tests/ 下有 {len(unlisted)} 个测试项目不在 Qian.slnf 里，哪个分片都不跑、也不在本核对范围内：{'、'.join(unlisted)}。"
+                        "加进 Kun.slnx 与 Qian.slnf，或在 dotnet.yml 里由专属作业 dotnet test --project 运行。")
 
     summary = ["## 测试分片汇总", "",
                "| 分片 | 模块 | 用例 | 通过 | 未通过 | 跳过 | 模块累计秒 | 首尾跨度秒 |", "|---|---|---|---|---|---|---|---|"]
@@ -409,9 +432,9 @@ def verify(results: Path) -> Tuple[List[str], List[str], List[str]]:
         summary.append(f"| {shard} | {len(entries)} | {sum(totals.values())} | {passed} | {failed} | "
                        f"{sum(totals.values()) - passed - failed} | {sum(seconds for _, _, seconds in entries):.0f} | {span:.0f} |")
     summary += ["", f"合计 {sum(len(entries) for entries in rows.values())} 个模块、{sum(grand.values())} 条用例；"
-                    f"Qian.slnx 里识别出 {len(expected)} 个测试项目。", ""]
+                    f"Qian.slnf 里识别出 {len(expected)} 个测试项目。", ""]
     if unlisted:
-        summary += [f"tests/ 下不在 Qian.slnx 里、没有任何分片运行的测试项目：{'、'.join(unlisted)}。", ""]
+        summary += [f"tests/ 下不在 Qian.slnf 里、没有任何分片运行的测试项目：{'、'.join(unlisted)}。", ""]
     summary += ["<details><summary>各模块</summary>", "", "| 分片 | 模块 | 用例 | 秒 |", "|---|---|---|---|"]
     for shard, entries in rows.items():
         for module, outcomes, seconds in sorted(entries, key=lambda entry: -entry[2]):
@@ -681,7 +704,7 @@ def csharp_references(text: str, top: Set[str]) -> List[Tuple[int, str, bool]]:
       后面还有非字面量实参时只得到前缀，更靠后的字面量段相对未知的子目录，不算；
     - 插值字符串的常量前缀（$"docs/{x}.md"），以及插值洞后以 / 起头的段（$"{root}/docs/x.md"）；字面量后紧跟 + 时也只是前缀，
       前面紧跟 + 时去掉开头的 /（root + "/docs/x.md"）；
-    - 单写一个根目录文件名（"AGENTS.md"、Path.Combine(root, "README.md")）只在本文件定位了仓库根（写到 "Qian.slnx"，
+    - 单写一个根目录文件名（"AGENTS.md"、Path.Combine(root, "README.md")）只在本文件定位了仓库根（写到 "Qian.slnf"，
       或用到 RepositoryRoot / RepoRoot）时算：README.md 这类常见文件名在别处多半指临时目录或包里的文件。"""
     literals, masked = csharp_strings(text)
     anchored = ROOT_LOCATOR.search(text) is not None

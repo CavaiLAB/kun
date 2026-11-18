@@ -106,6 +106,17 @@ public sealed class GatewayConfigurationTests
         Assert.Throws<ArgumentException>(() => GatewayHosting.ReadConfiguration(duplicate.RootElement));
     }
 
+    [Fact]
+    public void 输出目录只有Kun网关的程序集_没有它作为宿主的配置与启动文件()
+    {
+        // Kun.Gateway 经 Qian.Gateway 项目引用进来（S1-KUN-020），它同时是独立宿主。_import/qian/Directory.Build.targets
+        // 把它的 appsettings.json、启动器、deps.json、runtimeconfig.json 与 staticwebassets 清单挡在输出目录外，与按包引用时一致。
+        var output = AppContext.BaseDirectory;
+        Assert.True(File.Exists(Path.Combine(output, "Kun.Gateway.dll")));
+        string[] hostFiles = ["appsettings.json", "Kun.Gateway", "Kun.Gateway.exe", "Kun.Gateway.deps.json", "Kun.Gateway.runtimeconfig.json", "Kun.Gateway.staticwebassets.endpoints.json"];
+        Assert.All(hostFiles, name => Assert.False(File.Exists(Path.Combine(output, name)), $"输出目录里有 Kun.Gateway 的宿主文件：{name}"));
+    }
+
     private const string Valid = """
     {"identityIssuer":"https://id.qian.test/","identityAudience":"https://api.qian.test","issuer":"https://gateway.qian.test/s2s",
      "signingKeyPath":"/tmp/private.pem","publicKeyPath":"/tmp/public.pem","trustedProxyNetworks":[],

@@ -169,19 +169,23 @@ test('真实 Config Provider 制成临时 NuGet 包后经签名市场安装，�
   const version='0.1.0-cli-'+generateKeyPairSync('ed25519').publicKey.export({type:'spki',format:'der'}).subarray(-6).toString('hex');
   const feed=path.join(f.root,'feed');mkdirSync(feed);
   const xml=value=>value.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
-  const extra={version,engines:{kun:'>=2026.10.12'},provides:['Config'],runtime:{form:'module',entry:'Qian.Config.Apollo.ConfigurationPlugin, Qian.Config.Apollo',nuget:[{id:'Qian.Config.Apollo',version}]}};
+  // 原 Qian 改为项目引用 Kun 源码之后（S1-KUN-020），宿主里的 Kun 是下面与 Qian 的包同一版本打进临时源的那份，
+  // 不再是 nuget.org 上按 KunVersion 钉的正式版，组件对 kun 的要求按这个版本写。
+  const kunRange='>='+version;
+  const extra={version,engines:{kun:kunRange},provides:['Config'],runtime:{form:'module',entry:'Qian.Config.Apollo.ConfigurationPlugin, Qian.Config.Apollo',nuget:[{id:'Qian.Config.Apollo',version}]}};
   const packageComponent=path.join(f.root,'package-component');component(packageComponent,'qian.config','official',extra);
   const packTargets=path.join(f.root,'pack-components.targets');
   writeFileSync(packTargets,`<Project><ItemGroup Condition="'$(MSBuildProjectName)' == 'Qian.Config.Apollo'"><None Include="${xml(packageComponent)}/**/*" Pack="true" PackagePath="qian/%(RecursiveDir)%(Filename)%(Extension)" /></ItemGroup></Project>`);
-  // 按项目引用求 Qian.Config.Apollo 的 Qian 依赖闭包（依赖在前）全部打进临时源；只在编译期使用的生成器引用不成为包依赖。
-  const closure=(name,order=[])=>{
-   if(order.includes(name))return order;
-   for(const match of readFileSync(path.join(repo,'packages',name,name+'.csproj'),'utf8').matchAll(/<ProjectReference Include="([^"]+)"([^>]*)>/g))
-    if(!match[2].includes('ReferenceOutputAssembly="false"'))closure(path.basename(match[1],'.csproj'),order);
-   order.push(name);return order;
+  // 按项目引用求 Qian.Config.Apollo 的依赖闭包（依赖在前）全部打进临时源；只在编译期使用的生成器引用不成为包依赖。
+  // 原 Qian 改为项目引用 Kun 源码之后（S1-KUN-020），闭包里还有仓库根 src/ 下的 Kun 项目：按引用路径解析，与 Qian 的包同一版本打进临时源。
+  const closure=(project,order=[])=>{
+   if(order.includes(project))return order;
+   for(const match of readFileSync(project,'utf8').matchAll(/<ProjectReference Include="([^"]+)"([^>]*)>/g))
+    if(!match[2].includes('ReferenceOutputAssembly="false"'))closure(path.resolve(path.dirname(project),match[1].replaceAll('\\','/')),order);
+   order.push(project);return order;
   };
-  for(const name of closure('Qian.Config.Apollo')){
-   const packed=spawnSync('dotnet',['pack',path.join(repo,'packages',name,name+'.csproj'),'-c','Release','-p:Version='+version,'-p:CustomAfterMicrosoftCommonTargets='+packTargets,'-o',feed,'--artifacts-path',path.join(f.root,'build'),'--disable-build-servers','-m:1'],{cwd:repo,encoding:'utf8',timeout:120000});
+  for(const project of closure(path.join(repo,'packages','Qian.Config.Apollo','Qian.Config.Apollo.csproj'))){
+   const packed=spawnSync('dotnet',['pack',project,'-c','Release','-p:Version='+version,'-p:CustomAfterMicrosoftCommonTargets='+packTargets,'-o',feed,'--artifacts-path',path.join(f.root,'build'),'--disable-build-servers','-m:1'],{cwd:repo,encoding:'utf8',timeout:120000});
    assert.equal(packed.status,0,packed.stdout+packed.stderr);
   }
   write(f.project,'NuGet.Config','<configuration><packageSources><clear/><add key="fixture" value="'+xml(feed)+'"/><add key="nuget.org" value="https://api.nuget.org/v3/index.json"/></packageSources><config><add key="globalPackagesFolder" value="'+xml(path.join(f.root,'consumer-cache'))+'"/></config><fallbackPackageFolders><add key="shared" value="'+xml(process.env.NUGET_PACKAGES??path.join(os.homedir(),'.nuget/packages'))+'"/></fallbackPackageFolders></configuration>');
@@ -234,7 +238,7 @@ Console.WriteLine("real-provider-ready");
   const bundle=path.join(location,'plugins/qian.bundle.fixture');
   const providerArchive=readFileSync(path.join(feed,readdirSync(feed).find(name=>name.toLowerCase()===('Qian.Config.Apollo.'+version+'.nupkg').toLowerCase())));
   const providerDigest='sha256:'+createHash('sha256').update(providerArchive).digest('hex');
-  const bundleExtra={engines:{kun:'>=2026.10.12'},runtime:{nuget:[{id:'Qian.Config.Apollo',version,digest:providerDigest}]},surfaces:{patch:'./config/qian.patch.yml'}};
+  const bundleExtra={engines:{kun:kunRange},runtime:{nuget:[{id:'Qian.Config.Apollo',version,digest:providerDigest}]},surfaces:{patch:'./config/qian.patch.yml'}};
   component(bundle,'qian.bundle.fixture','official',bundleExtra);
   component(path.join(bundle,'components/qian.config'),'qian.config','official',extra);
   component(path.join(bundle,'components/test.consumer'),'test.consumer','private',{inject:['Config']});

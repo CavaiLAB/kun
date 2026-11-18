@@ -85,7 +85,7 @@ public sealed class SignupContractTests
         Assert.True(submitted.TryGetProperty("201", out _) && submitted.TryGetProperty("422", out _) && submitted.TryGetProperty("409", out _));
 
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnx"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         var file = Path.Combine(root!.FullName, "plugins/qian.tenancy.signup/contracts/http-v1.openapi.json");
         if (Environment.GetEnvironmentVariable("QIAN_UPDATE_SIGNUP_CONTRACT") == "1")
         { Directory.CreateDirectory(Path.GetDirectoryName(file)!); await File.WriteAllTextAsync(file, JsonSerializer.Serialize(contract, ContractJson) + "\n", Ct); }

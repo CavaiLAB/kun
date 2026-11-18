@@ -96,6 +96,6 @@ static PluginDefinition Define(string id, string plugin, IQianPlugin implementat
 static string FindRepository()
 {
     for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        if (File.Exists(Path.Combine(directory.FullName, "Qian.slnx"))) return directory.FullName;
+        if (File.Exists(Path.Combine(directory.FullName, "Qian.slnf"))) return directory.FullName;
     throw new InvalidOperationException("找不到验收仓库根目录。");
 }

@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "../Kun.sln",
+    "path": "../Kun.slnx",
     "projects": [
       "tests/Kun.AspNetCore.Tests/Kun.AspNetCore.Tests.csproj",
       "tests/Kun.Audit.Tests/Kun.Audit.Tests.csproj",

@@ -9,8 +9,8 @@
     <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Kun.EventBus" />
-    <PackageReference Include="Kun.Mediator" />
+    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
     <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="SemanticVersioning" />
   </ItemGroup>

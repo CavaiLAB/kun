@@ -25,7 +25,7 @@ updated: 2026-11-19
 - [x] `theme/site.ts` 的 `REPO_URL` 指本仓库，脚本拼出的 GitHub 地址与 `source` 带上 `_import/qian/` 前缀；页脚「Kun」一项指本仓库，市场仓库那条不写旧地址
 - [x] 「Kun 框架」小节与 Kun API 参考按 `KunVersion` 从本仓库的同名标签生成：本地默认读本仓库，缺标签时从 origin 只取这一个；CI 不再另外检出旧仓库
 - [x] 改动前后各生成一次「Kun 框架」小节比对，除链接地址外内容相同，有差别逐条写在 PR 正文
-- [ ] 手写页、README、脚本与测试里指向两个旧仓库的文字和链接改掉；指向历史的改成本仓库里同一提交的固定链接
+- [x] 手写页、README、脚本与测试里指向两个旧仓库的文字和链接改掉；指向历史的改成本仓库里同一提交的固定链接
 - [x] 同批页面里旧名字的描述按规矩清掉，只改措辞、不改意思；改完再扫一遍，剩下的每一处在 PR 正文里说明为什么保留
 - [ ] `pnpm --filter website test`、`python3 scripts/check_docs.py`、`python3 scripts/pm.py validate` 通过，PR 的 CI 全绿
 
@@ -34,3 +34,4 @@ updated: 2026-11-19
 - 2026-11-19 claude：创建任务
 - 2026-11-19 claude：开工：先给「Kun 框架」小节、Kun API 参考、设计与 CLI 镜像页拍改动前的基线，再改 site.ts、repo.ts、kun.ts 与工作流
 - 2026-11-19 claude：转 review：CavaiLAB/kun#29 开出。Kun 小节改动前后比对只差地址与 source，外加概览页一处前端旧名；历史 PR 链接改成本仓库的合并提交；剩余命中逐条写在 PR 正文第 3 节。验收第 4 条差产品族表：前五列与 _import/qian/README.md 由单测核对，README 在范围外，已问计划会话；第 6 条等 CI
+- 2026-11-19 claude：按计划会话答复改产品族表：_import/qian/README.md 同名表只动对应格子（Kun、Qian 两行的仓库列，前端那行的名字与迁出说明，市场那行的账号名），family.md 同步；按产品负责人答复，两张表都删掉私有产品与部署仓库的两行。family.md 表格上方加一句分清平台 Qian 与前端 qian，「合并前原状」那句改成与新表一致。验收第 4 条勾上

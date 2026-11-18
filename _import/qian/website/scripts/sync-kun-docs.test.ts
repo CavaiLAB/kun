@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { after, before, describe, it } from 'node:test';
 import fs from 'node:fs';
-import { makeKunRepo, makeRepoRoot } from './fixtures.ts';
-import { kunFileDate, openKun, readKunVersion, type KunCheckout } from './kun.ts';
+import path from 'node:path';
+import { cloneRepo, makeKunRepo, makeRepoRoot } from './fixtures.ts';
+import { kunFileDate, listKunFiles, openKun, readKunVersion, type KunCheckout } from './kun.ts';
 import { splitFrontmatter } from './repo.ts';
 import {
   escapeStrayTags,
@@ -101,6 +103,50 @@ describe('KunVersion 与 kun 仓库', () => {
   });
 });
 
+describe('不设 KUN_DOCS_PATH：读本仓库的 tag', () => {
+  // 像本仓库：tag 打在较早的提交上，主干之后继续往前走（文档站在子目录里）
+  const remote = makeKunRepo(
+    [
+      { date: '2026-04-01', files: { 'README.md': README } },
+      { date: '2026-09-13', files: { 'docs/guides/table.md': '# 表格\n' } },
+    ],
+    'v2026.9.13',
+    [{ date: '2026-11-17', files: { '_import/qian/Directory.Packages.props': '<Project />\n' } }],
+  );
+  const site = (repo: string) => path.join(repo, '_import', 'qian');
+
+  it('tag 在本仓库里就直接读，不访问 origin；从子目录打开也按仓库顶层列文件、算日期', () => {
+    const kun = openKun('2026.9.13', {}, site(remote));
+    assert.equal(kun.tag, 'v2026.9.13');
+    assert.equal(kun.date, '2026-09-13');
+    assert.deepEqual(listKunFiles(kun), ['README.md', 'docs/guides/table.md']);
+    assert.equal(kunFileDate(kun, 'README.md'), '2026-04-01');
+  });
+
+  it('本仓库缺 tag 时从 origin 只取这一个 tag；浅克隆里取到的也是完整历史，updated 照算', () => {
+    for (const args of [['--no-tags'], ['--no-tags', '--depth', '1']]) {
+      const clone = cloneRepo(remote, args);
+      const kun = openKun('2026.9.13', {}, site(clone));
+      assert.equal(kun.date, '2026-09-13', args.join(' '));
+      assert.equal(kunFileDate(kun, 'README.md'), '2026-04-01', args.join(' '));
+    }
+  });
+
+  it('origin 上也没有这个 tag 时失败', () => {
+    assert.throws(() => openKun('2026.10.8', {}, site(cloneRepo(remote, ['--no-tags']))), /没有 tag v2026\.10\.8/);
+  });
+
+  it('tag 的历史被截断（浅克隆只取了 tag 那一个提交）时失败，不让 updated 算错', () => {
+    const clone = cloneRepo(remote, ['--no-tags', '--depth', '1']);
+    execFileSync('git', ['-C', clone, 'fetch', '-q', '--depth', '1', '--no-tags', 'origin', '+refs/tags/v2026.9.13:refs/tags/v2026.9.13'], { stdio: 'pipe' });
+    assert.throws(() => openKun('2026.9.13', {}, site(clone)), /历史不全/);
+  });
+
+  it('不在 git 仓库里时失败', () => {
+    assert.throws(() => openKun('2026.9.13', {}, makeRepoRoot('')), /不在 git 仓库里/);
+  });
+});
+
 describe('白名单、slug 与路由', () => {
   it('按 §2b.2 的白名单映射，slug 小写并把 . 换成 -', () => {
     assert.equal(kunSlug('docs/architecture/ADR-003-Kun.Audit-module.md'), 'adr-003-kun-audit-module');
@@ -170,12 +216,12 @@ describe('同步样例 kun 仓库', () => {
     const files = new Set(['docs/architecture/why-outbox.md', 'docs/roadmap.md', 'src/Kun.Core/Kun.Core.csproj', 'docs/guides/table.md']);
     const resolve = makeKunResolver(kun, 'docs/architecture/ADR-003-Kun.Audit-module.md', files, (m) => warnings.push(m));
     assert.equal(resolve('why-outbox.md#tl-dr'), '/sdk/kun/architecture/why-outbox#tl-dr');
-    assert.equal(resolve('../roadmap.md'), 'https://github.com/idadawn/kun/blob/v2026.9.13/docs/roadmap.md');
-    assert.equal(resolve('../../src/Kun.Core/'), 'https://github.com/idadawn/kun/tree/v2026.9.13/src/Kun.Core');
+    assert.equal(resolve('../roadmap.md'), 'https://github.com/CavaiLAB/kun/blob/v2026.9.13/docs/roadmap.md');
+    assert.equal(resolve('../../src/Kun.Core/'), 'https://github.com/CavaiLAB/kun/tree/v2026.9.13/src/Kun.Core');
     assert.equal(resolve('https://example.com'), null);
     assert.equal(resolve('#local'), null);
     assert.equal(makeKunResolver(kun, 'CHANGELOG.md', files, (m) => warnings.push(m))('../docs/guides/table.md'), '/sdk/kun/guides/table');
-    assert.equal(resolve('../nope.md'), 'https://github.com/idadawn/kun/blob/v2026.9.13/docs/nope.md');
+    assert.equal(resolve('../nope.md'), 'https://github.com/CavaiLAB/kun/blob/v2026.9.13/docs/nope.md');
     assert.equal(warnings.length, 2, warnings.join('\n'));
   });
 
@@ -209,7 +255,7 @@ describe('同步样例 kun 仓库', () => {
     assert.match(frontmatter, /^project: kun$/m);
     assert.match(frontmatter, /^part: sdk$/m);
     assert.match(frontmatter, /^version: "2026\.9\.13"$/m);
-    assert.match(frontmatter, /^source: "idadawn\/kun@v2026\.9\.13:docs\/architecture\/ADR-003-Kun\.Audit-module\.md"$/m);
+    assert.match(frontmatter, /^source: "CavaiLAB\/kun@v2026\.9\.13:docs\/architecture\/ADR-003-Kun\.Audit-module\.md"$/m);
     assert.match(frontmatter, /^updated: 2026-04-01$/m);
     assert.match(body, /^# ADR-003: Introduce `Kun\.Audit` Module\n\n:::info 镜像页\n本页镜像自 kun 仓库/m);
     assert.match(body, /（`v2026\.9\.13`）/);

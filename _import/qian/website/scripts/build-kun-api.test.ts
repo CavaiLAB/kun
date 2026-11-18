@@ -128,7 +128,7 @@ describe('Kun API 参考', () => {
     assert.match(frontmatter, /^title: "Result<T>（Struct）"$/m);
     assert.match(frontmatter, /^description: "带返回值的 Result。失败时携带 Result<T>\.Error，见 Error 与 Task。"$/m);
     assert.match(frontmatter, /^project: kun$/m);
-    assert.match(frontmatter, /^source: "idadawn\/kun@v2026\.9\.13:src\/Kun\.Core"$/m);
+    assert.match(frontmatter, /^source: "CavaiLAB\/kun@v2026\.9\.13:src\/Kun\.Core"$/m);
     assert.match(frontmatter, /^sidebar: false$/m);
     assert.match(body, /^# Struct Result<T\\>\n\n:::info 生成页\n/m);
     assert.match(body, /（`v2026\.9\.13`）/);

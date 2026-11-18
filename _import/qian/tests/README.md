@@ -212,7 +212,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 ## 旧 Kun API 门禁（S1-KUN-006、S1-KUN-004）
 
-仓库根的 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030。作用域按档位（S1-KUN-020，仓库根的 `Directory.Build.targets`）：平台档的包、宿主（项目文件里写 `<KunHost>true</KunHost>`）与本目录下不打包的项目（测试、工具、样例）接入；去内核档的 14 个包与仓库根的 Kun 项目不接，被禁的类型就定义在内核档的模块里。下面几道分析器门禁（QIAN0002–QIAN0006）的作用域相同。`tests/gates/bannedapi` 的负例引用已发布 Kun 2026.10.9 的旧仓储／存储接口，正例引用新存储包，避免凭虚构类型验证门禁。Kun 2026.10.9 起旧接口自带 `KUNLEGACY001` Obsolete，负例会同时报 KUNLEGACY001 与 RS0030 / QIAN0002，门禁只断言后两者，叠加后判定不变（S1-KUN-009）。
+仓库根的 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030。作用域按档位（S1-KUN-020，仓库根的 `Directory.Build.targets`）：平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`）接入；过渡期本目录下的项目全部接入，去内核档的包也在内，各域批次把包搬出本目录时再按归属收窄；仓库根的 Kun 项目不接，被禁的类型就定义在那里。下面几道分析器门禁（QIAN0002–QIAN0006）的作用域相同。`tests/gates/bannedapi` 的负例引用已发布 Kun 2026.10.9 的旧仓储／存储接口，正例引用新存储包，避免凭虚构类型验证门禁。Kun 2026.10.9 起旧接口自带 `KUNLEGACY001` Obsolete，负例会同时报 KUNLEGACY001 与 RS0030 / QIAN0002，门禁只断言后两者，叠加后判定不变（S1-KUN-009）。
 
 命名空间以源码为准：旧存储 `Kun.Storage` 包的接口是 `Kun.Storage.Abstractions.IFileStorage`；新 `Kun.Storage.Abstractions` 包的接口是 `Kun.Storage.IFileStorage`。标准分析器覆盖符号使用（例如 typeof、调用、构造）；`tools/Qian.Build.Analyzers` 使用同一清单补齐未使用的参数、字段、返回类型等声明，并发出 QIAN0002。负例包含纯参数声明，不依赖上游新包的 Obsolete 标记。
 

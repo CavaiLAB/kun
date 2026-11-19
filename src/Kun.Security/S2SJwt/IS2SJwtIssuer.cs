@@ -3,8 +3,7 @@ namespace Kun.Security.S2SJwt;
 // RS0026 is suppressed because the two IssueAsync overloads are intentionally
 // distinct shapes (record-based + 5-positional-param compatibility). Overload
 // resolution is unambiguous on the first parameter type (S2SJwtIssueRequest vs
-// string), so the "optional-param backcompat" hazard does not apply — the
-// same rationale as Kun.Sandbox/IProcesses.cs.
+// string), so the "optional-param backcompat" hazard does not apply.
 #pragma warning disable RS0026
 
 /// <summary>

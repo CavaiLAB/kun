@@ -20,7 +20,6 @@ using Kun.Sample.Catalog.Application.Queries;
 using Kun.Sample.Catalog.Contracts;
 using Kun.Sample.Catalog.Grpc;
 using Kun.Sample.Catalog.Infrastructure;
-using Kun.Sandbox.Extensions;
 using Kun.Validation.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -108,12 +107,6 @@ builder.Services.AddValidator<CreateProductCommand, CreateProductCommandValidato
 // This sample sticks with the null backend so the minimal wiring shape
 // is visible without a schema migration.
 builder.Services.AddKunAudit();
-
-// ── Sandbox (Kun.Sandbox) ─────────────────────────────────────────────────────
-// Demonstrates the in-memory backend — zero network, zero isolation —
-// suitable for developer-loop smoke tests and unit tests. Production
-// wiring would call UseSupervisor(baseUrl) or UseE2BCloud(apiKey, teamId).
-builder.Services.AddKunSandbox(opts => opts.UseInMemory());
 
 // ── gRPC ──────────────────────────────────────────────────────────────────────
 builder.Services.AddKunGrpc();

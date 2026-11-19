@@ -1038,14 +1038,15 @@ CI 流水线中对所有应当走 AOT 的服务执行 `dotnet publish -p:Publish
 
 配套测试覆盖：Storage 23 / Security 15 / Identity 11 / MultiTenancy 12 / Audit 13 / RateLimit 6 / Caching 12 / Observability 5 / Configuration 13 / Sandbox 27（facts + theories 计数），全部绿色。
 
-### 13.2 最小集成示例：Sandbox + Audit + Security 组合根
+`Kun.Sandbox` 与旧线的 `Kun.Storage`（上表第一行）已归档（S1-KUN-028），上表与测试计数按 `0.1.0-phase1` 的交付原样保留。对象存储现在用 `Kun.Storage.Abstractions` 加 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`。
 
-这是 Phase 1 下游 C# 服务最常见的组合：外部 JWT 由网关校验，内部 S2S JWT 由下游 `Kun.Security` 认证，业务操作记入 `Kun.Audit`，并在 `Kun.Sandbox` 里执行不可信代码。
+### 13.2 最小集成示例：Audit + Security 组合根
+
+这是 Phase 1 下游 C# 服务最常见的组合：外部 JWT 由网关校验，内部 S2S JWT 由下游 `Kun.Security` 认证，业务操作记入 `Kun.Audit`。
 
 ```csharp
 using Kun.Audit.DependencyInjection;
 using Kun.Observability;
-using Kun.Sandbox.Extensions;
 using Kun.Security.Authentication;
 using Kun.Security.DependencyInjection;
 
@@ -1068,17 +1069,13 @@ builder.Services.AddKunSecurity();
 //    UseEventBus() 会把审计条目作为集成事件经 Outbox 发出，NullAuditWriter 是默认 fallback
 builder.Services.AddKunAudit().UseEventBus();
 
-// 4) Sandbox：调用远端 Supervisor 起沙箱执行 agent 产出的代码
-builder.Services.AddKunSandbox(opts => opts.UseSupervisor(
-    baseUrl: new Uri("https://sandbox-supervisor.internal:8443/")));
-
 var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 app.Run();
 ```
 
-> 完整示例请见 `samples/Kun.Sample.Catalog/Program.cs`（已演示 `AddKunAudit()` + `AddKunSandbox(... UseInMemory())`）。
+> 完整示例请见 `samples/Kun.Sample.Catalog/Program.cs`（已演示 `AddKunAudit()`）。
 
 ### 13.3 AOT 一致性状态
 

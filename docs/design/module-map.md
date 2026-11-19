@@ -61,7 +61,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Plugin.Sdk.Generators` | 源生成器与 KUNSDK001–003 诊断，只以分析器引用 | — | — |
 | `Kun.Plugin.Sdk.AspNetCore` | 平台档契约：HTTP 插件可见性 | `AddKunPluginEndpoints`、`UseKunPluginEndpoints`、`RequireKunPlugin` | — |
 
-清单工具在仓库根的 `tools/Kun.Plugin.Tool`，不打包。`Kun.Plugin.Sdk` 对平台档只剩身份契约一条依赖（`CommandInvocation` 带 `Principal`），依赖门禁记为例外，B7 去掉。
+清单工具在仓库根的 `tools/Kun.Plugin.Tool`，不打包。`Kun.Plugin.Sdk` 不依赖平台档的包：`CommandInvocation` 带的 `Principal` 在内核契约 `Kun.Security.Abstractions` 里。
 
 ### 持久化（Infrastructure 层）
 
@@ -96,6 +96,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
 | `Kun.Security` | S2S JWT 校验 / JWKS 热加载 / `ITenantContext` / `ICurrentUser` 实现 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
+| `Kun.Security.Abstractions` | 服务间令牌的主体模型与声明词汇表，零依赖 | 公共表面带主体的契约包引用它，不必引用 `Kun.Security` | `Principal` / `PrincipalKind` / `IdentityClaimNames` | ✅ | — |
 | `Kun.Identity` | 外部 IdP（OIDC）客户端、JWT 校验与原子会话；**不**自建用户存储 | 账号和凭据由身份权威提供，Kun 负责依赖方校验与会话 | `AddKunIdentity(...)` | ✅ | 11 |
 | `Kun.MultiTenancy` | `ITenantContext` 实现 + EF 查询过滤器 + SaveChanges 拦截器 | 所有租户隔离业务的透明过滤 | `AddKunMultiTenancy()` / `UseKunMultiTenancy()` | ✅ | 12 |
 | `Kun.MultiTenancy.EntityFrameworkCore` | EF 侧租户过滤器 + `HasTenantFilter<T>()` 扩展 | 与 `Kun.MultiTenancy` 配套的 EF 实现 | `HasTenantFilter<T>()` | ⚠️ trim-safe | — |

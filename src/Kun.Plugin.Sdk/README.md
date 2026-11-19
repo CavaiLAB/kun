@@ -13,7 +13,7 @@
 | `Kun.Plugin.Sdk.Generators` | 内核档，只以分析器引用 | 源生成器与 KUNSDK001–003 诊断 |
 | `Kun.Plugin.Sdk.AspNetCore` | 平台档契约 | HTTP 插件可见性，见下文「HTTP 插件可见性」 |
 
-只用声明与命令策略的包只引用 `Kun.Plugin.Sdk`；要登记能力命令的平台组件另引用 `Kun.Plugin.Sdk.Commands`。清单工具在仓库根的 `tools/Kun.Plugin.Tool`，不打包。`Kun.Plugin.Sdk` 对平台档只剩一条依赖：命令策略协议的 `CommandInvocation` 带着身份契约里的 `Principal`，原生审计（内核档）要读它，依赖门禁里记为例外，B7 去掉。
+只用声明与命令策略的包只引用 `Kun.Plugin.Sdk`；要登记能力命令的平台组件另引用 `Kun.Plugin.Sdk.Commands`。清单工具在仓库根的 `tools/Kun.Plugin.Tool`，不打包。`Kun.Plugin.Sdk` 不依赖平台档的包：命令策略协议的 `CommandInvocation` 带的 `Principal` 在内核契约 `Kun.Security.Abstractions` 里，原生审计（内核档）读它不经过身份契约。
 
 ## 代码契约
 

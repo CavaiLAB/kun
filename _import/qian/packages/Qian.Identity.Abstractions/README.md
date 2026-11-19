@@ -12,6 +12,8 @@
 
 直接依赖 `Kun.Runtime` 与 `Kun.EventBus.Abstractions`，复用原命名空间下的稳定 `[IntegrationEventId]`、事件注册端口与源生成 `JsonTypeInfo` 重载。该框架包只依赖零外部依赖的 Kun.Core，身份契约不再经事件入口传递引入 Redis、broker 或后台发布器。Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020），没有单独的版本。
 
+另直接依赖内核契约 `Kun.Security.Abstractions`（零依赖）：服务间令牌的主体模型 `Principal`、`DelegationActor`、`PrincipalKind` 与声明词汇表 `IdentityClaimNames` 在那个包里，命名空间 `Kun.Security`。本包的公共表面用到它们（如 `IIdentityService.CurrentPrincipal`），引用本包的项目经传递拿到，不用另加引用。
+
 ## 账号与登录端口
 
 内置 Provider 额外提供三个端口，服务键在 `IdentityDefinition` 上，`ctx.IdentityAccounts()` / `ctx.IdentitySignIn()` / `ctx.IdentityFactors()` 按当前 scope 注入：
@@ -23,6 +25,8 @@
 `IdentityErrors` 是身份领域稳定错误码的唯一定义处，由 Provider 在挂载时登记到 `ErrorCatalog`。
 
 ## claim 边界
+
+下面说的 `IdentityClaimNames`、`Principal` 与 `PrincipalKind` 在 `Kun.Security.Abstractions`（见「框架依赖」）；`IdentityJson`（含 `PrincipalTypeInfo`）与 `ClientType` 在本包。
 
 - `IdentityClaimNames.IdentityToken` 表示用户令牌词汇：sub、tenant_id、membership_id、scope、identity_revision、sid、amr、acr，以及尚未启用的 profile/act。
 - `S2sRequired` / `S2sOptional` 与冻结 `contracts/v0/s2s-claims.schema.json` 精确一致。S2S 使用 session_id，不加入 sid/amr/acr/profile；权限点集合不进入令牌，roles 仅是已裁决的粗粒度角色例外。

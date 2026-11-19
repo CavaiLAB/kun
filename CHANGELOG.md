@@ -143,6 +143,17 @@
 - 关通道失败（包括连接已被对端关掉）时照常释放通道，也不再盖掉会话本来的异常：连接已关记 Debug，其余失败记 Warning。
 - `RabbitMqConnectionProvider`：开始释放之后，`GetConnectionAsync` 抛 `ObjectDisposedException`，不再新建一条没人关的连接；释放时有连接正在建，等它建完一并关掉；排在内部锁上的调用方不再一直挂着。关闭时只容忍 `AlreadyClosedException`，父类 `OperationInterruptedException` 的其他情形照常抛出。
 
+### Fixed — 调度器 worker 正常停止时不再记错误，已跑完的作业照常提交（S1-QA-023）
+
+- `Qian.Scheduler` 的 worker 正常停止时，不再记「调度领取失败」「续租失败」「收尾失败」这几条 Error，错误输出里也不再有 `ObjectDisposedException`。
+  - 原因：停止时 Kun.Runtime 先关闭插件上下文、再执行卸载效果，worker 在效果里才停；这段时间里领取、续租与收尾都经插件上下文取数据服务，抛 `ObjectDisposedException`。
+- 这段时间里的行为：
+  - 领取循环不再领新触发器，安静退出；
+  - 刚领到、还没开始准备的执行直接放下，由租约到期后的 worker 接管；
+  - 处理器已经正常返回的，照常提交完成；之前完成事务失败，同一 run 在接管后会再执行一次；
+  - 解析或处理器因上下文已关闭而抛出的，不写失败，留给接管。
+- 在途执行的续租与收尾改用 worker 创建时取得的数据服务，领取与开始执行仍经插件上下文。上下文开着而数据服务缺失（组件回到等待依赖）时照旧按错误处理。生产缺省值不变。
+
 ## [2026.10.25] - 2026-10-25
 
 ### Fixed — 数据约定与实体审计不再占用当前主体 / 租户端口（S1-KUN-017）

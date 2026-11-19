@@ -34,7 +34,7 @@ public sealed partial class SessionLogHygieneTests(PostgresFixture postgres, Red
     {
         // 直接调用 ILogger 的 Log* 方法会绕开下面的检查，所以源码里不允许出现。
         var separator = Path.DirectorySeparatorChar;
-        var sources = Directory.EnumerateFiles(Path.Combine(Root(), "packages", "Kun.Identity.Server"), "*.cs", SearchOption.AllDirectories)
+        var sources = Directory.EnumerateFiles(Path.GetFullPath("../../src/Kun.Identity.Server", Root()), "*.cs", SearchOption.AllDirectories)
             .Where(path => !path.Contains($"{separator}obj{separator}", StringComparison.Ordinal) && !path.Contains($"{separator}bin{separator}", StringComparison.Ordinal)).ToArray();
         Assert.NotEmpty(sources);
         Assert.All(sources, path => Assert.Empty(DirectLoggerCall().Matches(File.ReadAllText(path))));

@@ -11,6 +11,7 @@
 ### Changed — 平台分析器
 
 - `QIAN0001` 至 `QIAN0006` 的新诊断号依次为 `KUNAPI001`、`KUNLEGACY002`、`KUNDATA001`、`KUNDATA002`、`KUNAUTHZ001`、`KUNEVENT001`。配置本组诊断的项目须同步更新 `.editorconfig`、`NoWarn` 和 `#pragma warning` 中的编号。
+- 平台档包与宿主通过项目声明接入禁用符号和平台分析器。门禁样例通过 `KunPlatformAnalyzers=true` 显式接入。
 
 ### Changed — 样例、开发工具与测试宿主（S1-KUN-029）
 

@@ -37,7 +37,7 @@ updated: 2026-11-19
 | `Kun.Audit.EntityFrameworkCore` | 不用其拦截器 | `AuditSaveChangesInterceptor` 事后、不同事务写审计，禁用（7.1 第 8 项） |
 | `Kun.Observability` | [qian.observability](/components/platform/qian.observability) | `AddQianObservability()` 一行装配；网关宿主也接入 |
 | `Kun.Configuration`、`Kun.Configuration.Apollo` | [qian.config](/components/platform/qian.config) | 强类型 Options 与 fail-fast；Kun 2026.10.9 起重载失败保留最后有效值并告警、`AddKunOptions(JsonTypeInfo)` 导出 JSON Schema，Apollo HTTP 配置源随同版本发布（7.1 第 10 项，S1-KUN-006） |
-| `Kun.Authorization` | [qian.authz](/components/platform/qian.authz) | Kun 2026.10.9 起只放端口（`IPermissionChecker` / `IDataPermissionFilter` / `IFieldPolicy`）与 HTTP、Mediator、gRPC 调用形态，不内置 RBAC/ABAC；Qian 实现并再导出（7.1 第 11 项，S1-KUN-006）；Kun 2026.10.13 起受保护请求漏装权限行为时 Mediator 拒绝构建（S1-KUN-014），与 Qian 的编译期门禁 QIAN0005 互补 |
+| `Kun.Authorization` | [qian.authz](/components/platform/qian.authz) | Kun 2026.10.9 起只放端口（`IPermissionChecker` / `IDataPermissionFilter` / `IFieldPolicy`）与 HTTP、Mediator、gRPC 调用形态，不内置 RBAC/ABAC；Qian 实现并再导出（7.1 第 11 项，S1-KUN-006）；Kun 2026.10.13 起受保护请求漏装权限行为时 Mediator 拒绝构建（S1-KUN-014），与 平台的编译期门禁 KUNAUTHZ001 互补 |
 | `Kun.Caching` | [qian.identity](/components/platform/qian.identity)、[qian.authz](/components/platform/qian.authz)、[qian.gateway](/components/platform/qian.gateway)、[qian.events](/components/platform/qian.events) | 缓存后端 |
 | `Kun.RateLimit` | 服务侧限流 | 服务与网关共用 Redis 固定窗口存储，按路由选择分区由 `Kun.Gateway` 负责 |
 | `Kun.Storage.Abstractions`、`Kun.Storage.Local`、`Kun.Storage.S3`、`Kun.Storage.Oss` | [qian.files](/components/platform/qian.files) | 新线存储；Provider `Qian.Files.Local` / `.S3` / `.Oss` 各包一个后端 |

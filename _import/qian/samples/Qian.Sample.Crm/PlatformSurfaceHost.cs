@@ -17,7 +17,7 @@ using Kun.Errors.AspNetCore;
 
 namespace Qian.Sample.Crm;
 
-// 面向用户的平台表面参考宿主（S1-YUE-012）：能力目录 / 导航 / 外壳目录（MapQianCapabilities）与有效权限（MapQianAuthz）。
+// 面向用户的平台表面参考宿主：能力目录 / 导航 / 外壳目录（MapQianCapabilities）与有效权限（MapKunAuthz）。
 // 与 TenantOperationsHost 同形：复用已装配的 Runtime（Registry / Capabilities / Authz），只认网关签发的 S2S（RS256、issuer、受众、有效期），
 // 接受 user / service / agent 主体，主体快照取自令牌，按其 tenant_id 进入租户 scope；平台身份（tenant_id 为 null）没有租户表面，按未认证拒绝，
 // 只读平台控制台目录（GET /api/capabilities/console，S1-YUE-018）：用 Capabilities 的全局上下文，按平台超管只读判定列出平台组件的远程与菜单，带租户的请求按不存在拒绝。

@@ -8,6 +8,12 @@
 
 ## [Unreleased]
 
+### Changed — 权限包、组件入口与计量器（S1-KUN-027）
+
+- 将包引用与命名空间从 `Qian.Authz.Abstractions`、`Qian.Authz`、`Qian.Authz.AspNetCore` 分别改为 `Kun.Authorization.Rbac.Abstractions`、`Kun.Authorization.Rbac`、`Kun.Authorization.AspNetCore`。
+- 映射组件端点改用 `MapKunAuthz`，登记授权事件改用 `AddKunAuthzEvents`。组件 `qian.authz` 的版本升至 1.1.0，清单入口为 `Kun.Authorization.Rbac.AuthzComponent, Kun.Authorization.Rbac`。
+- 订阅授权指标的宿主将计量器名从 `Qian.Authz` 改为 `Kun.Authorization.Rbac`。仪表继续使用 `qian.authz.*`。
+
 ### Changed — OIDC 客户端与上游连接器（S1-KUN-026）
 
 - 两个入口共用发现、授权码交换与验签。配置的 issuer 必须与发现文档逐字相等，包括末尾斜杠。关闭 HTTPS 要求后仅允许回环 HTTP。回调应把授权响应中的 `iss` 原样传给 `OidcCodeExchange.ResponseIssuer`。声明支持 RFC 9207 的发行方必须返回该参数。

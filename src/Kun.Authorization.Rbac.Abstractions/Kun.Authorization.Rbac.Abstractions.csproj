@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Qian 权限 seam、规范权限点与错误契约；复用 Kun.Authorization 端口。</Description>
+    <Description>基于 Kun.Authorization 的权限契约、权限点定义与授权错误。</Description>
   </PropertyGroup>
   <PropertyGroup Label="档位">
     <KunTier>platform</KunTier>

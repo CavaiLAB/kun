@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Client;
-using Qian.Runtime;
+using Kun.Runtime;
 
 // Identity.Client 组件的 NativeAOT 冒烟（S1-IDP-014）：按 gateway 的用法装配依赖方会话与下游 S2S 校验，经 PluginLoader 挂载组件，
 // 再在回环端口上逐个请求端点。发行方指向回环上无人监听的端口，discovery 立即失败，不依赖外网。全部符合预期才退出 0。

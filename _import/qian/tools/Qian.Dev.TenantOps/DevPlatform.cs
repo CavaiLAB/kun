@@ -17,7 +17,7 @@ using Qian.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Sample.Crm;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
@@ -109,7 +109,7 @@ internal sealed class DevPlatform(string repository) : IDisposable
         foreach (var id in new[] { "tenancy", "config", "registry", "capabilities", "lifecycle" }) EnsureReady(loader, id);
         await loader.GetContext("registry", ScopeKey.Global).Registry().StartAsync(ct).ConfigureAwait(false);
 
-        void Add(string id, string component, IQianPlugin plugin, ServiceKey[] provides, object? config = null)
+        void Add(string id, string component, IKunPlugin plugin, ServiceKey[] provides, object? config = null)
         {
             var definition = new PluginDefinition(new PluginEntry(id, component, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
             definitions.Add(id, definition);

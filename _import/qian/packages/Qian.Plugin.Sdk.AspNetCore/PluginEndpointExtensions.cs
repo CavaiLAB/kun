@@ -2,7 +2,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Plugin.Sdk.AspNetCore;
 

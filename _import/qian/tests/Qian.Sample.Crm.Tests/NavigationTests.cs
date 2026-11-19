@@ -12,7 +12,7 @@ using Qian.Authz;
 using Qian.Capabilities;
 using Qian.Data;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces;
 
 namespace Qian.Sample.Crm.Tests;

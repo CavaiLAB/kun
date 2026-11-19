@@ -20,7 +20,7 @@ pnpm exec qian docs generate --profile platform --json
 
 ## 事件代码分析
 
-事件值使用 `QianEvent.Define<TPayload,TResult>(name, mode)` 或构造器；可用 `[QianEvent(Mode = DispatchMode.Emit)]` 标注字段/属性，特性与初始化值必须一致。生成器默认扫描 `packages`、`plugins`、`src` 中的 C# 文件，排除 tests、bin、obj、node_modules、dist；可重复 `--source <目录>` 指定扫描范围。源码目录与文件不能是符号链接。
+事件值使用 `KunEvent.Define<TPayload,TResult>(name, mode)` 或构造器；可用 `[KunEvent(Mode = DispatchMode.Emit)]` 标注字段/属性，特性与初始化值必须一致。生成器默认扫描 `packages`、`plugins`、`src` 中的 C# 文件，排除 tests、bin、obj、node_modules、dist；可重复 `--source <目录>` 指定扫描范围。源码目录与文件不能是符号链接。
 
 Roslyn 语义模型绑定真实 `IPluginContext.On` / `DispatchAsync`，支持 namespace/type alias、命名参数、只读字段/属性别名和未被改写的局部变量。声明重复、静态事件注册模式不一致、静态事件的 mode 无法确定、源码语法错误均使 CLI 退出 1；返回 ErrorDetail 与已解析的生产方/消费方映射，不覆盖上一份有效文档。字符串、注释与其它类型的同名方法不当成事件调用。
 

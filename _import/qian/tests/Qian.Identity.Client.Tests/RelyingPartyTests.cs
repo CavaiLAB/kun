@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 
 namespace Qian.Identity.Client.Tests;

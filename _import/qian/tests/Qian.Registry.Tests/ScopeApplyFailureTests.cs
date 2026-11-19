@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Registry.Tests;
@@ -81,7 +81,7 @@ public sealed partial class PatchPersistenceTests
     }
 
     // 配置为 tenant-probe 时，在真实声明式表面之后经 SDK 登记一个输入含租户字段的能力；其余情况只交给真实插件。
-    private sealed class TenantFieldCapability(IQianPlugin inner) : IQianPlugin
+    private sealed class TenantFieldCapability(IKunPlugin inner) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;
         public async ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
@@ -92,7 +92,7 @@ public sealed partial class PatchPersistenceTests
     }
 
     // 按配置决定 Apply 失败方式的包装；其余情况交给真实声明式表面插件。
-    private sealed class FailingApply(IQianPlugin inner) : IQianPlugin
+    private sealed class FailingApply(IKunPlugin inner) : IKunPlugin
     {
         internal const string Secret = "内部细节：连接串与配置原文";
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;

@@ -7,7 +7,7 @@ using Kun.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Sample.Crm.Tests;
 

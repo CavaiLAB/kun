@@ -30,9 +30,9 @@ Qian.Identity.Server.IdentityServerOptions.SignInScheme.init -> void
 Qian.Identity.Server.IdentityServerOptions.SigningCertificates.get -> System.Collections.Generic.IReadOnlyList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
 Qian.Identity.Server.IdentityServerOptions.SigningCertificates.init -> void
 Qian.Identity.Server.IdentityServerPlugin
-Qian.Identity.Server.IdentityServerPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Identity.Server.IdentityServerPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Identity.Server.IdentityServerPlugin.IdentityServerPlugin(Qian.Identity.Abstractions.IIdentityService! accounts) -> void
-Qian.Identity.Server.IdentityServerPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Identity.Server.IdentityServerPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 const Qian.Identity.Server.IdentityDbContext.Schema = "plugin_qian_identity" -> string!
 override Qian.Identity.Server.IdentityClientRegistration.ToString() -> string!
 override Qian.Identity.Server.IdentityServerOptions.ToString() -> string!
@@ -146,8 +146,8 @@ Qian.Identity.Server.IdentityAccountOptions.SelectionPath.init -> void
 Qian.Identity.Server.IdentityAccountOptions.Connectors.init -> void
 Qian.Identity.Server.IdentityServerComponent
 Qian.Identity.Server.IdentityServerComponent.IdentityServerComponent() -> void
-Qian.Identity.Server.IdentityServerComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Identity.Server.IdentityServerComponent.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Identity.Server.IdentityServerComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Identity.Server.IdentityServerComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Identity.Server.IdentityPagesHosting
 const Qian.Identity.Server.IdentityPagesHosting.PagesPath = "/login" -> string!
 static Qian.Identity.Server.IdentityPagesHosting.UseQianIdentityPages(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app, string! root) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!

@@ -47,7 +47,7 @@ Qian.Plugin.Sdk.QianPluginAttribute.Id.get -> string!
 Qian.Plugin.Sdk.QianPluginAttribute.QianPluginAttribute(string! id) -> void
 Qian.Plugin.Sdk.ComponentCodeMetadata
 Qian.Plugin.Sdk.ComponentCodeMetadata.Capabilities.get -> System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.CapabilityContract!>!
-Qian.Plugin.Sdk.ComponentCodeMetadata.ComponentCodeMetadata(string! componentId, string! runtimeEntry, System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>! inject, System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>! provides, System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.CapabilityContract!>! capabilities) -> void
+Qian.Plugin.Sdk.ComponentCodeMetadata.ComponentCodeMetadata(string! componentId, string! runtimeEntry, System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>! inject, System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>! provides, System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.CapabilityContract!>! capabilities) -> void
 Qian.Plugin.Sdk.ComponentCodeMetadata.ComponentId.get -> string!
 Qian.Plugin.Sdk.ComponentCodeMetadata.Inject.get -> System.Collections.Generic.IReadOnlyList<string!>!
 Qian.Plugin.Sdk.ComponentCodeMetadata.Provides.get -> System.Collections.Generic.IReadOnlyList<string!>!
@@ -68,7 +68,7 @@ Qian.Plugin.Sdk.CommandInvocation.Channel.get -> string!
 Qian.Plugin.Sdk.CommandInvocation.Contract.get -> Qian.Plugin.Sdk.CapabilityContract!
 Qian.Plugin.Sdk.CommandInvocation.Input.get -> System.Text.Json.JsonElement
 Qian.Plugin.Sdk.CommandInvocation.Principal.get -> Qian.Identity.Abstractions.Principal!
-Qian.Plugin.Sdk.CommandInvocation.Source.get -> Qian.Runtime.IPluginContext!
+Qian.Plugin.Sdk.CommandInvocation.Source.get -> Kun.Runtime.IPluginContext!
 Qian.Plugin.Sdk.CommandInvocation.Transaction.get -> System.Data.Common.DbTransaction!
 Qian.Plugin.Sdk.CommandPolicies
 Qian.Plugin.Sdk.CommandPolicyKind
@@ -79,12 +79,12 @@ Qian.Plugin.Sdk.ICapabilityRequest<TResponse>
 Qian.Plugin.Sdk.ICapabilityRequest<TResponse>.QianCapability.get -> Qian.Plugin.Sdk.CapabilityContract!
 Qian.Plugin.Sdk.QianCommandRegistration
 override Qian.Plugin.Sdk.CommandInvocation.ToString() -> string!
-static Qian.Plugin.Sdk.CommandPolicies.Register(Qian.Runtime.IPluginContext! context, Qian.Plugin.Sdk.CommandPolicyKind kind, System.Func<Qian.Plugin.Sdk.CommandInvocation!, System.Func<System.Threading.Tasks.ValueTask<object?>>!, System.Threading.Tasks.ValueTask<object?>>! handler) -> void
-static Qian.Plugin.Sdk.QianCommandRegistration.AddQianCapability<TRequest, TResponse, THandler, TContext>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<System.IServiceProvider!, Qian.Runtime.IPluginContext!>! source, string! channel = "api") -> Kun.Mediator.KunMediatorBuilder!
-static readonly Qian.Plugin.Sdk.CommandEvents.Dispatching -> Qian.Runtime.QianEvent<Qian.Plugin.Sdk.CommandInvocation!, object?>!
-static readonly Qian.Plugin.Sdk.CommandPolicies.AuditKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Plugin.Sdk.CommandPolicies.AuthorizationKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Plugin.Sdk.CommandPolicies.TenancyKey -> Qian.Runtime.ServiceKey
+static Qian.Plugin.Sdk.CommandPolicies.Register(Kun.Runtime.IPluginContext! context, Qian.Plugin.Sdk.CommandPolicyKind kind, System.Func<Qian.Plugin.Sdk.CommandInvocation!, System.Func<System.Threading.Tasks.ValueTask<object?>>!, System.Threading.Tasks.ValueTask<object?>>! handler) -> void
+static Qian.Plugin.Sdk.QianCommandRegistration.AddQianCapability<TRequest, TResponse, THandler, TContext>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>! source, string! channel = "api") -> Kun.Mediator.KunMediatorBuilder!
+static readonly Qian.Plugin.Sdk.CommandEvents.Dispatching -> Kun.Runtime.KunEvent<Qian.Plugin.Sdk.CommandInvocation!, object?>!
+static readonly Qian.Plugin.Sdk.CommandPolicies.AuditKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Plugin.Sdk.CommandPolicies.AuthorizationKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Plugin.Sdk.CommandPolicies.TenancyKey -> Kun.Runtime.ServiceKey
 Qian.Plugin.Sdk.CommandInvocation.Id.get -> System.Guid
 Qian.Plugin.Sdk.CommandInvocation.StartedAt.get -> System.DateTimeOffset
 Qian.Plugin.Sdk.CommandInvocation.TraceId.get -> string!
@@ -93,13 +93,13 @@ Qian.Plugin.Sdk.SensitiveAttribute.SensitiveAttribute() -> void
 Qian.Plugin.Sdk.CapabilityBindingRegistration
 Qian.Plugin.Sdk.IExecutableCapability
 Qian.Plugin.Sdk.IExecutableCapability.Contract.get -> Qian.Plugin.Sdk.CapabilityContract!
-Qian.Plugin.Sdk.IExecutableCapability.InvokeAsync(Qian.Runtime.IPluginContext! caller, System.Text.Json.JsonElement input, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
-static Qian.Plugin.Sdk.CapabilityBindingRegistration.ProvideCapability<TRequest, TResponse>(this Qian.Runtime.IPluginContext! context) -> System.IDisposable!
-static readonly Qian.Plugin.Sdk.CapabilityBindingRegistration.Key -> Qian.Runtime.ServiceKey
+Qian.Plugin.Sdk.IExecutableCapability.InvokeAsync(Kun.Runtime.IPluginContext! caller, System.Text.Json.JsonElement input, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
+static Qian.Plugin.Sdk.CapabilityBindingRegistration.ProvideCapability<TRequest, TResponse>(this Kun.Runtime.IPluginContext! context) -> System.IDisposable!
+static readonly Qian.Plugin.Sdk.CapabilityBindingRegistration.Key -> Kun.Runtime.ServiceKey
 Qian.Plugin.Sdk.JsonSchemaReferences
 static Qian.Plugin.Sdk.JsonSchemaReferences.RebaseToComponent(System.Text.Json.JsonElement schema, string! key) -> System.Text.Json.Nodes.JsonNode!
 Qian.Plugin.Sdk.HookCapabilityRegistration
-static Qian.Plugin.Sdk.HookCapabilityRegistration.ExposeCapabilityHook<TRequest, TResponse>(this Qian.Runtime.IPluginContext! context, string! name, System.Func<Qian.Surfaces.Abstractions.HookNotification!, TRequest>! request) -> System.IDisposable!
+static Qian.Plugin.Sdk.HookCapabilityRegistration.ExposeCapabilityHook<TRequest, TResponse>(this Kun.Runtime.IPluginContext! context, string! name, System.Func<Qian.Surfaces.Abstractions.HookNotification!, TRequest>! request) -> System.IDisposable!
 Qian.Plugin.Sdk.ICapabilityContractCheck
 Qian.Plugin.Sdk.ICapabilityContractCheck.Check(Qian.Plugin.Sdk.CapabilityContract! contract) -> void
 Qian.Plugin.Sdk.CapabilityContractException
@@ -111,7 +111,7 @@ Qian.Plugin.Sdk.CapabilityContractException.Rule.get -> string!
 Qian.Plugin.Sdk.CapabilityContractException.ReasonCode.get -> string!
 Qian.Plugin.Sdk.CapabilityAttribute.ComponentId.get -> string?
 Qian.Plugin.Sdk.CapabilityAttribute.ComponentId.set -> void
-Qian.Plugin.Sdk.ComponentCodeMetadata.ComponentCodeMetadata(string! componentId, string! runtimeEntry, System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>! inject, System.Collections.Generic.IReadOnlyList<string!>! provides, System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.CapabilityContract!>! capabilities, string! permissionsJson, string! eventsJson, string? configSchemaJson) -> void
+Qian.Plugin.Sdk.ComponentCodeMetadata.ComponentCodeMetadata(string! componentId, string! runtimeEntry, System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>! inject, System.Collections.Generic.IReadOnlyList<string!>! provides, System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.CapabilityContract!>! capabilities, string! permissionsJson, string! eventsJson, string? configSchemaJson) -> void
 Qian.Plugin.Sdk.ComponentCodeMetadata.ConfigSchema.get -> System.Text.Json.JsonElement?
 Qian.Plugin.Sdk.ComponentCodeMetadata.Events.get -> System.Text.Json.JsonElement
 Qian.Plugin.Sdk.ComponentCodeMetadata.Permissions.get -> System.Text.Json.JsonElement
@@ -137,7 +137,7 @@ Qian.Plugin.Sdk.QianConfigSchemaAttribute.Json.get -> string!
 Qian.Plugin.Sdk.QianConfigSchemaAttribute.QianConfigSchemaAttribute(string! json) -> void
 Qian.Plugin.Sdk.QianPluginAttribute.MetadataTypes.get -> System.Type![]!
 Qian.Plugin.Sdk.QianPluginAttribute.MetadataTypes.set -> void
-static Qian.Plugin.Sdk.ComponentMetadataDeclarations.Event<TPayload, TResult>(Qian.Runtime.QianEvent<TPayload, TResult>! value, Qian.Runtime.DispatchMode mode, string! source) -> System.Text.Json.Nodes.JsonObject!
+static Qian.Plugin.Sdk.ComponentMetadataDeclarations.Event<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, TResult>! value, Kun.Runtime.DispatchMode mode, string! source) -> System.Text.Json.Nodes.JsonObject!
 static readonly Qian.Plugin.Sdk.ManifestErrors.ComponentMismatch -> Kun.Errors.ErrorCode!
 static readonly Qian.Plugin.Sdk.ManifestErrors.Field -> Kun.Errors.ErrorCode!
 static readonly Qian.Plugin.Sdk.ManifestErrors.HandwrittenConflict -> Kun.Errors.ErrorCode!
@@ -156,8 +156,8 @@ Qian.Plugin.Sdk.SharedEventsAttribute
 Qian.Plugin.Sdk.SharedEventsAttribute.Declarations.get -> System.Type!
 Qian.Plugin.Sdk.SharedEventsAttribute.DefinitionComponent.get -> string!
 Qian.Plugin.Sdk.SharedEventsAttribute.SharedEventsAttribute(System.Type! declarations, string! definitionComponent) -> void
-static Qian.Plugin.Sdk.ComponentMetadataDeclarations.Event<TPayload, TResult>(Qian.Runtime.QianEvent<TPayload, TResult>! value, Qian.Runtime.DispatchMode mode, string! source, string! definitionComponent) -> System.Text.Json.Nodes.JsonObject!
-Qian.Plugin.Sdk.ComponentCodeMetadata.ComponentCodeMetadata(string! componentId, string! runtimeEntry, System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>! inject, System.Collections.Generic.IReadOnlyList<string!>! provides, System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.CapabilityContract!>! capabilities, string! permissionsJson, string! eventsJson, string? configSchemaJson, System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.JobContract!>! jobs) -> void
+static Qian.Plugin.Sdk.ComponentMetadataDeclarations.Event<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, TResult>! value, Kun.Runtime.DispatchMode mode, string! source, string! definitionComponent) -> System.Text.Json.Nodes.JsonObject!
+Qian.Plugin.Sdk.ComponentCodeMetadata.ComponentCodeMetadata(string! componentId, string! runtimeEntry, System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>! inject, System.Collections.Generic.IReadOnlyList<string!>! provides, System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.CapabilityContract!>! capabilities, string! permissionsJson, string! eventsJson, string? configSchemaJson, System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.JobContract!>! jobs) -> void
 Qian.Plugin.Sdk.ComponentCodeMetadata.Jobs.get -> System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.JobContract!>!
 Qian.Plugin.Sdk.IJobRequest<TResponse>
 Qian.Plugin.Sdk.IJobRequest<TResponse>.QianJobCode.get -> string!
@@ -169,5 +169,5 @@ Qian.Plugin.Sdk.JobContract.JobContract(string! code, Qian.Plugin.Sdk.Capability
 Qian.Plugin.Sdk.QianJobAttribute
 Qian.Plugin.Sdk.QianJobAttribute.Code.get -> string!
 Qian.Plugin.Sdk.QianJobAttribute.QianJobAttribute(string! code) -> void
-static Qian.Plugin.Sdk.JobBindingRegistration.ProvideJob<TRequest, TResponse>(this Qian.Runtime.IPluginContext! context) -> System.IDisposable!
-static readonly Qian.Plugin.Sdk.JobBindingRegistration.Key -> Qian.Runtime.ServiceKey
+static Qian.Plugin.Sdk.JobBindingRegistration.ProvideJob<TRequest, TResponse>(this Kun.Runtime.IPluginContext! context) -> System.IDisposable!
+static readonly Qian.Plugin.Sdk.JobBindingRegistration.Key -> Kun.Runtime.ServiceKey

@@ -11,7 +11,7 @@ using Qian.Audit;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces;
 
 namespace Qian.Sample.Crm.Tests;

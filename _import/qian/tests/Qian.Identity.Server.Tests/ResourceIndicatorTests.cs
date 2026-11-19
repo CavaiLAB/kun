@@ -27,7 +27,7 @@ using Npgsql;
 using OpenIddict.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using IdentitySession = Qian.Identity.Abstractions.Session;

@@ -3,7 +3,7 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Identity.Server.Tests;
@@ -81,7 +81,7 @@ internal sealed class StaticSecrets(string reference, string value) : Qian.Confi
 }
 
 /// <summary>把若干连接器登记到所在 scope 的 Identity.Connectors 注册表的组件。</summary>
-internal sealed class ConnectorsPlugin(params IIdentityConnector[] connectors) : IQianPlugin
+internal sealed class ConnectorsPlugin(params IIdentityConnector[] connectors) : IKunPlugin
 {
     public IReadOnlyList<ServiceKey> Inject => [IdentityDefinition.Key];
 

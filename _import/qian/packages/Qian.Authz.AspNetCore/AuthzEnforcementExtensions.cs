@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Qian.Authz.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Authz.AspNetCore;

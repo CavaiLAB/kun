@@ -6,7 +6,7 @@ using Kun.MultiTenancy;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Audit;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
@@ -91,7 +91,7 @@ internal static class ShellAuditEndpoints
     private static KunErrorResult Error(ErrorCode code) => KunResults.Error(new Error(code));
 }
 
-internal sealed class AuditConsumer : IQianPlugin
+internal sealed class AuditConsumer : IKunPlugin
 {
     internal static readonly string[] Bindings = ["audit_tenant", "audit_platform"];
     internal IPluginContext? Context { get; private set; }

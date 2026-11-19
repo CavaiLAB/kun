@@ -27,8 +27,8 @@ updated: 2026-10-07
 // Definition 包：定义事件并标注分发模式
 public static class FileEvents
 {
-    public static readonly QianEvent<UploadRequest, UploadResult> Uploading =
-        QianEvent.Define<UploadRequest, UploadResult>("files.uploading", DispatchMode.Waterfall);
+    public static readonly KunEvent<UploadRequest, UploadResult> Uploading =
+        KunEvent.Define<UploadRequest, UploadResult>("files.uploading", DispatchMode.Waterfall);
 }
 
 // 某个插件的 ApplyAsync 里：挂一层环绕监听器，调用 next() 才进入下一层

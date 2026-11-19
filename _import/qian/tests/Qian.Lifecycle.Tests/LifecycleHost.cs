@@ -26,7 +26,7 @@ using Qian.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
@@ -115,7 +115,7 @@ internal sealed class LifecycleHost : IAsyncDisposable
             await Prepare(host, postgres, auditRole, ct);
             await host.StartAsync(ct);
             // 装载器的日志器来自宿主：组件记的宿主级告警（如缺审计）才能被用例观察到。
-            var runtime = new PluginLoader(host.Services, host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Runtime.PluginLoader"));
+            var runtime = new PluginLoader(host.Services, host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Runtime.PluginLoader"));
             await MountAsync(runtime, directory, lifecycleConfig, hooks ?? ((_, _) => null), auditRole, ct);
             return new LifecycleHost(directory, host, runtime, tenant, time, settings, secrets, auditRole);
         }
@@ -224,7 +224,7 @@ internal sealed class LifecycleHost : IAsyncDisposable
         await runtime.GetContext("registry", ScopeKey.Global).Registry().StartAsync(ct);
         return;
 
-        void Add(string id, string component, IQianPlugin plugin, ServiceKey[] provides, object? config = null)
+        void Add(string id, string component, IKunPlugin plugin, ServiceKey[] provides, object? config = null)
         {
             var definition = new PluginDefinition(new PluginEntry(id, component, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
             definitions.Add(id, definition);

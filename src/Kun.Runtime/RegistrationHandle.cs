@@ -1,4 +1,4 @@
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 // 当前注册只在装载器锁内读写；撤销经效果栈登记，主动撤销与卸载都只执行一次。
 internal sealed class RegistrationHandle<TService> : IRegistrationHandle<TService> where TService : class

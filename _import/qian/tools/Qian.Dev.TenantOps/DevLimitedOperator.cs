@@ -1,6 +1,6 @@
 using Kun.Authorization;
 using Qian.Authz.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Dev.TenantOps;
 
@@ -35,11 +35,11 @@ internal sealed class DevLimitedOperatorContext(IPluginContext inner) : IPluginC
     public void Effect(IDisposable disposer) => inner.Effect(disposer);
     public void Effect(Action dispose) => inner.Effect(dispose);
     public void Effect(Func<ValueTask> disposeAsync) => inner.Effect(disposeAsync);
-    public IDisposable On<TPayload, TResult>(QianEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
-    public IDisposable On<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
-    public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
-    public ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
-    public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct) => inner.DispatchAsync(evt, payload, terminal, ct);
+    public IDisposable On<TPayload, TResult>(KunEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
+    public IDisposable On<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
+    public ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
+    public ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
+    public ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct) => inner.DispatchAsync(evt, payload, terminal, ct);
     public IPluginContext Scoped(ScopeKey scope) => inner.Scoped(scope);
     public IDisposable Restrict(ScopeKey scope, Func<Registration, bool> keep) => inner.Restrict(scope, keep);
     public IReadOnlyList<Registration> List(ServiceKey key) => inner.List(key);

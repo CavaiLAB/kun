@@ -10,7 +10,7 @@ import {marketDiagnostic,MarketplaceFailure} from './marketplaces.js';
 export interface EngineEvidence {engine:'qian'|'kun';version:string;package:string;source:string}
 export interface EnginePlan {evidence:EngineEvidence[];pending:EngineEvidence['engine'][]}
 // kun 是 Kun 框架，证据是 NuGet 的 Kun.Core；qian 是前端框架（8 个层包同一版本），证据是 npm 的 @cavailab/qian-core。
-// 平台运行时（Qian.Runtime、@cavailab/qian-runtime）不当引擎证据：它不在 Kun 的日历版本线上，并进去之前没有单独的版本检查。
+// 组件运行时 Kun.Runtime 随 Kun 发布、与 Kun.Core 同一版本，由 kun 的证据覆盖；前端运行时 @cavailab/qian-runtime 不当引擎证据，没有单独的版本检查。
 const enginePackages:Record<string,EngineEvidence['engine']>={'kun.core':'kun','@cavailab/qian-core':'qian'};
 /** 版本只来自宿主实际还原结果与实际 npm 包，不能以 CLI 的 package.json 代替。 */
 export function engineEvidenceFromAssets(data:unknown,source:string):EngineEvidence[] {

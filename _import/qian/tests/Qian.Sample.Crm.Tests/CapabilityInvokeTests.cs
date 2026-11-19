@@ -17,7 +17,7 @@ using Qian.Capabilities;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.Containers;
 
@@ -835,7 +835,7 @@ public abstract partial class CustomerCommandTests
         }
     }
 
-    private protected sealed class ProbePlugin(IQianPlugin inner, IReadOnlyList<IExecutableCapability> probes) : IQianPlugin
+    private protected sealed class ProbePlugin(IKunPlugin inner, IReadOnlyList<IExecutableCapability> probes) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;
         public async ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

@@ -11,16 +11,16 @@ namespace Qian.Docs.Tests;
 public sealed class DocumentTests
 {
     private const string Definitions = """
-        using Qian.Runtime;
+        using Kun.Runtime;
         namespace Demo;
         public static class Events
         {
-            [QianEvent(Mode = DispatchMode.Emit)]
-            public static readonly QianEvent<string, string?> Changed = QianEvent.Define<string, string?>("demo/changed", DispatchMode.Emit);
+            [KunEvent(Mode = DispatchMode.Emit)]
+            public static readonly KunEvent<string, string?> Changed = KunEvent.Define<string, string?>("demo/changed", DispatchMode.Emit);
         }
         """;
     private const string Calls = """
-        using Qian.Runtime;
+        using Kun.Runtime;
         using E = Demo.Events;
         namespace Demo;
         public static class Feature
@@ -91,10 +91,10 @@ public sealed class DocumentTests
     {
         using var fixture = new Fixture(); fixture.Write("src/Events.cs", Definitions);
         fixture.Write("src/Fake.cs", """
-            using Qian.Runtime;
+            using Kun.Runtime;
             namespace Demo;
             class Fake {
-                public void On(QianEvent<string,string?> evt, DispatchMode mode) { }
+                public void On(KunEvent<string,string?> evt, DispatchMode mode) { }
                 public void Method() { On(Events.Changed, DispatchMode.Waterfall); }
                 // ctx.On(Events.Changed, DispatchMode.Waterfall, handler);
                 public const string Text = "ctx.On(Events.Changed, DispatchMode.Waterfall, handler)";
@@ -117,8 +117,8 @@ public sealed class DocumentTests
     public void Named_constructor_arguments_and_property_aliases_resolve_the_same_definition()
     {
         using var fixture = new Fixture();
-        fixture.Write("src/Events.cs", Definitions.Replace("QianEvent.Define<string, string?>(\"demo/changed\", DispatchMode.Emit)", "new(Mode: DispatchMode.Emit, Name: \"demo/changed\")", StringComparison.Ordinal));
-        fixture.Write("src/Alias.cs", "using Qian.Runtime; namespace Demo; public static class Alias { public static QianEvent<string,string?> Changed => Events.Changed; }");
+        fixture.Write("src/Events.cs", Definitions.Replace("KunEvent.Define<string, string?>(\"demo/changed\", DispatchMode.Emit)", "new(Mode: DispatchMode.Emit, Name: \"demo/changed\")", StringComparison.Ordinal));
+        fixture.Write("src/Alias.cs", "using Kun.Runtime; namespace Demo; public static class Alias { public static KunEvent<string,string?> Changed => Events.Changed; }");
         fixture.Write("src/Calls.cs", Calls.Replace("using E = Demo.Events;", "using E = Demo.Alias;", StringComparison.Ordinal));
         var result = fixture.Generate(); Assert.True(result.IsValid, JsonSerializer.Serialize(result.Diagnostics));
         Assert.Single(Assert.Single(result.Events).Consumers);
@@ -138,7 +138,7 @@ public sealed class DocumentTests
     public void Alias_attributes_must_match_the_original_event_mode()
     {
         using var fixture = new Fixture(); fixture.Write("src/Events.cs", Definitions);
-        fixture.Write("src/Alias.cs", "using Qian.Runtime; namespace Demo; public static class Alias { [QianEvent(Mode=DispatchMode.Waterfall)] public static QianEvent<string,string?> Changed => Events.Changed; }");
+        fixture.Write("src/Alias.cs", "using Kun.Runtime; namespace Demo; public static class Alias { [KunEvent(Mode=DispatchMode.Waterfall)] public static KunEvent<string,string?> Changed => Events.Changed; }");
         fixture.Write("src/Calls.cs", Calls.Replace("using E = Demo.Events;", "using E = Demo.Alias;", StringComparison.Ordinal));
         var result = fixture.Generate();
         Assert.False(result.IsValid);

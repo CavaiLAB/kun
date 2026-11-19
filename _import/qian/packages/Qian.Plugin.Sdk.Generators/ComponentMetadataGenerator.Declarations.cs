@@ -37,14 +37,14 @@ public sealed partial class ComponentMetadataGenerator
             { Report(output, plugin, "SharedEvents 须引用同程序集内由一个其它组件通过 MetadataTypes 唯一拥有的事件契约。"); return null; }
             var members = new ISymbol[] { type }.Concat(type.GetMembers()).ToArray();
             if (members.Any(m => m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Qian.Authz.Abstractions.PermissionAttribute")) ||
-                !members.Any(m => m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Qian.Runtime.QianEventAttribute")))
+                !members.Any(m => m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Kun.Runtime.KunEventAttribute")))
             { Report(output, plugin, "SharedEvents 只共享非空的事件声明类型，不能携带 Permission 权限声明。"); return null; }
             sharedTypes.Add(type, definitionComponent); symbols.AddRange(members);
         }
         var permissions = new List<string>(); var events = new List<string>(); var permissionNames = new HashSet<string>(StringComparer.Ordinal);
         foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default).OrderBy(s => s.ToDisplayString(), StringComparer.Ordinal))
         {
-            foreach (var attribute in symbol.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() is "Qian.Authz.Abstractions.PermissionAttribute" or "Qian.Runtime.QianEventAttribute"))
+            foreach (var attribute in symbol.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() is "Qian.Authz.Abstractions.PermissionAttribute" or "Kun.Runtime.KunEventAttribute"))
             {
                 var explicitOwner = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.ComponentOwnerAttribute")?.ConstructorArguments[0].Value as string
                     ?? symbol.ContainingType?.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.ComponentOwnerAttribute")?.ConstructorArguments[0].Value as string;
@@ -74,11 +74,11 @@ public sealed partial class ComponentMetadataGenerator
                 else
                 {
                     if (symbol is not IFieldSymbol { IsStatic: true, IsReadOnly: true, DeclaredAccessibility: Accessibility.Public } field ||
-                        field.Type is not INamedTypeSymbol { Name: "QianEvent", TypeArguments.Length: 2 } eventType || eventType.ContainingNamespace.ToDisplayString() != "Qian.Runtime")
-                    { Report(output, symbol, "QianEvent 声明须为公开静态只读的强类型事件字段。"); return null; }
+                        field.Type is not INamedTypeSymbol { Name: "KunEvent", TypeArguments.Length: 2 } eventType || eventType.ContainingNamespace.ToDisplayString() != "Kun.Runtime")
+                    { Report(output, symbol, "KunEvent 声明须为公开静态只读的强类型事件字段。"); return null; }
                     var reference = field.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "." + field.Name;
                     var mode = attribute.NamedArguments.FirstOrDefault(p => p.Key == "Mode").Value.Value is int value ? value : 0;
-                    events.Add("global::Qian.Plugin.Sdk.ComponentMetadataDeclarations.Event(" + reference + ", (global::Qian.Runtime.DispatchMode)" + mode + ", " + Literal(symbol.ToDisplayString()) + ", " + Literal(owner) + ")");
+                    events.Add("global::Qian.Plugin.Sdk.ComponentMetadataDeclarations.Event(" + reference + ", (global::Kun.Runtime.DispatchMode)" + mode + ", " + Literal(symbol.ToDisplayString()) + ", " + Literal(owner) + ")");
                 }
             }
         }

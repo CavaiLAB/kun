@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 internal sealed partial class PluginContext : IPluginContext, IKeyedServiceProvider
 {

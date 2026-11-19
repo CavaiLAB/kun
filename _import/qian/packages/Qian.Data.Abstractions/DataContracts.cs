@@ -1,6 +1,6 @@
 using Kun.EntityFrameworkCore;
 using Kun.EventBus.Outbox;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Data;
 

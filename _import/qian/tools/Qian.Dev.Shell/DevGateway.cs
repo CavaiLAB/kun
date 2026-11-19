@@ -18,7 +18,7 @@ using Qian.Dev.TenantOps;
 using Qian.Gateway;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Client;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Sample.Crm;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Transforms;
@@ -179,7 +179,7 @@ internal static class DevGateway
         return response.IsSuccessStatusCode;
     }
 
-    private static PluginDefinition Definition(string id, string plugin, IQianPlugin implementation, JsonElement config, params ServiceKey[] provides) =>
+    private static PluginDefinition Definition(string id, string plugin, IKunPlugin implementation, JsonElement config, params ServiceKey[] provides) =>
         new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, config), implementation, provides);
 
     // 第二个 API 前缀：/api-alt/... 改写为 /api/... 再转发，其余（受众、S2S、去 Cookie）与 /api 路由同一套变换。

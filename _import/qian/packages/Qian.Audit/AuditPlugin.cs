@@ -4,14 +4,14 @@ using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Plugin.Sdk;
 using Kun.Errors;
 
 namespace Qian.Audit;
 
 /// <summary>提供真实审计服务并在卸载时取消、排空未完成调用。</summary>
-public sealed class AuditPlugin : IQianPlugin
+public sealed class AuditPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];

@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Runtime.Tests;
+namespace Kun.Runtime.Tests;
 
 public sealed class LifecycleTests
 {
@@ -191,7 +191,7 @@ public sealed class LifecycleTests
     internal static PluginDefinition Define(string id, Action<IPluginContext> apply, ServiceKey[]? inject = null, ServiceKey[]? provides = null, ScopeKey? scope = null)
         => new(new PluginEntry(id, id, "1.0.0", scope ?? ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), new TestPlugin(apply, inject ?? []), provides ?? []);
 
-    private sealed class TestPlugin(Action<IPluginContext> apply, ServiceKey[] inject) : IQianPlugin
+    private sealed class TestPlugin(Action<IPluginContext> apply, ServiceKey[] inject) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => inject;
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
@@ -201,7 +201,7 @@ public sealed class LifecycleTests
         }
     }
 
-    private sealed class AsyncPlugin(Func<IPluginContext, CancellationToken, ValueTask> apply, ServiceKey[]? inject = null) : IQianPlugin
+    private sealed class AsyncPlugin(Func<IPluginContext, CancellationToken, ValueTask> apply, ServiceKey[]? inject = null) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => inject ?? [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => apply(ctx, ct);
@@ -228,7 +228,7 @@ public sealed class LifecycleTests
     }
 
     private sealed record SampleConfig(string Message);
-    private sealed class ConfigPlugin : IQianPlugin<SampleConfig>
+    private sealed class ConfigPlugin : IKunPlugin<SampleConfig>
     {
         internal int Applies;
         public IReadOnlyList<ServiceKey> Inject => [];

@@ -5,7 +5,8 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime;
+using Qian.Profiles.Abstractions;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
@@ -192,7 +193,7 @@ internal sealed partial class PostgresPatchRepository(IDataService data, ITenant
     {
         if (!tenant.IsMultiTenant || string.IsNullOrWhiteSpace(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         if (tenant.TenantId.Length > 200 || tenant.TenantId.Any(char.IsControl)) throw Invalid("#/scope", "租户上下文标识无效。");
-        if (scope.Kind is not ("tenant" or "app" or "agent-session") || string.IsNullOrEmpty(scope.Id) || scope.Id.Length > 200 || scope.Id.Any(value => char.IsWhiteSpace(value) || value == ':'))
+        if (!ScopeKinds.IsKnown(scope.Kind) || string.IsNullOrEmpty(scope.Id) || scope.Id.Length > 200 || scope.Id.Any(value => char.IsWhiteSpace(value) || value == ':'))
             throw Invalid("#/scope", "数据库 patch 必须属于合法租户、应用或会话 scope。");
         if (scope.Kind == "tenant" && scope.Id != tenant.TenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return tenant.TenantId;

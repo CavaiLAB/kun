@@ -25,7 +25,7 @@ test('docs generate 生成四份文件；模式错误返回映射且保留上次
  const root=mkdtempSync(path.join(os.tmpdir(),'qian-docs-cli-'));
  try{
   write(root,'profiles/minimal/qian.profile.yml','name: minimal\nbundles: []\n');
-  const source=`using Qian.Runtime; namespace Demo; public static class Events { [QianEvent(Mode=DispatchMode.Emit)] public static readonly QianEvent<string,string?> Changed=QianEvent.Define<string,string?>("demo/changed",DispatchMode.Emit); public static void Bind(IPluginContext ctx) { ctx.On(Changed,DispatchMode.Emit,(Action<string>)(_=>{})); } }`;
+  const source=`using Kun.Runtime; namespace Demo; public static class Events { [KunEvent(Mode=DispatchMode.Emit)] public static readonly KunEvent<string,string?> Changed=KunEvent.Define<string,string?>("demo/changed",DispatchMode.Emit); public static void Bind(IPluginContext ctx) { ctx.On(Changed,DispatchMode.Emit,(Action<string>)(_=>{})); } }`;
   write(root,'src/Events.cs',source);
   const first=run(root,'docs','generate','--profile','minimal');assert.equal(first.status,0,first.stderr);const result=JSON.parse(first.stdout);assert.equal(result.files.length,4);assert.equal(result.events[0].consumers.length,1);
   const originals=Object.fromEntries(result.files.map(file=>[file,readFileSync(path.join(root,file),'utf8')]));

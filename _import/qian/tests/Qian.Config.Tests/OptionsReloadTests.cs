@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Qian.Config.Apollo;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 
 namespace Qian.Config.Tests;
@@ -154,7 +154,7 @@ public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFix
     [JsonSerializable(typeof(SampleOptions))][JsonSerializable(typeof(ConfigReloadFailed))]
     internal sealed partial class SampleJson : JsonSerializerContext;
 
-    private sealed class ReloadObserver : IQianPlugin
+    private sealed class ReloadObserver : IKunPlugin
     {
         public Channel<ConfigReloadFailed> Alerts { get; } = Channel.CreateUnbounded<ConfigReloadFailed>();
         public IReadOnlyList<ServiceKey> Inject => [ConfigDefinition.Key];

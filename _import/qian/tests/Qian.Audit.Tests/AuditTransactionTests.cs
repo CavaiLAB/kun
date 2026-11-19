@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Sample.Crm;
 

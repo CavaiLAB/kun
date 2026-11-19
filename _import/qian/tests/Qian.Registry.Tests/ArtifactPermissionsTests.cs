@@ -10,7 +10,7 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Plugin.Sdk.AspNetCore;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Registry.Tests;

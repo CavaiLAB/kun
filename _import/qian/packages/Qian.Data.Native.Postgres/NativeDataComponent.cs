@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Data.Native.Postgres;
@@ -10,7 +10,7 @@ namespace Qian.Data.Native.Postgres;
 /// <summary>qian.data.native 唯一入口；仅挂载于 global，提供独立 NativeData 键。</summary>
 [QianPlugin("qian.data.native")]
 [QianConfigSchema(Schema)]
-public sealed class NativeDataComponent : IQianPlugin
+public sealed class NativeDataComponent : IKunPlugin
 {
     private const string Schema = """
     {"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false,

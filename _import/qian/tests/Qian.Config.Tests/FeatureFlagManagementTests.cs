@@ -7,7 +7,7 @@ using Npgsql;
 using Qian.Config.Apollo;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.Containers;
 

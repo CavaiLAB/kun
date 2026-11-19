@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Plugin.Sdk;
 
 namespace Qian.Data;
@@ -9,7 +9,7 @@ namespace Qian.Data;
 /// <summary>qian.data 的真实 Provider；挂载提供 Data，卸载撤销服务并释放未关闭的会话。</summary>
 [QianPlugin("qian.data")]
 [QianConfigSchema(ComponentConfiguration.Schema)]
-public sealed class DataPlugin : IQianPlugin
+public sealed class DataPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [];

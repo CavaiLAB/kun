@@ -1,13 +1,13 @@
 using System.Text.Json;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Capabilities;
 
 /// <summary>业务 Apply 前核对版本制品与实际 gRPC 反射端点，任何探测失败均不公开业务注册。</summary>
-public sealed class GrpcContractPlugin : IQianPlugin
+public sealed class GrpcContractPlugin : IKunPlugin
 {
-    private readonly IQianPlugin _inner;
+    private readonly IKunPlugin _inner;
     private readonly IContractRepository _repository;
     private readonly IGrpcContractProbe _peer;
     private readonly string _plugin;
@@ -15,7 +15,7 @@ public sealed class GrpcContractPlugin : IQianPlugin
     private readonly string _candidate;
     private readonly string _contract;
     /// <summary>精确版本取自已捕获制品，peer 的连接与凭据由宿主按出网和安装授权配置。</summary>
-    public GrpcContractPlugin(IQianPlugin inner, IContractRepository repository, IGrpcContractProbe peer, string pluginId, string baselineVersion, string candidateVersion, string contractId)
+    public GrpcContractPlugin(IKunPlugin inner, IContractRepository repository, IGrpcContractProbe peer, string pluginId, string baselineVersion, string candidateVersion, string contractId)
     {
         ArgumentNullException.ThrowIfNull(inner); ArgumentNullException.ThrowIfNull(repository); ArgumentNullException.ThrowIfNull(peer);
         _ = repository.GetProtoSource(pluginId, baselineVersion, contractId); _ = repository.GetProtoSource(pluginId, candidateVersion, contractId);

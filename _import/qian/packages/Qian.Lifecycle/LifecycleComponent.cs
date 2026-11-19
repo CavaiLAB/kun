@@ -3,7 +3,7 @@ using Qian.Config;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Lifecycle;
@@ -13,7 +13,7 @@ namespace Qian.Lifecycle;
 [QianConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(LifecyclePlugin))]
 [Provides(typeof(LifecycleDefinition), nameof(LifecycleDefinition.Key))]
-public sealed class LifecycleComponent : IQianPlugin
+public sealed class LifecycleComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, RegistryDefinition.Key, ConfigDefinition.Key];

@@ -5,7 +5,7 @@ using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Gateway;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Sample.Crm;
 using Qian.Tenancy.Signup;
 

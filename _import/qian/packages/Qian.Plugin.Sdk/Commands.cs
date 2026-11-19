@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.Core.Cqrs;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Plugin.Sdk;
 
@@ -18,7 +18,7 @@ public interface ICapabilityRequest<TResponse> : IRequest<TResponse>, Kun.Author
 public static class CommandEvents
 {
     /// <summary>围绕实际 Mediator handler 的命令或查询执行。</summary>
-    public static readonly QianEvent<CommandInvocation, object?> Dispatching = QianEvent.Define<CommandInvocation, object?>("command/dispatching", DispatchMode.Waterfall);
+    public static readonly KunEvent<CommandInvocation, object?> Dispatching = KunEvent.Define<CommandInvocation, object?>("command/dispatching", DispatchMode.Waterfall);
 }
 
 /// <summary>一次已经绑定业务事务的调用；输入和身份不得从日志字符串化展开。</summary>

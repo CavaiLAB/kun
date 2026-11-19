@@ -3,7 +3,7 @@ using System.Data.Common;
 using System.Text.Json;
 using Npgsql;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeAudit;
@@ -191,7 +191,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
         await service.AppendAsync(Record(), Ct); Assert.True((await service.VerifyAsync(Ct)).Valid);
         await Assert.ThrowsAsync<ErrorException>(() => service.AppendPlatformAsync(host.Caller.Scoped(ScopeKey.Global), Record(null), Ct));
         var observer = host.Loader.GetContext("data", ScopeKey.Global).Scoped(new ScopeKey("tenant", A));
-        var sameNameNewDefinition = QianEvent.Define<string, object?>(CommandEvents.Dispatching.Name, DispatchMode.Waterfall);
+        var sameNameNewDefinition = KunEvent.Define<string, object?>(CommandEvents.Dispatching.Name, DispatchMode.Waterfall);
         Assert.ThrowsAny<Exception>(() => observer.On(sameNameNewDefinition, DispatchMode.Waterfall,
             (Func<string, Func<ValueTask<object?>>, ValueTask<object?>>)((_, next) => next())));
         await host.Loader.UnmountAsync("audit", new ScopeKey("tenant", A), Ct);

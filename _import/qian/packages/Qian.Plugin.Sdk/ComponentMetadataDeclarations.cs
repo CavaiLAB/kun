@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Plugin.Sdk;
 
@@ -7,7 +7,7 @@ namespace Qian.Plugin.Sdk;
 public static class ComponentMetadataDeclarations
 {
     /// <summary>核验事件属性与实际强类型事件的模式一致，并产生可追溯的元数据项。</summary>
-    public static JsonObject Event<TPayload, TResult>(QianEvent<TPayload, TResult> value, DispatchMode mode, string source)
+    public static JsonObject Event<TPayload, TResult>(KunEvent<TPayload, TResult> value, DispatchMode mode, string source)
     {
         ArgumentNullException.ThrowIfNull(value);
         if (!Enum.IsDefined(mode) || string.IsNullOrWhiteSpace(value.Name) || value.Mode != mode) throw new ArgumentException("事件属性与实际分发模式不一致：" + source);
@@ -16,7 +16,7 @@ public static class ComponentMetadataDeclarations
     }
 
     /// <summary>在同源事件声明上保留唯一 Definition 归属；多个 Provider 可引用同一事件。</summary>
-    public static JsonObject Event<TPayload, TResult>(QianEvent<TPayload, TResult> value, DispatchMode mode, string source, string definitionComponent)
+    public static JsonObject Event<TPayload, TResult>(KunEvent<TPayload, TResult> value, DispatchMode mode, string source, string definitionComponent)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(definitionComponent);
         var declaration = Event(value, mode, source);

@@ -11,7 +11,7 @@ using Qian.Authz.Abstractions;
 using Qian.Capabilities;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 

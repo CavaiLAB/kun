@@ -36,9 +36,9 @@ Qian.Identity.Client.IdentityClientOptions.SessionLifetime.init -> void
 Qian.Identity.Client.IdentityClientOptions.UseInMemorySessionStore.get -> bool
 Qian.Identity.Client.IdentityClientOptions.UseInMemorySessionStore.init -> void
 Qian.Identity.Client.IdentityClientPlugin
-Qian.Identity.Client.IdentityClientPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Identity.Client.IdentityClientPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Identity.Client.IdentityClientPlugin.IdentityClientPlugin() -> void
-Qian.Identity.Client.IdentityClientPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Identity.Client.IdentityClientPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Identity.Client.IdentityS2sOptions
 Qian.Identity.Client.IdentityS2sOptions.Audience.get -> string!
 Qian.Identity.Client.IdentityS2sOptions.Audience.init -> void
@@ -65,5 +65,5 @@ static Qian.Identity.Client.IdentityClientHosting.MapQianIdentityClient(this Mic
 static Qian.Identity.Client.IdentityClientHosting.UseQianIdentityClient(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 Qian.Identity.Client.IdentityClientComponent
 Qian.Identity.Client.IdentityClientComponent.IdentityClientComponent() -> void
-Qian.Identity.Client.IdentityClientComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Identity.Client.IdentityClientComponent.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Identity.Client.IdentityClientComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Identity.Client.IdentityClientComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask

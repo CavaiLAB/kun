@@ -1,7 +1,7 @@
 using Qian.Config;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using System.Text.Json;
 
@@ -12,7 +12,7 @@ namespace Qian.Identity.Connector.Oidc;
 [QianConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(OidcConnectorPlugin))]
 [Contributes(typeof(IdentityDefinition), nameof(IdentityDefinition.ConnectorsKey), "oidc")]
-public sealed class OidcConnectorComponent : IQianPlugin
+public sealed class OidcConnectorComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [IdentityDefinition.Key, ConfigDefinition.Key];

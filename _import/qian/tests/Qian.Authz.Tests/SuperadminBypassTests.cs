@@ -24,7 +24,7 @@ using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Events;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Testing.Containers;
@@ -208,7 +208,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "plugins/qian.authz/.qian-plugin/plugin.json")));
         var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(AuthzComponent).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType)!).Create();
         var entryType = Type.GetType(manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!;
-        var component = (IQianPlugin)Activator.CreateInstance(entryType)!;
+        var component = (IKunPlugin)Activator.CreateInstance(entryType)!;
         Assert.Equal(code.RuntimeEntry, manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString());
         Assert.Equal(code.Provides, manifest.RootElement.GetProperty("provides").EnumerateArray().Select(item => item.GetString()!));
         Assert.Equal(code.Inject, component.Inject.Select(key => key.Name));
@@ -399,10 +399,10 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
             JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(Path.Combine(directory, "roles.json"))));
     }
 
-    private static PluginDefinition Define(string id, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
+    private static PluginDefinition Define(string id, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
         new PluginEntry(id, "qian." + id, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
 
-    private sealed class Consumer : IQianPlugin
+    private sealed class Consumer : IKunPlugin
     {
         public IPluginContext? Context { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [AuthzDefinition.Key, AuthzDefinition.SuperadminBypassKey];

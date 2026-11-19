@@ -6,7 +6,7 @@ using Qian.Capabilities;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 
@@ -88,7 +88,7 @@ internal sealed class ProfileModeAssembly(string profile, string repositoryRoot)
         }
         return ValueTask.FromResult<IReadOnlyList<PluginDefinition>>(Snapshot.MountOrder.Select(key => _definitions[key["global/".Length..]]).ToArray());
 
-        void Add(string id, string component, IQianPlugin plugin, ServiceKey[] provides) => _definitions.Add(id,
+        void Add(string id, string component, IKunPlugin plugin, ServiceKey[] provides) => _definitions.Add(id,
             new PluginDefinition(new PluginEntry(id, component, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), plugin, provides));
     }
     public async ValueTask ReadyAsync(PluginLoader runtime, CancellationToken cancellationToken)
@@ -105,7 +105,7 @@ internal sealed class ProfileModeAssembly(string profile, string repositoryRoot)
         var scope = entry.Scope == "global" ? ScopeKey.Global : new ScopeKey(entry.Scope.Split(':', 2)[0], entry.Scope.Split(':', 2)[1]);
         return known with { Entry = known.Entry with { Scope = scope, Layer = entry.Layer, Config = entry.Config } };
     }
-    private static string EntryType(IQianPlugin plugin) => plugin.GetType().FullName + ", " + plugin.GetType().Assembly.GetName().Name;
+    private static string EntryType(IKunPlugin plugin) => plugin.GetType().FullName + ", " + plugin.GetType().Assembly.GetName().Name;
     private void Write(string relative, string text) { var file = Path.Combine(_directory.FullName, relative); Directory.CreateDirectory(Path.GetDirectoryName(file)!); File.WriteAllText(file, text); }
     private void Copy(string relative)
     {

@@ -1,13 +1,16 @@
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Kun.Errors;
+using Microsoft.Extensions.Logging;
 
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 /// <summary>Definition 拥有的服务键；具名注册可用 Key:name 声明就绪依赖。</summary>
 public readonly record struct ServiceKey(string Name);
 
-/// <summary>两层扁平作用域，不隐含租户、应用与会话之间的继承关系。</summary>
+/// <summary>
+/// 两层扁平作用域：<see cref="Global"/>，或「种类 + 非空 id」；作用域之间没有继承关系。
+/// 运行时只查语法（种类是小写字母开头、由小写字母数字与连字符组成的名字），种类有哪些由平台档定。
+/// </summary>
 public readonly record struct ScopeKey(string Kind, string Id)
 {
     /// <summary>全局注册的作用域。</summary>
@@ -15,19 +18,23 @@ public readonly record struct ScopeKey(string Kind, string Id)
 
     internal void Validate()
     {
-        if (this != Global && (Kind is not ("tenant" or "app" or "agent-session") || string.IsNullOrWhiteSpace(Id)))
-            throw new ArgumentException("scope 必须为 global 或非空的 tenant / app / agent-session。");
+        if (this == Global) return;
+        if (!IsKindName(Kind) || Kind == Global.Kind || string.IsNullOrWhiteSpace(Id))
+            throw new ArgumentException("scope 必须为 global，或小写的种类名加非空的 id。");
     }
+
+    private static bool IsKindName(string? kind) =>
+        !string.IsNullOrEmpty(kind) && kind[0] is >= 'a' and <= 'z' && kind.All(c => c is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-');
 }
 
 /// <summary>已由清单与配置装配器解析的插件条目。</summary>
 public sealed record PluginEntry(string Id, string Plugin, string Version, ScopeKey Scope, int Layer, JsonElement Config);
 
 /// <summary>装载输入；Provides 来自清单，不通过试运行 Apply 推测。</summary>
-public sealed record PluginDefinition(PluginEntry Entry, IQianPlugin Plugin, IReadOnlyList<ServiceKey> Provides);
+public sealed record PluginDefinition(PluginEntry Entry, IKunPlugin Plugin, IReadOnlyList<ServiceKey> Provides);
 
 /// <summary>插件的最小接口。</summary>
-public interface IQianPlugin
+public interface IKunPlugin
 {
     /// <summary>Apply 前必须就绪的服务键。</summary>
     IReadOnlyList<ServiceKey> Inject { get; }
@@ -36,12 +43,12 @@ public interface IQianPlugin
 }
 
 /// <summary>类型化配置接口；Schema 校验由清单装配器在调用前完成。</summary>
-public interface IQianPlugin<TConfig> : IQianPlugin
+public interface IKunPlugin<TConfig> : IKunPlugin
 {
     /// <summary>以类型化配置执行 Apply。</summary>
     ValueTask ApplyAsync(IPluginContext ctx, TConfig config, CancellationToken ct);
 
-    ValueTask IQianPlugin.ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
+    ValueTask IKunPlugin.ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
         => ApplyAsync(ctx, config.Deserialize<TConfig>(JsonSerializerOptions.Web) ?? throw new JsonException("配置不能为空。"), ct);
 }
 
@@ -72,20 +79,20 @@ public interface IPluginContext
     void Effect(Func<ValueTask> disposeAsync);
     /// <summary>注册 emit、waterfall 或 bail 监听器，模式必须与 Definition 一致。</summary>
 #pragma warning disable CA1716 // 规格 §5.2 的公共 API 名称固定为 On。
-    IDisposable On<TPayload, TResult>(QianEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority);
+    IDisposable On<TPayload, TResult>(KunEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority);
     /// <summary>以默认优先级 0 注册监听器。</summary>
-    IDisposable On<TPayload, TResult>(QianEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler) => On(evt, mode, handler, 0);
+    IDisposable On<TPayload, TResult>(KunEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler) => On(evt, mode, handler, 0);
     /// <summary>注册 parallel 或 serial 监听器；单个监听器返回 TResult。</summary>
-    IDisposable On<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority);
+    IDisposable On<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority);
     /// <summary>以默认优先级 0 注册集合分发监听器。</summary>
-    IDisposable On<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler) => On(evt, mode, handler, 0);
+    IDisposable On<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler) => On(evt, mode, handler, 0);
 #pragma warning restore CA1716
     /// <summary>发起一次 emit、waterfall 或 bail 分发。</summary>
-    ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct);
+    ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct);
     /// <summary>发起 parallel 或 serial 分发，返回监听器顺序的结果集合。</summary>
-    ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct);
+    ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct);
     /// <summary>发起 waterfall 分发并指定链尾。</summary>
-    ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct);
+    ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct);
     /// <summary>返回指定 scope 的上下文，与当前 Apply 共享效果栈，不继承当前 scope。</summary>
     IPluginContext Scoped(ScopeKey scope);
     /// <summary>过滤该 scope 可见的全局注册；多个纯函数谓词取交集。</summary>

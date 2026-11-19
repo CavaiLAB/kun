@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
 using Qian.Registry.AspNetCore;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
@@ -58,7 +58,7 @@ public sealed class ScopeWriteContractTests
         Assert.Equal("PRECONDITION_FAILED", Assert.IsType<ErrorException>(runtime.GetFailure("registry", ScopeKey.Global)).Error.Code.Code);
     }
 
-    private sealed class ContractMarker : IQianPlugin
+    private sealed class ContractMarker : IKunPlugin
     {
         internal int Applied { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [];

@@ -1,10 +1,28 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Runtime.Tests;
+namespace Kun.Runtime.Tests;
 
 public sealed class ScopeTests
 {
     private static readonly ScopeKey s_tenant = new("tenant", "A");
+
+    [Fact]
+    public async Task Scope_kinds_are_checked_for_syntax_only()
+    {
+        // 种类有哪些由平台档定：运行时接受任何合乎语法的种类名，只拒绝不合语法的 scope。
+        using var host = new ServiceCollection().BuildServiceProvider();
+        await using var loader = new PluginLoader(host);
+        var workspace = new ScopeKey("workspace-2", "w-1");
+        await loader.MountAsync([LifecycleTests.Define("local", ctx => ctx.Provide(new("X"), "local"), provides: [new("X")], scope: workspace)],
+            TestContext.Current.CancellationToken);
+        var context = loader.GetContext("local", workspace);
+        Assert.Equal("local", context.Scoped(workspace).Inject<string>(new("X")));
+        foreach (var invalid in new[] { new ScopeKey("Tenant", "A"), new ScopeKey("2fa", "A"), new ScopeKey("tenant id", "A"), new ScopeKey("", "A"),
+                     new ScopeKey("tenant", " "), new ScopeKey("global", "A") })
+        {
+            Assert.Throws<ArgumentException>(() => context.Scoped(invalid));
+        }
+    }
 
     [Fact]
     public async Task Throwing_restriction_denies_access_and_can_still_be_disposed()
@@ -69,7 +87,7 @@ public sealed class ScopeTests
     {
         using var host = new ServiceCollection().BuildServiceProvider();
         await using var loader = new PluginLoader(host);
-        var evt = QianEvent.Define<string, IReadOnlyList<string>>("tools/run", DispatchMode.Serial);
+        var evt = KunEvent.Define<string, IReadOnlyList<string>>("tools/run", DispatchMode.Serial);
         await loader.MountAsync([
             LifecycleTests.Define("allowed", ctx => ctx.On(evt, evt.Mode, (Func<string, ValueTask<string>>)(_ => ValueTask.FromResult("allowed")))),
             LifecycleTests.Define("hidden", ctx => ctx.On(evt, evt.Mode, (Func<string, ValueTask<string>>)(_ => throw new InvalidOperationException("不可执行")))),
@@ -84,7 +102,7 @@ public sealed class ScopeTests
     {
         using var host = new ServiceCollection().BuildServiceProvider();
         await using var loader = new PluginLoader(host);
-        var evt = QianEvent.Define<string, IReadOnlyList<string>>("same", DispatchMode.Serial);
+        var evt = KunEvent.Define<string, IReadOnlyList<string>>("same", DispatchMode.Serial);
         await loader.MountAsync([
             LifecycleTests.Define("same", ctx => ctx.On(evt, evt.Mode, (Func<string, ValueTask<string>>)(_ => ValueTask.FromResult("global")))),
             LifecycleTests.Define("same", ctx => ctx.On(evt, evt.Mode, (Func<string, ValueTask<string>>)(_ => ValueTask.FromResult("local"))), scope: s_tenant)], TestContext.Current.CancellationToken);

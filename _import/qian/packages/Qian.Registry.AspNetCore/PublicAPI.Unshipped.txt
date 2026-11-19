@@ -11,6 +11,6 @@ override Qian.Registry.AspNetCore.RegistryEntryList.Equals(object? obj) -> bool
 Qian.Registry.AspNetCore.RegistryEntryList.Equals(Qian.Registry.AspNetCore.RegistryEntryList? other) -> bool
 Qian.Registry.AspNetCore.RegistryEntryList.<Clone>$() -> Qian.Registry.AspNetCore.RegistryEntryList!
 Qian.Registry.AspNetCore.RegistryEntryList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Qian.Registry.RegistryEntryView!>! Items) -> void
-static Qian.Registry.AspNetCore.RegistryEndpoints.MapQianRegistry(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Qian.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Qian.Registry.AspNetCore.RegistryEndpoints.MapQianRegistry(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
 Qian.Registry.AspNetCore.RegistryEntryList.RegistryEntryList(System.Collections.Generic.IReadOnlyList<Qian.Registry.RegistryEntryView!>! Items) -> void
 static Qian.Registry.AspNetCore.RegistryEndpoints.UseQianRegistryAliases(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!

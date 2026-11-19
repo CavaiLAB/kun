@@ -2,7 +2,7 @@ using System.Text.Json;
 using Json.Schema;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Identity.Client.Tests;
 
@@ -38,7 +38,7 @@ public sealed class ClientManifestTests
         }).BuildServiceProvider();
         await using var loader = new PluginLoader(services);
         var entryType = Type.GetType(metadata.RuntimeEntry, throwOnError: true)!;
-        var plugin = Assert.IsAssignableFrom<IQianPlugin>(Activator.CreateInstance(entryType));
+        var plugin = Assert.IsAssignableFrom<IKunPlugin>(Activator.CreateInstance(entryType));
         Assert.Empty(plugin.Inject);
         await loader.MountAsync([new(new PluginEntry("identity", metadata.ComponentId, "1.0.0", ScopeKey.Global, 0,
             JsonSerializer.SerializeToElement(new { issuer = "https://id.qian.test/", clientId = "qian-public" })), plugin,

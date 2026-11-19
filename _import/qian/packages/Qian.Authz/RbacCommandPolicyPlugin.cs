@@ -6,13 +6,13 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Authz;
 
 /// <summary>只含命令 PEP 的子插件：复用活动声明与数据库授权；完整 Provider（判定服务、权限登记、开通与超管旁路）见 <see cref="AuthzPlugin"/>。</summary>
-public sealed class RbacCommandPolicyPlugin : IQianPlugin
+public sealed class RbacCommandPolicyPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];

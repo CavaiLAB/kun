@@ -4,7 +4,7 @@ using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data.Dialect.Pg;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Data.AspNetCore.Tests;
 
@@ -29,7 +29,7 @@ public sealed class PgDialectComponentTests
         var runtime = root.GetProperty("runtime");
         Assert.Equal("module", runtime.GetProperty("form").GetString());
         Assert.Equal(code.RuntimeEntry, runtime.GetProperty("entry").GetString());
-        var entry = (IQianPlugin)Activator.CreateInstance(Type.GetType(runtime.GetProperty("entry").GetString()!, throwOnError: true)!)!;
+        var entry = (IKunPlugin)Activator.CreateInstance(Type.GetType(runtime.GetProperty("entry").GetString()!, throwOnError: true)!)!;
         await loader.MountAsync([
             Define("data", "qian.data", new DataPlugin(), [DataDefinition.Key]),
             Define("pg", code.ComponentId, entry, code.Provides.Select(name => new ServiceKey(name)).ToArray())], TestContext.Current.CancellationToken);
@@ -93,6 +93,6 @@ public sealed class PgDialectComponentTests
     private static ComponentCodeMetadata Metadata() => typeof(PgDialectPlugin).Assembly.GetCustomAttributes<QianCodeMetadataAttribute>()
         .Select(attribute => ((IComponentCodeMetadataFactory)Activator.CreateInstance(attribute.FactoryType)!).Create()).Single(code => code.ComponentId == "qian.data.dialect.pg");
 
-    private static PluginDefinition Define(string id, string plugin, IQianPlugin implementation, IReadOnlyList<ServiceKey> provides) =>
+    private static PluginDefinition Define(string id, string plugin, IKunPlugin implementation, IReadOnlyList<ServiceKey> provides) =>
         new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), implementation, provides);
 }

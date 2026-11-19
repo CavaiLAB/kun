@@ -161,7 +161,7 @@ public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<Pos
         Assert.Equal("0", await host.Text("SELECT count(*) FROM plugin_qian_identity.memberships WHERE person_id=@person", ("person", platform.Id)));
         Assert.Equal(HttpStatusCode.NotFound, (await otherBrowser.Json(HttpMethod.Get, $"api/directory/orgs/{root:D}/members")).Status);
         Assert.Equal(HttpStatusCode.NotFound, (await browser.Json(HttpMethod.Post, $"api/directory/members/{member.Id:D}/purge")).Status);
-        await host.Loader.UnmountAsync("identity", Qian.Runtime.ScopeKey.Global, Ct);
+        await host.Loader.UnmountAsync("identity", Kun.Runtime.ScopeKey.Global, Ct);
         Assert.Equal(HttpStatusCode.NotFound, (await browser.Http.GetAsync("api/directory/orgs/tree", Ct)).StatusCode);
     }
 

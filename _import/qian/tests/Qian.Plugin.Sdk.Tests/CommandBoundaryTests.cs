@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Plugin.Sdk.Tests;
@@ -66,15 +66,15 @@ public sealed class CommandBoundaryTests
     }
 
     private const string Tenant = "01900000-0000-7000-8000-000000000001";
-    private static PluginDefinition Define(string id, string pluginId, IQianPlugin plugin) => new(
+    private static PluginDefinition Define(string id, string pluginId, IKunPlugin plugin) => new(
         new PluginEntry(id, pluginId, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), plugin, []);
-    private sealed class SourcePlugin : IQianPlugin
+    private sealed class SourcePlugin : IKunPlugin
     {
         public IPluginContext? Context { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) { Context = ctx; return ValueTask.CompletedTask; }
     }
-    private sealed class ForeignPolicy : IQianPlugin
+    private sealed class ForeignPolicy : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

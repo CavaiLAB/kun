@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 internal sealed partial class PluginContext
 {

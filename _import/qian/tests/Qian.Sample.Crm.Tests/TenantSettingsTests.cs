@@ -21,7 +21,7 @@ using Qian.Events;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Registry.AspNetCore;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;
@@ -175,7 +175,7 @@ public abstract partial class CustomerCommandTests
         Assert.Equal(PluginState.Ready, loader.GetState("registry", ScopeKey.Global));
         await loader.GetContext("registry", ScopeKey.Global).Registry().StartAsync(Ct);
         return new SettingsReaderHost(host, loader);
-        static PluginDefinition Definition(string id, IQianPlugin plugin, ServiceKey[] keys) => new(new PluginEntry(id, "qian." + id, "1.0.0", ScopeKey.Global, 0,
+        static PluginDefinition Definition(string id, IKunPlugin plugin, ServiceKey[] keys) => new(new PluginEntry(id, "qian." + id, "1.0.0", ScopeKey.Global, 0,
             JsonSerializer.SerializeToElement(new { })), plugin, keys);
     }
     private protected sealed class SettingsReaderHost(IHost host, PluginLoader loader) : IAsyncDisposable

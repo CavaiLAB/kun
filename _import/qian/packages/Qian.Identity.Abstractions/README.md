@@ -10,7 +10,7 @@
 
 ## 框架依赖
 
-直接依赖 `Qian.Runtime` 与 `Kun.EventBus.Abstractions`，复用原命名空间下的稳定 `[IntegrationEventId]`、事件注册端口与源生成 `JsonTypeInfo` 重载。该框架包只依赖零外部依赖的 Kun.Core，身份契约不再经事件入口传递引入 Redis、broker 或后台发布器。Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020），没有单独的版本。
+直接依赖 `Kun.Runtime` 与 `Kun.EventBus.Abstractions`，复用原命名空间下的稳定 `[IntegrationEventId]`、事件注册端口与源生成 `JsonTypeInfo` 重载。该框架包只依赖零外部依赖的 Kun.Core，身份契约不再经事件入口传递引入 Redis、broker 或后台发布器。Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020），没有单独的版本。
 
 ## 账号与登录端口
 

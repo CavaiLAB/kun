@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Surfaces.Abstractions;
 
@@ -42,13 +42,13 @@ public static class HookDefinition
 public static class SurfaceHookEvents
 {
     /// <summary>租户已开通后的顺序分发。</summary>
-    public static readonly QianEvent<HookNotification, IReadOnlyList<JsonElement>> TenantProvisioned = QianEvent.Define<HookNotification, IReadOnlyList<JsonElement>>("tenant/provisioned", DispatchMode.Serial);
+    public static readonly KunEvent<HookNotification, IReadOnlyList<JsonElement>> TenantProvisioned = KunEvent.Define<HookNotification, IReadOnlyList<JsonElement>>("tenant/provisioned", DispatchMode.Serial);
     /// <summary>租户已清除后的顺序分发。</summary>
-    public static readonly QianEvent<HookNotification, IReadOnlyList<JsonElement>> TenantPurged = QianEvent.Define<HookNotification, IReadOnlyList<JsonElement>>("tenant/purged", DispatchMode.Serial);
+    public static readonly KunEvent<HookNotification, IReadOnlyList<JsonElement>> TenantPurged = KunEvent.Define<HookNotification, IReadOnlyList<JsonElement>>("tenant/purged", DispatchMode.Serial);
     /// <summary>条目已挂载后的顺序分发。</summary>
-    public static readonly QianEvent<HookNotification, IReadOnlyList<JsonElement>> EntryMounted = QianEvent.Define<HookNotification, IReadOnlyList<JsonElement>>("registry/entry-mounted", DispatchMode.Serial);
+    public static readonly KunEvent<HookNotification, IReadOnlyList<JsonElement>> EntryMounted = KunEvent.Define<HookNotification, IReadOnlyList<JsonElement>>("registry/entry-mounted", DispatchMode.Serial);
     /// <summary>条目已禁用后的顺序分发。</summary>
-    public static readonly QianEvent<HookNotification, IReadOnlyList<JsonElement>> EntryDisabled = QianEvent.Define<HookNotification, IReadOnlyList<JsonElement>>("registry/entry-disabled", DispatchMode.Serial);
+    public static readonly KunEvent<HookNotification, IReadOnlyList<JsonElement>> EntryDisabled = KunEvent.Define<HookNotification, IReadOnlyList<JsonElement>>("registry/entry-disabled", DispatchMode.Serial);
 }
 
 /// <summary>代码插件对新表面的实际运行时引用做最后校验，发生在替换旧效果之前。</summary>

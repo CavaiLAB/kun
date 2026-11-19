@@ -7,8 +7,8 @@ Qian.Config.Apollo.ApolloConfigurationPlugin.ApolloConfigurationPlugin() -> void
 Qian.Config.Apollo.QianConfigurationOptions
 Qian.Config.Apollo.QianConfigurationOptions.QianConfigurationOptions() -> void
 Qian.Config.Apollo.QianConfigurationOptions.BasePath.get -> string!
-Qian.Config.Apollo.ConfigurationPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Config.Apollo.ApolloConfigurationPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Config.Apollo.ConfigurationPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Config.Apollo.ApolloConfigurationPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Config.Apollo.QianConfigurationOptions.EnvironmentName.get -> string?
 Qian.Config.Apollo.QianConfigurationOptions.UseApollo.init -> void
 Qian.Config.Apollo.QianConfigurationOptions.EnvironmentName.init -> void
@@ -29,9 +29,9 @@ Qian.Config.Apollo.QianConfigurationOptions.HttpClient.get -> System.Net.Http.Ht
 Qian.Config.Apollo.QianConfigurationOptions.Logger.init -> void
 Qian.Config.Apollo.QianConfigurationOptions.Logger.get -> Microsoft.Extensions.Logging.ILogger?
 static Qian.Config.Apollo.QianConfigurationExtensions.AddQianConfigurationSources(this Microsoft.Extensions.Configuration.IConfigurationBuilder! builder, Qian.Config.Apollo.QianConfigurationOptions! options) -> Microsoft.Extensions.Configuration.IConfigurationBuilder!
-Qian.Config.Apollo.ConfigurationPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Config.Apollo.ConfigurationPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 static Qian.Config.Apollo.QianConfigurationExtensions.AddQianConfiguration(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Microsoft.Extensions.Configuration.IConfiguration! configuration) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-Qian.Config.Apollo.ApolloConfigurationPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Config.Apollo.ApolloConfigurationPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Config.Apollo.QianConfigurationOptions.ApolloConfigurationSchema.init -> void
 Qian.Config.Apollo.QianConfigurationOptions.ApolloConfigurationSchema.get -> System.Text.Json.JsonElement?
 Qian.Config.Apollo.QianOptionsExtensions
@@ -50,9 +50,9 @@ Qian.Config.Apollo.ApolloFlagManagementBinding.Portal.get -> System.Uri!
 Qian.Config.Apollo.ApolloFlagManagementBinding.TokenReference.get -> string!
 Qian.Config.Apollo.FeatureFlagManagementHosting
 Qian.Config.Apollo.FeatureFlagManagementPlugin
-Qian.Config.Apollo.FeatureFlagManagementPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Config.Apollo.FeatureFlagManagementPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Config.Apollo.FeatureFlagManagementPlugin.FeatureFlagManagementPlugin() -> void
-Qian.Config.Apollo.FeatureFlagManagementPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Config.Apollo.FeatureFlagManagementPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 static Qian.Config.Apollo.FeatureFlagManagementHosting.AddQianFeatureFlagManagement(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Collections.Generic.IReadOnlyDictionary<string!, Qian.Config.Apollo.ApolloFlagManagementBinding!>! bindings) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 
 Qian.Config.Apollo.ApolloFlagManagementBinding.ReceiptBinding.get -> string!

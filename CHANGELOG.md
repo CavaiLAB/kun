@@ -102,6 +102,7 @@
 - `PrincipalKind` 的 JSON 转换器 `PrincipalKindConverter` 改为公开类型：别的程序集里的 JSON 源生成上下文要引用它。读写不变：只收 `user`、`service`、`agent`，数字、大小写不对与其它值都报错。
 - `ClientType` 留在 `Qian.Identity.Abstractions`，命名空间不变。
 - `Kun.Plugin.Sdk` 不再引用 `Qian.Identity.Abstractions`，改引用 `Kun.Security.Abstractions`（`CommandInvocation.Principal` 的类型是 `Kun.Security.Principal`），也就不再传递带来身份契约与 `Kun.EventBus.Abstractions`。**迁移**：用到身份契约里其余类型（如 `ICurrentUser`、`IIdentityService`）的项目直接引用 `Qian.Identity.Abstractions`。`Kun.Plugin.Sdk.Commands` 改为直接引用身份契约，经它拿到身份契约的项目不受影响。
+- 组件 `qian.identity.server` 1.0.0 → 1.1.0：派生的事件元数据里 `identity/signed-in` 的载荷类型全名换成 `Kun.Security.Principal`，对外行为不变。
 
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
 

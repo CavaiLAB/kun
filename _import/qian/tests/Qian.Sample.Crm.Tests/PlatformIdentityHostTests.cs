@@ -131,7 +131,8 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
             Assert.True(runtime.IsReady);
             Assert.Equal(["audit", "authz", "capabilities", "config", "data", "events", "identity", "lifecycle", "registry", "tenancy", "tenancy.signup"],
                 runtime.Profile.Entries.Select(entry => entry.Id).Order(StringComparer.Ordinal));
-            Assert.Equal("qian.identity.server@1.0.0", runtime.Profile.Entries.Single(entry => entry.Id == "identity").Plugin);
+            var identityVersion = JsonNode.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins", "qian.identity.server", ".qian-plugin", "plugin.json")))!["version"]!.GetValue<string>();
+            Assert.Equal($"qian.identity.server@{identityVersion}", runtime.Profile.Entries.Single(entry => entry.Id == "identity").Plugin);
             foreach (var entry in runtime.Profile.Entries) Assert.False(entry.Manifest.TryGetProperty("x-skeleton", out _), entry.Id);
             var trail = await PlatformChain(runtime);
             var bootstrapRecord = Assert.Single(trail, record => record.CapabilityId == "qian.authz:platform-role:bootstrap");

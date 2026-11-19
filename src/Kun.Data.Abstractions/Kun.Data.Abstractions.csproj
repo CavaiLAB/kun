@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Kun 数据组件的安全上下文基类与装配错误契约。</Description>
+    <Description>Kun 数据组件的平台契约：迁移协调、序号与雪花 ID 端口，基准类型、方言、数据连接、记录与过滤契约，数据错误码。</Description>
   </PropertyGroup>
   <PropertyGroup Label="档位">
     <KunTier>platform</KunTier>

@@ -16,6 +16,13 @@ Write-side persistence for Kun Framework: `KunDbContext` base with automatic `IM
 | `NoOpDomainEventDispatcher.cs` | Default no-op dispatcher (users replace with their own implementation) |
 | `Interceptors/TenantRlsConnectionInterceptor.cs` | Defence-in-depth: pushes `ITenantContext.TenantId` into `SET app.current_tenant_id` on PG connection open; RESET on close. Opt-in via `opts.AddInterceptors(...)` on the caller's `DbContextOptionsBuilder`. |
 | `DependencyInjection/KunEntityFrameworkCoreServiceCollectionExtensions.cs` | `AddKunEntityFrameworkCore` DI entry point |
+| `KunStrictDbContext.cs` | 严格上下文基类：构造期装配检查、schema 规则、模型补全（租户列与索引、DeletedBy、与业务过滤取交集） |
+| `KunDataModelExtensions.cs` | `UseKunDataModel`（严格模型定制器）与 `RequireKunSchemaPrefix` |
+| `DataContracts.cs` | 数据会话契约：`DataDefinition`、`IDataService`、`IDataSession<T>`、`IOutboxBufferBinding`、`IDataContextCatalog` |
+| `KunApplicationRoleInterceptor.cs` / `KunSoftDeleteInterceptor.cs` | 应用角色检查；直接删除转软删除 |
+| `KunDataMisconfiguredException.cs` | 装配错误，错误码 DATA_MISCONFIGURED |
+| `MultiTenancy/` | 租户过滤 `ApplyKunMultiTenantFilters`、租户字段拦截器、模型缓存键、SchemaPerTenant / DatabasePerTenant 与 RLS 的登记 |
+| `DependencyInjection/KunMultiTenancyEntityFrameworkCoreServiceCollectionExtensions.cs` | `AddKunMultiTenancyEntityFrameworkCore`：登记租户字段拦截器 |
 
 ## For AI Agents
 
@@ -33,6 +40,26 @@ Write-side persistence for Kun Framework: `KunDbContext` base with automatic `IM
 
 租户查询过滤器通过 DbContext 自身的 `TenantIdForModelCacheKey` 读取当前访问器；不能把 `ITenantContext` 实例常量存进共享模型，后者会在多宿主或 scoped 访问器场景复用已经失效的租户上下文。
 
+- 修改严格基类的隔离检查必须同步 `_import/qian/tests/Kun.Data.Tests` 与本项目的测试，禁止为了通过测试关闭校验；启动安全范围见本目录 README。
+- DeletedBy 沿用 CreatedBy 的可空用户键类型；直接 Remove 必须转软删除，不能绕过删除审计。
+
+### 多租户
+
+`ApplyKunMultiTenantFilters<TContext>(ModelBuilder, TContext)` 遍历模型，给每个实现 `Kun.Core.Domain.IMultiTenant` 的实体加租户过滤，条件绑定到当前执行查询的 DbContext，不保留第一次构建模型时的租户访问器。
+
+```csharp
+services.AddKunMultiTenancy(opts => opts.UseJwtClaim("tenant_id"));
+
+// DbContext.OnModelCreating：
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+    modelBuilder.ApplyKunMultiTenantFilters(this); // DbContext 实现 IKunMultiTenantDbContext
+}
+```
+
+生产装配使用 `options.Production = true`；请求头与默认租户仅供显式开发兼容模式使用。后台通过 `ITenantContext.BeginScope` 回灌，详情见 `docs/security/multi-tenancy-rls.md`。
+
 ### Testing Requirements
 Integration tests require Docker + Testcontainers and are tracked separately (M2 2.4).
 
@@ -42,6 +69,8 @@ Integration tests require Docker + Testcontainers and are tracked separately (M2
 - `Kun.Core` — `IAggregateRoot`, `IDomainEventDispatcher`, `ITenantContext`, `IMultiTenant`, `ISoftDelete`
 - `Kun.EventBus` — `OutboxMessage`, `IntegrationEventBuffer`, `IEventTypeRegistry`, `IIntegrationEventBus`
 - `Kun.Mediator` — `IPipelineBehavior`
+- `Kun.Runtime` — 数据服务键与 `ctx.Data()` 所在的组件运行时
+- `Kun.Errors` — `KunDataMisconfiguredException` 的错误码
 
 ### External
 - `Microsoft.Extensions.DependencyInjection.Abstractions`

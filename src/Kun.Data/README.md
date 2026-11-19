@@ -57,7 +57,7 @@ K8s 迁移 Job 以 `--migrate-only` 启动宿主（`KunDataMigrationExtensions.I
 
 ### 迁移执行与 RLS 核查
 
-租户表的 `ENABLE` / `FORCE ROW LEVEL SECURITY` 与两条策略（`qian_tenant_access` 宽松、`qian_tenant_guard` 限制）不写在迁移文件里，由 `KunTenantRlsMigrationsSqlGenerator` 在迁移**执行期**紧跟每条 `CREATE TABLE` 生成。所以迁移必须经 `AddKunData<T>` 登记的 `IDataMigrator` 执行，也就是上文以 `--migrate-only` 启动的迁移任务。
+租户表的 `ENABLE` / `FORCE ROW LEVEL SECURITY` 与两条策略（`qian_tenant_access` 宽松、`qian_tenant_guard` 限制）不写在迁移文件里，由 [Kun.EntityFrameworkCore.PostgreSQL](../Kun.EntityFrameworkCore.PostgreSQL/README.md) 的 `KunTenantRlsMigrationsSqlGenerator` 在迁移**执行期**紧跟每条 `CREATE TABLE` 生成。所以迁移必须经 `AddKunData<T>` 登记的 `IDataMigrator` 执行，也就是上文以 `--migrate-only` 启动的迁移任务。
 
 直接 `dotnet ef database update`（或 `dotnet ef migrations script` 后手工执行）走的是 `dotnet ef` 自己建的上下文：设计时入口没有经 `AddKunData<T>` 装配时，用的是 Npgsql 默认生成器，建出的租户表没有 RLS 与策略，租户隔离只剩查询过滤器。在线副本的启动检查会拒绝非 Qian 的迁移生成器，也会拒绝还有未应用迁移的数据库，但不检查已经建好的表有没有策略。曾绕过迁移任务建表的库，用下面的 SQL 逐表核查（以迁移属主或有权读 `information_schema` 的角色执行）：
 

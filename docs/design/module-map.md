@@ -104,6 +104,8 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Audit.EntityFrameworkCore` | EF 持久化后端 | 需要审计 on-box 持久化时的可选后端 | `AddKunAuditEntityFrameworkCore()` | ⚠️ trim-safe | — |
 | `Kun.RateLimit` | 基于 `.NET 10 RateLimiter` 的按租户分区限流 | Gateway 与业务服务的请求级别保护 | `AddKunRateLimit(...)` | ✅ | 6 |
 
+`Kun.MultiTenancy.EntityFrameworkCore` 已并入 `Kun.EntityFrameworkCore`（S1-KUN-024）：包名停发，EF 侧的租户过滤、租户字段拦截器与模型缓存键在命名空间 `Kun.EntityFrameworkCore.MultiTenancy`，登记扩展在 `Kun.EntityFrameworkCore.DependencyInjection`。上表与下面非 AOT 白名单里的这一行按原样保留。
+
 ### 缓存 / 存储 / 观测 / Sandbox
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |

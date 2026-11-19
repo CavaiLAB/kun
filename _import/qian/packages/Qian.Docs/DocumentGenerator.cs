@@ -45,6 +45,7 @@ public sealed class DocumentGenerator(IProfileLoader profiles) : IDocumentGenera
     {
         if (sourceRoot is null) return root;
         var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(sourceRoot, root));
+        if (File.GetAttributes(full).HasFlag(FileAttributes.ReparsePoint)) throw new IOException("源码根不能为符号链接。");
         Paths.Within(full, root, allowRoot: true);
         return full;
     }

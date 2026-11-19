@@ -4,9 +4,10 @@ internal static class Paths
 {
     internal static string Within(string root, string path, bool allowRoot = false)
     {
-        root = Path.GetFullPath(root);
-        var full = Path.GetFullPath(path, root);
-        if ((!allowRoot || full != root) && !full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal)) throw new IOException("路径超出目录。");
+        root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
+        var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path, root));
+        var prefix = Path.EndsInDirectorySeparator(root) ? root : root + Path.DirectorySeparatorChar;
+        if (full == root ? !allowRoot : !full.StartsWith(prefix, StringComparison.Ordinal)) throw new IOException("路径超出目录。");
         var current = root;
         foreach (var segment in Path.GetRelativePath(root, full).Split(Path.DirectorySeparatorChar))
         {

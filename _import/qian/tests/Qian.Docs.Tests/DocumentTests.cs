@@ -116,7 +116,7 @@ public sealed class DocumentTests
     [Fact]
     public void Source_root_moves_the_scan_boundary_up_and_anchors_event_locations()
     {
-        using var fixture = new Fixture("app");
+        using var fixture = new Fixture("app" + Path.DirectorySeparatorChar);
         fixture.Write("../lib/Events.cs", Definitions); fixture.Write("../lib/Calls.cs", Calls);
         // 源码根取工作区的上级目录：源码目录相对它，事件图里的位置也相对它书写。
         var result = fixture.Generate(["lib"], "..");

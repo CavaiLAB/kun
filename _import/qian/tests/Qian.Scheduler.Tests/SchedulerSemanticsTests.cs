@@ -24,18 +24,18 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         var due = DateTimeOffset.UtcNow.AddSeconds(4);
         var ids = await Task.WhenAll(Enumerable.Range(0, 20).Select(async _ =>
         {
-            using var scope = producer.Tenant.BeginScope(TenantA); var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
+            using var scope = producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")); var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
             return (await caller.Scheduler().ScheduleOnce(caller, "same", due, Target, Parameters, cancellationToken: Ct)).Id;
         }));
         Assert.Single(ids.Distinct());
-        using (producer.Tenant.BeginScope(TenantA))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
             var conflict = await Assert.ThrowsAsync<ErrorException>(() => caller.Scheduler().ScheduleOnce(caller, "same", due.AddMinutes(1), Target, Parameters, cancellationToken: Ct).AsTask());
             Assert.Equal("CONFLICT", conflict.Error.Code.Code);
             Assert.True(await caller.Scheduler().Cancel(caller, "same", Ct)); Assert.True(await caller.Scheduler().Cancel(caller, "same", Ct));
         }
-        using (producer.Tenant.BeginScope(TenantB))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantB, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantB)); await caller.Scheduler().ScheduleOnce(caller, "same", due, Target, Parameters, cancellationToken: Ct);
         }
@@ -49,7 +49,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     public async Task 真实目录准入与执行_拒绝任意URL_未挂载与restrict不执行缓存处理器()
     {
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
-        using var scope = producer.Tenant.BeginScope(TenantA); var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
+        using var scope = producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")); var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
         foreach (var target in new[] { "https://example.com/job", "http://localhost/run", "https://127.0.0.1/run", "file:///tmp/job", "//example.com/run", "qian.missing/run" })
             await Assert.ThrowsAsync<ErrorException>(() => caller.Scheduler().ScheduleOnce(caller, "invalid", DateTimeOffset.UtcNow.AddMinutes(1), target, Parameters, cancellationToken: Ct).AsTask());
         var good = PostgresScheduler.Resolve(caller, Target); Assert.Equal("probe", good.Code);
@@ -81,7 +81,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     public async Task 过期租约拒绝旧执行者完成_新owner代次也拒绝旧续租和推进()
     {
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
-        using (producer.Tenant.BeginScope(TenantA))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
             await caller.Scheduler().ScheduleOnce(caller, "fencing", DateTimeOffset.UtcNow, Target, Parameters, cancellationToken: Ct);
@@ -92,10 +92,10 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         var old = Assert.Single(await first.ClaimAsync(1, Ct));
         Assert.Empty(await second.ClaimAsync(1, Ct));
         await Task.Delay(TimeSpan.FromMilliseconds(3200), Ct);
-        using (producer.Tenant.BeginScope(TenantA)) Assert.False(await first.CompleteAsync(old, "once", new JobOptions(), "succeeded", null, Ct));
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D"))) Assert.False(await first.CompleteAsync(old, "once", new JobOptions(), "succeeded", null, Ct));
         var current = Assert.Single(await second.ClaimAsync(1, Ct));
         Assert.Equal(old.RunId, current.RunId); Assert.Equal(old.Generation + 1, current.Generation); Assert.NotEqual(old.Worker, current.Worker);
-        using (producer.Tenant.BeginScope(TenantA))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             Assert.False(await first.CompleteAsync(old, "once", new JobOptions(), "failed", "old", Ct));
             await using var db = new NpgsqlConnection(fixture.Config.Application); await db.OpenAsync(Ct); await using var transaction = await db.BeginTransactionAsync(Ct);
@@ -113,7 +113,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     {
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
         Guid b;
-        using (producer.Tenant.BeginScope(TenantB))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantB, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantB));
             b = (await caller.Scheduler().ScheduleOnce(caller, "b", DateTimeOffset.UtcNow.AddMinutes(1), Target, Parameters, cancellationToken: Ct)).Id;
@@ -148,7 +148,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     public async Task 专用worker只有领取列权限_SET_ROLE及成员关系不能冒充全局登录()
     {
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
-        using (producer.Tenant.BeginScope(TenantA))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
             await caller.Scheduler().ScheduleOnce(caller, "permission", DateTimeOffset.UtcNow.AddMinutes(1), Target, Parameters, cancellationToken: Ct);
@@ -190,7 +190,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     {
         var config = fixture.LongLease; // 不测到期，用 30 秒租约
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
-        using (producer.Tenant.BeginScope(TenantA))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
             await caller.Scheduler().ScheduleOnce(caller, "tenant-frozen", DateTimeOffset.UtcNow.AddSeconds(2), Target, Parameters, new JobOptions { MaxAttempts = 1 }, Ct);
@@ -221,7 +221,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         // 超时要盖过处理器记下进入的抖动（打开连接、写进入行），否则 CPU 被挤时两次尝试都在记下进入前被取消、:215 无行可比；
         // 处理器仍延迟 5 秒，每次都超时（S1-QA-023）。每次尝试 = 一次领取与准备（不超过一份租约）+ 超时。
         var timeout = TimeSpan.FromSeconds(2);
-        using (producer.Tenant.BeginScope(TenantA))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
             await caller.Scheduler().ScheduleOnce(caller, "timeout", DateTimeOffset.UtcNow, Target, JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 5000 }),
@@ -230,7 +230,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed' AND error_class='timeout' AND attempts=2") == 1, 2 * (fixture.Leases(1, config) + timeout));
         Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"));
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(DISTINCT run_id) FROM public.sch_probe_attempts"));
-        using (producer.Tenant.BeginScope(TenantB))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantB, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantB));
             await caller.Scheduler().ScheduleOnce(caller, "cancel-running", DateTimeOffset.UtcNow, Target, JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 15000 }), cancellationToken: Ct);
@@ -248,7 +248,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     {
         var config = fixture.LongLease; // 不测到期，用 30 秒租约
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
-        using (producer.Tenant.BeginScope(TenantA))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA)); var past = DateTimeOffset.UtcNow.AddSeconds(-5);
             await caller.Scheduler().ScheduleOnce(caller, "skip", past, Target, Parameters, new JobOptions { Misfire = MisfirePolicy.Skip, MisfireGrace = TimeSpan.Zero }, Ct);
@@ -257,7 +257,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         }
         await using var a = await WorkerProcess.Start(config, TenantA); await using var b = await WorkerProcess.Start(config, TenantA);
         await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs r JOIN plugin_qian_scheduler.job_definitions d ON r.tenant_id=d.tenant_id AND r.trigger_id=d.id WHERE d.business_key='catch-up' AND r.status='succeeded'") >= 4, fixture.Leases(3, config));
-        using (producer.Tenant.BeginScope(TenantA))
+        using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         { var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA)); await caller.Scheduler().Cancel(caller, "catch-up", Ct); }
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='skipped'"));
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs r JOIN plugin_qian_scheduler.job_definitions d ON r.tenant_id=d.tenant_id AND r.trigger_id=d.id WHERE d.business_key='fire-once'"));
@@ -273,7 +273,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     private Task<long> Count(string from) => fixture.Scalar<long>("SELECT count(*) FROM " + from);
     private static async Task<Guid> ScheduleNow(ProbeHost producer, string key, JobOptions? options = null)
     {
-        using var scope = producer.Tenant.BeginScope(TenantA);
+        using var scope = producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D"));
         var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
         return (await caller.Scheduler().ScheduleOnce(caller, key, DateTimeOffset.UtcNow, Target, Parameters, options, Ct)).Id;
     }

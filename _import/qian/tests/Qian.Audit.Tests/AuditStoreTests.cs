@@ -29,11 +29,11 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
         using var first = Host(a); using var second = Host(b); await first.StartAsync(Ct); await second.StartAsync(Ct); await Prepare(first);
         async Task Write(IHost host, AsyncLocalTenantContext tenant)
         {
-            using var scope = tenant.BeginScope(A); var store = Store(host, tenant);
+            using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); var store = Store(host, tenant);
             for (var i = 0; i < 500; i++) await store.AppendAsync(CanonicalizerTests.Record(), Ct);
         }
         await Task.WhenAll(Write(first, a), Write(second, b));
-        using var scope = a.BeginScope(A); var service = Store(first, a);
+        using var scope = a.BeginScope(Guid.ParseExact(A, "D")); var service = Store(first, a);
         var rows = await service.ReadAsync(0, 1000, null, Ct); Assert.Equal(1000, rows.Count);
         Assert.Equal(Enumerable.Range(1, 1000).Select(i => (long)i), rows.Select(x => x.Sequence));
         Assert.Null(rows[0].PreviousHash); for (var i = 1; i < rows.Count; i++) Assert.Equal(rows[i - 1].ContentHash, rows[i].PreviousHash);
@@ -47,7 +47,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
     {
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host); var store = Store(host, tenant);
         Assert.Equal("UNAUTHENTICATED", (await Assert.ThrowsAsync<ErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(), Ct))).Error.Code.Code);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await store.AppendAsync(CanonicalizerTests.Record(actorType: "agent", onBehalfOf: "person-a"), Ct);
             await store.AppendAsync(CanonicalizerTests.Record(onBehalfOf: "person-b"), Ct);
@@ -55,7 +55,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
             Assert.Equal("crm.customer.create", entry.Record.CapabilityId); Assert.Equal("1.0.0", entry.Record.ContractVersion);
             Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => store.AppendAsync(CanonicalizerTests.Record(tenant: B), Ct))).Error.Code.Code);
         }
-        using (tenant.BeginScope(B)) { Assert.Empty(await store.ReadAsync(0, 10, null, Ct)); await store.AppendAsync(CanonicalizerTests.Record(tenant: B), Ct); }
+        using (tenant.BeginScope(Guid.ParseExact(B, "D"))) { Assert.Empty(await store.ReadAsync(0, 10, null, Ct)); await store.AppendAsync(CanonicalizerTests.Record(tenant: B), Ct); }
         await using var app = new NpgsqlConnection(postgres.AppConnectionString); await app.OpenAsync(Ct);
         await using (var empty = new NpgsqlCommand("SELECT count(*) FROM plugin_qian_audit.audit_entries", app)) Assert.Equal(0L, await empty.ExecuteScalarAsync(Ct));
         await using (var set = new NpgsqlCommand("SELECT set_config('app.current_tenant_id', @tenant, false)", app)) { set.Parameters.AddWithValue("tenant", A); await set.ExecuteNonQueryAsync(Ct); }
@@ -68,7 +68,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
     public async Task 插入失败回滚记录和链头_下一条不跳号_不同内容不能复用事件ID()
     {
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host); var store = Store(host, tenant);
-        using var scope = tenant.BeginScope(A); var first = await store.AppendAsync(CanonicalizerTests.Record(), Ct);
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); var first = await store.AppendAsync(CanonicalizerTests.Record(), Ct);
         await Admin("CREATE FUNCTION plugin_qian_audit.reject_append() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'test rollback'; END $$; CREATE TRIGGER reject_append BEFORE INSERT ON plugin_qian_audit.audit_entries FOR EACH ROW EXECUTE FUNCTION plugin_qian_audit.reject_append();");
         await Assert.ThrowsAsync<DbUpdateException>(() => store.AppendAsync(CanonicalizerTests.Record(), Ct));
         Assert.Equal(new AuditChainVerification(true, 1, null, null), await store.VerifyAsync(Ct));
@@ -81,7 +81,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
     public async Task 数据库JSONB重排不破坏哈希_篡改历史内容精确定位()
     {
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host); var store = Store(host, tenant);
-        using var scope = tenant.BeginScope(A);
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
         for (var i = 0; i < 4; i++) await store.AppendAsync(CanonicalizerTests.Record(payload: "{\"z\":1e3,\"huge\":9007199254740993,\"a\":1.00}"), Ct);
         Assert.Equal(new AuditChainVerification(true, 4, null, null), await store.VerifyAsync(Ct));
         await Admin("UPDATE plugin_qian_audit.audit_entries SET payload = '{\"tampered\":true}'::jsonb WHERE seq = 2;");
@@ -91,7 +91,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
     public async Task 等待链锁时取消不会留下记录或泄漏锁_损坏链头拒绝继续追加()
     {
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
-        using var scope = tenant.BeginScope(A); var store = Store(host, tenant);
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); var store = Store(host, tenant);
         await using var holder = new NpgsqlConnection(postgres.ConnectionString); await holder.OpenAsync(Ct);
         await using (var acquire = new NpgsqlCommand("SELECT pg_advisory_lock(hashtextextended(@key, 0))", holder))
         { acquire.Parameters.AddWithValue("key", "qian.audit:tenant:" + A); await acquire.ExecuteNonQueryAsync(Ct); }
@@ -126,7 +126,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
     public async Task 脱敏策略产生的输入哈希真实落库_原输入没有进入审计记录()
     {
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
-        using var scope = tenant.BeginScope(A);
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
         var policy = new AuditInputPolicy(CanonicalizerTests.Json("""{"type":"object","properties":{"name":{"type":"string"},"password":{"type":"string","sensitive":true}}}"""), true);
         var input = CanonicalizerTests.Json("""{"name":"customer","password":"audit-only-private-sentinel"}""");
         var hash = policy.InputHash(input)!;

@@ -44,7 +44,7 @@ public sealed class SchedulerRenewalTests(SchedulerFixture fixture) : IClassFixt
             var phases = new Dictionary<string, DateTimeOffset> { ["workerReady"] = DateTimeOffset.UtcNow };
             try
             {
-                using (producer.Tenant.BeginScope(TenantA))
+                using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
                 {
                     var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
                     await caller.Scheduler().ScheduleOnce(caller, "renewal-error", DateTimeOffset.UtcNow, Target,
@@ -149,7 +149,7 @@ public sealed class SchedulerRenewalTests(SchedulerFixture fixture) : IClassFixt
             var phases = new Dictionary<string, DateTimeOffset> { ["workerReady"] = DateTimeOffset.UtcNow };
             try
             {
-                using (producer.Tenant.BeginScope(TenantA))
+                using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
                 {
                     var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
                     await caller.Scheduler().ScheduleOnce(caller, "prepare-delay", DateTimeOffset.UtcNow, Target,

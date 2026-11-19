@@ -388,16 +388,16 @@ internal sealed class FilesHostRuntime(IServiceProvider services, ITenantContext
     {
         var scope = _loader.GetContext("tenancy", ScopeKey.Global).Scoped(new ScopeKey("tenant", id));
         await scope.DispatchAsync(SurfaceHookEvents.TenantProvisioned, new HookNotification(scope, id, JsonSerializer.SerializeToElement(new { code = id[^2..] }), ct), ct);
-        using var _ = tenant.BeginScope(id);
+        using var _ = tenant.BeginScope(Guid.ParseExact(id, "D"));
         await scope.Inject<ITenantRoleGrant>(TenantRoleGrant.Key).AssignAsync(role, "service", subject, "test-bootstrap", ct);
     }
 
     internal IPluginContext Source()
     {
-        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        if (tenant.TenantId is not { } id || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         try
         {
-            var context = _loader.GetContext("files", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenant.TenantId!));
+            var context = _loader.GetContext("files", ScopeKey.Global).Scoped(new ScopeKey("tenant", id.ToString("D")));
             _ = context.Inject<IFileService>(FilesDefinition.Key); return context;
         }
         catch (Exception error) when (error is ServiceNotReadyException or KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
@@ -413,8 +413,8 @@ internal sealed class FilesHostRuntime(IServiceProvider services, ITenantContext
 
     internal IPluginContext AuthzSource()
     {
-        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        try { return _loader.GetContext("authz", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenant.TenantId!)); }
+        if (tenant.TenantId is not { } id || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        try { return _loader.GetContext("authz", ScopeKey.Global).Scoped(new ScopeKey("tenant", id.ToString("D"))); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
         { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }

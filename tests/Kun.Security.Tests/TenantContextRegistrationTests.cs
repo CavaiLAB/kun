@@ -29,12 +29,13 @@ public sealed class TenantContextRegistrationTests
             User = new ClaimsPrincipal(new ClaimsIdentity([new Claim("tenant_id", "http-tenant")], "test"))
         };
         Assert.Null(tenant.TenantId);
-        using (tenant.BeginScope("message-tenant"))
+        var messageTenant = Guid.NewGuid();
+        using (tenant.BeginScope(messageTenant))
         {
             await Task.Yield();
-            Assert.Equal("message-tenant", tenant.TenantId);
+            Assert.Equal(messageTenant, tenant.TenantId);
             using (tenant.BeginScope(null)) Assert.Null(tenant.TenantId);
-            Assert.Equal("message-tenant", tenant.TenantId);
+            Assert.Equal(messageTenant, tenant.TenantId);
         }
         Assert.Null(tenant.TenantId);
         accessor.HttpContext = null;

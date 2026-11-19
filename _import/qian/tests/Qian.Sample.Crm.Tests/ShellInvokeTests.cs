@@ -61,14 +61,14 @@ public sealed partial class ShellSurfaceTests
         string ownerId = owner.Id.ToString("D"), memberId = member.Id.ToString("D"), outsiderId = outsider.Id.ToString("D");
         await Join(business, A, owner.Id, "外壳所有者"); await Join(business, A, member.Id, "外壳使用者");
         await Join(business, B, member.Id, "外壳使用者"); await Join(business, B, outsider.Id, "乙方用户");
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await grants.AssignAsync("tenant.owner", "user", ownerId, "acceptance", Ct);
             await grants.AssignAsync("tenant.user", "user", memberId, "acceptance", Ct);
             await grants.AssignAsync("tenant.user", "service", MachineClientId, "acceptance", Ct);
             await grants.AssignAsync("tenant.owner", "agent", AgentId, "acceptance", Ct);
         }
-        using (tenant.BeginScope(B))
+        using (tenant.BeginScope(Guid.ParseExact(B, "D")))
         {
             await grants.AssignAsync("tenant.user", "user", memberId, "acceptance", Ct);
             await grants.AssignAsync("tenant.user", "user", outsiderId, "acceptance", Ct);
@@ -258,7 +258,7 @@ public abstract partial class CustomerCommandTests
     private protected static async Task<(AuditRecord[] Records, (string Actor, string Result, string EntryPoint, string Target, string Reason)[] Decisions, JsonElement[] Events)> TenantTrail(
         RunningApp host, string tenantId, int customers)
     {
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenantId))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(tenantId, "D")))
         {
             List<string> events;
             await using (var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct))

@@ -27,7 +27,7 @@ public sealed partial class SuperadminBypassTests
             Define("consumer", consumer, [])], Ct);
         Assert.Equal(PluginState.Ready, runtime.GetState("authz", ScopeKey.Global));
         var authz = consumer.Context!.Authz(); var roles = new PostgresTenantRoleStore(data, tenant);
-        using var scope = tenant.BeginScope(A);
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
         await roles.EnsureBuiltinsAsync("operator", Ct); await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
         var request = new PermissionRequest(new AuthorizationSubject("alice", A, "user"), Read);
         Assert.False((await authz.CheckAsync(request, Ct)).Allow); Assert.False((await authz.CheckAsync(request, Ct)).Allow);
@@ -52,7 +52,7 @@ public sealed partial class SuperadminBypassTests
         await runtime.MountAsync([Define("data", new DataPlugin(), [DataDefinition.Key]), Define("audit", new AuditPlugin(), [AuditDefinition.Key]),
             Define("authz", new AuthzPlugin([catalog]), AuthzKeys, new { platformRole = role }), Define("consumer", consumer, [])], Ct);
         var ctx = consumer.Context!; var roles = new PostgresTenantRoleStore(data, tenant);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         { await roles.EnsureBuiltinsAsync("operator", Ct); await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct); }
         await new PostgresPlatformRoleStore(data, tenant, role).AssignSuperadminAsync("root", "platform-operator", Ct);
         await AdminScalar("""
@@ -63,7 +63,7 @@ public sealed partial class SuperadminBypassTests
             """);
         var bypass = ctx.Inject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey);
         var access = new SuperadminAccess(Root, Read, A, "customer/42", "api");
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var denied = await bypass.AuthorizeAsync(access, Ct);
             Assert.False(denied.Allow); Assert.Equal("audit_failed", denied.Reason);
@@ -72,7 +72,7 @@ public sealed partial class SuperadminBypassTests
             Assert.Equal(0L, await AdminScalar("SELECT count(*) FROM plugin_qian_audit.audit_chain_state"));
         }
         await AdminScalar("DROP TRIGGER reject_bypass ON plugin_qian_audit.audit_entries; DROP FUNCTION plugin_qian_audit.reject_bypass(); SELECT 1;");
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var allowed = await bypass.AuthorizeAsync(access, Ct); Assert.True(allowed.Allow);
             var entry = Assert.Single(await ctx.Audit().ReadAsync(0, 10, cancellationToken: Ct));

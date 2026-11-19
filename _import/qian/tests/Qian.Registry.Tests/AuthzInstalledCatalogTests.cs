@@ -47,7 +47,7 @@ public sealed partial class PatchPersistenceTests
         var source = running.Runtime.GetContext("tenancy", ScopeKey.Global).Scoped(new ScopeKey("tenant", HttpTenantA));
         await source.DispatchAsync(SurfaceHookEvents.TenantProvisioned,
             new HookNotification(source, HttpTenantA, JsonSerializer.SerializeToElement(new { tenantId = HttpTenantA, plan = "standard" }), Ct), Ct);
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         {
             await using (var session = await data.OpenAsync<AuthzDbContext>(Ct))
                 Assert.Equal(["qian.registry@1.0.0", "test.private@1.0.0", "test.shared@1.0.0"],
@@ -64,7 +64,7 @@ public sealed partial class PatchPersistenceTests
         await running.Runtime.UnmountAsync("authz", ScopeKey.Global, Ct);
         Assert.Empty(Codes("qian.registry")); Assert.Empty(Codes("test.shared")); Assert.Empty(Codes("test.private"));
         Assert.NotNull(await new PostgresPermissionCatalogStore(data).GetAsync("qian.registry", "1.0.0", Ct));
-        using (tenant.BeginScope(HttpTenantA)) Assert.Equal([RegistryDefinition.ScopeReadPermission], await GrantedCodes(Holder));
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D"))) Assert.Equal([RegistryDefinition.ScopeReadPermission], await GrantedCodes(Holder));
 
         string[] Codes(string plugin) => [.. registry.List(plugin, "1.0.0").Select(permission => permission.Code)];
         static string[] Roles(PermissionCatalog catalog) => [.. catalog.Roles.SelectMany(role => role.Grants.Select(grant => role.Role + "=" + grant)).Order(StringComparer.Ordinal)];

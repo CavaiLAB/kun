@@ -57,7 +57,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         Assert.Equal(PluginState.Ready, runtime.GetState("authz", ScopeKey.Global));
         var ctx = consumer.Context!; var bypass = ctx.Inject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey);
         var roles = new PostgresTenantRoleStore(data, tenant); var platformRoles = new PostgresPlatformRoleStore(data, tenant, role);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
             await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
@@ -65,7 +65,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
             Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => platformRoles.AssignSuperadminAsync("root", "platform-operator", Ct))).Error.Code.Code);
         }
         await platformRoles.AssignSuperadminAsync("root", "platform-operator", Ct);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var allowed = await bypass.AuthorizeAsync(new SuperadminAccess(Root, Read, A, "customer/42", "api"), Ct);
             Assert.True(allowed.Allow); Assert.Equal("superadmin_bypass", allowed.Reason); Assert.Equal(["role:platform.superadmin", "bypass:superadmin"], allowed.MatchedPolicies);
@@ -91,14 +91,14 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
             Assert.Single(await ctx.Audit().ReadAsync(0, 10, cancellationToken: Ct));
         }
         // 组件策略没有装进租户 B，B 里不存在可旁路的资源。
-        using (tenant.BeginScope(B))
+        using (tenant.BeginScope(Guid.ParseExact(B, "D")))
             Assert.Equal("permission_not_registered", (await bypass.AuthorizeAsync(new SuperadminAccess(Root, Read, B, null, "api"), Ct)).Reason);
         Assert.True(await platformRoles.RevokeSuperadminAsync("root", "platform-operator", Ct));
-        using (tenant.BeginScope(A)) Assert.Equal("not_superadmin", (await bypass.AuthorizeAsync(new SuperadminAccess(Root, Read, A, null, "api"), Ct)).Reason);
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) Assert.Equal("not_superadmin", (await bypass.AuthorizeAsync(new SuperadminAccess(Root, Read, A, null, "api"), Ct)).Reason);
         // 审计不可用即拒绝：卸载 Audit 后旁路不放行，租户链没有新记录。
         await platformRoles.AssignSuperadminAsync("root", "platform-operator", Ct);
         await runtime.UnmountAsync("audit", ScopeKey.Global, Ct);
-        using (tenant.BeginScope(A)) Assert.Equal("audit_unavailable", (await bypass.AuthorizeAsync(new SuperadminAccess(Root, Read, A, null, "api"), Ct)).Reason);
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) Assert.Equal("audit_unavailable", (await bypass.AuthorizeAsync(new SuperadminAccess(Root, Read, A, null, "api"), Ct)).Reason);
         Assert.Equal(1L, await AdminScalar($"SELECT count(*) FROM plugin_qian_audit.audit_entries WHERE tenant_id = '{A}'"));
     }
 
@@ -118,7 +118,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
             Define("audit", new AuditPlugin(), [AuditDefinition.Key], new { chain = new { store = "pg", platformRole = auditRole } }),
             Define("authz", new AuthzPlugin(), AuthzKeys, new { platformRole = role }), Define("consumer", consumer, [])], Ct);
         var ctx = consumer.Context!; var bypass = ctx.Inject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var roles = new PostgresTenantRoleStore(data, tenant); await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
         }
@@ -129,7 +129,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         Assert.Null(record.TenantId); Assert.Equal(("root", "tenancy/tenants"), (record.ActorId, record.Resource));
         Assert.Equal("superadmin", record.Payload.GetProperty("bypass").GetString());
         // 平台资源必须在无租户上下文中判定；活动登记释放后目录行仍在，但不能再旁路。
-        using (tenant.BeginScope(A)) Assert.Equal("tenant_context_mismatch", (await bypass.AuthorizeAsync(access, Ct)).Reason);
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) Assert.Equal("tenant_context_mismatch", (await bypass.AuthorizeAsync(access, Ct)).Reason);
         active.Dispose();
         Assert.Equal("permission_not_registered", (await bypass.AuthorizeAsync(access, Ct)).Reason);
         Assert.Single(await ctx.Audit().ReadPlatformAsync(ctx, 0, 10, cancellationToken: Ct));
@@ -168,7 +168,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         var two = new RbacPermissionChecker(twoData, secondTenant, twoRegistry, cache: twoCache);
         var oneRoles = new PostgresTenantRoleStore(oneData, firstTenant); var twoRoles = new PostgresTenantRoleStore(twoData, secondTenant);
         var alice = new PermissionRequest(new AuthorizationSubject("alice", A, "user"), Read);
-        using var firstScope = firstTenant.BeginScope(A); using var secondScope = secondTenant.BeginScope(A);
+        using var firstScope = firstTenant.BeginScope(Guid.ParseExact(A, "D")); using var secondScope = secondTenant.BeginScope(Guid.ParseExact(A, "D"));
         await oneRoles.EnsureBuiltinsAsync("operator", Ct); await oneRoles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
 
         // 未授予：宿主二两次判定都拒绝，第二次直接命中缓存快照。
@@ -219,7 +219,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         var ctx = consumer.Context!;
         foreach (var key in code.Provides) Assert.NotNull(ctx.TryInject<object>(new ServiceKey(key)));
         Assert.Same(registry, ctx.Inject<IPermissionRegistry>(AuthzDefinition.PermissionsKey)); Assert.Same(registry, ctx.Inject<IResourceTypeRegistry>(AuthzDefinition.ResourceTypesKey));
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var roles = new PostgresTenantRoleStore(data, tenant);
             await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
@@ -270,7 +270,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         var authz = consumer.Context!.Authz();
         const string Write = "qian.sample.crm:customer:write", Export = "qian.sample.crm:customer:export";
         AuthorizationSubject owner = new("owner-a", A, "user"), reader = new("reader-a", A, "user");
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var roles = new PostgresTenantRoleStore(data, tenant);
             await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
@@ -304,7 +304,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
                 Assert.Equal((explanation.Decision.Allow, explanation.Decision.Reason), (checkedDecision.Allow, checkedDecision.Reason));
             }
         }
-        using (tenant.BeginScope(B))
+        using (tenant.BeginScope(Guid.ParseExact(B, "D")))
         {
             var roles = new PostgresTenantRoleStore(data, tenant);
             await roles.EnsureBuiltinsAsync("operator", Ct); await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);

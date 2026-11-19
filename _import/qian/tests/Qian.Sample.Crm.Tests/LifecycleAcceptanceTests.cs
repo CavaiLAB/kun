@@ -185,7 +185,7 @@ public sealed partial class LifecycleProfileTests(PostgresFixture postgres) : Cu
         // Registry scope Reconciler 同一包装：绕过 Lifecycle 直接写入的破坏性条目同样装配失败，scope 收紧，诊断给出当前失败。
         var tenant = host.App.Services.GetRequiredService<ITenantContext>();
         var registry = host.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("registry", ScopeKey.Global).Registry();
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         using (EventEnvelopeScope.Begin(Operator))
             await registry.MountAsync(scopeA, JsonSerializer.SerializeToElement(new { id = "crm-direct", plugin = "qian.sample.crm@1.1.0", config = new { } }), 0, "operator", Ct);
         var current = await Diagnostics(host, A);
@@ -234,7 +234,7 @@ public abstract partial class CustomerCommandTests
     private protected static async Task<string[]> TenantChain(RunningApp host, string tenantId)
     {
         var audit = host.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("audit", ScopeKey.Global).Audit();
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenantId))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(tenantId, "D")))
         {
             Assert.True((await audit.VerifyAsync(Ct)).Valid);
             var entries = await audit.ReadAsync(0, 500, cancellationToken: Ct);
@@ -278,7 +278,7 @@ public abstract partial class CustomerCommandTests
     {
         var context = host.App.Services.GetRequiredService<ITenantContext>();
         var registry = host.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("registry", ScopeKey.Global).Registry();
-        using var scope = context.BeginScope(tenant);
+        using var scope = context.BeginScope(Guid.ParseExact(tenant, "D"));
         var entries = await registry.GetScopeEntriesAsync(new ScopeKey("tenant", tenant), CapabilityBindingRegistration.Key, Ct);
         return entries.Where(entry => entry.EntryId == "crm").Select(entry => entry.Version).Distinct().Single();
     }
@@ -530,7 +530,7 @@ public abstract partial class CustomerCommandTests
         app.Lifetime.ApplicationStopped.Register(active.Dispose);
         foreach (var id in new[] { A, B })
         {
-            using var current = tenant.BeginScope(id);
+            using var current = tenant.BeginScope(Guid.ParseExact(id, "D"));
             await new PostgresTenantRoleStore(data, tenant).InstallDefaultsAsync("qian.lifecycle", "1.0.0", null, "test-bootstrap", Ct);
         }
     }

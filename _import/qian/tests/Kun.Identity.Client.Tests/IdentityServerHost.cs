@@ -129,7 +129,7 @@ internal sealed class IdentityServerHost : IAsyncDisposable
         using (var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(Password)))
             host.Person = (await accounts.CreatePersonAsync(new CreatePerson("张三", [new(IdentifierKind.Phone, Phone, true)]) { InitialPassword = proof, RequirePasswordChange = false, PlatformAccess = platform }, Ct)).Id;
         if (!platform)
-            using (app.Services.GetRequiredService<ITenantContext>().BeginScope(host.Tenant.ToString("D")))
+            using (app.Services.GetRequiredService<ITenantContext>().BeginScope(host.Tenant))
                 host.Membership = (await accounts.CreateMembershipAsync(new CreateMembership(host.Person, "张三"), Ct)).Id;
         return host;
     }

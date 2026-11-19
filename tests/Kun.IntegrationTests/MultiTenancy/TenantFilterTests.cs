@@ -29,13 +29,13 @@ internal sealed class TenantOrder : AggregateRoot<Guid>, IMultiTenant
 
 internal sealed class StubTenantContext : ITenantContext
 {
-    public StubTenantContext(string? tenantId)
+    public StubTenantContext(Guid? tenantId)
     {
         TenantId = tenantId;
         IsMultiTenant = tenantId is not null;
     }
 
-    public string? TenantId { get; }
+    public Guid? TenantId { get; }
     public bool IsMultiTenant { get; }
 }
 
@@ -114,8 +114,8 @@ public sealed class TenantFilterTests : IAsyncLifetime
 
         await _postgres.StartAsync(TestContext.Current.CancellationToken);
 
-        _providerA = BuildProvider("tenant-a");
-        _providerB = BuildProvider("tenant-b");
+        _providerA = BuildProvider(Tenants.A);
+        _providerB = BuildProvider(Tenants.B);
 
         // Create schema using provider A (schema is shared, tenant filter is per-query).
         await using var scope = _providerA.CreateAsyncScope();
@@ -130,7 +130,7 @@ public sealed class TenantFilterTests : IAsyncLifetime
         if (_postgres is not null) await _postgres.DisposeAsync();
     }
 
-    private ServiceProvider BuildProvider(string tenantId)
+    private ServiceProvider BuildProvider(Guid tenantId)
     {
         var services = new ServiceCollection();
         services.AddSingleton<ITenantContext>(new StubTenantContext(tenantId));
@@ -162,14 +162,14 @@ public sealed class TenantFilterTests : IAsyncLifetime
         await using (var scopeA = _providerA.CreateAsyncScope())
         {
             var db = scopeA.ServiceProvider.GetRequiredService<TenantTestDbContext>();
-            db.Orders.Add(TenantOrder.Create(Guid.NewGuid(), "Order-A", "tenant-a"));
+            db.Orders.Add(TenantOrder.Create(Guid.NewGuid(), "Order-A", Tenants.AText));
             await db.SaveChangesAsync(ct);
         }
 
         await using (var scopeB = _providerB.CreateAsyncScope())
         {
             var db = scopeB.ServiceProvider.GetRequiredService<TenantTestDbContext>();
-            db.Orders.Add(TenantOrder.Create(Guid.NewGuid(), "Order-B", "tenant-b"));
+            db.Orders.Add(TenantOrder.Create(Guid.NewGuid(), "Order-B", Tenants.BText));
             await db.SaveChangesAsync(ct);
         }
 
@@ -201,14 +201,14 @@ public sealed class TenantFilterTests : IAsyncLifetime
         await using (var scopeA = _providerA.CreateAsyncScope())
         {
             var db = scopeA.ServiceProvider.GetRequiredService<TenantTestDbContext>();
-            db.Orders.Add(TenantOrder.Create(Guid.NewGuid(), "Order-X-A", "tenant-a"));
+            db.Orders.Add(TenantOrder.Create(Guid.NewGuid(), "Order-X-A", Tenants.AText));
             await db.SaveChangesAsync(ct);
         }
 
         await using (var scopeB = _providerB.CreateAsyncScope())
         {
             var db = scopeB.ServiceProvider.GetRequiredService<TenantTestDbContext>();
-            db.Orders.Add(TenantOrder.Create(Guid.NewGuid(), "Order-X-B", "tenant-b"));
+            db.Orders.Add(TenantOrder.Create(Guid.NewGuid(), "Order-X-B", Tenants.BText));
             await db.SaveChangesAsync(ct);
         }
 

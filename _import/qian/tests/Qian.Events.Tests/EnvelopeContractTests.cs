@@ -41,7 +41,7 @@ public sealed class EnvelopeContractTests
         using var scope = provider.CreateScope();
         var tenant = scope.ServiceProvider.GetRequiredService<ITenantContext>();
         var origin = new EventOrigin("qian.sample.crm", EventActor.Service("crm-writer")) { CausationId = Guid.CreateVersion7(), CorrelationId = Guid.CreateVersion7() };
-        using (tenant.BeginScope(Tenant))
+        using (tenant.BeginScope(Guid.ParseExact(Tenant, "D")))
         using (EventEnvelopeScope.Begin(origin))
             scope.ServiceProvider.GetRequiredService<IOutboxWriter>().Enqueue(new PingSent(7, "hello"));
         var message = Assert.Single(scope.ServiceProvider.GetRequiredService<IntegrationEventBuffer>().GetPendingMessages());
@@ -90,7 +90,7 @@ public sealed class EnvelopeContractTests
         using var scope = provider.CreateScope();
         var tenant = scope.ServiceProvider.GetRequiredService<ITenantContext>();
         var person = "0190f3a2-7c41-7b3e-9d2a-5c8e1f4a6b21";
-        using (tenant.BeginScope(Tenant))
+        using (tenant.BeginScope(Guid.ParseExact(Tenant, "D")))
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.sample.crm", EventActor.Agent("agent-client-1", person))))
             scope.ServiceProvider.GetRequiredService<IOutboxWriter>().Enqueue(new PingSent(2, "agent"));
         var message = Assert.Single(scope.ServiceProvider.GetRequiredService<IntegrationEventBuffer>().GetPendingMessages());
@@ -104,24 +104,32 @@ public sealed class EnvelopeContractTests
     }
 
     [Fact]
-    public void 不在事件作用域_未登记_无JsonTypeInfo或租户非UUID时拒绝发布且不写缓冲()
+    public void 不在事件作用域_未登记或无JsonTypeInfo时拒绝发布且不写缓冲()
     {
         using var provider = Services();
         using var scope = provider.CreateScope();
         var writer = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
         var buffer = scope.ServiceProvider.GetRequiredService<IntegrationEventBuffer>();
-        var tenant = scope.ServiceProvider.GetRequiredService<ITenantContext>();
         Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new PingSent(1, "no scope"))).Error.Code);
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.sample.crm", EventActor.User("person-1"))))
         {
             Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new Unregistered(1))).Error.Code);
             Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new Reflected(1))).Error.Code);
-            using (tenant.BeginScope("tenant-a"))
-                Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new PingSent(1, "slug tenant"))).Error.Code);
-            using (tenant.BeginScope(Tenant.ToUpperInvariant()))
-                Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new PingSent(1, "upper tenant"))).Error.Code);
         }
         Assert.Empty(buffer.GetPendingMessages());
+    }
+
+    [Theory]
+    [InlineData("tenant-a")]
+    [InlineData("0190F3A2-7C41-7B3E-9D2A-5C8E1F4A6B20")]
+    public void 信封拒绝非规范租户文本(string tenant)
+    {
+        var (_, fixture) = EnvelopeSchemas.Fixtures("valid").First(item =>
+            item.Item2.GetProperty("tenant_id").ValueKind == JsonValueKind.String);
+        var envelope = JsonNode.Parse(fixture.GetRawText())!.AsObject();
+        envelope["tenant_id"] = tenant;
+        Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(
+            () => KunEventEnvelope.Parse(envelope.ToJsonString())).Error.Code);
     }
 
     [Fact]

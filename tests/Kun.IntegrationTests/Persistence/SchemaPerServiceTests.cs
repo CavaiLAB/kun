@@ -65,7 +65,7 @@ internal sealed class SchemaBTestDbContext(DbContextOptions<SchemaBTestDbContext
 
 internal sealed class NoopTenantContext : ITenantContext
 {
-    public string? TenantId => null;
+    public Guid? TenantId => null;
     public bool IsMultiTenant => false;
 }
 

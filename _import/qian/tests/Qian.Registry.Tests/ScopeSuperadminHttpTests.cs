@@ -29,7 +29,7 @@ public sealed partial class PatchPersistenceTests
         await PrepareAuthz(running.Host); await PrepareAudit(running.Host);
         await AdminExec("BEGIN;" + AuthzPlatformAccess.CreateMigrationSql(role) + "COMMIT;");
         using var active = await GrantRegistryRoles(running, tenant);
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
             await Repository(running.Host, tenant).PutAsync(new ScopeKey("tenant", HttpTenantA), "private",
                 Patch("""{"id":"private","plugin":"test.private","config":{}}"""), 0, "operator-a", Ct);
         await new PostgresPlatformRoleStore(running.Host.Services.GetRequiredService<IDataService>(), tenant, role).AssignSuperadminAsync("root", "operator", Ct);
@@ -48,7 +48,7 @@ public sealed partial class PatchPersistenceTests
         Assert.Equal(await ErrorShape(intruder), await ErrorShape(crossRoot)); Assert.Equal(await ErrorShape(intruder), await ErrorShape(crossTenant));
         await running.Runtime.UnmountAsync("authz", ScopeKey.Global, Ct); await running.Runtime.MountAsync([Authz(new { })], Ct);
         using var unconfigured = await http.GetPlatform(path, "root"); Assert.Equal(HttpStatusCode.NotFound, unconfigured.StatusCode);
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         {
             var entry = Assert.Single(await running.Root.Audit().ReadAsync(0, 20, cancellationToken: Ct));
             Assert.Equal((HttpTenantA, "root", "user"), (entry.Record.TenantId, entry.Record.ActorId, entry.Record.ActorType));
@@ -56,7 +56,7 @@ public sealed partial class PatchPersistenceTests
             Assert.Equal(RegistryDefinition.ScopeReadPermission, entry.Record.Payload.GetProperty("permission").GetString());
             Assert.True((await running.Root.Audit().VerifyAsync(Ct)).Valid);
         }
-        using (tenant.BeginScope(HttpTenantB)) Assert.Empty(await running.Root.Audit().ReadAsync(0, 20, cancellationToken: Ct));
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantB, "D"))) Assert.Empty(await running.Root.Audit().ReadAsync(0, 20, cancellationToken: Ct));
         static PluginDefinition Authz(object config) => new(new PluginEntry("authz", "qian.authz", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config)),
             new AuthzPlugin(), [AuthzDefinition.Key, AuthzDefinition.PermissionsKey, AuthzDefinition.ResourceTypesKey, AuthzDefinition.SuperadminBypassKey]);
     }

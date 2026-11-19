@@ -17,8 +17,8 @@ internal sealed record SampleCommand(string Payload) : IRequest<string>;
 
 internal sealed class StubTenantContext : ITenantContext
 {
-    public StubTenantContext(string? tenantId) { TenantId = tenantId; IsMultiTenant = tenantId is not null; }
-    public string? TenantId { get; }
+    public StubTenantContext(string? tenantId) { TenantId = tenantId is null ? null : Guid.ParseExact(tenantId, "D"); IsMultiTenant = tenantId is not null; }
+    public Guid? TenantId { get; }
     public bool IsMultiTenant { get; }
 }
 
@@ -40,10 +40,13 @@ internal sealed class StubCurrentUser : ICurrentUser
 
 public sealed class AuditLogPipelineBehaviorTests
 {
+    private const string TenantA = "01900000-0000-7000-8000-000000000001";
+    private const string TenantB = "01900000-0000-7000-8000-000000000002";
+
     private static AuditLogPipelineBehavior<SampleCommand, string> Build(
         InMemoryAuditSink sink,
         InMemoryAuditChainState chain,
-        string? tenantId = "t-a",
+        string? tenantId = TenantA,
         string? userId = "u-1")
     {
         return new AuditLogPipelineBehavior<SampleCommand, string>(
@@ -74,7 +77,7 @@ public sealed class AuditLogPipelineBehaviorTests
         entry.Outcome.Should().Be(AuditOutcome.Success);
         entry.ErrorCode.Should().BeNull();
         entry.PrevHash.Should().BeNull();
-        entry.TenantId.Should().Be("t-a");
+        entry.TenantId.Should().Be(TenantA);
         entry.ActorId.Should().Be("u-1");
     }
 
@@ -112,7 +115,7 @@ public sealed class AuditLogPipelineBehaviorTests
         var behavior = new AuditLogPipelineBehavior<SampleCommand, string>(
             sink,
             chain,
-            new StubTenantContext("t"),
+            new StubTenantContext(TenantA),
             new StubCurrentUser("u"),
             TimeProvider.System,
             NullLogger<AuditLogPipelineBehavior<SampleCommand, string>>.Instance);
@@ -139,7 +142,7 @@ public sealed class AuditLogPipelineBehaviorTests
         var behavior = new AuditLogPipelineBehavior<SampleCommand, string>(
             sink,
             chain,
-            new StubTenantContext("t"),
+            new StubTenantContext(TenantA),
             new StubCurrentUser("u"),
             TimeProvider.System,
             NullLogger<AuditLogPipelineBehavior<SampleCommand, string>>.Instance);
@@ -182,15 +185,15 @@ public sealed class AuditLogPipelineBehaviorTests
         using var chain = new InMemoryAuditChainState();
         var ct = TestContext.Current.CancellationToken;
 
-        var a = Build(sink, chain, tenantId: "tenant-a");
-        var b = Build(sink, chain, tenantId: "tenant-b");
+        var a = Build(sink, chain, tenantId: TenantA);
+        var b = Build(sink, chain, tenantId: TenantB);
 
         await a.Handle(new SampleCommand("x"), () => ValueTask.FromResult("1"), ct);
         await b.Handle(new SampleCommand("y"), () => ValueTask.FromResult("2"), ct);
         await a.Handle(new SampleCommand("z"), () => ValueTask.FromResult("3"), ct);
 
-        var aEntries = sink.Entries.Where(e => e.TenantId == "tenant-a").ToArray();
-        var bEntries = sink.Entries.Where(e => e.TenantId == "tenant-b").ToArray();
+        var aEntries = sink.Entries.Where(e => e.TenantId == TenantA).ToArray();
+        var bEntries = sink.Entries.Where(e => e.TenantId == TenantB).ToArray();
 
         aEntries.Should().HaveCount(2);
         bEntries.Should().HaveCount(1);

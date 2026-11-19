@@ -46,7 +46,7 @@ public sealed partial class SuperadminBypassTests
         // 主体不是人类平台用户（带租户、服务、Agent、空标识）或当前处在某个租户的上下文里：空，与旁路的 invalid_subject / tenant_context_mismatch 同一结论。
         foreach (var subject in new[] { new AuthorizationSubject("root", A, "user"), new AuthorizationSubject("root", null, "service"), new AuthorizationSubject("root", null, "agent"), new AuthorizationSubject(" ", null, "user") })
             Assert.Empty(await check.AllowedAsync(subject, requested, Ct));
-        using (tenant.BeginScope(A)) Assert.Empty(await check.AllowedAsync(Root, requested, Ct));
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) Assert.Empty(await check.AllowedAsync(Root, requested, Ct));
 
         // 只读：上面的判定一条审计也没写（平台链与租户链同在一张表）；对照真的经旁路访问一次，平台链才多一条放行记录。
         Assert.Equal(0L, await AdminScalar("SELECT count(*) FROM plugin_qian_audit.audit_entries"));

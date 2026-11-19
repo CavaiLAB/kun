@@ -37,12 +37,12 @@ public sealed class DirectoryLockingTests(PostgresFixture postgres) : IClassFixt
         }
         for (var round = 0; round < 60; round++)
         {
-            using (host.Tenant.BeginScope(scopeId)) await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Locked, "lock_order", Ct);
+            using (host.Tenant.BeginScope(Guid.ParseExact(scopeId, "D"))) await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Locked, "lock_order", Ct);
             var name = "成员" + (round % 2).ToString(CultureInfo.InvariantCulture);
             await Task.WhenAll(
-                Task.Run(() => Guarded("状态变更", async () => { using var scope = host.Tenant.BeginScope(scopeId); await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Active, "lock_order", Ct); }), Ct),
+                Task.Run(() => Guarded("状态变更", async () => { using var scope = host.Tenant.BeginScope(Guid.ParseExact(scopeId, "D")); await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Active, "lock_order", Ct); }), Ct),
                 Task.Run(() => Guarded("重新启用", () => Join(host, tenant, person.Id)), Ct),
-                Task.Run(() => Guarded("档案修改", async () => { using var scope = host.Tenant.BeginScope(scopeId); await host.Service.SetProfileAsync(member.Id, new(name), Ct); }), Ct));
+                Task.Run(() => Guarded("档案修改", async () => { using var scope = host.Tenant.BeginScope(Guid.ParseExact(scopeId, "D")); await host.Service.SetProfileAsync(member.Id, new(name), Ct); }), Ct));
         }
         var summary = string.Join("；", failures.GroupBy(text => text, StringComparer.Ordinal).Select(group => group.Key + " ×" + group.Count().ToString(CultureInfo.InvariantCulture)));
         Assert.False(failures.Any(text => text.Contains("40P01", StringComparison.Ordinal)), "出现死锁：" + summary);
@@ -57,7 +57,7 @@ public sealed class DirectoryLockingTests(PostgresFixture postgres) : IClassFixt
     {
         await using var host = await AccountsHost.Start(postgres); var tenant = host.Tenants.Add("directory-rejoin-row-lock");
         var (person, _) = await CreatePerson(host); var member = await Join(host, tenant, person.Id);
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D"))) await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Locked, "row_lock", Ct);
+        using (host.Tenant.BeginScope(tenant.Id)) await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Locked, "row_lock", Ct);
         await using var connection = new NpgsqlConnection(postgres.AppConnectionString); await connection.OpenAsync(Ct);
         await using var transaction = await connection.BeginTransactionAsync(Ct);
         async Task<object?> Run(string sql, params (string Name, object Value)[] args)

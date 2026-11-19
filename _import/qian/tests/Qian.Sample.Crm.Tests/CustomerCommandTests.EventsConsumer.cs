@@ -47,7 +47,7 @@ public sealed partial class EventTests
         var receipts = host.App.Services.GetRequiredService<CustomerCreatedReceipts>();
         // 测试宿主只给 B 的写客户端使用者角色；这里经同一个真实角色存储授予 Owner，B 才能建客户、发出自己的事件。
         var tenancy = host.App.Services.GetRequiredService<ITenantContext>();
-        using (tenancy.BeginScope(B))
+        using (tenancy.BeginScope(Guid.ParseExact(B, "D")))
             await new PostgresTenantRoleStore(host.App.Services.GetRequiredService<IDataService>(), tenancy).AssignAsync("tenant.owner", "service", Writer, "test-bootstrap", Ct);
 
         // B 先有一位客户；随后 A、B 并发各建一位，三条事件经 Outbox → RabbitMQ → 订阅器各自回到自己的租户。
@@ -354,7 +354,7 @@ public abstract partial class CustomerCommandTests
     {
         public async ValueTask HandleAsync(CrmCustomerCreated @event, MessageContext context, CancellationToken cancellationToken = default)
         {
-            var overlap = await probe.Overlap.ProbeEnterAsync(tenant.TenantId!);
+            var overlap = await probe.Overlap.ProbeEnterAsync(Assert.IsType<Guid>(tenant.TenantId).ToString("D"));
             probe.Seen.Enqueue(await ObserveAsync(data, tenant, delivery, @event, context, overlap, cancellationToken));
             if (overlap) await probe.Overlap.ProbeObservedAsync();
         }
@@ -365,7 +365,7 @@ public abstract partial class CustomerCommandTests
     {
         public async ValueTask HandleAsync(CrmCustomerCreated @event, MessageContext context, CancellationToken cancellationToken = default)
         {
-            var overlap = await probe.Overlap.PeerEnterAsync(tenant.TenantId!);
+            var overlap = await probe.Overlap.PeerEnterAsync(Assert.IsType<Guid>(tenant.TenantId).ToString("D"));
             probe.PeerSeen.Enqueue(await ObserveAsync(data, tenant, delivery, @event, context, overlap, cancellationToken));
             if (overlap) await probe.Overlap.PeerObservedAsync();
         }
@@ -377,7 +377,7 @@ public abstract partial class CustomerCommandTests
         await using var session = await data.OpenAsync<CrmDbContext>(cancellationToken);
         var query = session.Context.Customers.AsNoTracking().OrderBy(customer => customer.Id).Select(customer => new ProbeRow(customer.Id, customer.TenantId));
         var rows = await query.ToListAsync(cancellationToken);
-        return new TenantObservation(context.MessageId, @event.CustomerId, tenant.TenantId, context.TenantId, delivery.Envelope.TenantId, query.ToQueryString(),
+        return new TenantObservation(context.MessageId, @event.CustomerId, tenant.TenantId?.ToString("D"), context.TenantId, delivery.Envelope.TenantId, query.ToQueryString(),
             rows, delivery.Envelope.Producer, delivery.Envelope.Actor.Id, overlap);
     }
 

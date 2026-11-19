@@ -293,7 +293,7 @@ internal static class AccountsHost
 
         // 与真实实现一样按当前租户上下文读取。
         public ValueTask<T?> Get<T>(string pluginId, string key, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(Guid.TryParseExact(tenant.TenantId, "D", out var id) && _settings.TryGetValue((id, pluginId, key), out var value) ? (T?)value : default);
+            ValueTask.FromResult(tenant.TenantId is { } id && _settings.TryGetValue((id, pluginId, key), out var value) ? (T?)value : default);
 
         internal TenantDescriptor Add(string code, TenantStatus status = TenantStatus.Active, int? limit = null)
         {
@@ -315,7 +315,7 @@ internal static class AccountsHost
 
         public ValueTask EnsureCanAddUserAsync(int currentUsers, TenantMemberKind kind, CancellationToken cancellationToken = default)
         {
-            var id = Guid.ParseExact(tenant.TenantId!, "D");
+            var id = Assert.IsType<Guid>(tenant.TenantId);
             if (kind != TenantMemberKind.PlatformSuperadmin && _tenants[id].Limit is { } limit && currentUsers >= limit)
                 throw new Kun.Errors.ErrorException(new Kun.Errors.Error(TenancyErrors.UserLimit, new Dictionary<string, string> { ["limit"] = limit.ToString(System.Globalization.CultureInfo.InvariantCulture) }));
             return ValueTask.CompletedTask;

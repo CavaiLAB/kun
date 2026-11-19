@@ -62,7 +62,7 @@ public sealed partial class PatchPersistenceTests
         var tenant = new AsyncLocalTenantContext();
         await using var running = await CreateRunningRegistry(tenant);
         running.Profile.AddUnbound();
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             await Repository(running.Host, tenant).PutAsync(TenantA, "unbound", Patch("""{"id":"unbound","plugin":"test.unbound","config":{}}"""), 0, "actor", Ct);
             await AssertCode(PlatformErrors.InputInvalid, () => running.Registry.SynchronizeAsync(TenantA, Ct).AsTask());

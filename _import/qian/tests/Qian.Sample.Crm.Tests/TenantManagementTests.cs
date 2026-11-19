@@ -259,7 +259,7 @@ public abstract partial class CustomerCommandTests
         {
             var user = http.RequestServices.GetRequiredService<ICurrentUser>();
             var scoped = loader.GetContext("tenancy", ScopeKey.Global).Scoped(new ScopeKey("tenant", user.Principal!.TenantId!));
-            using var tenant = business.App.Services.GetRequiredService<ITenantContext>().BeginScope(scoped.Scope.Id!);
+            using var tenant = business.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(scoped.Scope.Id!, "D"));
             return Results.Json(await http.RequestServices.GetRequiredService<IHttpContractSource>().GetDocumentAsync(scoped, user, http.RequestAborted));
         }).RequireAuthorization();
         configurePipeline?.Invoke(app);

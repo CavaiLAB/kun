@@ -16,7 +16,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         await Store(host).PutAsync(Catalog(), Ct);
         var roles = new PostgresTenantRoleStore(host.Services.GetRequiredService<IDataService>(), tenant);
         var anonymous = await Assert.ThrowsAsync<ErrorException>(() => roles.EnsureBuiltinsAsync("operator", Ct)); Assert.Equal("UNAUTHENTICATED", anonymous.Error.Code.Code);
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             await roles.EnsureBuiltinsAsync("operator", Ct);
             await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
@@ -30,7 +30,7 @@ public sealed partial class PermissionCatalogPersistenceTests
             Assert.Equal(4, await session.Context.Roles.CountAsync(Ct)); Assert.Equal(2, await session.Context.RoleAssignments.CountAsync(Ct));
             Assert.Equal(4, await session.Context.Grants.CountAsync(Ct)); Assert.Equal(1, (await session.Context.PolicyInstalls.SingleAsync(Ct)).Revision);
         }
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.B))
         {
             await roles.EnsureBuiltinsAsync("operator", Ct);
             await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
@@ -38,9 +38,11 @@ public sealed partial class PermissionCatalogPersistenceTests
         }
         await using var app = new NpgsqlConnection(postgres.AppConnectionString); await app.OpenAsync(Ct);
         await using (var none = new NpgsqlCommand("SELECT count(*) FROM plugin_qian_authz.roles", app)) Assert.Equal(0L, await none.ExecuteScalarAsync(Ct));
-        await using (var set = new NpgsqlCommand("SELECT set_config('app.current_tenant_id', 'a', false)", app)) await set.ExecuteNonQueryAsync(Ct);
-        await using (var own = new NpgsqlCommand("SELECT array_agg(DISTINCT tenant_id) FROM plugin_qian_authz.roles", app)) Assert.Equal("a", Assert.Single((string[])(await own.ExecuteScalarAsync(Ct))!));
-        await using var cross = new NpgsqlCommand("UPDATE plugin_qian_authz.roles SET tenant_id = 'b' WHERE tenant_id = 'a'", app);
+        await using (var set = new NpgsqlCommand("SELECT set_config('app.current_tenant_id', @tenant, false)", app)) { set.Parameters.AddWithValue("tenant", Tenants.AText); await set.ExecuteNonQueryAsync(Ct); }
+        await using (var own = new NpgsqlCommand("SELECT array_agg(DISTINCT tenant_id) FROM plugin_qian_authz.roles", app)) Assert.Equal(Tenants.AText, Assert.Single((string[])(await own.ExecuteScalarAsync(Ct))!));
+        await using var cross = new NpgsqlCommand("UPDATE plugin_qian_authz.roles SET tenant_id = @other WHERE tenant_id = @own", app);
+        cross.Parameters.AddWithValue("other", Tenants.BText);
+        cross.Parameters.AddWithValue("own", Tenants.AText);
         var denied = await Assert.ThrowsAsync<PostgresException>(() => cross.ExecuteNonQueryAsync(Ct)); Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, denied.SqlState);
     }
 
@@ -49,14 +51,14 @@ public sealed partial class PermissionCatalogPersistenceTests
     {
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host); await Store(host).PutAsync(Catalog(), Ct);
         var roles = new PostgresTenantRoleStore(host.Services.GetRequiredService<IDataService>(), tenant);
-        foreach (var id in new[] { "a", "b" })
+        foreach (var id in new[] { Tenants.AText, Tenants.BText })
         {
-            using var scope = tenant.BeginScope(id); await roles.EnsureBuiltinsAsync("operator", Ct);
-            await roles.AssignAsync(id == "a" ? "tenant.owner" : "tenant.user", "user", "same-person", "operator", Ct);
+            using var scope = tenant.BeginScope(Guid.ParseExact(id, "D")); await roles.EnsureBuiltinsAsync("operator", Ct);
+            await roles.AssignAsync(id == Tenants.AText ? "tenant.owner" : "tenant.user", "user", "same-person", "operator", Ct);
             await roles.InstallDefaultsAsync("qian.sample.crm", "1.0.0", null, "operator", Ct);
         }
-        using (tenant.BeginScope("a")) Assert.Equal(3, (await roles.ReadDirectUserPermissionsAsync("same-person", Ct)).Count);
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.A)) Assert.Equal(3, (await roles.ReadDirectUserPermissionsAsync("same-person", Ct)).Count);
+        using (tenant.BeginScope(Tenants.B))
         {
             Assert.Equal(["qian.sample.crm:customer:read"], await roles.ReadDirectUserPermissionsAsync("same-person", Ct));
             await roles.AssignAsync("tenant.user", "user", "same-person", "operator", Ct, validFrom: DateTimeOffset.UtcNow.AddHours(1));
@@ -76,7 +78,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         await Store(first).PutAsync(Catalog(), Ct); await Store(first).PutAsync(Catalog("2.0.0", "critical"), Ct);
         var one = new PostgresTenantRoleStore(first.Services.GetRequiredService<IDataService>(), firstTenant);
         var two = new PostgresTenantRoleStore(second.Services.GetRequiredService<IDataService>(), secondTenant);
-        using var firstScope = firstTenant.BeginScope("a"); using var secondScope = secondTenant.BeginScope("a");
+        using var firstScope = firstTenant.BeginScope(Tenants.A); using var secondScope = secondTenant.BeginScope(Tenants.A);
         await one.EnsureBuiltinsAsync("operator", Ct); await one.AssignAsync("tenant.owner", "user", "owner", "operator", Ct);
         await Task.WhenAll(one.InstallDefaultsAsync("qian.sample.crm", "1.0.0", null, "operator", Ct), two.InstallDefaultsAsync("qian.sample.crm", "1.0.0", null, "operator", Ct));
         await using var admin = new NpgsqlConnection(postgres.ConnectionString); await admin.OpenAsync(Ct);
@@ -100,15 +102,15 @@ public sealed partial class PermissionCatalogPersistenceTests
         await Store(first).PutAsync(Catalog(), Ct);
         var one = new PostgresTenantRoleStore(first.Services.GetRequiredService<IDataService>(), firstTenant);
         var two = new PostgresTenantRoleStore(second.Services.GetRequiredService<IDataService>(), secondTenant);
-        using (firstTenant.BeginScope("a"))
+        using (firstTenant.BeginScope(Tenants.A))
         {
             await one.EnsureBuiltinsAsync("operator", Ct); await one.AssignAsync("tenant.owner", "user", "owner", "operator", Ct);
             await one.InstallDefaultsAsync("qian.sample.crm", "1.0.0", null, "operator", Ct);
             Assert.Equal(3, (await one.ReadDirectUserPermissionsAsync("owner", Ct)).Count);
         }
-        using (secondTenant.BeginScope("a")) Assert.Equal(3, (await two.ReadDirectUserPermissionsAsync("owner", Ct)).Count);
-        using (firstTenant.BeginScope("b"))
-        using (secondTenant.BeginScope("a"))
+        using (secondTenant.BeginScope(Tenants.A)) Assert.Equal(3, (await two.ReadDirectUserPermissionsAsync("owner", Ct)).Count);
+        using (firstTenant.BeginScope(Tenants.B))
+        using (secondTenant.BeginScope(Tenants.A))
         {
             Assert.Empty(await one.ReadDirectUserPermissionsAsync("owner", Ct));
             Assert.Equal(3, (await two.ReadDirectUserPermissionsAsync("owner", Ct)).Count);
@@ -124,7 +126,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         { seed.Parameters.AddWithValue("id", Guid.CreateVersion7()); await seed.ExecuteNonQueryAsync(Ct); }
         await using var app = new NpgsqlConnection(postgres.AppConnectionString); await app.OpenAsync(Ct);
         await using (var read = new NpgsqlCommand("SELECT count(*) FROM plugin_qian_authz.roles", app)) Assert.Equal(0L, await read.ExecuteScalarAsync(Ct));
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             await using var session = await host.Services.GetRequiredService<IDataService>().OpenAsync<AuthzDbContext>(Ct);
             Assert.Empty(await session.Context.Roles.ToArrayAsync(Ct));

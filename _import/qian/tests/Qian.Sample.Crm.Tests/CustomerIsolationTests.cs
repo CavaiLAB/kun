@@ -109,7 +109,7 @@ public sealed class CustomerIsolationTests(PostgresFixture postgres) : IClassFix
         var actual = capture.Commands.First(command => command.Sql.Contains(TenantA, StringComparison.Ordinal) ||
             command.Parameters.Any(parameter => Equals(parameter.Value, TenantA)));
         var data = app.Services.GetRequiredService<IDataService>();
-        using (app.Services.GetRequiredService<ITenantContext>().BeginScope(TenantA))
+        using (app.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(TenantA, "D")))
         await using (var session = await data.OpenAsync<CrmDbContext>(ct))
         {
             await session.Context.Database.OpenConnectionAsync(ct);

@@ -46,7 +46,7 @@ public sealed class TenantRlsMigrationsTests(PostgresFixture postgres) : IClassF
             Assert.Empty(await PoliciesAsync(admin, lookupTable, ct));
         }
 
-        var a = new FixedTenant("a");
+        var a = new FixedTenant(Tenants.A);
         await using (var tenantA = new RlsContext(Options(postgres.AppConnectionString, a), a))
         {
             tenantA.Add(new TenantRow { Name = "a1" });
@@ -54,13 +54,13 @@ public sealed class TenantRlsMigrationsTests(PostgresFixture postgres) : IClassF
             Assert.Equal(1, await tenantA.Set<TenantRow>().IgnoreQueryFilters().CountAsync(ct));
         }
 
-        var b = new FixedTenant("b");
+        var b = new FixedTenant(Tenants.B);
         await using (var tenantB = new RlsContext(Options(postgres.AppConnectionString, b), b))
         {
             // 绕过 EF 的查询过滤，只剩库里的策略：租户 b 看不见租户 a 的行。
             Assert.Equal(0, await tenantB.Set<TenantRow>().IgnoreQueryFilters().CountAsync(ct));
             // 显式写别的租户号：限制策略的 WITH CHECK 拒绝。
-            tenantB.Add(new TenantRow { Name = "forged", TenantId = "a" });
+            tenantB.Add(new TenantRow { Name = "forged", TenantId = Tenants.AText });
             var error = await Assert.ThrowsAsync<DbUpdateException>(() => tenantB.SaveChangesAsync(ct));
             Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, Assert.IsType<PostgresException>(error.InnerException).SqlState);
         }
@@ -110,9 +110,9 @@ public sealed class TenantRlsMigrationsTests(PostgresFixture postgres) : IClassF
         return builder.Options;
     }
 
-    private sealed class FixedTenant(string? tenantId) : ITenantContext
+    private sealed class FixedTenant(Guid? tenantId) : ITenantContext
     {
-        public string? TenantId => tenantId;
+        public Guid? TenantId => tenantId;
 
         public bool IsMultiTenant => true;
     }

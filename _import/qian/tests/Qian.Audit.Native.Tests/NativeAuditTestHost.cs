@@ -41,7 +41,7 @@ internal sealed class NativeAuditTestHost(IHost host, PluginLoader loader, Async
             await loader.MountAsync([Define("data", "qian.data.native", new NativeDataComponent(), [NativeDataDefinition.Key], ScopeKey.Global,
                 JsonSerializer.SerializeToElement(new { connections = platformBinding ? BothBindings : TenantBindings }))], ct);
             Assert.True(loader.GetState("data", ScopeKey.Global) == PluginState.Ready, loader.GetFailure("data", ScopeKey.Global)?.ToString());
-            using (scopedTenant is null ? null : tenant.BeginScope(scopedTenant))
+            using (scopedTenant is null ? null : tenant.BeginScope(Guid.ParseExact(scopedTenant, "D")))
             {
                 await running.MountAudit(ct, platformBinding, maxAttempts);
                 if (ready) Assert.True(loader.GetState("audit", scope) == PluginState.Ready, loader.GetFailure("audit", scope)?.ToString());

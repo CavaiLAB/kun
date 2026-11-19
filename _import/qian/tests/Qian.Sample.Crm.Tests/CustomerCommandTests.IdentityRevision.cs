@@ -33,14 +33,14 @@ public sealed partial class IdentityAuthzTests
         async Task<AuthorizationDecision> Enforce(string accessToken)
         {
             var token = new JsonWebToken(accessToken);
-            using var scope = tenant.BeginScope(A);
+            using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
             return await Runtime(host).AuthzSource().Enforcement().EnforceAsync(new EnforcementRequest(
                 new EnforcementSubject(token.Subject, token.GetClaim("tenant_id").Value, token.GetClaim("principal_kind").Value, TokenRevision(accessToken)),
                 CustomerRead, null, "api", AuthzEnforcement.CommandEntryPoint, "qian.sample.crm/customer.list"), Ct);
         }
 
         // 生产路径的授予端口（开通编排同款）授予 tenant.user（含 customer:read）与 tenant.developer：每次授予提交后递增该成员在 A 的修订。
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var grants = authz.Inject<ITenantRoleGrant>(TenantRoleGrant.Key);
             await grants.AssignAsync("tenant.user", "user", subject, "acceptance", Ct);
@@ -55,7 +55,7 @@ public sealed partial class IdentityAuthzTests
 
         // 撤销 tenant.developer（与组件入口同一装配的角色存储）：提交后在同一调用内递增修订，并把 PEP 下限抬到新值。
         var elapsed = Stopwatch.StartNew();
-        using (tenant.BeginScope(A)) Assert.True(await AuthzPlugin.RoleStore(authz, tenant).RevokeAsync("tenant.developer", "user", subject, "acceptance", Ct));
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) Assert.True(await AuthzPlugin.RoleStore(authz, tenant).RevokeAsync("tenant.developer", "user", subject, "acceptance", Ct));
         Assert.Equal("3", await MemberRevision());
         Assert.Equal(HttpStatusCode.Unauthorized, await UserInfoStatus(host, first.AccessToken));
         // 仍持有 tenant.user（customer:read），旧令牌照样被拒：原因是令牌陈旧，不是缺权限。
@@ -70,12 +70,12 @@ public sealed partial class IdentityAuthzTests
         Assert.Equal(HttpStatusCode.OK, await UserInfoStatus(host, refreshed));
         var renewed = await Enforce(refreshed);
         Assert.True(renewed.Allow, renewed.Reason);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             Assert.Contains((subject, "denied", AuthzEnforcement.CommandEntryPoint, "qian.sample.crm/customer.list", AuthzEnforcement.StaleIdentityRevision), await Decisions(host, A));
 
         // 非 user 主体、不是 Person 的 user 主体、在本租户没有成员身份的 Person：授予照常提交，不递增任何修订、不报错。
         var stranger = (await NewPerson(host, "路人")).Person;
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var grants = authz.Inject<ITenantRoleGrant>(TenantRoleGrant.Key);
             await grants.AssignAsync("tenant.user", "service", Reader, "acceptance", Ct);

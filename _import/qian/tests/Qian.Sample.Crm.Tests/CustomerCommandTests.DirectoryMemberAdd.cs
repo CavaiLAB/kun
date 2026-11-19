@@ -60,7 +60,7 @@ public sealed partial class IdentityAuthzTests
         var (member, memberPhone) = await NewPerson(host, "普通成员"); await Join(host, A, member.Id, "普通成员");
         var (bare, barePhone) = await NewPerson(host, "未授角色的管理员"); await Join(host, A, bare.Id, "未授角色的管理员", administrator: true);
         var (outsider, _) = await NewPerson(host, "乙方老员工"); await Join(host, B, outsider.Id, "乙方老员工");
-        using var tenantScope = tenant.BeginScope(A);
+        using var tenantScope = tenant.BeginScope(Guid.ParseExact(A, "D"));
         var roles = new PostgresTenantRoleStore(data, tenant);
         await roles.InstallDefaultsAsync(metadata.ComponentId, "1.0.0", null, "member-add-acceptance", Ct);
         await roles.AssignAsync("tenant.admin", "user", admin.Id.ToString("D"), "member-add-acceptance", Ct);
@@ -175,7 +175,7 @@ public sealed partial class IdentityAuthzTests
         Assert.Equal(200, (await browser.Post("api/identity/login", new { client_id = "web", identifier = adminPhone, password = IdentityPassword, tenant_id = A })).Status);
         async Task<AuditRecord[]> Records()
         {
-            using var scope = tenant.BeginScope(A);
+            using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
             var caller = loader.GetContext("capabilities", ScopeKey.Global).Scoped(new ScopeKey("tenant", A));
             return [.. (await ReadTenantChain(caller.Audit())).Where(row => row.Record.CapabilityId == id).Select(row => row.Record)];
         }
@@ -222,7 +222,7 @@ public sealed partial class IdentityAuthzTests
         // 恢复原成员后只保留 tenant.user（R163）：在职时另授 tenant.admin，从目录删除后同号重新新增，恢复的成员只有 tenant.user。
         async Task<string> Roles(Guid subject) => await Text("SELECT coalesce(string_agg(r.code, ',' ORDER BY r.code), '') FROM plugin_qian_authz.role_assignments a " +
             $"JOIN plugin_qian_authz.roles r ON a.role_id = r.id WHERE a.tenant_id = '{A}' AND a.subject_type = 'user' AND a.subject_id = '{subject:D}'") ?? "";
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             await loader.GetContext("identity", ScopeKey.Global).Scoped(new ScopeKey("tenant", A)).Inject<ITenantRoleGrant>(TenantRoleGrant.Key)
                 .AssignAsync("tenant.admin", "user", person.ToString("D"), admin.Id.ToString("D"), Ct);
         Assert.Equal("tenant.admin,tenant.user", await Roles(person));

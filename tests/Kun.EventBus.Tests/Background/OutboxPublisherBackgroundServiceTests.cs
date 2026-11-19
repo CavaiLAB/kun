@@ -197,7 +197,7 @@ public sealed class OutboxPublisherBackgroundServiceTests
     public async Task ProcessBatch_TenantsAndFailure_RestoresScopePerMessage()
     {
         var tenant = new AsyncLocalTenantContext();
-        string[] tenantIds = ["tenant-a", "tenant-b", "tenant-c"];
+        string[] tenantIds = [Guid.NewGuid().ToString("D"), Guid.NewGuid().ToString("D"), Guid.NewGuid().ToString("D")];
         var messages = tenantIds.Select(id =>
             new OutboxMessage(Guid.NewGuid(), "test.v1", "{}", id, null, null, DateTimeOffset.UtcNow)).ToArray();
         var store = new FakeOutboxMessageStore(messages);
@@ -205,15 +205,16 @@ public sealed class OutboxPublisherBackgroundServiceTests
             .AddSingleton<ITenantContext>(tenant)
             .AddSingleton<IOutboxMessageStore>(store)
             .BuildServiceProvider();
-        var publisher = new TenantObservingPublisher(tenant);
+        var publisher = new TenantObservingPublisher(tenant, tenantIds[1]);
         using var background = new OutboxPublisherBackgroundService(
             services.GetRequiredService<IServiceScopeFactory>(), publisher, NullOutboxLockProvider.Instance,
             Options.Create(new OutboxPublisherOptions()), NullLogger<OutboxPublisherBackgroundService>.Instance,
             TimeProvider.System);
-        using (tenant.BeginScope("outer"))
+        var outer = Guid.NewGuid();
+        using (tenant.BeginScope(outer))
         {
             await background.ProcessBatchAsync(TestContext.Current.CancellationToken);
-            Assert.Equal("outer", tenant.TenantId);
+            Assert.Equal(outer, tenant.TenantId);
         }
         Assert.Null(tenant.TenantId);
         Assert.Equal(tenantIds, publisher.Observed);
@@ -222,15 +223,15 @@ public sealed class OutboxPublisherBackgroundServiceTests
         Assert.Equal(OutboxStatus.Published, messages[2].Status);
     }
 
-    private sealed class TenantObservingPublisher(ITenantContext tenant) : IIntegrationEventPublisher
+    private sealed class TenantObservingPublisher(ITenantContext tenant, string failingTenant) : IIntegrationEventPublisher
     {
         public List<string> Observed { get; } = [];
         public async ValueTask PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
         {
             await Task.Yield();
-            Assert.Equal(message.TenantId, tenant.TenantId);
-            Observed.Add(tenant.TenantId!);
-            if (message.TenantId == "tenant-b") throw new InvalidOperationException("broker unavailable");
+            Assert.Equal(message.TenantId, tenant.TenantId?.ToString("D"));
+            Observed.Add(tenant.TenantId!.Value.ToString("D"));
+            if (message.TenantId == failingTenant) throw new InvalidOperationException("broker unavailable");
         }
     }
 

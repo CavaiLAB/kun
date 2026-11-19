@@ -27,6 +27,11 @@
 - 原有 `IJwtIssuer`、`KunJwtIssuer`、`KunJwtIssuerOptions`、`AddS2SIssuer` 及 `Kun.Security.S2SJwt` 签发、验证、JWKS 入口已归档。网关使用 `S2sTokenIssuer` 签发，下游通过 `AddKunServiceAuthentication` 验签。`PropagateS2sTokenHandler` 与 `AddKunServiceAuth` 标为过时，使用这些入口会产生 KUNS2S001。
 - 服务间令牌在签发与接收时共同核对每跳受众、身份、角色、scope 和有效期。外部访问令牌投影复用身份字段校验。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
+### Changed — 租户上下文使用 UUID（S1-KUN-024）
+
+- `ITenantContext.TenantId` 和 `BeginScope` 使用 `Guid?`。租户范围要求非空 UUID，平台范围用 `null`。消息与 HTTP 仍以 D 格式传输租户标识。实体租户列与 RLS 配置项继续使用小写 UUID 文本。
+- `TenantInfo`、租户开户与注销、数据库连接解析、上下文工厂、原生数据会话的租户端口使用 UUID。配置连接映射时以 UUID 为键。架构隔离的开户器与上下文工厂通过 `KunMultiTenancyOptions.GetSchemaName` 取得同一个架构名。已有按旧标识命名的架构需要在切换前迁移。
+
 ### Changed — 租户上下文与隔离策略（S1-KUN-024）
 
 - 需要处理租户请求的宿主登记 `AddKunMultiTenancy()`，在认证后挂载 `UseKunMultiTenancy()`。租户从已认证主身份的唯一 `tenant_id` 读取，使用 D 格式非空 UUID。平台入口可显式选择 `PlatformPrincipalAllowed`。后台任务通过 `BeginScope` 进入租户范围。

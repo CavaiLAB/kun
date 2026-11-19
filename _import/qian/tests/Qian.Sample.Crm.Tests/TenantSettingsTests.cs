@@ -64,7 +64,7 @@ public sealed partial class TenantOperationsTests
             Assert.Equal(2, steps.Count(step => step.Status == "skipped"));
             Assert.Contains(steps, step => step.Step == "03:component:qian.sample.crm" && step.Status == "succeeded");
             Assert.Equal(1, Assert.Single(await LifecyclePlatform.Lifecycle(business).GetRunsAsync(tenant.Id.ToString(), "qian.sample.crm", Ct)).Attempts);
-            using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenant.Id.ToString()))
+            using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenant.Id))
             {
                 // 租户链：开户 hook 一条（root、hook 通道），其余是 Tenancy 第 03 步为每个 system 组件调用开通时 Lifecycle 记的开通条目（S1-RT-037）。
                 var entries = await source.Audit().ReadAsync(0, 50, cancellationToken: Ct);
@@ -80,9 +80,9 @@ public sealed partial class TenantOperationsTests
         { using var active = await Manage(HttpMethod.Post, "/api/tenancy/tenants/" + tenant.Id + ":activate", new ActivateTenant(ValidUntil: DateTimeOffset.UtcNow.AddDays(1))); Assert.Equal(HttpStatusCode.OK, active.StatusCode); }
         using (var active = await business.Get(a.Id.ToString(), "/api/customers")) Assert.Equal(HttpStatusCode.OK, active.StatusCode);
         await using var replica = await SettingsReplica(platform);
-        using (replica.Tenant.BeginScope(a.Id.ToString())) Assert.Null(await replica.Settings.Get<string>("qian.audit", "chain.store", Ct));
+        using (replica.Tenant.BeginScope(a.Id)) Assert.Null(await replica.Settings.Get<string>("qian.audit", "chain.store", Ct));
         business.App.Configuration["qian.audit:policyEnabled"] = "true";
-        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(a.Id.ToString()))
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(a.Id))
             Assert.True(await source.Inject<ITenantSettings>(TenantSettings.Key).Get<bool?>("qian.audit", "policyEnabled", Ct));
         var registry = loader.GetContext("registry", ScopeKey.Global).Registry();
         var mountedNotifications = 0;
@@ -101,14 +101,14 @@ public sealed partial class TenantOperationsTests
         await AssertHttp(await Manage(HttpMethod.Put, path + "/settings/qian.audit", new UpdateTenantSettings(JsonSerializer.SerializeToElement(new { chain = new { store = "pg" } }), 0)), HttpStatusCode.Conflict, "REGISTRY_REVISION_CONFLICT");
         await AssertHttp(await Manage(HttpMethod.Put, path + "/settings/qian.config", new UpdateTenantSettings(JsonSerializer.SerializeToElement(new { }), 0)), HttpStatusCode.BadRequest, "INPUT_INVALID");
         Assert.Equal(1, mountedNotifications);
-        using (replica.Tenant.BeginScope(a.Id.ToString()))
+        using (replica.Tenant.BeginScope(a.Id))
         {
             while (await replica.Settings.Get<string>("qian.audit", "chain.store", Ct) != "pg")
             { Assert.True(elapsed.Elapsed < TimeSpan.FromSeconds(5)); await Task.Delay(25, Ct); }
         }
         Assert.True(elapsed.Elapsed < TimeSpan.FromSeconds(5));
         var propagation = elapsed.Elapsed;
-        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(a.Id.ToString()))
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(a.Id))
         {
             var entry = Assert.Single(await registry.GetConfigurationViewAsync(new ScopeKey("tenant", a.Id.ToString()), Ct), entry => entry.PluginId == "qian.audit");
             Assert.Equal("pg", entry.Config!.Value.GetProperty("chain").GetProperty("store").GetString());
@@ -125,7 +125,7 @@ public sealed partial class TenantOperationsTests
             Assert.Equal("pg", json.GetProperty("items").EnumerateArray().Single(item => item.GetProperty("pluginId").GetString() == "qian.audit")
                 .GetProperty("config").GetProperty("chain").GetProperty("store").GetString());
         }
-        using (replica.Tenant.BeginScope(b.Id.ToString())) Assert.Null(await replica.Settings.Get<string>("qian.audit", "chain.store", Ct));
+        using (replica.Tenant.BeginScope(b.Id)) Assert.Null(await replica.Settings.Get<string>("qian.audit", "chain.store", Ct));
         using (var response = await Manage(HttpMethod.Get, path + "/quota"))
         { var quota = (await response.Content.ReadFromJsonAsync<TenantQuotaView>(Ct))!; Assert.Equal(5, quota.Limits.Users); Assert.Null(quota.UsersUsed); Assert.False(quota.UsageAvailable); }
         foreach (var (action, expected) in new[] { ("suspend", HttpStatusCode.Forbidden), ("resume", HttpStatusCode.OK) })

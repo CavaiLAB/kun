@@ -15,7 +15,7 @@ public sealed partial class PatchPersistenceTests
     {
         var tenant = new AsyncLocalTenantContext();
         await using var running = await CreateRunningRegistry(tenant, definition => definition.Entry.Id == "private" ? definition with { Plugin = new FailingApply(definition.Plugin) } : definition);
-        using var current = tenant.BeginScope("a");
+        using var current = tenant.BeginScope(Tenants.A);
         var repository = Repository(running.Host, tenant);
 
         await repository.PutAsync(TenantA, "private", Patch("""{"id":"private","plugin":"test.private","config":{"label":"precondition"}}"""), 0, "operator-a", Ct);
@@ -23,8 +23,8 @@ public sealed partial class PatchPersistenceTests
         Assert.Equal((TenantA, "private", "test.private@1.0.0", (int?)1, "PRECONDITION_FAILED"), (refused.Scope, refused.EntryId, refused.Plugin, refused.Revision, refused.ReasonCode));
         Assert.Equal("PRECONDITION_FAILED", Assert.IsType<ErrorException>(refused.InnerException).Error.Code.Code);
         Assert.Equal(["entryId", "plugin", "reasonCode", "revision", "scope"], refused.Data.Keys.Cast<string>().Order(StringComparer.Ordinal));
-        Assert.Equal("tenant:a", refused.Data["scope"]); Assert.Equal(1, refused.Data["revision"]); Assert.Equal("PRECONDITION_FAILED", refused.Data["reasonCode"]);
-        foreach (var part in new[] { "tenant:a", "private", "test.private@1.0.0", "修订 1", "PRECONDITION_FAILED" }) Assert.Contains(part, refused.Message, StringComparison.Ordinal);
+        Assert.Equal("tenant:" + Tenants.AText, refused.Data["scope"]); Assert.Equal(1, refused.Data["revision"]); Assert.Equal("PRECONDITION_FAILED", refused.Data["reasonCode"]);
+        foreach (var part in new[] { "tenant:" + Tenants.AText, "private", "test.private@1.0.0", "修订 1", "PRECONDITION_FAILED" }) Assert.Contains(part, refused.Message, StringComparison.Ordinal);
         Assert.Empty(running.Commands(TenantA));
 
         // 非平台错误码的失败按 INTERNAL 报告；底层异常留在 InnerException，不进入消息与诊断数据。
@@ -63,7 +63,7 @@ public sealed partial class PatchPersistenceTests
         await using var running = await CreateRunningRegistry(tenant,
             definition => definition.Entry.Id == "private" ? definition with { Plugin = new TenantFieldCapability(definition.Plugin) } : definition, capabilityChecks: true);
         Assert.NotNull(running.Host.Services.GetService<ICapabilityContractCheck>());
-        using var current = tenant.BeginScope("a");
+        using var current = tenant.BeginScope(Tenants.A);
         var repository = Repository(running.Host, tenant);
 
         // 组件 Apply 经真实 SDK ProvideCapability 登记能力；宿主的检查生成条目时拒绝，Registry 沿用异常自带的原因码。

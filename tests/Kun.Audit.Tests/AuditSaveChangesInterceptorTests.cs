@@ -17,11 +17,13 @@ namespace Kun.Audit.Tests;
 
 public sealed class AuditSaveChangesInterceptorTests
 {
+    private const string TenantA = "01900000-0000-7000-8000-000000000001";
+
     [Fact]
     public async Task Added_Aggregate_EmitsCreatedAudit()
     {
-        var fixture = new InterceptorFixture(tenantId: "tenant-a", userId: "user-1");
-        var widget = new Widget { Id = Guid.NewGuid(), TenantId = "tenant-a", Name = "hello" };
+        var fixture = new InterceptorFixture(tenantId: TenantA, userId: "user-1");
+        var widget = new Widget { Id = Guid.NewGuid(), TenantId = TenantA, Name = "hello" };
 
         fixture.DbContext.Add(widget);
         await fixture.DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -33,14 +35,14 @@ public sealed class AuditSaveChangesInterceptorTests
         audit.ResourceId.Should().Be(widget.Id.ToString());
         audit.ActorId.Should().Be("user-1");
         audit.ActorType.Should().Be(AuditActorType.User);
-        audit.TenantId.Should().Be("tenant-a");
+        audit.TenantId.Should().Be(TenantA);
     }
 
     [Fact]
     public async Task Modified_Aggregate_EmitsUpdatedAudit()
     {
-        var fixture = new InterceptorFixture(tenantId: "tenant-a", userId: "user-1");
-        var widget = new Widget { Id = Guid.NewGuid(), TenantId = "tenant-a", Name = "initial" };
+        var fixture = new InterceptorFixture(tenantId: TenantA, userId: "user-1");
+        var widget = new Widget { Id = Guid.NewGuid(), TenantId = TenantA, Name = "initial" };
         fixture.DbContext.Add(widget);
         await fixture.DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         fixture.Entries.Clear();
@@ -55,8 +57,8 @@ public sealed class AuditSaveChangesInterceptorTests
     [Fact]
     public async Task Deleted_Aggregate_EmitsDeletedAudit()
     {
-        var fixture = new InterceptorFixture(tenantId: "tenant-a", userId: "user-1");
-        var widget = new Widget { Id = Guid.NewGuid(), TenantId = "tenant-a", Name = "byebye" };
+        var fixture = new InterceptorFixture(tenantId: TenantA, userId: "user-1");
+        var widget = new Widget { Id = Guid.NewGuid(), TenantId = TenantA, Name = "byebye" };
         fixture.DbContext.Add(widget);
         await fixture.DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         fixture.Entries.Clear();
@@ -71,8 +73,8 @@ public sealed class AuditSaveChangesInterceptorTests
     [Fact]
     public async Task AnonymousUser_EmitsSystemActorType()
     {
-        var fixture = new InterceptorFixture(tenantId: "tenant-a", userId: null);
-        var widget = new Widget { Id = Guid.NewGuid(), TenantId = "tenant-a", Name = "bg" };
+        var fixture = new InterceptorFixture(tenantId: TenantA, userId: null);
+        var widget = new Widget { Id = Guid.NewGuid(), TenantId = TenantA, Name = "bg" };
 
         fixture.DbContext.Add(widget);
         await fixture.DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -84,11 +86,11 @@ public sealed class AuditSaveChangesInterceptorTests
     [Fact]
     public async Task WriterException_IsSwallowedByDefault()
     {
-        var fixture = new InterceptorFixture(tenantId: "tenant-a", userId: "user-1");
+        var fixture = new InterceptorFixture(tenantId: TenantA, userId: "user-1");
         fixture.Writer
             .When(w => w.WriteAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new InvalidOperationException("boom"));
-        var widget = new Widget { Id = Guid.NewGuid(), TenantId = "tenant-a", Name = "ignored" };
+        var widget = new Widget { Id = Guid.NewGuid(), TenantId = TenantA, Name = "ignored" };
 
         fixture.DbContext.Add(widget);
         var act = async () => await fixture.DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -100,13 +102,13 @@ public sealed class AuditSaveChangesInterceptorTests
     public async Task WriterException_Surfaces_WhenSwallowingDisabled()
     {
         var fixture = new InterceptorFixture(
-            tenantId: "tenant-a",
+            tenantId: TenantA,
             userId: "user-1",
             configure: o => o.SwallowWriterExceptions = false);
         fixture.Writer
             .When(w => w.WriteAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new InvalidOperationException("boom"));
-        var widget = new Widget { Id = Guid.NewGuid(), TenantId = "tenant-a", Name = "strict" };
+        var widget = new Widget { Id = Guid.NewGuid(), TenantId = TenantA, Name = "strict" };
 
         fixture.DbContext.Add(widget);
         var act = async () => await fixture.DbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -126,7 +128,7 @@ public sealed class AuditSaveChangesInterceptorTests
             Action<KunAuditOptions>? configure = null)
         {
             var tenant = Substitute.For<ITenantContext>();
-            tenant.TenantId.Returns(tenantId);
+            tenant.TenantId.Returns(Guid.ParseExact(tenantId, "D"));
 
             var user = Substitute.For<ICurrentUser>();
             user.UserId.Returns(userId);

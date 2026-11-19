@@ -44,7 +44,7 @@ internal static class ShellAuditEndpoints
                     json.GetProperty("reason").GetString() != "engines.qian" || json.GetProperty("code").GetString() != "INPUT_INVALID" ||
                     json.GetProperty("hostVersion").GetString() != qianVersion || json.GetProperty("requiredVersion").GetString() != "^99.0.0")
                     return Error(PlatformErrors.InputInvalid);
-                using var scope = tenant.BeginScope(tenantId);
+                using var scope = tenant.BeginScope(Guid.ParseExact(tenantId, "D"));
                 var metadata = JsonSerializer.SerializeToElement(new { name = "shell.remote.rejected", remoteId = "qian.tenancy", scope = "tenant:" + tenantId,
                     reason = "engines.qian", code = "INPUT_INVALID", hostVersion = qianVersion, requiredVersion = "^99.0.0", source = "browser-report" });
                 var record = new AuditRecord(Guid.NewGuid(), tenantId, "user", identity.FindFirst("sub")!.Value, null,
@@ -59,7 +59,7 @@ internal static class ShellAuditEndpoints
             var identity = await Identity(http, "read", tokens, validation);
             if (identity is null) return Error(PlatformErrors.Unauthenticated);
             var tenantId = identity.FindFirst("tenant_id")!.Value;
-            using var scope = tenant.BeginScope(tenantId);
+            using var scope = tenant.BeginScope(Guid.ParseExact(tenantId, "D"));
             var audit = consumer.Context!.Audit();
             var verification = await audit.VerifyAsync(http.RequestAborted);
             // 租户链分页读到末尾（每页 100）：只返回第一页时，链超过一页后调用方取的「最后一条」不是最新写入的那条（S1-QA-027）。

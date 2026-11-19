@@ -30,7 +30,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         var registry = new PermissionRegistry(); var catalog = Catalog(); using var active = registry.Register("1.0.0", catalog.Permissions);
         using var userHost = PrincipalHost("user", userTenant, registry); using var serviceHost = PrincipalHost("service", serviceTenant, registry);
         await userHost.StartAsync(Ct); await serviceHost.StartAsync(Ct); await Prepare(userHost); await Store(userHost).PutAsync(catalog, Ct);
-        using var userScope = userTenant.BeginScope("tenant-a"); using var serviceScope = serviceTenant.BeginScope("tenant-a");
+        using var userScope = userTenant.BeginScope(Tenants.A); using var serviceScope = serviceTenant.BeginScope(Tenants.A);
         var roles = new PostgresTenantRoleStore(userHost.Services.GetRequiredService<IDataService>(), userTenant);
         await roles.EnsureBuiltinsAsync("bootstrap", Ct); await roles.AssignAsync("tenant.user", "user", "shared-id", "bootstrap", Ct);
         await roles.InstallDefaultsAsync("qian.sample.crm", "1.0.0", null, "bootstrap", Ct);
@@ -46,7 +46,7 @@ public sealed partial class PermissionCatalogPersistenceTests
     {
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         var http = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim("sub", "shared-id"), new Claim("tenant_id", "tenant-a"), new Claim("principal_kind", kind)], "validated")) };
+            new Claim("sub", "shared-id"), new Claim("tenant_id", Tenants.AText), new Claim("principal_kind", kind)], "validated")) };
         builder.Services.AddSingleton<ICurrentUser>(new JwtCurrentUser(new KindBoundaryAccessor(http)));
         builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddSingleton(registry); builder.Services.AddKunEventBus(registrar => registrar.RegisterAuthzEvents());
         builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));

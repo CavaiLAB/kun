@@ -77,14 +77,14 @@ public sealed partial class SecretResolverTests
         files.Write("a", "synthetic-a"); files.Write("b", "synthetic-b");
         var observer = new Observer();
         var factory = new SecretResolverFactory(Options(files.Root), observer);
-        var tenant = new Tenant { TenantId = "a" };
+        var tenant = new Tenant { TenantId = new Guid(TenantA) };
         var resolver = factory.ForHost("qian.consumer", tenant);
         using (var value = await resolver.ResolveAsync("secretRef://tenant/db/token", TestContext.Current.CancellationToken)) Assert.Equal("synthetic-a", value.RevealUtf8());
-        var denied = await Assert.ThrowsAsync<ErrorException>(async () => await resolver.ResolveAsync("secretRef://tenant/b/db/token", TestContext.Current.CancellationToken));
+        var denied = await Assert.ThrowsAsync<ErrorException>(async () => await resolver.ResolveAsync($"secretRef://tenant/{TenantB}/db/token", TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_ACCESS_DENIED", denied.Error.Code.Code);
         var unapproved = factory.ForHost("qian.declared", tenant);
-        await Assert.ThrowsAsync<ErrorException>(async () => await unapproved.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
-        tenant.TenantId = "b";
+        await Assert.ThrowsAsync<ErrorException>(async () => await unapproved.ResolveAsync($"secretRef://tenant/{TenantA}/db/token", TestContext.Current.CancellationToken));
+        tenant.TenantId = new Guid(TenantB);
         using (var value = await resolver.ResolveAsync("secretRef://tenant/db/token", TestContext.Current.CancellationToken)) Assert.Equal("synthetic-b", value.RevealUtf8());
         Assert.Equal(4, observer.Events.Count);
         Assert.Contains(observer.Events, item => !item.Allowed && item.Outcome == "SECRET_ACCESS_DENIED");
@@ -95,14 +95,14 @@ public sealed partial class SecretResolverTests
     public async Task 文件缺失和审计失败均返回结构化错误_不会给出空密钥()
     {
         using var files = new Files();
-        var tenant = new Tenant { TenantId = "a" };
+        var tenant = new Tenant { TenantId = new Guid(TenantA) };
         var observer = new Observer();
         var resolver = new SecretResolverFactory(Options(files.Root), observer).ForHost("qian.consumer", tenant);
-        var missing = await Assert.ThrowsAsync<ErrorException>(async () => await resolver.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
+        var missing = await Assert.ThrowsAsync<ErrorException>(async () => await resolver.ResolveAsync($"secretRef://tenant/{TenantA}/db/token", TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_NOT_FOUND", missing.Error.Code.Code);
         files.Write("a", "synthetic-secret");
         var auditFailure = new SecretResolverFactory(Options(files.Root), new FailingObserver()).ForHost("qian.consumer", tenant);
-        var error = await Assert.ThrowsAsync<ErrorException>(async () => await auditFailure.ResolveAsync("secretRef://tenant/a/db/token", TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ErrorException>(async () => await auditFailure.ResolveAsync($"secretRef://tenant/{TenantA}/db/token", TestContext.Current.CancellationToken));
         Assert.Equal("SECRET_UNAVAILABLE", error.Error.Code.Code);
         Assert.DoesNotContain("synthetic-secret", error.ToString(), StringComparison.Ordinal);
     }
@@ -111,14 +111,14 @@ public sealed partial class SecretResolverTests
     public async Task Config_seam使用插件身份_卸载后缓存的解析器不能再读()
     {
         using var files = new Files(); files.Write("a", "synthetic-secret");
-        var tenant = new Tenant { TenantId = "a" };
+        var tenant = new Tenant { TenantId = new Guid(TenantA) };
         using var root = new ConfigurationRoot([]);
         using var services = new ServiceCollection().AddSingleton<ITenantContext>(tenant)
             .AddSingleton<ISecretAccessObserver>(new Observer())
             .AddQianSecrets(Options(files.Root)).AddQianConfiguration(root).BuildServiceProvider();
         await using var runtime = new PluginLoader(services);
         var config = JsonSerializer.SerializeToElement(new { });
-        var scope = new ScopeKey("tenant", "a");
+        var scope = new ScopeKey("tenant", TenantA);
         await runtime.MountAsync([
             new PluginDefinition(new PluginEntry("config", "qian.config", "1", ScopeKey.Global, 0, config), new ConfigurationPlugin(), [ConfigDefinition.Key]),
             new PluginDefinition(new PluginEntry("consumer", "qian.consumer", "1", scope, 0, config), new Consumer(), [])
@@ -131,10 +131,13 @@ public sealed partial class SecretResolverTests
         Assert.Equal("SECRET_ACCESS_DENIED", denied.Error.Code.Code);
     }
 
+    private const string TenantA = "01900000-0000-7000-8000-000000000001";
+    private const string TenantB = "01900000-0000-7000-8000-000000000002";
+
     private static SecretResolverOptions Options(string root) => new()
     {
         MountRoot = root,
-        Bindings = [new("secretRef://tenant/a/db/token", new("qian", "a", "token"), "a"), new("secretRef://tenant/b/db/token", new("qian", "b", "token"), "b")],
+        Bindings = [new($"secretRef://tenant/{TenantA}/db/token", new("qian", "a", "token"), TenantA), new($"secretRef://tenant/{TenantB}/db/token", new("qian", "b", "token"), TenantB)],
         Policies = [new("qian.consumer", [new("db/*", "tenant")], [new("db/*", "tenant")]), new("qian.declared", [new("db/*", "tenant")], [])]
     };
     [Fact]
@@ -167,7 +170,7 @@ public sealed partial class SecretResolverTests
     [LibraryImport("libc", EntryPoint = "rename", StringMarshalling = StringMarshalling.Utf8, SetLastError = true)]
     [DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
     private static partial int Rename(string source, string destination);
-    private sealed class Tenant : ITenantContext { public string? TenantId { get; set; } public bool IsMultiTenant => true; }
+    private sealed class Tenant : ITenantContext { public Guid? TenantId { get; set; } public bool IsMultiTenant => true; }
     private sealed class Consumer : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [ConfigDefinition.Key];

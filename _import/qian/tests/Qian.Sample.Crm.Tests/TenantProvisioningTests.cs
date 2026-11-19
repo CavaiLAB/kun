@@ -58,7 +58,7 @@ public sealed partial class TenantOperationsTests
         source = loader.GetContext("tenancy", ScopeKey.Global);
         provisioning = source.Inject<ITenantProvisioning>(TenantProvisioning.Key);
         // 同一个已配置的生产方上下文，测试宿主直接派发没有编排凭据，不能借 hook 执行业务。
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id.ToString()))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id))
         {
             var scoped = source.Scoped(new ScopeKey("tenant", descriptor.Id.ToString()));
             await AssertCode(PlatformErrors.AuthzDenied, () => scoped.DispatchAsync(Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantProvisioned,
@@ -69,7 +69,7 @@ public sealed partial class TenantOperationsTests
         await provisioning.RetryAsync(descriptor.Id, "platform-operator", Ct);
         Assert.Equal("succeeded", (await provisioning.GetStepsAsync(descriptor.Id, Ct)).Single(step => step.Step == "04:provisioned").Status);
         int chainLength;
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id.ToString()))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id))
         {
             var entries = await ReadTenantChain(source.Audit());
             var audit = Assert.Single(entries, entry => entry.Record.Channel == "hook");
@@ -85,7 +85,7 @@ public sealed partial class TenantOperationsTests
         using (var pending = await host.Get(descriptor.Id.ToString(), "/api/customers")) Assert.Equal(HttpStatusCode.Forbidden, pending.StatusCode);
         // 续跑：hook 与各组件的开通都不重复记。
         await provisioning.RetryAsync(descriptor.Id, "platform-operator", Ct);
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id.ToString()))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id))
         {
             var entries = await ReadTenantChain(source.Audit());
             Assert.Single(entries, entry => entry.Record.Channel == "hook"); Assert.Equal(chainLength, entries.Count);
@@ -162,7 +162,7 @@ public sealed partial class TenantOperationsTests
         await AssertCode(PlatformErrors.InputInvalid, () => provisioning.ProvisionAsync(new("e", "E"), withPassword, "operator", Ct).AsTask());
         await AssertCode(PlatformErrors.InputInvalid, () => provisioning.ProvisionAsync(new("e", "E") { Administrator = withPassword }, withPassword with { InitialPassword = null }, "operator", Ct).AsTask());
         Assert.Null(await source.Tenancy().GetAsync("e", Ct));
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(first.Id.ToString()))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(first.Id))
             await AssertCode(PlatformErrors.AuthzDenied, () => provisioning.RetryAsync(second.Id, "operator", Ct).AsTask());
         // R95（真实租户目录）：租户仍是 pending，管理员凭据正确也不能登录；激活后经同一条登录流水线登录，会话指向本租户与刚建立的成员。
         async Task<SignInResult> SignInAs(string phone)
@@ -178,7 +178,7 @@ public sealed partial class TenantOperationsTests
         async Task PrepareCrm(Guid id)
         {
             await lifecycle.EntitleAsync(id.ToString(), "qian.sample.crm", "operator", Ct);
-            using var tenant = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(id.ToString());
+            using var tenant = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(id);
             await loader.GetContext("registry", ScopeKey.Global).Registry().MountAsync(new ScopeKey("tenant", id.ToString()), Entry("1.0.0"), 0, "operator", Ct);
         }
     }

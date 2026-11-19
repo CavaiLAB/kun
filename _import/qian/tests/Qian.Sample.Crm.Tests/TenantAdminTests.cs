@@ -160,7 +160,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         Assert.Equal(("true|active", "false|active"), (await Member(memberA), await Member(memberB)));
 
         // 租户链：每次指针变化补一条 admin.assign，只记成员指针，没有登录标识。平台链：每次放行都有超管旁路记录。
-        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id))
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(id, "D")))
         {
             var assigned = (await ReadTenantChain(source.Audit())).Where(entry => entry.Record.CapabilityId == "qian.tenancy/admin.assign").Select(entry => entry.Record).ToArray();
             Assert.Equal([(memberB, memberA), (memberA, memberB)], assigned.Select(record =>
@@ -250,7 +250,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         Assert.Equal("false|active", await Text($"SELECT is_tenant_administrator::text || '|' || status FROM plugin_qian_identity.memberships WHERE id = '{formerMember}'"));
 
         // 租户链记 admin.reset-password（只有成员指针），平台链记 reset-credential 的超管旁路；两条链都没有密码。
-        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id))
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(id, "D")))
         {
             var record = Assert.Single(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password").Record;
             Assert.Equal(("user", "root", "api", "success", member), (record.ActorType, record.ActorId, record.Channel, record.Result, record.Payload.GetProperty("membershipId").GetGuid()));
@@ -334,7 +334,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         var phoneC = NewPhone();
         var created = await NewAccount("待指定", phoneC);
         var elsewhere = await Join(business, A, created.SubjectId, "A 的成员");
-        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(A))
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D")))
             await accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(elsewhere.Id, "oidc", "upstream-" + Guid.NewGuid().ToString("N")), Ct);
         Assert.Equal("1", await Links(created.SubjectId));
         Assert.Equal(("#/items/0/initialPassword", "REQUIRED"), await FieldOf(await Replace(id, created.SubjectId, null)));
@@ -342,7 +342,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         await Read<TenantAdminList>(await Replace(id, created.SubjectId, DesignatedPassword), HttpStatusCode.OK);
         Assert.Equal("0", await Links(created.SubjectId));
         Assert.Equal((SignInStatus.PasswordChangeRequired, "INVALID_CREDENTIALS"), ((await SignInAs(phoneC, DesignatedPassword)).Status, Failure(await SignInAs(phoneC, TemporaryPassword))));
-        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id))
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(id, "D")))
         {
             var reset = Assert.Single(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password").Record;
             Assert.Equal(("user", "root", "success", created.SubjectId), (reset.ActorType, reset.ActorId, reset.Result, reset.Payload.GetProperty("subjectId").GetGuid()));
@@ -419,7 +419,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         var elsewhere = await Join(business, A, subject, "A 的成员");
         async Task Link()
         {
-            using (tenants.BeginScope(A)) await business.Identity.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(elsewhere.Id, "oidc", "upstream-" + Guid.NewGuid().ToString("N")), Ct);
+            using (tenants.BeginScope(Guid.ParseExact(A, "D"))) await business.Identity.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(elsewhere.Id, "oidc", "upstream-" + Guid.NewGuid().ToString("N")), Ct);
         }
         await Link();
         Assert.Equal("#/administrator/initialPassword", await Rejected(await Open(opener, "credopen", subject, DesignatedPassword), HttpStatusCode.Forbidden, "AUTHZ_DENIED"));
@@ -447,7 +447,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         Assert.Equal((current, "0", "1"), (await Pointer(credited), await Members(credited, other), await Links(subject)));
         Assert.Equal((SignInStatus.PasswordChangeRequired, SignInStatus.Failed), (await SignInAs(phone, DesignatedPassword), await SignInAs(phone, NextPassword)));
         Assert.Equal(SignInStatus.PasswordChangeRequired, await SignInAs(otherPhone, TemporaryPassword));
-        using (tenants.BeginScope(credited))
+        using (tenants.BeginScope(Guid.ParseExact(credited, "D")))
             Assert.DoesNotContain(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password");
         // 不带初始密码的更换不受影响。
         var plain = Assert.Single((await Read<TenantAdminList>(await Replace(assigner, credited, vouched.Id, null), HttpStatusCode.OK)).Items);
@@ -461,7 +461,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         var restored = Assert.Single((await Read<TenantAdminList>(await Replace(assigner, credited, subject, NextPassword), HttpStatusCode.OK)).Items);
         Assert.Equal((subject, restored.MembershipId.ToString(), "0"), (restored.SubjectId, await Pointer(credited), await Links(subject)));
         Assert.Equal((SignInStatus.PasswordChangeRequired, SignInStatus.Failed), (await SignInAs(phone, NextPassword), await SignInAs(phone, DesignatedPassword)));
-        using (tenants.BeginScope(credited))
+        using (tenants.BeginScope(Guid.ParseExact(credited, "D")))
             Assert.Equal(subject, Assert.Single(await ReadTenantChain(source.Audit()), entry => entry.Record.CapabilityId == "qian.tenancy/admin.reset-password")
                 .Record.Payload.GetProperty("subjectId").GetGuid());
 

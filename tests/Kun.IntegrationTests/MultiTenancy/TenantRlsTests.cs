@@ -95,8 +95,8 @@ public sealed class TenantRlsTests : IAsyncLifetime
 
         // Tenant-scoped providers query as kun_app (non-superuser). That's the
         // connection identity the RLS policy actually binds to.
-        _providerA = BuildProvider("tenant-a");
-        _providerB = BuildProvider("tenant-b");
+        _providerA = BuildProvider(Tenants.A);
+        _providerB = BuildProvider(Tenants.B);
     }
 
     private async Task ProvisionAppRoleAsync(CancellationToken ct)
@@ -122,7 +122,7 @@ public sealed class TenantRlsTests : IAsyncLifetime
     {
         var services = new ServiceCollection()
             .AddLogging()
-            .AddSingleton<ITenantContext>(new StubTenantContext("bootstrap"))
+            .AddSingleton<ITenantContext>(new StubTenantContext(null))
             .AddKunMediator(_ => { })
             .AddKunEventBus(_ => { })
             .AddKunEntityFrameworkCore()
@@ -161,7 +161,7 @@ public sealed class TenantRlsTests : IAsyncLifetime
         if (_postgres is not null) await _postgres.DisposeAsync();
     }
 
-    private ServiceProvider BuildProvider(string tenantId)
+    private ServiceProvider BuildProvider(Guid tenantId)
     {
         var services = new ServiceCollection();
         services.AddLogging(b => b.AddFilter(
@@ -191,14 +191,14 @@ public sealed class TenantRlsTests : IAsyncLifetime
         await using (var scopeA = _providerA.CreateAsyncScope())
         {
             var db = scopeA.ServiceProvider.GetRequiredService<RlsTestDbContext>();
-            db.Orders.Add(new RlsOrder { Id = Guid.NewGuid(), Name = "Order-A", TenantId = "tenant-a" });
+            db.Orders.Add(new RlsOrder { Id = Guid.NewGuid(), Name = "Order-A", TenantId = Tenants.AText });
             await db.SaveChangesAsync(ct);
         }
 
         await using (var scopeB = _providerB.CreateAsyncScope())
         {
             var db = scopeB.ServiceProvider.GetRequiredService<RlsTestDbContext>();
-            db.Orders.Add(new RlsOrder { Id = Guid.NewGuid(), Name = "Order-B", TenantId = "tenant-b" });
+            db.Orders.Add(new RlsOrder { Id = Guid.NewGuid(), Name = "Order-B", TenantId = Tenants.BText });
             await db.SaveChangesAsync(ct);
         }
 
@@ -235,7 +235,7 @@ public sealed class TenantRlsTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             Name = "Forged",
-            TenantId = "tenant-b",
+            TenantId = Tenants.BText,
         });
 
         var act = async () => await db.SaveChangesAsync(ct);
@@ -244,12 +244,12 @@ public sealed class TenantRlsTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Interceptor_Rejects_Unsafe_TenantId_Values()
+    public async Task Interceptor_Rejects_Empty_TenantId()
     {
-        // Build a provider with a tenant id that fails the interceptor's whitelist.
+        // A custom tenant context must also supply a non-empty tenant ID.
         using var services = new ServiceCollection()
             .AddLogging()
-            .AddSingleton<ITenantContext>(new StubTenantContext("evil'; DROP TABLE foo; --"))
+            .AddSingleton<ITenantContext>(new StubTenantContext(Guid.Empty))
             .AddKunMediator(_ => { })
             .AddKunEventBus(_ => { })
             .AddKunEntityFrameworkCore()
@@ -267,6 +267,6 @@ public sealed class TenantRlsTests : IAsyncLifetime
 
         var act = async () => await db.Orders.ToListAsync(TestContext.Current.CancellationToken);
         await act.Should().ThrowAsync<InvalidOperationException>(
-            "interceptor must refuse to inline an unsafe tenant id into SET");
+            "the connection must reject an empty tenant identifier");
     }
 }

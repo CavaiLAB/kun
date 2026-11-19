@@ -13,7 +13,7 @@ public sealed partial class PatchPersistenceTests
     {
         var tenant = new AsyncLocalTenantContext(); await using var running = await CreateRunningRegistry(tenant);
         Assert.Contains(running.Registry.GetInstalledComponents(), component => component.PluginId == "test.private");
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             var initial = Assert.Single(await running.Registry.GetScopeEntriesAsync(TenantA, SurfaceKeys.Commands, Ct));
             Assert.Equal(new RegistryScopeEntry("shared", "test.shared", "1.0.0", ScopeKey.Global, SurfaceKeys.Commands, "test.shared/hello"), initial);
@@ -24,14 +24,14 @@ public sealed partial class PatchPersistenceTests
             var local = Assert.Single(await running.Registry.GetScopeEntriesAsync(TenantA, SurfaceKeys.Commands, Ct));
             Assert.Equal("test.private", local.PluginId); Assert.Equal(TenantA, local.Scope); Assert.Equal("private", local.EntryId);
         }
-        using (tenant.BeginScope("b")) Assert.Equal("test.shared", Assert.Single(await running.Registry.GetScopeEntriesAsync(TenantB, SurfaceKeys.Commands, Ct)).PluginId);
+        using (tenant.BeginScope(Tenants.B)) Assert.Equal("test.shared", Assert.Single(await running.Registry.GetScopeEntriesAsync(TenantB, SurfaceKeys.Commands, Ct)).PluginId);
     }
 
     [Fact]
     public async Task 业务视图受实际restrict交集影响_坏scope不暴露管理原因并可恢复()
     {
         var tenant = new AsyncLocalTenantContext(); await using var running = await CreateRunningRegistry(tenant);
-        using var scope = tenant.BeginScope("a");
+        using var scope = tenant.BeginScope(Tenants.A);
         using (running.Root.Restrict(TenantA, registration => registration.Name != "test.shared/hello"))
             Assert.Empty(await running.Registry.GetScopeEntriesAsync(TenantA, SurfaceKeys.Commands, Ct));
         Assert.Single(await running.Registry.GetScopeEntriesAsync(TenantA, SurfaceKeys.Commands, Ct));
@@ -47,7 +47,7 @@ public sealed partial class PatchPersistenceTests
     {
         var tenant = new AsyncLocalTenantContext(); await using var running = await CreateRunningRegistry(tenant);
         await AssertCode(PlatformErrors.Unauthenticated, () => running.Registry.GetScopeEntriesAsync(TenantA, SurfaceKeys.Commands, Ct).AsTask());
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             await AssertCode(PlatformErrors.NotFound, () => running.Registry.GetScopeEntriesAsync(TenantB, SurfaceKeys.Commands, Ct).AsTask());
             await AssertCode(PlatformErrors.NotFound, () => running.Registry.GetScopeEntriesAsync(new ScopeKey("app", "unproven"), SurfaceKeys.Commands, Ct).AsTask());
@@ -65,7 +65,7 @@ public sealed partial class PatchPersistenceTests
         var tenant = new AsyncLocalTenantContext(); await using var running = await CreateRunningRegistry(tenant);
         var shared = new RegistryScopeEntry("shared", "test.shared", "1.0.0", ScopeKey.Global, SurfaceKeys.Commands, "test.shared/hello");
         Assert.Equal(shared, Assert.Single(await running.Registry.GetGlobalEntriesAsync(SurfaceKeys.Commands, Ct)));
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             var repository = Repository(running.Host, tenant);
             await repository.PutAsync(TenantA, "shared", Patch("""{"id":"shared","disabled":true}"""), 0, "operator-a", Ct);

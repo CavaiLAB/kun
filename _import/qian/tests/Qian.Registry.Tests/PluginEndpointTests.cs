@@ -37,7 +37,7 @@ public sealed partial class PatchPersistenceTests
         await using var http = await StartEndpointHost(running, tenant, true); var scopeA = new ScopeKey("tenant", HttpTenantA); var scopeB = new ScopeKey("tenant", HttpTenantB);
         using var anonymous = await http.Get("/surface", null); Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode); Assert.Equal(0, http.Calls);
         using var initial = await http.Get("/surface", HttpTenantA); Assert.Equal(HttpStatusCode.OK, initial.StatusCode); Assert.Equal(1, http.Calls);
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
             await Repository(running.Host, tenant).PutAsync(scopeA, "shared", Patch("""{"id":"shared","disabled":true}"""), 0, "operator-a", Ct);
         using var hidden = await http.Get("/surface", HttpTenantA); using var unknown = await http.Get("/unknown", HttpTenantA); using var missingRoute = await http.Get("/absent", HttpTenantA);
         Assert.Equal(HttpStatusCode.NotFound, hidden.StatusCode); Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode); Assert.Equal(HttpStatusCode.NotFound, missingRoute.StatusCode);
@@ -90,14 +90,14 @@ public sealed partial class PatchPersistenceTests
         app.MapGet("/surface", () =>
         {
             Interlocked.Increment(ref calls);
-            var document = running.Root.Scoped(new ScopeKey("tenant", tenant.TenantId!)).Inject<SurfaceDocument>(SurfaceKeys.Commands, "test.shared/hello");
+            var document = running.Root.Scoped(new ScopeKey("tenant", Assert.IsType<Guid>(tenant.TenantId).ToString("D"))).Inject<SurfaceDocument>(SurfaceKeys.Commands, "test.shared/hello");
             return Results.Text(document.Body);
         }).RequireKunPlugin(new PluginEndpointBinding("shared", "test.shared", SurfaceKeys.Commands, "test.shared/hello", "1.0.0"));
         // 只经租户 scope patch 挂载的条目（S1-RT-005 公开挂载 / 卸载验收）。
         app.MapGet("/private", () =>
         {
             Interlocked.Increment(ref calls);
-            var document = running.Root.Scoped(new ScopeKey("tenant", tenant.TenantId!)).Inject<SurfaceDocument>(SurfaceKeys.Commands, "test.private/hello");
+            var document = running.Root.Scoped(new ScopeKey("tenant", Assert.IsType<Guid>(tenant.TenantId).ToString("D"))).Inject<SurfaceDocument>(SurfaceKeys.Commands, "test.private/hello");
             return Results.Text(document.Body);
         }).RequireKunPlugin(new PluginEndpointBinding("private", "test.private", SurfaceKeys.Commands, "test.private/hello", "1.0.0"));
         app.MapGet("/unknown", () => { Interlocked.Increment(ref calls); return Results.Ok(); })

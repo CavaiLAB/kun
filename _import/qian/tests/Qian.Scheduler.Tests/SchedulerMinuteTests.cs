@@ -23,7 +23,7 @@ public sealed class SchedulerMinuteTests(SchedulerFixture fixture) : IClassFixtu
         if (DateTimeOffset.UtcNow.Second > 40) await Task.Delay(TimeSpan.FromSeconds(61 - DateTimeOffset.UtcNow.Second), Ct);
         await Parallel.ForEachAsync(Enumerable.Range(0, 100), new ParallelOptions { MaxDegreeOfParallelism = 10, CancellationToken = Ct }, async (i, ct) =>
         {
-            var tenant = i % 2 == 0 ? TenantA : TenantB; using var scope = producer.Tenant.BeginScope(tenant);
+            var tenant = i % 2 == 0 ? TenantA : TenantB; using var scope = producer.Tenant.BeginScope(Guid.ParseExact(tenant, "D"));
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", tenant));
             await caller.Scheduler().ScheduleCron(caller, "minute-" + i, "0 * * * * ?", Target, Parameters, cancellationToken: ct);
         });

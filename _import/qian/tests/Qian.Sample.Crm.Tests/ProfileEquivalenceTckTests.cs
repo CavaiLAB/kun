@@ -133,7 +133,7 @@ public sealed partial class LifecycleProfileTests
             }
             var tenant = host.App.Services.GetRequiredService<ITenantContext>(); var data = host.App.Services.GetRequiredService<IDataService>();
             int customers, outbox; long auditA, auditB;
-            using (tenant.BeginScope(A))
+            using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             {
                 await using var session = await data.OpenAsync<CrmDbContext>(Ct);
                 customers = await session.Context.Customers.CountAsync(Ct); outbox = await session.Context.OutboxMessages.CountAsync(Ct);
@@ -143,7 +143,7 @@ public sealed partial class LifecycleProfileTests
                 var chain = await loader.GetContext("audit", ScopeKey.Global).Audit().VerifyAsync(Ct); Assert.True(chain.Valid); auditA = chain.CheckedEntries;
                 Assert.Equal(spec.GetProperty("final").GetProperty("auditA").GetInt64(), auditA);
             }
-            using (tenant.BeginScope(B))
+            using (tenant.BeginScope(Guid.ParseExact(B, "D")))
             {
                 await using var session = await data.OpenAsync<CrmDbContext>(Ct); Assert.Empty(await session.Context.Customers.ToListAsync(Ct));
                 var chain = await loader.GetContext("audit", ScopeKey.Global).Audit().VerifyAsync(Ct); Assert.True(chain.Valid); auditB = chain.CheckedEntries;
@@ -156,7 +156,7 @@ public sealed partial class LifecycleProfileTests
                 using var missingRegistry = await host.Post(A, new CreateCustomerCommand(Guid.CreateVersion7(), "must not execute"));
                 Assert.Equal(System.Net.HttpStatusCode.NotFound, missingRegistry.StatusCode);
                 Assert.Equal("NOT_FOUND", (await missingRegistry.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("code").GetString());
-                using var current = tenant.BeginScope(A); await using var unchanged = await data.OpenAsync<CrmDbContext>(Ct);
+                using var current = tenant.BeginScope(Guid.ParseExact(A, "D")); await using var unchanged = await data.OpenAsync<CrmDbContext>(Ct);
                 Assert.Equal(customers, await unchanged.Context.Customers.CountAsync(Ct));
                 // 命令管道没有执行，链上没有新的命令审计；只多出 HTTP PEP 的放行决策日志（S1-AZ-004，判定在注册表缺失被发现之前完成）。
                 var audit = loader.GetContext("audit", ScopeKey.Global).Audit();

@@ -68,7 +68,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         Assert.Empty(await host.Lifecycle.GetRunsAsync(TenantA, Plugin, Ct));
 
         var approver = new TestUser("approver", TenantA);
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             Assert.Null(await host.Lifecycle.GetPermissionApprovalAsync(TenantA, Plugin, "1.0.0", approver, Ct));
             // 逐项批准：只批准一部分时记录照存，开通仍被拒，错误只列剩下的项。
@@ -80,7 +80,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         Assert.Equal("platform notify:send; data qian.sample.crm:customer; secrets tenant:db/token, platform:oss/*; ui.connectSrc https://api.example.test", remaining.Args["missing"]);
 
         PermissionApprovalView approval;
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             // 整份替换：顺序与重复不影响内容，记录按序数排序去重保存。
             approval = await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", Grants(["notify:send", "tenant:read", "tenant:read"], ["qian.sample.crm:customer"],
@@ -117,7 +117,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         await using var host = await Start(new Permissions(("approver", TenantA), ("approver", TenantB), (overlong, TenantA)));
         await Install(host, "1.0.0", Policy(FullPermissions, FullEgress));
         var full = Grants(["tenant:read"], [], [], [], []);
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             await AssertCode(PlatformErrors.Unauthenticated, () => host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", full, new TestUser("approver", TenantA, authenticated: false), Ct).AsTask());
             // 无权限的租户主体、跨租户、委托、Agent、超长主体、格式不合格的标识与未安装的版本都是同一个 404；无权限者的坏请求体也只得到 404。
@@ -162,21 +162,21 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
             [new SecretGrant("oss/*", "platform"), new SecretGrant("db/token", "tenant")], ["https://api.example.test"]);
         // 运营宿主先选定已验证的目标租户（与 Registry 的平台主体入口同一口径，S1-AZ-008），旁路在该租户上下文中判定，审计随之记入该租户链。
         PermissionApprovalView approval;
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             approval = await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", grants, new TestUser("root", null), Ct);
         Assert.Equal((PermissionApprovalChannels.Superadmin, "root"), (approval.ApprovedVia, approval.ApprovedBy));
         // 代批同样以批准条目入该租户审计链：主体是平台运营，渠道 superadmin（旁路自己的判定审计由 Authz 另写，替身不写）。
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             AssertApproval(Assert.Single(await ApprovalAudit(host)), "user", "root", approval.ApprovedAt, PermissionApprovalChannels.Superadmin, FullCanonical, null);
         var access = Assert.Single(bypass.Accesses);
         Assert.Equal(("root", (string?)null, LifecycleDefinition.InstallApprovePermission, TenantA, "lifecycle/install:" + TenantA + "/" + Plugin + "@1.0.0", "api", TenantA),
             (access.Access.Subject.Id, access.Access.Subject.TenantId, access.Access.Permission, access.Access.TenantId, access.Access.Resource, access.Access.Channel, access.Context));
         // 参数里的租户只用来核对：宿主没有选定目标、选定的是另一个租户，或主体不是超管，都与不存在同为 404，且不写记录、不调旁路。
         await AssertCode(PlatformErrors.NotFound, () => host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", grants, new TestUser("root", null), Ct).AsTask());
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             await AssertCode(PlatformErrors.NotFound, () => host.Lifecycle.ApprovePermissionsAsync(TenantB, Plugin, "1.0.0", grants, new TestUser("root", null), Ct).AsTask());
         Assert.Single(bypass.Accesses);
-        using (host.Tenant.BeginScope(TenantB))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantB, "D")))
             await AssertCode(PlatformErrors.NotFound, () => host.Lifecycle.ApprovePermissionsAsync(TenantB, Plugin, "1.0.0", grants, new TestUser("intruder", null), Ct).AsTask());
         Assert.Equal(1, await LifecycleHost.CountAsync(postgres, "SELECT count(*) FROM plugin_qian_lifecycle.permission_approvals", Ct));
         await host.Lifecycle.EntitleAsync(TenantA, Plugin, "operator", Ct);
@@ -212,7 +212,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         Assert.Equal(PluginRevisionStates.Active, first.State);
         var approver = new TestUser("approver", TenantA);
         await host.Lifecycle.EntitleAsync(TenantA, Plugin, "operator", Ct);
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", Grants(platform: ["tenant:read"]), approver, Ct);
         Assert.Equal("1.0.0", (await host.Lifecycle.ProvisionAsync(TenantA, Plugin, "operator", Ct)).Version);
         // 没有新增项：1.0.1、1.0.2 都没有自己的批准记录，沿用 1.0.0 的批准。
@@ -223,7 +223,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         Assert.Equal("platform notify:send; egress api.example.test", denied.Args["missing"]);
         Assert.Equal((TenantInstallStates.Installed, "1.0.2", (string?)null), Pick3((await host.Lifecycle.GetInstallAsync(TenantA, Plugin, Ct))!));
         Assert.DoesNotContain(await host.Lifecycle.GetRunsAsync(TenantA, Plugin, Ct), run => run.ToVersion == "1.1.0");
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.1.0", Grants(["tenant:read", "notify:send"], [], ["api.example.test"], [], []), approver, Ct);
         Assert.Equal("1.1.0", (await host.Lifecycle.UpgradeAsync(TenantA, Plugin, "1.0.2", "1.1.0", "operator", Ct)).Version);
         // 租户级回切到 1.0.0：它有自己的批准记录，照常回切。
@@ -235,7 +235,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
     {
         await using var host = await Start(new Permissions(("approver", TenantA), ("service-admin", TenantA), ("other-admin", TenantA)));
         await Install(host, "1.0.0", Policy(FullPermissions, FullEgress));
-        using var scope = host.Tenant.BeginScope(TenantA);
+        using var scope = host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D"));
         // 首次批准：上一次为 null；批准人是已验证的用户主体，渠道为租户管理员。
         var partial = await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", Grants(platform: ["tenant:read"], egress: FullEgress), new TestUser("approver", TenantA), Ct);
         AssertApproval(Assert.Single(await ApprovalAudit(host)), "user", "approver", partial.ApprovedAt, PermissionApprovalChannels.Tenant, PartialCanonical, null);
@@ -261,7 +261,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         await Install(host, "1.0.0", Policy(FullPermissions, FullEgress));
         var approver = new TestUser("approver", TenantA);
         var narrower = Grants(platform: ["tenant:read"], egress: FullEgress);
-        using var scope = host.Tenant.BeginScope(TenantA);
+        using var scope = host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D"));
         var approved = await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", FullGrants(), approver, Ct);
         host.Time.Now = host.Time.Now.AddMinutes(1);
         // 审计条目写不进去：批准随同一事务回滚，记录仍是上一份。
@@ -295,7 +295,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         var platform = Enumerable.Range(0, 160).Select(index => "platform:" + index.ToString("D3", System.Globalization.CultureInfo.InvariantCulture) + ":" + new string('x', 470)).ToArray();
         await Install(host, "1.0.0", Policy(new { platform }, null));
         var approver = new TestUser("approver", TenantA);
-        using var scope = host.Tenant.BeginScope(TenantA);
+        using var scope = host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D"));
         var everything = await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", Grants(platform: platform), approver, Ct);
         Assert.Equal(platform, everything.Approved.Platform);
         var large = "{\"platform\":[" + string.Join(",", platform.Select(item => "\"" + item + "\"")) + "],\"data\":[],\"egress\":[],\"secrets\":[],\"ui\":{\"connectSrc\":[]}}";
@@ -327,7 +327,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         await Install(host, "1.0.0", Policy(new { platform = TenantRead }, null));
         await Install(host, "1.0.0", Policy(new { platform = TenantRead }, null), "acme.second");
         var approver = new TestUser("approver", TenantA);
-        using var scope = host.Tenant.BeginScope(TenantA);
+        using var scope = host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D"));
         // 链上先有一条：两次并发追加要推进同一个已存在的链头。
         await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", Grants(platform: ["tenant:read"]), approver, Ct);
         // 两次批准（不同组件，安装锁不同）各自取得快照后在保存处会合：先提交的一方推进链头，另一方追加时撞上可串行化冲突，只能从新会话重做。
@@ -351,7 +351,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         await Install(host, "1.0.0", Policy(FullPermissions, FullEgress));
         await host.Lifecycle.EntitleAsync(TenantA, Plugin, "operator", Ct);
         var approver = new TestUser("approver", TenantA);
-        using (host.Tenant.BeginScope(TenantA)) await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", FullGrants(), approver, Ct);
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D"))) await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", FullGrants(), approver, Ct);
         // 第一次开通：钩子失败，停在 Provisioning(1.0.0)，执行记录失败、已尝试一次。
         await AssertCode(LifecycleErrors.HookFailed, () => host.Lifecycle.ProvisionAsync(TenantA, Plugin, "operator", Ct).AsTask());
         Assert.Equal((TenantInstallStates.Provisioning, (string?)null, (string?)"1.0.0"), Pick3((await host.Lifecycle.GetInstallAsync(TenantA, Plugin, Ct))!));
@@ -365,7 +365,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         };
         Assert.Equal((PluginRevisionStates.Active, "1.0.1"), ((await Install(host, "1.0.1", Policy(wider, FullEgress))).State, "1.0.1"));
         Assert.Equal(PluginRevisionStates.Installed, (await host.Lifecycle.GetRevisionsAsync(Plugin, Ct)).Single(revision => revision.Version == "1.0.0").State);
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", Grants(platform: ["tenant:read"], egress: FullEgress), approver, Ct);
         // 续跑先过第二道门：缺失项只有 1.0.0 声明过的四项，仍停在 Provisioning(1.0.0)，执行记录不被认领，钩子没有再执行。
         var denied = await AssertCode(LifecycleErrors.PermissionsUnapproved, () => host.Lifecycle.ProvisionAsync(TenantA, Plugin, "operator", Ct).AsTask());
@@ -374,7 +374,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         Assert.Equal((LifecycleRunStates.Failed, 1), PickRun(Assert.Single(await host.Lifecycle.GetRunsAsync(TenantA, Plugin, Ct))));
         Assert.Equal(1, hooks.Calls);
         // 重新批准 1.0.0（不含 1.0.1 新增的项）后续跑沿用原目标版本：钩子第二次以 1.0.0 执行成功，开通完成在 1.0.0 而不是 Active 的 1.0.1。
-        using (host.Tenant.BeginScope(TenantA)) await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", FullGrants(), approver, Ct);
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D"))) await host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", FullGrants(), approver, Ct);
         Assert.Equal((TenantInstallStates.Installed, (string?)"1.0.0", (string?)null), Pick3(await host.Lifecycle.ProvisionAsync(TenantA, Plugin, "operator", Ct)));
         var run = Assert.Single(await host.Lifecycle.GetRunsAsync(TenantA, Plugin, Ct));
         Assert.Equal((LifecycleRunStates.Succeeded, 2, "1.0.0"), (run.Status, run.Attempts, run.ToVersion));
@@ -553,7 +553,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         internal Kun.Core.MultiTenancy.ITenantContext? Tenant { get; set; }
         public ValueTask<PermissionDecision> AuthorizeAsync(SuperadminAccess access, CancellationToken cancellationToken = default)
         {
-            Accesses.Add((access, Tenant?.TenantId));
+            Accesses.Add((access, Tenant?.TenantId?.ToString("D")));
             var allow = access.Subject.Id == superadmin;
             return ValueTask.FromResult(new PermissionDecision(allow, allow ? "superadmin_bypass" : "not_superadmin", []));
         }

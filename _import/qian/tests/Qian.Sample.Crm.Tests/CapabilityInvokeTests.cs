@@ -389,7 +389,7 @@ public sealed partial class CapabilityTests(PostgresFixture postgres) : Customer
         var caller = host.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("capabilities", ScopeKey.Global).Scoped(new ScopeKey("tenant", A));
         var service = caller.Capabilities();
         var input = JsonSerializer.SerializeToElement(new CreateCustomerCommand(Guid.CreateVersion7(), "direct actor"), CrmCommandJson.Default.CreateCustomerCommand);
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D")))
         {
             // HTTP 认证层已拒绝带 act 的令牌；服务端口自身同样拒绝，不依赖端点。委托方是 Agent 还是同一服务主体都一样。
             foreach (var actor in new[] { new DelegationActor { Subject = AgentId, Kind = PrincipalKind.Agent }, new DelegationActor { Subject = Writer, Kind = PrincipalKind.Service } })
@@ -488,7 +488,7 @@ public sealed partial class CapabilityTests(PostgresFixture postgres) : Customer
         await using var host = await Start(capabilities: true, humanOnlyProbe: probe);
         var preview = host.App.Services.GetRequiredService<AgentAuthorizationPreview>();
         var tenant = host.App.Services.GetRequiredService<ITenantContext>(); var data = host.App.Services.GetRequiredService<IDataService>();
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var roles = new PostgresTenantRoleStore(data, tenant);
             await roles.AssignAsync("tenant.owner", "agent", AgentId, "test-bootstrap", Ct);
@@ -665,7 +665,7 @@ public abstract partial class CustomerCommandTests
     // audit 为业务 / 命令审计条目数；decisions 为链上允许出现的决策日志（actorType, actorId, result），每条决策日志都必须匹配其中一项。
     private protected static async Task AssertWrites(RunningApp host, string tenantId, int customers, int audit, (string Kind, string Id, string Result)[]? decisions = null)
     {
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenantId))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(tenantId, "D")))
         {
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
             Assert.Equal(customers, await session.Context.Customers.CountAsync(Ct));

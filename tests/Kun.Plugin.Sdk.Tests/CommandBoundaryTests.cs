@@ -27,7 +27,7 @@ public sealed class CommandBoundaryTests
         services.AddKunMediator(builder => builder.AddKunCapability<CreateRequest, CustomerResponse, BoundaryHandler, BoundaryContext>(_ => source.Context!));
         using var provider = services.BuildServiceProvider(); await using var runtime = new PluginLoader(provider);
         await runtime.MountAsync([Define("source", "qian.sdk-tests", source)], ct);
-        using var scope = tenant.BeginScope(Tenant);
+        using var scope = tenant.BeginScope(Guid.ParseExact(Tenant, "D"));
         var error = await Assert.ThrowsAsync<ErrorException>(() => provider.GetRequiredService<ISender>().Send(new CreateRequest(Guid.CreateVersion7(), "never execute"), ct).AsTask());
         Assert.Equal("AUTHZ_DENIED", error.Error.Code.Code); Assert.Equal(0, provider.GetRequiredService<HandlerCounter>().Calls); Assert.Equal(0, provider.GetRequiredService<HandlerCounter>().Constructors);
         // 故意不登记数据 Provider；若管道提前打开业务连接，这里会得到不同的错误。

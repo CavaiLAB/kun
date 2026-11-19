@@ -293,12 +293,12 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
         string ownerId = owner.Id.ToString("D"), readerId = reader.Id.ToString("D"), outsiderId = outsider.Id.ToString("D");
         await Join(business, A, owner.Id, "外壳所有者"); await Join(business, A, reader.Id, "外壳使用者");
         await Join(business, B, reader.Id, "外壳使用者"); await Join(business, B, outsider.Id, "乙方用户");
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await grants.AssignAsync("tenant.owner", "user", ownerId, "acceptance", Ct);
             await grants.AssignAsync("tenant.user", "user", readerId, "acceptance", Ct);
         }
-        using (tenant.BeginScope(B))
+        using (tenant.BeginScope(Guid.ParseExact(B, "D")))
         {
             await grants.AssignAsync("tenant.user", "user", readerId, "acceptance", Ct);
             await grants.AssignAsync("tenant.user", "user", outsiderId, "acceptance", Ct);
@@ -377,8 +377,8 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
         await Join(business, A, person.Id, "成员甲"); await Join(business, B, person.Id, "成员甲");
         var subject = person.Id.ToString("D");
         foreach (var id in new[] { A, B })
-            using (tenant.BeginScope(id)) await grants.AssignAsync("tenant.user", "user", subject, "acceptance", Ct);
-        using (platformTenant.BeginScope(B))
+            using (tenant.BeginScope(Guid.ParseExact(id, "D"))) await grants.AssignAsync("tenant.user", "user", subject, "acceptance", Ct);
+        using (platformTenant.BeginScope(Guid.ParseExact(B, "D")))
             await new PostgresPatchRepository(platform.Services.GetRequiredService<IDataService>(), platformTenant, new SurfaceValidator())
                 .PutAsync(new ScopeKey("tenant", B), "crm", JsonSerializer.SerializeToElement(new { id = "crm", disabled = true }), 0, "acceptance", Ct);
         var (browser, cookies) = GatewayTestHost.Browser(tls); using var memberSession = browser;
@@ -395,7 +395,7 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
 
         // 授权变更（身份侧在甲方加授 tenant.owner）：旧令牌在 bootstrap 与三条平台表面都是 401（不做权限判定），刷新会话换到新修订后恢复，权限与菜单随之更新。
         var revision = (long)first["session"]!["identityRevision"]!;
-        using (tenant.BeginScope(A)) await grants.AssignAsync("tenant.owner", "user", subject, "acceptance", Ct);
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) await grants.AssignAsync("tenant.owner", "user", subject, "acceptance", Ct);
         foreach (var path in new[] { "api/shell/bootstrap", "api/capabilities/navigation", "api/capabilities/shell", "api/authz/me/permissions" })
             using (var stale = await browser.GetAsync(new Uri(address, path), Ct))
             {
@@ -500,7 +500,7 @@ public abstract partial class CustomerCommandTests
     private protected static async Task<(AuditRecord[] Records, (string Actor, string Result, string EntryPoint, string Target, string Reason)[] Decisions, JsonElement[] Events)> PlatformTrail(
         PlatformHostRun platform, string tenantId, int customers)
     {
-        using (platform.Services.GetRequiredService<ITenantContext>().BeginScope(tenantId))
+        using (platform.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(tenantId, "D")))
         {
             List<string> events;
             await using (var session = await platform.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct))

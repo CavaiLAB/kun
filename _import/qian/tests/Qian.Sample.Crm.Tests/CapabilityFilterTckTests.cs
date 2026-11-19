@@ -44,10 +44,10 @@ public sealed partial class CapabilityTests
                         break;
                     case "release": leases[step.GetProperty("id").GetString()!].Dispose(); leases.Remove(step.GetProperty("id").GetString()!); break;
                     case "patch":
-                        using (tenant.BeginScope(tenantId)) await patches.PutAsync(scope, "crm", step.GetProperty("patch"), step.GetProperty("revision").GetInt32(), "shared-tck", Ct);
+                        using (tenant.BeginScope(Guid.ParseExact(tenantId, "D"))) await patches.PutAsync(scope, "crm", step.GetProperty("patch"), step.GetProperty("revision").GetInt32(), "shared-tck", Ct);
                         break;
                     case "removePatch":
-                        using (tenant.BeginScope(tenantId)) await patches.RemoveAsync(scope, "crm", step.GetProperty("revision").GetInt32(), "shared-tck", Ct);
+                        using (tenant.BeginScope(Guid.ParseExact(tenantId, "D"))) await patches.RemoveAsync(scope, "crm", step.GetProperty("revision").GetInt32(), "shared-tck", Ct);
                         break;
                     case "unmount": await runtime.UnmountAsync("crm", ScopeKey.Global, Ct); break;
                     case "probe": await Probe(step, tenantId, scope, index); break;
@@ -89,7 +89,7 @@ public sealed partial class CapabilityTests
             var node = await NodeProbe(index, host.Token(tenantId, scopes), tenantId, command, customerId);
             Assert.True(JsonElement.DeepEquals(net, node), "双客户端的真实产品输出不一致。");
             int customers, outboxTotal, auditEntries;
-            using (tenant.BeginScope(tenantId))
+            using (tenant.BeginScope(Guid.ParseExact(tenantId, "D")))
             {
                 await using var session = await data.OpenAsync<CrmDbContext>(Ct);
                 customers = await session.Context.Customers.CountAsync(Ct);

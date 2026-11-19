@@ -145,7 +145,7 @@ public abstract partial class CustomerCommandTests
         app.MapGet("/_test/user-customers", async (HttpContext http, IDataService data, ITenantContext tenant, CancellationToken ct) =>
         {
             if (await TokenTenant(http) is not { } tenantId) return Results.Unauthorized();
-            using var scope = tenant.BeginScope(tenantId.ToString("D"));
+            using var scope = tenant.BeginScope(tenantId);
             await using var session = await data.OpenAsync<CrmDbContext>(ct);
             var items = await session.Context.Customers.AsNoTracking().OrderBy(customer => customer.Name).ToListAsync(ct);
             return Results.Ok(new CustomerPage(items.Count, [.. items.Select(customer => new CustomerItem(customer.Id, customer.TenantId!, customer.Name))]));
@@ -153,7 +153,7 @@ public abstract partial class CustomerCommandTests
         app.MapGet("/_test/user-customers/{id:guid}", async (Guid id, HttpContext http, IDataService data, ITenantContext tenant, CancellationToken ct) =>
         {
             if (await TokenTenant(http) is not { } tenantId) return Results.Unauthorized();
-            using var scope = tenant.BeginScope(tenantId.ToString("D"));
+            using var scope = tenant.BeginScope(tenantId);
             await using var session = await data.OpenAsync<CrmDbContext>(ct);
             var customer = await session.Context.Customers.AsNoTracking().SingleOrDefaultAsync(row => row.Id == id, ct);
             return customer is null ? Results.NotFound() : Results.Ok(new CustomerItem(customer.Id, customer.TenantId!, customer.Name));
@@ -202,7 +202,7 @@ public abstract partial class CustomerCommandTests
     // 在租户的作用域里为 Person 建立成员身份（成员身份是租户表，只能在目标租户上下文中创建）。
     private protected static async Task<Membership> Join(RunningApp host, string tenant, Guid person, string name, bool administrator = false)
     {
-        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenant);
+        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(tenant, "D"));
         return await host.Identity.Accounts.CreateMembershipAsync(new CreateMembership(person, name) { IsTenantAdministrator = administrator }, Ct);
     }
 
@@ -309,7 +309,7 @@ public sealed partial class IdentityAuthzTests(PostgresFixture postgres) : Custo
         await Admin($"UPDATE plugin_qian_tenancy.tenants SET quotas = '{{\"users\":5}}' WHERE id = '{A}'::uuid;");
         var tenant = host.App.Services.GetRequiredService<ITenantContext>();
         var counter = host.Identity.Loader!.GetContext("identity", ScopeKey.Global).Inject<ITenantUserCounter>(TenantSettings.UserCounterKey);
-        async Task<int> Users() { using var scope = tenant.BeginScope(A); return await counter.CountUsersAsync(Ct); }
+        async Task<int> Users() { using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); return await counter.CountUsersAsync(Ct); }
         async Task<string?> TryJoin(Person person)
         {
             try { await Join(host, A, person.Id, "成员"); return null; }

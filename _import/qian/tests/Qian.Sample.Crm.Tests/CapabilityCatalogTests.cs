@@ -76,7 +76,7 @@ public sealed partial class CatalogContractTests(PostgresFixture postgres) : Cus
         Assert.True(invoked.StatusCode == HttpStatusCode.OK, host.FailureEvidence + await invoked.Content.ReadAsStringAsync(Ct));
         var customer = (await invoked.Content.ReadFromJsonAsync<CustomerItem>(Ct))!;
         Assert.Equal(A, customer.TenantId);
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
             Assert.Equal(customer.Id, Assert.Single(await session.Context.Customers.ToListAsync(Ct)).Id);
@@ -105,7 +105,7 @@ public sealed partial class CatalogContractTests(PostgresFixture postgres) : Cus
         Assert.Equal(3, (await restored.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("items").GetArrayLength());
         await loader.UnmountAsync("crm", ScopeKey.Global, Ct);
         await AssertAbsent(host, A);
-        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A);
+        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D"));
         await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
         Assert.Empty(await session.Context.Customers.ToListAsync(Ct)); Assert.Empty(await session.Context.OutboxMessages.ToListAsync(Ct));
     }
@@ -117,25 +117,25 @@ public sealed partial class CatalogContractTests(PostgresFixture postgres) : Cus
         var tenant = host.App.Services.GetRequiredService<ITenantContext>();
         var data = host.App.Services.GetRequiredService<IDataService>();
         var patches = new PostgresPatchRepository(data, tenant, new SurfaceValidator());
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             await patches.PutAsync(new ScopeKey("tenant", A), "crm", JsonSerializer.SerializeToElement(new { id = "crm", disabled = true }), 0, "acceptance", Ct);
         await AssertAbsent(host, A);
         using var other = await CatalogRequest(host, B, "/api/capabilities");
         Assert.NotEmpty((await other.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("items").EnumerateArray());
-        using (tenant.BeginScope(A)) await patches.RemoveAsync(new ScopeKey("tenant", A), "crm", 1, "acceptance", Ct);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) await patches.RemoveAsync(new ScopeKey("tenant", A), "crm", 1, "acceptance", Ct);
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await data.OpenAsync<AuthzDbContext>(Ct);
             await session.Context.RoleAssignments.Where(row => row.SubjectType == "service" && row.SubjectId == Writer).ExecuteDeleteAsync(Ct);
         }
         await AssertAbsent(host, A);
-        using (tenant.BeginScope(A)) await new PostgresTenantRoleStore(data, tenant).AssignAsync("tenant.owner", "service", Writer, "acceptance", Ct);
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) await new PostgresTenantRoleStore(data, tenant).AssignAsync("tenant.owner", "service", Writer, "acceptance", Ct);
         await Admin($"UPDATE plugin_qian_tenancy.tenants SET status = 'suspended' WHERE id = '{A}'::uuid;");
         await AssertAbsent(host, A);
         await Admin($"UPDATE plugin_qian_tenancy.tenants SET status = 'active' WHERE id = '{A}'::uuid;");
         using var restored = await CatalogRequest(host, A, "/api/capabilities");
         Assert.Equal(3, (await restored.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("items").GetArrayLength());
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await data.OpenAsync<CrmDbContext>(Ct);
             Assert.Empty(await session.Context.Customers.ToListAsync(Ct)); Assert.Empty(await session.Context.OutboxMessages.ToListAsync(Ct));
@@ -359,7 +359,7 @@ public abstract partial class CustomerCommandTests
     private protected static IPluginContext CapabilitySource(HttpContext http)
     {
         var services = http.RequestServices;
-        var tenant = services.GetRequiredService<ITenantContext>().TenantId!;
+        var tenant = Assert.IsType<Guid>(services.GetRequiredService<ITenantContext>().TenantId).ToString("D");
         return services.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("capabilities", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenant));
     }
     private protected static void MapCapabilities(WebApplication app)

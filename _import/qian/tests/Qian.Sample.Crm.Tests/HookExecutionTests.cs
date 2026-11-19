@@ -90,7 +90,7 @@ public sealed partial class CommandTests
         var command = new CreateCustomerCommand(Guid.CreateVersion7(), "hook private customer");
         using var response = await HookPost(host, A, command); Assert.True(response.StatusCode == HttpStatusCode.OK, host.FailureEvidence + await response.Content.ReadAsStringAsync(Ct));
         var tenant = host.App.Services.GetRequiredService<ITenantContext>();
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
             Assert.Single(await session.Context.Customers.ToListAsync(Ct)); Assert.Single(await session.Context.OutboxMessages.ToListAsync(Ct));
@@ -99,13 +99,13 @@ public sealed partial class CommandTests
             Assert.Equal("hook", record.Record.Channel); Assert.Equal("qian.sample.crm/customer.create", record.Record.CapabilityId); Assert.Equal(Writer, record.Record.ActorId);
         }
         using var denied = await HookPost(host, B, new CreateCustomerCommand(Guid.CreateVersion7(), "forbidden")); Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
-        using (tenant.BeginScope(B))
+        using (tenant.BeginScope(Guid.ParseExact(B, "D")))
         {
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
             Assert.Empty(await session.Context.Customers.ToListAsync(Ct));
         }
         using var ordinary = await host.Post(A, new CreateCustomerCommand(Guid.CreateVersion7(), "ordinary request")); Assert.Equal(HttpStatusCode.Created, ordinary.StatusCode);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var records = await host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit().ReadAsync(0, 10, cancellationToken: Ct);
             Assert.Equal("api", records[1].Record.Channel); // hook 通道没有泄漏到下一次普通请求。
@@ -119,7 +119,7 @@ public sealed partial class CommandTests
         using (runtime.GetContext("data", ScopeKey.Global).Restrict(new ScopeKey("tenant", A), registration => registration.Key != SurfaceKeys.Hooks))
         {
             using var response = await HookPost(host, A, new CreateCustomerCommand(Guid.CreateVersion7(), "hidden")); Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A);
+            using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D"));
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct); Assert.Empty(await session.Context.Customers.ToListAsync(Ct));
         }
         var snapshot = HookSnapshot("missing"); // 语法有效不等于实际 handler 已登记。
@@ -141,7 +141,7 @@ public sealed partial class CommandTests
         await WaitForHooks(source, group => group.TryGetProperty("matcher", out var matcher) && matcher.GetString() == "^never-match$");
         Assert.Same(original, source.Inject<ICrmCommands>(CrmDefinition.Key));
         using var ignored = await HookPost(host, A, new CreateCustomerCommand(Guid.CreateVersion7(), "not called")); Assert.Equal(HttpStatusCode.OK, ignored.StatusCode);
-        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A);
+        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D"));
         await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
         Assert.Empty(await session.Context.Customers.ToListAsync(Ct));
         File.WriteAllText(file, """{"hooks":{"tenant/provisioned":[{"hooks":[{"type":"plugin","plugin":"qian.sample.crm","handler":"listCustomers"}]}]}}""");
@@ -173,13 +173,14 @@ public abstract partial class CustomerCommandTests
     {
         app.MapQianSurfaceDiagnostics(http =>
             http.RequestServices.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("data", ScopeKey.Global)
-                .Scoped(new ScopeKey("tenant", http.RequestServices.GetRequiredService<ITenantContext>().TenantId!)), "crm-data-writer");
+                .Scoped(new ScopeKey("tenant", Assert.IsType<Guid>(http.RequestServices.GetRequiredService<ITenantContext>().TenantId).ToString("D"))), "crm-data-writer");
         // 仅验证已有真实生产方上下文的事件桥接；这不是租户开户/开通 API 的替代实现。
         app.MapPost("/api/acceptance/tenant-provisioned", async (CreateCustomerCommand input, HttpContext http, CrmCommandRuntime runtime, ITenantContext tenant) =>
         {
-            var source = runtime.Loader.GetContext("tenancy", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenant.TenantId!));
+            var tenantId = Assert.IsType<Guid>(tenant.TenantId).ToString("D");
+            var source = runtime.Loader.GetContext("tenancy", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenantId));
             var result = await source.DispatchAsync(SurfaceHookEvents.TenantProvisioned,
-                new HookNotification(source, tenant.TenantId!, JsonSerializer.SerializeToElement(input, CrmCommandJson.Default.CreateCustomerCommand), http.RequestAborted), http.RequestAborted);
+                new HookNotification(source, tenantId, JsonSerializer.SerializeToElement(input, CrmCommandJson.Default.CreateCustomerCommand), http.RequestAborted), http.RequestAborted);
             return Results.Json(result);
         }).RequireAuthorization();
     }

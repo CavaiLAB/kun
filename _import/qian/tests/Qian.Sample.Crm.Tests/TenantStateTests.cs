@@ -31,7 +31,7 @@ public sealed partial class TenantOperationsTests
         var crm = await lifecycle.InstallAsync(platform.Artifacts["1.0.0"], "root", Ct); await lifecycle.ActivateAsync(crm.PluginId, crm.Revision, "root", Ct);
         await lifecycle.EntitleAsync(id, "qian.sample.crm", "root", Ct); await lifecycle.ProvisionAsync(id, "qian.sample.crm", "root", Ct);
         await lifecycle.MountAsync(new ScopeKey("tenant", id), Entry("1.0.0"), "root", Ct);
-        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(id))
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(id, "D")))
             await source.Inject<ITenantRoleGrant>(TenantRoleGrant.Key).AssignAsync("tenant.owner", "service", Writer, "root", Ct);
         using (var pending = await business.Get(id, "/api/customers")) Assert.Equal(HttpStatusCode.Forbidden, pending.StatusCode);
         var activation = new ActivateTenant(ValidUntil: DateTimeOffset.UtcNow.AddDays(1));

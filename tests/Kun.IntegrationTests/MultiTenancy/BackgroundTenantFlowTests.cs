@@ -63,7 +63,7 @@ internal sealed class TenantProbeHandler : IIntegrationEventHandler<TenantProbeE
     {
         _tenant = tenant;
         _db = db;
-        _constructorTenant = tenant.TenantId;
+        _constructorTenant = tenant.TenantId?.ToString("D");
         _received = received;
     }
 
@@ -81,7 +81,7 @@ internal sealed class TenantProbeHandler : IIntegrationEventHandler<TenantProbeE
             var transactionTenant = await _db.Database.SqlQueryRaw<string>(
                 "SELECT current_setting('app.current_tenant_id', true) AS \"Value\"").SingleAsync(cancellationToken);
             _received[@event.Id].TrySetResult(new TenantObservation(context.TenantId, _constructorTenant,
-                _tenant.TenantId, sql, efTenants, rlsTenants, transactionTenant,
+                _tenant.TenantId?.ToString("D"), sql, efTenants, rlsTenants, transactionTenant,
                 _db.GetService<IModelCacheKeyFactory>() is KunMultiTenantModelCacheKeyFactory));
         }
         catch (Exception ex)
@@ -109,9 +109,9 @@ public sealed class BackgroundTenantFlowTests : IAsyncLifetime
         await Task.WhenAll(_postgres.InitializeAsync().AsTask(), _rabbit.InitializeAsync().AsTask());
         await using var connection = new NpgsqlConnection(_postgres.ConnectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
-        await using var command = new NpgsqlCommand("""
+        await using var command = new NpgsqlCommand($"""
             CREATE TABLE tenant_probe (id int PRIMARY KEY, tenant_id text NOT NULL);
-            INSERT INTO tenant_probe VALUES (1, 'tenant-a'), (2, 'tenant-b');
+            INSERT INTO tenant_probe VALUES (1, '{Tenants.AText}'), (2, '{Tenants.BText}');
             ALTER TABLE tenant_probe ENABLE ROW LEVEL SECURITY;
             ALTER TABLE tenant_probe FORCE ROW LEVEL SECURITY;
             CREATE POLICY tenant_probe_scope ON tenant_probe
@@ -165,7 +165,7 @@ public sealed class BackgroundTenantFlowTests : IAsyncLifetime
     [Fact]
     public async Task Publish_TwoTenants_ConsumerRestoresScopeAndEfAndRlsIsolation()
     {
-        foreach (var tenantId in new[] { "tenant-a", "tenant-b", "tenant-a" })
+        foreach (var tenantId in new[] { Tenants.AText, Tenants.BText, Tenants.AText })
         {
             var id = Guid.NewGuid();
             var completion = new TaskCompletionSource<TenantObservation>(TaskCreationOptions.RunContinuationsAsynchronously);

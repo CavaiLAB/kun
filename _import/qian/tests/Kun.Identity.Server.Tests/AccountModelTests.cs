@@ -228,7 +228,7 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         var admin = (await CreatePerson(host, "管理员")).Person;
         await Join(host, tenant, admin.Id, "管理员", admin: true);
         for (var i = 0; i < 4; i++) await Join(host, tenant, (await CreatePerson(host, "成员" + i)).Person.Id, "成员" + i);
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D"))) Assert.Equal(5, await host.Service.CountUsersAsync(Ct));
+        using (host.Tenant.BeginScope(tenant.Id)) Assert.Equal(5, await host.Service.CountUsersAsync(Ct));
 
         var sixth = (await CreatePerson(host, "第六个")).Person;
         var limit = await Rejected("CARDINALITY_USER_LIMIT", async () => await Join(host, tenant, sixth.Id, "第六个"));
@@ -238,10 +238,10 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         await Rejected("CARDINALITY_USER_LIMIT", async () => await Join(host, tenant, sixth.Id, "第六个", admin: true));
         var platform = (await CreatePerson(host, "平台超管", platform: true)).Person;
         await Join(host, tenant, platform.Id, "平台超管");
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D"))) Assert.Equal(5, await host.Service.CountUsersAsync(Ct));
+        using (host.Tenant.BeginScope(tenant.Id)) Assert.Equal(5, await host.Service.CountUsersAsync(Ct));
         // 提供给租户组件的计数端口读到同一个数。
         var counter = host.Loader.GetContext("identity", ScopeKey.Global).Inject<ITenantUserCounter>(TenantSettings.UserCounterKey);
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D"))) Assert.Equal(5, await counter.CountUsersAsync(Ct));
+        using (host.Tenant.BeginScope(tenant.Id)) Assert.Equal(5, await counter.CountUsersAsync(Ct));
 
         // 并发抢最后一个名额：恰好一个成功，其余是 CARDINALITY_USER_LIMIT，最终人数就是上限。
         var contested = host.Tenants.Add("busy", limit: 5);
@@ -279,12 +279,12 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         Assert.Equal(b.Id, inB.TenantId);
 
         // 租户 A 的作用域里看不到 B 的成员；没有租户作用域时（应用角色、强制 RLS）一行也看不到。
-        using (host.Tenant.BeginScope(a.Id.ToString("D")))
+        using (host.Tenant.BeginScope(a.Id))
         {
             Assert.Null(await host.Service.GetMembershipAsync(inB.Id, Ct));
             Assert.Equal(second.Id, (await host.Service.GetMembershipAsync(second.Id, Ct))!.Id);
         }
-        using (host.Tenant.BeginScope(b.Id.ToString("D"))) Assert.Null(await host.Service.GetMembershipAsync(second.Id, Ct));
+        using (host.Tenant.BeginScope(b.Id)) Assert.Null(await host.Service.GetMembershipAsync(second.Id, Ct));
         Assert.Equal("0", await AppRoleText(postgres, "SELECT count(*) FROM plugin_qian_identity.memberships"));
         Assert.Equal("0", await AppRoleText(postgres, "SELECT count(*) FROM plugin_qian_identity.external_identities"));
         Assert.Equal("3", await host.Text("SELECT count(*) FROM plugin_qian_identity.memberships"));
@@ -304,7 +304,7 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         var provisioner = host.Loader.GetContext("identity", ScopeKey.Global).Inject<ITenantMembershipProvisioner>(TenantProvisioning.MembershipKey);
         var (owner, phone) = await CreatePerson(host, "老板");
         var pointer = new TenantAdministrator(Guid.CreateVersion7(), owner.Id.ToString("D"));
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D")))
+        using (host.Tenant.BeginScope(tenant.Id))
         {
             await provisioner.ProvisionAsync(pointer, tenant.Id + ":membership", Ct);
             await provisioner.ProvisionAsync(pointer, tenant.Id + ":membership", Ct); // 重试不重复创建
@@ -323,7 +323,7 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         var signed = await host.SignIn.SignInAsync(Input(phone, Password), new LoginContext(), Ct);
         Assert.Equal(SignInStatus.Authenticated, signed.Status);
         var revision = signed.Session!.IdentityRevision;
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D")))
+        using (host.Tenant.BeginScope(tenant.Id))
         {
             var disabled = await host.Accounts.SetMembershipStatusAsync(pointer.MembershipId, AccountStatuses.Disabled, "left_company", Ct);
             Assert.Equal((AccountStatuses.Disabled, 1L), (disabled.Status, disabled.IdentityRevision));
@@ -332,7 +332,7 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         }
         Assert.False(await HasLiveSession(host, owner.Id));
         Assert.Equal(SignInStatus.Failed, (await host.SignIn.SignInAsync(Input(phone, Password), new LoginContext(), Ct)).Status); // 没有可用身份
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D"))) await host.Accounts.SetMembershipStatusAsync(pointer.MembershipId, AccountStatuses.Active, "back", Ct);
+        using (host.Tenant.BeginScope(tenant.Id)) await host.Accounts.SetMembershipStatusAsync(pointer.MembershipId, AccountStatuses.Active, "back", Ct);
         var again = await host.SignIn.SignInAsync(Input(phone, Password), new LoginContext(), Ct);
         Assert.Equal(SignInStatus.Authenticated, again.Status);
         Assert.True(again.Session!.IdentityRevision > revision); // 成员修订只增不减，旧令牌随之失效
@@ -346,7 +346,7 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         var (one, _) = await CreatePerson(host, "甲");
         var (two, _) = await CreatePerson(host, "乙");
         var m1 = await Join(host, a, one.Id); var m2 = await Join(host, a, two.Id); var m3 = await Join(host, b, two.Id);
-        using (host.Tenant.BeginScope(a.Id.ToString("D")))
+        using (host.Tenant.BeginScope(a.Id))
         {
             await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(m1.Id, "wecom", "ww-1", "union-1"), Ct);
             await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(m1.Id, "wecom", "ww-1", "union-1"), Ct); // 幂等
@@ -354,9 +354,9 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
             await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(m2.Id, "oidc", "ww-1"), Ct); // 不同 connector 互不冲突
             await Rejected("NOT_FOUND", async () => await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(m3.Id, "wecom", "ww-9"), Ct)); // 别的租户的成员看不见
         }
-        using (host.Tenant.BeginScope(b.Id.ToString("D"))) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(m3.Id, "wecom", "ww-1"), Ct); // 另一租户可再用同一 subject
+        using (host.Tenant.BeginScope(b.Id)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(m3.Id, "wecom", "ww-1"), Ct); // 另一租户可再用同一 subject
         Assert.Equal("3", await host.Text("SELECT count(*) FROM plugin_qian_identity.external_identities WHERE is_deleted = false"));
-        using (host.Tenant.BeginScope(a.Id.ToString("D")))
+        using (host.Tenant.BeginScope(a.Id))
         {
             await host.Accounts.UnlinkExternalIdentityAsync(m1.Id, "wecom", "ww-1", Ct);
             await Rejected("NOT_FOUND", async () => await host.Accounts.UnlinkExternalIdentityAsync(m1.Id, "wecom", "ww-1", Ct));
@@ -366,7 +366,7 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         // 没有密码、没有已验证联系方式、也没有别的外部身份的账号，不能解绑它唯一的登录方式。
         var upstreamOnly = await host.Accounts.CreatePersonAsync(new CreatePerson("纯上游", [new(IdentifierKind.Username, "upstream1")]), Ct);
         var m4 = await Join(host, a, upstreamOnly.Id);
-        using (host.Tenant.BeginScope(a.Id.ToString("D")))
+        using (host.Tenant.BeginScope(a.Id))
         {
             await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(m4.Id, "oidc", "sub-4"), Ct);
             await Rejected("LAST_LOGIN_METHOD", async () => await host.Accounts.UnlinkExternalIdentityAsync(m4.Id, "oidc", "sub-4", Ct));

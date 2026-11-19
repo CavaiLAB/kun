@@ -55,7 +55,7 @@ public sealed partial class PatchPersistenceTests
         using var active = await GrantRegistryRoles(running, tenant);
         await using var http = await StartManagementHost(running, tenant);
         var scopeA = new ScopeKey("tenant", HttpTenantA); var scopeB = new ScopeKey("tenant", HttpTenantB);
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
             await Repository(running.Host, tenant).PutAsync(scopeA, "private", Patch("""{"id":"private","plugin":"test.private","config":{}}"""), 0, "operator-a", Ct);
 
         // A 写了 patch：持权限者读到 A 的局部条目与 patch 修订。
@@ -107,7 +107,7 @@ public sealed partial class PatchPersistenceTests
         Assert.False(listA.Headers.Contains("Deprecation"));
 
         // B 写禁用 patch：原因说明被哪一层禁用，pointer 指向 B 的 patch 条目。
-        using (tenant.BeginScope(HttpTenantB))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantB, "D")))
             await Repository(running.Host, tenant).PutAsync(scopeB, "shared", Patch("""{"id":"shared","disabled":true}"""), 0, "operator-b", Ct);
         using var disabled = await http.Get($"/api/registry/scopes/tenant:{HttpTenantB}/entries/shared", HttpTenantB, Holder);
         Assert.Equal(HttpStatusCode.Forbidden, disabled.StatusCode);
@@ -119,14 +119,14 @@ public sealed partial class PatchPersistenceTests
         Assert.Equal(absent, await ErrorShape(disabledHidden));
 
         // A 撤销 patch：不重启进程，条目回到未挂载；B 的禁用不受影响。
-        using (tenant.BeginScope(HttpTenantA)) await Repository(running.Host, tenant).RemoveAsync(scopeA, "private", 1, "operator-a", Ct);
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D"))) await Repository(running.Host, tenant).RemoveAsync(scopeA, "private", 1, "operator-a", Ct);
         using var revoked = await http.Get($"/api/registry/scopes/tenant:{HttpTenantA}/entries/private", HttpTenantA, Holder);
         Assert.Equal(HttpStatusCode.Forbidden, revoked.StatusCode); Assert.Equal("PLUGIN_NOT_MOUNTED", (await Json(revoked)).GetProperty("code").GetString());
         using var stillDisabled = await http.Get($"/api/registry/scopes/tenant:{HttpTenantB}/entries/shared", HttpTenantB, Holder);
         Assert.Equal(HttpStatusCode.Forbidden, stillDisabled.StatusCode);
 
         // 模拟正式写入入口之外的坏数据：B 的 scope 合入失败后整体收紧，诊断面仍可达并说明原因，视图为空，A 不受影响。
-        using (tenant.BeginScope(HttpTenantB))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantB, "D")))
             await Repository(running.Host, tenant).PutAsync(scopeB, "shared", Patch("""{"id":"shared","config":{"label":42}}"""), 1, "operator-b", Ct);
         using var blocked = await http.Get($"/api/registry/scopes/tenant:{HttpTenantB}/entries/registry", HttpTenantB, Holder);
         Assert.Equal(HttpStatusCode.Forbidden, blocked.StatusCode);
@@ -149,7 +149,7 @@ public sealed partial class PatchPersistenceTests
         using var active = await GrantRegistryRoles(running, tenant);
         // 授予本身真实有效：直接用真实判定器求值为放行。
         var checker = new RbacPermissionChecker(running.Host.Services.GetRequiredService<IDataService>(), tenant, running.Host.Services.GetRequiredService<IPermissionRegistry>());
-        using (tenant.BeginScope(HttpTenantB))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantB, "D")))
             Assert.True((await checker.CheckAsync(new PermissionRequest(new AuthorizationSubject(Holder, HttpTenantB, "service"), RegistryDefinition.ScopeReadPermission), Ct)).Allow);
         await using var http = await StartManagementHost(running, tenant);
         using var entry = await http.Get($"/api/registry/scopes/tenant:{HttpTenantB}/entries/private", HttpTenantB, Holder);
@@ -196,7 +196,7 @@ public sealed partial class PatchPersistenceTests
         var active = running.Host.Services.GetRequiredService<IPermissionRegistry>().Register(metadata.Version, catalog.Permissions);
         foreach (var id in new[] { HttpTenantA, HttpTenantB })
         {
-            using var current = tenant.BeginScope(id);
+            using var current = tenant.BeginScope(Guid.ParseExact(id, "D"));
             var roles = new PostgresTenantRoleStore(data, tenant);
             await roles.EnsureBuiltinsAsync("test-bootstrap", Ct);
             await roles.InstallDefaultsAsync("qian.registry", metadata.Version, null, "test-bootstrap", Ct);
@@ -238,7 +238,7 @@ public sealed partial class PatchPersistenceTests
         {
             // 平台运营宿主预先选择的可信目标，不从 path/header/body 推导；普通租户请求仍走原边界。
             if (platformTargetTenant is not null && context.RequestServices.GetRequiredService<ICurrentUser>().Principal is { Kind: PrincipalKind.User, TenantId: null })
-            { using var scope = tenant.BeginScope(platformTargetTenant); await next(context); return; }
+            { using var scope = tenant.BeginScope(Guid.ParseExact(platformTargetTenant, "D")); await next(context); return; }
             await context.RequestServices.GetRequiredService<TenantRequestBoundary>().InvokeAsync(context, next);
         });
         app.UseAuthorization();

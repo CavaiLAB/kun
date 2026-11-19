@@ -18,7 +18,7 @@ public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<Pos
         await using var host = await AccountsHost.Start(postgres);
         var tenant = host.Tenants.Add("directory"); var (person, phone) = await CreatePerson(host); var member = await Join(host, tenant, person.Id, admin: true);
         var browser = host.NewBrowser(); await browser.Login(phone, Password, tenant: tenant.Id);
-        using var scope = host.Tenant.BeginScope(tenant.Id.ToString("D")); var directory = host.Service;
+        using var scope = host.Tenant.BeginScope(tenant.Id); var directory = host.Service;
         await directory.SetOrganizationTypeAsync(new("company", "公司"), Ct); await directory.SetOrganizationTypeAsync(new("dept", "部门"), Ct);
         var root = await directory.CreateOrganizationAsync(new("总部", "company"), Ct);
         var a = await directory.CreateOrganizationAsync(new("甲", "dept", root.Id), Ct);
@@ -50,7 +50,7 @@ public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<Pos
         await using var host = await AccountsHost.Start(postgres); var a = host.Tenants.Add("a"); var b = host.Tenants.Add("b");
         var (person, _) = await CreatePerson(host); var member = await Join(host, a, person.Id); var other = await Join(host, b, person.Id);
         var directory = host.Service; Guid rootId;
-        using (host.Tenant.BeginScope(a.Id.ToString("D")))
+        using (host.Tenant.BeginScope(a.Id))
         {
             await directory.SetOrganizationTypeAsync(new("custom", "租户甲自定义类型"), Ct);
             var root = await directory.CreateOrganizationAsync(new("甲总部", "custom", ManagerMembershipId: member.Id), Ct); rootId = root.Id;
@@ -78,7 +78,7 @@ public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<Pos
             Assert.Equal("1", await host.Text("SELECT count(*) FROM plugin_qian_identity.user_profiles WHERE membership_id=@id", ("id", member.Id)));
             await Rejected("NOT_FOUND", () => directory.SetRelationsAsync(other.Id, [new("organization", root.Id)], Ct).AsTask());
         }
-        using (host.Tenant.BeginScope(b.Id.ToString("D")))
+        using (host.Tenant.BeginScope(b.Id))
         {
             Assert.Empty(await directory.ListOrganizationTypesAsync(Ct));
             await directory.SetOrganizationTypeAsync(new("custom", "租户乙同码不同名"), Ct);
@@ -119,7 +119,7 @@ public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<Pos
         await host.Service.ProcessRevocationsAsync(100, Ct);
         var revoked = Assert.Single(await SessionSupport.EventsOf(host, "identity.session_revoked.v1"));
         Assert.Equal((tenant.Id, members[0].PersonId.ToString("D"), "member_disabled"), (revoked.TenantId, revoked.Actor.Id, revoked.Payload.GetProperty("reason").GetString()));
-        using var scope = host.Tenant.BeginScope(tenant.Id.ToString("D")); var directory = host.Service;
+        using var scope = host.Tenant.BeginScope(tenant.Id); var directory = host.Service;
         Assert.Equal("FAILED", (await directory.DisableMembersAsync(members.Take(2).Select(row => row.Id).ToArray(), "protected", Ct)).Status);
         Assert.Equal("SUCCESS", (await directory.DisableMembersAsync(members.Skip(2).Select(row => row.Id).ToArray(), "idempotent", Ct)).Status);
         await directory.SetDirectoryMemberStatusAsync(members[2].Id, AccountStatuses.Active, "reactivate", Ct);
@@ -170,7 +170,7 @@ public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<Pos
     public async Task 岗位责任链可跨组织_组织删除不误删外部岗位_移动同步路径但不隐改后代组织()
     {
         await using var host = await AccountsHost.Start(postgres); var tenant = host.Tenants.Add("position-chain");
-        using var scope = host.Tenant.BeginScope(tenant.Id.ToString("D")); var directory = host.Service;
+        using var scope = host.Tenant.BeginScope(tenant.Id); var directory = host.Service;
         await directory.SetOrganizationTypeAsync(new("dept", "部门"), Ct);
         var root = await directory.CreateOrganizationAsync(new("总部", "dept"), Ct);
         var department = await directory.CreateOrganizationAsync(new("部门", "dept", root.Id), Ct);
@@ -195,7 +195,7 @@ public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<Pos
     public async Task 并发删除与归属不产生悬空关系_并发移动保持单树()
     {
         await using var host = await AccountsHost.Start(postgres); var tenant = host.Tenants.Add("race"); var (person, _) = await CreatePerson(host); var member = await Join(host, tenant, person.Id);
-        using var scope = host.Tenant.BeginScope(tenant.Id.ToString("D")); var directory = host.Service;
+        using var scope = host.Tenant.BeginScope(tenant.Id); var directory = host.Service;
         await directory.SetOrganizationTypeAsync(new("dept", "部门"), Ct); var root = await directory.CreateOrganizationAsync(new("根", "dept"), Ct);
         var a = await directory.CreateOrganizationAsync(new("甲", "dept", root.Id), Ct); var b = await directory.CreateOrganizationAsync(new("乙", "dept", root.Id), Ct);
         async Task<string> Outcome(Func<Task> action) { try { await action(); return "success"; } catch (Kun.Errors.ErrorException error) { return error.Error.Code.Code; } }

@@ -85,7 +85,7 @@ public sealed partial class ShellSurfaceTests
         await using var host = await Start(capabilities: true);
         var tenant = host.App.Services.GetRequiredService<ITenantContext>();
         var repository = new PostgresPatchRepository(host.App.Services.GetRequiredService<IDataService>(), tenant, new SurfaceValidator());
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             await repository.PutAsync(new ScopeKey("tenant", A), "crm", JsonSerializer.SerializeToElement(new { id = "crm", plugin = "qian.sample.crm@1.0.1", config = new { } }), 0, "acceptance", Ct);
         Assert.Equal("租户专属客户", Assert.Single(await Menus(host, A), item => item.Route == "/customers").Title);
         Assert.Equal("客户", Assert.Single(await Menus(host, B)).Title);
@@ -95,7 +95,7 @@ public sealed partial class ShellSurfaceTests
             scoped.GetProperty("manifest").GetProperty("pages")[0].GetProperty("nav").GetProperty("title").GetString()));
         var global = Assert.Single((await Shell(host, B)).GetProperty("remotes").EnumerateArray());
         Assert.Equal(("1.0.0", "global"), (global.GetProperty("version").GetString(), global.GetProperty("scope").GetString()));
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             await repository.PutAsync(new ScopeKey("tenant", A), "crm", JsonSerializer.SerializeToElement(new { id = "crm", disabled = true }), 1, "acceptance", Ct);
         Assert.Empty(await Menus(host, A)); Assert.Single(await Menus(host, B));
         Assert.Empty((await Shell(host, A)).GetProperty("remotes").EnumerateArray());
@@ -113,7 +113,7 @@ public sealed partial class ShellSurfaceTests
         using var direct = await MenuItem(host, A, customer.ResourceRef); Assert.Equal(HttpStatusCode.OK, direct.StatusCode);
         using var crossTenant = await Preference(host, B, customer.ResourceRef, new NavigationPreference(false)); Assert.Equal(HttpStatusCode.NotFound, crossTenant.StatusCode);
         var tenant = host.App.Services.GetRequiredService<ITenantContext>();
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             await new PostgresTenantRoleStore(host.App.Services.GetRequiredService<IDataService>(), tenant).AssignAsync("tenant.user", "service", "crm-command-reader", "acceptance", Ct);
         using (var request = new HttpRequestMessage(HttpMethod.Get, "/api/capabilities/navigation"))
         {
@@ -124,7 +124,7 @@ public sealed partial class ShellSurfaceTests
             Assert.Single(visible.EnumerateArray());
             Assert.Equal("/customers", visible[0].GetProperty("route").GetString());
         }
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CapabilitiesDbContext>(Ct);
             var preference = Assert.Single(await session.Context.NavigationPreferences.ToListAsync(Ct));
@@ -141,9 +141,9 @@ public sealed partial class ShellSurfaceTests
         await Admin("DROP TRIGGER reject_preference ON plugin_qian_audit.audit_entries;");
         using var restored = await Preference(host, A, customer.ResourceRef, new NavigationPreference(false, 9)); Assert.Equal(HttpStatusCode.NoContent, restored.StatusCode);
         Assert.Equal(9, Assert.Single(await Menus(host, A), item => item.Route == "/customers").Order);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             Assert.Equal(new AuditChainVerification(true, 2, null, null), await host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit().VerifyAsync(Ct));
-        using (tenant.BeginScope(B))
+        using (tenant.BeginScope(Guid.ParseExact(B, "D")))
         {
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CapabilitiesDbContext>(Ct);
             Assert.Empty(await session.Context.NavigationPreferences.ToListAsync(Ct));
@@ -158,7 +158,7 @@ public sealed partial class ShellSurfaceTests
         var responses = await Task.WhenAll(Preference(host, A, resource, new NavigationPreference(false, 3)), Preference(host, A, resource, new NavigationPreference(false, 8)));
         try { Assert.All(responses, response => Assert.True(response.StatusCode == HttpStatusCode.NoContent, host.FailureEvidence)); }
         finally { foreach (var response in responses) response.Dispose(); }
-        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A);
+        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D"));
         await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CapabilitiesDbContext>(Ct);
         var preference = Assert.Single(await session.Context.NavigationPreferences.ToListAsync(Ct)); Assert.True(preference.Order is 3 or 8);
         Assert.Equal(new AuditChainVerification(true, 2, null, null), await host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit().VerifyAsync(Ct));

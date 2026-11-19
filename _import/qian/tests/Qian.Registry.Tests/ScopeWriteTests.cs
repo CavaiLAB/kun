@@ -111,7 +111,7 @@ public sealed partial class PatchPersistenceTests
         using (var rebuilt = await http.Put(privatePath, new { revision = 0, patch = new { id = "private", plugin = "test.private@1.0.0", config = new { } } }, null)) Assert.Equal(3, (await Json(rebuilt)).GetProperty("revision").GetInt32());
         using (var old = await http.Put(privatePath, new { revision = 2, patch = new { id = "private", disabled = true } }, null)) Assert.Equal(HttpStatusCode.Conflict, old.StatusCode);
         Assert.Empty(await Outbox(running.Host.Services, tenant, HttpTenantB));
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         {
             // 租户链分页读到末尾（每页 100）：只读第一页时，下面的「全部带超管旁路标记」看不到第一页之后的记录（S1-QA-027）。
             var audits = new List<AuditChainEntry>(); long after = 0;

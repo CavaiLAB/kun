@@ -62,7 +62,7 @@ public sealed partial class TenantOperationsTests
         Assert.Equal("succeeded", Assert.Single(steps, step => step.Step == "03:component:qian.sample.crm").Status);
         Assert.DoesNotContain(steps, step => step.Status is "failed" or "running");
         Assert.Equal((TenantInstallStates.Installed, (string?)"1.0.0"), Pick((await lifecycle.GetInstallAsync(tenant.Id.ToString(), "qian.sample.crm", Ct))!));
-        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenant.Id.ToString()))
+        using (business.App.Services.GetRequiredService<ITenantContext>().BeginScope(tenant.Id))
         {
             var entries = await source.Audit().ReadAsync(0, 500, cancellationToken: Ct);
             Assert.True(entries.Count < 500, "租户链条目数到达读取上限：" + entries.Count);
@@ -94,6 +94,6 @@ public abstract partial class CustomerCommandTests
             await loader.UnmountAsync("audit", ScopeKey.Global, cancellationToken);
             Interlocked.Increment(ref _withdrawals);
         }
-        public Task DeprovisionAsync(string tenantId, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task DeprovisionAsync(Guid tenantId, CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

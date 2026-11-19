@@ -93,8 +93,8 @@ public sealed partial class ShellSurfaceTests(PostgresFixture postgres) : Custom
         var subject = person.Id.ToString("D");
         var authz = loader.GetContext("authz", ScopeKey.Global);
         foreach (var id in new[] { A, B })
-            using (tenant.BeginScope(id)) await authz.Inject<ITenantRoleGrant>(TenantRoleGrant.Key).AssignAsync("tenant.user", "user", subject, "acceptance", Ct);
-        using (tenant.BeginScope(B))
+            using (tenant.BeginScope(Guid.ParseExact(id, "D"))) await authz.Inject<ITenantRoleGrant>(TenantRoleGrant.Key).AssignAsync("tenant.user", "user", subject, "acceptance", Ct);
+        using (tenant.BeginScope(Guid.ParseExact(B, "D")))
             await new PostgresPatchRepository(business.App.Services.GetRequiredService<IDataService>(), tenant, new SurfaceValidator())
                 .PutAsync(new ScopeKey("tenant", B), "crm", JsonSerializer.SerializeToElement(new { id = "crm", disabled = true }), 0, "acceptance", Ct);
 
@@ -112,7 +112,7 @@ public sealed partial class ShellSurfaceTests(PostgresFixture postgres) : Custom
         // 授权变更（A 里加授 tenant.owner）：身份修订递增、平台表面的修订下限同步抬高。旧令牌在三条平台表面与 bootstrap 上都是 401（不做权限判定），
         // 刷新会话换到新修订后恢复，权限与菜单随之更新。
         var revision = (long)first["session"]!["identityRevision"]!;
-        using (tenant.BeginScope(A)) await authz.Inject<ITenantRoleGrant>(TenantRoleGrant.Key).AssignAsync("tenant.owner", "user", subject, "acceptance", Ct);
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) await authz.Inject<ITenantRoleGrant>(TenantRoleGrant.Key).AssignAsync("tenant.owner", "user", subject, "acceptance", Ct);
         foreach (var path in new[] { "api/shell/bootstrap", "api/capabilities/navigation", "api/capabilities/shell", "api/authz/me/permissions" })
             using (var stale = await browser.GetAsync(new Uri(address, path), Ct))
             {

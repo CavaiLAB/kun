@@ -277,7 +277,7 @@ public sealed class SignInHttpTests(PostgresFixture postgres) : IClassFixture<Po
         // 成员被停用：只影响该成员的会话。
         var removed = host.NewBrowser();
         await removed.Login(phone, Password);
-        using (host.Tenant.BeginScope(Id(tenant.Id))) await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Disabled, "ops", Ct);
+        using (host.Tenant.BeginScope(tenant.Id)) await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Disabled, "ops", Ct);
         Assert.Null(await removed.Code());
         var none = await removed.Login(phone, Password);
         Assert.Equal((HttpStatusCode.Forbidden, "NO_AVAILABLE_TENANT"), (none.Status, Code(none.Body)));

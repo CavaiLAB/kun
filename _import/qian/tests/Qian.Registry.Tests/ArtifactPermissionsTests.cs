@@ -130,7 +130,7 @@ public sealed partial class PatchPersistenceTests
         using var absent = await http.GetPlatform("/api/registry/plugins/acme.connector/versions/9.9.9/permissions", "root");
         Assert.Equal(HttpStatusCode.NotFound, intruder.StatusCode); Assert.Equal(HttpStatusCode.NotFound, absent.StatusCode);
         Assert.Equal(await ErrorShape(intruder), await ErrorShape(absent));
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         {
             // 每次放行都记入目标租户的审计链（含判定之后才发现版本不存在的那次），资源写明组件版本。
             var entries = await running.Root.Audit().ReadAsync(0, 20, cancellationToken: Ct);
@@ -144,7 +144,7 @@ public sealed partial class PatchPersistenceTests
             Assert.Equal(["registry/artifact:acme.connector@1.0.0", "registry/artifact:acme.connector@9.9.9"], entries.Select(entry => entry.Record.Resource));
             Assert.True((await running.Root.Audit().VerifyAsync(Ct)).Valid);
         }
-        using (tenant.BeginScope(HttpTenantB)) Assert.Empty(await running.Root.Audit().ReadAsync(0, 20, cancellationToken: Ct));
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantB, "D"))) Assert.Empty(await running.Root.Audit().ReadAsync(0, 20, cancellationToken: Ct));
     }
 
     // 登记一个只有清单的声明式制品；install 时再按 Lifecycle 的方式回写 Installed（验签由 Lifecycle 负责，这里只给公钥指纹）。

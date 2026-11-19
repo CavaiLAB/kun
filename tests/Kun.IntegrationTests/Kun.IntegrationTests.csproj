@@ -24,7 +24,6 @@
     <ProjectReference Include="..\..\src\Kun.Saga\Kun.Saga.csproj" />
     <ProjectReference Include="..\..\src\Kun.Security\Kun.Security.csproj" />
     <ProjectReference Include="..\..\src\Kun.Gateway\Kun.Gateway.csproj" />
-    <ProjectReference Include="..\..\src\Kun.Storage\Kun.Storage.csproj" />
     <ProjectReference Include="..\..\src\Kun.Storage.Abstractions\Kun.Storage.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Kun.Storage.S3\Kun.Storage.S3.csproj" />
     <PackageReference Include="JsonSchema.Net" PrivateAssets="all" />

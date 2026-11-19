@@ -1,5 +1,6 @@
 """scripts/dotnet_ci.py 的自测（S1-QA-021、S1-KUN-020）：触发过滤自检认得的各类写法，verify 对各分片（含分片 k）结果的核对与
-对 Qian.slnf 外测试项目的告警，分片 k 的筛选文件与覆盖率份数核对。
+对 Qian.slnf 外测试项目的告警，latest-attempts 按构件名里的尝试号取每个分片最新的一份（「重跑失败的作业」之后），
+分片 k 的筛选文件与覆盖率份数核对。
 
 运行：python3 -m unittest discover -s tests/gates -v
 在临时目录里搭一个 git 跟踪的最小仓库：仓库根放 ci.yml、区域表 scripts/ci_changes.py 与 tests/kun-unit.slnf，_import/qian/ 下放
@@ -497,6 +498,76 @@ class VerifyTests(unittest.TestCase):
         shutil.rmtree(self.results / "test-results-k")
         _, problems, _ = self.verify()
         self.assertEqual(["分片 k 没有上传测试结果（test-results-k）。"], problems)
+
+    def test_rerun_of_a_failed_shard_is_verified_with_its_latest_attempt(self) -> None:
+        # 「重跑失败的作业」之后的下载目录：分片 a 第 1 次失败、第 2 次通过，分片 k 没重跑，只有第 1 次的。
+        downloads = self.box.root / "downloads"
+        downloads.mkdir()
+        (self.results / "test-results-a").rename(downloads / "test-results-a-attempt-2")
+        (self.results / "test-results-k").rename(downloads / "test-results-k-attempt-1")
+        failed = downloads / "test-results-a-attempt-1" / "Sample.Tests.trx"
+        failed.parent.mkdir()
+        failed.write_text(self.TRX.format(module="Sample.Tests", outcome="Failed"), encoding="utf-8")
+        self.results.rmdir()
+        self.assertEqual(["a：第 2 次尝试（不用第 1 次）", "k：第 1 次尝试"], dotnet_ci.latest_attempts(downloads, self.results))
+        self.assertEqual(([], []), self.verify()[1:])
+        # 取错了尝试（上一次的那份）就是这次要修的毛病：核对报失败。
+        shutil.rmtree(self.results / "test-results-a")
+        failed.parent.rename(self.results / "test-results-a")
+        self.assertEqual(["Sample.Tests：1 条失败。"], self.verify()[1])
+
+
+class LatestAttemptsTests(unittest.TestCase):
+    """latest-attempts：按构件名里的尝试号给每个分片（含门禁作业）留最新的一份，不看目录的先后与修改时间。"""
+
+    def setUp(self) -> None:
+        self.base = Path(tempfile.mkdtemp(prefix="qian-latest-attempts-"))
+        self.addCleanup(shutil.rmtree, self.base, True)
+        self.downloads = self.base / "downloads"
+        self.results = self.base / "results"
+
+    def attempt(self, key: str, attempt: int, text: str = "") -> None:
+        target = self.downloads / f"test-results-{key}-attempt-{attempt}" / "marker.txt"
+        target.parent.mkdir(parents=True)
+        target.write_text(text or f"{key}{attempt}", encoding="utf-8")
+
+    def marker(self, key: str) -> str:
+        return (self.results / f"test-results-{key}" / "marker.txt").read_text(encoding="utf-8")
+
+    def test_each_shard_keeps_its_highest_attempt(self) -> None:
+        for key, attempt in (("a", 1), ("a", 10), ("a", 2), ("b", 1), ("gates", 1), ("k", 3), ("k", 1)):
+            self.attempt(key, attempt)
+        rows = dotnet_ci.latest_attempts(self.downloads, self.results)
+        self.assertEqual(["a：第 10 次尝试（不用第 1、2 次）", "b：第 1 次尝试", "gates：第 1 次尝试", "k：第 3 次尝试（不用第 1 次）"], rows)
+        self.assertEqual(["a10", "b1", "gates1", "k3"], [self.marker(key) for key in ("a", "b", "gates", "k")])
+        self.assertEqual(["test-results-a", "test-results-b", "test-results-gates", "test-results-k"],
+                         sorted(path.name for path in self.results.iterdir()))
+
+    def test_unrecognized_or_missing_downloads_fail(self) -> None:
+        with self.assertRaisesRegex(dotnet_ci.CheckFailed, "不存在"):
+            dotnet_ci.latest_attempts(self.downloads, self.results)
+        self.downloads.mkdir()
+        with self.assertRaisesRegex(dotnet_ci.CheckFailed, "是空的"):
+            dotnet_ci.latest_attempts(self.downloads, self.results)
+        for name in ("test-results-a", "test-results-a-attempt-0", "test-results-a-attempt-x", "coverage"):
+            with self.subTest(name=name):
+                (self.downloads / name).mkdir()
+                with self.assertRaisesRegex(dotnet_ci.CheckFailed, f"认不出的测试结果：{name}"):
+                    dotnet_ci.latest_attempts(self.downloads, self.results)
+                (self.downloads / name).rmdir()
+        self.assertFalse(self.results.exists())
+
+    def test_command_line_prints_the_choice_and_refuses_an_existing_results_directory(self) -> None:
+        self.attempt("a", 1)
+        self.attempt("a", 2)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertEqual(0, dotnet_ci.main(["latest-attempts", str(self.downloads), str(self.results)]))
+        self.assertIn("a：第 2 次尝试（不用第 1 次）", output.getvalue())
+        self.assertEqual("a2", self.marker("a"))
+        with contextlib.redirect_stderr(io.StringIO()) as error:
+            self.assertEqual(2, dotnet_ci.main(["latest-attempts", str(self.downloads), str(self.results)]))
+        self.assertIn("已存在", error.getvalue())
 
 
 class KunShardTests(unittest.TestCase):

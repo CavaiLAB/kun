@@ -20,6 +20,11 @@
       拉取失败只记录，Testcontainers 启动容器前会自己补拉。
   python3 scripts/dotnet_ci.py wait-prefetch --state <目录> [--timeout 秒]
       有界等待后台预拉结束并打印记录；超时或预拉进程已退出都照常返回 0。
+  python3 scripts/dotnet_ci.py latest-attempts <下载目录> <结果目录>
+      各分片与门禁作业上传的结果构件名带尝试号（test-results-<分片>-attempt-<尝试号>），汇总作业按模式全部下载，
+      每个构件一个子目录。「重跑失败的作业」之后，重跑过的分片每次尝试各有一份，没重跑的只有第 1 次的。
+      这里每个分片取尝试号最大的那份，挪到 <结果目录>/test-results-<分片>，交给 verify；认不出的子目录即失败。
+      不按构件 ID 取：download-artifact 对同名构件只留 ID 最大的一份，而重跑后的 ID 不一定更大。
   python3 scripts/dotnet_ci.py verify <结果目录>
       汇总各分片上传的 TRX（每个分片一个子目录 test-results-<分片>）：Qian.slnf 里每个测试项目、分片 k 登记的每个测试项目，
       都恰好在所属分片跑过一次、没有失败，少一个模块即不通过；分片、模块、用例数与耗时写进作业摘要。跳过的用例只告警；
@@ -455,6 +460,35 @@ def read_trx(path: Path) -> Tuple[str, Counter, datetime, datetime]:
     if times is None:
         raise CheckFailed(f"{path.name}：缺少 Times。")
     return module, outcomes, timestamp(times.get("start") or ""), timestamp(times.get("finish") or "")
+
+
+# ci.yml 里分片与门禁作业的结果构件名：test-results-<分片>-attempt-${{ github.run_attempt }}。
+ATTEMPT_RESULTS = re.compile(r"test-results-(?P<key>[a-z0-9]+)-attempt-(?P<attempt>[1-9][0-9]*)\Z")
+
+
+def latest_attempts(downloads: Path, results: Path) -> List[str]:
+    """每个分片（含门禁作业）只留尝试号最大的那份结果，挪到 results/test-results-<分片>；返回每个分片取了哪次的说明。"""
+    if not downloads.is_dir():
+        raise CheckFailed(f"没有下载到测试结果（{downloads} 不存在）。")
+    found: Dict[str, Dict[int, Path]] = {}
+    for directory in sorted(downloads.iterdir()):
+        match = ATTEMPT_RESULTS.match(directory.name)
+        if not directory.is_dir() or not match:
+            raise CheckFailed(f"认不出的测试结果：{directory.name}（应为 test-results-<分片>-attempt-<尝试号> 目录）。")
+        found.setdefault(match.group("key"), {})[int(match.group("attempt"))] = directory
+    if not found:
+        raise CheckFailed(f"没有下载到测试结果（{downloads} 是空的）。")
+    if results.exists():
+        raise ToolError(f"{results} 已存在：结果目录由本命令新建。")
+    results.mkdir(parents=True)
+    rows: List[str] = []
+    for key in sorted(found):
+        attempts = found[key]
+        latest = max(attempts)
+        attempts[latest].rename(results / f"test-results-{key}")
+        older = sorted(attempt for attempt in attempts if attempt != latest)
+        rows.append(f"{key}：第 {latest} 次尝试" + (f"（不用第 {'、'.join(str(a) for a in older)} 次）" if older else ""))
+    return rows
 
 
 def verify(results: Path) -> Tuple[List[str], List[str], List[str]]:
@@ -1264,6 +1298,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     wait_parser = commands.add_parser("wait-prefetch", help="有界等待后台预拉结束")
     wait_parser.add_argument("--state", type=Path, required=True)
     wait_parser.add_argument("--timeout", type=float, default=180)
+    latest_parser = commands.add_parser("latest-attempts", help="每个分片只取最新一次尝试的结果（按构件名里的尝试号）")
+    latest_parser.add_argument("downloads", type=Path)
+    latest_parser.add_argument("results", type=Path)
     verify_parser = commands.add_parser("verify", help="汇总核对各分片的 TRX")
     verify_parser.add_argument("results", type=Path)
     verify_parser.add_argument("--summary", type=Path, default=os.environ.get("GITHUB_STEP_SUMMARY") or None)
@@ -1282,6 +1319,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             prefetch(args.shard, args.state)
         elif args.command == "wait-prefetch":
             wait_prefetch(args.state, args.timeout)
+        elif args.command == "latest-attempts":
+            rows = latest_attempts(args.downloads, args.results)
+            print("\n".join(rows))
+            print(f"每个分片取最新一次尝试的结果：{len(rows)} 份，在 {args.results}。")
         elif args.command == "verify":
             summary, problems, warnings = verify(args.results)
             for warning in warnings:

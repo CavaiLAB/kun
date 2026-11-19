@@ -49,13 +49,11 @@
     <Project Path="src/Kun.RateLimit/Kun.RateLimit.csproj" />
     <Project Path="src/Kun.Runtime/Kun.Runtime.csproj" />
     <Project Path="src/Kun.Saga/Kun.Saga.csproj" />
-    <Project Path="src/Kun.Sandbox/Kun.Sandbox.csproj" />
     <Project Path="src/Kun.Security/Kun.Security.csproj" />
     <Project Path="src/Kun.Storage.Abstractions/Kun.Storage.Abstractions.csproj" />
     <Project Path="src/Kun.Storage.Local/Kun.Storage.Local.csproj" />
     <Project Path="src/Kun.Storage.Oss/Kun.Storage.Oss.csproj" />
     <Project Path="src/Kun.Storage.S3/Kun.Storage.S3.csproj" />
-    <Project Path="src/Kun.Storage/Kun.Storage.csproj" />
     <Project Path="src/Kun.Testing.EntityFrameworkCore/Kun.Testing.EntityFrameworkCore.csproj" />
     <Project Path="src/Kun.Testing/Kun.Testing.csproj" />
     <Project Path="src/Kun.Validation/Kun.Validation.csproj" />
@@ -84,13 +82,11 @@
     <Project Path="tests/Kun.RateLimit.Tests/Kun.RateLimit.Tests.csproj" />
     <Project Path="tests/Kun.Runtime.Tests/Kun.Runtime.Tests.csproj" />
     <Project Path="tests/Kun.Saga.Tests/Kun.Saga.Tests.csproj" />
-    <Project Path="tests/Kun.Sandbox.Tests/Kun.Sandbox.Tests.csproj" />
     <Project Path="tests/Kun.Security.Tests/Kun.Security.Tests.csproj" />
     <Project Path="tests/Kun.Storage.Abstractions.Tests/Kun.Storage.Abstractions.Tests.csproj" />
     <Project Path="tests/Kun.Storage.Local.Tests/Kun.Storage.Local.Tests.csproj" />
     <Project Path="tests/Kun.Storage.Oss.Tests/Kun.Storage.Oss.Tests.csproj" />
     <Project Path="tests/Kun.Storage.S3.Tests/Kun.Storage.S3.Tests.csproj" />
-    <Project Path="tests/Kun.Storage.Tests/Kun.Storage.Tests.csproj" />
     <Project Path="tests/Kun.Testing.EntityFrameworkCore.Tests/Kun.Testing.EntityFrameworkCore.Tests.csproj" />
     <Project Path="tests/Kun.Testing.Tests/Kun.Testing.Tests.csproj" />
     <Project Path="tests/Kun.Validation.Tests/Kun.Validation.Tests.csproj" />

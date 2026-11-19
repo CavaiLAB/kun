@@ -27,7 +27,6 @@
     <Project Path="src/Kun.Configuration.Apollo/Kun.Configuration.Apollo.csproj" />
     <Project Path="src/Kun.Configuration/Kun.Configuration.csproj" />
     <Project Path="src/Kun.Core/Kun.Core.csproj" />
-    <Project Path="src/Kun.Dapper/Kun.Dapper.csproj" />
     <Project Path="src/Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
     <Project Path="src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <Project Path="src/Kun.Errors/Kun.Errors.csproj" />
@@ -63,7 +62,6 @@
     <Project Path="tests/Kun.Caching.Tests/Kun.Caching.Tests.csproj" />
     <Project Path="tests/Kun.Configuration.Tests/Kun.Configuration.Tests.csproj" />
     <Project Path="tests/Kun.Core.Tests/Kun.Core.Tests.csproj" />
-    <Project Path="tests/Kun.Dapper.Tests/Kun.Dapper.Tests.csproj" />
     <Project Path="tests/Kun.EntityFrameworkCore.Tests/Kun.EntityFrameworkCore.Tests.csproj" />
     <Project Path="tests/Kun.Errors.Tests/Kun.Errors.Tests.csproj" />
     <Project Path="tests/Kun.EventBus.Abstractions.Tests/Kun.EventBus.Abstractions.Tests.csproj" />

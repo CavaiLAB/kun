@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Qian.Events;
+namespace Kun.EventBus;
 
 /// <summary>
 /// RabbitMQ 拓扑命名（PRD 7.10）：topic exchange <c>qian.events</c>，路由键为信封 subject；
@@ -9,7 +9,7 @@ namespace Qian.Events;
 /// 消费端另有每订阅一个死信队列 <c>q.&lt;service&gt;.&lt;subscription&gt;-dlq</c> 与按次数、间隔命名的重试队列 <c>&lt;主队列&gt;-retry-&lt;n&gt;-&lt;毫秒&gt;</c>；
 /// 这两种后缀保留给消费端，订阅名与实例名不能以它们结尾。
 /// </summary>
-public static partial class QianEventTopology
+public static partial class KunEventTopology
 {
     /// <summary>集成事件 topic exchange。</summary>
     public const string Exchange = "qian.events";

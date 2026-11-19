@@ -22,13 +22,15 @@ public sealed class ContractConsumerTests
     }
 
     [Fact]
-    public void ContractAssembly_ReferencedLibraries_ShouldContainOnlyCoreAndBcl()
+    public void ContractAssembly_ReferencedLibraries_ShouldContainOnlyKernelContractsAndBcl()
     {
         var assembly = typeof(IEventTypeRegistrar).Assembly;
 
         assembly.GetName().Name.Should().Be("Kun.EventBus.Abstractions");
+        // 内核档的三个契约：Kun.Core；组件外壳 Kun.Runtime（事件服务键与插件上下文）；错误契约 Kun.Errors。不引传输、Redis 或宿主实现。
         assembly.GetReferencedAssemblies().Select(item => item.Name)
-            .Should().OnlyContain(name => name == "Kun.Core" || name!.StartsWith("System.", StringComparison.Ordinal));
+            .Should().OnlyContain(name => name == "Kun.Core" || name == "Kun.Runtime" || name == "Kun.Errors"
+                || name!.StartsWith("System.", StringComparison.Ordinal));
         assembly.GetForwardedTypes().Should().Contain(typeof(IIntegrationEvent));
         typeof(IIntegrationEvent).Assembly.GetName().Name.Should().Be("Kun.Core");
     }

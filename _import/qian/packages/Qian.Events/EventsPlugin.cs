@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Kun.Plugin.Sdk;
@@ -21,16 +22,16 @@ public sealed class EventsPlugin : IKunPlugin
         ArgumentNullException.ThrowIfNull(ctx);
         ct.ThrowIfCancellationRequested();
         if (ctx.Scope != ScopeKey.Global && ctx.Scope.Kind != "tenant")
-            throw new QianEventsException(EventsErrors.Misconfigured, "Events 只允许挂载在 global 或 tenant scope。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "Events 只允许挂载在 global 或 tenant scope。");
         var settings = EventsConfiguration.Read(config);
         _ = ctx.Services.GetService<EventsHostMarker>()
-            ?? throw new QianEventsException(EventsErrors.Misconfigured, "宿主必须先以 AddQianEvents 装配信封写入端。");
+            ?? throw new KunEventsException(EventsErrors.Misconfigured, "宿主必须先以 AddQianEvents 装配信封写入端。");
         var options = ctx.Services.GetRequiredService<IOptions<QianEventsOptions>>().Value;
         if (options.OutboxLock != settings.Lock)
-            throw new QianEventsException(EventsErrors.Misconfigured, "组件配置 outbox.lock 与宿主装配的领取方式不一致。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "组件配置 outbox.lock 与宿主装配的领取方式不一致。");
         var broker = ctx.Services.GetService<EventsBrokerBinding>();
         if (settings.Broker is not null && broker?.Reference != settings.Broker)
-            throw new QianEventsException(EventsErrors.Misconfigured, "组件配置的 broker 引用没有在宿主绑定。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "组件配置的 broker 引用没有在宿主绑定。");
         var catalog = ctx.Services.GetService<ErrorCatalog>();
         if (catalog is not null)
         {
@@ -89,5 +90,5 @@ internal static class EventsConfiguration
             throw Invalid("broker 只能是宿主登记的 platform/dev secretRef，凭据不写进组件配置。");
     }
 
-    private static QianEventsException Invalid(string reason) => new(EventsErrors.Misconfigured, reason);
+    private static KunEventsException Invalid(string reason) => new(EventsErrors.Misconfigured, reason);
 }

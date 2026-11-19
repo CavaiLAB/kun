@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using Qian.Events;
+using Kun.EventBus;
 using Qian.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Tenancy;
@@ -30,10 +30,10 @@ public sealed class SignInPipelineTests(PostgresFixture postgres) : IClassFixtur
     private static Task<string> PersonValue(AccountsHost.Running host, Guid person, string expression) =>
         host.Text($"SELECT {expression} FROM plugin_qian_identity.persons WHERE id = @p::uuid", ("p", Id(person)));
 
-    private static async Task<IReadOnlyList<QianEventEnvelope>> Events(AccountsHost.Running host, string type)
+    private static async Task<IReadOnlyList<KunEventEnvelope>> Events(AccountsHost.Running host, string type)
     {
         var joined = await host.Text("SELECT coalesce(string_agg(payload, E'\\n' ORDER BY occurred_at, id), '') FROM plugin_qian_identity.outbox_messages WHERE event_type_id = @t", ("t", type));
-        return joined.Length == 0 ? [] : [.. joined.Split('\n').Select(QianEventEnvelope.Parse)];
+        return joined.Length == 0 ? [] : [.. joined.Split('\n').Select(KunEventEnvelope.Parse)];
     }
 
     [Fact]

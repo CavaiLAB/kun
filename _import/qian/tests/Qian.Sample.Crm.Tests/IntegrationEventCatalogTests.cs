@@ -44,7 +44,7 @@ public sealed class IntegrationEventCatalogTests
         foreach (var item in catalog)
         {
             Assert.Equal("object", item.PayloadSchema.GetProperty("type").GetString());
-            Assert.Equal(QianEventTopology.RoutingKey(item.Type), item.Subject);
+            Assert.Equal(KunEventTopology.RoutingKey(item.Type), item.Subject);
             // 事件标识、发生时间与追踪只在写入端生成的信封上（S1-DEC-020），payload 也不能再嵌一封信封。
             Assert.DoesNotContain(Members(item.PayloadSchema), member => member is "event_id" or "eventId" or "occurred_at" or "occurredAt" or "trace_parent" or "payload");
         }

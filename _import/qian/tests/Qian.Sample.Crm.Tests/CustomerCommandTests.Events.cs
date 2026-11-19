@@ -5,10 +5,10 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Events;
 using Qian.Testing.Containers;
 using RabbitMQ.Client;
 
@@ -25,11 +25,11 @@ public sealed partial class EventTests(PostgresFixture postgres) : CustomerComma
         await using var connection = await factory.CreateConnectionAsync(Ct);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: Ct);
         // 订阅方先声明队列再发布；绑定 subject（路由键），与 qian.events 的拓扑命名一致。
-        var queue = QianEventTopology.SubscriptionQueue("qian.sample.crm-tests", "customer-created");
-        await channel.ExchangeDeclareAsync(QianEventTopology.Exchange, ExchangeType.Topic, durable: true, cancellationToken: Ct);
+        var queue = KunEventTopology.SubscriptionQueue("qian.sample.crm-tests", "customer-created");
+        await channel.ExchangeDeclareAsync(KunEventTopology.Exchange, ExchangeType.Topic, durable: true, cancellationToken: Ct);
         await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false,
             new Dictionary<string, object?> { ["x-queue-type"] = "quorum" }, cancellationToken: Ct);
-        await channel.QueueBindAsync(queue, QianEventTopology.Exchange, QianEventTopology.RoutingKey(CrmEvents.CustomerCreated), cancellationToken: Ct);
+        await channel.QueueBindAsync(queue, KunEventTopology.Exchange, KunEventTopology.RoutingKey(CrmEvents.CustomerCreated), cancellationToken: Ct);
 
         await using var host = await Start(events: rabbit.ConnectionString);
         var data = host.App.Services.GetRequiredService<IDataService>(); var tenant = host.App.Services.GetRequiredService<ITenantContext>();
@@ -49,7 +49,7 @@ public sealed partial class EventTests(PostgresFixture postgres) : CustomerComma
             Assert.Equal(A, row.TenantId);
             payload = row.Payload;
         }
-        var envelope = QianEventEnvelope.Parse(payload);
+        var envelope = KunEventEnvelope.Parse(payload);
         Assert.Equal("crm.customer.created", envelope.Subject);
         Assert.Equal(Guid.Parse(A), envelope.TenantId);
         Assert.Equal("qian.sample.crm", envelope.Producer);

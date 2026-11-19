@@ -11,7 +11,7 @@
     <KunTierException Include="Kun.Tenancy.Abstractions" Rule="K" Until="B5" Reason="订阅端经 ITenantContextPropagator 恢复租户上下文；B5 上下文传播并入 Kun.MultiTenancy，最晚 B6 事件一域并轨" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />

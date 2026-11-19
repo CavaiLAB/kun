@@ -3,6 +3,7 @@ using System.Text.Json;
 using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.EntityFrameworkCore;
+using Kun.EventBus;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.Logging;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Kun.Data;
-using Qian.Events;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
@@ -195,7 +195,7 @@ public sealed partial class SuperadminBypassTests
             Assert.False(await roles.RevokeAsync("tenant.user", "user", "alice", "operator", Ct));
             Assert.Equal(4L, await Revision(data, A));
         }
-        var envelopes = (await Outbox(data, tenant, A)).Select(message => (message.Type, Envelope: QianEventEnvelope.Parse(message.Payload))).ToArray();
+        var envelopes = (await Outbox(data, tenant, A)).Select(message => (message.Type, Envelope: KunEventEnvelope.Parse(message.Payload))).ToArray();
         Assert.All(envelopes, item => Assert.Equal((item.Type, Guid.Parse(A), "qian.authz", EventActorKind.Service, "qian.authz", "operator"),
             (item.Envelope.Type, item.Envelope.TenantId, item.Envelope.Producer, item.Envelope.Actor.Kind, item.Envelope.Actor.Id, item.Envelope.Actor.OnBehalfOf)));
         var changes = envelopes.Select(item => (item.Type, item.Envelope.Payload.GetProperty("authzRevision").GetInt64(), item.Envelope.Payload.GetProperty("change").GetString(),

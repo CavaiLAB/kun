@@ -22,9 +22,9 @@ public static class IntegrationEventSchemas
         return registry.GetAll().OrderBy(item => item.EventId, StringComparer.Ordinal).Select(item =>
         {
             var typeInfo = registry.GetJsonTypeInfo(item.ClrType)
-                ?? throw new QianEventsException(EventsErrors.Misconfigured, "事件 " + item.EventId + " 必须以源生成 JsonTypeInfo 登记。");
+                ?? throw new KunEventsException(EventsErrors.Misconfigured, "事件 " + item.EventId + " 必须以源生成 JsonTypeInfo 登记。");
             if (!IntegrationEventTypes.TryParse(item.EventId, out var subject, out var version))
-                throw new QianEventsException(EventsErrors.Misconfigured, "事件 ID " + item.EventId + " 必须为小写点分的 <subject>.v<N>。");
+                throw new KunEventsException(EventsErrors.Misconfigured, "事件 ID " + item.EventId + " 必须为小写点分的 <subject>.v<N>。");
             Check(item.EventId, item.ClrType);
             return new IntegrationEventDescriptor(item.EventId, subject, version, Export(typeInfo));
         }).ToArray();
@@ -35,10 +35,10 @@ public static class IntegrationEventSchemas
     {
         ArgumentNullException.ThrowIfNull(typeInfo);
         if (typeInfo.Kind != JsonTypeInfoKind.Object)
-            throw new QianEventsException(EventsErrors.Misconfigured, "事件 payload 必须序列化为 JSON 对象：" + typeInfo.Type.Name);
+            throw new KunEventsException(EventsErrors.Misconfigured, "事件 payload 必须序列化为 JSON 对象：" + typeInfo.Type.Name);
         var schema = JsonSchemaExporter.GetJsonSchemaAsNode(typeInfo, new JsonSchemaExporterOptions { TreatNullObliviousAsNonNullable = true });
         if (schema is not JsonObject root)
-            throw new QianEventsException(EventsErrors.Misconfigured, "无法导出事件 payload Schema：" + typeInfo.Type.Name);
+            throw new KunEventsException(EventsErrors.Misconfigured, "无法导出事件 payload Schema：" + typeInfo.Type.Name);
         root.Insert(0, "$schema", Dialect);
         return JsonSerializer.SerializeToElement(root, JsonNodeContext.Default.JsonObject);
     }
@@ -48,7 +48,7 @@ public static class IntegrationEventSchemas
     {
         var declared = clrType.GetCustomAttribute<IntegrationEventIdAttribute>()?.EventType;
         if (declared is not null && declared != eventId)
-            throw new QianEventsException(EventsErrors.Misconfigured, "事件 " + clrType.Name + " 的 [IntegrationEventId] 与登记值不一致。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "事件 " + clrType.Name + " 的 [IntegrationEventId] 与登记值不一致。");
     }
 }
 

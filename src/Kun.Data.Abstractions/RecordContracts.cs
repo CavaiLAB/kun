@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.EventBus;
-using Qian.Events;
 
 namespace Kun.Data;
 
@@ -54,13 +53,13 @@ public sealed record RecordChangedPayload(string EntityCode, string RecordId, st
 /// </summary>
 public sealed class RecordChangedEvent
 {
-    private RecordChangedEvent(QianEventEnvelope envelope, RecordChangedPayload payload)
+    private RecordChangedEvent(KunEventEnvelope envelope, RecordChangedPayload payload)
     {
         Envelope = envelope;
         Payload = payload;
     }
     /// <summary>收到的信封；producer、actor、trace_parent 与因果链取自这里。</summary>
-    public QianEventEnvelope Envelope { get; }
+    public KunEventEnvelope Envelope { get; }
     /// <summary>类型化载荷，租户与主体已和信封核对一致。</summary>
     public RecordChangedPayload Payload { get; }
     /// <summary>信封 event_id，after Hook 的幂等键。</summary>
@@ -68,7 +67,7 @@ public sealed class RecordChangedEvent
     /// <summary>记录所属租户，等于信封 tenant_id 与载荷 tenantId。</summary>
     public Guid TenantId => Payload.TenantId;
     /// <summary>从信封派生；type 不符、平台级信封、载荷不符合契约，或载荷的租户与主体和信封不一致时拒绝。</summary>
-    public static RecordChangedEvent FromEnvelope(QianEventEnvelope envelope)
+    public static RecordChangedEvent FromEnvelope(KunEventEnvelope envelope)
     {
         ArgumentNullException.ThrowIfNull(envelope);
         envelope.Validate();

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
+using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.MultiTenancy;
@@ -47,7 +48,7 @@ public sealed class RecordEventEnvelopeTests
         Assert.False(root.GetProperty("payload").TryGetProperty("event_id", out _));
         Assert.Empty(EnvelopeSchemas.ValidateQian(root));
         Assert.True(RecordEnvelope.Value.Evaluate(root, Strict).IsValid, message.Payload);
-        var change = RecordChangedEvent.FromEnvelope(QianEventEnvelope.Parse(message.Payload));
+        var change = RecordChangedEvent.FromEnvelope(KunEventEnvelope.Parse(message.Payload));
         Assert.Equal(message.Id, change.EventId);
         Assert.Equal(Guid.Parse(Tenant), change.TenantId);
         Assert.Equal("qian.dynamic-data", change.Envelope.Producer);
@@ -72,7 +73,7 @@ public sealed class RecordEventEnvelopeTests
             scope.ServiceProvider.GetRequiredService<IOutboxWriter>().Enqueue(payload);
         }
         var message = Assert.Single(scope.ServiceProvider.GetRequiredService<IntegrationEventBuffer>().GetPendingMessages());
-        Assert.Throws<InvalidOperationException>(() => RecordChangedEvent.FromEnvelope(QianEventEnvelope.Parse(message.Payload)));
+        Assert.Throws<InvalidOperationException>(() => RecordChangedEvent.FromEnvelope(KunEventEnvelope.Parse(message.Payload)));
     }
 
     private static ServiceProvider Services()

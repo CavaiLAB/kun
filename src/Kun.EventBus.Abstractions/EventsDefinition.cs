@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Runtime;
 
-namespace Qian.Events;
+namespace Kun.EventBus;
 
 /// <summary>事件 seam 的稳定服务键；业务组件只依赖 Definition。</summary>
 public static class EventsDefinition

@@ -3,14 +3,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Qian.Events;
+namespace Kun.EventBus;
 
 /// <summary>
 /// 跨进程集成事件信封 v1，与 contracts/v0/event-envelope.schema.json 同形：Outbox 行与 RabbitMQ 消息体都是这份 JSON。
 /// payload 由事件目录里该 <see cref="Type"/> 的 Schema 约束，信封不约束其内容；进程内运行时事件不用本信封。
 /// </summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed partial class QianEventEnvelope
+public sealed partial class KunEventEnvelope
 {
     /// <summary>信封版本常量；破坏性变更升 v2。</summary>
     public const string CurrentVersion = "v1";
@@ -44,17 +44,17 @@ public sealed partial class QianEventEnvelope
     public string ToJson()
     {
         Validate();
-        return JsonSerializer.Serialize(this, EventEnvelopeJson.Default.QianEventEnvelope);
+        return JsonSerializer.Serialize(this, EventEnvelopeJson.Default.KunEventEnvelope);
     }
 
     /// <summary>解析并校验信封 JSON；不合法时以 <see cref="EventsErrors.PublishRejected"/> 拒绝。</summary>
-    public static QianEventEnvelope Parse(string json)
+    public static KunEventEnvelope Parse(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
-        QianEventEnvelope? envelope;
-        try { envelope = JsonSerializer.Deserialize(json, EventEnvelopeJson.Default.QianEventEnvelope); }
-        catch (JsonException error) { throw QianEventsException.Rejected("信封不是合法的 v1 JSON：" + error.Message); }
-        if (envelope is null) throw QianEventsException.Rejected("信封不能为 null。");
+        KunEventEnvelope? envelope;
+        try { envelope = JsonSerializer.Deserialize(json, EventEnvelopeJson.Default.KunEventEnvelope); }
+        catch (JsonException error) { throw KunEventsException.Rejected("信封不是合法的 v1 JSON：" + error.Message); }
+        if (envelope is null) throw KunEventsException.Rejected("信封不能为 null。");
         envelope.Validate();
         return envelope;
     }
@@ -84,7 +84,7 @@ public sealed partial class QianEventEnvelope
         !value.AsSpan(3, 32).SequenceEqual("00000000000000000000000000000000") && !value.AsSpan(36, 16).SequenceEqual("0000000000000000");
 
     [DoesNotReturn]
-    private static void Reject(string reason) => throw QianEventsException.Rejected(reason);
+    private static void Reject(string reason) => throw KunEventsException.Rejected(reason);
 
     [GeneratedRegex("^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$", RegexOptions.CultureInvariant)]
     private static partial Regex ComponentIdPattern();
@@ -113,10 +113,10 @@ public sealed class EventActor
 
     internal void Validate()
     {
-        if (!Enum.IsDefined(Kind)) throw QianEventsException.Rejected("actor.kind 只能是 user、service 或 agent。");
-        if (Id is not { Length: > 0 and <= 255 } || string.IsNullOrWhiteSpace(Id)) throw QianEventsException.Rejected("actor.id 必须为 1 到 255 个字符。");
+        if (!Enum.IsDefined(Kind)) throw KunEventsException.Rejected("actor.kind 只能是 user、service 或 agent。");
+        if (Id is not { Length: > 0 and <= 255 } || string.IsNullOrWhiteSpace(Id)) throw KunEventsException.Rejected("actor.id 必须为 1 到 255 个字符。");
         if (OnBehalfOf is not null && (OnBehalfOf.Length is 0 or > 255 || string.IsNullOrWhiteSpace(OnBehalfOf)))
-            throw QianEventsException.Rejected("actor.on_behalf_of 必须为 1 到 255 个字符。");
+            throw KunEventsException.Rejected("actor.on_behalf_of 必须为 1 到 255 个字符。");
     }
 
     /// <inheritdoc />
@@ -143,7 +143,10 @@ internal sealed class EventActorKindConverter : JsonConverter<EventActorKind>
 
     public override void Write(Utf8JsonWriter writer, EventActorKind value, JsonSerializerOptions options) => writer.WriteStringValue(value switch
     {
-        EventActorKind.User => "user", EventActorKind.Service => "service", EventActorKind.Agent => "agent", _ => throw new JsonException("未知主体类型。")
+        EventActorKind.User => "user",
+        EventActorKind.Service => "service",
+        EventActorKind.Agent => "agent",
+        _ => throw new JsonException("未知主体类型。")
     });
 }
 
@@ -179,5 +182,5 @@ internal sealed partial class OffsetTimestampConverter : JsonConverter<DateTimeO
 }
 
 [JsonSourceGenerationOptions(RespectNullableAnnotations = true)]
-[JsonSerializable(typeof(QianEventEnvelope))]
+[JsonSerializable(typeof(KunEventEnvelope))]
 internal sealed partial class EventEnvelopeJson : JsonSerializerContext;

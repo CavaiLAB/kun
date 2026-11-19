@@ -486,7 +486,7 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture re
         Assert.Null(index.SortedSetScore(RedisSessionIndex.PersonKey(person), sid.ToString("N")));
         var revoked = await SessionSupport.Revoked(host, sid);
         Assert.NotNull(revoked);
-        Assert.Equal((alpha.Id, "password_reset", Qian.Events.EventActorKind.Service), (revoked.TenantId, revoked.Payload.GetProperty("reason").GetString(), revoked.Actor.Kind));
+        Assert.Equal((alpha.Id, "password_reset", Kun.EventBus.EventActorKind.Service), (revoked.TenantId, revoked.Payload.GetProperty("reason").GetString(), revoked.Actor.Kind));
         await SessionSupport.Eventually(() => Task.FromResult(!host.LogoutTokens.IsEmpty), SessionSupport.Settle, "RP 收到后通道登出令牌");
         using var kun = host.Kun("web");
         var logout = await kun.ValidateLogoutTokenAsync(Assert.Single(host.LogoutTokens), Ct);

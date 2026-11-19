@@ -10,7 +10,7 @@ how the pieces fit together.
 
 | Requirement | Version | Notes |
 |---|---|---|
-| .NET SDK | 10.0.100 or later | Pinned in `global.json` |
+| .NET SDK | 10.0.404 | Verified with the roll-forward policy in `global.json` |
 | Docker Desktop | Any recent stable | Runs PostgreSQL, RabbitMQ, Redis containers |
 | curl and jq | curl 7.82+ | Send JSON requests and read the returned IDs |
 | Visual Studio Build Tools (Windows only) | Optional | Required only for AOT native publish |
@@ -19,7 +19,7 @@ Verify your SDK version:
 
 ```bash
 dotnet --version
-# must print 10.0.100 or higher
+# the walkthrough was tested with 10.0.404
 ```
 
 Verify Docker is running:
@@ -36,17 +36,14 @@ docker info
 ```bash
 git clone https://github.com/CavaiLAB/kun.git
 cd kun
-dotnet restore
-dotnet build -c Release
+dotnet restore Kun.slnx
+dotnet build Kun.slnx -c Release --no-restore
 ```
 
-A successful build produces zero errors. Warnings about AOT trimming in `Kun.EntityFrameworkCore`
-are expected and acceptable — that module is deliberately marked trim-safe rather than AOT.
-
-Run the test suite to confirm everything is green:
+Run the framework unit suite using the solution filter from CI:
 
 ```bash
-dotnet test -c Release --no-build
+dotnet test --solution tests/kun-unit.slnf -c Release --no-build
 ```
 
 ---
@@ -121,11 +118,11 @@ the event, open the Order resource's console logs and look for the Outbox publis
 `Would publish event 'order.completed.v1'` message. In this sample the publisher logs delivery.
 
 Without a request body, `POST /demo/orders` tries two random product IDs. Catalog rejects the
-reservation with `422 BUSINESS_RULE_VIOLATED`; the order and Outbox stay unchanged.
+reservation. Order returns `422 BUSINESS_RULE_VIOLATED` and writes no order or Outbox row.
 
 Open **Traces** in the Aspire Dashboard and filter by `order`. You will see the HTTP request, the
-`Mediator.Send PlaceOrderCommand` span, and the gRPC call to Catalog under the same trace. After the walkthrough, stop the AppHost and
-remove the temporary credentials directory.
+`Mediator.Send PlaceOrderCommand` span, and the gRPC call to Catalog under the same trace. After the
+walkthrough, stop the AppHost and remove the temporary credentials directory.
 
 ---
 

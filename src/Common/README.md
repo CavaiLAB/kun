@@ -11,7 +11,7 @@
 
 - 只依赖 BCL，不引用任何 Qian 包或第三方包。链接进哪个包都不改变该包的依赖图，依赖图门禁照常只看 csproj 的引用。
 - 每个包各编译一份，静态状态（如编译缓存）按程序集各自独立。
-- 行为以 `tests/Qian.Common.Tests` 为准，它直接编译这里的源文件；各包另测自己的接入方式，如错误码与失败关闭。
+- 行为以 `tests/Kun.Common.Tests` 为准，它直接编译这里的源文件；各包另测自己的接入方式，如错误码与失败关闭。
 - 需要对外公开时，在合适的包里新增公开 API 并登记 PublicAPI 文件，不要让外部代码依赖这里的类型。
 
 链接写法：
@@ -37,7 +37,7 @@
 - 匹配不交给 JS 正则：`KeyPattern` 把翻译结果构造成自动机逐码元模拟，与 NonBacktracking 一样线性时间。折叠会让原本互斥的分支重叠，例如 `^(?:[a-z]|[A-Z])+$` 折叠后两个分支相同，V8 的回溯引擎遇到以 `!` 结尾的长键名会指数级变慢；未折叠的 `^(a|a)*$` 同样如此。`KeyPattern` 也是 profile 装配时 Ajv 的正则引擎（`code.regExp`）。
 - 键名相等用 `sameKey`，按 .NET 的 `string.Equals(…, StringComparison.OrdinalIgnoreCase)` 判断，含增补平面的大小写对与残缺代理项的处理；不用 JS 的 `toUpperCase` / `toLowerCase`，它们会把 `ß` 变成 `SS`，也把 `ſ`、`ı`、开尔文符号归到 ASCII 字母。
 
-两份文件由 `tests/Qian.Common.Tests` 按本实现与 .NET 比较器生成，测试比对仓库里的内容：
+两份文件由 `tests/Kun.Common.Tests` 按本实现与 .NET 比较器生成，测试比对仓库里的内容：
 
 - `packages/qian-surfaces/src/ordinal-case.ts`：OrdinalIgnoreCase 等价类表（BMP 与增补平面），只收录各宿主一致的部分（见下文）；
 - `tck/profiles/key-vectors.json`：模式的翻译结果、在固定键名上的匹配（不折叠与折叠，由 NonBacktracking 执行）、在值层语料上的匹配（不折叠，含行终止符、非 ASCII 空白、代理对与残缺代理项）、全部 BMP 码元的稳定性与键名相等向量。@qian/surfaces 的 `test/schema-pattern.test.mjs` 逐条比对，值层另与 V8 不带标志的 `RegExp` 逐例对照。
@@ -47,7 +47,7 @@ OrdinalIgnoreCase 在 Linux 与 macOS 上按宿主 ICU 的大小写映射判断�
 改了 `SchemaPattern.cs` 或升级 .NET 后，重新生成并同步 TS 移植，直到两端测试都通过。宿主 ICU 又新增大小写对时，测试在该宿主上会列出多出的等价类，把新字母补进 `SchemaPatternTests` 的名单：
 
 ```bash
-QIAN_UPDATE_VECTORS=1 dotnet run --project tests/Qian.Common.Tests -c Release
+QIAN_UPDATE_VECTORS=1 dotnet run --project tests/Kun.Common.Tests -c Release
 pnpm --filter @qian/surfaces build && pnpm --filter @qian/surfaces test && pnpm --filter qian build && pnpm --filter qian test
 ```
 

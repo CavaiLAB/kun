@@ -372,7 +372,7 @@ class RealGraphTests(unittest.TestCase):
                 self.assertIn(package_id, self.packages, "SDK 包必须在 Kun.slnx 里，依赖门禁才会检查它")
                 closure = self.closure(package_id)
                 self.assertEqual([], self.platform_providers(closure))
-                self.assertFalse({"qian.registry", "qian.lifecycle", "qian.capabilities"} & {n.lower() for n in closure})
+                self.assertFalse({"kun.registry", "kun.lifecycle", "kun.capabilities"} & {n.lower() for n in closure})
                 self.assertEqual([], self.violations_of(package_id))
                 if package_id != "Kun.Plugin.Sdk.Generators":
                     self.assertIn("Kun.Runtime", closure)  # 读到的是真实依赖图而不是空图

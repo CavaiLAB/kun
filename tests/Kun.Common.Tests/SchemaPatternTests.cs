@@ -381,7 +381,7 @@ public sealed class SchemaPatternTests
         }
         var lines = groups.Values.Select(members => members.Where(code => !IcuDependentCase.Contains(code)).ToList()).Where(members => members.Count > 1).OrderBy(members => members[0])
             .Select(members => "[" + string.Join(",", members.Select(code => "0x" + code.ToString("X4", CultureInfo.InvariantCulture))) + "]");
-        return "// 由 tests/Qian.Common.Tests 的 SchemaPatternTests 按 .NET StringComparer.OrdinalIgnoreCase 生成，不要手改；重新生成见 packages/Common/README.md。\n" +
+        return "// 由 tests/Kun.Common.Tests 的 SchemaPatternTests 按 .NET StringComparer.OrdinalIgnoreCase 生成，不要手改；重新生成见 src/Common/README.md。\n" +
             "// 每项是一个含两个及以上码点的等价类，码点升序；BMP 码元与增补平面码点不会同类，未列出的码点自成一类。\n" +
             "// 只收录各宿主 ICU 一致的部分：Unicode 16.0 起新增的大小写字母（如 U+A7CB）随宿主 ICU 而异，这里不列，同 ICU 74 自成一类。\n" +
             "export const ordinalIgnoreCaseClasses:readonly (readonly number[])[]=[\n" + string.Join(",\n", lines) + "\n];\n";

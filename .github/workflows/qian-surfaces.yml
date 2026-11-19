@@ -57,7 +57,7 @@ jobs:
       - name: TypeScript 样例与 JCS
         run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/hotreload-ts.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/surfaces-ts.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/markets-ts.json" pnpm --filter @qian/surfaces test
       - name: .NET 样例、JCS 与 scope/effect
-        run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/hotreload-dotnet.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/surfaces-dotnet.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/markets-dotnet.json" dotnet run --project tests/Qian.Surfaces.Tests -c Release
+        run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/hotreload-dotnet.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/surfaces-dotnet.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/markets-dotnet.json" dotnet run --project ../../tests/Kun.Surfaces.Tests -c Release
       - name: 精确比较自动热重载场景
         run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/hotreload-dotnet.json TestResults/hotreload-ts.json
       - name: 精确比较诊断
@@ -69,7 +69,7 @@ jobs:
           pnpm --filter qian... build
           QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/skill-only-ts.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/profiles-ts.json" pnpm --filter qian test
       - name: profile .NET 装配与真实 Runtime 装载
-        run: QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/skill-only-dotnet.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/profiles-dotnet.json" dotnet run --project tests/Qian.Profiles.Tests -c Release
+        run: QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/skill-only-dotnet.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/profiles-dotnet.json" dotnet run --project ../../tests/Kun.Profiles.Tests -c Release
       - name: 精确比较 minimal 无代码技能与隔离
         run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/skill-only-dotnet.json TestResults/skill-only-ts.json
       - name: 精确比较 profile 来源、配置和诊断

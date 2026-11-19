@@ -54,7 +54,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm --filter qian... build
       - name: 语义绑定及错误反例
-        run: dotnet run --project tests/Qian.Docs.Tests -c Release
+        run: dotnet run --project ../../tests/Kun.Docs.Tests -c Release
       - name: CLI 与文档模板验收
         run: pnpm --filter qian test
       - name: 当前源码声明与调用模式必须一致

@@ -41,7 +41,7 @@ test('真实 CLI 从代码组件仅装技能，不取代码依赖；投影可被
   assert.equal(record.digest,original);assert.notEqual(record.deliveryDigest,original);assert.deepEqual(record.packages,{nuget:[],npm:[]});
   assert.deepEqual(record.surfaces,['skills']);assert.equal(JSON.parse(run(f.host,'add','mixed','--surfaces','skills','--no-code').stdout).status,'unchanged');assert.equal(readFileSync(lockFile,'utf8'),lock);
   const probe=path.join(f.root,'dotnet-probe'),xml=value=>value.replaceAll('&','&amp;').replaceAll('"','&quot;');
-  write(probe,'Probe.csproj','<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings></PropertyGroup><ItemGroup><ProjectReference Include="'+xml(path.join(repo,'packages/Qian.Surfaces/Qian.Surfaces.csproj'))+'" /></ItemGroup></Project>');
+  write(probe,'Probe.csproj','<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings></PropertyGroup><ItemGroup><ProjectReference Include="'+xml(path.resolve(repo,'../../src/Kun.Surfaces/Kun.Surfaces.csproj'))+'" /></ItemGroup></Project>');
   write(probe,'Program.cs',`using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;

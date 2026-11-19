@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
 using Qian.Config.Apollo;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 
 namespace Qian.Config.Tests;
@@ -115,7 +115,7 @@ public sealed class ReleaseAuditTests(ApolloFixture apollo) : IClassFixture<Apol
         public Task<AuditChainVerification> VerifyPlatformAsync(IPluginContext producer, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
-    private sealed class AuditProvider(RecordingAudit audit) : IQianPlugin
+    private sealed class AuditProvider(RecordingAudit audit) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

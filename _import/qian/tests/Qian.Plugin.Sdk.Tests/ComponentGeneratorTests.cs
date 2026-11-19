@@ -11,9 +11,9 @@ public sealed class ComponentGeneratorTests
         .Select(path => MetadataReference.CreateFromFile(path)).ToArray();
     private const string Source = """
         using System; using System.Threading; using System.Threading.Tasks; using System.Collections.Generic;
-        using System.Text.Json; using Qian.Runtime; using Qian.Plugin.Sdk;
+        using System.Text.Json; using Kun.Runtime; using Qian.Plugin.Sdk;
         [QianPlugin("qian.example")]
-        public sealed class Plugin : IQianPlugin
+        public sealed class Plugin : IKunPlugin
         {
             public IReadOnlyList<ServiceKey> Inject => [];
             public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
@@ -91,14 +91,14 @@ public sealed class ComponentGeneratorTests
     public void 稳定委托入口必须转交当前全部参数且不漏执行(string call, bool valid)
     {
         var source = """
-            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Qian.Runtime; using Qian.Plugin.Sdk;
+            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Qian.Plugin.Sdk;
             [QianPlugin("qian.example")][DelegatePlugin(typeof(Implementation))][Provides(typeof(Keys), nameof(Keys.Value))]
-            public sealed class Entry : IQianPlugin {
+            public sealed class Entry : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => CALL;
             }
             public static class Keys { public static readonly ServiceKey Value = new("Value"); }
-            public sealed class Implementation : IQianPlugin {
+            public sealed class Implementation : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) {ctx.Provide(Keys.Value, new object()); return ValueTask.CompletedTask;}
             }
@@ -111,7 +111,7 @@ public sealed class ComponentGeneratorTests
     public void 重复组件ID不能生成竞争入口()
     {
         var source = Source + """
-            [QianPlugin("qian.example")] public sealed class Second : IQianPlugin {
+            [QianPlugin("qian.example")] public sealed class Second : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
             }
@@ -129,19 +129,19 @@ public sealed class ComponentGeneratorTests
     public void 共享事件要求唯一拥有者_不能借此共享权限或吞掉空声明(string scenario, bool valid)
     {
         var source = """
-            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Qian.Runtime; using Qian.Plugin.Sdk;
+            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Qian.Plugin.Sdk;
             [QianPlugin("qian.owner", MetadataTypes = [typeof(Events)])]
-            public sealed class Owner : IQianPlugin {
+            public sealed class Owner : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
             }
             [QianPlugin("qian.consumer")][SharedEvents(typeof(Events), "qian.owner")]
-            public sealed class Consumer : IQianPlugin {
+            public sealed class Consumer : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
             }
             public static class Events {
-                [QianEvent(Mode = DispatchMode.Emit)] public static readonly QianEvent<string, object> Reloaded = QianEvent.Define<string, object>("shared/reloaded", DispatchMode.Emit);
+                [KunEvent(Mode = DispatchMode.Emit)] public static readonly KunEvent<string, object> Reloaded = KunEvent.Define<string, object>("shared/reloaded", DispatchMode.Emit);
             }
             """;
         source = scenario switch
@@ -150,14 +150,14 @@ public sealed class ComponentGeneratorTests
             "wrong-owner" => source.Replace("SharedEvents(typeof(Events), \"qian.owner\")", "SharedEvents(typeof(Events), \"qian.missing\")", StringComparison.Ordinal),
             "duplicate-owner" => source.Replace("QianPlugin(\"qian.consumer\")", "QianPlugin(\"qian.consumer\", MetadataTypes = [typeof(Events)])", StringComparison.Ordinal),
             "permissions" => source.Replace("public static class Events", "[Qian.Authz.Abstractions.Permission(\"notes\", \"read\")] public static class Events", StringComparison.Ordinal),
-            "empty" => source.Replace("[QianEvent(Mode = DispatchMode.Emit)]", "", StringComparison.Ordinal),
+            "empty" => source.Replace("[KunEvent(Mode = DispatchMode.Emit)]", "", StringComparison.Ordinal),
             _ => source
         };
         var result = Generate(source);
         if (valid)
         {
             Assert.Empty(result.Diagnostics); Assert.Equal(2, result.GeneratedTrees.Length);
-            Assert.All(result.GeneratedTrees, tree => Assert.Contains("global::Events.Reloaded, (global::Qian.Runtime.DispatchMode)0, \"Events.Reloaded\", \"qian.owner\"", tree.ToString(), StringComparison.Ordinal));
+            Assert.All(result.GeneratedTrees, tree => Assert.Contains("global::Events.Reloaded, (global::Kun.Runtime.DispatchMode)0, \"Events.Reloaded\", \"qian.owner\"", tree.ToString(), StringComparison.Ordinal));
         }
         else Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "QIANSDK002");
     }

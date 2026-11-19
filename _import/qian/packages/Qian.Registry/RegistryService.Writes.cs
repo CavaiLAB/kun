@@ -2,7 +2,7 @@ using System.Text.Json;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Registry;

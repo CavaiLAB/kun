@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces.Tests;
@@ -86,7 +86,7 @@ public sealed class HotReloadTests
         while (current is not null && !File.Exists(Path.Combine(current.FullName, "Qian.slnf"))) current = current.Parent;
         return current?.FullName ?? throw new InvalidOperationException("未找到共用 TCK。");
     }
-    private sealed class CodePlugin : IQianPlugin
+    private sealed class CodePlugin : IKunPlugin
     {
         internal int Applies; internal int Disposals;
         public IReadOnlyList<ServiceKey> Inject => [];

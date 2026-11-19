@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Qian.Data;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
@@ -95,6 +96,7 @@ public sealed partial class PatchPersistenceTests
         {
             await AssertCode(PlatformErrors.NotFound, () => running.Registry.SynchronizeAsync(TenantB, Ct).AsTask());
             await AssertCode(PlatformErrors.NotFound, () => running.Registry.SynchronizeAsync(new ScopeKey("app", "unproven"), Ct).AsTask());
+            await AssertCode(PlatformErrors.NotFound, () => running.Registry.SynchronizeAsync(new ScopeKey("workspace", "x"), Ct).AsTask());
             var repository = Repository(running.Host, tenant);
             var writer = new RegistryPatchWriter(repository, new RegistryProfileComposer(repository, new ProfileLoader(new SurfaceValidator()), running.Profile.Options));
             await AssertCode(PlatformErrors.InputInvalid, () => writer.PutAsync(TenantA, "registry", Patch("""{"id":"registry","disabled":true}"""), 0, "actor", Ct));
@@ -154,7 +156,7 @@ public sealed partial class PatchPersistenceTests
         {
             var identity = entry.Plugin.Split('@', 2);
             var scope = entry.Scope == "global" ? ScopeKey.Global : new ScopeKey(entry.Scope.Split(':', 2)[0], entry.Scope.Split(':', 2)[1]);
-            IQianPlugin plugin; IReadOnlyList<ServiceKey> provides;
+            IKunPlugin plugin; IReadOnlyList<ServiceKey> provides;
             if (entry.Plugin.StartsWith("qian.data@", StringComparison.Ordinal)) { plugin = new DataPlugin(); provides = [DataDefinition.Key]; }
             else if (entry.Plugin.StartsWith("qian.registry@", StringComparison.Ordinal)) { plugin = registry!; provides = [RegistryDefinition.Key]; }
             else
@@ -181,6 +183,30 @@ public sealed partial class PatchPersistenceTests
         var root = runtime.GetContext("registry", ScopeKey.Global); var service = root.Registry();
         if (start) await service.StartAsync(Ct);
         return new RunningRegistry(host, profile, runtime, root, service, logger);
+    }
+
+    // 内核的 ScopeKey 只查语法，种类由平台档认（ScopeKinds）。注册表的同步与写入入口先只认本租户的 tenant scope，
+    // 调和器与持久化各自再按种类拒绝一次；下面两条绕过入口直接调用，各钉一处。
+    [Fact]
+    public async Task 调和器拒绝平台不认识的scope种类_给NOT_FOUND()
+    {
+        var tenant = new AsyncLocalTenantContext();
+        await using var running = await CreateRunningRegistry(tenant);
+        var reconciler = (RegistryScopeReconciler)typeof(RegistryService).GetField("_scopes", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(running.Registry)!;
+        using (tenant.BeginScope("a"))
+            await AssertCode(PlatformErrors.NotFound, () => reconciler.ActivateAsync("a", new ScopeKey("workspace", "x"), Ct).AsTask());
+    }
+
+    [Fact]
+    public async Task 持久化拒绝平台不认识的scope种类_给scope的输入错误()
+    {
+        var tenant = new AsyncLocalTenantContext();
+        await using var running = await CreateRunningRegistry(tenant);
+        using (tenant.BeginScope("a"))
+        {
+            var invalid = await Assert.ThrowsAsync<ErrorException>(() => Repository(running.Host, tenant).ListAsync(new ScopeKey("workspace", "x"), Ct));
+            Assert.Equal((PlatformErrors.InputInvalid.Code, "registry/scope-patches.json#/scope"), (invalid.Error.Code.Code, Assert.Single(invalid.Error.Errors).Pointer));
+        }
     }
 
     private static async Task WithinFiveSeconds(Func<bool> ready)

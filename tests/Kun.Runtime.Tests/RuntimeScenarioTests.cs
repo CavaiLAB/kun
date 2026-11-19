@@ -1,15 +1,15 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
+using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
-using Kun.Errors;
 using Qian.Surfaces;
 using YamlDotNet.Serialization;
 
-namespace Qian.Runtime.Tests;
+namespace Kun.Runtime.Tests;
 
 public sealed class RuntimeScenarioTests
 {
@@ -29,7 +29,9 @@ public sealed class RuntimeScenarioTests
         // 每个场景先加载交付的 minimal 文件和真实表面校验器，不用虚构的空 profile。
         var baseline = new ProfileLoader(new SurfaceValidator()).Load(new ProfileLoadOptions
         {
-            WorkingDirectory = FindRoot(), Profile = "minimal", IncludeHomePatch = false
+            WorkingDirectory = FindRoot(),
+            Profile = "minimal",
+            IncludeHomePatch = false
         });
         Assert.True(baseline.IsValid);
         Assert.Empty(baseline.Snapshot!.Entries);
@@ -156,9 +158,10 @@ public sealed class RuntimeScenarioTests
 
     private static string FindRoot()
     {
+        // 场景引用的 profile 与组件在过渡目录 _import/qian 下。
         var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null && !File.Exists(Path.Combine(current.FullName, "Qian.slnf"))) current = current.Parent;
-        return current?.FullName ?? throw new InvalidOperationException("找不到仓库。");
+        while (current is not null && !File.Exists(Path.Combine(current.FullName, "Kun.slnx"))) current = current.Parent;
+        return current is null ? throw new InvalidOperationException("找不到仓库。") : Path.Combine(current.FullName, "_import", "qian");
     }
 
     private sealed class ScenarioLogger : ILogger
@@ -210,7 +213,7 @@ public sealed class RuntimeScenarioTests
         }
     }
 
-    private sealed class ScenarioPlugin(JsonElement entry, ConcurrentQueue<string> trace, ScenarioEvents events, ConcurrentDictionary<string, IRegistrationHandle<string>> handles, ScenarioGates gates) : IQianPlugin
+    private sealed class ScenarioPlugin(JsonElement entry, ConcurrentQueue<string> trace, ScenarioEvents events, ConcurrentDictionary<string, IRegistrationHandle<string>> handles, ScenarioGates gates) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => Keys(entry, "inject");
 
@@ -266,8 +269,8 @@ public sealed class RuntimeScenarioTests
 
     private sealed class ScenarioEvents
     {
-        private readonly Dictionary<string, QianEvent<string, string?>> _single = [];
-        private readonly Dictionary<string, QianEvent<string, IReadOnlyList<string?>>> _many = [];
+        private readonly Dictionary<string, KunEvent<string, string?>> _single = [];
+        private readonly Dictionary<string, KunEvent<string, IReadOnlyList<string?>>> _many = [];
         private readonly ConcurrentQueue<string> _trace;
 
         internal ScenarioEvents(JsonElement scenario, ConcurrentQueue<string> trace)
@@ -278,8 +281,8 @@ public sealed class RuntimeScenarioTests
             {
                 var name = evt.GetProperty("name").GetString()!;
                 var mode = Enum.Parse<DispatchMode>(evt.GetProperty("mode").GetString()!, true);
-                if (mode is DispatchMode.Parallel or DispatchMode.Serial) _many[name] = QianEvent.Define<string, IReadOnlyList<string?>>(name, mode);
-                else _single[name] = QianEvent.Define<string, string?>(name, mode);
+                if (mode is DispatchMode.Parallel or DispatchMode.Serial) _many[name] = KunEvent.Define<string, IReadOnlyList<string?>>(name, mode);
+                else _single[name] = KunEvent.Define<string, string?>(name, mode);
             }
         }
 

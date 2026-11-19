@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.Containers;
 
@@ -125,9 +125,9 @@ public sealed partial class TenantDirectoryTests(PostgresFixture postgres) : ICl
         Assert.ThrowsAny<Exception>(() => consumer.Context!.Tenancy());
         await Assert.ThrowsAsync<ObjectDisposedException>(() => directory.GetAsync("a", Ct).AsTask());
     }
-    private static PluginDefinition Definition(string id, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides) => new(
+    private static PluginDefinition Definition(string id, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides) => new(
         new PluginEntry(id, "qian." + id, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), plugin, provides);
-    private sealed class Consumer : IQianPlugin
+    private sealed class Consumer : IKunPlugin
     {
         public IPluginContext? Context { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [TenancyDefinition.Key];

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
@@ -10,9 +10,9 @@ namespace Qian.Surfaces;
 public sealed record SurfaceReloadStatus(long Revision, bool RestartRequired, IReadOnlyList<string> ChangedCodeFiles, IReadOnlyList<SurfaceDiagnostic> Diagnostics);
 
 /// <summary>在同一次代码 Apply 旁登记和刷新声明式表面，代码变化只报告需要重启。</summary>
-public sealed class HotReloadSurfacePlugin : IQianPlugin
+public sealed class HotReloadSurfacePlugin : IKunPlugin
 {
-    private readonly IQianPlugin? _code;
+    private readonly IKunPlugin? _code;
     private readonly string _directory;
     private readonly ISurfaceValidator _validator;
     private readonly SurfaceValidationOptions _options;
@@ -20,7 +20,7 @@ public sealed class HotReloadSurfacePlugin : IQianPlugin
     private readonly Lock _gate = new();
     private SurfaceReloadStatus _status = new(0, false, [], []);
     /// <summary>目录先经过共享校验；code 为 null 时是无代码组件。</summary>
-    public HotReloadSurfacePlugin(string directory, ISurfaceValidator validator, SurfaceValidationOptions options, IQianPlugin? code = null)
+    public HotReloadSurfacePlugin(string directory, ISurfaceValidator validator, SurfaceValidationOptions options, IKunPlugin? code = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directory); ArgumentNullException.ThrowIfNull(validator); ArgumentNullException.ThrowIfNull(options);
         _directory = Path.GetFullPath(directory); _validator = validator; _options = options; _code = code;

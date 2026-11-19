@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.NativeAudit;
 
@@ -55,10 +55,10 @@ internal sealed class NativeAuditTestHost(IHost host, PluginLoader loader, Async
         Define("audit", "qian.audit.native", new NativeAuditComponent(), [AuditDefinition.Key, CommandPolicies.AuditKey], auditScope,
             JsonSerializer.SerializeToElement(new { tenantBinding = "audit_tenant", platformBinding = platformBinding ? "audit_platform" : null,
                 tenantRole = database.Roles.TenantLogin, platformRole = database.Roles.PlatformLogin, functionOwner = database.Roles.FunctionOwner, maxAttempts }))], ct);
-    internal static PluginDefinition Define(string id, string pluginId, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides, ScopeKey scope, JsonElement config) =>
+    internal static PluginDefinition Define(string id, string pluginId, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, ScopeKey scope, JsonElement config) =>
         new(new PluginEntry(id, pluginId, "1.0.0", scope, 0, config), plugin, provides);
     public async ValueTask DisposeAsync() { await loader.DisposeAsync(); await host.StopAsync(); host.Dispose(); }
-    private sealed class Consumer : IQianPlugin
+    private sealed class Consumer : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [AuditDefinition.Key, NativeDataDefinition.Key];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

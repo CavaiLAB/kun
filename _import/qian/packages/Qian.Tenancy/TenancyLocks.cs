@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Tenancy;
 

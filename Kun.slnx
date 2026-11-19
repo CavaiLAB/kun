@@ -43,6 +43,7 @@
     <Project Path="src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <Project Path="src/Kun.Observability/Kun.Observability.csproj" />
     <Project Path="src/Kun.RateLimit/Kun.RateLimit.csproj" />
+    <Project Path="src/Kun.Runtime/Kun.Runtime.csproj" />
     <Project Path="src/Kun.Saga/Kun.Saga.csproj" />
     <Project Path="src/Kun.Sandbox/Kun.Sandbox.csproj" />
     <Project Path="src/Kun.Security/Kun.Security.csproj" />
@@ -76,6 +77,7 @@
     <Project Path="tests/Kun.MultiTenancy.Tests/Kun.MultiTenancy.Tests.csproj" />
     <Project Path="tests/Kun.Observability.Tests/Kun.Observability.Tests.csproj" />
     <Project Path="tests/Kun.RateLimit.Tests/Kun.RateLimit.Tests.csproj" />
+    <Project Path="tests/Kun.Runtime.Tests/Kun.Runtime.Tests.csproj" />
     <Project Path="tests/Kun.Saga.Tests/Kun.Saga.Tests.csproj" />
     <Project Path="tests/Kun.Sandbox.Tests/Kun.Sandbox.Tests.csproj" />
     <Project Path="tests/Kun.Security.Tests/Kun.Security.Tests.csproj" />
@@ -141,7 +143,6 @@
     <Project Path="_import/qian/packages/Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Registry.AspNetCore/Qian.Registry.AspNetCore.csproj" />
     <Project Path="_import/qian/packages/Qian.Registry/Qian.Registry.csproj" />
-    <Project Path="_import/qian/packages/Qian.Runtime/Qian.Runtime.csproj" />
     <Project Path="_import/qian/packages/Qian.Scheduler.Abstractions/Qian.Scheduler.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Scheduler/Qian.Scheduler.csproj" />
     <Project Path="_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
@@ -183,7 +184,6 @@
     <Project Path="_import/qian/tests/Qian.Plugin.Sdk.Tests/Qian.Plugin.Sdk.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Profiles.Tests/Qian.Profiles.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Registry.Tests/Qian.Registry.Tests.csproj" />
-    <Project Path="_import/qian/tests/Qian.Runtime.Tests/Qian.Runtime.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Sample.Crm.Tests/Qian.Sample.Crm.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Scheduler.TestHost/Qian.Scheduler.TestHost.csproj" />
     <Project Path="_import/qian/tests/Qian.Scheduler.Tests/Qian.Scheduler.Tests.csproj" />

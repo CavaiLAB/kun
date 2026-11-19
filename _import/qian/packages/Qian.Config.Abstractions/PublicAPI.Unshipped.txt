@@ -4,12 +4,12 @@ static readonly Qian.Config.SecretErrors.SchemaInvalid -> Kun.Errors.ErrorCode!
 Qian.Config.IConfigService.ReadSection(string! path) -> System.Collections.Generic.IReadOnlyDictionary<string!, string?>!
 Qian.Config.IConfigService
 Qian.Config.ConfigDefinition
-static readonly Qian.Config.ConfigDefinition.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Config.ConfigDefinition.Key -> Kun.Runtime.ServiceKey
 static readonly Qian.Config.ConfigErrors.BootstrapInvalid -> Kun.Errors.ErrorCode!
 Qian.Config.IConfigService.GetValue(string! key) -> string?
 static readonly Qian.Config.ConfigErrors.RequiredMissing -> Kun.Errors.ErrorCode!
 Qian.Config.IConfigService.GetRequiredValue(string! key) -> string!
-static Qian.Config.ConfigDefinition.Config(this Qian.Runtime.IPluginContext! context) -> Qian.Config.IConfigService!
+static Qian.Config.ConfigDefinition.Config(this Kun.Runtime.IPluginContext! context) -> Qian.Config.IConfigService!
 Qian.Config.IConfigService.GetReloadToken() -> Microsoft.Extensions.Primitives.IChangeToken!
 Qian.Config.ConfigErrors
 static Qian.Config.ConfigErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
@@ -61,7 +61,7 @@ Qian.Config.IConfigService.Secrets.get -> Qian.Config.ISecretResolverFactory?
 Qian.Config.ISecretAccessObserver.RecordAsync(Qian.Config.SecretAccessEvent! access, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 Qian.Config.ISecretResolver.ResolveAsync(string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Config.SecretValue!>
 Qian.Config.SecretAccessEvent.SecretAccessEvent(string! Caller, string! Reference, string? TenantId, bool Allowed, string! Outcome) -> void
-Qian.Config.ISecretResolverFactory.ForPlugin(Qian.Runtime.IPluginContext! context) -> Qian.Config.ISecretResolver!
+Qian.Config.ISecretResolverFactory.ForPlugin(Kun.Runtime.IPluginContext! context) -> Qian.Config.ISecretResolver!
 Qian.Config.SecretGrant.SecretGrant(string! Name, string! Scope) -> void
 static Qian.Config.SecretErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 Qian.Config.ISecretResolverFactory.ForHost(string! policyId, Kun.Core.MultiTenancy.ITenantContext? tenantContext = null) -> Qian.Config.ISecretResolver!
@@ -71,7 +71,7 @@ Qian.Config.SecretValue.SecretValue(System.ReadOnlySpan<byte> value) -> void
 Qian.Config.SecretReference.Path.get -> string!
 Qian.Config.SecretValue.RevealUtf8() -> string!
 override Qian.Config.SecretValueJsonConverter.Write(System.Text.Json.Utf8JsonWriter! writer, Qian.Config.SecretValue! value, System.Text.Json.JsonSerializerOptions! options) -> void
-static Qian.Config.ConfigDefinition.ResolveSecretAsync(this Qian.Runtime.IPluginContext! context, string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Config.SecretValue!>
+static Qian.Config.ConfigDefinition.ResolveSecretAsync(this Kun.Runtime.IPluginContext! context, string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Config.SecretValue!>
 Qian.Config.SecretValue.Bytes.get -> System.ReadOnlyMemory<byte>
 override Qian.Config.SecretValue.ToString() -> string!
 Qian.Config.SecretValue.Dispose() -> void
@@ -126,7 +126,7 @@ override Qian.Config.ConfigReloadFailed.ToString() -> string!
 static Qian.Config.ConfigReloadFailed.operator !=(Qian.Config.ConfigReloadFailed? left, Qian.Config.ConfigReloadFailed? right) -> bool
 static Qian.Config.ConfigReloadFailed.operator ==(Qian.Config.ConfigReloadFailed? left, Qian.Config.ConfigReloadFailed? right) -> bool
 static readonly Qian.Config.ConfigErrors.ReloadRejected -> Kun.Errors.ErrorCode!
-static readonly Qian.Config.ConfigRuntimeEvents.ReloadFailed -> Qian.Runtime.QianEvent<Qian.Config.ConfigReloadFailed!, object?>!
+static readonly Qian.Config.ConfigRuntimeEvents.ReloadFailed -> Kun.Runtime.KunEvent<Qian.Config.ConfigReloadFailed!, object?>!
 
 Qian.Config.IFeatureFlags
 Qian.Config.IFeatureFlags.IsEnabled(string! name, System.Guid tenantId) -> bool
@@ -159,6 +159,6 @@ Qian.Config.IFeatureFlagDrafts
 Qian.Config.IFeatureFlagDrafts.SetAsync(Qian.Config.FeatureFlagDraft! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Config.FeatureFlagDraftResult!>
 const Qian.Config.FeatureFlagManagement.SetCapabilityId = "qian.config.flags/flags.set" -> string!
 const Qian.Config.FeatureFlagManagement.SetPermission = "qian.config.flags:flag:set" -> string!
-static readonly Qian.Config.FeatureFlagManagement.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Config.FeatureFlagManagement.Key -> Kun.Runtime.ServiceKey
 Qian.Config.FeatureFlagDraft.IdempotencyKey.get -> System.Guid
 Qian.Config.FeatureFlagDraft.IdempotencyKey.init -> void

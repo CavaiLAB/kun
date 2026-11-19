@@ -2,12 +2,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Files.Tests;
 
 // 只提供预装快照的 Registry 替身：qian.files 只经 GetInstalledComponents 读各组件的 metadata 声明，其余管理面不在本项目的测试范围。
-internal sealed class InstalledSnapshotPlugin(IReadOnlyList<InstalledComponentMetadata> installed) : IQianPlugin
+internal sealed class InstalledSnapshotPlugin(IReadOnlyList<InstalledComponentMetadata> installed) : IKunPlugin
 {
     public IReadOnlyList<ServiceKey> Inject => [];
 

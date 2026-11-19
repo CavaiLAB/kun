@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Identity.Client;
 using Qian.Identity.Client.Tests;
 using Qian.Testing;

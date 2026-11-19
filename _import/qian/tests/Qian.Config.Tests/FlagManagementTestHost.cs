@@ -14,7 +14,7 @@ using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 
 namespace Qian.Config.Tests;
@@ -82,10 +82,10 @@ internal sealed class FlagManagementTestHost : IAsyncDisposable
         await Loader.MountAsync([Define("flags", "qian.config.flags", new FeatureFlagManagementPlugin(), [FeatureFlagManagement.Key], "{\"bindingId\":\"primary\"}")], ct);
         Assert.True(Loader.GetState("flags", ScopeKey.Global) == PluginState.Ready, Loader.GetFailure("flags", ScopeKey.Global)?.ToString());
     }
-    private static PluginDefinition Define(string id, string plugin, IQianPlugin instance, IReadOnlyList<ServiceKey> keys, string config) =>
+    private static PluginDefinition Define(string id, string plugin, IKunPlugin instance, IReadOnlyList<ServiceKey> keys, string config) =>
         new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, JsonElement.Parse(config)), instance, keys);
     public async ValueTask DisposeAsync() { await Loader.DisposeAsync(); await Services.DisposeAsync(); (_root as IDisposable)?.Dispose(); }
-    private sealed class Ports(RecordingAuthz authz, RecordingAudit audit) : IQianPlugin
+    private sealed class Ports(RecordingAuthz authz, RecordingAudit audit) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

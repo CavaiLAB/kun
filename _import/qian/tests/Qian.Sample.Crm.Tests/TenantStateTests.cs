@@ -6,7 +6,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;

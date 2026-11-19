@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Capabilities.Tests;
@@ -46,7 +46,7 @@ public sealed class CapabilitiesComponentTests
     }
 
     // 只验证宿主门：这些占位项让装载器越过依赖检查，错误必须发生在使用任何 Provider 之前。
-    private sealed class Prerequisites(IReadOnlyList<ServiceKey> keys) : IQianPlugin
+    private sealed class Prerequisites(IReadOnlyList<ServiceKey> keys) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

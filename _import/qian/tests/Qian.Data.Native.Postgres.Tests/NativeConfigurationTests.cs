@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Data.Native.Postgres.Tests;

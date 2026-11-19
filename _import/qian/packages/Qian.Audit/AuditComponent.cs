@@ -1,6 +1,6 @@
 using Qian.Data;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Audit;
@@ -11,7 +11,7 @@ namespace Qian.Audit;
 [DelegatePlugin(typeof(AuditPlugin))]
 [Provides(typeof(AuditDefinition), nameof(AuditDefinition.Key))]
 [Provides(typeof(CommandPolicies), nameof(CommandPolicies.AuditKey))]
-public sealed class AuditComponent : IQianPlugin
+public sealed class AuditComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];

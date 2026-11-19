@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Plugin.Sdk.Tests;
@@ -30,7 +30,7 @@ public sealed class NativeAuditOwnerTests
         await loader.MountAsync([
             new PluginDefinition(new PluginEntry("source", "qian.test", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), source, []),
             new PluginDefinition(new PluginEntry("audit", "qian.audit.native", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), new Policy(CommandPolicyKind.Audit), [])], TestContext.Current.CancellationToken);
-        var sameNameNewDefinition = QianEvent.Define<string, object?>(CommandEvents.Dispatching.Name, DispatchMode.Waterfall);
+        var sameNameNewDefinition = KunEvent.Define<string, object?>(CommandEvents.Dispatching.Name, DispatchMode.Waterfall);
         Assert.ThrowsAny<Exception>(() => source.Context!.On(sameNameNewDefinition, DispatchMode.Waterfall,
             (Func<string, Func<ValueTask<object?>>, ValueTask<object?>>)((_, next) => next())));
         await loader.UnmountAsync("audit", ScopeKey.Global, TestContext.Current.CancellationToken);
@@ -39,13 +39,13 @@ public sealed class NativeAuditOwnerTests
             (Func<string, Func<ValueTask<object?>>, ValueTask<object?>>)((_, next) => next()));
         Assert.Empty(source.Context.List(CommandPolicies.AuditKey));
     }
-    private sealed class Policy(CommandPolicyKind kind) : IQianPlugin
+    private sealed class Policy(CommandPolicyKind kind) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
         { CommandPolicies.Register(ctx, kind, (_, next) => next()); return ValueTask.CompletedTask; }
     }
-    private sealed class Source : IQianPlugin
+    private sealed class Source : IKunPlugin
     {
         internal IPluginContext? Context { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [];

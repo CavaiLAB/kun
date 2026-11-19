@@ -10,7 +10,7 @@ using Qian.Authz;
 using Qian.Data;
 using Qian.Events;
 using Qian.Lifecycle;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Sample.Crm.Tests;

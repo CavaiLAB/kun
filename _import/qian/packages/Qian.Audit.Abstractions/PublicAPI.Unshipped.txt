@@ -62,11 +62,11 @@ Qian.Audit.IAuditReader.VerifyAsync(System.Threading.CancellationToken cancellat
 Qian.Audit.IAuditService
 Qian.Audit.IAuditWriter
 Qian.Audit.IAuditWriter.AppendAsync(Qian.Audit.AuditRecord! record, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainEntry!>!
-static Qian.Audit.AuditDefinition.Audit(this Qian.Runtime.IPluginContext! context) -> Qian.Audit.IAuditService!
-static readonly Qian.Audit.AuditDefinition.Key -> Qian.Runtime.ServiceKey
-Qian.Audit.IAuditReader.ReadPlatformAsync(Qian.Runtime.IPluginContext! producer, long afterSequence, int take, string? onBehalfOf = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Qian.Audit.AuditChainEntry!>!>!
-Qian.Audit.IAuditReader.VerifyPlatformAsync(Qian.Runtime.IPluginContext! producer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainVerification!>!
-Qian.Audit.IAuditWriter.AppendPlatformAsync(Qian.Runtime.IPluginContext! producer, Qian.Audit.AuditRecord! record, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainEntry!>!
+static Qian.Audit.AuditDefinition.Audit(this Kun.Runtime.IPluginContext! context) -> Qian.Audit.IAuditService!
+static readonly Qian.Audit.AuditDefinition.Key -> Kun.Runtime.ServiceKey
+Qian.Audit.IAuditReader.ReadPlatformAsync(Kun.Runtime.IPluginContext! producer, long afterSequence, int take, string? onBehalfOf = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Qian.Audit.AuditChainEntry!>!>!
+Qian.Audit.IAuditReader.VerifyPlatformAsync(Kun.Runtime.IPluginContext! producer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainVerification!>!
+Qian.Audit.IAuditWriter.AppendPlatformAsync(Kun.Runtime.IPluginContext! producer, Qian.Audit.AuditRecord! record, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainEntry!>!
 Qian.Audit.IAuditWriter.AppendEnlistedAsync(Qian.Audit.AuditRecord! record, System.Data.Common.DbTransaction! transaction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainEntry!>!
 Qian.Audit.AuditInputProjection
 Qian.Audit.AuditProtocol
@@ -81,4 +81,4 @@ static Qian.Audit.AuditProtocol.Canonicalize(System.Text.Json.JsonElement value)
 static readonly Qian.Audit.NativeAuditErrors.Misconfigured -> Kun.Errors.ErrorCode!
 Qian.Audit.NativeAuditErrors
 static Qian.Audit.AuditProtocol.ReadEntry(System.Text.Json.JsonElement row) -> Qian.Audit.AuditChainEntry!
-Qian.Audit.IAuditWriter.AppendPlatformEnlistedAsync(Qian.Runtime.IPluginContext! producer, Qian.Audit.AuditRecord! record, System.Data.Common.DbTransaction! transaction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainEntry!>!
+Qian.Audit.IAuditWriter.AppendPlatformEnlistedAsync(Kun.Runtime.IPluginContext! producer, Qian.Audit.AuditRecord! record, System.Data.Common.DbTransaction! transaction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Audit.AuditChainEntry!>!

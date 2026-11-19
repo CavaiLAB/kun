@@ -4,7 +4,7 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Data.Tests;
 
@@ -40,7 +40,7 @@ public sealed partial class DataSessionTests
         await using var runtime = new PluginLoader(host.Services);
         await runtime.MountAsync([new PluginDefinition(
             new PluginEntry("data", code.ComponentId, root.GetProperty("version").GetString()!, ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })),
-            (IQianPlugin)Activator.CreateInstance(type)!, code.Provides.Select(name => new ServiceKey(name)).ToArray())], ct);
+            (IKunPlugin)Activator.CreateInstance(type)!, code.Provides.Select(name => new ServiceKey(name)).ToArray())], ct);
         Assert.Equal(PluginState.Ready, runtime.GetState("data", ScopeKey.Global));
         var data = runtime.GetContext("data", ScopeKey.Global).Data();
 

@@ -13,7 +13,7 @@ using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Tenancy;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Capabilities;

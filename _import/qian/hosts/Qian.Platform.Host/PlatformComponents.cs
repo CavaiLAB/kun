@@ -11,7 +11,7 @@ using Qian.Events;
 using Qian.Lifecycle;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;
@@ -30,7 +30,7 @@ public sealed class PlatformComponent
     /// <param name="entry">清单 <c>runtime.entry</c> 的期望值，如 <c>Qian.Tenancy.TenancyComponent, Qian.Tenancy</c>。</param>
     /// <param name="create">挂载时创建 Provider 实例。</param>
     /// <param name="register">组合时向宿主 DI 登记该组件需要的服务（数据上下文等）；条目被禁用时不调用。</param>
-    public PlatformComponent(string plugin, string entry, Func<PlatformActivation, IQianPlugin> create, Action<PlatformServices>? register = null)
+    public PlatformComponent(string plugin, string entry, Func<PlatformActivation, IKunPlugin> create, Action<PlatformServices>? register = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(plugin); ArgumentException.ThrowIfNullOrWhiteSpace(entry); ArgumentNullException.ThrowIfNull(create);
         Plugin = plugin; Entry = entry; Create = create; Register = register;
@@ -40,7 +40,7 @@ public sealed class PlatformComponent
     /// <summary>清单 <c>runtime.entry</c> 的期望值。</summary>
     public string Entry { get; }
     /// <summary>实例工厂。</summary>
-    public Func<PlatformActivation, IQianPlugin> Create { get; }
+    public Func<PlatformActivation, IKunPlugin> Create { get; }
     /// <summary>宿主登记。</summary>
     public Action<PlatformServices>? Register { get; }
 }

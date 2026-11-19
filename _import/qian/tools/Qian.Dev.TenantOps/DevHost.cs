@@ -14,7 +14,7 @@ using Qian.Identity.Server;
 using Qian.Lifecycle;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Sample.Crm;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;

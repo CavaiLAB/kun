@@ -28,7 +28,7 @@ using Qian.Identity.Abstractions;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
@@ -226,7 +226,7 @@ internal sealed class FilesPlatform : IAsyncDisposable
     }
 
     // 只声明 metadata 的贡献方组件：没有依赖、不提供服务。
-    private sealed class ContributorPlugin : IQianPlugin
+    private sealed class ContributorPlugin : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using SemanticVersion = SemanticVersioning.Version;
 
@@ -8,7 +8,7 @@ namespace Qian.Capabilities;
 // 平台挂载路径的契约准入（R76）：按预装制品里的契约族选择基线，用 S1-RT-006 的同一组包装插件在业务 Apply 前比较。
 internal sealed class ContractAdmission(InstalledContractRepository repository, IGrpcContractPeers? peers) : IContractAdmission
 {
-    public IQianPlugin Admit(IQianPlugin plugin, string pluginId, string version)
+    public IKunPlugin Admit(IKunPlugin plugin, string pluginId, string version)
     {
         ArgumentNullException.ThrowIfNull(plugin); ArgumentException.ThrowIfNullOrWhiteSpace(pluginId); ArgumentException.ThrowIfNullOrWhiteSpace(version);
         var admitted = plugin;
@@ -37,7 +37,7 @@ internal sealed class ContractAdmission(InstalledContractRepository repository, 
     }
 
     // 声明了 proto 契约却没有宿主授权的反射对端：无法完成一致性探测，不能当作兼容。
-    private sealed class UnavailablePeerPlugin(IQianPlugin inner, string contractId) : IQianPlugin
+    private sealed class UnavailablePeerPlugin(IKunPlugin inner, string contractId) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) =>

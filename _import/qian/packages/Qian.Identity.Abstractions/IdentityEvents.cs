@@ -1,5 +1,5 @@
 using Kun.EventBus;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Identity.Abstractions;
@@ -108,17 +108,17 @@ public sealed record MembershipChanged(Guid MembershipId, Guid TenantId, long Id
 public static class IdentityRuntimeEvents
 {
     /// <summary>登录风控/step-up 包裹点。</summary>
-    [QianEvent(Mode = DispatchMode.Waterfall)]
-    public static readonly QianEvent<LoginInput, SignInResult> SigningIn = QianEvent.Define<LoginInput, SignInResult>("identity/signing-in", DispatchMode.Waterfall);
+    [KunEvent(Mode = DispatchMode.Waterfall)]
+    public static readonly KunEvent<LoginInput, SignInResult> SigningIn = KunEvent.Define<LoginInput, SignInResult>("identity/signing-in", DispatchMode.Waterfall);
     /// <summary>登录完成。</summary>
-    [QianEvent(Mode = DispatchMode.Emit)]
-    public static readonly QianEvent<Principal, object?> SignedIn = QianEvent.Define<Principal, object?>("identity/signed-in", DispatchMode.Emit);
+    [KunEvent(Mode = DispatchMode.Emit)]
+    public static readonly KunEvent<Principal, object?> SignedIn = KunEvent.Define<Principal, object?>("identity/signed-in", DispatchMode.Emit);
     /// <summary>退出完成。</summary>
-    [QianEvent(Mode = DispatchMode.Emit)]
-    public static readonly QianEvent<SessionRevocation, object?> SignedOut = QianEvent.Define<SessionRevocation, object?>("identity/signed-out", DispatchMode.Emit);
+    [KunEvent(Mode = DispatchMode.Emit)]
+    public static readonly KunEvent<SessionRevocation, object?> SignedOut = KunEvent.Define<SessionRevocation, object?>("identity/signed-out", DispatchMode.Emit);
     /// <summary>成员停用后的并行清理。</summary>
-    [QianEvent(Mode = DispatchMode.Parallel)]
-    public static readonly QianEvent<MembershipChanged, IReadOnlyList<object?>> MemberDisabled = QianEvent.Define<MembershipChanged, IReadOnlyList<object?>>("identity/member-disabled", DispatchMode.Parallel);
+    [KunEvent(Mode = DispatchMode.Parallel)]
+    public static readonly KunEvent<MembershipChanged, IReadOnlyList<object?>> MemberDisabled = KunEvent.Define<MembershipChanged, IReadOnlyList<object?>>("identity/member-disabled", DispatchMode.Parallel);
 }
 /// <summary>框架事件目录注册；只登记元数据，不启动 broker 或后台发布器。</summary>
 public static class IdentityEventRegistration

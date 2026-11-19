@@ -1,4 +1,4 @@
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 /// <summary>进程内扩展事件的分发模式。</summary>
 public enum DispatchMode
@@ -16,17 +16,17 @@ public enum DispatchMode
 }
 
 /// <summary>Definition 定义的事件。TResult 是整个分发的结果；扇出与按序模式用 IReadOnlyList&lt;T&gt;。</summary>
-public sealed record QianEvent<TPayload, TResult>(string Name, DispatchMode Mode)
+public sealed record KunEvent<TPayload, TResult>(string Name, DispatchMode Mode)
 {
     /// <summary>waterfall 的默认链尾；调用方也可在 DispatchAsync 时覆盖。</summary>
     public Func<TPayload, ValueTask<TResult>>? Terminal { get; init; }
 }
 
 /// <summary>事件定义工厂。</summary>
-public static class QianEvent
+public static class KunEvent
 {
     /// <summary>定义一个事件；同一运行时内同名 Definition 必须复用同一实例。</summary>
-    public static QianEvent<TPayload, TResult> Define<TPayload, TResult>(string name, DispatchMode mode) => new(name, mode);
+    public static KunEvent<TPayload, TResult> Define<TPayload, TResult>(string name, DispatchMode mode) => new(name, mode);
 }
 
 /// <summary>所有并行监听器结束后报告失败；Partial 仅含成功结果，顺序与监听器一致。</summary>

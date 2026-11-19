@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Errors;
-using static Qian.Runtime.Tests.LifecycleTests;
+using Microsoft.Extensions.DependencyInjection;
+using static Kun.Runtime.Tests.LifecycleTests;
 
-namespace Qian.Runtime.Tests;
+namespace Kun.Runtime.Tests;
 
 public sealed class RegistrationHandleTests
 {

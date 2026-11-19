@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Data;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Audit.Tests;
@@ -55,7 +55,7 @@ public sealed partial class AuditStoreTests
         observer.Context!.List(new ServiceKey(CommandEvents.Dispatching.Name)).Select(registration => registration.OwnerEntryId).Order(StringComparer.Ordinal).ToArray();
 
     // 链上的另一个组件：只透传，用来证明卸载审计只撤下审计自己的监听器。
-    private sealed class DispatchObserver : IQianPlugin
+    private sealed class DispatchObserver : IKunPlugin
     {
         public IPluginContext? Context { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [];
@@ -67,7 +67,7 @@ public sealed partial class AuditStoreTests
         }
     }
 
-    private sealed class RecordingPlugin(IQianPlugin inner, List<string> registered, List<string> revoked, Action<string> onRevoke) : IQianPlugin
+    private sealed class RecordingPlugin(IKunPlugin inner, List<string> registered, List<string> revoked, Action<string> onRevoke) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => inner.ApplyAsync(new RecordingContext(ctx, registered, revoked, onRevoke), config, ct);
@@ -90,11 +90,11 @@ public sealed partial class AuditStoreTests
         public void Effect(IDisposable disposer) { var label = Next(); inner.Effect(() => { Revoked(label); disposer.Dispose(); }); }
         public void Effect(Action dispose) { var label = Next(); inner.Effect(() => { Revoked(label); dispose(); }); }
         public void Effect(Func<ValueTask> disposeAsync) { var label = Next(); inner.Effect(() => { Revoked(label); return disposeAsync(); }); }
-        public IDisposable On<TPayload, TResult>(QianEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority) => Mark("on:" + evt.Name, inner.On(evt, mode, handler, priority));
-        public IDisposable On<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority) => Mark("on:" + evt.Name, inner.On(evt, mode, handler, priority));
-        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
-        public ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
-        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct) => inner.DispatchAsync(evt, payload, terminal, ct);
+        public IDisposable On<TPayload, TResult>(KunEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority) => Mark("on:" + evt.Name, inner.On(evt, mode, handler, priority));
+        public IDisposable On<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority) => Mark("on:" + evt.Name, inner.On(evt, mode, handler, priority));
+        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
+        public ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
+        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct) => inner.DispatchAsync(evt, payload, terminal, ct);
         public IPluginContext Scoped(ScopeKey scope) => inner.Scoped(scope);
         public IDisposable Restrict(ScopeKey scope, Func<Registration, bool> keep) => Mark("restrict:" + scope.Kind, inner.Restrict(scope, keep));
         public IReadOnlyList<Registration> List(ServiceKey key) => inner.List(key);

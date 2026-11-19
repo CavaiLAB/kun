@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Core.MultiTenancy;
 
 namespace Qian.Config;

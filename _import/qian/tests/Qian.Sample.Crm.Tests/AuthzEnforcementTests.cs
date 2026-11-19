@@ -174,11 +174,11 @@ public abstract partial class CustomerCommandTests
         Assert.Equal((code, status), (detail.Code, detail.Status));
     }
     private protected static CrmCommandRuntime Runtime(RunningApp host) => host.App.Services.GetRequiredService<CrmCommandRuntime>();
-    private protected static Qian.Runtime.IPluginContext Source(RunningApp host) => Runtime(host).Source();
+    private protected static Kun.Runtime.IPluginContext Source(RunningApp host) => Runtime(host).Source();
     // 当前租户链里的决策日志（按链序）。
     private protected static async Task<(string Actor, string Result, string EntryPoint, string Target, string Reason)[]> Decisions(RunningApp host, string tenantId)
     {
-        var records = await ReadTenantChain(Runtime(host).Loader.GetContext("authz", Qian.Runtime.ScopeKey.Global).Scoped(new Qian.Runtime.ScopeKey("tenant", tenantId)).Audit());
+        var records = await ReadTenantChain(Runtime(host).Loader.GetContext("authz", Kun.Runtime.ScopeKey.Global).Scoped(new Kun.Runtime.ScopeKey("tenant", tenantId)).Audit());
         return [.. records.Select(entry => entry.Record).Where(record => record.CapabilityId == AuthzEnforcement.DecisionCapabilityId)
             .Select(record => (record.ActorId, record.Result, record.Payload.GetProperty("entryPoint").GetString()!, record.Payload.GetProperty("target").GetString()!, record.Payload.GetProperty("reason").GetString()!))];
     }

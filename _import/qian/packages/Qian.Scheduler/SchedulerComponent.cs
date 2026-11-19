@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
 
@@ -15,7 +15,7 @@ namespace Qian.Scheduler;
 [QianConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(SchedulerPlugin))]
 [Provides(typeof(SchedulerDefinition), nameof(SchedulerDefinition.Key))]
-public sealed class SchedulerComponent : IQianPlugin
+public sealed class SchedulerComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, TenancyDefinition.Key];
@@ -24,7 +24,7 @@ public sealed class SchedulerComponent : IQianPlugin
 }
 
 /// <summary>程序化装配与文件入口共用的 Provider；worker 属于 Apply 的效果栈。</summary>
-public sealed class SchedulerPlugin : IQianPlugin
+public sealed class SchedulerPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, TenancyDefinition.Key];

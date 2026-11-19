@@ -20,8 +20,8 @@ Qian.Identity.Connector.Oidc.OidcConnectorOptions.Terminals.get -> System.Collec
 Qian.Identity.Connector.Oidc.OidcConnectorOptions.Terminals.init -> void
 Qian.Identity.Connector.Oidc.OidcConnectorOptions.Validate() -> void
 Qian.Identity.Connector.Oidc.OidcConnectorPlugin
-Qian.Identity.Connector.Oidc.OidcConnectorPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Qian.Identity.Connector.Oidc.OidcConnectorPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Identity.Connector.Oidc.OidcConnectorPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Identity.Connector.Oidc.OidcConnectorPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Identity.Connector.Oidc.OidcConnectorPlugin.OidcConnectorPlugin() -> void
 Qian.Identity.Connector.Oidc.OidcConnectorPlugin.OidcConnectorPlugin(Qian.Config.ISecretResolver! secrets, System.Net.Http.HttpMessageHandler? handler = null) -> void
 Qian.Identity.Connector.Oidc.OidcIdentityConnector
@@ -35,5 +35,5 @@ override Qian.Identity.Connector.Oidc.OidcIdentityConnector.ToString() -> string
 static Qian.Identity.Connector.Oidc.OidcConnectorOptions.FromConfig(System.Text.Json.JsonElement config) -> Qian.Identity.Connector.Oidc.OidcConnectorOptions!
 Qian.Identity.Connector.Oidc.OidcConnectorComponent
 Qian.Identity.Connector.Oidc.OidcConnectorComponent.OidcConnectorComponent() -> void
-Qian.Identity.Connector.Oidc.OidcConnectorComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Identity.Connector.Oidc.OidcConnectorComponent.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Identity.Connector.Oidc.OidcConnectorComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Identity.Connector.Oidc.OidcConnectorComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask

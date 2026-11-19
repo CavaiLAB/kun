@@ -4,7 +4,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Tenancy.Signup;
@@ -17,7 +17,7 @@ namespace Qian.Tenancy.Signup;
 [QianConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(TenancySignupPlugin))]
 [Provides(typeof(TenancySignupDefinition), nameof(TenancySignupDefinition.Key))]
-public sealed class TenancySignupComponent : IQianPlugin
+public sealed class TenancySignupComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, TenancyDefinition.Key, TenantProvisioning.Key, TenantLifecycle.Key, TenantOperations.Key, IdentityDefinition.AccountsKey];
@@ -28,7 +28,7 @@ public sealed class TenancySignupComponent : IQianPlugin
 }
 
 /// <summary>开通申请 Provider：提供 <see cref="ITenantSignup"/>，登记本组件的错误码。宿主须先以 AddQianData 登记 <see cref="TenancySignupDbContext"/>。</summary>
-public sealed class TenancySignupPlugin : IQianPlugin
+public sealed class TenancySignupPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, TenancyDefinition.Key, TenantProvisioning.Key, TenantLifecycle.Key, TenantOperations.Key, IdentityDefinition.AccountsKey];

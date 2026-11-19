@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Config.Apollo;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Config.Tests;
@@ -141,7 +141,7 @@ public sealed class FeatureFlagsTests
     private static ConfigurationRoot Build(string rule) => new([new Microsoft.Extensions.Configuration.Memory.MemoryConfigurationProvider(
         new Microsoft.Extensions.Configuration.Memory.MemoryConfigurationSource { InitialData = new Dictionary<string, string?> { ["flag.preview"] = rule } })]);
 
-    private sealed class Observer : IQianPlugin
+    private sealed class Observer : IKunPlugin
     {
         public Channel<ConfigReloadFailed> Notices { get; } = Channel.CreateUnbounded<ConfigReloadFailed>();
         public IReadOnlyList<ServiceKey> Inject => [ConfigDefinition.Key];

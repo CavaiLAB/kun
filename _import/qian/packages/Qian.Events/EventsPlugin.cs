@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Events;
@@ -10,7 +10,7 @@ namespace Qian.Events;
 /// <summary>qian.events 的真实 Provider：挂载时核对组件配置与宿主装配一致，提供 Events 服务键；卸载撤销服务与错误码。</summary>
 [QianPlugin("qian.events")]
 [QianConfigSchema(ComponentConfiguration.Schema)]
-public sealed class EventsPlugin : IQianPlugin
+public sealed class EventsPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [];

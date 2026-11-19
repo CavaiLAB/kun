@@ -25,7 +25,7 @@ using Qian.Config.Apollo;
 using Qian.Config.AspNetCore;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 
 namespace Qian.Config.Tests;
@@ -217,18 +217,18 @@ public sealed class ConfigEndpointsTests
         }
     }
 
-    private static PluginDefinition Define(string id, string plugin, IQianPlugin implementation, IReadOnlyList<ServiceKey> provides) =>
+    private static PluginDefinition Define(string id, string plugin, IKunPlugin implementation, IReadOnlyList<ServiceKey> provides) =>
         new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), implementation, provides);
 
     // 宿主的平台上下文：能注入注册表、配置与执行端口。
-    private sealed class HttpSurface : IQianPlugin
+    private sealed class HttpSurface : IKunPlugin
     {
         public IPluginContext? Context { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [RegistryDefinition.Key, ConfigDefinition.Key, AuthzEnforcement.Key];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) { Context = ctx; return ValueTask.CompletedTask; }
     }
 
-    private sealed class Provider(ServiceKey key, object service) : IQianPlugin
+    private sealed class Provider(ServiceKey key, object service) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

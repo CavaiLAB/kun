@@ -1,5 +1,5 @@
 using Kun.Authorization;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Authz.Abstractions;
 

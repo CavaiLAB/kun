@@ -37,8 +37,8 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
     private static string Id(INamedTypeSymbol type) => type.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianPluginAttribute").ConstructorArguments[0].Value as string ?? "";
     private static void GeneratePlugin(SourceProductionContext output, INamedTypeSymbol type, ImmutableArray<INamedTypeSymbol> requests, ImmutableArray<INamedTypeSymbol> plugins, Compilation compilation)
     {
-        if (!type.AllInterfaces.Any(i => i.ToDisplayString() == "Qian.Runtime.IQianPlugin") || type.IsAbstract || type.IsGenericType || type.ContainingType is not null)
-        { Report(output, type, "QianPlugin 必须是顶层、非泛型、可实例化的 IQianPlugin 实现。"); return; }
+        if (!type.AllInterfaces.Any(i => i.ToDisplayString() == "Kun.Runtime.IKunPlugin") || type.IsAbstract || type.IsGenericType || type.ContainingType is not null)
+        { Report(output, type, "QianPlugin 必须是顶层、非泛型、可实例化的 IKunPlugin 实现。"); return; }
         var id = type.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianPluginAttribute").ConstructorArguments[0].Value as string;
         if (id is null || id.Length > 128 || !System.Text.RegularExpressions.Regex.IsMatch(id, @"^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)))
         { Report(output, type, "组件 ID 必须符合冻结清单格式。"); return; }
@@ -71,8 +71,8 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
         }
         if (provides.Distinct(StringComparer.Ordinal).Count() != provides.Count || contributions.Select(c => c.Key + ":" + c.Name).Distinct(StringComparer.Ordinal).Count() != contributions.Count)
         { Report(output, type, "独立提供项或贡献声明不能重复。"); return; }
-        if (delegateType is not null && (!delegateType.AllInterfaces.Any(i => i.ToDisplayString() == "Qian.Runtime.IQianPlugin") || delegateType.IsAbstract || provides.Count == 0))
-        { Report(output, type, "DelegatePlugin 必须指定具体 IQianPlugin 实现，并独立声明完整的非空输出。"); return; }
+        if (delegateType is not null && (!delegateType.AllInterfaces.Any(i => i.ToDisplayString() == "Kun.Runtime.IKunPlugin") || delegateType.IsAbstract || provides.Count == 0))
+        { Report(output, type, "DelegatePlugin 必须指定具体 IKunPlugin 实现，并独立声明完整的非空输出。"); return; }
         var model = compilation.GetSemanticModel(injectDeclaration.SyntaxTree);
         foreach (var element in collection.Elements)
         {
@@ -109,12 +109,12 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
             if (delegateType is not null && SymbolEqualityComparer.Default.Equals(method.ContainingType, delegateType) && method.Name == "ApplyAsync")
             {
                 if (Conditional(syntax, apply) || invocation.Arguments.Length != 3 || Unwrap(invocation.Arguments[0].Value) is not IParameterReferenceOperation reference || !SymbolEqualityComparer.Default.Equals(reference.Parameter, methods[0].Parameters[0]) || invocation.Arguments.Skip(1).Any(a => Unwrap(a.Value) is not IParameterReferenceOperation p || !SymbolEqualityComparer.Default.Equals(p.Parameter, methods[0].Parameters[a.Parameter!.Ordinal])) ||
-                    !SymbolEqualityComparer.Default.Equals(delegateType.FindImplementationForInterfaceMember(delegateType.AllInterfaces.Single(i => i.ToDisplayString() == "Qian.Runtime.IQianPlugin").GetMembers("ApplyAsync").Single()), method))
+                    !SymbolEqualityComparer.Default.Equals(delegateType.FindImplementationForInterfaceMember(delegateType.AllInterfaces.Single(i => i.ToDisplayString() == "Kun.Runtime.IKunPlugin").GetMembers("ApplyAsync").Single()), method))
                 { Report(output, type, "委托必须无条件且只传递当前 Apply 上下文。"); return; }
                 delegated++; continue;
             }
             string? provided = null; var registrationKind = 1;
-            if (method.Name == "Provide" && method.ContainingType.ToDisplayString() == "Qian.Runtime.IPluginContext")
+            if (method.Name == "Provide" && method.ContainingType.ToDisplayString() == "Kun.Runtime.IPluginContext")
             {
                 if (delegateType is not null || invocation.Instance is not IParameterReferenceOperation parameter || parameter.Parameter.Ordinal != 0 || Conditional(syntax, apply))
                 { Report(output, type, "Provide 必须在当前 Apply 中直接、无条件注册；委托入口不能混入另一组提供项。"); return; }
@@ -202,7 +202,7 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
     {
         var owner = attribute.ConstructorArguments[0].Value as INamedTypeSymbol; var name = attribute.ConstructorArguments[1].Value as string;
         var field = owner?.GetMembers(name ?? "").OfType<IFieldSymbol>().SingleOrDefault();
-        return field is { IsStatic: true, IsReadOnly: true, DeclaredAccessibility: Accessibility.Public } && field.Type.ToDisplayString() == "Qian.Runtime.ServiceKey"
+        return field is { IsStatic: true, IsReadOnly: true, DeclaredAccessibility: Accessibility.Public } && field.Type.ToDisplayString() == "Kun.Runtime.ServiceKey"
             ? owner!.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "." + field.Name : null;
     }
     private static string? CapabilityOwner(INamedTypeSymbol request, ImmutableArray<INamedTypeSymbol> plugins)
@@ -221,10 +221,10 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
     private static string? Key(IOperation? operation)
     {
         while (operation is IConversionOperation conversion) operation = conversion.Operand;
-        if (operation is IFieldReferenceOperation field && field.Field.IsStatic && field.Field.IsReadOnly && field.Field.DeclaredAccessibility == Accessibility.Public && field.Field.Type.ToDisplayString() == "Qian.Runtime.ServiceKey")
+        if (operation is IFieldReferenceOperation field && field.Field.IsStatic && field.Field.IsReadOnly && field.Field.DeclaredAccessibility == Accessibility.Public && field.Field.Type.ToDisplayString() == "Kun.Runtime.ServiceKey")
             return field.Field.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "." + field.Field.Name;
-        if (operation is IObjectCreationOperation creation && creation.Type?.ToDisplayString() == "Qian.Runtime.ServiceKey" && creation.Arguments.Length == 1 && creation.Arguments[0].Value.ConstantValue.Value is string value)
-            return "new global::Qian.Runtime.ServiceKey(" + Literal(value) + ")";
+        if (operation is IObjectCreationOperation creation && creation.Type?.ToDisplayString() == "Kun.Runtime.ServiceKey" && creation.Arguments.Length == 1 && creation.Arguments[0].Value.ConstantValue.Value is string value)
+            return "new global::Kun.Runtime.ServiceKey(" + Literal(value) + ")";
         return null;
     }
     private static string Literal(string value) => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(value, true);

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Tenancy;
 

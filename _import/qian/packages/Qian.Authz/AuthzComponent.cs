@@ -1,7 +1,7 @@
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Authz;
@@ -18,7 +18,7 @@ namespace Qian.Authz;
 [Provides(typeof(AuthzEnforcement), nameof(AuthzEnforcement.Key))]
 [Provides(typeof(TenantRoleGrant), nameof(TenantRoleGrant.Key))]
 [Provides(typeof(CommandPolicies), nameof(CommandPolicies.AuthorizationKey))]
-public sealed class AuthzComponent : IQianPlugin
+public sealed class AuthzComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];

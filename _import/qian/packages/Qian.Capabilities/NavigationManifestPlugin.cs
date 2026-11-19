@@ -2,21 +2,21 @@ using System.Text;
 using System.Text.Json;
 using Qian.Authz.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Capabilities;
 
 /// <summary>从已捕获的 UI 清单贡献菜单与外壳远程，随实际业务插件一起装载、遮蔽与撤销。</summary>
-public sealed class NavigationManifestPlugin : IQianPlugin
+public sealed class NavigationManifestPlugin : IKunPlugin
 {
-    private readonly IQianPlugin _inner;
+    private readonly IKunPlugin _inner;
     private readonly InstalledComponentMetadata _component;
     private readonly IReadOnlyList<NavigationContribution> _items;
     private readonly ShellRemoteContribution? _shell;
     /// <summary>只读取制品快照；菜单声明不代表前端远程模块已经部署或渲染。</summary>
-    public NavigationManifestPlugin(IQianPlugin inner, InstalledComponentMetadata component, ISurfaceReader reader)
+    public NavigationManifestPlugin(IKunPlugin inner, InstalledComponentMetadata component, ISurfaceReader reader)
     {
         ArgumentNullException.ThrowIfNull(inner); ArgumentNullException.ThrowIfNull(component); ArgumentNullException.ThrowIfNull(reader);
         _inner = inner; _component = component;

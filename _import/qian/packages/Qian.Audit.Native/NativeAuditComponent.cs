@@ -4,7 +4,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data.Native;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Audit.Native;
@@ -15,7 +15,7 @@ namespace Qian.Audit.Native;
 [DelegatePlugin(typeof(NativeAuditPlugin))]
 [Provides(typeof(AuditDefinition), nameof(AuditDefinition.Key))]
 [Provides(typeof(CommandPolicies), nameof(CommandPolicies.AuditKey))]
-public sealed class NativeAuditComponent : IQianPlugin
+public sealed class NativeAuditComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [NativeDataDefinition.Key];
@@ -24,7 +24,7 @@ public sealed class NativeAuditComponent : IQianPlugin
 }
 
 /// <summary>服务与审计策略同属 Apply 效果栈，卸载取消并排空在途调用。</summary>
-public sealed class NativeAuditPlugin : IQianPlugin
+public sealed class NativeAuditPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [NativeDataDefinition.Key];

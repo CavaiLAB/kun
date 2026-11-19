@@ -610,6 +610,24 @@
     "files": {},
     "patches": [],
     "home": true,
+    "name": "scope-layer-kind-must-be-known",
+    "scopePatches": [
+      {
+        "scope": {
+          "kind": "workspace",
+          "id": "x"
+        },
+        "source": "registry/tenant-a.json",
+        "patches": []
+      }
+    ],
+    "expect": false,
+    "pointer": "registry/scope-patches.json#/scope"
+  },
+  {
+    "files": {},
+    "patches": [],
+    "home": true,
     "name": "scope-config-secret-is-rejected",
     "scopePatches": [
       {

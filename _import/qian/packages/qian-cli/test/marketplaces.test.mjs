@@ -206,7 +206,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config;
 using Qian.Config.Apollo;
-using Qian.Runtime;
+using Kun.Runtime;
 using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> { ["Marker"]="installed" }).Build();
 using var services = new ServiceCollection().AddQianConfiguration(configuration).BuildServiceProvider();
 await using var runtime = new PluginLoader(services);

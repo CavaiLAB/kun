@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Capabilities;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk.AspNetCore;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 

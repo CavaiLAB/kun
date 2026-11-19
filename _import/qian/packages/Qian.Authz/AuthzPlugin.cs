@@ -9,7 +9,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
@@ -23,7 +23,7 @@ namespace Qian.Authz;
 /// 宿主须经 AddKunEventBus 登记 authz.grant.changed.v1 / authz.role.changed.v1（<see cref="AuthzEventRegistration.RegisterAuthzEvents"/>），否则 Apply 失败。
 /// 数据与字段权限编译属 S2，本阶段两个端口一律 fail-closed。
 /// </summary>
-public sealed class AuthzPlugin : IQianPlugin
+public sealed class AuthzPlugin : IKunPlugin
 {
     private const string Actor = "qian.authz";
     private static readonly JsonElement Nothing = JsonDocument.Parse("null").RootElement.Clone();

@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Qian.Config;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Identity.Connector.Oidc;
 
@@ -12,7 +12,7 @@ namespace Qian.Identity.Connector.Oidc;
 /// 卸载即撤销注册并释放自有的 HTTP 连接池。无参构造经 Config 组件按本组件的声明与审批解析 secretRef；
 /// 不装 Config 的独立宿主可传入自己的 <see cref="ISecretResolver"/>。
 /// </summary>
-public sealed class OidcConnectorPlugin : IQianPlugin
+public sealed class OidcConnectorPlugin : IKunPlugin
 {
     private readonly ISecretResolver? _secrets;
     private readonly HttpMessageHandler? _handler;

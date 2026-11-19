@@ -1,6 +1,6 @@
 using Qian.Data;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Tenancy;
@@ -20,7 +20,7 @@ namespace Qian.Tenancy;
 [Provides(typeof(TenantSummaries), nameof(TenantSummaries.Key))]
 [Provides(typeof(TenantProvisioning), nameof(TenantProvisioning.Key))]
 [Provides(typeof(CommandPolicies), nameof(CommandPolicies.TenancyKey))]
-public sealed class TenancyComponent : IQianPlugin
+public sealed class TenancyComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];

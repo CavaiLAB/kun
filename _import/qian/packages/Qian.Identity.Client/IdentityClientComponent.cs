@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Identity.Client;
 
@@ -10,7 +10,7 @@ namespace Qian.Identity.Client;
 [QianConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(IdentityClientPlugin))]
 [Provides(typeof(IdentityDefinition), nameof(IdentityDefinition.Key))]
-public sealed class IdentityClientComponent : IQianPlugin
+public sealed class IdentityClientComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [];

@@ -4,7 +4,7 @@ using Qian.Plugin.Sdk;
 using Qian.Audit;
 using System.Security.Cryptography;
 using System.Text;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Tenancy;

@@ -1,12 +1,12 @@
 using System.Text.Json;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces;
 
 /// <summary>把已经校验的静态快照注册到运行时；注册沿用条目 scope 与 Effect 逆序释放。</summary>
-public sealed class DeclarativeSurfacePlugin : IQianPlugin
+public sealed class DeclarativeSurfacePlugin : IKunPlugin
 {
     private readonly ParsedComponent _component;
     private readonly IReadOnlyList<(ServiceKey Key, string Name, SurfaceDocument Document)> _registrations;

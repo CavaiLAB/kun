@@ -11,7 +11,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Data.AspNetCore;
 using Qian.Plugin.Sdk.AspNetCore;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 
@@ -54,7 +54,7 @@ public sealed partial class PatchPersistenceTests
             // 使用仓库清单的真实入口和 provides；这是已装配代码的挂卸验收，不冒充 qian add 安装。
             using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins/qian.data.dialect.pg/.qian-plugin/plugin.json")));
             var root = manifest.RootElement;
-            var entry = (IQianPlugin)Activator.CreateInstance(Type.GetType(root.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!)!;
+            var entry = (IKunPlugin)Activator.CreateInstance(Type.GetType(root.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!)!;
             await running.Runtime.MountAsync([new PluginDefinition(
                 new PluginEntry("pg", root.GetProperty("id").GetString()!, root.GetProperty("version").GetString()!, ScopeKey.Global, 0, Patch("{}")),
                 entry, root.GetProperty("provides").EnumerateArray().Select(item => new ServiceKey(item.GetString()!)).ToArray())], Ct);

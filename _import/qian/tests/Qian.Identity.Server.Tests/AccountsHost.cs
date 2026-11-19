@@ -27,7 +27,7 @@ using OpenIddict.Abstractions;
 using Qian.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Tenancy;
 using Qian.Testing;
 using Qian.Testing.Containers;
@@ -268,7 +268,7 @@ internal static class AccountsHost
     }
 
     /// <summary>可控的租户目录、配额与租户设置：状态、人数上限与设置项由测试设定；配额判定与生产同一规则（达到上限即拒绝，平台超管不计）。</summary>
-    internal sealed class FakeTenancy(ITenantContext tenant) : IQianPlugin, ITenantDirectory, ITenantQuota, ITenantSettings
+    internal sealed class FakeTenancy(ITenantContext tenant) : IKunPlugin, ITenantDirectory, ITenantQuota, ITenantSettings
     {
         private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, (TenantDescriptor Descriptor, int? Limit)> _tenants = new();
         private readonly System.Collections.Concurrent.ConcurrentDictionary<(Guid Tenant, string Plugin, string Key), object> _settings = new();

@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;

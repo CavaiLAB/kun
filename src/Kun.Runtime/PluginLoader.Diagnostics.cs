@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 public sealed partial class PluginLoader
 {

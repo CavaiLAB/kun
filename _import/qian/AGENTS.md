@@ -46,10 +46,10 @@
 - 文档一律中文。文档里不得出现参考平台的品牌名（统一写「参考平台」），也不要写对标项目的名字（写「对标项目」）。`python3 scripts/check_docs.py` 会检查禁用词、表格列数与链接，提交前跑一遍。
 - Markdown 表格单元格里的反引号内若有竖线，写成 `\|`。
 - 组件设计先回答四个问题：文件夹里有哪些表面、装进哪个 profile、属于哪个 seam 的哪个角色、能否 `qian add`。凡是把能力绑死在特权内核、DI 扩展方法或数据库开关上的写法都是倒退。
-- 术语：平台插件（不是「系统插件」）、运行时 `Qian.Runtime`（不是「内核」）、profile（不是「可部署单元」）、`.qian-plugin/plugin.json`（不是 `qian-plugin.yaml`）、租户 scope patch（不是「租户开关」）。
+- 术语：平台插件（不是「系统插件」）、运行时 `Kun.Runtime`（不是「内核」）、profile（不是「可部署单元」）、`.qian-plugin/plugin.json`（不是 `qian-plugin.yaml`）、租户 scope patch（不是「租户开关」）。
 - 口径（ADR-023 D23.6，取代 ADR-021 的三层口径）：Kun 是框架，内部分内核档与平台档；qian 是前端层（原名 yue）；「Qian」不再是平台层的名字。新写定位性的表述按这个口径，不再写「Qian 平台基于 Kun 构建」；描述现有代码时照实写现在的包名与目录。总名 Yi 之下怎么写待 S1-DEC-034。Kun 的代码与文档改动去 kun 仓库提 PR，Qian 任务里只回链；文档站的「Kun 框架」小节（`website/docs/sdk/kun/`）是按 Kun 最新的发布版（仓库根 `CHANGELOG.md` 里最新的发布段）生成的镜像，不要手改（唯一手写页 `with-qian.mdx` 除外）。
 - Kun 的引用：构建并轨（S1-KUN-020）之后，`_import/qian/` 下的项目改为项目引用仓库根 `src/` 下的 Kun 源码，不再按包引用 Kun，也不再有 `Kun.*` 的版本条目。原来留给文档站读的 `<KunVersion>` 也已删除：文档站（「Kun 框架」小节、Kun API 参考、版本矩阵）改读仓库根 `CHANGELOG.md` 里 Kun 最新的发布版，`Directory.Packages.props` 只剩导入根上那份，`tests/gates/test_build_merge.py` 保证没有 MSBuild 文件再定义或引用 `KunVersion`；原来的版本单点写法见 ADR-021 D21.3（已被 ADR-023 D23.12 取代）。包源配置在仓库根的 `NuGet.config`，只有 nuget.org。
-- 代码部分遵循 ADR-019：每个有代码的组件发 `Qian.<X>.Abstractions` + Provider 包；组件库只依赖 `Qian.Runtime`，不依赖 `qian.registry` / `qian.lifecycle`。
+- 代码部分遵循 ADR-019：每个有代码的组件发 `Qian.<X>.Abstractions` + Provider 包；组件库只依赖 `Kun.Runtime`，不依赖 `qian.registry` / `qian.lifecycle`。
 - 三道 .NET 门禁会自动拦截（细节见 `tests/README.md`，都在仓库根的 `Directory.Build.targets` 与 `scripts/` 下，不看包名）：
   - 可打包的项目（写了 `<IsPackable>true</IsPackable>`）都必须带 `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`，新公共 API 未登记即编译失败；
   - 可打包的项目都要在项目文件里写档位与角色（`KunTier`、`KunRole`），仓库根的 `scripts/check_deps.py` 按它们检查依赖，不看包名：内核档不依赖平台档，平台档只依赖内核档与平台档的契约包，契约包直接依赖的内核档包只能是契约。写法、例外与本机跑法见仓库根 `AGENTS.md`「档位与依赖」；
@@ -64,7 +64,7 @@
 ```text
 docs/        设计文档：decisions（决策清单）、adr、prd（含 specs）、migration、research、ROADMAP.md
 contracts/   冻结契约 v0：S2S claim、事件信封、ErrorDetail 与错误码目录、能力条目的 JSON Schema + fixture（见 contracts/v0/README.md）
-packages/    .NET 组件库（NuGet 包），如 Qian.Runtime；packages/qian-* 是 Node 包：命令行、声明式表面校验库、外壳接线与三个界面包。
+packages/    .NET 组件库（NuGet 包），如 Qian.Data；packages/qian-* 是 Node 包：命令行、声明式表面校验库、外壳接线与三个界面包。
              前端框架（原 yue，现名 qian）已迁到 CavaiLAB/qian，这里装已发布的 @cavailab/qian-*（见 README.md「前端依赖与包源」）
 apps/        外壳应用 qian-shell（模块联邦宿主，见 apps/qian-shell/README.md）
 pm/          任务与看板（见 pm/README.md）

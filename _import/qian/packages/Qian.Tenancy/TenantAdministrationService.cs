@@ -9,7 +9,7 @@ using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Tenancy;

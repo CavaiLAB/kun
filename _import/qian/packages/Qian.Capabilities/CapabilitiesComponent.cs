@@ -2,7 +2,7 @@ using Qian.Audit;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Tenancy;
 using System.Text.Json;
 
@@ -16,7 +16,7 @@ namespace Qian.Capabilities;
 [Provides(typeof(CapabilitiesDefinition), nameof(CapabilitiesDefinition.ContractsKey))]
 [Provides(typeof(CapabilitiesDefinition), nameof(CapabilitiesDefinition.AdmissionKey))]
 [Provides(typeof(CapabilitiesDefinition), nameof(CapabilitiesDefinition.NavigationKey))]
-public sealed class CapabilitiesComponent : IQianPlugin
+public sealed class CapabilitiesComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, AuditDefinition.Key, RegistryDefinition.Key, TenancyDefinition.Key, CommandPolicies.TenancyKey, CommandPolicies.AuthorizationKey, CommandPolicies.AuditKey];

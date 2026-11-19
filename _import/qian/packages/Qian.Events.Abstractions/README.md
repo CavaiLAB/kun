@@ -48,7 +48,7 @@ SDK 命令管道在每次写命令外开启这个作用域：producer 取能力�
 
 ## 组件位置
 
-本包适用于全部 .NET profile，只依赖 Qian.Runtime。它与 Qian.Runtime 的进程内事件（`ctx.On` / Dispatch）不混用：后者是组件之间的同步扩展点，这里是跨服务、经 Outbox 投递的集成事件。
+本包适用于全部 .NET profile，只依赖 Kun.Runtime。它与 Kun.Runtime 的进程内事件（`ctx.On` / Dispatch）不混用：后者是组件之间的同步扩展点，这里是跨服务、经 Outbox 投递的集成事件。
 
 ## 已知限制与延期项
 

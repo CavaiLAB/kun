@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Runtime.Tests;
+namespace Kun.Runtime.Tests;
 
 public sealed class DispatchTests
 {
@@ -9,7 +9,7 @@ public sealed class DispatchTests
     {
         using var host = new ServiceCollection().BuildServiceProvider();
         await using var loader = new PluginLoader(host);
-        var evt = QianEvent.Define<string, IReadOnlyList<int>>("parallel", DispatchMode.Parallel);
+        var evt = KunEvent.Define<string, IReadOnlyList<int>>("parallel", DispatchMode.Parallel);
         var secondStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await loader.MountAsync([LifecycleTests.Define("A", ctx =>
         {
@@ -24,8 +24,8 @@ public sealed class DispatchTests
     {
         using var host = new ServiceCollection().BuildServiceProvider();
         await using var loader = new PluginLoader(host);
-        var first = QianEvent.Define<string, string?>("same", DispatchMode.Emit);
-        var second = QianEvent.Define<string, string?>("same", DispatchMode.Emit);
+        var first = KunEvent.Define<string, string?>("same", DispatchMode.Emit);
+        var second = KunEvent.Define<string, string?>("same", DispatchMode.Emit);
         Func<string, ValueTask> listener = _ => ValueTask.CompletedTask;
         await loader.MountAsync([
             LifecycleTests.Define("A", ctx => ctx.On(first, first.Mode, listener)),
@@ -42,7 +42,7 @@ public sealed class DispatchTests
     {
         using var host = new ServiceCollection().BuildServiceProvider();
         await using var loader = new PluginLoader(host);
-        var bail = QianEvent.Define<string, int?>("bail", DispatchMode.Bail);
+        var bail = KunEvent.Define<string, int?>("bail", DispatchMode.Bail);
         await loader.MountAsync([LifecycleTests.Define("A", ctx =>
         {
             ctx.On(bail, bail.Mode, (Func<string, ValueTask<int?>>)(_ => ValueTask.FromResult<int?>(null)));
@@ -50,9 +50,9 @@ public sealed class DispatchTests
         })], TestContext.Current.CancellationToken);
         var context = loader.GetContext("A", ScopeKey.Global);
         Assert.Equal(0, await context.DispatchAsync(bail, "", TestContext.Current.CancellationToken));
-        var serial = QianEvent.Define<string, IReadOnlyList<int>>("serial", DispatchMode.Serial);
+        var serial = KunEvent.Define<string, IReadOnlyList<int>>("serial", DispatchMode.Serial);
         Assert.Empty(await context.DispatchAsync(serial, "", TestContext.Current.CancellationToken));
-        var waterfall = QianEvent.Define<string, int>("waterfall", DispatchMode.Waterfall) with { Terminal = _ => ValueTask.FromResult(42) };
+        var waterfall = KunEvent.Define<string, int>("waterfall", DispatchMode.Waterfall) with { Terminal = _ => ValueTask.FromResult(42) };
         Assert.Equal(42, await context.DispatchAsync(waterfall, "", TestContext.Current.CancellationToken));
     }
 }

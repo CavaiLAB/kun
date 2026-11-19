@@ -1,0 +1,168 @@
+#nullable enable
+Kun.Runtime.PluginLoader.DumpConfig() -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.PluginEntry!>!
+override Kun.Runtime.PluginDefinition.Equals(object? obj) -> bool
+override Kun.Runtime.PluginDefinition.GetHashCode() -> int
+override Kun.Runtime.PluginDefinition.ToString() -> string!
+override Kun.Runtime.PluginEntry.Equals(object? obj) -> bool
+override Kun.Runtime.PluginEntry.GetHashCode() -> int
+override Kun.Runtime.PluginEntry.ToString() -> string!
+override Kun.Runtime.ScopeKey.GetHashCode() -> int
+override Kun.Runtime.ServiceKey.GetHashCode() -> int
+Kun.Runtime.IPluginContext
+Kun.Runtime.IPluginContext.Entry.get -> Kun.Runtime.PluginEntry!
+Kun.Runtime.IPluginContext.Inject<TService>(Kun.Runtime.ServiceKey key) -> TService!
+Kun.Runtime.IPluginContext.Logger.get -> Microsoft.Extensions.Logging.ILogger!
+Kun.Runtime.IPluginContext.Provide<TService>(Kun.Runtime.ServiceKey key, TService! instance) -> Kun.Runtime.IRegistrationHandle<TService!>!
+Kun.Runtime.IPluginContext.Scope.get -> Kun.Runtime.ScopeKey
+Kun.Runtime.IPluginContext.Services.get -> System.IServiceProvider!
+Kun.Runtime.IPluginContext.TryInject<TService>(Kun.Runtime.ServiceKey key) -> TService?
+Kun.Runtime.IPluginContext.WhenReadyAsync<TService>(Kun.Runtime.ServiceKey key, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask<TService!>
+Kun.Runtime.IKunPlugin
+Kun.Runtime.IKunPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Runtime.IKunPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Runtime.IKunPlugin<TConfig>
+Kun.Runtime.IKunPlugin<TConfig>.ApplyAsync(Kun.Runtime.IPluginContext! ctx, TConfig config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Runtime.PluginDefinition
+Kun.Runtime.PluginDefinition.<Clone>$() -> Kun.Runtime.PluginDefinition!
+Kun.Runtime.PluginDefinition.Deconstruct(out Kun.Runtime.PluginEntry! Entry, out Kun.Runtime.IKunPlugin! Plugin, out System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>! Provides) -> void
+Kun.Runtime.PluginDefinition.Entry.get -> Kun.Runtime.PluginEntry!
+Kun.Runtime.PluginDefinition.Entry.init -> void
+Kun.Runtime.PluginDefinition.Equals(Kun.Runtime.PluginDefinition? other) -> bool
+Kun.Runtime.PluginDefinition.Plugin.get -> Kun.Runtime.IKunPlugin!
+Kun.Runtime.PluginDefinition.Plugin.init -> void
+Kun.Runtime.PluginDefinition.PluginDefinition(Kun.Runtime.PluginEntry! Entry, Kun.Runtime.IKunPlugin! Plugin, System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>! Provides) -> void
+Kun.Runtime.PluginDefinition.Provides.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Runtime.PluginDefinition.Provides.init -> void
+Kun.Runtime.PluginEntry
+Kun.Runtime.PluginEntry.<Clone>$() -> Kun.Runtime.PluginEntry!
+Kun.Runtime.PluginEntry.Config.get -> System.Text.Json.JsonElement
+Kun.Runtime.PluginEntry.Config.init -> void
+Kun.Runtime.PluginEntry.Deconstruct(out string! Id, out string! Plugin, out string! Version, out Kun.Runtime.ScopeKey Scope, out int Layer, out System.Text.Json.JsonElement Config) -> void
+Kun.Runtime.PluginEntry.Equals(Kun.Runtime.PluginEntry? other) -> bool
+Kun.Runtime.PluginEntry.Id.get -> string!
+Kun.Runtime.PluginEntry.Id.init -> void
+Kun.Runtime.PluginEntry.Layer.get -> int
+Kun.Runtime.PluginEntry.Layer.init -> void
+Kun.Runtime.PluginEntry.Plugin.get -> string!
+Kun.Runtime.PluginEntry.Plugin.init -> void
+Kun.Runtime.PluginEntry.PluginEntry(string! Id, string! Plugin, string! Version, Kun.Runtime.ScopeKey Scope, int Layer, System.Text.Json.JsonElement Config) -> void
+Kun.Runtime.PluginEntry.Scope.get -> Kun.Runtime.ScopeKey
+Kun.Runtime.PluginEntry.Scope.init -> void
+Kun.Runtime.PluginEntry.Version.get -> string!
+Kun.Runtime.PluginEntry.Version.init -> void
+Kun.Runtime.PluginLoader
+Kun.Runtime.PluginLoader.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Kun.Runtime.PluginLoader.GetContext(string! id, Kun.Runtime.ScopeKey scope) -> Kun.Runtime.IPluginContext!
+Kun.Runtime.PluginLoader.GetFailure(string! id, Kun.Runtime.ScopeKey scope) -> System.Exception?
+Kun.Runtime.PluginLoader.GetState(string! id, Kun.Runtime.ScopeKey scope) -> Kun.Runtime.PluginState
+Kun.Runtime.PluginLoader.MountAsync(System.Collections.Generic.IEnumerable<Kun.Runtime.PluginDefinition!>! definitions, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Runtime.PluginLoader.PluginLoader(System.IServiceProvider! services, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+Kun.Runtime.PluginLoader.UnmountAsync(string! id, Kun.Runtime.ScopeKey scope, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Runtime.PluginLoader.WhenIdleAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Runtime.PluginState
+Kun.Runtime.PluginState.Applying = 1 -> Kun.Runtime.PluginState
+Kun.Runtime.PluginState.Failed = 3 -> Kun.Runtime.PluginState
+Kun.Runtime.PluginState.Pending = 0 -> Kun.Runtime.PluginState
+Kun.Runtime.PluginState.Ready = 2 -> Kun.Runtime.PluginState
+Kun.Runtime.ScopeKey
+Kun.Runtime.ScopeKey.Deconstruct(out string! Kind, out string! Id) -> void
+Kun.Runtime.ScopeKey.Equals(Kun.Runtime.ScopeKey other) -> bool
+Kun.Runtime.ScopeKey.Id.get -> string!
+Kun.Runtime.ScopeKey.Id.init -> void
+Kun.Runtime.ScopeKey.Kind.get -> string!
+Kun.Runtime.ScopeKey.Kind.init -> void
+Kun.Runtime.ScopeKey.ScopeKey() -> void
+Kun.Runtime.ScopeKey.ScopeKey(string! Kind, string! Id) -> void
+Kun.Runtime.ServiceKey
+Kun.Runtime.ServiceKey.Deconstruct(out string! Name) -> void
+Kun.Runtime.ServiceKey.Equals(Kun.Runtime.ServiceKey other) -> bool
+Kun.Runtime.ServiceKey.Name.get -> string!
+Kun.Runtime.ServiceKey.Name.init -> void
+Kun.Runtime.ServiceKey.ServiceKey() -> void
+Kun.Runtime.ServiceKey.ServiceKey(string! Name) -> void
+Kun.Runtime.ServiceNotReadyException
+Kun.Runtime.ServiceNotReadyException.Error.get -> Kun.Errors.Error!
+Kun.Runtime.ServiceNotReadyException.ServiceNotReadyException() -> void
+static Kun.Runtime.PluginDefinition.operator !=(Kun.Runtime.PluginDefinition? left, Kun.Runtime.PluginDefinition? right) -> bool
+static Kun.Runtime.PluginDefinition.operator ==(Kun.Runtime.PluginDefinition? left, Kun.Runtime.PluginDefinition? right) -> bool
+static Kun.Runtime.PluginEntry.operator !=(Kun.Runtime.PluginEntry? left, Kun.Runtime.PluginEntry? right) -> bool
+static Kun.Runtime.PluginEntry.operator ==(Kun.Runtime.PluginEntry? left, Kun.Runtime.PluginEntry? right) -> bool
+static Kun.Runtime.ScopeKey.operator !=(Kun.Runtime.ScopeKey left, Kun.Runtime.ScopeKey right) -> bool
+static Kun.Runtime.ScopeKey.operator ==(Kun.Runtime.ScopeKey left, Kun.Runtime.ScopeKey right) -> bool
+static Kun.Runtime.ServiceKey.operator !=(Kun.Runtime.ServiceKey left, Kun.Runtime.ServiceKey right) -> bool
+static Kun.Runtime.ServiceKey.operator ==(Kun.Runtime.ServiceKey left, Kun.Runtime.ServiceKey right) -> bool
+static readonly Kun.Runtime.ScopeKey.Global -> Kun.Runtime.ScopeKey
+~override Kun.Runtime.ScopeKey.Equals(object obj) -> bool
+~override Kun.Runtime.ScopeKey.ToString() -> string
+~override Kun.Runtime.ServiceKey.Equals(object obj) -> bool
+~override Kun.Runtime.ServiceKey.ToString() -> string
+Kun.Runtime.IPluginContext.Effect(System.IDisposable! disposer) -> void
+Kun.Runtime.IPluginContext.Effect(System.Action! dispose) -> void
+Kun.Runtime.IPluginContext.Effect(System.Func<System.Threading.Tasks.ValueTask>! disposeAsync) -> void
+Kun.Runtime.PluginLoader.ReloadAsync(Kun.Runtime.PluginDefinition! definition, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Runtime.DispatchMode.Parallel = 2 -> Kun.Runtime.DispatchMode
+Kun.Runtime.DispatchMode
+Kun.Runtime.DispatchMode.Serial = 3 -> Kun.Runtime.DispatchMode
+Kun.Runtime.DispatchMode.Waterfall = 1 -> Kun.Runtime.DispatchMode
+Kun.Runtime.KunEvent
+Kun.Runtime.DispatchMode.Bail = 4 -> Kun.Runtime.DispatchMode
+Kun.Runtime.DispatchMode.Emit = 0 -> Kun.Runtime.DispatchMode
+Kun.Runtime.KunEvent<TPayload, TResult>
+override Kun.Runtime.KunEvent<TPayload, TResult>.ToString() -> string!
+Kun.Runtime.KunEvent<TPayload, TResult>.Mode.get -> Kun.Runtime.DispatchMode
+Kun.Runtime.KunEvent<TPayload, TResult>.Name.get -> string!
+Kun.Runtime.KunEvent<TPayload, TResult>.Mode.init -> void
+static Kun.Runtime.KunEvent<TPayload, TResult>.operator !=(Kun.Runtime.KunEvent<TPayload, TResult>? left, Kun.Runtime.KunEvent<TPayload, TResult>? right) -> bool
+static Kun.Runtime.KunEvent<TPayload, TResult>.operator ==(Kun.Runtime.KunEvent<TPayload, TResult>? left, Kun.Runtime.KunEvent<TPayload, TResult>? right) -> bool
+override Kun.Runtime.KunEvent<TPayload, TResult>.GetHashCode() -> int
+override Kun.Runtime.KunEvent<TPayload, TResult>.Equals(object? obj) -> bool
+Kun.Runtime.KunEvent<TPayload, TResult>.Equals(Kun.Runtime.KunEvent<TPayload, TResult>? other) -> bool
+Kun.Runtime.KunEvent<TPayload, TResult>.<Clone>$() -> Kun.Runtime.KunEvent<TPayload, TResult>!
+Kun.Runtime.KunEvent<TPayload, TResult>.Deconstruct(out string! Name, out Kun.Runtime.DispatchMode Mode) -> void
+Kun.Runtime.ParallelDispatchException<TResult>
+Kun.Runtime.KunEvent<TPayload, TResult>.Name.init -> void
+Kun.Runtime.IPluginContext.DispatchAsync<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, TResult>! evt, TPayload payload, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask<TResult>
+Kun.Runtime.IPluginContext.DispatchAsync<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, System.Collections.Generic.IReadOnlyList<TResult>!>! evt, TPayload payload, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<TResult>!>
+Kun.Runtime.IPluginContext.DispatchAsync<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, TResult>! evt, TPayload payload, System.Func<System.Threading.Tasks.ValueTask<TResult>>! terminal, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask<TResult>
+Kun.Runtime.KunEvent<TPayload, TResult>.KunEvent(string! Name, Kun.Runtime.DispatchMode Mode) -> void
+static Kun.Runtime.KunEvent.Define<TPayload, TResult>(string! name, Kun.Runtime.DispatchMode mode) -> Kun.Runtime.KunEvent<TPayload, TResult>!
+Kun.Runtime.KunEvent<TPayload, TResult>.Terminal.init -> void
+Kun.Runtime.KunEvent<TPayload, TResult>.Terminal.get -> System.Func<TPayload, System.Threading.Tasks.ValueTask<TResult>>?
+Kun.Runtime.ParallelDispatchException<TResult>.Partial.get -> System.Collections.Generic.IReadOnlyList<TResult>!
+Kun.Runtime.ParallelDispatchException<TResult>.ParallelDispatchException(System.Collections.Generic.IEnumerable<System.Exception!>! errors, System.Collections.Generic.IReadOnlyList<TResult>! partial) -> void
+Kun.Runtime.IPluginContext.On<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, TResult>! evt, Kun.Runtime.DispatchMode mode, System.Delegate! handler, int priority) -> System.IDisposable!
+Kun.Runtime.IPluginContext.On<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, System.Collections.Generic.IReadOnlyList<TResult>!>! evt, Kun.Runtime.DispatchMode mode, System.Delegate! handler, int priority) -> System.IDisposable!
+Kun.Runtime.IPluginContext.On<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, TResult>! evt, Kun.Runtime.DispatchMode mode, System.Delegate! handler) -> System.IDisposable!
+Kun.Runtime.IPluginContext.On<TPayload, TResult>(Kun.Runtime.KunEvent<TPayload, System.Collections.Generic.IReadOnlyList<TResult>!>! evt, Kun.Runtime.DispatchMode mode, System.Delegate! handler) -> System.IDisposable!
+Kun.Runtime.Registration.Name.get -> string!
+Kun.Runtime.Registration.Value.get -> object!
+Kun.Runtime.Registration.Name.init -> void
+Kun.Runtime.Registration.Value.init -> void
+Kun.Runtime.Registration.Key.get -> Kun.Runtime.ServiceKey
+Kun.Runtime.Registration.Key.init -> void
+Kun.Runtime.Registration.OwnerEntryId.get -> string!
+Kun.Runtime.Registration.OwnerEntryId.init -> void
+Kun.Runtime.Registration.Scope.get -> Kun.Runtime.ScopeKey
+Kun.Runtime.Registration.Scope.init -> void
+Kun.Runtime.Registration
+override Kun.Runtime.Registration.ToString() -> string!
+static Kun.Runtime.Registration.operator !=(Kun.Runtime.Registration? left, Kun.Runtime.Registration? right) -> bool
+static Kun.Runtime.Registration.operator ==(Kun.Runtime.Registration? left, Kun.Runtime.Registration? right) -> bool
+override Kun.Runtime.Registration.GetHashCode() -> int
+override Kun.Runtime.Registration.Equals(object? obj) -> bool
+Kun.Runtime.Registration.Equals(Kun.Runtime.Registration? other) -> bool
+Kun.Runtime.Registration.<Clone>$() -> Kun.Runtime.Registration!
+Kun.Runtime.Registration.Deconstruct(out Kun.Runtime.ServiceKey Key, out string! Name, out Kun.Runtime.ScopeKey Scope, out string! OwnerEntryId, out object! Value) -> void
+Kun.Runtime.Registration.Registration(Kun.Runtime.ServiceKey Key, string! Name, Kun.Runtime.ScopeKey Scope, string! OwnerEntryId, object! Value) -> void
+Kun.Runtime.IPluginContext.Scoped(Kun.Runtime.ScopeKey scope) -> Kun.Runtime.IPluginContext!
+Kun.Runtime.IPluginContext.Restrict(Kun.Runtime.ScopeKey scope, System.Func<Kun.Runtime.Registration!, bool>! keep) -> System.IDisposable!
+Kun.Runtime.IPluginContext.Provide<TService>(Kun.Runtime.ServiceKey key, string! name, TService! instance) -> Kun.Runtime.IRegistrationHandle<TService!>!
+Kun.Runtime.IPluginContext.Inject<TService>(Kun.Runtime.ServiceKey key, string! name) -> TService!
+Kun.Runtime.IPluginContext.List(Kun.Runtime.ServiceKey key) -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.Registration!>!
+Kun.Runtime.PluginLoader.GetPendingDependencies(string! id, Kun.Runtime.ScopeKey scope) -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Runtime.KunEventAttribute
+Kun.Runtime.KunEventAttribute.KunEventAttribute() -> void
+Kun.Runtime.KunEventAttribute.Mode.set -> void
+Kun.Runtime.KunEventAttribute.Mode.get -> Kun.Runtime.DispatchMode
+Kun.Runtime.IRegistrationHandle<TService>
+Kun.Runtime.IRegistrationHandle<TService>.Replace(TService! instance) -> void

@@ -1,7 +1,7 @@
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Tenancy;
 using System.Text.Json;
 
@@ -20,7 +20,7 @@ namespace Qian.Identity.Server;
 [Provides(typeof(IdentityDefinition), nameof(IdentityDefinition.FactorsKey))]
 [Provides(typeof(TenantProvisioning), nameof(TenantProvisioning.MembershipKey))]
 [Provides(typeof(TenantSettings), nameof(TenantSettings.UserCounterKey))]
-public sealed class IdentityServerComponent : IQianPlugin
+public sealed class IdentityServerComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, TenancyDefinition.Key];

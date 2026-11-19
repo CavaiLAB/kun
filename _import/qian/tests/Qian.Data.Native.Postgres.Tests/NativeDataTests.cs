@@ -8,7 +8,7 @@ using Kun.Core.MultiTenancy;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeData;
@@ -535,7 +535,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         }
     }
 
-    private sealed class Consumer : IQianPlugin
+    private sealed class Consumer : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

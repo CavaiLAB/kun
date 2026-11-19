@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Tenancy;
@@ -10,7 +10,7 @@ public static class TenantLifecycle
     /// <summary>真实状态迁移与扫描端口。</summary>
     public static readonly ServiceKey Key = new("TenancyLifecycle");
     /// <summary>顺序审批；任一 false 拒绝，无监听器放行。</summary>
-    public static readonly QianEvent<TenantTransitionApproval, IReadOnlyList<bool>> Approving = QianEvent.Define<TenantTransitionApproval, IReadOnlyList<bool>>("tenant/transition-approving", DispatchMode.Serial);
+    public static readonly KunEvent<TenantTransitionApproval, IReadOnlyList<bool>> Approving = KunEvent.Define<TenantTransitionApproval, IReadOnlyList<bool>>("tenant/transition-approving", DispatchMode.Serial);
 }
 /// <summary>控制面已鉴权后的状态操作。</summary>
 public interface ITenantLifecycle

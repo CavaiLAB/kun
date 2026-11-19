@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 using Qian.Testing;
@@ -34,14 +34,14 @@ public sealed class TenantInitializationHookTests
             JsonSerializer.SerializeToElement(new { }), TestContext.Current.CancellationToken), TestContext.Current.CancellationToken).AsTask());
         Assert.Equal(1, fixture.Binding.Calls);
     }
-    private static PluginDefinition Define(string id, string plugin, IQianPlugin provider) => new(
+    private static PluginDefinition Define(string id, string plugin, IKunPlugin provider) => new(
         new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), provider, []);
-    private sealed class Producer : IQianPlugin
+    private sealed class Producer : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext context, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
     }
-    private sealed class HookProvider(string sideEffect) : IQianPlugin
+    private sealed class HookProvider(string sideEffect) : IKunPlugin
     {
         internal Probe Binding { get; } = new(sideEffect);
         public IReadOnlyList<ServiceKey> Inject => [];

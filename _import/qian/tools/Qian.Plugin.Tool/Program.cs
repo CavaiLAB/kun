@@ -15,7 +15,7 @@ try
         var assembly = context.LoadFromAssemblyPath(path);
         if (args[0] == "inventory")
         {
-            Console.WriteLine(JsonSerializer.Serialize(assembly.GetTypes().Where(type => type.IsClass && !type.IsAbstract && typeof(Qian.Runtime.IQianPlugin).IsAssignableFrom(type))
+            Console.WriteLine(JsonSerializer.Serialize(assembly.GetTypes().Where(type => type.IsClass && !type.IsAbstract && typeof(Kun.Runtime.IKunPlugin).IsAssignableFrom(type))
                 .OrderBy(type => type.FullName, StringComparer.Ordinal).Select(type => new { type = type.FullName, component = type.GetCustomAttribute<QianPluginAttribute>()?.Id }), JsonSerializerOptions.Web));
             return 0;
         }

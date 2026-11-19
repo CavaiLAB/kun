@@ -3,14 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Config;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Gateway;
 
 /// <summary>网关唯一组件入口；宿主准备网络装配，插件挂载与卸载决定业务路由是否可以执行。</summary>
 [QianPlugin("qian.gateway")]
 [QianConfigSchema(ComponentConfiguration.Schema)]
-public sealed class GatewayComponent : IQianPlugin
+public sealed class GatewayComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [IdentityDefinition.Key, ConfigDefinition.Key];

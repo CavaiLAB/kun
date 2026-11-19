@@ -13,10 +13,10 @@ updated: 2026-11-19
 
 | 模式 | 宿主 | 装什么 | 适合 |
 |---|---|---|---|
-| 独立模式 | 你自己的 ASP.NET Core 项目（standalone profile） | `Qian.Runtime` + 所选组件的 Definition / Provider 包；配置走标准 `IConfiguration`，租户默认单租户 | 只想用某几项能力，不部署 Qian 平台 |
+| 独立模式 | 你自己的 ASP.NET Core 项目（standalone profile） | `Kun.Runtime` + 所选组件的 Definition / Provider 包；配置走标准 `IConfiguration`，租户默认单租户 | 只想用某几项能力，不部署 Qian 平台 |
 | 平台模式 | `platform` profile 的宿主 | base 组合包里的全部平台插件，含注册表、生命周期、能力目录三件套 | 多租户平台本体 |
 
-两种模式下组件行为一致，由同一套 TCK 在两种模式各跑一遍保证（[ADR-019](/design/adr/adr-019-library-first-packages)）。`Qian.Runtime` 是组件库唯一必需的 Qian 依赖，组件之间只经 `*.Abstractions` 引用（依赖图门禁见 [seam](/start/concepts/seam)）。
+两种模式下组件行为一致，由同一套 TCK 在两种模式各跑一遍保证（[ADR-019](/design/adr/adr-019-library-first-packages)）。`Kun.Runtime` 是组件库唯一必需的 Qian 依赖，组件之间只经 `*.Abstractions` 引用（依赖图门禁见 [seam](/start/concepts/seam)）。
 
 ## 五个 profile
 
@@ -38,6 +38,6 @@ updated: 2026-11-19
 
 ## 与 Kun 的关系
 
-Qian 平台基于 Kun 框架构建，前端使用 qian 组件库（[ADR-021](/design/adr/adr-021-product-family-structure)）。Kun 是 .NET 10 云原生微服务开发框架，是 `Qian.Runtime` 与平台插件的**实现依赖**，以 NuGet + CalVer 锁版本消费；`Kun.*` 不改，它的 `AddKunXxx()` 模块在 Qian 里包装成插件（[ADR-001](/design/adr/adr-001-kun-relationship)、[ADR-020 D20.10](/design/adr/adr-020-component-model-v2)）。
+Qian 平台基于 Kun 框架构建，前端使用 qian 组件库（[ADR-021](/design/adr/adr-021-product-family-structure)）。Kun 是 .NET 10 云原生微服务开发框架，是 `Kun.Runtime` 与平台插件的**实现依赖**，以 NuGet + CalVer 锁版本消费；`Kun.*` 不改，它的 `AddKunXxx()` 模块在 Qian 里包装成插件（[ADR-001](/design/adr/adr-001-kun-relationship)、[ADR-020 D20.10](/design/adr/adr-020-component-model-v2)）。
 
 Kun 的文档在 SDK 部分的 [Kun 框架](/sdk/kun/) 小节：按 Kun 最新的发布版从 kun 仓库镜像。Kun 模块与平台插件、seam 的对应，Qian 选定的 canonical API 与禁用项，见[与 Qian 的关系](/sdk/kun/with-qian)。

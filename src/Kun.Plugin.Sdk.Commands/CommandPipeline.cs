@@ -4,18 +4,18 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Kun.Mediator;
+using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Qian.Data;
 using Qian.Authz.Abstractions;
-using Kun.Errors;
-using Qian.Identity.Abstractions;
-using Kun.Runtime;
+using Qian.Data;
 using Qian.Events;
+using Qian.Identity.Abstractions;
 
 namespace Kun.Plugin.Sdk;
 
@@ -112,9 +112,18 @@ internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(
     // 此快照只在同一次已授权开户 hook 内使用，不进入 Identity，不签发令牌或建立 Membership。
     private static Principal InitializationPrincipal() => new()
     {
-        Issuer = "qian.tenancy/initialization", Audience = [], Subject = TenantInitializationAuthorization.Actor,
-        Kind = TenantInitializationAuthorization.ActorKind == "user" ? PrincipalKind.User : PrincipalKind.Service, TenantId = TenantInitializationAuthorization.Tenant, Roles = [], Scope = "",
-        SessionId = "", TokenId = "", IssuedAt = 0, NotBefore = 0, ExpiresAt = 0
+        Issuer = "qian.tenancy/initialization",
+        Audience = [],
+        Subject = TenantInitializationAuthorization.Actor,
+        Kind = TenantInitializationAuthorization.ActorKind == "user" ? PrincipalKind.User : PrincipalKind.Service,
+        TenantId = TenantInitializationAuthorization.Tenant,
+        Roles = [],
+        Scope = "",
+        SessionId = "",
+        TokenId = "",
+        IssuedAt = 0,
+        NotBefore = 0,
+        ExpiresAt = 0
     };
 
     private static Principal Capture(Qian.Identity.Abstractions.ICurrentUser user, ITenantContext tenant, IPluginContext source)
@@ -126,11 +135,23 @@ internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(
             (source.Scope != ScopeKey.Global && (source.Scope.Kind != "tenant" || source.Scope.Id != tenantId))) throw CommandPolicies.Denied();
         return new Principal
         {
-            Issuer = principal.Issuer, Audience = Array.AsReadOnly(principal.Audience.ToArray()), Subject = principal.Subject, Kind = principal.Kind,
-            TenantId = principal.TenantId, MembershipId = principal.MembershipId, IdentityRevision = principal.IdentityRevision,
-            ProjectId = principal.ProjectId, PluginId = principal.PluginId, Roles = Array.AsReadOnly(principal.Roles.ToArray()), Scope = principal.Scope,
-            SessionId = principal.SessionId, TokenId = principal.TokenId, IssuedAt = principal.IssuedAt, NotBefore = principal.NotBefore,
-            ExpiresAt = principal.ExpiresAt, Actor = CopyActor(principal.Actor, 0)
+            Issuer = principal.Issuer,
+            Audience = Array.AsReadOnly(principal.Audience.ToArray()),
+            Subject = principal.Subject,
+            Kind = principal.Kind,
+            TenantId = principal.TenantId,
+            MembershipId = principal.MembershipId,
+            IdentityRevision = principal.IdentityRevision,
+            ProjectId = principal.ProjectId,
+            PluginId = principal.PluginId,
+            Roles = Array.AsReadOnly(principal.Roles.ToArray()),
+            Scope = principal.Scope,
+            SessionId = principal.SessionId,
+            TokenId = principal.TokenId,
+            IssuedAt = principal.IssuedAt,
+            NotBefore = principal.NotBefore,
+            ExpiresAt = principal.ExpiresAt,
+            Actor = CopyActor(principal.Actor, 0)
         };
     }
     // RFC 8693：有 act 时 act.sub 才是实际行事方，sub 是被代表的委托人。关联 id 沿用外层（如消费端触发的命令），因果是本次调用。
@@ -145,11 +166,15 @@ internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(
             : "00-" + invocation.TraceId + "-" + System.Diagnostics.ActivitySpanId.CreateRandom().ToHexString() + "-00";
         return new EventOrigin(contract.ComponentId, actor)
         {
-            CorrelationId = EventEnvelopeScope.Current?.CorrelationId, CausationId = invocation.Id, TraceParent = traceParent
+            CorrelationId = EventEnvelopeScope.Current?.CorrelationId,
+            CausationId = invocation.Id,
+            TraceParent = traceParent
         };
         static EventActorKind KindOf(PrincipalKind kind) => kind switch
         {
-            PrincipalKind.User => EventActorKind.User, PrincipalKind.Service => EventActorKind.Service, PrincipalKind.Agent => EventActorKind.Agent,
+            PrincipalKind.User => EventActorKind.User,
+            PrincipalKind.Service => EventActorKind.Service,
+            PrincipalKind.Agent => EventActorKind.Agent,
             _ => throw CommandPolicies.Denied()
         };
     }

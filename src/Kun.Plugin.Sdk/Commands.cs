@@ -1,8 +1,8 @@
 using System.Data.Common;
 using System.Text.Json;
 using Kun.Core.Cqrs;
-using Qian.Identity.Abstractions;
 using Kun.Runtime;
+using Qian.Identity.Abstractions;
 
 namespace Kun.Plugin.Sdk;
 

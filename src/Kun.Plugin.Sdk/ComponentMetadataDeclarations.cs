@@ -11,8 +11,14 @@ public static class ComponentMetadataDeclarations
     {
         ArgumentNullException.ThrowIfNull(value);
         if (!Enum.IsDefined(mode) || string.IsNullOrWhiteSpace(value.Name) || value.Mode != mode) throw new ArgumentException("事件属性与实际分发模式不一致：" + source);
-        return new JsonObject { ["name"] = value.Name, ["mode"] = mode.ToString().ToLowerInvariant(), ["payload"] = typeof(TPayload).FullName,
-            ["result"] = typeof(TResult).FullName, ["source"] = source };
+        return new JsonObject
+        {
+            ["name"] = value.Name,
+            ["mode"] = mode.ToString().ToLowerInvariant(),
+            ["payload"] = typeof(TPayload).FullName,
+            ["result"] = typeof(TResult).FullName,
+            ["source"] = source
+        };
     }
 
     /// <summary>在同源事件声明上保留唯一 Definition 归属；多个 Provider 可引用同一事件。</summary>

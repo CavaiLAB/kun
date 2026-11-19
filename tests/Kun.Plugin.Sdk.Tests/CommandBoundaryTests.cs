@@ -1,16 +1,16 @@
 using System.Text.Json;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
+using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Plugin.Sdk.Tests;
 
@@ -84,9 +84,18 @@ public sealed class CommandBoundaryTests
     {
         public Principal Principal { get; } = new()
         {
-            Issuer = "test-port", Audience = ["qian.sdk-tests"], Subject = "client", Kind = PrincipalKind.Service, TenantId = Tenant,
-            Roles = [], Scope = "qian.sdk-tests:write", SessionId = Guid.CreateVersion7().ToString(), TokenId = Guid.CreateVersion7().ToString(),
-            IssuedAt = 1, NotBefore = 1, ExpiresAt = 300
+            Issuer = "test-port",
+            Audience = ["qian.sdk-tests"],
+            Subject = "client",
+            Kind = PrincipalKind.Service,
+            TenantId = Tenant,
+            Roles = [],
+            Scope = "qian.sdk-tests:write",
+            SessionId = Guid.CreateVersion7().ToString(),
+            TokenId = Guid.CreateVersion7().ToString(),
+            IssuedAt = 1,
+            NotBefore = 1,
+            ExpiresAt = 300
         };
         public string UserId => Principal.Subject;
         public IReadOnlyList<string> Roles => Principal.Roles;

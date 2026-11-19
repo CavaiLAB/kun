@@ -5,11 +5,11 @@ using System.Runtime.Loader;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Plugin.Sdk.Generators;
+using Kun.Plugin.Tool;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Kun.Plugin.Sdk.Generators;
-using Kun.Plugin.Tool;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 
@@ -269,7 +269,7 @@ public sealed partial class CodeDerivedManifestTests
     private static async Task<(int ExitCode, JsonElement Json, string Error)> Tool(string verb, string assembly, string component)
     {
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") is { Length: > 0 } host ? host : "dotnet")
-            { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
+        { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
         foreach (var value in new[] { Path.Combine(AppContext.BaseDirectory, "Kun.Plugin.Tool.dll"), verb, assembly, component }) start.ArgumentList.Add(value);
         using var child = Process.Start(start)!;
         var output = child.StandardOutput.ReadToEndAsync(Ct); var errors = child.StandardError.ReadToEndAsync(Ct);

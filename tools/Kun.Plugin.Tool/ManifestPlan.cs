@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Json.Schema;
 using System.Text.Json.Nodes;
+using Json.Schema;
 using Kun.Plugin.Sdk;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
@@ -94,8 +94,14 @@ internal sealed class ManifestPlan(string root, IReadOnlyList<PlannedFile> files
         if (code.Events.GetArrayLength() != 0) Surface(metadataDirectory + "/events.json", JsonNode.Parse(code.Events.GetRawText())!);
         if (code.Jobs.Count != 0)
         {
-            var jobs = new JsonArray(code.Jobs.Select(job => (JsonNode)new JsonObject { ["code"] = job.Code, ["type"] = "local", ["target"] = job.Capability.Id,
-                ["inputSchema"] = job.Capability.InputSchema, ["outputSchema"] = job.Capability.OutputSchema }).ToArray());
+            var jobs = new JsonArray(code.Jobs.Select(job => (JsonNode)new JsonObject
+            {
+                ["code"] = job.Code,
+                ["type"] = "local",
+                ["target"] = job.Capability.Id,
+                ["inputSchema"] = job.Capability.InputSchema,
+                ["outputSchema"] = job.Capability.OutputSchema
+            }).ToArray());
             Surface(metadataDirectory + "/jobs.json", jobs, "scheduler-jobs");
         }
         if (code.ConfigSchema is { } configSchema)

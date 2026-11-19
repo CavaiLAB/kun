@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
+using Kun.Plugin.Sdk.Generators;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Kun.Plugin.Sdk.Generators;
 
 namespace Kun.Plugin.Sdk.Tests;
 

@@ -1,6 +1,6 @@
 # qian.data
 
-Data Provider 的实现位于 packages/Qian.Data，已提供数据会话、同上下文 Outbox、角色检查、RLS 迁移与软删审计。清单的代码字段（inject、provides、runtime.form / entry）由 Kun.Plugin.Tool 从实际程序集同步，CI 检查两者不漂移（S1-RT-014）；`runtime.nuget` 钉到私有源已发布的 `Kun.Data` 版本与摘要。S1-RT-011 已用 `qian add data` 从私有源真实安装并运行 Provider，本文件夹不再标记 x-skeleton。
+Data Provider 的实现位于仓库根 `src/Kun.Data`，已提供数据会话、同上下文 Outbox、角色检查、RLS 迁移与软删审计。清单的代码字段（inject、provides、runtime.form / entry）由 Kun.Plugin.Tool 从实际程序集同步，CI 检查两者不漂移（S1-RT-014）；`runtime.nuget` 钉的是私有源上已发布的包的版本与摘要，新包名发布之前不动。S1-RT-011 已用 `qian add data` 从私有源真实安装并运行 Provider，本文件夹不再标记 x-skeleton。
 
 配置契约已与实际 DataPlugin 对齐：dialect 固定 pg，rls.enforce 固定 true；可选 connection 为宿主显式绑定的 platform/dev secretRef，用于选择上下文集合。凭据不写入组件文件夹，按上下文创建时读取。
 

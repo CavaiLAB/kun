@@ -29,7 +29,7 @@
   "x-skeleton": true,
   "runtime": {
     "form": "module",
-    "entry": "Qian.Data.Dialect.Pg.PgDialectPlugin, Qian.Data.Dialect.Pg",
+    "entry": "Kun.Data.Dialect.Pg.PgDialectPlugin, Kun.Data.Dialect.Pg",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -46,7 +46,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.data.dialect.pg",
-        "source": "Qian.Data.Dialect.Pg.PgDialectPlugin, Qian.Data.Dialect.Pg",
+        "source": "Kun.Data.Dialect.Pg.PgDialectPlugin, Kun.Data.Dialect.Pg",
         "sha256": "24dc3e25230eda824a1af2819b7fc263a39cc3d19c735bab027064acb585ccec",
         "fields": [
           ""

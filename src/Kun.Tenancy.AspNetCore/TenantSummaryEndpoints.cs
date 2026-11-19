@@ -2,12 +2,12 @@ using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Runtime;
+using Kun.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Identity.Abstractions;
 
 namespace Kun.Tenancy.AspNetCore;
 

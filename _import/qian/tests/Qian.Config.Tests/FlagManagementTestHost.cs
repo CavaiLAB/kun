@@ -4,6 +4,7 @@ using System.Text.Json;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
 using Kun.MultiTenancy;
+using Kun.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;

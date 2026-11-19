@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Reflection;
+using Kun.Security;
 using Microsoft.Extensions.Configuration;
 using Qian.Config.Apollo;
 using Kun.Plugin.Sdk;

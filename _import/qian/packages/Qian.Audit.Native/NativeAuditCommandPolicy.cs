@@ -24,8 +24,8 @@ internal sealed class NativeAuditCommandPolicy(IAuditService audit)
         if (principal.Actor is not null) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         var actor = principal.Kind switch
         {
-            Qian.Identity.Abstractions.PrincipalKind.User => "user", Qian.Identity.Abstractions.PrincipalKind.Service => "service",
-            Qian.Identity.Abstractions.PrincipalKind.Agent => "agent", _ => throw new ErrorException(new Error(PlatformErrors.AuthzDenied))
+            Kun.Security.PrincipalKind.User => "user", Kun.Security.PrincipalKind.Service => "service",
+            Kun.Security.PrincipalKind.Agent => "agent", _ => throw new ErrorException(new Error(PlatformErrors.AuthzDenied))
         };
         var buffer = new ArrayBufferWriter<byte>();
         using (var writer = new Utf8JsonWriter(buffer))

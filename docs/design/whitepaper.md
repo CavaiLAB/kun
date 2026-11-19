@@ -6,7 +6,7 @@
 **作者**: Manus AI
 **日期**: 2026年4月18日
 
-> 本文是 Kun 框架 2026-04 的设计白皮书。Kun 的定位与路线已由合并蓝图改写，见[框架架构](../architecture.md)与[迁移与归并](../migration.md)；第 2–11 章讲的构建块设计仍适用，第 12、13 章是当时的路线与交付清单。
+> 本文是 Kun 框架 2026-04 的设计白皮书。Kun 的定位与路线已由合并蓝图改写，见[框架架构](../architecture.md)与[迁移与归并](../migration.md)；第 2–11 章讲的构建块设计仍适用（第 7 章的 `Kun.Saga` 已归档），第 12、13 章是当时的路线与交付清单。
 
 ---
 
@@ -21,7 +21,7 @@
 3. **双引擎数据访问**：写侧（Command）使用 **EF Core 10** 以获得变更追踪、工作单元、丰富的 DDD 映射能力；读侧（Query）使用 **Dapper AOT** 以获得极致性能和 AOT 友好性。与 CQRS 天然契合。
 4. **多协议 RPC**：对外 HTTP/JSON（Minimal API），内部 gRPC（HTTP/2 + Protobuf），网关层支持 gRPC-Web 协议转换。
 5. **可靠的事件驱动（EDA）**：原生集成 Outbox Pattern，业务数据与事件在同一本地事务中原子落库；稳定事件标识符支持版本演进；跨进程边界自动传播 W3C Trace Context。
-6. **内置分布式事务编排**：原生提供 Saga Orchestration，将跨服务的长事务（补偿、超时、幂等）下沉至框架，业务方只写正向步骤与补偿逻辑。
+6. **内置分布式事务编排**：原生提供 Saga Orchestration，将跨服务的长事务（补偿、超时、幂等）下沉至框架，业务方只写正向步骤与补偿逻辑。（`Kun.Saga` 已归档，见第 7 章）
 7. **零信任服务间通信**：网关签发短生命周期内部 S2S JWT，下游服务独立校验；配合 Kubernetes NetworkPolicy 形成纵深防御。
 8. **多租户 First-Class**：v1 即内置 `ITenantContext` 抽象、EF Core 全局查询过滤器、缓存 Key 租户隔离、消息路由租户标签。
 9. **面向 Serverless 与微服务**：无缝集成 .NET Aspire 进行编排与可观测性（OpenTelemetry）。
@@ -44,7 +44,6 @@
 | **RPC 协议** | gRPC（Grpc.AspNetCore） | .NET 10 内置 | 微服务内部高性能强类型通信 |
 | **HTTP API** | Minimal APIs | .NET 10 内置 | 对外 REST 接口，AOT 友好 |
 | **CQRS 调度** | Kun.Mediator（自研） | — | `FrozenDictionary` 无反射调度，AOT 原生兼容 |
-| **分布式事务** | Kun.Saga（自研） | — | Saga Orchestration 编排器 |
 | **消息队列** | RabbitMQ | 3.x | 集成事件跨服务异步传递 |
 | **缓存** | HybridCache | .NET 10 内置 | L1 内存 + L2 Redis 两级缓存 |
 | **分布式缓存** | Redis | 7.x | HybridCache L2、幂等键存储、分布式限流 |
@@ -78,7 +77,6 @@
 | 微服务内部同步调用 | gRPC（HTTP/2 + Protobuf） | 强类型契约、二进制序列化、性能高 |
 | 浏览器直连后端 gRPC | gRPC-Web（网关协议转换） | 浏览器不支持原生 HTTP/2 gRPC 帧 |
 | 跨服务异步通知与解耦 | RabbitMQ + Outbox Pattern | 服务解耦、可靠投递、最终一致性 |
-| 跨服务长事务 | Saga Orchestration | 补偿、超时、幂等一体化编排 |
 
 ---
 
@@ -102,7 +100,6 @@ graph TD
 
     Infra --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
 
-    EventBus --> Saga[Kun.Saga<br/>Saga 编排器/补偿/超时]
     EventBus --> RabbitMq[Kun.EventBus.RabbitMQ<br/>集成事件传输]
 
     Mediator --> AspNet[Kun.AspNetCore<br/>Minimal API/Pipeline Behaviors]
@@ -118,7 +115,6 @@ graph TD
     style Core fill:#e1f5ff
     style Mediator fill:#e1f5ff
     style Security fill:#ffe1e1
-    style Saga fill:#fff4d6
 ```
 
 当前配置与权限端口增量见 [Kun ADR-016](../adr/kun/ADR-016-platform-ports.md)：Kun 只提供权限端口和接入点，平台负责引擎；Apollo 以独立标准配置源落位。
@@ -134,7 +130,6 @@ graph TD
 | `Kun.EventBus.Abstractions` | 稳定事件标记与 JSON 注册端口 | `Kun.Core` |
 | `Kun.EventBus` | 领域事件、集成事件抽象、Outbox 发布器 | `Kun.Core` |
 | `Kun.EventBus.RabbitMQ` | RabbitMQ 传输、消费端幂等中间件 | `Kun.EventBus` |
-| `Kun.Saga` | Saga 定义、编排器、补偿调度、超时检测 | `Kun.EventBus` |
 | `Kun.Security` | 内部 S2S JWT 签发/校验、租户上下文注入 | `Kun.Core` |
 | `Kun.Validation` | SourceGen 验证器，AOT 兼容 | `Kun.Core` |
 | `Kun.AspNetCore` | Minimal API 扩展、全局异常、Pipeline Behaviors | `Kun.Mediator` |
@@ -399,247 +394,9 @@ Outbox 保证"至少一次"投递，消费者必须幂等。`Kun.EventBus` 内�
 
 ---
 
-## 7. 分布式事务：Saga 编排器（Kun.Saga）
+## 7. 分布式事务：Saga 编排器（Kun.Saga，已归档）
 
-在微服务架构下，跨服务的长事务无法用单库事务完成。Kun.Saga 采用 **Orchestration（编排）模式**：由一个中央协调器按顺序驱动各步骤，失败时按相反顺序执行补偿。
-
-### 7.1 为什么选择 Orchestration 而非 Choreography
-
-| 维度 | Orchestration（Kun 选用） | Choreography |
-| :--- | :--- | :--- |
-| 流程可见性 | 中央协调器代码即流程定义，清晰 | 事件散落各服务，需拼图 |
-| 补偿编写 | 集中在 Saga 定义里，显式 | 需要每个服务订阅失败事件 |
-| 超时 / 状态持久化 | 协调器直接维护 | 难以统一 |
-| 与 Outbox 契合度 | 协调器通过 Outbox 发 Command，天然可靠 | 多服务各自发事件，幂等 / 顺序难保证 |
-| 耦合度 | 协调器知道所有步骤 | 各服务解耦但流程隐式 |
-| 可测试性 | Saga 可作为单元测试对象 | 需跨服务集成测试 |
-
-对于 **需要明确补偿逻辑** 的业务（下单、付款、发货、订阅变更），Orchestration 的工程收益显著大于耦合成本。
-
-### 7.2 核心抽象
-
-```csharp
-// Kun.Saga
-public interface ISagaContext
-{
-    Guid SagaId { get; }
-    string TenantId { get; }
-}
-
-public interface ISaga<TContext> where TContext : ISagaContext
-{
-    string Name { get; }                                    // 稳定 Saga 标识，如 "order.create"
-    IReadOnlyList<ISagaStep<TContext>> Steps { get; }
-    TimeSpan DefaultStepTimeout { get; }
-}
-
-public interface ISagaStep<TContext> where TContext : ISagaContext
-{
-    string Name { get; }                                    // 稳定步骤标识
-    Task ExecuteAsync(TContext ctx, CancellationToken ct);
-    Task CompensateAsync(TContext ctx, CancellationToken ct);
-    TimeSpan? Timeout { get; }                              // 步骤超时
-}
-```
-
-### 7.3 业务示例：订单创建 Saga
-
-```csharp
-// 上下文（贯穿整个 Saga 的数据载体）
-public class OrderSagaContext : ISagaContext
-{
-    public Guid SagaId { get; init; }
-    public string TenantId { get; init; } = default!;
-    public Guid OrderId { get; init; }
-    public decimal TotalAmount { get; init; }
-    public List<OrderLine> Items { get; init; } = new();
-
-    // 各步骤产出的状态（用于补偿时知道要回滚什么）
-    public Guid? ReservationId { get; set; }
-    public Guid? PaymentId { get; set; }
-    public Guid? ShipmentId { get; set; }
-}
-
-// Saga 定义
-public class OrderSaga : ISaga<OrderSagaContext>
-{
-    public string Name => "order.create";
-    public TimeSpan DefaultStepTimeout => TimeSpan.FromSeconds(30);
-
-    public IReadOnlyList<ISagaStep<OrderSagaContext>> Steps { get; } = new ISagaStep<OrderSagaContext>[]
-    {
-        new ReserveInventoryStep(),
-        new ProcessPaymentStep(),
-        new CreateShipmentStep(),
-        new NotifyCustomerStep()
-    };
-}
-
-// 单个步骤：预留库存 + 补偿释放库存
-public class ReserveInventoryStep : ISagaStep<OrderSagaContext>
-{
-    public string Name => "reserve-inventory";
-    public TimeSpan? Timeout => TimeSpan.FromSeconds(15);
-
-    private readonly ISender _mediator;
-
-    public async Task ExecuteAsync(OrderSagaContext ctx, CancellationToken ct)
-    {
-        var result = await _mediator.Send(
-            new ReserveInventoryCommand(ctx.OrderId, ctx.Items), ct);
-
-        if (!result.IsSuccess)
-            throw new SagaStepFailedException(Name, result.Error!);
-
-        ctx.ReservationId = result.Value!.ReservationId;
-    }
-
-    public async Task CompensateAsync(OrderSagaContext ctx, CancellationToken ct)
-    {
-        // 补偿必须幂等：即使 ReservationId 为空（执行时就失败了）也不能抛错
-        if (ctx.ReservationId is null) return;
-        await _mediator.Send(new ReleaseInventoryCommand(ctx.ReservationId.Value), ct);
-    }
-}
-```
-
-### 7.4 编排器实现要点
-
-```csharp
-public interface ISagaOrchestrator
-{
-    Task<Guid> StartAsync<TContext>(TContext ctx, CancellationToken ct)
-        where TContext : ISagaContext;
-}
-
-public class SagaOrchestrator<TSaga, TContext> : ISagaOrchestrator
-    where TSaga : ISaga<TContext>
-    where TContext : ISagaContext
-{
-    private readonly TSaga _saga;
-    private readonly ISagaInstanceStore _store;     // 基于 EF Core 的状态持久化
-    private readonly KunDbContext _db;
-
-    public async Task<Guid> StartAsync(TContext ctx, CancellationToken ct)
-    {
-        // 1) 持久化 Saga 实例（与业务命令同事务）
-        var instance = new SagaInstance
-        {
-            Id = ctx.SagaId,
-            SagaName = _saga.Name,
-            TenantId = ctx.TenantId,
-            ContextPayload = JsonSerializer.Serialize(ctx, KunJsonContext.Default.GetTypeInfo(typeof(TContext))!),
-            CurrentStepIndex = 0,
-            State = SagaState.Running,
-            StartedAt = DateTime.UtcNow,
-            TimeoutAt = DateTime.UtcNow.Add(_saga.DefaultStepTimeout)
-        };
-        await _store.AddAsync(instance, ct);
-
-        // 2) 投递首步执行消息到 Outbox（保证与业务事务原子）
-        await _store.EnqueueStepAsync(instance.Id, stepIndex: 0, ct);
-
-        await _db.SaveChangesAsync(ct);
-        return instance.Id;
-    }
-
-    // 由 SagaStepExecutor 后台服务驱动，而非同步调用
-    internal async Task ExecuteStepAsync(Guid sagaId, int stepIndex, CancellationToken ct)
-    {
-        var instance = await _store.GetAsync(sagaId, ct);
-        var ctx = JsonSerializer.Deserialize<TContext>(
-            instance.ContextPayload, KunJsonContext.Default.GetTypeInfo(typeof(TContext))!)!;
-        var step = _saga.Steps[stepIndex];
-
-        try
-        {
-            await step.ExecuteAsync(ctx, ct);
-            instance.ContextPayload = JsonSerializer.Serialize(ctx, ...);
-            instance.CurrentStepIndex = stepIndex + 1;
-
-            if (instance.CurrentStepIndex >= _saga.Steps.Count)
-            {
-                instance.State = SagaState.Completed;
-                instance.CompletedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                await _store.EnqueueStepAsync(sagaId, instance.CurrentStepIndex, ct);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Saga {SagaId} 步骤 {Step} 失败，进入补偿", sagaId, step.Name);
-            instance.State = SagaState.Compensating;
-            instance.FailureReason = ex.Message;
-            await _store.EnqueueCompensationAsync(sagaId, stepIndex, ct);
-        }
-
-        await _db.SaveChangesAsync(ct);
-    }
-
-    internal async Task CompensateAsync(Guid sagaId, int fromStepIndex, CancellationToken ct)
-    {
-        var instance = await _store.GetAsync(sagaId, ct);
-        var ctx = JsonSerializer.Deserialize<TContext>(instance.ContextPayload, ...)!;
-
-        // 从失败步骤开始，反向执行已完成步骤的补偿
-        for (var i = fromStepIndex; i >= 0; i--)
-        {
-            await _saga.Steps[i].CompensateAsync(ctx, ct);
-        }
-
-        instance.State = SagaState.Compensated;
-        instance.CompletedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
-    }
-}
-```
-
-### 7.5 超时检测（后台服务）
-
-```csharp
-public class SagaTimeoutDetector : BackgroundService
-{
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            await using var scope = _serviceProvider.CreateAsyncScope();
-            var db = scope.ServiceProvider.GetRequiredService<KunDbContext>();
-
-            var timedOut = await db.Set<SagaInstance>()
-                .Where(s => s.State == SagaState.Running && s.TimeoutAt < DateTime.UtcNow)
-                .Take(50)
-                .ToListAsync(stoppingToken);
-
-            foreach (var instance in timedOut)
-            {
-                _logger.LogWarning("Saga {SagaId} 超时，触发补偿", instance.Id);
-                instance.State = SagaState.Compensating;
-                instance.FailureReason = "Timeout";
-                // 入队补偿任务
-                await _store.EnqueueCompensationAsync(instance.Id, instance.CurrentStepIndex - 1, stoppingToken);
-            }
-
-            await db.SaveChangesAsync(stoppingToken);
-            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-        }
-    }
-}
-```
-
-### 7.6 设计保证
-
-| 保证项 | 实现方式 |
-| :--- | :--- |
-| **启动原子性** | SagaInstance 持久化 + 首步入队与业务 Command 同一 EF 事务 |
-| **步骤幂等** | 每次执行前通过 `IProcessedMessageStore` 去重 |
-| **补偿反向顺序** | 编排器从失败步骤开始，`i-- CompensateAsync` |
-| **补偿自身幂等** | 约定：补偿实现必须允许在"未执行/部分执行"的上下文上安全调用 |
-| **超时处理** | `SagaTimeoutDetector` 后台服务检测 `TimeoutAt < Now` |
-| **状态可查询** | `SagaInstance` 表即是运行时快照，运维可直接查询状态 |
-| **追踪串联** | Saga 启动时的 TraceId 写入 `SagaInstance`，所有步骤继承 |
+`Kun.Saga` 已归档，框架不再提供 Saga 编排器，本章原有的抽象、示例与实现要点随之删去。跨服务的流程用集成事件经 Outbox 串起来（第 6 章），失败后的补偿由各服务按业务自己处理；Order 样例演示的是不带编排的命令流程：下单 → 经 gRPC 预留库存 → 经 Outbox 发集成事件。
 
 ---
 
@@ -910,11 +667,10 @@ builder.Build().Run();
 | CQRS Pipeline | 每个 Command/Query 的 Handler Span |
 | EF Core | 自动 SQL 执行 Span（命名为 `db.query`） |
 | Outbox 发布器 | `outbox.publish` Span，父 Span 恢复自 `TraceParent` |
-| Saga 编排器 | `saga.step.execute` / `saga.step.compensate` Span |
 | RabbitMQ 消费 | `queue.consume` Span，链路与生产端打通 |
 | gRPC 客户端/服务端 | 内置 `OpenTelemetry.Instrumentation.GrpcNetClient` |
 
-**关键保证**：从 HTTP 入站 → DB 写入 → Outbox 发布 → 消息队列 → 跨服务消费 → Saga 补偿，一条完整的 TraceId 贯穿始终。
+**关键保证**：从 HTTP 入站 → DB 写入 → Outbox 发布 → 消息队列 → 跨服务消费，一条完整的 TraceId 贯穿始终。
 
 ### 11.2 测试策略与官方模板
 
@@ -955,29 +711,7 @@ public class OutboxIntegrationTests : IClassFixture<KunTestFixture>
 }
 ```
 
-**③ Saga 编排测试**：验证正向流程、失败补偿、超时路径。
-
-```csharp
-[Fact]
-public async Task OrderSaga_WhenPaymentFails_ShouldCompensateInventoryReservation()
-{
-    // Arrange：让 Payment 步骤返回失败
-    _fixture.MockPaymentService(result: Result.Fail(new Error(PlatformErrors.Conflict)));
-
-    // Act
-    var sagaId = await _orchestrator.StartAsync(new OrderSagaContext { ... }, CancellationToken.None);
-    await _fixture.WaitForSagaCompletionAsync(sagaId);
-
-    // Assert：库存被释放
-    var instance = await _fixture.GetSagaInstanceAsync(sagaId);
-    instance.State.Should().Be(SagaState.Compensated);
-
-    var inventoryEvents = await _fixture.ConsumedEvents<InventoryReleasedEvent>();
-    inventoryEvents.Should().ContainSingle();
-}
-```
-
-**④ gRPC 契约测试**：基于 Proto 文件生成客户端，验证服务契约不破坏。
+**③ gRPC 契约测试**：基于 Proto 文件生成客户端，验证服务契约不破坏。
 
 ### 11.3 AOT 发布验证
 

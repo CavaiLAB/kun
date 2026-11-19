@@ -24,7 +24,6 @@ public static class OpenTelemetryExtensions
                 .AddSource("Kun.Mediator")
                 .AddSource("Kun.EventBus.Outbox")
                 .AddSource("Kun.Grpc")
-                .AddSource("Kun.Saga")
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddOtlpExporter())

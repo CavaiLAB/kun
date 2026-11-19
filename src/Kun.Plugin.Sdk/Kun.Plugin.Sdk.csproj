@@ -2,13 +2,10 @@
   <PropertyGroup><IsPackable>true</IsPackable><Description>Kun 插件开发包：组件的代码声明、生成契约与命令策略协议（内核档）；命令管道在 Kun.Plugin.Sdk.Commands。</Description></PropertyGroup>
   <!-- 记契约：组件建在它上面，与 Kun.Core 同理；直接依赖的内核包全是契约。 -->
   <PropertyGroup Label="档位"><KunTier>kernel</KunTier><KunRole>contract</KunRole></PropertyGroup>
-  <ItemGroup Label="档位例外">
-    <KunTierException Include="Qian.Identity.Abstractions" Rule="K" Until="B7" Reason="命令策略协议的 CommandInvocation 带着 Principal，原生审计（内核档）要读它；B7 Principal 下沉时去掉，去法由 B7 的档位复核定（见 S1-KUN-026）" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
     <ProjectReference Include="../Kun.Mediator/Kun.Mediator.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Security.Abstractions/Kun.Security.Abstractions.csproj" />
   </ItemGroup>
   <!-- 命令管道要用命令策略协议里的内部入口（策略快照、调用的构造与进出检查），这些不对组件公开。 -->
   <ItemGroup><InternalsVisibleTo Include="Kun.Plugin.Sdk.Commands" /></ItemGroup>

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
-    <Description>Kun Framework sample: Order service demonstrating Saga orchestration with compensation + timeout paths.</Description>
+    <Description>Kun Framework sample: Order service demonstrating a command flow — place an order, reserve stock over gRPC, publish an integration event through the Outbox.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kun.Sample.Shared\Kun.Sample.Shared.csproj" />
@@ -12,7 +12,6 @@
     <ProjectReference Include="..\..\src\Kun.EventBus\Kun.EventBus.csproj" />
     <ProjectReference Include="..\..\src\Kun.EntityFrameworkCore\Kun.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.Errors.AspNetCore\Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\src\Kun.Saga\Kun.Saga.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="All" />
     <PackageReference Include="Grpc.Net.Client" />

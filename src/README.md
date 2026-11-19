@@ -20,7 +20,7 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | [Kun.EventBus.Abstractions](Kun.EventBus.Abstractions/) | 稳定事件标记与 JSON 注册端口（只依赖 Core） | ✅ |
 | [Kun.EventBus](Kun.EventBus/) | 领域/集成事件抽象、Outbox 发布器 | ✅ |
 | [Kun.EventBus.RabbitMQ](Kun.EventBus.RabbitMQ/) | RabbitMQ 传输、消费端幂等 | ✅ |
-| [Kun.Saga](Kun.Saga/) | Saga Orchestration 编排器 | ✅ |
+| [Kun.Security.Abstractions](Kun.Security.Abstractions/) | 服务间令牌的主体模型与声明词汇表（零依赖） | ✅ |
 | [Kun.Security](Kun.Security/) | S2S JWT 签发/校验、租户上下文注入 | ✅ |
 | [Kun.Validation](Kun.Validation/) | SourceGen 验证器 | ✅ |
 | [Kun.AspNetCore](Kun.AspNetCore/) | Minimal API 扩展、Pipeline Behaviors | ✅ |

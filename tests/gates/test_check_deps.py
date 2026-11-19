@@ -331,20 +331,22 @@ class RealGraphTests(unittest.TestCase):
     def test_declared_roles_and_exceptions(self):
         # 计划会话复核附录 A 时定的归类（B3 PR-4）：这 4 个包记契约，组件建在它们上面；Kun.Authorization 本来就记契约。
         # B4 拆插件开发包：声明与命令策略协议一半（Kun.Plugin.Sdk）记内核契约，命令管道一半（Kun.Plugin.Sdk.Commands）记平台契约。
+        # B7：Principal 一组的契约包 Kun.Security.Abstractions 记内核契约、零依赖。
         expected = {"Kun.Runtime": ("kernel", "contract"), "Kun.Errors": ("kernel", "contract"),
                     "Kun.Mediator": ("kernel", "contract"), "Kun.Plugin.Sdk.AspNetCore": ("platform", "contract"),
                     "Kun.Authorization": ("kernel", "contract"), "Kun.Core": ("kernel", "contract"),
                     "Kun.Plugin.Sdk": ("kernel", "contract"), "Kun.Plugin.Sdk.Commands": ("platform", "contract"),
-                    "Kun.Plugin.Sdk.Generators": ("kernel", "provider")}
+                    "Kun.Plugin.Sdk.Generators": ("kernel", "provider"),
+                    "Kun.Security.Abstractions": ("kernel", "contract")}
         self.assertEqual(expected, {n: (self.packages[n].tier, self.packages[n].role) for n in expected})
         self.assertEqual("true", self.packages["Kun.Core"].zero_dependency)
         self.assertEqual("true", self.packages["Kun.Errors"].zero_dependency)
+        self.assertEqual("true", self.packages["Kun.Security.Abstractions"].zero_dependency)
         self.assertEqual([], [v for v in self.violations])
-        self.assertEqual(8, len(self.statuses))
+        self.assertEqual(7, len(self.statuses))
         self.assertEqual([], [s for s in self.statuses if s.problem])
-        # 插件开发包只剩一条例外：命令策略协议的 CommandInvocation 带着身份契约里的 Principal，B7 去掉。
-        self.assertEqual([("K", "Qian.Identity.Abstractions", "B7")],
-                         [(s.rule, s.target, s.until) for s in self.statuses if s.package.startswith("Kun.Plugin.Sdk")])
+        # 插件开发包没有例外了：命令策略协议的 CommandInvocation 带的 Principal 在内核契约 Kun.Security.Abstractions 里（B7）。
+        self.assertEqual([], [(s.rule, s.target, s.until) for s in self.statuses if s.package.startswith("Kun.Plugin.Sdk")])
 
     def test_reclassification_does_not_hollow_out_rules(self):
         # 假想几条边，按真实的声明判：契约或平台包依赖别的平台组件的提供者、契约直接依赖内核档提供者，都仍要报。
@@ -375,12 +377,14 @@ class RealGraphTests(unittest.TestCase):
                     self.assertIn("Kun.Runtime", closure)  # 读到的是真实依赖图而不是空图
 
     def test_kernel_half_of_the_sdk_stays_off_the_platform_tier(self):
-        # B4：内核档的一半只带声明与命令策略协议；平台档的包只剩那条例外（身份契约），够不着数据契约与 EF。
+        # B4：内核档的一半只带声明与命令策略协议，够不着数据契约与 EF。B7 起完整传递依赖里没有平台档的包：
+        # CommandInvocation 带的 Principal 在内核契约 Kun.Security.Abstractions 里，不再经身份契约。
         closure = self.closure("Kun.Plugin.Sdk")
         platform = sorted(n for n in closure if (p := self.declared.get(n.lower())) and p.tier == "platform")
-        self.assertEqual(["Qian.Identity.Abstractions"], platform)
+        self.assertEqual([], platform)
         self.assertEqual([], sorted(n for n in closure if "entityframeworkcore" in n.lower()))
         self.assertIn("Kun.Runtime", closure)
+        self.assertIn("Kun.Security.Abstractions", closure)
 
     def test_kernel_gateway_closure_has_no_entity_framework(self):
         # 内核档的网关经插件开发包的内核一半接组件，拆包之后完整传递依赖里没有 EF Core（OpenTelemetry 的 EF 埋点包不算 EF）。

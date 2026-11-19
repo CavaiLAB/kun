@@ -7,6 +7,7 @@ using Json.Schema;
 using Kun.Core.Domain;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
+using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 
@@ -85,6 +86,46 @@ public sealed class IdentityContractsTests
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize(data.ToJsonString(), IdentityJson.PrincipalTypeInfo));
     }
 
+    // 主体类型只收 user、service、agent 三个小写字符串：数字、大小写不对与未知值都报错。
+    // 经身份契约的源生成上下文，与经枚举上的 [JsonConverter] 特性（不带上下文的默认读写），两条路都一样。
+    [Theory]
+    [InlineData("1")]
+    [InlineData("\"User\"")]
+    [InlineData("\"robot\"")]
+    public void PrincipalKind_RejectsNumbersWrongCaseAndUnknownValues(string kind)
+    {
+        using var fixtures = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "contracts/v0/fixtures/s2s-claims.valid.json")));
+        var data = JsonNode.Parse(fixtures.RootElement[0].GetProperty("data").GetRawText())!;
+        data["principal_kind"] = JsonNode.Parse(kind);
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize(data.ToJsonString(), IdentityJson.PrincipalTypeInfo));
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<PrincipalKind>(kind));
+    }
+
+    [Theory]
+    [InlineData(PrincipalKind.User, "\"user\"")]
+    [InlineData(PrincipalKind.Service, "\"service\"")]
+    [InlineData(PrincipalKind.Agent, "\"agent\"")]
+    public void PrincipalKind_IsWrittenAndReadAsLowercaseString(PrincipalKind kind, string json)
+    {
+        Assert.Equal(json, JsonSerializer.Serialize(kind));
+        Assert.Equal(kind, JsonSerializer.Deserialize<PrincipalKind>(json));
+    }
+
+    // 令牌载荷逐字节钉住：属性名与先后、平台主体显式写出 tenant_id: null、没有赋值的可选字段不写。
+    [Fact]
+    public void Principal_SerializesToTheSameBytes()
+    {
+        var principal = new Principal
+        {
+            Issuer = "https://id.example.test", Audience = ["svc-a", "svc-b"], Subject = "client-1", Kind = PrincipalKind.Service, TenantId = null,
+            PluginId = "acme.notes", Roles = ["reader"], Scope = "notes.read", SessionId = "jti-1",
+            Actor = new DelegationActor { Subject = "agent-1", Kind = PrincipalKind.Agent },
+            IssuedAt = 1700000000, NotBefore = 1700000000, ExpiresAt = 1700000300, TokenId = "jti-1"
+        };
+        const string expected = """{"iss":"https://id.example.test","aud":["svc-a","svc-b"],"sub":"client-1","principal_kind":"service","tenant_id":null,"plugin_id":"acme.notes","roles":["reader"],"scope":"notes.read","session_id":"jti-1","act":{"sub":"agent-1","principal_kind":"agent"},"iat":1700000000,"nbf":1700000000,"exp":1700000300,"jti":"jti-1"}""";
+        Assert.Equal(expected, JsonSerializer.Serialize(principal, IdentityJson.PrincipalTypeInfo));
+    }
+
     [Fact]
     public void AllIdentityEvents_HaveStableAttributes_Schemas_AndSourceGeneratedRegistry()
     {
@@ -129,9 +170,10 @@ public sealed class IdentityContractsTests
     {
         var directory = Path.Combine(Root, "packages/Qian.Identity.Abstractions");
         var project = XDocument.Load(Path.Combine(directory, "Qian.Identity.Abstractions.csproj"));
-        // 只以项目引用依赖仓库 src/ 下的两个 Kun 项目：事件端口与组件运行时（S1-KUN-020）；没有包引用。
+        // 只以项目引用依赖仓库 src/ 下的三个 Kun 项目：事件端口、组件运行时（S1-KUN-020）与主体模型的内核契约（S1-KUN-026）；没有包引用。
         var repository = Path.GetFullPath(Path.Combine(Root, "..", ".."));
-        Assert.Equal(["src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj", "src/Kun.Runtime/Kun.Runtime.csproj"],
+        Assert.Equal(["src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj", "src/Kun.Runtime/Kun.Runtime.csproj",
+            "src/Kun.Security.Abstractions/Kun.Security.Abstractions.csproj"],
             project.Descendants("ProjectReference")
                 .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
                 .Order(StringComparer.Ordinal).ToArray());

@@ -1,11 +1,11 @@
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
+using Kun.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Npgsql;
 using Qian.Config.Apollo;
-using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;

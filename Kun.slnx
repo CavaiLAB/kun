@@ -57,7 +57,7 @@
     <Project Path="src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
     <Project Path="src/Kun.RateLimit/Kun.RateLimit.csproj" />
     <Project Path="src/Kun.Runtime/Kun.Runtime.csproj" />
-    <Project Path="src/Kun.Saga/Kun.Saga.csproj" />
+    <Project Path="src/Kun.Security.Abstractions/Kun.Security.Abstractions.csproj" />
     <Project Path="src/Kun.Security/Kun.Security.csproj" />
     <Project Path="src/Kun.Storage.Abstractions/Kun.Storage.Abstractions.csproj" />
     <Project Path="src/Kun.Storage.Local/Kun.Storage.Local.csproj" />
@@ -96,7 +96,6 @@
     <Project Path="tests/Kun.Plugin.Sdk.Tests/Kun.Plugin.Sdk.Tests.csproj" />
     <Project Path="tests/Kun.RateLimit.Tests/Kun.RateLimit.Tests.csproj" />
     <Project Path="tests/Kun.Runtime.Tests/Kun.Runtime.Tests.csproj" />
-    <Project Path="tests/Kun.Saga.Tests/Kun.Saga.Tests.csproj" />
     <Project Path="tests/Kun.Security.Tests/Kun.Security.Tests.csproj" />
     <Project Path="tests/Kun.Storage.Abstractions.Tests/Kun.Storage.Abstractions.Tests.csproj" />
     <Project Path="tests/Kun.Storage.Local.Tests/Kun.Storage.Local.Tests.csproj" />

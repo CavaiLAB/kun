@@ -1,8 +1,8 @@
 # Getting Started with Kun Framework
 
 This tutorial takes about 10 minutes. By the end you will have the full sample stack running
-locally, have triggered all three saga paths (happy, failure compensation, timeout compensation),
-and have a mental model of how the pieces fit together.
+locally, have sent an order through the Order service's command flow, and have a mental model of
+how the pieces fit together.
 
 ---
 
@@ -10,16 +10,16 @@ and have a mental model of how the pieces fit together.
 
 | Requirement | Version | Notes |
 |---|---|---|
-| .NET SDK | 10.0.100 or later | Pinned in `global.json` |
+| .NET SDK | 10.0.404 | Verified with the roll-forward policy in `global.json` |
 | Docker Desktop | Any recent stable | Runs PostgreSQL, RabbitMQ, Redis containers |
-| Aspire workload | Installed via `dotnet workload` | See step below |
+| curl and jq | curl 7.82+ | Send JSON requests and read the returned IDs |
 | Visual Studio Build Tools (Windows only) | Optional | Required only for AOT native publish |
 
 Verify your SDK version:
 
 ```bash
 dotnet --version
-# must print 10.0.100 or higher
+# the walkthrough was tested with 10.0.404
 ```
 
 Verify Docker is running:
@@ -31,48 +31,35 @@ docker info
 
 ---
 
-## Install the Aspire workload
-
-The AppHost project uses .NET Aspire to orchestrate all containers and services. Install the
-workload once per machine:
-
-```bash
-dotnet workload install aspire
-```
-
-If the workload was already installed and you want to update it:
-
-```bash
-dotnet workload update
-```
-
----
-
 ## Clone and build
 
 ```bash
 git clone https://github.com/CavaiLAB/kun.git
 cd kun
-dotnet restore
-dotnet build -c Release
+dotnet restore Kun.slnx
+dotnet build Kun.slnx -c Release --no-restore
 ```
 
-A successful build produces zero errors. Warnings about AOT trimming in `Kun.EntityFrameworkCore`
-are expected and acceptable — that module is deliberately marked trim-safe rather than AOT.
-
-Run the test suite to confirm everything is green:
+Run the framework unit suite using the solution filter from CI:
 
 ```bash
-dotnet test -c Release --no-build
+dotnet test --solution tests/kun-unit.slnf -c Release --no-build
 ```
 
 ---
 
 ## Run the samples
 
-The AppHost project starts every service and all required infrastructure with a single command:
+The AppHost starts the services and their infrastructure. Trust the ASP.NET Core localhost
+development certificate so Order can call Catalog over HTTPS. Create a private directory outside
+the repository for the local issuer's keys and Order's short-lived service token:
 
 ```bash
+dotnet dev-certs https --trust
+umask 077
+export SampleCredentials=$(mktemp -d)
+printf 'SampleCredentials=%s\n' "$SampleCredentials"
+dotnet run --file samples/local/catalog-credentials.cs -- "$SampleCredentials"
 dotnet run --project samples/Kun.Sample.AppHost
 ```
 
@@ -91,203 +78,79 @@ Open that URL in a browser. You will see the **Aspire Dashboard** with:
 | Traces | Distributed OpenTelemetry traces across all service boundaries |
 | Metrics | Request rates, latency histograms, CPU and memory |
 
-Wait until all resources in the Resources panel show a green status indicator before sending
-requests. PostgreSQL runs schema creation (`EnsureCreated`) at startup, which takes a few seconds.
+Wait for Catalog and Order to finish applying their EF Core migrations before sending requests.
 
 ### Find the service ports
 
-The Order service port is dynamic — Aspire assigns it at startup. In the Dashboard:
-
-1. Click **Resources**.
-2. Find the `order` row.
-3. Copy the URL from the **Endpoints** column, for example `http://localhost:54321`.
-
-Use that base URL in the curl commands below. The examples use `$ORDER` as a placeholder:
+Copy the HTTP URLs for `catalog` and `order` from the **Endpoints** column in **Resources**.
+Set these variables to the two URLs shown in your dashboard:
 
 ```bash
-# Set this to the URL shown in the Aspire Dashboard for the "order" resource
-ORDER=http://localhost:54321
+CATALOG=http://localhost:54242
+ORDER=http://localhost:54243
 ```
 
 ---
 
-## Walk through a happy-path order
+## Place an order
 
-Send a `POST` request to create an order that succeeds all four saga steps:
+Run these requests in a second terminal. Set `SampleCredentials` to the path printed during
+startup. The local token lasts five minutes. To renew it, run
+`dotnet run --file samples/local/catalog-credentials.cs -- "$SampleCredentials"` with the same
+directory as the first terminal. Order reads the updated token on its next HTTPS call.
 
-```bash
-curl -s -X POST "$ORDER/demo/happy-path" | jq .
-```
-
-Example response:
-
-```json
-{
-  "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "path": "happy-path"
-}
-```
-
-Copy the `orderId` value. Query the saga state:
+Create a Catalog product with stock, then order two units using its returned identifier:
 
 ```bash
-curl -s "$ORDER/demo/sagas/3fa85f64-5717-4562-b3fc-2c963f66afa6" | jq .
+PRODUCT_ID=$(curl -fsS "$CATALOG/products" --json '{
+  "name":"Demo notebook","description":"Grid paper","price":12.50,
+  "categoryId":"f4743227-31ea-4312-b9ca-e7183786bb01","initialStock":5
+}' | jq -er .)
+ORDER_ID=$(curl -fsS "$ORDER/demo/orders" --json "{
+  \"productId\":\"$PRODUCT_ID\",\"quantity\":2,\"unitPrice\":12.50
+}" | jq -er .orderId)
+curl -fsS "$ORDER/demo/orders/$ORDER_ID" | jq '{id,status,totalAmount}'
 ```
 
-The response includes the current `SagaInstance` state. Immediately after the `POST` the saga is
-`Running` as the background `SagaStepExecutor` works through the steps. Poll a few seconds later
-and the state transitions to `Completed`:
+The order reads back as `Completed` with a total of `25.00`. The handler reserved two units over
+gRPC and committed the order and its `order.completed.v1` Outbox row in one transaction. To see
+the event, open the Order resource's console logs and look for the Outbox publisher's
+`Would publish event 'order.completed.v1'` message. In this sample the publisher logs delivery.
 
-```json
-{
-  "sagaId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "state": "Completed",
-  "currentStepIndex": 3,
-  "failureReason": null
-}
-```
+Without a request body, `POST /demo/orders` tries two random product IDs. Catalog rejects the
+reservation. Order returns `422 BUSINESS_RULE_VIOLATED` and writes no order or Outbox row.
 
-**What happened:**
-
-1. `PlaceOrderCommand` handler created an `Order` row and called `ISagaOrchestrator.StartAsync`.
-2. The orchestrator inserted a `saga_instances` row (state `Running`) and the first
-   `saga_step_queue` entry — all inside the same EF Core transaction as the `Order` row.
-3. The background `SagaStepExecutor` picked up the queue entry and ran each step in order:
-   - Step 0 `ReserveInventoryStep` — logs "would gRPC Catalog", sets order status `Reserved`
-   - Step 1 `ProcessPaymentStep` — sets order status `Paid`
-   - Step 2 `ShipOrderStep` — sets order status `Shipped`
-   - Step 3 `NotifyCustomerStep` — sets order status `Completed`, enqueues `order.completed.v1`
-     via the Outbox
-4. `SagaInstance.State` was set to `Completed`.
-
-Open **Traces** in the Aspire Dashboard and filter by `order`. You will see a single root trace
-with child spans for each saga step, the EF Core queries, and the Outbox publish.
-
----
-
-## Trigger the compensation path
-
-This demonstrates what happens when a saga step fails: the orchestrator runs compensation steps
-in reverse order.
-
-```bash
-curl -s -X POST "$ORDER/demo/trigger-payment-failure" | jq .
-```
-
-Response:
-
-```json
-{
-  "orderId": "...",
-  "path": "payment-failure",
-  "note": "Saga will compensate ReserveInventory."
-}
-```
-
-Query the saga state a moment later:
-
-```bash
-curl -s "$ORDER/demo/sagas/<orderId>" | jq .
-```
-
-Expected final state:
-
-```json
-{
-  "sagaId": "...",
-  "state": "Compensated",
-  "currentStepIndex": 1,
-  "failureReason": "ProcessPaymentStep failed: simulated payment failure"
-}
-```
-
-**What happened:**
-
-- `ProcessPaymentStep` detected `SimulateFailure = "payment"` in the saga context and threw
-  `SagaStepFailedException`.
-- The executor set `SagaInstance.State` to `Compensating` and enqueued `CompensateAsync` calls
-  for steps 1 and 0 in reverse order.
-- `ProcessPaymentStep.CompensateAsync` — cancels the order if status is `Paid`
-- `ReserveInventoryStep.CompensateAsync` — cancels the order (idempotent)
-- Final state: `Compensated`.
-
-In the Aspire Dashboard Traces view you will see `saga.step.execute` spans for steps 0 and 1,
-followed by `saga.step.compensate` spans for steps 1 and 0 in reverse.
-
----
-
-## Trigger the timeout path
-
-This demonstrates the `SagaTimeoutDetector` background service, which scans for stuck steps
-every 5 seconds and kicks off compensation automatically.
-
-```bash
-curl -s -X POST "$ORDER/demo/trigger-timeout" | jq .
-```
-
-Response:
-
-```json
-{
-  "orderId": "...",
-  "path": "timeout",
-  "note": "ShipOrderStep sleeps 60s — SagaTimeoutDetector compensates."
-}
-```
-
-`ShipOrderStep` is configured with a 10-second per-step timeout override. When the step sleeps
-for 60 seconds the `SagaTimeoutDetector` wakes up, finds the instance past its `TimeoutAt`
-deadline, and triggers compensation from the current step index backwards.
-
-After roughly 10–15 seconds:
-
-```bash
-curl -s "$ORDER/demo/sagas/<orderId>" | jq .
-```
-
-Expected:
-
-```json
-{
-  "sagaId": "...",
-  "state": "Compensated",
-  "currentStepIndex": 2,
-  "failureReason": "Step 2 timed out at ..."
-}
-```
+Open **Traces** in the Aspire Dashboard and filter by `order`. You will see the HTTP request, the
+`Mediator.Send PlaceOrderCommand` span, and the gRPC call to Catalog under the same trace. After the
+walkthrough, stop the AppHost and remove the temporary credentials directory.
 
 ---
 
 ## What you just saw
 
-All three paths exercised the same underlying building blocks:
+The order flow exercised these building blocks:
 
-**Outbox transactional publishing** — every saga start and every integration event enqueue
-happened inside a single EF Core `SaveChangesAsync` call. If the database transaction rolled back,
+**Outbox transactional publishing** — the order row and its integration event were written in a
+single EF Core `SaveChangesAsync` call. If the database transaction rolled back,
 no message was produced. The `OutboxPublisherBackgroundService` drains `Pending` rows to the
-broker asynchronously, so publish latency is measured in seconds but consistency is guaranteed.
-
-**Saga orchestration** — the `SagaOrchestrator` is a central coordinator. It persists all state
-in `saga_instances` and `saga_step_queue` tables, making the current state inspectable with a
-plain SQL query at any time. There is no implicit choreography happening via event reactions.
+configured publisher asynchronously. The sample publisher logs each event.
 
 **W3C Trace Context propagation** — every `OutboxMessage` row stores the `traceparent` and
 `tracestate` headers captured at enqueue time. The background publisher resumes the trace when it
-publishes, so a single `TraceId` threads through HTTP ingress → CQRS handler → Outbox → broker
-→ consumer → downstream saga steps. This is visible in the Aspire Dashboard Traces panel.
+publishes. The request and the corresponding Outbox publish span share a `TraceId` in the
+Aspire Dashboard Traces panel.
 
 ---
 
 ## Next steps
 
 - **Simpler CQRS story** — `samples/Kun.Sample.Catalog/` demonstrates DDD aggregates, write/read
-  split with EF Core and Dapper, and Outbox event publishing without any saga involvement. Its
+  split with EF Core and Dapper, and Outbox event publishing. Its
   [README](../samples/Kun.Sample.Catalog/README.md) walks through the file structure.
 
 - **Architecture essays** — understand the design trade-offs:
   - [Why CQRS?](design/why-cqrs.md)
   - [Why Outbox?](design/why-outbox.md)
-  - [Why Saga Orchestration?](design/why-saga.md)
 
 - **Module map** — [`docs/design/module-map.md`](design/module-map.md) shows the
   full dependency graph and which modules are AOT candidates.

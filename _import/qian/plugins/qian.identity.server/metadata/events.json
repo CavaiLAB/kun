@@ -10,7 +10,7 @@
   {
     "name": "identity/signed-in",
     "mode": "emit",
-    "payload": "Qian.Identity.Abstractions.Principal",
+    "payload": "Kun.Security.Principal",
     "result": "System.Object",
     "source": "Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedIn",
     "definitionComponent": "qian.identity.server"

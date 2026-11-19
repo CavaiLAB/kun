@@ -17,9 +17,6 @@ internal static class KunActivitySources
     /// <summary>gRPC server + client interceptors (<c>grpc.server</c> spans).</summary>
     public const string Grpc = "Kun.Grpc";
 
-    /// <summary>Saga orchestrator (<c>saga.step.execute</c> / <c>saga.step.compensate</c> spans).</summary>
-    public const string Saga = "Kun.Saga";
-
     /// <summary>Every canonical source — iterate when wiring up the tracer provider.</summary>
-    public static readonly string[] All = [Mediator, OutboxPublisher, Grpc, Saga];
+    public static readonly string[] All = [Mediator, OutboxPublisher, Grpc];
 }

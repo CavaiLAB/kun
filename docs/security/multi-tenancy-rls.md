@@ -155,7 +155,7 @@ app.UseKunMultiTenancy();
 
 `AddKunSecurity` 和 `AddKunMultiTenancy` 无论先后注册，`ITenantContext` 都解析为同一 `AsyncLocalTenantContext` 单例。原 `JwtTenantContext` 仍保留公共类型以兼容既有代码，但 DI 只把它作为 `ITenantIdSource` 注册；显式作用域覆盖 HTTP 来源，显式空作用域会屏蔽 HTTP 来源。第三方旧 `ITenantContext` 实现仍可编译；需要后台回灌时须实现 `BeginScope`，默认接口方法会明确拒绝不支持的操作。
 
-消费端在解析 handler 及其 scoped 依赖前，从信封恢复 `MessageContext.TenantId` 并打开作用域；多租户宿主的缺失或非法租户消息在幂等标记前进入死信队列。租户标识是内部可信发布者的信封元数据，不应直接接收外部请求字段；消息代理权限仍需由宿主限制。Outbox 发布器逐条恢复租户，Saga 执行器对每条队列记录创建独立 DI scope，执行与补偿均以 `SagaInstance.TenantId` 打开租户作用域，异常后也会释放。
+消费端在解析 handler 及其 scoped 依赖前，从信封恢复 `MessageContext.TenantId` 并打开作用域；多租户宿主的缺失或非法租户消息在幂等标记前进入死信队列。租户标识是内部可信发布者的信封元数据，不应直接接收外部请求字段；消息代理权限仍需由宿主限制。Outbox 发布器逐条恢复租户。
 
 在自定义后台任务中用 `using (tenantContext.BeginScope(tenantId))` 包围处理逻辑；不要把某个租户的 DbContext 保存为单例。PgBouncer 事务池下仍需显式事务，自动装配不改变其事务边界要求。
 

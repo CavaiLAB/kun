@@ -20,9 +20,9 @@ internal sealed class AuditCommandPolicy(IAuditService audit)
         if (principal.Actor is not null) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         var actor = principal.Kind switch
         {
-            Qian.Identity.Abstractions.PrincipalKind.User => "user",
-            Qian.Identity.Abstractions.PrincipalKind.Service => "service",
-            Qian.Identity.Abstractions.PrincipalKind.Agent => "agent",
+            Kun.Security.PrincipalKind.User => "user",
+            Kun.Security.PrincipalKind.Service => "service",
+            Kun.Security.PrincipalKind.Agent => "agent",
             _ => throw new ErrorException(new Error(PlatformErrors.AuthzDenied))
         };
         var record = new AuditRecord(invocation.Id, principal.TenantId, actor, principal.Subject, null,

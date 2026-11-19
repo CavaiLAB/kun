@@ -8,12 +8,9 @@ using Kun.Errors.AspNetCore;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
-using Kun.Saga.DependencyInjection;
 using Kun.Sample.Order.Api.Endpoints;
 using Kun.Sample.Order.Application.Commands;
 using Kun.Sample.Order.Application.Queries;
-using Kun.Sample.Order.Application.Sagas;
-using Kun.Sample.Order.Application.Sagas.Steps;
 using Kun.Sample.Order.Infrastructure;
 using Kun.Sample.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -59,9 +56,8 @@ builder.Services.AddSingleton<IIntegrationEventPublisher, NoOpIntegrationEventPu
 builder.Services.AddKunOutboxPublisher();
 
 // ── Catalog gRPC client ───────────────────────────────────────────────────────
-// Must be registered BEFORE AddKunSaga so that BuildRegistry()'s temporary
-// ServiceProvider can resolve ReserveInventoryStep (which depends on this client).
-builder.Services
+// PlaceOrderCommandHandler reserves stock through this client.
+var catalogClient = builder.Services
     .AddGrpcClient<Kun.Sample.Catalog.Grpc.CatalogService.CatalogServiceClient>(o =>
     {
         // Aspire service discovery: services__catalog__grpc__0 / services__catalog__http__0 are
@@ -74,17 +70,15 @@ builder.Services
         o.Address = new Uri(catalogUrl);
     });
 
-// ── Saga orchestration ────────────────────────────────────────────────────────
-builder.Services.AddScoped<ReserveInventoryStep>();
-builder.Services.AddScoped<ProcessPaymentStep>();
-builder.Services.AddScoped<ShipOrderStep>();
-builder.Services.AddScoped<NotifyCustomerStep>();
-
-builder.Services.AddKunSaga(saga =>
+if (builder.Configuration["CatalogGrpc:TokenPath"] is { Length: > 0 } tokenPath)
 {
-    saga.AddSaga<OrderCreationSaga, OrderCreationSagaContext>(
-        OrderJsonContext.Default.OrderCreationSagaContext);
-});
+    // gRPC call credentials are sent over TLS. Read the short-lived token again on each call.
+    catalogClient.AddCallCredentials(async (context, metadata) =>
+    {
+        var token = await File.ReadAllTextAsync(tokenPath, context.CancellationToken);
+        metadata.Add("Authorization", $"Bearer {token.Trim()}");
+    });
+}
 
 // ── Mediator ──────────────────────────────────────────────────────────────────
 builder.Services.AddKunMediator(m =>
@@ -95,7 +89,6 @@ builder.Services.AddKunMediator(m =>
 
     // Queries
     m.AddRequestHandler<GetOrderByIdQuery, OrderDto?, GetOrderByIdQueryHandler>();
-    m.AddRequestHandler<GetSagaStatusQuery, SagaStatusDto?, GetSagaStatusQueryHandler>();
 });
 
 // ── ASP.NET Core ──────────────────────────────────────────────────────────────
@@ -120,7 +113,7 @@ app.MapDemoEndpoints();
 app.MapGet("/", static () => Results.Ok(new
 {
     service = "Kun.Sample.Order",
-    description = "Saga orchestration demo",
+    description = "Order command flow demo: gRPC stock reservation + Outbox",
     endpoints = DemoRoutes.All,
 }));
 
@@ -136,10 +129,8 @@ file static class DemoRoutes
 {
     internal static readonly string[] All =
     [
-        "POST /demo/happy-path",
-        "POST /demo/trigger-payment-failure",
-        "POST /demo/trigger-timeout",
-        "GET  /demo/sagas/{id}",
+        "POST /demo/orders",
+        "GET  /demo/orders/{id}",
     ];
 }
 

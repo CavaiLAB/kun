@@ -58,6 +58,13 @@
 
 - 包 `Kun.Dapper` 停发、移出解决方案，nuget.org 上已发布的版本不动。随包删掉的公共 API：`IReadDbConnectionFactory`、`ReadDbOptions`、`PageRequest`、`PagedResult<T>`、`Kun.Dapper.Npgsql.NpgsqlReadDbConnectionFactory`、`DapperAotExtensions.QueryPageAsync<T>`、`AddKunDapper` / `AddKunDapperNpgsql`。**迁移**：读侧直接引用 `Npgsql` 与 `Dapper`；登记一个读侧数据源（`services.AddSingleton(_ => NpgsqlDataSource.Create(readConnectionString))`），查询处理器注入 `NpgsqlDataSource`，用 `OpenConnectionAsync` 取连接后以 Dapper 查询；分页的请求与结果类型在应用里自己定义；要原生 AOT 发布的服务，在自己的项目里加 Dapper 的源生成器（`Dapper.AOT`）或直接用 `NpgsqlDataReader` 读行。写法见 `docs/guides/read-side-patterns.md`，样例见 `samples/Kun.Sample.Catalog`。
 
+### Removed — 归档 Kun.Saga（S1-KUN-025）
+
+- 包 `Kun.Saga` 停发、移出解决方案，已经发布的版本不动，没有替代的包。随包删掉的公共 API：`ISaga<TContext>`、`ISagaStep<TContext>`、`ISagaContext`、`ISagaOrchestrator` 与 `SagaOrchestrator`，后台服务 `SagaStepExecutor`、`SagaTimeoutDetector` 与它们的选项，`SagaStepFailedException`、`SagaNotFoundException`，实例存储 `ISagaInstanceStore`、`EfSagaInstanceStore` 与两份 EF 映射，`ApplyKunSagaConfiguration`、`AddKunSaga` / `KunSagaBuilder`。**迁移**：跨服务的流程用集成事件经 Outbox 串起来，失败后的补偿由各服务按业务自己处理；已经建好的 `saga_instances`、`saga_step_queue` 两张表由服务自己的迁移删掉（写法见 Order 样例的 `DropSagaTables`）。
+- `Kun.Observability`：`AddKunObservability` 缺省监听的活动源不再含 `Kun.Saga`。
+- 样例 `samples/Kun.Sample.Order` 不再演示编排：下单改成「经 gRPC 预留库存 → 经 Outbox 发 `order.completed.v1`」的命令流程，预留被拒返回 422（`BUSINESS_RULE_VIOLATED`）；演示端点换成 `POST /demo/orders`、`GET /demo/orders/{id}`；加一次迁移 `DropSagaTables` 删掉两张编排表；订单去掉只给编排用的 `Paid`、`Shipped` 两个状态。
+- 文档 `docs/design/why-saga.md`、`docs/guides/orchestrating-sagas.md` 随包删掉。
+
 ### Changed — Kun.Gateway 改成纯库，独立宿主拆到 hosts/（S1-KUN-026）
 
 - `Kun.Gateway` 由可执行项目改成类库：不再有入口，程序集里不再有顶层语句生成的公开类型 `Program`；包里不再带 `appsettings.json`（`content/` 与 `contentFiles/`）与 `Kun.Gateway.runtimeconfig.json`。包名、程序集名、命名空间与其余公共 API 不变。**迁移**：把网关当程序跑的，改跑仓库里的独立宿主 `hosts/Kun.Gateway.Standalone`（`dotnet run --project hosts/Kun.Gateway.Standalone`，原生发布 `dotnet publish hosts/Kun.Gateway.Standalone -c Release`），配置节 `KunGateway`、`ReverseProxy`、`KunObservability` 不变，签名密钥目录 `certs/` 跟着挪到宿主目录下；自己写宿主的照它的 `Program.cs` 组合库。
@@ -88,6 +95,14 @@
 
 - `Qian.Docs.Abstractions` 的 `DocumentOptions` 加 `SourceRoot`：源码目录相对它解析、不能越出它，事件映射与事件分析诊断里的位置相对它书写（装配诊断与配置目录仍相对工作区）。相对路径按工作区解析，只能是工作区本身或它的上级目录，到工作区的路径上不能有符号链接；不设时等于工作区，输出与之前相同。
 - `qian docs generate` 加对应的 `--source-root <目录>`。本仓库的派生文档改以仓库根为源码根，仓库根 `src/` 下的包也计入事件图。
+
+### Changed — Principal 一组进新的内核契约包 Kun.Security.Abstractions（S1-KUN-026）
+
+- 新增零依赖包 `Kun.Security.Abstractions`（内核档，AOT 兼容），命名空间 `Kun.Security`。服务间令牌的主体模型 `Principal`、`DelegationActor`、`PrincipalKind` 与声明名 `IdentityClaimNames` 从 `Qian.Identity.Abstractions` 挪进来，成员不变；JSON 属性名、先后与令牌里的声明名都不变。**迁移**：`using Kun.Security;`；写全名的把 `Qian.Identity.Abstractions.Principal` 等改成 `Kun.Security.Principal` 等。引用身份契约的项目经它传递拿到新包，不用另加引用。
+- `PrincipalKind` 的 JSON 转换器 `PrincipalKindConverter` 改为公开类型：别的程序集里的 JSON 源生成上下文要引用它。读写不变：只收 `user`、`service`、`agent`，数字、大小写不对与其它值都报错。
+- `ClientType` 留在 `Qian.Identity.Abstractions`，命名空间不变。
+- `Kun.Plugin.Sdk` 不再引用 `Qian.Identity.Abstractions`，改引用 `Kun.Security.Abstractions`（`CommandInvocation.Principal` 的类型是 `Kun.Security.Principal`），也就不再传递带来身份契约与 `Kun.EventBus.Abstractions`。**迁移**：用到身份契约里其余类型（如 `ICurrentUser`、`IIdentityService`）的项目直接引用 `Qian.Identity.Abstractions`。`Kun.Plugin.Sdk.Commands` 改为直接引用身份契约，经它拿到身份契约的项目不受影响。
+- 组件 `qian.identity.server` 1.0.0 → 1.1.0：派生的事件元数据里 `identity/signed-in` 的载荷类型全名换成 `Kun.Security.Principal`，对外行为不变。
 
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
 

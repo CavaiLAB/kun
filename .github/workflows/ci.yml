@@ -377,7 +377,7 @@ jobs:
   # AOT 冒烟宿主（S1-KUN-020）：tests/Kun.AotSmoke 引用 AOT 清单里的每一个项目（项目文件里写了 IsAotCompatible=true 的，
   # scripts/aot_projects.py 列出），对每个程序集整体扎根，原生发布后运行。ILC 有任何裁剪或 AOT 警告即失败，逐条列出。
   # 发布前先核对冒烟宿主的项目引用正好等于清单。裁剪、AOT、单文件分析器在普通构建里就开着，由「构建与门禁」覆盖；
-  # 有意不进 AOT 的模块（AspNetCore、Dapper、Saga、EntityFrameworkCore 及其适配器等）不写 IsAotCompatible，不在清单里。
+  # 有意不进 AOT 的模块（AspNetCore、EntityFrameworkCore 及其适配器等）不写 IsAotCompatible，不在清单里。
   aot-smoke:
     name: AOT 冒烟宿主
     needs: changes

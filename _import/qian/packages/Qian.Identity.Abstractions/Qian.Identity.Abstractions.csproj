@@ -4,6 +4,7 @@
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Security.Abstractions/Kun.Security.Abstractions.csproj" />
     <EmbeddedResource Include="../../contracts/identity/v1/*.schema.json" LogicalName="identity/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

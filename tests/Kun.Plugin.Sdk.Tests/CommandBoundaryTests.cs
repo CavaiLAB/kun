@@ -7,6 +7,7 @@ using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
 using Kun.Runtime;
+using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

@@ -61,7 +61,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Plugin.Sdk.Generators` | 源生成器与 KUNSDK001–003 诊断，只以分析器引用 | — | — |
 | `Kun.Plugin.Sdk.AspNetCore` | 平台档契约：HTTP 插件可见性 | `AddKunPluginEndpoints`、`UseKunPluginEndpoints`、`RequireKunPlugin` | — |
 
-清单工具在仓库根的 `tools/Kun.Plugin.Tool`，不打包。`Kun.Plugin.Sdk` 对平台档只剩身份契约一条依赖（`CommandInvocation` 带 `Principal`），依赖门禁记为例外，B7 去掉。
+清单工具在仓库根的 `tools/Kun.Plugin.Tool`，不打包。`Kun.Plugin.Sdk` 不依赖平台档的包：`CommandInvocation` 带的 `Principal` 在内核契约 `Kun.Security.Abstractions` 里。
 
 ### 持久化（Infrastructure 层）
 
@@ -81,7 +81,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.EventBus.RabbitMQ` | RabbitMQ broker 适配 + 消费者 + DLQ | 下游服务间事件总线的默认 broker | `AddRabbitMq(...)` / `.Subscribe<TEvent, THandler>()` | ✅ | — |
 | `Kun.Saga` | Saga Orchestration（步骤 / 反向补偿 / 超时 / 实例持久化） | 跨服务长事务（下单-支付-发货） | `AddKunSaga()` / `ISagaStep<TContext>` | ⚠️ trim-safe | 18 |
 
-> **Kun.Saga Phase 1 不写 `IsAotCompatible`**：其 `Persistence/Ef/` 透传 EF Core 的 IL2091/IL2060/IL2026。Phase 2 有计划拆分 `Kun.Saga.EntityFrameworkCore`（见 AOT 审计报告 §RED 与跟进编号 `P2-KN-Saga-EF-Split`）。
+`Kun.Saga` 已归档（S1-KUN-025）：移出解决方案，包名停发，没有替代的包；Order 样例改成不带编排的命令流程。上表与下面非 AOT 白名单里的这一行按原样保留。
 
 ### 宿主与通信（Host 层）
 
@@ -96,6 +96,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
 | `Kun.Security` | S2S JWT 校验 / JWKS 热加载 / `ITenantContext` / `ICurrentUser` 实现 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
+| `Kun.Security.Abstractions` | 服务间令牌的主体模型与声明词汇表，零依赖 | 公共表面带主体的契约包引用它，不必引用 `Kun.Security` | `Principal` / `PrincipalKind` / `IdentityClaimNames` | ✅ | — |
 | `Kun.Identity` | 外部 IdP（OIDC）客户端、JWT 校验与原子会话；**不**自建用户存储 | 账号和凭据由身份权威提供，Kun 负责依赖方校验与会话 | `AddKunIdentity(...)` | ✅ | 11 |
 | `Kun.MultiTenancy` | `ITenantContext` 实现 + EF 查询过滤器 + SaveChanges 拦截器 | 所有租户隔离业务的透明过滤 | `AddKunMultiTenancy()` / `UseKunMultiTenancy()` | ✅ | 12 |
 | `Kun.MultiTenancy.EntityFrameworkCore` | EF 侧租户过滤器 + `HasTenantFilter<T>()` 扩展 | 与 `Kun.MultiTenancy` 配套的 EF 实现 | `HasTenantFilter<T>()` | ⚠️ trim-safe | — |
@@ -147,7 +148,6 @@ graph TD
 
     Infra --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
 
-    EventBus --> Saga[Kun.Saga<br/>Saga 编排器/补偿/超时]
     EventBus --> RabbitMq[Kun.EventBus.RabbitMQ<br/>集成事件传输]
 
     Storage[Kun.Storage.Abstractions<br/>对象存储端口/Local/S3/Oss 后端]
@@ -165,7 +165,6 @@ graph TD
     style Core fill:#e1f5ff
     style Mediator fill:#e1f5ff
     style Security fill:#ffe1e1
-    style Saga fill:#fff4d6
 ```
 
 ## 分层规则
@@ -177,7 +176,7 @@ graph TD
 ├─────────────────────────────────────────────────────────┤
 │  Infrastructure Layer                                   │
 │  Kun.EntityFrameworkCore                                │
-│  Kun.EventBus.RabbitMQ / Kun.Saga / Kun.Storage.*       │
+│  Kun.EventBus.RabbitMQ / Kun.Storage.*                  │
 ├─────────────────────────────────────────────────────────┤
 │  Abstraction Layer                                      │
 │  Kun.Mediator / Kun.Infrastructure                      │
@@ -240,26 +239,4 @@ Npgsql 数据源 + Dapper (读侧连接)  [原生 SQL，DTO 投影]
     │
     ▼
 PostgreSQL (只读副本 / 读库)
-```
-
-## Saga 路径（跨服务长事务）
-
-```
-Command Handler
-    │
-    ▼ StartSagaAsync(ctx)
-    │
-Kun.Saga Orchestrator            [持久化 SagaInstance + 首步入队]
-    │                               (与业务同事务)
-    ▼
-Outbox (step message)
-    │
-    ▼
-SagaStepExecutor (BackgroundService)
-    │
-    ▼  step.ExecuteAsync()
-    │
-远程服务 / 本地 Handler
-    │
-    ▼  成功 → 下一步                  失败 → CompensateAsync (反向)
 ```

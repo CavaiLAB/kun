@@ -1,11 +1,11 @@
 using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json;
+using Kun.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Qian.Identity.Abstractions;
 
 namespace Qian.Sample.Crm.Tests;
 

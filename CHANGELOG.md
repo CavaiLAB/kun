@@ -72,6 +72,7 @@
 - `QianDataConventions.DeletedByPropertyName` 并进 `Kun.EntityFrameworkCore.Conventions.KunDataConventions`（值仍是 `"DeletedBy"`），数据契约包里不再有约定类。**迁移**：`using Kun.EntityFrameworkCore.Conventions;`，写 `KunDataConventions.DeletedByPropertyName`。
 - EF 迁移的命名空间与迁移快照里的实体全名跟着换，迁移生成的 SQL 与库表结构不变。分析器 QIAN0003 按 `Kun.Data.KunStrictDbContext` 找严格基类，诊断号不变。
 - 运行期字面不变：组件 id（`qian.data` 等）、库 schema `plugin_qian_*`、模型注解键 `"Qian:MultiTenant"`、行级安全策略名 `qian_tenant_access` / `qian_tenant_guard`、索引名、配置节名与租户 GUC `app.current_tenant_id`。
+- 日志类别跟着包名换：代码里显式写的类别名 `Qian.Tenancy.Operations`、`Qian.Tenancy.AuditCompletion`、`Qian.Tenancy.Summary`、`Qian.Tenancy.Signup.Operations` 换成 `Kun.Tenancy.Operations`、`Kun.Tenancy.AuditCompletion`、`Kun.Tenancy.Summary`、`Kun.Tenancy.Signup.Operations`，按类型取的类别随命名空间换。按换名前的类别名配的日志级别（如 `Logging:LogLevel` 下的键）或告警规则要跟着改。这一域没有计量器（Meter）与活动源（ActivitySource）。
 - 组件 `qian.data` 1.0.1 → 1.1.0，`qian.tenancy`、`qian.tenancy.signup` 2.1.0 → 2.2.0：清单入口换成新程序集；两份发布的 HTTP 契约里 Schema 键随程序集名与版本变了，`$ref` 跟着变，线上形状与 operationId 不变。`qian.data` 清单的 `runtime.nuget[]` 仍钉包源上已发布的旧包，新包发布时一并改；在那之前用命令行从包源安装 `qian.data`，装上的旧包里没有清单写的入口，宿主挂载失败（从源码引用这些项目的宿主不受影响）。
 
 ### Removed — 归档 Kun.Sandbox（S1-KUN-028）

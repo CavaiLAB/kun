@@ -109,7 +109,7 @@ jobs:
         run: dotnet restore Kun.slnx
 
       - name: 发版脚本与制品校验自测
-        run: python3 -m unittest discover -s scripts/tests -p 'test_release_version.py' -v
+        run: python3 -m unittest discover -s scripts/tests -p 'test_release_*.py' -v
 
       - name: 构建（Release；_import/qian 下 Qian 包未登记的公共 API 即编译失败）
         run: dotnet build Kun.slnx -c Release --no-restore
@@ -127,7 +127,6 @@ jobs:
         env:
           KUN_PACK_CHECK_VERSION: "9999.12.31"
         run: |
-          python3 -m unittest discover -s scripts/tests -p 'test_release_packages.py' -v
           # NU5104（稳定版带预发布依赖）先不挡打包，由 verify-packages 按项目的 NoWarn 判；过渡模式放行的几项见脚本开头。
           dotnet pack Kun.slnx -c Release --no-build --no-restore -p:Version="$KUN_PACK_CHECK_VERSION" -p:WarningsNotAsErrors=NU5104 -o "$RUNNER_TEMP/release-packages"
           python3 scripts/release_packages.py verify-packages --transitional --version "$KUN_PACK_CHECK_VERSION" --packages "$RUNNER_TEMP/release-packages"

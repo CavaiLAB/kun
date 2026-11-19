@@ -63,6 +63,7 @@ from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_deps import ROLES, TIERS, GateError, ROOT, _env, _metadata, _rel, solution_projects  # noqa: E402
+from release_consumer import verify_consumer  # noqa: E402
 from release_feed import FeedError, check_unpublished, release_order, verify_feed  # noqa: E402
 from release_version import PACKAGE_ID, release_info  # noqa: E402
 
@@ -479,12 +480,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     verifying.add_argument("--list", type=Path, help="list --json 的输出；不给就现读项目文件")
     verifying.add_argument("--commit", help="包里应带的提交号；不给就取仓库的 HEAD")
     config = sub.add_parser("nuget-config", help="生成该版本的消费者包源映射")
+    consumer = sub.add_parser("verify-consumer", help="用仓库外的原生与平台消费者核验实际制品")
+    consumer.add_argument("--stage", choices=("local", "github", "published"), required=True)
+    consumer.add_argument("--packages", type=Path, help="本地制品目录，供发布前及推送中间阶段使用")
     preflight = sub.add_parser("check-version", help="核对版本、发布标签、CHANGELOG 与两个正式包源")
     notes = sub.add_parser("notes", help="从 CHANGELOG.md 的 [Unreleased] 生成该版本的发布说明")
     feed = sub.add_parser("verify-feed", help="在指定包源核对本次发布的包")
     feed.add_argument("--feed", choices=("github", "nuget"), required=True)
     feed.add_argument("--wait-seconds", type=int, default=2700, help="最多等待索引的秒数，0 表示只核对一轮")
-    for p in (config, notes, feed, preflight):
+    for p in (config, notes, feed, preflight, consumer):
         p.add_argument("--version", required=True, help="日历版本")
         p.add_argument("--list", type=Path, help="list --json 的输出；不给就现读项目文件")
     for p in (listing, verifying):
@@ -504,12 +508,14 @@ def main(argv: Optional[List[str]] = None) -> int:
             return _print(check_list(packages, args.transitional), "包名单核对", args.transitional)
         release_info(args.version)
         packages = _load_list(args.list) if args.list else discover()
-        if args.command in ("nuget-config", "notes", "verify-feed", "check-version"):
+        if args.command in ("nuget-config", "notes", "verify-feed", "check-version", "verify-consumer"):
             report = check_list(packages, transitional=False)
             if report.problems:
                 print("\n".join(report.problems), file=sys.stderr)
                 return 1
-            if args.command == "check-version":
+            if args.command == "verify-consumer":
+                verify_consumer(nuget_config(packages, args.version), packages, args.version, args.stage, args.packages, ROOT / "global.json")
+            elif args.command == "check-version":
                 result = subprocess.run(["git", "tag", "--list", "v*"], cwd=ROOT, capture_output=True, text=True)
                 if result.returncode:
                     raise Failure("无法读取仓库的发布标签")

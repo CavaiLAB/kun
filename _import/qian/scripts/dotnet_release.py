@@ -271,54 +271,7 @@ CONSUMER_PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
 
 # 一个最小组件：源生成器从 [KunPlugin] / [Capability] 与 Apply 里的 Provide 派生入口、服务键与能力契约；
 # 运行时读同一套生成工厂，并读包里 qian.data 的生成元数据，证明组件代码字段确实来自源生成器。
-CONSUMER_SOURCE = """using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
-
-namespace ReleaseProbe;
-
-[KunPlugin("qian.release-probe")]
-public sealed class ProbePlugin : IKunPlugin
-{
-    public static readonly ServiceKey Probe = new("ReleaseProbe");
-    public IReadOnlyList<ServiceKey> Inject => [];
-    public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
-    {
-        ctx.Provide(Probe, new object());
-        return ValueTask.CompletedTask;
-    }
-}
-
-[Capability("probe.read", typeof(ProbeResponse), typeof(ProbeJson), Description = "读取发布核对组件的一条记录，不修改任何数据。", RequiredScopes = ["qian.release-probe:read"])]
-public sealed partial record ProbeRequest(Guid Id);
-public sealed record ProbeResponse(Guid Id);
-
-[JsonSerializable(typeof(ProbeRequest))]
-[JsonSerializable(typeof(ProbeResponse))]
-public sealed partial class ProbeJson : JsonSerializerContext;
-
-public static class Program
-{
-    public static void Main()
-    {
-        var probe = Read(typeof(ProbePlugin).Assembly);
-        var data = Read(typeof(Kun.Data.DataPlugin).Assembly);
-        Console.WriteLine(JsonSerializer.Serialize(new
-        {
-            probe = new { probe.ComponentId, probe.RuntimeEntry, probe.Provides, Capabilities = probe.Capabilities.Select(c => new { c.Id, Metadata = c.Metadata }) },
-            data = new { data.ComponentId, data.RuntimeEntry, data.Provides },
-        }));
-    }
-
-    private static ComponentCodeMetadata Read(Assembly assembly)
-    {
-        var declaration = assembly.GetCustomAttribute<KunCodeMetadataAttribute>() ?? throw new InvalidOperationException(assembly.GetName().Name + " 没有生成元数据");
-        return ((IComponentCodeMetadataFactory)Activator.CreateInstance(declaration.FactoryType)!).Create();
-    }
-}
-"""
+CONSUMER_SOURCE = (ROOT.parents[1] / "scripts/release-probes/Platform.cs").read_text(encoding="utf-8")
 
 
 def verify_consumer(version: str, source: str, token_variable: Optional[str], attempts: int, keep: Optional[Path]) -> dict:

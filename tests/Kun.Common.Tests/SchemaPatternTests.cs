@@ -258,11 +258,12 @@ public sealed class SchemaPatternTests
     public void 跨语言向量与等价类表由本实现生成_与仓库文件逐字一致()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
         Assert.NotNull(root);
+        var workspace = Path.Combine(root.FullName, "_import", "qian");
         foreach (var (relative, content) in new[] { ("tck/profiles/key-vectors.json", Vectors()), ("packages/qian-surfaces/src/ordinal-case.ts", CaseTable()) })
         {
-            var path = Path.Combine(root.FullName, relative);
+            var path = Path.Combine(workspace, relative);
             if (Environment.GetEnvironmentVariable("QIAN_UPDATE_VECTORS") == "1") File.WriteAllText(path, content);
             var actual = File.Exists(path) ? File.ReadAllText(path) : "";
             Assert.True(actual == content, $"{relative} 与本实现不一致：以 QIAN_UPDATE_VECTORS=1 运行本测试重新生成，再同步 @qian/surfaces 的 schema-pattern.ts。" + Difference(actual, content));

@@ -41,8 +41,8 @@ public sealed class CapabilitiesComponentTests
     private static string RepositoryRoot()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
-        return root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
+        return Path.Combine(root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。"), "_import", "qian");
     }
 
     // 只验证宿主门：这些占位项让装载器越过依赖检查，错误必须发生在使用任何 Provider 之前。

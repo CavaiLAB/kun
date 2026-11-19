@@ -90,8 +90,8 @@ public sealed class HotReloadTests
     private static string Root()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null && !File.Exists(Path.Combine(current.FullName, "Qian.slnf"))) current = current.Parent;
-        return current?.FullName ?? throw new InvalidOperationException("未找到共用 TCK。");
+        while (current is not null && !File.Exists(Path.Combine(current.FullName, "Kun.slnx"))) current = current.Parent;
+        return Path.Combine(current?.FullName ?? throw new InvalidOperationException("未找到共用 TCK。"), "_import", "qian");
     }
     private sealed class CodePlugin : IKunPlugin
     {

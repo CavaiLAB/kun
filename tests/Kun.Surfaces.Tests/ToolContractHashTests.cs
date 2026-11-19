@@ -58,8 +58,8 @@ public sealed class ToolContractHashTests
     {
         // S1-AGT-002：contracts/v0 正例条目写死的 schemaSha256（与 Python 按整数 JCS 子集独立复算的结果相同），含组件模型规格 §4.6 的 upload 示例。
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
-        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "contracts/v0/fixtures/capability-entry.valid.json")));
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "_import", "qian", "contracts/v0/fixtures/capability-entry.valid.json")));
         var entries = fixture.RootElement.EnumerateArray().Select(item => item.GetProperty("data")).ToArray();
         Assert.Equal(3, entries.Length);
         Assert.Equal("523ed88312c5cbd2368cf7f243098548c4629c6b729cae82a427f35f0183ada8",

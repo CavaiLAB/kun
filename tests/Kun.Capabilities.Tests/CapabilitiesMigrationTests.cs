@@ -26,14 +26,14 @@ public sealed class CapabilitiesMigrationTests
         Assert.DoesNotContain("ALTER TABLE " + CapabilitiesDbContext.Schema + ".outbox_messages ENABLE ROW LEVEL SECURITY", script, StringComparison.Ordinal);
         Assert.DoesNotContain("POLICY qian_tenant_guard ON " + CapabilitiesDbContext.Schema + ".outbox_messages", script, StringComparison.Ordinal);
         Assert.Contains("ck_invoke_receipts_response_size", script, StringComparison.Ordinal);
-        var sources = Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), "packages/Qian.Capabilities/Migrations"), "*.cs");
+        var sources = Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), "src/Kun.Capabilities/Migrations"), "*.cs");
         Assert.All(sources, file => Assert.DoesNotContain("ROW LEVEL SECURITY", File.ReadAllText(file), StringComparison.Ordinal));
     }
 
     private static string RepositoryRoot()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
         return root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
     }
 }

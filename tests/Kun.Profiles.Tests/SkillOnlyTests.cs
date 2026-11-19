@@ -13,9 +13,10 @@ public sealed class SkillOnlyTests
     public async Task 共享无代码技能组件_真实minimal装配进入dump与技能目录_租户隔离并可卸载()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
         Assert.NotNull(root);
-        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(root.FullName, "tck/runtime/skill-only.json")));
+        var workspace = Path.Combine(root.FullName, "_import", "qian");
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(workspace, "tck/runtime/skill-only.json")));
         var spec = fixture.RootElement;
         var directory = Directory.CreateTempSubdirectory("qian-skill-only-net-");
         try
@@ -65,9 +66,9 @@ public sealed class SkillOnlyTests
             }
             void Copy(string relative)
             {
-                foreach (var original in Directory.EnumerateFiles(Path.Combine(root.FullName, relative), "*", SearchOption.AllDirectories))
+                foreach (var original in Directory.EnumerateFiles(Path.Combine(workspace, relative), "*", SearchOption.AllDirectories))
                 {
-                    var target = Path.Combine(directory.FullName, Path.GetRelativePath(root.FullName, original)); Directory.CreateDirectory(Path.GetDirectoryName(target)!); File.Copy(original, target);
+                    var target = Path.Combine(directory.FullName, Path.GetRelativePath(workspace, original)); Directory.CreateDirectory(Path.GetDirectoryName(target)!); File.Copy(original, target);
                 }
             }
         }

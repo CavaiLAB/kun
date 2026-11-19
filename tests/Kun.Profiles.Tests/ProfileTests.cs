@@ -165,8 +165,8 @@ public sealed class ProfileTests
     private static string FindRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null && !File.Exists(Path.Combine(current.FullName, "Qian.slnf"))) current = current.Parent;
-        return current?.FullName ?? throw new InvalidOperationException("找不到仓库。");
+        while (current is not null && !File.Exists(Path.Combine(current.FullName, "Kun.slnx"))) current = current.Parent;
+        return Path.Combine(current?.FullName ?? throw new InvalidOperationException("找不到仓库。"), "_import", "qian");
     }
     private sealed class Fixture : IDisposable
     {

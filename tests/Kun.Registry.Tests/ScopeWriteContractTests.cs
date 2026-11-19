@@ -39,8 +39,8 @@ public sealed class ScopeWriteContractTests
         Assert.Null(schema["properties"]!["tenant"]); Assert.Null(schema["properties"]!["tenant_id"]);
         Assert.False(schema["additionalProperties"]!.GetValue<bool>());
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
-        var file = Path.Combine(root!.FullName, "plugins/qian.registry/contracts/http-v1.openapi.json");
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
+        var file = Path.Combine(root!.FullName, "_import", "qian", "plugins/qian.registry/contracts/http-v1.openapi.json");
         if (Environment.GetEnvironmentVariable("QIAN_UPDATE_REGISTRY_CONTRACT") == "1")
         { Directory.CreateDirectory(Path.GetDirectoryName(file)!); File.WriteAllText(file, JsonSerializer.Serialize(contract, ContractJson) + "\n"); }
         Assert.True(JsonElement.DeepEquals(JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(file)), contract), "真实端点与发布契约漂移。");

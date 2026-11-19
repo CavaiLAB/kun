@@ -11,11 +11,12 @@ public sealed class MarketplaceTests
     public void SharedMarketplaceVectors_UseTheSameDiagnostics()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
         Assert.NotNull(root);
-        using var vectors = JsonDocument.Parse(File.ReadAllText(Path.Combine(root.FullName, "tck/marketplaces/cases.json")));
+        var workspace = Path.Combine(root.FullName, "_import", "qian");
+        using var vectors = JsonDocument.Parse(File.ReadAllText(Path.Combine(workspace, "tck/marketplaces/cases.json")));
         var validator = new SurfaceValidator(); var report = new JsonObject();
-        var expected = JsonSerializer.Deserialize<string[]>(File.ReadAllText(Path.Combine(root.FullName, "tck/marketplaces/field-codes.json")))!;
+        var expected = JsonSerializer.Deserialize<string[]>(File.ReadAllText(Path.Combine(workspace, "tck/marketplaces/field-codes.json")))!;
         var fields = SurfaceErrors.All.Select(code => code.Code).Order(StringComparer.Ordinal).ToArray();
         Assert.Equal(expected, fields);
         Assert.Equal(fields.Length, fields.Distinct(StringComparer.Ordinal).Count());

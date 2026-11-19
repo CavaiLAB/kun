@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.lifecycle",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "提供 qian.lifecycle 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
@@ -34,7 +34,7 @@
   ],
   "runtime": {
     "form": "module",
-    "entry": "Qian.Lifecycle.LifecycleComponent, Qian.Lifecycle",
+    "entry": "Kun.Lifecycle.LifecycleComponent, Kun.Lifecycle",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -51,7 +51,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.lifecycle",
-        "source": "Qian.Lifecycle.LifecycleComponent, Qian.Lifecycle",
+        "source": "Kun.Lifecycle.LifecycleComponent, Kun.Lifecycle",
         "sha256": "5ddc9418167084b99cc3f33ce5f31dbcbef389da30d809714026cf9952711075",
         "fields": [
           ""

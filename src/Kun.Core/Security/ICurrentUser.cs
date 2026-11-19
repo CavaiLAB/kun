@@ -5,7 +5,7 @@ namespace Kun.Core.Security;
 /// </summary>
 /// <remarks>
 /// See <c>docs/architecture/when-to-use-currentuser.md</c> for when to
-/// inject this interface vs <c>Kun.Identity.Abstractions.IAuthenticatedUser</c>
+/// inject this interface vs <c>Kun.Identity.IAuthenticatedUser</c>
 /// (the cookie / browser extension) and how to extend without introducing
 /// a third sibling abstraction.
 /// </remarks>

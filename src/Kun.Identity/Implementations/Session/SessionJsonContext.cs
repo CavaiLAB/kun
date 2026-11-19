@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Kun.Identity.Abstractions.Session;
 
 namespace Kun.Identity.Implementations.Session;
 

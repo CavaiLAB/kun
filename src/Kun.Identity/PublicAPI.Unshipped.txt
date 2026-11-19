@@ -1,61 +1,61 @@
 #nullable enable
-Kun.Identity.Abstractions.IAuthenticatedUser
-Kun.Identity.Abstractions.IAuthenticatedUser.Email.get -> string?
-Kun.Identity.Abstractions.IAuthenticatedUser.Name.get -> string?
-Kun.Identity.Abstractions.IAuthenticatedUser.Principal.get -> System.Security.Claims.ClaimsPrincipal?
-Kun.Identity.Abstractions.IAuthenticatedUser.TenantId.get -> string?
-Kun.Identity.Abstractions.IJwtValidator
-Kun.Identity.Abstractions.IJwtValidator.ValidateAsync(string! token, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Security.Claims.ClaimsPrincipal?>!
-Kun.Identity.Abstractions.IOidcClient
-Kun.Identity.Abstractions.IOidcClient.DiscoverAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcConfiguration!>!
-Kun.Identity.Abstractions.IOidcClient.ExchangeCodeAsync(string! code, string! redirectUri, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcTokenResponse!>!
-Kun.Identity.Abstractions.IOidcClient.Name.get -> string!
-Kun.Identity.Abstractions.OidcConfiguration
-Kun.Identity.Abstractions.OidcConfiguration.AuthorizationEndpoint.get -> string!
-Kun.Identity.Abstractions.OidcConfiguration.AuthorizationEndpoint.init -> void
-Kun.Identity.Abstractions.OidcConfiguration.Issuer.get -> string!
-Kun.Identity.Abstractions.OidcConfiguration.Issuer.init -> void
-Kun.Identity.Abstractions.OidcConfiguration.JwksUri.get -> string!
-Kun.Identity.Abstractions.OidcConfiguration.JwksUri.init -> void
-Kun.Identity.Abstractions.OidcConfiguration.OidcConfiguration(string! Issuer, string! AuthorizationEndpoint, string! TokenEndpoint, string? UserInfoEndpoint, string! JwksUri) -> void
-Kun.Identity.Abstractions.OidcConfiguration.TokenEndpoint.get -> string!
-Kun.Identity.Abstractions.OidcConfiguration.TokenEndpoint.init -> void
-Kun.Identity.Abstractions.OidcConfiguration.UserInfoEndpoint.get -> string?
-Kun.Identity.Abstractions.OidcConfiguration.UserInfoEndpoint.init -> void
-Kun.Identity.Abstractions.OidcTokenResponse
-Kun.Identity.Abstractions.OidcTokenResponse.AccessToken.get -> string!
-Kun.Identity.Abstractions.OidcTokenResponse.AccessToken.init -> void
-Kun.Identity.Abstractions.OidcTokenResponse.ExpiresIn.get -> int
-Kun.Identity.Abstractions.OidcTokenResponse.ExpiresIn.init -> void
-Kun.Identity.Abstractions.OidcTokenResponse.IdToken.get -> string?
-Kun.Identity.Abstractions.OidcTokenResponse.IdToken.init -> void
-Kun.Identity.Abstractions.OidcTokenResponse.OidcTokenResponse(string! AccessToken, string? IdToken, string? RefreshToken, string! TokenType, int ExpiresIn) -> void
-Kun.Identity.Abstractions.OidcTokenResponse.RefreshToken.get -> string?
-Kun.Identity.Abstractions.OidcTokenResponse.RefreshToken.init -> void
-Kun.Identity.Abstractions.OidcTokenResponse.TokenType.get -> string!
-Kun.Identity.Abstractions.OidcTokenResponse.TokenType.init -> void
-Kun.Identity.Abstractions.Session.ISessionStore
-Kun.Identity.Abstractions.Session.ISessionStore.DeleteAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Kun.Identity.Abstractions.Session.ISessionStore.GetAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.Session.SessionData?>!
-Kun.Identity.Abstractions.Session.ISessionStore.SetAsync(string! sessionId, Kun.Identity.Abstractions.Session.SessionData! data, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Kun.Identity.Abstractions.Session.SessionData
-Kun.Identity.Abstractions.Session.SessionData.AccessToken.get -> string!
-Kun.Identity.Abstractions.Session.SessionData.AccessToken.init -> void
-Kun.Identity.Abstractions.Session.SessionData.Email.get -> string?
-Kun.Identity.Abstractions.Session.SessionData.Email.init -> void
-Kun.Identity.Abstractions.Session.SessionData.ExpiresAt.get -> System.DateTimeOffset
-Kun.Identity.Abstractions.Session.SessionData.ExpiresAt.init -> void
-Kun.Identity.Abstractions.Session.SessionData.Name.get -> string?
-Kun.Identity.Abstractions.Session.SessionData.Name.init -> void
-Kun.Identity.Abstractions.Session.SessionData.RefreshToken.get -> string?
-Kun.Identity.Abstractions.Session.SessionData.RefreshToken.init -> void
-Kun.Identity.Abstractions.Session.SessionData.Roles.get -> System.Collections.Generic.IReadOnlyList<string!>!
-Kun.Identity.Abstractions.Session.SessionData.Roles.init -> void
-Kun.Identity.Abstractions.Session.SessionData.SessionData(string! UserId, string? TenantId, string? Email, string? Name, System.Collections.Generic.IReadOnlyList<string!>! Roles, string! AccessToken, string? RefreshToken, System.DateTimeOffset ExpiresAt) -> void
-Kun.Identity.Abstractions.Session.SessionData.TenantId.get -> string?
-Kun.Identity.Abstractions.Session.SessionData.TenantId.init -> void
-Kun.Identity.Abstractions.Session.SessionData.UserId.get -> string!
-Kun.Identity.Abstractions.Session.SessionData.UserId.init -> void
+Kun.Identity.IAuthenticatedUser
+Kun.Identity.IAuthenticatedUser.Email.get -> string?
+Kun.Identity.IAuthenticatedUser.Name.get -> string?
+Kun.Identity.IAuthenticatedUser.Principal.get -> System.Security.Claims.ClaimsPrincipal?
+Kun.Identity.IAuthenticatedUser.TenantId.get -> string?
+Kun.Identity.IJwtValidator
+Kun.Identity.IJwtValidator.ValidateAsync(string! token, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Security.Claims.ClaimsPrincipal?>!
+Kun.Identity.IOidcClient
+Kun.Identity.IOidcClient.DiscoverAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcConfiguration!>!
+Kun.Identity.IOidcClient.ExchangeCodeAsync(string! code, string! redirectUri, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcTokenResponse!>!
+Kun.Identity.IOidcClient.Name.get -> string!
+Kun.Identity.OidcConfiguration
+Kun.Identity.OidcConfiguration.AuthorizationEndpoint.get -> string!
+Kun.Identity.OidcConfiguration.AuthorizationEndpoint.init -> void
+Kun.Identity.OidcConfiguration.Issuer.get -> string!
+Kun.Identity.OidcConfiguration.Issuer.init -> void
+Kun.Identity.OidcConfiguration.JwksUri.get -> string!
+Kun.Identity.OidcConfiguration.JwksUri.init -> void
+Kun.Identity.OidcConfiguration.OidcConfiguration(string! Issuer, string! AuthorizationEndpoint, string! TokenEndpoint, string? UserInfoEndpoint, string! JwksUri) -> void
+Kun.Identity.OidcConfiguration.TokenEndpoint.get -> string!
+Kun.Identity.OidcConfiguration.TokenEndpoint.init -> void
+Kun.Identity.OidcConfiguration.UserInfoEndpoint.get -> string?
+Kun.Identity.OidcConfiguration.UserInfoEndpoint.init -> void
+Kun.Identity.OidcTokenResponse
+Kun.Identity.OidcTokenResponse.AccessToken.get -> string!
+Kun.Identity.OidcTokenResponse.AccessToken.init -> void
+Kun.Identity.OidcTokenResponse.ExpiresIn.get -> int
+Kun.Identity.OidcTokenResponse.ExpiresIn.init -> void
+Kun.Identity.OidcTokenResponse.IdToken.get -> string?
+Kun.Identity.OidcTokenResponse.IdToken.init -> void
+Kun.Identity.OidcTokenResponse.OidcTokenResponse(string! AccessToken, string? IdToken, string? RefreshToken, string! TokenType, int ExpiresIn) -> void
+Kun.Identity.OidcTokenResponse.RefreshToken.get -> string?
+Kun.Identity.OidcTokenResponse.RefreshToken.init -> void
+Kun.Identity.OidcTokenResponse.TokenType.get -> string!
+Kun.Identity.OidcTokenResponse.TokenType.init -> void
+Kun.Identity.ISessionStore
+Kun.Identity.ISessionStore.DeleteAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kun.Identity.ISessionStore.GetAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.SessionData?>!
+Kun.Identity.ISessionStore.SetAsync(string! sessionId, Kun.Identity.SessionData! data, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kun.Identity.SessionData
+Kun.Identity.SessionData.AccessToken.get -> string!
+Kun.Identity.SessionData.AccessToken.init -> void
+Kun.Identity.SessionData.Email.get -> string?
+Kun.Identity.SessionData.Email.init -> void
+Kun.Identity.SessionData.ExpiresAt.get -> System.DateTimeOffset
+Kun.Identity.SessionData.ExpiresAt.init -> void
+Kun.Identity.SessionData.Name.get -> string?
+Kun.Identity.SessionData.Name.init -> void
+Kun.Identity.SessionData.RefreshToken.get -> string?
+Kun.Identity.SessionData.RefreshToken.init -> void
+Kun.Identity.SessionData.Roles.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Identity.SessionData.Roles.init -> void
+Kun.Identity.SessionData.SessionData(string! UserId, string? TenantId, string? Email, string? Name, System.Collections.Generic.IReadOnlyList<string!>! Roles, string! AccessToken, string? RefreshToken, System.DateTimeOffset ExpiresAt) -> void
+Kun.Identity.SessionData.TenantId.get -> string?
+Kun.Identity.SessionData.TenantId.init -> void
+Kun.Identity.SessionData.UserId.get -> string!
+Kun.Identity.SessionData.UserId.init -> void
 Kun.Identity.Configuration.KunCookieAuthOptions
 Kun.Identity.Configuration.KunCookieAuthOptions.CookieName.get -> string!
 Kun.Identity.Configuration.KunCookieAuthOptions.CookieName.set -> void
@@ -123,117 +123,117 @@ Kun.Identity.Implementations.KunJwtValidator
 Kun.Identity.Implementations.KunJwtValidator.KunJwtValidator(Microsoft.Extensions.Options.IOptions<Kun.Identity.Configuration.KunJwtBearerOptions!>! options, Microsoft.Extensions.Logging.ILogger<Kun.Identity.Implementations.KunJwtValidator!>! logger) -> void
 Kun.Identity.Implementations.KunJwtValidator.ValidateAsync(string! token, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Security.Claims.ClaimsPrincipal?>!
 Kun.Identity.Implementations.KunOidcClient
-Kun.Identity.Implementations.KunOidcClient.DiscoverAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcConfiguration!>!
+Kun.Identity.Implementations.KunOidcClient.DiscoverAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcConfiguration!>!
 Kun.Identity.Implementations.KunOidcClient.Dispose() -> void
-Kun.Identity.Implementations.KunOidcClient.ExchangeCodeAsync(string! code, string! redirectUri, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcTokenResponse!>!
+Kun.Identity.Implementations.KunOidcClient.ExchangeCodeAsync(string! code, string! redirectUri, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcTokenResponse!>!
 Kun.Identity.Implementations.KunOidcClient.KunOidcClient(Kun.Identity.Configuration.KunOidcClientOptions! options, System.Net.Http.IHttpClientFactory! httpClientFactory) -> void
 Kun.Identity.Implementations.KunOidcClient.Name.get -> string!
 Kun.Identity.Implementations.Session.InMemorySessionStore
 Kun.Identity.Implementations.Session.InMemorySessionStore.DeleteAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Kun.Identity.Implementations.Session.InMemorySessionStore.GetAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.Session.SessionData?>!
+Kun.Identity.Implementations.Session.InMemorySessionStore.GetAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.SessionData?>!
 Kun.Identity.Implementations.Session.InMemorySessionStore.InMemorySessionStore() -> void
 Kun.Identity.Implementations.Session.InMemorySessionStore.InMemorySessionStore(System.TimeProvider! timeProvider) -> void
-Kun.Identity.Implementations.Session.InMemorySessionStore.SetAsync(string! sessionId, Kun.Identity.Abstractions.Session.SessionData! data, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kun.Identity.Implementations.Session.InMemorySessionStore.SetAsync(string! sessionId, Kun.Identity.SessionData! data, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.Identity.Implementations.Session.RedisSessionStore
 Kun.Identity.Implementations.Session.RedisSessionStore.DeleteAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Kun.Identity.Implementations.Session.RedisSessionStore.GetAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.Session.SessionData?>!
+Kun.Identity.Implementations.Session.RedisSessionStore.GetAsync(string! sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.SessionData?>!
 Kun.Identity.Implementations.Session.RedisSessionStore.RedisSessionStore(Kun.Caching.Abstractions.IKunCache! cache) -> void
-Kun.Identity.Implementations.Session.RedisSessionStore.SetAsync(string! sessionId, Kun.Identity.Abstractions.Session.SessionData! data, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kun.Identity.Implementations.Session.RedisSessionStore.SetAsync(string! sessionId, Kun.Identity.SessionData! data, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 static Kun.Identity.DependencyInjection.KunIdentityServiceCollectionExtensions.AddKunIdentity(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.Identity.Configuration.KunIdentityBuilder!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-Kun.Identity.Abstractions.OidcLogoutToken.Subject.get -> string?
-Kun.Identity.Abstractions.OidcLogoutToken.ExpiresAt.get -> System.DateTimeOffset
-Kun.Identity.Abstractions.OidcLogoutToken.Subject.init -> void
-Kun.Identity.Abstractions.OidcLogoutToken.ExpiresAt.init -> void
-Kun.Identity.Abstractions.OidcCodeExchange.ExpectedNonce.get -> string!
-Kun.Identity.Abstractions.OidcCodeExchange.Code.get -> string!
-Kun.Identity.Abstractions.OidcCodeExchange.Code.init -> void
-Kun.Identity.Abstractions.OidcLogoutToken.Issuer.get -> string!
-Kun.Identity.Abstractions.OidcCodeExchange.ExpectedNonce.init -> void
-Kun.Identity.Abstractions.OidcLogoutToken.Issuer.init -> void
-Kun.Identity.Abstractions.OidcCodeExchange
-Kun.Identity.Abstractions.OidcCodeExchange.RedirectUri.get -> string!
-Kun.Identity.Abstractions.OidcCodeExchange.RedirectUri.init -> void
-Kun.Identity.Abstractions.OidcLogoutToken
-Kun.Identity.Abstractions.OidcCodeExchange.CodeVerifier.get -> string!
-Kun.Identity.Abstractions.OidcCodeExchange.CodeVerifier.init -> void
-Kun.Identity.Abstractions.OidcLogoutToken.TokenId.get -> string!
-Kun.Identity.Abstractions.OidcLogoutToken.TokenId.init -> void
-Kun.Identity.Abstractions.OidcLogoutToken.SessionId.get -> string?
-Kun.Identity.Abstractions.OidcLogoutToken.SessionId.init -> void
-Kun.Identity.Abstractions.OidcTokenResponse.ValidatedPrincipal.get -> System.Security.Claims.ClaimsPrincipal?
-Kun.Identity.Abstractions.IOidcClient.RefreshAsync(string! refreshToken, string! expectedSubject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcTokenResponse!>!
-Kun.Identity.Abstractions.IOidcClient.ClientCredentialsAsync(string! scope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcTokenResponse!>!
-Kun.Identity.Abstractions.IOidcClient.ExchangeCodeAsync(Kun.Identity.Abstractions.OidcCodeExchange! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcTokenResponse!>!
-Kun.Identity.Abstractions.IOidcClient.ValidateLogoutTokenAsync(string! token, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcLogoutToken!>!
+Kun.Identity.OidcLogoutToken.Subject.get -> string?
+Kun.Identity.OidcLogoutToken.ExpiresAt.get -> System.DateTimeOffset
+Kun.Identity.OidcLogoutToken.Subject.init -> void
+Kun.Identity.OidcLogoutToken.ExpiresAt.init -> void
+Kun.Identity.OidcCodeExchange.ExpectedNonce.get -> string!
+Kun.Identity.OidcCodeExchange.Code.get -> string!
+Kun.Identity.OidcCodeExchange.Code.init -> void
+Kun.Identity.OidcLogoutToken.Issuer.get -> string!
+Kun.Identity.OidcCodeExchange.ExpectedNonce.init -> void
+Kun.Identity.OidcLogoutToken.Issuer.init -> void
+Kun.Identity.OidcCodeExchange
+Kun.Identity.OidcCodeExchange.RedirectUri.get -> string!
+Kun.Identity.OidcCodeExchange.RedirectUri.init -> void
+Kun.Identity.OidcLogoutToken
+Kun.Identity.OidcCodeExchange.CodeVerifier.get -> string!
+Kun.Identity.OidcCodeExchange.CodeVerifier.init -> void
+Kun.Identity.OidcLogoutToken.TokenId.get -> string!
+Kun.Identity.OidcLogoutToken.TokenId.init -> void
+Kun.Identity.OidcLogoutToken.SessionId.get -> string?
+Kun.Identity.OidcLogoutToken.SessionId.init -> void
+Kun.Identity.OidcTokenResponse.ValidatedPrincipal.get -> System.Security.Claims.ClaimsPrincipal?
+Kun.Identity.IOidcClient.RefreshAsync(string! refreshToken, string! expectedSubject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcTokenResponse!>!
+Kun.Identity.IOidcClient.ClientCredentialsAsync(string! scope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcTokenResponse!>!
+Kun.Identity.IOidcClient.ExchangeCodeAsync(Kun.Identity.OidcCodeExchange! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcTokenResponse!>!
+Kun.Identity.IOidcClient.ValidateLogoutTokenAsync(string! token, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcLogoutToken!>!
 Kun.Identity.Configuration.KunOidcClientOptions.DiscoveryRefreshInterval.get -> System.TimeSpan
 Kun.Identity.Configuration.KunOidcClientOptions.DiscoveryRefreshInterval.set -> void
 Kun.Identity.Configuration.KunOidcClientOptions.RequireHttpsMetadata.get -> bool
 Kun.Identity.Configuration.KunOidcClientOptions.RequireHttpsMetadata.set -> void
 Kun.Identity.Implementations.KunOidcClient.KunOidcClient(Kun.Identity.Configuration.KunOidcClientOptions! options, System.Net.Http.IHttpClientFactory! httpClientFactory, System.TimeProvider! clock) -> void
-Kun.Identity.Implementations.KunOidcClient.ExchangeCodeAsync(Kun.Identity.Abstractions.OidcCodeExchange! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcTokenResponse!>!
-Kun.Identity.Implementations.KunOidcClient.ClientCredentialsAsync(string! scope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcTokenResponse!>!
-Kun.Identity.Implementations.KunOidcClient.RefreshAsync(string! refreshToken, string! expectedSubject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcTokenResponse!>!
-Kun.Identity.Implementations.KunOidcClient.ValidateLogoutTokenAsync(string! token, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.OidcLogoutToken!>!
-Kun.Identity.Abstractions.OidcCodeExchange.OidcCodeExchange(string! Code, string! RedirectUri, string! CodeVerifier, string! ExpectedNonce) -> void
-Kun.Identity.Abstractions.OidcLogoutToken.OidcLogoutToken(string! Issuer, string? Subject, string? SessionId, string! TokenId, System.DateTimeOffset ExpiresAt) -> void
-Kun.Identity.Abstractions.Session.ISessionRegistry
-Kun.Identity.Abstractions.Session.SessionData.Issuer.init -> void
-Kun.Identity.Abstractions.Session.ISessionRegistry.ApplyLogoutAsync(Kun.Identity.Abstractions.OidcLogoutToken! logout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
-Kun.Identity.Abstractions.Session.ISessionRegistry.RenewAsync(string! sessionId, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
-Kun.Identity.Abstractions.Session.ISessionRegistry.RevokeUserAsync(string! userId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
-Kun.Identity.Abstractions.Session.ISessionRegistry.TryUseNonceAsync(string! purpose, string! nonce, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
-Kun.Identity.Abstractions.Session.SessionData.ProviderSessionId.init -> void
-Kun.Identity.Abstractions.Session.SessionData.Issuer.get -> string?
-Kun.Identity.Abstractions.Session.SessionData.ProviderSessionId.get -> string?
+Kun.Identity.Implementations.KunOidcClient.ExchangeCodeAsync(Kun.Identity.OidcCodeExchange! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcTokenResponse!>!
+Kun.Identity.Implementations.KunOidcClient.ClientCredentialsAsync(string! scope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcTokenResponse!>!
+Kun.Identity.Implementations.KunOidcClient.RefreshAsync(string! refreshToken, string! expectedSubject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcTokenResponse!>!
+Kun.Identity.Implementations.KunOidcClient.ValidateLogoutTokenAsync(string! token, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.OidcLogoutToken!>!
+Kun.Identity.OidcCodeExchange.OidcCodeExchange(string! Code, string! RedirectUri, string! CodeVerifier, string! ExpectedNonce) -> void
+Kun.Identity.OidcLogoutToken.OidcLogoutToken(string! Issuer, string? Subject, string? SessionId, string! TokenId, System.DateTimeOffset ExpiresAt) -> void
+Kun.Identity.ISessionRegistry
+Kun.Identity.SessionData.Issuer.init -> void
+Kun.Identity.ISessionRegistry.ApplyLogoutAsync(Kun.Identity.OidcLogoutToken! logout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+Kun.Identity.ISessionRegistry.RenewAsync(string! sessionId, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
+Kun.Identity.ISessionRegistry.RevokeUserAsync(string! userId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+Kun.Identity.ISessionRegistry.TryUseNonceAsync(string! purpose, string! nonce, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
+Kun.Identity.SessionData.ProviderSessionId.init -> void
+Kun.Identity.SessionData.Issuer.get -> string?
+Kun.Identity.SessionData.ProviderSessionId.get -> string?
 Kun.Identity.Implementations.Session.InMemorySessionStore.RenewAsync(string! sessionId, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
 Kun.Identity.Implementations.Session.InMemorySessionStore.RevokeUserAsync(string! userId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
-Kun.Identity.Implementations.Session.InMemorySessionStore.ApplyLogoutAsync(Kun.Identity.Abstractions.OidcLogoutToken! logout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+Kun.Identity.Implementations.Session.InMemorySessionStore.ApplyLogoutAsync(Kun.Identity.OidcLogoutToken! logout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 Kun.Identity.Implementations.Session.InMemorySessionStore.TryUseNonceAsync(string! purpose, string! nonce, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
 Kun.Identity.Implementations.Session.RedisSessionStore.RedisSessionStore(StackExchange.Redis.IConnectionMultiplexer! connection, System.TimeProvider! clock, string! keyPrefix = "kun:identity:") -> void
 Kun.Identity.Implementations.Session.RedisSessionStore.RenewAsync(string! sessionId, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
 Kun.Identity.Implementations.Session.RedisSessionStore.RevokeUserAsync(string! userId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
-Kun.Identity.Implementations.Session.RedisSessionStore.ApplyLogoutAsync(Kun.Identity.Abstractions.OidcLogoutToken! logout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+Kun.Identity.Implementations.Session.RedisSessionStore.ApplyLogoutAsync(Kun.Identity.OidcLogoutToken! logout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 Kun.Identity.Implementations.Session.RedisSessionStore.TryUseNonceAsync(string! purpose, string! nonce, System.TimeSpan ttl, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
 Kun.Identity.Configuration.KunCookieAuthOptions.RequireAntiforgery.get -> bool
 Kun.Identity.Configuration.KunCookieAuthOptions.RequireAntiforgery.set -> void
 Kun.Identity.Configuration.KunCookieSessionBuilder.UseRedisStore(string! keyPrefix) -> Kun.Identity.Configuration.KunCookieSessionBuilder!
-Kun.Identity.Abstractions.OidcCodeExchange.<Clone>$() -> Kun.Identity.Abstractions.OidcCodeExchange!
-Kun.Identity.Abstractions.OidcCodeExchange.Deconstruct(out string! Code, out string! RedirectUri, out string! CodeVerifier, out string! ExpectedNonce) -> void
-Kun.Identity.Abstractions.OidcCodeExchange.Equals(Kun.Identity.Abstractions.OidcCodeExchange? other) -> bool
-Kun.Identity.Abstractions.OidcConfiguration.<Clone>$() -> Kun.Identity.Abstractions.OidcConfiguration!
-Kun.Identity.Abstractions.OidcConfiguration.Deconstruct(out string! Issuer, out string! AuthorizationEndpoint, out string! TokenEndpoint, out string? UserInfoEndpoint, out string! JwksUri) -> void
-Kun.Identity.Abstractions.OidcConfiguration.Equals(Kun.Identity.Abstractions.OidcConfiguration? other) -> bool
-Kun.Identity.Abstractions.OidcLogoutToken.<Clone>$() -> Kun.Identity.Abstractions.OidcLogoutToken!
-Kun.Identity.Abstractions.OidcLogoutToken.Deconstruct(out string! Issuer, out string? Subject, out string? SessionId, out string! TokenId, out System.DateTimeOffset ExpiresAt) -> void
-Kun.Identity.Abstractions.OidcLogoutToken.Equals(Kun.Identity.Abstractions.OidcLogoutToken? other) -> bool
-Kun.Identity.Abstractions.OidcTokenResponse.<Clone>$() -> Kun.Identity.Abstractions.OidcTokenResponse!
-Kun.Identity.Abstractions.OidcTokenResponse.Deconstruct(out string! AccessToken, out string? IdToken, out string? RefreshToken, out string! TokenType, out int ExpiresIn) -> void
-Kun.Identity.Abstractions.OidcTokenResponse.Equals(Kun.Identity.Abstractions.OidcTokenResponse? other) -> bool
-Kun.Identity.Abstractions.Session.SessionData.<Clone>$() -> Kun.Identity.Abstractions.Session.SessionData!
-Kun.Identity.Abstractions.Session.SessionData.Deconstruct(out string! UserId, out string? TenantId, out string? Email, out string? Name, out System.Collections.Generic.IReadOnlyList<string!>! Roles, out string! AccessToken, out string? RefreshToken, out System.DateTimeOffset ExpiresAt) -> void
-Kun.Identity.Abstractions.Session.SessionData.Equals(Kun.Identity.Abstractions.Session.SessionData? other) -> bool
-override Kun.Identity.Abstractions.OidcCodeExchange.Equals(object? obj) -> bool
-override Kun.Identity.Abstractions.OidcCodeExchange.GetHashCode() -> int
-override Kun.Identity.Abstractions.OidcCodeExchange.ToString() -> string!
-override Kun.Identity.Abstractions.OidcConfiguration.Equals(object? obj) -> bool
-override Kun.Identity.Abstractions.OidcConfiguration.GetHashCode() -> int
-override Kun.Identity.Abstractions.OidcConfiguration.ToString() -> string!
-override Kun.Identity.Abstractions.OidcLogoutToken.Equals(object? obj) -> bool
-override Kun.Identity.Abstractions.OidcLogoutToken.GetHashCode() -> int
-override Kun.Identity.Abstractions.OidcLogoutToken.ToString() -> string!
-override Kun.Identity.Abstractions.OidcTokenResponse.Equals(object? obj) -> bool
-override Kun.Identity.Abstractions.OidcTokenResponse.GetHashCode() -> int
-override Kun.Identity.Abstractions.OidcTokenResponse.ToString() -> string!
-override Kun.Identity.Abstractions.Session.SessionData.Equals(object? obj) -> bool
-override Kun.Identity.Abstractions.Session.SessionData.GetHashCode() -> int
-override Kun.Identity.Abstractions.Session.SessionData.ToString() -> string!
-static Kun.Identity.Abstractions.OidcCodeExchange.operator !=(Kun.Identity.Abstractions.OidcCodeExchange? left, Kun.Identity.Abstractions.OidcCodeExchange? right) -> bool
-static Kun.Identity.Abstractions.OidcCodeExchange.operator ==(Kun.Identity.Abstractions.OidcCodeExchange? left, Kun.Identity.Abstractions.OidcCodeExchange? right) -> bool
-static Kun.Identity.Abstractions.OidcConfiguration.operator !=(Kun.Identity.Abstractions.OidcConfiguration? left, Kun.Identity.Abstractions.OidcConfiguration? right) -> bool
-static Kun.Identity.Abstractions.OidcConfiguration.operator ==(Kun.Identity.Abstractions.OidcConfiguration? left, Kun.Identity.Abstractions.OidcConfiguration? right) -> bool
-static Kun.Identity.Abstractions.OidcLogoutToken.operator !=(Kun.Identity.Abstractions.OidcLogoutToken? left, Kun.Identity.Abstractions.OidcLogoutToken? right) -> bool
-static Kun.Identity.Abstractions.OidcLogoutToken.operator ==(Kun.Identity.Abstractions.OidcLogoutToken? left, Kun.Identity.Abstractions.OidcLogoutToken? right) -> bool
-static Kun.Identity.Abstractions.OidcTokenResponse.operator !=(Kun.Identity.Abstractions.OidcTokenResponse? left, Kun.Identity.Abstractions.OidcTokenResponse? right) -> bool
-static Kun.Identity.Abstractions.OidcTokenResponse.operator ==(Kun.Identity.Abstractions.OidcTokenResponse? left, Kun.Identity.Abstractions.OidcTokenResponse? right) -> bool
-static Kun.Identity.Abstractions.Session.SessionData.operator !=(Kun.Identity.Abstractions.Session.SessionData? left, Kun.Identity.Abstractions.Session.SessionData? right) -> bool
-static Kun.Identity.Abstractions.Session.SessionData.operator ==(Kun.Identity.Abstractions.Session.SessionData? left, Kun.Identity.Abstractions.Session.SessionData? right) -> bool
+Kun.Identity.OidcCodeExchange.<Clone>$() -> Kun.Identity.OidcCodeExchange!
+Kun.Identity.OidcCodeExchange.Deconstruct(out string! Code, out string! RedirectUri, out string! CodeVerifier, out string! ExpectedNonce) -> void
+Kun.Identity.OidcCodeExchange.Equals(Kun.Identity.OidcCodeExchange? other) -> bool
+Kun.Identity.OidcConfiguration.<Clone>$() -> Kun.Identity.OidcConfiguration!
+Kun.Identity.OidcConfiguration.Deconstruct(out string! Issuer, out string! AuthorizationEndpoint, out string! TokenEndpoint, out string? UserInfoEndpoint, out string! JwksUri) -> void
+Kun.Identity.OidcConfiguration.Equals(Kun.Identity.OidcConfiguration? other) -> bool
+Kun.Identity.OidcLogoutToken.<Clone>$() -> Kun.Identity.OidcLogoutToken!
+Kun.Identity.OidcLogoutToken.Deconstruct(out string! Issuer, out string? Subject, out string? SessionId, out string! TokenId, out System.DateTimeOffset ExpiresAt) -> void
+Kun.Identity.OidcLogoutToken.Equals(Kun.Identity.OidcLogoutToken? other) -> bool
+Kun.Identity.OidcTokenResponse.<Clone>$() -> Kun.Identity.OidcTokenResponse!
+Kun.Identity.OidcTokenResponse.Deconstruct(out string! AccessToken, out string? IdToken, out string? RefreshToken, out string! TokenType, out int ExpiresIn) -> void
+Kun.Identity.OidcTokenResponse.Equals(Kun.Identity.OidcTokenResponse? other) -> bool
+Kun.Identity.SessionData.<Clone>$() -> Kun.Identity.SessionData!
+Kun.Identity.SessionData.Deconstruct(out string! UserId, out string? TenantId, out string? Email, out string? Name, out System.Collections.Generic.IReadOnlyList<string!>! Roles, out string! AccessToken, out string? RefreshToken, out System.DateTimeOffset ExpiresAt) -> void
+Kun.Identity.SessionData.Equals(Kun.Identity.SessionData? other) -> bool
+override Kun.Identity.OidcCodeExchange.Equals(object? obj) -> bool
+override Kun.Identity.OidcCodeExchange.GetHashCode() -> int
+override Kun.Identity.OidcCodeExchange.ToString() -> string!
+override Kun.Identity.OidcConfiguration.Equals(object? obj) -> bool
+override Kun.Identity.OidcConfiguration.GetHashCode() -> int
+override Kun.Identity.OidcConfiguration.ToString() -> string!
+override Kun.Identity.OidcLogoutToken.Equals(object? obj) -> bool
+override Kun.Identity.OidcLogoutToken.GetHashCode() -> int
+override Kun.Identity.OidcLogoutToken.ToString() -> string!
+override Kun.Identity.OidcTokenResponse.Equals(object? obj) -> bool
+override Kun.Identity.OidcTokenResponse.GetHashCode() -> int
+override Kun.Identity.OidcTokenResponse.ToString() -> string!
+override Kun.Identity.SessionData.Equals(object? obj) -> bool
+override Kun.Identity.SessionData.GetHashCode() -> int
+override Kun.Identity.SessionData.ToString() -> string!
+static Kun.Identity.OidcCodeExchange.operator !=(Kun.Identity.OidcCodeExchange? left, Kun.Identity.OidcCodeExchange? right) -> bool
+static Kun.Identity.OidcCodeExchange.operator ==(Kun.Identity.OidcCodeExchange? left, Kun.Identity.OidcCodeExchange? right) -> bool
+static Kun.Identity.OidcConfiguration.operator !=(Kun.Identity.OidcConfiguration? left, Kun.Identity.OidcConfiguration? right) -> bool
+static Kun.Identity.OidcConfiguration.operator ==(Kun.Identity.OidcConfiguration? left, Kun.Identity.OidcConfiguration? right) -> bool
+static Kun.Identity.OidcLogoutToken.operator !=(Kun.Identity.OidcLogoutToken? left, Kun.Identity.OidcLogoutToken? right) -> bool
+static Kun.Identity.OidcLogoutToken.operator ==(Kun.Identity.OidcLogoutToken? left, Kun.Identity.OidcLogoutToken? right) -> bool
+static Kun.Identity.OidcTokenResponse.operator !=(Kun.Identity.OidcTokenResponse? left, Kun.Identity.OidcTokenResponse? right) -> bool
+static Kun.Identity.OidcTokenResponse.operator ==(Kun.Identity.OidcTokenResponse? left, Kun.Identity.OidcTokenResponse? right) -> bool
+static Kun.Identity.SessionData.operator !=(Kun.Identity.SessionData? left, Kun.Identity.SessionData? right) -> bool
+static Kun.Identity.SessionData.operator ==(Kun.Identity.SessionData? left, Kun.Identity.SessionData? right) -> bool

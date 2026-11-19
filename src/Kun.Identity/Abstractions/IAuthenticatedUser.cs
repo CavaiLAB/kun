@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Kun.Core.Security;
 
-namespace Kun.Identity.Abstractions;
+namespace Kun.Identity;
 
 /// <summary>
 /// Browser-flow extension of <see cref="ICurrentUser"/>. Adds the

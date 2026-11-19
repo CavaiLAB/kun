@@ -11,7 +11,7 @@ using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Extensions;
-using Kun.Identity.Abstractions;
+using Kun.Identity;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
 using Microsoft.AspNetCore.Builder;

@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Kun.Identity.Abstractions;
 using Kun.Identity.DependencyInjection;
 using Kun.Identity.Implementations;
 using Microsoft.Extensions.DependencyInjection;

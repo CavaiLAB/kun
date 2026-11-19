@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Kun.Core.Security;
-using Kun.Identity.Abstractions;
 using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Http;
 

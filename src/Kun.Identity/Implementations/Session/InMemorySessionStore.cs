@@ -1,5 +1,3 @@
-using Kun.Identity.Abstractions;
-using Kun.Identity.Abstractions.Session;
 
 namespace Kun.Identity.Implementations.Session;
 

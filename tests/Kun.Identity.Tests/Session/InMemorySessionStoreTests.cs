@@ -1,6 +1,5 @@
 using System.Globalization;
 using FluentAssertions;
-using Kun.Identity.Abstractions.Session;
 using Kun.Identity.Implementations.Session;
 using Kun.Identity.Tests.Infrastructure;
 using Xunit;

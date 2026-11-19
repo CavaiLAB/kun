@@ -1,5 +1,5 @@
 #pragma warning disable RS0026 // First argument types differ (string vs typed request); legacy signature is retained.
-namespace Kun.Identity.Abstractions;
+namespace Kun.Identity;
 
 /// <summary>
 /// OpenID Connect client for discovery, PKCE code exchange, token refresh,

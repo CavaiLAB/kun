@@ -1,4 +1,3 @@
-using Kun.Identity.Abstractions;
 using Kun.Identity.Implementations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

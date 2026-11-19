@@ -1,5 +1,3 @@
-using Kun.Identity.Abstractions;
-using Kun.Identity.Abstractions.Session;
 using Microsoft.AspNetCore.Http;
 
 namespace Kun.Identity.AspNetCore;

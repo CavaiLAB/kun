@@ -8,8 +8,6 @@
 
 using System.Security.Claims;
 using System.Security.Cryptography;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Abstractions.Session;
 using Kun.Identity.AspNetCore.Internal;
 using Kun.Identity.Configuration;
 using Microsoft.AspNetCore.Http;

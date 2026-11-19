@@ -1,8 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Abstractions.Session;
 using Kun.Identity.AspNetCore.Internal;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations.Session;

@@ -1,4 +1,4 @@
-namespace Kun.Identity.Abstractions;
+namespace Kun.Identity;
 
 /// <summary>Subset of an OpenID Connect discovery document surfaced by <see cref="IOidcClient.DiscoverAsync"/>.</summary>
 /// <param name="Issuer">Canonical issuer URL as published by the provider.</param>

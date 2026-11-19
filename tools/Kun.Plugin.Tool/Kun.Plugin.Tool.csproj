@@ -7,5 +7,8 @@
     <ProjectReference Include="../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces/Qian.Surfaces.csproj" />
     <InternalsVisibleTo Include="Kun.Plugin.Sdk.Tests" />
+    <!-- 清单工具装载组件程序集盘点类型，组件可能引用 ASP.NET Core 共享框架（如各个 *.AspNetCore 组件），
+         工具的运行时配置要带上它；插件开发包拆包前它随平台契约的依赖传递进来，拆包后在这里明写。 -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>

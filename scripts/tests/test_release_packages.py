@@ -12,6 +12,7 @@ import sys
 import tempfile
 import unittest
 from unittest import mock
+import xml.etree.ElementTree as ET
 import zipfile
 
 
@@ -67,6 +68,53 @@ def full_set(root, packages):
     for p in packages:
         write(root, p.id)
         write(root, p.id, suffix=".snupkg")
+
+
+class ReleaseDocumentsTests(unittest.TestCase):
+    packages = [platform("Kun.Data"), kernel("Kun.Data.Native"), platform("Kun.Registry")]
+
+    def run_command(self, command, version, packages=None):
+        packages = self.packages if packages is None else packages
+        with tempfile.TemporaryDirectory() as directory:
+            package_list = Path(directory) / "release-packages.json"
+            package_list.write_text(json.dumps([release.asdict(p) for p in packages]), encoding="utf-8")
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                status = release.main([command, "--list", str(package_list), "--version", version])
+        return status, out.getvalue(), err.getvalue()
+
+    def test_consumer_mapping_uses_exact_ids_for_each_release_kind(self):
+        for suffix, expected in [("", ["Kun.Data", "Kun.Registry"]), ("-hotfix.1", ["Kun.Data", "Kun.Registry"]),
+                                 ("-beta.1", ["Kun.Data", "Kun.Data.Native", "Kun.Registry"])]:
+            with self.subTest(suffix=suffix):
+                status, content, err = self.run_command("nuget-config", VERSION + suffix)
+                self.assertEqual(0, status, err)
+                config = ET.fromstring(content)
+                mappings = {node.get("key"): [p.get("pattern") for p in node.findall("package")]
+                            for node in config.findall("packageSourceMapping/packageSource")}
+                self.assertEqual({"kun-platform": expected, "nuget.org": ["*"]}, mappings)
+                self.assertEqual("%KUN_PLATFORM_FEED_TOKEN%",
+                                 config.find("packageSourceCredentials/kun-platform/add[@key='ClearTextPassword']").get("value"))
+
+    def test_notes_preserve_unreleased_markdown_and_use_the_same_mapping(self):
+        changelog = "# 历史\n\n## [Unreleased]\n\n### 租户\n\n- 支持 UUID。\n\n## [2026.10.25] - 2026-10-25\n\n- 已发布。\n"
+        notes = release.release_notes(self.packages, VERSION, changelog)
+        self.assertIn("### 租户\n\n- 支持 UUID。", notes)
+        self.assertNotIn("已发布。", notes)
+        self.assertIn("| `Kun.Data.Native` | 内核 | nuget.org |", notes)
+        beta = release.release_notes(self.packages, VERSION + "-beta.1", changelog)
+        self.assertIn("| `Kun.Data.Native` | 内核 | GitHub Packages |", beta)
+        self.assertIn(release.nuget_config(self.packages, VERSION + "-beta.1"), beta)
+
+    def test_missing_or_placeholder_notes_and_invalid_lists_fail_without_emitting_a_document(self):
+        for changelog in ["", "## [Unreleased]\n\n（尚无新变更。）\n\n## [2026.10.25] - 2026-10-25\nolder\n"]:
+            with self.assertRaisesRegex(release.Failure, "Unreleased"):
+                release.release_notes(self.packages, VERSION, changelog)
+        for packages in [[], [platform("Kun.*")], [kernel("Kun.Data"), platform("Kun.Data")]]:
+            status, document, err = self.run_command("nuget-config", VERSION, packages)
+            self.assertNotEqual(0, status)
+            self.assertEqual("", document)
+            self.assertTrue(err)
 
 
 class ListTests(unittest.TestCase):

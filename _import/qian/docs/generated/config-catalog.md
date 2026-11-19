@@ -618,7 +618,7 @@
 
 ## global/events
 
-组件：` qian.events@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.events@1.0.2 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 

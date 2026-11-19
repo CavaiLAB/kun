@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Grpc.Core.Interceptors;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
 using Kun.Grpc;

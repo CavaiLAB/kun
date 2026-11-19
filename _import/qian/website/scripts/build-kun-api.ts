@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WEBSITE_ROOT, yamlString, type GeneratedFile } from './repo.ts';
-import { CACHE_DIR, KUN_OWNER_REPO, kunGithubUrl, kunSource, listKunFiles, type KunCheckout } from './kun.ts';
+import { CACHE_DIR, KUN_OWNER_REPO, kunGithubUrl, kunSource, listKunFiles, readKunFile, type KunCheckout } from './kun.ts';
 import { firstParagraph, plainText, truncate } from './sync-kun-docs.ts';
 
 export const KUN_API_ROUTE = '/sdk/api/kun/';
@@ -18,11 +18,23 @@ const CONVERTER_FILES = ['build-kun-api.ts', 'sync-kun-docs.ts', 'repo.ts', 'kun
   path.join(path.dirname(fileURLToPath(import.meta.url)), f),
 );
 
-/** tag 上 src/<名>/<名>.csproj 的项目：每个都以同名包发布到 nuget.org，也就是 API 参考的范围。 */
-export function kunPackages(files: readonly string[]): string[] {
+/** 项目文件里写的档位（KunTier）；没写的当内核：档位是后来加的，更早的 tag 上 src/ 下的项目都是发到 nuget.org 的包。 */
+export function kunTier(project: string): string {
+  return /<KunTier>\s*([^<\s]+)\s*<\/KunTier>/.exec(project)?.[1]?.toLowerCase() ?? 'kernel';
+}
+
+/**
+ * tag 上 src/<名>/<名>.csproj 里档位是内核、又没有写 IsPackable=false 的项目：每个都以同名包发布到 nuget.org，
+ * 也就是 API 参考的范围。平台档的包只发 GitHub Packages，nuget.org 上没有，不在范围内。read 读 tag 上的文件。
+ */
+export function kunPackages(files: readonly string[], read: (file: string) => string): string[] {
   return files
     .map((f) => /^src\/([^/]+)\/\1\.csproj$/.exec(f)?.[1])
     .filter((name): name is string => name !== undefined)
+    .filter((name) => {
+      const project = read(`src/${name}/${name}.csproj`);
+      return kunTier(project) === 'kernel' && !/<IsPackable>\s*false\s*<\/IsPackable>/i.test(project);
+    })
     .sort();
 }
 
@@ -419,7 +431,7 @@ export function convertDocfx(kun: KunCheckout, output: DocfxOutput, packages: re
         'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；Kun 的文档见 [Kun 框架](/sdk/kun/)。',
       ':::',
       '',
-      `共 ${packages.length} 个包、${namespaces.length} 个命名空间、${typeCount} 个公开类型。包与 kun 仓库 \`src/\` 下的项目一一对应，说明取自包的 nuspec。`,
+      `共 ${packages.length} 个包、${namespaces.length} 个命名空间、${typeCount} 个公开类型。包与 kun 仓库 \`src/\` 下发布到 nuget.org 的项目一一对应，说明取自包的 nuspec。`,
       '',
       '| 包 | 说明 | 命名空间 |',
       '|---|---|---|',
@@ -434,8 +446,8 @@ export function convertDocfx(kun: KunCheckout, output: DocfxOutput, packages: re
 
 /** 生成 sdk/api/kun/ 的文件，结果缓存在 website/.cache/kun-api/<key>.json。 */
 export function buildKunApi(kun: KunCheckout, cacheDir: string = CACHE_DIR): KunApiResult {
-  const packages = kunPackages(listKunFiles(kun));
-  if (packages.length === 0) throw new Error(`kun 仓库 ${kun.tag} 的 src/ 下没有项目`);
+  const packages = kunPackages(listKunFiles(kun), (file) => readKunFile(kun, file));
+  if (packages.length === 0) throw new Error(`kun 仓库 ${kun.tag} 的 src/ 下没有发布到 nuget.org 的项目（内核档、可打包）`);
   const docfx = docfxVersion();
   const key = createHash('sha256')
     .update(JSON.stringify({ version: kun.version, commit: kun.commit, packages, docfx, scripts: CONVERTER_FILES.map((f) => fs.readFileSync(f, 'utf8')) }))

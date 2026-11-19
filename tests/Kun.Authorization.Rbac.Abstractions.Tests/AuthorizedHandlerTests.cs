@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Security;
@@ -37,9 +36,6 @@ internal sealed class InvalidHandler : IRequestHandler<InvalidCommand, int>
 {
     public ValueTask<int> Handle(InvalidCommand request, CancellationToken cancellationToken) => ValueTask.FromResult(0);
 }
-[JsonSerializable(typeof(ProtectedCommand))]
-[JsonSerializable(typeof(int))]
-internal sealed partial class AuthzTestJson : JsonSerializerContext;
 
 public sealed class AuthorizedHandlerTests
 {
@@ -57,10 +53,9 @@ public sealed class AuthorizedHandlerTests
         services.AddSingleton<ITenantContext>(new FixedTenant(tenant));
         services.AddSingleton<IPermissionChecker>(new DenyAll(calls));
         services.AddKunMediator(builder => typeof(AuthorizedHandlerRegistration).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-            .Single(method => method.Name == nameof(AuthorizedHandlerRegistration.AddAuthorizedHandler) && method.GetParameters().Length == 6)
+            .Single(method => method.Name == nameof(AuthorizedHandlerRegistration.AddAuthorizedHandler) && method.GetParameters().Length == 3)
             .MakeGenericMethod(typeof(ProtectedCommand), typeof(int), typeof(Handler))
-            .Invoke(null, [builder, (Func<Kun.Errors.Error, int>)(error => { codes.Add(error.Code.Code); return -1; }),
-                "qian.sample.crm:seed", AuthzTestJson.Default.ProtectedCommand, AuthzTestJson.Default.Int32, true]));
+            .Invoke(null, [builder, (Func<Kun.Errors.Error, int>)(error => { codes.Add(error.Code.Code); return -1; }), true]));
         await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         var sender = provider.GetRequiredService<ISender>();
         var ct = TestContext.Current.CancellationToken;
@@ -99,14 +94,11 @@ public sealed class AuthorizedHandlerTests
     }
 
     [Theory]
-    [InlineData(null, true, false)]
-    [InlineData(false, true, false)]
-    [InlineData(true, true, false)]
-    [InlineData(null, true, true)]
-    [InlineData(false, true, true)]
-    [InlineData(true, true, true)]
-    [InlineData(true, false, false)]
-    public async Task Real_Kun_dispatch_denies_before_handler_and_checks_every_permission(bool? allow, bool authenticated, bool capability)
+    [InlineData(null, true)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    public async Task Real_Kun_dispatch_denies_before_handler_and_checks_every_permission(bool? allow, bool authenticated)
     {
         var calls = new List<string>();
         var services = new ServiceCollection();
@@ -114,18 +106,12 @@ public sealed class AuthorizedHandlerTests
         services.AddSingleton<ICurrentUser>(new User(authenticated));
         services.AddSingleton<ITenantContext>(new Tenant());
         if (allow is not null) services.AddSingleton<IPermissionChecker>(new Checker(allow.Value, calls));
-        services.AddKunMediator(builder =>
-        {
-            if (capability) builder.AddAuthorizedHandler<ProtectedCommand, int, Handler>(_ => -1,
-                "qian.sample.crm:export", AuthzTestJson.Default.ProtectedCommand, AuthzTestJson.Default.Int32);
-            else builder.AddAuthorizedHandler<ProtectedCommand, int, Handler>(_ => -1);
-        });
+        services.AddKunMediator(builder => builder.AddAuthorizedHandler<ProtectedCommand, int, Handler>(_ => -1));
         await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         var result = await provider.GetRequiredService<ISender>().Send(new ProtectedCommand(), TestContext.Current.CancellationToken);
         Assert.Equal(allow == true && authenticated ? 42 : -1, result);
         if (allow == true && authenticated) Assert.Equal([.. ProtectedCommand.RequiredPermissions, "handler"], calls);
         else Assert.DoesNotContain("handler", calls);
-        if (capability) Assert.NotNull(provider.GetRequiredService<ICapabilityRegistry>().Find("qian.sample.crm:export"));
     }
 
     [Fact]

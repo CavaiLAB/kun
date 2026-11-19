@@ -1,9 +1,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization.Metadata;
 using Kun.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kun.Mediator;
 
@@ -16,7 +14,6 @@ public sealed class KunMediatorBuilder
 {
     // (requestType → wrapper factory). The factory closes over the behavior list by reference
     // so behaviors registered after AddRequestHandler but before Build() are still included.
-    private readonly Dictionary<string, CapabilityDescriptor> _capabilities = new(StringComparer.Ordinal);
     private readonly List<(Type RequestType, Func<IServiceProvider, RequestHandlerBase> Factory)> _handlerEntries = [];
 
     // 已登记处理器的请求类型 → 处理器类型；同一请求只能有一个处理器。
@@ -45,7 +42,6 @@ public sealed class KunMediatorBuilder
     {
         ArgumentNullException.ThrowIfNull(services);
         Services = services;
-        services.TryAddSingleton<ICapabilityRegistry>(_ => new CapabilityRegistry(_capabilities.Values));
     }
 
     /// <summary>The service collection that handler and behavior types are registered into.</summary>
@@ -93,18 +89,6 @@ public sealed class KunMediatorBuilder
         ));
 
         return this;
-    }
-
-    /// <summary>注册 handler 的同时登记稳定能力 ID 与源生成请求／响应 Schema。</summary>
-    public KunMediatorBuilder AddRequestHandler<TRequest, TResponse, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
-        string capabilityId, JsonTypeInfo<TRequest> request, JsonTypeInfo<TResponse> response)
-        where TRequest : Kun.Core.Cqrs.IRequest<TResponse>
-        where THandler : class, Kun.Core.Cqrs.IRequestHandler<TRequest, TResponse>
-    {
-        EnsureNoHandler(typeof(TRequest), typeof(THandler));
-        var descriptor = new CapabilityDescriptor(capabilityId, request, response);
-        if (!_capabilities.TryAdd(capabilityId, descriptor)) throw new InvalidOperationException($"能力 ID 重复：{capabilityId}");
-        return AddRequestHandler<TRequest, TResponse, THandler>();
     }
 
     /// <summary>

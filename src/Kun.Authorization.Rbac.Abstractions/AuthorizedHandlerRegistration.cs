@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization.Metadata;
 using Kun.Core.Cqrs;
 using Kun.Errors;
 using Kun.Mediator;
@@ -22,30 +21,16 @@ public static class AuthorizedHandlerRegistration
         return builder.AddRequestHandler<TRequest, TResponse, THandler>();
     }
 
-    /// <summary>同时登记稳定能力 ID 与源生成 Schema，权限行为仍在同一 builder 中逐命令装配。</summary>
-    public static KunMediatorBuilder AddAuthorizedHandler<TRequest, TResponse,
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
-        this KunMediatorBuilder builder, Func<Error, TResponse> denied, string capabilityId,
-        JsonTypeInfo<TRequest> request, JsonTypeInfo<TResponse> response)
-        where TRequest : IRequest<TResponse>, IPermissionProtectedRequest
-        where THandler : class, IRequestHandler<TRequest, TResponse>
-    {
-        Validate<TRequest>(builder, denied);
-        builder.AddRequestHandler<TRequest, TResponse, THandler>(capabilityId, request, response);
-        return builder.AddPermissionBehavior<TRequest, TResponse>(denied);
-    }
-
     // 仅 SDK 使用的受限开户分支：仍是 Kun 的 PermissionBehavior，只经它的扩展点把判定器与当前主体换成开户凭据感知的包装，不复制 RBAC 算法。
     internal static KunMediatorBuilder AddAuthorizedHandler<TRequest, TResponse,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
-        this KunMediatorBuilder builder, Func<Error, TResponse> denied, string capabilityId,
-        JsonTypeInfo<TRequest> request, JsonTypeInfo<TResponse> response, bool tenantInitialization)
+        this KunMediatorBuilder builder, Func<Error, TResponse> denied, bool tenantInitialization)
         where TRequest : IRequest<TResponse>, IPermissionProtectedRequest
         where THandler : class, IRequestHandler<TRequest, TResponse>
     {
+        if (!tenantInitialization) return builder.AddAuthorizedHandler<TRequest, TResponse, THandler>(denied);
         Validate<TRequest>(builder, denied);
-        if (!tenantInitialization) return builder.AddAuthorizedHandler<TRequest, TResponse, THandler>(denied, capabilityId, request, response);
-        builder.AddRequestHandler<TRequest, TResponse, THandler>(capabilityId, request, response);
+        builder.AddRequestHandler<TRequest, TResponse, THandler>();
         return builder.AddPermissionBehavior<TRequest, TResponse>(denied, InitializationPermissionServices.Configure);
     }
 

@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class AuthorizedHandlerTests(unittest.TestCase):
     def test_registration_boundary(self):
-        for name, succeeds in [("Direct", False), ("Capability", False), ("Delegate", False),
+        for name, succeeds in [("Direct", False), ("Delegate", False),
                                ("GenericWrapper", False), ("FakeBridge", False), ("Safe", True),
                                ("Unprotected", True), ("Unrelated", True)]:
             with self.subTest(sample=name):

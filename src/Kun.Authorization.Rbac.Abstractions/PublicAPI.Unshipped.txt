@@ -31,7 +31,6 @@ static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.Denied -> Kun.Er
 static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.PartialSuccess -> Kun.Errors.ErrorCode!
 Kun.Authorization.Rbac.Abstractions.AuthorizedHandlerRegistration
 static Kun.Authorization.Rbac.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Errors.Error!, TResponse>! denied) -> Kun.Mediator.KunMediatorBuilder!
-static Kun.Authorization.Rbac.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Errors.Error!, TResponse>! denied, string! capabilityId, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TRequest>! request, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TResponse>! response) -> Kun.Mediator.KunMediatorBuilder!
 Kun.Authorization.Rbac.Abstractions.PermissionAttribute
 Kun.Authorization.Rbac.Abstractions.PermissionAttribute.Action.get -> string!
 Kun.Authorization.Rbac.Abstractions.PermissionAttribute.PermissionAttribute(string! resource, string! action) -> void

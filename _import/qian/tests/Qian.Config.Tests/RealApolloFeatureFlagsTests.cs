@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Qian.Config.Apollo;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 
 namespace Qian.Config.Tests;
@@ -82,7 +82,7 @@ public sealed class RealApolloFeatureFlagsTests(RealApolloPortalFixture apollo)
         finally { Directory.Delete(directory, true); }
     }
 
-    private sealed class Consumer : IQianPlugin
+    private sealed class Consumer : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [ConfigDefinition.Key];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

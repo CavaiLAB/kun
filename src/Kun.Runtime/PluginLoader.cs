@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 /// <summary>按服务依赖装载插件。代码实例由宿主提供，不加载动态程序集、不读数据库。</summary>
 public sealed partial class PluginLoader : IAsyncDisposable
@@ -371,7 +371,7 @@ public sealed partial class PluginLoader : IAsyncDisposable
     private sealed class Node(PluginDefinition definition)
     {
         internal PluginEntry Entry { get; } = definition.Entry with { Config = definition.Entry.Config.Clone() };
-        internal IQianPlugin Plugin { get; } = definition.Plugin;
+        internal IKunPlugin Plugin { get; } = definition.Plugin;
         internal ServiceKey[] Inject { get; } = definition.Plugin.Inject.ToArray();
         internal ServiceKey[] Provides { get; } = definition.Provides.ToArray();
         internal PluginState State;

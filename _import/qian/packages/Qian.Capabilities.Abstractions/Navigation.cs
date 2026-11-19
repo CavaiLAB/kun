@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Capabilities;
 

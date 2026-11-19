@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Qian.Config;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
@@ -169,7 +169,7 @@ public static class IdentityClientHosting
 /// <see cref="IdentityClientOptions"/> 一致；clientSecret 只接受 platform / dev 的 secretRef，第一次换码时经 Config 的密钥策略解析，
 /// 公开客户端省略它即可不依赖 Config。卸载后浏览器端点返回 404，Cookie 会话不再生效。
 /// </summary>
-public sealed class IdentityClientPlugin : IQianPlugin
+public sealed class IdentityClientPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [];

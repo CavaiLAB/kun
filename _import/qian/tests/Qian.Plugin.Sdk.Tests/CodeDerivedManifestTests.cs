@@ -33,10 +33,10 @@ public sealed partial class CodeDerivedManifestTests
         using System.Threading;
         using System.Threading.Tasks;
         using Qian.Plugin.Sdk;
-        using Qian.Runtime;
+        using Kun.Runtime;
         namespace Fixture;
         [QianPlugin("qian.sdk-manifest")]
-        public sealed class NotesPlugin : IQianPlugin
+        public sealed class NotesPlugin : IKunPlugin
         {
             public static readonly ServiceKey Notes = new("SdkManifestNotes");
             public IReadOnlyList<ServiceKey> Inject => [];
@@ -67,7 +67,7 @@ public sealed partial class CodeDerivedManifestTests
         public sealed partial class NotesJson : JsonSerializerContext;
         """;
     private static readonly MetadataReference[] References = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
-        .Append(typeof(CapabilityAttribute).Assembly.Location).Append(typeof(Qian.Runtime.IQianPlugin).Assembly.Location).Distinct(StringComparer.Ordinal)
+        .Append(typeof(CapabilityAttribute).Assembly.Location).Append(typeof(Kun.Runtime.IKunPlugin).Assembly.Location).Distinct(StringComparer.Ordinal)
         .Select(path => MetadataReference.CreateFromFile(path)).ToArray();
     private static readonly Lazy<ISourceGenerator> JsonGenerator = new(LoadJsonGenerator);
 
@@ -150,13 +150,13 @@ public sealed partial class CodeDerivedManifestTests
     {
         using var work = new WorkDirectory();
         var source = """
-            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Qian.Runtime; using Qian.Plugin.Sdk;
-            [QianPlugin("qian.sdk-manifest")] public sealed class First : IQianPlugin {
+            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Qian.Plugin.Sdk;
+            [QianPlugin("qian.sdk-manifest")] public sealed class First : IKunPlugin {
                 public First() => throw new InvalidOperationException("不得执行组件构造器");
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) { ctx.Provide(new ServiceKey("First"), new object()); return ValueTask.CompletedTask; }
             }
-            [QianPlugin("qian.second")] public sealed class Second : IQianPlugin {
+            [QianPlugin("qian.second")] public sealed class Second : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [new ServiceKey("Input")];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) { ctx.Provide(new ServiceKey("Second"), new object()); return ValueTask.CompletedTask; }
             }
@@ -183,7 +183,7 @@ public sealed partial class CodeDerivedManifestTests
             [QianConfigSchema("{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\",\"minimum\":1}},\"additionalProperties\":false}")]
             """, StringComparison.Ordinal).Replace("/*export*/", "", StringComparison.Ordinal) + """
             public static class Events {
-                [QianEvent(Mode = DispatchMode.Serial)] public static readonly QianEvent<string, object> Saved = QianEvent.Define<string, object>("notes/saved", DispatchMode.Serial);
+                [KunEvent(Mode = DispatchMode.Serial)] public static readonly KunEvent<string, object> Saved = KunEvent.Define<string, object>("notes/saved", DispatchMode.Serial);
             }
             """;
         var assembly = work.Compile("metadata", source); var component = work.Component();

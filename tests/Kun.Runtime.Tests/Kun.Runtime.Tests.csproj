@@ -2,11 +2,11 @@
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Runtime/Qian.Runtime.csproj" />
-    <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
-    <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Runtime/Kun.Runtime.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Profiles/Qian.Profiles.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces/Qian.Surfaces.csproj" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="YamlDotNet" />
   </ItemGroup>
-  <ItemGroup><None Include="../../tck/runtime/*.scenario.yml" Link="tck/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Include="../../_import/qian/tck/runtime/*.scenario.yml" Link="tck/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

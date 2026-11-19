@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Qian.Audit;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;
 using Qian.Tenancy.Signup;
@@ -461,7 +461,7 @@ public sealed partial class TenantSignupTests
         JsonSerializer.SerializeToElement(new { })), new MembershipHiddenPlugin(), []);
 
     // 新开通的租户里看不到身份组件的成员开户端口：开通第 04 步的「租户已开通」通知到达时，对该租户 scope 加 restrict 隐去它；卸下本插件即撤销。
-    private sealed class MembershipHiddenPlugin : IQianPlugin
+    private sealed class MembershipHiddenPlugin : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

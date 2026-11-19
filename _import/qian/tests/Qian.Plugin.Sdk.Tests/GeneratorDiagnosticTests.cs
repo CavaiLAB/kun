@@ -8,7 +8,7 @@ namespace Qian.Plugin.Sdk.Tests;
 public sealed class GeneratorDiagnosticTests
 {
     private static readonly MetadataReference[] References = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
-        .Append(typeof(CapabilityAttribute).Assembly.Location).Append(typeof(Qian.Runtime.IQianPlugin).Assembly.Location).Distinct(StringComparer.Ordinal)
+        .Append(typeof(CapabilityAttribute).Assembly.Location).Append(typeof(Kun.Runtime.IKunPlugin).Assembly.Location).Distinct(StringComparer.Ordinal)
         .Select(path => MetadataReference.CreateFromFile(path)).ToArray();
     private const string Source = """
         using System;
@@ -17,11 +17,11 @@ public sealed class GeneratorDiagnosticTests
         using System.Collections.Generic;
         using System.Text.Json;
         using System.Text.Json.Serialization;
-        using Qian.Runtime;
+        using Kun.Runtime;
         using Qian.Plugin.Sdk;
         namespace Example;
         [QianPlugin("qian.example")]
-        public sealed class Plugin : IQianPlugin
+        public sealed class Plugin : IKunPlugin
         {
             public IReadOnlyList<ServiceKey> Inject => [];
             public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
@@ -91,7 +91,7 @@ public sealed class GeneratorDiagnosticTests
     public void 多组件的能力必须明确归属_不凭类型所在程序集猜测()
     {
         var source = Source + """
-            [QianPlugin("qian.second")] public sealed class Second : IQianPlugin {
+            [QianPlugin("qian.second")] public sealed class Second : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
             }

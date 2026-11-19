@@ -4,7 +4,7 @@ namespace Qian.Plugin.Sdk;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
 public sealed class SharedEventsAttribute(Type declarations, string definitionComponent) : Attribute
 {
-    /// <summary>含公开静态只读 QianEvent 字段的 Definition 类型。</summary>
+    /// <summary>含公开静态只读 KunEvent 字段的 Definition 类型。</summary>
     public Type Declarations { get; } = declarations;
     /// <summary>同程序集内通过 MetadataTypes 唯一拥有此类型的组件 ID。</summary>
     public string DefinitionComponent { get; } = definitionComponent;

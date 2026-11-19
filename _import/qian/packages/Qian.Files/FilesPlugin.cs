@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
 
@@ -20,7 +20,7 @@ namespace Qian.Files;
 /// </summary>
 [QianPlugin("qian.files")]
 [Contributes(typeof(FilesDefinition), nameof(FilesDefinition.BackendsKey), LocalFileBackendFactory.Name, RegistryType = typeof(FileBackendRegistry))]
-public sealed class FilesPlugin : IQianPlugin
+public sealed class FilesPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];

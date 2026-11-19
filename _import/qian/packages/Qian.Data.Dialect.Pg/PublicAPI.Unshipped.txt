@@ -7,5 +7,5 @@ Qian.Data.Dialect.Pg.QianPgDialectExtensions
 static Qian.Data.Dialect.Pg.QianPgDialectExtensions.AddQianPgDialect(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 Qian.Data.Dialect.Pg.PgDialectPlugin
 Qian.Data.Dialect.Pg.PgDialectPlugin.PgDialectPlugin() -> void
-Qian.Data.Dialect.Pg.PgDialectPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Data.Dialect.Pg.PgDialectPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Data.Dialect.Pg.PgDialectPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Data.Dialect.Pg.PgDialectPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask

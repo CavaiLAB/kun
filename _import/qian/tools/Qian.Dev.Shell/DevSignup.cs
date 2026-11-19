@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Qian.Data;
 using Qian.Dev.TenantOps;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 using Qian.Tenancy.Signup;
 
@@ -82,7 +82,7 @@ internal sealed class DevSignup
         endpoints.MapGet(DevSignupOutbox.Route, Outbox.Read);
     }
 
-    private sealed class OutboxPlugin(DevSignupOutbox outbox) : IQianPlugin
+    private sealed class OutboxPlugin(DevSignupOutbox outbox) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

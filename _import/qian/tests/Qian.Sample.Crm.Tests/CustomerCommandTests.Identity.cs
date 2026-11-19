@@ -30,7 +30,7 @@ using OpenIddict.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
 using Qian.Testing.Containers;
@@ -168,7 +168,7 @@ public abstract partial class CustomerCommandTests
         Assert.Equal(code.RuntimeEntry, manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString());
         Assert.Equal(code.Provides, manifest.RootElement.GetProperty("provides").EnumerateArray().Select(item => item.GetString()!));
         await loader.MountAsync([new PluginDefinition(new PluginEntry("identity", "qian.identity.server", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { issuer = parts.Issuer })),
-            (IQianPlugin)Activator.CreateInstance(type)!, code.Provides.Select(name => new ServiceKey(name)).ToArray())], Ct);
+            (IKunPlugin)Activator.CreateInstance(type)!, code.Provides.Select(name => new ServiceKey(name)).ToArray())], Ct);
         Assert.True(loader.GetState("identity", ScopeKey.Global) == PluginState.Ready, loader.GetFailure("identity", ScopeKey.Global)?.ToString());
         foreach (var key in code.Provides) Assert.NotNull(loader.GetContext("identity", ScopeKey.Global).TryInject<object>(new ServiceKey(key)));
         parts.Loader = loader;

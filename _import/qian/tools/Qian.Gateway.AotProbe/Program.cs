@@ -14,7 +14,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Client;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Configuration;
 
@@ -88,5 +88,5 @@ await app.StopAsync();
 Console.WriteLine("完整 Config / Identity / Data / Audit Linux NativeAOT 运行通过。");
 
 string Required(string key) => configuration[key] is { Length: > 0 } value ? value : throw new InvalidOperationException("缺少探针配置：" + key);
-static PluginDefinition Definition(string id, string plugin, IQianPlugin implementation, JsonElement config, params ServiceKey[] provides) =>
+static PluginDefinition Definition(string id, string plugin, IKunPlugin implementation, JsonElement config, params ServiceKey[] provides) =>
     new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, config.Clone()), implementation, provides);

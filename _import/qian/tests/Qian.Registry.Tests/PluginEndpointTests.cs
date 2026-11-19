@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Plugin.Sdk.AspNetCore;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;

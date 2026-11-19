@@ -58,7 +58,7 @@ public static class QianDataExtensions
             throw new QianDataMisconfiguredException("同一上下文不能登记不同的连接引用。");
         if (existing is null) services.AddSingleton(new DataConnectionBinding(typeof(TContext), connectionReference));
         services.TryAddSingleton<IDataService>(sp => new QianDataService(sp.GetRequiredService<IServiceScopeFactory>(),
-            sp.GetServices<DataConnectionBinding>().Select(binding => binding.ContextType).ToHashSet(), Qian.Runtime.ScopeKey.Global));
+            sp.GetServices<DataConnectionBinding>().Select(binding => binding.ContextType).ToHashSet(), Kun.Runtime.ScopeKey.Global));
         services.TryAddSingleton<IDataContextCatalog>(sp => new DataContextCatalog(
             sp.GetServices<DataConnectionBinding>().Select(binding => binding.ContextType).Distinct().ToArray()));
         QianDataMigrator.Register(services);

@@ -78,9 +78,9 @@ static Qian.Gateway.GatewayCluster.operator !=(Qian.Gateway.GatewayCluster? left
 static Qian.Gateway.GatewayCluster.operator ==(Qian.Gateway.GatewayCluster? left, Qian.Gateway.GatewayCluster? right) -> bool
 static Qian.Gateway.GatewayConfiguration.operator !=(Qian.Gateway.GatewayConfiguration? left, Qian.Gateway.GatewayConfiguration? right) -> bool
 static Qian.Gateway.GatewayConfiguration.operator ==(Qian.Gateway.GatewayConfiguration? left, Qian.Gateway.GatewayConfiguration? right) -> bool
-static Qian.Gateway.GatewayDefinition.Gateway(this Qian.Runtime.IPluginContext! context) -> Qian.Gateway.IGatewayService!
+static Qian.Gateway.GatewayDefinition.Gateway(this Kun.Runtime.IPluginContext! context) -> Qian.Gateway.IGatewayService!
 static Qian.Gateway.GatewayRateLimits.operator !=(Qian.Gateway.GatewayRateLimits? left, Qian.Gateway.GatewayRateLimits? right) -> bool
 static Qian.Gateway.GatewayRateLimits.operator ==(Qian.Gateway.GatewayRateLimits? left, Qian.Gateway.GatewayRateLimits? right) -> bool
 static Qian.Gateway.GatewayRoute.operator !=(Qian.Gateway.GatewayRoute? left, Qian.Gateway.GatewayRoute? right) -> bool
 static Qian.Gateway.GatewayRoute.operator ==(Qian.Gateway.GatewayRoute? left, Qian.Gateway.GatewayRoute? right) -> bool
-static readonly Qian.Gateway.GatewayDefinition.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Gateway.GatewayDefinition.Key -> Kun.Runtime.ServiceKey

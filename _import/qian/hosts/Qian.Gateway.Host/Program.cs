@@ -20,7 +20,7 @@ using Qian.Gateway.Host;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Client;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -137,7 +137,7 @@ int RateLimit(string name, int fallback)
 
 string Required(string key) => builder.Configuration[key] is { Length: > 0 } value ? value : throw new InvalidOperationException("缺少网关宿主配置：" + key);
 static string ReadCredential(string path) => GatewayBootstrap.ReadCredential(path);
-static PluginDefinition Definition(string id, string plugin, IQianPlugin implementation, JsonElement config, params ServiceKey[] provides) =>
+static PluginDefinition Definition(string id, string plugin, IKunPlugin implementation, JsonElement config, params ServiceKey[] provides) =>
     new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, config.Clone()), implementation, provides);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]

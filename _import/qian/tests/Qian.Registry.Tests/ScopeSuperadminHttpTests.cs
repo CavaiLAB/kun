@@ -8,7 +8,7 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Registry.Tests;
 

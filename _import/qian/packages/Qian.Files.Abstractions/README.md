@@ -53,7 +53,7 @@
 
 ## 依赖
 
-只依赖 `Qian.Runtime` 与 `Kun.EventBus.Abstractions`。Kun 存储类型不出现在公共 API 上：后端接口用本包自己的 `PresignedTransfer` 等记录，不把 `Kun.Storage` 泄露给业务组件。
+只依赖 `Kun.Runtime` 与 `Kun.EventBus.Abstractions`。Kun 存储类型不出现在公共 API 上：后端接口用本包自己的 `PresignedTransfer` 等记录，不把 `Kun.Storage` 泄露给业务组件。
 
 ## 模型体验
 

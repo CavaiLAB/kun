@@ -18,7 +18,7 @@ using Qian.Audit;
 using Qian.Gateway;
 using Qian.Identity.Abstractions;
 using Qian.Platform.Host;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Tenancy;
 using Qian.Tenancy.Signup;
 using Qian.Testing;
@@ -560,7 +560,7 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
         public ValueTask SendResultAsync(SignupResultMessage message, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
     }
 
-    private sealed class MessengerPlugin(TestOutbox outbox) : IQianPlugin
+    private sealed class MessengerPlugin(TestOutbox outbox) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

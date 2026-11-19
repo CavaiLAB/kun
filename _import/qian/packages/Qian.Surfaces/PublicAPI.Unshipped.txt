@@ -7,24 +7,24 @@ Qian.Surfaces.SurfaceValidator.ValidateComponent(string! directory, Qian.Surface
 Qian.Surfaces.SurfaceValidator.ValidateSchema(string! schema, string! file, System.Text.Json.JsonElement data, string? traceId = null) -> System.Collections.Generic.IReadOnlyList<Qian.Surfaces.Abstractions.SurfaceDiagnostic!>!
 Qian.Surfaces.DeclarativeSurfacePlugin.DeclarativeSurfacePlugin(Qian.Surfaces.Abstractions.SurfaceValidationResult! result) -> void
 Qian.Surfaces.DeclarativeSurfacePlugin
-Qian.Surfaces.DeclarativeSurfacePlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Surfaces.DeclarativeSurfacePlugin.Provides.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Surfaces.DeclarativeSurfacePlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Surfaces.DeclarativeSurfacePlugin.Provides.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 static Qian.Surfaces.ToolContractHash.Compute(System.Text.Json.JsonElement tool) -> string!
-Qian.Surfaces.DeclarativeSurfacePlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Surfaces.DeclarativeSurfacePlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Surfaces.SurfaceValidator.ValidateMarketplace(string! file, string! content, string? traceId = null) -> Qian.Surfaces.Abstractions.MarketplaceValidationResult!
 Qian.Surfaces.ToolContractHasher
 Qian.Surfaces.ToolContractHasher.Compute(System.Text.Json.JsonElement tool) -> string!
 Qian.Surfaces.ToolContractHasher.ToolContractHasher() -> void
 Qian.Surfaces.HotReloadSurfacePlugin
-Qian.Surfaces.HotReloadSurfacePlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Qian.Surfaces.HotReloadSurfacePlugin.HotReloadSurfacePlugin(string! directory, Qian.Surfaces.Abstractions.ISurfaceValidator! validator, Qian.Surfaces.Abstractions.SurfaceValidationOptions! options, Qian.Runtime.IQianPlugin? code = null) -> void
-Qian.Surfaces.HotReloadSurfacePlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Surfaces.HotReloadSurfacePlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Surfaces.HotReloadSurfacePlugin.HotReloadSurfacePlugin(string! directory, Qian.Surfaces.Abstractions.ISurfaceValidator! validator, Qian.Surfaces.Abstractions.SurfaceValidationOptions! options, Kun.Runtime.IKunPlugin? code = null) -> void
+Qian.Surfaces.HotReloadSurfacePlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Surfaces.HotReloadSurfacePlugin.Status.get -> Qian.Surfaces.SurfaceReloadStatus!
-Qian.Surfaces.HotReloadSurfacePlugin.SurfaceProvides.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Surfaces.HotReloadSurfacePlugin.SurfaceProvides.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Surfaces.SurfaceRegistrationSession
 Qian.Surfaces.SurfaceRegistrationSession.Dispose() -> void
 Qian.Surfaces.SurfaceRegistrationSession.Replace(Qian.Surfaces.Abstractions.SurfaceValidationResult! next) -> int
-Qian.Surfaces.SurfaceRegistrationSession.SurfaceRegistrationSession(Qian.Runtime.IPluginContext! context, Qian.Surfaces.Abstractions.SurfaceValidationResult! initial) -> void
+Qian.Surfaces.SurfaceRegistrationSession.SurfaceRegistrationSession(Kun.Runtime.IPluginContext! context, Qian.Surfaces.Abstractions.SurfaceValidationResult! initial) -> void
 Qian.Surfaces.SurfaceReloadStatus
 Qian.Surfaces.SurfaceReloadStatus.<Clone>$() -> Qian.Surfaces.SurfaceReloadStatus!
 Qian.Surfaces.SurfaceReloadStatus.ChangedCodeFiles.get -> System.Collections.Generic.IReadOnlyList<string!>!

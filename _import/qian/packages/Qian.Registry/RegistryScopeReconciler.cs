@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
 using Qian.Capabilities;
 using Qian.Profiles.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Registry;
@@ -357,14 +357,14 @@ internal sealed partial class RegistryScopeReconciler(
         internal List<RegistryScopeDiagnostic> Failures = [];
     }
 
-    private sealed class AdmissionUnavailablePlugin(IQianPlugin inner) : IQianPlugin
+    private sealed class AdmissionUnavailablePlugin(IKunPlugin inner) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) =>
             throw new ErrorException(new Error(PlatformErrors.Unavailable) { Pointer = ErrorPointer.Input("contracts") });
     }
 
-    private sealed class ScopedPlugin(IQianPlugin inner) : IQianPlugin
+    private sealed class ScopedPlugin(IKunPlugin inner) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject { get; } = inner.Inject.Append(RegistryDefinition.Key).Distinct().ToArray();
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => inner.ApplyAsync(ctx, config, ct);

@@ -33,7 +33,7 @@ var result = composer.Load(new ProfileLoadOptions
 
 config 使用组件 `runtime.configSchema` 或 `schemas/config.schema.json` 校验；非空配置不能缺少 Schema。默认值补充发生在整体替换之后，支持对象属性、数组 items、文档内 JSON Pointer 引用及 allOf，不继承旧配置，也不为互斥分支猜默认值。配置 Schema 不联网取引用，文档内引用有深度限制。`x-qian-sensitive` 在对象、数组、组合分支及本地引用中均要求 secretRef，取值必须是布尔值，否则装配失败；不会解析密钥。文件错误不回显字段值。
 
-敏感判定按两种读法取并集。`IQianPlugin<TConfig>` 按 Web 默认反序列化，不区分大小写，所以属性名与模式属性的键都不区分大小写匹配：`Password` 同样受 `password` 的标记约束。验证器与直接读 `JsonElement` 的插件区分大小写，所以 `additionalProperties` 只在按原样没有匹配时适用。模式属性的键按 ECMA-262 可移植子集解释，规则与配置扫描相同，见 [共享内部源文件](../Common/README.md)：超出子集或规模上限的写法让装配失败；键名含各方言判断不同的字符时，值必须是 secretRef。CLI 的同名检查（`profiles.ts`）逐条移植同一规则，键名相等也按 .NET 的 OrdinalIgnoreCase 判断，不用 JS 的大小写转换；共享 TCK 要求两端给出逐字相同的诊断。
+敏感判定按两种读法取并集。`IKunPlugin<TConfig>` 按 Web 默认反序列化，不区分大小写，所以属性名与模式属性的键都不区分大小写匹配：`Password` 同样受 `password` 的标记约束。验证器与直接读 `JsonElement` 的插件区分大小写，所以 `additionalProperties` 只在按原样没有匹配时适用。模式属性的键按 ECMA-262 可移植子集解释，规则与配置扫描相同，见 [共享内部源文件](../Common/README.md)：超出子集或规模上限的写法让装配失败；键名含各方言判断不同的字符时，值必须是 secretRef。CLI 的同名检查（`profiles.ts`）逐条移植同一规则，键名相等也按 .NET 的 OrdinalIgnoreCase 判断，不用 JS 的大小写转换；共享 TCK 要求两端给出逐字相同的诊断。
 
 配置键、属性名与模式属性按序数顺序遍历，敏感检查遇到首个违规即失败：JS 对象把整数形式的键排在前面，按文档顺序时两端报告的首个违规会不同。
 

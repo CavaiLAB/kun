@@ -19,7 +19,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Plugin.Sdk;
 using Qian.Tenancy;
-using Qian.Runtime;
+using Kun.Runtime;
 using StackExchange.Redis;
 
 namespace Qian.Sample.Crm;

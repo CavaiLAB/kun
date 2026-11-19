@@ -16,7 +16,7 @@ using Npgsql;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
 
@@ -71,16 +71,16 @@ public sealed class ProbeHost : IAsyncDisposable
         if (runtime.GetState("probe", ScopeKey.Global) != PluginState.Ready) throw new InvalidOperationException("探针未就绪", runtime.GetFailure("probe", ScopeKey.Global));
         return result;
     }
-    public static PluginDefinition Define(string id, string pluginId, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null)
+    public static PluginDefinition Define(string id, string pluginId, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null)
         => new(new PluginEntry(id, pluginId, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
     public async ValueTask DisposeAsync() { await Runtime.DisposeAsync(); await _host.StopAsync(); _host.Dispose(); }
-    private sealed class ProducerPlugin : IQianPlugin
+    private sealed class ProducerPlugin : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
         { ctx.Provide<IScheduler>(SchedulerDefinition.Key, new PostgresScheduler(ctx, ctx.Services.GetRequiredService<ITenantContext>())); return ValueTask.CompletedTask; }
     }
-    private sealed class DirectoryPlugin(HostConfig config) : IQianPlugin, ITenantDirectory
+    private sealed class DirectoryPlugin(HostConfig config) : IKunPlugin, ITenantDirectory
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) { ctx.Provide<ITenantDirectory>(TenancyDefinition.Key, this); return ValueTask.CompletedTask; }
@@ -108,7 +108,7 @@ public sealed class ProbeHost : IAsyncDisposable
 }
 
 [QianPlugin("qian.scheduler.probe")]
-public sealed class ProbePlugin : IQianPlugin
+public sealed class ProbePlugin : IKunPlugin
 {
     public IReadOnlyList<ServiceKey> Inject => [];
     public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

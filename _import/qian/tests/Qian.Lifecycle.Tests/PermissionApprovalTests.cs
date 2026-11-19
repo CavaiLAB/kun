@@ -9,7 +9,7 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.Containers;
 
@@ -558,7 +558,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         }
     }
 
-    private sealed class BypassPlugin(RecordingBypass bypass) : IQianPlugin
+    private sealed class BypassPlugin(RecordingBypass bypass) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

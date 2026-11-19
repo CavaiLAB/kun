@@ -23,7 +23,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Tenancy;
 using Qian.Testing;
 using Qian.Testing.Containers;
@@ -158,7 +158,7 @@ internal sealed class IdentityServerHost : IAsyncDisposable
     }
 
     // 可控的租户目录与配额：只有测试登记的租户，配额不设上限。
-    private sealed class FakeTenancy : IQianPlugin, ITenantDirectory, ITenantQuota
+    private sealed class FakeTenancy : IKunPlugin, ITenantDirectory, ITenantQuota
     {
         private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, TenantDescriptor> _tenants = new();
         public IReadOnlyList<ServiceKey> Inject => [];

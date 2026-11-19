@@ -189,7 +189,7 @@ class Composition {
       if(Array.isArray(value)&&rule.items!=null)value.forEach((child,index)=>sensitive(child,rule.items,pointer+'/'+index,depth+1));
       for(const key of Object.keys(obj(value)).sort()){
         const child=obj(value)[key];
-        // 键名按两种读法判定，敏感标记取并集：IQianPlugin<TConfig> 按 Web 默认不区分大小写绑定（Password 会绑到 password），
+        // 键名按两种读法判定，敏感标记取并集：IKunPlugin<TConfig> 按 Web 默认不区分大小写绑定（Password 会绑到 password），
         // 验证器与直接读 JsonElement 的插件区分大小写。所以属性名与动态键都按 OrdinalIgnoreCase 匹配，additionalProperties 只在按原样没有匹配时适用。
         // 配置键、属性名与模式都按序数顺序遍历：JS 对象把整数形式的键排在前面，按各自的迭代顺序时两端报告的首个违规会不同。
         const at=pointer+'/'+escape(key),properties=obj(rule.properties),patterns=obj(rule.patternProperties);let exact=false;

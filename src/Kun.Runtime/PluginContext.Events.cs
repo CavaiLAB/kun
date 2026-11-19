@@ -1,13 +1,13 @@
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 internal sealed partial class PluginContext
 {
     private static readonly Action<ILogger, string, Exception?> s_observerFailed = LoggerMessage.Define<string>(
         LogLevel.Error, new EventId(2, "ObserverFailed"), "事件 {EventName} 的观察监听器失败");
 
-    public IDisposable On<TPayload, TResult>(QianEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority = 0)
+    public IDisposable On<TPayload, TResult>(KunEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority = 0)
     {
         ArgumentNullException.ThrowIfNull(evt);
         ArgumentNullException.ThrowIfNull(handler);
@@ -22,7 +22,7 @@ internal sealed partial class PluginContext
         return Listen(evt, evt.Name, evt.Mode, mode, handler, priority);
     }
 
-    public IDisposable On<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority = 0)
+    public IDisposable On<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority = 0)
     {
         ArgumentNullException.ThrowIfNull(evt);
         if (mode is not (DispatchMode.Parallel or DispatchMode.Serial) || handler is not Func<TPayload, ValueTask<TResult>>)
@@ -42,7 +42,7 @@ internal sealed partial class PluginContext
         }
     }
 
-    public async ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct)
+    public async ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(evt);
         if (evt.Mode == DispatchMode.Waterfall)
@@ -71,7 +71,7 @@ internal sealed partial class PluginContext
         return default!;
     }
 
-    public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct)
+    public ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(evt);
         ArgumentNullException.ThrowIfNull(terminal);
@@ -88,7 +88,7 @@ internal sealed partial class PluginContext
         return Next(0);
     }
 
-    public async ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct)
+    public async ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(evt);
         if (evt.Mode is not (DispatchMode.Parallel or DispatchMode.Serial)) throw new ArgumentException("集合结果只用于 parallel / serial。", nameof(evt));

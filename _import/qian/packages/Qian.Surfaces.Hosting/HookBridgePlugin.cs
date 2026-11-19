@@ -1,18 +1,18 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces.Hosting;
 
 /// <summary>将已校验 hook 声明连接到真实事件与 handler，不执行声明中的任意代码。</summary>
-public sealed class HookBridgePlugin : IQianPlugin, ISurfaceRuntimeValidator
+public sealed class HookBridgePlugin : IKunPlugin, ISurfaceRuntimeValidator
 {
-    private readonly IQianPlugin _inner;
+    private readonly IKunPlugin _inner;
     private readonly SurfaceValidationResult _snapshot;
     /// <summary>被包装代码在 Apply 中暴露实际 handler，表面注册由宿主或 HotReloadSurfacePlugin 完成。</summary>
-    public HookBridgePlugin(IQianPlugin inner, SurfaceValidationResult snapshot)
+    public HookBridgePlugin(IKunPlugin inner, SurfaceValidationResult snapshot)
     {
         ArgumentNullException.ThrowIfNull(inner); ArgumentNullException.ThrowIfNull(snapshot);
         if (!snapshot.IsValid) throw Invalid(); _inner = inner; _snapshot = snapshot;
@@ -28,7 +28,7 @@ public sealed class HookBridgePlugin : IQianPlugin, ISurfaceRuntimeValidator
         var name = _snapshot.Component.Id + "/hooks";
         Listen(SurfaceHookEvents.TenantProvisioned, "qian.tenancy"); Listen(SurfaceHookEvents.TenantPurged, "qian.tenancy");
         Listen(SurfaceHookEvents.EntryMounted, "qian.registry"); Listen(SurfaceHookEvents.EntryDisabled, "qian.registry");
-        void Listen(QianEvent<HookNotification, IReadOnlyList<JsonElement>> evt, string owner)
+        void Listen(KunEvent<HookNotification, IReadOnlyList<JsonElement>> evt, string owner)
             => ctx.On(evt, DispatchMode.Serial, (Func<HookNotification, ValueTask<JsonElement>>)(notification => Invoke(ctx, name, evt.Name, owner, notification)));
     }
     /// <inheritdoc />

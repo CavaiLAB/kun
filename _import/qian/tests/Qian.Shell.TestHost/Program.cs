@@ -10,7 +10,7 @@ using Qian.Audit.Native;
 using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Shell.TestHost;
@@ -91,7 +91,7 @@ string Token(string tenantId, string purpose) => tokens.CreateToken(new Security
     Subject = new ClaimsIdentity([new Claim("sub", "shell-acceptance-user"), new Claim("tenant_id", tenantId),
         new Claim("principal_kind", "user"), new Claim("purpose", purpose)])
 });
-static PluginDefinition Define(string id, string plugin, IQianPlugin implementation, object config, params ServiceKey[] provides) =>
+static PluginDefinition Define(string id, string plugin, IKunPlugin implementation, object config, params ServiceKey[] provides) =>
     new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config)), implementation, provides);
 static string FindRepository()
 {

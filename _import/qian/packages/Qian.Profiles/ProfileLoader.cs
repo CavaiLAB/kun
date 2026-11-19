@@ -563,7 +563,7 @@ public sealed class ProfileLoader(ISurfaceReader reader) : IProfileLoader
                 for (var i = 0; i < array.Count; i++) Sensitive(array[i], items, file, pointer + "/" + i, root, depth + 1);
             if (value is JsonObject map) foreach (var item in map.OrderBy(item => item.Key, StringComparer.Ordinal))
             {
-                // 键名按两种读法判定，敏感标记取并集：IQianPlugin<TConfig> 按 Web 默认不区分大小写绑定（Password 会绑到 password），
+                // 键名按两种读法判定，敏感标记取并集：IKunPlugin<TConfig> 按 Web 默认不区分大小写绑定（Password 会绑到 password），
                 // 验证器与直接读 JsonElement 的插件区分大小写。所以属性名与动态键都按不区分大小写匹配，additionalProperties 只在按原样没有匹配时适用。
                 // 配置键、属性名与模式都按序数顺序遍历：JS 对象把整数形式的键排在前面，按文档顺序时两端报告的首个违规会不同。
                 var child = pointer + "/" + Escape(item.Key);

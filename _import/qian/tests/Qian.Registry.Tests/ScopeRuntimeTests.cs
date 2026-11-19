@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Qian.Data;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
@@ -154,7 +154,7 @@ public sealed partial class PatchPersistenceTests
         {
             var identity = entry.Plugin.Split('@', 2);
             var scope = entry.Scope == "global" ? ScopeKey.Global : new ScopeKey(entry.Scope.Split(':', 2)[0], entry.Scope.Split(':', 2)[1]);
-            IQianPlugin plugin; IReadOnlyList<ServiceKey> provides;
+            IKunPlugin plugin; IReadOnlyList<ServiceKey> provides;
             if (entry.Plugin.StartsWith("qian.data@", StringComparison.Ordinal)) { plugin = new DataPlugin(); provides = [DataDefinition.Key]; }
             else if (entry.Plugin.StartsWith("qian.registry@", StringComparison.Ordinal)) { plugin = registry!; provides = [RegistryDefinition.Key]; }
             else

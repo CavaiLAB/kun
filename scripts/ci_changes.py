@@ -83,7 +83,7 @@ AREAS: Dict[str, Area] = {
             q("deploy/images/**", "tools/Qian.Image.SelfCheck*/**", "tools/Qian.Build.Analyzers/**", "scripts/images.py",
               "scripts/prepare_image_tools.py", "scripts/image-tools.lock.json", "tests/gates/test_images.py",
               "profiles/**", "plugins/**", "packages/Qian.Profiles*/**", "packages/Qian.Surfaces*/**",
-              "packages/Qian.Runtime/**", "packages/Common/**", "schemas/**",
+              "packages/Common/**", "schemas/**",
               "contracts/v0/**", "*.props", "*.targets", ".editorconfig", ".github/workflows/images.yml"),
             DOTNET_BASE,
         ),
@@ -154,7 +154,7 @@ AREAS: Dict[str, Area] = {
             q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-tenancy-ui/**", "plugins/qian.shell/**",
               "plugins/qian.tenancy/ui/**", "tests/Qian.Shell.TestHost/**", "tests/Qian.Testing.Containers/**",
               "tests/Shared/NativeAuditDatabase.cs", "packages/Qian.Audit*/**", "packages/Qian.Data.Native*/**",
-              "packages/Qian.Runtime*/**", "Directory.*", "pnpm-lock.yaml", "pnpm-workspace.yaml",
+              "Directory.*", "pnpm-lock.yaml", "pnpm-workspace.yaml",
               "package.json", ".github/workflows/shell-federation.yml"),
             (".github/workflows/qian-shell-federation.yml",),
             DOTNET_BASE, NPMRC,
@@ -163,7 +163,7 @@ AREAS: Dict[str, Area] = {
     "surfaces": Area(
         "声明式表面",
         (
-            q("packages/Qian.Surfaces*/**", "packages/Qian.Runtime/**", "packages/qian-surfaces/**",
+            q("packages/Qian.Surfaces*/**", "packages/qian-surfaces/**",
               "packages/Qian.Profiles*/**", "packages/qian-cli/**", "profiles/**", "plugins/**", "tck/profiles/**",
               "tck/registry-artifacts/**", "tests/Qian.Profiles.Tests/**", "package.json", "schemas/v2/**",
               "tck/surfaces/**", "tck/runtime/**", "tck/marketplaces/**", "contracts/v0/**", "tests/Qian.Surfaces.Tests/**",

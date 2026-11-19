@@ -143,7 +143,7 @@ static Qian.Events.EventOrigin.operator !=(Qian.Events.EventOrigin? left, Qian.E
 static Qian.Events.EventOrigin.operator ==(Qian.Events.EventOrigin? left, Qian.Events.EventOrigin? right) -> bool
 static Qian.Events.EventSubscriptionDescriptor.operator !=(Qian.Events.EventSubscriptionDescriptor? left, Qian.Events.EventSubscriptionDescriptor? right) -> bool
 static Qian.Events.EventSubscriptionDescriptor.operator ==(Qian.Events.EventSubscriptionDescriptor? left, Qian.Events.EventSubscriptionDescriptor? right) -> bool
-static Qian.Events.EventsDefinition.Events(this Qian.Runtime.IPluginContext! context) -> Qian.Events.IEventsService!
+static Qian.Events.EventsDefinition.Events(this Kun.Runtime.IPluginContext! context) -> Qian.Events.IEventsService!
 static Qian.Events.IntegrationEventDescriptor.operator !=(Qian.Events.IntegrationEventDescriptor? left, Qian.Events.IntegrationEventDescriptor? right) -> bool
 static Qian.Events.IntegrationEventDescriptor.operator ==(Qian.Events.IntegrationEventDescriptor? left, Qian.Events.IntegrationEventDescriptor? right) -> bool
 static Qian.Events.IntegrationEventTypes.IsSubject(string? subject) -> bool
@@ -157,7 +157,7 @@ static Qian.Events.QianEventTopology.DeadLetterQueue(string! service, string! su
 static Qian.Events.QianEventTopology.RetryQueue(string! service, string! name, int attempt, System.TimeSpan delay) -> string!
 static Qian.Events.QianEventTopology.RoutingKey(string! type) -> string!
 static Qian.Events.QianEventTopology.SubscriptionQueue(string! service, string! subscription) -> string!
-static readonly Qian.Events.EventsDefinition.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Events.EventsDefinition.Key -> Kun.Runtime.ServiceKey
 static readonly Qian.Events.EventsErrors.ConsumeRejected -> Kun.Errors.ErrorCode!
 static readonly Qian.Events.EventsErrors.Misconfigured -> Kun.Errors.ErrorCode!
 static readonly Qian.Events.EventsErrors.PublishRejected -> Kun.Errors.ErrorCode!

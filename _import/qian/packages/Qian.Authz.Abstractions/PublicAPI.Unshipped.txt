@@ -19,12 +19,12 @@ Qian.Authz.Abstractions.PermissionRisk.Critical = 3 -> Qian.Authz.Abstractions.P
 Qian.Authz.Abstractions.PermissionRisk.High = 2 -> Qian.Authz.Abstractions.PermissionRisk
 Qian.Authz.Abstractions.PermissionRisk.Low = 0 -> Qian.Authz.Abstractions.PermissionRisk
 Qian.Authz.Abstractions.PermissionRisk.Medium = 1 -> Qian.Authz.Abstractions.PermissionRisk
-static Qian.Authz.Abstractions.AuthzDefinition.Authz(this Qian.Runtime.IPluginContext! context) -> Qian.Authz.Abstractions.IAuthzService!
+static Qian.Authz.Abstractions.AuthzDefinition.Authz(this Kun.Runtime.IPluginContext! context) -> Qian.Authz.Abstractions.IAuthzService!
 static Qian.Authz.Abstractions.AuthzErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
 static Qian.Authz.Abstractions.AuthzErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 static Qian.Authz.Abstractions.PermissionCode.Format(string! pluginId, string! resource, string! action) -> string!
 static Qian.Authz.Abstractions.PermissionCode.IsValid(string? value) -> bool
-static readonly Qian.Authz.Abstractions.AuthzDefinition.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Authz.Abstractions.AuthzDefinition.Key -> Kun.Runtime.ServiceKey
 static readonly Qian.Authz.Abstractions.AuthzErrors.CardinalityUserLimit -> Kun.Errors.ErrorCode!
 static readonly Qian.Authz.Abstractions.AuthzErrors.ConstraintMutex -> Kun.Errors.ErrorCode!
 static readonly Qian.Authz.Abstractions.AuthzErrors.Denied -> Kun.Errors.ErrorCode!
@@ -67,8 +67,8 @@ Qian.Authz.Abstractions.ResourceTypeDefinition.ResourceTypeDefinition(string! pl
 Qian.Authz.Abstractions.IResourceTypeRegistry
 Qian.Authz.Abstractions.IResourceTypeRegistry.ListResources(string! pluginId, string! version) -> System.Collections.Generic.IReadOnlyList<Qian.Authz.Abstractions.ResourceTypeDefinition!>!
 Qian.Authz.Abstractions.IResourceTypeRegistry.RegisterResources(string! version, System.Collections.Generic.IReadOnlyList<Qian.Authz.Abstractions.ResourceTypeDefinition!>! resources) -> System.IDisposable!
-static readonly Qian.Authz.Abstractions.AuthzDefinition.PermissionsKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Authz.Abstractions.AuthzDefinition.ResourceTypesKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Authz.Abstractions.AuthzDefinition.PermissionsKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Authz.Abstractions.AuthzDefinition.ResourceTypesKey -> Kun.Runtime.ServiceKey
 Qian.Authz.Abstractions.AuthorizationExplanation
 Qian.Authz.Abstractions.AuthorizationExplanation.AuthorizationExplanation(Kun.Authorization.PermissionDecision! decision, System.Collections.Generic.IReadOnlyList<string!>! matchedRoles, System.Collections.Generic.IReadOnlyList<string!>! matchedGrants, System.Collections.Generic.IReadOnlyList<string!>! missing) -> void
 Qian.Authz.Abstractions.AuthorizationExplanation.Decision.get -> Kun.Authorization.PermissionDecision!
@@ -104,8 +104,8 @@ override Qian.Authz.Abstractions.SuperadminAccess.GetHashCode() -> int
 override Qian.Authz.Abstractions.SuperadminAccess.ToString() -> string!
 static Qian.Authz.Abstractions.SuperadminAccess.operator !=(Qian.Authz.Abstractions.SuperadminAccess? left, Qian.Authz.Abstractions.SuperadminAccess? right) -> bool
 static Qian.Authz.Abstractions.SuperadminAccess.operator ==(Qian.Authz.Abstractions.SuperadminAccess? left, Qian.Authz.Abstractions.SuperadminAccess? right) -> bool
-static readonly Qian.Authz.Abstractions.AuthzDefinition.SuperadminBypassKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Authz.Abstractions.AuthzDefinition.SuperadminCheckKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Authz.Abstractions.AuthzDefinition.SuperadminBypassKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Authz.Abstractions.AuthzDefinition.SuperadminCheckKey -> Kun.Runtime.ServiceKey
 Qian.Authz.Abstractions.EffectiveGrant
 Qian.Authz.Abstractions.EffectiveGrant.<Clone>$() -> Qian.Authz.Abstractions.EffectiveGrant!
 Qian.Authz.Abstractions.EffectiveGrant.Allowed.get -> bool
@@ -127,7 +127,7 @@ static Qian.Authz.Abstractions.EffectiveGrant.operator ==(Qian.Authz.Abstraction
 Qian.Authz.Abstractions.ITenantRoleGrant
 Qian.Authz.Abstractions.ITenantRoleGrant.AssignAsync(string! roleCode, string! subjectType, string! subjectId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 Qian.Authz.Abstractions.TenantRoleGrant
-static readonly Qian.Authz.Abstractions.TenantRoleGrant.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Authz.Abstractions.TenantRoleGrant.Key -> Kun.Runtime.ServiceKey
 Qian.Authz.Abstractions.DataScopeContracts
 Qian.Authz.Abstractions.DataScopePlan
 Qian.Authz.Abstractions.DataScopePlan.<Clone>$() -> Qian.Authz.Abstractions.DataScopePlan!
@@ -273,12 +273,12 @@ Qian.Authz.Abstractions.RoleBinding
 Qian.Authz.Abstractions.RoleBinding.<Clone>$() -> Qian.Authz.Abstractions.RoleBinding!
 Qian.Authz.Abstractions.RoleBinding.Actor.get -> string!
 Qian.Authz.Abstractions.RoleBinding.Actor.init -> void
-Qian.Authz.Abstractions.RoleBinding.Deconstruct(out string! RoleCode, out string! SubjectType, out string! SubjectId, out string! Actor, out Qian.Runtime.ScopeKey? Scope, out System.DateTimeOffset? ValidFrom, out System.DateTimeOffset? ValidTo) -> void
+Qian.Authz.Abstractions.RoleBinding.Deconstruct(out string! RoleCode, out string! SubjectType, out string! SubjectId, out string! Actor, out Kun.Runtime.ScopeKey? Scope, out System.DateTimeOffset? ValidFrom, out System.DateTimeOffset? ValidTo) -> void
 Qian.Authz.Abstractions.RoleBinding.Equals(Qian.Authz.Abstractions.RoleBinding? other) -> bool
-Qian.Authz.Abstractions.RoleBinding.RoleBinding(string! RoleCode, string! SubjectType, string! SubjectId, string! Actor, Qian.Runtime.ScopeKey? Scope = null, System.DateTimeOffset? ValidFrom = null, System.DateTimeOffset? ValidTo = null) -> void
+Qian.Authz.Abstractions.RoleBinding.RoleBinding(string! RoleCode, string! SubjectType, string! SubjectId, string! Actor, Kun.Runtime.ScopeKey? Scope = null, System.DateTimeOffset? ValidFrom = null, System.DateTimeOffset? ValidTo = null) -> void
 Qian.Authz.Abstractions.RoleBinding.RoleCode.get -> string!
 Qian.Authz.Abstractions.RoleBinding.RoleCode.init -> void
-Qian.Authz.Abstractions.RoleBinding.Scope.get -> Qian.Runtime.ScopeKey?
+Qian.Authz.Abstractions.RoleBinding.Scope.get -> Kun.Runtime.ScopeKey?
 Qian.Authz.Abstractions.RoleBinding.Scope.init -> void
 Qian.Authz.Abstractions.RoleBinding.SubjectId.get -> string!
 Qian.Authz.Abstractions.RoleBinding.SubjectId.init -> void
@@ -315,7 +315,7 @@ override Qian.Authz.Abstractions.RoleBinding.ToString() -> string!
 override sealed Qian.Authz.Abstractions.AuthzGrantChangedEvent.Equals(Qian.Authz.Abstractions.AuthzIntegrationEvent? other) -> bool
 override sealed Qian.Authz.Abstractions.AuthzIntegrationEvent.ToString() -> string!
 override sealed Qian.Authz.Abstractions.AuthzRoleChangedEvent.Equals(Qian.Authz.Abstractions.AuthzIntegrationEvent? other) -> bool
-static Qian.Authz.Abstractions.AuthzEnforcement.Enforcement(this Qian.Runtime.IPluginContext! context) -> Qian.Authz.Abstractions.IAuthzEnforcement!
+static Qian.Authz.Abstractions.AuthzEnforcement.Enforcement(this Kun.Runtime.IPluginContext! context) -> Qian.Authz.Abstractions.IAuthzEnforcement!
 static Qian.Authz.Abstractions.AuthzEventIds.All.get -> System.Collections.Generic.IReadOnlyList<string!>!
 static Qian.Authz.Abstractions.AuthzEventRegistration.RegisterAuthzEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
 static Qian.Authz.Abstractions.AuthzGrantChangedEvent.operator !=(Qian.Authz.Abstractions.AuthzGrantChangedEvent? left, Qian.Authz.Abstractions.AuthzGrantChangedEvent? right) -> bool
@@ -330,11 +330,11 @@ static Qian.Authz.Abstractions.EnforcementSubject.operator !=(Qian.Authz.Abstrac
 static Qian.Authz.Abstractions.EnforcementSubject.operator ==(Qian.Authz.Abstractions.EnforcementSubject? left, Qian.Authz.Abstractions.EnforcementSubject? right) -> bool
 static Qian.Authz.Abstractions.RoleBinding.operator !=(Qian.Authz.Abstractions.RoleBinding? left, Qian.Authz.Abstractions.RoleBinding? right) -> bool
 static Qian.Authz.Abstractions.RoleBinding.operator ==(Qian.Authz.Abstractions.RoleBinding? left, Qian.Authz.Abstractions.RoleBinding? right) -> bool
-static readonly Qian.Authz.Abstractions.AuthzEnforcement.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Authz.Abstractions.AuthzEnforcement.Key -> Kun.Runtime.ServiceKey
 static readonly Qian.Authz.Abstractions.AuthzErrors.LastAdministratorLockout -> Kun.Errors.ErrorCode!
 static readonly Qian.Authz.Abstractions.AuthzErrors.ScopeMismatch -> Kun.Errors.ErrorCode!
-static readonly Qian.Authz.Abstractions.AuthzRuntimeEvents.Checking -> Qian.Runtime.QianEvent<Qian.Authz.Abstractions.EnforcementRequest!, Qian.Authz.Abstractions.AuthorizationExplanation!>!
-static readonly Qian.Authz.Abstractions.AuthzRuntimeEvents.Decided -> Qian.Runtime.QianEvent<Qian.Authz.Abstractions.AuthorizationDecision!, object?>!
+static readonly Qian.Authz.Abstractions.AuthzRuntimeEvents.Checking -> Kun.Runtime.KunEvent<Qian.Authz.Abstractions.EnforcementRequest!, Qian.Authz.Abstractions.AuthorizationExplanation!>!
+static readonly Qian.Authz.Abstractions.AuthzRuntimeEvents.Decided -> Kun.Runtime.KunEvent<Qian.Authz.Abstractions.AuthorizationDecision!, object?>!
 virtual Qian.Authz.Abstractions.AuthzIntegrationEvent.EqualityContract.get -> System.Type!
 virtual Qian.Authz.Abstractions.AuthzIntegrationEvent.Equals(Qian.Authz.Abstractions.AuthzIntegrationEvent? other) -> bool
 virtual Qian.Authz.Abstractions.AuthzIntegrationEvent.PrintMembers(System.Text.StringBuilder! builder) -> bool

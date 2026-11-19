@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Audit.Tests;
@@ -156,9 +156,9 @@ public sealed partial class AuditStoreTests
     }
     private static AuditRecord PlatformRecord() => new(Guid.CreateVersion7(), null, "service", "platform-audit-test", null,
         "platform.operation", "1.0.0", new string('1', 64), "api", null, "success", new string('2', 32), DateTimeOffset.UtcNow, CanonicalizerTests.Json("{}"));
-    private static PluginDefinition Define(string id, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
+    private static PluginDefinition Define(string id, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
         new PluginEntry(id, "qian." + id, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
-    private sealed class AuditConsumer : IQianPlugin
+    private sealed class AuditConsumer : IKunPlugin
     {
         public IPluginContext? Context { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [AuditDefinition.Key];

@@ -1,4 +1,4 @@
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Config;
 
@@ -20,9 +20,9 @@ public static class ConfigEvents
 public static class ConfigRuntimeEvents
 {
     /// <summary>强类型配置重载被校验拒绝、已保留上一份有效值；由挂载中的配置组件发出，监听器异常被隔离。</summary>
-    [QianEvent(Mode = DispatchMode.Emit)]
-    public static readonly QianEvent<ConfigReloadFailed, object?> ReloadFailed =
-        QianEvent.Define<ConfigReloadFailed, object?>("config/reload-failed", DispatchMode.Emit);
+    [KunEvent(Mode = DispatchMode.Emit)]
+    public static readonly KunEvent<ConfigReloadFailed, object?> ReloadFailed =
+        KunEvent.Define<ConfigReloadFailed, object?>("config/reload-failed", DispatchMode.Emit);
 }
 
 /// <summary>

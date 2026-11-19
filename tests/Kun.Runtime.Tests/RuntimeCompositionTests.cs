@@ -4,7 +4,7 @@ using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Surfaces;
 
-namespace Qian.Runtime.Tests;
+namespace Kun.Runtime.Tests;
 
 public sealed class RuntimeCompositionTests
 {
@@ -66,7 +66,7 @@ public sealed class RuntimeCompositionTests
         }
     }
 
-    private sealed class FixtureProvider(ResolvedProfileEntry entry, List<string> applied) : IQianPlugin
+    private sealed class FixtureProvider(ResolvedProfileEntry entry, List<string> applied) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => entry.Inject.Select(k => new ServiceKey(k)).ToArray();
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

@@ -12,4 +12,4 @@ override Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.GetHashCode() -> int
 override Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.ToString() -> string!
 static Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.operator !=(Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? left, Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? right) -> bool
 static Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.operator ==(Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? left, Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? right) -> bool
-static Qian.Lifecycle.AspNetCore.LifecycleEndpoints.MapQianLifecycle(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Qian.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Qian.Lifecycle.AspNetCore.LifecycleEndpoints.MapQianLifecycle(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!

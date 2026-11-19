@@ -21,7 +21,7 @@ updated: 2026-11-19
 
 ```text
 qian  前端层   React 组件库与外壳（@cavailab/qian-*）
-Qian  平台层   Qian.Runtime + 平台插件 + profile + qian CLI + 目录市场
+Qian  平台层   Kun.Runtime + 平台插件 + profile + qian CLI + 目录市场
 Kun   框架层   .NET 10 微服务框架（Kun.*），Qian 的底座
 ```
 
@@ -30,7 +30,7 @@ Kun   框架层   .NET 10 微服务框架（Kun.*），Qian 的底座
 | 名字 | 层 | 是什么 | 仓库 | 版本 · 许可 | 文档在哪 |
 |---|---|---|---|---|---|
 | Kun | 框架层（底座） | .NET 10 云原生微服务框架，32 个 `Kun.*` 模块：Mediator、Outbox、Saga、多租户与 RLS、网关与 S2S、存储、缓存、可观测 | [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun)（仓库根） | CalVer · MIT · 正式包（含同日修复版 `-hotfix.N`）在 nuget.org | [Kun 框架](/sdk/kun/)小节（按锁定版本镜像）与 [Kun API 参考](/sdk/api/kun/) |
-| Qian | 平台层 | 基于 Kun 的多租户 PaaS：`Qian.Runtime` + 平台插件 + profile + `qian` CLI + 目录市场 | [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun/tree/main/_import/qian) 的 `_import/qian/`（本仓库） | SemVer 锁步 · Apache-2.0 | 本站全部七个部分；设计文档在[设计与路线](/design/) |
+| Qian | 平台层 | 基于 Kun 的多租户 PaaS：`Kun.Runtime` + 平台插件 + profile + `qian` CLI + 目录市场 | [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun/tree/main/_import/qian) 的 `_import/qian/`（本仓库） | SemVer 锁步 · Apache-2.0 | 本站全部七个部分；设计文档在[设计与路线](/design/) |
 | qian | 前端层 | React 组件库与外壳，`@cavailab/qian-*` | `CavaiLAB/qian`（本仓库装 GitHub Packages 上的已发布包） | SemVer · MIT | [组件目录](/components/yue/)（活演示 + props 表）与[前端 SDK](/sdk/frontend/) |
 | `qian-plugins` | 市场 | 官方目录市场 `.qian/marketplace.json` | `qian-plugins`（S1 私有，待建） | — | [市场与 ISV](/marketplace/) |
 

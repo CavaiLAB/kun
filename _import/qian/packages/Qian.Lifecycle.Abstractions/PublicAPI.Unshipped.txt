@@ -67,19 +67,19 @@ Qian.Lifecycle.IPluginLifecycleController
 Qian.Lifecycle.IPluginLifecycleController.ActivateAsync(string! pluginId, int revision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PluginRevisionView!>
 Qian.Lifecycle.IPluginLifecycleController.DeprecateAsync(string! pluginId, int revision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PluginRevisionView!>
 Qian.Lifecycle.IPluginLifecycleController.EntitleAsync(string! tenantId, string! pluginId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.TenantPluginInstallView!>
-Qian.Lifecycle.IPluginLifecycleController.GetDiagnosticsAsync(Qian.Runtime.ScopeKey scope, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Qian.Lifecycle.LifecycleDiagnosticView!>!>
+Qian.Lifecycle.IPluginLifecycleController.GetDiagnosticsAsync(Kun.Runtime.ScopeKey scope, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Qian.Lifecycle.LifecycleDiagnosticView!>!>
 Qian.Lifecycle.IPluginLifecycleController.GetInstallAsync(string! tenantId, string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.TenantPluginInstallView?>
 Qian.Lifecycle.IPluginLifecycleController.GetRevisionsAsync(string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Qian.Lifecycle.PluginRevisionView!>!>
 Qian.Lifecycle.IPluginLifecycleController.GetRunsAsync(string! tenantId, string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Qian.Lifecycle.LifecycleRunView!>!>
 Qian.Lifecycle.IPluginLifecycleController.InstallAsync(Qian.Lifecycle.PluginArtifact! artifact, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PluginRevisionView!>
-Qian.Lifecycle.IPluginLifecycleController.MountAsync(Qian.Runtime.ScopeKey scope, System.Text.Json.JsonElement entry, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>
+Qian.Lifecycle.IPluginLifecycleController.MountAsync(Kun.Runtime.ScopeKey scope, System.Text.Json.JsonElement entry, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>
 Qian.Lifecycle.IPluginLifecycleController.ProvisionAsync(string! tenantId, string! pluginId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.TenantPluginInstallView!>
 Qian.Lifecycle.IPluginLifecycleController.PurgeAsync(string! tenantId, string! pluginId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.TenantPluginInstallView!>
 Qian.Lifecycle.IPluginLifecycleController.RefreshDeploymentAsync(string! pluginId, int revision, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PluginRevisionView!>
 Qian.Lifecycle.IPluginLifecycleController.RetireAsync(string! pluginId, int revision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PluginRevisionView!>
 Qian.Lifecycle.IPluginLifecycleController.RollbackAsync(string! pluginId, int toRevision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.PluginRevisionView!>
 Qian.Lifecycle.IPluginLifecycleController.UninstallAsync(string! tenantId, string! pluginId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.TenantPluginInstallView!>
-Qian.Lifecycle.IPluginLifecycleController.UnmountAsync(Qian.Runtime.ScopeKey scope, string! entryId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>
+Qian.Lifecycle.IPluginLifecycleController.UnmountAsync(Kun.Runtime.ScopeKey scope, string! entryId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>
 Qian.Lifecycle.IPluginLifecycleController.UpgradeAsync(string! tenantId, string! pluginId, string! fromVersion, string! toVersion, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.TenantPluginInstallView!>
 Qian.Lifecycle.IPluginLifecycleHooks
 Qian.Lifecycle.IPluginLifecycleHooks.InvokeAsync(Qian.Lifecycle.LifecycleHookContext! context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement?>
@@ -104,7 +104,7 @@ Qian.Lifecycle.LifecycleDiagnosticView.Scope.init -> void
 Qian.Lifecycle.LifecycleErrors
 Qian.Lifecycle.LifecycleEvents
 Qian.Lifecycle.LifecycleHookContext
-Qian.Lifecycle.LifecycleHookContext.Context.get -> Qian.Runtime.IPluginContext!
+Qian.Lifecycle.LifecycleHookContext.Context.get -> Kun.Runtime.IPluginContext!
 Qian.Lifecycle.LifecycleHookContext.Context.init -> void
 Qian.Lifecycle.LifecycleHookContext.FromVersion.get -> string?
 Qian.Lifecycle.LifecycleHookContext.FromVersion.init -> void
@@ -307,7 +307,7 @@ static Qian.Lifecycle.DeploymentHealth.operator !=(Qian.Lifecycle.DeploymentHeal
 static Qian.Lifecycle.DeploymentHealth.operator ==(Qian.Lifecycle.DeploymentHealth? left, Qian.Lifecycle.DeploymentHealth? right) -> bool
 static Qian.Lifecycle.DeploymentRequest.operator !=(Qian.Lifecycle.DeploymentRequest? left, Qian.Lifecycle.DeploymentRequest? right) -> bool
 static Qian.Lifecycle.DeploymentRequest.operator ==(Qian.Lifecycle.DeploymentRequest? left, Qian.Lifecycle.DeploymentRequest? right) -> bool
-static Qian.Lifecycle.LifecycleDefinition.Lifecycle(this Qian.Runtime.IPluginContext! context) -> Qian.Lifecycle.IPluginLifecycleController!
+static Qian.Lifecycle.LifecycleDefinition.Lifecycle(this Kun.Runtime.IPluginContext! context) -> Qian.Lifecycle.IPluginLifecycleController!
 static Qian.Lifecycle.LifecycleDiagnosticView.operator !=(Qian.Lifecycle.LifecycleDiagnosticView? left, Qian.Lifecycle.LifecycleDiagnosticView? right) -> bool
 static Qian.Lifecycle.LifecycleDiagnosticView.operator ==(Qian.Lifecycle.LifecycleDiagnosticView? left, Qian.Lifecycle.LifecycleDiagnosticView? right) -> bool
 static Qian.Lifecycle.LifecycleErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
@@ -324,7 +324,7 @@ static Qian.Lifecycle.PluginRevisionView.operator !=(Qian.Lifecycle.PluginRevisi
 static Qian.Lifecycle.PluginRevisionView.operator ==(Qian.Lifecycle.PluginRevisionView? left, Qian.Lifecycle.PluginRevisionView? right) -> bool
 static Qian.Lifecycle.TenantPluginInstallView.operator !=(Qian.Lifecycle.TenantPluginInstallView? left, Qian.Lifecycle.TenantPluginInstallView? right) -> bool
 static Qian.Lifecycle.TenantPluginInstallView.operator ==(Qian.Lifecycle.TenantPluginInstallView? left, Qian.Lifecycle.TenantPluginInstallView? right) -> bool
-static readonly Qian.Lifecycle.LifecycleDefinition.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Lifecycle.LifecycleDefinition.Key -> Kun.Runtime.ServiceKey
 static readonly Qian.Lifecycle.LifecycleErrors.ArtifactUnsigned -> Kun.Errors.ErrorCode!
 static readonly Qian.Lifecycle.LifecycleErrors.DeploymentUnavailable -> Kun.Errors.ErrorCode!
 static readonly Qian.Lifecycle.LifecycleErrors.HookFailed -> Kun.Errors.ErrorCode!
@@ -414,5 +414,5 @@ static Qian.Lifecycle.SecretGrant.operator ==(Qian.Lifecycle.SecretGrant? left, 
 static Qian.Lifecycle.UiGrants.operator !=(Qian.Lifecycle.UiGrants? left, Qian.Lifecycle.UiGrants? right) -> bool
 static Qian.Lifecycle.UiGrants.operator ==(Qian.Lifecycle.UiGrants? left, Qian.Lifecycle.UiGrants? right) -> bool
 static readonly Qian.Lifecycle.LifecycleErrors.PermissionsUnapproved -> Kun.Errors.ErrorCode!
-Qian.Lifecycle.IPluginLifecycleController.MountAtRevisionAsync(Qian.Runtime.ScopeKey scope, System.Text.Json.JsonElement entry, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>
-Qian.Lifecycle.IPluginLifecycleController.UnmountAtRevisionAsync(Qian.Runtime.ScopeKey scope, string! entryId, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>
+Qian.Lifecycle.IPluginLifecycleController.MountAtRevisionAsync(Kun.Runtime.ScopeKey scope, System.Text.Json.JsonElement entry, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>
+Qian.Lifecycle.IPluginLifecycleController.UnmountAtRevisionAsync(Kun.Runtime.ScopeKey scope, string! entryId, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Qian.Lifecycle.MountResult!>

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Runtime.Tests;
+namespace Kun.Runtime.Tests;
 
 public sealed class ScopeTests
 {
@@ -69,7 +69,7 @@ public sealed class ScopeTests
     {
         using var host = new ServiceCollection().BuildServiceProvider();
         await using var loader = new PluginLoader(host);
-        var evt = QianEvent.Define<string, IReadOnlyList<string>>("tools/run", DispatchMode.Serial);
+        var evt = KunEvent.Define<string, IReadOnlyList<string>>("tools/run", DispatchMode.Serial);
         await loader.MountAsync([
             LifecycleTests.Define("allowed", ctx => ctx.On(evt, evt.Mode, (Func<string, ValueTask<string>>)(_ => ValueTask.FromResult("allowed")))),
             LifecycleTests.Define("hidden", ctx => ctx.On(evt, evt.Mode, (Func<string, ValueTask<string>>)(_ => throw new InvalidOperationException("不可执行")))),
@@ -84,7 +84,7 @@ public sealed class ScopeTests
     {
         using var host = new ServiceCollection().BuildServiceProvider();
         await using var loader = new PluginLoader(host);
-        var evt = QianEvent.Define<string, IReadOnlyList<string>>("same", DispatchMode.Serial);
+        var evt = KunEvent.Define<string, IReadOnlyList<string>>("same", DispatchMode.Serial);
         await loader.MountAsync([
             LifecycleTests.Define("same", ctx => ctx.On(evt, evt.Mode, (Func<string, ValueTask<string>>)(_ => ValueTask.FromResult("global")))),
             LifecycleTests.Define("same", ctx => ctx.On(evt, evt.Mode, (Func<string, ValueTask<string>>)(_ => ValueTask.FromResult("local"))), scope: s_tenant)], TestContext.Current.CancellationToken);

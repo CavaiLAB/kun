@@ -1,6 +1,6 @@
 # Qian.Config.Abstractions
 
-Config seam 的 Definition，只包含服务键、只读端口和统一错误词汇，直接依赖 Qian.Runtime 与标准配置抽象。真实配置源和适配器位于 Qian.Config.Apollo，组件库不依赖 Registry、Lifecycle 或 Capabilities。
+Config seam 的 Definition，只包含服务键、只读端口和统一错误词汇，直接依赖 Kun.Runtime 与标准配置抽象。真实配置源和适配器位于 Qian.Config.Apollo，组件库不依赖 Registry、Lifecycle 或 Capabilities。
 
 ConfigDefinition.Key 对应 Config，ctx.Config() 按当前 scope 解析 IConfigService。GetValue / GetRequiredValue 读取层次键，ReadSection 返回只读快照，GetReloadToken 提供变更通知；监听句柄由消费者交给 ctx.Effect。缺失必需值使用 CONFIG_REQUIRED_MISSING，引导项不合法使用 CONFIG_BOOTSTRAP_INVALID，均走 ErrorDetail。
 

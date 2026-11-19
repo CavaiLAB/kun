@@ -39,8 +39,8 @@ public sealed class CapabilityGenerator : IIncrementalGenerator
             if (owner is null || !owners.TryGetValue(owner, out var matches) || matches.Length != 1)
             { Report(output, capability, "能力须唯一归属本程序集的 QianPlugin；多组件程序集必须声明 ComponentId。"); continue; }
             var plugin = matches[0];
-            if (!Matches(owner, @"^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$") || owner.Length > 128 || plugin.IsAbstract || plugin.IsGenericType || plugin.ContainingType is not null || !plugin.AllInterfaces.Any(i => i.ToDisplayString() == "Qian.Runtime.IQianPlugin"))
-            { Report(output, capability, "QianPlugin 必须具有合法组件 ID，并实现 IQianPlugin。"); continue; }
+            if (!Matches(owner, @"^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$") || owner.Length > 128 || plugin.IsAbstract || plugin.IsGenericType || plugin.ContainingType is not null || !plugin.AllInterfaces.Any(i => i.ToDisplayString() == "Kun.Runtime.IKunPlugin"))
+            { Report(output, capability, "QianPlugin 必须具有合法组件 ID，并实现 IKunPlugin。"); continue; }
             resolved.Add((capability, owner));
         }
         foreach (var group in resolved.GroupBy(item => item.Component + "/" + Attribute(item.Type, "CapabilityAttribute").ConstructorArguments[0].Value, StringComparer.Ordinal))

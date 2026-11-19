@@ -6,7 +6,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Authz;
 

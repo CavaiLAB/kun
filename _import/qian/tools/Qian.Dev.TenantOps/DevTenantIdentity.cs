@@ -11,7 +11,7 @@ using OpenIddict.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 

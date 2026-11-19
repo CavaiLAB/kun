@@ -9,7 +9,7 @@ using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Authz.Tests;
@@ -131,7 +131,7 @@ public sealed partial class SuperadminBypassTests
     }
 
     // 身份组件的替身：只提供账号端口的递增，按 (租户, Person) 计修订；可预置不存在的成员（NOT_FOUND）、前几次瞬时故障或持续故障。
-    private sealed class IdentityDouble : IQianPlugin
+    private sealed class IdentityDouble : IKunPlugin
     {
         private readonly ConcurrentDictionary<(string?, Guid), long> _revisions = new();
         private Kun.Core.MultiTenancy.ITenantContext? _tenant;

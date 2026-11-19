@@ -9,9 +9,9 @@
     <KunRole>contract</KunRole>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Core/Kun.Core.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
+    <ProjectReference Include="../Kun.Core/Kun.Core.csproj" />
+    <ProjectReference Include="../Kun.Mediator/Kun.Mediator.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <ProjectReference Include="../../../../src/Kun.Errors/Kun.Errors.csproj" />
+    <ProjectReference Include="../Kun.Errors/Kun.Errors.csproj" />
   </ItemGroup>
 </Project>

@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Sample.Crm.Tests;
 

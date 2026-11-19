@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Qian.Audit;
 using Qian.Data;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Lifecycle;

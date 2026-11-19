@@ -65,7 +65,7 @@ public sealed class PermissionContractTests
         // Kun.EventBus.Abstractions 只为 authz.grant.changed.v1 / authz.role.changed.v1 的集成事件记录与登记入口（S1-AZ-004），仍是 Definition 允许的 Kun 抽象。
         Assert.Empty(project.Descendants("PackageReference"));
         var repository = Path.GetFullPath(Path.Combine(Root, "..", ".."));
-        Assert.Equal(["_import/qian/packages/Qian.Runtime/Qian.Runtime.csproj", "src/Kun.Authorization/Kun.Authorization.csproj", "src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj"],
+        Assert.Equal(["src/Kun.Runtime/Kun.Runtime.csproj", "src/Kun.Authorization/Kun.Authorization.csproj", "src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj"],
             project.Descendants("ProjectReference")
                 .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
                 .Order(StringComparer.Ordinal));

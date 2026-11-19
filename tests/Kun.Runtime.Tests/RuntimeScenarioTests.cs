@@ -9,7 +9,7 @@ using Kun.Errors;
 using Qian.Surfaces;
 using YamlDotNet.Serialization;
 
-namespace Qian.Runtime.Tests;
+namespace Kun.Runtime.Tests;
 
 public sealed class RuntimeScenarioTests
 {
@@ -210,7 +210,7 @@ public sealed class RuntimeScenarioTests
         }
     }
 
-    private sealed class ScenarioPlugin(JsonElement entry, ConcurrentQueue<string> trace, ScenarioEvents events, ConcurrentDictionary<string, IRegistrationHandle<string>> handles, ScenarioGates gates) : IQianPlugin
+    private sealed class ScenarioPlugin(JsonElement entry, ConcurrentQueue<string> trace, ScenarioEvents events, ConcurrentDictionary<string, IRegistrationHandle<string>> handles, ScenarioGates gates) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => Keys(entry, "inject");
 
@@ -266,8 +266,8 @@ public sealed class RuntimeScenarioTests
 
     private sealed class ScenarioEvents
     {
-        private readonly Dictionary<string, QianEvent<string, string?>> _single = [];
-        private readonly Dictionary<string, QianEvent<string, IReadOnlyList<string?>>> _many = [];
+        private readonly Dictionary<string, KunEvent<string, string?>> _single = [];
+        private readonly Dictionary<string, KunEvent<string, IReadOnlyList<string?>>> _many = [];
         private readonly ConcurrentQueue<string> _trace;
 
         internal ScenarioEvents(JsonElement scenario, ConcurrentQueue<string> trace)
@@ -278,8 +278,8 @@ public sealed class RuntimeScenarioTests
             {
                 var name = evt.GetProperty("name").GetString()!;
                 var mode = Enum.Parse<DispatchMode>(evt.GetProperty("mode").GetString()!, true);
-                if (mode is DispatchMode.Parallel or DispatchMode.Serial) _many[name] = QianEvent.Define<string, IReadOnlyList<string?>>(name, mode);
-                else _single[name] = QianEvent.Define<string, string?>(name, mode);
+                if (mode is DispatchMode.Parallel or DispatchMode.Serial) _many[name] = KunEvent.Define<string, IReadOnlyList<string?>>(name, mode);
+                else _single[name] = KunEvent.Define<string, string?>(name, mode);
             }
         }
 

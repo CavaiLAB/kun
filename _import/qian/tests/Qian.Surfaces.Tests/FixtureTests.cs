@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
@@ -140,7 +140,7 @@ public sealed class FixtureTests
         Assert.Empty(context.Scoped(a).List(SurfaceKeys.Skills));
     }
 
-    private sealed class Probe : IQianPlugin
+    private sealed class Probe : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

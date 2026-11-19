@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
@@ -157,7 +157,7 @@ public sealed class RegistrationSessionTests
         public async ValueTask DisposeAsync() { await Runtime.DisposeAsync(); await _services.DisposeAsync(); }
     }
 
-    private sealed class EmptyPlugin : IQianPlugin
+    private sealed class EmptyPlugin : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
@@ -182,11 +182,11 @@ public sealed class RegistrationSessionTests
         public void Effect(IDisposable disposer) => inner.Effect(disposer);
         public void Effect(Action dispose) => inner.Effect(dispose);
         public void Effect(Func<ValueTask> disposeAsync) => inner.Effect(disposeAsync);
-        public IDisposable On<TPayload, TResult>(QianEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
-        public IDisposable On<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
-        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
-        public ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
-        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct) => inner.DispatchAsync(evt, payload, terminal, ct);
+        public IDisposable On<TPayload, TResult>(KunEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
+        public IDisposable On<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, DispatchMode mode, Delegate handler, int priority) => inner.On(evt, mode, handler, priority);
+        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
+        public ValueTask<IReadOnlyList<TResult>> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, IReadOnlyList<TResult>> evt, TPayload payload, CancellationToken ct) => inner.DispatchAsync(evt, payload, ct);
+        public ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, Func<ValueTask<TResult>> terminal, CancellationToken ct) => inner.DispatchAsync(evt, payload, terminal, ct);
         public IPluginContext Scoped(ScopeKey scope) => inner.Scoped(scope);
         public IDisposable Restrict(ScopeKey scope, Func<Registration, bool> keep) => inner.Restrict(scope, keep);
         public IReadOnlyList<Registration> List(ServiceKey key) => inner.List(key);

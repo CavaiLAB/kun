@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Config.Apollo;
@@ -12,7 +12,7 @@ namespace Qian.Config.Apollo;
 /// <summary>标准配置适配器，借用宿主配置根；只撤销本组件拥有的服务登记。</summary>
 [QianPlugin("qian.config", MetadataTypes = [typeof(ConfigRuntimeEvents)])]
 [QianConfigSchema(ComponentConfiguration.Schema)]
-public sealed class ConfigurationPlugin : IQianPlugin
+public sealed class ConfigurationPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [];
@@ -59,7 +59,7 @@ public sealed class ConfigurationPlugin : IQianPlugin
 [DelegatePlugin(typeof(ApolloConfigurationImplementation))]
 [Provides(typeof(ConfigDefinition), nameof(ConfigDefinition.Key))]
 [SharedEvents(typeof(ConfigRuntimeEvents), "qian.config")]
-public sealed class ApolloConfigurationPlugin : IQianPlugin
+public sealed class ApolloConfigurationPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [];
@@ -69,7 +69,7 @@ public sealed class ApolloConfigurationPlugin : IQianPlugin
 }
 
 // 保留公开入口名及构造方式；配置校验、通知转发与发布审计属于这个明确的实现构件。
-internal sealed class ApolloConfigurationImplementation : IQianPlugin
+internal sealed class ApolloConfigurationImplementation : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [];

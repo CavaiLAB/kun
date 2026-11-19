@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 
 namespace Qian.Identity.Client.Standalone.Tests;
@@ -27,7 +27,7 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     // 被测宿主的依赖闭包里只允许出现 Client 本身及其 Runtime / SDK / Abstractions 依赖；Qian.Testing.Containers 是夹具。
     private static readonly string[] AllowedQianAssemblies =
     [
-        "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Qian.Runtime", "Kun.Errors",
+        "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Kun.Runtime", "Kun.Errors",
         "Kun.Errors.AspNetCore", "Qian.Testing.Containers", "Qian.Plugin.Sdk", "Qian.Data.Abstractions",
         "Qian.Authz.Abstractions", "Qian.Events.Abstractions", "Qian.Surfaces.Abstractions"
     ];

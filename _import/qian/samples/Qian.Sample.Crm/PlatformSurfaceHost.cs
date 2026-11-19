@@ -8,7 +8,7 @@ using Qian.Authz.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk.AspNetCore;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 

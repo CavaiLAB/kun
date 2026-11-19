@@ -12,7 +12,7 @@
     <KunTierException Include="Kun.MultiTenancy.EntityFrameworkCore" Rule="D" Until="B5" Reason="QianDbContext 启动时校验 Kun 的行级安全双拦截器与模型缓存键；B5 三处并成一个 Kun.EntityFrameworkCore 时去掉" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" />
     <ProjectReference Include="../Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />

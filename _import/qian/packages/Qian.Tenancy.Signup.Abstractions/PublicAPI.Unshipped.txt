@@ -651,10 +651,10 @@ static Qian.Tenancy.Signup.StartSignupVerification.operator !=(Qian.Tenancy.Sign
 static Qian.Tenancy.Signup.StartSignupVerification.operator ==(Qian.Tenancy.Signup.StartSignupVerification? left, Qian.Tenancy.Signup.StartSignupVerification? right) -> bool
 static Qian.Tenancy.Signup.SubmitSignupApplication.operator !=(Qian.Tenancy.Signup.SubmitSignupApplication? left, Qian.Tenancy.Signup.SubmitSignupApplication? right) -> bool
 static Qian.Tenancy.Signup.SubmitSignupApplication.operator ==(Qian.Tenancy.Signup.SubmitSignupApplication? left, Qian.Tenancy.Signup.SubmitSignupApplication? right) -> bool
-static Qian.Tenancy.Signup.TenancySignupDefinition.TenancySignup(this Qian.Runtime.IPluginContext! context) -> Qian.Tenancy.Signup.ITenantSignup!
+static Qian.Tenancy.Signup.TenancySignupDefinition.TenancySignup(this Kun.Runtime.IPluginContext! context) -> Qian.Tenancy.Signup.ITenantSignup!
 static Qian.Tenancy.Signup.TenancySignupErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
-static readonly Qian.Tenancy.Signup.TenancySignupDefinition.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Tenancy.Signup.TenancySignupDefinition.MessengerKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Tenancy.Signup.TenancySignupDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Qian.Tenancy.Signup.TenancySignupDefinition.MessengerKey -> Kun.Runtime.ServiceKey
 static readonly Qian.Tenancy.Signup.TenancySignupErrors.AccountUnavailable -> Kun.Errors.ErrorCode!
 static readonly Qian.Tenancy.Signup.TenancySignupErrors.ApplicationOpen -> Kun.Errors.ErrorCode!
 static readonly Qian.Tenancy.Signup.TenancySignupErrors.CodeExpired -> Kun.Errors.ErrorCode!

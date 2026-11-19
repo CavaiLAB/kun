@@ -1,4 +1,4 @@
-namespace Qian.Runtime;
+namespace Kun.Runtime;
 
 internal sealed class EffectStack
 {

@@ -1,6 +1,6 @@
-# Qian.Runtime
+# Kun.Runtime
 
-依据：[组件模型规格 §5](../../docs/prd/specs/component-model.md#5-运行时模型)。此包提供 .NET 10 的上下文、服务键、事件、效果栈与装载器，引用已有的 `Kun.Errors`。
+依据：[组件模型规格 §5](../../_import/qian/docs/prd/specs/component-model.md#5-运行时模型)。此包提供 .NET 10 的上下文、服务键、事件、效果栈与装载器，引用已有的 `Kun.Errors`。
 
 ## 装配位置
 
@@ -11,16 +11,16 @@
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 
 using var services = new ServiceCollection().BuildServiceProvider();
 await using var runtime = new PluginLoader(services);
 await runtime.MountAsync(definitions, cancellationToken);
 ```
 
-`PluginDefinition` 绑定 `PluginEntry`、`IQianPlugin` 实例与清单的 `Provides`。每次 `MountAsync` 提交一组完整依赖，装载器在调用任何 `ApplyAsync` 前检查缺失键与环路。已装载条目的依赖被撤销后进入 `Pending`，同键恢复时重新 `ApplyAsync`。等待超过 30 秒会记录依赖警告，管理面可用 `GetPendingDependencies` 查询等待的键。Apply 失败会逆序回滚自身效果，独立条目继续启动，失败原因可由 `GetFailure` 查询。配置重载用 `ReloadAsync`。
+`PluginDefinition` 绑定 `PluginEntry`、`IKunPlugin` 实例与清单的 `Provides`。每次 `MountAsync` 提交一组完整依赖，装载器在调用任何 `ApplyAsync` 前检查缺失键与环路。已装载条目的依赖被撤销后进入 `Pending`，同键恢复时重新 `ApplyAsync`。等待超过 30 秒会记录依赖警告，管理面可用 `GetPendingDependencies` 查询等待的键。Apply 失败会逆序回滚自身效果，独立条目继续启动，失败原因可由 `GetFailure` 查询。配置重载用 `ReloadAsync`。
 
-声明式目录键见 `SurfaceKeys`（Skills / Agents / Commands / Hooks / McpServers / Tools）；目录中的文档由 [Qian.Surfaces](../Qian.Surfaces/README.md) 校验和登记，沿用同一 scope 与 Effect 语义。
+声明式目录键见 `SurfaceKeys`（Skills / Agents / Commands / Hooks / McpServers / Tools）；目录中的文档由 [Qian.Surfaces](../../_import/qian/packages/Qian.Surfaces/README.md) 校验和登记，沿用同一 scope 与 Effect 语义。
 
 管理面用 `DumpConfig()` 读取当前真实挂载树的配置快照，正在移除与已卸载条目不进入结果；这是运行时快照，静态 profile 的完整来源层仍由 `Qian.Profiles` 提供。整树释放会先标记全部条目正在移除，再逐个逆序撤销，避免已释放依赖者被二次失效。共享 TCK 同时检查释放轨迹和清理异常为零。
 
@@ -38,10 +38,10 @@ await runtime.MountAsync(definitions, cancellationToken);
 
 ## 事件
 
-事件 Definition 复用同一 `QianEvent` 实例，模式在定义与 `On` 处一致。监听器按 priority 降序、同级挂载顺序执行。集合模式把**整个分发结果**声明为 `IReadOnlyList<T>`，单个监听器返回 `ValueTask<T>`：
+事件 Definition 复用同一 `KunEvent` 实例，模式在定义与 `On` 处一致。监听器按 priority 降序、同级挂载顺序执行。集合模式把**整个分发结果**声明为 `IReadOnlyList<T>`，单个监听器返回 `ValueTask<T>`：
 
 ```csharp
-var changed = QianEvent.Define<string, IReadOnlyList<int>>("sample/changed", DispatchMode.Parallel);
+var changed = KunEvent.Define<string, IReadOnlyList<int>>("sample/changed", DispatchMode.Parallel);
 ctx.On(changed, DispatchMode.Parallel,
     (Func<string, ValueTask<int>>)(_ => ValueTask.FromResult(1)));
 IReadOnlyList<int> values = await ctx.DispatchAsync(changed, "value", ct);
@@ -63,6 +63,6 @@ Kun 是仓库根 `src/` 下源码的项目引用（S1-KUN-020），不再从 nug
 
 ## 验证与已知限制
 
-运行 `dotnet run --project tests/Qian.Runtime.Tests -c Release`，执行 [语言无关场景](../../tck/runtime/README.md) 与 .NET 单元测试。
+运行 `dotnet run --project tests/Qian.Runtime.Tests -c Release`，执行 [语言无关场景](../../_import/qian/tck/runtime/README.md) 与 .NET 单元测试。
 
 本任务只实现 .NET 最小运行时。TS harness 属于 S1-RT-003，完整 TCK 属于 S1-QA-002；profile/patch 解析、清单/configSchema 校验、声明式表面重载由对应装配器任务提供，传入本包前完成。代码实例随宿主程序集加载，S1 代码更新通过进程重启。已有对象引用的业务执行仍由调用方的权限检查负责，运行时不代理任意对象的方法。

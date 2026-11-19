@@ -6,7 +6,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Events;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
 
@@ -82,6 +82,6 @@ public sealed class CrmCommandRuntime(IServiceProvider services, ITenantContext 
         resolver = new { mode = configuration["Tenancy:Resolver:Mode"] ?? "production", allowHeaderFallback = configuration.GetValue<bool>("Tenancy:Resolver:AllowHeaderFallback") },
         initializationCapabilities = configuration.GetSection("Tenancy:InitializationCapabilities").Get<string[]>() ?? []
     });
-    private static PluginDefinition Define(string id, string component, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
+    private static PluginDefinition Define(string id, string component, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
         new PluginEntry(id, component, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
 }

@@ -1,4 +1,4 @@
-# Qian.Runtime 开发约定
+# Kun.Runtime 开发约定
 
 - 行为以根仓库组件模型规格 §5 为准；改公共行为同时更新 `tck/runtime/` 与 .NET harness。
 - 只依赖 Kun.Errors、Kun.Core、Kun.Mediator 与 .NET DI；不引用 Kun.Validation。

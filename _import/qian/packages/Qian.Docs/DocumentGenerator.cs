@@ -136,7 +136,7 @@ public sealed class DocumentGenerator(IProfileLoader profiles) : IDocumentGenera
     private static string EventGraph(string profile, EventMap[] events, Diagnostics diagnostics)
     {
         var output = new StringBuilder(Header("事件图", profile));
-        output.AppendLine("从选定 C# 源码目录的 QianEvent 定义与绑定调用派生，仅表示静态生产/消费关系；不代表当前 profile 已运行这些处理器。跨进程集成事件不在此图中。\n");
+        output.AppendLine("从选定 C# 源码目录的 KunEvent 定义与绑定调用派生，仅表示静态生产/消费关系；不代表当前 profile 已运行这些处理器。跨进程集成事件不在此图中。\n");
         output.AppendLine("| 事件 | 模式 | 声明位置 | 生产方 | 消费方 |\n|---|---|---|---|---|");
         foreach (var evt in events) output.AppendLine(CultureInfo.InvariantCulture, $"| {Code(evt.Name)} | {Code(evt.Mode)} | {Location(evt.Declaration)} | {string.Join("<br>", evt.Producers.Select(Location))} | {string.Join("<br>", evt.Consumers.Select(Location))} |");
         if (events.Length > 0)

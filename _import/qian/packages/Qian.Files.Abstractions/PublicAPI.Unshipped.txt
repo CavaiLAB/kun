@@ -320,7 +320,7 @@ static Qian.Files.FilesContractJson.FileQuotaTypeInfo.get -> System.Text.Json.Se
 static Qian.Files.FilesContractJson.PresignedUploadTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Qian.Files.PresignedUpload!>!
 static Qian.Files.FilesContractJson.PresignUploadRequestTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Qian.Files.PresignUploadRequest!>!
 static Qian.Files.FilesContractJson.UploadPolicyTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Qian.Files.UploadPolicy!>!
-static Qian.Files.FilesDefinition.Files(this Qian.Runtime.IPluginContext! context) -> Qian.Files.IFileService!
+static Qian.Files.FilesDefinition.Files(this Kun.Runtime.IPluginContext! context) -> Qian.Files.IFileService!
 static Qian.Files.FilesErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
 static Qian.Files.FilesErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 static Qian.Files.FilesEventIds.All.get -> System.Collections.Generic.IReadOnlyList<string!>!
@@ -337,9 +337,9 @@ static Qian.Files.PresignUploadRequest.operator !=(Qian.Files.PresignUploadReque
 static Qian.Files.PresignUploadRequest.operator ==(Qian.Files.PresignUploadRequest? left, Qian.Files.PresignUploadRequest? right) -> bool
 static Qian.Files.UploadPolicy.operator !=(Qian.Files.UploadPolicy? left, Qian.Files.UploadPolicy? right) -> bool
 static Qian.Files.UploadPolicy.operator ==(Qian.Files.UploadPolicy? left, Qian.Files.UploadPolicy? right) -> bool
-static readonly Qian.Files.FilesDefinition.BackendsKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Files.FilesDefinition.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Files.FilesDefinition.PoliciesKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Files.FilesDefinition.BackendsKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Files.FilesDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Qian.Files.FilesDefinition.PoliciesKey -> Kun.Runtime.ServiceKey
 static readonly Qian.Files.FilesErrors.ChecksumMismatch -> Kun.Errors.ErrorCode!
 static readonly Qian.Files.FilesErrors.CountExceeded -> Kun.Errors.ErrorCode!
 static readonly Qian.Files.FilesErrors.NotAvailable -> Kun.Errors.ErrorCode!

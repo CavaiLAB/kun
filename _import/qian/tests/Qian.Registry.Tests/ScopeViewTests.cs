@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Kun.MultiTenancy;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Registry.Tests;
@@ -86,7 +86,7 @@ public sealed partial class PatchPersistenceTests
         await Assert.ThrowsAsync<ServiceNotReadyException>(() => running.Registry.GetGlobalEntriesAsync(SurfaceKeys.Commands, Ct).AsTask());
     }
 
-    private sealed class NamedCommand(string name) : IQianPlugin
+    private sealed class NamedCommand(string name) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 using Qian.Data;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Scheduler.TestHost;
 using static Qian.Scheduler.Tests.SchedulerScenario;

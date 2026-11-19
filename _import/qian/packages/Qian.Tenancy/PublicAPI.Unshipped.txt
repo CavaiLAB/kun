@@ -2,8 +2,8 @@
 Qian.Tenancy.TenancyDbContext
 Qian.Tenancy.TenancyDbContext.TenancyDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Qian.Tenancy.TenancyDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
 Qian.Tenancy.TenancyPlugin
-Qian.Tenancy.TenancyPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Qian.Tenancy.TenancyPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Tenancy.TenancyPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Tenancy.TenancyPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Tenancy.TenancyPlugin.TenancyPlugin() -> void
 Qian.Tenancy.TenantContextPropagator
 Qian.Tenancy.TenantContextPropagator.BeginScope(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! headers, System.Guid authorizedTenantId) -> System.IDisposable!
@@ -33,5 +33,5 @@ Qian.Tenancy.TenancyEventHandlers
 static Qian.Tenancy.TenancyEventHandlers.AddQianTenancyEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
 Qian.Tenancy.TenancyComponent
 Qian.Tenancy.TenancyComponent.TenancyComponent() -> void
-Qian.Tenancy.TenancyComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Tenancy.TenancyComponent.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Tenancy.TenancyComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Tenancy.TenancyComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask

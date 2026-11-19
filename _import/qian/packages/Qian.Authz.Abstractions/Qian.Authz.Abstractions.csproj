@@ -8,7 +8,7 @@
     <KunRole>contract</KunRole>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" />
     <ProjectReference Include="../../../../src/Kun.Authorization/Kun.Authorization.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
   </ItemGroup>

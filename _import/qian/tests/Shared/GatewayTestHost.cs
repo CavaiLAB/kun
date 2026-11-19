@@ -17,7 +17,7 @@ using Qian.Config.Secrets;
 using Qian.Gateway;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Client;
-using Qian.Runtime;
+using Kun.Runtime;
 using StackExchange.Redis;
 
 namespace Qian.Testing.Gateway;
@@ -141,7 +141,7 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
         Assert.True(callback.StatusCode == HttpStatusCode.Redirect, await callback.Content.ReadAsStringAsync(Ct));
         Assert.Equal("/app", callback.Headers.Location!.OriginalString);
     }
-    private static PluginDefinition Definition(string id, string plugin, IQianPlugin implementation, JsonElement config, params ServiceKey[] provides) =>
+    private static PluginDefinition Definition(string id, string plugin, IKunPlugin implementation, JsonElement config, params ServiceKey[] provides) =>
         new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, config), implementation, provides);
     private sealed class SecretObserver : ISecretAccessObserver
     {

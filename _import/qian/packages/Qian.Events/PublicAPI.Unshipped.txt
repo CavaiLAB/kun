@@ -1,8 +1,8 @@
 #nullable enable
 Qian.Events.EventsPlugin
-Qian.Events.EventsPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Events.EventsPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Events.EventsPlugin.EventsPlugin() -> void
-Qian.Events.EventsPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Events.EventsPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Events.IntegrationEventSchemas
 Qian.Events.OutboxLockMode
 Qian.Events.OutboxLockMode.Redis = 1 -> Qian.Events.OutboxLockMode

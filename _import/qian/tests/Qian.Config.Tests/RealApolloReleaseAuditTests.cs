@@ -16,7 +16,7 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Config.Apollo;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 
 namespace Qian.Config.Tests;
@@ -131,10 +131,10 @@ public sealed class RealApolloReleaseAuditTests(RealApolloPortalFixture apollo, 
             "\nGRANT USAGE ON SCHEMA plugin_qian_audit TO qian_app; GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA plugin_qian_audit TO qian_app;");
     }
 
-    private static PluginDefinition Define(string id, string plugin, IQianPlugin implementation, IReadOnlyList<ServiceKey> provides, object config) =>
+    private static PluginDefinition Define(string id, string plugin, IKunPlugin implementation, IReadOnlyList<ServiceKey> provides, object config) =>
         new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config)), implementation, provides);
 
-    private sealed class AuditReader : IQianPlugin
+    private sealed class AuditReader : IKunPlugin
     {
         public IPluginContext? Context { get; private set; }
         public IReadOnlyList<ServiceKey> Inject => [AuditDefinition.Key];

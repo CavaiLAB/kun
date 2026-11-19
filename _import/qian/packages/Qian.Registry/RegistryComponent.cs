@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Registry;
@@ -11,7 +11,7 @@ namespace Qian.Registry;
 [QianConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(RegistryPlugin))]
 [Provides(typeof(RegistryDefinition), nameof(RegistryDefinition.Key))]
-public sealed class RegistryComponent : IQianPlugin
+public sealed class RegistryComponent : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];

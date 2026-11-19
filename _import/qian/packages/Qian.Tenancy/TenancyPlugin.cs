@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Qian.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Plugin.Sdk;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
@@ -11,7 +11,7 @@ using Qian.Surfaces.Abstractions;
 namespace Qian.Tenancy;
 
 /// <summary>qian.tenancy 的目录 Provider，消费 Data；不在全局 DI 偷装另一份租户上下文。</summary>
-public sealed class TenancyPlugin : IQianPlugin
+public sealed class TenancyPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key];

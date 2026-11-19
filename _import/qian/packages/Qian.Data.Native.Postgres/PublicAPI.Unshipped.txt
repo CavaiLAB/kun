@@ -18,8 +18,8 @@ Qian.Data.Native.Postgres.NativeDataBinding.Role.init -> void
 Qian.Data.Native.Postgres.NativeDataBinding.Tables.get -> System.Collections.Generic.IReadOnlyList<Qian.Data.Native.Postgres.NativeDataTable!>!
 Qian.Data.Native.Postgres.NativeDataBinding.Tables.init -> void
 Qian.Data.Native.Postgres.NativeDataComponent
-Qian.Data.Native.Postgres.NativeDataComponent.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Qian.Data.Native.Postgres.NativeDataComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Data.Native.Postgres.NativeDataComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Data.Native.Postgres.NativeDataComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Data.Native.Postgres.NativeDataComponent.NativeDataComponent() -> void
 Qian.Data.Native.Postgres.NativeDataHosting
 Qian.Data.Native.Postgres.NativeDataTable

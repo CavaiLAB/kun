@@ -33,7 +33,7 @@ using Qian.Files.AspNetCore;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
@@ -419,7 +419,7 @@ internal sealed class FilesHostRuntime(IServiceProvider services, ITenantContext
 
     public ValueTask DisposeAsync() => _loader.DisposeAsync();
 
-    private static PluginDefinition Define(string id, string component, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
+    private static PluginDefinition Define(string id, string component, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
         new PluginEntry(id, component, "1.0.0", ScopeKey.Global, 0, config as JsonElement? ?? JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
 }
 

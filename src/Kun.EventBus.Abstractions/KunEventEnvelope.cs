@@ -143,7 +143,10 @@ internal sealed class EventActorKindConverter : JsonConverter<EventActorKind>
 
     public override void Write(Utf8JsonWriter writer, EventActorKind value, JsonSerializerOptions options) => writer.WriteStringValue(value switch
     {
-        EventActorKind.User => "user", EventActorKind.Service => "service", EventActorKind.Agent => "agent", _ => throw new JsonException("未知主体类型。")
+        EventActorKind.User => "user",
+        EventActorKind.Service => "service",
+        EventActorKind.Agent => "agent",
+        _ => throw new JsonException("未知主体类型。")
     });
 }
 

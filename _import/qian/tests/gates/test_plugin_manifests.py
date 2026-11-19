@@ -33,16 +33,32 @@ class PluginManifestGateTests(unittest.TestCase):
         assembly.parent.mkdir(parents=True)
         assembly.touch()
         (self.root / "Qian.slnf").write_text('{"solution": {"path": "Kun.slnx", "projects": ["packages/Qian.New/Qian.New.csproj"]}}')
+        (self.root / "Kun.slnx").write_text("<Solution />")
         manifest = self.root / "plugins/qian.new/.qian-plugin/plugin.json"
         manifest.parent.mkdir(parents=True)
         manifest.write_text('{"id":"qian.new"}')
 
-    def run_gate(self, inventory):
+    def add_src_component(self):
+        """仓库根 src/ 下的组件包（搬出过渡目录的那种）：Kun.slnx 登记、有构建产物、清单仍在 plugins/ 下。"""
+        project = self.root / "src/Kun.Moved/Kun.Moved.csproj"
+        project.parent.mkdir(parents=True)
+        project.write_text('<Project Sdk="Microsoft.NET.Sdk" />')
+        assembly = project.parent / "bin/Release/net10.0/Kun.Moved.dll"
+        assembly.parent.mkdir(parents=True)
+        assembly.touch()
+        (self.root / "Kun.slnx").write_text('<Solution><Folder Name="/src/"><Project Path="src/Kun.Moved/Kun.Moved.csproj" /></Folder></Solution>')
+        manifest = self.root / "plugins/qian.moved/.qian-plugin/plugin.json"
+        manifest.parent.mkdir(parents=True)
+        manifest.write_text('{"id":"qian.moved"}')
+
+    def run_gate(self, inventory, src_inventory=()):
         commands = []
 
         def run(arguments):
             commands.append(arguments)
-            return json.dumps(inventory) if arguments[2] == "inventory" else "{}"
+            if arguments[2] != "inventory":
+                return "{}"
+            return json.dumps(list(src_inventory) if Path(arguments[3]).stem == "Kun.Moved" else inventory)
 
         with patch.object(GATE, "run", side_effect=run), contextlib.redirect_stdout(io.StringIO()):
             result = GATE.check(self.root)
@@ -92,6 +108,33 @@ class PluginManifestGateTests(unittest.TestCase):
         project = GATE.solution_root(SOURCE.parents[1]) / "tools/Kun.Plugin.Tool/Kun.Plugin.Tool.csproj"
         references = {item.get("Include") for item in ET.parse(project).getroot().iter("FrameworkReference")}
         self.assertIn("Microsoft.AspNetCore.App", references, f"{project.name} 没有自己声明 ASP.NET Core 共享框架")
+
+    def test_component_in_repository_src_is_discovered_and_its_classification_counts(self):
+        self.add_src_component()
+        (self.root / "scripts/plugin-implementations.json").write_text(
+            json.dumps({"Kun.Moved:Kun.Moved.Worker": {"owner": "qian.moved", "reason": "入口的程序化实现"}}))
+        result, commands = self.run_gate([{"type": "Qian.New.Entry", "component": "qian.new"}],
+                                         [{"type": "Kun.Moved.Entry", "component": "qian.moved"},
+                                          {"type": "Kun.Moved.Worker", "component": None}])
+        self.assertEqual((2, 1), result)
+        checked = [command[-1] for command in commands if command[2] == "check"]
+        self.assertIn(str(self.root / "plugins/qian.moved"), checked)
+
+    def test_component_in_repository_src_with_a_wrong_classification_fails(self):
+        self.add_src_component()
+        # 分类还写着搬家之前的程序集名：src/ 下的实现没有归属。
+        (self.root / "scripts/plugin-implementations.json").write_text(
+            json.dumps({"Qian.Moved:Qian.Moved.Worker": {"owner": "qian.moved", "reason": "入口的程序化实现"}}))
+        with self.assertRaisesRegex(ValueError, "没有入口注解或显式归属：Kun.Moved:Kun.Moved.Worker"):
+            self.run_gate([{"type": "Qian.New.Entry", "component": "qian.new"}],
+                          [{"type": "Kun.Moved.Entry", "component": "qian.moved"},
+                           {"type": "Kun.Moved.Worker", "component": None}])
+
+    def test_component_in_repository_src_without_a_build_fails(self):
+        self.add_src_component()
+        (self.root / "src/Kun.Moved/bin/Release/net10.0/Kun.Moved.dll").unlink()
+        with self.assertRaisesRegex(ValueError, "缺少实际构建产物"):
+            self.run_gate([{"type": "Qian.New.Entry", "component": "qian.new"}])
 
     def test_missing_build_never_counts_as_empty_success(self):
         (self.root / "packages/Qian.New/bin/Release/net10.0/Qian.New.dll").unlink()

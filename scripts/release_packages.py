@@ -57,7 +57,7 @@ import sys
 import xml.etree.ElementTree as ET
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -74,7 +74,7 @@ LEGACY_ROOT = ROOT / "_import"
 PREFIX = "Kun."
 LICENSE = "MIT"
 DEFAULT_DESCRIPTION = "Package Description"  # SDK 在项目没写 Description 时填的
-PROPERTIES = ("IsPackable", "PackageId", "KunTier", "KunRole", "IsAotCompatible", "IncludeSymbols", "IncludeBuildOutput", "NoWarn")
+PROPERTIES = ("IsPackable", "PackageId", "AssemblyName", "KunTier", "KunRole", "IsAotCompatible", "IncludeSymbols", "IncludeBuildOutput", "NoWarn")
 # 判「只带分析器的包」时看包里这两处有没有 PE 文件：有就照旧要符号包。
 BINARY_ROOTS = ("lib/", "runtimes/")
 PE_SUFFIXES = (".dll", ".exe")
@@ -107,6 +107,10 @@ class Package:
     prerelease_ok: bool = False  # 项目的 NoWarn 里有 NU5104
     exceptions: Tuple[Tuple[str, str], ...] = ()  # (被依赖的包, 规则)
     build_output: bool = True  # 项目求值的 IncludeBuildOutput 不是 false；是 false、包里也没有 PE 文件的免符号包
+
+    friend_dependencies: Tuple[str, ...] = ()  # 对本程序集开放内部成员的发布包名
+    assembly: str = ""
+    declared_friends: Tuple[str, ...] = ()  # 项目声明的全部朋友（含测试），与制品逐项比对
 
 
 @dataclass
@@ -144,7 +148,7 @@ def package_from(path: Path, data: dict) -> Optional[Package]:
 
 def _evaluate(path: Path) -> dict:
     cmd = (["dotnet", "msbuild", str(path), "-nologo"] + [f"-getProperty:{p}" for p in PROPERTIES]
-           + [f"-getItem:{EXCEPTION_ITEM}"])
+           + [f"-getItem:{EXCEPTION_ITEM},InternalsVisibleTo,AssemblyAttribute"])
     result = subprocess.run(cmd, capture_output=True, text=True, env=_env())
     if result.returncode != 0:
         raise GateError(f"读取项目失败：{_rel(path)}\n{result.stdout}{result.stderr}")
@@ -156,7 +160,38 @@ def discover(solution: Path = SOLUTION) -> List[Package]:
     paths = solution_projects(solution)
     with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 4)) as pool:
         data = list(pool.map(_evaluate, paths))
-    return sorted((p for p in (package_from(path, d) for path, d in zip(paths, data)) if p), key=lambda p: p.id.lower())
+    entries = [(p, d) for path, d in zip(paths, data) if (p := package_from(path, d))]
+    return with_friend_dependencies(entries)
+
+
+def with_friend_dependencies(entries: List[Tuple[Package, dict]]) -> List[Package]:
+    assemblies = {}
+    for package, data in entries:
+        assembly = data["Properties"].get("AssemblyName") or Path(package.project).stem
+        if assembly.casefold() in assemblies:
+            raise GateError(f"多个可打包项目使用同一个程序集名 {assembly}")
+        assemblies[assembly.casefold()] = package
+    exact: Dict[str, set] = {}
+    for owner, data in entries:
+        items = data.get("Items") or {}
+        for attribute in items.get("AssemblyAttribute", []):
+            if _metadata(attribute, "Identity").rsplit(".", 1)[-1] in ("InternalsVisibleTo", "InternalsVisibleToAttribute"):
+                raise GateError(f"{owner.project} 的朋友程序集须用 InternalsVisibleTo 项声明")
+        for declaration in items.get("InternalsVisibleTo", []):
+            friend = assemblies.get(_metadata(declaration, "Identity").casefold())
+            if friend is None:
+                continue
+            if not _metadata(declaration, "KunPackageFriendReason").strip():
+                raise GateError(f"{owner.id} 向包 {friend.id} 开放内部成员，需要记录 KunPackageFriendReason")
+            exact.setdefault(friend.id, set()).add(owner.id)
+    packages = []
+    for package, data in entries:
+        declarations = sorted(_metadata(item, "Identity") for item in
+                              (data.get("Items") or {}).get("InternalsVisibleTo", []))
+        packages.append(replace(package, friend_dependencies=tuple(sorted(exact.get(package.id, ()))),
+                                assembly=data["Properties"].get("AssemblyName") or Path(package.project).stem,
+                                declared_friends=tuple(declarations)))
+    return sorted(packages, key=lambda p: p.id.casefold())
 
 
 def in_legacy(package: Package, root: Path = LEGACY_ROOT) -> bool:
@@ -263,6 +298,38 @@ def read_nuspec(path: Path) -> dict:
     }
 
 
+def check_assembly_metadata(packages: List[Package], directory: Path, version: str) -> List[str]:
+    files = {f"{p.id}.{version}.nupkg": p for p in packages}
+    paths = [str(directory / name) for name in files if (directory / name).is_file()]
+    run = subprocess.run(["dotnet", "run", "--file", str(ROOT / "scripts" / "inspect-package.cs")],
+                         cwd=ROOT, input=json.dumps(paths), text=True, capture_output=True, env=_env())
+    if run.returncode:
+        raise Failure(f"读取制品的程序集元数据失败：{run.stdout}{run.stderr}")
+    return compare_assembly_metadata(files, json.loads(run.stdout))
+
+
+def compare_assembly_metadata(files: Dict[str, Package], assemblies: List[dict]) -> List[str]:
+    problems = []
+    found = set()
+    for item in assemblies:
+        package = files[item["package"]]
+        if item["assembly"].casefold() != (package.assembly or Path(package.project).stem).casefold():
+            continue
+        found.add(package.id)
+        location = f"{package.id}/{item['entry']}"
+        if package.aot and not item["trimmable"]:
+            problems.append(f"{location} 缺少 IsTrimmable=True 程序集元数据")
+        # CLR 的朋友名可在逗号后附公钥；精确依赖按包所属的程序集名匹配。
+        names = sorted(name.split(",", 1)[0].strip().casefold() for name in item["friends"])
+        declared = sorted(name.split(",", 1)[0].strip().casefold() for name in package.declared_friends)
+        if names != declared:
+            problems.append(f"{location} 的 InternalsVisibleTo 与项目声明不同，朋友程序集须用项目项声明")
+    for package in files.values():
+        if package.id not in found:
+            problems.append(f"{package.id} 缺少项目的程序集 {package.assembly or Path(package.project).stem}")
+    return problems
+
+
 def lower_bound(range_text: str) -> str:
     """NuGet 版本范围的下限（查别家依赖是不是预发布版用）：1.0.0、[1.0.0, )、[1.0.0] 都给出 1.0.0；(,1.0.0] 给出空串。"""
     text = range_text.strip()
@@ -351,10 +418,16 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str, 
             report.strict_only(relax, "description", f"{package.id}（描述是空的）")
         elif any(name[:1].upper() + name[1:] in spec["description"] for name in legacy):
             report.strict_only(relax, "description", f"{package.id}（描述里写着过渡目录的名字）")
+        exact = {name.casefold() for name in package.friend_dependencies}
+        declared = {name.casefold() for name, _ in spec["dependencies"]}
+        for missing in sorted(exact - declared):
+            report.problems.append(f"{package.id} 缺少对朋友程序集所有者 {missing} 的精确依赖")
         for dependency, range_text in spec["dependencies"]:
             target = dependency.lower()
             if target in listed:
-                if range_text not in pinned:
+                if target in exact and range_text != f"[{version}]":
+                    report.problems.append(f"{package.id} 对 {dependency} 的朋友程序集依赖应为 [{version}]，实际为 {range_text}")
+                elif range_text not in pinned:
                     report.problems.append(f"{package.id} 对 {dependency} 的依赖写成 {range_text}：只认 {'、'.join(sorted(pinned))}")
                 if target not in found:
                     report.problems.append(f"{package.id} 依赖的 {dependency} 不在本次产物里")
@@ -442,7 +515,9 @@ def release_notes(packages: List[Package], version: str, changelog: str) -> str:
 # ---------- 命令行 ----------
 
 def _load_list(path: Path) -> List[Package]:
-    return [Package(**{**item, "exceptions": tuple(tuple(e) for e in item.get("exceptions", []))})
+    return [Package(**{**item, "exceptions": tuple(tuple(e) for e in item.get("exceptions", [])),
+                       "declared_friends": tuple(item.get("declared_friends", [])),
+                       "friend_dependencies": tuple(item.get("friend_dependencies", []))})
             for item in json.loads(path.read_text(encoding="utf-8"))]
 
 
@@ -534,6 +609,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print(release_notes(packages, args.version, (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")), end="")
             return 0
         report = verify(packages, args.packages, args.version, args.commit or git_head(), args.transitional)
+        report.problems.extend(check_assembly_metadata(packages, args.packages, args.version))
         print(f"包名单：{_summary(packages)}；版本 {args.version}")
         return _print(report, "制品核对", args.transitional)
     except ValueError as error:

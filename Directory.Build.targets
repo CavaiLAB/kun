@@ -32,6 +32,28 @@
            Text="$(MSBuildProjectName) 的 KunZeroDependency 是「$(KunZeroDependency)」，只能写 true 或 false，或者不写。" />
   </Target>
 
+  <!-- NuGet 用版本下限打包普通项目引用。可访问内部成员的包需要与被引用程序集保持同一版本。 -->
+  <Target Name="KunGetFriendPackReference" Returns="@(_KunFriendPackReference)">
+    <ItemGroup>
+      <_KunConsumingFriend Include="@(InternalsVisibleTo)"
+                           Condition="'%(InternalsVisibleTo.Identity)' == '$(KunConsumingAssembly)'" />
+      <_KunFriendPackReference Include="$(MSBuildProjectFullPath)" ProjectVersion="[$(PackageVersion)]"
+                               Condition="'@(_KunConsumingFriend)' != ''" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="KunPinFriendPackReferences" AfterTargets="_GetProjectReferenceVersions"
+          Condition="'@(_ProjectReferencesWithVersions)' != ''">
+    <MSBuild Projects="@(_ProjectReferencesWithVersions)" Targets="KunGetFriendPackReference"
+             Properties="KunConsumingAssembly=$(AssemblyName)" SkipNonexistentTargets="true" BuildInParallel="true">
+      <Output TaskParameter="TargetOutputs" ItemName="_KunPinnedReferences" />
+    </MSBuild>
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Remove="@(_KunPinnedReferences)" />
+      <_ProjectReferencesWithVersions Include="@(_KunPinnedReferences)" />
+    </ItemGroup>
+  </Target>
+
   <!--
     公共 API（S1-KUN-020）。
     可打包的项目自动接 Microsoft.CodeAnalysis.PublicApiAnalyzers：公共 API 必须登记在项目目录的 PublicAPI.Shipped.txt 与

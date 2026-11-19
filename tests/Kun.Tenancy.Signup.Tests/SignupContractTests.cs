@@ -84,9 +84,10 @@ public sealed class SignupContractTests
         var submitted = paths.GetProperty("/api/signup/me/applications").GetProperty("post").GetProperty("responses");
         Assert.True(submitted.TryGetProperty("201", out _) && submitted.TryGetProperty("422", out _) && submitted.TryGetProperty("409", out _));
 
+        // 发布的契约在过渡目录 _import/qian 的组件文件夹里。
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
-        var file = Path.Combine(root!.FullName, "plugins/qian.tenancy.signup/contracts/http-v1.openapi.json");
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
+        var file = Path.Combine(root!.FullName, "_import/qian/plugins/qian.tenancy.signup/contracts/http-v1.openapi.json");
         if (Environment.GetEnvironmentVariable("QIAN_UPDATE_SIGNUP_CONTRACT") == "1")
         { Directory.CreateDirectory(Path.GetDirectoryName(file)!); await File.WriteAllTextAsync(file, JsonSerializer.Serialize(contract, ContractJson) + "\n", Ct); }
         Assert.True(JsonElement.DeepEquals(JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(file, Ct)), contract), "真实端点与发布契约漂移。");

@@ -11,6 +11,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" IncludeAssets="all" />
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="coverlet.MTP" />
   </ItemGroup>
   <!-- 开发宿主的开发期发件箱：门禁（只在 Development、只认回环）在这里单测，源文件随 tools/Qian.Dev.Shell 一起编译。 -->
   <ItemGroup>

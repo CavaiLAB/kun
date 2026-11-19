@@ -45,7 +45,7 @@ PostgreSQL runs `EnsureCreated` at service startup, which takes a few seconds.
 | Resource | Type | Role |
 |---|---|---|
 | `catalog` | .NET project | Write/read API for the Catalog bounded context |
-| `order` | .NET project | Write/read API for the Order bounded context (Saga demo) |
+| `order` | .NET project | Write/read API for the Order bounded context (command flow + Outbox demo) |
 | `gateway` | .NET project | YARP reverse proxy and S2S JWT issuer |
 | `postgres` | Docker container | PostgreSQL 16; `kun` database created automatically |
 | `rabbitmq` | Docker container | RabbitMQ with management plugin enabled |
@@ -68,10 +68,10 @@ Service endpoints (ports are dynamic — read them from the Dashboard Endpoints 
 
 - **Traces** panel — distributed OpenTelemetry traces across all service boundaries. Filter by
   service name to isolate a specific service, or search by `TraceId` to follow a request from
-  HTTP ingress through CQRS handler, EF Core, Outbox, and saga steps.
+  HTTP ingress through CQRS handler, gRPC call to Catalog, EF Core, and Outbox.
 
 - **Logs** panel — structured log streams per resource, filterable by severity. The Order
-  service logs each saga step execution and each Outbox publish attempt.
+  service logs each placed order and each Outbox publish attempt.
 
 - **Metrics** panel — request rates, latency percentiles, and container resource usage.
 

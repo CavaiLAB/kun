@@ -4,8 +4,8 @@ using Kun.Sample.Order.Domain.Events;
 namespace Kun.Sample.Order.Domain;
 
 /// <summary>
-/// Order aggregate root. Tracks the lifecycle of a customer order through the
-/// saga orchestration pipeline (Pending → Reserved → Paid → Shipped → Completed).
+/// Order aggregate root. Tracks the lifecycle of a customer order
+/// (Pending → Reserved → Completed, or Cancelled).
 /// </summary>
 public sealed class Order : AggregateRoot<Guid>
 {
@@ -56,26 +56,10 @@ public sealed class Order : AggregateRoot<Guid>
         UpdatedAt = DateTime.UtcNow;
     }
 
-    /// <summary>Transitions the order to <see cref="OrderStatus.Paid"/> after payment succeeds.</summary>
-    public void MarkPaid()
-    {
-        EnsureStatus(OrderStatus.Reserved);
-        Status = OrderStatus.Paid;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>Transitions the order to <see cref="OrderStatus.Shipped"/>.</summary>
-    public void MarkShipped()
-    {
-        EnsureStatus(OrderStatus.Paid);
-        Status = OrderStatus.Shipped;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>Transitions the order to <see cref="OrderStatus.Completed"/>.</summary>
+    /// <summary>Transitions the order to <see cref="OrderStatus.Completed"/> once its stock is reserved.</summary>
     public void MarkCompleted()
     {
-        EnsureStatus(OrderStatus.Shipped);
+        EnsureStatus(OrderStatus.Reserved);
         Status = OrderStatus.Completed;
         UpdatedAt = DateTime.UtcNow;
     }

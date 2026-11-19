@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -31,6 +32,14 @@ def solution_projects(root: Path) -> list[str]:
     return [(base / project.replace("\\", "/")).resolve().relative_to(resolved).as_posix() for project in document["projects"]]
 
 
+def src_projects(root: Path) -> list[Path]:
+    """仓库根 Kun.slnx 里 src/ 下的项目。组件包搬出过渡目录后在这里，入口与实现构件照同一规则发现与核对。"""
+    document = json.loads((root / "Qian.slnf").read_text(encoding="utf-8-sig"))["solution"]
+    solution = (root / document["path"].replace("\\", "/")).resolve()
+    paths = [element.get("Path", "").replace("\\", "/") for element in ET.parse(solution).getroot().iter("Project")]
+    return [solution.parent / path for path in paths if path.startswith("src/") and path.endswith(".csproj")]
+
+
 def check(root: Path, sync: bool = False) -> tuple[int, int]:
     # 清单工具在仓库根的 tools/ 下，随 Kun.slnx 构建。
     tool = solution_root(root) / "tools/Kun.Plugin.Tool/bin/Release/net10.0/Kun.Plugin.Tool.dll"
@@ -39,17 +48,17 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
     classifications = json.loads((root / "scripts/plugin-implementations.json").read_text())
     used: set[str] = set()
     components: dict[str, tuple[Path, str]] = {}
-    for relative in solution_projects(root):
-        if not relative.startswith(("packages/", "samples/")) or not relative.endswith(".csproj"):
-            continue
-        path = root / relative
+    # 过渡目录里 packages/、samples/ 下的项目，加上仓库根 src/ 下的项目（搬出过渡目录的组件包）。
+    projects = [root / relative for relative in solution_projects(root)
+                if relative.startswith(("packages/", "samples/")) and relative.endswith(".csproj")]
+    for path in projects + src_projects(root):
         configuration = ET.parse(path).getroot()
         if configuration.findtext(".//TargetFramework", "").startswith("netstandard"):
             continue  # 分析器程序集不是可执行组件，不能实现 net10 的 IKunPlugin。
         name = configuration.findtext(".//AssemblyName") or path.stem
         assembly = path.parent / "bin/Release/net10.0" / (name + ".dll")
         if not assembly.is_file():
-            raise ValueError("缺少实际构建产物：" + str(assembly.relative_to(root)))
+            raise ValueError("缺少实际构建产物：" + os.path.relpath(assembly, root))
         for implementation in json.loads(run(["dotnet", str(tool), "inventory", str(assembly)])):
             key = name + ":" + implementation["type"]
             component = implementation["component"]

@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Qian.Data;
+using Kun.Data;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Kun.Runtime;

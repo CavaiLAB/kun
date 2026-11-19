@@ -353,7 +353,7 @@ class RealGraphTests(unittest.TestCase):
             ("Qian.Authz.AspNetCore", "Qian.Registry"): ["P"],  # 平台档提供者 → 别的平台组件的提供者
             ("Kun.Runtime", "Qian.Events"): ["D"],  # 内核档契约 → 内核档提供者
             ("Kun.Mediator", "Kun.EventBus"): ["D"],
-            ("Kun.Errors", "Qian.Tenancy.Abstractions"): ["K", "C"],  # 内核档 → 平台档；Kun.Errors 零依赖，C 也报
+            ("Kun.Errors", "Kun.Tenancy.Abstractions"): ["K", "C"],  # 内核档 → 平台档；Kun.Errors 零依赖，C 也报
         }
         for (subject, target), rules in cases.items():
             with self.subTest(edge=f"{subject} → {target}"):

@@ -5,7 +5,7 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Scheduler.Tests;
 
@@ -14,7 +14,7 @@ internal sealed class SchedulerDesignTimeFactory : IDesignTimeDbContextFactory<S
     public SchedulerDbContext CreateDbContext(string[] args)
     {
         var services = new ServiceCollection(); services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext()); services.AddKunEventBus();
-        services.AddQianData<SchedulerDbContext>((_, options) => options.UseNpgsql("Host=localhost;Database=design;Username=design").UseKunSchema(SchedulerDbContext.Schema));
+        services.AddKunData<SchedulerDbContext>((_, options) => options.UseNpgsql("Host=localhost;Database=design;Username=design").UseKunSchema(SchedulerDbContext.Schema));
         return services.BuildServiceProvider().CreateScope().ServiceProvider.GetRequiredService<SchedulerDbContext>();
     }
 }

@@ -8,7 +8,7 @@
 
 ```csharp
 builder.Services.AddKunEventBus(registrar => registrar.RegisterFilesEvents() /* 以及其他组件的事件 */);
-builder.Services.AddQianData<FilesDbContext>((_, options) => options.UseNpgsql(business).UseKunSchema(FilesDbContext.Schema));
+builder.Services.AddKunData<FilesDbContext>((_, options) => options.UseNpgsql(business).UseKunSchema(FilesDbContext.Schema));
 builder.Services.AddKunMediator(registry => registry.AddQianFiles(sp => /* 按请求租户收窄的 qian.files 上下文 */, options =>
 {
     options.LocalSigningKey = signingKey; // 多实例共用同一把 ≥32 字节密钥；不给则每次挂载随机生成
@@ -52,7 +52,7 @@ builder.Services.AddKunMediator(registry => registry.AddQianFiles(sp => /* 按�
 
 ## 依赖边界
 
-依赖 `Qian.Files.Abstractions`、`Qian.Data.Abstractions`、`Qian.Tenancy.Abstractions`、`Kun.Plugin.Sdk` 与 Kun.Storage.Local；不引用其他 Provider（Authz、Audit、Tenancy 的实现由宿主组合）。Kun 旧存储线（`Kun.Storage.Abstractions.IFileStorage`）由仓库根 `BannedSymbols.txt` 禁用。
+依赖 `Qian.Files.Abstractions`、`Kun.Data.Abstractions`、`Kun.Tenancy.Abstractions`、`Kun.Plugin.Sdk` 与 Kun.Storage.Local；不引用其他 Provider（Authz、Audit、Tenancy 的实现由宿主组合）。Kun 旧存储线（`Kun.Storage.Abstractions.IFileStorage`）由仓库根 `BannedSymbols.txt` 禁用。
 
 ## 验证
 
@@ -69,6 +69,6 @@ builder.Services.AddKunMediator(registry => registry.AddQianFiles(sp => /* 按�
 - 不做病毒扫描与预览：`scanStatus` 恒为 `unscanned`，预览归 S2。
 - 软删后的文件对全局查询过滤器不可见，重复删除返回 404 而不是原回执（QIAN0004 不允许绕过过滤器），不会重复产生副作用。
 - `qian add files` 只按 configSchema 缺省值合成条目配置，`storage` 必填却没有缺省值：安装前要在 profile patch 里放一条 `disabled: true` 的 files 条目写好存储配置（安装时沿用）；安装时直接给配置的入口不在本包范围。基础组合包（`qian.bundle.base`、`qian.bundle.identity-server`）的 files 补丁已带 `storage.endpoint`（示例域名，部署时按实际公开基址覆盖）；`runtime.nuget` 的版本与摘要在发布后人工同步，发布链自动给出待同步清单归 S1-RT-034。
-- 宿主装配要自带 `Kun.EventBus` 实现包（组件包只传递带来其抽象），并 `AddKunEventBus(registrar => registrar.RegisterFilesEvents())`、在 `AddKunMediator` 里 `AddQianFiles`；还要显式选择 `ITenantContext`（例如 Kun 的 `AsyncLocalTenantContext`，随包传递带来），缺了挂载即失败；文件能力的命令管道另需当前主体（`ICurrentUser`）与 `AddQianData<FilesDbContext>` 数据会话，缺了处理器无法构造；独立模式的完整上传与下载样例归 S1-QA-005。
+- 宿主装配要自带 `Kun.EventBus` 实现包（组件包只传递带来其抽象），并 `AddKunEventBus(registrar => registrar.RegisterFilesEvents())`、在 `AddKunMediator` 里 `AddQianFiles`；还要显式选择 `ITenantContext`（例如 Kun 的 `AsyncLocalTenantContext`，随包传递带来），缺了挂载即失败；文件能力的命令管道另需当前主体（`ICurrentUser`）与 `AddKunData<FilesDbContext>` 数据会话，缺了处理器无法构造；独立模式的完整上传与下载样例归 S1-QA-005。
 - 组件声明的上传策略（`metadata/upload-policies.json`）只在平台宿主经 Registry 预装快照汇总，同组件预装多个版本时取最高版本的声明；不按租户实际挂载的组件过滤。声明不合法时，Registry 已就绪则挂载失败，否则在第一次用到策略时报 `INPUT_INVALID`（指针形如 `acme.crm/metadata/upload-policies.json#/0/purpose`）。
 - 独立模式（不装 Tenancy / Authz / Audit）没有命令策略，能力一律拒绝；最小独立组合与样例归 S1-QA-005。

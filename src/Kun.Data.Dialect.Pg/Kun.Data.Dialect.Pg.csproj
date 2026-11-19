@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Kun 数据组件的 PostgreSQL 方言（qian.data.dialect/v1）：基准类型映射数据与 Npgsql 连通探测。</Description>
+  </PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>platform</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <PackageReference Include="Npgsql" />
+    <EmbeddedResource Include="pg-dialect.json" LogicalName="qian.data.dialect.pg.json" />
+  </ItemGroup>
+</Project>

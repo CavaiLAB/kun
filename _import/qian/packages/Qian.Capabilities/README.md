@@ -133,7 +133,7 @@ Capabilities 同时提供 `Contracts` 服务键（`ctx.Contracts()` / `IContract
 
 偏好保存在 `CapabilitiesDbContext` 的 `plugin_qian_capabilities.navigation_preferences`。表强制租户 RLS，服务查询另按 `principal_kind + sub` 过滤；这也让同名用户与服务拥有独立空间。偏好行不会授予权限，另一租户的资源引用不能写入。
 
-`CapabilitiesDbContext` 的表（`navigation_preferences`、`invoke_receipts` 与 Kun 基类的 `outbox_messages`）随包以 EF 迁移交付（`Migrations/`），迁移由 `Qian.Data` 的迁移生成器自动生成两张业务表的 ENABLE / FORCE RLS 与 `qian_tenant_access` / `qian_tenant_guard` 策略。宿主用 `AddQianData<CapabilitiesDbContext>` 注册在线连接（受限应用角色），用 `AddQianDataMigrations` 为迁移指定属主角色连接；部署时由 `--migrate-only` 迁移任务（S1-DEP-004）调用 `IDataMigrator` 在 advisory lock 内执行，在线副本启动时只校验、发现未应用的迁移即拒绝启动。没有迁移的上下文会被迁移器跳过，所以宿主不能再用 `GenerateCreateScript` 代替。
+`CapabilitiesDbContext` 的表（`navigation_preferences`、`invoke_receipts` 与 Kun 基类的 `outbox_messages`）随包以 EF 迁移交付（`Migrations/`），迁移由 `Kun.Data` 的迁移生成器自动生成两张业务表的 ENABLE / FORCE RLS 与 `qian_tenant_access` / `qian_tenant_guard` 策略。宿主用 `AddKunData<CapabilitiesDbContext>` 注册在线连接（受限应用角色），用 `AddKunDataMigrations` 为迁移指定属主角色连接；部署时由 `--migrate-only` 迁移任务（S1-DEP-004）调用 `IDataMigrator` 在 advisory lock 内执行，在线副本启动时只校验、发现未应用的迁移即拒绝启动。没有迁移的上下文会被迁移器跳过，所以宿主不能再用 `GenerateCreateScript` 代替。
 
 偏好更新与 `qian.capabilities/navigation.preference` 审计在同一个 PostgreSQL Serializable 事务中提交。审计只写已知非敏感输入的规范化哈希，字段为 hidden、order 和 ASCII 资源引用，payload 不复制输入。审计失败时偏好回滚；序列化、死锁及目标键冲突会重新验证资格并重试整笔更新，耗尽后返回 CONFLICT。宿主需给本上下文的受限应用角色配置既有审计事务函数权限，不授予审计历史 DML。
 

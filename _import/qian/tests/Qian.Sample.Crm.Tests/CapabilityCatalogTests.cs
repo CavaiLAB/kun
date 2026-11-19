@@ -17,7 +17,7 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
@@ -25,7 +25,7 @@ using Qian.Registry;
 using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 
 namespace Qian.Sample.Crm.Tests;
@@ -343,11 +343,11 @@ public abstract partial class CustomerCommandTests
     {
         builder.Services.AddQianHttpContracts();
         builder.Configuration["Qian:Profile"] = "platform"; // 业务端点的可见性门由参考宿主自身装配。
-        builder.Services.AddQianData<CapabilitiesDbContext>((_, options) => options.UseNpgsql(navigationConnection).UseKunSchema(CapabilitiesDbContext.Schema));
+        builder.Services.AddKunData<CapabilitiesDbContext>((_, options) => options.UseNpgsql(navigationConnection).UseKunSchema(CapabilitiesDbContext.Schema));
         // 只有能力上下文随包带迁移；迁移连接用属主角色，在线连接仍是受限业务角色。
-        builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, type) =>
+        builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, type) =>
             type == typeof(CapabilitiesDbContext) || type == typeof(Qian.Lifecycle.LifecycleDbContext) ? migrations : null);
-        builder.Services.AddQianData<RegistryDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(RegistryDbContext.Schema));
+        builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(RegistryDbContext.Schema));
         builder.Services.AddSingleton<ISurfaceReader, SurfaceValidator>();
         builder.Services.AddSingleton<IToolContractHasher, ToolContractHasher>();
         // 登记期契约检查：组件 ProvideCapability 时生成目录条目并预编译输入校验器，不合格的契约在登记阶段拒绝。

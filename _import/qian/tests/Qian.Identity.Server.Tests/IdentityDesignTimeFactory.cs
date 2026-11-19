@@ -5,7 +5,7 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Identity.Server.Tests;
 
@@ -16,7 +16,7 @@ internal sealed class IdentityDesignTimeFactory : IDesignTimeDbContextFactory<Id
     {
         var services = new ServiceCollection(); services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         services.AddKunEventBus();
-        services.AddQianData<IdentityDbContext>((_, options) => options.UseNpgsql("Host=localhost;Database=design;Username=design").UseKunSchema(IdentityDbContext.Schema));
+        services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql("Host=localhost;Database=design;Username=design").UseKunSchema(IdentityDbContext.Schema));
         return services.BuildServiceProvider().CreateScope().ServiceProvider.GetRequiredService<IdentityDbContext>();
     }
 }

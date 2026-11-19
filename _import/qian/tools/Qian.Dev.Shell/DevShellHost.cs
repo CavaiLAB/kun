@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Qian.Gateway;
 using Kun.Runtime;
 using Qian.Sample.Crm;
-using Qian.Tenancy.Signup;
+using Kun.Tenancy.Signup;
 
 namespace Qian.Dev.Shell;
 
@@ -90,7 +90,7 @@ internal static class DevShellHost
             ValidateIssuerSigningKey = true, IssuerSigningKey = keys.PublicKey, ValidAlgorithms = [SecurityAlgorithms.RsaSha256], RequireSignedTokens = true,
             RequireExpirationTime = true, ClockSkew = TimeSpan.Zero
         }, builder => { builder.WebHost.UseUrls("http://127.0.0.1:0"); DevHost.Logging(builder.Logging); });
-        operations.MapQianTenancySignupOperations(_ => assembly.Loader.GetContext("tenancy.signup", ScopeKey.Global));
+        operations.MapKunTenancySignupOperations(_ => assembly.Loader.GetContext("tenancy.signup", ScopeKey.Global));
         await operations.StartAsync(ct).ConfigureAwait(false);
         // 运行时配置：K8s 里是 ConfigMap 挂成同源的 /app-config.json；这里取状态目录里的文件（网关每次现读，改完刷新即生效）。首次启动写缺省值，之后不覆盖。
         var appConfig = Path.Combine(settings.State, "app-config.json");

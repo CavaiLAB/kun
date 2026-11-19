@@ -1,11 +1,11 @@
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Authz;
 
 /// <summary>权限目录上下文；连接、迁移和应用角色校验由 Data 的强制装配提供。</summary>
-public class AuthzDbContext : QianDbContext
+public class AuthzDbContext : KunStrictDbContext
 {
     /// <summary>普通租户上下文：角色、主体绑定与授权只读写当前租户的行，平台行（tenant_id 为 null）不可见。</summary>
     public AuthzDbContext(DbContextOptions<AuthzDbContext> options, ITenantContext tenant) : this(options, tenant, false) { }

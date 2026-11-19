@@ -13,8 +13,8 @@ using Qian.Audit.Native;
 using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
-using Qian.Data.Native;
-using Qian.Data.Native.Postgres;
+using Kun.Data.Native;
+using Kun.Data.Native.Postgres;
 using Qian.Gateway;
 using Qian.Gateway.Host;
 using Qian.Identity.Abstractions;
@@ -52,9 +52,9 @@ NativeDataTable[] auditTables = [
     new(NativeAuditStorage.Schema, "audit_entries", NativeAuditStorage.GuardPolicy, auditGuard, auditGuard),
     new(NativeAuditStorage.Schema, "audit_chain_state", NativeAuditStorage.GuardPolicy, auditGuard, auditGuard)
 ];
-builder.Services.AddQianNativeData(new("audit_tenant", auditRoles.TenantLogin, NativeDataAccess.Tenant,
+builder.Services.AddKunNativeData(new("audit_tenant", auditRoles.TenantLogin, NativeDataAccess.Tenant,
     _ => ValueTask.FromResult(ReadCredential(Required("ConnectionFiles:Audit"))), auditTables));
-builder.Services.AddQianNativeData(new("audit_platform", auditRoles.PlatformLogin!, NativeDataAccess.Platform,
+builder.Services.AddKunNativeData(new("audit_platform", auditRoles.PlatformLogin!, NativeDataAccess.Platform,
     _ => ValueTask.FromResult(ReadCredential(Required("ConnectionFiles:PlatformAudit"))), auditTables));
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(ReadCredential(Required("ConnectionFiles:Redis"))));
 builder.Services.AddDataProtection().SetApplicationName("qian.gateway")

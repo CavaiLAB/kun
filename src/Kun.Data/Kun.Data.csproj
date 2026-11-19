@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Kun 数据组件的 RLS 双拦截器、模型缓存键与启动安全检查。</Description>
+  </PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>platform</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="StackExchange.Redis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

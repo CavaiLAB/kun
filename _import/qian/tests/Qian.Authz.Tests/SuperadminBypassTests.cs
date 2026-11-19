@@ -22,7 +22,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Kun.Runtime;
 using Kun.Errors;
@@ -249,7 +249,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         }
         await runtime.MountAsync([Define("shared-login", new AuthzPlugin(), AuthzKeys, new { platformRole = "qian_app" })], Ct);
         Assert.Equal(PluginState.Failed, runtime.GetState("shared-login", ScopeKey.Global));
-        Assert.IsType<QianDataMisconfiguredException>(runtime.GetFailure("shared-login", ScopeKey.Global));
+        Assert.IsType<KunDataMisconfiguredException>(runtime.GetFailure("shared-login", ScopeKey.Global));
     }
 
     [Fact]
@@ -321,12 +321,12 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         builder.Services.AddKunMediator(mediator => { if (authzEvents) mediator.AddQianAuthzEvents(); }); builder.Services.AddQianEvents();
         builder.Services.AddSingleton<IPermissionRegistry, PermissionRegistry>();
         if (cache is not null) builder.Services.AddSingleton(cache);
-        builder.Services.AddQianData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
-        builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
+        builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
         if (authzPlatform is not null)
-            builder.Services.AddQianData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(authzPlatform).UseKunSchema(AuthzDbContext.Schema));
+            builder.Services.AddKunData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(authzPlatform).UseKunSchema(AuthzDbContext.Schema));
         if (auditPlatform is not null)
-            builder.Services.AddQianData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(auditPlatform).UseKunSchema(AuditDbContext.Schema));
+            builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(auditPlatform).UseKunSchema(AuditDbContext.Schema));
         return builder.Build();
     }
 

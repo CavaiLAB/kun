@@ -6,7 +6,7 @@ Events seam 的 Provider：v1 信封写入端、RabbitMQ 发布端、按租约�
 
 ```csharp
 builder.Services.AddKunEventBus(events => events.Register(OrderEvents.Created, OrderJson.Default.OrderCreated));
-builder.Services.AddQianData<OrderDbContext>((sp, options) => options.UseNpgsql(connection).UseKunSchema("plugin_order"));
+builder.Services.AddKunData<OrderDbContext>((sp, options) => options.UseNpgsql(connection).UseKunSchema("plugin_order"));
 builder.Services.AddQianEvents();
 builder.Services.AddQianEventsBroker(sp => sp.GetRequiredService<IConfiguration>().GetConnectionString("Events")!);
 ```
@@ -14,7 +14,7 @@ builder.Services.AddQianEventsBroker(sp => sp.GetRequiredService<IConfiguration>
 - `AddQianEvents` 把数据会话的 `IOutboxWriter` 与 `IIntegrationEventBus` 换成同一个 scoped 信封写入端，只写 Outbox、不投递。
 - `AddQianEventsBroker` 再登记 RabbitMQ 发布端和投递后台服务。AMQP 地址在首次连接时读取，不进组件清单。只订阅、没有业务上下文的宿主（例如网关）也经它登记 broker，投递服务这时没有可领取的 Outbox。
 - `AddQianEventsSubscriber` 登记消费端，见下文「消费」。
-- 三者与 `AddQianData` 的调用顺序无关。
+- 三者与 `AddKunData` 的调用顺序无关。
 
 启动检查有三条，任一不满足宿主拒绝启动：
 
@@ -31,7 +31,7 @@ builder.Services.AddQianEventsBroker(sp => sp.GetRequiredService<IConfiguration>
 - event_id 是以事件发生时间生成的 UUID v7；
 - 完整 v1 信封作为 Outbox 行的 payload，与业务数据在同一事务提交。
 
-登记与发布的类型就是信封里的 payload，不要把整封信封登记成事件类型，载荷也不声明自己的 event_id 或发生时间（写入端不读，ADR-008 D8.7 / S1-DEC-020）。消费方需要信封上下文时，从解析后的信封派生视图，例如 Qian.Data 记录事件的 `RecordChangedEvent.FromEnvelope`。
+登记与发布的类型就是信封里的 payload，不要把整封信封登记成事件类型，载荷也不声明自己的 event_id 或发生时间（写入端不读，ADR-008 D8.7 / S1-DEC-020）。消费方需要信封上下文时，从解析后的信封派生视图，例如 Kun.Data 记录事件的 `RecordChangedEvent.FromEnvelope`。
 
 以下情况抛 EVENTS_PUBLISH_REJECTED，缓冲里不会留下半条：
 
@@ -165,7 +165,7 @@ handler 想明确表示「重试也不会成功」时，抛携带 EVENTS_CONSUME
 
 哪些宿主登记传播器（S1-EVT-004，产品负责人 2026-10-23 确认）：
 
-- 组合包含 qian.tenancy 的 profile 宿主接订阅器时登记 `TenantContextPropagator`，与参考宿主一致，生产宿主与 gRPC、作业共用 Qian.Tenancy 的同一份判定。目前装 qian.events 的 platform、identity 都属于这一类。
+- 组合包含 qian.tenancy 的 profile 宿主接订阅器时登记 `TenantContextPropagator`，与参考宿主一致，生产宿主与 gRPC、作业共用 Kun.Tenancy 的同一份判定。目前装 qian.events 的 platform、identity 都属于这一类。
 - 不装 qian.tenancy 的订阅宿主走回退分支，判定相同。
 
 ### handler 拿到什么

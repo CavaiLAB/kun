@@ -5,7 +5,7 @@
     <ProjectReference Include="../../packages/Qian.Gateway/Qian.Gateway.csproj" />
     <ProjectReference Include="../../packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
     <ProjectReference Include="../../packages/Qian.Identity.Server/Qian.Identity.Server.csproj" />
-    <ProjectReference Include="../../packages/Qian.Data/Qian.Data.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../packages/Qian.Events/Qian.Events.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />

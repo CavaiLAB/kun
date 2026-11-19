@@ -1,5 +1,5 @@
 using System.Data.Common;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Audit;
@@ -152,7 +152,7 @@ public static class AuditPlatformAccess
 
     internal static async Task ValidateConnectionAsync(DbConnection connection, string role, CancellationToken ct)
     {
-        ValidateRoleName(role); await QianApplicationRoleInterceptor.ValidateAsync(connection, ct).ConfigureAwait(false);
+        ValidateRoleName(role); await KunApplicationRoleInterceptor.ValidateAsync(connection, ct).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_roles r WHERE r.rolname = @role
@@ -172,7 +172,7 @@ public static class AuditPlatformAccess
             """;
         var parameter = command.CreateParameter(); parameter.ParameterName = "role"; parameter.Value = role; command.Parameters.Add(parameter);
         if (await command.ExecuteScalarAsync(ct).ConfigureAwait(false) is not true)
-            throw new QianDataMisconfiguredException("平台审计必须使用独立的受限登录角色；禁止角色切换、继承或复用普通租户凭据。");
+            throw new KunDataMisconfiguredException("平台审计必须使用独立的受限登录角色；禁止角色切换、继承或复用普通租户凭据。");
     }
     internal static void ValidateRoleName(string role)
     {

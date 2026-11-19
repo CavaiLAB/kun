@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Qian.Identity.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 
 namespace Qian.Identity.Server.Tests;

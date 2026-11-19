@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Authz;

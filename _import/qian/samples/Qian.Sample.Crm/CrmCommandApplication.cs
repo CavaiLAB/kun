@@ -15,10 +15,10 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Kun.Plugin.Sdk;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Kun.Runtime;
 using StackExchange.Redis;
 
@@ -90,9 +90,9 @@ public static class CrmCommandApplication
                 }
             }
             builder.Services.AddSingleton<IPermissionRegistry, PermissionRegistry>();
-            builder.Services.AddQianData<AuthzDbContext>((_, options) => options.UseNpgsql(Connection("Authz")).UseKunSchema(AuthzDbContext.Schema));
-            builder.Services.AddQianData<TenancyDbContext>((_, options) => options.UseNpgsql(Connection("Tenancy")).UseKunSchema(TenancyDbContext.Schema));
-            builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(Connection("Audit")).UseKunSchema(AuditDbContext.Schema));
+            builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(Connection("Authz")).UseKunSchema(AuthzDbContext.Schema));
+            builder.Services.AddKunData<TenancyDbContext>((_, options) => options.UseNpgsql(Connection("Tenancy")).UseKunSchema(TenancyDbContext.Schema));
+            builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(Connection("Audit")).UseKunSchema(AuditDbContext.Schema));
             builder.Services.AddSingleton<IPermissionChecker>(sp => new RbacPermissionChecker(sp.GetRequiredService<IDataService>(),
                 sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<IPermissionRegistry>()));
             builder.Services.AddSingleton<CrmCommandRuntime>();
@@ -102,7 +102,7 @@ public static class CrmCommandApplication
             builder.Services.AddQianAuthzEnforcement(http => http.RequestServices.GetRequiredService<CrmCommandRuntime>().AuthzSource(), options => options.Production = true);
             builder.Services.AddKunMediator(registry =>
             {
-                registry.AddQianTenancyEvents().AddQianAuthzEvents();
+                registry.AddKunTenancyEvents().AddQianAuthzEvents();
                 registry.AddKunCapability<CreateCustomerCommand, CustomerItem, CreateCustomerHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
                 registry.AddKunCapability<ListCustomersQuery, CustomerPage, ListCustomersHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
                 registry.AddKunCapability<GetCustomerQuery, CustomerItem, GetCustomerHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());

@@ -1,7 +1,7 @@
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Authz;
 

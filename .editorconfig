@@ -56,3 +56,7 @@ dotnet_diagnostic.IDE0005.severity = warning # Unused using
 dotnet_diagnostic.CA1716.severity = none
 # CA1000: `Result<T>.Ok(value)` / `Result<T>.Fail(error)` are idiomatic Result factories. Intentional.
 dotnet_diagnostic.CA1000.severity = none
+
+# dotnet ef 生成的迁移按生成代码对待；迁移内容以 EF 模型差异为准，不手工改写风格。
+[**/Migrations/*.cs]
+generated_code = true

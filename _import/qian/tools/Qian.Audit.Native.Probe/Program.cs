@@ -7,8 +7,8 @@ using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Audit.Native;
-using Qian.Data.Native;
-using Qian.Data.Native.Postgres;
+using Kun.Data.Native;
+using Kun.Data.Native.Postgres;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
@@ -34,8 +34,8 @@ try
     var guard = NativeAuditStorage.ExpectedGuard(roles);
     var tables = new[] { new NativeDataTable(NativeAuditStorage.Schema, "audit_entries", NativeAuditStorage.GuardPolicy, guard, guard),
         new NativeDataTable(NativeAuditStorage.Schema, "audit_chain_state", NativeAuditStorage.GuardPolicy, guard, guard) };
-    services.AddQianNativeData(new("audit_tenant", roles.TenantLogin, NativeDataAccess.Tenant, _ => ValueTask.FromResult(Get("tenantConnection")), tables));
-    services.AddQianNativeData(new("audit_platform", roles.PlatformLogin!, NativeDataAccess.Platform, _ => ValueTask.FromResult(Get("platformConnection")), tables));
+    services.AddKunNativeData(new("audit_tenant", roles.TenantLogin, NativeDataAccess.Tenant, _ => ValueTask.FromResult(Get("tenantConnection")), tables));
+    services.AddKunNativeData(new("audit_platform", roles.PlatformLogin!, NativeDataAccess.Platform, _ => ValueTask.FromResult(Get("platformConnection")), tables));
     await using var provider = services.BuildServiceProvider(); await using var loader = new PluginLoader(provider);
     using var dataConfig = JsonDocument.Parse("""{"connections":["audit_tenant","audit_platform"]}""");
     using var auditConfig = JsonDocument.Parse($$"""{"tenantBinding":"audit_tenant","platformBinding":"audit_platform","tenantRole":"{{roles.TenantLogin}}","platformRole":"{{roles.PlatformLogin}}","functionOwner":"{{roles.FunctionOwner}}"}""");

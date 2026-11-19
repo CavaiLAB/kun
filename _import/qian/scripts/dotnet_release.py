@@ -11,7 +11,7 @@
       源生成器包只带 analyzers/dotnet/cs 下的分析器且是开发依赖；许可证与仓库地址齐全。
   python3 scripts/dotnet_release.py verify-consumer --version 0.1.0 --source <URL 或目录> [--token-env NAME]
       在临时目录建一个干净的消费者项目，用独立的包缓存、按 packageSourceMapping 只从给定源还原 Qian.*，
-      引用 Kun.Plugin.Sdk / Kun.Plugin.Sdk.Generators / Qian.Data 的精确版本；构建时包里的源生成器派生组件元数据，
+      引用 Kun.Plugin.Sdk / Kun.Plugin.Sdk.Generators / Kun.Data 的精确版本；构建时包里的源生成器派生组件元数据，
       运行后核对派生结果，并核对还原出的每个 Qian.* 包都是同一版本、都来自给定源。
   python3 scripts/dotnet_release.py verify-feed --version 0.1.0 --repository idadawn/qian --token-env NAME
       推送后经 GitHub REST API 核对：包族每个包都有这个版本、关联到发布仓库，且可见性与仓库一致
@@ -47,7 +47,7 @@ SEMVER = re.compile(
 GENERATORS = "Kun.Plugin.Sdk.Generators"
 LICENSE = "MIT"
 REPOSITORY = "https://github.com/idadawn/qian.git"
-CONSUMER_PACKAGES = ("Kun.Plugin.Sdk", GENERATORS, "Qian.Data")
+CONSUMER_PACKAGES = ("Kun.Plugin.Sdk", GENERATORS, "Kun.Data")
 
 
 class Failure(Exception):
@@ -264,7 +264,7 @@ CONSUMER_PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Kun.Plugin.Sdk" Version="[{version}]" />
     <PackageReference Include="Kun.Plugin.Sdk.Generators" Version="[{version}]" PrivateAssets="all" />
-    <PackageReference Include="Qian.Data" Version="[{version}]" />
+    <PackageReference Include="Kun.Data" Version="[{version}]" />
   </ItemGroup>
 </Project>
 """
@@ -304,7 +304,7 @@ public static class Program
     public static void Main()
     {
         var probe = Read(typeof(ProbePlugin).Assembly);
-        var data = Read(typeof(Qian.Data.DataPlugin).Assembly);
+        var data = Read(typeof(Kun.Data.DataPlugin).Assembly);
         Console.WriteLine(JsonSerializer.Serialize(new
         {
             probe = new { probe.ComponentId, probe.RuntimeEntry, probe.Provides, Capabilities = probe.Capabilities.Select(c => new { c.Id, Metadata = c.Metadata }) },
@@ -363,7 +363,7 @@ def verify_consumer(version: str, source: str, token_variable: Optional[str], at
             capabilities[0]["Metadata"].get("requiredScopes") != ["qian.release-probe:read"]:
         problems.append(f"消费者能力契约不符：{capabilities}")
     data = report["data"]
-    if (data["ComponentId"], data["RuntimeEntry"], data["Provides"]) != ("qian.data", "Qian.Data.DataPlugin, Qian.Data", ["Data"]):
+    if (data["ComponentId"], data["RuntimeEntry"], data["Provides"]) != ("qian.data", "Kun.Data.DataPlugin, Kun.Data", ["Data"]):
         problems.append(f"包里 qian.data 的生成元数据不符：{data}")
 
     assets = json.loads((work / "obj" / "project.assets.json").read_text(encoding="utf-8"))

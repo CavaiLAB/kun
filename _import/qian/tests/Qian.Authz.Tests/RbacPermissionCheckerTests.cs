@@ -3,7 +3,7 @@ using Kun.Authorization;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Authz.Tests;
 

@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Qian.Identity.Abstractions;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Qian.Identity.Server;

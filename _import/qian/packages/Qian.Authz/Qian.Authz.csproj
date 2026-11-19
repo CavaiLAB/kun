@@ -5,7 +5,7 @@
     <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
     <!-- 授权变更后经身份端口递增 identity_revision（S1-DEC-027）：只用 Definition 里的 IIdentityAccounts 与服务键。 -->

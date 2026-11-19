@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Mediator;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Qian.Lifecycle;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

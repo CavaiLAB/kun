@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Qian.Audit;
 using Qian.Config;
 using Qian.Config.Apollo;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Client;
 using Kun.Plugin.Sdk;
@@ -36,7 +36,7 @@ var tenant = new AsyncLocalTenantContext();
 builder.Services.AddSingleton<ITenantContext>(tenant);
 builder.Services.AddKunEventBus();
 builder.Services.AddQianConfiguration(configuration);
-builder.Services.AddQianData<AuditDbContext>((_, options) => options
+builder.Services.AddKunData<AuditDbContext>((_, options) => options
     .UseNpgsql(Required("Audit:Connection")).UseKunSchema(AuditDbContext.Schema));
 builder.Services.AddDataProtection();
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(Required("Redis:Connection")));

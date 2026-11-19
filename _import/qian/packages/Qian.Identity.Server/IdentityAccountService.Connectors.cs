@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Identity.Server;
 

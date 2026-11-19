@@ -1,11 +1,11 @@
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Identity.Server;
 
-/// <summary>唯一发行方的协议与账号存储；必须经 Qian.Data 安全装配并使用独立受限数据库角色。</summary>
-public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+/// <summary>唯一发行方的协议与账号存储；必须经 Kun.Data 安全装配并使用独立受限数据库角色。</summary>
+public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     /// <summary>遵循组件的数据 schema 命名规则。</summary>
     public const string Schema = "plugin_qian_identity";

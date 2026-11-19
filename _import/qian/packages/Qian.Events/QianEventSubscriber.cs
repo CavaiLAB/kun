@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 

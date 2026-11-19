@@ -4,12 +4,12 @@ using Json.Schema;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
 using Qian.Registry;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Authz.Abstractions;
 
 namespace Qian.Sample.Crm.Tests;
@@ -19,9 +19,10 @@ public sealed class IntegrationEventCatalogTests
     [Fact]
     public void 仓库内每个IntegrationEventId都经组件登记入口带源生成JsonTypeInfo_并能导出payload_Schema()
     {
-        // 扫描本测试输出里的全部 Qian 程序集；新组件声明了事件却没有登记入口时这里失败，提醒在下方补上它的入口。
+        // 扫描本测试输出里的全部 Qian 与 Kun 程序集（组件包搬出过渡目录后程序集名是 Kun.*，如 Kun.Data.Abstractions、Kun.Tenancy.Abstractions）；
+        // 新组件声明了事件却没有登记入口时这里失败，提醒在下方补上它的入口。
         var declared = new SortedDictionary<string, Type>(StringComparer.Ordinal);
-        foreach (var file in Directory.EnumerateFiles(AppContext.BaseDirectory, "Qian.*.dll"))
+        foreach (var file in Directory.EnumerateFiles(AppContext.BaseDirectory, "Qian.*.dll").Concat(Directory.EnumerateFiles(AppContext.BaseDirectory, "Kun.*.dll")))
         {
             Type?[] types;
             try { types = Assembly.LoadFrom(file).GetTypes(); }

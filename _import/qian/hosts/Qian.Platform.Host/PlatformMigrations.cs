@@ -4,7 +4,7 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Audit.Native;
 using Qian.Authz;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Platform.Host;
 
@@ -49,7 +49,7 @@ internal static class PlatformMigrations
         CancellationToken ct)
     {
         await using var scope = services.CreateAsyncScope();
-        var contexts = catalog.Select(type => (QianDbContext)scope.ServiceProvider.GetRequiredService(type)).ToArray();
+        var contexts = catalog.Select(type => (KunStrictDbContext)scope.ServiceProvider.GetRequiredService(type)).ToArray();
         // 同一 schema 可有多个上下文（平台授权、平台审计登录的上下文与业务上下文共用表）：取表最多的那个建表，其余上下文的表都必须在它的模型里。
         foreach (var group in contexts.Where(context => !context.Database.GetMigrations().Any()).GroupBy(Schema))
         {
@@ -101,7 +101,7 @@ internal static class PlatformMigrations
     private static async Task GrantAsync(IServiceProvider services, IReadOnlyCollection<Type> catalog, string admin, string appRole, CancellationToken ct)
     {
         await using var scope = services.CreateAsyncScope();
-        await GrantAsync(admin, catalog.Select(type => Schema((QianDbContext)scope.ServiceProvider.GetRequiredService(type))).Distinct(StringComparer.Ordinal), appRole, ct)
+        await GrantAsync(admin, catalog.Select(type => Schema((KunStrictDbContext)scope.ServiceProvider.GetRequiredService(type))).Distinct(StringComparer.Ordinal), appRole, ct)
             .ConfigureAwait(false);
     }
 
@@ -120,9 +120,9 @@ internal static class PlatformMigrations
         }
     }
 
-    private static string Schema(QianDbContext context) => context.Model.GetDefaultSchema() ?? throw new InvalidOperationException("上下文缺少插件 schema：" + context.GetType().Name);
+    private static string Schema(KunStrictDbContext context) => context.Model.GetDefaultSchema() ?? throw new InvalidOperationException("上下文缺少插件 schema：" + context.GetType().Name);
 
-    private static IReadOnlyList<string> Tables(QianDbContext context) =>
+    private static IReadOnlyList<string> Tables(KunStrictDbContext context) =>
         [.. context.Model.GetEntityTypes().Select(entity => entity.GetTableName()).OfType<string>().Distinct(StringComparer.Ordinal)];
 
     private static string? Text(JsonElement config, params string[] path)

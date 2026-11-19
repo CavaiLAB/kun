@@ -48,8 +48,8 @@
   <!-- 清单里 _import/qian/ 下的项目。 -->
   <ItemGroup>
     <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Data.Native.Abstractions/Qian.Data.Native.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Data.Native.Postgres/Qian.Data.Native.Postgres.csproj" />
+    <ProjectReference Include="../../src/Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Gateway.Abstractions/Qian.Gateway.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Gateway/Qian.Gateway.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />

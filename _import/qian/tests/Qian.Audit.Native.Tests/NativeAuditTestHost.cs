@@ -3,8 +3,8 @@ using Kun.Core.MultiTenancy;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Qian.Data.Native;
-using Qian.Data.Native.Postgres;
+using Kun.Data.Native;
+using Kun.Data.Native.Postgres;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
@@ -31,8 +31,8 @@ internal sealed class NativeAuditTestHost(IHost host, PluginLoader loader, Async
         var guard = NativeAuditStorage.ExpectedGuard(database.Roles);
         var tables = new[] { new NativeDataTable(NativeAuditStorage.Schema, "audit_entries", NativeAuditStorage.GuardPolicy, guard, guard),
             new NativeDataTable(NativeAuditStorage.Schema, "audit_chain_state", NativeAuditStorage.GuardPolicy, guard, guard) };
-        builder.Services.AddQianNativeData(new("audit_tenant", database.Roles.TenantLogin, NativeDataAccess.Tenant, _ => ValueTask.FromResult(database.TenantConnection), tables));
-        if (platformBinding) builder.Services.AddQianNativeData(new("audit_platform", database.Roles.PlatformLogin!, NativeDataAccess.Platform, _ => ValueTask.FromResult(database.PlatformConnection), tables));
+        builder.Services.AddKunNativeData(new("audit_tenant", database.Roles.TenantLogin, NativeDataAccess.Tenant, _ => ValueTask.FromResult(database.TenantConnection), tables));
+        if (platformBinding) builder.Services.AddKunNativeData(new("audit_platform", database.Roles.PlatformLogin!, NativeDataAccess.Platform, _ => ValueTask.FromResult(database.PlatformConnection), tables));
         var host = builder.Build(); await host.StartAsync(ct); var loader = new PluginLoader(host.Services);
         var scope = scopedTenant is null ? ScopeKey.Global : new ScopeKey("tenant", scopedTenant);
         var running = new NativeAuditTestHost(host, loader, tenant, database, scope);

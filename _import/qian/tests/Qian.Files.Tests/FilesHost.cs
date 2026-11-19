@@ -27,7 +27,7 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
 using Qian.Capabilities;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Qian.Files.AspNetCore;
 using Qian.Identity.Abstractions;
@@ -38,7 +38,7 @@ using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 
 namespace Qian.Files.Tests;
@@ -139,13 +139,13 @@ internal sealed class FilesHost : IAsyncDisposable
             if (operations is not null) registrar.RegisterRegistryEvents();
         });
         builder.Services.AddQianEvents();
-        builder.Services.AddQianData<FilesDbContext>((_, options) => options.UseNpgsql(business).UseKunSchema(FilesDbContext.Schema));
-        builder.Services.AddQianData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
-        builder.Services.AddQianData<TenancyDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(TenancyDbContext.Schema));
-        builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<FilesDbContext>((_, options) => options.UseNpgsql(business).UseKunSchema(FilesDbContext.Schema));
+        builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
+        builder.Services.AddKunData<TenancyDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(TenancyDbContext.Schema));
+        builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
         operations?.Configure(builder, postgres.AppConnectionString);
         // 与 --migrate-only 迁移任务同一入口：包内迁移由属主角色在 advisory lock 内执行，没有迁移的上下文照常跳过。
-        builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, _) => migrations);
+        builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, _) => migrations);
         // 能力契约的登记期检查：ProvideCapability 时生成目录条目并预编译输入校验器，不合格的契约挂载即失败。
         builder.Services.AddSingleton<ISurfaceReader, SurfaceValidator>();
         builder.Services.AddSingleton<IToolContractHasher, ToolContractHasher>();
@@ -159,7 +159,7 @@ internal sealed class FilesHost : IAsyncDisposable
         builder.Services.AddQianAuthzEnforcement(http => http.RequestServices.GetRequiredService<FilesHostRuntime>().AuthzSource(), options => options.Production = true);
         builder.Services.AddKunMediator(registry =>
         {
-            registry.AddQianTenancyEvents().AddQianAuthzEvents();
+            registry.AddKunTenancyEvents().AddQianAuthzEvents();
             if (operations is not null) registry.AddQianRegistryEvents();
             registry.AddQianFiles(sp => sp.GetRequiredService<FilesHostRuntime>().Source(), options =>
             {

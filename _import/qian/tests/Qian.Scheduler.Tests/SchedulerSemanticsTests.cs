@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
@@ -164,7 +164,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
             try
             {
                 await using var expanded = new NpgsqlConnection(fixture.Config.Worker); await expanded.OpenAsync(Ct);
-                await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => SchedulerWorkerAccess.ValidateConnectionAsync(expanded, fixture.Config.WorkerRole, Ct));
+                await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => SchedulerWorkerAccess.ValidateConnectionAsync(expanded, fixture.Config.WorkerRole, Ct));
             }
             finally { await fixture.Admin($"REVOKE {permission} FROM \"{fixture.Config.WorkerRole}\";"); }
         }
@@ -173,10 +173,10 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         {
             await using var db = new NpgsqlConnection(fixture.Config.Application); await db.OpenAsync(Ct);
             await using (var set = new NpgsqlCommand($"SET ROLE \"{fixture.Config.WorkerRole}\"", db)) await set.ExecuteNonQueryAsync(Ct);
-            await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => SchedulerWorkerAccess.ValidateConnectionAsync(db, fixture.Config.WorkerRole, Ct));
+            await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => SchedulerWorkerAccess.ValidateConnectionAsync(db, fixture.Config.WorkerRole, Ct));
             await using var read = new NpgsqlCommand("SELECT count(*) FROM plugin_qian_scheduler.job_triggers", db); Assert.Equal(0L, await read.ExecuteScalarAsync(Ct));
             await using var realWorker = new NpgsqlConnection(fixture.Config.Worker); await realWorker.OpenAsync(Ct);
-            await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => SchedulerWorkerAccess.ValidateConnectionAsync(realWorker, fixture.Config.WorkerRole, Ct));
+            await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => SchedulerWorkerAccess.ValidateConnectionAsync(realWorker, fixture.Config.WorkerRole, Ct));
         }
         finally { await fixture.Admin($"REVOKE \"{fixture.Config.WorkerRole}\" FROM qian_app;"); }
         var nonlogin = "sch_nonlogin";

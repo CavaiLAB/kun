@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Qian.Data;
-using Qian.Data.AspNetCore;
+using Kun.Data;
+using Kun.Data.AspNetCore;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
@@ -25,7 +25,7 @@ public sealed partial class PatchPersistenceTests
         var tenant = new AsyncLocalTenantContext();
         await using var running = await CreateRunningRegistry(tenant, services: services =>
         {
-            services.AddQianDataTypes();
+            services.AddKunDataTypes();
             AddAuthz(services, checker: true);
         });
         await PrepareAuthz(running.Host);
@@ -38,7 +38,7 @@ public sealed partial class PatchPersistenceTests
         }, configureEndpoints: app =>
         {
             app.UseAuthorization();
-            app.MapQianDataTypes(new PluginEndpointBinding("data", "qian.data", DataDefinition.Key, version: "1.0.0"));
+            app.MapKunDataTypes(new PluginEndpointBinding("data", "qian.data", DataDefinition.Key, version: "1.0.0"));
         });
 
         var dialects = running.Host.Services.GetRequiredService<IDataDialectRegistry>();

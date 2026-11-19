@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>租户主档、目录及入口传播 Provider。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
+    <!-- 管理员维护（S1-TEN-010）经身份端口读写账号、成员与凭据；只依赖 Definition，不引用身份 Provider。 -->
+    <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.MultiTenancy/Kun.MultiTenancy.csproj" /><PackageReference Include="Grpc.AspNetCore.Server" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <InternalsVisibleTo Include="Kun.Tenancy.Tests" />
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

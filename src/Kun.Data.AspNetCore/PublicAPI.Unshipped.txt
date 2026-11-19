@@ -1,0 +1,5 @@
+#nullable enable
+Kun.Data.AspNetCore.DataEndpoints
+static Kun.Data.AspNetCore.DataEndpoints.MapKunData(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding? binding = null) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Data.AspNetCore.DataEndpoints.MapKunDataConnections(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding? binding = null) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Data.AspNetCore.DataEndpoints.MapKunDataTypes(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding? binding = null) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!

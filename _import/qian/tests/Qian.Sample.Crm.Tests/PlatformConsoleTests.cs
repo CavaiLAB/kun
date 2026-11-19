@@ -16,11 +16,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Qian.Authz;
-using Qian.Data;
+using Kun.Data;
 using Qian.Gateway;
 using Kun.Runtime;
 using Qian.Surfaces;
-using Qian.Tenancy.Signup;
+using Kun.Tenancy.Signup;
 using Qian.Testing;
 using Qian.Testing.Containers;
 using Qian.Testing.Gateway;
@@ -192,7 +192,7 @@ public abstract partial class CustomerCommandTests
         try
         {
             business = await Start(lifecycle: platform, identity: true, relyingParty: relyingParty, configure: builder =>
-                builder.Services.AddQianData<TenancySignupDbContext>((services, options) => options.UseNpgsql(services.GetRequiredService<IConfiguration>().GetConnectionString("Tenancy"))
+                builder.Services.AddKunData<TenancySignupDbContext>((services, options) => options.UseNpgsql(services.GetRequiredService<IConfiguration>().GetConnectionString("Tenancy"))
                     .UseKunSchema(TenancySignupDbContext.Schema)), schema: SignupSchemaSql);
             var catalog = new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata(TenancySignupDefinition.ComponentId, "1.0.0",
                 JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins/qian.tenancy.signup/metadata/permissions.json"))),

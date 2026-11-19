@@ -30,7 +30,7 @@ sensitive 和 x-qian-sensitive 的 true 标记统一遮盖为固定字符串 [RE
 
 ## 存储与并发
 
-AuditDbContext 继承 QianDbContext，拥有 plugin_qian_audit schema。audit_entries 具有事件 ID、内容哈希、链与序号、链与前序的唯一约束。audit_chain_state 保存 tip_seq 和 tip_hash。租户列按 Data 强制过滤与 RLS 保护，受限应用角色执行在线 DML。普通入口一律要求当前租户，记录的租户必须与上下文一致。平台 null 记录只通过下述独立入口访问，不以缺少租户自动切换模式。
+AuditDbContext 继承 KunStrictDbContext，拥有 plugin_qian_audit schema。audit_entries 具有事件 ID、内容哈希、链与序号、链与前序的唯一约束。audit_chain_state 保存 tip_seq 和 tip_hash。租户列按 Data 强制过滤与 RLS 保护，受限应用角色执行在线 DML。普通入口一律要求当前租户，记录的租户必须与上下文一致。平台 null 记录只通过下述独立入口访问，不以缺少租户自动切换模式。
 
 追加在取得租户 session advisory lock 后开启 SERIALIZABLE 事务，再写记录与推进链头。锁在快照创建前取得，避免排队事务持有旧快照而持续冲突；序列化或死锁错误有界重试。取消和失败都会释放锁；清理失败时清理对应连接池，避免复用可能仍持锁的连接。事件 ID 重试仅在完整内容一致时幂等，不同内容返回 CONFLICT；损坏链头不继续追加。
 
@@ -58,7 +58,7 @@ AuditPlugin 在 SDK 的 command/dispatching Definition 上登记生产 waterfall
 
 平台链默认关闭。启用时，宿主先独立创建受限的 NOINHERIT LOGIN 角色，禁止 SUPERUSER、BYPASSRLS、CREATEDB、CREATEROLE、REPLICATION 和任何角色成员关系。凭据由宿主或 Secret 服务持有，不进入组件配置。迁移在普通 Audit 模型建表后，同一迁移事务中应用 AuditPlatformAccess.CreateMigrationSql(role)，只修改 Audit 自有两张表的策略和该角色授权；装 qian.lifecycle 等用到同事务入口的宿主改用下文的三参重载 CreateMigrationSql(platformRole, writerRole, producerRole)。
 
-宿主用 AddQianData 分别绑定 AuditDbContext 的租户凭据与 PlatformAuditDbContext 的平台凭据，再在 global AuditPlugin 配置 chain.platformRole。启动验证两条连接不共用登录身份；每次平台调用检查当前角色、登录角色、角色属性及必要权限。平台角色只能读取/追加平台记录与推进链头，无权更新、删除或清空历史记录。RLS 同时检查 current_user、session_user 和空租户 GUC，因此普通角色借 SET ROLE 不能冒充平台登录，平台角色设置租户 GUC 也不能读写租户数据。
+宿主用 AddKunData 分别绑定 AuditDbContext 的租户凭据与 PlatformAuditDbContext 的平台凭据，再在 global AuditPlugin 配置 chain.platformRole。启动验证两条连接不共用登录身份；每次平台调用检查当前角色、登录角色、角色属性及必要权限。平台角色只能读取/追加平台记录与推进链头，无权更新、删除或清空历史记录。RLS 同时检查 current_user、session_user 和空租户 GUC，因此普通角色借 SET ROLE 不能冒充平台登录，平台角色设置租户 GUC 也不能读写租户数据。
 
 AppendPlatformAsync、AppendPlatformEnlistedAsync、ReadPlatformAsync、VerifyPlatformAsync 是显式入口，另外要求传入仍有效的 global 生产方 IPluginContext，且该上下文解析到当前同一个 Audit 服务。tenant 生产方即使重新 Scoped 到 global 也被拒绝；存在租户上下文时拒绝平台操作。此生产方许可只用于记录/读取审计，不能替代 Authz 对实际业务操作的授权。端口供可信组件使用，不提供客户端直接写审计的 HTTP 能力；面向用户的读取须另行鉴权并审计。
 

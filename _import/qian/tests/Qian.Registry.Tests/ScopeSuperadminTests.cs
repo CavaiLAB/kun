@@ -9,7 +9,7 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
@@ -28,8 +28,8 @@ public sealed partial class PatchPersistenceTests
         await using var running = await CreateRunningRegistry(tenant, services: services =>
         {
             AddAuthz(services, checker: true);
-            services.AddQianData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(platform).UseKunSchema(AuthzDbContext.Schema));
-            services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+            services.AddKunData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(platform).UseKunSchema(AuthzDbContext.Schema));
+            services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
         });
         await PrepareAuthz(running.Host); await PrepareAudit(running.Host);
         await AdminExec("BEGIN;" + AuthzPlatformAccess.CreateMigrationSql(role) + "COMMIT;");

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Qian.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

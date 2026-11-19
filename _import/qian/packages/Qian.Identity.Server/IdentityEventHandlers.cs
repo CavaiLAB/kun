@@ -3,9 +3,9 @@ using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Identity.Server;
 

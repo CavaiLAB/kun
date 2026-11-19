@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Testing.Containers;
@@ -103,7 +103,7 @@ public sealed partial class PermissionCatalogPersistenceTests(PostgresFixture po
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<Kun.Core.MultiTenancy.ITenantContext>(tenant ?? new AsyncLocalTenantContext()); builder.Services.AddKunEventBus(registrar => registrar.RegisterAuthzEvents());
         builder.Services.AddKunMediator(mediator => mediator.AddQianAuthzEvents());
-        builder.Services.AddQianData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
+        builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
         return builder.Build();
     }
     private static PostgresPermissionCatalogStore Store(IHost host) => new(host.Services.GetRequiredService<IDataService>());

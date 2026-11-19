@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Events;
 

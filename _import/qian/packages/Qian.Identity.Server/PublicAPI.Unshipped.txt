@@ -125,10 +125,10 @@ Qian.Identity.Server.SessionPolicy.OnlineWindow.get -> System.TimeSpan
 Qian.Identity.Server.SessionPolicy.OnlineWindow.init -> void
 Qian.Identity.Server.TenantSuspendedSessionHandler
 Qian.Identity.Server.TenantSuspendedSessionHandler.TenantSuspendedSessionHandler(System.IServiceProvider! services) -> void
-Qian.Identity.Server.TenantSuspendedSessionHandler.HandleAsync(Qian.Tenancy.TenantSuspended! event, Kun.EventBus.MessageContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Qian.Identity.Server.TenantSuspendedSessionHandler.HandleAsync(Kun.Tenancy.TenantSuspended! event, Kun.EventBus.MessageContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 Qian.Identity.Server.TenantExpiredSessionHandler
 Qian.Identity.Server.TenantExpiredSessionHandler.TenantExpiredSessionHandler(System.IServiceProvider! services) -> void
-Qian.Identity.Server.TenantExpiredSessionHandler.HandleAsync(Qian.Tenancy.TenantExpired! event, Kun.EventBus.MessageContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Qian.Identity.Server.TenantExpiredSessionHandler.HandleAsync(Kun.Tenancy.TenantExpired! event, Kun.EventBus.MessageContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static Qian.Identity.Server.IdentityEventHandlers.AddQianIdentitySessionHandlers(this Kun.EventBus.DependencyInjection.KunEventBusBuilder! builder) -> Kun.EventBus.DependencyInjection.KunEventBusBuilder!
 Qian.Identity.Server.ConnectorPolicy
 Qian.Identity.Server.ConnectorPolicy.BindingLifetime.get -> System.TimeSpan

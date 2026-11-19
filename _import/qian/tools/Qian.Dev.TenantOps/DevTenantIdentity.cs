@@ -8,11 +8,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.FileProviders;
 using OpenIddict.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Kun.Runtime;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Qian.Dev.TenantOps;
@@ -32,7 +32,7 @@ internal sealed class DevTenantIdentity(Uri issuer) : IDisposable
 
     internal void Configure(WebApplicationBuilder builder, DevDatabase database)
     {
-        builder.Services.AddQianData<IdentityDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(IdentityDbContext.Schema));
+        builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(IdentityDbContext.Schema));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddAuthentication().AddCookie("qian.identity.signin");
         builder.Services.AddHttpClient();

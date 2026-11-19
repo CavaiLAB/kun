@@ -6,7 +6,7 @@ using Qian.Dev.TenantOps;
 using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
 using Kun.Runtime;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Dev.Shell;
 

@@ -8,11 +8,11 @@ using System.Text.Json.Nodes;
 using Kun.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Kun.Runtime;
 using Kun.Errors;
 

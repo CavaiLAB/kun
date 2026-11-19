@@ -1,12 +1,12 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Registry;
 
-/// <summary>注册表上下文；由宿主通过 AddQianData 装配并迁移，运行时不自动建表。</summary>
-public sealed class RegistryDbContext(DbContextOptions<RegistryDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+/// <summary>注册表上下文；由宿主通过 AddKunData 装配并迁移，运行时不自动建表。</summary>
+public sealed class RegistryDbContext(DbContextOptions<RegistryDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     /// <summary>组件规格 §7.6 的唯一数据库 schema。</summary>
     public const string Schema = "plugin_qian_registry";

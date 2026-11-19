@@ -1,8 +1,8 @@
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using System.Text.Json;
 
 namespace Qian.Identity.Server;

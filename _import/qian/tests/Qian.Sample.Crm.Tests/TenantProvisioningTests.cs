@@ -12,7 +12,7 @@ using Qian.Lifecycle;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;
 

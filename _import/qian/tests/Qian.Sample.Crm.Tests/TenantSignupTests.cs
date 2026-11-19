@@ -12,13 +12,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
-using Qian.Tenancy.Signup;
+using Kun.Tenancy.Signup;
 using Qian.Testing.Containers;
 
 namespace Qian.Sample.Crm.Tests;
@@ -328,7 +328,7 @@ public sealed partial class TenantSignupTests(PostgresFixture postgres) : Custom
             business = await Start(lifecycle: platform, identity: true, configure: builder =>
             {
                 // 与身份服务同一个数据库连接（受限应用登录）；开通申请的表是全局表，没有 RLS。
-                builder.Services.AddQianData<TenancySignupDbContext>((services, options) => options.UseNpgsql(services.GetRequiredService<IConfiguration>().GetConnectionString("Tenancy"))
+                builder.Services.AddKunData<TenancySignupDbContext>((services, options) => options.UseNpgsql(services.GetRequiredService<IConfiguration>().GetConnectionString("Tenancy"))
                     .UseKunSchema(Schema));
                 builder.Services.AddSingleton<IStartupFilter>(new SignupBranch());
             }, schema: SchemaSql);
@@ -337,7 +337,7 @@ public sealed partial class TenantSignupTests(PostgresFixture postgres) : Custom
             var catalog = new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata(TenancySignupDefinition.ComponentId, "1.0.0", permissions, JsonSerializer.SerializeToElement(Array.Empty<object>()));
             var host = business;
             management = await ManagementHost(business, platform, catalogs: [catalog],
-                configurePipeline: app => app.MapQianTenancySignupOperations(_ => Loader(host).GetContext("signup", ScopeKey.Global)));
+                configurePipeline: app => app.MapKunTenancySignupOperations(_ => Loader(host).GetContext("signup", ScopeKey.Global)));
             var outbox = new Outbox();
             await Mount(business, messenger ? [MessengerDefinition(outbox), SignupDefinition(config)] : [SignupDefinition(config)]);
             return new Ops(platform, business, management, new HttpClient { BaseAddress = new Uri(management.Urls.Single()) }, outbox);
@@ -387,7 +387,7 @@ public sealed partial class TenantSignupTests(PostgresFixture postgres) : Custom
             app.MapWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), branch =>
             {
                 branch.UseKunErrors(); branch.UseRouting();
-                branch.UseEndpoints(endpoints => endpoints.MapQianTenancySignupApplicant(http =>
+                branch.UseEndpoints(endpoints => endpoints.MapKunTenancySignupApplicant(http =>
                     http.RequestServices.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("signup", ScopeKey.Global)));
             });
             next(app);

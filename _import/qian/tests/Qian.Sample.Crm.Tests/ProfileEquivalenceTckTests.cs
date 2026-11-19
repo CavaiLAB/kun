@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
@@ -44,10 +44,10 @@ public sealed partial class LifecycleProfileTests
         Assert.True(loader.GetState("crm", ScopeKey.Global) == PluginState.Ready, loader.GetFailure("crm", ScopeKey.Global)?.ToString());
     }
 
-    // S1-RT-014 验收 6：R68 的 TCK 平台组合包宿主以 AddQianData<CapabilitiesDbContext> 把能力上下文纳入迁移目录，启动时由受限属主经
+    // S1-RT-014 验收 6：R68 的 TCK 平台组合包宿主以 AddKunData<CapabilitiesDbContext> 把能力上下文纳入迁移目录，启动时由受限属主经
     // IDataMigrator 执行包内迁移。包内迁移本身不含任何 RLS 语句，租户策略只能来自 Qian 迁移生成器；同一装配调用了 AddQianCapabilities()。
     [Fact]
-    public async Task TCK平台组合包宿主_能力上下文经AddQianData纳入迁移目录_IDataMigrator执行包内迁移_真实PostgreSQL的迁移历史与pg_policies成立_RLS由迁移生成器补出_重复迁移无操作()
+    public async Task TCK平台组合包宿主_能力上下文经AddKunData纳入迁移目录_IDataMigrator执行包内迁移_真实PostgreSQL的迁移历史与pg_policies成立_RLS由迁移生成器补出_重复迁移无操作()
     {
         await using var host = await Start(runtimeProfile: "platform");
         var plan = (ProfileModeAssembly)host.App.Services.GetRequiredService<ICrmRuntimeAssembly>();
@@ -61,7 +61,7 @@ public sealed partial class LifecycleProfileTests
         {
             var context = scope.ServiceProvider.GetRequiredService<Qian.Capabilities.CapabilitiesDbContext>();
             migrations = context.Database.GetMigrations().ToArray();
-            Assert.Equal("QianPostgresMigrationsSqlGenerator", context.GetService<IMigrationsSqlGenerator>().GetType().Name);
+            Assert.Equal("KunTenantRlsMigrationsSqlGenerator", context.GetService<IMigrationsSqlGenerator>().GetType().Name);
             var assembly = context.GetService<IMigrationsAssembly>();
             var statements = assembly.Migrations.Values.Select(type => assembly.CreateMigration(type, context.Database.ProviderName!))
                 .SelectMany(migration => migration.UpOperations).OfType<SqlOperation>().Select(operation => operation.Sql).ToArray();

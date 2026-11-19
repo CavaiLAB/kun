@@ -55,8 +55,8 @@ SensitiveAttribute 把实际 JSON 属性标记为 sensitive。顶层字段及整
 工具只用于显式选择的本地可信项目构建。加载生成工厂及 JsonTypeInfo 会加载程序集，因此不能用于未知市场制品的准入或沙箱校验。工具与组件共用 SDK/Runtime 的程序集身份，避免独立加载上下文复制服务键类型。
 
 ```bash
-dotnet run --project tools/Kun.Plugin.Tool -c Release -- sync _import/qian/packages/Qian.Data/bin/Release/net10.0/Qian.Data.dll _import/qian/plugins/qian.data
-dotnet run --project tools/Kun.Plugin.Tool -c Release -- check _import/qian/packages/Qian.Data/bin/Release/net10.0/Qian.Data.dll _import/qian/plugins/qian.data
+dotnet run --project tools/Kun.Plugin.Tool -c Release -- sync src/Kun.Data/bin/Release/net10.0/Kun.Data.dll _import/qian/plugins/qian.data
+dotnet run --project tools/Kun.Plugin.Tool -c Release -- check src/Kun.Data/bin/Release/net10.0/Kun.Data.dll _import/qian/plugins/qian.data
 ```
 
 sync 合并唯一清单的派生字段与既有表面；数组与入口不改变协议形状。清单 x-qian-generated 记录字段指针、工具归属以及每份 metadata / 配置文件的来源、指针和内容哈希；权限文件仍是 authz-permissions 规定的数组，不往它里面塞生成标记。路径沿清单的 surfaces.tools、surfaces.metadata 与 runtime.configSchema；未声明时采用 ./tools、./metadata 与 ./schemas/config.schema.json。
@@ -101,7 +101,7 @@ Registry 条目整体卸载时，宿主上下文工厂的失效也映射为 NOT_
 1. 本提交的 dotnet 工作流已在 main 通过；版本号是不带 v 前缀与构建元数据的 SemVer 2.0，包族里任何包在包源里都还没有这个版本。
 2. 带版本号打包后核对制品：包族齐全、各一个、版本一致，包族内依赖的下限钉在同一版本，源生成器包只在 `analyzers/dotnet/cs` 下带自身分析器且是开发依赖，许可证与仓库地址齐全。
 3. 推送后经 GitHub REST API 核对包族每个包都有这个版本、关联到发布仓库，且可见性与仓库一致。
-4. 先用本地目录、推送后再用包源，在干净的消费者项目里以独立包缓存还原 `Kun.Plugin.Sdk`、`Kun.Plugin.Sdk.Generators`、`Qian.Data` 的精确版本；构建时包里的源生成器派生组件元数据，运行后核对派生结果与包里 qian.data 的生成元数据，并核对还原出的每个 `Qian.*` 包都是同一版本、都来自给定源。
+4. 先用本地目录、推送后再用包源，在干净的消费者项目里以独立包缓存还原 `Kun.Plugin.Sdk`、`Kun.Plugin.Sdk.Generators`、`Kun.Data` 的精确版本；构建时包里的源生成器派生组件元数据，运行后核对派生结果与包里 qian.data 的生成元数据，并核对还原出的每个 `Qian.*` 包都是同一版本、都来自给定源。
 
 推送中途失败会在包源里留下部分包；同一版本不能再发，换新版本号重新触发。本机可用同一脚本预检（`--no-build` 只验打包形态，程序集版本仍是本地构建的版本）：
 
@@ -127,7 +127,7 @@ python3 scripts/dotnet_release.py verify-consumer --version 0.1.0-local.1 --sour
 
 ## 验证与剩余边界
 
-专项覆盖实际编译生成与 JsonTypeInfo、审计默认值、元数据副本、错误声明诊断、代码删除与重复能力、服务注册不可静态证明时拒绝、唯一清单同步/漂移以及手写文件和路径保护。全仓代码组件 check 与实现构件分类已接入 CI；Qian.Data.Tests 另按仓库清单的 runtime.entry 装载真实 Provider（不直接构造具体类型），核对清单派生字段与生成元数据一致，挂载后的会话默认带租户填充、租户过滤与 RLS。按 S1-DEC-018，S1-RT-011 从私有源真实执行 `qian add data` 并运行 Provider 后，Data、Events 与 Config 已通过对应真实安装门并移除 x-skeleton；其余组件补齐元数据后继续保留原门状态。
+专项覆盖实际编译生成与 JsonTypeInfo、审计默认值、元数据副本、错误声明诊断、代码删除与重复能力、服务注册不可静态证明时拒绝、唯一清单同步/漂移以及手写文件和路径保护。全仓代码组件 check 与实现构件分类已接入 CI；Kun.Data.Tests 另按仓库清单的 runtime.entry 装载真实 Provider（不直接构造具体类型），核对清单派生字段与生成元数据一致，挂载后的会话默认带租户填充、租户过滤与 RLS。按 S1-DEC-018，S1-RT-011 从私有源真实执行 `qian add data` 并运行 Provider 后，Data、Events 与 Config 已通过对应真实安装门并移除 x-skeleton；其余组件补齐元数据后继续保留原门状态。
 
 SDK 自身的依赖边界由 CI 的依赖图门禁守住：`Kun.Plugin.Sdk`、`.Commands`、`.AspNetCore`、`.Generators` 的完整传递依赖里不能出现任何 Provider 包与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，`Kun.Plugin.Sdk` 的完整传递依赖里平台档只有身份契约、没有 EF Core，门禁自测另断言这四个包在 `Kun.slnx` 的检查范围内（见 [tests/README.md](../../_import/qian/tests/README.md) 4.3）。
 

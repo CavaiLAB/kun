@@ -2,7 +2,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Registry;
 

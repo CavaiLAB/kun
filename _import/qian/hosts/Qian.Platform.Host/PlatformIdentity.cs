@@ -5,7 +5,7 @@ using OpenIddict.Abstractions;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Kun.Errors.AspNetCore;
-using Qian.Tenancy.Signup;
+using Kun.Tenancy.Signup;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Qian.Platform.Host;
@@ -47,12 +47,12 @@ public static class PlatformIdentity
             .AddPatch(configuration["Identity:Overlay"] is { Length: > 0 } overlay ? overlay : Path.Combine(AppContext.BaseDirectory, OverlayFile))
             .AddComponent(new PlatformComponent("qian.identity.server", "Qian.Identity.Server.IdentityServerComponent, Qian.Identity.Server", _ => new IdentityServerComponent(),
                 services => RegisterIdentity(services, environment)))
-            .AddComponent(new PlatformComponent("qian.tenancy.signup", "Qian.Tenancy.Signup.TenancySignupComponent, Qian.Tenancy.Signup", _ => new TenancySignupComponent(),
+            .AddComponent(new PlatformComponent("qian.tenancy.signup", "Kun.Tenancy.Signup.TenancySignupComponent, Kun.Tenancy.Signup", _ => new TenancySignupComponent(),
                 services => services.AddAppData<TenancySignupDbContext>(TenancySignupDbContext.Schema)))
             .AddEvents(registrar => registrar.RegisterIdentityEvents())
             .AddMediator(mediator => mediator.AddQianIdentityEvents())
-            // 运营端点组：列表、详情、通过、驳回、重试与状态机元数据，经 Authz 超管旁路放行并写平台审计链；MapQianTenancySignupOperations 一次映射两个前缀下的端点。
-            .AddOperations(OperationPrefixes[0], (endpoints, runtime) => endpoints.MapQianTenancySignupOperations(_ => runtime.Global("tenancy.signup")))
+            // 运营端点组：列表、详情、通过、驳回、重试与状态机元数据，经 Authz 超管旁路放行并写平台审计链；MapKunTenancySignupOperations 一次映射两个前缀下的端点。
+            .AddOperations(OperationPrefixes[0], (endpoints, runtime) => endpoints.MapKunTenancySignupOperations(_ => runtime.Global("tenancy.signup")))
             .AddOperations(OperationPrefixes[1]);
     }
 
@@ -160,12 +160,12 @@ public static class PlatformIdentity
                 branch.UseQianIdentityServer();
                 branch.UseQianIdentityPages(pages);
                 branch.UseWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), errors => errors.UseKunErrors());
-                if (signupPages is not null) branch.UseQianTenancySignupPages(signupPages);
+                if (signupPages is not null) branch.UseKunTenancySignupPages(signupPages);
                 branch.UseRouting(); branch.UseAuthentication();
                 branch.UseEndpoints(endpoints =>
                 {
                     endpoints.MapQianIdentityServer(); endpoints.MapQianIdentityAccounts();
-                    endpoints.MapQianTenancySignupApplicant(http => http.RequestServices.GetRequiredService<PlatformRuntime>().Global("tenancy.signup"));
+                    endpoints.MapKunTenancySignupApplicant(http => http.RequestServices.GetRequiredService<PlatformRuntime>().Global("tenancy.signup"));
                 });
             });
             next(app);

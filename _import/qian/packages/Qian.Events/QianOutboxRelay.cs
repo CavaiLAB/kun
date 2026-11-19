@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Events;
 
@@ -46,7 +46,7 @@ internal sealed partial class QianOutboxRelay(IServiceScopeFactory scopes, IData
     internal async Task<int> RelayAsync(Type contextType, IOutboxLockProvider? redis, CancellationToken stoppingToken)
     {
         await using var scope = scopes.CreateAsyncScope();
-        var context = (QianDbContext)scope.ServiceProvider.GetRequiredService(contextType);
+        var context = (KunStrictDbContext)scope.ServiceProvider.GetRequiredService(contextType);
         var table = OutboxTable.For(context);
         IAsyncDisposable? lease = null;
         if (redis is not null)

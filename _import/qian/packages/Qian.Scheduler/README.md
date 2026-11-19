@@ -10,13 +10,13 @@
 
 ## 宿主与数据库
 
-宿主通过 Data 的 AddQianData 分别登记 SchedulerDbContext（普通受限应用连接）和 SchedulerWorkerDbContext（独立 worker 登录连接），两者 UseKunSchema(SchedulerDbContext.Schema)。凭据来自宿主连接/secretRef；组件 config 只保存 workerRole，不能保存连接串。迁移 Job 以受限属主调用 IDataMigrator；在线启动只校验。
+宿主通过 Data 的 AddKunData 分别登记 SchedulerDbContext（普通受限应用连接）和 SchedulerWorkerDbContext（独立 worker 登录连接），两者 UseKunSchema(SchedulerDbContext.Schema)。凭据来自宿主连接/secretRef；组件 config 只保存 workerRole，不能保存连接串。迁移 Job 以受限属主调用 IDataMigrator；在线启动只校验。
 
 三张表 job_definitions、job_triggers、job_runs 都是 IMultiTenant，生成迁移自动安装 FORCE RLS。定义按 (tenant_id, business_key) 唯一；触发器与定义、运行与触发器均有含 tenant_id 的组合外键。定义保存参数、调度表达式、执行策略、创建组件与请求指纹；trigger 只保存领取元数据；run 按 (tenant_id, trigger_id, scheduled_at) 唯一。
 
 迁移后在迁移阶段应用 SchedulerWorkerAccess.CreateMigrationSql(workerRole)。此接口沿用 Audit 的专用登录模式：角色必须已创建为 LOGIN、NOINHERIT、NOSUPERUSER、NOBYPASSRLS、NOCREATEDB、NOCREATEROLE、NOREPLICATION，且没有成员关系。它只修改本组件 trigger 的 restrictive policy；专用登录在空 tenant GUC 时可读 trigger，并只可更新 lease_owner、lease_until、generation、active_run_id。定义和运行表不授予任何权限。普通租户角色仍只看自己的三表；同时校验 current_user 与 session_user，SET ROLE 不能冒充 worker 登录。每次领取重查角色及精确列权限，额外授权同样拒绝。
 
-EF 迁移由 tests/Qian.Scheduler.Tests 的设计时入口经同一 AddQianData 模型生成。设计时生成器只把迁移类生成为 internal，不改模型与 SQL；生成后不手改迁移文件。
+EF 迁移由 tests/Qian.Scheduler.Tests 的设计时入口经同一 AddKunData 模型生成。设计时生成器只把迁移类生成为 internal，不改模型与 SQL；生成后不手改迁移文件。
 
 ```bash
 dotnet ef migrations add <名称> --project packages/Qian.Scheduler --startup-project tests/Qian.Scheduler.Tests --context SchedulerDbContext --configuration Release

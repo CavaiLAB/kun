@@ -28,7 +28,7 @@
   "x-aot": true,
   "runtime": {
     "form": "module",
-    "entry": "Qian.Data.Native.Postgres.NativeDataComponent, Qian.Data.Native.Postgres",
+    "entry": "Kun.Data.Native.Postgres.NativeDataComponent, Kun.Data.Native.Postgres",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -45,7 +45,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.data.native",
-        "source": "Qian.Data.Native.Postgres.NativeDataComponent, Qian.Data.Native.Postgres",
+        "source": "Kun.Data.Native.Postgres.NativeDataComponent, Kun.Data.Native.Postgres",
         "sha256": "4c1c0673098b3d13f65d0a7e7be5477185b37781a6a8524d821f74c9b52796a1",
         "fields": [
           ""

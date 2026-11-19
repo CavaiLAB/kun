@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 using Kun.Runtime;
 using Qian.Surfaces;

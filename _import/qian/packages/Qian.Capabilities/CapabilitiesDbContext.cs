@@ -1,12 +1,12 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Capabilities;
 
 /// <summary>菜单展示偏好与调用幂等回执的上下文，使用 Data 的受限角色、过滤器与强制 RLS；表结构随包内迁移交付。</summary>
-public sealed class CapabilitiesDbContext(DbContextOptions<CapabilitiesDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+public sealed class CapabilitiesDbContext(DbContextOptions<CapabilitiesDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     /// <summary>本组件的数据 schema。</summary>
     public const string Schema = "plugin_qian_capabilities";

@@ -27,12 +27,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -81,7 +81,7 @@ public abstract partial class CustomerCommandTests
     // crm-shell-machine 是归属甲方的机器客户端，供外部机器客户端取 client_credentials 令牌、带 Bearer 经网关执行能力（S1-YUE-016）。
     private protected void ConfigureIdentity(WebApplicationBuilder builder, IdentityParts parts, Uri? relyingParty = null)
     {
-        builder.Services.AddQianData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
+        builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddAuthentication().AddCookie("qian.identity.signin");
         builder.Services.AddHttpClient();

@@ -20,7 +20,7 @@ using Qian.Audit;
 using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Kun.Plugin.Sdk;
 using Qian.Profiles;
@@ -77,9 +77,9 @@ internal sealed class LifecycleHost : IAsyncDisposable
         builder.Services.AddSingleton<TimeProvider>(time);
         builder.Services.AddKunEventBus(registry => registry.RegisterRegistryEvents().RegisterLifecycleEvents());
         builder.Services.AddSingleton(ErrorCatalog.CreateDefault());
-        builder.Services.AddQianData<RegistryDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(RegistryDbContext.Schema));
-        builder.Services.AddQianData<LifecycleDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(LifecycleDbContext.Schema));
-        builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(RegistryDbContext.Schema));
+        builder.Services.AddKunData<LifecycleDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(LifecycleDbContext.Schema));
+        builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
         // 生命周期上下文随包带迁移：与 --migrate-only 迁移任务同一入口。迁移属主与生产迁移任务一样是受限角色（NOSUPERUSER / NOBYPASSRLS），
         // 只多一项建 schema 的权限；在线连接是受 RLS 约束的应用角色。
         var owner = "qian_lifecycle_owner_" + Guid.NewGuid().ToString("N")[..8];
@@ -87,13 +87,13 @@ internal sealed class LifecycleHost : IAsyncDisposable
         await Admin(postgres, $"CREATE ROLE \"{owner}\" LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '{password}'; " +
             $"GRANT CONNECT, CREATE ON DATABASE {PostgresFixture.DatabaseName} TO \"{owner}\";", ct);
         var migrations = new NpgsqlConnectionStringBuilder(postgres.ConnectionString) { Username = owner, Password = password }.ConnectionString;
-        builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, type) => type == typeof(LifecycleDbContext) ? migrations : null);
+        builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, type) => type == typeof(LifecycleDbContext) ? migrations : null);
         // 平台审计链：独立受限 LOGIN，不与租户审计（qian_app）共用凭据；只在 PlatformAuditDbContext 上绑定，global 审计条目以 chain.platformRole 引用它。
         var auditRole = "qian_audit_platform_" + Guid.NewGuid().ToString("N")[..8];
         var auditPassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
         await Admin(postgres, $"CREATE ROLE \"{auditRole}\" LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '{auditPassword}';", ct);
         var auditPlatform = new NpgsqlConnectionStringBuilder(postgres.AppConnectionString) { Username = auditRole, Password = auditPassword }.ConnectionString;
-        builder.Services.AddQianData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(auditPlatform).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(auditPlatform).UseKunSchema(AuditDbContext.Schema));
         builder.Services.AddKunMediator(mediator => mediator.AddQianRegistryEvents().AddQianLifecycleEvents());
         builder.Services.AddQianEvents();
         builder.Services.AddSingleton<ISecretAccessObserver>(secrets);

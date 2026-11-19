@@ -20,7 +20,7 @@
     <ProjectReference Include="../Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../Kun.RateLimit/Kun.RateLimit.csproj" />
     <InternalsVisibleTo Include="Kun.Gateway.IntegrationTests" />
-    <InternalsVisibleTo Include="Kun.Gateway.Shell" />
+    <InternalsVisibleTo Include="Kun.Gateway.Shell" KunPackageFriendReason="组件挂载时核对宿主配置并启停业务路由" />
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\Kun.Security\Kun.Security.csproj" />
     <PackageReference Include="Yarp.ReverseProxy" />

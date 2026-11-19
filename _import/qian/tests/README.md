@@ -178,7 +178,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 - 单元与集成测试，本目录的项目分三个分片（a、b、c）：各自还原、构建，再用 `scripts/dotnet_ci.py shard` 写出的解决方案筛选文件只跑本分片的模块。作业开头在后台预拉本分片用到的测试镜像，测试前有界等待。分片清单是脚本里的 `SHARDS`，新加的测试项目不用登记，自动落入其余分片。
   - 测试命令带 `-p:QianTrxPerModule=true`，每个模块的 TRX 按项目名命名（`<项目名>.trx`，见 [Directory.Build.props](Directory.Build.props)）。xUnit 缺省文件名只有用户、机器和时间戳，同时启动的模块会撞名，后写完的覆盖先写完的（S1-QA-017）。
 - 分片 k 跑仓库根 `tests/` 下的测试：`tests/kun-unit.slnf` 的单元测试收覆盖率，每个模块一份 TRX、一份覆盖率（开关在仓库根的 `tests/Directory.Build.props`），上传前用 `scripts/dotnet_ci.py coverage` 核对每个测试项目恰好一份，通过后文件名去掉时间戳；`tests/Kun.IntegrationTests` 用 Testcontainers 起容器。
-- 测试分片汇总核对：`Qian.slnf` 里每个测试项目、分片 k 登记的每个测试项目，都恰好在所属分片跑过一次、没有失败；各分片的 TRX 与证据合并为 `test-results` 构件。`tests/` 下引用 xunit.v3 却不在 `Qian.slnf` 里的测试项目哪个分片都不跑，汇总核对按名字告警；门禁样例 `tests/gates/**` 与 ci.yml 里由 dotnet 区域的专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。
+- 测试分片汇总核对：`Qian.slnf` 里每个测试项目、分片 k 登记的每个测试项目，都恰好在所属分片跑过一次、没有失败。各分片与门禁作业的结果构件名带尝试号（`test-results-<分片>-attempt-<尝试号>`），汇总作业全部下载后用 `scripts/dotnet_ci.py latest-attempts` 给每个分片只留尝试号最大的一份再核对，取好的那份上传为 `test-results` 构件（每个分片一个子目录）。所以碰到偶发失败时点「重跑失败的作业」就行：没重跑的分片用第 1 次的结果，重跑过的用最新一次的，汇总按重跑的结果变绿。不按构件 ID 取最新：同名构件 download-artifact 只留 ID 最大的一份，而重跑后的 ID 不一定更大。`tests/` 下引用 xunit.v3 却不在 `Qian.slnf` 里的测试项目哪个分片都不跑，汇总核对按名字告警；门禁样例 `tests/gates/**` 与 ci.yml 里由 dotnet 区域的专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。
 - AOT 冒烟宿主：仓库根的 `tests/Kun.AotSmoke` 引用 AOT 清单里的每一个项目（项目文件里写了 `IsAotCompatible=true` 的，本目录的 8 个包也在里面），对每个程序集整体扎根，原生发布后运行，ILC 有任何警告即失败（S1-KUN-020）。清单与写法见仓库根 `AGENTS.md`「项目文件与包」。本目录的四个原生发布作业照旧。
 
 ### 5.1 触发过滤与写法约定

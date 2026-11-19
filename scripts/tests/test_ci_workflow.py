@@ -8,10 +8,12 @@ ci.yml 的变更检测作业每次都先跑它。核对的是「CI 汇总」能�
   - 作业名不重复，「CI 汇总」不与被调用工作流里的作业重名；
   - .github/workflows/ 下别的工作流只能由 ci.yml 调用（workflow_call，可留 workflow_dispatch），且都被调用、没有自己的并发组；
   - 调用前端与文档工作流的作业给 packages: read；被调用方有要写权限的作业时，调用方给 contents: write；
-  - 区域表里「要构建 .NET」「装 GitHub Packages 上的 npm 包」两个标记与作业实际做的事一致。
+  - 区域表里「要构建 .NET」「装 GitHub Packages 上的 npm 包」两个标记与作业实际做的事一致；
+  - 测试结果构件名带尝试号，测试分片汇总核对按尝试号取每个分片最新的一份：「重跑失败的作业」之后汇总能按重跑的结果变绿。
 """
 from __future__ import annotations
 
+import fnmatch
 import re
 import sys
 import unittest
@@ -127,6 +129,40 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertEqual({name for name, area in ci_changes.AREAS.items() if area.builds_dotnet}, dotnet)
         # 分片 b 装 doctor 客户端的 npm 包，但 dotnet 区域已含整个 _import/qian（.npmrc 在内），不另列标记。
         self.assertEqual({name for name, area in ci_changes.AREAS.items() if area.installs_npm}, npm - {"dotnet"})
+
+    def test_test_results_are_named_per_attempt_and_the_summary_takes_the_latest(self) -> None:
+        # 「重跑失败的作业」之后同名构件每次尝试各有一份。download-artifact（按模式、按名字、按 ID 都一样）对同名构件
+        # 只留 ID 最大的一份，而重跑后的 ID 不一定更大：汇总会取到上一次尝试的结果，重跑过了还是红（CavaiLAB/kun#38 实测）。
+        suffix = "-attempt-${{ github.run_attempt }}"
+        uploads = [step for job in self.jobs.values() for step in job.get("steps") or []
+                   if str(step.get("uses", "")).startswith("actions/upload-artifact")]
+        self.assertEqual([], [step["uses"] for step in uploads if not str(step["uses"]).startswith("actions/upload-artifact@")],
+                         "合并构件的子动作按名字合并几次尝试的构件，同名文件互相覆盖，不用它")
+        names = [str(step["with"]["name"]) for step in uploads]
+        results = [name for name in names if name.startswith("test-results-")]
+        self.assertGreaterEqual(len(results), 2, "分片与门禁作业都上传测试结果")
+        for name in results:
+            self.assertTrue(name.endswith(suffix), f"测试结果构件 {name} 的名字要以 {suffix} 结尾")
+
+        steps = self.jobs["dotnet-test-summary"]["steps"]
+        downloads = [step["with"] for step in steps if str(step.get("uses", "")).startswith("actions/download-artifact")]
+        self.assertEqual([{"pattern": "test-results-*-attempt-*", "path": "${{ runner.temp }}/test-results-attempts"}], downloads,
+                         "按模式下载全部尝试，每个构件一个子目录（不按名字、不合并）")
+        for name in results:
+            sample = name.replace("${{ matrix.shard }}", "a").replace("${{ github.run_attempt }}", "2")
+            self.assertTrue(fnmatch.fnmatchcase(sample, downloads[0]["pattern"]), f"{name} 没被汇总下载")
+        runs = [str(step.get("run", "")) for step in steps]
+        latest = [index for index, run in enumerate(runs)
+                  if 'dotnet_ci.py latest-attempts "$RUNNER_TEMP/test-results-attempts" "$RUNNER_TEMP/test-results"' in run]
+        verify = [index for index, run in enumerate(runs) if 'dotnet_ci.py verify "$RUNNER_TEMP/test-results"' in run]
+        self.assertEqual(1, len(latest), "汇总要先按尝试号取每个分片最新的一份")
+        self.assertEqual(1, len(verify))
+        self.assertLess(latest[0], verify[0], "先取最新一次尝试，再核对")
+
+        merged = [step["with"] for step in steps if str(step.get("uses", "")).startswith("actions/upload-artifact")]
+        self.assertEqual([("test-results", "${{ runner.temp }}/test-results/")], [(item["name"], item["path"]) for item in merged],
+                         "汇总上传的是取好的那份")
+        self.assertFalse(fnmatch.fnmatchcase("test-results", downloads[0]["pattern"]), "汇总自己上传的构件不能被下一次尝试当成分片结果下载")
 
     def test_dotnet_jobs_use_the_shared_sdk_action_and_ubuntu_24_04(self) -> None:
         for name, job in self.jobs.items():

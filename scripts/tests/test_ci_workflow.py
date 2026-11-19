@@ -9,7 +9,8 @@ ci.yml 的变更检测作业每次都先跑它。核对的是「CI 汇总」能�
   - .github/workflows/ 下别的工作流只能由 ci.yml 调用（workflow_call，可留 workflow_dispatch），且都被调用、没有自己的并发组；
   - 调用前端与文档工作流的作业给 packages: read；被调用方有要写权限的作业时，调用方给 contents: write；
   - 区域表里「要构建 .NET」「装 GitHub Packages 上的 npm 包」两个标记与作业实际做的事一致；
-  - 测试结果构件名带尝试号，测试分片汇总核对按尝试号取每个分片最新的一份：「重跑失败的作业」之后汇总能按重跑的结果变绿。
+  - 测试结果构件名带尝试号，测试分片汇总核对按尝试号取每个分片最新的一份：「重跑失败的作业」之后汇总能按重跑的结果变绿；
+  - 分片作业在后台预拉镜像之前，先在前台列出本分片的镜像，列不出这一步就失败；门禁作业核对每个测试项目都有着落。
 """
 from __future__ import annotations
 
@@ -163,6 +164,29 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertEqual([("test-results", "${{ runner.temp }}/test-results/")], [(item["name"], item["path"]) for item in merged],
                          "汇总上传的是取好的那份")
         self.assertFalse(fnmatch.fnmatchcase("test-results", downloads[0]["pattern"]), "汇总自己上传的构件不能被下一次尝试当成分片结果下载")
+
+    def test_shards_list_their_images_in_the_foreground_before_the_background_prefetch(self) -> None:
+        # 夹具搬走、镜像变量改名、扫描器漏看了引用夹具的项目时，dotnet_ci.py images 退出码 2。它要在前台跑、退出码不被吞掉，
+        # 分片作业才会失败；后台的 prefetch 只记录拉取结果，网络失败不拦，由 Testcontainers 补拉。
+        steps = [step for step in self.jobs["dotnet-test"]["steps"] if "dotnet_ci.py prefetch" in str(step.get("run", ""))]
+        self.assertEqual(1, len(steps), "分片作业要有一步后台预拉镜像")
+        step = steps[0]
+        self.assertNotIn("continue-on-error", step)
+        lines = [line.strip() for line in str(step["run"]).splitlines()]
+        listing = [index for index, line in enumerate(lines) if "dotnet_ci.py images ${{ matrix.shard }}" in line]
+        prefetch = [index for index, line in enumerate(lines) if "dotnet_ci.py prefetch ${{ matrix.shard }}" in line]
+        self.assertEqual(1, len(listing), "后台预拉之前先在前台列出本分片的镜像")
+        self.assertLess(listing[0], prefetch[0])
+        self.assertTrue(lines[listing[0]].startswith("python3 "), lines[listing[0]])
+        # 不放后台（&）、不接管道（缺省的 bash -e 不带 pipefail）、不接 && 或 ||（-e 不管它们左边的命令）。
+        self.assertNotRegex(lines[listing[0]], r"[|&]|\b(?:nohup|setsid)\b|\\$")
+
+    def test_the_gates_job_checks_that_every_test_project_is_run_somewhere(self) -> None:
+        steps = [step for step in self.jobs["dotnet-build"]["steps"] if "dotnet_ci.py registration" in str(step.get("run", ""))]
+        self.assertEqual([("_import/qian", "python3 scripts/dotnet_ci.py registration")],
+                         [(step.get("working-directory"), str(step["run"]).strip()) for step in steps],
+                         "门禁作业要核对每个测试项目都有着落（仓库根与 _import/qian 下的）")
+        self.assertFalse({"if", "continue-on-error"} & set(steps[0]), "这一步不能有条件，失败不能放过")
 
     def test_dotnet_jobs_use_the_shared_sdk_action_and_ubuntu_24_04(self) -> None:
         for name, job in self.jobs.items():

@@ -11,8 +11,8 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 /// <see cref="IMultiTenant"/> entities and, when their
 /// <see cref="IMultiTenant.TenantId"/> is <see langword="null"/> or
 /// empty, injects the ambient <see cref="ITenantContext.TenantId"/>.
-/// Existing non-empty values are preserved so administrative tooling
-/// that explicitly sets a tenant id retains control.
+/// Explicit values must be non-empty UUIDs in lowercase D format.
+/// Valid explicit values take precedence over the ambient tenant.
 /// </summary>
 public sealed partial class KunTenantSaveChangesInterceptor : SaveChangesInterceptor
 {

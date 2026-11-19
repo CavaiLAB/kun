@@ -30,6 +30,7 @@
 ### Changed — 租户上下文使用 UUID（S1-KUN-024）
 
 - `ITenantContext.TenantId` 和 `BeginScope` 使用 `Guid?`。租户范围要求非空 UUID，平台范围用 `null`。消息与 HTTP 仍以 D 格式传输租户标识。实体租户列与 RLS 配置项继续使用小写 UUID 文本。
+- 宽松和严格的 EF 上下文在插入多租户实体时都会检查显式租户标识。已赋值的标识须为非空 UUID 的小写 D 格式，格式不符时保存失败。未赋值的标识从当前租户范围填入。
 - `TenantInfo`、租户开户与注销、数据库连接解析、上下文工厂、原生数据会话的租户端口使用 UUID。配置连接映射时以 UUID 为键。架构隔离的开户器与上下文工厂通过 `KunMultiTenancyOptions.GetSchemaName` 取得同一个架构名。已有按旧标识命名的架构需要在切换前迁移。
 
 ### Changed — 租户上下文与隔离策略（S1-KUN-024）

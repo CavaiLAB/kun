@@ -19,7 +19,8 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     [Fact]
     public async Task 同业务键并发幂等_取消到点不执行_不同租户同键互不影响()
     {
-        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var config = fixture.LongLease; // 不测到期，用 30 秒租约
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
         var due = DateTimeOffset.UtcNow.AddSeconds(4);
         var ids = await Task.WhenAll(Enumerable.Range(0, 20).Select(async _ =>
         {
@@ -38,8 +39,8 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantB)); await caller.Scheduler().ScheduleOnce(caller, "same", due, Target, Parameters, cancellationToken: Ct);
         }
-        await using var worker = await WorkerProcess.Start(fixture.Config, TenantA, TenantB);
-        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects") == 1, fixture.Leases(2));
+        await using var worker = await WorkerProcess.Start(config, TenantA, TenantB);
+        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects") == 1, fixture.Leases(2, config));
         Assert.Equal(TenantB, await fixture.Scalar<string>("SELECT tenant_id FROM public.sch_probe_effects"));
         Assert.Equal(2, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_definitions"));
     }
@@ -187,18 +188,19 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     [Fact]
     public async Task 创建时有效但到期前被冻结的租户不执行处理器()
     {
-        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var config = fixture.LongLease; // 不测到期，用 30 秒租约
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
         using (producer.Tenant.BeginScope(TenantA))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
             await caller.Scheduler().ScheduleOnce(caller, "tenant-frozen", DateTimeOffset.UtcNow.AddSeconds(2), Target, Parameters, new JobOptions { MaxAttempts = 1 }, Ct);
         }
         await fixture.Admin($"INSERT INTO public.sch_probe_tenants(id,status) VALUES ('{TenantA}','suspended');");
-        await using var worker = await WorkerProcess.Start(fixture.Config, TenantA);
+        await using var worker = await WorkerProcess.Start(config, TenantA);
         var phases = new Dictionary<string, DateTimeOffset> { ["workerReady"] = DateTimeOffset.UtcNow };
         try
         {
-            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed'") == 1, fixture.Leases(2));
+            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed'") == 1, fixture.Leases(2, config));
             Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts"));
         }
         catch
@@ -243,7 +245,8 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     [Fact]
     public async Task misfire跳过不调用_补一次合并积压_补齐按计划发生点且同定义不重叠()
     {
-        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var config = fixture.LongLease; // 不测到期，用 30 秒租约
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
         using (producer.Tenant.BeginScope(TenantA))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA)); var past = DateTimeOffset.UtcNow.AddSeconds(-5);
@@ -251,8 +254,8 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
             await caller.Scheduler().ScheduleInterval(caller, "fire-once", past, TimeSpan.FromHours(1), Target, Parameters, new JobOptions { Misfire = MisfirePolicy.FireOnce }, Ct);
             await caller.Scheduler().ScheduleInterval(caller, "catch-up", past, TimeSpan.FromSeconds(1), Target, JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 50 }), new JobOptions { Misfire = MisfirePolicy.CatchUp }, Ct);
         }
-        await using var a = await WorkerProcess.Start(fixture.Config, TenantA); await using var b = await WorkerProcess.Start(fixture.Config, TenantA);
-        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs r JOIN plugin_qian_scheduler.job_definitions d ON r.tenant_id=d.tenant_id AND r.trigger_id=d.id WHERE d.business_key='catch-up' AND r.status='succeeded'") >= 4, fixture.Leases(3));
+        await using var a = await WorkerProcess.Start(config, TenantA); await using var b = await WorkerProcess.Start(config, TenantA);
+        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs r JOIN plugin_qian_scheduler.job_definitions d ON r.tenant_id=d.tenant_id AND r.trigger_id=d.id WHERE d.business_key='catch-up' AND r.status='succeeded'") >= 4, fixture.Leases(3, config));
         using (producer.Tenant.BeginScope(TenantA))
         { var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA)); await caller.Scheduler().Cancel(caller, "catch-up", Ct); }
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='skipped'"));

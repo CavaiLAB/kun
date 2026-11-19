@@ -19,7 +19,7 @@
 |---|---|---|---|:---:|:---:|
 | `Kun.Mediator` | `FrozenDictionary` 无反射 CQRS 调度器 + Pipeline Behaviors | 所有业务 Command/Query 的执行入口 | `AddKunMediator(builder => …)` / `ISender` / `IPublisher` | ✅ | 8 |
 | `Kun.Validation` | `IValidator<T>` + `ValidationPipelineBehavior` | 命令入口的统一校验 | `AddValidator<T, TValidator>()` | ✅ | 12 |
-| `Kun.Infrastructure` | 仓储 / UoW / 规约 / `IProcessedMessageStore` 抽象 | 持久化层契约，真实实现下沉到 EF 侧 | `IRepository<T>` / `IUnitOfWork` / `ISpecification<T>` | ✅ | — |
+| `Kun.Infrastructure` | 仓储 / UoW / 规约 / `IProcessedMessageStore` 抽象 | 旧的持久化层契约，EF 侧已不再实现（已禁用，待归档） | `IRepository<T>` / `IUnitOfWork` / `ISpecification<T>` | ✅ | — |
 | `Kun.Configuration` | 强类型 Options + DataAnnotations + fail-fast | 下游服务的配置装配 | `AddKunOptions<T>()` | ✅ | 13 |
 
 ### 平台端口增量（2026-10-09）

@@ -9,8 +9,6 @@ EF Core 10 write-side persistence for the Kun Framework.
   `SchemaConsistencyInterceptor` safety net (auto-registered).
 - `EfUnitOfWork` — commits aggregate changes, dispatches domain events, and
   flushes the Outbox accumulator in a single transaction.
-- `EfRepository<T>` + `SpecificationEvaluator` — write-side repository and
-  specification-pattern query evaluator.
 - `IntegrationEventOutboxAccumulator` — scoped bridge that implements both
   `IIntegrationEventBus` and `IOutboxWriter`, so aggregates and non-aggregate
   enqueuers (e.g. audit interceptors) share a single in-request buffer.

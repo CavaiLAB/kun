@@ -63,9 +63,6 @@ Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext>
 Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext>.SchemaPerTenantProvisioner(Kun.EntityFrameworkCore.MultiTenancy.ITenantDbContextFactory<TContext!>! factory, Microsoft.Extensions.Options.IOptions<Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions!>! options, Microsoft.Extensions.Logging.ILogger<Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext!>!>? logger = null) -> void
 Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext>.ProvisionAsync(Kun.Core.MultiTenancy.TenantInfo! tenant, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext>.DeprovisionAsync(string! tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Kun.EntityFrameworkCore.MultiTenancy.TenantAwareModelCacheKeyFactory
-Kun.EntityFrameworkCore.MultiTenancy.TenantAwareModelCacheKeyFactory.TenantAwareModelCacheKeyFactory() -> void
-Kun.EntityFrameworkCore.MultiTenancy.TenantAwareModelCacheKeyFactory.Create(Microsoft.EntityFrameworkCore.DbContext! context, bool designTime) -> object!
 Kun.EntityFrameworkCore.MultiTenancy.IDbConnectionResolver
 Kun.EntityFrameworkCore.MultiTenancy.IDbConnectionResolver.ResolveConnectionString(string! tenantId) -> string!
 Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions

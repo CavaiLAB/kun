@@ -99,7 +99,7 @@ builder.Services.AddDbContext<CatalogDbContext>((sp, opts) =>
     var tenantId = sp.GetRequiredService<ITenantContext>().TenantId ?? "public";
     opts.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
         .UseKunSchema(tenantId)                          // 切 DefaultSchema + MigrationsHistoryTable
-        .ReplaceService<IModelCacheKeyFactory, TenantAwareModelCacheKeyFactory>();
+        .ReplaceService<IModelCacheKeyFactory, KunMultiTenantModelCacheKeyFactory>();
 });
 
 // 3. Consumer 自己实现 factory（~10 lines）
@@ -119,7 +119,7 @@ public sealed class CatalogTenantDbContextFactory : ITenantDbContextFactory<Cata
 await provisioner.ProvisionAsync(new TenantInfo("tenant-acme"));   // 自动 CREATE SCHEMA + migrations
 ```
 
-`TenantAwareModelCacheKeyFactory` 确保每个租户有独立的 EF 模型缓存键（否则第一个租户的已编译模型会被第二个租户复用，schema 错位）。
+`KunMultiTenantModelCacheKeyFactory` 确保每个租户有独立的 EF 模型缓存键（否则第一个租户的已编译模型会被第二个租户复用，schema 错位）。
 
 ### 运维注意
 - 迁移无法在 app 启动时批量跑（可能还没注册所有租户），必须走 `ITenantProvisioner` 的开户钩子。
@@ -193,6 +193,6 @@ appsettings.json：
 ## 相关代码
 
 - `src/Kun.Core/MultiTenancy/` — `ITenantContext`、`TenantIsolationStrategy`、`TenantInfo`、`ITenantProvisioner`、`NullTenantProvisioner`
-- `src/Kun.EntityFrameworkCore/MultiTenancy/` — 全部三种策略的运行时件（`KunMultiTenancyOptions`、`ITenantDbContextFactory<T>`、`TenantAwareModelCacheKeyFactory`、`SchemaPerTenantProvisioner<T>`、`DatabasePerTenantProvisioner<T>`、`IDbConnectionResolver`、`OptionsBasedTenantConnectionResolver`、`TenantsConnectionOptions`、`KunMultiTenancyServiceCollectionExtensions`）
+- `src/Kun.EntityFrameworkCore/MultiTenancy/` — 全部三种策略的运行时件（`KunMultiTenancyOptions`、`ITenantDbContextFactory<T>`、`KunMultiTenantModelCacheKeyFactory`、`SchemaPerTenantProvisioner<T>`、`DatabasePerTenantProvisioner<T>`、`IDbConnectionResolver`、`OptionsBasedTenantConnectionResolver`、`TenantsConnectionOptions`、`KunMultiTenancyServiceCollectionExtensions`）
 - `src/Kun.EntityFrameworkCore/Interceptors/TenantRlsTransactionInterceptor.cs` — Shared 策略的 RLS defence-in-depth
 - `docs/adr/kun/adr-p2d-multitenancy.md` — 设计取舍完整 ADR

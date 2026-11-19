@@ -18,7 +18,7 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 /// For <strong>runtime query access</strong> (inside a request), prefer the standard
 /// DI-injected <typeparamref name="TContext"/> registered via
 /// <c>AddDbContext&lt;TContext&gt;((sp, opts) =&gt; opts.UseKunSchema(sp.GetRequiredService&lt;ITenantContext&gt;().TenantId!))</c>
-/// combined with <see cref="TenantAwareModelCacheKeyFactory"/>. The factory is the explicit
+/// combined with <see cref="KunMultiTenantModelCacheKeyFactory"/>. The factory is the explicit
 /// escape hatch for administrative / provisioning flows that must target a specific tenant
 /// regardless of the ambient context.
 /// </para>

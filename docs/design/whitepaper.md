@@ -131,7 +131,7 @@ graph TD
 | `Kun.Mediator` | `FrozenDictionary` 无反射调度、Pipeline Behaviors | `Kun.Core` |
 | `Kun.Infrastructure` | 仓储接口、UoW、规约、`IProcessedMessageStore` | `Kun.Core` |
 | `Kun.EntityFrameworkCore` | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | `Kun.Infrastructure` |
-| `Kun.EventBus.Abstractions` | 稳定事件标记与 JSON 注册端口 | `Kun.Core` |
+| `Kun.EventBus.Abstractions` | 稳定事件标记与 JSON 注册端口、Outbox 写入端口、集成事件信封 | `Kun.Core`、`Kun.Runtime` |
 | `Kun.EventBus` | 领域事件、集成事件抽象、Outbox 发布器 | `Kun.Core` |
 | `Kun.EventBus.RabbitMQ` | RabbitMQ 传输、消费端幂等中间件 | `Kun.EventBus` |
 | `Kun.Saga` | Saga 定义、编排器、补偿调度、超时检测 | `Kun.EventBus` |

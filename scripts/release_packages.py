@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""发版的包名单与制品核对（S1-KUN-022；合并蓝图 D23.12）。只依赖标准库，不发布、不推送、不读凭据。
+"""发版的包名单与制品核对（S1-KUN-022；合并蓝图 D23.12）。只依赖标准库。包源核对为只读操作。
 
 名单不另写，从项目文件读：Kun.slnx 里每个 IsPackable=true 的项目就是一个包，档位与角色取项目文件里的
 KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。包名与条数都不写死，换包名、加减包不用改这里。
@@ -8,6 +8,12 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
 
   python3 scripts/release_packages.py list [--transitional] [--json]
       列出包名单并核对：档位与角色写全、包名不重复；--json 输出名单（verify-packages 可用 --list 读回）。
+  python3 scripts/release_packages.py nuget-config --version V [--list release-packages.json]
+      向标准输出写入消费者的 NuGet.config。凭据用环境变量占位，包源按档位与发布版本选择。
+  python3 scripts/release_packages.py notes --version V [--list release-packages.json]
+      从 CHANGELOG.md 的 [Unreleased] 生成版本说明，附本版本的包清单与包源映射。
+  python3 scripts/release_packages.py verify-feed --feed github|nuget --version V [--list release-packages.json]
+      等待索引中出现本版本。GitHub Packages 同时核对公开状态与 CavaiLAB/kun 仓库关联；可用 GITHUB_TOKEN 只读访问。
   python3 scripts/release_packages.py verify-packages --version V --packages <目录> [--transitional]
       核对 dotnet pack 的产物（版本用 -p:Version=V 统一传入）：
       - 恰好是名单上的包，各一个，nuspec 的包名、版本与文件名对得上，版本都是 V（V 要合日历版本的写法）；
@@ -57,7 +63,8 @@ from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_deps import ROLES, TIERS, GateError, ROOT, _env, _metadata, _rel, solution_projects  # noqa: E402
-from release_version import release_info  # noqa: E402
+from release_feed import FeedError, verify_feed  # noqa: E402
+from release_version import PACKAGE_ID, release_info  # noqa: E402
 
 SOLUTION = ROOT / "Kun.slnx"
 METADATA_PROPS = ROOT / "src" / "Directory.Build.props"
@@ -369,6 +376,50 @@ def git_head() -> str:
     return result.stdout.strip()
 
 
+def github_packages(packages: List[Package], version: str) -> List[str]:
+    beta = release_info(version)["prerelease"]
+    for package in packages:
+        if not PACKAGE_ID.fullmatch(package.id):
+            raise Failure(f"包源映射需要精确的 Kun 包名：{package.id}")
+    return sorted((p.id for p in packages if beta or p.tier == "platform"), key=str.casefold)
+
+
+def nuget_config(packages: List[Package], version: str) -> str:
+    github_ids = github_packages(packages, version)
+    root = ET.Element("configuration")
+    sources = ET.SubElement(root, "packageSources")
+    ET.SubElement(sources, "clear")
+    ET.SubElement(sources, "add", key="nuget.org", value="https://api.nuget.org/v3/index.json")
+    ET.SubElement(sources, "add", key="kun-platform", value="https://nuget.pkg.github.com/CavaiLAB/index.json")
+    mapping = ET.SubElement(root, "packageSourceMapping")
+    platform = ET.SubElement(mapping, "packageSource", key="kun-platform")
+    for identifier in github_ids:
+        ET.SubElement(platform, "package", pattern=identifier)
+    public = ET.SubElement(mapping, "packageSource", key="nuget.org")
+    ET.SubElement(public, "package", pattern="*")
+    credentials = ET.SubElement(ET.SubElement(root, "packageSourceCredentials"), "kun-platform")
+    ET.SubElement(credentials, "add", key="Username", value="%KUN_PLATFORM_FEED_USER%")
+    ET.SubElement(credentials, "add", key="ClearTextPassword", value="%KUN_PLATFORM_FEED_TOKEN%")
+    ET.indent(root, space="  ")
+    return ET.tostring(root, encoding="unicode") + "\n"
+
+
+def release_notes(packages: List[Package], version: str, changelog: str) -> str:
+    section = re.search(r"^## \[Unreleased\][ \t]*\n(.*?)(?=^## \[|\Z)", changelog, re.MULTILINE | re.DOTALL)
+    body = section.group(1).strip() if section else ""
+    if not any(line.strip() and line.strip() != "（尚无新变更。）" for line in body.splitlines()):
+        raise Failure("CHANGELOG.md 的 [Unreleased] 需要至少一条变更")
+    github = set(github_packages(packages, version))
+    rows = ["| 包 | 档位 | 包源 |", "|---|---|---|"]
+    for package in sorted(packages, key=lambda p: p.id.casefold()):
+        tier = "平台" if package.tier == "platform" else "内核"
+        feed = "GitHub Packages" if package.id in github else "nuget.org"
+        rows.append(f"| `{package.id}` | {tier} | {feed} |")
+    return (f"# Kun {version}\n\n{body}\n\n## 本版本的包\n\n" + "\n".join(rows)
+            + "\n\n## NuGet 包源\n\n还原前请设置 `KUN_PLATFORM_FEED_USER` 与 `KUN_PLATFORM_FEED_TOKEN`。\n\n"
+            + "```xml\n" + nuget_config(packages, version) + "```\n")
+
+
 # ---------- 命令行 ----------
 
 def _load_list(path: Path) -> List[Package]:
@@ -409,6 +460,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     verifying.add_argument("--packages", required=True, type=Path, help="dotnet pack -o 的目录")
     verifying.add_argument("--list", type=Path, help="list --json 的输出；不给就现读项目文件")
     verifying.add_argument("--commit", help="包里应带的提交号；不给就取仓库的 HEAD")
+    config = sub.add_parser("nuget-config", help="生成该版本的消费者包源映射")
+    notes = sub.add_parser("notes", help="从 CHANGELOG.md 的 [Unreleased] 生成该版本的发布说明")
+    feed = sub.add_parser("verify-feed", help="在指定包源核对本次发布的包")
+    feed.add_argument("--feed", choices=("github", "nuget"), required=True)
+    feed.add_argument("--wait-seconds", type=int, default=2700, help="最多等待索引的秒数，0 表示只核对一轮")
+    for p in (config, notes, feed):
+        p.add_argument("--version", required=True, help="日历版本")
+        p.add_argument("--list", type=Path, help="list --json 的输出；不给就现读项目文件")
     for p in (listing, verifying):
         p.add_argument("--transitional", action="store_true",
                        help="过渡模式：过渡目录下的包放行 TRANSITIONAL 里的几项，档位例外只报数（B10 之前用）")
@@ -426,13 +485,29 @@ def main(argv: Optional[List[str]] = None) -> int:
             return _print(check_list(packages, args.transitional), "包名单核对", args.transitional)
         release_info(args.version)
         packages = _load_list(args.list) if args.list else discover()
+        if args.command in ("nuget-config", "notes", "verify-feed"):
+            report = check_list(packages, transitional=False)
+            if report.problems:
+                print("\n".join(report.problems), file=sys.stderr)
+                return 1
+            if args.command == "verify-feed":
+                github = set(github_packages(packages, args.version))
+                names = [p.id for p in packages if (p.id in github) == (args.feed == "github")]
+                token = os.environ.get("GITHUB_TOKEN") if args.feed == "github" else None
+                verify_feed(args.feed, names, args.version, args.wait_seconds, token)
+                print(f"{args.feed} 包源核对通过：{len(names)} 个包，版本 {args.version}")
+            elif args.command == "nuget-config":
+                print(nuget_config(packages, args.version), end="")
+            else:
+                print(release_notes(packages, args.version, (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")), end="")
+            return 0
         report = verify(packages, args.packages, args.version, args.commit or git_head(), args.transitional)
         print(f"包名单：{_summary(packages)}；版本 {args.version}")
         return _print(report, "制品核对", args.transitional)
     except ValueError as error:
         print(f"版本不合要求：{error}", file=sys.stderr)
         return 2
-    except (GateError, Failure) as error:
+    except (GateError, Failure, FeedError) as error:
         print(f"发版核对出错：{error}", file=sys.stderr)
         return 2
 

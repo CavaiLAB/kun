@@ -452,8 +452,7 @@ public class KunResultToRpcInterceptor : Interceptor
 builder.Services.AddGrpcClient<CatalogGrpcService.CatalogGrpcServiceClient>(o =>
 {
     o.Address = new Uri("https+http://catalog-api");
-})
-.AddKunServiceAuth();  // 自动在请求中注入 S2S JWT（见下一章）
+});  // 身份由网关为目标服务换签，见 9.5。
 ```
 
 ---
@@ -573,15 +572,9 @@ builder.Services.AddKunServiceAuthentication(options =>
 builder.Services.AddScoped<ITenantContext, JwtTenantContext>();
 ```
 
-### 9.5 服务间调用的令牌传递
+### 9.5 服务间调用的令牌
 
-```csharp
-// Kun.Security.Http - 自动把当前请求的 S2S JWT 附加到出站 HTTP/gRPC 请求
-public static IHttpClientBuilder AddKunServiceAuth(this IHttpClientBuilder builder)
-    => builder.AddHttpMessageHandler<PropagateS2sTokenHandler>();
-
-// 对于服务发起的后台任务（无入站请求），从配置拉取机器身份，调用网关 /s2s/issue 端点换取令牌
-```
+网关用 `S2sTokenIssuer.IssueForAudienceAsync` 为目标服务签发一枚令牌。出站调用应携带与本跳受众绑定的令牌。`AddKunServiceAuth` 与 `PropagateS2sTokenHandler` 已标记为过时。
 
 ### 9.6 安全实践清单
 

@@ -186,32 +186,11 @@ keys, switch signing to the new key, and wait for old-signed tokens to expire.
 
 ---
 
-## PropagateS2sTokenHandler
+## Calling the next service
 
-When service A calls service B over HTTP, it must forward the S2S JWT so service B can validate
-the caller's identity. `PropagateS2sTokenHandler` (see `src/Kun.Security/Http/PropagateS2sTokenHandler.cs`)
-is a `DelegatingHandler` that copies the `Authorization` header from the current inbound request
-to every outbound request made by the `HttpClient` it wraps.
-
-Register it on any named or typed `HttpClient` that calls a downstream Kun service:
-
-```csharp
-// In Program.cs or a service registration class
-services.AddHttpClient<CatalogClient>(client =>
-    {
-        client.BaseAddress = new Uri("http://catalog");
-    })
-    .AddKunServiceAuth(); // src/Kun.Security/Extensions/HttpClientBuilderExtensions.cs
-```
-
-`AddKunServiceAuth` registers `PropagateS2sTokenHandler` as a transient service and chains it
-into the `HttpClient` message handler pipeline. The handler reads
-`IHttpContextAccessor.HttpContext.Request.Headers["Authorization"]` and copies the value to
-`request.Headers.Authorization` on each outgoing call.
-
-The handler only copies — it does not verify or re-sign. The token was already validated by the
-JwtBearer middleware when the inbound request arrived. The 60-second TTL ensures the copied token
-is still valid for the duration of the downstream call.
+The gateway issues a service token for the selected downstream audience through
+`S2sTokenIssuer.IssueForAudienceAsync`. Each hop needs its own token.
+`PropagateS2sTokenHandler` and `AddKunServiceAuth` are obsolete (KUNS2S001).
 
 ---
 
@@ -276,6 +255,6 @@ must come before `UseAuthorization` in the middleware pipeline.
 
 ## Retired issuer APIs
 
-`Kun.Identity.IJwtIssuer`/`KunJwtIssuer` and the `Kun.Security.S2SJwt` issuer/verifier/JWKS registration surface are obsolete (`KUNS2S001`). They remain only for binary/source migration compatibility. New code uses `Kun.Gateway.S2sTokenIssuer`, its shared JWKS ring and `Kun.Security` service authentication; do not introduce a second issuer or key lifecycle.
+Issue service tokens with the gateway's shared signing key ring. Use Kun.Security service authentication on the receiving service. The legacy Identity and S2SJwt issuer, verifier and JWKS registration APIs were removed in S1-KUN-026. Each hop needs a token issued for its own audience.
 
 Migrate callers to authoritative canonical principal projection, per-service audience selection, and the closed payload described above. Do not copy old permission/email/trace fields or inherit an old long token lifetime. The identity browser client, atomic session registry and back-channel logout setup are covered in [the identity client guide](../guides/identity-client.md).

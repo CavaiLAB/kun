@@ -13,12 +13,12 @@ single bounded context: the Catalog service manages `Product` aggregates.
 | Value object | `Domain/Category.cs` |
 | Command + validator | `Application/Commands/CreateProductCommand.cs` and `CreateProductCommandValidator.cs` |
 | Command handler (EF Core write side) | `Application/Commands/CreateProductCommandHandler.cs` |
-| Query handler (Dapper AOT read side) | `Application/Queries/GetProductByIdQueryHandler.cs` |
+| Query handler (read side: Npgsql data source + Dapper) | `Application/Queries/GetProductByIdQueryHandler.cs` |
 | Domain event → integration event bridge | `Application/DomainEventHandlers/ProductCreatedHandler.cs` |
 | Outbox pattern | `Infrastructure/CatalogDbContext.cs` + `EfUnitOfWork` from framework |
 | Stable event IDs | `product.published.v1`, `inventory.changed.v1` registered in `Program.cs` |
 | EF Core entity configuration | `Infrastructure/Configurations/ProductConfiguration.cs` |
-| Dapper read connection factory | `Infrastructure/NpgsqlReadDbConnectionFactory.cs` |
+| Read-side data source registration | `Program.cs` (`NpgsqlDataSource.Create`) |
 | Composition root | `Program.cs` |
 
 The full write-side pipeline is:
@@ -66,7 +66,6 @@ Kun.Sample.Catalog/
 │   └── InventoryChangedIntegrationEvent.cs
 ├── Infrastructure/
 │   ├── CatalogDbContext.cs
-│   ├── NpgsqlReadDbConnectionFactory.cs
 │   ├── MediatorDomainEventDispatcher.cs
 │   └── Configurations/
 │       └── ProductConfiguration.cs
@@ -134,7 +133,7 @@ concrete backend choices.
 | Method | Path | Description |
 |---|---|---|
 | `POST` | `/products` | Create a product. Body: `CreateProductCommand` JSON. Returns the new product `Guid`. |
-| `GET` | `/products/{id}` | Fetch a product by ID via the Dapper read side. Returns `ProductDto` or `404`. |
+| `GET` | `/products/{id}` | Fetch a product by ID via the read side (Dapper over the read connection). Returns `ProductDto` or `404`. |
 | `GET` | `/health` | Liveness check. Returns `{ "status": "healthy" }`. |
 
 Example create request:

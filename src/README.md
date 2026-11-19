@@ -13,7 +13,6 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | [Kun.Runtime](Kun.Runtime/) | 组件运行时：插件装载、服务键与注入、类型化事件、扁平 scope | — |
 | [Kun.Infrastructure](Kun.Infrastructure/) | 仓储/UoW/规约接口、`IProcessedMessageStore` | ✅ |
 | [Kun.EntityFrameworkCore](Kun.EntityFrameworkCore/) | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | ⚠️ trim-safe |
-| [Kun.Dapper](Kun.Dapper/) | 读侧 Dapper AOT 封装 | ✅ |
 | [Kun.EventBus.Abstractions](Kun.EventBus.Abstractions/) | 稳定事件标记与 JSON 注册端口（只依赖 Core） | ✅ |
 | [Kun.EventBus](Kun.EventBus/) | 领域/集成事件抽象、Outbox 发布器 | ✅ |
 | [Kun.EventBus.RabbitMQ](Kun.EventBus.RabbitMQ/) | RabbitMQ 传输、消费端幂等 | ✅ |

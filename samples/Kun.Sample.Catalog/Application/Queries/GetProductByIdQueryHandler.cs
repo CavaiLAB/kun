@@ -1,14 +1,15 @@
 using Dapper;
 using Kun.Core.Cqrs;
-using Kun.Dapper;
+using Npgsql;
 
 namespace Kun.Sample.Catalog.Application.Queries;
 
 /// <summary>
 /// Read-side handler for <see cref="GetProductByIdQuery"/>.
-/// Uses Dapper directly against the read connection — no EF change tracking.
+/// Opens a connection from the read-side <see cref="NpgsqlDataSource"/> and queries it with
+/// Dapper — no EF change tracking.
 /// </summary>
-public sealed class GetProductByIdQueryHandler(IReadDbConnectionFactory connectionFactory)
+public sealed class GetProductByIdQueryHandler(NpgsqlDataSource readDataSource)
     : IRequestHandler<GetProductByIdQuery, ProductDto?>
 {
     /// <inheritdoc/>
@@ -16,7 +17,7 @@ public sealed class GetProductByIdQueryHandler(IReadDbConnectionFactory connecti
         GetProductByIdQuery request,
         CancellationToken cancellationToken)
     {
-        using var connection = await connectionFactory.OpenAsync(cancellationToken);
+        await using var connection = await readDataSource.OpenConnectionAsync(cancellationToken);
 
         // Schema-qualify — CatalogDbContext.DefaultSchema = "catalog", so the table
         // lives at "catalog"."catalog_products", and unqualified lookups depend on
@@ -34,10 +35,7 @@ public sealed class GetProductByIdQueryHandler(IReadDbConnectionFactory connecti
               AND  "IsDeleted" = false
             """;
 
-        var row = await connection.QuerySingleOrDefaultAsync<ProductDto>(
-            sql,
-            new { request.Id });
-
-        return row;
+        return await connection.QuerySingleOrDefaultAsync<ProductDto>(
+            new CommandDefinition(sql, new { request.Id }, cancellationToken: cancellationToken));
     }
 }

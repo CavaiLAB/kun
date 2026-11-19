@@ -2,6 +2,7 @@ using Kun.EventBus.RabbitMQ.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace Kun.EventBus.RabbitMQ;
 
@@ -13,6 +14,7 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
 {
     private readonly RabbitMqOptions _options;
     private readonly ILogger<RabbitMqConnectionProvider> _logger;
+    private readonly Func<ConnectionFactory, CancellationToken, Task<IConnection>> _connect;
     private IConnection? _connection;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
@@ -20,9 +22,19 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
     public RabbitMqConnectionProvider(
         IOptions<RabbitMqOptions> options,
         ILogger<RabbitMqConnectionProvider> logger)
+        : this(options, logger, static (factory, cancellationToken) => factory.CreateConnectionAsync(cancellationToken))
+    {
+    }
+
+    // 建连接这一步可替换：用例用它换上假连接（比如关闭时报「对端已关」的），其余逻辑不变。
+    internal RabbitMqConnectionProvider(
+        IOptions<RabbitMqOptions> options,
+        ILogger<RabbitMqConnectionProvider> logger,
+        Func<ConnectionFactory, CancellationToken, Task<IConnection>> connect)
     {
         _options = options.Value;
         _logger = logger;
+        _connect = connect;
     }
 
     /// <summary>Returns the open connection, lazily creating it on first call.</summary>
@@ -70,7 +82,7 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
             // Pass CancellationToken.None: we want a fast failure (BrokerUnreachableException)
             // on bad hosts rather than OperationCanceledException from the stopping token,
             // which the outbox publisher's catch guard would silently discard.
-            _connection = await factory.CreateConnectionAsync(CancellationToken.None).ConfigureAwait(false);
+            _connection = await _connect(factory, CancellationToken.None).ConfigureAwait(false);
 
             Log.ConnectionEstablished(_logger);
             return _connection;
@@ -81,17 +93,39 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Closes and disposes the connection. A connection the broker (or the network) has already
+    /// closed counts as closed; any other failure while closing is rethrown after the connection
+    /// and the internal lock have been released.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
-        if (_connection is not null)
+        var connection = _connection;
+        _connection = null;
+        try
         {
-            await _connection.CloseAsync().ConfigureAwait(false);
-            _connection.Dispose();
-            _connection = null;
+            if (connection is not null)
+            {
+                try
+                {
+                    await connection.CloseAsync().ConfigureAwait(false);
+                }
+                catch (AlreadyClosedException closed)
+                {
+                    // 客户端只在关闭前查一次 IsOpen：对端的关闭落在「查」与「关」之间时，CloseAsync 抛 AlreadyClosedException。
+                    // 要达到的状态本来就是已关闭，照常释放；别的异常不在这里吞。
+                    Log.ConnectionAlreadyClosed(_logger, closed.ShutdownReason?.ReplyCode ?? 0, closed.ShutdownReason?.ReplyText ?? "");
+                }
+                finally
+                {
+                    connection.Dispose();
+                }
+            }
         }
-
-        _lock.Dispose();
+        finally
+        {
+            _lock.Dispose();
+        }
     }
 
     /// <summary>
@@ -127,6 +161,8 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
             Message = "RabbitMQ connection established.")]
         public static partial void ConnectionEstablished(ILogger logger);
 
-
+        [LoggerMessage(EventId = 12, Level = LogLevel.Debug,
+            Message = "RabbitMQ connection was already closed before shutdown ({ReplyCode} {ReplyText}).")]
+        public static partial void ConnectionAlreadyClosed(ILogger logger, ushort replyCode, string replyText);
     }
 }

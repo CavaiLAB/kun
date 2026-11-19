@@ -46,16 +46,20 @@ internal interface IEventSubscriptionCatalog
 internal sealed class EventsHostMarker;
 internal sealed class EventsStartupCheck(IServiceProvider services, ErrorCatalog catalog) : IHostedService, IDisposable
 {
+    private readonly Lock _gate = new();
     private readonly List<IDisposable> _registrations = [];
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (_registrations.Count == 0)
+        lock (_gate)
         {
-            _registrations.Add(catalog.Register(EventsErrors.Misconfigured));
-            _registrations.Add(catalog.Register(EventsErrors.PublishRejected));
-            _registrations.Add(catalog.Register(EventsErrors.ConsumeRejected));
+            if (_registrations.Count == 0)
+            {
+                _registrations.Add(catalog.Register(EventsErrors.Misconfigured));
+                _registrations.Add(catalog.Register(EventsErrors.PublishRejected));
+                _registrations.Add(catalog.Register(EventsErrors.ConsumeRejected));
+            }
         }
         if (services.GetService<IEventTypeRegistry>() is null)
             throw new KunEventsException(EventsErrors.Misconfigured, "宿主必须以 AddKunEventBus 显式登记事件类型目录。");
@@ -75,8 +79,11 @@ internal sealed class EventsStartupCheck(IServiceProvider services, ErrorCatalog
 
     public void Dispose()
     {
-        foreach (var registration in _registrations) registration.Dispose();
-        _registrations.Clear();
+        lock (_gate)
+        {
+            foreach (var registration in _registrations) registration.Dispose();
+            _registrations.Clear();
+        }
     }
 }
 

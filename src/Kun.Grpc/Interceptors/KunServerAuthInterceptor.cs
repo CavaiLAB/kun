@@ -1,4 +1,6 @@
 using Grpc.Core;
+using Kun.Errors;
+using Kun.Security.Authentication;
 using Grpc.Core.Interceptors;
 
 namespace Kun.Grpc.Interceptors;
@@ -6,11 +8,11 @@ namespace Kun.Grpc.Interceptors;
 /// <summary>
 /// gRPC server interceptor that enforces authenticated access for multi-tenant calls.
 /// Validates that the request has an authenticated <see cref="System.Security.Claims.ClaimsPrincipal"/>
-/// with a <c>tenant_id</c> claim. The host registers tenant scopes and current-user services separately.
+/// with a valid subject. The tenant interceptor establishes the scope, including a platform scope.
 /// </summary>
 internal sealed class KunServerAuthInterceptor : Interceptor
 {
-    private const string TenantIdClaimType = "tenant_id";
+    private static readonly ErrorCatalog Errors = ErrorCatalog.CreateDefault();
 
     /// <inheritdoc />
     public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
@@ -43,9 +45,9 @@ internal sealed class KunServerAuthInterceptor : Interceptor
     private static void Authorize(ServerCallContext context)
     {
         var user = context.GetHttpContext().User;
-        if (user?.Identity?.IsAuthenticated != true)
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "Request is not authenticated."));
-        if (string.IsNullOrWhiteSpace(user.FindFirst(TenantIdClaimType)?.Value))
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing required claim: tenant_id."));
+        if (PrincipalClaims.TryRead(user, out _, out _, out _)) return;
+        var trace = System.Diagnostics.Activity.Current?.TraceId.ToHexString() ?? System.Diagnostics.ActivityTraceId.CreateRandom().ToHexString();
+        var detail = Errors.CreateDetail(new Error(PlatformErrors.Unauthenticated), trace, instance: context.Method);
+        throw new RpcException(new Status(StatusCode.Unauthenticated, detail.Code), GrpcErrorTrailers.Create(detail));
     }
 }

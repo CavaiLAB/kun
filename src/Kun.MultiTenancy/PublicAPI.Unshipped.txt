@@ -28,3 +28,4 @@ static Kun.MultiTenancy.DependencyInjection.KunMultiTenancyServiceCollectionExte
 static Kun.MultiTenancy.Middleware.KunMultiTenancyApplicationBuilderExtensions.UseKunMultiTenancy(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app, Kun.MultiTenancy.TenantRequestMode mode = Kun.MultiTenancy.TenantRequestMode.TenantRequired) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 Kun.MultiTenancy.AsyncLocalTenantContext.BeginScope(System.Guid? tenantId) -> System.IDisposable!
 Kun.MultiTenancy.AsyncLocalTenantContext.TenantId.get -> System.Guid?
+Kun.MultiTenancy.TenantRequestBoundary.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext! context, Kun.MultiTenancy.TenantRequestMode mode, Microsoft.AspNetCore.Http.RequestDelegate! next) -> System.Threading.Tasks.Task!

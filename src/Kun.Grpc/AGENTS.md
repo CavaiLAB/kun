@@ -2,10 +2,10 @@
 
 ## Purpose
 
-Host-layer integration with gRPC (Grpc.AspNetCore). Provides three server interceptors and a DI helper for wiring them into a gRPC host:
+Host-layer integration with gRPC (Grpc.AspNetCore). Registers server interceptors for tracing, authentication, tenant scope, permissions and error mapping:
 
-- **`KunResultToRpcInterceptor`** — catches `ErrorException` (thrown by business code or by `Result<T>.EnsureSuccess()`) and translates it into an `RpcException` whose status code follows the HTTP status of the error code; the error code itself (e.g. `NOT_FOUND`) goes into the `kun-error-code` trailer.
-- **`KunServerAuthInterceptor`** — enforces that every request has an authenticated `ClaimsPrincipal` with a nonblank `tenant_id` claim before entering a handler or reading a stream frame. Unary, client streaming, server streaming and duplex all use this boundary.
+- **`KunResultToRpcInterceptor`** — catches `ErrorException` (thrown by business code or by `Result<T>.EnsureSuccess()`) and translates it into an `RpcException` whose status code follows the HTTP status of the error code; the error code goes into `kun-error-code` and the UTF-8 HTTP error detail goes into `qian-error-bin`.
+- **`KunServerAuthInterceptor`** — enforces that every request has an authenticated primary identity with a subject before entering a handler or reading a stream frame. Unary, client streaming, server streaming and duplex all use this boundary.
 - **`KunTracingInterceptor`** — starts a diagnostic `Activity("grpc.server")` per RPC call, covering the full awaited lifetime of all four RPC shapes, tagged with `rpc.system=grpc`, `rpc.method`, `rpc.type` and `rpc.grpc.status_code`.
 
 ## Key Files
@@ -14,9 +14,9 @@ Host-layer integration with gRPC (Grpc.AspNetCore). Provides three server interc
 |------|-------------|
 | `Kun.Grpc.csproj` | `IsAotCompatible=true`; packable, so the public API gate applies. References `Kun.Core`, `Kun.Security`, `Grpc.AspNetCore`, `Microsoft.AspNetCore.App` framework ref. |
 | `Interceptors/KunResultToRpcInterceptor.cs` | `internal sealed class`. Static helpers `MapStatus(int?)` and `ToRpcException(Error)` are testable via `InternalsVisibleTo`. |
-| `Interceptors/KunServerAuthInterceptor.cs` | `internal sealed class`. Checks `context.GetHttpContext().User` for `IsAuthenticated` and `tenant_id` claim. |
+| `Interceptors/KunServerAuthInterceptor.cs` | `internal sealed class`. Reads the subject from the authenticated primary identity. |
 | `Interceptors/KunTracingInterceptor.cs` | `internal sealed class`. Uses `ActivitySource("Kun.Grpc")`. |
-| `DependencyInjection/KunGrpcServiceCollectionExtensions.cs` | Public API: `AddKunGrpc(IServiceCollection, Action<GrpcServiceOptions>?)`. Registers all three interceptors in order: Tracing → Auth → ResultMapping. |
+| `DependencyInjection/KunGrpcServiceCollectionExtensions.cs` | Public API: `AddKunGrpc(IServiceCollection, Action<GrpcServiceOptions>?)`. Registers tracing, authentication, tenant scope, permissions and result mapping in call order. |
 | `PublicAPI.Unshipped.txt` | Tracks public surface: `KunGrpcServiceCollectionExtensions` + `AddKunGrpc`. |
 
 ## For AI Agents
@@ -39,7 +39,7 @@ builder.Services.AddKunSecurity();
 builder.Services.AddKunGrpc();
 ```
 
-The interceptors execute in registration order: Tracing → Auth → ResultMapping (innermost).
+The interceptors execute in registration order: Tracing → Auth → Tenant scope → Permission → ResultMapping (innermost).
 
 ## Dependencies
 
@@ -53,3 +53,5 @@ The interceptors execute in registration order: Tracing → Auth → ResultMappi
 
 - `Grpc.AspNetCore` (server-side gRPC, `Grpc.Core.Interceptors.Interceptor`)
 - `Microsoft.AspNetCore.App` (framework reference — `HttpContext`, `ServerCallContext.GetHttpContext()`)
+
+The tenant interceptor in `AddKunGrpc` establishes a tenant scope from the authenticated claim. An explicit JSON null tenant identifies a platform request and establishes an empty scope. When a client provides tenant metadata, it must match the authenticated tenant. Registering `TenantGrpcServerInterceptor` on its own requires tenant metadata for every call.

@@ -9,6 +9,7 @@ using global::Grpc.Core;
 using global::Grpc.Net.Client;
 using Kun.Core.Results;
 using Kun.Errors;
+using Kun.Core.MultiTenancy;
 using Kun.Grpc.DependencyInjection;
 using Kun.IntegrationTests.Grpc.Generated;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -24,6 +25,15 @@ namespace Kun.IntegrationTests.Grpc;
 
 public sealed class StreamingInterceptorsTests
 {
+    [Fact]
+    public async Task Rpc_AuthenticatedPlatformSubjectRunsInPlatformScope()
+    {
+        await using var host = await ProbeHost.StartAsync();
+        (await host.InvokeAsync("unary", tenant: null, platform: true)).Should().Be("ok");
+        host.Calls.Executed.Should().Be(1);
+        host.Calls.Tenants.Should().Equal(new string?[] { null });
+    }
+
     [Theory]
     [InlineData("unary")]
     [InlineData("server")]
@@ -47,14 +57,15 @@ public sealed class StreamingInterceptorsTests
     public async Task Rpc_WithTenant_RecordsTraceThroughFinalFrameAndMapsResult(string shape)
     {
         await using var host = await ProbeHost.StartAsync();
-        var value = await host.InvokeAsync(shape, "tenant-a");
+        var value = await host.InvokeAsync(shape, "cc77ad3f-0d65-4d90-929d-1fd089cf264f");
         value.Should().Be("ok");
         host.Calls.Executed.Should().Be(1);
         host.Calls.ActivityNames.Should().OnlyContain(name => name == "grpc.server");
+        host.Calls.Tenants.Should().OnlyContain(id => id == "cc77ad3f-0d65-4d90-929d-1fd089cf264f");
         var methodSuffix = "/" + char.ToUpperInvariant(shape[0]) + shape[1..];
         host.Spans.Should().Contain(span => span.Method.EndsWith(methodSuffix, StringComparison.Ordinal) && span.Kind == ActivityKind.Server);
         host.Calls.Fail = true;
-        var failed = () => host.InvokeAsync(shape, "tenant-a");
+        var failed = () => host.InvokeAsync(shape, "cc77ad3f-0d65-4d90-929d-1fd089cf264f");
         var error = await failed.Should().ThrowAsync<RpcException>();
         error.Which.StatusCode.Should().Be(StatusCode.NotFound);
         error.Which.Trailers.Should().Contain(entry => entry.Key == "kun-error-code" && entry.Value == "NOT_FOUND");
@@ -65,14 +76,16 @@ public sealed class StreamingInterceptorsTests
         internal int Executed;
         internal int Read;
         internal bool Fail;
+        internal ConcurrentQueue<string?> Tenants { get; } = [];
         internal ConcurrentQueue<string?> ActivityNames { get; } = [];
     }
 
-    private sealed class ProbeService(Calls calls) : StreamProbe.StreamProbeBase
+    private sealed class ProbeService(Calls calls, ITenantContext tenants) : StreamProbe.StreamProbeBase
     {
         private void Enter()
         {
             Interlocked.Increment(ref calls.Executed);
+            calls.Tenants.Enqueue(tenants.TenantId?.ToString());
             calls.ActivityNames.Enqueue(Activity.Current?.OperationName);
             if (calls.Fail) Result<string>.Fail(new Error(PlatformErrors.NotFound)).EnsureSuccess();
         }
@@ -133,7 +146,7 @@ public sealed class StreamingInterceptorsTests
             var channel = GrpcChannel.ForAddress(app.Urls.Single(), new GrpcChannelOptions { HttpHandler = new SocketsHttpHandler { UseProxy = false } });
             return new ProbeHost(app, channel, key, listener, calls, spans);
         }
-        internal async Task<string> InvokeAsync(string shape, string? tenant)
+        internal async Task<string> InvokeAsync(string shape, string? tenant, bool platform = false)
         {
             var claims = new List<Claim> { new("sub", "test-user") };
             if (tenant is not null) claims.Add(new Claim("tenant_id", tenant));
@@ -143,6 +156,7 @@ public sealed class StreamingInterceptorsTests
                 Issuer = "test-gateway",
                 Audience = "test-service",
                 Subject = new ClaimsIdentity(claims),
+                Claims = platform ? new Dictionary<string, object> { ["tenant_id"] = null! } : null,
                 IssuedAt = now,
                 NotBefore = now,
                 Expires = now.AddMinutes(1),

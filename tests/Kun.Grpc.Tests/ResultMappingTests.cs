@@ -2,6 +2,10 @@ using System.Globalization;
 using System.Text;
 using FluentAssertions;
 using Grpc.Core;
+using Grpc.AspNetCore.Server;
+using Kun.Grpc.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Kun.Errors;
 using Kun.Grpc.Interceptors;
 using Xunit;
@@ -15,6 +19,18 @@ namespace Kun.Grpc.Tests;
 /// </summary>
 public sealed class ResultMappingTests
 {
+    [Fact]
+    public void RegistrationKeepsAuthenticationAndTenantScopeBeforePermission()
+    {
+        var services = new ServiceCollection();
+        services.AddKunGrpc();
+        using var provider = services.BuildServiceProvider();
+        var interceptors = provider.GetRequiredService<IOptions<GrpcServiceOptions>>().Value.Interceptors;
+        interceptors.Select(entry => entry.Type).Should().Equal(typeof(KunTracingInterceptor),
+            typeof(KunServerAuthInterceptor), typeof(TenantGrpcServerInterceptor),
+            typeof(KunPermissionInterceptor), typeof(KunResultToRpcInterceptor));
+    }
+
     [Theory]
     [InlineData("BAD_REQUEST", StatusCode.InvalidArgument)]
     [InlineData("INPUT_INVALID", StatusCode.InvalidArgument)]

@@ -195,8 +195,19 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         }
         await fixture.Admin($"INSERT INTO public.sch_probe_tenants(id,status) VALUES ('{TenantA}','suspended');");
         await using var worker = await WorkerProcess.Start(fixture.Config, TenantA);
-        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed'") == 1, fixture.Leases(2));
-        Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts"));
+        var phases = new Dictionary<string, DateTimeOffset> { ["workerReady"] = DateTimeOffset.UtcNow };
+        try
+        {
+            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed'") == 1, fixture.Leases(2));
+            Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts"));
+        }
+        catch
+        {
+            // S1-QA-023 在 CI 上见过这条等待超时、却没有现场。
+            phases["failed"] = DateTimeOffset.UtcNow;
+            await fixture.CaptureFailure("tenant-frozen", phases, null, [worker]);
+            throw;
+        }
     }
 
     [Fact]

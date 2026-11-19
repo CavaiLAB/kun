@@ -43,10 +43,24 @@ public sealed class SchedulerFixture : IAsyncLifetime
             CREATE TABLE public.sch_probe_tenants(id uuid PRIMARY KEY,status text NOT NULL);
             GRANT SELECT,INSERT,UPDATE ON public.sch_probe_attempts,public.sch_probe_effects,public.sch_probe_tenants TO qian_app;
             GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO qian_app;
+            -- 失败现场用的租约日志（S1-QA-023）：领取改 generation，续租在同一代里推后 lease_until，只记这两种变化。
+            -- SECURITY DEFINER，不给应用角色与 worker 角色加权限；AFTER 触发，用例注入的 BEFORE 故障让更新失败时不留记录。
+            CREATE TABLE public.sch_lease_log(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,at timestamptz NOT NULL DEFAULT clock_timestamp(),kind text NOT NULL,trigger_id uuid NOT NULL,generation bigint NOT NULL,lease_owner text,lease_until timestamptz);
+            CREATE FUNCTION public.sch_lease_log_row() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
+            BEGIN
+              IF NEW.generation IS DISTINCT FROM OLD.generation THEN
+                INSERT INTO public.sch_lease_log(kind,trigger_id,generation,lease_owner,lease_until) VALUES ('claim',NEW.id,NEW.generation,NEW.lease_owner,NEW.lease_until);
+              ELSIF NEW.lease_until > OLD.lease_until THEN
+                INSERT INTO public.sch_lease_log(kind,trigger_id,generation,lease_owner,lease_until) VALUES ('renew',NEW.id,NEW.generation,NEW.lease_owner,NEW.lease_until);
+              END IF;
+              RETURN NULL;
+            END $$;
+            CREATE TRIGGER sch_lease_log AFTER UPDATE OF generation,lease_until ON plugin_qian_scheduler.job_triggers
+              FOR EACH ROW EXECUTE FUNCTION public.sch_lease_log_row();
             """);
         Config = new HostConfig(Postgres.AppConnectionString, new NpgsqlConnectionStringBuilder(Postgres.AppConnectionString) { Username = role, Password = password }.ConnectionString, role);
     }
-    public async Task Reset() => await Admin("TRUNCATE plugin_qian_scheduler.job_runs,plugin_qian_scheduler.job_triggers,plugin_qian_scheduler.job_definitions,public.sch_probe_attempts,public.sch_probe_effects,public.sch_probe_tenants;");
+    public async Task Reset() => await Admin("TRUNCATE plugin_qian_scheduler.job_runs,plugin_qian_scheduler.job_triggers,plugin_qian_scheduler.job_definitions,public.sch_probe_attempts,public.sch_probe_effects,public.sch_probe_tenants,public.sch_lease_log;");
     public async Task Admin(string sql)
     { await using var db = new NpgsqlConnection(Postgres.ConnectionString); await db.OpenAsync(TestContext.Current.CancellationToken); await using var command = new NpgsqlCommand(sql, db); await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken); }
     public async Task<T> Scalar<T>(string sql)
@@ -137,6 +151,13 @@ public sealed class SchedulerFixture : IAsyncLifetime
                     FROM plugin_qian_scheduler.job_runs ORDER BY id) r),
                   'handlerAttempts',(SELECT coalesce(json_agg(a),'[]'::json) FROM public.sch_probe_attempts a),
                   'effects',(SELECT coalesce(json_agg(e),'[]'::json) FROM public.sch_probe_effects e),
+                  -- 每个 worker 第一次领取到同一代初始续租的耗时；initial_renewal_at 为空即那一代在准备阶段丢了租约（S1-QA-023）。
+                  'firstExecutions',(SELECT coalesce(json_agg(f ORDER BY f.claimed_at),'[]'::json) FROM (
+                    SELECT w.*,round(extract(epoch FROM w.initial_renewal_at-w.claimed_at)*1000) AS claim_to_initial_renewal_ms FROM (
+                      SELECT DISTINCT ON (c.lease_owner) c.lease_owner AS worker,c.trigger_id,c.generation,c.at AS claimed_at,
+                        (SELECT min(r.at) FROM public.sch_lease_log r WHERE r.kind='renew' AND r.trigger_id=c.trigger_id AND r.generation=c.generation) AS initial_renewal_at
+                      FROM public.sch_lease_log c WHERE c.kind='claim' AND c.lease_owner IS NOT NULL ORDER BY c.lease_owner,c.at) w) f),
+                  'leaseLog',(SELECT coalesce(json_agg(l ORDER BY l.id),'[]'::json) FROM public.sch_lease_log l),
                   'sessions',(SELECT coalesce(json_agg(s),'[]'::json) FROM (
                     SELECT pid,usename,state,wait_event_type,wait_event,backend_start,xact_start,query_start
                     FROM pg_stat_activity WHERE datname=current_database() ORDER BY pid) s),

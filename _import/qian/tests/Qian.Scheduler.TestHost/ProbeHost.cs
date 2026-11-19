@@ -74,19 +74,23 @@ public sealed class ProbeHost : IAsyncDisposable
             var claim = new JobClaim(tenantId, Guid.NewGuid(), Guid.NewGuid(), 0, DateTimeOffset.UtcNow, "warmup");
             // 真实收尾入口：对不存在的触发器在所有权校验处返回 false、事务回滚；跑过与 BeginAsync 同一条锁行查询和数据库时钟。
             _ = await worker.CompleteAsync(claim, "once", new JobOptions(), "succeeded", null, ct);
-            // BeginAsync 其余的查询、选项反序列化、SaveChanges 的插入与更新、续租语句，各跑一次后整体回滚。
-            // 两条按主键取单行的查询照 BeginAsync 的写法（谓词同样取自名为 claim 的 JobClaim），好让 EF 复用编译好的查询；定义不存在，SingleAsync 抛出即可。
+            // 下面是复刻：只留真实入口跑不到、又占着租约的几步，逐条对应 SchedulerWorker 的方法，整个事务最后回滚。
+            // 产品改了对应的查询、保存或续租语句，这里要跟着改：漏改不报错，只会让首次执行变冷，失败现场的 firstExecutions 会显出来。
             await using var session = await data.Data().OpenAsync<SchedulerDbContext>(ct);
             var db = session.Context;
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            // BeginAsync：按主键取定义与 run。谓词同样取自名为 claim 的 JobClaim，EF 才复用编译好的查询；定义不存在，SingleAsync 抛出即可。
             try { _ = await db.Definitions.SingleAsync(x => x.Id == claim.Id, ct); } catch (InvalidOperationException) { }
             _ = await db.Runs.SingleOrDefaultAsync(x => x.Id == claim.RunId, ct);
-            var id = Guid.NewGuid();
+            // BeginAsync：解作业选项。
             _ = JsonSerializer.Deserialize<JobOptions>(JsonSerializer.Serialize(new JobOptions(), PostgresScheduler.Json), PostgresScheduler.Json);
+            // BeginAsync：SaveChangesAsync 的插入与更新（首次建 run、接管时更新 run）。借定义表跑，不碰 run 表上用例注入的触发器。
+            var id = Guid.NewGuid();
             var row = new JobDefinitionRow { TenantId = tenantId, Id = id, BusinessKey = "warmup-" + id.ToString("N"), Target = "warmup", Schedule = "once", CreatedBy = "warmup" };
             db.Definitions.Add(row); await session.SaveChangesAsync(ct);
             row.Parameters = """{"warmup":true}"""; await session.SaveChangesAsync(ct);
-            _ = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE plugin_qian_scheduler.job_triggers SET lease_until=now()+{TimeSpan.FromSeconds(config.LeaseSeconds)} WHERE tenant_id={tenantId} AND id={id} AND lease_until>now()", ct);
+            // RenewAsync：同一条续租语句，对不存在的触发器命中 0 行。
+            _ = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE plugin_qian_scheduler.job_triggers SET lease_until=now()+{TimeSpan.FromSeconds(config.LeaseSeconds)} WHERE tenant_id={claim.TenantId} AND id={claim.Id} AND lease_owner={claim.Worker} AND generation={claim.Generation} AND lease_until>now() AND state='ready'", ct);
             await transaction.RollbackAsync(ct);
         }
     }

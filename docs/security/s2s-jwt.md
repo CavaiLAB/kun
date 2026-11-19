@@ -196,18 +196,11 @@ The gateway issues a service token for the selected downstream audience through
 
 ## What Downstream Services See
 
-After `AddKunSecurity` and `AddKunServiceAuthentication` are registered, the following services
-are available in DI:
+### ITenantContext
 
-### ITenantContext — JwtTenantContext
-
-`src/Kun.Security/MultiTenancy/JwtTenantContext.cs` extracts `tenant_id` from the authenticated
-`ClaimsPrincipal`:
-
-```csharp
-public string? TenantId =>
-    _httpContextAccessor.HttpContext?.User?.FindFirst("tenant_id")?.Value;
-```
+Register `AddKunMultiTenancy()` and call `UseKunMultiTenancy()` after authentication.
+The middleware reads the authenticated primary identity’s single `tenant_id` claim and opens a scope for the request.
+It restores the previous scope when the request ends.
 
 Inject `ITenantContext` in any handler, repository, or service that needs to scope data by
 tenant. `KunDbContext.OnModelCreating` applies a global query filter using `ITenantContext.TenantId`
@@ -235,7 +228,8 @@ set `CreatedBy` on an audit entity.
 ```csharp
 // Minimal registration in Program.cs of a downstream service
 builder.Services
-    .AddKunSecurity()                                    // registers ITenantContext, ICurrentUser
+    .AddKunSecurity()                                    // registers ICurrentUser
+    .AddKunMultiTenancy()                                // registers ITenantContext
     .AddAuthentication()
     .AddKunServiceAuthentication(opts =>
     {
@@ -248,8 +242,7 @@ builder.Services
 `AddKunSecurity` is in `src/Kun.Security/DependencyInjection/KunSecurityServiceCollectionExtensions.cs`.
 `AddKunServiceAuthentication` is in `src/Kun.Security/Authentication/KunServiceAuthenticationExtensions.cs`.
 
-The order matters: `AddKunSecurity` must come before `AddAuthentication`, and `UseAuthentication`
-must come before `UseAuthorization` in the middleware pipeline.
+Run the middleware in the order `UseAuthentication()`, `UseKunMultiTenancy()`, `UseAuthorization()`.
 
 ---
 

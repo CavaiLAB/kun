@@ -8,6 +8,8 @@ using Kun.Auditing;
 using Kun.Auditing.DependencyInjection;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
+using Kun.MultiTenancy;
+using Kun.MultiTenancy.DependencyInjection;
 using Kun.Core.Security;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Conventions;
@@ -277,12 +279,15 @@ public sealed class TransactionalAuditTests : IClassFixture<PostgresFixture>
         var subject = Guid.NewGuid();
         var services = DataComponentsFirst();
         services.AddKunSecurity();
+        services.AddKunMultiTenancy();
         await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
-        provider.GetRequiredService<IHttpContextAccessor>().HttpContext = new DefaultHttpContext
+        var http = new DefaultHttpContext
         {
             User = new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub", subject.ToString()), new Claim("tenant_id", tenant)], "test"))
         };
-        await AssertStampedAsync(provider, tenant, subject);
+        provider.GetRequiredService<IHttpContextAccessor>().HttpContext = http;
+        var boundary = new TenantRequestBoundary(provider.GetRequiredService<ITenantContext>());
+        await boundary.InvokeAsync(http, _ => AssertStampedAsync(provider, tenant, subject));
     }
 
     private ServiceCollection DataComponentsFirst()

@@ -50,6 +50,6 @@ public sealed class TenantContextPropagator(ITenantContext tenant) : ITenantCont
         return tenant.BeginScope(id.ToString("D"));
     }
     private static Guid Read(JsonElement field) => field.ValueKind == JsonValueKind.String ? Parse(field.GetString()) : throw Denied();
-    internal static Guid Parse(string? value) => Guid.TryParseExact(value, "D", out var id) && id != Guid.Empty ? id : throw Denied();
+    internal static Guid Parse(string? value) => value is { Length: 36 } && Guid.TryParseExact(value, "D", out var id) && id != Guid.Empty ? id : throw Denied();
     internal static ErrorException Denied() => new(new Error(PlatformErrors.Unauthenticated));
 }

@@ -37,7 +37,7 @@ public static class CrmApplication
             throw new InvalidOperationException("S2S:PublicJwks 必须只包含非对称公钥。");
         builder.Services.AddKunErrors();
         builder.Services.AddKunSecurity();
-        builder.Services.AddKunMultiTenancy(options => { options.Production = true; options.FallbackTenantId = null; });
+        builder.Services.AddKunMultiTenancy();
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
         {
             options.Issuer = issuer;

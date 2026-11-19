@@ -18,7 +18,7 @@ public sealed class TenantContextRegistrationTests
     {
         var services = new ServiceCollection();
         if (securityFirst) services.AddKunSecurity();
-        services.AddKunMultiTenancy(o => o.Production = true);
+        services.AddKunMultiTenancy();
         services.AddKunSecurity();
         using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         var tenant = Assert.Single(provider.GetServices<ITenantContext>());
@@ -28,7 +28,7 @@ public sealed class TenantContextRegistrationTests
         {
             User = new ClaimsPrincipal(new ClaimsIdentity([new Claim("tenant_id", "http-tenant")], "test"))
         };
-        Assert.Equal("http-tenant", tenant.TenantId);
+        Assert.Null(tenant.TenantId);
         using (tenant.BeginScope("message-tenant"))
         {
             await Task.Yield();
@@ -36,20 +36,16 @@ public sealed class TenantContextRegistrationTests
             using (tenant.BeginScope(null)) Assert.Null(tenant.TenantId);
             Assert.Equal("message-tenant", tenant.TenantId);
         }
-        Assert.Equal("http-tenant", tenant.TenantId);
+        Assert.Null(tenant.TenantId);
         accessor.HttpContext = null;
         Assert.Null(tenant.TenantId);
     }
 
     [Fact]
-    public void SecurityOnly_UnauthenticatedClaim_DoesNotBecomeTenant()
+    public void SecurityOnly_RegistersIdentityServices()
     {
-        var services = new ServiceCollection().AddKunSecurity();
-        using var provider = services.BuildServiceProvider();
-        provider.GetRequiredService<IHttpContextAccessor>().HttpContext = new DefaultHttpContext
-        {
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim("tenant_id", "spoofed")]))
-        };
-        Assert.Null(provider.GetRequiredService<ITenantContext>().TenantId);
+        using var provider = new ServiceCollection().AddKunSecurity().BuildServiceProvider();
+        Assert.NotNull(provider.GetRequiredService<IHttpContextAccessor>());
+        Assert.Null(provider.GetService<ITenantContext>());
     }
 }

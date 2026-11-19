@@ -16,7 +16,7 @@ public static class KunGrpcServiceCollectionExtensions
     ///   <item><see cref="KunServerAuthInterceptor"/> — enforces authenticated <c>tenant_id</c> claim.</item>
     ///   <item><see cref="KunResultToRpcInterceptor"/> — maps <c>ErrorException</c> to <c>RpcException</c>.</item>
     /// </list>
-    /// Optionally call <c>AddKunSecurity()</c> separately to wire up <c>JwtTenantContext</c>/<c>JwtCurrentUser</c>.
+    /// Optionally call <c>AddKunSecurity()</c> separately to wire up <c>JwtCurrentUser</c>.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Optional callback to further configure <see cref="GrpcServiceOptions"/>.</param>

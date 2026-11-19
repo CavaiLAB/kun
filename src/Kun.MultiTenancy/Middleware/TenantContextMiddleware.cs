@@ -1,47 +1,29 @@
-using Kun.MultiTenancy.Abstractions;
-using Kun.MultiTenancy.Configuration;
+using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Kun.MultiTenancy.Middleware;
 
-/// <summary>
-/// Resolves the inbound request's tenant id and opens an
-/// <see cref="AsyncLocalTenantContext"/> scope that bounds every
-/// async continuation downstream from this middleware.
-/// </summary>
-public sealed class TenantContextMiddleware
+/// <summary>为 HTTP 请求打开租户作用域。</summary>
+public sealed class TenantContextMiddleware(RequestDelegate next, TenantRequestMode mode)
 {
-    private readonly RequestDelegate _next;
-
-    /// <summary>Creates the middleware bound to <paramref name="next"/>.</summary>
-    public TenantContextMiddleware(RequestDelegate next)
+    /// <summary>建立请求上下文后进入后续管道。</summary>
+    public async Task InvokeAsync(HttpContext httpContext, ITenantContext tenantContext)
     {
-        ArgumentNullException.ThrowIfNull(next);
-        _next = next;
-    }
-
-    /// <summary>Resolves the tenant, scopes it, and invokes the next middleware.</summary>
-    public async Task InvokeAsync(
-        HttpContext httpContext,
-        ITenantResolver resolver,
-        AsyncLocalTenantContext tenantContext)
-    {
-        ArgumentNullException.ThrowIfNull(httpContext);
-        ArgumentNullException.ThrowIfNull(resolver);
-        ArgumentNullException.ThrowIfNull(tenantContext);
-
-        var tenantId = await resolver.ResolveTenantIdAsync(httpContext).ConfigureAwait(false);
-        if (tenantId is null && httpContext.RequestServices
-            .GetService<IOptions<KunMultiTenancyOptions>>()?.Value.Production == true)
+        IDisposable scope;
+        try
+        {
+            scope = new TenantRequestBoundary(tenantContext).Enter(httpContext, mode);
+        }
+        catch (ErrorException error) when (error.Error.Code.Equals(PlatformErrors.Unauthenticated))
         {
             httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
         }
-        using (tenantContext.BeginScope(tenantId))
+
+        using (scope)
         {
-            await _next(httpContext).ConfigureAwait(false);
+            await next(httpContext).ConfigureAwait(false);
         }
     }
 }

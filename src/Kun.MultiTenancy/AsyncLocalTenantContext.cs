@@ -1,5 +1,4 @@
 using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy.Abstractions;
 
 namespace Kun.MultiTenancy;
 
@@ -14,20 +13,8 @@ namespace Kun.MultiTenancy;
 public sealed class AsyncLocalTenantContext : ITenantContext
 {
     private readonly AsyncLocal<TenantScope?> _current = new();
-    private readonly ITenantIdSource? _source;
-
-    /// <summary>创建仅使用显式作用域的上下文。</summary>
-    public AsyncLocalTenantContext() { }
-
-    /// <summary>创建可读取已认证请求租户的上下文；显式作用域始终优先。</summary>
-    public AsyncLocalTenantContext(ITenantIdSource source)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-        _source = source;
-    }
-
     /// <inheritdoc />
-    public string? TenantId => _current.Value is { } scope ? scope.TenantId : _source?.TenantId;
+    public string? TenantId => _current.Value?.TenantId;
 
     /// <inheritdoc />
     public bool IsMultiTenant => true;

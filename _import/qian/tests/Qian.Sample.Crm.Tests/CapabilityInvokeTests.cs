@@ -32,12 +32,12 @@ public abstract partial class CustomerCommandTests
     private protected const string Deprecation = "@1791331200";
     private protected static readonly Lazy<(JsonSchema Catalog, JsonSchema Error)> ContractSchemas = new(LoadContractSchemas);
 
-    // 登记次序前提（S1-KUN-017）：给定数据上下文先于 AddKunSecurity 登记（以只有它登记的 ITenantIdSource 为界），框架当前主体端口仍解析为 JwtCurrentUser 而不是匿名兜底。
+    // 登记次序前提（S1-KUN-017）：给定数据上下文先于 AddKunSecurity 登记，框架当前主体端口仍解析为 JwtCurrentUser 而不是匿名兜底。
     private protected static void AssertDataComponentsFirst(RunningApp host, IServiceCollection services, Type context)
     {
         var registrations = services.ToList();
         var data = registrations.FindIndex(service => service.ServiceType == context);
-        var security = registrations.FindIndex(service => service.ServiceType == typeof(Kun.MultiTenancy.Abstractions.ITenantIdSource));
+        var security = registrations.FindIndex(service => service.ServiceType == typeof(Kun.Core.Security.ICurrentUser) && service.ImplementationType == typeof(Kun.Security.Security.JwtCurrentUser));
         Assert.True(data >= 0 && data < security, $"{context.Name} 应先于 AddKunSecurity 登记（{data} / {security}）。");
         using var scope = host.App.Services.CreateScope();
         Assert.IsType<Kun.Security.Security.JwtCurrentUser>(scope.ServiceProvider.GetRequiredService<Kun.Core.Security.ICurrentUser>());

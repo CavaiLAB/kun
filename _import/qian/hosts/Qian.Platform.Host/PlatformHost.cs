@@ -1,3 +1,5 @@
+using Kun.MultiTenancy.Middleware;
+using Kun.MultiTenancy;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -121,18 +123,9 @@ public static class PlatformHost
     public static WebApplication UseQianPlatform(this WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
-        var tenantContext = app.Services.GetRequiredService<ITenantContext>();
         // 路由必须先于认证：受众按路由实际匹配到的端点选（GatewayS2s.Select），不按路径写法。WebApplication 缺省也把路由放在最前，这里显式写出这个依赖。
         app.UseRouting(); app.UseKunErrors(); app.UseAuthentication();
-        app.Use(async (http, next) =>
-        {
-            if (GatewayS2s.Principal(http) is { TenantId: { } tenant })
-            {
-                using var scope = tenantContext.BeginScope(tenant);
-                await next(http).ConfigureAwait(false);
-            }
-            else await next(http).ConfigureAwait(false);
-        });
+        app.UseKunMultiTenancy(TenantRequestMode.PlatformPrincipalAllowed);
         app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseQianAuthzEnforcement();
         return app;
     }

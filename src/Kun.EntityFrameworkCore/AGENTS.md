@@ -48,7 +48,7 @@ Write-side persistence for Kun Framework: `KunDbContext` base with automatic `IM
 `ApplyKunMultiTenantFilters<TContext>(ModelBuilder, TContext)` 遍历模型，给每个实现 `Kun.Core.Domain.IMultiTenant` 的实体加租户过滤，条件绑定到当前执行查询的 DbContext，不保留第一次构建模型时的租户访问器。
 
 ```csharp
-services.AddKunMultiTenancy(opts => opts.UseJwtClaim("tenant_id"));
+services.AddKunMultiTenancy();
 
 // DbContext.OnModelCreating：
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -58,7 +58,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-生产装配使用 `options.Production = true`；请求头与默认租户仅供显式开发兼容模式使用。后台通过 `ITenantContext.BeginScope` 回灌，详情见 `docs/security/multi-tenancy-rls.md`。
+HTTP 入口从已认证主身份的 `tenant_id` 建立作用域。后台通过 `ITenantContext.BeginScope` 回灌，详情见 `docs/security/multi-tenancy-rls.md`。
 
 ### Testing Requirements
 Integration tests require Docker + Testcontainers and are tracked separately (M2 2.4).

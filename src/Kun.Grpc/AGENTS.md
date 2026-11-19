@@ -24,7 +24,7 @@ Host-layer integration with gRPC (Grpc.AspNetCore). Provides three server interc
 ### Working In This Directory
 
 - The three interceptors are **`internal`** (not `public`) — the public API analyzer (RS0016/RS0017) cannot track overrides of generic virtual methods from external base classes. They are exposed to `Kun.Grpc.Tests` via `InternalsVisibleTo`.
-- `Kun.Security.DependencyInjection.KunSecurityServiceCollectionExtensions.AddKunSecurity()` must be called separately to wire up `JwtTenantContext`/`JwtCurrentUser`.
+- `Kun.Security.DependencyInjection.KunSecurityServiceCollectionExtensions.AddKunSecurity()` must be called separately to wire up `JwtCurrentUser`.
 
 ### Testing Requirements
 
@@ -46,7 +46,8 @@ The interceptors execute in registration order: Tracing → Auth → ResultMappi
 ### Internal
 
 - `Kun.Core` — `Result`; through it `Kun.Errors` — `Error`, `ErrorCode`, `ErrorException`.
-- `Kun.Security` — `JwtTenantContext`, `JwtCurrentUser` (registered separately via `AddKunSecurity()`).
+- `Kun.MultiTenancy` — request scope and tenant propagation for the tenant interceptors.
+- `Kun.Security` — `JwtCurrentUser` (registered separately via `AddKunSecurity()`).
 
 ### External
 

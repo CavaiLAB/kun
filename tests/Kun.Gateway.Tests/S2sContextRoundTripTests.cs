@@ -3,6 +3,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using FluentAssertions;
 using Kun.Core.MultiTenancy;
+using Kun.MultiTenancy.DependencyInjection;
+using Kun.MultiTenancy.Middleware;
 using Kun.Core.Security;
 using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
@@ -76,11 +78,12 @@ public sealed class S2sContextRoundTripTests : IDisposable
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer();
         builder.Services.AddKunSecurity();
+        builder.Services.AddKunMultiTenancy();
         builder.Services.AddAuthentication("Bearer").AddKunServiceAuthentication(options => { options.Issuer = _options.InternalIssuer; options.StaticKeySet = keys; });
         builder.Services.Configure<JwtBearerOptions>("Bearer", options => options.MapInboundClaims = false);
         builder.Services.AddAuthorization();
         await using var service = builder.Build();
-        service.UseAuthentication(); service.UseAuthorization();
+        service.UseAuthentication(); service.UseKunMultiTenancy(); service.UseAuthorization();
         service.MapGet("/context", (ICurrentUser user, ITenantContext tenant, Microsoft.AspNetCore.Http.HttpContext context) =>
             string.Join('|', user.UserId, tenant.TenantId, string.Join(',', user.Roles.Order(StringComparer.Ordinal)),
                 context.User.FindFirst("session_id")?.Value, context.User.FindFirst("identity_revision")?.Value,

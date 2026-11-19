@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <None Include="../../_import/qian/contracts/v0/fixtures/s2s-claims.valid.json" Link="s2s-claims.valid.json" CopyToOutputDirectory="PreserveNewest" />
+    <ProjectReference Include="..\..\src\Kun.MultiTenancy\Kun.MultiTenancy.csproj" />
     <ProjectReference Include="..\..\src\Kun.Security\Kun.Security.csproj" />
     <ProjectReference Include="..\..\src\Kun.Security.Abstractions\Kun.Security.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />

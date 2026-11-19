@@ -40,12 +40,7 @@ public sealed class ProductionTenantTests
             .ConfigureServices(services =>
             {
                 services.AddKunSecurity();
-                services.AddKunMultiTenancy(options =>
-                {
-                    options.Production = true;
-                    options.UseHttpHeader("X-Tenant-Id");
-                    options.FallbackTenantId = "default";
-                });
+                services.AddKunMultiTenancy();
                 services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
                 {
                     options.MapInboundClaims = false;
@@ -72,7 +67,7 @@ public sealed class ProductionTenantTests
             var claims = new List<Claim>();
             if (scenario != "missing-claim")
                 claims.Add(new Claim(scenario == "legacy-claim" ? "tid" : "tenant_id",
-                    scenario == "unsafe-claim" ? "tenant-a\n" : "tenant-a"));
+                    scenario == "unsafe-claim" ? "tenant-a\n" : "01900000-0000-7000-8000-000000000001"));
             if (scenario == "duplicate-claim") claims.Add(new Claim("tenant_id", "tenant-b"));
             var token = new JwtSecurityToken("tenant-tests", "consumer", claims,
                 DateTime.UtcNow.AddMinutes(-5),
@@ -85,6 +80,6 @@ public sealed class ProductionTenantTests
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
         Assert.Equal(expected, response.StatusCode);
         if (expected == HttpStatusCode.OK)
-            Assert.Equal("tenant-a", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+            Assert.Equal("01900000-0000-7000-8000-000000000001", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 }

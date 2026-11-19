@@ -4,7 +4,7 @@
 
 ## 组件与表面
 
-代码目录包含 Provider、租户入口边界、传播器、gRPC 适配器、主档上下文及内部持久化实现。TenancyPlugin 消费 Data、提供 Tenancy 服务键，目录挂在 global scope，供 Identity 等可信服务读取最小投影；不把联系方式、管理员、连接凭据或完整租户列表暴露给匿名调用方。物理 schema 遵循 Data 的插件命名规则，使用 plugin_qian_tenancy。
+本包提供主档上下文与持久化实现。租户入口与传播器位于 Kun.MultiTenancy，gRPC 适配器位于 Kun.Grpc。TenancyPlugin 消费 Data、提供 Tenancy 服务键，目录挂在 global scope，供 Identity 等可信服务读取最小投影；不把联系方式、管理员、连接凭据或完整租户列表暴露给匿名调用方。物理 schema 遵循 Data 的插件命名规则，使用 plugin_qian_tenancy。
 
 默认目标为 platform profile。管理员维护已由 S1-TEN-010 交付（见下文）；权益授予（S1-TEN-015）、拆分部署下的 Identity 联调（S1-IDP-012）和 qian add tenancy（S1-RT-040）尚未完成（包已随 0.1.0 发到 GitHub Packages，R93）。plugins/qian.tenancy 已去掉 x-skeleton（R144 ③）：平台镜像预装、经[平台生产宿主](../../_import/qian/hosts/Qian.Platform.Host/README.md)装配是它的安装与启动路径（S1-DEP-009），独立宿主经 qian add 安装仍待 S1-RT-040。主档目录先提供稳定端口，避免 Identity 登录前查目录依赖尚未创建的 Membership。
 
@@ -18,7 +18,7 @@
 
 只复用 Kun.Core.MultiTenancy.ITenantContext，默认实现为已修复并正式发布的 Kun AsyncLocalTenantContext；Provider 不安装第二个上下文，也不改变宿主已有选择。
 
-TenantRequestBoundary 在宿主完成令牌认证后使用 Kun 的 Production 解析器，只接受已认证身份中唯一的 tenant_id。Qian 再按冻结契约校验非空 UUID；缺失、重复、非法值、与现有范围冲突均返回 UNAUTHENTICATED，X-Tenant-Id 不参与解析。调用结束或异常时释放范围。平台运营主体没有租户，必须走独立的运营授权入口，不能由本边界回退为 default 租户。
+TenantRequestBoundary 在宿主完成令牌认证后读取主身份中唯一的 tenant_id，并校验 D 格式的非空 UUID；缺失、重复、非法值、与现有范围冲突均返回 UNAUTHENTICATED，X-Tenant-Id 不参与解析。调用结束或异常时释放范围。平台运营主体没有租户，必须走独立的运营授权入口，不能由本边界回退为 default 租户。
 
 TenantContextPropagator 从当前上下文写入 JSON 信封/作业参数或文本元数据。消费端显式传入从认证令牌或受保护调度记录获得的 authorizedTenantId，传播字段必须与之相同，且不得覆盖当前不同租户范围。该参数不能取自同一未受信消息，集成事件消费端是唯一的例外（见下文）。传播器本身不认证消息来源，不代替完整事件信封校验，也不允许缺失/null 平台消息进入租户业务入口。重复 tenant_id 保留并拒绝，不能先转字典而丢掉重复项。
 
@@ -26,7 +26,7 @@ TenantContextPropagator 从当前上下文写入 JSON 信封/作业参数或文�
 
 平台级事件（信封 tenant_id 为 null，如 lifecycle.plugin.activated.v1）不经传播器，也不另设通道。它们与租户事件同走 qian.events，按 subject 进各订阅队列。订阅默认拒绝，转入死信（原因 platform_event）；只有显式 acceptPlatformEvents 的订阅派发，派发时不开租户作用域，handler 内 ITenantContext 为空。不另建平台 exchange 的理由：exchange 或队列不是信任边界，持有 broker 发布凭据的服务能发往任何 exchange，真正的闸门是订阅级显式放行与不开租户作用域。这一口径由 S1-EVT-004 定，产品负责人 2026-10-23 确认。
 
-profile 宿主是否登记传播器（S1-EVT-004，产品负责人 2026-10-23 确认）：组合包含 qian.tenancy 的 profile 宿主接事件订阅器时登记 ITenantContextPropagator（本包的 TenantContextPropagator），与参考宿主一致，生产宿主与 gRPC、作业共用同一份判定。目前装 qian.events 的只有 platform 与 identity，两者都含 qian.tenancy。不装 qian.tenancy 的订阅宿主走订阅器的 Kun ITenantContext.BeginScope 回退分支，判定与传播器相同，见 [Qian.Events「租户回灌」](../../_import/qian/packages/Qian.Events/README.md#租户回灌)。
+profile 宿主是否登记传播器（S1-EVT-004，产品负责人 2026-10-23 确认）：组合包含 qian.tenancy 的 profile 宿主接事件订阅器时登记 ITenantContextPropagator（Kun.MultiTenancy 的 TenantContextPropagator），与参考宿主一致，生产宿主与 gRPC、作业共用同一份判定。目前装 qian.events 的只有 platform 与 identity，两者都含 qian.tenancy。不装 qian.tenancy 的订阅宿主走订阅器的 Kun ITenantContext.BeginScope 回退分支，判定与传播器相同，见 [Qian.Events「租户回灌」](../../_import/qian/packages/Qian.Events/README.md#租户回灌)。
 
 TenantGrpcClientInterceptor 从当前上下文为四类 RPC 写入 tenant_id，不覆盖调用方已有的冲突或重复字段，也不修改可复用的原始 Metadata。TenantGrpcServerInterceptor 在宿主 JWT 验签后比较 claim 与元数据，再进入业务处理器；unary、服务端流、客户端流和双向流都使用同一边界。拒绝时返回 gRPC Unauthenticated，并在 qian-error-bin 二进制 trailer 中附带由 ErrorCatalog 生成的冻结 ErrorDetail JSON。宿主仍须配置认证和标准 HTTP 错误管道，适配器不自行签发令牌。
 

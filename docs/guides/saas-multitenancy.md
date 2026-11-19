@@ -185,7 +185,7 @@ appsettings.json：
 ## 共通设计原则
 
 1. **三种策略不混用于同一 `DbContext` 类型**：选一种注册，不要运行时切换（`IOptionsMonitor` 的 Strategy 变化不会重新连线 DI）。
-2. **`ITenantContext` 始终是 scoped**：HTTP/gRPC 请求里由 `Kun.Security` 的 `JwtTenantContext` 填充；后台任务里由消费者按需注入。
+2. **租户作用域**：`AddKunMultiTenancy()` 默认登记单例上下文。HTTP 中间件、gRPC 租户拦截器和后台消费者分别在各自的工作单元内打开并释放作用域。
 3. **迁移工具链**：`dotnet ef migrations add` 需要 design-time `ITenantContext`。本仓库的 sample 使用 `DesignTimeTenantContext` 返回 `"public"` 作为占位符，避免 design-time 挂空依赖。
 
 ---

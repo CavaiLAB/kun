@@ -1,8 +1,6 @@
 using System.Net;
 using System.Security.Claims;
-using FluentAssertions;
 using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy.Configuration;
 using Kun.MultiTenancy.DependencyInjection;
 using Kun.MultiTenancy.Middleware;
 using Microsoft.AspNetCore.Builder;
@@ -17,83 +15,49 @@ namespace Kun.MultiTenancy.Tests;
 
 public sealed class TenantContextMiddlewareTests
 {
-    [Fact]
-    public async Task Middleware_PopulatesTenantContextFromJwtClaim()
+    private const string TenantId = "01900000-0000-7000-8000-000000000001";
+
+    [Theory]
+    [InlineData(TenantRequestMode.TenantRequired, TenantId, HttpStatusCode.OK)]
+    [InlineData(TenantRequestMode.PlatformPrincipalAllowed, TenantId, HttpStatusCode.OK)]
+    [InlineData(TenantRequestMode.TenantRequired, null, HttpStatusCode.Unauthorized)]
+    [InlineData(TenantRequestMode.PlatformPrincipalAllowed, null, HttpStatusCode.OK)]
+    public async Task AuthenticatedRequest_UsesConfiguredScope(TenantRequestMode mode, string? tenantId, HttpStatusCode status)
     {
-        using var host = await BuildHost(opts => opts.UseJwtClaim("tid"));
-        var client = host.GetTestClient();
-
-        using var req = new HttpRequestMessage(HttpMethod.Get, "/whoami");
-        req.Headers.Add("X-Test-Tenant-Claim", "tenant-a");
-        var response = await client.SendAsync(req, TestContext.Current.CancellationToken);
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        body.Should().Be("tenant-a");
+        var claim = tenantId is null ? new Claim("tenant_id", "", "JSON_NULL") : new Claim("tenant_id", tenantId);
+        var user = new ClaimsPrincipal(new ClaimsIdentity([claim], "test"));
+        using var host = await BuildHost(user, mode);
+        using var client = host.GetTestClient();
+        using var response = await client.GetAsync("/", TestContext.Current.CancellationToken);
+        Assert.Equal(status, response.StatusCode);
+        if (status == HttpStatusCode.OK)
+            Assert.Equal(tenantId ?? "platform", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Null(host.Services.GetRequiredService<ITenantContext>().TenantId);
     }
 
-    [Fact]
-    public async Task Middleware_FallsBackToHeader_WhenClaimAbsent()
+    [Theory]
+    [InlineData(TenantRequestMode.TenantRequired, HttpStatusCode.Unauthorized)]
+    [InlineData(TenantRequestMode.PlatformPrincipalAllowed, HttpStatusCode.OK)]
+    public async Task AnonymousRequest_UsesHostPolicy(TenantRequestMode mode, HttpStatusCode status)
     {
-        using var host = await BuildHost(opts => opts
-            .UseJwtClaim("tid")
-            .UseHttpHeader("X-Tenant-Id"));
-        var client = host.GetTestClient();
-
-        using var req = new HttpRequestMessage(HttpMethod.Get, "/whoami");
-        req.Headers.Add("X-Tenant-Id", "tenant-from-header");
-        var response = await client.SendAsync(req, TestContext.Current.CancellationToken);
-
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        body.Should().Be("tenant-from-header");
+        using var host = await BuildHost(new ClaimsPrincipal(new ClaimsIdentity()), mode);
+        using var client = host.GetTestClient();
+        using var response = await client.GetAsync("/", TestContext.Current.CancellationToken);
+        Assert.Equal(status, response.StatusCode);
     }
 
-    [Fact]
-    public async Task Middleware_Uses_FallbackTenantId_WhenNothingResolved()
-    {
-        using var host = await BuildHost(opts =>
-        {
-            opts.UseJwtClaim("tid");
-            opts.UseHttpHeader("X-Tenant-Id");
-            opts.FallbackTenantId = "default";
-        });
-        var client = host.GetTestClient();
-
-        var body = await client.GetStringAsync("/whoami", TestContext.Current.CancellationToken);
-        body.Should().Be("default");
-    }
-
-    private static async Task<IHost> BuildHost(Action<KunMultiTenancyOptions> configure)
-    {
-        var builder = new HostBuilder().ConfigureWebHost(web =>
-        {
-            web.UseTestServer();
-            web.ConfigureServices(services =>
+    private static Task<IHost> BuildHost(ClaimsPrincipal user, TenantRequestMode mode) =>
+        new HostBuilder().ConfigureWebHost(web => web.UseTestServer()
+            .ConfigureServices(services => services.AddKunMultiTenancy())
+            .Configure(app =>
             {
-                services.AddKunMultiTenancy(configure);
-                services.AddRouting();
-            });
-            web.Configure(app =>
-            {
-                // Fake "auth": promote a header into a claim so the resolver sees it.
-                app.Use(async (ctx, next) =>
+                app.Use(async (context, next) =>
                 {
-                    if (ctx.Request.Headers.TryGetValue("X-Test-Tenant-Claim", out var tid))
-                    {
-                        var identity = new ClaimsIdentity("test");
-                        identity.AddClaim(new Claim("tid", tid.ToString()));
-                        ctx.User = new ClaimsPrincipal(identity);
-                    }
-                    await next(ctx);
+                    context.User = user;
+                    await next(context);
                 });
-                app.UseKunMultiTenancy();
-                app.UseRouting();
-                app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapGet("/whoami", (ITenantContext tenant) => Results.Content(tenant.TenantId ?? "<null>"));
-                });
-            });
-        });
-        return await builder.StartAsync();
-    }
+                app.UseKunMultiTenancy(mode);
+                app.Run(context => context.Response.WriteAsync(
+                    context.RequestServices.GetRequiredService<ITenantContext>().TenantId ?? "platform", context.RequestAborted));
+            })).StartAsync(TestContext.Current.CancellationToken);
 }

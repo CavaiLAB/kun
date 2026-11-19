@@ -55,8 +55,8 @@ SensitiveAttribute 把实际 JSON 属性标记为 sensitive。顶层字段及整
 工具只用于显式选择的本地可信项目构建。加载生成工厂及 JsonTypeInfo 会加载程序集，因此不能用于未知市场制品的准入或沙箱校验。工具与组件共用 SDK/Runtime 的程序集身份，避免独立加载上下文复制服务键类型。
 
 ```bash
-dotnet run --project tools/Kun.Plugin.Tool -c Release -- sync src/Kun.Data/bin/Release/net10.0/Qian.Data.dll _import/qian/plugins/qian.data
-dotnet run --project tools/Kun.Plugin.Tool -c Release -- check src/Kun.Data/bin/Release/net10.0/Qian.Data.dll _import/qian/plugins/qian.data
+dotnet run --project tools/Kun.Plugin.Tool -c Release -- sync src/Kun.Data/bin/Release/net10.0/Kun.Data.dll _import/qian/plugins/qian.data
+dotnet run --project tools/Kun.Plugin.Tool -c Release -- check src/Kun.Data/bin/Release/net10.0/Kun.Data.dll _import/qian/plugins/qian.data
 ```
 
 sync 合并唯一清单的派生字段与既有表面；数组与入口不改变协议形状。清单 x-qian-generated 记录字段指针、工具归属以及每份 metadata / 配置文件的来源、指针和内容哈希；权限文件仍是 authz-permissions 规定的数组，不往它里面塞生成标记。路径沿清单的 surfaces.tools、surfaces.metadata 与 runtime.configSchema；未声明时采用 ./tools、./metadata 与 ./schemas/config.schema.json。

@@ -11,7 +11,7 @@ using Kun.Data;
 
 namespace Kun.Tenancy.Signup.Tests;
 
-// dotnet ef migrations add <名称> --project packages/Qian.Tenancy.Signup --startup-project tests/Qian.Tenancy.Signup.Tests
+// dotnet ef migrations add <名称> --project src/Kun.Tenancy.Signup --startup-project tests/Kun.Tenancy.Signup.Tests
 //   --context TenancySignupDbContext --output-dir Migrations
 // 与仓库现有迁移一样生成为 internal；生成后不手改迁移或 SQL。
 internal sealed class SignupDesignTimeFactory : IDesignTimeDbContextFactory<TenancySignupDbContext>

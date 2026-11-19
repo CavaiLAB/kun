@@ -5,4 +5,4 @@
 - 账号只经 `IIdentityAccounts`，开通只经 `ITenantProvisioning` 与 `ITenantLifecycle`；不改 qian.tenancy 的契约与行为。
 - 三张表都是全局表，没有租户列；一律拒绝租户上下文。手机号原值只为通知保存，接口一律掩码；验证码、会话令牌只存哈希；密码不经本组件落库或进日志。
 - 运营端点按 R113 同序，超管旁路缺席即 404；申请人端点写请求先核对同源，再校验输入。
-- 迁移由 tests/Qian.Tenancy.Signup.Tests 的设计时入口生成（internal），不手改。
+- 迁移由 tests/Kun.Tenancy.Signup.Tests 的设计时入口生成（internal），不手改。

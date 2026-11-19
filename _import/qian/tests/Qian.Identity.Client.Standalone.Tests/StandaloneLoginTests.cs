@@ -24,12 +24,14 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    // 被测宿主的依赖闭包里只允许出现 Client 本身及其 Runtime / SDK / Abstractions 依赖；Qian.Testing.Containers 是夹具。
+    // 被测宿主的依赖闭包里只允许出现 Client 本身、它的 Abstractions、Runtime / SDK 及其依赖的 Kun 内核包；Qian.Testing.Containers 是夹具。
+    // Qian. 与 Kun. 开头的程序集都收：两个前缀下都有 Provider，只收一个前缀，另一边的包进了闭包也看不见。
     // Client 只用插件开发包的内核一半，数据、授权、事件与表面的契约随命令管道留在平台档的一半里，不再进闭包。
     private static readonly string[] AllowedQianAssemblies =
     [
-        "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Kun.Runtime", "Kun.Errors",
-        "Kun.Errors.AspNetCore", "Qian.Testing.Containers", "Kun.Plugin.Sdk"
+        "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Qian.Testing.Containers",
+        "Kun.Authorization", "Kun.Caching", "Kun.Core", "Kun.Errors", "Kun.Errors.AspNetCore", "Kun.EventBus.Abstractions",
+        "Kun.Identity", "Kun.Identity.AspNetCore", "Kun.Mediator", "Kun.MultiTenancy", "Kun.Plugin.Sdk", "Kun.Runtime", "Kun.Security"
     ];
 
     [Fact]
@@ -106,10 +108,11 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     public void 宿主的依赖闭包只有Client及其Runtime与SDK和Definition()
     {
         using var deps = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Qian.Identity.Client.Standalone.Tests.deps.json")));
-        var qian = deps.RootElement.GetProperty("libraries").EnumerateObject().Select(library => library.Name.Split('/')[0])
-            .Where(name => name.StartsWith("Qian.", StringComparison.Ordinal) && name != "Qian.Identity.Client.Standalone.Tests").Distinct().Order().ToArray();
-        Assert.Contains("Qian.Identity.Client", qian);
-        Assert.Empty(UnexpectedDependencies(qian));
+        var closure = deps.RootElement.GetProperty("libraries").EnumerateObject().Select(library => library.Name.Split('/')[0])
+            .Where(name => (name.StartsWith("Qian.", StringComparison.Ordinal) || name.StartsWith("Kun.", StringComparison.Ordinal))
+                && name != "Qian.Identity.Client.Standalone.Tests").Distinct().Order().ToArray();
+        Assert.Contains("Qian.Identity.Client", closure);
+        Assert.Empty(UnexpectedDependencies(closure));
     }
 
     [Theory]

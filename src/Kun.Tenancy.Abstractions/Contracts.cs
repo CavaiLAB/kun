@@ -1,7 +1,7 @@
-using Kun.Core.MultiTenancy;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using Kun.Core.MultiTenancy;
 using Kun.Runtime;
 
 namespace Kun.Tenancy;

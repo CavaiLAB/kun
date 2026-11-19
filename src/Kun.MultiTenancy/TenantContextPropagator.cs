@@ -1,7 +1,7 @@
-using Kun.MultiTenancy.Abstractions;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
+using Kun.MultiTenancy.Abstractions;
 
 namespace Kun.MultiTenancy;
 

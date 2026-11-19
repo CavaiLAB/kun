@@ -1,10 +1,10 @@
-using Kun.MultiTenancy;
 using System.Diagnostics;
 using System.Text;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
+using Kun.MultiTenancy;
 
 namespace Kun.Grpc.Interceptors;
 

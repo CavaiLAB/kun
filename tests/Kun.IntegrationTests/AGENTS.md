@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Integration tests that require real infrastructure. Runs against Testcontainers PostgreSQL, RabbitMQ, Redis and an S3-compatible server (RustFS, `Fixtures/S3CompatibleServer.cs`) — never mocks. Covers Outbox atomicity (aggregate + outbox commit together), tenant query filter enforcement, idempotent consumer behavior under message redelivery, Saga end-to-end flows including background services, and gRPC contract tests.
+Integration tests that require real infrastructure. Runs against Testcontainers PostgreSQL, RabbitMQ, Redis and an S3-compatible server (RustFS, `Fixtures/S3CompatibleServer.cs`) — never mocks. Covers Outbox atomicity (aggregate + outbox commit together), tenant query filter enforcement, idempotent consumer behavior under message redelivery, and gRPC contract tests.
 
 ## For AI Agents
 

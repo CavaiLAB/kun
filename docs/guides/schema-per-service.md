@@ -2,7 +2,7 @@
 
 > **Scope**: how to run multiple Kun-based services against a single PostgreSQL
 > instance by giving each service its own schema (`catalog`, `order`, …), with
-> business tables, the Outbox, Saga tables, and the EF migrations-history table
+> business tables, the Outbox, and the EF migrations-history table
 > all co-located under that schema.
 >
 > Applies to: any `KunDbContext`-derived DbContext using `Npgsql.EntityFrameworkCore.PostgreSQL`.
@@ -186,13 +186,11 @@ DbContextOptionsBuilder to wire both consistently.
 The check is gated by `Interlocked.CompareExchange` so it runs exactly once
 per DbContext instance — zero overhead after the first transaction.
 
-## Outbox and Saga co-location
+## Outbox co-location
 
 Because the `KunDbContext` base class applies `HasDefaultSchema(DefaultSchema)`
 **before** `ApplyConfiguration(new OutboxMessageConfiguration())`, the Outbox
-table inherits the same schema without any extra configuration. Similarly,
-Saga tables registered via `modelBuilder.ApplyKunSagaConfiguration()` land in
-the service schema.
+table inherits the same schema without any extra configuration.
 
 This is deliberate — having `catalog.outbox_messages` in the same schema as
 `catalog.catalog_products` lets a single transaction atomically commit both,
@@ -232,7 +230,7 @@ collisions — each `SELECT * FROM catalog.outbox_messages` stays well-scoped.
 - `samples/Kun.Sample.Catalog/Infrastructure/CatalogDbContext.cs` + migrations —
   concrete example with a `catalog` schema.
 - `samples/Kun.Sample.Order/Infrastructure/OrderDbContext.cs` + migrations —
-  concrete example with an `order` schema (plus Saga tables).
+  concrete example with an `order` schema.
 - `tests/Kun.IntegrationTests/Persistence/SchemaPerServiceTests.cs` —
   Testcontainers-backed test that boots two `KunDbContext` subclasses under
   distinct schemas against one Postgres and asserts physical isolation in

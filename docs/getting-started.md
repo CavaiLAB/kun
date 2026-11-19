@@ -1,8 +1,8 @@
 # Getting Started with Kun Framework
 
 This tutorial takes about 10 minutes. By the end you will have the full sample stack running
-locally, have triggered all three saga paths (happy, failure compensation, timeout compensation),
-and have a mental model of how the pieces fit together.
+locally, have sent an order through the Order service's command flow, and have a mental model of
+how the pieces fit together.
 
 ---
 
@@ -111,183 +111,67 @@ ORDER=http://localhost:54321
 
 ---
 
-## Walk through a happy-path order
+## Place an order
 
-Send a `POST` request to create an order that succeeds all four saga steps:
+Send a `POST` request to place a two-line demo order:
 
 ```bash
-curl -s -X POST "$ORDER/demo/happy-path" | jq .
+curl -s -X POST "$ORDER/demo/orders" | jq .
 ```
 
-Example response:
+`PlaceOrderCommandHandler` asks the Catalog service over gRPC to reserve stock for each line, then
+adds the `Order` and publishes `order.completed.v1`. After the handler returns, the
+`UnitOfWorkPipelineBehavior` commits the order row and the Outbox row in one `SaveChangesAsync`
+call; the background `OutboxPublisherBackgroundService` publishes the event a moment later.
+
+The demo order uses freshly generated product ids and the sample Catalog starts with no products,
+so against the running stack Catalog rejects the reservation: the call returns `422` with
+`"code": "BUSINESS_RULE_VIOLATED"`, and neither the order nor an Outbox row is written. When every
+reservation succeeds — `samples/Kun.Sample.Tests/PlaceOrderTests.cs` swaps in a fake Catalog
+client that accepts them — the response carries the new order id:
 
 ```json
 {
-  "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "path": "happy-path"
+  "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 }
 ```
 
-Copy the `orderId` value. Query the saga state:
+and the order reads back as `Completed`:
 
 ```bash
-curl -s "$ORDER/demo/sagas/3fa85f64-5717-4562-b3fc-2c963f66afa6" | jq .
+curl -s "$ORDER/demo/orders/3fa85f64-5717-4562-b3fc-2c963f66afa6" | jq .
 ```
 
-The response includes the current `SagaInstance` state. Immediately after the `POST` the saga is
-`Running` as the background `SagaStepExecutor` works through the steps. Poll a few seconds later
-and the state transitions to `Completed`:
-
-```json
-{
-  "sagaId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "state": "Completed",
-  "currentStepIndex": 3,
-  "failureReason": null
-}
-```
-
-**What happened:**
-
-1. `PlaceOrderCommand` handler created an `Order` row and called `ISagaOrchestrator.StartAsync`.
-2. The orchestrator inserted a `saga_instances` row (state `Running`) and the first
-   `saga_step_queue` entry — all inside the same EF Core transaction as the `Order` row.
-3. The background `SagaStepExecutor` picked up the queue entry and ran each step in order:
-   - Step 0 `ReserveInventoryStep` — logs "would gRPC Catalog", sets order status `Reserved`
-   - Step 1 `ProcessPaymentStep` — sets order status `Paid`
-   - Step 2 `ShipOrderStep` — sets order status `Shipped`
-   - Step 3 `NotifyCustomerStep` — sets order status `Completed`, enqueues `order.completed.v1`
-     via the Outbox
-4. `SagaInstance.State` was set to `Completed`.
-
-Open **Traces** in the Aspire Dashboard and filter by `order`. You will see a single root trace
-with child spans for each saga step, the EF Core queries, and the Outbox publish.
-
----
-
-## Trigger the compensation path
-
-This demonstrates what happens when a saga step fails: the orchestrator runs compensation steps
-in reverse order.
-
-```bash
-curl -s -X POST "$ORDER/demo/trigger-payment-failure" | jq .
-```
-
-Response:
-
-```json
-{
-  "orderId": "...",
-  "path": "payment-failure",
-  "note": "Saga will compensate ReserveInventory."
-}
-```
-
-Query the saga state a moment later:
-
-```bash
-curl -s "$ORDER/demo/sagas/<orderId>" | jq .
-```
-
-Expected final state:
-
-```json
-{
-  "sagaId": "...",
-  "state": "Compensated",
-  "currentStepIndex": 1,
-  "failureReason": "ProcessPaymentStep failed: simulated payment failure"
-}
-```
-
-**What happened:**
-
-- `ProcessPaymentStep` detected `SimulateFailure = "payment"` in the saga context and threw
-  `SagaStepFailedException`.
-- The executor set `SagaInstance.State` to `Compensating` and enqueued `CompensateAsync` calls
-  for steps 1 and 0 in reverse order.
-- `ProcessPaymentStep.CompensateAsync` — cancels the order if status is `Paid`
-- `ReserveInventoryStep.CompensateAsync` — cancels the order (idempotent)
-- Final state: `Compensated`.
-
-In the Aspire Dashboard Traces view you will see `saga.step.execute` spans for steps 0 and 1,
-followed by `saga.step.compensate` spans for steps 1 and 0 in reverse.
-
----
-
-## Trigger the timeout path
-
-This demonstrates the `SagaTimeoutDetector` background service, which scans for stuck steps
-every 5 seconds and kicks off compensation automatically.
-
-```bash
-curl -s -X POST "$ORDER/demo/trigger-timeout" | jq .
-```
-
-Response:
-
-```json
-{
-  "orderId": "...",
-  "path": "timeout",
-  "note": "ShipOrderStep sleeps 60s — SagaTimeoutDetector compensates."
-}
-```
-
-`ShipOrderStep` is configured with a 10-second per-step timeout override. When the step sleeps
-for 60 seconds the `SagaTimeoutDetector` wakes up, finds the instance past its `TimeoutAt`
-deadline, and triggers compensation from the current step index backwards.
-
-After roughly 10–15 seconds:
-
-```bash
-curl -s "$ORDER/demo/sagas/<orderId>" | jq .
-```
-
-Expected:
-
-```json
-{
-  "sagaId": "...",
-  "state": "Compensated",
-  "currentStepIndex": 2,
-  "failureReason": "Step 2 timed out at ..."
-}
-```
+Open **Traces** in the Aspire Dashboard and filter by `order`. You will see the HTTP request, the
+`Mediator.Send PlaceOrderCommand` span, and the gRPC call to Catalog under the same trace.
 
 ---
 
 ## What you just saw
 
-All three paths exercised the same underlying building blocks:
+The order flow exercised these building blocks:
 
-**Outbox transactional publishing** — every saga start and every integration event enqueue
-happened inside a single EF Core `SaveChangesAsync` call. If the database transaction rolled back,
+**Outbox transactional publishing** — the order row and its integration event were written in a
+single EF Core `SaveChangesAsync` call. If the database transaction rolled back,
 no message was produced. The `OutboxPublisherBackgroundService` drains `Pending` rows to the
 broker asynchronously, so publish latency is measured in seconds but consistency is guaranteed.
-
-**Saga orchestration** — the `SagaOrchestrator` is a central coordinator. It persists all state
-in `saga_instances` and `saga_step_queue` tables, making the current state inspectable with a
-plain SQL query at any time. There is no implicit choreography happening via event reactions.
 
 **W3C Trace Context propagation** — every `OutboxMessage` row stores the `traceparent` and
 `tracestate` headers captured at enqueue time. The background publisher resumes the trace when it
 publishes, so a single `TraceId` threads through HTTP ingress → CQRS handler → Outbox → broker
-→ consumer → downstream saga steps. This is visible in the Aspire Dashboard Traces panel.
+→ consumer. This is visible in the Aspire Dashboard Traces panel.
 
 ---
 
 ## Next steps
 
 - **Simpler CQRS story** — `samples/Kun.Sample.Catalog/` demonstrates DDD aggregates, write/read
-  split with EF Core and Dapper, and Outbox event publishing without any saga involvement. Its
+  split with EF Core and Dapper, and Outbox event publishing. Its
   [README](../samples/Kun.Sample.Catalog/README.md) walks through the file structure.
 
 - **Architecture essays** — understand the design trade-offs:
   - [Why CQRS?](design/why-cqrs.md)
   - [Why Outbox?](design/why-outbox.md)
-  - [Why Saga Orchestration?](design/why-saga.md)
 
 - **Module map** — [`docs/design/module-map.md`](design/module-map.md) shows the
   full dependency graph and which modules are AOT candidates.

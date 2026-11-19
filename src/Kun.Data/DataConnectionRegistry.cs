@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Qian.Config;
-using Kun.Errors;
 
 namespace Kun.Data;
 
@@ -231,7 +231,7 @@ internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes
             throw new ErrorException(new Error(PlatformErrors.Conflict), error);
         }
         catch (DbUpdateException error) when (name is not null && error.InnerException is PostgresException
-            { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: DataSystemDbContext.NameIndex })
+        { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: DataSystemDbContext.NameIndex })
         {
             throw new ErrorException(new Error(DataErrors.ConnectionNameConflict, new Dictionary<string, string> { ["name"] = name }), error);
         }

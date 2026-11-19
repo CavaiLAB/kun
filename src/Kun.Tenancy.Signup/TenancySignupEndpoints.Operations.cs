@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -10,9 +13,6 @@ using Qian.Authz.Abstractions;
 using Qian.Capabilities;
 using Qian.Events;
 using Qian.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Tenancy.Signup;
 

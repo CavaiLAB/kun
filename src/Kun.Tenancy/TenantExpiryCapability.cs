@@ -1,11 +1,11 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Kun.Plugin.Sdk;
-using Qian.Audit;
 using System.Security.Cryptography;
 using System.Text;
-using Kun.Runtime;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Kun.Errors;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
+using Qian.Audit;
 
 namespace Kun.Tenancy;
 
@@ -52,5 +52,6 @@ internal sealed class TenantExpiryCapability(IPluginContext owner, ITenantLifecy
 internal sealed record ExpiryScanInput(Guid IdempotencyKey, int Limit = 100);
 internal sealed record ExpiryScanResult(int Expired);
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(ExpiryScanInput))][JsonSerializable(typeof(ExpiryScanResult))]
+[JsonSerializable(typeof(ExpiryScanInput))]
+[JsonSerializable(typeof(ExpiryScanResult))]
 internal sealed partial class TenantScanJson : JsonSerializerContext;

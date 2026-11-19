@@ -1,20 +1,20 @@
-using Kun.Authorization;
-using System.Reflection;
-using Microsoft.AspNetCore.Http.Metadata;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.Extensions.Logging;
+using System.Reflection;
+using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
 using Qian.Events;
 using Qian.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Tenancy.AspNetCore;
 
@@ -31,8 +31,12 @@ public static partial class TenancyEndpoints
             {
                 var filter = status switch
                 {
-                    null => (TenantStatus?)null, "pending" => TenantStatus.Pending, "trial" => TenantStatus.Trial,
-                    "active" => TenantStatus.Active, "grace" => TenantStatus.Grace, "suspended" => TenantStatus.Suspended,
+                    null => (TenantStatus?)null,
+                    "pending" => TenantStatus.Pending,
+                    "trial" => TenantStatus.Trial,
+                    "active" => TenantStatus.Active,
+                    "grace" => TenantStatus.Grace,
+                    "suspended" => TenantStatus.Suspended,
                     _ => throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.ValueNotAllowed, "#/status")] })
                 };
                 var result = await ctx.Inject<ITenantOperations>(TenantOperations.Key).OverviewAsync(skip, take, filter, keyword, http.RequestAborted).ConfigureAwait(false);

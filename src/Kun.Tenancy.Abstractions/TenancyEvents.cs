@@ -34,6 +34,9 @@ public static class TenancyEvents
 [IntegrationEventId(TenancyEvents.Expired)] public sealed record TenantExpired(Guid Id, DateTimeOffset ValidUntil);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(TenantCreated))][JsonSerializable(typeof(TenantActivated))][JsonSerializable(typeof(TenantSuspended))]
-[JsonSerializable(typeof(TenantResumed))][JsonSerializable(typeof(TenantExpired))]
+[JsonSerializable(typeof(TenantCreated))]
+[JsonSerializable(typeof(TenantActivated))]
+[JsonSerializable(typeof(TenantSuspended))]
+[JsonSerializable(typeof(TenantResumed))]
+[JsonSerializable(typeof(TenantExpired))]
 internal sealed partial class TenancyEventJson : JsonSerializerContext;

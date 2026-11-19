@@ -3,14 +3,14 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
+using Kun.Errors;
+using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Kun.Data;
 using Qian.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Tenancy;
 
@@ -46,8 +46,10 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
         Check(); ArgumentNullException.ThrowIfNull(request);
         var kind = request.IdentifierKind switch
         {
-            TenantAdminIdentifierKind.Username => IdentifierKind.Username, TenantAdminIdentifierKind.Phone => IdentifierKind.Phone,
-            TenantAdminIdentifierKind.Email => IdentifierKind.Email, _ => throw Invalid("#/identifierKind")
+            TenantAdminIdentifierKind.Username => IdentifierKind.Username,
+            TenantAdminIdentifierKind.Phone => IdentifierKind.Phone,
+            TenantAdminIdentifierKind.Email => IdentifierKind.Email,
+            _ => throw Invalid("#/identifierKind")
         };
         if (string.IsNullOrEmpty(request.InitialPassword)) throw Invalid("#/initialPassword");
         using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(request.InitialPassword));
@@ -247,7 +249,9 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
     private static TenantAdminAccount Account(Person person) => new(person.Id, person.DisplayName, person.Status, Identifiers(person));
     private static System.Collections.ObjectModel.ReadOnlyCollection<TenantAdminIdentifier> Identifiers(Person person) => Array.AsReadOnly(person.Identifiers.Select(item => new TenantAdminIdentifier(item.Kind switch
     {
-        IdentifierKind.Phone => TenantAdminIdentifierKind.Phone, IdentifierKind.Email => TenantAdminIdentifierKind.Email, _ => TenantAdminIdentifierKind.Username
+        IdentifierKind.Phone => TenantAdminIdentifierKind.Phone,
+        IdentifierKind.Email => TenantAdminIdentifierKind.Email,
+        _ => TenantAdminIdentifierKind.Username
     }, item.Masked, item.Verified)).ToArray());
     private static ErrorException Remap(ErrorException error, Dictionary<string, string> pointers)
     {
@@ -257,7 +261,8 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
         if (source.Pointer is null && source.Errors.Count == 0) return error;
         return new ErrorException(new Error(source.Code, source.Args)
         {
-            Pointer = source.Pointer is null ? null : Map(source.Pointer), Allowed = source.Allowed,
+            Pointer = source.Pointer is null ? null : Map(source.Pointer),
+            Allowed = source.Allowed,
             Errors = [.. source.Errors.Select(item => new FieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
         }, error);
     }

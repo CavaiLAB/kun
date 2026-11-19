@@ -1,12 +1,12 @@
-using Kun.Core.MultiTenancy;
 using System.Data;
 using System.Text.Json;
+using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.EntityFrameworkCore.Conventions;
+using Kun.Errors;
+using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Tenancy;
 
@@ -52,7 +52,9 @@ internal sealed class TenantOperationsService(IPluginContext context, PostgresTe
             var tenant = PostgresTenantDirectory.Describe(row.Row);
             items.Add(new TenantOverview(tenant.Id, tenant.Code, tenant.Name, tenant.Isolation, tenant.Status)
             {
-                Revision = row.Revision, CreatedAt = new DateTimeOffset(DateTime.SpecifyKind(row.Row.CreatedAt, DateTimeKind.Utc)), ValidUntil = row.Row.ValidUntil,
+                Revision = row.Revision,
+                CreatedAt = new DateTimeOffset(DateTime.SpecifyKind(row.Row.CreatedAt, DateTimeKind.Utc)),
+                ValidUntil = row.Row.ValidUntil,
                 UsersLimit = JsonSerializer.Deserialize<TenantQuotas>(row.Row.Quotas, JsonSerializerOptions.Web)?.Users,
                 UsersUsed = await UsersAsync(tenant.Id, cancellationToken).ConfigureAwait(false),
                 AdministratorName = await administration.AdministratorNameAsync(tenant.Id, cancellationToken).ConfigureAwait(false),

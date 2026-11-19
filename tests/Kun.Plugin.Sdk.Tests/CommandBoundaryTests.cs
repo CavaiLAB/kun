@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.Errors;
 using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
@@ -9,7 +10,6 @@ using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Kun.Data;
 using Qian.Identity.Abstractions;
 
 namespace Kun.Plugin.Sdk.Tests;

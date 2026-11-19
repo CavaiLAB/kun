@@ -1,14 +1,14 @@
 using System.Globalization;
 using System.Threading.RateLimiting;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
+using Kun.Errors;
+using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Kun.Data;
 using Qian.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Tenancy.Signup;
 
@@ -117,7 +117,8 @@ internal sealed partial class TenantSignupService : ITenantSignup, IDisposable
         if (source.Pointer is null && source.Errors.Count == 0) return error;
         return new ErrorException(new Error(source.Code, source.Args)
         {
-            Pointer = source.Pointer is null ? null : Map(source.Pointer), Allowed = source.Allowed,
+            Pointer = source.Pointer is null ? null : Map(source.Pointer),
+            Allowed = source.Allowed,
             Errors = [.. source.Errors.Select(item => new FieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
         }, error);
     }

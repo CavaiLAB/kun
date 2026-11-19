@@ -1,10 +1,10 @@
 using System.Net.Sockets;
 using System.Security.Authentication;
+using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Qian.Config;
-using Kun.Errors;
 
 namespace Kun.Data.Dialect.Pg;
 

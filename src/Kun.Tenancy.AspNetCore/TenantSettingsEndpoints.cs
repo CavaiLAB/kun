@@ -1,7 +1,7 @@
+using Kun.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Kun.Runtime;
 
 namespace Kun.Tenancy.AspNetCore;
 

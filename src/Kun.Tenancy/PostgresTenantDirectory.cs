@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore;
-using Kun.EntityFrameworkCore.Conventions;
-using Npgsql;
-using Kun.Data;
 using Kun.Core.MultiTenancy;
-using Qian.Events;
+using Kun.Data;
+using Kun.EntityFrameworkCore.Conventions;
 using Kun.Errors;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using Qian.Events;
 
 namespace Kun.Tenancy;
 
@@ -62,8 +62,15 @@ internal sealed class PostgresTenantDirectory(IDataService data, ITenantContext 
     }
     internal static TenantDescriptor Describe(TenantRow row) => new(row.Id, row.Code, row.Name,
         row.Isolation == "row" ? TenantIsolation.Row : throw new InvalidOperationException("未装配此隔离策略。"),
-        row.Status switch { "pending" => TenantStatus.Pending, "trial" => TenantStatus.Trial, "active" => TenantStatus.Active,
-            "grace" => TenantStatus.Grace, "suspended" => TenantStatus.Suspended, _ => throw new InvalidOperationException("未知租户状态。") });
+        row.Status switch
+        {
+            "pending" => TenantStatus.Pending,
+            "trial" => TenantStatus.Trial,
+            "active" => TenantStatus.Active,
+            "grace" => TenantStatus.Grace,
+            "suspended" => TenantStatus.Suspended,
+            _ => throw new InvalidOperationException("未知租户状态。")
+        });
     internal static void ValidateCode(string code)
     {
         if (string.IsNullOrEmpty(code)) throw Invalid(PlatformErrors.Required, "#/code");

@@ -4,8 +4,8 @@ using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
 using Kun.Mediator;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Data;
 

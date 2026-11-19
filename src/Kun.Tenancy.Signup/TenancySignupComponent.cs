@@ -1,11 +1,11 @@
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
 using Kun.Data;
-using Qian.Identity.Abstractions;
+using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.Extensions.DependencyInjection;
+using Qian.Authz.Abstractions;
+using Qian.Identity.Abstractions;
 
 namespace Kun.Tenancy.Signup;
 

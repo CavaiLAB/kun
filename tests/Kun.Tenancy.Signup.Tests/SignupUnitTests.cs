@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Qian.Authz.Abstractions;
 using Kun.Errors;
+using Qian.Authz.Abstractions;
 
 namespace Kun.Tenancy.Signup.Tests;
 
@@ -49,9 +49,13 @@ public sealed class SignupUnitTests
         Assert.Equal(new TenancySignupOptions().TrialDays, TenancySignupOptions.Read(JsonSerializer.SerializeToElement(new { })).TrialDays);
         var read = TenancySignupOptions.Read(JsonSerializer.SerializeToElement(new
         {
-            trialDays = 14, defaultUsers = 5, code = new { minLength = 4, maxLength = 20, reserved = Ops },
+            trialDays = 14,
+            defaultUsers = 5,
+            code = new { minLength = 4, maxLength = 20, reserved = Ops },
             verification = new { length = 4, lifetimeSeconds = 120, maxAttempts = 3, resendSeconds = 30, perPhonePerHour = 2, perSourcePerHour = 9 },
-            session = new { lifetimeMinutes = 10 }, codeAvailability = new { perSourcePerMinute = 7 }, defaultCountryCode = "1"
+            session = new { lifetimeMinutes = 10 },
+            codeAvailability = new { perSourcePerMinute = 7 },
+            defaultCountryCode = "1"
         }));
         Assert.Equal((14, 5, 4, 20, 4, 3, 2, 9, 10d, 7, "1"), (read.TrialDays, read.DefaultUsers, read.CodeMinLength, read.CodeMaxLength, read.CodeLength, read.MaxAttempts,
             read.PerPhonePerHour, read.PerSourcePerHour, read.SessionLifetime.TotalMinutes, read.CodeChecksPerSourcePerMinute, read.DefaultCountryCode));
@@ -119,9 +123,13 @@ public sealed class SignupUnitTests
     {
         var expected = new Dictionary<string, (int Status, ErrorKind Kind)>(StringComparer.Ordinal)
         {
-            ["SIGNUP_UNAVAILABLE"] = (503, ErrorKind.Protocol), ["SIGNUP_CODE_INVALID"] = (400, ErrorKind.Protocol), ["SIGNUP_CODE_EXPIRED"] = (400, ErrorKind.Protocol),
-            ["SIGNUP_ACCOUNT_UNAVAILABLE"] = (403, ErrorKind.Protocol), ["SIGNUP_APPLICATION_OPEN"] = (409, ErrorKind.Business),
-            ["SIGNUP_CODE_TAKEN"] = (409, ErrorKind.Business), ["SIGNUP_STATE_CONFLICT"] = (409, ErrorKind.Business)
+            ["SIGNUP_UNAVAILABLE"] = (503, ErrorKind.Protocol),
+            ["SIGNUP_CODE_INVALID"] = (400, ErrorKind.Protocol),
+            ["SIGNUP_CODE_EXPIRED"] = (400, ErrorKind.Protocol),
+            ["SIGNUP_ACCOUNT_UNAVAILABLE"] = (403, ErrorKind.Protocol),
+            ["SIGNUP_APPLICATION_OPEN"] = (409, ErrorKind.Business),
+            ["SIGNUP_CODE_TAKEN"] = (409, ErrorKind.Business),
+            ["SIGNUP_STATE_CONFLICT"] = (409, ErrorKind.Business)
         };
         Assert.Equal(expected.Keys.Order(StringComparer.Ordinal), TenancySignupErrors.All.Select(code => code.Code).Order(StringComparer.Ordinal));
         var catalog = ErrorCatalog.CreateDefault();

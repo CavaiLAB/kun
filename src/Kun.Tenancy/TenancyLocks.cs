@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Kun.Data;
 using Kun.Runtime;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Tenancy;
 

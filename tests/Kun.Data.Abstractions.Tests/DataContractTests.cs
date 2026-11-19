@@ -3,11 +3,11 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Events;
-using Kun.Errors;
 
 namespace Kun.Data.Abstractions.Tests;
 

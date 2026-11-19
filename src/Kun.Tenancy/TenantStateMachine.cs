@@ -1,10 +1,10 @@
 using Kun.Core.MultiTenancy;
+using Kun.Data;
+using Kun.Errors;
+using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 using Qian.Events;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Tenancy;
 
@@ -73,7 +73,7 @@ internal sealed class TenantStateMachine(IPluginContext context, PostgresTenantD
     }
     internal static TenantStatus Next(TenantStatus state, string action, TenantStatus? previous, string? last) => (state, action) switch
     {
-        (>= TenantStatus.Pending and <= TenantStatus.Suspended, "suspend") => TenantStatus.Suspended,
+        ( >= TenantStatus.Pending and <= TenantStatus.Suspended, "suspend") => TenantStatus.Suspended,
         (TenantStatus.Suspended, "resume") when previous is >= TenantStatus.Pending and < TenantStatus.Suspended => previous.Value,
         (_, "resume") when last == "resume" && state is >= TenantStatus.Pending and < TenantStatus.Suspended => state,
         (TenantStatus.Pending or TenantStatus.Active, "activate") => TenantStatus.Active,
@@ -81,7 +81,14 @@ internal sealed class TenantStateMachine(IPluginContext context, PostgresTenantD
         (TenantStatus.Active or TenantStatus.Trial or TenantStatus.Grace, "expire") => TenantStatus.Grace,
         _ => throw new ErrorException(new Error(TenancyErrors.StateConflict))
     };
-    private static TenantStatus Parse(string value) => value switch { "pending" => TenantStatus.Pending, "active" => TenantStatus.Active, "trial" => TenantStatus.Trial,
-        "grace" => TenantStatus.Grace, "suspended" => TenantStatus.Suspended, _ => throw new ErrorException(new Error(TenancyErrors.StateConflict)) };
+    private static TenantStatus Parse(string value) => value switch
+    {
+        "pending" => TenantStatus.Pending,
+        "active" => TenantStatus.Active,
+        "trial" => TenantStatus.Trial,
+        "grace" => TenantStatus.Grace,
+        "suspended" => TenantStatus.Suspended,
+        _ => throw new ErrorException(new Error(TenancyErrors.StateConflict))
+    };
     private static string Name(TenantStatus value) => value.ToString().ToLowerInvariant();
 }

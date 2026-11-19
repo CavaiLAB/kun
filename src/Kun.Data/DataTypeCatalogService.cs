@@ -1,8 +1,8 @@
 using System.Text.Json;
+using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Kun.Errors;
 
 namespace Kun.Data;
 

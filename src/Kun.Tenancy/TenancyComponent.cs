@@ -1,7 +1,7 @@
+using System.Text.Json;
 using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using System.Text.Json;
 
 namespace Kun.Tenancy;
 

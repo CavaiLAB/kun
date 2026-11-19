@@ -1,6 +1,6 @@
 using Kun.Core.MultiTenancy;
-using Microsoft.EntityFrameworkCore;
 using Kun.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Tenancy.Signup;
 
@@ -139,15 +139,23 @@ internal static class SignupStatuses
 
     internal static string Name(SignupApplicationStatus status) => status switch
     {
-        SignupApplicationStatus.Submitted => Submitted, SignupApplicationStatus.Provisioning => Provisioning, SignupApplicationStatus.Approved => Approved,
-        SignupApplicationStatus.Failed => Failed, SignupApplicationStatus.Rejected => Rejected, SignupApplicationStatus.Withdrawn => Withdrawn,
+        SignupApplicationStatus.Submitted => Submitted,
+        SignupApplicationStatus.Provisioning => Provisioning,
+        SignupApplicationStatus.Approved => Approved,
+        SignupApplicationStatus.Failed => Failed,
+        SignupApplicationStatus.Rejected => Rejected,
+        SignupApplicationStatus.Withdrawn => Withdrawn,
         _ => throw new ArgumentOutOfRangeException(nameof(status))
     };
 
     internal static SignupApplicationStatus Parse(string status) => status switch
     {
-        Submitted => SignupApplicationStatus.Submitted, Provisioning => SignupApplicationStatus.Provisioning, Approved => SignupApplicationStatus.Approved,
-        Failed => SignupApplicationStatus.Failed, Rejected => SignupApplicationStatus.Rejected, Withdrawn => SignupApplicationStatus.Withdrawn,
+        Submitted => SignupApplicationStatus.Submitted,
+        Provisioning => SignupApplicationStatus.Provisioning,
+        Approved => SignupApplicationStatus.Approved,
+        Failed => SignupApplicationStatus.Failed,
+        Rejected => SignupApplicationStatus.Rejected,
+        Withdrawn => SignupApplicationStatus.Withdrawn,
         _ => throw new InvalidOperationException("未知申请状态。")
     };
 }

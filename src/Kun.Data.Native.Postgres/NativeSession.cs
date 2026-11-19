@@ -1,7 +1,7 @@
 using System.Data;
 using System.Data.Common;
-using Npgsql;
 using Kun.Runtime;
+using Npgsql;
 
 namespace Kun.Data.Native.Postgres;
 

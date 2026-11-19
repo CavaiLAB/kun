@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Qian.Capabilities;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Tenancy.Signup;
 
@@ -118,7 +118,12 @@ public static partial class TenancySignupEndpoints
 
     private static void WriteCookie(HttpContext http, SignupSessionGrant grant) => http.Response.Cookies.Append(CookieName, grant.Token, new CookieOptions
     {
-        HttpOnly = true, SameSite = SameSiteMode.Strict, Path = CookiePath, Secure = RequiresSecureCookie(http), Expires = grant.ExpiresAt, IsEssential = true
+        HttpOnly = true,
+        SameSite = SameSiteMode.Strict,
+        Path = CookiePath,
+        Secure = RequiresSecureCookie(http),
+        Expires = grant.ExpiresAt,
+        IsEssential = true
     });
 
     private static void ClearCookie(HttpContext http)

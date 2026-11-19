@@ -1,6 +1,6 @@
+using Kun.Errors;
 using Microsoft.EntityFrameworkCore;
 using Qian.Events;
-using Kun.Errors;
 
 namespace Kun.Tenancy.Signup;
 
@@ -46,7 +46,8 @@ internal sealed partial class TenantSignupService
         {
             var checks = await ChecksAsync(row, cancellationToken).ConfigureAwait(false);
             items.Add(new SignupApplicationSummary(row.Id, row.Number, SignupStatuses.Parse(row.Status), row.CompanyName, row.Code, row.Size, row.ContactName,
-                SignupRules.MaskPhone(row.Phone), row.SubmittedAt, MostSevere(checks)) { Industry = row.Industry });
+                SignupRules.MaskPhone(row.Phone), row.SubmittedAt, MostSevere(checks))
+            { Industry = row.Industry });
         }
         int Count(string status) => counts.TryGetValue(status, out var value) ? value : 0;
         return new SignupApplicationList(items.AsReadOnly(), total, new SignupApplicationCounts(counts.Values.Sum(), Count(SignupStatuses.Submitted), Count(SignupStatuses.Provisioning),
@@ -200,7 +201,8 @@ internal sealed partial class TenantSignupService
         {
             await messenger.SendResultAsync(new SignupResultMessage(row.Id, row.Phone, row.Number, kind)
             {
-                TenantCode = kind == SignupResultKind.Approved ? row.Code : null, ValidUntil = kind == SignupResultKind.Approved ? row.ValidUntil : null,
+                TenantCode = kind == SignupResultKind.Approved ? row.Code : null,
+                ValidUntil = kind == SignupResultKind.Approved ? row.ValidUntil : null,
                 Reason = kind == SignupResultKind.Rejected ? row.RejectReason : null
             }, CancellationToken.None).ConfigureAwait(false);
         }
@@ -235,7 +237,11 @@ internal sealed partial class TenantSignupService
             CompletedAt = row.CompletedAt,
             Review = row.Reviewer is null || row.ReviewedAt is null ? null : new SignupReview(row.Reviewer, row.ReviewedAt.Value)
             {
-                Plan = Plan(row.Plan), ValidUntil = row.Plan is null ? null : row.ValidUntil, Users = row.Users, RejectReason = row.RejectReason, Note = row.ReviewNote
+                Plan = Plan(row.Plan),
+                ValidUntil = row.Plan is null ? null : row.ValidUntil,
+                Users = row.Users,
+                RejectReason = row.RejectReason,
+                Note = row.ReviewNote
             },
             Provisioning = provisioning
         };

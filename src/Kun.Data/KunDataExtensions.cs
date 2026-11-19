@@ -1,6 +1,7 @@
 using Kun.Core.Security;
-using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.DependencyInjection;
+using Kun.Errors;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
 using Kun.MultiTenancy.EntityFrameworkCore;
@@ -11,7 +12,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Kun.Errors;
 
 namespace Kun.Data;
 

@@ -1,8 +1,8 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Kun.Data;
 
 namespace Kun.Tenancy;
 

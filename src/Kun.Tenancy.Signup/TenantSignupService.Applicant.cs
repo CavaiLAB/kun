@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
+using Kun.Errors;
 using Microsoft.EntityFrameworkCore;
 using Qian.Identity.Abstractions;
-using Kun.Errors;
 
 namespace Kun.Tenancy.Signup;
 
@@ -163,8 +163,18 @@ internal sealed partial class TenantSignupService
                 var sequence = await db.Applications.CountAsync(a => a.Number.StartsWith(prefix), cancellationToken).ConfigureAwait(false) + 1;
                 row = new SignupApplicationRow
                 {
-                    Number = SignupRules.Number(now, sequence), PersonId = person.Id, CompanyName = input.CompanyName, Code = input.Code, Industry = input.Industry, Size = request.Size,
-                    Description = input.Description, ContactName = person.DisplayName, Phone = resolved.Session.Phone, Email = input.Email, ExistingAccount = found is not null, SubmittedAt = now
+                    Number = SignupRules.Number(now, sequence),
+                    PersonId = person.Id,
+                    CompanyName = input.CompanyName,
+                    Code = input.Code,
+                    Industry = input.Industry,
+                    Size = request.Size,
+                    Description = input.Description,
+                    ContactName = person.DisplayName,
+                    Phone = resolved.Session.Phone,
+                    Email = input.Email,
+                    ExistingAccount = found is not null,
+                    SubmittedAt = now
                 };
                 db.Applications.Add(row);
                 try { await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false); }
@@ -319,8 +329,12 @@ internal sealed partial class TenantSignupService
         return new SignupApplicantApplication(row.Id, row.Number, status == SignupApplicationStatus.Failed ? SignupApplicationStatus.Provisioning : status,
             row.CompanyName, row.Code, row.Size, row.ContactName, SignupRules.MaskPhone(row.Phone), row.SubmittedAt)
         {
-            Industry = row.Industry, Description = row.Description, Email = row.Email, CompletedAt = row.CompletedAt,
-            Plan = approved ? Plan(row.Plan) : null, ValidUntil = approved ? row.ValidUntil : null,
+            Industry = row.Industry,
+            Description = row.Description,
+            Email = row.Email,
+            CompletedAt = row.CompletedAt,
+            Plan = approved ? Plan(row.Plan) : null,
+            ValidUntil = approved ? row.ValidUntil : null,
             RejectReason = status == SignupApplicationStatus.Rejected ? row.RejectReason : null
         };
     }

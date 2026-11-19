@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.Errors;
 using Kun.Mediator;
 using Kun.Runtime;
@@ -13,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Qian.Authz.Abstractions;
-using Kun.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 

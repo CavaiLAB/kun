@@ -1,12 +1,12 @@
 using System.Data.Common;
 using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Kun.Errors;
 
 namespace Kun.Data;
 

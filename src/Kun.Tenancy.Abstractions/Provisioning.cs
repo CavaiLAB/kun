@@ -1,6 +1,6 @@
-using Kun.Runtime;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Kun.Runtime;
 
 namespace Kun.Tenancy;
 

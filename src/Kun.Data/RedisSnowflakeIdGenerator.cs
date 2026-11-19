@@ -1,10 +1,10 @@
 using System.Globalization;
+using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Kun.Errors;
 using StackExchange.Redis;
 
 namespace Kun.Data;

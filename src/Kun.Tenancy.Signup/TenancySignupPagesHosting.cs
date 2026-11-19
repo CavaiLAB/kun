@@ -22,7 +22,8 @@ public static class TenancySignupPagesHosting
         var files = new PhysicalFileProvider(Path.GetFullPath(root));
         app.UseStaticFiles(new StaticFileOptions
         {
-            RequestPath = PagesPath, FileProvider = files,
+            RequestPath = PagesPath,
+            FileProvider = files,
             OnPrepareResponse = context => Headers(context.Context.Response,
                 context.File.Name.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ? "no-store"
                 : context.Context.Request.Path.StartsWithSegments(PagesPath + "/assets", StringComparison.Ordinal) ? "public, max-age=31536000, immutable" : "no-cache")

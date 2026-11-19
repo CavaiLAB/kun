@@ -1,9 +1,9 @@
-using Kun.Core.MultiTenancy;
-using Kun.EventBus;
-using Qian.Events;
-using Kun.Errors;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Core.MultiTenancy;
+using Kun.Errors;
+using Kun.EventBus;
+using Qian.Events;
 
 namespace Kun.Data;
 
@@ -19,7 +19,9 @@ public sealed record RecordActor(string Kind, string Id, [property: JsonProperty
         ArgumentNullException.ThrowIfNull(actor);
         var kind = actor.Kind switch
         {
-            EventActorKind.User => "user", EventActorKind.Service => "service", EventActorKind.Agent => "agent",
+            EventActorKind.User => "user",
+            EventActorKind.Service => "service",
+            EventActorKind.Agent => "agent",
             _ => throw new ArgumentOutOfRangeException(nameof(actor), "未知主体类型。")
         };
         return new(kind, actor.Id, actor.OnBehalfOf);

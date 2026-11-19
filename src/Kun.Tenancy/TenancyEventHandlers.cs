@@ -1,7 +1,7 @@
 using Kun.Core.Domain;
+using Kun.Data;
 using Kun.EventBus;
 using Kun.Mediator;
-using Kun.Data;
 
 namespace Kun.Tenancy;
 

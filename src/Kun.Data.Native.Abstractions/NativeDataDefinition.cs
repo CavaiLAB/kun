@@ -1,7 +1,7 @@
 using System.Data;
 using System.Data.Common;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
 
 namespace Kun.Data.Native;
 

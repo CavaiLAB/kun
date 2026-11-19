@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Kun.Identity.Tests" />
-    <InternalsVisibleTo Include="Kun.Identity.Connector.Oidc" />
+    <InternalsVisibleTo Include="Kun.Identity.Connector.Oidc" KunPackageFriendReason="OIDC 连接器共用签名算法约束和回调关联校验" />
   </ItemGroup>
 
 </Project>

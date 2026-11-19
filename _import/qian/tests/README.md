@@ -14,9 +14,9 @@ tests/
   Qian.Identity.Client.Tests/                 依赖方：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码与 qian.sid 会话、篡改 nonce / iss / state 重放、刷新单飞与轮换（真实 Redis）、登出防伪、卸载、后通道登出；会话主体经 Kun 网关签发器铸 S2S 后下游接受；S2S 契约逐条违约与透传拒绝
   Qian.Identity.Client.Standalone.Tests/      独立宿主 E2E：只引用 Qian.Identity.Client，对接 Dex（DexFixture）完成登录与登出，并断言依赖闭包
   Qian.Authz.Tests/                           授权：权限目录与默认角色、RBAC 判定与快照缓存（真实 PostgreSQL + Redis，两宿主授予 / 撤销传播）、平台超管旁路（专用平台登录 + 真实 Audit 插件）
-  Qian.Data.AspNetCore.Tests/                 数据端点：基准类型目录（无数据库）与数据连接档案（真实 PostgreSQL、挂载式密钥、连通测试）
-  Qian.Data.Native.Postgres.Tests/            NativeData：受限登录、精确 RLS 策略、租户/平台原始 SQL、事务与可撤销会话生命周期（真实 PostgreSQL）
-  Qian.Data.Native.Postgres.AotTests/         独立原生持续门：运行严格发布的 Linux 二进制，复用共享 fixture 验证真实数据库；不在常规解决方案测试中跳过
+  Kun.Data.AspNetCore.Tests/                 数据端点：基准类型目录（无数据库）与数据连接档案（真实 PostgreSQL、挂载式密钥、连通测试）
+  Kun.Data.Native.Postgres.Tests/            NativeData：受限登录、精确 RLS 策略、租户/平台原始 SQL、事务与可撤销会话生命周期（真实 PostgreSQL）
+  Kun.Data.Native.Postgres.AotTests/         独立原生持续门：运行严格发布的 Linux 二进制，复用共享 fixture 验证真实数据库；不在常规解决方案测试中跳过
   Qian.Lifecycle.Tests/                       生命周期：验签与信任根轮换（真实 PostgreSQL）、GitOps 执行器（本机裸仓库 + K3s 单节点集群）、Local 执行器
   Qian.Common.Tests/                          packages/Common 共享内部源文件的测试，直接编译源文件；并生成 CLI 移植比对用的 tck/profiles/key-vectors.json 与等价类表
   gates/                                      门禁自测：样例项目 + Python 测试，不在 Kun.slnx 与 Qian.slnf 里
@@ -150,7 +150,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 - 本目录的项目写了 `<IsPackable>true</IsPackable>`，就要同时写档位与角色，否则构建报 KUNTIER001。
 - 原来按名字的几条规则这样对应：组件之间只经契约包引用、不依赖平台插件 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，对应规则 P（平台档包只依赖内核档的包与平台档的契约包）；Definition 的 Kun 直接依赖对应规则 D（契约包直接依赖的内核档包只能是契约）。
-- 原来白名单里的四条边：`Kun.Core`、`Kun.Authorization` 记为契约，`Qian.Tenancy.Abstractions → Kun.Core` 与 `Qian.Authz.Abstractions → Kun.Authorization` 不再需要；`Qian.Data.Abstractions` 的两条记成档位例外，写在它的项目文件里。
+- 原来白名单里的四条边：`Kun.Core`、`Kun.Authorization` 记为契约，`Kun.Tenancy.Abstractions → Kun.Core` 与 `Qian.Authz.Abstractions → Kun.Authorization` 不再需要；`Kun.Data.Abstractions` 的两条记成档位例外，写在它的项目文件里。
 - 组合包 `Qian.Bundle.*` 不再整包豁免。现在一个也没有，以后加了同样要写档位。
 
 ### 4.3 门禁自测
@@ -186,7 +186,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 | 重新纳入 | 读取方 |
 |---|---|
-| `docs/generated/**` | `Qian.Tenancy.Tests` 的 `TenancyConfigurationTests` 读 `docs/generated/config-catalog.md`，核对 tenancy 的实际配置与发布的配置目录一致。`Qian.Docs.Tests` 只用样例项目测生成器，不读这个目录；派生文档与源码是否一致（新鲜度）由仓库根的 [qian-documentation.yml](../../../.github/workflows/qian-documentation.yml) 重新生成后比对，它所在的 documentation 区域含 `docs/generated/**` |
+| `docs/generated/**` | `Kun.Tenancy.Tests` 的 `TenancyConfigurationTests` 读 `docs/generated/config-catalog.md`，核对 tenancy 的实际配置与发布的配置目录一致。`Qian.Docs.Tests` 只用样例项目测生成器，不读这个目录；派生文档与源码是否一致（新鲜度）由仓库根的 [qian-documentation.yml](../../../.github/workflows/qian-documentation.yml) 重新生成后比对，它所在的 documentation 区域含 `docs/generated/**` |
 | `docs/ops/configuration-runbook.md` | `Qian.Sample.Crm.Tests` 的 `CapabilityInvokeTests` 原样执行手册里的过期回执清理 SQL |
 
 测试或门禁新读一个这类文件时，把它加进那一组（写相对本目录的路径）。门禁作业的触发过滤自检（`python3 scripts/dotnet_ci.py paths-check`）读这一组，从下面三处找写成仓库路径的引用，对得上 git 跟踪的文件、而只改该文件的 PR 不跑 dotnet 区域的作业即失败：
@@ -222,7 +222,7 @@ S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` �
 
 ## 数据安全编译门禁（S1-DATA-001）
 
-`DataBoundaryAnalyzer` 对非测试项目中直接或间接继承 EF `DbContext`、却不继承 `QianDbContext` 的上下文报 QIAN0003。测试项目可定义验证用的上下文；编译样例显式设置 `IsTestProject=false` 模拟在线代码，不因位于 tests 目录而豁免。
+`DataBoundaryAnalyzer` 对非测试项目中直接或间接继承 EF `DbContext`、却不继承 `KunStrictDbContext` 的上下文报 QIAN0003。测试项目可定义验证用的上下文；编译样例显式设置 `IsTestProject=false` 模拟在线代码，不因位于 tests 目录而豁免。
 
 接入分析器的项目里，对 EF `IgnoreQueryFilters` 的调用和方法委托引用报 QIAN0004，按语义符号识别，其他类的同名方法不误报。`test_data_boundary.py` 验证五组真实 EF 正反例，负例即使关闭 TreatWarningsAsErrors 也必须失败。真库隔离测试使用受限应用角色的原生 SQL，不调用过滤器旁路。
 

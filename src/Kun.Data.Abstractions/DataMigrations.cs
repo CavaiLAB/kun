@@ -1,4 +1,4 @@
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>
 /// 多副本迁移协调：逐个业务上下文，在按 schema 取得的 PostgreSQL advisory lock 内执行未应用的 EF 迁移。

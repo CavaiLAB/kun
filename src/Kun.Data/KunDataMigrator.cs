@@ -8,10 +8,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>迁移协调的宿主设置。</summary>
-public sealed class QianDataMigrationOptions
+public sealed class KunDataMigrationOptions
 {
     /// <summary>
     /// 迁移所用的连接：按上下文类型返回迁移属主角色的连接串，返回 null 时用上下文自身的连接。
@@ -24,13 +24,13 @@ public sealed class QianDataMigrationOptions
 }
 
 /// <summary>迁移协调的宿主装配与 <c>--migrate-only</c> 入口。</summary>
-public static class QianDataMigrationExtensions
+public static class KunDataMigrationExtensions
 {
     /// <summary>K8s 迁移 Job 的启动参数：只执行迁移，随后退出。</summary>
     public const string MigrateOnlyArgument = "--migrate-only";
 
-    /// <summary>设置迁移连接等选项；<see cref="IDataMigrator"/> 本身随 AddQianData 登记。</summary>
-    public static IServiceCollection AddQianDataMigrations(this IServiceCollection services, Action<QianDataMigrationOptions> configure)
+    /// <summary>设置迁移连接等选项；<see cref="IDataMigrator"/> 本身随 AddKunData 登记。</summary>
+    public static IServiceCollection AddKunDataMigrations(this IServiceCollection services, Action<KunDataMigrationOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);
@@ -46,20 +46,20 @@ public static class QianDataMigrationExtensions
 /// 逐个业务上下文：在属主连接上取 <c>pg_advisory_lock</c>（键由 schema 派生），锁内读待应用迁移、执行，再确认已无遗漏。
 /// 锁按 schema 串行化同一插件的迁移，不同插件互不阻塞；EF 自带的迁移锁在锁内不再发生竞争。
 /// </summary>
-internal sealed partial class QianDataMigrator(IServiceScopeFactory scopes, IDataContextCatalog catalog, IServiceProvider services,
-    IOptions<QianDataMigrationOptions> settings, ILogger<QianDataMigrator> logger) : IDataMigrator
+internal sealed partial class KunDataMigrator(IServiceScopeFactory scopes, IDataContextCatalog catalog, IServiceProvider services,
+    IOptions<KunDataMigrationOptions> settings, ILogger<KunDataMigrator> logger) : IDataMigrator
 {
     public async Task<IReadOnlyList<DataMigrationReport>> MigrateAsync(CancellationToken cancellationToken = default)
     {
         var options = settings.Value;
-        if (options.LockTimeout <= TimeSpan.Zero) throw new QianDataMisconfiguredException("迁移锁等待上限必须为正。");
+        if (options.LockTimeout <= TimeSpan.Zero) throw new KunDataMisconfiguredException("迁移锁等待上限必须为正。");
         var reports = new List<DataMigrationReport>();
         foreach (var type in catalog.ContextTypes)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await using var scope = scopes.CreateAsyncScope();
-            var context = (QianDbContext)scope.ServiceProvider.GetRequiredService(type);
-            var schema = context.Model.GetDefaultSchema() ?? throw new QianDataMisconfiguredException("上下文缺少插件 schema。");
+            var context = (KunStrictDbContext)scope.ServiceProvider.GetRequiredService(type);
+            var schema = context.Model.GetDefaultSchema() ?? throw new KunDataMisconfiguredException("上下文缺少插件 schema。");
             if (!context.Database.GetMigrations().Any())
             {
                 reports.Add(new DataMigrationReport(type, schema, [], TimeSpan.Zero));
@@ -82,7 +82,7 @@ internal sealed partial class QianDataMigrator(IServiceScopeFactory scopes, IDat
                     var pending = (await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).ToArray();
                     if (pending.Length > 0) await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
                     var remaining = (await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).ToArray();
-                    if (remaining.Length > 0) throw new QianDataMisconfiguredException("迁移执行后仍有未应用的迁移：" + string.Join(", ", remaining));
+                    if (remaining.Length > 0) throw new KunDataMisconfiguredException("迁移执行后仍有未应用的迁移：" + string.Join(", ", remaining));
                     Log.Migrated(logger, schema, waited.TotalMilliseconds, pending.Length);
                     reports.Add(new DataMigrationReport(type, schema, pending, waited));
                 }
@@ -101,7 +101,7 @@ internal sealed partial class QianDataMigrator(IServiceScopeFactory scopes, IDat
     internal static long LockKey(string schema) =>
         BinaryPrimitives.ReadInt64BigEndian(SHA256.HashData(Encoding.UTF8.GetBytes("qian.data.migrate:" + schema)));
 
-    private static async Task ExecuteAsync(QianDbContext context, string sql, long key, CancellationToken cancellationToken)
+    private static async Task ExecuteAsync(KunStrictDbContext context, string sql, long key, CancellationToken cancellationToken)
     {
         await using var command = context.Database.GetDbConnection().CreateCommand();
         command.CommandText = sql;
@@ -115,9 +115,9 @@ internal sealed partial class QianDataMigrator(IServiceScopeFactory scopes, IDat
 
     internal static void Register(IServiceCollection services)
     {
-        services.AddOptions<QianDataMigrationOptions>();
-        services.TryAddSingleton<IDataMigrator>(sp => new QianDataMigrator(sp.GetRequiredService<IServiceScopeFactory>(), sp.GetRequiredService<IDataContextCatalog>(),
-            sp, sp.GetRequiredService<IOptions<QianDataMigrationOptions>>(), sp.GetRequiredService<ILogger<QianDataMigrator>>()));
+        services.AddOptions<KunDataMigrationOptions>();
+        services.TryAddSingleton<IDataMigrator>(sp => new KunDataMigrator(sp.GetRequiredService<IServiceScopeFactory>(), sp.GetRequiredService<IDataContextCatalog>(),
+            sp, sp.GetRequiredService<IOptions<KunDataMigrationOptions>>(), sp.GetRequiredService<ILogger<KunDataMigrator>>()));
     }
 
     private static partial class Log

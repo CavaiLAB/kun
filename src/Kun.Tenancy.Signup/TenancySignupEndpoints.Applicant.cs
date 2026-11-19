@@ -7,7 +7,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 public static partial class TenancySignupEndpoints
 {
@@ -16,7 +16,7 @@ public static partial class TenancySignupEndpoints
     /// 接口公开（不经登录），只认本组件的申请人会话 Cookie（HttpOnly、SameSite=Strict、Path=/api/signup，回环之外 Secure）；
     /// 写请求只收 application/json，且 Origin（缺省时 Sec-Fetch-Site）必须同源。宿主在反向代理之后须先启用转发头，使请求的协议与主机即对外的源。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianTenancySignupApplicant(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunTenancySignupApplicant(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         Json(Public(endpoints.MapPost(ApplicantPrefix + "verifications", (HttpContext http, StartSignupVerification input) =>

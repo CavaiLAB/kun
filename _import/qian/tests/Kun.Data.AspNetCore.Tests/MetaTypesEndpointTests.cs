@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Data.Dialect.Pg;
+using Kun.Data.Dialect.Pg;
 using Kun.Errors;
 
-namespace Qian.Data.AspNetCore.Tests;
+namespace Kun.Data.AspNetCore.Tests;
 
 /// <summary>不需要数据库：GET /api/data/meta/types 返回基准类型、方言与映射，系统类型不可删除，PG 映射拒绝越界的字段定义。</summary>
 public sealed class MetaTypesEndpointTests : IAsyncLifetime
@@ -23,11 +23,11 @@ public sealed class MetaTypesEndpointTests : IAsyncLifetime
         builder.WebHost.UseTestServer();
         builder.Logging.ClearProviders();
         TestIdentity.Add(builder.Services);
-        builder.Services.AddQianDataTypes();
-        builder.Services.AddQianPgDialect();
+        builder.Services.AddKunDataTypes();
+        builder.Services.AddKunPgDialect();
         _app = builder.Build();
         TestIdentity.Use(_app);
-        _app.MapQianDataTypes();
+        _app.MapKunDataTypes();
         await _app.StartAsync(Ct);
         _client = _app.GetTestClient();
     }
@@ -114,8 +114,8 @@ public sealed class MetaTypesEndpointTests : IAsyncLifetime
         var conflict = Assert.Throws<ErrorException>(() => registry.Register("pg", new PgDialect())).Error;
         Assert.Equal(PlatformErrors.RegistrationConflict, conflict.Code);
         Assert.Equal("Data.Dialects:pg", conflict.Args["key"]);
-        Assert.Throws<QianDataMisconfiguredException>(() => registry.Register("postgres", new PgDialect()));
-        using var isolatedProvider = new ServiceCollection().AddQianDataTypes().BuildServiceProvider();
+        Assert.Throws<KunDataMisconfiguredException>(() => registry.Register("postgres", new PgDialect()));
+        using var isolatedProvider = new ServiceCollection().AddKunDataTypes().BuildServiceProvider();
         var isolated = isolatedProvider.GetRequiredService<IDataDialectRegistry>();
         Assert.Empty(isolated.List());
         var lease = isolated.Register("pg", new PgDialect());

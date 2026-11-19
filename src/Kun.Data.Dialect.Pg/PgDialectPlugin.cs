@@ -4,7 +4,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Data.Dialect.Pg;
+namespace Kun.Data.Dialect.Pg;
 
 /// <summary>PostgreSQL 方言组件入口；具名运行时贡献与宿主数据目录登记随卸载一起撤销。</summary>
 [KunPlugin("qian.data.dialect.pg")]

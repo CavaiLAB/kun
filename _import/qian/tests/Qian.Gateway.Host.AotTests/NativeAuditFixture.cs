@@ -4,8 +4,8 @@ using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Audit.Native;
-using Qian.Data.Native;
-using Qian.Data.Native.Postgres;
+using Kun.Data.Native;
+using Kun.Data.Native.Postgres;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
@@ -37,8 +37,8 @@ internal sealed class NativeAuditReader(ServiceProvider provider, PluginLoader l
         var guard = NativeAuditStorage.ExpectedGuard(database.Roles);
         NativeDataTable[] tables = [new(NativeAuditStorage.Schema, "audit_entries", NativeAuditStorage.GuardPolicy, guard, guard),
             new(NativeAuditStorage.Schema, "audit_chain_state", NativeAuditStorage.GuardPolicy, guard, guard)];
-        services.AddQianNativeData(new("audit_tenant", database.Roles.TenantLogin, NativeDataAccess.Tenant, _ => ValueTask.FromResult(database.TenantConnection), tables));
-        services.AddQianNativeData(new("audit_platform", database.Roles.PlatformLogin!, NativeDataAccess.Platform, _ => ValueTask.FromResult(database.PlatformConnection), tables));
+        services.AddKunNativeData(new("audit_tenant", database.Roles.TenantLogin, NativeDataAccess.Tenant, _ => ValueTask.FromResult(database.TenantConnection), tables));
+        services.AddKunNativeData(new("audit_platform", database.Roles.PlatformLogin!, NativeDataAccess.Platform, _ => ValueTask.FromResult(database.PlatformConnection), tables));
         var provider = services.BuildServiceProvider(); var loader = new PluginLoader(provider); var consumer = new AuditConsumer();
         try
         {

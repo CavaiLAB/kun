@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Data.AspNetCore.Tests;
+namespace Kun.Data.AspNetCore.Tests;
 
 /// <summary>
 /// 测试宿主的身份边界：请求头 X-Test-User 写「主体」或「主体@租户」，经认证处理器变成已认证身份；租户只取自身份的 tenant_id，

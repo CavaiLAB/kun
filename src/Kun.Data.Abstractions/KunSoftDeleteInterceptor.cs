@@ -5,17 +5,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>Qian 在 Kun 数据约定之上补充的系统字段。</summary>
-public static class QianDataConventions
+public static class KunDataConventions
 {
     /// <summary>删除主体的属性名；没有 CLR 属性时用同名 shadow property，数据库列为 deleted_by。</summary>
     public const string DeletedByPropertyName = "DeletedBy";
 }
 
 /// <summary>将直接删除改为软删除，填充删除主体与时间；必须在 Kun 审计字段拦截器之前运行。</summary>
-public sealed class QianSoftDeleteInterceptor(ICurrentUser user, TimeProvider clock) : SaveChangesInterceptor
+public sealed class KunSoftDeleteInterceptor(ICurrentUser user, TimeProvider clock) : SaveChangesInterceptor
 {
     /// <inheritdoc />
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
@@ -50,13 +50,13 @@ public sealed class QianSoftDeleteInterceptor(ICurrentUser user, TimeProvider cl
             if (isDeleted.CurrentValue is true && (entry.State == EntityState.Added || isDeleted.OriginalValue is false))
             {
                 entry.Property(nameof(ISoftDelete.DeletedAt)).CurrentValue = clock.GetUtcNow().UtcDateTime;
-                var actor = entry.Property(QianDataConventions.DeletedByPropertyName);
+                var actor = entry.Property(KunDataConventions.DeletedByPropertyName);
                 actor.CurrentValue = Actor(actor.Metadata.ClrType);
             }
             else
             {
                 Preserve(entry, nameof(ISoftDelete.DeletedAt));
-                Preserve(entry, QianDataConventions.DeletedByPropertyName);
+                Preserve(entry, KunDataConventions.DeletedByPropertyName);
             }
         }
     }
@@ -77,6 +77,6 @@ public sealed class QianSoftDeleteInterceptor(ICurrentUser user, TimeProvider cl
         if (type == typeof(Guid) && Guid.TryParse(subject, out var guid)) return guid;
         if (type == typeof(long) && long.TryParse(subject, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number)) return number;
         if (type == typeof(int) && int.TryParse(subject, NumberStyles.Integer, CultureInfo.InvariantCulture, out var integer)) return integer;
-        throw new QianDataMisconfiguredException("当前主体不能转换为 deleted_by 的用户键类型。");
+        throw new KunDataMisconfiguredException("当前主体不能转换为 deleted_by 的用户键类型。");
     }
 }

@@ -1,12 +1,12 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Scheduler;
 
 /// <summary>调度器三表；普通应用角色始终受 tenant RLS 保护。</summary>
-public class SchedulerDbContext : QianDbContext
+public class SchedulerDbContext : KunStrictDbContext
 {
     /// <summary>使用 Data 的安全装配。</summary>
     public SchedulerDbContext(DbContextOptions<SchedulerDbContext> options, ITenantContext tenant) : this((DbContextOptions)options, tenant) { }

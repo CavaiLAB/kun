@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 using Qian.Audit;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;

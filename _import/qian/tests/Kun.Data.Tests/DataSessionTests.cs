@@ -15,7 +15,7 @@ using Npgsql;
 using Kun.Runtime;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
@@ -34,7 +34,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
                 new PluginEntry("data", "qian.data", "1.0.0", ScopeKey.Global, 0, config.RootElement),
                 new DataPlugin(), [DataDefinition.Key])], ct);
             Assert.Equal(PluginState.Failed, runtime.GetState("data", ScopeKey.Global));
-            Assert.IsType<QianDataMisconfiguredException>(runtime.GetFailure("data", ScopeKey.Global));
+            Assert.IsType<KunDataMisconfiguredException>(runtime.GetFailure("data", ScopeKey.Global));
         }
     }
 
@@ -124,7 +124,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
             var error = await Assert.ThrowsAnyAsync<Exception>(() => failed.SaveChangesAsync(ct));
             Assert.Equal(mediator, customer.NotificationHandled);
             if (mediator) Assert.Contains("通知失败测试", error.ToString(), StringComparison.Ordinal);
-            else Assert.IsType<QianDataMisconfiguredException>(error);
+            else Assert.IsType<KunDataMisconfiguredException>(error);
             await using var verify = await data.OpenAsync<CustomerContext>(ct);
             Assert.Empty(await verify.Context.Set<Customer>().ToListAsync(ct));
             Assert.Empty(await verify.Context.OutboxMessages.ToListAsync(ct));
@@ -150,10 +150,10 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
         var cachedWriter = session.Outbox;
         using (tenant.BeginScope("b"))
         {
-            Assert.Throws<QianDataMisconfiguredException>(() => session.Context);
+            Assert.Throws<KunDataMisconfiguredException>(() => session.Context);
             cachedWriter.Enqueue(new CustomerMessage(Guid.NewGuid(), "wrong tenant"));
         }
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => session.SaveChangesAsync(ct));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => session.SaveChangesAsync(ct));
         await Assert.ThrowsAsync<InvalidOperationException>(() => session.SaveChangesAsync(ct));
     }
 
@@ -168,8 +168,8 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
         builder.Services.AddSingleton<ITenantContext>(tenant);
         builder.Services.AddKunEventBus(events => events.Register("sample.customer.changed.v1", SessionJson.Default.CustomerMessage));
         if (mediator) builder.Services.AddKunMediator(registry => registry.AddNotificationHandler<CustomerChanged, CustomerChangedHandler>());
-        builder.Services.AddQianData<CustomerContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_sessions"));
-        builder.Services.AddQianData<LedgerContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_ledger"));
+        builder.Services.AddKunData<CustomerContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_sessions"));
+        builder.Services.AddKunData<LedgerContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_ledger"));
         return builder.Build();
     }
 
@@ -222,11 +222,11 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
             return ValueTask.CompletedTask;
         }
     }
-    public sealed class CustomerContext(DbContextOptions<CustomerContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+    public sealed class CustomerContext(DbContextOptions<CustomerContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.Entity<Customer>().Property(c => c.Name).HasMaxLength(24);
     }
-    public sealed class LedgerContext(DbContextOptions<LedgerContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+    public sealed class LedgerContext(DbContextOptions<LedgerContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.Entity<Customer>().Property(c => c.Name).HasMaxLength(24);
     }

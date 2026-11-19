@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Qian.Tenancy.Signup;
+using Kun.Tenancy.Signup;
 
 #nullable disable
 
-namespace Qian.Tenancy.Signup.Migrations
+namespace Kun.Tenancy.Signup.Migrations
 {
     [DbContext(typeof(TenancySignupDbContext))]
     [Migration("20261102192939_SignupInitial")]
@@ -93,7 +93,7 @@ namespace Qian.Tenancy.Signup.Migrations
                     b.ToTable("outbox_messages", "plugin_qian_tenancy_signup");
                 });
 
-            modelBuilder.Entity("Qian.Tenancy.Signup.SignupApplicationRow", b =>
+            modelBuilder.Entity("Kun.Tenancy.Signup.SignupApplicationRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -260,7 +260,7 @@ namespace Qian.Tenancy.Signup.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Qian.Tenancy.Signup.SignupSessionRow", b =>
+            modelBuilder.Entity("Kun.Tenancy.Signup.SignupSessionRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -307,7 +307,7 @@ namespace Qian.Tenancy.Signup.Migrations
                     b.ToTable("sessions", "plugin_qian_tenancy_signup");
                 });
 
-            modelBuilder.Entity("Qian.Tenancy.Signup.SignupVerificationRow", b =>
+            modelBuilder.Entity("Kun.Tenancy.Signup.SignupVerificationRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

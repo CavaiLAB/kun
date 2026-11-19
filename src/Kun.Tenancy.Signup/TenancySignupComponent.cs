@@ -1,13 +1,13 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>
 /// 清单分发的稳定入口（<c>qian.tenancy.signup</c>，装进 identity profile）；程序化装配用 <see cref="TenancySignupPlugin"/>。
@@ -27,7 +27,7 @@ public sealed class TenancySignupComponent : IKunPlugin
     public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => new TenancySignupPlugin().ApplyAsync(ctx, config, ct);
 }
 
-/// <summary>开通申请 Provider：提供 <see cref="ITenantSignup"/>，登记本组件的错误码。宿主须先以 AddQianData 登记 <see cref="TenancySignupDbContext"/>。</summary>
+/// <summary>开通申请 Provider：提供 <see cref="ITenantSignup"/>，登记本组件的错误码。宿主须先以 AddKunData 登记 <see cref="TenancySignupDbContext"/>。</summary>
 public sealed class TenancySignupPlugin : IKunPlugin
 {
     /// <inheritdoc />

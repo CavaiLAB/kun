@@ -14,7 +14,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 public static partial class TenancySignupEndpoints
 {
@@ -23,7 +23,7 @@ public static partial class TenancySignupEndpoints
     /// 只收人类平台用户（无 tenant_id、无委托、非 Agent），经 Authz 超管旁路放行并在平台审计链各记一条旁路记录；须排除租户入口中间件。
     /// 权限点 <c>qian.tenancy.signup:application:read|approve|reject</c>，重试按 approve 授权。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianTenancySignupOperations(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunTenancySignupOperations(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         Bind(endpoints.MapGet(ApplicantPrefix + "applications", (HttpContext http, [AllowedValues("submitted", "provisioning", "approved", "failed", "rejected", "withdrawn")] string? status = null,
@@ -76,7 +76,7 @@ public static partial class TenancySignupEndpoints
             var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
             if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || http.User.Identity?.IsAuthenticated != true ||
                 http.User.FindFirst("sub")?.Value != principal.Subject) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-            void Denied(string reason) => LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Signup.Operations"), reason, principal.Subject, permission);
+            void Denied(string reason) => LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Tenancy.Signup.Operations"), reason, principal.Subject, permission);
             if (principal.TenantId is not null || principal.Actor is not null || principal.Kind != PrincipalKind.User ||
                 http.User.Claims.Any(claim => claim.Type == "tenant_id" && !string.IsNullOrEmpty(claim.Value)) ||
                 http.RequestServices.GetRequiredService<ITenantContext>().TenantId is not null)

@@ -1,12 +1,12 @@
 # NativeData PostgreSQL Provider
 
-`Qian.Data.Native.Postgres` 实现 `qian.data.native`，提供独立 `NativeData` 服务键，消费 [NativeData Definition](../Qian.Data.Native.Abstractions/README.md)。它不实现 EF 的 `IDataService`，不更改平台、调度器或既有 EF 模型安全约束。
+`Kun.Data.Native.Postgres` 实现 `qian.data.native`，提供独立 `NativeData` 服务键，消费 [NativeData Definition](../Kun.Data.Native.Abstractions/README.md)。它不实现 EF 的 `IDataService`，不更改平台、调度器或既有 EF 模型安全约束。
 
 ## 组件与宿主边界
 
 组件文件夹为 `plugins/qian.data.native`，只有唯一清单、派生配置 Schema 与说明，没有模型工具。默认用于 gateway 原生组合；global 是唯一允许的挂载 scope。安装分发仍需正式发布与 `qian add` 验收，未完成前保留骨架标记。
 
-宿主通过 `AddQianNativeData(NativeDataBinding)` 登记具名绑定：名字、明确的 Tenant / Platform 用途、专用登录角色、凭据工厂与声明的表。工厂只在挂载时读取受信任 Secret；组件 JSON 只列绑定名，例如 `{"connections":["audit_tenant","audit_platform"]}`，不含连接串、口令或运行时授权字段。凭据轮换通过重挂载生效。
+宿主通过 `AddKunNativeData(NativeDataBinding)` 登记具名绑定：名字、明确的 Tenant / Platform 用途、专用登录角色、凭据工厂与声明的表。工厂只在挂载时读取受信任 Secret；组件 JSON 只列绑定名，例如 `{"connections":["audit_tenant","audit_platform"]}`，不含连接串、口令或运行时授权字段。凭据轮换通过重挂载生效。
 
 每张 `NativeDataTable` 声明 schema、表、保护策略名与完整 `pg_get_expr` 的 USING / WITH CHECK 期望值。期望值必须来自受审查的固定迁移源码，不能读取当前数据库后自动学习。在线组件不执行 DDL、不生成策略、不迁移。
 
@@ -34,9 +34,9 @@
 
 ## 验证
 
-`tests/Qian.Data.Native.Postgres.Tests` 复用共享 PostgreSQL 16 fixture，覆盖两个真实租户、原始 SQL、平台上下文、事务/取消、池复用、advisory lock、卸载、外部事务与策略漂移。角色与口令按每个用例随机生成，凭据不输出、不提交。
+`tests/Kun.Data.Native.Postgres.Tests` 复用共享 PostgreSQL 16 fixture，覆盖两个真实租户、原始 SQL、平台上下文、事务/取消、池复用、advisory lock、卸载、外部事务与策略漂移。角色与口令按每个用例随机生成，凭据不输出、不提交。
 
-[原生探针](../../tools/Qian.Data.Native.Probe/README.md) 使用严格 Linux NativeAOT 发布，再通过独立 driver 创建真实数据库并运行原生进程。CI 的 `native-data-aot` 作业执行发布和运行两道门，不抑制 IL 警告。普通 Release 构建、原生发布成功、原生运行成功是三个独立结论。
+[原生探针](../../tools/Kun.Data.Native.Probe/README.md) 使用严格 Linux NativeAOT 发布，再通过独立 driver 创建真实数据库并运行原生进程。CI 的 `native-data-aot` 作业执行发布和运行两道门，不抑制 IL 警告。普通 Release 构建、原生发布成功、原生运行成功是三个独立结论。
 
 ## 模型体验
 

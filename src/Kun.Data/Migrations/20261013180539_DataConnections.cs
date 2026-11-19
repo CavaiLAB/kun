@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Qian.Data.Migrations
+namespace Kun.Data.Migrations
 {
     /// <inheritdoc />
     internal partial class DataConnections : Migration

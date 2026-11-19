@@ -43,7 +43,7 @@ platform profile 宿主（包括自建的组合包）在登记 `ISurfaceReader` 
 带迁移的组件上下文（如 `qian.capabilities` 的菜单偏好与幂等回执表）随宿主镜像交付迁移，每次发布按下面的顺序上线：
 
 1. 以 `--migrate-only` 启动迁移任务（K8s Job），用迁移属主连接执行全部待应用迁移。属主同样必须是 NOSUPERUSER / NOBYPASSRLS。
-2. 用 [Qian.Data](../../packages/Qian.Data/README.md) 「迁移执行与 RLS 核查」一节的 SQL 核对：每张租户表都强制 RLS，且恰有 `qian_tenant_access` 与 `qian_tenant_guard` 两条策略。不要用 `dotnet ef database update` 代替第 1 步：RLS 由 `AddQianData<T>` 登记的生成器在迁移执行期产出，`dotnet ef` 的设计时入口没有经 `AddQianData<T>` 装配时用的是 Npgsql 默认生成器，建出的租户表没有 RLS 与策略。设计时入口经 `AddQianData<T>` 装配时，`dotnet ef migrations script` 同样带 RLS，可以用来审阅将要执行的 SQL。
+2. 用 [Kun.Data](../../../../src/Kun.Data/README.md) 「迁移执行与 RLS 核查」一节的 SQL 核对：每张租户表都强制 RLS，且恰有 `qian_tenant_access` 与 `qian_tenant_guard` 两条策略。不要用 `dotnet ef database update` 代替第 1 步：RLS 由 `AddKunData<T>` 登记的生成器在迁移执行期产出，`dotnet ef` 的设计时入口没有经 `AddKunData<T>` 装配时用的是 Npgsql 默认生成器，建出的租户表没有 RLS 与策略。设计时入口经 `AddKunData<T>` 装配时，`dotnet ef migrations script` 同样带 RLS，可以用来审阅将要执行的 SQL。
 3. 再滚动在线副本。启动检查发现未应用的迁移，或迁移生成器不是 Qian 的，会拒绝启动；按第 1 步处理，不要绕过。
 
 ## 过期幂等回执清理

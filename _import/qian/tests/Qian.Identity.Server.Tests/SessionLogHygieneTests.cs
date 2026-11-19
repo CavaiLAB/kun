@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Kun.Identity.Abstractions;
 using Microsoft.Extensions.Logging;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
 using static Qian.Identity.Server.Tests.SessionSupport;

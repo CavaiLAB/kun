@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Runtime;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>租户设置与配额的服务键。</summary>
 public static class TenantSettings

@@ -9,7 +9,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Qian.Dev.Shell;
 
-namespace Qian.Tenancy.Signup.Tests;
+namespace Kun.Tenancy.Signup.Tests;
 
 // 公开页托管扩展与开发宿主的开发期发件箱：真实 Kestrel，回环地址。
 public sealed class SignupHostingTests
@@ -25,10 +25,10 @@ public sealed class SignupHostingTests
             await File.WriteAllTextAsync(Path.Combine(root.FullName, "index.html"), "<!doctype html><title>signup</title>", Ct);
             Directory.CreateDirectory(Path.Combine(root.FullName, "assets"));
             await File.WriteAllTextAsync(Path.Combine(root.FullName, "assets", "app-1a2b.js"), "export {};", Ct);
-            Assert.Throws<ArgumentException>(() => WebApplication.CreateBuilder().Build().UseQianTenancySignupPages(Path.Combine(root.FullName, "missing")));
+            Assert.Throws<ArgumentException>(() => WebApplication.CreateBuilder().Build().UseKunTenancySignupPages(Path.Combine(root.FullName, "missing")));
             var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
             await using var app = builder.Build();
-            app.UseQianTenancySignupPages(root.FullName);
+            app.UseKunTenancySignupPages(root.FullName);
             app.MapGet("/other", () => "other");
             await app.StartAsync(Ct);
             using var client = new HttpClient { BaseAddress = new Uri(app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single()) };

@@ -7,7 +7,7 @@ using System.Text;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 internal sealed class TenantExpiryCapability(IPluginContext owner, ITenantLifecycle lifecycle) : IExecutableCapability, IDisposable
 {

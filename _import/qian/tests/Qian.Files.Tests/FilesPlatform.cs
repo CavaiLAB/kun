@@ -23,7 +23,7 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities.AspNetCore;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
@@ -33,7 +33,7 @@ using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy.AspNetCore;
+using Kun.Tenancy.AspNetCore;
 
 namespace Qian.Files.Tests;
 
@@ -87,9 +87,9 @@ internal sealed class FilesPlatform : IAsyncDisposable
 
     internal void Configure(WebApplicationBuilder builder, string app)
     {
-        builder.Services.AddQianData<RegistryDbContext>((_, options) => options.UseNpgsql(app).UseKunSchema(RegistryDbContext.Schema));
-        builder.Services.AddQianData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(AuthzConnection).UseKunSchema(AuthzDbContext.Schema));
-        builder.Services.AddQianData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(AuditConnection).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(app).UseKunSchema(RegistryDbContext.Schema));
+        builder.Services.AddKunData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(AuthzConnection).UseKunSchema(AuthzDbContext.Schema));
+        builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(AuditConnection).UseKunSchema(AuditDbContext.Schema));
     }
 
     internal static string SchemaSql(IServiceProvider services) =>
@@ -176,7 +176,7 @@ internal sealed class FilesPlatform : IAsyncDisposable
             options.SerializerOptions.RespectNullableAnnotations = true;
         });
         _operations = builder.Build(); _operations.UseKunErrors(); _operations.UseAuthentication(); _operations.UseAuthorization();
-        _operations.MapQianTenancy(_ => loader.GetContext("tenancy", ScopeKey.Global));
+        _operations.MapKunTenancy(_ => loader.GetContext("tenancy", ScopeKey.Global));
         await _operations.StartAsync(ct);
         Client = new HttpClient { BaseAddress = new Uri(Assert.Single(_operations.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses)) };
     }

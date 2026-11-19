@@ -2,7 +2,7 @@
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup><Using Include="Xunit" />
     <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
-    <ProjectReference Include="../../packages/Qian.Data.Native.Postgres/Qian.Data.Native.Postgres.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../packages/Qian.Audit/Qian.Audit.csproj" />
     <ProjectReference Include="../../samples/Qian.Sample.Crm/Qian.Sample.Crm.csproj" />
     <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />

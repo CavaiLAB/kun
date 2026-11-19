@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>S1 状态机与操作风险的机器可读描述；purge 只保留 S3 描述，不发布执行入口。</summary>
 public static class TenantStateMetadata
@@ -13,7 +13,7 @@ public static class TenantStateMetadata
     {
         get
         {
-            using var stream = typeof(TenantStateMetadata).Assembly.GetManifestResourceStream("Qian.Tenancy.StateMachineSchema")
+            using var stream = typeof(TenantStateMetadata).Assembly.GetManifestResourceStream("Kun.Tenancy.StateMachineSchema")
                 ?? throw new InvalidOperationException("缺少租户状态机 Schema。");
             return JsonSerializer.Deserialize<JsonElement>(stream);
         }

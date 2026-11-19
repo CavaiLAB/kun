@@ -4,16 +4,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Kun.Errors;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>基准类型目录与方言注册表的宿主装配。</summary>
-public static class QianDataTypeExtensions
+public static class KunDataTypeExtensions
 {
     /// <summary>
     /// 登记 <see cref="IDataTypeCatalog"/> 与 <see cref="IDataDialectRegistry"/>，不需要数据库。系统基准类型来自 Definition 包的种子；
-    /// 方言组件以 <see cref="IDataDialect"/> 登记（如 AddQianPgDialect），注册表创建时按描述数据的代码注册。
+    /// 方言组件以 <see cref="IDataDialect"/> 登记（如 AddKunPgDialect），注册表创建时按描述数据的代码注册。
     /// </summary>
-    public static IServiceCollection AddQianDataTypes(this IServiceCollection services)
+    public static IServiceCollection AddKunDataTypes(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<IDataDialectRegistry>(sp => new DataDialectRegistry(sp.GetServices<IDataDialect>()));
@@ -40,8 +40,8 @@ internal sealed class DataDialectRegistry : IDataDialectRegistry
     public IDisposable Register(string name, IDataDialect dialect)
     {
         ArgumentNullException.ThrowIfNull(dialect);
-        var descriptor = dialect.Descriptor ?? throw new QianDataMisconfiguredException("方言缺少描述数据。");
-        if (name != descriptor.Code) throw new QianDataMisconfiguredException("方言注册名必须与描述数据的代码一致。");
+        var descriptor = dialect.Descriptor ?? throw new KunDataMisconfiguredException("方言缺少描述数据。");
+        if (name != descriptor.Code) throw new KunDataMisconfiguredException("方言注册名必须与描述数据的代码一致。");
         descriptor.Validate(DataTypeContracts.SystemTypes);
         var owner = new object();
         lock (_gate)

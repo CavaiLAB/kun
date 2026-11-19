@@ -1,12 +1,12 @@
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 internal sealed class TenantStateMachine(IPluginContext context, PostgresTenantDirectory directory) : ITenantLifecycle
 {

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Kun.Errors;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>基准类型可携带的字段约束名，与 data-types.schema.json 的 facet 枚举一致。</summary>
 public static class DataTypeFacets
@@ -172,7 +172,7 @@ public sealed partial record DbDialect(string Code, string Name, string Driver, 
             throw Invalid("基准类型 " + type.Code + " 的 " + facet + " 区间无效");
     }
 
-    private QianDataMisconfiguredException Invalid(string reason) => new("方言 " + Code + " 的类型映射无效：" + reason + "。");
+    private KunDataMisconfiguredException Invalid(string reason) => new("方言 " + Code + " 的类型映射无效：" + reason + "。");
 
     [GeneratedRegex("^[a-z][a-z0-9]{0,31}$", RegexOptions.CultureInvariant)]
     private static partial Regex CodePattern();
@@ -206,7 +206,7 @@ public static class DataTypeContracts
         ArgumentNullException.ThrowIfNull(utf8Json);
         DbDialect dialect;
         try { dialect = JsonSerializer.Deserialize(utf8Json, DataContractJson.DialectTypeInfo) ?? throw new JsonException("方言数据为空。"); }
-        catch (JsonException error) { throw new QianDataMisconfiguredException("方言数据不符合 qian.data.dialect/v1：" + error.Message); }
+        catch (JsonException error) { throw new KunDataMisconfiguredException("方言数据不符合 qian.data.dialect/v1：" + error.Message); }
         dialect.Validate(SystemTypes);
         return dialect;
     }

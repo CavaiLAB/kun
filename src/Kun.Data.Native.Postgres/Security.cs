@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace Qian.Data.Native.Postgres;
+namespace Kun.Data.Native.Postgres;
 
 internal static class Security
 {

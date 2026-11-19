@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Kun.Errors;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 // 输入规范化、掩码与秘密材料。手机号的规范化与掩码与身份服务逐条相同（Qian.Identity.Server 的 IdentifierRules），
 // 这样以手机号查到的自然人、建账号时绑定的标识、短信发往的号码是同一个值。

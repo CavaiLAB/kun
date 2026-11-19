@@ -13,9 +13,9 @@
     <PackageReference Include="Grpc.Net.Client" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
   </ItemGroup>
-  <!-- dotnet ef 设计时入口（CapabilitiesDesignTimeFactory）：经 AddQianData 取上下文，迁移模型与运行时一致。 -->
+  <!-- dotnet ef 设计时入口（CapabilitiesDesignTimeFactory）：经 AddKunData 取上下文，迁移模型与运行时一致。 -->
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Data/Qian.Data.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
     <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />

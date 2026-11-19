@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>五处共用的两层过滤表达式；空 and 为真、空 or 为假。</summary>
 public sealed record FilterExpression(string Logic, IReadOnlyList<FilterGroup> Groups);

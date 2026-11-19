@@ -9,7 +9,7 @@ using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 
 namespace Kun.Plugin.Sdk.Tests;
@@ -109,5 +109,5 @@ public sealed class CommandBoundaryTests
         public ValueTask<CustomerResponse> Handle(CreateRequest request, CancellationToken cancellationToken)
         { _counter.Calls++; return ValueTask.FromResult(new CustomerResponse(Guid.CreateVersion7(), request.Name)); }
     }
-    private sealed class BoundaryContext(DbContextOptions<BoundaryContext> options, ITenantContext tenant) : QianDbContext(options, tenant);
+    private sealed class BoundaryContext(DbContextOptions<BoundaryContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant);
 }

@@ -4,11 +4,11 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Capabilities;
-using Qian.Data;
+using Kun.Data;
 using Qian.Lifecycle;
 using Qian.Registry;
 using Qian.Sample.Crm;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Dev.TenantOps;
 

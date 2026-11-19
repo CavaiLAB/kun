@@ -6,7 +6,7 @@ using Json.Schema;
 using Kun.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 
 namespace Qian.Sample.Crm.Tests;

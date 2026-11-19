@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Identity.Server;
 

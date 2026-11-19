@@ -7,15 +7,15 @@ using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
-internal sealed class QianDataService(IServiceScopeFactory scopes, IReadOnlySet<Type> contexts, ScopeKey ownerScope) : IDataService, IAsyncDisposable
+internal sealed class KunDataService(IServiceScopeFactory scopes, IReadOnlySet<Type> contexts, ScopeKey ownerScope) : IDataService, IAsyncDisposable
 {
     private readonly Lock _gate = new();
     private readonly HashSet<IAsyncDisposable> _sessions = [];
     private bool _disposed;
 
-    public async ValueTask<IDataSession<TContext>> OpenAsync<TContext>(CancellationToken cancellationToken = default) where TContext : QianDbContext
+    public async ValueTask<IDataSession<TContext>> OpenAsync<TContext>(CancellationToken cancellationToken = default) where TContext : KunStrictDbContext
     {
         cancellationToken.ThrowIfCancellationRequested();
         var scope = scopes.CreateAsyncScope();
@@ -25,9 +25,9 @@ internal sealed class QianDataService(IServiceScopeFactory scopes, IReadOnlySet<
             {
                 ObjectDisposedException.ThrowIf(_disposed, this);
                 if (!contexts.Contains(typeof(TContext)))
-                    throw new QianDataMisconfiguredException("所请求上下文不属于 Data 当前连接引用的登记集合。");
+                    throw new KunDataMisconfiguredException("所请求上下文不属于 Data 当前连接引用的登记集合。");
                 if (ownerScope.Kind == "tenant" && scope.ServiceProvider.GetRequiredService<ITenantContext>().TenantId != ownerScope.Id)
-                    throw new QianDataMisconfiguredException("Data 挂载 scope 与当前已验证租户不一致。");
+                    throw new KunDataMisconfiguredException("Data 挂载 scope 与当前已验证租户不一致。");
                 var session = new Session<TContext>(scope, Remove);
                 _sessions.Add(session);
                 return session;
@@ -57,7 +57,7 @@ internal sealed class QianDataService(IServiceScopeFactory scopes, IReadOnlySet<
 
     private void Remove(IAsyncDisposable session) { lock (_gate) _sessions.Remove(session); }
 
-    private sealed class Session<TContext> : IDataSession<TContext> where TContext : QianDbContext
+    private sealed class Session<TContext> : IDataSession<TContext> where TContext : KunStrictDbContext
     {
         private readonly AsyncServiceScope _scope;
         private readonly Action<IAsyncDisposable> _remove;
@@ -77,12 +77,12 @@ internal sealed class QianDataService(IServiceScopeFactory scopes, IReadOnlySet<
             _remove = remove;
             var services = scope.ServiceProvider;
             _context = services.GetService<TContext>()
-                ?? throw new QianDataMisconfiguredException("业务组件没有登记所请求的数据上下文。");
+                ?? throw new KunDataMisconfiguredException("业务组件没有登记所请求的数据上下文。");
             _tenant = services.GetRequiredService<ITenantContext>();
             _tenantId = _tenant.TenantId;
             _buffer = services.GetRequiredService<IntegrationEventBuffer>();
             var writer = services.GetRequiredService<IOutboxWriter>();
-            // 默认是 AddQianData 登记的 Kun 累加器；事件组件可换成写同一缓冲器的信封写入端。
+            // 默认是 AddKunData 登记的 Kun 累加器；事件组件可换成写同一缓冲器的信封写入端。
             var bound = writer switch
             {
                 IOutboxBufferBinding binding => ReferenceEquals(binding.Buffer, _buffer),
@@ -90,7 +90,7 @@ internal sealed class QianDataService(IServiceScopeFactory scopes, IReadOnlySet<
                 _ => false
             };
             if (!bound || !ReferenceEquals(writer, services.GetRequiredService<IIntegrationEventBus>()))
-                throw new QianDataMisconfiguredException("数据会话的事件总线和 Outbox 写入端口必须是写入当前缓冲器的同一个实例。");
+                throw new KunDataMisconfiguredException("数据会话的事件总线和 Outbox 写入端口必须是写入当前缓冲器的同一个实例。");
             _outbox = writer;
             _unit = new EfUnitOfWork(_context, new SessionDispatcher(services, EnsureBoundary), _buffer);
         }
@@ -132,14 +132,14 @@ internal sealed class QianDataService(IServiceScopeFactory scopes, IReadOnlySet<
             ObjectDisposedException.ThrowIf(_disposed, this);
             if (_failed) throw new InvalidOperationException("保存失败后必须释放数据会话，从新作用域重试。");
             if (_tenant.TenantId != _tenantId || _context.TenantIdForModelCacheKey != _tenantId)
-                throw new QianDataMisconfiguredException("数据会话不得在创建后切换租户上下文。");
+                throw new KunDataMisconfiguredException("数据会话不得在创建后切换租户上下文。");
         }
 
         private void EnsureBoundary()
         {
             EnsureUsable();
             if (_buffer.GetPendingMessages().Any(message => message.TenantId != _tenantId))
-                throw new QianDataMisconfiguredException("Outbox 消息必须属于当前数据会话的租户。");
+                throw new KunDataMisconfiguredException("Outbox 消息必须属于当前数据会话的租户。");
         }
     }
 
@@ -150,9 +150,9 @@ internal sealed class QianDataService(IServiceScopeFactory scopes, IReadOnlySet<
             if (events.Count == 0) return;
             validate();
             if (events.Any(item => item is not INotification))
-                throw new QianDataMisconfiguredException("数据会话的领域事件必须实现 Kun INotification，不能静默丢弃通知。");
+                throw new KunDataMisconfiguredException("数据会话的领域事件必须实现 Kun INotification，不能静默丢弃通知。");
             var publisher = services.GetService<IPublisher>()
-                ?? throw new QianDataMisconfiguredException("有领域通知时必须装配 Kun Mediator。");
+                ?? throw new KunDataMisconfiguredException("有领域通知时必须装配 Kun Mediator。");
             await new InProcessDomainEventDispatcher(publisher, services).DispatchAsync(events, cancellationToken).ConfigureAwait(false);
             validate();
         }

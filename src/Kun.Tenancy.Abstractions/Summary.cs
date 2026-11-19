@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>本租户摘要的 seam（S1-TEN-021）：租户成员读取所在租户的主档、有效期、用户用量与管理员。</summary>
 public static class TenantSummaries

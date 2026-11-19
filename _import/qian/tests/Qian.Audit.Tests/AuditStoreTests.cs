@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 using Qian.Testing.Containers;
 
@@ -146,7 +146,7 @@ public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFi
     {
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<Kun.Core.MultiTenancy.ITenantContext>(tenant ?? new AsyncLocalTenantContext()); builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
         return builder.Build();
     }
     private async Task Prepare(IHost host)

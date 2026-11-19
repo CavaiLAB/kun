@@ -3,12 +3,12 @@ using Kun.EventBus;
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Files;
 
@@ -16,7 +16,7 @@ namespace Qian.Files;
 /// qian.files 的真实 Provider（global 或 tenant scope）：登记 local 存储后端与组件配置里的默认上传策略，
 /// 平台宿主另从 Registry 预装快照汇总各组件 metadata/upload-policies.json 的声明（同用途以配置为准），按 storage.kind 选用后端，
 /// 提供 Files 服务键（<see cref="IFileService"/>，能力门面）与六个能力的执行绑定；卸载撤销服务、能力、策略与错误码。
-/// 宿主须先 AddQianData&lt;FilesDbContext&gt;、在 AddKunEventBus 中 RegisterFilesEvents、在 AddKunMediator 中 AddQianFiles，否则 Apply 失败。
+/// 宿主须先 AddKunData&lt;FilesDbContext&gt;、在 AddKunEventBus 中 RegisterFilesEvents、在 AddKunMediator 中 AddQianFiles，否则 Apply 失败。
 /// </summary>
 [KunPlugin("qian.files")]
 [Contributes(typeof(FilesDefinition), nameof(FilesDefinition.BackendsKey), LocalFileBackendFactory.Name, RegistryType = typeof(FileBackendRegistry))]
@@ -42,7 +42,7 @@ public sealed class FilesPlugin : IKunPlugin
             events.GetEventType(typeof(FileObjectDeletedEvent)) != FilesEventIds.ObjectDeleted)
             throw new InvalidOperationException("宿主未登记文件事件：AddKunEventBus(registrar => registrar.RegisterFilesEvents()) 必须在装载 qian.files 前完成。");
         if (services.GetService<IDataContextCatalog>() is { } contexts && !contexts.ContextTypes.Contains(typeof(FilesDbContext)))
-            throw new InvalidOperationException("宿主须以 AddQianData<FilesDbContext> 装配文件元数据上下文。");
+            throw new InvalidOperationException("宿主须以 AddKunData<FilesDbContext> 装配文件元数据上下文。");
         var options = services.GetService<IOptions<QianFilesOptions>>()?.Value ?? new QianFilesOptions();
         // 组件 metadata/upload-policies.json 的声明只在有 Registry 的平台宿主可见；Registry 不进 Inject（standalone 与 qian add 没有它，R34），经 TryInject 读取预装快照。
         var declared = new DeclaredUploadPolicies(() => ctx.TryInject<IRegistryService>(RegistryDefinition.Key));

@@ -3,7 +3,7 @@ using System.Text;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
 

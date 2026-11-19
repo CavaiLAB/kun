@@ -3,11 +3,11 @@
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Tenancy.Abstractions/Qian.Tenancy.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Capabilities.Abstractions/Qian.Capabilities.Abstractions.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Capabilities.Abstractions/Qian.Capabilities.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

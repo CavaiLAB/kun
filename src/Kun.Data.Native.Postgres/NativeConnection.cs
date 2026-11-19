@@ -3,7 +3,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using Npgsql;
 
-namespace Qian.Data.Native.Postgres;
+namespace Kun.Data.Native.Postgres;
 
 internal sealed class NativeConnection(NativeSession session, NpgsqlConnection raw) : DbConnection
 {

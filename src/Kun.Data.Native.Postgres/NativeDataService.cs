@@ -5,7 +5,7 @@ using Kun.Core.MultiTenancy;
 using Npgsql;
 using Kun.Runtime;
 
-namespace Qian.Data.Native.Postgres;
+namespace Kun.Data.Native.Postgres;
 
 internal sealed class NativeDataService(ScopeKey ownerScope, ScopeKey ownerEntryScope, ITenantContext tenant) : INativeDataService, IAsyncDisposable
 {

@@ -3,7 +3,7 @@ using System.Data.Common;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Kun.Plugin.Sdk;
 using Kun.Errors;
@@ -63,7 +63,7 @@ internal sealed class AuditService(IDataService data, ITenantContext tenant, Sco
         var db = session.Context; await db.Database.OpenConnectionAsync(ct).ConfigureAwait(false);
         await using var command = db.Database.GetDbConnection().CreateCommand(); command.CommandText = "SELECT session_user::text";
         if (await command.ExecuteScalarAsync(ct).ConfigureAwait(false) is string login && login == platformRole)
-            throw new QianDataMisconfiguredException("平台与租户审计不能复用同一登录凭据。");
+            throw new KunDataMisconfiguredException("平台与租户审计不能复用同一登录凭据。");
     }
     public Task<AuditChainEntry> AppendAsync(AuditRecord record, CancellationToken cancellationToken = default) => Run(ct => _tenants.AppendAsync(record, ct), cancellationToken);
     public Task<AuditChainEntry> AppendEnlistedAsync(AuditRecord record, DbTransaction transaction, CancellationToken cancellationToken = default) =>

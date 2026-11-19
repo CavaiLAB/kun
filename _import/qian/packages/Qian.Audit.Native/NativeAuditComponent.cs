@@ -2,7 +2,7 @@ using System.Data.Common;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data.Native;
+using Kun.Data.Native;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;

@@ -5,7 +5,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Qian.Audit;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Qian.Registry;
 using Kun.Runtime;

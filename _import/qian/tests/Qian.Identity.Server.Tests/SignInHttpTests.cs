@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
 

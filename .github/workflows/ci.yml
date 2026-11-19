@@ -506,7 +506,7 @@ jobs:
         env:
           QIAN_REQUIRE_DOCKER: '1'
           QIAN_NATIVE_DATA_EXECUTABLE: ${{ runner.temp }}/native-data/Qian.Data.Native.Probe
-        run: dotnet test --project tests/Qian.Data.Native.Postgres.AotTests -c Release --report-xunit-trx --results-directory TestResults/native-data-aot
+        run: dotnet test --project tests/Kun.Data.Native.Postgres.AotTests -c Release --report-xunit-trx --results-directory TestResults/native-data-aot
       - uses: actions/upload-artifact@v4
         if: always()
         with:

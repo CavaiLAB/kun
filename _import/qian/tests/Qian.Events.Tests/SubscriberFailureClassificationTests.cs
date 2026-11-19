@@ -4,7 +4,7 @@ using Kun.EntityFrameworkCore.Extensions;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Events.Tests;
@@ -56,7 +56,7 @@ public sealed class SubscriberFailureClassificationTests
         // 端口 1 没有监听：EF 默认的 Npgsql 执行策略把可重试的 NpgsqlException 包成 InvalidOperationException 抛出，旧判定会一次就进死信。
         var services = new ServiceCollection();
         services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
-        services.AddQianData<ProbeContext>((_, options) => options.UseNpgsql("Host=127.0.0.1;Port=1;Username=probe;Password=probe;Timeout=3").UseKunSchema("plugin_probe"));
+        services.AddKunData<ProbeContext>((_, options) => options.UseNpgsql("Host=127.0.0.1;Port=1;Username=probe;Password=probe;Timeout=3").UseKunSchema("plugin_probe"));
         await using var provider = services.BuildServiceProvider();
         await using var scope = provider.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ProbeContext>();
@@ -67,5 +67,5 @@ public sealed class SubscriberFailureClassificationTests
         Assert.False(QianEventSubscriber.IsDeterministic(error));
     }
 
-    public sealed class ProbeContext(DbContextOptions<ProbeContext> options, ITenantContext tenant) : QianDbContext(options, tenant);
+    public sealed class ProbeContext(DbContextOptions<ProbeContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant);
 }

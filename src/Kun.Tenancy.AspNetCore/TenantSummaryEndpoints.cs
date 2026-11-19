@@ -9,7 +9,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Tenancy.AspNetCore;
+namespace Kun.Tenancy.AspNetCore;
 
 public static partial class TenancyEndpoints
 {
@@ -22,7 +22,7 @@ public static partial class TenancyEndpoints
             try
             {
                 var principal = Authenticated(http);
-                var logger = http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Summary");
+                var logger = http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Tenancy.Summary");
                 var reason = principal.TenantId is null ? "platform_principal"
                     : principal.Kind != PrincipalKind.User || principal.Actor is not null ? "not_user"
                     : !Guid.TryParseExact(principal.TenantId, "D", out var own) || own != id || http.User.FindFirst("tenant_id")?.Value != principal.TenantId ? "other_tenant"

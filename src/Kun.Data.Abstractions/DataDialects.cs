@@ -1,7 +1,7 @@
 using Qian.Config;
 using Kun.Runtime;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>方言 SPI 的稳定标识与注册表名。</summary>
 public static class DataDialectContract

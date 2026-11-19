@@ -8,7 +8,7 @@ using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Tenancy.Signup.Tests;
+namespace Kun.Tenancy.Signup.Tests;
 
 // 组件 HTTP 契约由真实端点导出（两组端点同一份文档），与 plugins/qian.tenancy.signup/contracts/http-v1.openapi.json 比对漂移；
 // QIAN_UPDATE_SIGNUP_CONTRACT=1 时重写发布契约。
@@ -29,8 +29,8 @@ public sealed class SignupContractTests
             options.SerializerOptions.RespectNullableAnnotations = true;
         });
         await using var app = builder.Build();
-        app.MapQianTenancySignupApplicant(_ => throw new InvalidOperationException("契约编译不会执行端点。"));
-        app.MapQianTenancySignupOperations(_ => throw new InvalidOperationException("契约编译不会执行端点。"));
+        app.MapKunTenancySignupApplicant(_ => throw new InvalidOperationException("契约编译不会执行端点。"));
+        app.MapKunTenancySignupOperations(_ => throw new InvalidOperationException("契约编译不会执行端点。"));
         await app.StartAsync(Ct);
         try { return await app.Services.GetRequiredService<IHttpContractSource>().CompileDocumentAsync(TenancySignupDefinition.ComponentId, Ct); }
         finally { await app.StopAsync(Ct); }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Kun.Runtime;
 
-namespace Qian.Tenancy.AspNetCore;
+namespace Kun.Tenancy.AspNetCore;
 
 public static partial class TenancyEndpoints
 {

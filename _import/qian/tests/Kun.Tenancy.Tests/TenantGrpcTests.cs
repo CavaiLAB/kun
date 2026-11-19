@@ -19,7 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Tenancy.Tests;
+namespace Kun.Tenancy.Tests;
 
 public sealed class TenantGrpcTests
 {

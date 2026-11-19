@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Kun.Runtime;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>租户目录 seam；仅提供内部服务端投影，不发布匿名 HTTP 租户列表。</summary>
 public static class TenancyDefinition

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Kun.Runtime;
 using Qian.Capabilities;
 
-namespace Qian.Tenancy.AspNetCore;
+namespace Kun.Tenancy.AspNetCore;
 
 public static partial class TenancyEndpoints
 {

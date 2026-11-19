@@ -2,7 +2,7 @@ using System.Text.Json;
 using Qian.Authz.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Tenancy.Signup.Tests;
+namespace Kun.Tenancy.Signup.Tests;
 
 // 不需要数据库的规则：配置 Schema 与缺省值、输入规范化与掩码、秘密材料、错误码、组件清单与状态机描述。
 public sealed class SignupUnitTests

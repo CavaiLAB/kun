@@ -6,8 +6,8 @@ using Kun.Core.MultiTenancy;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Data.Native;
-using Qian.Data.Native.Postgres;
+using Kun.Data.Native;
+using Kun.Data.Native.Postgres;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -21,8 +21,8 @@ try
     var tenant = new AsyncLocalTenantContext();
     var services = new ServiceCollection(); services.AddLogging(); services.AddSingleton<ITenantContext>(tenant); services.AddSingleton(ErrorCatalog.CreateDefault());
     var tables = new[] { new NativeDataTable(schema, "items", "native_guard", Get("predicate"), Get("predicate")) };
-    services.AddQianNativeData(new("tenant", Get("tenantRole"), NativeDataAccess.Tenant, _ => ValueTask.FromResult(Get("tenantConnection")), tables));
-    services.AddQianNativeData(new("platform", Get("platformRole"), NativeDataAccess.Platform, _ => ValueTask.FromResult(Get("platformConnection")), tables));
+    services.AddKunNativeData(new("tenant", Get("tenantRole"), NativeDataAccess.Tenant, _ => ValueTask.FromResult(Get("tenantConnection")), tables));
+    services.AddKunNativeData(new("platform", Get("platformRole"), NativeDataAccess.Platform, _ => ValueTask.FromResult(Get("platformConnection")), tables));
     await using var provider = services.BuildServiceProvider(); await using var loader = new PluginLoader(provider);
     using var config = JsonDocument.Parse("""{"connections":["tenant","platform"]}""");
     using var empty = JsonDocument.Parse("{}");

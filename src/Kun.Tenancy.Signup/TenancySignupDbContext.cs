@@ -1,14 +1,14 @@
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>
 /// 开通申请、验证码挑战与申请人会话（规格 §4）。三张都是全局表，没有租户列：申请发生在租户存在之前，读写只在无租户上下文中进行。
 /// 手机号只为通知保存原值，接口一律返回掩码；验证码与会话令牌只存哈希。
 /// </summary>
-public sealed class TenancySignupDbContext(DbContextOptions<TenancySignupDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+public sealed class TenancySignupDbContext(DbContextOptions<TenancySignupDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     /// <summary>组件独占的 schema。</summary>
     public const string Schema = "plugin_qian_tenancy_signup";

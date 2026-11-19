@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -65,7 +65,7 @@ public sealed partial class AuditStoreTests
         try
         {
             await Assert.ThrowsAsync<PostgresException>(() => Admin("BEGIN;" + AuditPlatformAccess.CreateMigrationSql(role) + "COMMIT;"));
-            await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => global.ReadAsync(0, 10, null, Ct));
+            await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => global.ReadAsync(0, 10, null, Ct));
             await using var app = new NpgsqlConnection(postgres.AppConnectionString); await app.OpenAsync(Ct);
             await using (var change = new NpgsqlCommand($"SET ROLE \"{role}\"", app)) await change.ExecuteNonQueryAsync(Ct);
             await using var read = new NpgsqlCommand("SELECT count(*) FROM plugin_qian_audit.audit_entries", app);
@@ -73,7 +73,7 @@ public sealed partial class AuditStoreTests
         }
         finally { await Admin($"REVOKE \"{role}\" FROM qian_app;"); }
         var wrong = new PostgresAuditStore<PlatformAuditDbContext>(host.Services.GetRequiredService<IDataService>(), tenant, "wrong_role");
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => wrong.AppendAsync(PlatformRecord(), Ct));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => wrong.AppendAsync(PlatformRecord(), Ct));
         foreach (var invalid in new[] { "bad';drop", "bad\n", "Upper", new string('a', 64) })
             Assert.Throws<ErrorException>(() => AuditPlatformAccess.CreateMigrationSql(invalid));
     }
@@ -144,8 +144,8 @@ public sealed partial class AuditStoreTests
     {
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
-        builder.Services.AddQianData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(platformConnection).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(platformConnection).UseKunSchema(AuditDbContext.Schema));
         return builder.Build();
     }
     private async Task<string> CreatePlatformRole(string role)

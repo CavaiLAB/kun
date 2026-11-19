@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Kun.Errors;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>
 /// 序号服务：按租户定义的规则原子取号，规则形如 <c>'SO' + yyyyMMdd + seq(6)</c>。

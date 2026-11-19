@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 // 管理员维护（S1-TEN-010）：账号、成员与凭据都经 qian.identity 的端口读写，tenant_admins 只存成员指针。
 // 替换按「新管理员成员 → 新 tenant.owner → 撤销原管理员 → 改指针 → 补审计」的顺序：每步幂等、指针最后才改，

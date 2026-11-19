@@ -3,7 +3,7 @@ using System.Data.Common;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Data.Native;
+namespace Kun.Data.Native;
 
 /// <summary>原生连接与事务的独立 seam，不实现或替代 EF Data。</summary>
 public static class NativeDataDefinition

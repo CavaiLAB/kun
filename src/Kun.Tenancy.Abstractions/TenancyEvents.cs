@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Kun.EventBus;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>主档创建及状态变更的同事务集成事件。</summary>
 public static class TenancyEvents

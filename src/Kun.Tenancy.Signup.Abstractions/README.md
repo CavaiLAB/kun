@@ -1,6 +1,6 @@
-# Qian.Tenancy.Signup.Abstractions
+# Kun.Tenancy.Signup.Abstractions
 
-租户自助开通 seam 的 Definition（规格 [租户自助开通](../../docs/prd/specs/tenant-signup.md)）。实现、宿主装配与接口说明在 [Qian.Tenancy.Signup](../Qian.Tenancy.Signup/README.md)。
+租户自助开通 seam 的 Definition（规格 [租户自助开通](../../_import/qian/docs/prd/specs/tenant-signup.md)）。实现、宿主装配与接口说明在 [Kun.Tenancy.Signup](../Kun.Tenancy.Signup/README.md)。
 
 | 内容 | 说明 |
 |---|---|

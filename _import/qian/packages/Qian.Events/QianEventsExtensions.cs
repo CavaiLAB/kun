@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Events;
@@ -14,7 +14,7 @@ namespace Qian.Events;
 public static class QianEventsExtensions
 {
     /// <summary>
-    /// 把数据会话的 Outbox 写入端换成 v1 信封写入端，并登记事件目录。与 AddQianData 的调用顺序无关。
+    /// 把数据会话的 Outbox 写入端换成 v1 信封写入端，并登记事件目录。与 AddKunData 的调用顺序无关。
     /// 只写 Outbox 不投递；需要发往 RabbitMQ 时再调用 <see cref="AddQianEventsBroker"/>。
     /// </summary>
     public static IServiceCollection AddQianEvents(this IServiceCollection services, Action<QianEventsOptions>? configure = null)
@@ -30,7 +30,7 @@ public static class QianEventsExtensions
         services.TryAddScoped<IntegrationEventBuffer>();
         services.TryAddScoped(sp => new QianEnvelopeOutboxWriter(sp.GetRequiredService<IntegrationEventBuffer>(), sp.GetRequiredService<IEventTypeRegistry>(),
             sp.GetRequiredService<Kun.Core.MultiTenancy.ITenantContext>(), sp.GetRequiredService<TimeProvider>()));
-        // AddQianData 以 TryAdd 登记 Kun 累加器；这里替换，两个端口解析到同一个 scoped 信封写入端。
+        // AddKunData 以 TryAdd 登记 Kun 累加器；这里替换，两个端口解析到同一个 scoped 信封写入端。
         services.Replace(ServiceDescriptor.Scoped<IIntegrationEventBus>(sp => sp.GetRequiredService<QianEnvelopeOutboxWriter>()));
         services.Replace(ServiceDescriptor.Scoped<IOutboxWriter>(sp => sp.GetRequiredService<QianEnvelopeOutboxWriter>()));
         services.TryAddSingleton<IEventsService>(sp => new EventsService(sp.GetRequiredService<IEventTypeRegistry>(), sp.GetService<EventSubscriptionRegistry>()));
@@ -55,7 +55,7 @@ public static class QianEventsExtensions
         services.AddSingleton(address);
         services.AddSingleton(sp => new RabbitMqBroker(() => address.Resolve(sp), sp.GetRequiredService<ILogger<RabbitMqBroker>>()));
         services.Replace(ServiceDescriptor.Singleton<IIntegrationEventPublisher>(sp => new QianEnvelopePublisher(sp.GetRequiredService<RabbitMqBroker>())));
-        // 只订阅、不持有业务上下文的宿主（如网关）也经这里登记 broker：没有 AddQianData 时投递服务没有可领取的 Outbox。
+        // 只订阅、不持有业务上下文的宿主（如网关）也经这里登记 broker：没有 AddKunData 时投递服务没有可领取的 Outbox。
         services.AddHostedService(sp => new QianOutboxRelay(sp.GetRequiredService<IServiceScopeFactory>(), sp.GetService<IDataContextCatalog>() ?? NoDataContexts.Instance,
             sp.GetRequiredService<IIntegrationEventPublisher>(), sp.GetRequiredService<IOptions<QianEventsOptions>>(), sp.GetRequiredService<TimeProvider>(),
             sp.GetRequiredService<ILogger<QianOutboxRelay>>(), sp));

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Json.Schema;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Authz.Tests;
 

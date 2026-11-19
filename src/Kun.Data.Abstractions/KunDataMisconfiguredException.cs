@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>数据组件的稳定错误码定义。</summary>
 public static class DataErrors
@@ -124,10 +124,10 @@ public static class DataErrors
 }
 
 /// <summary>在构造上下文或启动宿主时拒绝不安全的数据层配置。</summary>
-public sealed class QianDataMisconfiguredException : InvalidOperationException
+public sealed class KunDataMisconfiguredException : InvalidOperationException
 {
     /// <summary>指定缺失或被覆盖的安全配置。</summary>
-    public QianDataMisconfiguredException(string reason) : base($"数据组件未满足安全装配要求：{reason}")
+    public KunDataMisconfiguredException(string reason) : base($"数据组件未满足安全装配要求：{reason}")
     {
         Error = new Error(DataErrors.Misconfigured, new Dictionary<string, string> { ["reason"] = reason });
     }

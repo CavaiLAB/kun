@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using Npgsql;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 /// <summary>
 /// 迁移属主角色：NOSUPERUSER / NOBYPASSRLS，能在库里建 schema；它建的 schema 与表经默认权限自动授予应用角色。

@@ -5,7 +5,7 @@ using Grpc.Core.Interceptors;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>租户 gRPC 服务入口；宿主先完成 JWT 认证，再核对传播元数据，覆盖全部四种调用形态。</summary>
 public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interceptor

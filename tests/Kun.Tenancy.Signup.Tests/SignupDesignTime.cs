@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Migrations.Design;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 
-namespace Qian.Tenancy.Signup.Tests;
+namespace Kun.Tenancy.Signup.Tests;
 
 // dotnet ef migrations add <名称> --project packages/Qian.Tenancy.Signup --startup-project tests/Qian.Tenancy.Signup.Tests
 //   --context TenancySignupDbContext --output-dir Migrations
@@ -19,7 +19,7 @@ internal sealed class SignupDesignTimeFactory : IDesignTimeDbContextFactory<Tena
     public TenancySignupDbContext CreateDbContext(string[] args)
     {
         var services = new ServiceCollection(); services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext()); services.AddKunEventBus();
-        services.AddQianData<TenancySignupDbContext>((_, options) => options.UseNpgsql("Host=localhost;Database=design;Username=design").UseKunSchema(TenancySignupDbContext.Schema));
+        services.AddKunData<TenancySignupDbContext>((_, options) => options.UseNpgsql("Host=localhost;Database=design;Username=design").UseKunSchema(TenancySignupDbContext.Schema));
         return services.BuildServiceProvider().CreateScope().ServiceProvider.GetRequiredService<TenancySignupDbContext>();
     }
 }

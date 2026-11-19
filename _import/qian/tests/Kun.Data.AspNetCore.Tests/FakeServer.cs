@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace Qian.Data.AspNetCore.Tests;
+namespace Kun.Data.AspNetCore.Tests;
 
 /// <summary>
 /// 本机回环上的假服务端，模拟连通测试会遇到的异常对端。每个连入的套接字按给定脚本应答，然后等对方先关闭，

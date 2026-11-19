@@ -15,13 +15,13 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
-using Qian.Tenancy;
-using Qian.Tenancy.AspNetCore;
+using Kun.Tenancy;
+using Kun.Tenancy.AspNetCore;
 using Qian.Testing.Containers;
 using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
@@ -277,7 +277,7 @@ public abstract partial class CustomerCommandTests
             public bool IsEnabled(LogLevel logLevel) => true;
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
             {
-                if (category == "Qian.Tenancy.Operations" && eventId.Id == 1001 && state is IEnumerable<KeyValuePair<string, object?>> values)
+                if (category == "Kun.Tenancy.Operations" && eventId.Id == 1001 && state is IEnumerable<KeyValuePair<string, object?>> values)
                     entries.Enqueue(values.ToDictionary(pair => pair.Key, pair => pair.Value));
             }
         }

@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Files.Tests;
 

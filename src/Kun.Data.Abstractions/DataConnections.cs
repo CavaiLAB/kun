@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>新建或整体替换数据连接档案的输入。口令只以租户 secretRef 引用给出；未声明的成员（如 password）在反序列化时即被拒绝。</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Qian.Tenancy.Signup.Migrations
+namespace Kun.Tenancy.Signup.Migrations
 {
     /// <inheritdoc />
     internal partial class SignupInitial : Migration

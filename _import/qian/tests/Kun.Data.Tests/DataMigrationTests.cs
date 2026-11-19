@@ -13,7 +13,7 @@ using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 public sealed class DataMigrationTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
@@ -84,7 +84,7 @@ public sealed class DataMigrationTests(PostgresFixture postgres) : IClassFixture
     {
         var builder = CreateBuilder(true);
         using var host = builder.Build();
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => host.StartAsync(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.StartAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -95,14 +95,14 @@ public sealed class DataMigrationTests(PostgresFixture postgres) : IClassFixture
         var generator = scope.ServiceProvider.GetRequiredService<MigrationContext>().GetService<IMigrationsSqlGenerator>();
         var operation = new CreateTableOperation { Name = "customers", Schema = "plugin_migrations" };
         operation.Columns.Add(new AddColumnOperation { Name = "tenant_id", Table = "customers", Schema = "plugin_migrations", ClrType = typeof(string), ColumnType = "text", IsNullable = false });
-        Assert.Throws<QianDataMisconfiguredException>(() => generator.Generate([operation]));
+        Assert.Throws<KunDataMisconfiguredException>(() => generator.Generate([operation]));
     }
 
     private HostApplicationBuilder CreateBuilder(bool replaceGenerator = false)
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
-        builder.Services.AddQianData<MigrationContext>((_, options) =>
+        builder.Services.AddKunData<MigrationContext>((_, options) =>
         {
             options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_migrations");
             if (replaceGenerator) options.ReplaceService<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>();
@@ -115,7 +115,7 @@ public sealed class DataMigrationTests(PostgresFixture postgres) : IClassFixture
         public int Id { get; set; }
         public string? TenantId { get; set; }
     }
-    public sealed class MigrationContext(DbContextOptions<MigrationContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+    public sealed class MigrationContext(DbContextOptions<MigrationContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.Entity<Customer>().ToTable("customers");
     }

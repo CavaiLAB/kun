@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using Qian.Audit;
 using Qian.Config.Apollo;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Qian.Testing.Containers;
 
@@ -52,8 +52,8 @@ public sealed class RealApolloReleaseAuditTests(RealApolloPortalFixture apollo, 
             var builder = Host.CreateApplicationBuilder(); builder.Logging.ClearProviders();
             builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunEventBus();
             builder.Services.AddQianConfiguration(configuration);
-            builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
-            builder.Services.AddQianData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(platformConnection).UseKunSchema(AuditDbContext.Schema));
+            builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+            builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(platformConnection).UseKunSchema(AuditDbContext.Schema));
             using var host = builder.Build(); await host.StartAsync(Ct);
             await Prepare(host);
             await Admin("BEGIN;" + AuditPlatformAccess.CreateMigrationSql(role) + "COMMIT;");

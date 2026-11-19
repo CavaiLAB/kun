@@ -1,4 +1,4 @@
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>
 /// 发件端口（规格 §7）：验证码、开通结果、驳回结果。通知组件（短信渠道）就绪前生产宿主不提供实现；

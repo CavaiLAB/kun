@@ -8,7 +8,7 @@ using Qian.Audit;
 using Qian.Lifecycle;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;
 

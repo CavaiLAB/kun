@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>租户自助开通 seam（S1-TEN-019）的服务键；组件为 <c>qian.tenancy.signup</c>，装进 identity profile。</summary>
 public static class TenancySignupDefinition

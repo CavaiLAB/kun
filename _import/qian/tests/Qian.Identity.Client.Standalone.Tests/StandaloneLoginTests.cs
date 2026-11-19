@@ -113,7 +113,7 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     }
 
     [Theory]
-    [InlineData("Qian.Data")]
+    [InlineData("Kun.Data")]
     [InlineData("Qian.Config.Apollo")]
     [InlineData("Qian.Identity.Server")]
     [InlineData("Qian.Registry")]

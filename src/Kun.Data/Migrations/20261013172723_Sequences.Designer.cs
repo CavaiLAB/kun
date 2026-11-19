@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Qian.Data;
+using Kun.Data;
 
 #nullable disable
 
-namespace Qian.Data.Migrations
+namespace Kun.Data.Migrations
 {
     [DbContext(typeof(DataSystemDbContext))]
     [Migration("20261013172723_Sequences")]
@@ -93,7 +93,7 @@ namespace Qian.Data.Migrations
                     b.ToTable("outbox_messages", "plugin_qian_data");
                 });
 
-            modelBuilder.Entity("Qian.Data.SequenceCounterRecord", b =>
+            modelBuilder.Entity("Kun.Data.SequenceCounterRecord", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(64)
@@ -134,7 +134,7 @@ namespace Qian.Data.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Data.SequenceRuleRecord", b =>
+            modelBuilder.Entity("Kun.Data.SequenceRuleRecord", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(64)

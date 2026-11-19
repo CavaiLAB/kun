@@ -7,10 +7,10 @@ using Microsoft.Extensions.Options;
 using Kun.Errors;
 using StackExchange.Redis;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>雪花 ID 的宿主设置。</summary>
-public sealed class QianSnowflakeOptions
+public sealed class KunSnowflakeOptions
 {
     /// <summary>时间戳的起点；41 位毫秒约可用 69 年。部署后不能再改。默认 2026-01-01 UTC。</summary>
     public DateTimeOffset Epoch { get; set; } = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -26,26 +26,26 @@ public sealed class QianSnowflakeOptions
 
     internal void Validate()
     {
-        if (MaxWorkers is < 1 or > 1024) throw new QianDataMisconfiguredException("MaxWorkers 必须在 1 到 1024 之间。");
+        if (MaxWorkers is < 1 or > 1024) throw new KunDataMisconfiguredException("MaxWorkers 必须在 1 到 1024 之间。");
         if (RenewInterval <= TimeSpan.Zero || LeaseDuration < RenewInterval * 2)
-            throw new QianDataMisconfiguredException("雪花租约时长至少是续租间隔的两倍。");
-        if (Epoch > DateTimeOffset.UtcNow) throw new QianDataMisconfiguredException("雪花时间起点不能晚于当前时间。");
+            throw new KunDataMisconfiguredException("雪花租约时长至少是续租间隔的两倍。");
+        if (Epoch > DateTimeOffset.UtcNow) throw new KunDataMisconfiguredException("雪花时间起点不能晚于当前时间。");
     }
 }
 
 /// <summary>雪花 ID 的宿主装配。</summary>
-public static class QianSnowflakeExtensions
+public static class KunSnowflakeExtensions
 {
     /// <summary>登记雪花 ID 生成器：启动时经 Redis 租约 <c>qian:snowflake:worker:{n}</c> 取得 WorkerId，后台续租，停止时释放。宿主须登记 IConnectionMultiplexer。</summary>
-    public static IServiceCollection AddQianSnowflakeIds(this IServiceCollection services, Action<QianSnowflakeOptions>? configure = null)
+    public static IServiceCollection AddKunSnowflakeIds(this IServiceCollection services, Action<KunSnowflakeOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(services);
-        var options = services.AddOptions<QianSnowflakeOptions>();
+        var options = services.AddOptions<KunSnowflakeOptions>();
         if (configure is not null) options.Configure(configure);
         services.AddLogging();
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton(ErrorCatalog.CreateDefault());
-        services.TryAddSingleton(sp => new RedisSnowflakeIdGenerator(sp.GetRequiredService<IConnectionMultiplexer>(), sp.GetRequiredService<IOptions<QianSnowflakeOptions>>(),
+        services.TryAddSingleton(sp => new RedisSnowflakeIdGenerator(sp.GetRequiredService<IConnectionMultiplexer>(), sp.GetRequiredService<IOptions<KunSnowflakeOptions>>(),
             sp.GetRequiredService<TimeProvider>(), sp.GetRequiredService<ErrorCatalog>(), sp.GetRequiredService<ILogger<RedisSnowflakeIdGenerator>>()));
         services.TryAddSingleton<ISnowflakeIdGenerator>(sp => sp.GetRequiredService<RedisSnowflakeIdGenerator>());
         services.AddHostedService(sp => sp.GetRequiredService<RedisSnowflakeIdGenerator>());
@@ -59,7 +59,7 @@ public static class QianSnowflakeExtensions
 /// 每个编号另记高水位（<c>…:hwm</c>，本编号已用或可能用到的最大毫秒），新持有者从高水位之后开始，
 /// 编号在副本重启、崩溃或时钟不一致时被回收复用也不会产生重复 ID。
 /// </summary>
-internal sealed partial class RedisSnowflakeIdGenerator(IConnectionMultiplexer redis, IOptions<QianSnowflakeOptions> settings, TimeProvider clock,
+internal sealed partial class RedisSnowflakeIdGenerator(IConnectionMultiplexer redis, IOptions<KunSnowflakeOptions> settings, TimeProvider clock,
     ErrorCatalog catalog, ILogger<RedisSnowflakeIdGenerator> logger) : BackgroundService, ISnowflakeIdGenerator
 {
     internal const string KeyPrefix = "qian:snowflake:worker:";
@@ -91,7 +91,7 @@ internal sealed partial class RedisSnowflakeIdGenerator(IConnectionMultiplexer r
         return redis.call('del', KEYS[1])
         """;
 
-    private readonly QianSnowflakeOptions _options = settings.Value;
+    private readonly KunSnowflakeOptions _options = settings.Value;
     private readonly string _owner = Environment.MachineName + "/" + Environment.ProcessId.ToString(CultureInfo.InvariantCulture) + "/" + Guid.NewGuid().ToString("N");
     private readonly Lock _gate = new();
     private IDisposable? _registration;
@@ -133,7 +133,7 @@ internal sealed partial class RedisSnowflakeIdGenerator(IConnectionMultiplexer r
         _options.Validate();
         _registration ??= catalog.Register(DataErrors.IdWorkerUnavailable);
         if (!await AcquireAsync().ConfigureAwait(false))
-            throw new QianDataMisconfiguredException($"没有空闲的雪花 WorkerId（共 {_options.MaxWorkers} 个）。");
+            throw new KunDataMisconfiguredException($"没有空闲的雪花 WorkerId（共 {_options.MaxWorkers} 个）。");
         await base.StartAsync(cancellationToken).ConfigureAwait(false);
     }
 

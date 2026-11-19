@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>qian.data 自身的表（plugin_qian_data）：序号规则与计数器、数据连接档案；结构随包内 EF 迁移交付，由迁移任务建表。</summary>
-internal sealed class DataSystemDbContext(DbContextOptions<DataSystemDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+internal sealed class DataSystemDbContext(DbContextOptions<DataSystemDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     public const string Schema = "plugin_qian_data";
     /// <summary>租户内连接名唯一索引。</summary>
@@ -73,12 +73,12 @@ internal static class DataSystemContext
                 var before = ConnectionString(builder);
                 Apply(sp, builder, configure);
                 if (before is not null && ConnectionString(builder) != before)
-                    throw new QianDataMisconfiguredException("序号服务与数据连接档案必须使用同一个 qian.data 系统库连接。");
+                    throw new KunDataMisconfiguredException("序号服务与数据连接档案必须使用同一个 qian.data 系统库连接。");
             });
             return;
         }
         services.AddSingleton<Marker>();
-        services.AddQianData<DataSystemDbContext>((sp, builder) => Apply(sp, builder, configure));
+        services.AddKunData<DataSystemDbContext>((sp, builder) => Apply(sp, builder, configure));
     }
 
     private static void Apply(IServiceProvider services, DbContextOptionsBuilder builder, Action<IServiceProvider, DbContextOptionsBuilder> configure)

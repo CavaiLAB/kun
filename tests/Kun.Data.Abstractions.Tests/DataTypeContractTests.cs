@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 using Json.Schema;
 using Kun.Errors;
 
-namespace Qian.Data.Abstractions.Tests;
+namespace Kun.Data.Abstractions.Tests;
 
 /// <summary>基准类型种子、方言数据规则与 DialectTypeMapping 的字段校验（不依赖数据库与具体方言包）。</summary>
 public sealed class DataTypeContractTests
@@ -52,7 +52,7 @@ public sealed class DataTypeContractTests
         var index = mappings.Select((mapping, position) => (mapping, position)).FirstOrDefault(item => (string)item.mapping!["type"]! == (string)replaced["type"]!).position;
         if (reason is "有多条映射" or "未知基准类型") mappings.Add(replaced);
         else mappings[index] = replaced;
-        var error = Assert.Throws<QianDataMisconfiguredException>(() => DataTypeContracts.ReadDialect(Stream(data.ToJsonString())));
+        var error = Assert.Throws<KunDataMisconfiguredException>(() => DataTypeContracts.ReadDialect(Stream(data.ToJsonString())));
         Assert.Contains(reason, error.Message, StringComparison.Ordinal);
     }
 
@@ -61,10 +61,10 @@ public sealed class DataTypeContractTests
     {
         var missing = JsonNode.Parse(Dialect())!;
         missing["mappings"]!.AsArray().RemoveAt(0);
-        Assert.Contains("缺少系统基准类型的映射：int", Assert.Throws<QianDataMisconfiguredException>(() => DataTypeContracts.ReadDialect(Stream(missing.ToJsonString()))).Message, StringComparison.Ordinal);
+        Assert.Contains("缺少系统基准类型的映射：int", Assert.Throws<KunDataMisconfiguredException>(() => DataTypeContracts.ReadDialect(Stream(missing.ToJsonString()))).Message, StringComparison.Ordinal);
         var unknown = JsonNode.Parse(Dialect())!;
         unknown["jdbcUrl"] = "jdbc:postgresql://{host}";
-        Assert.Throws<QianDataMisconfiguredException>(() => DataTypeContracts.ReadDialect(Stream(unknown.ToJsonString())));
+        Assert.Throws<KunDataMisconfiguredException>(() => DataTypeContracts.ReadDialect(Stream(unknown.ToJsonString())));
     }
 
     [Fact]

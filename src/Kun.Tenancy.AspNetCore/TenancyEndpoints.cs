@@ -16,13 +16,13 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Tenancy.AspNetCore;
+namespace Kun.Tenancy.AspNetCore;
 
 /// <summary>租户运营接口：宿主认证后从 global qian.tenancy 上下文解析；须排除租户入口中间件。</summary>
 public static partial class TenancyEndpoints
 {
     /// <summary>映射平台租户列表、新建、编辑；平台超管旁路与审计不可缺席。</summary>
-    public static IEndpointRouteBuilder MapQianTenancy(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunTenancy(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         Bind(endpoints.MapGet("/api/tenancy/tenants", (HttpContext http, [Range(0, int.MaxValue)] int skip = 0, [Range(1, 100)] int take = 50,
@@ -99,7 +99,7 @@ public static partial class TenancyEndpoints
             var decision = await bypass.AuthorizeAsync(new SuperadminAccess(subject, permission, null, resource, "api"), http.RequestAborted).ConfigureAwait(false);
             if (!decision.Allow)
             {
-                LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), decision.Reason, principal.Subject, permission);
+                LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Tenancy.Operations"), decision.Reason, principal.Subject, permission);
                 throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             }
             if (credential is not null)
@@ -108,11 +108,11 @@ public static partial class TenancyEndpoints
                 var setting = await bypass.AuthorizeAsync(new SuperadminAccess(subject, CredentialPermission, null, credential.Resource, "api"), http.RequestAborted).ConfigureAwait(false);
                 if (!setting.Allow)
                 {
-                    LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), setting.Reason, principal.Subject, CredentialPermission);
+                    LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Tenancy.Operations"), setting.Reason, principal.Subject, CredentialPermission);
                     throw new ErrorException(new Error(PlatformErrors.AuthzDenied) { Pointer = credential.Pointer });
                 }
             }
-            void Denied(string reason) => LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), reason, principal.Subject, permission);
+            void Denied(string reason) => LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Tenancy.Operations"), reason, principal.Subject, permission);
             using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.tenancy", EventActor.User(principal.Subject)));
             return await execute(ctx, principal).ConfigureAwait(false);
         }

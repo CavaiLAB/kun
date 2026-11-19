@@ -2,7 +2,7 @@ using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.Core.MultiTenancy;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Authz;
 

@@ -1,5 +1,5 @@
 using System.Data.Common;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Authz;
@@ -44,7 +44,7 @@ public static class AuthzPlatformAccess
 
     internal static async Task ValidateConnectionAsync(DbConnection connection, string role, CancellationToken ct)
     {
-        ValidateRoleName(role); await QianApplicationRoleInterceptor.ValidateAsync(connection, ct).ConfigureAwait(false);
+        ValidateRoleName(role); await KunApplicationRoleInterceptor.ValidateAsync(connection, ct).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_roles r WHERE r.rolname = @role
@@ -64,7 +64,7 @@ public static class AuthzPlatformAccess
             """;
         var parameter = command.CreateParameter(); parameter.ParameterName = "role"; parameter.Value = role; command.Parameters.Add(parameter);
         if (await command.ExecuteScalarAsync(ct).ConfigureAwait(false) is not true)
-            throw new QianDataMisconfiguredException("平台授权必须使用独立的受限登录角色；禁止角色切换、继承、复用普通租户凭据或访问租户授权表。");
+            throw new KunDataMisconfiguredException("平台授权必须使用独立的受限登录角色；禁止角色切换、继承、复用普通租户凭据或访问租户授权表。");
     }
 
     internal static void ValidateRoleName(string role)

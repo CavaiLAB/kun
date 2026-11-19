@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Errors;
 
-namespace Qian.Data.AspNetCore;
+namespace Kun.Data.AspNetCore;
 
 /// <summary>qian.data 的 HTTP 表面：基准类型目录（全局元数据）与数据连接档案（按租户）。</summary>
 public static class DataEndpoints
@@ -20,14 +20,14 @@ public static class DataEndpoints
     private static readonly string[] RequiredMembers = ["name", "dialect", "host", "port", "database", "userName", "secretRef"];
 
     /// <summary>
-    /// 登记全部数据端点：<see cref="MapQianDataTypes"/> 与 <see cref="MapQianDataConnections"/>。宿主须先装配认证、可信租户边界、
+    /// 登记全部数据端点：<see cref="MapKunDataTypes"/> 与 <see cref="MapKunDataConnections"/>。宿主须先装配认证、可信租户边界、
     /// Kun 授权（IPermissionChecker）与 Qian 错误中间件；<paramref name="binding"/> 非空时（平台模式）还要求该组件条目在当前 scope 已挂载。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianData(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null) =>
-        endpoints.MapQianDataTypes(binding).MapQianDataConnections(binding);
+    public static IEndpointRouteBuilder MapKunData(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null) =>
+        endpoints.MapKunDataTypes(binding).MapKunDataConnections(binding);
 
-    /// <summary>登记 <c>GET /api/data/meta/types</c> 与 <c>DELETE /api/data/meta/types/{code}</c>；需要 AddQianDataTypes 与方言组件。</summary>
-    public static IEndpointRouteBuilder MapQianDataTypes(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null)
+    /// <summary>登记 <c>GET /api/data/meta/types</c> 与 <c>DELETE /api/data/meta/types/{code}</c>；需要 AddKunDataTypes 与方言组件。</summary>
+    public static IEndpointRouteBuilder MapKunDataTypes(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         var data = endpoints.MapGroup("/api/data");
@@ -43,10 +43,10 @@ public static class DataEndpoints
     }
 
     /// <summary>
-    /// 登记 <c>/api/data/connections</c> 的增删改查与 <c>POST /api/data/connections/{id}:test</c>；需要 AddQianDataConnections。
+    /// 登记 <c>/api/data/connections</c> 的增删改查与 <c>POST /api/data/connections/{id}:test</c>；需要 AddKunDataConnections。
     /// 档案按租户隔离，没有已验证租户的主体一律 403。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianDataConnections(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null)
+    public static IEndpointRouteBuilder MapKunDataConnections(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         var data = endpoints.MapGroup("/api/data/connections");

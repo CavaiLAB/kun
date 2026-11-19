@@ -10,7 +10,7 @@ using Npgsql;
 using Kun.Errors;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 /// <summary>真实 PostgreSQL 与受 RLS 约束的应用角色：并发取号、规则修改、周期与作用域、租户隔离和用尽。</summary>
 public sealed class SequenceServiceTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
@@ -64,7 +64,7 @@ public sealed class SequenceServiceTests(PostgresFixture postgres) : IClassFixtu
     public async Task 非法规则_用尽与缺少租户都返回结构化错误()
     {
         await using var host = await StartAsync(new DateTimeOffset(2026, 10, 14, 1, 0, 0, TimeSpan.Zero));
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => host.Sequences.NextAsync("order", "default", Ct));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.Sequences.NextAsync("order", "default", Ct));
         using (host.Tenant.BeginScope(TenantC))
         {
             foreach (var pattern in new[] { "'SO' + yyyyMMdd", "seq(6) + seq(2)", "'SO' + yyyymmdd + seq(6)", "'unterminated + seq(3)", "seq(19)", "'A' + + seq(3)" })
@@ -105,8 +105,8 @@ public sealed class SequenceServiceTests(PostgresFixture postgres) : IClassFixtu
         builder.Services.AddKunEventBus();
         // 100 个并发调用方共用 20 条连接，排队取连接而不是各占一条（PG 默认最多 100 个连接）。
         var app = new NpgsqlConnectionStringBuilder(postgres.AppConnectionString) { MaxPoolSize = 20 }.ConnectionString;
-        builder.Services.AddQianSequences((_, options) => options.UseNpgsql(app));
-        builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, _) => owner);
+        builder.Services.AddKunSequences((_, options) => options.UseNpgsql(app));
+        builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, _) => owner);
         var host = builder.Build();
         await Migrated.GetOrAdd(postgres, _ => new Lazy<Task>(() => host.Services.GetRequiredService<IDataMigrator>().MigrateAsync(Ct))).Value;
         await host.StartAsync(Ct);

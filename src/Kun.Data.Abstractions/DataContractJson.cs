@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>数据契约的源生成序列化入口；结构校验使用同包 Schema，字段语义使用 FilterContracts。</summary>
 public static class DataContractJson

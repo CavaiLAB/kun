@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Kun.Runtime;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 public sealed class DataConfigurationTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
@@ -25,9 +25,9 @@ public sealed class DataConfigurationTests(PostgresFixture postgres) : IClassFix
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(tenant);
         builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<FirstContext>(Reference, _ => { calls++; return currentConnection; },
+        builder.Services.AddKunData<FirstContext>(Reference, _ => { calls++; return currentConnection; },
             (_, options) => options.UseKunSchema("plugin_bind_first"));
-        builder.Services.AddQianData<SecondContext>("secretRef://platform/pg/second", _ => postgres.AppConnectionString,
+        builder.Services.AddKunData<SecondContext>("secretRef://platform/pg/second", _ => postgres.AppConnectionString,
             (_, options) => options.UseKunSchema("plugin_bind_second"));
         using var host = builder.Build();
         await using var runtime = new PluginLoader(host.Services);
@@ -45,10 +45,10 @@ public sealed class DataConfigurationTests(PostgresFixture postgres) : IClassFix
             Assert.Equal(postgres.AppConnectionString, session.Context.Database.GetConnectionString());
             await session.Context.Database.OpenConnectionAsync(ct);
         }
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(async () => await data.OpenAsync<SecondContext>(ct));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(async () => await data.OpenAsync<SecondContext>(ct));
         currentConnection = postgres.ConnectionString;
         await using (var session = await data.OpenAsync<FirstContext>(ct))
-            await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => session.Context.Database.OpenConnectionAsync(ct));
+            await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => session.Context.Database.OpenConnectionAsync(ct));
         var visible = Assert.Single(runtime.DumpConfig()).Config.GetRawText();
         Assert.Contains(Reference, visible, StringComparison.Ordinal);
         Assert.DoesNotContain(postgres.AppConnectionString, visible, StringComparison.Ordinal);
@@ -68,7 +68,7 @@ public sealed class DataConfigurationTests(PostgresFixture postgres) : IClassFix
         using var parsed = JsonDocument.Parse(json);
         await runtime.MountAsync([Definition(parsed.RootElement.Clone(), ScopeKey.Global)], TestContext.Current.CancellationToken);
         Assert.Equal(PluginState.Failed, runtime.GetState("data", ScopeKey.Global));
-        Assert.IsType<QianDataMisconfiguredException>(runtime.GetFailure("data", ScopeKey.Global));
+        Assert.IsType<KunDataMisconfiguredException>(runtime.GetFailure("data", ScopeKey.Global));
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed class DataConfigurationTests(PostgresFixture postgres) : IClassFix
         var owner = new ScopeKey("tenant", "b");
         await runtime.MountAsync([Definition(JsonSerializer.SerializeToElement(new { connection = Reference }), owner)], ct);
         var data = runtime.GetContext("data", owner).Data();
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(async () => await data.OpenAsync<FirstContext>(ct));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(async () => await data.OpenAsync<FirstContext>(ct));
         using (tenant.BeginScope("b"))
         await using (var session = await data.OpenAsync<FirstContext>(ct))
             await session.Context.Database.OpenConnectionAsync(ct);
@@ -96,12 +96,12 @@ public sealed class DataConfigurationTests(PostgresFixture postgres) : IClassFix
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<FirstContext>(Reference, _ => postgres.AppConnectionString,
+        builder.Services.AddKunData<FirstContext>(Reference, _ => postgres.AppConnectionString,
             (_, options) => options.UseKunSchema("plugin_bind_first"));
         return builder.Build();
     }
     private static PluginDefinition Definition(JsonElement config, ScopeKey scope) => new(
         new PluginEntry("data", "qian.data", "1.0.0", scope, 0, config), new DataPlugin(), [DataDefinition.Key]);
-    public sealed class FirstContext(DbContextOptions<FirstContext> options, ITenantContext tenant) : QianDbContext(options, tenant);
-    public sealed class SecondContext(DbContextOptions<SecondContext> options, ITenantContext tenant) : QianDbContext(options, tenant);
+    public sealed class FirstContext(DbContextOptions<FirstContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant);
+    public sealed class SecondContext(DbContextOptions<SecondContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant);
 }

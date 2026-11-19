@@ -8,13 +8,13 @@ using Qian.Config;
 using Qian.Audit;
 using System.Security.Cryptography;
 using System.Text;
-using Qian.Data;
+using Kun.Data;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 internal sealed class TenantSettingsService(IPluginContext context, PostgresTenantDirectory directory) : ITenantSettings, ITenantSettingsOperations, ITenantQuota, IDisposable
 {

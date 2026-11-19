@@ -2,11 +2,11 @@ using Kun.Core.MultiTenancy;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 // 本租户摘要（S1-TEN-021）：租户只取自当前租户上下文（宿主按已验证令牌进入），没有就是未认证；字段口径与运营列表的一行相同。
 internal sealed class TenantSummaryService(IPluginContext context, TenantAdministrationService administration) : ITenantSummaries

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>请求来源（宿主的 HTTP 层取自连接）；只用于限流与记录，不作授权证据。</summary>
 public sealed record SignupRequestContext(string? SourceAddress);

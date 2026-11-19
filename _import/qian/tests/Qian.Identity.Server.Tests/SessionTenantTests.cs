@@ -1,6 +1,6 @@
 using System.Net;
 using Qian.Events;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
 using static Qian.Identity.Server.Tests.SessionSupport;

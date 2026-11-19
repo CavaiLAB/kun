@@ -2,7 +2,7 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Authz.Tests;

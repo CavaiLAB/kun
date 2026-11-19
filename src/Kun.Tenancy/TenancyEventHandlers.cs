@@ -1,15 +1,15 @@
 using Kun.Core.Domain;
 using Kun.EventBus;
 using Kun.Mediator;
-using Qian.Data;
+using Kun.Data;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>宿主的同事务租户事件接线。</summary>
 public static class TenancyEventHandlers
 {
     /// <summary>与 RegisterTenancyEvents、AddQianEvents 共用；漏装时写入回滚，不能静默丢事件。</summary>
-    public static KunMediatorBuilder AddQianTenancyEvents(this KunMediatorBuilder builder) => builder.AddNotificationHandler<TenantChange, TenantChangeHandler>();
+    public static KunMediatorBuilder AddKunTenancyEvents(this KunMediatorBuilder builder) => builder.AddNotificationHandler<TenantChange, TenantChangeHandler>();
 }
 internal sealed class TenantChange(string kind, TenantRow row, TenantStatus? previous = null) : IDomainEvent, INotification
 {
@@ -21,7 +21,7 @@ internal sealed class TenantChange(string kind, TenantRow row, TenantStatus? pre
     internal static async Task Save(IDataSession<TenancyDbContext> session, TenantChange change, CancellationToken ct)
     {
         await session.SaveChangesAsync(ct).ConfigureAwait(false);
-        if (!change.Published) throw new InvalidOperationException("租户事件未进入 Outbox：宿主须登记 AddQianTenancyEvents。");
+        if (!change.Published) throw new InvalidOperationException("租户事件未进入 Outbox：宿主须登记 AddKunTenancyEvents。");
     }
 }
 internal sealed class TenantChangeHandler(IIntegrationEventBus events) : INotificationHandler<TenantChange>

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Data.Native.Postgres.Tests;
+namespace Kun.Data.Native.Postgres.Tests;
 
 public sealed class NativeConfigurationTests
 {
@@ -21,7 +21,7 @@ public sealed class NativeConfigurationTests
         var password = Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
         var connection = "Host=127.0.0.1;Port=1;Database=unused;Username=native_user;Password=" + password + ";" + option;
         const string predicate = "tenant_id = current_setting('app.current_tenant_id')";
-        services.AddQianNativeData(new("tenant", "native_user", NativeDataAccess.Tenant, _ => ValueTask.FromResult(connection),
+        services.AddKunNativeData(new("tenant", "native_user", NativeDataAccess.Tenant, _ => ValueTask.FromResult(connection),
             [new("plugin_test", "items", "guard", predicate, predicate)]));
         await using var provider = services.BuildServiceProvider(); await using var loader = new PluginLoader(provider);
         using var config = JsonDocument.Parse("""{"connections":["tenant"]}""");

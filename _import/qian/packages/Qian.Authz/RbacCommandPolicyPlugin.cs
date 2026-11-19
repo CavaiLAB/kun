@@ -3,7 +3,7 @@ using Kun.Caching.Abstractions;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

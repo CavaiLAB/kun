@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace Qian.Data.Native.Postgres;
+namespace Kun.Data.Native.Postgres;
 
 // .NET 10 的 Channels 在注册时同步取消可能丢失池归还项（dotnet/runtime#132230）。
 // 将容量等待放在每绑定的租约边界，直到原始连接归还后才释放名额，避免进入驱动的取消读队列。

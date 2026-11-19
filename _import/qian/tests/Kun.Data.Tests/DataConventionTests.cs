@@ -14,7 +14,7 @@ using Npgsql;
 using Qian.Testing.Containers;
 using System.Text.Json;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
@@ -31,7 +31,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         builder.Services.AddSingleton<ICurrentUser>(actor);
         builder.Services.AddSingleton<TimeProvider>(clock);
         builder.Services.AddSingleton<ITenantContext>(tenant);
-        builder.Services.AddQianData<DeletionContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_deletion"));
+        builder.Services.AddKunData<DeletionContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_deletion"));
         using var host = builder.Build();
         await host.StartAsync(ct);
         using var tenantScope = tenant.BeginScope("a");
@@ -47,9 +47,9 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         var soft = new Customer { DisplayName = "soft" };
         var remove = new Customer { DisplayName = "remove" };
         db.AddRange(soft, remove);
-        db.Entry(soft).Property(QianDataConventions.DeletedByPropertyName).CurrentValue = Guid.NewGuid();
+        db.Entry(soft).Property(KunDataConventions.DeletedByPropertyName).CurrentValue = Guid.NewGuid();
         await db.SaveChangesAsync(ct);
-        Assert.Null(db.Entry(soft).Property(QianDataConventions.DeletedByPropertyName).CurrentValue);
+        Assert.Null(db.Entry(soft).Property(KunDataConventions.DeletedByPropertyName).CurrentValue);
         actor.UserId = Guid.NewGuid().ToString();
         var deleter = actor.UserId;
         clock.Now = created.AddHours(1);
@@ -62,7 +62,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         Assert.Equal(clock.Now, deleted.GetProperty("deleted_at").GetDateTimeOffset());
         Assert.Equal(creator, deleted.GetProperty("created_by").GetString());
         Assert.Equal(created, deleted.GetProperty("created_at").GetDateTimeOffset());
-        db.Entry(soft).Property(QianDataConventions.DeletedByPropertyName).CurrentValue = Guid.NewGuid();
+        db.Entry(soft).Property(KunDataConventions.DeletedByPropertyName).CurrentValue = Guid.NewGuid();
         clock.Now = created.AddHours(2);
         soft.DisplayName = "audit-preserved";
         await db.SaveChangesAsync(ct);
@@ -90,7 +90,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         }
     }
 
-    // 数据组件不占框架当前主体端口（S1-KUN-017）：身份适配器晚于 AddQianData 以 TryAdd 登记照样生效；只装数据组件、没有身份适配器的宿主照常建上下文，主体写 null。
+    // 数据组件不占框架当前主体端口（S1-KUN-017）：身份适配器晚于 AddKunData 以 TryAdd 登记照样生效；只装数据组件、没有身份适配器的宿主照常建上下文，主体写 null。
     [Fact]
     public async Task 身份适配器晚于数据组件登记仍生效_没有适配器时上下文照常创建且主体写null()
     {
@@ -107,7 +107,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
             var tenant = new AsyncLocalTenantContext();
             var builder = Host.CreateApplicationBuilder();
             builder.Services.AddSingleton<ITenantContext>(tenant);
-            builder.Services.AddQianData<ActorPortContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_actor_port"));
+            builder.Services.AddKunData<ActorPortContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_actor_port"));
             afterData(builder.Services);
             using var host = builder.Build();
             await host.StartAsync(ct);
@@ -143,14 +143,14 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         {
             var builder = Host.CreateApplicationBuilder();
             builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
-            builder.Services.AddQianData<CustomerContext>((_, options) =>
+            builder.Services.AddKunData<CustomerContext>((_, options) =>
             {
                 options.UseNpgsql(postgres.AppConnectionString);
                 if (replaceModel) options.UseKunSchema("plugin_conventions")
                     .ReplaceService<IModelCustomizer, ModelCustomizer>();
             });
             using var host = builder.Build();
-            await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => host.StartAsync(TestContext.Current.CancellationToken));
+            await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.StartAsync(TestContext.Current.CancellationToken));
         }
     }
 
@@ -161,7 +161,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         var tenant = new AsyncLocalTenantContext();
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(tenant);
-        builder.Services.AddQianData<CustomerContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString)
+        builder.Services.AddKunData<CustomerContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString)
             .UseKunSchema("plugin_conventions"));
         using var host = builder.Build();
         await host.StartAsync(ct);
@@ -228,7 +228,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         public void UseId(Guid id) => Id = id;
     }
 
-    public sealed class CustomerContext(DbContextOptions<CustomerContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+    public sealed class CustomerContext(DbContextOptions<CustomerContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -238,12 +238,12 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         }
     }
 
-    public sealed class DeletionContext(DbContextOptions<DeletionContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+    public sealed class DeletionContext(DbContextOptions<DeletionContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.Entity<Customer>().ToTable("customer_records");
     }
 
-    public sealed class ActorPortContext(DbContextOptions<ActorPortContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+    public sealed class ActorPortContext(DbContextOptions<ActorPortContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.Entity<Customer>().ToTable("customer_records");
     }

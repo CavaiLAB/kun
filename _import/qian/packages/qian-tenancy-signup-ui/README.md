@@ -2,7 +2,7 @@
 
 `qian.tenancy.signup` 的 ui 表面源码（S1-TEN-020），作为私有 pnpm 工作区包交付，分两部分：
 
-- **申请人公开页**：`/signup` 注册并申请开通，`/signup/status` 申请进度。`pnpm --filter @qian/tenancy-signup-ui build` 以 `/signup/` 为基路径输出到 `dist/public`，由申请人接口所在的宿主同源托管（`UseQianTenancySignupPages`，见 [Qian.Tenancy.Signup](../Qian.Tenancy.Signup/README.md)；本机联调由 Dev.Shell 按 `QIAN_DEV_SIGNUP_UI_DIST` 或缺省目录挂上）。
+- **申请人公开页**：`/signup` 注册并申请开通，`/signup/status` 申请进度。`pnpm --filter @qian/tenancy-signup-ui build` 以 `/signup/` 为基路径输出到 `dist/public`，由申请人接口所在的宿主同源托管（`UseKunTenancySignupPages`，见 [Kun.Tenancy.Signup](../../../../src/Kun.Tenancy.Signup/README.md)；本机联调由 Dev.Shell 按 `QIAN_DEV_SIGNUP_UI_DIST` 或缺省目录挂上）。
 - **运营的开通申请页**：MF2 远程 `ApplicationsPage`（`pnpm --filter @qian/tenancy-signup-ui build:remote` 输出 `dist/remote`，并核对生成的远程类型），在平台控制台的全局 scope 以 `/tenant-applications` 挂载。
 
 页面只用前端框架（`@cavailab/qian-*`）的组件。表单的数据 Schema 都从 [开通 HTTP 契约](../../plugins/qian.tenancy.signup/contracts/http-v1.openapi.json) 的请求体派生（`src/contracts.ts`），页面只补布局与少量本地约束：

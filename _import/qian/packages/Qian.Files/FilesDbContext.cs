@@ -1,12 +1,12 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Files;
 
-/// <summary>qian.files 的业务上下文：file_objects 一张租户表（RLS 由 Qian 迁移生成器随迁移输出）。宿主以 AddQianData&lt;FilesDbContext&gt; 装配。</summary>
-public sealed class FilesDbContext(DbContextOptions<FilesDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+/// <summary>qian.files 的业务上下文：file_objects 一张租户表（RLS 由 Qian 迁移生成器随迁移输出）。宿主以 AddKunData&lt;FilesDbContext&gt; 装配。</summary>
+public sealed class FilesDbContext(DbContextOptions<FilesDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     /// <summary>组件 schema（plugin_ 前缀，UseKunSchema 与迁移历史表共用）。</summary>
     public const string Schema = "plugin_qian_files";

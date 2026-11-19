@@ -1,11 +1,11 @@
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Audit;
 
 /// <summary>审计拥有的数据库模型，租户记录受 Data 双层隔离；null 平台行当前不自动开放。</summary>
-public class AuditDbContext : QianDbContext
+public class AuditDbContext : KunStrictDbContext
 {
     /// <summary>普通租户审计上下文；无租户不读取平台记录。</summary>
     public AuditDbContext(DbContextOptions<AuditDbContext> options, ITenantContext tenant) : this(options, tenant, false) { }

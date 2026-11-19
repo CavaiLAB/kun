@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>平台运营服务的独立 seam；调用方必须经平台超管旁路授权。</summary>
 public static class TenantOperations

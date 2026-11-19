@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Kun.Runtime;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>平台运营维护租户管理员的 seam（S1-TEN-010）；调用方必须经平台超管旁路授权。</summary>
 public static class TenantAdministration

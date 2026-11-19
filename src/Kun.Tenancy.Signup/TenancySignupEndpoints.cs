@@ -11,7 +11,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>
 /// 开通申请的两组 HTTP 端点（规格 §5）。申请人接口是公开接口，须挂在身份服务的公开入口上，与认证页族同源，不经业务的租户入口管线；

@@ -6,10 +6,10 @@ using Npgsql;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 // S1-RT-014 验收 1（按 S1-DEC-018 回验 DATA-001）：仓库里 qian.data 唯一清单的代码字段由源生成器派生；宿主按清单的 runtime.entry
-// 装载真实 Provider（不直接 new 具体类型），挂载后的数据会话默认带 AddQianData 的安全装配，组件自身不需要再 opt-in。
+// 装载真实 Provider（不直接 new 具体类型），挂载后的数据会话默认带 AddKunData 的安全装配，组件自身不需要再 opt-in。
 public sealed partial class DataSessionTests
 {
     [Fact]

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Audit;
 using Kun.Runtime;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 // 仅用于已经执行过的操作的补充记录；前置授权审计仍必须成功，不能借此放宽准入。
 internal static partial class TenantAuditCompletion
@@ -15,7 +15,7 @@ internal static partial class TenantAuditCompletion
         catch (Exception error)
         {
             // 不打印异常消息或对象：数据库异常可能包含配置、凭据或审计载荷。
-            CompletionFailed(context.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.AuditCompletion"),
+            CompletionFailed(context.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Tenancy.AuditCompletion"),
                 record.CapabilityId, record.TenantId, record.Resource, record.Result, record.TraceId, record.Id, error.GetType().Name);
         }
     }

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

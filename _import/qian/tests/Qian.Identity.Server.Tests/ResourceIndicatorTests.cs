@@ -25,7 +25,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing.Containers;
@@ -190,7 +190,7 @@ public sealed partial class ResourceIndicatorTests(PostgresFixture postgres) : I
             var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
             builder.WebHost.UseUrls(issuer); builder.Logging.ClearProviders();
             builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext()); builder.Services.AddKunEventBus(_ => { });
-            builder.Services.AddQianData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
+            builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
             builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
             builder.Services.AddAuthentication("qian.identity.signin").AddCookie("qian.identity.signin");
             builder.Services.AddQianIdentityServer(new IdentityServerOptions

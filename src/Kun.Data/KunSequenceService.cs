@@ -8,33 +8,33 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Kun.Errors;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>序号服务的宿主设置。</summary>
-public sealed class QianSequenceOptions
+public sealed class KunSequenceOptions
 {
     /// <summary>计算日期段与周期所用的时区。默认 UTC；面向国内租户时通常设为 Asia/Shanghai。</summary>
     public TimeZoneInfo TimeZone { get; set; } = TimeZoneInfo.Utc;
 }
 
 /// <summary>序号服务的宿主装配。</summary>
-public static class QianSequenceExtensions
+public static class KunSequenceExtensions
 {
     /// <summary>
     /// 登记序号服务及其表所在的 qian.data 系统上下文（schema plugin_qian_data）。<paramref name="configure"/> 只需配置连接（如 UseNpgsql），
     /// schema 由本方法固定；表结构随包内迁移交付，宿主先以 <see cref="IDataMigrator"/> 迁移，启动时只校验。
     /// </summary>
-    public static IServiceCollection AddQianSequences(this IServiceCollection services, Action<IServiceProvider, DbContextOptionsBuilder> configure,
-        Action<QianSequenceOptions>? options = null)
+    public static IServiceCollection AddKunSequences(this IServiceCollection services, Action<IServiceProvider, DbContextOptionsBuilder> configure,
+        Action<KunSequenceOptions>? options = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);
         DataSystemContext.Add(services, configure);
-        var settings = services.AddOptions<QianSequenceOptions>();
+        var settings = services.AddOptions<KunSequenceOptions>();
         if (options is not null) settings.Configure(options);
         services.TryAddSingleton(TimeProvider.System);
-        services.TryAddSingleton<ISequenceService>(sp => new QianSequenceService(sp.GetRequiredService<IServiceScopeFactory>(),
-            sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<TimeProvider>(), sp.GetRequiredService<IOptions<QianSequenceOptions>>()));
+        services.TryAddSingleton<ISequenceService>(sp => new KunSequenceService(sp.GetRequiredService<IServiceScopeFactory>(),
+            sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<TimeProvider>(), sp.GetRequiredService<IOptions<KunSequenceOptions>>()));
         services.AddHostedService<SequenceErrorRegistration>();
         return services;
     }
@@ -44,7 +44,7 @@ public static class QianSequenceExtensions
 /// 序号服务：规则与计数器都按租户隔离（RLS），取号是一条 <c>INSERT … ON CONFLICT DO UPDATE … RETURNING</c>，在自己的连接上自动提交。
 /// 计数器按（规则、修订、作用域、周期）分行，规则修改或周期变化都会从 1 开始。
 /// </summary>
-internal sealed partial class QianSequenceService(IServiceScopeFactory scopes, ITenantContext tenant, TimeProvider clock, IOptions<QianSequenceOptions> options)
+internal sealed partial class KunSequenceService(IServiceScopeFactory scopes, ITenantContext tenant, TimeProvider clock, IOptions<KunSequenceOptions> options)
     : ISequenceService
 {
     private const string Rules = DataSystemDbContext.Schema + ".sequence_rules";
@@ -115,7 +115,7 @@ internal sealed partial class QianSequenceService(IServiceScopeFactory scopes, I
     // 序号属于租户；没有租户上下文时拒绝，不落到平台级共享计数。
     private string RequireTenant() => tenant.TenantId is { Length: > 0 } id
         ? id
-        : throw new QianDataMisconfiguredException("序号服务必须在租户作用域内调用。");
+        : throw new KunDataMisconfiguredException("序号服务必须在租户作用域内调用。");
 
     private static void ValidateCode(string ruleCode)
     {

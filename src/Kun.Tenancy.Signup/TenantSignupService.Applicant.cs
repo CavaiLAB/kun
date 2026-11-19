@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Qian.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 // 申请人一侧（规格 §5.1、§6）：发码与核验、申请人会话、租户号可用性、本人的申请、提交与撤回。
 internal sealed partial class TenantSignupService

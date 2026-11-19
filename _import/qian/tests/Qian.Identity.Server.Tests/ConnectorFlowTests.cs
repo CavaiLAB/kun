@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
 

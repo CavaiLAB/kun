@@ -2,7 +2,7 @@ using Kun.Runtime;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>租户开通端口；调用方必须先完成平台运营授权。</summary>
 public static class TenantProvisioning

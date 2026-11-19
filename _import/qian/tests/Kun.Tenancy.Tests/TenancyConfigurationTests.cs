@@ -1,13 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Qian.Data;
+using Kun.Data;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 
-namespace Qian.Tenancy.Tests;
+namespace Kun.Tenancy.Tests;
 
 public sealed partial class TenantDirectoryTests
 {

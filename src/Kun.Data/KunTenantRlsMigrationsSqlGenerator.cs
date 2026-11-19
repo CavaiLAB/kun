@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 // Npgsql 的公开 SQL 生成器构造器要求此 options 接口；升级 Npgsql 时由真库生成测试复验。
 #pragma warning disable EF1001
-internal sealed class QianPostgresMigrationsSqlGenerator(MigrationsSqlGeneratorDependencies dependencies,
+internal sealed class KunTenantRlsMigrationsSqlGenerator(MigrationsSqlGeneratorDependencies dependencies,
     INpgsqlSingletonOptions options) : NpgsqlMigrationsSqlGenerator(dependencies, options)
 #pragma warning restore EF1001
 {
@@ -23,7 +23,7 @@ internal sealed class QianPostgresMigrationsSqlGenerator(MigrationsSqlGeneratorD
         if (entities.Length == 0)
         {
             if (table is null || operation.Columns.Any(column => column.Name == "tenant_id" && !column.IsNullable))
-                throw new QianDataMisconfiguredException("生成租户表迁移时必须提供带 Qian 租户标记的目标模型。");
+                throw new KunDataMisconfiguredException("生成租户表迁移时必须提供带 Qian 租户标记的目标模型。");
             base.Generate(operation, model, builder, terminate);
             return;
         }
@@ -32,7 +32,7 @@ internal sealed class QianPostgresMigrationsSqlGenerator(MigrationsSqlGeneratorD
         var columns = entities.Select(entity => entity.FindProperty(nameof(IMultiTenant.TenantId))?.GetColumnName(store))
             .Distinct(StringComparer.Ordinal).ToArray();
         if (columns.Length != 1 || columns[0] is null)
-            throw new QianDataMisconfiguredException("租户表必须具有一致的 TenantId 列映射。");
+            throw new KunDataMisconfiguredException("租户表必须具有一致的 TenantId 列映射。");
         base.Generate(operation, model, builder, terminate);
         if (!terminate) builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
         var name = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema);

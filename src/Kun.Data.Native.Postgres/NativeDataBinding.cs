@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Data.Native.Postgres;
+namespace Kun.Data.Native.Postgres;
 
 /// <summary>宿主批准的连接用途，不能由请求或插件 JSON 改变。</summary>
 public enum NativeDataAccess
@@ -26,7 +26,7 @@ public sealed record NativeDataBinding(string Name, string Role, NativeDataAcces
 public static class NativeDataHosting
 {
     /// <summary>登记一个绑定；重复名字、缺表或非保护表达式拒绝，角色与数据库的真实安全属性在挂载时验证。</summary>
-    public static IServiceCollection AddQianNativeData(this IServiceCollection services, NativeDataBinding binding)
+    public static IServiceCollection AddKunNativeData(this IServiceCollection services, NativeDataBinding binding)
     {
         ArgumentNullException.ThrowIfNull(services); ArgumentNullException.ThrowIfNull(binding);
         if (!Name(binding.Name) || !Name(binding.Role) || binding.ConnectionString is null || !Enum.IsDefined(binding.Access) ||

@@ -3,21 +3,21 @@
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Tenancy.Signup.Abstractions/Qian.Tenancy.Signup.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Tenancy.Signup.Abstractions/Kun.Tenancy.Signup.Abstractions.csproj" />
     <!-- 开通只经 qian.tenancy 的开通编排、状态机与目录端口；账号只经身份组件的账号端口。都只引用 Definition。 -->
-    <ProjectReference Include="../Qian.Tenancy.Abstractions/Qian.Tenancy.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Capabilities.Abstractions/Qian.Capabilities.Abstractions.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Capabilities.Abstractions/Qian.Capabilities.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Qian.Tenancy.Signup.Tests" />
-    <None Include="../../plugins/qian.tenancy.signup/**/*" Pack="true" PackagePath="qian/%(RecursiveDir)%(Filename)%(Extension)" />
+    <InternalsVisibleTo Include="Kun.Tenancy.Signup.Tests" />
+    <None Include="../../_import/qian/plugins/qian.tenancy.signup/**/*" Pack="true" PackagePath="qian/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

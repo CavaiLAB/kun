@@ -1,4 +1,4 @@
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>
 /// 需要数值主键处使用的雪花 ID：41 位毫秒时间戳、10 位 WorkerId、12 位序列。WorkerId 经 Redis 租约分配，

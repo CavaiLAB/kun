@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>状态机 seam 与进程内审批事件；不属于 hooks.json 桥接矩阵。</summary>
 public static class TenantLifecycle

@@ -1,6 +1,6 @@
-# Qian.Tenancy.Signup
+# Kun.Tenancy.Signup
 
-租户自助开通的 Provider（组件 `qian.tenancy.signup`，规格 [租户自助开通](../../docs/prd/specs/tenant-signup.md)，S1-TEN-019）：申请人在公开页凭手机号与验证码提交开通申请，平台运营审核，通过后经 `qian.tenancy` 的开通编排建立租户与管理员成员，申请人用自己的密码经统一登录流水线直接登录新租户。Definition 在 [Qian.Tenancy.Signup.Abstractions](../Qian.Tenancy.Signup.Abstractions/README.md)，组件表面在 [plugins/qian.tenancy.signup](../../plugins/qian.tenancy.signup/README.md)。
+租户自助开通的 Provider（组件 `qian.tenancy.signup`，规格 [租户自助开通](../../_import/qian/docs/prd/specs/tenant-signup.md)，S1-TEN-019）：申请人在公开页凭手机号与验证码提交开通申请，平台运营审核，通过后经 `qian.tenancy` 的开通编排建立租户与管理员成员，申请人用自己的密码经统一登录流水线直接登录新租户。Definition 在 [Kun.Tenancy.Signup.Abstractions](../Kun.Tenancy.Signup.Abstractions/README.md)，组件表面在 [plugins/qian.tenancy.signup](../../_import/qian/plugins/qian.tenancy.signup/README.md)。
 
 ## 组件四问
 
@@ -15,18 +15,18 @@
 
 ```csharp
 // 数据：全局表，schema plugin_qian_tenancy_signup；迁移随包提供（与其它带迁移的组件一样由迁移任务或建表脚本执行）。
-builder.Services.AddQianData<TenancySignupDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(TenancySignupDbContext.Schema));
+builder.Services.AddKunData<TenancySignupDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(TenancySignupDbContext.Schema));
 
 // 身份服务的公开入口：申请人接口与公开页走自己的分支，不经业务的租户入口管线。
 app.MapWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path) || http.Request.Path.StartsWithSegments(TenancySignupPagesHosting.PagesPath), branch =>
 {
-    branch.UseQianTenancySignupPages(signupDist);   // packages 的 UI 构建产物，可选
+    branch.UseKunTenancySignupPages(signupDist);   // packages 的 UI 构建产物，可选
     branch.UseRouting();
-    branch.UseEndpoints(endpoints => endpoints.MapQianTenancySignupApplicant(_ => loader.GetContext("tenancy.signup", ScopeKey.Global)));
+    branch.UseEndpoints(endpoints => endpoints.MapKunTenancySignupApplicant(_ => loader.GetContext("tenancy.signup", ScopeKey.Global)));
 });
 
 // 平台运营接口：已认证的平台主体（宿主自己的认证），经网关转发；Authz 超管旁路在同一插件树里时才可用，否则一律 404。
-app.MapQianTenancySignupOperations(_ => loader.GetContext("tenancy.signup", ScopeKey.Global));
+app.MapKunTenancySignupOperations(_ => loader.GetContext("tenancy.signup", ScopeKey.Global));
 ```
 
 挂载前宿主须已登记 `TenancySignupDbContext`（否则装载失败 `PRECONDITION_FAILED`）；组件装载时把 `SIGNUP_*` 错误码登记到宿主的错误码目录。反向代理之后的宿主须先启用转发头：同源核对比较的是请求的协议与主机。

@@ -2,12 +2,12 @@ using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Qian.Data;
+using Kun.Data;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>租户控制面拥有的主档与管理员指针；Membership 内容由 Identity 拥有。</summary>
-public sealed class TenancyDbContext(DbContextOptions<TenancyDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+public sealed class TenancyDbContext(DbContextOptions<TenancyDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     /// <summary>与 Data 的插件 schema 约定一致。</summary>
     public const string Schema = "plugin_qian_tenancy";

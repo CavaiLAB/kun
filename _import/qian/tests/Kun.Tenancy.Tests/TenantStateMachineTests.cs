@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Tenancy.Tests;
+namespace Kun.Tenancy.Tests;
 
 public sealed class TenantStateMachineTests
 {

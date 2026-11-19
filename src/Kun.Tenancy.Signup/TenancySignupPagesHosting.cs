@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>申请人公开页（注册并申请开通 <c>/signup</c>、申请进度 <c>/signup/status</c>）与申请人接口同源的静态托管（规格 §4、§8）。</summary>
 public static class TenancySignupPagesHosting
@@ -15,7 +15,7 @@ public static class TenancySignupPagesHosting
     /// 不带扩展名的页面路由（<c>/signup</c>、<c>/signup/status</c> 等）一律回入口 index.html；带扩展名却不存在的资源 404，不回入口页。
     /// HTML 不缓存，全部响应带 nosniff、<c>Referrer-Policy: no-referrer</c> 与 <c>Content-Security-Policy: frame-ancestors 'none'</c>（页面不许被任何来源嵌入）。
     /// </summary>
-    public static IApplicationBuilder UseQianTenancySignupPages(this IApplicationBuilder app, string root)
+    public static IApplicationBuilder UseKunTenancySignupPages(this IApplicationBuilder app, string root)
     {
         ArgumentNullException.ThrowIfNull(app);
         if (string.IsNullOrWhiteSpace(root) || !File.Exists(Path.Combine(root, "index.html"))) throw new ArgumentException("申请人公开页目录必须存在且含 index.html。", nameof(root));

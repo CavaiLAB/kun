@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Qian.Data;
+using Kun.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Kun.Runtime;
@@ -8,7 +8,7 @@ using Kun.Plugin.Sdk;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>qian.tenancy 的目录 Provider，消费 Data；不在全局 DI 偷装另一份租户上下文。</summary>
 public sealed class TenancyPlugin : IKunPlugin

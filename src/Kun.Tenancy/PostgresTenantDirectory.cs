@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Conventions;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Kun.Core.MultiTenancy;
 using Qian.Events;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 internal sealed class PostgresTenantDirectory(IDataService data, ITenantContext tenant) : ITenantDirectory, IDisposable
 {

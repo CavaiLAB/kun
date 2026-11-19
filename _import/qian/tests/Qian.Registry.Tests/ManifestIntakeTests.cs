@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Registry.Tests;

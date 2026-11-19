@@ -4,12 +4,12 @@ using Json.Schema;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
 using Qian.Registry;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Authz.Abstractions;
 
 namespace Qian.Sample.Crm.Tests;

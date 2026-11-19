@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Events;
 using Kun.Errors;
 
-namespace Qian.Data.Abstractions.Tests;
+namespace Kun.Data.Abstractions.Tests;
 
 public sealed class DataContractTests
 {

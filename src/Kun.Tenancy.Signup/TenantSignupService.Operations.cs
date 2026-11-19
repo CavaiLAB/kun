@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Qian.Events;
 using Kun.Errors;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 // 平台运营一侧（规格 §5.2）：列表与计数、详情与自动检查、通过 / 驳回 / 重试。调用方（宿主端点）已完成平台授权与旁路审计。
 internal sealed partial class TenantSignupService

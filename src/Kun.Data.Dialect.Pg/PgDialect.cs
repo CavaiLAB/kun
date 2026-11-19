@@ -6,13 +6,13 @@ using Npgsql;
 using Qian.Config;
 using Kun.Errors;
 
-namespace Qian.Data.Dialect.Pg;
+namespace Kun.Data.Dialect.Pg;
 
 /// <summary>PostgreSQL 方言的宿主装配。</summary>
-public static class QianPgDialectExtensions
+public static class KunPgDialectExtensions
 {
-    /// <summary>登记 PostgreSQL 方言（Data.Dialects:pg）；配合 AddQianDataTypes / AddQianDataConnections 使用。</summary>
-    public static IServiceCollection AddQianPgDialect(this IServiceCollection services)
+    /// <summary>登记 PostgreSQL 方言（Data.Dialects:pg）；配合 AddKunDataTypes / AddKunDataConnections 使用。</summary>
+    public static IServiceCollection AddKunPgDialect(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IDataDialect, PgDialect>());

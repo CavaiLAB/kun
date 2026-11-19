@@ -4,7 +4,7 @@
     <TrimmerSingleWarn>false</TrimmerSingleWarn><InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Data.Native.Postgres/Qian.Data.Native.Postgres.csproj" />
-    <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
   </ItemGroup>
 </Project>

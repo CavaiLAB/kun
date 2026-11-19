@@ -13,7 +13,7 @@ using Kun.Errors;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeData;
 
-namespace Qian.Data.Native.Postgres.Tests;
+namespace Kun.Data.Native.Postgres.Tests;
 
 public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
@@ -465,8 +465,8 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         var services = new ServiceCollection(); services.AddLogging(builder => builder.AddProvider(new DiagnosticLogs(cleanupDiagnostics))); var context = new AsyncLocalTenantContext();
         services.AddSingleton<ITenantContext>(context); services.AddSingleton(ErrorCatalog.CreateDefault());
         var tables = new[] { new NativeDataTable(schema, "items", "native_guard", predicate, predicate) };
-        services.AddQianNativeData(new("tenant", tenantRole, NativeDataAccess.Tenant, _ => ValueTask.FromResult(connection), tables));
-        services.AddQianNativeData(new("platform", platformRole, NativeDataAccess.Platform, _ => ValueTask.FromResult(platform), tables));
+        services.AddKunNativeData(new("tenant", tenantRole, NativeDataAccess.Tenant, _ => ValueTask.FromResult(connection), tables));
+        services.AddKunNativeData(new("platform", platformRole, NativeDataAccess.Platform, _ => ValueTask.FromResult(platform), tables));
         var provider = services.BuildServiceProvider(); var loader = new PluginLoader(provider, provider.GetRequiredService<ILogger<PluginLoader>>());
         var running = new Running(provider, loader, context, schema + ".items", tenantRole, platformRole, connection);
         await running.MountNative();

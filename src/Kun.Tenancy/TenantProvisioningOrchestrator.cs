@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Lifecycle;
 using Qian.Events;
 using Qian.Registry;
@@ -11,7 +11,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 // 每步独立提交；会话级 advisory lock 只串行同一开户，不把外部组件副作用裹进数据库事务。
 // 进程退出会释放锁；running 步骤下次用相同幂等键重试。成功步骤永不重放，skipped 步骤可以补跑。

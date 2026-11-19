@@ -4,11 +4,11 @@ using System.Text.Json;
 using Kun.EntityFrameworkCore.Conventions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 internal sealed class TenantOperationsService(IPluginContext context, PostgresTenantDirectory directory, TenantAdministrationService administration) : ITenantOperations
 {

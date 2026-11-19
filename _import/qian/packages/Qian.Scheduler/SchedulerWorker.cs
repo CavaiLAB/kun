@@ -5,11 +5,11 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Scheduler;
 

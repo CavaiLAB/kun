@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>开通申请状态（规格 §3）；approved、rejected、withdrawn 是终态，状态只进不退。</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<SignupApplicationStatus>))]

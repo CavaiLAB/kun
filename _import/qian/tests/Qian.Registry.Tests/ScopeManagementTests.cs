@@ -23,14 +23,14 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
 using Qian.Registry.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Registry.Tests;
 
@@ -170,7 +170,7 @@ public sealed partial class PatchPersistenceTests
 
     private void AddAuthz(IServiceCollection services, bool checker)
     {
-        services.AddQianData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
+        services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
         services.AddSingleton<IPermissionRegistry, PermissionRegistry>();
         if (checker)
             services.AddSingleton<IPermissionChecker>(sp => new RbacPermissionChecker(sp.GetRequiredService<IDataService>(), sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<IPermissionRegistry>()));

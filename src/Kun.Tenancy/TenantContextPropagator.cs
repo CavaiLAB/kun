@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 /// <summary>复用唯一 ITenantContext；传播字段只携带租户，不授予调用权限。</summary>
 public sealed class TenantContextPropagator(ITenantContext tenant) : ITenantContextPropagator

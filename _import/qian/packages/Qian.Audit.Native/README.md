@@ -1,6 +1,6 @@
 # 原生 PostgreSQL 审计
 
-`Qian.Audit.Native` 是 `qian.audit.native` 的 Provider，依赖 `Qian.Audit.Abstractions`、`Qian.Data.Native.Abstractions` 与 SDK，继续提供原 `IAuditService` / `Audit` 及 `CommandAudit`。唯一声明入口是 `NativeAuditComponent`，`NativeAuditPlugin` 保留程序化组合入口；没有 EF Provider 引用。目录表面为 `.qian-plugin/plugin.json`、代码派生的 `schemas/config.schema.json` 与本主文档链接。它属于 Audit seam 的原生存储与强制审计策略角色，供 DEC-030 的 gateway 原生组合安装；最终 profile 接线由 S1-GW-001 验收。正式 feed 的 `qian add` 安装门尚未完成，清单保留 `x-skeleton`。
+`Qian.Audit.Native` 是 `qian.audit.native` 的 Provider，依赖 `Qian.Audit.Abstractions`、`Kun.Data.Native.Abstractions` 与 SDK，继续提供原 `IAuditService` / `Audit` 及 `CommandAudit`。唯一声明入口是 `NativeAuditComponent`，`NativeAuditPlugin` 保留程序化组合入口；没有 EF Provider 引用。目录表面为 `.qian-plugin/plugin.json`、代码派生的 `schemas/config.schema.json` 与本主文档链接。它属于 Audit seam 的原生存储与强制审计策略角色，供 DEC-030 的 gateway 原生组合安装；最终 profile 接线由 S1-GW-001 验收。正式 feed 的 `qian add` 安装门尚未完成，清单保留 `x-skeleton`。
 
 ## 独立宿主
 
@@ -13,8 +13,8 @@ var tables = new[] {
     new NativeDataTable(NativeAuditStorage.Schema, "audit_entries", NativeAuditStorage.GuardPolicy, guard, guard),
     new NativeDataTable(NativeAuditStorage.Schema, "audit_chain_state", NativeAuditStorage.GuardPolicy, guard, guard)
 };
-services.AddQianNativeData(new("audit_tenant", roles.TenantLogin, NativeDataAccess.Tenant, tenantSecretFactory, tables));
-services.AddQianNativeData(new("audit_platform", roles.PlatformLogin!, NativeDataAccess.Platform, platformSecretFactory, tables));
+services.AddKunNativeData(new("audit_tenant", roles.TenantLogin, NativeDataAccess.Tenant, tenantSecretFactory, tables));
+services.AddKunNativeData(new("audit_platform", roles.PlatformLogin!, NativeDataAccess.Platform, platformSecretFactory, tables));
 ```
 
 NativeData 配置为 `{"connections":["audit_tenant","audit_platform"]}`。Audit 配置为：

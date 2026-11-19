@@ -12,10 +12,10 @@ using Npgsql;
 using Qian.Config;
 using Kun.Errors;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>数据连接档案的宿主设置。</summary>
-public sealed class QianDataConnectionOptions
+public sealed class KunDataConnectionOptions
 {
     /// <summary>解析连接口令所用的宿主密钥策略 ID；须在 AddQianSecrets 的策略中登记，只批准 tenant 作用域的路径（如 data/*）。</summary>
     public string SecretPolicyId { get; set; } = "qian.data";
@@ -34,7 +34,7 @@ public sealed class DataConnectionEgressOptions
     /// <summary>
     /// 一律拒绝的网段，优先于放行网段。缺省含回环、链路本地（含云元数据 169.254.169.254）、100.100.100.200（阿里云元数据）、
     /// 未指定地址、组播与广播，以及 K3s 缺省的 Pod 网段 10.42.0.0/16 与 Service 网段 10.43.0.0/16。
-    /// 宿主环境为 Development 时，AddQianDataConnections 从缺省值中去掉回环两项，便于连本机数据库。
+    /// 宿主环境为 Development 时，AddKunDataConnections 从缺省值中去掉回环两项，便于连本机数据库。
     /// 集群改用了自定义网段时，移除 K3s 两项并追加实际网段；节点网段因部署而异，由部署配置追加。
     /// </summary>
     public IList<string> BlockedNetworks { get; } =
@@ -69,30 +69,30 @@ public sealed class DataConnectionEgressOptions
 }
 
 /// <summary>数据连接档案的宿主装配。</summary>
-public static class QianDataConnectionExtensions
+public static class KunDataConnectionExtensions
 {
     /// <summary>
     /// 登记 <see cref="IDataConnectionRegistry"/> 及其表所在的 qian.data 系统上下文（与序号服务共用，schema plugin_qian_data），
     /// 并登记基准类型目录与方言注册表。<paramref name="configure"/> 只需配置连接；表随包内迁移交付。
-    /// 连通测试经宿主登记的 ISecretResolverFactory（AddQianSecrets）解析口令，方言由 IDataDialect 组件提供（如 AddQianPgDialect）。
+    /// 连通测试经宿主登记的 ISecretResolverFactory（AddQianSecrets）解析口令，方言由 IDataDialect 组件提供（如 AddKunPgDialect）。
     /// 宿主环境为 Development 时，出网检查缺省放行回环（见 <see cref="DataConnectionEgressOptions.BlockedNetworks"/>）。
     /// </summary>
-    public static IServiceCollection AddQianDataConnections(this IServiceCollection services, Action<IServiceProvider, DbContextOptionsBuilder> configure,
-        Action<QianDataConnectionOptions>? options = null)
+    public static IServiceCollection AddKunDataConnections(this IServiceCollection services, Action<IServiceProvider, DbContextOptionsBuilder> configure,
+        Action<KunDataConnectionOptions>? options = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);
-        services.AddQianDataTypes();
+        services.AddKunDataTypes();
         DataSystemContext.Add(services, configure);
-        var settings = services.AddOptions<QianDataConnectionOptions>()
+        var settings = services.AddOptions<KunDataConnectionOptions>()
             .Validate(value => !string.IsNullOrWhiteSpace(value.SecretPolicyId) && value.TestTimeout >= TimeSpan.FromSeconds(1)
                 && value.TestTimeout <= TimeSpan.FromMinutes(1), "SecretPolicyId 不能为空，TestTimeout 须在 1 秒到 1 分钟之间。")
             .Validate(value => value.Egress.IsValid(), "Egress 的网段须写作有效的 CIDR，如 10.0.0.0/8 或 fd00::/8。")
             .ValidateOnStart();
         // 开发环境的缺省值放行回环。它是缺省值的一部分，须先于任何显式配置执行，包括在本方法之前登记的 Configure，
         // 所以插在服务集合最前面；宿主显式把回环加回拒绝网段时，以显式配置为准。
-        services.Insert(0, ServiceDescriptor.Singleton<IConfigureOptions<QianDataConnectionOptions>>(sp =>
-            new ConfigureOptions<QianDataConnectionOptions>(value =>
+        services.Insert(0, ServiceDescriptor.Singleton<IConfigureOptions<KunDataConnectionOptions>>(sp =>
+            new ConfigureOptions<KunDataConnectionOptions>(value =>
             {
                 if (sp.GetService<IHostEnvironment>()?.IsDevelopment() == true) value.Egress.PermitLoopback();
             })));
@@ -100,7 +100,7 @@ public static class QianDataConnectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<IDataConnectionRegistry>(sp => new DataConnectionRegistry(sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<IDataDialectRegistry>(), sp.GetRequiredService<TimeProvider>(),
-            sp.GetRequiredService<IOptions<QianDataConnectionOptions>>()));
+            sp.GetRequiredService<IOptions<KunDataConnectionOptions>>()));
         return services;
     }
 }
@@ -110,7 +110,7 @@ public static class QianDataConnectionExtensions
 /// 用后即释放；任何返回值和错误都不含口令。
 /// </summary>
 internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes, ITenantContext tenant, IDataDialectRegistry dialects,
-    TimeProvider clock, IOptions<QianDataConnectionOptions> options) : IDataConnectionRegistry
+    TimeProvider clock, IOptions<KunDataConnectionOptions> options) : IDataConnectionRegistry
 {
     public async Task<DataConnectionList> ListAsync(CancellationToken cancellationToken = default)
     {
@@ -197,7 +197,7 @@ internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes
 
     // 解析目标主机的全部地址，任一地址被拒即整体拒绝（多条记录或解析结果轮换都绕不过）；之后只连接这些检查过的地址，不再二次解析。
     // IP 字面量（含 127.1、十六进制这类变形写法）按解析后的地址判定，交给方言的也是规范写法；IPv4 映射的 IPv6 地址换成 IPv4。
-    private static async Task<IPAddress[]> ResolveAsync(string host, QianDataConnectionOptions settings, CancellationToken cancellationToken)
+    private static async Task<IPAddress[]> ResolveAsync(string host, KunDataConnectionOptions settings, CancellationToken cancellationToken)
     {
         IPAddress[] addresses;
         if (IPAddress.TryParse(host, out var literal)) addresses = [literal];
@@ -290,7 +290,7 @@ internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes
 
     private void RequireTenant()
     {
-        if (string.IsNullOrEmpty(tenant.TenantId)) throw new QianDataMisconfiguredException("数据连接档案只能在已验证租户的上下文中使用。");
+        if (string.IsNullOrEmpty(tenant.TenantId)) throw new KunDataMisconfiguredException("数据连接档案只能在已验证租户的上下文中使用。");
     }
 
     [GeneratedRegex(@"\A[^\s\p{Cc}]([^\p{Cc}]*[^\s\p{Cc}])?\z", RegexOptions.CultureInvariant)]

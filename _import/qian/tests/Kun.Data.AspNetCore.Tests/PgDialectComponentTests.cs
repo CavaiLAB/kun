@@ -2,11 +2,11 @@ using System.Reflection;
 using System.Text.Json;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data.Dialect.Pg;
+using Kun.Data.Dialect.Pg;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
-namespace Qian.Data.AspNetCore.Tests;
+namespace Kun.Data.AspNetCore.Tests;
 
 public sealed class PgDialectComponentTests
 {
@@ -15,7 +15,7 @@ public sealed class PgDialectComponentTests
     {
         var services = new ServiceCollection();
         services.AddKunEventBus();
-        services.AddQianDataTypes();
+        services.AddKunDataTypes();
         await using var provider = services.BuildServiceProvider();
         await using var loader = new PluginLoader(provider);
         var code = Metadata();
@@ -53,10 +53,10 @@ public sealed class PgDialectComponentTests
     public void 独立宿主重复装配仍只有一个常驻PG方言_不依赖组件挂载(bool dialectFirst)
     {
         var services = new ServiceCollection();
-        if (dialectFirst) services.AddQianPgDialect();
-        services.AddQianDataTypes();
-        services.AddQianPgDialect();
-        services.AddQianPgDialect();
+        if (dialectFirst) services.AddKunPgDialect();
+        services.AddKunDataTypes();
+        services.AddKunPgDialect();
+        services.AddKunPgDialect();
         using var provider = services.BuildServiceProvider();
         var dialect = Assert.IsType<PgDialect>(Assert.Single(provider.GetServices<IDataDialect>()));
         Assert.Same(dialect, provider.GetRequiredService<IDataDialectRegistry>().Find("pg"));
@@ -78,8 +78,8 @@ public sealed class PgDialectComponentTests
     {
         var services = new ServiceCollection();
         services.AddKunEventBus();
-        services.AddQianDataTypes();
-        services.AddQianPgDialect();
+        services.AddKunDataTypes();
+        services.AddKunPgDialect();
         await using var provider = services.BuildServiceProvider();
         await using var loader = new PluginLoader(provider);
         await loader.MountAsync([

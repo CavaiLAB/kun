@@ -5,7 +5,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Data.Native.Postgres;
+namespace Kun.Data.Native.Postgres;
 
 /// <summary>qian.data.native 唯一入口；仅挂载于 global，提供独立 NativeData 键。</summary>
 [KunPlugin("qian.data.native")]

@@ -7,7 +7,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Qian.Lifecycle;
 using Kun.Runtime;

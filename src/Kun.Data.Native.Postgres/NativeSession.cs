@@ -3,7 +3,7 @@ using System.Data.Common;
 using Npgsql;
 using Kun.Runtime;
 
-namespace Qian.Data.Native.Postgres;
+namespace Kun.Data.Native.Postgres;
 
 internal sealed class NativeSession : INativeDataSession
 {

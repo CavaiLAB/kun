@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 /// <summary>真实 PostgreSQL：两个副本同时迁移，只有拿到 advisory lock 的一个执行 DDL；另一个等锁后只校验。</summary>
 public sealed class MigrationCoordinationTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
@@ -23,7 +23,7 @@ public sealed class MigrationCoordinationTests(PostgresFixture postgres) : IClas
         // 迁移前直接启动的副本只校验，发现未应用的迁移即拒绝启动。
         using (var early = Replica(owner, new DdlCounter()))
         {
-            var refused = await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => early.StartAsync(Ct));
+            var refused = await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => early.StartAsync(Ct));
             Assert.Contains("未应用的迁移", refused.Message, StringComparison.Ordinal);
         }
         Assert.False(await SchemaExistsAsync());
@@ -67,7 +67,7 @@ public sealed class MigrationCoordinationTests(PostgresFixture postgres) : IClas
     public async Task 迁移连接同样拒绝超级用户()
     {
         using var host = Replica(postgres.ConnectionString, new DdlCounter());
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => host.Services.GetRequiredService<IDataMigrator>().MigrateAsync(Ct));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.Services.GetRequiredService<IDataMigrator>().MigrateAsync(Ct));
     }
 
     private IHost Replica(string migrationConnection, DdlCounter counter)
@@ -75,8 +75,8 @@ public sealed class MigrationCoordinationTests(PostgresFixture postgres) : IClas
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus();
-        builder.Services.AddQianSequences((_, options) => options.UseNpgsql(postgres.AppConnectionString).AddInterceptors(counter));
-        builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, _) => migrationConnection);
+        builder.Services.AddKunSequences((_, options) => options.UseNpgsql(postgres.AppConnectionString).AddInterceptors(counter));
+        builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, _) => migrationConnection);
         return builder.Build();
     }
 

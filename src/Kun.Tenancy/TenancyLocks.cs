@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 
-namespace Qian.Tenancy;
+namespace Kun.Tenancy;
 
 // 会话级 advisory lock：同一键的开户、开通续跑与管理员替换串行（键形如 tenant:<id>）；进程退出即释放。
 internal static class TenancyLocks

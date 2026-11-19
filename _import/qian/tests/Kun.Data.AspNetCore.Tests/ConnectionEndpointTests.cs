@@ -14,10 +14,10 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using Qian.Config;
 using Qian.Config.Secrets;
-using Qian.Data.Dialect.Pg;
+using Kun.Data.Dialect.Pg;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.AspNetCore.Tests;
+namespace Kun.Data.AspNetCore.Tests;
 
 /// <summary>
 /// 真实 PostgreSQL 与受 RLS 约束的应用角色：数据连接档案按租户隔离、口令只存租户 secretRef；
@@ -71,13 +71,13 @@ public sealed class ConnectionEndpointTests(PostgresFixture postgres) : IClassFi
         builder.Logging.ClearProviders();
         TestIdentity.Add(builder.Services);
         builder.Services.AddKunEventBus();
-        builder.Services.AddQianPgDialect();
-        builder.Services.AddQianDataConnections((_, options) => options.UseNpgsql(postgres.AppConnectionString), options =>
+        builder.Services.AddKunPgDialect();
+        builder.Services.AddKunDataConnections((_, options) => options.UseNpgsql(postgres.AppConnectionString), options =>
         {
             options.TestTimeout = TimeSpan.FromSeconds(3);
             egress(options.Egress);
         });
-        builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, _) => _owner);
+        builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, _) => _owner);
         builder.Services.AddSingleton<ISecretAccessObserver>(_observer);
         builder.Services.AddQianSecrets(new SecretResolverOptions
         {
@@ -95,7 +95,7 @@ public sealed class ConnectionEndpointTests(PostgresFixture postgres) : IClassFi
         });
         var app = builder.Build();
         TestIdentity.Use(app);
-        app.MapQianData();
+        app.MapKunData();
         await Migrated.GetOrAdd(postgres, _ => new Lazy<Task>(() => app.Services.GetRequiredService<IDataMigrator>().MigrateAsync(Ct))).Value;
         await app.StartAsync(Ct);
         return app;

@@ -22,12 +22,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Testing.Containers;
 
-namespace Qian.Tenancy.Tests;
+namespace Kun.Tenancy.Tests;
 
 // 真实 Kestrel、JwtBearer 验签与受 RLS 约束的应用角色；租户范围只由 TenantRequestBoundary 从令牌建立。
 public sealed class TenantHttpBoundaryTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
@@ -71,7 +71,7 @@ public sealed class TenantHttpBoundaryTests(PostgresFixture postgres) : IClassFi
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext()); builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<BoundaryRecordsDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(BoundaryRecordsDbContext.Schema));
+        builder.Services.AddKunData<BoundaryRecordsDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(BoundaryRecordsDbContext.Schema));
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
             options.MapInboundClaims = false;
@@ -151,7 +151,7 @@ public sealed class TenantHttpBoundaryTests(PostgresFixture postgres) : IClassFi
     private sealed record Record(Guid Id, string TenantId, string Text);
 }
 
-internal sealed class BoundaryRecordsDbContext(DbContextOptions<BoundaryRecordsDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+internal sealed class BoundaryRecordsDbContext(DbContextOptions<BoundaryRecordsDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     public const string Schema = "plugin_qian_tenancy_boundary";
     public DbSet<BoundaryRecord> Records => Set<BoundaryRecord>();

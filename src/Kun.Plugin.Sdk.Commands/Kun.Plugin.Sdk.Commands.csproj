@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />

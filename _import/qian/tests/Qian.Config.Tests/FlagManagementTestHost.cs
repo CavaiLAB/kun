@@ -10,8 +10,8 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Config.Apollo;
-using Qian.Data.Native;
-using Qian.Data.Native.Postgres;
+using Kun.Data.Native;
+using Kun.Data.Native.Postgres;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
@@ -44,7 +44,7 @@ internal sealed class FlagManagementTestHost : IAsyncDisposable
         var guard = FeatureFlagDraftStorage.ExpectedGuard(role);
         var services = new ServiceCollection().AddLogging().AddQianConfiguration(_root);
         services.AddSingleton<ICurrentUser>(User).AddSingleton<ISecretResolverFactory>(Secrets).AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
-        services.AddQianNativeData(new(ReceiptBinding, role, NativeDataAccess.Platform, _ => ValueTask.FromResult(platformConnection),
+        services.AddKunNativeData(new(ReceiptBinding, role, NativeDataAccess.Platform, _ => ValueTask.FromResult(platformConnection),
             [new(FeatureFlagDraftStorage.Schema, FeatureFlagDraftStorage.Table, FeatureFlagDraftStorage.GuardPolicy, guard, guard)]));
         services.AddQianFeatureFlagManagement(new Dictionary<string, ApolloFlagManagementBinding>
         { ["primary"] = new(portal, appId, "UAT", "default", "apollo", TokenReference, ReceiptBinding) });

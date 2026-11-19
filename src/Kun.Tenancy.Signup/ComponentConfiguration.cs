@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Errors;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 // 配置声明的代码真相源；组件目录中的 schemas/config.schema.json 由 qian-plugin sync 派生。缺省值与 TenancySignupOptions 一致（单元测试核对）。
 internal static class ComponentConfiguration

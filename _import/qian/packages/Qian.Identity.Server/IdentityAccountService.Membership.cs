@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Identity.Abstractions;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Identity.Server;
 

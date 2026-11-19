@@ -12,7 +12,7 @@
     <ProjectReference Include="../../packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
-    <ProjectReference Include="../../packages/Qian.Data.Native.Postgres/Qian.Data.Native.Postgres.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>

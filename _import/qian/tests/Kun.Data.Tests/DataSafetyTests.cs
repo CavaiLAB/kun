@@ -13,7 +13,7 @@ using Npgsql;
 using Qian.Testing.Containers;
 using Kun.Errors;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
 {
@@ -69,9 +69,9 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
         }
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
-        builder.Services.AddQianData<ProbeContext>((_, options) => options.UseNpgsql(connection).UseKunSchema("plugin_data_safety"));
+        builder.Services.AddKunData<ProbeContext>((_, options) => options.UseNpgsql(connection).UseKunSchema("plugin_data_safety"));
         using var host = builder.Build();
-        var error = await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => host.StartAsync(ct));
+        var error = await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.StartAsync(ct));
         Assert.Equal("DATA_MISCONFIGURED", error.Error.Code.Code);
         Assert.Contains("BYPASSRLS", error.Message, StringComparison.Ordinal);
     }
@@ -88,9 +88,9 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
         var connection = new NpgsqlConnectionStringBuilder(_postgres.ConnectionString) { Username = "data_bypass", Password = password };
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
-        builder.Services.AddQianData<ProbeContext>((_, options) => options.UseNpgsql(connection.ConnectionString).UseKunSchema("plugin_data_safety"));
+        builder.Services.AddKunData<ProbeContext>((_, options) => options.UseNpgsql(connection.ConnectionString).UseKunSchema("plugin_data_safety"));
         using var host = builder.Build();
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => host.StartAsync(ct));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.StartAsync(ct));
     }
 
     [Fact]
@@ -98,24 +98,24 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
-        builder.Services.AddQianData<ProbeContext>((_, options) => options.UseNpgsql(_postgres.ConnectionString).UseKunSchema("plugin_data_safety"));
+        builder.Services.AddKunData<ProbeContext>((_, options) => options.UseNpgsql(_postgres.ConnectionString).UseKunSchema("plugin_data_safety"));
         using var host = builder.Build();
         using var scope = host.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ProbeContext>();
         // 即使没有启动宿主，实际打开应用连接时也不能使用管理员凭据。
-        Assert.Throws<QianDataMisconfiguredException>(() => db.Database.OpenConnection());
+        Assert.Throws<KunDataMisconfiguredException>(() => db.Database.OpenConnection());
         Assert.Equal(System.Data.ConnectionState.Closed, db.Database.GetDbConnection().State);
-        await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => db.Database.OpenConnectionAsync(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => db.Database.OpenConnectionAsync(TestContext.Current.CancellationToken));
         Assert.Equal(System.Data.ConnectionState.Closed, db.Database.GetDbConnection().State);
     }
 
     [Fact]
-    public async Task AddQianData_自动装配_真实数据库按租户过滤()
+    public async Task AddKunData_自动装配_真实数据库按租户过滤()
     {
         var tenant = new AsyncLocalTenantContext();
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(tenant);
-        builder.Services.AddQianData<ProbeContext>((_, options) => options.UseNpgsql(_postgres.AppConnectionString).UseKunSchema("plugin_data_safety"));
+        builder.Services.AddKunData<ProbeContext>((_, options) => options.UseNpgsql(_postgres.AppConnectionString).UseKunSchema("plugin_data_safety"));
         using var host = builder.Build();
         // 启动只校验配置，不建表或执行迁移。
         await host.StartAsync(TestContext.Current.CancellationToken);
@@ -163,16 +163,16 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task AddQianData_缓存键被覆盖_宿主拒绝启动()
+    public async Task AddKunData_缓存键被覆盖_宿主拒绝启动()
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
-        builder.Services.AddQianData<ProbeContext>((_, options) => options
+        builder.Services.AddKunData<ProbeContext>((_, options) => options
             .UseNpgsql(_postgres.AppConnectionString)
             .UseKunSchema("plugin_data_safety")
             .ReplaceService<IModelCacheKeyFactory, ModelCacheKeyFactory>());
         using var host = builder.Build();
-        var error = await Assert.ThrowsAsync<QianDataMisconfiguredException>(
+        var error = await Assert.ThrowsAsync<KunDataMisconfiguredException>(
             () => host.StartAsync(TestContext.Current.CancellationToken));
         Assert.Equal("DATA_MISCONFIGURED", error.Error.Code.Code);
         Assert.Contains("KunMultiTenantModelCacheKeyFactory", error.Message, StringComparison.Ordinal);
@@ -190,7 +190,7 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
             options.AddInterceptors(new TenantRlsConnectionInterceptor(tenant, NullLogger<TenantRlsConnectionInterceptor>.Instance),
                 new TenantRlsTransactionInterceptor(tenant));
         if (factory) options.ReplaceService<IModelCacheKeyFactory, KunMultiTenantModelCacheKeyFactory>();
-        Assert.Throws<QianDataMisconfiguredException>(() => new ProbeContext(options.Options, tenant));
+        Assert.Throws<KunDataMisconfiguredException>(() => new ProbeContext(options.Options, tenant));
     }
 
     public sealed class Probe
@@ -201,7 +201,7 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
     }
 
     public sealed class ProbeContext(DbContextOptions<ProbeContext> options, ITenantContext tenant)
-        : QianDbContext(options, tenant)
+        : KunStrictDbContext(options, tenant)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

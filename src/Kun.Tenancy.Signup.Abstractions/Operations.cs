@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>运营列表的筛选与分页；关键字匹配申请编号、企业名称、租户号与联系人姓名。</summary>
 public sealed record SignupApplicationQuery(int Skip = 0, int Take = 50)

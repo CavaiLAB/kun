@@ -20,7 +20,7 @@ using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Registry.Tests;
 

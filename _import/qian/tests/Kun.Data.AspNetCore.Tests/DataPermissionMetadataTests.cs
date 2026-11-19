@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Data.Dialect.Pg;
+using Kun.Data.Dialect.Pg;
 
-namespace Qian.Data.AspNetCore.Tests;
+namespace Kun.Data.AspNetCore.Tests;
 
 /// <summary>端点实际要求的权限点必须在 plugins/qian.data/metadata 声明，元数据符合 authz Schema，默认角色只授予声明过的权限点。</summary>
 public sealed class DataPermissionMetadataTests
@@ -31,9 +31,9 @@ public sealed class DataPermissionMetadataTests
         builder.WebHost.UseTestServer();
         builder.Logging.ClearProviders();
         TestIdentity.Add(builder.Services);
-        builder.Services.AddQianDataTypes().AddQianPgDialect();
+        builder.Services.AddKunDataTypes().AddKunPgDialect();
         await using var app = builder.Build();
-        app.MapQianData();
+        app.MapKunData();
         var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).OfType<RouteEndpoint>().ToArray();
         Assert.Equal(8, endpoints.Length);
         Assert.All(endpoints, endpoint => Assert.Contains(Assert.Single(endpoint.Metadata.GetOrderedMetadata<RequiresPermissionAttribute>()).Permission, declared));

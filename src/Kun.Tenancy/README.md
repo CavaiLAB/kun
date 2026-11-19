@@ -1,12 +1,12 @@
-# Qian.Tenancy
+# Kun.Tenancy
 
-租户主档目录与严格上下文传播 Provider；Definition 为 Qian.Tenancy.Abstractions。权威设计为 ADR-004、PRD §7.3；主档、开通、运营接口、状态、配置与配额分别按 S1-TEN-001/003/006/002/004 验收。
+租户主档目录与严格上下文传播 Provider；Definition 为 Kun.Tenancy.Abstractions。权威设计为 ADR-004、PRD §7.3；主档、开通、运营接口、状态、配置与配额分别按 S1-TEN-001/003/006/002/004 验收。
 
 ## 组件与表面
 
 代码目录包含 Provider、租户入口边界、传播器、gRPC 适配器、主档上下文及内部持久化实现。TenancyPlugin 消费 Data、提供 Tenancy 服务键，目录挂在 global scope，供 Identity 等可信服务读取最小投影；不把联系方式、管理员、连接凭据或完整租户列表暴露给匿名调用方。物理 schema 遵循 Data 的插件命名规则，使用 plugin_qian_tenancy。
 
-默认目标为 platform profile。管理员维护已由 S1-TEN-010 交付（见下文）；权益授予（S1-TEN-015）、拆分部署下的 Identity 联调（S1-IDP-012）和 qian add tenancy（S1-RT-040）尚未完成（包已随 0.1.0 发到 GitHub Packages，R93）。plugins/qian.tenancy 已去掉 x-skeleton（R144 ③）：平台镜像预装、经[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)装配是它的安装与启动路径（S1-DEP-009），独立宿主经 qian add 安装仍待 S1-RT-040。主档目录先提供稳定端口，避免 Identity 登录前查目录依赖尚未创建的 Membership。
+默认目标为 platform profile。管理员维护已由 S1-TEN-010 交付（见下文）；权益授予（S1-TEN-015）、拆分部署下的 Identity 联调（S1-IDP-012）和 qian add tenancy（S1-RT-040）尚未完成（包已随 0.1.0 发到 GitHub Packages，R93）。plugins/qian.tenancy 已去掉 x-skeleton（R144 ③）：平台镜像预装、经[平台生产宿主](../../_import/qian/hosts/Qian.Platform.Host/README.md)装配是它的安装与启动路径（S1-DEP-009），独立宿主经 qian add 安装仍待 S1-RT-040。主档目录先提供稳定端口，避免 Identity 登录前查目录依赖尚未创建的 Membership。
 
 ## 主档存储
 
@@ -26,7 +26,7 @@ TenantContextPropagator 从当前上下文写入 JSON 信封/作业参数或文�
 
 平台级事件（信封 tenant_id 为 null，如 lifecycle.plugin.activated.v1）不经传播器，也不另设通道。它们与租户事件同走 qian.events，按 subject 进各订阅队列。订阅默认拒绝，转入死信（原因 platform_event）；只有显式 acceptPlatformEvents 的订阅派发，派发时不开租户作用域，handler 内 ITenantContext 为空。不另建平台 exchange 的理由：exchange 或队列不是信任边界，持有 broker 发布凭据的服务能发往任何 exchange，真正的闸门是订阅级显式放行与不开租户作用域。这一口径由 S1-EVT-004 定，产品负责人 2026-10-23 确认。
 
-profile 宿主是否登记传播器（S1-EVT-004，产品负责人 2026-10-23 确认）：组合包含 qian.tenancy 的 profile 宿主接事件订阅器时登记 ITenantContextPropagator（本包的 TenantContextPropagator），与参考宿主一致，生产宿主与 gRPC、作业共用同一份判定。目前装 qian.events 的只有 platform 与 identity，两者都含 qian.tenancy。不装 qian.tenancy 的订阅宿主走订阅器的 Kun ITenantContext.BeginScope 回退分支，判定与传播器相同，见 [Qian.Events「租户回灌」](../Qian.Events/README.md#租户回灌)。
+profile 宿主是否登记传播器（S1-EVT-004，产品负责人 2026-10-23 确认）：组合包含 qian.tenancy 的 profile 宿主接事件订阅器时登记 ITenantContextPropagator（本包的 TenantContextPropagator），与参考宿主一致，生产宿主与 gRPC、作业共用同一份判定。目前装 qian.events 的只有 platform 与 identity，两者都含 qian.tenancy。不装 qian.tenancy 的订阅宿主走订阅器的 Kun ITenantContext.BeginScope 回退分支，判定与传播器相同，见 [Qian.Events「租户回灌」](../../_import/qian/packages/Qian.Events/README.md#租户回灌)。
 
 TenantGrpcClientInterceptor 从当前上下文为四类 RPC 写入 tenant_id，不覆盖调用方已有的冲突或重复字段，也不修改可复用的原始 Metadata。TenantGrpcServerInterceptor 在宿主 JWT 验签后比较 claim 与元数据，再进入业务处理器；unary、服务端流、客户端流和双向流都使用同一边界。拒绝时返回 gRPC Unauthenticated，并在 qian-error-bin 二进制 trailer 中附带由 ErrorCatalog 生成的冻结 ErrorDetail JSON。宿主仍须配置认证和标准 HTTP 错误管道，适配器不自行签发令牌。
 
@@ -36,7 +36,7 @@ TenantGrpcClientInterceptor 从当前上下文为四类 RPC 写入 tenant_id，�
 
 使用共用 PostgreSQL 16 fixture 和受限应用角色验证真实目录写入、两宿主同号竞争、编辑冲突、租户过滤与原生 SQL RLS；通过真实 Data/Runtime/Tenancy 插件装载验证目录生命周期。HTTP 边界单元测试使用已认证 ClaimsPrincipal 测试宿主管道；另有真实 Kestrel、JwtBearer 验签与受 RLS 约束的应用角色集成测试：A 的令牌请求 B 的记录 id 与不存在的 id 一样返回 404，X-Tenant-Id 不能切换租户，无令牌、缺 tenant_id 或签名被篡改的请求在处理器之前被拒。两类测试都不代表真实 Qian Identity 的签发或管理员登录。JSON/元数据序列化往返验证通用传播逻辑；另外已用真实 Kestrel HTTP/2 与 gRPC 客户端验证四种 RPC、双租户并发、24 组非法入口和错误详情。测试令牌由临时 RSA 密钥签发并经 JwtBearer 完整验签，这是传输适配器集成测试，不代表已完成真实 Qian Identity 的签发/管理员登录验收。事件消费端已由 Qian.Events 订阅器接通（S1-EVT-002，口径见上文 R122）；作业执行器尚未接通。
 
-按裁决 R81，TEN-001 的验收收口为上述 HTTP 租户边界、gRPC 对端传播与「目标租户不经请求体」：运营后台页面归 TEN-005，管理员登录归 IDP-003，事件消费端回灌归 EVT-002，作业执行器归 SCH-002。HTTP 运营接口已由 S1-TEN-006 发布：Qian.Tenancy.AspNetCore.MapQianTenancy(source) 提供 GET/POST /api/tenancy/tenants、PUT /api/tenancy/tenants/{id}，source 返回 global qian.tenancy 的实际上下文；宿主须排除这组路由的 TenantRequestBoundary，并配置 JwtBearer、ICurrentUser 与 ErrorDetail 管道。平台主体经 ISuperadminBypass 放行后写平台审计链 bypass=superadmin；租户主体 403，无凭据 401。状态迁移、开户编排、租户设置分别归 TEN-002/003/004；不以目录基础实现关闭这些任务。
+按裁决 R81，TEN-001 的验收收口为上述 HTTP 租户边界、gRPC 对端传播与「目标租户不经请求体」：运营后台页面归 TEN-005，管理员登录归 IDP-003，事件消费端回灌归 EVT-002，作业执行器归 SCH-002。HTTP 运营接口已由 S1-TEN-006 发布：Kun.Tenancy.AspNetCore.MapKunTenancy(source) 提供 GET/POST /api/tenancy/tenants、PUT /api/tenancy/tenants/{id}，source 返回 global qian.tenancy 的实际上下文；宿主须排除这组路由的 TenantRequestBoundary，并配置 JwtBearer、ICurrentUser 与 ErrorDetail 管道。平台主体经 ISuperadminBypass 放行后写平台审计链 bypass=superadmin；租户主体 403，无凭据 401。状态迁移、开户编排、租户设置分别归 TEN-002/003/004；不以目录基础实现关闭这些任务。
 
 ## 命令执行入口
 
@@ -66,7 +66,7 @@ POST 复用 CreateTenant，Administrator 为必填管理员指针，id 由服务
 
 pending 可激活为 trial/active；有效期到期由扫描迁移到 grace；suspend 记录当前 S1 状态，resume 恢复原状态。重复同目标操作不重写状态或再发集成事件；非法迁移返回 409 TENANCY_STATE_CONFLICT。POST /api/tenancy/tenants/{id}:activate、:suspend、:resume 与 GET /api/tenancy/meta/state-machine 复用运营超管旁路。审批使用 TenantLifecycle.Approving 的进程内 serial 事件，无监听器放行、任一 false 否决，不加入 hooks.json 矩阵。监听器不得递归请求同一租户迁移。purge 只在元数据保留 S3 的 destructive + humanOnly 描述，不发布执行入口；humanOnly 按 R52 是 agent.expose=false。
 
-主档创建、激活、冻结、恢复、到期分别在同一数据库事务发出 tenant.created/activated/suspended/resumed/expired.v1；宿主必须在唯一的 Kun 事件登记与 Mediator 登记中调用 RegisterTenancyEvents、AddQianTenancyEvents，并装配 AddQianEvents。缺少领域事件处理器时保存回滚，不会留无事件的状态。状态迁移端点的审计口径为授权旁路的平台链记录 + 同事务 Outbox 事件，不另写租户链状态审计；meta/state-machine 也仅允许平台主体通过同一超管授权读取。tenant.created.v1 与开通的进程内 tenant/provisioned 分工不变。
+主档创建、激活、冻结、恢复、到期分别在同一数据库事务发出 tenant.created/activated/suspended/resumed/expired.v1；宿主必须在唯一的 Kun 事件登记与 Mediator 登记中调用 RegisterTenancyEvents、AddKunTenancyEvents，并装配 AddQianEvents。缺少领域事件处理器时保存回滚，不会留无事件的状态。状态迁移端点的审计口径为授权旁路的平台链记录 + 同事务 Outbox 事件，不另写租户链状态审计；meta/state-machine 也仅允许平台主体通过同一超管授权读取。tenant.created.v1 与开通的进程内 tenant/provisioned 分工不变。
 
 qian.tenancy/tenant.scan-expired 是真实运行时能力（幂等，按 R107 设置 agent.expose=false，不派生为模型工具；服务主体不受 humanOnly 限制），只接受 global qian.tenancy 或 qian.scheduler 的可信调用，输入为 idempotencyKey 与 limit（1–1000，默认100），拒绝请求体租户字段；扫描平台审计以 job 通道记录服务操作者；每次尝试以同一 attempt、idempotencyKey、TraceId 关联 started 与 success/failure/cancelled 记录，成功记录含 expired 数量。失败可能已完成部分租户迁移，未完成的租户可安全重扫，失败记录不虚报 expired=0。开始审计失败时扫描不执行；收尾审计使用独立 5 秒期限，审计服务本身故障时记录结构化错误日志，不覆盖扫描原异常或已完成结果。每次只处理 active/trial 且 valid_until 已过的租户；重复扫描不新增状态事件。到期业务命令立即403，能力目录按现有过滤语义返回空集合。调度器准点触发、登录与会话吊销仍归 SCH-002、IDP-003/004。
 
@@ -74,7 +74,7 @@ qian.tenancy/tenant.scan-expired 是真实运行时能力（幂等，按 R107 �
 
 ITenantSettings.Get<T>(pluginId, key) 返回 ValueTask，读取当前可信租户的实际 Registry 合成配置；key 支持点或冒号路径。租户配置是 scope_patches 的 config 整体替换，不建立 TenantSetting 表、不逐字段混入旧租户配置。没有覆盖时读取全局条目；缺失键经 Config seam 按 pluginId:key 回退平台配置源（可由 Apollo 提供），仍缺失返回 default。缓存键含租户前缀、最长1秒且有容量上限；真实 registry/entry-mounted 事件立即失效当前宿主缓存，跨宿主通过数据库监听与有界缓存收敛，源宿主退出不影响持久值。
 
-GET/PUT /api/tenancy/tenants/{id}/settings/{plugin} 使用同一平台超管授权与旁路审计。PUT 仅接受 scopes 含 tenant 且已挂载的唯一组件条目，复用 IRegistryService.MountAsync：同一 configSchema、JSON Pointer 错误、expectedRevision 并发与 registry.scope.mounted.v1 事务；应用成功后追加 settings.write 成功审计，只有配置哈希、组件、条目和修订，不记录配置原文。若这条补充审计追加失败，写入和 registry.scope.mounted.v1 已提交，仍返回 200 与已保存修订，结构化日志 Qian.Tenancy.AuditCompletion / 1002 告警（仅能力、租户、资源、结果、TraceId、AuditId、异常类型）。客户端以返回修订继续编辑，旧 expectedRevision 的重试仍返回 409；不能将补充审计故障当成业务写入失败。前置超管授权审计失败仍拒绝操作；配置提交前的校验和并发冲突照常返回错误。读取与注册表授权管理视图中的 config 来自同一合成器。发布 OpenAPI 对 JsonElement 的布尔 Schema 做等价对象展开，以兼容锁定的读取器，default/examples 的实例值保持原样。
+GET/PUT /api/tenancy/tenants/{id}/settings/{plugin} 使用同一平台超管授权与旁路审计。PUT 仅接受 scopes 含 tenant 且已挂载的唯一组件条目，复用 IRegistryService.MountAsync：同一 configSchema、JSON Pointer 错误、expectedRevision 并发与 registry.scope.mounted.v1 事务；应用成功后追加 settings.write 成功审计，只有配置哈希、组件、条目和修订，不记录配置原文。若这条补充审计追加失败，写入和 registry.scope.mounted.v1 已提交，仍返回 200 与已保存修订，结构化日志 Kun.Tenancy.AuditCompletion / 1002 告警（仅能力、租户、资源、结果、TraceId、AuditId、异常类型）。客户端以返回修订继续编辑，旧 expectedRevision 的重试仍返回 409；不能将补充审计故障当成业务写入失败。前置超管授权审计失败仍拒绝操作；配置提交前的校验和并发冲突照常返回错误。读取与注册表授权管理视图中的 config 来自同一合成器。发布 OpenAPI 对 JsonElement 的布尔 Schema 做等价对象展开，以兼容锁定的读取器，default/examples 的实例值保持原样。
 
 主档 quotas 保存 TenantQuotas（users=null 为无限额），CreateTenant/UpdateTenant 支持设置，GET /api/tenancy/tenants/{id}/quota 返回 limits、usersUsed、usageAvailable。Identity 未提供 TenantSettings.UserCounterKey 的 ITenantUserCounter 时，usersUsed=null、usageAvailable=false，不报告成零。ITenantQuota.EnsureCanAddUserAsync 接受服务端统计与已验证成员类别，普通成员和租户管理员计入，平台超管不计；满额复用既有 AuthzErrors.CardinalityUserLimit 原对象（422 CARDINALITY_USER_LIMIT，参数 limit），不重定义全局错误码。计数锁、成员写入同事务与登录消费分别归 IDP-003/006。
 
@@ -98,7 +98,7 @@ standalone 组合包移除从未被运行时消费的 `resolver.mode: single-ten
 
 `POST /api/tenancy/tenants` 的 Location 指向同一平台授权路径下的 `GET /api/tenancy/tenants/{id}`；未知目标统一404。创建请求的 administrator 必填且不可为null，isolation本期只接受row；列表skip≥0，take为1..100（默认50）。实际端点发布上述约束及400/401/403/404/409的ErrorDetail响应，快照使用缩进JSON。
 
-运营入口的组装样例是 [TenantOperationsHost](../../samples/Qian.Sample.Crm/TenantOperationsHost.cs)，由真实Kestrel/JwtBearer托管，复用已经装配的Runtime、Data、Authz和Audit。它与CRM业务入口是独立宿主，不装TenantRequestBoundary；平台主体没有tenant_id，不能经过业务边界再回退成平台。JwtBearer设置MapInboundClaims=false，ICurrentUser只从验签后的SecurityToken建立快照，使用Kun的PrincipalClaims读取并比对sub、tenant_id和principal_kind；请求体、请求头和令牌角色不能授予平台权限。
+运营入口的组装样例是 [TenantOperationsHost](../../_import/qian/samples/Qian.Sample.Crm/TenantOperationsHost.cs)，由真实Kestrel/JwtBearer托管，复用已经装配的Runtime、Data、Authz和Audit。它与CRM业务入口是独立宿主，不装TenantRequestBoundary；平台主体没有tenant_id，不能经过业务边界再回退成平台。JwtBearer设置MapInboundClaims=false，ICurrentUser只从验签后的SecurityToken建立快照，使用Kun的PrincipalClaims读取并比对sub、tenant_id和principal_kind；请求体、请求头和令牌角色不能授予平台权限。
 
 S1-GW-001探针应接入这个运营宿主的监听地址和平台issuer/audience/签名公钥，使用真实平台超管令牌；不能把只开放机器业务请求的CrmCommandApplication地址当作运营入口。生产启动方提供每次解析global qian.tenancy的source函数和完整TokenValidationParameters，装齐Registry/Lifecycle的实际制品、Authz权限目录/专用平台登录及Audit平台链后，再运行TenantOperationsHost.Build(...).RunAsync()。集成测试直接启动同一Host工厂；本任务不声称Identity签发或集群部署已交付。
 
@@ -127,7 +127,7 @@ R113 的处理顺序固定为：认证及平台主体检查 → 请求绑定与�
 
 ## 管理员维护（S1-TEN-010）
 
-运营入口新增五个操作，同在 `MapQianTenancy` 里，沿用 R113 的处理顺序与超管旁路审计，权限点为 `qian.tenancy:admin:<action>`（read / create / assign / reset-credential）：
+运营入口新增五个操作，同在 `MapKunTenancy` 里，沿用 R113 的处理顺序与超管旁路审计，权限点为 `qian.tenancy:admin:<action>`（read / create / assign / reset-credential）：
 
 - `POST /api/tenancy/admin-accounts:lookup`：按手机号、邮箱或用户名查找可任管理员的账号。标识放请求体，不进 URL 与访问日志；不存在、已清除、具备平台访问资格或只靠外部身份登录（见下文）的都是 404。
 - `POST /api/tenancy/admin-accounts`：经 `IIdentityAccounts.CreatePersonAsync` 新建自然人，一个登录标识加初始密码，下次登录强制改密，不建成员。运营新建账号的手机号、邮箱按未验证保存，用这样的账号开户或更换管理员时要带初始密码（见下文「指定账号的初始密码」）。
@@ -170,12 +170,12 @@ R113 的处理顺序固定为：认证及平台主体检查 → 请求绑定与�
 
 ## 本租户摘要（S1-TEN-021）
 
-`GET /api/tenancy/tenants/{id}/summary` 是本组件唯一给租户主体用的接口，供外壳首页显示试用提示、开通引导与企业信息。它同在 `MapQianTenancy` 里，但不走超管旁路：
+`GET /api/tenancy/tenants/{id}/summary` 是本组件唯一给租户主体用的接口，供外壳首页显示试用提示、开通引导与企业信息。它同在 `MapKunTenancy` 里，但不走超管旁路：
 
 - 只收同一租户的人类用户：令牌里的租户须与路径一致，主体类型为 user 且不带 Agent 委托。
 - 平台主体（超管与否）读租户仍走上面的运营接口，有旁路审计，这里一律 403。
 - 其它租户的成员、Agent 与服务主体也是 403，且不区分目标租户是否存在。无凭据 401。
-- 拒绝原因只写结构化日志 Qian.Tenancy.Summary / 1002，不进响应。
+- 拒绝原因只写结构化日志 Kun.Tenancy.Summary / 1002，不进响应。
 
 处理器按已验证令牌进入该租户上下文，再调 `ITenantSummaries.CurrentAsync`（服务键 `TenancySummary`）。端口只认当前租户上下文，没有就是未认证，不能按参数读别的租户。
 
@@ -190,4 +190,4 @@ R113 的处理顺序固定为：认证及平台主体检查 → 请求绑定与�
 
 `plugins/qian.tenancy/.qian-plugin/plugin.json` 的稳定入口是 `TenancyComponent`，允许 global scope，依赖 `Data`，提供 租户目录、设置、运营、管理员维护、本租户摘要、配额、状态机、开户与 `CommandTenancy`。固定委托无参 `TenancyPlugin`。扫描到期租户的工具由实现共用的静态 `TenantExpiryCapability.Definition` 派生；可执行绑定属于 SDK 能力协议，不伪装成普通服务键。
 
-入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。
+入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../_import/qian/hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。

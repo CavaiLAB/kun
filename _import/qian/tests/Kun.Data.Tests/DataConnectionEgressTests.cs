@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Options;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 /// <summary>
 /// 连通测试的出网约束（不需要数据库）：缺省拒绝回环、链路本地、云元数据、未指定、组播与广播地址，以及 K3s 的 Pod / Service 网段，
@@ -108,7 +108,7 @@ public sealed class DataConnectionEgressTests
         Assert.True(parameter.Permits(IPAddress.IPv6Loopback));
 
         // 运维整体替换拒绝网段（其中含 ::1），且这条配置登记在装配之前：开发环境的缺省值不能改动它。
-        var before = Configured(Environments.Development, before: services => services.Configure<QianDataConnectionOptions>(options =>
+        var before = Configured(Environments.Development, before: services => services.Configure<KunDataConnectionOptions>(options =>
         {
             options.Egress.BlockedNetworks.Clear();
             options.Egress.BlockedNetworks.Add("::1/128");
@@ -118,7 +118,7 @@ public sealed class DataConnectionEgressTests
         Assert.True(before.Permits(IPAddress.Loopback));
 
         var after = Configured(Environments.Development,
-            after: services => services.Configure<QianDataConnectionOptions>(options => options.Egress.BlockedNetworks.Add("127.0.0.0/8")));
+            after: services => services.Configure<KunDataConnectionOptions>(options => options.Egress.BlockedNetworks.Add("127.0.0.0/8")));
         Assert.False(after.Permits(IPAddress.Loopback));
     }
 
@@ -131,31 +131,31 @@ public sealed class DataConnectionEgressTests
         foreach (var allowed in new[] { false, true })
         {
             var services = new ServiceCollection();
-            services.AddQianDataConnections((_, options) => options.UseNpgsql("Host=127.0.0.1"), options =>
+            services.AddKunDataConnections((_, options) => options.UseNpgsql("Host=127.0.0.1"), options =>
             {
                 if (allowed) options.Egress.AllowedNetworks.Add(network);
                 else options.Egress.BlockedNetworks.Add(network);
             });
             using var provider = services.BuildServiceProvider();
-            var error = Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IOptions<QianDataConnectionOptions>>().Value);
+            var error = Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IOptions<KunDataConnectionOptions>>().Value);
             Assert.Contains("CIDR", error.Message, StringComparison.Ordinal);
         }
     }
 
     /// <summary>
     /// 按宿主环境装配数据连接档案，取出生效的出网约束。environment 为 null 表示宿主没有登记 IHostEnvironment；
-    /// before / after 在 AddQianDataConnections 之前 / 之后登记服务。
+    /// before / after 在 AddKunDataConnections 之前 / 之后登记服务。
     /// </summary>
     private static DataConnectionEgressOptions Configured(string? environment, Action<IServiceCollection>? before = null,
-        Action<IServiceCollection>? after = null, Action<QianDataConnectionOptions>? options = null)
+        Action<IServiceCollection>? after = null, Action<KunDataConnectionOptions>? options = null)
     {
         var services = new ServiceCollection();
         if (environment is not null)
             services.AddSingleton<IHostEnvironment>(new HostingEnvironment { EnvironmentName = environment, ApplicationName = "qian-tests" });
         before?.Invoke(services);
-        services.AddQianDataConnections((_, builder) => builder.UseNpgsql("Host=127.0.0.1"), options);
+        services.AddKunDataConnections((_, builder) => builder.UseNpgsql("Host=127.0.0.1"), options);
         after?.Invoke(services);
         using var provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IOptions<QianDataConnectionOptions>>().Value.Egress;
+        return provider.GetRequiredService<IOptions<KunDataConnectionOptions>>().Value.Egress;
     }
 }

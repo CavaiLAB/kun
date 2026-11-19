@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Qian.Testing.Containers;
 using RabbitMQ.Client;
 
@@ -175,7 +175,7 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(events => events.Register(PingSent.Type, TestEventJson.Default.PingSent));
-        builder.Services.AddQianData<RelayContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(schema));
+        builder.Services.AddKunData<RelayContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(schema));
         builder.Services.AddQianEvents(options =>
         {
             options.RelayInstance = name;
@@ -198,7 +198,7 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         var tenant = new AsyncLocalTenantContext();
         builder.Services.AddSingleton<ITenantContext>(tenant);
         builder.Services.AddKunEventBus(events => events.Register(PingSent.Type, TestEventJson.Default.PingSent));
-        builder.Services.AddQianData<RelayContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(schema));
+        builder.Services.AddKunData<RelayContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(schema));
         builder.Services.AddQianEvents();
         using var host = builder.Build();
         var data = host.Services.GetRequiredService<IDataService>();
@@ -222,7 +222,7 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<RelayContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(schema));
+        builder.Services.AddKunData<RelayContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(schema));
         using var host = builder.Build();
         using var scope = host.Services.CreateScope();
         var create = scope.ServiceProvider.GetRequiredService<RelayContext>().Database.GenerateCreateScript();
@@ -324,5 +324,5 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         }
     }
 
-    public sealed class RelayContext(DbContextOptions<RelayContext> options, ITenantContext tenant) : QianDbContext(options, tenant);
+    public sealed class RelayContext(DbContextOptions<RelayContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant);
 }

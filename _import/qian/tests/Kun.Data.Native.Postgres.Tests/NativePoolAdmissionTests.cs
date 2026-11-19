@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using Npgsql;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.Native.Postgres.Tests;
+namespace Kun.Data.Native.Postgres.Tests;
 
 public sealed class NativePoolAdmissionTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

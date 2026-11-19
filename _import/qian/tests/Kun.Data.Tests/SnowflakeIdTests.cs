@@ -4,7 +4,7 @@ using Kun.Errors;
 using Qian.Testing.Containers;
 using StackExchange.Redis;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 /// <summary>真实 Redis：WorkerId 租约在副本间互斥，正常停止与崩溃后的编号都能回收复用，复用后不产生重复 ID。</summary>
 public sealed class SnowflakeIdTests(RedisFixture redis) : IClassFixture<RedisFixture>, IAsyncLifetime
@@ -112,7 +112,7 @@ public sealed class SnowflakeIdTests(RedisFixture redis) : IClassFixture<RedisFi
         var builder = Host.CreateApplicationBuilder();
         if (clock is not null) builder.Services.AddSingleton(clock);
         builder.Services.AddSingleton<IConnectionMultiplexer>(await ConnectionMultiplexer.ConnectAsync(redis.ConnectionString));
-        builder.Services.AddQianSnowflakeIds(options =>
+        builder.Services.AddKunSnowflakeIds(options =>
         {
             options.LeaseDuration = Lease;
             options.RenewInterval = TimeSpan.FromMilliseconds(200);

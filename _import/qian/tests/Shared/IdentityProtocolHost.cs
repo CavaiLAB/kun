@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing.Containers;
@@ -61,7 +61,7 @@ internal static class IdentityProtocolHost
         builder.WebHost.UseUrls(address); builder.Logging.ClearProviders(); builder.Logging.SetMinimumLevel(LogLevel.Trace);
         var logs = new ProtocolLogs(); builder.Logging.AddProvider(logs);
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext()); builder.Services.AddKunEventBus(_ => { });
-        builder.Services.AddQianData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
+        builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddAuthentication("qian.identity.signin").AddCookie("qian.identity.signin");
         var web = new OpenIddictApplicationDescriptor { ClientId = "web", ClientSecret = secret, ClientType = ClientTypes.Confidential, ConsentType = ConsentTypes.Implicit };

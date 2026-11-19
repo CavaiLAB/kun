@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
 using Kun.Plugin.Sdk;
@@ -14,7 +14,7 @@ using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Sample.Crm;
 using Qian.Surfaces;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Dev.TenantOps;
 

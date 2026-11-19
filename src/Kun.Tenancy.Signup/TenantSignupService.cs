@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 // 开通申请服务。申请人一侧只认本组件的申请人会话（令牌只存 SHA-256），运营一侧由宿主端点完成平台授权后调用；
 // 一律拒绝租户上下文：申请发生在租户存在之前，开通编排与状态机也只接受无租户上下文的调用。

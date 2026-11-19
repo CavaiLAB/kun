@@ -2,7 +2,7 @@ using Kun.EntityFrameworkCore;
 using Kun.EventBus.Outbox;
 using Kun.Runtime;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>数据 seam 的稳定服务键；业务组件只依赖 Definition。</summary>
 public static class DataDefinition
@@ -18,11 +18,11 @@ public static class DataDefinition
 public interface IDataService
 {
     /// <summary>打开已由组件注册的上下文；调用方负责释放会话。</summary>
-    ValueTask<IDataSession<TContext>> OpenAsync<TContext>(CancellationToken cancellationToken = default) where TContext : QianDbContext;
+    ValueTask<IDataSession<TContext>> OpenAsync<TContext>(CancellationToken cancellationToken = default) where TContext : KunStrictDbContext;
 }
 
 /// <summary>同一上下文中的业务变更、领域通知与 Outbox 保存边界。</summary>
-public interface IDataSession<out TContext> : IUnitOfWork, IAsyncDisposable where TContext : QianDbContext
+public interface IDataSession<out TContext> : IUnitOfWork, IAsyncDisposable where TContext : KunStrictDbContext
 {
     /// <summary>此会话独占的业务上下文；不能跨线程并发使用。</summary>
     TContext Context { get; }
@@ -40,9 +40,9 @@ public interface IOutboxBufferBinding
     IntegrationEventBuffer Buffer { get; }
 }
 
-/// <summary>宿主经 AddQianData 登记的全部业务上下文；Outbox 投递等宿主级组件据此逐个处理各上下文的表。</summary>
+/// <summary>宿主经 AddKunData 登记的全部业务上下文；Outbox 投递等宿主级组件据此逐个处理各上下文的表。</summary>
 public interface IDataContextCatalog
 {
-    /// <summary>登记顺序的上下文类型，均继承 <see cref="QianDbContext"/>。</summary>
+    /// <summary>登记顺序的上下文类型，均继承 <see cref="KunStrictDbContext"/>。</summary>
     IReadOnlyList<Type> ContextTypes { get; }
 }

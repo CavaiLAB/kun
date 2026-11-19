@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Sample.Crm;
@@ -102,8 +102,8 @@ public sealed partial class NativeAuditStoreTests
         var connection = new NpgsqlConnectionStringBuilder(postgres.ConnectionString) { Username = role, Password = password }.ConnectionString;
         var tenant = new AsyncLocalTenantContext(); var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
-        builder.Services.AddQianData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(AuditDbContext.Schema));
         using var oldHost = builder.Build(); await oldHost.StartAsync(Ct);
         using (var scope = oldHost.Services.CreateScope())
         {
@@ -150,7 +150,7 @@ public sealed partial class NativeAuditStoreTests
     private static IHost BusinessHost(AsyncLocalTenantContext tenant, string connection)
     {
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(); builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<CrmDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(CrmDbContext.Schema)); return builder.Build();
+        builder.Services.AddKunData<CrmDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(CrmDbContext.Schema)); return builder.Build();
     }
     private async Task PrepareBusiness(IHost host, string role)
     {

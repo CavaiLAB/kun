@@ -1,20 +1,20 @@
-# Qian.Data.AspNetCore
+# Kun.Data.AspNetCore
 
-qian.data 的 HTTP 表面：基准类型目录（全局元数据）与数据连接档案（按租户）。服务实现与装配见 [Qian.Data](../Qian.Data/README.md)，任务见 [S1-DATA-003](../../pm/tasks/S1-DATA-003.md)。
+qian.data 的 HTTP 表面：基准类型目录（全局元数据）与数据连接档案（按租户）。服务实现与装配见 [Kun.Data](../Kun.Data/README.md)，任务见 [S1-DATA-003](../../_import/qian/pm/tasks/S1-DATA-003.md)。
 
 ## 宿主装配
 
 ```csharp
 builder.Services.AddKunErrors();
 builder.Services.AddKunAuthorization();            // 另需登记 IPermissionChecker（如 Qian.Authz）
-builder.Services.AddQianPgDialect();
-builder.Services.AddQianDataConnections((sp, options) => options.UseNpgsql(appConnection));
+builder.Services.AddKunPgDialect();
+builder.Services.AddKunDataConnections((sp, options) => options.UseNpgsql(appConnection));
 var app = builder.Build();
 app.UseKunErrors();
 app.UseAuthentication();
 app.UseKunMultiTenancy();
 app.UseAuthorization();
-app.MapQianData();                                  // 或分别 MapQianDataTypes / MapQianDataConnections
+app.MapKunData();                                  // 或分别 MapKunDataTypes / MapKunDataConnections
 ```
 
 平台模式传入 `PluginEndpointBinding`，端点还要求该组件条目在当前 scope 已挂载（未挂载一律 404）。
@@ -39,4 +39,4 @@ app.MapQianData();                                  // 或分别 MapQianDataType
 
 ## 已知限制
 
-不提供编辑未保存档案时的连通测试。连通测试会从平台出网：`QianDataConnectionOptions.Egress` 在进程内拒绝回环、链路本地、云元数据与 K3s 集群网段等地址（开发环境缺省放行回环），生产环境仍要用 NetworkPolicy 或出口代理限定可达网段，见 [Qian.Data](../Qian.Data/README.md)。
+不提供编辑未保存档案时的连通测试。连通测试会从平台出网：`KunDataConnectionOptions.Egress` 在进程内拒绝回环、链路本地、云元数据与 K3s 集群网段等地址（开发环境缺省放行回环），生产环境仍要用 NetworkPolicy 或出口代理限定可达网段，见 [Kun.Data](../Kun.Data/README.md)。

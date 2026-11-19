@@ -9,7 +9,7 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Kun.Plugin.Sdk;

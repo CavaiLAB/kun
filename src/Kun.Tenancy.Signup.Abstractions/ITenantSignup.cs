@@ -1,4 +1,4 @@
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>
 /// 开通申请服务（规格 §3–§7）。申请人一侧以申请人会话令牌（宿主写在 HttpOnly Cookie 里的原值，服务端只存 SHA-256）识别本人，

@@ -2,10 +2,10 @@ using System.Data;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>在线应用连接只能使用受 RLS 约束的 PostgreSQL 角色；迁移管理员通过独立连接执行 DDL。</summary>
-public sealed class QianApplicationRoleInterceptor : DbConnectionInterceptor
+public sealed class KunApplicationRoleInterceptor : DbConnectionInterceptor
 {
     private const string RoleQuery = "SELECT coalesce(bool_or(rolsuper OR rolbypassrls), true) FROM pg_roles WHERE rolname IN (current_user, session_user)";
 
@@ -46,12 +46,12 @@ public sealed class QianApplicationRoleInterceptor : DbConnectionInterceptor
     {
         ArgumentNullException.ThrowIfNull(connection);
         if (connection.State != ConnectionState.Open)
-            throw new QianDataMisconfiguredException("应用角色校验要求数据库连接已经打开。");
+            throw new KunDataMisconfiguredException("应用角色校验要求数据库连接已经打开。");
     }
 
     private static void EnsureRestricted(object? privileged)
     {
         if (privileged is not false)
-            throw new QianDataMisconfiguredException("在线应用禁止使用超级用户或 BYPASSRLS 角色；请使用独立的受限应用凭据。");
+            throw new KunDataMisconfiguredException("在线应用禁止使用超级用户或 BYPASSRLS 角色；请使用独立的受限应用凭据。");
     }
 }

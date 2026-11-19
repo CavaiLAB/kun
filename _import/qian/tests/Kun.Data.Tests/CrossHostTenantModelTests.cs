@@ -12,7 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Testing.Containers;
 
-namespace Qian.Data.Tests;
+namespace Kun.Data.Tests;
 
 public sealed class CrossHostTenantModelTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
@@ -57,7 +57,7 @@ public sealed class CrossHostTenantModelTests(PostgresFixture postgres) : IClass
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton(tenant); builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<CrossHostContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_cross_host"));
+        builder.Services.AddKunData<CrossHostContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_cross_host"));
         return builder.Build();
     }
 
@@ -67,7 +67,7 @@ public sealed class CrossHostTenantModelTests(PostgresFixture postgres) : IClass
         public string? TenantId { get; set; }
     }
 
-    public sealed class CrossHostContext(DbContextOptions<CrossHostContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+    public sealed class CrossHostContext(DbContextOptions<CrossHostContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
     {
         public DbSet<CrossHostRow> Rows => Set<CrossHostRow>();
         protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.Entity<CrossHostRow>().ToTable("rows");

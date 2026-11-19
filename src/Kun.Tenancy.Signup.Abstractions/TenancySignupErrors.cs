@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Tenancy.Signup;
+namespace Kun.Tenancy.Signup;
 
 /// <summary>开通申请的稳定错误码，归属 qian.tenancy.signup；协议级拒绝复用冻结内置码（RATE_LIMITED、INPUT_INVALID 等）。</summary>
 /// <remarks>发验证码的响应不区分号码是否已注册；核验通过后才告诉申请人「将以既有账号申请」。</remarks>

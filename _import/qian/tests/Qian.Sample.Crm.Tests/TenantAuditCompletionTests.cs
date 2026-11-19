@@ -11,7 +11,7 @@ using Qian.Audit;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;
 
@@ -147,7 +147,7 @@ public abstract partial class CustomerCommandTests
             public bool IsEnabled(LogLevel logLevel) => true;
             public void Log<TState>(LogLevel level, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
             {
-                if (category == "Qian.Tenancy.AuditCompletion" && eventId.Id == 1002 && state is IEnumerable<KeyValuePair<string, object?>> values)
+                if (category == "Kun.Tenancy.AuditCompletion" && eventId.Id == 1002 && state is IEnumerable<KeyValuePair<string, object?>> values)
                 { Assert.Null(exception); Assert.Equal(LogLevel.Error, level); entries.Enqueue(values.ToDictionary(pair => pair.Key, pair => pair.Value)); }
             }
         }

@@ -14,7 +14,7 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Capabilities;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

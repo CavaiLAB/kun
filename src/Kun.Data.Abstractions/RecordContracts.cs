@@ -5,7 +5,7 @@ using Kun.Errors;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Qian.Data;
+namespace Kun.Data;
 
 /// <summary>动态记录规则；主键策略首次保存后不可改，S2 引擎执行这些策略。</summary>
 public sealed record DataRulePolicy(string PrimaryKeyStrategy, bool OptimisticConcurrency, bool SoftDelete,

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Kun.EventBus.RabbitMQ.Consuming;
 
@@ -29,7 +30,6 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
     private readonly RabbitMqOptions _options;
     private readonly IReadOnlyList<SubscriptionRegistration> _subscriptions;
     private readonly ILogger<RabbitMqIntegrationEventSubscriber> _logger;
-    private IChannel? _channel;
 
     internal RabbitMqIntegrationEventSubscriber(
         RabbitMqConnectionProvider connectionProvider,
@@ -109,19 +109,21 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
     private async Task ConsumeUntilStoppedAsync(CancellationToken stoppingToken)
     {
         var connection = await _connectionProvider.GetConnectionAsync(stoppingToken).ConfigureAwait(false);
-        _channel = await connection.CreateChannelAsync(cancellationToken: stoppingToken).ConfigureAwait(false);
+        var channel = await connection.CreateChannelAsync(cancellationToken: stoppingToken).ConfigureAwait(false);
+        // 投递在哪条通道上到达，就在哪条通道上确认：处理器捕获的是本次会话，不是一个会被下一次会话改写的字段。
+        var session = new ConsumeSession(channel);
 
         try
         {
             // Set QoS prefetch.
-            await _channel.BasicQosAsync(
+            await channel.BasicQosAsync(
                 prefetchSize: 0,
                 prefetchCount: _options.PrefetchCount,
                 global: false,
                 cancellationToken: stoppingToken).ConfigureAwait(false);
 
             // Declare main exchange.
-            await _channel.ExchangeDeclareAsync(
+            await channel.ExchangeDeclareAsync(
                 exchange: _options.ExchangeName,
                 type: ExchangeType.Topic,
                 durable: true,
@@ -131,7 +133,7 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
 
             // Declare DLX / DLQ.
             await DeadLetterHandler.DeclareAsync(
-                _channel,
+                channel,
                 _options.ExchangeName,
                 _options.ConsumerName,
                 stoppingToken).ConfigureAwait(false);
@@ -142,7 +144,7 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
                 var queueName = $"{_options.ConsumerName}.{sub.EventTypeId}";
                 var queueArgs = DeadLetterHandler.GetQueueArguments(_options.ExchangeName);
 
-                await _channel.QueueDeclareAsync(
+                await channel.QueueDeclareAsync(
                     queue: queueName,
                     durable: true,
                     exclusive: false,
@@ -150,17 +152,17 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
                     arguments: queueArgs,
                     cancellationToken: stoppingToken).ConfigureAwait(false);
 
-                await _channel.QueueBindAsync(
+                await channel.QueueBindAsync(
                     queue: queueName,
                     exchange: _options.ExchangeName,
                     routingKey: sub.EventTypeId,
                     arguments: null,
                     cancellationToken: stoppingToken).ConfigureAwait(false);
 
-                var consumer = new AsyncEventingBasicConsumer(_channel);
-                consumer.ReceivedAsync += (_, ea) => HandleDeliveryAsync(ea, stoppingToken);
+                var consumer = new AsyncEventingBasicConsumer(channel);
+                consumer.ReceivedAsync += (_, ea) => HandleDeliveryAsync(session, ea, stoppingToken);
 
-                await _channel.BasicConsumeAsync(
+                await channel.BasicConsumeAsync(
                     queue: queueName,
                     autoAck: false,
                     consumer: consumer,
@@ -175,13 +177,43 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
         }
         finally
         {
-            await _channel.CloseAsync(CancellationToken.None).ConfigureAwait(false);
-            _channel.Dispose();
-            _channel = null;
+            // try 只会以异常结束（停止时是取消）：关通道失败只记日志，不盖掉它；通道照样释放。
+            await CloseSessionAsync(session).ConfigureAwait(false);
         }
     }
 
-    private async Task HandleDeliveryAsync(BasicDeliverEventArgs ea, CancellationToken stoppingToken)
+    private async Task CloseSessionAsync(ConsumeSession session)
+    {
+        try
+        {
+            await session.CloseAsync().ConfigureAwait(false);
+        }
+        catch (AlreadyClosedException closed)
+        {
+            // 通道或整条连接已被对端（或网络）关掉：要达到的状态本来就是已关闭。
+            Log.ChannelAlreadyClosed(_logger, closed.ShutdownReason?.ReplyCode ?? 0, closed.ShutdownReason?.ReplyText ?? "");
+        }
+        catch (Exception ex)
+        {
+            Log.ChannelCloseFailed(_logger, ex);
+        }
+        finally
+        {
+            session.Channel.Dispose();
+        }
+    }
+
+    // 确认或拒绝一条投递。通道已开始关闭时不发：没确认的投递在通道关闭时由 RabbitMQ 重新入队，
+    // 处理器已经成功的，幂等记录保证重新投递时不再处理。
+    private async ValueTask SettleAsync(ConsumeSession session, ulong deliveryTag, bool ack, bool requeue)
+    {
+        if (!await session.TrySettleAsync(deliveryTag, ack, requeue).ConfigureAwait(false))
+        {
+            Log.LeftUnsettled(_logger, deliveryTag);
+        }
+    }
+
+    private async Task HandleDeliveryAsync(ConsumeSession session, BasicDeliverEventArgs ea, CancellationToken stoppingToken)
     {
         var routingKey = ea.BasicProperties.Type ?? ea.RoutingKey;
         var deliveryTag = ea.DeliveryTag;
@@ -191,8 +223,7 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
         if (clrType is null)
         {
             Log.UnknownEventType(_logger, routingKey);
-            await _channel!.BasicNackAsync(deliveryTag, multiple: false, requeue: false, CancellationToken.None)
-                .ConfigureAwait(false);
+            await SettleAsync(session, deliveryTag, ack: false, requeue: false).ConfigureAwait(false);
             return;
         }
 
@@ -206,7 +237,7 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
 
         if (!Guid.TryParse(messageId, out var messageGuid))
         {
-            await _channel!.BasicNackAsync(deliveryTag, false, false, CancellationToken.None).ConfigureAwait(false);
+            await SettleAsync(session, deliveryTag, ack: false, requeue: false).ConfigureAwait(false);
             return;
         }
 
@@ -237,7 +268,7 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
             if (deathCount >= _options.MaxDeliveryAttempts)
             {
                 Log.ExceededMaxAttempts(_logger, messageGuid, routingKey, _options.MaxDeliveryAttempts);
-                await RetryOrDeadLetterAsync(ea, stoppingToken).ConfigureAwait(false);
+                await RetryOrDeadLetterAsync(session, ea, stoppingToken).ConfigureAwait(false);
                 return;
             }
 
@@ -246,8 +277,7 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
             if (tenantContext?.IsMultiTenant == true && !TenantIdValidation.IsValid(context.TenantId))
             {
                 // 无租户或非法租户信封不能进入 handler，也不能污染幂等记录。
-                await _channel!.BasicNackAsync(deliveryTag, multiple: false, requeue: false, CancellationToken.None)
-                    .ConfigureAwait(false);
+                await SettleAsync(session, deliveryTag, ack: false, requeue: false).ConfigureAwait(false);
                 return;
             }
             using var tenantScope = tenantContext?.IsMultiTenant == true
@@ -269,17 +299,16 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
                 },
                 cancellationToken: stoppingToken).ConfigureAwait(false);
 
-            await _channel!.BasicAckAsync(deliveryTag, multiple: false, CancellationToken.None)
-                .ConfigureAwait(false);
+            await SettleAsync(session, deliveryTag, ack: true, requeue: false).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            await _channel!.BasicNackAsync(deliveryTag, false, true, CancellationToken.None).ConfigureAwait(false);
+            await SettleAsync(session, deliveryTag, ack: false, requeue: true).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             Log.HandlerError(_logger, ex, messageGuid, routingKey);
-            await RetryOrDeadLetterAsync(ea, stoppingToken).ConfigureAwait(false);
+            await RetryOrDeadLetterAsync(session, ea, stoppingToken).ConfigureAwait(false);
         }
         finally
         {
@@ -287,7 +316,7 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
         }
     }
 
-    private async Task RetryOrDeadLetterAsync(BasicDeliverEventArgs delivery, CancellationToken cancellationToken)
+    private async Task RetryOrDeadLetterAsync(ConsumeSession session, BasicDeliverEventArgs delivery, CancellationToken cancellationToken)
     {
         var eventType = delivery.BasicProperties.Type ?? delivery.RoutingKey;
         var attempt = Math.Min(ReadAttempt(delivery.BasicProperties.Headers), int.MaxValue - 1) + 1;
@@ -320,11 +349,11 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
             await retry.BasicPublishAsync(exhausted ? DeadLetterHandler.GetDlxName(_options.ExchangeName) : "",
                 exhausted ? eventType : queue, mandatory: true, properties, delivery.Body, cancellationToken).ConfigureAwait(false);
             // 重试副本被 broker 确认后，才释放原始未确认消息。
-            await _channel!.BasicAckAsync(delivery.DeliveryTag, false, CancellationToken.None).ConfigureAwait(false);
+            await SettleAsync(session, delivery.DeliveryTag, ack: true, requeue: false).ConfigureAwait(false);
         }
         catch
         {
-            await _channel!.BasicNackAsync(delivery.DeliveryTag, false, true, CancellationToken.None).ConfigureAwait(false);
+            await SettleAsync(session, delivery.DeliveryTag, ack: false, requeue: true).ConfigureAwait(false);
             throw;
         }
     }
@@ -431,5 +460,17 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
         [LoggerMessage(EventId = 35, Level = LogLevel.Warning,
             Message = "Consume session failed — reconnecting in {BackoffSeconds}s.")]
         public static partial void ConsumeSessionFailed(ILogger logger, Exception ex, double backoffSeconds);
+
+        [LoggerMessage(EventId = 36, Level = LogLevel.Debug,
+            Message = "Delivery {DeliveryTag} left unsettled because its channel is closing; RabbitMQ requeues it when the channel closes.")]
+        public static partial void LeftUnsettled(ILogger logger, ulong deliveryTag);
+
+        [LoggerMessage(EventId = 37, Level = LogLevel.Debug,
+            Message = "RabbitMQ consume channel was already closed before shutdown ({ReplyCode} {ReplyText}).")]
+        public static partial void ChannelAlreadyClosed(ILogger logger, ushort replyCode, string replyText);
+
+        [LoggerMessage(EventId = 38, Level = LogLevel.Warning,
+            Message = "Closing the RabbitMQ consume channel failed; the channel is disposed anyway.")]
+        public static partial void ChannelCloseFailed(ILogger logger, Exception ex);
     }
 }

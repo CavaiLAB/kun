@@ -18,7 +18,7 @@
 
 ### Working In This Directory
 
-- **The Outbox contract** (this module defines the shape, `Kun.EntityFrameworkCore` writes, `Kun.EventBus.RabbitMQ` publishes): message row carries `Id`, `EventTypeId` (stable string), `Payload` (JSON), `TraceParent`/`TraceState` (W3C), `OccurredAt`, `PublishedAt`, `Status`. Full design walk-through — type surface, atomicity boundary, publisher pump, rejected alternatives — in [Kun ADR-015 Outbox pattern design](../../docs/adr/kun/ADR-015-Outbox-pattern.md).
+- **The Outbox contract** (the shape is defined in `Kun.EventBus.Abstractions` and type-forwarded from this assembly; `Kun.EntityFrameworkCore` writes, `Kun.EventBus.RabbitMQ` publishes): message row carries `Id`, `EventTypeId` (stable string), `Payload` (JSON), `TraceParent`/`TraceState` (W3C), `OccurredAt`, `PublishedAt`, `Status`. Full design walk-through — type surface, atomicity boundary, publisher pump, rejected alternatives — in [Kun ADR-015 Outbox pattern design](../../docs/adr/kun/ADR-015-Outbox-pattern.md).
 
 ### Testing Requirements
 
@@ -28,4 +28,4 @@ For tests that assert EF-persisted `OutboxMessage` state (e.g. "did the command 
 
 ### Internal
 
-- `Kun.EventBus.Abstractions` — 稳定事件标记、注册与查询端口；原包以类型转发兼容。
+- `Kun.EventBus.Abstractions` — 稳定事件标记、注册与查询端口，Outbox 写入端口与集成事件信封；挪过去的类型由本程序集类型转发。

@@ -189,7 +189,7 @@ internal sealed class AspNetCoreHttpContractSource(IApiDescriptionGroupCollectio
     }
     private static JsonObject Export(Type type, string plugin, JsonSerializerOptions options, JsonObject schemas, bool requestBody = false)
     {
-        var key = "H" + Hash(plugin + ":" + type.AssemblyQualifiedName + (requestBody ? ":input" : ""));
+        var key = SchemaKey(plugin, type, requestBody);
         if (!schemas.ContainsKey(key))
         {
             var info = options.GetTypeInfo(type);
@@ -230,5 +230,8 @@ internal sealed class AspNetCoreHttpContractSource(IApiDescriptionGroupCollectio
     private static bool SameIdentity(System.Security.Claims.ClaimsPrincipal principal, ICurrentUser user)
         => Kun.Security.Authentication.PrincipalClaims.TryRead(principal, out var subject, out var tenant, out var kind) && subject == user.UserId && tenant == user.Principal?.TenantId &&
             kind == (user.Principal?.Kind switch { PrincipalKind.User => "user", PrincipalKind.Service => "service", PrincipalKind.Agent => "agent", _ => "" });
+    internal static string SchemaKey(string plugin, Type type, bool requestBody) =>
+        "H" + Hash(plugin + ":" + HttpContractTypeName.For(type) + (requestBody ? ":input" : ""));
+
     private static string Hash(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 }

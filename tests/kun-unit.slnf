@@ -8,7 +8,6 @@
       "tests/Kun.Caching.Tests/Kun.Caching.Tests.csproj",
       "tests/Kun.Configuration.Tests/Kun.Configuration.Tests.csproj",
       "tests/Kun.Core.Tests/Kun.Core.Tests.csproj",
-      "tests/Kun.Dapper.Tests/Kun.Dapper.Tests.csproj",
       "tests/Kun.EntityFrameworkCore.Tests/Kun.EntityFrameworkCore.Tests.csproj",
       "tests/Kun.Errors.Tests/Kun.Errors.Tests.csproj",
       "tests/Kun.EventBus.Abstractions.Tests/Kun.EventBus.Abstractions.Tests.csproj",

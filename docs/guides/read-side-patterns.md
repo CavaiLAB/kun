@@ -8,16 +8,15 @@ the write/read split; for the reasoning behind that split see
 
 ## The Write/Read Rule
 
-Query handlers must not use `KunDbContext`, `IUnitOfWork`, or any EF Core type. They connect to
-the database via `IReadDbConnectionFactory`, run raw SQL with Dapper, and return flat DTOs. The
-boundary is enforced by module dependencies: `Kun.Dapper` does not reference
-`Kun.EntityFrameworkCore`, so adding an EF Core type to a query handler requires a deliberate
-csproj change that reviewers will catch.
+Query handlers must not use `KunDbContext`, `IUnitOfWork`, or any EF Core type. They open a
+connection from an `NpgsqlDataSource`, run raw SQL with Dapper, and return flat DTOs. Kun does not
+ship a read-side package: the application references Npgsql and Dapper directly. The rule is not
+enforced by the build, so reviewers check that query handlers take no EF Core types.
 
 The short version:
 
 - Command handler: inject `IRepository<T>` or `KunDbContext` (via EF). Transactional.
-- Query handler: inject `IReadDbConnectionFactory`. No change tracking, no aggregates.
+- Query handler: inject `NpgsqlDataSource`. No change tracking, no aggregates.
 
 ---
 
@@ -28,48 +27,52 @@ The standard shape for a Kun query handler:
 ```csharp
 using Dapper;
 using Kun.Core.Cqrs;
-using Kun.Dapper;
+using Npgsql;
 
-public sealed class GetProductByIdQueryHandler(IReadDbConnectionFactory connectionFactory)
+public sealed class GetProductByIdQueryHandler(NpgsqlDataSource readDataSource)
     : IRequestHandler<GetProductByIdQuery, ProductDto?>
 {
     public async ValueTask<ProductDto?> Handle(
         GetProductByIdQuery request,
         CancellationToken cancellationToken)
     {
-        using var connection = await connectionFactory.OpenAsync(cancellationToken);
+        await using var connection = await readDataSource.OpenConnectionAsync(cancellationToken);
 
         const string sql = """
-            SELECT id          AS "Id",
-                   name        AS "Name",
-                   description AS "Description",
-                   price       AS "Price",
-                   category_id AS "CategoryId",
-                   stock       AS "Stock"
-            FROM   catalog_products
-            WHERE  id = @Id
-              AND  is_deleted = false
+            SELECT "Id",
+                   "Name",
+                   "Description",
+                   "Price",
+                   "CategoryId",
+                   "Stock"
+            FROM   "catalog"."catalog_products"
+            WHERE  "Id" = @Id
+              AND  "IsDeleted" = false
             """;
 
         return await connection.QuerySingleOrDefaultAsync<ProductDto>(
-            sql,
-            new { request.Id });
+            new CommandDefinition(sql, new { request.Id }, cancellationToken: cancellationToken));
     }
 }
 ```
 
-This is the actual handler from
+This is the handler from
 `samples/Kun.Sample.Catalog/Application/Queries/GetProductByIdQueryHandler.cs`.
 
 Key points:
 
-- **`IReadDbConnectionFactory.OpenAsync`** returns an open `IDbConnection`. Wrap it in `using` —
-  the factory opens a fresh connection per call and the caller is responsible for disposal.
+- **`NpgsqlDataSource.OpenConnectionAsync`** returns an open connection from the data source's
+  pool. Dispose it with `await using`; disposing returns it to the pool.
 - **Parameterized SQL** via the anonymous object `new { request.Id }`. Never interpolate values
   directly into the SQL string.
-- **Column aliases** match the DTO property names exactly (case-sensitive on PostgreSQL). Use the
-  `AS "PropertyName"` pattern consistently.
-- **Soft-delete filter** (`is_deleted = false`) applied directly in SQL. There is no EF Core
+- **Pass the cancellation token** through `CommandDefinition`, so a cancelled request also cancels
+  the query.
+- **Column names match the DTO property names** exactly (case-sensitive on PostgreSQL). The
+  catalog's EF mapping keeps PascalCase column names, so the query selects them quoted; with
+  snake_case columns, alias each one with `AS "PropertyName"`.
+- **Schema-qualify table names.** The catalog tables live in the `catalog` schema, and the read
+  connection does not set `search_path`.
+- **Soft-delete filter** (`"IsDeleted" = false`) applied directly in SQL. There is no EF Core
   global filter on the read side — the SQL is the filter.
 - The handler returns `null` when no row matches; the endpoint turns that into `Results.NotFound()`,
   and `Kun.Errors.AspNetCore` (`UseKunErrors()`) writes the empty 404 as an ErrorDetail with the
@@ -77,157 +80,75 @@ Key points:
 
 ---
 
-## IReadDbConnectionFactory
+## Registering the Read-Side Data Source
 
-`src/Kun.Dapper/IReadDbConnectionFactory.cs`:
-
-```csharp
-public interface IReadDbConnectionFactory
-{
-    Task<IDbConnection> OpenAsync(CancellationToken cancellationToken = default);
-}
-```
-
-The factory is a thin abstraction over a concrete ADO.NET provider. The sample implementation
-using Npgsql (`samples/Kun.Sample.Catalog/Infrastructure/NpgsqlReadDbConnectionFactory.cs`):
+Register one `NpgsqlDataSource` for the read side in `Program.cs`:
 
 ```csharp
-public sealed class NpgsqlReadDbConnectionFactory(ReadDbOptions options)
-    : IReadDbConnectionFactory
-{
-    public async Task<IDbConnection> OpenAsync(CancellationToken cancellationToken = default)
-    {
-        var connection = new NpgsqlConnection(options.ConnectionString);
-        await connection.OpenAsync(cancellationToken);
-        return connection;
-    }
-}
+var readCs = builder.Configuration.GetConnectionString("CatalogDbRead") ?? writeCs;
+
+builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(readCs));
 ```
 
-Register it in `Program.cs`:
-
-```csharp
-builder.Services.AddKunDapper(opts =>
-    opts = new ReadDbOptions { ConnectionString = connectionString });
-
-builder.Services.AddSingleton<IReadDbConnectionFactory, NpgsqlReadDbConnectionFactory>();
-```
-
-`AddKunDapper` is in `src/Kun.Dapper/DependencyInjection/KunDapperServiceCollectionExtensions.cs`.
-It registers the `ReadDbOptions` singleton. Your `IReadDbConnectionFactory` implementation
-receives it via constructor injection.
-
-Note: `ReadDbOptions.ConnectionString` is `required init` — you must set it when constructing the
-options object. The `AddKunDapper` overload shown above takes an `Action<ReadDbOptions>` callback;
-set all required properties inside that callback.
+- The container owns the data source and disposes it on shutdown.
+- Give the read side its own connection string to point it at a replica; the catalog sample
+  falls back to the write connection when `ConnectionStrings:CatalogDbRead` is not set.
+- If the application talks to more than one PostgreSQL database, register each data source under
+  a key (`AddKeyedSingleton`) and resolve it with `[FromKeyedServices]`, so a handler cannot pick
+  up the wrong one.
 
 ---
 
-## PageRequest and PagedResult
+## Pagination
 
-Use `PageRequest` and `PagedResult<T>` for paginated queries.
-
-**`PageRequest`** (`src/Kun.Dapper/PageRequest.cs`):
+Kun does not ship paging types. Define the request and result shapes your API needs next to the
+query:
 
 ```csharp
-public sealed record PageRequest(int Page = 1, int PageSize = 20)
-{
-    public int Offset => (Page - 1) * PageSize;
-}
+public sealed record ListProductsQuery(int Page = 1, int PageSize = 20) : IQuery<ProductPage>;
+
+public sealed record ProductSummaryDto(Guid Id, string Name, decimal Price, int Stock);
+
+public sealed record ProductPage(IReadOnlyList<ProductSummaryDto> Items, int TotalCount);
 ```
 
-- `Page` is 1-based.
-- `Offset` computes the SQL `OFFSET` value automatically.
-
-**`PagedResult<T>`** (`src/Kun.Dapper/PagedResult.cs`):
+Run the count and the page on the same connection. Dapper's `QueryMultiple` does both in one
+round trip:
 
 ```csharp
-public sealed class PagedResult<T>
+public sealed class ListProductsQueryHandler(NpgsqlDataSource readDataSource)
+    : IRequestHandler<ListProductsQuery, ProductPage>
 {
-    public IReadOnlyList<T> Items { get; init; } = [];
-    public int TotalCount { get; init; }
-    public required PageRequest Request { get; init; }
-
-    public int TotalPages =>
-        TotalCount == 0 ? 0 : (int)Math.Ceiling((double)TotalCount / Request.PageSize);
-    public bool HasNextPage => Request.Page < TotalPages;
-    public bool HasPreviousPage => Request.Page > 1;
-
-    public static PagedResult<T> Empty(PageRequest request) =>
-        new() { Request = request, TotalCount = 0 };
-}
-```
-
-A paginated handler pattern:
-
-```csharp
-public sealed class ListProductsQueryHandler(IReadDbConnectionFactory connectionFactory)
-    : IRequestHandler<ListProductsQuery, PagedResult<ProductDto>>
-{
-    public async ValueTask<PagedResult<ProductDto>> Handle(
+    public async ValueTask<ProductPage> Handle(
         ListProductsQuery request,
         CancellationToken cancellationToken)
     {
-        using var connection = await connectionFactory.OpenAsync(cancellationToken);
+        await using var connection = await readDataSource.OpenConnectionAsync(cancellationToken);
 
-        const string countSql = """
-            SELECT COUNT(*) FROM catalog_products WHERE is_deleted = false
+        const string sql = """
+            SELECT COUNT(*) FROM "catalog"."catalog_products" WHERE "IsDeleted" = false;
+            SELECT "Id", "Name", "Price", "Stock"
+            FROM   "catalog"."catalog_products"
+            WHERE  "IsDeleted" = false
+            ORDER  BY "Name", "Id"
+            LIMIT  @PageSize OFFSET @Offset;
             """;
 
-        const string itemsSql = """
-            SELECT id          AS "Id",
-                   name        AS "Name",
-                   price       AS "Price",
-                   stock       AS "Stock"
-            FROM   catalog_products
-            WHERE  is_deleted = false
-            ORDER  BY name
-            LIMIT  @PageSize OFFSET @Offset
-            """;
+        var parameters = new { request.PageSize, Offset = (request.Page - 1) * request.PageSize };
+        await using var multi = await connection.QueryMultipleAsync(
+            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
 
-        var totalCount = await connection.ExecuteScalarAsync<int>(countSql);
-
-        var items = await connection.QueryAsync<ProductDto>(
-            itemsSql,
-            new { request.Page.PageSize, request.Page.Offset });
-
-        return new PagedResult<ProductDto>
-        {
-            Items      = items.ToArray(),
-            TotalCount = totalCount,
-            Request    = request.Page,
-        };
+        var totalCount = await multi.ReadFirstAsync<int>();
+        var items = (await multi.ReadAsync<ProductSummaryDto>()).ToArray();
+        return new ProductPage(items, totalCount);
     }
 }
 ```
 
-Run the count and items queries in the same open connection. Do not open two connections — use
-Dapper's `QueryMultiple` if you prefer a single round-trip:
-
-```csharp
-const string sql = """
-    SELECT COUNT(*) FROM catalog_products WHERE is_deleted = false;
-    SELECT id AS "Id", name AS "Name", price AS "Price", stock AS "Stock"
-    FROM   catalog_products
-    WHERE  is_deleted = false
-    ORDER  BY name
-    LIMIT  @PageSize OFFSET @Offset;
-    """;
-
-using var multi = await connection.QueryMultipleAsync(
-    sql,
-    new { request.Page.PageSize, request.Page.Offset });
-
-var totalCount = await multi.ReadFirstAsync<int>();
-var items      = (await multi.ReadAsync<ProductDto>()).ToArray();
-```
-
----
-
-## DapperAotExtensions.QueryPageAsync
-
-A `QueryPageAsync` extension that bundles the count + items dual-query into a single call is
-planned (see TODO 2.3). Until it lands, use the patterns shown above directly.
+- `Page` is 1-based; validate `Page` and `PageSize` in the query's validator.
+- Order by a unique key last (`"Id"` above), so rows do not move between pages.
+- For large tables, prefer keyset pagination (`WHERE ("Name", "Id") > (@AfterName, @AfterId)`)
+  over `OFFSET`, which reads and discards every skipped row.
 
 ---
 
@@ -328,45 +249,16 @@ honest — it reflects exactly what data is fetched.
 
 ---
 
-## AOT Note: [DapperAot] Annotation
+## AOT Note
 
-Dapper's classic `Query<T>` uses runtime reflection to build the object reader for `T`. In an
-AOT-published binary, reflection is not available for types that were not preserved by the IL
-linker, and the reader code is not generated.
+Dapper's classic API (`QueryAsync<T>`, `QuerySingleOrDefaultAsync<T>`) builds the row reader for
+`T` with runtime reflection, so it is not trim- or AOT-safe. Kun does not wrap Dapper. If a
+service that runs query handlers is published with Native AOT, choose one of these in that
+service's own project:
 
-The `[DapperAot]` attribute (from `Dapper.AOT`) instructs Dapper's source generator to emit the
-reader code at compile time instead. The generated code is included in the binary at publish time
-with zero reflection at runtime.
+- add Dapper's source generator (the `Dapper.AOT` package) and mark the query methods with
+  `[DapperAot]`, so the reader is generated at build time; or
+- read rows with `NpgsqlDataReader` directly and construct the DTOs by hand.
 
-To use it, annotate the query method:
-
-```csharp
-using Dapper;
-
-public sealed class GetProductByIdQueryHandler(IReadDbConnectionFactory connectionFactory)
-    : IRequestHandler<GetProductByIdQuery, ProductDto?>
-{
-    [DapperAot]
-    public async ValueTask<ProductDto?> Handle(
-        GetProductByIdQuery request,
-        CancellationToken cancellationToken)
-    {
-        using var connection = await connectionFactory.OpenAsync(cancellationToken);
-        // ... SQL ...
-        return await connection.QuerySingleOrDefaultAsync<ProductDto>(sql, new { request.Id });
-    }
-}
-```
-
-The Dapper AOT source generator scans for `[DapperAot]` and generates the reader for `ProductDto`
-at build time. You will see the generated files under `obj/` after `dotnet build`.
-
-If you forget `[DapperAot]` in an AOT-candidate project, the build will succeed but `dotnet
-publish -p:PublishAot=true /warnaserror` will fail with a trim analysis warning indicating that
-the reflection-based Dapper path is not trim-safe. This is the intended CI gate — the warning
-catches missing annotations before deployment.
-
-Ensure that the DTO record type is also AOT-visible. If the DTO is not referenced anywhere
-statically (e.g. it is constructed only via Dapper reflection), add it to a
-`[JsonSerializable(typeof(MyDto))]` context or reference it explicitly. In practice, returning the
-DTO from a handler method counts as a static reference and the linker preserves it.
+Either way, `dotnet publish -p:PublishAot=true` with warnings as errors catches a reflection-based
+read path before deployment. The catalog sample is not AOT-published and uses the classic API.

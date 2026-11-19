@@ -101,7 +101,6 @@ graph TD
     Apollo[Kun.Configuration.Apollo<br/>HTTP 配置源]
 
     Infra --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
-    Infra --> Dapper[Kun.Dapper<br/>读侧查询]
 
     EventBus --> Saga[Kun.Saga<br/>Saga 编排器/补偿/超时]
     EventBus --> RabbitMq[Kun.EventBus.RabbitMQ<br/>集成事件传输]
@@ -132,7 +131,6 @@ graph TD
 | `Kun.Mediator` | `FrozenDictionary` 无反射调度、Pipeline Behaviors | `Kun.Core` |
 | `Kun.Infrastructure` | 仓储接口、UoW、规约、`IProcessedMessageStore` | `Kun.Core` |
 | `Kun.EntityFrameworkCore` | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | `Kun.Infrastructure` |
-| `Kun.Dapper` | 读侧 Dapper AOT 封装、只读连接工厂 | `Kun.Infrastructure` |
 | `Kun.EventBus.Abstractions` | 稳定事件标记与 JSON 注册端口 | `Kun.Core` |
 | `Kun.EventBus` | 领域事件、集成事件抽象、Outbox 发布器 | `Kun.Core` |
 | `Kun.EventBus.RabbitMQ` | RabbitMQ 传输、消费端幂等中间件 | `Kun.EventBus` |
@@ -305,7 +303,7 @@ public class EfRepository<T> : IRepository<T> where T : class, IAggregateRoot
 }
 ```
 
-### 5.2 读侧 —— Dapper AOT 查询服务
+### 5.2 读侧 —— 原生 SQL 查询服务
 
 ```csharp
 // 用于 Query Handler 的高性能只读投影
@@ -314,14 +312,11 @@ public interface IProductReadService
     Task<ProductListDto?> GetListAsync(Guid tenantId, int page, int size, CancellationToken ct);
 }
 
-public class ProductReadService : IProductReadService
+public class ProductReadService(NpgsqlDataSource readDataSource) : IProductReadService
 {
-    private readonly IReadDbConnectionFactory _factory;
-
-    [DapperAot] // Dapper AOT 源生成器在编译期生成映射代码
     public async Task<ProductListDto?> GetListAsync(Guid tenantId, int page, int size, CancellationToken ct)
     {
-        using var conn = await _factory.CreateAsync(ct);
+        await using var conn = await readDataSource.OpenConnectionAsync(ct);
 
         var sql = """
             SELECT id, name, price, stock_quantity
@@ -331,15 +326,15 @@ public class ProductReadService : IProductReadService
             LIMIT @Size OFFSET @Offset
             """;
 
-        var items = await conn.QueryAsync<ProductItemDto>(sql,
-            new { TenantId = tenantId, Size = size, Offset = page * size });
+        var items = await conn.QueryAsync<ProductItemDto>(new CommandDefinition(sql,
+            new { TenantId = tenantId, Size = size, Offset = page * size }, cancellationToken: ct));
 
         return new ProductListDto(items.ToList(), page, size);
     }
 }
 ```
 
-Dapper AOT 通过 `[DapperAot]` 特性触发源生成器，在编译期生成 `DbDataReader → DTO` 的映射代码，**完全不走运行时反射**，Native AOT 发布无任何警告。
+读侧直接用 Npgsql 的数据源与 Dapper，不经过 EF Core 的变更跟踪，框架不另做封装。Dapper 的经典 API 靠运行时反射生成 `DbDataReader → DTO` 的映射代码；要原生 AOT 发布的服务，在自己的项目里加 Dapper 的源生成器（`Dapper.AOT`，给查询方法标 `[DapperAot]`），或直接用 `NpgsqlDataReader` 读行，见[读侧模式](../guides/read-side-patterns.md#aot-note)。
 
 ### 5.3 工作单元与 Outbox 原子化落库
 

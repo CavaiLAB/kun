@@ -86,7 +86,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - `Kun.Core` 只依赖 BCL 与同为零依赖的 `Kun.Errors`，不加第三方包引用（规则 C 把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
 - 禁用符号与平台分析器按档位接入（D23.14 第 4 点，仓库根的 `Directory.Build.targets`）：`BannedSymbols.txt`（RS0030）与 `_import/qian/tools/Qian.Build.Analyzers`（QIAN0002–QIAN0006）接平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`，现在是 `_import/qian/hosts/` 下的两个）；过渡期 `_import/qian/` 下的项目全部接入，内核档的包也在内，各域批次把包搬出过渡目录时再按归属收窄。仓库根上 Kun 的项目不接，被禁的类型就定义在 `src/` 下；Kun 旧类型上的 `Obsolete` 诊断号（如 KUNS2S001、KUNLEGACY001）照旧随警告即错误报错。新写的宿主要写 `KunHost`。
 - 新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。
-- 蓝图的归档名单里有 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9），各域批次会把它们移出解决方案。
+- 蓝图的归档名单里有 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9），各域批次会把它们移出解决方案；`Kun.Dapper` 已移出。
 
 ### 项目文件与包
 
@@ -102,11 +102,11 @@ dotnet format --verify-no-changes --exclude _import/qian
 
 - 运行期反射：`Activator.CreateInstance`、`Type.GetMethod`、`MakeGenericType`、`Assembly.GetTypes`、`AppDomain.CurrentDomain.GetAssemblies`；`System.Reflection.Emit`。
 - 不带 `JsonTypeInfo` 的 `JsonSerializer.Serialize(obj)`：序列化走源生成的 `KunJsonContext`，被序列化的事件类型都要在里面登记。
-- Dapper 的经典 `Query<T>`：用标了 `[DapperAot]` 的查询，由源生成器生成读取代码。
+- Dapper：它的经典 `Query<T>` 靠运行期反射生成读取代码，AOT 兼容的模块不引用它。
 
 ### 运行时约定
 
-- 命令与查询分离。`Kun.Mediator` 的处理器在编译期由源生成器发现，不要改回反射解析。写侧（命令处理器）用 `Kun.EntityFrameworkCore`：仓储、规约、变更跟踪，在 `SaveChangesAsync` 里登记 Outbox；读侧（查询处理器）用 `Kun.Dapper`：原生 SQL、DTO 投影、不加载聚合。查询处理器里不用 EF Core，命令处理器里不用 Dapper。
+- 命令与查询分离。`Kun.Mediator` 的处理器在编译期由源生成器发现，不要改回反射解析。写侧（命令处理器）用 `Kun.EntityFrameworkCore`：仓储、规约、变更跟踪，在 `SaveChangesAsync` 里登记 Outbox；读侧（查询处理器）直接用 Npgsql 的数据源与 Dapper：原生 SQL、DTO 投影、不加载聚合，写法见 `docs/guides/read-side-patterns.md`。查询处理器里不用 EF Core，命令处理器里不用 Dapper。
 - Outbox：集成事件与业务数据在同一事务里落库，事件类型用稳定的字符串 id（如 `order.placed.v1`），不用程序集限定名；优先用 `[IntegrationEventId("order.placed.v1")]` 特性加 `Register<TEvent>()`。消费端先查成功标记，再执行处理器、写成功标记、确认消息；业务副作用、标记与确认之间仍有重放窗口，写类处理器必须幂等。设计说明见 Kun ADR-015。
 - Saga 只做编排：一个 Saga 是有序的步骤，每步有执行与补偿；补偿从失败的那一步起逆序执行，补偿本身要幂等，没执行过的步骤也要能安全补偿。
 - 服务间零信任：外部令牌只在 `Kun.Gateway` 校验；网关用自己的私钥签发内部短期令牌（RS256 或 ES256，不用 HS256），下游经 `Kun.Security` 校验。身份（`sub`、`tenant_id`）只从内部令牌的声明里取，不信 `X-User-Id` 这类请求头。

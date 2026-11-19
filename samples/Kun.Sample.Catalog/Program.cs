@@ -3,7 +3,6 @@ using Kun.AspNetCore.Endpoints;
 using Kun.Audit.DependencyInjection;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
-using Kun.Dapper;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Behaviors;
 using Kun.EntityFrameworkCore.DependencyInjection;
@@ -24,6 +23,7 @@ using Kun.Sample.Catalog.Infrastructure;
 using Kun.Sandbox.Extensions;
 using Kun.Validation.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,11 +62,10 @@ builder.Services.AddScoped<KunDbContext>(sp => sp.GetRequiredService<CatalogDbCo
 
 builder.Services.AddKunEntityFrameworkCore();
 
-// ── Dapper (read side) ────────────────────────────────────────────────────────
-// AddKunDapper uses an Action<ReadDbOptions> callback, but ConnectionString is init-only.
-// Register ReadDbOptions directly via object initializer instead.
-builder.Services.AddSingleton(new ReadDbOptions { ConnectionString = readCs });
-builder.Services.AddSingleton<IReadDbConnectionFactory, NpgsqlReadDbConnectionFactory>();
+// ── Read side: Npgsql data source + Dapper ────────────────────────────────────
+// Query handlers open connections from this data source and run SQL with Dapper.
+// The container disposes the data source on shutdown.
+builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(readCs));
 
 // ── Event bus + Outbox ────────────────────────────────────────────────────────
 builder.Services.AddKunEventBus(eb =>

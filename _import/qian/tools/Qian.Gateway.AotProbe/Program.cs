@@ -6,7 +6,7 @@ using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
 using Kun.Gateway.DependencyInjection;
 using Kun.Gateway.Endpoints;
-using Kun.MultiTenancy;
+using Kun.MultiTenancy.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Qian.Audit;
 using Qian.Config;
@@ -33,8 +33,7 @@ var configuration = new ConfigurationBuilder().AddQianConfigurationSources(new Q
 using var configurationOwner = (IDisposable)configuration;
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.Configuration.AddConfiguration(configuration);
-var tenant = new AsyncLocalTenantContext();
-builder.Services.AddSingleton<ITenantContext>(tenant);
+builder.Services.AddKunMultiTenancy();
 builder.Services.AddKunEventBus();
 builder.Services.AddQianConfiguration(configuration);
 builder.Services.AddKunData<AuditDbContext>((_, options) => options
@@ -74,10 +73,12 @@ foreach (var id in new[] { "data", "config", "identity", "audit" })
     if (loader.GetState(id, ScopeKey.Global) != PluginState.Ready)
         throw new InvalidOperationException("组件未就绪：" + id, loader.GetFailure(id, ScopeKey.Global));
 await app.StartAsync();
-using (tenant.BeginScope(Required("Audit:Tenant")))
+var tenant = app.Services.GetRequiredService<ITenantContext>();
+var auditTenant = Guid.ParseExact(Required("Audit:Tenant"), "D");
+using (tenant.BeginScope(auditTenant))
 {
     var audit = loader.GetContext("audit", ScopeKey.Global).Audit();
-    var record = new AuditRecord(Guid.NewGuid(), tenant.TenantId, "service", "qian.gateway.aot-probe", null,
+    var record = new AuditRecord(Guid.NewGuid(), auditTenant.ToString("D"), "service", "qian.gateway.aot-probe", null,
         "qian.gateway:aot:probe", "1", new string('a', 64), "api", null, "success", new string('a', 32),
         DateTimeOffset.UtcNow, empty.RootElement);
     var appended = await audit.AppendAsync(record);

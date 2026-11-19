@@ -95,7 +95,7 @@ public static class KunDataExtensions
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _registration ??= catalog.Register(DataErrors.Misconfigured);
+            _registration ??= catalog.Register(KunDataMisconfiguredException.Code);
             using var scope = scopes.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<TContext>();
             if (context.GetService<IModelCacheKeyFactory>() is not KunMultiTenantModelCacheKeyFactory)

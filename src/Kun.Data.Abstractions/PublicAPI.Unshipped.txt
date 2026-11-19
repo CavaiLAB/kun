@@ -2,7 +2,7 @@
 Kun.Data.KunDataModelExtensions
 static Kun.Data.KunDataModelExtensions.UseKunDataModel(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! options) -> Microsoft.EntityFrameworkCore.DbContextOptionsBuilder!
 Kun.Data.DataErrors
-static readonly Kun.Data.DataErrors.Misconfigured -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.KunDataMisconfiguredException.Code -> Kun.Errors.ErrorCode!
 Kun.Data.KunDataMisconfiguredException
 Kun.Data.KunDataMisconfiguredException.KunDataMisconfiguredException(string! reason) -> void
 Kun.Data.KunDataMisconfiguredException.Error.get -> Kun.Errors.Error!

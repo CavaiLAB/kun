@@ -119,7 +119,7 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
         using var host = builder.Build();
         // 启动只校验配置，不建表或执行迁移。
         await host.StartAsync(TestContext.Current.CancellationToken);
-        Assert.True(host.Services.GetRequiredService<ErrorCatalog>().Contains(DataErrors.Misconfigured));
+        Assert.True(host.Services.GetRequiredService<ErrorCatalog>().Contains(KunDataMisconfiguredException.Code));
         try
         {
             await using var connection = new NpgsqlConnection(_postgres.ConnectionString);
@@ -158,7 +158,7 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
         finally
         {
             await host.StopAsync(TestContext.Current.CancellationToken);
-            Assert.False(host.Services.GetRequiredService<ErrorCatalog>().Contains(DataErrors.Misconfigured));
+            Assert.False(host.Services.GetRequiredService<ErrorCatalog>().Contains(KunDataMisconfiguredException.Code));
         }
     }
 

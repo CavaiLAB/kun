@@ -1,8 +1,8 @@
+using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Events;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

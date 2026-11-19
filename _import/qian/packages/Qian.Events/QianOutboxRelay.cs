@@ -93,7 +93,7 @@ internal sealed partial class QianOutboxRelay(IServiceScopeFactory scopes, IData
         {
             var attempts = row.AttemptCount + 1;
             // 信封不合法时重试也不会变好，直接标为失败。
-            var failed = error is QianEventsException || attempts >= _options.MaxAttempts;
+            var failed = error is KunEventsException || attempts >= _options.MaxAttempts;
             var delay = TimeSpan.FromMilliseconds(Math.Min(_options.RetryBaseDelay.TotalMilliseconds * Math.Pow(2, Math.Min(attempts - 1, 16)), 60_000));
             await table.MarkRetryAsync(connection, row.Id, attempts, failed ? null : delay, error.GetType().Name + ": " + error.Message, CancellationToken.None).ConfigureAwait(false);
             (failed ? EventsMetrics.Failed : EventsMetrics.Retried).Add(1, tags);

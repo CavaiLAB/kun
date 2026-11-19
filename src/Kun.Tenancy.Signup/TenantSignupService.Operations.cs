@@ -1,6 +1,6 @@
 using Kun.Errors;
+using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
-using Qian.Events;
 
 namespace Kun.Tenancy.Signup;
 

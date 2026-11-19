@@ -1,6 +1,6 @@
 using System.Net;
 using Json.Schema;
-using Qian.Events;
+using Kun.EventBus;
 using Qian.Identity.Abstractions;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
@@ -12,10 +12,10 @@ public sealed class DirectoryEventTests(PostgresFixture postgres) : IClassFixtur
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    internal static async Task<IReadOnlyList<QianEventEnvelope>> DirectoryEvents(AccountsHost.Running host, Guid tenant)
+    internal static async Task<IReadOnlyList<KunEventEnvelope>> DirectoryEvents(AccountsHost.Running host, Guid tenant)
     {
         var joined = await host.Text("SELECT coalesce(string_agg(payload, E'\\n' ORDER BY occurred_at, id), '') FROM plugin_qian_identity.outbox_messages WHERE event_type_id LIKE 'directory.%'");
-        return joined.Length == 0 ? [] : [.. joined.Split('\n').Select(QianEventEnvelope.Parse).Where(envelope => envelope.TenantId == tenant)];
+        return joined.Length == 0 ? [] : [.. joined.Split('\n').Select(KunEventEnvelope.Parse).Where(envelope => envelope.TenantId == tenant)];
     }
 
     private static string Root()
@@ -25,7 +25,7 @@ public sealed class DirectoryEventTests(PostgresFixture postgres) : IClassFixtur
         throw new InvalidOperationException("找不到仓库根目录。");
     }
 
-    internal static void AssertSchema(QianEventEnvelope envelope)
+    internal static void AssertSchema(KunEventEnvelope envelope)
     {
         var options = new BuildOptions { SchemaRegistry = new SchemaRegistry() };
         _ = JsonSchema.FromText(File.ReadAllText(Path.Combine(Root(), "contracts/v0/s2s-claims.schema.json")), options);
@@ -33,8 +33,8 @@ public sealed class DirectoryEventTests(PostgresFixture postgres) : IClassFixtur
         Assert.True(result.IsValid, envelope.Type + "：" + envelope.Payload.GetRawText());
     }
 
-    private static long Revision(QianEventEnvelope envelope) => envelope.Payload.GetProperty("directory_revision").GetInt64();
-    private static Guid Id(QianEventEnvelope envelope, string name) => envelope.Payload.GetProperty(name).GetGuid();
+    private static long Revision(KunEventEnvelope envelope) => envelope.Payload.GetProperty("directory_revision").GetInt64();
+    private static Guid Id(KunEventEnvelope envelope, string name) => envelope.Payload.GetProperty(name).GetGuid();
 
     [Fact]
     public async Task 目录写入同事务发出directory事件_载荷符合Schema且不含名称姓名_失败写入不留事件()

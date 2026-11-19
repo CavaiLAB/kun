@@ -4,6 +4,7 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.EventBus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
@@ -11,7 +12,6 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
 using Kun.Data;
-using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Kun.Plugin.Sdk;
@@ -122,7 +122,7 @@ public sealed partial class IdentityAuthzTests
             // 授予人与事件来源都是发起新增的管理员。
             Assert.Equal(admin.Id.ToString("D"), await Text("SELECT a.assigned_by FROM plugin_qian_authz.role_assignments a JOIN plugin_qian_authz.roles r ON a.role_id = r.id " +
                 $"WHERE a.tenant_id = '{A}' AND a.subject_type = 'user' AND a.subject_id = '{newPerson:D}' AND r.code = 'tenant.user'"));
-            var created = QianEventEnvelope.Parse((await Text("SELECT payload FROM plugin_qian_identity.outbox_messages WHERE event_type_id = 'directory.member.created.v1' " +
+            var created = KunEventEnvelope.Parse((await Text("SELECT payload FROM plugin_qian_identity.outbox_messages WHERE event_type_id = 'directory.member.created.v1' " +
                 $"AND payload LIKE '%{newMember:D}%'"))!);
             Assert.Equal((EventActorKind.User, admin.Id.ToString("D")), (created.Actor.Kind, created.Actor.Id));
             // 能力标 pii：回执只记「已执行」不存响应体（组件规格 §9.5），同键同输入得到 409 CAPABILITY_REPLAY_UNAVAILABLE、不再执行；改输入 409 CONFLICT。

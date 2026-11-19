@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy.DependencyInjection;

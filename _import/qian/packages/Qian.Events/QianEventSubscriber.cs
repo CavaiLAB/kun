@@ -16,7 +16,7 @@ using RabbitMQ.Client.Events;
 namespace Qian.Events;
 
 /// <summary>
-/// 消费端后台服务（PRD 7.10、ADR-008 D8.3 / D8.4 / D8.6 / D8.9 / D8.12）：按 <see cref="QianEventTopology"/> 声明队列，手动确认。
+/// 消费端后台服务（PRD 7.10、ADR-008 D8.3 / D8.4 / D8.6 / D8.9 / D8.12）：按 <see cref="KunEventTopology"/> 声明队列，手动确认。
 /// 每条消息先解析 v1 信封并与 AMQP 属性核对，再查幂等记录、在信封租户的作用域里执行 handler，成功并写入幂等记录后才确认。
 /// 瞬时失败经重试队列按 <c>RetryBaseDelay × 2^(n-1)</c> 退避，用尽后与确定性失败一样转入订阅的死信队列；
 /// 重试或死信副本转发失败时原地退避重发，连续失败后交 broker 按队列的死信参数处理，不放回原消息；
@@ -78,18 +78,18 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     {
         var queues = subscriptions.Where(subscription => subscription.Mode == EventSubscriptionMode.Competing).Select(subscription =>
         {
-            var deadLetter = QianEventTopology.DeadLetterQueue(service, subscription.Name);
+            var deadLetter = KunEventTopology.DeadLetterQueue(service, subscription.Name);
             var target = subscription.Routes.Values.ToDictionary(route => route.Type,
                 route => new Target(subscription, route, service + "." + subscription.Name, deadLetter), StringComparer.Ordinal);
-            return new ConsumerQueue(QianEventTopology.SubscriptionQueue(service, subscription.Name), subscription.Name, EventSubscriptionMode.Competing, subscription.Name,
+            return new ConsumerQueue(KunEventTopology.SubscriptionQueue(service, subscription.Name), subscription.Name, EventSubscriptionMode.Competing, subscription.Name,
                 target.Values.Select(item => item.Route.Subject).Distinct(StringComparer.Ordinal).ToArray(), target, deadLetter);
         }).ToList();
         if (broadcast.Length > 0)
         {
             var targets = broadcast.SelectMany(subscription => subscription.Routes.Values.Select(route => new Target(subscription, route,
-                service + "." + subscription.Name + "@" + _options.Instance, QianEventTopology.DeadLetterQueue(service, subscription.Name))))
+                service + "." + subscription.Name + "@" + _options.Instance, KunEventTopology.DeadLetterQueue(service, subscription.Name))))
                 .ToDictionary(target => target.Route.Type, StringComparer.Ordinal);
-            queues.Add(new ConsumerQueue(QianEventTopology.BroadcastQueue(service, _options.Instance), _options.Instance, EventSubscriptionMode.Broadcast,
+            queues.Add(new ConsumerQueue(KunEventTopology.BroadcastQueue(service, _options.Instance), _options.Instance, EventSubscriptionMode.Broadcast,
                 string.Join(',', broadcast.Select(subscription => subscription.Name)), targets.Values.Select(item => item.Route.Subject).Distinct(StringComparer.Ordinal).ToArray(),
                 targets, DeadLetter: null));
         }
@@ -220,9 +220,9 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     {
         var attempt = ReadAttempts(delivery) + 1;
         var settle = new Settlement(this, queue, channel, publisher, delivery, attempt, stoppingToken);
-        QianEventEnvelope envelope;
-        try { envelope = QianEventEnvelope.Parse(Encoding.UTF8.GetString(delivery.Body.Span)); }
-        catch (QianEventsException error)
+        KunEventEnvelope envelope;
+        try { envelope = KunEventEnvelope.Parse(Encoding.UTF8.GetString(delivery.Body.Span)); }
+        catch (KunEventsException error)
         {
             await settle.RejectAsync(null, null, "invalid_envelope", error).ConfigureAwait(false);
             return;
@@ -273,7 +273,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     }
 
     // 返回 true 表示幂等记录命中、未执行 handler。handler 成功并写入幂等记录后才返回，调用方随即确认。
-    private async Task<bool> HandleAsync(ConsumerQueue queue, Target target, QianEventEnvelope envelope, BasicDeliverEventArgs delivery, int attempt, CancellationToken stoppingToken)
+    private async Task<bool> HandleAsync(ConsumerQueue queue, Target target, KunEventEnvelope envelope, BasicDeliverEventArgs delivery, int attempt, CancellationToken stoppingToken)
     {
         if (await _store!.IsProcessedAsync(target.Consumer, envelope.EventId, stoppingToken).ConfigureAwait(false)) return true;
         await using (var scope = services.CreateAsyncScope())
@@ -284,7 +284,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
                 object payload;
                 try { payload = target.Route.Deserialize(envelope.Payload); }
                 catch (JsonException error) { throw new DeliveryRejectedException("invalid_payload", error); }
-                scope.ServiceProvider.GetRequiredService<EventDeliverySlot>().Current = new QianEventDelivery
+                scope.ServiceProvider.GetRequiredService<EventDeliverySlot>().Current = new KunEventDelivery
                 {
                     Envelope = envelope, Service = registrations.Service, Subscription = target.Subscription.Name, Mode = target.Subscription.Mode,
                     Consumer = target.Consumer, Attempt = attempt,
@@ -314,7 +314,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     /// 未登记时退回 Kun ITenantContext，按同样规则先核对原文里恰有一个一致的 tenant_id。两条路径进入后都核对当前租户等于信封租户，
     /// 传播器或宿主上下文没有进入作用域、进入了别的租户，都按 tenant_rejected 拒绝。
     /// </summary>
-    private IDisposable? EnterTenant(QianEventEnvelope envelope, ReadOnlyMemory<byte> body)
+    private IDisposable? EnterTenant(KunEventEnvelope envelope, ReadOnlyMemory<byte> body)
     {
         if (_tenant is not { IsMultiTenant: true } tenant) return null;
         if (tenant.TenantId is not null) throw new DeliveryRejectedException("tenant_rejected", Misconfigured("消费流里残留了租户上下文。"));
@@ -328,20 +328,20 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
             {
                 var fields = document.RootElement.EnumerateObject().Where(field => field.NameEquals("tenant_id")).ToArray();
                 if (fields.Length != 1 || fields[0].Value.ValueKind != JsonValueKind.String || fields[0].Value.GetString() != id.ToString("D"))
-                    throw new QianEventsException(EventsErrors.ConsumeRejected, "信封原文必须恰有一个与授权租户一致的 tenant_id。");
+                    throw new KunEventsException(EventsErrors.ConsumeRejected, "信封原文必须恰有一个与授权租户一致的 tenant_id。");
                 scope = tenant.BeginScope(id.ToString("D"));
             }
         }
-        catch (Exception error) when (error is ErrorException or QianEventsException or ArgumentException or JsonException)
+        catch (Exception error) when (error is ErrorException or KunEventsException or ArgumentException or JsonException)
         {
             throw new DeliveryRejectedException("tenant_rejected", error);
         }
         if (Guid.TryParseExact(tenant.TenantId, "D", out var current) && current == id) return scope;
         scope?.Dispose();
-        throw new DeliveryRejectedException("tenant_rejected", new QianEventsException(EventsErrors.ConsumeRejected, "进入租户作用域后当前租户与信封租户不一致。"));
+        throw new DeliveryRejectedException("tenant_rejected", new KunEventsException(EventsErrors.ConsumeRejected, "进入租户作用域后当前租户与信封租户不一致。"));
     }
 
-    private static Activity? StartActivity(ConsumerQueue queue, Target target, QianEventEnvelope envelope, string? traceState)
+    private static Activity? StartActivity(ConsumerQueue queue, Target target, KunEventEnvelope envelope, string? traceState)
     {
         _ = ActivityContext.TryParse(envelope.TraceParent, traceState, isRemote: true, out var parent);
         var activity = Source.StartActivity("consume " + envelope.Subject, ActivityKind.Consumer, parent);
@@ -353,12 +353,12 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     }
 
     // 发布端从同一信封写出这些属性；任何一项对不上都说明消息不是经 Outbox 发布器发出的。
-    private static string? Inconsistency(BasicDeliverEventArgs delivery, QianEventEnvelope envelope)
+    private static string? Inconsistency(BasicDeliverEventArgs delivery, KunEventEnvelope envelope)
     {
         var properties = delivery.BasicProperties;
         if (properties.MessageId != envelope.EventId.ToString("D") || properties.Type != envelope.Type) return "property_mismatch";
         if (ReadHeader(properties.Headers, "tenant_id") != envelope.TenantId?.ToString("D")) return "tenant_mismatch";
-        if (delivery.Exchange == QianEventTopology.Exchange && delivery.RoutingKey != envelope.Subject) return "routing_mismatch";
+        if (delivery.Exchange == KunEventTopology.Exchange && delivery.RoutingKey != envelope.Subject) return "routing_mismatch";
         return null;
     }
 
@@ -372,13 +372,13 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     private static string? ReadHeader(IDictionary<string, object?>? headers, string key) =>
         headers is not null && headers.TryGetValue(key, out var value) ? value switch { byte[] bytes => Encoding.UTF8.GetString(bytes), string text => text, _ => value?.ToString() } : null;
 
-    // 重试也不会成功的失败：契约错误（QianEventsException；RecordChangedEvent.FromEnvelope 等派生失败抛的 InvalidOperationException 本身）、参数非法（含非法租户 id）、
+    // 重试也不会成功的失败：契约错误（KunEventsException；RecordChangedEvent.FromEnvelope 等派生失败抛的 InvalidOperationException 本身）、参数非法（含非法租户 id）、
     // 载荷不合法、不支持的操作，以及错误码声明不可重试的统一错误。其余异常按瞬时失败退避重试，其中包括：
     // InvalidOperationException 的其他子类（ObjectDisposedException 等，对象生命周期问题，换一次投递可能就好）；
     // 包着内层异常的 InvalidOperationException 按内层判定（Npgsql 的执行策略把瞬时数据库故障包成 InvalidOperationException 抛出）。
     internal static bool IsDeterministic(Exception error) => error switch
     {
-        QianEventsException => true,
+        KunEventsException => true,
         ErrorException { Error.Code.Retryable: var retryable } => !retryable,
         InvalidOperationException when error.GetType() == typeof(InvalidOperationException) => error.InnerException is null || IsDeterministic(error.InnerException),
         InvalidOperationException => false,
@@ -413,7 +413,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
         return tags;
     }
 
-    private static QianEventsException Misconfigured(string reason) => new(EventsErrors.Misconfigured, reason);
+    private static KunEventsException Misconfigured(string reason) => new(EventsErrors.Misconfigured, reason);
 
     private ILogger Logger => logger;
 
@@ -430,22 +430,22 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
         private string Service => owner.Service;
 
         /// <summary>handler 之前就判定不可处理：进订阅的死信队列；广播队列里无法归属订阅的消息没有死信队列，确认后丢弃。</summary>
-        public async Task RejectAsync(QianEventEnvelope? envelope, Target? target, string reason, Exception? error)
+        public async Task RejectAsync(KunEventEnvelope? envelope, Target? target, string reason, Exception? error)
         {
             var deadLetter = target?.DeadLetterQueue ?? queue.DeadLetter;
             var consumer = target?.Consumer ?? (queue.Mode == EventSubscriptionMode.Competing ? Service + "." + queue.RetryName : Service + "@" + queue.RetryName);
             var type = envelope?.Type ?? delivery.BasicProperties.Type;
             if (deadLetter is null) await owner.AckAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
-            else if (!await ForwardAsync(QianEventTopology.DeadLetterExchange, deadLetter, null, DeadLetterHeaders(envelope, target, consumer, reason, error),
+            else if (!await ForwardAsync(KunEventTopology.DeadLetterExchange, deadLetter, null, DeadLetterHeaders(envelope, target, consumer, reason, error),
                 target, envelope?.EventId, type, consumer, reason).ConfigureAwait(false)) return;
             EventsMetrics.ConsumerRejected.Add(1, Tags(target, reason: reason, consumer: consumer));
             Log.Rejected(owner.Logger, error, envelope?.EventId, type, consumer, attempt, reason);
         }
 
         /// <summary>重试用尽或 handler 确定性失败：进订阅的死信队列并告警（计数加一、Error 日志，不含载荷）。</summary>
-        public async Task DeadLetterAsync(QianEventEnvelope envelope, Target target, string reason, Exception? error)
+        public async Task DeadLetterAsync(KunEventEnvelope envelope, Target target, string reason, Exception? error)
         {
-            if (await ForwardAsync(QianEventTopology.DeadLetterExchange, target.DeadLetterQueue, null,
+            if (await ForwardAsync(KunEventTopology.DeadLetterExchange, target.DeadLetterQueue, null,
                 DeadLetterHeaders(envelope, target, target.Consumer, reason, error), target, envelope.EventId, envelope.Type, target.Consumer, reason).ConfigureAwait(false))
             {
                 EventsMetrics.ConsumerDeadLettered.Add(1, Tags(target, reason: reason));
@@ -454,10 +454,10 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
         }
 
         /// <summary>瞬时失败：副本带着计数进第 n 个重试队列，到期后经默认 exchange 回到原队列。</summary>
-        public async Task RetryAsync(QianEventEnvelope envelope, Target target, Exception error)
+        public async Task RetryAsync(KunEventEnvelope envelope, Target target, Exception error)
         {
             var delay = owner._options.RetryDelay(attempt);
-            var retry = QianEventTopology.RetryQueue(Service, queue.RetryName, attempt, delay);
+            var retry = KunEventTopology.RetryQueue(Service, queue.RetryName, attempt, delay);
             var headers = CopyHeaders();
             headers[AttemptsHeader] = attempt;
             if (await ForwardAsync("", retry, (ch, ct) => RabbitTopology.DeclareRetryQueueAsync(ch, retry, queue.Name, delay, queue.Mode == EventSubscriptionMode.Broadcast, ct),
@@ -468,7 +468,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
             }
         }
 
-        private Dictionary<string, object?> DeadLetterHeaders(QianEventEnvelope? envelope, Target? target, string consumer, string reason, Exception? error)
+        private Dictionary<string, object?> DeadLetterHeaders(KunEventEnvelope? envelope, Target? target, string consumer, string reason, Exception? error)
         {
             var headers = CopyHeaders();
             headers[AttemptsHeader] = attempt;

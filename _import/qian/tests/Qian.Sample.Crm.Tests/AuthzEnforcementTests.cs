@@ -7,6 +7,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.EventBus;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,6 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
 using Kun.Data;
-using Qian.Events;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Errors;
@@ -123,7 +123,7 @@ public sealed partial class IdentityAuthzTests
             await using var session = await data.OpenAsync<AuthzDbContext>(Ct);
             var revision = await session.Context.Revisions.AsNoTracking().Where(row => row.TenantId == A).Select(row => row.Revision).SingleAsync(Ct);
             var events = (await session.Context.OutboxMessages.AsNoTracking().Where(row => row.TenantId == A && row.EventTypeId == AuthzEventIds.GrantChanged).ToListAsync(Ct))
-                .Select(row => QianEventEnvelope.Parse(row.Payload).Payload)
+                .Select(row => KunEventEnvelope.Parse(row.Payload).Payload)
                 .Select(payload => (payload.GetProperty("change").GetString(), payload.GetProperty("subjectType").GetString(), payload.GetProperty("subjectId").GetString(), payload.GetProperty("authzRevision").GetInt64()))
                 .ToArray();
             Assert.Contains(("revoked", "service", Writer, revision), events);

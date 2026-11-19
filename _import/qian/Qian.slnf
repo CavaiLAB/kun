@@ -22,7 +22,6 @@
       "_import/qian/packages/Qian.Files.Abstractions/Qian.Files.Abstractions.csproj",
       "_import/qian/packages/Qian.Files/Qian.Files.csproj",
       "_import/qian/packages/Qian.Files.AspNetCore/Qian.Files.AspNetCore.csproj",
-      "_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj",
       "_import/qian/packages/Qian.Events/Qian.Events.csproj",
       "_import/qian/packages/Qian.Gateway.Abstractions/Qian.Gateway.Abstractions.csproj",
       "_import/qian/packages/Qian.Gateway/Qian.Gateway.csproj",

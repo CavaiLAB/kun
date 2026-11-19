@@ -24,9 +24,9 @@ namespace Qian.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {
-    private protected static readonly string CustomerCreatedQueue = QianEventTopology.SubscriptionQueue("qian.sample.crm", "customer-created");
-    private protected static readonly string TenantProbeQueue = QianEventTopology.SubscriptionQueue("qian.sample.crm", "tenant-probe");
-    private protected static readonly string TenantPeerQueue = QianEventTopology.SubscriptionQueue("qian.sample.crm", "tenant-peer");
+    private protected static readonly string CustomerCreatedQueue = KunEventTopology.SubscriptionQueue("qian.sample.crm", "customer-created");
+    private protected static readonly string TenantProbeQueue = KunEventTopology.SubscriptionQueue("qian.sample.crm", "tenant-probe");
+    private protected static readonly string TenantPeerQueue = KunEventTopology.SubscriptionQueue("qian.sample.crm", "tenant-peer");
     private protected static readonly string[] ProbedSubscriptions = ["tenant-probe", "tenant-peer", "customer-created"];
 }
 
@@ -109,7 +109,7 @@ public sealed partial class EventTests
         Assert.Contains(probe.Scopes, scope => scope.EventId == positive.EventId && scope.Authorized == Guid.Parse(A) && scope.Rejected is null);
 
         // 反例：绕过 Outbox 发布器直接发到 qian.events，消息体或 AMQP 头的 tenant_id 不满足契约。
-        var crafted = new (string Name, QianEventEnvelope Envelope, Func<string, string> Body, string? Header)[]
+        var crafted = new (string Name, KunEventEnvelope Envelope, Func<string, string> Body, string? Header)[]
         {
             ("missing", Envelope(customer.Id, A), json => Without(json, "tenant_id"), A),
             ("missing-header", Envelope(customer.Id, A), json => json, null),
@@ -118,9 +118,9 @@ public sealed partial class EventTests
             ("platform", Envelope(customer.Id, null), json => json, null),
         };
         foreach (var (_, envelope, body, header) in crafted) await RawPublishAsync(rabbit, envelope, body(envelope.ToJson()), header);
-        var probeDeadLetter = QianEventTopology.DeadLetterQueue("qian.sample.crm", "tenant-probe");
+        var probeDeadLetter = KunEventTopology.DeadLetterQueue("qian.sample.crm", "tenant-probe");
         await UntilAsync(async () => await MessagesAsync(rabbit, probeDeadLetter) == crafted.Length, "反例没有全部进死信队列");
-        await UntilAsync(async () => await MessagesAsync(rabbit, QianEventTopology.DeadLetterQueue("qian.sample.crm", "customer-created")) == crafted.Length,
+        await UntilAsync(async () => await MessagesAsync(rabbit, KunEventTopology.DeadLetterQueue("qian.sample.crm", "customer-created")) == crafted.Length,
             "参考宿主自己的订阅没有拒绝反例");
         // 结束态：两个主队列的 messages（就绪加未确认）都为 0，反例在死信队列里，之后不会再有投递。
         await UntilAsync(async () => await MessagesAsync(rabbit, TenantProbeQueue) == 0 && await MessagesAsync(rabbit, CustomerCreatedQueue) == 0, "主队列没有清空");
@@ -178,12 +178,12 @@ public abstract partial class CustomerCommandTests
         return (await response.Content.ReadFromJsonAsync<CustomerItem>(Ct))!;
     }
 
-    private protected static QianEventEnvelope Envelope(Guid customerId, string? tenant)
+    private protected static KunEventEnvelope Envelope(Guid customerId, string? tenant)
     {
         var occurredAt = DateTimeOffset.UtcNow;
-        return new QianEventEnvelope
+        return new KunEventEnvelope
         {
-            Version = QianEventEnvelope.CurrentVersion, EventId = Guid.CreateVersion7(occurredAt), Subject = "crm.customer.created", Type = CrmEvents.CustomerCreated,
+            Version = KunEventEnvelope.CurrentVersion, EventId = Guid.CreateVersion7(occurredAt), Subject = "crm.customer.created", Type = CrmEvents.CustomerCreated,
             OccurredAt = occurredAt, TenantId = tenant is null ? null : Guid.Parse(tenant), Producer = "qian.sample.crm", Actor = EventActor.Service(Writer),
             TraceParent = "00-" + ActivityTraceId.CreateRandom().ToHexString() + "-" + ActivitySpanId.CreateRandom().ToHexString() + "-01",
             Payload = JsonSerializer.SerializeToElement(new CrmCustomerCreated(customerId), CrmCommandJson.Default.CrmCustomerCreated),
@@ -203,7 +203,7 @@ public abstract partial class CustomerCommandTests
         return text[..^1] + ",\"tenant_id\":\"" + tenant + "\",\"tenant_id\":\"" + tenant + "\"}";
     }
 
-    private protected static async Task RawPublishAsync(RabbitMqFixture rabbit, QianEventEnvelope envelope, string body, string? tenantHeader)
+    private protected static async Task RawPublishAsync(RabbitMqFixture rabbit, KunEventEnvelope envelope, string body, string? tenantHeader)
     {
         await using var connection = await new ConnectionFactory { Uri = new Uri(rabbit.ConnectionString) }.CreateConnectionAsync(Ct);
         await using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(true, true), Ct);
@@ -214,7 +214,7 @@ public abstract partial class CustomerCommandTests
             MessageId = envelope.EventId.ToString("D"), Type = envelope.Type, AppId = envelope.Producer, ContentType = "application/json",
             DeliveryMode = DeliveryModes.Persistent, Headers = headers,
         };
-        await channel.BasicPublishAsync(QianEventTopology.Exchange, envelope.Subject, mandatory: true, properties, Encoding.UTF8.GetBytes(body), Ct);
+        await channel.BasicPublishAsync(KunEventTopology.Exchange, envelope.Subject, mandatory: true, properties, Encoding.UTF8.GetBytes(body), Ct);
     }
 
     private protected static async Task ConsumingAsync(RabbitMqFixture rabbit, params string[] queues)
@@ -349,7 +349,7 @@ public abstract partial class CustomerCommandTests
     }
 
     // 探针 handler：在订阅器回灌的租户里查客户表，记下租户上下文、EF 生成的 SQL 与结果；与对端之间经屏障制造跨租户重叠。
-    private protected sealed class TenantProbeHandler(IDataService data, ITenantContext tenant, QianEventDelivery delivery, TenantProbe probe) : IIntegrationEventHandler<CrmCustomerCreated>
+    private protected sealed class TenantProbeHandler(IDataService data, ITenantContext tenant, KunEventDelivery delivery, TenantProbe probe) : IIntegrationEventHandler<CrmCustomerCreated>
     {
         public async ValueTask HandleAsync(CrmCustomerCreated @event, MessageContext context, CancellationToken cancellationToken = default)
         {
@@ -360,7 +360,7 @@ public abstract partial class CustomerCommandTests
     }
 
     // 对端 handler：与探针相同的观察，记在 PeerSeen。
-    private protected sealed class TenantPeerHandler(IDataService data, ITenantContext tenant, QianEventDelivery delivery, TenantProbe probe) : IIntegrationEventHandler<CrmCustomerCreated>
+    private protected sealed class TenantPeerHandler(IDataService data, ITenantContext tenant, KunEventDelivery delivery, TenantProbe probe) : IIntegrationEventHandler<CrmCustomerCreated>
     {
         public async ValueTask HandleAsync(CrmCustomerCreated @event, MessageContext context, CancellationToken cancellationToken = default)
         {
@@ -370,7 +370,7 @@ public abstract partial class CustomerCommandTests
         }
     }
 
-    private protected static async Task<TenantObservation> ObserveAsync(IDataService data, ITenantContext tenant, QianEventDelivery delivery, CrmCustomerCreated @event, MessageContext context,
+    private protected static async Task<TenantObservation> ObserveAsync(IDataService data, ITenantContext tenant, KunEventDelivery delivery, CrmCustomerCreated @event, MessageContext context,
         bool overlap, CancellationToken cancellationToken)
     {
         await using var session = await data.OpenAsync<CrmDbContext>(cancellationToken);

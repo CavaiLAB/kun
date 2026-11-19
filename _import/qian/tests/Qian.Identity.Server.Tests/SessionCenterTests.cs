@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
-using Qian.Events;
+using Kun.EventBus;
 using Qian.Identity.Abstractions;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;

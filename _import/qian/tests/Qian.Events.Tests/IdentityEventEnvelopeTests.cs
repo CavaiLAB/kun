@@ -1,5 +1,6 @@
 using Json.Schema;
 using Kun.Core.MultiTenancy;
+using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.MultiTenancy;
@@ -32,14 +33,14 @@ public sealed class IdentityEventEnvelopeTests
         JsonSchema.FromText(File.ReadAllText(Path.Combine(EnvelopeSchemas.RepositoryRoot, "contracts/v0/s2s-claims.schema.json")), options);
         foreach (var message in messages)
         {
-            var envelope = QianEventEnvelope.Parse(message.Payload);
+            var envelope = KunEventEnvelope.Parse(message.Payload);
             Assert.Equal(message.Id, envelope.EventId);
             Assert.Equal(7, envelope.EventId.Version);
             Assert.DoesNotContain(envelope.Payload.EnumerateObject(), member => member.Name is "event_id" or "occurred_at" or "tenant_id");
             Assert.True(JsonSchema.FromText(IdentitySchemas.Event(envelope.Type), options).Evaluate(envelope.Payload).IsValid, message.Payload);
         }
-        Assert.Equal((IdentityEventIds.Login, Guid.Parse(Tenant)), (messages[0].EventTypeId, QianEventEnvelope.Parse(messages[0].Payload).TenantId));
-        Assert.Equal((IdentityEventIds.Locked, (Guid?)null), (messages[1].EventTypeId, QianEventEnvelope.Parse(messages[1].Payload).TenantId));
+        Assert.Equal((IdentityEventIds.Login, Guid.Parse(Tenant)), (messages[0].EventTypeId, KunEventEnvelope.Parse(messages[0].Payload).TenantId));
+        Assert.Equal((IdentityEventIds.Locked, (Guid?)null), (messages[1].EventTypeId, KunEventEnvelope.Parse(messages[1].Payload).TenantId));
     }
 
     private static ServiceProvider Services()

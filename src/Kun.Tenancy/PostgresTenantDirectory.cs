@@ -2,9 +2,9 @@ using Kun.Core.MultiTenancy;
 using Kun.Data;
 using Kun.EntityFrameworkCore.Conventions;
 using Kun.Errors;
+using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Events;
 
 namespace Kun.Tenancy;
 

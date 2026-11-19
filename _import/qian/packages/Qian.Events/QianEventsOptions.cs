@@ -1,3 +1,5 @@
+using Kun.EventBus;
+
 namespace Qian.Events;
 
 /// <summary>Outbox 投递的宿主级设置；组件配置 <c>outbox.lock</c> 必须与 <see cref="OutboxLock"/> 一致。</summary>
@@ -29,12 +31,12 @@ public sealed class QianEventsOptions
 
     internal void Validate()
     {
-        if (BatchSize is < 1 or > 1000) throw new QianEventsException(EventsErrors.Misconfigured, "BatchSize 必须在 1 到 1000 之间。");
+        if (BatchSize is < 1 or > 1000) throw new KunEventsException(EventsErrors.Misconfigured, "BatchSize 必须在 1 到 1000 之间。");
         if (PollInterval <= TimeSpan.Zero || PublishTimeout <= TimeSpan.Zero || RetryBaseDelay <= TimeSpan.Zero)
-            throw new QianEventsException(EventsErrors.Misconfigured, "轮询间隔、发布超时与重试间隔必须为正。");
-        if (LeaseDuration <= PublishTimeout) throw new QianEventsException(EventsErrors.Misconfigured, "租约必须长于单条发布超时。");
-        if (MaxAttempts is < 1 or > 100) throw new QianEventsException(EventsErrors.Misconfigured, "MaxAttempts 必须在 1 到 100 之间。");
-        if (string.IsNullOrWhiteSpace(RelayInstance) || RelayInstance.Length > 128) throw new QianEventsException(EventsErrors.Misconfigured, "RelayInstance 必须为 1 到 128 个字符。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "轮询间隔、发布超时与重试间隔必须为正。");
+        if (LeaseDuration <= PublishTimeout) throw new KunEventsException(EventsErrors.Misconfigured, "租约必须长于单条发布超时。");
+        if (MaxAttempts is < 1 or > 100) throw new KunEventsException(EventsErrors.Misconfigured, "MaxAttempts 必须在 1 到 100 之间。");
+        if (string.IsNullOrWhiteSpace(RelayInstance) || RelayInstance.Length > 128) throw new KunEventsException(EventsErrors.Misconfigured, "RelayInstance 必须为 1 到 128 个字符。");
     }
 }
 

@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Kun.Data;
-using Qian.Events;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Qian.Events;
+namespace Kun.EventBus;
 
 /// <summary>稳定事件 ID（<c>[IntegrationEventId]</c> 的值）与信封 subject 的换算规则。</summary>
 /// <remarks>事件 ID 形如 <c>crm.customer.created.v1</c>：subject 为去掉末尾 <c>.v&lt;N&gt;</c> 的部分，也是 RabbitMQ 路由键。</remarks>
@@ -30,7 +30,7 @@ public static partial class IntegrationEventTypes
     /// <summary>返回事件 ID 对应的 subject；不合法时以 <see cref="EventsErrors.PublishRejected"/> 拒绝。</summary>
     public static string SubjectOf(string type) => TryParse(type, out var subject, out _)
         ? subject
-        : throw QianEventsException.Rejected("事件 ID 必须为小写点分的 <subject>.v<N>，subject 至少两段。");
+        : throw KunEventsException.Rejected("事件 ID 必须为小写点分的 <subject>.v<N>，subject 至少两段。");
 
     /// <summary>subject 是否符合 <c>&lt;domain&gt;.&lt;entity&gt;.&lt;verb&gt;</c> 命名（至少两段）。</summary>
     public static bool IsSubject(string? subject) => subject is { Length: > 0 and <= MaxSubjectLength } && SubjectPattern().IsMatch(subject);

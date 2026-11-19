@@ -1,3 +1,4 @@
+using Kun.EventBus;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -11,7 +12,7 @@ internal sealed partial class RabbitMqBroker(Func<string> amqpUri, ILogger<Rabbi
     private IChannel? _channel;
     private bool _disposed;
 
-    /// <summary>发往 <see cref="QianEventTopology.Exchange"/> 并等待 broker 确认；未确认或被拒即抛出。</summary>
+    /// <summary>发往 <see cref="KunEventTopology.Exchange"/> 并等待 broker 确认；未确认或被拒即抛出。</summary>
     public async ValueTask PublishAsync(string routingKey, BasicProperties properties, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -22,7 +23,7 @@ internal sealed partial class RabbitMqBroker(Func<string> amqpUri, ILogger<Rabbi
             try
             {
                 // 无订阅者的事件按发布订阅语义丢弃（mandatory = false）；开启确认跟踪后，await 完成即 broker 已确认。
-                await channel.BasicPublishAsync(QianEventTopology.Exchange, routingKey, mandatory: false, properties, body, cancellationToken).ConfigureAwait(false);
+                await channel.BasicPublishAsync(KunEventTopology.Exchange, routingKey, mandatory: false, properties, body, cancellationToken).ConfigureAwait(false);
             }
             catch
             {
@@ -111,22 +112,22 @@ internal static class RabbitTopology
 
     public static async Task DeclareExchangesAsync(IChannel channel, CancellationToken cancellationToken)
     {
-        await channel.ExchangeDeclareAsync(QianEventTopology.Exchange, ExchangeType.Topic, durable: true, autoDelete: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-        await channel.ExchangeDeclareAsync(QianEventTopology.DeadLetterExchange, ExchangeType.Topic, durable: true, autoDelete: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await channel.ExchangeDeclareAsync(KunEventTopology.Exchange, ExchangeType.Topic, durable: true, autoDelete: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await channel.ExchangeDeclareAsync(KunEventTopology.DeadLetterExchange, ExchangeType.Topic, durable: true, autoDelete: false, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// 竞争消费：每订阅一个 quorum 队列，并声明该订阅的死信队列。broker 侧的死信（投递上限、拒绝）以死信队列名为路由键转
-    /// <see cref="QianEventTopology.DeadLetterExchange"/>；at-least-once 策略下死信目标不可达时消息滞留在源队列，所以死信队列先于主队列声明。
+    /// <see cref="KunEventTopology.DeadLetterExchange"/>；at-least-once 策略下死信目标不可达时消息滞留在源队列，所以死信队列先于主队列声明。
     /// </summary>
     public static async Task<string> DeclareSubscriptionAsync(IChannel channel, string service, string subscription, IEnumerable<string> bindingKeys, CancellationToken cancellationToken)
     {
-        var queue = QianEventTopology.SubscriptionQueue(service, subscription);
+        var queue = KunEventTopology.SubscriptionQueue(service, subscription);
         var deadLetter = await DeclareDeadLetterQueueAsync(channel, service, subscription, cancellationToken).ConfigureAwait(false);
         await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false, new Dictionary<string, object?>
         {
             ["x-queue-type"] = "quorum",
-            ["x-dead-letter-exchange"] = QianEventTopology.DeadLetterExchange,
+            ["x-dead-letter-exchange"] = KunEventTopology.DeadLetterExchange,
             ["x-dead-letter-routing-key"] = deadLetter,
             ["x-dead-letter-strategy"] = "at-least-once",
             ["x-overflow"] = "reject-publish",
@@ -136,20 +137,20 @@ internal static class RabbitTopology
         return queue;
     }
 
-    /// <summary>订阅的死信队列：quorum、跨实例共享，在 <see cref="QianEventTopology.DeadLetterExchange"/> 上按自己的队列名精确绑定。</summary>
+    /// <summary>订阅的死信队列：quorum、跨实例共享，在 <see cref="KunEventTopology.DeadLetterExchange"/> 上按自己的队列名精确绑定。</summary>
     public static async Task<string> DeclareDeadLetterQueueAsync(IChannel channel, string service, string subscription, CancellationToken cancellationToken)
     {
-        var queue = QianEventTopology.DeadLetterQueue(service, subscription);
+        var queue = KunEventTopology.DeadLetterQueue(service, subscription);
         await DeclareExchangesAsync(channel, cancellationToken).ConfigureAwait(false);
         await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false,
             new Dictionary<string, object?> { ["x-queue-type"] = "quorum" }, cancellationToken: cancellationToken).ConfigureAwait(false);
-        await channel.QueueBindAsync(queue, QianEventTopology.DeadLetterExchange, queue, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await channel.QueueBindAsync(queue, KunEventTopology.DeadLetterExchange, queue, cancellationToken: cancellationToken).ConfigureAwait(false);
         return queue;
     }
 
     /// <summary>
     /// 退避用的重试队列：没有消费者，消息停留 <paramref name="delay"/> 后经默认 exchange 回到 <paramref name="target"/>，
-    /// 绝不经 <see cref="QianEventTopology.Exchange"/> 回投，否则会扇出到绑定同一 subject 的其他订阅。
+    /// 绝不经 <see cref="KunEventTopology.Exchange"/> 回投，否则会扇出到绑定同一 subject 的其他订阅。
     /// 竞争订阅的重试队列是 quorum + at-least-once，退避状态在 broker 上持久、跨副本有效；广播实例的重试队列是带闲置过期的经典队列，
     /// 实例下线、主队列删除后回流的消息无处可投即被丢弃。
     /// </summary>
@@ -182,7 +183,7 @@ internal static class RabbitTopology
     /// </summary>
     public static async Task<string> DeclareBroadcastAsync(IChannel channel, string service, string instance, IEnumerable<string> bindingKeys, CancellationToken cancellationToken)
     {
-        var queue = QianEventTopology.BroadcastQueue(service, instance);
+        var queue = KunEventTopology.BroadcastQueue(service, instance);
         await DeclareExchangesAsync(channel, cancellationToken).ConfigureAwait(false);
         await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: true, new Dictionary<string, object?>
         {
@@ -198,6 +199,6 @@ internal static class RabbitTopology
         var keys = bindingKeys.ToArray();
         if (keys.Length == 0) throw new ArgumentException("至少需要一个绑定键。", nameof(bindingKeys));
         foreach (var key in keys)
-            await channel.QueueBindAsync(queue, QianEventTopology.Exchange, key, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await channel.QueueBindAsync(queue, KunEventTopology.Exchange, key, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }

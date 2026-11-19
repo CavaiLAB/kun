@@ -27,8 +27,8 @@ namespace Qian.Sample.Crm;
 /// <summary>独立参考宿主：真实 S2S、RBAC、租户、业务/Outbox/审计事务。凭据和迁移由宿主负责。</summary>
 public static class CrmCommandApplication
 {
-    // Kun 的事件类型表只认第一次 AddKunEventBus，中介者只认最后一次 AddKunMediator：嵌入平台组件（Registry、Lifecycle）的宿主
-    // 经 events / mediator 把自己的登记并进本宿主的同一次调用，而不是另行调用。
+    // Kun 的事件类型表只认第一次 AddKunEventBus：嵌入平台组件（Registry、Lifecycle）的宿主经 events 把事件类型并进本宿主的同一次调用；
+    // AddKunMediator 的登记可以叠加，mediator 参数把它们的处理器登记与本宿主的收在一处。
     public static WebApplication Build(string[] args, Action<WebApplicationBuilder>? configure = null, Action<IEventTypeRegistrar>? events = null,
         Action<KunMediatorBuilder>? mediator = null)
     {

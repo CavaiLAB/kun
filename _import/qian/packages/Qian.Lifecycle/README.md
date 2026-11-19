@@ -23,7 +23,7 @@
 
 ```csharp
 builder.Services.AddQianData<LifecycleDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(LifecycleDbContext.Schema));
-// Kun 的事件类型表只认第一次 AddKunEventBus，中介者只认最后一次 AddKunMediator：同一宿主的全部登记须并进各自的同一次调用。
+// Kun 的事件类型表只认第一次 AddKunEventBus：同一宿主的事件登记须并进同一次调用；AddKunMediator 的登记可以叠加。
 builder.Services.AddKunEventBus(events => events.RegisterRegistryEvents().RegisterLifecycleEvents());
 builder.Services.AddKunMediator(mediator => mediator.AddQianRegistryEvents().AddQianLifecycleEvents());
 builder.Services.AddQianEvents();

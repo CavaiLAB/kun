@@ -43,8 +43,9 @@ def platform(name, role="provider", symbols=True, legacy=False, **kw):
 
 def write(root, name, version=VERSION, deps=(), *, license="MIT", repository=EXPECTED["RepositoryUrl"], commit=COMMIT,
           authors=EXPECTED["Authors"], copyright=EXPECTED["Copyright"], project_url=EXPECTED["PackageProjectUrl"],
-          description="Fixture", suffix=".nupkg", filename=None, nuspec=None):
-    """在 root 里拼一个只有根 nuspec 的包；元数据默认与仓库的 src/Directory.Build.props 一致。"""
+          description="Fixture", suffix=".nupkg", filename=None, nuspec=None, files=()):
+    """在 root 里拼一个包：根 nuspec、lib/ 下一个占位文件（不是 PE 文件），另加 files 里列的空文件；
+    元数据默认与仓库的 src/Directory.Build.props 一致。"""
     meta = (f"<id>{name}</id><version>{version}</version><authors>{authors}</authors><description>{description}</description>"
             + (f"<copyright>{copyright}</copyright>" if copyright else "") + (f"<projectUrl>{project_url}</projectUrl>" if project_url else ""))
     if license:
@@ -57,6 +58,8 @@ def write(root, name, version=VERSION, deps=(), *, license="MIT", repository=EXP
     with zipfile.ZipFile(root / (filename or f"{name}.{version}{suffix}"), "w") as archive:
         archive.writestr(f"{name}.nuspec", text)
         archive.writestr("lib/net10.0/placeholder.txt", "")
+        for entry in files:
+            archive.writestr(entry, "")
 
 
 def full_set(root, packages):
@@ -73,6 +76,11 @@ class ListTests(unittest.TestCase):
                 "Items": {"KunTierException": [{"Identity": "Kun.X", "Rule": "K", "Until": "B7", "Reason": "r"}]}}
         package = release.package_from(release.ROOT / "src/Kun.Data/Kun.Data.csproj", data)
         self.assertEqual(Package("Kun.Data", "platform", "provider", "src/Kun.Data/Kun.Data.csproj", False, True, True, (("Kun.X", "K"),)), package)
+        self.assertTrue(package.build_output)  # 没写 IncludeBuildOutput 就是带编译输出
+        generator = release.package_from(release.ROOT / "src/Kun.Gen/Kun.Gen.csproj",
+                                         {"Properties": {"IsPackable": "true", "IncludeBuildOutput": "False", "IncludeSymbols": "false"}})
+        self.assertFalse(generator.build_output)
+        self.assertFalse(generator.symbols)
         self.assertIsNone(release.package_from(release.ROOT / "tests/T/T.csproj", {"Properties": {"IsPackable": "false"}}))
         unnamed = release.package_from(release.ROOT / "src/Kun.Y/Kun.Y.csproj", {"Properties": {"IsPackable": "True", "NoWarn": "NU1903"}})
         self.assertEqual("Kun.Y", unnamed.id)
@@ -104,11 +112,26 @@ class ListTests(unittest.TestCase):
         self.assertEqual(["解决方案里没有可打包的项目"], release.check_list([], transitional=True).problems)
 
     def test_list_round_trips_through_json(self):
-        packages = [kernel("Kun.Core", aot=True, exceptions=(("Kun.X", "K"),))]
+        packages = [kernel("Kun.Core", aot=True, exceptions=(("Kun.X", "K"),)),
+                    kernel("Kun.Gen", role="provider", symbols=False, build_output=False)]
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "list.json"
             path.write_text(json.dumps([release.asdict(p) for p in packages]), encoding="utf-8")
             self.assertEqual(packages, release._load_list(path))
+            # 这个字段加上之前导出的名单没有 build_output，按带编译输出读：照旧要符号包，不会因为少个字段就免
+            path.write_text(json.dumps([{"id": "Kun.Core", "tier": "kernel", "role": "contract", "project": "src/Kun.Core/Kun.Core.csproj"}]),
+                            encoding="utf-8")
+            self.assertTrue(release._load_list(path)[0].build_output)
+
+    def test_summary_counts_symbols_by_the_same_rule_as_verify(self):
+        # 「要出符号包的」不算不带编译输出的包（它们免不免按制品判），名单不会说要、核对却说免。
+        packages = [kernel("Kun.Core"), kernel("Kun.Gen", role="provider", symbols=False, build_output=False),
+                    kernel("Kun.Gen.Declared", role="provider", build_output=False), kernel("Kun.Old", symbols=False, legacy=True)]
+        self.assertIn("要出符号包的 1、不带编译输出的 2）", release._summary(packages))
+        out = io.StringIO()
+        with mock.patch.object(release, "discover", return_value=packages), contextlib.redirect_stdout(out):
+            release.main(["list", "--transitional"])
+        self.assertIn("要出符号包的 1、不带编译输出的 2）", out.getvalue())
 
     def test_list_json_reports_problems_on_stderr(self):
         duplicated = [kernel("Kun.Core"), Package("Kun.Core", "kernel", "contract", "src/Copy/Kun.Core.csproj")]
@@ -207,6 +230,65 @@ class VerifyTests(unittest.TestCase):
             relaxed_text = "\n".join(relaxed.problems)
             self.assertEqual(4, len(relaxed.problems), relaxed.problems)  # IncludeSymbols、许可、提交号，加上 src/ 下的 Kun.Lite
             self.assertIn("Kun.Lite（没出符号包）", relaxed_text)
+
+    # 只带分析器的包：项目不带编译输出（IncludeBuildOutput=false），包里 lib/、runtimes/ 下也没有 dll、exe
+    # （每个拼出来的包 lib/ 下都有个占位文件，不是 PE 文件，不算）。
+    ANALYZER = ("analyzers/dotnet/cs/Kun.Gen.dll",)
+
+    def test_analyzer_only_package_without_symbols_passes(self):
+        for legacy in (False, True):
+            gen = kernel("Kun.Gen", role="provider", symbols=False, legacy=legacy, build_output=False)
+            with self.subTest(legacy=legacy), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                write(root, gen.id, files=self.ANALYZER)
+                for transitional in (False, True):
+                    report = self.verify(root, [gen], transitional)
+                    self.assertEqual([], report.problems)
+                    self.assertEqual({}, report.allowed)  # 是免，不是过渡期放行
+
+    def test_analyzer_only_package_must_not_carry_symbols(self):
+        # 免的包出了符号包、或项目写了 IncludeSymbols=true，两种模式都报，过渡目录下也不放行。
+        for legacy in (False, True):
+            gen = kernel("Kun.Gen", role="provider", symbols=False, legacy=legacy, build_output=False)
+            declared = kernel("Kun.Gen", role="provider", symbols=True, legacy=legacy, build_output=False)
+            with self.subTest(legacy=legacy), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                write(root, gen.id, files=self.ANALYZER)
+                for transitional in (False, True):
+                    self.assertEqual(["Kun.Gen 只带分析器、免符号包，项目却写了 IncludeSymbols=true：改写 IncludeSymbols=false"],
+                                     self.verify(root, [declared], transitional).problems)
+                write(root, gen.id, suffix=".snupkg")
+                for transitional in (False, True):
+                    problems = self.verify(root, [gen], transitional).problems
+                    self.assertEqual(1, len(problems), problems)
+                    self.assertTrue(problems[0].startswith(f"Kun.Gen 只带分析器、免符号包，却出了符号包 Kun.Gen.{VERSION}.snupkg："), problems)
+
+    def test_build_output_off_with_binaries_in_the_package_still_needs_symbols(self):
+        # 只满足项目一头：IncludeBuildOutput=false，包里 lib/ 或 runtimes/ 下却有 dll、exe（不分大小写），照旧要符号包。
+        for entry in ("lib/net10.0/Kun.Gen.dll", "runtimes/win-x64/native/Kun.Gen.Native.DLL", "Lib/net10.0/kun-gen.exe"):
+            gen = kernel("Kun.Gen", role="provider", symbols=False, build_output=False)
+            old = kernel("Kun.Gen", role="provider", symbols=False, build_output=False, legacy=True)
+            message = f"Kun.Gen（项目写了 IncludeBuildOutput=false，可包里有 {entry}，不算只带分析器的包）"
+            with self.subTest(entry=entry), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                write(root, gen.id, files=self.ANALYZER + (entry,))
+                for transitional in (False, True):  # src/ 下两种模式都判失败
+                    self.assertEqual([f"{message}（没出符号包）"], self.verify(root, [gen], transitional).problems)
+                self.assertEqual([f"{message}（没出符号包）"], self.verify(root, [old]).problems)
+                relaxed = self.verify(root, [old], transitional=True)  # 过渡模式只放过渡目录下的，照常记为过渡期放行
+                self.assertEqual(([], {"symbols": [message]}), (relaxed.problems, relaxed.allowed))
+                write(root, gen.id, suffix=".snupkg")
+                self.assertEqual([], self.verify(root, [gen]).problems)  # 出了符号包就通过
+
+    def test_normal_package_without_symbols_is_still_reported(self):
+        # 带编译输出的包没出符号包，src/ 下两种模式照旧判失败；包里有没有 dll 不影响（单看制品一头不算免）。
+        lite = kernel("Kun.Lite", role="provider", symbols=False)
+        for files in ((), ("lib/net10.0/Kun.Lite.dll",)):
+            with self.subTest(files=files), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                write(root, lite.id, files=files)
+                for transitional in (False, True):
+                    self.assertEqual(["Kun.Lite（没出符号包）"], self.verify(root, [lite], transitional).problems)
 
     def test_repository_and_prefix_are_relaxed_only_for_the_transitional_directory(self):
         packages = [kernel("Kun.Core"), platform("Other.Thing", legacy=True), kernel("Kun.Moved", role="provider")]

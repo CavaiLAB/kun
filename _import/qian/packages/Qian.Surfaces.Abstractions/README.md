@@ -4,7 +4,7 @@
 
 ## 装配位置
 
-所有 profile 可使用；对应 Provider 为 `Qian.Surfaces`，运行时目录键由 `Kun.Runtime.SurfaceKeys` 拥有。此包是 CLI `qian add` 与装载器的代码依赖，不是独立业务组件。
+所有 profile 可使用；对应 Provider 为 `Qian.Surfaces`，目录键 `SurfaceKeys` 也在本包（运行时只按键登记，不认这些键）。此包是 CLI `qian add` 与装载器的代码依赖，不是独立业务组件。
 
 ## 模型体验
 

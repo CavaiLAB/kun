@@ -18,7 +18,6 @@ tests/
   Qian.Data.Native.Postgres.Tests/            NativeData：受限登录、精确 RLS 策略、租户/平台原始 SQL、事务与可撤销会话生命周期（真实 PostgreSQL）
   Qian.Data.Native.Postgres.AotTests/         独立原生持续门：运行严格发布的 Linux 二进制，复用共享 fixture 验证真实数据库；不在常规解决方案测试中跳过
   Qian.Lifecycle.Tests/                       生命周期：验签与信任根轮换（真实 PostgreSQL）、GitOps 执行器（本机裸仓库 + K3s 单节点集群）、Local 执行器
-  Kun.Runtime.Tests/                         最小运行时单元测试与 tck/runtime/*.scenario.yml 的 .NET harness
   Qian.Common.Tests/                          packages/Common 共享内部源文件的测试，直接编译源文件；并生成 CLI 移植比对用的 tck/profiles/key-vectors.json 与等价类表
   gates/                                      门禁自测：样例项目 + Python 测试，不在 Kun.slnx 与 Qian.slnf 里
     publicapi/                                PublicAPI 门禁样例

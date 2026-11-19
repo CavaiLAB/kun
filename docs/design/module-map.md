@@ -44,6 +44,14 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 `AddKunMediator` 可以对同一个服务集合调多次：第一次建 `KunMediatorBuilder` 并登记 `KunMediator`、`ISender`、`IPublisher`，之后的调用往同一个 builder 里加，几个模块各自登记的处理器与行为合进同一个中介。同一请求只能有一个处理器，登记第二个时当场抛 `InvalidOperationException`。`AddPermissionBehavior` 多一个带 `PermissionBehaviorOptions` 的重载，只改这一个请求取权限判定器与当前主体的方式，判定算法与拒绝映射不变。
 
+### 组件运行时（S1-KUN-023）
+
+| 模块 | 职责 | 主要 API | AOT |
+|---|---|---|---|
+| `Kun.Runtime` | 组件运行时：插件装载、服务键与注入、类型化事件、可逆副作用、扁平 scope；只引用 `Kun.Errors` | `PluginLoader`、`IPluginContext`、`IKunPlugin`、`KunEvent`、`ScopeKey` | — |
+
+运行时不带产品语义：`ScopeKey` 只查语法（`global`，或小写的种类名加非空 id），种类有哪些由平台档定；声明式表面的目录键 `SurfaceKeys` 在平台档。语言无关的场景用例在 `_import/qian/tck/runtime`，.NET 一侧是 `tests/Kun.Runtime.Tests`。
+
 ### 持久化（Infrastructure 层）
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |

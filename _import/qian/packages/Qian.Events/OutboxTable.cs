@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Data.Common;
 using Kun.EntityFrameworkCore;
+using Kun.EventBus;
 using Kun.EventBus.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -41,13 +42,13 @@ internal sealed class OutboxTable
     private static OutboxTable Build(KunStrictDbContext context)
     {
         if (context.Database.ProviderName != "Npgsql.EntityFrameworkCore.PostgreSQL")
-            throw new QianEventsException(EventsErrors.Misconfigured, "Outbox 投递要求 PostgreSQL 上下文。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "Outbox 投递要求 PostgreSQL 上下文。");
         var entity = context.Model.FindEntityType(typeof(OutboxMessage))
-            ?? throw new QianEventsException(EventsErrors.Misconfigured, "上下文模型缺少 Outbox 表。");
+            ?? throw new KunEventsException(EventsErrors.Misconfigured, "上下文模型缺少 Outbox 表。");
         var store = StoreObjectIdentifier.Table(entity.GetTableName()!, entity.GetSchema());
         var sql = context.GetService<ISqlGenerationHelper>();
         string Column(string property) => sql.DelimitIdentifier(entity.FindProperty(property)?.GetColumnName(store)
-            ?? throw new QianEventsException(EventsErrors.Misconfigured, "Outbox 表缺少列映射：" + property));
+            ?? throw new KunEventsException(EventsErrors.Misconfigured, "Outbox 表缺少列映射：" + property));
         var table = sql.DelimitIdentifier(store.Name, store.Schema);
         var id = Column(nameof(OutboxMessage.Id));
         var status = Column(nameof(OutboxMessage.Status));

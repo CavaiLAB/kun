@@ -6,6 +6,7 @@ using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
+using Kun.EventBus;
 using Kun.Mediator;
 using Kun.Runtime;
 using Kun.Security;
@@ -15,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Qian.Authz.Abstractions;
-using Qian.Events;
 
 namespace Kun.Plugin.Sdk;
 

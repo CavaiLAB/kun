@@ -6,9 +6,9 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.EntityFrameworkCore;
+using Kun.EventBus;
 using Microsoft.EntityFrameworkCore.Storage;
 using Qian.Audit;
-using Qian.Events;
 using Kun.Runtime;
 using Kun.Errors;
 

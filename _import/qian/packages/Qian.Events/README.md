@@ -1,6 +1,6 @@
 # Qian.Events
 
-Events seam 的 Provider：v1 信封写入端、RabbitMQ 发布端、按租约领取的 Outbox 投递后台服务、消费端订阅器、payload Schema 导出，以及组件入口 `EventsPlugin`。契约在 [Qian.Events.Abstractions](../Qian.Events.Abstractions/README.md)，任务见 [S1-EVT-001](../../pm/tasks/S1-EVT-001.md)（写入与投递）与 [S1-EVT-002](../../pm/tasks/S1-EVT-002.md)（消费端）。
+Events seam 的 Provider：v1 信封写入端、RabbitMQ 发布端、按租约领取的 Outbox 投递后台服务、消费端订阅器、payload Schema 导出，以及组件入口 `EventsPlugin`。契约在 [Kun.EventBus.Abstractions](../../../../src/Kun.EventBus.Abstractions/README.md)，任务见 [S1-EVT-001](../../pm/tasks/S1-EVT-001.md)（写入与投递）与 [S1-EVT-002](../../pm/tasks/S1-EVT-002.md)（消费端）。
 
 ## 宿主装配
 
@@ -98,7 +98,7 @@ builder.Services.AddQianEventsSubscriber("qian.identity", subscriber => subscrib
 
 每个队列一个消费通道，手动确认，同一通道上的消息依次处理（PrefetchCount 只是预取）。处理顺序：
 
-1. 消息体按 `QianEventEnvelope.Parse` 解析并校验，再与 AMQP 属性核对：MessageId 等于 event_id，Type 等于 type，头 `tenant_id` 与信封 tenant_id 一致（平台级事件没有这个头），从 `qian.events` 直接投来的消息路由键等于 subject；
+1. 消息体按 `KunEventEnvelope.Parse` 解析并校验，再与 AMQP 属性核对：MessageId 等于 event_id，Type 等于 type，头 `tenant_id` 与信封 tenant_id 一致（平台级事件没有这个头），从 `qian.events` 直接投来的消息路由键等于 subject；
 2. 按信封 type 找到本队列里的订阅与 handler；
 3. 查幂等记录（Kun `IProcessedMessageStore`，Redis 键 `idemp:{consumer}:{event_id}`），命中即确认、计 duplicate，不再执行 handler；
 4. 新建依赖注入作用域，按信封租户进入租户上下文（见「租户回灌」），从信封 trace_parent 与头 tracestate 恢复 `consume <subject>` 的 Consumer Activity；
@@ -115,7 +115,7 @@ builder.Services.AddQianEventsSubscriber("qian.identity", subscriber => subscrib
 | 分类 | 情形 | 处置 | 计数 |
 |---|---|---|---|
 | 契约不满足（handler 之前） | 信封解析或校验失败（含缺少 tenant_id）、与 AMQP 属性不一致、本队列没有订阅这个事件 ID、平台级事件而订阅不接受、租户进入被拒（传播器判定、非法租户 id，或进入后当前租户不等于信封租户）、载荷反序列化失败 | 不重投、不记幂等，原样转入订阅的死信队列 | rejected |
-| handler 确定性失败 | `QianEventsException`；`InvalidOperationException` 本身（`RecordChangedEvent.FromEnvelope` 等派生失败抛的就是它；包着内层异常时按内层判定）；`ArgumentException`、`JsonException`、`NotSupportedException`；错误码不可重试的 `ErrorException` | 不重投、不记幂等，转入死信队列 | dead_lettered |
+| handler 确定性失败 | `KunEventsException`；`InvalidOperationException` 本身（`RecordChangedEvent.FromEnvelope` 等派生失败抛的就是它；包着内层异常时按内层判定）；`ArgumentException`、`JsonException`、`NotSupportedException`；错误码不可重试的 `ErrorException` | 不重投、不记幂等，转入死信队列 | dead_lettered |
 | handler 瞬时失败 | 其余异常，包括 `InvalidOperationException` 的其他子类（如 `ObjectDisposedException`）和包着瞬时故障的 `InvalidOperationException` | 退避后重投；用尽后转入死信队列 | retried，用尽时 dead_lettered |
 | 转发失败 | 重试或死信副本连续 3 次发不出去（broker 退回、确认超时、声明失败） | 原消息 nack 不放回，交 broker 按队列的死信参数处理，见「重试与死信」 | forward_failed |
 | 宿主停机 | 停机令牌触发后 handler 抛出的任何异常 | 放回队列，不计一次尝试 | 无 |
@@ -125,9 +125,9 @@ builder.Services.AddQianEventsSubscriber("qian.identity", subscriber => subscrib
 - Npgsql 的 EF 执行策略会把可重试的数据库故障（连接断开、服务端重启）包成 `InvalidOperationException` 抛出，整类判定会让一次瞬时故障直接进死信；
 - `ObjectDisposedException` 也是它的子类，表示对象生命周期问题，换一次投递可能就好。
 
-所以只认 `InvalidOperationException` 本身：没有内层异常时视为契约错误；有内层异常时按内层异常判定。其子类里只有 `QianEventsException` 判为确定性失败，其余子类一律按瞬时失败处理。
+所以只认 `InvalidOperationException` 本身：没有内层异常时视为契约错误；有内层异常时按内层异常判定。其子类里只有 `KunEventsException` 判为确定性失败，其余子类一律按瞬时失败处理。
 
-handler 想明确表示「重试也不会成功」时，抛携带 EVENTS_CONSUME_REJECTED 的 `QianEventsException`。广播队列里连事件 ID 都无法归属订阅的消息（信封无法解析、没有订阅这个事件）没有死信队列可去，确认后丢弃，记 rejected 与 Error 日志。
+handler 想明确表示「重试也不会成功」时，抛携带 EVENTS_CONSUME_REJECTED 的 `KunEventsException`。广播队列里连事件 ID 都无法归属订阅的消息（信封无法解析、没有订阅这个事件）没有死信队列可去，确认后丢弃，记 rejected 与 Error 日志。
 
 ### 重试与死信
 
@@ -171,7 +171,7 @@ handler 想明确表示「重试也不会成功」时，抛携带 EVENTS_CONSUME
 ### handler 拿到什么
 
 - Kun `MessageContext` 由信封填充：MessageId 为 event_id，EventType 为 type，TraceParent 为 trace_parent，TenantId 为 tenant_id，OccurredOn 为 occurred_at。
-- 需要 producer、actor、correlation_id、causation_id 等完整信封时，在 handler 构造函数里注入 `QianEventDelivery`（订阅器在每条消息的作用域里提供，另带订阅名、消费者名与第几次投递）。
+- 需要 producer、actor、correlation_id、causation_id 等完整信封时，在 handler 构造函数里注入 `KunEventDelivery`（订阅器在每条消息的作用域里提供，另带订阅名、消费者名与第几次投递）。
 - handler 里不要直接调用 `IIntegrationEventBus.Publish` 或 `IOutboxWriter.Enqueue`：QIAN0006 只放行命令 handler 与领域事件通知 handler，要发后续事件经 `ISender` 发命令。
 
 ### 指标与选项

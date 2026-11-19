@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Tenancy;
@@ -23,7 +24,7 @@ public sealed partial class SubscriberTests
         var a = await PublishAsync(TenantA, sequence: 30);
         var b = await PublishAsync(TenantB, sequence: 31);
 
-        await Until(async () => metrics.Count("processed") == 2 && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work")]), "两条租户事件没有处理完");
+        await Until(async () => metrics.Count("processed") == 2 && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work")]), "两条租户事件没有处理完");
         Assert.Equal([(a.EventId, TenantA), (b.EventId, TenantB)], probe.Calls.OrderBy(call => call.Sequence).Select(call => (call.EventId, call.Tenant)));
         // 每条事件都经传播器进入：carrier 是消息体原文（带 event_id），authorizedTenantId 是信封租户；handler 结束后作用域已释放。
         Assert.Equal([(a.EventId, Guid.Parse(TenantA)), (b.EventId, Guid.Parse(TenantB))], propagator.Calls.Distinct().OrderBy(call => call.Authorized));
@@ -46,16 +47,16 @@ public sealed partial class SubscriberTests
         var unscoped = await PublishAsync(TenantA, sequence: 32, note: ScriptedPropagator.NoScope);
         var misplaced = await PublishAsync(TenantA, sequence: 33, note: ScriptedPropagator.WrongTenant);
         var entered = await PublishAsync(TenantB, sequence: 34);
-        var deadLetter = QianEventTopology.DeadLetterQueue(service, "work");
+        var deadLetter = KunEventTopology.DeadLetterQueue(service, "work");
 
         // 结束态：rejected 与 processed 都已计数（确认之后），死信队列恰有两条、主队列已清空，之后不会再有投递。
         await Until(async () => metrics.Count("rejected") == 2 && metrics.Count("processed") == 1 && (await QueuesAsync()).GetValueOrDefault(deadLetter) == 2
-            && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work")]), "两条反例没有按 tenant_rejected 进死信队列");
+            && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work")]), "两条反例没有按 tenant_rejected 进死信队列");
         var call = Assert.Single(probe.Calls);
         Assert.Equal((entered.EventId, TenantB), (call.EventId, call.Tenant));
         var dead = await DrainAsync(deadLetter);
         Assert.Equal([unscoped.EventId, misplaced.EventId], dead.Select(message => Guid.Parse(message.BasicProperties.MessageId!)).Order());
-        Assert.All(dead, message => Assert.Equal(("tenant_rejected", typeof(QianEventsException).FullName), (Header(message, "x-qian-reason"), Header(message, "x-qian-error"))));
+        Assert.All(dead, message => Assert.Equal(("tenant_rejected", typeof(KunEventsException).FullName), (Header(message, "x-qian-reason"), Header(message, "x-qian-error"))));
         foreach (var id in new[] { unscoped.EventId, misplaced.EventId })
             Assert.False(await Redis().KeyExistsAsync("idemp:" + service + ".work:" + id));
         // 传播器确实被调用了（判定发生在它返回之后）；进入了别的租户的作用域在拒绝前释放。
@@ -75,11 +76,11 @@ public sealed partial class SubscriberTests
             services: services => services.AddSingleton<ITenantContext>(new InertTenantContext()));
         await StartAsync(host);
         var envelope = await PublishAsync(TenantA, sequence: 35);
-        var deadLetter = QianEventTopology.DeadLetterQueue(service, "work");
+        var deadLetter = KunEventTopology.DeadLetterQueue(service, "work");
 
         // 结束态：rejected 已计数，死信队列恰有一条、主队列已清空，之后不会再有投递。
         await Until(async () => metrics.Count("rejected") == 1 && (await QueuesAsync()).GetValueOrDefault(deadLetter) == 1
-            && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work")]), "回退分支没有拒绝未进入作用域的消息");
+            && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work")]), "回退分支没有拒绝未进入作用域的消息");
         Assert.Empty(probe.Calls);
         var message = await GetAsync(deadLetter);
         Assert.Equal((envelope.EventId.ToString("D"), "tenant_rejected"), (message.BasicProperties.MessageId, Header(message, "x-qian-reason")));

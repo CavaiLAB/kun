@@ -19,7 +19,7 @@ public sealed class EnvelopeContractTests
     {
         foreach (var (name, data) in EnvelopeSchemas.Fixtures("valid"))
         {
-            var envelope = QianEventEnvelope.Parse(data.GetRawText());
+            var envelope = KunEventEnvelope.Parse(data.GetRawText());
             using var written = JsonDocument.Parse(envelope.ToJson());
             Assert.True(EnvelopeSchemas.ValidateQian(written.RootElement) is [], name + "：" + string.Join("\n", EnvelopeSchemas.ValidateQian(written.RootElement)));
             Assert.Equal(data.GetProperty("event_id").GetString(), written.RootElement.GetProperty("event_id").GetString());
@@ -28,7 +28,7 @@ public sealed class EnvelopeContractTests
         foreach (var kind in new[] { "invalid", "semantic-invalid" })
             foreach (var (name, data) in EnvelopeSchemas.Fixtures(kind))
             {
-                var error = Assert.Throws<QianEventsException>(() => QianEventEnvelope.Parse(data.GetRawText()));
+                var error = Assert.Throws<KunEventsException>(() => KunEventEnvelope.Parse(data.GetRawText()));
                 Assert.Equal(EventsErrors.PublishRejected, error.Error.Code);
                 _ = name;
             }
@@ -49,7 +49,7 @@ public sealed class EnvelopeContractTests
         var root = document.RootElement;
         Assert.Empty(EnvelopeSchemas.ValidateQian(root));
         Assert.Empty(EnvelopeSchemas.ValidateIClaw(root));
-        var envelope = QianEventEnvelope.Parse(message.Payload);
+        var envelope = KunEventEnvelope.Parse(message.Payload);
         Assert.Equal(message.Id, envelope.EventId);
         Assert.Equal(7, envelope.EventId.Version);
         Assert.Equal("tests.ping.sent.v1", message.EventTypeId);
@@ -100,7 +100,7 @@ public sealed class EnvelopeContractTests
         Assert.Equal("agent-client-1", actor.GetProperty("id").GetString());
         Assert.Equal(person, actor.GetProperty("on_behalf_of").GetString());
         Assert.Empty(EnvelopeSchemas.ValidateQian(document.RootElement));
-        Assert.Equal(EventActorKind.Agent, QianEventEnvelope.Parse(message.Payload).Actor.Kind);
+        Assert.Equal(EventActorKind.Agent, KunEventEnvelope.Parse(message.Payload).Actor.Kind);
     }
 
     [Fact]
@@ -111,15 +111,15 @@ public sealed class EnvelopeContractTests
         var writer = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
         var buffer = scope.ServiceProvider.GetRequiredService<IntegrationEventBuffer>();
         var tenant = scope.ServiceProvider.GetRequiredService<ITenantContext>();
-        Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<QianEventsException>(() => writer.Enqueue(new PingSent(1, "no scope"))).Error.Code);
+        Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new PingSent(1, "no scope"))).Error.Code);
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.sample.crm", EventActor.User("person-1"))))
         {
-            Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<QianEventsException>(() => writer.Enqueue(new Unregistered(1))).Error.Code);
-            Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<QianEventsException>(() => writer.Enqueue(new Reflected(1))).Error.Code);
+            Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new Unregistered(1))).Error.Code);
+            Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new Reflected(1))).Error.Code);
             using (tenant.BeginScope("tenant-a"))
-                Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<QianEventsException>(() => writer.Enqueue(new PingSent(1, "slug tenant"))).Error.Code);
+                Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new PingSent(1, "slug tenant"))).Error.Code);
             using (tenant.BeginScope(Tenant.ToUpperInvariant()))
-                Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<QianEventsException>(() => writer.Enqueue(new PingSent(1, "upper tenant"))).Error.Code);
+                Assert.Equal(EventsErrors.PublishRejected, Assert.Throws<KunEventsException>(() => writer.Enqueue(new PingSent(1, "upper tenant"))).Error.Code);
         }
         Assert.Empty(buffer.GetPendingMessages());
     }
@@ -128,10 +128,10 @@ public sealed class EnvelopeContractTests
     public void 事件来源校验字段并按打开的逆序恢复外层()
     {
         Assert.Null(EventEnvelopeScope.Current);
-        Assert.Throws<QianEventsException>(() => EventEnvelopeScope.Begin(new EventOrigin("Qian.Sample", EventActor.User("p"))));
-        Assert.Throws<QianEventsException>(() => EventEnvelopeScope.Begin(new EventOrigin("qian.sample", EventActor.User(""))));
-        Assert.Throws<QianEventsException>(() => EventEnvelopeScope.Begin(new EventOrigin("qian.sample", EventActor.User("p")) { TraceParent = "00-abc" }));
-        Assert.Throws<QianEventsException>(() => EventEnvelopeScope.Begin(new EventOrigin("qian.sample", EventActor.User("p")) { CausationId = Guid.Empty }));
+        Assert.Throws<KunEventsException>(() => EventEnvelopeScope.Begin(new EventOrigin("Qian.Sample", EventActor.User("p"))));
+        Assert.Throws<KunEventsException>(() => EventEnvelopeScope.Begin(new EventOrigin("qian.sample", EventActor.User(""))));
+        Assert.Throws<KunEventsException>(() => EventEnvelopeScope.Begin(new EventOrigin("qian.sample", EventActor.User("p")) { TraceParent = "00-abc" }));
+        Assert.Throws<KunEventsException>(() => EventEnvelopeScope.Begin(new EventOrigin("qian.sample", EventActor.User("p")) { CausationId = Guid.Empty }));
         var outer = new EventOrigin("qian.outer", EventActor.Service("outer"));
         var inner = new EventOrigin("qian.inner", EventActor.Service("inner"));
         using (EventEnvelopeScope.Begin(outer))
@@ -148,19 +148,19 @@ public sealed class EnvelopeContractTests
     [Fact]
     public void 拓扑命名与路由键()
     {
-        Assert.Equal("qian.events", QianEventTopology.Exchange);
-        Assert.Equal("qian.dlx", QianEventTopology.DeadLetterExchange);
-        Assert.Equal("crm.customer.created", QianEventTopology.RoutingKey("crm.customer.created.v1"));
-        Assert.Equal("identity.session_revoked", QianEventTopology.RoutingKey("identity.session_revoked.v1"));
-        Assert.Equal("q.qian.sample.crm.customer-sync", QianEventTopology.SubscriptionQueue("qian.sample.crm", "customer-sync"));
-        Assert.Equal("q.qian.gateway.gw-7f9c", QianEventTopology.BroadcastQueue("qian.gateway", "gw-7f9c"));
-        Assert.Throws<ArgumentException>(() => QianEventTopology.SubscriptionQueue("Qian.Crm", "sync"));
-        Assert.Throws<ArgumentException>(() => QianEventTopology.SubscriptionQueue("qian.crm", "sync.all"));
-        Assert.Throws<ArgumentException>(() => QianEventTopology.BroadcastQueue("qian.crm", new string('a', 300)));
+        Assert.Equal("qian.events", KunEventTopology.Exchange);
+        Assert.Equal("qian.dlx", KunEventTopology.DeadLetterExchange);
+        Assert.Equal("crm.customer.created", KunEventTopology.RoutingKey("crm.customer.created.v1"));
+        Assert.Equal("identity.session_revoked", KunEventTopology.RoutingKey("identity.session_revoked.v1"));
+        Assert.Equal("q.qian.sample.crm.customer-sync", KunEventTopology.SubscriptionQueue("qian.sample.crm", "customer-sync"));
+        Assert.Equal("q.qian.gateway.gw-7f9c", KunEventTopology.BroadcastQueue("qian.gateway", "gw-7f9c"));
+        Assert.Throws<ArgumentException>(() => KunEventTopology.SubscriptionQueue("Qian.Crm", "sync"));
+        Assert.Throws<ArgumentException>(() => KunEventTopology.SubscriptionQueue("qian.crm", "sync.all"));
+        Assert.Throws<ArgumentException>(() => KunEventTopology.BroadcastQueue("qian.crm", new string('a', 300)));
         foreach (var type in new[] { "crm.v1", "crm.customer.created", "crm.customer.created.v0", "CRM.customer.created.v1", "crm..created.v1" })
         {
             Assert.False(IntegrationEventTypes.TryParse(type, out _, out _), type);
-            Assert.Throws<QianEventsException>(() => QianEventTopology.RoutingKey(type));
+            Assert.Throws<KunEventsException>(() => KunEventTopology.RoutingKey(type));
         }
         Assert.True(IntegrationEventTypes.TryParse("lifecycle.tenant-plugin.upgraded.v12", out var subject, out var version));
         Assert.Equal(("lifecycle.tenant-plugin.upgraded", 12), (subject, version));

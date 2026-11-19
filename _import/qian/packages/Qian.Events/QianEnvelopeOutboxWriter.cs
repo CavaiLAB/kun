@@ -22,21 +22,21 @@ internal sealed class QianEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IE
     {
         ArgumentNullException.ThrowIfNull(@event);
         var origin = EventEnvelopeScope.Current
-            ?? throw new QianEventsException(EventsErrors.PublishRejected, "集成事件只能在命令 handler 的同一作用域内发出；后台发布方须以服务主体打开 EventEnvelopeScope。");
+            ?? throw new KunEventsException(EventsErrors.PublishRejected, "集成事件只能在命令 handler 的同一作用域内发出；后台发布方须以服务主体打开 EventEnvelopeScope。");
         var type = registry.GetEventType(typeof(TEvent))
-            ?? throw new QianEventsException(EventsErrors.PublishRejected, "事件类型未在 Kun 事件目录登记。");
+            ?? throw new KunEventsException(EventsErrors.PublishRejected, "事件类型未在 Kun 事件目录登记。");
         if (registry.GetJsonTypeInfo(typeof(TEvent)) is not JsonTypeInfo<TEvent> typeInfo)
-            throw new QianEventsException(EventsErrors.PublishRejected, "事件必须以源生成 JsonTypeInfo 登记，payload Schema 才能与发出的 JSON 一致。");
+            throw new KunEventsException(EventsErrors.PublishRejected, "事件必须以源生成 JsonTypeInfo 登记，payload Schema 才能与发出的 JSON 一致。");
         var subject = IntegrationEventTypes.SubjectOf(type);
         var payload = JsonSerializer.SerializeToElement(@event, typeInfo);
         var occurredAt = clock.GetUtcNow();
         var tenantId = TenantOf(tenant.TenantId);
         var activity = Activity.Current;
-        var traceParent = origin.TraceParent ?? (activity is { IdFormat: ActivityIdFormat.W3C } && QianEventEnvelope.IsTraceParent(activity.Id) ? activity.Id : null)
+        var traceParent = origin.TraceParent ?? (activity is { IdFormat: ActivityIdFormat.W3C } && KunEventEnvelope.IsTraceParent(activity.Id) ? activity.Id : null)
             ?? "00-" + ActivityTraceId.CreateRandom().ToHexString() + "-" + ActivitySpanId.CreateRandom().ToHexString() + "-00";
-        var envelope = new QianEventEnvelope
+        var envelope = new KunEventEnvelope
         {
-            Version = QianEventEnvelope.CurrentVersion,
+            Version = KunEventEnvelope.CurrentVersion,
             EventId = Guid.CreateVersion7(occurredAt),
             Subject = subject,
             Type = type,
@@ -60,7 +60,7 @@ internal sealed class QianEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IE
     {
         if (tenantId is null) return null;
         if (!Guid.TryParseExact(tenantId, "D", out var parsed) || parsed == Guid.Empty || parsed.ToString("D") != tenantId)
-            throw new QianEventsException(EventsErrors.PublishRejected, "租户标识必须是小写规范 UUID，平台级事件不在租户作用域内发布。");
+            throw new KunEventsException(EventsErrors.PublishRejected, "租户标识必须是小写规范 UUID，平台级事件不在租户作用域内发布。");
         return parsed;
     }
 }

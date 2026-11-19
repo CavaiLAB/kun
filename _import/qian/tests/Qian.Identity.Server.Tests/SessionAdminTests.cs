@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Events;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing.Containers;

@@ -240,17 +240,17 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         return await RabbitTopology.DeclareSubscriptionAsync(channel, "qian.events-tests", "relay-" + Guid.NewGuid().ToString("N")[..8], ["tests.ping.sent"], Ct);
     }
 
-    private async Task<List<QianEventEnvelope>> DrainAsync(string queue)
+    private async Task<List<KunEventEnvelope>> DrainAsync(string queue)
     {
         var factory = new ConnectionFactory { Uri = new Uri(rabbit.ConnectionString) };
         await using var connection = await factory.CreateConnectionAsync(Ct);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: Ct);
-        var received = new List<QianEventEnvelope>();
+        var received = new List<KunEventEnvelope>();
         while (await channel.BasicGetAsync(queue, autoAck: true, Ct) is { } message)
         {
             Assert.Equal("tests.ping.sent", message.RoutingKey);
-            Assert.Equal(QianEventTopology.Exchange, message.Exchange);
-            var envelope = QianEventEnvelope.Parse(Encoding.UTF8.GetString(message.Body.Span));
+            Assert.Equal(KunEventTopology.Exchange, message.Exchange);
+            var envelope = KunEventEnvelope.Parse(Encoding.UTF8.GetString(message.Body.Span));
             Assert.Equal(envelope.EventId.ToString("D"), message.BasicProperties.MessageId);
             Assert.Equal(envelope.Type, message.BasicProperties.Type);
             Assert.Equal(DeliveryModes.Persistent, message.BasicProperties.DeliveryMode);

@@ -1,12 +1,12 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Kun.EventBus;
 using Kun.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Qian.Events;
 using Qian.Identity.Abstractions;
 
 namespace Qian.Identity.Server.Tests;
@@ -40,14 +40,14 @@ internal static partial class SessionSupport
     }
 
     /// <summary>Outbox 里指定类型的全部事件信封，按发生顺序。</summary>
-    internal static async Task<IReadOnlyList<QianEventEnvelope>> EventsOf(AccountsHost.Running host, string type)
+    internal static async Task<IReadOnlyList<KunEventEnvelope>> EventsOf(AccountsHost.Running host, string type)
     {
         var joined = await host.Text("SELECT coalesce(string_agg(payload, E'\\n' ORDER BY occurred_at, id), '') FROM plugin_qian_identity.outbox_messages WHERE event_type_id = @t", ("t", type));
-        return joined.Length == 0 ? [] : [.. joined.Split('\n').Select(QianEventEnvelope.Parse)];
+        return joined.Length == 0 ? [] : [.. joined.Split('\n').Select(KunEventEnvelope.Parse)];
     }
 
     /// <summary>已发布的会话吊销事件里指定会话的那条；还没发布时为 null。</summary>
-    internal static async Task<QianEventEnvelope?> Revoked(AccountsHost.Running host, Guid session) =>
+    internal static async Task<KunEventEnvelope?> Revoked(AccountsHost.Running host, Guid session) =>
         (await EventsOf(host, "identity.session_revoked.v1")).SingleOrDefault(e => e.Payload.GetProperty("session_id").GetString() == Id(session));
 
     internal static string Redirect(AccountsHost.Running host, string client) => client == "web" ? host.Redirect : host.Issuer + "mobile-callback";

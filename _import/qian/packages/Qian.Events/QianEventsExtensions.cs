@@ -48,7 +48,7 @@ public static class QianEventsExtensions
         ArgumentNullException.ThrowIfNull(resolveAmqpUri);
         if (brokerReference is not null) EventsConfiguration.ValidateReference(brokerReference);
         if (services.Any(service => service.ServiceType == typeof(EventsBrokerBinding)))
-            throw new QianEventsException(EventsErrors.Misconfigured, "同一宿主只能登记一个事件 broker。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "同一宿主只能登记一个事件 broker。");
         services.AddQianEvents();
         services.AddSingleton(new EventsBrokerBinding(brokerReference));
         var address = new EventsBrokerAddress(resolveAmqpUri);
@@ -73,8 +73,8 @@ public static class QianEventsExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(subscribe);
-        try { _ = QianEventTopology.SubscriptionQueue(service, "s"); }
-        catch (ArgumentException error) { throw new QianEventsException(EventsErrors.Misconfigured, "订阅方服务名不合法：" + error.Message); }
+        try { _ = KunEventTopology.SubscriptionQueue(service, "s"); }
+        catch (ArgumentException error) { throw new KunEventsException(EventsErrors.Misconfigured, "订阅方服务名不合法：" + error.Message); }
         services.AddQianEvents();
         var options = services.AddOptions<QianEventsSubscriberOptions>();
         if (configure is not null) options.Configure(configure);
@@ -85,12 +85,12 @@ public static class QianEventsExtensions
             services.AddSingleton(registry);
             services.TryAddScoped<EventDeliverySlot>();
             services.TryAddScoped(sp => sp.GetRequiredService<EventDeliverySlot>().Current
-                ?? throw new QianEventsException(EventsErrors.Misconfigured, "QianEventDelivery 只能在订阅器派发的消息作用域内解析。"));
+                ?? throw new KunEventsException(EventsErrors.Misconfigured, "KunEventDelivery 只能在订阅器派发的消息作用域内解析。"));
             services.AddHostedService(sp => new QianEventSubscriber(sp, sp.GetRequiredService<EventSubscriptionRegistry>(),
                 sp.GetRequiredService<IOptions<QianEventsSubscriberOptions>>(), sp.GetRequiredService<ILogger<QianEventSubscriber>>()));
         }
         else if (registry.Service != service)
-            throw new QianEventsException(EventsErrors.Misconfigured, "同一宿主的订阅方服务名必须一致：已登记 " + registry.Service + "。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "同一宿主的订阅方服务名必须一致：已登记 " + registry.Service + "。");
         subscribe(new QianEventsSubscriberBuilder(services, registry));
         return services;
     }
@@ -111,7 +111,7 @@ internal sealed record EventsBrokerBinding(string? Reference);
 internal sealed class EventsBrokerAddress(Func<IServiceProvider, string> resolve)
 {
     public string Resolve(IServiceProvider services) => resolve(services) is { Length: > 0 } uri ? uri
-        : throw new QianEventsException(EventsErrors.Misconfigured, "broker 引用未解析出 AMQP 地址。");
+        : throw new KunEventsException(EventsErrors.Misconfigured, "broker 引用未解析出 AMQP 地址。");
 }
 
 /// <summary>启动时校验装配并登记错误码；事件目录在这里构建一次，不合规的登记让宿主拒绝启动。</summary>
@@ -130,14 +130,14 @@ internal sealed class EventsStartupCheck(IServiceProvider services, ErrorCatalog
         }
         options.Value.Validate();
         if (options.Value.OutboxLock == OutboxLockMode.Redis && services.GetService<StackExchange.Redis.IConnectionMultiplexer>() is null)
-            throw new QianEventsException(EventsErrors.Misconfigured, "outbox.lock 为 redis 时宿主必须登记 IConnectionMultiplexer。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "outbox.lock 为 redis 时宿主必须登记 IConnectionMultiplexer。");
         if (services.GetService<IEventTypeRegistry>() is null)
-            throw new QianEventsException(EventsErrors.Misconfigured, "宿主必须以 AddKunEventBus 显式登记事件类型目录。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "宿主必须以 AddKunEventBus 显式登记事件类型目录。");
         _ = services.GetRequiredService<IEventsService>().Catalog;
         using var scope = services.CreateScope();
         if (scope.ServiceProvider.GetRequiredService<IOutboxWriter>() is not QianEnvelopeOutboxWriter writer ||
             !ReferenceEquals(writer, scope.ServiceProvider.GetRequiredService<IIntegrationEventBus>()))
-            throw new QianEventsException(EventsErrors.Misconfigured, "Outbox 写入端被其他装配覆盖，事件不会带上 v1 信封。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "Outbox 写入端被其他装配覆盖，事件不会带上 v1 信封。");
         return Task.CompletedTask;
     }
 

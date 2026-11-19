@@ -1,4 +1,5 @@
 using System.Text;
+using Kun.EventBus;
 
 namespace Qian.Events;
 
@@ -31,7 +32,7 @@ public sealed class QianEventsSubscriberOptions
         if (MaxRetries is < 0 or > 20) throw Invalid("MaxRetries 必须在 0 到 20 之间。");
         if (RetryBaseDelay < TimeSpan.FromMilliseconds(1) || RetryBaseDelay > MaxRetryDelay) throw Invalid("RetryBaseDelay 必须在 1 毫秒到 1 分钟之间。");
         if (IdempotencyTtl < TimeSpan.FromSeconds(1)) throw Invalid("IdempotencyTtl 必须至少 1 秒。");
-        try { _ = QianEventTopology.BroadcastQueue(service, Instance); }
+        try { _ = KunEventTopology.BroadcastQueue(service, Instance); }
         catch (ArgumentException error) { throw Invalid("Instance 不能用作广播队列名：" + error.Message); }
     }
 
@@ -53,5 +54,5 @@ public sealed class QianEventsSubscriberOptions
         return name.EndsWith("-dlq", StringComparison.Ordinal) || name.Contains("-retry-", StringComparison.Ordinal) ? name + "-i" : name;
     }
 
-    private static QianEventsException Invalid(string reason) => new(EventsErrors.Misconfigured, reason);
+    private static KunEventsException Invalid(string reason) => new(EventsErrors.Misconfigured, reason);
 }

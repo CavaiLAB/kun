@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Json.Schema;
 using Kun.EntityFrameworkCore;
+using Kun.EventBus;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
@@ -174,9 +175,9 @@ public sealed partial class PatchPersistenceTests
             .Select(row => (row.EventTypeId, row.Payload)).ToArray();
     }
 
-    private static QianEventEnvelope AssertEnvelope(string payload, string tenantId)
+    private static KunEventEnvelope AssertEnvelope(string payload, string tenantId)
     {
-        var envelope = QianEventEnvelope.Parse(payload);
+        var envelope = KunEventEnvelope.Parse(payload);
         Assert.Equal((Guid.Parse(tenantId), "qian.registry"), (envelope.TenantId, envelope.Producer));
         Assert.Equal((EventActorKind.User, "operator-person"), (envelope.Actor.Kind, envelope.Actor.Id));
         using var document = JsonDocument.Parse(payload);

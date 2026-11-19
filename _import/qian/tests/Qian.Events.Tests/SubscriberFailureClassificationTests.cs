@@ -2,6 +2,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.EventBus;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,10 +21,10 @@ public sealed class SubscriberFailureClassificationTests
 
     public static TheoryData<string, Exception> Deterministic() => new()
     {
-        { "契约错误", new QianEventsException(EventsErrors.ConsumeRejected, "重试也不会成功") },
+        { "契约错误", new KunEventsException(EventsErrors.ConsumeRejected, "重试也不会成功") },
         { "派生失败（无内层）", new InvalidOperationException("信封不是 qian.record.changed.v1 事件。") },
         { "派生失败（包着载荷解析错误）", new InvalidOperationException("记录事件载荷不符合 RecordChangedPayload 契约。", new JsonException("bad")) },
-        { "派生失败（包着信封校验错误）", new InvalidOperationException("外层", new QianEventsException(EventsErrors.ConsumeRejected, "内层")) },
+        { "派生失败（包着信封校验错误）", new InvalidOperationException("外层", new KunEventsException(EventsErrors.ConsumeRejected, "内层")) },
         { "参数非法", new ArgumentException("租户不是 UUID") },
         { "参数为空", new ArgumentNullException("event") },
         { "载荷不合法", new JsonException("bad") },

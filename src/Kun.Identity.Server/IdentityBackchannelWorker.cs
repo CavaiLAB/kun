@@ -51,16 +51,22 @@ internal sealed partial class IdentityBackchannelWorker(IServiceScopeFactory sco
                 .OrderByDescending(cert => cert.NotAfter).First();
             var token = new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
             {
-                Issuer = options.Issuer.AbsoluteUri, Audience = row.ClientId, IssuedAt = now.UtcDateTime, NotBefore = now.UtcDateTime,
-                Expires = now.AddMinutes(2).UtcDateTime, SigningCredentials = new X509SigningCredentials(certificate, SecurityAlgorithms.RsaSha256),
+                Issuer = options.Issuer.AbsoluteUri,
+                Audience = row.ClientId,
+                IssuedAt = now.UtcDateTime,
+                NotBefore = now.UtcDateTime,
+                Expires = now.AddMinutes(2).UtcDateTime,
+                SigningCredentials = new X509SigningCredentials(certificate, SecurityAlgorithms.RsaSha256),
                 Claims = new Dictionary<string, object>
                 {
-                    ["sub"] = row.Subject, ["sid"] = row.SessionId, ["jti"] = Guid.CreateVersion7().ToString(),
+                    ["sub"] = row.Subject,
+                    ["sid"] = row.SessionId,
+                    ["jti"] = Guid.CreateVersion7().ToString(),
                     ["events"] = JsonSerializer.Deserialize<JsonElement>("""{"http://schemas.openid.net/event/backchannel-logout":{}}""")
                 }
             });
             using var request = new HttpRequestMessage(HttpMethod.Post, client.BackchannelLogoutUri)
-                { Content = new FormUrlEncodedContent(new Dictionary<string, string> { ["logout_token"] = token }) };
+            { Content = new FormUrlEncodedContent(new Dictionary<string, string> { ["logout_token"] = token }) };
             using var response = await clients.CreateClient("Qian.Identity.Backchannel").SendAsync(request, ct).ConfigureAwait(false);
             response.EnsureSuccessStatusCode(); row.DeliveredAt = now;
         }

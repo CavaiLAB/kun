@@ -1,8 +1,8 @@
+using Kun.Identity.Abstractions;
 using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Kun.Identity.Abstractions;
 
 namespace Kun.Identity.Client;
 

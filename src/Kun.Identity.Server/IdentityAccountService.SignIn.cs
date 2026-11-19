@@ -2,10 +2,10 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
-using Kun.Identity.Abstractions;
 using Kun.Errors;
+using Kun.Identity.Abstractions;
 using Kun.Tenancy;
+using Microsoft.EntityFrameworkCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Kun.Identity.Server;
@@ -33,12 +33,24 @@ internal sealed partial class IdentityAccountService
 
     private static LoginAuditRow NewAudit(AuditSubject subject, string outcome, string? reason, DateTimeOffset now,
         Guid? personId = null, Guid? membershipId = null, Guid? tenantId = null, Guid? sid = null) => new()
-    {
-        Id = Guid.CreateVersion7(now), OccurredAt = now, Stage = subject.Stage, Outcome = outcome, Reason = reason, PersonId = personId, MembershipId = membershipId,
-        TenantId = tenantId?.ToString("D"), IdentifierKind = subject.IdentifierKind, IdentifierMasked = subject.IdentifierMasked,
-        ClientId = Truncate(subject.ClientId, 100), Method = Truncate(subject.Method, 64), RemoteAddress = Truncate(subject.Context.RemoteAddress, 64),
-        UserAgent = Truncate(subject.Context.UserAgent, 256), SessionHash = sid is null ? null : SidHash(sid.Value), TraceId = Activity.Current?.TraceId.ToString()
-    };
+        {
+            Id = Guid.CreateVersion7(now),
+            OccurredAt = now,
+            Stage = subject.Stage,
+            Outcome = outcome,
+            Reason = reason,
+            PersonId = personId,
+            MembershipId = membershipId,
+            TenantId = tenantId?.ToString("D"),
+            IdentifierKind = subject.IdentifierKind,
+            IdentifierMasked = subject.IdentifierMasked,
+            ClientId = Truncate(subject.ClientId, 100),
+            Method = Truncate(subject.Method, 64),
+            RemoteAddress = Truncate(subject.Context.RemoteAddress, 64),
+            UserAgent = Truncate(subject.Context.UserAgent, 256),
+            SessionHash = sid is null ? null : SidHash(sid.Value),
+            TraceId = Activity.Current?.TraceId.ToString()
+        };
 
     private async Task WriteAuditAsync(LoginAuditRow row, CancellationToken ct)
     {
@@ -436,10 +448,22 @@ internal sealed partial class IdentityAccountService
         await using var session = await OpenAsync(ct).ConfigureAwait(false);
         session.Context.LoginTickets.Add(new LoginTicketRow
         {
-            TokenHash = SHA256.HashData(Encoding.ASCII.GetBytes(token)), Purpose = purpose, PersonId = state.PersonId, ClientId = state.ClientId, DeviceType = state.DeviceType,
-            TenantId = tenantFilter?.ToString("D"), Choices = [.. choices.Select(ChoiceKey)], FromSessionId = fromSession, Amr = [.. state.Amr], Acr = state.Acr,
-            AuthenticatedAt = state.AuthenticatedAt, PersonRevision = state.Revision, RemoteAddress = Truncate(subject.Context.RemoteAddress, 64), UserAgent = Truncate(subject.Context.UserAgent, 256),
-            CreatedAt = now, ExpiresAt = expires
+            TokenHash = SHA256.HashData(Encoding.ASCII.GetBytes(token)),
+            Purpose = purpose,
+            PersonId = state.PersonId,
+            ClientId = state.ClientId,
+            DeviceType = state.DeviceType,
+            TenantId = tenantFilter?.ToString("D"),
+            Choices = [.. choices.Select(ChoiceKey)],
+            FromSessionId = fromSession,
+            Amr = [.. state.Amr],
+            Acr = state.Acr,
+            AuthenticatedAt = state.AuthenticatedAt,
+            PersonRevision = state.Revision,
+            RemoteAddress = Truncate(subject.Context.RemoteAddress, 64),
+            UserAgent = Truncate(subject.Context.UserAgent, 256),
+            CreatedAt = now,
+            ExpiresAt = expires
         });
         session.Context.LoginAudits.Add(NewAudit(subject with { ClientId = state.ClientId }, purpose == SelectionPurpose ? "selection_required" : "password_change_required", reason, now, state.PersonId));
         await session.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -485,9 +509,21 @@ internal sealed partial class IdentityAccountService
             if (expires <= now) throw Error(IdentityErrors.LoginTicketInvalid);
             db.Sessions.Add(new SessionRow
             {
-                Id = sid, PersonId = person.Id, MembershipId = member?.Id, TenantId = pick.Tenant?.ToString("D"), ClientId = state.ClientId, DeviceType = state.DeviceType,
-                Amr = [.. state.Amr], Acr = state.Acr, IdentityRevision = revision, RemoteAddress = Truncate(subject.Context.RemoteAddress, 64), UserAgent = Truncate(subject.Context.UserAgent, 256),
-                CreatedAt = now, AuthenticatedAt = state.AuthenticatedAt, LastSeenAt = now, AbsoluteExpiresAt = expires
+                Id = sid,
+                PersonId = person.Id,
+                MembershipId = member?.Id,
+                TenantId = pick.Tenant?.ToString("D"),
+                ClientId = state.ClientId,
+                DeviceType = state.DeviceType,
+                Amr = [.. state.Amr],
+                Acr = state.Acr,
+                IdentityRevision = revision,
+                RemoteAddress = Truncate(subject.Context.RemoteAddress, 64),
+                UserAgent = Truncate(subject.Context.UserAgent, 256),
+                CreatedAt = now,
+                AuthenticatedAt = state.AuthenticatedAt,
+                LastSeenAt = now,
+                AbsoluteExpiresAt = expires
             });
             person.LastLoginAt = now;
             // 切换租户以发起切换的会话为依据：它必须仍然有效（没有登出、被强制下线或被挤下线），与新会话同事务吊销；已失效就按票据失效处理。

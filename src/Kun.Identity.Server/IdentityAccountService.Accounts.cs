@@ -1,9 +1,9 @@
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.EventBus;
+using Kun.Identity.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
 
 namespace Kun.Identity.Server;
 
@@ -100,13 +100,21 @@ internal sealed partial class IdentityAccountService
             var db = session.Context;
             var row = new PersonRow
             {
-                Id = personId, DisplayName = name, PlatformAccess = request.PlatformAccess, PasswordHash = hash,
-                PasswordChangedAt = hash is null ? null : now, MustChangePassword = hash is not null && request.RequirePasswordChange
+                Id = personId,
+                DisplayName = name,
+                PlatformAccess = request.PlatformAccess,
+                PasswordHash = hash,
+                PasswordChangedAt = hash is null ? null : now,
+                MustChangePassword = hash is not null && request.RequirePasswordChange
             };
             db.Persons.Add(row);
             var rows = identifiers.Select(item => new PersonIdentifierRow
             {
-                Id = Guid.CreateVersion7(), PersonId = personId, Kind = IdentifierRules.KindName(item.Kind), Value = item.Value, VerifiedAt = item.Verified ? now : null
+                Id = Guid.CreateVersion7(),
+                PersonId = personId,
+                Kind = IdentifierRules.KindName(item.Kind),
+                Value = item.Value,
+                VerifiedAt = item.Verified ? now : null
             }).ToList();
             db.Identifiers.AddRange(rows);
             if (hash is not null) db.PasswordHistory.Add(new PasswordHistoryRow { Id = Guid.CreateVersion7(), PersonId = personId, Hash = hash, CreatedAt = now });
@@ -424,7 +432,12 @@ internal sealed partial class IdentityAccountService
         if (existing is not null) { if (existing.MembershipId == link.MembershipId) return; throw Error(IdentityErrors.IdentifierInUse); }
         db.ExternalIdentities.Add(new ExternalIdentityRow
         {
-            Id = Guid.CreateVersion7(), MembershipId = member.Id, PersonId = member.PersonId, ConnectorId = link.ConnectorId, Subject = link.Subject, UnionId = link.UnionId
+            Id = Guid.CreateVersion7(),
+            MembershipId = member.Id,
+            PersonId = member.PersonId,
+            ConnectorId = link.ConnectorId,
+            Subject = link.Subject,
+            UnionId = link.UnionId
         });
         try { await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false); }
         catch (DbUpdateException error) when (IsUniqueViolation(error)) { throw Error(IdentityErrors.IdentifierInUse); }

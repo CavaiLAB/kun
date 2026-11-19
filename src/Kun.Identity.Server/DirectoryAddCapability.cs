@@ -2,13 +2,13 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Errors;
 using Kun.EventBus;
-using Qian.Audit;
-using Qian.Authz.Abstractions;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Qian.Audit;
+using Qian.Authz.Abstractions;
 
 namespace Kun.Identity.Server;
 
@@ -96,7 +96,12 @@ internal static class DirectoryMemberAddition
             using var finish = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             await audit.AppendAsync(Record("success", JsonSerializer.SerializeToElement(new
             {
-                attempt, membershipId = added.Membership.Id, personId = added.Membership.PersonId, personCreated = added.PersonCreated, restored = added.Restored, grantedRoles = added.GrantedRoles
+                attempt,
+                membershipId = added.Membership.Id,
+                personId = added.Membership.PersonId,
+                personCreated = added.PersonCreated,
+                restored = added.Restored,
+                grantedRoles = added.GrantedRoles
             })), finish.Token).ConfigureAwait(false);
         }
         return added;
@@ -110,7 +115,8 @@ internal static class DirectoryMemberAddition
         if (source.Pointer is null && source.Errors.Count == 0) return error;
         return new ErrorException(new Error(source.Code, source.Args)
         {
-            Pointer = source.Pointer is null ? null : Map(source.Pointer), Allowed = source.Allowed,
+            Pointer = source.Pointer is null ? null : Map(source.Pointer),
+            Allowed = source.Allowed,
             Errors = [.. source.Errors.Select(item => new FieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
         }, error);
     }

@@ -151,8 +151,14 @@ public sealed class ScimContractsTests
             }
             var expected = attribute["type"]!.GetValue<string>() switch
             {
-                "string" => ("string", null), "boolean" => ("boolean", null), "integer" => ("integer", null), "decimal" => ("number", null),
-                "dateTime" => ("string", "date-time"), "binary" => ("string", "base64"), "reference" => ("string", "uri-reference"), _ => ("object", (string?)null),
+                "string" => ("string", null),
+                "boolean" => ("boolean", null),
+                "integer" => ("integer", null),
+                "decimal" => ("number", null),
+                "dateTime" => ("string", "date-time"),
+                "binary" => ("string", "base64"),
+                "reference" => ("string", "uri-reference"),
+                _ => ("object", (string?)null),
             };
             Assert.Equal(expected, (item["type"]!.GetValue<string>(), item["format"]?.GetValue<string>() ?? item["contentEncoding"]?.GetValue<string>()));
             if (attribute["subAttributes"] is JsonArray sub)

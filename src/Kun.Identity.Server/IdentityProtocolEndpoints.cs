@@ -3,25 +3,25 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using Microsoft.AspNetCore.Antiforgery;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.JsonWebTokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using ProtocolErrors = OpenIddict.Abstractions.OpenIddictConstants.Errors;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Identity.Server;
 
@@ -92,8 +92,12 @@ public static class IdentityProtocolEndpoints
         // 每次授权建立独立族；复用已消费 refresh 时只吊销同族，不能借共享的永久授权误杀别的登录。
         var descriptor = new OpenIddictAuthorizationDescriptor
         {
-            Principal = principal, Subject = principal.GetClaim(Claims.Subject), Status = Statuses.Valid, Type = AuthorizationTypes.AdHoc,
-            ApplicationId = await applications.GetIdAsync(application, http.RequestAborted).ConfigureAwait(false), CreationDate = DateTimeOffset.UtcNow
+            Principal = principal,
+            Subject = principal.GetClaim(Claims.Subject),
+            Status = Statuses.Valid,
+            Type = AuthorizationTypes.AdHoc,
+            ApplicationId = await applications.GetIdAsync(application, http.RequestAborted).ConfigureAwait(false),
+            CreationDate = DateTimeOffset.UtcNow
         };
         descriptor.Scopes.UnionWith(principal.GetScopes());
         descriptor.Properties["sid"] = JsonSerializer.SerializeToElement(principal.GetClaim("sid"));
@@ -282,5 +286,5 @@ public static class IdentityProtocolEndpoints
         return values.Except(client.Resources, StringComparer.Ordinal).Any() ? null : values;
     }
     private static IResult Reject(string error) => Results.Forbid(new AuthenticationProperties(new Dictionary<string, string?>
-        { [OpenIddictServerAspNetCoreConstants.Properties.Error] = error }), [Server]);
+    { [OpenIddictServerAspNetCoreConstants.Properties.Error] = error }), [Server]);
 }

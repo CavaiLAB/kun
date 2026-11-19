@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
-using Kun.Identity.Abstractions;
 using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Identity.Server;
 

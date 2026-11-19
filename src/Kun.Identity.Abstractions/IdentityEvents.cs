@@ -1,6 +1,6 @@
+using Kun.Errors;
 using Kun.EventBus;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Security;
 
 namespace Kun.Identity.Abstractions;

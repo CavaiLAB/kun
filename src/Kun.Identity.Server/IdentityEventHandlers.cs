@@ -2,10 +2,10 @@ using Kun.Core.Domain;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
-using Kun.Mediator;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Identity.Abstractions;
+using Kun.Mediator;
 using Kun.Tenancy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Identity.Server;
 

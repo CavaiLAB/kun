@@ -3,6 +3,7 @@ using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
+using Kun.Identity.Abstractions;
 using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
@@ -11,7 +12,6 @@ using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Kun.Identity.Abstractions;
 
 namespace Kun.Plugin.Sdk.Tests;
 

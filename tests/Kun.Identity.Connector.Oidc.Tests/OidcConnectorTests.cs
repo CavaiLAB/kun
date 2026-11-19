@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using Kun.Identity.Abstractions;
 using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kun.Identity.Connector.Oidc.Tests;
 
@@ -26,7 +26,9 @@ public sealed class OidcConnectorTests : IDisposable
 
     private static OidcConnectorOptions Options(string? secret = null) => new()
     {
-        Issuer = FakeOpenIdProvider.Issuer, ClientId = FakeOpenIdProvider.ClientId, ClientSecret = secret ?? FakeOpenIdProvider.SecretRef
+        Issuer = FakeOpenIdProvider.Issuer,
+        ClientId = FakeOpenIdProvider.ClientId,
+        ClientSecret = secret ?? FakeOpenIdProvider.SecretRef
     };
 
     private static ConnectorContext Context(string? nonce = null) =>
@@ -105,8 +107,12 @@ public sealed class OidcConnectorTests : IDisposable
     {
         _op.Mint = grant => FakeOpenIdProvider.Unsigned(new Dictionary<string, object>
         {
-            ["iss"] = FakeOpenIdProvider.Issuer, ["aud"] = FakeOpenIdProvider.ClientId, ["sub"] = "user-8f1c", ["nonce"] = grant.Nonce,
-            ["exp"] = _clock.GetUtcNow().AddMinutes(5).ToUnixTimeSeconds(), ["iat"] = _clock.GetUtcNow().ToUnixTimeSeconds()
+            ["iss"] = FakeOpenIdProvider.Issuer,
+            ["aud"] = FakeOpenIdProvider.ClientId,
+            ["sub"] = "user-8f1c",
+            ["nonce"] = grant.Nonce,
+            ["exp"] = _clock.GetUtcNow().AddMinutes(5).ToUnixTimeSeconds(),
+            ["iat"] = _clock.GetUtcNow().ToUnixTimeSeconds()
         });
         Assert.Equal(PlatformErrors.BadGateway, (await RoundTrip()).Error);
         // 拿客户端密钥当 HMAC 密钥伪签（经典的算法混淆）：即便 JWKS 里真发布了对称密钥也不参与验签。

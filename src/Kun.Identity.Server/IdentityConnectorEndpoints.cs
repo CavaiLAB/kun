@@ -2,14 +2,14 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Identity.Server;
 
@@ -75,8 +75,13 @@ internal static class IdentityConnectorEndpoints
         if (accounts.ConnectorsIn(found?.Id).Find(connectorId)?.Descriptor is not { } descriptor) return NotFound();
         return Results.Json(new
         {
-            id = descriptor.Id, display_name = descriptor.DisplayName, protocol = descriptor.Protocol, terminals = descriptor.Terminals,
-            config_schema = descriptor.ConfigSchema, callback_template = descriptor.CallbackTemplate, callback_uri = CallbackUri(http, descriptor.Id).AbsoluteUri
+            id = descriptor.Id,
+            display_name = descriptor.DisplayName,
+            protocol = descriptor.Protocol,
+            terminals = descriptor.Terminals,
+            config_schema = descriptor.ConfigSchema,
+            callback_template = descriptor.CallbackTemplate,
+            callback_uri = CallbackUri(http, descriptor.Id).AbsoluteUri
         }, IdentityAccountEndpoints.JsonOptions);
     }
 
@@ -135,7 +140,8 @@ internal static class IdentityConnectorEndpoints
         using var proof = body.Password is null ? null : new AuthenticationProof(Encoding.UTF8.GetBytes(body.Password));
         var input = new LoginInput("", null, null, null, proof)
         {
-            Identifier = body.Identifier, Captcha = body.Captcha is null ? null : new CaptchaAnswer(body.Captcha.Id, body.Captcha.Answer)
+            Identifier = body.Identifier,
+            Captcha = body.Captcha is null ? null : new CaptchaAnswer(body.Captcha.Id, body.Captcha.Answer)
         };
         var (view, failure) = await accounts.VerifyConnectorAccountAsync(flow, BrowserSecret(http), input, IdentityAccountEndpoints.ContextOf(http), http.RequestAborted).ConfigureAwait(false);
         if (failure is not null)
@@ -189,7 +195,10 @@ internal static class IdentityConnectorEndpoints
         var secret = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
         http.Response.Cookies.Append(BrowserCookie, secret, new CookieOptions
         {
-            HttpOnly = true, Secure = http.Request.IsHttps, SameSite = SameSiteMode.Lax, IsEssential = true,
+            HttpOnly = true,
+            Secure = http.Request.IsHttps,
+            SameSite = SameSiteMode.Lax,
+            IsEssential = true,
             Path = http.Request.PathBase.HasValue ? http.Request.PathBase.Value : "/"
         });
         return secret;
@@ -206,13 +215,18 @@ internal static class IdentityConnectorEndpoints
         }
         return new Dictionary<string, object?>
         {
-            ["flow"] = view.Id, ["status"] = view.Status, ["next"] = view.Next, ["expires_at"] = view.ExpiresAt,
+            ["flow"] = view.Id,
+            ["status"] = view.Status,
+            ["next"] = view.Next,
+            ["expires_at"] = view.ExpiresAt,
             ["connector"] = new Dictionary<string, object?> { ["id"] = view.ConnectorId, ["display_name"] = view.ConnectorName, ["protocol"] = view.Protocol },
             ["tenant"] = new Dictionary<string, object?> { ["code"] = view.TenantCode, ["name"] = view.TenantName },
             ["binding"] = view.Binding is not { } binding ? null : new Dictionary<string, object?>
             {
                 ["external"] = new Dictionary<string, object?> { ["display_name"] = binding.DisplayName, ["email"] = binding.Email, ["username"] = binding.Username },
-                ["expires_at"] = binding.ExpiresAt, ["allow_jit"] = binding.AllowJit, ["verified"] = binding.Verified,
+                ["expires_at"] = binding.ExpiresAt,
+                ["allow_jit"] = binding.AllowJit,
+                ["verified"] = binding.Verified,
                 ["account"] = binding.Verified ? new Dictionary<string, object?> { ["display_name"] = binding.AccountDisplayName, ["account"] = binding.Account } : null
             },
             ["error"] = error is null ? null : JsonSerializer.SerializeToElement(error, ErrorDetailJson.TypeInfo),

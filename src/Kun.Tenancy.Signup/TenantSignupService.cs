@@ -3,12 +3,12 @@ using System.Threading.RateLimiting;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Kun.Identity.Abstractions;
 
 namespace Kun.Tenancy.Signup;
 

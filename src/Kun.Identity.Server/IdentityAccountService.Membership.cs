@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
-using Kun.Tenancy;
 
 namespace Kun.Identity.Server;
 
@@ -111,7 +111,11 @@ internal sealed partial class IdentityAccountService
                 await quota.EnsureCanAddUserAsync(await CountMembersAsync(db, ct).ConfigureAwait(false), kind, ct).ConfigureAwait(false);
             var row = new MembershipRow
             {
-                Id = membershipId ?? Guid.CreateVersion7(), PersonId = personId, DisplayName = displayName, Status = AccountStatuses.Active, IsTenantAdministrator = administrator,
+                Id = membershipId ?? Guid.CreateVersion7(),
+                PersonId = personId,
+                DisplayName = displayName,
+                Status = AccountStatuses.Active,
+                IsTenantAdministrator = administrator,
                 Account = account ?? await DefaultAccountAsync(db, personId, attempt, ct).ConfigureAwait(false)
             };
             db.Memberships.Add(row);

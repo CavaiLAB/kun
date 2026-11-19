@@ -1,9 +1,9 @@
+using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Tenancy;
-using System.Text.Json;
 
 namespace Kun.Identity.Server;
 

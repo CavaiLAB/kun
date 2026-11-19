@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
+using Kun.Errors;
 using Kun.EventBus;
+using Kun.Identity.Abstractions;
+using Kun.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
-using Kun.Tenancy;
 
 namespace Kun.Identity.Server;
 

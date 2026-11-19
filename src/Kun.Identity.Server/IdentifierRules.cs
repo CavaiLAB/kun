@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using Kun.Identity.Abstractions;
 using Kun.Errors;
+using Kun.Identity.Abstractions;
 
 namespace Kun.Identity.Server;
 
@@ -66,7 +66,9 @@ internal static partial class IdentifierRules
 
     internal static IdentifierKind ParseKind(string name) => name switch
     {
-        "phone" => IdentifierKind.Phone, "email" => IdentifierKind.Email, "username" => IdentifierKind.Username,
+        "phone" => IdentifierKind.Phone,
+        "email" => IdentifierKind.Email,
+        "username" => IdentifierKind.Username,
         _ => throw new InvalidOperationException("未知标识类型。")
     };
 

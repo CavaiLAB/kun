@@ -19,12 +19,18 @@ builder.Logging.SetMinimumLevel(LogLevel.Warning);
 builder.Services.AddDataProtection();
 builder.Services.AddKunIdentityClient(new IdentityClientOptions
 {
-    Authority = new Uri("https://127.0.0.1:9/"), ClientId = "qian-gateway", Scopes = ["openid", "offline_access"],
-    Resource = "https://api.qian.test", RedirectUri = new Uri("https://gw.qian.test/auth/callback"), UseInMemorySessionStore = true
+    Authority = new Uri("https://127.0.0.1:9/"),
+    ClientId = "qian-gateway",
+    Scopes = ["openid", "offline_access"],
+    Resource = "https://api.qian.test",
+    RedirectUri = new Uri("https://gw.qian.test/auth/callback"),
+    UseInMemorySessionStore = true
 });
 builder.Services.AddKunIdentityS2s(new IdentityS2sOptions
 {
-    Issuer = "https://gw.qian.test/s2s", Audience = "qian-platform", JwksUri = new Uri("https://127.0.0.1:9/.well-known/jwks.json")
+    Issuer = "https://gw.qian.test/s2s",
+    Audience = "qian-platform",
+    JwksUri = new Uri("https://127.0.0.1:9/.well-known/jwks.json")
 });
 builder.Services.AddAuthorization();
 

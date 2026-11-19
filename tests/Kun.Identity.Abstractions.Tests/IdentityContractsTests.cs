@@ -7,9 +7,9 @@ using Json.Schema;
 using Kun.Core.Domain;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
+using Kun.Runtime;
 using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Runtime;
 
 namespace Kun.Identity.Abstractions.Tests;
 
@@ -117,10 +117,20 @@ public sealed class IdentityContractsTests
     {
         var principal = new Principal
         {
-            Issuer = "https://id.example.test", Audience = ["svc-a", "svc-b"], Subject = "client-1", Kind = PrincipalKind.Service, TenantId = null,
-            PluginId = "acme.notes", Roles = ["reader"], Scope = "notes.read", SessionId = "jti-1",
+            Issuer = "https://id.example.test",
+            Audience = ["svc-a", "svc-b"],
+            Subject = "client-1",
+            Kind = PrincipalKind.Service,
+            TenantId = null,
+            PluginId = "acme.notes",
+            Roles = ["reader"],
+            Scope = "notes.read",
+            SessionId = "jti-1",
             Actor = new DelegationActor { Subject = "agent-1", Kind = PrincipalKind.Agent },
-            IssuedAt = 1700000000, NotBefore = 1700000000, ExpiresAt = 1700000300, TokenId = "jti-1"
+            IssuedAt = 1700000000,
+            NotBefore = 1700000000,
+            ExpiresAt = 1700000300,
+            TokenId = "jti-1"
         };
         const string expected = """{"iss":"https://id.example.test","aud":["svc-a","svc-b"],"sub":"client-1","principal_kind":"service","tenant_id":null,"plugin_id":"acme.notes","roles":["reader"],"scope":"notes.read","session_id":"jti-1","act":{"sub":"agent-1","principal_kind":"agent"},"iat":1700000000,"nbf":1700000000,"exp":1700000300,"jti":"jti-1"}""";
         Assert.Equal(expected, JsonSerializer.Serialize(principal, IdentityJson.PrincipalTypeInfo));

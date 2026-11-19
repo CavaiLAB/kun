@@ -1,14 +1,14 @@
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Runtime;
 using Kun.Security;
+using Kun.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Tenancy;
 
 namespace Kun.Identity.Server;
 

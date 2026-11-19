@@ -1,14 +1,14 @@
-using System.Text.Json;
 using System.Reflection;
+using System.Text.Json;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
 using Kun.Security;
 using Microsoft.Extensions.Configuration;
-using Qian.Config.Apollo;
-using Kun.Plugin.Sdk;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
+using Qian.Config.Apollo;
 
 namespace Kun.Identity.Connector.Oidc.Tests;
 
@@ -24,7 +24,11 @@ public sealed class OidcComponentTests
 
     private static Dictionary<string, object?> Valid(string? secret = null, string issuer = FakeOpenIdProvider.Issuer, string? name = null, string? displayName = null) => new Dictionary<string, object?>
     {
-        ["issuer"] = issuer, ["clientId"] = FakeOpenIdProvider.ClientId, ["clientSecret"] = secret ?? FakeOpenIdProvider.SecretRef, ["name"] = name, ["displayName"] = displayName
+        ["issuer"] = issuer,
+        ["clientId"] = FakeOpenIdProvider.ClientId,
+        ["clientSecret"] = secret ?? FakeOpenIdProvider.SecretRef,
+        ["name"] = name,
+        ["displayName"] = displayName
     }.Where(pair => pair.Value is not null).ToDictionary(StringComparer.Ordinal);
 
     private static IReadOnlyList<FieldError> Invalid(object config)
@@ -72,7 +76,10 @@ public sealed class OidcComponentTests
         Assert.Contains(Invalid(Valid(issuer: "https://user:pass@idp.example.test/")), e => e.Pointer == "#/issuer");
         Assert.Equal("http://127.0.0.1:9000/application/o/qian/", OidcConnectorOptions.FromConfig(Config(new
         {
-            issuer = "http://127.0.0.1:9000/application/o/qian/", clientId = "x", clientSecret = FakeOpenIdProvider.SecretRef, requireHttps = false
+            issuer = "http://127.0.0.1:9000/application/o/qian/",
+            clientId = "x",
+            clientSecret = FakeOpenIdProvider.SecretRef,
+            requireHttps = false
         })).Issuer);
         Assert.Contains(Invalid(new { issuer = FakeOpenIdProvider.Issuer, clientId = "x", clientSecret = FakeOpenIdProvider.SecretRef, scopes = ProfileOnly }),
             e => e.Code == PlatformErrors.ValueNotAllowed && e.Pointer == "#/scopes");

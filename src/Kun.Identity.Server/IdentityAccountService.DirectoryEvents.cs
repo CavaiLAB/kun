@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Kun.Identity.Abstractions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Identity.Server;
 

@@ -4,11 +4,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Config;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
 
 namespace Kun.Identity.Connector.Oidc;
 
@@ -83,8 +83,13 @@ public sealed class OidcIdentityConnector : IIdentityConnector, IDisposable
         var metadata = await MetadataAsync(cancellationToken).ConfigureAwait(false);
         var query = new Dictionary<string, string>
         {
-            ["response_type"] = "code", ["client_id"] = _options.ClientId, ["redirect_uri"] = context.CallbackUri.AbsoluteUri, ["scope"] = string.Join(' ', _options.Scopes),
-            ["state"] = context.State, ["nonce"] = context.Nonce, ["code_challenge"] = Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier))),
+            ["response_type"] = "code",
+            ["client_id"] = _options.ClientId,
+            ["redirect_uri"] = context.CallbackUri.AbsoluteUri,
+            ["scope"] = string.Join(' ', _options.Scopes),
+            ["state"] = context.State,
+            ["nonce"] = context.Nonce,
+            ["code_challenge"] = Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier))),
             ["code_challenge_method"] = "S256"
         };
         var target = metadata.Authorization.AbsoluteUri;
@@ -122,7 +127,10 @@ public sealed class OidcIdentityConnector : IIdentityConnector, IDisposable
         using var secret = await _secrets.ResolveAsync(_options.ClientSecret, ct).ConfigureAwait(false);
         var form = new Dictionary<string, string>
         {
-            ["grant_type"] = "authorization_code", ["code"] = code, ["redirect_uri"] = redirectUri.AbsoluteUri, ["code_verifier"] = verifier
+            ["grant_type"] = "authorization_code",
+            ["code"] = code,
+            ["redirect_uri"] = redirectUri.AbsoluteUri,
+            ["code_verifier"] = verifier
         };
         using var request = new HttpRequestMessage(HttpMethod.Post, metadata.Token);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -154,9 +162,19 @@ public sealed class OidcIdentityConnector : IIdentityConnector, IDisposable
 
     private TokenValidationParameters Parameters(Keys keys) => new()
     {
-        ValidIssuer = _options.Issuer, ValidateIssuer = true, ValidAudience = _options.ClientId, ValidateAudience = true,
-        IssuerSigningKeys = keys.Values, ValidAlgorithms = SigningAlgorithms, RequireSignedTokens = true, ValidateLifetime = true, RequireExpirationTime = true,
-        ClockSkew = ClockSkew, ValidateIssuerSigningKey = false, TryAllIssuerSigningKeys = true, LifetimeValidator = Lifetime
+        ValidIssuer = _options.Issuer,
+        ValidateIssuer = true,
+        ValidAudience = _options.ClientId,
+        ValidateAudience = true,
+        IssuerSigningKeys = keys.Values,
+        ValidAlgorithms = SigningAlgorithms,
+        RequireSignedTokens = true,
+        ValidateLifetime = true,
+        RequireExpirationTime = true,
+        ClockSkew = ClockSkew,
+        ValidateIssuerSigningKey = false,
+        TryAllIssuerSigningKeys = true,
+        LifetimeValidator = Lifetime
     };
 
     // 有效期按注入的时钟判断（容差 2 分钟）；exp 必须出现。

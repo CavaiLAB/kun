@@ -1,10 +1,10 @@
 using System.Text.Json.Serialization;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Identity.Server;
 

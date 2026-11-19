@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text.Json;
-using Qian.Config;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
+using Qian.Config;
 
 namespace Kun.Identity.Connector.Oidc;
 
@@ -41,8 +41,11 @@ public sealed class OidcConnectorPlugin : IKunPlugin
             // 自有连接池：不跟随重定向、不带 Cookie；连接定期轮换以跟上上游 DNS 变化。
             var owned = new SocketsHttpHandler
             {
-                AllowAutoRedirect = false, UseCookies = false, AutomaticDecompression = DecompressionMethods.None,
-                ConnectTimeout = TimeSpan.FromSeconds(10), PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+                AllowAutoRedirect = false,
+                UseCookies = false,
+                AutomaticDecompression = DecompressionMethods.None,
+                ConnectTimeout = TimeSpan.FromSeconds(10),
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5)
             };
             ctx.Effect(owned);
             handler = owned;

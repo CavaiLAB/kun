@@ -68,15 +68,25 @@ internal sealed class FakeOpenIdProvider : HttpMessageHandler
         var now = _clock.GetUtcNow().UtcDateTime;
         var payload = new Dictionary<string, object>
         {
-            ["iss"] = Issuer, ["aud"] = ClientId, ["sub"] = "user-8f1c", ["nonce"] = grant.Nonce, ["name"] = "张三", ["preferred_username"] = "zhangsan",
-            ["email"] = "zhangsan@corp.example", ["email_verified"] = true, ["amr"] = new[] { "pwd", "mfa" }
+            ["iss"] = Issuer,
+            ["aud"] = ClientId,
+            ["sub"] = "user-8f1c",
+            ["nonce"] = grant.Nonce,
+            ["name"] = "张三",
+            ["preferred_username"] = "zhangsan",
+            ["email"] = "zhangsan@corp.example",
+            ["email_verified"] = true,
+            ["amr"] = new[] { "pwd", "mfa" }
         };
         foreach (var (name, value) in claims ?? new Dictionary<string, object?>())
             if (value is null) payload.Remove(name); else payload[name] = value;
         var expires = now + (expiresIn ?? TimeSpan.FromMinutes(5));
         var descriptor = new SecurityTokenDescriptor
         {
-            Claims = payload, IssuedAt = expires < now ? expires - TimeSpan.FromMinutes(10) : now, NotBefore = expires < now ? expires - TimeSpan.FromMinutes(10) : now, Expires = expires,
+            Claims = payload,
+            IssuedAt = expires < now ? expires - TimeSpan.FromMinutes(10) : now,
+            NotBefore = expires < now ? expires - TimeSpan.FromMinutes(10) : now,
+            Expires = expires,
             SigningCredentials = new SigningCredentials(key ?? SigningKey, algorithm)
         };
         return new JsonWebTokenHandler { SetDefaultTimesOnTokenCreation = false }.CreateToken(descriptor);
@@ -94,9 +104,12 @@ internal sealed class FakeOpenIdProvider : HttpMessageHandler
         {
             var document = new JsonObject
             {
-                ["issuer"] = DiscoveryIssuer, ["authorization_endpoint"] = Issuer + "/protocol/openid-connect/auth?kc_idp_hint=corp",
-                ["token_endpoint"] = Issuer + "/protocol/openid-connect/token", ["jwks_uri"] = Issuer + "/protocol/openid-connect/certs",
-                ["response_types_supported"] = new JsonArray("code"), ["code_challenge_methods_supported"] = new JsonArray("plain", "S256"),
+                ["issuer"] = DiscoveryIssuer,
+                ["authorization_endpoint"] = Issuer + "/protocol/openid-connect/auth?kc_idp_hint=corp",
+                ["token_endpoint"] = Issuer + "/protocol/openid-connect/token",
+                ["jwks_uri"] = Issuer + "/protocol/openid-connect/certs",
+                ["response_types_supported"] = new JsonArray("code"),
+                ["code_challenge_methods_supported"] = new JsonArray("plain", "S256"),
                 ["id_token_signing_alg_values_supported"] = new JsonArray("RS256")
             };
             if (AuthMethods is not null) document["token_endpoint_auth_methods_supported"] = new JsonArray([.. AuthMethods.Select(m => JsonValue.Create(m))]);

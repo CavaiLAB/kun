@@ -1,9 +1,9 @@
 using System.Security.Claims;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
 using Kun.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
 
 namespace Kun.Identity.Client;
 

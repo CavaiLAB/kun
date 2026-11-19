@@ -3,6 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -10,9 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Identity.Server;
 
@@ -105,7 +105,8 @@ public static class IdentityAccountEndpoints
         using var proof = body.Password is null ? null : new AuthenticationProof(Encoding.UTF8.GetBytes(body.Password));
         var input = new LoginInput(body.ClientId ?? "", body.TenantId, null, null, proof)
         {
-            Identifier = body.Identifier, Captcha = body.Captcha is null ? null : new CaptchaAnswer(body.Captcha.Id, body.Captcha.Answer)
+            Identifier = body.Identifier,
+            Captcha = body.Captcha is null ? null : new CaptchaAnswer(body.Captcha.Id, body.Captcha.Answer)
         };
         return await Complete(http, await Service(http).SignInAsync(input, ContextOf(http), http.RequestAborted).ConfigureAwait(false)).ConfigureAwait(false);
     }
@@ -141,8 +142,15 @@ public static class IdentityAccountEndpoints
         if (validation is null) return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
         return Results.Json(new
         {
-            person_id = current.PersonId, tenant_id = validation.TenantId, membership_id = validation.MembershipId, identity_revision = validation.IdentityRevision,
-            amr = current.Amr, acr = current.Acr, client_id = current.ClientId, device_type = current.DeviceType, expires_at = current.ExpiresAt
+            person_id = current.PersonId,
+            tenant_id = validation.TenantId,
+            membership_id = validation.MembershipId,
+            identity_revision = validation.IdentityRevision,
+            amr = current.Amr,
+            acr = current.Acr,
+            client_id = current.ClientId,
+            device_type = current.DeviceType,
+            expires_at = current.ExpiresAt
         }, JsonOptions);
     }
 

@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using Kun.Errors;
-using Microsoft.EntityFrameworkCore;
 using Kun.Identity.Abstractions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Tenancy.Signup;
 

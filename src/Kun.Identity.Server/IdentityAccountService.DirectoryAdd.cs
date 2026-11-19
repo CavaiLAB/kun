@@ -1,12 +1,12 @@
+using Kun.Errors;
 using Kun.EventBus;
+using Kun.Identity.Abstractions;
+using Kun.Runtime;
+using Kun.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Tenancy;
 
 namespace Kun.Identity.Server;
 
@@ -89,16 +89,28 @@ internal sealed partial class IdentityAccountService
                 // 管理员录入的手机号没有经过验证码核验，按未验证保存；用户名没有核验流程。登录索引随建档写入本租户。
                 db.Persons.Add(new PersonRow
                 {
-                    Id = subject, DisplayName = name, PasswordHash = hash, PasswordChangedAt = now, MustChangePassword = true, TenantIds = [tenantId.ToString("D")]
+                    Id = subject,
+                    DisplayName = name,
+                    PasswordHash = hash,
+                    PasswordChangedAt = now,
+                    MustChangePassword = true,
+                    TenantIds = [tenantId.ToString("D")]
                 });
                 db.Identifiers.Add(new PersonIdentifierRow
                 {
-                    Id = Guid.CreateVersion7(), PersonId = subject, Kind = kind, Value = identifier.Value, VerifiedAt = identifier.Kind == IdentifierKind.Username ? now : null
+                    Id = Guid.CreateVersion7(),
+                    PersonId = subject,
+                    Kind = kind,
+                    Value = identifier.Value,
+                    VerifiedAt = identifier.Kind == IdentifierKind.Username ? now : null
                 });
                 db.PasswordHistory.Add(new PasswordHistoryRow { Id = Guid.CreateVersion7(), PersonId = subject, Hash = hash, CreatedAt = now });
                 row = new MembershipRow
                 {
-                    Id = Guid.CreateVersion7(), PersonId = subject, DisplayName = name, Status = AccountStatuses.Active,
+                    Id = Guid.CreateVersion7(),
+                    PersonId = subject,
+                    DisplayName = name,
+                    Status = AccountStatuses.Active,
                     Account = account ?? await NewMemberAccountAsync(db, identifier, attempt, cancellationToken).ConfigureAwait(false)
                 };
                 db.Memberships.Add(row);

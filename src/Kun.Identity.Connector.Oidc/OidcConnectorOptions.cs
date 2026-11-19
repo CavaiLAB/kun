@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text.Json;
-using Qian.Config;
-using Kun.Identity.Abstractions;
 using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Qian.Config;
 
 namespace Kun.Identity.Connector.Oidc;
 
@@ -99,8 +99,14 @@ public sealed class OidcConnectorOptions
         }
         var options = new OidcConnectorOptions
         {
-            Name = Text("name") ?? defaults.Name, DisplayName = Text("displayName") ?? defaults.DisplayName, Issuer = Text("issuer") ?? "", ClientId = Text("clientId") ?? "",
-            ClientSecret = Text("clientSecret") ?? "", Scopes = List("scopes") ?? defaults.Scopes, Terminals = List("terminals") ?? defaults.Terminals, RequireHttps = requireHttps
+            Name = Text("name") ?? defaults.Name,
+            DisplayName = Text("displayName") ?? defaults.DisplayName,
+            Issuer = Text("issuer") ?? "",
+            ClientId = Text("clientId") ?? "",
+            ClientSecret = Text("clientSecret") ?? "",
+            Scopes = List("scopes") ?? defaults.Scopes,
+            Terminals = List("terminals") ?? defaults.Terminals,
+            RequireHttps = requireHttps
         };
         errors.AddRange(options.Check());
         if (errors.Count > 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [.. errors.Take(100)] });

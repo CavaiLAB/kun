@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using Kun.Identity.Abstractions;
 using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Identity.Server;
 
@@ -82,7 +82,10 @@ internal sealed partial class IdentityAccountService
             db.RemoveRange(previous); await db.SaveChangesAsync(ct).ConfigureAwait(false);
             foreach (var relation in snapshot) db.Add(new MemberRelationRow
             {
-                Id = Guid.CreateVersion7(), MembershipId = membershipId, TargetType = relation.TargetType, IsPrimary = relation.IsPrimary,
+                Id = Guid.CreateVersion7(),
+                MembershipId = membershipId,
+                TargetType = relation.TargetType,
+                IsPrimary = relation.IsPrimary,
                 OrganizationId = relation.TargetType == "organization" ? relation.TargetId : null,
                 PositionId = relation.TargetType == "position" ? relation.TargetId : null,
                 GroupId = relation.TargetType == "group" ? relation.TargetId : null

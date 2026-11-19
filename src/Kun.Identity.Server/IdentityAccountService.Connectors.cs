@@ -2,13 +2,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Runtime;
+using Kun.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Tenancy;
 
 namespace Kun.Identity.Server;
 
@@ -83,9 +83,20 @@ internal sealed partial class IdentityAccountService
             await IdentitySql.ExecuteAsync(session.Context, $"DELETE FROM {ConnectorFlowsTable} WHERE expires_at < @cutoff", ct, ("cutoff", now - TimeSpan.FromDays(1))).ConfigureAwait(false);
             session.Context.ConnectorFlows.Add(new ConnectorFlowRow
             {
-                Id = flowId, StateHash = SHA256.HashData(Encoding.ASCII.GetBytes(state)), BrowserHash = BrowserHash(browserSecret), ConnectorId = connectorId,
-                TenantId = tenant.Id.ToString("D"), ClientId = client.Application.ClientId!, DeviceType = DeviceTypeOf(client, context), ReturnUrl = returnUrl, Nonce = nonce,
-                Status = FlowPending, RemoteAddress = Truncate(context.RemoteAddress, 64), UserAgent = Truncate(context.UserAgent, 256), CreatedAt = now, ExpiresAt = expires
+                Id = flowId,
+                StateHash = SHA256.HashData(Encoding.ASCII.GetBytes(state)),
+                BrowserHash = BrowserHash(browserSecret),
+                ConnectorId = connectorId,
+                TenantId = tenant.Id.ToString("D"),
+                ClientId = client.Application.ClientId!,
+                DeviceType = DeviceTypeOf(client, context),
+                ReturnUrl = returnUrl,
+                Nonce = nonce,
+                Status = FlowPending,
+                RemoteAddress = Truncate(context.RemoteAddress, 64),
+                UserAgent = Truncate(context.UserAgent, 256),
+                CreatedAt = now,
+                ExpiresAt = expires
             });
             await session.SaveChangesAsync(ct).ConfigureAwait(false);
         }
@@ -96,7 +107,7 @@ internal sealed partial class IdentityAccountService
             using var scope = TenantScope(tenant.Id);
             using var timeout = new CancellationTokenSource(ConnectorCallTimeout);
             challenge = await connector.BeginSignInAsync(new ConnectorContext(client.Application.ClientId!, tenant.Id, callbackUri, state, nonce)
-                { CodeVerifier = Verifier(browserSecret, flowId) }, timeout.Token).ConfigureAwait(false);
+            { CodeVerifier = Verifier(browserSecret, flowId) }, timeout.Token).ConfigureAwait(false);
         }
         catch (Exception error) when (error is not OperationCanceledException || !ct.IsCancellationRequested)
         {
@@ -171,7 +182,7 @@ internal sealed partial class IdentityAccountService
             using var scope = TenantScope(tenantId);
             using var timeout = new CancellationTokenSource(ConnectorCallTimeout);
             assertion = await connector.CompleteSignInAsync(new ConnectorCallback(new ConnectorContext(flow.ClientId, tenantId, callbackUri, state!, flow.Nonce)
-                { CodeVerifier = Verifier(browserSecret!, flow.Id) }, parameters), timeout.Token).ConfigureAwait(false);
+            { CodeVerifier = Verifier(browserSecret!, flow.Id) }, parameters), timeout.Token).ConfigureAwait(false);
             if (!IsUsable(assertion)) throw Error(PlatformErrors.BadGateway);
         }
         catch (Exception error)
@@ -330,7 +341,12 @@ internal sealed partial class IdentityAccountService
         if (existing is not null) { if (existing.MembershipId == member.Id) return; throw Error(IdentityErrors.BindingConflict); }
         db.ExternalIdentities.Add(new ExternalIdentityRow
         {
-            Id = Guid.CreateVersion7(), MembershipId = member.Id, PersonId = member.PersonId, ConnectorId = flow.ConnectorId, Subject = flow.ExternalSubject!, UnionId = flow.ExternalUnionId
+            Id = Guid.CreateVersion7(),
+            MembershipId = member.Id,
+            PersonId = member.PersonId,
+            ConnectorId = flow.ConnectorId,
+            Subject = flow.ExternalSubject!,
+            UnionId = flow.ExternalUnionId
         });
         try { await session.SaveChangesAsync(ct).ConfigureAwait(false); }
         catch (DbUpdateException error) when (IsUniqueViolation(error)) { throw Error(IdentityErrors.BindingConflict); }
@@ -387,9 +403,21 @@ internal sealed partial class IdentityAccountService
             await using var session = await OpenAsync(ct).ConfigureAwait(false);
             session.Context.LoginTickets.Add(new LoginTicketRow
             {
-                TokenHash = SHA256.HashData(Encoding.ASCII.GetBytes(token)), Purpose = ConnectorPurpose, PersonId = personId, ClientId = flow.ClientId, DeviceType = flow.DeviceType,
-                TenantId = flow.TenantId, Choices = [$"m:{membershipId:D}:{flow.TenantId}"], Amr = [.. amr], AuthenticatedAt = authenticatedAt, PersonRevision = revision, Reason = reason,
-                RemoteAddress = Truncate(context.RemoteAddress, 64), UserAgent = Truncate(context.UserAgent, 256), CreatedAt = now, ExpiresAt = now + ConnectorTicketLifetime
+                TokenHash = SHA256.HashData(Encoding.ASCII.GetBytes(token)),
+                Purpose = ConnectorPurpose,
+                PersonId = personId,
+                ClientId = flow.ClientId,
+                DeviceType = flow.DeviceType,
+                TenantId = flow.TenantId,
+                Choices = [$"m:{membershipId:D}:{flow.TenantId}"],
+                Amr = [.. amr],
+                AuthenticatedAt = authenticatedAt,
+                PersonRevision = revision,
+                Reason = reason,
+                RemoteAddress = Truncate(context.RemoteAddress, 64),
+                UserAgent = Truncate(context.UserAgent, 256),
+                CreatedAt = now,
+                ExpiresAt = now + ConnectorTicketLifetime
             });
             await session.SaveChangesAsync(ct).ConfigureAwait(false);
         }
@@ -481,7 +509,11 @@ internal sealed partial class IdentityAccountService
         }
         var next = flow.Status switch
         {
-            FlowPending or FlowProcessing => "wait", FlowBind => "bind", FlowCompleted => "done", FlowFailed => "error", _ => "restart"
+            FlowPending or FlowProcessing => "wait",
+            FlowBind => "bind",
+            FlowCompleted => "done",
+            FlowFailed => "error",
+            _ => "restart"
         };
         return new ConnectorFlowView(flow.Id, flow.ConnectorId, descriptor?.DisplayName, descriptor?.Protocol, tenant?.Code, tenant?.Name, flow.Status, next,
             flow.BindingExpiresAt ?? flow.ExpiresAt, binding, error, flow.Status == FlowFailed ? flow.ErrorDetail : null, flow.Status == FlowCompleted ? flow.ReturnUrl : null);
@@ -558,7 +590,9 @@ internal sealed partial class IdentityAccountService
             source.ValueKind == JsonValueKind.Object && source.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && value.GetString() is { Length: > 0 and <= 320 } text && !text.Any(char.IsControl) ? text : null;
         return new JsonObject
         {
-            ["name"] = Text(profile, "name"), ["email"] = Text(profile, "email"), ["username"] = Text(profile, "preferred_username") ?? Text(profile, "username")
+            ["name"] = Text(profile, "name"),
+            ["email"] = Text(profile, "email"),
+            ["username"] = Text(profile, "preferred_username") ?? Text(profile, "username")
         }.ToJsonString();
     }
 

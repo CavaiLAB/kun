@@ -1,12 +1,12 @@
 #pragma warning disable RS0026 // 与 Kun 的 IOidcClient 保持同一组重载。
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
+using Kun.Runtime;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Qian.Config;
-using Kun.Runtime;
 
 namespace Kun.Identity.Client;
 
@@ -26,7 +26,7 @@ internal sealed partial class IdentityClientRuntime(IdentityClientOptions option
         var retriever = new HttpDocumentRetriever(http.CreateClient(IdentityClientDefaults.HttpClientName)) { RequireHttps = options.RequireHttpsMetadata };
         // 自动刷新取 discovery 缓存时间；遇到未知 kid 时 RequestRefresh，两次强制刷新至少间隔 30 秒，免得伪造 kid 打满发行方。
         var metadata = new ConfigurationManager<OpenIdConnectConfiguration>(options.Issuer + "/.well-known/openid-configuration", new OpenIdConnectConfigurationRetriever(), retriever)
-            { AutomaticRefreshInterval = options.DiscoveryRefreshInterval, RefreshInterval = TimeSpan.FromSeconds(30) };
+        { AutomaticRefreshInterval = options.DiscoveryRefreshInterval, RefreshInterval = TimeSpan.FromSeconds(30) };
         var mount = new Mount(context, secretReference, metadata);
         if (Interlocked.CompareExchange(ref _mount, mount, null) is not null) { mount.Dispose(); throw new InvalidOperationException("同一宿主只允许一个 Identity Client。"); }
     }
@@ -52,8 +52,12 @@ internal sealed partial class IdentityClientRuntime(IdentityClientOptions option
             }
             var client = new KunOidcClient(new KunOidcClientOptions
             {
-                Name = IdentityClientDefaults.ProviderName, Authority = options.Authority.AbsoluteUri, ClientId = options.ClientId, ClientSecret = secret,
-                DiscoveryRefreshInterval = options.DiscoveryRefreshInterval, RequireHttpsMetadata = options.RequireHttpsMetadata
+                Name = IdentityClientDefaults.ProviderName,
+                Authority = options.Authority.AbsoluteUri,
+                ClientId = options.ClientId,
+                ClientSecret = secret,
+                DiscoveryRefreshInterval = options.DiscoveryRefreshInterval,
+                RequireHttpsMetadata = options.RequireHttpsMetadata
             }, new NamedClients(http), clock);
             if (!ReferenceEquals(Volatile.Read(ref _mount), mount)) { client.Dispose(); throw new ServiceNotReadyException(); }
             Volatile.Write(ref mount.Client, client);

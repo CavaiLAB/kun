@@ -1,6 +1,9 @@
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
 using Kun.Identity.AspNetCore;
 using Kun.Security;
 using Microsoft.AspNetCore.Antiforgery;
@@ -9,9 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Identity.Client;
 

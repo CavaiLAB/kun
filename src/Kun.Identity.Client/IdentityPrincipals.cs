@@ -86,8 +86,19 @@ internal sealed partial record CanonicalIdentity(string Subject, PrincipalKind K
         var notBefore = token.ValidFrom == DateTime.MinValue ? issuedAt : Seconds(token.ValidFrom);
         var snapshot = new Principal
         {
-            Issuer = token.Issuer, Audience = [.. token.Audiences], Subject = subject, Kind = kind.Value, TenantId = tenant, MembershipId = membership,
-            IdentityRevision = revision, Roles = [], Scope = scope, SessionId = session, IssuedAt = issuedAt, NotBefore = notBefore, ExpiresAt = expires,
+            Issuer = token.Issuer,
+            Audience = [.. token.Audiences],
+            Subject = subject,
+            Kind = kind.Value,
+            TenantId = tenant,
+            MembershipId = membership,
+            IdentityRevision = revision,
+            Roles = [],
+            Scope = scope,
+            SessionId = session,
+            IssuedAt = issuedAt,
+            NotBefore = notBefore,
+            ExpiresAt = expires,
             TokenId = jti ?? session
         };
         if (S2sPrincipalContract.ValidateIdentity(snapshot) is not null) return null;
@@ -127,10 +138,18 @@ internal sealed partial class IdentityAccessTokens(IdentityClientRuntime runtime
             var now = clock.GetUtcNow().UtcDateTime;
             var result = await _handler.ValidateTokenAsync(token, new TokenValidationParameters
             {
-                ValidateIssuer = true, ValidIssuer = metadata.Issuer, ValidateAudience = true, ValidAudience = audience,
-                ValidateIssuerSigningKey = true, RequireSignedTokens = true, IssuerSigningKeys = metadata.SigningKeys,
-                ValidAlgorithms = [SecurityAlgorithms.RsaSha256, SecurityAlgorithms.EcdsaSha256], ValidTypes = ["at+jwt"],
-                RequireExpirationTime = true, ValidateLifetime = true, ClockSkew = Skew,
+                ValidateIssuer = true,
+                ValidIssuer = metadata.Issuer,
+                ValidateAudience = true,
+                ValidAudience = audience,
+                ValidateIssuerSigningKey = true,
+                RequireSignedTokens = true,
+                IssuerSigningKeys = metadata.SigningKeys,
+                ValidAlgorithms = [SecurityAlgorithms.RsaSha256, SecurityAlgorithms.EcdsaSha256],
+                ValidTypes = ["at+jwt"],
+                RequireExpirationTime = true,
+                ValidateLifetime = true,
+                ClockSkew = Skew,
                 LifetimeValidator = (notBefore, expires, _, _) => expires is { } exp && exp > now - Skew && (notBefore is null || notBefore <= now + Skew)
             }).ConfigureAwait(false);
             if (result.IsValid && result.SecurityToken is JsonWebToken jwt)

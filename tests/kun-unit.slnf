@@ -22,13 +22,11 @@
       "tests/Kun.RateLimit.Tests/Kun.RateLimit.Tests.csproj",
       "tests/Kun.Runtime.Tests/Kun.Runtime.Tests.csproj",
       "tests/Kun.Saga.Tests/Kun.Saga.Tests.csproj",
-      "tests/Kun.Sandbox.Tests/Kun.Sandbox.Tests.csproj",
       "tests/Kun.Security.Tests/Kun.Security.Tests.csproj",
       "tests/Kun.Storage.Abstractions.Tests/Kun.Storage.Abstractions.Tests.csproj",
       "tests/Kun.Storage.Local.Tests/Kun.Storage.Local.Tests.csproj",
       "tests/Kun.Storage.Oss.Tests/Kun.Storage.Oss.Tests.csproj",
       "tests/Kun.Storage.S3.Tests/Kun.Storage.S3.Tests.csproj",
-      "tests/Kun.Storage.Tests/Kun.Storage.Tests.csproj",
       "tests/Kun.Testing.EntityFrameworkCore.Tests/Kun.Testing.EntityFrameworkCore.Tests.csproj",
       "tests/Kun.Testing.Tests/Kun.Testing.Tests.csproj",
       "tests/Kun.Validation.Tests/Kun.Validation.Tests.csproj"

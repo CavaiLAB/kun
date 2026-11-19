@@ -4,11 +4,13 @@ using Grpc.Core.Interceptors;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.MultiTenancy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Grpc.Interceptors;
 
 /// <summary>租户 gRPC 服务入口；宿主先完成 JWT 认证，再核对传播元数据，覆盖全部四种调用形态。</summary>
-public sealed class TenantGrpcServerInterceptor(ITenantContext tenant, TenantRequestMode mode) : Interceptor
+[method: ActivatorUtilitiesConstructor]
+public sealed class TenantGrpcServerInterceptor(ITenantContext tenant, TenantRequestMode mode = TenantRequestMode.TenantRequired) : Interceptor
 {
     /// <summary>为严格租户 RPC 要求携带与认证身份匹配的传播元数据。</summary>
     public TenantGrpcServerInterceptor(ITenantContext tenant) : this(tenant, TenantRequestMode.TenantRequired) { }

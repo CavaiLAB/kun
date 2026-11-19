@@ -62,6 +62,19 @@ public sealed class ResultMappingTests
     }
 
     [Fact]
+    public void ErrorTrailersCarryTheHttpErrorDocumentVerbatim()
+    {
+        var catalog = ErrorCatalog.CreateDefault();
+        var detail = catalog.CreateDetail(new Error(PlatformErrors.Conflict), "00000000000000000000000000000001",
+            instance: "/customers/one");
+
+        var trailers = GrpcErrorTrailers.Create(detail);
+
+        trailers.GetValue("kun-error-code").Should().Be(detail.Code);
+        trailers.GetValueBytes("qian-error-bin").Should().Equal(Encoding.UTF8.GetBytes(ErrorDetailJson.Serialize(detail)));
+    }
+
+    [Fact]
     public void ToRpcException_IncludesErrorCodeInTrailers()
     {
         // Act

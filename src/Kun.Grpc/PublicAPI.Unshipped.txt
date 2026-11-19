@@ -17,4 +17,4 @@ override Kun.Grpc.Interceptors.TenantGrpcServerInterceptor.UnaryServerHandler<TR
 const Kun.Grpc.Interceptors.TenantGrpcServerInterceptor.ErrorDetailTrailer = "qian-error-bin" -> string!
 Kun.Grpc.GrpcErrorTrailers
 static Kun.Grpc.GrpcErrorTrailers.Create(Kun.Errors.ErrorDetail! detail) -> Grpc.Core.Metadata!
-Kun.Grpc.Interceptors.TenantGrpcServerInterceptor.TenantGrpcServerInterceptor(Kun.Core.MultiTenancy.ITenantContext! tenant, Kun.MultiTenancy.TenantRequestMode mode) -> void
+Kun.Grpc.Interceptors.TenantGrpcServerInterceptor.TenantGrpcServerInterceptor(Kun.Core.MultiTenancy.ITenantContext! tenant, Kun.MultiTenancy.TenantRequestMode mode = Kun.MultiTenancy.TenantRequestMode.TenantRequired) -> void

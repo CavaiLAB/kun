@@ -132,6 +132,36 @@ class ReleaseDocumentsTests(unittest.TestCase):
 
 
 class ListTests(unittest.TestCase):
+    def test_friend_assemblies_resolve_to_package_ids_and_require_a_reason(self):
+        owner, friend = kernel("Kun.Api"), kernel("Kun.Client")
+        data = {"Properties": {"AssemblyName": "Api"}, "Items": {"InternalsVisibleTo": [
+            {"Identity": "Client", "KunPackageFriendReason": "组件事务管道"}, {"Identity": "Api.Tests"}]}}
+        client = {"Properties": {"AssemblyName": "Client"}}
+        result = release.with_friend_dependencies([(owner, data), (friend, client)])
+        self.assertEqual((), result[0].friend_dependencies)
+        self.assertEqual(("Kun.Api",), result[1].friend_dependencies)
+        data["Items"]["InternalsVisibleTo"][0].pop("KunPackageFriendReason")
+        with self.assertRaisesRegex(release.GateError, "KunPackageFriendReason"):
+            release.with_friend_dependencies([(owner, data), (friend, client)])
+
+    def test_friend_declaration_must_use_the_project_item(self):
+        data = {"Properties": {}, "Items": {"AssemblyAttribute": [
+            {"Identity": "System.Runtime.CompilerServices.InternalsVisibleToAttribute"}]}}
+        with self.assertRaisesRegex(release.GateError, "须用 InternalsVisibleTo"):
+            release.with_friend_dependencies([(kernel("Kun.Api"), data)])
+
+    def test_checks_assembly_attributes_in_every_target_framework(self):
+        api = kernel("Kun.Api", aot=True, assembly="Api", declared_friends=("Api.Tests",))
+        files = {"api.nupkg": api}
+        first = dict(package="api.nupkg", entry="lib/net10.0/Api.dll", assembly="Api",
+                     friends=["Api.Tests"], trimmable=True)
+        self.assertEqual([], release.compare_assembly_metadata(files, [first]))
+        other = dict(first, entry="lib/net9.0/Api.dll", friends=["Api.Tests", "Manual"], trimmable=False)
+        problems = release.compare_assembly_metadata(files, [first, other])
+        self.assertEqual(2, len(problems))
+        self.assertTrue(all("lib/net9.0/Api.dll" in p for p in problems))
+        self.assertIn("缺少项目的程序集", release.compare_assembly_metadata(files, [dict(first, assembly="Other")])[0])
+
     def test_reads_project_properties(self):
         data = {"Properties": {"IsPackable": "true", "PackageId": "Kun.Data", "KunTier": "platform", "KunRole": "provider",
                                "IsAotCompatible": "false", "IncludeSymbols": "true", "NoWarn": "1701;1702;NU5104"},
@@ -210,6 +240,20 @@ class VerifyTests(unittest.TestCase):
 
     def verify(self, root, packages=None, transitional=False, version=VERSION):
         return release.verify(packages or self.packages, root, version, COMMIT, transitional, EXPECTED, LEGACY)
+
+    def test_only_packaged_friends_require_an_exact_dependency_in_both_modes(self):
+        packages = [kernel("Kun.Core"), kernel("Kun.Client", friend_dependencies=("Kun.Core",))]
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            full_set(root, packages)
+            for mode in (True, False):
+                for dependencies, valid in [([], False), ([("Kun.Core", VERSION)], False),
+                                             ([("Kun.Core", f"[{VERSION},)")], False),
+                                             ([("Kun.Core", f"[{VERSION}]")], True)]:
+                    with self.subTest(transitional=mode, dependencies=dependencies):
+                        write(root, "Kun.Client", deps=dependencies)
+                        report = self.verify(root, packages, transitional=mode)
+                        self.assertEqual(valid, not report.problems, report.problems)
 
     def test_complete_lockstep_set_passes_in_strict_mode(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -450,7 +494,12 @@ class VerifyTests(unittest.TestCase):
 
 class CommandLineTests(unittest.TestCase):
     def run_cli(self, *args):
-        return subprocess.run([sys.executable, str(SCRIPT), *args], capture_output=True, text=True)
+        stdout, stderr = io.StringIO(), io.StringIO()
+        # 这些占位包只用于测命令的状态码；程序集元数据另有逐框架的对照用例。
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr), \
+                mock.patch.object(release, "check_assembly_metadata", return_value=[]):
+            code = release.main(list(args))
+        return subprocess.CompletedProcess(args, code, stdout.getvalue(), stderr.getvalue())
 
     def test_verify_packages_exit_codes(self):
         packages = [kernel("Kun.Core"), platform("Other.Thing", symbols=False, legacy=True)]

@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Kun.Identity.Tests" />
-    <InternalsVisibleTo Include="Kun.Identity.Client" />
+    <InternalsVisibleTo Include="Kun.Identity.Client" KunPackageFriendReason="装配 Cookie 会话、令牌刷新与服务间身份校验" />
   </ItemGroup>
 
 </Project>

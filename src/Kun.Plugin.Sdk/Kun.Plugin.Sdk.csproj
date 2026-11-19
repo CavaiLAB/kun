@@ -8,5 +8,5 @@
     <ProjectReference Include="../Kun.Security.Abstractions/Kun.Security.Abstractions.csproj" />
   </ItemGroup>
   <!-- 命令管道要用命令策略协议里的内部入口（策略快照、调用的构造与进出检查），这些不对组件公开。 -->
-  <ItemGroup><InternalsVisibleTo Include="Kun.Plugin.Sdk.Commands" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Plugin.Sdk.Commands" KunPackageFriendReason="组件命令执行管道" /></ItemGroup>
 </Project>

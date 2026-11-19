@@ -13,7 +13,7 @@
     <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
   </ItemGroup>
-  <ItemGroup><InternalsVisibleTo Include="Kun.Plugin.Sdk.Commands" /><InternalsVisibleTo Include="Kun.Tenancy" /><InternalsVisibleTo Include="Qian.Authz" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Plugin.Sdk.Commands" KunPackageFriendReason="命令处理时的授权上下文" /><InternalsVisibleTo Include="Kun.Tenancy" KunPackageFriendReason="租户开通期间的授权上下文" /><InternalsVisibleTo Include="Qian.Authz" KunPackageFriendReason="授权组件实现" /></ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="../../contracts/data/v1/filter-ast.schema.json;../../contracts/data/v1/filter-operators.json;../../contracts/data/v1/system-variables.json" LogicalName="authz/%(Filename)%(Extension)" />
     <None Include="../../contracts/data/v1/filter-ast.schema.json;../../contracts/data/v1/filter-operators.json;../../contracts/data/v1/system-variables.json" Pack="true" PackagePath="contracts/data/v1/" />

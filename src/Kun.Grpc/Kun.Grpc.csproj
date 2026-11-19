@@ -21,9 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>Kun.Grpc.Tests</_Parameter1>
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="Kun.Grpc.Tests" />
   </ItemGroup>
 
 </Project>

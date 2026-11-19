@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Kun.Audit.Tests" />
-    <InternalsVisibleTo Include="Kun.Audit.EntityFrameworkCore" />
+    <InternalsVisibleTo Include="Kun.Audit.EntityFrameworkCore" KunPackageFriendReason="审计存储适配" />
   </ItemGroup>
 
 </Project>

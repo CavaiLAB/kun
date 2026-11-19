@@ -42,7 +42,7 @@ updated: 2026-11-19
 | `Kun.RateLimit` | 服务侧限流 | 网关侧用 `Kun.Gateway` 的三策略 + Redis 共享计数 |
 | `Kun.Storage.Abstractions`、`Kun.Storage.Local`、`Kun.Storage.S3`、`Kun.Storage.Oss` | [qian.files](/components/platform/qian.files) | 新线存储；Provider `Qian.Files.Local` / `.S3` / `.Oss` 各包一个后端 |
 | `Kun.Storage` | 不用 | 旧线，废弃（7.1 第 13 项） |
-| `Kun.Infrastructure` | 不用 | `IRepository` / `IUnitOfWork` 是死接口，直接用 `DbContext` + `Kun.EntityFrameworkCore` 的 `IUnitOfWork`（§07 7.6） |
+| `Kun.Infrastructure`（已归档） | 平台未引用 | 写侧使用 `KunDbContext` 与 `Kun.EntityFrameworkCore.IUnitOfWork` |
 | `Kun.Saga`（已归档） | 平台未引用 | 租户开通由 `qian.lifecycle` 的幂等步骤表承担 |
 | `Kun.Grpc` | 服务间 gRPC | 流式调用的追踪、认证、Result 拦截器在 S1 补齐（7.1 第 5 项） |
 | `Kun.AspNetCore` | HTTP 宿主 | 只做命令与查询的端点映射；错误响应由 `Kun.Errors.AspNetCore` 统一写成 `ErrorDetail`（§07 7.18、`contracts/v0` §3.7） |
@@ -61,7 +61,7 @@ Kun 里有几组功能重叠的「双胞胎」API，Qian 各选定一套，插�
 | 审计 | 同事务写 `AuditLog` + Outbox 事件，PostgreSQL 哈希链（[ADR-009](/design/adr/adr-009-audit)） | `AuditSaveChangesInterceptor` |
 | S2S 令牌签发 | 网关的 `S2sTokenIssuer` 一套（[ADR-010](/design/adr/adr-010-gateway-layers)） | 已归档的身份签发器与 S2SJwt 组件 |
 | 限流 | 服务侧 `Kun.RateLimit`；网关侧三策略 + Redis 共享计数 | — |
-| 仓储 | `DbContext` + `Kun.EntityFrameworkCore` 的 `IUnitOfWork` | `Kun.Infrastructure` 的 `IRepository` / `IUnitOfWork` |
+| 仓储 | `DbContext` + `Kun.EntityFrameworkCore` 的 `IUnitOfWork` | 已归档的通用仓储接口 |
 
 这些选择会写进插件开发包（`Kun.Plugin.Sdk`）的分析器：插件作者用错即编译失败（§07 7.1）。
 
@@ -70,7 +70,7 @@ Kun 里有几组功能重叠的「双胞胎」API，Qian 各选定一套，插�
 Kun 的安全默认值大多是 opt-in；在 Qian 里改为**强制装配 + 构建期检查**（ADR-001 D1.5）。以下是 S1 的目标形态，随对应任务落地：
 
 - **强制装配**：RLS 连接版与事务版拦截器、租户模型缓存键（`KunMultiTenantModelCacheKeyFactory`）一起挂上，忘记替换模型缓存键的 `DbContext` 拒绝启动（§07 7.1 第 1 项、7.6）；生产模式的租户解析禁用 `X-Tenant-Id` 请求头兜底与默认租户回退，失败即拒绝；网关回退认证策略默认「要求已认证」，路由级限流真正绑定到路由（7.1 第 4 项）。
-- **禁用**（Banned API，引用即编译错误）：`Kun.Infrastructure.IRepository`、旧线 `Kun.Storage.IFileStorage`（7.1 第 13 项）；废弃的两套 S2S 签发器（7.1 第 7 项）；`Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor`（7.1 第 8 项）。
+- **禁用**（Banned API，引用即编译错误）：废弃的两套 S2S 签发器（7.1 第 7 项）；`Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor`（7.1 第 8 项）。
 - **AOT**：`platform` profile 不承诺 AOT，业务服务一律 JIT；`gateway` 等边缘 profile 可 AOT（ADR-001 D1.5、ADR-020 D20.10）。
 
 ## 缺口修复与补丁包

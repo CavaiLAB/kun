@@ -15,7 +15,6 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | [Kun.Plugin.Sdk.Commands](Kun.Plugin.Sdk.Commands/) | 插件开发包的命令管道（平台档）：权限、事务、数据会话、钩子能力 | — |
 | [Kun.Plugin.Sdk.Generators](Kun.Plugin.Sdk.Generators/) | 插件开发包的源生成器与 KUNSDK 诊断（只以分析器引用） | — |
 | [Kun.Plugin.Sdk.AspNetCore](Kun.Plugin.Sdk.AspNetCore/) | 插件开发包的 HTTP 适配：插件可见性中间件与端点 | — |
-| [Kun.Infrastructure](Kun.Infrastructure/) | 仓储/UoW/规约接口、`IProcessedMessageStore` | ✅ |
 | [Kun.EntityFrameworkCore](Kun.EntityFrameworkCore/) | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | ⚠️ trim-safe |
 | [Kun.EventBus.Abstractions](Kun.EventBus.Abstractions/) | 稳定事件标记与 JSON 注册端口、Outbox 写入端口、集成事件信封（依赖 Core 与 Runtime） | ✅ |
 | [Kun.EventBus](Kun.EventBus/) | 领域/集成事件抽象、Outbox 发布器 | ✅ |

@@ -27,6 +27,10 @@
 - 原有 `IJwtIssuer`、`KunJwtIssuer`、`KunJwtIssuerOptions`、`AddS2SIssuer` 及 `Kun.Security.S2SJwt` 签发、验证、JWKS 入口已归档。网关使用 `S2sTokenIssuer` 签发，下游通过 `AddKunServiceAuthentication` 验签。`PropagateS2sTokenHandler` 与 `AddKunServiceAuth` 标为过时，使用这些入口会产生 KUNS2S001。
 - 服务间令牌在签发与接收时共同核对每跳受众、身份、角色、scope 和有效期。外部访问令牌投影复用身份字段校验。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
+### Removed — 归档通用仓储包（S1-KUN-024）
+
+- 停发 `Kun.Infrastructure`。写入使用业务定义的仓储端口或 `KunDbContext`，提交事务使用 `Kun.EntityFrameworkCore.IUnitOfWork`。消息消费幂等使用 `Kun.EventBus.Idempotency.IProcessedMessageStore`。既有包版本可继续还原。
+
 ### Changed — 租户上下文使用 UUID（S1-KUN-024）
 
 - `ITenantContext.TenantId` 和 `BeginScope` 使用 `Guid?`。租户范围要求非空 UUID，平台范围用 `null`。消息与 HTTP 仍以 D 格式传输租户标识。实体租户列与 RLS 配置项继续使用小写 UUID 文本。

@@ -35,7 +35,7 @@ Kun Framework 严格遵守分层依赖，**任何 PR 违反这些规则都会被
 
 ```
 Kun.Core
-  └─ Kun.Mediator / Kun.Infrastructure / Kun.EventBus / Kun.Security / Kun.Validation
+  └─ Kun.Mediator / Kun.EventBus / Kun.Security / Kun.Validation
        └─ Kun.EntityFrameworkCore / Kun.EventBus.RabbitMQ
             └─ Kun.AspNetCore / Kun.Grpc / Kun.Gateway
 ```

@@ -19,7 +19,6 @@
 |---|---|---|---|:---:|:---:|
 | `Kun.Mediator` | `FrozenDictionary` 无反射 CQRS 调度器 + Pipeline Behaviors | 所有业务 Command/Query 的执行入口 | `AddKunMediator(builder => …)` / `ISender` / `IPublisher` | ✅ | 8 |
 | `Kun.Validation` | `IValidator<T>` + `ValidationPipelineBehavior` | 命令入口的统一校验 | `AddValidator<T, TValidator>()` | ✅ | 12 |
-| `Kun.Infrastructure` | 仓储 / UoW / 规约 / `IProcessedMessageStore` 抽象 | 旧的持久化层契约，EF 侧已不再实现（已禁用，待归档） | `IRepository<T>` / `IUnitOfWork` / `ISpecification<T>` | ✅ | — |
 | `Kun.Configuration` | 强类型 Options + DataAnnotations + fail-fast | 下游服务的配置装配 | `AddKunOptions<T>()` | ✅ | 13 |
 
 ### 平台端口增量（2026-10-09）
@@ -119,7 +118,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 `Kun.Sandbox` 与旧线的 `Kun.Storage` 已归档（S1-KUN-028）：移出解决方案，包名停发。`Kun.Sandbox` 没有替代的包；对象存储用 `Kun.Storage.Abstractions` 的 `IFileStorage`（命名空间 `Kun.Storage`），后端选 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`。上表里这两行按原样保留。
 
-> **测试列的口径**：统计每个 `tests/Kun.*.Tests` 项目下标记为 `[Fact]` / `[Theory]` 的测试方法数（`grep -c '\[Fact\b\|\[Theory\b'`）。这是"测试用例数"的近似值，不是行覆盖率；行覆盖率请看 CI `coverage.cobertura.xml` 构建产物。单元格内 `—` 表示该模块暂无 `*.Tests` 项目（`Kun.Infrastructure` / `Kun.EntityFrameworkCore` / `Kun.EventBus.RabbitMQ` / `Kun.Audit.EntityFrameworkCore` / `Kun.MultiTenancy.EntityFrameworkCore` — 它们的覆盖由 `Kun.IntegrationTests` / 邻近模块的测试间接覆盖）。
+> **测试列的口径**：统计每个 `tests/Kun.*.Tests` 项目下标记为 `[Fact]` / `[Theory]` 的测试方法数（`grep -c '\[Fact\b\|\[Theory\b'`）。这是"测试用例数"的近似值，不是行覆盖率；行覆盖率请看 CI `coverage.cobertura.xml` 构建产物。单元格内 `—` 表示该模块暂无 `*.Tests` 项目（`Kun.EventBus.RabbitMQ` / `Kun.Audit.EntityFrameworkCore` — 它们的覆盖由 `Kun.IntegrationTests` / 邻近模块的测试间接覆盖）。
 
 ### 非 AOT 白名单（不写 `IsAotCompatible`，有明确原因）
 
@@ -138,7 +137,6 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 ```mermaid
 graph TD
     Core[Kun.Core<br/>领域抽象/CQRS 接口/Result] --> Mediator[Kun.Mediator<br/>无反射调度器]
-    Core --> Infra[Kun.Infrastructure<br/>仓储/UoW/规约/租户抽象]
     Core --> EventContracts[Kun.EventBus.Abstractions<br/>稳定事件契约]
     EventContracts --> EventBus[Kun.EventBus<br/>事件分发/Outbox 实现]
     Core --> Security[Kun.Security<br/>S2S JWT/租户上下文]
@@ -150,7 +148,7 @@ graph TD
     Apollo[Kun.Configuration.Apollo<br/>HTTP 配置源]
     Core --> Audit[Kun.Audit<br/>操作审计/哈希链]
 
-    Infra --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
+    Core --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
 
     EventBus --> RabbitMq[Kun.EventBus.RabbitMQ<br/>集成事件传输]
 
@@ -183,7 +181,7 @@ graph TD
 │  Kun.EventBus.RabbitMQ / Kun.Storage.*                  │
 ├─────────────────────────────────────────────────────────┤
 │  Abstraction Layer                                      │
-│  Kun.Mediator / Kun.Infrastructure                      │
+│  Kun.Mediator                                           │
 │  Kun.EventBus / Kun.Security / Kun.Validation / Kun.Audit│
 ├─────────────────────────────────────────────────────────┤
 │  Core Layer                                             │

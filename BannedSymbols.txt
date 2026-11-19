@@ -1,6 +1,3 @@
-T:Kun.Infrastructure.Abstractions.IRepository`1;旧通用仓储入口已禁用，请使用业务端口与当前数据 Provider。
-T:Kun.Infrastructure.Abstractions.IUnitOfWork;请使用 Kun.EntityFrameworkCore.IUnitOfWork。
-T:Kun.Infrastructure.Abstractions.IProcessedMessageStore;请使用 Kun.EventBus.Idempotency.IProcessedMessageStore。
 # S1-IDP-005：S2S 令牌按跳签发、aud 只绑定一个下游，禁止把入站 Authorization 原样转发给下一跳。
 T:Kun.Security.Http.PropagateS2sTokenHandler;禁止透传上一跳令牌；调用下游须使用为该受众签发的 S2S 令牌。
 M:Kun.Security.Extensions.HttpClientBuilderExtensions.AddKunServiceAuth(Microsoft.Extensions.DependencyInjection.IHttpClientBuilder);禁止透传上一跳令牌；调用下游须使用为该受众签发的 S2S 令牌。

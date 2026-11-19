@@ -15,9 +15,8 @@ ARG ASSEMBLY
 ARG TARGETARCH
 WORKDIR /src
 # 构建上下文是仓库根（S1-KUN-020）：本目录的项目从源码编译仓库根 src/ 下的 Kun 项目，也要仓库根的构建基线与包源。
-# PROJECT 写相对 _import/qian 的路径，在那里发布。
+# PROJECT 是相对仓库根的项目路径。
 COPY . .
-WORKDIR /src/_import/qian
 # 项目必须在 csproj 里声明 PublishAot：命令行传 -p:PublishAot=true 会作为全局属性波及被引用的分析器项目
 # （netstandard2.0），报 NETSDK1207。发布后若还有同名托管程序集，说明没走 NativeAOT，直接失败。
 RUN --mount=type=cache,id=qian-nuget,target=/root/.nuget/packages \

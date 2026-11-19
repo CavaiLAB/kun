@@ -3,7 +3,7 @@
 「初步可用」里程碑期间（S1-DEC-033 D2，R143），staging 按过渡形状部署：
 
 - 平台宿主 `hosts/Qian.Platform.Host` 以 `Identity:InProcess=true` 并入身份服务与开通申请组件；
-- 网关宿主 `hosts/Qian.Gateway.Host` 独立成进程，并托管外壳；
+- 网关宿主 `hosts/Kun.Gateway.Host` 独立成进程，并托管外壳；
 - 清单在部署仓库手写（ADR-017 §10）。
 
 本手册覆盖构建、部署、回退与首个平台运营账号的引导，并列出相对 PRD 7.17 的已知差异。
@@ -109,10 +109,10 @@
    还没推到 GitHub 的提交，改用 `git bundle create kun.bundle <分支>` 打包拷过去，在 qd 上 `git clone -b <分支> kun.bundle kun`。
 3. 构建与推送（qd 的 `~/kun-build/kun/_import/qian`）。`build` 构建完即推送到标签所在的仓库，再从推送结果取 digest。推送的标签写 `192.168.1.201:80/…`：Harbor 只开 HTTP 80，qd 的 Docker 用 containerd 镜像存储，不带端口时先连 443、连不上也不回落到 HTTP（与部署仓库流水线的 `HARBOR_PUSH_HOST` 相同）。清单里写不带端口的 `192.168.1.201/qian/…@sha256:…`，节点的 `registries.yaml` 把它映射到 HTTP 端点，两种写法是同一个仓库、同一个 digest。
    ```bash
-   python3 scripts/images.py build --kind jit --project hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag 192.168.1.201:80/qian/qian-platform:<短 SHA> --web ~/kun-build/web-platform
+   python3 scripts/images.py build --kind jit --project _import/qian/hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag 192.168.1.201:80/qian/qian-platform:<短 SHA> --web ~/kun-build/web-platform
    ```
    ```bash
-   python3 scripts/images.py build --kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Kun.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ~/kun-build/web-gateway
+   python3 scripts/images.py build --kind aot --project hosts/Kun.Gateway.Host/Qian.Gateway.Host.csproj --assembly Kun.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ~/kun-build/web-gateway
    ```
    - 每条命令打印一段 JSON：`ref` 是按 digest 的引用，`build` 是构建证据（源码 SHA、profile 与组件目录的树修订、`webDigest` 等）。两段都记进任务进度日志。
    - 推送失败时命令以非零退出、不打印 JSON，镜像留在本机；修好仓库权限后重跑，BuildKit 缓存让重跑很快。
@@ -296,7 +296,7 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
 - Traefik 信任节点网段与 Pod 网段（10.42.0.0/16）的转发头，平台身份分支也把 Pod 网段当可信的第二跳。LAN 内（192.168.1.x）的主机与集群里任何命名空间的 Pod，直连 Traefik 时都能伪造 `X-Forwarded-For` 与 `X-Forwarded-Proto`，影响登录限流与审计里的来源地址。现有配置收不窄，staging 接受这个暴露面。
 - 基线给 `qian-platform`、`qian-postgres`、`qian-redis` 都预置了 `minAvailable: 1` 的 PDB，而它们都只有一个副本：`kubectl drain` worker01 会一直等待。节点维护前先临时放宽或删除这三个 PDB，维护后恢复。
 - 网关的就绪依赖 hub 与身份发行方：hub 或身份服务故障时，网关被摘出 Service 端点，外壳整体不可用，连静态页也打不开。要改需要 Qian 侧调整就绪检查的口径。
-- 网关入口（`hosts/Qian.Gateway.Host/Program.cs`）没有像平台宿主那样拦截未处理异常：依赖挂载失败时，容器里的 PID 1 可能空转不退出，要等 90 秒启动探针超时才被重启。
+- 网关入口（`hosts/Kun.Gateway.Host/Program.cs`）没有像平台宿主那样拦截未处理异常：依赖挂载失败时，容器里的 PID 1 可能空转不退出，要等 90 秒启动探针超时才被重启。
 - 新 Pod 的地址要等 K3s 网络策略控制器写进 PG 的放行集合后才连得上，在此之前连接被拒（Connection refused）。2026-11-15 首次同步时，建角色 Job 一启动就连，两次都因此失败。三个发布 Job 与引导模板连 PG 前先用 `pg_isready` 等它可达，至多约 60 秒（部署仓库 PR #102）；之后的同步里三个 Job 都在重试 1 次（约 2 秒）后连上。两个 Deployment 不加等待：部署仓库门禁要求 Deployment 只用自身镜像，且每个容器都带三类探针。首次连库失败靠 kubelet 重启恢复：同一次同步里，网关首启时连 Redis 被拒（`RedisConnectionException`），进程以退出码 139 退出，4 秒后重启即恢复。
 - 环境 overlay 不给 events 配 broker，宿主就不登记 Outbox 投递服务（`QianOutboxRelay` 只随 `AddQianEventsBroker` 登记）。各组件 `outbox_messages` 里的集成事件只写不发：首次同步后，lifecycle 有 11 条 `plugin.activated` 事件停在待发状态。同进程形状里没有跨进程订阅者，功能不受影响，但这些表会随开户等操作一直增长。接 RabbitMQ 之前，接受这种增长或定期清理。
 - 平台镜像的三个 Job 也挂身份服务的签名、加密证书与客户端密钥（宿主装配身份分支时就读取）；修订 Job 与引导模板另挂在线登录的连接串，迁移 Job 不挂。

@@ -11,7 +11,7 @@
 |---|---|---|---|
 | qian-platform | JIT，包含 shell 与 model-gateway 组合包 | 生产宿主 [`hosts/Qian.Platform.Host`](../../hosts/Qian.Platform.Host/README.md) 已交付（S1-DEP-009）：按 platform profile 装配平台插件树，承载平台表面与租户运营接口，构建上下文已放行；身份分支并入（S1-DEP-011）、RP 与其余业务组件仍待各自任务，镜像接入供应链流水线归 S1-DEP-008 | S1-DEP-011、S1-IDP-005、S1-DEP-008 及 profile 的业务组件任务 |
 | qian-identity | JIT | Kun.Identity.Server 与可启动的唯一 issuer 宿主尚未交付 | S1-IDP-002 |
-| qian-gateway | NativeAOT、distroless | `hosts/Qian.Gateway.Host` 已完成严格 Linux 原生发布与真实依赖运行；仍需接入产品镜像、供应链及只读非 root 验收 | S1-DEP-008；宿主证据见 S1-GW-001 |
+| qian-gateway | NativeAOT、distroless | `hosts/Kun.Gateway.Host` 已完成严格 Linux 原生发布与真实依赖运行；仍需接入产品镜像、供应链及只读非 root 验收 | S1-DEP-008；宿主证据见 S1-GW-001 |
 
 证据来源是仓库现状：[profile 装配基线](../../profiles/README.md) 列出各 profile 仍为 `x-skeleton` 的业务叶节点；platform 的六个平台组件已以生产平台宿主的装配与集成测试为启动证据去标（R144 ③），minimal 的真实 Runtime 启动另有验收；`apps/` 当前仅有前端验证应用，相关身份、网关与外壳任务仍未完成。上述表格表示交付缺口。基线探针、minimal、Storybook 页面和 DEP-003 的自检镜像，都不能替代三个业务镜像。
 
@@ -50,7 +50,7 @@ python3 scripts/images.py build --kind jit --project <csproj> --assembly <程序
 - 标签记录源码 SHA（`org.opencontainers.image.revision`）、Kun 的源码提交（`io.qian.kun-version`，Kun 与本目录同仓同提交编译，值与源码 SHA 相同）、profile 与组件目录修订和镜像角色（`io.qian.image-role`：`product` 或 `selfcheck`）；
 - 前端构建产物（S1-DEP-011）经 `--web <目录>` 以命名构建上下文 `web` 送入 `/app/web`，构建证据记该目录的 D4 摘要（`webDigest`）；不给 `--web` 时送空目录。平台镜像的目录里是 `identity/`（`packages/qian-identity-ui/dist`）与 `signup/`（`packages/qian-tenancy-signup-ui/dist/public`），网关镜像是 `shell/`（`apps/qian-shell/dist/host`）与 `remotes/qian.tenancy/`、`remotes/qian.tenancy.signup/`（两个 UI 包的 `dist/remote`）。前端在构建机之外先用 pnpm 构建好再拷过去，组装与构建命令见 [staging 运维手册](../../docs/ops/staging-first-deploy.md)。
 
-AOT 模板的构建上下文白名单放行了网关宿主（`hosts/Qian.Gateway.Host`）与全部 `contracts/`（S1-DEP-011），`--kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Kun.Gateway.Host` 可以直接构建 qian-gateway；JIT 模板早已放行平台宿主（S1-DEP-009）。
+AOT 模板的构建上下文白名单放行了网关宿主（`hosts/Kun.Gateway.Host`）与全部 `contracts/`（S1-DEP-011），`--kind aot --project hosts/Kun.Gateway.Host/Qian.Gateway.Host.csproj --assembly Kun.Gateway.Host` 可以直接构建 qian-gateway；JIT 模板早已放行平台宿主（S1-DEP-009）。
 
 ### 门禁
 

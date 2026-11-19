@@ -85,6 +85,7 @@ AREAS: Dict[str, Area] = {
               "profiles/**", "plugins/**", "packages/Qian.Profiles*/**", "packages/Qian.Surfaces*/**",
               "packages/Common/**", "schemas/**",
               "contracts/v0/**", "*.props", "*.targets", ".editorconfig", ".github/workflows/images.yml"),
+            ("hosts/Kun.Gateway.Host/**",),
             DOTNET_BASE,
         ),
         original="images.yml", builds_dotnet=True),

@@ -55,7 +55,7 @@ public sealed partial class PatchPersistenceTests
                     if (context.Result is null || context.Result.Succeeded) VerifiedServiceUser.Capture(context, false);
                 };
             });
-            services.AddKunAuthorization(_ => running.Root.Scoped(new ScopeKey("tenant", tenant.TenantId!)));
+            services.AddKunAuthorization(_ => running.Root.Scoped(new ScopeKey("tenant", Assert.IsType<Guid>(tenant.TenantId).ToString("D"))));
             services.AddSingleton(running.Host.Services.GetRequiredService<IDataTypeCatalog>());
         }, configureEndpoints: app =>
         {

@@ -79,7 +79,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
         using var response = await host.Post(A, input); Assert.True(response.StatusCode == HttpStatusCode.Created, await response.Content.ReadAsStringAsync(Ct));
         var customer = await response.Content.ReadFromJsonAsync<CustomerItem>(Ct); Assert.NotNull(customer); Assert.Equal(A, customer.TenantId);
         var data = host.App.Services.GetRequiredService<IDataService>(); var tenant = host.App.Services.GetRequiredService<ITenantContext>();
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await data.OpenAsync<CrmDbContext>(Ct);
             Assert.Equal(customer.Id, Assert.Single(await session.Context.Customers.ToListAsync(Ct)).Id);
@@ -96,7 +96,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
         using var retry = await host.Post(A, input); Assert.Equal(HttpStatusCode.Created, retry.StatusCode);
         Assert.Equal(customer.Id, (await retry.Content.ReadFromJsonAsync<CustomerItem>(Ct))!.Id);
         using var conflict = await host.Post(A, input with { Name = "changed" }); Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await data.OpenAsync<CrmDbContext>(Ct);
             Assert.Single(await session.Context.Customers.ToListAsync(Ct)); Assert.Single(await session.Context.CustomerReceipts.ToListAsync(Ct));
@@ -112,7 +112,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
         await Admin("CREATE FUNCTION plugin_qian_audit.reject_command() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced audit rollback'; END $$; CREATE TRIGGER reject_command BEFORE INSERT ON plugin_qian_audit.audit_entries FOR EACH ROW EXECUTE FUNCTION plugin_qian_audit.reject_command();");
         var input = new CreateCustomerCommand(Guid.CreateVersion7(), "rollback customer");
         using var failed = await host.Post(A, input); Assert.Equal(HttpStatusCode.InternalServerError, failed.StatusCode);
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
             Assert.Empty(await session.Context.Customers.ToListAsync(Ct)); Assert.Empty(await session.Context.CustomerReceipts.ToListAsync(Ct)); Assert.Empty(await session.Context.OutboxMessages.ToListAsync(Ct));
@@ -120,7 +120,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
         }
         await Admin("DROP TRIGGER reject_command ON plugin_qian_audit.audit_entries;");
         using var recovered = await host.Post(A, input); Assert.Equal(HttpStatusCode.Created, recovered.StatusCode);
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D")))
             Assert.Equal(new AuditChainVerification(true, 1, null, null), await host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit().VerifyAsync(Ct));
     }
 
@@ -134,7 +134,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
         await Admin($"UPDATE plugin_qian_tenancy.tenants SET status = 'active' WHERE id = '{A}'::uuid;");
         await host.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.UnmountAsync("audit", ScopeKey.Global, Ct);
         using var unmounted = await host.Post(A, input); Assert.Equal(HttpStatusCode.NotFound, unmounted.StatusCode);
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
             Assert.Empty(await session.Context.Customers.ToListAsync(Ct)); Assert.Empty(await session.Context.OutboxMessages.ToListAsync(Ct));
@@ -146,7 +146,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
     {
         await using var host = await Start(concurrentWrites: true); var tenant = host.App.Services.GetRequiredService<ITenantContext>();
         var data = host.App.Services.GetRequiredService<IDataService>();
-        using (tenant.BeginScope(B)) await new PostgresTenantRoleStore(data, tenant).AssignAsync("tenant.owner", "service", Writer, "test-bootstrap", Ct);
+        using (tenant.BeginScope(Guid.ParseExact(B, "D"))) await new PostgresTenantRoleStore(data, tenant).AssignAsync("tenant.owner", "service", Writer, "test-bootstrap", Ct);
         var input = new CreateCustomerCommand(Guid.CreateVersion7(), "two tenants");
         var responses = await Task.WhenAll(host.Post(A, input), host.Post(B, input));
         try
@@ -163,7 +163,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
             Assert.Equal(A, first.TenantId); Assert.Equal(B, second.TenantId); Assert.NotEqual(first.Id, second.Id);
             foreach (var id in new[] { A, B })
             {
-                using var scope = tenant.BeginScope(id); await using var session = await data.OpenAsync<CrmDbContext>(Ct);
+                using var scope = tenant.BeginScope(Guid.ParseExact(id, "D")); await using var session = await data.OpenAsync<CrmDbContext>(Ct);
                 var row = Assert.Single(await session.Context.Customers.ToListAsync(Ct)); Assert.Equal(id, row.TenantId);
                 Assert.Equal(id == A ? first.Id : second.Id, row.Id);
                 Assert.Single(await session.Context.CustomerReceipts.ToListAsync(Ct));
@@ -197,7 +197,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
             """);
         using var response = await host.Post(A, new CreateCustomerCommand(Guid.CreateVersion7(), "retry wrapped failure"));
         Assert.True(response.StatusCode == HttpStatusCode.Created, host.FailureEvidence);
-        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A);
+        using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D"));
         await using var session = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
         Assert.Single(await session.Context.Customers.ToListAsync(Ct)); Assert.Single(await session.Context.CustomerReceipts.ToListAsync(Ct)); Assert.Single(await session.Context.OutboxMessages.ToListAsync(Ct));
         Assert.Equal(new AuditChainVerification(true, 1, null, null), await host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit().VerifyAsync(Ct));
@@ -214,7 +214,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
             Assert.All(responses, response => Assert.True(response.StatusCode == HttpStatusCode.Created, host.FailureEvidence));
             var first = (await responses[0].Content.ReadFromJsonAsync<CustomerItem>(Ct))!;
             var second = (await responses[1].Content.ReadFromJsonAsync<CustomerItem>(Ct))!; Assert.Equal(first.Id, second.Id);
-            using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A);
+            using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D"));
             await using var data = await host.App.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
             Assert.Single(await data.Context.Customers.ToListAsync(Ct)); Assert.Single(await data.Context.CustomerReceipts.ToListAsync(Ct)); Assert.Single(await data.Context.OutboxMessages.ToListAsync(Ct));
             Assert.Equal(new AuditChainVerification(true, 2, null, null), await host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit().VerifyAsync(Ct));
@@ -242,7 +242,7 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
             Assert.True(waiting, "必须观察到实际命令已经完成业务保存并在审计函数内等待链锁。");
             await host.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.UnmountAsync("audit", ScopeKey.Global, Ct).AsTask().WaitAsync(TimeSpan.FromSeconds(10), Ct);
             using var response = await pending.WaitAsync(TimeSpan.FromSeconds(10), Ct); Assert.False(response.IsSuccessStatusCode);
-            using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A);
+            using var scope = host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D"));
             var data = host.App.Services.GetRequiredService<IDataService>();
             await using var session = await data.OpenAsync<CrmDbContext>(Ct);
             Assert.Empty(await session.Context.Customers.ToListAsync(Ct)); Assert.Empty(await session.Context.CustomerReceipts.ToListAsync(Ct)); Assert.Empty(await session.Context.OutboxMessages.ToListAsync(Ct));
@@ -265,10 +265,10 @@ public sealed partial class CommandTests(PostgresFixture postgres) : CustomerCom
         using var list = await host.Get(A, "/api/customers"); Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         Assert.Single((await list.Content.ReadFromJsonAsync<CustomerPage>(Ct))!.Items);
         var tenant = host.App.Services.GetRequiredService<ITenantContext>();
-        using (tenant.BeginScope(A)) Assert.Equal(new AuditChainVerification(true, 1, null, null), await host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit().VerifyAsync(Ct));
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) Assert.Equal(new AuditChainVerification(true, 1, null, null), await host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit().VerifyAsync(Ct));
         using var detail = await host.Get(A, "/api/customers/" + customer.Id); Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
         using var cross = await host.Get(B, "/api/customers/" + customer.Id); Assert.Equal(HttpStatusCode.NotFound, cross.StatusCode);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var audit = host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit();
             var rows = await audit.ReadAsync(0, 10, cancellationToken: Ct); Assert.Equal(2, rows.Count);
@@ -396,7 +396,7 @@ public abstract partial class CustomerCommandTests
                 foreach (var id in new[] { A, B })
                 {
                     await Admin($"INSERT INTO plugin_qian_tenancy.tenants(id, code, name, isolation, status, created_at) VALUES ('{id}'::uuid, '{(id == A ? "a" : "b")}', 'command tenant', 'row', 'active', now());");
-                    using var context = tenant.BeginScope(id); var roles = new PostgresTenantRoleStore(data, tenant);
+                    using var context = tenant.BeginScope(Guid.ParseExact(id, "D")); var roles = new PostgresTenantRoleStore(data, tenant);
                     await roles.EnsureBuiltinsAsync("test-bootstrap", Ct); await roles.InstallDefaultsAsync("qian.sample.crm", "1.0.0", null, "test-bootstrap", Ct);
                     await roles.AssignAsync(id == A ? "tenant.owner" : "tenant.user", "service", Writer, "test-bootstrap", Ct);
                 }
@@ -412,7 +412,7 @@ public abstract partial class CustomerCommandTests
                 if (capabilities) await AttachCapabilities(app, [.. humanOnlyProbe is null ? [] : new IExecutableCapability[] { humanOnlyProbe }, .. probes ?? []], capabilitiesConfig);
                 if (lifecycle is not null) await AttachLifecycle(app, lifecycle);
                 if (hooks) await AttachHooks(app);
-                using (tenant.BeginScope(A))
+                using (tenant.BeginScope(Guid.ParseExact(A, "D")))
                 {
                     var decision = await app.Services.GetRequiredService<Kun.Authorization.IPermissionChecker>().CheckAsync(new Kun.Authorization.PermissionRequest(new Kun.Authorization.AuthorizationSubject(Writer, A, "service"), "qian.sample.crm:customer:write"), Ct);
                     Assert.True(decision.Allow, decision.Reason);

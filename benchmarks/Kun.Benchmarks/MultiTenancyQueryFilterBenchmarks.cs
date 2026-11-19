@@ -20,6 +20,8 @@ namespace Kun.Benchmarks;
 [MemoryDiagnoser]
 public class MultiTenancyQueryFilterBenchmarks : IDisposable
 {
+    private const string TenantA = "01900000-0000-7000-8000-000000000001";
+    private const string TenantB = "01900000-0000-7000-8000-000000000002";
     private TenantlessDbContext _unfiltered = null!;
     private TenantFilteredDbContext _filtered = null!;
 
@@ -39,14 +41,14 @@ public class MultiTenancyQueryFilterBenchmarks : IDisposable
             new DbContextOptionsBuilder<TenantFilteredDbContext>()
                 .UseInMemoryDatabase($"kun-bench-tenant-filtered-{Guid.NewGuid():N}")
                 .Options,
-            tenantContext: new FixedTenantContext("t-0"));
+            tenantContext: new FixedTenantContext(new Guid(TenantA)));
 
         for (int i = 0; i < RowCount; i++)
         {
-            _unfiltered.Items.Add(new TenantItem { Id = Guid.NewGuid(), Name = $"u{i}", TenantId = "t-0" });
-            _unfiltered.Items.Add(new TenantItem { Id = Guid.NewGuid(), Name = $"u{i}", TenantId = "t-1" });
-            _filtered.Items.Add(new TenantItem { Id = Guid.NewGuid(), Name = $"f{i}", TenantId = "t-0" });
-            _filtered.Items.Add(new TenantItem { Id = Guid.NewGuid(), Name = $"f{i}", TenantId = "t-1" });
+            _unfiltered.Items.Add(new TenantItem { Id = Guid.NewGuid(), Name = $"u{i}", TenantId = TenantA });
+            _unfiltered.Items.Add(new TenantItem { Id = Guid.NewGuid(), Name = $"u{i}", TenantId = TenantB });
+            _filtered.Items.Add(new TenantItem { Id = Guid.NewGuid(), Name = $"f{i}", TenantId = TenantA });
+            _filtered.Items.Add(new TenantItem { Id = Guid.NewGuid(), Name = $"f{i}", TenantId = TenantB });
         }
 
         _unfiltered.SaveChanges();
@@ -67,7 +69,7 @@ public class MultiTenancyQueryFilterBenchmarks : IDisposable
     [Benchmark(Baseline = true, Description = "Query · no tenant filter (manual Where)")]
     public async Task<int> NoFilter_ManualWhere()
     {
-        var rows = await _unfiltered.Items.Where(x => x.TenantId == "t-0").AsNoTracking().ToListAsync().ConfigureAwait(false);
+        var rows = await _unfiltered.Items.Where(x => x.TenantId == TenantA).AsNoTracking().ToListAsync().ConfigureAwait(false);
         return rows.Count;
     }
 
@@ -81,11 +83,11 @@ public class MultiTenancyQueryFilterBenchmarks : IDisposable
 
 internal sealed class FixedTenantContext : ITenantContext
 {
-    public FixedTenantContext(string? tenantId) { TenantId = tenantId; }
+    public FixedTenantContext(Guid tenantId) { TenantId = tenantId; }
 
-    public string? TenantId { get; }
+    public Guid? TenantId { get; }
 
-    public bool IsMultiTenant => !string.IsNullOrEmpty(TenantId);
+    public bool IsMultiTenant => TenantId.HasValue;
 }
 
 internal sealed class TenantlessDbContext : DbContext
@@ -107,7 +109,7 @@ internal sealed class TenantFilteredDbContext : DbContext, IKunMultiTenantDbCont
 
     public DbSet<TenantItem> Items => Set<TenantItem>();
 
-    public string? TenantIdForModelCacheKey => _tenantContext.TenantId;
+    public string? TenantIdForModelCacheKey => _tenantContext.TenantId?.ToString("D");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

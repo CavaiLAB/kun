@@ -263,10 +263,11 @@ internal sealed partial class LifecycleController(
     }
 
     // 租户标识只接受小写规范 UUID，与 Tenancy 和事件信封的口径一致。
-    private static void CheckTenant(string tenantId)
+    private static Guid CheckTenant(string tenantId)
     {
         if (!Guid.TryParseExact(tenantId, "D", out var id) || id == Guid.Empty || id.ToString("D") != tenantId)
             throw LifecycleArtifact.Invalid("#/tenantId", "租户标识必须是小写规范 UUID。");
+        return id;
     }
 
     private static ErrorException NotFound() => new(new Error(PlatformErrors.NotFound));

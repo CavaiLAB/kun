@@ -33,7 +33,7 @@ public interface INativeDataSession : IAsyncDisposable
     /// <summary>当前未完成事务；没有事务时为 null。</summary>
     DbTransaction? Transaction { get; }
     /// <summary>会话捕获的租户 UUID；显式平台会话为 null，不表示自动取得平台权限。</summary>
-    string? TenantId { get; }
+    Guid? TenantId { get; }
     /// <summary>开始事务时再次校验调用上下文，并设置事务级租户 GUC；嵌套事务拒绝。</summary>
     ValueTask<DbTransaction> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default);
     /// <summary>提交当前事务；取消或提交失败时会话不得继续执行。</summary>

@@ -23,16 +23,23 @@ public sealed class SchemaPerTenantProvisionerTests
             new SchemaPerTenantProvisioner<TestDbContext>(factory, options: null!));
     }
 
-    [Fact]
-    public async Task ProvisionAsync_RejectsUnsafeSchemaChars()
+    [Theory]
+    [InlineData("bad prefix")]
+    [InlineData("")]
+    [InlineData("123prefix")]
+    public async Task ProvisionAsync_RejectsInvalidSchemaPrefix(string prefix)
     {
-        var provisioner = BuildProvisioner(new KunMultiTenancyOptions());
+        var provisioner = BuildProvisioner(new KunMultiTenancyOptions { SchemaPrefix = prefix });
 
-        Task act() => provisioner.ProvisionAsync(
-            new TenantInfo("bad; DROP TABLE users--"),
-            TestContext.Current.CancellationToken);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => provisioner.ProvisionAsync(
+            new TenantInfo(Tenants.A), TestContext.Current.CancellationToken));
+    }
 
-        await Assert.ThrowsAsync<ArgumentException>(act);
+    [Fact]
+    public void GetSchemaName_UsesCanonicalUuidWithoutSeparators()
+    {
+        var options = new KunMultiTenancyOptions();
+        Assert.Equal("tenant_" + Tenants.A.ToString("N"), options.GetSchemaName(Tenants.A));
     }
 
     [Fact]
@@ -40,17 +47,17 @@ public sealed class SchemaPerTenantProvisionerTests
     {
         var provisioner = BuildProvisioner(new KunMultiTenancyOptions { AllowDestructiveDeprovision = false });
 
-        Task act() => provisioner.DeprovisionAsync("tenant-a", TestContext.Current.CancellationToken);
+        Task act() => provisioner.DeprovisionAsync(Tenants.A, TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<NotSupportedException>(act);
     }
 
     [Fact]
-    public async Task DeprovisionAsync_RejectsUnsafeSchemaChars_EvenWhenOptInEnabled()
+    public async Task DeprovisionAsync_RejectsEmptyTenant_EvenWhenOptInEnabled()
     {
         var provisioner = BuildProvisioner(new KunMultiTenancyOptions { AllowDestructiveDeprovision = true });
 
-        Task act() => provisioner.DeprovisionAsync("bad name!", TestContext.Current.CancellationToken);
+        Task act() => provisioner.DeprovisionAsync(Guid.Empty, TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<ArgumentException>(act);
     }
@@ -63,7 +70,7 @@ public sealed class SchemaPerTenantProvisionerTests
 
     private sealed class FakeFactory : ITenantDbContextFactory<TestDbContext>
     {
-        public TestDbContext CreateForTenant(string tenantId)
+        public TestDbContext CreateForTenant(Guid tenantId)
         {
             // Test never reaches CreateForTenant because all current test cases assert on
             // argument validation BEFORE the factory is called.

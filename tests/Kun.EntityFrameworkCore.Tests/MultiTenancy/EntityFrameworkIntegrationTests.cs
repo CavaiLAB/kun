@@ -19,7 +19,7 @@ public sealed class EntityFrameworkIntegrationTests
         var ct = TestContext.Current.CancellationToken;
 
         // Seed with tenant-a active
-        using (ctx.BeginScope("tenant-a"))
+        using (ctx.BeginScope(Tenants.A))
         {
             using var db = CreateDb(ctx);
             db.Widgets.Add(new Widget { Id = Guid.NewGuid(), Name = "a-one" });
@@ -28,7 +28,7 @@ public sealed class EntityFrameworkIntegrationTests
         }
 
         // Add a tenant-b row on the same in-memory database name.
-        using (ctx.BeginScope("tenant-b"))
+        using (ctx.BeginScope(Tenants.B))
         {
             using var db = CreateDb(ctx);
             db.Widgets.Add(new Widget { Id = Guid.NewGuid(), Name = "b-one" });
@@ -36,7 +36,7 @@ public sealed class EntityFrameworkIntegrationTests
         }
 
         // Tenant A sees only A's rows
-        using (ctx.BeginScope("tenant-a"))
+        using (ctx.BeginScope(Tenants.A))
         {
             using var db = CreateDb(ctx);
             var names = await db.Widgets.Select(w => w.Name).ToListAsync(ct);
@@ -44,7 +44,7 @@ public sealed class EntityFrameworkIntegrationTests
         }
 
         // Tenant B sees only B's rows
-        using (ctx.BeginScope("tenant-b"))
+        using (ctx.BeginScope(Tenants.B))
         {
             using var db = CreateDb(ctx);
             var names = await db.Widgets.Select(w => w.Name).ToListAsync(ct);
@@ -58,7 +58,7 @@ public sealed class EntityFrameworkIntegrationTests
         var ctx = new AsyncLocalTenantContext();
         var ct = TestContext.Current.CancellationToken;
 
-        using (ctx.BeginScope("tenant-x"))
+        using (ctx.BeginScope(Tenants.X))
         {
             using var db = CreateDb(ctx);
             // Consumer forgot to set TenantId — the interceptor fills it in.
@@ -67,12 +67,12 @@ public sealed class EntityFrameworkIntegrationTests
         }
 
         // Verify by escaping the filter on a fresh db context.
-        using (ctx.BeginScope("tenant-x"))
+        using (ctx.BeginScope(Tenants.X))
         {
             using var db = CreateDb(ctx);
             var widget = await db.Widgets.IgnoreQueryFilters()
                 .SingleAsync(w => w.Name == "auto-filled", ct);
-            widget.TenantId.Should().Be("tenant-x");
+            widget.TenantId.Should().Be(Tenants.XText);
         }
     }
 
@@ -82,24 +82,38 @@ public sealed class EntityFrameworkIntegrationTests
         var ctx = new AsyncLocalTenantContext();
         var ct = TestContext.Current.CancellationToken;
 
-        using (ctx.BeginScope("tenant-y"))
+        using (ctx.BeginScope(Tenants.Y))
         {
             using var db = CreateDb(ctx);
             db.Widgets.Add(new Widget
             {
                 Id = Guid.NewGuid(),
                 Name = "explicit",
-                TenantId = "tenant-override",
+                TenantId = Tenants.OverrideText,
             });
             await db.SaveChangesAsync(ct);
         }
 
-        using (ctx.BeginScope("tenant-override"))
+        using (ctx.BeginScope(Tenants.Override))
         {
             using var db = CreateDb(ctx);
             var widget = await db.Widgets.SingleAsync(w => w.Name == "explicit", ct);
-            widget.TenantId.Should().Be("tenant-override");
+            widget.TenantId.Should().Be(Tenants.OverrideText);
         }
+    }
+
+    [Theory]
+    [InlineData("tenant-a")]
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    [InlineData("0190F3A2-7C41-7B3E-9D2A-5C8E1F4A6B20")]
+    public async Task Interceptor_RejectsNonCanonicalExplicitTenantId(string value)
+    {
+        var context = new AsyncLocalTenantContext();
+        using var scope = context.BeginScope(Tenants.A);
+        using var db = CreateDb(context);
+        db.Widgets.Add(new Widget { Id = Guid.NewGuid(), Name = "explicit", TenantId = value });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync(TestContext.Current.CancellationToken));
     }
 
     private readonly string _dbName = $"mt-tests-{Guid.NewGuid():N}";
@@ -133,7 +147,7 @@ public sealed class EntityFrameworkIntegrationTests
 
         public DbSet<Widget> Widgets => Set<Widget>();
 
-        public string? TenantIdForModelCacheKey => _tenantContext.TenantId;
+        public string? TenantIdForModelCacheKey => _tenantContext.TenantId?.ToString("D");
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

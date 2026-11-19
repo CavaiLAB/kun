@@ -38,7 +38,7 @@ public sealed partial class SuperadminBypassTests
         var ctx = observer.Context!; var enforcement = ctx.Enforcement(); var authz = ctx.Authz();
         var roles = new PostgresTenantRoleStore(data, tenant);
         var owner = new EnforcementSubject("owner-a", A, "user", IdentityRevision: 7); var reader = new EnforcementSubject("reader-a", A, "user");
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
             await roles.AssignAsync("tenant.user", "user", "reader-a", "operator", Ct); await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
@@ -100,7 +100,7 @@ public sealed partial class SuperadminBypassTests
 
         // 审计不可用即拒绝：卸载 Audit 后 RBAC 仍命中，但放行无据可查，判定变为拒绝；拒绝保留原因但记不下来。
         await runtime.UnmountAsync("audit", ScopeKey.Global, Ct);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var unavailable = await enforcement.EnforceAsync(Request(owner, CustomerWrite), Ct);
             Assert.False(unavailable.Allow); Assert.Equal("audit_unavailable", unavailable.Reason); Assert.False(unavailable.Logged);
@@ -117,7 +117,7 @@ public sealed partial class SuperadminBypassTests
         await runtime.MountAsync([Define("authz", new AuthzPlugin(), AuthzKeys, new { decisionLogSampling = 0 }), Define("observer", observer, [])], Ct);
         Assert.Equal(PluginState.Ready, runtime.GetState("authz", ScopeKey.Global));
         ctx = observer.Context!; enforcement = ctx.Enforcement();
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var before = (await ctx.Audit().ReadAsync(0, 50, cancellationToken: Ct)).Count;
             var sampledOut = await enforcement.EnforceAsync(Request(owner, CustomerWrite), Ct);
@@ -151,7 +151,7 @@ public sealed partial class SuperadminBypassTests
             Assert.Equal(PluginState.Ready, runtime.GetState("authz", ScopeKey.Global));
         }
         var one = oneObserver.Context!.Enforcement(); var two = twoObserver.Context!.Enforcement();
-        using var firstScope = firstTenant.BeginScope(A); using var secondScope = secondTenant.BeginScope(A);
+        using var firstScope = firstTenant.BeginScope(Guid.ParseExact(A, "D")); using var secondScope = secondTenant.BeginScope(Guid.ParseExact(A, "D"));
         var roles = new PostgresTenantRoleStore(first.Services.GetRequiredService<IDataService>(), firstTenant);
         await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "alice", "operator", Ct);
         await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
@@ -186,7 +186,7 @@ public sealed partial class SuperadminBypassTests
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
         var data = host.Services.GetRequiredService<IDataService>(); var catalog = Catalog(); await new PostgresPermissionCatalogStore(data).PutAsync(catalog, Ct);
         var roles = new PostgresTenantRoleStore(data, tenant);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await roles.EnsureBuiltinsAsync("operator", Ct);
             await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
@@ -214,7 +214,7 @@ public sealed partial class SuperadminBypassTests
         // 漏装 AddQianAuthzEvents 的宿主：事件进不了 Outbox，整笔写入（含修订递增）回滚。
         var bareTenant = new AsyncLocalTenantContext(); using var bare = Host(bareTenant, authzEvents: false); await bare.StartAsync(Ct);
         var bareData = bare.Services.GetRequiredService<IDataService>();
-        using (bareTenant.BeginScope(A))
+        using (bareTenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var error = await Assert.ThrowsAsync<InvalidOperationException>(() => new PostgresTenantRoleStore(bareData, bareTenant).AssignAsync("tenant.user", "user", "bob", "operator", Ct));
             Assert.Contains("AddQianAuthzEvents", error.Message, StringComparison.Ordinal);
@@ -236,7 +236,7 @@ public sealed partial class SuperadminBypassTests
         var grant = observer.Context!.Inject<ITenantRoleGrant>(TenantRoleGrant.Key); var roles = new PostgresTenantRoleStore(data, tenant);
         var errors = host.Services.GetRequiredService<ErrorCatalog>();
         Assert.True(errors.Contains(AuthzErrors.ScopeMismatch)); Assert.True(errors.Contains(AuthzErrors.LastAdministratorLockout));
-        using var scope = tenant.BeginScope(A);
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
         await roles.EnsureBuiltinsAsync("operator", Ct); await grant.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
         var revision = await Revision(data, A);
 
@@ -295,7 +295,7 @@ public sealed partial class SuperadminBypassTests
         Assert.Equal(["observer"], DispatchListeners(ctx));
         Assert.Null(ctx.TryInject<IAuthzEnforcement>(AuthzEnforcement.Key)); Assert.Null(ctx.TryInject<IAuthzService>(AuthzDefinition.Key));
         Assert.Empty(ctx.List(CommandPolicies.AuthorizationKey));
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
             await Assert.ThrowsAnyAsync<Exception>(async () => await enforcement.EnforceAsync(Request(new EnforcementSubject("owner-a", A, "user"), CustomerWrite), Ct));
 
         // 重装得到新的单个监听器，而不是在旧登记上叠加。
@@ -325,7 +325,7 @@ public sealed partial class SuperadminBypassTests
     // Outbox 是服务级传输表（不按租户过滤），按行的路由租户筛出某租户的事件。
     private static async Task<IReadOnlyList<(string Type, string Payload)>> Outbox(IDataService data, AsyncLocalTenantContext tenant, string tenantId)
     {
-        using var current = tenant.BeginScope(tenantId);
+        using var current = tenant.BeginScope(Guid.ParseExact(tenantId, "D"));
         await using var session = await data.OpenAsync<AuthzDbContext>(Ct);
         return (await session.Context.OutboxMessages.AsNoTracking().Where(row => row.TenantId == tenantId).OrderBy(row => row.OccurredAt).ToListAsync(Ct))
             .Select(row => (row.EventTypeId, row.Payload)).ToArray();

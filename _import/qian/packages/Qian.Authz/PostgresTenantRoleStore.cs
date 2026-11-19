@@ -219,12 +219,12 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
     }
     private string Owner()
     {
-        if (string.IsNullOrWhiteSpace(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        Identifier(tenant.TenantId); return tenant.TenantId;
+        if (tenant.TenantId is not { } id || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        return id.ToString("D");
     }
     private void CheckOwner(string owner)
     {
-        if (tenant.TenantId != owner) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        if (tenant.TenantId?.ToString("D") != owner) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
     }
     private static void Identifier(string value)
     {

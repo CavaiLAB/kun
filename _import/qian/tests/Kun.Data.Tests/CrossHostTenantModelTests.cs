@@ -23,10 +23,11 @@ public sealed class CrossHostTenantModelTests(PostgresFixture postgres) : IClass
     public async Task 独立宿主复用同租户模型_旧访问器退出或换租户不影响当前读取(bool previousChangedTenant)
     {
         var ct = TestContext.Current.CancellationToken;
-        var own = "a-" + Guid.NewGuid().ToString("N");
-        var foreign = "b-" + Guid.NewGuid().ToString("N");
+        var ownId = Guid.NewGuid();
+        var own = ownId.ToString("D");
+        var foreignId = Guid.NewGuid();
         var firstTenant = new AsyncLocalTenantContext(); IModel model;
-        using (firstTenant.BeginScope(own))
+        using (firstTenant.BeginScope(ownId))
         using (var first = BuildHost(firstTenant))
         {
             await first.StartAsync(ct);
@@ -44,9 +45,9 @@ public sealed class CrossHostTenantModelTests(PostgresFixture postgres) : IClass
             await first.StopAsync(ct);
         }
 
-        using var previous = firstTenant.BeginScope(previousChangedTenant ? foreign : null);
+        using var previous = firstTenant.BeginScope(previousChangedTenant ? foreignId : null);
         var currentTenant = new AsyncLocalTenantContext();
-        using var current = currentTenant.BeginScope(own);
+        using var current = currentTenant.BeginScope(ownId);
         using var second = BuildHost(currentTenant); await second.StartAsync(ct);
         await using var session = await second.Services.GetRequiredService<IDataService>().OpenAsync<CrossHostContext>(ct);
         Assert.Same(model, session.Context.Model);

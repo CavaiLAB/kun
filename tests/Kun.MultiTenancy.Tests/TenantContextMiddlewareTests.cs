@@ -58,6 +58,6 @@ public sealed class TenantContextMiddlewareTests
                 });
                 app.UseKunMultiTenancy(mode);
                 app.Run(context => context.Response.WriteAsync(
-                    context.RequestServices.GetRequiredService<ITenantContext>().TenantId ?? "platform", context.RequestAborted));
+                    context.RequestServices.GetRequiredService<ITenantContext>().TenantId?.ToString("D") ?? "platform", context.RequestAborted));
             })).StartAsync(TestContext.Current.CancellationToken);
 }

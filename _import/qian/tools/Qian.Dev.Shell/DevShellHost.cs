@@ -72,7 +72,7 @@ internal static class DevShellHost
         var tenantContext = business.Services.GetRequiredService<ITenantContext>();
         async Task<long> Bump(Principal principal, CancellationToken token)
         {
-            using var scope = tenantContext.BeginScope(principal.TenantId!);
+            using var scope = tenantContext.BeginScope(Guid.ParseExact(principal.TenantId!, "D"));
             return await accounts.BumpIdentityRevisionAsync(Guid.ParseExact(principal.Subject, "D"), "dev.identity.bump", token).ConfigureAwait(false);
         }
         // 平台表面宿主只认网关签发的 S2S（RS256、issuer、受众 qian-platform、有效期，不留时钟偏差）。

@@ -43,11 +43,11 @@ public sealed class TenantContextPropagator(ITenantContext tenant) : ITenantCont
         if (values.Length != 1) throw Denied();
         return Enter(Parse(values[0].Value), authorizedTenantId);
     }
-    private Guid RequireCurrent() => Parse(tenant.TenantId);
+    private Guid RequireCurrent() => tenant.TenantId is { } id && id != Guid.Empty ? id : throw Denied();
     private IDisposable Enter(Guid id, Guid authorized)
     {
-        if (id != authorized || authorized == Guid.Empty || (tenant.TenantId is { } current && Parse(current) != id)) throw Denied();
-        return tenant.BeginScope(id.ToString("D"));
+        if (id != authorized || authorized == Guid.Empty || (tenant.TenantId is { } current && current != id)) throw Denied();
+        return tenant.BeginScope(id);
     }
     private static Guid Read(JsonElement field) => field.ValueKind == JsonValueKind.String ? Parse(field.GetString()) : throw Denied();
     internal static Guid Parse(string? value) => value is { Length: 36 } && Guid.TryParseExact(value, "D", out var id) && id != Guid.Empty ? id : throw Denied();

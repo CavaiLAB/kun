@@ -29,7 +29,7 @@ public sealed partial class NativeAuditStoreTests
         var db = await NativeAuditDatabase.Create(postgres, Ct); await using var native = await NativeAuditTestHost.Create(db, Ct);
         using var business = BusinessHost(native.Tenant, db.TenantConnection); await business.StartAsync(Ct);
         await PrepareBusiness(business, db.Roles.TenantLogin);
-        using var scope = native.Tenant.BeginScope(A); var data = business.Services.GetRequiredService<IDataService>();
+        using var scope = native.Tenant.BeginScope(Guid.ParseExact(A, "D")); var data = business.Services.GetRequiredService<IDataService>();
         var committed = Guid.CreateVersion7(); var rolledBack = Guid.CreateVersion7(); var record = Record();
         await using (var session = await data.OpenAsync<CrmDbContext>(Ct))
         {
@@ -67,7 +67,7 @@ public sealed partial class NativeAuditStoreTests
     public async Task 外部事务拒绝弱隔离错租户特权与SET_ROLE冒充_不接管调用方事务()
     {
         var db = await NativeAuditDatabase.Create(postgres, Ct); await using var host = await NativeAuditTestHost.Create(db, Ct);
-        using var tenant = host.Tenant.BeginScope(A);
+        using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D"));
         await using var external = new NpgsqlConnection(db.TenantConnection); await external.OpenAsync(Ct);
         await Execute(external, $"SELECT set_config('app.current_tenant_id','{A}',false)");
         await using (var weak = await external.BeginTransactionAsync(IsolationLevel.ReadCommitted, Ct))
@@ -118,7 +118,7 @@ public sealed partial class NativeAuditStoreTests
             NativeAuditTestHost.Define("audit", "qian.audit", new AuditPlugin(), [AuditDefinition.Key], ScopeKey.Global, Json($"{{\"chain\":{{\"store\":\"pg\",\"platformRole\":\"{role}\"}}}}"))], Ct);
         Assert.True(loader.GetState("audit", ScopeKey.Global) == PluginState.Ready, loader.GetFailure("audit", ScopeKey.Global)?.ToString());
         var caller = loader.GetContext("audit", ScopeKey.Global); var old = caller.Audit();
-        using (tenant.BeginScope(A)) await old.AppendAsync(Record(), Ct);
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) await old.AppendAsync(Record(), Ct);
         await old.AppendPlatformAsync(caller, Record(null), Ct);
         var aclSql = $"SELECT string_agg(c.relname||':'||r.rolname||':'||a.privilege_type||':'||a.is_grantable,'|' ORDER BY c.relname,r.rolname,a.privilege_type) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(c.relacl) a JOIN pg_roles r ON r.oid=a.grantee WHERE n.nspname='plugin_qian_audit' AND c.relname IN ('audit_entries','audit_chain_state') AND r.rolname IN ('qian_app','{role}')";
         var before = (string)(await AdminScalar(aclSql))!;
@@ -127,7 +127,7 @@ public sealed partial class NativeAuditStoreTests
         using (var migration = new NpgsqlConnection(postgres.ConnectionString)) { await migration.OpenAsync(Ct); await NativeAuditStorage.MigrateAsync(migration, db.Roles, Ct); }
         var after = (string)(await AdminScalar(aclSql))!;
         Assert.Equal(before, after);
-        using (tenant.BeginScope(A)) using (native.Tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D"))) using (native.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             Assert.Single(await native.Audit.ReadAsync(0, 10, cancellationToken: Ct));
             await native.Audit.AppendAsync(Record(), Ct); Assert.Equal(2, (await old.VerifyAsync(Ct)).CheckedEntries);

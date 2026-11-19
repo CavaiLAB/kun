@@ -51,7 +51,7 @@ public sealed partial class IdentityAuthzTests
         var (admin, adminPhone) = await NewPerson(host, "目录管理员"); var adminMember = await Join(host, A, admin.Id, "管理员", administrator: true);
         var (member, memberPhone) = await NewPerson(host, "普通成员"); var regular = await Join(host, A, member.Id, "普通成员");
         var (target, targetPhone) = await NewPerson(host, "禁用目标"); var targetMember = await Join(host, A, target.Id, "禁用目标");
-        using var tenantScope = tenant.BeginScope(A);
+        using var tenantScope = tenant.BeginScope(Guid.ParseExact(A, "D"));
         var roles = new PostgresTenantRoleStore(data, tenant);
         await roles.InstallDefaultsAsync(metadata.ComponentId, "1.0.0", null, "directory-acceptance", Ct);
         await roles.AssignAsync("tenant.admin", "user", admin.Id.ToString("D"), "directory-acceptance", Ct);
@@ -139,7 +139,7 @@ public abstract partial class CustomerCommandTests
     {
         internal Principal Snapshot { get; set; } = principal;
         public Principal Principal => Snapshot;
-        public bool IsAuthenticated => tenant.TenantId == Snapshot.TenantId;
+        public bool IsAuthenticated => tenant.TenantId?.ToString("D") == Snapshot.TenantId;
         public string UserId => Snapshot.Subject;
         public IReadOnlyList<string> Roles => Snapshot.Roles;
     }

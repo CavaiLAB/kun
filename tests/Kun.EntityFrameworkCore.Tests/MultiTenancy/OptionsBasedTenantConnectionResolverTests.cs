@@ -16,16 +16,15 @@ public sealed class OptionsBasedTenantConnectionResolverTests
     public void Resolve_RejectsEmptyTenantId()
     {
         var resolver = BuildResolver(new TenantsConnectionOptions());
-        Assert.Throws<ArgumentException>(() => resolver.ResolveConnectionString(string.Empty));
-        Assert.Throws<ArgumentException>(() => resolver.ResolveConnectionString("   "));
+        Assert.Throws<ArgumentException>(() => resolver.ResolveConnectionString(Guid.Empty));
     }
 
     [Fact]
     public void Resolve_MissingTenant_Throws_WithRemediation()
     {
         var resolver = BuildResolver(new TenantsConnectionOptions());
-        var ex = Assert.Throws<InvalidOperationException>(() => resolver.ResolveConnectionString("tenant-x"));
-        Assert.Contains("tenant-x", ex.Message, StringComparison.Ordinal);
+        var ex = Assert.Throws<InvalidOperationException>(() => resolver.ResolveConnectionString(Tenants.X));
+        Assert.Contains(Tenants.XText, ex.Message, StringComparison.Ordinal);
         Assert.Contains("Kun:MultiTenancy:Tenants", ex.Message, StringComparison.Ordinal);
     }
 
@@ -33,10 +32,10 @@ public sealed class OptionsBasedTenantConnectionResolverTests
     public void Resolve_Returns_KnownConnectionString()
     {
         var opts = new TenantsConnectionOptions();
-        opts.ConnectionStrings["tenant-a"] = "Host=db-a;Database=app;Username=u;Password=p";
+        opts.ConnectionStrings[Tenants.A] = "Host=db-a;Database=app;Username=u;Password=p";
         var resolver = BuildResolver(opts);
 
-        Assert.Equal("Host=db-a;Database=app;Username=u;Password=p", resolver.ResolveConnectionString("tenant-a"));
+        Assert.Equal("Host=db-a;Database=app;Username=u;Password=p", resolver.ResolveConnectionString(Tenants.A));
     }
 
     private static OptionsBasedTenantConnectionResolver BuildResolver(TenantsConnectionOptions opts)

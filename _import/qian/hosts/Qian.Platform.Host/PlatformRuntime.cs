@@ -58,8 +58,8 @@ public sealed class PlatformRuntime : IHostedService, IAsyncDisposable
     /// </summary>
     public IPluginContext Tenant(string id)
     {
-        if (!Guid.TryParseExact(_tenant.TenantId, "D", out var parsed) || parsed == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        var scope = new ScopeKey("tenant", _tenant.TenantId!);
+        if (_tenant.TenantId is not { } parsed || parsed == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        var scope = new ScopeKey("tenant", parsed.ToString("D"));
         try
         {
             return Loader.DumpConfig().Any(entry => entry.Id == id && entry.Scope == scope)

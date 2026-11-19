@@ -84,7 +84,7 @@ internal sealed partial class LifecycleController
         await using var session = await context.Data().OpenAsync<LifecycleDbContext>(cancellationToken).ConfigureAwait(false);
         var name = Name(scope);
         var recorded = await session.Context.MountFailures.AsNoTracking().Where(row => row.Scope == name).ToListAsync(cancellationToken).ConfigureAwait(false);
-        if (tenant.TenantId != tenantId) throw NotFound();
+        if (tenant.TenantId?.ToString("D") != tenantId) throw NotFound();
         return current.Select(item => new LifecycleDiagnosticView(item.Scope, item.EntryId, item.Plugin, item.Revision, item.ReasonCode, item.OccurredAt))
             .Concat(recorded.OrderBy(row => row.EntryId, StringComparer.Ordinal).Select(row => row.View())).ToArray();
     }
@@ -141,11 +141,10 @@ internal sealed partial class LifecycleController
     }
 
     // 挂载只接受租户 scope（小写规范 UUID）；应用 / 会话 scope 待 Tenancy 的归属证明。
-    private static string TenantScope(ScopeKey scope)
+    private static Guid TenantScope(ScopeKey scope)
     {
         if (scope.Kind != "tenant") throw LifecycleArtifact.Invalid("#/scope", "挂载只接受 tenant scope。");
-        CheckTenant(scope.Id);
-        return scope.Id;
+        return CheckTenant(scope.Id);
     }
 
     // 管理面只认宿主已验证的主体与租户上下文；委托、Agent、跨租户、缺判定端口或无权限一律与不存在同为 NOT_FOUND（R32）。
@@ -153,9 +152,9 @@ internal sealed partial class LifecycleController
     {
         ArgumentNullException.ThrowIfNull(user);
         var principal = user.Principal;
-        if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || !tenant.IsMultiTenant || string.IsNullOrWhiteSpace(tenant.TenantId))
+        if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || !tenant.IsMultiTenant || tenant.TenantId is not { } id || id == Guid.Empty)
             throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        var tenantId = tenant.TenantId;
+        var tenantId = id.ToString("D");
         if (scope.Kind != "tenant" || scope.Id != tenantId) throw NotFound();
         await AuthorizeAsync(tenantId, user, LifecycleDefinition.DiagnosticsReadPermission, "lifecycle/diagnostics:" + scope.Kind + ":" + scope.Id, ct).ConfigureAwait(false);
         return tenantId;
@@ -169,7 +168,7 @@ internal sealed partial class LifecycleController
         ArgumentNullException.ThrowIfNull(user);
         var principal = user.Principal;
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        if (tenant.TenantId != tenantId || principal.Actor is not null) throw NotFound();
+        if (tenant.TenantId?.ToString("D") != tenantId || principal.Actor is not null) throw NotFound();
         PermissionDecision decision; string via;
         if (principal.Kind == PrincipalKind.User && principal.TenantId is null)
         {
@@ -188,7 +187,7 @@ internal sealed partial class LifecycleController
         }
         // 判定之后再确认请求主体与租户上下文没有变化。
         if (!decision.Allow || !user.IsAuthenticated || user.UserId != principal.Subject || user.Principal?.TenantId != principal.TenantId ||
-            user.Principal?.Kind != principal.Kind || user.Principal?.Actor is not null || tenant.TenantId != tenantId) throw NotFound();
+            user.Principal?.Kind != principal.Kind || user.Principal?.Actor is not null || tenant.TenantId?.ToString("D") != tenantId) throw NotFound();
         return via;
     }
 }

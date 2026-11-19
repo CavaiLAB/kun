@@ -46,22 +46,22 @@ public sealed partial class DataSessionTests
         var data = runtime.GetContext("data", ScopeKey.Global).Data();
 
         var id = Guid.NewGuid(); string table;
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         await using (var session = await data.OpenAsync<CustomerContext>(ct))
         {
             var customer = new Customer(id, "manifest");
             session.Context.Add(customer);
             await session.SaveChangesAsync(ct);
-            Assert.Equal("a", customer.TenantId);
-            Assert.Equal("a", await session.Context.Database.SqlQueryRaw<string>("SELECT current_setting('app.current_tenant_id', true) AS \"Value\"").SingleAsync(ct));
+            Assert.Equal(Tenants.AText, customer.TenantId);
+            Assert.Equal(Tenants.AText, await session.Context.Database.SqlQueryRaw<string>("SELECT current_setting('app.current_tenant_id', true) AS \"Value\"").SingleAsync(ct));
             var mapping = session.Context.Model.FindEntityType(typeof(Customer))!;
             table = mapping.GetSchema() + "." + mapping.GetTableName();
         }
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.B))
         await using (var other = await data.OpenAsync<CustomerContext>(ct))
             Assert.Empty(await other.Context.Set<Customer>().Where(customer => customer.Id == id).ToListAsync(ct));
         // 绕过 EF、以受限应用角色（NOSUPERUSER / NOBYPASSRLS）直连：只有会话租户为 a 时看得到这一行。
-        Assert.Equal((0L, 1L), (await RestrictedCount(table, id, "b", ct), await RestrictedCount(table, id, "a", ct)));
+        Assert.Equal((0L, 1L), (await RestrictedCount(table, id, Tenants.BText, ct), await RestrictedCount(table, id, Tenants.AText, ct)));
     }
 
     private async Task<long> RestrictedCount(string table, Guid id, string tenant, CancellationToken ct)

@@ -26,7 +26,7 @@ namespace Kun.EntityFrameworkCore.Interceptors;
 /// does, keeping the tenant id out of the SQL text (defence against log leakage / injection).
 /// </para>
 /// <para>
-/// No-op when <see cref="ITenantContext.TenantId"/> is <see langword="null"/> or empty
+/// No-op when <see cref="ITenantContext.TenantId"/> is <see langword="null"/>
 /// (background jobs / setup scripts). RLS policies must be written to accept
 /// <c>current_setting('app.current_tenant_id', true) IS NULL</c> as the unscoped path if those
 /// flows need to read cross-tenant data; otherwise they must set the GUC manually.
@@ -58,7 +58,8 @@ public sealed partial class TenantRlsTransactionInterceptor : DbTransactionInter
         CancellationToken cancellationToken = default)
     {
         var tenantId = _tenantContext.TenantId;
-        if (string.IsNullOrEmpty(tenantId))
+        if (tenantId == Guid.Empty) throw new InvalidOperationException("A tenant scope requires a non-empty UUID.");
+        if (tenantId is not { } id)
         {
             LogSkipNoTenant(_logger);
             return await base.TransactionStartedAsync(connection, eventData, result, cancellationToken).ConfigureAwait(false);
@@ -69,7 +70,7 @@ public sealed partial class TenantRlsTransactionInterceptor : DbTransactionInter
         cmd.CommandText = CommandText;
         var p = cmd.CreateParameter();
         p.ParameterName = "tenant";
-        p.Value = tenantId;
+        p.Value = id.ToString("D");
         cmd.Parameters.Add(p);
         await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
 
@@ -83,7 +84,8 @@ public sealed partial class TenantRlsTransactionInterceptor : DbTransactionInter
         DbTransaction result)
     {
         var tenantId = _tenantContext.TenantId;
-        if (string.IsNullOrEmpty(tenantId))
+        if (tenantId == Guid.Empty) throw new InvalidOperationException("A tenant scope requires a non-empty UUID.");
+        if (tenantId is not { } id)
         {
             LogSkipNoTenant(_logger);
             return base.TransactionStarted(connection, eventData, result);
@@ -94,7 +96,7 @@ public sealed partial class TenantRlsTransactionInterceptor : DbTransactionInter
         cmd.CommandText = CommandText;
         var p = cmd.CreateParameter();
         p.ParameterName = "tenant";
-        p.Value = tenantId;
+        p.Value = id.ToString("D");
         cmd.Parameters.Add(p);
         cmd.ExecuteNonQuery();
 

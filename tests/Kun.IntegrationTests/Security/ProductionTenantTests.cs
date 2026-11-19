@@ -57,7 +57,7 @@ public sealed class ProductionTenantTests
                 app.UseAuthentication();
                 app.UseKunMultiTenancy();
                 app.Run(ctx => ctx.Response.WriteAsync(
-                    ctx.RequestServices.GetRequiredService<ITenantContext>().TenantId ?? "missing", ctx.RequestAborted));
+                    ctx.RequestServices.GetRequiredService<ITenantContext>().TenantId?.ToString("D") ?? "missing", ctx.RequestAborted));
             })).StartAsync(TestContext.Current.CancellationToken);
         using var client = host.GetTestClient();
         using var request = new HttpRequestMessage(HttpMethod.Get, "/tenant");

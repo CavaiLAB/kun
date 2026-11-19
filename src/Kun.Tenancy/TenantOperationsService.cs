@@ -88,7 +88,7 @@ internal sealed class TenantOperationsService(IPluginContext context, PostgresTe
     // 用户数由身份侧在目标租户上下文里统计；端口缺席时返回 null，页面显示「—」而不是 0。
     private async Task<int?> UsersAsync(Guid id, CancellationToken ct)
     {
-        using var tenant = _tenant.BeginScope(id.ToString());
+        using var tenant = _tenant.BeginScope(id);
         var counter = context.Scoped(new ScopeKey("tenant", id.ToString())).TryInject<ITenantUserCounter>(TenantSettings.UserCounterKey);
         return counter is null ? null : await counter.CountUsersAsync(ct).ConfigureAwait(false);
     }

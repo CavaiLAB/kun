@@ -31,7 +31,7 @@ public sealed partial class PatchPersistenceTests
         Assert.Equal(0, http.Calls);
 
         ScopePatchSnapshot mounted;
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         using (EventEnvelopeScope.Begin(Operator))
             mounted = await running.Registry.MountAsync(scopeA, Patch("""{"id":"private","plugin":"test.private@1.0.0","config":{"label":"A"}}"""), 0, "operator-a", Ct);
         Assert.Equal((1, "operator-a"), (mounted.Revision, mounted.UpdatedBy));
@@ -48,13 +48,13 @@ public sealed partial class PatchPersistenceTests
         Assert.Equal("""{"scope":"tenant:01900000-0000-7000-8000-000000000001","entryId":"private","plugin":"test.private","version":"1.0.0","revision":1}""", envelope.Payload.GetRawText());
 
         // 同一内容重复挂载是幂等的：不增加修订，也不再发事件。
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         using (EventEnvelopeScope.Begin(Operator))
             Assert.Equal(1, (await running.Registry.MountAsync(scopeA, Patch("""{"id":"private","plugin":"test.private@1.0.0","config":{"label":"A"}}"""), 1, "operator-a", Ct)).Revision);
         Assert.Single(await Outbox(running.Host.Services, tenant, HttpTenantA));
 
         int revision;
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         using (EventEnvelopeScope.Begin(Operator))
             revision = await running.Registry.UnmountAsync(scopeA, "private", 1, "operator-a", Ct);
         Assert.Equal(2, revision);
@@ -78,13 +78,13 @@ public sealed partial class PatchPersistenceTests
         var scopeA = new ScopeKey("tenant", HttpTenantA);
         using (var initial = await http.Get("/surface", HttpTenantA)) Assert.Equal(HttpStatusCode.OK, initial.StatusCode);
 
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         using (EventEnvelopeScope.Begin(Operator))
             Assert.Equal(1, await running.Registry.UnmountAsync(scopeA, "shared", 0, "operator-a", Ct));
         await WithinFiveSecondsAsync(async () => { using var response = await http.Get("/surface", HttpTenantA); return response.StatusCode == HttpStatusCode.NotFound; });
         using (var other = await http.Get("/surface", HttpTenantB)) Assert.Equal(HttpStatusCode.OK, other.StatusCode);
         Assert.Equal(("tenant:" + HttpTenantA, (string?)null, (string?)null, 1, false), await PatchRow(HttpTenantA, "shared"));
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         {
             var disabled = await running.Registry.GetScopePatchAsync(scopeA, "shared", Ct);
             Assert.True(disabled!.Patch.GetProperty("disabled").GetBoolean());
@@ -93,7 +93,7 @@ public sealed partial class PatchPersistenceTests
                 await AssertCode(PlatformErrors.NotFound, () => running.Registry.UnmountAsync(scopeA, "shared", 1, "operator-a", Ct).AsTask());
         }
 
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         using (EventEnvelopeScope.Begin(Operator))
             Assert.Equal(2, (await running.Registry.MountAsync(scopeA, Patch("""{"id":"shared","config":{"label":"A"}}"""), 1, "operator-a", Ct)).Revision);
         await WithinFiveSecondsAsync(async () => { using var response = await http.Get("/surface", HttpTenantA); return response.StatusCode == HttpStatusCode.OK; });
@@ -112,7 +112,7 @@ public sealed partial class PatchPersistenceTests
         var scopeA = new ScopeKey("tenant", HttpTenantA); var scopeB = new ScopeKey("tenant", HttpTenantB);
         var entry = Patch("""{"id":"private","plugin":"test.private@1.0.0","config":{}}""");
         await AssertCode(PlatformErrors.Unauthenticated, () => running.Registry.MountAsync(scopeA, entry, 0, "operator", Ct).AsTask());
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         using (EventEnvelopeScope.Begin(Operator))
         {
             await AssertCode(PlatformErrors.NotFound, () => running.Registry.MountAsync(scopeB, entry, 0, "operator", Ct).AsTask());
@@ -142,7 +142,7 @@ public sealed partial class PatchPersistenceTests
             services.AddKunMediator(_ => { }); services.AddQianEvents();
         });
         var scopeA = new ScopeKey("tenant", HttpTenantA);
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         using (EventEnvelopeScope.Begin(Operator))
         {
             var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -169,7 +169,7 @@ public sealed partial class PatchPersistenceTests
     // Outbox 是服务级传输表（不按租户过滤），按行的路由租户筛出某租户的事件。
     private static async Task<IReadOnlyList<(string Type, string Payload)>> Outbox(IServiceProvider services, AsyncLocalTenantContext tenant, string tenantId)
     {
-        using var current = tenant.BeginScope(tenantId);
+        using var current = tenant.BeginScope(Guid.ParseExact(tenantId, "D"));
         await using var session = await services.GetRequiredService<IDataService>().OpenAsync<RegistryDbContext>(Ct);
         return (await session.Context.OutboxMessages.AsNoTracking().Where(row => row.TenantId == tenantId).OrderBy(row => row.OccurredAt).ToListAsync(Ct))
             .Select(row => (row.EventTypeId, row.Payload)).ToArray();

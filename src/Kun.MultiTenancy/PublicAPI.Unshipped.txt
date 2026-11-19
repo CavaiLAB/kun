@@ -1,9 +1,7 @@
 #nullable enable
 Kun.MultiTenancy.AsyncLocalTenantContext
 Kun.MultiTenancy.AsyncLocalTenantContext.AsyncLocalTenantContext() -> void
-Kun.MultiTenancy.AsyncLocalTenantContext.BeginScope(string? tenantId) -> System.IDisposable!
 Kun.MultiTenancy.AsyncLocalTenantContext.IsMultiTenant.get -> bool
-Kun.MultiTenancy.AsyncLocalTenantContext.TenantId.get -> string?
 Kun.MultiTenancy.DependencyInjection.KunMultiTenancyServiceCollectionExtensions
 Kun.MultiTenancy.Middleware.KunMultiTenancyApplicationBuilderExtensions
 Kun.MultiTenancy.Middleware.TenantContextMiddleware
@@ -28,3 +26,5 @@ Kun.MultiTenancy.TenantRequestMode.PlatformPrincipalAllowed = 1 -> Kun.MultiTena
 Kun.MultiTenancy.TenantRequestMode.TenantRequired = 0 -> Kun.MultiTenancy.TenantRequestMode
 static Kun.MultiTenancy.DependencyInjection.KunMultiTenancyServiceCollectionExtensions.AddKunMultiTenancy(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Kun.MultiTenancy.Middleware.KunMultiTenancyApplicationBuilderExtensions.UseKunMultiTenancy(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app, Kun.MultiTenancy.TenantRequestMode mode = Kun.MultiTenancy.TenantRequestMode.TenantRequired) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
+Kun.MultiTenancy.AsyncLocalTenantContext.BeginScope(System.Guid? tenantId) -> System.IDisposable!
+Kun.MultiTenancy.AsyncLocalTenantContext.TenantId.get -> System.Guid?

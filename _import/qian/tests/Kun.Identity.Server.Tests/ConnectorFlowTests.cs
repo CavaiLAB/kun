@@ -352,12 +352,12 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture re
         var (host, connector, alpha) = (setup.Host, setup.Connector, setup.Alpha);
         var (person, member) = (setup.First.Person.Id, setup.First.Member.Id);
         var scope = alpha.Id.ToString("D");
-        using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
+        using (host.Tenant.BeginScope(Guid.ParseExact(scope, "D"))) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
         var before = await Revision(host, person);
         var browser = host.NewBrowser();
         var flow = await CallbackAround(host, browser, connector, "alpha", "ext-1", async () =>
         {
-            using (host.Tenant.BeginScope(scope)) await host.Accounts.UnlinkExternalIdentityAsync(member, FakeConnector.DefaultId, "ext-1", Ct);
+            using (host.Tenant.BeginScope(Guid.ParseExact(scope, "D"))) await host.Accounts.UnlinkExternalIdentityAsync(member, FakeConnector.DefaultId, "ext-1", Ct);
         }, pause);
         Assert.Equal(before + 1, await Revision(host, person));
         Assert.False(browser.HasAccountCookie);
@@ -366,7 +366,7 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture re
         Assert.Equal("0", await LiveSessions(host, person));
         Assert.Equal("1", await host.Text("SELECT count(*) FROM plugin_qian_identity.login_audits WHERE person_id = @p::uuid AND reason = 'identity_changed'", ("p", person.ToString("D"))));
         // 没有改动的绑定照常登录：重新绑定后经同一外部身份进入。
-        using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
+        using (host.Tenant.BeginScope(Guid.ParseExact(scope, "D"))) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
         var again = host.NewBrowser(); await again.Arrive(connector, "alpha", "ext-1");
         Assert.True(again.HasAccountCookie);
     }
@@ -380,7 +380,7 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture re
         var (host, connector, alpha) = (setup.Host, setup.Connector, setup.Alpha);
         var (person, member) = (setup.Second.Person.Id, setup.Second.Member.Id);
         var scope = alpha.Id.ToString("D");
-        async Task Link() { using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-2"), Ct); }
+        async Task Link() { using (host.Tenant.BeginScope(Guid.ParseExact(scope, "D"))) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-2"), Ct); }
         async Task Reset(string password) { using var proof = Proof(password); await host.Accounts.ResetPasswordAsync(person, new PasswordReset(proof, "ops_reset"), Ct); }
 
         await Link();
@@ -417,7 +417,7 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture re
         var (host, alpha) = (setup.Host, setup.Alpha);
         var (person, phone, member) = (setup.First.Person.Id, setup.First.Phone, setup.First.Member.Id);
         var scope = alpha.Id.ToString("D");
-        using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
+        using (host.Tenant.BeginScope(Guid.ParseExact(scope, "D"))) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
         var before = await Revision(host, person);
         var hold = host.Gate.Arm(StatementGate.SessionInsert);
         var signIn = Task.Run(() => host.SignIn.SignInAsync(Input(phone, Password, "web", alpha.Id), SessionSupport.Net, Ct).AsTask(), Ct);
@@ -458,7 +458,7 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture re
         var (host, alpha) = (setup.Host, setup.Alpha);
         var (person, phone, member) = (setup.First.Person.Id, setup.First.Phone, setup.First.Member.Id);
         var scope = alpha.Id.ToString("D");
-        using (host.Tenant.BeginScope(scope)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
+        using (host.Tenant.BeginScope(Guid.ParseExact(scope, "D"))) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member, FakeConnector.DefaultId, "ext-1"), Ct);
         var browser = host.NewBrowser();
         var (sid, _) = await SessionSupport.SignIn(host, browser, phone, alpha.Id);
         var index = host.Redis!.GetDatabase();

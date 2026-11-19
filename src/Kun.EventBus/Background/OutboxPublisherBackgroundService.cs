@@ -120,12 +120,13 @@ public sealed partial class OutboxPublisherBackgroundService : BackgroundService
             try
             {
                 var tenantContext = scope.ServiceProvider.GetService<ITenantContext>();
-                if (tenantContext?.IsMultiTenant == true && !TenantIdValidation.IsValid(message.TenantId))
+                Guid tenantId = default;
+                if (tenantContext?.IsMultiTenant == true && (!Guid.TryParseExact(message.TenantId, "D", out tenantId) || tenantId == Guid.Empty || message.TenantId != tenantId.ToString("D")))
                 {
                     throw new InvalidOperationException("A multi-tenant outbox message requires a valid tenant identifier.");
                 }
                 using var tenantScope = tenantContext?.IsMultiTenant == true
-                    ? tenantContext.BeginScope(message.TenantId) : null;
+                    ? tenantContext.BeginScope(tenantId) : null;
                 await _publisher.PublishAsync(message, cancellationToken).ConfigureAwait(false);
                 message.MarkPublished(_timeProvider.GetUtcNow());
                 LogPublished(_logger, message.Id, message.EventTypeId);

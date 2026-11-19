@@ -37,7 +37,7 @@ public sealed partial class SuperadminBypassTests
         string alice = PersonId(), carol = PersonId(), dave = PersonId(), erin = PersonId(), frank = PersonId();
         identity.Missing.Add(Guid.Parse(carol)); identity.Transient[Guid.Parse(dave)] = 2; identity.Broken.Add(Guid.Parse(erin));
         Task<AuthorizationDecision> Enforce(string subject, long revision) => enforcement.EnforceAsync(Request(new EnforcementSubject(subject, A, "user", revision), Read), Ct).AsTask();
-        using var scope = tenant.BeginScope(A);
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
 
         // 角色级变更（建内置角色、组件默认授权安装）只经租户授权修订生效，不扇出到成员（Q3）。
         await store.EnsureBuiltinsAsync("operator", Ct); await store.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
@@ -150,7 +150,7 @@ public sealed partial class SuperadminBypassTests
 
         private ValueTask<long> Bump(Guid person, string reason)
         {
-            var tenant = _tenant!.TenantId; Calls.Enqueue((tenant, person, reason));
+            var tenant = _tenant!.TenantId?.ToString("D"); Calls.Enqueue((tenant, person, reason));
             if (Missing.Contains(person)) throw new ErrorException(new Error(PlatformErrors.NotFound));
             if (Broken.Contains(person)) throw new TimeoutException("身份库不可用");
             if (Transient.TryGetValue(person, out var left) && left > 0) { Transient[person] = left - 1; throw new TimeoutException("瞬时故障"); }

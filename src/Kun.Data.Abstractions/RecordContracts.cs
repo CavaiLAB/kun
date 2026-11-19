@@ -41,7 +41,7 @@ public sealed record RecordChangedPayload(string EntityCode, string RecordId, st
     {
         ArgumentNullException.ThrowIfNull(tenant);
         var origin = EventEnvelopeScope.Current;
-        if (TenantId == Guid.Empty || tenant.TenantId != TenantId.ToString("D") || origin is null || Actor != RecordActor.From(origin.Actor))
+        if (TenantId == Guid.Empty || tenant.TenantId != TenantId || origin is null || Actor != RecordActor.From(origin.Actor))
             throw new InvalidOperationException("记录事件的租户或主体与当前事件来源不一致。");
     }
     /// <inheritdoc />

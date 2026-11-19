@@ -16,7 +16,7 @@ public sealed class NullTenantProvisionerTests
     {
         var provisioner = NullTenantProvisioner.Instance;
 
-        var act = async () => await provisioner.ProvisionAsync(new TenantInfo("t-1"), TestContext.Current.CancellationToken);
+        var act = async () => await provisioner.ProvisionAsync(new TenantInfo(Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         await act.Should().NotThrowAsync();
     }
@@ -26,7 +26,7 @@ public sealed class NullTenantProvisionerTests
     {
         var provisioner = NullTenantProvisioner.Instance;
 
-        var act = async () => await provisioner.DeprovisionAsync("t-1", TestContext.Current.CancellationToken);
+        var act = async () => await provisioner.DeprovisionAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         await act.Should().NotThrowAsync();
     }

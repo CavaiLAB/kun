@@ -49,7 +49,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
         await PrepareAsync(host);
         await using var runtime = await MountAsync(host);
         var data = runtime.GetContext("data", ScopeKey.Global).Data();
-        using var tenantScope = tenant.BeginScope("a");
+        using var tenantScope = tenant.BeginScope(Tenants.A);
         var id = Guid.NewGuid();
         await using (var session = await data.OpenAsync<CustomerContext>(ct))
         {
@@ -72,7 +72,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
         await using var verify = await data.OpenAsync<CustomerContext>(ct);
         Assert.Equal(id, Assert.Single(await verify.Context.Set<Customer>().ToListAsync(ct)).Id);
         var message = Assert.Single(await verify.Context.OutboxMessages.ToListAsync(ct));
-        Assert.Equal("a", message.TenantId);
+        Assert.Equal(Tenants.AText, message.TenantId);
         Assert.Contains(id.ToString(), message.Payload, StringComparison.Ordinal);
         Assert.DoesNotContain(failedId.ToString(), message.Payload, StringComparison.Ordinal);
     }
@@ -87,7 +87,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
         await PrepareAsync(host);
         await using var runtime = await MountAsync(host);
         var data = runtime.GetContext("data", ScopeKey.Global).Data();
-        using var tenantScope = tenant.BeginScope("a");
+        using var tenantScope = tenant.BeginScope(Tenants.A);
         await using var first = await data.OpenAsync<CustomerContext>(ct);
         await using var second = await data.OpenAsync<LedgerContext>(ct);
         var firstId = Guid.NewGuid();
@@ -117,7 +117,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
             await PrepareAsync(host);
             await using var runtime = await MountAsync(host);
             var data = runtime.GetContext("data", ScopeKey.Global).Data();
-            using var tenantScope = tenant.BeginScope("a");
+            using var tenantScope = tenant.BeginScope(Tenants.A);
             await using var failed = await data.OpenAsync<CustomerContext>(ct);
             var customer = new Customer(Guid.NewGuid(), "not saved");
             failed.Context.Add(customer);
@@ -146,10 +146,10 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
         await host.StartAsync(ct);
         await using var runtime = await MountAsync(host);
         var data = runtime.GetContext("data", ScopeKey.Global).Data();
-        using var tenantA = tenant.BeginScope("a");
+        using var tenantA = tenant.BeginScope(Tenants.A);
         await using var session = await data.OpenAsync<CustomerContext>(ct);
         var cachedWriter = session.Outbox;
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.B))
         {
             Assert.Throws<KunDataMisconfiguredException>(() => session.Context);
             cachedWriter.Enqueue(new CustomerMessage(Guid.NewGuid(), "wrong tenant"));

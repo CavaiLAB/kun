@@ -52,7 +52,7 @@ public sealed partial class IdentityAuthzTests
         var provisioned = await State();
         Assert.Equal(BuiltinRoles, provisioned.Roles); Assert.Equal(DefaultGrants, provisioned.Grants);
         Assert.Equal(["qian.sample.crm@1.0.0"], provisioned.Installs); Assert.Equal(1L, provisioned.Revision);
-        using (tenant.BeginScope(Provisioned))
+        using (tenant.BeginScope(Guid.ParseExact(Provisioned, "D")))
         {
             var roles = new PostgresTenantRoleStore(data, tenant);
             await roles.AssignAsync("tenant.owner", "service", ProvisionedOwner, "tck", Ct);
@@ -73,7 +73,7 @@ public sealed partial class IdentityAuthzTests
         var reader = Assert.Single(await MePermissions(host, Provisioned, ProvisionedReader));
         Assert.Equal(("qian.sample.crm:customer", "read", "low", false, true, "role_grant"), View(reader));
         // 列表与同一上下文下的 Check 一致：导出需要 step-up，使用者没有写和导出的授权。
-        using (tenant.BeginScope(Provisioned))
+        using (tenant.BeginScope(Guid.ParseExact(Provisioned, "D")))
         {
             var authz = runtime.GetContext("authz", ScopeKey.Global).Authz();
             foreach (var (subject, permission, allow, reason) in new[]
@@ -104,7 +104,7 @@ public sealed partial class IdentityAuthzTests
 
         async Task<(string[] Roles, string[] Grants, string[] Installs, long Revision)> State()
         {
-            using var scope = tenant.BeginScope(Provisioned);
+            using var scope = tenant.BeginScope(Guid.ParseExact(Provisioned, "D"));
             await using var session = await data.OpenAsync<AuthzDbContext>(Ct);
             var db = session.Context;
             var roles = await db.Roles.AsNoTracking().Select(row => row.Code).ToListAsync(Ct);

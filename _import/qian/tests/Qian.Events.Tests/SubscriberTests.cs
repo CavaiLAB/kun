@@ -439,7 +439,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         public async ValueTask HandleAsync(PingSent @event, MessageContext context, CancellationToken cancellationToken = default)
         {
             var activity = Activity.Current;
-            probe.Calls.Enqueue(new Call(context.MessageId, @event.Sequence, delivery.Attempt, DateTimeOffset.UtcNow, tenant.TenantId, context, delivery,
+            probe.Calls.Enqueue(new Call(context.MessageId, @event.Sequence, delivery.Attempt, DateTimeOffset.UtcNow, tenant.TenantId?.ToString("D"), context, delivery,
                 activity?.TraceId.ToHexString(), activity?.Kind));
             if (probe.Delay > TimeSpan.Zero) await Task.Delay(probe.Delay, cancellationToken);
             if (probe.Gate is { } gate) await gate();
@@ -454,7 +454,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         public async ValueTask HandleAsync(PingSent @event, MessageContext context, CancellationToken cancellationToken = default)
         {
             if (probe.Delay > TimeSpan.Zero) await Task.Delay(probe.Delay, cancellationToken);
-            probe.NoticeTenants[context.MessageId] = tenant.TenantId;
+            probe.NoticeTenants[context.MessageId] = tenant.TenantId?.ToString("D");
             probe.Notices.Add(context.MessageId);
         }
     }

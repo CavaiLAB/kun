@@ -41,7 +41,7 @@ public sealed partial class EventTests(PostgresFixture postgres) : CustomerComma
         // 业务事务提交时 Outbox 恰好多一条，行内容就是 v1 信封。
         Assert.Equal(1, await OutboxCount());
         string payload;
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await data.OpenAsync<CrmDbContext>(Ct);
             var row = Assert.Single(await session.Context.OutboxMessages.AsNoTracking().ToListAsync(Ct));

@@ -28,7 +28,7 @@ public sealed partial class AuditStoreTests
         await global.AppendAsync(PlatformRecord(), Ct); Assert.Single(await global.ReadAsync(0, 10, null, Ct));
         Assert.Equal(new AuditChainVerification(true, 1, null, null), await global.VerifyAsync(Ct));
         Assert.Equal("UNAUTHENTICATED", (await Assert.ThrowsAsync<ErrorException>(() => local.AppendAsync(PlatformRecord(), Ct))).Error.Code.Code);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await local.AppendAsync(CanonicalizerTests.Record(), Ct);
             Assert.Equal(A, Assert.Single(await local.ReadAsync(0, 10, null, Ct)).Record.TenantId);
@@ -88,7 +88,7 @@ public sealed partial class AuditStoreTests
         await using var runtime = new PluginLoader(host.Services); var consumer = new AuditConsumer();
         await runtime.MountAsync([Define("data", new DataPlugin(), [DataDefinition.Key]), Define("audit", new AuditPlugin(), [AuditDefinition.Key], new { chain = new { store = "pg", platformRole = role } }), Define("consumer", consumer, [])], Ct);
         var service = consumer.Context!.Audit(); await service.AppendPlatformAsync(consumer.Context!, PlatformRecord(), Ct);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await service.AppendAsync(CanonicalizerTests.Record(), Ct); Assert.Single(await service.ReadAsync(0, 10, cancellationToken: Ct));
             Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => service.AppendPlatformAsync(consumer.Context!, PlatformRecord(), Ct))).Error.Code.Code);
@@ -114,7 +114,7 @@ public sealed partial class AuditStoreTests
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
         await using var runtime = new PluginLoader(host.Services); var consumer = new AuditConsumer();
         await runtime.MountAsync([Define("data", new DataPlugin(), [DataDefinition.Key]), Define("audit", new AuditPlugin(), [AuditDefinition.Key], new { chain = new { store = "pg" } }), Define("consumer", consumer, [])], Ct);
-        var service = consumer.Context!.Audit(); using var scope = tenant.BeginScope(A);
+        var service = consumer.Context!.Audit(); using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
         await using var holder = new NpgsqlConnection(postgres.ConnectionString); await holder.OpenAsync(Ct);
         await using (var acquire = new NpgsqlCommand("SELECT pg_advisory_lock(hashtextextended(@key, 0))", holder))
         { acquire.Parameters.AddWithValue("key", "qian.audit:tenant:" + A); await acquire.ExecuteNonQueryAsync(Ct); }

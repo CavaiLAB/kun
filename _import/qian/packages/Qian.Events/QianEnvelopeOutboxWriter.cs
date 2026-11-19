@@ -30,7 +30,8 @@ internal sealed class QianEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IE
         var subject = IntegrationEventTypes.SubjectOf(type);
         var payload = JsonSerializer.SerializeToElement(@event, typeInfo);
         var occurredAt = clock.GetUtcNow();
-        var tenantId = TenantOf(tenant.TenantId);
+        var tenantId = tenant.TenantId;
+        if (tenantId == Guid.Empty) throw new KunEventsException(EventsErrors.PublishRejected, "租户标识必须是非空 UUID。");
         var activity = Activity.Current;
         var traceParent = origin.TraceParent ?? (activity is { IdFormat: ActivityIdFormat.W3C } && KunEventEnvelope.IsTraceParent(activity.Id) ? activity.Id : null)
             ?? "00-" + ActivityTraceId.CreateRandom().ToHexString() + "-" + ActivitySpanId.CreateRandom().ToHexString() + "-00";
@@ -55,12 +56,4 @@ internal sealed class QianEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IE
 
     public void Enqueue<TEvent>(TEvent @event) where TEvent : class => Publish(@event);
 
-    // Qian 的租户是小写规范 UUID；信封与 Outbox 的路由租户必须是同一个值。
-    private static Guid? TenantOf(string? tenantId)
-    {
-        if (tenantId is null) return null;
-        if (!Guid.TryParseExact(tenantId, "D", out var parsed) || parsed == Guid.Empty || parsed.ToString("D") != tenantId)
-            throw new KunEventsException(EventsErrors.PublishRejected, "租户标识必须是小写规范 UUID，平台级事件不在租户作用域内发布。");
-        return parsed;
-    }
 }

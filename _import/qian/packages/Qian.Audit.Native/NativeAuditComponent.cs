@@ -39,7 +39,7 @@ public sealed class NativeAuditPlugin : IKunPlugin
             // 不用虚构租户打开 tenant 连接校验元数据；global 必须显式提供独立平台绑定。
             if (tenant.TenantId is not null || settings.PlatformBinding is null) throw Misconfigured();
         }
-        else if (ctx.Scope.Kind != "tenant" || ctx.Entry.Scope != ctx.Scope || tenant.TenantId != ctx.Scope.Id) throw Misconfigured();
+        else if (ctx.Scope.Kind != "tenant" || ctx.Entry.Scope != ctx.Scope || tenant.TenantId?.ToString("D") != ctx.Scope.Id) throw Misconfigured();
         var service = new NativeAuditService(ctx, tenant, settings);
         ctx.Effect(AuditErrors.Register(ctx.Services.GetRequiredService<ErrorCatalog>()));
         ctx.Effect(ctx.Services.GetRequiredService<ErrorCatalog>().Register(NativeAuditErrors.Misconfigured));
@@ -80,7 +80,7 @@ internal sealed class NativeAuditService(IPluginContext owner, ITenantContext te
     private void CheckRecord(AuditRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);
-        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty || id.ToString("D") != tenant.TenantId || record.TenantId != tenant.TenantId) throw Denied();
+        if (tenant.TenantId is not { } id || id == Guid.Empty || record.TenantId != id.ToString("D")) throw Denied();
     }
     private void Platform(IPluginContext producer)
     {
@@ -93,7 +93,7 @@ internal sealed class NativeAuditService(IPluginContext owner, ITenantContext te
         lock (_gate)
         {
             ObjectDisposedException.ThrowIf(_stopping, this);
-            if (_scope.Kind == "tenant" && tenant.TenantId != _scope.Id) throw Denied();
+            if (_scope.Kind == "tenant" && tenant.TenantId?.ToString("D") != _scope.Id) throw Denied();
             _pending++;
         }
         try { using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _stop.Token); return await operation(linked.Token).ConfigureAwait(false); }

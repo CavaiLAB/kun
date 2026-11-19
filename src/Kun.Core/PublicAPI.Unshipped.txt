@@ -1,17 +1,13 @@
 #nullable enable
 Kun.Core.MultiTenancy.ITenantProvisioner
-Kun.Core.MultiTenancy.ITenantProvisioner.DeprovisionAsync(string! tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.Core.MultiTenancy.ITenantProvisioner.ProvisionAsync(Kun.Core.MultiTenancy.TenantInfo! tenant, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.Core.MultiTenancy.NullTenantProvisioner
-Kun.Core.MultiTenancy.NullTenantProvisioner.DeprovisionAsync(string! tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.Core.MultiTenancy.NullTenantProvisioner.NullTenantProvisioner() -> void
 Kun.Core.MultiTenancy.NullTenantProvisioner.ProvisionAsync(Kun.Core.MultiTenancy.TenantInfo! tenant, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 static Kun.Core.MultiTenancy.NullTenantProvisioner.Instance.get -> Kun.Core.MultiTenancy.NullTenantProvisioner!
 Kun.Core.MultiTenancy.TenantInfo
 Kun.Core.MultiTenancy.TenantInfo.DisplayName.get -> string?
 Kun.Core.MultiTenancy.TenantInfo.DisplayName.init -> void
-Kun.Core.MultiTenancy.TenantInfo.TenantId.get -> string!
-Kun.Core.MultiTenancy.TenantInfo.TenantInfo(string! tenantId, string? displayName = null) -> void
 Kun.Core.MultiTenancy.TenantIsolation
 Kun.Core.MultiTenancy.TenantIsolation.Database = 2 -> Kun.Core.MultiTenancy.TenantIsolation
 Kun.Core.MultiTenancy.TenantIsolation.Schema = 1 -> Kun.Core.MultiTenancy.TenantIsolation
@@ -51,9 +47,6 @@ static Kun.Core.Results.ValueTaskResultExtensions.TapAsync(this System.Threading
 static Kun.Core.Results.ValueTaskResultExtensions.TapAsync(this System.Threading.Tasks.ValueTask<Kun.Core.Results.Result> source, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! onSuccess, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask<Kun.Core.Results.Result>
 static Kun.Core.Results.ValueTaskResultExtensions.TapAsync<T>(this System.Threading.Tasks.ValueTask<Kun.Core.Results.Result<T>> source, System.Action<T>! onSuccess) -> System.Threading.Tasks.ValueTask<Kun.Core.Results.Result<T>>
 static Kun.Core.Results.ValueTaskResultExtensions.TapAsync<T>(this System.Threading.Tasks.ValueTask<Kun.Core.Results.Result<T>> source, System.Func<T, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! onSuccess, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask<Kun.Core.Results.Result<T>>
-Kun.Core.MultiTenancy.ITenantContext.BeginScope(string? tenantId) -> System.IDisposable!
-Kun.Core.MultiTenancy.TenantIdValidation
-static Kun.Core.MultiTenancy.TenantIdValidation.IsValid(string? tenantId) -> bool
 Kun.Core.Security.ICurrentUser.PrincipalKind.get -> string!
 Kun.Core.Security.AnonymousCurrentUser.PrincipalKind.get -> string!
 Kun.Core.MultiTenancy.TenantInfo.<Clone>$() -> Kun.Core.MultiTenancy.TenantInfo!
@@ -138,3 +131,12 @@ static Kun.Core.Results.ValueTaskResultExtensions.MatchAsync<TOut>(this System.T
 *REMOVED*static Kun.Core.Results.Result<T>.Fail(Kun.Core.Results.Error! error) -> Kun.Core.Results.Result<T>
 *REMOVED*static Kun.Core.Results.Result<T>.implicit operator Kun.Core.Results.Result<T>(Kun.Core.Results.Error! error) -> Kun.Core.Results.Result<T>
 *REMOVED*static readonly Kun.Core.Results.Error.None -> Kun.Core.Results.Error!
+Kun.Core.MultiTenancy.ITenantContext.BeginScope(System.Guid? tenantId) -> System.IDisposable!
+Kun.Core.MultiTenancy.ITenantContext.TenantId.get -> System.Guid?
+Kun.Core.MultiTenancy.ITenantProvisioner.DeprovisionAsync(System.Guid tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kun.Core.MultiTenancy.NullTenantContext.TenantId.get -> System.Guid?
+Kun.Core.MultiTenancy.NullTenantProvisioner.DeprovisionAsync(System.Guid tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kun.Core.MultiTenancy.TenantInfo.TenantId.get -> System.Guid
+Kun.Core.MultiTenancy.TenantInfo.TenantInfo(System.Guid tenantId, string? displayName = null) -> void
+*REMOVED*Kun.Core.MultiTenancy.ITenantContext.TenantId.get -> string?
+*REMOVED*Kun.Core.MultiTenancy.NullTenantContext.TenantId.get -> string?

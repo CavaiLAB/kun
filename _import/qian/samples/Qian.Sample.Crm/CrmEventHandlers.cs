@@ -19,7 +19,7 @@ internal sealed class CustomerCreatedHandler(IDataService data, ITenantContext t
         await using var session = await data.OpenAsync<CrmDbContext>(cancellationToken).ConfigureAwait(false);
         if (!await session.Context.Customers.AsNoTracking().AnyAsync(customer => customer.Id == @event.CustomerId, cancellationToken).ConfigureAwait(false))
             throw new InvalidOperationException("客户不在事件所属租户内。");
-        receipts.Add(new CustomerCreatedReceipt(context.MessageId, tenant.TenantId!, @event.CustomerId));
+        receipts.Add(new CustomerCreatedReceipt(context.MessageId, tenant.TenantId?.ToString("D")!, @event.CustomerId));
     }
 }
 

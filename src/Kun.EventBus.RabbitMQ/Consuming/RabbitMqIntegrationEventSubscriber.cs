@@ -274,14 +274,15 @@ public sealed partial class RabbitMqIntegrationEventSubscriber : BackgroundServi
 
             await using var scope = _scopeFactory.CreateAsyncScope();
             var tenantContext = scope.ServiceProvider.GetService<ITenantContext>();
-            if (tenantContext?.IsMultiTenant == true && !TenantIdValidation.IsValid(context.TenantId))
+            Guid tenantId = default;
+            if (tenantContext?.IsMultiTenant == true && (!Guid.TryParseExact(context.TenantId, "D", out tenantId) || tenantId == Guid.Empty || context.TenantId != tenantId.ToString("D")))
             {
                 // 无租户或非法租户信封不能进入 handler，也不能污染幂等记录。
                 await SettleAsync(session, deliveryTag, ack: false, requeue: false).ConfigureAwait(false);
                 return;
             }
             using var tenantScope = tenantContext?.IsMultiTenant == true
-                ? tenantContext.BeginScope(context.TenantId) : null;
+                ? tenantContext.BeginScope(tenantId) : null;
             var store = scope.ServiceProvider.GetRequiredService<IProcessedMessageStore>();
             var idempotency = new IdempotentConsumerDecorator(
                 store,

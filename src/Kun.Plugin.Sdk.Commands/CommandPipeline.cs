@@ -87,7 +87,7 @@ internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(
         var principal = initialization ? InitializationPrincipal() : Capture(currentUser, tenant, source);
         if (!initialization && (!frameworkUser.IsAuthenticated || frameworkUser.UserId != principal.Subject || frameworkUser.PrincipalKind != ((Kun.Core.Security.ICurrentUser)currentUser).PrincipalKind))
             throw CommandPolicies.Denied();
-        if (tenant.TenantId != principal.TenantId) throw CommandPolicies.Denied();
+        if (tenant.TenantId?.ToString("D") != principal.TenantId) throw CommandPolicies.Denied();
         var input = JsonSerializer.SerializeToElement(request, contract.RequestTypeInfo);
         var policies = CommandPolicies.Require(source);
         using var linked = policies.Link(cancellationToken); policies.Check();
@@ -103,7 +103,7 @@ internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(
             using var events = EventEnvelopeScope.Begin(EventOriginOf(contract, principal, state.Invocation));
             var result = await next().ConfigureAwait(false);
             state.Invocation.RequireExecuted(); policies.Check(); linked.Token.ThrowIfCancellationRequested();
-            if (tenant.TenantId != principal.TenantId) throw CommandPolicies.Denied();
+            if (tenant.TenantId?.ToString("D") != principal.TenantId) throw CommandPolicies.Denied();
             await transaction.CommitAsync(linked.Token).ConfigureAwait(false); return result;
         }
         finally { state.Invocation = null; state.Policies = null; work.Clear(); }
@@ -128,10 +128,10 @@ internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(
 
     private static Principal Capture(Kun.Identity.Abstractions.ICurrentUser user, ITenantContext tenant, IPluginContext source)
     {
-        var principal = user.Principal; var tenantId = tenant.TenantId;
+        var principal = user.Principal; var tenantId = tenant.TenantId?.ToString("D");
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || string.IsNullOrWhiteSpace(principal.Subject) ||
             principal.Kind is not (PrincipalKind.User or PrincipalKind.Service or PrincipalKind.Agent) || principal.TenantId != tenantId ||
-            !Guid.TryParseExact(tenantId, "D", out var parsed) || parsed == Guid.Empty || parsed.ToString("D") != tenantId ||
+            tenant.TenantId is null || tenant.TenantId == Guid.Empty ||
             (source.Scope != ScopeKey.Global && (source.Scope.Kind != "tenant" || source.Scope.Id != tenantId))) throw CommandPolicies.Denied();
         return new Principal
         {

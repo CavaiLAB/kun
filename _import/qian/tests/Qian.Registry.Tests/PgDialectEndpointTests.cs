@@ -112,7 +112,7 @@ public sealed partial class PatchPersistenceTests
         await new PostgresPermissionCatalogStore(data).PutAsync(catalog, Ct);
         foreach (var id in new[] { HttpTenantA, HttpTenantB })
         {
-            using var current = tenant.BeginScope(id);
+            using var current = tenant.BeginScope(Guid.ParseExact(id, "D"));
             var roles = new PostgresTenantRoleStore(data, tenant);
             await roles.EnsureBuiltinsAsync("test-bootstrap", Ct);
             await roles.InstallDefaultsAsync("qian.data", "1.0.0", null, "test-bootstrap", Ct);

@@ -111,8 +111,9 @@ public sealed class AuthzPlugin : IKunPlugin
         async ValueTask<JsonElement> ProvisionAsync(HookNotification notification)
         {
             var source = notification.Source;
-            if (source.Entry.Plugin != "qian.tenancy" || source.Scope.Kind != "tenant" || notification.Subject != source.Scope.Id) throw Invalid();
-            using var scope = tenant.BeginScope(notification.Subject);
+            if (source.Entry.Plugin != "qian.tenancy" || source.Scope.Kind != "tenant" || notification.Subject != source.Scope.Id ||
+                !Guid.TryParseExact(notification.Subject, "D", out var tenantId) || tenantId == Guid.Empty || tenantId.ToString("D") != notification.Subject) throw Invalid();
+            using var scope = tenant.BeginScope(tenantId);
             await roles.ProvisionAsync(components, Actor, notification.CancellationToken).ConfigureAwait(false);
             return Nothing;
         }

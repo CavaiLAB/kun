@@ -36,16 +36,16 @@ public sealed class TenantBoundaryTests
         async Task Enter(Guid id)
         {
             var http = new DefaultHttpContext { User = Principal(id) }; http.Request.Headers["X-Tenant-Id"] = "ignored";
-            await boundary.InvokeAsync(http, async _ => { await Task.Yield(); Assert.Equal(id.ToString(), tenant.TenantId); });
+            await boundary.InvokeAsync(http, async _ => { await Task.Yield(); Assert.Equal(id, tenant.TenantId); });
             Assert.Null(tenant.TenantId);
         }
         await Task.WhenAll(Enter(A), Enter(B));
         await Assert.ThrowsAsync<InvalidOperationException>(() => boundary.InvokeAsync(new DefaultHttpContext { User = Principal(A) }, _ => throw new InvalidOperationException("test")));
         Assert.Null(tenant.TenantId);
-        using (tenant.BeginScope(B.ToString()))
+        using (tenant.BeginScope(B))
         {
             await Assert.ThrowsAsync<ErrorException>(() => boundary.InvokeAsync(new DefaultHttpContext { User = Principal(A) }, _ => Task.CompletedTask));
-            Assert.Equal(B.ToString(), tenant.TenantId);
+            Assert.Equal(B, tenant.TenantId);
         }
     }
 
@@ -54,14 +54,14 @@ public sealed class TenantBoundaryTests
     {
         var sender = new AsyncLocalTenantContext(); var receiver = new AsyncLocalTenantContext();
         var outbound = new TenantContextPropagator(sender); var inbound = new TenantContextPropagator(receiver);
-        using var source = sender.BeginScope(A.ToString());
+        using var source = sender.BeginScope(A);
         foreach (var input in new[] { "{\"type\":\"crm.customer.created.v1\",\"payload\":{\"name\":\"客户\"}}", "{\"job\":\"export\",\"arguments\":{\"format\":\"csv\"}}" })
         {
             var wire = Json(outbound.Write(Json(input)).GetRawText());
-            using (inbound.BeginScope(wire, A)) { await Task.Yield(); Assert.Equal(A.ToString(), receiver.TenantId); }
+            using (inbound.BeginScope(wire, A)) { await Task.Yield(); Assert.Equal(A, receiver.TenantId); }
             Assert.Null(receiver.TenantId);
         }
-        using (inbound.BeginScope(outbound.WriteHeaders().ToArray(), A)) Assert.Equal(A.ToString(), receiver.TenantId);
+        using (inbound.BeginScope(outbound.WriteHeaders().ToArray(), A)) Assert.Equal(A, receiver.TenantId);
         Assert.Null(receiver.TenantId);
     }
 
@@ -77,11 +77,11 @@ public sealed class TenantBoundaryTests
         Assert.Throws<ErrorException>(() => propagator.BeginScope([new("tenant_id", A.ToString()), new("tenant_id", A.ToString())], A));
         Assert.Throws<ErrorException>(() => propagator.BeginScope([new("tenant_id", A.ToString())], Guid.Empty));
         Assert.Null(tenant.TenantId);
-        using (tenant.BeginScope(A.ToString()))
+        using (tenant.BeginScope(A))
         {
             Assert.Throws<ErrorException>(() => propagator.Write(Json($$"""{"tenant_id":"{{B}}"}""")));
             Assert.Throws<ErrorException>(() => propagator.BeginScope(Json($$"""{"tenant_id":"{{B}}"}"""), B));
-            Assert.Equal(A.ToString(), tenant.TenantId);
+            Assert.Equal(A, tenant.TenantId);
         }
     }
 

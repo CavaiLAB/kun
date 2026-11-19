@@ -35,13 +35,13 @@ public sealed class TenantGrpcTests
         var client = host.Channel.Intercept(new TenantGrpcClientInterceptor(sender));
         async Task Run(Guid id)
         {
-            using var scope = sender.BeginScope(id.ToString()); var headers = host.Headers(id);
+            using var scope = sender.BeginScope(id); var headers = host.Headers(id);
             foreach (var shape in Enum.GetValues<MethodType>())
             {
                 var replies = await Call(client, shape, headers); Assert.All(replies, reply => Assert.Equal(id.ToString(), reply));
                 Assert.DoesNotContain(headers, entry => entry.Key == "tenant_id");
             }
-            Assert.Equal(id.ToString(), sender.TenantId);
+            Assert.Equal(id, sender.TenantId);
         }
         await Task.WhenAll(Run(A), Run(B));
         Assert.Null(sender.TenantId); Assert.Equal(8, host.Calls.Count);
@@ -80,7 +80,7 @@ public sealed class TenantGrpcTests
         await using var host = await GrpcHost.Start(Ct); var sender = new AsyncLocalTenantContext();
         var client = host.Channel.Intercept(new TenantGrpcClientInterceptor(sender));
         await Assert.ThrowsAsync<ErrorException>(() => Call(client, MethodType.Unary, host.Headers(A)));
-        using var scope = sender.BeginScope(A.ToString());
+        using var scope = sender.BeginScope(A);
         foreach (var values in new[] { new[] { B.ToString() }, new[] { A.ToString(), A.ToString() } })
         {
             var headers = host.Headers(A); foreach (var value in values) headers.Add("tenant_id", value);
@@ -186,14 +186,19 @@ public sealed class TenantGrpcTests
     public class Echo(ITenantContext tenant, ConcurrentBag<string> calls)
     {
         public virtual async Task<string> Unary(string request, ServerCallContext context)
-        { var id = Enter(); await Task.Yield(); Assert.Equal(id, tenant.TenantId); return id; }
+        { var id = Enter(); await Task.Yield(); Assert.Equal(id, tenant.TenantId?.ToString("D")); return id; }
         public virtual async Task Server(string request, IServerStreamWriter<string> stream, ServerCallContext context)
-        { var id = Enter(); await stream.WriteAsync(id, context.CancellationToken); await Task.Yield(); Assert.Equal(id, tenant.TenantId); await stream.WriteAsync(id, context.CancellationToken); }
+        { var id = Enter(); await stream.WriteAsync(id, context.CancellationToken); await Task.Yield(); Assert.Equal(id, tenant.TenantId?.ToString("D")); await stream.WriteAsync(id, context.CancellationToken); }
         public virtual async Task<string> Client(IAsyncStreamReader<string> stream, ServerCallContext context)
-        { var id = Enter(); await foreach (var _ in stream.ReadAllAsync(context.CancellationToken)) Assert.Equal(id, tenant.TenantId); return id; }
+        { var id = Enter(); await foreach (var _ in stream.ReadAllAsync(context.CancellationToken)) Assert.Equal(id, tenant.TenantId?.ToString("D")); return id; }
         public virtual async Task Duplex(IAsyncStreamReader<string> input, IServerStreamWriter<string> output, ServerCallContext context)
-        { var id = Enter(); await foreach (var _ in input.ReadAllAsync(context.CancellationToken)) { Assert.Equal(id, tenant.TenantId); await output.WriteAsync(id, context.CancellationToken); } }
-        private string Enter() { Assert.NotNull(tenant.TenantId); calls.Add(tenant.TenantId); return tenant.TenantId; }
+        { var id = Enter(); await foreach (var _ in input.ReadAllAsync(context.CancellationToken)) { Assert.Equal(id, tenant.TenantId?.ToString("D")); await output.WriteAsync(id, context.CancellationToken); } }
+        private string Enter()
+        {
+            var id = Assert.IsType<Guid>(tenant.TenantId).ToString("D");
+            calls.Add(id);
+            return id;
+        }
     }
     public static class Bindings
     {

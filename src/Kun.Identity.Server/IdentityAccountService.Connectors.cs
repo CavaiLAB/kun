@@ -55,7 +55,7 @@ internal sealed partial class IdentityAccountService
     /// <summary>回调处理后 302 回到的界面落点模板（含 {connectorId}）。</summary>
     internal string ConnectorLanding => _account.Connectors.LandingPath;
 
-    private Guid? CurrentTenantOrNull() => Guid.TryParseExact(_tenant.TenantId, "D", out var id) && id != Guid.Empty ? id : null;
+    private Guid? CurrentTenantOrNull() => _tenant.TenantId is { } id && id != Guid.Empty ? id : null;
 
     // ---- 发起 ----
 

@@ -84,7 +84,7 @@ public sealed class LoginRevisionTests(PostgresFixture postgres) : IClassFixture
         var tenant = host.Tenants.Add("acme");
         var (person, phone) = await CreatePerson(host);
         var member = await Join(host, tenant, person.Id);
-        using (host.Tenant.BeginScope(Id(tenant.Id))) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member.Id, "oidc", "sub-1"), Ct);
+        using (host.Tenant.BeginScope(tenant.Id)) await host.Accounts.LinkExternalIdentityAsync(new ExternalIdentityLink(member.Id, "oidc", "sub-1"), Ct);
         var (identifier, password) = (phone, Password);
         using var registration = Between(host, async id =>
         {
@@ -103,7 +103,7 @@ public sealed class LoginRevisionTests(PostgresFixture postgres) : IClassFixture
                     await host.Accounts.ReplaceIdentifierAsync(id, IdentifierKind.Phone, phone, new IdentifierInput(IdentifierKind.Phone, identifier, true), Ct);
                     break;
                 case "unlink":
-                    using (host.Tenant.BeginScope(Id(tenant.Id))) await host.Accounts.UnlinkExternalIdentityAsync(member.Id, "oidc", "sub-1", Ct);
+                    using (host.Tenant.BeginScope(tenant.Id)) await host.Accounts.UnlinkExternalIdentityAsync(member.Id, "oidc", "sub-1", Ct);
                     break;
                 case "disable":
                     await host.Accounts.SetPersonStatusAsync(id, AccountStatuses.Disabled, "ops", Ct);

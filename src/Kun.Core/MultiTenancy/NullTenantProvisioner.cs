@@ -16,5 +16,5 @@ public sealed class NullTenantProvisioner : ITenantProvisioner
     public Task ProvisionAsync(TenantInfo tenant, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     /// <inheritdoc />
-    public Task DeprovisionAsync(string tenantId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task DeprovisionAsync(Guid tenantId, CancellationToken cancellationToken = default) => Task.CompletedTask;
 }

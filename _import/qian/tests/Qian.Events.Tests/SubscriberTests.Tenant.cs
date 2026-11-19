@@ -106,8 +106,8 @@ public sealed partial class SubscriberTests
             var scope = new TrackedScope(carrier.GetProperty("payload").GetProperty("note").GetString() switch
             {
                 NoScope => null,
-                WrongTenant => tenant.BeginScope(other),
-                _ => tenant.BeginScope(authorizedTenantId.ToString("D")),
+                WrongTenant => tenant.BeginScope(Guid.ParseExact(other, "D")),
+                _ => tenant.BeginScope(authorizedTenantId),
             });
             Scopes[eventId] = scope;
             return scope;
@@ -135,10 +135,10 @@ public sealed partial class SubscriberTests
     /// <summary>声称多租户、BeginScope 却不进入作用域的宿主上下文（违反 Kun.Tenancy README「必须支持可释放的 BeginScope」）。</summary>
     private sealed class InertTenantContext : ITenantContext
     {
-        public string? TenantId => null;
+        public Guid? TenantId => null;
 
         public bool IsMultiTenant => true;
 
-        public IDisposable BeginScope(string? tenantId) => new TrackedScope(null);
+        public IDisposable BeginScope(Guid? tenantId) => new TrackedScope(null);
     }
 }

@@ -55,13 +55,13 @@ public sealed partial class PatchPersistenceTests
         var read = await catalog.GetAsync(digest, Ct); Assert.NotNull(read);
         Assert.Equal("customer", read.Metadata["metadata/permissions.json"][0].GetProperty("resource").GetString());
         Assert.DoesNotContain("customer", read.ToString(), StringComparison.Ordinal);
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.B))
         {
             var globalCandidate = await catalog.GetAsync(digest, Ct);
             Assert.Equal("Submitted", globalCandidate!.State); Assert.Null(globalCandidate.SignatureVerification);
         }
         // 全局候选目录中存在一条记录，不等于任何租户已经挂载或获得权益。
-        using (tenant.BeginScope("a")) Assert.Empty(await Repository(host, tenant).ListAsync(TenantA, Ct));
+        using (tenant.BeginScope(Tenants.A)) Assert.Empty(await Repository(host, tenant).ListAsync(TenantA, Ct));
     }
 
     [Fact]

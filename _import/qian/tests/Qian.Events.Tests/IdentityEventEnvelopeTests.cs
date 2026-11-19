@@ -22,7 +22,7 @@ public sealed class IdentityEventEnvelopeTests
         var tenant = scope.ServiceProvider.GetRequiredService<ITenantContext>();
         var writer = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
         var person = Guid.CreateVersion7();
-        using (tenant.BeginScope(Tenant))
+        using (tenant.BeginScope(Guid.ParseExact(Tenant, "D")))
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.identity.server", EventActor.User(person.ToString("D")))))
             writer.Enqueue(new IdentityLoginEvent(person, 3, Guid.CreateVersion7(), "web", ["pwd"]));
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.identity.server", EventActor.Service("qian-identity"))))

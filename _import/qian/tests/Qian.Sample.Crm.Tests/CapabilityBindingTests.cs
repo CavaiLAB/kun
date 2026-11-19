@@ -22,7 +22,7 @@ public sealed partial class CapabilityTests
         await using var host = await Start();
         var runtime = host.App.Services.GetRequiredService<CrmCommandRuntime>();
         var tenant = host.App.Services.GetRequiredService<ITenantContext>();
-        using var scope = tenant.BeginScope(A); var caller = runtime.Source();
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); var caller = runtime.Source();
         var registrations = caller.List(CapabilityBindingRegistration.Key).Where(item => item.Name.StartsWith("qian.sample.crm/", StringComparison.Ordinal)).ToArray(); Assert.Equal(4, registrations.Length);
         Assert.Equal(ExecutableNames, registrations.Select(item => item.Name).Order(StringComparer.Ordinal));
         var binding = caller.Inject<IExecutableCapability>(CapabilityBindingRegistration.Key, "qian.sample.crm/customer.create");

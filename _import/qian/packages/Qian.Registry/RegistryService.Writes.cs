@@ -18,11 +18,11 @@ internal sealed partial class RegistryService
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject)
             throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         // 目标只来自路径；普通租户不能靠路径切换上下文，平台主体也不能从委托或服务身份升级为超管。
-        if (!Guid.TryParseExact(tenantId, "D", out var tenantGuid) || tenantGuid.ToString("D") != tenantId ||
+        if (!Guid.TryParseExact(tenantId, "D", out var tenantGuid) || tenantGuid == Guid.Empty || tenantGuid.ToString("D") != tenantId ||
             scope.Kind != "tenant" || scope.Id != tenantId || principal.Actor is not null ||
             (principal.TenantId is null ? principal.Kind != PrincipalKind.User :
-                principal.TenantId != tenantId || _tenant.TenantId != tenantId)) throw NotFound();
-        using var target = _tenant.BeginScope(tenantId);
+                principal.TenantId != tenantId || _tenant.TenantId != tenantGuid)) throw NotFound();
+        using var target = _tenant.BeginScope(tenantGuid);
         await AuthorizeAsync(scope, user, cancellationToken, RegistryDefinition.ScopeWritePermission).ConfigureAwait(false);
         // S1-ENT-001 尚未交付 Entitlement Definition/Provider。不能拿 Installed、令牌角色或任意布尔值代替权益判定。
         // 接入真实端口前，租户权限判定即使通过也必须 fail-closed；平台运营只走已审计的超管旁路。

@@ -17,7 +17,7 @@ internal sealed class NativeSession : INativeDataSession
     private NativeTransaction? _transaction;
     private int _disposed;
     private volatile bool _failed;
-    internal NativeSession(NativeDataService owner, OpenBinding binding, NativeConnectionLease lease, string? tenant,
+    internal NativeSession(NativeDataService owner, OpenBinding binding, NativeConnectionLease lease, Guid? tenant,
         IPluginContext? caller, CancellationToken lifetime)
     {
         Owner = owner; Binding = binding; _lease = lease; _connection = lease.Connection; TenantId = tenant; _caller = caller;
@@ -25,7 +25,7 @@ internal sealed class NativeSession : INativeDataSession
     }
     internal NativeDataService Owner { get; }
     internal OpenBinding Binding { get; }
-    public string? TenantId { get; }
+    public Guid? TenantId { get; }
     public DbConnection Connection { get { Guard(); return _view; } }
     public DbTransaction? Transaction { get { Guard(); return _transaction is { Completed: false } ? _transaction : null; } }
     internal NpgsqlTransaction? RawTransaction => _transaction is { Completed: false } active ? active.Raw : null;

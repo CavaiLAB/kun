@@ -134,7 +134,7 @@ internal class PostgresAuditStore<TContext>(IDataService data, ITenantContext te
     private static string ChainKey(string? owner) => owner is null ? "platform" : "tenant:" + owner;
     private string? Owner()
     {
-        var owner = tenant.TenantId;
+        var owner = tenant.TenantId?.ToString("D");
         if (platformRole is not null)
         {
             if (typeof(TContext) != typeof(PlatformAuditDbContext) || owner is not null) throw Error(PlatformErrors.AuthzDenied);

@@ -183,7 +183,7 @@ internal sealed partial class RegistryScopeReconciler(
     {
         try
         {
-            using var current = tenant.BeginScope(state.TenantId);
+            using var current = tenant.BeginScope(Guid.ParseExact(state.TenantId, "D"));
             var (result, rows) = await composer.LoadWithPatchesAsync(state.Scope, ct).ConfigureAwait(false);
             var revisions = rows.ToDictionary(row => row.EntryId, row => row.Revision, StringComparer.Ordinal);
             if (!result.IsValid) throw new ErrorException(new Error(PlatformErrors.InputInvalid)

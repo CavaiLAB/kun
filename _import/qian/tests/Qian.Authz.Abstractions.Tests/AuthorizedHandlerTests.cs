@@ -191,12 +191,13 @@ public sealed class AuthorizedHandlerTests
     }
     private sealed class Tenant : ITenantContext
     {
-        public string? TenantId => "tenant-a";
+        internal static readonly Guid Id = new("01900000-0000-7000-8000-000000000001");
+        public Guid? TenantId => Id;
         public bool IsMultiTenant => true;
     }
     private sealed class FixedTenant(string tenant) : ITenantContext
     {
-        public string? TenantId => tenant;
+        public Guid? TenantId { get; } = Guid.ParseExact(tenant, "D");
         public bool IsMultiTenant => true;
     }
     private sealed class DenyAll(List<string> calls) : IPermissionChecker
@@ -215,7 +216,7 @@ public sealed class AuthorizedHandlerTests
         public ValueTask<IReadOnlyList<EffectiveGrant>> ListEffectivePermissionsAsync(AuthorizationSubject subject, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public ValueTask<PermissionDecision> CheckAsync(PermissionRequest request, CancellationToken cancellationToken = default)
         {
-            Assert.Equal("tenant-a", request.Subject.TenantId);
+            Assert.Equal(Tenant.Id.ToString("D"), request.Subject.TenantId);
             Assert.Equal("user-1", request.Subject.Id);
             calls.Add(request.Permission);
             return ValueTask.FromResult(new PermissionDecision(allow, "fixture", []));

@@ -17,8 +17,8 @@ public sealed partial class PermissionCatalogPersistenceTests
         var data = host.Services.GetRequiredService<IDataService>(); var roles = new PostgresTenantRoleStore(data, tenant);
         var registry = new PermissionRegistry(); using var declarations = registry.Register(catalog.Version, catalog.Permissions);
         var checker = new RbacPermissionChecker(data, tenant, registry);
-        var owner = new AuthorizationSubject("owner", "a"); var reader = new AuthorizationSubject("reader", "a");
-        using var current = tenant.BeginScope("a");
+        var owner = new AuthorizationSubject("owner", Tenants.AText); var reader = new AuthorizationSubject("reader", Tenants.AText);
+        using var current = tenant.BeginScope(Tenants.A);
         await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner", "operator", Ct);
         await roles.AssignAsync("tenant.user", "user", "reader", "operator", Ct); await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
         var allowed = await checker.ExplainDetailedAsync(new PermissionRequest(owner, "qian.sample.crm:customer:write"), Ct);
@@ -29,7 +29,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         var requests = new[]
         {
             new PermissionRequest(owner, "qian.sample.crm:customer:read"), new PermissionRequest(reader, "qian.sample.crm:customer:write"),
-            new PermissionRequest(owner, "qian.sample.crm:customer:delete"), new PermissionRequest(new AuthorizationSubject("owner", "b"), "qian.sample.crm:customer:read")
+            new PermissionRequest(owner, "qian.sample.crm:customer:delete"), new PermissionRequest(new AuthorizationSubject("owner", Tenants.BText), "qian.sample.crm:customer:read")
         };
         var batch = await checker.BatchCheckAsync(requests, Ct);
         for (var index = 0; index < requests.Length; index++) Assert.Equal(JsonSerializer.Serialize(await checker.CheckAsync(requests[index], Ct)), JsonSerializer.Serialize(batch[index]));
@@ -44,9 +44,9 @@ public sealed partial class PermissionCatalogPersistenceTests
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
         var catalog = Catalog(); await Store(host).PutAsync(catalog, Ct); var data = host.Services.GetRequiredService<IDataService>();
         var roles = new PostgresTenantRoleStore(data, tenant); var registry = new PermissionRegistry(); using var lease = registry.Register(catalog.Version, catalog.Permissions);
-        var checker = new RbacPermissionChecker(data, tenant, registry); var request = new PermissionRequest(new AuthorizationSubject("owner", "a"), "qian.sample.crm:customer:read");
+        var checker = new RbacPermissionChecker(data, tenant, registry); var request = new PermissionRequest(new AuthorizationSubject("owner", Tenants.AText), "qian.sample.crm:customer:read");
         var missing = await checker.ExplainDetailedAsync(request, Ct); Assert.False(missing.Decision.Allow); Assert.Empty(missing.MatchedRoles);
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner", "operator", Ct); await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
             Assert.True((await checker.CheckAsync(request, Ct)).Allow);
@@ -54,7 +54,7 @@ public sealed partial class PermissionCatalogPersistenceTests
             var revoked = await checker.ExplainDetailedAsync(request, Ct); Assert.False(revoked.Decision.Allow); Assert.Equal("permission_not_registered", revoked.Decision.Reason);
             await using var session = await data.OpenAsync<AuthzDbContext>(Ct); Assert.Equal(4, await session.Context.Grants.CountAsync(Ct));
         }
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.B))
         {
             var foreign = await checker.ExplainDetailedAsync(request, Ct); Assert.False(foreign.Decision.Allow); Assert.Empty(foreign.MatchedRoles); Assert.Empty(foreign.MatchedGrants);
         }
@@ -66,10 +66,10 @@ public sealed partial class PermissionCatalogPersistenceTests
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
         var catalog = Catalog(); await Store(host).PutAsync(catalog, Ct); var data = host.Services.GetRequiredService<IDataService>();
         var roles = new PostgresTenantRoleStore(data, tenant); var registry = new PermissionRegistry(); using var lease = registry.Register(catalog.Version, catalog.Permissions);
-        using var scope = tenant.BeginScope("a"); await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner", "operator", Ct);
+        using var scope = tenant.BeginScope(Tenants.A); await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner", "operator", Ct);
         await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
         var checker = new RbacPermissionChecker(data, tenant, registry);
-        var result = await checker.ExplainDetailedAsync(new PermissionRequest(new AuthorizationSubject("owner", "a"), "qian.sample.crm:customer:export"), Ct);
+        var result = await checker.ExplainDetailedAsync(new PermissionRequest(new AuthorizationSubject("owner", Tenants.AText), "qian.sample.crm:customer:export"), Ct);
         Assert.False(result.Decision.Allow); Assert.Equal("step_up_required", result.Decision.Reason);
         Assert.Equal(["tenant.owner"], result.MatchedRoles); Assert.Single(result.MatchedGrants); Assert.Empty(result.Missing);
     }

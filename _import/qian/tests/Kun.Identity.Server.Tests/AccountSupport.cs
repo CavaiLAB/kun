@@ -42,7 +42,7 @@ internal static partial class AccountSupport
     /// <summary>在目标租户的作用域内为 Person 建立成员身份。</summary>
     internal static async Task<Membership> Join(AccountsHost.Running host, TenantDescriptor tenant, Guid person, string name = "成员", bool admin = false, string? account = null, Guid? id = null)
     {
-        using var scope = host.Tenant.BeginScope(tenant.Id.ToString("D"));
+        using var scope = host.Tenant.BeginScope(tenant.Id);
         return await host.Accounts.CreateMembershipAsync(new CreateMembership(person, name) { IsTenantAdministrator = admin, Account = account, MembershipId = id }, Ct);
     }
 

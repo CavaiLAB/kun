@@ -69,7 +69,7 @@ public sealed partial class IdentityAuthzTests
         // 跨租户令牌：B 的 reader 在 A 的资源上没有角色；租户 B 的链里只有 B 的判定。
         using (var foreign = await host.Send(Get("/api/customers", host.Token(B, "crm.read", Reader)))) Assert.Equal(HttpStatusCode.Forbidden, foreign.StatusCode);
 
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             Assert.Equal(
             [
@@ -85,7 +85,7 @@ public sealed partial class IdentityAuthzTests
             ], await Decisions(host, A));
             Assert.True((await Source(host).Audit().VerifyAsync(Ct)).Valid);
         }
-        using (tenant.BeginScope(B)) Assert.Equal([(Reader, "denied", AuthzEnforcement.HttpEntryPoint, "GET /api/customers", "no_matching_grant")], await Decisions(host, B));
+        using (tenant.BeginScope(Guid.ParseExact(B, "D"))) Assert.Equal([(Reader, "denied", AuthzEnforcement.HttpEntryPoint, "GET /api/customers", "no_matching_grant")], await Decisions(host, B));
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public sealed partial class IdentityAuthzTests
         // 没带修订的 S2S 令牌不比对。
         using (var stale = await List(1)) { Assert.Equal(HttpStatusCode.Unauthorized, stale.StatusCode); Assert.Equal("UNAUTHENTICATED", await Code(stale)); }
         using (var bare = await List(null)) Assert.Equal(HttpStatusCode.OK, bare.StatusCode);
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             Assert.Equal((Writer, "denied", AuthzEnforcement.HttpEntryPoint, "GET /api/customers", "identity_revision_stale"), Assert.Single(await Decisions(host, A), item => item.Result == "denied"));
             var roles = new PostgresTenantRoleStore(data, tenant);
@@ -117,7 +117,7 @@ public sealed partial class IdentityAuthzTests
             Assert.True(elapsed.Elapsed < TimeSpan.FromSeconds(3), "撤销角色 3 秒后旧快照仍放行。");
             await Task.Delay(50, Ct);
         }
-        using (tenant.BeginScope(A))
+        using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             Assert.Contains((Writer, "denied", AuthzEnforcement.HttpEntryPoint, "GET /api/customers", "no_matching_grant"), await Decisions(host, A));
             await using var session = await data.OpenAsync<AuthzDbContext>(Ct);

@@ -62,15 +62,15 @@ public partial class DatabasePerTenantProvisioner<TContext> : ITenantProvisioner
     /// Override this method in a subclass or swap in a custom <see cref="ITenantProvisioner"/>
     /// when the app owns database lifecycle end-to-end.
     /// </remarks>
-    public virtual Task DeprovisionAsync(string tenantId, CancellationToken cancellationToken = default)
+    public virtual Task DeprovisionAsync(Guid tenantId, CancellationToken cancellationToken = default)
     {
         LogDeprovisionNoOp(_logger, tenantId);
         return Task.CompletedTask;
     }
 
     [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "DatabasePerTenantProvisioner: running migrations for tenant {TenantId}.")]
-    private static partial void LogMigrating(ILogger logger, string tenantId);
+    private static partial void LogMigrating(ILogger logger, Guid tenantId);
 
     [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "DatabasePerTenantProvisioner: DeprovisionAsync is a no-op by design (tenant {TenantId}). Override or register a custom ITenantProvisioner if the app owns database drop.")]
-    private static partial void LogDeprovisionNoOp(ILogger logger, string tenantId);
+    private static partial void LogDeprovisionNoOp(ILogger logger, Guid tenantId);
 }

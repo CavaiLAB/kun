@@ -27,7 +27,7 @@ public sealed partial class ShellSurfaceTests
             using (var current = await Call(path, 3)) Assert.True(current.StatusCode == HttpStatusCode.OK, path + " " + host.FailureEvidence);
             using (var bare = await Call(path, null)) Assert.True(bare.StatusCode == HttpStatusCode.OK, path);
         }
-        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(A))
+        using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D")))
         {
             var denied = (await Decisions(host, A)).Where(item => item.Result == "denied").ToArray();
             foreach (var target in new[] { "GET /api/authz/me/permissions", "GET /api/authz/meta", "GET /api/capabilities", "GET /api/capabilities/navigation", "GET /api/capabilities/shell" })

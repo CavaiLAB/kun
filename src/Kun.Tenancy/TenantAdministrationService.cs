@@ -66,7 +66,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
     public async ValueTask<TenantAdminList> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
         Check(); await Existing(id, cancellationToken).ConfigureAwait(false);
-        using var scope = _tenant.BeginScope(id.ToString());
+        using var scope = _tenant.BeginScope(id);
         var admin = await PointerAsync(cancellationToken).ConfigureAwait(false) is { } membershipId ? await DescribeAsync(membershipId, cancellationToken).ConfigureAwait(false) : null;
         return new TenantAdminList(admin is null ? [] : [admin]);
     }
@@ -78,7 +78,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
         await Existing(id, cancellationToken).ConfigureAwait(false);
         return await TenancyLocks.RunAsync(context, "tenant:" + id, async () =>
         {
-            using var scope = _tenant.BeginScope(id.ToString());
+            using var scope = _tenant.BeginScope(id);
             await EnsureProvisionedAsync(cancellationToken).ConfigureAwait(false);
             var identity = Identity; var accounts = Accounts;
             // 平台身份不能当租户管理员（Q12：平台超管对租户不可见、不计配额）；停用或锁定的账号登录不了，指定了也没有意义。
@@ -115,7 +115,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
         Check(); ArgumentNullException.ThrowIfNull(request); ValidateActor(actor);
         if (string.IsNullOrEmpty(request.NewPassword)) throw Invalid("#/newPassword");
         await Existing(id, cancellationToken).ConfigureAwait(false);
-        using var scope = _tenant.BeginScope(id.ToString());
+        using var scope = _tenant.BeginScope(id);
         // 只对当前管理员：否则借任一租户的路径就能重置任意自然人的密码。
         if (membershipId == Guid.Empty || await PointerAsync(cancellationToken).ConfigureAwait(false) != membershipId) throw Error(PlatformErrors.NotFound);
         var identity = Identity;
@@ -211,7 +211,7 @@ internal sealed class TenantAdministrationService(IPluginContext context, Postgr
     // 运营列表的管理员列：只读成员显示名；没有指针、身份组件缺席或成员已清除都返回 null，不让整页失败。
     internal async Task<string?> AdministratorNameAsync(Guid id, CancellationToken ct)
     {
-        using var scope = _tenant.BeginScope(id.ToString());
+        using var scope = _tenant.BeginScope(id);
         if (await PointerAsync(ct).ConfigureAwait(false) is not { } membershipId) return null;
         if (context.TryInject<IIdentityService>(IdentityDefinition.Key) is not { } identity) return null;
         var membership = await identity.GetMembershipAsync(membershipId, ct).ConfigureAwait(false);

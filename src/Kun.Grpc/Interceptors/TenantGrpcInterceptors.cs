@@ -43,7 +43,7 @@ public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interce
             await _boundary.InvokeAsync(context.GetHttpContext(), async _ =>
             {
                 using var scope = _propagator.BeginScope(context.RequestHeaders.Where(entry => !entry.IsBinary)
-                    .Select(entry => new KeyValuePair<string, string>(entry.Key, entry.Value)), Guid.ParseExact(tenant.TenantId!, "D"));
+                    .Select(entry => new KeyValuePair<string, string>(entry.Key, entry.Value)), tenant.TenantId!.Value);
                 result = await continuation().ConfigureAwait(false);
             }).ConfigureAwait(false);
         }

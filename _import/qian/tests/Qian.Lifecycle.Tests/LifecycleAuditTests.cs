@@ -119,7 +119,7 @@ public sealed class LifecycleAuditTests(PostgresFixture postgres) : IClassFixtur
         Assert.Contains("tenant-plugin.uninstall", warning.Message, StringComparison.Ordinal); Assert.Contains(TenantA, warning.Message, StringComparison.Ordinal);
         Assert.DoesNotContain(Plugin, warning.Message, StringComparison.Ordinal);
         // 批准 API 缺审计时对外仍是 404（R32），但同样记告警：装配错误与无权限由日志区分。
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             await AssertCode(PlatformErrors.NotFound, () => host.Lifecycle.ApprovePermissionsAsync(TenantA, Plugin, "1.0.0", null, new Approver("approver", TenantA), Ct).AsTask());
         Assert.Equal(2, logs.AuditUnavailable.Count);
         Assert.Contains("permissions.approve", logs.AuditUnavailable.Last().Message, StringComparison.Ordinal);
@@ -417,7 +417,7 @@ public sealed class LifecycleAuditTests(PostgresFixture postgres) : IClassFixtur
     // 该租户链上的全部条目；读之前先验整条链。
     private static async Task<AuditChainEntry[]> Chain(LifecycleHost host, string tenantId)
     {
-        using var scope = host.Tenant.BeginScope(tenantId);
+        using var scope = host.Tenant.BeginScope(Guid.ParseExact(tenantId, "D"));
         var audit = host.Runtime.GetContext("audit", ScopeKey.Global).Audit();
         Assert.True((await audit.VerifyAsync(Ct)).Valid);
         return [.. await audit.ReadAsync(0, 100, cancellationToken: Ct)];

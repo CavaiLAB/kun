@@ -68,7 +68,8 @@ public sealed class CapabilityAndPermissionTests
         user.UserId.Returns("user-1");
         user.PrincipalKind.Returns("user");
         var tenant = Substitute.For<ITenantContext>();
-        tenant.TenantId.Returns("tenant-a");
+        var tenantId = Guid.NewGuid();
+        tenant.TenantId.Returns(tenantId);
         services.AddSingleton(user);
         services.AddSingleton(tenant);
         if (allow is not null)
@@ -80,7 +81,7 @@ public sealed class CapabilityAndPermissionTests
                 calls.Add("check");
                 var request = info.Arg<PermissionRequest>();
                 Assert.Equal("sample:record:write", request.Permission);
-                Assert.Equal("tenant-a", request.Subject.TenantId);
+                Assert.Equal(tenantId.ToString("D"), request.Subject.TenantId);
                 return ValueTask.FromResult(new PermissionDecision(allow.Value, "test", []));
             });
 #pragma warning restore CA2012
@@ -166,7 +167,8 @@ public sealed class CapabilityAndPermissionTests
     {
         var calls = new List<string>(); var services = new ServiceCollection(); services.AddSingleton(calls);
         var user = Substitute.For<ICurrentUser>(); user.IsAuthenticated.Returns(true); user.UserId.Returns("shared-id"); user.PrincipalKind.Returns(kind);
-        var tenant = Substitute.For<ITenantContext>(); tenant.TenantId.Returns("tenant-a");
+        var tenant = Substitute.For<ITenantContext>(); var tenantId = Guid.NewGuid();
+        tenant.TenantId.Returns(tenantId);
         var checker = Substitute.For<IPermissionChecker>();
 #pragma warning disable CA2012 // 配置真实管道所消费的判定端口，检查主体元组。
         checker.CheckAsync(Arg.Any<PermissionRequest>(), Arg.Any<CancellationToken>()).Returns(info =>

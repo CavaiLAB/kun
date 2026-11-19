@@ -203,7 +203,7 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         builder.Services.AddQianEvents();
         using var host = builder.Build();
         var data = host.Services.GetRequiredService<IDataService>();
-        using (tenant.BeginScope(Tenant))
+        using (tenant.BeginScope(Guid.ParseExact(Tenant, "D")))
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.events-tests", EventActor.Service("relay-seeder"))))
         {
             for (var offset = 0; offset < total; offset += 50)

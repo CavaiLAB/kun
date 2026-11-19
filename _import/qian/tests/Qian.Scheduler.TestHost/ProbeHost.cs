@@ -71,7 +71,7 @@ public sealed class ProbeHost : IAsyncDisposable
         _ = await worker.ClaimAsync(0, ct); // 真实领取语句与 worker 登录校验；LIMIT 0，不领任何触发器
         foreach (var tenantId in config.WarmupTenants ?? [])
         {
-            using var warmupTenant = tenant.BeginScope(tenantId);
+            using var warmupTenant = tenant.BeginScope(Guid.ParseExact(tenantId, "D"));
             var claim = new JobClaim(tenantId, Guid.NewGuid(), Guid.NewGuid(), 0, DateTimeOffset.UtcNow, "warmup");
             // 真实收尾入口：对不存在的触发器在所有权校验处返回 false、事务回滚；跑过与 BeginAsync 同一条锁行查询和数据库时钟。
             _ = await worker.CompleteAsync(claim, "once", new JobOptions(), "succeeded", null, ct);

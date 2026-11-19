@@ -48,7 +48,7 @@ public static class CapabilityBindingRegistration
         public async ValueTask<JsonElement> InvokeAsync(IPluginContext caller, JsonElement input, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(caller);
-            if (Volatile.Read(ref _disposed) != 0 || string.IsNullOrWhiteSpace(tenant.TenantId) || caller.Scope != new ScopeKey("tenant", tenant.TenantId)) throw Missing();
+            if (Volatile.Read(ref _disposed) != 0 || tenant.TenantId is not { } id || id == Guid.Empty || caller.Scope != new ScopeKey("tenant", id.ToString("D"))) throw Missing();
             try
             {
                 _ = owner.Services;

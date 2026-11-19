@@ -6,20 +6,20 @@ namespace Kun.Core.MultiTenancy;
 public sealed record TenantInfo
 {
     /// <summary>租户 ID。</summary>
-    public string TenantId { get; }
+    public Guid TenantId { get; }
 
     /// <summary>可选的展示名（UI / 日志 / 审计用途）。null 表示消费者未提供。</summary>
     public string? DisplayName { get; init; }
 
     /// <summary>创建一个新的 <see cref="TenantInfo"/>。</summary>
-    /// <param name="tenantId">租户 ID。必须非 null、非空、非全空白字符。</param>
+    /// <param name="tenantId">租户 ID。必须为非空 UUID。</param>
     /// <param name="displayName">可选的展示名；默认 <see langword="null"/>。</param>
-    /// <exception cref="ArgumentException">当 <paramref name="tenantId"/> 为 null / 空字符串 / 仅空白字符时抛出。</exception>
-    public TenantInfo(string tenantId, string? displayName = null)
+    /// <exception cref="ArgumentException">当 <paramref name="tenantId"/> 为 <see cref="Guid.Empty"/> 时抛出。</exception>
+    public TenantInfo(Guid tenantId, string? displayName = null)
     {
-        if (string.IsNullOrWhiteSpace(tenantId))
+        if (tenantId == Guid.Empty)
         {
-            throw new ArgumentException("TenantId must be a non-empty, non-whitespace string.", nameof(tenantId));
+            throw new ArgumentException("TenantId must be a non-empty UUID.", nameof(tenantId));
         }
 
         TenantId = tenantId;

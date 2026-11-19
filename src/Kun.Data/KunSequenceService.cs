@@ -114,8 +114,8 @@ internal sealed partial class KunSequenceService(IServiceScopeFactory scopes, IT
     }
 
     // 序号属于租户；没有租户上下文时拒绝，不落到平台级共享计数。
-    private string RequireTenant() => tenant.TenantId is { Length: > 0 } id
-        ? id
+    private string RequireTenant() => tenant.TenantId is { } id && id != Guid.Empty
+        ? id.ToString("D")
         : throw new KunDataMisconfiguredException("序号服务必须在租户作用域内调用。");
 
     private static void ValidateCode(string ruleCode)

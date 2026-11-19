@@ -37,13 +37,13 @@ public sealed partial class PatchPersistenceTests
         await AdminExec("BEGIN;" + AuthzPlatformAccess.CreateMigrationSql(role) + "COMMIT;");
         using var active = await GrantRegistryRoles(running, tenant);
         var scopeA = new ScopeKey("tenant", HttpTenantA);
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
             await Repository(running.Host, tenant).PutAsync(scopeA, "private", Patch("""{"id":"private","plugin":"test.private","config":{}}"""), 0, "operator-a", Ct);
         await new PostgresPlatformRoleStore(running.Host.Services.GetRequiredService<IDataService>(), tenant, role).AssignSuperadminAsync("root", "platform-operator", Ct);
         var root = new PlatformUser("root");
 
         // 宿主还没装 Authz 组件：没有旁路端口，平台主体与不存在同为 404，不回退到租户判定器。
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
             await AssertCode(PlatformErrors.NotFound, async () => await running.Registry.GetScopeViewAsync(scopeA, root, Ct));
         await running.Runtime.MountAsync([
             new PluginDefinition(new PluginEntry("audit", "qian.audit", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { chain = new { store = "pg" } })),
@@ -51,7 +51,7 @@ public sealed partial class PatchPersistenceTests
             new PluginDefinition(new PluginEntry("authz", "qian.authz", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { platformRole = role })),
                 new AuthzPlugin(), [AuthzDefinition.Key, AuthzDefinition.PermissionsKey, AuthzDefinition.ResourceTypesKey, AuthzDefinition.SuperadminBypassKey])], Ct);
         Assert.Equal(PluginState.Ready, running.Runtime.GetState("authz", ScopeKey.Global));
-        using (tenant.BeginScope(HttpTenantA))
+        using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))
         {
             var view = await running.Registry.GetScopeViewAsync(scopeA, root, Ct);
             Assert.Contains(view, entry => entry.EntryId == "private");

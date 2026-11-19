@@ -26,12 +26,14 @@ public sealed class TenantContextBindingTests(PostgresFixture postgres) : IClass
     public async Task Query_SharedModelWithIndependentTenantAccessors_DoesNotUsePreviousAccessor(string mode, bool previousChangedTenant)
     {
         var ct = TestContext.Current.CancellationToken;
-        var own = "a-" + Guid.NewGuid().ToString("N");
-        var foreign = "b-" + Guid.NewGuid().ToString("N");
+        var ownId = Guid.NewGuid();
+        var own = ownId.ToString("D");
+        var foreignId = Guid.NewGuid();
+        var foreign = foreignId.ToString("D");
         await SeedAsync(own, foreign, ct);
         var firstTenant = new AsyncLocalTenantContext();
         Microsoft.EntityFrameworkCore.Metadata.IModel model;
-        using (firstTenant.BeginScope(own))
+        using (firstTenant.BeginScope(ownId))
         {
             await using var first = Context(mode, firstTenant);
             model = first.Model;
@@ -39,9 +41,9 @@ public sealed class TenantContextBindingTests(PostgresFixture postgres) : IClass
         }
 
         // A different service provider/request owns a different accessor, but EF reuses the same tenant model.
-        using var oldScope = firstTenant.BeginScope(previousChangedTenant ? foreign : null);
+        using var oldScope = firstTenant.BeginScope(previousChangedTenant ? foreignId : null);
         var secondTenant = new AsyncLocalTenantContext();
-        using (secondTenant.BeginScope(own))
+        using (secondTenant.BeginScope(ownId))
         {
             await using var second = Context(mode, secondTenant);
             second.Model.Should().BeSameAs(model, "the regression must exercise actual model-cache reuse");
@@ -49,7 +51,7 @@ public sealed class TenantContextBindingTests(PostgresFixture postgres) : IClass
             rows.Should().ContainSingle().Which.TenantId.Should().Be(own);
         }
 
-        using (secondTenant.BeginScope(foreign))
+        using (secondTenant.BeginScope(foreignId))
         {
             await using var other = Context(mode, secondTenant);
             (await other.Set<ContextBindingRow>().SingleAsync(ct)).TenantId.Should().Be(foreign);
@@ -113,7 +115,7 @@ internal sealed class BaseBindingContext(DbContextOptions<BaseBindingContext> op
 
 internal sealed class CurrentBindingContext(DbContextOptions<CurrentBindingContext> options, ITenantContext tenant) : DbContext(options), IKunMultiTenantDbContext
 {
-    public string? TenantIdForModelCacheKey => tenant.TenantId;
+    public string? TenantIdForModelCacheKey => tenant.TenantId?.ToString("D");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

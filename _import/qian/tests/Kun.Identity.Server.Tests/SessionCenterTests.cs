@@ -182,7 +182,7 @@ public sealed class SessionCenterTests(PostgresFixture postgres) : IClassFixture
 
         // 授权引擎在 authz.grant.changed.v1 之后让身份侧递增该主体的修订。
         long revision;
-        using (host.Tenant.BeginScope(Id(acme.Id)))
+        using (host.Tenant.BeginScope(acme.Id))
             revision = await host.Accounts.BumpIdentityRevisionAsync(person.Id, "grant_changed", Ct);
         Assert.Equal(1, revision);
         Assert.Equal("1", await host.Text("SELECT identity_revision FROM plugin_qian_identity.memberships WHERE id = @m::uuid", ("m", Id(inAcme.Id))));
@@ -199,9 +199,9 @@ public sealed class SessionCenterTests(PostgresFixture postgres) : IClassFixture
         var me = await browser.Json(HttpMethod.Get, "api/identity/me");
         Assert.Equal(1, me.Body.GetProperty("identity_revision").GetInt64());
         // 再变更一次继续递增；在没有成员身份的租户里调用是 NOT_FOUND，不会建出任何东西。
-        using (host.Tenant.BeginScope(Id(acme.Id))) Assert.Equal(2, await host.Accounts.BumpIdentityRevisionAsync(person.Id, "role_changed", Ct));
+        using (host.Tenant.BeginScope(acme.Id)) Assert.Equal(2, await host.Accounts.BumpIdentityRevisionAsync(person.Id, "role_changed", Ct));
         var stranger = (await CreatePerson(host, "路人")).Person;
-        using (host.Tenant.BeginScope(Id(acme.Id))) await Rejected("NOT_FOUND", () => host.Accounts.BumpIdentityRevisionAsync(stranger.Id, "x", Ct).AsTask());
-        using (host.Tenant.BeginScope(Id(acme.Id))) await Rejected("INPUT_INVALID", () => host.Accounts.BumpIdentityRevisionAsync(person.Id, " ", Ct).AsTask());
+        using (host.Tenant.BeginScope(acme.Id)) await Rejected("NOT_FOUND", () => host.Accounts.BumpIdentityRevisionAsync(stranger.Id, "x", Ct).AsTask());
+        using (host.Tenant.BeginScope(acme.Id)) await Rejected("INPUT_INVALID", () => host.Accounts.BumpIdentityRevisionAsync(person.Id, " ", Ct).AsTask());
     }
 }

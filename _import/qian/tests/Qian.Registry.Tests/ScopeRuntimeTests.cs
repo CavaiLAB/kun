@@ -26,10 +26,10 @@ public sealed partial class PatchPersistenceTests
         var repository = Repository(writerHost, writerTenant);
         var writer = new RegistryPatchWriter(repository, new RegistryProfileComposer(repository, new ProfileLoader(new SurfaceValidator()), running.Profile.Options));
         var globalContext = running.Runtime.GetContext("shared", ScopeKey.Global);
-        using (readerTenant.BeginScope("a")) await running.Registry.SynchronizeAsync(TenantA, Ct);
-        using (readerTenant.BeginScope("b")) await running.Registry.SynchronizeAsync(TenantB, Ct);
+        using (readerTenant.BeginScope(Tenants.A)) await running.Registry.SynchronizeAsync(TenantA, Ct);
+        using (readerTenant.BeginScope(Tenants.B)) await running.Registry.SynchronizeAsync(TenantB, Ct);
         Assert.Equal(["test.shared/hello"], running.Commands(TenantA)); Assert.Equal(["test.shared/hello"], running.Commands(TenantB));
-        using var writing = writerTenant.BeginScope("a");
+        using var writing = writerTenant.BeginScope(Tenants.A);
         await writer.PutAsync(TenantA, "private", Patch("""{"id":"private","plugin":"test.private","config":{"label":"A-only"}}"""), 0, "operator-a", Ct);
         await WithinFiveSeconds(() => running.Commands(TenantA).Contains("test.private/hello", StringComparer.Ordinal));
         Assert.Equal(["test.shared/hello"], running.Commands(TenantB));
@@ -67,13 +67,13 @@ public sealed partial class PatchPersistenceTests
         var writerTenant = new AsyncLocalTenantContext();
         using var writerHost = Host(writerTenant); await writerHost.StartAsync(Ct);
         var repository = Repository(writerHost, writerTenant);
-        using (readerTenant.BeginScope("a")) await running.Registry.SynchronizeAsync(TenantA, Ct);
-        using (readerTenant.BeginScope("b")) await running.Registry.SynchronizeAsync(TenantB, Ct);
-        using var writing = writerTenant.BeginScope("a");
+        using (readerTenant.BeginScope(Tenants.A)) await running.Registry.SynchronizeAsync(TenantA, Ct);
+        using (readerTenant.BeginScope(Tenants.B)) await running.Registry.SynchronizeAsync(TenantB, Ct);
+        using var writing = writerTenant.BeginScope(Tenants.A);
         await repository.PutAsync(TenantA, "shared", Patch("""{"id":"shared","config":{"label":"initial"}}"""), 0, "operator-a", Ct);
         await WithinFiveSeconds(() => running.Label("shared", TenantA) == "initial");
         var original = running.Runtime.GetContext("shared", TenantA);
-        using (readerTenant.BeginScope("a")) await running.Registry.SynchronizeAsync(TenantA, Ct);
+        using (readerTenant.BeginScope(Tenants.A)) await running.Registry.SynchronizeAsync(TenantA, Ct);
         Assert.Same(original, running.Runtime.GetContext("shared", TenantA));
         // 模拟管理面之外的坏数据；正式写入入口已在事务内拒绝此配置。
         await repository.PutAsync(TenantA, "shared", Patch("""{"id":"shared","config":{"label":42}}"""), 1, "operator-a", Ct);
@@ -93,7 +93,7 @@ public sealed partial class PatchPersistenceTests
         var tenant = new AsyncLocalTenantContext();
         await using var running = await CreateRunningRegistry(tenant);
         await AssertCode(PlatformErrors.Unauthenticated, () => running.Registry.SynchronizeAsync(TenantA, Ct).AsTask());
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             await AssertCode(PlatformErrors.NotFound, () => running.Registry.SynchronizeAsync(TenantB, Ct).AsTask());
             await AssertCode(PlatformErrors.NotFound, () => running.Registry.SynchronizeAsync(new ScopeKey("app", "unproven"), Ct).AsTask());
@@ -115,7 +115,7 @@ public sealed partial class PatchPersistenceTests
     {
         var tenant = new AsyncLocalTenantContext(); var corrupt = 1;
         await using var running = await CreateRunningRegistry(tenant, definition => Volatile.Read(ref corrupt) == 1 ? definition with { Entry = definition.Entry with { Scope = TenantB } } : definition);
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             var repository = Repository(running.Host, tenant);
             await repository.PutAsync(TenantA, "private", Patch("""{"id":"private","plugin":"test.private","config":{}}"""), 0, "actor", Ct);
@@ -133,7 +133,7 @@ public sealed partial class PatchPersistenceTests
     {
         var tenant = new AsyncLocalTenantContext();
         await using var running = await CreateRunningRegistry(tenant);
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             await Repository(running.Host, tenant).PutAsync(TenantA, "private", Patch("""{"id":"private","plugin":"test.private","config":{}}"""), 0, "actor", Ct);
             await running.Registry.SynchronizeAsync(TenantA, Ct);
@@ -194,8 +194,8 @@ public sealed partial class PatchPersistenceTests
         var tenant = new AsyncLocalTenantContext();
         await using var running = await CreateRunningRegistry(tenant);
         var reconciler = (RegistryScopeReconciler)typeof(RegistryService).GetField("_scopes", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(running.Registry)!;
-        using (tenant.BeginScope("a"))
-            await AssertCode(PlatformErrors.NotFound, () => reconciler.ActivateAsync("a", new ScopeKey("workspace", "x"), Ct).AsTask());
+        using (tenant.BeginScope(Tenants.A))
+            await AssertCode(PlatformErrors.NotFound, () => reconciler.ActivateAsync(Tenants.AText, new ScopeKey("workspace", "x"), Ct).AsTask());
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public sealed partial class PatchPersistenceTests
     {
         var tenant = new AsyncLocalTenantContext();
         await using var running = await CreateRunningRegistry(tenant);
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             var invalid = await Assert.ThrowsAsync<ErrorException>(() => Repository(running.Host, tenant).ListAsync(new ScopeKey("workspace", "x"), Ct));
             Assert.Equal((PlatformErrors.InputInvalid.Code, "registry/scope-patches.json#/scope"), (invalid.Error.Code.Code, Assert.Single(invalid.Error.Errors).Pointer));

@@ -52,7 +52,9 @@ builder.Services.AddDbContext<CatalogDbContext>((sp, opts) =>
 });
 ```
 
-实体实现 `IMultiTenant`：
+请求范围里的 `ITenantContext.TenantId` 为 `Guid?`。平台范围使用 `null`。实体的 `IMultiTenant.TenantId` 与 PostgreSQL 的行级策略使用同一份小写、带连字符的 UUID 文本。
+
+实体实现 `IMultiTenant`。
 
 ```csharp
 public class Product : AggregateRoot<Guid>, IMultiTenant
@@ -96,9 +98,11 @@ builder.Services.AddSingleton<ITenantDbContextFactory<CatalogDbContext>, Catalog
 // 2. DbContext 在 OnConfiguring 读取当前租户，按 tenant_id 切 schema
 builder.Services.AddDbContext<CatalogDbContext>((sp, opts) =>
 {
-    var tenantId = sp.GetRequiredService<ITenantContext>().TenantId ?? "public";
+    var tenantId = sp.GetRequiredService<ITenantContext>().TenantId
+        ?? throw new InvalidOperationException("Tenant required.");
+    var schema = sp.GetRequiredService<IOptions<KunMultiTenancyOptions>>().Value.GetSchemaName(tenantId);
     opts.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
-        .UseKunSchema(tenantId)                          // 切 DefaultSchema + MigrationsHistoryTable
+        .UseKunSchema(schema)  // 上下文的 DefaultSchema 应使用相同的名称
         .ReplaceService<IModelCacheKeyFactory, KunMultiTenantModelCacheKeyFactory>();
 });
 
@@ -106,20 +110,27 @@ builder.Services.AddDbContext<CatalogDbContext>((sp, opts) =>
 public sealed class CatalogTenantDbContextFactory : ITenantDbContextFactory<CatalogDbContext>
 {
     private readonly string _connectionString;
-    public CatalogTenantDbContextFactory(IConfiguration cfg) { _connectionString = cfg.GetConnectionString("Default")!; }
-    public CatalogDbContext CreateForTenant(string tenantId)
+    private readonly KunMultiTenancyOptions _tenancy;
+    public CatalogTenantDbContextFactory(IConfiguration cfg, IOptions<KunMultiTenancyOptions> tenancy)
+    {
+        _connectionString = cfg.GetConnectionString("Default")!;
+        _tenancy = tenancy.Value;
+    }
+    public CatalogDbContext CreateForTenant(Guid tenantId)
     {
         var opts = new DbContextOptionsBuilder<CatalogDbContext>()
-            .UseNpgsql(_connectionString).UseKunSchema(tenantId).Options;
+            .UseNpgsql(_connectionString).UseKunSchema(_tenancy.GetSchemaName(tenantId)).Options;
         return new CatalogDbContext(opts, new FixedTenantContext(tenantId));
     }
 }
 
 // 4. 租户开户时调 provisioner
-await provisioner.ProvisionAsync(new TenantInfo("tenant-acme"));   // 自动 CREATE SCHEMA + migrations
+await provisioner.ProvisionAsync(new TenantInfo(tenantId));   // 自动 CREATE SCHEMA + migrations
 ```
 
 `KunMultiTenantModelCacheKeyFactory` 确保每个租户有独立的 EF 模型缓存键（否则第一个租户的已编译模型会被第二个租户复用，schema 错位）。
+
+默认架构名由 `tenant_` 和去掉连字符的 32 位小写 UUID 组成。开户器和上下文工厂使用同一项 `SchemaPrefix`。已有按旧标识命名的租户架构需要在切换前迁移。
 
 ### 运维注意
 - 迁移无法在 app 启动时批量跑（可能还没注册所有租户），必须走 `ITenantProvisioner` 的开户钩子。
@@ -150,7 +161,7 @@ public sealed class CatalogTenantDbContextFactory : ITenantDbContextFactory<Cata
 {
     private readonly IDbConnectionResolver _resolver;
     public CatalogTenantDbContextFactory(IDbConnectionResolver resolver) { _resolver = resolver; }
-    public CatalogDbContext CreateForTenant(string tenantId)
+    public CatalogDbContext CreateForTenant(Guid tenantId)
     {
         var opts = new DbContextOptionsBuilder<CatalogDbContext>()
             .UseNpgsql(_resolver.ResolveConnectionString(tenantId)).Options;
@@ -166,8 +177,8 @@ appsettings.json：
     "MultiTenancy": {
       "Tenants": {
         "ConnectionStrings": {
-          "tenant-acme":    "Host=db-acme;Database=catalog;Username=u;Password=p",
-          "tenant-fabrikam":"Host=db-fabrikam;Database=catalog;Username=u;Password=p"
+          "01900000-0000-7000-8000-000000000001": "Host=db-acme;Database=catalog;Username=u;Password=p",
+          "01900000-0000-7000-8000-000000000002": "Host=db-fabrikam;Database=catalog;Username=u;Password=p"
         }
       }
     }

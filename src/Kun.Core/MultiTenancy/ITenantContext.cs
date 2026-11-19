@@ -10,12 +10,12 @@ namespace Kun.Core.MultiTenancy;
 public interface ITenantContext
 {
     /// <summary>当前请求的租户 ID；后台任务中可能为 <see langword="null"/>。</summary>
-    string? TenantId { get; }
+    Guid? TenantId { get; }
 
     /// <summary>当前应用是否启用了多租户。</summary>
     bool IsMultiTenant { get; }
 
     /// <summary>打开租户作用域；释放后恢复原上下文。旧实现须显式支持后台回灌。</summary>
-    IDisposable BeginScope(string? tenantId) =>
+    IDisposable BeginScope(Guid? tenantId) =>
         throw new NotSupportedException("This tenant context does not support scopes. Register AsyncLocalTenantContext.");
 }

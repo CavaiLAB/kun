@@ -50,7 +50,7 @@ try
     const string a = "01900000-0000-7000-8000-000000000001";
     const string b = "01900000-0000-7000-8000-000000000002";
     stage = "租户追加读取验链";
-    using (tenant.BeginScope(a))
+    using (tenant.BeginScope(Guid.ParseExact(a, "D")))
     {
         var record = Record(a); var first = await audit.AppendAsync(record);
         Ensure(first.Sequence == 1 && (await audit.AppendAsync(record)).ContentHash == first.ContentHash, "追加与同 ID 幂等");
@@ -80,7 +80,7 @@ try
         }
         Ensure((await audit.VerifyAsync()) is { Valid: true, CheckedEntries: 2 }, "同事务提交业务和审计");
     }
-    using (tenant.BeginScope(b)) Ensure((await audit.ReadAsync(0, 10)).Count == 0, "跨租户隔离");
+    using (tenant.BeginScope(Guid.ParseExact(b, "D"))) Ensure((await audit.ReadAsync(0, 10)).Count == 0, "跨租户隔离");
     stage = "平台独立链";
     await audit.AppendPlatformAsync(caller, Record(null));
     Ensure((await audit.ReadPlatformAsync(caller, 0, 10)).Count == 1 && (await audit.VerifyPlatformAsync(caller)).Valid, "独立平台登录追加读取验链");

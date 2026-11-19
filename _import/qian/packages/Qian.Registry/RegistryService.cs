@@ -105,18 +105,20 @@ internal sealed partial class RegistryService : IRegistryService
     {
         if (_disposed || _lifetime.IsCancellationRequested || _listener is null) throw new ServiceNotReadyException();
         // 不能因为调用方传了 app/session id 就推断归属；这些种类待 Tenancy 的真实 lineage 接入。
-        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        if (scope.Kind != "tenant" || scope.Id != _tenant.TenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
-        await _scopes.ActivateAsync(_tenant.TenantId, scope, cancellationToken).ConfigureAwait(false);
+        if (!_tenant.IsMultiTenant || _tenant.TenantId is not { } id || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        var owner = id.ToString("D");
+        if (scope.Kind != "tenant" || scope.Id != owner) throw new ErrorException(new Error(PlatformErrors.NotFound));
+        await _scopes.ActivateAsync(owner, scope, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<IReadOnlyList<RegistryScopeEntry>> GetScopeEntriesAsync(ScopeKey scope, ServiceKey key, CancellationToken cancellationToken = default)
     {
         if (_disposed || _lifetime.IsCancellationRequested || _listener is null) throw new ServiceNotReadyException();
-        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        if (scope.Kind != "tenant" || scope.Id != _tenant.TenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
+        if (!_tenant.IsMultiTenant || _tenant.TenantId is not { } id || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        var owner = id.ToString("D");
+        if (scope.Kind != "tenant" || scope.Id != owner) throw new ErrorException(new Error(PlatformErrors.NotFound));
         ArgumentException.ThrowIfNullOrWhiteSpace(key.Name);
-        var entries = await _scopes.ReadAsync(_tenant.TenantId, scope, key, cancellationToken).ConfigureAwait(false);
+        var entries = await _scopes.ReadAsync(owner, scope, key, cancellationToken).ConfigureAwait(false);
         return Array.AsReadOnly(entries.Where(entry => _installed.Any(component => component.PluginId == entry.PluginId && component.Version == entry.Version)).ToArray());
     }
 
@@ -124,7 +126,7 @@ internal sealed partial class RegistryService : IRegistryService
     {
         if (_listener is null) throw new ServiceNotReadyException();
         WriteTenant(scope);
-        return await _scopes.ViewAsync(_tenant.TenantId!, scope, cancellationToken).ConfigureAwait(false);
+        return await _scopes.ViewAsync(_tenant.TenantId?.ToString("D")!, scope, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<IReadOnlyList<RegistryEntryView>> GetScopeViewAsync(ScopeKey scope, ICurrentUser user, CancellationToken cancellationToken = default)
@@ -230,14 +232,14 @@ internal sealed partial class RegistryService : IRegistryService
     {
         if (_listener is null) throw new ServiceNotReadyException();
         WriteTenant(scope);
-        return await _scopes.DiagnoseAsync(_tenant.TenantId!, scope, cancellationToken).ConfigureAwait(false);
+        return await _scopes.DiagnoseAsync(_tenant.TenantId?.ToString("D")!, scope, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<RegistryArtifactPermissions> GetPluginPermissionsAsync(string pluginId, string version, ICurrentUser user, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(pluginId); ArgumentNullException.ThrowIfNull(version);
         // 与 scope 视图同一判定入口，scope 取当前已验证租户自己的 tenant scope；判定之后再看组件标识，无权限者得到的永远是同一个 404。
-        await AuthorizeAsync(new ScopeKey("tenant", _tenant.TenantId ?? ""), user, RegistryDefinition.ScopeReadPermission,
+        await AuthorizeAsync(new ScopeKey("tenant", _tenant.TenantId?.ToString("D") ?? ""), user, RegistryDefinition.ScopeReadPermission,
             "registry/artifact:" + pluginId + "@" + version, cancellationToken).ConfigureAwait(false);
         if (pluginId.Length is 0 or > 128 || version.Length is 0 or > 200 || pluginId.Any(char.IsControl) || version.Any(char.IsControl)) throw NotFound();
         return await _artifacts.InstalledManifestAsync(pluginId, version, cancellationToken).ConfigureAwait(false) is { } artifact ? Permissions(artifact) : throw NotFound();
@@ -254,7 +256,7 @@ internal sealed partial class RegistryService : IRegistryService
     public ValueTask<IReadOnlyList<RegistryScopeEntry>> GetGlobalEntriesAsync(ServiceKey key, CancellationToken cancellationToken = default)
     {
         if (_disposed || _lifetime.IsCancellationRequested || _listener is null) throw new ServiceNotReadyException();
-        if (!string.IsNullOrEmpty(_tenant.TenantId)) throw NotFound();
+        if (_tenant.TenantId is not null) throw NotFound();
         ArgumentException.ThrowIfNullOrWhiteSpace(key.Name);
         cancellationToken.ThrowIfCancellationRequested();
         var live = _options.Runtime.DumpConfig().Where(entry => entry.Scope == ScopeKey.Global).ToDictionary(entry => entry.Id, StringComparer.Ordinal);
@@ -298,8 +300,9 @@ internal sealed partial class RegistryService : IRegistryService
     private void WriteTenant(ScopeKey scope)
     {
         if (_disposed || _lifetime.IsCancellationRequested) throw new ServiceNotReadyException();
-        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        if (scope.Kind != "tenant" || scope.Id != _tenant.TenantId) throw NotFound();
+        if (!_tenant.IsMultiTenant || _tenant.TenantId is not { } id || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        var owner = id.ToString("D");
+        if (scope.Kind != "tenant" || scope.Id != owner) throw NotFound();
     }
 
     // 只看文件层（profile、组合包与 patch 文件）装配出的平台条目，不含任何数据库 scope patch。
@@ -331,9 +334,9 @@ internal sealed partial class RegistryService : IRegistryService
         if (_disposed || _lifetime.IsCancellationRequested || _listener is null) throw new ServiceNotReadyException();
         ArgumentNullException.ThrowIfNull(user);
         var principal = user.Principal;
-        if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || !_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId))
+        if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || !_tenant.IsMultiTenant || _tenant.TenantId is not { } id || id == Guid.Empty)
             throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        var tenantId = _tenant.TenantId;
+        var tenantId = id.ToString("D");
         if (principal.Actor is null && principal.Kind == PrincipalKind.User && principal.TenantId is null && scope.Kind == "tenant" && scope.Id == tenantId)
             return await BypassAsync(user, principal, tenantId, permission, resource, ct).ConfigureAwait(false);
         if (principal.Actor is not null || principal.Kind is not (PrincipalKind.User or PrincipalKind.Service) || principal.TenantId != tenantId ||
@@ -344,7 +347,7 @@ internal sealed partial class RegistryService : IRegistryService
         var decision = await checker.CheckAsync(new PermissionRequest(subject, permission), ct).ConfigureAwait(false);
         // 判定之后再确认请求主体与租户上下文没有变化。
         if (!decision.Allow || !user.IsAuthenticated || user.UserId != principal.Subject || user.Principal?.TenantId != tenantId ||
-            user.Principal?.Kind != principal.Kind || user.Principal?.Actor is not null || _tenant.TenantId != tenantId) throw NotFound();
+            user.Principal?.Kind != principal.Kind || user.Principal?.Actor is not null || _tenant.TenantId?.ToString("D") != tenantId) throw NotFound();
         return tenantId;
     }
 
@@ -356,7 +359,7 @@ internal sealed partial class RegistryService : IRegistryService
         var decision = await bypass.AuthorizeAsync(new SuperadminAccess(new AuthorizationSubject(principal.Subject, null, "user"),
             permission, tenantId, resource, "api"), ct).ConfigureAwait(false);
         if (!decision.Allow || !user.IsAuthenticated || user.UserId != principal.Subject || user.Principal?.TenantId is not null ||
-            user.Principal?.Kind != PrincipalKind.User || user.Principal?.Actor is not null || _tenant.TenantId != tenantId) throw NotFound();
+            user.Principal?.Kind != PrincipalKind.User || user.Principal?.Actor is not null || _tenant.TenantId?.ToString("D") != tenantId) throw NotFound();
         return tenantId;
     }
 

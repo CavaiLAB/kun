@@ -30,7 +30,7 @@ public sealed class DirectoryQueryTests(PostgresFixture postgres) : IClassFixtur
             var (person, phone) = await CreatePerson(host, name);
             members[key] = await Join(host, tenant, person.Id, name, admin: key == "zhangsan", account: key); phones[key] = phone;
         }
-        using var scope = host.Tenant.BeginScope(tenant.Id.ToString("D")); var d = host.Service;
+        using var scope = host.Tenant.BeginScope(tenant.Id); var d = host.Service;
         foreach (var (type, label) in new[] { ("company", "公司"), ("dept", "部门"), ("team", "小组") }) await d.SetOrganizationTypeAsync(new(type, label), Ct);
         var hq = await d.CreateOrganizationAsync(new("总部", "company"), Ct);
         var rd = await d.CreateOrganizationAsync(new("研发中心", "dept", hq.Id), Ct);
@@ -66,7 +66,7 @@ public sealed class DirectoryQueryTests(PostgresFixture postgres) : IClassFixtur
     public async Task 上级链按岗位链返回责任人序列_空缺占位_跨组织去重_主岗位变化后随之变化()
     {
         await using var host = await AccountsHost.Start(postgres); var w = await Build(host, "superiors");
-        using var scope = host.Tenant.BeginScope(w.Tenant.Id.ToString("D")); var d = host.Service;
+        using var scope = host.Tenant.BeginScope(w.Tenant.Id); var d = host.Service;
         // 赵六的主岗位是前端工程师：前端组长（空缺）→ 研发总监（父岗位在研发中心）→ 总经理；总部的责任岗位已在链上，不重复。
         var chain = await d.GetSuperiorsAsync(w.M("zhaoliu"), cancellationToken: Ct);
         Assert.Equal((w.Positions["engineer"], w.Orgs["fe"]), (chain.StartPositionId!.Value, chain.StartOrganizationId!.Value));
@@ -116,7 +116,7 @@ public sealed class DirectoryQueryTests(PostgresFixture postgres) : IClassFixtur
     public async Task 直属主管逐级上溯_部门负责人_下属与子孙是上级链的反查()
     {
         await using var host = await AccountsHost.Start(postgres); var w = await Build(host, "managers");
-        using var scope = host.Tenant.BeginScope(w.Tenant.Id.ToString("D")); var d = host.Service;
+        using var scope = host.Tenant.BeginScope(w.Tenant.Id); var d = host.Service;
         // 前端组未设主管 → 研发中心的李四；李四本人是研发中心主管 → 总部的张三；张三在顶层 → 没有；只有主岗位的周九 → 销售部（岗位所属组织）的钱七。
         Assert.Equal((w.M("lisi"), w.Orgs["rd"]), Manager(await d.GetManagerAsync(w.M("zhaoliu"), Ct)));
         Assert.Equal((w.M("zhangsan"), w.Orgs["hq"]), Manager(await d.GetManagerAsync(w.M("lisi"), Ct)));
@@ -239,7 +239,7 @@ public sealed class DirectoryQueryTests(PostgresFixture postgres) : IClassFixtur
     {
         await using var host = await AccountsHost.Start(postgres); var w = await Build(host, "member-search"); var other = host.Tenants.Add("member-search-other");
         var (stranger, _) = await CreatePerson(host, "张外"); var outside = await Join(host, other, stranger.Id, "张外", account: "zhangwai");
-        using (host.Tenant.BeginScope(w.Tenant.Id.ToString("D")))
+        using (host.Tenant.BeginScope(w.Tenant.Id))
             await host.Service.SetProfileAsync(w.M("sunba"), new("孙八", "sunba-pinyin", "13812345678", "sunba@example.test"), Ct);
         var browser = host.NewBrowser(); await browser.Login(w.Phones["zhaoliu"], Password, tenant: w.Tenant.Id);
         async Task<Guid[]> Find(string query)
@@ -261,7 +261,7 @@ public sealed class DirectoryQueryTests(PostgresFixture postgres) : IClassFixtur
         Assert.Equal([w.M("zhaoliu")], await Find($"orgs/{w.Orgs["rd"]:D}/members?descendants=true&q=zhao"));
         Assert.Empty(await Find($"orgs/{w.Orgs["rd"]:D}/members?q=zhao"));
         // 按 id 批量：本租户成员按账号排序返回；别的租户、不存在、已从目录删除的 id 直接省略。
-        using (host.Tenant.BeginScope(w.Tenant.Id.ToString("D"))) await host.Service.DeleteMemberAsync(w.M("nobody"), "search", Ct);
+        using (host.Tenant.BeginScope(w.Tenant.Id)) await host.Service.DeleteMemberAsync(w.M("nobody"), "search", Ct);
         Assert.Equal([w.M("lisi"), w.M("zhaoliu")], await Find($"members?ids={w.M("zhaoliu"):D}&ids={outside.Id:D}&ids={Guid.NewGuid():D}&ids={w.M("nobody"):D}&ids={w.M("lisi"):D}"));
         Assert.Equal([w.M("qianqi")], await Find($"members?person_ids={w.Members["qianqi"].PersonId:D}&person_ids={stranger.Id:D}"));
         // 参数校验：条件互斥、数量与重复、格式、长度、单值参数重复。
@@ -299,7 +299,7 @@ public sealed class DirectoryQueryTests(PostgresFixture postgres) : IClassFixtur
             foreach (var paging in new[] { "limit=55", "limit=2", "offset=0", "offset=10" })
                 Assert.Equal((HttpStatusCode.BadRequest, "INPUT_INVALID"), await Status(browser, "members?" + query + "&" + paging));
         }
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D")))
+        using (host.Tenant.BeginScope(tenant.Id))
         {
             var batch = await host.Service.QueryMembersAsync(new DirectoryMemberQuery { MembershipIds = [.. members.Select(member => member.Id)], Offset = 50, Limit = 2 }, Ct);
             Assert.Equal(expected, batch.Select(member => member.Membership.Id));
@@ -313,7 +313,7 @@ public sealed class DirectoryQueryTests(PostgresFixture postgres) : IClassFixtur
     public async Task 目录查询的真实响应符合Agent契约Schema_契约里的每个GET端点与查询参数都调到()
     {
         await using var host = await AccountsHost.Start(postgres); var w = await Build(host, "directory-contract");
-        using (host.Tenant.BeginScope(w.Tenant.Id.ToString("D")))
+        using (host.Tenant.BeginScope(w.Tenant.Id))
         {
             await host.Service.SetProfileAsync(w.M("zhaoliu"), new("赵六", "zhaoliu", "13812345678", "zhaoliu@example.test", JsonSerializer.SerializeToElement(new { locale = "zh-CN" })), Ct);
             _ = await host.Service.CreateGroupAsync("项目组", Ct);

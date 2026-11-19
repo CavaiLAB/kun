@@ -19,11 +19,11 @@ public sealed class OptionsBasedTenantConnectionResolver : IDbConnectionResolver
     }
 
     /// <inheritdoc />
-    public string ResolveConnectionString(string tenantId)
+    public string ResolveConnectionString(Guid tenantId)
     {
-        if (string.IsNullOrWhiteSpace(tenantId))
+        if (tenantId == Guid.Empty)
         {
-            throw new ArgumentException("TenantId must be a non-empty, non-whitespace string.", nameof(tenantId));
+            throw new ArgumentException("TenantId must be a non-empty UUID.", nameof(tenantId));
         }
 
         var map = _options.CurrentValue.ConnectionStrings;

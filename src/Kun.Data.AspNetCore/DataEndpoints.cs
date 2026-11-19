@@ -87,7 +87,7 @@ public static class DataEndpoints
     // 数据连接按租户隔离：没有已验证租户的主体（如平台级身份）不能读写任何档案。
     private static RouteHandlerBuilder Tenant(RouteHandlerBuilder builder) => builder.AddEndpointFilter(async (context, next) =>
     {
-        if (string.IsNullOrEmpty(context.HttpContext.RequestServices.GetRequiredService<ITenantContext>().TenantId))
+        if (context.HttpContext.RequestServices.GetRequiredService<ITenantContext>().TenantId is null)
             throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         return await next(context).ConfigureAwait(false);
     });

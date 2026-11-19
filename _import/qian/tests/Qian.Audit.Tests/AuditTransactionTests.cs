@@ -27,7 +27,7 @@ public sealed partial class AuditStoreTests
         var tenant = new AsyncLocalTenantContext(); var (connection, role) = await CreateBusinessRole();
         using var host = BusinessHost(tenant, connection); await host.StartAsync(Ct); await PrepareBusiness(host, role);
         await using var runtime = await MountAudit(host); var audit = runtime.GetContext("consumer", ScopeKey.Global).Audit();
-        using var scope = tenant.BeginScope(A); var data = host.Services.GetRequiredService<IDataService>();
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); var data = host.Services.GetRequiredService<IDataService>();
         var committed = Guid.CreateVersion7(); var rolledBack = Guid.CreateVersion7(); var record = CanonicalizerTests.Record();
         await using (var session = await data.OpenAsync<CrmDbContext>(Ct))
         {
@@ -58,7 +58,7 @@ public sealed partial class AuditStoreTests
         using var host = BusinessHost(tenant, connection); await host.StartAsync(Ct); await PrepareBusiness(host, role);
         await using var runtime = await MountAudit(host); var audit = runtime.GetContext("consumer", ScopeKey.Global).Audit();
         await Admin("CREATE FUNCTION plugin_qian_audit.reject_transaction() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'test transaction failure'; END $$; CREATE TRIGGER reject_transaction BEFORE INSERT ON plugin_qian_audit.audit_entries FOR EACH ROW EXECUTE FUNCTION plugin_qian_audit.reject_transaction();");
-        using var scope = tenant.BeginScope(A); var data = host.Services.GetRequiredService<IDataService>();
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); var data = host.Services.GetRequiredService<IDataService>();
         await using (var session = await data.OpenAsync<CrmDbContext>(Ct))
         {
             await using var transaction = await session.Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
@@ -85,7 +85,7 @@ public sealed partial class AuditStoreTests
             await using var direct = new NpgsqlCommand(sql, app);
             Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, (await Assert.ThrowsAsync<PostgresException>(() => direct.ExecuteNonQueryAsync(Ct))).SqlState);
         }
-        using var scope = tenant.BeginScope(A);
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
         await using (var weak = await app.BeginTransactionAsync(IsolationLevel.ReadCommitted, Ct))
         {
             Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), weak, Ct))).Error.Code.Code);
@@ -144,7 +144,7 @@ public sealed partial class AuditStoreTests
         var tenant = new AsyncLocalTenantContext(); var (connection, role) = await CreateBusinessRole();
         using var host = BusinessHost(tenant, connection); await host.StartAsync(Ct); await PrepareBusiness(host, role);
         await using var runtime = await MountAudit(host); var audit = runtime.GetContext("consumer", ScopeKey.Global).Audit();
-        using var scope = tenant.BeginScope(A); var data = host.Services.GetRequiredService<IDataService>();
+        using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); var data = host.Services.GetRequiredService<IDataService>();
         var first = await audit.AppendAsync(CanonicalizerTests.Record(payload: "{\"long\":9007199254740993}"), Ct);
         var record = CanonicalizerTests.Record(payload: "{\"unicode\":\"客户\",\"precise\":1.25}");
         for (var i = 0; i < 2; i++)
@@ -180,11 +180,11 @@ public sealed partial class AuditStoreTests
         await hostA.StartAsync(Ct); await hostB.StartAsync(Ct); await PrepareBusiness(hostA, role);
         await using var runtimeA = await MountAudit(hostA); await using var runtimeB = await MountAudit(hostB);
         var auditA = runtimeA.GetContext("consumer", ScopeKey.Global).Audit(); var auditB = runtimeB.GetContext("consumer", ScopeKey.Global).Audit();
-        using (tenantA.BeginScope(A)) await auditA.AppendAsync(CanonicalizerTests.Record(), Ct);
+        using (tenantA.BeginScope(Guid.ParseExact(A, "D"))) await auditA.AppendAsync(CanonicalizerTests.Record(), Ct);
         var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously); var arrivals = 0; var conflicts = 0;
         async Task Write(IHost host, AsyncLocalTenantContext tenant, IAuditService audit)
         {
-            using var scope = tenant.BeginScope(A); var data = host.Services.GetRequiredService<IDataService>();
+            using var scope = tenant.BeginScope(Guid.ParseExact(A, "D")); var data = host.Services.GetRequiredService<IDataService>();
             for (var index = 0; index < 8; index++)
             {
                 var id = Guid.CreateVersion7(); var record = CanonicalizerTests.Record(id: id);
@@ -213,7 +213,7 @@ public sealed partial class AuditStoreTests
         }
         await Task.WhenAll(Write(hostA, tenantA, auditA), Write(hostB, tenantB, auditB));
         Assert.True(conflicts > 0, "必须实际产生旧快照冲突，证明重试的是包含业务写入的整笔事务。");
-        using var verifyScope = tenantA.BeginScope(A); await using var verify = await hostA.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
+        using var verifyScope = tenantA.BeginScope(Guid.ParseExact(A, "D")); await using var verify = await hostA.Services.GetRequiredService<IDataService>().OpenAsync<CrmDbContext>(Ct);
         var customers = await verify.Context.Customers.Select(row => row.Id).ToArrayAsync(Ct); Assert.Equal(16, customers.Length);
         var records = await auditA.ReadAsync(0, 100, cancellationToken: Ct);
         Assert.Equal(customers.Order(), records.Skip(1).Select(row => row.Record.Id).Order());

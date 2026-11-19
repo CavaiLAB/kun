@@ -279,7 +279,7 @@ public sealed class DirectoryMemberAddTests(PostgresFixture postgres) : IClassFi
     {
         await using var host = await AccountsHost.Start(postgres); var tenant = host.Tenants.Add("member-restore", limit: 2);
         var (admin, adminPerson) = await Administrator(host, tenant);
-        async Task<int> Counted() { using var scope = host.Tenant.BeginScope(tenant.Id.ToString("D")); return await host.Service.CountUsersAsync(Ct); }
+        async Task<int> Counted() { using var scope = host.Tenant.BeginScope(tenant.Id); return await host.Service.CountUsersAsync(Ct); }
         var (person, phone) = await CreatePerson(host, "老员工", extra: [new IdentifierInput(IdentifierKind.Username, "laoyuangong", true)]);
         var original = await Join(host, tenant, person.Id, "老员工", account: "lao");
         Assert.Equal(2, await Counted());

@@ -329,14 +329,14 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
                 var fields = document.RootElement.EnumerateObject().Where(field => field.NameEquals("tenant_id")).ToArray();
                 if (fields.Length != 1 || fields[0].Value.ValueKind != JsonValueKind.String || fields[0].Value.GetString() != id.ToString("D"))
                     throw new KunEventsException(EventsErrors.ConsumeRejected, "信封原文必须恰有一个与授权租户一致的 tenant_id。");
-                scope = tenant.BeginScope(id.ToString("D"));
+                scope = tenant.BeginScope(id);
             }
         }
         catch (Exception error) when (error is ErrorException or KunEventsException or ArgumentException or JsonException)
         {
             throw new DeliveryRejectedException("tenant_rejected", error);
         }
-        if (Guid.TryParseExact(tenant.TenantId, "D", out var current) && current == id) return scope;
+        if (tenant.TenantId is { } current && current == id) return scope;
         scope?.Dispose();
         throw new DeliveryRejectedException("tenant_rejected", new KunEventsException(EventsErrors.ConsumeRejected, "进入租户作用域后当前租户与信封租户不一致。"));
     }

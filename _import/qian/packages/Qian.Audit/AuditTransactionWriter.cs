@@ -15,9 +15,9 @@ internal static class AuditTransactionWriter
         ArgumentNullException.ThrowIfNull(record); ArgumentNullException.ThrowIfNull(transaction);
         if (transaction is not NpgsqlTransaction pg || pg.Connection is not { State: ConnectionState.Open } connection || pg.IsolationLevel != IsolationLevel.Serializable)
             throw Error(PlatformErrors.InputInvalid);
-        var owner = tenant.TenantId;
-        if (!Guid.TryParseExact(owner, "D", out var tenantId) || tenantId == Guid.Empty || tenantId.ToString("D") != owner || record.TenantId != owner)
-            throw Error(PlatformErrors.AuthzDenied);
+        if (tenant.TenantId is not { } tenantId || tenantId == Guid.Empty) throw Error(PlatformErrors.AuthzDenied);
+        var owner = tenantId.ToString("D");
+        if (record.TenantId != owner) throw Error(PlatformErrors.AuthzDenied);
         _ = AuditCanonicalizer.Canonicalize(record.Payload);
         await using (var guard = new NpgsqlCommand("SELECT NOT coalesce(bool_or(rolsuper OR rolbypassrls), true) AND current_user = session_user AND current_setting('app.current_tenant_id', true) = @tenant FROM pg_catalog.pg_roles WHERE rolname IN (current_user, session_user)", connection, pg))
         {
@@ -46,7 +46,7 @@ internal static class AuditTransactionWriter
                     throw Error(PlatformErrors.Conflict);
             }
         }
-        if (tenant.TenantId != owner) throw Error(PlatformErrors.AuthzDenied);
+        if (tenant.TenantId?.ToString("D") != owner) throw Error(PlatformErrors.AuthzDenied);
         var hash = AuditCanonicalizer.Hash(record, sequence, previous);
         await using var append = new NpgsqlCommand("SELECT plugin_qian_audit.transaction_append(@body, @previous, @hash)", connection, pg);
         append.Parameters.AddWithValue("body", AuditCanonicalizer.Content(record, sequence));

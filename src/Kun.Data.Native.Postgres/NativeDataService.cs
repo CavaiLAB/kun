@@ -54,7 +54,7 @@ internal sealed class NativeDataService(ScopeKey ownerScope, ScopeKey ownerEntry
 
     private async ValueTask<INativeDataSession> OpenAsync(string name, NativeDataAccess access, IPluginContext? caller, CancellationToken ct)
     {
-        var binding = Find(name, access); var id = access == NativeDataAccess.Tenant ? Tenant() : null;
+        var binding = Find(name, access); Guid? id = access == NativeDataAccess.Tenant ? Tenant() : null;
         CheckContext(id, caller);
         var lifetime = Enter();
         NativeConnectionLease? connection = null; NativeSession? session = null; Task? pendingCleanup = null;
@@ -116,7 +116,7 @@ internal sealed class NativeDataService(ScopeKey ownerScope, ScopeKey ownerEntry
         CheckContext(id, null);
     }
 
-    internal void CheckContext(string? capturedTenant, IPluginContext? caller)
+    internal void CheckContext(Guid? capturedTenant, IPluginContext? caller)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
         if (ownerScope != ScopeKey.Global || ownerEntryScope != ScopeKey.Global || System.Transactions.Transaction.Current is not null) throw NativeErrors.Denied();
@@ -127,8 +127,7 @@ internal sealed class NativeDataService(ScopeKey ownerScope, ScopeKey ownerEntry
         else if (tenant.TenantId is not null || caller is null || caller.Scope != ScopeKey.Global || caller.Entry.Scope != ScopeKey.Global ||
             !ReferenceEquals(caller.TryInject<INativeDataService>(NativeDataDefinition.Key), this)) throw NativeErrors.Denied();
     }
-    private string Tenant() => tenant.TenantId is { } id && Guid.TryParseExact(id, "D", out var parsed) && parsed != Guid.Empty && id == parsed.ToString("D")
-        ? id : throw NativeErrors.Denied();
+    private Guid Tenant() => tenant.TenantId is { } id && id != Guid.Empty ? id : throw NativeErrors.Denied();
     private OpenBinding Find(string name, NativeDataAccess access)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);

@@ -324,7 +324,7 @@ public sealed class TransactionalAuditTests : IClassFixture<PostgresFixture>
 
     private sealed class Tenant(string id) : ITenantContext
     {
-        public string? TenantId => id;
+        public Guid? TenantId { get; } = Guid.ParseExact(id, "D");
         public bool IsMultiTenant => true;
     }
     private sealed class User(bool authenticated) : ICurrentUser

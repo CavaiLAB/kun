@@ -97,7 +97,7 @@ internal sealed class PostgresPlatformRoleStore(IDataService data, ITenantContex
     private async Task Write(string actor, Func<PlatformAuthzDbContext, Task> update, CancellationToken ct)
     {
         Identifier(actor);
-        if (!string.IsNullOrEmpty(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
+        if (tenant.TenantId is not null) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         await using var session = await data.OpenAsync<PlatformAuthzDbContext>(ct).ConfigureAwait(false);
         var db = session.Context;
         await db.Database.OpenConnectionAsync(ct).ConfigureAwait(false);
@@ -105,7 +105,7 @@ internal sealed class PostgresPlatformRoleStore(IDataService data, ITenantContex
         await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({"authz-platform-roles"}, 0))", ct).ConfigureAwait(false);
         await update(db).ConfigureAwait(false);
-        if (!string.IsNullOrEmpty(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
+        if (tenant.TenantId is not null) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         await session.SaveChangesAsync(ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);
     }

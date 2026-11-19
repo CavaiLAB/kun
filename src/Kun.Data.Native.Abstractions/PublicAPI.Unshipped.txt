@@ -8,7 +8,6 @@ Kun.Data.Native.INativeDataSession.BeginTransactionAsync(System.Data.IsolationLe
 Kun.Data.Native.INativeDataSession.CommitAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 Kun.Data.Native.INativeDataSession.Connection.get -> System.Data.Common.DbConnection!
 Kun.Data.Native.INativeDataSession.RollbackAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-Kun.Data.Native.INativeDataSession.TenantId.get -> string?
 Kun.Data.Native.INativeDataSession.Transaction.get -> System.Data.Common.DbTransaction?
 Kun.Data.Native.INativeDataSession.ValidateAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 Kun.Data.Native.NativeDataDefinition
@@ -16,3 +15,4 @@ Kun.Data.Native.NativeDataErrors
 static Kun.Data.Native.NativeDataDefinition.NativeData(this Kun.Runtime.IPluginContext! context) -> Kun.Data.Native.INativeDataService!
 static readonly Kun.Data.Native.NativeDataDefinition.Key -> Kun.Runtime.ServiceKey
 static readonly Kun.Data.Native.NativeDataErrors.Misconfigured -> Kun.Errors.ErrorCode!
+Kun.Data.Native.INativeDataSession.TenantId.get -> System.Guid?

@@ -101,7 +101,7 @@ public sealed partial class AuditStoreTests
             foreach (var producer in new[] { tenantConsumer.Context!.Scoped(ScopeKey.Global), platform.Producer.Scoped(new ScopeKey("tenant", A)) })
                 await AssertDenied(() => audit.AppendPlatformEnlistedAsync(producer, PlatformRecord(), transaction, Ct));
             // 存在租户上下文、记录带租户、连接带租户 GUC：拒绝。
-            using (platform.Tenant.BeginScope(A)) await AssertDenied(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(), transaction, Ct));
+            using (platform.Tenant.BeginScope(Guid.ParseExact(A, "D"))) await AssertDenied(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(), transaction, Ct));
             await AssertDenied(() => audit.AppendPlatformEnlistedAsync(platform.Producer, CanonicalizerTests.Record(), transaction, Ct));
             await SetTenant(connection, transaction, A);
             await AssertDenied(() => audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(), transaction, Ct));
@@ -216,7 +216,7 @@ public sealed partial class AuditStoreTests
             Assert.Equal(2, (await audit.AppendPlatformEnlistedAsync(platform.Producer, PlatformRecord(), transaction, Ct)).Sequence);
             await transaction.CommitAsync(Ct);
         }
-        using (platform.Tenant.BeginScope(A)) await audit.AppendAsync(CanonicalizerTests.Record(), Ct);
+        using (platform.Tenant.BeginScope(Guid.ParseExact(A, "D"))) await audit.AppendAsync(CanonicalizerTests.Record(), Ct);
         // qian_app 持有审计表的 DML 授权（租户审计凭据），但 RLS 不放行平台行：读不到、插不进、改不了也删不掉。
         await using (var app = await OpenLogin(postgres.AppConnectionString))
         {

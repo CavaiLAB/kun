@@ -32,7 +32,7 @@ internal sealed class AuthorizationEnforcer(IPluginContext owner, RbacPermission
             throw new ArgumentException("强制执行请求的通道、入口、目标或资源无效。", nameof(request));
         if (!Identifier(subject.Id, 200) || subject.Kind is not ("user" or "service" or "agent")) return await DenyAsync(request, "invalid_subject", cancellationToken).ConfigureAwait(false);
         if (subject.Delegated || subject.Kind == "agent") return await DenyAsync(request, "delegation_not_supported", cancellationToken).ConfigureAwait(false);
-        var current = string.IsNullOrEmpty(tenant.TenantId) ? null : tenant.TenantId;
+        var current = tenant.TenantId?.ToString("D");
         if (subject.TenantId is not null && current is null)
             throw new InvalidOperationException("已认证主体带租户，但宿主没有为本次调用建立租户上下文；PEP 必须放在可信租户边界之后。");
         if (subject.TenantId is not null && subject.TenantId != current) return await DenyAsync(request, "subject_tenant_mismatch", cancellationToken).ConfigureAwait(false);
@@ -44,7 +44,7 @@ internal sealed class AuthorizationEnforcer(IPluginContext owner, RbacPermission
         var permission = new PermissionRequest(new AuthorizationSubject(subject.Id, subject.TenantId, subject.Kind), request.Permission, request.Resource);
         var explanation = await owner.DispatchAsync(AuthzRuntimeEvents.Checking, request,
             () => checker.ExplainDetailedAsync(permission, subject.IdentityRevision, cancellationToken), cancellationToken).ConfigureAwait(false);
-        if (tenant.TenantId != current) return await DenyAsync(request, "tenant_context_changed", cancellationToken).ConfigureAwait(false);
+        if (tenant.TenantId?.ToString("D") != current) return await DenyAsync(request, "tenant_context_changed", cancellationToken).ConfigureAwait(false);
         return await RecordAsync(request, explanation, bypass: false, cancellationToken).ConfigureAwait(false);
     }
 
@@ -59,7 +59,7 @@ internal sealed class AuthorizationEnforcer(IPluginContext owner, RbacPermission
             !Identifier(request.Target, 384) || (request.Resource is not null && !Identifier(request.Resource, 512)))
             throw new ArgumentException("强制执行请求的通道、入口、目标或资源无效。", nameof(request));
         if (subject.TenantId is null || subject.IdentityRevision is null) return null;
-        var current = string.IsNullOrEmpty(tenant.TenantId) ? null : tenant.TenantId;
+        var current = tenant.TenantId?.ToString("D");
         if (current is null)
             throw new InvalidOperationException("已认证主体带租户，但宿主没有为本次调用建立租户上下文；PEP 必须放在可信租户边界之后。");
         if (subject.TenantId != current || !Identifier(subject.Id, 200) || subject.Kind is not ("user" or "service" or "agent")) return null;
@@ -124,7 +124,7 @@ internal sealed class AuthorizationEnforcer(IPluginContext owner, RbacPermission
         var payload = JsonSerializer.SerializeToElement(new DecisionLogPayload(request.Permission, request.EntryPoint, request.Target, request.Resource,
             explanation.Decision.Allow ? "allow" : "deny", explanation.Decision.Reason, explanation.MatchedRoles, explanation.MatchedGrants, explanation.Missing,
             explanation.Decision.MatchedPolicies, subject.IdentityRevision, bypass), AuthzJson.Default.DecisionLogPayload);
-        var chain = string.IsNullOrEmpty(tenant.TenantId) ? null : tenant.TenantId;
+        var chain = tenant.TenantId?.ToString("D");
         AuditRecord record;
         try
         {

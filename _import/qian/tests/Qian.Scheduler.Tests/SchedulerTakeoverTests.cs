@@ -20,7 +20,7 @@ public sealed class SchedulerTakeoverTests(SchedulerFixture fixture) : IClassFix
         JsonElement? claimBeforeKill = null;
         try
         {
-            using (producer.Tenant.BeginScope(TenantA))
+            using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             {
                 var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
                 await caller.Scheduler().ScheduleOnce(caller, "crash", DateTimeOffset.UtcNow.AddSeconds(1), Target, JsonSerializer.SerializeToElement(new { mode, delayMs = 0 }), new JobOptions { Timeout = TimeSpan.FromMinutes(3), Misfire = MisfirePolicy.CatchUp }, Ct);
@@ -80,7 +80,7 @@ public sealed class SchedulerTakeoverTests(SchedulerFixture fixture) : IClassFix
         JsonElement? beforeStop = null;
         try
         {
-            using (producer.Tenant.BeginScope(TenantA))
+            using (producer.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
             {
                 var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
                 await caller.Scheduler().ScheduleOnce(caller, "normal-stop", DateTimeOffset.UtcNow, Target,

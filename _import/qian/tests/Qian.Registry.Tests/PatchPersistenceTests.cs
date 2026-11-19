@@ -35,8 +35,8 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
     private static JsonElement Patch(string json) => JsonSerializer.Deserialize<JsonElement>(json);
-    private static readonly ScopeKey TenantA = new("tenant", "a");
-    private static readonly ScopeKey TenantB = new("tenant", "b");
+    private static readonly ScopeKey TenantA = new("tenant", Tenants.AText);
+    private static readonly ScopeKey TenantB = new("tenant", Tenants.BText);
 
     [Fact]
     public async Task 真实受限应用角色_租户读写隔离并与文件patch保留相同字段语义()
@@ -45,7 +45,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
         var repository = Repository(host, tenant);
         await AssertCode(PlatformErrors.Unauthenticated, () => repository.ListAsync(TenantA, Ct));
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             var first = await repository.PutAsync(TenantA, "files", Patch("""{"id":"files","plugin":"qian.files@1.0.0","config":{"nested":{"value":1}},"disabled":false,"x-origin":{"note":"opaque"}}"""), 0, "operator-a", Ct);
             Assert.Equal(1, first.Revision);
@@ -53,15 +53,15 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
             Assert.Equal("opaque", first.Patch.GetProperty("x-origin").GetProperty("note").GetString());
             await AssertCode(PlatformErrors.NotFound, () => repository.ListAsync(TenantB, Ct));
         }
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.B))
         {
             Assert.Empty(await repository.ListAsync(TenantB, Ct));
             await repository.PutAsync(TenantB, "files", Patch("""{"id":"files","config":{},"note":"b-only"}"""), 0, "operator-b", Ct);
         }
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             var row = Assert.Single(await repository.ListAsync(TenantA, Ct));
-            Assert.Equal("a", row.TenantId); Assert.Equal("operator-a", row.UpdatedBy);
+            Assert.Equal(Tenants.AText, row.TenantId); Assert.Equal("operator-a", row.UpdatedBy);
             var omitted = await repository.PutAsync(TenantA, "files", Patch("""{"id":"files","config":{}}"""), 1, "operator-a", Ct);
             Assert.False(omitted.Patch.TryGetProperty("disabled", out _));
             Assert.False(omitted.Patch.TryGetProperty("x-origin", out _));
@@ -69,9 +69,11 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         await using var app = new NpgsqlConnection(postgres.AppConnectionString); await app.OpenAsync(Ct);
         await using (var flags = new NpgsqlCommand("SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user", app)) Assert.Equal(false, await flags.ExecuteScalarAsync(Ct));
         await using (var none = new NpgsqlCommand("SELECT count(*) FROM plugin_qian_registry.scope_patches", app)) Assert.Equal(0L, await none.ExecuteScalarAsync(Ct));
-        await using (var set = new NpgsqlCommand("SELECT set_config('app.current_tenant_id', 'a', false)", app)) await set.ExecuteNonQueryAsync(Ct);
-        await using (var own = new NpgsqlCommand("SELECT tenant_id FROM plugin_qian_registry.scope_patches", app)) Assert.Equal("a", await own.ExecuteScalarAsync(Ct));
-        await using var other = new NpgsqlCommand("UPDATE plugin_qian_registry.scope_patches SET tenant_id = 'b' WHERE tenant_id = 'a'", app);
+        await using (var set = new NpgsqlCommand("SELECT set_config('app.current_tenant_id', @tenant, false)", app)) { set.Parameters.AddWithValue("tenant", Tenants.AText); await set.ExecuteNonQueryAsync(Ct); }
+        await using (var own = new NpgsqlCommand("SELECT tenant_id FROM plugin_qian_registry.scope_patches", app)) Assert.Equal(Tenants.AText, await own.ExecuteScalarAsync(Ct));
+        await using var other = new NpgsqlCommand("UPDATE plugin_qian_registry.scope_patches SET tenant_id = @other WHERE tenant_id = @own", app);
+        other.Parameters.AddWithValue("other", Tenants.BText);
+        other.Parameters.AddWithValue("own", Tenants.AText);
         var denied = await Assert.ThrowsAsync<PostgresException>(() => other.ExecuteNonQueryAsync(Ct)); Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, denied.SqlState);
     }
 
@@ -80,7 +82,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
     {
         var tenant = new AsyncLocalTenantContext();
         using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
-        using var current = tenant.BeginScope("a"); var repository = Repository(host, tenant);
+        using var current = tenant.BeginScope(Tenants.A); var repository = Repository(host, tenant);
         var initial = Patch("""{"id":"files","config":{"value":1},"note":"not-for-logs"}""");
         var first = await repository.PutAsync(TenantA, "files", initial, 0, "actor", Ct);
         var repeated = await repository.PutAsync(TenantA, "files", initial, first.Revision, "actor", Ct);
@@ -102,7 +104,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
     {
         var tenant = new AsyncLocalTenantContext(); var barrier = new ReadBarrier();
         using var host = Host(tenant, barrier); await host.StartAsync(Ct); await Prepare(host);
-        using var current = tenant.BeginScope("a");
+        using var current = tenant.BeginScope(Tenants.A);
         var firstRepository = Repository(host, tenant); var secondRepository = Repository(host, tenant);
         if (existing) await firstRepository.PutAsync(TenantA, "files", Patch("""{"id":"files","config":{}}"""), 0, "initial", Ct);
         barrier.Enabled = true;
@@ -127,12 +129,12 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
     {
         var tenant = new AsyncLocalTenantContext();
         using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
-        using var current = tenant.BeginScope("a"); var repository = Repository(host, tenant);
+        using var current = tenant.BeginScope(Tenants.A); var repository = Repository(host, tenant);
         foreach (var invalid in new[]
         {
             """{"id":"files","config":{},"tenantId":"DO-NOT-LEAK"}""",
             """{"id":"other","config":{}}""",
-            """{"id":"files","scope":"tenant:b","config":{}}""",
+            $$$"""{"id":"files","scope":"tenant:{{{Tenants.BText}}}","config":{}}""",
             """{"id":"files","config":{"value":1,"value":2}}""",
             """{"id":"files","disabled":"DO-NOT-LEAK"}"""
         })
@@ -150,7 +152,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
     {
         var tenant = new AsyncLocalTenantContext(); var failure = new NotifyFailure();
         using var host = Host(tenant, failure); await host.StartAsync(Ct); await Prepare(host);
-        using var current = tenant.BeginScope("a"); var repository = Repository(host, tenant);
+        using var current = tenant.BeginScope(Tenants.A); var repository = Repository(host, tenant);
         await using var listener = new NpgsqlConnection(postgres.AppConnectionString); await listener.OpenAsync(Ct);
         await using (var listen = new NpgsqlCommand("LISTEN " + PostgresPatchRepository.ChangeChannel, listener)) await listen.ExecuteNonQueryAsync(Ct);
         var received = new List<string>(); listener.Notification += (_, message) => received.Add(message.Payload);
@@ -175,21 +177,21 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         using var profile = new TestProfile();
         var repository = Repository(host, tenant);
         var composer = new RegistryProfileComposer(repository, new ProfileLoader(new SurfaceValidator()), profile.Options);
-        using (tenant.BeginScope("a"))
+        using (tenant.BeginScope(Tenants.A))
         {
             await repository.PutAsync(TenantA, "settings", Patch("""{"id":"settings","config":{"port":23}}"""), 0, "operator-a", Ct);
             var result = await composer.LoadAsync(TenantA, Ct); Assert.True(result.IsValid);
-            var local = Assert.Single(result.Snapshot!.Entries, e => e.Id == "settings" && e.Scope == "tenant:a");
+            var local = Assert.Single(result.Snapshot!.Entries, e => e.Id == "settings" && e.Scope == "tenant:" + Tenants.AText);
             Assert.Equal(23, local.Config.GetProperty("port").GetInt32());
             Assert.Equal("default", local.Config.GetProperty("marker").GetString());
             Assert.False(local.Config.TryGetProperty("obsolete", out _));
             Assert.Equal("scope-patch", result.Snapshot.Layers[local.Layer].Kind);
             Assert.Equal(3, Assert.Single(result.Snapshot.Entries, e => e.Id == "settings" && e.Scope == "global").Config.GetProperty("port").GetInt32());
         }
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.B))
         {
             var result = await composer.LoadAsync(TenantB, Ct); Assert.True(result.IsValid);
-            Assert.DoesNotContain(result.Snapshot!.Entries, e => e.Scope == "tenant:a");
+            Assert.DoesNotContain(result.Snapshot!.Entries, e => e.Scope == "tenant:" + Tenants.AText);
             Assert.Equal(3, Assert.Single(result.Snapshot.Entries, e => e.Id == "settings").Config.GetProperty("port").GetInt32());
         }
         Assert.Equal(profile.OriginalPatch, File.ReadAllText(Path.Combine(profile.Directory, "profiles/test/qian.patch.yml")));
@@ -200,13 +202,13 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
     {
         var tenant = new AsyncLocalTenantContext();
         using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
-        using var profile = new TestProfile(); using var current = tenant.BeginScope("a");
+        using var profile = new TestProfile(); using var current = tenant.BeginScope(Tenants.A);
         var repository = Repository(host, tenant);
         var composer = new RegistryProfileComposer(repository, new ProfileLoader(new SurfaceValidator()), profile.Options);
         await repository.PutAsync(TenantA, "settings", Patch("""{"id":"settings","disabled":true}"""), 0, "actor", Ct);
         var disabled = await composer.LoadAsync(TenantA, Ct); Assert.True(disabled.IsValid);
         var hidden = Assert.Single(disabled.Snapshot!.DisabledEntries);
-        Assert.Equal("tenant:a", hidden.Scope); Assert.Equal("settings", hidden.Id);
+        Assert.Equal("tenant:" + Tenants.AText, hidden.Scope); Assert.Equal("settings", hidden.Id);
         Assert.Equal("registry/scope-patches.json#/0", hidden.SourceLocation);
         Assert.Single(disabled.Snapshot.Entries, e => e.Id == "settings" && e.Scope == "global");
         await repository.RemoveAsync(TenantA, "settings", 1, "actor", Ct);
@@ -222,7 +224,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
     {
         var tenant = new AsyncLocalTenantContext();
         using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
-        using var profile = new TestProfile(); using var current = tenant.BeginScope("a");
+        using var profile = new TestProfile(); using var current = tenant.BeginScope(Tenants.A);
         var repository = Repository(host, tenant);
         var writer = new RegistryPatchWriter(repository, new RegistryProfileComposer(repository, new ProfileLoader(new SurfaceValidator()), profile.Options));
         await AssertCode(PlatformErrors.InputInvalid, () => writer.PutAsync(TenantA, "settings", Patch("""{"id":"settings","config":{"port":0}}"""), 0, "actor", Ct));
@@ -244,7 +246,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         var tenant = new AsyncLocalTenantContext(); var otherTenant = new AsyncLocalTenantContext(); var contention = new ScopeLockContention();
         using var host = Host(tenant, contention); using var otherHost = Host(otherTenant, contention);
         await host.StartAsync(Ct); await otherHost.StartAsync(Ct); await Prepare(host);
-        using var profile = new TestProfile(); using var current = tenant.BeginScope("a");
+        using var profile = new TestProfile(); using var current = tenant.BeginScope(Tenants.A);
         var repository = Repository(host, tenant); var otherRepository = Repository(otherHost, otherTenant);
         var writer = new RegistryPatchWriter(repository, new RegistryProfileComposer(repository, new ProfileLoader(new SurfaceValidator()), profile.Options));
         var otherWriter = new RegistryPatchWriter(otherRepository, new RegistryProfileComposer(otherRepository, new ProfileLoader(new SurfaceValidator()), profile.Options));
@@ -256,7 +258,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         Assert.Single(await repository.ListAsync(TenantA, Ct));
         async Task<string?> Write(string id, RegistryPatchWriter target, ITenantContext context)
         {
-            using var request = context.BeginScope("a");
+            using var request = context.BeginScope(Tenants.A);
             try
             {
                 await target.PutAsync(TenantA, id, JsonSerializer.SerializeToElement(new { id, plugin = "test.settings", config = new { port = 31 } }), 0, "actor", Ct);
@@ -275,16 +277,16 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         var repository = Repository(writerHost, writerTenant); var reader = Repository(readerHost, readerTenant);
         var updates = System.Threading.Channels.Channel.CreateUnbounded<int>();
         var inheritedTenant = false; var calls = 0;
-        using var startupRequest = readerTenant.BeginScope("b");
+        using var startupRequest = readerTenant.BeginScope(Tenants.B);
         await using var listener = await PostgresPatchListener.StartAsync(readerHost.Services.GetRequiredService<IDataService>(), readerTenant, async ct =>
         {
             if (readerTenant.TenantId is not null) inheritedTenant = true;
-            using var scope = readerTenant.BeginScope("a");
+            using var scope = readerTenant.BeginScope(Tenants.A);
             var rows = await reader.ListAsync(TenantA, ct); Interlocked.Increment(ref calls);
             await updates.Writer.WriteAsync(rows.SingleOrDefault()?.Revision ?? 0, ct);
         }, NullLogger.Instance, Ct);
-        Assert.Equal("b", readerTenant.TenantId); Assert.False(inheritedTenant);
-        using var current = writerTenant.BeginScope("a");
+        Assert.Equal(Tenants.B, readerTenant.TenantId); Assert.False(inheritedTenant);
+        using var current = writerTenant.BeginScope(Tenants.A);
         await repository.PutAsync(TenantA, "files", Patch("""{"id":"files","config":{}}"""), 0, "actor", Ct);
         await Observed(1);
         var disconnected = listener.BackendProcessId; Assert.True(disconnected > 0);
@@ -347,7 +349,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
     private sealed class UnsupportedTenantContext : ITenantContext
     {
         public bool IsMultiTenant => true;
-        public string? TenantId => null;
+        public Guid? TenantId => null;
     }
 
     private sealed class ScopeLockContention : DbCommandInterceptor

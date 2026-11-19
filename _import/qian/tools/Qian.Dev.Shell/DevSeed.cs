@@ -70,7 +70,7 @@ internal static class DevSeed
                 var mounted = await components.MountAsync(new ScopeKey("tenant", id), ReferenceEntry, Actor, ct).ConfigureAwait(false);
                 if (mounted.State != MountStates.Ready) throw new InvalidOperationException($"租户 {tenant.Code} 挂载参考应用失败：{mounted.ReasonCode}");
             }
-            using (tenantContext.BeginScope(id))
+            using (tenantContext.BeginScope(Guid.ParseExact(id, "D")))
             {
                 var grants = tenancy.Scoped(new ScopeKey("tenant", id)).Inject<ITenantRoleGrant>(TenantRoleGrant.Key);
                 foreach (var member in tenant.Members)

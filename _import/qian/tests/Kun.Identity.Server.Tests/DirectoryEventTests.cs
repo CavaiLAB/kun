@@ -129,7 +129,7 @@ public sealed class DirectoryEventTests(PostgresFixture postgres) : IClassFixtur
     {
         await using var host = await AccountsHost.Start(postgres); var tenant = host.Tenants.Add("directory-account-events");
         var (person, _) = await CreatePerson(host); var member = await Join(host, tenant, person.Id);
-        using (host.Tenant.BeginScope(tenant.Id.ToString("D")))
+        using (host.Tenant.BeginScope(tenant.Id))
         {
             await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Locked, "trusted_lock", Ct);
             await host.Accounts.SetMembershipStatusAsync(member.Id, AccountStatuses.Locked, "trusted_lock", Ct);
@@ -158,7 +158,7 @@ public sealed class DirectoryEventTests(PostgresFixture postgres) : IClassFixtur
         var (person, _) = await CreatePerson(host, "成员乙");
         await Assert.ThrowsAsync<InvalidOperationException>(() => Join(host, tenant, person.Id, "成员乙"));
         Assert.Equal("0", await Count("memberships"));
-        using (host.Tenant.BeginScope(scopeId))
+        using (host.Tenant.BeginScope(Guid.ParseExact(scopeId, "D")))
         {
             // 组织类型字典不发事件，照常写入；建组织要发 directory.org.created.v1，整体回滚。
             await host.Service.SetOrganizationTypeAsync(new("dept", "部门"), Ct);
@@ -171,7 +171,7 @@ public sealed class DirectoryEventTests(PostgresFixture postgres) : IClassFixtur
             INSERT INTO plugin_qian_identity.memberships (id, tenant_id, person_id, account, display_name, status, is_tenant_administrator, identity_revision, directory_deleted, created_at)
             VALUES (@id, @t, @person, 'memberb', '成员乙', 'active', false, 1, false, now())
             """, ("id", id), ("t", scopeId), ("person", person.Id));
-        using (host.Tenant.BeginScope(scopeId))
+        using (host.Tenant.BeginScope(Guid.ParseExact(scopeId, "D")))
             await Assert.ThrowsAsync<InvalidOperationException>(() => host.Accounts.SetMembershipStatusAsync(id, AccountStatuses.Locked, "no_handler", Ct).AsTask());
         Assert.Equal("active", await Status(id));
         await host.Exec("UPDATE plugin_qian_identity.memberships SET status = 'locked' WHERE id=@id", ("id", id));

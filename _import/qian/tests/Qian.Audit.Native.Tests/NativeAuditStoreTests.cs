@@ -30,14 +30,14 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
         var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously); var arrivals = 0;
         async Task Append(NativeAuditTestHost host)
         {
-            using var tenant = host.Tenant.BeginScope(A);
+            using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D"));
             if (Interlocked.Increment(ref arrivals) == 2) ready.SetResult();
             await ready.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);
             await Parallel.ForEachAsync(Enumerable.Range(0, 80), new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = Ct },
                 async (_, ct) => await host.Audit.AppendAsync(Record(), ct));
         }
         await Task.WhenAll(Append(first), Append(second));
-        using var scope = first.Tenant.BeginScope(A);
+        using var scope = first.Tenant.BeginScope(Guid.ParseExact(A, "D"));
         var page1 = await first.Audit.ReadAsync(0, 73, "person-a", Ct);
         var page2 = await first.Audit.ReadAsync(page1[^1].Sequence, 100, cancellationToken: Ct);
         var rows = page1.Concat(page2).ToArray(); Assert.Equal(160, rows.Length);
@@ -55,7 +55,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
     public async Task 插入失败原子回滚链头_有界重试只覆盖自有事务()
     {
         var db = await NativeAuditDatabase.Create(postgres, Ct); await using var host = await NativeAuditTestHost.Create(db, Ct, maxAttempts: 3);
-        using var tenant = host.Tenant.BeginScope(A); await host.Audit.AppendAsync(Record(), Ct);
+        using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D")); await host.Audit.AppendAsync(Record(), Ct);
         await Admin("""
             CREATE SEQUENCE plugin_qian_audit.attempts;
             CREATE FUNCTION plugin_qian_audit.reject_append() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -84,10 +84,10 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
     {
         var db = await NativeAuditDatabase.Create(postgres, Ct); await using var host = await NativeAuditTestHost.Create(db, Ct);
         await host.Audit.AppendPlatformAsync(host.Caller, Record(null), Ct);
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         { await host.Audit.AppendAsync(Record(), Ct); await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendAsync(Record(B), Ct));
           await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendPlatformAsync(host.Caller, Record(null), Ct)); }
-        using (host.Tenant.BeginScope(B)) { Assert.Empty(await host.Audit.ReadAsync(0, 10, cancellationToken: Ct)); await host.Audit.AppendAsync(Record(B), Ct); }
+        using (host.Tenant.BeginScope(Guid.ParseExact(B, "D"))) { Assert.Empty(await host.Audit.ReadAsync(0, 10, cancellationToken: Ct)); await host.Audit.AppendAsync(Record(B), Ct); }
         Assert.Single(await host.Audit.ReadPlatformAsync(host.Caller, 0, 10, cancellationToken: Ct));
         Assert.True((await host.Audit.VerifyPlatformAsync(host.Caller, Ct)).Valid);
         // 原生存储不提供平台链的同事务入口（S1-AUD-009 裁决 ①）：明确拒绝，不静默退化为独立事务追加。
@@ -158,7 +158,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
             _ => throw new ArgumentException("未知反例", nameof(violation))
         };
         await Admin(sql);
-        using (host.Tenant.BeginScope(A)) await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendAsync(Record(), Ct));
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D"))) await Assert.ThrowsAsync<ErrorException>(() => host.Audit.AppendAsync(Record(), Ct));
         await host.Loader.UnmountAsync("audit", ScopeKey.Global, Ct); await host.MountAudit(Ct);
         Assert.Equal(PluginState.Failed, host.Loader.GetState("audit", ScopeKey.Global));
         if (violation is "membership" or "membership-nologin")
@@ -187,7 +187,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
         await using (var rejected = await NativeAuditTestHost.Create(db, Ct, platformBinding: false, ready: false))
             Assert.Equal(PluginState.Failed, rejected.Loader.GetState("audit", ScopeKey.Global));
         await using var host = await NativeAuditTestHost.Create(db, Ct, scopedTenant: A, platformBinding: false);
-        using var tenant = host.Tenant.BeginScope(A); var service = host.Audit;
+        using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D")); var service = host.Audit;
         await service.AppendAsync(Record(), Ct); Assert.True((await service.VerifyAsync(Ct)).Valid);
         await Assert.ThrowsAsync<ErrorException>(() => service.AppendPlatformAsync(host.Caller.Scoped(ScopeKey.Global), Record(null), Ct));
         var observer = host.Loader.GetContext("data", ScopeKey.Global).Scoped(new ScopeKey("tenant", A));
@@ -206,7 +206,7 @@ public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IC
     public async Task 卸载取消真实advisory锁等待_排空后旧句柄不可用_重新挂载可写()
     {
         var db = await NativeAuditDatabase.Create(postgres, Ct); await using var host = await NativeAuditTestHost.Create(db, Ct);
-        using var tenant = host.Tenant.BeginScope(A); var service = host.Audit;
+        using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D")); var service = host.Audit;
         await using var locker = new NpgsqlConnection(postgres.ConnectionString); await locker.OpenAsync(Ct);
         await Execute(locker, $"SELECT pg_advisory_lock(hashtextextended('qian.audit:tenant:{A}',0))");
         var pending = service.AppendAsync(Record(), Ct);

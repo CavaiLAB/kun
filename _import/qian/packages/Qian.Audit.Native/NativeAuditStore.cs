@@ -17,9 +17,9 @@ internal sealed class NativeAuditStore(INativeDataService data, NativeAuditSetti
             try
             {
                 await using var session = await Open(platform, ct).ConfigureAwait(false);
-                if (session.TenantId != record.TenantId) throw Error(PlatformErrors.AuthzDenied);
+                if (session.TenantId?.ToString("D") != record.TenantId) throw Error(PlatformErrors.AuthzDenied);
                 await NativeAuditValidation.ValidateAsync(session.Connection, null, settings.Roles, false, ct).ConfigureAwait(false);
-                var key = "qian.audit:" + ChainKey(session.TenantId);
+                var key = "qian.audit:" + ChainKey(session.TenantId?.ToString("D"));
                 try
                 {
                     await Execute(session.Connection, null, "SELECT pg_catalog.pg_advisory_lock(pg_catalog.hashtextextended(@key,0))", ct, ("key", key)).ConfigureAwait(false);
@@ -93,7 +93,7 @@ internal sealed class NativeAuditStore(INativeDataService data, NativeAuditSetti
         await NativeAuditValidation.ValidateAsync(session.Connection, null, settings.Roles, false, ct).ConfigureAwait(false);
         await using var command = Command(session.Connection, null,
             "SELECT pg_catalog.to_jsonb(e)::text FROM plugin_qian_audit.audit_entries e WHERE e.chain_key=@chain AND e.seq>@after AND (@actor IS NULL OR e.on_behalf_of=@actor) ORDER BY e.seq LIMIT @take",
-            ("chain", ChainKey(session.TenantId)), ("after", afterSequence), ("actor", onBehalfOf), ("take", take));
+            ("chain", ChainKey(session.TenantId?.ToString("D"))), ("after", afterSequence), ("actor", onBehalfOf), ("take", take));
         var rows = new List<AuditChainEntry>(); await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
         while (await reader.ReadAsync(ct).ConfigureAwait(false)) rows.Add(Parse(reader.GetString(0)));
         return rows.AsReadOnly();
@@ -104,7 +104,7 @@ internal sealed class NativeAuditStore(INativeDataService data, NativeAuditSetti
         await using var session = await Open(platform, ct).ConfigureAwait(false);
         await NativeAuditValidation.ValidateAsync(session.Connection, null, settings.Roles, false, ct).ConfigureAwait(false);
         var transaction = await session.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct).ConfigureAwait(false);
-        long tipSequence = 0; string? tipHash = null; var key = ChainKey(session.TenantId);
+        long tipSequence = 0; string? tipHash = null; var key = ChainKey(session.TenantId?.ToString("D"));
         await using (var command = Command(session.Connection, transaction, "SELECT tip_seq,tip_hash FROM plugin_qian_audit.audit_chain_state WHERE chain_key=@chain", ("chain", key)))
         {
             await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
@@ -115,7 +115,7 @@ internal sealed class NativeAuditStore(INativeDataService data, NativeAuditSetti
         {
             await using var command = Command(session.Connection, transaction,
                 "SELECT pg_catalog.to_jsonb(e)::text FROM plugin_qian_audit.audit_entries e WHERE e.seq>@after AND e.tenant_id IS NOT DISTINCT FROM @tenant ORDER BY e.seq LIMIT 128",
-                ("after", sequence), ("tenant", session.TenantId));
+                ("after", sequence), ("tenant", session.TenantId?.ToString("D")));
             var rows = new List<string>(); await using (var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false))
                 while (await reader.ReadAsync(ct).ConfigureAwait(false)) rows.Add(reader.GetString(0));
             if (rows.Count == 0) break;

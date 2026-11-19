@@ -157,7 +157,7 @@ public static class PlatformHost
     // 全局 Provider 上下文按请求租户收窄；没有租户（平台身份）即未认证，组件不在即 404。
     internal static IPluginContext Scoped(HttpContext http, string id)
     {
-        var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId;
+        var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId?.ToString("D");
         if (!Guid.TryParseExact(tenant, "D", out var parsed) || parsed == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         return http.RequestServices.GetRequiredService<PlatformRuntime>().Global(id).Scoped(new ScopeKey("tenant", tenant!));
     }
@@ -167,7 +167,7 @@ public static class PlatformHost
     // 去掉这里结果不变（同为 404 NOT_FOUND）；外部契约由 PlatformHostTests 第一例「租户主体访问平台控制台目录 404」钉住。
     private static IPluginContext Console(HttpContext http, PlatformRuntime runtime)
     {
-        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId)) throw new ErrorException(new Error(PlatformErrors.NotFound));
+        if (http.RequestServices.GetRequiredService<ITenantContext>().TenantId is not null) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return runtime.Global("capabilities");
     }
 }

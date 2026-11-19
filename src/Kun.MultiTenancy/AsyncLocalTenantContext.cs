@@ -14,7 +14,7 @@ public sealed class AsyncLocalTenantContext : ITenantContext
 {
     private readonly AsyncLocal<TenantScope?> _current = new();
     /// <inheritdoc />
-    public string? TenantId => _current.Value?.TenantId;
+    public Guid? TenantId => _current.Value?.TenantId;
 
     /// <inheritdoc />
     public bool IsMultiTenant => true;
@@ -24,9 +24,9 @@ public sealed class AsyncLocalTenantContext : ITenantContext
     /// returned scope. The previous value is restored on dispose so
     /// nested scopes compose predictably.
     /// </summary>
-    public IDisposable BeginScope(string? tenantId)
+    public IDisposable BeginScope(Guid? tenantId)
     {
-        if (tenantId is not null && !TenantIdValidation.IsValid(tenantId))
+        if (tenantId == Guid.Empty)
         {
             throw new ArgumentException("Invalid tenant identifier.", nameof(tenantId));
         }
@@ -35,7 +35,7 @@ public sealed class AsyncLocalTenantContext : ITenantContext
         return new Scope(this, previous);
     }
 
-    private sealed record TenantScope(string? TenantId);
+    private sealed record TenantScope(Guid? TenantId);
 
     private sealed class Scope(AsyncLocalTenantContext owner, TenantScope? previous) : IDisposable
     {

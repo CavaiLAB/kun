@@ -91,7 +91,7 @@ public sealed class TenantHttpBoundaryTests(PostgresFixture postgres) : IClassFi
         app.UseAuthorization();
         app.MapGet("/api/records/{id:guid}", async (Guid id, ITenantContext tenant, IDataService data, CancellationToken ct) =>
         {
-            calls.Enqueue(tenant.TenantId!);
+            calls.Enqueue(Assert.IsType<Guid>(tenant.TenantId).ToString("D"));
             await using var session = await data.OpenAsync<BoundaryRecordsDbContext>(ct);
             var row = await session.Context.Records.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
             return row is null ? (IResult)KunResults.Error(new Error(PlatformErrors.NotFound)) : Results.Ok(new Record(row.Id, row.TenantId, row.Text));
@@ -130,7 +130,7 @@ public sealed class TenantHttpBoundaryTests(PostgresFixture postgres) : IClassFi
 
     private static async Task<Guid> Seed(WebApplication app, Guid tenant, string text)
     {
-        using var scope = app.Services.GetRequiredService<ITenantContext>().BeginScope(tenant.ToString());
+        using var scope = app.Services.GetRequiredService<ITenantContext>().BeginScope(tenant);
         await using var session = await app.Services.GetRequiredService<IDataService>().OpenAsync<BoundaryRecordsDbContext>(Ct);
         var row = new BoundaryRecord { Text = text }; session.Context.Records.Add(row); await session.SaveChangesAsync(Ct);
         Assert.Equal(tenant.ToString(), row.TenantId); return row.Id;

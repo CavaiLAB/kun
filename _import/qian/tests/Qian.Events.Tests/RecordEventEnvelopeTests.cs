@@ -33,7 +33,7 @@ public sealed class RecordEventEnvelopeTests
         var origin = new EventOrigin("qian.dynamic-data", EventActor.Agent("agent-client-1", "person-1")) { CausationId = Guid.CreateVersion7() };
         using var before = JsonDocument.Parse("{\"name\":\"张三\"}");
         using var after = JsonDocument.Parse("{\"name\":\"张四\"}");
-        using (tenant.BeginScope(Tenant))
+        using (tenant.BeginScope(Guid.ParseExact(Tenant, "D")))
         using (EventEnvelopeScope.Begin(origin))
         {
             var payload = new RecordChangedPayload("crm.customer", "customer-1", "updated", Guid.Parse(Tenant), RecordActor.From(origin.Actor),
@@ -65,7 +65,7 @@ public sealed class RecordEventEnvelopeTests
         var tenant = scope.ServiceProvider.GetRequiredService<ITenantContext>();
         // Agent 代表用户行事，载荷却只写了被代表的用户、丢了委托关系。
         var payload = new RecordChangedPayload("crm.customer", "customer-1", "created", Guid.Parse(Tenant), new RecordActor("user", "person-1"), ["name"]);
-        using (tenant.BeginScope(Tenant))
+        using (tenant.BeginScope(Guid.ParseExact(Tenant, "D")))
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.dynamic-data", EventActor.Agent("agent-client-1", "person-1"))))
         {
             Assert.Throws<InvalidOperationException>(() => payload.EnsureConsistentContext(tenant));

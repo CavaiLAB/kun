@@ -14,7 +14,7 @@ public sealed class EfAuditReader<TContext>(TContext context, ITenantContext ten
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        if (string.IsNullOrWhiteSpace(query.TenantId) || query.TenantId != tenantContext.TenantId)
+        if (string.IsNullOrWhiteSpace(query.TenantId) || query.TenantId != tenantContext.TenantId?.ToString("D"))
             throw new InvalidOperationException("审计查询必须匹配当前租户上下文。");
         if (query.Limit is < 1 or > 1000) throw new ArgumentOutOfRangeException(nameof(query), "Limit 必须为 1–1000。");
         var rows = context.Set<AuditLog>().AsNoTracking().Where(log => log.TenantId == query.TenantId);

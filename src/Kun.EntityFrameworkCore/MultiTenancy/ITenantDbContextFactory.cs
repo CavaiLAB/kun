@@ -11,13 +11,13 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 /// <remarks>
 /// <para>
 /// Consumers implement this interface once per DbContext type. A minimal implementation
-/// wraps <c>DbContextOptionsBuilder.UseNpgsql(...).UseKunSchema(tenantId)</c> and returns
+/// wraps <c>DbContextOptionsBuilder.UseNpgsql(...).UseKunSchema(options.GetSchemaName(tenantId))</c> and returns
 /// a freshly-constructed <typeparamref name="TContext"/>.
 /// </para>
 /// <para>
 /// For <strong>runtime query access</strong> (inside a request), prefer the standard
 /// DI-injected <typeparamref name="TContext"/> registered via
-/// <c>AddDbContext&lt;TContext&gt;((sp, opts) =&gt; opts.UseKunSchema(sp.GetRequiredService&lt;ITenantContext&gt;().TenantId!))</c>
+/// <c>AddDbContext&lt;TContext&gt;</c> with the schema derived by <see cref="KunMultiTenancyOptions.GetSchemaName"/>
 /// combined with <see cref="KunMultiTenantModelCacheKeyFactory"/>. The factory is the explicit
 /// escape hatch for administrative / provisioning flows that must target a specific tenant
 /// regardless of the ambient context.
@@ -29,5 +29,5 @@ public interface ITenantDbContextFactory<TContext> where TContext : DbContext
     /// <summary>Builds a <typeparamref name="TContext"/> bound to the specified tenant's schema.</summary>
     /// <param name="tenantId">Non-empty tenant ID.</param>
     /// <returns>A new, caller-owned <typeparamref name="TContext"/>; caller must dispose.</returns>
-    TContext CreateForTenant(string tenantId);
+    TContext CreateForTenant(Guid tenantId);
 }

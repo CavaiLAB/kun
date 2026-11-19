@@ -6,17 +6,19 @@
 
 | 事件 | 模式 | 声明位置 | 生产方 | 消费方 |
 |---|---|---|---|---|
-| ` authz/checking ` | ` waterfall ` | ` Qian.Authz.Abstractions.AuthzRuntimeEvents.Checking `（` packages/Qian.Authz.Abstractions/AuthzEnforcement.cs `:118） | ` Qian.Authz.AuthorizationEnforcer.EnforceAsync(Qian.Authz.Abstractions.EnforcementRequest, System.Threading.CancellationToken) `（` packages/Qian.Authz/AuthorizationEnforcer.cs `:45） |  |
-| ` authz/decided ` | ` emit ` | ` Qian.Authz.Abstractions.AuthzRuntimeEvents.Decided `（` packages/Qian.Authz.Abstractions/AuthzEnforcement.cs `:122） | ` Qian.Authz.AuthorizationEnforcer.BypassAsync(Qian.Authz.Abstractions.EnforcementRequest, System.Threading.CancellationToken) `（` packages/Qian.Authz/AuthorizationEnforcer.cs `:83）<br>` Qian.Authz.AuthorizationEnforcer.RecordAsync(Qian.Authz.Abstractions.EnforcementRequest, Qian.Authz.Abstractions.AuthorizationExplanation, bool, System.Threading.CancellationToken) `（` packages/Qian.Authz/AuthorizationEnforcer.cs `:109） |  |
-| ` config/reload-failed ` | ` emit ` | ` Qian.Config.ConfigRuntimeEvents.ReloadFailed `（` packages/Qian.Config.Abstractions/ConfigEvents.cs `:24） | ` lambda expression `（` packages/Qian.Config.Apollo/ConfigurationPlugins.cs `:33）<br>` lambda expression `（` packages/Qian.Config.Apollo/ConfigurationPlugins.cs `:52） |  |
-| ` identity/member-disabled ` | ` parallel ` | ` Qian.Identity.Abstractions.IdentityRuntimeEvents.MemberDisabled `（` packages/Qian.Identity.Abstractions/IdentityEvents.cs `:121） | ` Qian.Identity.Server.IdentityAccountService.SetMembershipStatusCoreAsync(System.Guid, string, string, bool, bool, System.Threading.CancellationToken) `（` packages/Qian.Identity.Server/IdentityAccountService.Accounts.cs `:405） |  |
-| ` identity/signed-in ` | ` emit ` | ` Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedIn `（` packages/Qian.Identity.Abstractions/IdentityEvents.cs `:115） |  |  |
-| ` identity/signed-out ` | ` emit ` | ` Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedOut `（` packages/Qian.Identity.Abstractions/IdentityEvents.cs `:118） |  |  |
-| ` identity/signing-in ` | ` waterfall ` | ` Qian.Identity.Abstractions.IdentityRuntimeEvents.SigningIn `（` packages/Qian.Identity.Abstractions/IdentityEvents.cs `:112） |  |  |
-| ` registry/entry-disabled ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.EntryDisabled `（` packages/Qian.Surfaces.Abstractions/HookContracts.cs `:51） |  |  |
-| ` registry/entry-mounted ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.EntryMounted `（` packages/Qian.Surfaces.Abstractions/HookContracts.cs `:49） | ` Qian.Registry.RegistryService.MountAsync(Kun.Runtime.ScopeKey, System.Text.Json.JsonElement, int, string, System.Threading.CancellationToken) `（` packages/Qian.Registry/RegistryService.cs `:171） |  |
-| ` tenant/provisioned ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantProvisioned `（` packages/Qian.Surfaces.Abstractions/HookContracts.cs `:45） |  | ` Qian.Authz.AuthzPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken) `（` packages/Qian.Authz/AuthzPlugin.cs `:97） |
-| ` tenant/purged ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantPurged `（` packages/Qian.Surfaces.Abstractions/HookContracts.cs `:47） |  |  |
+| ` authz/checking ` | ` waterfall ` | ` Qian.Authz.Abstractions.AuthzRuntimeEvents.Checking `（` _import/qian/packages/Qian.Authz.Abstractions/AuthzEnforcement.cs `:118） | ` Qian.Authz.AuthorizationEnforcer.EnforceAsync(Qian.Authz.Abstractions.EnforcementRequest, System.Threading.CancellationToken) `（` _import/qian/packages/Qian.Authz/AuthorizationEnforcer.cs `:45） |  |
+| ` authz/decided ` | ` emit ` | ` Qian.Authz.Abstractions.AuthzRuntimeEvents.Decided `（` _import/qian/packages/Qian.Authz.Abstractions/AuthzEnforcement.cs `:122） | ` Qian.Authz.AuthorizationEnforcer.BypassAsync(Qian.Authz.Abstractions.EnforcementRequest, System.Threading.CancellationToken) `（` _import/qian/packages/Qian.Authz/AuthorizationEnforcer.cs `:83）<br>` Qian.Authz.AuthorizationEnforcer.RecordAsync(Qian.Authz.Abstractions.EnforcementRequest, Qian.Authz.Abstractions.AuthorizationExplanation, bool, System.Threading.CancellationToken) `（` _import/qian/packages/Qian.Authz/AuthorizationEnforcer.cs `:109） |  |
+| ` command/dispatching ` | ` waterfall ` | ` Kun.Plugin.Sdk.CommandEvents.Dispatching `（` src/Kun.Plugin.Sdk/Commands.cs `:20） | ` Kun.Plugin.Sdk.CapabilityDispatchBehavior<TRequest, TResponse>.Handle(TRequest, Kun.Mediator.RequestHandlerDelegate<TResponse>, System.Threading.CancellationToken) `（` src/Kun.Plugin.Sdk.Commands/CommandPipeline.cs `:195） | ` Kun.Plugin.Sdk.CommandPolicies.Register(Kun.Runtime.IPluginContext, Kun.Plugin.Sdk.CommandPolicyKind, System.Func<Kun.Plugin.Sdk.CommandInvocation, System.Func<System.Threading.Tasks.ValueTask<object?>>, System.Threading.Tasks.ValueTask<object?>>) `（` src/Kun.Plugin.Sdk/CommandPolicies.cs `:34） |
+| ` config/reload-failed ` | ` emit ` | ` Qian.Config.ConfigRuntimeEvents.ReloadFailed `（` _import/qian/packages/Qian.Config.Abstractions/ConfigEvents.cs `:24） | ` lambda expression `（` _import/qian/packages/Qian.Config.Apollo/ConfigurationPlugins.cs `:33）<br>` lambda expression `（` _import/qian/packages/Qian.Config.Apollo/ConfigurationPlugins.cs `:52） |  |
+| ` identity/member-disabled ` | ` parallel ` | ` Qian.Identity.Abstractions.IdentityRuntimeEvents.MemberDisabled `（` _import/qian/packages/Qian.Identity.Abstractions/IdentityEvents.cs `:121） | ` Qian.Identity.Server.IdentityAccountService.SetMembershipStatusCoreAsync(System.Guid, string, string, bool, bool, System.Threading.CancellationToken) `（` _import/qian/packages/Qian.Identity.Server/IdentityAccountService.Accounts.cs `:405） |  |
+| ` identity/signed-in ` | ` emit ` | ` Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedIn `（` _import/qian/packages/Qian.Identity.Abstractions/IdentityEvents.cs `:115） |  |  |
+| ` identity/signed-out ` | ` emit ` | ` Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedOut `（` _import/qian/packages/Qian.Identity.Abstractions/IdentityEvents.cs `:118） |  |  |
+| ` identity/signing-in ` | ` waterfall ` | ` Qian.Identity.Abstractions.IdentityRuntimeEvents.SigningIn `（` _import/qian/packages/Qian.Identity.Abstractions/IdentityEvents.cs `:112） |  |  |
+| ` registry/entry-disabled ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.EntryDisabled `（` _import/qian/packages/Qian.Surfaces.Abstractions/HookContracts.cs `:51） |  |  |
+| ` registry/entry-mounted ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.EntryMounted `（` _import/qian/packages/Qian.Surfaces.Abstractions/HookContracts.cs `:49） | ` Qian.Registry.RegistryService.MountAsync(Kun.Runtime.ScopeKey, System.Text.Json.JsonElement, int, string, System.Threading.CancellationToken) `（` _import/qian/packages/Qian.Registry/RegistryService.cs `:171） | ` Kun.Tenancy.TenancyPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken) `（` src/Kun.Tenancy/TenancyPlugin.cs `:33） |
+| ` tenant/provisioned ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantProvisioned `（` _import/qian/packages/Qian.Surfaces.Abstractions/HookContracts.cs `:45） | ` lambda expression `（` src/Kun.Tenancy/TenantProvisioningOrchestrator.cs `:116） | ` Qian.Authz.AuthzPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken) `（` _import/qian/packages/Qian.Authz/AuthzPlugin.cs `:97） |
+| ` tenant/purged ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantPurged `（` _import/qian/packages/Qian.Surfaces.Abstractions/HookContracts.cs `:47） |  |  |
+| ` tenant/transition-approving ` | ` serial ` | ` Kun.Tenancy.TenantLifecycle.Approving `（` src/Kun.Tenancy.Abstractions/StateMachine.cs `:13） | ` Kun.Tenancy.TenantStateMachine.Change(System.Guid, string, string, System.DateTimeOffset?, System.Threading.CancellationToken, System.Action?) `（` src/Kun.Tenancy/TenantStateMachine.cs `:59） |  |
 
 ```mermaid
 flowchart LR
@@ -25,22 +27,32 @@ flowchart LR
   e1["authz/decided / emit"]
   p1_0["Qian.Authz.AuthorizationEnforcer.BypassAsync(Qian.Authz.Abstractions.EnforcementRequest, System.Threading.CancellationToken)"] --> e1
   p1_1["Qian.Authz.AuthorizationEnforcer.RecordAsync(Qian.Authz.Abstractions.EnforcementRequest, Qian.Authz.Abstractions.AuthorizationExplanation, bool, System.Threading.CancellationToken)"] --> e1
-  e2["config/reload-failed / emit"]
-  p2_0["lambda expression"] --> e2
-  p2_1["lambda expression"] --> e2
-  e3["identity/member-disabled / parallel"]
-  p3_0["Qian.Identity.Server.IdentityAccountService.SetMembershipStatusCoreAsync(System.Guid, string, string, bool, bool, System.Threading.CancellationToken)"] --> e3
-  e4["identity/signed-in / emit"]
-  e5["identity/signed-out / emit"]
-  e6["identity/signing-in / waterfall"]
-  e7["registry/entry-disabled / serial"]
-  e8["registry/entry-mounted / serial"]
-  p8_0["Qian.Registry.RegistryService.MountAsync(Kun.Runtime.ScopeKey, System.Text.Json.JsonElement, int, string, System.Threading.CancellationToken)"] --> e8
-  e9["tenant/provisioned / serial"]
-  e9 --> c9_0["Qian.Authz.AuthzPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken)"]
-  e10["tenant/purged / serial"]
+  e2["command/dispatching / waterfall"]
+  p2_0["Kun.Plugin.Sdk.CapabilityDispatchBehavior&lt;TRequest, TResponse>.Handle(TRequest, Kun.Mediator.RequestHandlerDelegate&lt;TResponse>, System.Threading.CancellationToken)"] --> e2
+  e2 --> c2_0["Kun.Plugin.Sdk.CommandPolicies.Register(Kun.Runtime.IPluginContext, Kun.Plugin.Sdk.CommandPolicyKind, System.Func&lt;Kun.Plugin.Sdk.CommandInvocation, System.Func&lt;System.Threading.Tasks.ValueTask&lt;object?>>, System.Threading.Tasks.ValueTask&lt;object?>>)"]
+  e3["config/reload-failed / emit"]
+  p3_0["lambda expression"] --> e3
+  p3_1["lambda expression"] --> e3
+  e4["identity/member-disabled / parallel"]
+  p4_0["Qian.Identity.Server.IdentityAccountService.SetMembershipStatusCoreAsync(System.Guid, string, string, bool, bool, System.Threading.CancellationToken)"] --> e4
+  e5["identity/signed-in / emit"]
+  e6["identity/signed-out / emit"]
+  e7["identity/signing-in / waterfall"]
+  e8["registry/entry-disabled / serial"]
+  e9["registry/entry-mounted / serial"]
+  p9_0["Qian.Registry.RegistryService.MountAsync(Kun.Runtime.ScopeKey, System.Text.Json.JsonElement, int, string, System.Threading.CancellationToken)"] --> e9
+  e9 --> c9_0["Kun.Tenancy.TenancyPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken)"]
+  e10["tenant/provisioned / serial"]
+  p10_0["lambda expression"] --> e10
+  e10 --> c10_0["Qian.Authz.AuthzPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken)"]
+  e11["tenant/purged / serial"]
+  e12["tenant/transition-approving / serial"]
+  p12_0["Kun.Tenancy.TenantStateMachine.Change(System.Guid, string, string, System.DateTimeOffset?, System.Threading.CancellationToken, System.Action?)"] --> e12
 ```
 
 ## 校验诊断
 
-- warning：` packages/Qian.Surfaces.Hosting/HookBridgePlugin.cs `:32，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
+- warning：` _import/qian/packages/Qian.Surfaces.Hosting/HookBridgePlugin.cs `:32，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
+- warning：` src/Kun.Runtime/Contracts.cs `:84，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
+- warning：` src/Kun.Runtime/Contracts.cs `:88，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
+- warning：` src/Kun.Runtime/PluginContext.Events.cs `:51，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。

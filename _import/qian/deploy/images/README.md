@@ -29,7 +29,7 @@
 | 文件 | 作用 |
 |---|---|
 | `jit.Dockerfile` / `aot.Dockerfile` | 两种运行镜像模板。都是多阶段构建；JIT 运行在 `aspnet:10.0-noble-chiseled-extra`，NativeAOT 运行在 distroless 的 `runtime-deps:10.0-noble-chiseled`；基础镜像按多架构索引摘要钉定 |
-| `*.Dockerfile.dockerignore` | 构建上下文白名单。上下文是仓库根（S1-KUN-020），只送仓库根的构建基线、包源与 `src/` 下的 Kun 源码，以及本目录的 .NET 源码、Schema、profile 与组件目录；新增宿主项目时在这里放行，写 `_import/qian/` 开头的路径 |
+| `*.Dockerfile.dockerignore` | 构建上下文白名单。上下文是仓库根（S1-KUN-020），只送仓库根的构建基线、包源与 `src/` 下的 Kun 源码，以及本目录的 .NET 源码、Schema、profile 与组件目录；新增宿主项目时在这里放行，路径相对仓库根 |
 | `vulnerability-allowlist.json` | 漏洞豁免清单，默认为空 |
 | `../../scripts/images.py` | 统一构建入口 `build` 与 CI 自检 `selfcheck` |
 | `../../scripts/image-tools.lock.json` | syft、grype、cosign 的锁定版本与各平台归档 sha256，由 `prepare_image_tools.py` 下载校验 |

@@ -74,7 +74,7 @@
 
 镜像在 qd 上构建：qd 是 amd64、有 Docker、到得了 Harbor，而 Mac 到不了 192.168.1.x。qd 没有 Node，前端在开发机上构建好再拷过去。构建入口是 [scripts/images.py](../../scripts/images.py) 的 `build`，模板与构建上下文见 [deploy/images](../../deploy/images/README.md)。
 
-源码取本仓库 [CavaiLAB/kun](https://github.com/CavaiLAB/kun) 里要部署的提交。两个镜像从同一个提交构建、一起换：外壳与远程打在网关镜像里，界面清单在平台镜像的组件文件夹里，外壳按界面清单的 `engines.qian` 决定装不装远程，新旧两边混用时远程会被拒绝。平台代码在过渡目录 `_import/qian/`：下面的前端命令与 `scripts/…` 都在这个目录下运行，`--project` 也相对它；镜像的构建上下文是仓库根，由 `images.py` 自己取，前端产物经 `--web` 另行送入。
+源码取本仓库 [CavaiLAB/kun](https://github.com/CavaiLAB/kun) 里要部署的提交。两个镜像从同一个提交构建、一起换：外壳与远程打在网关镜像里，界面清单在平台镜像的组件文件夹里，外壳按界面清单的 `engines.qian` 决定装不装远程，新旧两边混用时远程会被拒绝。平台代码在过渡目录 `_import/qian/`：下面的前端命令与 `scripts/…` 都在这个目录下运行；`--project` 相对仓库根。镜像的构建上下文是仓库根，由 `images.py` 自己取，前端产物经 `--web` 另行送入。
 
 1. 前端（开发机，在本仓库的 `_import/qian/` 下，检出要构建的提交）。前端框架的包 `@cavailab/qian-*` 装自 GitHub Packages，那里的 npm 源连公开包也要令牌（有 `read:packages` 即可）：照 [README「前端依赖与包源」](../../README.md#前端依赖与包源)，在用户级 npm 配置里写一行引用环境变量 `NODE_AUTH_TOKEN` 的令牌行；仓库里的 `.npmrc` 只写包源，不写令牌。
    ```bash
@@ -112,7 +112,7 @@
    python3 scripts/images.py build --kind jit --project _import/qian/hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag 192.168.1.201:80/qian/qian-platform:<短 SHA> --web ~/kun-build/web-platform
    ```
    ```bash
-   python3 scripts/images.py build --kind aot --project hosts/Kun.Gateway.Host/Qian.Gateway.Host.csproj --assembly Kun.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ~/kun-build/web-gateway
+   python3 scripts/images.py build --kind aot --project hosts/Kun.Gateway.Host/Kun.Gateway.Host.csproj --assembly Kun.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ~/kun-build/web-gateway
    ```
    - 每条命令打印一段 JSON：`ref` 是按 digest 的引用，`build` 是构建证据（源码 SHA、profile 与组件目录的树修订、`webDigest` 等）。两段都记进任务进度日志。
    - 推送失败时命令以非零退出、不打印 JSON，镜像留在本机；修好仓库权限后重跑，BuildKit 缓存让重跑很快。

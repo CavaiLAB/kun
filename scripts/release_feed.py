@@ -7,6 +7,8 @@ import urllib.error
 import urllib.request
 from urllib.parse import quote
 
+from release_version import release_info
+
 
 REPOSITORY = "CavaiLAB/kun"
 GITHUB_API = "https://api.github.com/orgs/CavaiLAB/packages/nuget/"
@@ -39,15 +41,35 @@ def _read(url, token, timeout):
         raise FeedError(f"{url} 的响应缺少有效 JSON") from error
 
 
+def _nuget_versions(name, read):
+    index = read(NUGET_INDEX + quote(name.lower(), safe="") + "/index.json")
+    if index is None:
+        return []
+    versions = index.get("versions") if isinstance(index, dict) else None
+    if not isinstance(versions, list) or not all(isinstance(value, str) for value in versions):
+        raise FeedError(f"{name} 的 nuget.org 版本索引形状有误")
+    return versions
+
+
+def _github_versions(name, read):
+    url = GITHUB_API + quote(name, safe="")
+    page = 1
+    while True:
+        versions = read(f"{url}/versions?per_page=100&page={page}")
+        if versions is None:
+            return
+        if not isinstance(versions, list) or any(not isinstance(item, dict) or not isinstance(item.get("name"), str) for item in versions):
+            raise FeedError(f"{name} 的 GitHub Packages 版本列表形状有误")
+        for item in versions:
+            yield item["name"]
+        if len(versions) < 100:
+            return
+        page += 1
+
+
 def _available(feed, name, version, read):
     if feed == "nuget":
-        index = read(NUGET_INDEX + quote(name.lower(), safe="") + "/index.json")
-        if index is None:
-            return False
-        if not isinstance(index, dict) or not isinstance(index.get("versions"), list):
-            raise FeedError(f"{name} 的 nuget.org 版本索引形状有误")
-        return version in index["versions"]
-
+        return version in _nuget_versions(name, read)
     url = GITHUB_API + quote(name, safe="")
     record = read(url)
     if record is None:
@@ -57,18 +79,41 @@ def _available(feed, name, version, read):
     repository = record.get("repository") or {}
     if not isinstance(repository, dict) or str(repository.get("full_name", "")).casefold() != REPOSITORY.casefold():
         raise FeedError(f"{name} 在 GitHub Packages 上应关联 {REPOSITORY}")
-    page = 1
-    while True:
-        versions = read(f"{url}/versions?per_page=100&page={page}")
-        if versions is None:
-            return False
-        if not isinstance(versions, list) or any(not isinstance(item, dict) for item in versions):
-            raise FeedError(f"{name} 的 GitHub Packages 版本列表形状有误")
-        if any(item.get("name") == version for item in versions):
-            return True
-        if len(versions) < 100:
-            return False
-        page += 1
+    return version in _github_versions(name, read)
+
+
+def release_order(version):
+    """同日按 beta、正式版、hotfix 的发布顺序排列。"""
+    kind = release_info(version)["kind"]
+    date, _, suffix = version.partition("-")
+    number = int(suffix.split(".")[1]) if suffix else 0
+    return (*map(int, date.split(".")), {"beta": 0, "stable": 1, "hotfix": 2}[kind], number)
+
+
+def check_unpublished(packages, version, token):
+    if not token:
+        raise FeedError("包源预检需要具有 packages:read 权限的 GITHUB_TOKEN")
+    candidate = release_order(version)
+    def read(url):
+        try:
+            return _read(url, token if url.startswith(GITHUB_API) else None, 30)
+        except (ConnectionError, TimeoutError) as error:
+            raise FeedError(f"无法完成版本预检：{error}") from error
+
+    for package in packages:
+        if version in _github_versions(package.id, read):
+            raise FeedError(f"{package.id} 的 {version} 已在 GitHub Packages 发布")
+        if package.tier != "kernel":
+            continue
+        for existing in _nuget_versions(package.id, read):
+            if existing == version:
+                raise FeedError(f"{package.id} 的 {version} 已在 nuget.org 发布")
+            try:
+                order = release_order(existing)
+            except ValueError:
+                continue  # 启用日历版本之前的历史版本。
+            if order > candidate:
+                raise FeedError(f"{version} 早于 {package.id} 已发布的 {existing}")
 
 
 def verify_feed(feed, names, version, wait_seconds, token=None):

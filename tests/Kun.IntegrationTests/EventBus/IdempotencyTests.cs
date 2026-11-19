@@ -182,8 +182,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
             await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.Equal(1, _handler.InvocationCount);
         Assert.Equal(2, _handler.Attempts);
-        var store = _host.Services.GetRequiredService<IProcessedMessageStore>();
-        Assert.True(await store.IsProcessedAsync("test-consumer-idempotency", id, TestContext.Current.CancellationToken));
+        Assert.True(await WaitUntilProcessedAsync(id, TestContext.Current.CancellationToken), ProcessedMarkMissing);
         var redis = _host.Services.GetRequiredService<IConnectionMultiplexer>().GetDatabase();
         Assert.Equal("1", (string?)await redis.StringGetAsync($"idemp:test-consumer-idempotency:{id}"));
         await _host.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(message, TestContext.Current.CancellationToken);
@@ -212,8 +211,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
         while (_handler.InvocationCount == 0 && DateTimeOffset.UtcNow < deadline) await Task.Delay(100, ct);
         Assert.Equal(1, _handler.InvocationCount);
         Assert.Equal(2, _handler.Attempts);
-        Assert.True(await _host.Services.GetRequiredService<IProcessedMessageStore>()
-            .IsProcessedAsync("test-consumer-idempotency", id, ct));
+        Assert.True(await WaitUntilProcessedAsync(id, ct), ProcessedMarkMissing);
     }
 
     [Fact]
@@ -242,4 +240,19 @@ public sealed class IdempotencyTests : IAsyncLifetime
         Assert.False(await _host.Services.GetRequiredService<IProcessedMessageStore>().IsProcessedAsync("test-consumer-idempotency", id, ct));
     }
 
+    private const string ProcessedMarkMissing = "处理器成功之后 10 秒内没有写下已处理标记";
+
+    // 处理器里的计数一到，处理器才刚要返回：已处理标记是 IdempotentConsumerDecorator 在处理器返回之后才写的。
+    // 有上限地等标记出现，等不到才算失败；标记真的不写，用例照样失败。
+    private async Task<bool> WaitUntilProcessedAsync(Guid id, CancellationToken ct)
+    {
+        var store = _host!.Services.GetRequiredService<IProcessedMessageStore>();
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(10);
+        while (!await store.IsProcessedAsync("test-consumer-idempotency", id, ct))
+        {
+            if (DateTimeOffset.UtcNow >= deadline) return false;
+            await Task.Delay(50, ct);
+        }
+        return true;
+    }
 }

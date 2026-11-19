@@ -14,6 +14,10 @@
 - 映射组件端点改用 `MapKunAuthz`，登记授权事件改用 `AddKunAuthzEvents`。组件 `qian.authz` 的版本升至 1.1.0，清单入口为 `Kun.Authorization.Rbac.AuthzComponent, Kun.Authorization.Rbac`。
 - 订阅授权指标的宿主将计量器名从 `Qian.Authz` 改为 `Kun.Authorization.Rbac`。仪表继续使用 `qian.authz.*`。
 
+### Changed — 组件运行时的类型化配置
+
+- `Kun.Runtime` 支持 NativeAOT。实现 `IKunPlugin<TConfig>` 的组件须增加 `JsonTypeInfo<TConfig> ConfigTypeInfo { get; }`，从采用 `JsonSerializerDefaults.Web` 的源生成上下文返回配置契约。配置属性名继续按 Web 约定匹配。
+
 ### Changed — OIDC 客户端与上游连接器（S1-KUN-026）
 
 - 两个入口共用发现、授权码交换与验签。配置的 issuer 必须与发现文档逐字相等，包括末尾斜杠。关闭 HTTPS 要求后仅允许回环 HTTP。回调应把授权响应中的 `iss` 原样传给 `OidcCodeExchange.ResponseIssuer`。声明支持 RFC 9207 的发行方必须返回该参数。

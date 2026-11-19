@@ -2,6 +2,10 @@
 
 依据：[组件模型规格 §5](../../_import/qian/docs/prd/specs/component-model.md#5-运行时模型)。此包提供 .NET 10 的上下文、服务键、事件、效果栈与装载器，引用已有的 `Kun.Errors`。
 
+## 类型化配置
+
+实现 `IKunPlugin<TConfig>` 的组件用 `ConfigTypeInfo` 返回其源生成上下文中的 `JsonTypeInfo<TConfig>`。在上下文上声明 `[JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]` 与 `[JsonSerializable(typeof(TConfig))]`，即可在普通宿主与 NativeAOT 宿主中使用相同的配置绑定。属性名按 Web 约定匹配，装载器在调用类型化的 `ApplyAsync` 之前读取配置。
+
 ## 装配位置
 
 - 文件夹包含运行时代码、公共 API 清单与本文；业务插件的声明式表面由对应组件管理。

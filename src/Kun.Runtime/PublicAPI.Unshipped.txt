@@ -22,6 +22,7 @@ Kun.Runtime.IKunPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.J
 Kun.Runtime.IKunPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Kun.Runtime.IKunPlugin<TConfig>
 Kun.Runtime.IKunPlugin<TConfig>.ApplyAsync(Kun.Runtime.IPluginContext! ctx, TConfig config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Runtime.IKunPlugin<TConfig>.ConfigTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<TConfig>!
 Kun.Runtime.PluginDefinition
 Kun.Runtime.PluginDefinition.<Clone>$() -> Kun.Runtime.PluginDefinition!
 Kun.Runtime.PluginDefinition.Deconstruct(out Kun.Runtime.PluginEntry! Entry, out Kun.Runtime.IKunPlugin! Plugin, out System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>! Provides) -> void

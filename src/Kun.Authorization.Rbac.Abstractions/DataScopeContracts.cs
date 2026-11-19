@@ -18,8 +18,10 @@ public static class DataScopeContracts
 {
     private static DataScopeJson Json { get; } = new(new JsonSerializerOptions
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, RespectRequiredConstructorParameters = true
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        RespectRequiredConstructorParameters = true
     });
     /// <summary>DataScopeRule 的 camelCase 源生成元数据；还须按 Schema 和可信字段目录校验。</summary>
     public static JsonTypeInfo<DataScopeRule> RuleTypeInfo => Json.DataScopeRule;

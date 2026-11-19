@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Kun.Errors;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Errors;
 
 namespace Kun.Tenancy.Signup.Tests;
 

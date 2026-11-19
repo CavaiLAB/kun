@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Kun.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Authorization.Rbac;
 
@@ -29,8 +29,14 @@ internal sealed class PostgresPermissionCatalogStore(IDataService data)
         session.Context.Catalogs.Add(new PermissionCatalogRow { PluginId = normalized.PluginId, Version = normalized.Version, Snapshot = snapshot });
         session.Context.Permissions.AddRange(normalized.Permissions.Select(permission => new PermissionRow
         {
-            PluginId = normalized.PluginId, Version = normalized.Version, Code = permission.Code, Resource = permission.Resource, Action = permission.Action,
-            Risk = permission.Risk.ToString().ToLowerInvariant(), StepUp = permission.RequiresStepUp, Terminals = JsonSerializer.Serialize(permission.Terminals)
+            PluginId = normalized.PluginId,
+            Version = normalized.Version,
+            Code = permission.Code,
+            Resource = permission.Resource,
+            Action = permission.Action,
+            Risk = permission.Risk.ToString().ToLowerInvariant(),
+            StepUp = permission.RequiresStepUp,
+            Terminals = JsonSerializer.Serialize(permission.Terminals)
         }));
         session.Context.ResourceTypes.AddRange(normalized.Permissions.Select(permission => permission.Resource).Distinct(StringComparer.Ordinal).Select(resource => new ResourceTypeRow
         { PluginId = normalized.PluginId, Version = normalized.Version, Name = resource, Code = normalized.PluginId + ":" + resource }));

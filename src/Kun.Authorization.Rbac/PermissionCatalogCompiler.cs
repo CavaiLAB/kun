@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Json.Schema;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Registry;
 using Kun.Errors;
+using Qian.Registry;
 using Qian.Surfaces.Abstractions;
 
 namespace Kun.Authorization.Rbac;
@@ -98,8 +98,11 @@ public sealed class PermissionCatalogCompiler(ISurfaceReader reader)
         if (string.IsNullOrWhiteSpace(file) || file.Any(char.IsControl)) throw Invalid("metadata#", "元数据来源名无效。");
         var parsed = reader.Parse(file, data.GetRawText());
         if (parsed.Syntax is null || parsed.Diagnostics.Any(d => d.Severity == "error"))
-            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = parsed.Diagnostics.Where(d => d.Severity == "error").Select(d =>
-                new FieldError(AuthzErrors.MetadataInvalid, d.Error.Pointer ?? file + "#", new Dictionary<string, string> { ["reason"] = "元数据 JSON 语法无效。" })).ToArray() });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid)
+            {
+                Errors = parsed.Diagnostics.Where(d => d.Severity == "error").Select(d =>
+                new FieldError(AuthzErrors.MetadataInvalid, d.Error.Pointer ?? file + "#", new Dictionary<string, string> { ["reason"] = "元数据 JSON 语法无效。" })).ToArray()
+            });
         var result = schema.Evaluate(parsed.Syntax.Data, new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical });
         if (!result.IsValid) throw new ErrorException(new Error(PlatformErrors.InputInvalid)
         {

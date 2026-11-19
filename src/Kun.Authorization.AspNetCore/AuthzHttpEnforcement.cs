@@ -1,3 +1,9 @@
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
+using Kun.Plugin.Sdk.AspNetCore;
+using Kun.Runtime;
 using Kun.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
@@ -5,12 +11,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Identity.Abstractions;
-using Kun.Plugin.Sdk.AspNetCore;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Authorization.AspNetCore;
 

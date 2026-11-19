@@ -2,6 +2,7 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
@@ -15,7 +16,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Kun.Authorization.Rbac.Abstractions;
 
 namespace Kun.Plugin.Sdk;
 

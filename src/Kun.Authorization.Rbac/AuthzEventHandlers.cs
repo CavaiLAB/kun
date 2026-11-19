@@ -1,7 +1,7 @@
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.Domain;
 using Kun.EventBus;
 using Kun.Mediator;
-using Kun.Authorization.Rbac.Abstractions;
 
 namespace Kun.Authorization.Rbac;
 

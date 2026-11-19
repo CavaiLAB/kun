@@ -1,6 +1,6 @@
-using Kun.Authorization.Rbac.Abstractions;
 using System.Text.Json;
 using Json.Schema;
+using Kun.Authorization.Rbac.Abstractions;
 
 namespace Kun.Authorization.Rbac;
 

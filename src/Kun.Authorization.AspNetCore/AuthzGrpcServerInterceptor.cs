@@ -2,11 +2,11 @@ using System.Diagnostics;
 using System.Text;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Errors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Errors;
 
 namespace Kun.Authorization.AspNetCore;
 

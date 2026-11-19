@@ -1,7 +1,7 @@
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Caching.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Kun.Authorization.Rbac.Abstractions;
 
 namespace Kun.Authorization.Rbac;
 

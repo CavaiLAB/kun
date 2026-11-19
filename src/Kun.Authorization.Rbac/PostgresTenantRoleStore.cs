@@ -1,11 +1,11 @@
 using System.Text.Json;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Kun.EventBus;
-using Microsoft.EntityFrameworkCore;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.EventBus;
+using Kun.Runtime;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Authorization.Rbac;
 
@@ -152,8 +152,16 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
                 changes.Add(AuthzChange.Role(template.Role, "created", pluginId, version));
             }
             foreach (var permission in template.Grants)
-                db.Grants.Add(new RoleGrantRow { TenantId = owner, RoleId = role.Id, PluginId = pluginId, PluginVersion = version,
-                    PermissionCode = permission, Source = "default", GrantedBy = actor });
+                db.Grants.Add(new RoleGrantRow
+                {
+                    TenantId = owner,
+                    RoleId = role.Id,
+                    PluginId = pluginId,
+                    PluginVersion = version,
+                    PermissionCode = permission,
+                    Source = "default",
+                    GrantedBy = actor
+                });
             changes.Add(AuthzChange.Role(template.Role, "grants_installed", pluginId, version));
         }
         if (install is null)

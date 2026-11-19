@@ -1,8 +1,8 @@
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Authorization.Rbac;
 

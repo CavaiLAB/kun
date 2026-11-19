@@ -1,8 +1,8 @@
-using Kun.EntityFrameworkCore;
+using System.Text.Json;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using System.Text.Json;
 
 namespace Kun.Authorization.Rbac;
 

@@ -1,3 +1,4 @@
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
 using Kun.EventBus;
 using Kun.Identity.Abstractions;
@@ -6,7 +7,6 @@ using Kun.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Audit;
-using Kun.Authorization.Rbac.Abstractions;
 
 namespace Kun.Identity.Server;
 

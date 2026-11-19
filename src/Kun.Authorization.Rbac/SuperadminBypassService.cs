@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Runtime;
 
 namespace Kun.Authorization.Rbac;
 
@@ -95,7 +95,9 @@ internal sealed class SuperadminBypassService(IDataService data, ITenantContext 
         var trace = Activity.Current?.TraceId is { } id && id != default ? id.ToHexString() : ActivityTraceId.CreateRandom().ToHexString();
         var payload = JsonSerializer.SerializeToElement(new Dictionary<string, string>
         {
-            ["bypass"] = PlatformRoles.SuperadminBypass, ["role"] = PlatformRoles.Superadmin, ["permission"] = access.Permission
+            ["bypass"] = PlatformRoles.SuperadminBypass,
+            ["role"] = PlatformRoles.Superadmin,
+            ["permission"] = access.Permission
         }, AuthzJson.Default.DictionaryStringString);
         return new AuditRecord(Guid.CreateVersion7(), access.TenantId, "user", access.Subject.Id, null, CapabilityId, "1.0.0",
             Convert.ToHexStringLower(SHA256.HashData(input)), access.Channel, access.Resource, "allowed", trace, DateTimeOffset.UtcNow, payload);

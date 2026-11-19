@@ -1,4 +1,7 @@
 using Grpc.AspNetCore.Server;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Errors;
+using Kun.Runtime;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
@@ -7,9 +10,6 @@ using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Authorization.AspNetCore;
 

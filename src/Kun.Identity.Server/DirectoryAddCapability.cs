@@ -2,13 +2,13 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
 using Kun.EventBus;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Qian.Audit;
-using Kun.Authorization.Rbac.Abstractions;
 
 namespace Kun.Identity.Server;
 

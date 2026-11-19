@@ -1,5 +1,5 @@
 using Kun.Core.Domain;
-using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.Mediator;
 

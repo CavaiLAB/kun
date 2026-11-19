@@ -1,3 +1,4 @@
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Events;

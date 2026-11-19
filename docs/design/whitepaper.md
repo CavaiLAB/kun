@@ -126,7 +126,7 @@ graph TD
 | `Kun.Core` | 领域抽象、CQRS 接口、Result、异常、`ITenantContext` | 无 |
 | `Kun.Mediator` | `FrozenDictionary` 无反射调度、Pipeline Behaviors | `Kun.Core` |
 | `Kun.Infrastructure` | 仓储接口、UoW、规约、`IProcessedMessageStore` | `Kun.Core` |
-| `Kun.EntityFrameworkCore` | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | `Kun.Infrastructure` |
+| `Kun.EntityFrameworkCore` | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | `Kun.Core`、`Kun.EventBus` |
 | `Kun.EventBus.Abstractions` | 稳定事件标记与 JSON 注册端口 | `Kun.Core` |
 | `Kun.EventBus` | 领域事件、集成事件抽象、Outbox 发布器 | `Kun.Core` |
 | `Kun.EventBus.RabbitMQ` | RabbitMQ 传输、消费端幂等中间件 | `Kun.EventBus` |
@@ -268,33 +268,20 @@ v1 即约定清楚"租户 ID 从哪来、怎么传、怎么过滤"，业务开�
 
 ## 5. 数据访问层：写读分离双引擎
 
-### 5.1 写侧 —— EF Core 10 仓储与规约
+### 5.1 写侧 —— EF Core 10 上下文与工作单元
 
 ```csharp
-// 规约示例
-public class ActiveProductsSpec : Specification<Product>
+// 命令处理器直接用派生自 KunDbContext 的上下文写聚合，经 IUnitOfWork 提交
+public sealed class CreateProductCommandHandler(CatalogDbContext db, IUnitOfWork unitOfWork)
+    : IRequestHandler<CreateProductCommand, Guid>
 {
-    public ActiveProductsSpec(int pageIndex, int pageSize)
+    public async ValueTask<Guid> Handle(CreateProductCommand request, CancellationToken ct)
     {
-        AddCriteria(p => p.StockQuantity > 0);   // IsDeleted 由全局过滤器处理
-        ApplyOrderByDescending(p => p.CreatedAt);
-        ApplyPaging(pageIndex * pageSize, pageSize);
+        var product = Product.Create(Guid.NewGuid(), request.Name, request.Price);
+        db.Products.Add(product);               // 租户与软删由全局过滤器和拦截器处理
+        await unitOfWork.SaveChangesAsync(ct);  // 聚合变更、领域事件与 Outbox 在同一个事务里提交
+        return product.Id;
     }
-}
-
-// 基于 EF Core 的仓储实现
-public class EfRepository<T> : IRepository<T> where T : class, IAggregateRoot
-{
-    private readonly KunDbContext _db;
-
-    public async Task<T?> GetByIdAsync(object id, CancellationToken ct = default)
-        => await _db.Set<T>().FindAsync(new[] { id }, ct);
-
-    public async Task<List<T>> ListAsync(ISpecification<T> spec, CancellationToken ct = default)
-        => await SpecificationEvaluator.Default.GetQuery(_db.Set<T>(), spec).ToListAsync(ct);
-
-    public async Task AddAsync(T entity, CancellationToken ct = default)
-        => await _db.Set<T>().AddAsync(entity, ct);
 }
 ```
 

@@ -1,5 +1,5 @@
 using System.Data.Common;
-using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
 
 namespace Qian.Scheduler;

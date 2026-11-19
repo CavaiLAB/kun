@@ -1,14 +1,12 @@
 using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Conventions;
 using Kun.EntityFrameworkCore.Interceptors;
-using Kun.MultiTenancy.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Kun.Data;
+namespace Kun.EntityFrameworkCore;
 
 /// <summary>带安全装配门禁的数据上下文。租户过滤与 Outbox 继承 Kun 的行为。</summary>
 public abstract class KunStrictDbContext : KunDbContext, IKunMultiTenantDbContext
@@ -103,9 +101,12 @@ public abstract class KunStrictDbContext : KunDbContext, IKunMultiTenantDbContex
             customizer != typeof(KunStrictModelCustomizer))
             throw new KunDataMisconfiguredException("必须装配 Qian 数据模型约定。");
         var relational = options.Extensions.OfType<RelationalOptionsExtension>().SingleOrDefault();
-        if (relational?.MigrationsHistoryTableSchema is not { } schema ||
-            !Regex.IsMatch(schema, "^plugin_[a-z][a-z0-9_]{0,55}$", RegexOptions.CultureInvariant))
-            throw new KunDataMisconfiguredException("必须通过 UseKunSchema 指定 plugin_ 前缀的插件 schema。");
+        // schema 规则：没有前缀时只要求合法的小写标识符；宿主用 RequireKunSchemaPrefix 加前缀（AddKunData 设 plugin_）。
+        var prefix = options.FindExtension<KunSchemaPrefixOptionsExtension>()?.Prefix;
+        if (relational?.MigrationsHistoryTableSchema is not { } schema || !KunSchemaPrefixOptionsExtension.IsValidSchema(schema, prefix))
+            throw new KunDataMisconfiguredException(prefix is null
+                ? "必须通过 UseKunSchema 指定 schema：小写字母开头，只含小写字母、数字和下划线，最长 63 个字符。"
+                : $"必须通过 UseKunSchema 指定 {prefix} 前缀的 schema。");
         if (core.InternalServiceProvider is not null || core.Model is not null)
             throw new KunDataMisconfiguredException("不允许外部 EF 服务容器或预编译模型绕过租户模型配置。");
     }

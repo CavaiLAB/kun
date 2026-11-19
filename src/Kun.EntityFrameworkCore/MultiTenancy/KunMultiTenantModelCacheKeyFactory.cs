@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Kun.MultiTenancy.EntityFrameworkCore;
+namespace Kun.EntityFrameworkCore.MultiTenancy;
 
 /// <summary>
 /// <see cref="IModelCacheKeyFactory"/> that emits a distinct compiled
@@ -9,7 +9,9 @@ namespace Kun.MultiTenancy.EntityFrameworkCore;
 /// <see cref="IKunMultiTenantDbContext"/>. Falls back to EF Core's
 /// default key shape (context type + design-time flag) otherwise, so
 /// consumers who forget to opt in get the same behaviour they had
-/// before.
+/// before. The <see cref="Kun.Core.MultiTenancy.TenantIsolationStrategy.SchemaPerTenant"/>
+/// strategy relies on the same key: each tenant's schema-specific model is compiled separately,
+/// and a <see langword="null"/> tenant (no scoped tenant) shares one model.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -27,8 +29,11 @@ namespace Kun.MultiTenancy.EntityFrameworkCore;
 public sealed class KunMultiTenantModelCacheKeyFactory : IModelCacheKeyFactory
 {
     /// <inheritdoc />
-    public object Create(DbContext context, bool designTime) =>
-        (context.GetType(),
-         (context as IKunMultiTenantDbContext)?.TenantIdForModelCacheKey,
-         designTime);
+    public object Create(DbContext context, bool designTime)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return (context.GetType(),
+            (context as IKunMultiTenantDbContext)?.TenantIdForModelCacheKey,
+            designTime);
+    }
 }

@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
 
 namespace Kun.Data.Abstractions.Tests;

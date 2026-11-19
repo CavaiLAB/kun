@@ -4,6 +4,7 @@ using Kun.Authorization;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Security;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;

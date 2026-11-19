@@ -1,27 +1,17 @@
 using FluentAssertions;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.MultiTenancy;
+using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace Kun.MultiTenancy.Tests;
+namespace Kun.EntityFrameworkCore.Tests.MultiTenancy;
 
 public sealed class EntityFrameworkIntegrationTests
 {
-    [Fact]
-    public void GlobalFilter_AccessorOnlyOverload_RejectsUnsafeModelCreation()
-    {
-        var builder = new ModelBuilder();
-        var tenant = new AsyncLocalTenantContext();
-#pragma warning disable KUNTENANT001 // 验证旧入口明确拒绝，而不是生成会引用其它宿主的模型。
-        var apply = () => builder.ApplyKunMultiTenantFilters(tenant);
-#pragma warning restore KUNTENANT001
-        apply.Should().Throw<InvalidOperationException>().WithMessage("*DbContext*");
-    }
-
     [Fact]
     public async Task GlobalFilter_HidesOtherTenants()
     {

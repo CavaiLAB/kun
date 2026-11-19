@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

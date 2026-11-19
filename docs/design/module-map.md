@@ -19,7 +19,7 @@
 |---|---|---|---|:---:|:---:|
 | `Kun.Mediator` | `FrozenDictionary` 无反射 CQRS 调度器 + Pipeline Behaviors | 所有业务 Command/Query 的执行入口 | `AddKunMediator(builder => …)` / `ISender` / `IPublisher` | ✅ | 8 |
 | `Kun.Validation` | `IValidator<T>` + `ValidationPipelineBehavior` | 命令入口的统一校验 | `AddValidator<T, TValidator>()` | ✅ | 12 |
-| `Kun.Infrastructure` | 仓储 / UoW / 规约 / `IProcessedMessageStore` 抽象 | 持久化层契约，真实实现下沉到 EF 侧 | `IRepository<T>` / `IUnitOfWork` / `ISpecification<T>` | ✅ | — |
+| `Kun.Infrastructure` | 仓储 / UoW / 规约 / `IProcessedMessageStore` 抽象 | 旧的持久化层契约，EF 侧已不再实现（已禁用，待归档） | `IRepository<T>` / `IUnitOfWork` / `ISpecification<T>` | ✅ | — |
 | `Kun.Configuration` | 强类型 Options + DataAnnotations + fail-fast | 下游服务的配置装配 | `AddKunOptions<T>()` | ✅ | 13 |
 
 ### 平台端口增量（2026-10-09）
@@ -103,6 +103,8 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Audit` | 审计写入器抽象 + `NullAuditWriter` / `EventBusAuditWriter` | 下游服务的操作审计；通过 Outbox 异步记录 | `AddKunAudit()` / `.UseEventBus()` | ✅ | 13 |
 | `Kun.Audit.EntityFrameworkCore` | EF 持久化后端 | 需要审计 on-box 持久化时的可选后端 | `AddKunAuditEntityFrameworkCore()` | ⚠️ trim-safe | — |
 | `Kun.RateLimit` | 基于 `.NET 10 RateLimiter` 的按租户分区限流 | Gateway 与业务服务的请求级别保护 | `AddKunRateLimit(...)` | ✅ | 6 |
+
+`Kun.MultiTenancy.EntityFrameworkCore` 已并入 `Kun.EntityFrameworkCore`（S1-KUN-024）：包名停发，EF 侧的租户过滤、租户字段拦截器与模型缓存键在命名空间 `Kun.EntityFrameworkCore.MultiTenancy`，登记扩展在 `Kun.EntityFrameworkCore.DependencyInjection`。上表与下面非 AOT 白名单里的这一行按原样保留。
 
 ### 缓存 / 存储 / 观测 / Sandbox
 

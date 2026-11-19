@@ -1,10 +1,10 @@
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

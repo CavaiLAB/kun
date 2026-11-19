@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

@@ -1,1 +1,1 @@
-using Microsoft.EntityFrameworkCore; using Kun.Core.MultiTenancy; using Kun.Data; public abstract class SafeContext(DbContextOptions options, ITenantContext tenant) : KunStrictDbContext(options, tenant) { }
+using Microsoft.EntityFrameworkCore; using Kun.Core.MultiTenancy; using Kun.EntityFrameworkCore; public abstract class SafeContext(DbContextOptions options, ITenantContext tenant) : KunStrictDbContext(options, tenant) { }

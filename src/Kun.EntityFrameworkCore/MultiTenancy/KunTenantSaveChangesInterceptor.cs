@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace Kun.MultiTenancy.EntityFrameworkCore;
+namespace Kun.EntityFrameworkCore.MultiTenancy;
 
 /// <summary>
 /// EF Core <see cref="SaveChangesInterceptor"/> that walks newly added

@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Config;
-using Kun.Data;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;

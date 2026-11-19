@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
 using Kun.MultiTenancy;

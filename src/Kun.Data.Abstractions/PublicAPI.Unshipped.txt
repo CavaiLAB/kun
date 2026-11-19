@@ -1,36 +1,5 @@
 #nullable enable
-Kun.Data.KunDataModelExtensions
-static Kun.Data.KunDataModelExtensions.UseKunDataModel(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! options) -> Microsoft.EntityFrameworkCore.DbContextOptionsBuilder!
 Kun.Data.DataErrors
-static readonly Kun.Data.DataErrors.Misconfigured -> Kun.Errors.ErrorCode!
-Kun.Data.KunDataMisconfiguredException
-Kun.Data.KunDataMisconfiguredException.KunDataMisconfiguredException(string! reason) -> void
-Kun.Data.KunDataMisconfiguredException.Error.get -> Kun.Errors.Error!
-Kun.Data.KunStrictDbContext
-Kun.Data.KunStrictDbContext.KunStrictDbContext(Microsoft.EntityFrameworkCore.DbContextOptions! options, Kun.Core.MultiTenancy.ITenantContext! tenantContext) -> void
-override sealed Kun.Data.KunStrictDbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! optionsBuilder) -> void
-Kun.Data.KunApplicationRoleInterceptor
-Kun.Data.KunApplicationRoleInterceptor.KunApplicationRoleInterceptor() -> void
-override Kun.Data.KunApplicationRoleInterceptor.ConnectionOpened(System.Data.Common.DbConnection! connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEndEventData! eventData) -> void
-override Kun.Data.KunApplicationRoleInterceptor.ConnectionOpenedAsync(System.Data.Common.DbConnection! connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEndEventData! eventData, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-static Kun.Data.KunApplicationRoleInterceptor.Validate(System.Data.Common.DbConnection! connection) -> void
-static Kun.Data.KunApplicationRoleInterceptor.ValidateAsync(System.Data.Common.DbConnection! connection, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-static readonly Kun.Data.DataDefinition.Key -> Kun.Runtime.ServiceKey
-Kun.Data.IDataService
-Kun.Data.DataDefinition
-Kun.Data.IDataSession<TContext>
-Kun.Data.IDataSession<TContext>.Outbox.get -> Kun.EventBus.Outbox.IOutboxWriter!
-static Kun.Data.DataDefinition.Data(this Kun.Runtime.IPluginContext! context) -> Kun.Data.IDataService!
-Kun.Data.IDataSession<TContext>.Context.get -> TContext!
-Kun.Data.IDataService.OpenAsync<TContext>(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.IDataSession<TContext!>!>
-Kun.Data.KunSoftDeleteInterceptor
-Kun.Data.KunSoftDeleteInterceptor.KunSoftDeleteInterceptor(Kun.Core.Security.ICurrentUser! user, System.TimeProvider! clock) -> void
-override Kun.Data.KunSoftDeleteInterceptor.SavingChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>>
-override Kun.Data.KunSoftDeleteInterceptor.SavingChanges(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result) -> Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>
-Kun.Data.IOutboxBufferBinding
-Kun.Data.IOutboxBufferBinding.Buffer.get -> Kun.EventBus.Outbox.IntegrationEventBuffer!
-Kun.Data.IDataContextCatalog
-Kun.Data.IDataContextCatalog.ContextTypes.get -> System.Collections.Generic.IReadOnlyList<System.Type!>!
 Kun.Data.DataMigrationReport
 Kun.Data.DataMigrationReport.<Clone>$() -> Kun.Data.DataMigrationReport!
 Kun.Data.DataMigrationReport.Applied.get -> System.Collections.Generic.IReadOnlyList<string!>!

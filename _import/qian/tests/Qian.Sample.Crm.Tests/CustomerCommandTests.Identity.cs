@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Reflection;
+using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Extensions;

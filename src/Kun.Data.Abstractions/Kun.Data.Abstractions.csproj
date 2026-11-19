@@ -1,22 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Kun 数据组件的安全上下文基类与装配错误契约。</Description>
+    <Description>Kun 数据组件的平台契约：迁移协调、序号与雪花 ID 端口，基准类型、方言、数据连接、记录与过滤契约，数据错误码。</Description>
   </PropertyGroup>
   <PropertyGroup Label="档位">
     <KunTier>platform</KunTier>
     <KunRole>contract</KunRole>
   </PropertyGroup>
-  <ItemGroup Label="档位例外">
-    <KunTierException Include="Kun.EntityFrameworkCore" Rule="D" Until="B5" Reason="已发布的 KunStrictDbContext 继承 KunDbContext，IDataSession 暴露同一上下文的工作单元；B5 EF 部分并入 Kun.EntityFrameworkCore 时去掉" />
-    <KunTierException Include="Kun.MultiTenancy.EntityFrameworkCore" Rule="D" Until="B5" Reason="KunStrictDbContext 启动时校验 Kun 的行级安全双拦截器与模型缓存键；B5 三处并成一个 Kun.EntityFrameworkCore 时去掉" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="../Kun.MultiTenancy.EntityFrameworkCore/Kun.MultiTenancy.EntityFrameworkCore.csproj" />
     <EmbeddedResource Include="../../_import/qian/contracts/v0/event-envelope.schema.json;../../_import/qian/contracts/v0/s2s-claims.schema.json" LogicalName="data/v0/%(Filename)%(Extension)" />
     <None Include="../../_import/qian/contracts/v0/event-envelope.schema.json;../../_import/qian/contracts/v0/s2s-claims.schema.json" Pack="true" PackagePath="contracts/v0/" />
     <EmbeddedResource Include="../../_import/qian/contracts/data/v1/*.json" LogicalName="data/%(Filename)%(Extension)" />

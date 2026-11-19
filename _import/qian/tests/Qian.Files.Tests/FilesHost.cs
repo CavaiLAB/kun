@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;

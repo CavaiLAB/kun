@@ -5,12 +5,6 @@ namespace Kun.Data;
 /// <summary>数据组件的稳定错误码定义。</summary>
 public static class DataErrors
 {
-    /// <summary>宿主未满足数据隔离的必要装配条件。</summary>
-    public static readonly ErrorCode Misconfigured = ErrorCode.Protocol(
-        "DATA_MISCONFIGURED", 500, "qian.data",
-        new Dictionary<string, string> { ["zh-CN"] = "数据组件装配错误" },
-        new Dictionary<string, string> { ["zh-CN"] = "数据组件未满足安全装配要求：{reason}" });
-
     /// <summary>序号规则的模式不合法。</summary>
     public static readonly ErrorCode SequenceRuleInvalid = ErrorCode.Business(
         "DATA_SEQUENCE_RULE_INVALID", 422, "qian.data",
@@ -121,17 +115,4 @@ public static class DataErrors
         TypeNotFound, TypeProtected, DialectNotFound, FieldDefinitionInvalid, FieldOutOfRange, FieldFacetUnsupported, FieldRangeInverted,
         ConnectionNotFound, ConnectionNameConflict, ConnectionUnreachable, ConnectionRejected, ConnectionTargetDenied, ConnectionCredentialInvalid
     ];
-}
-
-/// <summary>在构造上下文或启动宿主时拒绝不安全的数据层配置。</summary>
-public sealed class KunDataMisconfiguredException : InvalidOperationException
-{
-    /// <summary>指定缺失或被覆盖的安全配置。</summary>
-    public KunDataMisconfiguredException(string reason) : base($"数据组件未满足安全装配要求：{reason}")
-    {
-        Error = new Error(DataErrors.Misconfigured, new Dictionary<string, string> { ["reason"] = reason });
-    }
-
-    /// <summary>供宿主记录的统一错误详情。</summary>
-    public Error Error { get; }
 }

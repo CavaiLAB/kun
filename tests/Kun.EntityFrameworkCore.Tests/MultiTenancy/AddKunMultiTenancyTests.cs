@@ -53,7 +53,7 @@ public sealed class AddKunMultiTenancyTests
         using var scope = sp.CreateScope();
 
         Assert.NotNull(scope.ServiceProvider.GetService<TenantRlsTransactionInterceptor>());
-        Assert.NotNull(sp.GetService<TenantAwareModelCacheKeyFactory>());
+        Assert.NotNull(sp.GetService<KunMultiTenantModelCacheKeyFactory>());
         var provisioner = sp.GetService<ITenantProvisioner>();
         Assert.IsType<SchemaPerTenantProvisioner<TestDbContext>>(provisioner);
     }

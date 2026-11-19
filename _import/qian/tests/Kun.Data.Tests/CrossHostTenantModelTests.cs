@@ -1,5 +1,6 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
 using Kun.MultiTenancy;

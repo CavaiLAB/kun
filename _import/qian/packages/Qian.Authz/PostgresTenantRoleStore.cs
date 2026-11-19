@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Qian.Authz.Abstractions;
-using Kun.Data;
 using Qian.Events;
 using Kun.Runtime;
 using Kun.Errors;

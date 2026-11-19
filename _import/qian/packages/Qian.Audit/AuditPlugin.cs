@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Data.Common;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Kun.Data;
 using Kun.Runtime;
 using Kun.Plugin.Sdk;
 using Kun.Errors;

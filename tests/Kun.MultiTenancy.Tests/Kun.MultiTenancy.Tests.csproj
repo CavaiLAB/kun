@@ -12,9 +12,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\..\src\Kun.MultiTenancy\Kun.MultiTenancy.csproj" />
-    <ProjectReference Include="..\..\src\Kun.MultiTenancy.EntityFrameworkCore\Kun.MultiTenancy.EntityFrameworkCore.csproj" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="coverlet.MTP" />

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;

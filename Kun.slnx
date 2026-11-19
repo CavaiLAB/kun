@@ -36,6 +36,7 @@
     <Project Path="src/Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" />
     <Project Path="src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <Project Path="src/Kun.Data/Kun.Data.csproj" />
+    <Project Path="src/Kun.EntityFrameworkCore.PostgreSQL/Kun.EntityFrameworkCore.PostgreSQL.csproj" />
     <Project Path="src/Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
     <Project Path="src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <Project Path="src/Kun.Errors/Kun.Errors.csproj" />
@@ -48,7 +49,6 @@
     <Project Path="src/Kun.Identity/Kun.Identity.csproj" />
     <Project Path="src/Kun.Infrastructure/Kun.Infrastructure.csproj" />
     <Project Path="src/Kun.Mediator/Kun.Mediator.csproj" />
-    <Project Path="src/Kun.MultiTenancy.EntityFrameworkCore/Kun.MultiTenancy.EntityFrameworkCore.csproj" />
     <Project Path="src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <Project Path="src/Kun.Observability/Kun.Observability.csproj" />
     <Project Path="src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />

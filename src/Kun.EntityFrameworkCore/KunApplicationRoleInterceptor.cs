@@ -2,7 +2,7 @@ using System.Data;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace Kun.Data;
+namespace Kun.EntityFrameworkCore;
 
 /// <summary>在线应用连接只能使用受 RLS 约束的 PostgreSQL 角色；迁移管理员通过独立连接执行 DDL。</summary>
 public sealed class KunApplicationRoleInterceptor : DbConnectionInterceptor

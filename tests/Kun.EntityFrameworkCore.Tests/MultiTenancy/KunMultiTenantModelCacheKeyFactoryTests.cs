@@ -6,19 +6,19 @@ using Xunit;
 
 namespace Kun.EntityFrameworkCore.Tests.MultiTenancy;
 
-public sealed class TenantAwareModelCacheKeyFactoryTests
+public sealed class KunMultiTenantModelCacheKeyFactoryTests
 {
     [Fact]
     public void Create_NullContext_Throws()
     {
-        var factory = new TenantAwareModelCacheKeyFactory();
+        var factory = new KunMultiTenantModelCacheKeyFactory();
         Assert.Throws<ArgumentNullException>(() => factory.Create(null!, designTime: false));
     }
 
     [Fact]
     public void Create_TwoTenants_ProducesDistinctKeys()
     {
-        var factory = new TenantAwareModelCacheKeyFactory();
+        var factory = new KunMultiTenantModelCacheKeyFactory();
         using var ctxA = BuildContext(tenantId: "tenant-a");
         using var ctxB = BuildContext(tenantId: "tenant-b");
 
@@ -31,7 +31,7 @@ public sealed class TenantAwareModelCacheKeyFactoryTests
     [Fact]
     public void Create_SameTenant_ProducesEqualKeys()
     {
-        var factory = new TenantAwareModelCacheKeyFactory();
+        var factory = new KunMultiTenantModelCacheKeyFactory();
         using var ctx1 = BuildContext(tenantId: "tenant-a");
         using var ctx2 = BuildContext(tenantId: "tenant-a");
 
@@ -42,9 +42,9 @@ public sealed class TenantAwareModelCacheKeyFactoryTests
     }
 
     [Fact]
-    public void Create_NullTenant_UsesPlaceholderSoKeyIsStable()
+    public void Create_NullTenant_SharesOneStableKey()
     {
-        var factory = new TenantAwareModelCacheKeyFactory();
+        var factory = new KunMultiTenantModelCacheKeyFactory();
         using var ctx1 = BuildContext(tenantId: null);
         using var ctx2 = BuildContext(tenantId: null);
 
@@ -57,7 +57,7 @@ public sealed class TenantAwareModelCacheKeyFactoryTests
     [Fact]
     public void Create_DesignTimeFlag_ProducesDistinctKeys()
     {
-        var factory = new TenantAwareModelCacheKeyFactory();
+        var factory = new KunMultiTenantModelCacheKeyFactory();
         using var ctx = BuildContext(tenantId: "tenant-a");
 
         var runtimeKey = factory.Create(ctx, designTime: false);
@@ -67,15 +67,15 @@ public sealed class TenantAwareModelCacheKeyFactoryTests
     }
 
     [Fact]
-    public void Create_NonKunDbContext_ReturnsTupleKey()
+    public void Create_ContextWithoutTenantMember_KeysOnTypeOnly()
     {
-        var factory = new TenantAwareModelCacheKeyFactory();
+        var factory = new KunMultiTenantModelCacheKeyFactory();
         using var plain = new PlainDbContext();
 
         var key = factory.Create(plain, designTime: false);
 
-        // Non-KunDbContext fallback is (Type, bool) tuple.
-        Assert.Equal((typeof(PlainDbContext), false), key);
+        // A context that does not implement IKunMultiTenantDbContext keys on type and design-time flag only.
+        Assert.Equal((typeof(PlainDbContext), (string?)null, false), key);
     }
 
     // Unreachable Npgsql host: the factory tests only call Create() — they never query, so

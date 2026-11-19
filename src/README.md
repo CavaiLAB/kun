@@ -7,7 +7,10 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | 模块 | 职责 | AOT Ready |
 | :--- | :--- | :---: |
 | [Kun.Core](Kun.Core/) | 领域抽象、CQRS 接口、Result、`ITenantContext`（零第三方依赖） | ✅ |
+| [Kun.Errors](Kun.Errors/) | 错误码、错误码目录、`Error` 与线上错误模型 `ErrorDetail`（零依赖） | ✅ |
+| [Kun.Errors.AspNetCore](Kun.Errors.AspNetCore/) | 错误转 HTTP 响应（problem+json 的 `ErrorDetail`） | ✅ |
 | [Kun.Mediator](Kun.Mediator/) | `FrozenDictionary` 无反射调度、Pipeline Behaviors | ✅ |
+| [Kun.Runtime](Kun.Runtime/) | 组件运行时：插件装载、服务键与注入、类型化事件、扁平 scope | — |
 | [Kun.Infrastructure](Kun.Infrastructure/) | 仓储/UoW/规约接口、`IProcessedMessageStore` | ✅ |
 | [Kun.EntityFrameworkCore](Kun.EntityFrameworkCore/) | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | ⚠️ trim-safe |
 | [Kun.Dapper](Kun.Dapper/) | 读侧 Dapper AOT 封装 | ✅ |

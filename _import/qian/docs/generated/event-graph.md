@@ -53,6 +53,6 @@ flowchart LR
 ## 校验诊断
 
 - warning：` _import/qian/packages/Qian.Surfaces.Hosting/HookBridgePlugin.cs `:32，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
-- warning：` src/Kun.Runtime/Contracts.cs `:84，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
-- warning：` src/Kun.Runtime/Contracts.cs `:88，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
+- warning：` src/Kun.Runtime/Contracts.cs `:93，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
+- warning：` src/Kun.Runtime/Contracts.cs `:97，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
 - warning：` src/Kun.Runtime/PluginContext.Events.cs `:51，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。

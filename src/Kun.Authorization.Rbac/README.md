@@ -181,7 +181,7 @@ S1-AZ-009：
   - 经生产授予端口授予后修订递增；撤销后 3 秒内旧令牌在 userinfo（401）与 PEP 执行端口（`identity_revision_stale`）都被拒。
   - refresh 拿到新修订、两侧放行；非 user、非 Person、无成员身份的主体不递增。
 
-S1-YUE-012：Qian.Sample.Crm.Tests/AuthzRevisionGuardTests.cs（参考宿主，生产模式，真实 PG 与审计链）：见到修订 3 的令牌后，`me/permissions`、`meta`、能力目录、导航与外壳目录对修订 2 的令牌一律 401 `UNAUTHENTICATED`（`private, no-store`）并各记一条 `identity_revision_stale` 拒绝决策，修订 3 与不带修订的令牌放行。
+S1-YUE-012：Kun.Sample.Crm.Tests/AuthzRevisionGuardTests.cs（参考宿主，生产模式，真实 PG 与审计链）：见到修订 3 的令牌后，`me/permissions`、`meta`、能力目录、导航与外壳目录对修订 2 的令牌一律 401 `UNAUTHENTICATED`（`private, no-store`）并各记一条 `identity_revision_stale` 拒绝决策，修订 3 与不带修订的令牌放行。
 
 ## 清单入口与代码派生
 

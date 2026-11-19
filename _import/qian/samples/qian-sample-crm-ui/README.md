@@ -15,7 +15,7 @@
 pnpm --filter @qian/sample-crm-ui build
 ```
 
-联调环境（[tools/Qian.Dev.Shell](../../../../tools/Kun.Dev.Shell/README.md)）经网关的外壳静态托管把 `dist/remote/` 挂在 `/remotes/qian.sample.crm/`；只有本租户实际挂载了参考应用、bootstrap 列出它时，外壳才会请求这些制品。
+联调环境（[tools/Kun.Dev.Shell](../../../../tools/Kun.Dev.Shell/README.md)）经网关的外壳静态托管把 `dist/remote/` 挂在 `/remotes/qian.sample.crm/`；只有本租户实际挂载了参考应用、bootstrap 列出它时，外壳才会请求这些制品。
 
 ## 已知限制
 

@@ -32,13 +32,13 @@
 1. 起环境，终端保持运行，看到「租户运营手测宿主已就绪」即可：
 
    ```bash
-   scripts/dev-tenant-ops.sh up
+   _import/qian/scripts/dev-tenant-ops.sh up
    ```
 
 2. 另开一个终端，按顺序走一遍。每步先打印等价的 curl 命令，再打印响应并核对状态码，回车进入下一步：
 
    ```bash
-   scripts/dev-tenant-ops.sh walkthrough
+   _import/qian/scripts/dev-tenant-ops.sh walkthrough
    ```
 
    顺序是：建租户（含新建、查找管理员账号）→ 开通步骤 → 激活 → 写设置 / 读配额 → 管理员维护 → 冻结 / 恢复 → 扫描到期 → 权限反例。加 `--yes` 一口气跑完；任一检查不符时退出码为 1。
@@ -46,7 +46,7 @@
 3. 用完在第一个终端按 Ctrl+C 停宿主，再删容器：
 
    ```bash
-   scripts/dev-tenant-ops.sh down
+   _import/qian/scripts/dev-tenant-ops.sh down
    ```
 
 ## 单独调用某个接口
@@ -54,19 +54,19 @@
 以平台超管身份调用一次，响应体自动缩进：
 
 ```bash
-scripts/dev-tenant-ops.sh api GET /api/tenancy/tenants
+_import/qian/scripts/dev-tenant-ops.sh api GET /api/tenancy/tenants
 ```
 
 带请求体时把 JSON 作为第三个参数；路径和 JSON 都用单引号括起来：
 
 ```bash
-scripts/dev-tenant-ops.sh api POST '/api/tenancy/tenants/<租户 id>:activate' '{"validUntil":"2026-12-31T00:00:00Z"}'
+_import/qian/scripts/dev-tenant-ops.sh api POST '/api/tenancy/tenants/<租户 id>:activate' '{"validUntil":"2026-12-31T00:00:00Z"}'
 ```
 
 想用自己的 curl 或 HTTP 客户端，先取令牌：
 
 ```bash
-export TOKEN=$(scripts/dev-tenant-ops.sh token)
+export TOKEN=$(_import/qian/scripts/dev-tenant-ops.sh token)
 ```
 
 令牌默认 8 小时有效。`token` 还能签别的身份，用来看 403：
@@ -82,7 +82,7 @@ export TOKEN=$(scripts/dev-tenant-ops.sh token)
 `dev-tenant-ops` 工作流（S1-QA-013）在 ubuntu-latest 上执行与本机相同的命令：
 
 ```bash
-scripts/dev-tenant-ops.sh smoke
+_import/qian/scripts/dev-tenant-ops.sh smoke
 ```
 
 它的步骤：
@@ -144,7 +144,7 @@ scripts/dev-tenant-ops.sh smoke
 
 CRM 命令宿主充当运行时容器，同时是身份发行方：监听 `QIAN_DEV_IDENTITY_URL`，挂真实 qian.identity（与生产同一套迁移建表，在线连接是受限应用登录），只开账号接口 `/api/identity` 与目录接口 `/api/directory`。开户第 05 步经它建管理员成员，配额用量经它读真实人数。
 
-外壳认证联调环境 [tools/Qian.Dev.Shell](../Qian.Dev.Shell/README.md)（S1-YUE-002）复用这里的开发库、平台插件树与运营前置（`InternalsVisibleTo`），身份服务换成自己那份带认证页族与上游连接器的装配、把参考应用作为 system 组件制品登记，并起网关 BFF；平台控制台（S1-YUE-018）另让 Tenancy 与开通申请带 UI 清单挂在全局 scope（`DevPlatform.Console`，本宿主不开），种子平台运营经 `DevOperations.GrantSuperadminAsync` 授平台超管，运营宿主直接复用参考运营宿主 `TenantOperationsHost`；两套环境各用自己的容器、端口与状态目录，可同时运行。
+外壳认证联调环境 [tools/Kun.Dev.Shell](../Kun.Dev.Shell/README.md)（S1-YUE-002）复用这里的开发库、平台插件树与运营前置（`InternalsVisibleTo`），身份服务换成自己那份带认证页族与上游连接器的装配、把参考应用作为 system 组件制品登记，并起网关 BFF；平台控制台（S1-YUE-018）另让 Tenancy 与开通申请带 UI 清单挂在全局 scope（`DevPlatform.Console`，本宿主不开），种子平台运营经 `DevOperations.GrantSuperadminAsync` 授平台超管，运营宿主直接复用参考运营宿主 `TenantOperationsHost`；两套环境各用自己的容器、端口与状态目录，可同时运行。
 
 ## 数据与密钥
 

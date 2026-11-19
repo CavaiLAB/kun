@@ -33,7 +33,7 @@
 | `vulnerability-allowlist.json` | 漏洞豁免清单，默认为空 |
 | `../../scripts/images.py` | 统一构建入口 `build` 与 CI 自检 `selfcheck` |
 | `../../scripts/image-tools.lock.json` | syft、grype、cosign 的锁定版本与各平台归档 sha256，由 `prepare_image_tools.py` 下载校验 |
-| `../../tools/Qian.Image.SelfCheck*` | 自检程序：`dump-config` 合成 profile，`self-report` 自报运行期身份与文件系统状态 |
+| `../../tools/Kun.Image.SelfCheck*` | 自检程序：`dump-config` 合成 profile，`self-report` 自报运行期身份与文件系统状态 |
 | `../../../../.github/workflows/ci.yml` | CI 自检：镜像自检作业 `images-selfcheck` 运行 `selfcheck` |
 
 ### 构建入口

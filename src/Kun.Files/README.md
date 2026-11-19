@@ -15,7 +15,7 @@ builder.Services.AddKunMediator(registry => registry.AddKunFiles(sp => /* 按请
 }));
 ```
 
-能力经 SDK 命令管道执行，宿主还须与参考宿主（`samples/Qian.Sample.Crm`）一样装好基础组合：Tenancy / Authz / Audit 三个 Provider 提供命令策略，DI 里登记 `IPermissionChecker`（真实 RBAC，Kun 的 `PermissionBehavior` 读它），`ICurrentUser` 只取已验证令牌。缺任一命令策略时每个能力都按 `AUTHZ_DENIED` 拒绝，不会降级放行。HTTP 端点见 [Kun.Files.AspNetCore](../Kun.Files.AspNetCore/README.md)。
+能力经 SDK 命令管道执行，宿主还须与参考宿主（`samples/Kun.Sample.Crm`）一样装好基础组合：Tenancy / Authz / Audit 三个 Provider 提供命令策略，DI 里登记 `IPermissionChecker`（真实 RBAC，Kun 的 `PermissionBehavior` 读它），`ICurrentUser` 只取已验证令牌。缺任一命令策略时每个能力都按 `AUTHZ_DENIED` 拒绝，不会降级放行。HTTP 端点见 [Kun.Files.AspNetCore](../Kun.Files.AspNetCore/README.md)。
 
 元数据表随包提供 EF 迁移（schema `plugin_qian_files`：`file_objects` 与 `outbox_messages`），由迁移任务（`--migrate-only` / `IDataMigrator`）以属主角色执行；业务连接只需该 schema 的 DML 权限，`file_objects` 按 `tenant_id` 启用 RLS。
 

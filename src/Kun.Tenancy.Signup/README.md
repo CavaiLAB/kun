@@ -71,6 +71,6 @@ app.MapKunTenancySignupOperations(_ => loader.GetContext("tenancy.signup", Scope
 
 ## 已知限制
 
-- 发件端口在通知组件（S1-NTF-003 短信渠道）就绪前没有生产实现：发验证码 503，自助开通不可用；开发宿主（tools/Qian.Dev.Shell）登记只在 Development、只监听回环地址的开发期发件箱。
+- 发件端口在通知组件（S1-NTF-003 短信渠道）就绪前没有生产实现：发验证码 503，自助开通不可用；开发宿主（tools/Kun.Dev.Shell）登记只在 Development、只监听回环地址的开发期发件箱。
 - 租户号可用性查询的限流在进程内，多副本时阈值按副本数放大；发码与核验的限流在数据库里，跨副本一致。
 - 「申请人已加入其它企业」取身份组件的登录索引（含成员已停用的租户）；身份 Provider 不提供该查询时检查记为提示、不带数量。

@@ -31,8 +31,11 @@
     AOT 由各项目文件自己声明（S1-KUN-020）：AOT 兼容的库写 <IsAotCompatible>true</IsAotCompatible>，SDK 在项目文件之后
     据此打开 IsTrimmable 与裁剪、AOT、单文件三个分析器；不兼容的不写。PublishAot 只写在要原生发布的可执行项目里。
     守卫与清单见仓库根的 Directory.Build.targets。
-    这里只记下命令行上给的 PublishAot（如 dotnet publish -p:PublishAot=true）：全局属性在求值开始前就定了，此时读到的
-    只会是它，守卫据此只拦写在项目文件里的 PublishAot。
+    这里记下此时已有的 PublishAot，守卫把它当成命令行上给的放行，只拦在这之后才写成 true 的（项目文件里写的，
+    或子目录的 Directory.Build.props 在导入本文件之后写的）。
+    此时读到的有两种来处：全局属性（命令行上的 -p:PublishAot=true、上层项目经 MSBuild 任务传下来的），在求值开始前就定了；
+    同名的环境变量，MSBuild 也当属性读。MSBuild 不记属性的来处，所以设了环境变量 PublishAot=true 时，库的项目文件里再写
+    PublishAot=true，值没有变化，守卫看不出来。仓库里的脚本、测试与 CI 都只在命令行上给 PublishAot。
   -->
   <PropertyGroup Label="AOT">
     <_KunPublishAotFromCommandLine>$(PublishAot)</_KunPublishAotFromCommandLine>

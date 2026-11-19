@@ -9,7 +9,7 @@
 
 同一个包进 `platform`、`gateway` 与独立宿主（ADR-019）：独立宿主只装本包即可对接任意 OIDC 发行方，不部署 Qian 平台、不需要 Config 组件（公开客户端）。
 
-本包声明 `IsAotCompatible`，裁剪与 AOT 分析器 0 警告。组件清单的 `x-aot` 以 CI 的 NativeAOT 冒烟为据（S1-IDP-014）。按 S1-DEC-029，开发期 `gateway` 暂用 JIT，网关整体的 NativeAOT 验收归 GW-001 / DEP-008。冒烟的做法是：[tools/Qian.Identity.Client.AotSmoke](../../tools/Qian.Identity.Client.AotSmoke/Program.cs) 按网关的用法装配会话与 S2S 校验，以 ILC 警告即失败发布 linux-x64，原生二进制挂载组件后逐个请求端点。判断兼容性看 ILC 结果，不看 Kun 包的元数据：Kun 2026.10.14 的包缺 IsTrimmable 等元数据，成因见 [S1-KUN-015](../../pm/tasks/S1-KUN-015.md)。
+本包声明 `IsAotCompatible`，裁剪与 AOT 分析器 0 警告。组件清单的 `x-aot` 以 CI 的 NativeAOT 冒烟为据（S1-IDP-014）。按 S1-DEC-029，开发期 `gateway` 暂用 JIT，网关整体的 NativeAOT 验收归 GW-001 / DEP-008。冒烟的做法是：[tools/Qian.Identity.Client.AotSmoke](../../tools/Qian.Identity.Client.AotSmoke/Program.cs) 按网关的用法装配会话与 S2S 校验，以 ILC 警告即失败发布 linux-x64，原生二进制挂载组件后逐个请求端点。判断兼容性看 ILC 结果。本包引用的 Kun 是仓库根 `src/` 下的项目（`Kun.Identity`、`Kun.Identity.AspNetCore`、`Kun.Security`），与本包一样在各自的项目文件里声明 `IsAotCompatible`，都在仓库根的 AOT 清单里；仓库根的 AOT 冒烟宿主 `tests/Kun.AotSmoke` 把清单里的程序集整体扎根后原生发布，见仓库根 [AGENTS.md](../../../../AGENTS.md)「项目文件与包」。
 
 ## 安装与装配
 

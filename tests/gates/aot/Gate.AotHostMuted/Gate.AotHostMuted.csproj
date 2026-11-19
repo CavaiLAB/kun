@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
+    <NoWarn>$(NoWarn);IL2026,IL3050 IL3000</NoWarn>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IL2104</WarningsNotAsErrors>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <SuppressAotAnalysisWarnings>true</SuppressAotAnalysisWarnings>
+    <IlcTreatWarningsAsErrors>false</IlcTreatWarningsAsErrors>
+    <TrimmerSingleWarn>true</TrimmerSingleWarn>
+    <EnableSingleFileAnalyzer>false</EnableSingleFileAnalyzer>
+    <Description>门禁自测的样例：要原生发布的可执行项目，却压掉或放过了裁剪、AOT、单文件警告；冒烟宿主 tests/Kun.AotSmoke 这样写，门禁自测失败</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <IlcArg Include="--noaotwarn" />
+  </ItemGroup>
+
+</Project>

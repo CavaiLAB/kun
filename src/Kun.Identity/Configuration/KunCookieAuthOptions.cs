@@ -57,7 +57,7 @@ public class KunCookieAuthOptions
 
     /// <summary>
     /// Absolute session lifetime. Default 8 hours. The cookie
-    /// <c>Max-Age</c> and the <see cref="Abstractions.Session.ISessionStore"/>
+    /// <c>Max-Age</c> and the <see cref="ISessionStore"/>
     /// entry TTL are both bound to this value at sign-in.
     /// </summary>
     public TimeSpan SessionTtl { get; set; } = TimeSpan.FromHours(8);

@@ -1,5 +1,4 @@
-using Kun.Identity.Abstractions;
-using Kun.Identity.Abstractions.Session;
+using Kun.Identity;
 using Kun.Identity.Implementations.Session;
 using Kun.IntegrationTests.Fixtures;
 using StackExchange.Redis;

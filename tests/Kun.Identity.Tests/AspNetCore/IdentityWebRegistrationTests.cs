@@ -1,4 +1,3 @@
-using Kun.Identity.Abstractions;
 using Kun.Identity.AspNetCore;
 using Kun.Identity.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;

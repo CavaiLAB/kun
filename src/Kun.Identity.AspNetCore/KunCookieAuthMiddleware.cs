@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using Kun.Identity.Abstractions.Session;
 using Kun.Identity.AspNetCore.Internal;
 using Kun.Identity.Configuration;
 using Microsoft.AspNetCore.Antiforgery;

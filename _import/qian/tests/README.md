@@ -231,9 +231,9 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 执行 `python3 -m unittest discover -s tests/gates`，同时验证 PublicAPI 与旧 API 的正反例（依赖门禁的自测在仓库根的 `tests/gates/`）。样例按项目引用 Kun 源码，Kun 的改动合入即进入这些正反例。
 
-S1-KUN-004 补充旧 Identity / Security S2S 签发器、旧注册方法及旧校验/JWKS 子模块的禁用清单。新增正反例引用仓库根 `src/` 下真实的 Kun 项目：两套旧签发器和旧工厂方法产生 RS0030，网关 S2sTokenIssuer 正常编译。负例主动关闭 TreatWarningsAsErrors 仍无法绕过；上游后续版本附带的 KUNS2S001 也被单列为错误。这里验证的是编译边界，不代表已发布或消费尚未发布的上游改动。
+编译样例引用仓库根的真实项目。已归档的签发器类型产生 CS0234，工厂方法产生 CS1061，透传入口产生 KUNS2S001。网关签发器正常编译。
 
-S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` 与挂它的 `AddKunServiceAuth`（把入站 Authorization 原样转给下一跳）。S2S 令牌按跳签发、`aud` 只绑一个下游，透传在编译期就拒绝；负例 `LegacyS2sPropagation` 引用该处理器，产生 RS0030。
+S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` 与挂它的 `AddKunServiceAuth`（把入站 Authorization 原样转给下一跳）。S2S 令牌按跳签发、`aud` 只绑一个下游，透传在编译期就拒绝；负例 `LegacyS2sPropagation` 引用该处理器，产生 KUNS2S001。
 
 ## 数据安全编译门禁（S1-DATA-001）
 

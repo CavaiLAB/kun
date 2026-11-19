@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Kun.Identity.Abstractions;
 using Kun.Identity.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

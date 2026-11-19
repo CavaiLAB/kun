@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Json.Schema;
-using Kun.Identity.Abstractions.Session;
+using Kun.Identity;
 using Kun.Gateway.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

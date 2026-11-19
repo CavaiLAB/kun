@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using FluentAssertions;
 using Kun.Security.Authentication;
 using Kun.Security.Security;
@@ -9,6 +10,33 @@ namespace Kun.Security.Tests;
 
 public sealed class PrincipalClaimsTests
 {
+    [Fact]
+    public void ReadS2s_ProjectsPublishedSingleAudienceFixtures()
+    {
+        using var fixtures = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "s2s-claims.valid.json")));
+        var kinds = new List<PrincipalKind>();
+        foreach (var item in fixtures.RootElement.EnumerateArray())
+        {
+            var payload = item.GetProperty("data");
+            if (payload.GetProperty("aud").GetArrayLength() != 1 || payload.TryGetProperty("act", out _))
+                continue;
+            var tenant = payload.GetProperty("tenant_id");
+            var identity = new ClaimsIdentity([
+                new Claim("sub", payload.GetProperty("sub").GetString()!),
+                new Claim("principal_kind", payload.GetProperty("principal_kind").GetString()!),
+                tenant.ValueKind == JsonValueKind.Null ? new Claim("tenant_id", "", "JSON_NULL") : new Claim("tenant_id", tenant.GetString()!)
+            ], "validated");
+            var now = DateTimeOffset.FromUnixTimeSeconds(payload.GetProperty("iat").GetInt64());
+            Assert.Null(PrincipalClaims.ReadS2s(new ClaimsPrincipal(identity), payload, now, out var snapshot));
+            Assert.NotNull(snapshot);
+            Assert.Equal(payload.GetProperty("scope").GetString(), snapshot.Scope);
+            Assert.Equal(payload.GetProperty("roles").EnumerateArray().Select(role => role.GetString()), snapshot.Roles);
+            kinds.Add(snapshot.Kind);
+        }
+        Assert.Contains(PrincipalKind.User, kinds);
+        Assert.Contains(PrincipalKind.Service, kinds);
+    }
+
     [Theory]
     [InlineData("user")]
     [InlineData("service")]

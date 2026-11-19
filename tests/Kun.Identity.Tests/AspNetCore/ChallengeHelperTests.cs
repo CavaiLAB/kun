@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Kun.Identity.Abstractions;
 using Kun.Identity.AspNetCore;
 using Kun.Identity.Configuration;
 using Kun.Identity.Tests.Infrastructure;

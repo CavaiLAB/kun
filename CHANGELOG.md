@@ -8,6 +8,13 @@
 
 ## [Unreleased]
 
+### Changed — 身份依赖方端口与服务间令牌（S1-KUN-026）
+
+- 依赖方、OIDC 与会话类型统一到 `Kun.Identity` 命名空间。引用 `Kun.Identity.Abstractions` 或 `Kun.Identity.Abstractions.Session` 的源码改用 `using Kun.Identity;`。浏览器宿主可继续通过 `IAuthenticatedUser` 获取租户、邮箱、显示名和当前声明主体。
+- 原有 `IJwtIssuer`、`KunJwtIssuer`、`KunJwtIssuerOptions`、`AddS2SIssuer` 及 `Kun.Security.S2SJwt` 签发、验证、JWKS 入口已归档。网关使用 `S2sTokenIssuer` 签发，下游通过 `AddKunServiceAuthentication` 验签。`PropagateS2sTokenHandler` 与 `AddKunServiceAuth` 标为过时，使用这些入口会产生 KUNS2S001。
+- 服务间令牌在签发与接收时共同核对每跳受众、身份、角色、scope 和有效期。外部访问令牌投影复用身份字段校验。字段形状见 `contracts/v0/s2s-claims.schema.json`。
+
+
 ### Changed — 错误模型合一到 Kun.Errors（S1-KUN-023）
 
 - 新增零依赖包 `Kun.Errors`（错误码 `ErrorCode`、错误码目录、`Error`、`ErrorException`、线上模型 `ErrorDetail`），`Kun.Core` 引用它。`Result` / `Result<T>` 的 `Error` 是 `Kun.Errors.Error`：错误码加文案参数、出错位置（JSON Pointer）、允许值与逐项字段错误。**迁移**：错误码先定义成 `ErrorCode`（大写下划线）并登记进错误码目录，通用的取 `PlatformErrors`；失败结果写 `Result.Fail(new Error(code, args))`。

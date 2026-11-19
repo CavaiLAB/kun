@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Kun.Identity.Abstractions;
+namespace Kun.Identity;
 
 /// <summary>
 /// Validates a Bearer JWT against the configured issuer / audience /

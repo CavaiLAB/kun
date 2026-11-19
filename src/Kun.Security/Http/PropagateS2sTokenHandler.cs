@@ -8,6 +8,7 @@ namespace Kun.Security.Http;
 /// <see cref="System.Net.Http.HttpClient"/> it is attached to.
 /// This propagates the S2S JWT transparently across service boundaries.
 /// </summary>
+[Obsolete("Issue a new S2S token for the downstream audience.", DiagnosticId = "KUNS2S001")]
 public sealed class PropagateS2sTokenHandler : DelegatingHandler
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

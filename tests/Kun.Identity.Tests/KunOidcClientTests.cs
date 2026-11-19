@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using FluentAssertions;
-using Kun.Identity.Abstractions;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
 using Kun.Identity.Tests.Infrastructure;

@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using FluentAssertions;
 using Kun.Caching.Abstractions;
-using Kun.Identity.Abstractions.Session;
 using Kun.Identity.Implementations.Session;
 using Xunit;
 

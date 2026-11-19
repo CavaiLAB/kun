@@ -21,7 +21,7 @@ invents a third adapter.
 Kun.Core.Security.ICurrentUser           ← minimal, S2S JWT-shaped
     │  UserId, Roles, IsAuthenticated, PrincipalKind
     │
-    └── Kun.Identity.Abstractions.IAuthenticatedUser
+    └── Kun.Identity.IAuthenticatedUser
            ← adds browser / cookie concerns
            │  TenantId, Email, Name, Principal
 ```

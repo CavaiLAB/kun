@@ -62,7 +62,7 @@
     门禁自测核对它的项目引用正好等于清单。下面三种情况构建报错：
 
       KUNAOT001  还写着 IsAotCandidate：这个开关已经不用，写了也不生效
-      KUNAOT002  可打包的库在项目文件里写了 PublishAot（命令行上给的不算，见仓库根 Directory.Build.props）
+      KUNAOT002  可打包的库在项目文件里写了 PublishAot（命令行上给的与同名环境变量都不算，见仓库根 Directory.Build.props）
       KUNAOT003  写了 IsAotCompatible=true，却关掉了 IsTrimmable 或裁剪、AOT、单文件分析器
   -->
   <Target Name="KunAotGuard" BeforeTargets="CoreCompile">

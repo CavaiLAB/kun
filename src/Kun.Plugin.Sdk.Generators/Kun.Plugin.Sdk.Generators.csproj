@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework><IsPackable>true</IsPackable>
-    <Description>Qian 组件代码契约的增量源生成器。</Description>
+    <Description>Kun 插件开发包的增量源生成器：从组件代码派生元数据、能力与作业契约，只以分析器引用。</Description>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking><PackageReadmeFile>README.md</PackageReadmeFile>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeBuildOutput>false</IncludeBuildOutput><DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
   <PropertyGroup Label="档位">
@@ -13,7 +13,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Update="README.md" Pack="true" PackagePath="/" />
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" /><AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 </Project>

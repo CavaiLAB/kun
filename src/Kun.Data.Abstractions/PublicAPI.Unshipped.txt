@@ -139,7 +139,7 @@ Kun.Data.RecordActor.OnBehalfOf.get -> string?
 Kun.Data.RecordActor.OnBehalfOf.init -> void
 Kun.Data.RecordActor.RecordActor(string! Kind, string! Id, string? OnBehalfOf = null) -> void
 Kun.Data.RecordChangedEvent
-Kun.Data.RecordChangedEvent.Envelope.get -> Qian.Events.QianEventEnvelope!
+Kun.Data.RecordChangedEvent.Envelope.get -> Kun.EventBus.KunEventEnvelope!
 Kun.Data.RecordChangedEvent.EventId.get -> System.Guid
 Kun.Data.RecordChangedEvent.Payload.get -> Kun.Data.RecordChangedPayload!
 Kun.Data.RecordChangedEvent.TenantId.get -> System.Guid
@@ -245,8 +245,8 @@ static Kun.Data.FilterValidationIssue.operator !=(Kun.Data.FilterValidationIssue
 static Kun.Data.FilterValidationIssue.operator ==(Kun.Data.FilterValidationIssue? left, Kun.Data.FilterValidationIssue? right) -> bool
 static Kun.Data.RecordActor.operator !=(Kun.Data.RecordActor? left, Kun.Data.RecordActor? right) -> bool
 static Kun.Data.RecordActor.operator ==(Kun.Data.RecordActor? left, Kun.Data.RecordActor? right) -> bool
-static Kun.Data.RecordActor.From(Qian.Events.EventActor! actor) -> Kun.Data.RecordActor!
-static Kun.Data.RecordChangedEvent.FromEnvelope(Qian.Events.QianEventEnvelope! envelope) -> Kun.Data.RecordChangedEvent!
+static Kun.Data.RecordActor.From(Kun.EventBus.EventActor! actor) -> Kun.Data.RecordActor!
+static Kun.Data.RecordChangedEvent.FromEnvelope(Kun.EventBus.KunEventEnvelope! envelope) -> Kun.Data.RecordChangedEvent!
 static Kun.Data.RecordChangedPayload.operator !=(Kun.Data.RecordChangedPayload? left, Kun.Data.RecordChangedPayload? right) -> bool
 static Kun.Data.RecordChangedPayload.operator ==(Kun.Data.RecordChangedPayload? left, Kun.Data.RecordChangedPayload? right) -> bool
 static Kun.Data.RecordEventRegistration.RegisterRecordEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!

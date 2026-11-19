@@ -14,9 +14,9 @@ internal sealed class QianEnvelopePublisher(RabbitMqBroker broker) : IIntegratio
     public async ValueTask PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
-        var envelope = QianEventEnvelope.Parse(message.Payload);
+        var envelope = KunEventEnvelope.Parse(message.Payload);
         if (envelope.EventId != message.Id || envelope.Type != message.EventTypeId || envelope.TenantId?.ToString("D") != message.TenantId)
-            throw new QianEventsException(EventsErrors.PublishRejected, "Outbox 行与信封的 event_id、type 或 tenant_id 不一致。");
+            throw new KunEventsException(EventsErrors.PublishRejected, "Outbox 行与信封的 event_id、type 或 tenant_id 不一致。");
         var headers = new Dictionary<string, object?> { ["traceparent"] = envelope.TraceParent };
         if (message.TraceState is { Length: > 0 }) headers["tracestate"] = message.TraceState;
         if (envelope.TenantId is { } tenant) headers["tenant_id"] = tenant.ToString("D");

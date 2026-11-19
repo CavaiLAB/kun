@@ -6,7 +6,7 @@
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
     <PackageReference Include="OpenIddict.Server.AspNetCore" />

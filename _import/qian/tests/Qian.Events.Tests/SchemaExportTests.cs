@@ -41,11 +41,11 @@ public sealed class SchemaExportTests
     public void 事件ID与类型声明不一致或缺少JsonTypeInfo时拒绝建目录()
     {
         var mismatch = Registry(builder => builder.Register("tests.ping.renamed.v1", TestEventJson.Default.PingSent));
-        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<QianEventsException>(() => IntegrationEventSchemas.Describe(mismatch)).Error.Code);
+        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<KunEventsException>(() => IntegrationEventSchemas.Describe(mismatch)).Error.Code);
         var reflected = Registry(builder => builder.Register<Reflected>("tests.reflected.created.v1"));
-        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<QianEventsException>(() => IntegrationEventSchemas.Describe(reflected)).Error.Code);
+        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<KunEventsException>(() => IntegrationEventSchemas.Describe(reflected)).Error.Code);
         var badToken = Registry(builder => builder.Register("tests.ping", TestEventJson.Default.PingSent));
-        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<QianEventsException>(() => IntegrationEventSchemas.Describe(badToken)).Error.Code);
+        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<KunEventsException>(() => IntegrationEventSchemas.Describe(badToken)).Error.Code);
     }
 
     private static IEventTypeRegistry Registry(Action<IEventTypeRegistrar> register)

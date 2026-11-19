@@ -28,18 +28,18 @@ public sealed class SubscriberConfigurationTests
     public void 订阅登记的冲突在登记时拒绝_同一宿主只能有一个服务名()
     {
         var services = new ServiceCollection();
-        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<QianEventsException>(() => services.AddQianEventsSubscriber("qian.tests", subscriber => subscriber
+        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<KunEventsException>(() => services.AddQianEventsSubscriber("qian.tests", subscriber => subscriber
             .Subscribe<PingSent, FirstHandler>("work").Subscribe<PingSent, SecondHandler>("work"))).Error.Code);
-        Assert.Throws<QianEventsException>(() => new ServiceCollection().AddQianEventsSubscriber("qian.tests", subscriber => subscriber
+        Assert.Throws<KunEventsException>(() => new ServiceCollection().AddQianEventsSubscriber("qian.tests", subscriber => subscriber
             .Subscribe<PingSent, FirstHandler>("one", EventSubscriptionMode.Broadcast).Subscribe<PingSent, SecondHandler>("two", EventSubscriptionMode.Broadcast)));
-        Assert.Throws<QianEventsException>(() => new ServiceCollection().AddQianEventsSubscriber("qian.tests", subscriber => subscriber
+        Assert.Throws<KunEventsException>(() => new ServiceCollection().AddQianEventsSubscriber("qian.tests", subscriber => subscriber
             .Subscribe<PingSent, FirstHandler>("work").Subscribe<OtherSent, OtherHandler>("work", EventSubscriptionMode.Broadcast)));
-        Assert.Throws<QianEventsException>(() => new ServiceCollection().AddQianEventsSubscriber("qian.tests", subscriber => subscriber
+        Assert.Throws<KunEventsException>(() => new ServiceCollection().AddQianEventsSubscriber("qian.tests", subscriber => subscriber
             .Subscribe<PingSent, FirstHandler>("work-dlq")));
-        Assert.Throws<QianEventsException>(() => new ServiceCollection().AddQianEventsSubscriber("Qian.Tests", subscriber => subscriber.Subscribe<PingSent, FirstHandler>("work")));
+        Assert.Throws<KunEventsException>(() => new ServiceCollection().AddQianEventsSubscriber("Qian.Tests", subscriber => subscriber.Subscribe<PingSent, FirstHandler>("work")));
         var shared = new ServiceCollection();
         shared.AddQianEventsSubscriber("qian.tests", subscriber => subscriber.Subscribe<PingSent, FirstHandler>("work"));
-        Assert.Throws<QianEventsException>(() => shared.AddQianEventsSubscriber("qian.other", subscriber => subscriber.Subscribe<OtherSent, OtherHandler>("other")));
+        Assert.Throws<KunEventsException>(() => shared.AddQianEventsSubscriber("qian.other", subscriber => subscriber.Subscribe<OtherSent, OtherHandler>("other")));
     }
 
     [Fact]
@@ -63,34 +63,34 @@ public sealed class SubscriberConfigurationTests
         ], events.Subscriptions);
         Assert.All(events.Subscriptions, subscription => Assert.NotNull(events.Find(subscription.Type)));
         using var scope = provider.CreateScope();
-        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<QianEventsException>(() => scope.ServiceProvider.GetRequiredService<QianEventDelivery>()).Error.Code);
+        Assert.Equal(EventsErrors.Misconfigured, Assert.Throws<KunEventsException>(() => scope.ServiceProvider.GetRequiredService<KunEventDelivery>()).Error.Code);
         Assert.Single(provider.GetServices<IHostedService>().OfType<QianEventSubscriber>());
     }
 
     [Fact]
     public void 死信与重试队列命名_保留后缀不能用作订阅名或实例名_默认实例名规范化()
     {
-        Assert.Equal("q.qian.sample.crm.customer-created-dlq", QianEventTopology.DeadLetterQueue("qian.sample.crm", "customer-created"));
-        Assert.Equal("q.qian.sample.crm.customer-created-retry-3-4000", QianEventTopology.RetryQueue("qian.sample.crm", "customer-created", 3, TimeSpan.FromSeconds(4)));
-        Assert.Equal("q.qian.gateway.gw-1-retry-1-250", QianEventTopology.RetryQueue("qian.gateway", "gw-1", 1, TimeSpan.FromMilliseconds(250)));
+        Assert.Equal("q.qian.sample.crm.customer-created-dlq", KunEventTopology.DeadLetterQueue("qian.sample.crm", "customer-created"));
+        Assert.Equal("q.qian.sample.crm.customer-created-retry-3-4000", KunEventTopology.RetryQueue("qian.sample.crm", "customer-created", 3, TimeSpan.FromSeconds(4)));
+        Assert.Equal("q.qian.gateway.gw-1-retry-1-250", KunEventTopology.RetryQueue("qian.gateway", "gw-1", 1, TimeSpan.FromMilliseconds(250)));
         foreach (var name in new[] { "orders-dlq", "orders-retry-1-1000", "Orders", "orders.sync" })
         {
-            Assert.Throws<ArgumentException>(() => QianEventTopology.SubscriptionQueue("qian.tests", name));
-            Assert.Throws<ArgumentException>(() => QianEventTopology.BroadcastQueue("qian.tests", name));
-            Assert.Throws<ArgumentException>(() => QianEventTopology.DeadLetterQueue("qian.tests", name));
+            Assert.Throws<ArgumentException>(() => KunEventTopology.SubscriptionQueue("qian.tests", name));
+            Assert.Throws<ArgumentException>(() => KunEventTopology.BroadcastQueue("qian.tests", name));
+            Assert.Throws<ArgumentException>(() => KunEventTopology.DeadLetterQueue("qian.tests", name));
         }
-        Assert.Throws<ArgumentOutOfRangeException>(() => QianEventTopology.RetryQueue("qian.tests", "orders", 0, TimeSpan.FromSeconds(1)));
-        Assert.Throws<ArgumentOutOfRangeException>(() => QianEventTopology.RetryQueue("qian.tests", "orders", 1, TimeSpan.Zero));
+        Assert.Throws<ArgumentOutOfRangeException>(() => KunEventTopology.RetryQueue("qian.tests", "orders", 0, TimeSpan.FromSeconds(1)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => KunEventTopology.RetryQueue("qian.tests", "orders", 1, TimeSpan.Zero));
         Assert.Equal("dawns-macbook-pro-local-4242", QianEventsSubscriberOptions.Normalize("Dawns-MacBook-Pro.local-4242"));
         Assert.Equal("i-7f3a-k8s-12", QianEventsSubscriberOptions.Normalize("7F3A_K8S-12"));
         Assert.Equal("node-retry-1-12-i", QianEventsSubscriberOptions.Normalize("node-retry-1-12"));
-        Assert.Equal("q.qian.tests." + QianEventsSubscriberOptions.DefaultInstance(), QianEventTopology.BroadcastQueue("qian.tests", QianEventsSubscriberOptions.DefaultInstance()));
+        Assert.Equal("q.qian.tests." + QianEventsSubscriberOptions.DefaultInstance(), KunEventTopology.BroadcastQueue("qian.tests", QianEventsSubscriberOptions.DefaultInstance()));
         var options = new QianEventsSubscriberOptions();
         Assert.Equal((5, TimeSpan.FromSeconds(1), TimeSpan.FromDays(7)), (options.MaxRetries, options.RetryBaseDelay, options.IdempotencyTtl));
         // 第 n 次重试前退避 RetryBaseDelay × 2^(n-1)，封顶一分钟。
         Assert.Equal([1d, 2d, 4d, 8d, 16d, 32d, 60d, 60d], Enumerable.Range(1, 8).Select(attempt => options.RetryDelay(attempt).TotalSeconds));
         options.MaxRetries = -1;
-        Assert.Throws<QianEventsException>(() => options.Validate("qian.tests"));
+        Assert.Throws<KunEventsException>(() => options.Validate("qian.tests"));
     }
 
     private static IHost Host(bool broker, bool register, bool store = false)
@@ -110,7 +110,7 @@ public sealed class SubscriberConfigurationTests
 
     private static async Task<string> RefusedAsync(IHost host)
     {
-        var error = await Assert.ThrowsAsync<QianEventsException>(() => host.StartAsync(Ct));
+        var error = await Assert.ThrowsAsync<KunEventsException>(() => host.StartAsync(Ct));
         Assert.Equal(EventsErrors.Misconfigured, error.Error.Code);
         return error.Message;
     }

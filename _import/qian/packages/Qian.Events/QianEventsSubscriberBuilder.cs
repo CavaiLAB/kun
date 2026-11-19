@@ -52,7 +52,7 @@ internal sealed class EventSubscriptionRegistry(string service)
 
     public void Add(string subscription, EventSubscriptionMode mode, bool acceptPlatformEvents, IEventRoute route)
     {
-        try { _ = QianEventTopology.DeadLetterQueue(Service, subscription); }
+        try { _ = KunEventTopology.DeadLetterQueue(Service, subscription); }
         catch (ArgumentException error) { throw Misconfigured("订阅名不合法：" + error.Message); }
         if (!Enum.IsDefined(mode)) throw Misconfigured("订阅模式只能是 Competing 或 Broadcast。");
         lock (_entries)
@@ -89,7 +89,7 @@ internal sealed class EventSubscriptionRegistry(string service)
             subscription.AcceptPlatformEvents)))
         .ToArray();
 
-    private static QianEventsException Misconfigured(string reason) => new(EventsErrors.Misconfigured, reason);
+    private static KunEventsException Misconfigured(string reason) => new(EventsErrors.Misconfigured, reason);
 
     private sealed record Entry(string Subscription, EventSubscriptionMode Mode, bool AcceptPlatformEvents, IEventRoute Route);
 }
@@ -127,11 +127,11 @@ internal sealed class EventRoute<TEvent, [DynamicallyAccessedMembers(Dynamically
     public BoundEventRoute Bind(IEventTypeRegistry registry)
     {
         var type = registry.GetEventType(typeof(TEvent))
-            ?? throw new QianEventsException(EventsErrors.Misconfigured, "订阅的事件 " + typeof(TEvent).Name + " 未在 Kun 事件目录登记。");
+            ?? throw new KunEventsException(EventsErrors.Misconfigured, "订阅的事件 " + typeof(TEvent).Name + " 未在 Kun 事件目录登记。");
         if (registry.GetJsonTypeInfo(typeof(TEvent)) is not JsonTypeInfo<TEvent> typeInfo)
-            throw new QianEventsException(EventsErrors.Misconfigured, "订阅的事件 " + type + " 必须以源生成 JsonTypeInfo 登记。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "订阅的事件 " + type + " 必须以源生成 JsonTypeInfo 登记。");
         if (!IntegrationEventTypes.TryParse(type, out var subject, out var version))
-            throw new QianEventsException(EventsErrors.Misconfigured, "事件 ID " + type + " 必须为小写点分的 <subject>.v<N>。");
+            throw new KunEventsException(EventsErrors.Misconfigured, "事件 ID " + type + " 必须为小写点分的 <subject>.v<N>。");
         return new Bound(type, subject, version, typeInfo);
     }
 
@@ -144,8 +144,8 @@ internal sealed class EventRoute<TEvent, [DynamicallyAccessedMembers(Dynamically
     }
 }
 
-/// <summary>每条消息作用域里的当前投递；<see cref="QianEventDelivery"/> 经它注入。</summary>
+/// <summary>每条消息作用域里的当前投递；<see cref="KunEventDelivery"/> 经它注入。</summary>
 internal sealed class EventDeliverySlot
 {
-    public QianEventDelivery? Current { get; set; }
+    public KunEventDelivery? Current { get; set; }
 }

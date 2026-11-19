@@ -1,4 +1,4 @@
-namespace Qian.Events;
+namespace Kun.EventBus;
 
 /// <summary>
 /// 订阅器正在派发的一次投递：已解析、已与 AMQP 属性核对过的 v1 信封，以及订阅与重试计数。
@@ -6,10 +6,10 @@ namespace Qian.Events;
 /// 幂等键、发生时间与租户一律以这里的信封为准，不读载荷里的同名字段（S1-DEC-020）。
 /// 只能在订阅器派发的作用域内解析，其他位置解析即抛 EVENTS_MISCONFIGURED。
 /// </summary>
-public sealed class QianEventDelivery
+public sealed class KunEventDelivery
 {
     /// <summary>已校验的信封。</summary>
-    public required QianEventEnvelope Envelope { get; init; }
+    public required KunEventEnvelope Envelope { get; init; }
 
     /// <summary>订阅方服务名。</summary>
     public required string Service { get; init; }
@@ -27,5 +27,5 @@ public sealed class QianEventDelivery
     public required int Attempt { get; init; }
 
     /// <inheritdoc />
-    public override string ToString() => "QianEventDelivery(redacted)";
+    public override string ToString() => "KunEventDelivery(redacted)";
 }

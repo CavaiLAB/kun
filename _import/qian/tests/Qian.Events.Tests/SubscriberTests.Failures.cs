@@ -1,4 +1,5 @@
 using System.Text;
+using Kun.EventBus;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -29,7 +30,7 @@ public sealed partial class SubscriberTests
         var envelope = await PublishAsync(TenantA, sequence: 40, times: 2);
 
         // 结束态：两次投递都已确认并计 processed（duplicate_executed 与 Warning 日志在确认之前写出），主队列已清空，之后不会再有投递。
-        await Until(async () => metrics.Count("processed") == 2 && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work")]), "两份副本没有都处理完");
+        await Until(async () => metrics.Count("processed") == 2 && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work")]), "两份副本没有都处理完");
         Assert.Equal((1, 1), (a.Calls.Count, b.Calls.Count));
         Assert.Equal(1, metrics.Count("duplicate_executed"));
         Assert.Equal(0, metrics.Count("duplicate"));
@@ -49,8 +50,8 @@ public sealed partial class SubscriberTests
         using var metrics = new ConsumerMetrics(service + ".work");
         using var host = Host(service, probe, subscriber => subscriber.Subscribe<PingSent, ProbeHandler>("work"));
         await StartAsync(host);
-        var queue = QianEventTopology.SubscriptionQueue(service, "work");
-        var deadLetter = QianEventTopology.DeadLetterQueue(service, "work");
+        var queue = KunEventTopology.SubscriptionQueue(service, "work");
+        var deadLetter = KunEventTopology.DeadLetterQueue(service, "work");
         // 运行中删掉死信队列：消费端的死信副本（mandatory）无处可路由，broker 退回，转发失败。
         await DeleteQueueAsync(deadLetter);
         // 两条走死信的消息：一条由 handler 确定性失败（handler_rejected），一条在 handler 之前因 AMQP 头与信封租户不一致被拒（tenant_mismatch）。
@@ -83,9 +84,9 @@ public sealed partial class SubscriberTests
         using var metrics = new ConsumerMetrics(service + ".work");
         using var host = Host(service, probe, subscriber => subscriber.Subscribe<PingSent, ProbeHandler>("work"), retryBaseDelay: TimeSpan.FromMilliseconds(100));
         await StartAsync(host);
-        var queue = QianEventTopology.SubscriptionQueue(service, "work");
-        var deadLetter = QianEventTopology.DeadLetterQueue(service, "work");
-        var retry = QianEventTopology.RetryQueue(service, "work", 1, TimeSpan.FromMilliseconds(100));
+        var queue = KunEventTopology.SubscriptionQueue(service, "work");
+        var deadLetter = KunEventTopology.DeadLetterQueue(service, "work");
+        var retry = KunEventTopology.RetryQueue(service, "work", 1, TimeSpan.FromMilliseconds(100));
         // 抢先以不同参数声明第 1 个重试队列：消费端声明它时 PRECONDITION_FAILED，重试副本转发不出去。
         await DeclareClassicQueueAsync(retry);
         var envelope = await PublishAsync(TenantA, sequence: 51);

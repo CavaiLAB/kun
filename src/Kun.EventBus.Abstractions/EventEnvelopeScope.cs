@@ -1,4 +1,4 @@
-namespace Qian.Events;
+namespace Kun.EventBus;
 
 /// <summary>集成事件的来源：谁、以哪个组件的名义、因哪一次调用发布。信封的 producer、actor 与因果链取自这里。</summary>
 /// <param name="Producer">发布方组件 id，如 <c>qian.sample.crm</c>。</param>
@@ -15,11 +15,11 @@ public sealed record EventOrigin(string Producer, EventActor Actor)
     /// <summary>按信封规则校验来源字段。</summary>
     public void Validate()
     {
-        if (!QianEventEnvelope.IsComponentId(Producer)) throw QianEventsException.Rejected("producer 必须为小写点分的组件 id。");
-        if (Actor is null) throw QianEventsException.Rejected("actor 必填。");
+        if (!KunEventEnvelope.IsComponentId(Producer)) throw KunEventsException.Rejected("producer 必须为小写点分的组件 id。");
+        if (Actor is null) throw KunEventsException.Rejected("actor 必填。");
         Actor.Validate();
-        if (CorrelationId == Guid.Empty || CausationId == Guid.Empty) throw QianEventsException.Rejected("correlation_id 与 causation_id 不能为空 UUID。");
-        if (TraceParent is not null && !QianEventEnvelope.IsTraceParent(TraceParent)) throw QianEventsException.Rejected("trace_parent 必须为 W3C traceparent。");
+        if (CorrelationId == Guid.Empty || CausationId == Guid.Empty) throw KunEventsException.Rejected("correlation_id 与 causation_id 不能为空 UUID。");
+        if (TraceParent is not null && !KunEventEnvelope.IsTraceParent(TraceParent)) throw KunEventsException.Rejected("trace_parent 必须为 W3C traceparent。");
     }
 
     /// <inheritdoc />

@@ -133,7 +133,6 @@
     <Project Path="_import/qian/packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
     <Project Path="_import/qian/packages/Qian.Docs.Abstractions/Qian.Docs.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Docs/Qian.Docs.csproj" />
-    <Project Path="_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Events/Qian.Events.csproj" />
     <Project Path="_import/qian/packages/Qian.Files.Abstractions/Qian.Files.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Files.AspNetCore/Qian.Files.AspNetCore.csproj" />

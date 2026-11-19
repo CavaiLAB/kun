@@ -8,6 +8,14 @@
 
 ## [Unreleased]
 
+### Changed — 事件契约并进 Kun.EventBus.Abstractions（S1-KUN-025）
+
+- 组件 `qian.events` 从 1.0.1 升至 1.0.2，组件说明中的契约包链接指向 `Kun.EventBus.Abstractions`。
+- 包 `Qian.Events.Abstractions`（已发布 0.2.0）并进 `Kun.EventBus.Abstractions`，命名空间 `Qian.Events` → `Kun.EventBus`。带前缀的 4 个类型：`QianEventEnvelope` → `KunEventEnvelope`、`QianEventTopology` → `KunEventTopology`、`QianEventDelivery` → `KunEventDelivery`、`QianEventsException` → `KunEventsException`；`EventsDefinition`、`IEventsService`、`EventEnvelopeScope`、`EventOrigin`、`EventActor`、`IntegrationEventTypes`、`EventsErrors` 等名字不变。**迁移**：项目引用改指 `Kun.EventBus.Abstractions`，`using Qian.Events;` 换成 `using Kun.EventBus;`；同时用到 `AddQianEvents` 等提供者登记的文件两条都留。信封、MQ 拓扑名与错误码的线上形状不变。
+- `Kun.EventBus.Abstractions` 新依赖 `Kun.Runtime`（事件服务键与插件上下文）：只声明事件的契约包随之传递引入 `Kun.Runtime`、`Microsoft.Extensions.DependencyInjection` 与 `Microsoft.Extensions.Logging.Abstractions`。
+- `IIntegrationEventBus` 与 `Kun.EventBus.Outbox` 的 `IOutboxWriter`、`IIntegrationEventOutbox`、`IntegrationEventBuffer`、`OutboxMessage`、`OutboxStatus` 移进 `Kun.EventBus.Abstractions`，命名空间不变，`Kun.EventBus` 留类型转发：源码与按 `Kun.EventBus` 编译的程序集不用改；按程序集反射找这些类型的（如比对 `typeof(OutboxMessage).Assembly`）拿到的是 `Kun.EventBus.Abstractions`。
+- 日志类别、活动源与计量器的名字都不变：挪动的类型不写日志，也不建活动源或计量器。
+
 ### Changed — 身份依赖方端口与服务间令牌（S1-KUN-026）
 
 - 依赖方、OIDC 与会话类型统一到 `Kun.Identity` 命名空间。引用 `Kun.Identity.Abstractions` 或 `Kun.Identity.Abstractions.Session` 的源码改用 `using Kun.Identity;`。浏览器宿主可继续通过 `IAuthenticatedUser` 获取租户、邮箱、显示名和当前声明主体。

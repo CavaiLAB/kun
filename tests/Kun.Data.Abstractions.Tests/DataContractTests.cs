@@ -7,7 +7,6 @@ using Kun.Errors;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Events;
 
 namespace Kun.Data.Abstractions.Tests;
 
@@ -234,7 +233,7 @@ public sealed class DataContractTests
     {
         var raw = Fixture("record-changed-envelope.json");
         AssertValid(DataContractSchemas.RecordChangedEnvelope, raw);
-        var change = RecordChangedEvent.FromEnvelope(QianEventEnvelope.Parse(raw));
+        var change = RecordChangedEvent.FromEnvelope(KunEventEnvelope.Parse(raw));
         Assert.Equal(Guid.Parse("01900000-0000-7000-8000-000000000002"), change.EventId);
         Assert.Equal(change.Envelope.TenantId, change.TenantId);
         Assert.Equal(RecordActor.From(change.Envelope.Actor), change.Payload.Actor);
@@ -275,14 +274,14 @@ public sealed class DataContractTests
             case "nested-envelope": node["payload"] = node.DeepClone(); break;
             case "missing-member": payload.Remove("changedFields"); break;
         }
-        var envelope = QianEventEnvelope.Parse(node.ToJsonString());
+        var envelope = KunEventEnvelope.Parse(node.ToJsonString());
         Assert.Contains(reason, Assert.Throws<InvalidOperationException>(() => RecordChangedEvent.FromEnvelope(envelope)).Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public void RecordPayload_EnsureConsistentContext_RequiresCurrentTenantAndEventScopeActor()
     {
-        var payload = RecordChangedEvent.FromEnvelope(QianEventEnvelope.Parse(Fixture("record-changed-envelope.json"))).Payload;
+        var payload = RecordChangedEvent.FromEnvelope(KunEventEnvelope.Parse(Fixture("record-changed-envelope.json"))).Payload;
         var tenant = new FixedTenant(payload.TenantId.ToString("D"));
         Assert.Throws<InvalidOperationException>(() => payload.EnsureConsistentContext(tenant));
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.dynamic-data", EventActor.User("test-user"))))
@@ -330,7 +329,7 @@ public sealed class DataContractTests
     [Fact]
     public async Task HookContract_CanRewriteSnapshotAndRejectWithUnifiedError()
     {
-        var change = RecordChangedEvent.FromEnvelope(QianEventEnvelope.Parse(Fixture("record-changed-envelope.json")));
+        var change = RecordChangedEvent.FromEnvelope(KunEventEnvelope.Parse(Fixture("record-changed-envelope.json")));
         IRecordHook hook = new NormalizeNameHook();
         var context = new RecordHookContext(change.TenantId, change.Payload.Actor, change.Payload.EntityCode,
             change.Payload.RecordId, "update", change.Payload.Before, change.Payload.After);

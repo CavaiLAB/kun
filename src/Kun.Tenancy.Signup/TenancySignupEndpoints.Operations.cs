@@ -3,6 +3,7 @@ using Kun.Authorization;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
+using Kun.EventBus;
 using Kun.Runtime;
 using Kun.Security;
 using Microsoft.AspNetCore.Builder;
@@ -12,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
-using Qian.Events;
 using Qian.Identity.Abstractions;
 
 namespace Kun.Tenancy.Signup;

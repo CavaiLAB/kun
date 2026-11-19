@@ -43,8 +43,8 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
 
         // 等到结束态再断言投递次数：processed 在第三次投递确认之后才计数；每次失败恰产生一份重试副本，前两份此时都已回流并被消费，
         // 主队列与两个重试队列的 messages（含未确认）也都为 0，消息已没有任何副本，不会再有投递。
-        var retries = new[] { QianEventTopology.RetryQueue(service, "work", 1, TimeSpan.FromMilliseconds(200)), QianEventTopology.RetryQueue(service, "work", 2, TimeSpan.FromMilliseconds(400)) };
-        await Until(async () => metrics.Count("processed") == 1 && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work"), .. retries]), "第三次投递没有处理完");
+        var retries = new[] { KunEventTopology.RetryQueue(service, "work", 1, TimeSpan.FromMilliseconds(200)), KunEventTopology.RetryQueue(service, "work", 2, TimeSpan.FromMilliseconds(400)) };
+        await Until(async () => metrics.Count("processed") == 1 && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work"), .. retries]), "第三次投递没有处理完");
         var calls = probe.Calls.ToArray();
         Assert.Equal([1, 2, 3], calls.Select(call => call.Attempt));
         Assert.All(calls, call => Assert.Equal(envelope.EventId, call.EventId));
@@ -60,8 +60,8 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         var ttl = await Redis().KeyTimeToLiveAsync(keys[0]);
         Assert.InRange(ttl!.Value, TimeSpan.FromDays(7) - TimeSpan.FromMinutes(1), TimeSpan.FromDays(7));
         var queues = await QueuesAsync();
-        Assert.Equal(0, queues[QianEventTopology.SubscriptionQueue(service, "work")]);
-        Assert.Equal(0, queues[QianEventTopology.DeadLetterQueue(service, "work")]);
+        Assert.Equal(0, queues[KunEventTopology.SubscriptionQueue(service, "work")]);
+        Assert.Equal(0, queues[KunEventTopology.DeadLetterQueue(service, "work")]);
         Assert.All(retries, retry => Assert.Equal(0, queues[retry]));
 
         // handler 拿到的是由信封填充的 Kun MessageContext 与完整信封；Activity 从信封 trace_parent 恢复。
@@ -84,19 +84,19 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         using var host = Host(service, probe, subscriber => subscriber.Subscribe<PingSent, ProbeHandler>("work"), retryBaseDelay: TimeSpan.FromMilliseconds(100));
         await StartAsync(host);
         var envelope = await PublishAsync(TenantA, sequence: 2, note: "payload-marker");
-        var deadLetter = QianEventTopology.DeadLetterQueue(service, "work");
+        var deadLetter = KunEventTopology.DeadLetterQueue(service, "work");
 
         // 结束态：dead_lettered 与告警日志都已写出（计数先于日志，须分别等待），死信队列恰有一条，主队列与 5 个重试队列都已清空，之后不会再有投递。
-        var retries = Enumerable.Range(1, 5).Select(attempt => QianEventTopology.RetryQueue(service, "work", attempt, TimeSpan.FromMilliseconds(100 << (attempt - 1)))).ToArray();
+        var retries = Enumerable.Range(1, 5).Select(attempt => KunEventTopology.RetryQueue(service, "work", attempt, TimeSpan.FromMilliseconds(100 << (attempt - 1)))).ToArray();
         await Until(async () => metrics.Count("dead_lettered") == 1 && probe.Logs.Entries.Any(entry => entry.EventId == 25)
-            && (await QueuesAsync()).GetValueOrDefault(deadLetter) == 1 && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work"), .. retries]), "第 6 次失败后没有进死信队列");
+            && (await QueuesAsync()).GetValueOrDefault(deadLetter) == 1 && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work"), .. retries]), "第 6 次失败后没有进死信队列");
         Assert.Equal([1, 2, 3, 4, 5, 6], probe.Calls.Select(call => call.Attempt));
         Assert.Equal(0, probe.Succeeded);
         Assert.Equal(5, metrics.Count("retried"));
         Assert.Equal(1, metrics.Count("dead_lettered"));
         Assert.Equal(0, metrics.Count("processed"));
         Assert.Empty(await IdempotencyKeysAsync(service + ".work"));
-        Assert.Equal(0, (await QueuesAsync())[QianEventTopology.SubscriptionQueue(service, "work")]);
+        Assert.Equal(0, (await QueuesAsync())[KunEventTopology.SubscriptionQueue(service, "work")]);
 
         var message = await GetAsync(deadLetter);
         Assert.Equal(envelope.ToJson(), Encoding.UTF8.GetString(message.Body.Span));
@@ -107,7 +107,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         Assert.Equal(("exhausted", service + ".work", "work", "tests.ping.sent"),
             (Header(message, "x-qian-reason"), Header(message, "x-qian-consumer"), Header(message, "x-qian-subscription"), Header(message, "x-qian-subject")));
         Assert.Equal(typeof(FlakyDependencyException).FullName, Header(message, "x-qian-error"));
-        Assert.Equal((QianEventTopology.DeadLetterExchange, deadLetter), (message.Exchange, message.RoutingKey));
+        Assert.Equal((KunEventTopology.DeadLetterExchange, deadLetter), (message.Exchange, message.RoutingKey));
         // 告警：死信计数加一，并记一条 Error 日志（事件 id、类型、消费者、第几次），日志里没有载荷。
         var alert = Assert.Single(probe.Logs.Entries, entry => entry.Level == LogLevel.Error && entry.EventId == 25);
         Assert.Contains(envelope.EventId.ToString(), alert.Message, StringComparison.Ordinal);
@@ -127,11 +127,11 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         using var host = Host(service, probe, subscriber => subscriber.Subscribe<PingSent, ProbeHandler>("work"));
         await StartAsync(host);
         var envelope = await PublishAsync(TenantA, sequence: 3);
-        var deadLetter = QianEventTopology.DeadLetterQueue(service, "work");
+        var deadLetter = KunEventTopology.DeadLetterQueue(service, "work");
 
         // 结束态：dead_lettered 已计数（确认原消息之后），死信队列恰有一条、主队列已清空，之后不会再有投递。
         await Until(async () => metrics.Count("dead_lettered") == 1 && (await QueuesAsync()).GetValueOrDefault(deadLetter) == 1
-            && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work")]), "确定性失败没有直接进死信队列");
+            && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work")]), "确定性失败没有直接进死信队列");
         Assert.Equal([1], probe.Calls.Select(call => call.Attempt));
         Assert.Equal(0, metrics.Count("retried"));
         Assert.Equal(1, metrics.Count("dead_lettered"));
@@ -162,7 +162,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         Assert.Equal(1, metrics.Count("duplicate"));
         Assert.Equal(["idemp:" + service + ".work:" + envelope.EventId], await IdempotencyKeysAsync(service + ".work"));
         Assert.Contains(probe.Logs.Entries, entry => entry.EventId == 23 && entry.Message.Contains(envelope.EventId.ToString(), StringComparison.Ordinal));
-        Assert.Equal(0, (await QueuesAsync())[QianEventTopology.SubscriptionQueue(service, "work")]);
+        Assert.Equal(0, (await QueuesAsync())[KunEventTopology.SubscriptionQueue(service, "work")]);
         await host.StopAsync(Ct);
     }
 
@@ -188,7 +188,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         // 结束态：三个消费者名的 processed 都到齐（确认之后计数），竞争队列与两个广播队列的 messages（含未确认）都为 0，之后不会再有投递；
         // 「没有一条被两边都处理」因此可以在这一刻断言。
         await Until(async () => workCounts.Count("processed") == total && noticeCountsA.Count("processed") == total && noticeCountsB.Count("processed") == total
-            && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work"), QianEventTopology.BroadcastQueue(service, "node-a"), QianEventTopology.BroadcastQueue(service, "node-b")]),
+            && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work"), KunEventTopology.BroadcastQueue(service, "node-a"), KunEventTopology.BroadcastQueue(service, "node-b")]),
             "两个实例没有处理完");
         // 竞争：两个实例合起来恰好每条一次，没有一条被两边都处理；两边都分到了消息。
         Assert.Equal(published.Order(), a.Work.Concat(b.Work).Order());
@@ -203,17 +203,17 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         Assert.Equal(total, (await IdempotencyKeysAsync(service + ".work")).Count);
 
         var listing = await QueueTypesAsync();
-        Assert.Equal(("quorum", "false"), listing[QianEventTopology.SubscriptionQueue(service, "work")]);
-        Assert.Equal(("classic", "true"), listing[QianEventTopology.BroadcastQueue(service, "node-a")]);
-        Assert.Equal(("classic", "true"), listing[QianEventTopology.BroadcastQueue(service, "node-b")]);
-        Assert.Equal(("quorum", "false"), listing[QianEventTopology.DeadLetterQueue(service, "notice")]);
+        Assert.Equal(("quorum", "false"), listing[KunEventTopology.SubscriptionQueue(service, "work")]);
+        Assert.Equal(("classic", "true"), listing[KunEventTopology.BroadcastQueue(service, "node-a")]);
+        Assert.Equal(("classic", "true"), listing[KunEventTopology.BroadcastQueue(service, "node-b")]);
+        Assert.Equal(("quorum", "false"), listing[KunEventTopology.DeadLetterQueue(service, "notice")]);
 
         // 实例 a 下线：它的广播队列随最后一个消费者断开而删除，竞争队列与死信队列保留；之后的消息只到 b。
         await hostA.StopAsync(Ct);
-        await Until(async () => !(await QueueTypesAsync()).ContainsKey(QianEventTopology.BroadcastQueue(service, "node-a")), "下线实例的广播队列没有被删除");
+        await Until(async () => !(await QueueTypesAsync()).ContainsKey(KunEventTopology.BroadcastQueue(service, "node-a")), "下线实例的广播队列没有被删除");
         listing = await QueueTypesAsync();
-        Assert.True(listing.ContainsKey(QianEventTopology.SubscriptionQueue(service, "work")));
-        Assert.True(listing.ContainsKey(QianEventTopology.BroadcastQueue(service, "node-b")));
+        Assert.True(listing.ContainsKey(KunEventTopology.SubscriptionQueue(service, "work")));
+        Assert.True(listing.ContainsKey(KunEventTopology.BroadcastQueue(service, "node-b")));
         var workA = a.Work.Count; var noticeA = a.Notices.Count; var workB = b.Work.Count;
         var later = new List<Guid>();
         for (var index = 0; index < 5; index++) later.Add((await PublishAsync(TenantA, sequence: 200 + index)).EventId);
@@ -245,11 +245,11 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         await RawPublishAsync(platform, platform.ToJson(), tenantHeader: null);
         await RawPublishAsync(duplicated, DuplicateTenant(duplicated.ToJson(), TenantA), tenantHeader: TenantA);
         await RawPublishAsync(mismatched, mismatched.ToJson(), tenantHeader: TenantB);
-        var deadLetter = QianEventTopology.DeadLetterQueue(service, "work");
+        var deadLetter = KunEventTopology.DeadLetterQueue(service, "work");
         // 结束态：两个订阅的 rejected 与 processed 都到齐（确认之后计数），死信队列恰有三条，两个主队列都已清空，之后不会再有投递。
         await Until(async () => tenantMetrics.Count("rejected") == 3 && platformMetrics.Count("rejected") == 2 && platformMetrics.Count("processed") == 3
             && (await QueuesAsync()).GetValueOrDefault(deadLetter) == 3
-            && await SettledAsync([QianEventTopology.SubscriptionQueue(service, "work"), QianEventTopology.SubscriptionQueue(service, "platform")]), "三条反例没有全部进死信队列");
+            && await SettledAsync([KunEventTopology.SubscriptionQueue(service, "work"), KunEventTopology.SubscriptionQueue(service, "platform")]), "三条反例没有全部进死信队列");
 
         Assert.Equal(2, probe.Calls.Count);
         Assert.Equal(3, tenantMetrics.Count("rejected"));
@@ -259,7 +259,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         // 显式接受平台级事件的订阅照常派发，且不开租户作用域；同一订阅对租户不一致的消息同样拒绝。
         Assert.Contains(probe.NoticeTenants, entry => entry.Key == platform.EventId && entry.Value is null);
         Assert.Equal(2, platformMetrics.Count("rejected"));
-        Assert.Equal(0, (await QueuesAsync())[QianEventTopology.SubscriptionQueue(service, "work")]);
+        Assert.Equal(0, (await QueuesAsync())[KunEventTopology.SubscriptionQueue(service, "work")]);
         await host.StopAsync(Ct);
     }
 
@@ -294,12 +294,12 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
 
     private static string Service() => "qian.events-tests.s" + Guid.NewGuid().ToString("N")[..8];
 
-    private static QianEventEnvelope Envelope(string? tenant, int sequence, string note = "subscriber")
+    private static KunEventEnvelope Envelope(string? tenant, int sequence, string note = "subscriber")
     {
         var occurredAt = DateTimeOffset.UtcNow;
-        return new QianEventEnvelope
+        return new KunEventEnvelope
         {
-            Version = QianEventEnvelope.CurrentVersion,
+            Version = KunEventEnvelope.CurrentVersion,
             EventId = Guid.CreateVersion7(occurredAt),
             Subject = "tests.ping.sent",
             Type = PingSent.Type,
@@ -314,7 +314,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
     }
 
     // 生产发布器：属性与头（MessageId、Type、AppId、traceparent、tenant_id）都由它从信封写出。
-    private async Task<QianEventEnvelope> PublishAsync(string? tenant, int sequence, string note = "subscriber", int times = 1)
+    private async Task<KunEventEnvelope> PublishAsync(string? tenant, int sequence, string note = "subscriber", int times = 1)
     {
         var envelope = Envelope(tenant, sequence, note);
         await using var broker = new RabbitMqBroker(() => rabbit.ConnectionString, NullLogger<RabbitMqBroker>.Instance);
@@ -325,7 +325,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
     }
 
     // 伪造的消息：消息体或头不满足契约，模拟绕过 Outbox 发布器的发布方。
-    private async Task RawPublishAsync(QianEventEnvelope envelope, string body, string? tenantHeader)
+    private async Task RawPublishAsync(KunEventEnvelope envelope, string body, string? tenantHeader)
     {
         var factory = new ConnectionFactory { Uri = new Uri(rabbit.ConnectionString) };
         await using var connection = await factory.CreateConnectionAsync(Ct);
@@ -333,7 +333,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         var headers = new Dictionary<string, object?> { ["traceparent"] = envelope.TraceParent };
         if (tenantHeader is not null) headers["tenant_id"] = tenantHeader;
         var properties = new BasicProperties { MessageId = envelope.EventId.ToString("D"), Type = envelope.Type, ContentType = "application/json", Headers = headers };
-        await channel.BasicPublishAsync(QianEventTopology.Exchange, envelope.Subject, mandatory: true, properties, Encoding.UTF8.GetBytes(body), Ct);
+        await channel.BasicPublishAsync(KunEventTopology.Exchange, envelope.Subject, mandatory: true, properties, Encoding.UTF8.GetBytes(body), Ct);
     }
 
     private static string DuplicateTenant(string json, string tenant)
@@ -415,7 +415,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
 
     internal sealed class FlakyDependencyException() : Exception("下游暂时不可用");
 
-    internal sealed record Call(Guid EventId, int Sequence, int Attempt, DateTimeOffset At, string? Tenant, MessageContext Context, QianEventDelivery Delivery,
+    internal sealed record Call(Guid EventId, int Sequence, int Attempt, DateTimeOffset At, string? Tenant, MessageContext Context, KunEventDelivery Delivery,
         string? TraceId, ActivityKind? ActivityKind);
 
     /// <summary>每个宿主一份：记录 handler 看到的投递与租户，按第几次投递决定是否抛出。</summary>
@@ -434,7 +434,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         public void Success() => Interlocked.Increment(ref _succeeded);
     }
 
-    internal sealed class ProbeHandler(Probe probe, QianEventDelivery delivery, ITenantContext tenant) : IIntegrationEventHandler<PingSent>
+    internal sealed class ProbeHandler(Probe probe, KunEventDelivery delivery, ITenantContext tenant) : IIntegrationEventHandler<PingSent>
     {
         public async ValueTask HandleAsync(PingSent @event, MessageContext context, CancellationToken cancellationToken = default)
         {

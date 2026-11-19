@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.EventBus;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Events;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

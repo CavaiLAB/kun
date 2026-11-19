@@ -28,7 +28,7 @@ public sealed class ResultMappingTests
         var interceptors = provider.GetRequiredService<IOptions<GrpcServiceOptions>>().Value.Interceptors;
         interceptors.Select(entry => entry.Type).Should().Equal(typeof(KunTracingInterceptor),
             typeof(KunServerAuthInterceptor), typeof(TenantGrpcServerInterceptor),
-            typeof(KunPermissionInterceptor), typeof(KunResultToRpcInterceptor));
+            typeof(RequiredPermissionInterceptorGuard), typeof(KunResultToRpcInterceptor));
     }
 
     [Theory]

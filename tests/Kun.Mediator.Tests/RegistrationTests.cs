@@ -7,6 +7,7 @@ using Kun.Mediator.Behaviors;
 using Kun.Mediator.DependencyInjection;
 using Kun.Mediator.Tests.Dispatch;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
@@ -37,6 +38,23 @@ public sealed class RegistrationTests
         (await sender.Send(new DirectoryCommand("four"), Ct)).Should().Be(4);
         sender.Should().BeSameAs(provider.GetRequiredService<IPublisher>());
         services.Count(d => d.ServiceType == typeof(ISender)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task AddKunMediator_OnACollectionCopiedFromAnother_GetsItsOwnBuilder()
+    {
+        var first = new ServiceCollection();
+        first.AddKunMediator(builder => builder.AddRequestHandler<Ping, string, PingHandler>());
+        IServiceCollection copy = new ServiceCollection();
+        foreach (var descriptor in first) copy.Add(descriptor);
+
+        copy.AddKunMediator(builder => builder.AddRequestHandler<DirectoryCommand, int, DirectoryHandler>());
+
+        await using var original = first.BuildServiceProvider(Strict);
+        var act = async () => await original.GetRequiredService<ISender>().Send(new DirectoryCommand("four"), Ct);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage($"*{typeof(DirectoryCommand).FullName}*");
+        await using var copied = copy.BuildServiceProvider(Strict);
+        (await copied.GetRequiredService<ISender>().Send(new DirectoryCommand("four"), Ct)).Should().Be(4);
     }
 
     [Fact]
@@ -100,6 +118,34 @@ public sealed class RegistrationTests
     }
 
     [Fact]
+    public async Task PermissionBehavior_WithoutAChecker_DeniesAndLogsAWarning()
+    {
+        var calls = new List<string>();
+        var sink = new LogSink();
+        var services = new ServiceCollection();
+        services.AddSingleton(calls);
+        services.AddSingleton(sink);
+        services.AddSingleton(typeof(ILogger<>), typeof(SinkLogger<>));
+        var user = Substitute.For<ICurrentUser>();
+        user.IsAuthenticated.Returns(true);
+        user.UserId.Returns("user-1");
+        user.PrincipalKind.Returns("user");
+        services.AddSingleton(user);
+        services.AddKunMediator(builder => builder
+            .AddRequestHandler<ProtectedCommand, Result<int>, ProtectedHandler>()
+            .AddPermissionBehavior<ProtectedCommand, Result<int>>(Result<int>.Fail));
+
+        await using var provider = services.BuildServiceProvider(Strict);
+        var result = await provider.GetRequiredService<ISender>().Send(new ProtectedCommand(), Ct);
+
+        result.Error.Code.Should().BeSameAs(Kun.Errors.PlatformErrors.AuthzDenied);
+        calls.Should().BeEmpty();
+        sink.Entries.Should().ContainSingle(entry => entry.Level == LogLevel.Warning
+            && entry.Message.Contains(typeof(ProtectedCommand).FullName!, StringComparison.Ordinal)
+            && entry.Message.Contains("no permission checker", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void PermissionBehaviorOptions_NullFactory_IsRejectedAtRegistration()
     {
         var services = new ServiceCollection();
@@ -109,5 +155,20 @@ public sealed class RegistrationTests
             .AddPermissionBehavior<ProtectedCommand, Result<int>>(Result<int>.Fail, options => options.PermissionChecker = null!));
 
         act.Should().Throw<InvalidOperationException>().WithMessage("*PermissionChecker*");
+    }
+
+    private sealed class LogSink
+    {
+        public List<(LogLevel Level, string Message)> Entries { get; } = [];
+    }
+
+    private sealed class SinkLogger<T>(LogSink sink) : ILogger<T>
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            lock (sink.Entries) sink.Entries.Add((logLevel, formatter(state, exception)));
+        }
     }
 }

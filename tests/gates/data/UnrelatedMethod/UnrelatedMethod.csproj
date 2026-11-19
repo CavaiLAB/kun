@@ -1,1 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><IsTestProject>false</IsTestProject><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup><ItemGroup><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <KunPlatformAnalyzers>true</KunPlatformAnalyzers>
+  </PropertyGroup>
+<PropertyGroup><IsTestProject>false</IsTestProject><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup><ItemGroup><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" /></ItemGroup></Project>

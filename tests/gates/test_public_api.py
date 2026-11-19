@@ -11,6 +11,7 @@ import subprocess
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from gate_sample import check_analyzer_scope
 
 ROOT = Path(__file__).resolve().parents[2]
 SAMPLES = ROOT / "tests" / "gates" / "publicapi"
@@ -20,13 +21,14 @@ EXPECTED = {
     "Kun.GateSample.Declared": (True, None),       # 公共 API 已登记
     "Kun.GateSample.Undeclared": (False, "RS0016"),  # 新增公共 API 未登记
     "Kun.GateSample.Stale": (False, "RS0017"),       # 登记了已删除的公共 API
-    "Kun.GateSample.NoApiFiles": (False, "KUNAPI001"),  # Qian 包缺 PublicAPI 文件
+    "Kun.GateSample.NoApiFiles": (False, "KUNAPI001"),  # 缺少公共 API 清单
     "GateSample.NotPackable": (True, None),         # 不打包的项目不受约束
 }
 
 
 def build(name: str):
     project = SAMPLES / name / f"{name}.csproj"
+    check_analyzer_scope(project, expected=name != "GateSample.NotPackable")
     env = dict(os.environ, DOTNET_CLI_UI_LANGUAGE="en", DOTNET_NOLOGO="1")
     result = subprocess.run(["dotnet", "build", str(project), "-c", "Release", "-nologo"],
                             capture_output=True, text=True, cwd=ROOT, env=env)

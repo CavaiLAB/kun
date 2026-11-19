@@ -1,1 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup><ItemGroup><ProjectReference Include="../../../../src/Kun.Identity/Kun.Identity.csproj" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <KunPlatformAnalyzers>true</KunPlatformAnalyzers>
+  </PropertyGroup>
+<PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup><ItemGroup><ProjectReference Include="../../../../src/Kun.Identity/Kun.Identity.csproj" /></ItemGroup></Project>

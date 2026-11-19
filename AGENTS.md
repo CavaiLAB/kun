@@ -85,7 +85,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 暂时去不掉的违规边记成例外，写在边起点的项目文件里，一条边一项：`<KunTierException Include="被依赖的包" Rule="K" Until="B5" Reason="…" />`。三个属性都必填，`Until` 写最早能去掉的批次。K、P 查传递依赖时跳过记了例外的边，所以只在出问题的那条边的起点记一次。边没了或者不再违规，门禁报例外已失效，要删掉；例外只减不增，现有的用 `git grep KunTierException` 查。
 - 本机跑：`python3 scripts/check_deps.py`（先还原 `Kun.slnx`，已还原时加 `--no-restore`）。自测与样例在 `tests/gates/`：`python3 -m unittest discover -s tests/gates -v`。
 - `Kun.Core` 只依赖 BCL 与同为零依赖的 `Kun.Errors`，不加第三方包引用（规则 C 把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
-- 禁用符号与平台分析器按档位接入（D23.14 第 4 点，仓库根的 `Directory.Build.targets`）：`BannedSymbols.txt`（RS0030）与 `_import/qian/tools/Qian.Build.Analyzers`（KUNLEGACY002–KUNEVENT001）接平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`，包括 `hosts/` 下的网关宿主与过渡目录里的平台宿主）；过渡期 `_import/qian/` 下的项目全部接入，内核档的包也在内，各域批次把包搬出过渡目录时再按归属收窄。仓库根上除了平台档的包与宿主都不接，被禁的类型就定义在 `src/` 下（搬出过渡目录的平台档包照旧接入，即 `src/` 下 `KunTier` 为 `platform` 的包）；Kun 旧类型上的 `Obsolete` 诊断号（如 KUNS2S001）照旧随警告即错误报错。新写的宿主要写 `KunHost`。
+- 平台档包（`KunTier=platform`）与宿主（`KunHost=true`，含 `hosts/Kun.Platform.Host` 与 `hosts/Kun.Gateway.Host`）接入根目录的 `BannedSymbols.txt` 和 `tools/Kun.Build.Analyzers`。门禁样例可在项目中用 `KunPlatformAnalyzers=true` 显式接入，产品项目按档位和宿主声明接入。
 - 新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。
 - 已归档的模块为 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9）。
 

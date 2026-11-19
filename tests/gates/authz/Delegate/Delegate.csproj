@@ -1,4 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <KunPlatformAnalyzers>true</KunPlatformAnalyzers>
+  </PropertyGroup>
+
  <PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors><NoWarn>$(NoWarn);CS1591</NoWarn></PropertyGroup>
  <ItemGroup><ProjectReference Include="../../../../src/Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" /></ItemGroup>
 </Project>

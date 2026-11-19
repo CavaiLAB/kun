@@ -1,5 +1,6 @@
 """KUNEVENT001：集成事件只能在写命令处理器或领域事件处理器内发布，用真实 Kun / SDK 类型编译正反例。"""
 from pathlib import Path
+from gate_sample import check_analyzer_scope
 import os
 import subprocess
 import unittest
@@ -22,6 +23,7 @@ class EventPublishScopeTests(unittest.TestCase):
         for name, succeeds in cases:
             with self.subTest(sample=name):
                 project = ROOT / "tests/gates/events" / name / (name + ".csproj")
+                check_analyzer_scope(project)
                 result = subprocess.run(
                     ["dotnet", "build", str(project), "-c", "Release"], cwd=ROOT,
                     env=dict(os.environ, DOTNET_CLI_UI_LANGUAGE="en"),

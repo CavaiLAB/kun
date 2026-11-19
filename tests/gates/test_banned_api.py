@@ -1,5 +1,6 @@
 """旧 Kun API 必须产生 RS0030，新存储接口应正常编译（S1-KUN-006）。"""
 from pathlib import Path
+from gate_sample import check_analyzer_scope
 import os
 import subprocess
 import unittest
@@ -19,6 +20,7 @@ class BannedApiTests(unittest.TestCase):
         ]:
             with self.subTest(sample=name):
                 project = ROOT / "tests/gates/bannedapi" / name / (name + ".csproj")
+                check_analyzer_scope(project)
                 result = subprocess.run(["dotnet", "build", str(project), "-c", "Release"], cwd=ROOT,
                     env=dict(os.environ, DOTNET_CLI_UI_LANGUAGE="en"), text=True, capture_output=True)
                 output = result.stdout + result.stderr

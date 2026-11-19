@@ -2,6 +2,8 @@
 
 > 本文是原 Kun 的决策记录，引用时写「Kun ADR-006」。2026-11-18 搬入本仓库时清理了引擎与下游产品的名字：正文照原文，方括号里是整理时替换的说法。
 
+> S1-KUN-026 后续实现。网关继续按路由选择限流策略，分布式固定窗口的原子计数与到期处理由 Kun.RateLimit 统一提供。服务端与网关的配置示例见[网关限流指南](../../guides/gateway-rate-limit.md)。
+
 **Status**: Accepted
 **Date**: 2026-04-22
 **Author**: claude-kun (Kun framework specialist)

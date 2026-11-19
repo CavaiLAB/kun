@@ -93,7 +93,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
 | `Kun.AspNetCore` | Minimal API 扩展 / `MapCommand` / `MapQuery` / 异常处理器 | 下游服务的对外 HTTP 路由 | `AddKunAspNetCore()` / `MapCommand<TReq, TResp>` | ⚠️ trim-safe | 5 |
-| `Kun.Grpc` | gRPC 拦截器链（Tracing → Auth → Result 映射） | 服务间内部 RPC；Catalog / Order gRPC endpoint | `AddKunGrpc()` / `KunResultToRpcInterceptor` | ✅ | 7 |
+| `Kun.Grpc` | gRPC 拦截器与错误映射；平台服务端依次执行服务认证、租户边界与权限检查 | 服务间内部 RPC；Catalog / Order gRPC endpoint | `AddKunGrpc()` / `KunResultToRpcInterceptor` | ✅ | 7 |
 | `Kun.Gateway.Abstractions` | 网关服务端口、配置与静态路由契约 | 宿主与平台组件共享 | `GatewayConfiguration` | ✅ | — |
 | `Kun.Gateway` | YARP + 外部 JWT 校验 + S2S JWT 签发 + JWKS endpoint + 限流 | 统一边界：外部 JWT 验证 + 内部 S2S JWT 签发 | `AddKunGateway()` / `MapKunJwks()` | ✅ | 21 |
 | `Kun.Gateway.Shell` | 外壳静态托管、引导端点与组件登记 | 平台网关宿主 | `AddKunGatewayShell()` | ✅ | — |
@@ -104,7 +104,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
-| `Kun.Security` | S2S JWT 校验、JWKS 热加载与当前用户 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
+| `Kun.Security` | S2S JWT 校验、JWKS 解析、主体声明读取与 `ICurrentUser` 实现 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
 | `Kun.Security.Abstractions` | 服务间令牌的主体模型与声明词汇表，零依赖 | 公共表面带主体的契约包引用它，不必引用 `Kun.Security` | `Principal` / `PrincipalKind` / `IdentityClaimNames` | ✅ | — |
 | `Kun.Identity` | 外部 IdP（OIDC）客户端、JWT 校验与原子会话；**不**自建用户存储 | 账号和凭据由身份权威提供，Kun 负责依赖方校验与会话 | `AddKunIdentity(...)` | ✅ | 11 |
 | `Kun.MultiTenancy` | 请求与消息的租户范围 | 登记租户上下文并传播当前标识 | `AddKunMultiTenancy()` / `UseKunMultiTenancy()` | ✅ | 5 |

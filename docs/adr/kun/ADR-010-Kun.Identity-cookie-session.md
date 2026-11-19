@@ -4,6 +4,8 @@
 
 > Implementation update (S1-KUN-004): the [identity client guide](../../guides/identity-client.md) and [canonical S2S guide](../../security/s2s-jwt.md) supersede the legacy issuer and incomplete cookie-flow examples below. The original rationale is retained as history.
 
+> S1-KUN-026 后续实现。Cookie 会话和服务间令牌保留各自的认证入口。内核与平台的当前用户端口，及其认证前提，见[当前用户接口对照](../../design/when-to-use-currentuser.md)。
+
 **Status**: Accepted
 **Date**: 2026-04-24
 **Author**: claude-kun (Kun framework specialist)

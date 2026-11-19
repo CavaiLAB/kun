@@ -114,6 +114,42 @@ public sealed class DocumentTests
         Assert.False(fixture.Generate(["../"]).IsValid);
     }
     [Fact]
+    public void Source_root_moves_the_scan_boundary_up_and_anchors_event_locations()
+    {
+        using var fixture = new Fixture("app");
+        fixture.Write("../lib/Events.cs", Definitions); fixture.Write("../lib/Calls.cs", Calls);
+        // 源码根取工作区的上级目录：源码目录相对它，事件图里的位置也相对它书写。
+        var result = fixture.Generate(["lib"], "..");
+        Assert.True(result.IsValid, JsonSerializer.Serialize(result.Diagnostics));
+        var evt = Assert.Single(result.Events);
+        Assert.Equal("lib/Events.cs", evt.Declaration.File);
+        Assert.Equal("lib/Calls.cs", Assert.Single(evt.Producers).File);
+        Assert.Equal("lib/Calls.cs", Assert.Single(evt.Consumers).File);
+        Assert.Contains("` lib/Calls.cs `", result.Documents["event-graph.md"], StringComparison.Ordinal);
+        Assert.Equal(4, fixture.Generate(["lib/"], "../").Documents.Count);
+        // 不给源码根就是工作区本身，写成 "." 也一样：输出与引入源码根之前相同。
+        fixture.Write("src/Events.cs", Definitions); fixture.Write("src/Calls.cs", Calls);
+        var plain = fixture.Generate();
+        Assert.True(plain.IsValid, JsonSerializer.Serialize(plain.Diagnostics));
+        Assert.Equal("src/Events.cs", Assert.Single(plain.Events).Declaration.File);
+        Assert.Equal(plain.Documents.OrderBy(p => p.Key, StringComparer.Ordinal), fixture.Generate(sourceRoot: ".").Documents.OrderBy(p => p.Key, StringComparer.Ordinal));
+        // 边界照旧：源码目录越出源码根（缺省的或给定的）、源码根不是工作区或它的上级目录，都不生成文档。
+        foreach (var (sources, sourceRoot) in new (string[] Sources, string? SourceRoot)[] { (["../lib"], null), (["../outside"], ".."), (["src"], "../lib"), (["src"], "src") })
+        {
+            var rejected = fixture.Generate(sources, sourceRoot);
+            Assert.False(rejected.IsValid, $"{string.Join(",", sources)} @ {sourceRoot}");
+            Assert.Empty(rejected.Documents);
+            Assert.Contains(rejected.Diagnostics, d => d.Error.Errors![0].Code == "DOC_SOURCE_INVALID");
+        }
+        // 源码目录是符号链接，或源码根到工作区的路径上有符号链接，同样拒绝。
+        Directory.CreateSymbolicLink(Path.Combine(fixture.Root, "linked"), Path.Combine(fixture.Root, "lib"));
+        Assert.False(fixture.Generate(["linked"], "..").IsValid);
+        Directory.CreateDirectory(Path.Combine(fixture.Root, "real"));
+        Directory.Move(Path.Combine(fixture.Root, "app"), Path.Combine(fixture.Root, "real", "app"));
+        Directory.CreateSymbolicLink(Path.Combine(fixture.Root, "app"), Path.Combine(fixture.Root, "real", "app"));
+        Assert.False(fixture.Generate(["lib"], "..").IsValid);
+    }
+    [Fact]
     public void Named_constructor_arguments_and_property_aliases_resolve_the_same_definition()
     {
         using var fixture = new Fixture();
@@ -155,8 +191,11 @@ public sealed class DocumentTests
     private sealed class Fixture : IDisposable
     {
         internal string Root { get; } = Path.Combine(Path.GetTempPath(), "qian-docs-" + Guid.NewGuid().ToString("N"));
-        internal Fixture()
+        // 工作区缺省就是 Root；给了子目录，profile 与组件写进子目录，Root 下的其余位置用来放工作区之外的源码。
+        private readonly string _workspace;
+        internal Fixture(string workspace = "")
         {
+            _workspace = Path.Combine(Root, workspace);
             Write("profiles/minimal/qian.profile.yml", "name: minimal\nbundles: []\npatch: ./qian.patch.yml\n");
             // observer 先于 provider 写进 patch：它只以 optionalInject 依赖 Settings，装载顺序仍须把 provider 排在前面。
             Write("profiles/minimal/qian.patch.yml", "- {id: observer, plugin: test.observer, config: {}}\n- {id: provider, plugin: test.provider, config: {location: 旧位置, token: 'secretRef://fixture/value'}}\n- {id: consumer, plugin: test.consumer, config: {}}\n");
@@ -174,11 +213,12 @@ public sealed class DocumentTests
             }
             Write("plugins/provider/schemas/config.schema.json", """{"type":"object","properties":{"location":{"type":"string"},"token":{"type":"string","x-qian-sensitive":true,"default":"SHOULD-NOT-BE-PUBLISHED"}}} """);
         }
-        internal void Write(string file, string content) { var path = Path.Combine(Root, file); Directory.CreateDirectory(Path.GetDirectoryName(path)!); File.WriteAllText(path, content); }
-        internal DocumentResult Generate(IReadOnlyList<string>? sources = null) => new DocumentGenerator(new ProfileLoader(new SurfaceValidator())).Generate(new DocumentOptions
+        internal void Write(string file, string content) { var path = Path.Combine(_workspace, file); Directory.CreateDirectory(Path.GetDirectoryName(path)!); File.WriteAllText(path, content); }
+        internal DocumentResult Generate(IReadOnlyList<string>? sources = null, string? sourceRoot = null) => new DocumentGenerator(new ProfileLoader(new SurfaceValidator())).Generate(new DocumentOptions
         {
-            Profile = new ProfileLoadOptions { WorkingDirectory = Root, Profile = "minimal", IncludeHomePatch = false, Patches = ["override.yml"] },
-            SourceDirectories = sources ?? ["src"]
+            Profile = new ProfileLoadOptions { WorkingDirectory = _workspace, Profile = "minimal", IncludeHomePatch = false, Patches = ["override.yml"] },
+            SourceDirectories = sources ?? ["src"],
+            SourceRoot = sourceRoot
         });
         public void Dispose() => Directory.Delete(Root, true);
     }

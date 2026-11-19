@@ -12,9 +12,10 @@ var reader = new SurfaceValidator();
 var result = new DocumentGenerator(new ProfileLoader(reader)).Generate(new DocumentOptions
 {
     Profile = new ProfileLoadOptions { WorkingDirectory = input.WorkingDirectory, Profile = input.Profile, Patches = input.Patches, HomeDirectory = input.HomeDirectory, IncludeHomePatch = input.IncludeHomePatch },
-    SourceDirectories = input.SourceDirectories
+    SourceDirectories = input.SourceDirectories,
+    SourceRoot = input.SourceRoot
 });
 Console.WriteLine(JsonSerializer.Serialize(result, JsonSerializerOptions.Web));
 return result.IsValid ? 0 : 1;
 
-internal sealed record Input(string WorkingDirectory, string Profile, string[] Patches, string? HomeDirectory, bool IncludeHomePatch, string[] SourceDirectories);
+internal sealed record Input(string WorkingDirectory, string Profile, string[] Patches, string? HomeDirectory, bool IncludeHomePatch, string[] SourceDirectories, string? SourceRoot);

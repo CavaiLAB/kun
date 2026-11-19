@@ -86,6 +86,27 @@ class PluginManifestGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "必须有唯一清单，实际 2 份"):
             self.run_gate([{"type": "Qian.New.Entry", "component": "qian.new"}])
 
+    def test_repository_sample_is_discovered_with_its_own_manifest(self):
+        nested = self.root / "_import/qian"
+        (nested / "scripts").mkdir(parents=True)
+        (nested / "scripts/plugin-implementations.json").write_text("{}")
+        (nested / "Qian.slnf").write_text('{"solution":{"path":"../../Kun.slnx","projects":[]}}')
+        sample = self.root / "samples/Kun.Sample.Example"
+        sample.mkdir(parents=True)
+        (sample / "Kun.Sample.Example.csproj").write_text('<Project Sdk="Microsoft.NET.Sdk.Web" />')
+        assembly = sample / "bin/Release/net10.0/Kun.Sample.Example.dll"
+        assembly.parent.mkdir(parents=True)
+        assembly.touch()
+        manifest = sample / ".qian-plugin/plugin.json"
+        manifest.parent.mkdir()
+        manifest.write_text('{"id":"qian.example"}')
+        (self.root / "Kun.slnx").write_text('<Solution><Project Path="samples/Kun.Sample.Example/Kun.Sample.Example.csproj" /></Solution>')
+        with patch.object(GATE, "run", side_effect=['[{"type":"Example.Plugin","component":"qian.example"}]', '{}']) as run:
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual((1, 0), GATE.check(nested))
+        self.assertEqual(assembly.resolve(), Path(run.call_args_list[0].args[0][-1]).resolve())
+        self.assertEqual(sample.resolve(), Path(run.call_args_list[1].args[0][-1]).resolve())
+
     def test_tool_is_located_next_to_the_filtered_solution(self):
         # 工具按 Qian.slnf 筛的解决方案（仓库根的 Kun.slnx）定位：过渡目录下同样的相对路径不算。
         nested = self.root / "_import/qian"

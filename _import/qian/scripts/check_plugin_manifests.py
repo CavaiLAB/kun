@@ -51,7 +51,7 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
     # 过渡目录里 packages/、samples/ 下的项目，加上仓库根 src/、samples/ 下的组件与样例。
     projects = [root / relative for relative in solution_projects(root)
                 if relative.startswith(("packages/", "samples/")) and relative.endswith(".csproj")]
-    for path in dict.fromkeys(projects + repository_projects(root)):
+    for path in projects + repository_projects(root):
         configuration = ET.parse(path).getroot()
         if configuration.findtext(".//TargetFramework", "").startswith("netstandard"):
             continue  # 分析器程序集不是可执行组件，不能实现 net10 的 IKunPlugin。
@@ -77,7 +77,11 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
     if stale:
         raise ValueError("实现构件分类已失效：" + ", ".join(sorted(stale)))
     manifests: dict[str, list[Path]] = {}
-    for base in dict.fromkeys((root / "plugins", root / "samples", solution_root(root) / "samples")):
+    directories = [root / "plugins", root / "samples"]
+    repository_samples = solution_root(root) / "samples"
+    if repository_samples != (root / "samples").resolve():
+        directories.append(repository_samples)
+    for base in directories:
         for manifest in base.rglob(".qian-plugin/plugin.json"):
             if any(part in {"bin", "obj", "node_modules", ".git"} for part in manifest.relative_to(base).parts):
                 continue

@@ -8,6 +8,26 @@
 
 ## [Unreleased]
 
+### Changed — 错误模型合一到 Kun.Errors（S1-KUN-023）
+
+- 新增零依赖包 `Kun.Errors`（错误码 `ErrorCode`、错误码目录、`Error`、`ErrorException`、线上模型 `ErrorDetail`），`Kun.Core` 引用它。`Result` / `Result<T>` 的 `Error` 是 `Kun.Errors.Error`：错误码加文案参数、出错位置（JSON Pointer）、允许值与逐项字段错误。**迁移**：错误码先定义成 `ErrorCode`（大写下划线）并登记进错误码目录，通用的取 `PlatformErrors`；失败结果写 `Result.Fail(new Error(code, args))`。
+- `Error` 是按引用比较的类，不再是按值比较的 record。**迁移**：比较两个错误改比 `Error.Code`；测试里断言同一个实例用 `BeSameAs` / `Assert.Same`。
+- 成功的 `Result` 取 `Error` 抛 `InvalidOperationException`（之前返回 `Error.None`），`default(Result)` 取 `Error` 也抛；`ToString()` 不抛，失败时打印错误码。`Result.Fail(null)` 抛 `ArgumentNullException`。`EnsureSuccess()` 抛 `ErrorException`。
+- Kun 内置的错误码改用已登记的平台码：`request.invalid`、`validation.failed` → `INPUT_INVALID`；`authorization.unauthenticated` → `UNAUTHENTICATED`；`authorization.denied` → `AUTHZ_DENIED`；`data.concurrency_conflict` → `CONFLICT`。**迁移**：按错误码字符串判断的调用方改用新码。权限行为拒绝时不再用文案区分原因：缺判定器、主体类型无效、判定不允许都给 `AUTHZ_DENIED`。
+- `Kun.Validation`：校验器产出 `Kun.Errors.FieldError`（字段级错误码 + JSON Pointer），不再拼接文案；抛异常式的校验行为抛 `ErrorException`（`INPUT_INVALID`），结果式返回同一个 `Error`；`Errors` 至多 100 项，多出的丢弃。
+- HTTP 错误响应由 `Kun.Errors.AspNetCore` 负责：`services.AddKunErrors()`、`app.UseKunErrors()`。响应体是 `ErrorDetail`（`application/problem+json`，`code` 为大写下划线的错误码，带 `trace_id`，文案取错误码目录），不再是 ProblemDetails；宿主登记的 `IProblemDetailsWriter` 不再接管 `ErrorException` 的响应体。
+- `Kun.Grpc`：尾部 `kun-error-code` 的值是大写下划线的错误码；状态码按错误码的 HTTP 状态映射，比之前多出 408/504 → `DeadlineExceeded`、412/422 → `FailedPrecondition`、413/429 → `ResourceExhausted`、502 → `Unavailable`；状态说明是按当前界面语言渲染的错误码文案。
+- `Kun.Testing`：`ShouldHaveErrorCode(ErrorCode)` 取代 `ShouldHaveErrorType`；`ShouldHaveErrorCode(string)` 比的是大写下划线的错误码。
+- 包 `Qian.Runtime.Errors`、`Qian.Runtime.Errors.AspNetCore`（已发布 0.2.0）换成 `Kun.Errors`、`Kun.Errors.AspNetCore`，命名空间跟着换。类型与方法：`QianError` → `Error`；`QianFieldError` → `FieldError`，线上 DTO 的 `FieldError` 换成 `FieldErrorDetail`（JSON 形状不变）；`QianErrorException` → `ErrorException`；`QianResults`、`QianErrorResult` → `KunResults`、`KunErrorResult`；`AddQianErrors`、`UseQianErrors`、`QianErrorsExtensions` → `AddKunErrors`、`UseKunErrors`、`KunErrorsExtensions`。
+- 组件 `qian.registry` 1.0.0 → 1.1.0，`qian.tenancy`、`qian.tenancy.signup` 2.0.0 → 2.1.0：三份发布的 HTTP 契约里，错误响应的 Schema 键随 `ErrorDetail` 所在的程序集变了，`$ref` 跟着变；线上形状与 operationId 不变。
+
+### Removed — 第二套错误模型、异常处理器与两边之间的桥（S1-KUN-023）
+
+- `Kun.Core`：`Kun.Core.Results.Error`（连同 `Error.None`、`Error.NotFound(code, message)` 等工厂）、`ErrorType`、`ResultFailureException`、`Kun.Core.Domain.DomainException`。**迁移**：状态码看 `ErrorCode.Status`，类别看 `ErrorCode.Kind`；领域规则不满足时返回或抛出带平台码的 `Error`（如 `BUSINESS_RULE_VIOLATED`）。
+- `Kun.Validation`：`ValidationError`、`ValidationException`。**迁移**：读 `ErrorException.Error.Errors` 里的 `FieldError`。
+- `Kun.AspNetCore`：`AddKunAspNetCore`、`KunExceptionHandler`、`ToProblemDetails`、`AddKunHealthChecks`，以及对 `Kun.Validation` 的引用；这个包只剩端点映射（`MapCommand` / `MapQuery`）。**迁移**：错误响应改用 `AddKunErrors()` / `UseKunErrors()`，健康检查直接调 `services.AddHealthChecks()`。
+- 两座桥：`Qian.Runtime.KunErrorBridge`（`ToQianError`）与 `Kun.Errors.AspNetCore.KunValidationErrorBridge`。两边已是同一套模型，不再需要转换。
+
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
 
 - 样例编排宿主 `samples/Kun.Sample.AppHost` 的 Aspire 从 9.0.0 升到 13.6.5（`Aspire.AppHost.Sdk` 与中央版本里的 `Aspire.Hosting.AppHost` / `PostgreSQL` / `RabbitMQ` / `Redis`），修复 NuGet 审计报出的 [GHSA-4g86-54fm-h9h8](https://github.com/advisories/GHSA-4g86-54fm-h9h8)（`Aspire.Dashboard.Sdk.*`，严重）与 [GHSA-f7vh-h5g3-7jrh](https://github.com/advisories/GHSA-f7vh-h5g3-7jrh)（`Aspire.Hosting`、`Aspire.Hosting.AppHost`，高）。这两条公告发布后，`dotnet restore` 在警告即错误下失败，CI 的构建、测试与格式检查随之失败。编排代码不用改，资源、依赖与启动顺序不变。

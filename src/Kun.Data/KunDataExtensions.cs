@@ -1,11 +1,11 @@
 using Kun.Core.Security;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.DependencyInjection;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Kun.EntityFrameworkCore.PostgreSQL;
 using Kun.Errors;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
-using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;

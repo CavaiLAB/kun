@@ -2,8 +2,8 @@ using System.Linq.Expressions;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Interceptors;
-using Kun.EventBus.Outbox;
 using Kun.EntityFrameworkCore.MultiTenancy;
+using Kun.EventBus.Outbox;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kun.EntityFrameworkCore;

@@ -1,14 +1,14 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Data.Dialect.Pg;
 
 /// <summary>PostgreSQL 方言组件入口；具名运行时贡献与宿主数据目录登记随卸载一起撤销。</summary>
-[QianPlugin("qian.data.dialect.pg")]
-[QianConfigSchema("""{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false}""")]
+[KunPlugin("qian.data.dialect.pg")]
+[KunConfigSchema("""{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false}""")]
 [Contributes(typeof(DataDialectContract), nameof(DataDialectContract.Key), "pg", RegistryType = typeof(IDataDialectRegistry))]
 public sealed class PgDialectPlugin : IKunPlugin
 {

@@ -4,7 +4,7 @@
 
 ## 宿主装配
 
-`FilesPlugin`（`[QianPlugin("qian.files")]`，可挂 global 或 tenant scope，`Inject` 为 `Data`，提供 `Files` 与具名贡献 `Files.Backends:local`）在 `Apply` 里核对下面三项，缺任何一项都拒绝挂载：
+`FilesPlugin`（`[KunPlugin("qian.files")]`，可挂 global 或 tenant scope，`Inject` 为 `Data`，提供 `Files` 与具名贡献 `Files.Backends:local`）在 `Apply` 里核对下面三项，缺任何一项都拒绝挂载：
 
 ```csharp
 builder.Services.AddKunEventBus(registrar => registrar.RegisterFilesEvents() /* 以及其他组件的事件 */);
@@ -52,7 +52,7 @@ builder.Services.AddKunMediator(registry => registry.AddQianFiles(sp => /* 按�
 
 ## 依赖边界
 
-依赖 `Qian.Files.Abstractions`、`Qian.Data.Abstractions`、`Qian.Tenancy.Abstractions`、`Qian.Plugin.Sdk` 与 Kun.Storage.Local；不引用其他 Provider（Authz、Audit、Tenancy 的实现由宿主组合）。Kun 旧存储线（`Kun.Storage.Abstractions.IFileStorage`）由仓库根 `BannedSymbols.txt` 禁用。
+依赖 `Qian.Files.Abstractions`、`Qian.Data.Abstractions`、`Qian.Tenancy.Abstractions`、`Kun.Plugin.Sdk` 与 Kun.Storage.Local；不引用其他 Provider（Authz、Audit、Tenancy 的实现由宿主组合）。Kun 旧存储线（`Kun.Storage.Abstractions.IFileStorage`）由仓库根 `BannedSymbols.txt` 禁用。
 
 ## 验证
 

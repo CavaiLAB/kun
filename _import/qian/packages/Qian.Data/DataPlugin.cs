@@ -2,13 +2,13 @@ using System.Text.Json;
 using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 
 namespace Qian.Data;
 
 /// <summary>qian.data 的真实 Provider；挂载提供 Data，卸载撤销服务并释放未关闭的会话。</summary>
-[QianPlugin("qian.data")]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.data")]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 public sealed class DataPlugin : IKunPlugin
 {
     /// <inheritdoc />

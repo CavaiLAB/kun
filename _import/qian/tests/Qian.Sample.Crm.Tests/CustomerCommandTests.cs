@@ -25,7 +25,7 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.AspNetCore;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Qian.Lifecycle;
 using Qian.Registry;

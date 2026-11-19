@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Qian.Config.Apollo;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 
 namespace Qian.Config.Tests;
 
@@ -10,7 +10,7 @@ public sealed class ConfigMetadataTests
     [Fact]
     public void 标准与Apollo公开入口保持原类型名_共享事件同源且只由标准组件拥有_权限不跨组件复制()
     {
-        var metadata = typeof(ConfigurationPlugin).Assembly.GetCustomAttributes<QianCodeMetadataAttribute>()
+        var metadata = typeof(ConfigurationPlugin).Assembly.GetCustomAttributes<KunCodeMetadataAttribute>()
             .Select(attribute => Assert.IsAssignableFrom<IComponentCodeMetadataFactory>(Activator.CreateInstance(attribute.FactoryType)).Create())
             .ToDictionary(item => item.ComponentId, StringComparer.Ordinal);
         Assert.Equal(3, metadata.Count);

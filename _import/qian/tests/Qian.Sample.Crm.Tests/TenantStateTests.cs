@@ -5,7 +5,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Qian.Tenancy;
 

@@ -319,10 +319,12 @@ class AnalyzerScopeTests(unittest.TestCase):
         self.assertTrue(any(is_true(props, "IsPackable") and props.get("KunTier") == "kernel" for props in transitional.values()),
                         "_import/qian/ 下已没有内核档的包：按归属重定作用域，再改这里")
         self.assertEqual(set(), {p.stem for p, props in transitional.items() if not is_true(props, "_KunPlatformAnalyzers")})
-        # 仓库根上只有宿主接入：被禁的类型就定义在 src/ 下。
-        self.assertEqual({p.stem for p, (props, _) in projects.items() if TRANSITIONAL not in p.parents and is_true(props, "KunHost")},
-                         {p.stem for p, (props, _) in projects.items()
-                          if TRANSITIONAL not in p.parents and is_true(props, "_KunPlatformAnalyzers")})
+        # 仓库根上的项目：接入的正好是平台档的包与宿主，搬出过渡目录的内核档包与测试不接（D27）。
+        outside = {p: props for p, (props, _) in projects.items() if TRANSITIONAL not in p.parents}
+        self.assertTrue(any(props.get("KunTier") == "platform" for props in outside.values()),
+                        "仓库根上已没有平台档的项目：下面这条测不到平台档那一支，改这里")
+        self.assertEqual({p.stem for p, props in outside.items() if props.get("KunTier") == "platform" or is_true(props, "KunHost")},
+                         {p.stem for p, props in outside.items() if is_true(props, "_KunPlatformAnalyzers")})
 
     def test_banned_symbols_list_lives_at_the_root(self):
         self.assertTrue((ROOT / "BannedSymbols.txt").is_file())

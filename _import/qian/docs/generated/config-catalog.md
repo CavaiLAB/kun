@@ -392,7 +392,7 @@
 
 ## global/data
 
-组件：` qian.data@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.data@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -446,7 +446,7 @@
 
 ## global/files
 
-组件：` qian.files@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.files@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -618,7 +618,7 @@
 
 ## global/events
 
-组件：` qian.events@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.events@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -875,7 +875,7 @@
 
 ## global/scheduler
 
-组件：` qian.scheduler@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.scheduler@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 

@@ -45,6 +45,15 @@
 - `ScopeKey` 只查语法：`global`，或小写的种类名（小写字母开头，小写字母、数字与连字符）加非空 id；之前只认 `tenant`、`app`、`agent-session` 三种。平台档（Profiles、Registry）的种类校验不变，种类常量在 `Qian.Profiles.Abstractions.ScopeKinds`。
 - `SurfaceKeys` 移到 `Qian.Surfaces.Abstractions`（命名空间同包名）。
 
+### Changed — 插件开发包拆成四个包（S1-KUN-023）
+
+- 已发布的包 `Qian.Plugin.Sdk` 拆成两个：`Kun.Plugin.Sdk`（内核档：代码声明、生成契约、命令策略协议）与新包 `Kun.Plugin.Sdk.Commands`（平台档：命令管道）。`Qian.Plugin.Sdk.Generators`、`Qian.Plugin.Sdk.AspNetCore` 换成 `Kun.Plugin.Sdk.Generators`、`Kun.Plugin.Sdk.AspNetCore`。命名空间跟着包名换；`Kun.Plugin.Sdk.Commands` 里的类型仍在命名空间 `Kun.Plugin.Sdk`。清单工具搬到仓库根的 `tools/Kun.Plugin.Tool`，不打包。
+- 进了 `Kun.Plugin.Sdk.Commands` 的公共类型：`KunCommandRegistration`（`AddKunCapability`）、`CommandDataSession<TContext>`、`HookCapabilityRegistration`（`ExposeCapabilityHook`）。**迁移**：登记能力命令、用数据会话或钩子能力的项目另引用 `Kun.Plugin.Sdk.Commands`，代码不用改。
+- `Kun.Plugin.Sdk` 不再引用 `Qian.Data.Abstractions`、`Qian.Authz.Abstractions`、`Qian.Surfaces.Abstractions`，也就不再传递带来 EF Core、`Kun.EventBus` 与这几个平台档契约。**迁移**：用到它们的项目直接引用（或引用 `Kun.Plugin.Sdk.Commands`）。
+- 类型名里的 `Qian` 换成 `Kun`：`QianPluginAttribute`、`QianConfigSchemaAttribute`、`QianCodeMetadataAttribute`、`QianJobAttribute` → `KunPluginAttribute`、`KunConfigSchemaAttribute`、`KunCodeMetadataAttribute`、`KunJobAttribute`；静态抽象属性 `QianCapability`、`QianJobCode` → `KunCapability`、`KunJobCode`；`QianCommandRegistration`、`AddQianCapability` → `KunCommandRegistration`、`AddKunCapability`；`AddQianPluginEndpoints`、`UseQianPluginEndpoints`、`RequireQianPlugin` → `AddKunPluginEndpoints`、`UseKunPluginEndpoints`、`RequireKunPlugin`。源生成器产出的元数据工厂类名的后缀 `QianCodeMetadata` 换成 `KunCodeMetadata`（如 `GatewayComponentKunCodeMetadata`）。特性里写的组件 id（`qian.events` 等）不变。
+- 源生成器的诊断号 `QIANSDK001`–`QIANSDK003` 换成 `KUNSDK001`–`KUNSDK003`，类别 `QianSdk` 换成 `KunSdk`。**迁移**：`.editorconfig`、`NoWarn` 与 `#pragma` 里按诊断号压的警告改写新号。
+- 组件 `qian.config`、`qian.data`、`qian.events`、`qian.files`、`qian.scheduler` 1.0.0 → 1.0.1：组件文件夹里的说明随工具与特性的名字改了，只动文档。
+
 ### Removed — 归档 Kun.Dapper（S1-KUN-024）
 
 - 包 `Kun.Dapper` 停发、移出解决方案，nuget.org 上已发布的版本不动。随包删掉的公共 API：`IReadDbConnectionFactory`、`ReadDbOptions`、`PageRequest`、`PagedResult<T>`、`Kun.Dapper.Npgsql.NpgsqlReadDbConnectionFactory`、`DapperAotExtensions.QueryPageAsync<T>`、`AddKunDapper` / `AddKunDapperNpgsql`。**迁移**：读侧直接引用 `Npgsql` 与 `Dapper`；登记一个读侧数据源（`services.AddSingleton(_ => NpgsqlDataSource.Create(readConnectionString))`），查询处理器注入 `NpgsqlDataSource`，用 `OpenConnectionAsync` 取连接后以 Dapper 查询；分页的请求与结果类型在应用里自己定义；要原生 AOT 发布的服务，在自己的项目里加 Dapper 的源生成器（`Dapper.AOT`）或直接用 `NpgsqlDataReader` 读行。写法见 `docs/guides/read-side-patterns.md`，样例见 `samples/Kun.Sample.Catalog`。

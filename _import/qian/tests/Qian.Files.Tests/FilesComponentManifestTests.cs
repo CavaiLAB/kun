@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Qian.Authz.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 
 namespace Qian.Files.Tests;
 
@@ -16,7 +16,7 @@ public sealed class FilesComponentManifestTests
     {
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "plugins/qian.files/.qian-plugin/plugin.json")));
         var json = manifest.RootElement;
-        var factory = typeof(FilesPlugin).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType;
+        var factory = typeof(FilesPlugin).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType;
         var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(factory)!).Create();
         var runtime = json.GetProperty("runtime");
         Assert.Equal(("qian.files", "qian.files"), (code.ComponentId, json.GetProperty("id").GetString()));
@@ -68,7 +68,7 @@ public sealed class FilesComponentManifestTests
     public void 权限与角色声明编译为目录_三个权限点_owner与admin全权_developer与user只读写()
     {
         var catalog = FilesMetadata.Catalog();
-        Assert.Equal(("qian.files", "1.0.0"), (catalog.PluginId, catalog.Version));
+        Assert.Equal(("qian.files", FilesMetadata.Version()), (catalog.PluginId, catalog.Version));
         Assert.Equal([(FilesPermissions.Delete, PermissionRisk.High), (FilesPermissions.Read, PermissionRisk.Low), (FilesPermissions.Write, PermissionRisk.Medium)],
             catalog.Permissions.Select(permission => (permission.Code, permission.Risk)).OrderBy(item => item.Code, StringComparer.Ordinal));
         var roles = catalog.Roles.ToDictionary(role => role.Role, role => role.Grants.Order(StringComparer.Ordinal).ToArray());

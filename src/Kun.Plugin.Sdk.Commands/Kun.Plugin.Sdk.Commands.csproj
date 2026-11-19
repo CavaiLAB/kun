@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Kun 插件开发包的命令管道：能力命令的事务、数据会话、主体端口检查与钩子能力（平台档）。</Description>
+  </PropertyGroup>
+  <!-- 记契约：平台组件都经它登记能力命令（AddKunCapability），记提供者的话每个组件都违反规则 P。 -->
+  <PropertyGroup Label="档位">
+    <KunTier>platform</KunTier>
+    <KunRole>contract</KunRole>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+  </ItemGroup>
+</Project>

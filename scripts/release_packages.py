@@ -13,7 +13,10 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
       - 恰好是名单上的包，各一个，nuspec 的包名、版本与文件名对得上，版本都是 V（V 要合日历版本的写法）；
       - 名单里的包之间的依赖都在本次产物里，版本写成 V、[V] 或 [V,)（去掉空白后；与 release_version.py 一样
         只认这三种）；与名单同前缀、却不在名单里的依赖也算缺；
-      - 符号包（.snupkg）都有对应的包，项目写了 IncludeSymbols=true 的都出了符号包；
+      - 符号包（.snupkg）都有对应的包，项目写了 IncludeSymbols=true 的都出了符号包；只带分析器的包免符号包：
+        项目求值 IncludeBuildOutput=false，并且打出来的包里 lib/、runtimes/ 下没有 PE 文件（.dll、.exe），两条都满足
+        才免（不看包名）；免的包不能出符号包（空的或对不上的符号包推到 nuget.org 会被拒），项目也不能写
+        IncludeSymbols=true。这条两种模式、不分位置都一样；名单里「要出符号包的」不算不带编译输出的包，它们按制品判；
       - 许可是 MIT 表达式；仓库地址是本仓库，带的提交号是本次检出的提交；
       - 作者、版权、项目地址与 src/Directory.Build.props 写的一致（仓库地址也照它）；描述不空，也不写过渡目录的名字
         （取 _import/ 下各子目录的名字，首字母大写后区分大小写地查，不写死；小写的运行期字面
@@ -30,7 +33,7 @@ src/，当次 CI 就查。只有 exception 不分位置、只报数：每条例�
   prefix       包名不以 Kun. 开头（还没归并进来的包）
   exception    项目文件里记着档位例外 KunTierException，包括例外带来的内核档依赖平台档（不分位置）
   repository   包里的仓库地址不是本仓库，或没带提交号（过渡子目录的打包设置还没跟上）
-  symbols      没出符号包
+  symbols      没出符号包（只带分析器的包免，见上）
   metadata     作者、版权、项目地址与 src/Directory.Build.props 不一致
   description  描述是空的，或写着过渡目录的名字
   prerelease   稳定版带预发布依赖，项目却没写 NoWarn NU5104
@@ -63,7 +66,10 @@ LEGACY_ROOT = ROOT / "_import"
 PREFIX = "Kun."
 LICENSE = "MIT"
 DEFAULT_DESCRIPTION = "Package Description"  # SDK 在项目没写 Description 时填的
-PROPERTIES = ("IsPackable", "PackageId", "KunTier", "KunRole", "IsAotCompatible", "IncludeSymbols", "NoWarn")
+PROPERTIES = ("IsPackable", "PackageId", "KunTier", "KunRole", "IsAotCompatible", "IncludeSymbols", "IncludeBuildOutput", "NoWarn")
+# 判「只带分析器的包」时看包里这两处有没有 PE 文件：有就照旧要符号包。
+BINARY_ROOTS = ("lib/", "runtimes/")
+PE_SUFFIXES = (".dll", ".exe")
 EXCEPTION_ITEM = "KunTierException"
 TRANSITIONAL = {
     "prefix": "包名不以 Kun. 开头",
@@ -92,6 +98,7 @@ class Package:
     symbols: bool = False
     prerelease_ok: bool = False  # 项目的 NoWarn 里有 NU5104
     exceptions: Tuple[Tuple[str, str], ...] = ()  # (被依赖的包, 规则)
+    build_output: bool = True  # 项目求值的 IncludeBuildOutput 不是 false；是 false、包里也没有 PE 文件的免符号包
 
 
 @dataclass
@@ -123,7 +130,8 @@ def package_from(path: Path, data: dict) -> Optional[Package]:
     return Package(id=props.get("PackageId") or path.stem, tier=props.get("KunTier", ""), role=props.get("KunRole", ""),
                    project=_rel(path), aot=props.get("IsAotCompatible", "").lower() == "true",
                    symbols=props.get("IncludeSymbols", "").lower() == "true",
-                   prerelease_ok="NU5104" in (n.upper() for n in _split(props.get("NoWarn", ""))), exceptions=exceptions)
+                   prerelease_ok="NU5104" in (n.upper() for n in _split(props.get("NoWarn", ""))), exceptions=exceptions,
+                   build_output=props.get("IncludeBuildOutput", "").lower() != "false")
 
 
 def _evaluate(path: Path) -> dict:
@@ -201,14 +209,20 @@ def _local(tag: str) -> str:
     return tag.rsplit("}", 1)[-1]
 
 
+def pe_files(names: List[str]) -> List[str]:
+    """lib/、runtimes/ 下的 PE 文件（.dll、.exe），不分大小写。只带分析器的包这里是空的。"""
+    return sorted(n for n in names if n.replace("\\", "/").lower().startswith(BINARY_ROOTS) and n.lower().endswith(PE_SUFFIXES))
+
+
 def read_nuspec(path: Path) -> dict:
-    """包里唯一的根 nuspec：包名、版本、许可、仓库信息、依赖。拒绝 DTD 与实体声明。"""
+    """包里唯一的根 nuspec：包名、版本、许可、仓库信息、依赖；另带上 lib/、runtimes/ 下的 PE 文件。拒绝 DTD 与实体声明。"""
     try:
         with zipfile.ZipFile(path) as archive:
             entries = [e for e in archive.infolist() if "/" not in e.filename and e.filename.endswith(".nuspec")]
             if len(entries) != 1 or entries[0].file_size > NUSPEC_LIMIT:
                 raise Failure(f"{path.name} 里应恰有一个大小受限的根 nuspec")
             raw = archive.read(entries[0])
+            binaries = pe_files(archive.namelist())
         if b"<!DOCTYPE" in raw or b"<!ENTITY" in raw:
             raise Failure(f"{path.name} 的 nuspec 不许有 DTD 或实体声明")
         root = ET.fromstring(raw)
@@ -237,6 +251,7 @@ def read_nuspec(path: Path) -> dict:
         "repository": {"url": repository.get("url", ""), "commit": repository.get("commit", "")} if repository is not None else None,
         "dependencies": sorted({(node.get("id", ""), re.sub(r"\s+", "", node.get("version", "")))
                                 for node in metadata.iter() if _local(node.tag) == "dependency"}),
+        "binaries": binaries,
     }
 
 
@@ -294,9 +309,20 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str, 
     for key in sorted(set(found) & set(listed)):
         package, spec = listed[key], found[key][1]
         relax = transitional and in_legacy(package)
-        if key not in symbols:
+        if not package.build_output and not spec["binaries"]:
+            # 只带分析器的包（项目不带编译输出，包里 lib/、runtimes/ 下也没有 PE 文件）免符号包，也不能出符号包；
+            # 项目写了 IncludeSymbols=true 也报，名单就不会说要、核对却说免。两种模式、不分位置都这么判。
+            if key in symbols:
+                report.problems.append(f"{package.id} 只带分析器、免符号包，却出了符号包 {symbols[key].name}："
+                                       "空的或对不上的符号包推到 nuget.org 会被拒")
+            if package.symbols:
+                report.problems.append(f"{package.id} 只带分析器、免符号包，项目却写了 IncludeSymbols=true：改写 IncludeSymbols=false")
+        elif key not in symbols:
             if package.symbols:
                 report.problems.append(f"{package.id} 的项目写了 IncludeSymbols=true，却没出符号包")
+            elif not package.build_output:
+                report.strict_only(relax, "symbols", f"{package.id}（项目写了 IncludeBuildOutput=false，可包里有 "
+                                                     f"{spec['binaries'][0]}，不算只带分析器的包）")
             else:
                 report.strict_only(relax, "symbols", package.id)
         if spec["license"] != ("expression", LICENSE):
@@ -354,7 +380,7 @@ def _summary(packages: List[Package]) -> str:
     count = lambda f: sum(1 for p in packages if f(p))  # noqa: E731
     return (f"{len(packages)} 个包（内核档 {count(lambda p: p.tier == 'kernel')}、平台档 {count(lambda p: p.tier == 'platform')}；"
             f"契约 {count(lambda p: p.role == 'contract')}；AOT 兼容 {count(lambda p: p.aot)}；"
-            f"要出符号包的 {count(lambda p: p.symbols)}）")
+            f"要出符号包的 {count(lambda p: p.symbols and p.build_output)}、不带编译输出的 {count(lambda p: not p.build_output)}）")
 
 
 def _print(report: Report, title: str, transitional: bool) -> int:

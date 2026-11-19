@@ -11,7 +11,7 @@
       源生成器包只带 analyzers/dotnet/cs 下的分析器且是开发依赖；许可证与仓库地址齐全。
   python3 scripts/dotnet_release.py verify-consumer --version 0.1.0 --source <URL 或目录> [--token-env NAME]
       在临时目录建一个干净的消费者项目，用独立的包缓存、按 packageSourceMapping 只从给定源还原 Qian.*，
-      引用 Qian.Plugin.Sdk / Qian.Plugin.Sdk.Generators / Qian.Data 的精确版本；构建时包里的源生成器派生组件元数据，
+      引用 Kun.Plugin.Sdk / Kun.Plugin.Sdk.Generators / Qian.Data 的精确版本；构建时包里的源生成器派生组件元数据，
       运行后核对派生结果，并核对还原出的每个 Qian.* 包都是同一版本、都来自给定源。
   python3 scripts/dotnet_release.py verify-feed --version 0.1.0 --repository idadawn/qian --token-env NAME
       推送后经 GitHub REST API 核对：包族每个包都有这个版本、关联到发布仓库，且可见性与仓库一致
@@ -44,10 +44,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SEMVER = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$")
-GENERATORS = "Qian.Plugin.Sdk.Generators"
+GENERATORS = "Kun.Plugin.Sdk.Generators"
 LICENSE = "MIT"
 REPOSITORY = "https://github.com/idadawn/qian.git"
-CONSUMER_PACKAGES = ("Qian.Plugin.Sdk", GENERATORS, "Qian.Data")
+CONSUMER_PACKAGES = ("Kun.Plugin.Sdk", GENERATORS, "Qian.Data")
 
 
 class Failure(Exception):
@@ -262,24 +262,24 @@ CONSUMER_PROJECT = """<Project Sdk="Microsoft.NET.Sdk">
     <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Qian.Plugin.Sdk" Version="[{version}]" />
-    <PackageReference Include="Qian.Plugin.Sdk.Generators" Version="[{version}]" PrivateAssets="all" />
+    <PackageReference Include="Kun.Plugin.Sdk" Version="[{version}]" />
+    <PackageReference Include="Kun.Plugin.Sdk.Generators" Version="[{version}]" PrivateAssets="all" />
     <PackageReference Include="Qian.Data" Version="[{version}]" />
   </ItemGroup>
 </Project>
 """
 
-# 一个最小组件：源生成器从 [QianPlugin] / [Capability] 与 Apply 里的 Provide 派生入口、服务键与能力契约；
+# 一个最小组件：源生成器从 [KunPlugin] / [Capability] 与 Apply 里的 Provide 派生入口、服务键与能力契约；
 # 运行时读同一套生成工厂，并读包里 qian.data 的生成元数据，证明组件代码字段确实来自源生成器。
 CONSUMER_SOURCE = """using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
 namespace ReleaseProbe;
 
-[QianPlugin("qian.release-probe")]
+[KunPlugin("qian.release-probe")]
 public sealed class ProbePlugin : IKunPlugin
 {
     public static readonly ServiceKey Probe = new("ReleaseProbe");
@@ -314,7 +314,7 @@ public static class Program
 
     private static ComponentCodeMetadata Read(Assembly assembly)
     {
-        var declaration = assembly.GetCustomAttribute<QianCodeMetadataAttribute>() ?? throw new InvalidOperationException(assembly.GetName().Name + " 没有生成元数据");
+        var declaration = assembly.GetCustomAttribute<KunCodeMetadataAttribute>() ?? throw new InvalidOperationException(assembly.GetName().Name + " 没有生成元数据");
         return ((IComponentCodeMetadataFactory)Activator.CreateInstance(declaration.FactoryType)!).Create();
     }
 }

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using Kun.Core.Cqrs;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Errors;
 
 namespace Qian.Sample.Crm;

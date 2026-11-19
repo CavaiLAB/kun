@@ -1,8 +1,8 @@
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Kun.Authorization;
-using Qian.Authz.Abstractions;
 using Kun.Runtime;
+using Qian.Authz.Abstractions;
 
 namespace Qian.Testing;
 

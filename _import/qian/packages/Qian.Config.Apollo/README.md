@@ -44,7 +44,7 @@ AccessKey 每次签名前解析；解析为空或服务返回 401/403 时，不�
 
 ConfigurationPlugin 对应 qian.config，借用宿主标准配置根。ApolloConfigurationPlugin 对应 qian.config.apollo，要求根中确有本包安装的 Apollo 源，并核对 appId、env、meta 和 namespaces 声明；不匹配直接失败。两者只挂载于 global，提供 Config 服务键，经 ctx.Config() 读取。插件卸载撤销自己登记的服务和错误码，宿主配置根继续由宿主管理，不破坏独立消费者。
 
-`ConfigurationPlugin` 与 `ApolloConfigurationPlugin` 分别带 `[QianPlugin]`，对应 `qian.config` 与 `qian.config.apollo`。同一程序集生成两份按 ID 隔离的元数据，分别同步各自唯一清单的 inject、provides、runtime 和 configSchema；标准入口直接登记 Config 服务；Apollo 公开入口通过 DelegatePlugin 显式委托内部实现，包含同一 Config 登记、重载通知与发布审计。CI 检查两个入口的清单漂移。程序集引用 Qian.Plugin.Sdk，生成器只参与编译。S1-RT-011 已从私有源 `qian add config` 安装并运行标准入口；Apollo 的清单已派生，完整安装门仍待验收。
+`ConfigurationPlugin` 与 `ApolloConfigurationPlugin` 分别带 `[KunPlugin]`，对应 `qian.config` 与 `qian.config.apollo`。同一程序集生成两份按 ID 隔离的元数据，分别同步各自唯一清单的 inject、provides、runtime 和 configSchema；标准入口直接登记 Config 服务；Apollo 公开入口通过 DelegatePlugin 显式委托内部实现，包含同一 Config 登记、重载通知与发布审计。CI 检查两个入口的清单漂移。程序集引用 Kun.Plugin.Sdk，生成器只参与编译。S1-RT-011 已从私有源 `qian add config` 安装并运行标准入口；Apollo 的清单已派生，完整安装门仍待验收。
 
 只读配置端口面向受信任代码，不自动生成模型工具；秘密解析仍经 Config 的权限策略，配置值 HTTP 接口按下文执行授权与脱敏。
 

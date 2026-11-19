@@ -9,7 +9,7 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 

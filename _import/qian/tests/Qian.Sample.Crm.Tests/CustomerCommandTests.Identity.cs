@@ -7,7 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Reflection;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.Identity.Abstractions;
@@ -163,7 +163,7 @@ public abstract partial class CustomerCommandTests
     {
         var loader = app.Services.GetRequiredService<CrmCommandRuntime>().Loader;
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins/qian.identity.server/.qian-plugin/plugin.json")));
-        var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(IdentityServerComponent).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType)!).Create();
+        var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(IdentityServerComponent).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType)!).Create();
         var type = Type.GetType(manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!;
         Assert.Equal(code.RuntimeEntry, manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString());
         Assert.Equal(code.Provides, manifest.RootElement.GetProperty("provides").EnumerateArray().Select(item => item.GetString()!));

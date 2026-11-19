@@ -66,7 +66,7 @@ internal sealed class ProfileModeAssembly(string profile, string repositoryRoot)
             Write("plugins/qian.bundle.tck-platform/.qian-plugin/plugin.json", """{"id":"qian.bundle.tck-platform","version":"1.0.0","description":"T23 平台宿主的真实业务与 Registry/Capabilities 组合。","author":{"name":"Qian"},"license":"Apache-2.0","interface":{"displayName":"T23 平台","category":"testing"},"inject":[],"provides":[],"scopes":["global"],"policy":{"tier":"official","sandbox":"none","authentication":"ON_INSTALL"},"surfaces":{"patch":"./config/qian.patch.yml"}}""");
             Write("plugins/qian.bundle.tck-platform/config/qian.patch.yml", patch);
         }
-        var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.QianCapability, ListCustomersQuery.QianCapability, GetCustomerQuery.QianCapability], validator, new ToolContractHasher());
+        var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.KunCapability, ListCustomersQuery.KunCapability, GetCustomerQuery.KunCapability], validator, new ToolContractHasher());
         Write("plugins/crm/metadata/contracts.json", """[{"id":"qian.sample.crm.api/v1","kind":"openapi","path":"./contracts/http-v1.openapi.json"}]""");
         Write("plugins/crm/contracts/http-v1.openapi.json", contract.GetRawText());
         var composed = composer.Load(options);

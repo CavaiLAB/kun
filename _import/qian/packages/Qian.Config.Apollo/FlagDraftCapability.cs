@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 

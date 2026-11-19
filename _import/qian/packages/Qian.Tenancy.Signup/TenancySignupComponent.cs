@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -13,8 +13,8 @@ namespace Qian.Tenancy.Signup;
 /// 清单分发的稳定入口（<c>qian.tenancy.signup</c>，装进 identity profile）；程序化装配用 <see cref="TenancySignupPlugin"/>。
 /// 装入即开放公开申请接口，不装即不提供自助开通。
 /// </summary>
-[QianPlugin(TenancySignupDefinition.ComponentId)]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin(TenancySignupDefinition.ComponentId)]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(TenancySignupPlugin))]
 [Provides(typeof(TenancySignupDefinition), nameof(TenancySignupDefinition.Key))]
 public sealed class TenancySignupComponent : IKunPlugin

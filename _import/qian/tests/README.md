@@ -205,7 +205,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 本机照 CI 只跑一个分片：`python3 scripts/dotnet_ci.py shard a --out /tmp/a.slnf && dotnet test --solution /tmp/a.slnf -c Release --no-build`；仓库根测试的跑法见仓库根 `AGENTS.md` 的「构建与测试」。CI 在 GitHub 托管的 ubuntu-24.04 上跑（自带 Docker），不接自托管 runner（S1-DEC-038 D21）。
 
-包族发布不在 PR 门禁里：[.github/workflows/dotnet-release.yml](../.github/workflows/dotnet-release.yml) 只从 main 手动触发，把全部 Qian 包以同一版本发到 GitHub Packages，核对包源里的版本、仓库关联与可见性，并在干净消费者项目里从该源真实还原、构建、运行（S1-RT-014，ADR-019 D19.7）；做法与失败处理见 [SDK 文档「包族发布」](../packages/Qian.Plugin.Sdk/README.md#包族发布)。
+包族发布不在 PR 门禁里：[.github/workflows/dotnet-release.yml](../.github/workflows/dotnet-release.yml) 只从 main 手动触发，把全部 Qian 包以同一版本发到 GitHub Packages，核对包源里的版本、仓库关联与可见性，并在干净消费者项目里从该源真实还原、构建、运行（S1-RT-014，ADR-019 D19.7）；做法与失败处理见 [SDK 文档「包族发布」](../../../src/Kun.Plugin.Sdk/README.md#包族发布)。
 
 
 ## 旧 Kun API 门禁（S1-KUN-006、S1-KUN-004）

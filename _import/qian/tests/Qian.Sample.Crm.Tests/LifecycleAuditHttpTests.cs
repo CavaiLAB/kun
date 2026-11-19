@@ -53,7 +53,7 @@ public sealed partial class TenantOperationsTests
         Assert.Empty(await lifecycle.GetRunsAsync(tenant.Id.ToString(), "qian.audit", Ct));
         // 重装带平台链的审计后重发同一请求：开户幂等续跑，第 03 步为每个 system 组件（含 CRM）开通完成，租户链上有 CRM 的开通条目。
         await loader.MountAsync([new PluginDefinition(new PluginEntry("audit", "qian.audit", "1.0.0", ScopeKey.Global, 0,
-            JsonSerializer.SerializeToElement(new { chain = new { platformRole = platform.AuditRole } })), new AuditPlugin(), [AuditDefinition.Key, Qian.Plugin.Sdk.CommandPolicies.AuditKey])], Ct);
+            JsonSerializer.SerializeToElement(new { chain = new { platformRole = platform.AuditRole } })), new AuditPlugin(), [AuditDefinition.Key, Kun.Plugin.Sdk.CommandPolicies.AuditKey])], Ct);
         using (var retried = await Manage(HttpMethod.Post, "/api/tenancy/tenants", create))
             Assert.True(retried.StatusCode == HttpStatusCode.Created, business.FailureEvidence + await retried.Content.ReadAsStringAsync(Ct));
         steps = await provisioning.GetStepsAsync(tenant.Id, Ct);

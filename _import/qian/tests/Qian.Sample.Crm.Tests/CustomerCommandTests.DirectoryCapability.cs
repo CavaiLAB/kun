@@ -12,7 +12,7 @@ using Qian.Capabilities;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
@@ -26,7 +26,7 @@ public sealed partial class IdentityAuthzTests
     {
         const string id = "qian.identity.server/directory.member.disable";
         await using var host = await Start(capabilities: true, identity: true);
-        var metadata = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(IdentityServerComponent).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType)!).Create();
+        var metadata = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(IdentityServerComponent).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType)!).Create();
         var contract = Assert.Single(metadata.Capabilities, item => item.Id == id);
         var artifact = Path.Combine(RepositoryRoot(), "plugins/qian.identity.server");
         using var actualPermissions = JsonDocument.Parse(File.ReadAllText(Path.Combine(artifact, "metadata/permissions.json")));

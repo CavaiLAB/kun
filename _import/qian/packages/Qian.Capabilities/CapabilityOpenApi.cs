@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.OpenApi;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 
 namespace Qian.Capabilities;
 

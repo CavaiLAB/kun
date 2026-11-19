@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 

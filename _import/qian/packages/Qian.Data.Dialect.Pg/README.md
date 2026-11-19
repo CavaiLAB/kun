@@ -18,7 +18,7 @@ services.AddQianDataConnections(...); // 或连同数据连接档案
 
 ## 组件表面与验收
 
-组件文件夹包含 `.qian-plugin/plugin.json` 与 `schemas/config.schema.json`；入口、依赖、具名贡献和配置 Schema 均从 Provider 代码派生，由 `Qian.Plugin.Tool check` 校验。它是 Data 注册表 seam 的 PG Provider，可在 `platform` 宿主的 global scope 挂载。HTTP 表面 `GET /api/data/meta/types` 属于 `qian.data`，方言组件不重复映射端点；该端点的方言列表随 PG 挂载、卸载与重新挂载即时变化，10 个系统基准类型保持不变。
+组件文件夹包含 `.qian-plugin/plugin.json` 与 `schemas/config.schema.json`；入口、依赖、具名贡献和配置 Schema 均从 Provider 代码派生，由 `Kun.Plugin.Tool check` 校验。它是 Data 注册表 seam 的 PG Provider，可在 `platform` 宿主的 global scope 挂载。HTTP 表面 `GET /api/data/meta/types` 属于 `qian.data`，方言组件不重复映射端点；该端点的方言列表随 PG 挂载、卸载与重新挂载即时变化，10 个系统基准类型保持不变。
 
 [平台端点集成测试](../../tests/Qian.Registry.Tests/PgDialectEndpointTests.cs) 复用真实 PostgreSQL 注册表、RBAC 权限判定和已签名的两租户主体，通过 `PluginEndpointBinding` 调用 Kestrel 端点：挂载前列表为空，挂载后出现 pg 与 10 条映射，卸载后列表为空且 pg 映射不可用，再挂载可恢复。匿名请求返回 401、无权限租户返回 403；仅对租户 A 隐藏 Data 后返回 404，租户 B 不受影响。
 

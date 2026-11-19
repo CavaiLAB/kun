@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import dotnet_release  # noqa: E402
 
 VERSION = "0.1.0"
-FAMILY = ["Qian.Runtime", "Qian.Plugin.Sdk", "Qian.Plugin.Sdk.Generators"]
+FAMILY = ["Qian.Runtime", "Kun.Plugin.Sdk", "Kun.Plugin.Sdk.Generators"]
 
 
 def nuspec(package, version=VERSION, dependencies=None, development=False,
@@ -48,8 +48,8 @@ class PackageVerificationTests(unittest.TestCase):
 
     def write_family(self):
         self.write("Qian.Runtime")
-        self.write("Qian.Plugin.Sdk", dependencies={"Qian.Runtime": VERSION, "Kun.Core": "[2026.10.14]"})
-        self.write("Qian.Plugin.Sdk.Generators", development=True, files=["analyzers/dotnet/cs/Qian.Plugin.Sdk.Generators.dll", "README.md"])
+        self.write("Kun.Plugin.Sdk", dependencies={"Qian.Runtime": VERSION, "Kun.Core": "[2026.10.14]"})
+        self.write("Kun.Plugin.Sdk.Generators", development=True, files=["analyzers/dotnet/cs/Kun.Plugin.Sdk.Generators.dll", "README.md"])
 
     def failures(self):
         with self.assertRaises(dotnet_release.Failure) as caught:
@@ -73,14 +73,14 @@ class PackageVerificationTests(unittest.TestCase):
 
     def test_family_dependencies_must_be_pinned_to_the_same_version_and_stay_inside_the_family(self):
         self.write_family()
-        self.write("Qian.Plugin.Sdk", dependencies={"Qian.Runtime": "[0.0.9, )", "Qian.Registry": VERSION})
+        self.write("Kun.Plugin.Sdk", dependencies={"Qian.Runtime": "[0.0.9, )", "Qian.Registry": VERSION})
         message = self.failures()
         self.assertIn("对 Qian.Runtime 的依赖是 [0.0.9, )", message)
         self.assertIn("依赖的 Qian.Registry 不在包族里", message)
 
     def test_generator_package_carries_only_its_analyzer_and_is_a_development_dependency(self):
         self.write_family()
-        self.write("Qian.Plugin.Sdk.Generators", files=["analyzers/dotnet/cs/Qian.Plugin.Sdk.Generators.dll", "lib/netstandard2.0/Qian.Plugin.Sdk.Generators.dll"])
+        self.write("Kun.Plugin.Sdk.Generators", files=["analyzers/dotnet/cs/Kun.Plugin.Sdk.Generators.dll", "lib/netstandard2.0/Kun.Plugin.Sdk.Generators.dll"])
         message = self.failures()
         self.assertIn("不能带 lib/ 程序集", message)
         self.assertIn("应标记为开发依赖", message)
@@ -106,16 +106,16 @@ class FeedVerificationTests(unittest.TestCase):
     def test_missing_package_wrong_link_visibility_or_version_fail(self):
         records = {
             "Qian.Runtime": None,
-            "Qian.Plugin.Sdk": self.record(repository="someone/fork", versions=("0.0.9",)),
-            "Qian.Plugin.Sdk.Generators": self.record(visibility="private"),
+            "Kun.Plugin.Sdk": self.record(repository="someone/fork", versions=("0.0.9",)),
+            "Kun.Plugin.Sdk.Generators": self.record(visibility="private"),
         }
         with self.assertRaises(dotnet_release.Failure) as caught:
             dotnet_release.check_feed(FAMILY, VERSION, records, self.REPOSITORY, "public")
         message = str(caught.exception)
         self.assertIn("GitHub Packages 里没有 Qian.Runtime", message)
-        self.assertIn("Qian.Plugin.Sdk 关联的仓库是 someone/fork", message)
-        self.assertIn("Qian.Plugin.Sdk 没有 0.1.0 版本", message)
-        self.assertIn("Qian.Plugin.Sdk.Generators 的可见性是 private，与仓库的 public 不一致", message)
+        self.assertIn("Kun.Plugin.Sdk 关联的仓库是 someone/fork", message)
+        self.assertIn("Kun.Plugin.Sdk 没有 0.1.0 版本", message)
+        self.assertIn("Kun.Plugin.Sdk.Generators 的可见性是 private，与仓库的 public 不一致", message)
 
 
 class VersionTests(unittest.TestCase):

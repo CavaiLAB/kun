@@ -3,15 +3,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Config.Apollo;
 
 /// <summary>标准配置适配器，借用宿主配置根；只撤销本组件拥有的服务登记。</summary>
-[QianPlugin("qian.config", MetadataTypes = [typeof(ConfigRuntimeEvents)])]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.config", MetadataTypes = [typeof(ConfigRuntimeEvents)])]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 public sealed class ConfigurationPlugin : IKunPlugin
 {
     /// <inheritdoc />
@@ -54,8 +54,8 @@ public sealed class ConfigurationPlugin : IKunPlugin
 }
 
 /// <summary>Apollo 配置适配器；要求宿主已安装真实配置源，声明与引导不一致即拒绝挂载。</summary>
-[QianPlugin("qian.config.apollo")]
-[QianConfigSchema(ComponentConfiguration.ApolloSchema)]
+[KunPlugin("qian.config.apollo")]
+[KunConfigSchema(ComponentConfiguration.ApolloSchema)]
 [DelegatePlugin(typeof(ApolloConfigurationImplementation))]
 [Provides(typeof(ConfigDefinition), nameof(ConfigDefinition.Key))]
 [SharedEvents(typeof(ConfigRuntimeEvents), "qian.config")]

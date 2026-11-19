@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Qian.Authz.Abstractions;
-using Qian.Plugin.Sdk;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -17,7 +17,7 @@ public sealed class FilesEndpointOptions
 {
     /// <summary>端点绑定的安装条目 ID（<see cref="PluginEndpointBinding.EntryId"/>）。</summary>
     public string EntryId { get; init; } = "files";
-    /// <summary>平台模式：再加 <c>RequireQianPlugin</c>，要求条目在请求租户 scope 已挂载（宿主须 AddQianPluginEndpoints + UseQianPluginEndpoints）。</summary>
+    /// <summary>平台模式：再加 <c>RequireKunPlugin</c>，要求条目在请求租户 scope 已挂载（宿主须 AddKunPluginEndpoints + UseKunPluginEndpoints）。</summary>
     public bool RequirePlugin { get; init; }
     /// <summary>local 后端直传 / 直下端点解析 Files 的上下文（通常是 qian.files 的 global 上下文）；为 null 时不登记这两个端点。</summary>
     public Func<HttpContext, IPluginContext>? TransferSource { get; init; }
@@ -82,7 +82,7 @@ public static class FilesEndpoints
         RouteHandlerBuilder Bind(RouteHandlerBuilder route, string permission, string capability)
         {
             var binding = new PluginEndpointBinding(options.EntryId, "qian.files", CapabilityBindingRegistration.Key, capability);
-            if (options.RequirePlugin) route.RequireQianPlugin(binding); else route.WithMetadata(binding);
+            if (options.RequirePlugin) route.RequireKunPlugin(binding); else route.WithMetadata(binding);
             route.Produces<ErrorDetail>(StatusCodes.Status400BadRequest, ErrorDetailJson.MediaType).Produces<ErrorDetail>(StatusCodes.Status404NotFound, ErrorDetailJson.MediaType);
             requirePermission(route, permission);
             // 回调必须真的把权限点接到授权管道：只有权限元数据而没有授权要求，会让缺省拒绝放行却没有任何判定。

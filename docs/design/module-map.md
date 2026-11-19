@@ -52,6 +52,17 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 运行时不带产品语义：`ScopeKey` 只查语法（`global`，或小写的种类名加非空 id），种类有哪些由平台档定；声明式表面的目录键 `SurfaceKeys` 在平台档。语言无关的场景用例在 `_import/qian/tck/runtime`，.NET 一侧是 `tests/Kun.Runtime.Tests`。
 
+### 插件开发包（S1-KUN-023）
+
+| 模块 | 职责 | 主要 API | AOT |
+|---|---|---|---|
+| `Kun.Plugin.Sdk` | 内核档契约：组件的代码声明、生成契约与清单错误、命令策略协议 | `KunPluginAttribute`、`CapabilityAttribute`、`CommandPolicies`、`CommandInvocation` | — |
+| `Kun.Plugin.Sdk.Commands` | 平台档契约：能力命令管道（权限、事务、数据会话、主体端口检查）与钩子能力 | `AddKunCapability`、`CommandDataSession<TContext>`、`ExposeCapabilityHook` | — |
+| `Kun.Plugin.Sdk.Generators` | 源生成器与 KUNSDK001–003 诊断，只以分析器引用 | — | — |
+| `Kun.Plugin.Sdk.AspNetCore` | 平台档契约：HTTP 插件可见性 | `AddKunPluginEndpoints`、`UseKunPluginEndpoints`、`RequireKunPlugin` | — |
+
+清单工具在仓库根的 `tools/Kun.Plugin.Tool`，不打包。`Kun.Plugin.Sdk` 对平台档只剩身份契约一条依赖（`CommandInvocation` 带 `Principal`），依赖门禁记为例外，B7 去掉。
+
 ### 持久化（Infrastructure 层）
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |

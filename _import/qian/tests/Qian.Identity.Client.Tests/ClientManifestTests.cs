@@ -13,7 +13,7 @@ public sealed class ClientManifestTests
     [Fact]
     public async Task 唯一清单从稳定入口派生_公开客户端实际挂载与卸载不需要Config或DataProvider()
     {
-        var metadata = new IdentityClientComponentQianCodeMetadata().Create();
+        var metadata = new IdentityClientComponentKunCodeMetadata().Create();
         var root = RepositoryRoot();
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "plugins/qian.identity.client/.qian-plugin/plugin.json")));
         Assert.Equal("qian.identity.client", metadata.ComponentId);
@@ -58,7 +58,7 @@ public sealed class ClientManifestTests
     [InlineData("plaintext", false)]
     public void 代码配置Schema保留secretRef边界_合法路径的字母s不被误当作空白(string reference, bool valid)
     {
-        var metadata = new IdentityClientComponentQianCodeMetadata().Create();
+        var metadata = new IdentityClientComponentKunCodeMetadata().Create();
         var schema = JsonSchema.FromText(metadata.ConfigSchema!.Value.GetRawText());
         var configuration = JsonSerializer.SerializeToElement(new { issuer = "https://id.qian.test/", clientId = "qian-web", clientSecret = reference });
         Assert.Equal(valid, schema.Evaluate(configuration).IsValid);

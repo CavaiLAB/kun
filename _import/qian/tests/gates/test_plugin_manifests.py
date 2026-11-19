@@ -7,6 +7,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import xml.etree.ElementTree as ET
 
 
 SOURCE = Path(__file__).resolve().parents[2] / "scripts/check_plugin_manifests.py"
@@ -22,7 +23,7 @@ class PluginManifestGateTests(unittest.TestCase):
         self.root = Path(self.temporary.name)
         (self.root / "scripts").mkdir()
         (self.root / "scripts/plugin-implementations.json").write_text("{}")
-        tool = self.root / "tools/Qian.Plugin.Tool/bin/Release/net10.0/Qian.Plugin.Tool.dll"
+        tool = self.root / "tools/Kun.Plugin.Tool/bin/Release/net10.0/Kun.Plugin.Tool.dll"
         tool.parent.mkdir(parents=True)
         tool.touch()
         project = self.root / "packages/Qian.New/Qian.New.csproj"
@@ -68,6 +69,29 @@ class PluginManifestGateTests(unittest.TestCase):
         extra.write_text('{"id":"qian.new"}')
         with self.assertRaisesRegex(ValueError, "必须有唯一清单，实际 2 份"):
             self.run_gate([{"type": "Qian.New.Entry", "component": "qian.new"}])
+
+    def test_tool_is_located_next_to_the_filtered_solution(self):
+        # 工具按 Qian.slnf 筛的解决方案（仓库根的 Kun.slnx）定位：过渡目录下同样的相对路径不算。
+        nested = self.root / "_import/qian"
+        (nested / "scripts").mkdir(parents=True)
+        (nested / "scripts/plugin-implementations.json").write_text("{}")
+        (nested / "Qian.slnf").write_text('{"solution": {"path": "../../Kun.slnx", "projects": []}}')
+        with patch.object(GATE, "run", return_value="[]"), contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, "没有发现任何组件入口"):
+                GATE.check(nested)
+            (self.root / "tools/Kun.Plugin.Tool/bin/Release/net10.0/Kun.Plugin.Tool.dll").unlink()
+            moved = nested / "tools/Kun.Plugin.Tool/bin/Release/net10.0/Kun.Plugin.Tool.dll"
+            moved.parent.mkdir(parents=True)
+            moved.touch()
+            with self.assertRaisesRegex(ValueError, "先以 Release 构建 Kun.slnx"):
+                GATE.check(nested)
+
+    def test_tool_declares_the_aspnetcore_shared_framework_itself(self):
+        # 清单工具装载组件程序集盘点类型，*.AspNetCore 组件要 ASP.NET Core 共享框架。工具在自己的项目文件里声明，
+        # 不靠被引用的包顺带传递：插件开发包拆包后传递就断过，盘点 Qian.Authz.AspNetCore 时加载不到程序集。
+        project = GATE.solution_root(SOURCE.parents[1]) / "tools/Kun.Plugin.Tool/Kun.Plugin.Tool.csproj"
+        references = {item.get("Include") for item in ET.parse(project).getroot().iter("FrameworkReference")}
+        self.assertIn("Microsoft.AspNetCore.App", references, f"{project.name} 没有自己声明 ASP.NET Core 共享框架")
 
     def test_missing_build_never_counts_as_empty_success(self):
         (self.root / "packages/Qian.New/bin/Release/net10.0/Qian.New.dll").unlink()

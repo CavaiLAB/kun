@@ -1,14 +1,14 @@
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Registry;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 RegistryPlugin 保留。</summary>
-[QianPlugin("qian.registry")]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.registry")]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(RegistryPlugin))]
 [Provides(typeof(RegistryDefinition), nameof(RegistryDefinition.Key))]
 public sealed class RegistryComponent : IKunPlugin

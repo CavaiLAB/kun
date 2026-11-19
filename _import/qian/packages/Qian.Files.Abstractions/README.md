@@ -4,7 +4,7 @@
 
 ## 服务键与门面
 
-- `FilesDefinition.Key`（`Files`）：由 `qian.files` Provider 提供的 `IFileService`。`[QianPlugin]` 组件在 `Apply` 里写 `ctx.Inject<IFileService>(FilesDefinition.Key)`，并把 `FilesDefinition.Key` 列进 `Inject`；`ctx.Files()` 扩展只给非生成器宿主用（QIANSDK002 不允许把 `ctx` 当参数传出）。
+- `FilesDefinition.Key`（`Files`）：由 `qian.files` Provider 提供的 `IFileService`。`[KunPlugin]` 组件在 `Apply` 里写 `ctx.Inject<IFileService>(FilesDefinition.Key)`，并把 `FilesDefinition.Key` 列进 `Inject`；`ctx.Files()` 扩展只给非生成器宿主用（KUNSDK002 不允许把 `ctx` 当参数传出）。
 - `IFileService` 的六个操作各对应一个能力，经 SDK 命令管道执行：同一个可串行化事务里完成租户校验、授权判定、业务写入、Outbox 与审计。
 
 | 操作 | 能力 ID（R23） | 副作用 | 权限点 |

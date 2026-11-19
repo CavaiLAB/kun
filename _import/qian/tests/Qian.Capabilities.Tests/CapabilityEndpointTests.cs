@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Http;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 
 namespace Qian.Capabilities.Tests;
 

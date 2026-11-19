@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
 namespace Qian.Data.Tests;
@@ -18,7 +18,7 @@ public sealed partial class DataSessionTests
         var ct = TestContext.Current.CancellationToken;
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins/qian.data/.qian-plugin/plugin.json")));
         var root = manifest.RootElement;
-        var factory = typeof(DataPlugin).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType;
+        var factory = typeof(DataPlugin).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType;
         var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(factory)!).Create();
         var entry = root.GetProperty("runtime").GetProperty("entry").GetString()!;
         Assert.Equal(("qian.data", "qian.data"), (code.ComponentId, root.GetProperty("id").GetString()));

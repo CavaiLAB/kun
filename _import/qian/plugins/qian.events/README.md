@@ -2,7 +2,7 @@
 
 Events Provider 的实现位于 [packages/Qian.Events](../../packages/Qian.Events/README.md)，契约在 [Qian.Events.Abstractions](../../packages/Qian.Events.Abstractions/README.md)。已提供 v1 信封写入、按租约领取的 Outbox 投递（publisher confirm）、RabbitMQ 拓扑声明、payload Schema 导出，以及消费端（S1-EVT-002：手动确认、指数退避、死信队列、Redis 幂等、按信封租户回灌，竞争与广播两种订阅）。`runtime.nuget` 钉到私有源已发布的 `Qian.Events` 版本与摘要，S1-RT-011 的 E2E 已用 `qian add events` 从私有源安装并运行 Provider。
 
-清单的 inject、provides 与 runtime 字段由 Qian.Plugin.Tool 从实际程序集同步，CI 检查两者不漂移。配置契约与 EventsPlugin 一致：
+清单的 inject、provides 与 runtime 字段由 Kun.Plugin.Tool 从实际程序集同步，CI 检查两者不漂移。配置契约与 EventsPlugin 一致：
 
 - `broker`：可选，AMQP 地址的 secretRef（platform 或 dev），必须是宿主 `AddQianEventsBroker` 登记过的引用，凭据不写进组件文件夹；
 - `outbox.lock`：可选，`skip-locked`（默认）或 `redis`，必须与宿主选项一致。

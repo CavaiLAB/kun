@@ -4,7 +4,7 @@ using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;
@@ -18,7 +18,7 @@ namespace Qian.Files;
 /// 提供 Files 服务键（<see cref="IFileService"/>，能力门面）与六个能力的执行绑定；卸载撤销服务、能力、策略与错误码。
 /// 宿主须先 AddQianData&lt;FilesDbContext&gt;、在 AddKunEventBus 中 RegisterFilesEvents、在 AddKunMediator 中 AddQianFiles，否则 Apply 失败。
 /// </summary>
-[QianPlugin("qian.files")]
+[KunPlugin("qian.files")]
 [Contributes(typeof(FilesDefinition), nameof(FilesDefinition.BackendsKey), LocalFileBackendFactory.Name, RegistryType = typeof(FileBackendRegistry))]
 public sealed class FilesPlugin : IKunPlugin
 {

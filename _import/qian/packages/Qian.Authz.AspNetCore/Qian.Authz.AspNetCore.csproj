@@ -6,7 +6,7 @@
     <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../Qian.Plugin.Sdk.AspNetCore/Qian.Plugin.Sdk.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />
     <PackageReference Include="Grpc.AspNetCore.Server" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
   </ItemGroup>

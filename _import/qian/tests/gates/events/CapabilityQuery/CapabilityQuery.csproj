@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
  <PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors><NoWarn>$(NoWarn);CS1591</NoWarn></PropertyGroup>
- <ItemGroup><ProjectReference Include="../../../../packages/Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" /></ItemGroup>
+ <!-- 能力声明在内核档的 SDK；写入集成事件的 IOutboxWriter 经数据契约来，与别的样例一样。 -->
+ <ItemGroup><ProjectReference Include="../../../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /><ProjectReference Include="../../../../packages/Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" /></ItemGroup>
 </Project>

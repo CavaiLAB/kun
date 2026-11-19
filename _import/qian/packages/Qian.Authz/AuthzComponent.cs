@@ -1,14 +1,14 @@
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Authz;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 AuthzPlugin 保留。</summary>
-[QianPlugin("qian.authz", MetadataTypes = [typeof(AuthzRuntimeEvents)])]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.authz", MetadataTypes = [typeof(AuthzRuntimeEvents)])]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(AuthzPlugin))]
 [Provides(typeof(AuthzDefinition), nameof(AuthzDefinition.Key))]
 [Provides(typeof(AuthzDefinition), nameof(AuthzDefinition.PermissionsKey))]

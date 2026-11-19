@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Qian.Identity.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 
 namespace Qian.Identity.Server.Tests;
 
@@ -91,7 +91,7 @@ public sealed partial class DirectoryMemberContractTests
     public void 新增成员能力标write与confirm且不对Agent暴露_权限点与默认角色登记进组件目录_发布表面与代码派生一致()
     {
         var metadata = ((IComponentCodeMetadataFactory)Activator.CreateInstance(
-            typeof(IdentityServerComponent).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType)!).Create();
+            typeof(IdentityServerComponent).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType)!).Create();
         var contract = Assert.Single(metadata.Capabilities, item => item.Id == DirectoryAddCapability.Definition.Id).Metadata;
         Assert.Equal(("write", "confirm", true, "pii"), (contract.GetProperty("sideEffect").GetString(), contract.GetProperty("policyHint").GetString(),
             contract.GetProperty("idempotent").GetBoolean(), contract.GetProperty("dataClassification").GetString()));

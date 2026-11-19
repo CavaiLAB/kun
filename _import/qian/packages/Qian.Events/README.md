@@ -223,4 +223,4 @@ meter `Qian.Events` 的消费侧计数，每次投递恰落入其中一个结果
 - 并发重复投递只能发现（duplicate_executed），不能防止：幂等记录是「先查、执行、后写」，不先占位。
 - `plugins/qian.events` 已通过 SDK 发布与私有源 `qian add events` 两门，S1-RT-033 按 R100 移除骨架标记，并补齐配置 Schema 的代码派生。
 
-`qian.events` 的 `runtime.configSchema` 和 Schema 文件由入口的 `QianConfigSchema` 引用 `ComponentConfiguration.Schema` 派生；修改配置时先更新实现和代码声明，再同步唯一清单。该组件已通过既有真实安装门，清单不再带骨架标记。
+`qian.events` 的 `runtime.configSchema` 和 Schema 文件由入口的 `KunConfigSchema` 引用 `ComponentConfiguration.Schema` 派生；修改配置时先更新实现和代码声明，再同步唯一清单。该组件已通过既有真实安装门，清单不再带骨架标记。

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Errors;
 using Qian.Testing.Containers;
 
@@ -273,13 +273,13 @@ public sealed partial class FilesAcceptanceTests(PostgresFixture postgres) : ICl
         Assert.Equal([FilesEventIds.ObjectCreated, FilesEventIds.ObjectDeleted], events.Select(row => row[0]));
 
         // 契约：能力 ID 按 R23（<组件 ID>/<名称>）；删除是 destructive、策略提示 confirm、Agent 调用需确认；下载地址是只读能力但每次签发都审计。
-        var contracts = new[] { PresignUploadCommand.QianCapability, CompleteUploadCommand.QianCapability, GetFileQuery.QianCapability, DownloadUrlQuery.QianCapability,
-            DeleteFileCommand.QianCapability, QuotaQuery.QianCapability };
+        var contracts = new[] { PresignUploadCommand.KunCapability, CompleteUploadCommand.KunCapability, GetFileQuery.KunCapability, DownloadUrlQuery.KunCapability,
+            DeleteFileCommand.KunCapability, QuotaQuery.KunCapability };
         Assert.Equal(Capabilities, contracts.Select(contract => contract.Id).Order(StringComparer.Ordinal));
-        var delete = DeleteFileCommand.QianCapability.Metadata;
+        var delete = DeleteFileCommand.KunCapability.Metadata;
         Assert.Equal(("destructive", "confirm", true, true, FilesPermissions.Delete), (delete.GetProperty("sideEffect").GetString(), delete.GetProperty("policyHint").GetString(),
             delete.GetProperty("agent").GetProperty("requiresConfirmation").GetBoolean(), delete.GetProperty("audit").GetBoolean(), delete.GetProperty("requiredPermission").GetString()));
-        var download = DownloadUrlQuery.QianCapability.Metadata;
+        var download = DownloadUrlQuery.KunCapability.Metadata;
         Assert.Equal(("read", true), (download.GetProperty("sideEffect").GetString(), download.GetProperty("audit").GetBoolean()));
         using var tool = JsonDocument.Parse(File.ReadAllText(Path.Combine(FilesMetadata.RepositoryRoot(), "plugins/qian.files/tools/delete.json")));
         Assert.Equal(("destructive", "confirm", true, "qian.files/delete"), (tool.RootElement.GetProperty("sideEffect").GetString(), tool.RootElement.GetProperty("policyHint").GetString(),

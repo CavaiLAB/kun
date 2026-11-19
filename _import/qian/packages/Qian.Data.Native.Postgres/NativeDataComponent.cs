@@ -1,15 +1,15 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Data.Native.Postgres;
 
 /// <summary>qian.data.native 唯一入口；仅挂载于 global，提供独立 NativeData 键。</summary>
-[QianPlugin("qian.data.native")]
-[QianConfigSchema(Schema)]
+[KunPlugin("qian.data.native")]
+[KunConfigSchema(Schema)]
 public sealed class NativeDataComponent : IKunPlugin
 {
     private const string Schema = """

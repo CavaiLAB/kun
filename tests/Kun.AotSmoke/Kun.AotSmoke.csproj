@@ -42,7 +42,6 @@
     <ProjectReference Include="../../src/Kun.Security/Kun.Security.csproj" />
     <ProjectReference Include="../../src/Kun.Storage.Abstractions/Kun.Storage.Abstractions.csproj" />
     <ProjectReference Include="../../src/Kun.Storage.Local/Kun.Storage.Local.csproj" />
-    <ProjectReference Include="../../src/Kun.Storage/Kun.Storage.csproj" />
     <ProjectReference Include="../../src/Kun.Testing/Kun.Testing.csproj" />
     <ProjectReference Include="../../src/Kun.Validation/Kun.Validation.csproj" />
   </ItemGroup>

@@ -6,11 +6,11 @@ using Qian.Config.Apollo;
 using Kun.Plugin.Sdk;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Identity.Connector.Oidc.Tests;
+namespace Kun.Identity.Connector.Oidc.Tests;
 
 // 配置、清单与组件装配：凭据只接受 secretRef，清单合法且不含任何配置值，组件按 scope 注册、卸载即撤销。
 public sealed class OidcComponentTests

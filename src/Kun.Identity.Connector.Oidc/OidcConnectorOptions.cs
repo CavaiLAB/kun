@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text.Json;
 using Qian.Config;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Identity.Connector.Oidc;
+namespace Kun.Identity.Connector.Oidc;
 
 /// <summary>
 /// 通用 OIDC 连接器的配置，与组件文件夹的 <c>schemas/config.schema.json</c> 一一对应。

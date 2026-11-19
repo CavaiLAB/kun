@@ -3,11 +3,11 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Npgsql;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 建立会话与兑现登录票据时复核身份修订：认证（或票据签发所依据的那次认证）之后 Person 的身份修订变了，直接建立会话、兑换选择票据、
 // 用改密票据改密都按票据失效处理（LOGIN_TICKET_INVALID，审计原因 identity_changed），要求重新认证。修订变化用确定的方式放进两步之间：

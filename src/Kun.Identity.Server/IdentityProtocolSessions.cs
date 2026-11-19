@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>
 /// 会话吊销在协议侧的收尾：吊销该会话（sid）名下的全部授权与令牌（含 refresh 族），并为登记了后通道登出地址、

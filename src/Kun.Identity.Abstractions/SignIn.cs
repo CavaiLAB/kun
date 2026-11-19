@@ -1,4 +1,4 @@
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>
 /// 统一登录流水线：密码、短信、TOTP 与连接器都构造同一 <see cref="LoginInput"/>，走同一条审计、限流与签发路径（PRD 7.4.1、ADR-005 D5.6）。

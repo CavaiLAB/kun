@@ -9,8 +9,8 @@ using Qian.Capabilities.AspNetCore;
 using Qian.Config;
 using Qian.Config.Secrets;
 using Kun.Data;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Server;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
 using Qian.Lifecycle;
 using Kun.Plugin.Sdk.AspNetCore;
 using Qian.Registry;
@@ -37,7 +37,7 @@ internal static class DevHost
         // 业务宿主同时是身份发行方（S1-TEN-010）：监听地址即 issuer，账号与目录接口走身份自己的分支。
         using var identity = new DevTenantIdentity(identityUrl);
         await using var business = Business(database, trust, assembly, new BusinessS2s(DevKeys.Issuer, DevKeys.BusinessAudience, DevKeys.PublicJwks(key)), identityUrl.AbsoluteUri,
-            builder => identity.Configure(builder, database), registrar => registrar.RegisterIdentityEvents(), mediator => mediator.AddQianIdentityEvents());
+            builder => identity.Configure(builder, database), registrar => registrar.RegisterIdentityEvents(), mediator => mediator.AddKunIdentityEvents());
         // 身份库与生产同一套迁移，先于迁移器建表；在线连接仍是受限应用登录。
         await database.ExecuteAdminAsync(DevTenantIdentity.SchemaSql(business.Services), ct).ConfigureAwait(false);
         await database.CreateSchemasAsync(business.Services, ct).ConfigureAwait(false);

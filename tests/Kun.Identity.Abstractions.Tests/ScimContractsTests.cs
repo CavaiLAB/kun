@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
 
-namespace Qian.Identity.Abstractions.Tests;
+namespace Kun.Identity.Abstractions.Tests;
 
 // SCIM 2.0 核心 Schema 契约（S1-IDP-010 验收 3）：contracts/scim/v2 的三份 RFC 7643 Schema 表示、ResourceType 表示、
 // 由表示推导的实例 JSON Schema 与样例。服务端点由 S3 实现，这里只锁定契约文件本身。

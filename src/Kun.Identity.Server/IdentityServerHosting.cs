@@ -7,7 +7,7 @@ using OpenIddict.Server;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
@@ -17,13 +17,13 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>ASP.NET Core 宿主的协议装配；Data 上下文与账号 Cookie scheme 由宿主组合。</summary>
 public static class IdentityServerHosting
 {
     /// <summary>配置协议库；不会自行迁移数据库、创建账号或挂载组件。</summary>
-    public static IServiceCollection AddQianIdentityServer(this IServiceCollection services, IdentityServerOptions options, IHostEnvironment environment)
+    public static IServiceCollection AddKunIdentityServer(this IServiceCollection services, IdentityServerOptions options, IHostEnvironment environment)
     {
         ArgumentNullException.ThrowIfNull(services); ArgumentNullException.ThrowIfNull(options); ArgumentNullException.ThrowIfNull(environment);
         Validate(options, environment);
@@ -91,7 +91,7 @@ public static class IdentityServerHosting
     }
 
     /// <summary>必须在 UseAuthentication 前安装；卸载组件后协议面返回 404。</summary>
-    public static IApplicationBuilder UseQianIdentityServer(this IApplicationBuilder app)
+    public static IApplicationBuilder UseKunIdentityServer(this IApplicationBuilder app)
     {
         app.UseKunErrors();
         return app.Use(async (http, next) =>

@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Config;
 
-namespace Qian.Identity.Connector.Oidc.Tests;
+namespace Kun.Identity.Connector.Oidc.Tests;
 
 // 进程内的 OpenID Provider 替身：发现文档、JWKS、授权（由测试模拟用户同意）与令牌端点。令牌端点按真实 OP 的规则核对
 // 客户端认证、授权码一次性、redirect_uri 与 PKCE，再按测试指定的方式签出 id_token，用来覆盖签名 / iss / aud / nonce 等各类篡改。

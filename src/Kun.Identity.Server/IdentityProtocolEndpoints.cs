@@ -18,11 +18,11 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>由 OpenIddict 先完成协议校验后才到达的应用端点。</summary>
 public static class IdentityProtocolEndpoints
@@ -31,7 +31,7 @@ public static class IdentityProtocolEndpoints
     private static readonly string[] UserClaims = ["sub", "tenant_id", "membership_id", "identity_revision", "sid", "amr", "acr", "auth_time"];
 
     /// <summary>映射授权、换签、用户投影和登出；其余协议端点由 OpenIddict 处理。</summary>
-    public static IEndpointRouteBuilder MapQianIdentityServer(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapKunIdentityServer(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapMethods("/connect/authorize", ["GET", "POST"], (Delegate)Authorize);
         endpoints.MapPost("/connect/token", (Delegate)Token);
@@ -112,7 +112,7 @@ public static class IdentityProtocolEndpoints
         {
             var resources = ResourcesFor(client, request.GetResources());
             if (resources is null) return Reject(Errors.InvalidTarget);
-            var identity = new ClaimsIdentity("Qian.Identity.Server");
+            var identity = new ClaimsIdentity("Kun.Identity.Server");
             identity.AddClaim(new Claim(Claims.Subject, request.ClientId!));
             identity.AddClaim(new Claim("principal_kind", "service"));
             identity.AddClaim(client.TenantId is { } tenant ? new Claim("tenant_id", tenant.ToString()) : new Claim("tenant_id", "", JsonClaimValueTypes.JsonNull));
@@ -211,7 +211,7 @@ public static class IdentityProtocolEndpoints
             !Guid.TryParseExact(cookie.GetClaim("membership_id"), "D", out var membership) || membership == Guid.Empty)) return null;
         if (!Guid.TryParseExact(cookie.GetClaim("sid"), "D", out var sid) || sid == Guid.Empty ||
             !long.TryParse(cookie.GetClaim("identity_revision"), NumberStyles.None, CultureInfo.InvariantCulture, out var revision)) return null;
-        var identity = new ClaimsIdentity("Qian.Identity.Server");
+        var identity = new ClaimsIdentity("Kun.Identity.Server");
         foreach (var claim in cookie.Claims.Where(claim => UserClaims.Contains(claim.Type, StringComparer.Ordinal)))
             identity.AddClaim(new Claim(claim.Type, claim.Value, claim.Type is "identity_revision" or "auth_time" ? ClaimValueTypes.Integer64 : claim.ValueType));
         if (platform) identity.AddClaim(new Claim("tenant_id", "", JsonClaimValueTypes.JsonNull));

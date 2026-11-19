@@ -11,7 +11,7 @@ using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 
-namespace Qian.Identity.Abstractions.Tests;
+namespace Kun.Identity.Abstractions.Tests;
 
 public sealed class IdentityContractsTests
 {
@@ -169,7 +169,7 @@ public sealed class IdentityContractsTests
     public void DefinitionReferencesOnlyRuntimeAndFrameworkEventPort()
     {
         var directory = Path.Combine(Root, "packages/Qian.Identity.Abstractions");
-        var project = XDocument.Load(Path.Combine(directory, "Qian.Identity.Abstractions.csproj"));
+        var project = XDocument.Load(Path.Combine(directory, "Kun.Identity.Abstractions.csproj"));
         // 只以项目引用依赖仓库 src/ 下的三个 Kun 项目：事件端口、组件运行时（S1-KUN-020）与主体模型的内核契约（S1-KUN-026）；没有包引用。
         var repository = Path.GetFullPath(Path.Combine(Root, "..", ".."));
         Assert.Equal(["src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj", "src/Kun.Runtime/Kun.Runtime.csproj",

@@ -13,7 +13,7 @@ using Kun.Runtime;
 using Qian.Testing.Containers;
 using Qian.Testing.Identity;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 public sealed partial class ProtocolTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

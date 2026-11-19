@@ -17,8 +17,8 @@ using Qian.Config.Apollo;
 using Qian.Config.Secrets;
 using Qian.Dev.TenantOps;
 using Qian.Gateway;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Client;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Client;
 using Kun.Runtime;
 using Qian.Sample.Crm;
 using StackExchange.Redis;
@@ -72,7 +72,7 @@ internal static class DevGateway
         });
         builder.Services.AddQianConfiguration(new ConfigurationRoot([]));
         // 单进程开发宿主用进程内会话存储（生产是 Redis）；其余与生产相同：规范模式（带 resource）、refresh 单飞、Secure Cookie。
-        builder.Services.AddQianIdentityClient(new IdentityClientOptions
+        builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
             Authority = identityIssuer, ClientId = DevIdentity.ClientId, Resource = Resource, RedirectUri = new Uri(address, "auth/callback"),
             Scopes = ["openid", "offline_access", "qian.api", .. DevIdentity.ApplicationScopes], RequireHttpsMetadata = false, UseInMemorySessionStore = true, DefaultReturnPath = "/"
@@ -84,8 +84,8 @@ internal static class DevGateway
         builder.Services.AddQianGateway(configuration, IdentityClientDefaults.SessionScheme);
         builder.Services.AddSingleton<ITransformProvider, AlternatePrefixTransform>();
         var app = builder.Build();
-        app.UseForwardedHeaders(); app.UseQianShell(shell); app.UseRouting(); app.UseQianIdentityClient(); app.UseQianGateway();
-        app.MapQianIdentityClient(); app.MapQianGateway();
+        app.UseForwardedHeaders(); app.UseQianShell(shell); app.UseRouting(); app.UseKunIdentityClient(); app.UseQianGateway();
+        app.MapKunIdentityClient(); app.MapQianGateway();
         // bootstrap 聚合端点：规范路径 /api/shell/bootstrap，外壳把它随 apiBase 映射，所以 /api-alt 前缀下也挂一份（下游仍按网关路由表的 /api 路径选簇）。
         app.MapQianShellBootstrap(); app.MapQianShellBootstrap("/api-alt/shell/bootstrap");
         // 开发路由（不是产品契约）：只对已认证的本会话生效，且仍要带防伪令牌。expire 让服务端访问令牌立刻到期（下次请求透明刷新，页面无感）；

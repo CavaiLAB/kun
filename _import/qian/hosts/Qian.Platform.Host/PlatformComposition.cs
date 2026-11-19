@@ -16,7 +16,7 @@ using Qian.Config;
 using Qian.Config.Secrets;
 using Kun.Data;
 using Qian.Events;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Lifecycle;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;

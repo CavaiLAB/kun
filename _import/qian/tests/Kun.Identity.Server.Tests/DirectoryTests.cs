@@ -1,11 +1,11 @@
 using System.Net;
 using System.Text.Json;
 using Npgsql;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 public sealed class DirectoryTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

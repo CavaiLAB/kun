@@ -1,4 +1,4 @@
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>
 /// 账号模型与统一登录流水线的宿主参数。租户级覆盖（登录策略与密码策略 Schema，经 ITenantSettings）由 S1-IDP-006 接入前，

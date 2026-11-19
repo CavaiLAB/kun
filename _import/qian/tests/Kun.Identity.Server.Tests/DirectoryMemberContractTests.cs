@@ -5,10 +5,10 @@ using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 成员管理的 HTTP 契约快照（S1-IDP-017 验收 5）：contracts/identity/v1/directory-members.openapi.json 登记的操作与 IdentityDirectoryEndpoints 的
 // 实际端点一致，请求 Schema 与服务端绑定的请求体逐字段一致，响应 Schema 与新增结果的序列化逐字段一致，Membership 与目录查询契约同一份定义，

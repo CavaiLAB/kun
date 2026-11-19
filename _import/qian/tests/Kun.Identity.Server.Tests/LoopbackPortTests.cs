@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Qian.Testing;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // S1-QA-014：测试宿主先取空闲端口、放掉，再在建表与挂载组件之后交给 Kestrel 绑定。这里用真实 Kestrel 模拟两步之间端口被别的进程占走。
 public sealed class LoopbackPortTests

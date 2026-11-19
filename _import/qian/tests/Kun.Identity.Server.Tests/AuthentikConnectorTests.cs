@@ -1,10 +1,10 @@
 using System.Net;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // S1-IDP-007 验收 1（E2E）：以容器里的真实 Authentik 为上游，经通用 OIDC 连接器（授权码 + PKCE，验 id_token 签名 / iss / aud / nonce）登录 Qian。
 // 首次登录进入确认绑定，确认后建立外部身份；再次登录直接进入；同租户内把同一外部身份再绑给别的账号被拒。

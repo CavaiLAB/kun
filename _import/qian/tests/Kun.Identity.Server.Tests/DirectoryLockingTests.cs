@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using Npgsql;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 目录修订行的加锁顺序（S1-IDP-010 第一轮复核缺陷 ①）：会递增修订行的入口都先取同一把租户目录锁，再锁业务行、递增修订行。
 // 曾经账号入口的「重新启用」不取目录锁、先递增修订再更新成员行，与先锁成员行再递增修订的状态变更对同一成员并发时死锁（40P01）。

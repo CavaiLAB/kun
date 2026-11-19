@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 目录派生查询（PRD 7.4.3，S1-IDP-010）：成员检索、按岗位链的上级责任人、直属主管、部门负责人与 @下属 / @子孙。
 // 口径由产品负责人 2026-11-11 确认；派生查询一次读出本租户的组织与岗位结构在内存里推导（两条查询，S1 规模下是几百到几千行），

@@ -4,10 +4,10 @@ using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Tenancy;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>宿主的同事务身份事件接线。</summary>
 public static class IdentityEventHandlers
@@ -17,15 +17,15 @@ public static class IdentityEventHandlers
     /// 登录、锁定、改密事件由聚合根的领域通知在同一数据会话内转成集成事件，随业务数据一起落入 Outbox。
     /// </summary>
     /// <remarks>组织目录的 <c>directory.*.v1</c> 事件走同一入口：目录写入在租户目录修订行上记领域通知，同事务进入 Outbox。</remarks>
-    public static KunMediatorBuilder AddQianIdentityEvents(this KunMediatorBuilder builder) =>
+    public static KunMediatorBuilder AddKunIdentityEvents(this KunMediatorBuilder builder) =>
         builder.AddNotificationHandler<IdentityChange, IdentityChangeHandler>().AddNotificationHandler<DirectoryChange, DirectoryChangeHandler>();
 
     /// <summary>
     /// 会话中心订阅租户事件的处理器：<c>tenant.suspended.v1</c> 与 <c>tenant.expired.v1</c> 到达后，该租户的全部登录会话立即吊销，
-    /// refresh 随之被拒。把返回的构建器交给宿主的事件总线配置（<c>AddKunEventBus(events =&gt; events.AddQianIdentitySessionHandlers())</c>），
+    /// refresh 随之被拒。把返回的构建器交给宿主的事件总线配置（<c>AddKunEventBus(events =&gt; events.AddKunIdentitySessionHandlers())</c>），
     /// 订阅投递由消费端（S1-EVT-002）负责。即使事件丢失或迟到，会话中心的后台对账也会在 30 秒内按目录状态吊销。
     /// </summary>
-    public static KunEventBusBuilder AddQianIdentitySessionHandlers(this KunEventBusBuilder builder)
+    public static KunEventBusBuilder AddKunIdentitySessionHandlers(this KunEventBusBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.AddHandler<TenantSuspended, TenantSuspendedSessionHandler>();
@@ -67,7 +67,7 @@ internal sealed class IdentityChange(IdentityIntegrationEvent payload) : IDomain
     internal static async Task Save(IDataSession<IdentityDbContext> session, IReadOnlyCollection<IdentityChange> changes, CancellationToken ct)
     {
         await session.SaveChangesAsync(ct).ConfigureAwait(false);
-        if (changes.Any(change => !change.Published)) throw new InvalidOperationException("身份事件未进入 Outbox：宿主须登记 AddQianIdentityEvents。");
+        if (changes.Any(change => !change.Published)) throw new InvalidOperationException("身份事件未进入 Outbox：宿主须登记 AddKunIdentityEvents。");
     }
 }
 

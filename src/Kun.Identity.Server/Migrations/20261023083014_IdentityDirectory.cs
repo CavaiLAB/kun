@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Qian.Identity.Server.Migrations
+namespace Kun.Identity.Server.Migrations
 {
     /// <inheritdoc />
     internal partial class IdentityDirectory : Migration

@@ -6,12 +6,12 @@ Qian.Capabilities.CapabilityCatalog.CapabilityCatalog(System.Collections.Generic
 Qian.Capabilities.CapabilityCatalog.Items.get -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>!
 Qian.Capabilities.CapabilityCatalog.TtlMs.get -> int
 Qian.Capabilities.ICapabilityService
-Qian.Capabilities.ICapabilityService.ComposePromptAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
-Qian.Capabilities.ICapabilityService.InvokeAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, string! id, System.Text.Json.JsonElement input, System.Guid? idempotencyKey = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.CapabilityInvocation!>
-Qian.Capabilities.ICapabilityService.ListAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, string? kind = null, string? query = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.CapabilityCatalog!>
+Qian.Capabilities.ICapabilityService.ComposePromptAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
+Qian.Capabilities.ICapabilityService.InvokeAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! id, System.Text.Json.JsonElement input, System.Guid? idempotencyKey = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.CapabilityInvocation!>
+Qian.Capabilities.ICapabilityService.ListAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string? kind = null, string? query = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.CapabilityCatalog!>
 static Qian.Capabilities.CapabilitiesDefinition.Capabilities(this Kun.Runtime.IPluginContext! context) -> Qian.Capabilities.ICapabilityService!
 static readonly Qian.Capabilities.CapabilitiesDefinition.Key -> Kun.Runtime.ServiceKey
-Qian.Capabilities.ICapabilityService.GetOpenApiAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
+Qian.Capabilities.ICapabilityService.GetOpenApiAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
 Qian.Capabilities.ContractCompatibility
 Qian.Capabilities.ContractCompatibility.<Clone>$() -> Qian.Capabilities.ContractCompatibility!
 Qian.Capabilities.ContractCompatibility.BreakingRules.get -> System.Collections.Generic.IReadOnlyList<string!>!
@@ -45,9 +45,9 @@ Qian.Capabilities.IContractRepository.GetContracts(string! pluginId, string! ver
 static Qian.Capabilities.CapabilitiesDefinition.Contracts(this Kun.Runtime.IPluginContext! context) -> Qian.Capabilities.IContractRepository!
 static readonly Qian.Capabilities.CapabilitiesDefinition.ContractsKey -> Kun.Runtime.ServiceKey
 Qian.Capabilities.INavigationService
-Qian.Capabilities.INavigationService.GetAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, string! resourceRef, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.NavigationItem!>
-Qian.Capabilities.INavigationService.ListAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>!>
-Qian.Capabilities.INavigationService.SetPreferenceAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, string! resourceRef, Qian.Capabilities.NavigationPreference! preference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Qian.Capabilities.INavigationService.GetAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! resourceRef, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.NavigationItem!>
+Qian.Capabilities.INavigationService.ListAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>!>
+Qian.Capabilities.INavigationService.SetPreferenceAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! resourceRef, Qian.Capabilities.NavigationPreference! preference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 Qian.Capabilities.NavigationItem
 Qian.Capabilities.NavigationItem.<Clone>$() -> Qian.Capabilities.NavigationItem!
 Qian.Capabilities.NavigationItem.Deconstruct(out string! ResourceRef, out string! PluginId, out string! Route, out string! Title, out string? Icon, out int Order) -> void
@@ -101,7 +101,7 @@ Qian.Capabilities.IContractRepository.CheckProtoAsync(string! pluginId, string! 
 Qian.Capabilities.IContractRepository.GetProtoSource(string! pluginId, string! version, string! contractId) -> Qian.Capabilities.ProtoContractSet!
 Qian.Capabilities.IProtoCompatibilityProbe.CompareRuntimeDescriptorsAsync(System.ReadOnlyMemory<byte> baseline, System.ReadOnlyMemory<byte> candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ContractCompatibility!>
 Qian.Capabilities.IHttpContractSource
-Qian.Capabilities.IHttpContractSource.GetDocumentAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
+Qian.Capabilities.IHttpContractSource.GetDocumentAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
 Qian.Capabilities.NavigationCatalog
 Qian.Capabilities.NavigationCatalog.<Clone>$() -> Qian.Capabilities.NavigationCatalog!
 Qian.Capabilities.NavigationCatalog.CacheScope.get -> string!
@@ -212,6 +212,6 @@ override Qian.Capabilities.ShellRemote.GetHashCode() -> int
 override Qian.Capabilities.ShellRemote.ToString() -> string!
 static Qian.Capabilities.ShellRemote.operator !=(Qian.Capabilities.ShellRemote? left, Qian.Capabilities.ShellRemote? right) -> bool
 static Qian.Capabilities.ShellRemote.operator ==(Qian.Capabilities.ShellRemote? left, Qian.Capabilities.ShellRemote? right) -> bool
-Qian.Capabilities.INavigationService.GetShellAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ShellCatalog!>
-Qian.Capabilities.INavigationService.GetConsoleAsync(Kun.Runtime.IPluginContext! caller, Qian.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.PlatformConsoleCatalog!>
+Qian.Capabilities.INavigationService.GetShellAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ShellCatalog!>
+Qian.Capabilities.INavigationService.GetConsoleAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.PlatformConsoleCatalog!>
 static readonly Qian.Capabilities.CapabilitiesDefinition.ShellRemotesKey -> Kun.Runtime.ServiceKey

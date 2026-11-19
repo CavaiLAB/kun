@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>
 /// 登录标识的规范化、类型判定与掩码。三类标识的语法互不重叠：邮箱含 @，手机只含数字与加号，

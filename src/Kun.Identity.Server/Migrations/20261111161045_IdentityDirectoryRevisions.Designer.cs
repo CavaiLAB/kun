@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Qian.Identity.Server;
+using Kun.Identity.Server;
 
 #nullable disable
 
-namespace Qian.Identity.Server.Migrations
+namespace Kun.Identity.Server.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
     [Migration("20261111161045_IdentityDirectoryRevisions")]
@@ -358,7 +358,7 @@ namespace Qian.Identity.Server.Migrations
                     b.ToTable("open_iddict_tokens", "plugin_qian_identity");
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.CaptchaRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.CaptchaRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -383,7 +383,7 @@ namespace Qian.Identity.Server.Migrations
                     b.ToTable("login_captchas", "plugin_qian_identity");
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.ClientRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.ClientRow", b =>
                 {
                     b.Property<string>("ClientId")
                         .HasMaxLength(100)
@@ -454,7 +454,7 @@ namespace Qian.Identity.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.ConnectorFlowRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.ConnectorFlowRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -603,7 +603,7 @@ namespace Qian.Identity.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.DirectoryGroupRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.DirectoryGroupRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -640,7 +640,7 @@ namespace Qian.Identity.Server.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.DirectoryRevisionRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.DirectoryRevisionRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(36)
@@ -665,7 +665,7 @@ namespace Qian.Identity.Server.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.ExternalIdentityRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.ExternalIdentityRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -743,7 +743,7 @@ namespace Qian.Identity.Server.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.LoginAuditRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.LoginAuditRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -836,7 +836,7 @@ namespace Qian.Identity.Server.Migrations
                     b.ToTable("login_audits", "plugin_qian_identity");
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.LoginTicketRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.LoginTicketRow", b =>
                 {
                     b.Property<byte[]>("TokenHash")
                         .HasColumnType("bytea")
@@ -931,7 +931,7 @@ namespace Qian.Identity.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.LogoutDelivery", b =>
+            modelBuilder.Entity("Kun.Identity.Server.LogoutDelivery", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -982,7 +982,7 @@ namespace Qian.Identity.Server.Migrations
                     b.ToTable("logout_deliveries", "plugin_qian_identity");
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.MemberRelationRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.MemberRelationRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1064,7 +1064,7 @@ namespace Qian.Identity.Server.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.MembershipRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.MembershipRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1168,7 +1168,7 @@ namespace Qian.Identity.Server.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.OrganizationRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.OrganizationRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1250,7 +1250,7 @@ namespace Qian.Identity.Server.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.OrganizationTypeRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.OrganizationTypeRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(36)
@@ -1279,7 +1279,7 @@ namespace Qian.Identity.Server.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.PasswordHistoryRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.PasswordHistoryRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1309,7 +1309,7 @@ namespace Qian.Identity.Server.Migrations
                     b.ToTable("password_history", "plugin_qian_identity");
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.PersonIdentifierRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.PersonIdentifierRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1371,7 +1371,7 @@ namespace Qian.Identity.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.PersonRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.PersonRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1474,7 +1474,7 @@ namespace Qian.Identity.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.PositionRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.PositionRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1554,7 +1554,7 @@ namespace Qian.Identity.Server.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.SessionRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.SessionRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1662,7 +1662,7 @@ namespace Qian.Identity.Server.Migrations
                     b.ToTable("sessions", "plugin_qian_identity");
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.UserProfileRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.UserProfileRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(36)
@@ -1734,137 +1734,137 @@ namespace Qian.Identity.Server.Migrations
                     b.Navigation("Authorization");
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.ExternalIdentityRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.ExternalIdentityRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.MembershipRow", null)
+                    b.HasOne("Kun.Identity.Server.MembershipRow", null)
                         .WithMany()
                         .HasForeignKey("MembershipId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Qian.Identity.Server.PersonRow", null)
+                    b.HasOne("Kun.Identity.Server.PersonRow", null)
                         .WithMany()
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.MemberRelationRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.MemberRelationRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.DirectoryGroupRow", null)
+                    b.HasOne("Kun.Identity.Server.DirectoryGroupRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "GroupId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Qian.Identity.Server.MembershipRow", null)
+                    b.HasOne("Kun.Identity.Server.MembershipRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "MembershipId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Qian.Identity.Server.OrganizationRow", null)
+                    b.HasOne("Kun.Identity.Server.OrganizationRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "OrganizationId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Qian.Identity.Server.PositionRow", null)
+                    b.HasOne("Kun.Identity.Server.PositionRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "PositionId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.MembershipRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.MembershipRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.PersonRow", null)
+                    b.HasOne("Kun.Identity.Server.PersonRow", null)
                         .WithMany()
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.OrganizationRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.OrganizationRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.MembershipRow", null)
+                    b.HasOne("Kun.Identity.Server.MembershipRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "ManagerMembershipId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Qian.Identity.Server.OrganizationRow", null)
+                    b.HasOne("Kun.Identity.Server.OrganizationRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "ParentId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Qian.Identity.Server.PositionRow", null)
+                    b.HasOne("Kun.Identity.Server.PositionRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "ResponsiblePositionId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Qian.Identity.Server.OrganizationTypeRow", null)
+                    b.HasOne("Kun.Identity.Server.OrganizationTypeRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "TypeCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.PasswordHistoryRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.PasswordHistoryRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.PersonRow", null)
+                    b.HasOne("Kun.Identity.Server.PersonRow", null)
                         .WithMany()
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.PersonIdentifierRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.PersonIdentifierRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.PersonRow", null)
+                    b.HasOne("Kun.Identity.Server.PersonRow", null)
                         .WithMany()
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.PositionRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.PositionRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.OrganizationRow", null)
+                    b.HasOne("Kun.Identity.Server.OrganizationRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "OrganizationId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Qian.Identity.Server.PositionRow", null)
+                    b.HasOne("Kun.Identity.Server.PositionRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "ParentId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Qian.Identity.Server.MembershipRow", null)
+                    b.HasOne("Kun.Identity.Server.MembershipRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "ResponsibleMembershipId")
                         .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.SessionRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.SessionRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.PersonRow", null)
+                    b.HasOne("Kun.Identity.Server.PersonRow", null)
                         .WithMany()
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.UserProfileRow", b =>
+            modelBuilder.Entity("Kun.Identity.Server.UserProfileRow", b =>
                 {
-                    b.HasOne("Qian.Identity.Server.MembershipRow", null)
+                    b.HasOne("Kun.Identity.Server.MembershipRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "MembershipId")
                         .HasPrincipalKey("TenantId", "Id")

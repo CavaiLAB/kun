@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Authz.Abstractions;
 using Qian.Gateway;
-using Qian.Identity.Client;
+using Kun.Identity.Client;
 using Qian.Registry;
 using Kun.Runtime;
 using Qian.Surfaces;

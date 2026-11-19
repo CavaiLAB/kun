@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>身份领域的稳定错误码，归属 qian.identity；协议级拒绝复用冻结内置码。</summary>
 /// <remarks>登录失败的文案不区分「账号不存在」与「密码错误」，避免被用来枚举账号。</remarks>
@@ -87,12 +87,12 @@ public static class IdentityErrors
         "Account name in use", "The account name is already used by another member of this tenant.");
     /// <summary>
     /// 外部登录请求的 state 未知、已过期、已被使用或不属于当前浏览器（连接器流程里上游返回的 nonce 与本次请求不符也归此码）。
-    /// 身份服务的连接器回调与依赖方 Qian.Identity.Client 的回调共用此码，依赖方回调缺少授权码同样归此码。
+    /// 身份服务的连接器回调与依赖方 Kun.Identity.Client 的回调共用此码，依赖方回调缺少授权码同样归此码。
     /// </summary>
     public static readonly ErrorCode ConnectorStateInvalid = Business("AUTH_CONNECTOR_STATE_INVALID", 422,
         "登录请求已失效", "登录请求已失效或被篡改，请重新开始。",
         "Sign-in request invalid", "The sign-in request has expired or been tampered with; start again.");
-    /// <summary>上游身份源拒绝或用户在上游取消了登录（回调带 error）；连接器回调与依赖方 Qian.Identity.Client 的回调共用此码，上游的 error 与 error_description 都不作为文案。</summary>
+    /// <summary>上游身份源拒绝或用户在上游取消了登录（回调带 error）；连接器回调与依赖方 Kun.Identity.Client 的回调共用此码，上游的 error 与 error_description 都不作为文案。</summary>
     public static readonly ErrorCode ConnectorDenied = Business("AUTH_CONNECTOR_DENIED", 422,
         "外部登录未完成", "身份源拒绝或取消了本次登录，请返回重试或改用其他方式登录。",
         "External sign-in not completed", "The identity provider denied or cancelled the sign-in; go back and retry or use another method.");

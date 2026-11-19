@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 图形验证码：按登录策略开关。答案只存加盐哈希，单次有效；存数据库，所以多副本部署时任一实例签发的挑战都能在另一实例校验。
 internal sealed record CaptchaChallenge(Guid Id, string ImageSvg, DateTimeOffset ExpiresAt);

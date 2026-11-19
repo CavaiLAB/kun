@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Testing.Containers;
 using StackExchange.Redis;
-using static Qian.Identity.Server.Tests.AccountSupport;
-using static Qian.Identity.Server.Tests.SessionSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.SessionSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 会话中心的 Redis 索引（sessions:{person} 与吊销墓碑）：登录登记、吊销移出并写墓碑、索引缺失或被污染时以数据库为准修复。
 // 索引只是派生数据——PostgreSQL 的 sessions 表是唯一事实来源，Redis 不可用时一切退回数据库。

@@ -26,7 +26,7 @@ using Npgsql;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Kun.Data;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
 using Qian.Registry.AspNetCore;
 using Kun.Runtime;

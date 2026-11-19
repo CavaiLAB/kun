@@ -1,9 +1,9 @@
 using System.Text.Json;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>清单分发的身份依赖方入口；公开客户端保持无 Config 或 Data Provider 的独立装配。</summary>
 [KunPlugin("qian.identity.client")]

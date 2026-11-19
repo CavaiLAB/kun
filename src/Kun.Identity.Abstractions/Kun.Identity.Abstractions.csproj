@@ -2,9 +2,9 @@
   <PropertyGroup><IsPackable>true</IsPackable><Description>身份 seam、claim、连接器和认证因子端口及稳定事件。</Description></PropertyGroup>
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>contract</KunRole></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" />
-    <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Security.Abstractions/Kun.Security.Abstractions.csproj" />
-    <EmbeddedResource Include="../../contracts/identity/v1/*.schema.json" LogicalName="identity/%(Filename)%(Extension)" />
+    <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
+    <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Security.Abstractions/Kun.Security.Abstractions.csproj" />
+    <EmbeddedResource Include="../../_import/qian/contracts/identity/v1/*.schema.json" LogicalName="identity/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

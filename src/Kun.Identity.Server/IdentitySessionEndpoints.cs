@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>
 /// 会话中心的管理面：某人的会话列表、吊销单个会话、吊销某人的全部会话、在线用户。调用者由账号 Cookie 里的会话确定，且每次都对照数据库校验。

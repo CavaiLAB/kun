@@ -28,13 +28,13 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
 using Kun.Data;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using IdentitySession = Qian.Identity.Abstractions.Session;
+using IdentitySession = Kun.Identity.Abstractions.Session;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // RFC 8707 resource：第一层由 Qian 在 OpenIddict 管道里按客户端白名单逐字比较（不做 URI 规范化，只有主机的标识也能用），
 // 第二层是 OpenIddict 按 Resources 推导的 rsrc: 权限；协议端点再兜底，多资源客户端必须指定 resource，单资源客户端按登记缺省，
@@ -195,12 +195,12 @@ public sealed partial class ResourceIndicatorTests(PostgresFixture postgres) : I
             builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
             builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
             builder.Services.AddAuthentication("qian.identity.signin").AddCookie("qian.identity.signin");
-            builder.Services.AddQianIdentityServer(new IdentityServerOptions
+            builder.Services.AddKunIdentityServer(new IdentityServerOptions
             {
                 Issuer = new Uri(issuer), AllowLoopbackHttp = true, SigningCertificates = [certificate], EncryptionCertificates = [certificate],
                 Clients = [CodeFlow("multi", issuer, secret, Api, Files), CodeFlow("single", issuer, secret, Api), CodeFlow("other", issuer, secret, Other), Machine(secret, Api, Files)]
             }, builder.Environment);
-            var app = builder.Build(); app.UseQianIdentityServer(); app.UseAuthentication(); app.MapQianIdentityServer();
+            var app = builder.Build(); app.UseKunIdentityServer(); app.UseAuthentication(); app.MapKunIdentityServer();
             // 仅测试程序集的账号夹具：真实 Cookie 认证，协议服务中没有此路由或假登录。
             app.MapPost("/_test/authenticated-account", () => Results.SignIn(new ClaimsPrincipal(new ClaimsIdentity(new[]
             {

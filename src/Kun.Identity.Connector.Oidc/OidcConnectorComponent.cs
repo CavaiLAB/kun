@@ -1,11 +1,11 @@
 using Qian.Config;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using System.Text.Json;
 
-namespace Qian.Identity.Connector.Oidc;
+namespace Kun.Identity.Connector.Oidc;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 OidcConnectorPlugin 保留。</summary>
 [KunPlugin("qian.identity.connector.oidc")]

@@ -24,9 +24,9 @@
     <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
     <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../../packages/Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
     <!-- 同进程身份分支（S1-DEP-011，R150 ①）：身份服务、开通申请与网关原生审计的离线迁移。 -->
-    <ProjectReference Include="../../packages/Qian.Identity.Server/Qian.Identity.Server.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" />
     <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />

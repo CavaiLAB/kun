@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Identity.Abstractions.Tests;
+namespace Kun.Identity.Abstractions.Tests;
 
 public sealed class DirectoryContractTests
 {

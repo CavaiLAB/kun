@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Json.Schema;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Identity.Client.Tests;
+namespace Kun.Identity.Client.Tests;
 
 public sealed class ClientManifestTests
 {
@@ -23,7 +23,7 @@ public sealed class ClientManifestTests
         Assert.Equal("global", Assert.Single(manifest.RootElement.GetProperty("scopes").EnumerateArray()).GetString());
         Assert.False(manifest.RootElement.TryGetProperty("x-skeleton", out _));
         var package = Assert.Single(manifest.RootElement.GetProperty("runtime").GetProperty("nuget").EnumerateArray());
-        Assert.Equal("Qian.Identity.Client", package.GetProperty("id").GetString());
+        Assert.Equal("Kun.Identity.Client", package.GetProperty("id").GetString());
         Assert.Matches(@"^sha256:[0-9a-f]{64}$", package.GetProperty("digest").GetString()!);
         // x-aot 以 tools/Qian.Identity.Client.AotSmoke 的 CI NativeAOT 冒烟为据（S1-IDP-014）。
         Assert.True(manifest.RootElement.GetProperty("x-aot").GetBoolean());
@@ -32,7 +32,7 @@ public sealed class ClientManifestTests
         Assert.True(JsonElement.DeepEquals(metadata.ConfigSchema!.Value, schema.RootElement));
         Assert.Empty(metadata.Capabilities);
 
-        await using var services = new ServiceCollection().AddLogging().AddQianIdentityClient(new IdentityClientOptions
+        await using var services = new ServiceCollection().AddLogging().AddKunIdentityClient(new IdentityClientOptions
         {
             Authority = new Uri("https://id.qian.test/"), ClientId = "qian-public", UseInMemorySessionStore = true
         }).BuildServiceProvider();

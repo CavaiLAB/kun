@@ -2,11 +2,11 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Identity.Client.Tests;
+namespace Kun.Identity.Client.Tests;
 
 // 组件形态的约束：配置只接受与宿主一致的 issuer / clientId 与 platform / dev 的 secretRef，只允许 global scope；
 // 依赖方 Provider 不伪造身份服务的管理能力；returnTo 只回同源白名单路径。
@@ -100,18 +100,18 @@ public sealed class ClientComponentTests
     [Fact]
     public void 装配参数在登记时校验()
     {
-        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddQianIdentityClient(new IdentityClientOptions { Authority = new Uri("http://id.qian.test/"), ClientId = "qian-web" }));
-        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddQianIdentityClient(new IdentityClientOptions { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-web", Scopes = ["profile"] }));
-        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddQianIdentityClient(new IdentityClientOptions
+        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddKunIdentityClient(new IdentityClientOptions { Authority = new Uri("http://id.qian.test/"), ClientId = "qian-web" }));
+        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddKunIdentityClient(new IdentityClientOptions { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-web", Scopes = ["profile"] }));
+        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddKunIdentityClient(new IdentityClientOptions
             { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-web", RedirectUri = new Uri("https://app.qian.test/cb?x=1") }));
         var keys = new JsonWebKeySet();
-        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddQianIdentityS2s(new IdentityS2sOptions { Issuer = "https://gateway.qian.test", Audience = "kun-internal", SigningKeys = keys }));
-        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddQianIdentityS2s(new IdentityS2sOptions
+        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddKunIdentityS2s(new IdentityS2sOptions { Issuer = "https://gateway.qian.test", Audience = "kun-internal", SigningKeys = keys }));
+        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddKunIdentityS2s(new IdentityS2sOptions
             { Issuer = "https://gateway.qian.test", Audience = "qian-platform", SigningKeys = keys, JwksUri = new Uri("https://gateway.qian.test/jwks") }));
-        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddQianIdentityS2s(new IdentityS2sOptions { Issuer = "https://gateway.qian.test", Audience = "qian-platform" }));
-        var once = new ServiceCollection().AddQianIdentityClient(new IdentityClientOptions { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-web" });
-        Assert.Throws<InvalidOperationException>(() => once.AddQianIdentityClient(new IdentityClientOptions { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-web" }));
+        Assert.Throws<ArgumentException>(() => new ServiceCollection().AddKunIdentityS2s(new IdentityS2sOptions { Issuer = "https://gateway.qian.test", Audience = "qian-platform" }));
+        var once = new ServiceCollection().AddKunIdentityClient(new IdentityClientOptions { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-web" });
+        Assert.Throws<InvalidOperationException>(() => once.AddKunIdentityClient(new IdentityClientOptions { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-web" }));
     }
 
-    private static ServiceProvider Services() => new ServiceCollection().AddLogging().AddQianIdentityClient(Options).BuildServiceProvider();
+    private static ServiceProvider Services() => new ServiceCollection().AddLogging().AddKunIdentityClient(Options).BuildServiceProvider();
 }

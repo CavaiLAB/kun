@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 using Kun.EventBus;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 与 HTTP 目录面共用账号服务的真实规则。标准能力目录、输入校验和 24h 回执仍由 Capabilities 提供；这里不新建第二个目录或去重存储。
 [Permission("member", "disable")]

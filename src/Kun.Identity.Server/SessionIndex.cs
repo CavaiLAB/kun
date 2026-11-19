@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>
 /// 会话中心的 Redis 索引（<c>qian:identity:sessions:{person}</c>，有序集合，分值为会话绝对到期的 Unix 秒）

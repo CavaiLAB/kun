@@ -55,7 +55,7 @@ public static class CrmCommandApplication
                 options.SerializerOptions.RespectRequiredConstructorParameters = true;
                 options.SerializerOptions.RespectNullableAnnotations = true;
             });
-            builder.Services.AddScoped<Qian.Identity.Abstractions.ICurrentUser, CrmCurrentUser>();
+            builder.Services.AddScoped<Kun.Identity.Abstractions.ICurrentUser, CrmCurrentUser>();
             builder.Services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 var previous = options.Events.OnTokenValidated;

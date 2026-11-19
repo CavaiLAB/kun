@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
 namespace Kun.Tenancy;
 

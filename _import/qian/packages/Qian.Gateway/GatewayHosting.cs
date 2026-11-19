@@ -101,7 +101,7 @@ public static class GatewayHosting
         return services;
     }
 
-    /// <summary>在 UseForwardedHeaders、UseRouting、UseQianIdentityClient 之后调用；业务请求还须通过真实组件挂载门。</summary>
+    /// <summary>在 UseForwardedHeaders、UseRouting、UseKunIdentityClient 之后调用；业务请求还须通过真实组件挂载门。</summary>
     public static IApplicationBuilder UseQianGateway(this IApplicationBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app);

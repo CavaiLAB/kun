@@ -1,12 +1,12 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 目录派生查询（S1-IDP-010）：上级链、直属主管、部门负责人、@下属 / @子孙与成员检索，全部走真实 PostgreSQL、受限角色与 Kestrel。
 public sealed class DirectoryQueryTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>

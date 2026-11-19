@@ -12,9 +12,9 @@ using OpenIddict.Abstractions;
 using Qian.Config;
 using Kun.Data;
 using Qian.Dev.TenantOps;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Connector.Oidc;
-using Qian.Identity.Server;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Connector.Oidc;
+using Kun.Identity.Server;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
@@ -60,7 +60,7 @@ internal sealed class DevIdentity(Uri issuer, Uri callback, string uiDist, strin
             Permissions.GrantTypes.AuthorizationCode, Permissions.GrantTypes.RefreshToken, Permissions.ResponseTypes.Code, Permissions.Prefixes.Scope + "qian.api",
             .. ApplicationScopes.Select(scope => Permissions.Prefixes.Scope + scope)]);
         builder.Services.AddSingleton<IStartupFilter>(new IdentityBranchFilter(uiDist, signup));
-        builder.Services.AddQianIdentityServer(new IdentityServerOptions
+        builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
             Issuer = issuer, AllowLoopbackHttp = true, SigningCertificates = [_certificate], EncryptionCertificates = [_certificate],
             Clients = [new() { Application = shell, Resources = [DevGateway.Resource] }]
@@ -128,11 +128,11 @@ internal sealed class DevIdentity(Uri issuer, Uri callback, string uiDist, strin
                 http.Request.Path.StartsWithSegments("/.well-known") || http.Request.Path.StartsWithSegments(IdentityPagesHosting.PagesPath) ||
                 signup?.Owns(http.Request.Path) == true, branch =>
             {
-                branch.UseQianIdentityServer();
-                branch.UseQianIdentityPages(uiDist);
+                branch.UseKunIdentityServer();
+                branch.UseKunIdentityPages(uiDist);
                 signup?.Use(branch);
                 branch.UseRouting(); branch.UseAuthentication();
-                branch.UseEndpoints(endpoints => { endpoints.MapQianIdentityServer(); endpoints.MapQianIdentityAccounts(); signup?.Map(endpoints); });
+                branch.UseEndpoints(endpoints => { endpoints.MapKunIdentityServer(); endpoints.MapKunIdentityAccounts(); signup?.Map(endpoints); });
             });
             next(app);
         };

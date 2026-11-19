@@ -83,7 +83,7 @@ builder.Services.AddQianEventsSubscriber("qian.identity", subscriber => subscrib
 ```
 
 - 第一个参数是订阅方服务名，与订阅名一起决定队列名和幂等记录的消费者名。同一宿主可以多次调用以追加订阅，服务名必须相同。
-- `Subscribe<TEvent, THandler>(subscription, mode, acceptPlatformEvents)` 把一个 Kun `IIntegrationEventHandler<TEvent>` 挂到订阅上，并以 scoped 登记该 handler 类型。宿主已经用 `AddKunEventBus(b => b.AddHandler<TEvent, THandler>())` 登记过的 handler（如身份组件的 `AddQianIdentitySessionHandlers()`）照样可以订阅。
+- `Subscribe<TEvent, THandler>(subscription, mode, acceptPlatformEvents)` 把一个 Kun `IIntegrationEventHandler<TEvent>` 挂到订阅上，并以 scoped 登记该 handler 类型。宿主已经用 `AddKunEventBus(b => b.AddHandler<TEvent, THandler>())` 登记过的 handler（如身份组件的 `AddKunIdentitySessionHandlers()`）照样可以订阅。
 - 一个订阅可以覆盖多个事件，但同一事件在一个订阅里只有一个 handler；同一事件在一个服务里只能有一个广播订阅（广播订阅共用实例队列）。
 - 消费连接与发布端分开（ClientProvidedName 为 `qian.events.subscriber`），AMQP 地址复用 `AddQianEventsBroker` 登记的引用。
 

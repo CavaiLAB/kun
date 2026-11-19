@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 internal static class DirectoryModel
 {

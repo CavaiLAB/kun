@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>组织树的稳定约束；根节点深度为 1。</summary>
 public static class DirectoryRules

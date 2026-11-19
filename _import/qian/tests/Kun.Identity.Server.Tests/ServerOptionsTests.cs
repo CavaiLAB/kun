@@ -4,7 +4,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 public sealed class ServerOptionsTests
 {
@@ -28,8 +28,8 @@ public sealed class ServerOptionsTests
             { ClientId = "test", ClientType = OpenIddictConstants.ClientTypes.Confidential, ClientSecret = secret, ConsentType = OpenIddictConstants.ConsentTypes.Implicit }, Resources = ["https://api.example"] }]
         };
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = environment });
-        if (accepted) builder.Services.AddQianIdentityServer(options, builder.Environment);
-        else Assert.Throws<ArgumentException>(() => builder.Services.AddQianIdentityServer(options, builder.Environment));
+        if (accepted) builder.Services.AddKunIdentityServer(options, builder.Environment);
+        else Assert.Throws<ArgumentException>(() => builder.Services.AddKunIdentityServer(options, builder.Environment));
         var json = JsonSerializer.Serialize(options);
         Assert.DoesNotContain(secret, json, StringComparison.Ordinal);
         Assert.DoesNotContain(nameof(IdentityServerOptions.SigningCertificates), json, StringComparison.Ordinal);
@@ -55,9 +55,9 @@ public sealed class ServerOptionsTests
         }
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Production" });
         var accepted = Options(OpenIddictConstants.Permissions.Prefixes.Resource + "https://api.example");
-        builder.Services.AddQianIdentityServer(accepted, builder.Environment);
+        builder.Services.AddKunIdentityServer(accepted, builder.Environment);
         Assert.Equal(["rsrc:https://api.example", "rsrc:https://files.example"],
             accepted.Clients[0].Application.Permissions.Where(permission => permission.StartsWith("rsrc:", StringComparison.Ordinal)).Order(StringComparer.Ordinal));
-        Assert.Throws<ArgumentException>(() => builder.Services.AddQianIdentityServer(Options(OpenIddictConstants.Permissions.Prefixes.Resource + "https://other.example"), builder.Environment));
+        Assert.Throws<ArgumentException>(() => builder.Services.AddKunIdentityServer(Options(OpenIddictConstants.Permissions.Prefixes.Resource + "https://other.example"), builder.Environment));
     }
 }

@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Qian.Config;
 using Kun.Runtime;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>
 /// 组件挂载状态。挂载只记录插件上下文与 secretRef；Kun 的 OIDC 客户端在第一次需要时才创建并解析密钥，

@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text.Json;
 using Qian.Config;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Identity.Connector.Oidc;
+namespace Kun.Identity.Connector.Oidc;
 
 /// <summary>
 /// 通用 OIDC 连接器组件：按配置构造 <see cref="OidcIdentityConnector"/>，登记到当前 scope 的 <c>Identity.Connectors</c> 注册表（R38），

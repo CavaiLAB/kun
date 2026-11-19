@@ -1,7 +1,7 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 /// <summary>
 /// 测试宿主的语句闸门：身份数据库上经 EF 发出的命令里，第一条命中条件的命令在执行之前（或执行完之后）停住，直到测试放行。

@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 会话中心测试共用的辅助：登录并换令牌、走完登出、轮询旁路结果、读取已发布的事件。
 internal static partial class SessionSupport

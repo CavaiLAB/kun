@@ -27,7 +27,7 @@ using Npgsql;
 using OpenIddict.Abstractions;
 using Kun.Data;
 using Qian.Events;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Tenancy;
 using Qian.Testing;
@@ -35,7 +35,7 @@ using Qian.Testing.Containers;
 using StackExchange.Redis;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 内置账号模型的真实装配：PostgreSQL（受限应用角色 + 强制 RLS）、OpenIddict 协议面、账号 HTTP 接口、同事务 Outbox。
 // 租户目录与配额是可控的替身（真实的 Tenancy 组件由 CRM 示例的集成测试覆盖），其余全部是生产代码。
@@ -45,7 +45,7 @@ internal static class AccountsHost
     internal static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     // 发行方带端口，构建宿主前就要确定：端口在建表、挂载期间被占时换端口从头启动（S1-QA-014）。
-    // identityEvents: false 模拟宿主漏装 AddQianIdentityEvents（没有把身份与目录事件写进 Outbox 的处理器）。
+    // identityEvents: false 模拟宿主漏装 AddKunIdentityEvents（没有把身份与目录事件写进 Outbox 的处理器）。
     internal static Task<Running> Start(PostgresFixture postgres, IdentityAccountOptions? accounts = null, string flavor = "default", string? redis = null, LogLevel logLevel = LogLevel.Warning,
         bool identityEvents = true) =>
         LoopbackPort.StartAsync(port => StartOn(port, postgres, accounts, redis, logLevel, identityEvents));
@@ -62,7 +62,7 @@ internal static class AccountsHost
         var logs = new CapturedLogs(); builder.Logging.AddProvider(logs);
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(events => events.RegisterIdentityEvents());
-        builder.Services.AddKunMediator(mediator => { if (identityEvents) mediator.AddQianIdentityEvents(); });
+        builder.Services.AddKunMediator(mediator => { if (identityEvents) mediator.AddKunIdentityEvents(); });
         builder.Services.AddQianEvents();
         var gate = new StatementGate();
         builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema).AddInterceptors(gate));
@@ -81,12 +81,12 @@ internal static class AccountsHost
         mobile.RedirectUris.Add(new Uri(issuer + "mobile-callback")); mobile.Permissions.UnionWith(web.Permissions);
         var machine = new OpenIddictApplicationDescriptor { ClientId = "machine", ClientSecret = secret, ClientType = ClientTypes.Confidential, ConsentType = ConsentTypes.Implicit };
         machine.Permissions.UnionWith([Permissions.Endpoints.Token, Permissions.GrantTypes.ClientCredentials, Permissions.Prefixes.Scope + "qian.api"]);
-        builder.Services.AddQianIdentityServer(new IdentityServerOptions
+        builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
             Issuer = new Uri(issuer), AllowLoopbackHttp = true, SigningCertificates = [cert], EncryptionCertificates = [cert], Accounts = accounts ?? new IdentityAccountOptions(),
             Clients = [new() { Application = web, Resources = [Resource], BackchannelLogoutUri = new Uri(issuer + "_test/backchannel") }, new() { Application = mobile, Resources = [Resource], DeviceType = "mobile" }, new() { Application = machine, Resources = [Resource] }]
         }, builder.Environment);
-        var app = builder.Build(); app.UseQianIdentityServer(); app.UseAuthentication(); app.MapQianIdentityServer(); app.MapQianIdentityAccounts();
+        var app = builder.Build(); app.UseKunIdentityServer(); app.UseAuthentication(); app.MapKunIdentityServer(); app.MapKunIdentityAccounts();
         // 依赖方（RP）的后通道登出接收端：只收集身份服务发来的 logout_token。
         var logoutTokens = new System.Collections.Concurrent.ConcurrentQueue<string>();
         app.MapPost("/_test/backchannel", async (HttpContext http) =>

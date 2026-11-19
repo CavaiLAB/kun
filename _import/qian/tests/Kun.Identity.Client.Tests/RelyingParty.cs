@@ -15,12 +15,12 @@ using Microsoft.Extensions.Logging;
 using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing;
 using StackExchange.Redis;
 
-namespace Qian.Identity.Client.Tests;
+namespace Kun.Identity.Client.Tests;
 
 /// <summary>
 /// 只装 Identity Client 的 HTTPS 依赖方宿主（会话与登录事务 Cookie 都是 Secure）：Redis 会话存储、Config 组件只用来按 secretRef 解析客户端密钥，
@@ -84,7 +84,7 @@ internal sealed class RelyingParty : IAsyncDisposable
             Policies = [new("qian.identity.client", [new("identity/*", "platform")], [new("identity/*", "platform")])]
         });
         builder.Services.AddQianConfiguration(new ConfigurationRoot([]));
-        builder.Services.AddQianIdentityClient(new IdentityClientOptions
+        builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
             Authority = new Uri(identity.Issuer), ClientId = IdentityServerHost.ClientId, Scopes = ["openid", "offline_access", "qian.api"],
             Resource = IdentityServerHost.Resource, RedirectUri = new Uri(address, "auth/callback"), RequireHttpsMetadata = false, RequireIssuerParameter = true,
@@ -93,8 +93,8 @@ internal sealed class RelyingParty : IAsyncDisposable
         builder.Services.AddAuthorization();
         configure?.Invoke(builder.Services);
         var app = builder.Build();
-        app.UseRouting(); app.UseQianIdentityClient(); app.UseAuthentication(); app.UseAuthorization();
-        app.MapQianIdentityClient();
+        app.UseRouting(); app.UseKunIdentityClient(); app.UseAuthentication(); app.UseAuthorization();
+        app.MapKunIdentityClient();
         app.MapGet("/me", (ICurrentUser user) => user.Principal is { } principal
             ? Results.Json(new { subject = principal.Subject, kind = principal.Kind.ToString(), tenant = principal.TenantId, membership = principal.MembershipId,
                 revision = principal.IdentityRevision, session = principal.SessionId, scope = principal.Scope, userId = user.UserId })

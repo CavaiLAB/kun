@@ -5,7 +5,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Security;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>Identity seam 的所有者。</summary>
 public static class IdentityDefinition

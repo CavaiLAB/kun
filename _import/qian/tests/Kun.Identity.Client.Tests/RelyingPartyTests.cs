@@ -13,7 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Runtime;
 using Qian.Testing.Containers;
 
-namespace Qian.Identity.Client.Tests;
+namespace Kun.Identity.Client.Tests;
 
 // 验收 1：对强制 PKCE 的真实 qian-identity 完成服务端换码并建立 qian.sid 会话；篡改 nonce、iss 或重放 state 的回调一律拒绝。
 // 另覆盖刷新的单飞（发行方的 refresh 轮换零容忍复用）、登出的防伪校验与组件卸载，以及会话主体经网关签发器铸成 S2S 后下游接受。

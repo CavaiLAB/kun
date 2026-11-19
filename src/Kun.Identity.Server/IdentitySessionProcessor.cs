@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 会话中心的后台处理器：处理吊销旁路（协议授权族、后通道登出、Redis 索引、集成事件），并周期性对账租户状态。
 // 被吊销的会话已经在数据库里即时失效；这里只负责把「失效」传播出去。进程内的吊销写入后经 SessionSignal 立即唤醒，其余靠 1 秒轮询兜底，

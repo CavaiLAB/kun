@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>
 /// 从临时认证材料取出的密码：UTF-8 字节，已做 NFKC 规范化（全角与半角字母数字、组合与分解字符视为同一密码），

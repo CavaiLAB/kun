@@ -3,11 +3,11 @@ using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 会话中心。吊销分两段：
 //   1. 即时生效：写 sessions.revoked_at（与引起它的操作同事务）。此后账号 Cookie、授权码、refresh 与 userinfo 的校验都读库，立刻拒绝。

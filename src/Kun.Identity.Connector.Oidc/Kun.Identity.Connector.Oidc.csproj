@@ -2,13 +2,13 @@
   <PropertyGroup><IsPackable>true</IsPackable><Description>通用 OIDC 上游连接器：授权码 + PKCE，校验 id_token 签名、iss、aud 与 nonce；只依赖身份 Definition，不依赖身份服务实现。</Description></PropertyGroup>
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
-    <InternalsVisibleTo Include="Qian.Identity.Connector.Oidc.Tests" />
+    <InternalsVisibleTo Include="Kun.Identity.Connector.Oidc.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

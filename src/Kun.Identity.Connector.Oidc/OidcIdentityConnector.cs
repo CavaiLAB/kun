@@ -7,10 +7,10 @@ using System.Text.Json.Nodes;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Config;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Identity.Connector.Oidc;
+namespace Kun.Identity.Connector.Oidc;
 
 /// <summary>
 /// 通用 OIDC 上游连接器：授权码 + PKCE（S256）。state、nonce 与 code_verifier 由身份服务生成并核对关联，本类只做协议：

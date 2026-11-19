@@ -1,13 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using Kun.EventBus;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 统一登录流水线：真实 PostgreSQL（受限应用角色 + 强制 RLS）、真实服务实现。
 // 时间由可调时钟给出，锁定到期、票据过期、会话寿命都靠推进时钟验证，不靠睡眠。

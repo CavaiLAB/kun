@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>
 /// 当前浏览器会话的访问令牌。到期前用 refresh token 换新：同一进程内同一会话只发一次刷新请求，跨副本用 Kun 会话注册表的一次性标记互斥

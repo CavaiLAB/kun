@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Lifecycle;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

@@ -3,9 +3,9 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 目录查询的 Agent 契约（S1-IDP-010 验收 4）：contracts/identity/v1/directory.openapi.json 与 IdentityDirectoryEndpoints 的 GET 端点逐一对应，
 // 每个查询带意图式 description 与请求 / 响应示例，示例符合契约 Schema，契约 Schema 与目录记录的序列化逐字段一致；

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 
 namespace Qian.Lifecycle;

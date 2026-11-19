@@ -1,4 +1,4 @@
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>账号与成员状态的稳定词汇。</summary>
 public static class AccountStatuses

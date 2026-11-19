@@ -1,6 +1,6 @@
 using Kun.Core.Domain;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 每张目录表都是租户表；关联外键包含 tenant_id，不能用已知 UUID 跨租户建立归属。
 internal sealed class OrganizationTypeRow : IMultiTenant

@@ -1,4 +1,4 @@
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 // 配置声明的代码真相源；组件目录中的 Schema 由 qian-plugin sync 派生。
 internal static class ComponentConfiguration

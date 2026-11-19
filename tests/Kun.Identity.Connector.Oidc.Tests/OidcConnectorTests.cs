@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Identity.Connector.Oidc.Tests;
+namespace Kun.Identity.Connector.Oidc.Tests;
 
 // 通用 OIDC 连接器的协议行为：对着进程内的 OP 替身走完整授权码 + PKCE，并逐项篡改 id_token 与授权响应，确认都被拒绝。
 public sealed class OidcConnectorTests : IDisposable

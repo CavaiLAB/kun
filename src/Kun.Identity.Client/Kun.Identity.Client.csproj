@@ -4,14 +4,14 @@
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
-    <ProjectReference Include="../../../../src/Kun.Identity/Kun.Identity.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Identity.AspNetCore/Kun.Identity.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
-    <InternalsVisibleTo Include="Qian.Identity.Client.Tests" />
+    <ProjectReference Include="../Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <ProjectReference Include="../Kun.Identity/Kun.Identity.csproj" />
+    <ProjectReference Include="../Kun.Identity.AspNetCore/Kun.Identity.AspNetCore.csproj" />
+    <ProjectReference Include="../Kun.Security/Kun.Security.csproj" />
+    <InternalsVisibleTo Include="Kun.Identity.Client.Tests" />
   </ItemGroup>
 </Project>

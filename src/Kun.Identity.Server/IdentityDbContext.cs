@@ -2,7 +2,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>唯一发行方的协议与账号存储；必须经 Kun.Data 安全装配并使用独立受限数据库角色。</summary>
 public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)

@@ -5,7 +5,7 @@ using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
 namespace Qian.Events.Tests;
 

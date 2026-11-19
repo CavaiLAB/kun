@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>
 /// Argon2id 密码哈希（RFC 9106），输出 PHC 字符串 <c>$argon2id$v=19$m=…,t=…,p=…$盐$摘要</c>。

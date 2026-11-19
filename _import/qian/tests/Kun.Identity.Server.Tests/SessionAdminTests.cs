@@ -2,13 +2,13 @@ using System.Net;
 using System.Text.Json;
 using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
-using static Qian.Identity.Server.Tests.SessionSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.SessionSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 会话中心的管理面与登出：平台 / 租户管理员 / 本人三种视角，在线用户，登出事件，旁路处理的多副本安全。
 public sealed class SessionAdminTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>

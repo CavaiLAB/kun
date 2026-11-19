@@ -1,8 +1,8 @@
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Client;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Client;
 using Kun.Runtime;
 
 // Identity.Client 组件的 NativeAOT 冒烟（S1-IDP-014）：按 gateway 的用法装配依赖方会话与下游 S2S 校验，经 PluginLoader 挂载组件，
@@ -17,12 +17,12 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.UseUrls("http://127.0.0.1:0");
 builder.Logging.SetMinimumLevel(LogLevel.Warning);
 builder.Services.AddDataProtection();
-builder.Services.AddQianIdentityClient(new IdentityClientOptions
+builder.Services.AddKunIdentityClient(new IdentityClientOptions
 {
     Authority = new Uri("https://127.0.0.1:9/"), ClientId = "qian-gateway", Scopes = ["openid", "offline_access"],
     Resource = "https://api.qian.test", RedirectUri = new Uri("https://gw.qian.test/auth/callback"), UseInMemorySessionStore = true
 });
-builder.Services.AddQianIdentityS2s(new IdentityS2sOptions
+builder.Services.AddKunIdentityS2s(new IdentityS2sOptions
 {
     Issuer = "https://gw.qian.test/s2s", Audience = "qian-platform", JwksUri = new Uri("https://127.0.0.1:9/.well-known/jwks.json")
 });
@@ -30,10 +30,10 @@ builder.Services.AddAuthorization();
 
 await using var app = builder.Build();
 app.UseRouting();
-app.UseQianIdentityClient();
+app.UseKunIdentityClient();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapQianIdentityClient();
+app.MapKunIdentityClient();
 app.MapGet("/smoke/s2s", (RequestDelegate)(http => http.Response.WriteAsync("ok")))
     .RequireAuthorization(policy => policy.AddAuthenticationSchemes(IdentityClientDefaults.S2sScheme).RequireAuthenticatedUser());
 await app.StartAsync();

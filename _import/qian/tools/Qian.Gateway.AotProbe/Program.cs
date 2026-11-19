@@ -12,8 +12,8 @@ using Qian.Audit;
 using Qian.Config;
 using Qian.Config.Apollo;
 using Kun.Data;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Client;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Client;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using StackExchange.Redis;
@@ -41,7 +41,7 @@ builder.Services.AddKunData<AuditDbContext>((_, options) => options
     .UseNpgsql(Required("Audit:Connection")).UseKunSchema(AuditDbContext.Schema));
 builder.Services.AddDataProtection();
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(Required("Redis:Connection")));
-builder.Services.AddQianIdentityClient(new IdentityClientOptions
+builder.Services.AddKunIdentityClient(new IdentityClientOptions
 {
     Authority = new Uri(Required("Identity:Issuer")), ClientId = Required("Identity:ClientId"),
     Resource = Required("Identity:Resource"), RedirectUri = new Uri(Required("Identity:RedirectUri"))
@@ -58,8 +58,8 @@ builder.Services.AddKunGateway(options =>
     options.PublicKeyPath = Required("Gateway:PublicKeyPath"); options.KeyOverlapPeriod = TimeSpan.FromMinutes(10);
 });
 await using var app = builder.Build();
-app.UseRouting(); app.UseQianIdentityClient(); app.UseAuthentication(); app.UseAuthorization(); app.UseRateLimiter();
-app.MapQianIdentityClient(); app.MapKunJwks(); app.MapReverseProxy();
+app.UseRouting(); app.UseKunIdentityClient(); app.UseAuthentication(); app.UseAuthorization(); app.UseRateLimiter();
+app.MapKunIdentityClient(); app.MapKunJwks(); app.MapReverseProxy();
 await using var loader = new PluginLoader(app.Services);
 using var empty = JsonDocument.Parse("{}");
 using var apollo = JsonDocument.Parse(Required("Apollo:PluginConfiguration"));

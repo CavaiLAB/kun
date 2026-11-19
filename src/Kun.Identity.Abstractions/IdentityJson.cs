@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Security;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>身份契约序列化入口；只处理 DTO，不验证令牌签名或授予权限。</summary>
 public static class IdentityJson

@@ -1,6 +1,6 @@
-# Qian.Identity.Connector.Oidc
+# Kun.Identity.Connector.Oidc
 
-通用 OIDC 上游连接器（S1-IDP-007，PRD 7.4.2、ADR-005 D5.6 / D5.12）：把企业 IdP、运维侧 Authentik 这类标准 OpenID Provider 接成身份 seam 的连接器。只做协议：授权码 + PKCE（S256）、换码、校验 id_token，输出 `ExternalAssertion`；state / nonce 的生成与关联、统一回调、确认绑定、JIT 与会话签发都由身份 Provider（[Qian.Identity.Server](../Qian.Identity.Server/README.md)）负责。
+通用 OIDC 上游连接器（S1-IDP-007，PRD 7.4.2、ADR-005 D5.6 / D5.12）：把企业 IdP、运维侧 Authentik 这类标准 OpenID Provider 接成身份 seam 的连接器。只做协议：授权码 + PKCE（S256）、换码、校验 id_token，输出 `ExternalAssertion`；state / nonce 的生成与关联、统一回调、确认绑定、JIT 与会话签发都由身份 Provider（[Kun.Identity.Server](../Kun.Identity.Server/README.md)）负责。
 
 ## 装配位置
 
@@ -13,7 +13,7 @@ Apply 按配置构造 `OidcIdentityConnector`，以配置的 `name`（缺省 `oi
 
 ## 配置
 
-配置声明来自代码 `ComponentConfiguration.Schema`，派生为组件文件夹的 [schemas/config.schema.json](../../plugins/qian.identity.connector.oidc/schemas/config.schema.json)。动态适配器从同一声明仅移除 name 的固定值约束，其他字段规则共用：
+配置声明来自代码 `ComponentConfiguration.Schema`，派生为组件文件夹的 [schemas/config.schema.json](../../_import/qian/plugins/qian.identity.connector.oidc/schemas/config.schema.json)。动态适配器从同一声明仅移除 name 的固定值约束，其他字段规则共用：
 
 | 成员 | 说明 |
 | --- | --- |
@@ -39,11 +39,11 @@ Apply 按配置构造 `OidcIdentityConnector`，以配置的 `name`（缺省 `oi
 
 ## 依赖边界
 
-只依赖 `Qian.Identity.Abstractions`、`Qian.Config.Abstractions`（secretRef 与密钥解析端口）与 `Microsoft.IdentityModel.JsonWebTokens`；不依赖 `Qian.Identity.Server` 实现包，CI 的依赖门禁（仓库根的 `scripts/check_deps.py`，平台档包不依赖别的平台档提供者）与仓库根 `tests/gates/test_check_deps.py` 的 `RealGraphTests` 对此把关。
+只依赖 `Kun.Identity.Abstractions`、`Qian.Config.Abstractions`（secretRef 与密钥解析端口）与 `Microsoft.IdentityModel.JsonWebTokens`；不依赖 `Kun.Identity.Server` 实现包，CI 的依赖门禁（仓库根的 `scripts/check_deps.py`，平台档包不依赖别的平台档提供者）与仓库根 `tests/gates/test_check_deps.py` 的 `RealGraphTests` 对此把关。
 
 ## 验收
 
-`tests/Qian.Identity.Connector.Oidc.Tests`：进程内的 OP 替身走完整授权码 + PKCE，逐项篡改签名（同 kid 换私钥、不签名、用客户端密钥 HS256 伪签且 JWKS 发布了对称密钥）、iss、aud、sub、azp、多受众、nonce、有效期、RFC 9207 的 iss 参数、发现文档 issuer、PKCE verifier、超大与非 JSON 响应，以及发现文档与 JWKS 的缓存和刷新间隔；配置只接受 secretRef、清单合法且 Schema 与组件文件夹同一份、描述不含任何配置值、组件按 scope 注册与卸载。关键校验做过变异验证（去掉任一校验，至少一个用例失败）。端到端由 `Qian.Identity.Server.Tests` 的 `AuthentikConnectorTests` 对容器里的真实 Authentik 完成。
+`tests/Qian.Identity.Connector.Oidc.Tests`：进程内的 OP 替身走完整授权码 + PKCE，逐项篡改签名（同 kid 换私钥、不签名、用客户端密钥 HS256 伪签且 JWKS 发布了对称密钥）、iss、aud、sub、azp、多受众、nonce、有效期、RFC 9207 的 iss 参数、发现文档 issuer、PKCE verifier、超大与非 JSON 响应，以及发现文档与 JWKS 的缓存和刷新间隔；配置只接受 secretRef、清单合法且 Schema 与组件文件夹同一份、描述不含任何配置值、组件按 scope 注册与卸载。关键校验做过变异验证（去掉任一校验，至少一个用例失败）。端到端由 `Kun.Identity.Server.Tests` 的 `AuthentikConnectorTests` 对容器里的真实 Authentik 完成。
 
 ## 模型体验
 

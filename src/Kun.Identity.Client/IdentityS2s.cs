@@ -2,9 +2,9 @@ using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>
 /// 下游服务的 S2S 校验：Kun.Security 负责验签（只收 RS256 / ES256）、issuer、受众与寿命；本类型再按冻结契约

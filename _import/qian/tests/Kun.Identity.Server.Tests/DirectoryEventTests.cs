@@ -1,11 +1,11 @@
 using System.Net;
 using Json.Schema;
 using Kun.EventBus;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // directory.*.v1（S1-IDP-010）：目录写入与事件同事务进入 Outbox；载荷符合随 Definition 分发的 Schema，不含名称、姓名与联系方式；失败写入不留事件。
 public sealed class DirectoryEventTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
@@ -146,7 +146,7 @@ public sealed class DirectoryEventTests(PostgresFixture postgres) : IClassFixtur
         await using var count = new Npgsql.NpgsqlCommand("SELECT count(*) FROM plugin_qian_identity.directory_revisions", connection); Assert.Equal(0L, await count.ExecuteScalarAsync(Ct));
     }
 
-    // 宿主漏装 AddQianIdentityEvents（没有把目录事件写进 Outbox 的处理器）时，会发目录事件的四个写入入口（目录写入、成员新建、
+    // 宿主漏装 AddKunIdentityEvents（没有把目录事件写进 Outbox 的处理器）时，会发目录事件的四个写入入口（目录写入、成员新建、
     // 状态变更、重新启用）都在提交前抛错回滚：业务数据、修订行与 Outbox 一条都不留，不会静默丢事件（S1-IDP-010 第一轮复核补的用例）。
     [Fact]
     public async Task 宿主漏装目录事件处理器时_目录写入_成员新建_状态变更与重新启用都整体回滚()

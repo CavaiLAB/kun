@@ -2,11 +2,11 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 连接器 TCK 的假连接器：模拟一个上游身份源。授权地址带 state / nonce / PKCE challenge；「用户在上游同意」由测试调用 Approve，
 // 得到绑定了 nonce 与外部 subject 的一次性授权码；回调时按协议核对授权码与 nonce，记录调用次数（验证回调幂等）。
@@ -94,7 +94,7 @@ internal sealed class ConnectorsPlugin(params IIdentityConnector[] connectors) :
     /// <summary>真实的通用 OIDC 连接器组件条目（注册名取配置的 name，缺省 oidc）。</summary>
     internal static PluginDefinition Oidc(string id, object config, Qian.Config.ISecretResolver secrets, HttpMessageHandler handler, string name = "oidc", ScopeKey? scope = null) =>
         new(new PluginEntry(id, "qian.identity.connector.oidc", "1.0.0", scope ?? ScopeKey.Global, 1, JsonSerializer.SerializeToElement(config)),
-            new Qian.Identity.Connector.Oidc.OidcConnectorPlugin(secrets, handler), [new ServiceKey("Identity.Connectors:" + name)]);
+            new Kun.Identity.Connector.Oidc.OidcConnectorPlugin(secrets, handler), [new ServiceKey("Identity.Connectors:" + name)]);
 
     internal static PluginDefinition Define(string id, ScopeKey scope, params IIdentityConnector[] connectors) =>
         new(new PluginEntry(id, "test.connectors", "1.0.0", scope, 1, JsonSerializer.SerializeToElement(new { })), new ConnectorsPlugin(connectors),

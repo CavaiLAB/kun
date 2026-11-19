@@ -5,10 +5,10 @@ using Kun.Identity;
 using Microsoft.Extensions.Logging;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
-using static Qian.Identity.Server.Tests.SessionSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.SessionSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 日志卫生（S1-IDP-004 验收 4）：会话标识 sid、令牌与密钥不进日志；审计只记 sid 的哈希。
 // 两道关：静态——Identity Server 的全部日志点都是 [LoggerMessage]，没有一条带会话标识；运行时——整套会话流程跑完，本组件的日志里找不到任何会话标识或凭据。
@@ -35,7 +35,7 @@ public sealed partial class SessionLogHygieneTests(PostgresFixture postgres, Red
     {
         // 直接调用 ILogger 的 Log* 方法会绕开下面的检查，所以源码里不允许出现。
         var separator = Path.DirectorySeparatorChar;
-        var sources = Directory.EnumerateFiles(Path.Combine(Root(), "packages", "Qian.Identity.Server"), "*.cs", SearchOption.AllDirectories)
+        var sources = Directory.EnumerateFiles(Path.Combine(Root(), "packages", "Kun.Identity.Server"), "*.cs", SearchOption.AllDirectories)
             .Where(path => !path.Contains($"{separator}obj{separator}", StringComparison.Ordinal) && !path.Contains($"{separator}bin{separator}", StringComparison.Ordinal)).ToArray();
         Assert.NotEmpty(sources);
         Assert.All(sources, path => Assert.Empty(DirectLoggerCall().Matches(File.ReadAllText(path))));

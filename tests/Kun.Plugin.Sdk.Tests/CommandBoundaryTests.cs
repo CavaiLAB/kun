@@ -11,7 +11,7 @@ using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
 namespace Kun.Plugin.Sdk.Tests;
 

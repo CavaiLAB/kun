@@ -2,10 +2,10 @@ using System.Net;
 using Kun.EventBus;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
-using static Qian.Identity.Server.Tests.SessionSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.SessionSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 租户不可用时的会话处理（R95）：tenant.suspended / tenant.expired 到达后该租户的会话立即吊销；事件丢失或迟到时，后台对账按目录状态兜底；
 // 无论哪条路径，refresh 都被拒，别的租户和平台身份的会话不受牵连。

@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>
 /// 规范身份：从已验签的访问令牌（会话或外部 Bearer）投影出网关铸 S2S 所需的字段。OIDC 的 sid 映射为 session_id，

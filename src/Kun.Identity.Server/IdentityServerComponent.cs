@@ -1,11 +1,11 @@
 using Kun.EntityFrameworkCore;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Tenancy;
 using System.Text.Json;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 IdentityServerPlugin 保留。</summary>
 [KunPlugin("qian.identity.server", MetadataTypes = [typeof(IdentityRuntimeEvents), typeof(DirectoryDisableCapability), typeof(DirectoryAddCapability)])]

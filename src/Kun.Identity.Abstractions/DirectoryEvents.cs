@@ -1,6 +1,6 @@
 using Kun.EventBus;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>
 /// 组织目录的稳定跨进程事件 ID（CloudEvents 信封见 contracts/v0/event-envelope.schema.json）。

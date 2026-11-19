@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
 namespace Kun.Tenancy.Signup;
 

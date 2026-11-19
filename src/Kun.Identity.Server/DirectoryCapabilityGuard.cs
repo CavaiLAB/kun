@@ -3,11 +3,11 @@ using Kun.Core.MultiTenancy;
 using Kun.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 目录标准能力共用的调用方校验（S1-IDP-009 禁用、S1-IDP-017 新增）。主体、租户与会话只取自宿主认证后的 ICurrentUser 与服务端会话，
 // 输入里没有这些字段。依次核对：租户作用域、主体快照、真实权限点、服务端会话与身份修订、本租户管理员资格；

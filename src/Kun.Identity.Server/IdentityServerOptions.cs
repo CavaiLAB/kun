@@ -2,7 +2,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using OpenIddict.Abstractions;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>宿主组合参数；私钥与客户端密钥由宿主经密钥引用装入，不写入组件清单。</summary>
 public sealed class IdentityServerOptions

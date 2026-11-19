@@ -347,11 +347,11 @@ public abstract partial class CustomerCommandTests
             }, lifecycle is null && !identity ? null : registrar =>
             {
                 if (lifecycle is not null) registrar.RegisterRegistryEvents().RegisterLifecycleEvents();
-                if (identity) Qian.Identity.Abstractions.IdentityEventRegistration.RegisterIdentityEvents(registrar);
+                if (identity) Kun.Identity.Abstractions.IdentityEventRegistration.RegisterIdentityEvents(registrar);
             }, lifecycle is null && !identity ? null : mediator =>
             {
                 if (lifecycle is not null) mediator.AddQianRegistryEvents().AddQianLifecycleEvents();
-                if (identity) Qian.Identity.Server.IdentityEventHandlers.AddQianIdentityEvents(mediator);
+                if (identity) Kun.Identity.Server.IdentityEventHandlers.AddKunIdentityEvents(mediator);
             });
             try
             {
@@ -359,7 +359,7 @@ public abstract partial class CustomerCommandTests
                 {
                     var schemas = new[] { CrmDbContext.Schema, AuthzDbContext.Schema, TenancyDbContext.Schema, AuditDbContext.Schema };
                     if (platform) schemas = [.. schemas, Qian.Registry.RegistryDbContext.Schema, Qian.Capabilities.CapabilitiesDbContext.Schema, Qian.Lifecycle.LifecycleDbContext.Schema];
-                    if (identity) schemas = [.. schemas, Qian.Identity.Server.IdentityDbContext.Schema];
+                    if (identity) schemas = [.. schemas, Kun.Identity.Server.IdentityDbContext.Schema];
                     var sql = string.Join('\n', schemas.Select(schema => "DROP SCHEMA IF EXISTS " + schema + " CASCADE;"));
                     sql += scope.ServiceProvider.GetRequiredService<CrmDbContext>().Database.GenerateCreateScript();
                     sql += scope.ServiceProvider.GetRequiredService<AuthzDbContext>().Database.GenerateCreateScript();

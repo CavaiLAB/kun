@@ -3,7 +3,7 @@ using Json.Schema;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
 namespace Qian.Events.Tests;
 

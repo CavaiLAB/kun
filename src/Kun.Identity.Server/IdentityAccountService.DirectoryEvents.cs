@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 internal sealed partial class IdentityAccountService
 {
@@ -43,10 +43,10 @@ internal sealed partial class IdentityAccountService
         return changes;
     }
 
-    // 会话保存之后、提交之前核对：宿主漏装 AddQianIdentityEvents 时抛错回滚，不会静默丢目录事件。
+    // 会话保存之后、提交之前核对：宿主漏装 AddKunIdentityEvents 时抛错回滚，不会静默丢目录事件。
     private static void EnsurePublished(IReadOnlyList<DirectoryChange> changes)
     {
-        if (changes.Any(change => !change.Published)) throw new InvalidOperationException("目录事件未进入 Outbox：宿主须登记 AddQianIdentityEvents。");
+        if (changes.Any(change => !change.Published)) throw new InvalidOperationException("目录事件未进入 Outbox：宿主须登记 AddKunIdentityEvents。");
     }
 
     private static DirectoryOrganizationCreatedEvent OrganizationCreated(long revision, OrganizationRow row) =>

@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Identity.Abstractions.Tests;
+namespace Kun.Identity.Abstractions.Tests;
 
 // 连接器清单校验与注册表 seam：清单不合法注册即失败；注册名必须等于清单 id；租户 scope 的同名注册遮蔽全局项，
 // 被 restriction 过滤的与不存在的查起来完全一样。

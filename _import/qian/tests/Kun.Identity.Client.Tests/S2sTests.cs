@@ -17,10 +17,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Identity.Client.Tests;
+namespace Kun.Identity.Client.Tests;
 
 // 验收 2：下游只认网关为本服务受众签发的 S2S 令牌。aud 不匹配、上一跳收到的令牌转发给下一跳、用户访问令牌直接打下游，以及载荷违反冻结契约
 //（寿命、闭合对象、条件必填、委托链、算法）一律拒绝；通过的请求，ICurrentUser 的快照与令牌载荷逐字段一致。
@@ -237,7 +237,7 @@ internal sealed class Downstream : IAsyncDisposable
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Production" });
         // 构建前用不到地址：监听端口 0 由 Kestrel 原子分配，启动后再读实际地址，没有「先取端口再绑定」的空档（S1-QA-016）。
         builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
-        builder.Services.AddQianIdentityS2s(new IdentityS2sOptions { Issuer = GatewayKeys.IssuerName, Audience = audience, SigningKeys = gateway.Jwks });
+        builder.Services.AddKunIdentityS2s(new IdentityS2sOptions { Issuer = GatewayKeys.IssuerName, Audience = audience, SigningKeys = gateway.Jwks });
         builder.Services.AddAuthorization(); builder.Services.AddHttpClient();
         var app = builder.Build();
         app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();

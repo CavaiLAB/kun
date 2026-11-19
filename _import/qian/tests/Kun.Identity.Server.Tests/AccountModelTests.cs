@@ -1,12 +1,12 @@
 using System.Globalization;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // Person / Membership / ExternalIdentity：真实 PostgreSQL（受限应用角色、强制 RLS）与真实服务实现。
 public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>

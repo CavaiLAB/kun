@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 与授权族吊销同事务登记，网络失败不回滚已生效的本地登出；多副本用 SKIP LOCKED 分担投递。
 internal sealed partial class IdentityBackchannelWorker(IServiceScopeFactory scopes, IdentityServerOptions options,

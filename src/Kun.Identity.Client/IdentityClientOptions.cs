@@ -1,6 +1,6 @@
 using Microsoft.IdentityModel.Tokens;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>Client 的固定名称：会话 Cookie、认证方案、防伪请求头与发行方 HTTP 客户端。</summary>
 public static class IdentityClientDefaults
@@ -14,7 +14,7 @@ public static class IdentityClientDefaults
     /// <summary>防伪令牌请求头；Cookie 认证的非安全方法必须携带。</summary>
     public const string AntiforgeryHeader = "X-CSRF-TOKEN";
     /// <summary>访问发行方（discovery、JWKS、令牌端点）所用的命名 HTTP 客户端；宿主可为它配置代理或受信根证书。</summary>
-    public const string HttpClientName = "Qian.Identity.Client";
+    public const string HttpClientName = "Kun.Identity.Client";
     /// <summary>注册给 Kun 依赖方辅助类的发行方名称。</summary>
     public const string ProviderName = "qian";
 }

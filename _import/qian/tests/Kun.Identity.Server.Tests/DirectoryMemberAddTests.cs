@@ -1,12 +1,12 @@
 using System.Net;
 using System.Text.Json;
 using Kun.EventBus;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 租户管理员新增成员（S1-IDP-017，R163）：HTTP 入口 POST /api/directory/members 在真实宿主（受限应用角色 + 强制 RLS、同事务 Outbox）上的验收。
 // 本宿主不装授权与审计组件，所以 granted_roles 为空、不写审计；初始角色 tenant.user（R158）与审计在 CRM 参考宿主的

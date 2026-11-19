@@ -2,10 +2,10 @@ using System.Security.Claims;
 using Kun.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>
 /// 当前请求的主体。规范快照只来自 qian.session 或 S2S 方案验证后放进请求项的 <see cref="Principal"/>，不读请求头或参数；

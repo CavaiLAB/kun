@@ -3,7 +3,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Security;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>稳定跨进程事件 ID；首个发布版本之后，破坏性载荷改动必须升版本，不能原地改名。</summary>
 public static class IdentityEventIds

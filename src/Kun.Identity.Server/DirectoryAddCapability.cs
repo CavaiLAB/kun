@@ -5,12 +5,12 @@ using System.Text.Json.Serialization;
 using Kun.EventBus;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 新增成员的标准能力（S1-IDP-017）：与 HTTP 目录面共用 AddMemberAsync 的真实规则与 DirectoryMemberAddition 的审计。标准能力目录、输入校验与
 // 24h 回执由 Capabilities 提供。输入里有初始密码（敏感字段），所以按 PRD 7.4.1「重置他人密码这类危险操作 humanOnly」不对 Agent 暴露，仍须人确认。

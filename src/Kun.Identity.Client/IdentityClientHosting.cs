@@ -14,12 +14,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Qian.Config;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>
 /// 依赖方装配：服务端授权码 + PKCE 换取、<c>qian.sid</c> Cookie 会话、访问令牌刷新与 discovery 定期刷新，以及下游的 S2S 校验。
@@ -31,7 +31,7 @@ public static class IdentityClientHosting
     /// 登记依赖方服务。配置 <see cref="IdentityClientOptions.RedirectUri"/> 才启用浏览器会话；会话存储默认 Redis（宿主登记 IConnectionMultiplexer），
     /// 多副本须共享 Data Protection 密钥。客户端密钥不经这里传入，只经组件配置的 secretRef 在挂载期解析。
     /// </summary>
-    public static IServiceCollection AddQianIdentityClient(this IServiceCollection services, IdentityClientOptions options)
+    public static IServiceCollection AddKunIdentityClient(this IServiceCollection services, IdentityClientOptions options)
     {
         ArgumentNullException.ThrowIfNull(services); ArgumentNullException.ThrowIfNull(options);
         options.Validate();
@@ -82,9 +82,9 @@ public static class IdentityClientHosting
 
     /// <summary>
     /// 登记下游服务的 S2S 校验（缺省认证方案 Bearer）：只信网关签发器的 issuer 与 JWKS，aud 必须恰好是本服务，载荷按冻结契约逐条校验。
-    /// 通过后 <see cref="ICurrentUser.Principal"/> 是令牌的规范快照。可与 <see cref="AddQianIdentityClient"/> 同装，也可单独使用。
+    /// 通过后 <see cref="ICurrentUser.Principal"/> 是令牌的规范快照。可与 <see cref="AddKunIdentityClient"/> 同装，也可单独使用。
     /// </summary>
-    public static IServiceCollection AddQianIdentityS2s(this IServiceCollection services, IdentityS2sOptions options)
+    public static IServiceCollection AddKunIdentityS2s(this IServiceCollection services, IdentityS2sOptions options)
     {
         ArgumentNullException.ThrowIfNull(services); ArgumentNullException.ThrowIfNull(options);
         options.Validate();
@@ -97,7 +97,7 @@ public static class IdentityClientHosting
             kun.Issuer = options.Issuer; kun.Audience = options.Audience; kun.JwksUri = options.JwksUri?.AbsoluteUri; kun.StaticKeySet = options.SigningKeys;
         });
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<TimeProvider, ILoggerFactory>((jwt, clock, loggers) =>
-            IdentityS2sValidation.Configure(jwt, options, clock, loggers.CreateLogger("Qian.Identity.Client")));
+            IdentityS2sValidation.Configure(jwt, options, clock, loggers.CreateLogger("Kun.Identity.Client")));
         AddCurrentUser(services);
         return services;
     }
@@ -106,7 +106,7 @@ public static class IdentityClientHosting
     /// 安装依赖方中间件：错误详情、端点门控与禁缓存头、Kun Cookie 会话（含滑动续期与防伪校验），规范模式下再把会话换成已验证的规范主体。
     /// 须在 UseRouting 之后、UseAuthentication 之前调用；组件未挂载时登录端点返回 404，Cookie 会话不生效。
     /// </summary>
-    public static IApplicationBuilder UseQianIdentityClient(this IApplicationBuilder app)
+    public static IApplicationBuilder UseKunIdentityClient(this IApplicationBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app);
         var runtime = app.ApplicationServices.GetRequiredService<IdentityClientRuntime>();
@@ -141,7 +141,7 @@ public static class IdentityClientHosting
     }
 
     /// <summary>映射登录、回调（RedirectUri 的路径）、登出、防伪令牌、会话快照（GET session）、强制刷新（POST session/refresh）与 OIDC 后通道登出端点；未配置 RedirectUri 时不映射。</summary>
-    public static IEndpointRouteBuilder MapQianIdentityClient(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapKunIdentityClient(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         var options = endpoints.ServiceProvider.GetRequiredService<IdentityClientOptions>();

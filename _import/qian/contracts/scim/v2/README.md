@@ -51,4 +51,4 @@ Group：
 
 ## 测试
 
-`Qian.Identity.Abstractions.Tests` 的 `ScimContractsTests` 校验：三份表示的 Schema URN、属性集合与属性特征（RFC 7643 第 7 节的取值范围）；JSON Schema 与表示逐属性、逐子属性一致（类型、多值、必填、只读 / 只写）；ResourceType 引用的 Schema 都在本目录；样例通过 JSON Schema，缺必填、未声明属性、扩展未在 `schemas` 声明等反例被拒。
+`Kun.Identity.Abstractions.Tests` 的 `ScimContractsTests` 校验：三份表示的 Schema URN、属性集合与属性特征（RFC 7643 第 7 节的取值范围）；JSON Schema 与表示逐属性、逐子属性一致（类型、多值、必填、只读 / 只写）；ResourceType 引用的 Schema 都在本目录；样例通过 JSON Schema，缺必填、未声明属性、扩展未在 `schemas` 声明等反例被拒。

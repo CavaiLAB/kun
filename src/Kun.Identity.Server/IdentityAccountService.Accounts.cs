@@ -2,10 +2,10 @@ using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 账号管理：Person、标识、凭据、Membership、外部身份。
 internal sealed partial class IdentityAccountService

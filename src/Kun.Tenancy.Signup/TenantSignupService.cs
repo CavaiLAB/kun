@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
 namespace Kun.Tenancy.Signup;
 

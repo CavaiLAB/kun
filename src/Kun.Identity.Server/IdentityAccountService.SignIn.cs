@@ -3,12 +3,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 统一登录流水线：所有登录方式构造同一个 LoginInput，经同一条「限流 → 因子验证 → 身份选择 → 会话签发 → 审计」路径。
 internal sealed partial class IdentityAccountService

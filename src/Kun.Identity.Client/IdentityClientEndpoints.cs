@@ -10,11 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Identity.Client;
+namespace Kun.Identity.Client;
 
 /// <summary>
 /// 浏览器登录事务（服务端换码，BFF）：login 生成 PKCE + state + nonce 并跳转发行方；回调先消费一次性事务（state 校验与重放拒绝，
@@ -207,7 +207,7 @@ internal static partial class IdentityClientEndpoints
         Log.ProviderUnavailable(logger, type);
     }
 
-    private static ILogger Logger(HttpContext http) => http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Identity.Client");
+    private static ILogger Logger(HttpContext http) => http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Identity.Client");
 
     private static partial class Log
     {

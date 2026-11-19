@@ -1,8 +1,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 账号模型的纯规则：哈希格式、标识规范化与掩码、锁定算法、密码规范化、选项校验。不需要数据库。
 public sealed partial class AccountRulesTests

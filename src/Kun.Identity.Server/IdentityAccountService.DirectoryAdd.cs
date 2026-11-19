@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 租户管理员直接新增成员（S1-IDP-017，R158 / R163）。新建自然人；标识属于本租户自己从目录删除的成员时，按标识恢复原成员。
 // 一个事务里完成：配额 → 解析标识 → 新建自然人与成员（或恢复）→ 目录事件 → 初始角色。

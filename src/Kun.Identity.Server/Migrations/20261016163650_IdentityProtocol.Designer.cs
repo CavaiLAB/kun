@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Qian.Identity.Server;
+using Kun.Identity.Server;
 
 #nullable disable
 
-namespace Qian.Identity.Server.Migrations
+namespace Kun.Identity.Server.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
     [Migration("20261016163650_IdentityProtocol")]
@@ -358,7 +358,7 @@ namespace Qian.Identity.Server.Migrations
                     b.ToTable("open_iddict_tokens", "plugin_qian_identity");
                 });
 
-            modelBuilder.Entity("Qian.Identity.Server.LogoutDelivery", b =>
+            modelBuilder.Entity("Kun.Identity.Server.LogoutDelivery", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

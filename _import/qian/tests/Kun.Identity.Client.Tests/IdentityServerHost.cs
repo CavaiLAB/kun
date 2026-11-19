@@ -22,15 +22,15 @@ using Npgsql;
 using OpenIddict.Abstractions;
 using Kun.Data;
 using Qian.Events;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Server;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
 using Kun.Runtime;
 using Kun.Tenancy;
 using Qian.Testing;
 using Qian.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Identity.Client.Tests;
+namespace Kun.Identity.Client.Tests;
 
 /// <summary>
 /// 真实的 qian-identity：内置账号模型（PostgreSQL 受限应用角色 + 强制 RLS）、OpenIddict 协议面（强制 PKCE S256、openid 必带 nonce、
@@ -80,7 +80,7 @@ internal sealed class IdentityServerHost : IAsyncDisposable
         builder.WebHost.UseUrls(issuer); builder.Logging.ClearProviders();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(events => events.RegisterIdentityEvents());
-        builder.Services.AddKunMediator(mediator => mediator.AddQianIdentityEvents());
+        builder.Services.AddKunMediator(mediator => mediator.AddKunIdentityEvents());
         builder.Services.AddQianEvents();
         builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
@@ -90,7 +90,7 @@ internal sealed class IdentityServerHost : IAsyncDisposable
         web.RedirectUris.Add(callback);
         web.Permissions.UnionWith([Permissions.Endpoints.Authorization, Permissions.Endpoints.Token, Permissions.Endpoints.EndSession, Permissions.Endpoints.Revocation,
             Permissions.GrantTypes.AuthorizationCode, Permissions.GrantTypes.RefreshToken, Permissions.ResponseTypes.Code, Permissions.Prefixes.Scope + "qian.api"]);
-        builder.Services.AddQianIdentityServer(new IdentityServerOptions
+        builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
             Issuer = new Uri(issuer), AllowLoopbackHttp = true, SigningCertificates = [certificate], EncryptionCertificates = [certificate],
             Clients = [new() { Application = web, Resources = [Resource, OtherResource], BackchannelLogoutUri = backchannel is null ? null : new Uri(callback, "/auth/backchannel-logout") }]
@@ -102,7 +102,7 @@ internal sealed class IdentityServerHost : IAsyncDisposable
                 AllowAutoRedirect = false, UseCookies = false,
                 SslOptions = new System.Net.Security.SslClientAuthenticationOptions { RemoteCertificateValidationCallback = (_, certificate, _, _) => certificate?.GetCertHashString() == backchannel.GetCertHashString() }
             });
-        var app = builder.Build(); app.UseQianIdentityServer(); app.UseAuthentication(); app.MapQianIdentityServer(); app.MapQianIdentityAccounts();
+        var app = builder.Build(); app.UseKunIdentityServer(); app.UseAuthentication(); app.MapKunIdentityServer(); app.MapKunIdentityAccounts();
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var sql = scope.ServiceProvider.GetRequiredService<IdentityDbContext>().GetService<IMigrator>().GenerateScript();

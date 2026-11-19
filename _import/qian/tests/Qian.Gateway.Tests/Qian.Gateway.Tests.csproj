@@ -3,8 +3,8 @@
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../packages/Qian.Gateway/Qian.Gateway.csproj" />
-    <ProjectReference Include="../../packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
-    <ProjectReference Include="../../packages/Qian.Identity.Server/Qian.Identity.Server.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../packages/Qian.Events/Qian.Events.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
@@ -18,6 +18,6 @@
     <Compile Include="../Shared/LoopbackPort.cs" Link="LoopbackPort.cs" />
     <Compile Include="../Shared/IdentityProtocolHost.cs" Link="IdentityProtocolHost.cs" />
     <Compile Include="../Shared/GatewayTestHost.cs" Link="GatewayTestHost.cs" />
-    <Compile Include="../Qian.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityAccountHost.cs" />
+    <Compile Include="../Kun.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityAccountHost.cs" />
   </ItemGroup>
 </Project>

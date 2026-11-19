@@ -9,9 +9,9 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // S1-YUE-002：外壳切换租户走标准 prompt=select_account——账号 Cookie 仍有效时授权端点 302 到同源选择页，页面换会话后回到去掉 prompt 的授权地址签新码；
 // id_token 带标准 name claim（成员显示名 / 平台身份的自然人显示名），访问令牌不带。其余 prompt 值仍按 interaction_required 拒绝。
@@ -133,8 +133,8 @@ public sealed class AccountSelectionTests(PostgresFixture postgres) : IClassFixt
                 { ClientId = "test", ClientType = OpenIddictConstants.ClientTypes.Confidential, ClientSecret = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)), ConsentType = OpenIddictConstants.ConsentTypes.Implicit }, Resources = ["https://api.example"] }]
         };
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Production" });
-        if (accepted) builder.Services.AddQianIdentityServer(options, builder.Environment);
-        else Assert.Throws<ArgumentException>(() => builder.Services.AddQianIdentityServer(options, builder.Environment));
+        if (accepted) builder.Services.AddKunIdentityServer(options, builder.Environment);
+        else Assert.Throws<ArgumentException>(() => builder.Services.AddKunIdentityServer(options, builder.Environment));
     }
 
     // 浏览器直接发出的授权请求（web 客户端、PKCE S256、openid 带 nonce），可附 prompt。

@@ -710,7 +710,7 @@ public abstract partial class CustomerCommandTests
     };
 
     // 不经 HTTP 的已验证主体快照：直接交给 CapabilityService，观察端口自身的判定。
-    private protected sealed class DirectUser(Principal principal) : Qian.Identity.Abstractions.ICurrentUser
+    private protected sealed class DirectUser(Principal principal) : Kun.Identity.Abstractions.ICurrentUser
     {
         public Principal? Principal { get; } = principal;
         public string? UserId => Principal?.Subject;

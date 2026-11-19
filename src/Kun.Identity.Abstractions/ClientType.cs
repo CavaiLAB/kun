@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>客户端登记类型，独立于 OIDC grant；Agent 为预留值。</summary>
 [JsonConverter(typeof(ClientTypeConverter))]

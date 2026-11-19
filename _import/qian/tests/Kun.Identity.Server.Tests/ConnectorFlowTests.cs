@@ -1,14 +1,14 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 连接器 TCK 与绑定流程（S1-IDP-007）：真实 PostgreSQL + 身份服务 HTTP 面，假连接器模拟上游。
 // TCK 三项：清单校验、state 篡改拒绝、回调幂等；其余覆盖确认绑定、冲突、过期、重新认证窗口、取消、JIT 与租户 scope 过滤。

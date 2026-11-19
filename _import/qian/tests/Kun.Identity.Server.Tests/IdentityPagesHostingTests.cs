@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 认证页族与身份服务同源托管（S1-YUE-012）：/login 下的页面路由回入口且不缓存、/login/assets 长缓存、缺失资源 404，全部响应带同一组安全头；
 // 选择页（prompt=select_account）的路径必须落在托管路径下。
@@ -24,7 +24,7 @@ public sealed class IdentityPagesHostingTests
             var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
             builder.Services.AddSingleton(new IdentityServerOptions { Issuer = new Uri("https://id.qian.test/") });
             await using var app = builder.Build();
-            app.UseQianIdentityPages(root.FullName);
+            app.UseKunIdentityPages(root.FullName);
             app.MapGet("/login-status", () => "next");
             await app.StartAsync(Ct);
             using var http = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
@@ -56,10 +56,10 @@ public sealed class IdentityPagesHostingTests
             Write(root, "index.html", "<!doctype html>");
             var outside = WebApplication.CreateBuilder();
             outside.Services.AddSingleton(new IdentityServerOptions { Issuer = new Uri("https://id.qian.test/"), Accounts = new IdentityAccountOptions { SelectionPath = "/select-tenant" } });
-            Assert.Throws<InvalidOperationException>(() => outside.Build().UseQianIdentityPages(root.FullName));
+            Assert.Throws<InvalidOperationException>(() => outside.Build().UseKunIdentityPages(root.FullName));
             var empty = WebApplication.CreateBuilder();
             empty.Services.AddSingleton(new IdentityServerOptions { Issuer = new Uri("https://id.qian.test/") });
-            Assert.Throws<ArgumentException>(() => empty.Build().UseQianIdentityPages(Path.Combine(root.FullName, "missing")));
+            Assert.Throws<ArgumentException>(() => empty.Build().UseKunIdentityPages(Path.Combine(root.FullName, "missing")));
         }
         finally { root.Delete(recursive: true); }
     }

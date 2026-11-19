@@ -6,13 +6,13 @@ using Kun.Identity;
 using Kun.Identity.Implementations;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 账号 HTTP 面的端到端：防伪令牌、登录、选择租户、切换、授权码换令牌，用已发布的 Kun OIDC 客户端当依赖方。
 public sealed class SignInHttpTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>

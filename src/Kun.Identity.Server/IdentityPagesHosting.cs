@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>认证页族（packages/qian-identity-ui 的构建产物）与身份服务同源的静态托管（S1-YUE-012）。</summary>
 public static class IdentityPagesHosting
@@ -12,12 +12,12 @@ public static class IdentityPagesHosting
     public const string PagesPath = "/login";
 
     /// <summary>
-    /// 放在 <see cref="IdentityServerHosting.UseQianIdentityServer"/> 之后、UseRouting 之前：同源托管认证页族。<c>/login</c> 下的资源由静态文件提供
+    /// 放在 <see cref="IdentityServerHosting.UseKunIdentityServer"/> 之后、UseRouting 之前：同源托管认证页族。<c>/login</c> 下的资源由静态文件提供
     /// （<c>/login/assets/</c> 带哈希长缓存），不带扩展名的页面路由（<c>/login</c>、<c>/login/select-tenant</c>、<c>/login/connector/{connectorId}</c> 等）
     /// 一律回入口 index.html；HTML 不缓存，全部响应带 nosniff、<c>Referrer-Policy: no-referrer</c> 与 <c>Content-Security-Policy: frame-ancestors 'none'</c>
     /// （页面不许被任何来源嵌入）。<c>Accounts.SelectionPath</c> 必须落在 <c>/login</c> 下，否则 <c>prompt=select_account</c> 会跳到未托管的页面，抛出。
     /// </summary>
-    public static IApplicationBuilder UseQianIdentityPages(this IApplicationBuilder app, string root)
+    public static IApplicationBuilder UseKunIdentityPages(this IApplicationBuilder app, string root)
     {
         ArgumentNullException.ThrowIfNull(app);
         if (string.IsNullOrWhiteSpace(root) || !File.Exists(Path.Combine(root, "index.html"))) throw new ArgumentException("认证页族目录必须存在且含 index.html。", nameof(root));

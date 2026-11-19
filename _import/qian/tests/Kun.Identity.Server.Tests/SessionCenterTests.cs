@@ -1,12 +1,12 @@
 using System.Net;
 using System.Net.Http.Headers;
 using Kun.EventBus;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
-using static Qian.Identity.Server.Tests.SessionSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.SessionSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 会话中心（S1-IDP-004）：吊销即时生效、旁路（协议授权族、后通道登出、集成事件）随后送达、并发上限与单端模式、租户状态对账、修订递增。
 // 真实 PostgreSQL（受限应用角色 + 强制 RLS）、真实 OpenIddict 协议面、真实账号 HTTP 接口，依赖方用已发布的 Kun OIDC 客户端。

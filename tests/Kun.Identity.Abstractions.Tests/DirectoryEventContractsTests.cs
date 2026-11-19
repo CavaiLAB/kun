@@ -7,7 +7,7 @@ using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Identity.Abstractions.Tests;
+namespace Kun.Identity.Abstractions.Tests;
 
 // directory.*.v1（S1-IDP-010 验收 3）：稳定 ID、类型标记、源生成 JSON 与随 Definition 分发的 JSON Schema 一一对应。
 public sealed class DirectoryEventContractsTests

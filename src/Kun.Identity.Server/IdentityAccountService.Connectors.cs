@@ -5,12 +5,12 @@ using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 上游连接器登录（PRD 7.4.2、ADR-005 D5.6 / D5.11）。连接器只做「跳转 → 拿回外部断言」；state / nonce / PKCE verifier、
 // 回调幂等、外部身份绑定、JIT 建号与会话签发都在这里。连接器注册在运行时的 Identity.Connectors 注册表里，一律按流程所属租户的

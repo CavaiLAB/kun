@@ -1,9 +1,9 @@
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Testing.Containers;
-using static Qian.Identity.Server.Tests.AccountSupport;
-using static Qian.Identity.Server.Tests.SessionSupport;
+using static Kun.Identity.Server.Tests.AccountSupport;
+using static Kun.Identity.Server.Tests.SessionSupport;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 卸载与后台工作的竞争（S1-IDP-004 实现时发现的缺陷）：组件卸载紧接着会释放 Data 的会话，
 // 若吊销旁路或租户对账还握着数据会话，并发释放会让正在执行的命令撞上 Npgsql 的「连接忙」，甚至让卸载一直挂住。

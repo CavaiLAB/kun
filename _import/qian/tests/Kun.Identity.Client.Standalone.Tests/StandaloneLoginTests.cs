@@ -12,13 +12,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing.Containers;
 
-namespace Qian.Identity.Client.Standalone.Tests;
+namespace Kun.Identity.Client.Standalone.Tests;
 
-// 验收 3：独立宿主只装 Qian.Identity.Client，对接 Qian 之外的 OIDC 发行方（Dex）完成授权码 + PKCE 登录。不部署 Qian 平台、不装 Config：
+// 验收 3：独立宿主只装 Kun.Identity.Client，对接 Qian 之外的 OIDC 发行方（Dex）完成授权码 + PKCE 登录。不部署 Qian 平台、不装 Config：
 // 公开客户端没有密钥，进程内会话存储。外部发行方没有 Qian 的规范身份声明，所以 Principal 为空、只给出会话主体（授权 PEP 会一律拒绝）。
 public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture<DexFixture>
 {
@@ -29,7 +29,7 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     // Client 只用插件开发包的内核一半，数据、授权、事件与表面的契约随命令管道留在平台档的一半里，不再进闭包。
     private static readonly string[] AllowedQianAssemblies =
     [
-        "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Qian.Testing.Containers",
+        "Kun.Identity.Client", "Kun.Identity.Abstractions", "Qian.Config.Abstractions", "Qian.Testing.Containers",
         "Kun.Authorization", "Kun.Caching", "Kun.Core", "Kun.Errors", "Kun.Errors.AspNetCore", "Kun.EventBus.Abstractions",
         "Kun.Identity", "Kun.Identity.AspNetCore", "Kun.Mediator", "Kun.MultiTenancy", "Kun.Plugin.Sdk", "Kun.Runtime", "Kun.Security", "Kun.Security.Abstractions"
     ];
@@ -42,15 +42,15 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
         builder.WebHost.ConfigureKestrel(kestrel => kestrel.ListenLocalhost(dex.RedirectUri.Port, listen => listen.UseHttps(tls)));
         builder.Logging.ClearProviders();
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
-        builder.Services.AddQianIdentityClient(new IdentityClientOptions
+        builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
             Authority = dex.Issuer, ClientId = DexFixture.ClientId, Scopes = ["openid", "email", "profile"], RedirectUri = dex.RedirectUri,
             RequireHttpsMetadata = false, UseInMemorySessionStore = true
         });
         builder.Services.AddAuthorization();
         await using var app = builder.Build();
-        app.UseRouting(); app.UseQianIdentityClient(); app.UseAuthentication(); app.UseAuthorization();
-        app.MapQianIdentityClient();
+        app.UseRouting(); app.UseKunIdentityClient(); app.UseAuthentication(); app.UseAuthorization();
+        app.MapKunIdentityClient();
         app.MapGet("/me", (ICurrentUser user, HttpContext http) => Results.Json(new
         {
             userId = user.UserId, authenticated = user.IsAuthenticated, canonical = user.Principal is not null, email = http.User.FindFirst(ClaimTypes.Email)?.Value
@@ -107,18 +107,18 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     [Fact]
     public void 宿主的依赖闭包只有Client及其Runtime与SDK和Definition()
     {
-        using var deps = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Qian.Identity.Client.Standalone.Tests.deps.json")));
+        using var deps = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Kun.Identity.Client.Standalone.Tests.deps.json")));
         var closure = deps.RootElement.GetProperty("libraries").EnumerateObject().Select(library => library.Name.Split('/')[0])
             .Where(name => (name.StartsWith("Qian.", StringComparison.Ordinal) || name.StartsWith("Kun.", StringComparison.Ordinal))
-                && name != "Qian.Identity.Client.Standalone.Tests").Distinct().Order().ToArray();
-        Assert.Contains("Qian.Identity.Client", closure);
+                && name != "Kun.Identity.Client.Standalone.Tests").Distinct().Order().ToArray();
+        Assert.Contains("Kun.Identity.Client", closure);
         Assert.Empty(UnexpectedDependencies(closure));
     }
 
     [Theory]
     [InlineData("Kun.Data")]
     [InlineData("Qian.Config.Apollo")]
-    [InlineData("Qian.Identity.Server")]
+    [InlineData("Kun.Identity.Server")]
     [InlineData("Qian.Registry")]
     [InlineData("Qian.Authz")]
     public void SDK元数据接入仍硬拒绝任何其它Provider(string provider) =>

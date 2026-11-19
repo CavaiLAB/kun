@@ -1,7 +1,7 @@
 using Kun.Core.Domain;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 身份数据库的行类型。Person 及其凭据、标识、会话、审计是全局表（无租户列，RLS 不适用）；
 // Membership 与 ExternalIdentity 带 tenant_id，是强制 RLS 的租户表，只能在对应租户上下文中读写。

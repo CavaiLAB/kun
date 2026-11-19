@@ -2,11 +2,11 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // Membership：person × tenant。创建在同一事务里持计数锁，先过租户配额判定端口再插入，并发创建不会一起越过上限。
 internal sealed partial class IdentityAccountService

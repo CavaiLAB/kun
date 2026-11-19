@@ -12,7 +12,7 @@ using Npgsql;
 using System.Text;
 using Kun.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;

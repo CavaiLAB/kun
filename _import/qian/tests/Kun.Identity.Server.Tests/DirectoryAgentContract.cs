@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // contracts/identity/v1/directory.openapi.json 的读取与校验（S1-IDP-010 验收 4）。OpenAPI 3.1 的 Schema 对象就是 JSON Schema 2020-12：
 // 校验时把 components.schemas 改写成 $defs 拼进同一份文档，ErrorDetail 按 $id 预先登记，格式（uuid 等）严格校验。

@@ -10,11 +10,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 /// <summary>
 /// 内置账号模型的 HTTP 面：登录、选择租户、强制改密、切换租户与自助改密。成功登录后写入可信的服务端账号 Cookie，
@@ -27,8 +27,8 @@ public static class IdentityAccountEndpoints
     private const int MaxBodyBytes = 16 * 1024;
     internal static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
-    /// <summary>映射账号接口；组件卸载后返回 404。须与 <c>MapQianIdentityServer</c> 一起使用。</summary>
-    public static IEndpointRouteBuilder MapQianIdentityAccounts(this IEndpointRouteBuilder endpoints)
+    /// <summary>映射账号接口；组件卸载后返回 404。须与 <c>MapKunIdentityServer</c> 一起使用。</summary>
+    public static IEndpointRouteBuilder MapKunIdentityAccounts(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         endpoints.MapGet(Prefix + "/csrf", (Delegate)Csrf);

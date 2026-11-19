@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Identity.Server;
+namespace Kun.Identity.Server;
 
 // 目录 API 属于 Identity Server。读者必须持本租户有效成员会话；写入与档案读取要求租户管理员。
 // 平台会话没有租户 Membership，因此不合成成员、不接受 query/header/body 提供的租户来旁路。

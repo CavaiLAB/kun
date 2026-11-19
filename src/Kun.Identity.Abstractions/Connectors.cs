@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Identity.Abstractions;
 
 /// <summary>连接器支持的终端（PRD 7.4.2：PC / 移动 / 工作台）。</summary>
 public static class ConnectorTerminals

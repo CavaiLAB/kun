@@ -1,10 +1,10 @@
 using System.Text;
 using System.Text.RegularExpressions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Tenancy;
 using Qian.Testing.Containers;
 
-namespace Qian.Identity.Server.Tests;
+namespace Kun.Identity.Server.Tests;
 
 // 同一个人在 alpha、beta 两个租户各有一个成员身份的真实宿主。
 internal sealed record World(AccountsHost.Running Host, TenantDescriptor A, TenantDescriptor B, Person Person, string Phone, Membership InA, Membership InB) : IAsyncDisposable

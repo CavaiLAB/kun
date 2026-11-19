@@ -1,4 +1,4 @@
-# Qian.Identity.Server
+# Kun.Identity.Server
 
 身份 seam 的 Provider：基于 OpenIddict 7.7.2 的协议面（S1-IDP-002）加内置的 Person / Membership 账号模型与统一登录流水线（S1-IDP-003）、会话中心（S1-IDP-004）、连接器登录（S1-IDP-007：统一回调、确认绑定、JIT）与组织目录（S1-IDP-009）。可嵌入独立 ASP.NET Core 宿主，拥有 discovery、JWKS、授权码、token、userinfo、revocation、introspection 和 end_session 协议面，以及账号、凭据、会话与登录审计的持久存储。OpenIddict 是唯一的令牌发行者；Kun 只提供 OIDC 依赖方与 Cookie 原语，不持有业务用户与租户。
 
@@ -11,13 +11,13 @@
 
 ## 宿主装配顺序（内置账号模型）
 
-1. 注册 Kun 的 `ITenantContext`，`AddKunEventBus(r => r.RegisterIdentityEvents())`、`AddKunMediator(m => m.AddQianIdentityEvents())`、`AddQianEvents()`；登录、锁定、改密事件在账号写入的同一事务里入 Outbox，漏装时保存回滚，不会静默丢事件。
+1. 注册 Kun 的 `ITenantContext`，`AddKunEventBus(r => r.RegisterIdentityEvents())`、`AddKunMediator(m => m.AddKunIdentityEvents())`、`AddQianEvents()`；登录、锁定、改密事件在账号写入的同一事务里入 Outbox，漏装时保存回滚，不会静默丢事件。
 2. 经 `AddKunData` 注册 `IdentityDbContext`（schema `plugin_qian_identity`）。在线角色必须 NOSUPERUSER / NOBYPASSRLS，仅获该 schema 的 DML 权限；迁移由部署迁移任务先运行，在线副本不建表。
-3. 建立受信账号 Cookie scheme（默认名 `qian.identity.signin`）和 DataProtection；多副本须共享受保护的密钥。调用 `AddQianIdentityServer(options, environment)`。`options` 里的证书私钥与客户端密钥由宿主从密钥引用加载，不进 profile、日志或仓库。账号策略放在 `options.Accounts`（见下）。
+3. 建立受信账号 Cookie scheme（默认名 `qian.identity.signin`）和 DataProtection；多副本须共享受保护的密钥。调用 `AddKunIdentityServer(options, environment)`。`options` 里的证书私钥与客户端密钥由宿主从密钥引用加载，不进 profile、日志或仓库。账号策略放在 `options.Accounts`（见下）。
 4. 构建应用后先 `UseQianIdentityServer()`，再 `UseAuthentication()`，最后 `MapQianIdentityServer()` 与 `MapQianIdentityAccounts()`。前者含 Qian 错误映射、安全响应头（no-store / nosniff / frame-ancestors none）与组件挂载门禁，卸载后账号接口与协议路径都是 404。托管认证页族时在 `UseQianIdentityServer()` 之后、`UseRouting()` 之前调用 `UseQianIdentityPages(dist)`（S1-YUE-012）：`/login` 下同源托管 `packages/qian-identity-ui` 的构建产物，不带扩展名的页面路由回落入口，HTML `no-store`、`/login/assets/` 带哈希长缓存，全部响应带 `frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff`；账号 Cookie scheme 的 `LoginPath` 指向 `IdentityPagesHosting.PagesPath`，`Accounts.SelectionPath` 不在 `/login` 下时启动即抛错。生产镜像的接线归 S1-DEP-008。
 5. 经 `PluginLoader` 依次挂载 Data、Tenancy，再挂载 `IdentityServerPlugin`；identity 条目的 config 只接收 `issuer`，必须与 `options` 的规范 issuer 一致。
-6. 可选：注册 StackExchange.Redis 的 `IConnectionMultiplexer`，会话中心就启用 Redis 索引与吊销墓碑；不注册则完全由 PostgreSQL 承担，行为一致（见「会话中心」）。事件总线配置里再调用 `events.AddQianIdentitySessionHandlers()`，登记 `tenant.suspended.v1` / `tenant.expired.v1` 的处理器。
-7. 可选：在 identity 之后挂载连接器组件（如 [Qian.Identity.Connector.Oidc](../Qian.Identity.Connector.Oidc/README.md) 的 `OidcConnectorPlugin`），全局或某个租户的 scope 都可以；它们在自己的上下文里登记到 `Identity.Connectors`，见「连接器登录」。
+6. 可选：注册 StackExchange.Redis 的 `IConnectionMultiplexer`，会话中心就启用 Redis 索引与吊销墓碑；不注册则完全由 PostgreSQL 承担，行为一致（见「会话中心」）。事件总线配置里再调用 `events.AddKunIdentitySessionHandlers()`，登记 `tenant.suspended.v1` / `tenant.expired.v1` 的处理器。
+7. 可选：在 identity 之后挂载连接器组件（如 [Kun.Identity.Connector.Oidc](../Kun.Identity.Connector.Oidc/README.md) 的 `OidcConnectorPlugin`），全局或某个租户的 scope 都可以；它们在自己的上下文里登记到 `Identity.Connectors`，见「连接器登录」。
 
 **与业务宿主同机混合部署**：账号接口在 `/api/identity` 下，协议面在 `/connect`、`/.well-known` 下，登录前没有租户上下文。业务宿主若对 `/api/*` 统一施加「必须已选租户」的边界（Kun 多租户中间件、生产模式拒绝回退租户），须把这三组路由排除在外（单独分支或独立宿主）；CRM 联调测试用 `MapWhen` 分支演示了做法。
 
@@ -53,13 +53,13 @@
   - **标识已被占用**：返回 409 `IDENTIFIER_IN_USE`（位置 `#/identifier`），什么都不写。已有账号的人加入别的租户，等 S3 的邀请链接；这条取代 R145 的「绑定已有自然人」（R163）。
   - **恢复原成员**：唯一的例外是本租户从目录删除的成员，且他的自然人仍可登录（启用、不具备平台资格）。这时按标识恢复原成员：成员 id 与账号不变（请求里给了别的 `account` 返回 400 `VALUE_NOT_ALLOWED`），状态回到 `active`，显示名取这次的值，身份修订递增。他沿用自己的凭据，`initial_password` 不使用、不保存。结果的 `restored` 为 true、`person_created` 为 false，同一事务内发 `directory.member.status_changed.v1`（`deleted` 由 true 变为 false）。恢复后只保留 `tenant.user`（R163）：拿锁之前先经 `ITenantRoleGrant` 撤销他在本租户的其他内置角色（`tenant.owner`、`tenant.admin`、`tenant.developer`），删除前另授的角色由管理员在授权页重新授予；撤销按授权组件的规则（防自锁同样适用）。恢复重新占用名额，满额同样先被拒绝。
   - **初始授权（R158）**：提交身份事务前，身份组件经 `ITenantRoleGrant`（`TenantRoleGrant.Key`，由 `qian.authz` 提供）给成员授予内置角色 `tenant.user`，新建与恢复两条路径相同（恢复时已有的绑定幂等复用）。结果的 `granted_roles` 列出本次授予的角色；授予失败则整笔回滚，可以重试。宿主没装 `qian.authz` 时不授予，`granted_roles` 为空。其他角色由租户管理员在授权页授予（S1-AZ-005）。
-- **目录事件（S1-IDP-010）**：组织、岗位的新建 / 修改 / 移动 / 删除与成员的加入、归属变化、状态变化、档案变化发出十二种 `directory.*.v1`（Schema 与发出规则见 `contracts/identity/v1/README.md`），由 `RegisterIdentityEvents` / `AddQianIdentityEvents` 一并登记，嵌入内置账号的宿主不需另外接线。事件挂在每租户一行的目录修订 `directory_revisions` 上：每次有事件的目录写入在同一事务里原子递增修订（行锁持有到提交，并发写入按修订排队），载荷带 `directory_revision`。会递增修订的入口（目录写入、成员状态变更、成员建立与重新启用）都先取同一把租户目录咨询锁，再锁业务行、最后递增修订，修订行只在持有这把锁时被锁住，同租户的这些写入因此整体串行、不会死锁；成员建立先取成员计数锁再取目录锁。事件随会话保存经领域通知写进同一事务的 Outbox；宿主漏装事件处理器时写入回滚而不是静默丢事件。载荷只有 id 与结构字段，不带名称、姓名、账号与联系方式。
+- **目录事件（S1-IDP-010）**：组织、岗位的新建 / 修改 / 移动 / 删除与成员的加入、归属变化、状态变化、档案变化发出十二种 `directory.*.v1`（Schema 与发出规则见 `contracts/identity/v1/README.md`），由 `RegisterIdentityEvents` / `AddKunIdentityEvents` 一并登记，嵌入内置账号的宿主不需另外接线。事件挂在每租户一行的目录修订 `directory_revisions` 上：每次有事件的目录写入在同一事务里原子递增修订（行锁持有到提交，并发写入按修订排队），载荷带 `directory_revision`。会递增修订的入口（目录写入、成员状态变更、成员建立与重新启用）都先取同一把租户目录咨询锁，再锁业务行、最后递增修订，修订行只在持有这把锁时被锁住，同租户的这些写入因此整体串行、不会死锁；成员建立先取成员计数锁再取目录锁。事件随会话保存经领域通知写进同一事务的 Outbox；宿主漏装事件处理器时写入回滚而不是静默丢事件。载荷只有 id 与结构字段，不带名称、姓名、账号与联系方式。
 - **派生查询（S1-IDP-010，口径由产品负责人 2026-11-11 确认）**：上级链从主岗位（或 `position_id` 指定的本人岗位，不是本人岗位 404）起算，没有主岗位时从主组织起算，都没有则为空；先沿岗位父链向上（不含起点，父岗位在别的组织也照走），每个责任岗位算一级；到顶后从最上层岗位所属组织起逐级取各组织的责任岗位，已出现的岗位跳过。在任指成员启用、未从目录删除，且自然人的平台账号也启用：运营在账号层停用或锁定的人（`SetPersonStatusAsync`），成员状态虽仍是 `active`，也不在任（R154）；错误次数触发的限时锁定不影响在任。责任岗位没有责任人或责任人不在任时照样占一级并给出 `vacancy`（`unassigned` / `inactive`），不返回人。直属主管取主组织（没有时取主岗位所属组织）的主管字段，本人就是主管、未设或主管不在任时逐级向上。部门负责人是责任岗位的现任责任人加组织主管。下属是上级链的反查：`depth=1` 为以我为第 1 级的成员，`depth=n` 为前 n 级，缺省为任一级；只有在任的责任人才有下属。派生查询一次读出本租户的组织与岗位结构在内存里推导，不逐级往返查询。
 - **成员检索（S1-IDP-010）**：`q` 去掉首尾空白后 1–64 字，按显示名、账号与档案拼音做忽略大小写的包含匹配，`%`、`_`、`\` 按字面处理，不检索手机号与邮箱；`ids` / `person_ids` 按目录成员 id / 自然人 id 批量查询（可重复，1–100 个且不重复），查不到、别的租户或已删除的 id 直接省略；三者至多给一个。结果仍是 `{items:[DirectoryMember]}`，按账号、成员 id 排序；按 id 批量不分页，这批 id 里的可见成员全部返回（至多 100 条），同时带 `offset` / `limit` 时 400 `INPUT_INVALID`，免得调用方分不清被截断还是查不到；其余检索照常分页。
 - **Agent 契约与 SCIM**：目录全部 GET 查询的 OpenAPI 3.1 契约在 `contracts/identity/v1/directory.openapi.json`，每个查询带意图式描述与示例；SCIM 2.0 核心 Schema 与目录映射在 `contracts/scim/v2`（服务由 S3 实现）。
 - **会话与事件**：成员状态变更沿用账号服务的事务内吊销 `RevokeSessionRowsAsync`；只吊销该租户成员的会话，同一 Person 在其他租户的会话继续有效。现有会话中心负责在原租户作用域发布 `identity.session_revoked.v1`，HTTP 调用者写入事件 actor。
 
-`MapQianIdentityAccounts()` 同时映射 `/api/directory`。目录读接口要求数据库实时校验通过的本租户成员会话；写入和档案读取要求本租户管理员。平台 Cookie 没有租户 Membership，不能以 `tenant_id` 参数获得目录权限，也不会被合成为租户成员。请求中的租户字段拒绝；租户上下文只由当前会话恢复。写入沿用 JSON 类型、16 KiB 请求体上限和防伪校验；所有响应 no-store，组件卸载后 404。下表路径均相对于 `/api/directory`，字段使用 snake_case。
+`MapKunIdentityAccounts()` 同时映射 `/api/directory`。目录读接口要求数据库实时校验通过的本租户成员会话；写入和档案读取要求本租户管理员。平台 Cookie 没有租户 Membership，不能以 `tenant_id` 参数获得目录权限，也不会被合成为租户成员。请求中的租户字段拒绝；租户上下文只由当前会话恢复。写入沿用 JSON 类型、16 KiB 请求体上限和防伪校验；所有响应 no-store，组件卸载后 404。下表路径均相对于 `/api/directory`，字段使用 snake_case。
 
 | 方法与路径 | 作用 |
 | --- | --- |
@@ -138,7 +138,7 @@
 
 ## HTTP 接口
 
-`MapQianIdentityAccounts()` 映射（均在 `/api/identity` 下，响应一律 no-store）：
+`MapKunIdentityAccounts()` 映射（均在 `/api/identity` 下，响应一律 no-store）：
 
 | 方法与路径 | 作用 |
 | --- | --- |
@@ -202,7 +202,7 @@ OpenIddict 的低级日志及 ASP.NET Hosting 的请求日志可能包含令牌�
 - **S1-TEN-010**（R110）：`IIdentityAccounts.ResetPasswordAsync` 是运营重置密码的端口——旧凭据立即失效、默认下次登录强制改密、使既有会话失效、发布不含密码的改密事件。`PasswordReset.UnlinkExternalIdentities` 为 true 时，提交后再逐个租户解除该 Person 的全部外部身份绑定（软删除），解除了绑定的那个租户事务同时递增身份修订并吊销该 Person 的全部会话（原因 `password_reset`），运营指定租户管理员时的重置用它（R163）；缺省 false，本人忘记密码时的重置不动绑定。单个解除 `UnlinkExternalIdentityAsync` 同事务递增身份修订，已建立的会话不吊销。`Person.HasPassword` 表示是否设有密码，只靠外部身份登录的账号（JIT 建出的）为 false。运营替换租户管理员时，新管理员经 `CreateMembershipAsync` 建立或补齐管理员成员；原管理员的管理员标志经本任务新增的 `SetTenantAdministratorAsync(membershipId, false)` 撤销。它与成员创建持同一把计数锁、不做配额判定，标志变化才递增成员修订；已清除或已从目录删除的成员返回 `NOT_FOUND`。
 - **S1-IDP-004**（本任务）：会话中心已就位，见上文「会话中心」。对其他任务登记的接口见下面三条。
 - **授权任务（S1-AZ-004 / S1-AZ-009）**：同进程宿主里，`qian.authz` 在授予变更提交后，对受影响的 user 主体在其租户作用域内调用 `IIdentityAccounts.BumpIdentityRevisionAsync`。主体不是 GUID 或返回 `NOT_FOUND` 时跳过。之后用返回值抬高 PEP 的修订下限。PEP 比对令牌 `identity_revision` 与缓存快照由授权侧负责，陈旧令牌回 401。拆分部署下，本组件对 `authz.grant.changed.v1` 的订阅处理器由 S1-IDP-012 交付；同进程宿主不登记它。
-- **S1-EVT-002（事件消费端）**：宿主在事件总线配置里调用 `AddQianIdentitySessionHandlers()`；订阅投递由消费端接线，在此之前租户冻结 / 到期靠后台对账兜底。
+- **S1-EVT-002（事件消费端）**：宿主在事件总线配置里调用 `AddKunIdentitySessionHandlers()`；订阅投递由消费端接线，在此之前租户冻结 / 到期靠后台对账兜底。
 - **S1-GW-001（网关）**：`ForwardedClaimTypes` 白名单须包含 `identity_revision`。
 - **S1-IDP-006**：`IAuthenticatorFactorRegistry` 与 `MFA_UNAVAILABLE` 的不降级行为；租户级登录策略覆盖。
 - **S1-IDP-007**（本任务）：连接器登录已就位，见上文「连接器登录」。`LoginInput.ConnectorId` 只接受服务端自己签发的连接器票据；该租户看不见的连接器仍是 `#/connector_id`。

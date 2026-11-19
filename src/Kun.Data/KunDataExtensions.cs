@@ -77,7 +77,8 @@ public static class KunDataExtensions
         services.AddKunDataConventions<TContext>();
         services.AddKunMultiTenancyEntityFrameworkCore();
         services.TryAddSingleton<KunApplicationRoleInterceptor>();
-        services.ConfigureDbContext<TContext>((sp, options) => options.UseKunDataModel()
+        // 平台的 schema 都在 plugin_ 前缀下；前缀在这里设，内核只要求合法标识符。
+        services.ConfigureDbContext<TContext>((sp, options) => options.UseKunDataModel().RequireKunSchemaPrefix("plugin_")
             .ReplaceService<IMigrationsSqlGenerator, KunTenantRlsMigrationsSqlGenerator>()
             .AddInterceptors(sp.GetRequiredService<KunTenantSaveChangesInterceptor>(),
                 sp.GetRequiredService<KunApplicationRoleInterceptor>()));

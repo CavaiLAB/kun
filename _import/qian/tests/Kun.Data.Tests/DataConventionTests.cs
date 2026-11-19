@@ -155,6 +155,24 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         }
     }
 
+    // 内核缺省只要求合法标识符，plugin_ 前缀由 AddKunData 设上：平台照旧拒绝不带前缀的 schema，组件也不能把前缀换掉。
+    [Fact]
+    public async Task 不带plugin前缀的schema或换前缀_启动拒绝()
+    {
+        foreach (var replacePrefix in new[] { false, true })
+        {
+            var builder = Host.CreateApplicationBuilder();
+            builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
+            builder.Services.AddKunData<CustomerContext>((_, options) =>
+            {
+                options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(replacePrefix ? "app_conventions" : "conventions");
+                if (replacePrefix) options.RequireKunSchemaPrefix("app_");
+            });
+            using var host = builder.Build();
+            await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.StartAsync(TestContext.Current.CancellationToken));
+        }
+    }
+
     [Fact]
     public async Task 自动模型约定和真实数据库并发_派生上下文漏调base仍安全()
     {

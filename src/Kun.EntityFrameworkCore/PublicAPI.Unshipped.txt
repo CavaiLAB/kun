@@ -114,6 +114,7 @@ override Kun.EntityFrameworkCore.MultiTenancy.KunTenantSaveChangesInterceptor.Sa
 static Kun.EntityFrameworkCore.DependencyInjection.KunMultiTenancyEntityFrameworkCoreServiceCollectionExtensions.AddKunMultiTenancyEntityFrameworkCore(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyModelBuilderExtensions.ApplyKunMultiTenantFilters<TContext>(this Microsoft.EntityFrameworkCore.ModelBuilder! modelBuilder, TContext! context) -> Microsoft.EntityFrameworkCore.ModelBuilder!
 Kun.EntityFrameworkCore.KunDataModelExtensions
+static Kun.EntityFrameworkCore.KunDataModelExtensions.RequireKunSchemaPrefix(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! options, string! prefix) -> Microsoft.EntityFrameworkCore.DbContextOptionsBuilder!
 static Kun.EntityFrameworkCore.KunDataModelExtensions.UseKunDataModel(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! options) -> Microsoft.EntityFrameworkCore.DbContextOptionsBuilder!
 static readonly Kun.EntityFrameworkCore.KunDataMisconfiguredException.Code -> Kun.Errors.ErrorCode!
 Kun.EntityFrameworkCore.KunDataMisconfiguredException

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Kun.Errors;
 using Microsoft.Extensions.Logging;
 
@@ -45,11 +46,19 @@ public interface IKunPlugin
 /// <summary>类型化配置接口；Schema 校验由清单装配器在调用前完成。</summary>
 public interface IKunPlugin<TConfig> : IKunPlugin
 {
+    /// <summary>插件为配置类型生成的 JSON 契约。上下文使用 JsonSerializerDefaults.Web。</summary>
+    JsonTypeInfo<TConfig> ConfigTypeInfo { get; }
+
     /// <summary>以类型化配置执行 Apply。</summary>
     ValueTask ApplyAsync(IPluginContext ctx, TConfig config, CancellationToken ct);
 
     ValueTask IKunPlugin.ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
-        => ApplyAsync(ctx, config.Deserialize<TConfig>(JsonSerializerOptions.Web) ?? throw new JsonException("配置不能为空。"), ct);
+    {
+        var typeInfo = ConfigTypeInfo;
+        if (!typeInfo.Options.PropertyNameCaseInsensitive)
+            throw new InvalidOperationException("类型化配置的 JSON 契约须使用不区分大小写的 Web 配置。");
+        return ApplyAsync(ctx, config.Deserialize(typeInfo) ?? throw new JsonException("配置不能为空。"), ct);
+    }
 }
 
 /// <summary>插件的服务、效果与作用域入口。</summary>

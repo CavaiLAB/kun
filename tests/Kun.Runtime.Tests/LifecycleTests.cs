@@ -1,8 +1,16 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Runtime.Tests;
+
+internal sealed record SampleConfig(string Message);
+
+[JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]
+[JsonSerializable(typeof(SampleConfig))]
+internal sealed partial class PluginConfigJsonContext : JsonSerializerContext;
 
 public sealed class LifecycleTests
 {
@@ -37,19 +45,36 @@ public sealed class LifecycleTests
         Assert.Equal("recovered", observer.Inject<string>(new("X")));
     }
 
-    [Fact]
-    public async Task Typed_config_uses_camel_case_and_invalid_config_never_enters_Apply()
+    [Theory]
+    [InlineData("message")]
+    [InlineData("Message")]
+    [InlineData("mEsSaGe")]
+    public async Task Typed_config_accepts_web_property_names_and_invalid_config_never_enters_Apply(string key)
     {
         using var host = new ServiceCollection().BuildServiceProvider();
         await using var loader = new PluginLoader(host);
         var plugin = new ConfigPlugin();
-        var entry = new PluginEntry("config", "config", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { message = "hello" }));
+        var entry = new PluginEntry("config", "config", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new Dictionary<string, string> { [key] = "hello" }));
         await loader.MountAsync([new PluginDefinition(entry, plugin, [new("Message")])], TestContext.Current.CancellationToken);
         Assert.Equal("hello", loader.GetContext("config", ScopeKey.Global).Inject<string>(new("Message")));
         await loader.ReloadAsync(new PluginDefinition(entry with { Config = JsonSerializer.SerializeToElement(new { message = 42 }) }, plugin, [new("Message")]), TestContext.Current.CancellationToken);
         Assert.Equal(PluginState.Failed, loader.GetState("config", ScopeKey.Global));
         Assert.Equal(1, plugin.Applies);
     }
+
+    [Fact]
+    public async Task Typed_config_rejects_case_sensitive_metadata_before_Apply()
+    {
+        using var host = new ServiceCollection().BuildServiceProvider();
+        await using var loader = new PluginLoader(host);
+        var plugin = new ConfigPlugin(new PluginConfigJsonContext(new JsonSerializerOptions()).SampleConfig);
+        using var json = JsonDocument.Parse("""{"message":"hello"}""");
+        var entry = new PluginEntry("config", "config", "1.0.0", ScopeKey.Global, 0, json.RootElement);
+        await loader.MountAsync([new PluginDefinition(entry, plugin, [new("Message")])], TestContext.Current.CancellationToken);
+        Assert.IsType<InvalidOperationException>(loader.GetFailure("config", ScopeKey.Global));
+        Assert.Equal(0, plugin.Applies);
+    }
+
     [Fact]
     public async Task Disposer_is_idempotent_and_lost_key_restarts_the_consumer()
     {
@@ -250,9 +275,9 @@ public sealed class LifecycleTests
             }, [new("X")]), [new("C")]);
     }
 
-    private sealed record SampleConfig(string Message);
-    private sealed class ConfigPlugin : IKunPlugin<SampleConfig>
+    private sealed class ConfigPlugin(JsonTypeInfo<SampleConfig>? typeInfo = null) : IKunPlugin<SampleConfig>
     {
+        public JsonTypeInfo<SampleConfig> ConfigTypeInfo => typeInfo ?? PluginConfigJsonContext.Default.SampleConfig;
         internal int Applies;
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, SampleConfig config, CancellationToken ct)

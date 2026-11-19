@@ -10,7 +10,7 @@ public sealed class ManifestPlanTests
     [Fact]
     public void 同一清单派生入口服务键与工具_同步后无漂移_保留手写策略()
     {
-        using var fixture = new ComponentDirectory(); var code = new ContractPluginKunCodeMetadata().Create();
+        using var fixture = new ComponentDirectory(); var code = GeneratedMetadata.For<ContractPlugin>();
         var plan = ManifestPlan.Create(fixture.Path, code);
         Assert.Contains(plan.Drift, d => d.File == ManifestPlan.ManifestFile && d.Pointer == "/runtime/entry");
         Assert.Contains(plan.Drift, d => d.File == "tools/customer.create.json");
@@ -28,7 +28,7 @@ public sealed class ManifestPlanTests
     [Fact]
     public void 删除代码能力后遗留工具会报漂移_只移除有双重所属证据的派生文件()
     {
-        using var fixture = new ComponentDirectory(); var initial = new ContractPluginKunCodeMetadata().Create();
+        using var fixture = new ComponentDirectory(); var initial = GeneratedMetadata.For<ContractPlugin>();
         ManifestPlan.Create(fixture.Path, initial).Apply();
         var without = new ComponentCodeMetadata(initial.ComponentId, initial.RuntimeEntry,
             initial.Inject.Select(name => new ServiceKey(name)).ToArray(), initial.Provides.Select(name => new ServiceKey(name)).ToArray(),
@@ -43,7 +43,7 @@ public sealed class ManifestPlanTests
     [Fact]
     public void 拒绝覆盖手写工具_路径越界_符号链接和重复键不写入()
     {
-        using var fixture = new ComponentDirectory(); var code = new ContractPluginKunCodeMetadata().Create();
+        using var fixture = new ComponentDirectory(); var code = GeneratedMetadata.For<ContractPlugin>();
         Directory.CreateDirectory(System.IO.Path.Combine(fixture.Path, "tools"));
         var file = System.IO.Path.Combine(fixture.Path, "tools/customer.create.json"); File.WriteAllText(file, "{\"manual\":true}");
         Assert.Equal(ManifestErrors.HandwrittenConflict, Assert.Throws<ManifestException>(() => ManifestPlan.Create(fixture.Path, code)).Code); Assert.Equal("{\"manual\":true}", File.ReadAllText(file));
@@ -62,7 +62,7 @@ public sealed class ManifestPlanTests
     public void 权限元数据不能用风险映射扩大到未声明动作()
     {
         using var fixture = new ComponentDirectory();
-        var original = new ContractPluginKunCodeMetadata().Create();
+        var original = GeneratedMetadata.For<ContractPlugin>();
         var metadata = new ComponentCodeMetadata(original.ComponentId, original.RuntimeEntry, original.Inject.Select(name => new ServiceKey(name)).ToArray(),
             original.Provides, original.Capabilities, """[{"resource":"notes","actions":["read"],"risk":{"admin":"high"}}]""", "[]", null);
         var error = Assert.Throws<ManifestException>(() => ManifestPlan.Create(fixture.Path, metadata));

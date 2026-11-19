@@ -27,7 +27,7 @@ public sealed class GeneratedContractTests
     [Fact]
     public void 组件入口和服务键从实际代码派生_不会实例化业务插件()
     {
-        var metadata = new ContractPluginKunCodeMetadata().Create();
+        var metadata = GeneratedMetadata.For<ContractPlugin>();
         Assert.Equal("qian.sdk-tests", metadata.ComponentId);
         Assert.Equal("Kun.Plugin.Sdk.Tests.ContractPlugin, Kun.Plugin.Sdk.Tests", metadata.RuntimeEntry);
         Assert.Equal("TestInput", Assert.Single(metadata.Inject)); Assert.Equal("TestOutput", Assert.Single(metadata.Provides));

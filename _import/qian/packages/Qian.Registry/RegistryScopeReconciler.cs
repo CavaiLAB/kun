@@ -26,7 +26,7 @@ internal sealed partial class RegistryScopeReconciler(
         try
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            if (scope.Kind is not ("tenant" or "app" or "agent-session") || string.IsNullOrWhiteSpace(tenantId) ||
+            if (!ScopeKinds.IsKnown(scope.Kind) || string.IsNullOrWhiteSpace(tenantId) ||
                 (scope.Kind == "tenant" && scope.Id != tenantId)) throw new ErrorException(new Error(PlatformErrors.NotFound));
             if (!_scopes.TryGetValue(scope, out var state)) _scopes.Add(scope, state = new ScopeState(tenantId, scope));
             if (state.TenantId != tenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));

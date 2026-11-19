@@ -148,7 +148,7 @@ public sealed class ProfileLoader(ISurfaceReader reader) : IProfileLoader
         private void AddScopeLayer(ScopePatchLayer layer)
         {
             var scope = layer.Scope;
-            if (scope.Kind is not ("tenant" or "app" or "agent-session") || string.IsNullOrWhiteSpace(scope.Id) ||
+            if (!ScopeKinds.IsKnown(scope.Kind) || string.IsNullOrWhiteSpace(scope.Id) ||
                 scope.Id.Any(c => char.IsWhiteSpace(c) || char.IsControl(c) || c == ':'))
                 Fail("registry/scope-patches.json", "/scope", "数据库层必须声明合法的非全局 scope。");
             var file = layer.Source;

@@ -160,13 +160,6 @@ Kun.Runtime.IPluginContext.Provide<TService>(Kun.Runtime.ServiceKey key, string!
 Kun.Runtime.IPluginContext.Inject<TService>(Kun.Runtime.ServiceKey key, string! name) -> TService!
 Kun.Runtime.IPluginContext.List(Kun.Runtime.ServiceKey key) -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.Registration!>!
 Kun.Runtime.PluginLoader.GetPendingDependencies(string! id, Kun.Runtime.ScopeKey scope) -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
-static readonly Kun.Runtime.SurfaceKeys.Commands -> Kun.Runtime.ServiceKey
-static readonly Kun.Runtime.SurfaceKeys.Skills -> Kun.Runtime.ServiceKey
-static readonly Kun.Runtime.SurfaceKeys.Tools -> Kun.Runtime.ServiceKey
-static readonly Kun.Runtime.SurfaceKeys.Agents -> Kun.Runtime.ServiceKey
-static readonly Kun.Runtime.SurfaceKeys.Hooks -> Kun.Runtime.ServiceKey
-Kun.Runtime.SurfaceKeys
-static readonly Kun.Runtime.SurfaceKeys.McpServers -> Kun.Runtime.ServiceKey
 Kun.Runtime.KunEventAttribute
 Kun.Runtime.KunEventAttribute.KunEventAttribute() -> void
 Kun.Runtime.KunEventAttribute.Mode.set -> void

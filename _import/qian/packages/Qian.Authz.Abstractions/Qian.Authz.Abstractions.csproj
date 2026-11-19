@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" />
     <ProjectReference Include="../../../../src/Kun.Authorization/Kun.Authorization.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="Qian.Plugin.Sdk" /><InternalsVisibleTo Include="Qian.Tenancy" /><InternalsVisibleTo Include="Qian.Authz" /></ItemGroup>

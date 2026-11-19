@@ -7,6 +7,7 @@
     <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces/Qian.Surfaces.csproj" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="coverlet.MTP" />
   </ItemGroup>
   <ItemGroup><None Include="../../_import/qian/tck/runtime/*.scenario.yml" Link="tck/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

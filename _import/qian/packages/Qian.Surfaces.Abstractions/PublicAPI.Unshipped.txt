@@ -187,3 +187,10 @@ static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Profile -> Kun.Errors.E
 static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Recovery -> Kun.Errors.ErrorCode!
 static readonly Qian.Surfaces.Abstractions.SurfaceErrors.PackageUnavailable -> Kun.Errors.ErrorCode!
 static readonly Qian.Surfaces.Abstractions.SurfaceErrors.Engine -> Kun.Errors.ErrorCode!
+Qian.Surfaces.Abstractions.SurfaceKeys
+static readonly Qian.Surfaces.Abstractions.SurfaceKeys.Agents -> Kun.Runtime.ServiceKey
+static readonly Qian.Surfaces.Abstractions.SurfaceKeys.Commands -> Kun.Runtime.ServiceKey
+static readonly Qian.Surfaces.Abstractions.SurfaceKeys.Hooks -> Kun.Runtime.ServiceKey
+static readonly Qian.Surfaces.Abstractions.SurfaceKeys.McpServers -> Kun.Runtime.ServiceKey
+static readonly Qian.Surfaces.Abstractions.SurfaceKeys.Skills -> Kun.Runtime.ServiceKey
+static readonly Qian.Surfaces.Abstractions.SurfaceKeys.Tools -> Kun.Runtime.ServiceKey

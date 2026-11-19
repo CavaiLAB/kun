@@ -7,7 +7,10 @@ namespace Kun.Runtime;
 /// <summary>Definition 拥有的服务键；具名注册可用 Key:name 声明就绪依赖。</summary>
 public readonly record struct ServiceKey(string Name);
 
-/// <summary>两层扁平作用域，不隐含租户、应用与会话之间的继承关系。</summary>
+/// <summary>
+/// 两层扁平作用域：<see cref="Global"/>，或「种类 + 非空 id」；作用域之间没有继承关系。
+/// 运行时只查语法（种类是小写字母开头、由小写字母数字与连字符组成的名字），种类有哪些由平台档定。
+/// </summary>
 public readonly record struct ScopeKey(string Kind, string Id)
 {
     /// <summary>全局注册的作用域。</summary>
@@ -15,9 +18,13 @@ public readonly record struct ScopeKey(string Kind, string Id)
 
     internal void Validate()
     {
-        if (this != Global && (Kind is not ("tenant" or "app" or "agent-session") || string.IsNullOrWhiteSpace(Id)))
-            throw new ArgumentException("scope 必须为 global 或非空的 tenant / app / agent-session。");
+        if (this == Global) return;
+        if (!IsKindName(Kind) || Kind == Global.Kind || string.IsNullOrWhiteSpace(Id))
+            throw new ArgumentException("scope 必须为 global，或小写的种类名加非空的 id。");
     }
+
+    private static bool IsKindName(string? kind) =>
+        !string.IsNullOrEmpty(kind) && kind[0] is >= 'a' and <= 'z' && kind.All(c => c is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-');
 }
 
 /// <summary>已由清单与配置装配器解析的插件条目。</summary>

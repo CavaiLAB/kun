@@ -6,7 +6,7 @@
     <Description>High-performance, reflection-free CQRS dispatcher for Kun Framework. AOT-native alternative to MediatR.</Description>
   </PropertyGroup>
 
-  <!-- 记契约：组件建在它上面（组件运行时 Kun.Runtime 依赖它），与 Kun.Core 同理，旧门禁对运行时与 SDK 一律放行（S1-KUN-020，B3 PR-4 归类）。 -->
+  <!-- 记契约：组件建在它上面（经它登记命令处理器与行为），与 Kun.Core 同理，旧门禁对运行时与 SDK 一律放行（S1-KUN-020，B3 PR-4 归类）。 -->
   <PropertyGroup Label="档位">
     <KunTier>kernel</KunTier>
     <KunRole>contract</KunRole>

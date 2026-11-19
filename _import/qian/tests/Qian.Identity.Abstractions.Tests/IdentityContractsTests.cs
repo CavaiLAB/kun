@@ -129,9 +129,9 @@ public sealed class IdentityContractsTests
     {
         var directory = Path.Combine(Root, "packages/Qian.Identity.Abstractions");
         var project = XDocument.Load(Path.Combine(directory, "Qian.Identity.Abstractions.csproj"));
-        // 原 Qian 改为项目引用 Kun 源码（S1-KUN-020）：除 Kun 的事件端口（仓库 src/ 下的项目）外只引用 Qian.Runtime，没有包引用。
+        // 只以项目引用依赖仓库 src/ 下的两个 Kun 项目：事件端口与组件运行时（S1-KUN-020）；没有包引用。
         var repository = Path.GetFullPath(Path.Combine(Root, "..", ".."));
-        Assert.Equal(["src/Kun.Runtime/Kun.Runtime.csproj", "src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj"],
+        Assert.Equal(["src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj", "src/Kun.Runtime/Kun.Runtime.csproj"],
             project.Descendants("ProjectReference")
                 .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
                 .Order(StringComparer.Ordinal).ToArray());

@@ -11,9 +11,10 @@ public sealed class RuntimeCompositionTests
     [Fact]
     public async Task Shared_patch_scenarios_validate_before_applying_real_providers()
     {
-        var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
-        Assert.NotNull(root);
+        var repository = new DirectoryInfo(AppContext.BaseDirectory);
+        while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "Kun.slnx"))) repository = repository.Parent;
+        Assert.NotNull(repository);
+        var root = new DirectoryInfo(Path.Combine(repository.FullName, "_import", "qian"));
         using var scenarios = JsonDocument.Parse(File.ReadAllText(Path.Combine(root.FullName, "tck/runtime/assembly.json")));
         foreach (var item in scenarios.RootElement.EnumerateArray())
         {

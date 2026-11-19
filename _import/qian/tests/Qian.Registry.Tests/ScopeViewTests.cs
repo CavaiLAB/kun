@@ -2,6 +2,7 @@ using System.Text.Json;
 using Kun.MultiTenancy;
 using Kun.Runtime;
 using Kun.Errors;
+using Qian.Surfaces.Abstractions;
 
 namespace Qian.Registry.Tests;
 

@@ -46,6 +46,7 @@ test('真实 CLI 从代码组件仅装技能，不取代码依赖；投影可被
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Qian.Surfaces;
+using Qian.Surfaces.Abstractions;
 var checkedComponent = new SurfaceValidator().ValidateComponent(args[0]);
 if (!checkedComponent.IsValid) throw new Exception(JsonSerializer.Serialize(checkedComponent.Diagnostics));
 var plugin = new DeclarativeSurfacePlugin(checkedComponent);

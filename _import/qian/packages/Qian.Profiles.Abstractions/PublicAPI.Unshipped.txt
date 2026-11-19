@@ -134,3 +134,8 @@ Qian.Profiles.Abstractions.DisabledProfileEntry.DisabledProfileEntry(string! Id,
 Qian.Profiles.Abstractions.ProfileLoadOptions.ScopePatches.init -> void
 Qian.Profiles.Abstractions.ProfileSnapshot.DisabledEntries.get -> System.Collections.Generic.IReadOnlyList<Qian.Profiles.Abstractions.DisabledProfileEntry!>!
 Qian.Profiles.Abstractions.ProfileSnapshot.DisabledEntries.init -> void
+Qian.Profiles.Abstractions.ScopeKinds
+const Qian.Profiles.Abstractions.ScopeKinds.AgentSession = "agent-session" -> string!
+const Qian.Profiles.Abstractions.ScopeKinds.App = "app" -> string!
+const Qian.Profiles.Abstractions.ScopeKinds.Tenant = "tenant" -> string!
+static Qian.Profiles.Abstractions.ScopeKinds.IsKnown(string? kind) -> bool

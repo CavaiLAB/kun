@@ -87,11 +87,22 @@ describe('Kun API 参考', () => {
       assert.throws(() => verifyKunPackageVersions(version, ['Kun.Core'], libraries));
     }
   });
-  it('包清单取 tag 上 src/<名>/<名>.csproj', () => {
+  it('包清单取 tag 上 src/<名>/<名>.csproj，没写档位的当内核', () => {
+    const read = (): string => '<Project Sdk="Microsoft.NET.Sdk">\n</Project>\n';
     assert.deepEqual(
-      kunPackages(['src/Kun.Core/Kun.Core.csproj', 'src/Kun.Core/README.md', 'src/Kun.Mediator/Kun.Mediator.csproj', 'tests/Kun.Core.Tests/Kun.Core.Tests.csproj', 'src/x/y.csproj']),
+      kunPackages(['src/Kun.Core/Kun.Core.csproj', 'src/Kun.Core/README.md', 'src/Kun.Mediator/Kun.Mediator.csproj', 'tests/Kun.Core.Tests/Kun.Core.Tests.csproj', 'src/x/y.csproj'], read),
       ['Kun.Core', 'Kun.Mediator'],
     );
+  });
+  it('包清单只取内核档：平台档只发 GitHub Packages，不写 IsPackable=false 的才是包', () => {
+    const projects: Record<string, string> = {
+      'src/Kun.Core/Kun.Core.csproj': '<Project><PropertyGroup Label="档位">\n    <KunTier>kernel</KunTier>\n    <KunRole>contract</KunRole>\n  </PropertyGroup></Project>',
+      'src/Kun.Data/Kun.Data.csproj': '<Project><PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup></Project>',
+      'src/Kun.Host/Kun.Host.csproj': '<Project><PropertyGroup><IsPackable>false</IsPackable><KunTier>kernel</KunTier></PropertyGroup></Project>',
+      'src/Kun.Old/Kun.Old.csproj': '<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>',
+    };
+    const read = (file: string): string => projects[file] ?? assert.fail(`不该读 ${file}`);
+    assert.deepEqual(kunPackages(Object.keys(projects), read), ['Kun.Core', 'Kun.Old']);
   });
 
   it('解析 DocFX 页面：命名空间页与类型页的路径，全局命名空间不进站', () => {

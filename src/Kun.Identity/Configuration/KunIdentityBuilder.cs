@@ -31,16 +31,6 @@ public sealed class KunIdentityBuilder
         return this;
     }
 
-    /// <summary>Registers <see cref="IJwtIssuer"/> for internal S2S token minting.</summary>
-    [Obsolete("Use Kun.Gateway.S2sTokenIssuer.", DiagnosticId = "KUNS2S001")]
-    public KunIdentityBuilder AddS2SIssuer(Action<KunJwtIssuerOptions> configure)
-    {
-        ArgumentNullException.ThrowIfNull(configure);
-        Services.Configure(configure);
-        Services.TryAddSingleton<IJwtIssuer, KunJwtIssuer>();
-        return this;
-    }
-
     /// <summary>
     /// Registers a named <see cref="IOidcClient"/>. Multiple calls with
     /// distinct <paramref name="name"/> values register multiple

@@ -20,6 +20,10 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | [Kun.EventBus.Abstractions](Kun.EventBus.Abstractions/) | 稳定事件标记与 JSON 注册端口、Outbox 写入端口、集成事件信封（依赖 Core 与 Runtime） | ✅ |
 | [Kun.EventBus](Kun.EventBus/) | 领域/集成事件抽象、Outbox 发布器 | ✅ |
 | [Kun.EventBus.RabbitMQ](Kun.EventBus.RabbitMQ/) | RabbitMQ 传输、消费端幂等 | ✅ |
+| [Kun.Identity.Abstractions](Kun.Identity.Abstractions/) | 身份服务、身份连接器与账号目录的契约 | — |
+| [Kun.Identity.Client](Kun.Identity.Client/) | OIDC 登录、Cookie 会话与服务间身份验证 | ✅ |
+| [Kun.Identity.Server](Kun.Identity.Server/) | 可嵌入的 OpenIddict 服务、账号目录与会话管理 | — |
+| [Kun.Identity.Connector.Oidc](Kun.Identity.Connector.Oidc/) | 身份服务的上游 OIDC 连接器 | — |
 | [Kun.Security.Abstractions](Kun.Security.Abstractions/) | 服务间令牌的主体模型与声明词汇表（零依赖） | ✅ |
 | [Kun.Security](Kun.Security/) | S2S JWT 签发/校验、租户上下文注入 | ✅ |
 | [Kun.Validation](Kun.Validation/) | SourceGen 验证器 | ✅ |

@@ -139,7 +139,7 @@ public sealed class ConnectorManifestTests
     private static string FindRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-            if (File.Exists(Path.Combine(directory.FullName, "Qian.slnf"))) return directory.FullName;
+            if (File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) return Path.Combine(directory.FullName, "_import", "qian");
         throw new InvalidOperationException("找不到仓库根目录。");
     }
 

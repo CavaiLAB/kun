@@ -42,7 +42,7 @@
   "x-skeleton": true,
   "runtime": {
     "form": "module",
-    "entry": "Qian.Identity.Connector.Oidc.OidcConnectorComponent, Qian.Identity.Connector.Oidc",
+    "entry": "Kun.Identity.Connector.Oidc.OidcConnectorComponent, Kun.Identity.Connector.Oidc",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -59,7 +59,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.identity.connector.oidc",
-        "source": "Qian.Identity.Connector.Oidc.OidcConnectorComponent, Qian.Identity.Connector.Oidc",
+        "source": "Kun.Identity.Connector.Oidc.OidcConnectorComponent, Kun.Identity.Connector.Oidc",
         "sha256": "14b4c669025a857e0c46599b0b3062443a05f4401e35d6aac52e8512abf6e9d1",
         "fields": [
           ""

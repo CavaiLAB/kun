@@ -57,7 +57,7 @@
 
 ## 已知限制与延期项
 
-本包仅契约；协议服务与账号模型的实现与验收见 Qian.Identity.Server 主文档，依赖方见 Qian.Identity.Client 主文档。它不代表外壳 SSO 或第二因子（TOTP / 短信）已实现／上线；外壳接线随 D5 / YUE-002，第二因子按 IDP-006 继续交付。连接器登录（统一回调、确认绑定、JIT）由 Qian.Identity.Server 交付，通用 OIDC 连接器在 Qian.Identity.Connector.Oidc，企业微信连接器属于 IDP-008。会话中心（Redis 索引、强制下线、身份修订递增）由 Qian.Identity.Server 交付。
+本包仅契约；协议服务与账号模型的实现与验收见 Kun.Identity.Server 主文档，依赖方见 Kun.Identity.Client 主文档。它不代表外壳 SSO 或第二因子（TOTP / 短信）已实现／上线；外壳接线随 D5 / YUE-002，第二因子按 IDP-006 继续交付。连接器登录（统一回调、确认绑定、JIT）由 Kun.Identity.Server 交付，通用 OIDC 连接器在 Kun.Identity.Connector.Oidc，企业微信连接器属于 IDP-008。会话中心（Redis 索引、强制下线、身份修订递增）由 Kun.Identity.Server 交付。
 
 
 ## 授权主体类型透传

@@ -9,7 +9,7 @@
 3. **属于哪个 seam 的哪个角色**：Identity seam 的依赖方 Provider，只回答当前主体；人员、成员与会话管理属于身份服务，依赖方上调用一律返回 `IDENTITY_OPERATION_UNSUPPORTED`。只允许 global scope。
 4. **能否 `qian add`**：代码包可直接作为 NuGet 库独立引用。唯一清单已由 SDK 派生 `IdentityClientComponent` 入口、`Identity` 提供项与 `runtime.configSchema`，配置 Schema 的代码真相源为 `ComponentConfiguration.Schema`。已通过真实 `qian add identity` 安装验收（S1-IDP-015）：`runtime.nuget` 钉 `Kun.Identity.Client` 0.3.0 与发布归档的 SHA-256，代码包从 GitHub Packages 还原；表面进入 `.qian/plugins/qian.identity.client`，lock 记录组件与包摘要。包族由 main 的 `dotnet-release` 锁步发布，宿主按清单入口挂载到 Ready，卸载撤销 Identity 服务。
 
-   清单声明了 `x-aot: true`，依据是 CI 的 NativeAOT 冒烟（S1-IDP-014，`tools/Qian.Identity.Client.AotSmoke`）：本组件连同依赖的 Kun 包以 ILC 发布 linux-x64，0 条 IL 警告；原生二进制挂载组件后通过端点冒烟。依赖的 Kun 发布包缺 AOT 兼容元数据，是 Kun 的构建缺陷（S1-KUN-015），判断兼容性不看它。按 S1-DEC-029，开发期 `gateway` 暂用 JIT；gateway 整体的 NativeAOT 验收（配置、审计、数据组件与真实网关宿主）仍归 GW-001 / DEP-008。完整组合（`qian add identity authz files`）的验收归 S1-QA-005（R84）。
+   清单声明了 `x-aot: true`，依据是 CI 的 NativeAOT 冒烟（S1-IDP-014，`tools/Kun.Identity.Client.AotSmoke`）：本组件连同依赖的 Kun 包以 ILC 发布 linux-x64，0 条 IL 警告；原生二进制挂载组件后通过端点冒烟。依赖的 Kun 发布包缺 AOT 兼容元数据，是 Kun 的构建缺陷（S1-KUN-015），判断兼容性不看它。按 S1-DEC-029，开发期 `gateway` 暂用 JIT；gateway 整体的 NativeAOT 验收（配置、审计、数据组件与真实网关宿主）仍归 GW-001 / DEP-008。完整组合（`qian add identity authz files`）的验收归 S1-QA-005（R84）。
 
 ## 安装
 

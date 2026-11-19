@@ -16,6 +16,7 @@ using StackExchange.Redis;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using ProtocolErrors = OpenIddict.Abstractions.OpenIddictConstants.Errors;
 
 namespace Kun.Identity.Server;
 
@@ -116,7 +117,7 @@ public static class IdentityServerHosting
         if (resources.IsEmpty) return ValueTask.CompletedTask;
         var client = options.Clients.SingleOrDefault(candidate => candidate.Application.ClientId == request.ClientId);
         if (client is null || resources.Any(resource => !client.Resources.Contains(resource, StringComparer.Ordinal)))
-            context.Reject(Errors.InvalidTarget, "One of the specified 'resource' parameters is not allowed for this client.");
+            context.Reject(ProtocolErrors.InvalidTarget, "One of the specified 'resource' parameters is not allowed for this client.");
         return ValueTask.CompletedTask;
     }
 

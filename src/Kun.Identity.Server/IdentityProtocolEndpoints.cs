@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using ProtocolErrors = OpenIddict.Abstractions.OpenIddictConstants.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
@@ -45,22 +46,22 @@ public static class IdentityProtocolEndpoints
         var request = http.GetOpenIddictServerRequest()!;
         var options = http.RequestServices.GetRequiredService<IdentityServerOptions>();
         var client = Client(options, request.ClientId);
-        if (client is null) return Reject(Errors.InvalidClient);
-        if (request.HasScope(Scopes.OpenId) && string.IsNullOrWhiteSpace(request.Nonce)) return Reject(Errors.InvalidRequest);
+        if (client is null) return Reject(ProtocolErrors.InvalidClient);
+        if (request.HasScope(Scopes.OpenId) && string.IsNullOrWhiteSpace(request.Nonce)) return Reject(ProtocolErrors.InvalidRequest);
         // 交互式重新认证与同意必须由后续账号流水线落实，不能静默忽略调用方的安全要求；账号选择（select_account）由同源选择页落实（S1-YUE-002）。
         var prompts = request.GetPromptValues();
-        if (prompts.Any(prompt => prompt is not (PromptValues.None or PromptValues.SelectAccount))) return Reject(Errors.InteractionRequired);
+        if (prompts.Any(prompt => prompt is not (PromptValues.None or PromptValues.SelectAccount))) return Reject(ProtocolErrors.InteractionRequired);
         var selectAccount = prompts.Contains(PromptValues.SelectAccount, StringComparer.Ordinal);
         // OIDC Core 3.1.2.1：none 不得与其他值并用。
-        if (selectAccount && request.HasPromptValue(PromptValues.None)) return Reject(Errors.InvalidRequest);
+        if (selectAccount && request.HasPromptValue(PromptValues.None)) return Reject(ProtocolErrors.InvalidRequest);
         // 去掉 prompt 的授权请求原地址：登录与选择页完成后回到这里签发，不再重复要求选择。
         var resume = selectAccount ? WithoutPrompt(http, request) : http.Request.GetEncodedPathAndQuery();
         var authentication = await http.AuthenticateAsync(options.SignInScheme).ConfigureAwait(false);
         if (!authentication.Succeeded || authentication.Principal is not { } cookie)
-            return request.HasPromptValue(PromptValues.None) ? Reject(Errors.LoginRequired) :
+            return request.HasPromptValue(PromptValues.None) ? Reject(ProtocolErrors.LoginRequired) :
                 Results.Challenge(new AuthenticationProperties { RedirectUri = resume }, [options.SignInScheme]);
         if (request.MaxAge is { } age && (!long.TryParse(cookie.GetClaim("auth_time"), NumberStyles.None, CultureInfo.InvariantCulture, out var authenticatedAt) ||
-            authenticatedAt > DateTimeOffset.UtcNow.ToUnixTimeSeconds() || DateTimeOffset.UtcNow.ToUnixTimeSeconds() - authenticatedAt > age)) return Reject(Errors.LoginRequired);
+            authenticatedAt > DateTimeOffset.UtcNow.ToUnixTimeSeconds() || DateTimeOffset.UtcNow.ToUnixTimeSeconds() - authenticatedAt > age)) return Reject(ProtocolErrors.LoginRequired);
         AccountValidation? validation = null;
         if (http.RequestServices.GetRequiredService<IdentityAccountGate>().Service is { } accounts)
         {
@@ -70,23 +71,23 @@ public static class IdentityProtocolEndpoints
             if (validation is null)
             {
                 await http.SignOutAsync(options.SignInScheme).ConfigureAwait(false);
-                return request.HasPromptValue(PromptValues.None) ? Reject(Errors.LoginRequired) :
+                return request.HasPromptValue(PromptValues.None) ? Reject(ProtocolErrors.LoginRequired) :
                     Results.Challenge(new AuthenticationProperties { RedirectUri = resume }, [options.SignInScheme]);
             }
         }
         // 账号 Cookie 仍有效且调用方要求选择账号：302 到同源选择页，页面经 POST /api/identity/session/switch 与 /login/select 换会话后回到 return_url。
         // return_url 固定为本服务的同源授权地址，不是开放重定向；没有内置账号模型的宿主没有选择页，按 interaction_required 拒绝。
         if (selectAccount)
-            return validation is null ? Reject(Errors.InteractionRequired)
+            return validation is null ? Reject(ProtocolErrors.InteractionRequired)
                 : Results.Redirect(options.Accounts.SelectionPath + "?return_url=" + Uri.EscapeDataString(resume));
         var principal = UserPrincipal(cookie, validation);
-        if (principal is null) return Reject(Errors.LoginRequired);
+        if (principal is null) return Reject(ProtocolErrors.LoginRequired);
         var resources = ResourcesFor(client, request.GetResources());
-        if (resources is null) return Reject(Errors.InvalidTarget);
+        if (resources is null) return Reject(ProtocolErrors.InvalidTarget);
         principal.SetScopes(request.GetScopes()); principal.SetResources(resources);
         var applications = http.RequestServices.GetRequiredService<IOpenIddictApplicationManager>();
         var application = await applications.FindByClientIdAsync(request.ClientId!, http.RequestAborted).ConfigureAwait(false);
-        if (application is null) return Reject(Errors.InvalidClient);
+        if (application is null) return Reject(ProtocolErrors.InvalidClient);
         var authorizations = http.RequestServices.GetRequiredService<IOpenIddictAuthorizationManager>();
         // 每次授权建立独立族；复用已消费 refresh 时只吊销同族，不能借共享的永久授权误杀别的登录。
         var descriptor = new OpenIddictAuthorizationDescriptor
@@ -106,12 +107,12 @@ public static class IdentityProtocolEndpoints
         var request = http.GetOpenIddictServerRequest()!;
         var options = http.RequestServices.GetRequiredService<IdentityServerOptions>();
         var client = Client(options, request.ClientId);
-        if (client is null) return Reject(Errors.InvalidClient);
+        if (client is null) return Reject(ProtocolErrors.InvalidClient);
         ClaimsPrincipal principal;
         if (request.IsClientCredentialsGrantType())
         {
             var resources = ResourcesFor(client, request.GetResources());
-            if (resources is null) return Reject(Errors.InvalidTarget);
+            if (resources is null) return Reject(ProtocolErrors.InvalidTarget);
             var identity = new ClaimsIdentity("Kun.Identity.Server");
             identity.AddClaim(new Claim(Claims.Subject, request.ClientId!));
             identity.AddClaim(new Claim("principal_kind", "service"));
@@ -124,15 +125,15 @@ public static class IdentityProtocolEndpoints
         {
             // OpenIddict 校验密文、PKCE、client、状态、到期和整族复用；不自行解析未验证令牌。
             var ticket = await http.AuthenticateAsync(Server).ConfigureAwait(false);
-            if (!ticket.Succeeded || ticket.Principal is not { } authenticated) return Reject(Errors.InvalidGrant);
+            if (!ticket.Succeeded || ticket.Principal is not { } authenticated) return Reject(ProtocolErrors.InvalidGrant);
             principal = authenticated;
             if (http.RequestServices.GetRequiredService<IdentityAccountGate>().Service is { } accounts && principal.GetClaim("principal_kind") == "user")
             {
                 // 换码与 refresh 同样要对照账号会话：改密、停用、登出之后，旧授权码和 refresh token 都不能再换新令牌。
-                if (!Guid.TryParseExact(principal.GetClaim("sub"), "D", out var person) || !Guid.TryParseExact(principal.GetClaim("sid"), "D", out var sid)) return Reject(Errors.InvalidGrant);
+                if (!Guid.TryParseExact(principal.GetClaim("sub"), "D", out var person) || !Guid.TryParseExact(principal.GetClaim("sid"), "D", out var sid)) return Reject(ProtocolErrors.InvalidGrant);
                 Guid? membership = Guid.TryParseExact(principal.GetClaim("membership_id"), "D", out var member) ? member : null;
                 var validation = await accounts.ValidateAsync(sid, person, membership, http.RequestAborted).ConfigureAwait(false);
-                if (validation is null) return Reject(Errors.InvalidGrant);
+                if (validation is null) return Reject(ProtocolErrors.InvalidGrant);
                 ReplaceRevision(principal, validation.IdentityRevision);
                 ReplaceName(principal, validation.DisplayName);
                 RestorePlatformTenant(principal);
@@ -142,26 +143,26 @@ public static class IdentityProtocolEndpoints
             var requested = request.GetResources();
             var resources = requested.IsEmpty ? granted.ToArray() : requested.Distinct(StringComparer.Ordinal).ToArray();
             if (resources.Length == 0 || ResourcesFor(client, resources) is null || resources.Except(granted, StringComparer.Ordinal).Any())
-                return Reject(Errors.InvalidTarget);
+                return Reject(ProtocolErrors.InvalidTarget);
             principal.SetResources(resources);
         }
-        else return Reject(Errors.UnsupportedGrantType);
+        else return Reject(ProtocolErrors.UnsupportedGrantType);
         return Results.SignIn(principal, authenticationScheme: Server);
     }
 
     private static async Task<IResult> UserInfo(HttpContext http)
     {
         var ticket = await http.AuthenticateAsync(Server).ConfigureAwait(false);
-        if (!ticket.Succeeded || ticket.Principal is not { } principal || principal.GetClaim("principal_kind") != "user" || !principal.HasScope(Scopes.OpenId)) return Reject(Errors.InvalidToken);
+        if (!ticket.Succeeded || ticket.Principal is not { } principal || principal.GetClaim("principal_kind") != "user" || !principal.HasScope(Scopes.OpenId)) return Reject(ProtocolErrors.InvalidToken);
         if (http.RequestServices.GetRequiredService<IdentityAccountGate>().Service is { } accounts)
         {
             // 访问令牌是自包含的 JWT，到期前签名一直有效；内置账号模式下 userinfo 额外对照数据库：会话被吊销、账号 / 成员 / 租户失效，
             // 或令牌里的 identity_revision 已落后于当前修订（授权变更、改密、停用），都按失效令牌拒绝，不再给出身份投影。
-            if (!Guid.TryParseExact(principal.GetClaim("sub"), "D", out var person) || !Guid.TryParseExact(principal.GetClaim("sid"), "D", out var sid)) return Reject(Errors.InvalidToken);
+            if (!Guid.TryParseExact(principal.GetClaim("sub"), "D", out var person) || !Guid.TryParseExact(principal.GetClaim("sid"), "D", out var sid)) return Reject(ProtocolErrors.InvalidToken);
             Guid? membership = Guid.TryParseExact(principal.GetClaim("membership_id"), "D", out var member) ? member : null;
             var validation = await accounts.ValidateAsync(sid, person, membership, http.RequestAborted).ConfigureAwait(false);
             if (validation is null || !long.TryParse(principal.GetClaim("identity_revision"), NumberStyles.None, CultureInfo.InvariantCulture, out var revision) || revision < validation.IdentityRevision)
-                return Reject(Errors.InvalidToken);
+                return Reject(ProtocolErrors.InvalidToken);
         }
         // 只发布身份投影，永不把其他 Cookie、角色或权限声明带入协议响应。
         var claims = UserClaims.Where(name => name is not "sid" && principal.HasClaim(claim => claim.Type == name))

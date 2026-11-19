@@ -460,9 +460,6 @@ jobs:
     if: needs.changes.outputs.dotnet == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: _import/qian
     steps:
       - uses: actions/checkout@v4
 
@@ -475,18 +472,18 @@ jobs:
           fi
 
       - name: 发布 linux-x64 NativeAOT（ILC 有任何 IL 警告即失败）
-        run: dotnet publish tools/Qian.Identity.Client.AotSmoke -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/identity-aot"
+        run: dotnet publish tools/Kun.Identity.Client.AotSmoke -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/identity-aot"
 
       - name: 产物是原生可执行文件
         run: |
-          test -x "$RUNNER_TEMP/identity-aot/Qian.Identity.Client.AotSmoke"
-          if [ -e "$RUNNER_TEMP/identity-aot/Qian.Identity.Client.AotSmoke.dll" ]; then
+          test -x "$RUNNER_TEMP/identity-aot/Kun.Identity.Client.AotSmoke"
+          if [ -e "$RUNNER_TEMP/identity-aot/Kun.Identity.Client.AotSmoke.dll" ]; then
             echo "没有按 NativeAOT 发布：csproj 需声明 PublishAot" >&2
             exit 1
           fi
 
       - name: 运行原生二进制：挂载组件并做启动与端点冒烟
-        run: '"$RUNNER_TEMP/identity-aot/Qian.Identity.Client.AotSmoke"'
+        run: '"$RUNNER_TEMP/identity-aot/Kun.Identity.Client.AotSmoke"'
 
   native-data-aot:
     name: 原生数据严格发布与真实 PostgreSQL 验收

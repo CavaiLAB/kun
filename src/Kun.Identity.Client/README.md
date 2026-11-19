@@ -9,7 +9,7 @@
 
 同一个包进 `platform`、`gateway` 与独立宿主（ADR-019）：独立宿主只装本包即可对接任意 OIDC 发行方，不部署 Qian 平台、不需要 Config 组件（公开客户端）。
 
-本包声明 `IsAotCompatible`，裁剪与 AOT 分析器 0 警告。组件清单的 `x-aot` 以 CI 的 NativeAOT 冒烟为据（S1-IDP-014）。按 S1-DEC-029，开发期 `gateway` 暂用 JIT，网关整体的 NativeAOT 验收归 GW-001 / DEP-008。冒烟的做法是：[tools/Qian.Identity.Client.AotSmoke](../../tools/Kun.Identity.Client.AotSmoke/Program.cs) 按网关的用法装配会话与 S2S 校验，以 ILC 警告即失败发布 linux-x64，原生二进制挂载组件后逐个请求端点。判断兼容性看 ILC 结果。本包引用的 Kun 是仓库根 `src/` 下的项目（`Kun.Identity`、`Kun.Identity.AspNetCore`、`Kun.Security`），与本包一样在各自的项目文件里声明 `IsAotCompatible`，都在仓库根的 AOT 清单里；仓库根的 AOT 冒烟宿主 `tests/Kun.AotSmoke` 把清单里的程序集整体扎根后原生发布，见仓库根 [AGENTS.md](../../AGENTS.md)「项目文件与包」。
+本包声明 `IsAotCompatible`，裁剪与 AOT 分析器 0 警告。组件清单的 `x-aot` 以 CI 的 NativeAOT 冒烟为据（S1-IDP-014）。按 S1-DEC-029，开发期 `gateway` 暂用 JIT，网关整体的 NativeAOT 验收归 GW-001 / DEP-008。冒烟的做法是：[tools/Kun.Identity.Client.AotSmoke](../../tools/Kun.Identity.Client.AotSmoke/Program.cs) 按网关的用法装配会话与 S2S 校验，以 ILC 警告即失败发布 linux-x64，原生二进制挂载组件后逐个请求端点。判断兼容性看 ILC 结果。本包引用的 Kun 是仓库根 `src/` 下的项目（`Kun.Identity`、`Kun.Identity.AspNetCore`、`Kun.Security`），与本包一样在各自的项目文件里声明 `IsAotCompatible`，都在仓库根的 AOT 清单里；仓库根的 AOT 冒烟宿主 `tests/Kun.AotSmoke` 把清单里的程序集整体扎根后原生发布，见仓库根 [AGENTS.md](../../AGENTS.md)「项目文件与包」。
 
 ## 安装与装配
 
@@ -39,7 +39,7 @@ app.UseAuthorization();
 app.MapKunIdentityClient();   // /auth/login、回调、/auth/logout、/auth/csrf、/auth/backchannel-logout
 
 // 经 PluginLoader 挂载组件；浏览器流程在挂载后才生效，卸载后端点返回 404、Cookie 会话不再被认可。
-await loader.MountAsync([new(new PluginEntry("identity", "qian.identity.client", "1.0.0", ScopeKey.Global, 0, config), new IdentityClientComponent(), [IdentityDefinition.Key])], ct);
+await loader.MountAsync([new(new PluginEntry("identity", "qian.identity.client", "1.1.0", ScopeKey.Global, 0, config), new IdentityClientComponent(), [IdentityDefinition.Key])], ct);
 ```
 
 组件配置（[plugins/qian.identity.client](../../_import/qian/plugins/qian.identity.client/README.md)）：`issuer`、`clientId` 必须与宿主选项一致；`clientSecret` 只接受 `secretRef://platform/…` 或 `secretRef://dev/…`，第一次换码时经 Config 组件的密钥策略解析（清单声明 `identity/*`，宿主审批），密钥不经代码、选项或配置明文传入。公开客户端省略 `clientSecret`，此时不依赖 Config。轮换密钥 = 重新挂载组件。
@@ -121,6 +121,6 @@ app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();
 
 ## 测试
 
-`tests/Qian.Identity.Client.Tests`：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码、篡改 nonce / iss / state 重放、刷新单飞与轮换、登出防伪、卸载、后通道登出，以及会话主体经 Kun 网关签发器铸 S2S 后下游接受、透传被拒；S2S 契约逐条违约。`tests/Qian.Identity.Client.Standalone.Tests`：只引用本包的独立宿主对接 Dex（独立实现的 CNCF OIDC 发行方，见 [tests/README.md](../../_import/qian/tests/README.md) 的 `DexFixture`）完成登录与登出，并断言依赖闭包里没有其他 Qian 组件。`ClientManifestTests` 核对清单与生成元数据、配置 Schema 一致，公开客户端能挂载和卸载，并确认清单声明了 `x-aot`；NativeAOT 冒烟见上文。选 Dex 而不是第二个 qian-identity，是因为后者证明不了「任意 OIDC 发行方」。
+`tests/Kun.Identity.Client.Tests`：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码、篡改 nonce / iss / state 重放、刷新单飞与轮换、登出防伪、卸载、后通道登出，以及会话主体经 Kun 网关签发器铸 S2S 后下游接受、透传被拒；S2S 契约逐条违约。`tests/Kun.Identity.Client.Standalone.Tests`：只引用本包的独立宿主对接 Dex（独立实现的 CNCF OIDC 发行方，见 [tests/README.md](../../_import/qian/tests/README.md) 的 `DexFixture`）完成登录与登出，并断言依赖闭包里没有其他 Qian 组件。`ClientManifestTests` 核对清单与生成元数据、配置 Schema 一致，公开客户端能挂载和卸载，并确认清单声明了 `x-aot`；NativeAOT 冒烟见上文。选 Dex 而不是第二个 qian-identity，是因为后者证明不了「任意 OIDC 发行方」。
 
 S1-IDP-015 的私有源安装门在 `packages/qian-cli/test/private-feed.e2e.mjs`：从干净 ASP.NET Core 项目执行 `qian add identity`，核对版本、实际包源与归档摘要，由清单入口挂载已发布的 Provider；匿名 `/auth/session` 返回 401，卸载后同端点返回 404，旧上下文无法再取得 Identity 服务。最后经 `qian remove identity --purge` 撤销包引用、组件文件与 patch。完整登录协议仍由上述身份客户端测试覆盖。

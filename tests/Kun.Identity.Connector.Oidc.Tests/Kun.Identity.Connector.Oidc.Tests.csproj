@@ -6,5 +6,6 @@
     <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="coverlet.MTP" />
   </ItemGroup>
 </Project>

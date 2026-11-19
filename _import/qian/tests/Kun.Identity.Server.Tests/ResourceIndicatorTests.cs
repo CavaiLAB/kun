@@ -1,3 +1,4 @@
+using ProtocolErrors = OpenIddict.Abstractions.OpenIddictConstants.Errors;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Claims;
@@ -64,20 +65,20 @@ public sealed partial class ResourceIndicatorTests(PostgresFixture postgres) : I
     {
         await using var host = await ResourceHost.Start(postgres);
         // 第一层：不在本客户端白名单内的一律 invalid_target，包括没有任何客户端登记的资源……
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Authorize("multi", "https://unregistered.qian.test")));
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.ClientCredentials("machine", "https://unregistered.qian.test")));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Authorize("multi", "https://unregistered.qian.test")));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.ClientCredentials("machine", "https://unregistered.qian.test")));
         // ……和登记在别的客户端名下的资源。
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Authorize("multi", Other)));
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Authorize("single", Files)));
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.ClientCredentials("machine", Other)));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Authorize("multi", Other)));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Authorize("single", Files)));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.ClientCredentials("machine", Other)));
         // 多资源客户端不带 resource：不再默认签发带全部受众的令牌。
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Authorize("multi")));
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.ClientCredentials("machine")));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Authorize("multi")));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.ClientCredentials("machine")));
         // 一项越界整个请求作废，不按交集签发。
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Authorize("multi", Api, Other)));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Authorize("multi", Api, Other)));
         // 令牌端点先认证客户端再查白名单：密钥不对只报 invalid_client，不能借 resource 试探别的客户端登记了什么。
-        Assert.Equal(Errors.InvalidClient, await Rejected(await host.ForgedClientCredentials("machine", Other)));
-        Assert.Equal(Errors.InvalidClient, await Rejected(await host.ForgedClientCredentials("machine", Files)));
+        Assert.Equal(ProtocolErrors.InvalidClient, await Rejected(await host.ForgedClientCredentials("machine", Other)));
+        Assert.Equal(ProtocolErrors.InvalidClient, await Rejected(await host.ForgedClientCredentials("machine", Files)));
     }
 
     [Fact]
@@ -95,15 +96,15 @@ public sealed partial class ResourceIndicatorTests(PostgresFixture postgres) : I
         using var again = await host.Refresh("multi", files.Refresh!);
         var still = await Issued(again);
         Assert.Equal([Files], still.Audiences);
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Refresh("multi", still.Refresh!, Api)));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Refresh("multi", still.Refresh!, Api)));
         // 换码时同样可以收窄。
         using (var exchanged = await host.Exchange("multi", await host.Code("multi", Api, Files), Api)) Assert.Equal([Api], (await Issued(exchanged)).Audiences);
         // 原授权只有 Api：换码要 Files（客户端白名单内、但未授予）被拒，refresh 也不能扩大到 Files。
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Exchange("multi", await host.Code("multi", Api), Files)));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Exchange("multi", await host.Code("multi", Api), Files)));
         using var single = await host.Exchange("multi", await host.Code("multi", Api));
         var api = await Issued(single);
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Refresh("multi", api.Refresh!, Files)));
-        Assert.Equal(Errors.InvalidTarget, await Rejected(await host.Refresh("multi", api.Refresh!, Api, Files)));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Refresh("multi", api.Refresh!, Files)));
+        Assert.Equal(ProtocolErrors.InvalidTarget, await Rejected(await host.Refresh("multi", api.Refresh!, Api, Files)));
         // 被拒的 refresh 请求没有消耗 refresh token：同一个 token 仍能按原授权刷新。
         using var kept = await host.Refresh("multi", api.Refresh!);
         Assert.Equal([Api], (await Issued(kept)).Audiences);
@@ -117,8 +118,8 @@ public sealed partial class ResourceIndicatorTests(PostgresFixture postgres) : I
         // 镜像进 OpenIddict 应用的 rsrc: 权限由 Resources 推导；模拟镜像过期或被改，去掉 Files 那一项：
         // 白名单仍含 Files，第一层放行，OpenIddict 的权限检查拒绝（ID2192 报 invalid_request），授权端点与令牌端点都一样。
         await host.RemovePermission("multi", Files);
-        Assert.Equal(Errors.InvalidRequest, await Rejected(await host.Authorize("multi", Files)));
-        Assert.Equal(Errors.InvalidRequest, await Rejected(await host.Exchange("multi", code, Files)));
+        Assert.Equal(ProtocolErrors.InvalidRequest, await Rejected(await host.Authorize("multi", Files)));
+        Assert.Equal(ProtocolErrors.InvalidRequest, await Rejected(await host.Exchange("multi", code, Files)));
         using var api = await host.Exchange("multi", code, Api);
         Assert.Equal([Api], (await Issued(api)).Audiences);
     }

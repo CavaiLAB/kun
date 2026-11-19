@@ -43,7 +43,7 @@ Apply 按配置构造 `OidcIdentityConnector`，以配置的 `name`（缺省 `oi
 
 ## 验收
 
-`tests/Qian.Identity.Connector.Oidc.Tests`：进程内的 OP 替身走完整授权码 + PKCE，逐项篡改签名（同 kid 换私钥、不签名、用客户端密钥 HS256 伪签且 JWKS 发布了对称密钥）、iss、aud、sub、azp、多受众、nonce、有效期、RFC 9207 的 iss 参数、发现文档 issuer、PKCE verifier、超大与非 JSON 响应，以及发现文档与 JWKS 的缓存和刷新间隔；配置只接受 secretRef、清单合法且 Schema 与组件文件夹同一份、描述不含任何配置值、组件按 scope 注册与卸载。关键校验做过变异验证（去掉任一校验，至少一个用例失败）。端到端由 `Kun.Identity.Server.Tests` 的 `AuthentikConnectorTests` 对容器里的真实 Authentik 完成。
+`tests/Kun.Identity.Connector.Oidc.Tests`：进程内的 OP 替身走完整授权码 + PKCE，逐项篡改签名（同 kid 换私钥、不签名、用客户端密钥 HS256 伪签且 JWKS 发布了对称密钥）、iss、aud、sub、azp、多受众、nonce、有效期、RFC 9207 的 iss 参数、发现文档 issuer、PKCE verifier、超大与非 JSON 响应，以及发现文档与 JWKS 的缓存和刷新间隔；配置只接受 secretRef、清单合法且 Schema 与组件文件夹同一份、描述不含任何配置值、组件按 scope 注册与卸载。关键校验做过变异验证（去掉任一校验，至少一个用例失败）。端到端由 `Kun.Identity.Server.Tests` 的 `AuthentikConnectorTests` 对容器里的真实 Authentik 完成。
 
 ## 模型体验
 

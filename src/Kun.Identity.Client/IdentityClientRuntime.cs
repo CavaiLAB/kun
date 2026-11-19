@@ -1,5 +1,4 @@
 #pragma warning disable RS0026 // 与 Kun 的 IOidcClient 保持同一组重载。
-using Kun.Identity;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

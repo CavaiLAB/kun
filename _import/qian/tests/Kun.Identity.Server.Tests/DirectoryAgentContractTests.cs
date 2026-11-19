@@ -140,7 +140,7 @@ public sealed partial class DirectoryAgentContractTests
     {
         var identity = DirectoryAgentContract.Load();
         // 本测试所在的 CI 分片不装 Node 依赖，读钉住的副本；副本与安装目录里同版本的包逐字节相同，由 tests/gates/ui/pins.test.ts 核对。
-        var biz = DirectoryAgentContract.Load("tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json");
+        var biz = DirectoryAgentContract.Load("tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json");
         var shared = biz.Operations().Where(operation => operation.Path.StartsWith("/api/directory/", StringComparison.Ordinal)).ToArray();
         Assert.True(shared.Length >= 4, "业务组件契约的目录路径数：" + shared.Length);
         foreach (var (path, method, operation) in shared)

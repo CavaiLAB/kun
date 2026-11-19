@@ -2,7 +2,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Kun.EventBus;
-using Kun.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

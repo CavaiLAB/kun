@@ -23,7 +23,6 @@
       "tests/Kun.Plugin.Sdk.Tests/Kun.Plugin.Sdk.Tests.csproj",
       "tests/Kun.RateLimit.Tests/Kun.RateLimit.Tests.csproj",
       "tests/Kun.Runtime.Tests/Kun.Runtime.Tests.csproj",
-      "tests/Kun.Saga.Tests/Kun.Saga.Tests.csproj",
       "tests/Kun.Security.Tests/Kun.Security.Tests.csproj",
       "tests/Kun.Storage.Abstractions.Tests/Kun.Storage.Abstractions.Tests.csproj",
       "tests/Kun.Storage.Local.Tests/Kun.Storage.Local.Tests.csproj",

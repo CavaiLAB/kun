@@ -1,6 +1,6 @@
 # 模块地图
 
-> **Version**：`0.1.0-phase1`（2026-04-23 发布）。模块清单、主要 API、AOT 状态与测试用例数以该 tag 为准。
+> **Version**：`0.1.0-phase1`（2026-04-23 发布）。该版本建立了初始矩阵。持久化与租户模块按当前源码更新。
 > 任何下游仓库对 `Kun.*` 的消费都应以本表为 SoT（Single Source of Truth）。
 
 ## Phase 1 模块矩阵
@@ -66,7 +66,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
-| `Kun.EntityFrameworkCore` | 写侧 EF Core 实现 + `KunDbContext` + Outbox 落库 + 多租户过滤器 | 所有业务写路径；事务边界与 Outbox 同事务 | `AddKunEntityFrameworkCore()` / `KunDbContext` | ⚠️ trim-safe | 51 |
+| `Kun.EntityFrameworkCore` | 写侧 EF Core 实现 + `KunDbContext` + Outbox 落库 + 多租户过滤器 | 所有业务写路径；事务边界与 Outbox 同事务 | `AddKunEntityFrameworkCore()` / `KunDbContext` | ⚠️ trim-safe | 53 |
 | `Kun.EntityFrameworkCore.PostgreSQL` | EF 迁移的 PostgreSQL 租户 RLS 生成器 | 在租户表上生成行级策略 | `UseKunTenantRlsMigrations()` | — | — |
 | `Kun.Data.Abstractions` | 平台数据与方言契约 | 数据类型、序号、迁移与连接目录 | `IDataDialect` / `IDataMigrator` | — | 27 |
 | `Kun.Data` | 平台的 EF 数据组件 | 在组件中打开强约束数据会话 | `AddKunData<TContext>()` | — | 39 |
@@ -105,7 +105,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Security` | S2S JWT 校验、JWKS 热加载与当前用户 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
 | `Kun.Security.Abstractions` | 服务间令牌的主体模型与声明词汇表，零依赖 | 公共表面带主体的契约包引用它，不必引用 `Kun.Security` | `Principal` / `PrincipalKind` / `IdentityClaimNames` | ✅ | — |
 | `Kun.Identity` | 外部 IdP（OIDC）客户端、JWT 校验与原子会话；**不**自建用户存储 | 账号和凭据由身份权威提供，Kun 负责依赖方校验与会话 | `AddKunIdentity(...)` | ✅ | 11 |
-| `Kun.MultiTenancy` | 请求与消息的租户范围 | 登记租户上下文并传播当前标识 | `AddKunMultiTenancy()` / `UseKunMultiTenancy()` | ✅ | 4 |
+| `Kun.MultiTenancy` | 请求与消息的租户范围 | 登记租户上下文并传播当前标识 | `AddKunMultiTenancy()` / `UseKunMultiTenancy()` | ✅ | 5 |
 | `Kun.Tenancy.Abstractions` | 租户目录契约 | 查询租户档案 | `ITenantDirectory` | — | — |
 | `Kun.Tenancy` | 租户目录与生命周期 | 维护租户状态及开户步骤 | `TenancyPlugin` | — | 24 |
 | `Kun.Tenancy.AspNetCore` | 租户目录 HTTP 端点 | 查询和管理租户 | `MapKunTenancy()` | — | — |

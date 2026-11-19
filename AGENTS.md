@@ -110,7 +110,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 命令与查询分离。`Kun.Mediator` 的处理器在编译期由源生成器发现，不要改回反射解析。写侧（命令处理器）用 `Kun.EntityFrameworkCore`：仓储、规约、变更跟踪，在 `SaveChangesAsync` 里登记 Outbox；读侧（查询处理器）直接用 Npgsql 的数据源与 Dapper：原生 SQL、DTO 投影、不加载聚合，写法见 `docs/guides/read-side-patterns.md`。查询处理器里不用 EF Core，命令处理器里不用 Dapper。
 - Outbox：集成事件与业务数据在同一事务里落库，事件类型用稳定的字符串 id（如 `order.placed.v1`），不用程序集限定名；优先用 `[IntegrationEventId("order.placed.v1")]` 特性加 `Register<TEvent>()`。消费端先查成功标记，再执行处理器、写成功标记、确认消息；业务副作用、标记与确认之间仍有重放窗口，写类处理器必须幂等。设计说明见 Kun ADR-015。
 - 服务间零信任：外部令牌只在 `Kun.Gateway` 校验；网关用自己的私钥签发内部短期令牌（RS256 或 ES256，不用 HS256），下游经 `Kun.Security` 校验。身份（`sub`、`tenant_id`）只从内部令牌的声明里取，不信 `X-User-Id` 这类请求头。
-- 多租户：`Kun.Core` 的 `ITenantContext` 贯穿全栈；实现 `IMultiTenant` 的实体自动带 `TenantId` 查询过滤器，除明确的管理场景外不要用 `IgnoreQueryFilters()`；可以再加 PostgreSQL 行级安全作纵深防御。租户号改为只收 Guid 是 B5 的事（D23.5）。
+- HTTP 与 gRPC 端点通过已认证主身份建立租户范围，后台任务显式调用 `BeginScope`。租户范围使用非空 `Guid`，显式平台范围使用 `null`。实体租户列与 PostgreSQL RLS 会话变量使用小写、带连字符的 UUID 文本。平台组件使用 `KunStrictDbContext`，独立业务可在 `KunDbContext` 上配置租户过滤。
 - 业务失败返回 `Result` / `Result<T>`，异常只留给系统性故障（并发、网络、基础设施）。失败带的是 `Kun.Errors` 的 `Error`：错误码先定义成 `ErrorCode` 并登记进错误码目录（平台内置的在 `PlatformErrors`），需要抛的时候只抛 `ErrorException`。HTTP 宿主用 `Kun.Errors.AspNetCore` 的 `AddKunErrors()` 与 `UseKunErrors()` 把错误写成 problem+json（`ErrorDetail`）；gRPC 端点可以 `result.EnsureSuccess()`，由 `Kun.Grpc` 的拦截器按错误码的 HTTP 状态转成 gRPC 状态码。
 - 审计按需开启：命令用 `AddKunMediator(b => b.AddAuditBehavior<TCommand, TResponse>())` 登记，查询默认不审计。
 

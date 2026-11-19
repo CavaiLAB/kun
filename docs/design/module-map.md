@@ -93,6 +93,8 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Observability` | 统一 OTel traces + metrics + logs + 预注册全部 Kun ActivitySource | 所有下游服务用一行装配可观测性 | `AddKunObservability("service-name")` | ✅ | 5 |
 | `Kun.Sandbox` | E2B v2 兼容 sandbox 抽象 + `SupervisorSandboxProvider` / `E2BCloudSandboxProvider`（Phase 2+ 占位）/ `InMemorySandboxProvider` | 智能体侧在沙箱里执行 LLM 产出的代码 | `AddKunSandbox(o => o.UseSupervisor / UseE2BCloud / UseInMemory)` | ✅ | 27 |
 
+`Kun.Sandbox` 已归档（S1-KUN-028）：移出解决方案，包名停发，没有替代的包。上表里的这一行按原样保留。
+
 > **测试列的口径**：统计每个 `tests/Kun.*.Tests` 项目下标记为 `[Fact]` / `[Theory]` 的测试方法数（`grep -c '\[Fact\b\|\[Theory\b'`）。这是"测试用例数"的近似值，不是行覆盖率；行覆盖率请看 CI `coverage.cobertura.xml` 构建产物。单元格内 `—` 表示该模块暂无 `*.Tests` 项目（`Kun.Infrastructure` / `Kun.EntityFrameworkCore` / `Kun.EventBus.RabbitMQ` / `Kun.Audit.EntityFrameworkCore` / `Kun.MultiTenancy.EntityFrameworkCore` — 它们的覆盖由 `Kun.IntegrationTests` / 邻近模块的测试间接覆盖）。
 
 ### 非 AOT 白名单（不写 `IsAotCompatible`，有明确原因）

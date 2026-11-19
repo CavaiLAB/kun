@@ -91,7 +91,7 @@ flowchart LR
 - 留仓库根上 Kun 框架的：身份协议客户端与会话存储、存储后端、令牌签发、命令与查询调度、缓存。
 - 留 `_import/qian/` 下平台代码的：错误模型、审计链、事件的投递循环、消息的发布与订阅、权限的强制执行点。
 
-归档的模块有五个：`Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure`、旧线的 `Kun.Storage`（已定）。归档指移出解决方案和发版清单，源码留在历史里，已经发布的版本不动。`Kun.Dapper` 已归档，读侧的写法见[读侧模式](guides/read-side-patterns.md)。
+归档的模块有五个：`Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure`、旧线的 `Kun.Storage`（已定）。归档指移出解决方案和发版清单，源码留在历史里，已经发布的版本不动。`Kun.Dapper` 已归档，读侧的写法见[读侧模式](guides/read-side-patterns.md)。`Kun.Sandbox` 已归档，没有替代的包。
 
 ## 7 profile 与可部署单元
 

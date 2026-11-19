@@ -401,7 +401,7 @@ class RealGraphTests(unittest.TestCase):
         # S1-IDP-007：通用 OIDC 连接器只经身份契约接入，完整传递依赖里没有 Kun.Identity.Server（也没有别的平台档提供者）。
         self.assertIn("Kun.Identity.Connector.Oidc", self.packages, "连接器包必须在 Kun.slnx 里，依赖门禁才会检查它")
         closure = self.closure("Kun.Identity.Connector.Oidc")
-        self.assertNotIn("qian.identity.server", {n.lower() for n in closure})
+        self.assertNotIn("kun.identity.server", {n.lower() for n in closure})
         self.assertEqual([], self.platform_providers(closure))
         self.assertEqual([], self.violations_of("Kun.Identity.Connector.Oidc"))
         self.assertTrue({"Kun.Identity.Abstractions", "Kun.Runtime"} <= closure)

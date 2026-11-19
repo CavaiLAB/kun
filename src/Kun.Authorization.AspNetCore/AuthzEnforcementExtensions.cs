@@ -16,8 +16,8 @@ namespace Kun.Authorization.AspNetCore;
 /// <summary>
 /// HTTP / gRPC 强制执行点（PEP）的宿主装配：端点以 <see cref="RequireKunPermission{TBuilder}"/> 声明权限点（同时写进 OpenAPI 的 x-qian-permission），
 /// 平台模式经 qian.authz 的执行端口（<see cref="IAuthzEnforcement"/>）判定、比对身份修订并记录决策审计。库模式使用宿主登记的 <see cref="IPermissionChecker"/>。
-/// 未声明权限点的组件端点在生产模式缺省拒绝（403 并记录），开发模式放行并告警；没有声明权限点的已认证请求也比对 identity_revision，旧令牌 401
-/// （S1-YUE-012，见 <see cref="UseKunAuthorization"/>）。
+/// 平台组件端点未声明权限点时，生产模式返回 403 并记录，开发模式放行并告警。
+/// <see cref="UseKunAuthorization"/> 对携带修订的租户身份核对下限，陈旧的租户令牌返回 401。
 /// </summary>
 public static class AuthzEnforcementExtensions
 {

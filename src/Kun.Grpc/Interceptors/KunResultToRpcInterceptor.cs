@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Kun.Errors;
@@ -59,11 +60,13 @@ internal sealed class KunResultToRpcInterceptor : Interceptor
     public static RpcException ToRpcException(Error error)
     {
         ArgumentNullException.ThrowIfNull(error);
-        var trailers = new Metadata
-        {
-            { "kun-error-code", error.Code.Code }
-        };
-        return new RpcException(new Status(MapStatus(error.Code.Status), error.Message), trailers);
+        // A gRPC service can return its own codes without registering an HTTP error catalog.
+        var catalog = new ErrorCatalog();
+        catalog.Register(error.Code);
+        foreach (var field in error.Errors) catalog.Register(field.Code);
+        var trace = Activity.Current?.TraceId.ToHexString() ?? ActivityTraceId.CreateRandom().ToHexString();
+        var detail = catalog.CreateDetail(error, trace);
+        return new RpcException(new Status(MapStatus(error.Code.Status), error.Message), GrpcErrorTrailers.Create(detail));
     }
 
     /// <summary>

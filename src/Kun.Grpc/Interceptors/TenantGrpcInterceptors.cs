@@ -1,18 +1,22 @@
 using System.Diagnostics;
-using System.Text;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.MultiTenancy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Grpc.Interceptors;
 
 /// <summary>租户 gRPC 服务入口；宿主先完成 JWT 认证，再核对传播元数据，覆盖全部四种调用形态。</summary>
-public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interceptor
+[method: ActivatorUtilitiesConstructor]
+public sealed class TenantGrpcServerInterceptor(ITenantContext tenant, TenantRequestMode mode = TenantRequestMode.TenantRequired) : Interceptor
 {
+    /// <summary>为严格租户 RPC 要求携带与认证身份匹配的传播元数据。</summary>
+    public TenantGrpcServerInterceptor(ITenantContext tenant) : this(tenant, TenantRequestMode.TenantRequired) { }
+
     /// <summary>携带冻结 ErrorDetail JSON 的二进制响应 trailer。</summary>
-    public const string ErrorDetailTrailer = "qian-error-bin";
+    public const string ErrorDetailTrailer = GrpcErrorTrailers.DetailKey;
     private readonly ErrorCatalog _errors = ErrorCatalog.CreateDefault();
     private readonly TenantRequestBoundary _boundary = new(tenant);
     private readonly TenantContextPropagator _propagator = new(tenant);
@@ -40,10 +44,18 @@ public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interce
         T result = default!;
         try
         {
-            await _boundary.InvokeAsync(context.GetHttpContext(), async _ =>
+            await _boundary.InvokeAsync(context.GetHttpContext(), mode, async _ =>
             {
-                using var scope = _propagator.BeginScope(context.RequestHeaders.Where(entry => !entry.IsBinary)
-                    .Select(entry => new KeyValuePair<string, string>(entry.Key, entry.Value)), tenant.TenantId!.Value);
+                // Generic RPCs inherit the authenticated scope. Explicit tenant metadata always has to agree.
+                if (mode == TenantRequestMode.TenantRequired || context.RequestHeaders.Any(entry => entry.Key == "tenant_id"))
+                {
+                    if (tenant.TenantId is not { } authorized)
+                        throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+                    using var scope = _propagator.BeginScope(context.RequestHeaders.Where(entry => !entry.IsBinary)
+                        .Select(entry => new KeyValuePair<string, string>(entry.Key, entry.Value)), authorized);
+                    result = await continuation().ConfigureAwait(false);
+                    return;
+                }
                 result = await continuation().ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
@@ -52,7 +64,7 @@ public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interce
             var trace = Activity.Current?.TraceId.ToHexString() ?? ActivityTraceId.CreateRandom().ToHexString();
             var detail = _errors.CreateDetail(error.Error, trace, instance: context.Method);
             throw new RpcException(new Status(StatusCode.Unauthenticated, detail.Code),
-                new Metadata { { ErrorDetailTrailer, Encoding.UTF8.GetBytes(ErrorDetailJson.Serialize(detail)) } });
+                GrpcErrorTrailers.Create(detail));
         }
         return result;
     }

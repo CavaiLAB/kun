@@ -17,10 +17,14 @@ public enum TenantRequestMode
 public sealed class TenantRequestBoundary(ITenantContext tenant)
 {
     /// <summary>在租户作用域内执行请求，完成、异常或取消后还原上下文。</summary>
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    public Task InvokeAsync(HttpContext context, RequestDelegate next) =>
+        InvokeAsync(context, TenantRequestMode.TenantRequired, next);
+
+    /// <summary>按指定入口模式在当前请求的租户范围内执行委托。</summary>
+    public async Task InvokeAsync(HttpContext context, TenantRequestMode mode, RequestDelegate next)
     {
         ArgumentNullException.ThrowIfNull(next);
-        using var scope = Enter(context, TenantRequestMode.TenantRequired);
+        using var scope = Enter(context, mode);
         await next(context).ConfigureAwait(false);
     }
 

@@ -28,6 +28,11 @@
 - `IIntegrationEventBus` 与 `Kun.EventBus.Outbox` 的 `IOutboxWriter`、`IIntegrationEventOutbox`、`IntegrationEventBuffer`、`OutboxMessage`、`OutboxStatus` 移进 `Kun.EventBus.Abstractions`，命名空间不变，`Kun.EventBus` 留类型转发：源码与按 `Kun.EventBus` 编译的程序集不用改；按程序集反射找这些类型的（如比对 `typeof(OutboxMessage).Assembly`）拿到的是 `Kun.EventBus.Abstractions`。
 - 日志类别、活动源与计量器的名字都不变：挪动的类型不写日志，也不建活动源或计量器。
 
+### Changed — gRPC 主体与错误尾部（S1-KUN-026）
+
+- 纯 Kun gRPC 服务保留 `kun-error-code`，并在 `qian-error-bin` 提供与 HTTP 相同的 ErrorDetail JSON。租户拦截器同样提供两项尾部。
+- `AddKunGrpc` 依次执行追踪、身份认证、租户范围、权限和结果映射。有效平台主体的显式空 `tenant_id` 对应平台范围；租户 RPC 继续校验传播元数据与认证结果是否一致。
+
 ### Changed — 身份依赖方端口与服务间令牌（S1-KUN-026）
 
 - 依赖方、OIDC 与会话类型统一到 `Kun.Identity` 命名空间。引用 `Kun.Identity.Abstractions` 或 `Kun.Identity.Abstractions.Session` 的源码改用 `using Kun.Identity;`。浏览器宿主可继续通过 `IAuthenticatedUser` 获取租户、邮箱、显示名和当前声明主体。

@@ -134,7 +134,7 @@ Kun 的错误模型就是本节这一套：`Kun.Errors` 定义错误码、`Error
 
 - 校验：`Kun.Validation` 的校验器产出 `FieldError`（字段级错误码 + pointer），校验行为把它们合成一个 `INPUT_INVALID` 错误，`errors[]` 按校验器的顺序保留至多 100 项；抛出版抛 `ErrorException`，Result 版返回失败的 `Result`。
 - HTTP：`AddKunErrors()` 登记错误码目录与 `ErrorException` 的异常处理（排在宿主自己的异常处理之前），并在 ASP.NET Core 的同一个 `IProblemDetailsService` 上做后置规范化，不另起一套。规范化规则：扩展成员 `code` 是已登记、非字段级、状态码一致且无占位符的错误码时保留，否则按状态码兜底；`title` / `detail` / `message` 一律取错误码目录的文案，其余扩展成员丢弃。`Kun.AspNetCore` 只做端点映射，不处理错误。
-- gRPC：`Kun.Grpc` 的拦截器把 `ErrorException` 转成 `RpcException`，状态码按错误码的 HTTP 状态映射（400 → `InvalidArgument`，401 → `Unauthenticated`，403 → `PermissionDenied`，404 → `NotFound`，408 / 504 → `DeadlineExceeded`，409 / 412 / 422 → `FailedPrecondition`，413 / 429 → `ResourceExhausted`，502 / 503 → `Unavailable`，其余 `Internal`），错误码放在尾部字段 `kun-error-code`。
+- gRPC：`Kun.Grpc` 的拦截器把 `ErrorException` 转成 `RpcException`，状态码按错误码的 HTTP 状态映射（400 → `InvalidArgument`，401 → `Unauthenticated`，403 → `PermissionDenied`，404 → `NotFound`，408 / 504 → `DeadlineExceeded`，409 / 412 / 422 → `FailedPrecondition`，413 / 429 → `ResourceExhausted`，502 / 503 → `Unavailable`，其余 `Internal`），错误码放在尾部字段 `kun-error-code`。二进制尾部 `qian-error-bin` 使用 UTF-8 编码，内容为 HTTP 响应体采用的同一份 ErrorDetail JSON。状态、错误码、多语言文案、trace_id、instance、pointer、allowed 和字段级 errors 均沿用本节的定义。
 
 Kun 自带的几处失败用的都是本目录登记的平台错误码：
 

@@ -10,6 +10,7 @@ using Kun.MultiTenancy.Middleware;
 using Kun.Security.Authentication;
 using Kun.Security.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Kun.Data;
@@ -59,7 +60,9 @@ public static class CrmApplication
         var app = builder.Build();
         app.UseKunErrors();
         app.UseAuthentication();
-        app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"), branch => branch.UseKunMultiTenancy());
+        app.UseWhen(context => context.Request.Path.StartsWithSegments("/api") ||
+            context.GetEndpoint()?.Metadata.GetMetadata<IAuthorizeData>() is not null,
+            branch => branch.UseKunMultiTenancy());
         app.UseAuthorization();
         if (mapReadEndpoints)
         {

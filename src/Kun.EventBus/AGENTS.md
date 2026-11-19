@@ -29,3 +29,7 @@ For tests that assert EF-persisted `OutboxMessage` state (e.g. "did the command 
 ### Internal
 
 - `Kun.EventBus.Abstractions` — 稳定事件标记、注册与查询端口，Outbox 写入端口与集成事件信封；挪过去的类型由本程序集类型转发。
+
+## 信封写入端
+
+- IOutboxWriter 与 IIntegrationEventBus 必须解析到同一个 scoped 信封写入端；Outbox 行的 payload 就是完整 v1 信封，不另存半成品。

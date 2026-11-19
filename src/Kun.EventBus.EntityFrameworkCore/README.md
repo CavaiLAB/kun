@@ -1,19 +1,21 @@
-# Qian.Events
+# Kun.EventBus.EntityFrameworkCore
 
-Events seam 的 Provider：v1 信封写入端、RabbitMQ 发布端、按租约领取的 Outbox 投递后台服务、消费端订阅器、payload Schema 导出，以及组件入口 `EventsPlugin`。契约在 [Kun.EventBus.Abstractions](../../../../src/Kun.EventBus.Abstractions/README.md)，任务见 [S1-EVT-001](../../pm/tasks/S1-EVT-001.md)（写入与投递）与 [S1-EVT-002](../../pm/tasks/S1-EVT-002.md)（消费端）。
+本包提供 EF Core 的 Outbox 投递后台服务和组件入口 `EventsPlugin`。`Kun.EventBus` 提供 v1 信封写入端和 payload Schema 导出。`Kun.EventBus.RabbitMQ` 提供发布端与订阅器。契约在 [Kun.EventBus.Abstractions](../Kun.EventBus.Abstractions/README.md)，任务见 [S1-EVT-001](../../_import/qian/pm/tasks/S1-EVT-001.md)（写入与投递）与 [S1-EVT-002](../../_import/qian/pm/tasks/S1-EVT-002.md)（消费端）。
 
 ## 宿主装配
 
 ```csharp
 builder.Services.AddKunEventBus(events => events.Register(OrderEvents.Created, OrderJson.Default.OrderCreated));
 builder.Services.AddKunData<OrderDbContext>((sp, options) => options.UseNpgsql(connection).UseKunSchema("plugin_order"));
-builder.Services.AddQianEvents();
-builder.Services.AddQianEventsBroker(sp => sp.GetRequiredService<IConfiguration>().GetConnectionString("Events")!);
+builder.Services.AddKunEvents();
+builder.Services.AddKunEventsBroker(sp => sp.GetRequiredService<IConfiguration>().GetConnectionString("Events")!);
+builder.Services.AddKunOutboxRelay();
 ```
 
-- `AddQianEvents` 把数据会话的 `IOutboxWriter` 与 `IIntegrationEventBus` 换成同一个 scoped 信封写入端，只写 Outbox、不投递。
-- `AddQianEventsBroker` 再登记 RabbitMQ 发布端和投递后台服务。AMQP 地址在首次连接时读取，不进组件清单。只订阅、没有业务上下文的宿主（例如网关）也经它登记 broker，投递服务这时没有可领取的 Outbox。
-- `AddQianEventsSubscriber` 登记消费端，见下文「消费」。
+- `AddKunEvents` 把数据会话的 `IOutboxWriter` 与 `IIntegrationEventBus` 换成同一个 scoped 信封写入端，只写 Outbox、不投递。
+- `AddKunEventsBroker` 登记 RabbitMQ 发布端。AMQP 地址在首次连接时读取。
+- `AddKunOutboxRelay` 启动 EF 投递后台服务，从已登记的业务上下文领取 Outbox 行。只消费事件的宿主登记 broker 与订阅器即可。
+- `AddKunEventsSubscriber` 登记消费端，见下文「消费」。
 - 三者与 `AddKunData` 的调用顺序无关。
 
 启动检查有三条，任一不满足宿主拒绝启动：
@@ -39,7 +41,7 @@ builder.Services.AddQianEventsBroker(sp => sp.GetRequiredService<IConfiguration>
 - 类型未登记，或缺少 JsonTypeInfo；
 - 租户不是 UUID。
 
-编译期规则 QIAN0006 限定发布位置：只允许写命令 handler（Kun `ICommand`，或 `[Capability]` 中 SideEffect 不为 read）与领域事件通知 handler。在查询、后台服务等处调用 `Publish` / `Enqueue` 直接编译失败；直接向 `IntegrationEventBuffer.Add` 写入只允许出现在写入端实现里。规则与正反例见 [tests/README.md](../../tests/README.md#集成事件发布位置门禁s1-evt-001)。
+编译期规则 QIAN0006 限定发布位置：只允许写命令 handler（Kun `ICommand`，或 `[Capability]` 中 SideEffect 不为 read）与领域事件通知 handler。在查询、后台服务等处调用 `Publish` / `Enqueue` 直接编译失败；直接向 `IntegrationEventBuffer.Add` 写入只允许出现在写入端实现里。规则与正反例见 [tests/README.md](../../_import/qian/tests/README.md#集成事件发布位置门禁s1-evt-001)。
 
 ## 投递
 
@@ -58,7 +60,7 @@ builder.Services.AddQianEventsBroker(sp => sp.GetRequiredService<IConfiguration>
 
 发布失败按 `RetryBaseDelay × 2^(n-1)`（封顶 60 秒）退避，并记入 next_attempt_at；达到 MaxAttempts 次后标记失败。信封与行不一致（id、type、租户）属于不可重试的错误，直接标记失败。
 
-组件配置 `outbox.lock: redis` 时，在领取之外再按上下文 schema 取 Kun 的 Redis 锁，宿主须登记 `IConnectionMultiplexer`。meter `Qian.Events` 输出 confirmed、retried、failed 三个计数，confirmed 只在 broker 确认后加一。
+组件配置 `outbox.lock: redis` 时，在领取之外再按上下文 schema 取 Kun 的 Redis 锁，宿主须登记 `IConnectionMultiplexer`。meter `Kun.EventBus.EntityFrameworkCore` 输出 confirmed、retried、failed 三个计数，confirmed 只在 broker 确认后加一。
 
 | 选项 | 默认 | 说明 |
 |---|---|---|
@@ -77,7 +79,7 @@ builder.Services.AddQianEventsBroker(sp => sp.GetRequiredService<IConfiguration>
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redis));
 // 组合包含 qian.tenancy 的宿主登记传播器（见「租户回灌」）。
 builder.Services.AddSingleton<ITenantContextPropagator>(sp => new TenantContextPropagator(sp.GetRequiredService<ITenantContext>()));
-builder.Services.AddQianEventsSubscriber("qian.identity", subscriber => subscriber
+builder.Services.AddKunEventsSubscriber("qian.identity", subscriber => subscriber
     .Subscribe<TenantSuspended, TenantSuspendedSessionHandler>("session-revocation")
     .Subscribe<TenantExpired, TenantExpiredSessionHandler>("session-revocation"));
 ```
@@ -85,11 +87,11 @@ builder.Services.AddQianEventsSubscriber("qian.identity", subscriber => subscrib
 - 第一个参数是订阅方服务名，与订阅名一起决定队列名和幂等记录的消费者名。同一宿主可以多次调用以追加订阅，服务名必须相同。
 - `Subscribe<TEvent, THandler>(subscription, mode, acceptPlatformEvents)` 把一个 Kun `IIntegrationEventHandler<TEvent>` 挂到订阅上，并以 scoped 登记该 handler 类型。宿主已经用 `AddKunEventBus(b => b.AddHandler<TEvent, THandler>())` 登记过的 handler（如身份组件的 `AddKunIdentitySessionHandlers()`）照样可以订阅。
 - 一个订阅可以覆盖多个事件，但同一事件在一个订阅里只有一个 handler；同一事件在一个服务里只能有一个广播订阅（广播订阅共用实例队列）。
-- 消费连接与发布端分开（ClientProvidedName 为 `qian.events.subscriber`），AMQP 地址复用 `AddQianEventsBroker` 登记的引用。
+- 消费连接与发布端分开（ClientProvidedName 为 `qian.events.subscriber`），AMQP 地址复用 `AddKunEventsBroker` 登记的引用。
 
 启动检查不满足即拒绝启动，错误码 EVENTS_MISCONFIGURED：
 
-- 宿主登记了 `AddQianEventsBroker`；
+- 宿主登记了 `AddKunEventsBroker`；
 - 有幂等存储：宿主登记的 `IProcessedMessageStore`，否则用已登记的 `IConnectionMultiplexer` 建 Kun 的 `RedisProcessedMessageStore`；两者都没有即拒绝。`UseInMemoryIdempotency()` 只能用于测试，启动时记一条警告；
 - 每个订阅的事件都已在 `AddKunEventBus` 以源生成 JsonTypeInfo 登记；
 - 订阅名、实例名合法，实例名不与订阅名相同。
@@ -159,7 +161,7 @@ handler 想明确表示「重试也不会成功」时，抛携带 EVENTS_CONSUME
 - 宿主登记了 `ITenantContextPropagator` 时经它进入。carrier 是消息体（信封原文），authorizedTenantId 是解析、校验后且与 AMQP 头 tenant_id 核对一致的信封租户。消费端没有独立于消息的令牌，AMQP 头由发布端从同一信封写出，所以只能近似满足传播器「authorizedTenantId 不能取自同一输入」的契约。传播器在这里提供缺失、重复、不一致与租户冲突的 fail-closed 判定，不提供独立授权。
 - 没有登记传播器时退回 Kun `ITenantContext.BeginScope`，先按同样规则核对原文里恰有一个与授权租户一致的 tenant_id，并在启动时记一条 Information 日志。
 - 两条路径进入后都核对当前租户等于信封租户。传播器或宿主上下文没有进入作用域、进入了别的租户，都按 tenant_rejected 拒绝，已进入的作用域先释放。
-- 信任根是 broker 的连接认证与发布端 Outbox 写入端。发布端的 tenant_id 由信封写入端 `QianEnvelopeOutboxWriter` 取自 Kun `ITenantContext`，不经传播器 `Write`。残余风险是持有 broker 发布凭据的服务能伪造任意租户的事件，是否签名信封另行决定。
+- 信任根是 broker 的连接认证与发布端 Outbox 写入端。发布端的 tenant_id 由信封写入端 `KunEnvelopeOutboxWriter` 取自 Kun `ITenantContext`，不经传播器 `Write`。残余风险是持有 broker 发布凭据的服务能伪造任意租户的事件，是否签名信封另行决定。
 - 平台级事件（tenant_id 为 null）与租户事件同走 `qian.events`、同一订阅队列，不另设通道：exchange 或队列不是信任边界。订阅默认拒绝；显式 `acceptPlatformEvents: true` 时派发，不开租户作用域，handler 内 `ITenantContext` 为空。
 - 宿主的租户上下文不是多租户时不回灌。
 
@@ -176,7 +178,7 @@ handler 想明确表示「重试也不会成功」时，抛携带 EVENTS_CONSUME
 
 ### 指标与选项
 
-meter `Qian.Events` 的消费侧计数，每次投递恰落入其中一个结果：`qian.events.consumer.processed`、`duplicate`、`retried`、`dead_lettered`、`rejected`、`forward_failed`，都在原消息确认或 nack 之后计数。宿主停机放回的投递不计。
+meter `Kun.EventBus.RabbitMQ` 的消费侧计数，每次投递恰落入其中一个结果：`qian.events.consumer.processed`、`duplicate`、`retried`、`dead_lettered`、`rejected`、`forward_failed`，都在原消息确认或 nack 之后计数。宿主停机放回的投递不计。
 
 `qian.events.consumer.duplicate_executed` 不是结果，是伴随 processed 的信号：幂等记录已由同一事件的另一次投递写入，handler 至少执行了两次。
 
@@ -214,8 +216,8 @@ meter `Qian.Events` 的消费侧计数，每次投递恰落入其中一个结果
 
 ## 已知限制与延期项
 
-- 事件目录 HTTP 接口（含「订阅者」一列，数据来自 `IEventsService.Subscriptions`）、AsyncAPI 导出、主题 ACL（订阅侧的 `provides.events.subscribe` 钩子）与面向 `NpgsqlTransaction` 的写入端由 [S1-EVT-003](../../pm/tasks/S1-EVT-003.md) 交付。
-- 拆分部署下身份侧订阅 `authz.grant.changed.v1` → `BumpIdentityRevisionAsync` 由 [S1-IDP-012](../../pm/tasks/S1-IDP-012.md)（随 S1-DEC-027 建档）用本订阅器接线；同进程宿主不登记该订阅。
+- 事件目录 HTTP 接口（含「订阅者」一列，数据来自 `IEventsService.Subscriptions`）、AsyncAPI 导出、主题 ACL（订阅侧的 `provides.events.subscribe` 钩子）与面向 `NpgsqlTransaction` 的写入端由 [S1-EVT-003](../../_import/qian/pm/tasks/S1-EVT-003.md) 交付。
+- 拆分部署下身份侧订阅 `authz.grant.changed.v1` → `BumpIdentityRevisionAsync` 由 [S1-IDP-012](../../_import/qian/pm/tasks/S1-IDP-012.md)（随 S1-DEC-027 建档）用本订阅器接线；同进程宿主不登记该订阅。
 - 死信队列的重放工具（ADR-008 D8.9）没有做；死信消息保留原文与原属性，重放时去掉 `x-qian-*` 头再发回 `qian.events`。
 - 消费端 baggage（`tenant.id` 等）由 S1-AUD-003 在订阅器的 Activity 上补齐，本包只恢复 trace_parent；死信告警规则归 S1-DEP-006。
 - S1-DEC-013 列为可选项的 PG `processed_messages` 兜底表没有做，幂等记录只在 Redis。

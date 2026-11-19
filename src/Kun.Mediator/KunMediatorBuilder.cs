@@ -19,6 +19,9 @@ public sealed class KunMediatorBuilder
     private readonly Dictionary<string, CapabilityDescriptor> _capabilities = new(StringComparer.Ordinal);
     private readonly List<(Type RequestType, Func<IServiceProvider, RequestHandlerBase> Factory)> _handlerEntries = [];
 
+    // 已登记处理器的请求类型 → 处理器类型；同一请求只能有一个处理器。
+    private readonly Dictionary<Type, Type> _handlerTypes = [];
+
     // Per TRequest: ordered list of behavior factories (typed as object).
     // AddPipelineBehavior<TReq,TResp,TBehavior> guarantees each is IPipelineBehavior<TReq,TResp>.
     private readonly Dictionary<Type, List<Func<IServiceProvider, object>>> _behaviorEntries = [];
@@ -56,10 +59,13 @@ public sealed class KunMediatorBuilder
     /// <typeparam name="TResponse">The response type.</typeparam>
     /// <typeparam name="THandler">The handler implementation type.</typeparam>
     /// <returns>This builder for chaining.</returns>
+    /// <exception cref="InvalidOperationException"><typeparamref name="TRequest"/> already has a handler.</exception>
     public KunMediatorBuilder AddRequestHandler<TRequest, TResponse, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>()
         where TRequest : Kun.Core.Cqrs.IRequest<TResponse>
         where THandler : class, Kun.Core.Cqrs.IRequestHandler<TRequest, TResponse>
     {
+        EnsureNoHandler(typeof(TRequest), typeof(THandler));
+        _handlerTypes.Add(typeof(TRequest), typeof(THandler));
         Services.AddTransient<THandler>();
 
         if (!_behaviorEntries.ContainsKey(typeof(TRequest)))
@@ -95,6 +101,7 @@ public sealed class KunMediatorBuilder
         where TRequest : Kun.Core.Cqrs.IRequest<TResponse>
         where THandler : class, Kun.Core.Cqrs.IRequestHandler<TRequest, TResponse>
     {
+        EnsureNoHandler(typeof(TRequest), typeof(THandler));
         var descriptor = new CapabilityDescriptor(capabilityId, request, response);
         if (!_capabilities.TryAdd(capabilityId, descriptor)) throw new InvalidOperationException($"能力 ID 重复：{capabilityId}");
         return AddRequestHandler<TRequest, TResponse, THandler>();
@@ -126,6 +133,15 @@ public sealed class KunMediatorBuilder
 
     /// <summary>登记 <paramref name="requestType"/> 已装配权限行为，供 Build() 的运行期兜底核对。</summary>
     internal void MarkPermissionGuarded(Type requestType) => _permissionGuarded.Add(requestType);
+
+    private void EnsureNoHandler(Type requestType, Type handlerType)
+    {
+        if (_handlerTypes.TryGetValue(requestType, out var existing))
+        {
+            throw new InvalidOperationException(
+                $"请求 {requestType.FullName} 已登记处理器 {existing.FullName}，不能再登记 {handlerType.FullName}：同一请求只能有一个处理器。");
+        }
+    }
 
     /// <summary>
     /// Registers a notification handler. Multiple handlers may be registered for the same

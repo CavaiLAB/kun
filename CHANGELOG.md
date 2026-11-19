@@ -28,6 +28,16 @@
 - `Kun.AspNetCore`：`AddKunAspNetCore`、`KunExceptionHandler`、`ToProblemDetails`、`AddKunHealthChecks`，以及对 `Kun.Validation` 的引用；这个包只剩端点映射（`MapCommand` / `MapQuery`）。**迁移**：错误响应改用 `AddKunErrors()` / `UseKunErrors()`，健康检查直接调 `services.AddHealthChecks()`。
 - 两座桥：`Qian.Runtime.KunErrorBridge`（`ToQianError`）与 `Kun.Errors.AspNetCore.KunValidationErrorBridge`。两边已是同一套模型，不再需要转换。
 
+### Changed — 中介登记可叠加（S1-KUN-023）
+
+- `AddKunMediator` 可以对同一个服务集合调多次：第一次建 `KunMediatorBuilder` 并登记 `KunMediator`、`ISender`、`IPublisher`，之后的调用往同一个 builder 里加，几个模块的登记叠进同一个中介。之前每次调用都新建 builder，最后一次生效，前面登记的处理器与行为都丢。**迁移**：靠「再调一次就整体替换」的宿主，删掉重复的登记或合成一次。描述符被拷进另一个服务集合时，那个集合另建自己的 builder。
+- 同一请求登记第二个处理器时，登记当场抛 `InvalidOperationException`，消息写明请求与两个处理器；之前要到首次解析 `ISender` 才以 `ArgumentException` 失败。带能力 ID 的登记先查重，查重不过不登记能力。
+
+### Added — 权限行为的正式扩展点（S1-KUN-023）
+
+- `PermissionBehaviorOptions` 与 `AddPermissionBehavior<TRequest, TResponse>(denied, configure)` 重载：只改这一个请求取权限判定器（`PermissionChecker`）与当前主体（`CurrentUser`）的方式，比如在特定流程里包一层判定器；判定算法与拒绝映射不变。
+- 权限行为因装配不全（没有权限判定器、没有权限声明）拒绝时记一条警告日志；拒绝结果照旧是 `AUTHZ_DENIED`。
+
 ### Removed — 归档 Kun.Dapper（S1-KUN-024）
 
 - 包 `Kun.Dapper` 停发、移出解决方案，nuget.org 上已发布的版本不动。随包删掉的公共 API：`IReadDbConnectionFactory`、`ReadDbOptions`、`PageRequest`、`PagedResult<T>`、`Kun.Dapper.Npgsql.NpgsqlReadDbConnectionFactory`、`DapperAotExtensions.QueryPageAsync<T>`、`AddKunDapper` / `AddKunDapperNpgsql`。**迁移**：读侧直接引用 `Npgsql` 与 `Dapper`；登记一个读侧数据源（`services.AddSingleton(_ => NpgsqlDataSource.Create(readConnectionString))`），查询处理器注入 `NpgsqlDataSource`，用 `OpenConnectionAsync` 取连接后以 Dapper 查询；分页的请求与结果类型在应用里自己定义；要原生 AOT 发布的服务，在自己的项目里加 Dapper 的源生成器（`Dapper.AOT`）或直接用 `NpgsqlDataReader` 读行。写法见 `docs/guides/read-side-patterns.md`，样例见 `samples/Kun.Sample.Catalog`。

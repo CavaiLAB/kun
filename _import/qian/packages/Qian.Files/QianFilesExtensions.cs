@@ -18,7 +18,7 @@ public sealed class QianFilesOptions
 public static class QianFilesExtensions
 {
     /// <summary>
-    /// 在宿主唯一的 AddKunMediator 中登记 qian.files 的六个能力（presign-upload、complete-upload、get、download-url、delete、quota）；
+    /// 在宿主的 AddKunMediator 中登记 qian.files 的六个能力（presign-upload、complete-upload、get、download-url、delete、quota）；
     /// <paramref name="source"/> 返回当前请求可注入 Files 的组件上下文（通常是 qian.files 条目按请求租户收窄的上下文），请求体不能选择它。
     /// 宿主另须 AddQianData&lt;FilesDbContext&gt; 并在 AddKunEventBus 中 RegisterFilesEvents。
     /// </summary>

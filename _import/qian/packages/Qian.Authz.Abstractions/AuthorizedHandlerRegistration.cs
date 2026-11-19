@@ -5,7 +5,6 @@ using Kun.Core.Cqrs;
 using Kun.Errors;
 using Kun.Mediator;
 using Kun.Mediator.Behaviors;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Qian.Authz.Abstractions;
 
@@ -37,7 +36,7 @@ public static class AuthorizedHandlerRegistration
         return builder.AddPermissionBehavior<TRequest, TResponse>(denied);
     }
 
-    // 仅 SDK 使用的受限开户分支；正常调用仍委托 Kun 原有 PermissionBehavior，不复制 RBAC 算法。
+    // 仅 SDK 使用的受限开户分支：仍是 Kun 的 PermissionBehavior，只经它的扩展点把判定器与当前主体换成开户凭据感知的包装，不复制 RBAC 算法。
     internal static KunMediatorBuilder AddAuthorizedHandler<TRequest, TResponse,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
         this KunMediatorBuilder builder, Func<Error, TResponse> denied, string capabilityId,
@@ -47,17 +46,8 @@ public static class AuthorizedHandlerRegistration
     {
         Validate<TRequest>(builder, denied);
         if (!tenantInitialization) return builder.AddAuthorizedHandler<TRequest, TResponse, THandler>(denied, capabilityId, request, response);
-        builder.AddAuthorizedHandler<TRequest, TResponse, THandler>(denied, capabilityId, request, response);
-        var descriptor = builder.Services.Last();
-        var serviceType = descriptor.ServiceType;
-        if (!serviceType.IsConstructedGenericType || serviceType.GetGenericTypeDefinition().FullName != "Kun.Mediator.Behaviors.PermissionBehavior`2" ||
-            serviceType.Assembly != typeof(PermissionBehaviorExtensions).Assembly ||
-            !serviceType.GenericTypeArguments.SequenceEqual([typeof(TRequest), typeof(TResponse)]))
-            throw new InvalidOperationException("Kun 权限行为登记类型与预期不一致。");
-        var factory = descriptor.ImplementationFactory ?? throw new InvalidOperationException("Kun 权限行为工厂缺失。");
-        builder.Services[^1] = new ServiceDescriptor(descriptor.ServiceType,
-            sp => factory(new InitializationPermissionServices(sp)), descriptor.Lifetime);
-        return builder;
+        builder.AddRequestHandler<TRequest, TResponse, THandler>(capabilityId, request, response);
+        return builder.AddPermissionBehavior<TRequest, TResponse>(denied, InitializationPermissionServices.Configure);
     }
 
     private static void Validate<TRequest>(KunMediatorBuilder builder, Delegate denied)

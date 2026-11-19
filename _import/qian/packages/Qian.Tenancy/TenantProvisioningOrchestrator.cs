@@ -166,7 +166,7 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
                 {
                     // 不记录上游消息、SQL 或凭据；取消/崩溃留下 running 同样可重入。
                     if (!cancellationToken.IsCancellationRequested)
-                        await Finish("failed", error is ErrorException qian ? qian.Error.Code.Code : "step_failed", cancellationToken).ConfigureAwait(false);
+                        await Finish("failed", error is ErrorException coded ? coded.Error.Code.Code : "step_failed", cancellationToken).ConfigureAwait(false);
                     throw;
                 }
                 async Task Finish(string status, string? reason, CancellationToken ct)

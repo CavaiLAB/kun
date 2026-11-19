@@ -40,6 +40,10 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 `Kun.Core` 的 `Error`、`ErrorType`、`ResultFailureException` 与 `DomainException` 删除，`Result` 失败时带 `Kun.Errors` 的 `Error`；`Kun.Validation` 的 `ValidationError`、`ValidationException` 删除，校验失败给 `INPUT_INVALID` 与逐项字段错误（字段级错误码 + JSON Pointer）；`Kun.AspNetCore` 只做端点映射（`MapCommand`、`MapQuery`），`AddKunAspNetCore`、异常处理器与 `ToProblemDetails` 删除；`Kun.Grpc` 按错误码的 HTTP 状态映射 gRPC 状态码。上面 Phase 1 表里这几行按原样保留。
 
+### 中介登记可叠加（S1-KUN-023）
+
+`AddKunMediator` 可以对同一个服务集合调多次：第一次建 `KunMediatorBuilder` 并登记 `KunMediator`、`ISender`、`IPublisher`，之后的调用往同一个 builder 里加，几个模块各自登记的处理器与行为合进同一个中介。同一请求只能有一个处理器，登记第二个时当场抛 `InvalidOperationException`。`AddPermissionBehavior` 多一个带 `PermissionBehaviorOptions` 的重载，只改这一个请求取权限判定器与当前主体的方式，判定算法与拒绝映射不变。描述符被拷进另一个服务集合时，那个集合另建自己的 builder，不往原来的 builder 里加。权限行为因装配不全（没有判定器、没有权限声明）拒绝时记一条警告日志，与正常的无权分得出来。
+
 ### 持久化（Infrastructure 层）
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |

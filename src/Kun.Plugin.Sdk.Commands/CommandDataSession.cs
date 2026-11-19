@@ -1,4 +1,4 @@
-using Kun.Data;
+using Kun.EntityFrameworkCore;
 
 namespace Kun.Plugin.Sdk;
 

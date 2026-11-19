@@ -1,5 +1,5 @@
 using Kun.Core.MultiTenancy;
-using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Conventions;
 using Kun.Errors;
 using Microsoft.EntityFrameworkCore;

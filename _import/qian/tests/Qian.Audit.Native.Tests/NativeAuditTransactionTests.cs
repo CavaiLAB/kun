@@ -1,6 +1,7 @@
 using System.Data;
 using System.Security.Cryptography;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
 using Kun.MultiTenancy;

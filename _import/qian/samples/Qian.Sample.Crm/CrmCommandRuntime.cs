@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;

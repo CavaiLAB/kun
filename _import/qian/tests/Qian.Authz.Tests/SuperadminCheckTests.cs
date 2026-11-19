@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Kun.Authorization;
+using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;

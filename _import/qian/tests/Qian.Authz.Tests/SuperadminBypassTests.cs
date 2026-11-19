@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Reflection;
+using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
 using Kun.Authorization;
 using Kun.Caching.Abstractions;

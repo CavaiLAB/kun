@@ -1,9 +1,9 @@
 using Kun.Core.Domain;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Tenancy;
 

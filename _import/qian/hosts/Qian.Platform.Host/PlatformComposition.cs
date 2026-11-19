@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator;

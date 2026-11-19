@@ -2,8 +2,8 @@ using System.Linq.Expressions;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Interceptors;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Kun.EventBus.Outbox;
-using Kun.MultiTenancy.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kun.EntityFrameworkCore;
@@ -94,47 +94,11 @@ public abstract class KunDbContext : DbContext, IKunMultiTenantDbContext
 
     private void ApplyGlobalQueryFilters(ModelBuilder modelBuilder)
     {
-        foreach (var entity in modelBuilder.Model.GetEntityTypes())
-        {
-            var clrType = entity.ClrType;
-            var isMultiTenant = typeof(IMultiTenant).IsAssignableFrom(clrType);
-            var isSoftDelete = typeof(ISoftDelete).IsAssignableFrom(clrType);
-
-            if (!isMultiTenant && !isSoftDelete)
-            {
-                continue;
-            }
-
-            var parameter = Expression.Parameter(clrType, "e");
-            Expression? combined = null;
-
-            if (isMultiTenant)
-            {
-                var tenantIdProp = Expression.Property(parameter, nameof(IMultiTenant.TenantId));
-                var currentTenantId = Expression.Property(
-                    Expression.Constant(this, typeof(KunDbContext)),
-                    nameof(TenantIdForModelCacheKey));
-
-                // EF binds a DbContext member to the executing context when reusing a cached model.
-                // A constant ITenantContext instead retains the first provider/request's accessor.
-                combined = Expression.Equal(tenantIdProp, currentTenantId);
-            }
-
-            if (isSoftDelete)
-            {
-                var isDeletedProp = Expression.Property(parameter, nameof(ISoftDelete.IsDeleted));
-
-                // !e.IsDeleted
-                var notDeleted = Expression.Not(isDeletedProp);
-                combined = combined is null ? notDeleted : Expression.AndAlso(combined, notDeleted);
-            }
-
-            // HasQueryFilter can only be called once per entity type — calling it a second
-            // time overwrites the previous filter. By merging both predicates here we ensure
-            // entities implementing both IMultiTenant and ISoftDelete (e.g. AggregateRoot
-            // subclasses) get a single combined filter: TenantId == X && !IsDeleted.
-            modelBuilder.Entity(clrType).HasQueryFilter(
-                Expression.Lambda(combined!, parameter));
-        }
+        // EF binds a DbContext member to the executing context when reusing a cached model.
+        // A constant ITenantContext instead retains the first provider/request's accessor.
+        var currentTenantId = Expression.Property(
+            Expression.Constant(this, typeof(KunDbContext)),
+            nameof(TenantIdForModelCacheKey));
+        KunMultiTenancyModelBuilderExtensions.ApplyQueryFilters(modelBuilder, currentTenantId, softDelete: true);
     }
 }

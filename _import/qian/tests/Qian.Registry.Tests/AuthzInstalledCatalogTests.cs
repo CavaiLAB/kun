@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Kun.Authorization;
+using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Kun.Data;
 using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;

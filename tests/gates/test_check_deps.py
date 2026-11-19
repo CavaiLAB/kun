@@ -337,13 +337,17 @@ class RealGraphTests(unittest.TestCase):
                     "Kun.Authorization": ("kernel", "contract"), "Kun.Core": ("kernel", "contract"),
                     "Kun.Plugin.Sdk": ("kernel", "contract"), "Kun.Plugin.Sdk.Commands": ("platform", "contract"),
                     "Kun.Plugin.Sdk.Generators": ("kernel", "provider"),
-                    "Kun.Security.Abstractions": ("kernel", "contract")}
+                    "Kun.Security.Abstractions": ("kernel", "contract"),
+                    "Kun.EntityFrameworkCore": ("kernel", "contract"),
+                    "Kun.EntityFrameworkCore.PostgreSQL": ("kernel", "provider")}
         self.assertEqual(expected, {n: (self.packages[n].tier, self.packages[n].role) for n in expected})
         self.assertEqual("true", self.packages["Kun.Core"].zero_dependency)
         self.assertEqual("true", self.packages["Kun.Errors"].zero_dependency)
         self.assertEqual("true", self.packages["Kun.Security.Abstractions"].zero_dependency)
         self.assertEqual([], [v for v in self.violations])
-        self.assertEqual(7, len(self.statuses))
+        self.assertEqual(5, len(self.statuses))
+        self.assertEqual([("D", "Kun.EventBus", "B6")],
+                         [(s.rule, s.target, s.until) for s in self.statuses if s.package == "Kun.EntityFrameworkCore"])
         self.assertEqual([], [s for s in self.statuses if s.problem])
         # 插件开发包没有例外了：命令策略协议的 CommandInvocation 带的 Principal 在内核契约 Kun.Security.Abstractions 里（B7）。
         self.assertEqual([], [(s.rule, s.target, s.until) for s in self.statuses if s.package.startswith("Kun.Plugin.Sdk")])

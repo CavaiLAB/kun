@@ -1,10 +1,10 @@
 using Kun.Core.Domain;
 using Kun.Core.Security;
 using Kun.EntityFrameworkCore.Interceptors;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Kun.EventBus;
 using Kun.EventBus.Background;
 using Kun.EventBus.Outbox;
-using Kun.MultiTenancy.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;

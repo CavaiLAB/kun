@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Data.Dialect.Pg;

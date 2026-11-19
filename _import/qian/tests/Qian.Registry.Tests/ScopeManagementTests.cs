@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.MultiTenancy;
 using Kun.Security;

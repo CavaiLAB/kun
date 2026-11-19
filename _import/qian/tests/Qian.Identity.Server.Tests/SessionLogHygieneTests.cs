@@ -99,8 +99,11 @@ public sealed partial class SessionLogHygieneTests(PostgresFixture postgres, Red
 
         var identifiers = sessions.SelectMany(session => new[] { session.ToString("D"), session.ToString("N") }).SelectMany(text => new[] { text, text.ToUpperInvariant() }).ToArray();
         Assert.NotEmpty(host.Logs.Entries);
-        // 本组件（类别以 Qian 开头）的日志：没有任何会话标识。
-        Assert.All(host.Logs.Entries.Where(entry => entry.Category.StartsWith("Qian", StringComparison.Ordinal)), entry => Assert.All(identifiers, id => Assert.DoesNotContain(id, entry.Message, StringComparison.Ordinal)));
+        // 本组件与 Kun 各包（类别以 Qian 或 Kun 开头）的日志：没有任何会话标识。
+        var componentLogs = host.Logs.Entries.Where(entry =>
+            entry.Category.StartsWith("Qian", StringComparison.Ordinal) || entry.Category.StartsWith("Kun", StringComparison.Ordinal)).ToArray();
+        Assert.NotEmpty(componentLogs);
+        Assert.All(componentLogs, entry => Assert.All(identifiers, id => Assert.DoesNotContain(id, entry.Message, StringComparison.Ordinal)));
         // 所有类别的日志（含第三方库）：没有令牌、客户端密钥和密码。
         Assert.All(host.Logs.Entries, entry => Assert.All(secrets, secret => Assert.DoesNotContain(secret, entry.Message, StringComparison.Ordinal)));
         // 审计只记 sid 的哈希（列宽就是 16），每次成功登录都有一条。

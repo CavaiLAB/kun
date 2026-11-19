@@ -3,6 +3,7 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.AspNetCore.Authorization;
 using Kun.Authorization;
+using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;

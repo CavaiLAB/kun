@@ -1,5 +1,5 @@
+using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using System.Text.Json;

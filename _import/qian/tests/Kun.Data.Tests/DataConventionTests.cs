@@ -1,6 +1,7 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Security;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Conventions;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.Outbox;
@@ -148,6 +149,24 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
                 options.UseNpgsql(postgres.AppConnectionString);
                 if (replaceModel) options.UseKunSchema("plugin_conventions")
                     .ReplaceService<IModelCustomizer, ModelCustomizer>();
+            });
+            using var host = builder.Build();
+            await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.StartAsync(TestContext.Current.CancellationToken));
+        }
+    }
+
+    // 内核缺省只要求合法标识符，plugin_ 前缀由 AddKunData 设上：平台照旧拒绝不带前缀的 schema，组件也不能把前缀换掉。
+    [Fact]
+    public async Task 不带plugin前缀的schema或换前缀_启动拒绝()
+    {
+        foreach (var replacePrefix in new[] { false, true })
+        {
+            var builder = Host.CreateApplicationBuilder();
+            builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
+            builder.Services.AddKunData<CustomerContext>((_, options) =>
+            {
+                options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(replacePrefix ? "app_conventions" : "conventions");
+                if (replacePrefix) options.RequireKunSchemaPrefix("app_");
             });
             using var host = builder.Build();
             await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.StartAsync(TestContext.Current.CancellationToken));

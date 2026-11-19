@@ -3,7 +3,7 @@
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <Description>Kun Framework multi-tenancy: ITenantResolver (JWT claim / HTTP header / fallback), AsyncLocal-backed ITenantContext, and the UseKunMultiTenancy middleware that scopes tenant identity across the request pipeline. EF Core query-filter + SaveChanges interceptor live in Kun.MultiTenancy.EntityFrameworkCore.</Description>
+    <Description>Kun Framework multi-tenancy: ITenantResolver (JWT claim / HTTP header / fallback), AsyncLocal-backed ITenantContext, and the UseKunMultiTenancy middleware that scopes tenant identity across the request pipeline. EF Core query-filter + SaveChanges interceptor live in Kun.EntityFrameworkCore (namespace Kun.EntityFrameworkCore.MultiTenancy).</Description>
   </PropertyGroup>
 
   <PropertyGroup Label="档位">
@@ -20,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Kun.MultiTenancy.EntityFrameworkCore" />
     <InternalsVisibleTo Include="Kun.MultiTenancy.Tests" />
   </ItemGroup>
 

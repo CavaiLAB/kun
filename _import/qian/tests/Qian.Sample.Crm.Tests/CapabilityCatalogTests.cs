@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;

@@ -1,14 +1,13 @@
 using Kun.Core.Security;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.DependencyInjection;
+using Kun.EntityFrameworkCore.MultiTenancy;
+using Kun.EntityFrameworkCore.PostgreSQL;
 using Kun.Errors;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
-using Kun.MultiTenancy.EntityFrameworkCore;
-using Kun.MultiTenancy.EntityFrameworkCore.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -78,8 +77,9 @@ public static class KunDataExtensions
         services.AddKunDataConventions<TContext>();
         services.AddKunMultiTenancyEntityFrameworkCore();
         services.TryAddSingleton<KunApplicationRoleInterceptor>();
-        services.ConfigureDbContext<TContext>((sp, options) => options.UseKunDataModel()
-            .ReplaceService<IMigrationsSqlGenerator, KunTenantRlsMigrationsSqlGenerator>()
+        // 平台的 schema 都在 plugin_ 前缀下；前缀在这里设，内核只要求合法标识符。
+        services.ConfigureDbContext<TContext>((sp, options) => options.UseKunDataModel().RequireKunSchemaPrefix("plugin_")
+            .UseKunTenantRlsMigrations()
             .AddInterceptors(sp.GetRequiredService<KunTenantSaveChangesInterceptor>(),
                 sp.GetRequiredService<KunApplicationRoleInterceptor>()));
         services.AddDbContext<TContext>(configure);
@@ -95,12 +95,12 @@ public static class KunDataExtensions
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _registration ??= catalog.Register(DataErrors.Misconfigured);
+            _registration ??= catalog.Register(KunDataMisconfiguredException.Code);
             using var scope = scopes.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<TContext>();
             if (context.GetService<IModelCacheKeyFactory>() is not KunMultiTenantModelCacheKeyFactory)
                 throw new KunDataMisconfiguredException("生效的 EF 模型缓存键被替换。");
-            if (context.GetService<IMigrationsSqlGenerator>() is not KunTenantRlsMigrationsSqlGenerator)
+            if (!context.UsesKunTenantRlsMigrations())
                 throw new KunDataMisconfiguredException("必须使用自动生成租户 RLS 策略的 Qian 迁移生成器。");
             var model = context.Model;
             var schema = context.GetService<IDbContextOptions>().Extensions

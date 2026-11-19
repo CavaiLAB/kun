@@ -25,7 +25,7 @@ public static class KunMultiTenancyServiceCollectionExtensions
     /// beyond the RLS interceptor and <see cref="NullTenantProvisioner"/> default.
     /// </para>
     /// <para>
-    /// <strong>SchemaPerTenant</strong>: registers <see cref="TenantAwareModelCacheKeyFactory"/>,
+    /// <strong>SchemaPerTenant</strong>: registers <see cref="KunMultiTenantModelCacheKeyFactory"/>,
     /// the <see cref="Kun.EntityFrameworkCore.Interceptors.TenantRlsTransactionInterceptor"/> (defence-in-depth), a
     /// Singleton <see cref="SchemaPerTenantProvisioner{TContext}"/> as the
     /// <see cref="ITenantProvisioner"/> implementation, and binds
@@ -35,7 +35,7 @@ public static class KunMultiTenancyServiceCollectionExtensions
     /// services.AddDbContext&lt;CatalogDbContext&gt;((sp, opts) =&gt;
     ///     opts.UseNpgsql(cs)
     ///         .UseKunSchema(sp.GetRequiredService&lt;ITenantContext&gt;().TenantId ?? "public")
-    ///         .ReplaceService&lt;IModelCacheKeyFactory, TenantAwareModelCacheKeyFactory&gt;()
+    ///         .ReplaceService&lt;IModelCacheKeyFactory, KunMultiTenantModelCacheKeyFactory&gt;()
     ///         .AddInterceptors(sp.GetRequiredService&lt;TenantRlsTransactionInterceptor&gt;()));
     /// </code>
     /// </para>
@@ -80,7 +80,7 @@ public static class KunMultiTenancyServiceCollectionExtensions
 
             case TenantIsolationStrategy.SchemaPerTenant:
                 services.AddKunTenantRls();
-                services.TryAddSingleton<TenantAwareModelCacheKeyFactory>();
+                services.TryAddSingleton<KunMultiTenantModelCacheKeyFactory>();
                 services.TryAddSingleton<ITenantProvisioner, SchemaPerTenantProvisioner<TContext>>();
                 break;
 

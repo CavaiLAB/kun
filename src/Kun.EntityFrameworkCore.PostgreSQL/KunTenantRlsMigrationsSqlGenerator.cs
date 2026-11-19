@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 
-namespace Kun.Data;
+namespace Kun.EntityFrameworkCore.PostgreSQL;
 
 // Npgsql 的公开 SQL 生成器构造器要求此 options 接口；升级 Npgsql 时由真库生成测试复验。
 #pragma warning disable EF1001

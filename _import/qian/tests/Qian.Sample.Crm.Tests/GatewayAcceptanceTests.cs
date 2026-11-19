@@ -1,12 +1,12 @@
 using System.Net;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Authz;
-using Kun.Data;
 using Qian.Identity.Client;
 using Qian.Identity.Client.Tests;
 using Qian.Testing;

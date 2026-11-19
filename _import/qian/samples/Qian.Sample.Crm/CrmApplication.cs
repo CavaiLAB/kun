@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Kun.AspNetCore.Authorization;
 using Kun.Authorization;

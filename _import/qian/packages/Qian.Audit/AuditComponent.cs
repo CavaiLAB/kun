@@ -1,4 +1,4 @@
-using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using System.Text.Json;

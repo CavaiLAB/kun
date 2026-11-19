@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
-using Kun.Data;
 
 namespace Qian.Events;
 

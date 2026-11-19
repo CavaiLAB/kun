@@ -12,7 +12,7 @@ public sealed class NullTenantContext : ITenantContext
     private NullTenantContext() { }
 
     /// <inheritdoc />
-    public string? TenantId => null;
+    public Guid? TenantId => null;
 
     /// <inheritdoc />
     public bool IsMultiTenant => false;

@@ -13,44 +13,28 @@ public sealed class TenantInfoTests
     [Fact]
     public void Ctor_AcceptsNonEmptyTenantId()
     {
-        var info = new TenantInfo("tenant-contoso");
+        var id = Guid.NewGuid();
+        var info = new TenantInfo(id);
 
-        info.TenantId.Should().Be("tenant-contoso");
+        info.TenantId.Should().Be(id);
         info.DisplayName.Should().BeNull();
     }
 
     [Fact]
     public void Ctor_AcceptsOptionalDisplayName()
     {
-        var info = new TenantInfo("tenant-fabrikam", displayName: "Fabrikam Inc.");
+        var info = new TenantInfo(Guid.NewGuid(), displayName: "Fabrikam Inc.");
 
         info.DisplayName.Should().Be("Fabrikam Inc.");
     }
 
     [Fact]
-    public void Ctor_RejectsNullTenantId()
-    {
-        var act = () => new TenantInfo(null!);
-
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("tenantId");
-    }
-
-    [Fact]
     public void Ctor_RejectsEmptyTenantId()
     {
-        var act = () => new TenantInfo(string.Empty);
+        var act = () => new TenantInfo(Guid.Empty);
 
         act.Should().Throw<ArgumentException>()
             .WithParameterName("tenantId");
     }
 
-    [Fact]
-    public void Ctor_RejectsWhitespaceTenantId()
-    {
-        var act = () => new TenantInfo("   ");
-
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("tenantId");
-    }
 }

@@ -25,5 +25,5 @@ public interface ITenantProvisioner
     Task ProvisionAsync(TenantInfo tenant, CancellationToken cancellationToken = default);
 
     /// <summary>清理指定租户的持久化基础件。幂等：对未开户的租户调用不得抛异常。</summary>
-    Task DeprovisionAsync(string tenantId, CancellationToken cancellationToken = default);
+    Task DeprovisionAsync(Guid tenantId, CancellationToken cancellationToken = default);
 }

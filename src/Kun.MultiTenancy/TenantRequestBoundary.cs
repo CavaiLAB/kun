@@ -37,8 +37,8 @@ public sealed class TenantRequestBoundary(ITenantContext tenant)
 
         if (id is null && mode != TenantRequestMode.PlatformPrincipalAllowed)
             throw TenantContextPropagator.Denied();
-        if (tenant.TenantId is { } existing && TenantContextPropagator.Parse(existing) != id)
+        if (tenant.TenantId is { } existing && existing != id)
             throw TenantContextPropagator.Denied();
-        return tenant.BeginScope(id?.ToString("D"));
+        return tenant.BeginScope(id);
     }
 }

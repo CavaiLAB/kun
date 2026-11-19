@@ -10,8 +10,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OPS="${QIAN_DEV_OPS_URL:-http://127.0.0.1:5080}"
-STATE="${QIAN_DEV_STATE:-$ROOT/.qian-dev/tenant-ops}"
-DLL="$ROOT/tools/Qian.Dev.TenantOps/bin/Debug/net10.0/Qian.Dev.TenantOps.dll"
+STATE="${QIAN_DEV_STATE:-$ROOT/_import/qian/.qian-dev/tenant-ops}"
+DLL="$ROOT/tools/Kun.Dev.TenantOps/bin/Debug/net10.0/Kun.Dev.TenantOps.dll"
 VALID_SECONDS="${QIAN_DEV_VALID_SECONDS:-30}"
 AUTO=0; if [ "${1:-}" = "--yes" ] || [ ! -t 0 ]; then AUTO=1; fi
 WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT

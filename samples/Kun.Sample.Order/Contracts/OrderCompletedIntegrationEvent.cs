@@ -3,7 +3,7 @@ using Kun.EventBus;
 namespace Kun.Sample.Order.Contracts;
 
 /// <summary>
-/// Integration event published when an order completes all saga steps successfully.
+/// Integration event published through the Outbox when an order is placed and its stock is reserved.
 /// </summary>
 [IntegrationEventId("order.completed.v1")]
 public sealed record OrderCompletedIntegrationEvent(

@@ -32,7 +32,7 @@ public abstract class KunDbContext : DbContext, IKunMultiTenantDbContext
     /// <summary>
     /// Default database schema for this context. When non-<see langword="null"/>, applied via
     /// <see cref="RelationalModelBuilderExtensions.HasDefaultSchema(ModelBuilder, string?)"/>
-    /// before entity configurations run — tables, Outbox, and Saga storage all land under this
+    /// before entity configurations run — tables and Outbox storage all land under this
     /// schema by default. Callers should also configure <c>MigrationsHistoryTable</c> to the
     /// same schema on the Npgsql options so migrations + business tables co-locate.
     /// </summary>

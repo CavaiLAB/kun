@@ -20,7 +20,7 @@ updated: 2026-11-19
 
 ## 模块与平台插件、seam 的对应
 
-左列是 kun 仓库 `src/` 下的模块（每个都以同名 NuGet 包发布），右两列取自 [S1 技术底座规格](/design/prd/07-s1-foundation)（§07）各节的「依赖」与 7.1 的修复项。平台插件的服务键与包见 [组件目录](/components/platform/)。
+左列列出 Kun 模块，含已归档的模块，右两列取自 [S1 技术底座规格](/design/prd/07-s1-foundation)（§07）各节的「依赖」与 7.1 的修复项。平台插件的服务键与包见 [组件目录](/components/platform/)。
 
 | Kun 模块 | Qian 里谁用 | 说明 |
 |---|---|---|
@@ -28,7 +28,7 @@ updated: 2026-11-19
 | `Kun.Core`、`Kun.Mediator` | `Kun.Plugin.Sdk.Commands` 的命令管道、各组件的命令处理器 | 命令与查询契约、`Result`；中介按请求登记处理器与行为 |
 | `Kun.MultiTenancy`、`Kun.MultiTenancy.EntityFrameworkCore` | [qian.tenancy](/components/platform/qian.tenancy)、[qian.data](/components/platform/qian.data) | 租户上下文与 RLS 双保险；后台链路的租户回灌与强制装配见 7.1 第 1 项 |
 | `Kun.EntityFrameworkCore` | [qian.data](/components/platform/qian.data)、[qian.tenancy](/components/platform/qian.tenancy)、[qian.events](/components/platform/qian.events)、[qian.audit](/components/platform/qian.audit) | 写侧、三策略 Provisioner、Outbox 表、同事务审计 |
-| `Kun.Dapper` | [qian.data](/components/platform/qian.data) | 读侧，可选 |
+| `Kun.Dapper`（已归档） | [qian.data](/components/platform/qian.data) | 读侧可直接使用 Dapper |
 | `Kun.EventBus.Abstractions` | `Qian.Identity.Abstractions` | Kun 2026.10.14 起提供稳定事件标记、含 JsonTypeInfo 的注册端口与查询端口；仅依赖 Core，身份契约不再经事件入口带入 Redis/宿主实现（S1-KUN-010） |
 | `Kun.EventBus`、`Kun.EventBus.RabbitMQ` | [qian.events](/components/platform/qian.events)、[qian.tenancy](/components/platform/qian.tenancy) | 集成事件、Outbox 发布与消费端幂等 |
 | `Kun.Identity`、`Kun.Identity.AspNetCore` | [qian.identity](/components/platform/qian.identity) | 保留 Cookie 会话与 `IAuthenticatedUser` 抽象，按 7.1 第 6 项修复；身份服务端（唯一 issuer）用 OpenIddict 自建（§07 7.4.1） |
@@ -43,10 +43,10 @@ updated: 2026-11-19
 | `Kun.Storage.Abstractions`、`Kun.Storage.Local`、`Kun.Storage.S3`、`Kun.Storage.Oss` | [qian.files](/components/platform/qian.files) | 新线存储；Provider `Qian.Files.Local` / `.S3` / `.Oss` 各包一个后端 |
 | `Kun.Storage` | 不用 | 旧线，废弃（7.1 第 13 项） |
 | `Kun.Infrastructure` | 不用 | `IRepository` / `IUnitOfWork` 是死接口，直接用 `DbContext` + `Kun.EntityFrameworkCore` 的 `IUnitOfWork`（§07 7.6） |
-| `Kun.Saga` | 不用于开通编排 | 租户开通由 `qian.lifecycle` 的幂等步骤表承担；Saga 其余修补为 P1（7.1 第 3 项） |
+| `Kun.Saga`（已归档） | 平台未引用 | 租户开通由 `qian.lifecycle` 的幂等步骤表承担 |
 | `Kun.Grpc` | 服务间 gRPC | 流式调用的追踪、认证、Result 拦截器在 S1 补齐（7.1 第 5 项） |
 | `Kun.AspNetCore` | HTTP 宿主 | 只做命令与查询的端点映射；错误响应由 `Kun.Errors.AspNetCore` 统一写成 `ErrorDetail`（§07 7.18、`contracts/v0` §3.7） |
-| `Kun.Validation`、`Kun.Testing`、`Kun.Testing.EntityFrameworkCore`、`Kun.Sandbox` | Qian 的设计未引用 | 集成测试用仓库自带的 Testcontainers fixture；S4 的沙箱对接 CubeSandbox（[AI SDK · 沙箱](/sdk/ai/sandbox)） |
+| `Kun.Validation`、`Kun.Testing`、`Kun.Testing.EntityFrameworkCore`、`Kun.Sandbox`（已归档） | Qian 的设计未引用 | 集成测试用仓库自带的 Testcontainers fixture；S4 的沙箱对接 CubeSandbox（[AI SDK · 沙箱](/sdk/ai/sandbox)） |
 
 鉴权端口 `Kun.Authorization` 与 Apollo 配置源 `Kun.Configuration.Apollo` 原计划在 Kun 侧新增，已随 Kun 2026.10.9 发布并进入上表；Qian 的 [qian.authz](/components/platform/qian.authz) 与 [qian.config](/components/platform/qian.config) 在其上实现。
 

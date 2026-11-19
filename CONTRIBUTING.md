@@ -36,7 +36,7 @@ Kun Framework 严格遵守分层依赖，**任何 PR 违反这些规则都会被
 ```
 Kun.Core
   └─ Kun.Mediator / Kun.Infrastructure / Kun.EventBus / Kun.Security / Kun.Validation
-       └─ Kun.EntityFrameworkCore / Kun.EventBus.RabbitMQ / Kun.Saga
+       └─ Kun.EntityFrameworkCore / Kun.EventBus.RabbitMQ
             └─ Kun.AspNetCore / Kun.Grpc / Kun.Gateway
 ```
 
@@ -82,15 +82,15 @@ AOT 兼容的模块在 csproj 里写 `<IsAotCompatible>true</IsAotCompatible>`�
 - `ci`: CI 配置变更
 - `chore`: 其他杂项
 
-**Scope** 通常是模块名去掉 `Kun.` 前缀：`mediator`、`saga`、`eventbus`、`security`、`gateway` 等。
+**Scope** 通常是模块名去掉 `Kun.` 前缀：`mediator`、`eventbus`、`security`、`gateway` 等。
 
 **示例**：
 
 ```
-feat(saga): add timeout detection background service
+feat(eventbus): retry failed outbox messages on a backoff schedule
 
-Implements SagaTimeoutDetector that scans SagaInstance table every 5s
-and triggers compensation for instances where TimeoutAt < UtcNow.
+Adds NextAttemptAt to OutboxMessage so the publisher skips a failed row
+until its backoff delay has passed instead of retrying it every poll.
 
 Closes #42
 ```
@@ -164,7 +164,7 @@ Closes #42
 参见根 [AGENTS.md 的「Kun 框架的构建、测试与代码约定」](AGENTS.md#kun-框架的构建测试与代码约定)。简而言之：
 
 - **领域变更** → 领域单元测试（纯内存、无容器）
-- **跨层变更**（仓储、Outbox、Saga）→ Testcontainers 集成测试
+- **跨层变更**（仓储、Outbox）→ Testcontainers 集成测试
 - **gRPC 服务变更** → 契约测试验证 Proto 不破坏兼容性
 
 ## 🐛 报告问题

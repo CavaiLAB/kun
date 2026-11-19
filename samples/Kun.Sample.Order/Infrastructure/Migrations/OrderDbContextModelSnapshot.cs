@@ -18,7 +18,7 @@ namespace Kun.Sample.Order.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("order")
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -75,100 +75,6 @@ namespace Kun.Sample.Order.Infrastructure.Migrations
                         .HasDatabaseName("IX_outbox_messages_status_occurredAt");
 
                     b.ToTable("outbox_messages", "order");
-                });
-
-            modelBuilder.Entity("Kun.Saga.Persistence.SagaInstance", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ContextPayload")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("CurrentStepIndex")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("FailureReason")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
-
-                    b.Property<string>("SagaName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTimeOffset>("StartedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("State")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TenantId")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<DateTimeOffset?>("TimeoutAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("TraceId")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SagaName")
-                        .HasDatabaseName("ix_saga_instances_saga_name");
-
-                    b.HasIndex("State", "TimeoutAt")
-                        .HasDatabaseName("ix_saga_instances_state_timeout_at");
-
-                    b.ToTable("saga_instances", "order");
-                });
-
-            modelBuilder.Entity("Kun.Saga.Persistence.SagaStepQueueEntry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("AttemptCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Direction")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("EnqueuedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("NextAttemptAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("SagaId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("StepIndex")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SagaId")
-                        .HasDatabaseName("ix_saga_step_queue_saga_id");
-
-                    b.HasIndex("ProcessedAt", "EnqueuedAt")
-                        .HasDatabaseName("ix_saga_step_queue_processed_at_enqueued_at");
-
-                    b.ToTable("saga_step_queue", "order");
                 });
 
             modelBuilder.Entity("Kun.Sample.Order.Domain.Order", b =>

@@ -1,52 +1,30 @@
 # Kun.Sample.Order
 
-A self-contained sample that demonstrates `Kun.Saga` orchestration. A single `OrderCreationSaga`
-drives an order through four compensatable steps, with demo endpoints that exercise the happy
-path, payment-failure compensation, and timeout-triggered compensation.
+A self-contained sample of a command flow. `PlaceOrderCommand` reserves stock in the Catalog
+service over gRPC, then stores the order and its `order.completed.v1` integration event in one
+unit of work through the Outbox.
 
 ---
 
-## Saga flow
+## Flow
 
 ```
-POST /demo/happy-path  (or trigger-payment-failure / trigger-timeout)
+POST /demo/orders
         │
         ▼
 PlaceOrderCommandHandler
   ├─ Create Order (Pending)
-  ├─ SaveChanges → order row committed
-  └─ ISagaOrchestrator.StartAsync
-       └─ saga_instances + saga_step_queue rows committed (same transaction)
-
-Background: SagaStepExecutor polls saga_step_queue
+  ├─ For each line: CatalogService.ReserveStock (gRPC)
+  │     rejected → throws ErrorException (422 BUSINESS_RULE_VIOLATED); nothing is committed
+  ├─ Order → Reserved → Completed
+  └─ IIntegrationEventBus.Publish(OrderCompletedIntegrationEvent)   (buffered, not yet written)
         │
         ▼
-Step 0 ─ ReserveInventoryStep.ExecuteAsync
-         Logs "would gRPC Catalog", sets Order → Reserved
-         CompensateAsync: cancel order (idempotent)
-        │ success
-        ▼
-Step 1 ─ ProcessPaymentStep.ExecuteAsync
-         Sets Order → Paid
-         SimulateFailure="payment" → throws SagaStepFailedException
-                                     → compensation starts from Step 0 backwards
-         CompensateAsync: cancel order if Paid
-        │ success
-        ▼
-Step 2 ─ ShipOrderStep.ExecuteAsync  [Timeout override: 10 s]
-         Sets Order → Shipped
-         SimulateFailure="timeout" → sleeps 60 s
-                                     → SagaTimeoutDetector compensates after ~10 s
-         CompensateAsync: cancel order if Shipped
-        │ success
-        ▼
-Step 3 ─ NotifyCustomerStep.ExecuteAsync
-         Sets Order → Completed
-         Publishes OrderCompletedIntegrationEvent (order.completed.v1) via Outbox
-         CompensateAsync: cancel order if Completed
-        │ success
-        ▼
-SagaInstance.State = Completed
+UnitOfWorkPipelineBehavior → EfUnitOfWork.SaveChangesAsync
+  └─ order row + outbox_messages row committed in one transaction
+
+Background: OutboxPublisherBackgroundService drains outbox_messages
+  └─ NoOpIntegrationEventPublisher logs the event (no RabbitMQ in this sample)
 ```
 
 ---
@@ -55,14 +33,10 @@ SagaInstance.State = Completed
 
 | Concept | Where |
 |---|---|
-| Saga definition | `Application/Sagas/OrderCreationSaga.cs` |
-| Saga context (shared state) | `Application/Sagas/OrderCreationSagaContext.cs` |
-| Four compensatable steps | `Application/Sagas/Steps/` |
-| Saga started inside a Command handler | `Application/Commands/PlaceOrderCommandHandler.cs` |
-| `ISagaOrchestrator.StartAsync` | `PlaceOrderCommandHandler` — same UoW transaction as the `Order` row |
-| Timeout configuration | `OrderCreationSaga.DefaultStepTimeout = 30 s`; `ShipOrderStep.Timeout = 10 s` |
-| Outbox publish from a saga step | `NotifyCustomerStep` enqueues `order.completed.v1` |
-| EF Core saga tables | `Infrastructure/OrderDbContext.cs` via `ApplyKunSagaConfiguration()` |
+| Command handler calling another service over gRPC | `Application/Commands/PlaceOrderCommandHandler.cs` |
+| Unit of work committed by a pipeline behavior | `Program.cs` — `UnitOfWorkPipelineBehavior<PlaceOrderCommand, Guid>` |
+| Integration event written to the Outbox in the same transaction | `PlaceOrderCommandHandler` publishes `order.completed.v1` |
+| Business error written as problem+json | `ErrorException` with `PlatformErrors.BusinessRuleViolated` → 422 |
 | Demo endpoints | `Api/Endpoints/DemoEndpoints.cs` |
 
 ---
@@ -71,57 +45,14 @@ SagaInstance.State = Completed
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/demo/happy-path` | All 4 steps succeed → `SagaState = Completed` |
-| `POST` | `/demo/trigger-payment-failure` | `ProcessPaymentStep` throws → saga compensates Step 1, Step 0 → `Compensated` |
-| `POST` | `/demo/trigger-timeout` | `ShipOrderStep` sleeps 60 s → `SagaTimeoutDetector` compensates → `Compensated` |
-| `GET` | `/demo/sagas/{id}` | Returns `SagaInstance` state, current step index, failure reason |
+| `POST` | `/demo/orders` | Reserves the supplied product and returns `{ "orderId": "…" }` |
+| `GET` | `/demo/orders/{id}` | Returns the order's status, total, and creation time |
 
-### Example curl commands
-
-```bash
-# Set ORDER to the URL from the Aspire Dashboard (or http://localhost:5000 standalone)
-ORDER=http://localhost:<port>
-
-# Happy path
-curl -s -X POST "$ORDER/demo/happy-path" | jq .
-
-# Failure compensation
-curl -s -X POST "$ORDER/demo/trigger-payment-failure" | jq .
-
-# Timeout compensation (wait ~15 s before checking state)
-curl -s -X POST "$ORDER/demo/trigger-timeout" | jq .
-
-# Query saga state — use the orderId returned above
-curl -s "$ORDER/demo/sagas/<orderId>" | jq .
-```
-
----
-
-## Expected saga state transitions
-
-### Happy path
-
-| Time | `State` | `CurrentStepIndex` |
-|---|---|---|
-| Immediately after POST | `Running` | 0 |
-| After all steps complete | `Completed` | 3 |
-
-### Payment-failure path
-
-| Time | `State` | `CurrentStepIndex` |
-|---|---|---|
-| Immediately after POST | `Running` | 0 |
-| After Step 1 throws | `Compensating` | 1 |
-| After compensation finishes | `Compensated` | 0 |
-
-### Timeout path
-
-| Time | `State` | `CurrentStepIndex` |
-|---|---|---|
-| Immediately after POST | `Running` | 0 |
-| During Step 2 (sleeping) | `Running` | 2 |
-| After `SagaTimeoutDetector` fires | `Compensating` | 2 |
-| After compensation finishes | `Compensated` | 0 |
+Pass a JSON body with `productId`, `quantity` and `unitPrice` to order an existing Catalog
+product. The [getting-started guide](../../docs/getting-started.md#place-an-order) shows the
+commands to create one with stock, place the order and read its status. A request without a
+body uses two randomly generated product IDs. Catalog rejects that reservation with HTTP 422
+and the order and Outbox tables receive no rows.
 
 ---
 
@@ -129,8 +60,11 @@ curl -s "$ORDER/demo/sagas/<orderId>" | jq .
 
 - PostgreSQL (connection string in `appsettings.json` → `ConnectionStrings:OrderDb`, or override
   via environment variable).
+- The Catalog gRPC service (`CatalogGrpc:Address` in `appsettings.json` for standalone runs; the
+  AppHost injects the address).
 - No RabbitMQ required: `NoOpIntegrationEventPublisher` logs to stdout instead.
-- No JWT required: `NullTenantContext` is used (single-tenant sample).
+- The sample uses a single tenant. Catalog validates the Order service token for gRPC stock
+  reservations. The getting-started guide creates the local credentials.
 
 ---
 
@@ -138,9 +72,7 @@ curl -s "$ORDER/demo/sagas/<orderId>" | jq .
 
 ### Via AppHost (recommended)
 
-```bash
-dotnet run --project samples/Kun.Sample.AppHost
-```
+Follow the [local credentials and startup steps](../../docs/getting-started.md#run-the-samples).
 
 ### Standalone
 
@@ -149,12 +81,17 @@ dotnet run --project samples/Kun.Sample.Order \
   --ConnectionStrings:OrderDb "Host=localhost;Database=order_sample;Username=postgres;Password=postgres"
 ```
 
-The service calls `EnsureCreated` at startup. No migration step is needed for development.
+For stock reservations, configure `CatalogGrpc:Address` with the Catalog HTTPS endpoint,
+`CatalogGrpc:TokenPath` with the generated `catalog.token` file, and Catalog
+with `CatalogAuth:PublicJwksPath` pointing at the corresponding `public.jwks`.
+
+The service applies its EF Core migrations at startup (`MigrateAsync`). No separate migration step
+is needed for development.
 
 ### Schema isolation
 
 `OrderDbContext` overrides `DefaultSchema => "order"` and the design-time factory chains
-`.UseKunSchema("order")`, so orders, order-lines, Saga tables, `outbox_messages`, and
+`.UseKunSchema("order")`, so orders, order-lines, `outbox_messages`, and
 `__ef_migrations_history` all land in the `order` Postgres schema. Catalog uses
 `catalog`; both samples can run against a single Postgres instance in the AppHost without
 name collisions. See [docs/guides/schema-per-service.md](../../docs/guides/schema-per-service.md) for

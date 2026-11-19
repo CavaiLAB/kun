@@ -9,16 +9,10 @@ public enum OrderStatus
     /// <summary>Inventory has been reserved for the order.</summary>
     Reserved,
 
-    /// <summary>Payment has been captured.</summary>
-    Paid,
-
-    /// <summary>The order has been shipped.</summary>
-    Shipped,
-
-    /// <summary>The order has been delivered and all saga steps completed.</summary>
+    /// <summary>Stock is reserved and the <c>order.completed.v1</c> event is queued in the Outbox.</summary>
     Completed,
 
-    /// <summary>The order was cancelled (possibly via saga compensation).</summary>
+    /// <summary>The order was cancelled.</summary>
     Cancelled,
 
     /// <summary>The order failed in a non-recoverable way.</summary>

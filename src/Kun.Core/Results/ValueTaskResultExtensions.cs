@@ -7,8 +7,7 @@ namespace Kun.Core.Results;
 /// <see cref="ValueTask{TResult}"/> receivers whose result type is
 /// <see cref="Result"/> or <see cref="Result{T}"/>. Follows ADR-011;
 /// mirror of <see cref="TaskResultExtensions"/> for hot paths that
-/// avoid <see cref="Task"/> allocation (Mediator pipeline, Saga step
-/// executors).
+/// avoid <see cref="Task"/> allocation (Mediator pipeline).
 /// </summary>
 /// <remarks>
 /// Return types and async-delegate return types are

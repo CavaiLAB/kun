@@ -87,7 +87,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - `Kun.Core` 只依赖 BCL 与同为零依赖的 `Kun.Errors`，不加第三方包引用（规则 C 把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
 - 禁用符号与平台分析器按档位接入（D23.14 第 4 点，仓库根的 `Directory.Build.targets`）：`BannedSymbols.txt`（RS0030）与 `_import/qian/tools/Qian.Build.Analyzers`（QIAN0002–QIAN0006）接平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`，现在是 `hosts/Kun.Gateway.Standalone` 与 `_import/qian/hosts/` 下的两个）；过渡期 `_import/qian/` 下的项目全部接入，内核档的包也在内，各域批次把包搬出过渡目录时再按归属收窄。仓库根上除了平台档的包与宿主都不接，被禁的类型就定义在 `src/` 下（搬出过渡目录的平台档包照旧接入，即 `src/` 下 `KunTier` 为 `platform` 的包）；Kun 旧类型上的 `Obsolete` 诊断号（如 KUNS2S001、KUNLEGACY001）照旧随警告即错误报错。新写的宿主要写 `KunHost`。
 - 新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。
-- 蓝图的归档名单里有 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9），各域批次会把它们移出解决方案；`Kun.Dapper`、`Kun.Sandbox` 与旧线的 `Kun.Storage` 已归档。
+- 蓝图的归档名单里有 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9），各域批次会把它们移出解决方案；`Kun.Saga`、`Kun.Dapper`、`Kun.Sandbox` 与旧线的 `Kun.Storage` 已归档。
 
 ### 项目文件与包
 
@@ -109,7 +109,6 @@ dotnet format --verify-no-changes --exclude _import/qian
 
 - 命令与查询分离。`Kun.Mediator` 的处理器在编译期由源生成器发现，不要改回反射解析。写侧（命令处理器）用 `Kun.EntityFrameworkCore`：仓储、规约、变更跟踪，在 `SaveChangesAsync` 里登记 Outbox；读侧（查询处理器）直接用 Npgsql 的数据源与 Dapper：原生 SQL、DTO 投影、不加载聚合，写法见 `docs/guides/read-side-patterns.md`。查询处理器里不用 EF Core，命令处理器里不用 Dapper。
 - Outbox：集成事件与业务数据在同一事务里落库，事件类型用稳定的字符串 id（如 `order.placed.v1`），不用程序集限定名；优先用 `[IntegrationEventId("order.placed.v1")]` 特性加 `Register<TEvent>()`。消费端先查成功标记，再执行处理器、写成功标记、确认消息；业务副作用、标记与确认之间仍有重放窗口，写类处理器必须幂等。设计说明见 Kun ADR-015。
-- Saga 只做编排：一个 Saga 是有序的步骤，每步有执行与补偿；补偿从失败的那一步起逆序执行，补偿本身要幂等，没执行过的步骤也要能安全补偿。
 - 服务间零信任：外部令牌只在 `Kun.Gateway` 校验；网关用自己的私钥签发内部短期令牌（RS256 或 ES256，不用 HS256），下游经 `Kun.Security` 校验。身份（`sub`、`tenant_id`）只从内部令牌的声明里取，不信 `X-User-Id` 这类请求头。
 - 多租户：`Kun.Core` 的 `ITenantContext` 贯穿全栈；实现 `IMultiTenant` 的实体自动带 `TenantId` 查询过滤器，除明确的管理场景外不要用 `IgnoreQueryFilters()`；可以再加 PostgreSQL 行级安全作纵深防御。租户号改为只收 Guid 是 B5 的事（D23.5）。
 - 业务失败返回 `Result` / `Result<T>`，异常只留给系统性故障（并发、网络、基础设施）。失败带的是 `Kun.Errors` 的 `Error`：错误码先定义成 `ErrorCode` 并登记进错误码目录（平台内置的在 `PlatformErrors`），需要抛的时候只抛 `ErrorException`。HTTP 宿主用 `Kun.Errors.AspNetCore` 的 `AddKunErrors()` 与 `UseKunErrors()` 把错误写成 problem+json（`ErrorDetail`）；gRPC 端点可以 `result.EnsureSuccess()`，由 `Kun.Grpc` 的拦截器按错误码的 HTTP 状态转成 gRPC 状态码。
@@ -125,10 +124,9 @@ dotnet format --verify-no-changes --exclude _import/qian
 | 处理器 | `{请求}Handler` | `CreateOrderCommandHandler` |
 | 领域事件 | 过去时 + `Event` | `OrderPlacedEvent` |
 | 集成事件 | 过去时 + `IntegrationEvent` | `OrderPlacedIntegrationEvent` |
-| Saga 与步骤 | `{名词}Saga` / `{动词}Step` | `OrderCreationSaga` / `ReserveInventoryStep` |
 | Outbox 的稳定事件 id | `{上下文}.{名字}.v{n}` | `order.placed.v1` |
 
-提交信息用 Conventional Commits：`<type>(<scope>): <subject>`，Kun 框架模块的 scope 是模块名去掉 `Kun.` 前缀（如 `feat(saga): …`），末尾带任务 id（任务看板的约定，如 `[S1-KUN-019]`）。
+提交信息用 Conventional Commits：`<type>(<scope>): <subject>`，Kun 框架模块的 scope 是模块名去掉 `Kun.` 前缀（如 `feat(eventbus): …`），末尾带任务 id（任务看板的约定，如 `[S1-KUN-019]`）。
 
 ## 要改文档
 

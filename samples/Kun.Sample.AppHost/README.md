@@ -11,23 +11,14 @@ Catalog API, Order API, and Gateway — with a single command.
 |---|---|
 | .NET 10 SDK (`10.0.100+`) | Pinned in `global.json` |
 | Docker Desktop | Must be running; containers are started automatically |
-| Aspire workload | Install once: `dotnet workload install aspire` |
-
-If the build fails with `NETSDK1138` or a missing workload error:
-
-```bash
-dotnet workload install aspire
-```
+| ASP.NET Core development certificate | Trust it for HTTPS service calls with `dotnet dev-certs https --trust` |
 
 ---
 
 ## How to launch
 
-From the repo root:
-
-```bash
-dotnet run --project samples/Kun.Sample.AppHost
-```
+Follow the [getting-started guide](../../docs/getting-started.md#run-the-samples) to create the
+local credentials for Catalog and launch the AppHost from the repository root.
 
 Aspire prints the Dashboard URL to the console:
 
@@ -45,7 +36,7 @@ PostgreSQL runs `EnsureCreated` at service startup, which takes a few seconds.
 | Resource | Type | Role |
 |---|---|---|
 | `catalog` | .NET project | Write/read API for the Catalog bounded context |
-| `order` | .NET project | Write/read API for the Order bounded context (Saga demo) |
+| `order` | .NET project | Write/read API for the Order bounded context (command flow + Outbox demo) |
 | `gateway` | .NET project | YARP reverse proxy and S2S JWT issuer |
 | `postgres` | Docker container | PostgreSQL 16; `kun` database created automatically |
 | `rabbitmq` | Docker container | RabbitMQ with management plugin enabled |
@@ -68,10 +59,10 @@ Service endpoints (ports are dynamic — read them from the Dashboard Endpoints 
 
 - **Traces** panel — distributed OpenTelemetry traces across all service boundaries. Filter by
   service name to isolate a specific service, or search by `TraceId` to follow a request from
-  HTTP ingress through CQRS handler, EF Core, Outbox, and saga steps.
+  HTTP ingress through CQRS handler, gRPC call to Catalog, EF Core, and Outbox.
 
 - **Logs** panel — structured log streams per resource, filterable by severity. The Order
-  service logs each saga step execution and each Outbox publish attempt.
+  service logs each placed order and each Outbox publish attempt.
 
 - **Metrics** panel — request rates, latency percentiles, and container resource usage.
 

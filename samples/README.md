@@ -5,7 +5,7 @@
 ## 计划中的示例
 
 - **Kun.Sample.Catalog**: 商品目录服务，演示 DDD + CQRS + Outbox + gRPC
-- **Kun.Sample.Order**: 订单服务，演示 Saga 编排（下单 → 预留库存 → 支付 → 发货）
+- **Kun.Sample.Order**: 订单服务，演示命令流程（下单 → 经 gRPC 预留库存 → 经 Outbox 发集成事件）
 - **Kun.Sample.AppHost**: .NET Aspire 编排入口，一键拉起全部服务
 
 ## 运行示例（待实现）

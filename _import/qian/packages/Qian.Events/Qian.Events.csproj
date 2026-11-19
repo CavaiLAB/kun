@@ -7,13 +7,10 @@
     <KunTier>kernel</KunTier>
     <KunRole>provider</KunRole>
   </PropertyGroup>
-  <ItemGroup Label="档位例外">
-    <KunTierException Include="Kun.Tenancy.Abstractions" Rule="K" Until="B5" Reason="订阅端经 ITenantContextPropagator 恢复租户上下文；B5 上下文传播并入 Kun.MultiTenancy，最晚 B6 事件一域并轨" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="RabbitMQ.Client" />
   </ItemGroup>

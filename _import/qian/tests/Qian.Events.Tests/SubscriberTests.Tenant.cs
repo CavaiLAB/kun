@@ -1,10 +1,10 @@
+using Kun.MultiTenancy.Abstractions;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Tenancy;
 
 namespace Qian.Events.Tests;
 

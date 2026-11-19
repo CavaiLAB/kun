@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
+    <ProjectReference Include="../Kun.Errors/Kun.Errors.csproj" />
   </ItemGroup>
 
   <ItemGroup>

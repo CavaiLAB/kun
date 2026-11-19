@@ -1,3 +1,5 @@
+using Kun.MultiTenancy;
+using Kun.MultiTenancy.Abstractions;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
@@ -15,7 +17,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz;
 using Qian.Events;
-using Kun.Tenancy;
 using Qian.Testing.Containers;
 using RabbitMQ.Client;
 using StackExchange.Redis;

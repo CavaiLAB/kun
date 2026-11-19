@@ -1,10 +1,9 @@
 using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy;
 using Kun.MultiTenancy.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
-namespace Kun.Tenancy;
+namespace Kun.MultiTenancy;
 
 /// <summary>租户业务入口的严格边界；宿主认证后调用，平台运营入口独立鉴权，不经此边界回退成租户。</summary>
 public sealed class TenantRequestBoundary(ITenantContext tenant)

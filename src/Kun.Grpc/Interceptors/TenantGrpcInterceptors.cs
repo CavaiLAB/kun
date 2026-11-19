@@ -1,3 +1,4 @@
+using Kun.MultiTenancy;
 using System.Diagnostics;
 using System.Text;
 using Grpc.Core;
@@ -5,7 +6,7 @@ using Grpc.Core.Interceptors;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 
-namespace Kun.Tenancy;
+namespace Kun.Grpc.Interceptors;
 
 /// <summary>租户 gRPC 服务入口；宿主先完成 JWT 认证，再核对传播元数据，覆盖全部四种调用形态。</summary>
 public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interceptor
@@ -42,7 +43,7 @@ public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interce
             await _boundary.InvokeAsync(context.GetHttpContext(), async _ =>
             {
                 using var scope = _propagator.BeginScope(context.RequestHeaders.Where(entry => !entry.IsBinary)
-                    .Select(entry => new KeyValuePair<string, string>(entry.Key, entry.Value)), TenantContextPropagator.Parse(tenant.TenantId));
+                    .Select(entry => new KeyValuePair<string, string>(entry.Key, entry.Value)), Guid.ParseExact(tenant.TenantId!, "D"));
                 result = await continuation().ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
@@ -90,7 +91,7 @@ public sealed class TenantGrpcClientInterceptor(ITenantContext tenant) : Interce
         {
             // 不覆盖调用方已有的冲突/重复值，也不原地修改可能复用的 CallOptions.Headers。
             using var verified = _propagator.BeginScope(existing.Select(entry => new KeyValuePair<string, string>(entry.Key, entry.Value)),
-                TenantContextPropagator.Parse(propagated["tenant_id"]));
+                Guid.ParseExact(propagated["tenant_id"], "D"));
         }
         return new ClientInterceptorContext<TRequest, TResponse>(context.Method, context.Host, context.Options.WithHeaders(metadata));
     }

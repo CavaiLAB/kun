@@ -1,3 +1,5 @@
+using Kun.MultiTenancy;
+using Kun.MultiTenancy.Abstractions;
 using System.Security.Claims;
 using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk.AspNetCore;

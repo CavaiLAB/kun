@@ -29,3 +29,17 @@ Kun.MultiTenancy.Abstractions.ITenantIdSource.TenantId.get -> string?
 Kun.MultiTenancy.AsyncLocalTenantContext.AsyncLocalTenantContext(Kun.MultiTenancy.Abstractions.ITenantIdSource! source) -> void
 Kun.MultiTenancy.Configuration.KunMultiTenancyOptions.Production.get -> bool
 Kun.MultiTenancy.Configuration.KunMultiTenancyOptions.Production.set -> void
+Kun.MultiTenancy.TenantContextPropagator
+Kun.MultiTenancy.TenantContextPropagator.BeginScope(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! headers, System.Guid authorizedTenantId) -> System.IDisposable!
+Kun.MultiTenancy.TenantContextPropagator.BeginScope(System.Text.Json.JsonElement carrier, System.Guid authorizedTenantId) -> System.IDisposable!
+Kun.MultiTenancy.TenantContextPropagator.TenantContextPropagator(Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.MultiTenancy.TenantContextPropagator.Write(System.Text.Json.JsonElement carrier) -> System.Text.Json.JsonElement
+Kun.MultiTenancy.TenantContextPropagator.WriteHeaders() -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.MultiTenancy.TenantRequestBoundary
+Kun.MultiTenancy.TenantRequestBoundary.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext! context, Microsoft.AspNetCore.Http.RequestDelegate! next) -> System.Threading.Tasks.Task!
+Kun.MultiTenancy.TenantRequestBoundary.TenantRequestBoundary(Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.MultiTenancy.Abstractions.ITenantContextPropagator
+Kun.MultiTenancy.Abstractions.ITenantContextPropagator.BeginScope(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! headers, System.Guid authorizedTenantId) -> System.IDisposable!
+Kun.MultiTenancy.Abstractions.ITenantContextPropagator.BeginScope(System.Text.Json.JsonElement carrier, System.Guid authorizedTenantId) -> System.IDisposable!
+Kun.MultiTenancy.Abstractions.ITenantContextPropagator.Write(System.Text.Json.JsonElement carrier) -> System.Text.Json.JsonElement
+Kun.MultiTenancy.Abstractions.ITenantContextPropagator.WriteHeaders() -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!

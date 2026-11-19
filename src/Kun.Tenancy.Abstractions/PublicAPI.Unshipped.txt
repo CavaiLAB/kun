@@ -10,11 +10,6 @@ Kun.Tenancy.CreateTenant.Isolation.get -> Kun.Core.MultiTenancy.TenantIsolation
 Kun.Tenancy.CreateTenant.Isolation.init -> void
 Kun.Tenancy.CreateTenant.Name.get -> string!
 Kun.Tenancy.CreateTenant.Name.init -> void
-Kun.Tenancy.ITenantContextPropagator
-Kun.Tenancy.ITenantContextPropagator.BeginScope(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! headers, System.Guid authorizedTenantId) -> System.IDisposable!
-Kun.Tenancy.ITenantContextPropagator.BeginScope(System.Text.Json.JsonElement carrier, System.Guid authorizedTenantId) -> System.IDisposable!
-Kun.Tenancy.ITenantContextPropagator.Write(System.Text.Json.JsonElement carrier) -> System.Text.Json.JsonElement
-Kun.Tenancy.ITenantContextPropagator.WriteHeaders() -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
 Kun.Tenancy.ITenantDirectory
 Kun.Tenancy.ITenantDirectory.GetAsync(string! code, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor?>
 Kun.Tenancy.TenancyDefinition

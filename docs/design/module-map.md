@@ -66,10 +66,16 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
-| `Kun.EntityFrameworkCore` | 写侧 EF Core 实现 + `KunDbContext` + Outbox 落库 + 多租户过滤器 | 所有业务写路径；事务边界与 Outbox 同事务 | `AddKunEntityFrameworkCore()` / `KunDbContext` | ⚠️ trim-safe | — |
-| `Kun.Dapper` | 读侧 Dapper AOT 薄包 | 查询 handler 的连接池 + 分页模型 | `IReadDbConnectionFactory` / `PagedResult<T>` | ⚠️ trim-safe | 6 |
+| `Kun.EntityFrameworkCore` | 写侧 EF Core 实现 + `KunDbContext` + Outbox 落库 + 多租户过滤器 | 所有业务写路径；事务边界与 Outbox 同事务 | `AddKunEntityFrameworkCore()` / `KunDbContext` | ⚠️ trim-safe | 51 |
+| `Kun.EntityFrameworkCore.PostgreSQL` | EF 迁移的 PostgreSQL 租户 RLS 生成器 | 在租户表上生成行级策略 | `UseKunTenantRlsMigrations()` | — | — |
+| `Kun.Data.Abstractions` | 平台数据与方言契约 | 数据类型、序号、迁移与连接目录 | `IDataDialect` / `IDataMigrator` | — | 27 |
+| `Kun.Data` | 平台的 EF 数据组件 | 在组件中打开强约束数据会话 | `AddKunData<TContext>()` | — | 39 |
+| `Kun.Data.AspNetCore` | 数据目录 HTTP 端点 | 公布基准类型与连接档案 | `MapKunData()` | — | 15 |
+| `Kun.Data.Dialect.Pg` | PostgreSQL 方言 | 登记基准类型映射与连通性探测 | `AddKunPgDialect()` | — | — |
+| `Kun.Data.Native.Abstractions` | 原生数据会话和事务的契约 | 通过插件上下文使用原生数据服务 | `INativeDataService` / `INativeDataSession` | ✅ | — |
+| `Kun.Data.Native.Postgres` | 原生数据会话的 PostgreSQL 实现 | 访问受租户范围约束的数据库连接 | `NativeDataComponent` | ✅ | 17 |
 
-`Kun.Dapper` 已归档（S1-KUN-024）：移出解决方案，包名停发。读侧直接用 Npgsql 的数据源与 Dapper（见[读侧模式](../guides/read-side-patterns.md)），分页的请求与结果类型由应用自己定义。上表与下面非 AOT 白名单里的这一行按原样保留。
+写侧使用业务数据上下文，读侧可直接使用 Npgsql 数据源与 Dapper。[读侧模式](../guides/read-side-patterns.md)
 
 ### 事件与编排
 
@@ -96,16 +102,20 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
-| `Kun.Security` | S2S JWT 校验 / JWKS 热加载 / `ITenantContext` / `ICurrentUser` 实现 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
+| `Kun.Security` | S2S JWT 校验、JWKS 热加载与当前用户 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
 | `Kun.Security.Abstractions` | 服务间令牌的主体模型与声明词汇表，零依赖 | 公共表面带主体的契约包引用它，不必引用 `Kun.Security` | `Principal` / `PrincipalKind` / `IdentityClaimNames` | ✅ | — |
 | `Kun.Identity` | 外部 IdP（OIDC）客户端、JWT 校验与原子会话；**不**自建用户存储 | 账号和凭据由身份权威提供，Kun 负责依赖方校验与会话 | `AddKunIdentity(...)` | ✅ | 11 |
-| `Kun.MultiTenancy` | `ITenantContext` 实现 + EF 查询过滤器 + SaveChanges 拦截器 | 所有租户隔离业务的透明过滤 | `AddKunMultiTenancy()` / `UseKunMultiTenancy()` | ✅ | 12 |
-| `Kun.MultiTenancy.EntityFrameworkCore` | EF 侧租户过滤器 + `HasTenantFilter<T>()` 扩展 | 与 `Kun.MultiTenancy` 配套的 EF 实现 | `HasTenantFilter<T>()` | ⚠️ trim-safe | — |
+| `Kun.MultiTenancy` | 请求与消息的租户范围 | 登记租户上下文并传播当前标识 | `AddKunMultiTenancy()` / `UseKunMultiTenancy()` | ✅ | 4 |
+| `Kun.Tenancy.Abstractions` | 租户目录契约 | 查询租户档案 | `ITenantDirectory` | — | — |
+| `Kun.Tenancy` | 租户目录与生命周期 | 维护租户状态及开户步骤 | `TenancyPlugin` | — | 24 |
+| `Kun.Tenancy.AspNetCore` | 租户目录 HTTP 端点 | 查询和管理租户 | `MapKunTenancy()` | — | — |
+| `Kun.Tenancy.Signup.Abstractions` | 自助注册契约 | 提交及审核租户申请 | `ITenantSignup` / `ISignupMessenger` | — | — |
+| `Kun.Tenancy.Signup` | 自助注册流程 | 装配申请与运营端点 | `MapKunTenancySignupApplicant()` / `MapKunTenancySignupOperations()` | — | 10 |
 | `Kun.Audit` | 审计写入器抽象 + `NullAuditWriter` / `EventBusAuditWriter` | 下游服务的操作审计；通过 Outbox 异步记录 | `AddKunAudit()` / `.UseEventBus()` | ✅ | 13 |
 | `Kun.Audit.EntityFrameworkCore` | EF 持久化后端 | 需要审计 on-box 持久化时的可选后端 | `AddKunAuditEntityFrameworkCore()` | ⚠️ trim-safe | — |
 | `Kun.RateLimit` | 基于 `.NET 10 RateLimiter` 的按租户分区限流 | Gateway 与业务服务的请求级别保护 | `AddKunRateLimit(...)` | ✅ | 6 |
 
-`Kun.MultiTenancy.EntityFrameworkCore` 已并入 `Kun.EntityFrameworkCore`（S1-KUN-024）：包名停发，EF 侧的租户过滤、租户字段拦截器与模型缓存键在命名空间 `Kun.EntityFrameworkCore.MultiTenancy`，登记扩展在 `Kun.EntityFrameworkCore.DependencyInjection`。上表与下面非 AOT 白名单里的这一行按原样保留。
+租户过滤器、字段拦截器和模型缓存键由 `Kun.EntityFrameworkCore.MultiTenancy` 提供。HTTP 与 gRPC 的请求范围共享 `Kun.MultiTenancy` 的入口规则。
 
 ### 缓存 / 存储 / 观测 / Sandbox
 
@@ -125,10 +135,8 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | 模块 | 原因 |
 |---|---|
 | `Kun.AspNetCore` | Minimal API 泛型帮手（`MapCommand<T,R>`）+ `WriteAsJsonAsync<T>` 不兼容 AOT；trim-safe 即可 |
-| `Kun.Dapper` | 薄包装；真正的 AOT 读侧由消费侧 `[DapperAot]` handler 负责 |
 | `Kun.EntityFrameworkCore` | `DbContext.Set<T>()` / `MakeGenericMethod` / 非 typed JSON 序列化 |
 | `Kun.Audit.EntityFrameworkCore` | 透传 EF Core |
-| `Kun.MultiTenancy.EntityFrameworkCore` | 全局查询过滤器使用 `Expression.Property` / `Expression.Lambda` |
 | `Kun.Saga` | `Persistence/Ef/` 透传 EF Core；Phase 2 跟进拆分 |
 | `Kun.Auditing` | EF 的 SaveChanges 拦截器带出 IL2091；按合并蓝图 D23.9 在 B6 并入平台档的 `Kun.Audit.EntityFrameworkCore` |
 

@@ -233,34 +233,20 @@ Handler 注册由配套的源生成器在编译期完成，`FrozenDictionary` �
 
 ### 4.4 租户上下文抽象
 
+HTTP 与 gRPC 的认证入口在请求范围内建立 `ITenantContext`。租户请求使用 UUID，平台请求可以使用空租户。后台消费者取得经过授权的租户标识后，可以用同一个端口建立作用域。
+
 ```csharp
-// Kun.Core
-public interface ITenantContext
+static async Task HandleForTenantAsync(
+    ITenantContext tenantContext,
+    Guid tenantId,
+    Func<Task> handle)
 {
-    string? TenantId { get; }
-    bool IsMultiTenant { get; }
-}
-
-// Kun.EntityFrameworkCore - 自动挂载全局过滤器
-public abstract class KunDbContext : DbContext
-{
-    private readonly ITenantContext _tenantContext;
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            if (typeof(IMultiTenant).IsAssignableFrom(entityType.ClrType))
-            {
-                // 对实现了 IMultiTenant 的实体自动附加 TenantId 过滤
-                modelBuilder.Entity(entityType.ClrType).AddTenantQueryFilter(_tenantContext);
-            }
-        }
-    }
+    using var scope = tenantContext.BeginScope(tenantId);
+    await handle();
 }
 ```
 
-v1 即约定清楚"租户 ID 从哪来、怎么传、怎么过滤"，业务开发者后续接入 SaaS 场景时零改动。
+`ITenantContext.TenantId` 的类型是 `Guid?`。`KunDbContext` 将当前 UUID 转为带连字符的小写 D 格式文本，并应用实体的 `IMultiTenant.TenantId` 查询过滤器。作用域释放后恢复原来的租户。
 
 ---
 

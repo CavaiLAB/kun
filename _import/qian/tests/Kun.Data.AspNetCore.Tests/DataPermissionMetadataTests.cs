@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Data.Dialect.Pg;
+using Kun.Authorization.AspNetCore;
+using Qian.Files.AspNetCore;
 
 namespace Kun.Data.AspNetCore.Tests;
 
@@ -14,6 +16,25 @@ namespace Kun.Data.AspNetCore.Tests;
 public sealed class DataPermissionMetadataTests
 {
     private static readonly string Root = FindRoot();
+
+    [Theory]
+    [InlineData("files")]
+    [InlineData("data")]
+    public async Task 权限回调只写元数据时端点构造失败(string component)
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.Services.AddKunDataTypes().AddKunPgDialect();
+        await using var app = builder.Build();
+        if (component == "files")
+            app.MapQianFiles(_ => throw new InvalidOperationException(), DeclarePermission);
+        else
+            app.MapKunDataTypes(DeclarePermission);
+        var error = Assert.Throws<InvalidOperationException>(() => ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).ToArray());
+        Assert.Contains("没有接到 PEP", error.Message, StringComparison.Ordinal);
+
+        static void DeclarePermission(RouteHandlerBuilder route, string permission) =>
+            route.WithMetadata(new RequiresPermissionAttribute(permission));
+    }
 
     [Fact]
     public async Task 每个数据端点都要求已声明的权限点_默认角色只授予租户内权限()
@@ -33,7 +54,7 @@ public sealed class DataPermissionMetadataTests
         TestIdentity.Add(builder.Services);
         builder.Services.AddKunDataTypes().AddKunPgDialect();
         await using var app = builder.Build();
-        app.MapKunData();
+        app.MapKunData((route, permission) => route.RequireKunPermission(permission));
         var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).OfType<RouteEndpoint>().ToArray();
         Assert.Equal(8, endpoints.Length);
         Assert.All(endpoints, endpoint => Assert.Contains(Assert.Single(endpoint.Metadata.GetOrderedMetadata<RequiresPermissionAttribute>()).Permission, declared));

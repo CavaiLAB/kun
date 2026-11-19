@@ -49,3 +49,8 @@ public sealed class RequiresPermissionAttribute(string permission) : Attribute
     /// <summary>端点要求的权限点。</summary>
     public string Permission { get; } = permission;
 }
+
+/// <summary>标识在调用 gRPC 处理器前执行端点权限要求的拦截器。</summary>
+public interface IPermissionEnforcementInterceptor
+{
+}

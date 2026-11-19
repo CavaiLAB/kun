@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +35,7 @@ public static class FilesEndpoints
     /// GET /api/files/quota，
     /// 以及 <see cref="FilesEndpointOptions.TransferSource"/> 非空时 local 后端的 PUT / GET {TransferPath}/{key}。
     /// <paramref name="source"/> 返回当前请求可注入 Files 的组件上下文（请求租户收窄）；<paramref name="requirePermission"/> 由宿主把权限点接到 PEP，
-    /// 例如 <c>(endpoint, permission) =&gt; endpoint.RequireQianPermission(permission)</c>（Kun.Authorization.AspNetCore）。只加元数据而不接 PEP 的回调在构建端点时即被拒绝。
+    /// 例如 <c>(endpoint, permission) =&gt; endpoint.RequireKunPermission(permission)</c>（Kun.Authorization.AspNetCore）。只加元数据而不接 PEP 的回调在构建端点时即被拒绝。
     /// 宿主须先装配认证、可信租户边界、PEP 与 ErrorDetail 中间件（AddKunErrors / UseKunErrors）。
     /// </summary>
     public static IEndpointRouteBuilder MapQianFiles(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source,
@@ -84,15 +83,7 @@ public static class FilesEndpoints
             var binding = new PluginEndpointBinding(options.EntryId, "qian.files", CapabilityBindingRegistration.Key, capability);
             if (options.RequirePlugin) route.RequireKunPlugin(binding); else route.WithMetadata(binding);
             route.Produces<ErrorDetail>(StatusCodes.Status400BadRequest, ErrorDetailJson.MediaType).Produces<ErrorDetail>(StatusCodes.Status404NotFound, ErrorDetailJson.MediaType);
-            requirePermission(route, permission);
-            // 回调必须真的把权限点接到授权管道：只有权限元数据而没有授权要求，会让缺省拒绝放行却没有任何判定。
-            route.Add(endpoint =>
-            {
-                if (!endpoint.Metadata.OfType<Kun.Authorization.RequiresPermissionAttribute>().Any(item => item.Permission == permission) ||
-                    (!endpoint.Metadata.OfType<IAuthorizeData>().Any() && !endpoint.Metadata.OfType<AuthorizationPolicy>().Any()))
-                    throw new InvalidOperationException("文件端点 " + endpoint.DisplayName + " 的权限点 " + permission + " 没有接到 PEP。");
-            });
-            return route;
+            return route.RequirePluginPermission(permission, requirePermission);
         }
     }
 

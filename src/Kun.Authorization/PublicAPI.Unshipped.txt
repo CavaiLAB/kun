@@ -78,3 +78,4 @@ static Kun.Authorization.PermissionDecision.operator !=(Kun.Authorization.Permis
 static Kun.Authorization.PermissionDecision.operator ==(Kun.Authorization.PermissionDecision? left, Kun.Authorization.PermissionDecision? right) -> bool
 static Kun.Authorization.PermissionRequest.operator !=(Kun.Authorization.PermissionRequest? left, Kun.Authorization.PermissionRequest? right) -> bool
 static Kun.Authorization.PermissionRequest.operator ==(Kun.Authorization.PermissionRequest? left, Kun.Authorization.PermissionRequest? right) -> bool
+Kun.Authorization.IPermissionEnforcementInterceptor

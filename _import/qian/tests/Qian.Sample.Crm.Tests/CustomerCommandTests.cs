@@ -322,7 +322,7 @@ public abstract partial class CustomerCommandTests
                         options.Listen(IPAddress.Loopback, 0, listen => listen.Protocols = HttpProtocols.Http1);
                         options.Listen(IPAddress.Loopback, 0, listen => listen.Protocols = HttpProtocols.Http2);
                     });
-                    builder.Services.AddGrpc(options => options.AddQianAuthzInterceptor());
+                    builder.Services.AddGrpc(options => options.AddKunAuthorizationInterceptor());
                 }
                 else builder.WebHost.UseUrls(identityParts?.Issuer ?? "http://127.0.0.1:0");
                 if (identityParts is not null) ConfigureIdentity(builder, identityParts, relyingParty);

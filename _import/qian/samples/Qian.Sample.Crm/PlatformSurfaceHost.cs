@@ -50,7 +50,7 @@ public static class PlatformSurfaceHost
         });
         builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
         builder.Services.AddKunPluginEndpoints(_ => component("registry"));
-        builder.Services.AddQianAuthzEnforcement(http => Scoped(component, "authz", http), options => options.Production = true);
+        builder.Services.AddKunAuthorization(http => Scoped(component, "authz", http), options => options.Production = true);
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.PropertyNameCaseInsensitive = false;
@@ -61,7 +61,7 @@ public static class PlatformSurfaceHost
         app.UseKunErrors(); app.UseAuthentication();
         // 租户只取自已验证令牌：成员主体进入其租户 scope（授权判定与修订下限按租户 RLS 读写）；平台身份不进任何租户。
         app.UseKunMultiTenancy(TenantRequestMode.PlatformPrincipalAllowed);
-        app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseQianAuthzEnforcement();
+        app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseKunAuthorization();
         app.MapQianCapabilities(http => Scoped(component, "capabilities", http));
         app.MapQianPlatformConsole(http => Global(component, "capabilities", http));
         app.MapKunAuthz(http => Scoped(component, "authz", http));

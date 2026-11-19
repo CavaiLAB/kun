@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Kun.AspNetCore.Authorization;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.Plugin.Sdk.AspNetCore;
@@ -21,24 +20,24 @@ public static class DataEndpoints
 
     /// <summary>
     /// 登记全部数据端点：<see cref="MapKunDataTypes"/> 与 <see cref="MapKunDataConnections"/>。宿主须先装配认证、可信租户边界、
-    /// Kun 授权（IPermissionChecker）与 Qian 错误中间件；<paramref name="binding"/> 非空时（平台模式）还要求该组件条目在当前 scope 已挂载。
+    /// 权限执行和错误中间件。<paramref name="requirePermission"/> 将权限点接入宿主策略。带组件绑定时还要求当前 scope 已挂载该组件。
     /// </summary>
-    public static IEndpointRouteBuilder MapKunData(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null) =>
-        endpoints.MapKunDataTypes(binding).MapKunDataConnections(binding);
+    public static IEndpointRouteBuilder MapKunData(this IEndpointRouteBuilder endpoints, Action<RouteHandlerBuilder, string> requirePermission, PluginEndpointBinding? binding = null) =>
+        endpoints.MapKunDataTypes(requirePermission, binding).MapKunDataConnections(requirePermission, binding);
 
     /// <summary>登记 <c>GET /api/data/meta/types</c> 与 <c>DELETE /api/data/meta/types/{code}</c>；需要 AddKunDataTypes 与方言组件。</summary>
-    public static IEndpointRouteBuilder MapKunDataTypes(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null)
+    public static IEndpointRouteBuilder MapKunDataTypes(this IEndpointRouteBuilder endpoints, Action<RouteHandlerBuilder, string> requirePermission, PluginEndpointBinding? binding = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         var data = endpoints.MapGroup("/api/data");
         Secure(data.MapGet("/meta/types", (HttpContext http, [FromServices] IDataTypeCatalog catalog) =>
-            Json(http, catalog.Snapshot(), DataContractJson.DataTypeCatalogTypeInfo)), DataPermissions.TypeRead, binding)
+            Json(http, catalog.Snapshot(), DataContractJson.DataTypeCatalogTypeInfo)), DataPermissions.TypeRead, requirePermission, binding)
             .Produces<DataTypeCatalog>();
         Secure(data.MapDelete("/meta/types/{code}", async (HttpContext http, string code, [FromServices] IDataTypeCatalog catalog) =>
         {
             await catalog.DeleteTypeAsync(code, http.RequestAborted).ConfigureAwait(false);
             return Results.NoContent();
-        }), DataPermissions.TypeDelete, binding).Produces(StatusCodes.Status204NoContent);
+        }), DataPermissions.TypeDelete, requirePermission, binding).Produces(StatusCodes.Status204NoContent);
         return endpoints;
     }
 
@@ -46,41 +45,41 @@ public static class DataEndpoints
     /// 登记 <c>/api/data/connections</c> 的增删改查与 <c>POST /api/data/connections/{id}:test</c>；需要 AddKunDataConnections。
     /// 档案按租户隔离，没有已验证租户的主体一律 403。
     /// </summary>
-    public static IEndpointRouteBuilder MapKunDataConnections(this IEndpointRouteBuilder endpoints, PluginEndpointBinding? binding = null)
+    public static IEndpointRouteBuilder MapKunDataConnections(this IEndpointRouteBuilder endpoints, Action<RouteHandlerBuilder, string> requirePermission, PluginEndpointBinding? binding = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         var data = endpoints.MapGroup("/api/data/connections");
         Tenant(Secure(data.MapGet("", async (HttpContext http, [FromServices] IDataConnectionRegistry registry) =>
             Json(http, await registry.ListAsync(http.RequestAborted).ConfigureAwait(false), DataContractJson.ConnectionListTypeInfo)),
-            DataPermissions.ConnectionRead, binding)).Produces<DataConnectionList>();
+            DataPermissions.ConnectionRead, requirePermission, binding)).Produces<DataConnectionList>();
         Tenant(Secure(data.MapPost("", async (HttpContext http, [FromServices] IDataConnectionRegistry registry) =>
         {
             var profile = await registry.CreateAsync(await ReadDraftAsync(http).ConfigureAwait(false), http.RequestAborted).ConfigureAwait(false);
             http.Response.Headers.Location = "/api/data/connections/" + profile.Id.ToString("D");
             return Json(http, profile, DataContractJson.ConnectionProfileTypeInfo, StatusCodes.Status201Created);
-        }), DataPermissions.ConnectionWrite, binding)).WithMetadata(new RequestSizeLimitAttribute(MaxDraftBytes)).Produces<DataConnectionProfile>(StatusCodes.Status201Created);
+        }), DataPermissions.ConnectionWrite, requirePermission, binding)).WithMetadata(new RequestSizeLimitAttribute(MaxDraftBytes)).Produces<DataConnectionProfile>(StatusCodes.Status201Created);
         Tenant(Secure(data.MapGet("/{id:guid}", async (HttpContext http, Guid id, [FromServices] IDataConnectionRegistry registry) =>
             Json(http, await registry.GetAsync(id, http.RequestAborted).ConfigureAwait(false), DataContractJson.ConnectionProfileTypeInfo)),
-            DataPermissions.ConnectionRead, binding)).Produces<DataConnectionProfile>();
+            DataPermissions.ConnectionRead, requirePermission, binding)).Produces<DataConnectionProfile>();
         Tenant(Secure(data.MapPut("/{id:guid}", async (HttpContext http, Guid id, [FromServices] IDataConnectionRegistry registry) =>
             Json(http, await registry.UpdateAsync(id, await ReadDraftAsync(http).ConfigureAwait(false), http.RequestAborted).ConfigureAwait(false),
-                DataContractJson.ConnectionProfileTypeInfo)), DataPermissions.ConnectionWrite, binding))
+                DataContractJson.ConnectionProfileTypeInfo)), DataPermissions.ConnectionWrite, requirePermission, binding))
             .WithMetadata(new RequestSizeLimitAttribute(MaxDraftBytes)).Produces<DataConnectionProfile>();
         Tenant(Secure(data.MapDelete("/{id:guid}", async (HttpContext http, Guid id, [FromServices] IDataConnectionRegistry registry) =>
         {
             await registry.DeleteAsync(id, http.RequestAborted).ConfigureAwait(false);
             return Results.NoContent();
-        }), DataPermissions.ConnectionWrite, binding)).Produces(StatusCodes.Status204NoContent);
+        }), DataPermissions.ConnectionWrite, requirePermission, binding)).Produces(StatusCodes.Status204NoContent);
         // 连通测试会从平台向档案中的主机出网（Agent 契约标 external）；结果不缓存。
         Tenant(Secure(data.MapPost("/{id:guid}:test", async (HttpContext http, Guid id, [FromServices] IDataConnectionRegistry registry) =>
             Json(http, await registry.TestAsync(id, http.RequestAborted).ConfigureAwait(false), DataContractJson.ConnectionTestResultTypeInfo)),
-            DataPermissions.ConnectionTest, binding)).Produces<DataConnectionTestResult>();
+            DataPermissions.ConnectionTest, requirePermission, binding)).Produces<DataConnectionTestResult>();
         return endpoints;
     }
 
-    private static RouteHandlerBuilder Secure(RouteHandlerBuilder builder, string permission, PluginEndpointBinding? binding)
+    private static RouteHandlerBuilder Secure(RouteHandlerBuilder builder, string permission, Action<RouteHandlerBuilder, string> requirePermission, PluginEndpointBinding? binding)
     {
-        builder.RequireKunPermission(permission);
+        builder.RequirePluginPermission(permission, requirePermission);
         return binding is null ? builder : builder.RequireKunPlugin(binding);
     }
 

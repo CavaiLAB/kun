@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
-using Kun.AspNetCore.Authorization;
 using Kun.Authorization;
+using Kun.Authorization.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
@@ -52,7 +52,7 @@ public sealed class PrincipalKindEndpointTests
         });
         builder.Services.AddKunAuthorization();
         await using var app = builder.Build(); app.UseAuthentication(); app.UseAuthorization();
-        app.MapGet("/protected", () => { executed++; return "ok"; }).RequireKunPermission("sample:item:read");
+        app.MapGet("/protected", () => { executed++; return "ok"; }).RequireKunPermission("sample.test:item:read");
         await app.StartAsync(ct); using var client = app.GetTestClient();
         foreach (var (kind, status) in new[] { ("user", HttpStatusCode.OK), ("service", HttpStatusCode.Forbidden), ("other", HttpStatusCode.Forbidden) })
         {

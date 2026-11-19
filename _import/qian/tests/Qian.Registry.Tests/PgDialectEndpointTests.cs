@@ -1,8 +1,6 @@
 using System.Net;
 using System.Text.Json;
 using Json.Schema;
-using Kun.AspNetCore.Authorization;
-using Kun.Authorization;
 using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.AspNetCore.Builder;
@@ -15,6 +13,12 @@ using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
+using Kun.Authorization.AspNetCore;
+using Kun.EntityFrameworkCore.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Qian.Audit;
+using Kun.Identity.Abstractions;
 
 namespace Qian.Registry.Tests;
 
@@ -27,19 +31,36 @@ public sealed partial class PatchPersistenceTests
         await using var running = await CreateRunningRegistry(tenant, services: services =>
         {
             services.AddKunDataTypes();
-            AddAuthz(services, checker: true);
+            AddAuthz(services, checker: false);
+            services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
         });
         await PrepareAuthz(running.Host);
+        await PrepareAudit(running.Host);
+        await running.Runtime.MountAsync([
+            new PluginDefinition(new PluginEntry("audit", "qian.audit", "1.0.0", ScopeKey.Global, 0, Patch("{}")), new AuditPlugin(), [AuditDefinition.Key]),
+            new PluginDefinition(new PluginEntry("authz", "qian.authz", "1.1.0", ScopeKey.Global, 0, Patch("{}")), new AuthzPlugin(), [AuthzEnforcement.Key])
+        ], Ct);
+        Assert.Equal(PluginState.Ready, running.Runtime.GetState("authz", ScopeKey.Global));
         using var permissions = await GrantDataReader(running, tenant);
         await using var http = await StartEndpointHost(running, tenant, middleware: true, configureServices: services =>
         {
-            services.AddKunAuthorization();
-            services.AddSingleton(running.Host.Services.GetRequiredService<IPermissionChecker>());
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUser, VerifiedServiceUser>();
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                var previous = options.Events.OnTokenValidated;
+                options.Events.OnTokenValidated = async context =>
+                {
+                    if (previous is not null) await previous(context);
+                    if (context.Result is null || context.Result.Succeeded) VerifiedServiceUser.Capture(context, false);
+                };
+            });
+            services.AddKunAuthorization(_ => running.Root.Scoped(new ScopeKey("tenant", tenant.TenantId!)));
             services.AddSingleton(running.Host.Services.GetRequiredService<IDataTypeCatalog>());
         }, configureEndpoints: app =>
         {
             app.UseAuthorization();
-            app.MapKunDataTypes(new PluginEndpointBinding("data", "qian.data", DataDefinition.Key, version: "1.0.0"));
+            app.MapKunDataTypes((route, permission) => route.RequireKunPermission(permission), new PluginEndpointBinding("data", "qian.data", DataDefinition.Key, version: "1.0.0"));
         });
 
         var dialects = running.Host.Services.GetRequiredService<IDataDialectRegistry>();

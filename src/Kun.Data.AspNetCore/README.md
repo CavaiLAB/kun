@@ -14,10 +14,10 @@ app.UseKunErrors();
 app.UseAuthentication();
 app.UseKunMultiTenancy();
 app.UseAuthorization();
-app.MapKunData();                                  // 或分别 MapKunDataTypes / MapKunDataConnections
+app.MapKunData((route, permission) => route.RequireKunPermission(permission));                                  // 或分别 MapKunDataTypes / MapKunDataConnections
 ```
 
-平台模式传入 `PluginEndpointBinding`，端点还要求该组件条目在当前 scope 已挂载（未挂载一律 404）。
+组件宿主登记带插件上下文来源的授权模式和 `UseKunAuthorization()`，传入 `PluginEndpointBinding`，端点还要求该组件条目在当前 scope 已挂载（未挂载一律 404）。
 
 ## 端点
 

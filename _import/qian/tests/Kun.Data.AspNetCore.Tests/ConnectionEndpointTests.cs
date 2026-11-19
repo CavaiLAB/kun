@@ -16,6 +16,7 @@ using Qian.Config;
 using Qian.Config.Secrets;
 using Kun.Data.Dialect.Pg;
 using Qian.Testing.Containers;
+using Kun.Authorization.AspNetCore;
 
 namespace Kun.Data.AspNetCore.Tests;
 
@@ -95,7 +96,7 @@ public sealed class ConnectionEndpointTests(PostgresFixture postgres) : IClassFi
         });
         var app = builder.Build();
         TestIdentity.Use(app);
-        app.MapKunData();
+        app.MapKunData((route, permission) => route.RequireKunPermission(permission));
         await Migrated.GetOrAdd(postgres, _ => new Lazy<Task>(() => app.Services.GetRequiredService<IDataMigrator>().MigrateAsync(Ct))).Value;
         await app.StartAsync(Ct);
         return app;

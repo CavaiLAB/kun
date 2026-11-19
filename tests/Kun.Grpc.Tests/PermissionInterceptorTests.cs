@@ -1,9 +1,13 @@
-using System.Security.Claims;
+using Grpc.AspNetCore.Server;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Kun.Authorization;
+using Kun.Grpc.DependencyInjection;
 using Kun.Grpc.Interceptors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using Xunit;
 
@@ -12,30 +16,32 @@ namespace Kun.Grpc.Tests;
 public sealed class PermissionInterceptorTests
 {
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task AllRpcShapes_AuthorizeBeforeReadingOrExecuting(bool allow)
+    [InlineData("missing", false)]
+    [InlineData("global-before", true)]
+    [InlineData("global-after", true)]
+    [InlineData("same-service", true)]
+    [InlineData("other-service", false)]
+    public async Task AllRpcShapes_RequireAnEnforcementInterceptorForThisService(string position, bool installed)
     {
         var services = new ServiceCollection();
-        if (allow)
-        {
-            var checker = Substitute.For<IPermissionChecker>();
-#pragma warning disable CA2012 // 设置 mock 的 ValueTask 返回值。
-            checker.CheckAsync(Arg.Any<PermissionRequest>(), Arg.Any<CancellationToken>())
-                .Returns(ValueTask.FromResult(new PermissionDecision(true, "test", [])));
-#pragma warning restore CA2012
-            services.AddSingleton(checker);
-        }
+        if (position == "global-before") services.Configure<GrpcServiceOptions>(opts => opts.Interceptors.Add<Enforcement>());
+        services.AddKunGrpc();
+        if (position == "global-after") services.Configure<GrpcServiceOptions>(opts => opts.Interceptors.Add<Enforcement>());
+        if (position == "same-service") services.Configure<GrpcServiceOptions<FirstService>>(opts => opts.Interceptors.Add<Enforcement>());
+        if (position == "other-service") services.Configure<GrpcServiceOptions<OtherService>>(opts => opts.Interceptors.Add<Enforcement>());
         using var provider = services.BuildServiceProvider();
-        var http = new DefaultHttpContext
-        {
-            RequestServices = provider,
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub", "user-1")], "test"))
-        };
-        http.SetEndpoint(new Endpoint(_ => Task.CompletedTask, new EndpointMetadataCollection(new RequiresPermissionAttribute("sample:item:read")), "test"));
+        var registrations = provider.GetRequiredService<ServicePermissionInterceptors>();
+        new ServicePermissionInterceptorDiscovery<FirstService>(provider.GetRequiredService<IOptions<GrpcServiceOptions<FirstService>>>(), registrations)
+            .OnServiceMethodDiscovery(null!);
+        new ServicePermissionInterceptorDiscovery<OtherService>(provider.GetRequiredService<IOptions<GrpcServiceOptions<OtherService>>>(), registrations)
+            .OnServiceMethodDiscovery(null!);
+        var http = new DefaultHttpContext { RequestServices = provider };
+        http.SetEndpoint(new Endpoint(_ => Task.CompletedTask, new EndpointMetadataCollection(new RequiresPermissionAttribute("sample.test:item:read"),
+            new GrpcMethodMetadata(typeof(FirstService), Substitute.For<IMethod>())), "test"));
         var context = Substitute.For<ServerCallContext>();
         context.UserState.Returns(new Dictionary<object, object> { ["__HttpContext"] = http });
-        var interceptor = new KunPermissionInterceptor();
+        var interceptor = new RequiredPermissionInterceptorGuard(provider.GetRequiredService<IOptions<GrpcServiceOptions>>(), registrations,
+            NullLogger<RequiredPermissionInterceptorGuard>.Instance);
         var reader = Substitute.For<IAsyncStreamReader<string>>();
         var writer = Substitute.For<IServerStreamWriter<string>>();
         var executed = 0;
@@ -51,48 +57,13 @@ public sealed class PermissionInterceptorTests
         ];
         foreach (var call in invoke)
         {
-            if (allow) await call();
+            if (installed) await call();
             else Assert.Equal(StatusCode.PermissionDenied, (await Assert.ThrowsAsync<RpcException>(call)).StatusCode);
         }
-        Assert.Equal(allow ? 4 : 0, executed);
+        Assert.Equal(installed ? 4 : 0, executed);
         await reader.DidNotReceive().MoveNext(Arg.Any<CancellationToken>());
     }
-    [Theory]
-    [InlineData("user", true)]
-    [InlineData("service", false)]
-    [InlineData("agent", false)]
-    public async Task AllRpcShapes_SameSubjectId_PreserveKindBeforeHandler(string kind, bool expected)
-    {
-        var checker = Substitute.For<IPermissionChecker>(); var seen = new List<string>();
-#pragma warning disable CA2012 // 只授予 user，验证服务主体不能借用同名用户权限。
-        checker.CheckAsync(Arg.Any<PermissionRequest>(), Arg.Any<CancellationToken>()).Returns(info =>
-        {
-            var subject = info.Arg<PermissionRequest>().Subject; seen.Add(subject.Kind);
-            Assert.Equal("same-id", subject.Id); Assert.Equal(kind, subject.Kind);
-            return ValueTask.FromResult(new PermissionDecision(subject.Kind == "user", "user-only-grant", []));
-        });
-#pragma warning restore CA2012
-        using var services = new ServiceCollection().AddSingleton(checker).BuildServiceProvider();
-        var http = new DefaultHttpContext
-        {
-            RequestServices = services,
-            User = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim("sub", "same-id"), new Claim("tenant_id", "tenant-a"), new Claim("principal_kind", kind)], "validated"))
-        };
-        http.SetEndpoint(new Endpoint(_ => Task.CompletedTask, new EndpointMetadataCollection(new RequiresPermissionAttribute("sample:item:read")), "test"));
-        var context = Substitute.For<ServerCallContext>(); context.UserState.Returns(new Dictionary<object, object> { ["__HttpContext"] = http });
-        var interceptor = new KunPermissionInterceptor(); var reader = Substitute.For<IAsyncStreamReader<string>>(); var writer = Substitute.For<IServerStreamWriter<string>>();
-        var calls = 0;
-        Func<Task>[] requests = [
-            async () => await interceptor.UnaryServerHandler("request", context, (_, _) => { calls++; return Task.FromResult("ok"); }),
-            () => interceptor.ServerStreamingServerHandler("request", writer, context, (_, _, _) => { calls++; return Task.CompletedTask; }),
-            async () => await interceptor.ClientStreamingServerHandler(reader, context, (_, _) => { calls++; return Task.FromResult("ok"); }),
-            () => interceptor.DuplexStreamingServerHandler(reader, writer, context, (_, _, _) => { calls++; return Task.CompletedTask; })
-        ];
-        foreach (var request in requests)
-            if (expected) await request(); else Assert.Equal(StatusCode.PermissionDenied, (await Assert.ThrowsAsync<RpcException>(request)).StatusCode);
-        Assert.Equal(expected ? 4 : 0, calls); Assert.Equal(4, seen.Count);
-        await reader.DidNotReceive().MoveNext(Arg.Any<CancellationToken>());
-    }
-
+    private sealed class Enforcement : Interceptor, IPermissionEnforcementInterceptor { }
+    private sealed class FirstService { }
+    private sealed class OtherService { }
 }

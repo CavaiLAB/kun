@@ -5,6 +5,7 @@
   <ItemGroup>
     <ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Grpc/Kun.Grpc.csproj" />
     <ProjectReference Include="../Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />
     <PackageReference Include="Grpc.AspNetCore.Server" />

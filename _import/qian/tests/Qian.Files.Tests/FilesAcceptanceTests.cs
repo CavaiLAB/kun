@@ -62,7 +62,7 @@ public sealed partial class FilesAcceptanceTests(PostgresFixture postgres) : ICl
         Assert.Equal((0L, 1L), (await host.RestrictedCount(FilesHost.A, theirs.Id), await host.RestrictedCount(FilesHost.B, theirs.Id)));
         Assert.Equal(0L, await host.RestrictedCount("", mine.Id));
 
-        // 生产模式 HTTP PEP（宿主回调 RequireQianPermission）：同一主体在 B 只是 tenant.user，删除被拒；没有角色绑定的主体连申请都被拒；拒绝必记决策审计。
+        // 生产模式 HTTP PEP（宿主回调 RequireKunPermission）：同一主体在 B 只是 tenant.user，删除被拒；没有角色绑定的主体连申请都被拒；拒绝必记决策审计。
         using (var denied = await host.Send(FilesHost.B, HttpMethod.Delete, "/api/files/" + theirs.Id))
             await AssertError(denied, HttpStatusCode.Forbidden, "AUTHZ_DENIED");
         using (var stranger = await host.Presign(FilesHost.A, FilesHost.Request(Text("stranger")), subject: "files-unbound-client"))

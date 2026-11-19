@@ -83,6 +83,7 @@
     <Project Path="tests/Kun.AotSmoke/Kun.AotSmoke.csproj" />
     <Project Path="tests/Kun.AspNetCore.Tests/Kun.AspNetCore.Tests.csproj" />
     <Project Path="tests/Kun.Auditing.Tests/Kun.Auditing.Tests.csproj" />
+    <Project Path="tests/Kun.Authorization.AspNetCore.Tests/Kun.Authorization.AspNetCore.Tests.csproj" />
     <Project Path="tests/Kun.Authorization.Rbac.Abstractions.Tests/Kun.Authorization.Rbac.Abstractions.Tests.csproj" />
     <Project Path="tests/Kun.Caching.Tests/Kun.Caching.Tests.csproj" />
     <Project Path="tests/Kun.Configuration.Tests/Kun.Configuration.Tests.csproj" />

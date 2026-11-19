@@ -8,6 +8,8 @@ Host-layer integration with gRPC (Grpc.AspNetCore). Registers server interceptor
 - **`KunServerAuthInterceptor`** — enforces that every request has an authenticated primary identity with a subject before entering a handler or reading a stream frame. Unary, client streaming, server streaming and duplex all use this boundary.
 - **`KunTracingInterceptor`** — starts a diagnostic `Activity("grpc.server")` per RPC call, covering the full awaited lifetime of all four RPC shapes, tagged with `rpc.system=grpc`, `rpc.method`, `rpc.type` and `rpc.grpc.status_code`.
 
+- `RequiredPermissionInterceptorGuard` checks endpoints with permission metadata. Each service must install an interceptor implementing `IPermissionEnforcementInterceptor`, globally or in its own gRPC options.
+
 ## Key Files
 
 | File | Description |
@@ -16,14 +18,14 @@ Host-layer integration with gRPC (Grpc.AspNetCore). Registers server interceptor
 | `Interceptors/KunResultToRpcInterceptor.cs` | `internal sealed class`. Static helpers `MapStatus(int?)` and `ToRpcException(Error)` are testable via `InternalsVisibleTo`. |
 | `Interceptors/KunServerAuthInterceptor.cs` | `internal sealed class`. Reads the subject from the authenticated primary identity. |
 | `Interceptors/KunTracingInterceptor.cs` | `internal sealed class`. Uses `ActivitySource("Kun.Grpc")`. |
-| `DependencyInjection/KunGrpcServiceCollectionExtensions.cs` | Public API: `AddKunGrpc(IServiceCollection, Action<GrpcServiceOptions>?)`. Registers tracing, authentication, tenant scope, permissions and result mapping in call order. |
+| `DependencyInjection/KunGrpcServiceCollectionExtensions.cs` | Public API: `AddKunGrpc(IServiceCollection, Action<GrpcServiceOptions>?)`. Registers tracing, authentication, tenant scope, the required-permission guard and result mapping in call order. |
 | `PublicAPI.Unshipped.txt` | Tracks public surface: `KunGrpcServiceCollectionExtensions` + `AddKunGrpc`. |
 
 ## For AI Agents
 
 ### Working In This Directory
 
-- The three interceptors are **`internal`** (not `public`) — the public API analyzer (RS0016/RS0017) cannot track overrides of generic virtual methods from external base classes. They are exposed to `Kun.Grpc.Tests` via `InternalsVisibleTo`.
+- The built-in interceptors are internal. Tests in `Kun.Grpc.Tests` access them via `InternalsVisibleTo`.
 - `Kun.Security.DependencyInjection.KunSecurityServiceCollectionExtensions.AddKunSecurity()` must be called separately to wire up `JwtCurrentUser`.
 
 ### Testing Requirements
@@ -39,7 +41,9 @@ builder.Services.AddKunSecurity();
 builder.Services.AddKunGrpc();
 ```
 
-The interceptors execute in registration order: Tracing → Auth → Tenant scope → Permission → ResultMapping (innermost).
+The interceptors execute in registration order: Tracing → Auth → Tenant scope → Required-permission guard → ResultMapping (innermost).
+
+The required-permission guard runs after authentication. It checks whether the host registered an `IPermissionEnforcementInterceptor` globally or for the specific service. A missing registration on a method marked `RequiresPermission` returns `PermissionDenied` before the handler reads a request frame.
 
 ## Dependencies
 

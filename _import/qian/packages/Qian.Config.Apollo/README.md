@@ -80,7 +80,7 @@ app.MapQianConfig(http => configContext); // global 配置组件上下文，须�
 
 - `GET /api/config/schemas/{plugin}`：对已认证调用方返回组件 config.schema 原文（`application/schema+json`），不含配置值。Schema 只取 Registry 预装集合中由 `RegistryComponentBinding.FromArtifact` 捕获的制品文件；未预装、只有静态绑定（没有文件快照）或没有 Schema 的组件为 404。
 - `GET /api/config/values/{plugin}`：只对平台主体开放，租户主体在判定前 403。处理器内经 `IAuthzEnforcement` 判定 `qian.config:values:read`（拒绝 403、审计不可用 404，都写决策审计），放行后返回配置节 `qian.plugin.<组件 id>` 的 `{ key, sensitive, value }`；Schema 标 `x-qian-sensitive`、疑似密钥键名或值的键 `sensitive: true` 且不给值，也不给引用。先判定再查存在，未授权调用方看不出哪些组件已预装。
-- 两个端点归属 `PlatformHttpContract("qian.config")`，响应带 `Cache-Control: private, no-store`，错误为 ErrorDetail；值端点带 `RequiresPermission` 元数据，OpenAPI 写出 `x-qian-permission`。宿主不要再给它加 `RequireQianPermission`，否则会重复判定。权限点声明在 `plugins/qian.config/metadata/permissions.json`；qian.config 已通过既有真实安装门并移除骨架标记，其权限声明随制品预装后由 Authz 的正常路径读取；声明不等于授予。qian.config.apollo 保留骨架标记，等待自己的真实安装验收。
+- 两个端点归属 `PlatformHttpContract("qian.config")`，响应带 `Cache-Control: private, no-store`，错误为 ErrorDetail；值端点带 `RequiresPermission` 元数据，OpenAPI 写出 `x-qian-permission`。宿主不要再给它加 `RequireKunPermission`，否则会重复判定。权限点声明在 `plugins/qian.config/metadata/permissions.json`；qian.config 已通过既有真实安装门并移除骨架标记，其权限声明随制品预装后由 Authz 的正常路径读取；声明不等于授予。qian.config.apollo 保留骨架标记，等待自己的真实安装验收。
 
 ## Apollo namespace 骨架
 

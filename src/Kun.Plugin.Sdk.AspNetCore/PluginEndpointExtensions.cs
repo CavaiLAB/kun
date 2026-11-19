@@ -1,5 +1,7 @@
+using Kun.Authorization;
 using Kun.Core.MultiTenancy;
 using Kun.Runtime;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +11,22 @@ namespace Kun.Plugin.Sdk.AspNetCore;
 /// <summary>HTTP 组合根的显式装配，不在 SDK 内创建另一棵运行时或替身注册表。</summary>
 public static class PluginEndpointExtensions
 {
+    /// <summary>调用宿主的授权配置，并在构造端点时核对权限声明与授权策略。</summary>
+    public static RouteHandlerBuilder RequirePluginPermission(this RouteHandlerBuilder route, string permission,
+        Action<RouteHandlerBuilder, string> requirePermission)
+    {
+        ArgumentNullException.ThrowIfNull(route);
+        ArgumentNullException.ThrowIfNull(requirePermission);
+        requirePermission(route, permission);
+        route.Add(endpoint =>
+        {
+            if (!endpoint.Metadata.OfType<RequiresPermissionAttribute>().Any(item => item.Permission == permission) ||
+                (!endpoint.Metadata.OfType<IAuthorizeData>().Any() && !endpoint.Metadata.OfType<AuthorizationPolicy>().Any()))
+                throw new InvalidOperationException("端点 " + endpoint.DisplayName + " 的权限点 " + permission + " 没有接到 PEP。");
+        });
+        return route;
+    }
+
     /// <summary>登记当前平台宿主的 Registry 上下文工厂。</summary>
     public static IServiceCollection AddKunPluginEndpoints(this IServiceCollection services, Func<IServiceProvider, IPluginContext> registryContext)
     {

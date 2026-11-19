@@ -1,14 +1,13 @@
 using System.Text.Json;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
-using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Data;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 /// <summary>qian.record.changed.v1 按本组件的模型发布：登记的是载荷，信封由写入端生成，after Hook 视图从收到的信封派生。</summary>
 public sealed class RecordEventEnvelopeTests
@@ -81,7 +80,7 @@ public sealed class RecordEventEnvelopeTests
         var services = new ServiceCollection();
         services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         services.AddKunEventBus(events => events.RegisterRecordEvents());
-        services.AddQianEvents();
+        services.AddKunEvents();
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
     }
 }

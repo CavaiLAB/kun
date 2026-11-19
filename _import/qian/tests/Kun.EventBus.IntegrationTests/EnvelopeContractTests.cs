@@ -2,13 +2,12 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Kun.Core.MultiTenancy;
-using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 public sealed class EnvelopeContractTests
 {
@@ -181,7 +180,7 @@ public sealed class EnvelopeContractTests
         services.AddKunEventBus(events => events
             .Register(PingSent.Type, TestEventJson.Default.PingSent)
             .Register<Reflected>("tests.reflected.created.v1"));
-        services.AddQianEvents();
+        services.AddKunEvents();
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
     }
 }

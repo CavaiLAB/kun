@@ -1,9 +1,9 @@
+using Kun.EventBus.RabbitMQ;
 using System.Text;
-using Kun.EventBus;
 using Qian.Testing.Containers;
 using RabbitMQ.Client;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 /// <summary>死信拓扑的 broker 侧行为（真实 RabbitMQ 4）：投递上限触发的死信按死信队列名转入本订阅的死信队列；at-least-once 下死信目标不可达时消息滞留源队列。</summary>
 public sealed class DeadLetterTopologyTests(RabbitMqFixture rabbit) : IClassFixture<RabbitMqFixture>

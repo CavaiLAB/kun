@@ -8,7 +8,7 @@ namespace Qian.Authz;
 /// <summary>宿主的同事务授权事件接线：角色、绑定与默认授权的每次写入在同一工作单元内经领域事件进入 Outbox（ADR-008 D8.2）。</summary>
 public static class AuthzEventHandlers
 {
-    /// <summary>与 <see cref="AuthzEventRegistration.RegisterAuthzEvents"/>、AddQianEvents 共用；漏装时写入回滚，不能静默丢事件。</summary>
+    /// <summary>与 <see cref="AuthzEventRegistration.RegisterAuthzEvents"/>、AddKunEvents 共用；漏装时写入回滚，不能静默丢事件。</summary>
     public static KunMediatorBuilder AddQianAuthzEvents(this KunMediatorBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);

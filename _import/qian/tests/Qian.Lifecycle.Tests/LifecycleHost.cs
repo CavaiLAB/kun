@@ -1,3 +1,4 @@
+using Kun.EventBus;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
@@ -22,7 +23,6 @@ using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
 using Kun.Data;
-using Qian.Events;
 using Kun.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
@@ -96,7 +96,7 @@ internal sealed class LifecycleHost : IAsyncDisposable
         var auditPlatform = new NpgsqlConnectionStringBuilder(postgres.AppConnectionString) { Username = auditRole, Password = auditPassword }.ConnectionString;
         builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(auditPlatform).UseKunSchema(AuditDbContext.Schema));
         builder.Services.AddKunMediator(mediator => mediator.AddQianRegistryEvents().AddQianLifecycleEvents());
-        builder.Services.AddQianEvents();
+        builder.Services.AddKunEvents();
         builder.Services.AddSingleton<ISecretAccessObserver>(secrets);
         builder.Services.AddQianSecrets(new SecretResolverOptions
         {

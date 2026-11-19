@@ -1,13 +1,12 @@
 using System.Text;
-using Kun.EventBus;
 
-namespace Qian.Events;
+namespace Kun.EventBus.RabbitMQ;
 
 /// <summary>
 /// 消费端的宿主级设置。重试语义与 Outbox 投递侧不同：这里的 <see cref="MaxRetries"/> 是首投之外的重试次数，
 /// 默认首投 1 次 + 重试 5 次，第 6 次仍失败即进死信队列。
 /// </summary>
-public sealed class QianEventsSubscriberOptions
+public sealed class KunEventsSubscriberOptions
 {
     /// <summary>本实例的名字，广播队列 <c>q.&lt;service&gt;.&lt;instance&gt;</c> 与广播幂等记录用它区分实例。默认取规范化后的机器名加进程号。</summary>
     public string Instance { get; set; } = DefaultInstance();

@@ -1,19 +1,18 @@
-using Kun.MultiTenancy.Abstractions;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Kun.EventBus;
+using Kun.Errors;
 using Kun.EventBus.Idempotency;
+using Kun.MultiTenancy.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Kun.Errors;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace Qian.Events;
+namespace Kun.EventBus.RabbitMQ;
 
 /// <summary>
 /// 消费端后台服务（PRD 7.10、ADR-008 D8.3 / D8.4 / D8.6 / D8.9 / D8.12）：按 <see cref="KunEventTopology"/> 声明队列，手动确认。
@@ -22,8 +21,8 @@ namespace Qian.Events;
 /// 重试或死信副本转发失败时原地退避重发，连续失败后交 broker 按队列的死信参数处理，不放回原消息；
 /// 宿主停机打断的消息放回队列，不计一次尝试。
 /// </summary>
-internal sealed partial class QianEventSubscriber(IServiceProvider services, EventSubscriptionRegistry registrations,
-    IOptions<QianEventsSubscriberOptions> settings, ILogger<QianEventSubscriber> logger) : BackgroundService
+internal sealed partial class KunEventSubscriber(IServiceProvider services, EventSubscriptionRegistry registrations,
+    IOptions<KunEventsSubscriberOptions> settings, ILogger<KunEventSubscriber> logger) : BackgroundService
 {
     internal const string AttemptsHeader = "x-qian-attempts";
     private const string ReasonHeader = "x-qian-reason";
@@ -37,7 +36,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     /// <summary>同一条消息的重试或死信副本最多转发几次；连续失败到这个次数即不再放回原消息（见 <see cref="Settlement"/>）。</summary>
     internal const int ForwardAttempts = 3;
 
-    private readonly QianEventsSubscriberOptions _options = settings.Value;
+    private readonly KunEventsSubscriberOptions _options = settings.Value;
     private readonly TaskCompletionSource _ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private IReadOnlyList<ConsumerQueue> _queues = [];
     private IReadOnlyList<string> _deadLetters = [];
@@ -56,7 +55,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
         var service = registrations.Service;
         _options.Validate(service);
         var events = services.GetService<IEventTypeRegistry>() ?? throw Misconfigured("宿主必须以 AddKunEventBus 显式登记事件类型目录。");
-        var address = services.GetService<EventsBrokerAddress>() ?? throw Misconfigured("订阅器要求宿主以 AddQianEventsBroker 登记事件 broker。");
+        var address = services.GetService<EventsBrokerAddress>() ?? throw Misconfigured("订阅器要求宿主以 AddKunEventsBroker 登记事件 broker。");
         _amqp = () => address.Resolve(services);
         var subscriptions = registrations.Bind(events);
         if (subscriptions.Count == 0) throw Misconfigured("订阅器至少需要一个订阅。");
@@ -286,13 +285,20 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
                 catch (JsonException error) { throw new DeliveryRejectedException("invalid_payload", error); }
                 scope.ServiceProvider.GetRequiredService<EventDeliverySlot>().Current = new KunEventDelivery
                 {
-                    Envelope = envelope, Service = registrations.Service, Subscription = target.Subscription.Name, Mode = target.Subscription.Mode,
-                    Consumer = target.Consumer, Attempt = attempt,
+                    Envelope = envelope,
+                    Service = registrations.Service,
+                    Subscription = target.Subscription.Name,
+                    Mode = target.Subscription.Mode,
+                    Consumer = target.Consumer,
+                    Attempt = attempt,
                 };
                 var context = new MessageContext
                 {
-                    MessageId = envelope.EventId, EventType = envelope.Type, TraceParent = envelope.TraceParent,
-                    TenantId = envelope.TenantId?.ToString("D"), OccurredOn = envelope.OccurredAt,
+                    MessageId = envelope.EventId,
+                    EventType = envelope.Type,
+                    TraceParent = envelope.TraceParent,
+                    TenantId = envelope.TenantId?.ToString("D"),
+                    OccurredOn = envelope.OccurredAt,
                 };
                 await target.Route.InvokeAsync(scope.ServiceProvider, payload, context, stoppingToken).ConfigureAwait(false);
             }
@@ -424,7 +430,7 @@ internal sealed partial class QianEventSubscriber(IServiceProvider services, Eve
     /// 转发失败时原地退避重发，不放回原消息：quorum 队列的 nack 放回不计入 x-delivery-limit，放回会让 handler 无上限地反复执行。
     /// 连续 <see cref="ForwardAttempts"/> 次失败后计 forward_failed 并 nack 不放回，交 broker 按队列的死信参数处理；停机时仍放回原消息，不计失败。
     /// </summary>
-    private sealed class Settlement(QianEventSubscriber owner, ConsumerQueue queue, IChannel channel, SettlePublisher publisher, BasicDeliverEventArgs delivery, int attempt,
+    private sealed class Settlement(KunEventSubscriber owner, ConsumerQueue queue, IChannel channel, SettlePublisher publisher, BasicDeliverEventArgs delivery, int attempt,
         CancellationToken stoppingToken)
     {
         private string Service => owner.Service;

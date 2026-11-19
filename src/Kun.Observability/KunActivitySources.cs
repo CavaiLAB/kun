@@ -17,6 +17,9 @@ internal static class KunActivitySources
     /// <summary>gRPC server + client interceptors (<c>grpc.server</c> spans).</summary>
     public const string Grpc = "Kun.Grpc";
 
+    /// <summary>RabbitMQ envelope delivery and consumption.</summary>
+    public const string EventBusRabbitMQ = "Kun.EventBus.RabbitMQ";
+
     /// <summary>Every canonical source — iterate when wiring up the tracer provider.</summary>
-    public static readonly string[] All = [Mediator, OutboxPublisher, Grpc];
+    public static readonly string[] All = [Mediator, OutboxPublisher, EventBusRabbitMQ, Grpc];
 }

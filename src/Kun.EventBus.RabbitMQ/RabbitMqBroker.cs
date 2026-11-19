@@ -1,8 +1,7 @@
-using Kun.EventBus;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace Qian.Events;
+namespace Kun.EventBus.RabbitMQ;
 
 /// <summary>发布端独占的 RabbitMQ 连接与确认通道；连接按需建立并自动恢复，通道出错即丢弃重建。</summary>
 internal sealed partial class RabbitMqBroker(Func<string> amqpUri, ILogger<RabbitMqBroker> logger) : IAsyncDisposable

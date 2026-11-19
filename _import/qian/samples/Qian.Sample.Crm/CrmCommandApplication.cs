@@ -1,3 +1,5 @@
+using Kun.EventBus.EntityFrameworkCore;
+using Kun.EventBus.RabbitMQ;
 using Kun.MultiTenancy;
 using Kun.MultiTenancy.Abstractions;
 using System.Security.Claims;
@@ -19,7 +21,6 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
 using Kun.Data;
-using Qian.Events;
 using Kun.Plugin.Sdk;
 using Kun.Tenancy;
 using Kun.Runtime;
@@ -78,10 +79,11 @@ public static class CrmCommandApplication
                 events?.Invoke(registrar);
             });
             // Outbox 行即 v1 信封；配置了 broker 才投递到 RabbitMQ，未配置时只写 Outbox（本地无 MQ 的开发与测试）。
-            builder.Services.AddQianEvents();
+            builder.Services.AddKunEvents();
             if (builder.Configuration.GetConnectionString("Events") is { Length: > 0 })
             {
-                builder.Services.AddQianEventsBroker(_ => Connection("Events"));
+                builder.Services.AddKunEventsBroker(_ => Connection("Events"));
+                builder.Services.AddKunOutboxRelay();
                 // 消费端（S1-EVT-002）：再配置了 Redis 才装订阅器，幂等记录写 Redis；租户经传播器按信封 tenant_id 回灌，参考宿主自己订阅客户建档事件。
                 if (builder.Configuration.GetConnectionString("Redis") is { Length: > 0 })
                 {
@@ -89,7 +91,7 @@ public static class CrmCommandApplication
                         ConnectionMultiplexer.Connect(ConfigurationOptions.Parse(Connection("Redis")).Apply(options => options.AbortOnConnectFail = false)));
                     builder.Services.TryAddSingleton<ITenantContextPropagator>(sp => new TenantContextPropagator(sp.GetRequiredService<ITenantContext>()));
                     builder.Services.TryAddSingleton<CustomerCreatedReceipts>();
-                    builder.Services.AddQianEventsSubscriber("qian.sample.crm", subscriber => subscriber.Subscribe<CrmCustomerCreated, CustomerCreatedHandler>("customer-created"));
+                    builder.Services.AddKunEventsSubscriber("qian.sample.crm", subscriber => subscriber.Subscribe<CrmCustomerCreated, CustomerCreatedHandler>("customer-created"));
                 }
             }
             builder.Services.AddSingleton<IPermissionRegistry, PermissionRegistry>();

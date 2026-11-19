@@ -41,6 +41,7 @@
     <Project Path="src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <Project Path="src/Kun.Errors/Kun.Errors.csproj" />
     <Project Path="src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
+    <Project Path="src/Kun.EventBus.EntityFrameworkCore/Kun.EventBus.EntityFrameworkCore.csproj" />
     <Project Path="src/Kun.EventBus.RabbitMQ/Kun.EventBus.RabbitMQ.csproj" />
     <Project Path="src/Kun.EventBus/Kun.EventBus.csproj" />
     <Project Path="src/Kun.Gateway/Kun.Gateway.csproj" />
@@ -139,7 +140,6 @@
     <Project Path="_import/qian/packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
     <Project Path="_import/qian/packages/Qian.Docs.Abstractions/Qian.Docs.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Docs/Qian.Docs.csproj" />
-    <Project Path="_import/qian/packages/Qian.Events/Qian.Events.csproj" />
     <Project Path="_import/qian/packages/Qian.Files.Abstractions/Qian.Files.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Files.AspNetCore/Qian.Files.AspNetCore.csproj" />
     <Project Path="_import/qian/packages/Qian.Files/Qian.Files.csproj" />
@@ -180,7 +180,7 @@
     <Project Path="_import/qian/tests/Qian.Config.Secrets.Tests/Qian.Config.Secrets.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Config.Tests/Qian.Config.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Docs.Tests/Qian.Docs.Tests.csproj" />
-    <Project Path="_import/qian/tests/Qian.Events.Tests/Qian.Events.Tests.csproj" />
+    <Project Path="_import/qian/tests/Kun.EventBus.IntegrationTests/Kun.EventBus.IntegrationTests.csproj" />
     <Project Path="_import/qian/tests/Qian.Files.Tests/Qian.Files.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Gateway.Tests/Qian.Gateway.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Lifecycle.Tests/Qian.Lifecycle.Tests.csproj" />

@@ -1,13 +1,12 @@
 using Json.Schema;
 using Kun.Core.MultiTenancy;
-using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Identity.Abstractions;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 /// <summary>身份事件按本组件的模型发布（S1-DEC-020）：event_id、occurred_at 与 tenant_id 只在写入端生成的信封上，载荷只有身份投影。</summary>
 public sealed class IdentityEventEnvelopeTests
@@ -48,7 +47,7 @@ public sealed class IdentityEventEnvelopeTests
         var services = new ServiceCollection();
         services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         services.AddKunEventBus(events => events.RegisterIdentityEvents());
-        services.AddQianEvents();
+        services.AddKunEvents();
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
     }
 }

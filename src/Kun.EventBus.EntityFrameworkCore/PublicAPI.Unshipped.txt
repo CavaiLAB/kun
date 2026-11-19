@@ -1,48 +1,29 @@
 #nullable enable
-Qian.Events.EventsPlugin
-Qian.Events.EventsPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Qian.Events.EventsPlugin.EventsPlugin() -> void
-Qian.Events.EventsPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
-Qian.Events.IntegrationEventSchemas
-Qian.Events.OutboxLockMode
-Qian.Events.OutboxLockMode.Redis = 1 -> Qian.Events.OutboxLockMode
-Qian.Events.OutboxLockMode.SkipLocked = 0 -> Qian.Events.OutboxLockMode
-Qian.Events.QianEventsExtensions
-Qian.Events.QianEventsOptions
-Qian.Events.QianEventsOptions.BatchSize.get -> int
-Qian.Events.QianEventsOptions.BatchSize.set -> void
-Qian.Events.QianEventsOptions.LeaseDuration.get -> System.TimeSpan
-Qian.Events.QianEventsOptions.LeaseDuration.set -> void
-Qian.Events.QianEventsOptions.MaxAttempts.get -> int
-Qian.Events.QianEventsOptions.MaxAttempts.set -> void
-Qian.Events.QianEventsOptions.OutboxLock.get -> Qian.Events.OutboxLockMode
-Qian.Events.QianEventsOptions.OutboxLock.set -> void
-Qian.Events.QianEventsOptions.PollInterval.get -> System.TimeSpan
-Qian.Events.QianEventsOptions.PollInterval.set -> void
-Qian.Events.QianEventsOptions.PublishTimeout.get -> System.TimeSpan
-Qian.Events.QianEventsOptions.PublishTimeout.set -> void
-Qian.Events.QianEventsOptions.QianEventsOptions() -> void
-Qian.Events.QianEventsOptions.RelayInstance.get -> string!
-Qian.Events.QianEventsOptions.RelayInstance.set -> void
-Qian.Events.QianEventsOptions.RetryBaseDelay.get -> System.TimeSpan
-Qian.Events.QianEventsOptions.RetryBaseDelay.set -> void
-Qian.Events.QianEventsSubscriberBuilder
-Qian.Events.QianEventsSubscriberBuilder.Service.get -> string!
-Qian.Events.QianEventsSubscriberBuilder.Subscribe<TEvent, THandler>(string! subscription, Kun.EventBus.EventSubscriptionMode mode = Kun.EventBus.EventSubscriptionMode.Competing, bool acceptPlatformEvents = false) -> Qian.Events.QianEventsSubscriberBuilder!
-Qian.Events.QianEventsSubscriberOptions
-Qian.Events.QianEventsSubscriberOptions.IdempotencyTtl.get -> System.TimeSpan
-Qian.Events.QianEventsSubscriberOptions.IdempotencyTtl.set -> void
-Qian.Events.QianEventsSubscriberOptions.Instance.get -> string!
-Qian.Events.QianEventsSubscriberOptions.Instance.set -> void
-Qian.Events.QianEventsSubscriberOptions.MaxRetries.get -> int
-Qian.Events.QianEventsSubscriberOptions.MaxRetries.set -> void
-Qian.Events.QianEventsSubscriberOptions.PrefetchCount.get -> ushort
-Qian.Events.QianEventsSubscriberOptions.PrefetchCount.set -> void
-Qian.Events.QianEventsSubscriberOptions.QianEventsSubscriberOptions() -> void
-Qian.Events.QianEventsSubscriberOptions.RetryBaseDelay.get -> System.TimeSpan
-Qian.Events.QianEventsSubscriberOptions.RetryBaseDelay.set -> void
-static Qian.Events.IntegrationEventSchemas.Describe(Kun.EventBus.IEventTypeRegistry! registry) -> System.Collections.Generic.IReadOnlyList<Kun.EventBus.IntegrationEventDescriptor!>!
-static Qian.Events.IntegrationEventSchemas.Export(System.Text.Json.Serialization.Metadata.JsonTypeInfo! typeInfo) -> System.Text.Json.JsonElement
-static Qian.Events.QianEventsExtensions.AddQianEvents(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Qian.Events.QianEventsOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-static Qian.Events.QianEventsExtensions.AddQianEventsBroker(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<System.IServiceProvider!, string!>! resolveAmqpUri, string? brokerReference = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-static Qian.Events.QianEventsExtensions.AddQianEventsSubscriber(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, string! service, System.Action<Qian.Events.QianEventsSubscriberBuilder!>! subscribe, System.Action<Qian.Events.QianEventsSubscriberOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+Kun.EventBus.EntityFrameworkCore.EventsPlugin
+Kun.EventBus.EntityFrameworkCore.EventsPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.EventBus.EntityFrameworkCore.EventsPlugin.EventsPlugin() -> void
+Kun.EventBus.EntityFrameworkCore.EventsPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.BatchSize.get -> int
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.BatchSize.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.KunEventsOptions() -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.LeaseDuration.get -> System.TimeSpan
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.LeaseDuration.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.MaxAttempts.get -> int
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.MaxAttempts.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.OutboxLock.get -> Kun.EventBus.EntityFrameworkCore.OutboxLockMode
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.OutboxLock.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.PollInterval.get -> System.TimeSpan
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.PollInterval.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.PublishTimeout.get -> System.TimeSpan
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.PublishTimeout.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.RelayInstance.get -> string!
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.RelayInstance.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.RetryBaseDelay.get -> System.TimeSpan
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.RetryBaseDelay.set -> void
+Kun.EventBus.EntityFrameworkCore.OutboxLockMode
+Kun.EventBus.EntityFrameworkCore.OutboxLockMode.Redis = 1 -> Kun.EventBus.EntityFrameworkCore.OutboxLockMode
+Kun.EventBus.EntityFrameworkCore.OutboxLockMode.SkipLocked = 0 -> Kun.EventBus.EntityFrameworkCore.OutboxLockMode
+static Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions.AddKunEvents(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.EventBus.EntityFrameworkCore.KunEventsOptions!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions.AddKunOutboxRelay(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

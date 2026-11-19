@@ -120,3 +120,8 @@ Kun.EventBus.Idempotency.IProcessedMessageStore.IsProcessedAsync(string! consume
 Kun.EventBus.Idempotency.InMemoryProcessedMessageStore.IsProcessedAsync(string! consumerName, System.Guid messageId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
 Kun.EventBus.Outbox.OutboxMessage.ScheduleRetry(System.DateTimeOffset nextAttemptAt, string! error) -> void (forwarded, contained in Kun.EventBus.Abstractions)
 Kun.EventBus.Idempotency.RedisProcessedMessageStore.IsProcessedAsync(string! consumerName, System.Guid messageId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+Kun.EventBus.IntegrationEventSchemas
+Kun.EventBus.KunEventsExtensions
+static Kun.EventBus.IntegrationEventSchemas.Describe(Kun.EventBus.IEventTypeRegistry! registry) -> System.Collections.Generic.IReadOnlyList<Kun.EventBus.IntegrationEventDescriptor!>!
+static Kun.EventBus.IntegrationEventSchemas.Export(System.Text.Json.Serialization.Metadata.JsonTypeInfo! typeInfo) -> System.Text.Json.JsonElement
+static Kun.EventBus.KunEventsExtensions.AddKunEvents(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

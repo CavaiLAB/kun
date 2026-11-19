@@ -13,7 +13,7 @@ namespace Kun.Identity.Server;
 public static class IdentityEventHandlers
 {
     /// <summary>
-    /// 与 <c>RegisterIdentityEvents</c>、<c>AddQianEvents</c> 共用；漏装时保存回滚，不会静默丢事件。
+    /// 与 <c>RegisterIdentityEvents</c>、<c>AddKunEvents</c> 共用；漏装时保存回滚，不会静默丢事件。
     /// 登录、锁定、改密事件由聚合根的领域通知在同一数据会话内转成集成事件，随业务数据一起落入 Outbox。
     /// </summary>
     /// <remarks>组织目录的 <c>directory.*.v1</c> 事件走同一入口：目录写入在租户目录修订行上记领域通知，同事务进入 Outbox。</remarks>

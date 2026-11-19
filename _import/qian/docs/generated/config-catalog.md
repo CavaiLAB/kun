@@ -618,7 +618,7 @@
 
 ## global/events
 
-组件：` qian.events@1.0.2 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.events@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -642,7 +642,7 @@
   "properties": {
     "broker": {
       "type": "string",
-      "description": "RabbitMQ 的 AMQP 地址引用（secretRef），必须与宿主 AddQianEventsBroker 登记的引用一致；凭据只在连接时读取，不写进清单。省略时不核对 broker，是否投递由宿主装配决定。",
+      "description": "RabbitMQ 的 AMQP 地址引用（secretRef），必须与宿主 AddKunEventsBroker 登记的引用一致；凭据只在连接时读取，不写进清单。省略时不核对 broker，是否投递由宿主装配决定。",
       "pattern": "^secretRef://(platform|dev)/[^\\s?#]\u002B$",
       "x-qian-sensitive": true
     },

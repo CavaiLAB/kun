@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 /// <summary>contracts/v0 的信封 Schema 与 iClaw EventEnvelope 摘录；iClaw 侧按对齐口径去掉 subject 域名白名单。</summary>
 internal static class EnvelopeSchemas

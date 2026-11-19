@@ -2,18 +2,15 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Kun.EventBus;
-using Kun.EventBus.Outbox;
 
-namespace Qian.Events;
+namespace Kun.EventBus.Outbox;
 
 /// <summary>
 /// 替换 Kun 默认累加器的 Outbox 写入端：入队时就生成完整 v1 信封并写进 Outbox 行的 payload，
 /// 发布器原样发出。来源（producer、actor、因果链）取自 <see cref="EventEnvelopeScope"/>，缺失即拒绝，
 /// 这是「集成事件只能在命令 handler 同 scope 发出」的运行时兜底。
 /// </summary>
-internal sealed class QianEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IEventTypeRegistry registry, ITenantContext tenant, TimeProvider clock)
+internal sealed class KunEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IEventTypeRegistry registry, ITenantContext tenant, TimeProvider clock)
     : IIntegrationEventBus, IOutboxWriter, IOutboxBufferBinding
 {
     public IntegrationEventBuffer Buffer => buffer;

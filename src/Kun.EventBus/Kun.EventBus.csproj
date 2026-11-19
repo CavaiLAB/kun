@@ -15,11 +15,15 @@
     <ProjectReference Include="..\Kun.EventBus.Abstractions\Kun.EventBus.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Kun.EventBus.RabbitMQ" />
+    <InternalsVisibleTo Include="Kun.EventBus.EntityFrameworkCore" />
+    <InternalsVisibleTo Include="Kun.EventBus.IntegrationTests" />
     <InternalsVisibleTo Include="Kun.EventBus.Tests" />
     <InternalsVisibleTo Include="Kun.IntegrationTests" />
   </ItemGroup>

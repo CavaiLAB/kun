@@ -1,3 +1,4 @@
+using Kun.EventBus;
 using Kun.Core.MultiTenancy;
 using System.Text.Json;
 using Kun.EntityFrameworkCore;
@@ -5,7 +6,6 @@ using Kun.EntityFrameworkCore.Extensions;
 using Kun.EntityFrameworkCore.Conventions;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
-using Qian.Events;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -138,7 +138,7 @@ public sealed partial class TenantDirectoryTests(PostgresFixture postgres) : ICl
     private IHost Host(Kun.Core.MultiTenancy.ITenantContext? tenant = null, bool withTenantEvents = true)
     {
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
-        builder.Services.AddSingleton<Kun.Core.MultiTenancy.ITenantContext>(tenant ?? new AsyncLocalTenantContext()); builder.Services.AddKunEventBus(registrar => registrar.RegisterTenancyEvents()); builder.Services.AddKunMediator(builder => { if (withTenantEvents) builder.AddKunTenancyEvents(); }); builder.Services.AddQianEvents();
+        builder.Services.AddSingleton<Kun.Core.MultiTenancy.ITenantContext>(tenant ?? new AsyncLocalTenantContext()); builder.Services.AddKunEventBus(registrar => registrar.RegisterTenancyEvents()); builder.Services.AddKunMediator(builder => { if (withTenantEvents) builder.AddKunTenancyEvents(); }); builder.Services.AddKunEvents();
         builder.Services.AddKunData<TenancyDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(TenancyDbContext.Schema));
         return builder.Build();
     }

@@ -1,11 +1,10 @@
 using System.Text.Json;
 using Json.Schema;
-using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Identity.Abstractions;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 public sealed class SchemaExportTests
 {

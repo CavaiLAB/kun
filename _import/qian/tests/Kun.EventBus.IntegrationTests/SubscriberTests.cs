@@ -1,3 +1,4 @@
+using Kun.EventBus.RabbitMQ;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -5,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Core.MultiTenancy;
-using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.MultiTenancy;
@@ -17,11 +17,11 @@ using Qian.Testing.Containers;
 using RabbitMQ.Client;
 using StackExchange.Redis;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 /// <summary>
 /// 真实 RabbitMQ 与 Redis：消费端至少一次（手动确认、退避重试、死信、Redis 幂等）、竞争与广播两种订阅、按信封租户回灌。
-/// 发布走生产发布器（QianEnvelopePublisher），多副本用同一套容器起多个宿主（PRD 14.2.1）。
+/// 发布走生产发布器（KunEnvelopePublisher），多副本用同一套容器起多个宿主（PRD 14.2.1）。
 /// </summary>
 public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture redis) : IClassFixture<RabbitMqFixture>, IClassFixture<RedisFixture>, IAsyncDisposable
 {
@@ -176,7 +176,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         using var workCounts = new ConsumerMetrics(service + ".work");
         using var noticeCountsA = new ConsumerMetrics(service + ".notice@node-a");
         using var noticeCountsB = new ConsumerMetrics(service + ".notice@node-b");
-        void Subscribe(QianEventsSubscriberBuilder subscriber) => subscriber
+        void Subscribe(KunEventsSubscriberBuilder subscriber) => subscriber
             .Subscribe<PingSent, ProbeHandler>("work")
             .Subscribe<PingSent, NoticeHandler>("notice", EventSubscriptionMode.Broadcast);
         using var hostA = Host(service, a, Subscribe, instance: "node-a", prefetch: 1);
@@ -263,7 +263,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         await host.StopAsync(Ct);
     }
 
-    private IHost Host(string service, Probe probe, Action<QianEventsSubscriberBuilder> subscribe, TimeSpan? retryBaseDelay = null, string? instance = null, ushort prefetch = 16,
+    private IHost Host(string service, Probe probe, Action<KunEventsSubscriberBuilder> subscribe, TimeSpan? retryBaseDelay = null, string? instance = null, ushort prefetch = 16,
         Action<IServiceCollection>? services = null)
     {
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
@@ -274,8 +274,8 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         builder.Services.AddKunEventBus(events => events.Register(PingSent.Type, TestEventJson.Default.PingSent));
         builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redis.ConnectionString));
         builder.Services.AddSingleton(probe);
-        builder.Services.AddQianEventsBroker(_ => rabbit.ConnectionString);
-        builder.Services.AddQianEventsSubscriber(service, subscribe, options =>
+        builder.Services.AddKunEventsBroker(_ => rabbit.ConnectionString);
+        builder.Services.AddKunEventsSubscriber(service, subscribe, options =>
         {
             options.RetryBaseDelay = retryBaseDelay ?? TimeSpan.FromMilliseconds(100);
             options.PrefetchCount = prefetch;
@@ -289,7 +289,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
     private static async Task StartAsync(IHost host)
     {
         await host.StartAsync(Ct);
-        await host.Services.GetServices<IHostedService>().OfType<QianEventSubscriber>().Single().Ready.WaitAsync(TimeSpan.FromSeconds(30), Ct);
+        await host.Services.GetServices<IHostedService>().OfType<KunEventSubscriber>().Single().Ready.WaitAsync(TimeSpan.FromSeconds(30), Ct);
     }
 
     private static string Service() => "qian.events-tests.s" + Guid.NewGuid().ToString("N")[..8];
@@ -318,7 +318,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
     {
         var envelope = Envelope(tenant, sequence, note);
         await using var broker = new RabbitMqBroker(() => rabbit.ConnectionString, NullLogger<RabbitMqBroker>.Instance);
-        var publisher = new QianEnvelopePublisher(broker);
+        var publisher = new KunEnvelopePublisher(broker);
         for (var index = 0; index < times; index++)
             await publisher.PublishAsync(new OutboxMessage(envelope.EventId, envelope.Type, envelope.ToJson(), tenant, envelope.TraceParent, null, envelope.OccurredAt), Ct);
         return envelope;
@@ -470,7 +470,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         private sealed class Logger(LogRecorder owner, string category) : ILogger
         {
             public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-            public bool IsEnabled(LogLevel logLevel) => category.StartsWith("Qian.Events", StringComparison.Ordinal);
+            public bool IsEnabled(LogLevel logLevel) => category.StartsWith("Kun.EventBus.RabbitMQ", StringComparison.Ordinal);
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
             {
                 if (IsEnabled(logLevel)) owner.Entries.Enqueue(new LogEntry(logLevel, eventId.Id, formatter(state, exception)));
@@ -488,7 +488,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         {
             _listener.InstrumentPublished = (instrument, listener) =>
             {
-                if (instrument.Meter.Name == "Qian.Events" && instrument.Name.StartsWith("qian.events.consumer.", StringComparison.Ordinal)) listener.EnableMeasurementEvents(instrument);
+                if (instrument.Meter.Name == "Kun.EventBus.RabbitMQ" && instrument.Name.StartsWith("qian.events.consumer.", StringComparison.Ordinal)) listener.EnableMeasurementEvents(instrument);
             };
             _listener.SetMeasurementEventCallback<long>((instrument, value, tags, _) =>
             {
@@ -513,7 +513,7 @@ public sealed partial class SubscriberTests(RabbitMqFixture rabbit, RedisFixture
         {
             _listener = new ActivityListener
             {
-                ShouldListenTo = source => source.Name == "Qian.Events",
+                ShouldListenTo = source => source.Name == "Kun.EventBus.RabbitMQ",
                 Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
                 ActivityStopped = activity => Names.Add(activity.DisplayName),
             };

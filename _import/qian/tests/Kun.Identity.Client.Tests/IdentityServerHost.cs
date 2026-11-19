@@ -1,3 +1,4 @@
+using Kun.EventBus;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -21,7 +22,6 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using OpenIddict.Abstractions;
 using Kun.Data;
-using Qian.Events;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Kun.Runtime;
@@ -81,7 +81,7 @@ internal sealed class IdentityServerHost : IAsyncDisposable
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(events => events.RegisterIdentityEvents());
         builder.Services.AddKunMediator(mediator => mediator.AddKunIdentityEvents());
-        builder.Services.AddQianEvents();
+        builder.Services.AddKunEvents();
         builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddAuthentication("qian.identity.signin").AddCookie("qian.identity.signin");

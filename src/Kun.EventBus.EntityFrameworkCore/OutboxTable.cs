@@ -1,14 +1,13 @@
 using System.Collections.Concurrent;
 using System.Data.Common;
 using Kun.EntityFrameworkCore;
-using Kun.EventBus;
 using Kun.EventBus.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Qian.Events;
+namespace Kun.EventBus.EntityFrameworkCore;
 
 /// <summary>某个业务上下文的 outbox_messages 表；表名与列名取自生效的 EF 模型，SQL 按上下文类型缓存。</summary>
 /// <remarks>

@@ -1,9 +1,8 @@
-using Kun.EventBus;
 
-namespace Qian.Events;
+namespace Kun.EventBus.EntityFrameworkCore;
 
 /// <summary>Outbox 投递的宿主级设置；组件配置 <c>outbox.lock</c> 必须与 <see cref="OutboxLock"/> 一致。</summary>
-public sealed class QianEventsOptions
+public sealed class KunEventsOptions
 {
     /// <summary>每次领取的最大行数。默认 100。</summary>
     public int BatchSize { get; set; } = 100;

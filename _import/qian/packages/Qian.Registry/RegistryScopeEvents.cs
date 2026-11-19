@@ -9,7 +9,7 @@ public static class RegistryEventHandlers
 {
     /// <summary>
     /// 登记 scope patch 变更的领域事件处理器：公开挂载 / 卸载写入在保存时经它把 registry.scope.*.v1 放进同一事务的 Outbox。
-    /// 宿主还须以 <see cref="RegistryEvents.RegisterRegistryEvents"/> 登记事件类型、装配写入信封的 Outbox 端口（AddQianEvents）；
+    /// 宿主还须以 <see cref="RegistryEvents.RegisterRegistryEvents"/> 登记事件类型、装配写入信封的 Outbox 端口（AddKunEvents）；
     /// 漏装处理器时公开写入在提交前失败，不会静默丢掉事件。
     /// </summary>
     public static KunMediatorBuilder AddQianRegistryEvents(this KunMediatorBuilder builder)

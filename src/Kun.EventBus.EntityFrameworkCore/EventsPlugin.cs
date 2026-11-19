@@ -1,12 +1,11 @@
 using System.Text.Json;
-using Kun.EventBus;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
-namespace Qian.Events;
+namespace Kun.EventBus.EntityFrameworkCore;
 
 /// <summary>qian.events 的真实 Provider：挂载时核对组件配置与宿主装配一致，提供 Events 服务键；卸载撤销服务与错误码。</summary>
 [KunPlugin("qian.events")]
@@ -25,8 +24,8 @@ public sealed class EventsPlugin : IKunPlugin
             throw new KunEventsException(EventsErrors.Misconfigured, "Events 只允许挂载在 global 或 tenant scope。");
         var settings = EventsConfiguration.Read(config);
         _ = ctx.Services.GetService<EventsHostMarker>()
-            ?? throw new KunEventsException(EventsErrors.Misconfigured, "宿主必须先以 AddQianEvents 装配信封写入端。");
-        var options = ctx.Services.GetRequiredService<IOptions<QianEventsOptions>>().Value;
+            ?? throw new KunEventsException(EventsErrors.Misconfigured, "宿主必须先以 AddKunEvents 装配信封写入端。");
+        var options = ctx.Services.GetRequiredService<IOptions<KunEventsOptions>>().Value;
         if (options.OutboxLock != settings.Lock)
             throw new KunEventsException(EventsErrors.Misconfigured, "组件配置 outbox.lock 与宿主装配的领取方式不一致。");
         var broker = ctx.Services.GetService<EventsBrokerBinding>();
@@ -61,7 +60,7 @@ internal static class EventsConfiguration
             {
                 case "broker" when property.Value.ValueKind == JsonValueKind.String:
                     broker = property.Value.GetString();
-                    ValidateReference(broker!);
+                    EventsBrokerBinding.ValidateReference(broker!);
                     break;
                 case "outbox" when property.Value.ValueKind == JsonValueKind.Object:
                     foreach (var item in property.Value.EnumerateObject())
@@ -79,15 +78,6 @@ internal static class EventsConfiguration
             }
         }
         return new EventsSettings(broker, mode);
-    }
-
-    internal static void ValidateReference(string reference)
-    {
-        if (string.IsNullOrWhiteSpace(reference) || !reference.StartsWith("secretRef://", StringComparison.Ordinal) ||
-            reference.Any(char.IsWhiteSpace) || !Uri.TryCreate(reference, UriKind.Absolute, out var uri) ||
-            uri.Host is not ("platform" or "dev") || uri.AbsolutePath.Length <= 1 ||
-            uri.UserInfo.Length != 0 || uri.Query.Length != 0 || uri.Fragment.Length != 0 || !uri.IsDefaultPort)
-            throw Invalid("broker 只能是宿主登记的 platform/dev secretRef，凭据不写进组件配置。");
     }
 
     private static KunEventsException Invalid(string reason) => new(EventsErrors.Misconfigured, reason);

@@ -1,3 +1,4 @@
+using Kun.EventBus;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
@@ -18,7 +19,6 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Kun.Data;
-using Qian.Events;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Registry.AspNetCore;
@@ -162,7 +162,7 @@ public abstract partial class CustomerCommandTests
         var builder = Host.CreateApplicationBuilder(); builder.Logging.ClearProviders();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(registrar => registrar.RegisterTenancyEvents().RegisterRegistryEvents().RegisterAuthzEvents());
-        builder.Services.AddKunMediator(mediator => mediator.AddKunTenancyEvents().AddQianRegistryEvents().AddQianAuthzEvents()); builder.Services.AddQianEvents();
+        builder.Services.AddKunMediator(mediator => mediator.AddKunTenancyEvents().AddQianRegistryEvents().AddQianAuthzEvents()); builder.Services.AddKunEvents();
         builder.Services.AddKunData<TenancyDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(TenancyDbContext.Schema));
         builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(RegistryDbContext.Schema));
         builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));

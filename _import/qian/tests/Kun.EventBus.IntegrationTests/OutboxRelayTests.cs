@@ -1,3 +1,5 @@
+using Kun.EventBus.EntityFrameworkCore;
+using Kun.EventBus.RabbitMQ;
 using System.Collections.Concurrent;
 using System.Text;
 using Kun.Core.MultiTenancy;
@@ -16,7 +18,7 @@ using Kun.Data;
 using Qian.Testing.Containers;
 using RabbitMQ.Client;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 /// <summary>真实 PostgreSQL 与 RabbitMQ：多副本按租约领取、停掉一个副本由另一副本接管、崩溃持有的租约到期后被接管，确认数始终等于 Outbox 行数。</summary>
 public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture rabbit) : IClassFixture<PostgresFixture>, IClassFixture<RabbitMqFixture>
@@ -177,7 +179,7 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(events => events.Register(PingSent.Type, TestEventJson.Default.PingSent));
         builder.Services.AddKunData<RelayContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(schema));
-        builder.Services.AddQianEvents(options =>
+        builder.Services.AddKunEvents(options =>
         {
             options.RelayInstance = name;
             options.BatchSize = batch;
@@ -186,9 +188,10 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
             options.PublishTimeout = publishTimeout ?? TimeSpan.FromSeconds(5);
             options.RetryBaseDelay = TimeSpan.FromMinutes(1);
         });
-        builder.Services.AddQianEventsBroker(_ => amqp ?? rabbit.ConnectionString);
+        builder.Services.AddKunEventsBroker(_ => amqp ?? rabbit.ConnectionString);
+        builder.Services.AddKunOutboxRelay();
         builder.Services.Replace(ServiceDescriptor.Singleton<IIntegrationEventPublisher>(sp =>
-            new CountingPublisher(new QianEnvelopePublisher(sp.GetRequiredService<RabbitMqBroker>()), counter)));
+            new CountingPublisher(new KunEnvelopePublisher(sp.GetRequiredService<RabbitMqBroker>()), counter)));
         builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(20));
         return builder.Build();
     }
@@ -200,7 +203,7 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         builder.Services.AddSingleton<ITenantContext>(tenant);
         builder.Services.AddKunEventBus(events => events.Register(PingSent.Type, TestEventJson.Default.PingSent));
         builder.Services.AddKunData<RelayContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(schema));
-        builder.Services.AddQianEvents();
+        builder.Services.AddKunEvents();
         using var host = builder.Build();
         var data = host.Services.GetRequiredService<IDataService>();
         using (tenant.BeginScope(Guid.ParseExact(Tenant, "D")))

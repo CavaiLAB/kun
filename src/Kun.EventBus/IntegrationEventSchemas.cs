@@ -3,9 +3,8 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
 using System.Text.Json.Serialization.Metadata;
-using Kun.EventBus;
 
-namespace Qian.Events;
+namespace Kun.EventBus;
 
 /// <summary>
 /// 由登记时的源生成 JsonTypeInfo 导出 payload 的 JSON Schema（2020-12），与 Outbox 实际写出的 JSON 同一份契约；

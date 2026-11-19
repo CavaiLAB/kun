@@ -1,22 +1,21 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Qian.Events;
+namespace Kun.EventBus.RabbitMQ;
 
 /// <summary>
 /// 订阅登记（PRD 7.10 的 <c>Subscribe&lt;TEvent, THandler&gt;()</c>）：每次登记把一个 Kun handler 挂到一个订阅上。
 /// 同一订阅可以覆盖多个事件，但一个事件在同一订阅里只有一个 handler；广播订阅共用实例队列，同一事件在一个服务里只能有一个广播订阅。
 /// </summary>
-public sealed class QianEventsSubscriberBuilder
+public sealed class KunEventsSubscriberBuilder
 {
     private readonly IServiceCollection _services;
     private readonly EventSubscriptionRegistry _registry;
 
-    internal QianEventsSubscriberBuilder(IServiceCollection services, EventSubscriptionRegistry registry)
+    internal KunEventsSubscriberBuilder(IServiceCollection services, EventSubscriptionRegistry registry)
     {
         _services = services;
         _registry = registry;
@@ -32,7 +31,7 @@ public sealed class QianEventsSubscriberBuilder
     /// <param name="subscription">订阅名，小写短横线标识，决定竞争队列 <c>q.&lt;service&gt;.&lt;subscription&gt;</c>、死信队列与幂等记录的消费者名。</param>
     /// <param name="mode">竞争消费或广播。</param>
     /// <param name="acceptPlatformEvents">是否派发 tenant_id 为 null 的平台级事件；默认拒绝，派发时不开租户作用域。</param>
-    public QianEventsSubscriberBuilder Subscribe<TEvent, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(string subscription,
+    public KunEventsSubscriberBuilder Subscribe<TEvent, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(string subscription,
         EventSubscriptionMode mode = EventSubscriptionMode.Competing, bool acceptPlatformEvents = false)
         where TEvent : class
         where THandler : class, IIntegrationEventHandler<TEvent>
@@ -43,8 +42,8 @@ public sealed class QianEventsSubscriberBuilder
     }
 }
 
-/// <summary>宿主登记的全部订阅；多次调用 AddQianEventsSubscriber 共用同一个实例。</summary>
-internal sealed class EventSubscriptionRegistry(string service)
+/// <summary>宿主登记的全部订阅；多次调用 AddKunEventsSubscriber 共用同一个实例。</summary>
+internal sealed class EventSubscriptionRegistry(string service) : IEventSubscriptionCatalog
 {
     private readonly List<Entry> _entries = [];
 

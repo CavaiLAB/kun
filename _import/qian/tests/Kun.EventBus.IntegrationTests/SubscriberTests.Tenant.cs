@@ -6,7 +6,7 @@ using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 // 进入租户作用域（S1-EVT-004）：登记了 ITenantContextPropagator 时经它进入；两条路径进入后都核对当前租户等于信封租户。
 public sealed partial class SubscriberTests

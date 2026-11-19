@@ -1,3 +1,4 @@
+using Kun.EventBus;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -26,7 +27,6 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
 using Kun.Data;
-using Qian.Events;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Tenancy;
@@ -63,7 +63,7 @@ internal static class AccountsHost
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(events => events.RegisterIdentityEvents());
         builder.Services.AddKunMediator(mediator => { if (identityEvents) mediator.AddKunIdentityEvents(); });
-        builder.Services.AddQianEvents();
+        builder.Services.AddKunEvents();
         var gate = new StatementGate();
         builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(IdentityDbContext.Schema).AddInterceptors(gate));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();

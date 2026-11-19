@@ -1,3 +1,4 @@
+using Kun.EventBus.EntityFrameworkCore;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -30,7 +31,6 @@ using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
 using Qian.Capabilities;
 using Kun.Data;
-using Qian.Events;
 using Qian.Files.AspNetCore;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
@@ -140,7 +140,7 @@ internal sealed class FilesHost : IAsyncDisposable
             registrar.RegisterFilesEvents().RegisterTenancyEvents().RegisterAuthzEvents();
             if (operations is not null) registrar.RegisterRegistryEvents();
         });
-        builder.Services.AddQianEvents();
+        builder.Services.AddKunEvents();
         builder.Services.AddKunData<FilesDbContext>((_, options) => options.UseNpgsql(business).UseKunSchema(FilesDbContext.Schema));
         builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
         builder.Services.AddKunData<TenancyDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(TenancyDbContext.Schema));

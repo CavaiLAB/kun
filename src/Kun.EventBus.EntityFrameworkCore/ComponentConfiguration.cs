@@ -1,4 +1,4 @@
-namespace Qian.Events;
+namespace Kun.EventBus.EntityFrameworkCore;
 
 // 配置声明的代码真相源；组件目录中的 Schema 由 qian-plugin sync 派生。
 internal static class ComponentConfiguration
@@ -10,7 +10,7 @@ internal static class ComponentConfiguration
           "properties": {
             "broker": {
               "type": "string",
-              "description": "RabbitMQ 的 AMQP 地址引用（secretRef），必须与宿主 AddQianEventsBroker 登记的引用一致；凭据只在连接时读取，不写进清单。省略时不核对 broker，是否投递由宿主装配决定。",
+              "description": "RabbitMQ 的 AMQP 地址引用（secretRef），必须与宿主 AddKunEventsBroker 登记的引用一致；凭据只在连接时读取，不写进清单。省略时不核对 broker，是否投递由宿主装配决定。",
               "pattern": "^secretRef://(platform|dev)/[^\\s?#]+$",
               "x-qian-sensitive": true
             },

@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Kun.EntityFrameworkCore;
-using Kun.EventBus;
 using Kun.EventBus.Background;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,16 +8,16 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Qian.Events;
+namespace Kun.EventBus.EntityFrameworkCore;
 
 /// <summary>
 /// Outbox 投递后台服务：逐个业务上下文领取到期行，发布并等待确认后立即标记。
 /// 停机（SIGTERM）时先完成手上这一条，再把本批未发的行交还，其他副本马上可以接手，不会重复发布已确认的消息。
 /// </summary>
-internal sealed partial class QianOutboxRelay(IServiceScopeFactory scopes, IDataContextCatalog contexts, IIntegrationEventPublisher publisher,
-    IOptions<QianEventsOptions> settings, TimeProvider clock, ILogger<QianOutboxRelay> logger, IServiceProvider services) : BackgroundService
+internal sealed partial class KunOutboxRelay(IServiceScopeFactory scopes, IDataContextCatalog contexts, IIntegrationEventPublisher publisher,
+    IOptions<KunEventsOptions> settings, TimeProvider clock, ILogger<KunOutboxRelay> logger, IServiceProvider services) : BackgroundService
 {
-    private readonly QianEventsOptions _options = settings.Value;
+    private readonly KunEventsOptions _options = settings.Value;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -130,18 +129,9 @@ internal sealed partial class QianOutboxRelay(IServiceScopeFactory scopes, IData
 /// </summary>
 internal static class EventsMetrics
 {
-    public const string MeterName = "Qian.Events";
+    public const string MeterName = "Kun.EventBus.EntityFrameworkCore";
     private static readonly Meter Meter = new(MeterName);
     public static readonly Counter<long> Confirmed = Meter.CreateCounter<long>("qian.events.outbox.confirmed", description: "broker 已确认的集成事件条数");
     public static readonly Counter<long> Retried = Meter.CreateCounter<long>("qian.events.outbox.retried", description: "发布失败并安排重试的条数");
     public static readonly Counter<long> Failed = Meter.CreateCounter<long>("qian.events.outbox.failed", description: "发布失败并标记为失败的条数");
-    public static readonly Counter<long> ConsumerProcessed = Meter.CreateCounter<long>("qian.events.consumer.processed", description: "handler 成功、已写幂等记录并确认的消息条数");
-    public static readonly Counter<long> ConsumerRetried = Meter.CreateCounter<long>("qian.events.consumer.retried", description: "瞬时失败并转入重试队列退避的条数");
-    public static readonly Counter<long> ConsumerDeadLettered = Meter.CreateCounter<long>("qian.events.consumer.dead_lettered", description: "重试用尽或 handler 确定性失败、已转入死信队列的条数");
-    public static readonly Counter<long> ConsumerDuplicate = Meter.CreateCounter<long>("qian.events.consumer.duplicate", description: "幂等记录命中、未再执行 handler 的条数");
-    public static readonly Counter<long> ConsumerRejected = Meter.CreateCounter<long>("qian.events.consumer.rejected", description: "信封、租户、类型或载荷不满足消费契约、直接拒绝的条数");
-    public static readonly Counter<long> ConsumerForwardFailed = Meter.CreateCounter<long>("qian.events.consumer.forward_failed",
-        description: "重试或死信副本连续转发失败、原消息 nack 不放回交 broker 按队列死信参数处理的条数（竞争队列转入死信队列，广播队列丢弃）");
-    public static readonly Counter<long> ConsumerDuplicateExecuted = Meter.CreateCounter<long>("qian.events.consumer.duplicate_executed",
-        description: "幂等记录已由同一事件的另一次投递先写入、handler 至少执行了两次的条数（并发重复投递）");
 }

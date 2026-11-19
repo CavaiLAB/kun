@@ -1,15 +1,14 @@
 using System.Text;
-using Kun.EventBus;
 using Kun.EventBus.Outbox;
 using RabbitMQ.Client;
 
-namespace Qian.Events;
+namespace Kun.EventBus.RabbitMQ;
 
 /// <summary>
 /// Kun 发布端口的 Qian 实现：消息体就是 Outbox 行里的 v1 信封，路由键为信封 subject，
 /// 等到 broker 确认才返回。行与信封不一致时以 <see cref="EventsErrors.PublishRejected"/> 拒绝，重试也不会变好。
 /// </summary>
-internal sealed class QianEnvelopePublisher(RabbitMqBroker broker) : IIntegrationEventPublisher
+internal sealed class KunEnvelopePublisher(RabbitMqBroker broker) : IIntegrationEventPublisher
 {
     public async ValueTask PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
     {

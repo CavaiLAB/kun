@@ -1,15 +1,15 @@
+using Kun.EventBus.RabbitMQ;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
-using Kun.EventBus;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Data;
 using Kun.Errors;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 /// <summary>
 /// handler 异常的确定性判定（S1-EVT-004）：契约错误一次就进死信，对象生命周期与包着瞬时故障的 InvalidOperationException 按瞬时失败退避重试。
@@ -45,12 +45,12 @@ public sealed class SubscriberFailureClassificationTests
     [Theory]
     [MemberData(nameof(Deterministic))]
     public void 契约错误参数非法载荷不合法与不可重试错误码_判为确定性失败(string because, Exception error) =>
-        Assert.True(QianEventSubscriber.IsDeterministic(error), because);
+        Assert.True(KunEventSubscriber.IsDeterministic(error), because);
 
     [Theory]
     [MemberData(nameof(Transient))]
     public void 对象生命周期与包着瞬时故障的InvalidOperationException_按瞬时失败重试(string because, Exception error) =>
-        Assert.False(QianEventSubscriber.IsDeterministic(error), because);
+        Assert.False(KunEventSubscriber.IsDeterministic(error), because);
 
     [Fact]
     public async Task Npgsql执行策略把连接失败包成InvalidOperationException_按内层判为瞬时失败()
@@ -66,7 +66,7 @@ public sealed class SubscriberFailureClassificationTests
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Database.SqlQueryRaw<int>("SELECT 1 AS \"Value\"").ToListAsync(Ct));
         Assert.Equal(typeof(InvalidOperationException), error.GetType());
         Assert.True(error.InnerException is Npgsql.NpgsqlException { IsTransient: true }, error.InnerException?.ToString());
-        Assert.False(QianEventSubscriber.IsDeterministic(error));
+        Assert.False(KunEventSubscriber.IsDeterministic(error));
     }
 
     public sealed class ProbeContext(DbContextOptions<ProbeContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant);

@@ -1,9 +1,9 @@
+using Kun.EventBus.RabbitMQ;
 using System.Text;
-using Kun.EventBus;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 // 失败路径的信号与上界（S1-EVT-004）：并发重复投递让 handler 执行两次时有日志与计数；重试或死信副本持续转发失败时，handler 不再反复执行。
 public sealed partial class SubscriberTests
@@ -63,7 +63,7 @@ public sealed partial class SubscriberTests
         // 不会再投给消费者。旧实现在这里把原消息放回、handler 立刻再次执行，永远到不了这个状态。
         await Until(async () => metrics.Count("forward_failed") == 2 && await DeadLetterPendingAsync(queue) == (0, 2), "转发持续失败后原消息没有交给 broker 死信");
         Assert.Single(probe.Calls);
-        Assert.Equal(2 * QianEventSubscriber.ForwardAttempts, probe.Logs.Entries.Count(entry => entry.EventId == 28 && entry.Message.Contains(deadLetter, StringComparison.Ordinal)));
+        Assert.Equal(2 * KunEventSubscriber.ForwardAttempts, probe.Logs.Entries.Count(entry => entry.EventId == 28 && entry.Message.Contains(deadLetter, StringComparison.Ordinal)));
         var abandoned = probe.Logs.Entries.Where(entry => entry.EventId == 36).ToArray();
         Assert.Equal(2, abandoned.Length);
         Assert.All(abandoned, entry => Assert.Equal(LogLevel.Error, entry.Level));

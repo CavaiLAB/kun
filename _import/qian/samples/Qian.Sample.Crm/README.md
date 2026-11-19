@@ -98,7 +98,7 @@ T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实
 
 `CrmCommandApplication.Build` 新增两个可选参数 `events` 与 `mediator`。
 
-- Kun 的事件类型表只认第一次 `AddKunEventBus`，中介者只认最后一次 `AddKunMediator`。嵌入 Registry、Lifecycle 等平台组件的宿主，经这两个参数把它们的事件类型与领域事件处理器并进参考宿主的同一次调用，不另行调用。
+- Kun 的事件类型表只认第一次 `AddKunEventBus`：嵌入 Registry、Lifecycle 等平台组件的宿主经 `events` 把它们的事件类型并进参考宿主的同一次调用。`AddKunMediator` 的登记可以叠加，领域事件处理器经 `mediator` 与参考宿主的登记收在一处。
 - 不传时行为与独立宿主相同。
 - `CrmCommandRuntime.Source()` 优先取本租户 scope 的 `crm` 条目；没有时回到全局条目的 scope 视图。由 Lifecycle 装进租户 scope 的版本因此由各租户自己的条目处理。
 

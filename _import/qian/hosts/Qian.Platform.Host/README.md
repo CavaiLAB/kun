@@ -29,7 +29,7 @@ profile 的合成顺序是：platform profile 的组合包（base / shell / mode
 |---|---|
 | `AddComponent` | 登记目录项（module 应用或扩展组件）：组件 ID、清单 `runtime.entry`、实例工厂与宿主 DI 登记（数据上下文用 `AddAppData` / `AddData`）。 |
 | `AddComponentDirectory` / `AddPatch` | 额外的组件根目录与扩展 overlay（例如把 module 应用的条目加进全局 scope）。 |
-| `AddEvents` / `AddMediator` | 并进同一次 `AddKunEventBus` / `AddKunMediator`（Kun 的事件类型表只认第一次、中介者只认最后一次）。module 应用的能力处理器经 `PlatformRuntime.Tenant(id)` 取租户视角的上下文。 |
+| `AddEvents` / `AddMediator` | 并进同一次 `AddKunEventBus` / `AddKunMediator`（Kun 的事件类型表只认第一次；中介者的登记可以叠加，这里收在一处）。module 应用的能力处理器经 `PlatformRuntime.Tenant(id)` 取租户视角的上下文。 |
 | `AddLifecycleHooks` | Lifecycle 的 module 钩子。 |
 | `AddOperations` | 运营接口：`map` 映射到运营端点组，组里的端点只收受众 `qian-operations`；`prefix` 声明这组端点所在的路径范围（与网关路由表里指向运营簇的前缀对应，不以斜杠结尾）。S1-DEP-011 用它挂开通申请的运营接口。 |
 | `MapEndpoints` | 其它端点（走平台受众），不能放在运营前缀下。 |

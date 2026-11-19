@@ -31,7 +31,7 @@ namespace Qian.Platform.Host;
 
 /// <summary>
 /// 平台宿主的组合：先收扩展登记（module 应用、S1-DEP-011 并入的身份分支等），再合成 platform profile、核对目录、登记宿主 DI。
-/// Kun 的事件类型表只认第一次 <c>AddKunEventBus</c>、中介者只认最后一次 <c>AddKunMediator</c>，所以扩展的事件与处理器登记都并进这里的同一次调用。
+/// Kun 的事件类型表只认第一次 <c>AddKunEventBus</c>，所以扩展的事件登记并进这里的同一次调用；<c>AddKunMediator</c> 的登记可以叠加，扩展的处理器登记也收在这里，与宿主自己的放在一处。
 /// </summary>
 public sealed class PlatformHostComposition
 {

@@ -7,6 +7,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import xml.etree.ElementTree as ET
 
 
 SOURCE = Path(__file__).resolve().parents[2] / "scripts/check_plugin_manifests.py"
@@ -84,6 +85,13 @@ class PluginManifestGateTests(unittest.TestCase):
             moved.touch()
             with self.assertRaisesRegex(ValueError, "先以 Release 构建 Kun.slnx"):
                 GATE.check(nested)
+
+    def test_tool_declares_the_aspnetcore_shared_framework_itself(self):
+        # 清单工具装载组件程序集盘点类型，*.AspNetCore 组件要 ASP.NET Core 共享框架。工具在自己的项目文件里声明，
+        # 不靠被引用的包顺带传递：插件开发包拆包后传递就断过，盘点 Qian.Authz.AspNetCore 时加载不到程序集。
+        project = GATE.solution_root(SOURCE.parents[1]) / "tools/Kun.Plugin.Tool/Kun.Plugin.Tool.csproj"
+        references = {item.get("Include") for item in ET.parse(project).getroot().iter("FrameworkReference")}
+        self.assertIn("Microsoft.AspNetCore.App", references, f"{project.name} 没有自己声明 ASP.NET Core 共享框架")
 
     def test_missing_build_never_counts_as_empty_success(self):
         (self.root / "packages/Qian.New/bin/Release/net10.0/Qian.New.dll").unlink()

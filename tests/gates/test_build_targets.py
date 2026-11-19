@@ -34,7 +34,7 @@ NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI"
 PROPERTIES = ("IsPackable", "KunTier", "KunHost", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
               "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
 ITEMS = ("PackageReference", "ProjectReference", "AdditionalFiles")
-HOSTS = {"Qian.Platform.Host", "Qian.Gateway.Host"}
+HOSTS = {"Qian.Platform.Host", "Qian.Gateway.Host", "Kun.Gateway.Standalone"}
 # ILC 按冒烟宿主的这些属性与 IlcArg 项决定报哪些警告、警告算不算错误（ILCompiler 包的 Microsoft.NETCore.Native.targets）。
 SMOKE_PROPERTIES = ("PublishAot", "NoWarn", "WarningsNotAsErrors", "SuppressTrimAnalysisWarnings", "SuppressAotAnalysisWarnings",
                     "TreatWarningsAsErrors", "IlcTreatWarningsAsErrors", "TrimmerSingleWarn",
@@ -319,8 +319,10 @@ class AnalyzerScopeTests(unittest.TestCase):
         self.assertTrue(any(is_true(props, "IsPackable") and props.get("KunTier") == "kernel" for props in transitional.values()),
                         "_import/qian/ 下已没有内核档的包：按归属重定作用域，再改这里")
         self.assertEqual(set(), {p.stem for p, props in transitional.items() if not is_true(props, "_KunPlatformAnalyzers")})
-        self.assertEqual(set(), {p.stem for p, (props, _) in projects.items()
-                                 if TRANSITIONAL not in p.parents and is_true(props, "_KunPlatformAnalyzers")})
+        # 仓库根上只有宿主接入：被禁的类型就定义在 src/ 下。
+        self.assertEqual({p.stem for p, (props, _) in projects.items() if TRANSITIONAL not in p.parents and is_true(props, "KunHost")},
+                         {p.stem for p, (props, _) in projects.items()
+                          if TRANSITIONAL not in p.parents and is_true(props, "_KunPlatformAnalyzers")})
 
     def test_banned_symbols_list_lives_at_the_root(self):
         self.assertTrue((ROOT / "BannedSymbols.txt").is_file())

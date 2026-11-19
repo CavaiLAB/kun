@@ -21,44 +21,4 @@
     <QianIsPackage Condition="'$(QianIsPackage)' == ''">false</QianIsPackage>
   </PropertyGroup>
 
-  <!--
-    Kun.Gateway 只当库引用（S1-KUN-020）。
-    Kun.Gateway 既是 NuGet 库，也是独立宿主（Web SDK、OutputType=Exe）。原 Qian 改为项目引用 Kun 源码之后，SDK 会把它作为
-    宿主的文件交给引用方：appsettings.json、启动器（apphost）、Kun.Gateway.deps.json、Kun.Gateway.runtimeconfig.json、
-    Kun.Gateway.staticwebassets.endpoints.json，经直接或传递的项目引用复制进引用方的输出目录与发布目录。引用方自己没有
-    appsettings.json 时，输出目录里就是 Kun.Gateway 的那份，从输出目录读配置的测试宿主、开发宿主会读到它。
-    按包引用时这些文件都不会进来：包里的 appsettings.json 是 copyToOutput=false 的 contentFiles，其余几个包里没有。
-
-    引用方要的只是程序集，程序集和它的 pdb、xml 走引用复制，不经下面这几份复制清单。所以凡来源在 Kun.Gateway 项目目录
-    （含 bin/、obj/）下的复制项，这里一律去掉；本项目自己的复制在其后执行，读的是去掉以后的清单。
-    MSBuild 在目标执行完时就定下了它的返回清单，AfterTargets 改不了交给上层引用方的那份，所以每个引用方各自过滤。
-    原 Qian 里直接或传递引用 Kun.Gateway 的项目都在 _import/qian 下，都导入本文件；这些项目迁出 _import/qian 时，这段要跟着走。
-    tests/Qian.Gateway.Tests 核对输出目录，仓库根 ci.yml 的生产网关作业（gateway-host-aot）核对发布目录。
-  -->
-  <PropertyGroup Label="Kun.Gateway as library">
-    <QianKunGatewayDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', 'src', 'Kun.Gateway'))</QianKunGatewayDirectory>
-  </PropertyGroup>
-
-  <Target Name="QianDropKunGatewayHostFilesFromOutput" AfterTargets="GetCopyToOutputDirectoryItems">
-    <ItemGroup>
-      <_SourceItemsToCopyToOutputDirectoryAlways Remove="@(_SourceItemsToCopyToOutputDirectoryAlways)"
-                                                 Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.FullPath)').StartsWith('$(QianKunGatewayDirectory)'))" />
-      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)"
-                                           Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.FullPath)').StartsWith('$(QianKunGatewayDirectory)'))" />
-      <_SourceItemsToCopyToOutputDirectoryIfDifferent Remove="@(_SourceItemsToCopyToOutputDirectoryIfDifferent)"
-                                                      Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryIfDifferent.FullPath)').StartsWith('$(QianKunGatewayDirectory)'))" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="QianDropKunGatewayHostFilesFromPublish" AfterTargets="GetCopyToPublishDirectoryItems">
-    <ItemGroup>
-      <_SourceItemsToCopyToPublishDirectoryAlways Remove="@(_SourceItemsToCopyToPublishDirectoryAlways)"
-                                                  Condition="$([System.String]::Copy('%(_SourceItemsToCopyToPublishDirectoryAlways.FullPath)').StartsWith('$(QianKunGatewayDirectory)'))" />
-      <_SourceItemsToCopyToPublishDirectory Remove="@(_SourceItemsToCopyToPublishDirectory)"
-                                            Condition="$([System.String]::Copy('%(_SourceItemsToCopyToPublishDirectory.FullPath)').StartsWith('$(QianKunGatewayDirectory)'))" />
-      <_SourceItemsToCopyToPublishDirectoryIfDifferent Remove="@(_SourceItemsToCopyToPublishDirectoryIfDifferent)"
-                                                       Condition="$([System.String]::Copy('%(_SourceItemsToCopyToPublishDirectoryIfDifferent.FullPath)').StartsWith('$(QianKunGatewayDirectory)'))" />
-    </ItemGroup>
-  </Target>
-
 </Project>

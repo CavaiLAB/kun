@@ -1,3 +1,5 @@
+extern alias standalone;
+
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -9,7 +11,6 @@ using System.Text.Json.Nodes;
 using System.Threading.RateLimiting;
 using FluentAssertions;
 using Json.Schema;
-using Kun.Gateway;
 using Kun.Gateway.RateLimiting.Resolvers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -194,7 +195,7 @@ public sealed class GatewayBoundaryTests
         private readonly string _directory = Path.Combine(Path.GetTempPath(), "kun-gateway-boundary-" + Guid.NewGuid().ToString("N"));
         private readonly RSA _externalKey = RSA.Create(2048);
         private WebApplication _backend = null!;
-        private WebApplicationFactory<S2sTokenIssuer> _factory = null!;
+        private WebApplicationFactory<standalone::Program> _factory = null!;
         private int _backendCalls;
         internal Clock Clock { get; } = new();
         internal void Rotate(string pem)
@@ -240,7 +241,7 @@ public sealed class GatewayBoundaryTests
             values["ReverseProxy:Routes:ip:AuthorizationPolicy"] = "Anonymous";
             values["ReverseProxy:Routes:ip:RateLimiterPolicy"] = "probe-ip";
             values["ReverseProxy:Routes:limited:RateLimiterPolicy"] = "probe-low";
-            fixture._factory = new WebApplicationFactory<S2sTokenIssuer>().WithWebHostBuilder(web =>
+            fixture._factory = new WebApplicationFactory<standalone::Program>().WithWebHostBuilder(web =>
             {
                 web.UseEnvironment(Environments.Production).ConfigureLogging(logging => logging.ClearProviders());
                 web.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(values));

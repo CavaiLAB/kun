@@ -8,6 +8,9 @@
     <Project Path="benchmarks/Kun.Benchmarks.Grpc/Kun.Benchmarks.Grpc.csproj" />
     <Project Path="benchmarks/Kun.Benchmarks/Kun.Benchmarks.csproj" />
   </Folder>
+  <Folder Name="/hosts/">
+    <Project Path="hosts/Kun.Gateway.Standalone/Kun.Gateway.Standalone.csproj" />
+  </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/Kun.Sample.AppHost/Kun.Sample.AppHost.csproj" />
     <Project Path="samples/Kun.Sample.Catalog/Kun.Sample.Catalog.csproj" />

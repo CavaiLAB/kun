@@ -65,8 +65,6 @@ Kun.Gateway.Identity.NoOpS2sPrincipalResolver
 Kun.Gateway.Identity.NoOpS2sPrincipalResolver.NoOpS2sPrincipalResolver() -> void
 Kun.Gateway.Identity.NoOpS2sPrincipalResolver.ResolveAsync(System.Security.Claims.ClaimsPrincipal! externalPrincipal, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Security.Claims.ClaimsPrincipal!>!
 static Kun.Gateway.Identity.NoOpS2sPrincipalResolver.Instance.get -> Kun.Gateway.Identity.NoOpS2sPrincipalResolver!
-Program
-Program.Program() -> void
 static Kun.Gateway.DependencyInjection.KunGatewayServiceCollectionExtensions.AddKunGateway(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.Gateway.Configuration.KunGatewayOptions!>! configure, Microsoft.Extensions.Configuration.IConfiguration? reverseProxyConfig = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Kun.Gateway.RateLimiting.KunRateLimiterExtensions.AddKunRateLimiter(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 const Kun.Gateway.RateLimiting.KunRateLimiterExtensions.SlidingWindowPolicyName = "kun-sliding-window" -> string!

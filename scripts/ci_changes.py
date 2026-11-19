@@ -71,8 +71,8 @@ AREAS: Dict[str, Area] = {
         "构建、门禁、测试与原生发布",
         (
             q("**", "!pm/**", "!docs/**", "!*.md", "docs/generated/**", "docs/ops/configuration-runbook.md"),
-            # 仓库根的 .NET 代码、测试、样例、基准与脚本；Markdown 不算，打进网关包的 GATEWAY.md 除外。
-            ("src/**", "tests/**", "samples/**", "benchmarks/**", "tools/**", "scripts/**", "!**/*.md",
+            # 仓库根的 .NET 代码、宿主、测试、样例、基准与脚本；Markdown 不算，打进网关包的 GATEWAY.md 除外。
+            ("src/**", "hosts/**", "tests/**", "samples/**", "benchmarks/**", "tools/**", "scripts/**", "!**/*.md",
              "src/Kun.Gateway/GATEWAY.md", ".gitattributes"),
             DOTNET_BASE,
         ),

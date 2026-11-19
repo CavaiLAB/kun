@@ -117,6 +117,10 @@ jobs:
         run: |
           dotnet pack src/Kun.Gateway -c Release --no-build --no-restore -o artifacts/gateway-package
           test -f artifacts/gateway-package/Kun.Gateway.*.nupkg
+          # Kun.Gateway 是类库：包里不能带宿主的配置与运行时配置（独立宿主在 hosts/Kun.Gateway.Standalone）。
+          if unzip -Z1 artifacts/gateway-package/Kun.Gateway.*.nupkg | grep -E '(^|/)(appsettings[^/]*\.json|[^/]*\.runtimeconfig\.json)$'; then
+            echo "Kun.Gateway 的包里有宿主文件（见上）" >&2; exit 1
+          fi
 
       - name: 打包核对（全部可打包项目按占位版本打包，核对名单与产物；不推送）
         env:
@@ -395,7 +399,8 @@ jobs:
         run: '"$RUNNER_TEMP/aot-smoke/Kun.AotSmoke"'
 
   # 跑 Kun.Integration.AotTests：原生发布 samples/Kun.Sample.Minimal 并执行产物；同时普通打包 Kun.Gateway，
-  # 再发布独立 NuGet 消费者并请求原生 JWKS 端点。见 tests/Kun.Integration.AotTests/AGENTS.md。
+  # 再发布独立 NuGet 消费者并请求原生 JWKS 端点；原生发布网关的独立宿主 hosts/Kun.Gateway.Standalone 并请求它的端点。
+  # 见 tests/Kun.Integration.AotTests/AGENTS.md。
   sample-aot:
     name: 样例 NativeAOT 集成
     needs: changes
@@ -516,7 +521,8 @@ jobs:
         run: dotnet publish hosts/Qian.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/gateway-host"
       - name: 核验实际原生产物
         run: test -x "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host" && test ! -e "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host.dll"
-      # Kun.Gateway 是项目引用（S1-KUN-020），它作为宿主的文件不进发布目录，appsettings.json 是本宿主自己的那份。
+      # Kun.Gateway 是项目引用（S1-KUN-020）的类库：发布目录里没有它作为宿主的文件，appsettings.json 是本宿主自己的那份。
+      # 下面这步留作回归检查，防它退回可执行项目。
       - name: 核验发布目录里没有 Kun.Gateway 的宿主文件
         run: |
           for name in Kun.Gateway Kun.Gateway.deps.json Kun.Gateway.runtimeconfig.json Kun.Gateway.staticwebassets.endpoints.json; do

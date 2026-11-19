@@ -9,7 +9,6 @@ using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Kun.Data;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;

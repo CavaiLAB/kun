@@ -6,7 +6,6 @@ using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 using Kun.Errors;
 using Kun.Runtime;
 using Qian.Surfaces;

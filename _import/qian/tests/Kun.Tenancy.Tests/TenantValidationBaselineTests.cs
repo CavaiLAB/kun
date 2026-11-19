@@ -1,7 +1,6 @@
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 using Kun.Errors;
 
 namespace Kun.Tenancy.Tests;

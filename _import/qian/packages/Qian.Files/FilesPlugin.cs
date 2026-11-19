@@ -4,7 +4,6 @@ using Kun.EventBus;
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Kun.Data;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;

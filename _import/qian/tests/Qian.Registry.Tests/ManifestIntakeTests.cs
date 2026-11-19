@@ -3,7 +3,6 @@ using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Registry.Tests;

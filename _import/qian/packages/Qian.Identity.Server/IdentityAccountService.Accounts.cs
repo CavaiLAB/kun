@@ -1,7 +1,6 @@
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Kun.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Kun.Errors;

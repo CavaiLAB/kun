@@ -8,7 +8,6 @@ using Json.Schema;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;

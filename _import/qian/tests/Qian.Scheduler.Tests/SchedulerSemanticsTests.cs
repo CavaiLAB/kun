@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
-using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;

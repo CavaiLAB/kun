@@ -2,7 +2,6 @@ using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Kun.Data;
 
 namespace Qian.Lifecycle;
 

@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Conventions;
 using Kun.EntityFrameworkCore.Interceptors;
 using Kun.EntityFrameworkCore.MultiTenancy;

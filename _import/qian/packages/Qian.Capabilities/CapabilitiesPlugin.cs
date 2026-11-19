@@ -7,7 +7,6 @@ using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Kun.Data;
 using Kun.Tenancy;
 using Kun.Runtime;
 using Kun.Errors;

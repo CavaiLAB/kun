@@ -5,7 +5,6 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Kun.Data;
 using Qian.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

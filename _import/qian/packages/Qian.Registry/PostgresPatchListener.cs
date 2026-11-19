@@ -3,7 +3,6 @@ using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Kun.Data;
 
 namespace Qian.Registry;
 

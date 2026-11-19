@@ -1,4 +1,3 @@
-using Kun.EntityFrameworkCore;
 using Kun.EventBus.Outbox;
 using Kun.Runtime;
 

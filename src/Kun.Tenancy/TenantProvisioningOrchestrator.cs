@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Kun.Runtime;

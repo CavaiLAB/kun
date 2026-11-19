@@ -5,7 +5,6 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
-using Kun.Data;
 
 namespace Qian.Events;
 

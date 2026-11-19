@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Authz;
-using Kun.Data;
 using Qian.Identity.Client;
 using Qian.Identity.Client.Tests;
 using Qian.Testing;

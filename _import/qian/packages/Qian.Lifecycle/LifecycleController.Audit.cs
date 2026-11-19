@@ -8,7 +8,6 @@ using System.Text.Json.Nodes;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Qian.Audit;
-using Kun.Data;
 using Qian.Events;
 using Kun.Runtime;
 using Kun.Errors;

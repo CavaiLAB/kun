@@ -12,7 +12,6 @@ using Npgsql;
 using System.Text;
 using Kun.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;

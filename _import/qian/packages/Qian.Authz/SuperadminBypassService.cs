@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Kun.Data;
 using Kun.Runtime;
 
 namespace Qian.Authz;

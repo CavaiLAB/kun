@@ -4,7 +4,6 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Audit;

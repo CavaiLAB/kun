@@ -8,7 +8,6 @@ using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Kun.Data;
 using Qian.Events;
 using Qian.Testing.Containers;
 using RabbitMQ.Client;

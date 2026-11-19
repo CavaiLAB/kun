@@ -16,7 +16,6 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
-using Kun.Data;
 using Qian.Events;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;

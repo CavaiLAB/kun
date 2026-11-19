@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Authz.Abstractions;
-using Kun.Data;
 using Qian.Gateway;
 using Qian.Identity.Client;
 using Qian.Registry;

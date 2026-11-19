@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
-using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Kun.Mediator;

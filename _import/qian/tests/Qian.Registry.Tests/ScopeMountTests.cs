@@ -7,7 +7,6 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Kun.Data;
 using Qian.Events;
 using Kun.Runtime;
 using Kun.Errors;

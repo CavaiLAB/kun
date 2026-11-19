@@ -7,7 +7,6 @@ using OpenIddict.Server;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
-using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

@@ -4,7 +4,6 @@ using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 
 namespace Qian.Authz.Tests;
 

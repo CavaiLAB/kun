@@ -1,4 +1,3 @@
-using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;

@@ -21,6 +21,7 @@
       "tests/Kun.Lifecycle.Tests/Kun.Lifecycle.Tests.csproj",
       "tests/Kun.Profiles.Tests/Kun.Profiles.Tests.csproj",
       "tests/Kun.Registry.Tests/Kun.Registry.Tests.csproj",
+      "tests/Kun.Sample.Crm.Tests/Kun.Sample.Crm.Tests.csproj",
       "tests/Kun.Scheduler.Tests/Kun.Scheduler.Tests.csproj",
       "tests/Kun.Surfaces.Tests/Kun.Surfaces.Tests.csproj",
       "tests/Kun.Tenancy.Tests/Kun.Tenancy.Tests.csproj",

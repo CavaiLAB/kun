@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Kun.Profiles/Kun.Profiles.csproj" />
     <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />

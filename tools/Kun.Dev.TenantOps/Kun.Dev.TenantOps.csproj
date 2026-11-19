@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <!-- 本机租户运营手测宿主（S1-QA-012）：只供开发机手测，不打包、不进任何 profile。 -->
-  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
   <!-- 外壳认证联调环境（S1-YUE-002）复用这里的开发库、平台插件树与运营前置，不另起一套装配。 -->
   <ItemGroup><InternalsVisibleTo Include="Kun.Dev.Shell" /></ItemGroup>
   <ItemGroup>

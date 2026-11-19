@@ -313,7 +313,7 @@ internal sealed partial class LifecycleController
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception error)
         {
-            reason = error is ErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code;
+            reason = error is ErrorException coded ? coded.Error.Code.Code : PlatformErrors.Internal.Code;
             LifecycleLog.HookFailed(context.Logger, error, hook, pluginId, toVersion);
         }
         await Locked(["install", tenantId, pluginId], async session =>

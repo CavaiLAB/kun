@@ -5,6 +5,7 @@ using Kun.Core.Security;
 using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Kun.Mediator.Behaviors;
 
@@ -41,7 +42,7 @@ public static class PermissionBehaviorExtensions
         // factory: optional ports and the per-command denied delegate are not DI services.
         builder.Services.RemoveAll<PermissionBehavior<TRequest, TResponse>>();
         builder.Services.AddTransient(sp => new PermissionBehavior<TRequest, TResponse>(
-            checker(sp), currentUser(sp), sp.GetService<ITenantContext>(), denied));
+            checker(sp), currentUser(sp), sp.GetService<ITenantContext>(), denied, sp.GetService<ILogger<PermissionBehavior<TRequest, TResponse>>>()));
         return builder;
     }
 }
@@ -56,8 +57,8 @@ public sealed class PermissionBehaviorOptions
     public Func<IServiceProvider, ICurrentUser?> CurrentUser { get; set; } = static sp => sp.GetService<ICurrentUser>();
 }
 
-internal sealed class PermissionBehavior<TRequest, TResponse>(IPermissionChecker? checker,
-    ICurrentUser? user, ITenantContext? tenant, Func<Error, TResponse> denied) : IPipelineBehavior<TRequest, TResponse>
+internal sealed partial class PermissionBehavior<TRequest, TResponse>(IPermissionChecker? checker,
+    ICurrentUser? user, ITenantContext? tenant, Func<Error, TResponse> denied, ILogger? logger = null) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>, IPermissionProtectedRequest
 {
     public async ValueTask<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -65,7 +66,12 @@ internal sealed class PermissionBehavior<TRequest, TResponse>(IPermissionChecker
         if (user?.IsAuthenticated != true || string.IsNullOrWhiteSpace(user.UserId))
             return denied(new Error(PlatformErrors.Unauthenticated));
         if (checker is null || TRequest.RequiredPermissions.Count == 0)
+        {
+            // 装配不全与正常的无权给同一个拒绝；记一条警告，排查时分得出来。
+            if (logger is not null)
+                LogIncompleteSetup(logger, typeof(TRequest).FullName ?? typeof(TRequest).Name, checker is null ? "no permission checker" : "no required permissions");
             return denied(new Error(PlatformErrors.AuthzDenied));
+        }
         var kind = user.PrincipalKind;
         if (kind is not ("user" or "service" or "agent"))
             return denied(new Error(PlatformErrors.AuthzDenied));
@@ -78,4 +84,7 @@ internal sealed class PermissionBehavior<TRequest, TResponse>(IPermissionChecker
         }
         return await next().ConfigureAwait(false);
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Kun.Mediator denied {RequestName}: permission behavior is incomplete ({Missing})")]
+    private static partial void LogIncompleteSetup(ILogger logger, string requestName, string missing);
 }

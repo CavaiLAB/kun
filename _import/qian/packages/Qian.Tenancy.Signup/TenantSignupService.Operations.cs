@@ -170,7 +170,7 @@ internal sealed partial class TenantSignupService
         catch (Exception error)
         {
             // 只记稳定原因码，不记异常消息：Qian 错误码、编排步骤的原因码，其余一律 step_failed（与开通编排的步骤表同口径）。
-            failure = error switch { ErrorException qian => qian.Error.Code.Code, StepIncompleteException step => step.Reason, _ => "step_failed" };
+            failure = error switch { ErrorException coded => coded.Error.Code.Code, StepIncompleteException step => step.Reason, _ => "step_failed" };
             cause = error;
             // 编排在第 01 步之后失败时没有返回租户：按租户号找回它建的那个租户（CONFLICT 表示同号租户不是这份输入建的，不认领）。
             if (tenantId is null && failure != PlatformErrors.Conflict.Code)

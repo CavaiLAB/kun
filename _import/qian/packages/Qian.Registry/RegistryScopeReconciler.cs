@@ -250,7 +250,7 @@ internal sealed partial class RegistryScopeReconciler(
         // 自带原因码的失败（如能力契约在登记阶段被拒绝，Data["reasonCode"] 为 INPUT_INVALID）沿用其错误码，其余按 INTERNAL。
         var reason = failure switch
         {
-            ErrorException qian => qian.Error.Code.Code,
+            ErrorException coded => coded.Error.Code.Code,
             { } other when other.Data["reasonCode"] is string code && code.Length <= 64 && ReasonCodePattern().IsMatch(code) => code,
             _ => PlatformErrors.Internal.Code
         };
@@ -265,7 +265,7 @@ internal sealed partial class RegistryScopeReconciler(
         state.Failures.Clear();
         state.Failures.Add(error is RegistryScopeApplyException apply
             ? new RegistryScopeDiagnostic(name, apply.EntryId, apply.Plugin, apply.Revision, apply.ReasonCode, DateTimeOffset.UtcNow)
-            : new RegistryScopeDiagnostic(name, null, null, null, error is ErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code, DateTimeOffset.UtcNow));
+            : new RegistryScopeDiagnostic(name, null, null, null, error is ErrorException coded ? coded.Error.Code.Code : PlatformErrors.Internal.Code, DateTimeOffset.UtcNow));
     }
 
     private PluginDefinition Resolve(ResolvedProfileEntry entry, ScopeKey scope)

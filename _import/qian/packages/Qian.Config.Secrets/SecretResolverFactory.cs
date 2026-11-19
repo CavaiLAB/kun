@@ -94,7 +94,7 @@ public sealed class SecretResolverFactory : ISecretResolverFactory
             result?.Dispose();
             var failure = error switch
             {
-                ErrorException qian => qian,
+                ErrorException coded => coded,
                 ObjectDisposedException or ServiceNotReadyException => Error(SecretErrors.AccessDenied),
                 _ => Error(SecretErrors.Unavailable)
             };

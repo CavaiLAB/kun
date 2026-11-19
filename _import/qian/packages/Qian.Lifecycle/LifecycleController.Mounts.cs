@@ -102,7 +102,7 @@ internal sealed partial class LifecycleController
                 return new RegistryScopeDiagnostic(Name(scope), error.Data["entryId"] as string, error.Data["plugin"] as string, error.Data["revision"] as int?, code, Now());
             var recorded = await registry.GetScopeDiagnosticsAsync(scope, ct).ConfigureAwait(false);
             return recorded.Count > 0 ? recorded[0] : new RegistryScopeDiagnostic(Name(scope), null, null, null,
-                error is ErrorException qian ? qian.Error.Code.Code : PlatformErrors.Internal.Code, Now());
+                error is ErrorException coded ? coded.Error.Code.Code : PlatformErrors.Internal.Code, Now());
         }
     }
 

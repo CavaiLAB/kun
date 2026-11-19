@@ -17,6 +17,7 @@ public static class KunMediatorServiceCollectionExtensions
     /// <see cref="KunMediatorBuilder"/> and registers <see cref="KunMediator"/>, <see cref="ISender"/> and
     /// <see cref="IPublisher"/>; later calls configure the same builder, so registrations from several
     /// modules stack into one mediator. Registering a second handler for a request that already has one throws.
+    /// A collection whose descriptors were copied from another one gets its own builder.
     /// </remarks>
     /// <param name="services">The service collection.</param>
     /// <param name="configure">
@@ -31,8 +32,10 @@ public static class KunMediatorServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);
 
+        // The marker may have been copied into another service collection with the rest of the descriptors;
+        // only reuse a builder that belongs to this collection.
         var builder = services.LastOrDefault(d => d.ServiceType == typeof(MediatorRegistration) && !d.IsKeyedService)?.ImplementationInstance
-            is MediatorRegistration existing ? existing.Builder : null;
+            is MediatorRegistration existing && ReferenceEquals(existing.Builder.Services, services) ? existing.Builder : null;
         if (builder is null)
         {
             builder = new KunMediatorBuilder(services);

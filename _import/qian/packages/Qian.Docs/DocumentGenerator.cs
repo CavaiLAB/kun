@@ -25,7 +25,7 @@ public sealed class DocumentGenerator(IProfileLoader profiles) : IDocumentGenera
             var root = Path.GetFullPath(options.Profile.WorkingDirectory);
             var result = profiles.Load(options.Profile);
             diagnostics.Items.AddRange(result.Diagnostics);
-            events = new EventAnalyzer(root, diagnostics).Analyze(options.SourceDirectories);
+            events = new EventAnalyzer(SourceRoot(root, options.SourceRoot), diagnostics).Analyze(options.SourceDirectories);
             documents["event-graph.md"] = EventGraph(options.Profile.Profile, events, diagnostics);
             if (result.IsValid)
             {
@@ -39,6 +39,15 @@ public sealed class DocumentGenerator(IProfileLoader profiles) : IDocumentGenera
             diagnostics.Add("docs/generated", 1, DocumentErrors.Source, "装配、源码或配置 Schema 无法安全读取，未生成可发布文档。");
         }
         return new DocumentResult(documents, events, diagnostics.Items);
+    }
+    // 源码根缺省为工作区；给了的话只能是工作区本身或它的上级目录，源码目录的边界不能挪到与工作区无关的目录去。
+    private static string SourceRoot(string root, string? sourceRoot)
+    {
+        if (sourceRoot is null) return root;
+        var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(sourceRoot, root));
+        if (File.GetAttributes(full).HasFlag(FileAttributes.ReparsePoint)) throw new IOException("源码根不能为符号链接。");
+        Paths.Within(full, root, allowRoot: true);
+        return full;
     }
     private static string Header(string title, string profile) => $"# {title}\n\n由 `qian docs generate` 派生；profile：{Code(profile)}。请修改输入后重新生成。\n\n";
     private static string ConfigCatalog(string root, ProfileSnapshot snapshot)

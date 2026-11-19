@@ -60,6 +60,8 @@ Qian.Docs.Abstractions.DocumentOptions.Profile.init -> void
 Qian.Docs.Abstractions.DocumentOptions.Profile.get -> Qian.Profiles.Abstractions.ProfileLoadOptions!
 Qian.Docs.Abstractions.DocumentOptions.SourceDirectories.get -> System.Collections.Generic.IReadOnlyList<string!>!
 Qian.Docs.Abstractions.DocumentOptions.SourceDirectories.init -> void
+Qian.Docs.Abstractions.DocumentOptions.SourceRoot.get -> string?
+Qian.Docs.Abstractions.DocumentOptions.SourceRoot.init -> void
 Qian.Docs.Abstractions.DocumentResult.DocumentResult(System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Documents, System.Collections.Generic.IReadOnlyList<Qian.Docs.Abstractions.EventMap!>! Events, System.Collections.Generic.IReadOnlyList<Qian.Surfaces.Abstractions.SurfaceDiagnostic!>! Diagnostics) -> void
 Qian.Docs.Abstractions.DocumentResult.Documents.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
 Qian.Docs.Abstractions.DocumentResult.Events.get -> System.Collections.Generic.IReadOnlyList<Qian.Docs.Abstractions.EventMap!>!

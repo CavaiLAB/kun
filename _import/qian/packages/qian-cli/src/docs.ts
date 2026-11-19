@@ -6,7 +6,8 @@ import {randomBytes} from 'node:crypto';
 import type {SurfaceDiagnostic} from '@qian/surfaces';
 import type {ProfileOptions} from './profiles.js';
 
-export interface DocumentationOptions extends ProfileOptions {outputDirectory?:string;sourceDirectories?:string[]}
+/** sourceDirectories 相对 sourceRoot；sourceRoot 相对工作区，缺省为工作区，只能是工作区本身或它的上级目录。 */
+export interface DocumentationOptions extends ProfileOptions {outputDirectory?:string;sourceDirectories?:string[];sourceRoot?:string}
 export interface DocumentationResult {files:string[];events:unknown[];diagnostics:SurfaceDiagnostic[];isValid:boolean}
 function failure(message:string):DocumentationResult{
  const pointer='docs/generated#',general='输入不符合该能力的输入 Schema，逐项错误见 errors。';
@@ -26,7 +27,7 @@ export function generateDocumentation(options:DocumentationOptions):Documentatio
   const toolRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..','tools/Qian.Docs.Tool');
   const build=spawnSync('dotnet',['build',toolRoot,'-c','Release','--nologo','--verbosity','quiet'],{encoding:'utf8',timeout:120000,maxBuffer:8*1024*1024});
   if(build.error||build.status!==0)return failure('随 CLI 的文档工具构建失败；请检查 .NET SDK 与仓库包还原。');
-  const input={workingDirectory:root,profile:options.profile??'platform',patches:options.patches??[],homeDirectory:options.homeDirectory??null,includeHomePatch:options.includeHomePatch??false,sourceDirectories:options.sourceDirectories??['packages','plugins','src']};
+  const input={workingDirectory:root,profile:options.profile??'platform',patches:options.patches??[],homeDirectory:options.homeDirectory??null,includeHomePatch:options.includeHomePatch??false,sourceDirectories:options.sourceDirectories??['packages','plugins','src'],sourceRoot:options.sourceRoot??null};
   const run=spawnSync('dotnet',[path.join(toolRoot,'bin/Release/net10.0/Qian.Docs.Tool.dll')],{input:JSON.stringify(input),encoding:'utf8',timeout:120000,maxBuffer:16*1024*1024});
   if(run.error||!run.stdout)return failure('文档工具未返回完整结果。');
   const result=JSON.parse(run.stdout) as {documents:Record<string,string>;events:unknown[];diagnostics:SurfaceDiagnostic[];isValid:boolean};

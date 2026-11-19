@@ -70,7 +70,7 @@ public sealed class IntegrationEventOutboxAccumulator : IIntegrationEventBus, IO
             id: Guid.NewGuid(),
             eventTypeId: eventTypeId,
             payload: payload,
-            tenantId: _tenantContext.TenantId,
+            tenantId: _tenantContext.TenantId?.ToString("D"),
             traceParent: activity?.Id,
             traceState: activity?.TraceStateString,
             occurredAt: DateTimeOffset.UtcNow);

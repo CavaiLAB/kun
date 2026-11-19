@@ -17,10 +17,8 @@ public sealed class TenantsConnectionOptions
     public const string SectionName = "Kun:MultiTenancy:Tenants";
 
     /// <summary>
-    /// Map of tenant ID to full ADO.NET connection string. Keys are matched by the
-    /// <see cref="StringComparer.Ordinal"/> comparer; consumers should use consistent
-    /// casing for tenant IDs across the system.
+    /// Maps tenant IDs to ADO.NET connection strings.
     /// </summary>
-    public IDictionary<string, string> ConnectionStrings { get; set; } =
-        new Dictionary<string, string>(StringComparer.Ordinal);
+    public IDictionary<Guid, string> ConnectionStrings { get; set; } =
+        new Dictionary<Guid, string>();
 }

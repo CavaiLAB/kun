@@ -282,13 +282,13 @@ public sealed class DataContractTests
     public void RecordPayload_EnsureConsistentContext_RequiresCurrentTenantAndEventScopeActor()
     {
         var payload = RecordChangedEvent.FromEnvelope(KunEventEnvelope.Parse(Fixture("record-changed-envelope.json"))).Payload;
-        var tenant = new FixedTenant(payload.TenantId.ToString("D"));
+        var tenant = new FixedTenant(payload.TenantId);
         Assert.Throws<InvalidOperationException>(() => payload.EnsureConsistentContext(tenant));
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.dynamic-data", EventActor.User("test-user"))))
         {
             payload.EnsureConsistentContext(tenant);
             Assert.Throws<InvalidOperationException>(() => payload.EnsureConsistentContext(new FixedTenant(null)));
-            Assert.Throws<InvalidOperationException>(() => payload.EnsureConsistentContext(new FixedTenant("01900000-0000-7000-8000-000000000009")));
+            Assert.Throws<InvalidOperationException>(() => payload.EnsureConsistentContext(new FixedTenant(new Guid("01900000-0000-7000-8000-000000000009"))));
             Assert.Throws<InvalidOperationException>(() => (payload with { Actor = new("user", "test-user", "someone-else") }).EnsureConsistentContext(tenant));
         }
         using (EventEnvelopeScope.Begin(new EventOrigin("qian.dynamic-data", EventActor.Agent("test-user"))))
@@ -368,9 +368,9 @@ public sealed class DataContractTests
         public ValueTask AfterAsync(RecordChangedEvent change, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
     }
 
-    private sealed class FixedTenant(string? tenantId) : ITenantContext
+    private sealed class FixedTenant(Guid? tenantId) : ITenantContext
     {
-        public string? TenantId => tenantId;
+        public Guid? TenantId => tenantId;
         public bool IsMultiTenant => true;
     }
 

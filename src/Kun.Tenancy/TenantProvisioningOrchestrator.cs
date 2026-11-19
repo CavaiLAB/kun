@@ -44,7 +44,7 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
                 return existing.Id;
             }
             var row = new TenantRow { Code = request.Code, Name = request.Name, Quotas = TenantQuotaRules.Serialize(request.Quotas), ProvisionInput = input, CreatedBy = actor };
-            using var tenantScope = _tenant.BeginScope(row.Id.ToString());
+            using var tenantScope = _tenant.BeginScope(row.Id);
             await using var session = await context.Data().OpenAsync<TenancyDbContext>(cancellationToken).ConfigureAwait(false);
             await using var transaction = await session.Context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
             using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.tenancy", EventEnvelopeScope.Current?.Actor ?? EventActor.Service(actor)));
@@ -63,7 +63,7 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
         Check(); ValidateActor(actor);
         return await Locked("tenant:" + id, async () =>
         {
-            using var tenantScope = _tenant.BeginScope(id.ToString());
+            using var tenantScope = _tenant.BeginScope(id);
             var scope = context.Scoped(new ScopeKey("tenant", id.ToString()));
             TenantRow row;
             await using (var session = await context.Data().OpenAsync<TenancyDbContext>(cancellationToken).ConfigureAwait(false))
@@ -74,7 +74,7 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
             {
                 // Shared 的 Kun 开户器是官方 no-op；RLS 由迁移建立，在线开户只校验，不使用 DDL 角色。
                 var provisioner = context.Services.GetService<ITenantProvisioner>() ?? NullTenantProvisioner.Instance;
-                await provisioner.ProvisionAsync(new TenantInfo(id.ToString(), row.Name), cancellationToken).ConfigureAwait(false);
+                await provisioner.ProvisionAsync(new TenantInfo(id, row.Name), cancellationToken).ConfigureAwait(false);
                 await using var session = await context.Data().OpenAsync<TenancyDbContext>(cancellationToken).ConfigureAwait(false);
                 var current = await session.Context.Database.SqlQueryRaw<string>("SELECT current_setting('app.current_tenant_id', true) AS \"Value\"").SingleAsync(cancellationToken).ConfigureAwait(false);
                 var ready = await session.Context.Database.SqlQueryRaw<bool>("""
@@ -184,7 +184,7 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
     {
         Check();
         if (await directory.GetByIdAsync(id, cancellationToken).ConfigureAwait(false) is null) throw Error(PlatformErrors.NotFound);
-        using var scope = _tenant.BeginScope(id.ToString());
+        using var scope = _tenant.BeginScope(id);
         await using var session = await context.Data().OpenAsync<TenancyDbContext>(cancellationToken).ConfigureAwait(false);
         return await session.Context.ProvisionSteps.AsNoTracking().OrderBy(x => x.Step)
             .Select(x => new TenantProvisionStep(x.Step, x.Status, x.Attempts, x.Reason)).ToArrayAsync(cancellationToken).ConfigureAwait(false);

@@ -18,5 +18,5 @@ public interface IDbConnectionResolver
     /// <exception cref="InvalidOperationException">
     /// Thrown when no connection string is known for <paramref name="tenantId"/>.
     /// </exception>
-    string ResolveConnectionString(string tenantId);
+    string ResolveConnectionString(Guid tenantId);
 }

@@ -1,5 +1,4 @@
 using System.Data.Common;
-using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -22,12 +21,7 @@ namespace Kun.EntityFrameworkCore.Interceptors;
 /// type) so this module can remain free of a direct Npgsql package dependency.
 /// </para>
 /// <para>
-/// SQL injection guard: <c>SET</c> statements in PostgreSQL cannot be parameterised,
-/// so the tenant id is inlined into the command text. We therefore refuse to emit
-/// the command unless the value matches the strict whitelist
-/// <see cref="SafeTenantIdPattern"/>. A business tenant id that does not match
-/// (spaces, quotes, semicolons, etc.) will throw instead of being silently coerced
-/// — fail loudly rather than hand a crafted value to <c>SET</c>.
+/// Tenant IDs are emitted in the canonical UUID format.
 /// </para>
 /// <para>
 /// Registered as Scoped by <see cref="DependencyInjection.KunEntityFrameworkCoreServiceCollectionExtensions.AddKunEntityFrameworkCore"/>;
@@ -43,17 +37,6 @@ namespace Kun.EntityFrameworkCore.Interceptors;
 /// </remarks>
 public sealed partial class TenantRlsConnectionInterceptor : DbConnectionInterceptor
 {
-    /// <summary>
-    /// Whitelist for tenant-id values allowed inside <c>SET app.current_tenant_id = '...'</c>.
-    /// ASCII letters, digits, hyphen, underscore, dot; 1..128 chars. Covers GUIDs,
-    /// slugs, and short numeric ids while rejecting any value that could escape
-    /// the single-quoted literal.
-    /// </summary>
-    public const string SafeTenantIdPattern = "^[A-Za-z0-9._-]{1,128}$";
-
-    private static readonly Regex SafeTenantId = new(SafeTenantIdPattern,
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
     private readonly ITenantContext _tenantContext;
     private readonly ILogger<TenantRlsConnectionInterceptor> _logger;
 
@@ -124,23 +107,10 @@ public sealed partial class TenantRlsConnectionInterceptor : DbConnectionInterce
         return result;
     }
 
-    private static string BuildSetOrReset(string? tenantId)
+    private static string BuildSetOrReset(Guid? tenantId)
     {
-        if (string.IsNullOrEmpty(tenantId))
-        {
-            return "RESET app.current_tenant_id";
-        }
-
-        if (!SafeTenantId.IsMatch(tenantId))
-        {
-            throw new InvalidOperationException(
-                $"TenantRlsConnectionInterceptor refuses to set app.current_tenant_id to " +
-                $"an unsafe value (must match regex {SafeTenantIdPattern}). " +
-                "Either tighten the source that produces TenantId or disable the interceptor " +
-                "for this context.");
-        }
-
-        return $"SET app.current_tenant_id = '{tenantId}'";
+        if (tenantId == Guid.Empty) throw new InvalidOperationException("A tenant scope requires a non-empty UUID.");
+        return tenantId is { } id ? $"SET app.current_tenant_id = '{id:D}'" : "RESET app.current_tenant_id";
     }
 
     private void TryExecuteReset(DbConnection connection)

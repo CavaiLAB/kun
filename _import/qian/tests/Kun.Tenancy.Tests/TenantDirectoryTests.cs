@@ -87,11 +87,11 @@ public sealed partial class TenantDirectoryTests(PostgresFixture postgres) : ICl
         var a = await Store(host).CreateAsync(new("a", "A"), Ct); var b = await Store(host).CreateAsync(new("b", "B"), Ct);
         foreach (var id in new[] { a.Id, b.Id })
         {
-            using var scope = tenant.BeginScope(id.ToString());
+            using var scope = tenant.BeginScope(id);
             await using var session = await host.Services.GetRequiredService<IDataService>().OpenAsync<TenancyDbContext>(Ct);
             session.Context.Administrators.Add(new TenantAdminRow { MembershipId = Guid.CreateVersion7() }); await session.SaveChangesAsync(Ct);
         }
-        using (tenant.BeginScope(a.Id.ToString()))
+        using (tenant.BeginScope(a.Id))
         {
             await using var session = await host.Services.GetRequiredService<IDataService>().OpenAsync<TenancyDbContext>(Ct);
             Assert.Equal(a.Id.ToString(), (await session.Context.Administrators.SingleAsync(Ct)).TenantId);
@@ -100,7 +100,7 @@ public sealed partial class TenantDirectoryTests(PostgresFixture postgres) : ICl
             var denied = await Assert.ThrowsAsync<DbUpdateException>(() => session.SaveChangesAsync(Ct));
             Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, Assert.IsType<PostgresException>(denied.InnerException).SqlState);
         }
-        using (tenant.BeginScope(a.Id.ToString()))
+        using (tenant.BeginScope(a.Id))
         {
             await using var duplicate = await host.Services.GetRequiredService<IDataService>().OpenAsync<TenancyDbContext>(Ct);
             duplicate.Context.Administrators.Add(new TenantAdminRow { MembershipId = Guid.CreateVersion7() });

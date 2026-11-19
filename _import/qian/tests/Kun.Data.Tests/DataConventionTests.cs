@@ -35,7 +35,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         builder.Services.AddKunData<DeletionContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema("plugin_deletion"));
         using var host = builder.Build();
         await host.StartAsync(ct);
-        using var tenantScope = tenant.BeginScope("a");
+        using var tenantScope = tenant.BeginScope(Tenants.A);
         await using var scope = host.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<DeletionContext>();
         await using (var admin = new NpgsqlConnection(postgres.ConnectionString))
@@ -112,7 +112,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
             afterData(builder.Services);
             using var host = builder.Build();
             await host.StartAsync(ct);
-            using var tenantScope = tenant.BeginScope("a");
+            using var tenantScope = tenant.BeginScope(Tenants.A);
             await using var scope = host.Services.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<ActorPortContext>();
             await using (var admin = new NpgsqlConnection(postgres.ConnectionString))
@@ -184,7 +184,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
             .UseKunSchema("plugin_conventions"));
         using var host = builder.Build();
         await host.StartAsync(ct);
-        using var tenantScope = tenant.BeginScope("a");
+        using var tenantScope = tenant.BeginScope(Tenants.A);
         await using var scope = host.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<CustomerContext>();
         var customerType = db.Model.FindEntityType(typeof(Customer))!;
@@ -220,7 +220,7 @@ public sealed class DataConventionTests(PostgresFixture postgres) : IClassFixtur
         db.AddRange(customer, imported, new Customer { DisplayName = "隐藏" });
         await db.SaveChangesAsync(ct);
         Assert.False(await db.Set<Customer>().AnyAsync(item => item.DisplayName == "隐藏", ct));
-        Assert.Equal("a", customer.TenantId);
+        Assert.Equal(Tenants.AText, customer.TenantId);
         Assert.Equal(7, customer.Id.ToByteArray(bigEndian: true)[6] >> 4);
         Assert.Equal(existingId, imported.Id);
         Assert.Null(customer.CreatedBy);

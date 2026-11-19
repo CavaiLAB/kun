@@ -34,7 +34,7 @@ internal sealed class TenantSettingsService(IPluginContext context, PostgresTena
     private ScopeKey Scope()
     {
         Active();
-        if (!Guid.TryParseExact(_tenant.TenantId, "D", out var id) || id == Guid.Empty) throw Error(PlatformErrors.Unauthenticated);
+        if (_tenant.TenantId is not { } id || id == Guid.Empty) throw Error(PlatformErrors.Unauthenticated);
         return new ScopeKey("tenant", id.ToString());
     }
     private async Task Platform(Guid id, CancellationToken ct)
@@ -78,7 +78,7 @@ internal sealed class TenantSettingsService(IPluginContext context, PostgresTena
     public async ValueTask<TenantSettingsDocument> ReadAsync(Guid id, string pluginId, CancellationToken cancellationToken = default)
     {
         await Platform(id, cancellationToken).ConfigureAwait(false);
-        using var tenant = _tenant.BeginScope(id.ToString());
+        using var tenant = _tenant.BeginScope(id);
         return await Read(pluginId, cancellationToken).ConfigureAwait(false);
     }
     public async ValueTask<TenantSettingsDocument> WriteAsync(Guid id, string pluginId, UpdateTenantSettings request, string actor, CancellationToken cancellationToken = default)
@@ -86,7 +86,7 @@ internal sealed class TenantSettingsService(IPluginContext context, PostgresTena
         ArgumentNullException.ThrowIfNull(request);
         await Platform(id, cancellationToken).ConfigureAwait(false);
         if (request.Config.ValueKind != JsonValueKind.Object) throw Error(PlatformErrors.InputInvalid);
-        using var tenant = _tenant.BeginScope(id.ToString());
+        using var tenant = _tenant.BeginScope(id);
         var current = await Read(pluginId, cancellationToken).ConfigureAwait(false);
         var entry = JsonSerializer.SerializeToElement(new { id = current.EntryId, config = request.Config });
         var saved = await context.Registry().MountAsync(Scope(), entry, request.ExpectedRevision, actor, cancellationToken).ConfigureAwait(false);
@@ -109,7 +109,7 @@ internal sealed class TenantSettingsService(IPluginContext context, PostgresTena
     public async ValueTask<TenantQuotaView> QuotaAsync(Guid id, CancellationToken cancellationToken = default)
     {
         await Platform(id, cancellationToken).ConfigureAwait(false);
-        using var tenant = _tenant.BeginScope(id.ToString());
+        using var tenant = _tenant.BeginScope(id);
         var limits = await Limits(id, cancellationToken).ConfigureAwait(false);
         var counter = context.Scoped(Scope()).TryInject<ITenantUserCounter>(TenantSettings.UserCounterKey);
         return new TenantQuotaView(limits, counter is null ? null : await counter.CountUsersAsync(cancellationToken).ConfigureAwait(false), counter is not null);

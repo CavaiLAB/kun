@@ -4,14 +4,14 @@ namespace Kun.Data.Native.Postgres;
 
 internal static class Security
 {
-    internal static async Task SetTenantAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, string? tenant, bool local, CancellationToken ct)
+    internal static async Task SetTenantAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, Guid? tenant, bool local, CancellationToken ct)
     {
         await using var command = new NpgsqlCommand("SELECT pg_catalog.set_config('app.current_tenant_id', @tenant, @local)", connection, transaction);
-        command.Parameters.AddWithValue("tenant", tenant ?? ""); command.Parameters.AddWithValue("local", local);
+        command.Parameters.AddWithValue("tenant", tenant?.ToString("D") ?? ""); command.Parameters.AddWithValue("local", local);
         await command.ExecuteScalarAsync(ct).ConfigureAwait(false);
     }
 
-    internal static async Task CheckAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, OpenBinding binding, string? tenant,
+    internal static async Task CheckAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, OpenBinding binding, Guid? tenant,
         bool checkTenant, CancellationToken ct, bool serializable = false)
     {
         await using (var command = new NpgsqlCommand("""
@@ -26,7 +26,7 @@ internal static class Security
             """, connection, transaction))
         {
             command.Parameters.AddWithValue("role", binding.Binding.Role); command.Parameters.AddWithValue("database", binding.Database);
-            command.Parameters.AddWithValue("tenant_check", checkTenant); command.Parameters.AddWithValue("tenant", tenant ?? "");
+            command.Parameters.AddWithValue("tenant_check", checkTenant); command.Parameters.AddWithValue("tenant", tenant?.ToString("D") ?? "");
             command.Parameters.AddWithValue("serializable", serializable);
             if (await command.ExecuteScalarAsync(ct).ConfigureAwait(false) is not true) throw NativeErrors.Denied();
         }

@@ -75,7 +75,7 @@ public sealed class AddKunMultiTenancyTests
 
     private sealed class FakeContextFactory : ITenantDbContextFactory<TestDbContext>
     {
-        public TestDbContext CreateForTenant(string tenantId)
+        public TestDbContext CreateForTenant(Guid tenantId)
             => throw new InvalidOperationException("Fake; not expected to be called in DI registration test.");
     }
 }

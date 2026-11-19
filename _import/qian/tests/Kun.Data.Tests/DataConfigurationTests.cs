@@ -38,7 +38,7 @@ public sealed class DataConfigurationTests(PostgresFixture postgres) : IClassFix
         Assert.Equal(0, calls);
         await host.StartAsync(ct);
         var before = calls;
-        using var tenantScope = tenant.BeginScope("a");
+        using var tenantScope = tenant.BeginScope(Tenants.A);
         var data = runtime.GetContext("data", ScopeKey.Global).Data();
         await using (var session = await data.OpenAsync<FirstContext>(ct))
         {
@@ -79,15 +79,15 @@ public sealed class DataConfigurationTests(PostgresFixture postgres) : IClassFix
         using var host = BuildHost();
         await host.StartAsync(ct);
         var tenant = host.Services.GetRequiredService<ITenantContext>();
-        using var tenantA = tenant.BeginScope("a");
+        using var tenantA = tenant.BeginScope(Tenants.A);
         await using (var standalone = await host.Services.GetRequiredService<IDataService>().OpenAsync<FirstContext>(ct))
             await standalone.Context.Database.OpenConnectionAsync(ct);
         await using var runtime = new PluginLoader(host.Services);
-        var owner = new ScopeKey("tenant", "b");
+        var owner = new ScopeKey("tenant", Tenants.BText);
         await runtime.MountAsync([Definition(JsonSerializer.SerializeToElement(new { connection = Reference }), owner)], ct);
         var data = runtime.GetContext("data", owner).Data();
         await Assert.ThrowsAsync<KunDataMisconfiguredException>(async () => await data.OpenAsync<FirstContext>(ct));
-        using (tenant.BeginScope("b"))
+        using (tenant.BeginScope(Tenants.B))
         await using (var session = await data.OpenAsync<FirstContext>(ct))
             await session.Context.Database.OpenConnectionAsync(ct);
     }

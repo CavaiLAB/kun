@@ -36,7 +36,7 @@ internal sealed class PostgresTenantDirectory(IDataService data, ITenantContext 
         if (request.Isolation != TenantIsolation.Row) throw Error(PlatformErrors.InputInvalid);
         if (tenant.TenantId is not null) throw Error(PlatformErrors.AuthzDenied);
         var row = new TenantRow { Code = request.Code, Name = request.Name, Quotas = TenantQuotaRules.Serialize(request.Quotas) };
-        using var scope = tenant.BeginScope(row.Id.ToString());
+        using var scope = tenant.BeginScope(row.Id);
         await using var session = await data.OpenAsync<TenancyDbContext>(ct).ConfigureAwait(false);
         await using var transaction = await session.Context.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.tenancy", EventEnvelopeScope.Current?.Actor ?? EventActor.Service("qian.tenancy")));

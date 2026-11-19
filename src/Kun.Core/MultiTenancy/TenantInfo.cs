@@ -14,7 +14,7 @@ public sealed record TenantInfo
     /// <summary>创建一个新的 <see cref="TenantInfo"/>。</summary>
     /// <param name="tenantId">租户 ID。必须为非空 UUID。</param>
     /// <param name="displayName">可选的展示名；默认 <see langword="null"/>。</param>
-    /// <exception cref="ArgumentException">当 <paramref name="tenantId"/> 为 Guid.Empty时抛出。</exception>
+    /// <exception cref="ArgumentException">当 <paramref name="tenantId"/> 为 <see cref="Guid.Empty"/> 时抛出。</exception>
     public TenantInfo(Guid tenantId, string? displayName = null)
     {
         if (tenantId == Guid.Empty)

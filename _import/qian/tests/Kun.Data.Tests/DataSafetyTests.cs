@@ -140,7 +140,7 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
             await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
             foreach (var id in new[] { "tenant-a", "tenant-b", "tenant-a" })
             {
-                using var tenantScope = tenant.BeginScope(id);
+                using var tenantScope = tenant.BeginScope(Guid.ParseExact(id, "D"));
                 await using var scope = host.Services.CreateAsyncScope();
                 var db = scope.ServiceProvider.GetRequiredService<ProbeContext>();
                 Assert.IsType<KunMultiTenantModelCacheKeyFactory>(db.GetService<IModelCacheKeyFactory>());

@@ -90,7 +90,7 @@ public abstract class KunDbContext : DbContext, IKunMultiTenantDbContext
     /// first-built model across all instances of the same DbContext type. Query filters also
     /// read this member through the executing DbContext, rather than retaining another host's accessor.
     /// </summary>
-    public string? TenantIdForModelCacheKey => _tenantContext.TenantId;
+    public string? TenantIdForModelCacheKey => _tenantContext.TenantId?.ToString("D");
 
     private void ApplyGlobalQueryFilters(ModelBuilder modelBuilder)
     {

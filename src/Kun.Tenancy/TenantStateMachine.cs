@@ -43,7 +43,7 @@ internal sealed class TenantStateMachine(IPluginContext context, PostgresTenantD
     {
         Check(actor);
         _ = await directory.GetByIdAsync(id, ct).ConfigureAwait(false) ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
-        using var tenant = _tenant.BeginScope(id.ToString());
+        using var tenant = _tenant.BeginScope(id);
         using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.tenancy", EventEnvelopeScope.Current?.Actor ?? EventActor.Service(actor)));
         await using var session = await context.Data().OpenAsync<TenancyDbContext>(ct).ConfigureAwait(false);
         await using var transaction = await session.Context.Database.BeginTransactionAsync(ct).ConfigureAwait(false);

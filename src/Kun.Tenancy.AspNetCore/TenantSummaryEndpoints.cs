@@ -29,11 +29,11 @@ public static partial class TenancyEndpoints
                     : null;
                 // 宿主若已按令牌进入租户上下文，只能是同一租户。
                 var current = http.RequestServices.GetRequiredService<ITenantContext>();
-                if (reason is null && current.TenantId is not null && (!Guid.TryParseExact(current.TenantId, "D", out var entered) || entered != id)) reason = "context_mismatch";
+                if (reason is null && current.TenantId is { } entered && entered != id) reason = "context_mismatch";
                 if (reason is not null) { LogSummaryDenied(logger, reason, principal.Subject); throw new ErrorException(new Error(PlatformErrors.AuthzDenied)); }
                 var ctx = source(http);
                 if (ctx.Scope != ScopeKey.Global || ctx.Entry.Plugin != "qian.tenancy") throw new ErrorException(new Error(PlatformErrors.NotFound));
-                using var scope = current.BeginScope(id.ToString("D"));
+                using var scope = current.BeginScope(id);
                 return Results.Ok(await ctx.Inject<ITenantSummaries>(TenantSummaries.Key).CurrentAsync(http.RequestAborted).ConfigureAwait(false));
             }
             catch (ErrorException error) { return KunResults.Error(error.Error); }

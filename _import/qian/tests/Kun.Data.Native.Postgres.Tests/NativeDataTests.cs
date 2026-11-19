@@ -29,7 +29,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         await using var host = await Setup();
         object? backend = null;
         await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenTenantAsync("tenant", Ct).AsTask());
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenTenantAsync("unregistered", Ct).AsTask());
             using (var ambient = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled))
@@ -40,10 +40,10 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
             await Execute(session.Connection, $"INSERT INTO {host.Table} VALUES ('{A}', 'a')");
             Assert.Equal(1L, await Scalar(session.Connection, $"SELECT count(*) FROM {host.Table}"));
             await using var command = session.Connection.CreateCommand(); command.CommandText = $"SELECT count(*) FROM {host.Table}";
-            using (host.Tenant.BeginScope(B))
+            using (host.Tenant.BeginScope(Guid.ParseExact(B, "D")))
                 await Assert.ThrowsAsync<ErrorException>(() => command.ExecuteScalarAsync(Ct));
         }
-        using (host.Tenant.BeginScope(B))
+        using (host.Tenant.BeginScope(Guid.ParseExact(B, "D")))
         {
             await using var session = await host.Data.OpenTenantAsync("tenant", Ct);
             Assert.Equal(backend, await Scalar(session.Connection, "SELECT pg_backend_pid()"));
@@ -51,13 +51,13 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
             await Execute(session.Connection, $"INSERT INTO {host.Table} VALUES ('{B}', 'b')");
             Assert.Equal(0, await Execute(session.Connection, $"UPDATE {host.Table} SET value='cross' WHERE tenant_id='{A}'"));
         }
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await host.Data.OpenTenantAsync("tenant", Ct);
             Assert.Equal("a", await Scalar(session.Connection, $"SELECT value FROM {host.Table}"));
             await Assert.ThrowsAsync<PostgresException>(() => Execute(session.Connection, $"INSERT INTO {host.Table} VALUES ('{B}','wrong')"));
         }
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await host.Data.OpenTenantAsync("tenant", Ct);
             var denied = await Assert.ThrowsAsync<PostgresException>(() => Execute(session.Connection, $"SET ROLE {host.PlatformRole}"));
@@ -69,7 +69,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
     public async Task 事务本地GUC_提交与释放回滚_取消和advisory锁不污染连接池()
     {
         await using var host = await Setup();
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using (var session = await host.Data.OpenTenantAsync("tenant", Ct))
             {
@@ -99,13 +99,13 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
             await check.OpenAsync(Ct); Assert.Equal(true, await Scalar(check, "SELECT pg_try_advisory_lock(836492)"));
             await Execute(check, "SELECT pg_advisory_unlock_all()");
         }
-        using (host.Tenant.BeginScope(B))
+        using (host.Tenant.BeginScope(Guid.ParseExact(B, "D")))
         {
             await using var session = await host.Data.OpenTenantAsync("tenant", Ct);
             Assert.Equal(B, await Scalar(session.Connection, "SELECT current_setting('app.current_tenant_id')"));
             Assert.Equal(0L, await Scalar(session.Connection, $"SELECT count(*) FROM {host.Table}"));
         }
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var session = await host.Data.OpenTenantAsync("tenant", Ct);
             Assert.Equal("commit", await Scalar(session.Connection, $"SELECT value FROM {host.Table}"));
@@ -121,7 +121,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
             Assert.Null(platform.TenantId); Assert.Equal("", await Scalar(platform.Connection, "SELECT current_setting('app.current_tenant_id')"));
             await Execute(platform.Connection, $"INSERT INTO {host.Table} VALUES (NULL,'platform')");
         }
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenPlatformAsync("platform", host.Global, Ct).AsTask());
             await using var tenant = await host.Data.OpenTenantAsync("tenant", Ct);
@@ -141,7 +141,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
     [Fact]
     public async Task 卸载撤销服务并关闭活动会话_未提交写入回滚()
     {
-        await using var host = await Setup(); using var tenant = host.Tenant.BeginScope(A);
+        await using var host = await Setup(); using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D"));
         var data = host.Data; await using var session = await data.OpenTenantAsync("tenant", Ct);
         var connection = session.Connection; await session.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
         await Execute(connection, $"INSERT INTO {host.Table} VALUES ('{A}','unloaded')");
@@ -175,7 +175,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
             "truncate" => $"GRANT TRUNCATE ON {host.Table} TO {host.TenantRole}",
             _ => throw new ArgumentException("未知反例。", nameof(violation))
         };
-        await Admin(sql); using var tenant = host.Tenant.BeginScope(A);
+        await Admin(sql); using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D"));
         await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenTenantAsync("tenant", Ct).AsTask());
         await host.Loader.UnmountAsync("native", ScopeKey.Global, Ct);
         await host.MountNative(); Assert.Equal(PluginState.Failed, host.Loader.GetState("native", ScopeKey.Global));
@@ -184,7 +184,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
     [Fact]
     public async Task 真实外部事务同库同角色同租户与Serializable校验_不接管提交回滚()
     {
-        await using var host = await Setup(); using var tenant = host.Tenant.BeginScope(A);
+        await using var host = await Setup(); using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D"));
         await using var external = new NpgsqlConnection(host.TenantConnection); await external.OpenAsync(Ct);
         await Execute(external, $"SELECT set_config('app.current_tenant_id','{A}',false)");
         await using (var transaction = await external.BeginTransactionAsync(IsolationLevel.Serializable, Ct))
@@ -216,7 +216,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
     [Fact]
     public async Task 提交开始前已取消必须封存会话_回滚后仍不能继续使用()
     {
-        await using var host = await Setup(); using var tenant = host.Tenant.BeginScope(A);
+        await using var host = await Setup(); using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D"));
         await using var session = await host.Data.OpenTenantAsync("tenant", Ct);
         await session.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
         await Execute(session.Connection, $"INSERT INTO {host.Table} VALUES ('{A}','canceled-commit')");
@@ -233,7 +233,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         await using var host = await Setup();
         for (var iteration = 0; iteration < 100; iteration++)
         {
-            using var tenant = host.Tenant.BeginScope(A); var data = host.Data;
+            using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D")); var data = host.Data;
             var first = await data.OpenTenantAsync("tenant", Ct);
             var openDiagnostics = new ConcurrentQueue<Exception>();
             async Task Open()
@@ -279,7 +279,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
                 if (type.GetField(name, flags) is { } field) return field.GetValue(value)!;
             throw new InvalidOperationException("Missing diagnostic field: " + name);
         }
-        await using var host = await Setup(); using var tenant = host.Tenant.BeginScope(A);
+        await using var host = await Setup(); using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D"));
         var data = host.Data;
         var first = await data.OpenTenantAsync("tenant", Ct);
         var bindings = (System.Collections.IDictionary)Field(data, "_bindings");
@@ -350,7 +350,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         INativeDataSession first;
         Task<INativeDataSession> waiting;
         using var canceled = CancellationTokenSource.CreateLinkedTokenSource(Ct);
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             first = await host.Data.OpenTenantAsync("tenant", Ct);
             waiting = host.Data.OpenTenantAsync("tenant", canceled.Token).AsTask();
@@ -362,7 +362,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         await canceled.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => waiting.WaitAsync(TimeSpan.FromSeconds(5), Ct));
         await Task.WhenAll(first.DisposeAsync().AsTask(), first.DisposeAsync().AsTask());
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await using var next = await host.Data.OpenTenantAsync("tenant", Ct);
             using var secondCancel = CancellationTokenSource.CreateLinkedTokenSource(Ct);
@@ -382,7 +382,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         await using var otherSource = new NpgsqlSlimDataSourceBuilder(host.TenantConnection).Build();
         var other = await otherSource.OpenConnectionAsync(Ct);
         var otherPid = await Scalar(other, "SELECT pg_backend_pid()");
-        using (host.Tenant.BeginScope(A))
+        using (host.Tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var first = await host.Data.OpenTenantAsync("tenant", Ct);
             var waiting = host.Data.OpenTenantAsync("tenant", Ct).AsTask();
@@ -398,7 +398,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         Assert.Equal(otherPid, await Scalar(reusedOther, "SELECT pg_backend_pid()"));
         await host.MountNative();
         Assert.True(host.Loader.GetState("native", ScopeKey.Global) == PluginState.Ready, host.Loader.GetFailure("native", ScopeKey.Global)?.ToString());
-        using (host.Tenant.BeginScope(B))
+        using (host.Tenant.BeginScope(Guid.ParseExact(B, "D")))
         {
             await using var reopened = await host.Data.OpenTenantAsync("tenant", Ct);
             Assert.Equal(B, await Scalar(reopened.Connection, "SELECT current_setting('app.current_tenant_id')"));
@@ -418,7 +418,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         var tables = new[] { new NativeDataTable(database.Schema, "items", "native_guard", database.Predicate, database.Predicate) };
         await service.InitializeAsync([new NativeDataBinding("tenant", database.TenantRole, NativeDataAccess.Tenant,
             _ => ValueTask.FromResult(settings.ConnectionString), tables)], Ct);
-        using var tenant = tenantContext.BeginScope(A);
+        using var tenant = tenantContext.BeginScope(Guid.ParseExact(A, "D"));
         await using var first = await service.OpenTenantAsync("tenant", Ct);
         var elapsed = Stopwatch.StartNew();
         var opening = service.OpenTenantAsync("tenant", Ct).AsTask();
@@ -448,7 +448,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
     [Fact]
     public async Task 非池化绑定不受池容量准入限制()
     {
-        await using var host = await Setup(pooling: false); using var tenant = host.Tenant.BeginScope(A);
+        await using var host = await Setup(pooling: false); using var tenant = host.Tenant.BeginScope(Guid.ParseExact(A, "D"));
         await using var first = await host.Data.OpenTenantAsync("tenant", Ct);
         await using var second = await host.Data.OpenTenantAsync("tenant", Ct).AsTask().WaitAsync(TimeSpan.FromSeconds(5), Ct);
         Assert.NotEqual(await Scalar(first.Connection, "SELECT pg_backend_pid()"), await Scalar(second.Connection, "SELECT pg_backend_pid()"));

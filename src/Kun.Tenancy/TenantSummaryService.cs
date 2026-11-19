@@ -14,7 +14,7 @@ internal sealed class TenantSummaryService(IPluginContext context, TenantAdminis
     private readonly ITenantContext _tenant = context.Services.GetRequiredService<ITenantContext>();
     public async ValueTask<TenantSummary> CurrentAsync(CancellationToken cancellationToken = default)
     {
-        if (!Guid.TryParseExact(_tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        if (_tenant.TenantId is not { } id || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         TenantRow row;
         await using (var session = await context.Data().OpenAsync<TenancyDbContext>(cancellationToken).ConfigureAwait(false))
             row = await session.Context.Tenants.AsNoTracking().SingleOrDefaultAsync(item => item.Id == id, cancellationToken).ConfigureAwait(false)

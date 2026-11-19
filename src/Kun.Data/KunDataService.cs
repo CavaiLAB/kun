@@ -26,7 +26,7 @@ internal sealed class KunDataService(IServiceScopeFactory scopes, IReadOnlySet<T
                 ObjectDisposedException.ThrowIf(_disposed, this);
                 if (!contexts.Contains(typeof(TContext)))
                     throw new KunDataMisconfiguredException("所请求上下文不属于 Data 当前连接引用的登记集合。");
-                if (ownerScope.Kind == "tenant" && scope.ServiceProvider.GetRequiredService<ITenantContext>().TenantId != ownerScope.Id)
+                if (ownerScope.Kind == "tenant" && scope.ServiceProvider.GetRequiredService<ITenantContext>().TenantId?.ToString("D") != ownerScope.Id)
                     throw new KunDataMisconfiguredException("Data 挂载 scope 与当前已验证租户不一致。");
                 var session = new Session<TContext>(scope, Remove);
                 _sessions.Add(session);
@@ -66,7 +66,7 @@ internal sealed class KunDataService(IServiceScopeFactory scopes, IReadOnlySet<T
         private readonly EfUnitOfWork _unit;
         private readonly IntegrationEventBuffer _buffer;
         private readonly ITenantContext _tenant;
-        private readonly string? _tenantId;
+        private readonly Guid? _tenantId;
         private readonly SemaphoreSlim _operation = new(1, 1);
         private bool _failed;
         private bool _disposed;
@@ -131,14 +131,14 @@ internal sealed class KunDataService(IServiceScopeFactory scopes, IReadOnlySet<T
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             if (_failed) throw new InvalidOperationException("保存失败后必须释放数据会话，从新作用域重试。");
-            if (_tenant.TenantId != _tenantId || _context.TenantIdForModelCacheKey != _tenantId)
+            if (_tenant.TenantId != _tenantId || _context.TenantIdForModelCacheKey != _tenantId?.ToString("D"))
                 throw new KunDataMisconfiguredException("数据会话不得在创建后切换租户上下文。");
         }
 
         private void EnsureBoundary()
         {
             EnsureUsable();
-            if (_buffer.GetPendingMessages().Any(message => message.TenantId != _tenantId))
+            if (_buffer.GetPendingMessages().Any(message => message.TenantId != _tenantId?.ToString("D")))
                 throw new KunDataMisconfiguredException("Outbox 消息必须属于当前数据会话的租户。");
         }
     }

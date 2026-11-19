@@ -33,7 +33,7 @@ try
     var caller = loader.GetContext("consumer", ScopeKey.Global); var data = caller.NativeData();
     const string a = "01900000-0000-7000-8000-000000000001";
     const string b = "01900000-0000-7000-8000-000000000002";
-    using (tenant.BeginScope(a))
+    using (tenant.BeginScope(Guid.ParseExact(a, "D")))
     {
         await using (var session = await data.OpenTenantAsync("tenant"))
         {
@@ -52,7 +52,7 @@ try
         await using (var session = await data.OpenTenantAsync("tenant"))
             Ensure((long?)await Scalar(session.Connection, $"SELECT count(*) FROM {table}") == 1, "提交与释放回滚");
     }
-    using (tenant.BeginScope(b))
+    using (tenant.BeginScope(Guid.ParseExact(b, "D")))
     {
         await using var session = await data.OpenTenantAsync("tenant");
         Ensure((long?)await Scalar(session.Connection, $"SELECT count(*) FROM {table}") == 0, "原始 SQL 跨租户隔离");
@@ -71,7 +71,7 @@ try
         Ensure((bool?)await Scalar(control, "SELECT pg_try_advisory_lock(836493)") == true, "释放清除连接锁");
         await Execute(control, "SELECT pg_advisory_unlock_all()");
     }
-    using (tenant.BeginScope(a))
+    using (tenant.BeginScope(Guid.ParseExact(a, "D")))
     {
         await using var pending = await data.OpenTenantAsync("tenant"); var connection = pending.Connection;
         await pending.BeginTransactionAsync(IsolationLevel.Serializable);

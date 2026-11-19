@@ -19,8 +19,8 @@ public sealed class KunMultiTenantModelCacheKeyFactoryTests
     public void Create_TwoTenants_ProducesDistinctKeys()
     {
         var factory = new KunMultiTenantModelCacheKeyFactory();
-        using var ctxA = BuildContext(tenantId: "tenant-a");
-        using var ctxB = BuildContext(tenantId: "tenant-b");
+        using var ctxA = BuildContext(tenantId: Tenants.A);
+        using var ctxB = BuildContext(tenantId: Tenants.B);
 
         var keyA = factory.Create(ctxA, designTime: false);
         var keyB = factory.Create(ctxB, designTime: false);
@@ -32,8 +32,8 @@ public sealed class KunMultiTenantModelCacheKeyFactoryTests
     public void Create_SameTenant_ProducesEqualKeys()
     {
         var factory = new KunMultiTenantModelCacheKeyFactory();
-        using var ctx1 = BuildContext(tenantId: "tenant-a");
-        using var ctx2 = BuildContext(tenantId: "tenant-a");
+        using var ctx1 = BuildContext(tenantId: Tenants.A);
+        using var ctx2 = BuildContext(tenantId: Tenants.A);
 
         var key1 = factory.Create(ctx1, designTime: false);
         var key2 = factory.Create(ctx2, designTime: false);
@@ -58,7 +58,7 @@ public sealed class KunMultiTenantModelCacheKeyFactoryTests
     public void Create_DesignTimeFlag_ProducesDistinctKeys()
     {
         var factory = new KunMultiTenantModelCacheKeyFactory();
-        using var ctx = BuildContext(tenantId: "tenant-a");
+        using var ctx = BuildContext(tenantId: Tenants.A);
 
         var runtimeKey = factory.Create(ctx, designTime: false);
         var designKey = factory.Create(ctx, designTime: true);
@@ -84,7 +84,7 @@ public sealed class KunMultiTenantModelCacheKeyFactoryTests
     private const string UnreachableConnectionString =
         "Host=kun-factory-noop.invalid;Database=kun_test;Username=kun;Password=kun;Timeout=2;Command Timeout=2";
 
-    private static TestDbContext BuildContext(string? tenantId)
+    private static TestDbContext BuildContext(Guid? tenantId)
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()
             .UseNpgsql(UnreachableConnectionString)
@@ -96,11 +96,11 @@ public sealed class KunMultiTenantModelCacheKeyFactoryTests
 
     private sealed class FakeTenantContext : ITenantContext
     {
-        public FakeTenantContext(string? tenantId)
+        public FakeTenantContext(Guid? tenantId)
         {
             TenantId = tenantId;
         }
-        public string? TenantId { get; }
+        public Guid? TenantId { get; }
         public bool IsMultiTenant => TenantId is not null;
     }
 

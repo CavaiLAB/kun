@@ -26,7 +26,7 @@ public sealed class SequenceServiceTests(PostgresFixture postgres) : IClassFixtu
     public async Task 同一规则100并发取号无重复无跳号_规则修改后从1重新开始()
     {
         await using var host = await StartAsync(new DateTimeOffset(2026, 10, 14, 1, 0, 0, TimeSpan.Zero));
-        using (host.Tenant.BeginScope(TenantA))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantA, "D")))
         {
             var rule = await host.Sequences.DefineAsync("order", "'SO'+yyyyMMdd + seq(6)", Ct);
             Assert.Equal(new SequenceRule("order", "'SO' + yyyyMMdd + seq(6)", 1), rule);
@@ -49,7 +49,7 @@ public sealed class SequenceServiceTests(PostgresFixture postgres) : IClassFixtu
             host.Clock.Now = host.Clock.Now.AddDays(1);
             Assert.Equal("SO-20261015000001", await host.Sequences.NextAsync("order", "default", Ct));
         }
-        using (host.Tenant.BeginScope(TenantB))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantB, "D")))
         {
             // 另一租户看不到 A 的规则，定义后计数独立。
             Assert.Equal(DataErrors.SequenceRuleNotFound, (await Assert.ThrowsAsync<ErrorException>(() => host.Sequences.NextAsync("order", "default", Ct))).Error.Code);
@@ -66,7 +66,7 @@ public sealed class SequenceServiceTests(PostgresFixture postgres) : IClassFixtu
     {
         await using var host = await StartAsync(new DateTimeOffset(2026, 10, 14, 1, 0, 0, TimeSpan.Zero));
         await Assert.ThrowsAsync<KunDataMisconfiguredException>(() => host.Sequences.NextAsync("order", "default", Ct));
-        using (host.Tenant.BeginScope(TenantC))
+        using (host.Tenant.BeginScope(Guid.ParseExact(TenantC, "D")))
         {
             foreach (var pattern in new[] { "'SO' + yyyyMMdd", "seq(6) + seq(2)", "'SO' + yyyymmdd + seq(6)", "'unterminated + seq(3)", "seq(19)", "'A' + + seq(3)" })
                 Assert.Equal(DataErrors.SequenceRuleInvalid, (await Assert.ThrowsAsync<ErrorException>(() => host.Sequences.DefineAsync("bad", pattern, Ct))).Error.Code);

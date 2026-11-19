@@ -291,7 +291,7 @@ internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes
 
     private void RequireTenant()
     {
-        if (string.IsNullOrEmpty(tenant.TenantId)) throw new KunDataMisconfiguredException("数据连接档案只能在已验证租户的上下文中使用。");
+        if (tenant.TenantId is null || tenant.TenantId == Guid.Empty) throw new KunDataMisconfiguredException("数据连接档案只能在已验证租户的上下文中使用。");
     }
 
     [GeneratedRegex(@"\A[^\s\p{Cc}]([^\p{Cc}]*[^\s\p{Cc}])?\z", RegexOptions.CultureInvariant)]

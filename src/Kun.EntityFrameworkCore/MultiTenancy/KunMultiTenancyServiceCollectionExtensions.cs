@@ -34,7 +34,8 @@ public static class KunMultiTenancyServiceCollectionExtensions
     /// <code>
     /// services.AddDbContext&lt;CatalogDbContext&gt;((sp, opts) =&gt;
     ///     opts.UseNpgsql(cs)
-    ///         .UseKunSchema(sp.GetRequiredService&lt;ITenantContext&gt;().TenantId ?? "public")
+    ///         .UseKunSchema(sp.GetRequiredService&lt;IOptions&lt;KunMultiTenancyOptions&gt;&gt;().Value.GetSchemaName(
+    ///             sp.GetRequiredService&lt;ITenantContext&gt;().TenantId ?? throw new InvalidOperationException("Tenant required.")))
     ///         .ReplaceService&lt;IModelCacheKeyFactory, KunMultiTenantModelCacheKeyFactory&gt;()
     ///         .AddInterceptors(sp.GetRequiredService&lt;TenantRlsTransactionInterceptor&gt;()));
     /// </code>

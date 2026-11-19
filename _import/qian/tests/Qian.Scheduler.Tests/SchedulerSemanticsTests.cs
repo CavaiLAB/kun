@@ -215,8 +215,9 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     [Fact]
     public async Task 超时重试保留runId_重试上限和取消终态不会被旧执行者覆盖()
     {
-        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
-        await using var worker = await WorkerProcess.Start(fixture.Config, TenantA, TenantB);
+        var config = fixture.LongLease;
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
+        await using var worker = await WorkerProcess.Start(config, TenantA, TenantB);
         // 超时要盖过处理器记下进入的抖动（打开连接、写进入行），否则 CPU 被挤时两次尝试都在记下进入前被取消、:215 无行可比；
         // 处理器仍延迟 5 秒，每次都超时（S1-QA-023）。每次尝试 = 一次领取与准备（不超过一份租约）+ 超时。
         var timeout = TimeSpan.FromSeconds(2);
@@ -226,18 +227,18 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
             await caller.Scheduler().ScheduleOnce(caller, "timeout", DateTimeOffset.UtcNow, Target, JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 5000 }),
                 new JobOptions { Timeout = timeout, RetryDelay = TimeSpan.Zero, MaxAttempts = 2 }, Ct);
         }
-        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed' AND error_class='timeout' AND attempts=2") == 1, 2 * (fixture.Leases(1) + timeout));
+        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed' AND error_class='timeout' AND attempts=2") == 1, 2 * (fixture.Leases(1, config) + timeout));
         Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"));
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(DISTINCT run_id) FROM public.sch_probe_attempts"));
         using (producer.Tenant.BeginScope(TenantB))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantB));
             await caller.Scheduler().ScheduleOnce(caller, "cancel-running", DateTimeOffset.UtcNow, Target, JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 15000 }), cancellationToken: Ct);
-            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>($"SELECT count(*) FROM public.sch_probe_attempts WHERE tenant_id='{TenantB}'") == 1, fixture.Leases(2));
+            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>($"SELECT count(*) FROM public.sch_probe_attempts WHERE tenant_id='{TenantB}'") == 1, fixture.Leases(2, config));
             Assert.True(await caller.Scheduler().Cancel(caller, "cancel-running", Ct));
         }
         // 给旧执行者至少一个半心跳周期去发现取消，再看终态没被覆盖。
-        await Task.Delay(fixture.Leases(0.5), Ct);
+        await Task.Delay(fixture.Leases(0.5, config), Ct);
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='cancelled'"));
         Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"));
     }

@@ -4,6 +4,7 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;

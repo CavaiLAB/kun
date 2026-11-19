@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Abstractions.Session;
 using Kun.Identity.AspNetCore;
+using Kun.Security;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;

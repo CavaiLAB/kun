@@ -13,6 +13,7 @@
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
   </ItemGroup>

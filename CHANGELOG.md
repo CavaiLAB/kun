@@ -96,6 +96,14 @@
 - `Qian.Docs.Abstractions` 的 `DocumentOptions` 加 `SourceRoot`：源码目录相对它解析、不能越出它，事件映射与事件分析诊断里的位置相对它书写（装配诊断与配置目录仍相对工作区）。相对路径按工作区解析，只能是工作区本身或它的上级目录，到工作区的路径上不能有符号链接；不设时等于工作区，输出与之前相同。
 - `qian docs generate` 加对应的 `--source-root <目录>`。本仓库的派生文档改以仓库根为源码根，仓库根 `src/` 下的包也计入事件图。
 
+### Changed — Principal 一组进新的内核契约包 Kun.Security.Abstractions（S1-KUN-026）
+
+- 新增零依赖包 `Kun.Security.Abstractions`（内核档，AOT 兼容），命名空间 `Kun.Security`。服务间令牌的主体模型 `Principal`、`DelegationActor`、`PrincipalKind` 与声明名 `IdentityClaimNames` 从 `Qian.Identity.Abstractions` 挪进来，成员不变；JSON 属性名、先后与令牌里的声明名都不变。**迁移**：`using Kun.Security;`；写全名的把 `Qian.Identity.Abstractions.Principal` 等改成 `Kun.Security.Principal` 等。引用身份契约的项目经它传递拿到新包，不用另加引用。
+- `PrincipalKind` 的 JSON 转换器 `PrincipalKindConverter` 改为公开类型：别的程序集里的 JSON 源生成上下文要引用它。读写不变：只收 `user`、`service`、`agent`，数字、大小写不对与其它值都报错。
+- `ClientType` 留在 `Qian.Identity.Abstractions`，命名空间不变。
+- `Kun.Plugin.Sdk` 不再引用 `Qian.Identity.Abstractions`，改引用 `Kun.Security.Abstractions`（`CommandInvocation.Principal` 的类型是 `Kun.Security.Principal`），也就不再传递带来身份契约与 `Kun.EventBus.Abstractions`。**迁移**：用到身份契约里其余类型（如 `ICurrentUser`、`IIdentityService`）的项目直接引用 `Qian.Identity.Abstractions`。`Kun.Plugin.Sdk.Commands` 改为直接引用身份契约，经它拿到身份契约的项目不受影响。
+- 组件 `qian.identity.server` 1.0.0 → 1.1.0：派生的事件元数据里 `identity/signed-in` 的载荷类型全名换成 `Kun.Security.Principal`，对外行为不变。
+
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
 
 - 样例编排宿主 `samples/Kun.Sample.AppHost` 的 Aspire 从 9.0.0 升到 13.6.5（`Aspire.AppHost.Sdk` 与中央版本里的 `Aspire.Hosting.AppHost` / `PostgreSQL` / `RabbitMQ` / `Redis`），修复 NuGet 审计报出的 [GHSA-4g86-54fm-h9h8](https://github.com/advisories/GHSA-4g86-54fm-h9h8)（`Aspire.Dashboard.Sdk.*`，严重）与 [GHSA-f7vh-h5g3-7jrh](https://github.com/advisories/GHSA-f7vh-h5g3-7jrh)（`Aspire.Hosting`、`Aspire.Hosting.AppHost`，高）。这两条公告发布后，`dotnet restore` 在警告即错误下失败，CI 的构建、测试与格式检查随之失败。编排代码不用改，资源、依赖与启动顺序不变。

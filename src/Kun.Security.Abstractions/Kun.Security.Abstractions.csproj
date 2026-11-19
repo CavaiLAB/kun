@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    服务间令牌的主体模型与声明词汇表（S1-KUN-026）：Principal、DelegationActor、PrincipalKind 与它的 JSON 转换器、IdentityClaimNames。
+    零依赖：只用 BCL（System.Text.Json 的特性）。签发、校验与从声明解析主体的实现在 Kun.Security；公共表面带这一组的契约包
+    （身份契约、Kun.Plugin.Sdk）引用本包，不引用 Kun.Security。命名空间是 Kun.Security，与 Kun.EventBus.Abstractions 一样不带 .Abstractions。
+  -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <RootNamespace>Kun.Security</RootNamespace>
+    <Description>Kun 服务间令牌的主体模型与声明词汇表：Principal、DelegationActor、PrincipalKind 与 IdentityClaimNames。零依赖。</Description>
+  </PropertyGroup>
+
+  <!-- 记契约，零依赖（规则 C）：公共表面带这一组的是契约包，按规则 D 契约对内核档只能直接依赖契约。 -->
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>contract</KunRole>
+    <KunZeroDependency>true</KunZeroDependency>
+  </PropertyGroup>
+
+</Project>

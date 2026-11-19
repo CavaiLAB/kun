@@ -2,7 +2,7 @@ using System.Data.Common;
 using System.Text.Json;
 using Kun.Core.Cqrs;
 using Kun.Runtime;
-using Qian.Identity.Abstractions;
+using Kun.Security;
 
 namespace Kun.Plugin.Sdk;
 

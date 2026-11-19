@@ -38,6 +38,7 @@
     <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <ProjectReference Include="../../src/Kun.Observability/Kun.Observability.csproj" />
     <ProjectReference Include="../../src/Kun.RateLimit/Kun.RateLimit.csproj" />
+    <ProjectReference Include="../../src/Kun.Security.Abstractions/Kun.Security.Abstractions.csproj" />
     <ProjectReference Include="../../src/Kun.Security/Kun.Security.csproj" />
     <ProjectReference Include="../../src/Kun.Storage.Abstractions/Kun.Storage.Abstractions.csproj" />
     <ProjectReference Include="../../src/Kun.Storage.Local/Kun.Storage.Local.csproj" />

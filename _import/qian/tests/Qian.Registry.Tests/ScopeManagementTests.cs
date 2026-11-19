@@ -6,6 +6,7 @@ using Kun.Authorization;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.MultiTenancy;
+using Kun.Security;
 using Kun.Security.Authentication;
 using Kun.Security.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

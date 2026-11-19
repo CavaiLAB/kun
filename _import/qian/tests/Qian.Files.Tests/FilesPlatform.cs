@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Security;
 using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;

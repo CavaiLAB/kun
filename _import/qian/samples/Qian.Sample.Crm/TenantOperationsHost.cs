@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.Security;
 using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;

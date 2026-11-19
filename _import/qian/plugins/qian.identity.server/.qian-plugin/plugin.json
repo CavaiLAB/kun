@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.identity.server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "提供 qian.identity.server 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
@@ -65,7 +65,7 @@
         "$generated": true,
         "component": "qian.identity.server",
         "source": "Qian.Identity.Server.IdentityServerComponent, Qian.Identity.Server",
-        "sha256": "2806f0cf862d4794fe14c481922bf726c1a3574f527e64ad355cb0fae4142924",
+        "sha256": "0b721fb64ea42fc58277c767f21d2c171e7120255206068a8e738a8a0f242db3",
         "fields": [
           ""
         ]

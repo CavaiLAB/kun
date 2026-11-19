@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using Kun.Security;
 using Microsoft.EntityFrameworkCore.Storage;
 using Qian.Audit;
 using Qian.Authz.Abstractions;

@@ -9,6 +9,7 @@ using Kun.Core.MultiTenancy;
 using Kun.Gateway;
 using Kun.Identity.Abstractions.Session;
 using Kun.MultiTenancy;
+using Kun.Security;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Config;

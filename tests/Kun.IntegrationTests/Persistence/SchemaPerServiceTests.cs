@@ -162,10 +162,7 @@ public sealed class SchemaPerServiceTests(PostgresFixture fx)
 
         await using var ctx = new SchemaATestDbContext(opts, new NoopTenantContext());
 
-        // EnsureCreatedAsync opens a connection without going through SaveChangesAsync, so
-        // the interceptor cannot fire during schema creation. Instead we trigger SaveChanges
-        // with a pending insert — that IS the documented guarded path (M5).
-        await ctx.Database.EnsureCreatedAsync(ct);
+        // The interceptor checks the schema on SaveChanges, before executing the insert.
         ctx.Items.Add(SchemaAItem.Create(Guid.NewGuid(), "gamma"));
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(

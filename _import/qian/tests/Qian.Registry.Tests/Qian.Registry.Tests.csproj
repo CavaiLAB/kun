@@ -23,7 +23,7 @@
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy/Kun.Tenancy.csproj" />
     <ProjectReference Include="../../packages/Qian.Registry.AspNetCore/Qian.Registry.AspNetCore.csproj" />
-    <ProjectReference Include="../../packages/Qian.Authz/Qian.Authz.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Authorization.Rbac/Kun.Authorization.Rbac.csproj" />
     <ProjectReference Include="../../packages/Qian.Audit/Qian.Audit.csproj" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
   </ItemGroup>

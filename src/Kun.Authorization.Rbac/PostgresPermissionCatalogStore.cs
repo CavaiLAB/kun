@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 // 目录只存声明；这里既不授予主体角色，也不进行权限 Check。
 internal sealed class PostgresPermissionCatalogStore(IDataService data)

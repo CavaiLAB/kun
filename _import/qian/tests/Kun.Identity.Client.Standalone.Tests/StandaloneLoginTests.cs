@@ -120,7 +120,7 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     [InlineData("Qian.Config.Apollo")]
     [InlineData("Kun.Identity.Server")]
     [InlineData("Qian.Registry")]
-    [InlineData("Qian.Authz")]
+    [InlineData("Kun.Authorization.Rbac")]
     public void SDK元数据接入仍硬拒绝任何其它Provider(string provider) =>
         Assert.Equal(provider, Assert.Single(UnexpectedDependencies([.. AllowedQianAssemblies, provider])));
 

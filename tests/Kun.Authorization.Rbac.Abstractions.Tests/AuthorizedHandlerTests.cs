@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Kun.Authorization;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Security;
@@ -12,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Qian.Testing;
 
-namespace Qian.Authz.Abstractions.Tests;
+namespace Kun.Authorization.Rbac.Abstractions.Tests;
 
 internal sealed record ProtectedCommand : IRequest<int>, IPermissionProtectedRequest
 {
@@ -81,7 +80,7 @@ public sealed class AuthorizedHandlerTests
                 Assert.Equal(42, await sender.Send(new ProtectedCommand(), ct));
                 // 开户分支给权限行为的取法：主体是开户的执行人，判定原因是 tenant_initialization，没有问服务里的判定器。
                 var options = new PermissionBehaviorOptions();
-                typeof(AuthzDefinition).Assembly.GetType("Qian.Authz.Abstractions.InitializationPermissionServices", true)!
+                typeof(AuthzDefinition).Assembly.GetType("Kun.Authorization.Rbac.Abstractions.InitializationPermissionServices", true)!
                     .GetMethod("Configure", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [options]);
                 var user = options.CurrentUser(provider)!;
                 Assert.Equal(("operator", "user", true), (user.UserId, user.PrincipalKind, user.IsAuthenticated));

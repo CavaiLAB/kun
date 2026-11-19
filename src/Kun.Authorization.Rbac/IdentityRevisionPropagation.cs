@@ -5,7 +5,7 @@ using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 // 授权变更 → 身份修订递增（S1-DEC-027，PRD 7.5 / R7）。授予的增、改、撤提交后，在同一调用内对每个受影响的 user 主体：
 // 1. 经身份端口递增它在该租户的 identity_revision：身份侧随即在 userinfo / 会话校验拒绝旧令牌，refresh 换到带新修订的令牌；
@@ -79,7 +79,7 @@ internal sealed class IdentityRevisionPropagation(IPluginContext owner, IDataSer
 /// <summary>qian.authz 的计量。</summary>
 internal static class AuthzMetrics
 {
-    public const string MeterName = "Qian.Authz";
+    public const string MeterName = "Kun.Authorization.Rbac";
     private static readonly Meter Meter = new(MeterName);
     // 授权变更后身份修订递增的结果：outcome 为 bumped / skipped / failed，reason 为跳过或失败的稳定原因（不含主体标识）。
     public static readonly Counter<long> IdentityRevisions = Meter.CreateCounter<long>("qian.authz.identity_revision.propagations", description: "授权变更后身份修订递增的结果");

@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
 using Kun.Data;

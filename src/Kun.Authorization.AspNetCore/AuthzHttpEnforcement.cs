@@ -5,14 +5,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Authz.AspNetCore;
+namespace Kun.Authorization.AspNetCore;
 
 // HTTP 入口共用：从已验证请求取主体（只信 ICurrentUser 的快照，不读请求参数），解析执行端口，按入口描述执行一次判定。
 internal static class HttpEnforcement

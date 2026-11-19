@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Config.Apollo;
 using Kun.Data.Native;
 using Kun.Data.Native.Postgres;

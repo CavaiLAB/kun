@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Json.Schema;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 public sealed class DataScopeContractTests
 {

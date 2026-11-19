@@ -1,4 +1,4 @@
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>默认租户角色模板；Grants 只能是已展开的本组件权限点，不携带成员或租户。</summary>
 public sealed class RoleTemplate

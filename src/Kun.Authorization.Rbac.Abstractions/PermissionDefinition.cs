@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>权限元数据的风险等级；具体放行和 step-up 规则由 Provider 求值。</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<PermissionRisk>))]

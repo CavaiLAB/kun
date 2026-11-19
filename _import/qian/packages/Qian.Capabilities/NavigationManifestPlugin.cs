@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;

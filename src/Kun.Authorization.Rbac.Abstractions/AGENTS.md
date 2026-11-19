@@ -1,4 +1,4 @@
-# Qian.Authz.Abstractions
+# Kun.Authorization.Rbac.Abstractions
 
 - 只放授权端口和元数据；复用 Kun.Authorization，不能在 Definition 实现 RBAC、数据库或入口鉴权算法；命令注册桥接只委托 Kun 既有行为。
 - 权限点按 R9 从组件 id、资源短名和动作拼接，不接受客户端把已有权限集合放进主体。

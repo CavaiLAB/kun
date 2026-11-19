@@ -1,10 +1,10 @@
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 // 平台角色行（tenant_id 为 null）只经专用平台授权登录读写：普通租户凭据在 FORCE RLS 下看不到、也写不进这些行。
 // 授予平台超管属 humanOnly 管理操作（PRD 7.5 Agent 契约），本类只供平台运营流程与测试引导，不对 HTTP 直接暴露。

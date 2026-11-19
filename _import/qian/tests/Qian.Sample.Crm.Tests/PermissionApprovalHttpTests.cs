@@ -8,7 +8,7 @@ using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Qian.Lifecycle;
 using Kun.Runtime;
 using Kun.Errors;

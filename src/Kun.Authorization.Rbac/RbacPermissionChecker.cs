@@ -1,10 +1,9 @@
-using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>
 /// 消费实际授权存储和活动声明的 RBAC 判定端口；主体须由已认证宿主提供。传入 <paramref name="cache"/>（Kun.Caching 的内存或 Redis 后端）时，

@@ -1,9 +1,8 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Kun.Authorization;
 
-namespace Qian.Authz.Abstractions.Tests;
+namespace Kun.Authorization.Rbac.Abstractions.Tests;
 
 public sealed class PermissionContractTests
 {
@@ -60,7 +59,7 @@ public sealed class PermissionContractTests
         Assert.Equal(["BatchCheckAsync", "CheckAsync", "ExplainAsync", "ListAllowedActionsAsync", "ListPermissionsAsync"],
             typeof(IPermissionChecker).GetMethods().Select(m => m.Name).Order(StringComparer.Ordinal));
         var directory = Path.Combine(Root, "packages/Qian.Authz.Abstractions");
-        var project = XDocument.Load(Path.Combine(directory, "Qian.Authz.Abstractions.csproj"));
+        var project = XDocument.Load(Path.Combine(directory, "Kun.Authorization.Rbac.Abstractions.csproj"));
         // 只以项目引用依赖仓库 src/ 下的 Kun 项目（S1-KUN-020），没有包引用：组件运行时、两个 Kun 抽象，以及登记受保护命令用的中介。
         // Kun.EventBus.Abstractions 只为 authz.grant.changed.v1 / authz.role.changed.v1 的集成事件记录与登记入口（S1-AZ-004），仍是 Definition 允许的 Kun 抽象。
         Assert.Empty(project.Descendants("PackageReference"));

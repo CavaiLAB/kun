@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>
 /// 强制执行点（PEP）共用的执行端口：HTTP 端点、gRPC 拦截器与命令管道都把「主体 + 权限点 + 入口」交给它，

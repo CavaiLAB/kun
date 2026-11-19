@@ -1,6 +1,5 @@
-using Kun.Authorization;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>平台级角色与旁路的稳定词汇。</summary>
 public static class PlatformRoles

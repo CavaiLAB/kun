@@ -1,11 +1,11 @@
 using System.Reflection;
 using System.Text.Json;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Registry;
 using Kun.Errors;
 using Qian.Surfaces;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 public sealed class PermissionCatalogCompilerTests
 {

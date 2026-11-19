@@ -1,10 +1,10 @@
 using Kun.EntityFrameworkCore;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using System.Text.Json;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 AuthzPlugin 保留。</summary>
 [KunPlugin("qian.authz", MetadataTypes = [typeof(AuthzRuntimeEvents)])]

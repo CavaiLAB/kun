@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>指定资源的数据范围；AllData=true 时 Filter 必须缺席，false 时必须存在。该 DTO 不执行鉴权。</summary>
 public sealed record DataScopeRule(string Resource, bool AllData, JsonElement? Filter = null);

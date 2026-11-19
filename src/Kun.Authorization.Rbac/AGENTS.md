@@ -1,7 +1,7 @@
 # Authz Provider
 
 - 权威设计是 ADR-006、组件规格 §6.3 与 S1 §7.5；权限不从令牌权限集合推导。
-- Definition 为 Qian.Authz.Abstractions，主文档为 README.md；平台经 Registry 的预装/发布元数据登记，独立模式经同语义的属性声明登记。
+- Definition 为 Kun.Authorization.Rbac.Abstractions，主文档为 README.md；平台经 Registry 的预装/发布元数据登记，独立模式经同语义的属性声明登记。
 - 权限点以组件 id 加资源、动作短名派生；角色模板只能引用本组件已登记的权限，通配符先展开，不能扩大为未知或外部权限。
 - 元数据登记不等于租户角色已授予；真实角色持久化、求值、缓存、审计、接口都按任务验收，不以替身关闭。
 - 数据库实现只依赖 Data Definition 并继承 KunStrictDbContext；租户读写用受限角色及 RLS。
@@ -17,5 +17,5 @@
   - 范围：只处理 user 主体；`authz.role.changed.v1` 不扇出；身份组件不在本进程即跳过。
   - 重复递增：同进程宿主不要再登记身份侧对 `authz.grant.changed.v1` 的订阅（S1-IDP-012），否则一次变更递增两次。
   - 新的授予写入路径：必须经 `Write`，才会进入这一步。
-- 任何授权写入都经 `Write` 并登记 `AuthzChange`：新的变更类型要同时进 `AuthzChangeHandler` 与 `Qian.Authz.Abstractions` 的事件记录；宿主缺 `RegisterAuthzEvents` 装载失败、缺 `AddQianAuthzEvents` 写入回滚，不要为了绕过而静默吞掉。
+- 任何授权写入都经 `Write` 并登记 `AuthzChange`：新的变更类型要同时进 `AuthzChangeHandler` 与 `Kun.Authorization.Rbac.Abstractions` 的事件记录；宿主缺 `RegisterAuthzEvents` 装载失败、缺 `AddKunAuthzEvents` 写入回滚，不要为了绕过而静默吞掉。
 - 两条守卫不可放宽：绑定 Scope 只能是租户本身（子作用域 / 别的租户 → `AUTHZ_SCOPE_MISMATCH`）；最后一个有效的 `tenant.owner` / `tenant.admin` 绑定不可撤销或加有效期上限（→ `AUTHZ_LAST_ADMIN_LOCKOUT`）。

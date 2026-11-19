@@ -1,6 +1,5 @@
-using Kun.Authorization;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>可解释判定及命中链路；拒绝时不包含其它租户的数据。</summary>
 public sealed class AuthorizationExplanation

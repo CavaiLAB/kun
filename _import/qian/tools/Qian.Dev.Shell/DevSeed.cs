@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Qian.Lifecycle;

@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Kun.Data;
 using Qian.Gateway;
 using Kun.Runtime;

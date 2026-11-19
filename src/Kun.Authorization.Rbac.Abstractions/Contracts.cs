@@ -1,7 +1,6 @@
-using Kun.Authorization;
 using Kun.Runtime;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>Authz seam 的 Definition；只声明可替换端口，不实现授权引擎。</summary>
 public static class AuthzDefinition

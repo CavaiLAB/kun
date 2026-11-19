@@ -13,7 +13,7 @@ tests/
   Kun.Identity.Server.Tests/                 真实 OpenIddict + PostgreSQL + Kun 客户端协议验收、跨宿主吊销、后通道与密钥轮换；账号模型（Argon2id、标识与绑定守卫、sub 不碰撞、配额）、统一登录流水线（审计、限流与并发、强制改密、租户选择与切换、MFA 不降级）与账号 HTTP 面端到端（可控时钟 + 可控租户目录）、会话中心（吊销即时与旁路、并发上限与单端、租户冻结、真实 Redis 索引与宕机降级、管理面、多副本竞争、日志卫生）
   Kun.Identity.Client.Tests/                 依赖方：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码与 qian.sid 会话、篡改 nonce / iss / state 重放、刷新单飞与轮换（真实 Redis）、登出防伪、卸载、后通道登出；会话主体经 Kun 网关签发器铸 S2S 后下游接受；S2S 契约逐条违约与透传拒绝
   Kun.Identity.Client.Standalone.Tests/      独立宿主 E2E：只引用 Kun.Identity.Client，对接 Dex（DexFixture）完成登录与登出，并断言依赖闭包
-  Qian.Authz.Tests/                           授权：权限目录与默认角色、RBAC 判定与快照缓存（真实 PostgreSQL + Redis，两宿主授予 / 撤销传播）、平台超管旁路（专用平台登录 + 真实 Audit 插件）
+  Kun.Authorization.Rbac.Tests/                           授权：权限目录与默认角色、RBAC 判定与快照缓存（真实 PostgreSQL + Redis，两宿主授予 / 撤销传播）、平台超管旁路（专用平台登录 + 真实 Audit 插件）
   Kun.Data.AspNetCore.Tests/                  数据端点：基准类型目录（无数据库）与数据连接档案（真实 PostgreSQL、挂载式密钥、连通测试）
   Kun.Data.Native.Postgres.Tests/             NativeData：受限登录、精确 RLS 策略、租户/平台原始 SQL、事务与可撤销会话生命周期（真实 PostgreSQL）
   Kun.Data.Native.Postgres.AotTests/          独立原生持续门：运行严格发布的 Linux 二进制，复用共享 fixture 验证真实数据库；不在常规解决方案测试中跳过
@@ -165,7 +165,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 
 - 本目录的项目写了 `<IsPackable>true</IsPackable>`，就要同时写档位与角色，否则构建报 KUNTIER001。
 - 原来按名字的几条规则这样对应：组件之间只经契约包引用、不依赖平台插件 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，对应规则 P（平台档包只依赖内核档的包与平台档的契约包）；Definition 的 Kun 直接依赖对应规则 D（契约包直接依赖的内核档包只能是契约）。
-- 原来白名单里的四条边：`Kun.Core`、`Kun.Authorization` 记为契约，`Kun.Tenancy.Abstractions → Kun.Core` 与 `Qian.Authz.Abstractions → Kun.Authorization` 不再需要；`Kun.Data.Abstractions` 的两条记成档位例外，写在它的项目文件里。
+- 原来白名单里的四条边：`Kun.Core`、`Kun.Authorization` 记为契约，`Kun.Tenancy.Abstractions → Kun.Core` 与 `Kun.Authorization.Rbac.Abstractions → Kun.Authorization` 不再需要；`Kun.Data.Abstractions` 的两条记成档位例外，写在它的项目文件里。
 - 组合包 `Qian.Bundle.*` 不再整包豁免。现在一个也没有，以后加了同样要写档位。
 
 ### 4.3 门禁自测
@@ -243,9 +243,9 @@ S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` �
 
 ### 受保护命令注册门禁（S1-AZ-001）
 
-QIAN0005 在接入分析器的项目里检查真正的 Kun `AddRequestHandler`：受保护请求或未确定请求类型的泛型封装必须改用 `Qian.Authz.Abstractions.AddAuthorizedHandler`，同一入口将处理器与权限行为登记到同一个 builder。两个重载、方法组引用、生成代码均受检查；关闭警告即错误不会降低规则。
+QIAN0005 在接入分析器的项目里检查真正的 Kun `AddRequestHandler`：受保护请求或未确定请求类型的泛型封装必须改用 `Kun.Authorization.Rbac.Abstractions.AddAuthorizedHandler`，同一入口将处理器与权限行为登记到同一个 builder。两个重载、方法组引用、生成代码均受检查；关闭警告即错误不会降低规则。
 
-`python3 -m unittest discover -s tests/gates -p test_authorized_handler.py` 编译八组真实样例：直接注册、能力注册、委托引用、泛型包装、应用伪造桥接类必须失败；安全入口、普通请求及无关同名方法必须通过。运行时拒绝/放行顺序由 Qian.Authz.Abstractions.Tests 验证。
+`python3 -m unittest discover -s tests/gates -p test_authorized_handler.py` 编译八组真实样例：直接注册、能力注册、委托引用、泛型包装、应用伪造桥接类必须失败；安全入口、普通请求及无关同名方法必须通过。运行时拒绝/放行顺序由 Kun.Authorization.Rbac.Abstractions.Tests 验证。
 
 ### 集成事件发布位置门禁（S1-EVT-001）
 

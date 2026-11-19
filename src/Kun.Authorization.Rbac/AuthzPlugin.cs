@@ -1,19 +1,18 @@
 using System.Linq.Expressions;
 using System.Text.Json;
-using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>
 /// Authz Provider 的组件入口（global scope）：提供 ctx.Authz 判定服务（真实 RBAC，宿主装配 Kun.Caching 时缓存主体快照）、活动权限登记表与

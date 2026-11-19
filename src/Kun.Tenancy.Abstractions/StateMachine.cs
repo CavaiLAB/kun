@@ -33,7 +33,7 @@ public sealed record TenantTransitionApproval(Guid Id, TenantStatus From, Tenant
 public static class TenancyErrors
 {
     /// <summary>已达到用户限额；平台超管不计入。</summary>
-    public static readonly ErrorCode UserLimit = Qian.Authz.Abstractions.AuthzErrors.CardinalityUserLimit;
+    public static readonly ErrorCode UserLimit = Kun.Authorization.Rbac.Abstractions.AuthzErrors.CardinalityUserLimit;
     /// <summary>状态不支持该迁移。</summary>
     public static readonly ErrorCode StateConflict = ErrorCode.Business("TENANCY_STATE_CONFLICT", 409, "qian.tenancy",
         new Dictionary<string, string> { ["zh-CN"] = "租户状态冲突", ["en"] = "Tenant state conflict" },

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Audit;
 using Qian.Audit.Native;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Kun.Data;
 
 namespace Qian.Platform.Host;

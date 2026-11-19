@@ -8,9 +8,9 @@ using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy.DependencyInjection;
 using Kun.Security.DependencyInjection;
-using Qian.Authz;
-using Qian.Authz.Abstractions;
-using Qian.Authz.AspNetCore;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Authorization.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config;
 using Qian.Config.Secrets;
@@ -157,7 +157,7 @@ public sealed class PlatformHostComposition
         });
         services.AddKunMediator(registry =>
         {
-            registry.AddKunTenancyEvents().AddQianAuthzEvents().AddQianRegistryEvents().AddQianLifecycleEvents();
+            registry.AddKunTenancyEvents().AddKunAuthzEvents().AddQianRegistryEvents().AddQianLifecycleEvents();
             foreach (var mediator in _mediator) mediator(registry);
         });
         // 数据会话的 Outbox 写成 v1 信封（只写不投递）；events 条目的 broker / 领取方式由它的登记再配。

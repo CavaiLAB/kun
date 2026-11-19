@@ -1,16 +1,15 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kun.Authorization;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 // ADR-006 D6.3「平台超管旁路在策略中显式声明并审计」：只有平台主体经此端口显式请求、持有效 platform.superadmin、且审计写成功才放行。
 // 拒绝不写审计，原因只给稳定码；审计不可用或写入失败一律拒绝。producer 是 Authz 组件自己的 global 上下文，平台链写入以它为生产方。

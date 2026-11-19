@@ -6,8 +6,8 @@ using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Qian.Audit;
-using Qian.Authz;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
 using Qian.Config.Apollo;
 using Kun.Data;
@@ -122,7 +122,7 @@ public static class PlatformComponents
         new("qian.events", "Kun.EventBus.EntityFrameworkCore.EventsPlugin, Kun.EventBus.EntityFrameworkCore", _ => new EventsPlugin(), RegisterEvents),
         new("qian.tenancy", "Kun.Tenancy.TenancyComponent, Kun.Tenancy", _ => new TenancyComponent(),
             services => services.AddAppData<TenancyDbContext>(TenancyDbContext.Schema)),
-        new("qian.authz", "Qian.Authz.AuthzComponent, Qian.Authz", activation => new AuthzPlugin(activation.Permissions), services =>
+        new("qian.authz", "Kun.Authorization.Rbac.AuthzComponent, Kun.Authorization.Rbac", activation => new AuthzPlugin(activation.Permissions), services =>
         {
             services.AddAppData<AuthzDbContext>(AuthzDbContext.Schema);
             // 配置了平台授权登录（platformRole）才有平台超管旁路与平台控制台的只读判定；登录凭据只在这里绑定。

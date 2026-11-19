@@ -1,14 +1,13 @@
-using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Runtime;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 public sealed partial class SuperadminBypassTests
 {

@@ -2,7 +2,7 @@ using System.Data.Common;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>平台角色（tenant_id 为 null 的 roles / role_assignments 行）的显式存储权限；不授予任何租户行或授权表的访问。</summary>
 public static class AuthzPlatformAccess

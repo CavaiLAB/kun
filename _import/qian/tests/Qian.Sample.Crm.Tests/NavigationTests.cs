@@ -9,7 +9,7 @@ using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Qian.Capabilities;
 using Qian.Registry;
 using Kun.Runtime;

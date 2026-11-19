@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Net;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Microsoft.AspNetCore.Builder;

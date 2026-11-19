@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Kun.Errors;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 public sealed partial class PermissionCatalogPersistenceTests
 {

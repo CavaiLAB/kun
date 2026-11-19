@@ -1,15 +1,14 @@
 using System.Text.Json;
-using Kun.Authorization;
 using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Runtime;
 using Qian.Surfaces;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 // S1-YUE-018：平台超管的只读判定。与旁路对平台资源同一套条件（平台用户主体、无租户上下文、权限点已登记、持有效角色、审计可用），
 // 但不写任何审计、不放行任何操作；外壳的平台控制台目录据此决定给平台身份哪些页面。真实 PostgreSQL、专用平台登录与真实 Audit 插件。

@@ -2,14 +2,13 @@ using System.Diagnostics;
 using System.Text;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Kun.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Authz.AspNetCore;
+namespace Kun.Authorization.AspNetCore;
 
 /// <summary>
 /// gRPC 入口的 PEP：四种调用形态在进入 handler 或读取首帧前，对方法上 <see cref="RequiresPermissionAttribute"/> 声明的每个权限点执行一次判定；

@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Qian.Capabilities;
 using Qian.Lifecycle;
 using Qian.Profiles.Abstractions;

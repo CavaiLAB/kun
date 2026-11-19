@@ -1,8 +1,8 @@
-# Qian.Authz
+# Kun.Authorization.Rbac
 
-Authz seam 的 Provider，Definition 为 Qian.Authz.Abstractions。组件表面为 metadata/permissions.json、metadata/roles.json；平台来源为 Registry 的宿主预装声明，独立模式来源为 PermissionAttribute 或随包 metadata。通过 qian.authz 装入 platform，也支持 standalone；qian add authz 的完整安装、正式发布仍按各项门禁验收。
+Authz seam 的 Provider，Definition 为 Kun.Authorization.Rbac.Abstractions。组件表面为 metadata/permissions.json、metadata/roles.json；平台来源为 Registry 的宿主预装声明，独立模式来源为 PermissionAttribute 或随包 metadata。通过 qian.authz 装入 platform，也支持 standalone；qian add authz 的完整安装、正式发布仍按各项门禁验收。
 
-本包已实现：声明编译与目录持久化、租户角色与默认授权、活动权限登记、真实 RBAC 判定（Check / BatchCheck / ListPermissions / ListAllowedActions / Explain）与主体快照缓存、平台超管显式旁路与审计、组件入口 `AuthzPlugin`（目录登记、命令 PEP、`tenant/provisioned` 时实例化默认角色）、当前主体的有效权限（HTTP 端点 `GET /api/authz/me/permissions` 在 Qian.Authz.AspNetCore），以及 S1-AZ-004 的三处强制执行点（HTTP 端点、gRPC 拦截器、命令管道共用的执行端口）、决策审计、identity_revision 服务端比对、授权变更事件与两条授予守卫（见「强制执行点与决策审计」），和 S1-AZ-009 的「授权变更 → 身份修订递增」（同进程宿主，见同名小节）。组织 / 岗位 / 组继承（S1-AZ-005，依赖 S1-IDP-009 组织目录）、管理 API 与角色 CRUD（S1-AZ-005）、数据与字段权限编译（S2）、真实开户编排派发 `tenant/provisioned`（S1-TEN-003）以及 `qian add authz` 的可安装组件仍未完成，不能以声明解析代替授权成功。各项工作与验收记录在 S1-AZ-002 / S1-AZ-003 任务文件中。
+本包已实现：声明编译与目录持久化、租户角色与默认授权、活动权限登记、真实 RBAC 判定（Check / BatchCheck / ListPermissions / ListAllowedActions / Explain）与主体快照缓存、平台超管显式旁路与审计、组件入口 `AuthzPlugin`（目录登记、命令 PEP、`tenant/provisioned` 时实例化默认角色）、当前主体的有效权限（HTTP 端点 `GET /api/authz/me/permissions` 在 Kun.Authorization.AspNetCore），以及 S1-AZ-004 的三处强制执行点（HTTP 端点、gRPC 拦截器、命令管道共用的执行端口）、决策审计、identity_revision 服务端比对、授权变更事件与两条授予守卫（见「强制执行点与决策审计」），和 S1-AZ-009 的「授权变更 → 身份修订递增」（同进程宿主，见同名小节）。组织 / 岗位 / 组继承（S1-AZ-005，依赖 S1-IDP-009 组织目录）、管理 API 与角色 CRUD（S1-AZ-005）、数据与字段权限编译（S2）、真实开户编排派发 `tenant/provisioned`（S1-TEN-003）以及 `qian add authz` 的可安装组件仍未完成，不能以声明解析代替授权成功。各项工作与验收记录在 S1-AZ-002 / S1-AZ-003 任务文件中。
 
 ## 声明编译
 
@@ -39,7 +39,7 @@ roles、role_assignments、grants 保留可空 tenant_id 的平台角色存储�
 
 ## RBAC 判定基础（S1-AZ-003）
 
-`RbacPermissionChecker` 实现 Kun 的 Check、BatchCheck、ListPermissions、ListAllowedActions 和 Explain 端口。当前查询真实租户角色与授权、有效期，并结合该租户策略版本和活动权限登记。缺少租户上下文、主体租户不一致、非法主体、未安装策略版本、未登记权限或无匹配授权均拒绝。`ExplainDetailedAsync` 返回命中角色、实际授权记录定位和缺少权限，不返回另一租户的命中信息。组件端口 `IAuthzService.ExplainDetailedAsync`（经 `ctx.Authz()`）委托同一方法，消费方只依赖 Qian.Authz.Abstractions 就能取得完整解释；继承自 Kun 的 `ExplainAsync` 只返回判定。
+`RbacPermissionChecker` 实现 Kun 的 Check、BatchCheck、ListPermissions、ListAllowedActions 和 Explain 端口。当前查询真实租户角色与授权、有效期，并结合该租户策略版本和活动权限登记。缺少租户上下文、主体租户不一致、非法主体、未安装策略版本、未登记权限或无匹配授权均拒绝。`ExplainDetailedAsync` 返回命中角色、实际授权记录定位和缺少权限，不返回另一租户的命中信息。组件端口 `IAuthzService.ExplainDetailedAsync`（经 `ctx.Authz()`）委托同一方法，消费方只依赖 Kun.Authorization.Rbac.Abstractions 就能取得完整解释；继承自 Kun 的 `ExplainAsync` 只返回判定。
 
 主体须由已认证宿主提供，不从请求角色或权限数组推导授权。step-up 与终端限制需要可信身份/终端适配器提供 `IAuthzExecutionConstraints` 证据；未接入时保持拒绝。资源实例 ACL、L4/L5 仍在各自阶段，当前只消费未限定 ResourceRef 的角色授权。平台主体（TenantId 为 null）在普通判定中一律拒绝，原因 `platform_subject_requires_bypass`；平台超管只能经显式旁路放行。
 
@@ -63,7 +63,7 @@ roles、role_assignments、grants 保留可空 tenant_id 的平台角色存储�
 
 服务键按 R101 统一为单段名称：`AuthzPermissions`、`AuthzSuperadminBypass`、`AuthzResourceTypes` 与 `AuthzTenantRoleGrant`，现已进入代码派生的 provides；消费者可以将对应 Definition 键写入 inject。扩展点契约 ID `qian.authz.resource-type/v1` 保持不变。租户开户编排始终通过 `TenantRoleGrant.Key` 取用，不保留旧两段式键的隐式别名。
 
-配置只接受三个字段：`advancedMode` 只能为 false（S1 没有高级模式，数据 / 字段权限编译属 S2）；可选的 `platformRole` 是专用平台授权登录角色名，配置后旁路才可能放行，未配置时旁路端口仍在但一律拒绝（`platform_role_not_configured`），因为清单的 provides 是静态的，缺配置不等于放行；可选的 `decisionLogSampling`（0–1，缺省 1）是放行判定写入决策审计的采样比例。宿主还须登记授权变更事件类型（`AddKunEventBus(r => r.RegisterAuthzEvents())`，Apply 时校验）与处理器（`AddKunMediator(m => m.AddQianAuthzEvents())`）。tenant scope 装载、未知字段、非法角色名都使 Apply 失败；`platformRole` 指向的连接若是普通应用凭据（可继承、能读租户授权表），Apply 以 `KunDataMisconfiguredException` 失败。
+配置只接受三个字段：`advancedMode` 只能为 false（S1 没有高级模式，数据 / 字段权限编译属 S2）；可选的 `platformRole` 是专用平台授权登录角色名，配置后旁路才可能放行，未配置时旁路端口仍在但一律拒绝（`platform_role_not_configured`），因为清单的 provides 是静态的，缺配置不等于放行；可选的 `decisionLogSampling`（0–1，缺省 1）是放行判定写入决策审计的采样比例。宿主还须登记授权变更事件类型（`AddKunEventBus(r => r.RegisterAuthzEvents())`，Apply 时校验）与处理器（`AddKunMediator(m => m.AddKunAuthzEvents())`）。tenant scope 装载、未知字段、非法角色名都使 Apply 失败；`platformRole` 指向的连接若是普通应用凭据（可继承、能读租户授权表），Apply 以 `KunDataMisconfiguredException` 失败。
 
 数据与字段端口在 S2 编译器交付前恒拒绝：`GetExpressionAsync` 返回恒假表达式，`GetPredicateAsync` 抛 AUTHZ_DENIED（谓词 AST 还没有「恒假」的约定词汇，返回任何谓词都可能被编译器当作放宽），`IFieldPolicy` 不给任何可读、可写字段。
 
@@ -79,7 +79,7 @@ roles、role_assignments、grants 保留可空 tenant_id 的平台角色存储�
 
 `IAuthzService.ListEffectivePermissionsAsync(subject)` 列出主体经角色授权命中的权限点：按当前租户的策略安装版本取活动声明，逐个求值，只返回存在匹配授权的条目，按权限点序数排序。每条为 `EffectiveGrant(Definition, Allowed, Reason)`，与同一上下文下 Check 的结果一致；需要 step-up 或终端证明的权限点照样列出，`Allowed` 为 false、原因为 `step_up_required` 或 `terminal_context_required`，界面据此提示二次验证而不是隐藏入口。主体无效、租户上下文缺失或不一致、平台主体都返回空列表，不抛错、不泄露其它租户。
 
-HTTP 端点由 Qian.Authz.AspNetCore 提供：`MapQianAuthz(source)` 登记 `GET /api/authz/me/permissions`，`source` 返回可注入 `Authz` 的插件上下文（参考应用传入 authz 组件按请求租户收窄的上下文）。主体与租户只取自已认证请求（`ICurrentUser`），不读请求参数；未认证 401（UNAUTHENTICATED），委托令牌与 Agent 主体在 S1 一律 403（AUTHZ_DENIED），授权组件未就绪或已卸载时与不存在同为 404，响应带 `Cache-Control: private, no-store`。响应为 `{ items: [{ permission, resource, action, risk, stepUp, terminals, allowed, reason }] }`，resource 为组件前缀的资源类型（如 `qian.sample.crm:customer`），risk 为 low / medium / high / critical。授权的其余 HTTP 端点（Check / Explain、角色与授权管理）归 S1-AZ-005。
+HTTP 端点由 Kun.Authorization.AspNetCore 提供：`MapKunAuthz(source)` 登记 `GET /api/authz/me/permissions`，`source` 返回可注入 `Authz` 的插件上下文（参考应用传入 authz 组件按请求租户收窄的上下文）。主体与租户只取自已认证请求（`ICurrentUser`），不读请求参数；未认证 401（UNAUTHENTICATED），委托令牌与 Agent 主体在 S1 一律 403（AUTHZ_DENIED），授权组件未就绪或已卸载时与不存在同为 404，响应带 `Cache-Control: private, no-store`。响应为 `{ items: [{ permission, resource, action, risk, stepUp, terminals, allowed, reason }] }`，resource 为组件前缀的资源类型（如 `qian.sample.crm:customer`），risk 为 low / medium / high / critical。授权的其余 HTTP 端点（Check / Explain、角色与授权管理）归 S1-AZ-005。
 
 参考应用 TCK（Qian.Sample.Crm.Tests 的 `参考应用清单经tenant_provisioned实例化默认角色_…`）在真实宿主上验证：清单声明的 customer 读、写、导出登记为全名；非 qian.tenancy 生产方或主体不符的通知被拒；新租户经真实 qian.tenancy 上下文派发开通后，Owner 经 HTTP 读到三项（导出 high、step-up、web 终端、allowed=false），使用者只读到 read，与 Check 一致；重复开通不改变任何行与修订；卸载 Provider 后端点 404，持久目录与授予保留。平台模式由 Qian.Registry.Tests 的 `平台模式Authz从预装组件读取权限目录_…` 验证：从注册表预装组件编译、持久化并登记目录，开通后按 qian.registry 的默认角色授权，卸载后活动声明撤销。
 
@@ -93,7 +93,7 @@ HTTP 端点由 Qian.Authz.AspNetCore 提供：`MapQianAuthz(source)` 登记 `GET
 
 ### 平台超管只读判定（S1-YUE-018）
 
-`ISuperadminCheck.AllowedAsync(subject, permissions)`（服务键 `AuthzSuperadminCheck`）回答「此刻旁路会对这个平台主体放行哪些平台权限点」，供平台控制台目录（Qian.Capabilities 的 `GET /api/capabilities/console`）决定给平台身份展示哪些页面与菜单。条件与旁路的平台资源分支相同：主体是平台用户（TenantId 为 null、种类 user、标识合法）、当前没有租户上下文、配置了平台角色登录且主体持有效 `platform.superadmin`、Audit 已装配、权限点在持久目录的某个版本中且该版本仍在活动登记；返回满足条件的权限点（去重、按 Ordinal 排序），任一前提不满足即为空。它不写审计、不放行任何操作，也不暴露旁路本身（端口是只转发判定的独立外观）；页面里的每次操作仍由组件的运营端点逐次经旁路判定并写平台审计链。角色只查一次，登记按一条查询取出全部候选，和旁路共用同一个服务实例与平台角色存储。用例 `tests/Qian.Authz.Tests/SuperadminCheckTests.cs`（真实 PG、专用平台登录与真实 Audit）：持角色时只交出已登记的平台权限点，未登记、非法与重复的被滤掉；不持角色、撤销角色、活动登记释放、Audit 卸载后为空；租户上下文中，以及带租户、服务、Agent 与空标识的主体为空；判定全程一条审计也不写（对照经旁路访问一次，审计表才多一条）。
+`ISuperadminCheck.AllowedAsync(subject, permissions)`（服务键 `AuthzSuperadminCheck`）回答「此刻旁路会对这个平台主体放行哪些平台权限点」，供平台控制台目录（Qian.Capabilities 的 `GET /api/capabilities/console`）决定给平台身份展示哪些页面与菜单。条件与旁路的平台资源分支相同：主体是平台用户（TenantId 为 null、种类 user、标识合法）、当前没有租户上下文、配置了平台角色登录且主体持有效 `platform.superadmin`、Audit 已装配、权限点在持久目录的某个版本中且该版本仍在活动登记；返回满足条件的权限点（去重、按 Ordinal 排序），任一前提不满足即为空。它不写审计、不放行任何操作，也不暴露旁路本身（端口是只转发判定的独立外观）；页面里的每次操作仍由组件的运营端点逐次经旁路判定并写平台审计链。角色只查一次，登记按一条查询取出全部候选，和旁路共用同一个服务实例与平台角色存储。用例 `tests/Kun.Authorization.Rbac.Tests/SuperadminCheckTests.cs`（真实 PG、专用平台登录与真实 Audit）：持角色时只交出已登记的平台权限点，未登记、非法与重复的被滤掉；不持角色、撤销角色、活动登记释放、Audit 卸载后为空；租户上下文中，以及带租户、服务、Agent 与空标识的主体为空；判定全程一条审计也不写（对照经旁路访问一次，审计表才多一条）。
 
 ### 平台角色存储与专用登录
 
@@ -107,9 +107,9 @@ S1-TEN-003 增补 `TenantRoleGrant.Key` / `ITenantRoleGrant`：为当前租户�
 
 ## 数据范围契约与元数据（S1-AZ-006）
 
-DataScopeRule 在 Authz Definition 声明 resource、allData 与可选的 JSON Filter AST；规则 Schema、样例与离线用法见 [数据权限契约 v1](../../contracts/authz/v1/README.md)。Filter AST、矩阵和系统变量直接取 Data 的同一份源文件，不在授权库重建字段类型或变量目录，也不为 Definition 增加数据库依赖。
+DataScopeRule 在 Authz Definition 声明 resource、allData 与可选的 JSON Filter AST；规则 Schema、样例与离线用法见 [数据权限契约 v1](../../_import/qian/contracts/authz/v1/README.md)。Filter AST、矩阵和系统变量直接取 Data 的同一份源文件，不在授权库重建字段类型或变量目录，也不为 Definition 增加数据库依赖。
 
-GET /api/authz/meta 与 me/permissions 共用 MapQianAuthz 的认证入口；返回 dataScopeRule、filterAst、operators、systemVariables 和 merge 元数据，不返回主体角色、授权集合或实际数据。匿名拒绝，Agent/委托主体拒绝，Authz 未挂载时 404；响应 private/no-store。
+GET /api/authz/meta 与 me/permissions 共用 MapKunAuthz 的认证入口；返回 dataScopeRule、filterAst、operators、systemVariables 和 merge 元数据，不返回主体角色、授权集合或实际数据。匿名拒绝，Agent/委托主体拒绝，Authz 未挂载时 404；响应 private/no-store。
 
 DataScopeComposition.ForResource 只建立逻辑计划：同角色 AND（重复角色输入仍属于同一分支）、不同角色 OR，任何明确 allData 只覆盖该资源的数据范围，缺少规则/空角色默认拒绝。每条规则先经同源 Schema 结构校验，计划克隆 JSON 片段，保留各 Filter AST 内部逻辑，避免展平时改变括号含义或指数展开。allData=true 与 filter 不可同时存在；false 时 filter 必填。
 
@@ -139,7 +139,7 @@ DataScopeComposition.ForResource 只建立逻辑计划：同角色 AND（重复�
 
 ### 授权变更 → 身份修订递增（S1-AZ-009）
 
-口径见 S1-DEC-027 与 [决策说明](../../docs/decisions/authz-identity-revision-wiring.md)。`AuthzPlugin.RoleStore` 组装的角色存储在授予的增、改、撤（`authz.grant.changed.v1` 的 assigned / updated / revoked）提交并释放数据会话之后，在同一调用内对每个受影响的 user 主体：
+口径见 S1-DEC-027 与 [决策说明](../../_import/qian/docs/decisions/authz-identity-revision-wiring.md)。`AuthzPlugin.RoleStore` 组装的角色存储在授予的增、改、撤（`authz.grant.changed.v1` 的 assigned / updated / revoked）提交并释放数据会话之后，在同一调用内对每个受影响的 user 主体：
 
 1. 经 `ctx` 解析的 `IIdentityAccounts.BumpIdentityRevisionAsync(personId, "authz.grant.<change>")` 在当前租户递增修订：身份侧随即在 userinfo / 会话校验拒绝旧令牌，refresh 换到新修订；
 2. 用返回的新修订抬高本组件的下限（`IdentityRevisionGuard.RaiseAsync`：条件更新或插入，并发首写时重试，返回时下限一定不低于该值）。
@@ -150,30 +150,30 @@ DataScopeComposition.ForResource 只建立逻辑计划：同角色 AND（重复�
 - user 主体不是 GUID，或该租户没有它的成员身份（`NOT_FOUND`）；
 - 身份组件不在本进程（`TryInject` 取不到账号端口）。
 
-`authz.role.changed.v1`（建角色、组件默认授权安装）不扇出，判定经租户授权修订即时生效。授权变更已提交，所以这一步不回滚、不向调用方抛错：瞬时故障按 50 → 400 毫秒退避重试，总预算 3 秒，用尽即记警告。计量 `Qian.Authz` / `qian.authz.identity_revision.propagations` 的 tag 为 `outcome`（bumped / skipped / failed）与 `reason`（跳过或失败的稳定原因，不含主体标识）。
+`authz.role.changed.v1`（建角色、组件默认授权安装）不扇出，判定经租户授权修订即时生效。授权变更已提交，所以这一步不回滚、不向调用方抛错：瞬时故障按 50 → 400 毫秒退避重试，总预算 3 秒，用尽即记警告。计量 `Kun.Authorization.Rbac` / `qian.authz.identity_revision.propagations` 的 tag 为 `outcome`（bumped / skipped / failed）与 `reason`（跳过或失败的稳定原因，不含主体标识）。
 
 宿主除把身份组件装进同一个 PluginLoader 外不需要额外接线。拆分部署（platform / identity 两个 Pod）里账号端口不在本进程，这一步一律跳过，由身份侧订阅 `authz.grant.changed.v1` 闭环（S1-IDP-012，随 S1-EVT-002）；同进程宿主不要再登记那个订阅，否则一次变更递增两次。
 
 ### 授权变更事件
 
-`PostgresTenantRoleStore.Write` 有实际变更时在同一事务里：递增租户授权修订 → 修订行作为聚合根 Raise `AuthzChange` 领域事件 → 宿主登记的 `AddQianAuthzEvents` 处理器经 `IIntegrationEventBus` 把 `authz.grant.changed.v1`（subjectType、subjectId、roleCode、change：assigned / updated / revoked、authzRevision）与 `authz.role.changed.v1`（roleCode、change：created / grants_installed、pluginId、pluginVersion、authzRevision）写进 Outbox，提交即可见。信封：producer `qian.authz`，actor 为 service `qian.authz` 代操作者（命令管道内沿用当前信封作用域）。宿主须 `AddKunEventBus(r => r.RegisterAuthzEvents())`（Apply 时校验，缺则装载失败）与 `AddKunMediator(m => m.AddQianAuthzEvents())`（缺则写入在提交前失败、整笔回滚）。没有实际变更（重复开通、撤销不存在的绑定）不发事件、不递增修订。
+`PostgresTenantRoleStore.Write` 有实际变更时在同一事务里：递增租户授权修订 → 修订行作为聚合根 Raise `AuthzChange` 领域事件 → 宿主登记的 `AddKunAuthzEvents` 处理器经 `IIntegrationEventBus` 把 `authz.grant.changed.v1`（subjectType、subjectId、roleCode、change：assigned / updated / revoked、authzRevision）与 `authz.role.changed.v1`（roleCode、change：created / grants_installed、pluginId、pluginVersion、authzRevision）写进 Outbox，提交即可见。信封：producer `qian.authz`，actor 为 service `qian.authz` 代操作者（命令管道内沿用当前信封作用域）。宿主须 `AddKunEventBus(r => r.RegisterAuthzEvents())`（Apply 时校验，缺则装载失败）与 `AddKunMediator(m => m.AddKunAuthzEvents())`（缺则写入在提交前失败、整笔回滚）。没有实际变更（重复开通、撤销不存在的绑定）不发事件、不递增修订。
 
 ### 两条授予守卫
 
 - 租户专属权限点不可绑定到子作用域：S1 的权限点全部租户专属，`ITenantRoleGrant.BindAsync(RoleBinding)` 的 Scope 只能是 null 或当前租户本身；应用、Agent 会话或别的租户 → `AUTHZ_SCOPE_MISMATCH`（422，pointer `#/scope`，参数 scope），不落库、不递增修订。
 - 防自锁：租户最后一个当前有效的 `tenant.owner` / `tenant.admin` 绑定不可撤销（`RevokeAsync`），也不可用有效期上限降级（`BindAsync` 的 ValidTo）→ `AUTHZ_LAST_ADMIN_LOCKOUT`（409，参数 role）；已过期或未生效的绑定不算数。S1-AZ-005 交付管理权限点后把「持有成员管理权限点的角色」并入判据。
 
-### HTTP 与 gRPC 适配（Qian.Authz.AspNetCore）
+### HTTP 与 gRPC 适配（Kun.Authorization.AspNetCore）
 
 `AddQianAuthzEnforcement(http => ctx, options)` 登记授权处理器与结果处理器（`ctx` 通常是 authz 组件按请求租户收窄的上下文）。端点以 `RequireQianPermission("<plugin>:<resource>:<action>")` 声明权限点（可多次，全部须放行；同时加 `RequiresPermissionAttribute` 元数据，OpenAPI 写出 `x-qian-permission`，并声明 401 / 403 的 ErrorDetail 响应）。`UseQianAuthzEnforcement()` 放在 `UseAuthorization` 之后：带 `PluginEndpointBinding` 却未声明权限点的端点在生产模式（`options.Production ?? IHostEnvironment.IsProduction()`）缺省拒绝（403 并记决策日志 `permission_not_declared`），开发模式记警告放行；`[AllowAnonymous]` 与显式标记 `PermissionEnforcedInHandlerAttribute(reason)`（能力目录、菜单、执行入口这类按调用者可见性在处理器内判定的平台表面）不在缺省拒绝范围内，标记必须写明理由；但未声明权限点的已认证端点（含这类标记端点）都先比对 identity_revision，旧令牌 401（S1-YUE-012）。gRPC：`AddGrpc(o => o.AddQianAuthzInterceptor())`，四种调用形态在进入 handler 或读取首帧前对方法上的 `[RequiresPermission]` 逐个判定，未声明按同样规则缺省拒绝；拒绝为 `PermissionDenied`（401 → `Unauthenticated`，404 → `NotFound`），trailer `qian-error-bin` 携带 ErrorDetail。陈旧令牌（`identity_revision_stale`）在 HTTP 回 401 `UNAUTHENTICATED`、gRPC 回 `Unauthenticated`、命令管道抛 `UNAUTHENTICATED`，审计不可用回 404，其余拒绝 403。主体只取自 `ICurrentUser.Principal`（须与 JWT 的 sub / tenant_id / principal_kind 一致，否则 401），租户由已认证宿主建立；目标为 `METHOD 路由模板` 或 gRPC 方法全名；拒绝响应带 `Cache-Control: private, no-store`。tenancy 运营端点（`PlatformHttpContract`）沿用 S1-TEN-006 的处理器内旁路 PEP，本任务未改接。
 
 ### 验收记录
 
-Qian.Authz.Tests/EnforcementTests.cs（真实 PG、真实 Audit 链、真实 PluginLoader）：放行与拒绝各写一条决策日志且与 `ExplainDetailedAsync` 同源，七种边界一律拒绝并记录，无租户上下文抛错，采样 0 只省放行，卸载 Audit 后放行变 `audit_unavailable`；两宿主各自内存缓存下修订 2 出现后修订 1 的令牌在任一宿主立即拒绝、快照键带修订、撤销角色后 3 秒内 `no_matching_grant`；授权变更按修订号发出事件信封，漏装处理器时写入回滚；两条守卫经组件端口返回结构化错误且不落库；卸载 authz 时 `command/dispatching` 监听器、执行端口与错误码按登记逆序撤销、无残留、重装后只有一个监听器。Qian.Sample.Crm.Tests/AuthzEnforcementTests.cs（参考宿主，生产模式）：同一权限点 HTTP 200 / 403 与 gRPC 一元、服务端流 OK / PermissionDenied 一致，未声明的组件端点与 gRPC 方法缺省 403，每次判定进租户链；更高 identity_revision 出现后旧令牌 HTTP 401 `UNAUTHENTICATED`、gRPC `Unauthenticated`，移除角色后持最新修订的令牌 3 秒内 403，`authz.grant.changed.v1` 进 Outbox；OpenAPI 中每个组件端点带 `x-qian-permission` 与 401 / 403 响应。
+Kun.Authorization.Rbac.Tests/EnforcementTests.cs（真实 PG、真实 Audit 链、真实 PluginLoader）：放行与拒绝各写一条决策日志且与 `ExplainDetailedAsync` 同源，七种边界一律拒绝并记录，无租户上下文抛错，采样 0 只省放行，卸载 Audit 后放行变 `audit_unavailable`；两宿主各自内存缓存下修订 2 出现后修订 1 的令牌在任一宿主立即拒绝、快照键带修订、撤销角色后 3 秒内 `no_matching_grant`；授权变更按修订号发出事件信封，漏装处理器时写入回滚；两条守卫经组件端口返回结构化错误且不落库；卸载 authz 时 `command/dispatching` 监听器、执行端口与错误码按登记逆序撤销、无残留、重装后只有一个监听器。Qian.Sample.Crm.Tests/AuthzEnforcementTests.cs（参考宿主，生产模式）：同一权限点 HTTP 200 / 403 与 gRPC 一元、服务端流 OK / PermissionDenied 一致，未声明的组件端点与 gRPC 方法缺省 403，每次判定进租户链；更高 identity_revision 出现后旧令牌 HTTP 401 `UNAUTHENTICATED`、gRPC `Unauthenticated`，移除角色后持最新修订的令牌 3 秒内 403，`authz.grant.changed.v1` 进 Outbox；OpenAPI 中每个组件端点带 `x-qian-permission` 与 401 / 403 响应。
 
 S1-AZ-009：
 
-- Qian.Authz.Tests/IdentityRevisionPropagationTests.cs（真实 PG 与 PluginLoader，身份端口是只实现递增的替身组件）：
+- Kun.Authorization.Rbac.Tests/IdentityRevisionPropagationTests.cs（真实 PG 与 PluginLoader，身份端口是只实现递增的替身组件）：
   - 授予、改期、撤销各递增一次，下限随之抬高，旧修订即刻 `identity_revision_stale`；重复授予与角色级变更不递增。
   - 非 user、非 GUID 主体不调端口；`NOT_FOUND` 调一次即跳过；瞬时故障重试后成功。
   - 下限只增不减；持续失败在预算内放弃、授予已提交；身份组件卸载后跳过。
@@ -187,4 +187,4 @@ S1-YUE-012：Qian.Sample.Crm.Tests/AuthzRevisionGuardTests.cs（参考宿主，�
 
 `plugins/qian.authz/.qian-plugin/plugin.json` 的稳定入口是 `AuthzComponent`，允许 global scope，依赖 `Data`，提供 `Authz`、`AuthzPermissions`、`AuthzResourceTypes`、`AuthzSuperadminBypass`、`AuthzSuperadminCheck`、`AuthzEnforcement`、`AuthzTenantRoleGrant` 与 `CommandAuthorization`。固定委托无参 `AuthzPlugin`，不预置权限目录；宿主可单独登记活动目录。`AuthzPlugin(catalogs)` 与 `FromInstalledComponents()` 保留为程序化装配构件，后者的额外 `Registry` 依赖不合并进此入口。
 
-入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。
+入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../_import/qian/hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。

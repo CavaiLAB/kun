@@ -1,12 +1,11 @@
 using System.Text.Json;
 using Qian.Testing;
 using System.Runtime.CompilerServices;
-using Kun.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Authz.Abstractions.Tests;
+namespace Kun.Authorization.Rbac.Abstractions.Tests;
 
 public sealed class TenantInitializationAuthorizationTests
 {
@@ -63,7 +62,7 @@ public sealed class TenantInitializationAuthorizationTests
     {
         var friends = typeof(AuthzDefinition).Assembly.GetCustomAttributes(typeof(InternalsVisibleToAttribute), false)
             .Cast<InternalsVisibleToAttribute>().Select(attribute => attribute.AssemblyName).Order().ToArray();
-        Assert.Equal("Kun.Plugin.Sdk.Commands,Kun.Tenancy,Qian.Authz", string.Join(",", friends));
+        Assert.Equal("Kun.Plugin.Sdk.Commands,Kun.Tenancy,Kun.Authorization.Rbac", string.Join(",", friends));
     }
 
     [Fact]

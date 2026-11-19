@@ -79,7 +79,7 @@ await runtime.DisposeAsync();
 
 S1 不产生另外两个原因码：profile 没有 restriction 声明来源，`PLUGIN_RESTRICTED` 待 restriction 声明落地后接入；权益检查归 S1-ENT-001，`PLUGIN_NOT_ENTITLED` 由其接入。平台运营者跨租户查询走上述超管旁路。列表与单条读取都先在与装载相同的锁内合入该 scope 的数据库层；管理面不挂插件端点门禁，因为 scope 合入失败时本 scope 的注册（包括注册表自己的）全部收紧，诊断仍须可达。
 
-真实测试（`ScopeManagementTests`）使用受限 PG、Qian.Authz 的 `RbacPermissionChecker` 读真实角色授予、Kestrel + JWT 与租户边界：A 写 patch、B 不写时，B 的 Owner 得到 403 `PLUGIN_NOT_MOUNTED` 与 pointer，B 的使用者、未知条目与跨租户查询得到相同的 404；别名结果一致并带两个响应头；B 的禁用 patch、坏配置收紧与 A 的撤销各自给出原因；未装配判定端口时即使数据库已授予也只得到 404。`ScopeSuperadminTests` 用真实 Authz / Audit 插件与专用平台登录验证超管旁路：未装 Authz 时 404，装上后超管读到租户 A 的视图且 A 的审计链有 bypass 记录，非超管与跨租户 scope 仍为 404 且不写审计。
+真实测试（`ScopeManagementTests`）使用受限 PG、Kun.Authorization.Rbac 的 `RbacPermissionChecker` 读真实角色授予、Kestrel + JWT 与租户边界：A 写 patch、B 不写时，B 的 Owner 得到 403 `PLUGIN_NOT_MOUNTED` 与 pointer，B 的使用者、未知条目与跨租户查询得到相同的 404；别名结果一致并带两个响应头；B 的禁用 patch、坏配置收紧与 A 的撤销各自给出原因；未装配判定端口时即使数据库已授予也只得到 404。`ScopeSuperadminTests` 用真实 Authz / Audit 插件与专用平台登录验证超管旁路：未装 Authz 时 404，装上后超管读到租户 A 的视图且 A 的审计链有 bypass 记录，非超管与跨租户 scope 仍为 404 且不写审计。
 
 ## 候选制品登记入口（清单准入）
 

@@ -1,12 +1,12 @@
-# Qian.Authz.Abstractions
+# Kun.Authorization.Rbac.Abstractions
 
 Authz seam 的 Definition，承接 ADR-006、ADR-019 与 S1-AZ-001。文件夹包含权限元数据、服务键、Kun 端口引用、错误码与命令注册桥接，不包含授权数据库或 RBAC 求值引擎。
 
 ## 装配与组件边界
 
-所有 profile 均可引用 Definition；真正提供 `Authz` 的组件是 `Qian.Authz` / `qian.authz`。`ctx.Authz()` 按当前 scope 解析 `IAuthzService`，缺 Provider 或上下文已卸载时拒绝解析。Provider 必须在 Apply 中提供服务，并将错误码登记句柄交给 `ctx.Effect`。
+所有 profile 均可引用 Definition；真正提供 `Authz` 的组件是 `Kun.Authorization.Rbac` / `qian.authz`。`ctx.Authz()` 按当前 scope 解析 `IAuthzService`，缺 Provider 或上下文已卸载时拒绝解析。Provider 必须在 Apply 中提供服务，并将错误码登记句柄交给 `ctx.Effect`。
 
-`qian add authz` 安装组件及其 Provider，本 Definition 包不自行启动服务，也不把平台能力绑定到宿主 DI。当前组件目录仍是骨架；Provider `Qian.Authz` 的 `AuthzPlugin` 已提供 `Authz`、`AuthzPermissions`、`AuthzResourceTypes`、`AuthzSuperadminBypass`、`AuthzSuperadminCheck`、`AuthzTenantRoleGrant` 与 `AuthzEnforcement` 七个服务键及命令 PEP，并在 `tenant/provisioned` 时实例化默认角色（S1-AZ-002 / S1-AZ-003 / S1-TEN-003），细节见 Qian.Authz 主文档。
+`qian add authz` 安装组件及其 Provider，本 Definition 包不自行启动服务，也不把平台能力绑定到宿主 DI。当前组件目录仍是骨架；Provider `Kun.Authorization.Rbac` 的 `AuthzPlugin` 已提供 `Authz`、`AuthzPermissions`、`AuthzResourceTypes`、`AuthzSuperadminBypass`、`AuthzSuperadminCheck`、`AuthzTenantRoleGrant` 与 `AuthzEnforcement` 七个服务键及命令 PEP，并在 `tenant/provisioned` 时实例化默认角色（S1-AZ-002 / S1-AZ-003 / S1-TEN-003），细节见 Kun.Authorization.Rbac 主文档。
 
 ## 平台超管显式旁路
 
@@ -26,7 +26,7 @@ Authz seam 的 Definition，承接 ADR-006、ADR-019 与 S1-AZ-001。文件夹�
 
 编译门禁 QIAN0005 禁止对受保护请求直接调用或引用 Kun `AddRequestHandler` 的两个重载，也拦截请求类型未知的泛型包装器；只有本包的桥接实现可调用底层入口。普通未受保护命令和无关同名方法不受影响。门禁覆盖测试、生成代码及关闭 TreatWarningsAsErrors 的项目。它检查显式注册代码，不把反射或未纳入此构建的外部程序集宣称为已审计。
 
-这里不实现 `qian.authz` 的完整入口 PEP、生命周期和决策审计。下列能力都在 Provider `Qian.Authz` 实现：
+这里不实现 `qian.authz` 的完整入口 PEP、生命周期和决策审计。下列能力都在 Provider `Kun.Authorization.Rbac` 实现：
 
 - HTTP、gRPC、命令事件的强制执行点，以及授权变更事件：S1-AZ-004；
 - 授权变更后递增 identity_revision 并同步抬高修订下限：S1-AZ-009，同进程宿主；
@@ -55,16 +55,16 @@ Authz seam 的 Definition，承接 ADR-006、ADR-019 与 S1-AZ-001。文件夹�
 `PermissionAttribute` 是独立宿主的声明输入，不是执行鉴权特性；与平台 metadata 一样由 Provider 编译为已有 `PermissionDefinition`。`PermissionCatalog` 与 `RoleTemplate` 是只读词汇，角色的 Patterns 为作者声明，Grants 为当前版本已展开的确切权限点。构造这些 DTO 不会登记权限、实例化租户角色或放行请求。字段错误 AUTHZ_METADATA_INVALID 由 Provider 放进 INPUT_INVALID.errors，沿用冻结 ErrorDetail。
 
 
-`IPermissionRegistry` 是活动权限声明的可逆端口，`IResourceTypeRegistry` 对应资源类型扩展点；版本参数是确切组件版本。返回句柄由组件交给 Effect，登记与撤销均不直接修改主体角色。Provider 实现及租约、冲突和派生资源规则统一见 Qian.Authz 主文档。
+`IPermissionRegistry` 是活动权限声明的可逆端口，`IResourceTypeRegistry` 对应资源类型扩展点；版本参数是确切组件版本。返回句柄由组件交给 Effect，登记与撤销均不直接修改主体角色。Provider 实现及租约、冲突和派生资源规则统一见 Kun.Authorization.Rbac 主文档。
 
-`AuthorizationExplanation` 保留命中角色、授权定位与缺失权限，经 `IAuthzService.ExplainDetailedAsync` 返回；`IAuthzExecutionConstraints` 是可信身份和终端适配端口，不接受请求体布尔值作为 MFA 或终端证明。判定快照缓存与超管旁路审计已由 Qian.Authz 实现（S1-AZ-003）；组织 / 岗位 / 组目录主体尚未接入（S1-AZ-005）。
+`AuthorizationExplanation` 保留命中角色、授权定位与缺失权限，经 `IAuthzService.ExplainDetailedAsync` 返回；`IAuthzExecutionConstraints` 是可信身份和终端适配端口，不接受请求体布尔值作为 MFA 或终端证明。判定快照缓存与超管旁路审计已由 Kun.Authorization.Rbac 实现（S1-AZ-003）；组织 / 岗位 / 组目录主体尚未接入（S1-AZ-005）。
 
 ## 最小内置角色授予端口
 
 `ITenantRoleGrant.AssignAsync(roleCode, subjectType, subjectId, actor)` 经 `TenantRoleGrant.Key` 解析；`RevokeAsync` 以同样的参数撤销直接主体的内置角色绑定，不存在时返回 false，撤销租户最后一个成员管理绑定以 `AUTHZ_LAST_ADMIN_LOCKOUT` 拒绝。运营替换租户管理员时用它撤销原管理员的 tenant.owner（S1-TEN-010），先授予新管理员、再撤销，不会撞上防自锁。AuthzPlugin 提供实现，只接受四个内置 tenant 角色，在当前租户内调用既有 Write 事务与授权修订失效机制。它不创建角色，不替代上层授权，缺失角色或租户上下文会拒绝。开户调用须在 tenant/provisioned 之后；授权管理 API（S1-AZ-005）可复用该端口。
 
-DEC-023 的内部开户凭据不对组件公开：发布程序集的 InternalsVisibleTo 仅包含 Kun.Tenancy、Kun.Plugin.Sdk.Commands、Qian.Authz 三个受信程序集，不包含测试程序集；测试通过反射验证同一发布程序集的内部边界。SDK 注册重载保留 Kun 的原始 PermissionBehavior，初始化适配器只对凭据绑定的主体、租户与权限点放行，此分支不查普通 RBAC；普通请求完整委托原判定器。
+DEC-023 的内部开户凭据不对组件公开：发布程序集的 InternalsVisibleTo 仅包含 Kun.Tenancy、Kun.Plugin.Sdk.Commands、Kun.Authorization.Rbac 三个受信程序集，不包含测试程序集；测试通过反射验证同一发布程序集的内部边界。SDK 注册重载保留 Kun 的原始 PermissionBehavior，初始化适配器只对凭据绑定的主体、租户与权限点放行，此分支不查普通 RBAC；普通请求完整委托原判定器。
 
 ## 数据权限契约（S1-AZ-006）
 
-DataScopeRule、RoleDataScope 与 DataScopePlan 是纯词汇；Filter 使用 JSON 形状，权威 AST/矩阵/系统变量仍是 contracts/data/v1，Definition 不额外依赖数据库库。DataScopeContracts 提供同源嵌入 Schema、元数据和源生成 JSON 类型信息；它不执行授权。合并计划与 HTTP 行为统一见 [Qian.Authz 主文档](../Qian.Authz/README.md#数据范围契约与元数据s1-az-006)。现有 IDataPermissionFilter/IFieldPolicy 继续复用 Kun 原端口，不再定义同名接口。
+DataScopeRule、RoleDataScope 与 DataScopePlan 是纯词汇；Filter 使用 JSON 形状，权威 AST/矩阵/系统变量仍是 contracts/data/v1，Definition 不额外依赖数据库库。DataScopeContracts 提供同源嵌入 Schema、元数据和源生成 JSON 类型信息；它不执行授权。合并计划与 HTTP 行为统一见 [Kun.Authorization.Rbac 主文档](../Kun.Authorization.Rbac/README.md#数据范围契约与元数据s1-az-006)。现有 IDataPermissionFilter/IFieldPolicy 继续复用 Kun 原端口，不再定义同名接口。

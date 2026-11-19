@@ -1,16 +1,15 @@
-using Kun.Authorization;
 using Kun.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Authz.AspNetCore;
+namespace Kun.Authorization.AspNetCore;
 
 /// <summary>授权的认证 HTTP 表面（PRD 7.5 API 行）；含 me/permissions 与数据权限 meta，其余判定与管理端点归 S1-AZ-005。</summary>
 public static class AuthzEndpoints
@@ -20,7 +19,7 @@ public static class AuthzEndpoints
     /// 同时登记 <c>GET /api/authz/meta</c>，发布同源数据范围/过滤/系统变量元数据；不返回实际授予。
     /// 宿主须先配置身份、租户与 ErrorDetail 中间件；source 返回可注入 <c>Authz</c> 的插件上下文。主体与租户只来自已认证请求，不读请求参数。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianAuthz(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunAuthz(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         endpoints.MapGet("/api/authz/me/permissions", async (HttpContext http) =>

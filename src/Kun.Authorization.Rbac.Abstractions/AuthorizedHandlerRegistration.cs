@@ -1,12 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization.Metadata;
-using Kun.Authorization;
 using Kun.Core.Cqrs;
 using Kun.Errors;
 using Kun.Mediator;
 using Kun.Mediator.Behaviors;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>把 Kun 逐命令权限行为与处理器登记到同一 builder；不另实现权限引擎。</summary>
 public static class AuthorizedHandlerRegistration

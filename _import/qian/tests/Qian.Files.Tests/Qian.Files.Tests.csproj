@@ -15,8 +15,8 @@
     <ProjectReference Include="../../../../src/Kun.Tenancy/Kun.Tenancy.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy.AspNetCore/Kun.Tenancy.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
-    <ProjectReference Include="../../packages/Qian.Authz/Qian.Authz.csproj" />
-    <ProjectReference Include="../../packages/Qian.Authz.AspNetCore/Qian.Authz.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Authorization.Rbac/Kun.Authorization.Rbac.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Authorization.AspNetCore/Kun.Authorization.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Audit/Qian.Audit.csproj" />
     <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
     <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />

@@ -1,8 +1,8 @@
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using System.Text.Json;
 using Json.Schema;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>只构造固定合并语义的逻辑计划；S1 不编译 SQL、不解析系统变量，也不改变现有 fail-closed 数据/字段权限端口。</summary>
 public static class DataScopeComposition

@@ -1,9 +1,9 @@
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 // identity_revision 失效传播的服务端比对（PRD 7.4 / 7.5）：令牌只带 identity_revision，身份组件在授权变更后递增它并推送客户端换新令牌；
 // 服务端记住每个主体见过的最高修订（本组件表 subject_identity_revisions，按租户 RLS），比它低的令牌即「旧令牌」，拒绝（401，客户端据此换令牌）。

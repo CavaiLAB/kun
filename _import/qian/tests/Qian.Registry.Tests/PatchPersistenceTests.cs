@@ -17,8 +17,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
-using Qian.Authz;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
 using Kun.Data;
 using Qian.Profiles;
@@ -412,7 +412,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         });
         // 公开挂载 / 卸载的平台接线：领域事件处理器 + 写信封的 Outbox 端口（替换 AddKunData 登记的 Kun 累加器）。
         // qian.authz 的授权变更事件处理器始终登记：装载 qian.authz 与写入角色授予都要求它在场（S1-AZ-004）。
-        builder.Services.AddKunMediator(mediator => { mediator.AddQianAuthzEvents(); if (events) mediator.AddQianRegistryEvents(); });
+        builder.Services.AddKunMediator(mediator => { mediator.AddKunAuthzEvents(); if (events) mediator.AddQianRegistryEvents(); });
         if (events) builder.Services.AddKunEvents();
         services?.Invoke(builder.Services);
         return builder.Build();

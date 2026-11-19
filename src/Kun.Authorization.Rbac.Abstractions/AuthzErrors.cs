@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>授权领域的错误词汇；协议拒绝复用冻结内置码，其余定义归属 qian.authz。</summary>
 public static class AuthzErrors

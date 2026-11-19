@@ -1,8 +1,7 @@
-using Kun.Authorization;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 // DEC-023：进程内不可序列化的开户授权凭据，不是另一份租户上下文，也不是登录主体或角色。
 // 仅 Tenancy、SDK、Authz 三个受信程序集可见；普通插件和请求输入没有签发入口。

@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>供可信开通编排及授权管理 API 使用的最小角色授予端口；不构成 HTTP 授权边界。</summary>
 public interface ITenantRoleGrant

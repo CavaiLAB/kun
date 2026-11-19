@@ -127,7 +127,7 @@ dotnet run --project hosts/Qian.Platform.Host -c Release -- --bootstrap-operator
 | `GET /healthz`、`GET /readyz` | 匿名 | 存活与就绪探针，不回显组件细节。 |
 | `/api/capabilities/**` | `qian-platform` | 能力目录、通用执行入口、导航、外壳目录（`MapQianCapabilities`）。 |
 | `GET /api/capabilities/console` | `qian-platform` | 平台控制台目录（`MapQianPlatformConsole`），只给平台身份。 |
-| `/api/authz/**` | `qian-platform` | 有效权限（`MapQianAuthz`）。 |
+| `/api/authz/**` | `qian-platform` | 有效权限（`MapKunAuthz`）。 |
 | `/api/tenancy/**` | `qian-operations` | 租户运营接口（`MapKunTenancy`，在运营端点组里），平台超管显式旁路，放行写平台审计链。 |
 | `/api/signup/applications/**`、`/api/signup/meta/**` | `qian-operations` | 开通申请的运营接口（身份分支并入时，`MapKunTenancySignupOperations`），同样经超管旁路、写平台审计链。 |
 | `/api/identity/**`、`/connect/**`、`/.well-known/**`、`/login`、申请人接口、`/signup/**` | 身份分支自己的认证 | 身份分支并入时：OIDC 协议面、账号接口、认证页族、申请人接口与公开页（见上文）。 |

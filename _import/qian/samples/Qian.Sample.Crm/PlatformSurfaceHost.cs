@@ -7,7 +7,7 @@ using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Authz.AspNetCore;
+using Kun.Authorization.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
@@ -64,7 +64,7 @@ public static class PlatformSurfaceHost
         app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseQianAuthzEnforcement();
         app.MapQianCapabilities(http => Scoped(component, "capabilities", http));
         app.MapQianPlatformConsole(http => Global(component, "capabilities", http));
-        app.MapQianAuthz(http => Scoped(component, "authz", http));
+        app.MapKunAuthz(http => Scoped(component, "authz", http));
         return app;
     }
 

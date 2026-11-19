@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Tenancy;

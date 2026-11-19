@@ -1,6 +1,5 @@
-using Kun.Authorization;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>由可信身份/终端适配器校验 step-up 与终端条件；不可从请求体的布尔值直接构造放行。</summary>
 public interface IAuthzExecutionConstraints

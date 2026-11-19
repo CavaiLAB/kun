@@ -3,7 +3,7 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Errors;
 
-namespace Qian.Authz.Abstractions.Tests;
+namespace Kun.Authorization.Rbac.Abstractions.Tests;
 
 public sealed class AuthzErrorTests
 {

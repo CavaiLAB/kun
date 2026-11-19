@@ -1,9 +1,8 @@
-using Kun.Authorization;
 using Kun.Core.Security;
 using Kun.Mediator.Behaviors;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 // 只装配到 SDK 请求的 Kun PermissionBehavior（经 PermissionBehaviorOptions）；不替换宿主 DI、普通 Check 或外部主体。
 internal static class InitializationPermissionServices

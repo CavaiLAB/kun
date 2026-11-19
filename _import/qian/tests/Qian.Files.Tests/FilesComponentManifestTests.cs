@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk;
 
 namespace Qian.Files.Tests;

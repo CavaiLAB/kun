@@ -8,16 +8,16 @@
     <KunRole>contract</KunRole>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Authorization/Kun.Authorization.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
-    <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
+    <ProjectReference Include="../Kun.Authorization/Kun.Authorization.csproj" />
+    <ProjectReference Include="../Kun.Mediator/Kun.Mediator.csproj" />
+    <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
   </ItemGroup>
-  <ItemGroup><InternalsVisibleTo Include="Kun.Plugin.Sdk.Commands" KunPackageFriendReason="命令处理时的授权上下文" /><InternalsVisibleTo Include="Kun.Tenancy" KunPackageFriendReason="租户开通期间的授权上下文" /><InternalsVisibleTo Include="Qian.Authz" KunPackageFriendReason="授权组件实现" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Plugin.Sdk.Commands" KunPackageFriendReason="命令处理时的授权上下文" /><InternalsVisibleTo Include="Kun.Tenancy" KunPackageFriendReason="租户开通期间的授权上下文" /><InternalsVisibleTo Include="Kun.Authorization.Rbac" KunPackageFriendReason="授权组件实现" /></ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="../../contracts/data/v1/filter-ast.schema.json;../../contracts/data/v1/filter-operators.json;../../contracts/data/v1/system-variables.json" LogicalName="authz/%(Filename)%(Extension)" />
-    <None Include="../../contracts/data/v1/filter-ast.schema.json;../../contracts/data/v1/filter-operators.json;../../contracts/data/v1/system-variables.json" Pack="true" PackagePath="contracts/data/v1/" />
-    <EmbeddedResource Include="../../contracts/authz/v1/*.schema.json" LogicalName="authz/%(Filename)%(Extension)" />
-    <None Include="../../contracts/authz/v1/*.schema.json" Pack="true" PackagePath="contracts/authz/v1/" />
+    <EmbeddedResource Include="../../_import/qian/contracts/data/v1/filter-ast.schema.json;../../_import/qian/contracts/data/v1/filter-operators.json;../../_import/qian/contracts/data/v1/system-variables.json" LogicalName="authz/%(Filename)%(Extension)" />
+    <None Include="../../_import/qian/contracts/data/v1/filter-ast.schema.json;../../_import/qian/contracts/data/v1/filter-operators.json;../../_import/qian/contracts/data/v1/system-variables.json" Pack="true" PackagePath="contracts/data/v1/" />
+    <EmbeddedResource Include="../../_import/qian/contracts/authz/v1/*.schema.json" LogicalName="authz/%(Filename)%(Extension)" />
+    <None Include="../../_import/qian/contracts/authz/v1/*.schema.json" Pack="true" PackagePath="contracts/authz/v1/" />
   </ItemGroup>
 </Project>

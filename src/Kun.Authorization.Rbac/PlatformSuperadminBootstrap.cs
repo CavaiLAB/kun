@@ -2,7 +2,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>
 /// 首个平台超管的一次性引导（S1-DEP-011，R150 ③）。平台超管只经内部平台角色存储授予（授予属 humanOnly 管理操作，不对 HTTP 暴露）；

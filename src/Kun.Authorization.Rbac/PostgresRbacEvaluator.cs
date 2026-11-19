@@ -1,14 +1,13 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 // 真正从角色/授权表求值，不是从 token roles/permissions 推导。主体的角色与授权读成快照，按 (租户, 主体, 令牌 identity_revision, 租户授权修订) 缓存；
 // 有效期、活动权限登记与 step-up / 终端约束仍在每次判定时求值。组织/岗位/组继承属 S1-AZ-005；identity_revision 由 PEP 从已验证令牌传入（S1-AZ-004）。

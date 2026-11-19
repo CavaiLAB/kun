@@ -14,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Qian.Audit;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Qian.Capabilities;
 using Kun.Data;
 using Kun.Plugin.Sdk;
@@ -672,7 +672,7 @@ public abstract partial class CustomerCommandTests
             Assert.Equal(customers, await session.Context.OutboxMessages.CountAsync(Ct));
             var trail = host.App.Services.GetRequiredService<CrmCommandRuntime>().Source().Audit();
             var records = (await trail.ReadAsync(0, 100, cancellationToken: Ct)).Select(entry => entry.Record).ToArray();
-            var logged = records.Where(record => record.CapabilityId == Qian.Authz.Abstractions.AuthzEnforcement.DecisionCapabilityId).ToArray();
+            var logged = records.Where(record => record.CapabilityId == Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.DecisionCapabilityId).ToArray();
             Assert.Equal(audit, records.Length - logged.Length);
             Assert.All(logged, record => Assert.Contains((record.ActorType, record.ActorId, record.Result), decisions ?? []));
             if (decisions is null) Assert.Empty(logged);

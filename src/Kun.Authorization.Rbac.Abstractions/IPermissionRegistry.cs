@@ -1,4 +1,4 @@
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>权限声明的可逆注册端口；组件版本必须显式选择，登记本身不授予主体权限。</summary>
 public interface IPermissionRegistry : IResourceTypeRegistry

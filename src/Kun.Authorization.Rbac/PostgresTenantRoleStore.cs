@@ -3,14 +3,14 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 // 供已授权的租户开通/角色管理流程使用；不对 HTTP 直接暴露，也不读取令牌中的权限集合。
-// 每次写入与租户授权修订同事务递增，并以修订行为聚合根发出领域事件，由宿主登记的 AddQianAuthzEvents 处理器把
+// 每次写入与租户授权修订同事务递增，并以修订行为聚合根发出领域事件，由宿主登记的 AddKunAuthzEvents 处理器把
 // authz.grant.changed.v1 / authz.role.changed.v1 写进同一工作单元的 Outbox（提交即可见；漏装处理器则写入回滚）。
 // identities 非空时（组件入口的装配），授予变更提交后再递增受影响 user 主体的 identity_revision（S1-DEC-027）。
 internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext tenant, IdentityRevisionPropagation? identities = null)
@@ -239,7 +239,7 @@ internal sealed class PostgresTenantRoleStore(IDataService data, ITenantContext 
         internal void Raise(TenantAuthzRevisionRow revision) { foreach (var change in _pending) { change.AuthzRevision = revision.Revision; revision.Raise(change); } }
         internal void EnsurePublished()
         {
-            if (_pending.Any(change => !change.Published)) throw new InvalidOperationException("授权事件未进入 Outbox：宿主须登记 AddQianAuthzEvents。");
+            if (_pending.Any(change => !change.Published)) throw new InvalidOperationException("授权事件未进入 Outbox：宿主须登记 AddKunAuthzEvents。");
         }
         // 已随本次提交进入 Outbox 的授予变更涉及的 user 主体，同一主体只递增一次；角色级变更不扇出（S1-DEC-027 Q3）。
         internal (string SubjectId, string Change)[] Users() =>

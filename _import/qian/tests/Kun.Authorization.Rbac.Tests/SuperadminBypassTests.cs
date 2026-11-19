@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Reflection;
 using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
-using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.Caching.DependencyInjection;
 using Kun.Core.MultiTenancy;
@@ -23,14 +22,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Testing.Containers;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 // S1-AZ-003：平台超管显式旁路与审计、直接主体授予 / 撤销的失效传播、经 ctx.Authz() 的完整解释。真实 PostgreSQL（受限应用角色 + 专用平台登录）、真实 Audit 插件与审计链、
 // 真实 Redis；没有替身判定器、替身审计或测试快照。
@@ -256,7 +255,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
     [Fact]
     public async Task 经ctx_Authz取完整解释_拒绝给出缺少的权限点与命中角色_放行与stepup拒绝给出命中链路_跨租户不泄露()
     {
-        // 消费方只依赖 Qian.Authz.Abstractions：完整解释必须经组件端口拿到，不能靠 Provider 的 RbacPermissionChecker。
+        // 消费方只依赖 Kun.Authorization.Rbac.Abstractions：完整解释必须经组件端口拿到，不能靠 Provider 的 RbacPermissionChecker。
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
         var data = host.Services.GetRequiredService<IDataService>(); var catalog = new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata("qian.sample.crm", "1.0.0",
             JsonSerializer.Deserialize<JsonElement>("""[{"resource":"customer","actions":["read","write","export","review"],"stepUp":["export"],"risk":{"export":"high"}}]"""),
@@ -319,7 +318,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunEventBus(registrar => registrar.RegisterAuthzEvents());
         // 与生产宿主相同：授权变更的领域事件处理器 + 写 v1 信封的 Outbox 端口；authzEvents=false 复现漏装处理器的宿主。
-        builder.Services.AddKunMediator(mediator => { if (authzEvents) mediator.AddQianAuthzEvents(); }); builder.Services.AddKunEvents();
+        builder.Services.AddKunMediator(mediator => { if (authzEvents) mediator.AddKunAuthzEvents(); }); builder.Services.AddKunEvents();
         builder.Services.AddSingleton<IPermissionRegistry, PermissionRegistry>();
         if (cache is not null) builder.Services.AddSingleton(cache);
         builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));

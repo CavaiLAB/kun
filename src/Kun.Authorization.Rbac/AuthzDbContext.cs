@@ -2,7 +2,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>权限目录上下文；连接、迁移和应用角色校验由 Data 的强制装配提供。</summary>
 public class AuthzDbContext : KunStrictDbContext

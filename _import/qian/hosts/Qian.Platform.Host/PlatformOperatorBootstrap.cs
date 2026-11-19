@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Qian.Audit;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Kun.Identity.Abstractions;
 
 namespace Qian.Platform.Host;

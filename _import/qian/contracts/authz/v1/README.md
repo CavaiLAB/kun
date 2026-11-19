@@ -8,6 +8,6 @@ GET /api/authz/meta 在已认证、非 Agent/委托主体且当前 Authz Provide
 
 合并固定为同角色 AND、不同角色 OR；同一角色分多份输入仍合并成一个 AND 分支。任意 allData=true 只放开该命名资源的数据范围，其他资源不受影响；没有规则或空角色集合为拒绝。租户隔离、业务权限、软删除等强制条件始终另外叠加。
 
-Qian.Authz.DataScopeComposition 只返回结构化计划，保留每份原 Filter AST 的逻辑边界，不展平、不生成 SQL、不解析变量，也不替代权限判定。S2 编译器仍须用 Data 的 FilterContracts 与可信字段目录校验字段及变量上下文；S1 已有 IDataPermissionFilter/IFieldPolicy 继续 fail-closed。
+Kun.Authorization.Rbac.DataScopeComposition 只返回结构化计划，保留每份原 Filter AST 的逻辑边界，不展平、不生成 SQL、不解析变量，也不替代权限判定。S2 编译器仍须用 Data 的 FilterContracts 与可信字段目录校验字段及变量上下文；S1 已有 IDataPermissionFilter/IFieldPolicy 继续 fail-closed。
 
-权威规格见 [数据契约](../../../docs/prd/specs/data-contracts.md)，组件行为见 [Qian.Authz](../../../packages/Qian.Authz/README.md)。
+权威规格见 [数据契约](../../../docs/prd/specs/data-contracts.md)，组件行为见 [Kun.Authorization.Rbac](../../../../../src/Kun.Authorization.Rbac/README.md)。

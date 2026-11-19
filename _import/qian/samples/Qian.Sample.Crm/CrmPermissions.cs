@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Qian.Authz;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Surfaces;
 
 namespace Qian.Sample.Crm;

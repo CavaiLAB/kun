@@ -356,7 +356,7 @@ class RealGraphTests(unittest.TestCase):
         # 假想几条边，按真实的声明判：契约或平台包依赖别的平台组件的提供者、契约直接依赖内核档提供者，都仍要报。
         cases = {
             ("Kun.Plugin.Sdk.AspNetCore", "Qian.Registry"): ["P"],  # 平台档契约 → 别的平台组件的提供者
-            ("Qian.Authz.AspNetCore", "Qian.Registry"): ["P"],  # 平台档提供者 → 别的平台组件的提供者
+            ("Kun.Authorization.AspNetCore", "Qian.Registry"): ["P"],  # 平台档提供者 → 别的平台组件的提供者
             ("Kun.Runtime", "Kun.EventBus.EntityFrameworkCore"): ["D"],  # 内核档契约 → 内核档提供者
             ("Kun.Mediator", "Kun.EventBus"): ["D"],
             ("Kun.Errors", "Kun.Tenancy.Abstractions"): ["K", "C"],  # 内核档 → 平台档；Kun.Errors 零依赖，C 也报

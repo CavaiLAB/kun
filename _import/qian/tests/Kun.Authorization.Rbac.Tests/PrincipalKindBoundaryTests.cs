@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Kun.Authorization;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Results;
@@ -16,10 +15,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 public sealed partial class PermissionCatalogPersistenceTests
 {
@@ -52,7 +51,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));
         builder.Services.AddSingleton<IPermissionChecker>(sp => new RbacPermissionChecker(sp.GetRequiredService<IDataService>(), tenant, registry));
         builder.Services.AddSingleton<KindBoundaryCounter>();
-        builder.Services.AddKunMediator(builder => builder.AddQianAuthzEvents().AddAuthorizedHandler<KindBoundaryCommand, Result<int>, KindBoundaryHandler>(Result<int>.Fail));
+        builder.Services.AddKunMediator(builder => builder.AddKunAuthzEvents().AddAuthorizedHandler<KindBoundaryCommand, Result<int>, KindBoundaryHandler>(Result<int>.Fail));
         return builder.Build();
     }
     private sealed class KindBoundaryAccessor(HttpContext context) : IHttpContextAccessor { public HttpContext? HttpContext { get; set; } = context; }

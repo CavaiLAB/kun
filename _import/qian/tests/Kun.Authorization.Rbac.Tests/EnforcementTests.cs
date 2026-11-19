@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
@@ -9,13 +8,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 // S1-AZ-004：三处 PEP 共用的执行端口（ctx.Enforcement()）、决策审计、identity_revision 服务端比对、授权变更事件与两条守卫。
 // 真实 PostgreSQL（受限应用角色）、真实 Audit 组件与审计链、真实 PluginLoader；判定仍只来自 Check / BatchCheck / ListAllowedActions / Explain。
@@ -211,13 +210,13 @@ public sealed partial class SuperadminBypassTests
         var installed = envelopes.Where(item => item.Envelope.Payload.GetProperty("change").GetString() == "grants_installed").Select(item => item.Envelope.Payload);
         Assert.All(installed, payload => Assert.Equal(("qian.sample.crm", "1.0.0"), (payload.GetProperty("pluginId").GetString(), payload.GetProperty("pluginVersion").GetString())));
 
-        // 漏装 AddQianAuthzEvents 的宿主：事件进不了 Outbox，整笔写入（含修订递增）回滚。
+        // 漏装 AddKunAuthzEvents 的宿主：事件进不了 Outbox，整笔写入（含修订递增）回滚。
         var bareTenant = new AsyncLocalTenantContext(); using var bare = Host(bareTenant, authzEvents: false); await bare.StartAsync(Ct);
         var bareData = bare.Services.GetRequiredService<IDataService>();
         using (bareTenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var error = await Assert.ThrowsAsync<InvalidOperationException>(() => new PostgresTenantRoleStore(bareData, bareTenant).AssignAsync("tenant.user", "user", "bob", "operator", Ct));
-            Assert.Contains("AddQianAuthzEvents", error.Message, StringComparison.Ordinal);
+            Assert.Contains("AddKunAuthzEvents", error.Message, StringComparison.Ordinal);
             Assert.Equal(4L, await Revision(bareData, A));
             Assert.DoesNotContain(await new PostgresTenantRoleStore(bareData, bareTenant).ListMembersAsync(Ct), member => member.SubjectId == "bob");
         }

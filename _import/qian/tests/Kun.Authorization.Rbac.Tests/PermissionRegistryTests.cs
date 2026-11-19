@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 public sealed class PermissionRegistryTests
 {

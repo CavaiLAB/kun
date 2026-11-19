@@ -1,14 +1,13 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kun.Authorization;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 // 三处 PEP（HTTP、gRPC、命令管道）共用的执行核心（ADR-006 D6.6 / D6.8）：
 // 1. 主体与租户边界 fail-closed：委托与非法主体拒绝；主体带租户但上下文为空抛错（宿主没建可信租户边界）；平台主体只走显式旁路；

@@ -1,4 +1,4 @@
-namespace Qian.Authz.Tests;
+namespace Kun.Authorization.Rbac.Tests;
 
 internal static class Tenants
 {

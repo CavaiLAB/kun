@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz;
+using Kun.Authorization.Rbac;
 using Kun.Data;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;

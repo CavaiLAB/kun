@@ -6,7 +6,7 @@ using Kun.EventBus;
 using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Lifecycle;
 using Qian.Registry;
 using Qian.Surfaces.Abstractions;

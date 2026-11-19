@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Json.Schema;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Registry;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>把平台 metadata 与独立宿主属性编译成相同的权限声明，不执行授予或权限判定。</summary>
 public sealed class PermissionCatalogCompiler(ISurfaceReader reader)

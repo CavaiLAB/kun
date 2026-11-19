@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>权限点的不可混淆全名：组件 id、插件内资源短名、动作短名。</summary>
 public static partial class PermissionCode

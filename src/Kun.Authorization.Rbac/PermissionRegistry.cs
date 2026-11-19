@@ -1,7 +1,7 @@
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 /// <summary>进程内活动权限与资源注册表，按版本隔离并通过释放句柄撤销；持久目录与主体授权仍各自管理。</summary>
 public sealed class PermissionRegistry : IPermissionRegistry

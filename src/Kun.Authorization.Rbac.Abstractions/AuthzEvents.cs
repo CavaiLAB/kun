@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Kun.EventBus;
 
-namespace Qian.Authz.Abstractions;
+namespace Kun.Authorization.Rbac.Abstractions;
 
 /// <summary>授权变更的稳定跨进程事件 ID；首个发布版本之后，破坏性载荷改动必须升版本。</summary>
 public static class AuthzEventIds

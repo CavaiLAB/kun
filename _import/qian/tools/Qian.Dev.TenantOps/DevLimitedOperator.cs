@@ -1,5 +1,5 @@
 using Kun.Authorization;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 
 namespace Qian.Dev.TenantOps;

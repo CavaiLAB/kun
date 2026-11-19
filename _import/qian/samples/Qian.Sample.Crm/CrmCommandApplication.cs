@@ -17,9 +17,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Qian.Audit;
-using Qian.Authz;
-using Qian.Authz.Abstractions;
-using Qian.Authz.AspNetCore;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Authorization.AspNetCore;
 using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Tenancy;
@@ -107,7 +107,7 @@ public static class CrmCommandApplication
             builder.Services.AddQianAuthzEnforcement(http => http.RequestServices.GetRequiredService<CrmCommandRuntime>().AuthzSource(), options => options.Production = true);
             builder.Services.AddKunMediator(registry =>
             {
-                registry.AddKunTenancyEvents().AddQianAuthzEvents();
+                registry.AddKunTenancyEvents().AddKunAuthzEvents();
                 registry.AddKunCapability<CreateCustomerCommand, CustomerItem, CreateCustomerHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
                 registry.AddKunCapability<ListCustomersQuery, CustomerPage, ListCustomersHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
                 registry.AddKunCapability<GetCustomerQuery, CustomerItem, GetCustomerHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
@@ -140,7 +140,7 @@ public static class CrmCommandApplication
             .RequireAuthorization("crm-command-reader").RequireQianPermission("qian.sample.crm:customer:read")
             .BindCrmPlugin(platform, "customer.get").Produces<CustomerItem>();
         // 当前主体在本租户的有效权限（含风险、step-up 与终端元数据）；主体与租户只取自已验证令牌。
-        app.MapQianAuthz(http => http.RequestServices.GetRequiredService<CrmCommandRuntime>().AuthzSource());
+        app.MapKunAuthz(http => http.RequestServices.GetRequiredService<CrmCommandRuntime>().AuthzSource());
         return app;
     }
     private static RouteHandlerBuilder BindCrmPlugin(this RouteHandlerBuilder endpoint, bool platform, string capability)

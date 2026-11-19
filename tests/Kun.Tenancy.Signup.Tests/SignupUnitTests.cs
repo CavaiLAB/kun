@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Kun.Errors;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 
 namespace Kun.Tenancy.Signup.Tests;
 

@@ -1,5 +1,4 @@
 using Grpc.AspNetCore.Server;
-using Kun.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
@@ -8,11 +7,11 @@ using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Authz.AspNetCore;
+namespace Kun.Authorization.AspNetCore;
 
 /// <summary>
 /// HTTP / gRPC 强制执行点（PEP）的宿主装配：端点以 <see cref="RequireQianPermission{TBuilder}"/> 声明权限点（同时写进 OpenAPI 的 x-qian-permission），

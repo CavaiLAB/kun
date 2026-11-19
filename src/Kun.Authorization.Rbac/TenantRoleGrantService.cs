@@ -1,7 +1,7 @@
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Authz;
+namespace Kun.Authorization.Rbac;
 
 internal sealed class TenantRoleGrantService(PostgresTenantRoleStore store) : ITenantRoleGrant
 {

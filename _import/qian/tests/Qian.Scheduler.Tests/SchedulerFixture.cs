@@ -79,9 +79,9 @@ public sealed class SchedulerFixture : IAsyncLifetime
                 row.GetProperty("generation").GetInt64() != 1 || row.GetProperty("run_generation").GetInt64() != 1 ||
                 row.GetProperty("status").GetString() != "running" || row.GetProperty("attempts").GetInt32() != 1 || row.GetProperty("handler_attempts").GetInt64() != 1) return false;
             var until = row.GetProperty("lease_until").GetDateTimeOffset();
-            if (until <= firstLease || until - row.GetProperty("observed_at").GetDateTimeOffset() < TimeSpan.FromSeconds(3)) return false;
+            if (until <= firstLease || until - row.GetProperty("observed_at").GetDateTimeOffset() < Leases(0.5)) return false;
             renewed = row; return true;
-        }, TimeSpan.FromSeconds(10));
+        }, Leases(2));
         AssertLiveFirstLease(renewed, run, originalOwner);
         return renewed;
     }
@@ -101,6 +101,9 @@ public sealed class SchedulerFixture : IAsyncLifetime
         Assert.True(row.GetProperty("observed_at").GetDateTimeOffset() < until, "尚未接管断言必须发生在数据库租约到期之前。");
         return until;
     }
+    // 等待上限按测试租约的份数给（S1-QA-023）：一份覆盖一次「领取到初始续租」的准备或一次到期，用例经过几段就给几份；
+    // 不写死秒数，改 HostConfig.LeaseSeconds 时随之伸缩。只是上限，条件一满足就返回，不拖慢通过的运行。
+    internal TimeSpan Leases(double count) => TimeSpan.FromSeconds(Config.LeaseSeconds * count);
     public static async Task WaitUntil(Func<Task<bool>> condition, TimeSpan timeout)
     {
         var watch = Stopwatch.StartNew();
@@ -196,12 +199,23 @@ internal sealed class WorkerProcess : IAsyncDisposable
         var start = new ProcessStartInfo("dotnet") { RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
         start.ArgumentList.Add(executable); start.ArgumentList.Add("--worker");
         var child = new WorkerProcess(Process.Start(start)!, config);
-        await child._process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(config with { WarmupTenants = warmupTenants })); await child._process.StandardInput.FlushAsync();
-        var line = await child._process.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(30));
+        string? line;
+        try
+        {
+            await child._process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(config with { WarmupTenants = warmupTenants })); await child._process.StandardInput.FlushAsync();
+            line = await child._process.StandardOutput.ReadLineAsync().WaitAsync(ReadyTimeout);
+        }
+        catch
+        {
+            // 等不到 READY 也要杀掉子进程：它就绪后会以真 worker 身份在同一个库里领取，接管同类后续用例的 run（S1-QA-023）。
+            await child.Kill(); await child.DisposeAsync(); throw;
+        }
         if (line is null || !line.StartsWith("READY ", StringComparison.Ordinal))
         { await child.DisposeAsync(); throw new InvalidOperationException("worker 未就绪：" + child.ErrorOutput); }
         return child;
     }
+    // 只管启动、不进调度时序判据的上限。READY 前要建模并把执行路径跑热，CPU 被挤时要几十秒（S1-QA-023）。
+    private static readonly TimeSpan ReadyTimeout = TimeSpan.FromSeconds(60);
     public async Task Kill()
     { if (!_process.HasExited) { _process.Kill(entireProcessTree: true); await _process.WaitForExitAsync(); } }
     public async Task<string> Stop()

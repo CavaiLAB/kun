@@ -50,26 +50,43 @@ public sealed class ProbeHost : IAsyncDisposable
             Define("data", "qian.data", new DataPlugin(), [DataDefinition.Key]),
             Define("tenancy", "qian.tenancy", new DirectoryPlugin(config), [TenancyDefinition.Key]),
             Define("probe", "qian.scheduler.probe", new ProbePlugin(), [])], ct);
-        if (worker)
-        {
-            // READY 表示真实租户 EF 模型、安全检查和查询已可用。预热发生在领取循环之前，
-            // 不让进程首次建模占用故障测试的 6 秒租约；不造作业、不改持久状态、不隐藏重试。
-            // Kun 模型缓存按 tenant 分区，必须预热真实被测租户，随机虚构租户不能替代。
-            foreach (var tenantId in config.WarmupTenants ?? [])
-            {
-                using var warmupTenant = tenant.BeginScope(tenantId);
-                await using var session = await runtime.GetContext("data", ScopeKey.Global).Data().OpenAsync<SchedulerDbContext>(ct);
-                _ = await session.Context.Definitions.AsNoTracking().AnyAsync(ct);
-                _ = await session.Context.Triggers.AsNoTracking().AnyAsync(ct);
-                _ = await session.Context.Runs.AsNoTracking().AnyAsync(ct);
-            }
-        }
+        if (worker) await WarmUpAsync(runtime, tenant, config, ct);
         await runtime.MountAsync([
             Define("scheduler", "qian.scheduler", worker ? new SchedulerComponent() : new ProducerPlugin(), [SchedulerDefinition.Key],
                 new { workerRole = config.WorkerRole, leaseSeconds = config.LeaseSeconds, maxParallel = 16 })], ct);
         if (runtime.GetState("scheduler", ScopeKey.Global) != PluginState.Ready) throw new InvalidOperationException("调度宿主未就绪", runtime.GetFailure("scheduler", ScopeKey.Global));
         if (runtime.GetState("probe", ScopeKey.Global) != PluginState.Ready) throw new InvalidOperationException("探针未就绪", runtime.GetFailure("probe", ScopeKey.Global));
         return result;
+    }
+    // READY 表示这个进程的第一次执行不再付冷启动：真实租户的 EF 模型、领取，以及 BeginAsync、初始续租、收尾用到的查询与保存管线都已跑过。
+    // 只建模型不够：冷进程的准备阶段（领取 → 初始续租）在 CPU 争用下比热路径慢 5–8 倍，会跨过 6 秒测试租约，
+    // 首次执行在准备阶段丢租约、多记一次 attempt（S1-QA-023）。预热发生在领取循环之前；不造作业、不留持久状态
+    // （写入都在回滚的事务里，只写定义表，续租语句命中 0 行，不碰用例自建的触发器）、不隐藏重试。
+    // Kun 模型缓存按 tenant 分区，必须预热真实被测租户，随机虚构租户不能替代。
+    private static async Task WarmUpAsync(PluginLoader runtime, ITenantContext tenant, HostConfig config, CancellationToken ct)
+    {
+        var data = runtime.GetContext("data", ScopeKey.Global);
+        await using var worker = new SchedulerWorker(data, tenant, new SchedulerSettings(config.WorkerRole, config.LeaseSeconds, 1));
+        _ = await worker.ClaimAsync(0, ct); // 真实领取语句与 worker 登录校验；LIMIT 0，不领任何触发器
+        foreach (var tenantId in config.WarmupTenants ?? [])
+        {
+            using var warmupTenant = tenant.BeginScope(tenantId);
+            // 真实收尾入口：对不存在的触发器在所有权校验处返回 false、事务回滚；跑过与 BeginAsync 同一条锁行查询和数据库时钟。
+            _ = await worker.CompleteAsync(new JobClaim(tenantId, Guid.NewGuid(), Guid.NewGuid(), 0, DateTimeOffset.UtcNow, "warmup"), "once", new JobOptions(), "succeeded", null, ct);
+            // BeginAsync 其余的查询形状、选项反序列化、SaveChanges 的插入与更新、续租语句，各跑一次后整体回滚。
+            await using var session = await data.Data().OpenAsync<SchedulerDbContext>(ct);
+            var db = session.Context;
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            var id = Guid.NewGuid();
+            _ = await db.Definitions.SingleOrDefaultAsync(x => x.Id == id, ct);
+            _ = await db.Runs.SingleOrDefaultAsync(x => x.Id == id, ct);
+            _ = JsonSerializer.Deserialize<JobOptions>(JsonSerializer.Serialize(new JobOptions(), PostgresScheduler.Json), PostgresScheduler.Json);
+            var row = new JobDefinitionRow { TenantId = tenantId, Id = id, BusinessKey = "warmup-" + id.ToString("N"), Target = "warmup", Schedule = "once", CreatedBy = "warmup" };
+            db.Definitions.Add(row); await session.SaveChangesAsync(ct);
+            row.Parameters = """{"warmup":true}"""; await session.SaveChangesAsync(ct);
+            _ = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE plugin_qian_scheduler.job_triggers SET lease_until=now()+{TimeSpan.FromSeconds(config.LeaseSeconds)} WHERE tenant_id={tenantId} AND id={id} AND lease_until>now()", ct);
+            await transaction.RollbackAsync(ct);
+        }
     }
     public static PluginDefinition Define(string id, string pluginId, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null)
         => new(new PluginEntry(id, pluginId, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);

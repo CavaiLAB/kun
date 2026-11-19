@@ -204,13 +204,16 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
     {
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
         await using var worker = await WorkerProcess.Start(fixture.Config, TenantA, TenantB);
+        // 超时要盖过处理器记下进入的抖动（打开连接、写进入行），否则 CPU 被挤时两次尝试都在记下进入前被取消、:215 无行可比；
+        // 处理器仍延迟 5 秒，每次都超时（S1-QA-023）。每次尝试 = 一次领取与准备（不超过一份租约）+ 超时。
+        var timeout = TimeSpan.FromSeconds(2);
         using (producer.Tenant.BeginScope(TenantA))
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
             await caller.Scheduler().ScheduleOnce(caller, "timeout", DateTimeOffset.UtcNow, Target, JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 5000 }),
-                new JobOptions { Timeout = TimeSpan.FromMilliseconds(200), RetryDelay = TimeSpan.Zero, MaxAttempts = 2 }, Ct);
+                new JobOptions { Timeout = timeout, RetryDelay = TimeSpan.Zero, MaxAttempts = 2 }, Ct);
         }
-        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed' AND error_class='timeout' AND attempts=2") == 1, TimeSpan.FromSeconds(12));
+        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed' AND error_class='timeout' AND attempts=2") == 1, 2 * (fixture.Leases(1) + timeout));
         Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"));
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(DISTINCT run_id) FROM public.sch_probe_attempts"));
         using (producer.Tenant.BeginScope(TenantB))

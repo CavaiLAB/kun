@@ -14,9 +14,10 @@ namespace Kun.EventBus.EntityFrameworkCore;
 /// Outbox 投递后台服务：逐个业务上下文领取到期行，发布并等待确认后立即标记。
 /// 停机（SIGTERM）时先完成手上这一条，再把本批未发的行交还，其他副本马上可以接手，不会重复发布已确认的消息。
 /// </summary>
-internal sealed partial class KunOutboxRelay(IServiceScopeFactory scopes, IDataContextCatalog contexts, IIntegrationEventPublisher publisher,
+internal sealed partial class KunOutboxRelay(IServiceScopeFactory scopes, IReadOnlyList<Type> contexts, IIntegrationEventPublisher publisher,
     IOptions<KunEventsOptions> settings, TimeProvider clock, ILogger<KunOutboxRelay> logger, IServiceProvider services) : BackgroundService
 {
+    private static readonly ActivitySource Source = new(EventsMetrics.MeterName);
     private readonly KunEventsOptions _options = settings.Value;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -24,11 +25,11 @@ internal sealed partial class KunOutboxRelay(IServiceScopeFactory scopes, IDataC
         var redis = _options.OutboxLock == OutboxLockMode.Redis
             ? new RedisOutboxLockProvider(services.GetRequiredService<StackExchange.Redis.IConnectionMultiplexer>())
             : null;
-        Log.Started(logger, _options.RelayInstance, contexts.ContextTypes.Count);
+        Log.Started(logger, _options.RelayInstance, contexts.Count);
         while (!stoppingToken.IsCancellationRequested)
         {
             var claimed = 0;
-            foreach (var type in contexts.ContextTypes)
+            foreach (var type in contexts)
             {
                 if (stoppingToken.IsCancellationRequested) break;
                 try { claimed += await RelayAsync(type, redis, stoppingToken).ConfigureAwait(false); }
@@ -45,7 +46,7 @@ internal sealed partial class KunOutboxRelay(IServiceScopeFactory scopes, IDataC
     internal async Task<int> RelayAsync(Type contextType, IOutboxLockProvider? redis, CancellationToken stoppingToken)
     {
         await using var scope = scopes.CreateAsyncScope();
-        var context = (KunStrictDbContext)scope.ServiceProvider.GetRequiredService(contextType);
+        var context = (KunDbContext)scope.ServiceProvider.GetRequiredService(contextType);
         var table = OutboxTable.For(context);
         IAsyncDisposable? lease = null;
         if (redis is not null)
@@ -82,6 +83,11 @@ internal sealed partial class KunOutboxRelay(IServiceScopeFactory scopes, IDataC
     // 已领取的这一条不受停机令牌影响：发布与标记都要完成，否则已确认的消息会被别的副本重发。
     private async Task PublishAsync(OutboxTable table, System.Data.Common.DbConnection connection, ClaimedMessage row)
     {
+        ActivityContext.TryParse(row.TraceParent, row.TraceState, out var parent);
+        using var activity = Source.StartActivity("outbox.publish", ActivityKind.Producer, parent);
+        activity?.SetTag("messaging.system", "outbox");
+        activity?.SetTag("messaging.destination", row.EventTypeId);
+        activity?.SetTag("messaging.message_id", row.Id.ToString());
         var tags = new TagList { { "qian.events.relay", _options.RelayInstance }, { "qian.events.schema", table.Schema }, { "qian.events.type", row.EventTypeId } };
         try
         {
@@ -90,6 +96,7 @@ internal sealed partial class KunOutboxRelay(IServiceScopeFactory scopes, IDataC
         }
         catch (Exception error) when (error is not OutOfMemoryException)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, error.GetType().Name);
             var attempts = row.AttemptCount + 1;
             // 信封不合法时重试也不会变好，直接标为失败。
             var failed = error is KunEventsException || attempts >= _options.MaxAttempts;

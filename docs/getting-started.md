@@ -113,7 +113,7 @@ curl -fsS "$ORDER/demo/orders/$ORDER_ID" | jq '{id,status,totalAmount}'
 ```
 
 The order reads back as `Completed` with a total of `25.00`. The handler reserved two units over
-gRPC and committed the order and its `order.completed.v1` Outbox row in one transaction. To see
+gRPC and committed the order and its `order.completed.v1` envelope in one transaction. To see
 the event, open the Order resource's console logs and look for the Outbox publisher's
 `Would publish event 'order.completed.v1'` message. In this sample the publisher logs delivery.
 
@@ -132,7 +132,7 @@ The order flow exercised these building blocks:
 
 **Outbox transactional publishing** — the order row and its integration event were written in a
 single EF Core `SaveChangesAsync` call. If the database transaction rolled back,
-no message was produced. The `OutboxPublisherBackgroundService` drains `Pending` rows to the
+no message was produced. The `KunOutboxRelay` drains `Pending` rows to the
 configured publisher asynchronously. The sample publisher logs each event.
 
 **W3C Trace Context propagation** — every `OutboxMessage` row stores the `traceparent` and

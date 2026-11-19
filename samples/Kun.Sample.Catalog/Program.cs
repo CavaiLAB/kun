@@ -72,8 +72,8 @@ builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(readCs));
 // ── Event bus + Outbox ────────────────────────────────────────────────────────
 builder.Services.AddKunEventBus(eb =>
 {
-    eb.Register<ProductPublishedIntegrationEvent>();
-    eb.Register<InventoryChangedIntegrationEvent>();
+    eb.Register("product.published.v1", CatalogEventJson.Default.ProductPublishedIntegrationEvent);
+    eb.Register("inventory.changed.v1", CatalogEventJson.Default.InventoryChangedIntegrationEvent);
     eb.UseInMemoryIdempotency();
 });
 

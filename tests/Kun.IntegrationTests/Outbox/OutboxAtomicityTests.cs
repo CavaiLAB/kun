@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using FluentAssertions;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
@@ -37,6 +38,8 @@ internal sealed class TestOrder : AggregateRoot<Guid>
 }
 
 internal sealed record TestOrderPlaced(Guid OrderId);
+[JsonSerializable(typeof(TestOrderPlaced))]
+internal sealed partial class TestOrderJson : JsonSerializerContext;
 internal sealed record TestOrderCreated(Guid Id, DateTime OccurredAt) : IDomainEvent, INotification;
 internal sealed class TestOrderCreatedHandler(IIntegrationEventBus bus) : INotificationHandler<TestOrderCreated>
 {
@@ -104,7 +107,7 @@ public sealed class OutboxAtomicityTests : IAsyncLifetime
 
         services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
         services.AddKunMediator(builder => builder.AddNotificationHandler<TestOrderCreated, TestOrderCreatedHandler>());
-        services.AddKunEventBus(b => b.Register<TestOrderPlaced>("test.order.placed.v1"));
+        services.AddKunEventBus(b => b.Register("test.order.placed.v1", TestOrderJson.Default.TestOrderPlaced));
         services.AddKunEntityFrameworkCore();
         services.AddDbContext<TestDbContext>((_, opts) =>
             opts.UseNpgsql(_postgres.GetConnectionString()));
@@ -132,6 +135,7 @@ public sealed class OutboxAtomicityTests : IAsyncLifetime
     [Fact]
     public async Task SaveChanges_WithIntegrationEvent_PersistsBothAtomically()
     {
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.tests", EventActor.Service("test-runner")));
         var ct = TestContext.Current.CancellationToken;
 
         await using var scope = _services.CreateAsyncScope();
@@ -163,6 +167,7 @@ public sealed class OutboxAtomicityTests : IAsyncLifetime
     [Fact]
     public async Task Rollback_OnSaveFailure_LeavesNeitherRow()
     {
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.tests", EventActor.Service("test-runner")));
         var ct = TestContext.Current.CancellationToken;
         var sharedId = Guid.NewGuid();
 
@@ -199,6 +204,7 @@ public sealed class OutboxAtomicityTests : IAsyncLifetime
     [Fact]
     public async Task DefaultDispatcher_WithoutMediatorSend_ReusesUnitOfWorkScope()
     {
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.tests", EventActor.Service("test-runner")));
         var ct = TestContext.Current.CancellationToken;
         await using var scope = _services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();

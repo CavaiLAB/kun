@@ -3,6 +3,7 @@
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
     <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.AspNetCore/Kun.Data.AspNetCore.csproj" />

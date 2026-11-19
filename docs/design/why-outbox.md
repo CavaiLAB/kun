@@ -33,42 +33,27 @@ method is:
 
 1. Domain events are collected from `ChangeTracker.Entries<IAggregateRoot>()` and dispatched
    in-process via `IDomainEventDispatcher`.
-2. In-process domain event handlers call `IIntegrationEventBus.Publish`, which stages the
-   integration event in the `IntegrationEventBuffer` — an in-memory accumulator scoped to the
-   current request.
-3. Each staged event is converted to an `OutboxMessage` row. The stable event type identifier
-   (e.g. `product.published.v1`) is resolved from `IEventTypeRegistry` — never from
-   `Type.AssemblyQualifiedName`, which would break across assembly renames and refactors.
-4. The payload is serialized via `KunJsonContext.Default.GetTypeInfo(type)`, which uses a
-   source-generated `JsonSerializerContext`. No runtime reflection; safe for AOT.
-5. `Activity.Current?.Id` and `Activity.Current?.TraceStateString` are captured as `TraceParent`
-   and `TraceState` on the message so the trace can be resumed on the other side of the broker.
-6. `DbContext.SaveChangesAsync` commits the aggregate changes and the `OutboxMessage` rows in a
-   single database transaction.
-
-Because step 6 is one transaction, either both the business state and the Outbox row are
-committed, or neither is. The dual-write problem is eliminated.
+2. Each domain event handler calls `IIntegrationEventBus.Publish` inside an
+   `EventEnvelopeScope`. The writer resolves the stable type identifier and the registered
+   source-generated JSON metadata, then serializes the payload inside a v1 envelope.
+3. The writer captures the origin, tenant and trace context and stages the complete
+   `OutboxMessage` in the request's `IntegrationEventBuffer`.
+4. The unit of work attaches the staged rows to the same context and calls
+   `DbContext.SaveChangesAsync`. Aggregate changes and Outbox rows commit in one transaction.
 
 ---
 
 ## How the background publisher drains the Outbox
 
-`OutboxPublisherBackgroundService` is a `BackgroundService` that runs in every process that has
-the Outbox registered. On each scan cycle it:
+Hosts call `AddKunOutboxRelay<TContext>()` for regular Kun contexts or `AddKunOutboxRelay()`
+for registered strict contexts. The relay claims pending PostgreSQL rows with a committed
+`FOR UPDATE SKIP LOCKED` lease, restores each row’s stored trace parent and publishes the
+envelope. Each broker confirmation updates that row immediately. The Order sample uses a
+logging publisher. Production hosts can register the RabbitMQ publisher with `AddKunEventsBroker`.
 
-1. Queries `OutboxMessage` rows with `Status = Pending`, ordered by `OccurredAt`.
-2. For each message, restores the W3C trace context from `TraceParent`/`TraceState` to link the
-   publish span to the original request trace.
-3. Calls `IIntegrationEventPublisher.PublishAsync` — in production this is the RabbitMQ
-   publisher from `Kun.EventBus.RabbitMQ`; in the Order sample it is a no-op that logs to
-   stdout.
-4. On success: calls `OutboxMessage.MarkPublished` and saves.
-5. On failure: increments `AttemptCount`, records `LastError`, and retries with exponential
-   back-off. After the configured maximum attempts the message transitions to `Failed` and
-   requires manual intervention.
-
-The scan uses `SELECT ... FOR UPDATE SKIP LOCKED` (or a Redis distributed lock) so multiple
-instances of the same service do not race on the same batch.
+Transient failures persist the attempt count and next attempt time. Invalid envelopes and rows
+that reach the retry limit move to `Failed`. On shutdown the relay finishes its current row and
+returns unissued rows. If the process exits, another replica can claim them after lease expiry.
 
 ---
 
@@ -76,14 +61,13 @@ instances of the same service do not race on the same batch.
 
 Because the publisher uses at-least-once delivery — the broker acknowledgement and the database
 `MarkPublished` update are still two operations — a consumer may receive the same message more
-than once. Every consumer handler is wrapped in `IdempotentConsumerDecorator<T>`, which checks
-`IProcessedMessageStore` before invoking the handler.
+than once. Before dispatch, the subscriber checks `IProcessedMessageStore` for this consumer
+and event ID. It writes the success mark after the handler completes, then acknowledges the message.
 
-The default implementation uses Redis `SETNX` with a TTL (default 30 minutes) keyed on
-`idemp:{consumerName}:{messageId}`. If the key already exists the message is acknowledged and
-discarded. Consumer handlers must still be written to be safe when called more than once, but the
-decorator handles the common case without requiring every handler to implement its own
-deduplication.
+The Redis key is `idemp:{consumerName}:{messageId}`. The default retention is seven days.
+A failure between the business commit and the success mark can cause another delivery.
+Handlers that write business data should use the message ID as an idempotency key within
+their own transaction.
 
 ---
 

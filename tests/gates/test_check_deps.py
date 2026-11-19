@@ -345,8 +345,8 @@ class RealGraphTests(unittest.TestCase):
         self.assertEqual("true", self.packages["Kun.Errors"].zero_dependency)
         self.assertEqual("true", self.packages["Kun.Security.Abstractions"].zero_dependency)
         self.assertEqual([], [v for v in self.violations])
-        self.assertEqual(4, len(self.statuses))
-        self.assertEqual([("D", "Kun.EventBus", "B6")],
+        self.assertEqual(3, len(self.statuses))
+        self.assertEqual([],
                          [(s.rule, s.target, s.until) for s in self.statuses if s.package == "Kun.EntityFrameworkCore"])
         self.assertEqual([], [s for s in self.statuses if s.problem])
         # 插件开发包没有例外了：命令策略协议的 CommandInvocation 带的 Principal 在内核契约 Kun.Security.Abstractions 里（B7）。

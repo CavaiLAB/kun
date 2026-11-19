@@ -7,10 +7,12 @@ using Kun.EntityFrameworkCore.Extensions;
 using Kun.Errors.AspNetCore;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
+using Kun.EventBus.EntityFrameworkCore;
 using Kun.Mediator.DependencyInjection;
 using Kun.Sample.Order.Api.Endpoints;
 using Kun.Sample.Order.Application.Commands;
 using Kun.Sample.Order.Application.Queries;
+using Kun.Sample.Order.Contracts;
 using Kun.Sample.Order.Infrastructure;
 using Kun.Sample.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -44,16 +46,13 @@ builder.Services.AddKunEntityFrameworkCore();
 // ── Event Bus + Outbox Publisher ──────────────────────────────────────────────
 builder.Services.AddKunEventBus(eb =>
 {
-    eb.Register<Kun.Sample.Order.Contracts.OrderCompletedIntegrationEvent>();
+    eb.Register("order.completed.v1", OrderEventJson.Default.OrderCompletedIntegrationEvent);
     eb.UseInMemoryIdempotency();
 });
 
-// Wire the EF-backed outbox store so OutboxPublisherBackgroundService can read messages.
-// AddKunEntityFrameworkCore 已注册带事务行锁的默认 Outbox 存储。
-// No-op IIntegrationEventPublisher — no RabbitMQ configured in this sample.
-// Swap with the RabbitMQ publisher from Kun.EventBus.RabbitMQ in production.
+// The sample logs confirmed publications locally. Configure the RabbitMQ broker in a messaging host.
 builder.Services.AddSingleton<IIntegrationEventPublisher, NoOpIntegrationEventPublisher>();
-builder.Services.AddKunOutboxPublisher();
+builder.Services.AddKunOutboxRelay<OrderDbContext>();
 
 // ── Catalog gRPC client ───────────────────────────────────────────────────────
 // PlaceOrderCommandHandler reserves stock through this client.

@@ -1,8 +1,8 @@
-using System.Diagnostics;
-using System.Text.Json;
+using Kun.Audit;
 using Kun.Auditing.DependencyInjection;
 using Kun.Auditing.Events;
 using Kun.Core.MultiTenancy;
+using Kun.Core.Security;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus.Outbox;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,18 +47,12 @@ internal sealed class OutboxAuditSink : IAuditSink
         ArgumentNullException.ThrowIfNull(@event);
 
         var dbContext = _serviceProvider.GetRequiredService<KunDbContext>();
-        var payload = JsonSerializer.Serialize(@event, AuditJsonContext.Default.AuditEventIntegrationEvent);
-        var activity = Activity.Current;
-
-        var message = new OutboxMessage(
-            id: Guid.NewGuid(),
-            eventTypeId: AuditingServiceCollectionExtensions.AuditEventStableId,
-            payload: payload,
-            tenantId: _tenantContext.TenantId?.ToString("D"),
-            traceParent: activity?.Id,
-            traceState: activity?.TraceStateString,
-            occurredAt: DateTimeOffset.UtcNow);
-
+        var currentUser = _serviceProvider.GetService<ICurrentUser>();
+        var actorId = @event.ActorId ?? (currentUser?.IsAuthenticated == true ? currentUser.UserId : null);
+        var actorType = @event.ActorType == AuditActorType.System && currentUser?.IsAuthenticated == true ? AuditActorType.User : @event.ActorType;
+        var origin = AuditEventOrigin.Resolve(actorType, actorId);
+        var message = KunEnvelopeOutboxWriter.CreateMessage(AuditingServiceCollectionExtensions.AuditEventStableId, @event,
+            AuditJsonContext.Default.AuditEventIntegrationEvent, origin, _tenantContext.TenantId, Guid.CreateVersion7(@event.CreatedAt), @event.CreatedAt);
         dbContext.OutboxMessages.Add(message);
         return ValueTask.CompletedTask;
     }

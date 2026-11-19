@@ -27,3 +27,4 @@ Kun.EventBus.EntityFrameworkCore.OutboxLockMode.Redis = 1 -> Kun.EventBus.Entity
 Kun.EventBus.EntityFrameworkCore.OutboxLockMode.SkipLocked = 0 -> Kun.EventBus.EntityFrameworkCore.OutboxLockMode
 static Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions.AddKunEvents(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.EventBus.EntityFrameworkCore.KunEventsOptions!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions.AddKunOutboxRelay(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions.AddKunOutboxRelay<TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

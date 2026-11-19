@@ -23,6 +23,7 @@ public sealed class ProductCreatedHandler(IIntegrationEventBus eventBus)
             notification.Event.Name,
             notification.Event.Price);
 
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("kun.sample.catalog", EventActor.Service("sample-catalog")));
         eventBus.Publish(integrationEvent);
         return ValueTask.CompletedTask;
     }

@@ -65,6 +65,7 @@ public sealed partial class PlaceOrderCommandHandler : IRequestHandler<PlaceOrde
         order.MarkCompleted();
         await _db.Orders.AddAsync(order, cancellationToken);
 
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("kun.sample.order", EventActor.Service("sample-order")));
         _eventBus.Publish(new OrderCompletedIntegrationEvent(
             OrderId: order.Id,
             CustomerId: order.CustomerId,

@@ -1,19 +1,14 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentAssertions;
+using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Idempotency;
-using Kun.EventBus.Outbox;
 using Kun.EventBus.RabbitMQ;
-using Kun.EventBus.RabbitMQ.Consuming;
-using Kun.EventBus.RabbitMQ.DependencyInjection;
-using Kun.EventBus.RabbitMQ.Options;
 using Kun.IntegrationTests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using StackExchange.Redis;
 using Xunit;
@@ -37,7 +32,7 @@ internal sealed class CountingHandler : IIntegrationEventHandler<IdempotencyTest
     {
         var attempt = Interlocked.Increment(ref Attempts);
         if (attempt == 1 && FirstAttemptGate is not null) await FirstAttemptGate.Task.WaitAsync(cancellationToken);
-        if (Interlocked.Decrement(ref FailuresRemaining) >= 0) throw new InvalidOperationException("首次处理失败");
+        if (Interlocked.Decrement(ref FailuresRemaining) >= 0) throw new IOException("临时依赖不可用");
         Interlocked.Increment(ref InvocationCount);
     }
 }
@@ -75,42 +70,22 @@ public sealed class IdempotencyTests : IAsyncLifetime
             .ConfigureLogging(l => l.SetMinimumLevel(LogLevel.Warning))
             .ConfigureServices(services =>
             {
-                services.AddSingleton<IOptions<RabbitMqOptions>>(
-                    Options.Create(new RabbitMqOptions
-                    {
-                        ConnectionString = _rabbitmq.ConnectionString,
-                        ConsumerName = "test-consumer-idempotency",
-                        RetryBaseDelay = TimeSpan.FromMilliseconds(100),
-                    }));
-
+                services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
+                services.AddSingleton(capturedHandler);
                 services.AddKunEventBus(b =>
                 {
-                    b.Register<IdempotencyTestEvent>("integration.test.idempotency.v1");
+                    b.Register("integration.test.idempotency.v1", IdempotencyJsonContext.Default.IdempotencyTestEvent);
                     b.UseRedisIdempotency();
                 });
-
-                services.AddSingleton<IConnectionMultiplexer>(
-                    _ => ConnectionMultiplexer.Connect(_redis.ConnectionString));
-
-                services.AddRabbitMq(
-                    _ => { },
-                    builder => builder.Subscribe<IdempotencyTestEvent, CountingHandler>(
-                        "integration.test.idempotency.v1",
-                        IdempotencyJsonContext.Default.IdempotencyTestEvent));
-
-                services.AddScoped<IIntegrationEventHandler<IdempotencyTestEvent>>(_ => capturedHandler);
+                services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(_redis.ConnectionString));
+                services.AddKunEventsBroker(_ => _rabbitmq.ConnectionString);
+                services.AddKunEventsSubscriber("idempotency", b => b.Subscribe<IdempotencyTestEvent, CountingHandler>("work", acceptPlatformEvents: true),
+                    o => { o.MaxRetries = 4; o.RetryBaseDelay = TimeSpan.FromMilliseconds(100); });
             })
             .Build();
 
-        var connection = await _host.Services.GetRequiredService<RabbitMqConnectionProvider>().GetConnectionAsync(TestContext.Current.CancellationToken);
-        await using (var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken))
-        {
-            await channel.ExchangeDeclareAsync("kun.events", "topic", durable: true, cancellationToken: TestContext.Current.CancellationToken);
-            await channel.QueueDeclareAsync("test-consumer-idempotency.integration.test.idempotency.v1", durable: true,
-                exclusive: false, autoDelete: false, arguments: DeadLetterHandler.GetQueueArguments("kun.events"), cancellationToken: TestContext.Current.CancellationToken);
-            await channel.QueueBindAsync("test-consumer-idempotency.integration.test.idempotency.v1", "kun.events", "integration.test.idempotency.v1", cancellationToken: TestContext.Current.CancellationToken);
-        }
         await _host.StartAsync(TestContext.Current.CancellationToken);
+        await _host.Services.GetServices<IHostedService>().OfType<KunEventSubscriber>().Single().Ready.WaitAsync(TimeSpan.FromSeconds(20), TestContext.Current.CancellationToken);
     }
 
     public async ValueTask DisposeAsync()
@@ -136,20 +111,9 @@ public sealed class IdempotencyTests : IAsyncLifetime
             return;
         }
 
-        var messageId = Guid.NewGuid();
-        var payload = JsonSerializer.Serialize(
-            new IdempotencyTestEvent(messageId, "dedup-test"),
-            IdempotencyJsonContext.Default.IdempotencyTestEvent);
-
+        var messageId = Guid.CreateVersion7();
         var publisher = _host.Services.GetRequiredService<IIntegrationEventPublisher>();
-        var message = new OutboxMessage(
-            id: messageId,
-            eventTypeId: "integration.test.idempotency.v1",
-            payload: payload,
-            tenantId: null,
-            traceParent: null,
-            traceState: null,
-            occurredAt: DateTimeOffset.UtcNow);
+        var message = EventMessages.Create(messageId, "integration.test.idempotency.v1", new IdempotencyTestEvent(messageId, "dedup-test"), IdempotencyJsonContext.Default.IdempotencyTestEvent);
 
         // Publish once, wait for handler to process and mark it.
         await publisher.PublishAsync(message, ct);
@@ -173,9 +137,8 @@ public sealed class IdempotencyTests : IAsyncLifetime
     public async Task HandlerFailsOnce_OnlySuccessIsMarked_AndRetrySurvivesInBroker()
     {
         _handler!.FailuresRemaining = 1;
-        var id = Guid.NewGuid();
-        var payload = JsonSerializer.Serialize(new IdempotencyTestEvent(id, "retry"), IdempotencyJsonContext.Default.IdempotencyTestEvent);
-        var message = new OutboxMessage(id, "integration.test.idempotency.v1", payload, null, null, null, DateTimeOffset.UtcNow);
+        var id = Guid.CreateVersion7();
+        var message = EventMessages.Create(id, "integration.test.idempotency.v1", new IdempotencyTestEvent(id, "retry"), IdempotencyJsonContext.Default.IdempotencyTestEvent);
         await _host!.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(message, TestContext.Current.CancellationToken);
         var deadline = DateTimeOffset.UtcNow.AddSeconds(20);
         while (_handler.InvocationCount == 0 && DateTimeOffset.UtcNow < deadline)
@@ -184,7 +147,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
         Assert.Equal(2, _handler.Attempts);
         Assert.True(await WaitUntilProcessedAsync(id, TestContext.Current.CancellationToken), ProcessedMarkMissing);
         var redis = _host.Services.GetRequiredService<IConnectionMultiplexer>().GetDatabase();
-        Assert.Equal("1", (string?)await redis.StringGetAsync($"idemp:test-consumer-idempotency:{id}"));
+        Assert.Equal("1", (string?)await redis.StringGetAsync($"idemp:idempotency.work:{id}"));
         await _host.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(message, TestContext.Current.CancellationToken);
         await Task.Delay(300, TestContext.Current.CancellationToken);
         Assert.Equal(2, _handler.Attempts);
@@ -196,9 +159,8 @@ public sealed class IdempotencyTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         _handler!.FailuresRemaining = 1;
         _handler.FirstAttemptGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var id = Guid.NewGuid();
-        var payload = JsonSerializer.Serialize(new IdempotencyTestEvent(id, "restart"), IdempotencyJsonContext.Default.IdempotencyTestEvent);
-        var message = new OutboxMessage(id, "integration.test.idempotency.v1", payload, null, null, null, DateTimeOffset.UtcNow);
+        var id = Guid.CreateVersion7();
+        var message = EventMessages.Create(id, "integration.test.idempotency.v1", new IdempotencyTestEvent(id, "restart"), IdempotencyJsonContext.Default.IdempotencyTestEvent);
         await _host!.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(message, ct);
         var deadline = DateTimeOffset.UtcNow.AddSeconds(15);
         while (_handler.Attempts == 0 && DateTimeOffset.UtcNow < deadline) await Task.Delay(50, ct);
@@ -219,25 +181,24 @@ public sealed class IdempotencyTests : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         _handler!.FailuresRemaining = 100;
-        await _host!.Services.GetRequiredService<RabbitMqIntegrationEventSubscriber>().Ready.WaitAsync(TimeSpan.FromSeconds(20), ct);
-        var id = Guid.NewGuid();
-        var payload = JsonSerializer.Serialize(new IdempotencyTestEvent(id, "poison"), IdempotencyJsonContext.Default.IdempotencyTestEvent);
-        await _host.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(
-            new OutboxMessage(id, "integration.test.idempotency.v1", payload, null, null, null, DateTimeOffset.UtcNow), ct);
-        var connection = await _host.Services.GetRequiredService<RabbitMqConnectionProvider>().GetConnectionAsync(ct);
+        await _host!.Services.GetServices<IHostedService>().OfType<KunEventSubscriber>().Single().Ready.WaitAsync(TimeSpan.FromSeconds(20), ct);
+        var id = Guid.CreateVersion7();
+        var message = EventMessages.Create(id, "integration.test.idempotency.v1", new IdempotencyTestEvent(id, "poison"), IdempotencyJsonContext.Default.IdempotencyTestEvent);
+        await _host.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(message, ct);
+        await using var connection = await new ConnectionFactory { Uri = new Uri(_rabbitmq.ConnectionString) }.CreateConnectionAsync(ct);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
         BasicGetResult? dead = null;
         var deadline = DateTimeOffset.UtcNow.AddSeconds(20);
         while (dead is null && DateTimeOffset.UtcNow < deadline)
         {
-            dead = await channel.BasicGetAsync("test-consumer-idempotency.dead-letter", autoAck: true, ct);
+            dead = await channel.BasicGetAsync(KunEventTopology.DeadLetterQueue("idempotency", "work"), autoAck: true, ct);
             if (dead is null) await Task.Delay(100, ct);
         }
         Assert.NotNull(dead);
         Assert.Equal(id.ToString(), dead.BasicProperties.MessageId);
         Assert.Equal(5, _handler.Attempts);
         Assert.Equal(0, _handler.InvocationCount);
-        Assert.False(await _host.Services.GetRequiredService<IProcessedMessageStore>().IsProcessedAsync("test-consumer-idempotency", id, ct));
+        Assert.False(await _host.Services.GetRequiredService<IProcessedMessageStore>().IsProcessedAsync("idempotency.work", id, ct));
     }
 
     private const string ProcessedMarkMissing = "处理器成功之后 10 秒内没有写下已处理标记";
@@ -248,7 +209,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
     {
         var store = _host!.Services.GetRequiredService<IProcessedMessageStore>();
         var deadline = DateTimeOffset.UtcNow.AddSeconds(10);
-        while (!await store.IsProcessedAsync("test-consumer-idempotency", id, ct))
+        while (!await store.IsProcessedAsync("idempotency.work", id, ct))
         {
             if (DateTimeOffset.UtcNow >= deadline) return false;
             await Task.Delay(50, ct);

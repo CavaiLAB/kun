@@ -9,7 +9,7 @@
     <ProjectReference Include="..\..\src\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\..\src\Kun.Mediator\Kun.Mediator.csproj" />
     <ProjectReference Include="..\..\src\Kun.Validation\Kun.Validation.csproj" />
-    <ProjectReference Include="..\..\src\Kun.EventBus\Kun.EventBus.csproj" />
+    <ProjectReference Include="..\..\src\Kun.EventBus.EntityFrameworkCore\Kun.EventBus.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.EntityFrameworkCore\Kun.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.Errors.AspNetCore\Kun.Errors.AspNetCore.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />

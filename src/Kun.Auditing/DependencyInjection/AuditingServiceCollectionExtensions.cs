@@ -28,7 +28,8 @@ public static class AuditingServiceCollectionExtensions
     /// <summary>规范实体审计入口：AuditLog、Outbox 与业务使用同一 DbContext 和事务。</summary>
     /// <remarks>
     /// 不登记 <see cref="ITenantContext"/> 与 <see cref="ICurrentUser"/>：拦截器在上下文创建时按需解析，
-    /// 宿主未登记时按无租户、匿名记录。安全与多租户组件在本方法之前或之后登记都生效；
+    /// 未启用租户的宿主记录平台级事件。没有用户或审计主体时，后台保存通过 EventEnvelopeScope 提供服务主体。
+    /// 安全与多租户组件在本方法之前或之后登记都生效；
     /// <see cref="KunDbContext"/> 的构造仍需要 <see cref="ITenantContext"/>，单租户宿主显式登记 <see cref="NullTenantContext.Instance"/>。
     /// </remarks>
     public static IServiceCollection AddKunAuditing<TContext>(this IServiceCollection services)

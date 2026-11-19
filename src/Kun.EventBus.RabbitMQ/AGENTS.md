@@ -1,70 +1,14 @@
 # Kun.EventBus.RabbitMQ
 
-## Purpose
+## 发布与订阅
 
-RabbitMQ broker adapter implementing `IIntegrationEventPublisher`. Publishes Outbox-drained messages to a topic exchange, attaches W3C Trace Context headers, and provides a consumer background service (`RabbitMqIntegrationEventSubscriber`) that dispatches incoming messages through `IdempotentConsumerDecorator` to `IIntegrationEventHandler<TEvent>` implementations.
+`AddKunEventsBroker` 登记发布端与独立的消费连接配置，`AddKunEventsSubscriber` 以服务名、订阅名和具体 handler 类型登记订阅。宿主使用源生成的 JSON 元数据登记事件。投递端核对 Outbox 行与信封的 ID、类型及租户，以信封的 subject 为路由键，在 broker 确认后返回。
 
-## Key Files
-
-| File | Description |
-|------|-------------|
-| `Kun.EventBus.RabbitMQ.csproj` | `IsAotCompatible=true`; references `RabbitMQ.Client` 7.x, `Microsoft.Extensions.*` |
-| `RabbitMqConnectionProvider.cs` | Singleton lazy-open `IConnection` with `AutomaticRecoveryEnabled=true`; `IAsyncDisposable` |
-| `Options/RabbitMqOptions.cs` | `ConnectionString`, `ExchangeName`, `ConsumerName`, `PrefetchCount`, `MaxDeliveryAttempts`, `IdempotencyTtl` |
-| `Publishing/RabbitMqIntegrationEventPublisher.cs` | Implements `IIntegrationEventPublisher`; opens a channel per publish; declares exchange; writes trace/tenant headers |
-| `Consuming/RabbitMqIntegrationEventSubscriber.cs` | `BackgroundService`; declares queues, DLX/DLQ; registers `AsyncEventingBasicConsumer` per subscription |
-| `Consuming/ConsumeSession.cs` | One consume session's channel plus the gate between settling and closing: once the close starts, nothing more is acked or nacked on that channel |
-| `Consuming/IdempotentConsumerDecorator.cs` | Invokes handler then calls `IProcessedMessageStore.TryMarkProcessedAsync` |
-| `Consuming/DeadLetterHandler.cs` | Declares `{exchange}.dlx` fanout + `{consumer}.dead-letter` queue; provides `x-dead-letter-exchange` queue args |
-| `Consuming/ISubscriptionDispatcher.cs` | Internal per-event dispatch contract (avoids `MakeGenericType`) |
-| `Consuming/TypedSubscriptionDispatcher.cs` | AOT-safe generic dispatcher; uses `JsonTypeInfo<TEvent>` for deserialization |
-| `Consuming/SubscriptionRegistration.cs` | Value type recording `EventTypeId` → `EventClrType` for queue declaration |
-| `DependencyInjection/KunRabbitMqBuilder.cs` | Fluent `.Subscribe<TEvent, THandler>(eventTypeId, typeInfo)` — registers handler + dispatcher + registration |
-| `DependencyInjection/KunRabbitMqServiceCollectionExtensions.cs` | `AddRabbitMq(Action<RabbitMqOptions>, Action<KunRabbitMqBuilder>?)` — wires all singletons + hosted service |
-| `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt` | RS0016 public surface tracking |
-
-## For AI Agents
-
-### Working In This Directory
-
-- **AOT-safe**: `IsAotCompatible=true`. No `Activator.CreateInstance`, no `MakeGenericType`, no `Type.GetMethod`. `TypedSubscriptionDispatcher<TEvent>` is registered at DI wire-up time (compile-time generic instantiation). `JsonTypeInfo<TEvent>` is passed by the caller from their `JsonSerializerContext`.
-- **Trace context headers are mandatory**: on publish, copy `TraceParent`/`TraceState` from the Outbox row into AMQP `BasicProperties.Headers` as `traceparent`/`tracestate`. On consume, restore via `ActivityContext.TryParse`.
-- **Stable event IDs on the wire**: routing key = `message.EventTypeId` (e.g. `order.placed.v1`). `IEventTypeRegistry.Resolve(routingKey)` converts back to CLR type.
-- **幂等与确认**：先查成功记录，执行成功后才标记并 ack；失败经持久化 quorum 队列退避，重试副本被确认后才 ack 原消息。业务 handler 仍必须幂等。
-- **死信**：`x-kun-attempts` 达到 `MaxDeliveryAttempts` 后确认发布到 `{exchange}.dlx`，再 ack 原消息；兼容读取旧 x-death。
-- **停止与确认**：订阅端停止时先置「正在关」，等已经开始写的确认帧写完再关通道；此后的 ack / nack 一律不发，由 RabbitMQ 在通道关闭时重新入队，幂等记录挡住重复处理。确认只经 `ConsumeSession.TrySettleAsync`，不要直接在通道上调 `BasicAckAsync` / `BasicNackAsync`。客户端关通道要等正在执行的处理器返回，所以关通道时不能拿着处理器也要等的锁。
-- **RabbitMQ.Client 7.x async API**: `CreateChannelAsync`, `BasicPublishAsync`, `BasicQosAsync`, `ExchangeDeclareAsync`, `QueueDeclareAsync`, `QueueBindAsync`, `BasicConsumeAsync`, `BasicAckAsync`, `BasicNackAsync`. Never use `.Result`/`.Wait()`.
-- **LoggerMessage delegates** (`[LoggerMessage]` on nested `partial class Log`) are used throughout — do not regress to `LogInformation(..., args)`.
-- Payload is already a JSON string from the Outbox — no re-serialization needed on publish. On consume, `JsonSerializer.Deserialize(payload, typeInfo)` uses the caller-supplied `JsonTypeInfo`.
-- Channel per publish with publisher confirmations and mandatory routing (not pooled) — acceptable for Outbox throughput; channel creation is cheap in 7.x.
-
-### Testing Requirements
-
-Use `Testcontainers.RabbitMq` in `tests/Kun.IntegrationTests` (M3 3.4, Docker-deferred). Validate:
-- Trace-context round-tripping (publish → consume header restoration).
-- At-least-once delivery (nack + requeue → retry).
-- Idempotent consumer under redelivery (second delivery should log warning, not fail).
-- Dead-letter routing after `MaxDeliveryAttempts`.
-
-### Common Patterns
-
-```csharp
-// Wire-up (in Program.cs / Startup)
-services.AddKunEventBus(bus => bus
-    .Register<OrderPlacedIntegrationEvent>("order.placed.v1"));
-
-services.AddRabbitMq(
-    opts =>
-    {
-        opts.ConnectionString = "amqp://guest:guest@localhost:5672/";
-        opts.ConsumerName = "catalog-service";
-    },
-    rmq => rmq.Subscribe<OrderPlacedIntegrationEvent, OrderPlacedHandler>(
-        "order.placed.v1",
-        MyJsonContext.Default.OrderPlacedIntegrationEvent));
-```
-
-Exchange type is `topic`; routing key = stable event ID. Consumer queues are named `{ConsumerName}.{EventTypeId}`.
+- `RabbitMqBroker.cs` 管理发布连接和确认通道，定义交换机、重试队列、死信队列与绑定。
+- `Publishing/KunEnvelopePublisher.cs` 从已校验的信封生成 AMQP 属性与消息体。
+- `Consuming/KunEventSubscriber.cs` 处理消息、恢复租户和 trace、登记幂等记录。每条投递捕获自己的 `ConsumeSession`；关闭通道之前先等已开始写的确认帧完成。
+- `Consuming/KunEventsSubscriberBuilder.cs` 将已登记事件绑定到具体 handler。
+- 行为变更须复核 `Kun.IntegrationTests` 的停机、重连、确认、版本分发用例以及 `Kun.EventBus.IntegrationTests` 的投递、幂等和死信用例。
 
 ## Dependencies
 

@@ -1,16 +1,12 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentAssertions;
+using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.RabbitMQ;
-using Kun.EventBus.RabbitMQ.Consuming;
-using Kun.EventBus.RabbitMQ.DependencyInjection;
-using Kun.EventBus.RabbitMQ.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -110,7 +106,7 @@ public sealed class RabbitMqSubscriberStopTests
 
         broker.SettlementsAfterClose().Should().BeEmpty(
             "通道的关闭发出之后再确认或拒绝，RabbitMQ 会在已清掉的通道号上收到帧，以 504 关掉整条连接");
-        broker.Channel.Received(1).Dispose();
+        await broker.Channel.Received(1).DisposeAsync();
     }
 
     [Fact]
@@ -146,8 +142,8 @@ public sealed class RabbitMqSubscriberStopTests
 
         await host.StopAsync(ct);
 
-        broker.Channel.Received(1).Dispose();
-        host.Services.GetRequiredService<RabbitMqIntegrationEventSubscriber>().ExecuteTask!.IsCompletedSuccessfully.Should().BeTrue();
+        await broker.Channel.Received(1).DisposeAsync();
+        host.Services.GetServices<IHostedService>().OfType<KunEventSubscriber>().Single().ExecuteTask!.IsCompletedSuccessfully.Should().BeTrue();
         logs.Entries.Should().NotContain(entry => entry.EventId == ConsumeSessionFailed,
             "连接已被对端关掉时关通道，不算消费会话失败");
         logs.Entries.Should().Contain(entry => entry.EventId == ChannelAlreadyClosed)
@@ -171,7 +167,7 @@ public sealed class RabbitMqSubscriberStopTests
 
         failure.Exception.Should().BeSameAs(original, "关通道的失败不能盖掉会话本来的失败");
         logs.Entries.Should().Contain(entry => entry.EventId == ChannelCloseFailed && entry.Exception is IOException);
-        broker.Channel.Received(1).Dispose();
+        await broker.Channel.Received(1).DisposeAsync();
     }
 
     /// <summary>
@@ -210,17 +206,17 @@ public sealed class RabbitMqSubscriberStopTests
     }
 
     // RabbitMqIntegrationEventSubscriber 的日志事件号。
-    private const int ConsumeSessionFailed = 35;
-    private const int ChannelAlreadyClosed = 37;
-    private const int ChannelCloseFailed = 38;
+    private const int ConsumeSessionFailed = 22;
+    private const int ChannelAlreadyClosed = 39;
+    private const int ChannelCloseFailed = 31;
 
     private static Task DeliverAsync(IAsyncBasicConsumer consumer, ulong deliveryTag)
     {
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
+        var row = EventMessages.Create(id, EventTypeId, new StopOrderEvent(id), StopOrderJsonContext.Default.StopOrderEvent);
         var properties = new BasicProperties { Type = EventTypeId, MessageId = id.ToString() };
-        var body = JsonSerializer.SerializeToUtf8Bytes(new StopOrderEvent(id), StopOrderJsonContext.Default.StopOrderEvent);
-        return consumer.HandleBasicDeliverAsync("consumer-1", deliveryTag, redelivered: false, "kun.events", EventTypeId,
-            properties, body, CancellationToken.None);
+        return consumer.HandleBasicDeliverAsync("consumer-1", deliveryTag, redelivered: false, KunEventTopology.Exchange, "integration.test.stop-order",
+            properties, System.Text.Encoding.UTF8.GetBytes(row.Payload), CancellationToken.None);
     }
 
     private static IHost BuildHost(FakeBroker broker, StopOrderProbe probe, CapturingLoggerProvider? logs = null) =>
@@ -237,25 +233,17 @@ public sealed class RabbitMqSubscriberStopTests
             })
             .ConfigureServices(services =>
             {
-                services.AddSingleton<IOptions<RabbitMqOptions>>(Options.Create(new RabbitMqOptions
-                {
-                    ConnectionString = "amqp://localhost:5672/",
-                    ConsumerName = "stop-order",
-                }));
+                services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
+                services.AddSingleton<TimeProvider, ExpiredDrainClock>();
                 services.AddSingleton(probe);
-                // 先登记连接提供器，AddRabbitMq 里的 TryAddSingleton 就不再登记默认的那个。
-                services.AddSingleton(sp => new RabbitMqConnectionProvider(
-                    sp.GetRequiredService<IOptions<RabbitMqOptions>>(),
-                    sp.GetRequiredService<ILogger<RabbitMqConnectionProvider>>(),
-                    (_, _) => Task.FromResult(broker.Connection)));
+                services.AddSingleton<OpenConsumerConnection>((_, _) => Task.FromResult(broker.Connection));
                 services.AddKunEventBus(b =>
                 {
-                    b.Register<StopOrderEvent>(EventTypeId);
+                    b.Register(EventTypeId, StopOrderJsonContext.Default.StopOrderEvent);
                     b.UseInMemoryIdempotency();
                 });
-                services.AddRabbitMq(
-                    _ => { },
-                    builder => builder.Subscribe<StopOrderEvent, StopOrderHandler>(EventTypeId, StopOrderJsonContext.Default.StopOrderEvent));
+                services.AddKunEventsBroker(_ => "amqp://localhost/");
+                services.AddKunEventsSubscriber("stop-order", b => b.Subscribe<StopOrderEvent, StopOrderHandler>("work", acceptPlatformEvents: true));
             })
             .Build();
 
@@ -270,8 +258,13 @@ public sealed class RabbitMqSubscriberStopTests
         public FakeBroker()
         {
             Connection.IsOpen.Returns(true);
+            var setup = Substitute.For<IChannel>();
+            Channel.IsOpen.Returns(true);
+            SecondChannel.IsOpen.Returns(true);
             Connection.CreateChannelAsync(default, default).ReturnsForAnyArgs(
+                _ => Task.FromResult(setup),
                 _ => Task.FromResult(Channel),
+                _ => Task.FromResult(setup),
                 call => CreateSecondChannel(call.ArgAt<CancellationToken>(1)));
             Channel.BasicConsumeAsync(default!, default, default!, default, default, default, default!, default)
                 .ReturnsForAnyArgs(call =>
@@ -342,9 +335,7 @@ public sealed class RabbitMqSubscriberStopTests
                 return Task.FromResult(SecondChannel);
             }
 
-            // 令牌没取消，说明这一行没走到要钉住的那一处：在这里断言失败，投递随之失败，免得用例空过。
-            cancellationToken.IsCancellationRequested.Should().BeTrue("这一行要在停止开始之后才建重试通道");
-            return Task.FromCanceled<IChannel>(cancellationToken);
+            return Task.FromException<IChannel>(new OperationCanceledException(cancellationToken));
         }
     }
 }

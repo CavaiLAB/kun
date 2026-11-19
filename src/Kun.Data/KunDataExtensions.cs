@@ -4,7 +4,6 @@ using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EntityFrameworkCore.MultiTenancy;
 using Kun.EntityFrameworkCore.PostgreSQL;
 using Kun.Errors;
-using Kun.EventBus;
 using Kun.EventBus.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -63,12 +62,6 @@ public static class KunDataExtensions
         KunDataMigrator.Register(services);
         services.TryAddSingleton(ErrorCatalog.CreateDefault());
         services.TryAddScoped<IntegrationEventBuffer>();
-        // 不登记非泛型 KunDbContext/IUnitOfWork；每个 Data 会话明确选择自己的业务上下文。
-        services.TryAddScoped(sp => new IntegrationEventOutboxAccumulator(
-            sp.GetRequiredService<IntegrationEventBuffer>(), sp.GetRequiredService<IEventTypeRegistry>(),
-            sp.GetRequiredService<Kun.Core.MultiTenancy.ITenantContext>()));
-        services.TryAddScoped<IIntegrationEventBus>(sp => sp.GetRequiredService<IntegrationEventOutboxAccumulator>());
-        services.TryAddScoped<IOutboxWriter>(sp => sp.GetRequiredService<IntegrationEventOutboxAccumulator>());
         services.AddKunTenantRls<TContext>();
         // 不占框架当前主体端口：上下文创建时才解析，没有身份适配器时删除主体按匿名写 null，适配器在数据组件之前或之后登记都生效。
         services.TryAddScoped(sp => new KunSoftDeleteInterceptor(

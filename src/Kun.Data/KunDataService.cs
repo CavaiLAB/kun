@@ -82,14 +82,8 @@ internal sealed class KunDataService(IServiceScopeFactory scopes, IReadOnlySet<T
             _tenantId = _tenant.TenantId;
             _buffer = services.GetRequiredService<IntegrationEventBuffer>();
             var writer = services.GetRequiredService<IOutboxWriter>();
-            // 默认是 AddKunData 登记的 Kun 累加器；事件组件可换成写同一缓冲器的信封写入端。
-            var bound = writer switch
-            {
-                IOutboxBufferBinding binding => ReferenceEquals(binding.Buffer, _buffer),
-                IntegrationEventOutboxAccumulator accumulator => ReferenceEquals(accumulator, services.GetService<IntegrationEventOutboxAccumulator>()),
-                _ => false
-            };
-            if (!bound || !ReferenceEquals(writer, services.GetRequiredService<IIntegrationEventBus>()))
+            if (writer is not IOutboxBufferBinding binding || !ReferenceEquals(binding.Buffer, _buffer)
+                || !ReferenceEquals(writer, services.GetRequiredService<IIntegrationEventBus>()))
                 throw new KunDataMisconfiguredException("数据会话的事件总线和 Outbox 写入端口必须是写入当前缓冲器的同一个实例。");
             _outbox = writer;
             _unit = new EfUnitOfWork(_context, new SessionDispatcher(services, EnsureBoundary), _buffer);

@@ -1,14 +1,12 @@
 using System.Text.Json.Serialization;
 using FluentAssertions;
+using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
-using Kun.EventBus.RabbitMQ.Consuming;
-using Kun.EventBus.RabbitMQ.DependencyInjection;
-using Kun.EventBus.RabbitMQ.Options;
+using Kun.EventBus.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Kun.IntegrationTests.EventBus;
@@ -41,25 +39,14 @@ public sealed class SubscriberResilienceTests
             .ConfigureLogging(l => l.SetMinimumLevel(LogLevel.Critical))
             .ConfigureServices(services =>
             {
-                services.AddSingleton<IOptions<RabbitMqOptions>>(
-                    Options.Create(new RabbitMqOptions
-                    {
-                        // Reserved port on localhost — connect fails fast.
-                        ConnectionString = "amqp://guest:guest@127.0.0.1:1/",
-                        ConsumerName = "resilience-probe",
-                    }));
-
+                services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
                 services.AddKunEventBus(b =>
                 {
-                    b.Register<ResilienceProbeEvent>("integration.test.resilience-probe.v1");
+                    b.Register("integration.test.resilience-probe.v1", ResilienceProbeJsonContext.Default.ResilienceProbeEvent);
                     b.UseInMemoryIdempotency();
                 });
-
-                services.AddRabbitMq(
-                    _ => { },
-                    builder => builder.Subscribe<ResilienceProbeEvent, ResilienceProbeHandler>(
-                        "integration.test.resilience-probe.v1",
-                        ResilienceProbeJsonContext.Default.ResilienceProbeEvent));
+                services.AddKunEventsBroker(_ => "amqp://127.0.0.1:1/");
+                services.AddKunEventsSubscriber("resilience-probe", b => b.Subscribe<ResilienceProbeEvent, ResilienceProbeHandler>("work"));
             })
             .Build();
 
@@ -69,7 +56,7 @@ public sealed class SubscriberResilienceTests
         // least one backoff retry.
         await Task.Delay(TimeSpan.FromSeconds(3.5), ct);
 
-        var subscriber = host.Services.GetRequiredService<RabbitMqIntegrationEventSubscriber>();
+        var subscriber = host.Services.GetServices<IHostedService>().OfType<KunEventSubscriber>().Single();
         subscriber.ExecuteTask.Should().NotBeNull();
         subscriber.ExecuteTask!.IsFaulted.Should().BeFalse(
             "an unreachable broker must be retried, not fault the BackgroundService (StopHost)");

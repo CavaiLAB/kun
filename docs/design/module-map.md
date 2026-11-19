@@ -83,7 +83,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 |---|---|---|---|:---:|:---:|
 | `Kun.EventBus.Abstractions` | 稳定事件标记、注册与查询端口 | 只声明事件的契约包 | `IEventTypeRegistrar` / `IIntegrationEvent` | ✅ | 3 |
 | `Kun.EventBus` | 集成事件 / Outbox 抽象 + 后台发布器 + 消费端幂等 | 跨服务发布/消费 `*.IntegrationEvent` | `AddKunEventBus(eb => eb.Register<T>("id.v1"))` / `IOutboxWriter` | ✅ | 21 |
-| `Kun.EventBus.RabbitMQ` | RabbitMQ broker 适配 + 消费者 + DLQ | 下游服务间事件总线的默认 broker | `AddRabbitMq(...)` / `.Subscribe<TEvent, THandler>()` | ✅ | — |
+| `Kun.EventBus.RabbitMQ` | RabbitMQ broker 适配 + 消费者 + DLQ | 下游服务间事件总线的默认 broker | `AddKunEventsBroker` / `AddKunEventsSubscriber` | ✅ | — |
 | `Kun.Saga` | Saga Orchestration（步骤 / 反向补偿 / 超时 / 实例持久化） | 跨服务长事务（下单-支付-发货） | `AddKunSaga()` / `ISagaStep<TContext>` | ⚠️ trim-safe | 18 |
 
 `Kun.Saga` 已归档（S1-KUN-025）：移出解决方案，包名停发，没有替代的包；Order 样例改成不带编排的命令流程。上表与下面非 AOT 白名单里的这一行按原样保留。
@@ -221,13 +221,13 @@ Kun.EntityFrameworkCore          [聚合根 + Outbox 同事务落库]
 PostgreSQL                       [SaveChanges = 原子事务]
     │
     ▼
-Kun.EventBus OutboxPublisher     [扫描 pending 消息 → RabbitMQ]
+Kun.EventBus.EntityFrameworkCore     [扫描 pending 消息 → RabbitMQ]
     │
     ▼
 Kun.EventBus.RabbitMQ            [传递 W3C Trace Context]
     │
     ▼
-下游服务消费端                    [IdempotentConsumerDecorator → Handler]
+下游服务消费端                    [IProcessedMessageStore → Handler → 写成功标记 → 确认]
 ```
 
 ## 典型查询路径（HTTP → DB 只读）

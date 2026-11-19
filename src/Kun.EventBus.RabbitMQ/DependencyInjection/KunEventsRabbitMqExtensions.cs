@@ -53,8 +53,10 @@ public static class KunEventsRabbitMqExtensions
             services.TryAddScoped<EventDeliverySlot>();
             services.TryAddScoped(sp => sp.GetRequiredService<EventDeliverySlot>().Current
                 ?? throw new KunEventsException(EventsErrors.Misconfigured, "KunEventDelivery 只能在订阅器派发的消息作用域内解析。"));
+            services.TryAddSingleton<OpenConsumerConnection>((factory, token) => factory.CreateConnectionAsync(token));
             services.AddHostedService(sp => new KunEventSubscriber(sp, sp.GetRequiredService<EventSubscriptionRegistry>(),
-                sp.GetRequiredService<IOptions<KunEventsSubscriberOptions>>(), sp.GetRequiredService<ILogger<KunEventSubscriber>>()));
+                sp.GetRequiredService<IOptions<KunEventsSubscriberOptions>>(), sp.GetRequiredService<ILogger<KunEventSubscriber>>(),
+                sp.GetRequiredService<TimeProvider>(), sp.GetRequiredService<OpenConsumerConnection>()));
         }
         else if (registry.Service != service)
             throw new KunEventsException(EventsErrors.Misconfigured, "同一宿主的订阅方服务名必须一致：已登记 " + registry.Service + "。");
@@ -68,3 +70,5 @@ internal sealed class EventsBrokerAddress(Func<IServiceProvider, string> resolve
     public string Resolve(IServiceProvider services) => resolve(services) is { Length: > 0 } uri ? uri
         : throw new KunEventsException(EventsErrors.Misconfigured, "broker 引用未解析出 AMQP 地址。");
 }
+
+internal delegate Task<global::RabbitMQ.Client.IConnection> OpenConsumerConnection(global::RabbitMQ.Client.ConnectionFactory factory, CancellationToken cancellationToken);

@@ -1,202 +1,77 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using FluentAssertions;
-using Kun.EventBus.Background;
+using System.Diagnostics;
+using Kun.Core.MultiTenancy;
+using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
+using Kun.EventBus.EntityFrameworkCore;
 using Kun.EventBus.Outbox;
-using Kun.EventBus.RabbitMQ.DependencyInjection;
-using Kun.EventBus.RabbitMQ.Options;
 using Kun.IntegrationTests.Fixtures;
+using Kun.IntegrationTests.Outbox;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
 using Xunit;
 
 namespace Kun.IntegrationTests.EventBus;
 
-// ---------------------------------------------------------------------------
-// Internal types — source generator requires non-file-scoped visibility
-// ---------------------------------------------------------------------------
-
-internal sealed record ResilienceTestEvent(Guid Id);
-
-[JsonSerializable(typeof(ResilienceTestEvent))]
-internal sealed partial class ResilienceJsonContext : JsonSerializerContext { }
-
-/// <summary>
-/// In-memory <see cref="IOutboxMessageStore"/> for driving
-/// <see cref="OutboxPublisherBackgroundService"/> without EF Core.
-/// </summary>
-internal sealed class InMemoryOutboxMessageStore : IOutboxMessageStore
+public sealed class OutboxPublisherResilienceTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
-    private readonly List<OutboxMessage> _messages = [];
-    private readonly object _lock = new();
-
-    public void Add(OutboxMessage message)
-    {
-        lock (_lock) { _messages.Add(message); }
-    }
-
-    public Task<IReadOnlyList<OutboxMessage>> FetchPendingAsync(int batchSize, CancellationToken cancellationToken = default)
-    {
-        lock (_lock)
-        {
-            IReadOnlyList<OutboxMessage> pending = _messages
-                .Where(m => m.Status == OutboxStatus.Pending)
-                .Take(batchSize)
-                .ToList();
-            return Task.FromResult(pending);
-        }
-    }
-
-    public Task UpdateAsync(OutboxMessage message, CancellationToken cancellationToken = default) =>
-        Task.CompletedTask; // state already mutated on the shared object reference
-}
-
-// ---------------------------------------------------------------------------
-// Test class
-// ---------------------------------------------------------------------------
-
-public sealed class OutboxPublisherResilienceTests : IAsyncLifetime
-{
-    private readonly RabbitMqFixture _rabbitmq = new();
-
-    public async ValueTask InitializeAsync() =>
-        await _rabbitmq.InitializeAsync();
-
-    public async ValueTask DisposeAsync() =>
-        await _rabbitmq.DisposeAsync();
-
     [Fact]
-    public async Task BadConnection_MessageRemainsNotPublished_GoodConnection_MessagePublishes()
+    public async Task OrdinaryContext_RetriesAndPublishesWithOriginalTrace()
     {
         var ct = TestContext.Current.CancellationToken;
-
-        if (string.IsNullOrEmpty(_rabbitmq.ConnectionString))
+        var builder = Host.CreateApplicationBuilder();
+        var services = builder.Services;
+        var probe = new FlakyPublisher();
+        services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
+        services.AddDbContext<PublisherDbContext>(o => o.UseNpgsql(postgres.ConnectionString));
+        services.AddKunEventBus();
+        services.AddSingleton<IIntegrationEventPublisher>(probe);
+        services.AddKunEvents(o =>
         {
-            ContainerRuntime.ReportUnavailable("Docker not available.");
-            return;
-        }
-
-        // ----------------------------------------------------------------
-        // Phase 1: bad connection — outbox publisher must fail to publish.
-        // We use a very short poll interval so the background service fires
-        // quickly, then observe the message status.
-        // ----------------------------------------------------------------
-        var badStore = new InMemoryOutboxMessageStore();
-        var badEventId = Guid.NewGuid();
-        var badMessage = new OutboxMessage(
-            id: badEventId,
-            eventTypeId: "integration.test.resilience.v1",
-            payload: JsonSerializer.Serialize(
-                new ResilienceTestEvent(badEventId),
-                ResilienceJsonContext.Default.ResilienceTestEvent),
-            tenantId: null,
-            traceParent: null,
-            traceState: null,
-            occurredAt: DateTimeOffset.UtcNow);
-        badStore.Add(badMessage);
-
-        using (var badHost = BuildHost("amqp://bad-host:5672/", "test-resilience-bad", badStore,
-                   pollInterval: TimeSpan.FromMilliseconds(200), maxAttempts: 1))
+            o.PollInterval = TimeSpan.FromMilliseconds(25);
+            o.RetryBaseDelay = TimeSpan.FromMilliseconds(50);
+        });
+        services.AddKunOutboxRelay<PublisherDbContext>();
+        services.AddKunOutboxRelay<PublisherDbContext>();
+        using var host = builder.Build();
+        var id = Guid.CreateVersion7();
+        var row = EventMessages.Create(id, "tests.event.v1", new TestEventBV1(id, "retry"), VersioningJsonContext.Default.TestEventBV1);
+        await using var scope = host.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<PublisherDbContext>();
+        await db.Database.EnsureCreatedAsync(ct);
+        db.OutboxMessages.Add(row);
+        await db.SaveChangesAsync(ct);
+        using var listener = new ActivityListener
         {
-            await badHost.StartAsync(ct);
-            // Give the background service two poll cycles to attempt publish.
-            await Task.Delay(TimeSpan.FromSeconds(2), ct);
-            await badHost.StopAsync(CancellationToken.None);
-        }
-
-        // InMemoryOutboxMessageStore.UpdateAsync is a no-op — the background service
-        // mutates the shared OutboxMessage instance in place, so badMessage reflects
-        // the updated status/attempt count directly.
-        badMessage.Status.Should().NotBe(OutboxStatus.Published,
-            "a bad connection string must not result in Published status");
-        badMessage.AttemptCount.Should().BeGreaterThan(0,
-            "at least one publish attempt must be recorded");
-
-        // ----------------------------------------------------------------
-        // Phase 2: good connection — message must be published successfully.
-        // ----------------------------------------------------------------
-        var goodStore = new InMemoryOutboxMessageStore();
-        var goodEventId = Guid.NewGuid();
-        var goodMessage = new OutboxMessage(
-            id: goodEventId,
-            eventTypeId: "integration.test.resilience.v1",
-            payload: JsonSerializer.Serialize(
-                new ResilienceTestEvent(goodEventId),
-                ResilienceJsonContext.Default.ResilienceTestEvent),
-            tenantId: null,
-            traceParent: null,
-            traceState: null,
-            occurredAt: DateTimeOffset.UtcNow);
-        goodStore.Add(goodMessage);
-
-        using (var goodHost = BuildHost(_rabbitmq.ConnectionString, "test-resilience-good", goodStore,
-                   pollInterval: TimeSpan.FromMilliseconds(200), maxAttempts: 3))
-        {
-            var factory = new ConnectionFactory { Uri = new Uri(_rabbitmq.ConnectionString) };
-            await using var connection = await factory.CreateConnectionAsync(ct);
-            await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
-            await channel.ExchangeDeclareAsync("kun.events", "topic", durable: true, cancellationToken: ct);
-            var queue = "resilience." + Guid.NewGuid().ToString("N");
-            await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false, cancellationToken: ct);
-            await channel.QueueBindAsync(queue, "kun.events", "integration.test.resilience.v1", cancellationToken: ct);
-            await goodHost.StartAsync(ct);
-            // Give the background service time to publish.
-            await Task.Delay(TimeSpan.FromSeconds(3), ct);
-            await goodHost.StopAsync(CancellationToken.None);
-        }
-
-        goodMessage.Status.Should().Be(OutboxStatus.Published,
-            "a working RabbitMQ connection must result in Published status");
+            ShouldListenTo = source => source.Name == "Kun.EventBus.EntityFrameworkCore",
+            Sample = static (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+        };
+        ActivitySource.AddActivityListener(listener);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        deadline.CancelAfter(TimeSpan.FromSeconds(20));
+        await host.StartAsync(ct);
+        while (await db.OutboxMessages.AsNoTracking().SingleAsync(m => m.Id == id, deadline.Token) is { Status: OutboxStatus.Pending })
+            await Task.Delay(25, deadline.Token);
+        await host.StopAsync(ct);
+        var persisted = await db.OutboxMessages.AsNoTracking().SingleAsync(m => m.Id == id, ct);
+        Assert.Equal(OutboxStatus.Published, persisted.Status);
+        Assert.Equal(1, persisted.AttemptCount);
+        Assert.Equal(2, probe.Attempts);
+        Assert.Equal("outbox.publish", probe.Activity?.OperationName);
+        Assert.Equal(ActivityKind.Producer, probe.Activity?.Kind);
+        Assert.Equal(row.TraceParent, probe.Activity?.ParentId);
     }
 
-    private static IHost BuildHost(
-        string connectionString,
-        string consumerName,
-        InMemoryOutboxMessageStore store,
-        TimeSpan pollInterval,
-        int maxAttempts)
+    private sealed class FlakyPublisher : IIntegrationEventPublisher
     {
-        return Host.CreateDefaultBuilder()
-            .ConfigureLogging(l => l.SetMinimumLevel(LogLevel.Warning))
-            .ConfigureServices(services =>
-            {
-                services.AddKunEventBus(b =>
-                {
-                    b.Register<ResilienceTestEvent>("integration.test.resilience.v1");
-                    b.UseInMemoryIdempotency();
-                });
+        public int Attempts { get; private set; }
+        public Activity? Activity { get; private set; }
 
-                // Register RabbitMq transport (no subscriptions needed for publisher tests).
-                services.AddRabbitMq(_ => { });
-
-                // Override IOptions<RabbitMqOptions> with object-initializer to satisfy
-                // required init-only properties.
-                services.AddSingleton<IOptions<RabbitMqOptions>>(
-                    Options.Create(new RabbitMqOptions
-                    {
-                        ConnectionString = connectionString,
-                        ConsumerName = consumerName,
-                    }));
-
-                services.AddSingleton<IOutboxMessageStore>(store);
-                services.AddSingleton<IOutboxLockProvider>(NullOutboxLockProvider.Instance); // 单实例内存替身显式无锁。
-
-                // Register outbox publisher with short poll interval for tests.
-                services.AddKunOutboxPublisher();
-
-                // Override IOptions<OutboxPublisherOptions> similarly.
-                services.AddSingleton<IOptions<OutboxPublisherOptions>>(
-                    Options.Create(new OutboxPublisherOptions
-                    {
-                        BatchSize = 10,
-                        PollInterval = pollInterval,
-                        MaxAttempts = maxAttempts,
-                    }));
-            })
-            .Build();
+        public ValueTask PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+        {
+            Activity = System.Diagnostics.Activity.Current;
+            if (++Attempts == 1) throw new IOException("temporary broker failure");
+            return ValueTask.CompletedTask;
+        }
     }
 }

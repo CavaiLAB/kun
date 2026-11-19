@@ -19,13 +19,22 @@ public static class KunEventRelayExtensions
         return services;
     }
 
-    /// <summary>Publishes the outboxes of registered strict data contexts through the configured broker.</summary>
+    /// <summary>Adds the mapped outbox of a regular Kun context to the host relay.</summary>
+    public static IServiceCollection AddKunOutboxRelay<TContext>(this IServiceCollection services) where TContext : KunDbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddSingleton(new RelayContext(typeof(TContext)));
+        return services.AddKunOutboxRelay();
+    }
+
+    /// <summary>Publishes the outboxes of registered data contexts through the configured broker.</summary>
     public static IServiceCollection AddKunOutboxRelay(this IServiceCollection services)
     {
         services.AddKunEvents();
         services.AddHostedService<RelayOptionsCheck>();
         services.AddHostedService(sp => new KunOutboxRelay(sp.GetRequiredService<IServiceScopeFactory>(),
-            sp.GetService<IDataContextCatalog>() ?? NoDataContexts.Instance, sp.GetRequiredService<IIntegrationEventPublisher>(),
+            (sp.GetService<IDataContextCatalog>()?.ContextTypes ?? []).Concat(sp.GetServices<RelayContext>().Select(context => context.Type)).Distinct().ToArray(),
+            sp.GetRequiredService<IIntegrationEventPublisher>(),
             sp.GetRequiredService<IOptions<KunEventsOptions>>(), sp.GetRequiredService<TimeProvider>(),
             sp.GetRequiredService<ILogger<KunOutboxRelay>>(), sp));
         return services;
@@ -45,9 +54,4 @@ internal sealed class RelayOptionsCheck(IServiceProvider services, IOptions<KunE
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
 
-internal sealed class NoDataContexts : IDataContextCatalog
-{
-    public static readonly NoDataContexts Instance = new();
-
-    public IReadOnlyList<Type> ContextTypes => [];
-}
+internal sealed record RelayContext(Type Type);

@@ -24,6 +24,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 ```
 
+将 `Authority` 设为发现文档公布的 `issuer` 原值，包括根路径末尾的斜杠。协议客户端对两个标识逐字比较。
+
 Web 装配登记 SignInHelper、ChallengeHelper、OidcLoginService、OidcLogoutService、当前用户接口及防跨站请求服务。默认使用 KunCookieAuth 方案返回 401；若宿主已选择认证方案则保留其选择。服务登记幂等，所有请求辅助类在请求 scope 中解析。生产副本必须共享 Data Protection 密钥和相同的会话 Redis 前缀；不同应用自行选择隔离前缀。开发/测试可显式 UseInMemoryStore，生产会话不走缓存失败后的本地内存回退。
 
 登录入口调用 `ChallengeHelper.BuildLoginUrlAsync`，redirectUri 必须来自受信任配置中的公开回调地址。该方法生成 PKCE S256、state、nonce，将原始回调地址与本地 returnUrl 一同加密认证后放入短期 cookie。回调调用 `OidcLoginService.CompleteAsync(context, code, state, ct)`，成功后以返回的本地路径执行 LocalRedirect；宿主将无效事务或令牌映射为统一的 400/401 错误响应。

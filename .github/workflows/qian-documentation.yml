@@ -13,7 +13,10 @@ name: qian-documentation
 #   tck/runtime/。装依赖要读 GitHub Packages 上的公开包，
 #   用本次运行的 GITHUB_TOKEN 只读安装：权限加 packages: read，setup-node 写用户级的包源认证，
 #   pnpm install 带 NODE_AUTH_TOKEN。
-# 检查本身不变。
+# - 事件图的源码根取仓库根（S1-KUN-029）：生成命令带 --source-root ../..，源码目录相对仓库根写成 _import/qian/packages、
+#   _import/qian/plugins 与 src，搬出过渡目录、进了仓库根 src/ 的包仍在扫描范围内；事件图里的位置相对仓库根书写。
+#   命令写在作业的 DOCS_SOURCES 里，生成一步与漂移提示共用。
+# 除了扫描范围，检查本身不变。
 
 on:
   # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 documentation），并发组由 ci.yml 统一管（S1-KUN-020）。
@@ -29,6 +32,9 @@ jobs:
     name: 派生文档与事件模式校验
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # 源码根与源码目录（见文件开头）；在 _import/qian/ 下运行，../.. 是仓库根。
+      DOCS_SOURCES: --source-root ../.. --source _import/qian/packages --source _import/qian/plugins --source src
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -54,7 +60,7 @@ jobs:
       - name: 当前源码声明与调用模式必须一致
         run: |
           mkdir -p TestResults
-          pnpm exec qian docs generate --profile platform --json > TestResults/docs-report.json 2> TestResults/docs-diagnostics.json || { cat TestResults/docs-diagnostics.json; exit 1; }
+          pnpm exec qian docs generate --profile platform $DOCS_SOURCES --json > TestResults/docs-report.json 2> TestResults/docs-diagnostics.json || { cat TestResults/docs-diagnostics.json; exit 1; }
       # G2 文档新鲜度（ADR-020 D20.9、组件模型规格 §10.3、PRD §14 C18）：上一步已按当前源码重写 docs/generated，有修改或新文件即失败。
       - name: 派生文档新鲜度：docs/generated 必须与重新生成的结果一致
         run: |
@@ -62,7 +68,7 @@ jobs:
           if [ -n "$drift" ]; then
             echo "$drift"
             git --no-pager diff --stat -- docs/generated
-            echo "::error::docs/generated 与源码派生结果不一致：先 pnpm --filter qian... build，再 pnpm exec qian docs generate --profile platform，提交 docs/generated；也可下载本次运行的 derived-docs-and-events 产物（ADR-020 D20.9 / 组件模型规格 §10.3 G2）。"
+            echo "::error::docs/generated 与源码派生结果不一致：先 pnpm --filter qian... build，再在 _import/qian 下 pnpm exec qian docs generate --profile platform $DOCS_SOURCES，提交 docs/generated；也可下载本次运行的 derived-docs-and-events 产物（ADR-020 D20.9 / 组件模型规格 §10.3 G2）。"
             exit 1
           fi
       - uses: actions/upload-artifact@v4

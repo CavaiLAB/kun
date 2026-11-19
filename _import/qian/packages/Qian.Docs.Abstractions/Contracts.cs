@@ -9,8 +9,10 @@ public sealed class DocumentOptions
 {
     /// <summary>完整的静态装配选项；建议关闭 home patch 以得到可重现的仓库文档。</summary>
     public required ProfileLoadOptions Profile { get; init; }
-    /// <summary>相对工作区的 C# 源码目录；缺省扫描 packages、plugins 与 src，排除构建目录与 tests。</summary>
+    /// <summary>相对源码根的 C# 源码目录；缺省扫描 packages、plugins 与 src，排除构建目录与 tests。</summary>
     public IReadOnlyList<string> SourceDirectories { get; init; } = ["packages", "plugins", "src"];
+    /// <summary>源码根：源码目录不能越出它，事件映射与事件分析诊断里的位置相对它书写（装配诊断与配置目录仍相对工作区）。相对路径按工作区解析；须是工作区本身或它的上级目录，到工作区的路径上不能有符号链接。缺省为工作区。</summary>
+    public string? SourceRoot { get; init; }
 }
 /// <summary>代码中的声明或调用位置。</summary>
 public sealed record EventSite(string File, int Line, string Symbol);

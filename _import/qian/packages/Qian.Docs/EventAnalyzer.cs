@@ -7,7 +7,8 @@ using Kun.Runtime;
 
 namespace Qian.Docs;
 
-internal sealed class EventAnalyzer(string root, Diagnostics diagnostics)
+// sourceRoot 是源码目录的边界，也是事件图里位置的基准。
+internal sealed class EventAnalyzer(string sourceRoot, Diagnostics diagnostics)
 {
     private readonly Dictionary<ISymbol, Definition> _definitions = new(SymbolEqualityComparer.Default);
     private readonly List<(ISymbol Symbol, EventSite Site)> _annotated = [];
@@ -22,7 +23,7 @@ internal sealed class EventAnalyzer(string root, Diagnostics diagnostics)
         var files = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var directory in directories)
         {
-            var full = Paths.Within(root, directory, allowRoot: true);
+            var full = Paths.Within(sourceRoot, directory, allowRoot: true);
             if (Directory.Exists(full)) Discover(full, files, 0);
         }
         var trees = files.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), new CSharpParseOptions(LanguageVersion.Preview), path: file)).ToArray();
@@ -198,7 +199,7 @@ internal sealed class EventAnalyzer(string root, Diagnostics diagnostics)
     private static bool IsEvent(ITypeSymbol? type) => type is INamedTypeSymbol named && named.OriginalDefinition.Name == "KunEvent" &&
         named.Arity == 2 && named.ContainingNamespace.ToDisplayString() == "Kun.Runtime";
     private EventSite Site(SyntaxNode node, ISymbol? symbol) => new(Display(node.SyntaxTree.FilePath), node.GetLocation().GetLineSpan().StartLinePosition.Line + 1, symbol?.ToDisplayString() ?? "<顶层>");
-    private string Display(string path) => Path.GetRelativePath(root, path).Replace('\\', '/');
+    private string Display(string path) => Path.GetRelativePath(sourceRoot, path).Replace('\\', '/');
     private static void Discover(string directory, ISet<string> files, int depth)
     {
         if (depth > 32 || files.Count > 4096) throw new IOException("源码目录超过限制。");

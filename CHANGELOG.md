@@ -84,6 +84,11 @@
 - 旧线的包 `Kun.Storage` 停发、移出解决方案与 AOT 清单，nuget.org 上已发布的版本不动。随包删掉的公共 API：命名空间 `Kun.Storage.Abstractions` 下的 `IFileStorage`、`ObjectMetadata`、`ObjectDownload`、`ObjectSummary`、`PutObjectOptions`、`StorageOptions`、`StorageProvider`、`ContentDispositionPolicy` 与四个预签名请求和地址类型，`Kun.Storage.Implementations` 下的 `LocalFileStorage`、`S3FileStorage`，登记入口 `AddKunStorage`、`AddLocalStorage`、`AddS3Storage`。仓库根 `BannedSymbols.txt` 里禁用旧线接口的那一条随之删掉。
 - **迁移**：引用新线的 `Kun.Storage.Abstractions`（接口是命名空间 `Kun.Storage` 下的 `IFileStorage`），再按后端引用 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`，登记用 `AddKunLocalFileStorage`、`AddKunS3FileStorage` 或 `AddKunOssFileStorage`。方法对照：`PutObjectAsync` → `UploadAsync`（内容类型直接传，大小与类型限制放进 `UploadConstraints`），`GetObjectAsync` → `OpenReadAsync`（直接返回流），`HeadObjectAsync` → `GetMetadataAsync`，`DeleteObjectAsync` → `DeleteAsync`（返回是否删到），`ListObjectsAsync` → `ListAsync`（按续传令牌分页），`CreatePresignedUploadUrlAsync` / `CreatePresignedDownloadUrlAsync` → `GetPresignedUploadAsync` / `GetPresignedDownloadAsync`。两线都只对活动网页类型强制 `Content-Disposition: attachment`（旧线是 `ContentDispositionPolicy.EnforceAttachment`）：旧线上传时就把它写在对象上，签发下载地址时也带上；新线不改对象，只在签发下载地址时强制（`PresignedDownloadUrl.ContentDispositionForced`），不经预签名地址、直接对外提供对象的服务要自己设这个响应头。
 
+### Added — 文档生成可指定源码根（S1-KUN-029）
+
+- `Qian.Docs.Abstractions` 的 `DocumentOptions` 加 `SourceRoot`：源码目录相对它解析、不能越出它，事件映射与事件分析诊断里的位置相对它书写（装配诊断与配置目录仍相对工作区）。相对路径按工作区解析，只能是工作区本身或它的上级目录，到工作区的路径上不能有符号链接；不设时等于工作区，输出与之前相同。
+- `qian docs generate` 加对应的 `--source-root <目录>`。本仓库的派生文档改以仓库根为源码根，仓库根 `src/` 下的包也计入事件图。
+
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
 
 - 样例编排宿主 `samples/Kun.Sample.AppHost` 的 Aspire 从 9.0.0 升到 13.6.5（`Aspire.AppHost.Sdk` 与中央版本里的 `Aspire.Hosting.AppHost` / `PostgreSQL` / `RabbitMQ` / `Redis`），修复 NuGet 审计报出的 [GHSA-4g86-54fm-h9h8](https://github.com/advisories/GHSA-4g86-54fm-h9h8)（`Aspire.Dashboard.Sdk.*`，严重）与 [GHSA-f7vh-h5g3-7jrh](https://github.com/advisories/GHSA-f7vh-h5g3-7jrh)（`Aspire.Hosting`、`Aspire.Hosting.AppHost`，高）。这两条公告发布后，`dotnet restore` 在警告即错误下失败，CI 的构建、测试与格式检查随之失败。编排代码不用改，资源、依赖与启动顺序不变。

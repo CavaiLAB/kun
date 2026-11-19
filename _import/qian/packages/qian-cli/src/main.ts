@@ -25,7 +25,7 @@ function argumentError(message: string): SurfaceDiagnostic {
 const argv=process.argv.slice(2);
 let cwd=process.cwd(),profile:string|undefined,format='yaml',entry:string|undefined,home:string|undefined,includeHome=true;
 const patches:string[]=[];
-const sources:string[]=[];let outputDirectory:string|undefined,homeExplicit=false;
+const sources:string[]=[];let sourceRoot:string|undefined,outputDirectory:string|undefined,homeExplicit=false;
 let remote=false,markets=false,allowUnverified=false,yes=false,dryRun=false,noCode=false,purge=false,force=false,resetConfig=false,forceProfile=false;let from:string|undefined;const references:string[]=[];
 let command='';let template:string|undefined,componentId:string|undefined,componentName:string|undefined;
 let surfaces:SurfaceName[]|undefined,listSurfaces:true|SurfaceName[]|undefined,rawSurfaces:string|true|undefined,outdated=false,fix=false;
@@ -68,11 +68,12 @@ try{
     else if(arg==='--id')componentId=value();
     else if(arg==='--name')componentName=value();
     else if(arg==='--source')sources.push(value());
+    else if(arg==='--source-root')sourceRoot=value();
     else if(!command&&arg==='docs'&&argv[i+1]==='generate'){command='docs-generate';i++;}
     else if(arg==='--json')format='json';
     else if(arg==='--dump-config'||!command&&arg==='dump-config')command='dump-config';
     else if(arg==='--resolve'||arg==='--redact'){} // 解析始终校验，且从不解析密钥引用。
-    else if(arg==='--help'||arg==='-h'){process.stdout.write('qian [--profile 名称] dump-config [--patch 文件] [--format yaml|json] [--entry ID] [--cwd 目录]\nqian doctor [--fix] [--url https://host] [--profile 名称] [--json]\nqian docs generate [--profile 名称] [--patch 文件] [--source 源码目录] [--out docs/generated] [--json]\nqian init --template skill-only --id <组件id> --name <名称>\nqian list [--outdated] [--surfaces [skills,commands]] [--remote|--markets] [--allow-unverified] [--json]\nqian add <market/name@version> [--surfaces skills,commands] [--no-code] [--yes|--dry-run] [--from 市场]\nqian remove <组件id或安装名>... [--profile 名称] [--purge|--dry-run] [--json]\nqian add <组件@精确版本> --scope tenant:<id> [--entry ID] [--revision N] --url https://host [--json]\nqian add --patch 文件 --scope tenant:<id> --url https://host [--json]\nqian remove <条目ID> --scope tenant:<id> [--revision N] --url https://host [--json]\n');process.exit(0);}
+    else if(arg==='--help'||arg==='-h'){process.stdout.write('qian [--profile 名称] dump-config [--patch 文件] [--format yaml|json] [--entry ID] [--cwd 目录]\nqian doctor [--fix] [--url https://host] [--profile 名称] [--json]\nqian docs generate [--profile 名称] [--patch 文件] [--source-root 源码根] [--source 源码目录] [--out docs/generated] [--json]\nqian init --template skill-only --id <组件id> --name <名称>\nqian list [--outdated] [--surfaces [skills,commands]] [--remote|--markets] [--allow-unverified] [--json]\nqian add <market/name@version> [--surfaces skills,commands] [--no-code] [--yes|--dry-run] [--from 市场]\nqian remove <组件id或安装名>... [--profile 名称] [--purge|--dry-run] [--json]\nqian add <组件@精确版本> --scope tenant:<id> [--entry ID] [--revision N] --url https://host [--json]\nqian add --patch 文件 --scope tenant:<id> --url https://host [--json]\nqian remove <条目ID> --scope tenant:<id> [--revision N] --url https://host [--json]\n');process.exit(0);}
     else throw new Error('不支持的命令或参数。');
   }
   if(rawSurfaces!==undefined){if(command==='list')listSurfaces=rawSurfaces===true?true:parseSurfaceNames(rawSurfaces);else if(command==='add'&&typeof rawSurfaces==='string')surfaces=parseSurfaceNames(rawSurfaces);else throw new Error('--surfaces 用于 add 时必须提供逗号分隔的表面名称，或用于 list 显示表面。');}
@@ -116,7 +117,7 @@ try{
     const files=initializeSkillOnly(cwd,componentId,componentName??componentId);
     process.stdout.write(format==='json'?JSON.stringify({files},null,2)+'\n':stringify({files}));
   }else if(command==='docs-generate'){
-    const generated=generateDocumentation({workingDirectory:cwd,profile:profile??'platform',patches,homeDirectory:home,includeHomePatch:homeExplicit?includeHome:false,outputDirectory,sourceDirectories:sources.length?sources:undefined});
+    const generated=generateDocumentation({workingDirectory:cwd,profile:profile??'platform',patches,homeDirectory:home,includeHomePatch:homeExplicit?includeHome:false,outputDirectory,sourceDirectories:sources.length?sources:undefined,sourceRoot});
     if(!generated.isValid){process.stderr.write(JSON.stringify({diagnostics:generated.diagnostics,events:generated.events})+'\n');process.exitCode=1;}
     else process.stdout.write(format==='json'?JSON.stringify(generated,null,2)+'\n':stringify(generated,{lineWidth:0}));
   }else{

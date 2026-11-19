@@ -64,3 +64,5 @@ override Kun.Identity.AspNetCore.ChallengePayload.GetHashCode() -> int
 override Kun.Identity.AspNetCore.ChallengePayload.ToString() -> string!
 static Kun.Identity.AspNetCore.ChallengePayload.operator !=(Kun.Identity.AspNetCore.ChallengePayload? left, Kun.Identity.AspNetCore.ChallengePayload? right) -> bool
 static Kun.Identity.AspNetCore.ChallengePayload.operator ==(Kun.Identity.AspNetCore.ChallengePayload? left, Kun.Identity.AspNetCore.ChallengePayload? right) -> bool
+Kun.Identity.Client.IdentitySessionTokens
+Kun.Identity.Client.IdentitySessionTokens.GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string?>

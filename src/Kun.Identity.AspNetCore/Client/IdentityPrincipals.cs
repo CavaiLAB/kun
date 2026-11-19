@@ -117,24 +117,24 @@ internal sealed partial record CanonicalIdentity(string Subject, PrincipalKind K
 }
 
 /// <summary>按发行方 JWKS 校验访问令牌：签名、issuer、受众（Resource）、类型 at+jwt 与寿命，再投影规范身份。</summary>
-internal sealed partial class IdentityAccessTokens(IdentityClientRuntime runtime, TimeProvider clock, ILogger<IdentityAccessTokens> logger)
+internal sealed partial class IdentityAccessTokens(IIdentitySessionRuntime runtime, TimeProvider clock, ILogger<IdentityAccessTokens> logger)
 {
     private static readonly TimeSpan Skew = TimeSpan.FromSeconds(30);
     private readonly JsonWebTokenHandler _handler = new() { MapInboundClaims = false };
 
     internal async ValueTask<CanonicalIdentity?> ValidateAsync(string token, bool sessionOnly, CancellationToken ct)
     {
-        var audience = runtime.Options.Resource ?? throw new InvalidOperationException("未配置 Resource 时不校验访问令牌。");
+        var audience = runtime.Resource ?? throw new InvalidOperationException("未配置 Resource 时不校验访问令牌。");
         for (var attempt = 0; ; attempt++)
         {
             OpenIdConnectConfiguration metadata;
             try { metadata = await runtime.Metadata.GetConfigurationAsync(ct).ConfigureAwait(false); }
             catch (Exception error) when (error is not OperationCanceledException)
             {
-                IdentityClientRuntime.Log.MetadataUnavailable(logger, error.GetType().Name);
+                Log.MetadataUnavailable(logger, error.GetType().Name);
                 return null;
             }
-            if (!string.Equals(metadata.Issuer?.TrimEnd('/'), runtime.Options.Issuer, StringComparison.Ordinal)) return null;
+            if (!string.Equals(metadata.Issuer?.TrimEnd('/'), runtime.Issuer, StringComparison.Ordinal)) return null;
             var now = clock.GetUtcNow().UtcDateTime;
             var result = await _handler.ValidateTokenAsync(token, new TokenValidationParameters
             {
@@ -168,6 +168,8 @@ internal sealed partial class IdentityAccessTokens(IdentityClientRuntime runtime
 
     private static partial class Log
     {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "Identity Client 取发行方元数据失败；error_type={ErrorType}。")]
+        internal static partial void MetadataUnavailable(ILogger logger, string errorType);
         [LoggerMessage(EventId = 10, Level = LogLevel.Information, Message = "Identity Client 拒绝访问令牌；reason={Reason}。")]
         internal static partial void TokenRejected(ILogger logger, string reason);
     }

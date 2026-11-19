@@ -19,15 +19,16 @@ namespace Kun.Identity.Client;
 /// </summary>
 public sealed partial class IdentitySessionTokens
 {
+    internal const string CookieName = "qian.sid";
     private const string RefreshPurpose = "qian-identity-client:refresh";
     private static readonly TimeSpan RefreshClaim = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan RefreshWait = TimeSpan.FromSeconds(10);
     private readonly ConcurrentDictionary<string, Lazy<Task<SessionData?>>> _refreshing = new(StringComparer.Ordinal);
-    private readonly IdentityClientRuntime _runtime;
+    private readonly IIdentitySessionRuntime _runtime;
     private readonly TimeProvider _clock;
     private readonly ILogger<IdentitySessionTokens> _logger;
 
-    internal IdentitySessionTokens(IdentityClientRuntime runtime, TimeProvider clock, ILogger<IdentitySessionTokens> logger)
+    internal IdentitySessionTokens(IIdentitySessionRuntime runtime, TimeProvider clock, ILogger<IdentitySessionTokens> logger)
     {
         _runtime = runtime; _clock = clock; _logger = logger;
     }
@@ -36,13 +37,13 @@ public sealed partial class IdentitySessionTokens
     public async ValueTask<string?> GetAccessTokenAsync(HttpContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
-        if (!_runtime.Active || _runtime.Options.RedirectUri is null) return null;
-        var id = context.Request.Cookies[IdentityClientDefaults.SessionCookieName];
+        if (!_runtime.Active || !_runtime.BrowserSessionsEnabled) return null;
+        var id = context.Request.Cookies[CookieName];
         if (string.IsNullOrEmpty(id)) return null;
         var store = context.RequestServices.GetRequiredService<ISessionStore>();
         var data = await store.GetAsync(id, cancellationToken).ConfigureAwait(false);
         if (data is null) return null;
-        if (data.ExpiresAt - _clock.GetUtcNow() > _runtime.Options.RefreshBeforeExpiry) return data.AccessToken;
+        if (data.ExpiresAt - _clock.GetUtcNow() > _runtime.RefreshBeforeExpiry) return data.AccessToken;
         var key = Hash(id);
         // 同一会话只有一个进行中的刷新；已完成的残留项替换为新的，绝不把旧结果当成本次的刷新。
         // 刷新不随发起请求取消：等候同一刷新的其他请求不能因第一个请求断开而失败。
@@ -52,7 +53,7 @@ public sealed partial class IdentitySessionTokens
         try { updated = await refresh.WaitAsync(cancellationToken).ConfigureAwait(false); }
         finally { if (refresh.IsCompleted) _refreshing.TryRemove(KeyValuePair.Create(key, lazy)); }
         if (updated is not null) return updated.AccessToken;
-        if (!context.Response.HasStarted) context.Response.Cookies.Delete(IdentityClientDefaults.SessionCookieName, new CookieOptions { Path = "/" });
+        if (!context.Response.HasStarted) context.Response.Cookies.Delete(CookieName, new CookieOptions { Path = "/" });
         return null;
     }
 
@@ -62,8 +63,8 @@ public sealed partial class IdentitySessionTokens
     /// </summary>
     internal async ValueTask<SessionData?> RefreshNowAsync(HttpContext context, CancellationToken cancellationToken = default)
     {
-        if (!_runtime.Active || _runtime.Options.RedirectUri is null) return null;
-        var id = context.Request.Cookies[IdentityClientDefaults.SessionCookieName];
+        if (!_runtime.Active || !_runtime.BrowserSessionsEnabled) return null;
+        var id = context.Request.Cookies[CookieName];
         if (string.IsNullOrEmpty(id)) return null;
         var store = context.RequestServices.GetRequiredService<ISessionStore>();
         var data = await store.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -74,7 +75,7 @@ public sealed partial class IdentitySessionTokens
         SessionData? updated;
         try { updated = await refresh.WaitAsync(cancellationToken).ConfigureAwait(false); }
         finally { if (refresh.IsCompleted) _refreshing.TryRemove(KeyValuePair.Create(key, lazy)); }
-        if (updated is null && !context.Response.HasStarted) context.Response.Cookies.Delete(IdentityClientDefaults.SessionCookieName, new CookieOptions { Path = "/" });
+        if (updated is null && !context.Response.HasStarted) context.Response.Cookies.Delete(CookieName, new CookieOptions { Path = "/" });
         return updated;
     }
 
@@ -86,7 +87,7 @@ public sealed partial class IdentitySessionTokens
         using var timeout = new CancellationTokenSource(RefreshWait);
         var ct = timeout.Token;
         var registry = store as ISessionRegistry ?? throw new InvalidOperationException("浏览器会话需要原子的 ISessionRegistry。");
-        var lifetime = _runtime.Options.SessionLifetime;
+        var lifetime = _runtime.SessionLifetime;
         try
         {
             if (data.RefreshToken is null)
@@ -144,7 +145,7 @@ public sealed partial class IdentitySessionTokens
 /// 网关因此能把 Cookie 会话与外部 Bearer 统一成同一种主体再铸 S2S。
 /// </summary>
 internal sealed class IdentitySessionHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder,
-    IdentityClientRuntime runtime, IdentitySessionTokens tokens, IdentityAccessTokens validator) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    IIdentitySessionRuntime runtime, IdentitySessionTokens tokens, IdentityAccessTokens validator) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -154,7 +155,7 @@ internal sealed class IdentitySessionHandler(IOptionsMonitor<AuthenticationSchem
         if (token is null) return AuthenticateResult.Fail("会话已结束。");
         var identity = await validator.ValidateAsync(token, sessionOnly: true, Context.RequestAborted).ConfigureAwait(false);
         if (identity is null || !identity.Matches(session)) return AuthenticateResult.Fail("会话令牌无效。");
-        Context.Items[IdentityClientCurrentUser.PrincipalKey] = identity.Snapshot;
+        Context.Items[IdentityS2sValidation.PrincipalKey] = identity.Snapshot;
         return AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity.Merge(session, Scheme.Name)), Scheme.Name));
     }
 }

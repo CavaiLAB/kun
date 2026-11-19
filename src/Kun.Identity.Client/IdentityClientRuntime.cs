@@ -14,9 +14,18 @@ namespace Kun.Identity.Client;
 /// 组件挂载状态。挂载只记录插件上下文与 secretRef；Kun 的 OIDC 客户端在第一次需要时才创建并解析密钥，
 /// 所以不要求 Config 先于本组件挂载，也让「只装 Client」的公开客户端宿主完全不经 Config。卸载即释放客户端与元数据缓存。
 /// </summary>
-internal sealed partial class IdentityClientRuntime(IdentityClientOptions options, IHttpClientFactory http, TimeProvider clock, ILogger<IdentityClientRuntime> logger) : IDisposable
+internal sealed partial class IdentityClientRuntime(IdentityClientOptions options, IHttpClientFactory http, TimeProvider clock, ILogger<IdentityClientRuntime> logger) : IDisposable, IIdentitySessionRuntime
 {
     private Mount? _mount;
+
+    bool IIdentitySessionRuntime.Active => Active;
+    bool IIdentitySessionRuntime.BrowserSessionsEnabled => options.RedirectUri is not null;
+    string IIdentitySessionRuntime.Issuer => options.Issuer;
+    string? IIdentitySessionRuntime.Resource => options.Resource;
+    TimeSpan IIdentitySessionRuntime.RefreshBeforeExpiry => options.RefreshBeforeExpiry;
+    TimeSpan IIdentitySessionRuntime.SessionLifetime => options.SessionLifetime;
+    ConfigurationManager<OpenIdConnectConfiguration> IIdentitySessionRuntime.Metadata => Metadata;
+    ValueTask<KunOidcClient> IIdentitySessionRuntime.ClientAsync(CancellationToken ct) => ClientAsync(ct);
 
     internal IdentityClientOptions Options => options;
     internal bool Active => Volatile.Read(ref _mount) is not null;

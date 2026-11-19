@@ -45,6 +45,7 @@ public static class IdentityClientHosting
         services.AddHttpClient(IdentityClientDefaults.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10))
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false });
         services.AddSingleton<IdentityClientRuntime>();
+        services.AddSingleton<IIdentitySessionRuntime>(provider => provider.GetRequiredService<IdentityClientRuntime>());
         services.AddSingleton<IdentityAccessTokens>();
         services.AddSingleton(provider => new IdentitySessionTokens(provider.GetRequiredService<IdentityClientRuntime>(), provider.GetRequiredService<TimeProvider>(),
             provider.GetRequiredService<ILogger<IdentitySessionTokens>>()));
@@ -96,7 +97,7 @@ public static class IdentityClientHosting
             kun.Issuer = options.Issuer; kun.Audience = options.Audience; kun.JwksUri = options.JwksUri?.AbsoluteUri; kun.StaticKeySet = options.SigningKeys;
         });
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<TimeProvider, ILoggerFactory>((jwt, clock, loggers) =>
-            IdentityS2sValidation.Configure(jwt, options, clock, loggers.CreateLogger("Kun.Identity.Client")));
+            IdentityS2sValidation.Configure(jwt, options.Issuer, options.Audience, clock, loggers.CreateLogger("Kun.Identity.Client")));
         AddCurrentUser(services);
         return services;
     }

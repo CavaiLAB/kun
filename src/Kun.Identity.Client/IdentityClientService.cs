@@ -13,7 +13,7 @@ namespace Kun.Identity.Client;
 /// </summary>
 internal sealed class IdentityClientCurrentUser(IHttpContextAccessor accessor, IServiceProvider services) : ICurrentUser
 {
-    internal static readonly object PrincipalKey = new();
+    internal static readonly object PrincipalKey = IdentityS2sValidation.PrincipalKey;
 
     public Principal? Principal => accessor.HttpContext is { } http && http.User.Identity?.IsAuthenticated == true ? http.Items[PrincipalKey] as Principal : null;
     public string? UserId => Principal?.Subject ?? Session()?.FindFirst(ClaimTypes.NameIdentifier)?.Value;

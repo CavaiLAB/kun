@@ -132,7 +132,7 @@ internal static class IdentityProtocolHost
         internal string Redirect => issuer + "callback";
         internal Guid Person => person;
         internal Guid Tenant => tenant;
-        internal KunOidcClient Kun(string id) => new(new KunOidcClientOptions { Name = id, Authority = issuer, ClientId = id, ClientSecret = id == "public" ? "" : secret, RequireHttpsMetadata = false }, app.Services.GetRequiredService<IHttpClientFactory>());
+        internal KunOidcClient Kun(string id, TimeProvider? clock = null) => new(new KunOidcClientOptions { Name = id, Authority = issuer, ClientId = id, ClientSecret = id == "public" ? "" : secret, RequireHttpsMetadata = false }, app.Services.GetRequiredService<IHttpClientFactory>(), clock ?? TimeProvider.System);
         internal async Task<(string Code, string Verifier, string Nonce, string? ResponseIssuer)> Code(string client = "web")
         {
             var verifier = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(48)); var nonce = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(24));

@@ -129,7 +129,8 @@ public sealed partial class ProtocolTests(PostgresFixture postgres) : IClassFixt
     [Fact]
     public async Task 公开客户端也强制PKCE_重启轮换保留旧钥并用新钥签发_JWKS不泄露私钥()
     {
-        await using var oldHost = await Start(); using var client = oldHost.Kun("public"); var code = await oldHost.Code("public");
+        var clock = new AccountsHost.ManualClock(DateTimeOffset.UtcNow);
+        await using var oldHost = await Start(); using var client = oldHost.Kun("public", clock); var code = await oldHost.Code("public");
         var tokens = await client.ExchangeCodeAsync(new(code.Code, oldHost.Issuer + "public-callback", code.Verifier, code.Nonce) { ResponseIssuer = code.ResponseIssuer }, Ct);
         var oldAccess = new JsonWebToken(tokens.AccessToken);
         await oldHost.StopAsync();
@@ -137,6 +138,8 @@ public sealed partial class ProtocolTests(PostgresFixture postgres) : IClassFixt
         using var metadata = JsonDocument.Parse(await rotated.Browser.GetStringAsync(".well-known/openid-configuration", Ct));
         var keys = new JsonWebKeySet(await rotated.Browser.GetStringAsync(metadata.RootElement.GetProperty("jwks_uri").GetString()!, Ct));
         Assert.Equal(2, keys.Keys.Count); Assert.All(keys.Keys, key => { Assert.Null(key.D); Assert.Null(key.P); Assert.Null(key.Q); });
+        // 上游重启后轮换了签名密钥。到达 JWKS 的重新查询间隔，再用原客户端完成刷新。
+        clock.Advance(TimeSpan.FromSeconds(31));
         var refreshed = await client.RefreshAsync(tokens.RefreshToken!, oldHost.Person.ToString(), Ct);
         Assert.NotEqual(oldAccess.Kid, new JsonWebToken(refreshed.AccessToken).Kid);
         var validation = await new JsonWebTokenHandler().ValidateTokenAsync(tokens.AccessToken, new TokenValidationParameters

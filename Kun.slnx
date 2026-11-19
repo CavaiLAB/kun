@@ -36,6 +36,7 @@
     <Project Path="src/Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" />
     <Project Path="src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <Project Path="src/Kun.Data/Kun.Data.csproj" />
+    <Project Path="src/Kun.EntityFrameworkCore.PostgreSQL/Kun.EntityFrameworkCore.PostgreSQL.csproj" />
     <Project Path="src/Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
     <Project Path="src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <Project Path="src/Kun.Errors/Kun.Errors.csproj" />

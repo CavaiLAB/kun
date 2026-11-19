@@ -1,11 +1,5 @@
 using Kun.Core.MultiTenancy;
-using Kun.Core.Security;
-using Kun.EntityFrameworkCore.Extensions;
-using Kun.EntityFrameworkCore.Interceptors;
-using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Kun.EntityFrameworkCore.Tests;
@@ -80,20 +74,8 @@ public sealed class KunStrictSchemaRuleTests
 
     private static DbContextOptions Options(string schema, string? prefix = null)
     {
-        var tenant = NullTenantContext.Instance;
-        var user = AnonymousCurrentUser.Instance;
-        var builder = new DbContextOptionsBuilder();
-        builder.UseNpgsql("Host=localhost;Database=unused").UseKunSchema(schema);
+        var builder = StrictContextOptions.Builder(schema);
         if (prefix is not null) builder.RequireKunSchemaPrefix(prefix);
-        builder.UseKunDataModel()
-            .ReplaceService<IModelCacheKeyFactory, KunMultiTenantModelCacheKeyFactory>()
-            .AddInterceptors(
-                new TenantRlsConnectionInterceptor(tenant, NullLogger<TenantRlsConnectionInterceptor>.Instance),
-                new TenantRlsTransactionInterceptor(tenant),
-                new KunSoftDeleteInterceptor(user, TimeProvider.System),
-                new AuditFieldsSaveChangesInterceptor(user, TimeProvider.System),
-                new KunTenantSaveChangesInterceptor(tenant, NullLogger<KunTenantSaveChangesInterceptor>.Instance),
-                new KunApplicationRoleInterceptor());
         return builder.Options;
     }
 

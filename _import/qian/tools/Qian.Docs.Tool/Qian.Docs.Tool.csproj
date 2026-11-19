@@ -4,5 +4,8 @@
     <ProjectReference Include="../../packages/Qian.Docs/Qian.Docs.csproj" />
     <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
     <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <!-- 事件分析以本工具的可信程序集解析组件源码里的类型：带上组件常用的 Kun 中介（连带 Kun.Core 与 Kun.Authorization），
+         派生文档的签名里这些类型才写得出全名。 -->
+    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
   </ItemGroup>
 </Project>

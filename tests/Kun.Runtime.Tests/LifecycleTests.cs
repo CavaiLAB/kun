@@ -74,6 +74,29 @@ public sealed class LifecycleTests
         Assert.Equal(PluginState.Ready, loader.GetState("consumer", ScopeKey.Global));
     }
 
+    // Qian.Scheduler 的 SchedulerWorker 靠这条行为认停机：卸载时先关闭上下文、再逆序跑效果，效果里与之后的 TryInject
+    // （含关闭前取得的 Scoped 子上下文）都抛 ObjectDisposedException；上下文开着而服务缺失时返回 null、不抛。
+    // 改这条行为要同步改调度器的停机分支（SchedulerWorker.ContextClosed）。
+    [Fact]
+    public async Task TryInject_throws_ObjectDisposedException_once_the_context_closes_including_inside_its_effects()
+    {
+        using var host = new ServiceCollection().BuildServiceProvider();
+        await using var loader = new PluginLoader(host);
+        IPluginContext context = null!;
+        Exception? insideEffect = null;
+        await loader.MountAsync([
+            Define("provider", ctx => ctx.Provide(new("X"), "x"), provides: [new("X")]),
+            Define("consumer", ctx => { context = ctx; ctx.Effect(() => insideEffect = Record.Exception(() => ctx.TryInject<string>(new("X")))); }, inject: [new("X")])],
+            TestContext.Current.CancellationToken);
+        var tenant = context.Scoped(new ScopeKey("tenant", "t-001"));
+        Assert.Equal("x", context.TryInject<string>(new("X")));
+        Assert.Null(context.TryInject<string>(new("missing")));
+        await loader.UnmountAsync("consumer", ScopeKey.Global, TestContext.Current.CancellationToken);
+        Assert.IsType<ObjectDisposedException>(insideEffect);
+        Assert.Throws<ObjectDisposedException>(() => context.TryInject<string>(new("X")));
+        Assert.Throws<ObjectDisposedException>(() => tenant.TryInject<string>(new("X")));
+    }
+
     [Fact]
     public async Task WhenReady_waits_for_successful_Apply_and_supports_cancellation()
     {

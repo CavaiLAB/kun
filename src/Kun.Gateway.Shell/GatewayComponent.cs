@@ -1,11 +1,11 @@
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Qian.Config;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
+using Microsoft.Extensions.DependencyInjection;
+using Qian.Config;
 
-namespace Kun.Gateway;
+namespace Kun.Gateway.Shell;
 
 /// <summary>网关唯一组件入口；宿主准备网络装配，插件挂载与卸载决定业务路由是否可以执行。</summary>
 [KunPlugin("qian.gateway")]
@@ -26,20 +26,4 @@ public sealed class GatewayComponent : IKunPlugin
         ctx.Provide<IGatewayService>(GatewayDefinition.Key, runtime);
         return ValueTask.CompletedTask;
     }
-}
-
-internal sealed class GatewayRuntime(GatewayConfiguration configuration) : IGatewayService
-{
-    internal static readonly object TokenKey = new();
-    private int _active;
-    internal GatewayConfiguration Configuration { get; } = configuration;
-    internal string SerializedConfiguration { get; } = GatewayConfigurationReader.Serialize(configuration);
-    public bool IsReady => Volatile.Read(ref _active) == 1;
-    public string AudienceFor(string clusterId) => Configuration.Clusters.SingleOrDefault(cluster => cluster.Id == clusterId)?.Id
-        ?? throw new InvalidOperationException("目标 cluster 未登记。");
-    internal void Activate()
-    {
-        if (Interlocked.CompareExchange(ref _active, 1, 0) != 0) throw new InvalidOperationException("网关组件已经挂载。");
-    }
-    internal void Deactivate() => Interlocked.Exchange(ref _active, 0);
 }

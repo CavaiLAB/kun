@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using FluentAssertions;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -18,7 +17,7 @@ namespace Kun.Gateway.Tests;
 /// </summary>
 public sealed class S2sTokenIssuerTests : IDisposable
 {
-    private const string InternalIssuer = "kun-gateway";
+    private const string Issuer = "kun-gateway";
     private const string InternalAudience = "kun-internal";
 
     private readonly string _privateKeyPath;
@@ -38,10 +37,10 @@ public sealed class S2sTokenIssuerTests : IDisposable
         File.WriteAllText(_privateKeyPath, ExportPrivatePem(_rsa));
         File.WriteAllText(_publicKeyPath, ExportPublicPem(_rsa));
 
-        var options = Options.Create(new KunGatewayOptions
+        var options = Options.Create(new GatewayConfiguration
         {
-            ExternalIssuer = "https://login.example.com",
-            ExternalAudience = "my-api",
+            IdentityIssuer = "https://login.example.com",
+            IdentityAudience = "my-api",
             ExternalJwksUri = "https://login.example.com/.well-known/openid-configuration",
             SigningKeyPath = _privateKeyPath,
             PublicKeyPath = _publicKeyPath,
@@ -57,7 +56,7 @@ public sealed class S2sTokenIssuerTests : IDisposable
         _validationParams = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = InternalIssuer,
+            ValidIssuer = Issuer,
             ValidateAudience = true,
             ValidAudience = InternalAudience,
             ValidateLifetime = true,
@@ -191,10 +190,10 @@ public sealed class S2sTokenIssuerTests : IDisposable
     {
         // Arrange
         var missingPath = Path.Combine(Path.GetTempPath(), $"missing-{Guid.NewGuid()}.pem");
-        var options = Options.Create(new KunGatewayOptions
+        var options = Options.Create(new GatewayConfiguration
         {
-            ExternalIssuer = "https://login.example.com",
-            ExternalAudience = "my-api",
+            IdentityIssuer = "https://login.example.com",
+            IdentityAudience = "my-api",
             ExternalJwksUri = "https://login.example.com/.well-known/openid-configuration",
             SigningKeyPath = missingPath,
             PublicKeyPath = missingPath,
@@ -217,10 +216,10 @@ public sealed class S2sTokenIssuerTests : IDisposable
         var tempDir = Path.Combine(Path.GetTempPath(), $"kun-test-{Guid.NewGuid()}");
         var privatePath = Path.Combine(tempDir, "gateway-private.pem");
         var publicPath = Path.Combine(tempDir, "gateway-public.pem");
-        var options = Options.Create(new KunGatewayOptions
+        var options = Options.Create(new GatewayConfiguration
         {
-            ExternalIssuer = "https://login.example.com",
-            ExternalAudience = "my-api",
+            IdentityIssuer = "https://login.example.com",
+            IdentityAudience = "my-api",
             ExternalJwksUri = "https://login.example.com/.well-known/openid-configuration",
             SigningKeyPath = privatePath,
             PublicKeyPath = publicPath,
@@ -241,7 +240,7 @@ public sealed class S2sTokenIssuerTests : IDisposable
 
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(token);
-            jwt.Issuer.Should().Be(InternalIssuer);
+            jwt.Issuer.Should().Be(Issuer);
         }
         finally
         {

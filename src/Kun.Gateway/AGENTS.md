@@ -9,7 +9,7 @@ YARP-based API gateway library. A host built on it validates external IdP-issued
 | File | Description |
 |------|-------------|
 | `Kun.Gateway.csproj` | `IsAotCompatible=true`, `Sdk=Microsoft.NET.Sdk` with a `Microsoft.AspNetCore.App` framework reference; a class library |
-| `Configuration/KunGatewayOptions.cs` | Options for external IdP, internal issuer/audience, key file paths |
+| `../Kun.Gateway.Abstractions/GatewayDefinition.cs` | Options for external IdP, internal issuer/audience, key file paths |
 | `S2sTokenIssuer.cs` | Issues internal S2S JWTs through the shared hot-reloading signing ring (RS256, 60 s TTL) |
 | `Transforms/S2sAuthTransform.cs` | Internal YARP `RequestTransform`; replaces `Authorization` header with minted S2S JWT |
 | `Endpoints/JwksEndpoint.cs` | `MapKunJwks()` extension; serves `/.well-known/jwks.json` from the active/overlap signing ring |
@@ -34,11 +34,11 @@ YARP-based API gateway library. A host built on it validates external IdP-issued
 
 ```json
 {
-  "KunGateway": {
-    "ExternalIssuer": "https://login.example.com",
-    "ExternalAudience": "my-api",
+  "Gateway": {
+    "IdentityIssuer": "https://login.example.com",
+    "IdentityAudience": "my-api",
     "ExternalJwksUri": "https://login.example.com/.well-known/openid-configuration",
-    "InternalIssuer": "kun-gateway",
+    "Issuer": "kun-gateway",
     "InternalAudience": "kun-internal",
     "SigningKeyPath": "/etc/kun/gateway-private.pem",
     "PublicKeyPath": "/etc/kun/gateway-public.pem"

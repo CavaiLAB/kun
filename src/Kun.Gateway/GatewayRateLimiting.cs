@@ -4,14 +4,12 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.RateLimiting;
-using Kun.Gateway.RateLimiting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
+using Kun.RateLimit;
+using Kun.RateLimit.Extensions;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.JsonWebTokens;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Model;
 
@@ -21,40 +19,13 @@ internal static class GatewayRateLimiting
 {
     internal static void Add(IServiceCollection services, GatewayConfiguration configuration)
     {
-        services.TryAddSingleton<IRedisRateLimitStore>(provider => new GatewayRedisRateLimitStore(
-            provider.GetRequiredService<IConnectionMultiplexer>(), configuration.RateLimits.KeyPrefix));
+        services.AddKunRedisRateLimitStore(options => options.KeyPrefix = configuration.RateLimits.KeyPrefix);
         services.AddSingleton(provider => new GatewayRateLimitPolicy(configuration, provider.GetRequiredService<IRedisRateLimitStore>()));
         services.AddOptions<RateLimiterOptions>().Configure<GatewayRateLimitPolicy>((options, policy) =>
         {
             options.AddPolicy("tenant", policy);
             options.AddPolicy("user", policy);
         });
-    }
-}
-
-// 复用 Kun 的计数端口；INCR 与到期设置在同一 Lua 操作内完成，并修复没有 TTL 的遗留桶。
-// 不拥有宿主的 Redis 连接，不复制签发器或会话实现。
-internal sealed class GatewayRedisRateLimitStore(IConnectionMultiplexer redis, string prefix) : IRedisRateLimitStore
-{
-    private const string Hit = """
-        local count = redis.call('INCR', KEYS[1])
-        local ttl = redis.call('PTTL', KEYS[1])
-        if ttl < 0 then
-            redis.call('PEXPIRE', KEYS[1], ARGV[1])
-            ttl = tonumber(ARGV[1])
-        end
-        return {count, ttl}
-        """;
-
-    public async Task<RateLimitHitResult> HitAsync(string partitionKey, TimeSpan window, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(partitionKey);
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(window, TimeSpan.Zero);
-        cancellationToken.ThrowIfCancellationRequested();
-        var result = (RedisResult[])(await redis.GetDatabase().ScriptEvaluateAsync(Hit,
-            [(RedisKey)(prefix + ":" + partitionKey)], [(RedisValue)(long)Math.Ceiling(window.TotalMilliseconds)])
-            .WaitAsync(cancellationToken).ConfigureAwait(false))!;
-        return new((long)result[0], TimeSpan.FromMilliseconds((long)result[1]));
     }
 }
 

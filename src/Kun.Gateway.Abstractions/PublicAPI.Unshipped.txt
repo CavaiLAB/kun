@@ -84,3 +84,24 @@ static Kun.Gateway.GatewayRateLimits.operator ==(Kun.Gateway.GatewayRateLimits? 
 static Kun.Gateway.GatewayRoute.operator !=(Kun.Gateway.GatewayRoute? left, Kun.Gateway.GatewayRoute? right) -> bool
 static Kun.Gateway.GatewayRoute.operator ==(Kun.Gateway.GatewayRoute? left, Kun.Gateway.GatewayRoute? right) -> bool
 static readonly Kun.Gateway.GatewayDefinition.Key -> Kun.Runtime.ServiceKey
+Kun.Gateway.GatewayConfiguration.EmitTraceIdClaim.get -> bool
+Kun.Gateway.GatewayConfiguration.EmitTraceIdClaim.init -> void
+Kun.Gateway.GatewayConfiguration.ExposeInternalJwks.get -> bool
+Kun.Gateway.GatewayConfiguration.ExposeInternalJwks.init -> void
+Kun.Gateway.GatewayConfiguration.ExternalJwksUri.get -> string!
+Kun.Gateway.GatewayConfiguration.ExternalJwksUri.init -> void
+Kun.Gateway.GatewayConfiguration.ForwardLimit.get -> int
+Kun.Gateway.GatewayConfiguration.ForwardLimit.init -> void
+Kun.Gateway.GatewayConfiguration.ForwardedClaimTypes.get -> string![]!
+Kun.Gateway.GatewayConfiguration.ForwardedClaimTypes.init -> void
+Kun.Gateway.GatewayConfiguration.GatewayConfiguration() -> void
+Kun.Gateway.GatewayConfiguration.InternalAudience.get -> string!
+Kun.Gateway.GatewayConfiguration.InternalAudience.init -> void
+Kun.Gateway.GatewayConfiguration.InternalTokenLifetime.get -> System.TimeSpan
+Kun.Gateway.GatewayConfiguration.InternalTokenLifetime.init -> void
+Kun.Gateway.GatewayConfiguration.KeyOverlapPeriod.get -> System.TimeSpan
+Kun.Gateway.GatewayConfiguration.KeyOverlapPeriod.init -> void
+Kun.Gateway.GatewayConfiguration.KeyReloadInterval.get -> System.TimeSpan
+Kun.Gateway.GatewayConfiguration.KeyReloadInterval.init -> void
+Kun.Gateway.GatewayConfiguration.TrustedProxyAddresses.get -> string![]!
+Kun.Gateway.GatewayConfiguration.TrustedProxyAddresses.init -> void

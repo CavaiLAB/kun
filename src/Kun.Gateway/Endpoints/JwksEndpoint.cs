@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Jwks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -34,7 +33,7 @@ public static class JwksEndpoint
         // 显式选择 RequestDelegate 重载；普通 NuGet 包不能依赖消费宿主重生成库内端点。
         RequestDelegate handler = httpContext =>
         {
-            var options = httpContext.RequestServices.GetRequiredService<IOptions<KunGatewayOptions>>();
+            var options = httpContext.RequestServices.GetRequiredService<IOptions<GatewayConfiguration>>();
             var builder = httpContext.RequestServices.GetRequiredService<JwksResponseBuilder>();
             if (additionalGate is not null && !additionalGate(httpContext))
             {

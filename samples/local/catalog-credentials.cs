@@ -5,7 +5,6 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Kun.Gateway;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Kun.Gateway.Jwks;
 using Microsoft.Extensions.Hosting;
@@ -17,15 +16,15 @@ if (args is not [var directory] || !Directory.Exists(directory))
     return 1;
 }
 
-var options = new KunGatewayOptions
+var options = new GatewayConfiguration
 {
     // This local issuer has no upstream identity provider.
-    ExternalIssuer = string.Empty,
-    ExternalAudience = string.Empty,
+    IdentityIssuer = string.Empty,
+    IdentityAudience = string.Empty,
     ExternalJwksUri = string.Empty,
     SigningKeyPath = Path.Combine(directory, "private.pem"),
     PublicKeyPath = Path.Combine(directory, "public.pem"),
-    InternalIssuer = "kun-sample",
+    Issuer = "kun-sample",
     InternalAudience = "kun-sample-catalog",
     InternalTokenLifetime = TimeSpan.FromMinutes(5),
 };

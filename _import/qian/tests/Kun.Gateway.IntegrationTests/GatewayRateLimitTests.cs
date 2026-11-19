@@ -1,7 +1,8 @@
+using Microsoft.Extensions.Options;
+using Kun.RateLimit;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
-using Kun.Gateway.RateLimiting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Kun.Errors;
@@ -114,7 +115,7 @@ public sealed class GatewayRateLimitStoreTests(RedisFixture redis) : IClassFixtu
         using var connectionA = await ConnectionMultiplexer.ConnectAsync(redis.ConnectionString);
         using var connectionB = await ConnectionMultiplexer.ConnectAsync(redis.ConnectionString);
         var prefix = "qian:gw-counter:" + Guid.NewGuid().ToString("N");
-        var first = new GatewayRedisRateLimitStore(connectionA, prefix); var second = new GatewayRedisRateLimitStore(connectionB, prefix);
+        var first = new RedisFixedWindowRateLimitStore(connectionA, Options.Create(new RedisRateLimitStoreOptions { KeyPrefix = prefix })); var second = new RedisFixedWindowRateLimitStore(connectionB, Options.Create(new RedisRateLimitStoreOptions { KeyPrefix = prefix }));
         var hits = await Task.WhenAll(Enumerable.Range(0, 200).Select(index => (index % 2 == 0 ? first : second).HitAsync("shared", TimeSpan.FromSeconds(5), Ct)));
         Assert.Equal(Enumerable.Range(1, 200).Select(value => (long)value), hits.Select(hit => hit.Count).Order());
         var before = await connectionA.GetDatabase().KeyTimeToLiveAsync(prefix + ":shared");
@@ -129,7 +130,7 @@ public sealed class GatewayRateLimitStoreTests(RedisFixture redis) : IClassFixtu
     {
         using var connection = await ConnectionMultiplexer.ConnectAsync(redis.ConnectionString);
         var prefix = "qian:gw-counter:" + Guid.NewGuid().ToString("N");
-        var store = new GatewayRedisRateLimitStore(connection, prefix);
+        var store = new RedisFixedWindowRateLimitStore(connection, Options.Create(new RedisRateLimitStoreOptions { KeyPrefix = prefix }));
         Assert.Equal(1, (await store.HitAsync("short", TimeSpan.FromMilliseconds(100), Ct)).Count);
         await Task.Delay(200, Ct);
         Assert.Equal(1, (await store.HitAsync("short", TimeSpan.FromMilliseconds(100), Ct)).Count);

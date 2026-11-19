@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using FluentAssertions;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Security;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Kun.Gateway.Jwks;
 using Kun.MultiTenancy.DependencyInjection;
@@ -26,17 +25,17 @@ namespace Kun.Gateway.Tests;
 public sealed class S2sContextRoundTripTests : IDisposable
 {
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "kun-s2s-context-" + Guid.NewGuid().ToString("N"));
-    private readonly KunGatewayOptions _options;
+    private GatewayConfiguration _options;
     private readonly IHostEnvironment _environment = Substitute.For<IHostEnvironment>();
 
     public S2sContextRoundTripTests()
     {
         Directory.CreateDirectory(_directory);
         using var key = RSA.Create(2048);
-        _options = new KunGatewayOptions
+        _options = new GatewayConfiguration
         {
-            ExternalIssuer = "external-identity",
-            ExternalAudience = "external-app",
+            IdentityIssuer = "external-identity",
+            IdentityAudience = "external-app",
             ExternalJwksUri = "https://identity.invalid/jwks",
             SigningKeyPath = Path.Combine(_directory, "private.pem"),
             PublicKeyPath = Path.Combine(_directory, "public.pem"),
@@ -79,7 +78,7 @@ public sealed class S2sContextRoundTripTests : IDisposable
         builder.WebHost.UseTestServer();
         builder.Services.AddKunSecurity();
         builder.Services.AddKunMultiTenancy();
-        builder.Services.AddAuthentication("Bearer").AddKunServiceAuthentication(options => { options.Issuer = _options.InternalIssuer; options.StaticKeySet = keys; });
+        builder.Services.AddAuthentication("Bearer").AddKunServiceAuthentication(options => { options.Issuer = _options.Issuer; options.StaticKeySet = keys; });
         builder.Services.Configure<JwtBearerOptions>("Bearer", options => options.MapInboundClaims = false);
         builder.Services.AddAuthorization();
         await using var service = builder.Build();
@@ -100,7 +99,7 @@ public sealed class S2sContextRoundTripTests : IDisposable
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be(
             "user.one|00000000-0000-4000-8000-000000000045|role.operator,role.reader,role.writer|00000000-0000-4000-8000-000000000101|7|platform.system.manage platform.application.manage");
-        _options.InternalAudience = "external-app";
+        _options = _options with { InternalAudience = "external-app" };
         client.DefaultRequestHeaders.Authorization = new("Bearer", await Issuer().IssueForAsync(Principal(), TestContext.Current.CancellationToken));
         (await client.GetAsync("/context", TestContext.Current.CancellationToken)).StatusCode.Should().Be(System.Net.HttpStatusCode.Unauthorized);
     }
@@ -108,7 +107,7 @@ public sealed class S2sContextRoundTripTests : IDisposable
     [Fact]
     public async Task IssueForAsync_WhenNoAllowlist_StillUsesCanonicalClosedClaims()
     {
-        _options.ForwardedClaimTypes = [];
+        _options = _options with { ForwardedClaimTypes = [] };
         var token = await Issuer().IssueForAsync(Principal(), TestContext.Current.CancellationToken);
         new JwtSecurityTokenHandler().ReadJwtToken(token).Claims.Should().NotContain(claim => claim.Type == "sid" || claim.Type == "permission" || claim.Type == "email");
     }
@@ -124,7 +123,7 @@ public sealed class S2sContextRoundTripTests : IDisposable
     [InlineData("trace_id")]
     public void Constructor_WhenReservedClaimIsConfigured_RejectsOverride(string type)
     {
-        _options.ForwardedClaimTypes = [type];
+        _options = _options with { ForwardedClaimTypes = [type] };
         var action = Issuer;
         action.Should().Throw<ArgumentException>();
     }
@@ -135,7 +134,7 @@ public sealed class S2sContextRoundTripTests : IDisposable
     [InlineData(301)]
     public async Task IssueForAsync_WhenLifetimeViolatesPolicy_RejectsIssuance(int seconds)
     {
-        _options.InternalTokenLifetime = TimeSpan.FromSeconds(seconds);
+        _options = _options with { InternalTokenLifetime = TimeSpan.FromSeconds(seconds) };
         var action = () => Issuer().IssueForAsync(Principal(), TestContext.Current.CancellationToken);
         await action.Should().ThrowAsync<InvalidOperationException>();
     }

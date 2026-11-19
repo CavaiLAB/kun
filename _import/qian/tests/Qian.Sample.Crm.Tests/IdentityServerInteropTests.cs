@@ -4,7 +4,6 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
 using Kun.Gateway;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -41,9 +40,9 @@ public sealed partial class IdentityAuthzTests
             await using (var file = new StreamWriter(new FileStream(privateKey, fileOptions)))
                 await file.WriteAsync(business.ManagementSigningKey.Rsa.ExportRSAPrivateKeyPem().AsMemory(), Ct);
             await File.WriteAllTextAsync(publicKey, business.ManagementSigningKey.Rsa.ExportRSAPublicKeyPem(), Ct);
-            using var gateway = new S2sTokenIssuer(Options.Create(new KunGatewayOptions
+            using var gateway = new S2sTokenIssuer(Options.Create(new GatewayConfiguration
             {
-                ExternalJwksUri = discovery.RootElement.GetProperty("jwks_uri").GetString()!, ExternalIssuer = identity.Issuer, ExternalAudience = "https://api.qian.test", InternalIssuer = Issuer, InternalAudience = Audience,
+                ExternalJwksUri = discovery.RootElement.GetProperty("jwks_uri").GetString()!, IdentityIssuer = identity.Issuer, IdentityAudience = "https://api.qian.test", Issuer = Issuer, InternalAudience = Audience,
                 SigningKeyPath = privateKey, PublicKeyPath = publicKey, InternalTokenLifetime = TimeSpan.FromSeconds(60)
             }), business.App.Environment, NoOpS2sPrincipalResolver.Instance);
             var s2s = await gateway.IssueForAsync(external, Ct);

@@ -1,3 +1,5 @@
+using Kun.Gateway.DependencyInjection;
+using Kun.Gateway.Shell;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -16,7 +18,6 @@ using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
 using Qian.Dev.TenantOps;
-using Kun.Gateway;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
 using Kun.Runtime;
@@ -82,6 +83,7 @@ internal static class DevGateway
         // 其余 /api 走参考应用的命令宿主；/api-alt 是同一组路由的第二个前缀。
         var configuration = new GatewayConfiguration(identityIssuer.AbsoluteUri, Resource, Issuer, keys.SigningKeyPath, keys.PublicKeyPath, [],
             [.. Routes("api"), .. Routes("api-alt")], [new(Cluster, businessAddress), new(PlatformSurfaceHost.Audience, platformAddress), new(OperationsCluster, operationsAddress)]);
+        builder.Services.AddKunGatewayShell();
         builder.Services.AddKunGateway(configuration, IdentityClientDefaults.SessionScheme);
         builder.Services.AddSingleton<ITransformProvider, AlternatePrefixTransform>();
         var app = builder.Build();

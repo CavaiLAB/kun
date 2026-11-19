@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Jwks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -160,15 +159,15 @@ public sealed class KunInternalJwksEndpointTests : IAsyncLifetime
                     services.AddRouting();
                     services.ConfigureHttpJsonOptions(options => options.SerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine());
                     services.AddSingleton<JwksResponseBuilder>();
-                    services.Configure<KunGatewayOptions>(opts =>
+                    services.AddSingleton(Microsoft.Extensions.Options.Options.Create(new GatewayConfiguration
                     {
-                        opts.ExternalIssuer = "https://unused.example";
-                        opts.ExternalAudience = "unused";
-                        opts.ExternalJwksUri = "https://unused.example/.well-known/jwks.json";
-                        opts.SigningKeyPath = _publicKeyPath;
-                        opts.PublicKeyPath = _publicKeyPath;
-                        opts.ExposeInternalJwks = exposeInternal;
-                    });
+                        IdentityIssuer = "https://unused.example",
+                        IdentityAudience = "unused",
+                        ExternalJwksUri = "https://unused.example/.well-known/jwks.json",
+                        SigningKeyPath = _publicKeyPath,
+                        PublicKeyPath = _publicKeyPath,
+                        ExposeInternalJwks = exposeInternal
+                    }));
                 });
                 webHost.Configure(app =>
                 {

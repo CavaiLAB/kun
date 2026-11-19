@@ -49,13 +49,17 @@ builder.Services.AddSingleton<IProxyConfigProvider>(new InMemoryConfigProvider(
     [new RouteConfig { RouteId = "probe", ClusterId = "qian-platform", Match = new RouteMatch { Path = "/api/{**rest}" } }],
     [new ClusterConfig { ClusterId = "qian-platform", Destinations = new Dictionary<string, DestinationConfig>
         { ["platform"] = new() { Address = Required("Platform:Address") } } }]));
-builder.Services.AddKunGateway(options =>
-{
-    options.ExternalIssuer = Required("Identity:Issuer"); options.ExternalAudience = Required("Identity:Resource");
-    options.ExternalJwksUri = Required("Identity:JwksUri"); options.InternalIssuer = Required("Gateway:Issuer");
-    options.InternalAudience = "qian-platform"; options.SigningKeyPath = Required("Gateway:SigningKeyPath");
-    options.PublicKeyPath = Required("Gateway:PublicKeyPath"); options.KeyOverlapPeriod = TimeSpan.FromMinutes(10);
-});
+builder.Services.AddKunGateway(new GatewayConfiguration
+    {
+        IdentityIssuer = Required("Identity:Issuer"),
+        IdentityAudience = Required("Identity:Resource"),
+        ExternalJwksUri = Required("Identity:JwksUri"),
+        Issuer = Required("Gateway:Issuer"),
+        InternalAudience = "qian-platform",
+        SigningKeyPath = Required("Gateway:SigningKeyPath"),
+        PublicKeyPath = Required("Gateway:PublicKeyPath"),
+        KeyOverlapPeriod = TimeSpan.FromMinutes(10),
+    });
 await using var app = builder.Build();
 app.UseRouting(); app.UseKunIdentityClient(); app.UseAuthentication(); app.UseAuthorization(); app.UseRateLimiter();
 app.MapKunIdentityClient(); app.MapKunJwks(); app.MapReverseProxy();

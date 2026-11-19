@@ -94,7 +94,9 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 |---|---|---|---|:---:|:---:|
 | `Kun.AspNetCore` | Minimal API 扩展 / `MapCommand` / `MapQuery` / 异常处理器 | 下游服务的对外 HTTP 路由 | `AddKunAspNetCore()` / `MapCommand<TReq, TResp>` | ⚠️ trim-safe | 5 |
 | `Kun.Grpc` | gRPC 拦截器链（Tracing → Auth → Result 映射） | 服务间内部 RPC；Catalog / Order gRPC endpoint | `AddKunGrpc()` / `KunResultToRpcInterceptor` | ✅ | 7 |
+| `Kun.Gateway.Abstractions` | 网关服务端口、配置与静态路由契约 | 宿主与平台组件共享 | `GatewayConfiguration` | ✅ | — |
 | `Kun.Gateway` | YARP + 外部 JWT 校验 + S2S JWT 签发 + JWKS endpoint + 限流 | 统一边界：外部 JWT 验证 + 内部 S2S JWT 签发 | `AddKunGateway()` / `MapKunJwks()` | ✅ | 21 |
+| `Kun.Gateway.Shell` | 外壳静态托管、引导端点与组件登记 | 平台网关宿主 | `AddKunGatewayShell()` | ✅ | — |
 
 ### 安全、多租户、审计
 
@@ -113,7 +115,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Tenancy.Signup` | 自助注册流程 | 装配申请与运营端点 | `MapKunTenancySignupApplicant()` / `MapKunTenancySignupOperations()` | — | 10 |
 | `Kun.Audit` | 审计写入器抽象 + `NullAuditWriter` / `EventBusAuditWriter` | 下游服务的操作审计；通过 Outbox 异步记录 | `AddKunAudit()` / `.UseEventBus()` | ✅ | 13 |
 | `Kun.Audit.EntityFrameworkCore` | EF 持久化后端 | 需要审计 on-box 持久化时的可选后端 | `AddKunAuditEntityFrameworkCore()` | ⚠️ trim-safe | — |
-| `Kun.RateLimit` | 基于 `.NET 10 RateLimiter` 的按租户分区限流 | Gateway 与业务服务的请求级别保护 | `AddKunRateLimit(...)` | ✅ | 6 |
+| `Kun.RateLimit` | 按租户分区限流、Redis 原子固定窗口计数 | Gateway 与业务服务的请求级别保护 | `AddKunRateLimit(...)` | ✅ | 6 |
 
 租户过滤器、字段拦截器和模型缓存键由 `Kun.EntityFrameworkCore.MultiTenancy` 提供。HTTP 与 gRPC 的请求范围共享 `Kun.MultiTenancy` 的入口规则。
 

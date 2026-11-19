@@ -1,4 +1,4 @@
-namespace Kun.Gateway;
+namespace Kun.Gateway.Shell;
 
 internal static class ComponentConfiguration
 {

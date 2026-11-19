@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 
 namespace Kun.Gateway;
 
@@ -10,21 +11,55 @@ internal sealed partial class GatewayJson : JsonSerializerContext;
 
 internal static class GatewayConfigurationReader
 {
+    internal static GatewayConfiguration ReadStandalone(IConfiguration section)
+    {
+        T Read<T>(string key, T fallback) where T : IParsable<T> =>
+            section[key] is { } value ? T.Parse(value, System.Globalization.CultureInfo.InvariantCulture) : fallback;
+        string[] ReadStrings(string key) => section.GetSection(key).GetChildren().Select(child => child.Value ?? string.Empty).ToArray();
+        var defaults = new GatewayConfiguration();
+        return defaults with
+        {
+            IdentityIssuer = section[nameof(defaults.IdentityIssuer)] ?? defaults.IdentityIssuer,
+            IdentityAudience = section[nameof(defaults.IdentityAudience)] ?? defaults.IdentityAudience,
+            ExternalJwksUri = section[nameof(defaults.ExternalJwksUri)] ?? defaults.ExternalJwksUri,
+            Issuer = section[nameof(defaults.Issuer)] ?? defaults.Issuer,
+            InternalAudience = section[nameof(defaults.InternalAudience)] ?? defaults.InternalAudience,
+            SigningKeyPath = section[nameof(defaults.SigningKeyPath)] ?? defaults.SigningKeyPath,
+            PublicKeyPath = section[nameof(defaults.PublicKeyPath)] ?? defaults.PublicKeyPath,
+            InternalTokenLifetime = Read(nameof(defaults.InternalTokenLifetime), defaults.InternalTokenLifetime),
+            ExposeInternalJwks = Read(nameof(defaults.ExposeInternalJwks), defaults.ExposeInternalJwks),
+            EmitTraceIdClaim = Read(nameof(defaults.EmitTraceIdClaim), defaults.EmitTraceIdClaim),
+            ForwardLimit = Read(nameof(defaults.ForwardLimit), defaults.ForwardLimit),
+            KeyOverlapPeriod = Read(nameof(defaults.KeyOverlapPeriod), defaults.KeyOverlapPeriod),
+            KeyReloadInterval = Read(nameof(defaults.KeyReloadInterval), defaults.KeyReloadInterval),
+            TrustedProxyAddresses = ReadStrings(nameof(defaults.TrustedProxyAddresses)),
+            TrustedProxyNetworks = ReadStrings(nameof(defaults.TrustedProxyNetworks)),
+            ForwardedClaimTypes = ReadStrings(nameof(defaults.ForwardedClaimTypes))
+        };
+    }
+
     internal static GatewayConfiguration Read(JsonElement value)
     {
         if (value.ValueKind != JsonValueKind.Object) throw Invalid();
+        if (value.EnumerateObject().Any(p => p.Name is not ("identityIssuer" or "identityAudience" or "issuer" or
+            "signingKeyPath" or "publicKeyPath" or "trustedProxyNetworks" or "routes" or "clusters" or "rateLimits"))) throw Invalid();
         RejectDuplicateNames(value);
         var parsed = value.Deserialize(GatewayJson.Default.GatewayConfiguration) ?? throw Invalid();
         // 源生成的 record 构造器会给未出现的 init 属性传默认值；按字段是否出现保留声明式缺省值，显式非法值仍拒绝。
         var defaults = new GatewayRateLimits();
         if (!value.TryGetProperty("rateLimits", out var rates)) return Copy(parsed with { RateLimits = defaults });
         if (rates.ValueKind != JsonValueKind.Object) throw Invalid();
-        return Copy(parsed with { RateLimits = new GatewayRateLimits
+        return Copy(parsed with
         {
-            KeyPrefix = rates.TryGetProperty("keyPrefix", out var prefix) ? prefix.GetString() ?? "" : defaults.KeyPrefix,
-            WindowSeconds = Integer("windowSeconds", defaults.WindowSeconds), IpPermitLimit = Integer("ipPermitLimit", defaults.IpPermitLimit),
-            TenantPermitLimit = Integer("tenantPermitLimit", defaults.TenantPermitLimit), UserPermitLimit = Integer("userPermitLimit", defaults.UserPermitLimit)
-        } });
+            RateLimits = new GatewayRateLimits
+            {
+                KeyPrefix = rates.TryGetProperty("keyPrefix", out var prefix) ? prefix.GetString() ?? "" : defaults.KeyPrefix,
+                WindowSeconds = Integer("windowSeconds", defaults.WindowSeconds),
+                IpPermitLimit = Integer("ipPermitLimit", defaults.IpPermitLimit),
+                TenantPermitLimit = Integer("tenantPermitLimit", defaults.TenantPermitLimit),
+                UserPermitLimit = Integer("userPermitLimit", defaults.UserPermitLimit)
+            }
+        });
 
         int Integer(string name, int fallback) => rates.TryGetProperty(name, out var number) ? number.GetInt32() : fallback;
     }
@@ -46,7 +81,9 @@ internal static class GatewayConfigurationReader
         return value with
         {
             TrustedProxyNetworks = Array.AsReadOnly(value.TrustedProxyNetworks.ToArray()),
-            Routes = Array.AsReadOnly(value.Routes.ToArray()), Clusters = Array.AsReadOnly(value.Clusters.ToArray()), RateLimits = value.RateLimits with { }
+            Routes = Array.AsReadOnly(value.Routes.ToArray()),
+            Clusters = Array.AsReadOnly(value.Clusters.ToArray()),
+            RateLimits = value.RateLimits with { }
         };
     }
 

@@ -1,7 +1,7 @@
 using Qian.Dev.Shell;
 using Qian.Dev.TenantOps;
 
-// 外壳认证联调环境（S1-YUE-002）：真实 qian.identity（与 CRM 参考运行时同宿主）+ 真实 Identity.Client / Qian.Gateway BFF（静态托管外壳）。
+// 外壳认证联调环境（S1-YUE-002）：真实 qian.identity（与 CRM 参考运行时同宿主）+ 真实 Identity.Client / Kun.Gateway.Shell BFF（静态托管外壳）。
 // 一般经 scripts/dev-shell.sh 调用，用法见 README.md。
 var options = Options(args.Skip(1));
 var state = options.GetValueOrDefault("state") ?? Path.Combine(DevHost.RepositoryRoot(), ".qian-dev", "shell");

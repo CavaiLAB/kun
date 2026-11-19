@@ -16,6 +16,11 @@
   <ItemGroup>
     <None Include="GATEWAY.md" Pack="true" PackagePath="/" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../Kun.Gateway.Abstractions/Kun.Gateway.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../Kun.RateLimit/Kun.RateLimit.csproj" />
+    <InternalsVisibleTo Include="Kun.Gateway.IntegrationTests" />
+    <InternalsVisibleTo Include="Kun.Gateway.Shell" />
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\Kun.Security\Kun.Security.csproj" />
     <PackageReference Include="Yarp.ReverseProxy" />

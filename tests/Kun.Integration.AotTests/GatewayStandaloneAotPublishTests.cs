@@ -69,8 +69,8 @@ public sealed class GatewayStandaloneAotPublishTests
             };
             start.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
             start.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
-            start.Environment["KunGateway__SigningKeyPath"] = privateKey;
-            start.Environment["KunGateway__PublicKeyPath"] = publicKey;
+            start.Environment["Gateway__SigningKeyPath"] = privateKey;
+            start.Environment["Gateway__PublicKeyPath"] = publicKey;
             start.Environment["KunObservability__TracingEnabled"] = "false";
             start.Environment["KunObservability__MetricsEnabled"] = "false";
             start.Environment["KunObservability__LoggingEnabled"] = "false";

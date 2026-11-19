@@ -1,27 +1,17 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Kun.Gateway;
-using Kun.Gateway.DependencyInjection;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Kun.Gateway.Endpoints;
 using Kun.Gateway.Identity;
 using Kun.Gateway.RateLimiting;
 using Kun.Gateway.RateLimiting.Resolvers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 using Yarp.ReverseProxy.Configuration;
-using Yarp.ReverseProxy.Model;
-using Yarp.ReverseProxy.Transforms;
-using Yarp.ReverseProxy.Transforms.Builder;
 
 namespace Kun.Gateway;
 
@@ -35,7 +25,7 @@ public static class GatewayHosting
     public static GatewayConfiguration ReadConfiguration(JsonElement configuration) => GatewayConfigurationReader.Read(configuration);
 
     /// <summary>固定注册认证、路由、可信代理与热轮换。宿主需先装 Identity.Client 的规范 Cookie 方案，并在启用前挂载 GatewayComponent。</summary>
-    public static IServiceCollection AddKunGateway(this IServiceCollection services, GatewayConfiguration configuration, string sessionAuthenticationScheme = "qian.session")
+    internal static GatewayConfiguration AddManaged(IServiceCollection services, GatewayConfiguration configuration, string sessionAuthenticationScheme)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionAuthenticationScheme);
@@ -46,30 +36,21 @@ public static class GatewayHosting
         services.AddKunErrors();
         services.AddSingleton<IS2sPrincipalResolver, GatewayPrincipalResolver>();
         services.AddSingleton<IRateLimitPartitionResolver, IpRateLimitPartitionResolver>();
-        services.AddSingleton<GatewayShellClient>();
         services.AddSingleton<IProxyConfigProvider>(new InMemoryConfigProvider(
             snapshot.Routes.Select(route => new RouteConfig
             {
-                RouteId = route.Id, ClusterId = route.Cluster, Match = new RouteMatch { Path = route.Path },
-                AuthorizationPolicy = "Default", RateLimiterPolicy = route.RateLimiterPolicy
+                RouteId = route.Id,
+                ClusterId = route.Cluster,
+                Match = new RouteMatch { Path = route.Path },
+                AuthorizationPolicy = "Default",
+                RateLimiterPolicy = route.RateLimiterPolicy
             }).ToArray(),
             snapshot.Clusters.Select(cluster => new ClusterConfig
             {
-                ClusterId = cluster.Id, Destinations = new Dictionary<string, DestinationConfig> { ["primary"] = new() { Address = cluster.Address } }
+                ClusterId = cluster.Id,
+                Destinations = new Dictionary<string, DestinationConfig> { ["primary"] = new() { Address = cluster.Address } }
             }).ToArray()));
-        services.AddKunGateway(options =>
-        {
-            options.ExternalIssuer = snapshot.IdentityIssuer; options.ExternalAudience = snapshot.IdentityAudience;
-            options.ExternalJwksUri = snapshot.IdentityIssuer.TrimEnd('/') + "/.well-known/openid-configuration";
-            options.InternalIssuer = snapshot.Issuer; options.InternalAudience = snapshot.Clusters[0].Id;
-            options.InternalTokenLifetime = TimeSpan.FromSeconds(60); options.KeyOverlapPeriod = TimeSpan.FromMinutes(10);
-            options.SigningKeyPath = snapshot.SigningKeyPath; options.PublicKeyPath = snapshot.PublicKeyPath;
-            options.TrustedProxyAddresses = []; options.TrustedProxyNetworks = snapshot.TrustedProxyNetworks.ToArray(); options.ForwardLimit = 1;
-            // tenant_id/sub/roles 是签发器固定字段，不能误填进 Kun 的附加字段兼容选项。
-            options.ForwardedClaimTypes = ["principal_kind", "membership_id", "identity_revision", "scope", "session_id", "project_id", "plugin_id"];
-        });
         GatewayRateLimiting.Add(services, snapshot);
-        services.AddSingleton<ITransformProvider, AudienceTransformProvider>();
         services.AddAuthentication(options => { options.DefaultScheme = Scheme; options.DefaultChallengeScheme = Scheme; })
             .AddPolicyScheme(Scheme, Scheme, options => options.ForwardDefaultSelector = http =>
                 http.Request.Headers.ContainsKey("Authorization") ? ExternalScheme : sessionAuthenticationScheme)
@@ -79,10 +60,18 @@ public static class GatewayHosting
                 options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true, ValidIssuer = snapshot.IdentityIssuer, ValidateAudience = true, ValidAudience = snapshot.IdentityAudience,
-                    ValidateIssuerSigningKey = true, RequireSignedTokens = true, RequireExpirationTime = true, ValidateLifetime = true,
-                    ValidAlgorithms = [SecurityAlgorithms.RsaSha256, SecurityAlgorithms.EcdsaSha256], ValidTypes = ["at+jwt"],
-                    AuthenticationType = ExternalScheme, ClockSkew = TimeSpan.FromSeconds(30)
+                    ValidateIssuer = true,
+                    ValidIssuer = snapshot.IdentityIssuer,
+                    ValidateAudience = true,
+                    ValidAudience = snapshot.IdentityAudience,
+                    ValidateIssuerSigningKey = true,
+                    RequireSignedTokens = true,
+                    RequireExpirationTime = true,
+                    ValidateLifetime = true,
+                    ValidAlgorithms = [SecurityAlgorithms.RsaSha256, SecurityAlgorithms.EcdsaSha256],
+                    ValidTypes = ["at+jwt"],
+                    AuthenticationType = ExternalScheme,
+                    ClockSkew = TimeSpan.FromSeconds(30)
                 };
                 options.Events.OnTokenValidated = context =>
                 {
@@ -98,7 +87,13 @@ public static class GatewayHosting
             });
         services.AddOptions<JwtBearerOptions>(ExternalScheme).Configure<IHostEnvironment>((options, environment) =>
             options.RequireHttpsMetadata = !environment.IsDevelopment());
-        return services;
+        return snapshot with
+        {
+            ExternalJwksUri = snapshot.IdentityIssuer.TrimEnd('/') + "/.well-known/openid-configuration",
+            InternalAudience = snapshot.Clusters[0].Id,
+            InternalTokenLifetime = TimeSpan.FromSeconds(60),
+            KeyOverlapPeriod = TimeSpan.FromMinutes(10)
+        };
     }
 
     /// <summary>在 UseForwardedHeaders、UseRouting、UseKunIdentityClient 之后调用；业务请求还须通过真实组件挂载门。</summary>
@@ -116,19 +111,6 @@ public static class GatewayHosting
             await next(http).ConfigureAwait(false);
         });
         app.UseAuthentication(); app.UseRateLimiter(); app.UseAuthorization();
-        app.Use(async (http, next) =>
-        {
-            if (http.GetEndpoint()?.Metadata.GetMetadata<GatewayEndpoint>() is { } endpoint)
-            {
-                try
-                {
-                    http.Items[GatewayRuntime.TokenKey] = await http.RequestServices.GetRequiredService<S2sTokenIssuer>()
-                        .IssueForAudienceAsync(http.User, endpoint.Audience, http.RequestAborted).ConfigureAwait(false);
-                }
-                catch (InvalidOperationException) { throw new ErrorException(new Error(PlatformErrors.Unauthenticated)); }
-            }
-            await next(http).ConfigureAwait(false);
-        });
         return app;
     }
 
@@ -145,45 +127,14 @@ public static class GatewayHosting
                 ? http.Response.WriteAsync("Healthy", http.RequestAborted)
                 : KunResults.Error(new Error(PlatformErrors.Unavailable)).ExecuteAsync(http)
         }).AllowAnonymous();
-        var runtime = endpoints.ServiceProvider.GetRequiredService<GatewayRuntime>();
         var proxy = endpoints.MapReverseProxy();
-        proxy.Add(endpoint =>
-        {
-            var route = endpoint.Metadata.OfType<RouteModel>().Single();
-            endpoint.Metadata.Add(new GatewayEndpoint(runtime.AudienceFor(route.Config.ClusterId!)));
-        });
+        proxy.WithMetadata(new GatewayEndpoint());
         proxy.RequireRateLimiting(endpoints.ServiceProvider.GetRequiredService<GatewayRateLimitPolicy>());
         return endpoints;
     }
 
-    private sealed record GatewayEndpoint(string Audience);
+    private sealed class GatewayEndpoint { }
 
-    private sealed class AudienceTransformProvider(GatewayRuntime runtime) : ITransformProvider
-    {
-        public void ValidateRoute(TransformRouteValidationContext context) { }
-        public void ValidateCluster(TransformClusterValidationContext context) { }
-        public void Apply(TransformBuilderContext context)
-        {
-            _ = runtime.AudienceFor(context.Route.ClusterId ?? throw new InvalidOperationException("网关路由必须绑定 cluster。"));
-            // Kun 注册的固定 audience 变换在前；最后一项明确覆盖为当前 cluster。没有复制或替代其签名、轮换实现。
-            context.AddRequestTransform(request =>
-            {
-                request.ProxyRequest.Headers.Remove("Authorization"); request.ProxyRequest.Headers.Remove("Cookie");
-                request.ProxyRequest.Headers.Remove("Forwarded"); request.ProxyRequest.Headers.Remove("X-Forwarded-For");
-                request.ProxyRequest.Headers.Remove("X-Forwarded-Proto"); request.ProxyRequest.Headers.Remove("X-Forwarded-Host");
-                if (request.HttpContext.Connection.RemoteIpAddress is { } remote)
-                    request.ProxyRequest.Headers.TryAddWithoutValidation("X-Forwarded-For", remote.ToString());
-                request.ProxyRequest.Headers.TryAddWithoutValidation("X-Forwarded-Proto", request.HttpContext.Request.Scheme);
-                request.ProxyRequest.Headers.TryAddWithoutValidation("X-Forwarded-Host", new Uri(runtime.Configuration.Issuer).Authority);
-                if (!runtime.IsReady || request.HttpContext.User.Identity?.IsAuthenticated != true)
-                    throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-                if (request.HttpContext.Items[GatewayRuntime.TokenKey] is not string token)
-                    throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-                request.ProxyRequest.Headers.TryAddWithoutValidation("Authorization", "Bearer " + token);
-                return ValueTask.CompletedTask;
-            });
-        }
-    }
 }
 
 internal sealed class GatewayMountHealthCheck(GatewayRuntime runtime) : IHealthCheck

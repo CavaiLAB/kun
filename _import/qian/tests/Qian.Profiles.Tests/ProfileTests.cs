@@ -101,7 +101,7 @@ public sealed class ProfileTests
         var bindings = data.Config.GetProperty("connections").EnumerateArray().Select(value => value.GetString()).ToArray();
         Assert.Contains(audit.Config.GetProperty("tenantBinding").GetString(), bindings);
         Assert.Contains(audit.Config.GetProperty("platformBinding").GetString(), bindings);
-        using var host = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "hosts/Qian.Gateway.Host/appsettings.json")));
+        using var host = JsonDocument.Parse(File.ReadAllText(Path.GetFullPath("../../hosts/Kun.Gateway.Host/appsettings.json", Root)));
         foreach (var field in new[] { "TenantRole", "PlatformRole", "FunctionOwner" })
             Assert.Equal(host.RootElement.GetProperty("Audit").GetProperty(field).GetString(),
                 audit.Config.GetProperty(char.ToLowerInvariant(field[0]) + field[1..]).GetString());

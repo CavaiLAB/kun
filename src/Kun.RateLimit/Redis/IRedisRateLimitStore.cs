@@ -1,4 +1,4 @@
-namespace Kun.Gateway.RateLimiting;
+namespace Kun.RateLimit;
 
 /// <summary>
 /// Low-level Redis-backed counter used for distributed rate limiting across multiple

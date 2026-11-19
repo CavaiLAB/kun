@@ -1,3 +1,4 @@
+using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
@@ -18,7 +19,6 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Kun.Authorization.Rbac;
 using Kun.Data;
-using Kun.Gateway;
 using Kun.Runtime;
 using Qian.Surfaces;
 using Kun.Tenancy.Signup;

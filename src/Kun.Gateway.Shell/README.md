@@ -1,6 +1,6 @@
-# Kun.Gateway
+# Kun.Gateway.Shell
 
-网关组件以库方式组合 Kun.Gateway 的签发器、JWKS、热轮换、可信代理与限流契约，把外部访问令牌或 `qian.sid` 会话转换为目标服务的短时 S2S。真实宿主入口为 [Kun.Gateway.Host](../../hosts/Kun.Gateway.Host/README.md)。
+本包负责平台外壳托管、引导接口和网关组件登记。网关组件组合 Kun.Gateway 的签发器、JWKS、热轮换、可信代理与限流契约，把外部访问令牌或 `qian.sid` 会话转换为目标服务的短时 S2S。真实宿主入口为 [Kun.Gateway.Host](../../hosts/Kun.Gateway.Host/README.md)。
 
 ## 组件与装配
 
@@ -20,7 +20,7 @@
 
 统一主体经 Kun `S2sTokenIssuer` 签 RS256，固定 60 秒，每个 cluster 只有自己的 audience。用户的 OIDC `sid` 映射到 `session_id`，服务主体由签发器令 `session_id = jti`；不透明 Cookie 值不进入令牌。只保留冻结契约字段，任意附加声明不透传。转发前移除原 Authorization 与 Cookie，再写入新 S2S。
 
-Kun 的默认代理变换使用固定 audience，Qian 在代理前先为实际路由签发并校验目标令牌，最后一个请求变换覆盖为该令牌；两次都使用同一个 Kun 签发器与轮换环，没有另建签发实现。目前会产生一次额外签名，属于现有 Kun 装配 API 的性能限制，不影响每跳受众边界。
+YARP 选定 cluster 后，Kun.Gateway 的请求变换按其 id 调用一次 S2sTokenIssuer。签发成功才进入下游，主体无法签发时返回 401，网关组件卸载后返回 404。
 
 默认不信任任何代理头。部署时 `trustedProxyNetworks` 仅填写实际 Traefik CIDR，拒绝 `/0`；只由 `UseForwardedHeaders` 更新连接地址，IP 限流仅使用更新后的 `RemoteIpAddress`；租户与用户策略仅使用已认证的规范 claim。转发下游时重新写入已归一的客户端 IP、协议和配置中的网关主机名，丢弃原始 `Forwarded`。
 
@@ -54,7 +54,7 @@ Kun 的默认代理变换使用固定 audience，Qian 在代理前先为实际�
 
 ## 宿主调用顺序
 
-在服务阶段装 Identity.Client 的规范 Cookie 方案，再调用 `AddKunGateway(configuration, IdentityClientDefaults.SessionScheme)`；通过真实 PluginLoader 挂载 Config、Identity 与 Gateway。流水线顺序为：
+在服务阶段装 Identity.Client 的规范 Cookie 方案，再调用 `AddKunGatewayShell()` 和 `AddKunGateway(configuration, IdentityClientDefaults.SessionScheme)`；通过真实 PluginLoader 挂载 Config、Identity 与 Gateway。流水线顺序为：
 
 ```csharp
 app.UseForwardedHeaders();
@@ -82,13 +82,13 @@ app.MapKunShell(shell);          // 可选：/app-config.json 与外壳入口兜
 
 ## 验证
 
-`tests/Qian.Gateway.Tests` 使用真实 Kestrel、Identity/OpenIddict、PostgreSQL、Redis 和 RSA，验证用户 Cookie 与机器令牌换签、逐服务受众、冻结 S2S Schema、原始凭据清除、错误 Bearer 不降级、10 分钟双钥轮换与在途请求、非可信 XFF 不改变 IP/分区、实际 429、卸载与就绪状态。限流专项以真实账号完成 PKCE 后的访问令牌驱动两个独立网关，对每种策略按 200 RPS 发出 200 个请求；两次预热后，50 次共享额度仅余 48 次，断言 48 个成功、152 个 429、Retry-After 与 ErrorDetail、下游总计 50 次。另覆盖窗口过期、孤儿桶 TTL 修复、分区隔离及 Redis 故障关闭。时钟只推进轮换环，旧令牌仍处于真实寿命内，因此窗口后拒绝证明的是旧 kid 移除。
+`_import/qian/tests/Kun.Gateway.IntegrationTests` 使用真实 Kestrel、Identity/OpenIddict、PostgreSQL、Redis 和 RSA，验证用户 Cookie 与机器令牌换签、逐服务受众、冻结 S2S Schema、原始凭据清除、错误 Bearer 不降级、10 分钟双钥轮换与在途请求、非可信 XFF 不改变 IP/分区、实际 429、卸载与就绪状态。限流专项以真实账号完成 PKCE 后的访问令牌驱动两个独立网关，对每种策略按 200 RPS 发出 200 个请求；两次预热后，50 次共享额度仅余 48 次，断言 48 个成功、152 个 429、Retry-After 与 ErrorDetail、下游总计 50 次。另覆盖窗口过期、孤儿桶 TTL 修复、分区隔离及 Redis 故障关闭。时钟只推进轮换环，旧令牌仍处于真实寿命内，因此窗口后拒绝证明的是旧 kid 移除。
 
-`tests/Qian.Sample.Crm.Tests/GatewayAcceptanceTests.cs` 连接真实 `TenantOperationsHost` 的 `/api/tenancy/tenants`，通过真实账号 PKCE 登录获取 Cookie、真实平台超管角色放行；验证 `aud = qian-platform`、平台 `tenant_id = null` 与 60 秒寿命。租户 UUID 由另一个真实 Cookie 路径单独验证，不把平台运营端点误当作租户业务接口。
+`_import/qian/tests/Qian.Sample.Crm.Tests/GatewayAcceptanceTests.cs` 连接真实 `TenantOperationsHost` 的 `/api/tenancy/tenants`，通过真实账号 PKCE 登录获取 Cookie、真实平台超管角色放行；验证 `aud = qian-platform`、平台 `tenant_id = null` 与 60 秒寿命。租户 UUID 由另一个真实 Cookie 路径单独验证，不把平台运营端点误当作租户业务接口。
 
-`tests/Qian.Gateway.Tests/GatewayShellHostingTests.cs` 验证外壳静态托管的缓存与安全头、深链接与非页面请求、`/app-config.json` 每次现读与远程制品目录，以及选项非法时拒绝启动；`tests/Qian.Sample.Crm.Tests/ShellBootstrapTests.cs` 经真实网关、平台表面参考宿主与 PostgreSQL 验证 bootstrap：匿名 401、成员结果与会话 / 导航 / 有效权限端点一致、不持角色的平台身份代管、切换租户后远程与权限随之变化、未挂载组件不出现、旧修订 401 刷新后恢复、响应体不含令牌样式串；`tests/Qian.Sample.Crm.Tests/PlatformConsoleTests.cs` 验证持平台超管的平台身份经 bootstrap 拿到平台组件的远程、菜单与权限码（不代管、只读判定不写旁路审计），租户成员、Agent 与不持角色的平台身份拿不到。
+`_import/qian/tests/Kun.Gateway.IntegrationTests/GatewayShellHostingTests.cs` 验证外壳静态托管的缓存与安全头、深链接与非页面请求、`/app-config.json` 每次现读与远程制品目录，以及选项非法时拒绝启动；`_import/qian/tests/Qian.Sample.Crm.Tests/ShellBootstrapTests.cs` 经真实网关、平台表面参考宿主与 PostgreSQL 验证 bootstrap：匿名 401、成员结果与会话 / 导航 / 有效权限端点一致、不持角色的平台身份代管、切换租户后远程与权限随之变化、未挂载组件不出现、旧修订 401 刷新后恢复、响应体不含令牌样式串；`_import/qian/tests/Qian.Sample.Crm.Tests/PlatformConsoleTests.cs` 验证持平台超管的平台身份经 bootstrap 拿到平台组件的远程、菜单与权限码（不代管、只读判定不写旁路审计），租户成员、Agent 与不持角色的平台身份拿不到。
 
-`tests/Qian.Gateway.Host.AotTests` 启动实际生产宿主的 Linux 原生二进制，验证真实 Apollo 2.5.2、受限 PostgreSQL、Redis、身份账号与 Cookie/Bearer 换签、平台审计及正常停机。2026-10-23 已在固定 Linux SDK 环境通过严格发布（零 IL 诊断）与运行，Kun 使用正式 `2026.10.23`；`gateway-host-aot` CI 作业持续执行同一发布和 driver。普通托管构建也可能关闭动态代码能力，因此原生证明同时要求严格发布、ELF 文件头、无同名 DLL 和实际业务运行。
+`_import/qian/tests/Kun.Gateway.Host.AotTests` 启动实际生产宿主的 Linux 原生二进制，验证真实 Apollo 2.5.2、受限 PostgreSQL、Redis、身份账号与 Cookie/Bearer 换签、平台审计及正常停机。2026-10-23 已在固定 Linux SDK 环境通过严格发布（零 IL 诊断）与运行，Kun 使用正式 `2026.10.23`；`gateway-host-aot` CI 作业持续执行同一发布和 driver。普通托管构建也可能关闭动态代码能力，因此原生证明同时要求严格发布、ELF 文件头、无同名 DLL 和实际业务运行。
 
 ## 模型体验
 

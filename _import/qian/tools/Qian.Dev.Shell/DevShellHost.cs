@@ -1,3 +1,4 @@
+using Kun.Gateway.Shell;
 using System.Net;
 using Kun.Core.MultiTenancy;
 using Kun.Security;
@@ -5,7 +6,6 @@ using Qian.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Gateway;
 using Kun.Runtime;
 using Qian.Sample.Crm;
 using Kun.Tenancy.Signup;

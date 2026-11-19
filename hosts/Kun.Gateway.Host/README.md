@@ -20,7 +20,7 @@
 数据库 schema、函数和 RLS 策略由离线迁移连接调用 `NativeAuditStorage.MigrateAsync` 预先完成；在线宿主没有管理员连接，只校验，不建表、不迁移。全部真实组件挂载为 Ready 后才开始监听；任一依赖失败会阻止启动。启动日志记录动态代码能力；这个开关不是原生产物的独立证明，仍必须核验严格发布及真实二进制运行。停机先停止 HTTP、再逆序卸载 Runtime，最后释放 DI 容器。
 
 ```bash
-dotnet run --project hosts/Qian.Gateway.Host -c Release -- --urls http://0.0.0.0:8080
+dotnet run --project hosts/Kun.Gateway.Host -c Release -- --urls http://0.0.0.0:8080
 ```
 
 此命令需要上述真实依赖和 Secret 文件，不会以测试替身自动补齐。开发诊断可使用 `ASPNETCORE_ENVIRONMENT=Development` 连接回环 HTTP 身份发行方；生产要求 HTTPS metadata。
@@ -31,4 +31,4 @@ dotnet run --project hosts/Qian.Gateway.Host -c Release -- --urls http://0.0.0.0
 
 2026-10-23 使用正式 Kun `2026.10.23` 完成固定 Linux arm64 严格发布，零 IL 诊断；同一生产二进制通过 ELF/noDLL 与完整 driver，实际 Cookie/Bearer 换签、3 条平台审计的回读验链及 SIGTERM 正常停机均通过。默认 profile 据此恢复 `build.aot: true`。Kun JWKS 修复在上游交付并正式发包，Qian 只通过 KunVersion 消费。Linux x64 的相同持续门由 `gateway-host-aot` CI 执行。
 
-`plugins/qian.bundle.gateway/config/qian.patch.yml` 声明与本宿主一致的 NativeData / NativeAudit 绑定及网关默认值。CLI 当前负责 profile 合成/校验，不提供通用进程启动命令；启动本宿主的命令如上，发布入口为 `dotnet publish hosts/Qian.Gateway.Host`，实际运行文件为 `Kun.Gateway.Host`。业务镜像、签名、非 root / 只读根文件系统、distroless 与部署证据属于 DEP-008。
+`_import/qian/plugins/qian.bundle.gateway/config/qian.patch.yml` 声明与本宿主一致的 NativeData / NativeAudit 绑定及网关默认值。CLI 当前负责 profile 合成/校验，不提供通用进程启动命令；启动本宿主的命令如上，发布入口为 `dotnet publish hosts/Kun.Gateway.Host`，实际运行文件为 `Kun.Gateway.Host`。业务镜像、签名、非 root / 只读根文件系统、distroless 与部署证据属于 DEP-008。

@@ -1,4 +1,4 @@
-namespace Kun.Gateway.RateLimiting;
+namespace Kun.RateLimit;
 
 /// <summary>Configuration for <see cref="RedisFixedWindowRateLimitStore"/>.</summary>
 public sealed class RedisRateLimitStoreOptions

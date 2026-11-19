@@ -23,3 +23,28 @@ Kun.RateLimit.Abstractions.WindowRule.QueueLimit.set -> void
 Kun.RateLimit.Abstractions.WindowRule.WindowRule() -> void
 Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions
 static Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions.AddKunRateLimit(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.RateLimit.Abstractions.KunRateLimitOptions!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+Kun.RateLimit.IRedisRateLimitStore
+Kun.RateLimit.IRedisRateLimitStore.HitAsync(string! partitionKey, System.TimeSpan window, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.RateLimit.RateLimitHitResult>!
+Kun.RateLimit.RateLimitHitResult
+Kun.RateLimit.RateLimitHitResult.RateLimitHitResult() -> void
+Kun.RateLimit.RateLimitHitResult.RateLimitHitResult(long Count, System.TimeSpan ResetsIn) -> void
+Kun.RateLimit.RateLimitHitResult.Count.get -> long
+Kun.RateLimit.RateLimitHitResult.Count.init -> void
+Kun.RateLimit.RateLimitHitResult.ResetsIn.get -> System.TimeSpan
+Kun.RateLimit.RateLimitHitResult.ResetsIn.init -> void
+Kun.RateLimit.RedisRateLimitStoreOptions
+Kun.RateLimit.RedisRateLimitStoreOptions.RedisRateLimitStoreOptions() -> void
+Kun.RateLimit.RedisRateLimitStoreOptions.KeyPrefix.get -> string!
+Kun.RateLimit.RedisRateLimitStoreOptions.KeyPrefix.set -> void
+const Kun.RateLimit.RedisRateLimitStoreOptions.SectionName = "Kun:Gateway:RateLimit:Redis" -> string!
+Kun.RateLimit.RedisFixedWindowRateLimitStore
+Kun.RateLimit.RedisFixedWindowRateLimitStore.RedisFixedWindowRateLimitStore(StackExchange.Redis.IConnectionMultiplexer! redis, Microsoft.Extensions.Options.IOptions<Kun.RateLimit.RedisRateLimitStoreOptions!>! options) -> void
+Kun.RateLimit.RedisFixedWindowRateLimitStore.HitAsync(string! partitionKey, System.TimeSpan window, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.RateLimit.RateLimitHitResult>!
+static Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions.AddKunRedisRateLimitStore(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.RateLimit.RedisRateLimitStoreOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+Kun.RateLimit.RateLimitHitResult.Deconstruct(out long Count, out System.TimeSpan ResetsIn) -> void
+Kun.RateLimit.RateLimitHitResult.Equals(Kun.RateLimit.RateLimitHitResult other) -> bool
+override Kun.RateLimit.RateLimitHitResult.GetHashCode() -> int
+static Kun.RateLimit.RateLimitHitResult.operator !=(Kun.RateLimit.RateLimitHitResult left, Kun.RateLimit.RateLimitHitResult right) -> bool
+static Kun.RateLimit.RateLimitHitResult.operator ==(Kun.RateLimit.RateLimitHitResult left, Kun.RateLimit.RateLimitHitResult right) -> bool
+~override Kun.RateLimit.RateLimitHitResult.Equals(object obj) -> bool
+~override Kun.RateLimit.RateLimitHitResult.ToString() -> string

@@ -31,7 +31,11 @@ internal static class GatewayBootstrap
         var accessKeyPath = bootstrap["ConnectionFiles:ApolloAccessKey"];
         return new QianConfigurationOptions
         {
-            BasePath = root, EnvironmentName = environmentName, SecretDirectory = secretDirectory, EnvironmentPrefix = "QIAN_", Arguments = arguments.ToArray(),
+            BasePath = root,
+            EnvironmentName = environmentName,
+            SecretDirectory = secretDirectory,
+            EnvironmentPrefix = "QIAN_",
+            Arguments = arguments.ToArray(),
             UseApollo = source == ApolloSource,
             ResolveAccessKey = reference => reference == AccessKeyReference
                 ? ReadCredential(accessKeyPath ?? throw new InvalidOperationException("缺少网关引导配置：ConnectionFiles:ApolloAccessKey。"))

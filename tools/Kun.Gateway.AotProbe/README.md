@@ -2,11 +2,11 @@
 
 本目录是 S1-GW-001 对 S1-DEC-029 的接续验证，不是替代网关 E2E 的空宿主。普通构建通过不代表 NativeAOT 发布通过；发布失败时不能执行或宣称原生运行成功。
 
-在 `_import/qian` 下执行；镜像的构建上下文是仓库根（`../..`），本目录的项目从源码编译仓库根 `src/` 下的 Kun 项目：
+在仓库根执行，镜像使用该目录作为构建上下文，本目录的项目从源码编译仓库根 `src/` 下的 Kun 项目：
 
 ```bash
-dotnet build tools/Qian.Gateway.AotProbe -c Release
-docker build --progress=plain -f tools/Qian.Gateway.AotProbe/Dockerfile -t qian-gateway-aot-probe:gw001 ../..
+dotnet build tools/Kun.Gateway.AotProbe -c Release
+docker build --progress=plain -f tools/Kun.Gateway.AotProbe/Dockerfile -t qian-gateway-aot-probe:gw001 .
 ```
 
 Dockerfile 固定 SDK 镜像摘要，按 Linux arm64 发布，启用 `IlcTreatWarningsAsErrors` 并逐条输出裁剪诊断。运行入口确实连接 Apollo、Redis、受限 PostgreSQL，挂载 Config / Identity / Data / Audit 并执行审计写入、读取和验链；运行配置由测试环境提供，不记录凭据。

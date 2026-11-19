@@ -11,6 +11,7 @@ using System.Text.Json.Nodes;
 using System.Threading.RateLimiting;
 using FluentAssertions;
 using Json.Schema;
+using Kun.Gateway.Identity;
 using Kun.Gateway.RateLimiting.Resolvers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -183,6 +184,28 @@ public sealed class GatewayBoundaryTests
         ClockSkew = TimeSpan.Zero
     }, out _);
 
+    [Fact]
+    public async Task Gateway_AuthenticatedRequest_SignsOnceForTheDownstream()
+    {
+        await using var host = await BoundaryHost.StartAsync();
+        host.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", host.Token());
+        using var response = await host.Client.GetAsync("/protected", TestContext.Current.CancellationToken);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        host.Signatures.Should().Be(1);
+        host.BackendCalls.Should().Be(1);
+    }
+
+    private sealed class CountingResolver : IS2sPrincipalResolver
+    {
+        private int _calls;
+        internal int Calls => Volatile.Read(ref _calls);
+        public Task<ClaimsPrincipal> ResolveAsync(ClaimsPrincipal externalPrincipal, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            return NoOpS2sPrincipalResolver.Instance.ResolveAsync(externalPrincipal, cancellationToken);
+        }
+    }
+
     private sealed class Clock : TimeProvider
     {
         private long _ticks = DateTimeOffset.UtcNow.UtcTicks;
@@ -197,6 +220,8 @@ public sealed class GatewayBoundaryTests
         private WebApplication _backend = null!;
         private WebApplicationFactory<standalone::Program> _factory = null!;
         private int _backendCalls;
+        private readonly CountingResolver _resolver = new();
+        internal int Signatures => _resolver.Calls;
         internal Clock Clock { get; } = new();
         internal void Rotate(string pem)
         {
@@ -221,17 +246,17 @@ public sealed class GatewayBoundaryTests
                 ["KunObservability:TracingEnabled"] = "false",
                 ["KunObservability:MetricsEnabled"] = "false",
                 ["KunObservability:LoggingEnabled"] = "false",
-                ["KunGateway:ExternalIssuer"] = "https://idp.test",
-                ["KunGateway:ExternalAudience"] = "test-api",
-                ["KunGateway:ExternalJwksUri"] = "https://idp.test/.well-known/openid-configuration",
-                ["KunGateway:KeyOverlapPeriod"] = "00:00:30",
-                ["KunGateway:KeyReloadInterval"] = "00:00:00",
-                ["KunGateway:SigningKeyPath"] = privateFile,
-                ["KunGateway:PublicKeyPath"] = publicFile,
+                ["Gateway:IdentityIssuer"] = "https://idp.test",
+                ["Gateway:IdentityAudience"] = "test-api",
+                ["Gateway:ExternalJwksUri"] = "https://idp.test/.well-known/openid-configuration",
+                ["Gateway:KeyOverlapPeriod"] = "00:00:30",
+                ["Gateway:KeyReloadInterval"] = "00:00:00",
+                ["Gateway:SigningKeyPath"] = privateFile,
+                ["Gateway:PublicKeyPath"] = publicFile,
                 ["ReverseProxy:Clusters:boundary:Destinations:one:Address"] = fixture._backend.Urls.Single()
             };
-            if (trust is "address" or "other") values["KunGateway:TrustedProxyAddresses:0"] = trust == "address" ? "127.0.0.1" : "10.0.0.2";
-            if (trust == "network") values["KunGateway:TrustedProxyNetworks:0"] = "127.0.0.0/8";
+            if (trust is "address" or "other") values["Gateway:TrustedProxyAddresses:0"] = trust == "address" ? "127.0.0.1" : "10.0.0.2";
+            if (trust == "network") values["Gateway:TrustedProxyNetworks:0"] = "127.0.0.0/8";
             foreach (var route in new[] { "protected", "public", "limited", "default", "ip" })
             {
                 values["ReverseProxy:Routes:" + route + ":ClusterId"] = "boundary";
@@ -248,6 +273,7 @@ public sealed class GatewayBoundaryTests
                 web.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<TimeProvider>(fixture.Clock);
+                    services.AddSingleton<IS2sPrincipalResolver>(fixture._resolver);
                     services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
                     {
                         options.Configuration = new OpenIdConnectConfiguration { Issuer = "https://idp.test" };

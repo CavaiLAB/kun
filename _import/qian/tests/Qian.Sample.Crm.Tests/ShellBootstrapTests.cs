@@ -1,3 +1,4 @@
+using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
@@ -13,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Kun.Authorization.Rbac.Abstractions;
-using Kun.Gateway;
 using Kun.Identity.Client;
 using Qian.Registry;
 using Kun.Runtime;

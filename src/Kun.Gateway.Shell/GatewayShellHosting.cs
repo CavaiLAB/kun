@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Kun.Gateway;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
 using Kun.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -14,11 +16,8 @@ using Microsoft.AspNetCore.Routing.Template;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Kun.Identity.Abstractions;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
-namespace Kun.Gateway;
+namespace Kun.Gateway.Shell;
 
 /// <summary>
 /// 外壳的网关侧（S1-YUE-012）：bootstrap 聚合端点与外壳静态托管。外壳是 platform 的 shell 组合包（静态制品），经网关同源提供；
@@ -26,6 +25,13 @@ namespace Kun.Gateway;
 /// </summary>
 public static partial class GatewayShellHosting
 {
+    /// <summary>登记平台外壳用于访问已配置上游的 HTTP 客户端。</summary>
+    public static IServiceCollection AddKunGatewayShell(this IServiceCollection services)
+    {
+        services.AddSingleton<GatewayShellClient>();
+        return services;
+    }
+
     /// <summary>bootstrap 聚合端点的缺省路径（外壳运行时配置 bootstrapUrl 的缺省值）。</summary>
     public const string BootstrapPath = "/api/shell/bootstrap";
     internal const string ShellCatalogPath = "/api/capabilities/shell";
@@ -44,7 +50,7 @@ public static partial class GatewayShellHosting
     /// 外壳目录或有效权限 403 即 403，其余失败 502；能力导航失败降级为 null；下游 404（组件未挂载）按空处理。
     /// 平台身份（没有租户，S1-YUE-018）：人类用户按同一方式只调平台控制台目录，持平台超管时交出平台组件的远程、菜单与可用权限码（不代管）；
     /// 目录为空（不持角色）、下游 404 或没有路由时回代管上下文；401 / 403 / 其余失败与租户成员同一映射。平台服务主体不调下游，直接代管。
-    /// 权益（entitled）的真实来源归 S1-ENT-002，此前与 mounted 等价。须在 <see cref="GatewayHosting.AddKunGateway"/> 之后、与其它端点一起映射。
+    /// 权益（entitled）的真实来源归 S1-ENT-002，此前与 mounted 等价。须在 <see cref="Kun.Gateway.DependencyInjection.KunGatewayServiceCollectionExtensions.AddKunGateway"/> 之后、与其它端点一起映射。
     /// </summary>
     public static IEndpointRouteBuilder MapKunShellBootstrap(this IEndpointRouteBuilder endpoints, string path = BootstrapPath)
     {
@@ -72,7 +78,8 @@ public static partial class GatewayShellHosting
         foreach (var (id, directory) in options.Remotes)
             app.UseStaticFiles(new StaticFileOptions
             {
-                RequestPath = "/remotes/" + id, FileProvider = new PhysicalFileProvider(Path.GetFullPath(directory)),
+                RequestPath = "/remotes/" + id,
+                FileProvider = new PhysicalFileProvider(Path.GetFullPath(directory)),
                 OnPrepareResponse = context => Headers(context.Context.Response, "no-cache")
             });
         return app;
@@ -374,8 +381,13 @@ internal sealed class GatewayShellClient : IDisposable
     private const int MaxBody = 4 * 1024 * 1024;
     private readonly HttpClient _client = new(new SocketsHttpHandler
     {
-        AllowAutoRedirect = false, UseCookies = false, UseProxy = false, ConnectTimeout = TimeSpan.FromSeconds(5), PooledConnectionLifetime = TimeSpan.FromMinutes(2)
-    }) { Timeout = TimeSpan.FromSeconds(15), MaxResponseContentBufferSize = MaxBody };
+        AllowAutoRedirect = false,
+        UseCookies = false,
+        UseProxy = false,
+        ConnectTimeout = TimeSpan.FromSeconds(5),
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+    })
+    { Timeout = TimeSpan.FromSeconds(15), MaxResponseContentBufferSize = MaxBody };
 
     internal async Task<Downstream> GetAsync(HttpContext http, GatewayConfiguration configuration, GatewayCluster cluster, string token, string path)
     {

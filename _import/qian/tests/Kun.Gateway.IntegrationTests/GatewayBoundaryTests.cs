@@ -1,11 +1,14 @@
+using Kun.RateLimit;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
+using System.Security.Claims;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Json.Schema;
 using Kun.Identity;
+using Kun.Gateway.Identity;
 using Kun.Gateway.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,6 +29,20 @@ namespace Kun.Gateway.IntegrationTests;
 
 public sealed class GatewayBoundaryTests(PostgresFixture postgres, RedisFixture redis) : IClassFixture<PostgresFixture>, IClassFixture<RedisFixture>
 {
+    private sealed class CountingResolver(IHttpContextAccessor accessor) : IS2sPrincipalResolver
+    {
+        private readonly GatewayPrincipalResolver _inner = new(accessor);
+        private int _calls;
+        internal int Calls => Volatile.Read(ref _calls);
+        internal bool CanResolve { get; set; } = true;
+        public Task<ClaimsPrincipal> ResolveAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            if (!CanResolve) throw new InvalidOperationException("测试主体服务无法签发本次请求。");
+            return _inner.ResolveAsync(principal, cancellationToken);
+        }
+    }
+
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
     private const string Issuer = "https://gateway.qian.test/s2s";
 
@@ -76,12 +93,19 @@ public sealed class GatewayBoundaryTests(PostgresFixture postgres, RedisFixture 
         await using var downstream = await Downstream.Start();
         await using var gateway = await GatewayTestHost.Start(reservation, tls, identity.Issuer, "web", "https://api.qian.test", identity.Secret,
             redis.ConnectionString, Issuer, [new("platform", "/api/{**rest}", "qian-platform") { RateLimiterPolicy = "kun-default" }, new("other", "/other/{**rest}", "qian-other") { RateLimiterPolicy = "kun-default" }],
-            [new("qian-platform", downstream.Address), new("qian-other", downstream.Address)], key);
+            [new("qian-platform", downstream.Address), new("qian-other", downstream.Address)], key,
+            configure: services =>
+            {
+                services.AddSingleton<CountingResolver>();
+                services.AddSingleton<IS2sPrincipalResolver>(provider => provider.GetRequiredService<CountingResolver>());
+            });
+        var signing = gateway.Services.GetRequiredService<CountingResolver>();
         downstream.Jwks = new Uri(gateway.HttpAddress, ".well-known/jwks.json");
         var (client, _) = GatewayTestHost.Browser(tls); using var browser = client; browser.BaseAddress = gateway.Address;
         using (var anonymous = await browser.GetAsync("api/protected", Ct)) Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
         using var machine = identity.Kun("machine"); var access = (await machine.ClientCredentialsAsync("qian.api", Ct)).AccessToken;
         var first = await Send("api/protected", access); var other = await Send("other/protected", access);
+        Assert.Equal(2, signing.Calls);
         Assert.NotEqual(access, first); Assert.NotEqual(first, other);
         var schema = JsonSchema.FromText(await File.ReadAllTextAsync(Path.Combine(Root(), "contracts/v0/s2s-claims.schema.json"), Ct),
             new BuildOptions { SchemaRegistry = new SchemaRegistry() });
@@ -95,6 +119,14 @@ public sealed class GatewayBoundaryTests(PostgresFixture postgres, RedisFixture 
             Assert.Equal("service", json.GetProperty("principal_kind").GetString());
             Assert.Equal(JsonValueKind.Null, json.GetProperty("tenant_id").ValueKind);
             Assert.Equal(json.GetProperty("jti").GetString(), json.GetProperty("session_id").GetString());
+        }
+        signing.CanResolve = false;
+        using (var unavailable = new HttpRequestMessage(HttpMethod.Get, "api/protected"))
+        {
+            unavailable.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
+            using var response = await browser.SendAsync(unavailable, Ct);
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Empty(downstream.Requests);
         }
         using (var previousHop = new HttpRequestMessage(HttpMethod.Get, "api/protected"))
         {

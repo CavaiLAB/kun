@@ -1,7 +1,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kun.Gateway.Configuration;
+using Kun.Gateway;
 using Kun.Gateway.DependencyInjection;
 using Kun.Gateway.Endpoints;
 using Kun.Gateway.Jwks;
@@ -24,16 +24,16 @@ try
     var clock = new ProbeClock();
     builder.Services.AddSingleton<TimeProvider>(clock);
     builder.Services.AddAuthentication();
-    builder.Services.AddKunGateway(options =>
+    builder.Services.AddKunGateway(new GatewayConfiguration
     {
-        options.ExternalIssuer = "https://unused.example";
-        options.ExternalAudience = "unused";
-        options.ExternalJwksUri = "https://unused.example/.well-known/jwks.json";
-        options.SigningKeyPath = privateKey;
-        options.PublicKeyPath = publicKey;
-        options.ExposeInternalJwks = false;
-        options.KeyReloadInterval = TimeSpan.Zero;
-        options.KeyOverlapPeriod = TimeSpan.FromMinutes(1);
+        IdentityIssuer = "https://unused.example",
+        IdentityAudience = "unused",
+        ExternalJwksUri = "https://unused.example/.well-known/jwks.json",
+        SigningKeyPath = privateKey,
+        PublicKeyPath = publicKey,
+        ExposeInternalJwks = false,
+        KeyReloadInterval = TimeSpan.Zero,
+        KeyOverlapPeriod = TimeSpan.FromMinutes(1),
     }, builder.Configuration.GetSection("ReverseProxy"));
 
     await using var app = builder.Build();
@@ -56,7 +56,7 @@ try
         await ExpectNotFoundAsync(client, "/internal/jwks-probe");
         Require(internalGateCalls == 0, "production opt-in must be checked before additionalGate");
 
-        app.Services.GetRequiredService<IOptions<KunGatewayOptions>>().Value.ExposeInternalJwks = true;
+        app.Services.GetRequiredService<IOptions<GatewayConfiguration>>().Value.ExposeInternalJwks = true;
         Require((await ReadKeysAsync(client, "/internal/jwks-probe")).SequenceEqual(initial), "internal public key");
         await ExpectNotFoundAsync(client, "/internal/jwks-probe?blocked");
 

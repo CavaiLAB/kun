@@ -1,3 +1,4 @@
+using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
@@ -391,10 +392,10 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
         PlatformIdentity.Configure(builder);
     }
 
-    // 网关宿主交付的路由表与簇（hosts/Qian.Gateway.Host/appsettings.json），簇地址换成本宿主的回环地址；开通申请的两条运营路由进运营簇。
+    // 网关宿主交付的路由表与簇（hosts/Kun.Gateway.Host/appsettings.json），簇地址换成本宿主的回环地址；开通申请的两条运营路由进运营簇。
     private static (GatewayRoute[] Routes, GatewayCluster[] Clusters) ProductionRoutes(Uri platform)
     {
-        var configuration = new ConfigurationBuilder().AddJsonFile(Path.Combine(RepositoryRoot(), "hosts", "Kun.Gateway.Host", "appsettings.json"), optional: false, reloadOnChange: false).Build();
+        var configuration = new ConfigurationBuilder().AddJsonFile(Path.GetFullPath("../../hosts/Kun.Gateway.Host/appsettings.json", RepositoryRoot()), optional: false, reloadOnChange: false).Build();
         var routes = configuration.GetSection("Gateway:Routes").GetChildren().Select(item => new GatewayRoute(item["Id"] ?? "", item["Path"] ?? "", item["Cluster"] ?? "")
             { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
         foreach (var path in new[] { "/api/tenancy/{**rest}", "/api/signup/applications/{**rest}", "/api/signup/meta/{**rest}" })

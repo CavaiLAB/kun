@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Kun.Gateway.Identity;
 using Kun.Security;
-using Microsoft.AspNetCore.Http;
 
 namespace Kun.Gateway;
 

@@ -6,20 +6,22 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Kun.MultiTenancy.DependencyInjection;
+using Kun.Data.Native;
+using Kun.Data.Native.Postgres;
+using Kun.Gateway;
+using Kun.Gateway.DependencyInjection;
+using Kun.Gateway.Host;
+using Kun.Gateway.Shell;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Client;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
 using Microsoft.AspNetCore.DataProtection;
 using Qian.Audit;
 using Qian.Audit.Native;
 using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
-using Kun.Data.Native;
-using Kun.Data.Native.Postgres;
-using Kun.Gateway;
-using Kun.Gateway.Host;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Client;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -37,8 +39,10 @@ var gateway = new GatewayConfiguration(Required("Gateway:IdentityIssuer"), Requi
     RateLimits = new GatewayRateLimits
     {
         KeyPrefix = builder.Configuration["Gateway:RateLimits:KeyPrefix"] ?? "qian:gateway:rate",
-        WindowSeconds = RateLimit("WindowSeconds", 60), IpPermitLimit = RateLimit("IpPermitLimit", 100),
-        TenantPermitLimit = RateLimit("TenantPermitLimit", 100), UserPermitLimit = RateLimit("UserPermitLimit", 100)
+        WindowSeconds = RateLimit("WindowSeconds", 60),
+        IpPermitLimit = RateLimit("IpPermitLimit", 100),
+        TenantPermitLimit = RateLimit("TenantPermitLimit", 100),
+        UserPermitLimit = RateLimit("UserPermitLimit", 100)
     }
 };
 var gatewayJson = JsonSerializer.SerializeToElement(gateway, HostJson.Default.GatewayConfiguration);
@@ -69,16 +73,24 @@ builder.Services.AddQianSecrets(new SecretResolverOptions
 });
 builder.Services.AddKunIdentityClient(new IdentityClientOptions
 {
-    Authority = new Uri(gateway.IdentityIssuer), ClientId = Required("Identity:ClientId"), Resource = gateway.IdentityAudience,
-    RedirectUri = new Uri(Required("Identity:RedirectUri")), Scopes = ["openid", "offline_access", "qian.api"],
-    PathPrefix = "/auth", RequireHttpsMetadata = !builder.Environment.IsDevelopment(),
-    AllowedReturnPaths = ["/"], DefaultReturnPath = "/", SessionKeyPrefix = "qian:gateway:sessions:"
+    Authority = new Uri(gateway.IdentityIssuer),
+    ClientId = Required("Identity:ClientId"),
+    Resource = gateway.IdentityAudience,
+    RedirectUri = new Uri(Required("Identity:RedirectUri")),
+    Scopes = ["openid", "offline_access", "qian.api"],
+    PathPrefix = "/auth",
+    RequireHttpsMetadata = !builder.Environment.IsDevelopment(),
+    AllowedReturnPaths = ["/"],
+    DefaultReturnPath = "/",
+    SessionKeyPrefix = "qian:gateway:sessions:"
 });
+builder.Services.AddKunGatewayShell();
 builder.Services.AddKunGateway(gateway, IdentityClientDefaults.SessionScheme);
 // 外壳与已部署组件的远程制品（S1-DEP-011，R144 ②）：shell 组合包的静态制品随网关镜像发布，运行时配置由 ConfigMap 挂成 /app-config.json；没有给出外壳目录时不托管。
 var shell = builder.Configuration["Shell:Root"] is { Length: > 0 } shellRoot ? new ShellStaticOptions
 {
-    Root = shellRoot, ConfigFile = builder.Configuration["Shell:ConfigFile"] is { Length: > 0 } shellConfig ? shellConfig : null,
+    Root = shellRoot,
+    ConfigFile = builder.Configuration["Shell:ConfigFile"] is { Length: > 0 } shellConfig ? shellConfig : null,
     Remotes = builder.Configuration.GetSection("Shell:Remotes").GetChildren().Where(item => !string.IsNullOrEmpty(item.Value))
         .ToDictionary(item => item.Key, item => item.Value!, StringComparer.Ordinal)
 } : null;
@@ -93,18 +105,24 @@ observer.Source = () => loader.GetContext("config", ScopeKey.Global);
 using var dataConfig = JsonDocument.Parse("""{"connections":["audit_tenant","audit_platform"]}""");
 using var identityConfig = JsonDocument.Parse(new JsonObject
 {
-    ["issuer"] = gateway.IdentityIssuer, ["clientId"] = Required("Identity:ClientId"), ["clientSecret"] = identitySecret
+    ["issuer"] = gateway.IdentityIssuer,
+    ["clientId"] = Required("Identity:ClientId"),
+    ["clientSecret"] = identitySecret
 }.ToJsonString());
 using var auditConfig = JsonDocument.Parse(new JsonObject
 {
-    ["tenantBinding"] = "audit_tenant", ["platformBinding"] = "audit_platform",
-    ["tenantRole"] = auditRoles.TenantLogin, ["functionOwner"] = auditRoles.FunctionOwner,
-    ["platformRole"] = auditRoles.PlatformLogin, ["maxAttempts"] = 6
+    ["tenantBinding"] = "audit_tenant",
+    ["platformBinding"] = "audit_platform",
+    ["tenantRole"] = auditRoles.TenantLogin,
+    ["functionOwner"] = auditRoles.FunctionOwner,
+    ["platformRole"] = auditRoles.PlatformLogin,
+    ["maxAttempts"] = 6
 }.ToJsonString());
 // 配置组件跟随配置源：Apollo（缺省）或只读宿主配置根的 qian.config（staging 过渡形状，R150 ①）。
 using var configConfig = JsonDocument.Parse(configurationOptions.UseApollo ? new JsonObject
 {
-    ["appId"] = Required("Apollo:AppId"), ["env"] = Required("Apollo:Env"),
+    ["appId"] = Required("Apollo:AppId"),
+    ["env"] = Required("Apollo:Env"),
     ["meta"] = Required("Apollo:ConfigServer:0"),
     ["namespaces"] = new JsonArray(builder.Configuration.GetSection("Apollo:Namespaces").GetChildren().Select(item => (JsonNode?)JsonValue.Create(item.Value)).ToArray())
 }.ToJsonString() : "{}");

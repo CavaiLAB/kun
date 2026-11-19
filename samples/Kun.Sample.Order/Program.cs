@@ -57,7 +57,7 @@ builder.Services.AddKunOutboxPublisher();
 
 // ── Catalog gRPC client ───────────────────────────────────────────────────────
 // PlaceOrderCommandHandler reserves stock through this client.
-builder.Services
+var catalogClient = builder.Services
     .AddGrpcClient<Kun.Sample.Catalog.Grpc.CatalogService.CatalogServiceClient>(o =>
     {
         // Aspire service discovery: services__catalog__grpc__0 / services__catalog__http__0 are
@@ -69,6 +69,16 @@ builder.Services
             ?? "http://localhost:5001";
         o.Address = new Uri(catalogUrl);
     });
+
+if (builder.Configuration["CatalogGrpc:TokenPath"] is { Length: > 0 } tokenPath)
+{
+    // gRPC call credentials are sent over TLS. Read the short-lived token again on each call.
+    catalogClient.AddCallCredentials(async (context, metadata) =>
+    {
+        var token = await File.ReadAllTextAsync(tokenPath, context.CancellationToken);
+        metadata.Add("Authorization", $"Bearer {token.Trim()}");
+    });
+}
 
 // ── Mediator ──────────────────────────────────────────────────────────────────
 builder.Services.AddKunMediator(m =>

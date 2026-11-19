@@ -11,23 +11,14 @@ Catalog API, Order API, and Gateway — with a single command.
 |---|---|
 | .NET 10 SDK (`10.0.100+`) | Pinned in `global.json` |
 | Docker Desktop | Must be running; containers are started automatically |
-| Aspire workload | Install once: `dotnet workload install aspire` |
-
-If the build fails with `NETSDK1138` or a missing workload error:
-
-```bash
-dotnet workload install aspire
-```
+| ASP.NET Core development certificate | Trust it for HTTPS service calls with `dotnet dev-certs https --trust` |
 
 ---
 
 ## How to launch
 
-From the repo root:
-
-```bash
-dotnet run --project samples/Kun.Sample.AppHost
-```
+Follow the [getting-started guide](../../docs/getting-started.md#run-the-samples) to create the
+local credentials for Catalog and launch the AppHost from the repository root.
 
 Aspire prints the Dashboard URL to the console:
 

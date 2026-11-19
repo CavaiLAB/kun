@@ -45,25 +45,14 @@ Background: OutboxPublisherBackgroundService drains outbox_messages
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/demo/orders` | Places a two-line demo order; returns `{ "orderId": "…" }` |
+| `POST` | `/demo/orders` | Reserves the supplied product and returns `{ "orderId": "…" }` |
 | `GET` | `/demo/orders/{id}` | Returns the order's status, total, and creation time |
 
-The demo order uses freshly generated product ids. The sample Catalog starts with no products, so
-against a running Catalog the reservation is rejected and `POST /demo/orders` returns 422 with
-nothing written. `samples/Kun.Sample.Tests/PlaceOrderTests.cs` replaces the Catalog client with a
-fake that accepts every reservation to exercise the success path.
-
-### Example curl commands
-
-```bash
-# Set ORDER to the URL from the Aspire Dashboard (or http://localhost:5000 standalone)
-ORDER=http://localhost:<port>
-
-curl -s -X POST "$ORDER/demo/orders" | jq .
-
-# Read the order back — use the orderId returned above
-curl -s "$ORDER/demo/orders/<orderId>" | jq .
-```
+Pass a JSON body with `productId`, `quantity` and `unitPrice` to order an existing Catalog
+product. The [getting-started guide](../../docs/getting-started.md#place-an-order) shows the
+commands to create one with stock, place the order and read its status. A request without a
+body uses two randomly generated product IDs. Catalog rejects that reservation with HTTP 422
+and the order and Outbox tables receive no rows.
 
 ---
 
@@ -74,7 +63,8 @@ curl -s "$ORDER/demo/orders/<orderId>" | jq .
 - The Catalog gRPC service (`CatalogGrpc:Address` in `appsettings.json` for standalone runs; the
   AppHost injects the address).
 - No RabbitMQ required: `NoOpIntegrationEventPublisher` logs to stdout instead.
-- No JWT required: `NullTenantContext` is used (single-tenant sample).
+- The sample uses a single tenant. Catalog validates the Order service token for gRPC stock
+  reservations. The getting-started guide creates the local credentials.
 
 ---
 
@@ -82,9 +72,7 @@ curl -s "$ORDER/demo/orders/<orderId>" | jq .
 
 ### Via AppHost (recommended)
 
-```bash
-dotnet run --project samples/Kun.Sample.AppHost
-```
+Follow the [local credentials and startup steps](../../docs/getting-started.md#run-the-samples).
 
 ### Standalone
 
@@ -92,6 +80,10 @@ dotnet run --project samples/Kun.Sample.AppHost
 dotnet run --project samples/Kun.Sample.Order \
   --ConnectionStrings:OrderDb "Host=localhost;Database=order_sample;Username=postgres;Password=postgres"
 ```
+
+For stock reservations, configure `CatalogGrpc:Address` with the Catalog HTTPS endpoint,
+`CatalogGrpc:TokenPath` with the generated `catalog.token` file, and Catalog
+with `CatalogAuth:PublicJwksPath` pointing at the corresponding `public.jwks`.
 
 The service applies its EF Core migrations at startup (`MigrateAsync`). No separate migration step
 is needed for development.

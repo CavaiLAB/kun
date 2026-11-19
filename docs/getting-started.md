@@ -12,7 +12,7 @@ how the pieces fit together.
 |---|---|---|
 | .NET SDK | 10.0.100 or later | Pinned in `global.json` |
 | Docker Desktop | Any recent stable | Runs PostgreSQL, RabbitMQ, Redis containers |
-| Aspire workload | Installed via `dotnet workload` | See step below |
+| curl and jq | curl 7.82+ | Send JSON requests and read the returned IDs |
 | Visual Studio Build Tools (Windows only) | Optional | Required only for AOT native publish |
 
 Verify your SDK version:
@@ -27,23 +27,6 @@ Verify Docker is running:
 ```bash
 docker info
 # must succeed — no "Cannot connect" errors
-```
-
----
-
-## Install the Aspire workload
-
-The AppHost project uses .NET Aspire to orchestrate all containers and services. Install the
-workload once per machine:
-
-```bash
-dotnet workload install aspire
-```
-
-If the workload was already installed and you want to update it:
-
-```bash
-dotnet workload update
 ```
 
 ---
@@ -70,9 +53,16 @@ dotnet test -c Release --no-build
 
 ## Run the samples
 
-The AppHost project starts every service and all required infrastructure with a single command:
+The AppHost starts the services and their infrastructure. Trust the ASP.NET Core localhost
+development certificate so Order can call Catalog over HTTPS. Create a private directory outside
+the repository for the local issuer's keys and Order's short-lived service token:
 
 ```bash
+dotnet dev-certs https --trust
+umask 077
+export SampleCredentials=$(mktemp -d)
+printf 'SampleCredentials=%s\n' "$SampleCredentials"
+dotnet run --file samples/local/catalog-credentials.cs -- "$SampleCredentials"
 dotnet run --project samples/Kun.Sample.AppHost
 ```
 
@@ -91,59 +81,51 @@ Open that URL in a browser. You will see the **Aspire Dashboard** with:
 | Traces | Distributed OpenTelemetry traces across all service boundaries |
 | Metrics | Request rates, latency histograms, CPU and memory |
 
-Wait until all resources in the Resources panel show a green status indicator before sending
-requests. PostgreSQL runs schema creation (`EnsureCreated`) at startup, which takes a few seconds.
+Wait for Catalog and Order to finish applying their EF Core migrations before sending requests.
 
 ### Find the service ports
 
-The Order service port is dynamic — Aspire assigns it at startup. In the Dashboard:
-
-1. Click **Resources**.
-2. Find the `order` row.
-3. Copy the URL from the **Endpoints** column, for example `http://localhost:54321`.
-
-Use that base URL in the curl commands below. The examples use `$ORDER` as a placeholder:
+Copy the HTTP URLs for `catalog` and `order` from the **Endpoints** column in **Resources**.
+Set these variables to the two URLs shown in your dashboard:
 
 ```bash
-# Set this to the URL shown in the Aspire Dashboard for the "order" resource
-ORDER=http://localhost:54321
+CATALOG=http://localhost:54242
+ORDER=http://localhost:54243
 ```
 
 ---
 
 ## Place an order
 
-Send a `POST` request to place a two-line demo order:
+Run these requests in a second terminal. Set `SampleCredentials` to the path printed during
+startup. The local token lasts five minutes. To renew it, run
+`dotnet run --file samples/local/catalog-credentials.cs -- "$SampleCredentials"` with the same
+directory as the first terminal. Order reads the updated token on its next HTTPS call.
+
+Create a Catalog product with stock, then order two units using its returned identifier:
 
 ```bash
-curl -s -X POST "$ORDER/demo/orders" | jq .
+PRODUCT_ID=$(curl -fsS "$CATALOG/products" --json '{
+  "name":"Demo notebook","description":"Grid paper","price":12.50,
+  "categoryId":"f4743227-31ea-4312-b9ca-e7183786bb01","initialStock":5
+}' | jq -er .)
+ORDER_ID=$(curl -fsS "$ORDER/demo/orders" --json "{
+  \"productId\":\"$PRODUCT_ID\",\"quantity\":2,\"unitPrice\":12.50
+}" | jq -er .orderId)
+curl -fsS "$ORDER/demo/orders/$ORDER_ID" | jq '{id,status,totalAmount}'
 ```
 
-`PlaceOrderCommandHandler` asks the Catalog service over gRPC to reserve stock for each line, then
-adds the `Order` and publishes `order.completed.v1`. After the handler returns, the
-`UnitOfWorkPipelineBehavior` commits the order row and the Outbox row in one `SaveChangesAsync`
-call; the background `OutboxPublisherBackgroundService` publishes the event a moment later.
+The order reads back as `Completed` with a total of `25.00`. The handler reserved two units over
+gRPC and committed the order and its `order.completed.v1` Outbox row in one transaction. To see
+the event, open the Order resource's console logs and look for the Outbox publisher's
+`Would publish event 'order.completed.v1'` message. In this sample the publisher logs delivery.
 
-The demo order uses freshly generated product ids and the sample Catalog starts with no products,
-so against the running stack Catalog rejects the reservation: the call returns `422` with
-`"code": "BUSINESS_RULE_VIOLATED"`, and neither the order nor an Outbox row is written. When every
-reservation succeeds — `samples/Kun.Sample.Tests/PlaceOrderTests.cs` swaps in a fake Catalog
-client that accepts them — the response carries the new order id:
-
-```json
-{
-  "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-}
-```
-
-and the order reads back as `Completed`:
-
-```bash
-curl -s "$ORDER/demo/orders/3fa85f64-5717-4562-b3fc-2c963f66afa6" | jq .
-```
+Without a request body, `POST /demo/orders` tries two random product IDs. Catalog rejects the
+reservation with `422 BUSINESS_RULE_VIOLATED`; the order and Outbox stay unchanged.
 
 Open **Traces** in the Aspire Dashboard and filter by `order`. You will see the HTTP request, the
-`Mediator.Send PlaceOrderCommand` span, and the gRPC call to Catalog under the same trace.
+`Mediator.Send PlaceOrderCommand` span, and the gRPC call to Catalog under the same trace. After the walkthrough, stop the AppHost and
+remove the temporary credentials directory.
 
 ---
 
@@ -154,12 +136,12 @@ The order flow exercised these building blocks:
 **Outbox transactional publishing** — the order row and its integration event were written in a
 single EF Core `SaveChangesAsync` call. If the database transaction rolled back,
 no message was produced. The `OutboxPublisherBackgroundService` drains `Pending` rows to the
-broker asynchronously, so publish latency is measured in seconds but consistency is guaranteed.
+configured publisher asynchronously. The sample publisher logs each event.
 
 **W3C Trace Context propagation** — every `OutboxMessage` row stores the `traceparent` and
 `tracestate` headers captured at enqueue time. The background publisher resumes the trace when it
-publishes, so a single `TraceId` threads through HTTP ingress → CQRS handler → Outbox → broker
-→ consumer. This is visible in the Aspire Dashboard Traces panel.
+publishes. The request and the corresponding Outbox publish span share a `TraceId` in the
+Aspire Dashboard Traces panel.
 
 ---
 

@@ -20,8 +20,11 @@ using Kun.Sample.Catalog.Application.Queries;
 using Kun.Sample.Catalog.Contracts;
 using Kun.Sample.Catalog.Grpc;
 using Kun.Sample.Catalog.Infrastructure;
+using Kun.Security.Authentication;
 using Kun.Validation.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -110,6 +113,16 @@ builder.Services.AddKunAudit();
 
 // ── gRPC ──────────────────────────────────────────────────────────────────────
 builder.Services.AddKunGrpc();
+if (builder.Configuration["CatalogAuth:PublicJwksPath"] is { Length: > 0 } jwksPath)
+{
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddKunServiceAuthentication(options =>
+        {
+            options.Issuer = "kun-sample";
+            options.Audience = "kun-sample-catalog";
+            options.StaticKeySet = new JsonWebKeySet(File.ReadAllText(jwksPath));
+        });
+}
 
 // ── OpenAPI (ASP.NET Core 10 built-in, source-gen-friendly) ──────────────────
 // Exposed at /openapi/v1.json; gated by environment below so production hosts

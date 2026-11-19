@@ -221,7 +221,7 @@ public sealed class PlaceOrderTests : IClassFixture<OrderWebFactory>
     public PlaceOrderTests(OrderWebFactory factory) => _factory = factory;
 
     /// <summary>
-    /// POST /demo/orders reserves both lines, stores the order as Completed and queues
+    /// POST /demo/orders reserves the supplied line, stores the order as Completed and queues
     /// <c>order.completed.v1</c> for it in the Outbox.
     /// </summary>
     [Fact]
@@ -229,7 +229,8 @@ public sealed class PlaceOrderTests : IClassFixture<OrderWebFactory>
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var postResponse = await _factory.Client.PostAsJsonAsync("/demo/orders", new { }, ct);
+        var line = new { productId = Guid.NewGuid(), quantity = 3, unitPrice = 12.50m };
+        var postResponse = await _factory.Client.PostAsJsonAsync("/demo/orders", line, ct);
         postResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             because: $"server response: {await postResponse.Content.ReadAsStringAsync(ct)} | " +
                      $"captured error: {CapturingLoggerProvider.Instance.LastError}");
@@ -237,12 +238,13 @@ public sealed class PlaceOrderTests : IClassFixture<OrderWebFactory>
         using var created = JsonDocument.Parse(await postResponse.Content.ReadAsStringAsync(ct));
         var orderId = created.RootElement.GetProperty("orderId").GetGuid();
         orderId.Should().NotBeEmpty();
-        _factory.Catalog.ReserveCalls.Should().Be(2, because: "the demo order has two lines");
+        _factory.Catalog.ReserveCalls.Should().Be(1);
 
         var getResponse = await _factory.Client.GetAsync($"/demo/orders/{orderId}", ct);
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         using var order = JsonDocument.Parse(await getResponse.Content.ReadAsStringAsync(ct));
         order.RootElement.GetProperty("status").GetString().Should().Be("Completed");
+        order.RootElement.GetProperty("totalAmount").GetDecimal().Should().Be(37.50m);
 
         await using var scope = _factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
@@ -272,7 +274,7 @@ public sealed class PlaceOrderRejectedTests : IClassFixture<OrderWebFactoryWithI
     {
         var ct = TestContext.Current.CancellationToken;
 
-        var response = await _factory.Client.PostAsJsonAsync("/demo/orders", new { }, ct);
+        var response = await _factory.Client.PostAsync("/demo/orders", null, ct);
         var body = await response.Content.ReadAsStringAsync(ct);
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, because: $"server response: {body}");
         using var problem = JsonDocument.Parse(body);

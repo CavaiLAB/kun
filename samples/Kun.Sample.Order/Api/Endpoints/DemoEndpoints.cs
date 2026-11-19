@@ -13,14 +13,16 @@ public static class DemoEndpoints
     /// <summary>Maps all demo routes onto the given <paramref name="app"/>.</summary>
     public static IEndpointRouteBuilder MapDemoEndpoints(this IEndpointRouteBuilder app)
     {
-        // POST /demo/orders — place a two-line demo order
-        app.MapPost("/demo/orders", async (ISender sender) =>
+        app.MapPost("/demo/orders", async (OrderLineDto? line, ISender sender, CancellationToken ct) =>
         {
-            var orderId = await sender.Send(BuildCommand());
+            var command = line is null
+                ? BuildDemoCommand()
+                : new PlaceOrderCommand(Guid.NewGuid(), [line]);
+            var orderId = await sender.Send(command, ct);
             return Results.Ok(new { orderId });
         })
         .WithName("PlaceDemoOrder")
-        .WithSummary("Place a two-line demo order: reserve stock in Catalog, then commit the order and its Outbox row.");
+        .WithSummary("Place a demo order: reserve stock in Catalog, then commit the order and its Outbox row.");
 
         // GET /demo/orders/{id} — read the order back
         app.MapGet("/demo/orders/{id:guid}", async (Guid id, ISender sender) =>
@@ -34,7 +36,7 @@ public static class DemoEndpoints
         return app;
     }
 
-    private static PlaceOrderCommand BuildCommand() =>
+    private static PlaceOrderCommand BuildDemoCommand() =>
         new(
             CustomerId: Guid.NewGuid(),
             Items: new List<OrderLineDto>

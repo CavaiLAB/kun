@@ -29,7 +29,7 @@ public sealed class GatewayPackageAotPublishTests
         {
             // 普通 NuGet 制品是被测对象：Kun.Gateway 与它依赖的 Kun 包按普通类库打包，使用隔离的 obj/bin，
             // 避免并行的用例污染这次构建。
-            foreach (var package in new[] { "Kun.Errors", "Kun.Core", "Kun.MultiTenancy", "Kun.Security", "Kun.Gateway" })
+            foreach (var package in new[] { "Kun.Errors", "Kun.Core", "Kun.MultiTenancy", "Kun.Security.Abstractions", "Kun.Security", "Kun.Gateway" })
             {
                 var result = await RunAsync(repository, "dotnet", TimeSpan.FromMinutes(5),
                     "pack", Path.Combine(repository, "src", package, package + ".csproj"),

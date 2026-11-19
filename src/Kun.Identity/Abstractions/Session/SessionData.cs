@@ -1,4 +1,4 @@
-namespace Kun.Identity.Abstractions.Session;
+namespace Kun.Identity;
 
 /// <summary>
 /// Serialized payload held by <see cref="ISessionStore"/> implementations.

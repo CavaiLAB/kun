@@ -1,4 +1,3 @@
-using Kun.Identity.Abstractions;
 using Kun.Identity.Implementations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -28,16 +27,6 @@ public sealed class KunIdentityBuilder
         ArgumentNullException.ThrowIfNull(configure);
         Services.Configure(configure);
         Services.TryAddSingleton<IJwtValidator, KunJwtValidator>();
-        return this;
-    }
-
-    /// <summary>Registers <see cref="IJwtIssuer"/> for internal S2S token minting.</summary>
-    [Obsolete("Use Kun.Gateway.S2sTokenIssuer.", DiagnosticId = "KUNS2S001")]
-    public KunIdentityBuilder AddS2SIssuer(Action<KunJwtIssuerOptions> configure)
-    {
-        ArgumentNullException.ThrowIfNull(configure);
-        Services.Configure(configure);
-        Services.TryAddSingleton<IJwtIssuer, KunJwtIssuer>();
         return this;
     }
 

@@ -1,8 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
 using FluentAssertions;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Abstractions.Session;
 using Kun.Identity.AspNetCore;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations.Session;

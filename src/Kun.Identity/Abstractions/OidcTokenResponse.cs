@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Kun.Identity.Abstractions;
+namespace Kun.Identity;
 
 /// <summary>Result of an OIDC authorization-code exchange.</summary>
 /// <param name="AccessToken">The bearer access token to present to resource servers.</param>

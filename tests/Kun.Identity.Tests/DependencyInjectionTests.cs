@@ -1,6 +1,4 @@
-#pragma warning disable KUNS2S001 // Explicit compatibility tests for retired issuer APIs; new consumers must fail compilation.
 using FluentAssertions;
-using Kun.Identity.Abstractions;
 using Kun.Identity.DependencyInjection;
 using Kun.Identity.Implementations;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,21 +31,6 @@ public sealed class DependencyInjectionTests
 
         using var provider = services.BuildServiceProvider();
         provider.GetRequiredService<IJwtValidator>().Should().BeOfType<KunJwtValidator>();
-    }
-
-    [Fact]
-    public void AddS2SIssuer_RegistersIssuer()
-    {
-        var services = BuildServices();
-        services.AddKunIdentity(id => id.AddS2SIssuer(o =>
-        {
-            o.Issuer = "kun.internal";
-            o.Audience = "kun-internal";
-            o.SigningKey = TestKeys.CreateRsaKey();
-        }));
-
-        using var provider = services.BuildServiceProvider();
-        provider.GetRequiredService<IJwtIssuer>().Should().BeOfType<KunJwtIssuer>();
     }
 
     [Fact]

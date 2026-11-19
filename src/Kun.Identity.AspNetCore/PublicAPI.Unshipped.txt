@@ -3,7 +3,7 @@ const Kun.Identity.AspNetCore.ChallengeHelper.ChallengeCookieName = "kun.challen
 const Kun.Identity.AspNetCore.KunCurrentUser.TenantIdClaimType = "tenant_id" -> string!
 Kun.Identity.AspNetCore.ChallengeHelper
 Kun.Identity.AspNetCore.ChallengeHelper.BuildLoginUrlAsync(Microsoft.AspNetCore.Http.HttpContext! context, string! oidcClientName, string! redirectUri, string! returnUrl = "/", string! scope = "openid profile email", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
-Kun.Identity.AspNetCore.ChallengeHelper.ChallengeHelper(System.Collections.Generic.IEnumerable<Kun.Identity.Abstractions.IOidcClient!>! oidcClients, Microsoft.Extensions.Options.IOptionsMonitor<Kun.Identity.Configuration.KunOidcClientOptions!>! oidcOptions, System.TimeProvider! timeProvider) -> void
+Kun.Identity.AspNetCore.ChallengeHelper.ChallengeHelper(System.Collections.Generic.IEnumerable<Kun.Identity.IOidcClient!>! oidcClients, Microsoft.Extensions.Options.IOptionsMonitor<Kun.Identity.Configuration.KunOidcClientOptions!>! oidcOptions, System.TimeProvider! timeProvider) -> void
 Kun.Identity.AspNetCore.ChallengePayload
 Kun.Identity.AspNetCore.ChallengePayload.ChallengePayload(string! Client, string! CodeVerifier, string! State, string! Nonce, string! ReturnUrl) -> void
 Kun.Identity.AspNetCore.ChallengePayload.Client.get -> string!
@@ -20,7 +20,7 @@ Kun.Identity.AspNetCore.ChallengePayload.State.init -> void
 Kun.Identity.AspNetCore.KunCookieAuthApplicationBuilderExtensions
 Kun.Identity.AspNetCore.KunCookieAuthMiddleware
 Kun.Identity.AspNetCore.KunCookieAuthMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext! context) -> System.Threading.Tasks.Task!
-Kun.Identity.AspNetCore.KunCookieAuthMiddleware.KunCookieAuthMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, Kun.Identity.Abstractions.Session.ISessionStore! store, Microsoft.Extensions.Options.IOptions<Kun.Identity.Configuration.KunCookieAuthOptions!>! options, System.TimeProvider! timeProvider, Microsoft.Extensions.Logging.ILogger<Kun.Identity.AspNetCore.KunCookieAuthMiddleware!>! logger) -> void
+Kun.Identity.AspNetCore.KunCookieAuthMiddleware.KunCookieAuthMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, Kun.Identity.ISessionStore! store, Microsoft.Extensions.Options.IOptions<Kun.Identity.Configuration.KunCookieAuthOptions!>! options, System.TimeProvider! timeProvider, Microsoft.Extensions.Logging.ILogger<Kun.Identity.AspNetCore.KunCookieAuthMiddleware!>! logger) -> void
 Kun.Identity.AspNetCore.KunCurrentUser
 Kun.Identity.AspNetCore.KunCurrentUser.Email.get -> string?
 Kun.Identity.AspNetCore.KunCurrentUser.IsAuthenticated.get -> bool
@@ -31,9 +31,9 @@ Kun.Identity.AspNetCore.KunCurrentUser.Roles.get -> System.Collections.Generic.I
 Kun.Identity.AspNetCore.KunCurrentUser.TenantId.get -> string?
 Kun.Identity.AspNetCore.KunCurrentUser.UserId.get -> string?
 Kun.Identity.AspNetCore.SignInHelper
-Kun.Identity.AspNetCore.SignInHelper.SignInAsync(Microsoft.AspNetCore.Http.HttpContext! context, Kun.Identity.Abstractions.OidcTokenResponse! tokens, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
-Kun.Identity.AspNetCore.SignInHelper.SignInAsync(Microsoft.AspNetCore.Http.HttpContext! context, Kun.Identity.Abstractions.Session.SessionData! data, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
-Kun.Identity.AspNetCore.SignInHelper.SignInHelper(Kun.Identity.Abstractions.Session.ISessionStore! store, Kun.Identity.Abstractions.IJwtValidator! idTokenValidator, Microsoft.Extensions.Options.IOptions<Kun.Identity.Configuration.KunCookieAuthOptions!>! options, System.TimeProvider! timeProvider) -> void
+Kun.Identity.AspNetCore.SignInHelper.SignInAsync(Microsoft.AspNetCore.Http.HttpContext! context, Kun.Identity.OidcTokenResponse! tokens, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+Kun.Identity.AspNetCore.SignInHelper.SignInAsync(Microsoft.AspNetCore.Http.HttpContext! context, Kun.Identity.SessionData! data, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+Kun.Identity.AspNetCore.SignInHelper.SignInHelper(Kun.Identity.ISessionStore! store, Kun.Identity.IJwtValidator! idTokenValidator, Microsoft.Extensions.Options.IOptions<Kun.Identity.Configuration.KunCookieAuthOptions!>! options, System.TimeProvider! timeProvider) -> void
 Kun.Identity.AspNetCore.SignInHelper.SignOutAsync(Microsoft.AspNetCore.Http.HttpContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 static Kun.Identity.AspNetCore.ChallengeHelper.ConsumeChallengeCookie(Microsoft.AspNetCore.Http.HttpContext! context) -> Kun.Identity.AspNetCore.ChallengePayload?
 static Kun.Identity.AspNetCore.ChallengePayload.TryParse(string! raw, out Kun.Identity.AspNetCore.ChallengePayload? payload) -> bool
@@ -44,14 +44,14 @@ Kun.Identity.AspNetCore.OidcLogoutService
 Kun.Identity.AspNetCore.KunIdentityAspNetCoreServiceCollectionExtensions
 Kun.Identity.AspNetCore.ChallengePayload.RedirectUri.get -> string?
 Kun.Identity.AspNetCore.ChallengePayload.RedirectUri.init -> void
-Kun.Identity.AspNetCore.SignInHelper.SignInHelper(Kun.Identity.Abstractions.Session.ISessionStore! store, Microsoft.Extensions.Options.IOptions<Kun.Identity.Configuration.KunCookieAuthOptions!>! options, System.TimeProvider! timeProvider) -> void
-Kun.Identity.AspNetCore.ChallengeHelper.ChallengeHelper(System.Collections.Generic.IEnumerable<Kun.Identity.Abstractions.IOidcClient!>! oidcClients, Microsoft.Extensions.Options.IOptionsMonitor<Kun.Identity.Configuration.KunOidcClientOptions!>! oidcOptions, System.TimeProvider! timeProvider, Microsoft.AspNetCore.DataProtection.IDataProtectionProvider! protection, Kun.Identity.Abstractions.Session.ISessionRegistry! registry) -> void
+Kun.Identity.AspNetCore.SignInHelper.SignInHelper(Kun.Identity.ISessionStore! store, Microsoft.Extensions.Options.IOptions<Kun.Identity.Configuration.KunCookieAuthOptions!>! options, System.TimeProvider! timeProvider) -> void
+Kun.Identity.AspNetCore.ChallengeHelper.ChallengeHelper(System.Collections.Generic.IEnumerable<Kun.Identity.IOidcClient!>! oidcClients, Microsoft.Extensions.Options.IOptionsMonitor<Kun.Identity.Configuration.KunOidcClientOptions!>! oidcOptions, System.TimeProvider! timeProvider, Microsoft.AspNetCore.DataProtection.IDataProtectionProvider! protection, Kun.Identity.ISessionRegistry! registry) -> void
 Kun.Identity.AspNetCore.OidcLogoutService.HandleAsync(string! clientName, string! logoutToken, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 Kun.Identity.AspNetCore.OidcLoginService.CompleteAsync(Microsoft.AspNetCore.Http.HttpContext! context, string! code, string! state, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
 static Kun.Identity.AspNetCore.KunIdentityAspNetCoreServiceCollectionExtensions.AddKunIdentityAspNetCore(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 Kun.Identity.AspNetCore.ChallengeHelper.ConsumeAsync(Microsoft.AspNetCore.Http.HttpContext! context, string! state, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.AspNetCore.ChallengePayload?>!
-Kun.Identity.AspNetCore.OidcLoginService.OidcLoginService(Kun.Identity.AspNetCore.ChallengeHelper! challenges, System.Collections.Generic.IEnumerable<Kun.Identity.Abstractions.IOidcClient!>! clients, Kun.Identity.AspNetCore.SignInHelper! signIn) -> void
-Kun.Identity.AspNetCore.OidcLogoutService.OidcLogoutService(System.Collections.Generic.IEnumerable<Kun.Identity.Abstractions.IOidcClient!>! clients, Kun.Identity.Abstractions.Session.ISessionRegistry! sessions) -> void
+Kun.Identity.AspNetCore.OidcLoginService.OidcLoginService(Kun.Identity.AspNetCore.ChallengeHelper! challenges, System.Collections.Generic.IEnumerable<Kun.Identity.IOidcClient!>! clients, Kun.Identity.AspNetCore.SignInHelper! signIn) -> void
+Kun.Identity.AspNetCore.OidcLogoutService.OidcLogoutService(System.Collections.Generic.IEnumerable<Kun.Identity.IOidcClient!>! clients, Kun.Identity.ISessionRegistry! sessions) -> void
 Kun.Identity.AspNetCore.OidcLogoutEndpoint
 static Kun.Identity.AspNetCore.OidcLogoutEndpoint.MapKunBackChannelLogout(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, string! pattern, string! clientName) -> Microsoft.AspNetCore.Builder.IEndpointConventionBuilder!
 const Kun.Identity.AspNetCore.KunIdentityAspNetCoreServiceCollectionExtensions.CookieScheme = "KunCookieAuth" -> string!

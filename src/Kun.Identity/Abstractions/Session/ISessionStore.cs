@@ -1,4 +1,4 @@
-namespace Kun.Identity.Abstractions.Session;
+namespace Kun.Identity;
 
 /// <summary>
 /// Backend for cookie-based session data. Implementations ship in

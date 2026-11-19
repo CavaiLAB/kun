@@ -1,4 +1,3 @@
-using Kun.Identity.Abstractions.Session;
 using Kun.Identity.Implementations.Session;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection;

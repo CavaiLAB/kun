@@ -1,6 +1,4 @@
 using Kun.Core.Security;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Abstractions.Session;
 using Kun.Identity.AspNetCore.Internal;
 using Kun.Identity.Configuration;
 using Microsoft.AspNetCore.Authentication;

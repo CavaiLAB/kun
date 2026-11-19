@@ -59,7 +59,7 @@ Kun 里有几组功能重叠的「双胞胎」API，Qian 各选定一套，插�
 | 租户上下文 | `ITenantContext` 的 AsyncLocal 实现（唯一实现；JWT 版退化为它的解析源），claim 名 `tenant_id` | 第二套 `ITenantContext` 实现 |
 | 文件存储 | 新线 `Kun.Storage.Abstractions` 的 `IFileStorage` 与 Local / S3 / Oss 后端 | 旧线 `Kun.Storage` |
 | 审计 | 同事务写 `AuditLog` + Outbox 事件，PostgreSQL 哈希链（[ADR-009](/design/adr/adr-009-audit)） | `AuditSaveChangesInterceptor` |
-| S2S 令牌签发 | 网关的 `S2sTokenIssuer` 一套（[ADR-010](/design/adr/adr-010-gateway-layers)） | `Kun.Identity.KunJwtIssuer`、`Kun.Security.S2SJwt` |
+| S2S 令牌签发 | 网关的 `S2sTokenIssuer` 一套（[ADR-010](/design/adr/adr-010-gateway-layers)） | 已归档的身份签发器与 S2SJwt 组件 |
 | 限流 | 服务侧 `Kun.RateLimit`；网关侧三策略 + Redis 共享计数 | — |
 | 仓储 | `DbContext` + `Kun.EntityFrameworkCore` 的 `IUnitOfWork` | `Kun.Infrastructure` 的 `IRepository` / `IUnitOfWork` |
 

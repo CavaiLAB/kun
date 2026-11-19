@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Kun.Identity.Abstractions.Session;
 
 namespace Kun.Identity.AspNetCore.Internal;
 

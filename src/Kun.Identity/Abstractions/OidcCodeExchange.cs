@@ -1,4 +1,4 @@
-namespace Kun.Identity.Abstractions;
+namespace Kun.Identity;
 
 /// <summary>Authorization code and the original browser transaction's PKCE verifier and nonce.</summary>
 public sealed record OidcCodeExchange(string Code, string RedirectUri, string CodeVerifier, string ExpectedNonce);

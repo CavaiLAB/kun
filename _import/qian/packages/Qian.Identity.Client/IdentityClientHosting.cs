@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Kun.Identity.Abstractions;
+using Kun.Identity;
 using Kun.Identity.AspNetCore;
 using Kun.Identity.Configuration;
 using Kun.Identity.DependencyInjection;

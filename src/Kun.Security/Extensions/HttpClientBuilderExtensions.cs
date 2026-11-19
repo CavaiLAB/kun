@@ -12,6 +12,7 @@ public static class HttpClientBuilderExtensions
     /// </summary>
     /// <param name="builder">The HTTP client builder.</param>
     /// <returns>The builder for chaining.</returns>
+    [Obsolete("Issue a new S2S token for the downstream audience.", DiagnosticId = "KUNS2S001")]
     public static IHttpClientBuilder AddKunServiceAuth(this IHttpClientBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);

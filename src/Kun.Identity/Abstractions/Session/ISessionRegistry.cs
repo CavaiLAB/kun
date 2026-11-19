@@ -1,4 +1,4 @@
-namespace Kun.Identity.Abstractions.Session;
+namespace Kun.Identity;
 
 /// <summary>Atomic session lifecycle operations. Renewing a revoked session must never recreate it.</summary>
 public interface ISessionRegistry : ISessionStore

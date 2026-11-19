@@ -1,6 +1,3 @@
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using Kun.Security;
 using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
@@ -48,37 +45,12 @@ internal static partial class IdentityS2sValidation
         if (context.SecurityToken is not JsonWebToken token) return "token";
         using var payload = IdentityJsonPayload.Parse(token);
         if (payload is null) return "payload";
-        // 契约是闭合对象：可选字段出现即须有值，只有 tenant_id 允许显式 null。
-        if (payload.RootElement.EnumerateObject().Any(property => property.Value.ValueKind == JsonValueKind.Null && property.Name != IdentityClaimNames.TenantId)) return "null";
-        Principal? principal;
-        try { principal = payload.RootElement.Deserialize(IdentityJson.PrincipalTypeInfo); }
-        catch (JsonException) { return "shape"; }
-        if (principal is null) return "shape";
-        if (principal.Issuer != options.Issuer || principal.Audience is not [var audience] || audience != options.Audience) return "audience";
-        if (principal.Subject is not { Length: > 0 and <= 255 } || principal.Subject.Any(char.IsControl)) return "sub";
-        if (principal.Kind is not (PrincipalKind.User or PrincipalKind.Service) || principal.Actor is not null) return "principal_kind";
-        if (principal.TenantId is not null && !CanonicalIdentity.Uuid(principal.TenantId)) return "tenant_id";
-        if (principal.MembershipId is not null && !CanonicalIdentity.Uuid(principal.MembershipId)) return "membership_id";
-        if (principal.ProjectId is not null && !CanonicalIdentity.Uuid(principal.ProjectId)) return "project_id";
-        if (principal.PluginId is not null && !PluginIdPattern().IsMatch(principal.PluginId)) return "plugin_id";
-        if (principal.Kind == PrincipalKind.User && (principal.IdentityRevision is null || principal.TenantId is not null && principal.MembershipId is null)) return "user";
-        if (principal.Kind == PrincipalKind.Service && (principal.MembershipId is not null || principal.SessionId != principal.TokenId)) return "service";
-        if (principal.IdentityRevision < 0) return "identity_revision";
-        if (!CanonicalIdentity.Uuid(principal.SessionId) || !CanonicalIdentity.Uuid(principal.TokenId)) return "session_id";
-        if (principal.Roles.Count > 32 || principal.Roles.Distinct(StringComparer.Ordinal).Count() != principal.Roles.Count || principal.Roles.Any(role => role is not { Length: > 0 and <= 64 })) return "roles";
-        if (principal.Scope.Length > 4096 || !CanonicalIdentity.ScopePattern().IsMatch(principal.Scope)) return "scope";
-        var lifetime = principal.ExpiresAt - principal.IssuedAt;
-        if (principal.IssuedAt < 0 || lifetime is <= 0 or > 300 || principal.NotBefore < principal.IssuedAt || principal.NotBefore >= principal.ExpiresAt) return "lifetime";
-        if (principal.IssuedAt > clock.GetUtcNow().ToUnixTimeSeconds() + 30) return "iat";
-        // 授权 PEP 交叉比对 Kun 读取的声明与快照，这里先保证两者一致。
-        if (!PrincipalClaims.TryRead(context.Principal, out var subject, out var tenant, out var kind) || subject != principal.Subject || tenant != principal.TenantId ||
-            kind != (principal.Kind == PrincipalKind.User ? "user" : "service")) return "claims";
+        var reason = PrincipalClaims.ReadS2s(context.Principal, payload.RootElement, clock.GetUtcNow(), out var principal);
+        if (reason is not null) return reason;
+        if (principal is null || principal.Issuer != options.Issuer || principal.Audience[0] != options.Audience) return "audience";
         context.HttpContext.Items[IdentityClientCurrentUser.PrincipalKey] = principal;
         return null;
     }
-
-    [GeneratedRegex(@"^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$", RegexOptions.CultureInvariant)]
-    private static partial Regex PluginIdPattern();
 
     private static partial class Log
     {

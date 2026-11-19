@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Kun.Security;
+using Kun.Security.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -51,36 +51,34 @@ internal sealed partial record CanonicalIdentity(string Subject, PrincipalKind K
 
     internal static CanonicalIdentity? From(JsonWebToken token, ClaimsIdentity claims, bool sessionOnly)
     {
-        if (Single(claims, IdentityClaimNames.Subject) is not { Length: > 0 and <= 255 } subject || subject.Any(char.IsControl)) return null;
+        if (Single(claims, IdentityClaimNames.Subject) is not { } subject) return null;
         var kind = Single(claims, IdentityClaimNames.PrincipalKind) switch { "user" => PrincipalKind.User, "service" when !sessionOnly => PrincipalKind.Service, _ => (PrincipalKind?)null };
         if (kind is null || claims.HasClaim(claim => claim.Type == IdentityClaimNames.Actor)) return null;
         var tenants = claims.FindAll(IdentityClaimNames.TenantId).ToArray();
         if (tenants.Length != 1) return null;
         string? tenant = tenants[0].ValueType == JsonClaimValueTypes.JsonNull ? null : tenants[0].Value;
-        if (tenant is not null && !Uuid(tenant)) return null;
         var membership = Single(claims, IdentityClaimNames.MembershipId);
-        if (membership is not null && !Uuid(membership) || claims.FindAll(IdentityClaimNames.MembershipId).Count() > 1) return null;
+        if (claims.FindAll(IdentityClaimNames.MembershipId).Count() > 1) return null;
         var revisionText = Single(claims, IdentityClaimNames.IdentityRevision);
         long? revision = revisionText is null ? null : long.TryParse(revisionText, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) ? parsed : -1;
-        if (revision < 0 || claims.FindAll(IdentityClaimNames.IdentityRevision).Count() > 1) return null;
+        if (claims.FindAll(IdentityClaimNames.IdentityRevision).Count() > 1) return null;
         var jti = Single(claims, IdentityClaimNames.TokenId);
         string? session;
         if (kind == PrincipalKind.User)
         {
             // 用户：identity_revision 必填；租户身份必带成员，平台身份不带；会话取发行方的 sid（UUID）。
-            if (revision is null || (tenant is null) != (membership is null)) return null;
+            if (tenant is null && membership is not null) return null;
             session = Single(claims, IdentityClaimNames.Sid);
-            if (session is null || !Uuid(session) || claims.FindAll(IdentityClaimNames.Sid).Count() > 1) return null;
+            if (session is null || claims.FindAll(IdentityClaimNames.Sid).Count() > 1) return null;
         }
         else
         {
             // 机器主体没有交互会话：不得带成员，session_id 取本令牌的 jti。
-            if (membership is not null || jti is null || !Uuid(jti)) return null;
+            if (jti is null) return null;
             session = jti;
         }
         var scopes = claims.FindAll(IdentityClaimNames.Scope).SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Distinct(StringComparer.Ordinal).ToArray();
         var scope = string.Join(' ', scopes);
-        if (scope.Length > 4096 || !ScopePattern().IsMatch(scope)) return null;
         var amr = claims.FindAll(IdentityClaimNames.AuthenticationMethods).Select(claim => claim.Value).ToArray();
         var acr = Single(claims, IdentityClaimNames.AuthenticationContext);
         if (claims.FindAll(IdentityClaimNames.AuthenticationContext).Count() > 1) return null;
@@ -92,10 +90,10 @@ internal sealed partial record CanonicalIdentity(string Subject, PrincipalKind K
             IdentityRevision = revision, Roles = [], Scope = scope, SessionId = session, IssuedAt = issuedAt, NotBefore = notBefore, ExpiresAt = expires,
             TokenId = jti ?? session
         };
+        if (S2sPrincipalContract.ValidateIdentity(snapshot) is not null) return null;
         return new CanonicalIdentity(subject, kind.Value, tenant, membership, revision, session, scope, amr, acr, snapshot);
     }
 
-    internal static bool Uuid(string value) => UuidPattern().IsMatch(value);
     private static long Seconds(DateTime value) => new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc)).ToUnixTimeSeconds();
 
     private static string? Single(ClaimsIdentity claims, string type)
@@ -104,11 +102,7 @@ internal sealed partial record CanonicalIdentity(string Subject, PrincipalKind K
         return values.Length == 1 && !string.IsNullOrWhiteSpace(values[0].Value) && values[0].ValueType != JsonClaimValueTypes.JsonNull ? values[0].Value : null;
     }
 
-    [GeneratedRegex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", RegexOptions.CultureInvariant)]
-    private static partial Regex UuidPattern();
-    // RFC 6749 §3.3 的 scope-token，与冻结 S2S 契约的 scope 模式一致。
-    [GeneratedRegex(@"^([\x21\x23-\x5B\x5D-\x7E]+( [\x21\x23-\x5B\x5D-\x7E]+)*)?$", RegexOptions.CultureInvariant)]
-    internal static partial Regex ScopePattern();
+
 }
 
 /// <summary>按发行方 JWKS 校验访问令牌：签名、issuer、受众（Resource）、类型 at+jwt 与寿命，再投影规范身份。</summary>

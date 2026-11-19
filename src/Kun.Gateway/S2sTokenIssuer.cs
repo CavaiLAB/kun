@@ -3,6 +3,8 @@ using System.Security.Claims;
 using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Kun.Gateway.Jwks;
+using Kun.Security;
+using Kun.Security.Authentication;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -123,63 +125,82 @@ public sealed class S2sTokenIssuer : IDisposable
     {
         ArgumentNullException.ThrowIfNull(externalPrincipal); cancellationToken.ThrowIfCancellationRequested();
         if (externalPrincipal.Identity?.IsAuthenticated != true) throw new InvalidOperationException("S2S issuance requires an authenticated external principal.");
-        ValidateText(audience, "aud", 255); ValidateText(_options.InternalIssuer, "iss", 255);
         var lifetime = _options.InternalTokenLifetime;
         if (lifetime < TimeSpan.FromSeconds(1) || lifetime > TimeSpan.FromMinutes(5))
             throw new InvalidOperationException("Internal S2S token lifetime must be between one second and five minutes.");
         var principal = await _resolver.ResolveAsync(externalPrincipal, cancellationToken).ConfigureAwait(false);
         if (principal?.Identity?.IsAuthenticated != true) throw new InvalidOperationException("S2S resolver did not return an authenticated principal.");
         cancellationToken.ThrowIfCancellationRequested();
-        var sub = Scalar(principal, "sub", required: false) ?? Scalar(principal, ClaimTypes.NameIdentifier, required: true)!;
-        ValidateText(sub, "sub", 255);
-        var kind = Scalar(principal, "principal_kind", required: true)!;
-        if (kind is not "user" and not "service" || principal.HasClaim(claim => claim.Type == "act"))
-            throw new InvalidOperationException("S1 S2S supports only user/service principals without delegation.");
-        var tenantClaims = principal.FindAll("tenant_id").ToArray();
+        var subject = Scalar(principal, IdentityClaimNames.Subject, required: false) ?? Scalar(principal, ClaimTypes.NameIdentifier, required: true)!;
+        var kind = Scalar(principal, IdentityClaimNames.PrincipalKind, required: true) switch
+        {
+            "user" => PrincipalKind.User,
+            "service" => PrincipalKind.Service,
+            _ => throw new InvalidOperationException("Unsupported S2S principal kind.")
+        };
+        if (principal.HasClaim(claim => claim.Type == IdentityClaimNames.Actor))
+            throw new InvalidOperationException("Delegated S2S issuance is not enabled.");
+        var tenantClaims = principal.FindAll(IdentityClaimNames.TenantId).ToArray();
         if (tenantClaims.Length != 1) throw new InvalidOperationException("Exactly one explicit tenant_id (UUID or JSON null) is required.");
-        var tenant = tenantClaims[0].ValueType == JsonClaimValueTypes.JsonNull ? null : Uuid(tenantClaims[0].Value, "tenant_id");
-        var roles = principal.Claims.Where(claim => claim.Type == ClaimTypes.Role || claim.Type is "role" or "roles")
-            .Select(claim => claim.Value).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.Ordinal).ToArray();
-        if (roles.Length > 32) throw new InvalidOperationException("S2S roles exceed the contract bound.");
-        foreach (var role in roles) ValidateText(role, "roles", 64);
-        var scope = string.Join(" ", principal.FindAll("scope").SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Distinct(StringComparer.Ordinal));
-        if (scope.Length > 4096 || scope.Any(character => !IsScopeCharacter(character)))
-            throw new InvalidOperationException("S2S scope is not a valid bounded OAuth scope string.");
+        var revisionText = Scalar(principal, IdentityClaimNames.IdentityRevision, required: false);
+        long? revision = null;
+        if (revisionText is not null)
+        {
+            if (!long.TryParse(revisionText, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed))
+                throw new InvalidOperationException("identity_revision must be a nonnegative integer.");
+            revision = parsed;
+        }
         var jti = Guid.NewGuid().ToString("D");
+        var now = DateTimeOffset.UtcNow;
+        var snapshot = new Principal
+        {
+            Issuer = _options.InternalIssuer,
+            Audience = new[] { audience },
+            Subject = subject,
+            Kind = kind,
+            TenantId = tenantClaims[0].ValueType == JsonClaimValueTypes.JsonNull ? null : Uuid(tenantClaims[0].Value, IdentityClaimNames.TenantId),
+            MembershipId = OptionalUuid(principal, IdentityClaimNames.MembershipId),
+            ProjectId = OptionalUuid(principal, IdentityClaimNames.ProjectId),
+            PluginId = Scalar(principal, IdentityClaimNames.PluginId, required: false),
+            IdentityRevision = revision,
+            Roles = principal.Claims.Where(claim => claim.Type == ClaimTypes.Role || claim.Type is "role" or IdentityClaimNames.Roles)
+                .Select(claim => claim.Value).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.Ordinal).ToArray(),
+            Scope = string.Join(" ", principal.FindAll(IdentityClaimNames.Scope).SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Distinct(StringComparer.Ordinal)),
+            TokenId = jti,
+            SessionId = kind == PrincipalKind.Service ? jti : Uuid(Scalar(principal, IdentityClaimNames.SessionId, required: true)!, IdentityClaimNames.SessionId),
+            IssuedAt = now.ToUnixTimeSeconds(),
+            NotBefore = now.ToUnixTimeSeconds(),
+            ExpiresAt = (now + lifetime).ToUnixTimeSeconds()
+        };
+        if (S2sPrincipalContract.Validate(snapshot, now) is { } reason)
+            throw new InvalidOperationException($"Invalid S2S field or rule: {reason}.");
         var claims = new Dictionary<string, object>
         {
-            ["sub"] = sub,
-            ["principal_kind"] = kind,
-            ["tenant_id"] = tenant!, // Intentional JSON null for an explicit platform principal.
-            ["aud"] = new[] { audience },
-            ["roles"] = roles,
-            ["scope"] = scope,
-            ["jti"] = jti,
-            ["session_id"] = kind == "service" ? jti : Uuid(Scalar(principal, "session_id", required: true)!, "session_id")
+            [IdentityClaimNames.Subject] = snapshot.Subject,
+            [IdentityClaimNames.PrincipalKind] = kind == PrincipalKind.Service ? "service" : "user",
+            [IdentityClaimNames.TenantId] = snapshot.TenantId!,
+            [IdentityClaimNames.Audience] = snapshot.Audience,
+            [IdentityClaimNames.Roles] = snapshot.Roles,
+            [IdentityClaimNames.Scope] = snapshot.Scope,
+            [IdentityClaimNames.TokenId] = snapshot.TokenId,
+            [IdentityClaimNames.SessionId] = snapshot.SessionId
         };
-        var membership = Scalar(principal, "membership_id", required: kind == "user" && tenant is not null);
-        if (kind == "service" && membership is not null) throw new InvalidOperationException("Service principals cannot carry a membership_id.");
-        if (membership is not null) claims["membership_id"] = Uuid(membership, "membership_id");
-        var revision = Scalar(principal, "identity_revision", required: kind == "user");
-        if (revision is not null)
+        if (snapshot.MembershipId is { } membership) claims[IdentityClaimNames.MembershipId] = membership;
+        if (snapshot.IdentityRevision is { } identityRevision) claims[IdentityClaimNames.IdentityRevision] = identityRevision;
+        if (snapshot.ProjectId is { } project) claims[IdentityClaimNames.ProjectId] = project;
+        if (snapshot.PluginId is { } plugin) claims[IdentityClaimNames.PluginId] = plugin;
+        return _keys.CreateToken(new SecurityTokenDescriptor
         {
-            if (!long.TryParse(revision, NumberStyles.None, CultureInfo.InvariantCulture, out var value) || value < 0)
-                throw new InvalidOperationException("identity_revision must be a nonnegative integer.");
-            claims["identity_revision"] = value;
-        }
-        var project = Scalar(principal, "project_id", required: false);
-        if (project is not null) claims["project_id"] = Uuid(project, "project_id");
-        var plugin = Scalar(principal, "plugin_id", required: false);
-        if (plugin is not null)
-        {
-            var segments = plugin.Split('.');
-            if (segments.Length < 2 || segments.Any(segment => segment.Length == 0 || segment[0] is < 'a' or > 'z' || segment.Any(character => !char.IsAsciiLetterLower(character) && !char.IsAsciiDigit(character) && character != '-')))
-                throw new InvalidOperationException("plugin_id must be a dotted component identifier.");
-            claims["plugin_id"] = plugin;
-        }
-        var now = DateTime.UtcNow;
-        return _keys.CreateToken(new SecurityTokenDescriptor { Issuer = _options.InternalIssuer, IssuedAt = now, NotBefore = now, Expires = now + lifetime, Claims = claims });
+            Issuer = snapshot.Issuer,
+            IssuedAt = now.UtcDateTime,
+            NotBefore = now.UtcDateTime,
+            Expires = (now + lifetime).UtcDateTime,
+            Claims = claims
+        });
     }
+
+    private static string? OptionalUuid(ClaimsPrincipal principal, string type)
+        => Scalar(principal, type, required: false) is { } value ? Uuid(value, type) : null;
 
     private static string? Scalar(ClaimsPrincipal principal, string type, bool required)
     {
@@ -188,16 +209,12 @@ public sealed class S2sTokenIssuer : IDisposable
             throw new InvalidOperationException($"S2S requires one valid {type} claim.");
         return claims.Length == 0 ? null : claims[0].Value;
     }
-    private static bool IsScopeCharacter(char value) => value == ' ' || value == '!' || value >= '#' && value <= '[' || value >= ']' && value <= '~';
     private static string Uuid(string value, string name)
     {
         if (!Guid.TryParse(value, out var id)) throw new InvalidOperationException($"S2S {name} must be a UUID.");
         return id.ToString("D");
     }
-    private static void ValidateText(string value, string name, int maximum)
-    {
-        if (string.IsNullOrWhiteSpace(value) || value.Length > maximum || value.Any(char.IsControl)) throw new InvalidOperationException($"S2S {name} is invalid.");
-    }
     private static readonly HashSet<string> CanonicalClaimTypes = new(StringComparer.Ordinal)
-    { "principal_kind", "scope", "session_id", "membership_id", "identity_revision", "project_id", "plugin_id" };
+    { IdentityClaimNames.PrincipalKind, IdentityClaimNames.Scope, IdentityClaimNames.SessionId, IdentityClaimNames.MembershipId,
+      IdentityClaimNames.IdentityRevision, IdentityClaimNames.ProjectId, IdentityClaimNames.PluginId };
 }

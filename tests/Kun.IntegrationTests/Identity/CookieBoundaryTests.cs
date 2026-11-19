@@ -1,5 +1,5 @@
 using System.Net;
-using Kun.Identity.Abstractions.Session;
+using Kun.Identity;
 using Kun.Identity.AspNetCore;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations.Session;

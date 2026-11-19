@@ -7,7 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.Gateway;
-using Kun.Identity.Abstractions.Session;
+using Kun.Identity;
 using Kun.MultiTenancy;
 using Kun.Security;
 using Microsoft.AspNetCore.DataProtection;

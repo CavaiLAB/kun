@@ -14,11 +14,11 @@
 #   2. dotnet test (unit tests; IntegrationTests / Sample.Tests /
 #      Integration.AotTests filtered out — the maintainer runs those in
 #      CI via the Build & Test + sample-aot-integration jobs)
-#   3. dotnet publish -p:PublishAot=true /warnaserror for every project in the
-#      AOT list (projects whose csproj sets IsAotCompatible=true, listed by
-#      scripts/aot_projects.py). Skipped only when clang / gcc is missing on
-#      PATH; the CI AOT smoke host job (tests/Kun.AotSmoke) is the
-#      authoritative gate in any case.
+#   3. AOT smoke host, the same steps as the CI aot-smoke job: check that
+#      tests/Kun.AotSmoke references exactly the AOT list (projects whose csproj
+#      sets IsAotCompatible=true, listed by scripts/aot_projects.py), publish it
+#      NativeAOT for linux-x64 with every ILC warning as an error, run it.
+#      Skipped only when clang / gcc is missing on PATH.
 #   4. CHANGELOG.md: rename [Unreleased] → [<version>] with today's date
 #   5. git commit + annotated tag (NO push)
 #   6. Print explicit maintainer-review-required push instructions
@@ -86,30 +86,38 @@ log "Phase 2/5 · dotnet test (unit only; IntegrationTests / Sample.Tests / Inte
 dotnet test --solution tests/kun-unit.slnf -c Release --no-build
 
 # ---------------------------------------------------------------------------
-# Phase 3: AOT publish sweep
+# Phase 3: AOT smoke host
 # ---------------------------------------------------------------------------
 # The AOT list has a single source: projects whose csproj sets
-# IsAotCompatible=true, listed by scripts/aot_projects.py (one project file per
-# line, relative to the repository root). There is no copy of it in this script.
-AOT_PROJECTS="$(python3 "$(dirname "${BASH_SOURCE[0]}")/aot_projects.py")"
-if [ -z "$AOT_PROJECTS" ]; then
-  err "scripts/aot_projects.py listed no AOT projects"
-  exit 1
-fi
-log "Phase 3/5 · AOT publish sweep ($(printf '%s\n' "$AOT_PROJECTS" | wc -l | tr -d ' ') projects)"
+# IsAotCompatible=true, listed by scripts/aot_projects.py. tests/Kun.AotSmoke
+# references every one of them and roots each assembly whole
+# (TrimmerRootAssembly), so ILC analyses all of their code. The steps below are
+# the ones the CI aot-smoke job in .github/workflows/ci.yml runs.
+#
+# This phase used to `dotnet publish -p:PublishAot=true` each library in the
+# list instead. A library publishes as a native shared library with no ILC
+# roots, so none of its own code was analysed; and the command-line PublishAot
+# flows into every project reference, which fails restore for the
+# netstandard2.0 analyzer projects (NETSDK1207) and turns the AOT analyzers on
+# in dependencies that are not AOT-compatible.
+log "Phase 3/5 · AOT smoke host (tests/Kun.AotSmoke)"
 
 if ! command -v clang >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1; then
-  warn "No clang / gcc on PATH — skipping AOT publish sweep."
+  warn "No clang / gcc on PATH — skipping the AOT smoke host."
   warn "The CI AOT smoke host job (tests/Kun.AotSmoke) is the authoritative AOT gate."
   warn "Install build-essential + clang + zlib1g-dev to run this phase locally."
 else
-  # dotnet reads from /dev/null so it cannot swallow the rest of the list on stdin.
-  while IFS= read -r project; do
-    log "    AOT publish: $project"
-    dotnet publish "$project" -c Release -r linux-x64 \
-      -p:PublishAot=true -p:TreatWarningsAsErrors=true \
-      --verbosity minimal --nologo < /dev/null
-  done <<< "$AOT_PROJECTS"
+  python3 "$(dirname "${BASH_SOURCE[0]}")/aot_projects.py" --check
+  AOT_SMOKE_OUT="$(mktemp -d "${TMPDIR:-/tmp}/kun-aot-smoke.XXXXXX")"
+  dotnet publish tests/Kun.AotSmoke/Kun.AotSmoke.csproj -c Release -r linux-x64 \
+    -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false \
+    -o "$AOT_SMOKE_OUT" --verbosity minimal --nologo < /dev/null
+  if [ -e "$AOT_SMOKE_OUT/Kun.AotSmoke.dll" ]; then
+    err "tests/Kun.AotSmoke was not published as NativeAOT: its csproj must set PublishAot"
+    exit 1
+  fi
+  "$AOT_SMOKE_OUT/Kun.AotSmoke"
+  rm -rf "$AOT_SMOKE_OUT"
 fi
 
 # ---------------------------------------------------------------------------

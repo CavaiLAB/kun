@@ -5,7 +5,7 @@
 
 - tests/Kun.AotSmoke 引用其中每一个，并对每个程序集整体扎根（TrimmerRootAssembly），CI 的「AOT 冒烟宿主」作业
   原生发布后运行它；
-- scripts/release.sh 发版前逐个发布它们；
+- scripts/release.sh 发版前照这个作业的做法核对、原生发布并运行冒烟宿主；
 - 门禁自测（仓库根的 tests/gates）与本脚本的 --check 核对冒烟宿主的项目引用正好等于清单。
 
 写了 IsAotCompatible=true 的项目，SDK 打开 IsTrimmable 与裁剪、AOT、单文件三个分析器，普通构建里就查。

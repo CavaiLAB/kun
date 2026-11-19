@@ -60,3 +60,7 @@ override Kun.Security.S2sTokenOptions.GetHashCode() -> int
 override Kun.Security.S2sTokenOptions.ToString() -> string!
 static Kun.Security.S2sTokenOptions.operator !=(Kun.Security.S2sTokenOptions? left, Kun.Security.S2sTokenOptions? right) -> bool
 static Kun.Security.S2sTokenOptions.operator ==(Kun.Security.S2sTokenOptions? left, Kun.Security.S2sTokenOptions? right) -> bool
+Kun.Security.Authentication.S2sPrincipalContract
+static Kun.Security.Authentication.PrincipalClaims.ReadS2s(System.Security.Claims.ClaimsPrincipal? identity, System.Text.Json.JsonElement payload, System.DateTimeOffset now, out Kun.Security.Principal? snapshot) -> string?
+static Kun.Security.Authentication.S2sPrincipalContract.Validate(Kun.Security.Principal! principal, System.DateTimeOffset now) -> string?
+static Kun.Security.Authentication.S2sPrincipalContract.ValidateIdentity(Kun.Security.Principal! principal) -> string?

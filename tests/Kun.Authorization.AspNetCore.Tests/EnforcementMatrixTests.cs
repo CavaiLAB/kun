@@ -69,7 +69,7 @@ public sealed class EnforcementMatrixTests
         {
             if (mode == "platform") state.RegisterPlatform(builder.Services);
             else state.RegisterLibrary(builder.Services);
-            builder.Services.AddGrpc(options => options.AddKunAuthorizationInterceptor());
+            builder.Services.AddKunGrpc(options => options.AddKunAuthorizationInterceptor());
         }
 
         await using var app = builder.Build();
@@ -179,7 +179,7 @@ public sealed class EnforcementMatrixTests
             Audience = ["matrix"],
             Subject = "test-user",
             Kind = PrincipalKind.User,
-            TenantId = scenario.StartsWith("platform-", StringComparison.Ordinal) ? null : "tenant-a",
+            TenantId = scenario.StartsWith("platform-", StringComparison.Ordinal) ? null : "00000000-0000-4000-8000-00000000000a",
             IdentityRevision = scenario == "stale" ? 1 : null,
             Actor = scenario == "delegated" ? new DelegationActor { Kind = PrincipalKind.Service, Subject = "test-service" } : null,
             Roles = [],
@@ -239,7 +239,7 @@ public sealed class EnforcementMatrixTests
             if (state.Anonymous) return Task.FromResult(AuthenticateResult.NoResult());
             var principal = state.Principal;
             var claims = new List<Claim> { new("sub", principal.Subject), new("principal_kind", "user") };
-            if (principal.TenantId is not null) claims.Add(new("tenant_id", principal.TenantId));
+            claims.Add(principal.TenantId is { } tenantId ? new Claim("tenant_id", tenantId) : new Claim("tenant_id", "", "JSON_NULL"));
             if (principal.Actor is not null) claims.Add(new("act", "{}"));
             if (principal.IdentityRevision is not null) claims.Add(new("identity_revision", "1"));
             var identity = new ClaimsIdentity(claims, Scheme.Name);

@@ -19,6 +19,9 @@ internal sealed class OidcDiscoveryDocument
     [JsonPropertyName("authorization_endpoint")] public string AuthorizationEndpoint { get; set; } = string.Empty;
     [JsonPropertyName("token_endpoint")] public string TokenEndpoint { get; set; } = string.Empty;
     [JsonPropertyName("userinfo_endpoint")] public string? UserInfoEndpoint { get; set; }
+    [JsonPropertyName("code_challenge_methods_supported")] public string[]? ChallengeMethods { get; set; }
+    [JsonPropertyName("token_endpoint_auth_methods_supported")] public string[]? AuthenticationMethods { get; set; }
+    [JsonPropertyName("authorization_response_iss_parameter_supported")] public bool RequiresIssuerParameter { get; set; }
     [JsonPropertyName("jwks_uri")] public string JwksUri { get; set; } = string.Empty;
 }
 

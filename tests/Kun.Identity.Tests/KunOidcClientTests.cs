@@ -24,6 +24,25 @@ public sealed class KunOidcClientTests
         provider.Handler.LastAuthorization.Should().Be("Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("test-client:s%3Ae+c")));
     }
 
+    [Fact]
+    public void Defaults_ExposeTheSupportedSigningAlgorithmsAndClockSkew()
+    {
+        var options = new KunOidcClientOptions();
+        options.AllowedSigningAlgorithms.Should().BeEquivalentTo(
+            "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512");
+        options.ClockSkew.Should().Be(TimeSpan.FromMinutes(2));
+        options.AllowAdditionalAudiences.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CodeExchange_UsesConfiguredAsymmetricAlgorithmAndAuthorizedAudiences()
+    {
+        using var provider = new ProtocolFixture(SecurityAlgorithms.RsaSsaPssSha384, additionalAudience: true);
+        var tokens = await provider.Client.ExchangeCodeAsync(provider.Request, TestContext.Current.CancellationToken);
+        tokens.ValidatedPrincipal!.FindAll("aud").Select(claim => claim.Value).Should().BeEquivalentTo("test-client", "profile-api");
+        tokens.ValidatedPrincipal.FindFirst("azp")!.Value.Should().Be("test-client");
+    }
+
     [Theory]
     [InlineData("nonce")]
     [InlineData("issuer")]
@@ -94,30 +113,40 @@ public sealed class KunOidcClientTests
         internal ProtocolHandler Handler { get; }
         internal KunOidcClient Client { get; }
         internal OidcCodeExchange Request { get; } = new("auth-code", "https://app.test/callback", new string('a', 64), "nonce-value");
-        public ProtocolFixture()
+        private readonly string _algorithm;
+        private readonly bool _additionalAudience;
+
+        public ProtocolFixture(string algorithm = SecurityAlgorithms.RsaSha256, bool additionalAudience = false)
         {
+            _algorithm = algorithm;
+            _additionalAudience = additionalAudience;
             Clock.SetUtcNow(DateTimeOffset.UtcNow);
             var key = _key.ExportParameters(false);
-            var jwks = JsonSerializer.Serialize(new { keys = new[] { new { kty = "RSA", kid = "test-key", alg = "RS256", use = "sig", n = Base64UrlEncoder.Encode(key.Modulus!), e = Base64UrlEncoder.Encode(key.Exponent!) } } });
+            var jwks = JsonSerializer.Serialize(new { keys = new[] { new { kty = "RSA", kid = "test-key", alg = algorithm, use = "sig", n = Base64UrlEncoder.Encode(key.Modulus!), e = Base64UrlEncoder.Encode(key.Exponent!) } } });
             Handler = new ProtocolHandler(jwks) { Token = Token() };
-            Client = new KunOidcClient(new KunOidcClientOptions { Name = "test", Authority = Authority, ClientId = "test-client", ClientSecret = "s:e c" }, new Factory(Handler), Clock);
+            Client = new KunOidcClient(new KunOidcClientOptions { Name = "test", Authority = Authority, ClientId = "test-client", ClientSecret = "s:e c", AllowedSigningAlgorithms = [algorithm], AllowAdditionalAudiences = additionalAudience }, new Factory(Handler), Clock);
         }
         internal string Token(string? fault = null, bool logout = false)
         {
             var now = Clock.GetUtcNow().UtcDateTime;
             var claims = new Dictionary<string, object> { ["sub"] = "user-a", ["sid"] = "provider-session", ["jti"] = Guid.NewGuid().ToString("N") };
+            if (_additionalAudience)
+            {
+                claims["aud"] = new[] { "test-client", "profile-api" };
+                claims["azp"] = "test-client";
+            }
             if (!logout || fault == "nonce") claims["nonce"] = fault == "nonce" ? "wrong-nonce" : "nonce-value";
             if (logout) claims["events"] = new Dictionary<string, object> { ["http://schemas.openid.net/event/backchannel-logout"] = new Dictionary<string, object>() };
             using var other = RSA.Create(2048);
             return new JwtSecurityTokenHandler().CreateEncodedJwt(new SecurityTokenDescriptor
             {
                 Issuer = fault == "issuer" ? "https://other.test" : Authority,
-                Audience = fault == "audience" ? "other-client" : "test-client",
-                IssuedAt = now.AddMinutes(-2),
-                NotBefore = now.AddMinutes(-2),
-                Expires = fault == "expiry" ? now.AddMinutes(-1) : now.AddMinutes(2),
+                Audience = _additionalAudience ? null : fault == "audience" ? "other-client" : "test-client",
+                IssuedAt = now.AddMinutes(-5),
+                NotBefore = now.AddMinutes(-5),
+                Expires = fault == "expiry" ? now.AddMinutes(-3) : now.AddMinutes(2),
                 Claims = claims,
-                SigningCredentials = new SigningCredentials(new RsaSecurityKey(fault == "signature" ? other : _key) { KeyId = "test-key" }, SecurityAlgorithms.RsaSha256)
+                SigningCredentials = new SigningCredentials(new RsaSecurityKey(fault == "signature" ? other : _key) { KeyId = "test-key" }, _algorithm)
             });
         }
         public void Dispose() { Client.Dispose(); Handler.Dispose(); _key.Dispose(); }

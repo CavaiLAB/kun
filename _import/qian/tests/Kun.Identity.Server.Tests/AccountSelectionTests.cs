@@ -63,14 +63,17 @@ public sealed class AccountSelectionTests(PostgresFixture postgres) : IClassFixt
         Assert.Equal((b.Id, inB.Id), (switched.Body.GetProperty("tenant_id").GetGuid(), switched.Body.GetProperty("membership_id").GetGuid()));
         // 回到 return_url：没有 prompt，直接签发授权码；换码后 id_token 带 name（乙方成员），访问令牌没有 name。
         string code;
+        string? responseIssuer;
         using (var issued = await browser.Http.GetAsync(resume, Ct))
         {
             Assert.Equal(HttpStatusCode.Redirect, issued.StatusCode);
             Assert.StartsWith(host.Redirect, issued.Headers.Location!.ToString(), StringComparison.Ordinal);
-            code = QueryHelpers.ParseQuery(issued.Headers.Location!.Query)["code"].ToString();
+            var query = QueryHelpers.ParseQuery(issued.Headers.Location!.Query);
+            code = query["code"].ToString();
+            responseIssuer = query.TryGetValue("iss", out var issuer) ? issuer.ToString() : null;
         }
         using var kun = host.Kun("web");
-        var tokens = await kun.ExchangeCodeAsync(new(code, host.Redirect, verifier, nonce), Ct);
+        var tokens = await kun.ExchangeCodeAsync(new(code, host.Redirect, verifier, nonce) { ResponseIssuer = responseIssuer }, Ct);
         Assert.Equal("乙方成员", tokens.ValidatedPrincipal!.FindFirst("name")!.Value);
         Assert.Equal(Id(b.Id), tokens.ValidatedPrincipal.FindFirst("tenant_id")!.Value);
         var access = new JsonWebToken(tokens.AccessToken);
@@ -95,13 +98,16 @@ public sealed class AccountSelectionTests(PostgresFixture postgres) : IClassFixt
         Assert.Equal("authenticated", login.Body.GetProperty("status").GetString());
         var (verifier, nonce, authorize) = Authorize(host, null);
         string code;
+        string? responseIssuer;
         using (var issued = await browser.Http.GetAsync(authorize, Ct))
         {
             Assert.Equal(HttpStatusCode.Redirect, issued.StatusCode);
-            code = QueryHelpers.ParseQuery(issued.Headers.Location!.Query)["code"].ToString();
+            var query = QueryHelpers.ParseQuery(issued.Headers.Location!.Query);
+            code = query["code"].ToString();
+            responseIssuer = query.TryGetValue("iss", out var issuer) ? issuer.ToString() : null;
         }
         using var kun = host.Kun("web");
-        var tokens = await kun.ExchangeCodeAsync(new(code, host.Redirect, verifier, nonce), Ct);
+        var tokens = await kun.ExchangeCodeAsync(new(code, host.Redirect, verifier, nonce) { ResponseIssuer = responseIssuer }, Ct);
         Assert.Equal("运营", tokens.ValidatedPrincipal!.FindFirst("name")!.Value);
         Assert.Equal(Id(operatorPerson.Id), tokens.ValidatedPrincipal.FindFirst("sub")!.Value);
         Assert.False(new JsonWebToken(tokens.AccessToken).TryGetClaim("name", out _));

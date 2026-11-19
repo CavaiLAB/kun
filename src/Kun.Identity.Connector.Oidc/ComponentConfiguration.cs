@@ -71,6 +71,22 @@ internal static class ComponentConfiguration
               ],
               "description": "支持的终端。"
             },
+            "allowedSigningAlgorithms": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "enum": ["RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512"] }
+            },
+            "allowAdditionalAudiences": {
+              "type": "boolean",
+              "default": true
+            },
+            "clockSkewSeconds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300,
+              "default": 120
+            },
             "requireHttps": {
               "type": "boolean",
               "default": true,

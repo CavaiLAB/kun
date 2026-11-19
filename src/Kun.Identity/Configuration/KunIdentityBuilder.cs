@@ -41,7 +41,8 @@ public sealed class KunIdentityBuilder
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(configure);
-        Services.AddHttpClient(OidcHttpClientName(name));
+        Services.AddHttpClient(OidcHttpClientName(name), client => client.Timeout = TimeSpan.FromSeconds(30))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
         Services.TryAddSingleton(TimeProvider.System);
 
         // Register the options twice: once as a named options entry so

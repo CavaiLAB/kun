@@ -22,6 +22,24 @@ public sealed class OidcConnectorTests : IDisposable
         _connector = new OidcIdentityConnector(Options(), _secrets, _op, _clock);
     }
 
+    [Fact]
+    public void 组件配置允许按发行方收窄算法_受众与容差()
+    {
+        var options = OidcConnectorOptions.FromConfig(System.Text.Json.JsonSerializer.SerializeToElement(new
+        {
+            issuer = FakeOpenIdProvider.Issuer,
+            clientId = FakeOpenIdProvider.ClientId,
+            clientSecret = FakeOpenIdProvider.SecretRef,
+            allowedSigningAlgorithms = (string[])["RS384", "ES256"],
+            allowAdditionalAudiences = false,
+            clockSkewSeconds = 30
+        }));
+        Assert.Equal(["RS384", "ES256"], options.AllowedSigningAlgorithms);
+        Assert.False(options.AllowAdditionalAudiences);
+        Assert.Equal(TimeSpan.FromSeconds(30), options.ClockSkew);
+        Assert.True(Options().AllowAdditionalAudiences);
+    }
+
     public void Dispose() { _connector.Dispose(); _op.Dispose(); }
 
     private static OidcConnectorOptions Options(string? secret = null) => new()

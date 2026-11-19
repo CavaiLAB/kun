@@ -111,7 +111,7 @@ internal static partial class IdentityClientEndpoints
             return;
         }
         var issuer = query["iss"];
-        if (issuer.Count > 1 || issuer.Count == 1 && issuer[0] != discovery.Issuer || issuer.Count == 0 && options.RequireIssuerParameter)
+        if (issuer.Count > 1 || issuer.Count == 1 && issuer[0] != discovery.Issuer || issuer.Count == 0 && (options.RequireIssuerParameter || discovery.RequiresIssuerParameter))
         {
             await Reject(http, "iss", IdentityErrors.OidcIssuerMismatch).ConfigureAwait(false);
             return;
@@ -132,7 +132,8 @@ internal static partial class IdentityClientEndpoints
         OidcTokenResponse tokens;
         try
         {
-            tokens = await client.ExchangeCodeAsync(new OidcCodeExchange(authorizationCode, options.RedirectUri.AbsoluteUri, transaction.CodeVerifier, transaction.Nonce), ct).ConfigureAwait(false);
+            tokens = await client.ExchangeCodeAsync(new OidcCodeExchange(authorizationCode, options.RedirectUri.AbsoluteUri, transaction.CodeVerifier, transaction.Nonce)
+            { ResponseIssuer = issuer.Count == 0 ? null : issuer[0] }, ct).ConfigureAwait(false);
         }
         catch (Exception error) when (error is HttpRequestException or InvalidOperationException or JsonException or SecurityTokenException or ArgumentException or FormatException or TaskCanceledException && !ct.IsCancellationRequested)
         {

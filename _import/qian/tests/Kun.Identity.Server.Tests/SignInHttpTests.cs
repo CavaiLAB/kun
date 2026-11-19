@@ -21,7 +21,7 @@ public sealed class SignInHttpTests(PostgresFixture postgres) : IClassFixture<Po
 
     private static string Code(JsonElement problem) => problem.GetProperty("code").GetString()!;
 
-    private static async Task<(string Code, string Verifier, string Nonce)> RequireCode(AccountsHost.Browser browser)
+    private static async Task<(string Code, string Verifier, string Nonce, string? ResponseIssuer)> RequireCode(AccountsHost.Browser browser)
     {
         var code = await browser.Code();
         Assert.NotNull(code);
@@ -30,8 +30,8 @@ public sealed class SignInHttpTests(PostgresFixture postgres) : IClassFixture<Po
 
     private static async Task<OidcTokenResponse> Tokens(AccountsHost.Running host, AccountsHost.Browser browser, KunOidcClient client)
     {
-        var (code, verifier, nonce) = await RequireCode(browser);
-        return await client.ExchangeCodeAsync(new(code, host.Redirect, verifier, nonce), Ct);
+        var (code, verifier, nonce, responseIssuer) = await RequireCode(browser);
+        return await client.ExchangeCodeAsync(new(code, host.Redirect, verifier, nonce) { ResponseIssuer = responseIssuer }, Ct);
     }
 
     [Fact]

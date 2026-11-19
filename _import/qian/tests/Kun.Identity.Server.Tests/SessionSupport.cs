@@ -59,7 +59,7 @@ internal static partial class SessionSupport
         var code = await browser.Code(client);
         Assert.NotNull(code);
         using var kun = host.Kun(client);
-        var tokens = await kun.ExchangeCodeAsync(new(code.Value.Code, Redirect(host, client), code.Value.Verifier, code.Value.Nonce), Ct);
+        var tokens = await kun.ExchangeCodeAsync(new(code.Value.Code, Redirect(host, client), code.Value.Verifier, code.Value.Nonce) { ResponseIssuer = code.Value.ResponseIssuer }, Ct);
         return (Guid.ParseExact(new JsonWebToken(tokens.AccessToken).GetClaim("sid").Value, "D"), tokens);
     }
 

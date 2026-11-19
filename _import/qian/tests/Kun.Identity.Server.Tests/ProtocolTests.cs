@@ -26,7 +26,7 @@ public sealed partial class ProtocolTests(PostgresFixture postgres) : IClassFixt
         Assert.Equal(host.Issuer, discovery.RootElement.GetProperty("issuer").GetString());
         using var client = host.Kun("web");
         var code = await host.Code();
-        var tokens = await client.ExchangeCodeAsync(new(code.Code, host.Redirect, code.Verifier, code.Nonce), Ct);
+        var tokens = await client.ExchangeCodeAsync(new(code.Code, host.Redirect, code.Verifier, code.Nonce) { ResponseIssuer = code.ResponseIssuer }, Ct);
         Assert.Equal(host.Person.ToString(), tokens.ValidatedPrincipal!.FindFirst("sub")!.Value);
         Assert.Equal(host.Tenant.ToString(), tokens.ValidatedPrincipal.FindFirst("tenant_id")!.Value);
         Assert.InRange(tokens.ExpiresIn, 895, 900);
@@ -42,10 +42,10 @@ public sealed partial class ProtocolTests(PostgresFixture postgres) : IClassFixt
         var nonceCode = await host.Code();
         using var transport = new NonceTamperFactory(host.Certificate);
         using var tampered = new KunOidcClient(new KunOidcClientOptions { Name = "nonce-negative", Authority = host.Issuer, ClientId = "web", ClientSecret = host.Secret, RequireHttpsMetadata = false }, transport);
-        await Assert.ThrowsAsync<SecurityTokenValidationException>(() => tampered.ExchangeCodeAsync(new(nonceCode.Code, host.Redirect, nonceCode.Verifier, nonceCode.Nonce), Ct));
+        await Assert.ThrowsAsync<SecurityTokenValidationException>(() => tampered.ExchangeCodeAsync(new(nonceCode.Code, host.Redirect, nonceCode.Verifier, nonceCode.Nonce) { ResponseIssuer = nonceCode.ResponseIssuer }, Ct));
         Assert.True(transport.Modified);
         var wrongVerifier = await host.Code();
-        await Assert.ThrowsAsync<HttpRequestException>(() => client.ExchangeCodeAsync(new(wrongVerifier.Code, host.Redirect, new string('a', 64), wrongVerifier.Nonce), Ct));
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.ExchangeCodeAsync(new(wrongVerifier.Code, host.Redirect, new string('a', 64), wrongVerifier.Nonce) { ResponseIssuer = wrongVerifier.ResponseIssuer }, Ct));
         using var noPkce = await host.Browser.GetAsync(QueryHelpers.AddQueryString("connect/authorize", new Dictionary<string, string?>
         { ["client_id"] = "web", ["response_type"] = "code", ["scope"] = "openid", ["redirect_uri"] = host.Redirect, ["nonce"] = "required" }), Ct);
         Assert.DoesNotContain("code=", noPkce.Headers.Location?.Query ?? "", StringComparison.Ordinal);
@@ -81,7 +81,7 @@ public sealed partial class ProtocolTests(PostgresFixture postgres) : IClassFixt
     {
         await using var first = await Start(); await using var second = await Start(first);
         using var client = first.Kun("web"); var code = await first.Code();
-        var tokens = await client.ExchangeCodeAsync(new(code.Code, first.Redirect, code.Verifier, code.Nonce), Ct);
+        var tokens = await client.ExchangeCodeAsync(new(code.Code, first.Redirect, code.Verifier, code.Nonce) { ResponseIssuer = code.ResponseIssuer }, Ct);
         using var refresh = await second.Grant("web", new() { ["grant_type"] = "refresh_token", ["refresh_token"] = tokens.RefreshToken! });
         Assert.True(refresh.IsSuccessStatusCode, await refresh.Content.ReadAsStringAsync(Ct));
         using var rotated = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(Ct));
@@ -95,7 +95,7 @@ public sealed partial class ProtocolTests(PostgresFixture postgres) : IClassFixt
     public async Task 登出必须CSRF确认_持久后通道通知经Kun验签_旧刷新被拒_日志无会话或密钥原文()
     {
         await using var host = await Start(); using var client = host.Kun("web"); var code = await host.Code();
-        var tokens = await client.ExchangeCodeAsync(new(code.Code, host.Redirect, code.Verifier, code.Nonce), Ct);
+        var tokens = await client.ExchangeCodeAsync(new(code.Code, host.Redirect, code.Verifier, code.Nonce) { ResponseIssuer = code.ResponseIssuer }, Ct);
         host.Backchannel.Failures = 1;
         var logout = new Dictionary<string, string> { ["id_token_hint"] = tokens.IdToken!, ["post_logout_redirect_uri"] = host.Issuer + "signed-out" };
         using (var rejected = await host.Browser.PostAsync("connect/logout", new FormUrlEncodedContent(logout), Ct))
@@ -130,7 +130,7 @@ public sealed partial class ProtocolTests(PostgresFixture postgres) : IClassFixt
     public async Task 公开客户端也强制PKCE_重启轮换保留旧钥并用新钥签发_JWKS不泄露私钥()
     {
         await using var oldHost = await Start(); using var client = oldHost.Kun("public"); var code = await oldHost.Code("public");
-        var tokens = await client.ExchangeCodeAsync(new(code.Code, oldHost.Issuer + "public-callback", code.Verifier, code.Nonce), Ct);
+        var tokens = await client.ExchangeCodeAsync(new(code.Code, oldHost.Issuer + "public-callback", code.Verifier, code.Nonce) { ResponseIssuer = code.ResponseIssuer }, Ct);
         var oldAccess = new JsonWebToken(tokens.AccessToken);
         await oldHost.StopAsync();
         await using var rotated = await IdentityProtocolHost.Start(postgres, oldHost, rotateSigningKey: true, reuseAddress: true);

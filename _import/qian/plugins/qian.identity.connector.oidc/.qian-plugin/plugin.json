@@ -60,7 +60,7 @@
         "$generated": true,
         "component": "qian.identity.connector.oidc",
         "source": "Kun.Identity.Connector.Oidc.OidcConnectorComponent, Kun.Identity.Connector.Oidc",
-        "sha256": "14b4c669025a857e0c46599b0b3062443a05f4401e35d6aac52e8512abf6e9d1",
+        "sha256": "bbbad70fb4718e562c8f8b5d21d3104e03f79b7cb734b6bf0edd3ebdc7045b3d",
         "fields": [
           ""
         ]

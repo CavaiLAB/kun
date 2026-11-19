@@ -237,3 +237,12 @@ static Kun.Identity.OidcTokenResponse.operator !=(Kun.Identity.OidcTokenResponse
 static Kun.Identity.OidcTokenResponse.operator ==(Kun.Identity.OidcTokenResponse? left, Kun.Identity.OidcTokenResponse? right) -> bool
 static Kun.Identity.SessionData.operator !=(Kun.Identity.SessionData? left, Kun.Identity.SessionData? right) -> bool
 static Kun.Identity.SessionData.operator ==(Kun.Identity.SessionData? left, Kun.Identity.SessionData? right) -> bool
+Kun.Identity.Configuration.KunOidcClientOptions.AllowAdditionalAudiences.get -> bool
+Kun.Identity.Configuration.KunOidcClientOptions.AllowAdditionalAudiences.set -> void
+Kun.Identity.Configuration.KunOidcClientOptions.AllowedSigningAlgorithms.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Identity.Configuration.KunOidcClientOptions.AllowedSigningAlgorithms.set -> void
+Kun.Identity.Configuration.KunOidcClientOptions.ClockSkew.get -> System.TimeSpan
+Kun.Identity.Configuration.KunOidcClientOptions.ClockSkew.set -> void
+Kun.Identity.OidcCodeExchange.ResponseIssuer.get -> string?
+Kun.Identity.OidcCodeExchange.ResponseIssuer.init -> void
+Kun.Identity.OidcConfiguration.RequiresIssuerParameter.get -> bool

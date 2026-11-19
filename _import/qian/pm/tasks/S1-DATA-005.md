@@ -12,7 +12,7 @@ estimate: 1d
 depends: [S1-DATA-003]
 refs:
   - docs/prd/07-s1-foundation.md#7.6
-  - packages/Qian.Data/README.md
+  - ../../src/Kun.Data/README.md
 updated: 2026-10-15
 ---
 

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType><PublishAot>true</PublishAot><IlcTreatWarningsAsErrors>true</IlcTreatWarningsAsErrors>
+    <OutputType>Exe</OutputType><IsPackable>false</IsPackable><PublishAot>true</PublishAot><IlcTreatWarningsAsErrors>true</IlcTreatWarningsAsErrors>
     <TrimmerSingleWarn>false</TrimmerSingleWarn><InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>

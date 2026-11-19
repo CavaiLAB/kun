@@ -71,7 +71,7 @@ public static class PlatformSurfaceHost
     // 平台控制台用组件的全局上下文，只给不带租户的请求（平台身份）；租户成员的请求按不存在拒绝，与目录服务自己的主体检查一致。
     private static IPluginContext Global(Func<string, IPluginContext> component, string id, HttpContext http)
     {
-        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId?.ToString("D"))) throw new ErrorException(new Error(PlatformErrors.NotFound));
+        if (http.RequestServices.GetRequiredService<ITenantContext>().TenantId is not null) throw new ErrorException(new Error(PlatformErrors.NotFound));
         try { return component(id); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
         { throw new ErrorException(new Error(PlatformErrors.NotFound)); }

@@ -167,7 +167,7 @@ public static class PlatformHost
     // 去掉这里结果不变（同为 404 NOT_FOUND）；外部契约由 PlatformHostTests 第一例「租户主体访问平台控制台目录 404」钉住。
     private static IPluginContext Console(HttpContext http, PlatformRuntime runtime)
     {
-        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId?.ToString("D"))) throw new ErrorException(new Error(PlatformErrors.NotFound));
+        if (http.RequestServices.GetRequiredService<ITenantContext>().TenantId is not null) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return runtime.Global("capabilities");
     }
 }

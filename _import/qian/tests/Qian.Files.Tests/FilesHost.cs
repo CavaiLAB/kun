@@ -419,8 +419,10 @@ internal sealed class FilesHostRuntime(IServiceProvider services, ITenantContext
 
     public ValueTask DisposeAsync() => _loader.DisposeAsync();
 
+    // qian.files 的组件目录从仓库拷进来做预装绑定，版本要与它的清单一致；其余组件的清单按这里的版本现写。
     private static PluginDefinition Define(string id, string component, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null) => new(
-        new PluginEntry(id, component, "1.0.0", ScopeKey.Global, 0, config as JsonElement? ?? JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
+        new PluginEntry(id, component, component == "qian.files" ? FilesMetadata.Version() : "1.0.0", ScopeKey.Global, 0,
+            config as JsonElement? ?? JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
 }
 
 // 仓库里 qian.files 的权限与角色声明（plugins/qian.files/metadata），按授权组件的同一编译器编成目录。
@@ -431,15 +433,25 @@ internal static class FilesMetadata
         var root = Path.Combine(RepositoryRoot(), "plugins", "qian.files", "metadata");
         using var permissions = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "permissions.json")));
         using var roles = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "roles.json")));
-        return new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata("qian.files", "1.0.0", permissions.RootElement, roles.RootElement);
+        return new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata("qian.files", Version(), permissions.RootElement, roles.RootElement);
     }
 
     // 清单的 provides（具名项形如 Files.Backends:local，与 ctx.Provide(key, name, …) 提供的服务键同名）。
     internal static IReadOnlyList<ServiceKey> Provides()
     {
-        using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins", "qian.files", ".qian-plugin", "plugin.json")));
+        using var manifest = Manifest();
         return [.. manifest.RootElement.GetProperty("provides").EnumerateArray().Select(item => new ServiceKey(item.GetString()!))];
     }
+
+    // 清单的组件版本：组件文件夹改了文件要升版本（S1-DEC-037），测试跟着清单走，不写死。
+    internal static string Version()
+    {
+        using var manifest = Manifest();
+        return manifest.RootElement.GetProperty("version").GetString()!;
+    }
+
+    private static JsonDocument Manifest() =>
+        JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins", "qian.files", ".qian-plugin", "plugin.json")));
 
     internal static string RepositoryRoot()
     {

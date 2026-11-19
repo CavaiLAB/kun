@@ -5,6 +5,9 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeBuildOutput>false</IncludeBuildOutput><DevelopmentDependency>true</DevelopmentDependency>
+    <!-- 只带分析器（下面另以 None 打进 analyzers/dotnet/cs），包里没有编译输出，出不了有内容的符号包；
+         发版核对对这样的包免符号包，也不许带（见 scripts/release_packages.py）。 -->
+    <IncludeSymbols>false</IncludeSymbols>
   </PropertyGroup>
   <PropertyGroup Label="档位">
     <KunTier>kernel</KunTier>

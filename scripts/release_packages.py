@@ -14,6 +14,9 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
       - 名单里的包之间的依赖都在本次产物里，下限钉在 V；与名单同前缀、却不在名单里的依赖也算缺；
       - 符号包（.snupkg）都有对应的包，项目写了 IncludeSymbols=true 的都出了符号包；
       - 许可是 MIT 表达式；仓库地址是本仓库，带的提交号是本次检出的提交；
+      - 作者、版权、项目地址与 src/Directory.Build.props 写的一致（仓库地址也照它）；描述不空，也不写过渡目录的名字
+        （取 _import/ 下各子目录的名字，首字母大写后区分大小写地查，不写死；小写的运行期字面
+        如组件 id、Cookie 名不算）；
       - 内核档的包不依赖平台档的包；
       - 稳定版不带预发布依赖，除非项目在 NoWarn 里写了 NU5104（有意为之，比如上游只发预发布版）。
         打包时要传 -p:WarningsNotAsErrors=NU5104，让 NU5104 先不挡打包，由这里按项目判。
@@ -25,6 +28,8 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
   exception    项目文件里记着档位例外 KunTierException，包括例外带来的内核档依赖平台档
   repository   包里的仓库地址不是本仓库，或没带提交号（过渡子目录的打包设置还没跟上）
   symbols      没出符号包
+  metadata     作者、版权、项目地址与 src/Directory.Build.props 不一致
+  description  描述是空的，或写着过渡目录的名字
   prerelease   稳定版带预发布依赖，项目却没写 NoWarn NU5104
 
 退出码：0 通过；1 核对不通过；2 工具出错。自测在 scripts/tests/test_release_packages.py。
@@ -49,9 +54,12 @@ from check_deps import ROLES, TIERS, GateError, ROOT, _env, _metadata, _rel, sol
 from release_version import release_info  # noqa: E402
 
 SOLUTION = ROOT / "Kun.slnx"
-REPOSITORY = "https://github.com/CavaiLAB/kun.git"
+METADATA_PROPS = ROOT / "src" / "Directory.Build.props"
+METADATA = ("Authors", "Copyright", "PackageProjectUrl", "RepositoryUrl")
+LEGACY_ROOT = ROOT / "_import"
 PREFIX = "Kun."
 LICENSE = "MIT"
+DEFAULT_DESCRIPTION = "Package Description"  # SDK 在项目没写 Description 时填的
 PROPERTIES = ("IsPackable", "PackageId", "KunTier", "KunRole", "IsAotCompatible", "IncludeSymbols", "NoWarn")
 EXCEPTION_ITEM = "KunTierException"
 TRANSITIONAL = {
@@ -59,6 +67,8 @@ TRANSITIONAL = {
     "exception": "项目文件里记着档位例外 KunTierException（含例外带来的内核档依赖平台档）",
     "repository": "包里的仓库地址不是本仓库，或没带提交号",
     "symbols": "没出符号包",
+    "metadata": "作者、版权、项目地址与 src/Directory.Build.props 不一致",
+    "description": "描述是空的，或写着过渡目录的名字",
     "prerelease": "稳定版带预发布依赖，项目没写 NoWarn NU5104",
 }
 NUSPEC_LIMIT = 1_048_576
@@ -148,6 +158,31 @@ def check_list(packages: List[Package], transitional: bool) -> Report:
     return report
 
 
+# ---------- 期望的元数据 ----------
+
+def expected_metadata(props: Path = METADATA_PROPS) -> Dict[str, str]:
+    """src/ 下的包统一用的元数据：作者、版权、项目地址、仓库地址，取 props 里第一处写法。"""
+    try:
+        root = ET.fromstring(props.read_bytes())
+    except (OSError, ET.ParseError) as error:
+        raise GateError(f"读不出 {_rel(props)}：{error}") from error
+    found: Dict[str, str] = {}
+    for element in root.iter():
+        name = _local(element.tag)
+        if name in METADATA and name not in found and (element.text or "").strip():
+            found[name] = element.text.strip()
+    missing = [name for name in METADATA if name not in found]
+    if missing:
+        raise GateError(f"{_rel(props)} 里没写 {'、'.join(missing)}")
+    return found
+
+
+def legacy_names(root: Path = LEGACY_ROOT) -> List[str]:
+    """过渡目录下各子目录的名字（本仓库现在的名字除外），描述里不该再写它们。目录不在了就没有。"""
+    current = PREFIX.rstrip(".").lower()
+    return sorted(d.name for d in root.iterdir() if d.is_dir() and d.name.lower() != current) if root.is_dir() else []
+
+
 # ---------- 制品 ----------
 
 def _local(tag: str) -> str:
@@ -182,6 +217,10 @@ def read_nuspec(path: Path) -> dict:
     return {
         "id": text("id"),
         "version": text("version"),
+        "authors": text("authors"),
+        "copyright": text("copyright"),
+        "projectUrl": text("projectUrl"),
+        "description": text("description"),
         "license": (license_node.get("type", ""), (license_node.text or "").strip()) if license_node is not None else None,
         "repository": {"url": repository.get("url", ""), "commit": repository.get("commit", "")} if repository is not None else None,
         "dependencies": sorted({(node.get("id", ""), re.sub(r"\s+", "", node.get("version", "")))
@@ -197,7 +236,10 @@ def lower_bound(range_text: str) -> str:
     return text
 
 
-def verify(packages: List[Package], directory: Path, version: str, commit: str, transitional: bool) -> Report:
+def verify(packages: List[Package], directory: Path, version: str, commit: str, transitional: bool,
+           expected: Optional[Dict[str, str]] = None, legacy: Optional[List[str]] = None) -> Report:
+    expected = expected if expected is not None else expected_metadata()
+    legacy = legacy if legacy is not None else legacy_names()
     report = check_list(packages, transitional)
     listed = {p.id.lower(): p for p in packages}
     prefixes = {p.id.split(".", 1)[0].lower() + "." for p in packages}
@@ -248,10 +290,19 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str, 
         repository = spec["repository"] or {}
         if repository.get("commit") and repository["commit"] != commit:
             report.problems.append(f"{package.id} 带的提交号是 {repository['commit']}，不是本次检出的 {commit}：包不是从这次检出打的")
-        if repository.get("url") != REPOSITORY or not repository.get("commit"):
-            gaps = ([] if repository.get("url") == REPOSITORY else ["仓库地址不是本仓库" if repository.get("url") else "没有仓库地址"]) \
+        if repository.get("url") != expected["RepositoryUrl"] or not repository.get("commit"):
+            gaps = ([] if repository.get("url") == expected["RepositoryUrl"] else ["仓库地址不是本仓库" if repository.get("url") else "没有仓库地址"]) \
                 + ([] if repository.get("commit") else ["没带提交号"])
             report.strict_only(transitional, "repository", f"{package.id}（{'、'.join(gaps)}）")
+        wrong = [label for label, actual, wanted in (("作者", spec["authors"], expected["Authors"]),
+                                                      ("版权", spec["copyright"], expected["Copyright"]),
+                                                      ("项目地址", spec["projectUrl"], expected["PackageProjectUrl"])) if actual != wanted]
+        if wrong:
+            report.strict_only(transitional, "metadata", f"{package.id}（{'、'.join(wrong)}不对）")
+        if spec["description"] in ("", DEFAULT_DESCRIPTION):
+            report.strict_only(transitional, "description", f"{package.id}（描述是空的）")
+        elif any(name[:1].upper() + name[1:] in spec["description"] for name in legacy):
+            report.strict_only(transitional, "description", f"{package.id}（描述里写着过渡目录的名字）")
         for dependency, range_text in spec["dependencies"]:
             target = dependency.lower()
             if target in listed:

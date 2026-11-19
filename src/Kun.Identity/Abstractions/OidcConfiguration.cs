@@ -11,4 +11,9 @@ public sealed record OidcConfiguration(
     string AuthorizationEndpoint,
     string TokenEndpoint,
     string? UserInfoEndpoint,
-    string JwksUri);
+    string JwksUri)
+{
+    internal bool UsesPostAuthentication { get; init; }
+    /// <summary>Whether the provider includes the issuer in authorization responses (RFC 9207).</summary>
+    public bool RequiresIssuerParameter { get; internal init; }
+}

@@ -226,7 +226,7 @@ internal static class AccountsHost
             Json(HttpMethod.Post, "api/identity/login/select", new { ticket, membership_id = membership });
 
         /// <summary>完成授权码流程，返回 code 与 PKCE 材料；没有有效账号 Cookie 时返回 null（被引导去登录）。</summary>
-        internal async Task<(string Code, string Verifier, string Nonce)?> Code(string client = "web")
+        internal async Task<(string Code, string Verifier, string Nonce, string? ResponseIssuer)?> Code(string client = "web")
         {
             var verifier = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(48)); var nonce = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(24));
             var redirect = client == "web" ? host.Redirect : host.Issuer + "mobile-callback";
@@ -237,7 +237,7 @@ internal static class AccountsHost
             }), Ct);
             if (response.StatusCode != HttpStatusCode.Redirect) return null;
             var query = QueryHelpers.ParseQuery(response.Headers.Location!.Query);
-            return query.TryGetValue("code", out var code) ? (code.ToString(), verifier, nonce) : null;
+            return query.TryGetValue("code", out var code) ? (code.ToString(), verifier, nonce, query.TryGetValue("iss", out var responseIssuer) ? responseIssuer.ToString() : null) : null;
         }
     }
 

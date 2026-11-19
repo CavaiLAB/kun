@@ -13,7 +13,8 @@ public sealed class OidcLoginService(ChallengeHelper challenges, IEnumerable<IOi
             ?? throw new InvalidOperationException("OIDC browser transaction is invalid, expired or already consumed.");
         var client = clients.SingleOrDefault(value => value.Name == transaction.Client)
             ?? throw new InvalidOperationException("OIDC client is no longer registered.");
-        var tokens = await client.ExchangeCodeAsync(new OidcCodeExchange(code, transaction.RedirectUri!, transaction.CodeVerifier, transaction.Nonce), cancellationToken).ConfigureAwait(false);
+        var tokens = await client.ExchangeCodeAsync(new OidcCodeExchange(code, transaction.RedirectUri!, transaction.CodeVerifier, transaction.Nonce)
+        { ResponseIssuer = context.Request.Query.TryGetValue("iss", out var issuer) ? issuer.ToString() : null }, cancellationToken).ConfigureAwait(false);
         await signIn.SignInAsync(context, tokens, cancellationToken).ConfigureAwait(false);
         return transaction.ReturnUrl;
     }

@@ -1,7 +1,7 @@
-using System.Net;
 using System.Text.Json;
 using Kun.Errors;
 using Kun.Identity.Abstractions;
+using Kun.Identity.Implementations;
 using Qian.Config;
 
 namespace Kun.Identity.Connector.Oidc;
@@ -29,6 +29,13 @@ public sealed class OidcConnectorOptions
     /// <summary>是否要求 https；只允许对回环地址的 issuer 关闭（本机开发与测试）。</summary>
     public bool RequireHttps { get; init; } = true;
 
+    /// <summary>可接受的签名算法，为 RS、PS、ES 三族九种算法的非空子集。</summary>
+    public IReadOnlyList<string> AllowedSigningAlgorithms { get; init; } = KunOidcClient.SigningAlgorithms;
+    /// <summary>是否允许 azp 为本客户端的多受众令牌。</summary>
+    public bool AllowAdditionalAudiences { get; init; } = true;
+    /// <summary>校验令牌签发与有效期的时钟容差，范围 0 到 5 分钟。</summary>
+    public TimeSpan ClockSkew { get; init; } = TimeSpan.FromMinutes(2);
+
     /// <inheritdoc />
     public override string ToString() => "OidcConnectorOptions(redacted)";
 
@@ -40,7 +47,7 @@ public sealed class OidcConnectorOptions
         if (string.IsNullOrWhiteSpace(DisplayName)) errors.Add(new FieldError(PlatformErrors.Required, "#/displayName"));
         else if (DisplayName.Length > 64 || DisplayName.Any(char.IsControl)) errors.Add(new FieldError(PlatformErrors.OutOfRange, "#/displayName"));
         if (string.IsNullOrEmpty(Issuer)) errors.Add(new FieldError(PlatformErrors.Required, "#/issuer"));
-        else if (!IsAllowedEndpoint(Issuer, RequireHttps, out _)) errors.Add(new FieldError(PlatformErrors.FormatInvalid, "#/issuer"));
+        else if (!KunOidcClient.IsAllowedEndpoint(Issuer, RequireHttps)) errors.Add(new FieldError(PlatformErrors.FormatInvalid, "#/issuer"));
         if (string.IsNullOrWhiteSpace(ClientId)) errors.Add(new FieldError(PlatformErrors.Required, "#/clientId"));
         else if (ClientId.Length > 256 || ClientId.Any(char.IsControl)) errors.Add(new FieldError(PlatformErrors.OutOfRange, "#/clientId"));
         if (string.IsNullOrEmpty(ClientSecret)) errors.Add(new FieldError(PlatformErrors.Required, "#/clientSecret"));
@@ -56,6 +63,8 @@ public sealed class OidcConnectorOptions
             for (var i = 0; i < Terminals.Count; i++)
                 if (!ConnectorTerminals.All.Contains(Terminals[i]) || Terminals.Take(i).Contains(Terminals[i]))
                     errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("terminals", i)));
+        if (!KunOidcClient.AreValidAlgorithms(AllowedSigningAlgorithms)) errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, "#/allowedSigningAlgorithms"));
+        if (ClockSkew < TimeSpan.Zero || ClockSkew > TimeSpan.FromMinutes(5)) errors.Add(new FieldError(PlatformErrors.OutOfRange, "#/clockSkewSeconds"));
         return errors;
     }
 
@@ -88,14 +97,21 @@ public sealed class OidcConnectorOptions
             return null;
         }
         foreach (var property in config.EnumerateObject())
-            if (property.Name is not ("name" or "displayName" or "issuer" or "clientId" or "clientSecret" or "scopes" or "terminals" or "requireHttps"))
+            if (property.Name is not ("name" or "displayName" or "issuer" or "clientId" or "clientSecret" or "scopes" or "terminals" or "requireHttps" or "allowedSigningAlgorithms" or "allowAdditionalAudiences" or "clockSkewSeconds"))
                 errors.Add(new FieldError(PlatformErrors.UnknownProperty, ErrorPointer.Input(property.Name)));
         var defaults = new OidcConnectorOptions();
-        var requireHttps = defaults.RequireHttps;
-        if (config.TryGetProperty("requireHttps", out var flag))
+        bool Flag(string name, bool fallback)
         {
-            if (flag.ValueKind is JsonValueKind.True or JsonValueKind.False) requireHttps = flag.GetBoolean();
-            else errors.Add(new FieldError(PlatformErrors.TypeMismatch, "#/requireHttps"));
+            if (!config.TryGetProperty(name, out var value)) return fallback;
+            if (value.ValueKind is JsonValueKind.True or JsonValueKind.False) return value.GetBoolean();
+            errors.Add(new FieldError(PlatformErrors.TypeMismatch, "#/" + name));
+            return fallback;
+        }
+        var skew = defaults.ClockSkew;
+        if (config.TryGetProperty("clockSkewSeconds", out var seconds))
+        {
+            if (seconds.ValueKind == JsonValueKind.Number && seconds.TryGetInt32(out var amount)) skew = TimeSpan.FromSeconds(amount);
+            else errors.Add(new FieldError(PlatformErrors.TypeMismatch, "#/clockSkewSeconds"));
         }
         var options = new OidcConnectorOptions
         {
@@ -106,18 +122,13 @@ public sealed class OidcConnectorOptions
             ClientSecret = Text("clientSecret") ?? "",
             Scopes = List("scopes") ?? defaults.Scopes,
             Terminals = List("terminals") ?? defaults.Terminals,
-            RequireHttps = requireHttps
+            RequireHttps = Flag("requireHttps", defaults.RequireHttps),
+            AllowedSigningAlgorithms = List("allowedSigningAlgorithms") ?? defaults.AllowedSigningAlgorithms,
+            AllowAdditionalAudiences = Flag("allowAdditionalAudiences", defaults.AllowAdditionalAudiences),
+            ClockSkew = skew
         };
         errors.AddRange(options.Check());
         if (errors.Count > 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [.. errors.Take(100)] });
         return options;
-    }
-
-    // 上游地址：绝对 URI、无凭据与 fragment；https，或在关闭 https 要求时为回环地址的 http。
-    internal static bool IsAllowedEndpoint(string value, bool requireHttps, out Uri? uri)
-    {
-        if (!Uri.TryCreate(value, UriKind.Absolute, out uri) || uri.UserInfo.Length != 0 || uri.Fragment.Length != 0) return false;
-        if (uri.Scheme == Uri.UriSchemeHttps) return true;
-        return uri.Scheme == Uri.UriSchemeHttp && !requireHttps && (uri.IsLoopback || IPAddress.TryParse(uri.Host, out var address) && IPAddress.IsLoopback(address));
     }
 }

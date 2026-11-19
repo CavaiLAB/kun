@@ -225,10 +225,11 @@ public abstract partial class CustomerCommandTests
             ["code_challenge_method"] = "S256", ["code_challenge"] = Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)))
         }), Ct);
         Assert.Equal(HttpStatusCode.Redirect, authorize.StatusCode);
-        var code = QueryHelpers.ParseQuery(authorize.Headers.Location!.Query)["code"].ToString();
+        var query = QueryHelpers.ParseQuery(authorize.Headers.Location!.Query);
+        var code = query["code"].ToString();
         using var kun = new KunOidcClient(new KunOidcClientOptions { Name = "web", Authority = parts.Issuer, ClientId = "web", ClientSecret = parts.Secret, RequireHttpsMetadata = false },
             host.App.Services.GetRequiredService<IHttpClientFactory>());
-        return await kun.ExchangeCodeAsync(new(code, parts.Issuer + "callback", verifier, nonce), Ct);
+        return await kun.ExchangeCodeAsync(new(code, parts.Issuer + "callback", verifier, nonce) { ResponseIssuer = query.TryGetValue("iss", out var issuer) ? issuer.ToString() : null }, Ct);
     }
 
     private protected static Task<HttpResponseMessage> AsUser(RunningApp host, string? token, string path)

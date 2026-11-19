@@ -45,6 +45,7 @@ public static class IdentityClientHosting
         services.AddHttpClient(IdentityClientDefaults.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10))
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false });
         services.AddSingleton<IdentityClientRuntime>();
+        services.AddSingleton<IIdentitySessionRuntime>(provider => provider.GetRequiredService<IdentityClientRuntime>());
         services.AddSingleton<IdentityAccessTokens>();
         services.AddSingleton(provider => new IdentitySessionTokens(provider.GetRequiredService<IdentityClientRuntime>(), provider.GetRequiredService<TimeProvider>(),
             provider.GetRequiredService<ILogger<IdentitySessionTokens>>()));
@@ -54,7 +55,7 @@ public static class IdentityClientHosting
         // Kun 的登录事务按发行方名称读取 ClientId；密钥不进选项，只在挂载后的 Kun 客户端内部持有。
         services.Configure<KunOidcClientOptions>(IdentityClientDefaults.ProviderName, kun =>
         {
-            kun.Name = IdentityClientDefaults.ProviderName; kun.Authority = options.Authority.AbsoluteUri; kun.ClientId = options.ClientId;
+            kun.Name = IdentityClientDefaults.ProviderName; kun.Authority = options.Authority.OriginalString; kun.ClientId = options.ClientId;
             kun.DiscoveryRefreshInterval = options.DiscoveryRefreshInterval; kun.RequireHttpsMetadata = options.RequireHttpsMetadata;
         });
         services.AddSingleton<IOidcClient, ForwardingOidcClient>();
@@ -96,7 +97,7 @@ public static class IdentityClientHosting
             kun.Issuer = options.Issuer; kun.Audience = options.Audience; kun.JwksUri = options.JwksUri?.AbsoluteUri; kun.StaticKeySet = options.SigningKeys;
         });
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<TimeProvider, ILoggerFactory>((jwt, clock, loggers) =>
-            IdentityS2sValidation.Configure(jwt, options, clock, loggers.CreateLogger("Kun.Identity.Client")));
+            IdentityS2sValidation.Configure(jwt, options.Issuer, options.Audience, clock, loggers.CreateLogger("Kun.Identity.Client")));
         AddCurrentUser(services);
         return services;
     }

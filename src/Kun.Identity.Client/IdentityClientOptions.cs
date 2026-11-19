@@ -6,7 +6,7 @@ namespace Kun.Identity.Client;
 public static class IdentityClientDefaults
 {
     /// <summary>浏览器会话 Cookie 名；值是 256 位不透明会话标识，不是令牌。</summary>
-    public const string SessionCookieName = "qian.sid";
+    public const string SessionCookieName = IdentitySessionTokens.CookieName;
     /// <summary>Cookie 会话的规范主体方案（配置了 <see cref="IdentityClientOptions.Resource"/> 时为缺省方案）。</summary>
     public const string SessionScheme = "qian.session";
     /// <summary>S2S 令牌校验方案；沿用 Kun.Security 服务认证的固定方案名。</summary>

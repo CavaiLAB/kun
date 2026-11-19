@@ -37,3 +37,9 @@ Kun.Identity.Connector.Oidc.OidcConnectorComponent
 Kun.Identity.Connector.Oidc.OidcConnectorComponent.OidcConnectorComponent() -> void
 Kun.Identity.Connector.Oidc.OidcConnectorComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Kun.Identity.Connector.Oidc.OidcConnectorComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.AllowAdditionalAudiences.get -> bool
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.AllowAdditionalAudiences.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.AllowedSigningAlgorithms.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.AllowedSigningAlgorithms.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.ClockSkew.get -> System.TimeSpan
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.ClockSkew.init -> void

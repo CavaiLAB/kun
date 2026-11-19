@@ -1,10 +1,10 @@
 # Kun.Identity.Client
 
-身份 seam 的依赖方（RP）Provider，薄包装 Kun.Identity / Kun.Identity.AspNetCore / Kun.Security，不复制它们的实现：
+身份 seam 的依赖方（RP）Provider。它装配身份服务与连接器端口、浏览器端点和组件配置。主体、服务认证和会话复用 Kun.Identity.AspNetCore，授权码交换复用 Kun.Identity。
 
 - **浏览器会话（BFF）**：服务端授权码 + PKCE（S256）换取，校验 `state`（一次性、防重放）、RFC 9207 `iss`、id_token 的签名 / 受众 / `nonce`；会话放在 Cookie `qian.sid`（256 位不透明标识，HttpOnly、Secure、SameSite=Lax），令牌只留在服务端会话存储里。
 - **刷新**：访问令牌到期前用 refresh token 换新；同一会话在进程内只发一次刷新请求，跨副本用 Kun 会话注册表的一次性标记互斥（qian-identity 开启了 refresh 轮换与零容忍复用检测，并发复用会吊销整族）；刷新失败即结束会话。
-- **discovery 定期刷新**：元数据与 JWKS 按 `DiscoveryRefreshInterval`（缺省 5 分钟）过期重取，遇到未知签名密钥另行提前刷新（两次强制刷新至少间隔 30 秒）。
+- **discovery 定期刷新**：发现文档按 `DiscoveryRefreshInterval`（缺省 5 分钟）过期重取。OIDC 验签公钥缓存 1 小时，遇到未知签名密钥可提前刷新，两次强制刷新至少间隔 30 秒。
 - **下游 S2S 校验**：只信网关签发器的 issuer 与 JWKS，`aud` 必须恰好是本服务（每跳一个受众），载荷按冻结契约（[contracts/v0](../../_import/qian/contracts/v0/README.md) §4）逐条校验；上一跳收到的令牌转发给下一跳、用户访问令牌直接调用下游一律拒绝。Kun 的透传处理器 `PropagateS2sTokenHandler` / `AddKunServiceAuth` 在 BannedSymbols 里禁用。
 
 同一个包进 `platform`、`gateway` 与独立宿主（ADR-019）：独立宿主只装本包即可对接任意 OIDC 发行方，不部署 Qian 平台、不需要 Config 组件（公开客户端）。

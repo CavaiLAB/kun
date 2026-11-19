@@ -9,7 +9,7 @@ public sealed class KunOidcClientOptions
     /// <summary>
     /// Provider authority — used to resolve the OIDC discovery
     /// document at <c>{Authority}/.well-known/openid-configuration</c>.
-    /// The trailing slash is normalised by the client.
+    /// The issuer in discovery must match this value exactly.
     /// </summary>
     public string Authority { get; set; } = string.Empty;
 
@@ -23,4 +23,13 @@ public sealed class KunOidcClientOptions
 
     /// <summary>Require HTTPS for provider metadata and advertised endpoints. Disable only for local test providers.</summary>
     public bool RequireHttpsMetadata { get; set; } = true;
+
+    /// <summary>Accepted ID token signing algorithms. Only a nonempty subset of the RS, PS and ES families at 256, 384 and 512 bits is allowed.</summary>
+    public IReadOnlyList<string> AllowedSigningAlgorithms { get; set; } = Implementations.KunOidcClient.SigningAlgorithms;
+
+    /// <summary>Accept additional audiences when the authorized party is this client.</summary>
+    public bool AllowAdditionalAudiences { get; set; }
+
+    /// <summary>Clock tolerance for expiry, not-before and issued-at, from zero to five minutes.</summary>
+    public TimeSpan ClockSkew { get; set; } = TimeSpan.FromMinutes(2);
 }

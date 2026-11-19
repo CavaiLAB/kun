@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Kun.Identity.Tests" />
+    <InternalsVisibleTo Include="Kun.Identity.Client" />
   </ItemGroup>
 
 </Project>

@@ -49,8 +49,6 @@ Kun.Identity.Client.IdentityS2sOptions.JwksUri.get -> System.Uri?
 Kun.Identity.Client.IdentityS2sOptions.JwksUri.init -> void
 Kun.Identity.Client.IdentityS2sOptions.SigningKeys.get -> Microsoft.IdentityModel.Tokens.JsonWebKeySet?
 Kun.Identity.Client.IdentityS2sOptions.SigningKeys.init -> void
-Kun.Identity.Client.IdentitySessionTokens
-Kun.Identity.Client.IdentitySessionTokens.GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string?>
 const Kun.Identity.Client.IdentityClientDefaults.AntiforgeryHeader = "X-CSRF-TOKEN" -> string!
 const Kun.Identity.Client.IdentityClientDefaults.HttpClientName = "Kun.Identity.Client" -> string!
 const Kun.Identity.Client.IdentityClientDefaults.ProviderName = "qian" -> string!
@@ -67,3 +65,5 @@ Kun.Identity.Client.IdentityClientComponent
 Kun.Identity.Client.IdentityClientComponent.IdentityClientComponent() -> void
 Kun.Identity.Client.IdentityClientComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Kun.Identity.Client.IdentityClientComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Identity.Client.IdentitySessionTokens (forwarded, contained in Kun.Identity.AspNetCore)
+Kun.Identity.Client.IdentitySessionTokens.GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string?> (forwarded, contained in Kun.Identity.AspNetCore)

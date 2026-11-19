@@ -8,6 +8,13 @@
 
 ## [Unreleased]
 
+### Changed — OIDC 客户端与上游连接器（S1-KUN-026）
+
+- 两个入口共用发现、授权码交换与验签。配置的 issuer 必须与发现文档逐字相等，包括末尾斜杠。关闭 HTTPS 要求后仅允许回环 HTTP。回调应把授权响应中的 `iss` 原样传给 `OidcCodeExchange.ResponseIssuer`。声明支持 RFC 9207 的发行方必须返回该参数。
+- 客户端根据发现文档选用 Basic 或表单认证。令牌端点须返回 HTTP 200。出站请求限时 30 秒，单份响应上限 1 MiB，默认 HTTP 处理器关闭自动重定向。JWKS 缓存 1 小时，未知签名密钥可每隔 30 秒提前刷新。
+- `AllowedSigningAlgorithms` 默认接受 RS、PS、ES 三族各 256、384、512 位签名，可配置为其中的子集。`AllowAdditionalAudiences` 在应用侧默认关闭，在平台连接器默认开启。多个受众需要本客户端作为 `azp`。`ClockSkew` 默认 2 分钟，可设 0 至 5 分钟。需要原应用侧容差的宿主可设 `TimeSpan.FromSeconds(30)`。
+- 平台身份客户端保留服务端口、浏览器端点与组件配置。会话、主体和服务认证实现进入 `Kun.Identity.AspNetCore`，原包通过类型转发继续提供 `IdentitySessionTokens`。
+
 ### Changed — 身份平台项目（S1-KUN-026）
 
 - 身份包 `Qian.Identity.Abstractions`、`Qian.Identity.Client`、`Qian.Identity.Server`、`Qian.Identity.Connector.Oidc` 迁至仓库根 `src/`，包名与命名空间统一使用 `Kun.Identity.*`。宿主使用的 `AddQianIdentity…`、`MapQianIdentity…`、`UseQianIdentity…` 方法同步更名为 `AddKunIdentity…`、`MapKunIdentity…`、`UseKunIdentity…`。

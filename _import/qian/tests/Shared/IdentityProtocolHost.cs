@@ -132,8 +132,8 @@ internal static class IdentityProtocolHost
         internal string Redirect => issuer + "callback";
         internal Guid Person => person;
         internal Guid Tenant => tenant;
-        internal KunOidcClient Kun(string id) => new(new KunOidcClientOptions { Name = id, Authority = issuer, ClientId = id, ClientSecret = id == "public" ? "" : secret, RequireHttpsMetadata = false }, app.Services.GetRequiredService<IHttpClientFactory>());
-        internal async Task<(string Code, string Verifier, string Nonce)> Code(string client = "web")
+        internal KunOidcClient Kun(string id, TimeProvider? clock = null) => new(new KunOidcClientOptions { Name = id, Authority = issuer, ClientId = id, ClientSecret = id == "public" ? "" : secret, RequireHttpsMetadata = false }, app.Services.GetRequiredService<IHttpClientFactory>(), clock ?? TimeProvider.System);
+        internal async Task<(string Code, string Verifier, string Nonce, string? ResponseIssuer)> Code(string client = "web")
         {
             var verifier = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(48)); var nonce = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(24));
             using var response = await browser.GetAsync(QueryHelpers.AddQueryString("connect/authorize", new Dictionary<string, string?>
@@ -144,7 +144,7 @@ internal static class IdentityProtocolHost
             Assert.True(response.StatusCode == HttpStatusCode.Redirect, await response.Content.ReadAsStringAsync(Ct));
             var query = QueryHelpers.ParseQuery(response.Headers.Location!.Query);
             Assert.True(query.ContainsKey("code"), response.Headers.Location!.ToString());
-            return (query["code"].ToString(), verifier, nonce);
+            return (query["code"].ToString(), verifier, nonce, query.TryGetValue("iss", out var responseIssuer) ? responseIssuer.ToString() : null);
         }
         internal Task<HttpResponseMessage> Grant(string id, Dictionary<string, string> form) => ProtocolPost("connect/token", id, form);
         internal Task<HttpResponseMessage> ProtocolPost(string endpoint, string id, Dictionary<string, string> form)

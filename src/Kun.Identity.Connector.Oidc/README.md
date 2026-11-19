@@ -24,6 +24,9 @@ Apply 按配置构造 `OidcIdentityConnector`，以配置的 `name`（缺省 `oi
 | `displayName` | 登录页按钮上的名称，缺省「企业身份源」 |
 | `scopes` | 缺省 `openid profile email`，必须含 `openid` |
 | `terminals` | 缺省 `pc`、`mobile` |
+| `allowedSigningAlgorithms` | 可收窄的签名算法列表，默认 RS、PS、ES 三族各 256、384、512 位 |
+| `allowAdditionalAudiences` | 默认 true。多受众令牌须含本客户端，且 azp 须为本客户端 |
+| `clockSkewSeconds` | 时间容差 0 至 300 秒，默认 120 秒，同时用于 iat、nbf、exp |
 | `requireHttps` | 缺省 true；只有 issuer 是回环地址时才允许关闭（本机开发与测试） |
 
 在上游登记的回调地址是 `{身份服务 issuer}connect/callback/{name}`，身份服务的连接器详情接口会给出 `callback_uri`。
@@ -33,13 +36,13 @@ Apply 按配置构造 `OidcIdentityConnector`，以配置的 `name`（缺省 `oi
 - **发现文档**：取 `{issuer}/.well-known/openid-configuration`，`issuer` 必须与配置逐字一致；授权、令牌与 JWKS 端点必须满足与 issuer 相同的传输要求（https，或关闭要求时的回环 http），不带用户信息。发现文档缓存 1 小时。上游声明了 `code_challenge_methods_supported` 却不含 S256 时拒绝。
 - **发起**：授权地址带 `response_type=code`、`client_id`、`redirect_uri`、`scope`、身份服务给的 `state` 与 `nonce`、由 `code_verifier` 算出的 S256 `code_challenge`。授权地址本身已有查询串时追加在后面。
 - **回调**：授权响应带 `iss` 时必须等于配置的 issuer；上游声明 `authorization_response_iss_parameter_supported` 时缺了它也拒绝（RFC 9207，防混淆攻击），这两种情况都是 `AUTH_CONNECTOR_STATE_INVALID`。换码默认 `client_secret_basic`（按 RFC 6749 先对 id 与 secret 做表单编码），上游只声明 `client_secret_post` 时放进表单；客户端密钥每次换码现取现用，不缓存明文。响应体上限 1 MiB，不跟随重定向。
-- **id_token**：签名只接受 RS / PS / ES 族（JWKS 里的对称密钥不参与验签，`alg: none` 与 HS 族一律拒绝），校验 `iss`、`aud`、`exp`（容差 2 分钟），`aud` 有多个值时 `azp` 必须是本客户端，给了 `azp` 也必须是本客户端，`sub` 必填；`nonce` 必须与本次请求一致（常量时间比较），否则 `AUTH_CONNECTOR_STATE_INVALID`。遇到未知 `kid` 刷新一次 JWKS 再验，强制刷新至少间隔 30 秒，伪造的 kid 不能逼它反复拉取；其余时候 JWKS 缓存 1 小时。
+- **id_token**：签名只接受 RS / PS / ES 族（JWKS 里的对称密钥不参与验签，`alg: none` 与 HS 族一律拒绝），校验 `iss`、`aud`、`iat`、`nbf` 与 `exp`，`aud` 有多个值时 `azp` 必须是本客户端，给了 `azp` 也必须是本客户端，`sub` 必填；`nonce` 必须与本次请求一致（常量时间比较），否则 `AUTH_CONNECTOR_STATE_INVALID`。遇到未知 `kid` 刷新一次 JWKS 再验，强制刷新至少间隔 30 秒，伪造的 kid 不能逼它反复拉取；其余时候 JWKS 缓存 1 小时。
 - **断言**：`Issuer` 为配置的 issuer，`Subject` 为 `sub`，`Profile` 只取 `name`、`preferred_username`、`email`、`email_verified`，`Amr` 取上游 `amr` 里的短字母数字项。
 - **失败**：上游不可达或响应无效、签名不符是 `BAD_GATEWAY`，超时是 `GATEWAY_TIMEOUT`；身份服务把它们记进流程并呈现给界面。
 
 ## 依赖边界
 
-只依赖 `Kun.Identity.Abstractions`、`Qian.Config.Abstractions`（secretRef 与密钥解析端口）与 `Microsoft.IdentityModel.JsonWebTokens`；不依赖 `Kun.Identity.Server` 实现包，CI 的依赖门禁（仓库根的 `scripts/check_deps.py`，平台档包不依赖别的平台档提供者）与仓库根 `tests/gates/test_check_deps.py` 的 `RealGraphTests` 对此把关。
+连接器通过内核 `Kun.Identity` 完成发现、换码、JWKS 刷新与验签。平台通过 `Kun.Identity.Abstractions` 提供身份端口，通过 `Qian.Config.Abstractions` 在每次换码时解析 secretRef。签名验证后的声明投影为本组件的 `ExternalAssertion`。依赖边界由 `scripts/check_deps.py` 和 `tests/gates/test_check_deps.py` 检查。
 
 ## 验收
 

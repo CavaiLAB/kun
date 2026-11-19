@@ -15,8 +15,8 @@ internal sealed partial class LifecycleController
 {
     public async ValueTask<TenantPluginInstallView> EntitleAsync(string tenantId, string pluginId, string actor, CancellationToken cancellationToken = default)
     {
-        CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor);
-        using var scope = tenant.BeginScope(tenantId);
+        var id = CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor);
+        using var scope = tenant.BeginScope(id);
         return await Locked(["install", tenantId, pluginId], async session =>
         {
             var row = await session.Context.Installs.SingleOrDefaultAsync(item => item.PluginId == pluginId, cancellationToken).ConfigureAwait(false);
@@ -31,8 +31,8 @@ internal sealed partial class LifecycleController
 
     public async ValueTask<TenantPluginInstallView> ProvisionAsync(string tenantId, string pluginId, string actor, CancellationToken cancellationToken = default)
     {
-        CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor);
-        using var scope = tenant.BeginScope(tenantId);
+        var id = CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor);
+        using var scope = tenant.BeginScope(id);
         using var origin = Origin();
         // 开通完成须入该租户审计链（ADR-009 D9.8）：宿主没有装配审计时在认领执行记录之前就拒绝，不留下停在 Provisioning 的安装行。
         var audit = RequireAudit(tenantId, "tenant-plugin.provision");
@@ -98,9 +98,9 @@ internal sealed partial class LifecycleController
 
     public async ValueTask<TenantPluginInstallView> UpgradeAsync(string tenantId, string pluginId, string fromVersion, string toVersion, string actor, CancellationToken cancellationToken = default)
     {
-        CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor); CheckVersion(fromVersion, "#/fromVersion"); CheckVersion(toVersion, "#/toVersion");
+        var id = CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor); CheckVersion(fromVersion, "#/fromVersion"); CheckVersion(toVersion, "#/toVersion");
         if (fromVersion == toVersion) throw LifecycleArtifact.Invalid("#/toVersion", "目标版本与当前版本相同。");
-        using var scope = tenant.BeginScope(tenantId);
+        using var scope = tenant.BeginScope(id);
         using var origin = Origin();
         var audit = RequireAudit(tenantId, "tenant-plugin.upgrade");
         var plan = await Locked(["install", tenantId, pluginId], async session =>
@@ -171,8 +171,8 @@ internal sealed partial class LifecycleController
 
     public async ValueTask<TenantPluginInstallView> UninstallAsync(string tenantId, string pluginId, string actor, CancellationToken cancellationToken = default)
     {
-        CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor);
-        using var scope = tenant.BeginScope(tenantId);
+        var id = CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor);
+        using var scope = tenant.BeginScope(id);
         using var origin = Origin();
         var audit = RequireAudit(tenantId, "tenant-plugin.uninstall");
         var plan = await Locked(["install", tenantId, pluginId], async session =>
@@ -211,8 +211,8 @@ internal sealed partial class LifecycleController
 
     public async ValueTask<TenantPluginInstallView> PurgeAsync(string tenantId, string pluginId, string actor, CancellationToken cancellationToken = default)
     {
-        CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor);
-        using var scope = tenant.BeginScope(tenantId);
+        var id = CheckTenant(tenantId); CheckPlugin(pluginId); CheckActor(actor);
+        using var scope = tenant.BeginScope(id);
         using var origin = Origin();
         var audit = RequireAudit(tenantId, "tenant-plugin.purge");
         var plan = await Locked(["install", tenantId, pluginId], async session =>
@@ -239,16 +239,16 @@ internal sealed partial class LifecycleController
 
     public async ValueTask<TenantPluginInstallView?> GetInstallAsync(string tenantId, string pluginId, CancellationToken cancellationToken = default)
     {
-        CheckTenant(tenantId); CheckPlugin(pluginId);
-        using var scope = tenant.BeginScope(tenantId);
+        var id = CheckTenant(tenantId); CheckPlugin(pluginId);
+        using var scope = tenant.BeginScope(id);
         await using var session = await context.Data().OpenAsync<LifecycleDbContext>(cancellationToken).ConfigureAwait(false);
         return (await session.Context.Installs.AsNoTracking().SingleOrDefaultAsync(item => item.PluginId == pluginId, cancellationToken).ConfigureAwait(false))?.View();
     }
 
     public async ValueTask<IReadOnlyList<LifecycleRunView>> GetRunsAsync(string tenantId, string pluginId, CancellationToken cancellationToken = default)
     {
-        CheckTenant(tenantId); CheckPlugin(pluginId);
-        using var scope = tenant.BeginScope(tenantId);
+        var id = CheckTenant(tenantId); CheckPlugin(pluginId);
+        using var scope = tenant.BeginScope(id);
         await using var session = await context.Data().OpenAsync<LifecycleDbContext>(cancellationToken).ConfigureAwait(false);
         var rows = await session.Context.Runs.AsNoTracking().Where(run => run.PluginId == pluginId).ToListAsync(cancellationToken).ConfigureAwait(false);
         return rows.OrderBy(run => run.StartedAt).ThenBy(run => run.Hook, StringComparer.Ordinal).Select(run => run.View()).ToArray();

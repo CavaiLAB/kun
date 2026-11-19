@@ -28,7 +28,7 @@ public static class LifecycleEndpoints
         endpoints.MapGet("/api/lifecycle/diagnostics", Task<IResult> (HttpContext http) => Respond(http, async (lifecycle, user) =>
         {
             var requested = http.Request.Query["scope"];
-            var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId;
+            var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId?.ToString("D");
             var text = requested.Count == 0 ? "tenant:" + tenant : requested.Count == 1 ? requested[0] ?? "" : "";
             var parts = text.Split(':', 2);
             if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0) return KunResults.Error(new Error(PlatformErrors.NotFound));

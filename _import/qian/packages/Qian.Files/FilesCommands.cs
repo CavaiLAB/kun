@@ -73,7 +73,7 @@ internal sealed class PresignUploadHandler(CommandDataSession<FilesDbContext> wo
     public async ValueTask<PresignedUpload> Handle(PresignUploadCommand request, CancellationToken cancellationToken)
     {
         var runtime = source.Resolve(services); var db = work.Context;
-        var tenantId = tenant.TenantId ?? throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        var tenantId = tenant.TenantId?.ToString("D") ?? throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         var policy = Validate(request, runtime, out var name, out var contentType, out var sha256);
         var now = runtime.Clock.GetUtcNow().UtcDateTime;
         var fingerprint = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', request.Purpose, name, request.Size, contentType, sha256))));

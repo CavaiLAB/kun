@@ -18,11 +18,11 @@ public sealed class PluginEnabledMiddleware(RequestDelegate next, PluginEndpoint
         context.Items.Remove(EvidenceKey);
         var endpoint = context.GetEndpoint(); var binding = endpoint?.Metadata.GetMetadata<PluginEndpointBinding>();
         if (binding is null) { await next(context).ConfigureAwait(false); return; }
-        if (context.User.Identity is not ClaimsIdentity { IsAuthenticated: true } identity || !tenant.IsMultiTenant || string.IsNullOrWhiteSpace(tenant.TenantId))
+        if (context.User.Identity is not ClaimsIdentity { IsAuthenticated: true } identity || !tenant.IsMultiTenant || tenant.TenantId is not { } tenantId || tenantId == Guid.Empty)
             throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         var claims = identity.FindAll("tenant_id").ToArray();
-        if (claims.Length != 1 || claims[0].Value != tenant.TenantId) throw NotFound();
-        var scope = new ScopeKey("tenant", tenant.TenantId);
+        if (claims.Length != 1 || claims[0].Value != tenantId.ToString("D")) throw NotFound();
+        var scope = new ScopeKey("tenant", tenantId.ToString("D"));
         IPluginContext registryContext;
         try { registryContext = options.RegistryContext(context.RequestServices); }
         catch (Exception error) when (error is InvalidOperationException or KeyNotFoundException) { throw NotFound(); }
@@ -42,7 +42,7 @@ public sealed class PluginEnabledMiddleware(RequestDelegate next, PluginEndpoint
     }
     internal static bool HasEvidence(HttpContext context, PluginEndpointBinding binding, ITenantContext tenant) =>
         context.Items.TryGetValue(EvidenceKey, out var value) && value is Evidence evidence && ReferenceEquals(evidence.Endpoint, context.GetEndpoint()) &&
-        ReferenceEquals(evidence.Binding, binding) && evidence.Scope.Kind == "tenant" && evidence.Scope.Id == tenant.TenantId;
+        ReferenceEquals(evidence.Binding, binding) && evidence.Scope.Kind == "tenant" && evidence.Scope.Id == tenant.TenantId?.ToString("D");
     internal static ErrorException NotFound() => new(new Error(PlatformErrors.NotFound));
     private sealed record Evidence(Endpoint Endpoint, PluginEndpointBinding Binding, ScopeKey Scope);
 }

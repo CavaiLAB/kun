@@ -18,11 +18,12 @@ internal static class DirectoryCapabilityGuard
     {
         var services = caller.Services.GetService<IHttpContextAccessor>()?.HttpContext?.RequestServices ?? caller.Services;
         var user = services.GetService<ICurrentUser>(); var principal = user?.Principal;
-        var tenant = services.GetRequiredService<ITenantContext>().TenantId;
-        if (string.IsNullOrWhiteSpace(tenant) || caller.Scope.Kind != "tenant" || caller.Scope.Id != tenant) throw Missing();
+        if (services.GetRequiredService<ITenantContext>().TenantId is not { } tenantId || tenantId == Guid.Empty) throw Missing();
+        var tenant = tenantId.ToString("D");
+        if (caller.Scope.Kind != "tenant" || caller.Scope.Id != tenant) throw Missing();
         if (user is not { IsAuthenticated: true } || principal is not { Kind: PrincipalKind.User, Actor: null } || user.UserId != principal.Subject ||
             principal.TenantId != tenant ||
-            !Guid.TryParseExact(tenant, "D", out var tenantId) || !Guid.TryParseExact(principal.Subject, "D", out var personId) ||
+            !Guid.TryParseExact(principal.Subject, "D", out var personId) ||
             !Guid.TryParseExact(principal.MembershipId, "D", out var memberId) || !Guid.TryParseExact(principal.SessionId, "D", out var sessionId) || principal.IdentityRevision is not { } revision)
             throw Denied();
         var permissions = services.GetService<IPermissionChecker>() ?? throw Denied();

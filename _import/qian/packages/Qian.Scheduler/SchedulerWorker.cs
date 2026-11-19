@@ -75,7 +75,7 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
     }
     private async Task ExecuteAsync(JobClaim claim)
     {
-        using var scope = tenant.BeginScope(claim.TenantId);
+        using var scope = tenant.BeginScope(Guid.ParseExact(claim.TenantId, "D"));
         using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
         Task? heartbeat = null;
         var begun = false;

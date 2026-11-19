@@ -71,7 +71,7 @@ public static class PlatformSurfaceHost
     // 平台控制台用组件的全局上下文，只给不带租户的请求（平台身份）；租户成员的请求按不存在拒绝，与目录服务自己的主体检查一致。
     private static IPluginContext Global(Func<string, IPluginContext> component, string id, HttpContext http)
     {
-        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId)) throw new ErrorException(new Error(PlatformErrors.NotFound));
+        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId?.ToString("D"))) throw new ErrorException(new Error(PlatformErrors.NotFound));
         try { return component(id); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
         { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
@@ -80,7 +80,7 @@ public static class PlatformSurfaceHost
     // 与参考宿主的 CapabilitySource / AuthzSource 同形：全局 Provider 上下文按请求租户收窄；没有租户（平台身份）即未认证，组件不在即 404。
     private static IPluginContext Scoped(Func<string, IPluginContext> component, string id, HttpContext http)
     {
-        var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId;
+        var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId?.ToString("D");
         if (!Guid.TryParseExact(tenant, "D", out var parsed) || parsed == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         try { return component(id).Scoped(new ScopeKey("tenant", tenant!)); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)

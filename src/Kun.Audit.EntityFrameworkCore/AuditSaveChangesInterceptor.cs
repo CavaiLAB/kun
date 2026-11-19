@@ -195,7 +195,7 @@ public sealed partial class AuditSaveChangesInterceptor : SaveChangesInterceptor
         var resourceId = ExtractResourceId(entry);
         var tenantId = entry.Entity is IMultiTenant multiTenant
             ? multiTenant.TenantId
-            : _tenantContext.TenantId;
+            : _tenantContext.TenantId?.ToString("D");
         var payloadJson = _options.CaptureEntityPayload ? BuildPayloadJson(entry) : null;
         var (actorId, actorType) = ResolveActor();
         var traceId = (_currentUser as ITracedCurrentUser)?.TraceId

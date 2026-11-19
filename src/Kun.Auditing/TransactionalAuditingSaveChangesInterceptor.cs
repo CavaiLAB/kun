@@ -52,14 +52,14 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
                 ? AuditActorType.User : auditContext.ActorType;
             var trace = auditContext.TraceId ?? Activity.Current?.TraceId.ToString();
             var resourceId = PrimaryKey(entry);
-            var @event = new AuditEventIntegrationEventV2(id, tenant.TenantId,
+            var @event = new AuditEventIntegrationEventV2(id, tenant.TenantId?.ToString("D"),
                 user.IsAuthenticated ? user.UserId : null, actorType, actor, entry.State.ToString(),
                 entry.Metadata.ClrType.Name, resourceId, trace, auditContext.IpAddress, now);
             var payload = JsonSerializer.Serialize(@event, AuditJsonContext.Default.AuditEventIntegrationEventV2);
             var log = new AuditLog
             {
                 Id = id,
-                TenantId = tenant.TenantId,
+                TenantId = tenant.TenantId?.ToString("D"),
                 ActorId = actor,
                 ActorType = actorType,
                 Action = @event.Action,
@@ -70,7 +70,7 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
                 IpAddress = auditContext.IpAddress
             };
             var message = new OutboxMessage(id, AuditingServiceCollectionExtensions.AuditEventV2StableId,
-                payload, tenant.TenantId, Activity.Current?.Id, Activity.Current?.TraceStateString, now);
+                payload, tenant.TenantId?.ToString("D"), Activity.Current?.Id, Activity.Current?.TraceStateString, now);
             context.Set<AuditLog>().Add(log);
             context.Set<OutboxMessage>().Add(message);
             pending.Add(log);

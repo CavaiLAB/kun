@@ -191,16 +191,16 @@ internal sealed partial class PostgresPatchRepository(IDataService data, ITenant
 
     private string Owner(ScopeKey scope)
     {
-        if (!tenant.IsMultiTenant || string.IsNullOrWhiteSpace(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
-        if (tenant.TenantId.Length > 200 || tenant.TenantId.Any(char.IsControl)) throw Invalid("#/scope", "租户上下文标识无效。");
+        if (!tenant.IsMultiTenant || tenant.TenantId is not { } id || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         if (!ScopeKinds.IsKnown(scope.Kind) || string.IsNullOrEmpty(scope.Id) || scope.Id.Length > 200 || scope.Id.Any(value => char.IsWhiteSpace(value) || value == ':'))
             throw Invalid("#/scope", "数据库 patch 必须属于合法租户、应用或会话 scope。");
-        if (scope.Kind == "tenant" && scope.Id != tenant.TenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
-        return tenant.TenantId;
+        var owner = id.ToString("D");
+        if (scope.Kind == "tenant" && scope.Id != owner) throw new ErrorException(new Error(PlatformErrors.NotFound));
+        return owner;
     }
     private void CheckOwner(string owner)
     {
-        if (!tenant.IsMultiTenant || tenant.TenantId != owner) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        if (!tenant.IsMultiTenant || tenant.TenantId?.ToString("D") != owner) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
     }
     private static string ScopeName(ScopeKey scope) => scope.Kind + ":" + scope.Id;
     private static void CheckEntry(string entryId)

@@ -44,11 +44,11 @@ public sealed class SecretResolverFactory : ISecretResolverFactory
     public ISecretResolver ForPlugin(IPluginContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return new Bound(this, context.Entry.Plugin, () => context.Services.GetService<ITenantContext>()?.TenantId, () =>
+        return new Bound(this, context.Entry.Plugin, () => context.Services.GetService<ITenantContext>()?.TenantId?.ToString("D"), () =>
         {
             // 每次使用都核对上下文仍然活动且 Config 可见，缓存解析器不能跨卸载继续使用。
             if (!ReferenceEquals(context.Config().Secrets, this)) throw Error(SecretErrors.AccessDenied);
-            var tenant = context.Services.GetService<ITenantContext>()?.TenantId;
+            var tenant = context.Services.GetService<ITenantContext>()?.TenantId?.ToString("D");
             if (context.Scope.Kind == "tenant" && context.Scope.Id != tenant) throw Error(SecretErrors.AccessDenied);
         });
     }
@@ -56,7 +56,7 @@ public sealed class SecretResolverFactory : ISecretResolverFactory
     public ISecretResolver ForHost(string policyId, ITenantContext? tenantContext = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(policyId);
-        return new Bound(this, policyId, () => tenantContext?.TenantId, static () => { });
+        return new Bound(this, policyId, () => tenantContext?.TenantId?.ToString("D"), static () => { });
     }
 
     private async ValueTask<SecretValue> ResolveAsync(string input, string caller, string? tenantId, Action check,

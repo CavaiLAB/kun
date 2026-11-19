@@ -75,7 +75,7 @@ internal sealed partial class PermissionBehavior<TRequest, TResponse>(IPermissio
         var kind = user.PrincipalKind;
         if (kind is not ("user" or "service" or "agent"))
             return denied(new Error(PlatformErrors.AuthzDenied));
-        var subject = new AuthorizationSubject(user.UserId, tenant?.TenantId, kind);
+        var subject = new AuthorizationSubject(user.UserId, tenant?.TenantId?.ToString("D"), kind);
         foreach (var permission in TRequest.RequiredPermissions)
         {
             if (string.IsNullOrWhiteSpace(permission) ||

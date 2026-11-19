@@ -54,7 +54,7 @@ internal sealed class OutboxAuditSink : IAuditSink
             id: Guid.NewGuid(),
             eventTypeId: AuditingServiceCollectionExtensions.AuditEventStableId,
             payload: payload,
-            tenantId: _tenantContext.TenantId,
+            tenantId: _tenantContext.TenantId?.ToString("D"),
             traceParent: activity?.Id,
             traceState: activity?.TraceStateString,
             occurredAt: DateTimeOffset.UtcNow);

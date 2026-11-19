@@ -89,7 +89,7 @@ internal sealed class AuditService(IDataService data, ITenantContext tenant, Sco
         lock (_gate)
         {
             ObjectDisposedException.ThrowIf(_stopping, this);
-            if (scope.Kind == "tenant" && tenant.TenantId != scope.Id) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
+            if (scope.Kind == "tenant" && tenant.TenantId?.ToString("D") != scope.Id) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             _pending++;
         }
         try

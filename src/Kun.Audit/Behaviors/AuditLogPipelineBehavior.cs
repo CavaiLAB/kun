@@ -111,12 +111,12 @@ public sealed partial class AuditLogPipelineBehavior<TRequest, TResponse> : IPip
         try
         {
             await _chain.AppendAsync(
-                _tenantContext.TenantId,
+                _tenantContext.TenantId?.ToString("D"),
                 async prev =>
                 {
                     var entry = new AuditEntry(
                         id,
-                        _tenantContext.TenantId,
+                        _tenantContext.TenantId?.ToString("D"),
                         _currentUser.UserId,
                         commandName,
                         occurredAt,

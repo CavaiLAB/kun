@@ -98,8 +98,8 @@ internal sealed partial class LifecycleController
 
     public async ValueTask<PermissionApprovalView?> GetApprovedPermissionsAsync(string tenantId, string pluginId, string version, CancellationToken cancellationToken = default)
     {
-        CheckTenant(tenantId); CheckPlugin(pluginId); CheckVersion(version, "#/version");
-        using var scope = tenant.BeginScope(tenantId);
+        var id = CheckTenant(tenantId); CheckPlugin(pluginId); CheckVersion(version, "#/version");
+        using var scope = tenant.BeginScope(id);
         return await Approval(pluginId, version, cancellationToken).ConfigureAwait(false);
     }
 

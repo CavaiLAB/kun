@@ -168,7 +168,7 @@ app.MapGet("/products/{id:guid}", async (Guid id, Kun.Mediator.ISender sender, C
 // Real services populate these from the S2S JWT claims in a middleware.
 app.MapGet("/health", () =>
 {
-    Activity.Current?.SetBaggage(KunBaggageKeys.TenantId, "demo-tenant-0001");
+    Activity.Current?.SetBaggage(KunBaggageKeys.TenantId, "01900000-0000-7000-8000-000000000001");
     Activity.Current?.SetBaggage(KunBaggageKeys.UserId, "demo-user-0001");
     return Results.Ok(new { status = "healthy" });
 });

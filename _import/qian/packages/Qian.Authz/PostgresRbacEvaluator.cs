@@ -28,30 +28,30 @@ internal sealed class PostgresRbacEvaluator(IDataService data, ITenantContext te
         var invalid = Validate(request.Subject);
         if (invalid is not null) return Deny(invalid, request.Permission);
         if (!PermissionCode.IsValid(request.Permission)) return Deny("invalid_permission", request.Permission);
-        var owner = tenant.TenantId!;
+        var owner = tenant.TenantId?.ToString("D")!;
         var snapshot = await LoadAsync(owner, request.Subject, identityRevision, ct).ConfigureAwait(false);
-        if (tenant.TenantId != owner) return Deny("tenant_context_changed", request.Permission);
+        if (tenant.TenantId?.ToString("D") != owner) return Deny("tenant_context_changed", request.Permission);
         return await EvaluateAsync(snapshot, owner, request, ct).ConfigureAwait(false);
     }
 
     internal async ValueTask<IReadOnlyList<string>> ListPermissionsAsync(AuthorizationSubject subject, CancellationToken ct)
     {
         if (Validate(subject) is not null) return [];
-        var owner = tenant.TenantId!;
+        var owner = tenant.TenantId?.ToString("D")!;
         var snapshot = await LoadAsync(owner, subject, null, ct).ConfigureAwait(false);
         var candidates = snapshot.Installs.SelectMany(install => registry.List(install.PluginId, install.Version)).Select(permission => permission.Code)
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         var allowed = new List<string>();
         foreach (var permission in candidates)
             if ((await EvaluateAsync(snapshot, owner, new PermissionRequest(subject, permission), ct).ConfigureAwait(false)).Decision.Allow) allowed.Add(permission);
-        return tenant.TenantId == owner ? allowed.AsReadOnly() : [];
+        return tenant.TenantId?.ToString("D") == owner ? allowed.AsReadOnly() : [];
     }
 
     // 经角色授予的权限点（含因 step-up / 终端条件当前未放行的），与 Check 用同一快照和同一求值；没有授予记录的权限点不列出。
     internal async ValueTask<IReadOnlyList<EffectiveGrant>> ListEffectiveAsync(AuthorizationSubject subject, CancellationToken ct)
     {
         if (Validate(subject) is not null) return [];
-        var owner = tenant.TenantId!;
+        var owner = tenant.TenantId?.ToString("D")!;
         var snapshot = await LoadAsync(owner, subject, null, ct).ConfigureAwait(false);
         var result = new List<EffectiveGrant>();
         foreach (var install in snapshot.Installs.OrderBy(row => row.PluginId, StringComparer.Ordinal))
@@ -60,7 +60,7 @@ internal sealed class PostgresRbacEvaluator(IDataService data, ITenantContext te
                 var explanation = await EvaluateAsync(snapshot, owner, new PermissionRequest(subject, definition.Code), ct).ConfigureAwait(false);
                 if (explanation.MatchedGrants.Count != 0) result.Add(new EffectiveGrant(definition, explanation.Decision.Allow, explanation.Decision.Reason));
             }
-        return tenant.TenantId == owner ? Array.AsReadOnly(result.OrderBy(item => item.Definition.Code, StringComparer.Ordinal).ToArray()) : [];
+        return tenant.TenantId?.ToString("D") == owner ? Array.AsReadOnly(result.OrderBy(item => item.Definition.Code, StringComparer.Ordinal).ToArray()) : [];
     }
 
     private async ValueTask<AuthorizationExplanation> EvaluateAsync(RbacSnapshot snapshot, string owner, PermissionRequest request, CancellationToken ct)
@@ -85,11 +85,11 @@ internal sealed class PostgresRbacEvaluator(IDataService data, ITenantContext te
             if (constraints is null) return new AuthorizationExplanation(new PermissionDecision(false,
                 definition.RequiresStepUp ? "step_up_required" : "terminal_context_required", Array.AsReadOnly(policies)), matchedRoles, matchedGrants, []);
             var constrained = await constraints.CheckAsync(request.Subject, definition, ct).ConfigureAwait(false);
-            if (tenant.TenantId != owner || !ReferenceEquals(registry.Find(request.Permission, install.Version), definition)) return Deny("evaluation_context_changed", request.Permission);
+            if (tenant.TenantId?.ToString("D") != owner || !ReferenceEquals(registry.Find(request.Permission, install.Version), definition)) return Deny("evaluation_context_changed", request.Permission);
             policies = policies.Concat(constrained.MatchedPolicies).Distinct(StringComparer.Ordinal).ToArray();
             if (!constrained.Allow) return new AuthorizationExplanation(new PermissionDecision(false, constrained.Reason, Array.AsReadOnly(policies)), matchedRoles, matchedGrants, []);
         }
-        if (tenant.TenantId != owner || !ReferenceEquals(registry.Find(request.Permission, install.Version), definition)) return Deny("permission_registration_changed", request.Permission);
+        if (tenant.TenantId?.ToString("D") != owner || !ReferenceEquals(registry.Find(request.Permission, install.Version), definition)) return Deny("permission_registration_changed", request.Permission);
         return new AuthorizationExplanation(new PermissionDecision(true, "role_grant", Array.AsReadOnly(policies)), matchedRoles, matchedGrants, []);
     }
 
@@ -116,7 +116,7 @@ internal sealed class PostgresRbacEvaluator(IDataService data, ITenantContext te
                             where roleIds.Contains(grant.RoleId) && grant.ResourceRef == null
                             select new SnapshotGrant(grant.Id, grant.RoleId, grant.PluginId, grant.PluginVersion, grant.PermissionCode)).ToArrayAsync(ct).ConfigureAwait(false);
         var snapshot = new RbacSnapshot(owner, subject.Kind, subject.Id, revision, installs, roles, grants);
-        if (key is not null && tenant.TenantId == owner)
+        if (key is not null && tenant.TenantId?.ToString("D") == owner)
             await cache!.SetBytesAsync(key, JsonSerializer.SerializeToUtf8Bytes(snapshot, AuthzJson.Default.RbacSnapshot), SnapshotTtl, ct).ConfigureAwait(false);
         return snapshot;
     }
@@ -135,11 +135,11 @@ internal sealed class PostgresRbacEvaluator(IDataService data, ITenantContext te
 
     private string? Validate(AuthorizationSubject subject)
     {
-        if (string.IsNullOrWhiteSpace(tenant.TenantId)) return "tenant_context_required";
+        if (tenant.TenantId is null) return "tenant_context_required";
         if (string.IsNullOrWhiteSpace(subject.Id) || subject.Id.Length > 200 || subject.Id.Any(char.IsControl) || subject.Kind is not ("user" or "service")) return "invalid_subject";
         // 平台主体（无租户）不进入租户 RBAC；平台超管只能经显式旁路 ISuperadminBypass 放行并审计。
         if (subject.TenantId is null) return "platform_subject_requires_bypass";
-        if (subject.TenantId != tenant.TenantId) return "subject_tenant_mismatch";
+        if (subject.TenantId != tenant.TenantId?.ToString("D")) return "subject_tenant_mismatch";
         return null;
     }
     private static AuthorizationExplanation Deny(string reason, string permission) => new(new PermissionDecision(false, reason, []), [], [],

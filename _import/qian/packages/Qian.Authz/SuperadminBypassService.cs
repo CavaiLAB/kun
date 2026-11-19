@@ -35,11 +35,11 @@ internal sealed class SuperadminBypassService(IDataService data, ITenantContext 
         // 审计链的租户键是规范 UUID；目标租户与当前租户上下文必须一致，平台资源要求无租户上下文。
         if (access.TenantId is not null && (!Guid.TryParseExact(access.TenantId, "D", out var parsed) || parsed == Guid.Empty || parsed.ToString("D") != access.TenantId))
             return Deny("invalid_tenant");
-        var current = string.IsNullOrEmpty(tenant.TenantId) ? null : tenant.TenantId;
+        var current = tenant.TenantId?.ToString("D");
         if (access.TenantId != current) return Deny("tenant_context_mismatch");
         if (!await RegisteredAsync(access, cancellationToken).ConfigureAwait(false)) return Deny("permission_not_registered");
         if (!await platform.IsSuperadminAsync(subject.Id, cancellationToken).ConfigureAwait(false)) return Deny("not_superadmin");
-        if ((string.IsNullOrEmpty(tenant.TenantId) ? null : tenant.TenantId) != current) return Deny("tenant_context_changed");
+        if ((tenant.TenantId?.ToString("D")) != current) return Deny("tenant_context_changed");
         if (producer.TryInject<IAuditService>(AuditDefinition.Key) is not { } audit) return Deny("audit_unavailable");
         try
         {
@@ -61,7 +61,7 @@ internal sealed class SuperadminBypassService(IDataService data, ITenantContext 
     {
         ArgumentNullException.ThrowIfNull(permissions);
         if (platform is null || subject is null || subject.TenantId is not null || subject.Kind != "user" || !Identifier(subject.Id, 200)) return [];
-        if (!string.IsNullOrEmpty(tenant.TenantId)) return [];
+        if (tenant.TenantId is not null) return [];
         var candidates = permissions.Where(PermissionCode.IsValid).Distinct(StringComparer.Ordinal).ToArray();
         if (candidates.Length == 0 || !await platform.IsSuperadminAsync(subject.Id, ct).ConfigureAwait(false)) return [];
         // 审计不可用时旁路一律拒绝，页面里的任何操作都做不成，同样不交出。

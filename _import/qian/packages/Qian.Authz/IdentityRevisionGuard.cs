@@ -18,7 +18,7 @@ internal sealed class IdentityRevisionGuard(IDataService data, ITenantContext te
     {
         if (subject.IdentityRevision is not { } presented || subject.TenantId is null) return null;
         if (presented < 0) return AuthzEnforcement.StaleIdentityRevision;
-        var owner = tenant.TenantId!;
+        var owner = tenant.TenantId?.ToString("D")!;
         await using var session = await data.OpenAsync<AuthzDbContext>(ct).ConfigureAwait(false);
         var db = session.Context;
         var row = await db.SubjectRevisions.SingleOrDefaultAsync(r => r.TenantId == owner && r.SubjectType == subject.Kind && r.SubjectId == subject.Id, ct).ConfigureAwait(false);

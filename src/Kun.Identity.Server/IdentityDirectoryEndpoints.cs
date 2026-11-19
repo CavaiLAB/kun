@@ -117,7 +117,7 @@ internal static class IdentityDirectoryEndpoints
             return KunResults.Error(new Error(PlatformErrors.Unauthenticated));
         if (caller.TenantId is not { } tenant || caller.MembershipId is null || administrator && !caller.TenantAdministrator)
             return KunResults.Error(new Error(PlatformErrors.AuthzDenied));
-        using var scope = http.RequestServices.GetRequiredService<ITenantContext>().BeginScope(tenant.ToString("D"));
+        using var scope = http.RequestServices.GetRequiredService<ITenantContext>().BeginScope(tenant);
         using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.identity", EventActor.User(caller.PersonId.ToString("D"))));
         return Results.Json(await action(service, caller, http.RequestAborted).ConfigureAwait(false), Json);
     }

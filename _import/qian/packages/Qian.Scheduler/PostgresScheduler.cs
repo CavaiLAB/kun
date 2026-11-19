@@ -77,9 +77,9 @@ internal sealed class PostgresScheduler(IPluginContext owner, ITenantContext ten
     private string CheckCaller(IPluginContext caller)
     {
         ArgumentNullException.ThrowIfNull(caller);
-        if (!Guid.TryParseExact(tenant.TenantId, "D", out _) || caller.Scope != new ScopeKey("tenant", tenant.TenantId) ||
+        if (tenant.TenantId is not { } id || id == Guid.Empty || caller.Scope != new ScopeKey("tenant", id.ToString("D")) ||
             !ReferenceEquals(caller.TryInject<IScheduler>(SchedulerDefinition.Key), this)) throw new ErrorException(new Error(PlatformErrors.NotFound));
-        return tenant.TenantId;
+        return id.ToString("D");
     }
     internal static JobContract Resolve(IPluginContext caller, string target)
     {

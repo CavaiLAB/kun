@@ -1,17 +1,17 @@
 using Kun.Authorization;
 using Kun.Core.Security;
+using Kun.Mediator.Behaviors;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Qian.Authz.Abstractions;
 
-// 只装配到 SDK 请求的 Kun PermissionBehavior 工厂；不替换宿主 DI、普通 Check 或外部主体。
-internal sealed class InitializationPermissionServices(IServiceProvider services) : IServiceProvider
+// 只装配到 SDK 请求的 Kun PermissionBehavior（经 PermissionBehaviorOptions）；不替换宿主 DI、普通 Check 或外部主体。
+internal static class InitializationPermissionServices
 {
-    public object? GetService(Type serviceType)
+    internal static void Configure(PermissionBehaviorOptions options)
     {
-        var original = services.GetService(serviceType);
-        if (serviceType == typeof(ICurrentUser) && original is ICurrentUser user) return new User(user);
-        if (serviceType == typeof(IPermissionChecker) && original is IPermissionChecker checker) return new Checker(checker);
-        return original;
+        options.CurrentUser = static sp => sp.GetService<ICurrentUser>() is { } user ? new User(user) : null;
+        options.PermissionChecker = static sp => sp.GetService<IPermissionChecker>() is { } checker ? new Checker(checker) : null;
     }
     private sealed class User(ICurrentUser original) : ICurrentUser
     {

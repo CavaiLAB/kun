@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Microsoft.Extensions.Logging;

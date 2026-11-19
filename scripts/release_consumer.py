@@ -68,7 +68,7 @@ def write_project(directory, kind, ids, version):
     project = ET.Element("Project", Sdk="Microsoft.NET.Sdk.Web" if kernel else "Microsoft.NET.Sdk")
     props = ET.SubElement(project, "PropertyGroup")
     for key, value in {"OutputType": "Exe", "TargetFramework": "net10.0", "ImplicitUsings": "enable",
-                       "Nullable": "enable", "TreatWarningsAsErrors": "true", "NuGetAudit": "false",
+                       "Nullable": "enable", "TreatWarningsAsErrors": "true", "NuGetAudit": "true", "NuGetAuditMode": "all",
                        "PublishAot": str(kernel).lower(), "AssemblyName": "KernelProbe" if kernel else "ReleaseProbe"}.items():
         ET.SubElement(props, key).text = value
     group = ET.SubElement(project, "ItemGroup")

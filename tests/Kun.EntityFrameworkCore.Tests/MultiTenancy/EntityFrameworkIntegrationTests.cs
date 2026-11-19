@@ -2,12 +2,13 @@ using FluentAssertions;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.MultiTenancy;
+using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace Kun.MultiTenancy.Tests;
+namespace Kun.EntityFrameworkCore.Tests.MultiTenancy;
 
 public sealed class EntityFrameworkIntegrationTests
 {

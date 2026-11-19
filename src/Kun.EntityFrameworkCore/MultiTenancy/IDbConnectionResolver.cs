@@ -2,7 +2,7 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 
 /// <summary>
 /// Resolves the connection string for a given tenant. Used by the
-/// <see cref="Kun.Core.MultiTenancy.TenantIsolationStrategy.DatabasePerTenant"/> strategy
+/// <see cref="Kun.Core.MultiTenancy.TenantIsolation.Database"/> strategy
 /// to dispatch DbContext construction to the tenant's dedicated database.
 /// </summary>
 /// <remarks>

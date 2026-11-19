@@ -1,3 +1,4 @@
+using Kun.Core.MultiTenancy;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
@@ -29,18 +30,6 @@ public sealed record TenantDescriptor(Guid Id, string Code, string Name, TenantI
 {
     /// <summary>当前主档的乐观并发版本；编辑请求须回传。</summary>
     public uint Revision { get; init; }
-}
-
-/// <summary>创建时决定的隔离策略；本期在线实现只接受 row。</summary>
-[JsonConverter(typeof(JsonStringEnumConverter<TenantIsolation>))]
-public enum TenantIsolation
-{
-    /// <summary>共享库、行级过滤与 RLS。</summary>
-    [JsonStringEnumMemberName("row")] Row,
-    /// <summary>分 schema，尚未开放创建。</summary>
-    [JsonStringEnumMemberName("schema")] Schema,
-    /// <summary>独立库，S3 开放。</summary>
-    [JsonStringEnumMemberName("database")] Database
 }
 
 /// <summary>生命周期状态；本任务仅创建 pending，迁移由租户生命周期实现。</summary>

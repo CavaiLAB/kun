@@ -8,8 +8,8 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 /// </summary>
 public sealed class KunMultiTenancyOptions
 {
-    /// <summary>The active isolation strategy. Defaults to <see cref="TenantIsolationStrategy.Shared"/>.</summary>
-    public TenantIsolationStrategy Strategy { get; set; } = TenantIsolationStrategy.Shared;
+    /// <summary>The active isolation strategy. Defaults to <see cref="TenantIsolation.Row"/>.</summary>
+    public TenantIsolation Strategy { get; set; } = TenantIsolation.Row;
 
     /// <summary>
     /// When <see langword="true"/>, <c>SchemaPerTenantProvisioner.DeprovisionAsync</c> is

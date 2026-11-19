@@ -22,6 +22,9 @@
 - 原有 `IJwtIssuer`、`KunJwtIssuer`、`KunJwtIssuerOptions`、`AddS2SIssuer` 及 `Kun.Security.S2SJwt` 签发、验证、JWKS 入口已归档。网关使用 `S2sTokenIssuer` 签发，下游通过 `AddKunServiceAuthentication` 验签。`PropagateS2sTokenHandler` 与 `AddKunServiceAuth` 标为过时，使用这些入口会产生 KUNS2S001。
 - 服务间令牌在签发与接收时共同核对每跳受众、身份、角色、scope 和有效期。外部访问令牌投影复用身份字段校验。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
+### Changed — 租户隔离策略（S1-KUN-024）
+
+- EF 配置与租户目录公用 `Kun.Core.MultiTenancy.TenantIsolation`。配置中的 `Shared`、`SchemaPerTenant`、`DatabasePerTenant` 依次改为 `Row`、`Schema`、`Database`，数值仍为 0、1、2。HTTP 租户契约继续使用 `row`、`schema`、`database`。
 
 ### Changed — 错误模型合一到 Kun.Errors（S1-KUN-023）
 

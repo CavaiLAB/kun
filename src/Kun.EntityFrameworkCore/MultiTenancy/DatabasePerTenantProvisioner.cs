@@ -7,7 +7,7 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 
 /// <summary>
 /// <see cref="ITenantProvisioner"/> for the
-/// <see cref="TenantIsolationStrategy.DatabasePerTenant"/> strategy. Runs EF Core
+/// <see cref="TenantIsolation.Database"/> strategy. Runs EF Core
 /// migrations against the tenant's dedicated database on <see cref="ProvisionAsync"/>.
 /// <see cref="DeprovisionAsync"/> is a no-op by default because dropping a tenant database
 /// is an operations concern (needs admin credentials and often a separate control plane) —

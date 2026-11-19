@@ -12,10 +12,10 @@ Kun.Core.MultiTenancy.TenantInfo.DisplayName.get -> string?
 Kun.Core.MultiTenancy.TenantInfo.DisplayName.init -> void
 Kun.Core.MultiTenancy.TenantInfo.TenantId.get -> string!
 Kun.Core.MultiTenancy.TenantInfo.TenantInfo(string! tenantId, string? displayName = null) -> void
-Kun.Core.MultiTenancy.TenantIsolationStrategy
-Kun.Core.MultiTenancy.TenantIsolationStrategy.DatabasePerTenant = 2 -> Kun.Core.MultiTenancy.TenantIsolationStrategy
-Kun.Core.MultiTenancy.TenantIsolationStrategy.SchemaPerTenant = 1 -> Kun.Core.MultiTenancy.TenantIsolationStrategy
-Kun.Core.MultiTenancy.TenantIsolationStrategy.Shared = 0 -> Kun.Core.MultiTenancy.TenantIsolationStrategy
+Kun.Core.MultiTenancy.TenantIsolation
+Kun.Core.MultiTenancy.TenantIsolation.Database = 2 -> Kun.Core.MultiTenancy.TenantIsolation
+Kun.Core.MultiTenancy.TenantIsolation.Schema = 1 -> Kun.Core.MultiTenancy.TenantIsolation
+Kun.Core.MultiTenancy.TenantIsolation.Row = 0 -> Kun.Core.MultiTenancy.TenantIsolation
 Kun.Core.Results.ResultExtensions
 Kun.Core.Results.TaskResultExtensions
 Kun.Core.Results.ValueTaskResultExtensions

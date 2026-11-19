@@ -9,7 +9,7 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 
 /// <summary>
 /// <see cref="ITenantProvisioner"/> implementation for the
-/// <see cref="TenantIsolationStrategy.SchemaPerTenant"/> strategy. On
+/// <see cref="TenantIsolation.Schema"/> strategy. On
 /// <see cref="ProvisionAsync"/> executes <c>CREATE SCHEMA IF NOT EXISTS "{tenantId}"</c>
 /// and runs EF Core migrations under that schema; on <see cref="DeprovisionAsync"/>
 /// drops the schema when <see cref="KunMultiTenancyOptions.AllowDestructiveDeprovision"/>

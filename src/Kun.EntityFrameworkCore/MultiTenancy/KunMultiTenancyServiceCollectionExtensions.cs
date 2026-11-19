@@ -17,7 +17,7 @@ public static class KunMultiTenancyServiceCollectionExtensions
     /// BEFORE the matching <c>AddDbContext&lt;TContext&gt;</c>, and the consumer is
     /// responsible for registering their own <see cref="ITenantDbContextFactory{TContext}"/>
     /// when <see cref="KunMultiTenancyOptions.Strategy"/> is
-    /// <see cref="TenantIsolationStrategy.SchemaPerTenant"/>.
+    /// <see cref="TenantIsolation.Schema"/>.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -73,18 +73,18 @@ public static class KunMultiTenancyServiceCollectionExtensions
 
         switch (tempOptions.Strategy)
         {
-            case TenantIsolationStrategy.Shared:
+            case TenantIsolation.Row:
                 services.AddKunTenantRls();
                 services.TryAddSingleton<ITenantProvisioner>(NullTenantProvisioner.Instance);
                 break;
 
-            case TenantIsolationStrategy.SchemaPerTenant:
+            case TenantIsolation.Schema:
                 services.AddKunTenantRls();
                 services.TryAddSingleton<KunMultiTenantModelCacheKeyFactory>();
                 services.TryAddSingleton<ITenantProvisioner, SchemaPerTenantProvisioner<TContext>>();
                 break;
 
-            case TenantIsolationStrategy.DatabasePerTenant:
+            case TenantIsolation.Database:
                 // Default connection resolver reads TenantsConnectionOptions. Consumers can
                 // replace it with their own IDbConnectionResolver before/after this call.
                 services.TryAddSingleton<IDbConnectionResolver, OptionsBasedTenantConnectionResolver>();
@@ -95,7 +95,7 @@ public static class KunMultiTenancyServiceCollectionExtensions
                 throw new ArgumentOutOfRangeException(
                     nameof(configure),
                     tempOptions.Strategy,
-                    $"Unsupported TenantIsolationStrategy '{tempOptions.Strategy}'.");
+                    $"Unsupported TenantIsolation '{tempOptions.Strategy}'.");
         }
 
         return services;

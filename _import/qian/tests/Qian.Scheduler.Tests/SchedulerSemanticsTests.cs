@@ -299,21 +299,34 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         var context = new ClosingPluginContext(producer.Caller, producer.Tenant);
         await using (var worker = new SchedulerWorker(context, producer.Tenant, StopSettings))
         {
-            worker.Start();
-            await SchedulerFixture.WaitUntil(() => Task.FromResult(context.State.DataRequests >= 2), StopLeases(1)); // 构造一次，至少领过一轮
-            context.State.Close(); var closedAt = context.State.DataRequests;
+            await ScheduleNow(producer, "stop-claim-in-flight");
+            int closedAt;
+            await using (var blocker = new NpgsqlConnection(fixture.Postgres.ConnectionString))
+            {
+                await blocker.OpenAsync(Ct);
+                await using var transaction = await blocker.BeginTransactionAsync(Ct);
+                await using var command = new NpgsqlCommand("LOCK TABLE plugin_qian_scheduler.job_triggers IN SHARE MODE", blocker, transaction);
+                await command.ExecuteNonQueryAsync(Ct);
+                worker.Start();
+                // 领取 UPDATE 已经发到 PostgreSQL，正等这条连接的表锁；此刻关闭上下文再让 UPDATE 继续。
+                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<bool>($"SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE {blocker.ProcessID} = ANY(pg_blocking_pids(pid)))"), StopLeases(2));
+                context.State.Close();
+                closedAt = context.State.DataRequests;
+                await transaction.CommitAsync(Ct);
+            }
             await ScheduleNow(producer, "stop-claim");
             await Task.Delay(StopLeases(1), Ct); // 三个领取周期
-            // 关闭后至多再取一次（关闭时正在进行的那轮可能还没取），随即退出循环；不退出的话这段时间里每秒一次。
+            Assert.Equal(0, await Count("plugin_qian_scheduler.job_triggers WHERE generation>0"));
+            Assert.Equal(0, await Count("plugin_qian_scheduler.job_runs"));
+            // 关闭后至多再取一次数据服务；继续轮询会在这段时间内多次取用。
             Assert.InRange(context.State.DataRequests - closedAt, 0, 1);
         }
         Assert.Empty(context.State.Log.Warnings);
-        Assert.Equal(0, await Count("plugin_qian_scheduler.job_triggers WHERE generation>0"));
-        // 触发器本身可领：另起一个正常 worker 很快跑完。
+        // 等锁的和关闭后新增的两个触发器仍可由正常 worker 领取。
         await using (var normal = new SchedulerWorker(producer.Caller, producer.Tenant, StopSettings))
         {
             normal.Start();
-            await SchedulerFixture.WaitUntil(async () => await Count("plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 1, StopLeases(2));
+            await SchedulerFixture.WaitUntil(async () => await Count("plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 2, StopLeases(3));
         }
     }
 

@@ -23,9 +23,7 @@ Kun.Data.IDataSession<TContext>.Outbox.get -> Kun.EventBus.Outbox.IOutboxWriter!
 static Kun.Data.DataDefinition.Data(this Kun.Runtime.IPluginContext! context) -> Kun.Data.IDataService!
 Kun.Data.IDataSession<TContext>.Context.get -> TContext!
 Kun.Data.IDataService.OpenAsync<TContext>(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.IDataSession<TContext!>!>
-const Kun.Data.KunDataConventions.DeletedByPropertyName = "DeletedBy" -> string!
 Kun.Data.KunSoftDeleteInterceptor
-Kun.Data.KunDataConventions
 Kun.Data.KunSoftDeleteInterceptor.KunSoftDeleteInterceptor(Kun.Core.Security.ICurrentUser! user, System.TimeProvider! clock) -> void
 override Kun.Data.KunSoftDeleteInterceptor.SavingChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>>
 override Kun.Data.KunSoftDeleteInterceptor.SavingChanges(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result) -> Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>

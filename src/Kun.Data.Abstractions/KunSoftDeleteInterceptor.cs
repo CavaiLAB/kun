@@ -1,18 +1,12 @@
 using System.Globalization;
 using Kun.Core.Domain;
 using Kun.Core.Security;
+using Kun.EntityFrameworkCore.Conventions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Kun.Data;
-
-/// <summary>Qian 在 Kun 数据约定之上补充的系统字段。</summary>
-public static class KunDataConventions
-{
-    /// <summary>删除主体的属性名；没有 CLR 属性时用同名 shadow property，数据库列为 deleted_by。</summary>
-    public const string DeletedByPropertyName = "DeletedBy";
-}
 
 /// <summary>将直接删除改为软删除，填充删除主体与时间；必须在 Kun 审计字段拦截器之前运行。</summary>
 public sealed class KunSoftDeleteInterceptor(ICurrentUser user, TimeProvider clock) : SaveChangesInterceptor

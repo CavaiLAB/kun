@@ -92,6 +92,7 @@ Kun.EntityFrameworkCore.MultiTenancy.DatabasePerTenantProvisioner<TContext>.Data
 virtual Kun.EntityFrameworkCore.MultiTenancy.DatabasePerTenantProvisioner<TContext>.ProvisionAsync(Kun.Core.MultiTenancy.TenantInfo! tenant, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 virtual Kun.EntityFrameworkCore.MultiTenancy.DatabasePerTenantProvisioner<TContext>.DeprovisionAsync(string! tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 static Kun.EntityFrameworkCore.DependencyInjection.KunEntityFrameworkCoreServiceCollectionExtensions.AddKunTenantRls<TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+const Kun.EntityFrameworkCore.Conventions.KunDataConventions.DeletedByPropertyName = "DeletedBy" -> string!
 const Kun.EntityFrameworkCore.Conventions.KunDataConventions.RowVersionPropertyName = "KunRowVersion" -> string!
 Kun.EntityFrameworkCore.Conventions.KunDataConventions
 Kun.EntityFrameworkCore.Conventions.KunGuidV7ValueGenerator

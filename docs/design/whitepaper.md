@@ -891,7 +891,7 @@ var orderApi = builder.AddProject<Projects.Order_API>("order-api")
     .WithReference(catalogApi);  // 内部 gRPC 调用
 
 // 网关
-builder.AddProject<Projects.Kun_Gateway>("gateway")
+builder.AddProject<Projects.Kun_Gateway_Standalone>("gateway")
     .WithReference(catalogApi)
     .WithReference(orderApi);
 

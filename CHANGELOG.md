@@ -49,6 +49,13 @@
 
 - 包 `Kun.Dapper` 停发、移出解决方案，nuget.org 上已发布的版本不动。随包删掉的公共 API：`IReadDbConnectionFactory`、`ReadDbOptions`、`PageRequest`、`PagedResult<T>`、`Kun.Dapper.Npgsql.NpgsqlReadDbConnectionFactory`、`DapperAotExtensions.QueryPageAsync<T>`、`AddKunDapper` / `AddKunDapperNpgsql`。**迁移**：读侧直接引用 `Npgsql` 与 `Dapper`；登记一个读侧数据源（`services.AddSingleton(_ => NpgsqlDataSource.Create(readConnectionString))`），查询处理器注入 `NpgsqlDataSource`，用 `OpenConnectionAsync` 取连接后以 Dapper 查询；分页的请求与结果类型在应用里自己定义；要原生 AOT 发布的服务，在自己的项目里加 Dapper 的源生成器（`Dapper.AOT`）或直接用 `NpgsqlDataReader` 读行。写法见 `docs/guides/read-side-patterns.md`，样例见 `samples/Kun.Sample.Catalog`。
 
+### Changed — Kun.Gateway 改成纯库，独立宿主拆到 hosts/（S1-KUN-026）
+
+- `Kun.Gateway` 由可执行项目改成类库：不再有入口，程序集里不再有顶层语句生成的公开类型 `Program`；包里不再带 `appsettings.json`（`content/` 与 `contentFiles/`）与 `Kun.Gateway.runtimeconfig.json`。包名、程序集名、命名空间与其余公共 API 不变。**迁移**：把网关当程序跑的，改跑仓库里的独立宿主 `hosts/Kun.Gateway.Standalone`（`dotnet run --project hosts/Kun.Gateway.Standalone`，原生发布 `dotnet publish hosts/Kun.Gateway.Standalone -c Release`），配置节 `KunGateway`、`ReverseProxy`、`KunObservability` 不变，签名密钥目录 `certs/` 跟着挪到宿主目录下；自己写宿主的照它的 `Program.cs` 组合库。
+- `Kun.Gateway` 包不再依赖 `Kun.Observability` 与 `Grpc.AspNetCore.Web`（只有独立宿主用到），也就不再间接带上预发布的 `OpenTelemetry.Instrumentation.EntityFrameworkCore`。**迁移**：自己的宿主调了 `AddKunObservability` 或 `UseGrpcWeb`、又没有直接引用这两个包的，加上引用。
+- 独立宿主不打包，不发布到 nuget.org。
+- 样例 `samples/Kun.Sample.AppHost` 编排的网关换成独立宿主，资源名 `gateway` 不变。
+
 ### Removed — 归档 Kun.Sandbox（S1-KUN-028）
 
 - 包 `Kun.Sandbox` 停发、移出解决方案与 AOT 清单，nuget.org 上已发布的版本不动。随包删掉的公共 API：`Kun.Sandbox.Abstractions` 下的沙箱抽象（`ISandboxProvider`、`ISandboxHandle`、`IProcesses`、`IFiles`，以及创建沙箱、执行进程与读写文件用到的选项和结果类型），`Kun.Sandbox.Implementations` 下的三个后端（`InMemorySandboxProvider`、`SupervisorSandboxProvider`、`E2BCloudSandboxProvider`），登记入口 `AddKunSandbox` 与 `KunSandboxOptions`。**迁移**：没有替代的包；仓库里也没有使用方，Catalog 样例原来只演示登记，这一行已去掉。仍要用的服务钉住 nuget.org 上已发布的版本，或直接调用沙箱服务自己的接口。

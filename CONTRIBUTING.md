@@ -153,7 +153,7 @@ Closes #42
    dotnet build -c Release
    dotnet test
    # AOT 服务额外验证
-   dotnet publish src/Kun.Gateway -c Release -p:PublishAot=true
+   dotnet publish hosts/Kun.Gateway.Standalone -c Release
    ```
 4. **提交 PR**：填写 PR 模板，链接相关 Issue，说明影响范围与测试情况
 5. **CI 全绿**：构建、测试、AOT 发布零警告、格式检查通过

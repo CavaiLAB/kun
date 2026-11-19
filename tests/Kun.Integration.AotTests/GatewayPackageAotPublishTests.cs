@@ -27,14 +27,14 @@ public sealed class GatewayPackageAotPublishTests
         Directory.CreateDirectory(consumer);
         try
         {
-            // 普通 NuGet 制品是被测对象。库不启用 PublishAot/RDG，且使用隔离的 obj/bin，
-            // 避免库自己的宿主发布结果或并行 Sample 测试污染这次构建。
-            foreach (var package in new[] { "Kun.Errors", "Kun.Core", "Kun.MultiTenancy", "Kun.Security", "Kun.Observability", "Kun.Gateway" })
+            // 普通 NuGet 制品是被测对象：Kun.Gateway 与它依赖的 Kun 包按普通类库打包，使用隔离的 obj/bin，
+            // 避免并行的用例污染这次构建。
+            foreach (var package in new[] { "Kun.Errors", "Kun.Core", "Kun.MultiTenancy", "Kun.Security", "Kun.Gateway" })
             {
                 var result = await RunAsync(repository, "dotnet", TimeSpan.FromMinutes(5),
                     "pack", Path.Combine(repository, "src", package, package + ".csproj"),
                     "-c", "Release", "--artifacts-path", Path.Combine(directory, "artifacts"), "-o", feed,
-                    "-p:Version=" + version, "-p:PublishAot=false", "-p:EnableRequestDelegateGenerator=false",
+                    "-p:Version=" + version,
                     "-p:TreatWarningsAsErrors=true", "-p:IncludeSymbols=false", "-p:UseSharedCompilation=false", "-m:1");
                 AssertClean(result, "普通打包 " + package);
                 File.Exists(Path.Combine(feed, package + "." + version + ".nupkg")).Should().BeTrue();

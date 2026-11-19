@@ -116,6 +116,20 @@ class ReleaseDocumentsTests(unittest.TestCase):
             self.assertEqual("", document)
             self.assertTrue(err)
 
+    def test_verify_feed_selects_the_release_kind_and_tier(self):
+        with (tempfile.TemporaryDirectory() as directory, mock.patch.object(release, "verify_feed") as verify,
+              mock.patch.dict(release.os.environ, {"GITHUB_TOKEN": "test-value"}), contextlib.redirect_stdout(io.StringIO())):
+            package_list = Path(directory) / "list.json"
+            package_list.write_text(json.dumps([release.asdict(p) for p in self.packages]))
+            for version, feed, expected, token in [
+                (VERSION, "nuget", ["Kun.Data.Native"], None),
+                (VERSION + "-hotfix.2", "github", ["Kun.Data", "Kun.Registry"], "test-value"),
+                (VERSION + "-beta.1", "github", [p.id for p in self.packages], "test-value"),
+            ]:
+                self.assertEqual(0, release.main(["verify-feed", "--feed", feed, "--version", version,
+                                                   "--list", str(package_list), "--wait-seconds", "0"]))
+                verify.assert_called_with(feed, expected, version, 0, token)
+
 
 class ListTests(unittest.TestCase):
     def test_reads_project_properties(self):

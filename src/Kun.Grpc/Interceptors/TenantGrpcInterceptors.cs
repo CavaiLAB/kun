@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Kun.Core.MultiTenancy;
@@ -12,7 +11,7 @@ namespace Kun.Grpc.Interceptors;
 public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interceptor
 {
     /// <summary>携带冻结 ErrorDetail JSON 的二进制响应 trailer。</summary>
-    public const string ErrorDetailTrailer = "qian-error-bin";
+    public const string ErrorDetailTrailer = GrpcErrorTrailers.DetailKey;
     private readonly ErrorCatalog _errors = ErrorCatalog.CreateDefault();
     private readonly TenantRequestBoundary _boundary = new(tenant);
     private readonly TenantContextPropagator _propagator = new(tenant);
@@ -52,7 +51,7 @@ public sealed class TenantGrpcServerInterceptor(ITenantContext tenant) : Interce
             var trace = Activity.Current?.TraceId.ToHexString() ?? ActivityTraceId.CreateRandom().ToHexString();
             var detail = _errors.CreateDetail(error.Error, trace, instance: context.Method);
             throw new RpcException(new Status(StatusCode.Unauthenticated, detail.Code),
-                new Metadata { { ErrorDetailTrailer, Encoding.UTF8.GetBytes(ErrorDetailJson.Serialize(detail)) } });
+                GrpcErrorTrailers.Create(detail));
         }
         return result;
     }

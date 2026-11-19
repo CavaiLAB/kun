@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using FluentAssertions;
 using Grpc.Core;
 using Kun.Errors;
@@ -54,6 +55,11 @@ public sealed class ResultMappingTests
         var codeTrailer = ex.Trailers.FirstOrDefault(e => e.Key == "kun-error-code");
         codeTrailer.Should().NotBeNull();
         codeTrailer!.Value.Should().Be("CONFLICT");
+        var payload = ex.Trailers.Single(entry => entry.Key == "qian-error-bin");
+        var detail = ErrorDetailJson.Deserialize(Encoding.UTF8.GetString(payload.ValueBytes));
+        detail!.Code.Should().Be(codeTrailer.Value);
+        detail.Status.Should().Be(409);
+        detail.Message.Should().Be(ex.Status.Detail);
     }
 
     [Fact]

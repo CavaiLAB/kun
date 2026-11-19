@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.events",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "提供 qian.events 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
@@ -30,7 +30,7 @@
   },
   "runtime": {
     "form": "module",
-    "entry": "Qian.Events.EventsPlugin, Qian.Events",
+    "entry": "Kun.EventBus.EntityFrameworkCore.EventsPlugin, Kun.EventBus.EntityFrameworkCore",
     "nuget": [
       {
         "id": "Qian.Events",
@@ -54,8 +54,8 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.events",
-        "source": "Qian.Events.EventsPlugin, Qian.Events",
-        "sha256": "c450e9dabab8975d5ff0664774f7d0feb49b5ca3100f86bcd726060b465bf0e5",
+        "source": "Kun.EventBus.EntityFrameworkCore.EventsPlugin, Kun.EventBus.EntityFrameworkCore",
+        "sha256": "3abb384f781ec4bae61d153ce2e3d61d911d88a46fb61011bbf7224da2d85829",
         "fields": [
           ""
         ]

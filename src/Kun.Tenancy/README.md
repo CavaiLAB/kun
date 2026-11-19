@@ -26,7 +26,7 @@ TenantContextPropagator 从当前上下文写入 JSON 信封/作业参数或文�
 
 平台级事件（信封 tenant_id 为 null，如 lifecycle.plugin.activated.v1）不经传播器，也不另设通道。它们与租户事件同走 qian.events，按 subject 进各订阅队列。订阅默认拒绝，转入死信（原因 platform_event）；只有显式 acceptPlatformEvents 的订阅派发，派发时不开租户作用域，handler 内 ITenantContext 为空。不另建平台 exchange 的理由：exchange 或队列不是信任边界，持有 broker 发布凭据的服务能发往任何 exchange，真正的闸门是订阅级显式放行与不开租户作用域。这一口径由 S1-EVT-004 定，产品负责人 2026-10-23 确认。
 
-profile 宿主是否登记传播器（S1-EVT-004，产品负责人 2026-10-23 确认）：组合包含 qian.tenancy 的 profile 宿主接事件订阅器时登记 ITenantContextPropagator（Kun.MultiTenancy 的 TenantContextPropagator），与参考宿主一致，生产宿主与 gRPC、作业共用同一份判定。目前装 qian.events 的只有 platform 与 identity，两者都含 qian.tenancy。不装 qian.tenancy 的订阅宿主走订阅器的 Kun ITenantContext.BeginScope 回退分支，判定与传播器相同，见 [Qian.Events「租户回灌」](../../_import/qian/packages/Qian.Events/README.md#租户回灌)。
+profile 宿主是否登记传播器（S1-EVT-004，产品负责人 2026-10-23 确认）：组合包含 qian.tenancy 的 profile 宿主接事件订阅器时登记 ITenantContextPropagator（Kun.MultiTenancy 的 TenantContextPropagator），与参考宿主一致，生产宿主与 gRPC、作业共用同一份判定。目前装 qian.events 的只有 platform 与 identity，两者都含 qian.tenancy。不装 qian.tenancy 的订阅宿主走订阅器的 Kun ITenantContext.BeginScope 回退分支，判定与传播器相同，见 [Qian.Events「租户回灌」](../Kun.EventBus.EntityFrameworkCore/README.md#租户回灌)。
 
 TenantGrpcClientInterceptor 从当前上下文为四类 RPC 写入 tenant_id，不覆盖调用方已有的冲突或重复字段，也不修改可复用的原始 Metadata。TenantGrpcServerInterceptor 在宿主 JWT 验签后比较 claim 与元数据，再进入业务处理器；unary、服务端流、客户端流和双向流都使用同一边界。拒绝时返回 gRPC Unauthenticated，并在 qian-error-bin 二进制 trailer 中附带由 ErrorCatalog 生成的冻结 ErrorDetail JSON。宿主仍须配置认证和标准 HTTP 错误管道，适配器不自行签发令牌。
 
@@ -66,7 +66,7 @@ POST 复用 CreateTenant，Administrator 为必填管理员指针，id 由服务
 
 pending 可激活为 trial/active；有效期到期由扫描迁移到 grace；suspend 记录当前 S1 状态，resume 恢复原状态。重复同目标操作不重写状态或再发集成事件；非法迁移返回 409 TENANCY_STATE_CONFLICT。POST /api/tenancy/tenants/{id}:activate、:suspend、:resume 与 GET /api/tenancy/meta/state-machine 复用运营超管旁路。审批使用 TenantLifecycle.Approving 的进程内 serial 事件，无监听器放行、任一 false 否决，不加入 hooks.json 矩阵。监听器不得递归请求同一租户迁移。purge 只在元数据保留 S3 的 destructive + humanOnly 描述，不发布执行入口；humanOnly 按 R52 是 agent.expose=false。
 
-主档创建、激活、冻结、恢复、到期分别在同一数据库事务发出 tenant.created/activated/suspended/resumed/expired.v1；宿主必须在唯一的 Kun 事件登记与 Mediator 登记中调用 RegisterTenancyEvents、AddKunTenancyEvents，并装配 AddQianEvents。缺少领域事件处理器时保存回滚，不会留无事件的状态。状态迁移端点的审计口径为授权旁路的平台链记录 + 同事务 Outbox 事件，不另写租户链状态审计；meta/state-machine 也仅允许平台主体通过同一超管授权读取。tenant.created.v1 与开通的进程内 tenant/provisioned 分工不变。
+主档创建、激活、冻结、恢复、到期分别在同一数据库事务发出 tenant.created/activated/suspended/resumed/expired.v1；宿主必须在唯一的 Kun 事件登记与 Mediator 登记中调用 RegisterTenancyEvents、AddKunTenancyEvents，并装配 AddKunEvents。缺少领域事件处理器时保存回滚，不会留无事件的状态。状态迁移端点的审计口径为授权旁路的平台链记录 + 同事务 Outbox 事件，不另写租户链状态审计；meta/state-machine 也仅允许平台主体通过同一超管授权读取。tenant.created.v1 与开通的进程内 tenant/provisioned 分工不变。
 
 qian.tenancy/tenant.scan-expired 是真实运行时能力（幂等，按 R107 设置 agent.expose=false，不派生为模型工具；服务主体不受 humanOnly 限制），只接受 global qian.tenancy 或 qian.scheduler 的可信调用，输入为 idempotencyKey 与 limit（1–1000，默认100），拒绝请求体租户字段；扫描平台审计以 job 通道记录服务操作者；每次尝试以同一 attempt、idempotencyKey、TraceId 关联 started 与 success/failure/cancelled 记录，成功记录含 expired 数量。失败可能已完成部分租户迁移，未完成的租户可安全重扫，失败记录不虚报 expired=0。开始审计失败时扫描不执行；收尾审计使用独立 5 秒期限，审计服务本身故障时记录结构化错误日志，不覆盖扫描原异常或已完成结果。每次只处理 active/trial 且 valid_until 已过的租户；重复扫描不新增状态事件。到期业务命令立即403，能力目录按现有过滤语义返回空集合。调度器准点触发、登录与会话吊销仍归 SCH-002、IDP-003/004。
 

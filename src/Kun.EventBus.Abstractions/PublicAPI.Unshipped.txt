@@ -210,3 +210,5 @@ Kun.EventBus.Outbox.OutboxStatus.Pending = 0 -> Kun.EventBus.Outbox.OutboxStatus
 Kun.EventBus.Outbox.OutboxStatus.Published = 1 -> Kun.EventBus.Outbox.OutboxStatus
 Kun.EventBus.Outbox.OutboxMessage.NextAttemptAt.get -> System.DateTimeOffset?
 Kun.EventBus.Outbox.OutboxMessage.ScheduleRetry(System.DateTimeOffset nextAttemptAt, string! error) -> void
+Kun.EventBus.Outbox.IOutboxBufferBinding
+Kun.EventBus.Outbox.IOutboxBufferBinding.Buffer.get -> Kun.EventBus.Outbox.IntegrationEventBuffer!

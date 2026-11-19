@@ -11,7 +11,7 @@
   <!-- 集成测试宿主：真实 Data / Events / Tenancy / Authz（含 HTTP PEP）/ Audit 组件与 ErrorDetail、HTTP 契约导出；平台模式另有真实 Registry 与 TEN-004 运营端点。测试工程不受依赖图门禁约束。 -->
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
-    <ProjectReference Include="../../packages/Qian.Events/Qian.Events.csproj" />
+    <ProjectReference Include="../../../../src/Kun.EventBus.EntityFrameworkCore/Kun.EventBus.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy/Kun.Tenancy.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy.AspNetCore/Kun.Tenancy.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />

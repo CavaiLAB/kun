@@ -6,7 +6,7 @@
     <ProjectReference Include="../../../../src/Kun.Identity.Connector.Oidc/Kun.Identity.Connector.Oidc.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
-    <ProjectReference Include="../../packages/Qian.Events/Qian.Events.csproj" />
+    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
     <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="JsonSchema.Net" />

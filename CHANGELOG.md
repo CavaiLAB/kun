@@ -20,6 +20,13 @@
 - 身份包 `Qian.Identity.Abstractions`、`Qian.Identity.Client`、`Qian.Identity.Server`、`Qian.Identity.Connector.Oidc` 迁至仓库根 `src/`，包名与命名空间统一使用 `Kun.Identity.*`。宿主使用的 `AddQianIdentity…`、`MapQianIdentity…`、`UseQianIdentity…` 方法同步更名为 `AddKunIdentity…`、`MapKunIdentity…`、`UseKunIdentity…`。
 - 组件 `qian.identity.client` 升至 1.1.0，`qian.identity.server` 升至 1.2.0。入口程序集和身份事件元数据随代码更新。已发布的 NuGet 运行时坐标继续沿用当前包源的版本。
 
+### Changed — 事件发布、投递与订阅（S1-KUN-025）
+
+- `Kun.EventBus` 提供 `AddKunEvents()` 与事件目录。`Kun.EventBus.RabbitMQ` 提供 `AddKunEventsBroker` 和 `AddKunEventsSubscriber`。持有业务数据库的宿主另外调用 `Kun.EventBus.EntityFrameworkCore` 的 `AddKunOutboxRelay()` 启动投递，可用 `AddKunEvents(options => …)` 配置领取租约与重试。
+- `Qian.Events` 的发布端、投递端与订阅器拆入上述三个包。Outbox 写入端实现的 `IOutboxBufferBinding` 位于 `Kun.EventBus.Outbox` 命名空间和 `Kun.EventBus.Abstractions` 程序集。
+- 订阅端活动源和计量器由 `Qian.Events` 改为 `Kun.EventBus.RabbitMQ`。Outbox 投递的计量器改为 `Kun.EventBus.EntityFrameworkCore`。既有仪表名继续使用 `qian.events.*`。日志类别中的 `Qian.Events.QianEventSubscriber` 和 `Qian.Events.QianOutboxRelay` 分别变为 `Kun.EventBus.RabbitMQ.KunEventSubscriber` 和 `Kun.EventBus.EntityFrameworkCore.KunOutboxRelay`。发布连接的日志类别为 `Kun.EventBus.RabbitMQ.RabbitMqBroker`。
+- `qian.events` 组件版本为 1.1.0。源码装配使用 `Kun.EventBus.EntityFrameworkCore.EventsPlugin`，私有源安装仍按清单锁定的软件包与摘要还原。
+
 ### Changed — 事件契约并进 Kun.EventBus.Abstractions（S1-KUN-025）
 
 - 组件 `qian.events` 从 1.0.1 升至 1.0.2，组件说明中的契约包链接指向 `Kun.EventBus.Abstractions`。

@@ -59,18 +59,18 @@ POST /api/customers 接收 idempotencyKey（UUID）和 name；租户来自验证
 
 ## 集成事件
 
-创建客户在同一事务里写入一条 `crm.customer.created.v1`（载荷 `customerId`）。事件类型由 `CrmEvents.RegisterCrmEvents` 连同源生成 JsonTypeInfo 一起登记，宿主与契约测试共用这一处。信封由 Qian.Events 补齐：producer 是 qian.sample.crm，actor 是发起命令的服务主体，causation_id 是本次命令调用，tenant_id 是令牌里的租户。运行时另挂 qian.events 组件，提供 Events 服务键。
+创建客户在同一事务里写入一条 `crm.customer.created.v1`（载荷 `customerId`）。事件类型由 `CrmEvents.RegisterCrmEvents` 连同源生成 JsonTypeInfo 一起登记，宿主与契约测试共用这一处。信封由 Kun.EventBus 补齐：producer 是 qian.sample.crm，actor 是发起命令的服务主体，causation_id 是本次命令调用，tenant_id 是令牌里的租户。运行时另挂 qian.events 组件，提供 Events 服务键。
 
 真实验收在 CustomerCommandTests 中，使用 Kestrel、PostgreSQL 与 RabbitMQ 容器：
 
 - 创建客户后 outbox_messages 恰好多一行，其 payload 通过 contracts/v0 的信封 Schema；
 - 后台投递确认后，订阅 `crm.customer.created` 的 quorum 队列恰好收到一条，消息体与 Outbox 行逐字节相同。
 
-同时配置了 Events 与 Redis 时，宿主经 `AddQianEventsSubscriber("qian.sample.crm", …)` 装上消费端（S1-EVT-002），用竞争订阅 `customer-created` 消费自己的 `crm.customer.created.v1`。
+同时配置了 Events 与 Redis 时，宿主经 `AddKunEventsSubscriber("qian.sample.crm", …)` 装上消费端（S1-EVT-002），用竞争订阅 `customer-created` 消费自己的 `crm.customer.created.v1`。
 
 - [CustomerCreatedHandler](CrmEventHandlers.cs) 在事件所属租户的数据上下文里查询这位客户。查不到就抛 InvalidOperationException，按确定性失败直接进死信队列。查到后把回执记进进程内的 `CustomerCreatedReceipts`（上限 1000 条），供验收读取。
 - 租户经宿主登记的 `TenantContextPropagator`，按已校验信封的 tenant_id 回灌。
-- 重试、死信、幂等与失败分类都按 [Qian.Events 的消费端](../../packages/Qian.Events/README.md#消费)。
+- 重试、死信、幂等与失败分类都按 [RabbitMQ 订阅说明](https://github.com/CavaiLAB/kun/blob/main/src/Kun.EventBus.EntityFrameworkCore/README.md#消费)。
 
 handler 只做读和记录，不在 handler 里再发布集成事件。
 

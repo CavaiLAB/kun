@@ -8,7 +8,6 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Events;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -139,7 +138,7 @@ public sealed partial class PatchPersistenceTests
         // 装了 Mediator 与信封写入端，却没有登记 AddQianRegistryEvents。
         await using var running = await CreateRunningRegistry(tenant, services: services =>
         {
-            services.AddKunMediator(_ => { }); services.AddQianEvents();
+            services.AddKunMediator(_ => { }); services.AddKunEvents();
         });
         var scopeA = new ScopeKey("tenant", HttpTenantA);
         using (tenant.BeginScope(Guid.ParseExact(HttpTenantA, "D")))

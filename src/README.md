@@ -31,6 +31,7 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | [Kun.Tenancy.Signup](Kun.Tenancy.Signup/) | 自助注册流程 | — |
 | [Kun.EventBus.Abstractions](Kun.EventBus.Abstractions/) | 稳定事件标记与 JSON 注册端口、Outbox 写入端口、集成事件信封（依赖 Core 与 Runtime） | ✅ |
 | [Kun.EventBus](Kun.EventBus/) | 领域/集成事件抽象、Outbox 发布器 | ✅ |
+| [Kun.EventBus.EntityFrameworkCore](Kun.EventBus.EntityFrameworkCore/) | EF Core 事务 Outbox 投递与事件组件 | — |
 | [Kun.EventBus.RabbitMQ](Kun.EventBus.RabbitMQ/) | RabbitMQ 传输、消费端幂等 | ✅ |
 | [Kun.Identity.Abstractions](Kun.Identity.Abstractions/) | 身份服务、身份连接器与账号目录的契约 | — |
 | [Kun.Identity.Client](Kun.Identity.Client/) | OIDC 登录、Cookie 会话与服务间身份验证 | ✅ |

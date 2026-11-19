@@ -1,0 +1,29 @@
+#nullable enable
+Kun.EventBus.EntityFrameworkCore.EventsPlugin
+Kun.EventBus.EntityFrameworkCore.EventsPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.EventBus.EntityFrameworkCore.EventsPlugin.EventsPlugin() -> void
+Kun.EventBus.EntityFrameworkCore.EventsPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.BatchSize.get -> int
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.BatchSize.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.KunEventsOptions() -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.LeaseDuration.get -> System.TimeSpan
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.LeaseDuration.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.MaxAttempts.get -> int
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.MaxAttempts.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.OutboxLock.get -> Kun.EventBus.EntityFrameworkCore.OutboxLockMode
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.OutboxLock.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.PollInterval.get -> System.TimeSpan
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.PollInterval.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.PublishTimeout.get -> System.TimeSpan
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.PublishTimeout.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.RelayInstance.get -> string!
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.RelayInstance.set -> void
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.RetryBaseDelay.get -> System.TimeSpan
+Kun.EventBus.EntityFrameworkCore.KunEventsOptions.RetryBaseDelay.set -> void
+Kun.EventBus.EntityFrameworkCore.OutboxLockMode
+Kun.EventBus.EntityFrameworkCore.OutboxLockMode.Redis = 1 -> Kun.EventBus.EntityFrameworkCore.OutboxLockMode
+Kun.EventBus.EntityFrameworkCore.OutboxLockMode.SkipLocked = 0 -> Kun.EventBus.EntityFrameworkCore.OutboxLockMode
+static Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions.AddKunEvents(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.EventBus.EntityFrameworkCore.KunEventsOptions!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.EventBus.EntityFrameworkCore.KunEventRelayExtensions.AddKunOutboxRelay(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

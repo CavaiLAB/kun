@@ -2,7 +2,9 @@
   <PropertyGroup><NoWarn>$(NoWarn);CS1591</NoWarn></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
-    <ProjectReference Include="../../packages/Qian.Events/Qian.Events.csproj" />
+    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../../../src/Kun.EventBus.EntityFrameworkCore/Kun.EventBus.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.EventBus.RabbitMQ/Kun.EventBus.RabbitMQ.csproj" />
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />

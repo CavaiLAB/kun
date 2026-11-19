@@ -85,7 +85,7 @@ SHARDS: Dict[str, Optional[List[str]]] = {
         "Qian.Config.Secrets.Tests",
     ],
     # 恰好 4 个模块，全部一开始就跑。Sample.Crm 与 Registry 的用例调真实 qian CLI，工作流只在这个分片构建它。
-    "b": ["Qian.Sample.Crm.Tests", "Qian.Registry.Tests", "Qian.Events.Tests", "Qian.Files.Tests"],
+    "b": ["Qian.Sample.Crm.Tests", "Qian.Registry.Tests", "Kun.EventBus.IntegrationTests", "Qian.Files.Tests"],
     # 身份、鉴权、审计、数据、容器夹具自测，以及今后新增的测试项目。
     "c": None,
 }

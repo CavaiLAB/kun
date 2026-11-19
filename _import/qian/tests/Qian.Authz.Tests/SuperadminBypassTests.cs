@@ -1,3 +1,4 @@
+using Kun.EventBus;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -24,7 +25,6 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Kun.Data;
-using Qian.Events;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
@@ -319,7 +319,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunEventBus(registrar => registrar.RegisterAuthzEvents());
         // 与生产宿主相同：授权变更的领域事件处理器 + 写 v1 信封的 Outbox 端口；authzEvents=false 复现漏装处理器的宿主。
-        builder.Services.AddKunMediator(mediator => { if (authzEvents) mediator.AddQianAuthzEvents(); }); builder.Services.AddQianEvents();
+        builder.Services.AddKunMediator(mediator => { if (authzEvents) mediator.AddQianAuthzEvents(); }); builder.Services.AddKunEvents();
         builder.Services.AddSingleton<IPermissionRegistry, PermissionRegistry>();
         if (cache is not null) builder.Services.AddSingleton(cache);
         builder.Services.AddKunData<AuthzDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuthzDbContext.Schema));

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>EF Core event outbox relay and event component configuration.</Description>
+  </PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Kun.EventBus.IntegrationTests" />
+  </ItemGroup>
+</Project>

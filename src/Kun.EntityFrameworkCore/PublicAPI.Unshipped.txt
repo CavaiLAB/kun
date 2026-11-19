@@ -134,8 +134,6 @@ Kun.EntityFrameworkCore.KunSoftDeleteInterceptor
 Kun.EntityFrameworkCore.KunSoftDeleteInterceptor.KunSoftDeleteInterceptor(Kun.Core.Security.ICurrentUser! user, System.TimeProvider! clock) -> void
 override Kun.EntityFrameworkCore.KunSoftDeleteInterceptor.SavingChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>>
 override Kun.EntityFrameworkCore.KunSoftDeleteInterceptor.SavingChanges(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result) -> Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>
-Kun.EntityFrameworkCore.IOutboxBufferBinding
-Kun.EntityFrameworkCore.IOutboxBufferBinding.Buffer.get -> Kun.EventBus.Outbox.IntegrationEventBuffer!
 Kun.EntityFrameworkCore.IDataContextCatalog
 Kun.EntityFrameworkCore.IDataContextCatalog.ContextTypes.get -> System.Collections.Generic.IReadOnlyList<System.Type!>!
 Kun.EntityFrameworkCore.MultiTenancy.IDbConnectionResolver.ResolveConnectionString(System.Guid tenantId) -> string!

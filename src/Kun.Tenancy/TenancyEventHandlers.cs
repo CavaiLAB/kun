@@ -8,7 +8,7 @@ namespace Kun.Tenancy;
 /// <summary>宿主的同事务租户事件接线。</summary>
 public static class TenancyEventHandlers
 {
-    /// <summary>与 RegisterTenancyEvents、AddQianEvents 共用；漏装时写入回滚，不能静默丢事件。</summary>
+    /// <summary>与 RegisterTenancyEvents、AddKunEvents 共用；漏装时写入回滚，不能静默丢事件。</summary>
     public static KunMediatorBuilder AddKunTenancyEvents(this KunMediatorBuilder builder) => builder.AddNotificationHandler<TenantChange, TenantChangeHandler>();
 }
 internal sealed class TenantChange(string kind, TenantRow row, TenantStatus? previous = null) : IDomainEvent, INotification

@@ -1,3 +1,6 @@
+using Kun.EventBus;
+using Kun.EventBus.EntityFrameworkCore;
+using Kun.EventBus.RabbitMQ;
 using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
@@ -8,7 +11,6 @@ using Qian.Authz.Abstractions;
 using Qian.Capabilities;
 using Qian.Config.Apollo;
 using Kun.Data;
-using Qian.Events;
 using Qian.Lifecycle;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
@@ -117,7 +119,7 @@ public static class PlatformComponents
             if (services.ConfigString("connection") is not null)
                 throw new InvalidOperationException("platform 宿主按登录分别绑定数据上下文，data 条目不能指定 connection；用宿主 overlay 的 data 配置。");
         }),
-        new("qian.events", "Qian.Events.EventsPlugin, Qian.Events", _ => new EventsPlugin(), RegisterEvents),
+        new("qian.events", "Kun.EventBus.EntityFrameworkCore.EventsPlugin, Kun.EventBus.EntityFrameworkCore", _ => new EventsPlugin(), RegisterEvents),
         new("qian.tenancy", "Kun.Tenancy.TenancyComponent, Kun.Tenancy", _ => new TenancyComponent(),
             services => services.AddAppData<TenancyDbContext>(TenancyDbContext.Schema)),
         new("qian.authz", "Qian.Authz.AuthzComponent, Qian.Authz", activation => new AuthzPlugin(activation.Permissions), services =>
@@ -158,11 +160,12 @@ public static class PlatformComponents
             var settings = services.Settings;
             services.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(settings.Connection("Redis")));
         }
-        services.Services.AddQianEvents(options => options.OutboxLock = mode == "redis" ? OutboxLockMode.Redis : OutboxLockMode.SkipLocked);
+        services.Services.AddKunEvents(options => options.OutboxLock = mode == "redis" ? OutboxLockMode.Redis : OutboxLockMode.SkipLocked);
         if (services.ConfigString("broker") is { } broker)
         {
             var settings = services.Settings;
-            services.Services.AddQianEventsBroker(_ => settings.Connection("EventsBroker"), broker);
+            services.Services.AddKunEventsBroker(_ => settings.Connection("EventsBroker"), broker);
+            services.Services.AddKunOutboxRelay();
         }
     }
 

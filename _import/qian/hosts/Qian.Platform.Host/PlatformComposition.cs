@@ -15,7 +15,6 @@ using Qian.Capabilities.AspNetCore;
 using Qian.Config;
 using Qian.Config.Secrets;
 using Kun.Data;
-using Qian.Events;
 using Kun.Identity.Abstractions;
 using Qian.Lifecycle;
 using Kun.Plugin.Sdk;
@@ -162,7 +161,7 @@ public sealed class PlatformHostComposition
             foreach (var mediator in _mediator) mediator(registry);
         });
         // 数据会话的 Outbox 写成 v1 信封（只写不投递）；events 条目的 broker / 领取方式由它的登记再配。
-        services.AddQianEvents();
+        services.AddKunEvents();
         // 迁移任务（--migrate-only）用属主连接执行包内迁移；在线副本不挂属主凭据，这个解析只在迁移时调用。
         services.AddKunDataMigrations(options => options.ResolveConnection = (_, _) => settings.Connection("Migrations"));
         PlatformComponents.RegisterShared(services);

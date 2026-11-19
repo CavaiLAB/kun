@@ -22,6 +22,8 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="RabbitMQ.Client" />
+    <ProjectReference Include="../Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <InternalsVisibleTo Include="Kun.EventBus.IntegrationTests" />
   </ItemGroup>
 
 </Project>

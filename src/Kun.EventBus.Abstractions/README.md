@@ -6,7 +6,7 @@
 - Outbox 写入端口：`IIntegrationEventBus`，以及 `Kun.EventBus.Outbox` 下的 `IOutboxWriter`、`IIntegrationEventOutbox`、`IntegrationEventBuffer`、`OutboxMessage`、`OutboxStatus`；
 - 集成事件信封 v1、事件来源作用域、消费端的投递上下文、事件类型与 MQ 拓扑的命名规则、事件目录与订阅目录、事件服务键和错误契约。
 
-Provider 位于 [Qian.Events](../../_import/qian/packages/Qian.Events/README.md)（信封写入端、RabbitMQ 收发、Outbox 投递）。权威设计见 [PRD §7.10](../../_import/qian/docs/prd/07-s1-foundation.md) 与 [ADR-008](../../_import/qian/docs/adr/ADR-008-events-messaging.md)，任务见 [S1-EVT-001](../../_import/qian/pm/tasks/S1-EVT-001.md) 与 [S1-EVT-002](../../_import/qian/pm/tasks/S1-EVT-002.md)。
+信封写入端位于 `Kun.EventBus`，RabbitMQ 收发位于 `Kun.EventBus.RabbitMQ`。持有业务上下文的宿主按 [EF 投递说明](../Kun.EventBus.EntityFrameworkCore/README.md) 登记 Outbox 后台服务。权威设计见 [PRD §7.10](../../_import/qian/docs/prd/07-s1-foundation.md) 与 [ADR-008](../../_import/qian/docs/adr/ADR-008-events-messaging.md)，任务见 [S1-EVT-001](../../_import/qian/pm/tasks/S1-EVT-001.md) 与 [S1-EVT-002](../../_import/qian/pm/tasks/S1-EVT-002.md)。
 
 ## 依赖
 
@@ -72,4 +72,4 @@ SDK 命令管道在每次写命令外开启这个作用域：producer 取能力�
 
 ## 测试
 
-本包的测试覆盖只引用抽象包的事件声明与源生成 JSON、程序集只引用内核契约与 BCL，`Kun.EventBus.Tests` 核按 `Kun.EventBus` 程序集名解析迁移类型的兼容性；信封、拓扑、投递上下文与事件来源的用例在 Qian.Events.Tests。发布时与其它 Kun 包使用同一版本。
+本包的测试覆盖只引用抽象包的事件声明与源生成 JSON、程序集只引用内核契约与 BCL，`Kun.EventBus.Tests` 核按 `Kun.EventBus` 程序集名解析迁移类型的兼容性；信封、拓扑、投递上下文与事件来源的用例在 Kun.EventBus.IntegrationTests。发布时与其它 Kun 包使用同一版本。

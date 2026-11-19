@@ -1,3 +1,4 @@
+using Kun.EventBus.EntityFrameworkCore;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
@@ -6,7 +7,6 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Kun.Data;
-using Qian.Events;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;

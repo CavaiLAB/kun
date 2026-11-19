@@ -1,3 +1,4 @@
+using Kun.EventBus.RabbitMQ;
 using Kun.MultiTenancy;
 using Kun.MultiTenancy.Abstractions;
 using System.Collections.Concurrent;
@@ -16,7 +17,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz;
-using Qian.Events;
 using Qian.Testing.Containers;
 using RabbitMQ.Client;
 using StackExchange.Redis;
@@ -155,7 +155,7 @@ public abstract partial class CustomerCommandTests
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Redis"] = redis.ConnectionString });
         builder.Services.AddSingleton(probe);
         builder.Services.AddSingleton<ITenantContextPropagator>(sp => new RecordingPropagator(new TenantContextPropagator(sp.GetRequiredService<ITenantContext>()), probe));
-        builder.Services.AddQianEventsSubscriber("qian.sample.crm", subscriber =>
+        builder.Services.AddKunEventsSubscriber("qian.sample.crm", subscriber =>
         {
             subscriber.Subscribe<CrmCustomerCreated, TenantProbeHandler>("tenant-probe");
             if (peer) subscriber.Subscribe<CrmCustomerCreated, TenantPeerHandler>("tenant-peer");

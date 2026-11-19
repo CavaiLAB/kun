@@ -1,3 +1,4 @@
+using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Data;
 using Kun.Plugin.Sdk;

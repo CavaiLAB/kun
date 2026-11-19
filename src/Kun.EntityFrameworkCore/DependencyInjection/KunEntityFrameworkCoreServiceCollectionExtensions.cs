@@ -4,7 +4,7 @@ using Kun.EntityFrameworkCore.Interceptors;
 using Kun.EventBus;
 using Kun.EventBus.Background;
 using Kun.EventBus.Outbox;
-using Kun.MultiTenancy.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;

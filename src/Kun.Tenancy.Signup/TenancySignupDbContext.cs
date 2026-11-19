@@ -1,5 +1,6 @@
 using Kun.Core.MultiTenancy;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Tenancy.Signup;

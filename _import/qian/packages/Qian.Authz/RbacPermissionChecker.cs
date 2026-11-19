@@ -1,6 +1,7 @@
 using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Qian.Authz.Abstractions;
 using Kun.Data;
 

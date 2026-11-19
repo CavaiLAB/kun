@@ -4,7 +4,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.IntegrationTests.Fixtures;
 using Kun.MultiTenancy;
-using Kun.MultiTenancy.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Npgsql;

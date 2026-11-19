@@ -10,7 +10,7 @@ namespace Qian.Build.Analyzers;
 public sealed class DataBoundaryAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor ContextRule = new(
-        "QIAN0003", "在线数据上下文必须安全装配", "上下文 {0} 必须继承 Kun.Data.KunStrictDbContext",
+        "QIAN0003", "在线数据上下文必须安全装配", "上下文 {0} 必须继承 Kun.EntityFrameworkCore.KunStrictDbContext",
         "Security", DiagnosticSeverity.Error, isEnabledByDefault: true);
     private static readonly DiagnosticDescriptor FilterRule = new(
         "QIAN0004", "禁止绕过数据过滤器", "禁止使用 EF Core 的 IgnoreQueryFilters；迁移和运维使用受控的独立数据库连接",
@@ -28,7 +28,7 @@ public sealed class DataBoundaryAnalyzer : DiagnosticAnalyzer
         {
             var efContext = start.Compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.DbContext");
             if (efContext is null) return;
-            var qianContext = start.Compilation.GetTypeByMetadataName("Kun.Data.KunStrictDbContext");
+            var qianContext = start.Compilation.GetTypeByMetadataName("Kun.EntityFrameworkCore.KunStrictDbContext");
             var isTest = start.Options.AnalyzerConfigOptionsProvider.GlobalOptions
                 .TryGetValue("build_property.IsTestProject", out var testValue) &&
                 string.Equals(testValue, "true", StringComparison.OrdinalIgnoreCase);

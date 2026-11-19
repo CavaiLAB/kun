@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Data;

@@ -1,7 +1,8 @@
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Kun.MultiTenancy.EntityFrameworkCore.DependencyInjection;
+namespace Kun.EntityFrameworkCore.DependencyInjection;
 
 /// <summary>Service-collection extensions for the EF Core side of Kun.MultiTenancy.</summary>
 public static class KunMultiTenancyEntityFrameworkCoreServiceCollectionExtensions

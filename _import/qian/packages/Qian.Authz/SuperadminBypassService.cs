@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;

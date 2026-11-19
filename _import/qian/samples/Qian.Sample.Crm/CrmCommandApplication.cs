@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;

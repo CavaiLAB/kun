@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;

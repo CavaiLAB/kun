@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.Security;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Audit;

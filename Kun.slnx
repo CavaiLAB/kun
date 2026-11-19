@@ -48,7 +48,6 @@
     <Project Path="src/Kun.Identity/Kun.Identity.csproj" />
     <Project Path="src/Kun.Infrastructure/Kun.Infrastructure.csproj" />
     <Project Path="src/Kun.Mediator/Kun.Mediator.csproj" />
-    <Project Path="src/Kun.MultiTenancy.EntityFrameworkCore/Kun.MultiTenancy.EntityFrameworkCore.csproj" />
     <Project Path="src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <Project Path="src/Kun.Observability/Kun.Observability.csproj" />
     <Project Path="src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />

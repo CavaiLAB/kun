@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace Kun.Data;
+namespace Kun.EntityFrameworkCore;
 
 /// <summary>将直接删除改为软删除，填充删除主体与时间；必须在 Kun 审计字段拦截器之前运行。</summary>
 public sealed class KunSoftDeleteInterceptor(ICurrentUser user, TimeProvider clock) : SaveChangesInterceptor

@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

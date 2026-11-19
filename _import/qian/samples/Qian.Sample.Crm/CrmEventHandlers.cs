@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Kun.Data;

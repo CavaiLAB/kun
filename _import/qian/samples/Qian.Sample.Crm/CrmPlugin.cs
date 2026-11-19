@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Kun.EntityFrameworkCore;
 using Kun.Mediator;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;

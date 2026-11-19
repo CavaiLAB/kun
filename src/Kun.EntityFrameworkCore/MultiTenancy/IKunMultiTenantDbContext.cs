@@ -1,4 +1,4 @@
-namespace Kun.MultiTenancy.EntityFrameworkCore;
+namespace Kun.EntityFrameworkCore.MultiTenancy;
 
 /// <summary>
 /// Marker interface for <c>DbContext</c>s that want the

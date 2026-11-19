@@ -1,4 +1,5 @@
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

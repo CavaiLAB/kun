@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Json.Schema;
+using Kun.EntityFrameworkCore;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;

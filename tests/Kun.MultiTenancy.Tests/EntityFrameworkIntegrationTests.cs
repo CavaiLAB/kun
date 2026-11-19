@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;

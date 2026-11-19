@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

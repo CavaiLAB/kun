@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;

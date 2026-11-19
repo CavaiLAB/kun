@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

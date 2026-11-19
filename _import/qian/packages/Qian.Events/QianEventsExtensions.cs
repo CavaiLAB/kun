@@ -1,3 +1,4 @@
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.Outbox;
 using Microsoft.Extensions.DependencyInjection;

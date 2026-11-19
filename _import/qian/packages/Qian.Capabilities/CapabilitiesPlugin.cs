@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Kun.Authorization;
+using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Plugin.Sdk;

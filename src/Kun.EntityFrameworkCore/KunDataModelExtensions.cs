@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Kun.Data;
+namespace Kun.EntityFrameworkCore;
 
 /// <summary>安装不可由派生上下文遗漏的 Qian 模型约定。</summary>
 public static class KunDataModelExtensions

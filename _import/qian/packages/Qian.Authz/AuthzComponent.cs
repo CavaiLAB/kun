@@ -1,3 +1,4 @@
+using Kun.EntityFrameworkCore;
 using Qian.Authz.Abstractions;
 using Kun.Data;
 using Kun.Plugin.Sdk;

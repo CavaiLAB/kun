@@ -2,6 +2,7 @@ using System.Text.Json;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;

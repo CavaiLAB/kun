@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Benchmarks;

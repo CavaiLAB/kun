@@ -1,3 +1,4 @@
+using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config;
 using Kun.Data;

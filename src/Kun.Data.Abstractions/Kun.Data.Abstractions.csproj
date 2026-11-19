@@ -16,7 +16,6 @@
     <ProjectReference Include="../../_import/qian/packages/Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="../Kun.MultiTenancy.EntityFrameworkCore/Kun.MultiTenancy.EntityFrameworkCore.csproj" />
     <EmbeddedResource Include="../../_import/qian/contracts/v0/event-envelope.schema.json;../../_import/qian/contracts/v0/s2s-claims.schema.json" LogicalName="data/v0/%(Filename)%(Extension)" />
     <None Include="../../_import/qian/contracts/v0/event-envelope.schema.json;../../_import/qian/contracts/v0/s2s-claims.schema.json" Pack="true" PackagePath="contracts/v0/" />
     <EmbeddedResource Include="../../_import/qian/contracts/data/v1/*.json" LogicalName="data/%(Filename)%(Extension)" />

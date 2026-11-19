@@ -12,7 +12,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
-    <ProjectReference Include="..\Kun.MultiTenancy.EntityFrameworkCore\Kun.MultiTenancy.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\Kun.Runtime\Kun.Runtime.csproj" />
+    <ProjectReference Include="..\Kun.Errors\Kun.Errors.csproj" />
     <ProjectReference Include="..\Kun.EventBus\Kun.EventBus.csproj" />
     <ProjectReference Include="..\Kun.Mediator\Kun.Mediator.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

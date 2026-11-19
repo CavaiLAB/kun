@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Kun.Runtime;

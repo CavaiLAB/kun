@@ -4,6 +4,7 @@ using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Results;
 using Kun.Core.Security;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.Errors;
 using Kun.EventBus.DependencyInjection;

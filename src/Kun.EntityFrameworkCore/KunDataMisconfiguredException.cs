@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Kun.Data;
+namespace Kun.EntityFrameworkCore;
 
 /// <summary>在构造上下文或启动宿主时拒绝不安全的数据层配置。</summary>
 public sealed class KunDataMisconfiguredException : InvalidOperationException

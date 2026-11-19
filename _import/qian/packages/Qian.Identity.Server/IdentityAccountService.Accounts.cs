@@ -1,3 +1,4 @@
+using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Kun.Data;

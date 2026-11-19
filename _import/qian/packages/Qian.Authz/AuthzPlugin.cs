@@ -3,6 +3,7 @@ using System.Text.Json;
 using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;

@@ -1,6 +1,7 @@
 using System.Data;
 using System.Security.Cryptography;
 using System.Text.Json;
+using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.Hosting;
 using Npgsql;

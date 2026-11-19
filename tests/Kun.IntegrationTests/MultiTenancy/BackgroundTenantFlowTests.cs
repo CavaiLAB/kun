@@ -13,7 +13,7 @@ using Kun.EventBus.RabbitMQ.DependencyInjection;
 using Kun.EventBus.RabbitMQ.Options;
 using Kun.IntegrationTests.Fixtures;
 using Kun.MultiTenancy.DependencyInjection;
-using Kun.MultiTenancy.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;

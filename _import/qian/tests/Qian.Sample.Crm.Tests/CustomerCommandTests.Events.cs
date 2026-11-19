@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;

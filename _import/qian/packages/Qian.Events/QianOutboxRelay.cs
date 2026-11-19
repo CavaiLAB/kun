@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.Background;
 using Microsoft.EntityFrameworkCore;

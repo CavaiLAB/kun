@@ -30,7 +30,6 @@
     <ProjectReference Include="..\..\src\Kun.Audit\Kun.Audit.csproj" />
     <ProjectReference Include="..\..\src\Kun.Audit.EntityFrameworkCore\Kun.Audit.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.MultiTenancy\Kun.MultiTenancy.csproj" />
-    <ProjectReference Include="..\..\src\Kun.MultiTenancy.EntityFrameworkCore\Kun.MultiTenancy.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.EntityFrameworkCore\Kun.EntityFrameworkCore.csproj" />
   </ItemGroup>
 

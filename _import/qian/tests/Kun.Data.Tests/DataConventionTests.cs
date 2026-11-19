@@ -1,6 +1,7 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Security;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Conventions;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.Outbox;

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Kun.MultiTenancy.EntityFrameworkCore;
+namespace Kun.EntityFrameworkCore.MultiTenancy;
 
 /// <summary>
 /// <see cref="IModelCacheKeyFactory"/> that emits a distinct compiled

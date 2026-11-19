@@ -7,6 +7,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

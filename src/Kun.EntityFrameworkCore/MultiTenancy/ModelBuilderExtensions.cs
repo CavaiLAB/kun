@@ -3,7 +3,7 @@ using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kun.MultiTenancy.EntityFrameworkCore;
+namespace Kun.EntityFrameworkCore.MultiTenancy;
 
 /// <summary>
 /// <see cref="ModelBuilder"/> extensions that attach the Kun multi-tenant

@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
 using Microsoft.AspNetCore.Hosting;

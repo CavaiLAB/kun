@@ -2,7 +2,7 @@ using Kun.EntityFrameworkCore;
 using Kun.EventBus.Outbox;
 using Kun.Runtime;
 
-namespace Kun.Data;
+namespace Kun.EntityFrameworkCore;
 
 /// <summary>数据 seam 的稳定服务键；业务组件只依赖 Definition。</summary>
 public static class DataDefinition

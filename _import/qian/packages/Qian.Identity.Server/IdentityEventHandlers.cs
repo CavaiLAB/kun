@@ -1,4 +1,5 @@
 using Kun.Core.Domain;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator;

@@ -4,11 +4,11 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Conventions;
 using Kun.EntityFrameworkCore.Interceptors;
-using Kun.MultiTenancy.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Kun.Data;
+namespace Kun.EntityFrameworkCore;
 
 /// <summary>带安全装配门禁的数据上下文。租户过滤与 Outbox 继承 Kun 的行为。</summary>
 public abstract class KunStrictDbContext : KunDbContext, IKunMultiTenantDbContext

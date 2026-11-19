@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using Json.Schema;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;

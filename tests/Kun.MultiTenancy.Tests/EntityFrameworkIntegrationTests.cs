@@ -12,17 +12,6 @@ namespace Kun.MultiTenancy.Tests;
 public sealed class EntityFrameworkIntegrationTests
 {
     [Fact]
-    public void GlobalFilter_AccessorOnlyOverload_RejectsUnsafeModelCreation()
-    {
-        var builder = new ModelBuilder();
-        var tenant = new AsyncLocalTenantContext();
-#pragma warning disable KUNTENANT001 // 验证旧入口明确拒绝，而不是生成会引用其它宿主的模型。
-        var apply = () => builder.ApplyKunMultiTenantFilters(tenant);
-#pragma warning restore KUNTENANT001
-        apply.Should().Throw<InvalidOperationException>().WithMessage("*DbContext*");
-    }
-
-    [Fact]
     public async Task GlobalFilter_HidesOtherTenants()
     {
         var ctx = new AsyncLocalTenantContext();

@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using Kun.Core.Domain;
-using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kun.EntityFrameworkCore.MultiTenancy;
@@ -11,25 +10,6 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 /// </summary>
 public static class KunMultiTenancyModelBuilderExtensions
 {
-    /// <summary>
-    /// Retained binary entry point for the unsafe accessor-only overload; rejects model creation.
-    /// </summary>
-    /// <remarks>
-    /// An accessor alone cannot bind a reused model to the executing DbContext. Capturing its value
-    /// would also be unsafe when the host uses EF's default shared model cache. Migrate to the
-    /// DbContext overload; KunDbContext consumers already receive the safe filter automatically.
-    /// </remarks>
-    [Obsolete("Use ApplyKunMultiTenantFilters(this) with a DbContext implementing IKunMultiTenantDbContext. Accessor-only filters cannot safely bind a shared model.", DiagnosticId = "KUNTENANT001")]
-    public static ModelBuilder ApplyKunMultiTenantFilters(
-        this ModelBuilder modelBuilder,
-        ITenantContext tenantContext)
-    {
-        ArgumentNullException.ThrowIfNull(modelBuilder);
-        ArgumentNullException.ThrowIfNull(tenantContext);
-
-        throw new InvalidOperationException("Accessor-only tenant filters cannot bind the executing DbContext. Use ApplyKunMultiTenantFilters(this) with IKunMultiTenantDbContext.");
-    }
-
     /// <summary>
     /// Attaches the tenant predicate to the executing DbContext so a shared model never reads
     /// a previous context's tenant accessor. Call with <c>modelBuilder.ApplyKunMultiTenantFilters(this)</c>.
@@ -42,23 +22,43 @@ public static class KunMultiTenancyModelBuilderExtensions
         var currentTenantId = Expression.Property(
             Expression.Convert(Expression.Constant(context, typeof(TContext)), typeof(IKunMultiTenantDbContext)),
             nameof(IKunMultiTenantDbContext.TenantIdForModelCacheKey));
-        return Apply(modelBuilder, currentTenantId);
+        return ApplyQueryFilters(modelBuilder, currentTenantId, softDelete: false);
     }
 
-    private static ModelBuilder Apply(ModelBuilder modelBuilder, Expression currentTenantId)
+    /// <summary>
+    /// The one place that builds Kun's global query filters. Every <see cref="IMultiTenant"/> entity gets
+    /// <c>e.TenantId == currentTenantId</c>; with <paramref name="softDelete"/>, every <see cref="ISoftDelete"/>
+    /// entity also gets <c>!e.IsDeleted</c>, merged into the same predicate because <c>HasQueryFilter</c>
+    /// replaces any earlier filter. <see cref="KunDbContext"/> passes its own member access as
+    /// <paramref name="currentTenantId"/> and turns soft delete on.
+    /// </summary>
+    internal static ModelBuilder ApplyQueryFilters(ModelBuilder modelBuilder, Expression currentTenantId, bool softDelete)
     {
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             var clrType = entity.ClrType;
-            if (!typeof(IMultiTenant).IsAssignableFrom(clrType))
+            var isMultiTenant = typeof(IMultiTenant).IsAssignableFrom(clrType);
+            var isSoftDelete = softDelete && typeof(ISoftDelete).IsAssignableFrom(clrType);
+            if (!isMultiTenant && !isSoftDelete)
             {
                 continue;
             }
 
             var parameter = Expression.Parameter(clrType, "e");
-            var tenantIdProp = Expression.Property(parameter, nameof(IMultiTenant.TenantId));
-            var predicate = Expression.Equal(tenantIdProp, currentTenantId);
-            modelBuilder.Entity(clrType).HasQueryFilter(Expression.Lambda(predicate, parameter));
+            Expression? predicate = null;
+            if (isMultiTenant)
+            {
+                var tenantIdProp = Expression.Property(parameter, nameof(IMultiTenant.TenantId));
+                predicate = Expression.Equal(tenantIdProp, currentTenantId);
+            }
+
+            if (isSoftDelete)
+            {
+                var notDeleted = Expression.Not(Expression.Property(parameter, nameof(ISoftDelete.IsDeleted)));
+                predicate = predicate is null ? notDeleted : Expression.AndAlso(predicate, notDeleted);
+            }
+
+            modelBuilder.Entity(clrType).HasQueryFilter(Expression.Lambda(predicate!, parameter));
         }
 
         return modelBuilder;

@@ -1,4 +1,4 @@
-namespace Qian.Events.Tests;
+namespace Kun.EventBus.IntegrationTests;
 
 internal static class Tenants
 {

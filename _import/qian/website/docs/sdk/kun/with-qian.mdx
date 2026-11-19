@@ -25,7 +25,7 @@ updated: 2026-11-19
 | Kun 模块 | Qian 里谁用 | 说明 |
 |---|---|---|
 | `Kun.Runtime`、`Kun.Errors` | 全部平台插件 | 组件运行时与错误模型；运行时只依赖 `Kun.Errors` 与 .NET DI |
-| `Kun.Core`、`Kun.Mediator` | `Qian.Plugin.Sdk` 的命令管道、各组件的命令处理器 | 命令与查询契约、`Result`；中介按请求登记处理器与行为 |
+| `Kun.Core`、`Kun.Mediator` | `Kun.Plugin.Sdk.Commands` 的命令管道、各组件的命令处理器 | 命令与查询契约、`Result`；中介按请求登记处理器与行为 |
 | `Kun.MultiTenancy`、`Kun.MultiTenancy.EntityFrameworkCore` | [qian.tenancy](/components/platform/qian.tenancy)、[qian.data](/components/platform/qian.data) | 租户上下文与 RLS 双保险；后台链路的租户回灌与强制装配见 7.1 第 1 项 |
 | `Kun.EntityFrameworkCore` | [qian.data](/components/platform/qian.data)、[qian.tenancy](/components/platform/qian.tenancy)、[qian.events](/components/platform/qian.events)、[qian.audit](/components/platform/qian.audit) | 写侧、三策略 Provisioner、Outbox 表、同事务审计 |
 | `Kun.Dapper` | [qian.data](/components/platform/qian.data) | 读侧，可选 |
@@ -63,7 +63,7 @@ Kun 里有几组功能重叠的「双胞胎」API，Qian 各选定一套，插�
 | 限流 | 服务侧 `Kun.RateLimit`；网关侧三策略 + Redis 共享计数 | — |
 | 仓储 | `DbContext` + `Kun.EntityFrameworkCore` 的 `IUnitOfWork` | `Kun.Infrastructure` 的 `IRepository` / `IUnitOfWork` |
 
-这些选择会写进 `Qian.Plugin.Sdk` 的分析器：插件作者用错即编译失败（§07 7.1）。
+这些选择会写进插件开发包（`Kun.Plugin.Sdk`）的分析器：插件作者用错即编译失败（§07 7.1）。
 
 ## 强制装配与禁用项
 

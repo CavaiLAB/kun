@@ -75,7 +75,7 @@ flowchart LR
 
 | 域 | 内核档 | 平台档 |
 |---|---|---|
-| 运行时基础与错误模型 | `Kun.Errors`、`Kun.Core`、`Kun.Mediator`、`Kun.Validation`、`Kun.AspNetCore`、`Kun.Runtime`、`Kun.Plugin.Sdk`、`Kun.Caching`、`Kun.Observability` | `Kun.Plugin.Sdk` 的命令管道与 HTTP 适配 |
+| 运行时基础与错误模型 | `Kun.Errors`、`Kun.Core`、`Kun.Mediator`、`Kun.Validation`、`Kun.AspNetCore`、`Kun.Runtime`、`Kun.Plugin.Sdk`、`Kun.Caching`、`Kun.Observability` | `Kun.Plugin.Sdk.Commands`（命令管道）、`Kun.Plugin.Sdk.AspNetCore`（HTTP 适配） |
 | 数据与租户 | `Kun.MultiTenancy`、`Kun.EntityFrameworkCore`、原生数据通道 | `Kun.Data`、`Kun.Tenancy`、`Kun.Tenancy.Signup` |
 | 权限 | `Kun.Authorization`（端口） | `Kun.Authorization.Rbac`、`Kun.Authorization.AspNetCore` |
 | 身份、安全、网关 | `Kun.Security`、`Kun.Identity`、`Kun.Gateway`、`Kun.RateLimit`、`Kun.Grpc` | `Kun.Identity.Server`、`Kun.Identity.Client`、身份连接器 |

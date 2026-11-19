@@ -2,6 +2,19 @@
 
 本模块是 S1-RT-014 / S1-RT-033 的 SDK 与源生成器入口。开发者规格为组件模型 §3、§5 及 PRD §7.2.3；组件库只依赖 Runtime、SDK 与 Definition，SDK 自身不引用 Provider。当前交付代码声明、源生成能力契约、唯一清单校验、已在真实 CRM 命令中使用的 Mediator/事务/waterfall 管道，以及包族在 GitHub Packages 的 NuGet 锁步发布；组件的清单派生、真实安装与平台验收分别有各自的验证门。
 
+## 包的划分
+
+插件开发包分四个包，另有一个构建期工具：
+
+| 包 | 档位 | 内容 |
+|---|---|---|
+| `Kun.Plugin.Sdk` | 内核档契约 | 代码声明特性（`KunPlugin`、`Capability`、`KunJob` 等）、生成契约与清单错误、命令策略协议（`CommandPolicies`、`CommandEvents`、`CommandInvocation`） |
+| `Kun.Plugin.Sdk.Commands` | 平台档契约 | 命令管道：`AddKunCapability`（权限、事务、数据会话、主体端口检查）、`CommandDataSession<TContext>`、钩子能力 `ExposeCapabilityHook` |
+| `Kun.Plugin.Sdk.Generators` | 内核档，只以分析器引用 | 源生成器与 KUNSDK001–003 诊断 |
+| `Kun.Plugin.Sdk.AspNetCore` | 平台档契约 | HTTP 插件可见性，见下文「HTTP 插件可见性」 |
+
+只用声明与命令策略的包只引用 `Kun.Plugin.Sdk`；要登记能力命令的平台组件另引用 `Kun.Plugin.Sdk.Commands`。清单工具在仓库根的 `tools/Kun.Plugin.Tool`，不打包。`Kun.Plugin.Sdk` 对平台档只剩一条依赖：命令策略协议的 `CommandInvocation` 带着身份契约里的 `Principal`，原生审计（内核档）要读它，依赖门禁里记为例外，B7 去掉。
+
 ## 代码契约
 
 KunPluginAttribute 标注一个组件 ID 的顶层非泛型 IKunPlugin 入口。同程序集可以有多个不同 ID；每个 ID 对应唯一清单、一个 runtime.entry，check / sync 按目标清单 ID 选择元数据。重复 ID、跨组件能力归属均失败；多组件程序集里的 CapabilityAttribute 必须填写 ComponentId，单组件程序集可省略。
@@ -23,7 +36,7 @@ CapabilityAttribute 标注顶层非泛型 partial 请求，并指定响应类型
 
 ## 实际命令执行
 
-生成请求实现 ICapabilityRequest，同时生成不可变 RequiredPermissions。AddKunCapability 经已有 AddAuthorizedHandler 原子登记权限行为；宿主提供实际插件上下文解析器和固定通道，请求体不能选择这些值。当前入口处理带真实租户和非空权限点的数据能力，平台 null 租户、匿名能力和完整 app/session lineage 尚未开放。
+这一节的命令管道在 `Kun.Plugin.Sdk.Commands`。生成请求实现 ICapabilityRequest，同时生成不可变 RequiredPermissions。AddKunCapability 经已有 AddAuthorizedHandler 原子登记权限行为；宿主提供实际插件上下文解析器和固定通道，请求体不能选择这些值。当前入口处理带真实租户和非空权限点的数据能力，平台 null 租户、匿名能力和完整 app/session lineage 尚未开放。
 
 Kun 每次 Send 建立新的 DI scope。SDK 在这个 scope 中通过 IDataService 打开业务数据会话，把它绑定到 CommandDataSession，handler 只消费这份上下文与 Outbox。外层开启 SERIALIZABLE，实际 command/dispatching 事件包裹 handler 和保存步骤，审计追加完成后才提交。代理延迟构造真正的 handler，且转交基础组件卸载与请求共同控制的取消令牌。
 
@@ -42,8 +55,8 @@ SensitiveAttribute 把实际 JSON 属性标记为 sensitive。顶层字段及整
 工具只用于显式选择的本地可信项目构建。加载生成工厂及 JsonTypeInfo 会加载程序集，因此不能用于未知市场制品的准入或沙箱校验。工具与组件共用 SDK/Runtime 的程序集身份，避免独立加载上下文复制服务键类型。
 
 ```bash
-dotnet run --project tools/Qian.Plugin.Tool -c Release -- sync packages/Qian.Data/bin/Release/net10.0/Qian.Data.dll plugins/qian.data
-dotnet run --project tools/Qian.Plugin.Tool -c Release -- check packages/Qian.Data/bin/Release/net10.0/Qian.Data.dll plugins/qian.data
+dotnet run --project tools/Kun.Plugin.Tool -c Release -- sync _import/qian/packages/Qian.Data/bin/Release/net10.0/Qian.Data.dll _import/qian/plugins/qian.data
+dotnet run --project tools/Kun.Plugin.Tool -c Release -- check _import/qian/packages/Qian.Data/bin/Release/net10.0/Qian.Data.dll _import/qian/plugins/qian.data
 ```
 
 sync 合并唯一清单的派生字段与既有表面；数组与入口不改变协议形状。清单 x-qian-generated 记录字段指针、工具归属以及每份 metadata / 配置文件的来源、指针和内容哈希；权限文件仍是 authz-permissions 规定的数组，不往它里面塞生成标记。路径沿清单的 surfaces.tools、surfaces.metadata 与 runtime.configSchema；未声明时采用 ./tools、./metadata 与 ./schemas/config.schema.json。
@@ -81,6 +94,8 @@ Registry 条目整体卸载时，宿主上下文工厂的失效也映射为 NOT_
 
 ## 包族发布
 
+插件开发包的四个包在仓库根的 `src/` 下，随 Kun 的包一起打包核对与发布（`scripts/release_packages.py`）；下面讲的是过渡目录里 `Qian.` 开头的包族。
+
 `Qian.slnf` 里 `IsPackable=true` 且包名以 `Qian.` 开头的全部项目组成包族（与依赖图门禁同一口径），按 ADR-019 D19.7 以同一 SemVer 版本发到 GitHub Packages 的 NuGet 源 `https://nuget.pkg.github.com/idadawn/index.json`。GitHub 的 NuGet 包随关联仓库定可见性：`idadawn/qian` 是公开仓库，包随之公开可见（公开后不能改回私有），从该源安装仍需 GitHub 令牌；首个版本 0.1.0 发布时出现这一情况，产品负责人 2026-10-15 选择保留公开，与 ADR-019「S1 私有源」的出入记在 S1-RT-014 日志。发布只运行 main 上的 `dotnet-release` 工作流（手动触发，输入版本号），由 [scripts/dotnet_release.py](../../scripts/dotnet_release.py) 逐步核对：
 
 1. 本提交的 dotnet 工作流已在 main 通过；版本号是不带 v 前缀与构建元数据的 SemVer 2.0，包族里任何包在包源里都还没有这个版本。
@@ -114,7 +129,7 @@ python3 scripts/dotnet_release.py verify-consumer --version 0.1.0-local.1 --sour
 
 专项覆盖实际编译生成与 JsonTypeInfo、审计默认值、元数据副本、错误声明诊断、代码删除与重复能力、服务注册不可静态证明时拒绝、唯一清单同步/漂移以及手写文件和路径保护。全仓代码组件 check 与实现构件分类已接入 CI；Qian.Data.Tests 另按仓库清单的 runtime.entry 装载真实 Provider（不直接构造具体类型），核对清单派生字段与生成元数据一致，挂载后的会话默认带租户填充、租户过滤与 RLS。按 S1-DEC-018，S1-RT-011 从私有源真实执行 `qian add data` 并运行 Provider 后，Data、Events 与 Config 已通过对应真实安装门并移除 x-skeleton；其余组件补齐元数据后继续保留原门状态。
 
-SDK 自身的依赖边界由 CI 的依赖图门禁守住：`Kun.Plugin.Sdk`、`.AspNetCore`、`.Generators` 的完整传递依赖里不能出现任何 Provider 包与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，门禁自测另断言这三个包在 `Qian.slnf` 的检查范围内（见 [tests/README.md](../../_import/qian/tests/README.md) 4.3）。
+SDK 自身的依赖边界由 CI 的依赖图门禁守住：`Kun.Plugin.Sdk`、`.Commands`、`.AspNetCore`、`.Generators` 的完整传递依赖里不能出现任何 Provider 包与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，`Kun.Plugin.Sdk` 的完整传递依赖里平台档只有身份契约、没有 EF Core，门禁自测另断言这四个包在 `Kun.slnx` 的检查范围内（见 [tests/README.md](../../_import/qian/tests/README.md) 4.3）。
 
 真实 CRM 已验证创建、同事务 Outbox/审计、错误回滚、幂等、并发租户与锁等待时卸载取消；列表与详情也通过同一真实管道，分别覆盖默认不审计和显式审计。查询会拒绝已跟踪的业务变更，且不开放 Outbox 写入端口。按 R94 推迟到 S2 的是 IKunPlugin 基类、客户端门面、生命周期钩子基类与 DI 注册代码生成；S1 以接口和 ctx.Inject 为准。KunJob 已随 S1-SCH-001 交付：在已有 Capability 的 partial 请求上标注 KunJob("code")，Apply 用 ProvideJob 同时登记真实能力与 local 作业目录；生成 metadata/jobs.json，目录同步、归属与手改保护沿用同一工具。调度及取消语义见 [Scheduler 主文档](../../_import/qian/packages/Qian.Scheduler/README.md)。UI/低代码与 Wasm 表面按各自 S2 规划，代码热装卸尚未承诺；动态注册不会自动变成清单模板。具名 seam 已由 Contributes 的独立声明覆盖，权限与事件已派生到各自 metadata 文件。应用/会话执行边界与完整平台验收继续按各自任务推进；这些局部验收不代替 QA-002。
 

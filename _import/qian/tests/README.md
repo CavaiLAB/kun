@@ -123,7 +123,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 `Qian.Scheduler.Tests` 的用例按主题分在四个 sealed 类里，各自一个 `SchedulerFixture`（独立的 PostgreSQL 容器、角色与 schema），类之间并行、类内串行（S1-QA-022）；各类的范围见 [SchedulerScenario.cs](Qian.Scheduler.Tests/SchedulerScenario.cs) 开头的注释。
 
 - 共用的租户、作业目标与参数是静态类 `SchedulerScenario` 的只读成员，各文件 `using static` 引用；没有公共基类，新用例直接写进对应主题类。
-- 分钟验收 `SchedulerMinuteTests` 要等两个真实分钟边界（CI 上 90–143 秒），是程序集的长杆，独占一个类；不往里加用例，其他类的总时长也要留在它之下。
+- 分钟验收 `SchedulerMinuteTests` 要等两个真实分钟边界（CI 上 90–143 秒），是程序集的长杆，独占一个类；不往里加用例，其他类的总时长也要留在它之下。100 个 cron 分 10 路并发建：逐个建时 CPU 被挤要 20–60 秒，会跨过分钟边界。
 - 同一个类的用例共用一个库：用到库的用例都先 `Reset()` 清表，有的还建删触发器、改授权，所以只能串行。要并行就新开类、配自己的夹具，并同步调高程序集并发上限 `MaxThreads`（现为 4，按容器数定）。
 - 接管与准备用例的时序判据建立在测试宿主的 6 秒租约（`HostConfig.LeaseSeconds`）上。
   - 等待上限用 `fixture.Leases(n)` 按租约份数给。一份覆盖一次「领取到初始续租」的准备，或一次到期；用例要经过几段就给几份，例如等首个处理器给 2 份，到期后等恢复给 3 份。不写死秒数。

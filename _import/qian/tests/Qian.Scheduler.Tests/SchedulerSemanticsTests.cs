@@ -39,7 +39,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantB)); await caller.Scheduler().ScheduleOnce(caller, "same", due, Target, Parameters, cancellationToken: Ct);
         }
         await using var worker = await WorkerProcess.Start(fixture.Config, TenantA, TenantB);
-        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects") == 1, TimeSpan.FromSeconds(15));
+        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects") == 1, fixture.Leases(2));
         Assert.Equal(TenantB, await fixture.Scalar<string>("SELECT tenant_id FROM public.sch_probe_effects"));
         Assert.Equal(2, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_definitions"));
     }
@@ -195,7 +195,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         }
         await fixture.Admin($"INSERT INTO public.sch_probe_tenants(id,status) VALUES ('{TenantA}','suspended');");
         await using var worker = await WorkerProcess.Start(fixture.Config, TenantA);
-        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed'") == 1, TimeSpan.FromSeconds(10));
+        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='failed'") == 1, fixture.Leases(2));
         Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts"));
     }
 
@@ -220,10 +220,11 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         {
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantB));
             await caller.Scheduler().ScheduleOnce(caller, "cancel-running", DateTimeOffset.UtcNow, Target, JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 15000 }), cancellationToken: Ct);
-            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>($"SELECT count(*) FROM public.sch_probe_attempts WHERE tenant_id='{TenantB}'") == 1, TimeSpan.FromSeconds(10));
+            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>($"SELECT count(*) FROM public.sch_probe_attempts WHERE tenant_id='{TenantB}'") == 1, fixture.Leases(2));
             Assert.True(await caller.Scheduler().Cancel(caller, "cancel-running", Ct));
         }
-        await Task.Delay(TimeSpan.FromSeconds(3), Ct);
+        // 给旧执行者至少一个半心跳周期去发现取消，再看终态没被覆盖。
+        await Task.Delay(fixture.Leases(0.5), Ct);
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='cancelled'"));
         Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"));
     }
@@ -240,7 +241,7 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
             await caller.Scheduler().ScheduleInterval(caller, "catch-up", past, TimeSpan.FromSeconds(1), Target, JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 50 }), new JobOptions { Misfire = MisfirePolicy.CatchUp }, Ct);
         }
         await using var a = await WorkerProcess.Start(fixture.Config, TenantA); await using var b = await WorkerProcess.Start(fixture.Config, TenantA);
-        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs r JOIN plugin_qian_scheduler.job_definitions d ON r.tenant_id=d.tenant_id AND r.trigger_id=d.id WHERE d.business_key='catch-up' AND r.status='succeeded'") >= 4, TimeSpan.FromSeconds(15));
+        await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs r JOIN plugin_qian_scheduler.job_definitions d ON r.tenant_id=d.tenant_id AND r.trigger_id=d.id WHERE d.business_key='catch-up' AND r.status='succeeded'") >= 4, fixture.Leases(3));
         using (producer.Tenant.BeginScope(TenantA))
         { var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA)); await caller.Scheduler().Cancel(caller, "catch-up", Ct); }
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='skipped'"));

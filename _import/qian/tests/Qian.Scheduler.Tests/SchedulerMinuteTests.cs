@@ -16,13 +16,14 @@ public sealed class SchedulerMinuteTests(SchedulerFixture fixture) : IClassFixtu
         await using var a = await WorkerProcess.Start(fixture.Config, TenantA, TenantB); await using var b = await WorkerProcess.Start(fixture.Config, TenantA, TenantB); await using var c = await WorkerProcess.Start(fixture.Config, TenantA, TenantB);
         Assert.Equal(3, new[] { a.Id, b.Id, c.Id }.Distinct().Count());
         // 避免造数跨过分钟边界；保留真实分钟与默认一秒领取语义。
+        // 分 10 路并发建：逐个建在 CPU 被挤时要 20–60 秒，会跨过边界（S1-QA-023）；并发不超过 10，免得占满数据库连接。
         if (DateTimeOffset.UtcNow.Second > 40) await Task.Delay(TimeSpan.FromSeconds(61 - DateTimeOffset.UtcNow.Second), Ct);
-        for (var i = 0; i < 100; i++)
+        await Parallel.ForEachAsync(Enumerable.Range(0, 100), new ParallelOptions { MaxDegreeOfParallelism = 10, CancellationToken = Ct }, async (i, ct) =>
         {
             var tenant = i % 2 == 0 ? TenantA : TenantB; using var scope = producer.Tenant.BeginScope(tenant);
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", tenant));
-            await caller.Scheduler().ScheduleCron(caller, "minute-" + i, "0 * * * * ?", Target, Parameters, cancellationToken: Ct);
-        }
+            await caller.Scheduler().ScheduleCron(caller, "minute-" + i, "0 * * * * ?", Target, Parameters, cancellationToken: ct);
+        });
         await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='succeeded'") >= 200, TimeSpan.FromSeconds(135));
         Assert.Equal(200, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts"));
         Assert.Equal(200, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"));

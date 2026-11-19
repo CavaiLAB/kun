@@ -71,15 +71,17 @@ public sealed class ProbeHost : IAsyncDisposable
         foreach (var tenantId in config.WarmupTenants ?? [])
         {
             using var warmupTenant = tenant.BeginScope(tenantId);
+            var claim = new JobClaim(tenantId, Guid.NewGuid(), Guid.NewGuid(), 0, DateTimeOffset.UtcNow, "warmup");
             // 真实收尾入口：对不存在的触发器在所有权校验处返回 false、事务回滚；跑过与 BeginAsync 同一条锁行查询和数据库时钟。
-            _ = await worker.CompleteAsync(new JobClaim(tenantId, Guid.NewGuid(), Guid.NewGuid(), 0, DateTimeOffset.UtcNow, "warmup"), "once", new JobOptions(), "succeeded", null, ct);
-            // BeginAsync 其余的查询形状、选项反序列化、SaveChanges 的插入与更新、续租语句，各跑一次后整体回滚。
+            _ = await worker.CompleteAsync(claim, "once", new JobOptions(), "succeeded", null, ct);
+            // BeginAsync 其余的查询、选项反序列化、SaveChanges 的插入与更新、续租语句，各跑一次后整体回滚。
+            // 两条按主键取单行的查询照 BeginAsync 的写法（谓词同样取自名为 claim 的 JobClaim），好让 EF 复用编译好的查询；定义不存在，SingleAsync 抛出即可。
             await using var session = await data.Data().OpenAsync<SchedulerDbContext>(ct);
             var db = session.Context;
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            try { _ = await db.Definitions.SingleAsync(x => x.Id == claim.Id, ct); } catch (InvalidOperationException) { }
+            _ = await db.Runs.SingleOrDefaultAsync(x => x.Id == claim.RunId, ct);
             var id = Guid.NewGuid();
-            _ = await db.Definitions.SingleOrDefaultAsync(x => x.Id == id, ct);
-            _ = await db.Runs.SingleOrDefaultAsync(x => x.Id == id, ct);
             _ = JsonSerializer.Deserialize<JobOptions>(JsonSerializer.Serialize(new JobOptions(), PostgresScheduler.Json), PostgresScheduler.Json);
             var row = new JobDefinitionRow { TenantId = tenantId, Id = id, BusinessKey = "warmup-" + id.ToString("N"), Target = "warmup", Schedule = "once", CreatedBy = "warmup" };
             db.Definitions.Add(row); await session.SaveChangesAsync(ct);

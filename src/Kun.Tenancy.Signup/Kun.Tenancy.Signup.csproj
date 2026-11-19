@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><IsPackable>true</IsPackable><Description>Qian 租户自助开通 Provider：申请人接口与公开页托管、平台审核、经开通编排建立租户与管理员成员。</Description></PropertyGroup>
+  <PropertyGroup><IsPackable>true</IsPackable><Description>Kun 租户自助开通 Provider：申请人接口与公开页托管、平台审核、经开通编排建立租户与管理员成员。</Description></PropertyGroup>
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
   <ItemGroup>

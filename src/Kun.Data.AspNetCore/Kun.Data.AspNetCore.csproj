@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Qian 数据组件的 HTTP 表面：基准类型目录与数据连接档案端点。</Description>
+    <Description>Kun 数据组件的 HTTP 表面：基准类型目录与数据连接档案端点。</Description>
   </PropertyGroup>
   <PropertyGroup Label="档位">
     <KunTier>platform</KunTier>

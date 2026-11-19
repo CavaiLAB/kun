@@ -7,6 +7,7 @@ using Json.Schema;
 using Kun.Core.Domain;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
+using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 

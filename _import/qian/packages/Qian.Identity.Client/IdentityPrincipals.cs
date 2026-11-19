@@ -2,11 +2,11 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Kun.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Identity.Abstractions;
 
 namespace Qian.Identity.Client;
 

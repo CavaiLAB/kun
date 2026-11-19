@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.MultiTenancy;
+using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

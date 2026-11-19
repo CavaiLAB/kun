@@ -1,4 +1,4 @@
-namespace Qian.Identity.Abstractions;
+namespace Kun.Security;
 
 /// <summary>身份 claim 的唯一词汇表；OIDC 用户令牌与冻结 S2S 令牌的字段集合分别列出。</summary>
 public static class IdentityClaimNames

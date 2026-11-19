@@ -11,6 +11,7 @@ using Kun.EventBus.DependencyInjection;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
 using Kun.MultiTenancy;
+using Kun.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;

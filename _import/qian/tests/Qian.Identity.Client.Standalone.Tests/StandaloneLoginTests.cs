@@ -31,7 +31,7 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     [
         "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Qian.Testing.Containers",
         "Kun.Authorization", "Kun.Caching", "Kun.Core", "Kun.Errors", "Kun.Errors.AspNetCore", "Kun.EventBus.Abstractions",
-        "Kun.Identity", "Kun.Identity.AspNetCore", "Kun.Mediator", "Kun.MultiTenancy", "Kun.Plugin.Sdk", "Kun.Runtime", "Kun.Security"
+        "Kun.Identity", "Kun.Identity.AspNetCore", "Kun.Mediator", "Kun.MultiTenancy", "Kun.Plugin.Sdk", "Kun.Runtime", "Kun.Security", "Kun.Security.Abstractions"
     ];
 
     [Fact]

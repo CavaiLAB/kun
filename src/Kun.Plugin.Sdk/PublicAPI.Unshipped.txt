@@ -63,7 +63,7 @@ Kun.Plugin.Sdk.CommandInvocation.CancellationToken.get -> System.Threading.Cance
 Kun.Plugin.Sdk.CommandInvocation.Channel.get -> string!
 Kun.Plugin.Sdk.CommandInvocation.Contract.get -> Kun.Plugin.Sdk.CapabilityContract!
 Kun.Plugin.Sdk.CommandInvocation.Input.get -> System.Text.Json.JsonElement
-Kun.Plugin.Sdk.CommandInvocation.Principal.get -> Qian.Identity.Abstractions.Principal!
+Kun.Plugin.Sdk.CommandInvocation.Principal.get -> Kun.Security.Principal!
 Kun.Plugin.Sdk.CommandInvocation.Source.get -> Kun.Runtime.IPluginContext!
 Kun.Plugin.Sdk.CommandInvocation.Transaction.get -> System.Data.Common.DbTransaction!
 Kun.Plugin.Sdk.CommandPolicies

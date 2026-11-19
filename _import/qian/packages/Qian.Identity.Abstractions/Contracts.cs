@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Runtime;
 using Kun.Errors;
+using Kun.Security;
 
 namespace Qian.Identity.Abstractions;
 
@@ -46,9 +47,9 @@ public interface ICurrentUser : Kun.Core.Security.ICurrentUser
     /// <summary>给 Kun 鉴权端口提供实际主体种类，不让服务身份继承旧适配器的 user 默认值。</summary>
     string Kun.Core.Security.ICurrentUser.PrincipalKind => Principal?.Kind switch
     {
-        global::Qian.Identity.Abstractions.PrincipalKind.User => "user",
-        global::Qian.Identity.Abstractions.PrincipalKind.Service => "service",
-        global::Qian.Identity.Abstractions.PrincipalKind.Agent => "agent",
+        global::Kun.Security.PrincipalKind.User => "user",
+        global::Kun.Security.PrincipalKind.Service => "service",
+        global::Kun.Security.PrincipalKind.Agent => "agent",
         _ => string.Empty
     };
 }

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Qian.Identity.Abstractions;
+namespace Kun.Security;
 
 /// <summary>统一主体模型；Agent 在 S1 只预留，不因此开放签发。</summary>
 [JsonConverter(typeof(PrincipalKindConverter))]
@@ -12,19 +12,6 @@ public enum PrincipalKind
     /// <summary>机器服务。</summary>
     Service,
     /// <summary>Agent 客户端，S4 启用。</summary>
-    Agent
-}
-/// <summary>客户端登记类型，独立于 OIDC grant；Agent 为预留值。</summary>
-[JsonConverter(typeof(ClientTypeConverter))]
-public enum ClientType
-{
-    /// <summary>可保管机密的客户端。</summary>
-    Confidential,
-    /// <summary>公开客户端。</summary>
-    Public,
-    /// <summary>机器身份客户端。</summary>
-    Machine,
-    /// <summary>Agent 客户端。</summary>
     Agent
 }
 
@@ -83,17 +70,14 @@ public sealed class DelegationActor
     public override string ToString() => "DelegationActor(redacted)";
 }
 
-internal sealed class PrincipalKindConverter : JsonConverter<PrincipalKind>
+/// <summary>主体类型的 JSON 转换器：只收 user、service、agent 三个小写字符串，数字与其它值一律报错。</summary>
+/// <remarks>公开是因为别的程序集里的 JSON 源生成上下文要引用它。不能换成 <see cref="JsonStringEnumConverter{TEnum}"/>：以特性指定时它也收数字。</remarks>
+public sealed class PrincipalKindConverter : JsonConverter<PrincipalKind>
 {
+    /// <inheritdoc />
     public override PrincipalKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.TokenType == JsonTokenType.String
         ? reader.GetString() switch { "user" => PrincipalKind.User, "service" => PrincipalKind.Service, "agent" => PrincipalKind.Agent, _ => throw new JsonException("未知主体类型。") }
         : throw new JsonException("主体类型必须为字符串。");
+    /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, PrincipalKind value, JsonSerializerOptions options) => writer.WriteStringValue(value switch { PrincipalKind.User => "user", PrincipalKind.Service => "service", PrincipalKind.Agent => "agent", _ => throw new JsonException("未知主体类型。") });
-}
-internal sealed class ClientTypeConverter : JsonConverter<ClientType>
-{
-    public override ClientType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.TokenType == JsonTokenType.String
-        ? reader.GetString() switch { "confidential" => ClientType.Confidential, "public" => ClientType.Public, "machine" => ClientType.Machine, "agent" => ClientType.Agent, _ => throw new JsonException("未知客户端类型。") }
-        : throw new JsonException("客户端类型必须为字符串。");
-    public override void Write(Utf8JsonWriter writer, ClientType value, JsonSerializerOptions options) => writer.WriteStringValue(value switch { ClientType.Confidential => "confidential", ClientType.Public => "public", ClientType.Machine => "machine", ClientType.Agent => "agent", _ => throw new JsonException("未知客户端类型。") });
 }

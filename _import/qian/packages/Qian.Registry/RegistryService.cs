@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
+using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Kun.Data;

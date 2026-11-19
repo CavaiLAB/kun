@@ -161,6 +161,10 @@ jobs:
         working-directory: _import/qian
         run: python3 scripts/dotnet_ci.py paths-check
 
+      - name: 测试项目都有着落（仓库根的在分片 k、专属作业或不进 CI 的表里，_import/qian 下的在 Qian.slnf 里或由专属作业运行）
+        working-directory: _import/qian
+        run: python3 scripts/dotnet_ci.py registration
+
       - name: 上传 namespace 骨架（构件名带尝试号，见「测试分片汇总核对」）
         if: always()
         uses: actions/upload-artifact@v4
@@ -211,11 +215,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 后台顺序预拉本分片用到的测试镜像（与还原、构建并行，记录在 RUNNER_TEMP/prefetch）
+      # 先在前台列出镜像：夹具搬走、镜像变量改名、扫描器漏看了引用夹具的项目，这一步就失败（退出码 2），不再静默。
+      # 不接管道：缺省的 bash -e 不带 pipefail，接了 tee 就吞掉退出码。拉取本身的网络失败照旧只记录，由 Testcontainers 补拉。
+      - name: 列出本分片用到的测试镜像（列不出即失败），再后台顺序预拉（与还原、构建并行，记录在 RUNNER_TEMP/prefetch）
         if: matrix.shard != 'k'
         working-directory: _import/qian
         run: |
           mkdir -p "$RUNNER_TEMP/prefetch"
+          python3 scripts/dotnet_ci.py images ${{ matrix.shard }}
           setsid nohup python3 scripts/dotnet_ci.py prefetch ${{ matrix.shard }} --state "$RUNNER_TEMP/prefetch" \
             > "$RUNNER_TEMP/prefetch/output.log" 2>&1 < /dev/null &
 

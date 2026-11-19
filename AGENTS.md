@@ -52,7 +52,8 @@ dotnet format --verify-no-changes --exclude _import/qian
 - `tests/kun-unit.slnf` 列出 Kun 框架除 `Kun.IntegrationTests`、`Kun.Sample.Tests`、`Kun.Integration.AotTests` 之外的全部测试项目，即单元测试；新加单元测试项目时同时加进这个文件。覆盖率加 `--coverlet --coverlet-output-format cobertura`（单元测试项目都引用了 coverlet.MTP）。
 - 单个测试项目：`dotnet test --project tests/Kun.Mediator.Tests -c Release`；单个测试类或方法用 xunit 的筛选参数，如 `--filter-class "*.类名"`、`--filter-method "*.类名.方法名"`。
 - 集成测试（`tests/Kun.IntegrationTests`）用 Testcontainers 起容器，对象存储测试用 RustFS 作 S3 兼容服务。本机没有容器环境时跳过；设了 `CI` 时改为失败；拉不到镜像一律失败。跑法：`dotnet test --project tests/Kun.IntegrationTests -c Release`。
-- `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑。
+- `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑，写在 `_import/qian/scripts/dotnet_ci.py` 的 `NOT_IN_CI` 里。
+- 每个测试项目都要有着落，CI 的门禁作业用 `python3 _import/qian/scripts/dotnet_ci.py registration` 核对：`_import/` 之外（`tests/gates/` 除外）引用了测试运行器的包或写了 `<IsTestProject>true</IsTestProject>` 的项目，要在 `tests/kun-unit.slnf` 里、在同一脚本的 `KUN_INTEGRATION` 里，或由 `ci.yml` 里 dotnet 区域的作业 `dotnet test --project` 运行；明知不在 CI 跑的写进 `NOT_IN_CI` 并写明原因，表里的项目搬走、改名或进了 CI 时要跟着改。`_import/qian/` 下的测试项目要在 `Qian.slnf` 里或由专属作业运行。
 - CI（`ci.yml` 的 dotnet 区域）另外：原生发布并运行 AOT 冒烟宿主 `tests/Kun.AotSmoke`，ILC 有任何警告即失败（清单见下面「项目文件与包」）；跑 `tests/Kun.Integration.AotTests`（样例、网关包与网关独立宿主的 NativeAOT 发布并运行）；按档位检查依赖（`scripts/check_deps.py`，见下面「档位与依赖」）与身份模块的日志隐私和产品中立（`scripts/check-identity-boundaries.py`）；用占位版本打全部可打包项目并核对产物（`scripts/release_packages.py`，见下面「项目文件与包」），不推送。单元测试与集成测试在测试分片 k 里跑：每个模块各写一份 TRX 与覆盖率，覆盖率上传前核对 `tests/kun-unit.slnf` 里每个测试项目恰好一份；汇总作业再核对每个模块都跑过、没有失败。提交前至少跑一遍格式检查。
 - 基准与对象存储实测不进 CI（S1-DEC-038 D21），在本机跑。基准：`dotnet run -c Release --project benchmarks/Kun.Benchmarks -- --filter '*'`，gRPC 的基准换成 `benchmarks/Kun.Benchmarks.Grpc`，结果写在当前目录的 `BenchmarkDotNet.Artifacts/`。对象存储实测连真实的 OSS 桶，四个 `OSS_SMOKE_*` 环境变量都设了才跑，缺一个就跳过（CI 的分片 k 里没有它们，这组用例跳过）：
 

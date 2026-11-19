@@ -1,6 +1,6 @@
-"""scripts/dotnet_ci.py 的自测（S1-QA-021、S1-KUN-020）：触发过滤自检认得的各类写法，verify 对各分片（含分片 k）结果的核对与
+"""scripts/dotnet_ci.py 的自测（S1-QA-021、S1-KUN-020、S1-KUN-028）：触发过滤自检认得的各类写法，verify 对各分片（含分片 k）结果的核对与
 对 Qian.slnf 外测试项目的告警，latest-attempts 按构件名里的尝试号取每个分片最新的一份（「重跑失败的作业」之后），
-分片 k 的筛选文件与覆盖率份数核对。
+分片 k 的筛选文件与覆盖率份数核对，images 列不出镜像即工具出错、prefetch 拉取失败只记录，registration 核对每个测试项目都有着落。
 
 运行：python3 -m unittest discover -s tests/gates -v
 在临时目录里搭一个 git 跟踪的最小仓库：仓库根放 ci.yml、区域表 scripts/ci_changes.py 与 tests/kun-unit.slnf，_import/qian/ 下放
@@ -12,6 +12,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -99,6 +100,25 @@ LOCATOR = """\
 
 XUNIT_PROJECT = '<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="xunit.v3" /></ItemGroup></Project>\n'
 
+# 与 tests/Qian.Testing.Containers 同形的容器夹具：只引断言库与扩展点（不是测试项目），镜像写在 ContainerImages 里，夹具类型按属性取镜像。
+CONTAINERS_PROJECT = ('<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="xunit.v3.assert" />'
+                      '<PackageReference Include="xunit.v3.extensibility.core" /></ItemGroup></Project>\n')
+CONTAINER_IMAGES = """\
+namespace Qian.Testing.Containers;
+
+public static class ContainerImages
+{
+    public static string Postgres => FromEnvironment("QIAN_TEST_IMAGE_POSTGRES", "postgres:16-alpine");
+
+    public static string Redis => FromEnvironment("QIAN_TEST_IMAGE_REDIS", "redis:7-alpine");
+
+    private static string FromEnvironment(string variable, string fallback) => Environment.GetEnvironmentVariable(variable) ?? fallback;
+}
+"""
+POSTGRES_FIXTURE = "namespace Qian.Testing.Containers;\n\npublic sealed class PostgresFixture\n{\n    public string Image => ContainerImages.Postgres;\n}\n"
+# 照仓库里的写法用反斜杠引用夹具项目
+FIXTURE_USER = XUNIT_PROJECT.replace("</ItemGroup>", '<ProjectReference Include="..\\Qian.Testing.Containers\\Qian.Testing.Containers.csproj" /></ItemGroup>')
+
 
 def csharp(*statements: str, locator: bool = True) -> str:
     """一个 C# 类，Read 方法体依次是 statements：第 i 条（从 0 数）在第 7 + i 行。"""
@@ -112,14 +132,16 @@ def qian(*patterns: str) -> tuple:
 
 
 class Sandbox:
-    """临时仓库：scripts/dotnet_ci.py 的 ROOT 换成其中的 _import/qian/，REPO、SOLUTION、WORKFLOW、CI_CHANGES、KUN_UNIT 与
-    KUN_INTEGRATION 换成它里面的对应文件；write 写在 _import/qian/ 下，write_repo 写在仓库根；写进去的文件在核对前 git add。"""
+    """临时仓库：scripts/dotnet_ci.py 的 ROOT 换成其中的 _import/qian/，REPO、SOLUTION、WORKFLOW、CI_CHANGES、KUN_UNIT、
+    KUN_INTEGRATION 与 CONTAINERS 换成它里面的对应文件，NOT_IN_CI 换成 not_in_ci（缺省为空）；write 写在 _import/qian/ 下，
+    write_repo 写在仓库根；写进去的文件在核对前 git add。"""
 
     def __init__(self, case: unittest.TestCase) -> None:
         self.case = case
         self.repo = Path(tempfile.mkdtemp(prefix="qian-dotnet-ci-"))
         case.addCleanup(shutil.rmtree, self.repo, True)
         self.root = self.repo / "_import" / "qian"
+        self.not_in_ci: dict = {}
         subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
         # 与仓库里的 Qian.slnf 同形：筛选一个 Kun.slnx（临时仓库里不必真有），项目路径相对它所在的目录。
         self.write("Qian.slnf", '{"solution": {"path": "Kun.slnx", "projects": ["tests/Sample.Tests/Sample.Tests.csproj"]}}\n')
@@ -158,7 +180,8 @@ class Sandbox:
         return mock.patch.multiple(dotnet_ci, ROOT=self.root, REPO=self.repo, SOLUTION=self.root / "Qian.slnf",
                                    WORKFLOW=self.repo / ".github" / "workflows" / "ci.yml",
                                    CI_CHANGES=self.repo / "scripts" / "ci_changes.py",
-                                   KUN_UNIT=self.repo / "tests" / "kun-unit.slnf", KUN_INTEGRATION=[KUN_INTEGRATION])
+                                   KUN_UNIT=self.repo / "tests" / "kun-unit.slnf", KUN_INTEGRATION=[KUN_INTEGRATION],
+                                   CONTAINERS=self.root / "tests" / "Qian.Testing.Containers", NOT_IN_CI=dict(self.not_in_ci))
 
     def passes(self):
         with self.patched():
@@ -436,7 +459,7 @@ class AreaTableTests(unittest.TestCase):
 
 
 class VerifyTests(unittest.TestCase):
-    """verify 核对各分片（含分片 k）的 TRX，并对 tests/ 下引用 xunit.v3 却不在 Qian.slnf 里的测试项目告警（门禁样例与专属作业运行的项目除外）。"""
+    """verify 核对各分片（含分片 k）的 TRX，并对 _import/qian/ 下不在 Qian.slnf 里的测试项目告警（门禁样例与专属作业运行的项目除外）。"""
 
     TRX = ('<?xml version="1.0" encoding="utf-8"?>\n'
            '<TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">\n'
@@ -478,11 +501,11 @@ class VerifyTests(unittest.TestCase):
         self.assertEqual(1, len(warnings))
         self.assertIn("1 个测试项目不在 Qian.slnf 里", warnings[0])
         self.assertIn("：Extra.Tests。", warnings[0])
-        self.assertIn("tests/ 下不在 Qian.slnf 里、没有任何分片运行的测试项目：Extra.Tests。", summary)
+        self.assertIn("_import/qian/ 下不在 Qian.slnf 里、没有任何分片运行的测试项目：Extra.Tests。", summary)
         output = io.StringIO()
         with self.box.patched(), mock.patch.object(dotnet_ci, "SHARDS", {"a": None}), contextlib.redirect_stdout(output):
             self.assertEqual(0, dotnet_ci.main(["verify", str(self.results), "--summary", str(self.box.root / "summary.md")]))
-        self.assertIn("::warning::tests/ 下有 1 个测试项目不在 Qian.slnf 里", output.getvalue())
+        self.assertIn("::warning::_import/qian/ 下有 1 个测试项目不在 Qian.slnf 里", output.getvalue())
 
     def test_shard_k_must_run_each_registered_project_once_without_failures(self) -> None:
         (self.results / "test-results-k" / "integration" / "Kun.Sample.IntegrationTests.trx").unlink()
@@ -649,6 +672,254 @@ class CoverageTests(unittest.TestCase):
         with self.box.patched(), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(1, dotnet_ci.main(["coverage", str(self.directory)]))
         self.assertTrue((self.directory / "Kun.Sample.Tests.coverage.cobertura.181126163040422.xml").is_file())  # 不通过时不改名
+
+
+class ImagesTests(unittest.TestCase):
+    """images 列出分片会拉的镜像，列不出即工具出错（退出码 2）：夹具目录不在、解析不出缺省镜像、分片里有项目引用了夹具却一个镜像
+    也没解析出来。分片里没有容器测试时 0 个镜像不算错。prefetch 在后台跑，列不出与拉取失败都只记录，照样写完成标记。"""
+
+    SHARDS = {"a": ["Sample.Tests"], "b": None}
+
+    def setUp(self) -> None:
+        self.box = Sandbox(self)
+        self.box.write("Qian.slnf", json.dumps({"solution": {"path": "Kun.slnx", "projects": [
+            "tests/Sample.Tests/Sample.Tests.csproj", "tests/Plain.Tests/Plain.Tests.csproj"]}}) + "\n")
+        self.box.write("tests/Qian.Testing.Containers/Qian.Testing.Containers.csproj", CONTAINERS_PROJECT)
+        self.box.write("tests/Qian.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES)
+        self.box.write("tests/Qian.Testing.Containers/PostgresFixture.cs", POSTGRES_FIXTURE)
+        self.box.write("tests/Sample.Tests/Sample.Tests.csproj", FIXTURE_USER)
+        self.box.write("tests/Sample.Tests/Probe.cs", "namespace Sample;\n\npublic sealed class Probe(PostgresFixture fixture);\n")
+        self.box.write("tests/Plain.Tests/Plain.Tests.csproj", XUNIT_PROJECT)
+        self.box.write("tests/Plain.Tests/Plain.cs", "namespace Plain;\n\npublic sealed class Plain;\n")
+
+    def environment(self) -> contextlib.AbstractContextManager:
+        """去掉覆盖镜像的环境变量，结果只看缺省值。"""
+        kept = {name: value for name, value in os.environ.items() if not name.startswith("QIAN_TEST_IMAGE_")}
+        return mock.patch.dict(os.environ, kept, clear=True)
+
+    def run_main(self, *argv: str) -> tuple:
+        output, errors = io.StringIO(), io.StringIO()
+        with self.box.patched(), mock.patch.object(dotnet_ci, "SHARDS", self.SHARDS), self.environment(), \
+                contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
+            code = dotnet_ci.main(list(argv))
+        return code, output.getvalue(), errors.getvalue()
+
+    def test_images_of_a_shard_and_of_all_tests(self) -> None:
+        self.assertEqual((0, "postgres:16-alpine\n", ""), self.run_main("images", "a"))
+        self.assertEqual((0, "", ""), self.run_main("images", "b"))  # 没有容器测试：0 个镜像不算错
+        self.assertEqual((0, "postgres:16-alpine\nredis:7-alpine\n", ""), self.run_main("images"))
+
+    def test_missing_fixture_directory_fails_naming_the_path(self) -> None:
+        shutil.rmtree(self.box.root / "tests" / "Qian.Testing.Containers")
+        code, output, errors = self.run_main("images", "a")
+        self.assertEqual((2, ""), (code, output))
+        self.assertIn("容器夹具目录 _import/qian/tests/Qian.Testing.Containers 不在", errors)
+
+    def test_fixture_without_image_defaults_fails(self) -> None:
+        self.box.write("tests/Qian.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES.replace("QIAN_TEST_IMAGE_", "TEST_IMAGE_"))
+        code, _, errors = self.run_main("images", "a")
+        self.assertEqual(2, code)
+        self.assertIn("_import/qian/tests/Qian.Testing.Containers 里没有解析出 QIAN_TEST_IMAGE_* 缺省镜像", errors)
+
+    def test_shard_whose_fixture_users_resolve_no_image_fails_naming_them(self) -> None:
+        # 夹具类型改了名，测试源码里的旧名字对不上：分片 a 引用了夹具项目，却一个镜像也解析不出来
+        self.box.write("tests/Qian.Testing.Containers/PostgresFixture.cs", POSTGRES_FIXTURE.replace("PostgresFixture", "DatabaseFixture"))
+        code, output, errors = self.run_main("images", "a")
+        self.assertEqual((2, ""), (code, output))
+        self.assertIn("分片 a 里 Sample.Tests 引用了容器夹具项目（_import/qian/tests/Qian.Testing.Containers），却一个镜像也没解析出来", errors)
+        # 经 tests/ 下的测试宿主项目间接引用夹具项目的也算
+        self.box.write("tests/Plain.Host/Plain.Host.csproj", '<Project Sdk="Microsoft.NET.Sdk"><ItemGroup>'
+                       '<ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" /></ItemGroup></Project>\n')
+        self.box.write("tests/Plain.Tests/Plain.Tests.csproj",
+                       XUNIT_PROJECT.replace("</ItemGroup>", '<ProjectReference Include="..\\Plain.Host\\Plain.Host.csproj" /></ItemGroup>'))
+        code, _, errors = self.run_main("images", "b")
+        self.assertEqual(2, code)
+        self.assertIn("分片 b 里 Plain.Tests 引用了容器夹具项目", errors)
+
+    def test_prefetch_only_records_failed_pulls_and_unlistable_images(self) -> None:
+        state = self.box.repo / "prefetch"
+        failed = subprocess.CompletedProcess(["docker"], 1, "", "Error response from daemon: toomanyrequests\n")
+        with self.box.patched(), mock.patch.object(dotnet_ci, "SHARDS", self.SHARDS), self.environment(), \
+                mock.patch.object(dotnet_ci.subprocess, "run", return_value=failed) as pull:
+            self.assertEqual(0, dotnet_ci.main(["prefetch", "a", "--state", str(state)]))
+        pull.assert_called_once_with(["docker", "pull", "--quiet", "postgres:16-alpine"], capture_output=True, text=True)
+        self.assertTrue((state / "done").exists())
+        log = (state / "pulls.log").read_text(encoding="utf-8")
+        self.assertIn("拉取失败 postgres:16-alpine", log)
+        self.assertIn("toomanyrequests", log)
+        # 后台预拉列不出镜像也只记录：拦下来的是工作流在它前面同步跑的 images
+        shutil.rmtree(self.box.root / "tests" / "Qian.Testing.Containers")
+        state = self.box.repo / "prefetch-again"
+        with self.box.patched(), mock.patch.object(dotnet_ci, "SHARDS", self.SHARDS):
+            self.assertEqual(0, dotnet_ci.main(["prefetch", "a", "--state", str(state)]))
+        self.assertTrue((state / "done").exists())
+        self.assertIn("无法列出分片 a的镜像：容器夹具目录", (state / "pulls.log").read_text(encoding="utf-8"))
+
+
+class RegistrationTests(unittest.TestCase):
+    """registration：仓库根（_import/ 之外，tests/gates 除外）的测试项目在 kun-unit.slnf、KUN_INTEGRATION、dotnet 区域的作业
+    dotnet test --project 或 NOT_IN_CI 里；_import/qian/ 下的在 Qian.slnf 里或由专属作业运行。NOT_IN_CI 过期即失败。"""
+
+    def setUp(self) -> None:
+        self.box = Sandbox(self)
+        self.box.write("tests/Sample.AotTests/Sample.AotTests.csproj", XUNIT_PROJECT)  # 由沙箱 ci.yml 的 native-aot 作业运行
+
+    def check(self, *integration: str) -> tuple:
+        with self.box.patched(), mock.patch.object(dotnet_ci, "KUN_INTEGRATION", [KUN_INTEGRATION, *integration]):
+            return dotnet_ci.registration()
+
+    def problems(self) -> str:
+        return "\n".join(self.check()[1])
+
+    def jobs(self, text: str) -> None:
+        """在沙箱 ci.yml 的 jobs 末尾加作业，text 是不带缩进的作业原文。"""
+        self.box.write_repo(".github/workflows/ci.yml", WORKFLOW + textwrap.indent(textwrap.dedent(text), "  "))
+
+    def test_unregistered_test_projects_anywhere_outside_import_fail_with_the_ways_to_register(self) -> None:
+        self.assertEqual([], self.check()[1])
+        self.box.write_repo("tests/Kun.Extra.Tests/Kun.Extra.Tests.csproj", XUNIT_PROJECT)
+        self.box.write_repo("tools/Kun.Tool.Tests/Kun.Tool.Tests.csproj", XUNIT_PROJECT)
+        problems = self.check()[1]
+        self.assertEqual(2, len(problems))
+        self.assertIn("tests/Kun.Extra.Tests/Kun.Extra.Tests.csproj 是测试项目，却没有着落，CI 不跑它。", problems[0])
+        self.assertIn("tools/Kun.Tool.Tests/Kun.Tool.Tests.csproj 是测试项目，却没有着落", problems[1])
+        for way in ("tests/kun-unit.slnf", "KUN_INTEGRATION", "dotnet test --project", "NOT_IN_CI"):
+            self.assertIn(way, problems[0])
+
+    def test_unit_and_integration_registrations(self) -> None:
+        rows = dict(self.check()[0])
+        self.assertEqual("分片 k 的单元测试（kun-unit.slnf）", rows["tests/Kun.Sample.Tests/Kun.Sample.Tests.csproj"])
+        self.assertEqual("分片 k 的集成测试（KUN_INTEGRATION）", rows[KUN_INTEGRATION])
+        extra = "tests/Kun.Extra.Tests/Kun.Extra.Tests.csproj"
+        self.box.write_repo(extra, XUNIT_PROJECT)
+        self.box.write_repo("tests/kun-unit.slnf", KUN_UNIT.replace('"]', f'", "{extra}"]'))
+        self.assertEqual([], self.check()[1])
+        self.box.write_repo("tests/kun-unit.slnf", KUN_UNIT)
+        self.assertEqual(1, len(self.check()[1]))
+        self.assertEqual([], self.check(extra)[1])
+
+    def test_dedicated_jobs_count_however_the_project_and_working_directory_are_written(self) -> None:
+        for name in "ABCDE":
+            self.box.write_repo(f"tests/Kun.{name}.Tests/Kun.{name}.Tests.csproj", XUNIT_PROJECT)
+        self.jobs("""\
+            root-file:
+              needs: changes
+              if: needs.changes.outputs.dotnet == 'true'
+              runs-on: ubuntu-24.04
+              steps:
+                - run: dotnet test --project tests/Kun.A.Tests/Kun.A.Tests.csproj -c Release
+                - name: 折叠块，一个参数一行
+                  run: >
+                    dotnet test
+                    --project tests/Kun.B.Tests
+                    --configuration Release
+            qian-directory:
+              needs: changes
+              if: ${{ !cancelled() && needs.changes.outputs.dotnet == 'true' }}
+              runs-on: ubuntu-24.04
+              defaults:
+                run:
+                  working-directory: _import/qian
+              steps:
+                - run: dotnet test --project "../../tests/Kun.C.Tests/Kun.C.Tests.csproj"
+                - run: |
+                    dotnet test \\
+                      --project=../../tests/Kun.D.Tests/
+                - run: dotnet test --project "$RUNNER_TEMP/Kun.Generated.Tests"
+            other-area:
+              needs: changes
+              if: needs.changes.outputs.images == 'true'
+              runs-on: ubuntu-24.04
+              steps:
+                - run: dotnet test --project tests/Kun.E.Tests
+            """)
+        rows, problems, counts, _ = self.check()
+        rows = dict(rows)
+        for name, job in (("A", "root-file"), ("B", "root-file"), ("C", "qian-directory"), ("D", "qian-directory")):
+            self.assertEqual(f"作业 {job} 的 dotnet test --project", rows[f"tests/Kun.{name}.Tests/Kun.{name}.Tests.csproj"])
+        self.assertEqual(4, counts["专属作业"])
+        # 别的区域的作业不算：只改 .NET 代码的 PR 不跑它
+        self.assertEqual(1, len(problems))
+        self.assertIn("tests/Kun.E.Tests/Kun.E.Tests.csproj 是测试项目，却没有着落", problems[0])
+
+    def test_gates_samples_executables_and_support_libraries_are_not_test_projects(self) -> None:
+        self.box.write_repo("tests/gates/depgraph/Thing/Thing.csproj", XUNIT_PROJECT)
+        self.box.write_repo("tests/Kun.Smoke/Kun.Smoke.csproj",
+                            '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType></PropertyGroup></Project>\n')
+        self.box.write_repo("tests/Kun.Testing.Fixtures/Kun.Testing.Fixtures.csproj", CONTAINERS_PROJECT)
+        self.box.write_repo("tests/Kun.Helper/Kun.Helper.csproj",
+                            XUNIT_PROJECT.replace("<ItemGroup>", "<PropertyGroup><IsTestProject>false</IsTestProject></PropertyGroup><ItemGroup>"))
+        rows, problems, _, _ = self.check()
+        self.assertEqual([], problems)
+        self.assertEqual({"tests/Kun.Sample.Tests/Kun.Sample.Tests.csproj", KUN_INTEGRATION}, {project for project, _ in rows})
+
+    def test_other_runners_and_is_test_project_count_as_test_projects(self) -> None:
+        projects = {
+            "tests/Kun.Flagged.Tests/Kun.Flagged.Tests.csproj":
+                '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><IsTestProject>true</IsTestProject></PropertyGroup></Project>\n',
+            "tests/Kun.Mstest.Tests/Kun.Mstest.Tests.csproj": '<Project Sdk="MSTest.Sdk/3.6.4" />\n',
+            "tests/Kun.Nunit.Tests/Kun.Nunit.Tests.csproj": XUNIT_PROJECT.replace("xunit.v3", "NUnit"),
+            "tests/Kun.XunitCore.Tests/Kun.XunitCore.Tests.csproj": XUNIT_PROJECT.replace("xunit.v3", "xunit.v3.core"),
+        }
+        for path, text in projects.items():
+            self.box.write_repo(path, text)
+        problems = self.problems()
+        for path in projects:
+            self.assertIn(f"{path} 是测试项目，却没有着落", problems)
+
+    def test_projects_known_not_to_run_in_ci_are_listed_with_the_reason(self) -> None:
+        live = "samples/Kun.Live.Tests/Kun.Live.Tests.csproj"
+        self.box.write_repo(live, XUNIT_PROJECT)
+        self.assertIn(f"{live} 是测试项目，却没有着落", self.problems())
+        self.box.not_in_ci = {live: "要真实的对象存储"}
+        rows, problems, counts, _ = self.check()
+        self.assertEqual([], problems)
+        self.assertEqual("不进 CI（NOT_IN_CI）：要真实的对象存储", dict(rows)[live])
+        self.assertEqual(1, counts["不进 CI"])
+
+    def test_a_table_entry_that_is_not_a_tracked_project_in_scope_fails(self) -> None:
+        self.box.write_repo("tests/gates/depgraph/Thing/Thing.csproj", XUNIT_PROJECT)
+        self.box.not_in_ci = {"samples/Kun.Gone.Tests/Kun.Gone.Tests.csproj": "搬走了", "tests/gates/depgraph/Thing/Thing.csproj": "门禁样例"}
+        problems = self.check()[1]
+        self.assertEqual(2, len(problems))
+        self.assertIn("NOT_IN_CI 里的 samples/Kun.Gone.Tests/Kun.Gone.Tests.csproj 不是 git 跟踪的项目文件", problems[0])
+        self.assertIn("NOT_IN_CI 里的 tests/gates/depgraph/Thing/Thing.csproj 不是 git 跟踪的项目文件", problems[1])
+
+    def test_a_table_entry_registered_elsewhere_or_not_a_test_project_fails(self) -> None:
+        self.box.write_repo("tests/Kun.Smoke/Kun.Smoke.csproj", '<Project Sdk="Microsoft.NET.Sdk" />\n')
+        self.box.not_in_ci = {"tests/Kun.Sample.Tests/Kun.Sample.Tests.csproj": "旧原因", "tests/Kun.Smoke/Kun.Smoke.csproj": "冒烟宿主"}
+        problems = self.check()[1]
+        self.assertEqual(2, len(problems))
+        self.assertIn("tests/Kun.Sample.Tests/Kun.Sample.Tests.csproj 写在 NOT_IN_CI 里，却已经登记在分片 k 的单元测试（kun-unit.slnf）："
+                      "表过期了", problems[0])
+        self.assertIn("NOT_IN_CI 里的 tests/Kun.Smoke/Kun.Smoke.csproj 不是测试项目", problems[1])
+
+    def test_projects_under_import_must_be_in_the_solution_filter_or_run_by_a_dedicated_job(self) -> None:
+        self.box.write("tests/Extra.Tests/Extra.Tests.csproj", XUNIT_PROJECT)
+        self.box.write("tests/gates/sample/Sample/Sample.csproj", XUNIT_PROJECT)
+        output, errors = io.StringIO(), io.StringIO()
+        with self.box.patched(), contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
+            self.assertEqual(1, dotnet_ci.main(["registration"]))
+        self.assertIn("_import/qian/tests/Extra.Tests/Extra.Tests.csproj 是测试项目，却不在 Qian.slnf 里，也没有 dotnet 区域的专属作业运行它",
+                      errors.getvalue())
+        self.assertNotIn("Sample.AotTests", errors.getvalue())  # 由 native-aot 作业运行
+        self.assertNotIn("gates", errors.getvalue())
+        self.box.write("Qian.slnf", json.dumps({"solution": {"path": "Kun.slnx", "projects": [
+            "tests/Sample.Tests/Sample.Tests.csproj", "tests/Extra.Tests/Extra.Tests.csproj"]}}) + "\n")
+        output = io.StringIO()
+        with self.box.patched(), contextlib.redirect_stdout(output):
+            self.assertEqual(0, dotnet_ci.main(["registration"]))
+        self.assertIn("  tests/Kun.Sample.Tests/Kun.Sample.Tests.csproj：分片 k 的单元测试（kun-unit.slnf）", output.getvalue())
+        self.assertIn("测试项目着落核对通过：仓库根 2 个（单元 1、集成 1），_import/qian/ 下 3 个（Qian.slnf 2、专属作业 1）。", output.getvalue())
+
+    def test_every_test_project_in_this_repository_is_run_somewhere(self) -> None:
+        rows, problems, counts, local = dotnet_ci.registration()
+        self.assertEqual([], problems)
+        places = dict(rows)
+        for project, reason in dotnet_ci.NOT_IN_CI.items():
+            self.assertEqual(f"不进 CI（NOT_IN_CI）：{reason}", places[project])
+        self.assertTrue(all(counts[kind] for kind in ("单元", "集成", "专属作业")), counts)
+        self.assertTrue(local["Qian.slnf"] and local["专属作业"], local)
 
 
 if __name__ == "__main__":

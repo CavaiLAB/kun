@@ -72,9 +72,10 @@ internal static class DevGateway
         });
         builder.Services.AddQianConfiguration(new ConfigurationRoot([]));
         // 单进程开发宿主用进程内会话存储（生产是 Redis）；其余与生产相同：规范模式（带 resource）、refresh 单飞、Secure Cookie。
+        // OpenIddict 按 AbsoluteUri 发布本机 issuer（根路径含末尾斜杠）。依赖方使用同一标识。
         builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
-            Authority = identityIssuer, ClientId = DevIdentity.ClientId, Resource = Resource, RedirectUri = new Uri(address, "auth/callback"),
+            Authority = new Uri(identityIssuer.AbsoluteUri), ClientId = DevIdentity.ClientId, Resource = Resource, RedirectUri = new Uri(address, "auth/callback"),
             Scopes = ["openid", "offline_access", "qian.api", .. DevIdentity.ApplicationScopes], RequireHttpsMetadata = false, UseInMemorySessionStore = true, DefaultReturnPath = "/"
         });
         // 受众分簇：面向用户的平台表面（能力目录 / 导航 / 外壳目录 / 平台控制台目录、有效权限）走平台表面宿主，租户运营与开通申请的运营接口走运营宿主，

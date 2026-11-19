@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="../Qian.Files.Abstractions/Qian.Files.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" />
-    <ProjectReference Include="../Qian.Plugin.Sdk.AspNetCore/Qian.Plugin.Sdk.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

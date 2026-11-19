@@ -1,0 +1,22 @@
+#nullable enable
+Kun.Plugin.Sdk.AspNetCore.PluginEnabledMiddleware
+Kun.Plugin.Sdk.AspNetCore.PluginEnabledMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext! context, Kun.Core.MultiTenancy.ITenantContext! tenant) -> System.Threading.Tasks.Task!
+Kun.Plugin.Sdk.AspNetCore.PluginEnabledMiddleware.PluginEnabledMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, Kun.Plugin.Sdk.AspNetCore.PluginEndpointOptions! options) -> void
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding.EntryId.get -> string!
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding.Key.get -> Kun.Runtime.ServiceKey
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding.Name.get -> string!
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding.PluginEndpointBinding(string! entryId, string! pluginId, Kun.Runtime.ServiceKey key, string! name = "", string? version = null) -> void
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding.PluginId.get -> string!
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding.Version.get -> string?
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointExtensions
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointOptions
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointOptions.PluginEndpointOptions(System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>! registryContext) -> void
+Kun.Plugin.Sdk.AspNetCore.PluginEndpointOptions.RegistryContext.get -> System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>!
+static Kun.Plugin.Sdk.AspNetCore.PluginEndpointExtensions.AddKunPluginEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>! registryContext) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Plugin.Sdk.AspNetCore.PluginEndpointExtensions.RequireKunPlugin(this Microsoft.AspNetCore.Builder.RouteHandlerBuilder! builder, Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding! binding) -> Microsoft.AspNetCore.Builder.RouteHandlerBuilder!
+static Kun.Plugin.Sdk.AspNetCore.PluginEndpointExtensions.UseKunPluginEndpoints(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
+const Kun.Plugin.Sdk.AspNetCore.DeprecatedAlias.Deprecation = "@1791331200" -> string!
+Kun.Plugin.Sdk.AspNetCore.DeprecatedAlias
+static Kun.Plugin.Sdk.AspNetCore.DeprecatedAlias.Apply(Microsoft.AspNetCore.Http.HttpContext! http, string! successor) -> void
+static Kun.Plugin.Sdk.AspNetCore.DeprecatedAlias.SuccessorLink(Microsoft.AspNetCore.Http.HttpRequest! request, string! successor) -> string!

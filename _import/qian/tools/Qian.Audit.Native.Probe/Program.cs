@@ -9,7 +9,7 @@ using Qian.Audit;
 using Qian.Audit.Native;
 using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 

@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -26,7 +26,7 @@ public sealed partial class CapabilityTests
         var registrations = caller.List(CapabilityBindingRegistration.Key).Where(item => item.Name.StartsWith("qian.sample.crm/", StringComparison.Ordinal)).ToArray(); Assert.Equal(4, registrations.Length);
         Assert.Equal(ExecutableNames, registrations.Select(item => item.Name).Order(StringComparer.Ordinal));
         var binding = caller.Inject<IExecutableCapability>(CapabilityBindingRegistration.Key, "qian.sample.crm/customer.create");
-        Assert.Same(CreateCustomerCommand.QianCapability, binding.Contract);
+        Assert.Same(CreateCustomerCommand.KunCapability, binding.Contract);
         Assert.True(binding.Contract.InputSchema["properties"]!["name"]!["sensitive"]!.GetValue<bool>());
         var input = JsonSerializer.SerializeToElement(new CreateCustomerCommand(Guid.CreateVersion7(), "must stay absent"), CrmCommandJson.Default.CreateCustomerCommand);
         using (runtime.Loader.GetContext("data", ScopeKey.Global).Restrict(new ScopeKey("tenant", A), registration => registration.Key != CapabilityBindingRegistration.Key))

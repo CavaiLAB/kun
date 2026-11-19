@@ -4,7 +4,7 @@ using System.Net;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Microsoft.AspNetCore.Builder;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
@@ -80,7 +80,7 @@ public sealed partial class TenantOperationsTests
             await source.Inject<ITenantRoleGrant>(TenantRoleGrant.Key).AssignAsync("tenant.owner", "service", Writer, "operator", Ct);
             await AssertCode(PlatformErrors.AuthzDenied, () => loader.GetContext("crm", ScopeKey.Global).Inject<IExecutableCapability>(
                 CapabilityBindingRegistration.Key, "qian.sample.crm/customer.list").InvokeAsync(source.Scoped(new ScopeKey("tenant", descriptor.Id.ToString())),
-                JsonSerializer.SerializeToElement(new ListCustomersQuery(), ListCustomersQuery.QianCapability.RequestTypeInfo), Ct).AsTask());
+                JsonSerializer.SerializeToElement(new ListCustomersQuery(), ListCustomersQuery.KunCapability.RequestTypeInfo), Ct).AsTask());
         }
         using (var pending = await host.Get(descriptor.Id.ToString(), "/api/customers")) Assert.Equal(HttpStatusCode.Forbidden, pending.StatusCode);
         // 续跑：hook 与各组件的开通都不重复记。

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;

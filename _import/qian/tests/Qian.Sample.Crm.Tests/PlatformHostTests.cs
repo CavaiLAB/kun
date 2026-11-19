@@ -26,8 +26,8 @@ using Qian.Data;
 using Qian.Gateway;
 using Qian.Lifecycle;
 using Qian.Platform.Host;
-using Qian.Plugin.Sdk;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk;
+using Kun.Plugin.Sdk.AspNetCore;
 using Qian.Registry;
 using Kun.Runtime;
 using Qian.Surfaces;
@@ -56,7 +56,7 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
             .MapEndpoints((endpoints, _) =>
             {
                 endpoints.MapGet("/api/host-extension/plain", () => Results.Text("plain"));
-                endpoints.MapGet("/api/host-extension/component", () => Results.Text("component")).RequireQianPlugin(binding);
+                endpoints.MapGet("/api/host-extension/component", () => Results.Text("component")).RequireKunPlugin(binding);
                 endpoints.MapGet("/api/{area}/host-extension-probe", (string area) => Results.Text(area));
             })
             .AddOperations("/api/host-operations", (endpoints, _) => endpoints.MapGet("/api/host-operations/ping", () => Results.Text("operations"))));
@@ -69,7 +69,7 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
             runtime.Profile.Entries.Select(entry => entry.Id).Order(StringComparer.Ordinal));
         Assert.Equal(["qian.bundle.base@1.0.0", "qian.bundle.model-gateway@1.0.0", "qian.bundle.shell@1.0.0"],
             runtime.Profile.Layers.Where(layer => layer.Kind == "bundle").Select(layer => layer.Reference!).Order(StringComparer.Ordinal));
-        Assert.Equal("qian.config@1.0.0", runtime.Profile.Entries.Single(entry => entry.Id == "config").Plugin);
+        Assert.Equal("qian.config@1.0.1", runtime.Profile.Entries.Single(entry => entry.Id == "config").Plugin);
         foreach (var entry in runtime.Profile.Entries)
         {
             Assert.True(runtime.Loader.GetState(entry.Id, ScopeKey.Global) == PluginState.Ready, entry.Id + " " + runtime.Loader.GetFailure(entry.Id, ScopeKey.Global));
@@ -583,10 +583,10 @@ public abstract partial class CustomerCommandTests
                         services => services.AddAppData<CrmDbContext>(CrmDbContext.Schema)))
                     .AddEvents(registrar => registrar.RegisterCrmEvents())
                     .AddMediator(mediator => mediator
-                        .AddQianCapability<CreateCustomerCommand, CustomerItem, CreateCustomerHandler, CrmDbContext>(Crm)
-                        .AddQianCapability<ListCustomersQuery, CustomerPage, ListCustomersHandler, CrmDbContext>(Crm)
-                        .AddQianCapability<GetCustomerQuery, CustomerItem, GetCustomerHandler, CrmDbContext>(Crm)
-                        .AddQianCapability<PurgeCustomersCommand, CustomerPurgeResult, PurgeCustomersHandler, CrmDbContext>(Crm))
+                        .AddKunCapability<CreateCustomerCommand, CustomerItem, CreateCustomerHandler, CrmDbContext>(Crm)
+                        .AddKunCapability<ListCustomersQuery, CustomerPage, ListCustomersHandler, CrmDbContext>(Crm)
+                        .AddKunCapability<GetCustomerQuery, CustomerItem, GetCustomerHandler, CrmDbContext>(Crm)
+                        .AddKunCapability<PurgeCustomersCommand, CustomerPurgeResult, PurgeCustomersHandler, CrmDbContext>(Crm))
                     .AddLifecycleHooks((id, _) => id == "qian.sample.crm" ? new CrmPlugin() : null);
                 extend?.Invoke(composition);
             }, builder =>

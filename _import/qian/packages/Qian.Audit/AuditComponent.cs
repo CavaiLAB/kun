@@ -1,13 +1,13 @@
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Audit;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 AuditPlugin 保留。</summary>
-[QianPlugin("qian.audit")]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.audit")]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(AuditPlugin))]
 [Provides(typeof(AuditDefinition), nameof(AuditDefinition.Key))]
 [Provides(typeof(CommandPolicies), nameof(CommandPolicies.AuditKey))]

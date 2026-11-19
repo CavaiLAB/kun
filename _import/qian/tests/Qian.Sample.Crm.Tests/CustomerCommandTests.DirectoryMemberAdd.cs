@@ -14,7 +14,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
@@ -33,7 +33,7 @@ public sealed partial class IdentityAuthzTests
         const string MemberCreate = "qian.identity.server:member:create";
         await using var host = await Start(capabilities: true, identity: true);
         // 代码派生的元数据与发布表面一致：权限目录、工具契约与默认角色（member:create 给 tenant.owner / tenant.admin）。
-        var metadata = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(IdentityServerComponent).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType)!).Create();
+        var metadata = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(IdentityServerComponent).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType)!).Create();
         var contract = Assert.Single(metadata.Capabilities, item => item.Id == id);
         var artifact = Path.Combine(RepositoryRoot(), "plugins/qian.identity.server");
         using var actualPermissions = JsonDocument.Parse(File.ReadAllText(Path.Combine(artifact, "metadata/permissions.json")));

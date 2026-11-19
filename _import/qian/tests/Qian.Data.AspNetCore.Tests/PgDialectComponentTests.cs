@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data.Dialect.Pg;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
 namespace Qian.Data.AspNetCore.Tests;
@@ -90,7 +90,7 @@ public sealed class PgDialectComponentTests
         Assert.NotNull(provider.GetRequiredService<IDataDialectRegistry>().Find("pg"));
     }
 
-    private static ComponentCodeMetadata Metadata() => typeof(PgDialectPlugin).Assembly.GetCustomAttributes<QianCodeMetadataAttribute>()
+    private static ComponentCodeMetadata Metadata() => typeof(PgDialectPlugin).Assembly.GetCustomAttributes<KunCodeMetadataAttribute>()
         .Select(attribute => ((IComponentCodeMetadataFactory)Activator.CreateInstance(attribute.FactoryType)!).Create()).Single(code => code.ComponentId == "qian.data.dialect.pg");
 
     private static PluginDefinition Define(string id, string plugin, IKunPlugin implementation, IReadOnlyList<ServiceKey> provides) =>

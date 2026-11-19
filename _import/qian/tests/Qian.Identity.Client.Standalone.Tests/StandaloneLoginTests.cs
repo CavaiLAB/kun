@@ -25,11 +25,11 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     // 被测宿主的依赖闭包里只允许出现 Client 本身及其 Runtime / SDK / Abstractions 依赖；Qian.Testing.Containers 是夹具。
+    // Client 只用插件开发包的内核一半，数据、授权、事件与表面的契约随命令管道留在平台档的一半里，不再进闭包。
     private static readonly string[] AllowedQianAssemblies =
     [
         "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Kun.Runtime", "Kun.Errors",
-        "Kun.Errors.AspNetCore", "Qian.Testing.Containers", "Qian.Plugin.Sdk", "Qian.Data.Abstractions",
-        "Qian.Authz.Abstractions", "Qian.Events.Abstractions", "Qian.Surfaces.Abstractions"
+        "Kun.Errors.AspNetCore", "Qian.Testing.Containers", "Kun.Plugin.Sdk"
     ];
 
     [Fact]

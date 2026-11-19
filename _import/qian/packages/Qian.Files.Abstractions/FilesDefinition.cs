@@ -14,7 +14,7 @@ public static class FilesDefinition
     public static readonly ServiceKey PoliciesKey = new("Files.Policies");
 
     /// <summary>
-    /// 解析已挂载的文件服务。带 <c>[QianPlugin]</c> 的组件在 ApplyAsync 里不要用它（上下文作参数会被 QIANSDK002 判为逃逸），
+    /// 解析已挂载的文件服务。带 <c>[KunPlugin]</c> 的组件在 ApplyAsync 里不要用它（上下文作参数会被 KUNSDK002 判为逃逸），
     /// 改写成 <c>ctx.Inject&lt;IFileService&gt;(FilesDefinition.Key)</c>。
     /// </summary>
     public static IFileService Files(this IPluginContext context)

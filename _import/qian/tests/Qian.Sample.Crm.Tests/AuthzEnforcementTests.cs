@@ -17,8 +17,8 @@ using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
 using Qian.Data;
 using Qian.Events;
-using Qian.Plugin.Sdk;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Errors;
 
 namespace Qian.Sample.Crm.Tests;

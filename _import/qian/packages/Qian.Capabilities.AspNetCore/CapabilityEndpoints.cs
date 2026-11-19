@@ -8,7 +8,7 @@ using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 
 namespace Qian.Capabilities.AspNetCore;
 
@@ -28,36 +28,36 @@ public static class CapabilityEndpoints
     public static IEndpointRouteBuilder MapQianCapabilities(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source, PluginEndpointBinding binding)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source); ArgumentNullException.ThrowIfNull(binding);
-        endpoints.MapGet("/api/capabilities", (HttpContext http, string? kind, string? q) => Catalog(http, kind, q, null)).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(InHandler).Produces<CapabilityCatalog>();
-        endpoints.MapGet("/api/kernel/capabilities", (HttpContext http, string? kind, string? q) => Catalog(http, kind, q, "/api/capabilities")).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(InHandler).Produces<CapabilityCatalog>();
-        endpoints.MapGet("/api/capabilities/openapi.json", (Func<HttpContext, Task<IResult>>)(http => OpenApi(http, null))).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(InHandler).Produces<JsonElement>();
-        endpoints.MapGet("/api/kernel/capabilities/openapi.json", (Func<HttpContext, Task<IResult>>)(http => OpenApi(http, "/api/capabilities/openapi.json"))).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(InHandler).Produces<JsonElement>();
+        endpoints.MapGet("/api/capabilities", (HttpContext http, string? kind, string? q) => Catalog(http, kind, q, null)).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).Produces<CapabilityCatalog>();
+        endpoints.MapGet("/api/kernel/capabilities", (HttpContext http, string? kind, string? q) => Catalog(http, kind, q, "/api/capabilities")).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).Produces<CapabilityCatalog>();
+        endpoints.MapGet("/api/capabilities/openapi.json", (Func<HttpContext, Task<IResult>>)(http => OpenApi(http, null))).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).Produces<JsonElement>();
+        endpoints.MapGet("/api/kernel/capabilities/openapi.json", (Func<HttpContext, Task<IResult>>)(http => OpenApi(http, "/api/capabilities/openapi.json"))).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).Produces<JsonElement>();
         endpoints.MapGet("/api/capabilities/navigation", (Func<HttpContext, Task<IResult>>)(async http =>
         {
             http.Response.Headers.CacheControl = "private, no-store";
             var caller = source(http);
             return Results.Json(new NavigationCatalog(await caller.Navigation().ListAsync(caller, http.RequestServices.GetRequiredService<ICurrentUser>(), http.RequestAborted).ConfigureAwait(false)));
-        })).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(InHandler).Produces<NavigationCatalog>();
+        })).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).Produces<NavigationCatalog>();
         // 外壳目录（S1-YUE-012）：当前租户与本租户 scope 实际挂载的 UI 远程，供网关的外壳 bootstrap 聚合；未挂载的组件不出现。
         endpoints.MapGet("/api/capabilities/shell", (Func<HttpContext, Task<IResult>>)(async http =>
         {
             http.Response.Headers.CacheControl = "private, no-store";
             var caller = source(http);
             return Results.Json(await caller.Navigation().GetShellAsync(caller, http.RequestServices.GetRequiredService<ICurrentUser>(), http.RequestAborted).ConfigureAwait(false));
-        })).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(ShellInHandler).Produces<ShellCatalog>();
+        })).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(ShellInHandler).Produces<ShellCatalog>();
         endpoints.MapGet("/api/capabilities/navigation/item", async (HttpContext http, string resourceRef) =>
         {
             http.Response.Headers.CacheControl = "private, no-store";
             var caller = source(http);
             return Results.Json(await caller.Navigation().GetAsync(caller, http.RequestServices.GetRequiredService<ICurrentUser>(), resourceRef, http.RequestAborted).ConfigureAwait(false));
-        }).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(InHandler).Produces<NavigationItem>();
+        }).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).Produces<NavigationItem>();
         endpoints.MapPut("/api/capabilities/navigation/preference", async (HttpContext http, string resourceRef, NavigationPreference preference) =>
         {
             http.Response.Headers.CacheControl = "no-store";
             var caller = source(http);
             await caller.Navigation().SetPreferenceAsync(caller, http.RequestServices.GetRequiredService<ICurrentUser>(), resourceRef, preference, http.RequestAborted).ConfigureAwait(false);
             return Results.NoContent();
-        }).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(InHandler).Produces(StatusCodes.Status204NoContent);
+        }).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).Produces(StatusCodes.Status204NoContent);
         // 通用执行入口（R75）：请求与响应的形状随能力而变，可见集合随调用者权限而变；ApiExplorer 只能描述静态、与调用者无关的
         // 路由，故不列此模板，由 /api/capabilities/openapi.json 按同一判定为每个可见能力列出具体路径与真实输入 / 输出 Schema。
         endpoints.MapPost("/api/capabilities/{plugin}/{name}/invoke", async (HttpContext http, string plugin, string name, JsonElement input) =>
@@ -69,7 +69,7 @@ public static class CapabilityEndpoints
                 plugin + "/" + name, input, key, http.RequestAborted).ConfigureAwait(false);
             if (result.Replayed) http.Response.Headers["Idempotent-Replayed"] = "true";
             return Results.Json(result.Output);
-        }).RequireAuthorization().RequireQianPlugin(binding).WithMetadata(InHandler).ExcludeFromDescription();
+        }).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).ExcludeFromDescription();
         return endpoints;
 
         async Task<IResult> OpenApi(HttpContext http, string? successor)

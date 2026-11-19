@@ -139,7 +139,7 @@ public sealed partial class TenantOperationsTests(PostgresFixture postgres) : Cu
             await runtime.UnmountAsync("tenancy", ScopeKey.Global, Ct);
             await runtime.MountAsync([new PluginDefinition(new PluginEntry("tenancy", "qian.tenancy", "1.0.0", ScopeKey.Global, 0,
                 JsonSerializer.SerializeToElement(new { })), new OpenApiContractPlugin(new TenancyPlugin(), probe, "qian.tenancy.http/v1", published,
-                    JsonSerializer.SerializeToElement(candidate)), [TenancyDefinition.Key, Qian.Plugin.Sdk.CommandPolicies.TenancyKey])], Ct);
+                    JsonSerializer.SerializeToElement(candidate)), [TenancyDefinition.Key, Kun.Plugin.Sdk.CommandPolicies.TenancyKey])], Ct);
             Assert.Equal(PluginState.Failed, runtime.GetState("tenancy", ScopeKey.Global));
             var rejected = Assert.IsType<ErrorException>(runtime.GetFailure("tenancy", ScopeKey.Global));
             Assert.Equal("PRECONDITION_FAILED", rejected.Error.Code.Code);
@@ -148,7 +148,7 @@ public sealed partial class TenantOperationsTests(PostgresFixture postgres) : Cu
         var admitted = new OpenApiContractPlugin(new TenancyPlugin(), probe, "qian.tenancy.http/v1", published, contract);
         await runtime.UnmountAsync("tenancy", ScopeKey.Global, Ct);
         await runtime.MountAsync([new PluginDefinition(new PluginEntry("tenancy", "qian.tenancy", "1.0.0", ScopeKey.Global, 0,
-            JsonSerializer.SerializeToElement(new { })), admitted, [TenancyDefinition.Key, Qian.Plugin.Sdk.CommandPolicies.TenancyKey])], Ct);
+            JsonSerializer.SerializeToElement(new { })), admitted, [TenancyDefinition.Key, Kun.Plugin.Sdk.CommandPolicies.TenancyKey])], Ct);
         Assert.True(runtime.GetState("tenancy", ScopeKey.Global) == PluginState.Ready, runtime.GetFailure("tenancy", ScopeKey.Global)?.ToString());
 
 
@@ -179,7 +179,7 @@ public sealed partial class TenantOperationsTests(PostgresFixture postgres) : Cu
         await Authz(false, true); await Denied("platform_role_not_configured");
         await Authz(true, false); await Denied("permission_not_registered");
         await Authz(true, true); await loader.UnmountAsync("audit", ScopeKey.Global, Ct); await Denied("audit_unavailable");
-        await loader.MountAsync([new PluginDefinition(audit, new AuditPlugin(), [AuditDefinition.Key, Qian.Plugin.Sdk.CommandPolicies.AuditKey])], Ct);
+        await loader.MountAsync([new PluginDefinition(audit, new AuditPlugin(), [AuditDefinition.Key, Kun.Plugin.Sdk.CommandPolicies.AuditKey])], Ct);
         Assert.Equal(PluginState.Ready, loader.GetState("audit", ScopeKey.Global));
         // 平台链上只有引导时安装、激活 system 组件的生命周期条目（S1-RT-037），没有放行审计。
         Assert.All(await ReadPlatformChain(source), entry => Assert.StartsWith("qian.lifecycle/plugin-revision.", entry.Record.CapabilityId, StringComparison.Ordinal));
@@ -189,7 +189,7 @@ public sealed partial class TenantOperationsTests(PostgresFixture postgres) : Cu
         {
             await loader.UnmountAsync("authz", ScopeKey.Global, Ct);
             await loader.MountAsync([new PluginDefinition(authz with { Config = role ? authz.Config : JsonSerializer.SerializeToElement(new { }) },
-                new AuthzPlugin(declared ? [CrmPermissions.Compile(), catalog] : [CrmPermissions.Compile()]), [AuthzDefinition.Key, Qian.Plugin.Sdk.CommandPolicies.AuthorizationKey])], Ct);
+                new AuthzPlugin(declared ? [CrmPermissions.Compile(), catalog] : [CrmPermissions.Compile()]), [AuthzDefinition.Key, Kun.Plugin.Sdk.CommandPolicies.AuthorizationKey])], Ct);
             Assert.Equal(PluginState.Ready, loader.GetState("authz", ScopeKey.Global));
         }
         async Task Denied(string reason)
@@ -234,8 +234,8 @@ public abstract partial class CustomerCommandTests
             JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins/qian.registry/metadata/roles.json"))));
         await loader.UnmountAsync("authz", ScopeKey.Global, Ct); await loader.UnmountAsync("audit", ScopeKey.Global, Ct);
         await loader.MountAsync([
-            new PluginDefinition(new PluginEntry("audit", "qian.audit", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { chain = new { platformRole = platform.AuditRole } })), new AuditPlugin(), [AuditDefinition.Key, Qian.Plugin.Sdk.CommandPolicies.AuditKey]),
-            new PluginDefinition(new PluginEntry("authz", "qian.authz", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { platformRole = platform.AuthzRole })), new AuthzPlugin([CrmPermissions.Compile(), catalog, registryCatalog, .. catalogs ?? []]), [AuthzDefinition.Key, Qian.Plugin.Sdk.CommandPolicies.AuthorizationKey])], Ct);
+            new PluginDefinition(new PluginEntry("audit", "qian.audit", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { chain = new { platformRole = platform.AuditRole } })), new AuditPlugin(), [AuditDefinition.Key, Kun.Plugin.Sdk.CommandPolicies.AuditKey]),
+            new PluginDefinition(new PluginEntry("authz", "qian.authz", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { platformRole = platform.AuthzRole })), new AuthzPlugin([CrmPermissions.Compile(), catalog, registryCatalog, .. catalogs ?? []]), [AuthzDefinition.Key, Kun.Plugin.Sdk.CommandPolicies.AuthorizationKey])], Ct);
         Assert.Equal(PluginState.Ready, loader.GetState("authz", ScopeKey.Global));
         await new PostgresPlatformRoleStore(business.App.Services.GetRequiredService<IDataService>(), business.App.Services.GetRequiredService<ITenantContext>(), platform.AuthzRole).AssignSuperadminAsync("root", "operator", Ct);
         var lifecycle = LifecyclePlatform.Lifecycle(business);

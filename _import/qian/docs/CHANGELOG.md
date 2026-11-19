@@ -16,7 +16,7 @@
 
 ## 2026-10-25 身份适配器与数据组件的登记先后不再影响能力执行（S1-KUN-017）
 
-Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住框架当前主体端口，宿主先登记数据组件、后登记身份适配器时能力照常执行（此前一律 403 `AUTHZ_DENIED`），参考应用、测试宿主与联调栈的绕开写法已撤销。能力宿主的框架当前主体端口若仍解析为匿名兜底，启动即失败并写明改法；只装数据组件、没有身份适配器的宿主照常可用，审计与删除主体写 null。详见 [Qian.Plugin.Sdk](../packages/Qian.Plugin.Sdk/README.md)、[Qian.Data](../packages/Qian.Data/README.md)。
+Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住框架当前主体端口，宿主先登记数据组件、后登记身份适配器时能力照常执行（此前一律 403 `AUTHZ_DENIED`），参考应用、测试宿主与联调栈的绕开写法已撤销。能力宿主的框架当前主体端口若仍解析为匿名兜底，启动即失败并写明改法；只装数据组件、没有身份适配器的宿主照常可用，审计与删除主体写 null。详见 [Qian.Plugin.Sdk](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Plugin.Sdk/README.md)、[Qian.Data](../packages/Qian.Data/README.md)。
 
 ## 2026-10-24 网关路由共享限流（S1-GW-002）
 

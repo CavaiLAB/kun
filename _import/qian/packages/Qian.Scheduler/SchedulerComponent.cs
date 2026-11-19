@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
@@ -11,8 +11,8 @@ using Qian.Tenancy;
 namespace Qian.Scheduler;
 
 /// <summary>可由 qian add 安装的调度组件唯一入口。</summary>
-[QianPlugin("qian.scheduler")]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.scheduler")]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(SchedulerPlugin))]
 [Provides(typeof(SchedulerDefinition), nameof(SchedulerDefinition.Key))]
 public sealed class SchedulerComponent : IKunPlugin

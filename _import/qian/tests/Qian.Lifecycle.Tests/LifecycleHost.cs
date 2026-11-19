@@ -22,7 +22,7 @@ using Qian.Config.Apollo;
 using Qian.Config.Secrets;
 using Qian.Data;
 using Qian.Events;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;

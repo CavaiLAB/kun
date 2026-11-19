@@ -3,14 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Data.Native;
 using Qian.Authz.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
 namespace Qian.Config.Apollo;
 
 /// <summary>可选平台草稿管理组件；绑定目标来自可信宿主，只编辑 qian.common.flags。</summary>
-[QianPlugin("qian.config.flags")]
-[QianConfigSchema(Schema)]
+[KunPlugin("qian.config.flags")]
+[KunConfigSchema(Schema)]
 [CapabilitySource(typeof(FlagDraftCapability), nameof(FlagDraftCapability.Definition))]
 [DelegatePlugin(typeof(FeatureFlagManagementImplementation))]
 [Provides(typeof(FeatureFlagManagement), nameof(FeatureFlagManagement.Key))]

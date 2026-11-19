@@ -25,7 +25,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Lifecycle;
 using Qian.Lifecycle.AspNetCore;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
@@ -398,7 +398,7 @@ public abstract partial class CustomerCommandTests
             policy = new { tier = platform.ProvisionCrmByDefault ? "system" : "official", sandbox = "none", authentication = "ON_INSTALL", required = platform.ProvisionCrmByDefault }, scopes = CatalogScopes,
             runtime = new { form = "module", entry = "Qian.Sample.Crm" }
         }));
-        var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.QianCapability, ListCustomersQuery.QianCapability, GetCustomerQuery.QianCapability], validator, new ToolContractHasher());
+        var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.KunCapability, ListCustomersQuery.KunCapability, GetCustomerQuery.KunCapability], validator, new ToolContractHasher());
         Write("plugins/crm/metadata/contracts.json", JsonSerializer.Serialize(new[]
             { new { id = "qian.sample.crm.api/v1", kind = "openapi", path = "./contracts/http-v1.openapi.json" },
               new { id = "qian.sample.crm.http/v1", kind = "openapi", path = "./contracts/rest-v1.openapi.json" } }));

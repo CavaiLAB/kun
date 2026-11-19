@@ -1,6 +1,6 @@
 using Qian.Audit;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;
 using Qian.Tenancy;
@@ -9,8 +9,8 @@ using System.Text.Json;
 namespace Qian.Capabilities;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 CapabilitiesPlugin 保留。</summary>
-[QianPlugin("qian.capabilities")]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.capabilities")]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(CapabilitiesPlugin))]
 [Provides(typeof(CapabilitiesDefinition), nameof(CapabilitiesDefinition.Key))]
 [Provides(typeof(CapabilitiesDefinition), nameof(CapabilitiesDefinition.ContractsKey))]

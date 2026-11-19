@@ -13,7 +13,7 @@ using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Data;
 using Qian.Lifecycle;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
@@ -135,7 +135,7 @@ internal sealed class DevPlatform(string repository) : IDisposable
             policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true }, scopes = CatalogScopes,
             runtime = new { form = "module", entry = "Qian.Sample.Crm" }
         }));
-        var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.QianCapability, ListCustomersQuery.QianCapability, GetCustomerQuery.QianCapability], validator, new ToolContractHasher());
+        var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.KunCapability, ListCustomersQuery.KunCapability, GetCustomerQuery.KunCapability], validator, new ToolContractHasher());
         var contracts = new List<object> { new { id = "qian.sample.crm.api/v1", kind = "openapi", path = "./contracts/http-v1.openapi.json" } };
         Write("plugins/crm/contracts/http-v1.openapi.json", contract.GetRawText());
         if (services?.GetService(typeof(IHttpContractSource)) is IHttpContractSource source)

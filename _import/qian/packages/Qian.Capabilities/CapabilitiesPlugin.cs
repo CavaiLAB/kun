@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Audit;
 using Qian.Authz.Abstractions;

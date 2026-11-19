@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Reflection;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Authorization;
 using Kun.Caching.Abstractions;
 using Kun.Caching.DependencyInjection;
@@ -206,7 +206,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "plugins/qian.authz/.qian-plugin/plugin.json")));
-        var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(AuthzComponent).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType)!).Create();
+        var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(AuthzComponent).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType)!).Create();
         var entryType = Type.GetType(manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!;
         var component = (IKunPlugin)Activator.CreateInstance(entryType)!;
         Assert.Equal(code.RuntimeEntry, manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString());

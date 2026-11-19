@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Data;
 using Qian.Lifecycle;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -21,8 +21,8 @@ public interface ICrmCommands
     Task<CustomerItem> GetAsync(GetCustomerQuery query, CancellationToken cancellationToken = default);
 }
 
-[QianPlugin("qian.sample.crm")]
-[QianConfigSchema("""{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false}""")]
+[KunPlugin("qian.sample.crm")]
+[KunConfigSchema("""{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false}""")]
 public sealed class CrmPlugin : IKunPlugin, IPluginLifecycleHooks
 {
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, CommandPolicies.TenancyKey, CommandPolicies.AuthorizationKey, CommandPolicies.AuditKey];

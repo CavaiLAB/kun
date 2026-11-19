@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Npgsql;
 using Qian.Config.Apollo;
 using Qian.Identity.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.Containers;
@@ -20,7 +20,7 @@ public sealed class FeatureFlagManagementTests(PostgresFixture postgres) : IClas
     [Fact]
     public void 元数据与执行同源_write_confirm_固定输入不接受目标或凭据()
     {
-        var metadata = typeof(FeatureFlagManagementPlugin).Assembly.GetCustomAttributes<QianCodeMetadataAttribute>()
+        var metadata = typeof(FeatureFlagManagementPlugin).Assembly.GetCustomAttributes<KunCodeMetadataAttribute>()
             .Select(attribute => ((IComponentCodeMetadataFactory)Activator.CreateInstance(attribute.FactoryType)!).Create())
             .Single(item => item.ComponentId == "qian.config.flags");
         Assert.Equal(["Audit", "AuthzEnforcement", "Config", "NativeData"], metadata.Inject);

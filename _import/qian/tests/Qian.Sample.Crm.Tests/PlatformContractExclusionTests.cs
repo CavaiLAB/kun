@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Capabilities;
-using Qian.Plugin.Sdk;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk;
+using Kun.Plugin.Sdk.AspNetCore;
 
 namespace Qian.Sample.Crm.Tests;
 

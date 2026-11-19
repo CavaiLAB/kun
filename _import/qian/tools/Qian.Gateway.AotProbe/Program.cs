@@ -13,7 +13,7 @@ using Qian.Config.Apollo;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Client;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Configuration;

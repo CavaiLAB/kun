@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework><IsPackable>true</IsPackable>
+    <Description>Kun 插件开发包的增量源生成器：从组件代码派生元数据、能力与作业契约，只以分析器引用。</Description>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <IncludeBuildOutput>false</IncludeBuildOutput><DevelopmentDependency>true</DevelopmentDependency>
+    <!-- 只带分析器（下面另以 None 打进 analyzers/dotnet/cs），包里没有编译输出，出不了有内容的符号包；
+         发版核对对这样的包免符号包，也不许带（见 scripts/release_packages.py）。 -->
+    <IncludeSymbols>false</IncludeSymbols>
+  </PropertyGroup>
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" /><AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+</Project>

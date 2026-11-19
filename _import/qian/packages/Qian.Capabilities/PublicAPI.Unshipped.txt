@@ -11,7 +11,7 @@ Qian.Capabilities.OpenApiContractPlugin.ApplyAsync(Kun.Runtime.IPluginContext! c
 Qian.Capabilities.OpenApiContractPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Capabilities.OpenApiContractPlugin.OpenApiContractPlugin(Kun.Runtime.IKunPlugin! inner, Qian.Capabilities.IOpenApiCompatibilityProbe! probe, string! contractId, System.Text.Json.JsonElement baseline, System.Text.Json.JsonElement candidate) -> void
 Qian.Capabilities.CapabilityContractCompiler
-static Qian.Capabilities.CapabilityContractCompiler.CreateOpenApi(System.Collections.Generic.IReadOnlyList<Qian.Plugin.Sdk.CapabilityContract!>! contracts, Qian.Surfaces.Abstractions.ISurfaceReader! schemas, Qian.Surfaces.Abstractions.IToolContractHasher! hasher) -> System.Text.Json.JsonElement
+static Qian.Capabilities.CapabilityContractCompiler.CreateOpenApi(System.Collections.Generic.IReadOnlyList<Kun.Plugin.Sdk.CapabilityContract!>! contracts, Qian.Surfaces.Abstractions.ISurfaceReader! schemas, Qian.Surfaces.Abstractions.IToolContractHasher! hasher) -> System.Text.Json.JsonElement
 static Qian.Capabilities.OpenApiContractPlugin.FromRepository(Kun.Runtime.IKunPlugin! inner, Qian.Capabilities.IContractRepository! repository, string! pluginId, string! baselineVersion, string! candidateVersion, string! contractId) -> Qian.Capabilities.OpenApiContractPlugin!
 Qian.Capabilities.CapabilitiesDbContext
 Qian.Capabilities.CapabilitiesDbContext.CapabilitiesDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Qian.Capabilities.CapabilitiesDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void

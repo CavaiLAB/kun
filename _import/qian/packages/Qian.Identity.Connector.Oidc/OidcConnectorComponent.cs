@@ -1,6 +1,6 @@
 using Qian.Config;
 using Qian.Identity.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using System.Text.Json;
@@ -8,8 +8,8 @@ using System.Text.Json;
 namespace Qian.Identity.Connector.Oidc;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 OidcConnectorPlugin 保留。</summary>
-[QianPlugin("qian.identity.connector.oidc")]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.identity.connector.oidc")]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(OidcConnectorPlugin))]
 [Contributes(typeof(IdentityDefinition), nameof(IdentityDefinition.ConnectorsKey), "oidc")]
 public sealed class OidcConnectorComponent : IKunPlugin

@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Qian.Authz.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Qian.Identity.Abstractions;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
@@ -46,7 +46,7 @@ public static class PlatformSurfaceHost
             options.Events.OnTokenValidated = context => { S2sCurrentUser.Capture(context); return Task.CompletedTask; };
         });
         builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
-        builder.Services.AddQianPluginEndpoints(_ => component("registry"));
+        builder.Services.AddKunPluginEndpoints(_ => component("registry"));
         builder.Services.AddQianAuthzEnforcement(http => Scoped(component, "authz", http), options => options.Production = true);
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
@@ -66,7 +66,7 @@ public static class PlatformSurfaceHost
             }
             else await next(http).ConfigureAwait(false);
         });
-        app.UseAuthorization(); app.UseQianPluginEndpoints(); app.UseQianAuthzEnforcement();
+        app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseQianAuthzEnforcement();
         app.MapQianCapabilities(http => Scoped(component, "capabilities", http));
         app.MapQianPlatformConsole(http => Global(component, "capabilities", http));
         app.MapQianAuthz(http => Scoped(component, "authz", http));

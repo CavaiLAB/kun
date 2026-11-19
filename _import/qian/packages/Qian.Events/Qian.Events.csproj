@@ -19,8 +19,8 @@
     <PackageReference Include="RabbitMQ.Client" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" />
-    <ProjectReference Include="../Qian.Plugin.Sdk.Generators/Qian.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Qian.Events.Tests" />

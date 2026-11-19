@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Errors;
 
 namespace Qian.Data.AspNetCore;
@@ -81,7 +81,7 @@ public static class DataEndpoints
     private static RouteHandlerBuilder Secure(RouteHandlerBuilder builder, string permission, PluginEndpointBinding? binding)
     {
         builder.RequireKunPermission(permission);
-        return binding is null ? builder : builder.RequireQianPlugin(binding);
+        return binding is null ? builder : builder.RequireKunPlugin(binding);
     }
 
     // 数据连接按租户隔离：没有已验证租户的主体（如平台级身份）不能读写任何档案。

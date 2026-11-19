@@ -18,8 +18,8 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
-using Qian.Plugin.Sdk;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk;
+using Kun.Plugin.Sdk.AspNetCore;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
@@ -135,7 +135,7 @@ public sealed class PlatformHostComposition
     private static string[] CodeCapabilities(string entry, string componentId)
     {
         var type = Type.GetType(entry, throwOnError: false) ?? throw new InvalidOperationException("找不到组件入口类型：" + entry);
-        return type.Assembly.GetCustomAttributes<QianCodeMetadataAttribute>()
+        return type.Assembly.GetCustomAttributes<KunCodeMetadataAttribute>()
             .Select(attribute => ((IComponentCodeMetadataFactory)Activator.CreateInstance(attribute.FactoryType)!).Create())
             .Where(metadata => metadata.ComponentId == componentId).SelectMany(metadata => metadata.Capabilities.Select(contract => contract.Id)).ToArray();
     }
@@ -171,7 +171,7 @@ public sealed class PlatformHostComposition
         services.AddSingleton<Kun.Authorization.IPermissionChecker>(sp => new RbacPermissionChecker(sp.GetRequiredService<IDataService>(),
             sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<IPermissionRegistry>()));
         services.AddQianHttpContracts();
-        services.AddQianPluginEndpoints(sp => sp.GetRequiredService<PlatformRuntime>().Global("registry"));
+        services.AddKunPluginEndpoints(sp => sp.GetRequiredService<PlatformRuntime>().Global("registry"));
         services.AddQianAuthzEnforcement(http => PlatformHost.Scoped(http, "authz"), options => options.Production = true);
         if (settings.SecretMountRoot is { } mount)
         {

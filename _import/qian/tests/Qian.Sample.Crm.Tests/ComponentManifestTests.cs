@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Tenancy;
@@ -56,7 +56,7 @@ public sealed partial class CatalogContractTests
 
 public abstract partial class CustomerCommandTests
 {
-    private protected static ComponentCodeMetadata Metadata(Type component, string id) => component.Assembly.GetCustomAttributes<QianCodeMetadataAttribute>()
+    private protected static ComponentCodeMetadata Metadata(Type component, string id) => component.Assembly.GetCustomAttributes<KunCodeMetadataAttribute>()
         .Select(attribute => ((IComponentCodeMetadataFactory)Activator.CreateInstance(attribute.FactoryType)!).Create()).Single(code => code.ComponentId == id);
 
     private protected static void AssertTools(ComponentCodeMetadata code, IPluginContext context, string componentDirectory)

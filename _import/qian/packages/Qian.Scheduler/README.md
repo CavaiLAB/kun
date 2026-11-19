@@ -26,7 +26,7 @@ dotnet ef migrations add <名称> --project packages/Qian.Scheduler --startup-pr
 
 IScheduler 提供 ScheduleOnce、ScheduleCron、ScheduleInterval、Cancel。caller 必须是与 Kun ITenantContext 一致的 tenant scope；创建和执行都核对租户仍为 Active/Trial。业务键在租户内幂等：相同请求返回原定义，内容改变返回 CONFLICT；已取消的同键不会被隐式复活。一次性与 interval 的首次时间参与指纹；cron 的首次发生点以首次成功登记为准。同键不同租户互不影响。
 
-目标使用既有能力 URI component/name，例如 qian.example/expire；不是 HTTP URL。SDK 在已有 Capability 的 partial 请求上增加 QianJob("code")，源生成 IJobRequest、静态作业代码和 metadata/jobs.json。组件 Apply 调用 ctx.ProvideJob<Request, Response>()，同时注册真实 ExecutableCapabilities 绑定和 LocalJobs 调度标记；两者都随效果栈撤销。目录包含目标、类型和真实输入/输出 Schema。能力目录与 local 作业目录的交集才可调度；普通能力没有显式 QianJob 注册时不可被调度。
+目标使用既有能力 URI component/name，例如 qian.example/expire；不是 HTTP URL。SDK 在已有 Capability 的 partial 请求上增加 KunJob("code")，源生成 IJobRequest、静态作业代码和 metadata/jobs.json。组件 Apply 调用 ctx.ProvideJob<Request, Response>()，同时注册真实 ExecutableCapabilities 绑定和 LocalJobs 调度标记；两者都随效果栈撤销。目录包含目标、类型和真实输入/输出 Schema。能力目录与 local 作业目录的交集才可调度；普通能力没有显式 KunJob 注册时不可被调度。
 
 创建与执行都检查当前 scope/restrict 下的两项绑定，必须引用同一个 CapabilityContract；任意 URL、未登记、被隐藏与卸载目标都不能执行。输入按能力 Schema 校验；写作业的 idempotencyKey 由调度器覆盖为稳定 run id，创建参数不能改写此身份。CreatedBy 保存创建组件，仅是审计来源；执行者是 scheduler，不持久保存或冒充创建者的用户令牌。Runtime restriction 按 scope 生效，不依赖创建上下文对象；处理器继续经过实际能力绑定及其 Mediator 权限策略。
 
@@ -49,7 +49,7 @@ IScheduler 提供 ScheduleOnce、ScheduleCron、ScheduleInterval、Cancel。call
 
 ```bash
 QIAN_REQUIRE_DOCKER=1 dotnet run --project tests/Qian.Scheduler.Tests -c Release
-dotnet run --project tests/Qian.Plugin.Sdk.Tests -c Release
+dotnet run --project ../../tests/Kun.Plugin.Sdk.Tests -c Release
 ```
 
 ## 模型体验

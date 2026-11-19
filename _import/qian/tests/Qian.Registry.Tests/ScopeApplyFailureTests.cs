@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -114,7 +114,7 @@ public sealed partial class PatchPersistenceTests
 internal sealed record TenantProbe(string TenantId, int Take) : ICapabilityRequest<ProbeResult>
 {
     public static IReadOnlyList<string> RequiredPermissions { get; } = ["test.private:record:read"];
-    public static CapabilityContract QianCapability { get; } = new("test.private",
+    public static CapabilityContract KunCapability { get; } = new("test.private",
         """{"name":"probe.tenant","description":"按调用方给出的租户读取记录；契约不合格，宿主的登记期检查拒绝。","sideEffect":"read","policyHint":"allow","idempotent":false,"async":"none","requiredScopes":[],"requiredSecrets":[],"dataClassification":"internal","costTier":"low","contractVersion":"test-v1","audit":false,"agent":{"expose":false,"requiresConfirmation":false},"binding":{"kind":"command","id":"test.private/probe.tenant"},"requiredPermission":"test.private:record:read"}""",
         ProbeJson.Default.TenantProbe, ProbeJson.Default.ProbeResult);
 }

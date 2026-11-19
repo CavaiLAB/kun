@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces.Abstractions;
@@ -79,30 +79,30 @@ public sealed partial class PatchPersistenceTests
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
         { options.Issuer = "registry-http-test"; options.Audience = "registry-http"; options.StaticKeySet = jwks; });
         builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options => options.MapInboundClaims = false);
-        builder.Services.AddQianPluginEndpoints(_ => running.Root);
+        builder.Services.AddKunPluginEndpoints(_ => running.Root);
         configureServices?.Invoke(builder.Services);
         var app = builder.Build(); var calls = 0;
         app.UseKunErrors();
-        if (middleware && beforeRouting) app.UseQianPluginEndpoints();
+        if (middleware && beforeRouting) app.UseKunPluginEndpoints();
         app.UseRouting(); app.UseAuthentication();
         app.Use((context, next) => context.RequestServices.GetRequiredService<TenantRequestBoundary>().InvokeAsync(context, next));
-        if (middleware && !beforeRouting) app.UseQianPluginEndpoints();
+        if (middleware && !beforeRouting) app.UseKunPluginEndpoints();
         configureEndpoints?.Invoke(app);
         app.MapGet("/surface", () =>
         {
             Interlocked.Increment(ref calls);
             var document = running.Root.Scoped(new ScopeKey("tenant", tenant.TenantId!)).Inject<SurfaceDocument>(SurfaceKeys.Commands, "test.shared/hello");
             return Results.Text(document.Body);
-        }).RequireQianPlugin(new PluginEndpointBinding("shared", "test.shared", SurfaceKeys.Commands, "test.shared/hello", "1.0.0"));
+        }).RequireKunPlugin(new PluginEndpointBinding("shared", "test.shared", SurfaceKeys.Commands, "test.shared/hello", "1.0.0"));
         // 只经租户 scope patch 挂载的条目（S1-RT-005 公开挂载 / 卸载验收）。
         app.MapGet("/private", () =>
         {
             Interlocked.Increment(ref calls);
             var document = running.Root.Scoped(new ScopeKey("tenant", tenant.TenantId!)).Inject<SurfaceDocument>(SurfaceKeys.Commands, "test.private/hello");
             return Results.Text(document.Body);
-        }).RequireQianPlugin(new PluginEndpointBinding("private", "test.private", SurfaceKeys.Commands, "test.private/hello", "1.0.0"));
+        }).RequireKunPlugin(new PluginEndpointBinding("private", "test.private", SurfaceKeys.Commands, "test.private/hello", "1.0.0"));
         app.MapGet("/unknown", () => { Interlocked.Increment(ref calls); return Results.Ok(); })
-            .RequireQianPlugin(new PluginEndpointBinding("unknown", "test.unknown", SurfaceKeys.Commands, "test.unknown/hello"));
+            .RequireKunPlugin(new PluginEndpointBinding("unknown", "test.unknown", SurfaceKeys.Commands, "test.unknown/hello"));
         try
         {
             await app.StartAsync(Ct); var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();

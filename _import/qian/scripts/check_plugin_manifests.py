@@ -17,18 +17,25 @@ def run(arguments: list[str]) -> str:
     return result.stdout
 
 
-def solution_projects(root: Path) -> list[str]:
-    """Qian.slnf 列出的项目，路径换算成相对 root；筛选文件里的路径相对它筛选的解决方案（仓库根的 Kun.slnx）所在目录。"""
+def solution_root(root: Path) -> Path:
+    """Qian.slnf 筛选的解决方案（仓库根的 Kun.slnx）所在的目录，即仓库根。"""
     document = json.loads((root / "Qian.slnf").read_text(encoding="utf-8-sig"))["solution"]
-    base = (root / document["path"].replace("\\", "/")).resolve().parent
+    return (root / document["path"].replace("\\", "/")).resolve().parent
+
+
+def solution_projects(root: Path) -> list[str]:
+    """Qian.slnf 列出的项目，路径换算成相对 root；筛选文件里的路径相对它筛选的解决方案所在目录。"""
+    document = json.loads((root / "Qian.slnf").read_text(encoding="utf-8-sig"))["solution"]
+    base = solution_root(root)
     resolved = root.resolve()
     return [(base / project.replace("\\", "/")).resolve().relative_to(resolved).as_posix() for project in document["projects"]]
 
 
 def check(root: Path, sync: bool = False) -> tuple[int, int]:
-    tool = root / "tools/Qian.Plugin.Tool/bin/Release/net10.0/Qian.Plugin.Tool.dll"
+    # 清单工具在仓库根的 tools/ 下，随 Kun.slnx 构建。
+    tool = solution_root(root) / "tools/Kun.Plugin.Tool/bin/Release/net10.0/Kun.Plugin.Tool.dll"
     if not tool.is_file():
-        raise ValueError("先以 Release 构建 Qian.slnf，再校验清单。")
+        raise ValueError("先以 Release 构建 Kun.slnx（清单工具在仓库根的 tools/Kun.Plugin.Tool），再校验清单。")
     classifications = json.loads((root / "scripts/plugin-implementations.json").read_text())
     used: set[str] = set()
     components: dict[str, tuple[Path, str]] = {}

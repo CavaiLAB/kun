@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
+using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
-using Kun.Errors;
 using Qian.Surfaces;
 using YamlDotNet.Serialization;
 
@@ -29,7 +29,9 @@ public sealed class RuntimeScenarioTests
         // 每个场景先加载交付的 minimal 文件和真实表面校验器，不用虚构的空 profile。
         var baseline = new ProfileLoader(new SurfaceValidator()).Load(new ProfileLoadOptions
         {
-            WorkingDirectory = FindRoot(), Profile = "minimal", IncludeHomePatch = false
+            WorkingDirectory = FindRoot(),
+            Profile = "minimal",
+            IncludeHomePatch = false
         });
         Assert.True(baseline.IsValid);
         Assert.Empty(baseline.Snapshot!.Entries);

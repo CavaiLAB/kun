@@ -27,7 +27,9 @@ public sealed class RuntimeCompositionTests
                 foreach (var file in item.GetProperty("files").EnumerateObject()) Write(file.Name, file.Value.GetString()!);
                 var result = new ProfileLoader(new SurfaceValidator()).Load(new ProfileLoadOptions
                 {
-                    WorkingDirectory = directory, Profile = "test", IncludeHomePatch = false,
+                    WorkingDirectory = directory,
+                    Profile = "test",
+                    IncludeHomePatch = false,
                     Patches = item.GetProperty("patches").EnumerateArray().Select(p => p.GetString()!).ToArray()
                 });
                 Assert.Equal(item.GetProperty("valid").GetBoolean(), result.IsValid);

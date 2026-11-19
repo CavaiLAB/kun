@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Errors;
+using Microsoft.Extensions.DependencyInjection;
 using static Kun.Runtime.Tests.LifecycleTests;
 
 namespace Kun.Runtime.Tests;

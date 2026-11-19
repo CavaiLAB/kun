@@ -1,7 +1,7 @@
+using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Kun.Errors;
 
 namespace Kun.Runtime;
 

@@ -119,7 +119,7 @@ internal sealed class FilesHost : IAsyncDisposable
         builder.Services.AddKunSecurity();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentUser, FilesCurrentUser>();
-        builder.Services.AddKunMultiTenancy(options => { options.Production = true; options.FallbackTenantId = null; });
+        builder.Services.AddKunMultiTenancy();
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
         {
             options.Issuer = Issuer; options.Audience = Audience; options.StaticKeySet = keys;

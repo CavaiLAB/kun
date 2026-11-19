@@ -1,6 +1,6 @@
 # SaaS 多租户策略选型指南
 
-> Kun Framework 通过 `Kun.Core.MultiTenancy` + `Kun.EntityFrameworkCore.MultiTenancy` 提供三种 SaaS 数据隔离策略：**Shared** / **SchemaPerTenant** / **DatabasePerTenant**。本文档帮你在合规、运维成本、租户规模三个维度上做出取舍，并给出各自的落地配方。
+> Kun Framework 通过 `Kun.Core.MultiTenancy` + `Kun.EntityFrameworkCore.MultiTenancy` 提供三种 SaaS 数据隔离策略：**Row** / **Schema** / **Database**。本文档帮你在合规、运维成本、租户规模三个维度上做出取舍，并给出各自的落地配方。
 >
 > 参考：[`docs/adr/kun/adr-p2d-multitenancy.md`](../adr/kun/adr-p2d-multitenancy.md) · 白皮书 §12.2
 
@@ -11,16 +11,16 @@
 ```
 租户数 > 数百?
 ├─ 是 → 合规需要"单租户数据导出"?
-│       ├─ 是 → SchemaPerTenant
-│       └─ 否 → Shared
+│       ├─ 是 → Schema
+│       └─ 否 → Row
 └─ 否 → 单租户数据量 > 数百 GB 或强合规（金融/医疗/GDPR 数据主权）?
-        ├─ 是 → DatabasePerTenant
-        └─ 否 → SchemaPerTenant（或 Shared 若对合规无硬要求）
+        ├─ 是 → Database
+        └─ 否 → Schema（或 Row 若对合规无硬要求）
 ```
 
 ## 对比表
 
-| 维度 | **Shared**（共享库） | **SchemaPerTenant**（独立 Schema） | **DatabasePerTenant**（独立库） |
+| 维度 | **Row**（共享库） | **Schema**（独立 Schema） | **Database**（独立库） |
 |---|---|---|---|
 | **隔离层级** | 应用层（`TenantId` 列 + 全局查询过滤器）+ PostgreSQL RLS 兜底 | 同库不同 schema | 完全独立的数据库实例 |
 | **典型租户规模** | 数千到数十万 | 几百到几千 | 最多数百 |
@@ -28,12 +28,12 @@
 | **合规友好度** | 普通 B2B SaaS | 支持"单租户导出"（pg_dump schema） | 强合规（数据主权、独立备份/RPO/RTO） |
 | **运维成本** | 最低（单一数据库） | 中（schema 数量线性增长）| 高（数据库数量线性增长，secrets 管理） |
 | **迁移执行时机** | App 启动时 `Database.MigrateAsync` | 租户开户时 `ITenantProvisioner.ProvisionAsync` | 租户开户时 `ITenantProvisioner.ProvisionAsync` |
-| **实现基础件** | `AddKunTenantRls()` + `IMultiTenant` 全局过滤器（已落地 Sprint 1） | `AddKunMultiTenancy<T>(o => o.Strategy = SchemaPerTenant)` + `ITenantDbContextFactory<T>`（Part 2）| `AddKunMultiTenancy<T>(o => o.Strategy = DatabasePerTenant)` + `IDbConnectionResolver`（Part 3） |
+| **实现基础件** | `AddKunTenantRls()` + `IMultiTenant` 全局过滤器（已落地 Sprint 1） | `AddKunMultiTenancy<T>(o => o.Strategy = Schema)` + `ITenantDbContextFactory<T>`（Part 2）| `AddKunMultiTenancy<T>(o => o.Strategy = Database)` + `IDbConnectionResolver`（Part 3） |
 | **跨租户查询** | 原生支持（`IgnoreQueryFilters`）| 不支持（需要单独的 `AdminDbContext` 枚举 schema）| 不支持（需要枚举所有连接） |
 
 ---
 
-## 策略一：Shared
+## 策略一：Row
 
 ### 适用场景
 - 租户数量大、单租户数据量小的 B2B SaaS（协作工具、CRM、业务仪表板）
@@ -76,7 +76,7 @@ CREATE POLICY tenant_isolation ON products
 
 ---
 
-## 策略二：SchemaPerTenant
+## 策略二：Schema
 
 ### 适用场景
 - 租户数适中、需要"单租户逻辑导出"（`pg_dump -n <tenant>`）
@@ -88,7 +88,7 @@ CREATE POLICY tenant_isolation ON products
 // 1. 注册策略 + 消费者自己的 ITenantDbContextFactory
 builder.Services.AddKunMultiTenancy<CatalogDbContext>(o =>
 {
-    o.Strategy = TenantIsolationStrategy.SchemaPerTenant;
+    o.Strategy = TenantIsolation.Schema;
 });
 
 builder.Services.AddSingleton<ITenantDbContextFactory<CatalogDbContext>, CatalogTenantDbContextFactory>();
@@ -127,7 +127,7 @@ await provisioner.ProvisionAsync(new TenantInfo("tenant-acme"));   // 自动 CRE
 
 ---
 
-## 策略三：DatabasePerTenant
+## 策略三：Database
 
 ### 适用场景
 - 强合规（金融、医疗、GDPR 数据主权 = 不同租户数据不同地理分区）
@@ -142,7 +142,7 @@ builder.Services.Configure<TenantsConnectionOptions>(
     builder.Configuration.GetSection(TenantsConnectionOptions.SectionName));
 builder.Services.AddKunMultiTenancy<CatalogDbContext>(o =>
 {
-    o.Strategy = TenantIsolationStrategy.DatabasePerTenant;
+    o.Strategy = TenantIsolation.Database;
 });
 
 // 2. Consumer factory 按 tenant 解析连接字符串
@@ -185,14 +185,14 @@ appsettings.json：
 ## 共通设计原则
 
 1. **三种策略不混用于同一 `DbContext` 类型**：选一种注册，不要运行时切换（`IOptionsMonitor` 的 Strategy 变化不会重新连线 DI）。
-2. **`ITenantContext` 始终是 scoped**：HTTP/gRPC 请求里由 `Kun.Security` 的 `JwtTenantContext` 填充；后台任务里由消费者按需注入。
+2. **租户作用域**：`AddKunMultiTenancy()` 默认登记单例上下文。HTTP 中间件、gRPC 租户拦截器和后台消费者分别在各自的工作单元内打开并释放作用域。
 3. **迁移工具链**：`dotnet ef migrations add` 需要 design-time `ITenantContext`。本仓库的 sample 使用 `DesignTimeTenantContext` 返回 `"public"` 作为占位符，避免 design-time 挂空依赖。
 
 ---
 
 ## 相关代码
 
-- `src/Kun.Core/MultiTenancy/` — `ITenantContext`、`TenantIsolationStrategy`、`TenantInfo`、`ITenantProvisioner`、`NullTenantProvisioner`
+- `src/Kun.Core/MultiTenancy/` — `ITenantContext`、`TenantIsolation`、`TenantInfo`、`ITenantProvisioner`、`NullTenantProvisioner`
 - `src/Kun.EntityFrameworkCore/MultiTenancy/` — 全部三种策略的运行时件（`KunMultiTenancyOptions`、`ITenantDbContextFactory<T>`、`KunMultiTenantModelCacheKeyFactory`、`SchemaPerTenantProvisioner<T>`、`DatabasePerTenantProvisioner<T>`、`IDbConnectionResolver`、`OptionsBasedTenantConnectionResolver`、`TenantsConnectionOptions`、`KunMultiTenancyServiceCollectionExtensions`）
-- `src/Kun.EntityFrameworkCore/Interceptors/TenantRlsTransactionInterceptor.cs` — Shared 策略的 RLS defence-in-depth
+- `src/Kun.EntityFrameworkCore/Interceptors/TenantRlsTransactionInterceptor.cs` — Row 策略的 RLS defence-in-depth
 - `docs/adr/kun/adr-p2d-multitenancy.md` — 设计取舍完整 ADR

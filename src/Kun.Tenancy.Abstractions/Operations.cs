@@ -1,3 +1,4 @@
+using Kun.Core.MultiTenancy;
 using Kun.Runtime;
 
 namespace Kun.Tenancy;

@@ -1,3 +1,4 @@
+using Kun.MultiTenancy.Abstractions;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -9,7 +10,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Kun.Errors;
-using Kun.Tenancy;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 

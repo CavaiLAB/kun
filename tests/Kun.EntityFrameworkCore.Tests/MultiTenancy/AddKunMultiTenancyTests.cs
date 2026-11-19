@@ -29,7 +29,7 @@ public sealed class AddKunMultiTenancyTests
         var services = new ServiceCollection();
         services.AddScoped<ITenantContext>(_ => NullTenantContext.Instance);
 
-        services.AddKunMultiTenancy<TestDbContext>(o => o.Strategy = TenantIsolationStrategy.Shared);
+        services.AddKunMultiTenancy<TestDbContext>(o => o.Strategy = TenantIsolation.Row);
 
         using var sp = services.BuildServiceProvider();
         using var scope = sp.CreateScope();
@@ -47,7 +47,7 @@ public sealed class AddKunMultiTenancyTests
         // Consumer provides their own tenant DbContext factory.
         services.AddSingleton<ITenantDbContextFactory<TestDbContext>>(new FakeContextFactory());
 
-        services.AddKunMultiTenancy<TestDbContext>(o => o.Strategy = TenantIsolationStrategy.SchemaPerTenant);
+        services.AddKunMultiTenancy<TestDbContext>(o => o.Strategy = TenantIsolation.Schema);
 
         using var sp = services.BuildServiceProvider();
         using var scope = sp.CreateScope();
@@ -66,7 +66,7 @@ public sealed class AddKunMultiTenancyTests
         services.Configure<TenantsConnectionOptions>(_ => { });
         services.AddSingleton<ITenantDbContextFactory<TestDbContext>>(new FakeContextFactory());
 
-        services.AddKunMultiTenancy<TestDbContext>(o => o.Strategy = TenantIsolationStrategy.DatabasePerTenant);
+        services.AddKunMultiTenancy<TestDbContext>(o => o.Strategy = TenantIsolation.Database);
 
         using var sp = services.BuildServiceProvider();
         Assert.IsType<OptionsBasedTenantConnectionResolver>(sp.GetService<IDbConnectionResolver>());

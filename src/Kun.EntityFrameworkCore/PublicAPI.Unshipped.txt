@@ -55,7 +55,7 @@ Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions
 Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions.KunMultiTenancyOptions() -> void
 Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions.AllowDestructiveDeprovision.get -> bool
 Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions.AllowDestructiveDeprovision.set -> void
-Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions.Strategy.get -> Kun.Core.MultiTenancy.TenantIsolationStrategy
+Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions.Strategy.get -> Kun.Core.MultiTenancy.TenantIsolation
 Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions.Strategy.set -> void
 Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyServiceCollectionExtensions
 static Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyServiceCollectionExtensions.AddKunMultiTenancy<TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

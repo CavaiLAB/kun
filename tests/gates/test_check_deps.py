@@ -345,7 +345,7 @@ class RealGraphTests(unittest.TestCase):
         self.assertEqual("true", self.packages["Kun.Errors"].zero_dependency)
         self.assertEqual("true", self.packages["Kun.Security.Abstractions"].zero_dependency)
         self.assertEqual([], [v for v in self.violations])
-        self.assertEqual(5, len(self.statuses))
+        self.assertEqual(4, len(self.statuses))
         self.assertEqual([("D", "Kun.EventBus", "B6")],
                          [(s.rule, s.target, s.until) for s in self.statuses if s.package == "Kun.EntityFrameworkCore"])
         self.assertEqual([], [s for s in self.statuses if s.problem])

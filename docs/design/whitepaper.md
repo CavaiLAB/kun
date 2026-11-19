@@ -568,8 +568,13 @@ builder.Services.AddKunServiceAuthentication(options =>
     options.ClockSkew = TimeSpan.FromSeconds(5);
 });
 
-// 自动把 JWT claim 映射到 ITenantContext / ICurrentUser
-builder.Services.AddScoped<ITenantContext, JwtTenantContext>();
+builder.Services.AddKunSecurity();
+builder.Services.AddKunMultiTenancy();
+
+var app = builder.Build();
+app.UseAuthentication();
+app.UseKunMultiTenancy();
+app.UseAuthorization();
 ```
 
 ### 9.5 服务间调用的令牌

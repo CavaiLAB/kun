@@ -6,8 +6,7 @@ namespace Kun.Grpc.Interceptors;
 /// <summary>
 /// gRPC server interceptor that enforces authenticated access for multi-tenant calls.
 /// Validates that the request has an authenticated <see cref="System.Security.Claims.ClaimsPrincipal"/>
-/// with a <c>tenant_id</c> claim. Tenant/user context population is handled by
-/// <c>Kun.Security</c>'s scoped <c>JwtTenantContext</c>/<c>JwtCurrentUser</c>.
+/// with a <c>tenant_id</c> claim. The host registers tenant scopes and current-user services separately.
 /// </summary>
 internal sealed class KunServerAuthInterceptor : Interceptor
 {

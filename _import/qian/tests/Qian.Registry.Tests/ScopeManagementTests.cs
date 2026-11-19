@@ -32,7 +32,6 @@ using Qian.Registry.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
-using Kun.Tenancy;
 
 namespace Qian.Registry.Tests;
 

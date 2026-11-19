@@ -121,7 +121,7 @@ public sealed class BackgroundTenantFlowTests : IAsyncLifetime
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         _host = Host.CreateDefaultBuilder().ConfigureServices(services =>
         {
-            services.AddKunMultiTenancy(options => options.Production = true);
+            services.AddKunMultiTenancy();
             services.AddSingleton(_received);
             services.AddDbContext<TenantProbeDbContext>(options => options.UseNpgsql(_postgres.AppConnectionString));
             services.AddKunTenantRls<TenantProbeDbContext>();

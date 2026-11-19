@@ -1,3 +1,5 @@
+using Kun.MultiTenancy.Middleware;
+using Kun.MultiTenancy;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.Security;
@@ -58,15 +60,7 @@ public static class PlatformSurfaceHost
         var app = builder.Build();
         app.UseKunErrors(); app.UseAuthentication();
         // 租户只取自已验证令牌：成员主体进入其租户 scope（授权判定与修订下限按租户 RLS 读写）；平台身份不进任何租户。
-        app.Use(async (http, next) =>
-        {
-            if (http.RequestServices.GetRequiredService<ICurrentUser>().Principal is { TenantId: { } tenant })
-            {
-                using var scope = tenantContext.BeginScope(tenant);
-                await next(http).ConfigureAwait(false);
-            }
-            else await next(http).ConfigureAwait(false);
-        });
+        app.UseKunMultiTenancy(TenantRequestMode.PlatformPrincipalAllowed);
         app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseQianAuthzEnforcement();
         app.MapQianCapabilities(http => Scoped(component, "capabilities", http));
         app.MapQianPlatformConsole(http => Global(component, "capabilities", http));

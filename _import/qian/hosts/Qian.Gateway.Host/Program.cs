@@ -5,8 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy;
+using Kun.MultiTenancy.DependencyInjection;
 using Microsoft.AspNetCore.DataProtection;
 using Qian.Audit;
 using Qian.Audit.Native;
@@ -44,7 +43,7 @@ var gateway = new GatewayConfiguration(Required("Gateway:IdentityIssuer"), Requi
 };
 var gatewayJson = JsonSerializer.SerializeToElement(gateway, HostJson.Default.GatewayConfiguration);
 gateway = GatewayHosting.ReadConfiguration(gatewayJson);
-builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
+builder.Services.AddKunMultiTenancy();
 builder.Services.AddQianConfiguration(builder.Configuration);
 var auditRoles = new NativeAuditRoles(Required("Audit:TenantRole"), Required("Audit:FunctionOwner"), Required("Audit:PlatformRole"));
 var auditGuard = NativeAuditStorage.ExpectedGuard(auditRoles);

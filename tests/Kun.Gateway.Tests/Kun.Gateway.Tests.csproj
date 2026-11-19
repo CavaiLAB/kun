@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Kun.MultiTenancy\Kun.MultiTenancy.csproj" />
     <ProjectReference Include="..\..\src\Kun.Gateway\Kun.Gateway.csproj" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="coverlet.MTP" />

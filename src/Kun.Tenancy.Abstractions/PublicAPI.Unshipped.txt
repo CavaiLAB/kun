@@ -3,18 +3,13 @@ Kun.Tenancy.CreateTenant
 Kun.Tenancy.CreateTenant.<Clone>$() -> Kun.Tenancy.CreateTenant!
 Kun.Tenancy.CreateTenant.Code.get -> string!
 Kun.Tenancy.CreateTenant.Code.init -> void
-Kun.Tenancy.CreateTenant.CreateTenant(string! Code, string! Name, Kun.Tenancy.TenantIsolation Isolation = Kun.Tenancy.TenantIsolation.Row) -> void
-Kun.Tenancy.CreateTenant.Deconstruct(out string! Code, out string! Name, out Kun.Tenancy.TenantIsolation Isolation) -> void
+Kun.Tenancy.CreateTenant.CreateTenant(string! Code, string! Name, Kun.Core.MultiTenancy.TenantIsolation Isolation = Kun.Core.MultiTenancy.TenantIsolation.Row) -> void
+Kun.Tenancy.CreateTenant.Deconstruct(out string! Code, out string! Name, out Kun.Core.MultiTenancy.TenantIsolation Isolation) -> void
 Kun.Tenancy.CreateTenant.Equals(Kun.Tenancy.CreateTenant? other) -> bool
-Kun.Tenancy.CreateTenant.Isolation.get -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.CreateTenant.Isolation.get -> Kun.Core.MultiTenancy.TenantIsolation
 Kun.Tenancy.CreateTenant.Isolation.init -> void
 Kun.Tenancy.CreateTenant.Name.get -> string!
 Kun.Tenancy.CreateTenant.Name.init -> void
-Kun.Tenancy.ITenantContextPropagator
-Kun.Tenancy.ITenantContextPropagator.BeginScope(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! headers, System.Guid authorizedTenantId) -> System.IDisposable!
-Kun.Tenancy.ITenantContextPropagator.BeginScope(System.Text.Json.JsonElement carrier, System.Guid authorizedTenantId) -> System.IDisposable!
-Kun.Tenancy.ITenantContextPropagator.Write(System.Text.Json.JsonElement carrier) -> System.Text.Json.JsonElement
-Kun.Tenancy.ITenantContextPropagator.WriteHeaders() -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
 Kun.Tenancy.ITenantDirectory
 Kun.Tenancy.ITenantDirectory.GetAsync(string! code, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor?>
 Kun.Tenancy.TenancyDefinition
@@ -22,21 +17,17 @@ Kun.Tenancy.TenantDescriptor
 Kun.Tenancy.TenantDescriptor.<Clone>$() -> Kun.Tenancy.TenantDescriptor!
 Kun.Tenancy.TenantDescriptor.Code.get -> string!
 Kun.Tenancy.TenantDescriptor.Code.init -> void
-Kun.Tenancy.TenantDescriptor.Deconstruct(out System.Guid Id, out string! Code, out string! Name, out Kun.Tenancy.TenantIsolation Isolation, out Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantDescriptor.Deconstruct(out System.Guid Id, out string! Code, out string! Name, out Kun.Core.MultiTenancy.TenantIsolation Isolation, out Kun.Tenancy.TenantStatus Status) -> void
 Kun.Tenancy.TenantDescriptor.Equals(Kun.Tenancy.TenantDescriptor? other) -> bool
 Kun.Tenancy.TenantDescriptor.Id.get -> System.Guid
 Kun.Tenancy.TenantDescriptor.Id.init -> void
-Kun.Tenancy.TenantDescriptor.Isolation.get -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantDescriptor.Isolation.get -> Kun.Core.MultiTenancy.TenantIsolation
 Kun.Tenancy.TenantDescriptor.Isolation.init -> void
 Kun.Tenancy.TenantDescriptor.Name.get -> string!
 Kun.Tenancy.TenantDescriptor.Name.init -> void
 Kun.Tenancy.TenantDescriptor.Status.get -> Kun.Tenancy.TenantStatus
 Kun.Tenancy.TenantDescriptor.Status.init -> void
-Kun.Tenancy.TenantDescriptor.TenantDescriptor(System.Guid Id, string! Code, string! Name, Kun.Tenancy.TenantIsolation Isolation, Kun.Tenancy.TenantStatus Status) -> void
-Kun.Tenancy.TenantIsolation
-Kun.Tenancy.TenantIsolation.Database = 2 -> Kun.Tenancy.TenantIsolation
-Kun.Tenancy.TenantIsolation.Row = 0 -> Kun.Tenancy.TenantIsolation
-Kun.Tenancy.TenantIsolation.Schema = 1 -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantDescriptor.TenantDescriptor(System.Guid Id, string! Code, string! Name, Kun.Core.MultiTenancy.TenantIsolation Isolation, Kun.Tenancy.TenantStatus Status) -> void
 Kun.Tenancy.TenantStatus
 Kun.Tenancy.TenantStatus.Active = 2 -> Kun.Tenancy.TenantStatus
 Kun.Tenancy.TenantStatus.Grace = 3 -> Kun.Tenancy.TenantStatus
@@ -491,7 +482,7 @@ Kun.Tenancy.TenantOverview.Id.init -> void
 Kun.Tenancy.TenantOverview.Code.get -> string!
 Kun.Tenancy.TenantOverview.Name.get -> string!
 Kun.Tenancy.TenantOverview.Code.init -> void
-Kun.Tenancy.TenantOverview.Isolation.get -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantOverview.Isolation.get -> Kun.Core.MultiTenancy.TenantIsolation
 Kun.Tenancy.TenantOverview.Name.init -> void
 Kun.Tenancy.TenantOverview.Status.get -> Kun.Tenancy.TenantStatus
 Kun.Tenancy.TenantOverview.Isolation.init -> void
@@ -516,7 +507,7 @@ override Kun.Tenancy.TenantOverview.GetHashCode() -> int
 override Kun.Tenancy.TenantOverview.Equals(object? obj) -> bool
 Kun.Tenancy.TenantOverview.Equals(Kun.Tenancy.TenantOverview? other) -> bool
 Kun.Tenancy.TenantOverview.<Clone>$() -> Kun.Tenancy.TenantOverview!
-Kun.Tenancy.TenantOverview.Deconstruct(out System.Guid Id, out string! Code, out string! Name, out Kun.Tenancy.TenantIsolation Isolation, out Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantOverview.Deconstruct(out System.Guid Id, out string! Code, out string! Name, out Kun.Core.MultiTenancy.TenantIsolation Isolation, out Kun.Tenancy.TenantStatus Status) -> void
 Kun.Tenancy.TenantStatusCounts
 override Kun.Tenancy.TenantStatusCounts.ToString() -> string!
 static Kun.Tenancy.TenantStatusCounts.operator !=(Kun.Tenancy.TenantStatusCounts? left, Kun.Tenancy.TenantStatusCounts? right) -> bool
@@ -527,7 +518,7 @@ Kun.Tenancy.TenantStatusCounts.Equals(Kun.Tenancy.TenantStatusCounts? other) -> 
 Kun.Tenancy.TenantStatusCounts.<Clone>$() -> Kun.Tenancy.TenantStatusCounts!
 Kun.Tenancy.TenantStatusCounts.Deconstruct(out int All, out int Pending, out int Trial, out int Active, out int Grace, out int Suspended) -> void
 Kun.Tenancy.ITenantOperations.OverviewAsync(int skip, int take, Kun.Tenancy.TenantStatus? status = null, string? keyword = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantOverviewPage!>
-Kun.Tenancy.TenantOverview.TenantOverview(System.Guid Id, string! Code, string! Name, Kun.Tenancy.TenantIsolation Isolation, Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantOverview.TenantOverview(System.Guid Id, string! Code, string! Name, Kun.Core.MultiTenancy.TenantIsolation Isolation, Kun.Tenancy.TenantStatus Status) -> void
 Kun.Tenancy.TenantOverview.CreatedAt.get -> System.DateTimeOffset
 Kun.Tenancy.TenantStatusCounts.TenantStatusCounts(int All, int Pending, int Trial, int Active, int Grace, int Suspended) -> void
 Kun.Tenancy.TenantOverview.Revision.init -> void

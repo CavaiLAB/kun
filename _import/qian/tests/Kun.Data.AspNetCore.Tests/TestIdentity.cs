@@ -4,6 +4,7 @@ using System.Text.Json;
 using Kun.AspNetCore.Authorization;
 using Kun.Authorization;
 using Kun.MultiTenancy.DependencyInjection;
+using Kun.MultiTenancy;
 using Kun.MultiTenancy.Middleware;
 using Kun.Security.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
@@ -28,7 +29,7 @@ internal static class TestIdentity
     {
         services.AddKunErrors();
         services.AddKunSecurity();
-        services.AddKunMultiTenancy(options => options.FallbackTenantId = null);
+        services.AddKunMultiTenancy();
         services.AddAuthentication(SchemeName).AddScheme<AuthenticationSchemeOptions, Handler>(SchemeName, null);
         services.AddKunAuthorization();
         services.AddSingleton<IPermissionChecker, Permissions>();
@@ -38,7 +39,7 @@ internal static class TestIdentity
     {
         app.UseKunErrors();
         app.UseAuthentication();
-        app.UseKunMultiTenancy();
+        app.UseKunMultiTenancy(TenantRequestMode.PlatformPrincipalAllowed);
         app.UseAuthorization();
     }
 
@@ -58,7 +59,7 @@ internal static class TestIdentity
             if (!Request.Headers.TryGetValue(Header, out var value)) return Task.FromResult(AuthenticateResult.NoResult());
             var parts = value.ToString().Split('@');
             List<Claim> claims = [new("sub", parts[0]), new("principal_kind", "user")];
-            if (parts.Length > 1) claims.Add(new Claim("tenant_id", parts[1]));
+            claims.Add(parts.Length > 1 ? new Claim("tenant_id", parts[1]) : new Claim("tenant_id", "", "JSON_NULL"));
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, SchemeName));
             return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, SchemeName)));
         }

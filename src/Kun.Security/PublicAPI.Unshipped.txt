@@ -23,10 +23,6 @@ Kun.Security.Jwks.FileKunJwksProvider.FileKunJwksProvider(string! filePath, Micr
 Kun.Security.Jwks.FileKunJwksProvider.GetAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.IdentityModel.Tokens.JsonWebKeySet!>!
 Kun.Security.Jwks.IKunJwksProvider
 Kun.Security.Jwks.IKunJwksProvider.GetAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.IdentityModel.Tokens.JsonWebKeySet!>!
-Kun.Security.MultiTenancy.JwtTenantContext
-Kun.Security.MultiTenancy.JwtTenantContext.IsMultiTenant.get -> bool
-Kun.Security.MultiTenancy.JwtTenantContext.JwtTenantContext(Microsoft.AspNetCore.Http.IHttpContextAccessor! httpContextAccessor) -> void
-Kun.Security.MultiTenancy.JwtTenantContext.TenantId.get -> string?
 Kun.Security.S2sTokenOptions
 Kun.Security.S2sTokenOptions.Audience.get -> string!
 Kun.Security.S2sTokenOptions.Audience.init -> void

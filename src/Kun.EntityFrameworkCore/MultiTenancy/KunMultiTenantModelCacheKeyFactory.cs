@@ -9,7 +9,7 @@ namespace Kun.EntityFrameworkCore.MultiTenancy;
 /// <see cref="IKunMultiTenantDbContext"/>. Falls back to EF Core's
 /// default key shape (context type + design-time flag) otherwise, so
 /// consumers who forget to opt in get the same behaviour they had
-/// before. The <see cref="Kun.Core.MultiTenancy.TenantIsolationStrategy.SchemaPerTenant"/>
+/// before. The <see cref="Kun.Core.MultiTenancy.TenantIsolation.Schema"/>
 /// strategy relies on the same key: each tenant's schema-specific model is compiled separately,
 /// and a <see langword="null"/> tenant (no scoped tenant) shares one model.
 /// </summary>

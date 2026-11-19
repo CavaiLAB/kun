@@ -3,7 +3,7 @@
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <Description>Kun Framework — zero-trust internal auth: S2S JWT validation, JWKS, tenant/user context from claims.</Description>
+    <Description>Kun Framework — zero-trust internal auth: S2S JWT validation, JWKS, user identity from claims.</Description>
   </PropertyGroup>
 
   <PropertyGroup Label="档位">
@@ -14,7 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\Kun.Security.Abstractions\Kun.Security.Abstractions.csproj" />
-    <ProjectReference Include="..\Kun.MultiTenancy\Kun.MultiTenancy.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />

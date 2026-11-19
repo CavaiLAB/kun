@@ -3,6 +3,7 @@
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <ProjectReference Include="../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" />
     <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />

@@ -6,9 +6,8 @@ using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
-using Kun.MultiTenancy;
+using Kun.MultiTenancy.DependencyInjection;
 using Kun.Security.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
@@ -147,7 +146,7 @@ public sealed class PlatformHostComposition
     {
         var services = Services; var settings = Settings;
         services.AddSingleton(settings);
-        services.TryAddSingleton<ITenantContext>(new AsyncLocalTenantContext());
+        services.AddKunMultiTenancy();
         services.AddHttpContextAccessor();
         services.AddKunErrors();
         services.AddKunSecurity();

@@ -1,3 +1,4 @@
+using Kun.Core.MultiTenancy;
 using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;

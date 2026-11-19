@@ -18,6 +18,9 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
     private readonly string _id = Guid.NewGuid().ToString("N");
     private readonly CancellationTokenSource _stop = new();
     private readonly ConcurrentDictionary<Guid, Task> _running = new();
+    // 在途执行的续租与收尾走构造时取的数据服务，停机时上下文先关闭也能收完尾；领取与 BeginAsync 仍经上下文，关了就不再开始新的执行。
+    // 持有是安全的：worker 的寿命在一次 Apply 之内；数据组件撤销或卸载时，装载器先把调度器作废并停掉（效果里释放 worker），之后才停数据组件。
+    private readonly IDataService _data = context.Data();
     private Task? _loop;
     internal void Start()
     {
@@ -36,6 +39,8 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
                     foreach (var claim in await ClaimAsync(capacity, _stop.Token).ConfigureAwait(false)) _running[claim.Id] = ExecuteAsync(claim);
             }
             catch (OperationCanceledException) when (_stop.IsCancellationRequested) { break; }
+            // 停机：不再领新触发器，在途执行由 DisposeAsync 等待。
+            catch (Exception) when (ContextClosed()) { break; }
             catch (Exception error) { Log.Cycle(context.Logger, error); }
             try { await Task.Delay(TimeSpan.FromSeconds(1), _stop.Token).ConfigureAwait(false); }
             catch (OperationCanceledException) { break; }
@@ -73,9 +78,11 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
         using var scope = tenant.BeginScope(claim.TenantId);
         using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
         Task? heartbeat = null;
+        var begun = false;
         try
         {
             var started = await BeginAsync(claim, lifetime.Token).ConfigureAwait(false);
+            begun = true;
             if (started is null) return;
             var (definition, options, attempts, now) = started.Value;
             // Begin 的建模/数据库准备可能已消耗大半初始租约。先确认仍持有有效租约并续足，
@@ -83,7 +90,7 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
             if (!await RenewAsync(claim, lifetime.Token).ConfigureAwait(false)) return;
             using var heartbeatStop = new CancellationTokenSource();
             heartbeat = RenewLoopAsync(claim, lifetime, heartbeatStop.Token);
-            string status = "succeeded"; string? errorClass = null;
+            string status = "succeeded"; string? errorClass = null; var closed = false;
             try
             {
                 if (attempts > options.MaxAttempts) { status = "failed"; errorClass = "attempts_exhausted"; }
@@ -109,10 +116,13 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
                     { status = "failed"; errorClass = lifetime.IsCancellationRequested ? "cancelled" : "timeout"; }
                 }
             }
+            // 解析或处理器抛出时上下文已关闭（停机）：和 _stop 取消一样只停本地执行，不写终态。处理器正常返回的照常收尾。
+            catch (Exception error) when (error is not OutOfMemoryException && ContextClosed()) { closed = true; }
             catch (Exception error) when (error is not OutOfMemoryException)
             { status = "failed"; errorClass = error is OperationCanceledException ? "cancelled" : error.GetType().Name; }
             // 停机、续租异常或失去租约都只停止本地执行，不能把 once 当作业务 Cancel 归档。
             // 保留同一 run 供租约恢复；显式 Cancel 已在自己的事务中写终态并提升 generation。
+            if (closed) { Log.Stopping(context.Logger, claim.RunId); return; }
             if (lifetime.IsCancellationRequested) return;
             // 仍持续续租直到受所有权保护的完成事务提交。
             await CompleteAsync(claim, definition.Schedule, options, status, errorClass, CancellationToken.None).ConfigureAwait(false);
@@ -120,6 +130,8 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
             await heartbeat.ConfigureAwait(false); heartbeat = null;
         }
         catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
+        // 停机时 BeginAsync 经上下文开会话就抛出：attempts 还没加，run 留给租约恢复。
+        catch (Exception) when (!begun && ContextClosed()) { Log.Stopping(context.Logger, claim.RunId); }
         catch (Exception error) { Log.Execution(context.Logger, error, claim.RunId); }
         finally
         {
@@ -163,7 +175,7 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
     }
     private async Task<bool> RenewAsync(JobClaim claim, CancellationToken ct)
     {
-        await using var session = await context.Data().OpenAsync<SchedulerDbContext>(ct).ConfigureAwait(false);
+        await using var session = await _data.OpenAsync<SchedulerDbContext>(ct).ConfigureAwait(false);
         await using var transaction = await session.Context.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         var changed = await session.Context.Database.ExecuteSqlInterpolatedAsync($"UPDATE plugin_qian_scheduler.job_triggers SET lease_until=now()+{TimeSpan.FromSeconds(settings.LeaseSeconds)} WHERE tenant_id={claim.TenantId} AND id={claim.Id} AND lease_owner={claim.Worker} AND generation={claim.Generation} AND lease_until>now() AND state='ready'", ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);
@@ -171,7 +183,7 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
     }
     internal async Task<bool> CompleteAsync(JobClaim claim, string schedule, JobOptions options, string status, string? error, CancellationToken ct)
     {
-        await using var session = await context.Data().OpenAsync<SchedulerDbContext>(ct).ConfigureAwait(false);
+        await using var session = await _data.OpenAsync<SchedulerDbContext>(ct).ConfigureAwait(false);
         var db = session.Context; await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         var trigger = await Locked(db, claim, ct).ConfigureAwait(false); var now = await Now(db, ct).ConfigureAwait(false);
         if (!Owned(trigger, claim, now)) return false;
@@ -210,6 +222,14 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
         command.Transaction = db.Database.CurrentTransaction?.GetDbTransaction();
         return (DateTimeOffset)(await command.ExecuteScalarAsync(ct).ConfigureAwait(false) is DateTime value ? new DateTimeOffset(value) : throw new InvalidOperationException("数据库时间不可用。"));
     }
+    // 卸载时 Kun.Runtime 先关闭上下文，再逆序跑效果（DisposeAsync 在其中才取消 _stop）；这段时间里经上下文的调用抛 ObjectDisposedException。
+    // 只在异常路径上探一次：TryInject 受同一关闭检查保护、没有副作用，抛 ObjectDisposedException 即已关闭，关闭不可逆。
+    // 依赖缺失（条目回到 Pending）时它返回 null，不算关闭，照旧按错误处理。Kun.Runtime 的 LifecycleTests 钉着这条行为。
+    private bool ContextClosed()
+    {
+        try { _ = context.TryInject<IDataService>(DataDefinition.Key); return false; }
+        catch (ObjectDisposedException) { return true; }
+    }
     private static void Add(DbCommand command, string name, object value) { var parameter = command.CreateParameter(); parameter.ParameterName = name; parameter.Value = value; command.Parameters.Add(parameter); }
     public async ValueTask DisposeAsync()
     {
@@ -229,6 +249,8 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
         public static partial void Renewal(ILogger logger, Exception error, Guid runId);
         [LoggerMessage(Level = LogLevel.Warning, Message = "作业未在停机期限内响应取消；租约到期后可恢复，处理器必须业务幂等。")]
         public static partial void Uncooperative(ILogger logger);
+        [LoggerMessage(Level = LogLevel.Debug, Message = "停机：作业 {RunId} 留给租约恢复。")]
+        public static partial void Stopping(ILogger logger, Guid runId);
     }
 }
 internal sealed record JobClaim(string TenantId, Guid Id, Guid RunId, long Generation, DateTimeOffset ScheduledAt, string Worker);

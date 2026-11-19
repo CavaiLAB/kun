@@ -13,7 +13,7 @@ using static Qian.Scheduler.Tests.SchedulerScenario;
 namespace Qian.Scheduler.Tests;
 
 // 调度语义、准入与隔离：业务键幂等与取消、目录准入、迁移模型与 cron 解析、过期租约围栏、三表 RLS 与组合外键、
-// worker 专用登录的列权限、租户冻结、超时重试与取消终态、misfire。
+// worker 专用登录的列权限、租户冻结、超时重试与取消终态、misfire，以及停机窗口里上下文已关闭时 worker 的收尾。
 public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFixture<SchedulerFixture>
 {
     [Fact]
@@ -243,5 +243,196 @@ public sealed class SchedulerSemanticsTests(SchedulerFixture fixture) : IClassFi
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='skipped'"));
         Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs r JOIN plugin_qian_scheduler.job_definitions d ON r.tenant_id=d.tenant_id AND r.trigger_id=d.id WHERE d.business_key='fire-once'"));
         Assert.Equal(0, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts a JOIN public.sch_probe_attempts b ON a.id<b.id JOIN plugin_qian_scheduler.job_runs ra ON ra.id=a.run_id JOIN plugin_qian_scheduler.job_runs rb ON rb.id=b.run_id WHERE ra.trigger_id=rb.trigger_id AND a.finished>b.started"));
+    }
+
+    // 停机窗口：Kun.Runtime 卸载时先关闭上下文、再逆序跑效果，worker 的 DisposeAsync 在效果里才取消 _stop。
+    // 下面的 worker 在进程内起，上下文换成 ClosingPluginContext 按开关关闭，不靠竞争窗口；租约 3 秒，等待都按租约份数给上限。
+    // 关闭的那个 worker 不得有 Warning 及以上的日志；只有「上下文开着、服务缺失」那条照旧按错误记。
+    private const int StopLease = 3;
+    private static TimeSpan StopLeases(double n) => TimeSpan.FromSeconds(StopLease * n);
+    private SchedulerSettings StopSettings => new(fixture.Config.WorkerRole, StopLease, 1);
+    private Task<long> Count(string from) => fixture.Scalar<long>("SELECT count(*) FROM " + from);
+    private static async Task<Guid> ScheduleNow(ProbeHost producer, string key, JobOptions? options = null)
+    {
+        using var scope = producer.Tenant.BeginScope(TenantA);
+        var caller = producer.Caller.Scoped(new ScopeKey("tenant", TenantA));
+        return (await caller.Scheduler().ScheduleOnce(caller, key, DateTimeOffset.UtcNow, Target, Parameters, options, Ct)).Id;
+    }
+    // 等触发器被领到，返回这次执行的 run id（只用于执行会被放下、触发器仍指向它的用例）。
+    private async Task<Guid> ClaimedRun(Guid trigger)
+    {
+        await SchedulerFixture.WaitUntil(async () => await Count($"plugin_qian_scheduler.job_triggers WHERE id='{trigger}' AND active_run_id IS NOT NULL") == 1, StopLeases(2));
+        return await fixture.Scalar<Guid>($"SELECT active_run_id FROM plugin_qian_scheduler.job_triggers WHERE id='{trigger}'");
+    }
+    // 等这次执行在关闭的 worker 的日志里有了下文，再看日志级别：放下的执行只记 Debug「留给租约恢复」。
+    private static Task Mentioned(ClosingPluginContext context, Guid run) => SchedulerFixture.WaitUntil(() => Task.FromResult(context.State.Log.Has(run.ToString())), StopLeases(2));
+    private async Task TakeOver(ProbeHost producer, Guid run)
+    {
+        await using var takeover = new SchedulerWorker(producer.Caller, producer.Tenant, StopSettings);
+        takeover.Start();
+        await SchedulerFixture.WaitUntil(async () => await Count($"plugin_qian_scheduler.job_runs WHERE id='{run}' AND status='succeeded'") == 1, StopLeases(4));
+    }
+
+    [Fact]
+    public async Task 停机_上下文关闭后领取循环安静退出_不再领新触发器()
+    {
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var context = new ClosingPluginContext(producer.Caller, producer.Tenant);
+        await using (var worker = new SchedulerWorker(context, producer.Tenant, StopSettings))
+        {
+            worker.Start();
+            await SchedulerFixture.WaitUntil(() => Task.FromResult(context.State.DataRequests >= 2), StopLeases(1)); // 构造一次，至少领过一轮
+            context.State.Close(); var closedAt = context.State.DataRequests;
+            await ScheduleNow(producer, "stop-claim");
+            await Task.Delay(StopLeases(1), Ct); // 三个领取周期
+            // 关闭后至多再取一次（关闭时正在进行的那轮可能还没取），随即退出循环；不退出的话这段时间里每秒一次。
+            Assert.InRange(context.State.DataRequests - closedAt, 0, 1);
+        }
+        Assert.Empty(context.State.Log.Warnings);
+        Assert.Equal(0, await Count("plugin_qian_scheduler.job_triggers WHERE generation>0"));
+        // 触发器本身可领：另起一个正常 worker 很快跑完。
+        await using (var normal = new SchedulerWorker(producer.Caller, producer.Tenant, StopSettings))
+        {
+            normal.Start();
+            await SchedulerFixture.WaitUntil(async () => await Count("plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 1, StopLeases(2));
+        }
+    }
+
+    [Fact]
+    public async Task 停机_领到后BeginAsync前碰到关闭_不建run不记attempt_接管后attempts为1()
+    {
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var id = await ScheduleNow(producer, "stop-begin");
+        var context = new ClosingPluginContext(producer.Caller, producer.Tenant) { State = { CloseOnBegin = true } };
+        Guid run;
+        await using (var worker = new SchedulerWorker(context, producer.Tenant, StopSettings))
+        {
+            worker.Start();
+            run = await ClaimedRun(id);
+            await Mentioned(context, run);
+        }
+        Assert.Empty(context.State.Log.Warnings);
+        Assert.True(context.State.Log.Has("留给租约恢复"));
+        // 领到了（代次 1），但 run 没建、attempts 没记，处理器没进。
+        Assert.Equal(1, await Count($"plugin_qian_scheduler.job_triggers WHERE id='{id}' AND generation=1"));
+        Assert.Equal(0, await Count("plugin_qian_scheduler.job_runs"));
+        // 租约到期后正常 worker 接管同一 run：这是它的第一次执行，attempts 1。
+        await TakeOver(producer, run);
+        Assert.Equal(1, await Count($"plugin_qian_scheduler.job_runs WHERE id='{run}' AND attempts=1 AND generation=2"));
+        Assert.Equal(1, await Count("public.sch_probe_attempts"));
+    }
+
+    [Fact]
+    public async Task 停机_BeginAsync已提交后解析时碰到关闭_不写终态_留给接管()
+    {
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var id = await ScheduleNow(producer, "stop-resolve");
+        var context = new ClosingPluginContext(producer.Caller, producer.Tenant) { State = { CloseOnFirstScoped = true } };
+        Guid run;
+        await using (var worker = new SchedulerWorker(context, producer.Tenant, StopSettings))
+        {
+            worker.Start();
+            run = await ClaimedRun(id);
+            await Mentioned(context, run);
+        }
+        Assert.Empty(context.State.Log.Warnings);
+        Assert.True(context.State.Log.Has("留给租约恢复"));
+        // BeginAsync 已提交（run 已建、attempts 1），终态与错误类都没写；处理器没进。
+        Assert.Equal(1, await Count($"plugin_qian_scheduler.job_runs WHERE id='{run}' AND status='running' AND attempts=1 AND error_class IS NULL"));
+        Assert.Equal(0, await Count("public.sch_probe_attempts"));
+        // 租约到期后正常 worker 接管同一 run：attempts 2、成功、处理器进一次。
+        await TakeOver(producer, run);
+        Assert.Equal(1, await Count($"plugin_qian_scheduler.job_runs WHERE id='{run}' AND attempts=2"));
+        Assert.Equal(1, await Count("public.sch_probe_attempts"));
+    }
+
+    [Fact]
+    public async Task 停机_调用处理器时上下文已关闭_能力绑定报NOT_FOUND也不写failed_留给接管()
+    {
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var id = await ScheduleNow(producer, "stop-handler");
+        var context = new ClosingPluginContext(producer.Caller, producer.Tenant);
+        // 解析之后、调处理器之前关闭：真实的能力绑定经已关闭的调用方解析自己，把 ObjectDisposedException 换成 NOT_FOUND 抛出。
+        // 停机分支靠探上下文判断，不看异常类型。
+        context.State.Handler = async (real, caller, input, ct) => { context.State.Close(); return await real.InvokeAsync(caller, input, ct); };
+        Guid run;
+        await using (var worker = new SchedulerWorker(context, producer.Tenant, StopSettings))
+        {
+            worker.Start();
+            run = await ClaimedRun(id);
+            await Mentioned(context, run);
+        }
+        Assert.Empty(context.State.Log.Warnings);
+        Assert.True(context.State.Log.Has("留给租约恢复"));
+        Assert.Equal(1, await Count($"plugin_qian_scheduler.job_runs WHERE id='{run}' AND status='running' AND attempts=1 AND error_class IS NULL"));
+        Assert.Equal(0, await Count("public.sch_probe_attempts"));
+    }
+
+    [Fact]
+    public async Task 停机_处理器正常返回时上下文已关闭_照常提交成功()
+    {
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var id = await ScheduleNow(producer, "stop-complete");
+        var context = new ClosingPluginContext(producer.Caller, producer.Tenant);
+        context.State.Handler = async (real, caller, input, ct) => { var result = await real.InvokeAsync(ClosingPluginContext.Unwrap(caller), input, ct); context.State.Close(); return result; };
+        await using (var worker = new SchedulerWorker(context, producer.Tenant, StopSettings))
+        {
+            worker.Start();
+            // 提交成功，或者 worker 记下了 Warning 以上的日志，就往下看。
+            await SchedulerFixture.WaitUntil(async () => await Count("plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 1 || context.State.Log.Warnings.Count > 0, StopLeases(2));
+        }
+        Assert.Empty(context.State.Log.Warnings);
+        Assert.Equal(1, await Count("plugin_qian_scheduler.job_runs WHERE status='succeeded' AND attempts=1"));
+        Assert.Equal(1, await Count($"plugin_qian_scheduler.job_triggers WHERE id='{id}' AND state='archived' AND active_run_id IS NULL"));
+        Assert.Equal(1, await Count("public.sch_probe_attempts"));
+    }
+
+    [Fact]
+    public async Task 停机_处理器关闭上下文后跨过整份租约才返回_续租不断_不被接管_照常提交()
+    {
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var id = await ScheduleNow(producer, "stop-renew");
+        var context = new ClosingPluginContext(producer.Caller, producer.Tenant);
+        // 关闭后再等 1.5 份租约（四个续租周期）：续租若跟着关闭断掉，租约早已到期，旁边的正常 worker 会接管。
+        context.State.Handler = async (real, caller, input, ct) =>
+        {
+            var result = await real.InvokeAsync(ClosingPluginContext.Unwrap(caller), input, ct);
+            context.State.Close();
+            await Task.Delay(StopLeases(1.5), ct);
+            return result;
+        };
+        await using var rival = new SchedulerWorker(producer.Caller, producer.Tenant, StopSettings);
+        await using (var worker = new SchedulerWorker(context, producer.Tenant, StopSettings))
+        {
+            worker.Start();
+            await SchedulerFixture.WaitUntil(async () => await Count("public.sch_probe_attempts") == 1, StopLeases(2));
+            rival.Start();
+            await SchedulerFixture.WaitUntil(async () => await Count("plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 1, StopLeases(3));
+        }
+        Assert.Empty(context.State.Log.Warnings);
+        Assert.Equal(1, await Count("plugin_qian_scheduler.job_runs WHERE status='succeeded' AND attempts=1 AND generation=1"));
+        Assert.Equal(1, await Count($"plugin_qian_scheduler.job_triggers WHERE id='{id}' AND state='archived' AND generation=1"));
+        Assert.Equal(1, await Count("public.sch_probe_attempts"));
+    }
+
+    [Fact]
+    public async Task 停机分支只认关闭_上下文开着而数据服务缺失时照旧按错误处理()
+    {
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
+        var id = await ScheduleNow(producer, "missing-data", new JobOptions { MaxAttempts = 1 });
+        var context = new ClosingPluginContext(producer.Caller, producer.Tenant);
+        // 处理器执行时数据组件的注册没了（条目回到 Pending 的那段时间）：上下文开着，TryInject 返回 null、不抛，这不是停机。
+        context.State.Handler = (_, _, _, _) => { context.State.DataMissing = true; throw new ServiceNotReadyException(); };
+        await using (var worker = new SchedulerWorker(context, producer.Tenant, StopSettings))
+        {
+            worker.Start();
+            // 执行记 failed、照常收尾（收尾用 worker 创建时取得的数据服务）；领取循环记错误后继续下一轮，不当停机退出。
+            await SchedulerFixture.WaitUntil(async () => await Count("plugin_qian_scheduler.job_runs WHERE status='failed'") == 1 && context.State.Log.Has("调度领取失败"), StopLeases(2));
+            var requests = context.State.DataRequests;
+            await SchedulerFixture.WaitUntil(() => Task.FromResult(context.State.DataRequests >= requests + 2), StopLeases(1));
+        }
+        Assert.Equal(1, await Count("plugin_qian_scheduler.job_runs WHERE status='failed' AND attempts=1 AND error_class='ServiceNotReadyException'"));
+        Assert.Equal(1, await Count($"plugin_qian_scheduler.job_triggers WHERE id='{id}' AND state='archived'"));
+        Assert.False(context.State.Log.Has("留给租约恢复"));
     }
 }

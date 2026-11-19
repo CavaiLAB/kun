@@ -2,13 +2,16 @@
 
 运行：python3 -m unittest discover -s scripts/tests -p 'test_release_packages.py' -v
 """
+import contextlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 
 
@@ -25,12 +28,17 @@ LEGACY = ["legacy"]
 Package = release.Package
 
 
-def kernel(name, role="contract", symbols=True, **kw):
-    return Package(id=name, tier="kernel", role=role, project=f"src/{name}/{name}.csproj", symbols=symbols, **kw)
+def project(name, legacy):
+    """legacy 为真时项目在过渡目录（_import/）下，否则在 src/ 下。"""
+    return f"_import/legacy/{name}/{name}.csproj" if legacy else f"src/{name}/{name}.csproj"
 
 
-def platform(name, role="provider", symbols=True, **kw):
-    return Package(id=name, tier="platform", role=role, project=f"src/{name}/{name}.csproj", symbols=symbols, **kw)
+def kernel(name, role="contract", symbols=True, legacy=False, **kw):
+    return Package(id=name, tier="kernel", role=role, project=project(name, legacy), symbols=symbols, **kw)
+
+
+def platform(name, role="provider", symbols=True, legacy=False, **kw):
+    return Package(id=name, tier="platform", role=role, project=project(name, legacy), symbols=symbols, **kw)
 
 
 def write(root, name, version=VERSION, deps=(), *, license="MIT", repository=EXPECTED["RepositoryUrl"], commit=COMMIT,
@@ -52,7 +60,7 @@ def write(root, name, version=VERSION, deps=(), *, license="MIT", repository=EXP
 
 
 def full_set(root, packages):
-    """每个包都出包与符号包、依赖照名单里的写法。"""
+    """每个包都出包与符号包，元数据都对、没有依赖。"""
     for p in packages:
         write(root, p.id)
         write(root, p.id, suffix=".snupkg")
@@ -70,18 +78,29 @@ class ListTests(unittest.TestCase):
         self.assertEqual("Kun.Y", unnamed.id)
         self.assertFalse(unnamed.prerelease_ok)
 
+    def test_only_projects_under_the_transitional_directory_count_as_legacy(self):
+        self.assertTrue(release.in_legacy(kernel("Kun.A", legacy=True)))
+        self.assertFalse(release.in_legacy(kernel("Kun.A")))
+        self.assertFalse(release.in_legacy(Package("Kun.B", "kernel", "contract", "/elsewhere/Kun.B/Kun.B.csproj")))
+        self.assertFalse(release.in_legacy(Package("Kun.C", "kernel", "contract", "_importer/Kun.C/Kun.C.csproj")))
+
     def test_declarations_duplicates_and_transitional_items(self):
         packages = [kernel("Kun.Core"), Package("Kun.Core", "kernel", "contract", "src/Copy/Kun.Core.csproj"),
                     Package("Kun.Bad", "", "provider", "src/Kun.Bad/Kun.Bad.csproj"),
-                    platform("Other.Thing", exceptions=(("Kun.Core", "D"),))]
+                    platform("Other.Thing", legacy=True, exceptions=(("Kun.Core", "D"),)),
+                    platform("Stray.Thing"), kernel("Kun.Edge", role="provider", exceptions=(("Kun.Core", "K"),))]
         strict = release.check_list(packages, transitional=False)
         self.assertTrue(any("两个项目的包名都是" in p for p in strict.problems))
         self.assertTrue(any("Kun.Bad" in p and "档位或角色" in p for p in strict.problems))
         self.assertTrue(any("Other.Thing" in p and "Kun. 开头" in p for p in strict.problems))
         self.assertTrue(any("Other.Thing → Kun.Core" in p for p in strict.problems))
         relaxed = release.check_list(packages, transitional=True)
-        self.assertEqual(2, len(relaxed.problems), relaxed.problems)  # 重名与档位没写对两种模式都判失败
-        self.assertEqual({"prefix": ["Other.Thing"], "exception": ["Other.Thing → Kun.Core（规则 D）"]}, relaxed.allowed)
+        # 重名、档位没写对两种模式都判失败；src/ 下的包名前缀不放行
+        self.assertEqual(3, len(relaxed.problems), relaxed.problems)
+        self.assertTrue(any(p.startswith("Stray.Thing（") for p in relaxed.problems))
+        self.assertEqual(["Other.Thing"], relaxed.allowed["prefix"])
+        # 档位例外不分位置，都只报数
+        self.assertEqual({"Other.Thing → Kun.Core（规则 D）", "Kun.Edge → Kun.Core（规则 K）"}, set(relaxed.allowed["exception"]))
         self.assertEqual(["解决方案里没有可打包的项目"], release.check_list([], transitional=True).problems)
 
     def test_list_round_trips_through_json(self):
@@ -90,6 +109,15 @@ class ListTests(unittest.TestCase):
             path = Path(folder) / "list.json"
             path.write_text(json.dumps([release.asdict(p) for p in packages]), encoding="utf-8")
             self.assertEqual(packages, release._load_list(path))
+
+    def test_list_json_reports_problems_on_stderr(self):
+        duplicated = [kernel("Kun.Core"), Package("Kun.Core", "kernel", "contract", "src/Copy/Kun.Core.csproj")]
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(release, "discover", return_value=duplicated), contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = release.main(["list", "--json", "--transitional"])
+        self.assertEqual(1, code)
+        self.assertEqual(2, len(json.loads(out.getvalue())))
+        self.assertIn("两个项目的包名都是 Kun.Core", err.getvalue())
 
 
 class VerifyTests(unittest.TestCase):
@@ -122,20 +150,23 @@ class VerifyTests(unittest.TestCase):
                              "Kun.Core.copy.nupkg 与 nuspec", "符号包 Kun.Orphan", "旧格式的符号包"):
                 self.assertIn(expected, problems)
 
-    def test_dependencies_must_be_listed_present_and_pinned(self):
+    def test_dependencies_must_be_listed_present_and_pinned_exactly(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             full_set(root, self.packages)
-            write(root, "Kun.Data.Native", deps=[("Kun.Core", "2026.11.29"), ("Kun.Gone", VERSION)])
-            write(root, "Kun.Data", deps=[("Kun.Core", f"(, {VERSION}]")])
-            problems = "\n".join(self.verify(root).problems)
-            self.assertIn("Kun.Data.Native 对 Kun.Core 的依赖是 2026.11.29", problems)
-            self.assertIn("Kun.Data 对 Kun.Core 的依赖是 (,", problems)
+            write(root, "Kun.Data.Native", deps=[("Kun.Core", "2026.11.29"), ("Kun.Core", f"(, {VERSION}]"), ("Kun.Gone", VERSION)])
+            write(root, "Kun.Data", deps=[("Kun.Core", f"[{VERSION}, 2027.1.1)"), ("Kun.Data.Native", f"({VERSION}, )")])
+            problems = "\n".join(self.verify(root, transitional=True).problems)
+            self.assertIn("Kun.Data.Native 对 Kun.Core 的依赖写成 2026.11.29", problems)
+            self.assertIn(f"Kun.Data.Native 对 Kun.Core 的依赖写成 (,{VERSION}]", problems)
+            # 下限是 V 也不够：带上限的、不含 V 的都不认
+            self.assertIn(f"Kun.Data 对 Kun.Core 的依赖写成 [{VERSION},2027.1.1)", problems)
+            self.assertIn(f"Kun.Data 对 Kun.Data.Native 的依赖写成 ({VERSION},)", problems)
             self.assertIn("Kun.Gone", problems)
             self.assertIn("不在名单里", problems)
 
     def test_family_prefixes_come_from_the_list(self):
-        packages = [kernel("Kun.Core"), platform("Other.Thing")]
+        packages = [kernel("Kun.Core"), platform("Other.Thing", legacy=True)]
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             full_set(root, packages)
@@ -153,42 +184,49 @@ class VerifyTests(unittest.TestCase):
                                 for p in self.verify(root, transitional=True).problems))
             excepted = [kernel("Kun.Core"), kernel("Kun.Data.Native", role="provider", exceptions=(("Kun.Data", "K"),)), platform("Kun.Data")]
             self.assertTrue(any("内核档的 Kun.Data.Native 依赖平台档的 Kun.Data" in p for p in self.verify(root, excepted).problems))
-            relaxed = self.verify(root, excepted, transitional=True)
+            relaxed = self.verify(root, excepted, transitional=True)  # 记了例外的，src/ 下也只报数
             self.assertEqual([], relaxed.problems)
             self.assertIn("内核档的 Kun.Data.Native 依赖平台档的 Kun.Data", relaxed.allowed["exception"])
 
     def test_symbols_license_and_commit(self):
-        no_symbols = [kernel("Kun.Core"), Package("Kun.Lite", "kernel", "provider", "src/Kun.Lite/Kun.Lite.csproj")]
+        packages = [kernel("Kun.Core"), kernel("Kun.Lite", role="provider", symbols=False),
+                    kernel("Kun.Old", role="provider", symbols=False, legacy=True)]
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             write(root, "Kun.Core", license="Apache-2.0", commit="f" * 40)
             write(root, "Kun.Lite")
-            strict = "\n".join(self.verify(root, no_symbols).problems)
+            write(root, "Kun.Old")
+            strict = "\n".join(self.verify(root, packages).problems)
             self.assertIn("Kun.Core 的项目写了 IncludeSymbols=true，却没出符号包", strict)
             self.assertIn("Kun.Lite（没出符号包）", strict)
+            self.assertIn("Kun.Old（没出符号包）", strict)
             self.assertIn("许可不是 MIT", strict)
             self.assertIn("不是本次检出的", strict)
-            relaxed = self.verify(root, no_symbols, transitional=True)
-            self.assertEqual(["Kun.Lite"], relaxed.allowed["symbols"])
-            self.assertEqual(3, len(relaxed.problems), relaxed.problems)  # 写了 IncludeSymbols、许可、提交号两种模式都判失败
+            relaxed = self.verify(root, packages, transitional=True)
+            self.assertEqual(["Kun.Old"], relaxed.allowed["symbols"])  # 只放过渡目录下的
+            relaxed_text = "\n".join(relaxed.problems)
+            self.assertEqual(4, len(relaxed.problems), relaxed.problems)  # IncludeSymbols、许可、提交号，加上 src/ 下的 Kun.Lite
+            self.assertIn("Kun.Lite（没出符号包）", relaxed_text)
 
-    def test_repository_and_prefix_are_relaxed_only_in_transitional_mode(self):
-        packages = [kernel("Kun.Core"), platform("Other.Thing")]
+    def test_repository_and_prefix_are_relaxed_only_for_the_transitional_directory(self):
+        packages = [kernel("Kun.Core"), platform("Other.Thing", legacy=True), kernel("Kun.Moved", role="provider")]
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             full_set(root, packages)
-            write(root, "Kun.Core", repository="https://example.com/elsewhere.git")
-            write(root, "Other.Thing", commit="")
+            write(root, "Other.Thing", repository="https://example.com/elsewhere.git", commit="")
+            write(root, "Kun.Moved", repository="https://example.com/elsewhere.git")
             strict = "\n".join(self.verify(root, packages).problems)
-            self.assertIn("Kun.Core（仓库地址不是本仓库）", strict)
-            self.assertIn("Other.Thing（没带提交号）", strict)
+            self.assertIn("Other.Thing（仓库地址不是本仓库、没带提交号）", strict)
+            self.assertIn("Kun.Moved（仓库地址不是本仓库）", strict)
             self.assertNotIn("example.com", strict)
             relaxed = self.verify(root, packages, transitional=True)
-            self.assertEqual([], relaxed.problems)
-            self.assertEqual({"prefix", "repository"}, set(relaxed.allowed))
+            self.assertEqual(1, len(relaxed.problems), relaxed.problems)  # 搬进 src/ 的包当次就查
+            self.assertTrue(relaxed.problems[0].startswith("Kun.Moved（仓库地址不是本仓库）"))
+            self.assertEqual({"prefix": ["Other.Thing"], "repository": ["Other.Thing（仓库地址不是本仓库、没带提交号）"]}, relaxed.allowed)
 
-    def test_metadata_and_description_are_relaxed_only_in_transitional_mode(self):
-        packages = [kernel("Kun.Core"), kernel("Kun.Lib", role="provider"), kernel("Kun.Bare", role="provider"), kernel("Kun.Default", role="provider")]
+    def test_metadata_and_description_are_relaxed_only_for_the_transitional_directory(self):
+        packages = [kernel("Kun.Core"), kernel("Kun.Lib", role="provider", legacy=True), kernel("Kun.Bare", role="provider", legacy=True),
+                    kernel("Kun.Default", role="provider", legacy=True), kernel("Kun.Moved", role="provider")]
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             full_set(root, packages)
@@ -196,13 +234,16 @@ class VerifyTests(unittest.TestCase):
             write(root, "Kun.Core", description="Reads the legacy.sid cookie")  # 小写的运行期字面不算
             write(root, "Kun.Bare", description="")
             write(root, "Kun.Default", description="Package Description")
+            write(root, "Kun.Moved", authors="Someone Else", description="Moved from the Legacy runtime")
             strict = "\n".join(self.verify(root, packages).problems)
             self.assertIn("Kun.Lib（作者、版权、项目地址不对）", strict)
             self.assertIn("Kun.Lib（描述里写着过渡目录的名字）", strict)
             self.assertIn("Kun.Bare（描述是空的）", strict)
             self.assertIn("Kun.Default（描述是空的）", strict)
+            self.assertNotIn("Kun.Core", strict)
             relaxed = self.verify(root, packages, transitional=True)
-            self.assertEqual([], relaxed.problems)
+            self.assertEqual(2, len(relaxed.problems), relaxed.problems)  # src/ 下的 Kun.Moved：作者、描述
+            self.assertTrue(all(p.startswith("Kun.Moved（") for p in relaxed.problems))
             self.assertEqual(["Kun.Lib（作者、版权、项目地址不对）"], relaxed.allowed["metadata"])
             self.assertEqual(3, len(relaxed.allowed["description"]))
 
@@ -226,21 +267,24 @@ class VerifyTests(unittest.TestCase):
             self.assertEqual([], release.legacy_names(root / "missing"))
 
     def test_prerelease_dependencies_of_a_stable_version(self):
-        packages = [kernel("Kun.Core"), kernel("Kun.Observability", role="provider", prerelease_ok=True), platform("Kun.Gate")]
+        packages = [kernel("Kun.Core"), kernel("Kun.Observability", role="provider", prerelease_ok=True),
+                    platform("Kun.Gate"), platform("Kun.OldGate", legacy=True)]
+        beta = [("Upstream.Instrumentation", "[1.15.1-beta.1, )")]
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             full_set(root, packages)
-            beta = [("Upstream.Instrumentation", "[1.15.1-beta.1, )")]
-            write(root, "Kun.Observability", deps=beta)
-            write(root, "Kun.Gate", deps=beta)
+            for name in ("Kun.Observability", "Kun.Gate", "Kun.OldGate"):
+                write(root, name, deps=beta)
             strict = self.verify(root, packages).problems
-            self.assertEqual(1, len(strict), strict)
-            self.assertIn("Kun.Gate → Upstream.Instrumentation", strict[0])
-            self.assertEqual({"prerelease": ["Kun.Gate → Upstream.Instrumentation [1.15.1-beta.1,)"]}, self.verify(root, packages, transitional=True).allowed)
+            self.assertEqual(2, len(strict), strict)  # 写了 NoWarn NU5104 的 Kun.Observability 放过
+            relaxed = self.verify(root, packages, transitional=True)
+            self.assertEqual(1, len(relaxed.problems), relaxed.problems)
+            self.assertIn("Kun.Gate → Upstream.Instrumentation", relaxed.problems[0])
+            self.assertEqual({"prerelease": ["Kun.OldGate → Upstream.Instrumentation [1.15.1-beta.1,)"]}, relaxed.allowed)
         with tempfile.TemporaryDirectory() as folder:  # 版本本身是预发布时不查
             root = Path(folder)
             for p in packages:
-                write(root, p.id, version=f"{VERSION}-beta.1", deps=beta if p.id == "Kun.Gate" else ())
+                write(root, p.id, version=f"{VERSION}-beta.1", deps=beta if p.id != "Kun.Core" else ())
                 write(root, p.id, version=f"{VERSION}-beta.1", suffix=".snupkg")
             self.assertEqual([], self.verify(root, packages, version=f"{VERSION}-beta.1").problems)
 
@@ -265,7 +309,7 @@ class CommandLineTests(unittest.TestCase):
         return subprocess.run([sys.executable, str(SCRIPT), *args], capture_output=True, text=True)
 
     def test_verify_packages_exit_codes(self):
-        packages = [kernel("Kun.Core"), platform("Other.Thing", symbols=False)]
+        packages = [kernel("Kun.Core"), platform("Other.Thing", symbols=False, legacy=True)]
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             listing = root / "list.json"

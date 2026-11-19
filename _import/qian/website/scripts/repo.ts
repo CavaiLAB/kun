@@ -13,6 +13,8 @@ export const OWNER_REPO = new URL(REPO_URL).pathname.replace(/^\/+|\/+$/g, '');
 
 export const WEBSITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const REPO_ROOT = path.resolve(WEBSITE_ROOT, '..');
+/** 仓库的顶层：REPO_ROOT 在它的 REPO_SUBDIR 下。Kun 的版本来源（CHANGELOG.md）与 SDK 版本（global.json）在这里。 */
+export const REPOSITORY_ROOT = path.resolve(REPO_ROOT, ...REPO_SUBDIR.split('/').filter(Boolean).map(() => '..'));
 export const SITE_DOCS = path.join(WEBSITE_ROOT, 'docs');
 
 /**

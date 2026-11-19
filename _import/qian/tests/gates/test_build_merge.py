@@ -1,11 +1,11 @@
 """构建并轨（S1-KUN-020）的门禁自测：原 Qian 改为项目引用 Kun 源码之后，构建里不再有 Kun 的包版本单点。
 
 运行：python3 -m unittest discover -s tests/gates -v
-- 仓库里没有 csproj、props、targets 引用 $(KunVersion)。_import/qian/Directory.Packages.props 里留的 <KunVersion>
-  只给文档站、scripts/check_docs.py 与镜像构建证据读取，任何构建都不读它；
+- 仓库里没有 csproj、props、targets 定义或引用 KunVersion。原来只给文档站读的那一个已删除：文档站改读仓库根
+  CHANGELOG.md 里 Kun 最新的发布版；
 - Qian.slnf 与仓库根 Kun.slnx 里 _import/qian/ 下的项目一一对应：scripts/dotnet_ci.py 按 Qian.slnf 分片，
   只加进 Kun.slnx、没加进 Qian.slnf 的项目哪个分片都不跑；
-- 子目录的 global.json 暂留（文档站与原 Qian 的工作流还读它），内容必须与仓库根的相同；
+- SDK 版本只钉在仓库根的 global.json，子目录里没有另一份：dotnet 在子目录里向上找到根上这份；
 - 只有仓库根一份 NuGet.config，包源只有 nuget.org，CI 还原不需要私有源凭据。
 只依赖标准库与 git。
 """
@@ -21,7 +21,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY = ROOT.parents[1]
 PREFIX = ROOT.relative_to(REPOSITORY).as_posix() + "/"
-KUN_VERSION = re.compile(r"\$\(\s*KunVersion\s*\)", re.IGNORECASE)
+# 读取写成 $(KunVersion)，定义写成 <KunVersion>。
+KUN_VERSION = re.compile(r"\$\(\s*KunVersion\s*\)|<\s*KunVersion\b", re.IGNORECASE)
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 
 
@@ -31,7 +32,7 @@ def tracked(*patterns: str) -> list[str]:
 
 
 class BuildMergeTests(unittest.TestCase):
-    def test_no_msbuild_file_reads_kun_version(self):
+    def test_no_msbuild_file_defines_or_reads_kun_version(self):
         offenders = []
         files = tracked("*.csproj", "*.props", "*.targets")
         self.assertIn(PREFIX + "Directory.Packages.props", files)
@@ -40,7 +41,7 @@ class BuildMergeTests(unittest.TestCase):
             # 注释里提到它不算读取；换成同样多的换行，行号不变。
             text = COMMENT.sub(lambda match: "\n" * match.group(0).count("\n"), text)
             offenders += [f"{name}:{number}" for number, line in enumerate(text.splitlines(), 1) if KUN_VERSION.search(line)]
-        self.assertEqual([], offenders, "构建不再读 KunVersion：原 Qian 已改为项目引用 Kun 源码（S1-KUN-020）")
+        self.assertEqual([], offenders, "KunVersion 已删除：_import/qian/ 下的项目已改为项目引用 Kun 源码，文档站改读仓库根 CHANGELOG.md（S1-KUN-020）")
 
     def test_qian_filter_matches_the_solution(self):
         solution = REPOSITORY / "Kun.slnx"
@@ -52,10 +53,9 @@ class BuildMergeTests(unittest.TestCase):
         self.assertEqual(sorted(path for path in in_solution if path.startswith(PREFIX)), sorted(listed),
                          f"{PREFIX} 下的项目要同时加进 Kun.slnx 与 Qian.slnf")
 
-    def test_transitional_global_json_matches_root(self):
-        root = json.loads((REPOSITORY / "global.json").read_text(encoding="utf-8"))
-        self.assertEqual(root, json.loads((ROOT / "global.json").read_text(encoding="utf-8")),
-                         f"{PREFIX}global.json 必须与仓库根的 global.json 相同，改一处要两处一起改")
+    def test_only_the_root_global_json(self):
+        self.assertEqual(["global.json"], [name for name in tracked() if Path(name).name.lower() == "global.json"],
+                         "SDK 版本只钉在仓库根的 global.json：子目录里不要再放一份，dotnet 会向上找到根上这份")
 
     def test_single_nuget_config_with_nuget_org_only(self):
         self.assertEqual(["NuGet.config"], [name for name in tracked() if Path(name).name.lower() == "nuget.config"])

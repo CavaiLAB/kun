@@ -1,4 +1,5 @@
-// Kun API 参考（docs-site.md §2b.2，S1-DOCS-005）：DocFX 从 KunVersion 锁定版本的 Kun.* 包（nuget.org）的 XML 注释生成，挂 /sdk/api/kun/。
+// Kun API 参考（docs-site.md §2b.2，S1-DOCS-005）：DocFX 从 Kun 最新发布版的 Kun.* 包（nuget.org）的 XML 注释生成，挂 /sdk/api/kun/。
+// 版本取仓库根 CHANGELOG.md 里最新的发布段（scripts/kun.ts 的 readKunVersion）。
 // 流程：缓存目录里生成一个引用全部 Kun.* 包的空工程 → dotnet build 取 DLL 与 XML → docfx metadata 输出 Markdown → 转成 Rspress 页面。
 // 结果按（版本与提交、包、DocFX 版本、转换脚本内容）缓存，dev 重启不重复跑 .NET。/sdk/api/ 是一个生成目录，S1-DOCS-002 往这里加 Qian.* 与前端。
 import { execFileSync } from 'node:child_process';
@@ -413,8 +414,8 @@ export function convertDocfx(kun: KunCheckout, output: DocfxOutput, packages: re
       '# Kun API 参考',
       '',
       ':::info 生成页',
-      `本节由 DocFX 从 nuget.org 上 \`Kun.*\` ${kun.version} 包的 XML 注释生成，版本取仓库 \`Directory.Packages.props\` 的 \`KunVersion\`，` +
-        `与 Qian 实际依赖的 Kun 一致；源码在 kun 仓库 [\`src/\`](${kunGithubUrl(kun, 'src', true)})（\`${kun.tag}\`）。` +
+      `本节由 DocFX 从 nuget.org 上 \`Kun.*\` ${kun.version} 包的 XML 注释生成，版本是 Kun 最新的发布版，取仓库根 \`CHANGELOG.md\` 里最新的发布段；` +
+        `源码在 kun 仓库 [\`src/\`](${kunGithubUrl(kun, 'src', true)})（\`${kun.tag}\`）。` +
         'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；Kun 的文档见 [Kun 框架](/sdk/kun/)。',
       ':::',
       '',
@@ -474,7 +475,7 @@ export function apiReferenceFiles(kun: KunCheckout, kunApi: KunApiResult): Gener
         '',
         '| 范围 | 位置 | 状态 |',
         '|---|---|---|',
-        `| Kun（\`Kun.*\`，按 \`KunVersion\` 锁定） | [Kun API 参考](${KUN_API_ROUTE}) | 已生成：${kunApi.packages.length} 个包、${kunApi.types} 个类型，${kun.tag}（${KUN_OWNER_REPO}） |`,
+        `| Kun（\`Kun.*\`，最新的发布版） | [Kun API 参考](${KUN_API_ROUTE}) | 已生成：${kunApi.packages.length} 个包、${kunApi.types} 个类型，${kun.tag}（${KUN_OWNER_REPO}） |`,
         '| Qian 后端（`Qian.*`） | `/sdk/api/dotnet/` | 随 S1-DOCS-002 |',
         '| 前端（`@qian/*`、`@cavailab/qian-*`） | `/sdk/api/frontend/` | 随 S1-DOCS-002 |',
         '| 平台 HTTP API（OpenAPI） | `/sdk/api/http/` | 随 S1-DOCS-002 |',

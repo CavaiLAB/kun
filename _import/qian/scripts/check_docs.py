@@ -428,7 +428,7 @@ def check_frontmatter(path: Path, text: str) -> list[str]:
         errs.append(f"{label}: 镜像页必须写 source（<owner>/<repo>@<ref>:<path>）")
     if project == "kun":
         if "version" not in data:
-            errs.append(f"{label}: Kun 镜像页必须写 version（等于 KunVersion）")
+            errs.append(f"{label}: Kun 镜像页必须写 version（等于镜像的 Kun 版本）")
         if part is not None and part != "sdk":
             errs.append(f"{label}: Kun 镜像页只在 sdk/ 下（part: sdk）")
     # 组件页（components/platform/<id>、components/yue/<name>）要 component

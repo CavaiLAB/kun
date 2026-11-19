@@ -14,7 +14,7 @@ function write(root: string, rel: string, content: string): void {
 
 function fixtureRepo(): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'qian-versions-'));
-  write(root, 'Directory.Packages.props', '<Project>\n  <PropertyGroup Label="Kun">\n    <KunVersion>2026.10.8</KunVersion>\n  </PropertyGroup>\n</Project>\n');
+  write(root, 'CHANGELOG.md', '# Changelog\n\n## [Unreleased]\n\n## [2026.10.8] - 2026-10-08\n\n## [2026.9.13] - 2026-09-13\n');
   write(root, 'Directory.Build.props', '<Project>\n  <PropertyGroup>\n    <IsPackable>false</IsPackable>\n  </PropertyGroup>\n</Project>\n');
   write(root, 'packages/Qian.Runtime/Qian.Runtime.csproj', '<Project>\n  <PropertyGroup>\n    <IsPackable>true</IsPackable>\n  </PropertyGroup>\n</Project>\n');
   write(root, 'packages/Qian.Data/Qian.Data.csproj', '<Project><PropertyGroup><IsPackable>true</IsPackable></PropertyGroup></Project>\n');
@@ -31,7 +31,7 @@ function fixtureRepo(): string {
 describe('版本矩阵（docs-site.md §2b.4）', () => {
   it('从钉版文件读出矩阵：Kun、可打包的 Qian.*、.NET SDK、Node / pnpm、K3s；版本目录里没有前端框架包', () => {
     const root = fixtureRepo();
-    const m = readVersionMatrix(root);
+    const m = readVersionMatrix(root, root);
     assert.equal(m.kun, '2026.10.8');
     assert.deepEqual(m.qian, [
       { name: 'Qian.Data', version: null },
@@ -43,7 +43,8 @@ describe('版本矩阵（docs-site.md §2b.4）', () => {
     assert.equal(m.node, '^20.19.0 || >=22.12.0');
     assert.equal(m.pnpm, '12.9.1');
     assert.equal(m.k3s, 'v1.35');
-    assert.equal(m.sources.kun, 'Directory.Packages.props');
+    assert.equal(m.sources.kun, 'CHANGELOG.md');
+    assert.equal(m.sources.dotnet, 'global.json');
   });
 
   it('Qian 版本取 csproj 或 Directory.Build.props；前端框架包取版本目录里的 @cavailab/qian-*', () => {
@@ -63,7 +64,7 @@ describe('版本矩阵（docs-site.md §2b.4）', () => {
 
   it('生成页：frontmatter 合规、矩阵一行、来源表、包清单；未发布与没有前端框架包写明', () => {
     const root = fixtureRepo();
-    const file = buildVersions(root);
+    const file = buildVersions(root, root);
     assert.equal(file.path, VERSIONS_PAGE);
     const { frontmatter, body } = splitFrontmatter(file.content);
     assert.match(frontmatter, /^title: "版本矩阵"$/m);
@@ -74,10 +75,12 @@ describe('版本矩阵（docs-site.md §2b.4）', () => {
     assert.match(body, /^# 版本矩阵$/m);
     assert.match(body, /不要手改/);
     assert.ok(body.includes('| main（开发版） | 2026.10.8 | 未发布，开发版 main（2 个包） | 版本目录里没有 | 10.0.100（rollForward latestFeature） | ^20.19.0 \\|\\| >=22.12.0 / 12.9.1 | v1.35 |'), body);
-    assert.match(body, /\| Kun \| `Directory\.Packages\.props` \|/);
+    assert.match(body, /\| Kun \| 仓库根的 `CHANGELOG\.md` \|/);
+    assert.match(body, /\| \.NET SDK \| 仓库根的 `global\.json` \|/);
+    assert.doesNotMatch(body, /KunVersion/);
     assert.match(body, /- `Qian\.Runtime`（未发布）/);
     assert.match(body, /- （版本目录里没有）/);
-    const released = renderVersionsPage({ ...readVersionMatrix(root), qian: [{ name: 'Qian.Runtime', version: '0.1.0' }, { name: 'Qian.Data', version: '0.1.0' }], frontend: [{ name: '@cavailab/qian-core', version: '0.3.0' }], k3s: null }, '2026-10-09');
+    const released = renderVersionsPage({ ...readVersionMatrix(root, root), qian: [{ name: 'Qian.Runtime', version: '0.1.0' }, { name: 'Qian.Data', version: '0.1.0' }], frontend: [{ name: '@cavailab/qian-core', version: '0.3.0' }], k3s: null }, '2026-10-09');
     assert.ok(released.includes('| 0.1.0（2 个包） | 0.3.0（1 个包） |'), released);
     assert.ok(released.includes('| 未钉版 |'), released);
   });
@@ -85,6 +88,6 @@ describe('版本矩阵（docs-site.md §2b.4）', () => {
   it('global.json 缺 sdk.version 即失败', () => {
     const root = fixtureRepo();
     write(root, 'global.json', '{ "sdk": {} }\n');
-    assert.throws(() => readVersionMatrix(root), /sdk\.version/);
+    assert.throws(() => readVersionMatrix(root, root), /sdk\.version/);
   });
 });

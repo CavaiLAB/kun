@@ -334,7 +334,8 @@ def verify_consumer(version: str, source: str, token_variable: Optional[str], at
     # 不继承仓库的 Directory.Build.* 与中央包管理，也不复用本机已有的包缓存：每个包都要从源里真实下载。
     for name in ("Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props"):
         (work / name).write_text("<Project />\n", encoding="utf-8")
-    (work / "global.json").write_text((ROOT / "global.json").read_text(encoding="utf-8"), encoding="utf-8")
+    # SDK 版本只钉在仓库根的 global.json（ROOT 是 _import/qian，仓库根在它上两层）。
+    (work / "global.json").write_text((ROOT.parents[1] / "global.json").read_text(encoding="utf-8"), encoding="utf-8")
     env = dict(_env(), NUGET_PACKAGES=str(work / ".packages"), NUGET_HTTP_CACHE_PATH=str(work / ".http-cache"),
                NUGET_SCRATCH=str(work / ".scratch"), NUGET_PLUGINS_CACHE_PATH=str(work / ".plugins-cache"))
 

@@ -50,7 +50,7 @@ REGISTRY_IMAGE = "ghcr.io/distribution/distribution:3.0.0@sha256:4ba3adf47f5c866
 PROFILES = ("platform", "identity", "gateway", "standalone", "minimal")
 SEVERITIES = ("negligible", "low", "medium", "high", "critical")
 # 自检签名模拟 CI 发布者：GitHub Actions 工作流身份与 OIDC issuer，由本次运行的临时 CA 写进证书。
-SIGNER_IDENTITY = "https://github.com/idadawn/qian/.github/workflows/images.yml@refs/heads/main"
+SIGNER_IDENTITY = "https://github.com/CavaiLAB/kun/.github/workflows/ci.yml@refs/heads/main"
 SIGNER_ISSUER = "https://token.actions.githubusercontent.com"
 SELFCHECK_IMAGES = {
     "jit": ("tools/Qian.Image.SelfCheck/Qian.Image.SelfCheck.csproj", "Qian.Image.SelfCheck", "qian-selfcheck-jit"),

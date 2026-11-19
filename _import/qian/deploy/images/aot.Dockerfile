@@ -37,7 +37,7 @@ ARG KUN_VERSION
 ARG PROFILE_REVISION
 ARG PLUGINS_REVISION
 ARG IMAGE_ROLE=product
-LABEL org.opencontainers.image.source="https://github.com/idadawn/qian" \
+LABEL org.opencontainers.image.source="https://github.com/CavaiLAB/kun" \
       org.opencontainers.image.revision="${SOURCE_SHA}" \
       io.qian.kun-version="${KUN_VERSION}" \
       io.qian.profile-revision="${PROFILE_REVISION}" \

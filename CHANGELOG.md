@@ -8,6 +8,13 @@
 
 ## [Unreleased]
 
+### Changed — 事件契约并进 Kun.EventBus.Abstractions（S1-KUN-025）
+
+- 包 `Qian.Events.Abstractions`（已发布 0.2.0）并进 `Kun.EventBus.Abstractions`，命名空间 `Qian.Events` → `Kun.EventBus`。带前缀的 4 个类型：`QianEventEnvelope` → `KunEventEnvelope`、`QianEventTopology` → `KunEventTopology`、`QianEventDelivery` → `KunEventDelivery`、`QianEventsException` → `KunEventsException`；`EventsDefinition`、`IEventsService`、`EventEnvelopeScope`、`EventOrigin`、`EventActor`、`IntegrationEventTypes`、`EventsErrors` 等名字不变。**迁移**：项目引用改指 `Kun.EventBus.Abstractions`，`using Qian.Events;` 换成 `using Kun.EventBus;`；同时用到 `AddQianEvents` 等提供者登记的文件两条都留。信封、MQ 拓扑名与错误码的线上形状不变。
+- `Kun.EventBus.Abstractions` 新依赖 `Kun.Runtime`（事件服务键与插件上下文）：只声明事件的契约包随之传递引入 `Kun.Runtime`、`Microsoft.Extensions.DependencyInjection` 与 `Microsoft.Extensions.Logging.Abstractions`。
+- `IIntegrationEventBus` 与 `Kun.EventBus.Outbox` 的 `IOutboxWriter`、`IIntegrationEventOutbox`、`IntegrationEventBuffer`、`OutboxMessage`、`OutboxStatus` 移进 `Kun.EventBus.Abstractions`，命名空间不变，`Kun.EventBus` 留类型转发：源码与按 `Kun.EventBus` 编译的程序集不用改；按程序集反射找这些类型的（如比对 `typeof(OutboxMessage).Assembly`）拿到的是 `Kun.EventBus.Abstractions`。
+- 日志类别、活动源与计量器的名字都不变：挪动的类型不写日志，也不建活动源或计量器。
+
 ### Changed — 错误模型合一到 Kun.Errors（S1-KUN-023）
 
 - 新增零依赖包 `Kun.Errors`（错误码 `ErrorCode`、错误码目录、`Error`、`ErrorException`、线上模型 `ErrorDetail`），`Kun.Core` 引用它。`Result` / `Result<T>` 的 `Error` 是 `Kun.Errors.Error`：错误码加文案参数、出错位置（JSON Pointer）、允许值与逐项字段错误。**迁移**：错误码先定义成 `ErrorCode`（大写下划线）并登记进错误码目录，通用的取 `PlatformErrors`；失败结果写 `Result.Fail(new Error(code, args))`。

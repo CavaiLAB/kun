@@ -63,7 +63,7 @@ internal sealed class ClosingPluginContext(IPluginContext inner, ClosingPluginCo
         private int _dataRequests;
         internal bool Closed => _closed;
         internal void Close() => _closed = true;
-        // 经上下文取数据服务（Inject）的次数：构造 worker 一次，此后每次领取、每次 BeginAsync 各一次；关闭后抛出的也算。
+        // 统计经上下文取数据服务的次数，包含构造、开始领取、提交领取和 BeginAsync，也包含关闭时抛出的调用。
         internal int DataRequests => Volatile.Read(ref _dataRequests);
         // BeginAsync 经上下文取数据服务时关闭：领取循环不带租户，执行里带租户，带租户的那一次就是 BeginAsync（领到了、还没开始准备）。
         internal bool CloseOnBegin { get; set; }

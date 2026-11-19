@@ -53,7 +53,9 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
         await db.Database.OpenConnectionAsync(ct).ConfigureAwait(false);
         var connection = db.Database.GetDbConnection();
         await SchedulerWorkerAccess.ValidateConnectionAsync(connection, settings.WorkerRole, ct).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(ct).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = """
             WITH due AS (
               SELECT tenant_id,id FROM plugin_qian_scheduler.job_triggers
@@ -69,8 +71,13 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
             """;
         Add(command, "count", count); Add(command, "worker", _id); Add(command, "lease", TimeSpan.FromSeconds(settings.LeaseSeconds));
         var result = new List<JobClaim>();
-        await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
-        while (await reader.ReadAsync(ct).ConfigureAwait(false)) result.Add(new JobClaim(reader.GetString(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetInt64(3), reader.GetFieldValue<DateTimeOffset>(4), _id));
+        await using (var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(ct).ConfigureAwait(false)) result.Add(new JobClaim(reader.GetString(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetInt64(3), reader.GetFieldValue<DateTimeOffset>(4), _id));
+        }
+        // 等待数据库锁期间上下文可能已经关闭。提交租约前再经上下文取数据服务；关闭会抛出，事务释放时回滚整批领取。
+        if (result.Count > 0) _ = context.Data();
+        await transaction.CommitAsync(ct).ConfigureAwait(false);
         return result;
     }
     private async Task ExecuteAsync(JobClaim claim)

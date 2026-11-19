@@ -14,6 +14,7 @@ public sealed class SchedulerRenewalTests(SchedulerFixture fixture) : IClassFixt
     [InlineData(true)]
     public async Task 续租一次暂态异常_不归档once_保留同run等待租约恢复(bool replaceWorker)
     {
+        var config = fixture.TakeoverLease;
         await fixture.Reset();
         await fixture.Admin("""
             CREATE SEQUENCE plugin_qian_scheduler.renewal_probe_calls;
@@ -36,8 +37,8 @@ public sealed class SchedulerRenewalTests(SchedulerFixture fixture) : IClassFixt
             """);
         try
         {
-            await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
-            await using var worker = await WorkerProcess.Start(fixture.Config, TenantA);
+            await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
+            await using var worker = await WorkerProcess.Start(config, TenantA);
             WorkerProcess? successor = null;
             var workers = new List<WorkerProcess> { worker };
             var phases = new Dictionary<string, DateTimeOffset> { ["workerReady"] = DateTimeOffset.UtcNow };
@@ -49,10 +50,10 @@ public sealed class SchedulerRenewalTests(SchedulerFixture fixture) : IClassFixt
                     await caller.Scheduler().ScheduleOnce(caller, "renewal-error", DateTimeOffset.UtcNow, Target,
                         JsonSerializer.SerializeToElement(new { mode = "hold-first", delayMs = 0 }), new JobOptions { Timeout = TimeSpan.FromMinutes(3) }, Ct);
                 }
-                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts") == 1, TimeSpan.FromSeconds(10));
+                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts") == 1, fixture.Leases(2, config));
                 var originalRun = await fixture.Scalar<Guid>("SELECT run_id FROM public.sch_probe_attempts");
                 phases["handlerEntered"] = DateTimeOffset.UtcNow;
-                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<bool>("SELECT is_called AND last_value>=2 FROM plugin_qian_scheduler.renewal_probe_calls"), TimeSpan.FromSeconds(10));
+                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<bool>("SELECT is_called AND last_value>=2 FROM plugin_qian_scheduler.renewal_probe_calls"), fixture.Leases(2, config));
                 phases["renewalExceptionInjected"] = DateTimeOffset.UtcNow;
                 if (replaceWorker)
                 {
@@ -61,10 +62,10 @@ public sealed class SchedulerRenewalTests(SchedulerFixture fixture) : IClassFixt
                     Assert.Equal("ready", await fixture.Scalar<string>("SELECT state FROM plugin_qian_scheduler.job_triggers"));
                     Assert.Equal(originalRun, await fixture.Scalar<Guid>("SELECT active_run_id FROM plugin_qian_scheduler.job_triggers"));
                     await worker.Stop();
-                    successor = await WorkerProcess.Start(fixture.Config, TenantA); workers.Add(successor);
+                    successor = await WorkerProcess.Start(config, TenantA); workers.Add(successor);
                     phases["replacementReady"] = DateTimeOffset.UtcNow;
                 }
-                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status IN ('succeeded','failed','cancelled')") == 1, TimeSpan.FromSeconds(15));
+                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status IN ('succeeded','failed','cancelled')") == 1, fixture.Leases(3, config));
                 var status = await fixture.Scalar<string>("SELECT status FROM plugin_qian_scheduler.job_runs");
                 var effects = await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects");
                 var recoveredProcess = await fixture.Scalar<int>("SELECT process_id FROM public.sch_probe_attempts ORDER BY id DESC LIMIT 1");
@@ -154,7 +155,7 @@ public sealed class SchedulerRenewalTests(SchedulerFixture fixture) : IClassFixt
                     await caller.Scheduler().ScheduleOnce(caller, "prepare-delay", DateTimeOffset.UtcNow, Target,
                         JsonSerializer.SerializeToElement(new { mode = "normal", delayMs = 3500 }), new JobOptions { Timeout = TimeSpan.FromMinutes(1) }, Ct);
                 }
-                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 1, TimeSpan.FromSeconds(15));
+                await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 1, fixture.Leases(3));
                 using var preparation = JsonDocument.Parse(await fixture.Scalar<string>("SELECT to_json(p)::text FROM public.sch_prepare_probe p"));
                 var row = preparation.RootElement;
                 var preparedAt = row.GetProperty("prepared_at").GetDateTimeOffset();

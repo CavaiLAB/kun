@@ -12,17 +12,21 @@ public sealed class SchedulerMinuteTests(SchedulerFixture fixture) : IClassFixtu
     [Fact]
     public async Task 三独立进程_两租户100分钟cron_连续两轮各恰100次且真实处理器没有重复()
     {
-        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
-        await using var a = await WorkerProcess.Start(fixture.Config, TenantA, TenantB); await using var b = await WorkerProcess.Start(fixture.Config, TenantA, TenantB); await using var c = await WorkerProcess.Start(fixture.Config, TenantA, TenantB);
+        // 这条不测租约到期，用生产缺省的 30 秒租约。每个进程第一批一次领 16 个、同时准备，1 核加 8 个邻居时
+        // 这一批的「领取→初始续租」在预热之后仍到 3–5 秒，超过 6 秒测试租约的一半（S1-QA-023）。
+        var config = fixture.LongLease;
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
+        await using var a = await WorkerProcess.Start(config, TenantA, TenantB); await using var b = await WorkerProcess.Start(config, TenantA, TenantB); await using var c = await WorkerProcess.Start(config, TenantA, TenantB);
         Assert.Equal(3, new[] { a.Id, b.Id, c.Id }.Distinct().Count());
         // 避免造数跨过分钟边界；保留真实分钟与默认一秒领取语义。
+        // 分 10 路并发建：逐个建在 CPU 被挤时要 20–60 秒，会跨过边界（S1-QA-023）；并发不超过 10，免得占满数据库连接。
         if (DateTimeOffset.UtcNow.Second > 40) await Task.Delay(TimeSpan.FromSeconds(61 - DateTimeOffset.UtcNow.Second), Ct);
-        for (var i = 0; i < 100; i++)
+        await Parallel.ForEachAsync(Enumerable.Range(0, 100), new ParallelOptions { MaxDegreeOfParallelism = 10, CancellationToken = Ct }, async (i, ct) =>
         {
             var tenant = i % 2 == 0 ? TenantA : TenantB; using var scope = producer.Tenant.BeginScope(tenant);
             var caller = producer.Caller.Scoped(new ScopeKey("tenant", tenant));
-            await caller.Scheduler().ScheduleCron(caller, "minute-" + i, "0 * * * * ?", Target, Parameters, cancellationToken: Ct);
-        }
+            await caller.Scheduler().ScheduleCron(caller, "minute-" + i, "0 * * * * ?", Target, Parameters, cancellationToken: ct);
+        });
         await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='succeeded'") >= 200, TimeSpan.FromSeconds(135));
         Assert.Equal(200, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts"));
         Assert.Equal(200, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"));

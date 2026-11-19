@@ -43,10 +43,24 @@ public sealed class SchedulerFixture : IAsyncLifetime
             CREATE TABLE public.sch_probe_tenants(id uuid PRIMARY KEY,status text NOT NULL);
             GRANT SELECT,INSERT,UPDATE ON public.sch_probe_attempts,public.sch_probe_effects,public.sch_probe_tenants TO qian_app;
             GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO qian_app;
+            -- 失败现场用的租约日志（S1-QA-023）：领取改 generation，续租在同一代里推后 lease_until，只记这两种变化。
+            -- SECURITY DEFINER，不给应用角色与 worker 角色加权限；AFTER 触发，用例注入的 BEFORE 故障让更新失败时不留记录。
+            CREATE TABLE public.sch_lease_log(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,at timestamptz NOT NULL DEFAULT clock_timestamp(),kind text NOT NULL,trigger_id uuid NOT NULL,generation bigint NOT NULL,lease_owner text,lease_until timestamptz);
+            CREATE FUNCTION public.sch_lease_log_row() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
+            BEGIN
+              IF NEW.generation IS DISTINCT FROM OLD.generation THEN
+                INSERT INTO public.sch_lease_log(kind,trigger_id,generation,lease_owner,lease_until) VALUES ('claim',NEW.id,NEW.generation,NEW.lease_owner,NEW.lease_until);
+              ELSIF NEW.lease_until > OLD.lease_until THEN
+                INSERT INTO public.sch_lease_log(kind,trigger_id,generation,lease_owner,lease_until) VALUES ('renew',NEW.id,NEW.generation,NEW.lease_owner,NEW.lease_until);
+              END IF;
+              RETURN NULL;
+            END $$;
+            CREATE TRIGGER sch_lease_log AFTER UPDATE OF generation,lease_until ON plugin_qian_scheduler.job_triggers
+              FOR EACH ROW EXECUTE FUNCTION public.sch_lease_log_row();
             """);
         Config = new HostConfig(Postgres.AppConnectionString, new NpgsqlConnectionStringBuilder(Postgres.AppConnectionString) { Username = role, Password = password }.ConnectionString, role);
     }
-    public async Task Reset() => await Admin("TRUNCATE plugin_qian_scheduler.job_runs,plugin_qian_scheduler.job_triggers,plugin_qian_scheduler.job_definitions,public.sch_probe_attempts,public.sch_probe_effects,public.sch_probe_tenants;");
+    public async Task Reset() => await Admin("TRUNCATE plugin_qian_scheduler.job_runs,plugin_qian_scheduler.job_triggers,plugin_qian_scheduler.job_definitions,public.sch_probe_attempts,public.sch_probe_effects,public.sch_probe_tenants,public.sch_lease_log;");
     public async Task Admin(string sql)
     { await using var db = new NpgsqlConnection(Postgres.ConnectionString); await db.OpenAsync(TestContext.Current.CancellationToken); await using var command = new NpgsqlCommand(sql, db); await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken); }
     public async Task<T> Scalar<T>(string sql)
@@ -64,7 +78,7 @@ public sealed class SchedulerFixture : IAsyncLifetime
             """));
         return document.RootElement.Clone();
     }
-    internal async Task<JsonElement> RenewedLease(Guid run)
+    internal async Task<JsonElement> RenewedLease(Guid run, HostConfig? config = null)
     {
         var first = await LeaseSnapshot(run);
         Assert.Equal(JsonValueKind.Object, first.ValueKind);
@@ -79,9 +93,9 @@ public sealed class SchedulerFixture : IAsyncLifetime
                 row.GetProperty("generation").GetInt64() != 1 || row.GetProperty("run_generation").GetInt64() != 1 ||
                 row.GetProperty("status").GetString() != "running" || row.GetProperty("attempts").GetInt32() != 1 || row.GetProperty("handler_attempts").GetInt64() != 1) return false;
             var until = row.GetProperty("lease_until").GetDateTimeOffset();
-            if (until <= firstLease || until - row.GetProperty("observed_at").GetDateTimeOffset() < TimeSpan.FromSeconds(3)) return false;
+            if (until <= firstLease || until - row.GetProperty("observed_at").GetDateTimeOffset() < Leases(0.5, config)) return false;
             renewed = row; return true;
-        }, TimeSpan.FromSeconds(10));
+        }, Leases(2, config));
         AssertLiveFirstLease(renewed, run, originalOwner);
         return renewed;
     }
@@ -101,6 +115,14 @@ public sealed class SchedulerFixture : IAsyncLifetime
         Assert.True(row.GetProperty("observed_at").GetDateTimeOffset() < until, "尚未接管断言必须发生在数据库租约到期之前。");
         return until;
     }
+    // 等待上限按测试租约的份数给（S1-QA-023）：一份覆盖一次「领取到初始续租」的准备或一次到期，用例经过几段就给几份；
+    // 不写死秒数，改 HostConfig.LeaseSeconds 时随之伸缩。只是上限，条件一满足就返回，不拖慢通过的运行。用长租约的用例传它自己的配置。
+    internal TimeSpan Leases(double count, HostConfig? config = null) => TimeSpan.FromSeconds((config ?? Config).LeaseSeconds * count);
+    // 接管用例等待数据库里的真实租约到期，同时给首次领取后的准备留出半份租约。
+    internal HostConfig TakeoverLease => Config with { LeaseSeconds = 12 };
+    // 不测租约到期的用例（分钟验收、同业务键、冻结租户、misfire、超时重试与取消）用生产缺省的 30 秒租约（S1-QA-023 验收线第二步）：
+    // 租约短了，冷路径恰好慢时第一次执行会在准备阶段丢租约；分钟验收与 misfire 的 worker 第一批还一次领多个、同时准备。
+    internal HostConfig LongLease => Config with { LeaseSeconds = 30 };
     public static async Task WaitUntil(Func<Task<bool>> condition, TimeSpan timeout)
     {
         var watch = Stopwatch.StartNew();
@@ -134,6 +156,13 @@ public sealed class SchedulerFixture : IAsyncLifetime
                     FROM plugin_qian_scheduler.job_runs ORDER BY id) r),
                   'handlerAttempts',(SELECT coalesce(json_agg(a),'[]'::json) FROM public.sch_probe_attempts a),
                   'effects',(SELECT coalesce(json_agg(e),'[]'::json) FROM public.sch_probe_effects e),
+                  -- 每个 worker 第一次领取到同一代初始续租的耗时；initial_renewal_at 为空即那一代在准备阶段丢了租约（S1-QA-023）。
+                  'firstExecutions',(SELECT coalesce(json_agg(f ORDER BY f.claimed_at),'[]'::json) FROM (
+                    SELECT w.*,round(extract(epoch FROM w.initial_renewal_at-w.claimed_at)*1000) AS claim_to_initial_renewal_ms FROM (
+                      SELECT DISTINCT ON (c.lease_owner) c.lease_owner AS worker,c.trigger_id,c.generation,c.at AS claimed_at,
+                        (SELECT min(r.at) FROM public.sch_lease_log r WHERE r.kind='renew' AND r.trigger_id=c.trigger_id AND r.generation=c.generation) AS initial_renewal_at
+                      FROM public.sch_lease_log c WHERE c.kind='claim' AND c.lease_owner IS NOT NULL ORDER BY c.lease_owner,c.at) w) f),
+                  'leaseLog',(SELECT coalesce(json_agg(l ORDER BY l.id),'[]'::json) FROM public.sch_lease_log l),
                   'sessions',(SELECT coalesce(json_agg(s),'[]'::json) FROM (
                     SELECT pid,usename,state,wait_event_type,wait_event,backend_start,xact_start,query_start
                     FROM pg_stat_activity WHERE datname=current_database() ORDER BY pid) s),
@@ -196,12 +225,23 @@ internal sealed class WorkerProcess : IAsyncDisposable
         var start = new ProcessStartInfo("dotnet") { RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
         start.ArgumentList.Add(executable); start.ArgumentList.Add("--worker");
         var child = new WorkerProcess(Process.Start(start)!, config);
-        await child._process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(config with { WarmupTenants = warmupTenants })); await child._process.StandardInput.FlushAsync();
-        var line = await child._process.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(30));
+        string? line;
+        try
+        {
+            await child._process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(config with { WarmupTenants = warmupTenants })); await child._process.StandardInput.FlushAsync();
+            line = await child._process.StandardOutput.ReadLineAsync().WaitAsync(ReadyTimeout);
+        }
+        catch
+        {
+            // 等不到 READY 也要杀掉子进程：它就绪后会以真 worker 身份在同一个库里领取，接管同类后续用例的 run（S1-QA-023）。
+            await child.Kill(); await child.DisposeAsync(); throw;
+        }
         if (line is null || !line.StartsWith("READY ", StringComparison.Ordinal))
         { await child.DisposeAsync(); throw new InvalidOperationException("worker 未就绪：" + child.ErrorOutput); }
         return child;
     }
+    // 只管启动、不进调度时序判据的上限。READY 前要建模并把执行路径跑热，CPU 被挤时要几十秒（S1-QA-023）。
+    private static readonly TimeSpan ReadyTimeout = TimeSpan.FromSeconds(60);
     public async Task Kill()
     { if (!_process.HasExited) { _process.Kill(entireProcessTree: true); await _process.WaitForExitAsync(); } }
     public async Task<string> Stop()

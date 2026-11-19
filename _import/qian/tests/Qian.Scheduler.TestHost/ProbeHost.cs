@@ -51,26 +51,61 @@ public sealed class ProbeHost : IAsyncDisposable
             Define("data", "qian.data", new DataPlugin(), [DataDefinition.Key]),
             Define("tenancy", "qian.tenancy", new DirectoryPlugin(config), [TenancyDefinition.Key]),
             Define("probe", "qian.scheduler.probe", new ProbePlugin(), [])], ct);
-        if (worker)
-        {
-            // READY 表示真实租户 EF 模型、安全检查和查询已可用。预热发生在领取循环之前，
-            // 不让进程首次建模占用故障测试的 6 秒租约；不造作业、不改持久状态、不隐藏重试。
-            // Kun 模型缓存按 tenant 分区，必须预热真实被测租户，随机虚构租户不能替代。
-            foreach (var tenantId in config.WarmupTenants ?? [])
-            {
-                using var warmupTenant = tenant.BeginScope(tenantId);
-                await using var session = await runtime.GetContext("data", ScopeKey.Global).Data().OpenAsync<SchedulerDbContext>(ct);
-                _ = await session.Context.Definitions.AsNoTracking().AnyAsync(ct);
-                _ = await session.Context.Triggers.AsNoTracking().AnyAsync(ct);
-                _ = await session.Context.Runs.AsNoTracking().AnyAsync(ct);
-            }
-        }
+        if (worker) await WarmUpAsync(runtime, tenant, config, ct);
         await runtime.MountAsync([
             Define("scheduler", "qian.scheduler", worker ? new SchedulerComponent() : new ProducerPlugin(), [SchedulerDefinition.Key],
                 new { workerRole = config.WorkerRole, leaseSeconds = config.LeaseSeconds, maxParallel = 16 })], ct);
         if (runtime.GetState("scheduler", ScopeKey.Global) != PluginState.Ready) throw new InvalidOperationException("调度宿主未就绪", runtime.GetFailure("scheduler", ScopeKey.Global));
         if (runtime.GetState("probe", ScopeKey.Global) != PluginState.Ready) throw new InvalidOperationException("探针未就绪", runtime.GetFailure("probe", ScopeKey.Global));
         return result;
+    }
+    // READY 表示这个进程的第一次执行不再付冷启动：真实租户的 EF 模型、领取，以及 BeginAsync、初始续租、收尾用到的查询与保存管线都已跑过。
+    // 只建模型不够：冷进程的准备阶段（领取 → 初始续租）在 CPU 争用下比热路径慢 5–8 倍，会跨过 6 秒测试租约，
+    // 首次执行在准备阶段丢租约、多记一次 attempt（S1-QA-023）。预热发生在领取循环之前；不造作业、不留持久状态
+    // （定义、触发器与 run 都写在回滚的事务里，触发器行的租约在过去，续租语句命中 0 行）、不隐藏重试。
+    // Kun 模型缓存按 tenant 分区，必须预热真实被测租户，随机虚构租户不能替代。
+    private static async Task WarmUpAsync(PluginLoader runtime, ITenantContext tenant, HostConfig config, CancellationToken ct)
+    {
+        var data = runtime.GetContext("data", ScopeKey.Global);
+        await using var worker = new SchedulerWorker(data, tenant, new SchedulerSettings(config.WorkerRole, config.LeaseSeconds, 1));
+        _ = await worker.ClaimAsync(0, ct); // 真实领取语句与 worker 登录校验；LIMIT 0，不领任何触发器
+        foreach (var tenantId in config.WarmupTenants ?? [])
+        {
+            using var warmupTenant = tenant.BeginScope(tenantId);
+            var claim = new JobClaim(tenantId, Guid.NewGuid(), Guid.NewGuid(), 0, DateTimeOffset.UtcNow, "warmup");
+            // 真实收尾入口：对不存在的触发器在所有权校验处返回 false、事务回滚；跑过与 BeginAsync 同一条锁行查询和数据库时钟。
+            _ = await worker.CompleteAsync(claim, "once", new JobOptions(), "succeeded", null, ct);
+            // 下面是复刻：只留真实入口跑不到、又占着租约的几步，逐条对应 SchedulerWorker 的方法，整个事务最后回滚。
+            // 产品改了对应的查询、保存或续租语句，这里要跟着改：漏改不报错，只会让首次执行变冷，失败现场的 firstExecutions 会显出来。
+            await using var session = await data.Data().OpenAsync<SchedulerDbContext>(ct);
+            var db = session.Context;
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            // 事务里造一组定义与触发器，租约放在过去：下面的续租语句命中 0 行，用例注入的租约触发器（UPDATE OF lease_until）一条都不触发。
+            var now = DateTimeOffset.UtcNow;
+            db.Definitions.Add(new JobDefinitionRow { TenantId = tenantId, Id = claim.Id, BusinessKey = "warmup-" + claim.Id.ToString("N"), Target = "warmup", Schedule = "once", CreatedBy = "warmup" });
+            db.Triggers.Add(new JobTriggerRow { TenantId = tenantId, Id = claim.Id, NextRunAt = now, AvailableAt = now, LeaseOwner = claim.Worker, LeaseUntil = now.AddDays(-1), Generation = claim.Generation, ActiveRunId = claim.RunId });
+            await session.SaveChangesAsync(ct);
+            // BeginAsync 的两条准备路径各跑一遍：第一遍 run 不存在、插入（首次执行），第二遍 run 已存在、物化后更新（接管）。
+            // run 表上 prepare 用例的 BEFORE INSERT 触发器会在这个事务里跑一次：触发器行的租约在过去，它不睡，写的探针行随事务回滚。
+            for (var pass = 0; pass < 2; pass++)
+            {
+                db.ChangeTracker.Clear();
+                // BeginAsync → Locked：同一条锁行 SQL，这回物化出触发器行。
+                _ = await db.Triggers.FromSqlInterpolated($"SELECT * FROM plugin_qian_scheduler.job_triggers WHERE tenant_id={claim.TenantId} AND id={claim.Id} FOR UPDATE").SingleOrDefaultAsync(ct);
+                // BeginAsync：按主键取定义与 run。谓词同样取自名为 claim 的 JobClaim，EF 才复用编译好的查询。
+                var definition = await db.Definitions.SingleAsync(x => x.Id == claim.Id, ct);
+                // BeginAsync：解作业选项。
+                _ = JsonSerializer.Deserialize<JobOptions>(definition.Options, PostgresScheduler.Json);
+                var run = await db.Runs.SingleOrDefaultAsync(x => x.Id == claim.RunId, ct);
+                if (run is null) { run = new JobRunRow { TenantId = claim.TenantId, Id = claim.RunId, TriggerId = claim.Id, ScheduledAt = claim.ScheduledAt }; db.Runs.Add(run); }
+                // BeginAsync：记 attempts 等字段后 SaveChangesAsync。
+                run.Attempts++; run.Generation = claim.Generation; run.Worker = claim.Worker; run.StartedAt = now; run.FinishedAt = null; run.Status = "running"; run.ErrorClass = null;
+                await session.SaveChangesAsync(ct);
+            }
+            // RenewAsync：同一条续租语句，触发器行的租约在过去，命中 0 行。
+            _ = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE plugin_qian_scheduler.job_triggers SET lease_until=now()+{TimeSpan.FromSeconds(config.LeaseSeconds)} WHERE tenant_id={claim.TenantId} AND id={claim.Id} AND lease_owner={claim.Worker} AND generation={claim.Generation} AND lease_until>now() AND state='ready'", ct);
+            await transaction.RollbackAsync(ct);
+        }
     }
     public static PluginDefinition Define(string id, string pluginId, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides, object? config = null)
         => new(new PluginEntry(id, pluginId, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);

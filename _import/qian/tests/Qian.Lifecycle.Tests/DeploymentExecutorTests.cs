@@ -166,7 +166,9 @@ public sealed class LocalExecutorTests(PostgresFixture postgres) : IClassFixture
         var state = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "qian-local-state-" + Guid.NewGuid().ToString("N"))).FullName;
         try
         {
-            var config = new { executor = new { kind = "local", stateDirectory = state, endpoints = new Dictionary<string, string> { ["acme.echo@1.0.0"] = web.Address }, healthTimeoutSeconds = 2 } };
+            // 安装后只探一次健康、不轮询；这个进程里第一次 HTTP 请求在 CPU 被挤时会超过 2 秒（S1-QA-023）。
+            // 两种不健康的情形（503、端口已关）都立即返回，调大只给冷的首个请求留余量，不拖慢通过的运行。
+            var config = new { executor = new { kind = "local", stateDirectory = state, endpoints = new Dictionary<string, string> { ["acme.echo@1.0.0"] = web.Address }, healthTimeoutSeconds = 15 } };
             await using var host = await LifecycleHost.StartAsync(postgres, config, ct: Ct);
             var platform = new SigningKey();
             host.Trust(0, "k1", platform, host.Time.Now.AddDays(-1));

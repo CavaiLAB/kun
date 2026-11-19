@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Kun.AspNetCore.Endpoints;
 using Kun.Audit.DependencyInjection;
 using Kun.Core.Domain;
-using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Behaviors;
 using Kun.EntityFrameworkCore.DependencyInjection;
@@ -11,6 +10,7 @@ using Kun.Errors.AspNetCore;
 using Kun.EventBus.DependencyInjection;
 using Kun.Grpc.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
+using Kun.MultiTenancy.DependencyInjection;
 using Kun.Observability.Enrichment;
 using Kun.Observability.Extensions;
 using Kun.Sample.Catalog;
@@ -46,8 +46,8 @@ var readCs = builder.Configuration.GetConnectionString("CatalogDbRead") ?? write
 // ── Structured errors (problem+json ErrorDetail; validation failures → INPUT_INVALID) ─
 builder.Services.AddKunErrors();
 
-// ── Multi-tenancy (null/single-tenant for this sample) ───────────────────────
-builder.Services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
+// ── Tenant context for authenticated service calls ───────────────────────
+builder.Services.AddKunMultiTenancy();
 
 // ── Domain event dispatcher (must be registered before AddKunEntityFrameworkCore
 //    so TryAddScoped does not overwrite the sample-specific dispatcher) ──────────

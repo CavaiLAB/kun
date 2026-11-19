@@ -1,4 +1,3 @@
-using Kun.Core.MultiTenancy;
 using Kun.Core.Time;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Behaviors;
@@ -9,6 +8,7 @@ using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.EntityFrameworkCore;
 using Kun.Mediator.DependencyInjection;
+using Kun.MultiTenancy.DependencyInjection;
 using Kun.Sample.Order.Api.Endpoints;
 using Kun.Sample.Order.Application.Commands;
 using Kun.Sample.Order.Application.Queries;
@@ -27,8 +27,8 @@ builder.Logging.AddConsole();
 
 // ── Core infrastructure ───────────────────────────────────────────────────────
 builder.Services.AddSingleton<ISystemClock>(SystemClock.Instance);
-// Single-tenant sample — no JWT required.
-builder.Services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
+// Service calls can open a tenant scope from their authenticated identity.
+builder.Services.AddKunMultiTenancy();
 
 // ── EF Core (write side) ──────────────────────────────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("OrderDb")

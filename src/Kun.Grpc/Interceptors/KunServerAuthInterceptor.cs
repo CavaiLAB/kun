@@ -1,7 +1,7 @@
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Kun.Errors;
 using Kun.Security.Authentication;
-using Grpc.Core.Interceptors;
 
 namespace Kun.Grpc.Interceptors;
 

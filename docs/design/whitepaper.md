@@ -87,7 +87,6 @@
 ```mermaid
 graph TD
     Core[Kun.Core<br/>领域抽象/CQRS 接口/Result] --> Mediator[Kun.Mediator<br/>无反射调度器]
-    Core --> Infra[Kun.Infrastructure<br/>仓储/UoW/规约/租户抽象]
     Core --> EventContracts[Kun.EventBus.Abstractions<br/>稳定事件契约]
     EventContracts --> EventBus[Kun.EventBus<br/>事件分发/Outbox 实现]
     Core --> Security[Kun.Security<br/>S2S JWT/租户上下文]
@@ -98,7 +97,7 @@ graph TD
     Authorization --> Grpc
     Apollo[Kun.Configuration.Apollo<br/>HTTP 配置源]
 
-    Infra --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
+    Core --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
 
     EventBus --> RabbitMq[Kun.EventBus.RabbitMQ<br/>集成事件传输]
 
@@ -125,7 +124,6 @@ graph TD
 | :--- | :--- | :--- |
 | `Kun.Core` | 领域抽象、CQRS 接口、Result、异常、`ITenantContext` | 无 |
 | `Kun.Mediator` | `FrozenDictionary` 无反射调度、Pipeline Behaviors | `Kun.Core` |
-| `Kun.Infrastructure` | 仓储接口、UoW、规约、`IProcessedMessageStore` | `Kun.Core` |
 | `Kun.EntityFrameworkCore` | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | `Kun.Core`、`Kun.EventBus` |
 | `Kun.EventBus.Abstractions` | 稳定事件标记与 JSON 注册端口、Outbox 写入端口、集成事件信封 | `Kun.Core`、`Kun.Runtime` |
 | `Kun.EventBus` | 领域事件、集成事件抽象、Outbox 发布器 | `Kun.Core` |
@@ -708,7 +706,7 @@ CI 流水线中对所有应当走 AOT 的服务执行 `dotnet publish -p:Publish
 
 ### Phase 1: 深渊之鲲（v1.0）
 
-- `Kun.Core` / `Kun.Mediator` / `Kun.Infrastructure` 核心抽象
+- `Kun.Core` / `Kun.Mediator` 核心抽象（早期通用仓储包 `Kun.Infrastructure` 已归档）
 - `Kun.EntityFrameworkCore`（写侧）+ `Kun.Dapper`（读侧）双引擎
 - Outbox 模式完整实现（原子事务 + 稳定事件 ID + 追踪传播）
 - `IProcessedMessageStore` 消费端幂等

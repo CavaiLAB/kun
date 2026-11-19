@@ -8,8 +8,7 @@ Understanding the reasoning helps you work within the model rather than against 
 
 ## The write side: consistency first
 
-Command handlers run against EF Core through `KunDbContext` and the repository and specification
-abstractions in `Kun.Infrastructure`. The write side loads an aggregate, calls domain methods,
+Command handlers use `KunDbContext` directly or inject a repository port defined by their domain. The write side loads an aggregate, calls domain methods,
 and delegates to `IUnitOfWork.SaveChangesAsync`. That single call does several things atomically:
 
 1. Applies EF Core change tracking to produce the correct SQL.

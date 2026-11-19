@@ -15,8 +15,20 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | [Kun.Plugin.Sdk.Commands](Kun.Plugin.Sdk.Commands/) | 插件开发包的命令管道（平台档）：权限、事务、数据会话、钩子能力 | — |
 | [Kun.Plugin.Sdk.Generators](Kun.Plugin.Sdk.Generators/) | 插件开发包的源生成器与 KUNSDK 诊断（只以分析器引用） | — |
 | [Kun.Plugin.Sdk.AspNetCore](Kun.Plugin.Sdk.AspNetCore/) | 插件开发包的 HTTP 适配：插件可见性中间件与端点 | — |
-| [Kun.Infrastructure](Kun.Infrastructure/) | 仓储/UoW/规约接口、`IProcessedMessageStore` | ✅ |
+| [Kun.MultiTenancy](Kun.MultiTenancy/) | HTTP、消息与后台任务的租户范围与传播 | ✅ |
 | [Kun.EntityFrameworkCore](Kun.EntityFrameworkCore/) | 写侧 EF Core 实现、Outbox 落库、租户过滤器 | ⚠️ trim-safe |
+| [Kun.EntityFrameworkCore.PostgreSQL](Kun.EntityFrameworkCore.PostgreSQL/) | EF 迁移的 PostgreSQL 租户 RLS 生成器 | — |
+| [Kun.Data.Abstractions](Kun.Data.Abstractions/) | 平台数据与方言契约 | — |
+| [Kun.Data](Kun.Data/) | 平台的 EF 数据组件 | — |
+| [Kun.Data.AspNetCore](Kun.Data.AspNetCore/) | 数据目录 HTTP 端点 | — |
+| [Kun.Data.Dialect.Pg](Kun.Data.Dialect.Pg/) | PostgreSQL 方言 | — |
+| [Kun.Data.Native.Abstractions](Kun.Data.Native.Abstractions/) | 原生数据会话和事务的契约 | ✅ |
+| [Kun.Data.Native.Postgres](Kun.Data.Native.Postgres/) | 原生数据会话的 PostgreSQL 实现 | ✅ |
+| [Kun.Tenancy.Abstractions](Kun.Tenancy.Abstractions/) | 租户目录契约 | — |
+| [Kun.Tenancy](Kun.Tenancy/) | 租户目录与生命周期 | — |
+| [Kun.Tenancy.AspNetCore](Kun.Tenancy.AspNetCore/) | 租户目录 HTTP 端点 | — |
+| [Kun.Tenancy.Signup.Abstractions](Kun.Tenancy.Signup.Abstractions/) | 自助注册契约 | — |
+| [Kun.Tenancy.Signup](Kun.Tenancy.Signup/) | 自助注册流程 | — |
 | [Kun.EventBus.Abstractions](Kun.EventBus.Abstractions/) | 稳定事件标记与 JSON 注册端口、Outbox 写入端口、集成事件信封（依赖 Core 与 Runtime） | ✅ |
 | [Kun.EventBus](Kun.EventBus/) | 领域/集成事件抽象、Outbox 发布器 | ✅ |
 | [Kun.EventBus.RabbitMQ](Kun.EventBus.RabbitMQ/) | RabbitMQ 传输、消费端幂等 | ✅ |
@@ -25,7 +37,7 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | [Kun.Identity.Server](Kun.Identity.Server/) | 可嵌入的 OpenIddict 服务、账号目录与会话管理 | — |
 | [Kun.Identity.Connector.Oidc](Kun.Identity.Connector.Oidc/) | 身份服务的上游 OIDC 连接器 | — |
 | [Kun.Security.Abstractions](Kun.Security.Abstractions/) | 服务间令牌的主体模型与声明词汇表（零依赖） | ✅ |
-| [Kun.Security](Kun.Security/) | S2S JWT 签发/校验、租户上下文注入 | ✅ |
+| [Kun.Security](Kun.Security/) | S2S JWT 校验与当前用户 | ✅ |
 | [Kun.Validation](Kun.Validation/) | SourceGen 验证器 | ✅ |
 | [Kun.AspNetCore](Kun.AspNetCore/) | Minimal API 扩展、Pipeline Behaviors | ✅ |
 | [Kun.Grpc](Kun.Grpc/) | gRPC 拦截器、Result → RpcException 映射 | ✅ |

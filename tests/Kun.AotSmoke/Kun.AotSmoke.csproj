@@ -33,7 +33,6 @@
     <ProjectReference Include="../../src/Kun.Grpc/Kun.Grpc.csproj" />
     <ProjectReference Include="../../src/Kun.Identity.AspNetCore/Kun.Identity.AspNetCore.csproj" />
     <ProjectReference Include="../../src/Kun.Identity/Kun.Identity.csproj" />
-    <ProjectReference Include="../../src/Kun.Infrastructure/Kun.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Kun.Mediator/Kun.Mediator.csproj" />
     <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <ProjectReference Include="../../src/Kun.Observability/Kun.Observability.csproj" />

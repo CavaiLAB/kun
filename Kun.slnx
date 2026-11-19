@@ -51,7 +51,6 @@
     <Project Path="src/Kun.Identity.Connector.Oidc/Kun.Identity.Connector.Oidc.csproj" />
     <Project Path="src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
     <Project Path="src/Kun.Identity/Kun.Identity.csproj" />
-    <Project Path="src/Kun.Infrastructure/Kun.Infrastructure.csproj" />
     <Project Path="src/Kun.Mediator/Kun.Mediator.csproj" />
     <Project Path="src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <Project Path="src/Kun.Observability/Kun.Observability.csproj" />

@@ -25,7 +25,7 @@
 - **Outbox 与 RabbitMQ**：发布端与消费端统一使用 v1 信封。升级前先排空旧 Outbox 行与队列，并协调切换收发两端。普通事件使用 `qian.events`、无版本后缀的 subject 和完整信封；竞争队列为 `q.<service>.<subscription>`，广播队列为 `q.<service>.<instance>`，死信按队列路由到 `qian.dlx`。重试头变为 `x-qian-attempts`，幂等键按订阅区分并默认保留 7 天。同一 subject 的不同版本共用路由键，未订阅的版本会转入相应死信队列。
 - 宿主用 `AddKunEventsBroker` 和 `AddKunEventsSubscriber` 取代 `AddRabbitMq`；订阅以具体 handler 类型登记。事件类型须登记源生成 JSON 元数据，并在 `EventEnvelopeScope` 内发布。普通 `KunDbContext` 调用 `AddKunOutboxRelay<TContext>()`，严格上下文沿用无泛型重载。原有 `IntegrationEventOutboxAccumulator`、`OutboxPublisherBackgroundService`、`EfOutboxMessageStore`、`AddKunOutboxPublisher` 和 `UseRedisOutboxLock` 归档。自定义发布器从 Outbox 信封读取租户。
 - 实体审计的 v1 和 v2 事件以标准信封发布，原字段在 `payload` 中。非命令的后台保存通过 `EventEnvelopeScope` 提供真实服务主体。
-- 投递活动源由 `Kun.EventBus.Outbox` 更名为 `Kun.EventBus.EntityFrameworkCore`；保留 `outbox.publish` 生产者 span。冻结的记录变更信封契约只改了描述文字。
+- 投递活动源从 `Kun.EventBus.Outbox` 切换到 `Kun.EventBus.EntityFrameworkCore`；保留 `outbox.publish` 生产者 span。冻结的记录变更信封契约只改了描述文字。
 
 ### Changed — 事件发布、投递与订阅（S1-KUN-025）
 

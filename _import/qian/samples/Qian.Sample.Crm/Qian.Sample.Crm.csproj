@@ -20,7 +20,7 @@
     <EmbeddedResource Include="metadata/*.json" LogicalName="crm.metadata.%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="Qian.Sample.Crm.Tests" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="../../../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" /><ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Commands/Kun.Plugin.Sdk.Commands.csproj" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../packages/Qian.Tenancy.AspNetCore/Qian.Tenancy.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />

@@ -215,7 +215,7 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
         if (identifier.Parent is not MemberAccessExpressionSyntax member || member.Expression != identifier || member.Parent is not InvocationExpressionSyntax call) return false;
         var info = model.GetSymbolInfo(call);
         var method = info.Symbol as IMethodSymbol ?? (info.CandidateSymbols.Length == 1 ? info.CandidateSymbols[0] as IMethodSymbol : null);
-        return method?.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.JobBindingRegistration" && method.Name == "ProvideJob" || method?.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.CapabilityBindingRegistration" && method.Name == "ProvideCapability" || method?.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.HookCapabilityRegistration" && method.Name == "ExposeCapabilityHook";
+        return method?.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.JobBindingRegistration" && method.Name == "ProvideJob" || method?.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.CapabilityBindingRegistration" && method.Name == "ProvideCapability" || method?.ContainingAssembly.Name == "Kun.Plugin.Sdk.Commands" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.HookCapabilityRegistration" && method.Name == "ExposeCapabilityHook";
     }
 
     private static string? Key(IOperation? operation)

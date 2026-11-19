@@ -57,10 +57,6 @@ Kun.Plugin.Sdk.IComponentCodeMetadataFactory.Create() -> Kun.Plugin.Sdk.Componen
 Kun.Plugin.Sdk.KunCodeMetadataAttribute
 Kun.Plugin.Sdk.KunCodeMetadataAttribute.FactoryType.get -> System.Type!
 Kun.Plugin.Sdk.KunCodeMetadataAttribute.KunCodeMetadataAttribute(System.Type! factoryType) -> void
-Kun.Plugin.Sdk.CommandDataSession<TContext>
-Kun.Plugin.Sdk.CommandDataSession<TContext>.CommandDataSession() -> void
-Kun.Plugin.Sdk.CommandDataSession<TContext>.Context.get -> TContext!
-Kun.Plugin.Sdk.CommandDataSession<TContext>.Outbox.get -> Kun.EventBus.Outbox.IOutboxWriter!
 Kun.Plugin.Sdk.CommandEvents
 Kun.Plugin.Sdk.CommandInvocation
 Kun.Plugin.Sdk.CommandInvocation.CancellationToken.get -> System.Threading.CancellationToken
@@ -77,10 +73,8 @@ Kun.Plugin.Sdk.CommandPolicyKind.Authorization = 1 -> Kun.Plugin.Sdk.CommandPoli
 Kun.Plugin.Sdk.CommandPolicyKind.Tenancy = 0 -> Kun.Plugin.Sdk.CommandPolicyKind
 Kun.Plugin.Sdk.ICapabilityRequest<TResponse>
 Kun.Plugin.Sdk.ICapabilityRequest<TResponse>.KunCapability.get -> Kun.Plugin.Sdk.CapabilityContract!
-Kun.Plugin.Sdk.KunCommandRegistration
 override Kun.Plugin.Sdk.CommandInvocation.ToString() -> string!
 static Kun.Plugin.Sdk.CommandPolicies.Register(Kun.Runtime.IPluginContext! context, Kun.Plugin.Sdk.CommandPolicyKind kind, System.Func<Kun.Plugin.Sdk.CommandInvocation!, System.Func<System.Threading.Tasks.ValueTask<object?>>!, System.Threading.Tasks.ValueTask<object?>>! handler) -> void
-static Kun.Plugin.Sdk.KunCommandRegistration.AddKunCapability<TRequest, TResponse, THandler, TContext>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>! source, string! channel = "api") -> Kun.Mediator.KunMediatorBuilder!
 static readonly Kun.Plugin.Sdk.CommandEvents.Dispatching -> Kun.Runtime.KunEvent<Kun.Plugin.Sdk.CommandInvocation!, object?>!
 static readonly Kun.Plugin.Sdk.CommandPolicies.AuditKey -> Kun.Runtime.ServiceKey
 static readonly Kun.Plugin.Sdk.CommandPolicies.AuthorizationKey -> Kun.Runtime.ServiceKey
@@ -98,8 +92,6 @@ static Kun.Plugin.Sdk.CapabilityBindingRegistration.ProvideCapability<TRequest, 
 static readonly Kun.Plugin.Sdk.CapabilityBindingRegistration.Key -> Kun.Runtime.ServiceKey
 Kun.Plugin.Sdk.JsonSchemaReferences
 static Kun.Plugin.Sdk.JsonSchemaReferences.RebaseToComponent(System.Text.Json.JsonElement schema, string! key) -> System.Text.Json.Nodes.JsonNode!
-Kun.Plugin.Sdk.HookCapabilityRegistration
-static Kun.Plugin.Sdk.HookCapabilityRegistration.ExposeCapabilityHook<TRequest, TResponse>(this Kun.Runtime.IPluginContext! context, string! name, System.Func<Qian.Surfaces.Abstractions.HookNotification!, TRequest>! request) -> System.IDisposable!
 Kun.Plugin.Sdk.ICapabilityContractCheck
 Kun.Plugin.Sdk.ICapabilityContractCheck.Check(Kun.Plugin.Sdk.CapabilityContract! contract) -> void
 Kun.Plugin.Sdk.CapabilityContractException

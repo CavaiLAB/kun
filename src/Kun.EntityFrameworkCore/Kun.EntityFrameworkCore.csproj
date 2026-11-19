@@ -7,8 +7,12 @@
 
   <PropertyGroup Label="档位">
     <KunTier>kernel</KunTier>
-    <KunRole>provider</KunRole>
+    <KunRole>contract</KunRole>
   </PropertyGroup>
+
+  <ItemGroup Label="档位例外">
+    <KunTierException Include="Kun.EventBus" Rule="D" Until="B6" Reason="严格基类与数据会话契约用到的 Outbox 写入端（IOutboxWriter、IntegrationEventBuffer、OutboxMessage）还在 Kun.EventBus；B6 把 Outbox 写入契约挪进 Kun.EventBus.Abstractions 时去掉" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Kun.Core\Kun.Core.csproj" />

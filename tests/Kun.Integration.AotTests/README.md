@@ -11,7 +11,7 @@ dotnet test tests/Kun.Integration.AotTests/Kun.Integration.AotTests.csproj -c Re
 
 该用例在非 Linux 系统明确跳过，不把本机托管测试当作原生证据。Linux 缺少编译器、发布失败或任何 `warning/error IL####` 都会失败，不能以诊断抑制替代修复。
 
-回归先将 `Kun.Errors`、`Kun.Core`、`Kun.MultiTenancy`、`Kun.Security` 和 `Kun.Gateway` 按普通类库打包到临时源，使用隔离的 obj/bin；宿主模板再复制到仓库外，通过唯一版本的 PackageReference 消费这些包。源映射限定 Kun 包来自本次制品，assets 文件不得含项目引用，发布文件必须是 ELF 且不存在托管入口 DLL。
+回归先将 `Kun.Errors`、`Kun.Core`、`Kun.MultiTenancy`、`Kun.Security.Abstractions`、`Kun.Security` 和 `Kun.Gateway` 按普通类库打包到临时源，使用隔离的 obj/bin；宿主模板再复制到仓库外，通过唯一版本的 PackageReference 消费这些包。源映射限定 Kun 包来自本次制品，assets 文件不得含项目引用，发布文件必须是 ELF 且不存在托管入口 DLL。
 
 原生宿主启动真实 HTTP 监听并请求公开／内部 JWKS：回退授权策略下匿名可达，生产环境未选择启用内部端点时为 404，两个 additionalGate 均能返回 404；成功响应带 no-store、源生成 JSON 与不含私钥的 RSA 公钥。原子替换 PEM 后，两端点都同时发布新旧公钥，超过重叠期后同步移除旧钥。JSON 反射与宿主 RDG 也关闭，避免消费者偶然补偿库制品的缺陷。
 

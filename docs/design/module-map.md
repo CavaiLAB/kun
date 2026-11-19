@@ -42,7 +42,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 ### 中介登记可叠加（S1-KUN-023）
 
-`AddKunMediator` 可以对同一个服务集合调多次：第一次建 `KunMediatorBuilder` 并登记 `KunMediator`、`ISender`、`IPublisher`，之后的调用往同一个 builder 里加，几个模块各自登记的处理器与行为合进同一个中介。同一请求只能有一个处理器，登记第二个时当场抛 `InvalidOperationException`。`AddPermissionBehavior` 多一个带 `PermissionBehaviorOptions` 的重载，只改这一个请求取权限判定器与当前主体的方式，判定算法与拒绝映射不变。
+`AddKunMediator` 可以对同一个服务集合调多次：第一次建 `KunMediatorBuilder` 并登记 `KunMediator`、`ISender`、`IPublisher`，之后的调用往同一个 builder 里加，几个模块各自登记的处理器与行为合进同一个中介。同一请求只能有一个处理器，登记第二个时当场抛 `InvalidOperationException`。`AddPermissionBehavior` 多一个带 `PermissionBehaviorOptions` 的重载，只改这一个请求取权限判定器与当前主体的方式，判定算法与拒绝映射不变。描述符被拷进另一个服务集合时，那个集合另建自己的 builder，不往原来的 builder 里加。权限行为因装配不全（没有判定器、没有权限声明）拒绝时记一条警告日志，与正常的无权分得出来。
 
 ### 持久化（Infrastructure 层）
 

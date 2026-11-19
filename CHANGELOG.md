@@ -28,6 +28,16 @@
 - `Kun.AspNetCore`：`AddKunAspNetCore`、`KunExceptionHandler`、`ToProblemDetails`、`AddKunHealthChecks`，以及对 `Kun.Validation` 的引用；这个包只剩端点映射（`MapCommand` / `MapQuery`）。**迁移**：错误响应改用 `AddKunErrors()` / `UseKunErrors()`，健康检查直接调 `services.AddHealthChecks()`。
 - 两座桥：`Qian.Runtime.KunErrorBridge`（`ToQianError`）与 `Kun.Errors.AspNetCore.KunValidationErrorBridge`。两边已是同一套模型，不再需要转换。
 
+### Changed — 中介登记可叠加（S1-KUN-023）
+
+- `AddKunMediator` 可以对同一个服务集合调多次：第一次建 `KunMediatorBuilder` 并登记 `KunMediator`、`ISender`、`IPublisher`，之后的调用往同一个 builder 里加，几个模块的登记叠进同一个中介。之前每次调用都新建 builder，最后一次生效，前面登记的处理器与行为都丢。**迁移**：靠「再调一次就整体替换」的宿主，删掉重复的登记或合成一次。描述符被拷进另一个服务集合时，那个集合另建自己的 builder。
+- 同一请求登记第二个处理器时，登记当场抛 `InvalidOperationException`，消息写明请求与两个处理器；之前要到首次解析 `ISender` 才以 `ArgumentException` 失败。带能力 ID 的登记先查重，查重不过不登记能力。
+
+### Added — 权限行为的正式扩展点（S1-KUN-023）
+
+- `PermissionBehaviorOptions` 与 `AddPermissionBehavior<TRequest, TResponse>(denied, configure)` 重载：只改这一个请求取权限判定器（`PermissionChecker`）与当前主体（`CurrentUser`）的方式，比如在特定流程里包一层判定器；判定算法与拒绝映射不变。
+- 权限行为因装配不全（没有权限判定器、没有权限声明）拒绝时记一条警告日志；拒绝结果照旧是 `AUTHZ_DENIED`。
+
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
 
 - 样例编排宿主 `samples/Kun.Sample.AppHost` 的 Aspire 从 9.0.0 升到 13.6.5（`Aspire.AppHost.Sdk` 与中央版本里的 `Aspire.Hosting.AppHost` / `PostgreSQL` / `RabbitMQ` / `Redis`），修复 NuGet 审计报出的 [GHSA-4g86-54fm-h9h8](https://github.com/advisories/GHSA-4g86-54fm-h9h8)（`Aspire.Dashboard.Sdk.*`，严重）与 [GHSA-f7vh-h5g3-7jrh](https://github.com/advisories/GHSA-f7vh-h5g3-7jrh)（`Aspire.Hosting`、`Aspire.Hosting.AppHost`，高）。这两条公告发布后，`dotnet restore` 在警告即错误下失败，CI 的构建、测试与格式检查随之失败。编排代码不用改，资源、依赖与启动顺序不变。

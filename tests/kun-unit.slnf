@@ -21,7 +21,6 @@
       "tests/Kun.Observability.Tests/Kun.Observability.Tests.csproj",
       "tests/Kun.RateLimit.Tests/Kun.RateLimit.Tests.csproj",
       "tests/Kun.Saga.Tests/Kun.Saga.Tests.csproj",
-      "tests/Kun.Sandbox.Tests/Kun.Sandbox.Tests.csproj",
       "tests/Kun.Security.Tests/Kun.Security.Tests.csproj",
       "tests/Kun.Storage.Abstractions.Tests/Kun.Storage.Abstractions.Tests.csproj",
       "tests/Kun.Storage.Local.Tests/Kun.Storage.Local.Tests.csproj",

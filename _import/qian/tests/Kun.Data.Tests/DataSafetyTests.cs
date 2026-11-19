@@ -125,35 +125,40 @@ public sealed class DataSafetyTests : IClassFixture<PostgresFixture>
         {
             await using var connection = new NpgsqlConnection(_postgres.ConnectionString);
             await connection.OpenAsync(TestContext.Current.CancellationToken);
+            var tenantA = Guid.NewGuid();
+            var tenantB = Guid.NewGuid();
             await using var command = new NpgsqlCommand("""
                 CREATE SCHEMA plugin_data_safety;
                 GRANT USAGE ON SCHEMA plugin_data_safety TO qian_app;
                 CREATE TABLE plugin_data_safety.data_safety_probe (id int PRIMARY KEY, tenant_id text NOT NULL);
                 GRANT SELECT, INSERT, UPDATE, DELETE ON plugin_data_safety.data_safety_probe TO qian_app;
-                INSERT INTO plugin_data_safety.data_safety_probe VALUES (1, 'tenant-a'), (2, 'tenant-b');
+                INSERT INTO plugin_data_safety.data_safety_probe VALUES (1, @tenant_a), (2, @tenant_b);
                 ALTER TABLE plugin_data_safety.data_safety_probe ENABLE ROW LEVEL SECURITY;
                 ALTER TABLE plugin_data_safety.data_safety_probe FORCE ROW LEVEL SECURITY;
                 CREATE POLICY tenant_scope ON plugin_data_safety.data_safety_probe
                   USING (tenant_id = current_setting('app.current_tenant_id', true))
                   WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true));
                 """, connection);
+            command.Parameters.AddWithValue("tenant_a", tenantA.ToString("D"));
+            command.Parameters.AddWithValue("tenant_b", tenantB.ToString("D"));
             await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
-            foreach (var id in new[] { "tenant-a", "tenant-b", "tenant-a" })
+            foreach (var id in new[] { tenantA, tenantB, tenantA })
             {
-                using var tenantScope = tenant.BeginScope(Guid.ParseExact(id, "D"));
+                using var tenantScope = tenant.BeginScope(id);
+                var expected = id.ToString("D");
                 await using var scope = host.Services.CreateAsyncScope();
                 var db = scope.ServiceProvider.GetRequiredService<ProbeContext>();
                 Assert.IsType<KunMultiTenantModelCacheKeyFactory>(db.GetService<IModelCacheKeyFactory>());
-                Assert.Equal(id, Assert.Single(await db.Set<Probe>().Select(x => x.TenantId)
+                Assert.Equal(expected, Assert.Single(await db.Set<Probe>().Select(x => x.TenantId)
                     .ToArrayAsync(TestContext.Current.CancellationToken)));
                 // 原生 SQL 绕过 EF 查询过滤器，单独证明 RLS。
                 var rawTenant = await db.Database.SqlQueryRaw<string>(
                     "SELECT tenant_id AS \"Value\" FROM plugin_data_safety.data_safety_probe").SingleAsync(TestContext.Current.CancellationToken);
-                Assert.Equal(id, rawTenant);
+                Assert.Equal(expected, rawTenant);
                 await using var tx = await db.Database.BeginTransactionAsync(TestContext.Current.CancellationToken);
                 var guc = await db.Database.SqlQueryRaw<string>(
                     "SELECT current_setting('app.current_tenant_id', true) AS \"Value\"").SingleAsync(TestContext.Current.CancellationToken);
-                Assert.Equal(id, guc);
+                Assert.Equal(expected, guc);
             }
         }
         finally

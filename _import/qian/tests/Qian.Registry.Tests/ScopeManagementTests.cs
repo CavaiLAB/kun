@@ -78,9 +78,12 @@ public sealed partial class PatchPersistenceTests
         using var unknown = await http.Get($"/api/registry/scopes/tenant:{HttpTenantB}/entries/absent", HttpTenantB, Holder);
         using var crossTenant = await http.Get($"/api/registry/scopes/tenant:{HttpTenantA}/entries/private", HttpTenantB, Holder);
         using var listHidden = await http.Get($"/api/registry/scopes/tenant:{HttpTenantB}/entries", HttpTenantB, Reader);
-        foreach (var response in new[] { hidden, unknown, crossTenant, listHidden }) Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        // 合乎语法但平台不认识的种类：与不存在同一个 404。
+        using var unknownKind = await http.Get($"/api/registry/scopes/workspace:{HttpTenantB}/entries", HttpTenantB, Holder);
+        foreach (var response in new[] { hidden, unknown, crossTenant, listHidden, unknownKind }) Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         var absent = await ErrorShape(unknown);
         Assert.Equal(absent, await ErrorShape(hidden)); Assert.Equal(absent, await ErrorShape(crossTenant)); Assert.Equal(absent, await ErrorShape(listHidden));
+        Assert.Equal(absent, await ErrorShape(unknownKind));
 
         // 视图只列 B 实际挂载且 Ready 的条目。
         using var list = await http.Get($"/api/registry/scopes/tenant:{HttpTenantB}/entries", HttpTenantB, Holder);

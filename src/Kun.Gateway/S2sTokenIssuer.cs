@@ -191,7 +191,11 @@ public sealed class S2sTokenIssuer : IDisposable
         if (snapshot.PluginId is { } plugin) claims[IdentityClaimNames.PluginId] = plugin;
         return _keys.CreateToken(new SecurityTokenDescriptor
         {
-            Issuer = snapshot.Issuer, IssuedAt = now.UtcDateTime, NotBefore = now.UtcDateTime, Expires = (now + lifetime).UtcDateTime, Claims = claims
+            Issuer = snapshot.Issuer,
+            IssuedAt = now.UtcDateTime,
+            NotBefore = now.UtcDateTime,
+            Expires = (now + lifetime).UtcDateTime,
+            Claims = claims
         });
     }
 

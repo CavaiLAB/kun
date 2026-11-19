@@ -20,7 +20,7 @@ public sealed partial class CatalogContractTests
         await using var host = await Start();
         var loader = host.App.Services.GetRequiredService<CrmCommandRuntime>().Loader;
         var crm = Metadata(typeof(CrmPlugin), "qian.sample.crm");
-        using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "samples/Qian.Sample.Crm/.qian-plugin/plugin.json")));
+        using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "../../samples/Kun.Sample.Crm/.qian-plugin/plugin.json")));
         Assert.Equal(crm.RuntimeEntry, manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString());
         Assert.Equal(crm.Provides, manifest.RootElement.GetProperty("provides").EnumerateArray().Select(item => item.GetString()!));
         await loader.UnmountAsync("crm", ScopeKey.Global, Ct);
@@ -28,7 +28,7 @@ public sealed partial class CatalogContractTests
         await loader.MountAsync([new(new PluginEntry("crm", crm.ComponentId, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })),
             entry, crm.Provides.Select(key => new ServiceKey(key)).ToArray())], Ct);
         Assert.Equal(PluginState.Ready, loader.GetState("crm", ScopeKey.Global));
-        AssertTools(crm, loader.GetContext("crm", ScopeKey.Global), "samples/Qian.Sample.Crm");
+        AssertTools(crm, loader.GetContext("crm", ScopeKey.Global), "../../samples/Kun.Sample.Crm");
         AssertTools(Metadata(typeof(TenancyComponent), "qian.tenancy"), loader.GetContext("tenancy", ScopeKey.Global), "plugins/qian.tenancy");
 
         using (var created = await host.Post(A, new CreateCustomerCommand(Guid.CreateVersion7(), "manifest customer")))

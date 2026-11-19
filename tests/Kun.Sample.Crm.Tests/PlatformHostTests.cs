@@ -657,11 +657,11 @@ public abstract partial class CustomerCommandTests
 
     private static readonly string[] CrmComponentFiles = ["metadata/permissions.json", "metadata/roles.json", "schemas/config.schema.json"];
 
-    // 参考应用的 module 组件文件夹：清单、metadata、工具与配置 Schema 取自 samples/Qian.Sample.Crm（代码派生的那份），
+    // 参考应用的 module 组件文件夹：清单、metadata、工具与配置 Schema 取自 samples/Kun.Sample.Crm（代码派生的那份），
     // UI 清单取自远程模块 samples/qian-sample-crm-ui（与外壳联调环境托管的同一份），清单加上 surfaces.ui。
     private static void CrmComponent(string folder)
     {
-        var source = Path.Combine(RepositoryRoot(), "samples", "Kun.Sample.Crm");
+        var source = Path.GetFullPath("../../samples/Kun.Sample.Crm", RepositoryRoot());
         var files = CrmComponentFiles
             .Concat(Directory.EnumerateFiles(Path.Combine(source, "tools"), "*.json").Select(file => "tools/" + Path.GetFileName(file)));
         foreach (var relative in files) Copy(Path.Combine(source, relative), relative);

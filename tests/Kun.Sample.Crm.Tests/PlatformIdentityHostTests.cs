@@ -560,8 +560,8 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
     private static string RepositoryRoot()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
-        return root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
+        return Path.Combine(root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。"), "_import", "qian");
     }
 
     // 申请人的浏览器：发行方同源，带 Cookie 容器与同源 Origin（申请人写接口要求同源）。

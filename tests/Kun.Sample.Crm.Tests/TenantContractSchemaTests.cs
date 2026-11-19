@@ -30,8 +30,8 @@ public sealed class TenantContractSchemaTests
     public void 契约测试解析ref并拒绝任一请求体中的租户字段(string field)
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;
-        var original = JsonNode.Parse(File.ReadAllText(Path.Combine(root!.FullName, "plugins/qian.tenancy/contracts/http-v1.openapi.json")))!;
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
+        var original = JsonNode.Parse(File.ReadAllText(Path.Combine(root!.FullName, "_import", "qian", "plugins/qian.tenancy/contracts/http-v1.openapi.json")))!;
         Assert.Empty(TenantFields(original));
         var tested = 0;
         foreach (var path in original["paths"]!.AsObject())

@@ -27,7 +27,7 @@ public abstract partial class CustomerCommandTests
 }
 
 // S1-AGT-002 验收 1（IT），S1-AGT-006 补区分度（R112）：GET /api/capabilities 对同一插件（qian.sample.crm）返回的条目带全部 Agent 字段，取值与 [Capability] 声明一致
-// （缺省值也写进条目，不在读取时派生）；schemaSha256 与打包时的值一致。「打包时」取仓库提交的 samples/Qian.Sample.Crm/tools/<name>.json：它由 qian-plugin sync 生成，
+// （缺省值也写进条目，不在读取时派生）；schemaSha256 与打包时的值一致。「打包时」取仓库提交的 samples/Kun.Sample.Crm/tools/<name>.json：它由 qian-plugin sync 生成，
 // CI 的清单门禁（scripts/check_plugin_manifests.py）对实际程序集重新计算并比对漂移，比对的两侧不是同一次计算。四条能力的每个 Agent 字段都至少有两种取值，
 // 其中 customer.purge 是为此而设的探针（policyHint 取 destructive 的非缺省值 deny），读取时按其它字段派生或写死任一字段，都会与声明或提交的工具文件不符。
 public sealed partial class CapabilityTests
@@ -36,7 +36,7 @@ public sealed partial class CapabilityTests
     public async Task 能力目录对同一插件的条目带全部Agent字段_取值同Capability声明_与仓库提交的打包工具文件逐字段一致()
     {
         // 打包时的工具文件：仓库提交的 tools/*.json，恰为四条能力各一份；清单派生字段的工具索引也恰是这四份。
-        var component = Path.Combine(RepositoryRoot(), "samples/Qian.Sample.Crm");
+        var component = Path.Combine(RepositoryRoot(), "../../samples/Kun.Sample.Crm");
         var packed = Directory.EnumerateFiles(Path.Combine(component, "tools"), "*.json").ToDictionary(path => Path.GetFileNameWithoutExtension(path),
             path => JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(path)), StringComparer.Ordinal);
         Assert.Equal(AgentFieldTable.Select(row => row.Name).Order(StringComparer.Ordinal), packed.Keys.Order(StringComparer.Ordinal));

@@ -97,7 +97,7 @@ profile 的合成顺序是：platform profile 的组合包（base / shell / mode
 ```
 
 ```bash
-dotnet run --project hosts/Qian.Platform.Host -c Release -- --urls http://0.0.0.0:8080 --patch /etc/qian/platform/environment.yml
+dotnet run --project hosts/Kun.Platform.Host -c Release -- --urls http://0.0.0.0:8080 --patch /etc/qian/platform/environment.yml
 ```
 
 ### Job
@@ -105,9 +105,9 @@ dotnet run --project hosts/Qian.Platform.Host -c Release -- --urls http://0.0.0.
 三个 Job 与在线副本用同一镜像、同一份配置与 Secret，只多一个开关；跑完退出（成功 0，失败 1），不监听 HTTP。部署顺序是迁移 → 系统组件修订 → （首次）引导首个平台运营账号 → 在线副本。
 
 ```bash
-dotnet run --project hosts/Qian.Platform.Host -c Release -- --migrate-only --patch /etc/qian/platform/environment.yml
-dotnet run --project hosts/Qian.Platform.Host -c Release -- --install-system-revisions --patch /etc/qian/platform/environment.yml
-dotnet run --project hosts/Qian.Platform.Host -c Release -- --bootstrap-operator --patch /etc/qian/platform/environment.yml
+dotnet run --project hosts/Kun.Platform.Host -c Release -- --migrate-only --patch /etc/qian/platform/environment.yml
+dotnet run --project hosts/Kun.Platform.Host -c Release -- --install-system-revisions --patch /etc/qian/platform/environment.yml
+dotnet run --project hosts/Kun.Platform.Host -c Release -- --bootstrap-operator --patch /etc/qian/platform/environment.yml
 ```
 
 - `--migrate-only`（[`PlatformMigrations`](PlatformMigrations.cs)）：三步，都可重复执行。① 配置了 `ConnectionFiles:MigrationAdmin` 时用管理员连接做离线 DDL：没有包内迁移的上下文（Tenancy、Authz、Audit、Registry）按 EF 模型建 schema 与表（含 RLS），schema 已在时只核对表都在；再执行两个平台登录与审计同事务函数的授权脚本，配置了网关审计角色时执行网关原生审计的离线迁移（`NativeAuditStorage`）。审计函数的属主必须是没有任何成员关系的 NOLOGIN 角色，改函数属主只能由管理员做，所以这一步不交给迁移属主。审计租户守卫带原生审计标记后不再重放 Audit 的平台访问脚本（否则原生迁移判为漂移）。② 迁移属主执行包内迁移（Capabilities、Lifecycle、身份、开通申请等）。③ 管理员把全部业务 schema 的表与序列授给应用登录，迁移历史表只读。离线 DDL 不做跨版本的表结构升级：schema 已在而缺表时拒绝执行，正式迁移链归 S1-DEP-005。

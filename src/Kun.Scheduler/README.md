@@ -16,10 +16,10 @@
 
 迁移后在迁移阶段应用 SchedulerWorkerAccess.CreateMigrationSql(workerRole)。此接口沿用 Audit 的专用登录模式：角色必须已创建为 LOGIN、NOINHERIT、NOSUPERUSER、NOBYPASSRLS、NOCREATEDB、NOCREATEROLE、NOREPLICATION，且没有成员关系。它只修改本组件 trigger 的 restrictive policy；专用登录在空 tenant GUC 时可读 trigger，并只可更新 lease_owner、lease_until、generation、active_run_id。定义和运行表不授予任何权限。普通租户角色仍只看自己的三表；同时校验 current_user 与 session_user，SET ROLE 不能冒充 worker 登录。每次领取重查角色及精确列权限，额外授权同样拒绝。
 
-EF 迁移由 tests/Qian.Scheduler.Tests 的设计时入口经同一 AddKunData 模型生成。设计时生成器只把迁移类生成为 internal，不改模型与 SQL；生成后不手改迁移文件。
+EF 迁移由 tests/Kun.Scheduler.Tests 的设计时入口经同一 AddKunData 模型生成。设计时生成器只把迁移类生成为 internal，不改模型与 SQL；生成后不手改迁移文件。
 
 ```bash
-dotnet ef migrations add <名称> --project packages/Qian.Scheduler --startup-project tests/Qian.Scheduler.Tests --context SchedulerDbContext --configuration Release
+dotnet ef migrations add <名称> --project src/Kun.Scheduler --startup-project tests/Kun.Scheduler.Tests --context SchedulerDbContext --configuration Release
 ```
 
 ## API 与作业目录
@@ -49,7 +49,7 @@ IScheduler 提供 ScheduleOnce、ScheduleCron、ScheduleInterval、Cancel。call
 专项复用 Kun.Testing.Containers.PostgresFixture，不重复创建容器框架；用例按主题分四个类，各自一个容器并行，类内串行（S1-QA-022）。正常调度运行3个独立进程、两个租户、100个真实每分钟触发器，连续两个分钟各100次；实际杀进程检查租约到期接管。另覆盖业务键并发与取消、超时/重试、misfire、RLS原始SQL、组合外键、SET ROLE与成员关系、过量列权限、过期租约/旧owner、租户等待期冻结和目录过滤；停机时上下文先关闭的那段时间用包一层的插件上下文按开关关闭来测，不靠竞争窗口。仅让真实续租抛一次 PostgreSQL 暂态错误的反例，验证原进程继续运行和更换进程两种路径都保留同一 run，第二次尝试仅产生一个幂等效果；不与普通 CI 超时作未经证明的因果归并。SDK/ManifestTool 用真实 Roslyn 与子进程验证生成、同步、漂移、手改保护、多组件归属和删除。
 
 ```bash
-QIAN_REQUIRE_DOCKER=1 dotnet run --project tests/Qian.Scheduler.Tests -c Release
+QIAN_REQUIRE_DOCKER=1 dotnet run --project tests/Kun.Scheduler.Tests -c Release
 dotnet run --project ../../tests/Kun.Plugin.Sdk.Tests -c Release
 ```
 

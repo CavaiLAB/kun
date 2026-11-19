@@ -32,7 +32,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-22 输入 Schema 的租户字段检查覆盖 properties 之外的写法（S1-AGT-004）
 
-工具文件与能力契约的输入 Schema 不再只看属性名：`required`、`dependentRequired`、`dependentSchemas` 里出现租户名、`propertyNames` 用 `const` / `enum` 列出租户名，或 `patternProperties` 的模式能匹配租户名（含 `^[a-z_]+$` 这类通配；超出 ECMA-262 可移植子集、无法判定的模式也算），都会被拒绝，顶层同样适用。开放的映射（没有关闭的嵌套 object）不点名字段，照常通过。此前能通过的组件可能因此装载失败，按错误里的 pointer 修改即可。规则见 [packages/Common](../packages/Common/README.md#tenantfieldrule-的判定规则)。
+工具文件与能力契约的输入 Schema 不再只看属性名：`required`、`dependentRequired`、`dependentSchemas` 里出现租户名、`propertyNames` 用 `const` / `enum` 列出租户名，或 `patternProperties` 的模式能匹配租户名（含 `^[a-z_]+$` 这类通配；超出 ECMA-262 可移植子集、无法判定的模式也算），都会被拒绝，顶层同样适用。开放的映射（没有关闭的嵌套 object）不点名字段，照常通过。此前能通过的组件可能因此装载失败，按错误里的 pointer 修改即可。规则见 [packages/Common](../../../src/Common/README.md#tenantfieldrule-的判定规则)。
 
 ## 2026-10-16 租户域 RBAC 判定、完整 Explain 与平台超管旁路（S1-AZ-003）
 
@@ -64,15 +64,15 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-15 执行入口拒绝超出 decimal 范围的数（S1-RT-024）
 
-通用执行入口的请求体里有绝对值超过 decimal 范围（约 7.9e28）的数时返回 400 `BAD_REQUEST`，不再返回 500；输入 Schema 的 `enum` / `const` 取值含这类数的能力在登记阶段以新规则 `unsupported-number` 拒绝。详见 [Qian.Capabilities](../packages/Qian.Capabilities/README.md)。
+通用执行入口的请求体里有绝对值超过 decimal 范围（约 7.9e28）的数时返回 400 `BAD_REQUEST`，不再返回 500；输入 Schema 的 `enum` / `const` 取值含这类数的能力在登记阶段以新规则 `unsupported-number` 拒绝。详见 [Qian.Capabilities](../../../src/Kun.Capabilities/README.md)。
 
 ## 2026-10-15 执行入口补不可重放码，参考应用能力标为 pii（S1-RT-021）
 
-聚合 OpenAPI 为写类能力列出 409 `CAPABILITY_REPLAY_UNAVAILABLE` 及其两种 `reason`。参考应用的 `customer.create`、`customer.list`、`customer.get` 响应含客户名称，`dataClassification` 改为 `pii`：经通用执行入口带同一幂等键重放 `customer.create` 改为返回 409（`data_classification`）。[运维手册](ops/configuration-runbook.md)新增「部署步骤：平台宿主装配」（platform 宿主必须调用 `AddQianCapabilities()`）与「过期幂等回执清理」两节。详见 [Qian.Capabilities](../packages/Qian.Capabilities/README.md)。
+聚合 OpenAPI 为写类能力列出 409 `CAPABILITY_REPLAY_UNAVAILABLE` 及其两种 `reason`。参考应用的 `customer.create`、`customer.list`、`customer.get` 响应含客户名称，`dataClassification` 改为 `pii`：经通用执行入口带同一幂等键重放 `customer.create` 改为返回 409（`data_classification`）。[运维手册](ops/configuration-runbook.md)新增「部署步骤：平台宿主装配」（platform 宿主必须调用 `AddQianCapabilities()`）与「过期幂等回执清理」两节。详见 [Qian.Capabilities](../../../src/Kun.Capabilities/README.md)。
 
 ## 2026-10-15 能力登记期契约检查与幂等回执上限（S1-RT-020）
 
-平台宿主调用 `AddQianCapabilities()` 后，`ctx.ProvideCapability` 在登记时生成目录条目并预编译输入校验器，不合格的契约（输入含租户字段、Schema 无法可靠校验等）以 `CapabilityContractException` 拒绝，组件挂载失败。通用执行入口的幂等回执按数据分级与组件配置 `receiptMaxBytes`（默认 64 KiB）决定是否保存响应体，不保存时同键重放返回 409 `CAPABILITY_REPLAY_UNAVAILABLE`；`Qian.Capabilities` 新增迁移 `InvokeReceiptLimits`。[Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md) 新增「迁移执行与 RLS 核查」一节（迁移必须经迁移器执行，附核查 SQL），[运维手册](ops/configuration-runbook.md)新增「部署步骤：数据库迁移」。详见[组件规格 §9.5](prd/specs/component-model.md) 与 [Qian.Capabilities](../packages/Qian.Capabilities/README.md)。
+平台宿主调用 `AddQianCapabilities()` 后，`ctx.ProvideCapability` 在登记时生成目录条目并预编译输入校验器，不合格的契约（输入含租户字段、Schema 无法可靠校验等）以 `CapabilityContractException` 拒绝，组件挂载失败。通用执行入口的幂等回执按数据分级与组件配置 `receiptMaxBytes`（默认 64 KiB）决定是否保存响应体，不保存时同键重放返回 409 `CAPABILITY_REPLAY_UNAVAILABLE`；`Qian.Capabilities` 新增迁移 `InvokeReceiptLimits`。[Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md) 新增「迁移执行与 RLS 核查」一节（迁移必须经迁移器执行，附核查 SQL），[运维手册](ops/configuration-runbook.md)新增「部署步骤：数据库迁移」。详见[组件规格 §9.5](prd/specs/component-model.md) 与 [Qian.Capabilities](../../../src/Kun.Capabilities/README.md)。
 
 ## 2026-10-15 数据契约冻结、组件元数据与文档预算整改（S1-QA-010）
 

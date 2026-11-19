@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Json.Schema;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Qian.Scheduler.TestHost;
 
@@ -10,13 +10,13 @@ namespace Qian.Scheduler.Tests;
 public sealed class SchedulerContractTests
 {
     [Fact]
-    public void QianJob源生成到组件元数据_现有构造与目录Schema保持兼容()
+    public void KunJob源生成到组件元数据_现有构造与目录Schema保持兼容()
     {
-        var declaration = Assert.Single(typeof(ProbePlugin).Assembly.GetCustomAttributes<QianCodeMetadataAttribute>());
+        var declaration = Assert.Single(typeof(ProbePlugin).Assembly.GetCustomAttributes<KunCodeMetadataAttribute>());
         var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(declaration.FactoryType)!).Create();
         var job = Assert.Single(code.Jobs); Assert.Equal("probe", job.Code); Assert.Equal("qian.scheduler.probe/run", job.Capability.Id);
         Assert.Same(Assert.Single(code.Capabilities), job.Capability);
-        Assert.Equal("probe", ProbeRequest.QianJobCode);
+        Assert.Equal("probe", ProbeRequest.KunJobCode);
         var legacy = new ComponentCodeMetadata("qian.old", "Old, Assembly", [], Array.Empty<ServiceKey>(), []);
         Assert.Empty(legacy.Jobs);
         using var schemaStream = typeof(IScheduler).Assembly.GetManifestResourceStream("scheduler/job-definition.schema.json")!;

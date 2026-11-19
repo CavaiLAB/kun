@@ -9,7 +9,7 @@ using Qian.Authz.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config;
 using Qian.Data;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
@@ -133,7 +133,7 @@ public static class PlatformHost
             }
             else await next(http).ConfigureAwait(false);
         });
-        app.UseAuthorization(); app.UseQianPluginEndpoints(); app.UseQianAuthzEnforcement();
+        app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseQianAuthzEnforcement();
         return app;
     }
 

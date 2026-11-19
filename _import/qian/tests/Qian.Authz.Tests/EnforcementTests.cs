@@ -10,7 +10,7 @@ using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Events;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 

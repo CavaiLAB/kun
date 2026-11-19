@@ -8,15 +8,15 @@ using System.Text.Json.Nodes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Qian.Plugin.Sdk.Generators;
-using Qian.Plugin.Tool;
+using Kun.Plugin.Sdk.Generators;
+using Kun.Plugin.Tool;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 
-namespace Qian.Plugin.Sdk.Tests;
+namespace Kun.Plugin.Sdk.Tests;
 
 // S1-RT-014 验收 2、3：组件源码经真实编译器、SDK 的两个源生成器与 System.Text.Json 源生成器编译成程序集，
-// 再用 CI 里同一个 Qian.Plugin.Tool 进程（check / sync）比对唯一 plugin.json 与它声明的 tools 表面。
+// 再用 CI 里同一个 Kun.Plugin.Tool 进程（check / sync）比对唯一 plugin.json 与它声明的 tools 表面。
 public sealed partial class CodeDerivedManifestTests
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -32,10 +32,10 @@ public sealed partial class CodeDerivedManifestTests
         using System.Text.Json.Serialization;
         using System.Threading;
         using System.Threading.Tasks;
-        using Qian.Plugin.Sdk;
+        using Kun.Plugin.Sdk;
         using Kun.Runtime;
         namespace Fixture;
-        [QianPlugin("qian.sdk-manifest")]
+        [KunPlugin("qian.sdk-manifest")]
         public sealed class NotesPlugin : IKunPlugin
         {
             public static readonly ServiceKey Notes = new("SdkManifestNotes");
@@ -150,13 +150,13 @@ public sealed partial class CodeDerivedManifestTests
     {
         using var work = new WorkDirectory();
         var source = """
-            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Qian.Plugin.Sdk;
-            [QianPlugin("qian.sdk-manifest")] public sealed class First : IKunPlugin {
+            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Kun.Plugin.Sdk;
+            [KunPlugin("qian.sdk-manifest")] public sealed class First : IKunPlugin {
                 public First() => throw new InvalidOperationException("不得执行组件构造器");
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) { ctx.Provide(new ServiceKey("First"), new object()); return ValueTask.CompletedTask; }
             }
-            [QianPlugin("qian.second")] public sealed class Second : IKunPlugin {
+            [KunPlugin("qian.second")] public sealed class Second : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [new ServiceKey("Input")];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) { ctx.Provide(new ServiceKey("Second"), new object()); return ValueTask.CompletedTask; }
             }
@@ -177,10 +177,10 @@ public sealed partial class CodeDerivedManifestTests
     public async Task 权限事件与配置从声明派生_权限数组可消费_手改配置指向具体漂移指针()
     {
         using var work = new WorkDirectory();
-        var source = Source.Replace("[QianPlugin(\"qian.sdk-manifest\")]", """
-            [QianPlugin("qian.sdk-manifest")]
+        var source = Source.Replace("[KunPlugin(\"qian.sdk-manifest\")]", """
+            [KunPlugin("qian.sdk-manifest")]
             [Qian.Authz.Abstractions.Permission("notes", "write", Risk = Qian.Authz.Abstractions.PermissionRisk.High, RequiresStepUp = true, Terminals = ["pc"])]
-            [QianConfigSchema("{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\",\"minimum\":1}},\"additionalProperties\":false}")]
+            [KunConfigSchema("{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\",\"minimum\":1}},\"additionalProperties\":false}")]
             """, StringComparison.Ordinal).Replace("/*export*/", "", StringComparison.Ordinal) + """
             public static class Events {
                 [KunEvent(Mode = DispatchMode.Serial)] public static readonly KunEvent<string, object> Saved = KunEvent.Define<string, object>("notes/saved", DispatchMode.Serial);
@@ -215,9 +215,9 @@ public sealed partial class CodeDerivedManifestTests
     public async Task 自定义metadata目录被尊重_删除代码声明同时移除Schema指针_伪造索引不删除手写文件()
     {
         using var work = new WorkDirectory();
-        const string attributes = "[Qian.Authz.Abstractions.Permission(\"notes\", \"read\")][QianConfigSchema(\"{\\\"type\\\":\\\"object\\\"}\")]";
+        const string attributes = "[Qian.Authz.Abstractions.Permission(\"notes\", \"read\")][KunConfigSchema(\"{\\\"type\\\":\\\"object\\\"}\")]";
         var source = Source.Replace("/*export*/", "", StringComparison.Ordinal);
-        var withDeclarations = work.Compile("with-declarations", source.Replace("[QianPlugin(\"qian.sdk-manifest\")]", "[QianPlugin(\"qian.sdk-manifest\")]" + attributes, StringComparison.Ordinal));
+        var withDeclarations = work.Compile("with-declarations", source.Replace("[KunPlugin(\"qian.sdk-manifest\")]", "[KunPlugin(\"qian.sdk-manifest\")]" + attributes, StringComparison.Ordinal));
         var withoutDeclarations = work.Compile("without-declarations", source);
         var component = work.Component(); var manifestFile = Path.Combine(component, ManifestPlan.ManifestFile);
         var manifest = JsonNode.Parse(File.ReadAllText(manifestFile))!;
@@ -270,7 +270,7 @@ public sealed partial class CodeDerivedManifestTests
     {
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") is { Length: > 0 } host ? host : "dotnet")
             { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
-        foreach (var value in new[] { Path.Combine(AppContext.BaseDirectory, "Qian.Plugin.Tool.dll"), verb, assembly, component }) start.ArgumentList.Add(value);
+        foreach (var value in new[] { Path.Combine(AppContext.BaseDirectory, "Kun.Plugin.Tool.dll"), verb, assembly, component }) start.ArgumentList.Add(value);
         using var child = Process.Start(start)!;
         var output = child.StandardOutput.ReadToEndAsync(Ct); var errors = child.StandardError.ReadToEndAsync(Ct);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(Ct); timeout.CancelAfter(TimeSpan.FromSeconds(60));

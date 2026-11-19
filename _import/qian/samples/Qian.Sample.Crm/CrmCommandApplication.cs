@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Authorization;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Extensions;
@@ -17,7 +17,7 @@ using Qian.Authz.Abstractions;
 using Qian.Authz.AspNetCore;
 using Qian.Data;
 using Qian.Events;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Tenancy;
 using Kun.Runtime;
 using StackExchange.Redis;
@@ -39,7 +39,7 @@ public static class CrmCommandApplication
             configure?.Invoke(builder);
             platform = builder.Configuration["Qian:Profile"] == "platform" || builder.Services.Any(service => service.ServiceType == typeof(PluginEndpointOptions));
             if (platform && !builder.Services.Any(service => service.ServiceType == typeof(PluginEndpointOptions)))
-                builder.Services.AddQianPluginEndpoints(sp => sp.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("registry", ScopeKey.Global));
+                builder.Services.AddKunPluginEndpoints(sp => sp.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("registry", ScopeKey.Global));
             var reader = builder.Configuration["S2S:ReaderClientId"] ?? throw new InvalidOperationException("缺少 S2S:ReaderClientId。");
             var writer = builder.Configuration["S2S:WriterClientId"] ?? throw new InvalidOperationException("缺少 S2S:WriterClientId。");
             builder.Services.AddKunSecurity();
@@ -103,15 +103,15 @@ public static class CrmCommandApplication
             builder.Services.AddKunMediator(registry =>
             {
                 registry.AddQianTenancyEvents().AddQianAuthzEvents();
-                registry.AddQianCapability<CreateCustomerCommand, CustomerItem, CreateCustomerHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
-                registry.AddQianCapability<ListCustomersQuery, CustomerPage, ListCustomersHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
-                registry.AddQianCapability<GetCustomerQuery, CustomerItem, GetCustomerHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
-                registry.AddQianCapability<PurgeCustomersCommand, CustomerPurgeResult, PurgeCustomersHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
+                registry.AddKunCapability<CreateCustomerCommand, CustomerItem, CreateCustomerHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
+                registry.AddKunCapability<ListCustomersQuery, CustomerPage, ListCustomersHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
+                registry.AddKunCapability<GetCustomerQuery, CustomerItem, GetCustomerHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
+                registry.AddKunCapability<PurgeCustomersCommand, CustomerPurgeResult, PurgeCustomersHandler, CrmDbContext>(sp => sp.GetRequiredService<CrmCommandRuntime>().Source());
                 mediator?.Invoke(registry);
             });
             string Connection(string name) => builder.Configuration.GetConnectionString(name) ?? throw new InvalidOperationException("缺少连接引用：" + name);
         }, mapReadEndpoints: false);
-        if (platform) app.UseQianPluginEndpoints();
+        if (platform) app.UseKunPluginEndpoints();
         app.UseQianAuthzEnforcement();
         app.Use(async (context, next) =>
         {
@@ -141,6 +141,6 @@ public static class CrmCommandApplication
     private static RouteHandlerBuilder BindCrmPlugin(this RouteHandlerBuilder endpoint, bool platform, string capability)
     {
         var binding = new PluginEndpointBinding("crm", "qian.sample.crm", CapabilityBindingRegistration.Key, "qian.sample.crm/" + capability);
-        return platform ? endpoint.RequireQianPlugin(binding) : endpoint.WithMetadata(binding);
+        return platform ? endpoint.RequireKunPlugin(binding) : endpoint.WithMetadata(binding);
     }
 }

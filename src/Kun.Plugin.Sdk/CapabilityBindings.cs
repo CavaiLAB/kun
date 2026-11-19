@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>已挂载代码能力的真实执行端口；目录读取契约，调用仍经实际 Mediator 和基础策略。</summary>
 public interface IExecutableCapability
@@ -28,7 +28,7 @@ public static class CapabilityBindingRegistration
         where TRequest : ICapabilityRequest<TResponse>
     {
         ArgumentNullException.ThrowIfNull(context);
-        var contract = TRequest.QianCapability;
+        var contract = TRequest.KunCapability;
         if (contract.ComponentId != context.Entry.Plugin || contract.RequestTypeInfo is not JsonTypeInfo<TRequest> request || contract.ResponseTypeInfo is not JsonTypeInfo<TResponse> response)
             throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         // 平台宿主登记了契约检查时，登记前生成目录条目并预编译输入校验器：不合格的契约在登记阶段拒绝，不留到首次调用。

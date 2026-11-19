@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>
 /// 能力登记期的契约检查端口。平台宿主登记实现后，<see cref="CapabilityBindingRegistration.ProvideCapability{TRequest, TResponse}"/>

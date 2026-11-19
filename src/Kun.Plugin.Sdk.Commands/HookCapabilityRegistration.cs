@@ -4,7 +4,7 @@ using Qian.Authz.Abstractions;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>把实际能力暴露为 hook handler；参数转换来自可信代码，不从声明里执行脚本。</summary>
 public static class HookCapabilityRegistration
@@ -14,7 +14,7 @@ public static class HookCapabilityRegistration
         where TRequest : ICapabilityRequest<TResponse>
     {
         ArgumentNullException.ThrowIfNull(context); ArgumentException.ThrowIfNullOrWhiteSpace(name); ArgumentNullException.ThrowIfNull(request);
-        var contract = TRequest.QianCapability;
+        var contract = TRequest.KunCapability;
         if (contract.ComponentId != context.Entry.Plugin) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var binding = context.Inject<IExecutableCapability>(CapabilityBindingRegistration.Key, contract.Id);
         return context.Provide<IHookHandler>(HookDefinition.Handlers, contract.ComponentId + "/" + name, new CapabilityHook<TRequest>(binding, request));

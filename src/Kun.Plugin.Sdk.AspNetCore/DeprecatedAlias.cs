@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 
-namespace Qian.Plugin.Sdk.AspNetCore;
+namespace Kun.Plugin.Sdk.AspNetCore;
 
 /// <summary>v1 <c>/api/kernel/*</c> 别名的响应头（R33，组件规格 §9.5）；S1 内保留别名，S2 移除。</summary>
 public static class DeprecatedAlias

@@ -1,13 +1,13 @@
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using System.Text.Json;
 
 namespace Qian.Tenancy;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 TenancyPlugin 保留。</summary>
-[QianPlugin("qian.tenancy")]
-[QianConfigSchema(ComponentConfiguration.Schema)]
+[KunPlugin("qian.tenancy")]
+[KunConfigSchema(ComponentConfiguration.Schema)]
 [DelegatePlugin(typeof(TenancyPlugin))]
 [CapabilitySource(typeof(TenantExpiryCapability), nameof(TenantExpiryCapability.Definition))]
 [Provides(typeof(TenancyDefinition), nameof(TenancyDefinition.Key))]

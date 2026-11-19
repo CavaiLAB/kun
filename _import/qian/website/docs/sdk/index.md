@@ -14,7 +14,7 @@ updated: 2026-11-19
 | 部分 | 包 | 内容 |
 |---|---|---|
 | [Kun 框架](/sdk/kun/) | `Kun.*` | 底座框架：按锁定版本从 kun 仓库镜像的上手、模块地图、指南、安全、设计说明与变更日志；Qian 的选用与约束见[与 Qian 的关系](/sdk/kun/with-qian) |
-| [后端 SDK（.NET）](/sdk/dotnet/) | `Kun.Runtime`、`Qian.Plugin.Sdk`、各组件的 `Qian.*` 包 | 上下文 `ctx`、服务注册、类型化事件、可逆副作用、[能力目录](/sdk/dotnet/capabilities)、[事件分发模式](/sdk/dotnet/events) |
+| [后端 SDK（.NET）](/sdk/dotnet/) | `Kun.Runtime`、`Kun.Plugin.Sdk`、各组件的 `Qian.*` 包 | 上下文 `ctx`、服务注册、类型化事件、可逆副作用、[能力目录](/sdk/dotnet/capabilities)、[事件分发模式](/sdk/dotnet/events) |
 | [前端 SDK](/sdk/frontend/) | `@cavailab/qian-runtime`、`@cavailab/qian-plugin-sdk`、`@cavailab/qian-sdk` | 外壳插件树、MF2 远程模块、插槽 |
 | [AI SDK](/sdk/ai/) | — | 在插件与前端里调模型与 Embedding、写 Agent 原生表面、MCP、Agent 运行时对接 |
 

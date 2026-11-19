@@ -3,5 +3,5 @@
   <!-- 记契约：组件建在它上面，与 Kun.Core 同理，旧门禁对运行时与 SDK 一律放行（S1-KUN-020，B3 PR-4 归类）。 -->
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>contract</KunRole></PropertyGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" /><ProjectReference Include="../Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" /><ProjectReference Include="../../_import/qian/packages/Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" /></ItemGroup>
 </Project>

@@ -74,7 +74,7 @@ public sealed class EventPublishScopeAnalyzer : DiagnosticAnalyzer
             _commandOf = compilation.GetTypeByMetadataName("Kun.Core.Cqrs.ICommand`1");
             _notificationHandler = compilation.GetTypeByMetadataName("Kun.Mediator.INotificationHandler`1");
             _domainEvent = compilation.GetTypeByMetadataName("Kun.Core.Domain.IDomainEvent");
-            _capability = compilation.GetTypeByMetadataName("Qian.Plugin.Sdk.CapabilityAttribute");
+            _capability = compilation.GetTypeByMetadataName("Kun.Plugin.Sdk.CapabilityAttribute");
         }
 
         public static Symbols? Create(Compilation compilation)

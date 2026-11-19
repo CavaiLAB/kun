@@ -17,13 +17,13 @@ using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Events;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>以封闭泛型注册真正的 Mediator 请求、事务和基础执行事件。</summary>
-public static class QianCommandRegistration
+public static class KunCommandRegistration
 {
     /// <summary>宿主指定实际插件上下文与通道；请求体不能选择这些值。handler 使用同 scope 的 CommandDataSession。</summary>
-    public static KunMediatorBuilder AddQianCapability<TRequest, TResponse, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler, TContext>(
+    public static KunMediatorBuilder AddKunCapability<TRequest, TResponse, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler, TContext>(
         this KunMediatorBuilder builder, Func<IServiceProvider, IPluginContext> source, string channel = "api")
         where TRequest : ICapabilityRequest<TResponse>
         where THandler : class, IRequestHandler<TRequest, TResponse>
@@ -31,7 +31,7 @@ public static class QianCommandRegistration
     {
         ArgumentNullException.ThrowIfNull(builder); ArgumentNullException.ThrowIfNull(source);
         if (channel is not ("ui" or "api" or "mcp" or "a2a" or "job" or "event" or "hook")) throw new ArgumentException("调用通道无效。", nameof(channel));
-        var contract = TRequest.QianCapability;
+        var contract = TRequest.KunCapability;
         if (contract.RequestTypeInfo is not JsonTypeInfo<TRequest> request || contract.ResponseTypeInfo is not JsonTypeInfo<TResponse> response)
             throw new ArgumentException("生成契约与 Mediator 请求响应类型不一致。");
         builder.Services.AddSingleton(new CommandRegistration<TRequest, TResponse>(source, channel));
@@ -80,7 +80,7 @@ internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(
 {
     public async ValueTask<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        var source = registration.Source(services); var contract = TRequest.QianCapability;
+        var source = registration.Source(services); var contract = TRequest.KunCapability;
         if (source.Entry.Plugin != contract.ComponentId || state.Invocation is not null) throw CommandPolicies.Denied();
         var initialization = TenantInitializationAuthorization.Allows(contract.Id, source.Scope);
         if (initialization) TenantInitializationAuthorization.Claim<TRequest>(contract.Id, source.Scope);

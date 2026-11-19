@@ -12,7 +12,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Qian.Lifecycle;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk.AspNetCore;
 using Qian.Registry;
 using Kun.Runtime;
 using Qian.Sample.Crm;
@@ -67,7 +67,7 @@ internal static class DevHost
             builder.WebHost.UseUrls(url); Logging(builder.Logging);
             builder.Services.AddSingleton<ICrmRuntimeAssembly>(assembly);
             builder.Services.AddQianHttpContracts();
-            builder.Services.AddQianPluginEndpoints(_ => assembly.Loader.GetContext("registry", ScopeKey.Global));
+            builder.Services.AddKunPluginEndpoints(_ => assembly.Loader.GetContext("registry", ScopeKey.Global));
             builder.Services.AddQianData<CapabilitiesDbContext>((_, options) => options.UseNpgsql(database.Business).UseKunSchema(CapabilitiesDbContext.Schema));
             builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, type) =>
                 type == typeof(CapabilitiesDbContext) || type == typeof(LifecycleDbContext) ? database.Migrations : null);

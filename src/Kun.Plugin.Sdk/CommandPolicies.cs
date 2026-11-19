@@ -1,7 +1,7 @@
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>基础组合包的三个强制执行点。</summary>
 public enum CommandPolicyKind

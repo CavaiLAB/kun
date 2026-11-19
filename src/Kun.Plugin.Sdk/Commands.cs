@@ -5,13 +5,13 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>真实 Mediator 请求与生成契约的类型关联。</summary>
 public interface ICapabilityRequest<TResponse> : IRequest<TResponse>, Kun.Authorization.IPermissionProtectedRequest
 {
     /// <summary>由代码声明和 JsonTypeInfo 生成的契约。</summary>
-    static abstract CapabilityContract QianCapability { get; }
+    static abstract CapabilityContract KunCapability { get; }
 }
 
 /// <summary>SDK 生产执行端拥有的事件 Definition，供基础组件注册强制监听器。</summary>

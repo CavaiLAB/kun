@@ -28,7 +28,7 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     private static readonly string[] AllowedQianAssemblies =
     [
         "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Kun.Runtime", "Kun.Errors",
-        "Kun.Errors.AspNetCore", "Qian.Testing.Containers", "Qian.Plugin.Sdk", "Qian.Data.Abstractions",
+        "Kun.Errors.AspNetCore", "Qian.Testing.Containers", "Kun.Plugin.Sdk", "Qian.Data.Abstractions",
         "Qian.Authz.Abstractions", "Qian.Events.Abstractions", "Qian.Surfaces.Abstractions"
     ];
 

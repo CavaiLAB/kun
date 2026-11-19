@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Qian.Data;
 using Kun.Runtime;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Errors;
 
 namespace Qian.Audit;

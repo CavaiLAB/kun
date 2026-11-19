@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Plugin.Sdk.Tests;
+namespace Kun.Plugin.Sdk.Tests;
 
 public sealed class NativeAuditOwnerTests
 {

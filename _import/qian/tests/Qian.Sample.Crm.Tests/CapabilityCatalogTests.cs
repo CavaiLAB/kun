@@ -18,7 +18,7 @@ using Qian.Authz;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
@@ -289,7 +289,7 @@ public abstract partial class CustomerCommandTests
     {
         internal const string Id = "qian.sample.crm/customer.tenant-probe";
         public static IReadOnlyList<string> RequiredPermissions { get; } = ["qian.sample.crm:customer:read"];
-        public static CapabilityContract QianCapability { get; } = new("qian.sample.crm",
+        public static CapabilityContract KunCapability { get; } = new("qian.sample.crm",
             """{"name":"customer.tenant-probe","description":"按调用方给出的租户读取客户；契约不合格，平台宿主在登记阶段拒绝。","sideEffect":"read","policyHint":"allow","idempotent":false,"async":"none","requiredScopes":["crm.read"],"requiredSecrets":[],"dataClassification":"internal","costTier":"low","contractVersion":"crm-v1","audit":false,"agent":{"expose":false,"requiresConfirmation":false},"binding":{"kind":"command","id":"qian.sample.crm/customer.tenant-probe"},"requiredPermission":"qian.sample.crm:customer:read"}""",
             ProbeJson.Default.TenantProbeQuery, CrmCommandJson.Default.CustomerPage);
     }
@@ -403,7 +403,7 @@ public abstract partial class CustomerCommandTests
         {
             var component = new Qian.Identity.Server.IdentityServerComponent();
             var metadata = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(Qian.Identity.Server.IdentityServerComponent).Assembly
-                .GetCustomAttributes(typeof(QianCodeMetadataAttribute), false).Cast<QianCodeMetadataAttribute>().Single().FactoryType)!).Create();
+                .GetCustomAttributes(typeof(KunCodeMetadataAttribute), false).Cast<KunCodeMetadataAttribute>().Single().FactoryType)!).Create();
             Add(identity.Id, identity.Plugin, component, metadata.Provides.Select(name => new ServiceKey(name)).ToArray(), identity.Config);
             var artifact = Path.Combine(RepositoryRoot(), "plugins/qian.identity.server");
             foreach (var file in Directory.EnumerateFiles(artifact, "*", SearchOption.AllDirectories))
@@ -433,7 +433,7 @@ public abstract partial class CustomerCommandTests
         Write("profiles/platform/qian.profile.yml", """{"name":"platform","bundles":[],"patch":"./qian.patch.yml","hmr":{"surfaces":true,"code":false},"build":{"aot":false},"hooks":{"allowCommand":false}}""");
         Write("profiles/platform/qian.patch.yml", JsonSerializer.Serialize(definitions.Values.Select(item => new { id = item.Entry.Id, plugin = item.Entry.Plugin + "@" + item.Entry.Version, config = item.Entry.Config })));
         var fullContract = CapabilityContractCompiler.CreateOpenApi(
-            [CreateCustomerCommand.QianCapability, ListCustomersQuery.QianCapability, GetCustomerQuery.QianCapability], validator, new ToolContractHasher());
+            [CreateCustomerCommand.KunCapability, ListCustomersQuery.KunCapability, GetCustomerQuery.KunCapability], validator, new ToolContractHasher());
         Write("plugins/crm/metadata/contracts.json", JsonSerializer.Serialize(new[]
             { new { id = "qian.sample.crm.api/v1", kind = "openapi", path = "./contracts/http-v1.openapi.json" },
               new { id = "qian.sample.crm.http/v1", kind = "openapi", path = "./contracts/rest-v1.openapi.json" } }));

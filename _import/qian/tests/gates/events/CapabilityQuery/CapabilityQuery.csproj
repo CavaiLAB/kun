@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
  <PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors><NoWarn>$(NoWarn);CS1591</NoWarn></PropertyGroup>
- <ItemGroup><ProjectReference Include="../../../../packages/Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" /></ItemGroup>
+ <ItemGroup><ProjectReference Include="../../../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /></ItemGroup>
 </Project>

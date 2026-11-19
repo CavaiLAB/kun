@@ -130,6 +130,6 @@ S1-YUE-018 另映射平台控制台目录 `MapQianPlatformConsole`（`GET /api/c
 
 本目录的 `.qian-plugin/plugin.json` 对应 `CrmPlugin`，允许 global / tenant，配置仅为空对象。`tools/*.json` 来自四个真实 `[Capability]` 请求（含上述探针）；权限文件来自 `CrmPermissions`，角色模板仍是手写表面。代码字段、工具、权限与配置 Schema 经 `qian-plugin sync` 生成，CI 自动发现入口并检查漂移。
 
-设置 `Qian:Profile=platform`，或由平台组合根显式登记 `PluginEndpointOptions` 后，参考宿主自己装配 `AddQianPluginEndpoints` / `UseQianPluginEndpoints`，创建、列表、详情三个端点都使用 `RequireQianPlugin`。Registry 的 scope 视图没有当前绑定、被 restrict 过滤或卸载后均返回 404；filter 还会拒绝遗漏中间件的接线。平台宿主仍须装配真实 Registry 及其上下文，不能用配置值冒充可见性。
+设置 `Qian:Profile=platform`，或由平台组合根显式登记 `PluginEndpointOptions` 后，参考宿主自己装配 `AddKunPluginEndpoints` / `UseKunPluginEndpoints`，创建、列表、详情三个端点都使用 `RequireKunPlugin`。Registry 的 scope 视图没有当前绑定、被 restrict 过滤或卸载后均返回 404；filter 还会拒绝遗漏中间件的接线。平台宿主仍须装配真实 Registry 及其上下文，不能用配置值冒充可见性。
 
 默认 standalone 与 `--data-only` 没有 Registry 可见性门；仍执行既有可信身份、租户边界、权限、数据与审计规则。需要平台能力目录时，宿主必须调用 `AddQianCapabilities()`，缺失时平台能力组件拒绝挂载。

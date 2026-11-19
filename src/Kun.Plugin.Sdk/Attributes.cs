@@ -1,8 +1,8 @@
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>声明组件的稳定 ID；同程序集允许多个不同 ID 的入口。</summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public sealed class QianPluginAttribute(string id) : Attribute
+public sealed class KunPluginAttribute(string id) : Attribute
 {
     /// <summary>组件 ID，不包含版本。</summary>
     public string Id { get; } = id;

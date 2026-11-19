@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Qian.Config.Apollo;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config;
 using Qian.Identity.Abstractions;
@@ -114,7 +114,7 @@ public sealed class OidcComponentTests
     {
         await using var services = new ServiceCollection().AddQianConfiguration(new ConfigurationBuilder().Build()).BuildServiceProvider();
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "plugins/qian.identity.connector.oidc/.qian-plugin/plugin.json")));
-        var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(OidcConnectorComponent).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType)!).Create();
+        var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(OidcConnectorComponent).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType)!).Create();
         var entry = Type.GetType(manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!;
         Assert.Equal(code.Provides, manifest.RootElement.GetProperty("provides").EnumerateArray().Select(item => item.GetString()!));
         Assert.Equal(code.RuntimeEntry, manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString());

@@ -3,17 +3,17 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Qian.Plugin.Sdk.Generators;
-using Qian.Plugin.Tool;
+using Kun.Plugin.Sdk.Generators;
+using Kun.Plugin.Tool;
 
-namespace Qian.Plugin.Sdk.Tests;
+namespace Kun.Plugin.Sdk.Tests;
 
 public sealed partial class CodeDerivedManifestTests
 {
-    private static string WithJob => Source.Replace("[Capability(\"note.create\"", "[QianJob(\"create-note\")]\n[Capability(\"note.create\"", StringComparison.Ordinal);
+    private static string WithJob => Source.Replace("[Capability(\"note.create\"", "[KunJob(\"create-note\")]\n[Capability(\"note.create\"", StringComparison.Ordinal);
 
     [Fact]
-    public async Task QianJob关键字标识符的能力与作业生成均能真实编译和同步清单()
+    public async Task KunJob关键字标识符的能力与作业生成均能真实编译和同步清单()
     {
         using var work = new WorkDirectory();
         var source = WithJob.Replace("CreateNote", "@event", StringComparison.Ordinal)
@@ -28,7 +28,7 @@ public sealed partial class CodeDerivedManifestTests
     }
 
     [Fact]
-    public async Task QianJob真实编译派生jobs表面_check幂等_拒绝手改_删除最后声明只移除受管文件()
+    public async Task KunJob真实编译派生jobs表面_check幂等_拒绝手改_删除最后声明只移除受管文件()
     {
         using var work = new WorkDirectory(); var assembly = work.Compile("job", WithJob); var component = work.Component();
         var sync = await Tool("sync", assembly, component); Assert.True(sync.ExitCode == 0, sync.Error);
@@ -60,12 +60,12 @@ public sealed partial class CodeDerivedManifestTests
         var source = WithJob.Replace("Description = ", "ComponentId = \"qian.sdk-manifest\", Description = ", StringComparison.Ordinal)
             .Replace("[JsonSerializable(typeof(NoteResponse))]", "[JsonSerializable(typeof(NoteResponse))]\n[JsonSerializable(typeof(OtherJob))]", StringComparison.Ordinal) + """
 
-            [QianPlugin("qian.other")]
+            [KunPlugin("qian.other")]
             public sealed class OtherPlugin : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
             }
-            [QianJob("create-note")]
+            [KunJob("create-note")]
             [Capability("other", typeof(NoteResponse), typeof(NotesJson), ComponentId = "qian.other", Description = "第二组件的独立作业声明，不能混入第一个组件。", SideEffect = "write", Idempotent = true)]
             public sealed partial record OtherJob(Guid IdempotencyKey);
             """;
@@ -82,20 +82,20 @@ public sealed partial class CodeDerivedManifestTests
     }
 
     [Theory]
-    [InlineData("invalid-code", "QIANSDK003")]
-    [InlineData("not-partial", "QIANSDK003")]
-    [InlineData("no-capability", "QIANSDK003")]
-    [InlineData("duplicate-code", "QIANSDK002")]
-    [InlineData("reserved-member", "QIANSDK003")]
+    [InlineData("invalid-code", "KUNSDK003")]
+    [InlineData("not-partial", "KUNSDK003")]
+    [InlineData("no-capability", "KUNSDK003")]
+    [InlineData("duplicate-code", "KUNSDK002")]
+    [InlineData("reserved-member", "KUNSDK003")]
     public void 非法作业声明与重复代码明确诊断(string scenario, string expected)
     {
         var source = scenario switch
         {
-            "invalid-code" => WithJob.Replace("QianJob(\"create-note\")", "QianJob(\"../job\")", StringComparison.Ordinal),
+            "invalid-code" => WithJob.Replace("KunJob(\"create-note\")", "KunJob(\"../job\")", StringComparison.Ordinal),
             "not-partial" => WithJob.Replace("partial record CreateNote", "record CreateNote", StringComparison.Ordinal),
-            "no-capability" => "using Qian.Plugin.Sdk; [QianJob(\"job\")] public partial class NoCapability { }",
-            "duplicate-code" => WithJob.Replace("[Capability(\"note.read\"", "[QianJob(\"create-note\")] [Capability(\"note.read\"", StringComparison.Ordinal),
-            "reserved-member" => WithJob.Replace("record CreateNote(Guid IdempotencyKey, string Title);", "record CreateNote(Guid IdempotencyKey, string Title) { public static string QianJobCode => \"own\"; }", StringComparison.Ordinal),
+            "no-capability" => "using Kun.Plugin.Sdk; [KunJob(\"job\")] public partial class NoCapability { }",
+            "duplicate-code" => WithJob.Replace("[Capability(\"note.read\"", "[KunJob(\"create-note\")] [Capability(\"note.read\"", StringComparison.Ordinal),
+            "reserved-member" => WithJob.Replace("record CreateNote(Guid IdempotencyKey, string Title);", "record CreateNote(Guid IdempotencyKey, string Title) { public static string KunJobCode => \"own\"; }", StringComparison.Ordinal),
             _ => throw new ArgumentException("未知测试场景")
         };
         var parse = new CSharpParseOptions(LanguageVersion.Preview);

@@ -5,7 +5,7 @@ using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Plugin.Sdk.AspNetCore;
+namespace Kun.Plugin.Sdk.AspNetCore;
 
 /// <summary>路由、认证及可信租户建立后，按 Registry 的实际 scope 视图拦截插件端点。</summary>
 public sealed class PluginEnabledMiddleware(RequestDelegate next, PluginEndpointOptions options)

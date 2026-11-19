@@ -27,11 +27,11 @@ updated: 2026-11-19
 </packageSourceMapping>
 ```
 
-组件项目引用同一版本的 `Qian.Plugin.Sdk` 与 `Qian.Plugin.Sdk.Generators`；源生成器是开发依赖，写 `PrivateAssets="all"`：
+组件项目引用同一版本的 `Kun.Plugin.Sdk` 与 `Kun.Plugin.Sdk.Generators`；源生成器是开发依赖，写 `PrivateAssets="all"`：
 
 ```xml
-<PackageReference Include="Qian.Plugin.Sdk" Version="0.1.0" />
-<PackageReference Include="Qian.Plugin.Sdk.Generators" Version="0.1.0" PrivateAssets="all" />
+<PackageReference Include="Kun.Plugin.Sdk" Version="0.1.0" />
+<PackageReference Include="Kun.Plugin.Sdk.Generators" Version="0.1.0" PrivateAssets="all" />
 ```
 
 ## 编程模型
@@ -65,7 +65,7 @@ public interface IPluginContext
 }
 ```
 
-组件入口用 `[QianPlugin("<component-id>")]` 标注，源生成器派生 `runtime.entry`、`inject[]`、`provides[]` 以及配置、权限、事件和工具表面。同程序集支持多个不同组件 ID，每个组件保持唯一清单；工具按清单 ID 选择对应元数据。已派生、手写字段和 S2 边界见[能力与唯一清单](/sdk/dotnet/capabilities)。`Provide` 的登记归属当前插件的 scope 与可撤销生命周期；跨进程集成事件由 [qian.events](/components/platform/qian.events) 桥接到 Kun 的 Mediator + Outbox。
+组件入口用 `[KunPlugin("<component-id>")]` 标注，源生成器派生 `runtime.entry`、`inject[]`、`provides[]` 以及配置、权限、事件和工具表面。同程序集支持多个不同组件 ID，每个组件保持唯一清单；工具按清单 ID 选择对应元数据。已派生、手写字段和 S2 边界见[能力与唯一清单](/sdk/dotnet/capabilities)。`Provide` 的登记归属当前插件的 scope 与可撤销生命周期；跨进程集成事件由 [qian.events](/components/platform/qian.events) 桥接到 Kun 的 Mediator + Outbox。
 
 ## 示例
 

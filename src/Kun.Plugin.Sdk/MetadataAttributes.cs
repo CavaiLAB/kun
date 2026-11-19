@@ -1,4 +1,4 @@
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>引用另一个组件拥有的共享事件契约；不共享权限或其它元数据。</summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
@@ -54,7 +54,7 @@ public sealed class ContributesAttribute(Type keyOwner, string keyMember, string
 
 /// <summary>组件配置的代码声明；工具派生为清单所指的 configSchema 文件。</summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public sealed class QianConfigSchemaAttribute(string json) : Attribute
+public sealed class KunConfigSchemaAttribute(string json) : Attribute
 {
     /// <summary>完整的 JSON Schema；应与实现共用同一常量。</summary>
     public string Json { get; } = json;

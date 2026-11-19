@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Qian.Authz.Abstractions;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 
 namespace Qian.Files.Tests;
 
@@ -16,7 +16,7 @@ public sealed class FilesComponentManifestTests
     {
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "plugins/qian.files/.qian-plugin/plugin.json")));
         var json = manifest.RootElement;
-        var factory = typeof(FilesPlugin).Assembly.GetCustomAttribute<QianCodeMetadataAttribute>()!.FactoryType;
+        var factory = typeof(FilesPlugin).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType;
         var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(factory)!).Create();
         var runtime = json.GetProperty("runtime");
         Assert.Equal(("qian.files", "qian.files"), (code.ComponentId, json.GetProperty("id").GetString()));

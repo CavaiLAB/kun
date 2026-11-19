@@ -202,4 +202,4 @@ QianSoftDeleteInterceptor 在 Kun 审计拦截器之前运行。AggregateRoot.De
 
 基准类型目录、PG 方言与数据连接档案由 S1-DATA-003 交付，测试覆盖字段定义越界拒绝、系统类型删除保护、方言注册校验，以及真实 PostgreSQL 上的可达 / 端口关闭 / 错误口令 / 缺失库与 schema / 越权密钥，域名解析失败、对端不是 PostgreSQL、对端要求不支持的认证方式，租户隔离和详情不回传口令。目录与连接档案仍以宿主装配（AddQianDataTypes、AddQianDataConnections）提供；PG 方言另有真实 `PgDialectPlugin` 组件入口，具名提供 `Data.Dialects:pg` 并同步登记全局目录，卸载同时撤销。独立宿主可保留 AddQianPgDialect，但不能与同名组件重复注册。S1-DATA-006 已通过真实注册表、权限判定与双租户 HTTP 端点验证方言挂卸及重挂，验收方法和安装限制见 [PG 方言主文档](../Qian.Data.Dialect.Pg/README.md)。不在本期：自定义基准类型、方言的 DDL 与分页、编辑未保存档案时的连通测试，以及用档案执行查询（S2 数据接口）。
 
-`qian.data` 的 `runtime.configSchema` 和 Schema 文件由入口的 `QianConfigSchema` 引用 `ComponentConfiguration.Schema` 派生；修改配置时先更新实现和代码声明，再同步唯一清单。该组件已通过既有真实安装门，清单不再带骨架标记。
+`qian.data` 的 `runtime.configSchema` 和 Schema 文件由入口的 `KunConfigSchema` 引用 `ComponentConfiguration.Schema` 派生；修改配置时先更新实现和代码声明，再同步唯一清单。该组件已通过既有真实安装门，清单不再带骨架标记。

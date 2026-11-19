@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Plugin.Tool;
+namespace Kun.Plugin.Tool;
 
 internal sealed class ManifestException(ErrorCode code, string reason, string pointer) : Exception(reason)
 {

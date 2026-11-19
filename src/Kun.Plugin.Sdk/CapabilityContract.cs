@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Mediator;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>代码生成的能力声明；只有元数据，不承担请求认证、授权或安装状态判定。</summary>
 public sealed class CapabilityContract

@@ -1,6 +1,6 @@
 using Kun.Core.Cqrs;
 using Kun.EventBus.Outbox;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 
 internal sealed record ThingCreated(Guid Id);
 [Capability("thing.create", typeof(int), typeof(object), SideEffect = "write")]

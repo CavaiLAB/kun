@@ -1,7 +1,7 @@
 using System.Text.Json.Nodes;
 using Kun.Runtime;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>生成代码使用的声明校验；只读取静态声明，不执行插件。</summary>
 public static class ComponentMetadataDeclarations

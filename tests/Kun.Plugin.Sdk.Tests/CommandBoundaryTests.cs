@@ -12,7 +12,7 @@ using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Plugin.Sdk.Tests;
+namespace Kun.Plugin.Sdk.Tests;
 
 // SDK 协议边界测试；不替代真实身份入口、生产权限策略或 CRM 写入验收。
 public sealed class CommandBoundaryTests
@@ -23,7 +23,7 @@ public sealed class CommandBoundaryTests
         var ct = TestContext.Current.CancellationToken; var tenant = new AsyncLocalTenantContext(); var source = new SourcePlugin();
         var services = new ServiceCollection(); services.AddSingleton<ITenantContext>(tenant); services.AddSingleton<ICurrentUser>(new VerifiedPort());
         services.AddSingleton<HandlerCounter>();
-        services.AddKunMediator(builder => builder.AddQianCapability<CreateRequest, CustomerResponse, BoundaryHandler, BoundaryContext>(_ => source.Context!));
+        services.AddKunMediator(builder => builder.AddKunCapability<CreateRequest, CustomerResponse, BoundaryHandler, BoundaryContext>(_ => source.Context!));
         using var provider = services.BuildServiceProvider(); await using var runtime = new PluginLoader(provider);
         await runtime.MountAsync([Define("source", "qian.sdk-tests", source)], ct);
         using var scope = tenant.BeginScope(Tenant);
@@ -41,10 +41,10 @@ public sealed class CommandBoundaryTests
         {
             var services = new ServiceCollection(); services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext()); services.AddSingleton<ICurrentUser>(new VerifiedPort());
             port(services);
-            services.AddKunMediator(builder => builder.AddQianCapability<CreateRequest, CustomerResponse, BoundaryHandler, BoundaryContext>(_ => source.Context!));
+            services.AddKunMediator(builder => builder.AddKunCapability<CreateRequest, CustomerResponse, BoundaryHandler, BoundaryContext>(_ => source.Context!));
             return services.BuildServiceProvider();
         }
-        // Kun 2026.10.25 之前数据约定的形状：匿名兜底先登记，AddQianCapability 的桥接 TryAdd 随之落空。
+        // Kun 2026.10.25 之前数据约定的形状：匿名兜底先登记，AddKunCapability 的桥接 TryAdd 随之落空。
         using (var anonymous = Host(services => services.AddScoped<Kun.Core.Security.ICurrentUser>(_ => Kun.Core.Security.AnonymousCurrentUser.Instance)))
         {
             var check = Assert.Single(anonymous.GetServices<IHostedService>());

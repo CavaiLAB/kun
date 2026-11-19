@@ -1,6 +1,6 @@
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
 namespace Qian.Files;
@@ -30,11 +30,11 @@ public static class QianFilesExtensions
         builder.Services.AddOptions<QianFilesOptions>();
         if (configure is not null) builder.Services.Configure(configure);
         builder.Services.AddSingleton(new FilesCapabilitySource(source));
-        builder.AddQianCapability<PresignUploadCommand, PresignedUpload, PresignUploadHandler, FilesDbContext>(source, channel);
-        builder.AddQianCapability<CompleteUploadCommand, FileDescriptor, CompleteUploadHandler, FilesDbContext>(source, channel);
-        builder.AddQianCapability<GetFileQuery, FileDescriptor, GetFileHandler, FilesDbContext>(source, channel);
-        builder.AddQianCapability<DownloadUrlQuery, DownloadTicket, DownloadUrlHandler, FilesDbContext>(source, channel);
-        builder.AddQianCapability<DeleteFileCommand, FileDescriptor, DeleteFileHandler, FilesDbContext>(source, channel);
-        return builder.AddQianCapability<QuotaQuery, FileQuota, QuotaHandler, FilesDbContext>(source, channel);
+        builder.AddKunCapability<PresignUploadCommand, PresignedUpload, PresignUploadHandler, FilesDbContext>(source, channel);
+        builder.AddKunCapability<CompleteUploadCommand, FileDescriptor, CompleteUploadHandler, FilesDbContext>(source, channel);
+        builder.AddKunCapability<GetFileQuery, FileDescriptor, GetFileHandler, FilesDbContext>(source, channel);
+        builder.AddKunCapability<DownloadUrlQuery, DownloadTicket, DownloadUrlHandler, FilesDbContext>(source, channel);
+        builder.AddKunCapability<DeleteFileCommand, FileDescriptor, DeleteFileHandler, FilesDbContext>(source, channel);
+        return builder.AddKunCapability<QuotaQuery, FileQuota, QuotaHandler, FilesDbContext>(source, channel);
     }
 }

@@ -13,7 +13,7 @@
     <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
   </ItemGroup>
-  <ItemGroup><InternalsVisibleTo Include="Qian.Plugin.Sdk" /><InternalsVisibleTo Include="Qian.Tenancy" /><InternalsVisibleTo Include="Qian.Authz" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Plugin.Sdk" /><InternalsVisibleTo Include="Qian.Tenancy" /><InternalsVisibleTo Include="Qian.Authz" /></ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="../../contracts/data/v1/filter-ast.schema.json;../../contracts/data/v1/filter-operators.json;../../contracts/data/v1/system-variables.json" LogicalName="authz/%(Filename)%(Extension)" />
     <None Include="../../contracts/data/v1/filter-ast.schema.json;../../contracts/data/v1/filter-operators.json;../../contracts/data/v1/system-variables.json" Pack="true" PackagePath="contracts/data/v1/" />

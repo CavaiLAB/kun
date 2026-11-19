@@ -1,8 +1,8 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.Json;
-using Qian.Plugin.Sdk;
-using Qian.Plugin.Tool;
+using Kun.Plugin.Sdk;
+using Kun.Plugin.Tool;
 using Kun.Errors;
 
 try
@@ -16,11 +16,11 @@ try
         if (args[0] == "inventory")
         {
             Console.WriteLine(JsonSerializer.Serialize(assembly.GetTypes().Where(type => type.IsClass && !type.IsAbstract && typeof(Kun.Runtime.IKunPlugin).IsAssignableFrom(type))
-                .OrderBy(type => type.FullName, StringComparer.Ordinal).Select(type => new { type = type.FullName, component = type.GetCustomAttribute<QianPluginAttribute>()?.Id }), JsonSerializerOptions.Web));
+                .OrderBy(type => type.FullName, StringComparer.Ordinal).Select(type => new { type = type.FullName, component = type.GetCustomAttribute<KunPluginAttribute>()?.Id }), JsonSerializerOptions.Web));
             return 0;
         }
-        var declarations = assembly.GetCustomAttributes<QianCodeMetadataAttribute>().ToArray();
-        if (declarations.Length == 0) throw new ManifestException(ManifestErrors.MetadataMissing, "程序集没有 [QianPlugin] 入口或未引用源生成器。", "assembly#");
+        var declarations = assembly.GetCustomAttributes<KunCodeMetadataAttribute>().ToArray();
+        if (declarations.Length == 0) throw new ManifestException(ManifestErrors.MetadataMissing, "程序集没有 [KunPlugin] 入口或未引用源生成器。", "assembly#");
         var metadata = declarations.Select(declaration =>
         {
             try
@@ -35,7 +35,7 @@ try
             throw new ManifestException(ManifestErrors.MetadataInvalid, "同一程序集出现重复组件 ID。", "assembly#");
         var id = ManifestPlan.ReadComponentId(args[2]);
         var code = metadata.SingleOrDefault(item => item.ComponentId == id)
-            ?? throw new ManifestException(ManifestErrors.ComponentMismatch, "清单 ID " + id + " 在程序集内没有匹配的 [QianPlugin] 入口。", ManifestPlan.ManifestFile + "#/id");
+            ?? throw new ManifestException(ManifestErrors.ComponentMismatch, "清单 ID " + id + " 在程序集内没有匹配的 [KunPlugin] 入口。", ManifestPlan.ManifestFile + "#/id");
         var plan = ManifestPlan.Create(args[2], code);
         if (args[0] == "sync") plan.Apply();
         Console.WriteLine(JsonSerializer.Serialize(new { changed = plan.Drift, applied = args[0] == "sync" }, JsonSerializerOptions.Web));

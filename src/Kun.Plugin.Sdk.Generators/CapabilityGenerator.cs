@@ -7,20 +7,20 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Qian.Plugin.Sdk.Generators;
+namespace Kun.Plugin.Sdk.Generators;
 
 /// <summary>从能力属性生成强类型契约；生成器不执行用户代码或写清单文件。</summary>
 [Generator(LanguageNames.CSharp)]
 public sealed class CapabilityGenerator : IIncrementalGenerator
 {
-    private static readonly DiagnosticDescriptor Invalid = new("QIANSDK001", "组件或能力声明不完整", "{0}", "QianSdk", DiagnosticSeverity.Error, true);
+    private static readonly DiagnosticDescriptor Invalid = new("KUNSDK001", "组件或能力声明不完整", "{0}", "KunSdk", DiagnosticSeverity.Error, true);
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var plugins = context.SyntaxProvider.ForAttributeWithMetadataName("Qian.Plugin.Sdk.QianPluginAttribute",
+        var plugins = context.SyntaxProvider.ForAttributeWithMetadataName("Kun.Plugin.Sdk.KunPluginAttribute",
             static (_, _) => true, static (syntax, _) => (INamedTypeSymbol)syntax.TargetSymbol).Collect();
-        var capabilities = context.SyntaxProvider.ForAttributeWithMetadataName("Qian.Plugin.Sdk.CapabilityAttribute",
+        var capabilities = context.SyntaxProvider.ForAttributeWithMetadataName("Kun.Plugin.Sdk.CapabilityAttribute",
             static (_, _) => true, static (syntax, _) => (INamedTypeSymbol)syntax.TargetSymbol).Collect();
         context.RegisterSourceOutput(plugins.Combine(capabilities), static (output, input) => Generate(output, input.Left, input.Right));
     }
@@ -28,7 +28,7 @@ public sealed class CapabilityGenerator : IIncrementalGenerator
     private static void Generate(SourceProductionContext output, ImmutableArray<INamedTypeSymbol> plugins, ImmutableArray<INamedTypeSymbol> capabilities)
     {
         if (capabilities.Length == 0) return;
-        var owners = plugins.GroupBy(p => Attribute(p, "QianPluginAttribute").ConstructorArguments[0].Value as string ?? "", StringComparer.Ordinal)
+        var owners = plugins.GroupBy(p => Attribute(p, "KunPluginAttribute").ConstructorArguments[0].Value as string ?? "", StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
         var resolved = new List<(INamedTypeSymbol Type, string Component)>();
         foreach (var capability in capabilities)
@@ -37,10 +37,10 @@ public sealed class CapabilityGenerator : IIncrementalGenerator
             var owner = attribute.NamedArguments.FirstOrDefault(pair => pair.Key == "ComponentId").Value.Value as string;
             owner ??= plugins.Length == 1 ? owners.Keys.Single() : null;
             if (owner is null || !owners.TryGetValue(owner, out var matches) || matches.Length != 1)
-            { Report(output, capability, "能力须唯一归属本程序集的 QianPlugin；多组件程序集必须声明 ComponentId。"); continue; }
+            { Report(output, capability, "能力须唯一归属本程序集的 KunPlugin；多组件程序集必须声明 ComponentId。"); continue; }
             var plugin = matches[0];
             if (!Matches(owner, @"^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$") || owner.Length > 128 || plugin.IsAbstract || plugin.IsGenericType || plugin.ContainingType is not null || !plugin.AllInterfaces.Any(i => i.ToDisplayString() == "Kun.Runtime.IKunPlugin"))
-            { Report(output, capability, "QianPlugin 必须具有合法组件 ID，并实现 IKunPlugin。"); continue; }
+            { Report(output, capability, "KunPlugin 必须具有合法组件 ID，并实现 IKunPlugin。"); continue; }
             resolved.Add((capability, owner));
         }
         foreach (var group in resolved.GroupBy(item => item.Component + "/" + Attribute(item.Type, "CapabilityAttribute").ConstructorArguments[0].Value, StringComparer.Ordinal))
@@ -55,8 +55,8 @@ public sealed class CapabilityGenerator : IIncrementalGenerator
         var syntax = request.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<TypeDeclarationSyntax>().ToArray();
         if (request.ContainingType is not null || request.TypeParameters.Length != 0 || syntax.Any(s => !s.Modifiers.Any(SyntaxKind.PartialKeyword)))
         { Report(output, request, "能力请求必须是顶层非泛型 partial 类型。"); return; }
-        if (request.GetMembers("QianCapability").Length != 0 || request.GetMembers("RequiredPermissions").Length != 0)
-        { Report(output, request, "QianCapability 与 RequiredPermissions 名称保留给生成契约。"); return; }
+        if (request.GetMembers("KunCapability").Length != 0 || request.GetMembers("RequiredPermissions").Length != 0)
+        { Report(output, request, "KunCapability 与 RequiredPermissions 名称保留给生成契约。"); return; }
         var attribute = Attribute(request, "CapabilityAttribute"); var args = attribute.ConstructorArguments;
         var name = args[0].Value as string ?? "";
         if (args[1].Value is not INamedTypeSymbol response || args[2].Value is not INamedTypeSymbol serializer)
@@ -103,14 +103,14 @@ public sealed class CapabilityGenerator : IIncrementalGenerator
             var clrName = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(property.Name, true);
             return "(" + contextName + ".Default.Options.PropertyNamingPolicy?.ConvertName(" + clrName + ") ?? " + clrName + ")";
         });
-        var source = "// <auto-generated/>\n#nullable enable\n" + ns + "partial " + kind + " @" + request.Name + " : global::Qian.Plugin.Sdk.ICapabilityRequest<" + responseName + ">\n{\n" +
+        var source = "// <auto-generated/>\n#nullable enable\n" + ns + "partial " + kind + " @" + request.Name + " : global::Kun.Plugin.Sdk.ICapabilityRequest<" + responseName + ">\n{\n" +
             "    public static global::System.Collections.Generic.IReadOnlyList<string> RequiredPermissions { get; } = global::System.Array.AsReadOnly<string>([" + (permission.Length == 0 ? "" : Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(permission, true)) + "]);\n" +
-            "    public static global::Qian.Plugin.Sdk.CapabilityContract QianCapability { get; } = new(\n" +
+            "    public static global::Kun.Plugin.Sdk.CapabilityContract KunCapability { get; } = new(\n" +
             "        " + Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(component, true) + ",\n" +
             "        " + Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(metadata, true) + ",\n" +
             "        " + contextName + ".Default.GetTypeInfo(typeof(" + requestName + "))!,\n" +
             "        " + contextName + ".Default.GetTypeInfo(typeof(" + responseName + "))!, [" + string.Join(", ", sensitiveNames) + "]);\n}\n";
-        output.AddSource(request.ToDisplayString().Replace("@", "").Replace('.', '_') + ".QianCapability.g.cs", SourceText.From(source, Encoding.UTF8));
+        output.AddSource(request.ToDisplayString().Replace("@", "").Replace('.', '_') + ".KunCapability.g.cs", SourceText.From(source, Encoding.UTF8));
     }
 
     private static List<IPropertySymbol>? SensitiveProperties(INamedTypeSymbol request)
@@ -130,7 +130,7 @@ public sealed class CapabilityGenerator : IIncrementalGenerator
                     if (ignored is not null && (!ignored.NamedArguments.Any(p => p.Key == "Condition") || ignored.NamedArguments.First(p => p.Key == "Condition").Value.Value is 1)) continue;
                     var sensitive = false;
                     for (var current = property; current is not null; current = current.OverriddenProperty)
-                        sensitive |= current.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.SensitiveAttribute");
+                        sensitive |= current.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.SensitiveAttribute");
                     if (sensitive)
                     {
                         if (!root) return false;
@@ -148,7 +148,7 @@ public sealed class CapabilityGenerator : IIncrementalGenerator
         for (var current = symbol.BaseType; current is not null; current = current.BaseType) if (current.ToDisplayString() == name) return true;
         return false;
     }
-    private static AttributeData Attribute(INamedTypeSymbol symbol, string name) => symbol.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk." + name);
+    private static AttributeData Attribute(INamedTypeSymbol symbol, string name) => symbol.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk." + name);
     private static string Text(AttributeData data, string name, string fallback) => data.NamedArguments.FirstOrDefault(p => p.Key == name).Value.Value as string ?? fallback;
     private static bool Boolean(AttributeData data, string name, bool fallback) => data.NamedArguments.FirstOrDefault(p => p.Key == name).Value.Value is bool value ? value : fallback;
     private static string[] Strings(AttributeData data, string name)

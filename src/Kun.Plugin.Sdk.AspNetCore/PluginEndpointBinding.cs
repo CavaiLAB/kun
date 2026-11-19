@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Plugin.Sdk.AspNetCore;
+namespace Kun.Plugin.Sdk.AspNetCore;
 
 /// <summary>宿主绑定到真实组件注册的端点元数据；值不能从请求输入推导。</summary>
 public sealed class PluginEndpointBinding

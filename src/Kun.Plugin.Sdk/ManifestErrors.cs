@@ -1,12 +1,12 @@
 using Kun.Errors;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>可信组件清单构建的错误目录；不改变市场准入或运行权限。</summary>
 public static class ManifestErrors
 {
     /// <summary>程序集缺少组件注解或派生工厂。</summary>
-    public static readonly ErrorCode MetadataMissing = Code("SDK_METADATA_MISSING", "程序集没有 QianPlugin 入口与派生元数据");
+    public static readonly ErrorCode MetadataMissing = Code("SDK_METADATA_MISSING", "程序集没有 KunPlugin 入口与派生元数据");
     /// <summary>清单 ID 没有匹配的组件入口。</summary>
     public static readonly ErrorCode ComponentMismatch = Code("SDK_COMPONENT_MISMATCH", "清单 ID 与代码入口不匹配");
     /// <summary>出现第二份组件清单。</summary>

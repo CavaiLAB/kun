@@ -1,6 +1,6 @@
 using Kun.Core.Cqrs;
 using Kun.EventBus.Outbox;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 
 internal sealed record ThingRead(Guid Id);
 [Capability("thing.get", typeof(int), typeof(object))]

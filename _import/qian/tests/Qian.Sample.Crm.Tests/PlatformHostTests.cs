@@ -26,8 +26,8 @@ using Qian.Data;
 using Qian.Gateway;
 using Qian.Lifecycle;
 using Qian.Platform.Host;
-using Qian.Plugin.Sdk;
-using Qian.Plugin.Sdk.AspNetCore;
+using Kun.Plugin.Sdk;
+using Kun.Plugin.Sdk.AspNetCore;
 using Qian.Registry;
 using Kun.Runtime;
 using Qian.Surfaces;
@@ -56,7 +56,7 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
             .MapEndpoints((endpoints, _) =>
             {
                 endpoints.MapGet("/api/host-extension/plain", () => Results.Text("plain"));
-                endpoints.MapGet("/api/host-extension/component", () => Results.Text("component")).RequireQianPlugin(binding);
+                endpoints.MapGet("/api/host-extension/component", () => Results.Text("component")).RequireKunPlugin(binding);
                 endpoints.MapGet("/api/{area}/host-extension-probe", (string area) => Results.Text(area));
             })
             .AddOperations("/api/host-operations", (endpoints, _) => endpoints.MapGet("/api/host-operations/ping", () => Results.Text("operations"))));
@@ -583,10 +583,10 @@ public abstract partial class CustomerCommandTests
                         services => services.AddAppData<CrmDbContext>(CrmDbContext.Schema)))
                     .AddEvents(registrar => registrar.RegisterCrmEvents())
                     .AddMediator(mediator => mediator
-                        .AddQianCapability<CreateCustomerCommand, CustomerItem, CreateCustomerHandler, CrmDbContext>(Crm)
-                        .AddQianCapability<ListCustomersQuery, CustomerPage, ListCustomersHandler, CrmDbContext>(Crm)
-                        .AddQianCapability<GetCustomerQuery, CustomerItem, GetCustomerHandler, CrmDbContext>(Crm)
-                        .AddQianCapability<PurgeCustomersCommand, CustomerPurgeResult, PurgeCustomersHandler, CrmDbContext>(Crm))
+                        .AddKunCapability<CreateCustomerCommand, CustomerItem, CreateCustomerHandler, CrmDbContext>(Crm)
+                        .AddKunCapability<ListCustomersQuery, CustomerPage, ListCustomersHandler, CrmDbContext>(Crm)
+                        .AddKunCapability<GetCustomerQuery, CustomerItem, GetCustomerHandler, CrmDbContext>(Crm)
+                        .AddKunCapability<PurgeCustomersCommand, CustomerPurgeResult, PurgeCustomersHandler, CrmDbContext>(Crm))
                     .AddLifecycleHooks((id, _) => id == "qian.sample.crm" ? new CrmPlugin() : null);
                 extend?.Invoke(composition);
             }, builder =>

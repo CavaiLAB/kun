@@ -2,14 +2,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Runtime;
 
-namespace Qian.Plugin.Sdk.Tests;
+namespace Kun.Plugin.Sdk.Tests;
 
 public sealed class GeneratedContractTests
 {
     [Fact]
     public void 实际编译生成契约保留描述权限和Agent字段_输入响应来自JsonTypeInfo()
     {
-        var contract = CreateRequest.QianCapability; var metadata = contract.Metadata;
+        var contract = CreateRequest.KunCapability; var metadata = contract.Metadata;
         Assert.Equal("qian.sdk-tests/customer.create", contract.Id);
         Assert.Equal("为当前租户创建客户，已有客户请使用查询。", metadata.GetProperty("description").GetString());
         Assert.Equal("qian.sdk-tests:customer:create", metadata.GetProperty("requiredPermission").GetString());
@@ -27,9 +27,9 @@ public sealed class GeneratedContractTests
     [Fact]
     public void 组件入口和服务键从实际代码派生_不会实例化业务插件()
     {
-        var metadata = new ContractPluginQianCodeMetadata().Create();
+        var metadata = new ContractPluginKunCodeMetadata().Create();
         Assert.Equal("qian.sdk-tests", metadata.ComponentId);
-        Assert.Equal("Qian.Plugin.Sdk.Tests.ContractPlugin, Qian.Plugin.Sdk.Tests", metadata.RuntimeEntry);
+        Assert.Equal("Kun.Plugin.Sdk.Tests.ContractPlugin, Kun.Plugin.Sdk.Tests", metadata.RuntimeEntry);
         Assert.Equal("TestInput", Assert.Single(metadata.Inject)); Assert.Equal("TestOutput", Assert.Single(metadata.Provides));
         Assert.Equal(3, metadata.Capabilities.Count);
     }
@@ -37,14 +37,14 @@ public sealed class GeneratedContractTests
     [Fact]
     public void 查询默认不审计_显式开启后记录_派生副本修改不影响原契约()
     {
-        Assert.False(ReadRequest.QianCapability.Metadata.GetProperty("audit").GetBoolean());
-        Assert.True(AuditedReadRequest.QianCapability.Metadata.GetProperty("audit").GetBoolean());
-        var schema = CreateRequest.QianCapability.InputSchema; schema["properties"]!["name"] = null;
-        Assert.NotNull(CreateRequest.QianCapability.InputSchema["properties"]!["name"]);
+        Assert.False(ReadRequest.KunCapability.Metadata.GetProperty("audit").GetBoolean());
+        Assert.True(AuditedReadRequest.KunCapability.Metadata.GetProperty("audit").GetBoolean());
+        var schema = CreateRequest.KunCapability.InputSchema; schema["properties"]!["name"] = null;
+        Assert.NotNull(CreateRequest.KunCapability.InputSchema["properties"]!["name"]);
     }
 }
 
-[QianPlugin("qian.sdk-tests")]
+[KunPlugin("qian.sdk-tests")]
 internal sealed class ContractPlugin : IKunPlugin
 {
     public IReadOnlyList<ServiceKey> Inject => [ContractKeys.Input];

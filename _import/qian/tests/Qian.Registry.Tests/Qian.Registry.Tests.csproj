@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <ProjectReference Include="../../packages/Qian.Plugin.Sdk.AspNetCore/Qian.Plugin.Sdk.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Tenancy/Qian.Tenancy.csproj" />
     <ProjectReference Include="../../packages/Qian.Registry.AspNetCore/Qian.Registry.AspNetCore.csproj" />

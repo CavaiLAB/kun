@@ -19,7 +19,7 @@ using Qian.Gateway;
 using Qian.Gateway.Host;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Client;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using StackExchange.Redis;
 

@@ -1,10 +1,10 @@
 using Kun.Runtime;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>编译程序集暴露的生成元数据入口；只用于可信项目的构建期工具。</summary>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-public sealed class QianCodeMetadataAttribute(Type factoryType) : Attribute
+public sealed class KunCodeMetadataAttribute(Type factoryType) : Attribute
 {
     /// <summary>由源生成器产生、实现 IComponentCodeMetadataFactory 的工厂。</summary>
     public Type FactoryType { get; } = factoryType;

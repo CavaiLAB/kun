@@ -1,9 +1,9 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Qian.Plugin.Sdk.Generators;
+using Kun.Plugin.Sdk.Generators;
 
-namespace Qian.Plugin.Sdk.Tests;
+namespace Kun.Plugin.Sdk.Tests;
 
 public sealed class ComponentGeneratorTests
 {
@@ -11,8 +11,8 @@ public sealed class ComponentGeneratorTests
         .Select(path => MetadataReference.CreateFromFile(path)).ToArray();
     private const string Source = """
         using System; using System.Threading; using System.Threading.Tasks; using System.Collections.Generic;
-        using System.Text.Json; using Kun.Runtime; using Qian.Plugin.Sdk;
-        [QianPlugin("qian.example")]
+        using System.Text.Json; using Kun.Runtime; using Kun.Plugin.Sdk;
+        [KunPlugin("qian.example")]
         public sealed class Plugin : IKunPlugin
         {
             public IReadOnlyList<ServiceKey> Inject => [];
@@ -35,7 +35,7 @@ public sealed class ComponentGeneratorTests
     public void 无法静态证明的注册明确报错_不生成空提供项(string before, string after)
     {
         var result = Generate(Source.Replace(before, after, StringComparison.Ordinal));
-        Assert.Equal("QIANSDK002", Assert.Single(result.Diagnostics).Id); Assert.Empty(result.GeneratedTrees);
+        Assert.Equal("KUNSDK002", Assert.Single(result.Diagnostics).Id); Assert.Empty(result.GeneratedTrees);
     }
     [Fact]
     public void 直接注册及空注入可生成组件元数据() => Assert.Single(Generate(Source).GeneratedTrees);
@@ -46,7 +46,7 @@ public sealed class ComponentGeneratorTests
     {
         var result = Generate(Source.Replace("ctx.Provide(new ServiceKey(\"Visible\"), new object());", registration, StringComparison.Ordinal));
         if (valid) { Assert.Empty(result.Diagnostics); Assert.Contains(":pg", Assert.Single(result.GeneratedTrees).ToString(), StringComparison.Ordinal); }
-        else Assert.Equal("QIANSDK002", Assert.Single(result.Diagnostics).Id);
+        else Assert.Equal("KUNSDK002", Assert.Single(result.Diagnostics).Id);
     }
 
     [Theory]
@@ -56,14 +56,14 @@ public sealed class ComponentGeneratorTests
     [InlineData("registry.Register(\"mysql\", new object());", false)]
     public void 独立贡献绑定实际注册表符号_同名无关方法不能冒充(string registration, bool valid)
     {
-        var source = Source.Replace("[QianPlugin(\"qian.example\")]", "[QianPlugin(\"qian.example\")][Contributes(typeof(Keys), nameof(Keys.Dialects), \"pg\", RegistryType = typeof(IRegistry))]", StringComparison.Ordinal)
+        var source = Source.Replace("[KunPlugin(\"qian.example\")]", "[KunPlugin(\"qian.example\")][Contributes(typeof(Keys), nameof(Keys.Dialects), \"pg\", RegistryType = typeof(IRegistry))]", StringComparison.Ordinal)
             .Replace("ctx.Provide(new ServiceKey(\"Visible\"), new object());", "IRegistry registry = null!; Other unrelated = null!; " + registration, StringComparison.Ordinal) + """
             public static class Keys { public static readonly ServiceKey Dialects = new("Data.Dialects"); }
             public interface IRegistry { IDisposable Register(string name, object value); }
             public sealed class Other { public IDisposable Register(string name, object value) => null!; }
             """;
         var result = Generate(source);
-        if (valid) Assert.Empty(result.Diagnostics); else Assert.Contains(result.Diagnostics, d => d.Id == "QIANSDK002");
+        if (valid) Assert.Empty(result.Diagnostics); else Assert.Contains(result.Diagnostics, d => d.Id == "KUNSDK002");
     }
 
     [Theory]
@@ -80,7 +80,7 @@ public sealed class ComponentGeneratorTests
             "CommandPolicies.Register(ctx, CommandPolicyKind." + kind + ", (invocation, next) => next());", StringComparison.Ordinal);
         var result = Generate(source);
         if (valid) { Assert.Empty(result.Diagnostics); Assert.Contains(kind + "Key.Name", Assert.Single(result.GeneratedTrees).ToString(), StringComparison.Ordinal); }
-        else Assert.Contains(result.Diagnostics, d => d.Id == "QIANSDK002");
+        else Assert.Contains(result.Diagnostics, d => d.Id == "KUNSDK002");
     }
 
     [Theory]
@@ -91,8 +91,8 @@ public sealed class ComponentGeneratorTests
     public void 稳定委托入口必须转交当前全部参数且不漏执行(string call, bool valid)
     {
         var source = """
-            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Qian.Plugin.Sdk;
-            [QianPlugin("qian.example")][DelegatePlugin(typeof(Implementation))][Provides(typeof(Keys), nameof(Keys.Value))]
+            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Kun.Plugin.Sdk;
+            [KunPlugin("qian.example")][DelegatePlugin(typeof(Implementation))][Provides(typeof(Keys), nameof(Keys.Value))]
             public sealed class Entry : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => CALL;
@@ -104,19 +104,19 @@ public sealed class ComponentGeneratorTests
             }
             """.Replace("CALL", call, StringComparison.Ordinal);
         var result = Generate(source);
-        if (valid) Assert.Empty(result.Diagnostics); else Assert.Contains(result.Diagnostics, d => d.Id == "QIANSDK002");
+        if (valid) Assert.Empty(result.Diagnostics); else Assert.Contains(result.Diagnostics, d => d.Id == "KUNSDK002");
     }
 
     [Fact]
     public void 重复组件ID不能生成竞争入口()
     {
         var source = Source + """
-            [QianPlugin("qian.example")] public sealed class Second : IKunPlugin {
+            [KunPlugin("qian.example")] public sealed class Second : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
             }
             """;
-        var result = Generate(source); Assert.Equal(2, result.Diagnostics.Count(d => d.Id == "QIANSDK002")); Assert.Empty(result.GeneratedTrees);
+        var result = Generate(source); Assert.Equal(2, result.Diagnostics.Count(d => d.Id == "KUNSDK002")); Assert.Empty(result.GeneratedTrees);
     }
 
     [Theory]
@@ -129,13 +129,13 @@ public sealed class ComponentGeneratorTests
     public void 共享事件要求唯一拥有者_不能借此共享权限或吞掉空声明(string scenario, bool valid)
     {
         var source = """
-            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Qian.Plugin.Sdk;
-            [QianPlugin("qian.owner", MetadataTypes = [typeof(Events)])]
+            using System; using System.Collections.Generic; using System.Text.Json; using System.Threading; using System.Threading.Tasks; using Kun.Runtime; using Kun.Plugin.Sdk;
+            [KunPlugin("qian.owner", MetadataTypes = [typeof(Events)])]
             public sealed class Owner : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
             }
-            [QianPlugin("qian.consumer")][SharedEvents(typeof(Events), "qian.owner")]
+            [KunPlugin("qian.consumer")][SharedEvents(typeof(Events), "qian.owner")]
             public sealed class Consumer : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
@@ -148,7 +148,7 @@ public sealed class ComponentGeneratorTests
         {
             "missing-owner" => source.Replace("MetadataTypes = [typeof(Events)]", "MetadataTypes = []", StringComparison.Ordinal),
             "wrong-owner" => source.Replace("SharedEvents(typeof(Events), \"qian.owner\")", "SharedEvents(typeof(Events), \"qian.missing\")", StringComparison.Ordinal),
-            "duplicate-owner" => source.Replace("QianPlugin(\"qian.consumer\")", "QianPlugin(\"qian.consumer\", MetadataTypes = [typeof(Events)])", StringComparison.Ordinal),
+            "duplicate-owner" => source.Replace("KunPlugin(\"qian.consumer\")", "KunPlugin(\"qian.consumer\", MetadataTypes = [typeof(Events)])", StringComparison.Ordinal),
             "permissions" => source.Replace("public static class Events", "[Qian.Authz.Abstractions.Permission(\"notes\", \"read\")] public static class Events", StringComparison.Ordinal),
             "empty" => source.Replace("[KunEvent(Mode = DispatchMode.Emit)]", "", StringComparison.Ordinal),
             _ => source
@@ -159,7 +159,7 @@ public sealed class ComponentGeneratorTests
             Assert.Empty(result.Diagnostics); Assert.Equal(2, result.GeneratedTrees.Length);
             Assert.All(result.GeneratedTrees, tree => Assert.Contains("global::Events.Reloaded, (global::Kun.Runtime.DispatchMode)0, \"Events.Reloaded\", \"qian.owner\"", tree.ToString(), StringComparison.Ordinal));
         }
-        else Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "QIANSDK002");
+        else Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "KUNSDK002");
     }
 
     private static GeneratorDriverRunResult Generate(string source)

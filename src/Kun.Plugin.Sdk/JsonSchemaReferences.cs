@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace Qian.Plugin.Sdk;
+namespace Kun.Plugin.Sdk;
 
 /// <summary>源生成与实际 HTTP 描述共用的 JSON Schema 引用处理。</summary>
 public static class JsonSchemaReferences

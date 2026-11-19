@@ -16,8 +16,8 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <InternalsVisibleTo Include="Qian.Tenancy.Tests" />
   </ItemGroup>
-  <ItemGroup><ProjectReference Include="../Qian.Plugin.Sdk/Qian.Plugin.Sdk.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Plugin.Sdk.Generators/Qian.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

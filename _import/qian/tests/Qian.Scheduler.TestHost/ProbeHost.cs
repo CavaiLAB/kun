@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
@@ -107,7 +107,7 @@ public sealed class ProbeHost : IAsyncDisposable
     }
 }
 
-[QianPlugin("qian.scheduler.probe")]
+[KunPlugin("qian.scheduler.probe")]
 public sealed class ProbePlugin : IKunPlugin
 {
     public IReadOnlyList<ServiceKey> Inject => [];
@@ -115,7 +115,7 @@ public sealed class ProbePlugin : IKunPlugin
     { ctx.ProvideJob<ProbeRequest, ProbeResponse>(); return ValueTask.CompletedTask; }
 }
 
-[QianJob("probe")]
+[KunJob("probe")]
 [Capability("run", typeof(ProbeResponse), typeof(ProbeJson), Description = "集群调度验收探针：持久记录每次处理器进入与幂等业务效果。", SideEffect = "write", Idempotent = true, RequiredPermission = "qian.scheduler.probe:job:run")]
 public sealed partial record ProbeRequest(Guid IdempotencyKey, string Mode = "normal", int DelayMs = 0);
 public sealed record ProbeResponse(bool Applied);

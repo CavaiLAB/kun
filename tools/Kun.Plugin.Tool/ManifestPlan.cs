@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Json.Schema;
 using System.Text.Json.Nodes;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 
-namespace Qian.Plugin.Tool;
+namespace Kun.Plugin.Tool;
 
 internal sealed record PlannedFile(string File, JsonNode? Content);
 internal sealed record ManifestDrift(string File, string Pointer);

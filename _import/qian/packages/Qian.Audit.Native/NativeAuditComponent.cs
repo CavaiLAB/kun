@@ -3,15 +3,15 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data.Native;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Audit.Native;
 
 /// <summary>原生 PostgreSQL 审计的唯一组件入口。</summary>
-[QianPlugin("qian.audit.native")]
-[QianConfigSchema(NativeAuditConfiguration.Schema)]
+[KunPlugin("qian.audit.native")]
+[KunConfigSchema(NativeAuditConfiguration.Schema)]
 [DelegatePlugin(typeof(NativeAuditPlugin))]
 [Provides(typeof(AuditDefinition), nameof(AuditDefinition.Key))]
 [Provides(typeof(CommandPolicies), nameof(CommandPolicies.AuditKey))]

@@ -7,7 +7,7 @@
     <KunTierException Include="Qian.Identity.Abstractions" Rule="K" Until="B4" Reason="用 Principal、ICurrentUser 等身份类型；B4 拆包时移进平台档的那一半，不拆就等 B7 Principal 下沉 Kun.Security" />
     <KunTierException Include="Qian.Surfaces.Abstractions" Rule="K" Until="B4" Reason="用钩子的 HookDefinition、IHookHandler；B4 拆包时移进平台档的那一半，不拆就等 B10 表面一域归位" />
   </ItemGroup>
-  <ItemGroup><ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" /><ProjectReference Include="../Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" /><ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" /><ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" /><ProjectReference Include="../Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="../Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" /><ProjectReference Include="../../_import/qian/packages/Qian.Data.Abstractions/Qian.Data.Abstractions.csproj" /><ProjectReference Include="../../_import/qian/packages/Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" /><ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" /><ProjectReference Include="../../_import/qian/packages/Qian.Events.Abstractions/Qian.Events.Abstractions.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" /></ItemGroup>
   <ItemGroup><PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" /></ItemGroup>
 </Project>

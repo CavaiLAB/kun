@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Qian.Plugin.Sdk;
+using Kun.Plugin.Sdk;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Capabilities;

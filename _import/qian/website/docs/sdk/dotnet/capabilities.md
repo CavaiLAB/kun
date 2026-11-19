@@ -22,14 +22,14 @@ updated: 2026-10-22
 
 ## 代码与唯一清单
 
-每个 `[QianPlugin]` 组件对应一份 `.qian-plugin/plugin.json` 和一个入口。同一程序集可包含多个不同组件 ID；`qian-plugin check|sync` 按目标清单 ID 选择，不合并不同组件的依赖。多组件程序集的 `[Capability]` 必须填写 `ComponentId`。契约包装器、动态表面适配器及宿主子插件通过仓库分类门记录归属，不各造一份清单。
+每个 `[KunPlugin]` 组件对应一份 `.qian-plugin/plugin.json` 和一个入口。同一程序集可包含多个不同组件 ID；`qian-plugin check|sync` 按目标清单 ID 选择，不合并不同组件的依赖。多组件程序集的 `[Capability]` 必须填写 `ComponentId`。契约包装器、动态表面适配器及宿主子插件通过仓库分类门记录归属，不各造一份清单。
 
 | 已派生 | 代码来源与落点 |
 |---|---|
 | 服务与具名贡献 | Inject / Provide、CommandPolicies 与按真实注册表符号绑定的 Contributes → inject / provides |
-| 形态与入口 | QianPlugin → runtime.form / runtime.entry |
+| 形态与入口 | KunPlugin → runtime.form / runtime.entry |
 | 工具 | Capability 与源生成 JsonTypeInfo，或与实际绑定共用的静态 CapabilitySource → tools/*.json |
-| 配置契约 | QianConfigSchema 的完整代码声明 → runtime.configSchema 与对应 Schema 文件 |
+| 配置契约 | KunConfigSchema 的完整代码声明 → runtime.configSchema 与对应 Schema 文件 |
 | 权限与事件 | Permission / KunEvent → metadata/permissions.json、metadata/events.json；带清单侧的来源与派生指针，不放进 plugin.json |
 
 id、版本、展示、策略、scope、包/镜像信息及表面路径仍手写；没有代码声明的权限文件与角色模板继续手写。动态 Inject、动态贡献名和未知上下文逃逸会报编译诊断，不生成空结果。需要不同构造模式的实现由固定薄入口明确依赖、委托目标与服务输出，真实装载负责验证提供项。
@@ -38,7 +38,7 @@ id、版本、展示、策略、scope、包/镜像信息及表面路径仍手写
 
 `sync` 沿既有表面目录写入，`check` 只读并报告文件与 JSON Pointer。清单保存权限、事件与配置文件的所属组件和内容哈希；手改这些文件后保留并报冲突，工具文件通过所属标记区分手写与派生。无组件注解、ID 不匹配、第二清单、手写覆盖、路径越界都有各自的 SDK 错误码及 `errors[]`。CI 自动发现所有代码入口并检查清单，同时拒绝漏分类的新实现。
 
-R94 将 IKunPlugin 基类、客户端门面、生命周期钩子基类与 DI 注册代码生成推迟到 S2；S1 继续使用接口和 ctx.Inject。`[QianJob]` 属于 S1-SCH-001 的调度器交付，不在本次生成器补齐范围内。UI/低代码及 Wasm 表面按各自 S2 规划，代码热装卸尚未承诺。清单已经派生不代表真实安装验收完成，`x-skeleton` 仍按每个组件的安装门维护。
+R94 将 IKunPlugin 基类、客户端门面、生命周期钩子基类与 DI 注册代码生成推迟到 S2；S1 继续使用接口和 ctx.Inject。`[KunJob]` 属于 S1-SCH-001 的调度器交付，不在本次生成器补齐范围内。UI/低代码及 Wasm 表面按各自 S2 规划，代码热装卸尚未承诺。清单已经派生不代表真实安装验收完成，`x-skeleton` 仍按每个组件的安装门维护。
 
 ## 通用执行入口
 

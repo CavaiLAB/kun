@@ -63,7 +63,7 @@ public sealed class TenantInitializationAuthorizationTests
     {
         var friends = typeof(AuthzDefinition).Assembly.GetCustomAttributes(typeof(InternalsVisibleToAttribute), false)
             .Cast<InternalsVisibleToAttribute>().Select(attribute => attribute.AssemblyName).Order().ToArray();
-        Assert.Equal("Qian.Authz,Qian.Plugin.Sdk,Qian.Tenancy", string.Join(",", friends));
+        Assert.Equal("Qian.Authz,Kun.Plugin.Sdk,Qian.Tenancy", string.Join(",", friends));
     }
 
     [Fact]

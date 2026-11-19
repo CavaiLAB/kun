@@ -6,19 +6,19 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Qian.Plugin.Sdk.Generators;
+namespace Kun.Plugin.Sdk.Generators;
 
 /// <summary>静态分析组件 Inject 与 Apply 的服务注册，生成唯一清单的构建期输入。</summary>
 [Generator(LanguageNames.CSharp)]
 public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
 {
-    private static readonly DiagnosticDescriptor Invalid = new("QIANSDK002", "组件注册不能静态派生", "{0}", "QianSdk", DiagnosticSeverity.Error, true);
+    private static readonly DiagnosticDescriptor Invalid = new("KUNSDK002", "组件注册不能静态派生", "{0}", "KunSdk", DiagnosticSeverity.Error, true);
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var plugins = context.SyntaxProvider.ForAttributeWithMetadataName("Qian.Plugin.Sdk.QianPluginAttribute", static (_, _) => true,
+        var plugins = context.SyntaxProvider.ForAttributeWithMetadataName("Kun.Plugin.Sdk.KunPluginAttribute", static (_, _) => true,
             static (syntax, _) => (INamedTypeSymbol)syntax.TargetSymbol).Collect();
-        var requests = context.SyntaxProvider.ForAttributeWithMetadataName("Qian.Plugin.Sdk.CapabilityAttribute", static (_, _) => true,
+        var requests = context.SyntaxProvider.ForAttributeWithMetadataName("Kun.Plugin.Sdk.CapabilityAttribute", static (_, _) => true,
             static (syntax, _) => (INamedTypeSymbol)syntax.TargetSymbol).Collect();
         context.RegisterSourceOutput(plugins.Combine(requests).Combine(context.CompilationProvider), static (output, input) => Generate(output, input.Left.Left, input.Left.Right, input.Right));
     }
@@ -27,19 +27,19 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
         if (plugins.Length == 0) return;
         foreach (var request in requests)
             if (CapabilityOwner(request, plugins) is not { } owner || plugins.Count(plugin => Id(plugin) == owner) != 1)
-            { Report(output, request, "能力必须唯一归属一个 QianPlugin；多组件程序集必须声明 ComponentId。"); return; }
+            { Report(output, request, "能力必须唯一归属一个 KunPlugin；多组件程序集必须声明 ComponentId。"); return; }
         foreach (var group in plugins.GroupBy(Id, StringComparer.Ordinal))
         {
             if (group.Count() != 1) { foreach (var plugin in group) Report(output, plugin, "组件 ID 重复；每个 ID 必须只有一个入口。"); continue; }
             GeneratePlugin(output, group.Single(), requests, plugins, compilation);
         }
     }
-    private static string Id(INamedTypeSymbol type) => type.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianPluginAttribute").ConstructorArguments[0].Value as string ?? "";
+    private static string Id(INamedTypeSymbol type) => type.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.KunPluginAttribute").ConstructorArguments[0].Value as string ?? "";
     private static void GeneratePlugin(SourceProductionContext output, INamedTypeSymbol type, ImmutableArray<INamedTypeSymbol> requests, ImmutableArray<INamedTypeSymbol> plugins, Compilation compilation)
     {
         if (!type.AllInterfaces.Any(i => i.ToDisplayString() == "Kun.Runtime.IKunPlugin") || type.IsAbstract || type.IsGenericType || type.ContainingType is not null)
-        { Report(output, type, "QianPlugin 必须是顶层、非泛型、可实例化的 IKunPlugin 实现。"); return; }
-        var id = type.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianPluginAttribute").ConstructorArguments[0].Value as string;
+        { Report(output, type, "KunPlugin 必须是顶层、非泛型、可实例化的 IKunPlugin 实现。"); return; }
+        var id = type.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.KunPluginAttribute").ConstructorArguments[0].Value as string;
         if (id is null || id.Length > 128 || !System.Text.RegularExpressions.Regex.IsMatch(id, @"^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)))
         { Report(output, type, "组件 ID 必须符合冻结清单格式。"); return; }
         var injectProperty = type.GetMembers("Inject").OfType<IPropertySymbol>().SingleOrDefault();
@@ -49,9 +49,9 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
         if (expression is not CollectionExpressionSyntax collection)
         { Report(output, type, "Inject 目前须使用服务键集合表达式，不能调用动态代码。"); return; }
         var inject = new List<string>(); var provides = new List<string>();
-        var delegateType = type.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.DelegatePluginAttribute")?.ConstructorArguments[0].Value as INamedTypeSymbol;
+        var delegateType = type.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.DelegatePluginAttribute")?.ConstructorArguments[0].Value as INamedTypeSymbol;
         var contributions = new List<(string Key, string Name, INamedTypeSymbol? Registry)>();
-        foreach (var declaration in type.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() is "Qian.Plugin.Sdk.ProvidesAttribute" or "Qian.Plugin.Sdk.ContributesAttribute"))
+        foreach (var declaration in type.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() is "Kun.Plugin.Sdk.ProvidesAttribute" or "Kun.Plugin.Sdk.ContributesAttribute"))
         {
             var key = DeclaredKey(declaration);
             if (key is null) { Report(output, type, "独立服务声明须引用公开静态只读 ServiceKey 字段。"); return; }
@@ -94,10 +94,10 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
             if (use.Parent is IInvocationOperation member && ReferenceEquals(member.Instance, use)) continue;
             if (use.Parent is IArgumentOperation argument && argument.Parent is IInvocationOperation guard &&
                 (guard.TargetMethod.ContainingType.ToDisplayString() == "System.ArgumentNullException" && guard.TargetMethod.Name == "ThrowIfNull" ||
-                 guard.TargetMethod.ContainingAssembly.Name == "Qian.Plugin.Sdk" && guard.TargetMethod.ContainingType.ToDisplayString() == "Qian.Plugin.Sdk.CommandPolicies" && guard.TargetMethod.Name == "Register" ||
+                 guard.TargetMethod.ContainingAssembly.Name == "Kun.Plugin.Sdk" && guard.TargetMethod.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.CommandPolicies" && guard.TargetMethod.Name == "Register" ||
                  delegateType is not null && SymbolEqualityComparer.Default.Equals(guard.TargetMethod.ContainingType, delegateType) && guard.TargetMethod.Name == "ApplyAsync")) continue;
             if (use.Parent is IArgumentOperation capabilityArgument && capabilityArgument.Parent is IInvocationOperation capability &&
-                capability.TargetMethod.ContainingAssembly.Name == "Qian.Plugin.Sdk" && capability.TargetMethod.ContainingType.ToDisplayString() == "Qian.Plugin.Sdk.CapabilityBindingRegistration" && capability.TargetMethod.Name == "ProvideCapability") continue;
+                capability.TargetMethod.ContainingAssembly.Name == "Kun.Plugin.Sdk" && capability.TargetMethod.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.CapabilityBindingRegistration" && capability.TargetMethod.Name == "ProvideCapability") continue;
             Report(output, type, "Apply 上下文不能逃逸到辅助方法或局部别名；否则无法证明提供的服务与代码一致。"); return;
         }
         var usedContributions = new HashSet<string>(StringComparer.Ordinal); var delegated = 0;
@@ -129,13 +129,13 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
                     usedContributions.Add(key + ":" + text);
                 }
             }
-            else if (method.Name == "Register" && method.ContainingAssembly.Name == "Qian.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Qian.Plugin.Sdk.CommandPolicies")
+            else if (method.Name == "Register" && method.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.CommandPolicies")
             {
                 if (delegateType is not null || Conditional(syntax, apply) || invocation.Arguments[1].Value.ConstantValue.Value is not int kind || kind < 0 || kind > 2)
                 { Report(output, type, "CommandPolicies.Register 必须使用直接、无条件的固定策略种类。"); return; }
                 var owner = new[] { "qian.tenancy", "qian.authz", "qian.audit" }[kind];
                 if (id != owner && !(kind == 2 && id == "qian.audit.native")) { Report(output, type, "命令策略只能属于对应的平台组件。"); return; }
-                provided = "global::Qian.Plugin.Sdk.CommandPolicies." + new[] { "TenancyKey", "AuthorizationKey", "AuditKey" }[kind] + ".Name";
+                provided = "global::Kun.Plugin.Sdk.CommandPolicies." + new[] { "TenancyKey", "AuthorizationKey", "AuditKey" }[kind] + ".Name";
             }
             else if (method.Name == "Register" && invocation.Arguments.Length >= 2 && invocation.Arguments[0].Parameter?.Type.SpecialType == SpecialType.System_String)
             {
@@ -161,32 +161,32 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
         var declarations = Declarations(output, type, plugins, compilation);
         if (declarations is null) return;
         var capabilityExpressions = requests.Where(r => CapabilityOwner(r, plugins) == id).OrderBy(r => r.ToDisplayString(), StringComparer.Ordinal)
-            .Select(r => r.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + ".QianCapability").ToList();
-        foreach (var attribute in type.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.CapabilitySourceAttribute"))
+            .Select(r => r.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + ".KunCapability").ToList();
+        foreach (var attribute in type.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.CapabilitySourceAttribute"))
         {
             var owner = attribute.ConstructorArguments[0].Value as INamedTypeSymbol; var memberName = attribute.ConstructorArguments[1].Value as string;
             var member = owner?.GetMembers(memberName ?? "").SingleOrDefault();
             var memberType = member is IFieldSymbol field ? field.Type : (member as IPropertySymbol)?.Type;
             if (member is null || !member.IsStatic || member.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal) ||
-                memberType?.ToDisplayString() != "Qian.Plugin.Sdk.CapabilityContract" || member is IFieldSymbol { IsReadOnly: false } || member is IPropertySymbol { SetMethod: not null })
+                memberType?.ToDisplayString() != "Kun.Plugin.Sdk.CapabilityContract" || member is IFieldSymbol { IsReadOnly: false } || member is IPropertySymbol { SetMethod: not null })
             { Report(output, type, "CapabilitySource 必须引用同程序集可访问的静态只读 CapabilityContract 声明。"); return; }
             var capabilityExpression = owner!.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "." + member.Name;
             if (capabilityExpressions.Contains(capabilityExpression)) { Report(output, type, "同一能力来源不能重复登记。"); return; }
             capabilityExpressions.Add(capabilityExpression);
         }
-        var jobRequests = requests.Where(r => CapabilityOwner(r, plugins) == id && r.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianJobAttribute")).ToArray();
-        var jobCodes = jobRequests.Select(r => r.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianJobAttribute").ConstructorArguments[0].Value as string).ToArray();
-        if (jobCodes.Distinct(StringComparer.Ordinal).Count() != jobCodes.Length) { Report(output, type, "组件内 QianJob code 重复。"); return; }
-        var jobs = jobRequests.Select(r => "new global::Qian.Plugin.Sdk.JobContract(" + Literal(r.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianJobAttribute").ConstructorArguments[0].Value as string ?? "") + ", " + r.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + ".QianCapability)");
+        var jobRequests = requests.Where(r => CapabilityOwner(r, plugins) == id && r.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.KunJobAttribute")).ToArray();
+        var jobCodes = jobRequests.Select(r => r.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.KunJobAttribute").ConstructorArguments[0].Value as string).ToArray();
+        if (jobCodes.Distinct(StringComparer.Ordinal).Count() != jobCodes.Length) { Report(output, type, "组件内 KunJob code 重复。"); return; }
+        var jobs = jobRequests.Select(r => "new global::Kun.Plugin.Sdk.JobContract(" + Literal(r.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.KunJobAttribute").ConstructorArguments[0].Value as string ?? "") + ", " + r.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + ".KunCapability)");
         var ns = type.ContainingNamespace.IsGlobalNamespace ? "" : type.ContainingNamespace.ToDisplayString();
-        var factory = type.Name + "QianCodeMetadata";
+        var factory = type.Name + "KunCodeMetadata";
         if (type.ContainingNamespace.GetTypeMembers(factory).Length != 0) { Report(output, type, "生成元数据工厂名称已被占用。"); return; }
         var qualifiedFactory = "global::" + (ns.Length == 0 ? "" : ns + ".") + factory;
         var entry = type.ToDisplayString() + ", " + compilation.AssemblyName;
-        var source = "// <auto-generated/>\n#nullable enable\n[assembly: global::Qian.Plugin.Sdk.QianCodeMetadataAttribute(typeof(" + qualifiedFactory + "))]\n" +
-            (ns.Length == 0 ? "" : "namespace " + ns + ";\n") + "internal sealed class " + factory + " : global::Qian.Plugin.Sdk.IComponentCodeMetadataFactory\n{\n" +
+        var source = "// <auto-generated/>\n#nullable enable\n[assembly: global::Kun.Plugin.Sdk.KunCodeMetadataAttribute(typeof(" + qualifiedFactory + "))]\n" +
+            (ns.Length == 0 ? "" : "namespace " + ns + ";\n") + "internal sealed class " + factory + " : global::Kun.Plugin.Sdk.IComponentCodeMetadataFactory\n{\n" +
             "    public " + factory + "() { }\n" +
-            "    public global::Qian.Plugin.Sdk.ComponentCodeMetadata Create() => new(\n" +
+            "    public global::Kun.Plugin.Sdk.ComponentCodeMetadata Create() => new(\n" +
             "        " + Literal(id ?? "") + ", " + Literal(entry) + ",\n" +
             "        [" + string.Join(", ", inject) + "],\n        [" + string.Join(", ", provides.Distinct(StringComparer.Ordinal)) + "],\n" +
             "        [" + string.Join(", ", capabilityExpressions) + "],\n        " + declarations.Value.Permissions + ",\n        " + declarations.Value.Events + ",\n        " + declarations.Value.Config + ", [" + string.Join(", ", jobs) + "]);\n}\n";
@@ -207,7 +207,7 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
     }
     private static string? CapabilityOwner(INamedTypeSymbol request, ImmutableArray<INamedTypeSymbol> plugins)
     {
-        var attribute = request.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.CapabilityAttribute");
+        var attribute = request.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.CapabilityAttribute");
         return attribute.NamedArguments.FirstOrDefault(pair => pair.Key == "ComponentId").Value.Value as string ?? (plugins.Length == 1 ? Id(plugins[0]) : null);
     }
     private static bool IsCapabilityCall(SemanticModel model, IdentifierNameSyntax identifier)
@@ -215,7 +215,7 @@ public sealed partial class ComponentMetadataGenerator : IIncrementalGenerator
         if (identifier.Parent is not MemberAccessExpressionSyntax member || member.Expression != identifier || member.Parent is not InvocationExpressionSyntax call) return false;
         var info = model.GetSymbolInfo(call);
         var method = info.Symbol as IMethodSymbol ?? (info.CandidateSymbols.Length == 1 ? info.CandidateSymbols[0] as IMethodSymbol : null);
-        return method?.ContainingAssembly.Name == "Qian.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Qian.Plugin.Sdk.JobBindingRegistration" && method.Name == "ProvideJob" || method?.ContainingAssembly.Name == "Qian.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Qian.Plugin.Sdk.CapabilityBindingRegistration" && method.Name == "ProvideCapability" || method?.ContainingAssembly.Name == "Qian.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Qian.Plugin.Sdk.HookCapabilityRegistration" && method.Name == "ExposeCapabilityHook";
+        return method?.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.JobBindingRegistration" && method.Name == "ProvideJob" || method?.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.CapabilityBindingRegistration" && method.Name == "ProvideCapability" || method?.ContainingAssembly.Name == "Kun.Plugin.Sdk" && method.ContainingType.ToDisplayString() == "Kun.Plugin.Sdk.HookCapabilityRegistration" && method.Name == "ExposeCapabilityHook";
     }
 
     private static string? Key(IOperation? operation)

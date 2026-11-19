@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-namespace Qian.Plugin.Sdk.Generators;
+namespace Kun.Plugin.Sdk.Generators;
 
 public sealed partial class ComponentMetadataGenerator
 {
@@ -26,7 +26,7 @@ public sealed partial class ComponentMetadataGenerator
             { Report(output, type, "同一 MetadataTypes 声明不能归属多个组件。"); return null; }
             symbols.Add(type); symbols.AddRange(type.GetMembers());
         }
-        foreach (var shared in plugin.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.SharedEventsAttribute"))
+        foreach (var shared in plugin.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.SharedEventsAttribute"))
         {
             var type = shared.ConstructorArguments[0].Value as INamedTypeSymbol;
             var definitionComponent = shared.ConstructorArguments[1].Value as string;
@@ -46,8 +46,8 @@ public sealed partial class ComponentMetadataGenerator
         {
             foreach (var attribute in symbol.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() is "Qian.Authz.Abstractions.PermissionAttribute" or "Kun.Runtime.KunEventAttribute"))
             {
-                var explicitOwner = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.ComponentOwnerAttribute")?.ConstructorArguments[0].Value as string
-                    ?? symbol.ContainingType?.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.ComponentOwnerAttribute")?.ConstructorArguments[0].Value as string;
+                var explicitOwner = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.ComponentOwnerAttribute")?.ConstructorArguments[0].Value as string
+                    ?? symbol.ContainingType?.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.ComponentOwnerAttribute")?.ConstructorArguments[0].Value as string;
                 bool Contains(INamedTypeSymbol type) => SymbolEqualityComparer.Default.Equals(type, symbol) || SymbolEqualityComparer.Default.Equals(type, symbol.ContainingType);
                 var imported = explicitTypes.Any(Contains);
                 var owners = plugins.Where(p => MetadataTypes(p).Any(Contains)).ToArray();
@@ -78,16 +78,16 @@ public sealed partial class ComponentMetadataGenerator
                     { Report(output, symbol, "KunEvent 声明须为公开静态只读的强类型事件字段。"); return null; }
                     var reference = field.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "." + field.Name;
                     var mode = attribute.NamedArguments.FirstOrDefault(p => p.Key == "Mode").Value.Value is int value ? value : 0;
-                    events.Add("global::Qian.Plugin.Sdk.ComponentMetadataDeclarations.Event(" + reference + ", (global::Kun.Runtime.DispatchMode)" + mode + ", " + Literal(symbol.ToDisplayString()) + ", " + Literal(owner) + ")");
+                    events.Add("global::Kun.Plugin.Sdk.ComponentMetadataDeclarations.Event(" + reference + ", (global::Kun.Runtime.DispatchMode)" + mode + ", " + Literal(symbol.ToDisplayString()) + ", " + Literal(owner) + ")");
                 }
             }
         }
-        var config = plugin.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianConfigSchemaAttribute")?.ConstructorArguments[0].Value as string;
+        var config = plugin.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.KunConfigSchemaAttribute")?.ConstructorArguments[0].Value as string;
         return (Literal("[" + string.Join(",", permissions) + "]"), "new global::System.Text.Json.Nodes.JsonArray(" + string.Join(", ", events) + ").ToJsonString()", config is null ? "null" : Literal(config));
     }
     private static INamedTypeSymbol[] MetadataTypes(INamedTypeSymbol plugin)
     {
-        var included = plugin.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Qian.Plugin.Sdk.QianPluginAttribute")
+        var included = plugin.GetAttributes().Single(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.KunPluginAttribute")
             .NamedArguments.FirstOrDefault(p => p.Key == "MetadataTypes").Value;
         return included.IsNull || included.Kind != TypedConstantKind.Array ? [] : included.Values.Select(v => v.Value).OfType<INamedTypeSymbol>().ToArray();
     }

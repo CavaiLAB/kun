@@ -6,7 +6,7 @@ using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 using Qian.Testing;
 
-namespace Qian.Plugin.Sdk.Tests;
+namespace Kun.Plugin.Sdk.Tests;
 
 public sealed class TenantInitializationHookTests
 {
@@ -61,7 +61,7 @@ public sealed class TenantInitializationHookTests
             => SetSideEffect(sideEffect);
         internal void SetSideEffect(string sideEffect)
         {
-            var original = CreateRequest.QianCapability;
+            var original = CreateRequest.KunCapability;
             var metadata = JsonNode.Parse(original.Metadata.GetRawText())!; metadata["sideEffect"] = sideEffect;
             Contract = new CapabilityContract(original.ComponentId, metadata.ToJsonString(), original.RequestTypeInfo, original.ResponseTypeInfo);
         }

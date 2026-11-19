@@ -74,7 +74,7 @@ public sealed class GatewayConfigurationTests
         if (policy is null) node["routes"]![0]!.AsObject().Remove("rateLimiterPolicy");
         else node["routes"]![0]!["rateLimiterPolicy"] = policy;
         using var value = JsonDocument.Parse(node.ToJsonString());
-        var metadata = new GatewayComponentQianCodeMetadata().Create();
+        var metadata = new GatewayComponentKunCodeMetadata().Create();
         Assert.False(JsonSchema.FromText(metadata.ConfigSchema!.Value.GetRawText()).Evaluate(value.RootElement).IsValid);
         if (policy is null) Assert.Throws<JsonException>(() => GatewayHosting.ReadConfiguration(value.RootElement));
         else Assert.Throws<ArgumentException>(() => GatewayHosting.ReadConfiguration(value.RootElement));
@@ -91,7 +91,7 @@ public sealed class GatewayConfigurationTests
     {
         var node = JsonNode.Parse(Valid)!; node["rateLimits"] = new JsonObject { [name] = JsonNode.Parse(raw) };
         using var value = JsonDocument.Parse(node.ToJsonString());
-        var metadata = new GatewayComponentQianCodeMetadata().Create();
+        var metadata = new GatewayComponentKunCodeMetadata().Create();
         Assert.False(JsonSchema.FromText(metadata.ConfigSchema!.Value.GetRawText()).Evaluate(value.RootElement).IsValid);
         Assert.Throws<ArgumentException>(() => GatewayHosting.ReadConfiguration(value.RootElement));
     }

@@ -1,8 +1,7 @@
-using Kun.MultiTenancy.Abstractions;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Kun.EventBus;
+using Kun.MultiTenancy.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

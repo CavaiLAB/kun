@@ -1038,7 +1038,7 @@ CI 流水线中对所有应当走 AOT 的服务执行 `dotnet publish -p:Publish
 
 配套测试覆盖：Storage 23 / Security 15 / Identity 11 / MultiTenancy 12 / Audit 13 / RateLimit 6 / Caching 12 / Observability 5 / Configuration 13 / Sandbox 27（facts + theories 计数），全部绿色。
 
-`Kun.Sandbox` 已归档（S1-KUN-028），上表与测试计数按 `0.1.0-phase1` 的交付原样保留。
+`Kun.Sandbox` 与旧线的 `Kun.Storage`（上表第一行）已归档（S1-KUN-028），上表与测试计数按 `0.1.0-phase1` 的交付原样保留。对象存储现在用 `Kun.Storage.Abstractions` 加 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`。
 
 ### 13.2 最小集成示例：Audit + Security 组合根
 

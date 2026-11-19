@@ -70,7 +70,7 @@ Kun 由两部分归并而成：
 - 租户号统一用 Guid，去掉缺省租户的回落；租户上下文端口里租户号的属性类型也改成 Guid。
 - 许可：.NET 包族、命令行与前端包全部用 MIT。
 - 发布：内核档照旧发 nuget.org；平台档在正式对外发布之前只发 GitHub Packages，之后全族上 nuget.org。
-- 归档五个没有使用方或已废弃的模块：`Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure`、旧线的 `Kun.Storage`（`Kun.Dapper`、`Kun.Sandbox` 已归档）。
+- 归档五个没有使用方或已废弃的模块：`Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure`、旧线的 `Kun.Storage`（`Kun.Dapper`、`Kun.Sandbox` 与旧线的 `Kun.Storage` 已归档）。
 - 「Qian」只作前端框架的名字。组件 id 前缀 `qian.`、清单与配置的文件名这些运行期字面当作历史字面保留，不再表示产品名；`qian` 命令行与 `@qian/*` 导入名本次不改。
 - 迁移 2026-11-17 开始，不等别的里程碑（S1-DEC-038 D17）；原来「冻结窗口放在原仓库当前在途的里程碑收口之后」的说法由此改写。
 - 用源码引用 Kun 的下游，在归并开始之前先钉住合并前的最后一个 Kun 版本。

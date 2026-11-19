@@ -41,8 +41,7 @@ A compromised component on the internal network cannot forge a valid S2S JWT wit
 the Gateway's RSA private key. The private key lives only on the Gateway host, loaded at startup
 from `GatewayConfiguration.SigningKeyPath` as a PEM file. The public JWKS contains only verification keys.
 
-Because every downstream service independently validates the JWT signature and checks its configured audience, a forged or replayed token from outside the trust boundary is
-rejected immediately at the JwtBearer middleware layer, before any handler code runs.
+Before a handler runs, the downstream service checks the token's signature, issuer, audience, lifetime and required identity claims. Each service configures its own audience.
 
 ---
 

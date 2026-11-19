@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
@@ -24,7 +24,7 @@ using Qian.Registry.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;
 
@@ -161,10 +161,10 @@ public abstract partial class CustomerCommandTests
         var builder = Host.CreateApplicationBuilder(); builder.Logging.ClearProviders();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(registrar => registrar.RegisterTenancyEvents().RegisterRegistryEvents().RegisterAuthzEvents());
-        builder.Services.AddKunMediator(mediator => mediator.AddQianTenancyEvents().AddQianRegistryEvents().AddQianAuthzEvents()); builder.Services.AddQianEvents();
-        builder.Services.AddQianData<TenancyDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(TenancyDbContext.Schema));
-        builder.Services.AddQianData<RegistryDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(RegistryDbContext.Schema));
-        builder.Services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+        builder.Services.AddKunMediator(mediator => mediator.AddKunTenancyEvents().AddQianRegistryEvents().AddQianAuthzEvents()); builder.Services.AddQianEvents();
+        builder.Services.AddKunData<TenancyDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(TenancyDbContext.Schema));
+        builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(RegistryDbContext.Schema));
+        builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
         var host = builder.Build(); await host.StartAsync(Ct); var loader = new PluginLoader(host.Services);
         var original = platform.RegistryOptions;
         var registry = new RegistryPlugin(new RegistryRuntimeOptions { Runtime = loader, InstalledComponents = original.InstalledComponents, Profiles = original.Profiles,

@@ -9,7 +9,7 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Qian.Scheduler.TestHost;
 using Qian.Testing.Containers;
 
@@ -33,7 +33,7 @@ public sealed class SchedulerFixture : IAsyncLifetime
             """);
         var ownerConnection = new NpgsqlConnectionStringBuilder(Postgres.AppConnectionString) { Username = owner, Password = ownerPassword }.ConnectionString;
         var services = new ServiceCollection(); services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext()); services.AddKunEventBus();
-        services.AddQianData<SchedulerDbContext>((_, options) => options.UseNpgsql(ownerConnection).UseKunSchema(SchedulerDbContext.Schema));
+        services.AddKunData<SchedulerDbContext>((_, options) => options.UseNpgsql(ownerConnection).UseKunSchema(SchedulerDbContext.Schema));
         await using (var provider = services.BuildServiceProvider()) await provider.GetRequiredService<IDataMigrator>().MigrateAsync(TestContext.Current.CancellationToken);
         await Admin(SchedulerWorkerAccess.CreateMigrationSql(role) + """
             GRANT USAGE ON SCHEMA plugin_qian_scheduler TO qian_app;

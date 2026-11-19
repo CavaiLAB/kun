@@ -16,7 +16,7 @@
 
 ## 2026-10-25 身份适配器与数据组件的登记先后不再影响能力执行（S1-KUN-017）
 
-Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住框架当前主体端口，宿主先登记数据组件、后登记身份适配器时能力照常执行（此前一律 403 `AUTHZ_DENIED`），参考应用、测试宿主与联调栈的绕开写法已撤销。能力宿主的框架当前主体端口若仍解析为匿名兜底，启动即失败并写明改法；只装数据组件、没有身份适配器的宿主照常可用，审计与删除主体写 null。详见 [Qian.Plugin.Sdk](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Plugin.Sdk/README.md)、[Qian.Data](../packages/Qian.Data/README.md)。
+Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住框架当前主体端口，宿主先登记数据组件、后登记身份适配器时能力照常执行（此前一律 403 `AUTHZ_DENIED`），参考应用、测试宿主与联调栈的绕开写法已撤销。能力宿主的框架当前主体端口若仍解析为匿名兜底，启动即失败并写明改法；只装数据组件、没有身份适配器的宿主照常可用，审计与删除主体写 null。详见 [Qian.Plugin.Sdk](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Plugin.Sdk/README.md)、[Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md)。
 
 ## 2026-10-24 网关路由共享限流（S1-GW-002）
 
@@ -48,7 +48,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-16 出网检查缺省值：开发环境放行回环，缺省拒绝 K3s 集群网段（S1-DATA-007）
 
-数据连接连通测试的出网检查改了两处缺省值。宿主环境为 Development 时缺省放行回环，本机开发连本机数据库不用再改配置。K3s 缺省的 Pod 网段 10.42.0.0/16 与 Service 网段 10.43.0.0/16 并入缺省拒绝列表：原本连这两个网段内数据库的宿主，需要从 `Egress.BlockedNetworks` 移除对应项；集群改用了自定义网段时，同样移除这两项并追加实际网段。产品负责人已确认 R79，见[决策清单](decisions/key-decisions-v0.md)与 [Qian.Data](../packages/Qian.Data/README.md)。
+数据连接连通测试的出网检查改了两处缺省值。宿主环境为 Development 时缺省放行回环，本机开发连本机数据库不用再改配置。K3s 缺省的 Pod 网段 10.42.0.0/16 与 Service 网段 10.43.0.0/16 并入缺省拒绝列表：原本连这两个网段内数据库的宿主，需要从 `Egress.BlockedNetworks` 移除对应项；集群改用了自定义网段时，同样移除这两项并追加实际网段。产品负责人已确认 R79，见[决策清单](decisions/key-decisions-v0.md)与 [Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md)。
 
 ## 2026-10-16 qian add / remove / list 从 GitHub Packages 真实安装（S1-RT-011）
 
@@ -72,7 +72,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-15 能力登记期契约检查与幂等回执上限（S1-RT-020）
 
-平台宿主调用 `AddQianCapabilities()` 后，`ctx.ProvideCapability` 在登记时生成目录条目并预编译输入校验器，不合格的契约（输入含租户字段、Schema 无法可靠校验等）以 `CapabilityContractException` 拒绝，组件挂载失败。通用执行入口的幂等回执按数据分级与组件配置 `receiptMaxBytes`（默认 64 KiB）决定是否保存响应体，不保存时同键重放返回 409 `CAPABILITY_REPLAY_UNAVAILABLE`；`Qian.Capabilities` 新增迁移 `InvokeReceiptLimits`。[Qian.Data](../packages/Qian.Data/README.md) 新增「迁移执行与 RLS 核查」一节（迁移必须经迁移器执行，附核查 SQL），[运维手册](ops/configuration-runbook.md)新增「部署步骤：数据库迁移」。详见[组件规格 §9.5](prd/specs/component-model.md) 与 [Qian.Capabilities](../packages/Qian.Capabilities/README.md)。
+平台宿主调用 `AddQianCapabilities()` 后，`ctx.ProvideCapability` 在登记时生成目录条目并预编译输入校验器，不合格的契约（输入含租户字段、Schema 无法可靠校验等）以 `CapabilityContractException` 拒绝，组件挂载失败。通用执行入口的幂等回执按数据分级与组件配置 `receiptMaxBytes`（默认 64 KiB）决定是否保存响应体，不保存时同键重放返回 409 `CAPABILITY_REPLAY_UNAVAILABLE`；`Qian.Capabilities` 新增迁移 `InvokeReceiptLimits`。[Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md) 新增「迁移执行与 RLS 核查」一节（迁移必须经迁移器执行，附核查 SQL），[运维手册](ops/configuration-runbook.md)新增「部署步骤：数据库迁移」。详见[组件规格 §9.5](prd/specs/component-model.md) 与 [Qian.Capabilities](../packages/Qian.Capabilities/README.md)。
 
 ## 2026-10-15 数据契约冻结、组件元数据与文档预算整改（S1-QA-010）
 
@@ -81,7 +81,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 ## 2026-10-15 数据连接连通测试的出网约束与凭据错误（S1-DATA-005）
 
 - 连通测试先解析目标主机并逐个检查地址：缺省拒绝回环、链路本地（含云元数据）、100.100.100.200、未指定、组播与广播地址。运维可经 `QianDataConnectionOptions.Egress` 追加拒绝网段或限定放行网段；被拒返回 DATA_CONNECTION_TARGET_DENIED，不连接也不读取密钥，放行时只连检查过的地址。
-- 租户密钥不是 UTF-8 文本时，PG 方言返回 DATA_CONNECTION_CREDENTIAL_INVALID，不再是 500。见 [Qian.Data](../packages/Qian.Data/README.md)。
+- 租户密钥不是 UTF-8 文本时，PG 方言返回 DATA_CONNECTION_CREDENTIAL_INVALID，不再是 500。见 [Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md)。
 
 ## 2026-10-14 能力目录信封契约、别名 Link 头与通用执行入口规范化（S1-RT-019）
 
@@ -105,7 +105,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 ## 2026-10-14 基准类型、PG 方言组件与数据连接档案（S1-DATA-003）
 
 - 10 个系统基准类型作为种子数据随 `Qian.Data.Abstractions` 发布；新增方言 SPI qian.data.dialect/v1 与 PostgreSQL 方言包 `Qian.Data.Dialect.Pg`，`DialectTypeMapping` 拒绝超出长度、精度、小数位或取值区间的字段定义。
-- `IDataConnectionRegistry`：按租户隔离的连接档案，口令只存租户 secretRef，连通测试在使用点解析，详情不回传密钥。新增 `Qian.Data.AspNetCore` 提供 `GET /api/data/meta/types` 与 `/api/data/connections`（含 `POST /connections/{id}:test`）。见 [Qian.Data](../packages/Qian.Data/README.md)。
+- `IDataConnectionRegistry`：按租户隔离的连接档案，口令只存租户 secretRef，连通测试在使用点解析，详情不回传密钥。新增 `Qian.Data.AspNetCore` 提供 `GET /api/data/meta/types` 与 `/api/data/connections`（含 `POST /connections/{id}:test`）。见 [Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md)。
 
 ## 2026-10-14 事件抽象拆包与 Definition 依赖门禁（S1-KUN-010）
 
@@ -114,7 +114,7 @@ KunVersion 升为 2026.10.14，身份契约改用 `Kun.EventBus.Abstractions`。
 ## 2026-10-14 多副本迁移协调、雪花 ID 与序号服务（S1-DATA-002）
 
 - `IDataMigrator`：按 schema 取 PostgreSQL advisory lock 后执行 EF 迁移，同时启动的副本只有一个执行 DDL；K8s 迁移 Job 用 `--migrate-only`，在线副本启动时发现未应用的迁移即拒绝启动。
-- `ISnowflakeIdGenerator`（WorkerId 经 Redis 租约 `qian:snowflake:worker:{n}` 分配，带高水位，编号回收复用不重 ID）与 `ISequenceService`（规则 `'SO' + yyyyMMdd + seq(6)`，单条 upsert 原子取号，规则修改后从 1 开始）。见 [Qian.Data](../packages/Qian.Data/README.md)。
+- `ISnowflakeIdGenerator`（WorkerId 经 Redis 租约 `qian:snowflake:worker:{n}` 分配，带高水位，编号回收复用不重 ID）与 `ISequenceService`（规则 `'SO' + yyyyMMdd + seq(6)`，单条 upsert 原子取号，规则修改后从 1 开始）。见 [Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md)。
 
 ## 2026-10-14 yue 基础组件与 Storybook（S1-YUE-005）
 

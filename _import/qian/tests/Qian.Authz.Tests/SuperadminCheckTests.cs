@@ -4,7 +4,7 @@ using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Qian.Surfaces;
 

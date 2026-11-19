@@ -24,12 +24,12 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.AspNetCore;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Qian.Lifecycle;
 using Qian.Registry;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing;
 using Qian.Testing.Containers;
 

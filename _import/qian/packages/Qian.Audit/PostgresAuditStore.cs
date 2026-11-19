@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Kun.Errors;
 
 namespace Qian.Audit;

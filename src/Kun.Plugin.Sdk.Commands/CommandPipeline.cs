@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.Errors;
 using Kun.Mediator;
 using Kun.Runtime;
@@ -13,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Qian.Authz.Abstractions;
-using Qian.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 
@@ -27,7 +27,7 @@ public static class KunCommandRegistration
         this KunMediatorBuilder builder, Func<IServiceProvider, IPluginContext> source, string channel = "api")
         where TRequest : ICapabilityRequest<TResponse>
         where THandler : class, IRequestHandler<TRequest, TResponse>
-        where TContext : QianDbContext
+        where TContext : KunStrictDbContext
     {
         ArgumentNullException.ThrowIfNull(builder); ArgumentNullException.ThrowIfNull(source);
         if (channel is not ("ui" or "api" or "mcp" or "a2a" or "job" or "event" or "hook")) throw new ArgumentException("调用通道无效。", nameof(channel));
@@ -76,7 +76,7 @@ internal sealed class CommandState
 internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(IServiceProvider services,
     CommandRegistration<TRequest, TResponse> registration, CommandState state, CommandDataSession<TContext> work,
     ITenantContext tenant, Qian.Identity.Abstractions.ICurrentUser currentUser, Kun.Core.Security.ICurrentUser frameworkUser) : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : ICapabilityRequest<TResponse> where TContext : QianDbContext
+    where TRequest : ICapabilityRequest<TResponse> where TContext : KunStrictDbContext
 {
     public async ValueTask<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
@@ -201,7 +201,7 @@ internal sealed class CapabilityDispatchBehavior<TRequest, TResponse>(CommandSta
 }
 
 internal sealed class CommandSaveBehavior<TRequest, TResponse, TContext>(CommandState state, CommandDataSession<TContext> work) : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : ICapabilityRequest<TResponse> where TContext : QianDbContext
+    where TRequest : ICapabilityRequest<TResponse> where TContext : KunStrictDbContext
 {
     public async ValueTask<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {

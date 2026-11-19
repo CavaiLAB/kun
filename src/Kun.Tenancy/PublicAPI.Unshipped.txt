@@ -1,0 +1,37 @@
+#nullable enable
+Kun.Tenancy.TenancyDbContext
+Kun.Tenancy.TenancyDbContext.TenancyDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Tenancy.TenancyDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Tenancy.TenancyPlugin
+Kun.Tenancy.TenancyPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.TenancyPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Tenancy.TenancyPlugin.TenancyPlugin() -> void
+Kun.Tenancy.TenantContextPropagator
+Kun.Tenancy.TenantContextPropagator.BeginScope(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! headers, System.Guid authorizedTenantId) -> System.IDisposable!
+Kun.Tenancy.TenantContextPropagator.BeginScope(System.Text.Json.JsonElement carrier, System.Guid authorizedTenantId) -> System.IDisposable!
+Kun.Tenancy.TenantContextPropagator.TenantContextPropagator(Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Tenancy.TenantContextPropagator.Write(System.Text.Json.JsonElement carrier) -> System.Text.Json.JsonElement
+Kun.Tenancy.TenantContextPropagator.WriteHeaders() -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Tenancy.TenantRequestBoundary
+Kun.Tenancy.TenantRequestBoundary.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext! context, Microsoft.AspNetCore.Http.RequestDelegate! next) -> System.Threading.Tasks.Task!
+Kun.Tenancy.TenantRequestBoundary.TenantRequestBoundary(Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+const Kun.Tenancy.TenancyDbContext.Schema = "plugin_qian_tenancy" -> string!
+Kun.Tenancy.TenantGrpcClientInterceptor
+Kun.Tenancy.TenantGrpcClientInterceptor.TenantGrpcClientInterceptor(Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Tenancy.TenantGrpcServerInterceptor
+Kun.Tenancy.TenantGrpcServerInterceptor.TenantGrpcServerInterceptor(Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+override Kun.Tenancy.TenantGrpcClientInterceptor.AsyncClientStreamingCall<TRequest, TResponse>(Grpc.Core.Interceptors.ClientInterceptorContext<TRequest!, TResponse!> context, Grpc.Core.Interceptors.Interceptor.AsyncClientStreamingCallContinuation<TRequest!, TResponse!>! continuation) -> Grpc.Core.AsyncClientStreamingCall<TRequest!, TResponse!>!
+override Kun.Tenancy.TenantGrpcClientInterceptor.AsyncDuplexStreamingCall<TRequest, TResponse>(Grpc.Core.Interceptors.ClientInterceptorContext<TRequest!, TResponse!> context, Grpc.Core.Interceptors.Interceptor.AsyncDuplexStreamingCallContinuation<TRequest!, TResponse!>! continuation) -> Grpc.Core.AsyncDuplexStreamingCall<TRequest!, TResponse!>!
+override Kun.Tenancy.TenantGrpcClientInterceptor.AsyncServerStreamingCall<TRequest, TResponse>(TRequest! request, Grpc.Core.Interceptors.ClientInterceptorContext<TRequest!, TResponse!> context, Grpc.Core.Interceptors.Interceptor.AsyncServerStreamingCallContinuation<TRequest!, TResponse!>! continuation) -> Grpc.Core.AsyncServerStreamingCall<TResponse!>!
+override Kun.Tenancy.TenantGrpcClientInterceptor.AsyncUnaryCall<TRequest, TResponse>(TRequest! request, Grpc.Core.Interceptors.ClientInterceptorContext<TRequest!, TResponse!> context, Grpc.Core.Interceptors.Interceptor.AsyncUnaryCallContinuation<TRequest!, TResponse!>! continuation) -> Grpc.Core.AsyncUnaryCall<TResponse!>!
+override Kun.Tenancy.TenantGrpcClientInterceptor.BlockingUnaryCall<TRequest, TResponse>(TRequest! request, Grpc.Core.Interceptors.ClientInterceptorContext<TRequest!, TResponse!> context, Grpc.Core.Interceptors.Interceptor.BlockingUnaryCallContinuation<TRequest!, TResponse!>! continuation) -> TResponse!
+override Kun.Tenancy.TenantGrpcServerInterceptor.ClientStreamingServerHandler<TRequest, TResponse>(Grpc.Core.IAsyncStreamReader<TRequest!>! requestStream, Grpc.Core.ServerCallContext! context, Grpc.Core.ClientStreamingServerMethod<TRequest!, TResponse!>! continuation) -> System.Threading.Tasks.Task<TResponse!>!
+override Kun.Tenancy.TenantGrpcServerInterceptor.DuplexStreamingServerHandler<TRequest, TResponse>(Grpc.Core.IAsyncStreamReader<TRequest!>! requestStream, Grpc.Core.IServerStreamWriter<TResponse!>! responseStream, Grpc.Core.ServerCallContext! context, Grpc.Core.DuplexStreamingServerMethod<TRequest!, TResponse!>! continuation) -> System.Threading.Tasks.Task!
+override Kun.Tenancy.TenantGrpcServerInterceptor.ServerStreamingServerHandler<TRequest, TResponse>(TRequest! request, Grpc.Core.IServerStreamWriter<TResponse!>! responseStream, Grpc.Core.ServerCallContext! context, Grpc.Core.ServerStreamingServerMethod<TRequest!, TResponse!>! continuation) -> System.Threading.Tasks.Task!
+override Kun.Tenancy.TenantGrpcServerInterceptor.UnaryServerHandler<TRequest, TResponse>(TRequest! request, Grpc.Core.ServerCallContext! context, Grpc.Core.UnaryServerMethod<TRequest!, TResponse!>! continuation) -> System.Threading.Tasks.Task<TResponse!>!
+const Kun.Tenancy.TenantGrpcServerInterceptor.ErrorDetailTrailer = "qian-error-bin" -> string!
+Kun.Tenancy.TenancyEventHandlers
+static Kun.Tenancy.TenancyEventHandlers.AddKunTenancyEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
+Kun.Tenancy.TenancyComponent
+Kun.Tenancy.TenancyComponent.TenancyComponent() -> void
+Kun.Tenancy.TenancyComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Tenancy.TenancyComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask

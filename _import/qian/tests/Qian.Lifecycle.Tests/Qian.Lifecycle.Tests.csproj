@@ -6,7 +6,7 @@
     <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
     <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
     <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
-    <ProjectReference Include="../../packages/Qian.Data/Qian.Data.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../packages/Qian.Events/Qian.Events.csproj" />
     <ProjectReference Include="../../packages/Qian.Audit/Qian.Audit.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
@@ -20,6 +20,6 @@
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
-  <!-- dotnet ef 设计时入口（LifecycleDesignTimeFactory）：经 AddQianData 取上下文，迁移模型与运行时一致。 -->
+  <!-- dotnet ef 设计时入口（LifecycleDesignTimeFactory）：经 AddKunData 取上下文，迁移模型与运行时一致。 -->
   <ItemGroup><PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" /></ItemGroup>
 </Project>

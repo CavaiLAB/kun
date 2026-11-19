@@ -16,6 +16,10 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
     private readonly ILogger<RabbitMqConnectionProvider> _logger;
     private readonly Func<ConnectionFactory, CancellationToken, Task<IConnection>> _connect;
     private IConnection? _connection;
+    // 释放一开始就置 1；此后 GetConnectionAsync 一律抛 ObjectDisposedException，不再建连接。
+    private int _disposed;
+    // 释放时只放开、不 Dispose：SemaphoreSlim.Dispose 不唤醒排在锁上的调用方，它们会一直挂着；
+    // 放开后它们醒来，看到已释放就抛 ObjectDisposedException。它没用 AvailableWaitHandle，不持有非托管资源。
     private readonly SemaphoreSlim _lock = new(1, 1);
 
     /// <summary>Initializes the provider with the supplied options.</summary>
@@ -38,16 +42,20 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
     }
 
     /// <summary>Returns the open connection, lazily creating it on first call.</summary>
+    /// <exception cref="ObjectDisposedException">The provider is being or has been disposed.</exception>
     public async ValueTask<IConnection> GetConnectionAsync(CancellationToken cancellationToken = default)
     {
-        if (_connection is { IsOpen: true })
+        // 先取到局部变量再判断：释放会把字段置空，直接读两次字段可能返回 null。
+        if (Volatile.Read(ref _disposed) == 0 && _connection is { IsOpen: true } open)
         {
-            return _connection;
+            return open;
         }
 
         await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
+
             if (_connection is { IsOpen: true })
             {
                 return _connection;
@@ -94,16 +102,26 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
     }
 
     /// <summary>
-    /// Closes and disposes the connection. A connection the broker (or the network) has already
-    /// closed counts as closed; any other failure while closing is rethrown after the connection
-    /// and the internal lock have been released.
+    /// Closes and disposes the connection. From the moment disposal starts,
+    /// <see cref="GetConnectionAsync"/> throws <see cref="ObjectDisposedException"/>; a connection
+    /// still being opened is waited for and closed too. A connection the broker (or the network) has
+    /// already closed counts as closed; any other failure while closing — including other
+    /// <see cref="OperationInterruptedException"/>s — is rethrown after the connection has been
+    /// disposed and the internal lock released.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
-        var connection = _connection;
-        _connection = null;
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        {
+            return;
+        }
+
+        // 等正在建的连接建完再关，免得它建好之后没人关；建连接本身有超时（RequestedConnectionTimeout 与握手超时）。
+        await _lock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
         try
         {
+            var connection = _connection;
+            _connection = null;
             if (connection is not null)
             {
                 try
@@ -113,7 +131,8 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
                 catch (AlreadyClosedException closed)
                 {
                     // 客户端只在关闭前查一次 IsOpen：对端的关闭落在「查」与「关」之间时，CloseAsync 抛 AlreadyClosedException。
-                    // 要达到的状态本来就是已关闭，照常释放；别的异常不在这里吞。
+                    // 要达到的状态本来就是已关闭，照常释放。只容忍这一种：父类 OperationInterruptedException 的其他情形
+                    // 说明关闭本身被打断了，连接有没有关好不由类型担保，照常抛出。
                     Log.ConnectionAlreadyClosed(_logger, closed.ShutdownReason?.ReplyCode ?? 0, closed.ShutdownReason?.ReplyText ?? "");
                 }
                 finally
@@ -124,7 +143,7 @@ public sealed partial class RabbitMqConnectionProvider : IAsyncDisposable
         }
         finally
         {
-            _lock.Dispose();
+            _lock.Release();
         }
     }
 

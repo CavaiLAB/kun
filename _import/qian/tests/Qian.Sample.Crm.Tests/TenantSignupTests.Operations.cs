@@ -7,8 +7,8 @@ using Qian.Audit;
 using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy;
-using Qian.Tenancy.Signup;
+using Kun.Tenancy;
+using Kun.Tenancy.Signup;
 
 namespace Qian.Sample.Crm.Tests;
 

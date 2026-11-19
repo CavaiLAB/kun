@@ -1,6 +1,6 @@
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Authz;
 

@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Events.Tests;
 
@@ -131,7 +131,7 @@ public sealed partial class SubscriberTests
         }
     }
 
-    /// <summary>声称多租户、BeginScope 却不进入作用域的宿主上下文（违反 Qian.Tenancy README「必须支持可释放的 BeginScope」）。</summary>
+    /// <summary>声称多租户、BeginScope 却不进入作用域的宿主上下文（违反 Kun.Tenancy README「必须支持可释放的 BeginScope」）。</summary>
     private sealed class InertTenantContext : ITenantContext
     {
         public string? TenantId => null;

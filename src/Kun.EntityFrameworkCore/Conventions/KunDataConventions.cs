@@ -11,6 +11,9 @@ public static class KunDataConventions
     /// <summary>EF shadow property 名称，映射到 PostgreSQL 系统列 xmin。</summary>
     public const string RowVersionPropertyName = "KunRowVersion";
 
+    /// <summary>删除主体的属性名；没有 CLR 属性时用同名 shadow property，数据库列为 deleted_by。</summary>
+    public const string DeletedByPropertyName = "DeletedBy";
+
     /// <summary>在实体映射完成后应用约定；已有非空主键保持不变。</summary>
     public static ModelBuilder ApplyKunDataConventions(this ModelBuilder modelBuilder)
     {

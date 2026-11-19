@@ -65,6 +65,16 @@
 - 独立宿主不打包，不发布到 nuget.org。
 - 样例 `samples/Kun.Sample.AppHost` 编排的网关换成独立宿主，资源名 `gateway` 不变。
 
+### Changed — 数据与租户的包统一到 Kun.Data、Kun.Tenancy（S1-KUN-024）
+
+- 包 `Qian.Data`、`Qian.Data.Abstractions`、`Qian.Data.AspNetCore`、`Qian.Data.Dialect.Pg`、`Qian.Data.Native.Abstractions`、`Qian.Data.Native.Postgres`、`Qian.Tenancy`、`Qian.Tenancy.Abstractions`、`Qian.Tenancy.AspNetCore`、`Qian.Tenancy.Signup`、`Qian.Tenancy.Signup.Abstractions` 换成对应的 `Kun.Data.*`、`Kun.Tenancy.*`，命名空间跟着换；包源上已发布的旧包不动。
+- 类型与方法：严格基类 `QianDbContext` → `KunStrictDbContext`（仍在 `Kun.Data` 命名空间）；`QianSoftDeleteInterceptor`、`QianApplicationRoleInterceptor`、`QianDataModelExtensions`（`UseQianDataModel`）、`QianDataMisconfiguredException` → `KunSoftDeleteInterceptor`、`KunApplicationRoleInterceptor`、`KunDataModelExtensions`（`UseKunDataModel`）、`KunDataMisconfiguredException`。登记与端点的扩展方法、它们所在的静态类与选项类，名字里的 `Qian` 一律换成 `Kun`：`AddKunData`、`AddKunDataMigrations`、`AddKunSequences`、`AddKunSnowflakeIds`、`AddKunDataConnections`、`AddKunDataTypes`、`AddKunPgDialect`、`AddKunNativeData`、`MapKunData`、`MapKunDataConnections`、`MapKunDataTypes`、`MapKunTenancy`、`AddKunTenancyEvents`、`UseKunTenancySignupPages`、`MapKunTenancySignupApplicant`、`MapKunTenancySignupOperations`，`KunDataMigrationOptions`、`KunSequenceOptions`、`KunSnowflakeOptions`、`KunDataConnectionOptions` 等。
+- `QianDataConventions.DeletedByPropertyName` 并进 `Kun.EntityFrameworkCore.Conventions.KunDataConventions`（值仍是 `"DeletedBy"`），数据契约包里不再有约定类。**迁移**：`using Kun.EntityFrameworkCore.Conventions;`，写 `KunDataConventions.DeletedByPropertyName`。
+- EF 迁移的命名空间与迁移快照里的实体全名跟着换，迁移生成的 SQL 与库表结构不变。分析器 QIAN0003 按 `Kun.Data.KunStrictDbContext` 找严格基类，诊断号不变。
+- 运行期字面不变：组件 id（`qian.data` 等）、库 schema `plugin_qian_*`、模型注解键 `"Qian:MultiTenant"`、行级安全策略名 `qian_tenant_access` / `qian_tenant_guard`、索引名、配置节名与租户 GUC `app.current_tenant_id`。
+- 日志类别跟着包名换：代码里显式写的类别名 `Qian.Tenancy.Operations`、`Qian.Tenancy.AuditCompletion`、`Qian.Tenancy.Summary`、`Qian.Tenancy.Signup.Operations` 换成 `Kun.Tenancy.Operations`、`Kun.Tenancy.AuditCompletion`、`Kun.Tenancy.Summary`、`Kun.Tenancy.Signup.Operations`，按类型取的类别随命名空间换。按换名前的类别名配的日志级别（如 `Logging:LogLevel` 下的键）或告警规则要跟着改。这一域没有计量器（Meter）与活动源（ActivitySource）。
+- 组件 `qian.data` 1.0.1 → 1.1.0，`qian.tenancy`、`qian.tenancy.signup` 2.1.0 → 2.2.0：清单入口换成新程序集；两份发布的 HTTP 契约里 Schema 键随程序集名与版本变了，`$ref` 跟着变，线上形状与 operationId 不变。`qian.data` 清单的 `runtime.nuget[]` 仍钉包源上已发布的旧包，新包发布时一并改；在那之前用命令行从包源安装 `qian.data`，装上的旧包里没有清单写的入口，宿主挂载失败（从源码引用这些项目的宿主不受影响）。
+
 ### Removed — 归档 Kun.Sandbox（S1-KUN-028）
 
 - 包 `Kun.Sandbox` 停发、移出解决方案与 AOT 清单，nuget.org 上已发布的版本不动。随包删掉的公共 API：`Kun.Sandbox.Abstractions` 下的沙箱抽象（`ISandboxProvider`、`ISandboxHandle`、`IProcesses`、`IFiles`，以及创建沙箱、执行进程与读写文件用到的选项和结果类型），`Kun.Sandbox.Implementations` 下的三个后端（`InMemorySandboxProvider`、`SupervisorSandboxProvider`、`E2BCloudSandboxProvider`），登记入口 `AddKunSandbox` 与 `KunSandboxOptions`。**迁移**：没有替代的包；仓库里也没有使用方，Catalog 样例原来只演示登记，这一行已去掉。仍要用的服务钉住 nuget.org 上已发布的版本，或直接调用沙箱服务自己的接口。
@@ -72,7 +82,7 @@
 ### Removed — 归档旧线 Kun.Storage（S1-KUN-028）
 
 - 旧线的包 `Kun.Storage` 停发、移出解决方案与 AOT 清单，nuget.org 上已发布的版本不动。随包删掉的公共 API：命名空间 `Kun.Storage.Abstractions` 下的 `IFileStorage`、`ObjectMetadata`、`ObjectDownload`、`ObjectSummary`、`PutObjectOptions`、`StorageOptions`、`StorageProvider`、`ContentDispositionPolicy` 与四个预签名请求和地址类型，`Kun.Storage.Implementations` 下的 `LocalFileStorage`、`S3FileStorage`，登记入口 `AddKunStorage`、`AddLocalStorage`、`AddS3Storage`。仓库根 `BannedSymbols.txt` 里禁用旧线接口的那一条随之删掉。
-- **迁移**：引用新线的 `Kun.Storage.Abstractions`（接口是命名空间 `Kun.Storage` 下的 `IFileStorage`），再按后端引用 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`，登记用 `AddKunLocalFileStorage`、`AddKunS3FileStorage` 或 `AddKunOssFileStorage`。方法对照：`PutObjectAsync` → `UploadAsync`（内容类型直接传，大小与类型限制放进 `UploadConstraints`），`GetObjectAsync` → `OpenReadAsync`（直接返回流），`HeadObjectAsync` → `GetMetadataAsync`，`DeleteObjectAsync` → `DeleteAsync`（返回是否删到），`ListObjectsAsync` → `ListAsync`（按续传令牌分页），`CreatePresignedUploadUrlAsync` / `CreatePresignedDownloadUrlAsync` → `GetPresignedUploadAsync` / `GetPresignedDownloadAsync`。旧线上传时把 `Content-Disposition: attachment` 写在对象上；新线不改对象，签发下载地址时对活动网页类型强制 attachment（`PresignedDownloadUrl.ContentDispositionForced`），不经预签名地址、直接对外提供对象的服务要自己设这个响应头。
+- **迁移**：引用新线的 `Kun.Storage.Abstractions`（接口是命名空间 `Kun.Storage` 下的 `IFileStorage`），再按后端引用 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`，登记用 `AddKunLocalFileStorage`、`AddKunS3FileStorage` 或 `AddKunOssFileStorage`。方法对照：`PutObjectAsync` → `UploadAsync`（内容类型直接传，大小与类型限制放进 `UploadConstraints`），`GetObjectAsync` → `OpenReadAsync`（直接返回流），`HeadObjectAsync` → `GetMetadataAsync`，`DeleteObjectAsync` → `DeleteAsync`（返回是否删到），`ListObjectsAsync` → `ListAsync`（按续传令牌分页），`CreatePresignedUploadUrlAsync` / `CreatePresignedDownloadUrlAsync` → `GetPresignedUploadAsync` / `GetPresignedDownloadAsync`。两线都只对活动网页类型强制 `Content-Disposition: attachment`（旧线是 `ContentDispositionPolicy.EnforceAttachment`）：旧线上传时就把它写在对象上，签发下载地址时也带上；新线不改对象，只在签发下载地址时强制（`PresignedDownloadUrl.ContentDispositionForced`），不经预签名地址、直接对外提供对象的服务要自己设这个响应头。
 
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
 
@@ -90,6 +100,15 @@
 - `Kun.EventBus.RabbitMQ` 的 `RabbitMqConnectionProvider.DisposeAsync` 在连接已被 RabbitMQ（或网络）关掉时，不再把 `AlreadyClosedException` 抛给宿主，照常释放连接。
   - 原因：客户端只在关闭前查一次连接是否打开；对端的关闭落在查与关之间时，关闭就抛这个异常。宿主停止时偶发失败。
 - 关闭时的其他异常照常抛出，但连接与内部锁会先释放。
+
+### Fixed — RabbitMQ 订阅端停止时，不再在正在关的通道上确认消息（S1-QA-023）
+
+- `Kun.EventBus.RabbitMQ` 的订阅端停止时，通道的关闭一旦发出，就不再在这条通道上确认（ack）或拒绝（nack）。上一条修的是释放这一端，这一条修原因。
+  - 原因：停止时订阅端先关通道；客户端关通道要等正在执行的处理器返回，处理器返回后，订阅端随即在同一条通道上发确认。这个确认落在关通道之后，RabbitMQ 在已经清掉的通道号上收到帧，按连接级错误（504 `CHANNEL_ERROR - expected 'channel.open'`）关掉整条连接，同一连接上的发布通道一起断；随后释放连接时又撞上对端的这次关闭。
+  - 停止时还在处理的消息不再确认：通道关闭时 RabbitMQ 把它重新入队；处理器已经成功的，重新投递时按幂等记录跳过，不重复处理。
+  - 每条投递在它到达的那条通道上确认，不再经过一个会被下一次消费会话改写的字段。
+- 关通道失败（包括连接已被对端关掉）时照常释放通道，也不再盖掉会话本来的异常：连接已关记 Debug，其余失败记 Warning。
+- `RabbitMqConnectionProvider`：开始释放之后，`GetConnectionAsync` 抛 `ObjectDisposedException`，不再新建一条没人关的连接；释放时有连接正在建，等它建完一并关掉；排在内部锁上的调用方不再一直挂着。关闭时只容忍 `AlreadyClosedException`，父类 `OperationInterruptedException` 的其他情形照常抛出。
 
 ## [2026.10.25] - 2026-10-25
 

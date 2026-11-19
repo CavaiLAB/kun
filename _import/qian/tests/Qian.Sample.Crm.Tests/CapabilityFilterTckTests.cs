@@ -8,7 +8,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;

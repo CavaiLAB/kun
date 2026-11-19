@@ -9,7 +9,7 @@ using Qian.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
-using Qian.Tenancy.AspNetCore;
+using Kun.Tenancy.AspNetCore;
 
 namespace Qian.Sample.Crm;
 
@@ -42,7 +42,7 @@ public static class TenantOperationsHost
             options.SerializerOptions.RespectNullableAnnotations = true;
         });
         var app = builder.Build(); app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();
-        app.MapQianTenancy(_ => source());
+        app.MapKunTenancy(_ => source());
         return app;
     }
 

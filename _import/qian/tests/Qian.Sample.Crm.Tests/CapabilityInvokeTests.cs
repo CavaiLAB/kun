@@ -14,7 +14,7 @@ using Npgsql;
 using Qian.Audit;
 using Qian.Authz;
 using Qian.Capabilities;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
@@ -572,8 +572,8 @@ public sealed partial class CapabilityTests(PostgresFixture postgres) : Customer
             Assert.All(policies, row => Assert.Equal("ALL", (string)row[2]));
             Assert.Contains("app.current_tenant_id", (string)policies[1][3], StringComparison.Ordinal);
         }
-        // packages/Qian.Data/README.md 给运维的核查 SQL 原样执行：能力上下文的两张租户表在列，且库里每张租户表都强制 RLS、恰有两条策略。
-        var readme = File.ReadAllText(Path.Combine(RepositoryRoot(), "packages/Qian.Data/README.md"));
+        // 数据包说明（仓库根 src/Kun.Data/README.md）给运维的核查 SQL 原样执行：能力上下文的两张租户表在列，且库里每张租户表都强制 RLS、恰有两条策略。
+        var readme = File.ReadAllText(Path.Combine(RepositoryRoot(), "../../src/Kun.Data/README.md"));
         var verification = readme.Split("```").Single(block => block.StartsWith("sql", StringComparison.Ordinal) && block.Contains("pg_policies", StringComparison.Ordinal))[3..];
         var tenantTables = await AdminRows(verification);
         Assert.Contains(tenantTables, row => (string)row[0] == schema && (string)row[1] == "invoke_receipts");

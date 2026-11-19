@@ -8,7 +8,7 @@ using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config;
 using Qian.Config.Secrets;
-using Qian.Data;
+using Kun.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Qian.Lifecycle;
@@ -68,19 +68,19 @@ internal static class DevHost
             builder.Services.AddSingleton<ICrmRuntimeAssembly>(assembly);
             builder.Services.AddQianHttpContracts();
             builder.Services.AddKunPluginEndpoints(_ => assembly.Loader.GetContext("registry", ScopeKey.Global));
-            builder.Services.AddQianData<CapabilitiesDbContext>((_, options) => options.UseNpgsql(database.Business).UseKunSchema(CapabilitiesDbContext.Schema));
-            builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, type) =>
+            builder.Services.AddKunData<CapabilitiesDbContext>((_, options) => options.UseNpgsql(database.Business).UseKunSchema(CapabilitiesDbContext.Schema));
+            builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, type) =>
                 type == typeof(CapabilitiesDbContext) || type == typeof(LifecycleDbContext) ? database.Migrations : null);
-            builder.Services.AddQianData<RegistryDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(RegistryDbContext.Schema));
+            builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(RegistryDbContext.Schema));
             builder.Services.AddSingleton<ISurfaceReader, SurfaceValidator>();
             builder.Services.AddSingleton<IToolContractHasher, ToolContractHasher>();
             builder.Services.AddQianCapabilities();
             // 契约检查器只在组件升级准入时调用，手测流程不升级组件；本机装了 oasdiff（QIAN_OASDIFF_PATH）就照常接入。
             if (Environment.GetEnvironmentVariable("QIAN_OASDIFF_PATH") is { Length: > 0 } oasdiff && File.Exists(oasdiff))
                 builder.Services.AddSingleton<IOpenApiCompatibilityProbe>(_ => new OasDiffOpenApiProbe(oasdiff));
-            builder.Services.AddQianData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(database.AuthzPlatform).UseKunSchema(AuthzDbContext.Schema));
-            builder.Services.AddQianData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(database.AuditPlatform).UseKunSchema(AuditDbContext.Schema));
-            builder.Services.AddQianData<LifecycleDbContext>((_, options) => options.UseNpgsql(database.Business).UseKunSchema(LifecycleDbContext.Schema));
+            builder.Services.AddKunData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(database.AuthzPlatform).UseKunSchema(AuthzDbContext.Schema));
+            builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(database.AuditPlatform).UseKunSchema(AuditDbContext.Schema));
+            builder.Services.AddKunData<LifecycleDbContext>((_, options) => options.UseNpgsql(database.Business).UseKunSchema(LifecycleDbContext.Schema));
             builder.Services.AddSingleton<ISecretAccessObserver>(trust);
             builder.Services.AddQianSecrets(new SecretResolverOptions
             {

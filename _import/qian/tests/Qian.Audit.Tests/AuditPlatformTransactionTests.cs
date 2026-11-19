@@ -5,7 +5,7 @@ using Kun.MultiTenancy;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using NpgsqlTypes;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
 

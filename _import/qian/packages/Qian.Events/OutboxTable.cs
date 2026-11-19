@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Events;
 
@@ -35,10 +35,10 @@ internal sealed class OutboxTable
     private string ReleaseSql { get; }
 
     // 同一上下文类型在不同宿主可以绑定不同的插件 schema，缓存键带上生效 schema。
-    public static OutboxTable For(QianDbContext context) =>
+    public static OutboxTable For(KunStrictDbContext context) =>
         Cache.GetOrAdd((context.GetType(), context.Model.GetDefaultSchema() ?? ""), _ => Build(context));
 
-    private static OutboxTable Build(QianDbContext context)
+    private static OutboxTable Build(KunStrictDbContext context)
     {
         if (context.Database.ProviderName != "Npgsql.EntityFrameworkCore.PostgreSQL")
             throw new QianEventsException(EventsErrors.Misconfigured, "Outbox 投递要求 PostgreSQL 上下文。");

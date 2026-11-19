@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Registry.Tests;
 

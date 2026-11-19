@@ -5,7 +5,7 @@
 ## 1. 组件与交付边界
 
 - 所属 seam 为 Data，角色为 Service Definition；文件夹提供 C# 类型、JSON Schema、运算符矩阵、系统变量目录与使用示例。
-- 所有 .NET profile 可引用 Definition；组件安装入口沿用 `qian add data`，契约不单独启动 Provider。现有数据组件的装配与安装验收见 [Data 主文档](../../../packages/Qian.Data/README.md)。
+- 所有 .NET profile 可引用 Definition；组件安装入口沿用 `qian add data`，契约不单独启动 Provider。现有数据组件的装配与安装验收见 [Data 主文档](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md)。
 - S1 交付可编译、可校验、可分发的契约。S2 的 `qian.dynamic-data` 负责 SQL/条件求值、Hook 调度、事务、Outbox 消费及元数据 HTTP 端点。
 
 ### 冻结与修订
@@ -89,7 +89,7 @@ S2 的五处消费方引用同一份 Schema 和矩阵，不重建自己的运算
 
 ## 8. 基准类型、方言与数据连接
 
-本节由 S1-DATA-003 补充，源文件同在 `contracts/data/v1/`，实现与装配见 [Qian.Data](../../../packages/Qian.Data/README.md)。
+本节由 S1-DATA-003 补充，源文件同在 `contracts/data/v1/`，实现与装配见 [Qian.Data](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Data/README.md)。
 
 **基准类型**。[base-data-types.json](../../../contracts/data/v1/base-data-types.json) 是 10 个系统类型的种子，代码与 §3 运算符矩阵的字段类型一一对应。每个类型列出可携带的约束（facet）：
 

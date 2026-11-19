@@ -1,9 +1,9 @@
-using Qian.Data;
+using Kun.Data;
 
 namespace Kun.Plugin.Sdk;
 
 /// <summary>实际 Mediator scope 内共享的业务数据会话；只能由 SDK 事务行为绑定。</summary>
-public sealed class CommandDataSession<TContext> where TContext : QianDbContext
+public sealed class CommandDataSession<TContext> where TContext : KunStrictDbContext
 {
     private IDataSession<TContext>? _session;
     private bool _readOnly;

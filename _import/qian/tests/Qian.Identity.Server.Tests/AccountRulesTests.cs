@@ -198,7 +198,7 @@ public sealed partial class AccountRulesTests
         Assert.Equal(("qian.identity.server", "connectors:jitProvisioning"), asked.Asked);
     }
 
-    private sealed class JitSetting(Func<bool?> value) : Qian.Tenancy.ITenantSettings
+    private sealed class JitSetting(Func<bool?> value) : Kun.Tenancy.ITenantSettings
     {
         internal (string Plugin, string Key)? Asked { get; private set; }
 

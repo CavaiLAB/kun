@@ -1,7 +1,7 @@
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Sample.Crm;
 
@@ -13,7 +13,7 @@ public sealed class Customer : AggregateRoot<Guid, string>, IMultiTenant
     public string Name { get; set; } = string.Empty;
 }
 
-public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options, ITenantContext tenant) : QianDbContext(options, tenant)
+public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)
 {
     public const string Schema = "plugin_qian_sample_crm";
     public const string ListIndex = "ix_customers_tenant_id_id";

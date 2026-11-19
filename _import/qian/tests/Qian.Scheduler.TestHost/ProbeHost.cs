@@ -14,11 +14,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Scheduler.TestHost;
 
@@ -40,8 +40,8 @@ public sealed class ProbeHost : IAsyncDisposable
         builder.Services.AddSingleton(config); builder.Services.AddSingleton<ICurrentUser>(new ServiceUser());
         builder.Services.AddSingleton<IPermissionChecker>(new ProbePermissions());
         builder.Services.AddKunEventBus();
-        builder.Services.AddQianData<SchedulerDbContext>((_, options) => options.UseNpgsql(config.Application).UseKunSchema(SchedulerDbContext.Schema));
-        builder.Services.AddQianData<SchedulerWorkerDbContext>((_, options) => options.UseNpgsql(config.Worker).UseKunSchema(SchedulerDbContext.Schema));
+        builder.Services.AddKunData<SchedulerDbContext>((_, options) => options.UseNpgsql(config.Application).UseKunSchema(SchedulerDbContext.Schema));
+        builder.Services.AddKunData<SchedulerWorkerDbContext>((_, options) => options.UseNpgsql(config.Worker).UseKunSchema(SchedulerDbContext.Schema));
         builder.Services.AddKunMediator(registry => registry.AddAuthorizedHandler<ProbeRequest, ProbeResponse, ProbeHandler>(_ => throw new ErrorException(new Error(PlatformErrors.AuthzDenied))));
         var host = builder.Build(); await host.StartAsync(ct);
         var runtime = new PluginLoader(host.Services, host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("SchedulerProbe"));

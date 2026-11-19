@@ -7,7 +7,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Qian.Testing.Containers;
 using RabbitMQ.Client;

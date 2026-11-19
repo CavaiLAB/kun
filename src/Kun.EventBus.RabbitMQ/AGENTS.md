@@ -13,6 +13,7 @@ RabbitMQ broker adapter implementing `IIntegrationEventPublisher`. Publishes Out
 | `Options/RabbitMqOptions.cs` | `ConnectionString`, `ExchangeName`, `ConsumerName`, `PrefetchCount`, `MaxDeliveryAttempts`, `IdempotencyTtl` |
 | `Publishing/RabbitMqIntegrationEventPublisher.cs` | Implements `IIntegrationEventPublisher`; opens a channel per publish; declares exchange; writes trace/tenant headers |
 | `Consuming/RabbitMqIntegrationEventSubscriber.cs` | `BackgroundService`; declares queues, DLX/DLQ; registers `AsyncEventingBasicConsumer` per subscription |
+| `Consuming/ConsumeSession.cs` | One consume session's channel plus the gate between settling and closing: once the close starts, nothing more is acked or nacked on that channel |
 | `Consuming/IdempotentConsumerDecorator.cs` | Invokes handler then calls `IProcessedMessageStore.TryMarkProcessedAsync` |
 | `Consuming/DeadLetterHandler.cs` | Declares `{exchange}.dlx` fanout + `{consumer}.dead-letter` queue; provides `x-dead-letter-exchange` queue args |
 | `Consuming/ISubscriptionDispatcher.cs` | Internal per-event dispatch contract (avoids `MakeGenericType`) |
@@ -31,6 +32,7 @@ RabbitMQ broker adapter implementing `IIntegrationEventPublisher`. Publishes Out
 - **Stable event IDs on the wire**: routing key = `message.EventTypeId` (e.g. `order.placed.v1`). `IEventTypeRegistry.Resolve(routingKey)` converts back to CLR type.
 - **幂等与确认**：先查成功记录，执行成功后才标记并 ack；失败经持久化 quorum 队列退避，重试副本被确认后才 ack 原消息。业务 handler 仍必须幂等。
 - **死信**：`x-kun-attempts` 达到 `MaxDeliveryAttempts` 后确认发布到 `{exchange}.dlx`，再 ack 原消息；兼容读取旧 x-death。
+- **停止与确认**：订阅端停止时先置「正在关」，等已经开始写的确认帧写完再关通道；此后的 ack / nack 一律不发，由 RabbitMQ 在通道关闭时重新入队，幂等记录挡住重复处理。确认只经 `ConsumeSession.TrySettleAsync`，不要直接在通道上调 `BasicAckAsync` / `BasicNackAsync`。客户端关通道要等正在执行的处理器返回，所以关通道时不能拿着处理器也要等的锁。
 - **RabbitMQ.Client 7.x async API**: `CreateChannelAsync`, `BasicPublishAsync`, `BasicQosAsync`, `ExchangeDeclareAsync`, `QueueDeclareAsync`, `QueueBindAsync`, `BasicConsumeAsync`, `BasicAckAsync`, `BasicNackAsync`. Never use `.Result`/`.Wait()`.
 - **LoggerMessage delegates** (`[LoggerMessage]` on nested `partial class Log`) are used throughout — do not regress to `LogInformation(..., args)`.
 - Payload is already a JSON string from the Outbox — no re-serialization needed on publish. On consume, `JsonSerializer.Deserialize(payload, typeInfo)` uses the caller-supplied `JsonTypeInfo`.

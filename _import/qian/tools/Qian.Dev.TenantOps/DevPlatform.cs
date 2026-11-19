@@ -11,7 +11,7 @@ using Qian.Authz.Abstractions;
 using Qian.Capabilities;
 using Qian.Config;
 using Qian.Config.Apollo;
-using Qian.Data;
+using Kun.Data;
 using Qian.Lifecycle;
 using Kun.Plugin.Sdk;
 using Qian.Profiles;
@@ -21,7 +21,7 @@ using Kun.Runtime;
 using Qian.Sample.Crm;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Dev.TenantOps;
 

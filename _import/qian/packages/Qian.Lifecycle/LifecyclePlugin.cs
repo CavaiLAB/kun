@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Config;
-using Qian.Data;
+using Kun.Data;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;

@@ -8,7 +8,7 @@ using Qian.Identity.Server;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Qian.Surfaces;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;
 

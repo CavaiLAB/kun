@@ -8,7 +8,7 @@ namespace Qian.Identity.Server;
 // 命令沿用 EF 的连接与当前事务，所以 Kun 的 RLS 拦截器照常生效。EF 的 FromSql 会把 UPDATE … RETURNING 包进子查询而失败，故不用它。
 internal static class IdentitySql
 {
-    // 表名取自模型的固定 schema（Qian.Data 要求 plugin_ 前缀的唯一 schema），编译期常量，不拼接任何外部输入。
+    // 表名取自模型的固定 schema（Kun.Data 要求 plugin_ 前缀的唯一 schema），编译期常量，不拼接任何外部输入。
     internal const string Persons = $"{IdentityDbContext.Schema}.persons";
     internal const string PasswordHistory = $"{IdentityDbContext.Schema}.password_history";
     internal const string Sessions = $"{IdentityDbContext.Schema}.sessions";

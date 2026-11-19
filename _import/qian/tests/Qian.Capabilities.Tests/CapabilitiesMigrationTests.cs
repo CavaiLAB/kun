@@ -8,7 +8,7 @@ namespace Qian.Capabilities.Tests;
 public sealed class CapabilitiesMigrationTests
 {
     [Fact]
-    public void 设计时入口经AddQianData建上下文_模型没有待生成的迁移_迁移脚本带强制RLS与两条租户策略()
+    public void 设计时入口经AddKunData建上下文_模型没有待生成的迁移_迁移脚本带强制RLS与两条租户策略()
     {
         using var context = new CapabilitiesDesignTimeFactory().CreateDbContext([]);
         Assert.False(context.Database.HasPendingModelChanges());

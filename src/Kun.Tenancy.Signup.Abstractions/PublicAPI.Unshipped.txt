@@ -1,0 +1,664 @@
+#nullable enable
+const Kun.Tenancy.Signup.SignupCheckKinds.Code = "code" -> string!
+const Kun.Tenancy.Signup.SignupCheckKinds.DuplicateName = "duplicateName" -> string!
+const Kun.Tenancy.Signup.SignupCheckKinds.ExistingMemberships = "existingMemberships" -> string!
+const Kun.Tenancy.Signup.SignupCheckLevels.Error = "error" -> string!
+const Kun.Tenancy.Signup.SignupCheckLevels.Info = "info" -> string!
+const Kun.Tenancy.Signup.SignupCheckLevels.Pass = "pass" -> string!
+const Kun.Tenancy.Signup.SignupCheckLevels.Warning = "warning" -> string!
+const Kun.Tenancy.Signup.SignupCodeReasons.Invalid = "invalid" -> string!
+const Kun.Tenancy.Signup.SignupCodeReasons.Reserved = "reserved" -> string!
+const Kun.Tenancy.Signup.SignupCodeReasons.Taken = "taken" -> string!
+const Kun.Tenancy.Signup.SignupCompanySizes.Enterprise = "1000+" -> string!
+const Kun.Tenancy.Signup.SignupCompanySizes.Large = "501-1000" -> string!
+const Kun.Tenancy.Signup.SignupCompanySizes.Medium = "101-500" -> string!
+const Kun.Tenancy.Signup.SignupCompanySizes.Micro = "1-20" -> string!
+const Kun.Tenancy.Signup.SignupCompanySizes.Small = "21-100" -> string!
+const Kun.Tenancy.Signup.TenancySignupDefinition.ComponentId = "qian.tenancy.signup" -> string!
+const Kun.Tenancy.Signup.TenancySignupErrors.RetryAfterDataKey = "qian.signup.retryAfter" -> string!
+override Kun.Tenancy.Signup.ApproveSignupApplication.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.ApproveSignupApplication.GetHashCode() -> int
+override Kun.Tenancy.Signup.ApproveSignupApplication.ToString() -> string!
+override Kun.Tenancy.Signup.OpenSignupSession.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.OpenSignupSession.GetHashCode() -> int
+override Kun.Tenancy.Signup.OpenSignupSession.ToString() -> string!
+override Kun.Tenancy.Signup.RejectSignupApplication.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.RejectSignupApplication.GetHashCode() -> int
+override Kun.Tenancy.Signup.RejectSignupApplication.ToString() -> string!
+override Kun.Tenancy.Signup.SignupAction.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupAction.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupAction.ToString() -> string!
+override Kun.Tenancy.Signup.SignupActionAgent.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupActionAgent.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupActionAgent.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicant.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicant.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicant.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicantApplication.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicantApplication.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicantApplication.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicantApplications.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicantApplications.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicantApplications.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicantProfile.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicantProfile.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicantProfile.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicationCounts.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicationCounts.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicationCounts.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicationDetail.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicationDetail.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicationDetail.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicationList.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicationList.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicationList.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicationQuery.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicationQuery.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicationQuery.ToString() -> string!
+override Kun.Tenancy.Signup.SignupApplicationSummary.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupApplicationSummary.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupApplicationSummary.ToString() -> string!
+override Kun.Tenancy.Signup.SignupCheck.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupCheck.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupCheck.ToString() -> string!
+override Kun.Tenancy.Signup.SignupCodeAvailability.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupCodeAvailability.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupCodeAvailability.ToString() -> string!
+override Kun.Tenancy.Signup.SignupCompany.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupCompany.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupCompany.ToString() -> string!
+override Kun.Tenancy.Signup.SignupProvisioning.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupProvisioning.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupProvisioning.ToString() -> string!
+override Kun.Tenancy.Signup.SignupProvisionStep.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupProvisionStep.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupProvisionStep.ToString() -> string!
+override Kun.Tenancy.Signup.SignupRequestContext.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupRequestContext.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupRequestContext.ToString() -> string!
+override Kun.Tenancy.Signup.SignupResultMessage.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupResultMessage.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupResultMessage.ToString() -> string!
+override Kun.Tenancy.Signup.SignupReview.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupReview.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupReview.ToString() -> string!
+override Kun.Tenancy.Signup.SignupReviewDefaults.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupReviewDefaults.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupReviewDefaults.ToString() -> string!
+override Kun.Tenancy.Signup.SignupSessionGrant.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupSessionGrant.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupSessionGrant.ToString() -> string!
+override Kun.Tenancy.Signup.SignupStateMachine.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupStateMachine.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupStateMachine.ToString() -> string!
+override Kun.Tenancy.Signup.SignupSubmission.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupSubmission.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupSubmission.ToString() -> string!
+override Kun.Tenancy.Signup.SignupTransition.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupTransition.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupTransition.ToString() -> string!
+override Kun.Tenancy.Signup.SignupVerificationMessage.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupVerificationMessage.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupVerificationMessage.ToString() -> string!
+override Kun.Tenancy.Signup.SignupVerificationTicket.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SignupVerificationTicket.GetHashCode() -> int
+override Kun.Tenancy.Signup.SignupVerificationTicket.ToString() -> string!
+override Kun.Tenancy.Signup.StartSignupVerification.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.StartSignupVerification.GetHashCode() -> int
+override Kun.Tenancy.Signup.StartSignupVerification.ToString() -> string!
+override Kun.Tenancy.Signup.SubmitSignupApplication.Equals(object? obj) -> bool
+override Kun.Tenancy.Signup.SubmitSignupApplication.GetHashCode() -> int
+override Kun.Tenancy.Signup.SubmitSignupApplication.ToString() -> string!
+Kun.Tenancy.Signup.ApproveSignupApplication
+Kun.Tenancy.Signup.ApproveSignupApplication.<Clone>$() -> Kun.Tenancy.Signup.ApproveSignupApplication!
+Kun.Tenancy.Signup.ApproveSignupApplication.ApproveSignupApplication() -> void
+Kun.Tenancy.Signup.ApproveSignupApplication.Code.get -> string?
+Kun.Tenancy.Signup.ApproveSignupApplication.Code.init -> void
+Kun.Tenancy.Signup.ApproveSignupApplication.Equals(Kun.Tenancy.Signup.ApproveSignupApplication? other) -> bool
+Kun.Tenancy.Signup.ApproveSignupApplication.Note.get -> string?
+Kun.Tenancy.Signup.ApproveSignupApplication.Note.init -> void
+Kun.Tenancy.Signup.ApproveSignupApplication.Plan.get -> Kun.Tenancy.Signup.SignupPlan
+Kun.Tenancy.Signup.ApproveSignupApplication.Plan.init -> void
+Kun.Tenancy.Signup.ApproveSignupApplication.Users.get -> int?
+Kun.Tenancy.Signup.ApproveSignupApplication.Users.init -> void
+Kun.Tenancy.Signup.ApproveSignupApplication.ValidUntil.get -> System.DateTimeOffset?
+Kun.Tenancy.Signup.ApproveSignupApplication.ValidUntil.init -> void
+Kun.Tenancy.Signup.ISignupMessenger
+Kun.Tenancy.Signup.ISignupMessenger.SendResultAsync(Kun.Tenancy.Signup.SignupResultMessage! message, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.Signup.ISignupMessenger.SendVerificationCodeAsync(Kun.Tenancy.Signup.SignupVerificationMessage! message, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.Signup.ITenantSignup
+Kun.Tenancy.Signup.ITenantSignup.ApproveAsync(System.Guid id, Kun.Tenancy.Signup.ApproveSignupApplication! request, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupApplicationDetail!>
+Kun.Tenancy.Signup.ITenantSignup.CheckCodeAsync(string! code, Kun.Tenancy.Signup.SignupRequestContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupCodeAvailability!>
+Kun.Tenancy.Signup.ITenantSignup.CloseSessionAsync(string! sessionToken, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.Signup.ITenantSignup.GetApplicantAsync(string! sessionToken, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupApplicant?>
+Kun.Tenancy.Signup.ITenantSignup.GetAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupApplicationDetail!>
+Kun.Tenancy.Signup.ITenantSignup.ListMineAsync(string! sessionToken, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupApplicantApplications!>
+Kun.Tenancy.Signup.ITenantSignup.OpenSessionAsync(Kun.Tenancy.Signup.OpenSignupSession! request, Kun.Tenancy.Signup.SignupRequestContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupSessionGrant!>
+Kun.Tenancy.Signup.ITenantSignup.QueryAsync(Kun.Tenancy.Signup.SignupApplicationQuery! query, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupApplicationList!>
+Kun.Tenancy.Signup.ITenantSignup.RejectAsync(System.Guid id, Kun.Tenancy.Signup.RejectSignupApplication! request, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupApplicationDetail!>
+Kun.Tenancy.Signup.ITenantSignup.RetryAsync(System.Guid id, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupApplicationDetail!>
+Kun.Tenancy.Signup.ITenantSignup.StartVerificationAsync(Kun.Tenancy.Signup.StartSignupVerification! request, Kun.Tenancy.Signup.SignupRequestContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupVerificationTicket!>
+Kun.Tenancy.Signup.ITenantSignup.SubmitAsync(string! sessionToken, Kun.Tenancy.Signup.SubmitSignupApplication! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupSubmission!>
+Kun.Tenancy.Signup.ITenantSignup.WithdrawAsync(string! sessionToken, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.Signup.SignupApplicantApplication!>
+Kun.Tenancy.Signup.OpenSignupSession
+Kun.Tenancy.Signup.OpenSignupSession.<Clone>$() -> Kun.Tenancy.Signup.OpenSignupSession!
+Kun.Tenancy.Signup.OpenSignupSession.Code.get -> string!
+Kun.Tenancy.Signup.OpenSignupSession.Code.init -> void
+Kun.Tenancy.Signup.OpenSignupSession.Deconstruct(out System.Guid VerificationId, out string! Code) -> void
+Kun.Tenancy.Signup.OpenSignupSession.Equals(Kun.Tenancy.Signup.OpenSignupSession? other) -> bool
+Kun.Tenancy.Signup.OpenSignupSession.OpenSignupSession(System.Guid VerificationId, string! Code) -> void
+Kun.Tenancy.Signup.OpenSignupSession.VerificationId.get -> System.Guid
+Kun.Tenancy.Signup.OpenSignupSession.VerificationId.init -> void
+Kun.Tenancy.Signup.RejectSignupApplication
+Kun.Tenancy.Signup.RejectSignupApplication.<Clone>$() -> Kun.Tenancy.Signup.RejectSignupApplication!
+Kun.Tenancy.Signup.RejectSignupApplication.Deconstruct(out string! Reason) -> void
+Kun.Tenancy.Signup.RejectSignupApplication.Equals(Kun.Tenancy.Signup.RejectSignupApplication? other) -> bool
+Kun.Tenancy.Signup.RejectSignupApplication.Note.get -> string?
+Kun.Tenancy.Signup.RejectSignupApplication.Note.init -> void
+Kun.Tenancy.Signup.RejectSignupApplication.Reason.get -> string!
+Kun.Tenancy.Signup.RejectSignupApplication.Reason.init -> void
+Kun.Tenancy.Signup.RejectSignupApplication.RejectSignupApplication(string! Reason) -> void
+Kun.Tenancy.Signup.SignupAction
+Kun.Tenancy.Signup.SignupAction.<Clone>$() -> Kun.Tenancy.Signup.SignupAction!
+Kun.Tenancy.Signup.SignupAction.Actor.get -> string!
+Kun.Tenancy.Signup.SignupAction.Actor.init -> void
+Kun.Tenancy.Signup.SignupAction.Agent.get -> Kun.Tenancy.Signup.SignupActionAgent!
+Kun.Tenancy.Signup.SignupAction.Agent.init -> void
+Kun.Tenancy.Signup.SignupAction.Deconstruct(out string! Name, out string! Actor, out string! SideEffect, out Kun.Tenancy.Signup.SignupActionAgent! Agent) -> void
+Kun.Tenancy.Signup.SignupAction.Equals(Kun.Tenancy.Signup.SignupAction? other) -> bool
+Kun.Tenancy.Signup.SignupAction.Name.get -> string!
+Kun.Tenancy.Signup.SignupAction.Name.init -> void
+Kun.Tenancy.Signup.SignupAction.SideEffect.get -> string!
+Kun.Tenancy.Signup.SignupAction.SideEffect.init -> void
+Kun.Tenancy.Signup.SignupAction.SignupAction(string! Name, string! Actor, string! SideEffect, Kun.Tenancy.Signup.SignupActionAgent! Agent) -> void
+Kun.Tenancy.Signup.SignupActionAgent
+Kun.Tenancy.Signup.SignupActionAgent.<Clone>$() -> Kun.Tenancy.Signup.SignupActionAgent!
+Kun.Tenancy.Signup.SignupActionAgent.Deconstruct(out bool Expose, out bool RequiresConfirmation) -> void
+Kun.Tenancy.Signup.SignupActionAgent.Equals(Kun.Tenancy.Signup.SignupActionAgent? other) -> bool
+Kun.Tenancy.Signup.SignupActionAgent.Expose.get -> bool
+Kun.Tenancy.Signup.SignupActionAgent.Expose.init -> void
+Kun.Tenancy.Signup.SignupActionAgent.RequiresConfirmation.get -> bool
+Kun.Tenancy.Signup.SignupActionAgent.RequiresConfirmation.init -> void
+Kun.Tenancy.Signup.SignupActionAgent.SignupActionAgent(bool Expose, bool RequiresConfirmation) -> void
+Kun.Tenancy.Signup.SignupApplicant
+Kun.Tenancy.Signup.SignupApplicant.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicant!
+Kun.Tenancy.Signup.SignupApplicant.Deconstruct(out string! Phone, out bool ExistingAccount) -> void
+Kun.Tenancy.Signup.SignupApplicant.DisplayName.get -> string?
+Kun.Tenancy.Signup.SignupApplicant.DisplayName.init -> void
+Kun.Tenancy.Signup.SignupApplicant.Equals(Kun.Tenancy.Signup.SignupApplicant? other) -> bool
+Kun.Tenancy.Signup.SignupApplicant.ExistingAccount.get -> bool
+Kun.Tenancy.Signup.SignupApplicant.ExistingAccount.init -> void
+Kun.Tenancy.Signup.SignupApplicant.Phone.get -> string!
+Kun.Tenancy.Signup.SignupApplicant.Phone.init -> void
+Kun.Tenancy.Signup.SignupApplicant.SignupApplicant(string! Phone, bool ExistingAccount) -> void
+Kun.Tenancy.Signup.SignupApplicantApplication
+Kun.Tenancy.Signup.SignupApplicantApplication.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicantApplication!
+Kun.Tenancy.Signup.SignupApplicantApplication.Code.get -> string!
+Kun.Tenancy.Signup.SignupApplicantApplication.Code.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.CompanyName.get -> string!
+Kun.Tenancy.Signup.SignupApplicantApplication.CompanyName.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.CompletedAt.get -> System.DateTimeOffset?
+Kun.Tenancy.Signup.SignupApplicantApplication.CompletedAt.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.ContactName.get -> string!
+Kun.Tenancy.Signup.SignupApplicantApplication.ContactName.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Deconstruct(out System.Guid Id, out string! Number, out Kun.Tenancy.Signup.SignupApplicationStatus Status, out string! CompanyName, out string! Code, out string! Size, out string! ContactName, out string! Phone, out System.DateTimeOffset SubmittedAt) -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Description.get -> string?
+Kun.Tenancy.Signup.SignupApplicantApplication.Description.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Email.get -> string?
+Kun.Tenancy.Signup.SignupApplicantApplication.Email.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Equals(Kun.Tenancy.Signup.SignupApplicantApplication? other) -> bool
+Kun.Tenancy.Signup.SignupApplicantApplication.Id.get -> System.Guid
+Kun.Tenancy.Signup.SignupApplicantApplication.Id.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Industry.get -> string?
+Kun.Tenancy.Signup.SignupApplicantApplication.Industry.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Number.get -> string!
+Kun.Tenancy.Signup.SignupApplicantApplication.Number.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Phone.get -> string!
+Kun.Tenancy.Signup.SignupApplicantApplication.Phone.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Plan.get -> Kun.Tenancy.Signup.SignupPlan?
+Kun.Tenancy.Signup.SignupApplicantApplication.Plan.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.RejectReason.get -> string?
+Kun.Tenancy.Signup.SignupApplicantApplication.RejectReason.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.SignupApplicantApplication(System.Guid Id, string! Number, Kun.Tenancy.Signup.SignupApplicationStatus Status, string! CompanyName, string! Code, string! Size, string! ContactName, string! Phone, System.DateTimeOffset SubmittedAt) -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Size.get -> string!
+Kun.Tenancy.Signup.SignupApplicantApplication.Size.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.Status.get -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicantApplication.Status.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.SubmittedAt.get -> System.DateTimeOffset
+Kun.Tenancy.Signup.SignupApplicantApplication.SubmittedAt.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplication.ValidUntil.get -> System.DateTimeOffset?
+Kun.Tenancy.Signup.SignupApplicantApplication.ValidUntil.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplications
+Kun.Tenancy.Signup.SignupApplicantApplications.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicantApplications!
+Kun.Tenancy.Signup.SignupApplicantApplications.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicantApplication!>! Items) -> void
+Kun.Tenancy.Signup.SignupApplicantApplications.Equals(Kun.Tenancy.Signup.SignupApplicantApplications? other) -> bool
+Kun.Tenancy.Signup.SignupApplicantApplications.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicantApplication!>!
+Kun.Tenancy.Signup.SignupApplicantApplications.Items.init -> void
+Kun.Tenancy.Signup.SignupApplicantApplications.SignupApplicantApplications(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicantApplication!>! Items) -> void
+Kun.Tenancy.Signup.SignupApplicantProfile
+Kun.Tenancy.Signup.SignupApplicantProfile.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicantProfile!
+Kun.Tenancy.Signup.SignupApplicantProfile.ContactName.get -> string!
+Kun.Tenancy.Signup.SignupApplicantProfile.ContactName.init -> void
+Kun.Tenancy.Signup.SignupApplicantProfile.Deconstruct(out System.Guid SubjectId, out string! ContactName, out string! Phone, out bool ExistingAccount) -> void
+Kun.Tenancy.Signup.SignupApplicantProfile.Email.get -> string?
+Kun.Tenancy.Signup.SignupApplicantProfile.Email.init -> void
+Kun.Tenancy.Signup.SignupApplicantProfile.Equals(Kun.Tenancy.Signup.SignupApplicantProfile? other) -> bool
+Kun.Tenancy.Signup.SignupApplicantProfile.ExistingAccount.get -> bool
+Kun.Tenancy.Signup.SignupApplicantProfile.ExistingAccount.init -> void
+Kun.Tenancy.Signup.SignupApplicantProfile.Phone.get -> string!
+Kun.Tenancy.Signup.SignupApplicantProfile.Phone.init -> void
+Kun.Tenancy.Signup.SignupApplicantProfile.SignupApplicantProfile(System.Guid SubjectId, string! ContactName, string! Phone, bool ExistingAccount) -> void
+Kun.Tenancy.Signup.SignupApplicantProfile.SubjectId.get -> System.Guid
+Kun.Tenancy.Signup.SignupApplicantProfile.SubjectId.init -> void
+Kun.Tenancy.Signup.SignupApplicationCounts
+Kun.Tenancy.Signup.SignupApplicationCounts.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicationCounts!
+Kun.Tenancy.Signup.SignupApplicationCounts.All.get -> int
+Kun.Tenancy.Signup.SignupApplicationCounts.All.init -> void
+Kun.Tenancy.Signup.SignupApplicationCounts.Approved.get -> int
+Kun.Tenancy.Signup.SignupApplicationCounts.Approved.init -> void
+Kun.Tenancy.Signup.SignupApplicationCounts.Deconstruct(out int All, out int Submitted, out int Provisioning, out int Approved, out int Failed, out int Rejected, out int Withdrawn) -> void
+Kun.Tenancy.Signup.SignupApplicationCounts.Equals(Kun.Tenancy.Signup.SignupApplicationCounts? other) -> bool
+Kun.Tenancy.Signup.SignupApplicationCounts.Failed.get -> int
+Kun.Tenancy.Signup.SignupApplicationCounts.Failed.init -> void
+Kun.Tenancy.Signup.SignupApplicationCounts.Provisioning.get -> int
+Kun.Tenancy.Signup.SignupApplicationCounts.Provisioning.init -> void
+Kun.Tenancy.Signup.SignupApplicationCounts.Rejected.get -> int
+Kun.Tenancy.Signup.SignupApplicationCounts.Rejected.init -> void
+Kun.Tenancy.Signup.SignupApplicationCounts.SignupApplicationCounts(int All, int Submitted, int Provisioning, int Approved, int Failed, int Rejected, int Withdrawn) -> void
+Kun.Tenancy.Signup.SignupApplicationCounts.Submitted.get -> int
+Kun.Tenancy.Signup.SignupApplicationCounts.Submitted.init -> void
+Kun.Tenancy.Signup.SignupApplicationCounts.Withdrawn.get -> int
+Kun.Tenancy.Signup.SignupApplicationCounts.Withdrawn.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail
+Kun.Tenancy.Signup.SignupApplicationDetail.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicationDetail!
+Kun.Tenancy.Signup.SignupApplicationDetail.Applicant.get -> Kun.Tenancy.Signup.SignupApplicantProfile!
+Kun.Tenancy.Signup.SignupApplicationDetail.Applicant.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Checks.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupCheck!>!
+Kun.Tenancy.Signup.SignupApplicationDetail.Checks.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Company.get -> Kun.Tenancy.Signup.SignupCompany!
+Kun.Tenancy.Signup.SignupApplicationDetail.Company.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.CompletedAt.get -> System.DateTimeOffset?
+Kun.Tenancy.Signup.SignupApplicationDetail.CompletedAt.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Deconstruct(out System.Guid Id, out string! Number, out Kun.Tenancy.Signup.SignupApplicationStatus Status, out Kun.Tenancy.Signup.SignupCompany! Company, out Kun.Tenancy.Signup.SignupApplicantProfile! Applicant, out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupCheck!>! Checks, out Kun.Tenancy.Signup.SignupReviewDefaults! Defaults, out System.DateTimeOffset SubmittedAt) -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Defaults.get -> Kun.Tenancy.Signup.SignupReviewDefaults!
+Kun.Tenancy.Signup.SignupApplicationDetail.Defaults.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Equals(Kun.Tenancy.Signup.SignupApplicationDetail? other) -> bool
+Kun.Tenancy.Signup.SignupApplicationDetail.Id.get -> System.Guid
+Kun.Tenancy.Signup.SignupApplicationDetail.Id.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Number.get -> string!
+Kun.Tenancy.Signup.SignupApplicationDetail.Number.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Provisioning.get -> Kun.Tenancy.Signup.SignupProvisioning?
+Kun.Tenancy.Signup.SignupApplicationDetail.Provisioning.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Review.get -> Kun.Tenancy.Signup.SignupReview?
+Kun.Tenancy.Signup.SignupApplicationDetail.Review.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.SignupApplicationDetail(System.Guid Id, string! Number, Kun.Tenancy.Signup.SignupApplicationStatus Status, Kun.Tenancy.Signup.SignupCompany! Company, Kun.Tenancy.Signup.SignupApplicantProfile! Applicant, System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupCheck!>! Checks, Kun.Tenancy.Signup.SignupReviewDefaults! Defaults, System.DateTimeOffset SubmittedAt) -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.Status.get -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationDetail.Status.init -> void
+Kun.Tenancy.Signup.SignupApplicationDetail.SubmittedAt.get -> System.DateTimeOffset
+Kun.Tenancy.Signup.SignupApplicationDetail.SubmittedAt.init -> void
+Kun.Tenancy.Signup.SignupApplicationList
+Kun.Tenancy.Signup.SignupApplicationList.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicationList!
+Kun.Tenancy.Signup.SignupApplicationList.Counts.get -> Kun.Tenancy.Signup.SignupApplicationCounts!
+Kun.Tenancy.Signup.SignupApplicationList.Counts.init -> void
+Kun.Tenancy.Signup.SignupApplicationList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationSummary!>! Items, out int Total, out Kun.Tenancy.Signup.SignupApplicationCounts! Counts) -> void
+Kun.Tenancy.Signup.SignupApplicationList.Equals(Kun.Tenancy.Signup.SignupApplicationList? other) -> bool
+Kun.Tenancy.Signup.SignupApplicationList.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationSummary!>!
+Kun.Tenancy.Signup.SignupApplicationList.Items.init -> void
+Kun.Tenancy.Signup.SignupApplicationList.SignupApplicationList(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationSummary!>! Items, int Total, Kun.Tenancy.Signup.SignupApplicationCounts! Counts) -> void
+Kun.Tenancy.Signup.SignupApplicationList.Total.get -> int
+Kun.Tenancy.Signup.SignupApplicationList.Total.init -> void
+Kun.Tenancy.Signup.SignupApplicationQuery
+Kun.Tenancy.Signup.SignupApplicationQuery.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicationQuery!
+Kun.Tenancy.Signup.SignupApplicationQuery.Deconstruct(out int Skip, out int Take) -> void
+Kun.Tenancy.Signup.SignupApplicationQuery.Equals(Kun.Tenancy.Signup.SignupApplicationQuery? other) -> bool
+Kun.Tenancy.Signup.SignupApplicationQuery.Keyword.get -> string?
+Kun.Tenancy.Signup.SignupApplicationQuery.Keyword.init -> void
+Kun.Tenancy.Signup.SignupApplicationQuery.SignupApplicationQuery(int Skip = 0, int Take = 50) -> void
+Kun.Tenancy.Signup.SignupApplicationQuery.Size.get -> string?
+Kun.Tenancy.Signup.SignupApplicationQuery.Size.init -> void
+Kun.Tenancy.Signup.SignupApplicationQuery.Skip.get -> int
+Kun.Tenancy.Signup.SignupApplicationQuery.Skip.init -> void
+Kun.Tenancy.Signup.SignupApplicationQuery.Status.get -> Kun.Tenancy.Signup.SignupApplicationStatus?
+Kun.Tenancy.Signup.SignupApplicationQuery.Status.init -> void
+Kun.Tenancy.Signup.SignupApplicationQuery.Take.get -> int
+Kun.Tenancy.Signup.SignupApplicationQuery.Take.init -> void
+Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationStatus.Approved = 2 -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationStatus.Failed = 3 -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationStatus.Provisioning = 1 -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationStatus.Rejected = 4 -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationStatus.Submitted = 0 -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationStatus.Withdrawn = 5 -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationSummary
+Kun.Tenancy.Signup.SignupApplicationSummary.<Clone>$() -> Kun.Tenancy.Signup.SignupApplicationSummary!
+Kun.Tenancy.Signup.SignupApplicationSummary.Check.get -> Kun.Tenancy.Signup.SignupCheck?
+Kun.Tenancy.Signup.SignupApplicationSummary.Check.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.Code.get -> string!
+Kun.Tenancy.Signup.SignupApplicationSummary.Code.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.CompanyName.get -> string!
+Kun.Tenancy.Signup.SignupApplicationSummary.CompanyName.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.ContactName.get -> string!
+Kun.Tenancy.Signup.SignupApplicationSummary.ContactName.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.Deconstruct(out System.Guid Id, out string! Number, out Kun.Tenancy.Signup.SignupApplicationStatus Status, out string! CompanyName, out string! Code, out string! Size, out string! ContactName, out string! Phone, out System.DateTimeOffset SubmittedAt, out Kun.Tenancy.Signup.SignupCheck? Check) -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.Equals(Kun.Tenancy.Signup.SignupApplicationSummary? other) -> bool
+Kun.Tenancy.Signup.SignupApplicationSummary.Id.get -> System.Guid
+Kun.Tenancy.Signup.SignupApplicationSummary.Id.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.Industry.get -> string?
+Kun.Tenancy.Signup.SignupApplicationSummary.Industry.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.Number.get -> string!
+Kun.Tenancy.Signup.SignupApplicationSummary.Number.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.Phone.get -> string!
+Kun.Tenancy.Signup.SignupApplicationSummary.Phone.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.SignupApplicationSummary(System.Guid Id, string! Number, Kun.Tenancy.Signup.SignupApplicationStatus Status, string! CompanyName, string! Code, string! Size, string! ContactName, string! Phone, System.DateTimeOffset SubmittedAt, Kun.Tenancy.Signup.SignupCheck? Check) -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.Size.get -> string!
+Kun.Tenancy.Signup.SignupApplicationSummary.Size.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.Status.get -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupApplicationSummary.Status.init -> void
+Kun.Tenancy.Signup.SignupApplicationSummary.SubmittedAt.get -> System.DateTimeOffset
+Kun.Tenancy.Signup.SignupApplicationSummary.SubmittedAt.init -> void
+Kun.Tenancy.Signup.SignupCheck
+Kun.Tenancy.Signup.SignupCheck.<Clone>$() -> Kun.Tenancy.Signup.SignupCheck!
+Kun.Tenancy.Signup.SignupCheck.Count.get -> int?
+Kun.Tenancy.Signup.SignupCheck.Count.init -> void
+Kun.Tenancy.Signup.SignupCheck.Deconstruct(out string! Kind, out string! Level) -> void
+Kun.Tenancy.Signup.SignupCheck.Equals(Kun.Tenancy.Signup.SignupCheck? other) -> bool
+Kun.Tenancy.Signup.SignupCheck.Kind.get -> string!
+Kun.Tenancy.Signup.SignupCheck.Kind.init -> void
+Kun.Tenancy.Signup.SignupCheck.Level.get -> string!
+Kun.Tenancy.Signup.SignupCheck.Level.init -> void
+Kun.Tenancy.Signup.SignupCheck.Reason.get -> string?
+Kun.Tenancy.Signup.SignupCheck.Reason.init -> void
+Kun.Tenancy.Signup.SignupCheck.SignupCheck(string! Kind, string! Level) -> void
+Kun.Tenancy.Signup.SignupCheckKinds
+Kun.Tenancy.Signup.SignupCheckLevels
+Kun.Tenancy.Signup.SignupCodeAvailability
+Kun.Tenancy.Signup.SignupCodeAvailability.<Clone>$() -> Kun.Tenancy.Signup.SignupCodeAvailability!
+Kun.Tenancy.Signup.SignupCodeAvailability.Available.get -> bool
+Kun.Tenancy.Signup.SignupCodeAvailability.Available.init -> void
+Kun.Tenancy.Signup.SignupCodeAvailability.Code.get -> string!
+Kun.Tenancy.Signup.SignupCodeAvailability.Code.init -> void
+Kun.Tenancy.Signup.SignupCodeAvailability.Deconstruct(out string! Code, out bool Available) -> void
+Kun.Tenancy.Signup.SignupCodeAvailability.Equals(Kun.Tenancy.Signup.SignupCodeAvailability? other) -> bool
+Kun.Tenancy.Signup.SignupCodeAvailability.Reason.get -> string?
+Kun.Tenancy.Signup.SignupCodeAvailability.Reason.init -> void
+Kun.Tenancy.Signup.SignupCodeAvailability.SignupCodeAvailability(string! Code, bool Available) -> void
+Kun.Tenancy.Signup.SignupCodeReasons
+Kun.Tenancy.Signup.SignupCompany
+Kun.Tenancy.Signup.SignupCompany.<Clone>$() -> Kun.Tenancy.Signup.SignupCompany!
+Kun.Tenancy.Signup.SignupCompany.Code.get -> string!
+Kun.Tenancy.Signup.SignupCompany.Code.init -> void
+Kun.Tenancy.Signup.SignupCompany.Deconstruct(out string! Name, out string! Code, out string! Size) -> void
+Kun.Tenancy.Signup.SignupCompany.Description.get -> string?
+Kun.Tenancy.Signup.SignupCompany.Description.init -> void
+Kun.Tenancy.Signup.SignupCompany.Equals(Kun.Tenancy.Signup.SignupCompany? other) -> bool
+Kun.Tenancy.Signup.SignupCompany.Industry.get -> string?
+Kun.Tenancy.Signup.SignupCompany.Industry.init -> void
+Kun.Tenancy.Signup.SignupCompany.Name.get -> string!
+Kun.Tenancy.Signup.SignupCompany.Name.init -> void
+Kun.Tenancy.Signup.SignupCompany.SignupCompany(string! Name, string! Code, string! Size) -> void
+Kun.Tenancy.Signup.SignupCompany.Size.get -> string!
+Kun.Tenancy.Signup.SignupCompany.Size.init -> void
+Kun.Tenancy.Signup.SignupCompanySizes
+Kun.Tenancy.Signup.SignupPlan
+Kun.Tenancy.Signup.SignupPlan.Formal = 1 -> Kun.Tenancy.Signup.SignupPlan
+Kun.Tenancy.Signup.SignupPlan.Trial = 0 -> Kun.Tenancy.Signup.SignupPlan
+Kun.Tenancy.Signup.SignupProvisioning
+Kun.Tenancy.Signup.SignupProvisioning.<Clone>$() -> Kun.Tenancy.Signup.SignupProvisioning!
+Kun.Tenancy.Signup.SignupProvisioning.Attempts.get -> int
+Kun.Tenancy.Signup.SignupProvisioning.Attempts.init -> void
+Kun.Tenancy.Signup.SignupProvisioning.Deconstruct(out int Attempts, out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupProvisionStep!>! Steps) -> void
+Kun.Tenancy.Signup.SignupProvisioning.Equals(Kun.Tenancy.Signup.SignupProvisioning? other) -> bool
+Kun.Tenancy.Signup.SignupProvisioning.FailureReason.get -> string?
+Kun.Tenancy.Signup.SignupProvisioning.FailureReason.init -> void
+Kun.Tenancy.Signup.SignupProvisioning.MembershipId.get -> System.Guid?
+Kun.Tenancy.Signup.SignupProvisioning.MembershipId.init -> void
+Kun.Tenancy.Signup.SignupProvisioning.SignupProvisioning(int Attempts, System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupProvisionStep!>! Steps) -> void
+Kun.Tenancy.Signup.SignupProvisioning.Steps.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupProvisionStep!>!
+Kun.Tenancy.Signup.SignupProvisioning.Steps.init -> void
+Kun.Tenancy.Signup.SignupProvisioning.TenantId.get -> System.Guid?
+Kun.Tenancy.Signup.SignupProvisioning.TenantId.init -> void
+Kun.Tenancy.Signup.SignupProvisionStep
+Kun.Tenancy.Signup.SignupProvisionStep.<Clone>$() -> Kun.Tenancy.Signup.SignupProvisionStep!
+Kun.Tenancy.Signup.SignupProvisionStep.Attempts.get -> int
+Kun.Tenancy.Signup.SignupProvisionStep.Attempts.init -> void
+Kun.Tenancy.Signup.SignupProvisionStep.Deconstruct(out string! Step, out string! Status, out int Attempts) -> void
+Kun.Tenancy.Signup.SignupProvisionStep.Equals(Kun.Tenancy.Signup.SignupProvisionStep? other) -> bool
+Kun.Tenancy.Signup.SignupProvisionStep.Reason.get -> string?
+Kun.Tenancy.Signup.SignupProvisionStep.Reason.init -> void
+Kun.Tenancy.Signup.SignupProvisionStep.SignupProvisionStep(string! Step, string! Status, int Attempts) -> void
+Kun.Tenancy.Signup.SignupProvisionStep.Status.get -> string!
+Kun.Tenancy.Signup.SignupProvisionStep.Status.init -> void
+Kun.Tenancy.Signup.SignupProvisionStep.Step.get -> string!
+Kun.Tenancy.Signup.SignupProvisionStep.Step.init -> void
+Kun.Tenancy.Signup.SignupRequestContext
+Kun.Tenancy.Signup.SignupRequestContext.<Clone>$() -> Kun.Tenancy.Signup.SignupRequestContext!
+Kun.Tenancy.Signup.SignupRequestContext.Deconstruct(out string? SourceAddress) -> void
+Kun.Tenancy.Signup.SignupRequestContext.Equals(Kun.Tenancy.Signup.SignupRequestContext? other) -> bool
+Kun.Tenancy.Signup.SignupRequestContext.SignupRequestContext(string? SourceAddress) -> void
+Kun.Tenancy.Signup.SignupRequestContext.SourceAddress.get -> string?
+Kun.Tenancy.Signup.SignupRequestContext.SourceAddress.init -> void
+Kun.Tenancy.Signup.SignupResultKind
+Kun.Tenancy.Signup.SignupResultKind.Approved = 0 -> Kun.Tenancy.Signup.SignupResultKind
+Kun.Tenancy.Signup.SignupResultKind.Rejected = 1 -> Kun.Tenancy.Signup.SignupResultKind
+Kun.Tenancy.Signup.SignupResultMessage
+Kun.Tenancy.Signup.SignupResultMessage.<Clone>$() -> Kun.Tenancy.Signup.SignupResultMessage!
+Kun.Tenancy.Signup.SignupResultMessage.ApplicationNumber.get -> string!
+Kun.Tenancy.Signup.SignupResultMessage.ApplicationNumber.init -> void
+Kun.Tenancy.Signup.SignupResultMessage.Deconstruct(out System.Guid Id, out string! Phone, out string! ApplicationNumber, out Kun.Tenancy.Signup.SignupResultKind Kind) -> void
+Kun.Tenancy.Signup.SignupResultMessage.Equals(Kun.Tenancy.Signup.SignupResultMessage? other) -> bool
+Kun.Tenancy.Signup.SignupResultMessage.Id.get -> System.Guid
+Kun.Tenancy.Signup.SignupResultMessage.Id.init -> void
+Kun.Tenancy.Signup.SignupResultMessage.Kind.get -> Kun.Tenancy.Signup.SignupResultKind
+Kun.Tenancy.Signup.SignupResultMessage.Kind.init -> void
+Kun.Tenancy.Signup.SignupResultMessage.Phone.get -> string!
+Kun.Tenancy.Signup.SignupResultMessage.Phone.init -> void
+Kun.Tenancy.Signup.SignupResultMessage.Reason.get -> string?
+Kun.Tenancy.Signup.SignupResultMessage.Reason.init -> void
+Kun.Tenancy.Signup.SignupResultMessage.SignupResultMessage(System.Guid Id, string! Phone, string! ApplicationNumber, Kun.Tenancy.Signup.SignupResultKind Kind) -> void
+Kun.Tenancy.Signup.SignupResultMessage.TenantCode.get -> string?
+Kun.Tenancy.Signup.SignupResultMessage.TenantCode.init -> void
+Kun.Tenancy.Signup.SignupResultMessage.ValidUntil.get -> System.DateTimeOffset?
+Kun.Tenancy.Signup.SignupResultMessage.ValidUntil.init -> void
+Kun.Tenancy.Signup.SignupReview
+Kun.Tenancy.Signup.SignupReview.<Clone>$() -> Kun.Tenancy.Signup.SignupReview!
+Kun.Tenancy.Signup.SignupReview.Deconstruct(out string! Reviewer, out System.DateTimeOffset ReviewedAt) -> void
+Kun.Tenancy.Signup.SignupReview.Equals(Kun.Tenancy.Signup.SignupReview? other) -> bool
+Kun.Tenancy.Signup.SignupReview.Note.get -> string?
+Kun.Tenancy.Signup.SignupReview.Note.init -> void
+Kun.Tenancy.Signup.SignupReview.Plan.get -> Kun.Tenancy.Signup.SignupPlan?
+Kun.Tenancy.Signup.SignupReview.Plan.init -> void
+Kun.Tenancy.Signup.SignupReview.RejectReason.get -> string?
+Kun.Tenancy.Signup.SignupReview.RejectReason.init -> void
+Kun.Tenancy.Signup.SignupReview.ReviewedAt.get -> System.DateTimeOffset
+Kun.Tenancy.Signup.SignupReview.ReviewedAt.init -> void
+Kun.Tenancy.Signup.SignupReview.Reviewer.get -> string!
+Kun.Tenancy.Signup.SignupReview.Reviewer.init -> void
+Kun.Tenancy.Signup.SignupReview.SignupReview(string! Reviewer, System.DateTimeOffset ReviewedAt) -> void
+Kun.Tenancy.Signup.SignupReview.Users.get -> int?
+Kun.Tenancy.Signup.SignupReview.Users.init -> void
+Kun.Tenancy.Signup.SignupReview.ValidUntil.get -> System.DateTimeOffset?
+Kun.Tenancy.Signup.SignupReview.ValidUntil.init -> void
+Kun.Tenancy.Signup.SignupReviewDefaults
+Kun.Tenancy.Signup.SignupReviewDefaults.<Clone>$() -> Kun.Tenancy.Signup.SignupReviewDefaults!
+Kun.Tenancy.Signup.SignupReviewDefaults.Deconstruct(out int TrialDays, out int Users) -> void
+Kun.Tenancy.Signup.SignupReviewDefaults.Equals(Kun.Tenancy.Signup.SignupReviewDefaults? other) -> bool
+Kun.Tenancy.Signup.SignupReviewDefaults.SignupReviewDefaults(int TrialDays, int Users) -> void
+Kun.Tenancy.Signup.SignupReviewDefaults.TrialDays.get -> int
+Kun.Tenancy.Signup.SignupReviewDefaults.TrialDays.init -> void
+Kun.Tenancy.Signup.SignupReviewDefaults.Users.get -> int
+Kun.Tenancy.Signup.SignupReviewDefaults.Users.init -> void
+Kun.Tenancy.Signup.SignupSessionGrant
+Kun.Tenancy.Signup.SignupSessionGrant.<Clone>$() -> Kun.Tenancy.Signup.SignupSessionGrant!
+Kun.Tenancy.Signup.SignupSessionGrant.Applicant.get -> Kun.Tenancy.Signup.SignupApplicant!
+Kun.Tenancy.Signup.SignupSessionGrant.Applicant.init -> void
+Kun.Tenancy.Signup.SignupSessionGrant.Deconstruct(out string! Token, out System.DateTimeOffset ExpiresAt, out Kun.Tenancy.Signup.SignupApplicant! Applicant) -> void
+Kun.Tenancy.Signup.SignupSessionGrant.Equals(Kun.Tenancy.Signup.SignupSessionGrant? other) -> bool
+Kun.Tenancy.Signup.SignupSessionGrant.ExpiresAt.get -> System.DateTimeOffset
+Kun.Tenancy.Signup.SignupSessionGrant.ExpiresAt.init -> void
+Kun.Tenancy.Signup.SignupSessionGrant.SignupSessionGrant(string! Token, System.DateTimeOffset ExpiresAt, Kun.Tenancy.Signup.SignupApplicant! Applicant) -> void
+Kun.Tenancy.Signup.SignupSessionGrant.Token.get -> string!
+Kun.Tenancy.Signup.SignupSessionGrant.Token.init -> void
+Kun.Tenancy.Signup.SignupStateMachine
+Kun.Tenancy.Signup.SignupStateMachine.<Clone>$() -> Kun.Tenancy.Signup.SignupStateMachine!
+Kun.Tenancy.Signup.SignupStateMachine.Actions.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupAction!>!
+Kun.Tenancy.Signup.SignupStateMachine.Actions.init -> void
+Kun.Tenancy.Signup.SignupStateMachine.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>! States, out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>! Terminal, out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupTransition!>! Transitions, out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupAction!>! Actions) -> void
+Kun.Tenancy.Signup.SignupStateMachine.Equals(Kun.Tenancy.Signup.SignupStateMachine? other) -> bool
+Kun.Tenancy.Signup.SignupStateMachine.SignupStateMachine(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>! States, System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>! Terminal, System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupTransition!>! Transitions, System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupAction!>! Actions) -> void
+Kun.Tenancy.Signup.SignupStateMachine.States.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>!
+Kun.Tenancy.Signup.SignupStateMachine.States.init -> void
+Kun.Tenancy.Signup.SignupStateMachine.Terminal.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>!
+Kun.Tenancy.Signup.SignupStateMachine.Terminal.init -> void
+Kun.Tenancy.Signup.SignupStateMachine.Transitions.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupTransition!>!
+Kun.Tenancy.Signup.SignupStateMachine.Transitions.init -> void
+Kun.Tenancy.Signup.SignupSubmission
+Kun.Tenancy.Signup.SignupSubmission.<Clone>$() -> Kun.Tenancy.Signup.SignupSubmission!
+Kun.Tenancy.Signup.SignupSubmission.Application.get -> Kun.Tenancy.Signup.SignupApplicantApplication!
+Kun.Tenancy.Signup.SignupSubmission.Application.init -> void
+Kun.Tenancy.Signup.SignupSubmission.Deconstruct(out Kun.Tenancy.Signup.SignupApplicantApplication! Application, out Kun.Tenancy.Signup.SignupSessionGrant! Session) -> void
+Kun.Tenancy.Signup.SignupSubmission.Equals(Kun.Tenancy.Signup.SignupSubmission? other) -> bool
+Kun.Tenancy.Signup.SignupSubmission.Session.get -> Kun.Tenancy.Signup.SignupSessionGrant!
+Kun.Tenancy.Signup.SignupSubmission.Session.init -> void
+Kun.Tenancy.Signup.SignupSubmission.SignupSubmission(Kun.Tenancy.Signup.SignupApplicantApplication! Application, Kun.Tenancy.Signup.SignupSessionGrant! Session) -> void
+Kun.Tenancy.Signup.SignupTransition
+Kun.Tenancy.Signup.SignupTransition.<Clone>$() -> Kun.Tenancy.Signup.SignupTransition!
+Kun.Tenancy.Signup.SignupTransition.Action.get -> string!
+Kun.Tenancy.Signup.SignupTransition.Action.init -> void
+Kun.Tenancy.Signup.SignupTransition.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>! From, out string! Action, out Kun.Tenancy.Signup.SignupApplicationStatus To) -> void
+Kun.Tenancy.Signup.SignupTransition.Equals(Kun.Tenancy.Signup.SignupTransition? other) -> bool
+Kun.Tenancy.Signup.SignupTransition.From.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>!
+Kun.Tenancy.Signup.SignupTransition.From.init -> void
+Kun.Tenancy.Signup.SignupTransition.SignupTransition(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.Signup.SignupApplicationStatus>! From, string! Action, Kun.Tenancy.Signup.SignupApplicationStatus To) -> void
+Kun.Tenancy.Signup.SignupTransition.To.get -> Kun.Tenancy.Signup.SignupApplicationStatus
+Kun.Tenancy.Signup.SignupTransition.To.init -> void
+Kun.Tenancy.Signup.SignupVerificationMessage
+Kun.Tenancy.Signup.SignupVerificationMessage.<Clone>$() -> Kun.Tenancy.Signup.SignupVerificationMessage!
+Kun.Tenancy.Signup.SignupVerificationMessage.Code.get -> string!
+Kun.Tenancy.Signup.SignupVerificationMessage.Code.init -> void
+Kun.Tenancy.Signup.SignupVerificationMessage.Deconstruct(out System.Guid Id, out string! Phone, out string! Code, out System.DateTimeOffset ExpiresAt) -> void
+Kun.Tenancy.Signup.SignupVerificationMessage.Equals(Kun.Tenancy.Signup.SignupVerificationMessage? other) -> bool
+Kun.Tenancy.Signup.SignupVerificationMessage.ExpiresAt.get -> System.DateTimeOffset
+Kun.Tenancy.Signup.SignupVerificationMessage.ExpiresAt.init -> void
+Kun.Tenancy.Signup.SignupVerificationMessage.Id.get -> System.Guid
+Kun.Tenancy.Signup.SignupVerificationMessage.Id.init -> void
+Kun.Tenancy.Signup.SignupVerificationMessage.Phone.get -> string!
+Kun.Tenancy.Signup.SignupVerificationMessage.Phone.init -> void
+Kun.Tenancy.Signup.SignupVerificationMessage.SignupVerificationMessage(System.Guid Id, string! Phone, string! Code, System.DateTimeOffset ExpiresAt) -> void
+Kun.Tenancy.Signup.SignupVerificationTicket
+Kun.Tenancy.Signup.SignupVerificationTicket.<Clone>$() -> Kun.Tenancy.Signup.SignupVerificationTicket!
+Kun.Tenancy.Signup.SignupVerificationTicket.Deconstruct(out System.Guid Id, out System.DateTimeOffset ExpiresAt, out System.DateTimeOffset ResendAfter) -> void
+Kun.Tenancy.Signup.SignupVerificationTicket.Equals(Kun.Tenancy.Signup.SignupVerificationTicket? other) -> bool
+Kun.Tenancy.Signup.SignupVerificationTicket.ExpiresAt.get -> System.DateTimeOffset
+Kun.Tenancy.Signup.SignupVerificationTicket.ExpiresAt.init -> void
+Kun.Tenancy.Signup.SignupVerificationTicket.Id.get -> System.Guid
+Kun.Tenancy.Signup.SignupVerificationTicket.Id.init -> void
+Kun.Tenancy.Signup.SignupVerificationTicket.ResendAfter.get -> System.DateTimeOffset
+Kun.Tenancy.Signup.SignupVerificationTicket.ResendAfter.init -> void
+Kun.Tenancy.Signup.SignupVerificationTicket.SignupVerificationTicket(System.Guid Id, System.DateTimeOffset ExpiresAt, System.DateTimeOffset ResendAfter) -> void
+Kun.Tenancy.Signup.StartSignupVerification
+Kun.Tenancy.Signup.StartSignupVerification.<Clone>$() -> Kun.Tenancy.Signup.StartSignupVerification!
+Kun.Tenancy.Signup.StartSignupVerification.Deconstruct(out string! Phone) -> void
+Kun.Tenancy.Signup.StartSignupVerification.Equals(Kun.Tenancy.Signup.StartSignupVerification? other) -> bool
+Kun.Tenancy.Signup.StartSignupVerification.Phone.get -> string!
+Kun.Tenancy.Signup.StartSignupVerification.Phone.init -> void
+Kun.Tenancy.Signup.StartSignupVerification.StartSignupVerification(string! Phone) -> void
+Kun.Tenancy.Signup.SubmitSignupApplication
+Kun.Tenancy.Signup.SubmitSignupApplication.<Clone>$() -> Kun.Tenancy.Signup.SubmitSignupApplication!
+Kun.Tenancy.Signup.SubmitSignupApplication.AcceptTerms.get -> bool
+Kun.Tenancy.Signup.SubmitSignupApplication.AcceptTerms.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.Code.get -> string!
+Kun.Tenancy.Signup.SubmitSignupApplication.Code.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.CompanyName.get -> string!
+Kun.Tenancy.Signup.SubmitSignupApplication.CompanyName.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.Deconstruct(out string! CompanyName, out string! Code, out string! Size, out bool AcceptTerms) -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.Description.get -> string?
+Kun.Tenancy.Signup.SubmitSignupApplication.Description.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.DisplayName.get -> string?
+Kun.Tenancy.Signup.SubmitSignupApplication.DisplayName.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.Email.get -> string?
+Kun.Tenancy.Signup.SubmitSignupApplication.Email.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.Equals(Kun.Tenancy.Signup.SubmitSignupApplication? other) -> bool
+Kun.Tenancy.Signup.SubmitSignupApplication.Industry.get -> string?
+Kun.Tenancy.Signup.SubmitSignupApplication.Industry.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.Password.get -> string?
+Kun.Tenancy.Signup.SubmitSignupApplication.Password.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.Size.get -> string!
+Kun.Tenancy.Signup.SubmitSignupApplication.Size.init -> void
+Kun.Tenancy.Signup.SubmitSignupApplication.SubmitSignupApplication(string! CompanyName, string! Code, string! Size, bool AcceptTerms) -> void
+Kun.Tenancy.Signup.TenancySignupDefinition
+Kun.Tenancy.Signup.TenancySignupErrors
+static Kun.Tenancy.Signup.ApproveSignupApplication.operator !=(Kun.Tenancy.Signup.ApproveSignupApplication? left, Kun.Tenancy.Signup.ApproveSignupApplication? right) -> bool
+static Kun.Tenancy.Signup.ApproveSignupApplication.operator ==(Kun.Tenancy.Signup.ApproveSignupApplication? left, Kun.Tenancy.Signup.ApproveSignupApplication? right) -> bool
+static Kun.Tenancy.Signup.OpenSignupSession.operator !=(Kun.Tenancy.Signup.OpenSignupSession? left, Kun.Tenancy.Signup.OpenSignupSession? right) -> bool
+static Kun.Tenancy.Signup.OpenSignupSession.operator ==(Kun.Tenancy.Signup.OpenSignupSession? left, Kun.Tenancy.Signup.OpenSignupSession? right) -> bool
+static Kun.Tenancy.Signup.RejectSignupApplication.operator !=(Kun.Tenancy.Signup.RejectSignupApplication? left, Kun.Tenancy.Signup.RejectSignupApplication? right) -> bool
+static Kun.Tenancy.Signup.RejectSignupApplication.operator ==(Kun.Tenancy.Signup.RejectSignupApplication? left, Kun.Tenancy.Signup.RejectSignupApplication? right) -> bool
+static Kun.Tenancy.Signup.SignupAction.operator !=(Kun.Tenancy.Signup.SignupAction? left, Kun.Tenancy.Signup.SignupAction? right) -> bool
+static Kun.Tenancy.Signup.SignupAction.operator ==(Kun.Tenancy.Signup.SignupAction? left, Kun.Tenancy.Signup.SignupAction? right) -> bool
+static Kun.Tenancy.Signup.SignupActionAgent.operator !=(Kun.Tenancy.Signup.SignupActionAgent? left, Kun.Tenancy.Signup.SignupActionAgent? right) -> bool
+static Kun.Tenancy.Signup.SignupActionAgent.operator ==(Kun.Tenancy.Signup.SignupActionAgent? left, Kun.Tenancy.Signup.SignupActionAgent? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicant.operator !=(Kun.Tenancy.Signup.SignupApplicant? left, Kun.Tenancy.Signup.SignupApplicant? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicant.operator ==(Kun.Tenancy.Signup.SignupApplicant? left, Kun.Tenancy.Signup.SignupApplicant? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicantApplication.operator !=(Kun.Tenancy.Signup.SignupApplicantApplication? left, Kun.Tenancy.Signup.SignupApplicantApplication? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicantApplication.operator ==(Kun.Tenancy.Signup.SignupApplicantApplication? left, Kun.Tenancy.Signup.SignupApplicantApplication? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicantApplications.operator !=(Kun.Tenancy.Signup.SignupApplicantApplications? left, Kun.Tenancy.Signup.SignupApplicantApplications? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicantApplications.operator ==(Kun.Tenancy.Signup.SignupApplicantApplications? left, Kun.Tenancy.Signup.SignupApplicantApplications? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicantProfile.operator !=(Kun.Tenancy.Signup.SignupApplicantProfile? left, Kun.Tenancy.Signup.SignupApplicantProfile? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicantProfile.operator ==(Kun.Tenancy.Signup.SignupApplicantProfile? left, Kun.Tenancy.Signup.SignupApplicantProfile? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationCounts.operator !=(Kun.Tenancy.Signup.SignupApplicationCounts? left, Kun.Tenancy.Signup.SignupApplicationCounts? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationCounts.operator ==(Kun.Tenancy.Signup.SignupApplicationCounts? left, Kun.Tenancy.Signup.SignupApplicationCounts? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationDetail.operator !=(Kun.Tenancy.Signup.SignupApplicationDetail? left, Kun.Tenancy.Signup.SignupApplicationDetail? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationDetail.operator ==(Kun.Tenancy.Signup.SignupApplicationDetail? left, Kun.Tenancy.Signup.SignupApplicationDetail? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationList.operator !=(Kun.Tenancy.Signup.SignupApplicationList? left, Kun.Tenancy.Signup.SignupApplicationList? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationList.operator ==(Kun.Tenancy.Signup.SignupApplicationList? left, Kun.Tenancy.Signup.SignupApplicationList? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationQuery.operator !=(Kun.Tenancy.Signup.SignupApplicationQuery? left, Kun.Tenancy.Signup.SignupApplicationQuery? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationQuery.operator ==(Kun.Tenancy.Signup.SignupApplicationQuery? left, Kun.Tenancy.Signup.SignupApplicationQuery? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationSummary.operator !=(Kun.Tenancy.Signup.SignupApplicationSummary? left, Kun.Tenancy.Signup.SignupApplicationSummary? right) -> bool
+static Kun.Tenancy.Signup.SignupApplicationSummary.operator ==(Kun.Tenancy.Signup.SignupApplicationSummary? left, Kun.Tenancy.Signup.SignupApplicationSummary? right) -> bool
+static Kun.Tenancy.Signup.SignupCheck.operator !=(Kun.Tenancy.Signup.SignupCheck? left, Kun.Tenancy.Signup.SignupCheck? right) -> bool
+static Kun.Tenancy.Signup.SignupCheck.operator ==(Kun.Tenancy.Signup.SignupCheck? left, Kun.Tenancy.Signup.SignupCheck? right) -> bool
+static Kun.Tenancy.Signup.SignupCodeAvailability.operator !=(Kun.Tenancy.Signup.SignupCodeAvailability? left, Kun.Tenancy.Signup.SignupCodeAvailability? right) -> bool
+static Kun.Tenancy.Signup.SignupCodeAvailability.operator ==(Kun.Tenancy.Signup.SignupCodeAvailability? left, Kun.Tenancy.Signup.SignupCodeAvailability? right) -> bool
+static Kun.Tenancy.Signup.SignupCompany.operator !=(Kun.Tenancy.Signup.SignupCompany? left, Kun.Tenancy.Signup.SignupCompany? right) -> bool
+static Kun.Tenancy.Signup.SignupCompany.operator ==(Kun.Tenancy.Signup.SignupCompany? left, Kun.Tenancy.Signup.SignupCompany? right) -> bool
+static Kun.Tenancy.Signup.SignupCompanySizes.All.get -> System.Collections.Generic.IReadOnlyList<string!>!
+static Kun.Tenancy.Signup.SignupProvisioning.operator !=(Kun.Tenancy.Signup.SignupProvisioning? left, Kun.Tenancy.Signup.SignupProvisioning? right) -> bool
+static Kun.Tenancy.Signup.SignupProvisioning.operator ==(Kun.Tenancy.Signup.SignupProvisioning? left, Kun.Tenancy.Signup.SignupProvisioning? right) -> bool
+static Kun.Tenancy.Signup.SignupProvisionStep.operator !=(Kun.Tenancy.Signup.SignupProvisionStep? left, Kun.Tenancy.Signup.SignupProvisionStep? right) -> bool
+static Kun.Tenancy.Signup.SignupProvisionStep.operator ==(Kun.Tenancy.Signup.SignupProvisionStep? left, Kun.Tenancy.Signup.SignupProvisionStep? right) -> bool
+static Kun.Tenancy.Signup.SignupRequestContext.operator !=(Kun.Tenancy.Signup.SignupRequestContext? left, Kun.Tenancy.Signup.SignupRequestContext? right) -> bool
+static Kun.Tenancy.Signup.SignupRequestContext.operator ==(Kun.Tenancy.Signup.SignupRequestContext? left, Kun.Tenancy.Signup.SignupRequestContext? right) -> bool
+static Kun.Tenancy.Signup.SignupResultMessage.operator !=(Kun.Tenancy.Signup.SignupResultMessage? left, Kun.Tenancy.Signup.SignupResultMessage? right) -> bool
+static Kun.Tenancy.Signup.SignupResultMessage.operator ==(Kun.Tenancy.Signup.SignupResultMessage? left, Kun.Tenancy.Signup.SignupResultMessage? right) -> bool
+static Kun.Tenancy.Signup.SignupReview.operator !=(Kun.Tenancy.Signup.SignupReview? left, Kun.Tenancy.Signup.SignupReview? right) -> bool
+static Kun.Tenancy.Signup.SignupReview.operator ==(Kun.Tenancy.Signup.SignupReview? left, Kun.Tenancy.Signup.SignupReview? right) -> bool
+static Kun.Tenancy.Signup.SignupReviewDefaults.operator !=(Kun.Tenancy.Signup.SignupReviewDefaults? left, Kun.Tenancy.Signup.SignupReviewDefaults? right) -> bool
+static Kun.Tenancy.Signup.SignupReviewDefaults.operator ==(Kun.Tenancy.Signup.SignupReviewDefaults? left, Kun.Tenancy.Signup.SignupReviewDefaults? right) -> bool
+static Kun.Tenancy.Signup.SignupSessionGrant.operator !=(Kun.Tenancy.Signup.SignupSessionGrant? left, Kun.Tenancy.Signup.SignupSessionGrant? right) -> bool
+static Kun.Tenancy.Signup.SignupSessionGrant.operator ==(Kun.Tenancy.Signup.SignupSessionGrant? left, Kun.Tenancy.Signup.SignupSessionGrant? right) -> bool
+static Kun.Tenancy.Signup.SignupStateMachine.Current.get -> Kun.Tenancy.Signup.SignupStateMachine!
+static Kun.Tenancy.Signup.SignupStateMachine.operator !=(Kun.Tenancy.Signup.SignupStateMachine? left, Kun.Tenancy.Signup.SignupStateMachine? right) -> bool
+static Kun.Tenancy.Signup.SignupStateMachine.operator ==(Kun.Tenancy.Signup.SignupStateMachine? left, Kun.Tenancy.Signup.SignupStateMachine? right) -> bool
+static Kun.Tenancy.Signup.SignupSubmission.operator !=(Kun.Tenancy.Signup.SignupSubmission? left, Kun.Tenancy.Signup.SignupSubmission? right) -> bool
+static Kun.Tenancy.Signup.SignupSubmission.operator ==(Kun.Tenancy.Signup.SignupSubmission? left, Kun.Tenancy.Signup.SignupSubmission? right) -> bool
+static Kun.Tenancy.Signup.SignupTransition.operator !=(Kun.Tenancy.Signup.SignupTransition? left, Kun.Tenancy.Signup.SignupTransition? right) -> bool
+static Kun.Tenancy.Signup.SignupTransition.operator ==(Kun.Tenancy.Signup.SignupTransition? left, Kun.Tenancy.Signup.SignupTransition? right) -> bool
+static Kun.Tenancy.Signup.SignupVerificationMessage.operator !=(Kun.Tenancy.Signup.SignupVerificationMessage? left, Kun.Tenancy.Signup.SignupVerificationMessage? right) -> bool
+static Kun.Tenancy.Signup.SignupVerificationMessage.operator ==(Kun.Tenancy.Signup.SignupVerificationMessage? left, Kun.Tenancy.Signup.SignupVerificationMessage? right) -> bool
+static Kun.Tenancy.Signup.SignupVerificationTicket.operator !=(Kun.Tenancy.Signup.SignupVerificationTicket? left, Kun.Tenancy.Signup.SignupVerificationTicket? right) -> bool
+static Kun.Tenancy.Signup.SignupVerificationTicket.operator ==(Kun.Tenancy.Signup.SignupVerificationTicket? left, Kun.Tenancy.Signup.SignupVerificationTicket? right) -> bool
+static Kun.Tenancy.Signup.StartSignupVerification.operator !=(Kun.Tenancy.Signup.StartSignupVerification? left, Kun.Tenancy.Signup.StartSignupVerification? right) -> bool
+static Kun.Tenancy.Signup.StartSignupVerification.operator ==(Kun.Tenancy.Signup.StartSignupVerification? left, Kun.Tenancy.Signup.StartSignupVerification? right) -> bool
+static Kun.Tenancy.Signup.SubmitSignupApplication.operator !=(Kun.Tenancy.Signup.SubmitSignupApplication? left, Kun.Tenancy.Signup.SubmitSignupApplication? right) -> bool
+static Kun.Tenancy.Signup.SubmitSignupApplication.operator ==(Kun.Tenancy.Signup.SubmitSignupApplication? left, Kun.Tenancy.Signup.SubmitSignupApplication? right) -> bool
+static Kun.Tenancy.Signup.TenancySignupDefinition.TenancySignup(this Kun.Runtime.IPluginContext! context) -> Kun.Tenancy.Signup.ITenantSignup!
+static Kun.Tenancy.Signup.TenancySignupErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
+static readonly Kun.Tenancy.Signup.TenancySignupDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Tenancy.Signup.TenancySignupDefinition.MessengerKey -> Kun.Runtime.ServiceKey
+static readonly Kun.Tenancy.Signup.TenancySignupErrors.AccountUnavailable -> Kun.Errors.ErrorCode!
+static readonly Kun.Tenancy.Signup.TenancySignupErrors.ApplicationOpen -> Kun.Errors.ErrorCode!
+static readonly Kun.Tenancy.Signup.TenancySignupErrors.CodeExpired -> Kun.Errors.ErrorCode!
+static readonly Kun.Tenancy.Signup.TenancySignupErrors.CodeInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Tenancy.Signup.TenancySignupErrors.CodeTaken -> Kun.Errors.ErrorCode!
+static readonly Kun.Tenancy.Signup.TenancySignupErrors.StateConflict -> Kun.Errors.ErrorCode!
+static readonly Kun.Tenancy.Signup.TenancySignupErrors.Unavailable -> Kun.Errors.ErrorCode!

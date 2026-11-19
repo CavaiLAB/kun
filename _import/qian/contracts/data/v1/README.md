@@ -1,10 +1,10 @@
 # 数据契约 v1
 
-规范与使用顺序见 [数据过滤与记录扩展契约](../../../docs/prd/specs/data-contracts.md)。本目录是 JSON Schema、字段运算符矩阵、系统变量目录和验收 fixture 的唯一内容源；Qian.Data.Abstractions 嵌入并打包根目录 JSON，测试直接验证 fixture 与发布类型。
+规范与使用顺序见 [数据过滤与记录扩展契约](../../../docs/prd/specs/data-contracts.md)。本目录是 JSON Schema、字段运算符矩阵、系统变量目录和验收 fixture 的唯一内容源；Kun.Data.Abstractions 嵌入并打包根目录 JSON，测试直接验证 fixture 与发布类型。
 
 记录事件按 Qian.Events 的模型发布：登记为集成事件的是载荷（qian.record.changed.v1.schema.json，对应 RecordChangedPayload），信封只有写入端生成的那一层。record-changed-envelope.schema.json 约束整条消息，引用 contracts/v0 的冻结信封与 UUID 定义，发布包包含这些引用的原始文件，支持离线解析；fixtures/record-changed-envelope.json 即写入端产出的形状。结构 Schema 与基于可信字段目录的语义校验都必须通过；bool/between 反例在结构上合法，但必须被矩阵校验拒绝。
 
-S1-DATA-003 在同目录增加三份文件，同样嵌入 Qian.Data.Abstractions：
+S1-DATA-003 在同目录增加三份文件，同样嵌入 Kun.Data.Abstractions：
 
 - base-data-types.json：10 个系统基准类型的种子，与目录同形、不含方言；
 - data-types.schema.json：GET /api/data/meta/types 的响应。`$defs/dbDialect` 是方言组件 qian.data.dialect/v1 数据的结构，`$defs/dataFieldDefinition` 是字段定义；
@@ -18,9 +18,9 @@ S1-DATA-003 在同目录增加三份文件，同样嵌入 Qian.Data.Abstractions
 
 R80 记录的两条例外及当前状态：
 
-- **零代码消费方即冻结**：这是 S1-QA-010 复核提出的要求，以 `Qian.Data.Abstractions` 的 C# 契约作为消费边界，是 R53「消费方全部进入 review 后才冻结」前提的例外。
+- **零代码消费方即冻结**：这是 S1-QA-010 复核提出的要求，以 `Kun.Data.Abstractions` 的 C# 契约作为消费边界，是 R53「消费方全部进入 review 后才冻结」前提的例外。
 - **冻结文件引用草稿（已解除，S1-AGT-005）**：2026-10-24 v0 event-envelope 与它引用的 s2s-claims 同步冻结。`record-changed-envelope.schema.json` 的信封引用、`qian.record.changed.v1.schema.json` 的 Actor 引用及现有信封 fixture 已纳入复核；本次只改 v0 状态元数据，字段、约束和引用路径均不变。`DataContractTests` 同时检查随包嵌入的两份 v0 原文与仓库一致且为 frozen，继续验证信封 / 载荷结构与上下文语义。
 
-参照 [通用契约的演进规则](../../v0/README.md#2-通用约定与演进)，冻结后只允许向后兼容的增量或不改变语义的说明修正。改动须在同一 PR 同步 Schema、fixture、Qian.Data.Abstractions 与已知消费方，说明兼容性并通过结构和语义校验；涉及错误响应时同时遵守 contracts/v0 的 ErrorDetail 约束。破坏性变更新开 `contracts/data/v2/`，不覆盖 v1；不得移除冻结标记恢复为 draft。引用的通用事件信封仍按 contracts/v0 自身的状态与规则演进。
+参照 [通用契约的演进规则](../../v0/README.md#2-通用约定与演进)，冻结后只允许向后兼容的增量或不改变语义的说明修正。改动须在同一 PR 同步 Schema、fixture、Kun.Data.Abstractions 与已知消费方，说明兼容性并通过结构和语义校验；涉及错误响应时同时遵守 contracts/v0 的 ErrorDetail 约束。破坏性变更新开 `contracts/data/v2/`，不覆盖 v1；不得移除冻结标记恢复为 draft。引用的通用事件信封仍按 contracts/v0 自身的状态与规则演进。
 
 结构门禁与 v0 对齐：校验 2020-12 元 Schema、`$id` 与文件名、非空 title / description、frozen 状态以及声明属性的对象关闭规则。过滤条件的 if / then / else 片段由已关闭的 condition 限制字段，记录信封的 allOf 片段继承 v0 的关闭规则；7 处精确路径及理由登记在 `DataContractTests`，新增例外须复核，不能对整个 Schema 跳过检查。

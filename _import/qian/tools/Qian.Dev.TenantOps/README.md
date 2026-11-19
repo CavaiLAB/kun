@@ -10,7 +10,7 @@
 - 运行期连接全部是受限 PostgreSQL 角色（NOSUPERUSER、NOBYPASSRLS）；
 - Authz 用专用平台登录，Audit 用平台链；
 - 平台组件制品经 Lifecycle 签名校验后安装、激活；
-- 调用的是与产品相同的 [TenantOperationsHost](../../samples/Qian.Sample.Crm/TenantOperationsHost.cs) 与 `MapQianTenancy`。
+- 调用的是与产品相同的 [TenantOperationsHost](../../samples/Qian.Sample.Crm/TenantOperationsHost.cs) 与 `MapKunTenancy`。
 
 它不是：
 

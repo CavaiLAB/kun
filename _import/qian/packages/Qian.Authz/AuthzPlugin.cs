@@ -6,7 +6,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;

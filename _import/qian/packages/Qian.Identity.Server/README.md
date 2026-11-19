@@ -12,7 +12,7 @@
 ## 宿主装配顺序（内置账号模型）
 
 1. 注册 Kun 的 `ITenantContext`，`AddKunEventBus(r => r.RegisterIdentityEvents())`、`AddKunMediator(m => m.AddQianIdentityEvents())`、`AddQianEvents()`；登录、锁定、改密事件在账号写入的同一事务里入 Outbox，漏装时保存回滚，不会静默丢事件。
-2. 经 `AddQianData` 注册 `IdentityDbContext`（schema `plugin_qian_identity`）。在线角色必须 NOSUPERUSER / NOBYPASSRLS，仅获该 schema 的 DML 权限；迁移由部署迁移任务先运行，在线副本不建表。
+2. 经 `AddKunData` 注册 `IdentityDbContext`（schema `plugin_qian_identity`）。在线角色必须 NOSUPERUSER / NOBYPASSRLS，仅获该 schema 的 DML 权限；迁移由部署迁移任务先运行，在线副本不建表。
 3. 建立受信账号 Cookie scheme（默认名 `qian.identity.signin`）和 DataProtection；多副本须共享受保护的密钥。调用 `AddQianIdentityServer(options, environment)`。`options` 里的证书私钥与客户端密钥由宿主从密钥引用加载，不进 profile、日志或仓库。账号策略放在 `options.Accounts`（见下）。
 4. 构建应用后先 `UseQianIdentityServer()`，再 `UseAuthentication()`，最后 `MapQianIdentityServer()` 与 `MapQianIdentityAccounts()`。前者含 Qian 错误映射、安全响应头（no-store / nosniff / frame-ancestors none）与组件挂载门禁，卸载后账号接口与协议路径都是 404。托管认证页族时在 `UseQianIdentityServer()` 之后、`UseRouting()` 之前调用 `UseQianIdentityPages(dist)`（S1-YUE-012）：`/login` 下同源托管 `packages/qian-identity-ui` 的构建产物，不带扩展名的页面路由回落入口，HTML `no-store`、`/login/assets/` 带哈希长缓存，全部响应带 `frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff`；账号 Cookie scheme 的 `LoginPath` 指向 `IdentityPagesHosting.PagesPath`，`Accounts.SelectionPath` 不在 `/login` 下时启动即抛错。生产镜像的接线归 S1-DEP-008。
 5. 经 `PluginLoader` 依次挂载 Data、Tenancy，再挂载 `IdentityServerPlugin`；identity 条目的 config 只接收 `issuer`，必须与 `options` 的规范 issuer 一致。

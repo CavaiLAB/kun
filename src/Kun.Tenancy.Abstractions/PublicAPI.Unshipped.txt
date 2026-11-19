@@ -1,0 +1,588 @@
+#nullable enable
+Kun.Tenancy.CreateTenant
+Kun.Tenancy.CreateTenant.<Clone>$() -> Kun.Tenancy.CreateTenant!
+Kun.Tenancy.CreateTenant.Code.get -> string!
+Kun.Tenancy.CreateTenant.Code.init -> void
+Kun.Tenancy.CreateTenant.CreateTenant(string! Code, string! Name, Kun.Tenancy.TenantIsolation Isolation = Kun.Tenancy.TenantIsolation.Row) -> void
+Kun.Tenancy.CreateTenant.Deconstruct(out string! Code, out string! Name, out Kun.Tenancy.TenantIsolation Isolation) -> void
+Kun.Tenancy.CreateTenant.Equals(Kun.Tenancy.CreateTenant? other) -> bool
+Kun.Tenancy.CreateTenant.Isolation.get -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.CreateTenant.Isolation.init -> void
+Kun.Tenancy.CreateTenant.Name.get -> string!
+Kun.Tenancy.CreateTenant.Name.init -> void
+Kun.Tenancy.ITenantContextPropagator
+Kun.Tenancy.ITenantContextPropagator.BeginScope(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! headers, System.Guid authorizedTenantId) -> System.IDisposable!
+Kun.Tenancy.ITenantContextPropagator.BeginScope(System.Text.Json.JsonElement carrier, System.Guid authorizedTenantId) -> System.IDisposable!
+Kun.Tenancy.ITenantContextPropagator.Write(System.Text.Json.JsonElement carrier) -> System.Text.Json.JsonElement
+Kun.Tenancy.ITenantContextPropagator.WriteHeaders() -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Tenancy.ITenantDirectory
+Kun.Tenancy.ITenantDirectory.GetAsync(string! code, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor?>
+Kun.Tenancy.TenancyDefinition
+Kun.Tenancy.TenantDescriptor
+Kun.Tenancy.TenantDescriptor.<Clone>$() -> Kun.Tenancy.TenantDescriptor!
+Kun.Tenancy.TenantDescriptor.Code.get -> string!
+Kun.Tenancy.TenantDescriptor.Code.init -> void
+Kun.Tenancy.TenantDescriptor.Deconstruct(out System.Guid Id, out string! Code, out string! Name, out Kun.Tenancy.TenantIsolation Isolation, out Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantDescriptor.Equals(Kun.Tenancy.TenantDescriptor? other) -> bool
+Kun.Tenancy.TenantDescriptor.Id.get -> System.Guid
+Kun.Tenancy.TenantDescriptor.Id.init -> void
+Kun.Tenancy.TenantDescriptor.Isolation.get -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantDescriptor.Isolation.init -> void
+Kun.Tenancy.TenantDescriptor.Name.get -> string!
+Kun.Tenancy.TenantDescriptor.Name.init -> void
+Kun.Tenancy.TenantDescriptor.Status.get -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantDescriptor.Status.init -> void
+Kun.Tenancy.TenantDescriptor.TenantDescriptor(System.Guid Id, string! Code, string! Name, Kun.Tenancy.TenantIsolation Isolation, Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantIsolation.Database = 2 -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantIsolation.Row = 0 -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantIsolation.Schema = 1 -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantStatus.Active = 2 -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantStatus.Grace = 3 -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantStatus.Pending = 0 -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantStatus.Suspended = 4 -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantStatus.Trial = 1 -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.UpdateTenant
+Kun.Tenancy.UpdateTenant.<Clone>$() -> Kun.Tenancy.UpdateTenant!
+Kun.Tenancy.UpdateTenant.Deconstruct(out string! Name, out uint ExpectedRevision) -> void
+Kun.Tenancy.UpdateTenant.Equals(Kun.Tenancy.UpdateTenant? other) -> bool
+Kun.Tenancy.UpdateTenant.ExpectedRevision.get -> uint
+Kun.Tenancy.UpdateTenant.ExpectedRevision.init -> void
+Kun.Tenancy.UpdateTenant.Name.get -> string!
+Kun.Tenancy.UpdateTenant.Name.init -> void
+Kun.Tenancy.UpdateTenant.UpdateTenant(string! Name, uint ExpectedRevision) -> void
+override Kun.Tenancy.CreateTenant.Equals(object? obj) -> bool
+override Kun.Tenancy.CreateTenant.GetHashCode() -> int
+override Kun.Tenancy.CreateTenant.ToString() -> string!
+override Kun.Tenancy.TenantDescriptor.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantDescriptor.GetHashCode() -> int
+override Kun.Tenancy.TenantDescriptor.ToString() -> string!
+override Kun.Tenancy.UpdateTenant.Equals(object? obj) -> bool
+override Kun.Tenancy.UpdateTenant.GetHashCode() -> int
+override Kun.Tenancy.UpdateTenant.ToString() -> string!
+static Kun.Tenancy.CreateTenant.operator !=(Kun.Tenancy.CreateTenant? left, Kun.Tenancy.CreateTenant? right) -> bool
+static Kun.Tenancy.CreateTenant.operator ==(Kun.Tenancy.CreateTenant? left, Kun.Tenancy.CreateTenant? right) -> bool
+static Kun.Tenancy.TenancyDefinition.Tenancy(this Kun.Runtime.IPluginContext! context) -> Kun.Tenancy.ITenantDirectory!
+static Kun.Tenancy.TenantDescriptor.operator !=(Kun.Tenancy.TenantDescriptor? left, Kun.Tenancy.TenantDescriptor? right) -> bool
+static Kun.Tenancy.TenantDescriptor.operator ==(Kun.Tenancy.TenantDescriptor? left, Kun.Tenancy.TenantDescriptor? right) -> bool
+static Kun.Tenancy.UpdateTenant.operator !=(Kun.Tenancy.UpdateTenant? left, Kun.Tenancy.UpdateTenant? right) -> bool
+static Kun.Tenancy.UpdateTenant.operator ==(Kun.Tenancy.UpdateTenant? left, Kun.Tenancy.UpdateTenant? right) -> bool
+static readonly Kun.Tenancy.TenancyDefinition.Key -> Kun.Runtime.ServiceKey
+Kun.Tenancy.ITenantDirectory.GetByIdAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor?>
+Kun.Tenancy.ITenantMembershipProvisioner
+Kun.Tenancy.ITenantMembershipProvisioner.ProvisionAsync(Kun.Tenancy.TenantAdministrator! administrator, string! idempotencyKey, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.ITenantProvisionedNotifier
+Kun.Tenancy.ITenantProvisionedNotifier.NotifyAsync(Kun.Tenancy.TenantDescriptor! tenant, string! idempotencyKey, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.ITenantProvisioning
+Kun.Tenancy.ITenantProvisioning.GetStepsAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantProvisionStep!>!>
+Kun.Tenancy.ITenantProvisioning.ProvisionAsync(Kun.Tenancy.CreateTenant! request, Kun.Tenancy.TenantAdministrator! administrator, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor!>
+Kun.Tenancy.ITenantProvisioning.RetryAsync(System.Guid id, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor!>
+Kun.Tenancy.TenantAdministrator
+Kun.Tenancy.TenantAdministrator.<Clone>$() -> Kun.Tenancy.TenantAdministrator!
+Kun.Tenancy.TenantAdministrator.Deconstruct(out System.Guid MembershipId, out string! SubjectId) -> void
+Kun.Tenancy.TenantAdministrator.Equals(Kun.Tenancy.TenantAdministrator? other) -> bool
+Kun.Tenancy.TenantAdministrator.MembershipId.get -> System.Guid
+Kun.Tenancy.TenantAdministrator.MembershipId.init -> void
+Kun.Tenancy.TenantAdministrator.SubjectId.get -> string!
+Kun.Tenancy.TenantAdministrator.SubjectId.init -> void
+Kun.Tenancy.TenantAdministrator.TenantAdministrator(System.Guid MembershipId, string! SubjectId) -> void
+Kun.Tenancy.TenantProvisionStep
+Kun.Tenancy.TenantProvisionStep.<Clone>$() -> Kun.Tenancy.TenantProvisionStep!
+Kun.Tenancy.TenantProvisionStep.Attempts.get -> int
+Kun.Tenancy.TenantProvisionStep.Attempts.init -> void
+Kun.Tenancy.TenantProvisionStep.Deconstruct(out string! Step, out string! Status, out int Attempts, out string? Reason) -> void
+Kun.Tenancy.TenantProvisionStep.Equals(Kun.Tenancy.TenantProvisionStep? other) -> bool
+Kun.Tenancy.TenantProvisionStep.Reason.get -> string?
+Kun.Tenancy.TenantProvisionStep.Reason.init -> void
+Kun.Tenancy.TenantProvisionStep.Status.get -> string!
+Kun.Tenancy.TenantProvisionStep.Status.init -> void
+Kun.Tenancy.TenantProvisionStep.Step.get -> string!
+Kun.Tenancy.TenantProvisionStep.Step.init -> void
+Kun.Tenancy.TenantProvisionStep.TenantProvisionStep(string! Step, string! Status, int Attempts, string? Reason) -> void
+Kun.Tenancy.TenantProvisioning
+override Kun.Tenancy.TenantAdministrator.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantAdministrator.GetHashCode() -> int
+override Kun.Tenancy.TenantAdministrator.ToString() -> string!
+override Kun.Tenancy.TenantProvisionStep.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantProvisionStep.GetHashCode() -> int
+override Kun.Tenancy.TenantProvisionStep.ToString() -> string!
+static Kun.Tenancy.TenantAdministrator.operator !=(Kun.Tenancy.TenantAdministrator? left, Kun.Tenancy.TenantAdministrator? right) -> bool
+static Kun.Tenancy.TenantAdministrator.operator ==(Kun.Tenancy.TenantAdministrator? left, Kun.Tenancy.TenantAdministrator? right) -> bool
+static Kun.Tenancy.TenantProvisionStep.operator !=(Kun.Tenancy.TenantProvisionStep? left, Kun.Tenancy.TenantProvisionStep? right) -> bool
+static Kun.Tenancy.TenantProvisionStep.operator ==(Kun.Tenancy.TenantProvisionStep? left, Kun.Tenancy.TenantProvisionStep? right) -> bool
+static readonly Kun.Tenancy.TenantProvisioning.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Tenancy.TenantProvisioning.MembershipKey -> Kun.Runtime.ServiceKey
+static readonly Kun.Tenancy.TenantProvisioning.NotificationKey -> Kun.Runtime.ServiceKey
+Kun.Tenancy.CreateTenant.Administrator.get -> Kun.Tenancy.TenantAdministrator?
+Kun.Tenancy.CreateTenant.Administrator.init -> void
+Kun.Tenancy.ITenantOperations
+Kun.Tenancy.ITenantOperations.ListAsync(int skip, int take, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantDescriptor!>!>
+Kun.Tenancy.ITenantOperations.UpdateAsync(System.Guid id, Kun.Tenancy.UpdateTenant! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor!>
+Kun.Tenancy.TenantDescriptor.Revision.get -> uint
+Kun.Tenancy.TenantDescriptor.Revision.init -> void
+Kun.Tenancy.TenantOperations
+static readonly Kun.Tenancy.TenantOperations.Key -> Kun.Runtime.ServiceKey
+Kun.Tenancy.ActivateTenant
+Kun.Tenancy.ActivateTenant.<Clone>$() -> Kun.Tenancy.ActivateTenant!
+Kun.Tenancy.ActivateTenant.ActivateTenant(bool Trial = false, System.DateTimeOffset? ValidUntil = null) -> void
+Kun.Tenancy.ActivateTenant.Deconstruct(out bool Trial, out System.DateTimeOffset? ValidUntil) -> void
+Kun.Tenancy.ActivateTenant.Equals(Kun.Tenancy.ActivateTenant? other) -> bool
+Kun.Tenancy.ActivateTenant.Trial.get -> bool
+Kun.Tenancy.ActivateTenant.Trial.init -> void
+Kun.Tenancy.ActivateTenant.ValidUntil.get -> System.DateTimeOffset?
+Kun.Tenancy.ActivateTenant.ValidUntil.init -> void
+Kun.Tenancy.ITenantLifecycle
+Kun.Tenancy.ITenantLifecycle.ActivateAsync(System.Guid id, Kun.Tenancy.ActivateTenant! request, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor!>
+Kun.Tenancy.ITenantLifecycle.ResumeAsync(System.Guid id, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor!>
+Kun.Tenancy.ITenantLifecycle.ScanExpiredAsync(int limit, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<int>
+Kun.Tenancy.ITenantLifecycle.SuspendAsync(System.Guid id, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantDescriptor!>
+Kun.Tenancy.TenancyErrors
+Kun.Tenancy.TenancyEvents
+Kun.Tenancy.TenantActivated
+Kun.Tenancy.TenantActivated.<Clone>$() -> Kun.Tenancy.TenantActivated!
+Kun.Tenancy.TenantActivated.Deconstruct(out System.Guid Id, out Kun.Tenancy.TenantStatus Status, out System.DateTimeOffset? ValidUntil) -> void
+Kun.Tenancy.TenantActivated.Equals(Kun.Tenancy.TenantActivated? other) -> bool
+Kun.Tenancy.TenantActivated.Id.get -> System.Guid
+Kun.Tenancy.TenantActivated.Id.init -> void
+Kun.Tenancy.TenantActivated.Status.get -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantActivated.Status.init -> void
+Kun.Tenancy.TenantActivated.TenantActivated(System.Guid Id, Kun.Tenancy.TenantStatus Status, System.DateTimeOffset? ValidUntil) -> void
+Kun.Tenancy.TenantActivated.ValidUntil.get -> System.DateTimeOffset?
+Kun.Tenancy.TenantActivated.ValidUntil.init -> void
+Kun.Tenancy.TenantCreated
+Kun.Tenancy.TenantCreated.<Clone>$() -> Kun.Tenancy.TenantCreated!
+Kun.Tenancy.TenantCreated.Code.get -> string!
+Kun.Tenancy.TenantCreated.Code.init -> void
+Kun.Tenancy.TenantCreated.Deconstruct(out System.Guid Id, out string! Code) -> void
+Kun.Tenancy.TenantCreated.Equals(Kun.Tenancy.TenantCreated? other) -> bool
+Kun.Tenancy.TenantCreated.Id.get -> System.Guid
+Kun.Tenancy.TenantCreated.Id.init -> void
+Kun.Tenancy.TenantCreated.TenantCreated(System.Guid Id, string! Code) -> void
+Kun.Tenancy.TenantExpired
+Kun.Tenancy.TenantExpired.<Clone>$() -> Kun.Tenancy.TenantExpired!
+Kun.Tenancy.TenantExpired.Deconstruct(out System.Guid Id, out System.DateTimeOffset ValidUntil) -> void
+Kun.Tenancy.TenantExpired.Equals(Kun.Tenancy.TenantExpired? other) -> bool
+Kun.Tenancy.TenantExpired.Id.get -> System.Guid
+Kun.Tenancy.TenantExpired.Id.init -> void
+Kun.Tenancy.TenantExpired.TenantExpired(System.Guid Id, System.DateTimeOffset ValidUntil) -> void
+Kun.Tenancy.TenantExpired.ValidUntil.get -> System.DateTimeOffset
+Kun.Tenancy.TenantExpired.ValidUntil.init -> void
+Kun.Tenancy.TenantLifecycle
+Kun.Tenancy.TenantResumed
+Kun.Tenancy.TenantResumed.<Clone>$() -> Kun.Tenancy.TenantResumed!
+Kun.Tenancy.TenantResumed.Deconstruct(out System.Guid Id, out Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantResumed.Equals(Kun.Tenancy.TenantResumed? other) -> bool
+Kun.Tenancy.TenantResumed.Id.get -> System.Guid
+Kun.Tenancy.TenantResumed.Id.init -> void
+Kun.Tenancy.TenantResumed.Status.get -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantResumed.Status.init -> void
+Kun.Tenancy.TenantResumed.TenantResumed(System.Guid Id, Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantStateMetadata
+Kun.Tenancy.TenantSuspended
+Kun.Tenancy.TenantSuspended.<Clone>$() -> Kun.Tenancy.TenantSuspended!
+Kun.Tenancy.TenantSuspended.Deconstruct(out System.Guid Id, out Kun.Tenancy.TenantStatus Previous) -> void
+Kun.Tenancy.TenantSuspended.Equals(Kun.Tenancy.TenantSuspended? other) -> bool
+Kun.Tenancy.TenantSuspended.Id.get -> System.Guid
+Kun.Tenancy.TenantSuspended.Id.init -> void
+Kun.Tenancy.TenantSuspended.Previous.get -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantSuspended.Previous.init -> void
+Kun.Tenancy.TenantSuspended.TenantSuspended(System.Guid Id, Kun.Tenancy.TenantStatus Previous) -> void
+Kun.Tenancy.TenantTransitionApproval
+Kun.Tenancy.TenantTransitionApproval.<Clone>$() -> Kun.Tenancy.TenantTransitionApproval!
+Kun.Tenancy.TenantTransitionApproval.Action.get -> string!
+Kun.Tenancy.TenantTransitionApproval.Action.init -> void
+Kun.Tenancy.TenantTransitionApproval.Actor.get -> string!
+Kun.Tenancy.TenantTransitionApproval.Actor.init -> void
+Kun.Tenancy.TenantTransitionApproval.Deconstruct(out System.Guid Id, out Kun.Tenancy.TenantStatus From, out Kun.Tenancy.TenantStatus To, out string! Action, out string! Actor) -> void
+Kun.Tenancy.TenantTransitionApproval.Equals(Kun.Tenancy.TenantTransitionApproval? other) -> bool
+Kun.Tenancy.TenantTransitionApproval.From.get -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantTransitionApproval.From.init -> void
+Kun.Tenancy.TenantTransitionApproval.Id.get -> System.Guid
+Kun.Tenancy.TenantTransitionApproval.Id.init -> void
+Kun.Tenancy.TenantTransitionApproval.TenantTransitionApproval(System.Guid Id, Kun.Tenancy.TenantStatus From, Kun.Tenancy.TenantStatus To, string! Action, string! Actor) -> void
+Kun.Tenancy.TenantTransitionApproval.To.get -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantTransitionApproval.To.init -> void
+const Kun.Tenancy.TenancyEvents.Activated = "tenant.activated.v1" -> string!
+const Kun.Tenancy.TenancyEvents.Created = "tenant.created.v1" -> string!
+const Kun.Tenancy.TenancyEvents.Expired = "tenant.expired.v1" -> string!
+const Kun.Tenancy.TenancyEvents.Resumed = "tenant.resumed.v1" -> string!
+const Kun.Tenancy.TenancyEvents.Suspended = "tenant.suspended.v1" -> string!
+override Kun.Tenancy.ActivateTenant.Equals(object? obj) -> bool
+override Kun.Tenancy.ActivateTenant.GetHashCode() -> int
+override Kun.Tenancy.ActivateTenant.ToString() -> string!
+override Kun.Tenancy.TenantActivated.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantActivated.GetHashCode() -> int
+override Kun.Tenancy.TenantActivated.ToString() -> string!
+override Kun.Tenancy.TenantCreated.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantCreated.GetHashCode() -> int
+override Kun.Tenancy.TenantCreated.ToString() -> string!
+override Kun.Tenancy.TenantExpired.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantExpired.GetHashCode() -> int
+override Kun.Tenancy.TenantExpired.ToString() -> string!
+override Kun.Tenancy.TenantResumed.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantResumed.GetHashCode() -> int
+override Kun.Tenancy.TenantResumed.ToString() -> string!
+override Kun.Tenancy.TenantSuspended.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantSuspended.GetHashCode() -> int
+override Kun.Tenancy.TenantSuspended.ToString() -> string!
+override Kun.Tenancy.TenantTransitionApproval.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantTransitionApproval.GetHashCode() -> int
+override Kun.Tenancy.TenantTransitionApproval.ToString() -> string!
+static Kun.Tenancy.ActivateTenant.operator !=(Kun.Tenancy.ActivateTenant? left, Kun.Tenancy.ActivateTenant? right) -> bool
+static Kun.Tenancy.ActivateTenant.operator ==(Kun.Tenancy.ActivateTenant? left, Kun.Tenancy.ActivateTenant? right) -> bool
+static Kun.Tenancy.TenancyEvents.RegisterTenancyEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
+static Kun.Tenancy.TenantActivated.operator !=(Kun.Tenancy.TenantActivated? left, Kun.Tenancy.TenantActivated? right) -> bool
+static Kun.Tenancy.TenantActivated.operator ==(Kun.Tenancy.TenantActivated? left, Kun.Tenancy.TenantActivated? right) -> bool
+static Kun.Tenancy.TenantCreated.operator !=(Kun.Tenancy.TenantCreated? left, Kun.Tenancy.TenantCreated? right) -> bool
+static Kun.Tenancy.TenantCreated.operator ==(Kun.Tenancy.TenantCreated? left, Kun.Tenancy.TenantCreated? right) -> bool
+static Kun.Tenancy.TenantExpired.operator !=(Kun.Tenancy.TenantExpired? left, Kun.Tenancy.TenantExpired? right) -> bool
+static Kun.Tenancy.TenantExpired.operator ==(Kun.Tenancy.TenantExpired? left, Kun.Tenancy.TenantExpired? right) -> bool
+static Kun.Tenancy.TenantResumed.operator !=(Kun.Tenancy.TenantResumed? left, Kun.Tenancy.TenantResumed? right) -> bool
+static Kun.Tenancy.TenantResumed.operator ==(Kun.Tenancy.TenantResumed? left, Kun.Tenancy.TenantResumed? right) -> bool
+static Kun.Tenancy.TenantStateMetadata.Document.get -> System.Text.Json.JsonElement
+static Kun.Tenancy.TenantSuspended.operator !=(Kun.Tenancy.TenantSuspended? left, Kun.Tenancy.TenantSuspended? right) -> bool
+static Kun.Tenancy.TenantSuspended.operator ==(Kun.Tenancy.TenantSuspended? left, Kun.Tenancy.TenantSuspended? right) -> bool
+static Kun.Tenancy.TenantTransitionApproval.operator !=(Kun.Tenancy.TenantTransitionApproval? left, Kun.Tenancy.TenantTransitionApproval? right) -> bool
+static Kun.Tenancy.TenantTransitionApproval.operator ==(Kun.Tenancy.TenantTransitionApproval? left, Kun.Tenancy.TenantTransitionApproval? right) -> bool
+static readonly Kun.Tenancy.TenancyErrors.StateConflict -> Kun.Errors.ErrorCode!
+static readonly Kun.Tenancy.TenantLifecycle.Approving -> Kun.Runtime.KunEvent<Kun.Tenancy.TenantTransitionApproval!, System.Collections.Generic.IReadOnlyList<bool>!>!
+static readonly Kun.Tenancy.TenantLifecycle.Key -> Kun.Runtime.ServiceKey
+Kun.Tenancy.CreateTenant.Quotas.get -> Kun.Tenancy.TenantQuotas?
+Kun.Tenancy.CreateTenant.Quotas.init -> void
+Kun.Tenancy.ITenantQuota
+Kun.Tenancy.ITenantQuota.EnsureCanAddUserAsync(int currentUsers, Kun.Tenancy.TenantMemberKind kind, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.ITenantSettings
+Kun.Tenancy.ITenantSettings.Get<T>(string! pluginId, string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<T?>
+Kun.Tenancy.ITenantSettingsOperations
+Kun.Tenancy.ITenantSettingsOperations.QuotaAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantQuotaView!>
+Kun.Tenancy.ITenantSettingsOperations.ReadAsync(System.Guid id, string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantSettingsDocument!>
+Kun.Tenancy.ITenantSettingsOperations.WriteAsync(System.Guid id, string! pluginId, Kun.Tenancy.UpdateTenantSettings! request, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantSettingsDocument!>
+Kun.Tenancy.ITenantUserCounter
+Kun.Tenancy.ITenantUserCounter.CountUsersAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<int>
+Kun.Tenancy.TenantMemberKind
+Kun.Tenancy.TenantMemberKind.Administrator = 1 -> Kun.Tenancy.TenantMemberKind
+Kun.Tenancy.TenantMemberKind.Member = 0 -> Kun.Tenancy.TenantMemberKind
+Kun.Tenancy.TenantMemberKind.PlatformSuperadmin = 2 -> Kun.Tenancy.TenantMemberKind
+Kun.Tenancy.TenantQuotaView
+Kun.Tenancy.TenantQuotaView.<Clone>$() -> Kun.Tenancy.TenantQuotaView!
+Kun.Tenancy.TenantQuotaView.Deconstruct(out Kun.Tenancy.TenantQuotas! Limits, out int? UsersUsed, out bool UsageAvailable) -> void
+Kun.Tenancy.TenantQuotaView.Equals(Kun.Tenancy.TenantQuotaView? other) -> bool
+Kun.Tenancy.TenantQuotaView.Limits.get -> Kun.Tenancy.TenantQuotas!
+Kun.Tenancy.TenantQuotaView.Limits.init -> void
+Kun.Tenancy.TenantQuotaView.TenantQuotaView(Kun.Tenancy.TenantQuotas! Limits, int? UsersUsed, bool UsageAvailable) -> void
+Kun.Tenancy.TenantQuotaView.UsageAvailable.get -> bool
+Kun.Tenancy.TenantQuotaView.UsageAvailable.init -> void
+Kun.Tenancy.TenantQuotaView.UsersUsed.get -> int?
+Kun.Tenancy.TenantQuotaView.UsersUsed.init -> void
+Kun.Tenancy.TenantQuotas
+Kun.Tenancy.TenantQuotas.<Clone>$() -> Kun.Tenancy.TenantQuotas!
+Kun.Tenancy.TenantQuotas.Deconstruct(out int? Users) -> void
+Kun.Tenancy.TenantQuotas.Equals(Kun.Tenancy.TenantQuotas? other) -> bool
+Kun.Tenancy.TenantQuotas.TenantQuotas(int? Users = null) -> void
+Kun.Tenancy.TenantQuotas.Users.get -> int?
+Kun.Tenancy.TenantQuotas.Users.init -> void
+Kun.Tenancy.TenantSettings
+Kun.Tenancy.TenantSettingsDocument
+Kun.Tenancy.TenantSettingsDocument.<Clone>$() -> Kun.Tenancy.TenantSettingsDocument!
+Kun.Tenancy.TenantSettingsDocument.Config.get -> System.Text.Json.JsonElement
+Kun.Tenancy.TenantSettingsDocument.Config.init -> void
+Kun.Tenancy.TenantSettingsDocument.Deconstruct(out string! PluginId, out string! EntryId, out int Revision, out System.Text.Json.JsonElement Config) -> void
+Kun.Tenancy.TenantSettingsDocument.EntryId.get -> string!
+Kun.Tenancy.TenantSettingsDocument.EntryId.init -> void
+Kun.Tenancy.TenantSettingsDocument.Equals(Kun.Tenancy.TenantSettingsDocument? other) -> bool
+Kun.Tenancy.TenantSettingsDocument.PluginId.get -> string!
+Kun.Tenancy.TenantSettingsDocument.PluginId.init -> void
+Kun.Tenancy.TenantSettingsDocument.Revision.get -> int
+Kun.Tenancy.TenantSettingsDocument.Revision.init -> void
+Kun.Tenancy.TenantSettingsDocument.TenantSettingsDocument(string! PluginId, string! EntryId, int Revision, System.Text.Json.JsonElement Config) -> void
+Kun.Tenancy.UpdateTenant.Quotas.get -> Kun.Tenancy.TenantQuotas?
+Kun.Tenancy.UpdateTenant.Quotas.init -> void
+Kun.Tenancy.UpdateTenantSettings
+Kun.Tenancy.UpdateTenantSettings.<Clone>$() -> Kun.Tenancy.UpdateTenantSettings!
+Kun.Tenancy.UpdateTenantSettings.Config.get -> System.Text.Json.JsonElement
+Kun.Tenancy.UpdateTenantSettings.Config.init -> void
+Kun.Tenancy.UpdateTenantSettings.Deconstruct(out System.Text.Json.JsonElement Config, out int ExpectedRevision) -> void
+Kun.Tenancy.UpdateTenantSettings.Equals(Kun.Tenancy.UpdateTenantSettings? other) -> bool
+Kun.Tenancy.UpdateTenantSettings.ExpectedRevision.get -> int
+Kun.Tenancy.UpdateTenantSettings.ExpectedRevision.init -> void
+Kun.Tenancy.UpdateTenantSettings.UpdateTenantSettings(System.Text.Json.JsonElement Config, int ExpectedRevision) -> void
+override Kun.Tenancy.TenantQuotaView.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantQuotaView.GetHashCode() -> int
+override Kun.Tenancy.TenantQuotaView.ToString() -> string!
+override Kun.Tenancy.TenantQuotas.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantQuotas.GetHashCode() -> int
+override Kun.Tenancy.TenantQuotas.ToString() -> string!
+override Kun.Tenancy.TenantSettingsDocument.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantSettingsDocument.GetHashCode() -> int
+override Kun.Tenancy.TenantSettingsDocument.ToString() -> string!
+override Kun.Tenancy.UpdateTenantSettings.Equals(object? obj) -> bool
+override Kun.Tenancy.UpdateTenantSettings.GetHashCode() -> int
+override Kun.Tenancy.UpdateTenantSettings.ToString() -> string!
+static Kun.Tenancy.TenantQuotaView.operator !=(Kun.Tenancy.TenantQuotaView? left, Kun.Tenancy.TenantQuotaView? right) -> bool
+static Kun.Tenancy.TenantQuotaView.operator ==(Kun.Tenancy.TenantQuotaView? left, Kun.Tenancy.TenantQuotaView? right) -> bool
+static Kun.Tenancy.TenantQuotas.operator !=(Kun.Tenancy.TenantQuotas? left, Kun.Tenancy.TenantQuotas? right) -> bool
+static Kun.Tenancy.TenantQuotas.operator ==(Kun.Tenancy.TenantQuotas? left, Kun.Tenancy.TenantQuotas? right) -> bool
+static Kun.Tenancy.TenantSettingsDocument.operator !=(Kun.Tenancy.TenantSettingsDocument? left, Kun.Tenancy.TenantSettingsDocument? right) -> bool
+static Kun.Tenancy.TenantSettingsDocument.operator ==(Kun.Tenancy.TenantSettingsDocument? left, Kun.Tenancy.TenantSettingsDocument? right) -> bool
+static Kun.Tenancy.UpdateTenantSettings.operator !=(Kun.Tenancy.UpdateTenantSettings? left, Kun.Tenancy.UpdateTenantSettings? right) -> bool
+static Kun.Tenancy.UpdateTenantSettings.operator ==(Kun.Tenancy.UpdateTenantSettings? left, Kun.Tenancy.UpdateTenantSettings? right) -> bool
+static readonly Kun.Tenancy.TenancyErrors.UserLimit -> Kun.Errors.ErrorCode!
+static readonly Kun.Tenancy.TenantSettings.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Tenancy.TenantSettings.OperationsKey -> Kun.Runtime.ServiceKey
+static readonly Kun.Tenancy.TenantSettings.QuotaKey -> Kun.Runtime.ServiceKey
+static readonly Kun.Tenancy.TenantSettings.UserCounterKey -> Kun.Runtime.ServiceKey
+Kun.Tenancy.ITenantOperations.QueryAsync(int skip, int take, Kun.Tenancy.TenantStatus? status = null, string? keyword = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantDescriptor!>! Items, int Total)>
+static Kun.Tenancy.TenantStateMetadata.Schema.get -> System.Text.Json.JsonElement
+Kun.Tenancy.CreateTenantAdminAccount
+Kun.Tenancy.CreateTenantAdminAccount.<Clone>$() -> Kun.Tenancy.CreateTenantAdminAccount!
+Kun.Tenancy.CreateTenantAdminAccount.CreateTenantAdminAccount(string! DisplayName, Kun.Tenancy.TenantAdminIdentifierKind IdentifierKind, string! Identifier, string! InitialPassword) -> void
+Kun.Tenancy.CreateTenantAdminAccount.Deconstruct(out string! DisplayName, out Kun.Tenancy.TenantAdminIdentifierKind IdentifierKind, out string! Identifier, out string! InitialPassword) -> void
+Kun.Tenancy.CreateTenantAdminAccount.DisplayName.get -> string!
+Kun.Tenancy.CreateTenantAdminAccount.DisplayName.init -> void
+Kun.Tenancy.CreateTenantAdminAccount.Equals(Kun.Tenancy.CreateTenantAdminAccount? other) -> bool
+Kun.Tenancy.CreateTenantAdminAccount.Identifier.get -> string!
+Kun.Tenancy.CreateTenantAdminAccount.Identifier.init -> void
+Kun.Tenancy.CreateTenantAdminAccount.IdentifierKind.get -> Kun.Tenancy.TenantAdminIdentifierKind
+Kun.Tenancy.CreateTenantAdminAccount.IdentifierKind.init -> void
+Kun.Tenancy.CreateTenantAdminAccount.InitialPassword.get -> string!
+Kun.Tenancy.CreateTenantAdminAccount.InitialPassword.init -> void
+Kun.Tenancy.ITenantAdministration
+Kun.Tenancy.ITenantAdministration.CreateAccountAsync(Kun.Tenancy.CreateTenantAdminAccount! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantAdminAccount!>
+Kun.Tenancy.ITenantAdministration.FindAccountAsync(Kun.Tenancy.TenantAdminAccountLookup! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantAdminAccount?>
+Kun.Tenancy.ITenantAdministration.GetAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantAdminList!>
+Kun.Tenancy.ITenantAdministration.ReplaceAsync(System.Guid id, Kun.Tenancy.ReplaceTenantAdmins! request, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantAdminList!>
+Kun.Tenancy.ITenantAdministration.ResetPasswordAsync(System.Guid id, System.Guid membershipId, Kun.Tenancy.ResetTenantAdminPassword! request, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.ReplaceTenantAdmins
+Kun.Tenancy.ReplaceTenantAdmins.<Clone>$() -> Kun.Tenancy.ReplaceTenantAdmins!
+Kun.Tenancy.ReplaceTenantAdmins.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminDesignation!>! Items) -> void
+Kun.Tenancy.ReplaceTenantAdmins.Equals(Kun.Tenancy.ReplaceTenantAdmins? other) -> bool
+Kun.Tenancy.ReplaceTenantAdmins.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminDesignation!>!
+Kun.Tenancy.ReplaceTenantAdmins.Items.init -> void
+Kun.Tenancy.ReplaceTenantAdmins.ReplaceTenantAdmins(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminDesignation!>! Items) -> void
+Kun.Tenancy.ResetTenantAdminPassword
+Kun.Tenancy.ResetTenantAdminPassword.<Clone>$() -> Kun.Tenancy.ResetTenantAdminPassword!
+Kun.Tenancy.ResetTenantAdminPassword.Deconstruct(out string! NewPassword) -> void
+Kun.Tenancy.ResetTenantAdminPassword.Equals(Kun.Tenancy.ResetTenantAdminPassword? other) -> bool
+Kun.Tenancy.ResetTenantAdminPassword.NewPassword.get -> string!
+Kun.Tenancy.ResetTenantAdminPassword.NewPassword.init -> void
+Kun.Tenancy.ResetTenantAdminPassword.ResetTenantAdminPassword(string! NewPassword) -> void
+Kun.Tenancy.TenantAdmin
+Kun.Tenancy.TenantAdmin.<Clone>$() -> Kun.Tenancy.TenantAdmin!
+Kun.Tenancy.TenantAdmin.Account.get -> string!
+Kun.Tenancy.TenantAdmin.Account.init -> void
+Kun.Tenancy.TenantAdmin.Deconstruct(out System.Guid MembershipId, out System.Guid SubjectId, out string! DisplayName, out string! Account, out string! Status, out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminIdentifier!>! Identifiers) -> void
+Kun.Tenancy.TenantAdmin.DisplayName.get -> string!
+Kun.Tenancy.TenantAdmin.DisplayName.init -> void
+Kun.Tenancy.TenantAdmin.Equals(Kun.Tenancy.TenantAdmin? other) -> bool
+Kun.Tenancy.TenantAdmin.Identifiers.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminIdentifier!>!
+Kun.Tenancy.TenantAdmin.Identifiers.init -> void
+Kun.Tenancy.TenantAdmin.MembershipId.get -> System.Guid
+Kun.Tenancy.TenantAdmin.MembershipId.init -> void
+Kun.Tenancy.TenantAdmin.Status.get -> string!
+Kun.Tenancy.TenantAdmin.Status.init -> void
+Kun.Tenancy.TenantAdmin.SubjectId.get -> System.Guid
+Kun.Tenancy.TenantAdmin.SubjectId.init -> void
+Kun.Tenancy.TenantAdmin.TenantAdmin(System.Guid MembershipId, System.Guid SubjectId, string! DisplayName, string! Account, string! Status, System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminIdentifier!>! Identifiers) -> void
+Kun.Tenancy.TenantAdminAccount
+Kun.Tenancy.TenantAdminAccount.<Clone>$() -> Kun.Tenancy.TenantAdminAccount!
+Kun.Tenancy.TenantAdminAccount.Deconstruct(out System.Guid SubjectId, out string! DisplayName, out string! Status, out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminIdentifier!>! Identifiers) -> void
+Kun.Tenancy.TenantAdminAccount.DisplayName.get -> string!
+Kun.Tenancy.TenantAdminAccount.DisplayName.init -> void
+Kun.Tenancy.TenantAdminAccount.Equals(Kun.Tenancy.TenantAdminAccount? other) -> bool
+Kun.Tenancy.TenantAdminAccount.Identifiers.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminIdentifier!>!
+Kun.Tenancy.TenantAdminAccount.Identifiers.init -> void
+Kun.Tenancy.TenantAdminAccount.Status.get -> string!
+Kun.Tenancy.TenantAdminAccount.Status.init -> void
+Kun.Tenancy.TenantAdminAccount.SubjectId.get -> System.Guid
+Kun.Tenancy.TenantAdminAccount.SubjectId.init -> void
+Kun.Tenancy.TenantAdminAccount.TenantAdminAccount(System.Guid SubjectId, string! DisplayName, string! Status, System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdminIdentifier!>! Identifiers) -> void
+Kun.Tenancy.TenantAdminAccountLookup
+Kun.Tenancy.TenantAdminAccountLookup.<Clone>$() -> Kun.Tenancy.TenantAdminAccountLookup!
+Kun.Tenancy.TenantAdminAccountLookup.Deconstruct(out string! Identifier) -> void
+Kun.Tenancy.TenantAdminAccountLookup.Equals(Kun.Tenancy.TenantAdminAccountLookup? other) -> bool
+Kun.Tenancy.TenantAdminAccountLookup.Identifier.get -> string!
+Kun.Tenancy.TenantAdminAccountLookup.Identifier.init -> void
+Kun.Tenancy.TenantAdminAccountLookup.TenantAdminAccountLookup(string! Identifier) -> void
+Kun.Tenancy.TenantAdminDesignation
+Kun.Tenancy.TenantAdminDesignation.<Clone>$() -> Kun.Tenancy.TenantAdminDesignation!
+Kun.Tenancy.TenantAdminDesignation.Deconstruct(out System.Guid SubjectId) -> void
+Kun.Tenancy.TenantAdminDesignation.Equals(Kun.Tenancy.TenantAdminDesignation? other) -> bool
+Kun.Tenancy.TenantAdminDesignation.SubjectId.get -> System.Guid
+Kun.Tenancy.TenantAdminDesignation.SubjectId.init -> void
+Kun.Tenancy.TenantAdminDesignation.TenantAdminDesignation(System.Guid SubjectId) -> void
+Kun.Tenancy.TenantAdminIdentifier
+Kun.Tenancy.TenantAdminIdentifier.<Clone>$() -> Kun.Tenancy.TenantAdminIdentifier!
+Kun.Tenancy.TenantAdminIdentifier.Deconstruct(out Kun.Tenancy.TenantAdminIdentifierKind Kind, out string! Masked, out bool Verified) -> void
+Kun.Tenancy.TenantAdminIdentifier.Equals(Kun.Tenancy.TenantAdminIdentifier? other) -> bool
+Kun.Tenancy.TenantAdminIdentifier.Kind.get -> Kun.Tenancy.TenantAdminIdentifierKind
+Kun.Tenancy.TenantAdminIdentifier.Kind.init -> void
+Kun.Tenancy.TenantAdminIdentifier.Masked.get -> string!
+Kun.Tenancy.TenantAdminIdentifier.Masked.init -> void
+Kun.Tenancy.TenantAdminIdentifier.TenantAdminIdentifier(Kun.Tenancy.TenantAdminIdentifierKind Kind, string! Masked, bool Verified) -> void
+Kun.Tenancy.TenantAdminIdentifier.Verified.get -> bool
+Kun.Tenancy.TenantAdminIdentifier.Verified.init -> void
+Kun.Tenancy.TenantAdminIdentifierKind
+Kun.Tenancy.TenantAdminIdentifierKind.Email = 2 -> Kun.Tenancy.TenantAdminIdentifierKind
+Kun.Tenancy.TenantAdminIdentifierKind.Phone = 1 -> Kun.Tenancy.TenantAdminIdentifierKind
+Kun.Tenancy.TenantAdminIdentifierKind.Username = 0 -> Kun.Tenancy.TenantAdminIdentifierKind
+Kun.Tenancy.TenantAdminList
+Kun.Tenancy.TenantAdminList.<Clone>$() -> Kun.Tenancy.TenantAdminList!
+Kun.Tenancy.TenantAdminList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdmin!>! Items) -> void
+Kun.Tenancy.TenantAdminList.Equals(Kun.Tenancy.TenantAdminList? other) -> bool
+Kun.Tenancy.TenantAdminList.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdmin!>!
+Kun.Tenancy.TenantAdminList.Items.init -> void
+Kun.Tenancy.TenantAdminList.TenantAdminList(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantAdmin!>! Items) -> void
+Kun.Tenancy.TenantAdministration
+override Kun.Tenancy.CreateTenantAdminAccount.Equals(object? obj) -> bool
+override Kun.Tenancy.CreateTenantAdminAccount.GetHashCode() -> int
+override Kun.Tenancy.CreateTenantAdminAccount.ToString() -> string!
+override Kun.Tenancy.ReplaceTenantAdmins.Equals(object? obj) -> bool
+override Kun.Tenancy.ReplaceTenantAdmins.GetHashCode() -> int
+override Kun.Tenancy.ReplaceTenantAdmins.ToString() -> string!
+override Kun.Tenancy.ResetTenantAdminPassword.Equals(object? obj) -> bool
+override Kun.Tenancy.ResetTenantAdminPassword.GetHashCode() -> int
+override Kun.Tenancy.ResetTenantAdminPassword.ToString() -> string!
+override Kun.Tenancy.TenantAdmin.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantAdmin.GetHashCode() -> int
+override Kun.Tenancy.TenantAdmin.ToString() -> string!
+override Kun.Tenancy.TenantAdminAccount.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantAdminAccount.GetHashCode() -> int
+override Kun.Tenancy.TenantAdminAccount.ToString() -> string!
+override Kun.Tenancy.TenantAdminAccountLookup.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantAdminAccountLookup.GetHashCode() -> int
+override Kun.Tenancy.TenantAdminAccountLookup.ToString() -> string!
+override Kun.Tenancy.TenantAdminDesignation.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantAdminDesignation.GetHashCode() -> int
+override Kun.Tenancy.TenantAdminDesignation.ToString() -> string!
+override Kun.Tenancy.TenantAdminIdentifier.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantAdminIdentifier.GetHashCode() -> int
+override Kun.Tenancy.TenantAdminIdentifier.ToString() -> string!
+override Kun.Tenancy.TenantAdminList.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantAdminList.GetHashCode() -> int
+override Kun.Tenancy.TenantAdminList.ToString() -> string!
+static Kun.Tenancy.CreateTenantAdminAccount.operator !=(Kun.Tenancy.CreateTenantAdminAccount? left, Kun.Tenancy.CreateTenantAdminAccount? right) -> bool
+static Kun.Tenancy.CreateTenantAdminAccount.operator ==(Kun.Tenancy.CreateTenantAdminAccount? left, Kun.Tenancy.CreateTenantAdminAccount? right) -> bool
+static Kun.Tenancy.ReplaceTenantAdmins.operator !=(Kun.Tenancy.ReplaceTenantAdmins? left, Kun.Tenancy.ReplaceTenantAdmins? right) -> bool
+static Kun.Tenancy.ReplaceTenantAdmins.operator ==(Kun.Tenancy.ReplaceTenantAdmins? left, Kun.Tenancy.ReplaceTenantAdmins? right) -> bool
+static Kun.Tenancy.ResetTenantAdminPassword.operator !=(Kun.Tenancy.ResetTenantAdminPassword? left, Kun.Tenancy.ResetTenantAdminPassword? right) -> bool
+static Kun.Tenancy.ResetTenantAdminPassword.operator ==(Kun.Tenancy.ResetTenantAdminPassword? left, Kun.Tenancy.ResetTenantAdminPassword? right) -> bool
+static Kun.Tenancy.TenantAdmin.operator !=(Kun.Tenancy.TenantAdmin? left, Kun.Tenancy.TenantAdmin? right) -> bool
+static Kun.Tenancy.TenantAdmin.operator ==(Kun.Tenancy.TenantAdmin? left, Kun.Tenancy.TenantAdmin? right) -> bool
+static Kun.Tenancy.TenantAdminAccount.operator !=(Kun.Tenancy.TenantAdminAccount? left, Kun.Tenancy.TenantAdminAccount? right) -> bool
+static Kun.Tenancy.TenantAdminAccount.operator ==(Kun.Tenancy.TenantAdminAccount? left, Kun.Tenancy.TenantAdminAccount? right) -> bool
+static Kun.Tenancy.TenantAdminAccountLookup.operator !=(Kun.Tenancy.TenantAdminAccountLookup? left, Kun.Tenancy.TenantAdminAccountLookup? right) -> bool
+static Kun.Tenancy.TenantAdminAccountLookup.operator ==(Kun.Tenancy.TenantAdminAccountLookup? left, Kun.Tenancy.TenantAdminAccountLookup? right) -> bool
+static Kun.Tenancy.TenantAdminDesignation.operator !=(Kun.Tenancy.TenantAdminDesignation? left, Kun.Tenancy.TenantAdminDesignation? right) -> bool
+static Kun.Tenancy.TenantAdminDesignation.operator ==(Kun.Tenancy.TenantAdminDesignation? left, Kun.Tenancy.TenantAdminDesignation? right) -> bool
+static Kun.Tenancy.TenantAdminIdentifier.operator !=(Kun.Tenancy.TenantAdminIdentifier? left, Kun.Tenancy.TenantAdminIdentifier? right) -> bool
+static Kun.Tenancy.TenantAdminIdentifier.operator ==(Kun.Tenancy.TenantAdminIdentifier? left, Kun.Tenancy.TenantAdminIdentifier? right) -> bool
+static Kun.Tenancy.TenantAdminList.operator !=(Kun.Tenancy.TenantAdminList? left, Kun.Tenancy.TenantAdminList? right) -> bool
+static Kun.Tenancy.TenantAdminList.operator ==(Kun.Tenancy.TenantAdminList? left, Kun.Tenancy.TenantAdminList? right) -> bool
+static readonly Kun.Tenancy.TenantAdministration.Key -> Kun.Runtime.ServiceKey
+Kun.Tenancy.TenantOverviewPage.Total.get -> int
+Kun.Tenancy.TenantOverviewPage.Total.init -> void
+Kun.Tenancy.TenantOverviewPage.Counts.get -> Kun.Tenancy.TenantStatusCounts!
+Kun.Tenancy.TenantOverviewPage.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantOverview!>!
+Kun.Tenancy.TenantOverviewPage.Counts.init -> void
+Kun.Tenancy.TenantOverviewPage.Items.init -> void
+Kun.Tenancy.TenantOverview.Id.get -> System.Guid
+Kun.Tenancy.TenantOverview.Id.init -> void
+Kun.Tenancy.TenantOverview.Code.get -> string!
+Kun.Tenancy.TenantOverview.Name.get -> string!
+Kun.Tenancy.TenantOverview.Code.init -> void
+Kun.Tenancy.TenantOverview.Isolation.get -> Kun.Tenancy.TenantIsolation
+Kun.Tenancy.TenantOverview.Name.init -> void
+Kun.Tenancy.TenantOverview.Status.get -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantOverview.Isolation.init -> void
+Kun.Tenancy.TenantOverview.Status.init -> void
+Kun.Tenancy.TenantStatusCounts.Grace.get -> int
+Kun.Tenancy.TenantStatusCounts.Suspended.get -> int
+Kun.Tenancy.TenantStatusCounts.Trial.get -> int
+Kun.Tenancy.TenantStatusCounts.Pending.get -> int
+Kun.Tenancy.TenantStatusCounts.Grace.init -> void
+Kun.Tenancy.TenantStatusCounts.Suspended.init -> void
+Kun.Tenancy.TenantStatusCounts.Trial.init -> void
+Kun.Tenancy.TenantStatusCounts.Pending.init -> void
+Kun.Tenancy.TenantStatusCounts.All.get -> int
+Kun.Tenancy.TenantStatusCounts.Active.get -> int
+Kun.Tenancy.TenantStatusCounts.All.init -> void
+Kun.Tenancy.TenantOverview
+Kun.Tenancy.TenantStatusCounts.Active.init -> void
+override Kun.Tenancy.TenantOverview.ToString() -> string!
+static Kun.Tenancy.TenantOverview.operator !=(Kun.Tenancy.TenantOverview? left, Kun.Tenancy.TenantOverview? right) -> bool
+static Kun.Tenancy.TenantOverview.operator ==(Kun.Tenancy.TenantOverview? left, Kun.Tenancy.TenantOverview? right) -> bool
+override Kun.Tenancy.TenantOverview.GetHashCode() -> int
+override Kun.Tenancy.TenantOverview.Equals(object? obj) -> bool
+Kun.Tenancy.TenantOverview.Equals(Kun.Tenancy.TenantOverview? other) -> bool
+Kun.Tenancy.TenantOverview.<Clone>$() -> Kun.Tenancy.TenantOverview!
+Kun.Tenancy.TenantOverview.Deconstruct(out System.Guid Id, out string! Code, out string! Name, out Kun.Tenancy.TenantIsolation Isolation, out Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantStatusCounts
+override Kun.Tenancy.TenantStatusCounts.ToString() -> string!
+static Kun.Tenancy.TenantStatusCounts.operator !=(Kun.Tenancy.TenantStatusCounts? left, Kun.Tenancy.TenantStatusCounts? right) -> bool
+static Kun.Tenancy.TenantStatusCounts.operator ==(Kun.Tenancy.TenantStatusCounts? left, Kun.Tenancy.TenantStatusCounts? right) -> bool
+override Kun.Tenancy.TenantStatusCounts.GetHashCode() -> int
+override Kun.Tenancy.TenantStatusCounts.Equals(object? obj) -> bool
+Kun.Tenancy.TenantStatusCounts.Equals(Kun.Tenancy.TenantStatusCounts? other) -> bool
+Kun.Tenancy.TenantStatusCounts.<Clone>$() -> Kun.Tenancy.TenantStatusCounts!
+Kun.Tenancy.TenantStatusCounts.Deconstruct(out int All, out int Pending, out int Trial, out int Active, out int Grace, out int Suspended) -> void
+Kun.Tenancy.ITenantOperations.OverviewAsync(int skip, int take, Kun.Tenancy.TenantStatus? status = null, string? keyword = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantOverviewPage!>
+Kun.Tenancy.TenantOverview.TenantOverview(System.Guid Id, string! Code, string! Name, Kun.Tenancy.TenantIsolation Isolation, Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantOverview.CreatedAt.get -> System.DateTimeOffset
+Kun.Tenancy.TenantStatusCounts.TenantStatusCounts(int All, int Pending, int Trial, int Active, int Grace, int Suspended) -> void
+Kun.Tenancy.TenantOverview.Revision.init -> void
+Kun.Tenancy.TenantOverview.ValidUntil.get -> System.DateTimeOffset?
+Kun.Tenancy.TenantOverview.CreatedAt.init -> void
+Kun.Tenancy.TenantOverview.ValidUntil.init -> void
+Kun.Tenancy.TenantOverview.UsersLimit.get -> int?
+Kun.Tenancy.TenantOverview.Revision.get -> uint
+Kun.Tenancy.TenantOverview.UsersLimit.init -> void
+Kun.Tenancy.TenantOverviewPage.TenantOverviewPage(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantOverview!>! Items, int Total, Kun.Tenancy.TenantStatusCounts! Counts) -> void
+Kun.Tenancy.TenantOverview.UsersUsed.get -> int?
+Kun.Tenancy.TenantOverview.UsersUsed.init -> void
+Kun.Tenancy.TenantOverview.AdministratorName.get -> string?
+Kun.Tenancy.TenantOverview.AdministratorName.init -> void
+Kun.Tenancy.TenantOverviewPage
+override Kun.Tenancy.TenantOverviewPage.ToString() -> string!
+static Kun.Tenancy.TenantOverviewPage.operator !=(Kun.Tenancy.TenantOverviewPage? left, Kun.Tenancy.TenantOverviewPage? right) -> bool
+static Kun.Tenancy.TenantOverviewPage.operator ==(Kun.Tenancy.TenantOverviewPage? left, Kun.Tenancy.TenantOverviewPage? right) -> bool
+override Kun.Tenancy.TenantOverviewPage.GetHashCode() -> int
+override Kun.Tenancy.TenantOverviewPage.Equals(object? obj) -> bool
+Kun.Tenancy.TenantOverviewPage.Equals(Kun.Tenancy.TenantOverviewPage? other) -> bool
+Kun.Tenancy.TenantOverviewPage.<Clone>$() -> Kun.Tenancy.TenantOverviewPage!
+Kun.Tenancy.TenantOverviewPage.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantOverview!>! Items, out int Total, out Kun.Tenancy.TenantStatusCounts! Counts) -> void
+Kun.Tenancy.TenantSummaries
+static readonly Kun.Tenancy.TenantSummaries.Key -> Kun.Runtime.ServiceKey
+Kun.Tenancy.ITenantSummaries
+Kun.Tenancy.ITenantSummaries.CurrentAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Tenancy.TenantSummary!>
+Kun.Tenancy.TenantSummary
+Kun.Tenancy.TenantSummary.TenantSummary(System.Guid Id, string! Code, string! Name, Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantSummary.Id.get -> System.Guid
+Kun.Tenancy.TenantSummary.Id.init -> void
+Kun.Tenancy.TenantSummary.Code.get -> string!
+Kun.Tenancy.TenantSummary.Code.init -> void
+Kun.Tenancy.TenantSummary.Name.get -> string!
+Kun.Tenancy.TenantSummary.Name.init -> void
+Kun.Tenancy.TenantSummary.Status.get -> Kun.Tenancy.TenantStatus
+Kun.Tenancy.TenantSummary.Status.init -> void
+Kun.Tenancy.TenantSummary.ValidUntil.get -> System.DateTimeOffset?
+Kun.Tenancy.TenantSummary.ValidUntil.init -> void
+Kun.Tenancy.TenantSummary.UsersLimit.get -> int?
+Kun.Tenancy.TenantSummary.UsersLimit.init -> void
+Kun.Tenancy.TenantSummary.UsersUsed.get -> int?
+Kun.Tenancy.TenantSummary.UsersUsed.init -> void
+Kun.Tenancy.TenantSummary.AdministratorName.get -> string?
+Kun.Tenancy.TenantSummary.AdministratorName.init -> void
+Kun.Tenancy.TenantSummary.<Clone>$() -> Kun.Tenancy.TenantSummary!
+Kun.Tenancy.TenantSummary.Deconstruct(out System.Guid Id, out string! Code, out string! Name, out Kun.Tenancy.TenantStatus Status) -> void
+Kun.Tenancy.TenantSummary.Equals(Kun.Tenancy.TenantSummary? other) -> bool
+override Kun.Tenancy.TenantSummary.Equals(object? obj) -> bool
+override Kun.Tenancy.TenantSummary.GetHashCode() -> int
+override Kun.Tenancy.TenantSummary.ToString() -> string!
+static Kun.Tenancy.TenantSummary.operator !=(Kun.Tenancy.TenantSummary? left, Kun.Tenancy.TenantSummary? right) -> bool
+static Kun.Tenancy.TenantSummary.operator ==(Kun.Tenancy.TenantSummary? left, Kun.Tenancy.TenantSummary? right) -> bool
+Kun.Tenancy.ITenantAdministration.PrepareAdministratorAsync(Kun.Tenancy.CreateTenant! request, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.TenantAdminDesignation.InitialPassword.get -> string?
+Kun.Tenancy.TenantAdminDesignation.InitialPassword.init -> void
+Kun.Tenancy.TenantAdministrator.InitialPassword.get -> string?
+Kun.Tenancy.TenantAdministrator.InitialPassword.init -> void

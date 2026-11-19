@@ -6,7 +6,7 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
 using Qian.Config.Apollo;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Qian.Lifecycle;
 using Qian.Profiles.Abstractions;
@@ -14,7 +14,7 @@ using Qian.Registry;
 using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using StackExchange.Redis;
 
 namespace Qian.Platform.Host;
@@ -27,7 +27,7 @@ public sealed class PlatformComponent
 {
     /// <summary>新建目录项。</summary>
     /// <param name="plugin">组件 id，如 <c>qian.tenancy</c>。</param>
-    /// <param name="entry">清单 <c>runtime.entry</c> 的期望值，如 <c>Qian.Tenancy.TenancyComponent, Qian.Tenancy</c>。</param>
+    /// <param name="entry">清单 <c>runtime.entry</c> 的期望值，如 <c>Kun.Tenancy.TenancyComponent, Kun.Tenancy</c>。</param>
     /// <param name="create">挂载时创建 Provider 实例。</param>
     /// <param name="register">组合时向宿主 DI 登记该组件需要的服务（数据上下文等）；条目被禁用时不调用。</param>
     public PlatformComponent(string plugin, string entry, Func<PlatformActivation, IKunPlugin> create, Action<PlatformServices>? register = null)
@@ -62,14 +62,14 @@ public sealed class PlatformServices
     public ResolvedProfileEntry Entry { get; }
 
     /// <summary>把业务上下文绑到平台应用登录（受限角色，按租户 RLS）；连接在每次建上下文时现读 Secret 文件。</summary>
-    public void AddAppData<TContext>(string schema) where TContext : QianDbContext => AddData<TContext>(schema, "App");
+    public void AddAppData<TContext>(string schema) where TContext : KunStrictDbContext => AddData<TContext>(schema, "App");
 
     /// <summary>把上下文绑到 <paramref name="connection"/> 指名的独立登录（平台授权、平台审计）。</summary>
-    public void AddData<TContext>(string schema, string connection) where TContext : QianDbContext
+    public void AddData<TContext>(string schema, string connection) where TContext : KunStrictDbContext
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(schema); ArgumentException.ThrowIfNullOrWhiteSpace(connection);
         var settings = Settings;
-        Services.AddQianData<TContext>((_, options) => options.UseNpgsql(settings.Connection(connection)).UseKunSchema(schema));
+        Services.AddKunData<TContext>((_, options) => options.UseNpgsql(settings.Connection(connection)).UseKunSchema(schema));
     }
 
     /// <summary>条目配置里的字符串字段（逐级取对象成员），没有即 null。</summary>
@@ -110,14 +110,14 @@ public static class PlatformComponents
     /// </summary>
     public static IReadOnlyList<PlatformComponent> BuiltIn { get; } =
     [
-        new("qian.data", "Qian.Data.DataPlugin, Qian.Data", _ => new DataPlugin(), services =>
+        new("qian.data", "Kun.Data.DataPlugin, Kun.Data", _ => new DataPlugin(), services =>
         {
             // 平台宿主按登录分别绑定上下文（应用登录、平台授权登录、平台审计登录）：data 条目不能再用 connection 把它们收窄到一个引用。
             if (services.ConfigString("connection") is not null)
                 throw new InvalidOperationException("platform 宿主按登录分别绑定数据上下文，data 条目不能指定 connection；用宿主 overlay 的 data 配置。");
         }),
         new("qian.events", "Qian.Events.EventsPlugin, Qian.Events", _ => new EventsPlugin(), RegisterEvents),
-        new("qian.tenancy", "Qian.Tenancy.TenancyComponent, Qian.Tenancy", _ => new TenancyComponent(),
+        new("qian.tenancy", "Kun.Tenancy.TenancyComponent, Kun.Tenancy", _ => new TenancyComponent(),
             services => services.AddAppData<TenancyDbContext>(TenancyDbContext.Schema)),
         new("qian.authz", "Qian.Authz.AuthzComponent, Qian.Authz", activation => new AuthzPlugin(activation.Permissions), services =>
         {

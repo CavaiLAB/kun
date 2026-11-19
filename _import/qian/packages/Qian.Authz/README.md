@@ -15,7 +15,7 @@ Authz seam 的 Provider，Definition 为 Qian.Authz.Abstractions。组件表面�
 
 ## 目录持久化
 
-`AuthzDbContext` 继承 QianDbContext 并使用 plugin_qian_authz；宿主通过 Data 强制装配连接与应用角色边界。内部目录存储把 permission_catalogs、permission_definitions、resource_types、policy_packs 放在同一事务中，组件/版本维度的 PostgreSQL 事务锁防止多副本竞争。相同版本、相同内容幂等；内容不同返回 CONFLICT，原目录保持不变，新内容需新版本。
+`AuthzDbContext` 继承 KunStrictDbContext 并使用 plugin_qian_authz；宿主通过 Data 强制装配连接与应用角色边界。内部目录存储把 permission_catalogs、permission_definitions、resource_types、policy_packs 放在同一事务中，组件/版本维度的 PostgreSQL 事务锁防止多副本竞争。相同版本、相同内容幂等；内容不同返回 CONFLICT，原目录保持不变，新内容需新版本。
 
 这些是全局声明表，尚不包含主体角色授予，不以全局元数据可读替代租户数据授权。真实 PostgreSQL 测试使用无超级用户、无 BYPASSRLS 的应用角色；验证权限/资源/模板落库、两宿主冲突不覆盖，以及策略包写入阶段数据库触发器拒绝时整笔回滚。平台 metadata 与真实属性声明在同一版本真实登记后仍是同一份行，不产生重复。
 
@@ -63,7 +63,7 @@ roles、role_assignments、grants 保留可空 tenant_id 的平台角色存储�
 
 服务键按 R101 统一为单段名称：`AuthzPermissions`、`AuthzSuperadminBypass`、`AuthzResourceTypes` 与 `AuthzTenantRoleGrant`，现已进入代码派生的 provides；消费者可以将对应 Definition 键写入 inject。扩展点契约 ID `qian.authz.resource-type/v1` 保持不变。租户开户编排始终通过 `TenantRoleGrant.Key` 取用，不保留旧两段式键的隐式别名。
 
-配置只接受三个字段：`advancedMode` 只能为 false（S1 没有高级模式，数据 / 字段权限编译属 S2）；可选的 `platformRole` 是专用平台授权登录角色名，配置后旁路才可能放行，未配置时旁路端口仍在但一律拒绝（`platform_role_not_configured`），因为清单的 provides 是静态的，缺配置不等于放行；可选的 `decisionLogSampling`（0–1，缺省 1）是放行判定写入决策审计的采样比例。宿主还须登记授权变更事件类型（`AddKunEventBus(r => r.RegisterAuthzEvents())`，Apply 时校验）与处理器（`AddKunMediator(m => m.AddQianAuthzEvents())`）。tenant scope 装载、未知字段、非法角色名都使 Apply 失败；`platformRole` 指向的连接若是普通应用凭据（可继承、能读租户授权表），Apply 以 `QianDataMisconfiguredException` 失败。
+配置只接受三个字段：`advancedMode` 只能为 false（S1 没有高级模式，数据 / 字段权限编译属 S2）；可选的 `platformRole` 是专用平台授权登录角色名，配置后旁路才可能放行，未配置时旁路端口仍在但一律拒绝（`platform_role_not_configured`），因为清单的 provides 是静态的，缺配置不等于放行；可选的 `decisionLogSampling`（0–1，缺省 1）是放行判定写入决策审计的采样比例。宿主还须登记授权变更事件类型（`AddKunEventBus(r => r.RegisterAuthzEvents())`，Apply 时校验）与处理器（`AddKunMediator(m => m.AddQianAuthzEvents())`）。tenant scope 装载、未知字段、非法角色名都使 Apply 失败；`platformRole` 指向的连接若是普通应用凭据（可继承、能读租户授权表），Apply 以 `KunDataMisconfiguredException` 失败。
 
 数据与字段端口在 S2 编译器交付前恒拒绝：`GetExpressionAsync` 返回恒假表达式，`GetPredicateAsync` 抛 AUTHZ_DENIED（谓词 AST 还没有「恒假」的约定词汇，返回任何谓词都可能被编译器当作放宽），`IFieldPolicy` 不给任何可读、可写字段。
 

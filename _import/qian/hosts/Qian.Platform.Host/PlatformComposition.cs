@@ -14,7 +14,7 @@ using Qian.Authz.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config;
 using Qian.Config.Secrets;
-using Qian.Data;
+using Kun.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
@@ -25,7 +25,7 @@ using Qian.Profiles.Abstractions;
 using Qian.Registry;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
-using Qian.Tenancy;
+using Kun.Tenancy;
 
 namespace Qian.Platform.Host;
 
@@ -158,13 +158,13 @@ public sealed class PlatformHostComposition
         });
         services.AddKunMediator(registry =>
         {
-            registry.AddQianTenancyEvents().AddQianAuthzEvents().AddQianRegistryEvents().AddQianLifecycleEvents();
+            registry.AddKunTenancyEvents().AddQianAuthzEvents().AddQianRegistryEvents().AddQianLifecycleEvents();
             foreach (var mediator in _mediator) mediator(registry);
         });
         // 数据会话的 Outbox 写成 v1 信封（只写不投递）；events 条目的 broker / 领取方式由它的登记再配。
         services.AddQianEvents();
         // 迁移任务（--migrate-only）用属主连接执行包内迁移；在线副本不挂属主凭据，这个解析只在迁移时调用。
-        services.AddQianDataMigrations(options => options.ResolveConnection = (_, _) => settings.Connection("Migrations"));
+        services.AddKunDataMigrations(options => options.ResolveConnection = (_, _) => settings.Connection("Migrations"));
         PlatformComponents.RegisterShared(services);
         // 端点的权限判定器与命令管道读宿主的同一份活动登记表；Authz Provider 发现宿主已有登记表时共用同一实例。
         services.AddSingleton<IPermissionRegistry, PermissionRegistry>();

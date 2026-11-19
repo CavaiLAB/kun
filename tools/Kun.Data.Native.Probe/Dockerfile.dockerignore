@@ -1,0 +1,11 @@
+# 构建上下文是仓库根（S1-KUN-020）：.git 与 **/ 开头的条目对整个仓库生效，其余条目写的是仓库根相对的路径。
+.git
+**/bin
+**/obj
+**/node_modules
+**/.git
+TestResults
+_import/qian/TestResults
+_import/qian/.pnpm-store
+_import/qian/website
+_import/qian/docs/generated

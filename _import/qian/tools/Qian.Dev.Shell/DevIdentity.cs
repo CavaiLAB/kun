@@ -10,14 +10,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.FileProviders;
 using OpenIddict.Abstractions;
 using Qian.Config;
-using Qian.Data;
+using Kun.Data;
 using Qian.Dev.TenantOps;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Connector.Oidc;
 using Qian.Identity.Server;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Qian.Dev.Shell;
@@ -49,7 +49,7 @@ internal sealed class DevIdentity(Uri issuer, Uri callback, string uiDist, strin
 
     internal void Configure(WebApplicationBuilder builder, DevDatabase database)
     {
-        builder.Services.AddQianData<IdentityDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(IdentityDbContext.Schema));
+        builder.Services.AddKunData<IdentityDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(IdentityDbContext.Schema));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         // 账号 Cookie scheme：未登录的授权请求挑战到同源认证页族 /login?ReturnUrl=…（页面登录后回到授权请求签发授权码）。
         builder.Services.AddAuthentication().AddCookie("qian.identity.signin", cookie => cookie.LoginPath = IdentityPagesHosting.PagesPath);

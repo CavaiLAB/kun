@@ -4,7 +4,7 @@
 
 ## 已实现的持久化基础
 
-`RegistryDbContext` 继承 `QianDbContext`，由宿主以 `AddQianData<RegistryDbContext>()` 装配，使用 `plugin_qian_registry`。迁移复用 Data 的 SQL 生成器，为 `scope_patches` 自动生成强制 RLS；应用连接必须使用非超级用户且无 BYPASSRLS 的角色，管理员仅执行迁移。上下文不会在启动时建表或迁移。
+`RegistryDbContext` 继承 `KunStrictDbContext`，由宿主以 `AddKunData<RegistryDbContext>()` 装配，使用 `plugin_qian_registry`。迁移复用 Data 的 SQL 生成器，为 `scope_patches` 自动生成强制 RLS；应用连接必须使用非超级用户且无 BYPASSRLS 的角色，管理员仅执行迁移。上下文不会在启动时建表或迁移。
 
 内部 `PostgresPatchRepository` 只提供数据库原语，尚不向消费者暴露写入服务。每次调用使用独立 Data 会话，要求有效租户上下文；tenant scope 必须与当前租户一致。app / agent-session 行同样以当前租户作 RLS 键，所属关系和运营授权仍必须由后续注册表服务检查。`patch/v2` 的语法、重复键与 Schema 校验直接复用 `ISurfaceReader`，路由身份不能被请求体覆盖；完整写入使用内部 `RegistryPatchWriter`：在同一事务内锁定租户/scope 并用共用装配器校验组件配置、依赖和 required；真实权益、鉴权与制品信任仍需在公开服务层接入。
 

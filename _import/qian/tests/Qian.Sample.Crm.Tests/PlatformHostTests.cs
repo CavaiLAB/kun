@@ -22,7 +22,7 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
-using Qian.Data;
+using Kun.Data;
 using Qian.Gateway;
 using Qian.Lifecycle;
 using Qian.Platform.Host;
@@ -31,7 +31,7 @@ using Kun.Plugin.Sdk.AspNetCore;
 using Qian.Registry;
 using Kun.Runtime;
 using Qian.Surfaces;
-using Qian.Tenancy;
+using Kun.Tenancy;
 using Qian.Testing;
 using Qian.Testing.Containers;
 using Qian.Testing.Gateway;
@@ -265,7 +265,9 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
             Assert.Equal(["global|qian.tenancy"], granted["mounted"]!.AsArray().Select(item => (string)item!));
             Assert.Equal(granted["mounted"]!.ToJsonString(), granted["entitled"]!.ToJsonString());
             var console = Assert.Single(granted["remotes"]!.AsArray())!;
-            Assert.Equal(("qian.tenancy", "2.1.0", "global"), ((string?)console["id"], (string?)console["version"], (string?)console["scope"]));
+            // 远程模块的版本取自仓库里 qian.tenancy 的清单：组件文件夹改了文件要升版本（S1-DEC-037），测试跟着清单走，不写死。
+            var tenancyVersion = JsonNode.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins", "qian.tenancy", ".qian-plugin", "plugin.json")))!["version"]!.GetValue<string>();
+            Assert.Equal(("qian.tenancy", tenancyVersion, "global"), ((string?)console["id"], (string?)console["version"], (string?)console["scope"]));
             Assert.True(JsonNode.DeepEquals(JsonNode.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins", "qian.tenancy", "ui", "manifest.json"))), console["manifest"]));
             Assert.Equal(["/tenants"], granted["navigation"]!.AsArray().Select(item => (string)item!["route"]!));
             Assert.Equal(["qian.tenancy:tenant:read"], granted["permissions"]!.AsArray().Select(item => (string)item!));

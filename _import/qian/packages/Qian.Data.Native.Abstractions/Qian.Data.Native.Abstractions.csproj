@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><IsPackable>true</IsPackable><IsAotCompatible>true</IsAotCompatible><Description>原生数据库连接与事务的 NativeData Definition，不依赖 EF。</Description></PropertyGroup>
-  <PropertyGroup Label="档位"><KunTier>kernel</KunTier><KunRole>contract</KunRole></PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Errors/Kun.Errors.csproj" />
-  </ItemGroup>
-</Project>

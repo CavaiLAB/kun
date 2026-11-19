@@ -8,12 +8,12 @@ using Qian.Audit;
 using Qian.Authz.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config;
-using Qian.Data;
+using Kun.Data;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
-using Qian.Tenancy.AspNetCore;
+using Kun.Tenancy.AspNetCore;
 
 namespace Qian.Platform.Host;
 
@@ -35,7 +35,7 @@ public static class PlatformHost
         try
         {
             await using var app = Build(args, extend, configure);
-            if (QianDataMigrationExtensions.IsMigrateOnly(args))
+            if (KunDataMigrationExtensions.IsMigrateOnly(args))
             {
                 // K8s 迁移 Job 先行：配置了管理员连接时先做离线 DDL 与平台登录授权，再在 advisory lock 下执行包内迁移，最后授权给应用登录；不启动宿主，在线副本启动时只校验。
                 await PlatformMigrations.RunAsync(app).ConfigureAwait(false);
@@ -155,7 +155,7 @@ public static class PlatformHost
         foreach (var map in composition.Endpoints) map(app, runtime);
         // 运营端点组：不加路由前缀，只给组里每个端点加运营受众元数据，认证按匹配到的端点选方案（GatewayS2s.Select）。
         var operations = app.MapGroup("").WithMetadata(OperationsAudience.Instance);
-        operations.MapQianTenancy(_ => runtime.Global("tenancy"));
+        operations.MapKunTenancy(_ => runtime.Global("tenancy"));
         foreach (var map in composition.OperationEndpoints) map(operations, runtime);
         GatewayS2s.CheckOperations(app, composition.OperationPrefixes);
         return app;

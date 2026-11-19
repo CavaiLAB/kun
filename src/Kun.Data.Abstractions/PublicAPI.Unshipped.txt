@@ -1,0 +1,631 @@
+#nullable enable
+Kun.Data.KunDataModelExtensions
+static Kun.Data.KunDataModelExtensions.UseKunDataModel(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! options) -> Microsoft.EntityFrameworkCore.DbContextOptionsBuilder!
+Kun.Data.DataErrors
+static readonly Kun.Data.DataErrors.Misconfigured -> Kun.Errors.ErrorCode!
+Kun.Data.KunDataMisconfiguredException
+Kun.Data.KunDataMisconfiguredException.KunDataMisconfiguredException(string! reason) -> void
+Kun.Data.KunDataMisconfiguredException.Error.get -> Kun.Errors.Error!
+Kun.Data.KunStrictDbContext
+Kun.Data.KunStrictDbContext.KunStrictDbContext(Microsoft.EntityFrameworkCore.DbContextOptions! options, Kun.Core.MultiTenancy.ITenantContext! tenantContext) -> void
+override sealed Kun.Data.KunStrictDbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! optionsBuilder) -> void
+Kun.Data.KunApplicationRoleInterceptor
+Kun.Data.KunApplicationRoleInterceptor.KunApplicationRoleInterceptor() -> void
+override Kun.Data.KunApplicationRoleInterceptor.ConnectionOpened(System.Data.Common.DbConnection! connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEndEventData! eventData) -> void
+override Kun.Data.KunApplicationRoleInterceptor.ConnectionOpenedAsync(System.Data.Common.DbConnection! connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEndEventData! eventData, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+static Kun.Data.KunApplicationRoleInterceptor.Validate(System.Data.Common.DbConnection! connection) -> void
+static Kun.Data.KunApplicationRoleInterceptor.ValidateAsync(System.Data.Common.DbConnection! connection, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+static readonly Kun.Data.DataDefinition.Key -> Kun.Runtime.ServiceKey
+Kun.Data.IDataService
+Kun.Data.DataDefinition
+Kun.Data.IDataSession<TContext>
+Kun.Data.IDataSession<TContext>.Outbox.get -> Kun.EventBus.Outbox.IOutboxWriter!
+static Kun.Data.DataDefinition.Data(this Kun.Runtime.IPluginContext! context) -> Kun.Data.IDataService!
+Kun.Data.IDataSession<TContext>.Context.get -> TContext!
+Kun.Data.IDataService.OpenAsync<TContext>(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.IDataSession<TContext!>!>
+Kun.Data.KunSoftDeleteInterceptor
+Kun.Data.KunSoftDeleteInterceptor.KunSoftDeleteInterceptor(Kun.Core.Security.ICurrentUser! user, System.TimeProvider! clock) -> void
+override Kun.Data.KunSoftDeleteInterceptor.SavingChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>>
+override Kun.Data.KunSoftDeleteInterceptor.SavingChanges(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result) -> Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>
+Kun.Data.IOutboxBufferBinding
+Kun.Data.IOutboxBufferBinding.Buffer.get -> Kun.EventBus.Outbox.IntegrationEventBuffer!
+Kun.Data.IDataContextCatalog
+Kun.Data.IDataContextCatalog.ContextTypes.get -> System.Collections.Generic.IReadOnlyList<System.Type!>!
+Kun.Data.DataMigrationReport
+Kun.Data.DataMigrationReport.<Clone>$() -> Kun.Data.DataMigrationReport!
+Kun.Data.DataMigrationReport.Applied.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Data.DataMigrationReport.Applied.init -> void
+Kun.Data.DataMigrationReport.ContextType.get -> System.Type!
+Kun.Data.DataMigrationReport.ContextType.init -> void
+Kun.Data.DataMigrationReport.DataMigrationReport(System.Type! ContextType, string! Schema, System.Collections.Generic.IReadOnlyList<string!>! Applied, System.TimeSpan LockWait) -> void
+Kun.Data.DataMigrationReport.Deconstruct(out System.Type! ContextType, out string! Schema, out System.Collections.Generic.IReadOnlyList<string!>! Applied, out System.TimeSpan LockWait) -> void
+Kun.Data.DataMigrationReport.Equals(Kun.Data.DataMigrationReport? other) -> bool
+Kun.Data.DataMigrationReport.LockWait.get -> System.TimeSpan
+Kun.Data.DataMigrationReport.LockWait.init -> void
+Kun.Data.DataMigrationReport.Schema.get -> string!
+Kun.Data.DataMigrationReport.Schema.init -> void
+Kun.Data.IDataMigrator
+Kun.Data.IDataMigrator.MigrateAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Kun.Data.DataMigrationReport!>!>!
+Kun.Data.ISequenceService
+Kun.Data.ISequenceService.DefineAsync(string! ruleCode, string! pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Data.SequenceRule!>!
+Kun.Data.ISequenceService.NextAsync(string! ruleCode, string! scopeKey, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+Kun.Data.ISnowflakeIdGenerator
+Kun.Data.ISnowflakeIdGenerator.NextId() -> long
+Kun.Data.ISnowflakeIdGenerator.WorkerId.get -> int
+Kun.Data.SequencePattern
+Kun.Data.SequencePattern.Digits.get -> int
+Kun.Data.SequencePattern.Format(System.DateTime local, long value) -> string!
+Kun.Data.SequencePattern.MaxValue.get -> long
+Kun.Data.SequencePattern.Period(System.DateTime local) -> string!
+Kun.Data.SequencePattern.Text.get -> string!
+Kun.Data.SequenceRule
+Kun.Data.SequenceRule.<Clone>$() -> Kun.Data.SequenceRule!
+Kun.Data.SequenceRule.Code.get -> string!
+Kun.Data.SequenceRule.Code.init -> void
+Kun.Data.SequenceRule.Deconstruct(out string! Code, out string! Pattern, out int Revision) -> void
+Kun.Data.SequenceRule.Equals(Kun.Data.SequenceRule? other) -> bool
+Kun.Data.SequenceRule.Pattern.get -> string!
+Kun.Data.SequenceRule.Pattern.init -> void
+Kun.Data.SequenceRule.Revision.get -> int
+Kun.Data.SequenceRule.Revision.init -> void
+Kun.Data.SequenceRule.SequenceRule(string! Code, string! Pattern, int Revision) -> void
+override Kun.Data.DataMigrationReport.Equals(object? obj) -> bool
+override Kun.Data.DataMigrationReport.GetHashCode() -> int
+override Kun.Data.DataMigrationReport.ToString() -> string!
+override Kun.Data.SequencePattern.ToString() -> string!
+override Kun.Data.SequenceRule.Equals(object? obj) -> bool
+override Kun.Data.SequenceRule.GetHashCode() -> int
+override Kun.Data.SequenceRule.ToString() -> string!
+static Kun.Data.DataMigrationReport.operator !=(Kun.Data.DataMigrationReport? left, Kun.Data.DataMigrationReport? right) -> bool
+static Kun.Data.DataMigrationReport.operator ==(Kun.Data.DataMigrationReport? left, Kun.Data.DataMigrationReport? right) -> bool
+static Kun.Data.SequencePattern.Parse(string! pattern) -> Kun.Data.SequencePattern!
+static Kun.Data.SequencePattern.TryParse(string? pattern, out Kun.Data.SequencePattern? result, out string! error) -> bool
+static Kun.Data.SequenceRule.operator !=(Kun.Data.SequenceRule? left, Kun.Data.SequenceRule? right) -> bool
+static Kun.Data.SequenceRule.operator ==(Kun.Data.SequenceRule? left, Kun.Data.SequenceRule? right) -> bool
+static readonly Kun.Data.DataErrors.IdWorkerUnavailable -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.SequenceExhausted -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.SequenceRuleInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.SequenceRuleNotFound -> Kun.Errors.ErrorCode!
+Kun.Data.DataContractJson
+Kun.Data.DataContractSchemas
+Kun.Data.DataRulePolicy
+Kun.Data.DataRulePolicy.<Clone>$() -> Kun.Data.DataRulePolicy!
+Kun.Data.DataRulePolicy.BusinessKey.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Data.DataRulePolicy.BusinessKey.init -> void
+Kun.Data.DataRulePolicy.DataRulePolicy(string! PrimaryKeyStrategy, bool OptimisticConcurrency, bool SoftDelete, bool RecordHistory, System.Collections.Generic.IReadOnlyList<string!>! BusinessKey) -> void
+Kun.Data.DataRulePolicy.Deconstruct(out string! PrimaryKeyStrategy, out bool OptimisticConcurrency, out bool SoftDelete, out bool RecordHistory, out System.Collections.Generic.IReadOnlyList<string!>! BusinessKey) -> void
+Kun.Data.DataRulePolicy.Equals(Kun.Data.DataRulePolicy? other) -> bool
+Kun.Data.DataRulePolicy.OptimisticConcurrency.get -> bool
+Kun.Data.DataRulePolicy.OptimisticConcurrency.init -> void
+Kun.Data.DataRulePolicy.PrimaryKeyStrategy.get -> string!
+Kun.Data.DataRulePolicy.PrimaryKeyStrategy.init -> void
+Kun.Data.DataRulePolicy.RecordHistory.get -> bool
+Kun.Data.DataRulePolicy.RecordHistory.init -> void
+Kun.Data.DataRulePolicy.SoftDelete.get -> bool
+Kun.Data.DataRulePolicy.SoftDelete.init -> void
+Kun.Data.FilterCondition
+Kun.Data.FilterCondition.<Clone>$() -> Kun.Data.FilterCondition!
+Kun.Data.FilterCondition.Deconstruct(out string! Field, out string! Op, out System.Text.Json.JsonElement? Value, out string? SysVar) -> void
+Kun.Data.FilterCondition.Equals(Kun.Data.FilterCondition? other) -> bool
+Kun.Data.FilterCondition.Field.get -> string!
+Kun.Data.FilterCondition.Field.init -> void
+Kun.Data.FilterCondition.FilterCondition(string! Field, string! Op, System.Text.Json.JsonElement? Value = null, string? SysVar = null) -> void
+Kun.Data.FilterCondition.Op.get -> string!
+Kun.Data.FilterCondition.Op.init -> void
+Kun.Data.FilterCondition.SysVar.get -> string?
+Kun.Data.FilterCondition.SysVar.init -> void
+Kun.Data.FilterCondition.Value.get -> System.Text.Json.JsonElement?
+Kun.Data.FilterCondition.Value.init -> void
+Kun.Data.FilterContracts
+Kun.Data.FilterExpression
+Kun.Data.FilterExpression.<Clone>$() -> Kun.Data.FilterExpression!
+Kun.Data.FilterExpression.Deconstruct(out string! Logic, out System.Collections.Generic.IReadOnlyList<Kun.Data.FilterGroup!>! Groups) -> void
+Kun.Data.FilterExpression.Equals(Kun.Data.FilterExpression? other) -> bool
+Kun.Data.FilterExpression.FilterExpression(string! Logic, System.Collections.Generic.IReadOnlyList<Kun.Data.FilterGroup!>! Groups) -> void
+Kun.Data.FilterExpression.Groups.get -> System.Collections.Generic.IReadOnlyList<Kun.Data.FilterGroup!>!
+Kun.Data.FilterExpression.Groups.init -> void
+Kun.Data.FilterExpression.Logic.get -> string!
+Kun.Data.FilterExpression.Logic.init -> void
+Kun.Data.FilterGroup
+Kun.Data.FilterGroup.<Clone>$() -> Kun.Data.FilterGroup!
+Kun.Data.FilterGroup.Conditions.get -> System.Collections.Generic.IReadOnlyList<Kun.Data.FilterCondition!>!
+Kun.Data.FilterGroup.Conditions.init -> void
+Kun.Data.FilterGroup.Deconstruct(out string! Logic, out System.Collections.Generic.IReadOnlyList<Kun.Data.FilterCondition!>! Conditions) -> void
+Kun.Data.FilterGroup.Equals(Kun.Data.FilterGroup? other) -> bool
+Kun.Data.FilterGroup.FilterGroup(string! Logic, System.Collections.Generic.IReadOnlyList<Kun.Data.FilterCondition!>! Conditions) -> void
+Kun.Data.FilterGroup.Logic.get -> string!
+Kun.Data.FilterGroup.Logic.init -> void
+Kun.Data.FilterSystemVariable
+Kun.Data.FilterSystemVariable.<Clone>$() -> Kun.Data.FilterSystemVariable!
+Kun.Data.FilterSystemVariable.Collection.get -> bool
+Kun.Data.FilterSystemVariable.Collection.init -> void
+Kun.Data.FilterSystemVariable.Deconstruct(out string! Description, out bool Collection, out System.Collections.Generic.IReadOnlyList<string!>! FieldTypes) -> void
+Kun.Data.FilterSystemVariable.Description.get -> string!
+Kun.Data.FilterSystemVariable.Description.init -> void
+Kun.Data.FilterSystemVariable.Equals(Kun.Data.FilterSystemVariable? other) -> bool
+Kun.Data.FilterSystemVariable.FieldTypes.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Data.FilterSystemVariable.FieldTypes.init -> void
+Kun.Data.FilterSystemVariable.FilterSystemVariable(string! Description, bool Collection, System.Collections.Generic.IReadOnlyList<string!>! FieldTypes) -> void
+Kun.Data.FilterValidationIssue
+Kun.Data.FilterValidationIssue.<Clone>$() -> Kun.Data.FilterValidationIssue!
+Kun.Data.FilterValidationIssue.Deconstruct(out string! Path, out string! Message) -> void
+Kun.Data.FilterValidationIssue.Equals(Kun.Data.FilterValidationIssue? other) -> bool
+Kun.Data.FilterValidationIssue.FilterValidationIssue(string! Path, string! Message) -> void
+Kun.Data.FilterValidationIssue.Message.get -> string!
+Kun.Data.FilterValidationIssue.Message.init -> void
+Kun.Data.FilterValidationIssue.Path.get -> string!
+Kun.Data.FilterValidationIssue.Path.init -> void
+Kun.Data.IRecordHook
+Kun.Data.IRecordHook.AfterAsync(Kun.Data.RecordChangedEvent! change, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Data.IRecordHook.BeforeAsync(Kun.Data.RecordHookContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.RecordHookResult!>
+Kun.Data.RecordActor
+Kun.Data.RecordActor.<Clone>$() -> Kun.Data.RecordActor!
+Kun.Data.RecordActor.Deconstruct(out string! Kind, out string! Id, out string? OnBehalfOf) -> void
+Kun.Data.RecordActor.Equals(Kun.Data.RecordActor? other) -> bool
+Kun.Data.RecordActor.Id.get -> string!
+Kun.Data.RecordActor.Id.init -> void
+Kun.Data.RecordActor.Kind.get -> string!
+Kun.Data.RecordActor.Kind.init -> void
+Kun.Data.RecordActor.OnBehalfOf.get -> string?
+Kun.Data.RecordActor.OnBehalfOf.init -> void
+Kun.Data.RecordActor.RecordActor(string! Kind, string! Id, string? OnBehalfOf = null) -> void
+Kun.Data.RecordChangedEvent
+Kun.Data.RecordChangedEvent.Envelope.get -> Qian.Events.QianEventEnvelope!
+Kun.Data.RecordChangedEvent.EventId.get -> System.Guid
+Kun.Data.RecordChangedEvent.Payload.get -> Kun.Data.RecordChangedPayload!
+Kun.Data.RecordChangedEvent.TenantId.get -> System.Guid
+Kun.Data.RecordChangedPayload
+Kun.Data.RecordChangedPayload.<Clone>$() -> Kun.Data.RecordChangedPayload!
+Kun.Data.RecordChangedPayload.Actor.get -> Kun.Data.RecordActor!
+Kun.Data.RecordChangedPayload.Actor.init -> void
+Kun.Data.RecordChangedPayload.After.get -> System.Text.Json.JsonElement?
+Kun.Data.RecordChangedPayload.After.init -> void
+Kun.Data.RecordChangedPayload.Before.get -> System.Text.Json.JsonElement?
+Kun.Data.RecordChangedPayload.Before.init -> void
+Kun.Data.RecordChangedPayload.ChangedFields.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Data.RecordChangedPayload.ChangedFields.init -> void
+Kun.Data.RecordChangedPayload.Deconstruct(out string! EntityCode, out string! RecordId, out string! Op, out System.Guid TenantId, out Kun.Data.RecordActor! Actor, out System.Collections.Generic.IReadOnlyList<string!>! ChangedFields, out System.Text.Json.JsonElement? Before, out System.Text.Json.JsonElement? After) -> void
+Kun.Data.RecordChangedPayload.EntityCode.get -> string!
+Kun.Data.RecordChangedPayload.EntityCode.init -> void
+Kun.Data.RecordChangedPayload.Equals(Kun.Data.RecordChangedPayload? other) -> bool
+Kun.Data.RecordChangedPayload.Op.get -> string!
+Kun.Data.RecordChangedPayload.Op.init -> void
+Kun.Data.RecordChangedPayload.RecordChangedPayload(string! EntityCode, string! RecordId, string! Op, System.Guid TenantId, Kun.Data.RecordActor! Actor, System.Collections.Generic.IReadOnlyList<string!>! ChangedFields, System.Text.Json.JsonElement? Before = null, System.Text.Json.JsonElement? After = null) -> void
+Kun.Data.RecordChangedPayload.RecordId.get -> string!
+Kun.Data.RecordChangedPayload.RecordId.init -> void
+Kun.Data.RecordChangedPayload.TenantId.get -> System.Guid
+Kun.Data.RecordChangedPayload.TenantId.init -> void
+Kun.Data.RecordEventRegistration
+Kun.Data.RecordHookContext
+Kun.Data.RecordHookContext.<Clone>$() -> Kun.Data.RecordHookContext!
+Kun.Data.RecordHookContext.Actor.get -> Kun.Data.RecordActor!
+Kun.Data.RecordHookContext.Actor.init -> void
+Kun.Data.RecordHookContext.Before.get -> System.Text.Json.JsonElement?
+Kun.Data.RecordHookContext.Before.init -> void
+Kun.Data.RecordHookContext.Deconstruct(out System.Guid TenantId, out Kun.Data.RecordActor! Actor, out string! EntityCode, out string! RecordId, out string! Operation, out System.Text.Json.JsonElement? Before, out System.Text.Json.JsonElement? Proposed) -> void
+Kun.Data.RecordHookContext.EntityCode.get -> string!
+Kun.Data.RecordHookContext.EntityCode.init -> void
+Kun.Data.RecordHookContext.Equals(Kun.Data.RecordHookContext? other) -> bool
+Kun.Data.RecordHookContext.Operation.get -> string!
+Kun.Data.RecordHookContext.Operation.init -> void
+Kun.Data.RecordHookContext.Proposed.get -> System.Text.Json.JsonElement?
+Kun.Data.RecordHookContext.Proposed.init -> void
+Kun.Data.RecordHookContext.RecordHookContext(System.Guid TenantId, Kun.Data.RecordActor! Actor, string! EntityCode, string! RecordId, string! Operation, System.Text.Json.JsonElement? Before, System.Text.Json.JsonElement? Proposed) -> void
+Kun.Data.RecordHookContext.RecordId.get -> string!
+Kun.Data.RecordHookContext.RecordId.init -> void
+Kun.Data.RecordHookContext.TenantId.get -> System.Guid
+Kun.Data.RecordHookContext.TenantId.init -> void
+Kun.Data.RecordHookResult
+Kun.Data.RecordHookResult.Allowed.get -> bool
+Kun.Data.RecordHookResult.Error.get -> Kun.Errors.Error?
+Kun.Data.RecordHookResult.Payload.get -> System.Text.Json.JsonElement?
+const Kun.Data.RecordChangedPayload.EventType = "qian.record.changed.v1" -> string!
+override Kun.Data.DataRulePolicy.Equals(object? obj) -> bool
+override Kun.Data.DataRulePolicy.GetHashCode() -> int
+override Kun.Data.DataRulePolicy.ToString() -> string!
+override Kun.Data.FilterCondition.Equals(object? obj) -> bool
+override Kun.Data.FilterCondition.GetHashCode() -> int
+override Kun.Data.FilterCondition.ToString() -> string!
+override Kun.Data.FilterExpression.Equals(object? obj) -> bool
+override Kun.Data.FilterExpression.GetHashCode() -> int
+override Kun.Data.FilterExpression.ToString() -> string!
+override Kun.Data.FilterGroup.Equals(object? obj) -> bool
+override Kun.Data.FilterGroup.GetHashCode() -> int
+override Kun.Data.FilterGroup.ToString() -> string!
+override Kun.Data.FilterSystemVariable.Equals(object? obj) -> bool
+override Kun.Data.FilterSystemVariable.GetHashCode() -> int
+override Kun.Data.FilterSystemVariable.ToString() -> string!
+override Kun.Data.FilterValidationIssue.Equals(object? obj) -> bool
+override Kun.Data.FilterValidationIssue.GetHashCode() -> int
+override Kun.Data.FilterValidationIssue.ToString() -> string!
+override Kun.Data.RecordActor.Equals(object? obj) -> bool
+override Kun.Data.RecordActor.GetHashCode() -> int
+override Kun.Data.RecordActor.ToString() -> string!
+override Kun.Data.RecordChangedEvent.ToString() -> string!
+override Kun.Data.RecordChangedPayload.Equals(object? obj) -> bool
+override Kun.Data.RecordChangedPayload.GetHashCode() -> int
+override Kun.Data.RecordChangedPayload.ToString() -> string!
+override Kun.Data.RecordHookContext.Equals(object? obj) -> bool
+override Kun.Data.RecordHookContext.GetHashCode() -> int
+override Kun.Data.RecordHookContext.ToString() -> string!
+override Kun.Data.RecordHookResult.ToString() -> string!
+static Kun.Data.DataContractJson.FilterTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.FilterExpression!>!
+static Kun.Data.DataContractJson.RecordChangedPayloadTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.RecordChangedPayload!>!
+static Kun.Data.DataContractJson.RulePolicyTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DataRulePolicy!>!
+static Kun.Data.DataContractSchemas.Filter.get -> string!
+static Kun.Data.DataContractSchemas.OperatorMatrix.get -> string!
+static Kun.Data.DataContractSchemas.OperatorMatrixSchema.get -> string!
+static Kun.Data.DataContractSchemas.RecordChangedEnvelope.get -> string!
+static Kun.Data.DataContractSchemas.RecordChangedPayload.get -> string!
+static Kun.Data.DataContractSchemas.RulePolicy.get -> string!
+static Kun.Data.DataContractSchemas.SystemVariables.get -> string!
+static Kun.Data.DataRulePolicy.operator !=(Kun.Data.DataRulePolicy? left, Kun.Data.DataRulePolicy? right) -> bool
+static Kun.Data.DataRulePolicy.operator ==(Kun.Data.DataRulePolicy? left, Kun.Data.DataRulePolicy? right) -> bool
+static Kun.Data.FilterCondition.operator !=(Kun.Data.FilterCondition? left, Kun.Data.FilterCondition? right) -> bool
+static Kun.Data.FilterCondition.operator ==(Kun.Data.FilterCondition? left, Kun.Data.FilterCondition? right) -> bool
+static Kun.Data.FilterContracts.Operators.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Collections.Generic.IReadOnlyList<string!>!>!
+static Kun.Data.FilterContracts.SystemVariables.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Kun.Data.FilterSystemVariable!>!
+static Kun.Data.FilterContracts.Validate(Kun.Data.FilterExpression! expression, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! fields) -> System.Collections.Generic.IReadOnlyList<Kun.Data.FilterValidationIssue!>!
+static Kun.Data.FilterExpression.operator !=(Kun.Data.FilterExpression? left, Kun.Data.FilterExpression? right) -> bool
+static Kun.Data.FilterExpression.operator ==(Kun.Data.FilterExpression? left, Kun.Data.FilterExpression? right) -> bool
+static Kun.Data.FilterGroup.operator !=(Kun.Data.FilterGroup? left, Kun.Data.FilterGroup? right) -> bool
+static Kun.Data.FilterGroup.operator ==(Kun.Data.FilterGroup? left, Kun.Data.FilterGroup? right) -> bool
+static Kun.Data.FilterSystemVariable.operator !=(Kun.Data.FilterSystemVariable? left, Kun.Data.FilterSystemVariable? right) -> bool
+static Kun.Data.FilterSystemVariable.operator ==(Kun.Data.FilterSystemVariable? left, Kun.Data.FilterSystemVariable? right) -> bool
+static Kun.Data.FilterValidationIssue.operator !=(Kun.Data.FilterValidationIssue? left, Kun.Data.FilterValidationIssue? right) -> bool
+static Kun.Data.FilterValidationIssue.operator ==(Kun.Data.FilterValidationIssue? left, Kun.Data.FilterValidationIssue? right) -> bool
+static Kun.Data.RecordActor.operator !=(Kun.Data.RecordActor? left, Kun.Data.RecordActor? right) -> bool
+static Kun.Data.RecordActor.operator ==(Kun.Data.RecordActor? left, Kun.Data.RecordActor? right) -> bool
+static Kun.Data.RecordActor.From(Qian.Events.EventActor! actor) -> Kun.Data.RecordActor!
+static Kun.Data.RecordChangedEvent.FromEnvelope(Qian.Events.QianEventEnvelope! envelope) -> Kun.Data.RecordChangedEvent!
+static Kun.Data.RecordChangedPayload.operator !=(Kun.Data.RecordChangedPayload? left, Kun.Data.RecordChangedPayload? right) -> bool
+static Kun.Data.RecordChangedPayload.operator ==(Kun.Data.RecordChangedPayload? left, Kun.Data.RecordChangedPayload? right) -> bool
+static Kun.Data.RecordEventRegistration.RegisterRecordEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
+static Kun.Data.RecordHookContext.operator !=(Kun.Data.RecordHookContext? left, Kun.Data.RecordHookContext? right) -> bool
+static Kun.Data.RecordHookContext.operator ==(Kun.Data.RecordHookContext? left, Kun.Data.RecordHookContext? right) -> bool
+static Kun.Data.RecordHookResult.Accept(System.Text.Json.JsonElement? payload = null) -> Kun.Data.RecordHookResult!
+static Kun.Data.RecordHookResult.Reject(Kun.Errors.Error! error) -> Kun.Data.RecordHookResult!
+static Kun.Data.DataContractSchemas.EventEnvelopeV0.get -> string!
+static Kun.Data.DataContractSchemas.S2sClaimsV0.get -> string!
+Kun.Data.RecordChangedPayload.EnsureConsistentContext(Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Data.BaseDataType
+Kun.Data.BaseDataType.<Clone>$() -> Kun.Data.BaseDataType!
+Kun.Data.BaseDataType.Accepts(string! facet) -> bool
+Kun.Data.BaseDataType.BaseDataType(string! Code, string! Name, string! Description, bool IsSystem, System.Collections.Generic.IReadOnlyList<string!>! Facets) -> void
+Kun.Data.BaseDataType.Code.get -> string!
+Kun.Data.BaseDataType.Code.init -> void
+Kun.Data.BaseDataType.Deconstruct(out string! Code, out string! Name, out string! Description, out bool IsSystem, out System.Collections.Generic.IReadOnlyList<string!>! Facets) -> void
+Kun.Data.BaseDataType.Description.get -> string!
+Kun.Data.BaseDataType.Description.init -> void
+Kun.Data.BaseDataType.Equals(Kun.Data.BaseDataType? other) -> bool
+Kun.Data.BaseDataType.Facets.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Data.BaseDataType.Facets.init -> void
+Kun.Data.BaseDataType.IsSystem.get -> bool
+Kun.Data.BaseDataType.IsSystem.init -> void
+Kun.Data.BaseDataType.Name.get -> string!
+Kun.Data.BaseDataType.Name.init -> void
+Kun.Data.DataConnectionDraft
+Kun.Data.DataConnectionDraft.<Clone>$() -> Kun.Data.DataConnectionDraft!
+Kun.Data.DataConnectionDraft.DataConnectionDraft(string! Name, string! Dialect, string! Host, int Port, string! Database, string! UserName, string! SecretRef, string? Schema = null, string? Encoding = null) -> void
+Kun.Data.DataConnectionDraft.Database.get -> string!
+Kun.Data.DataConnectionDraft.Database.init -> void
+Kun.Data.DataConnectionDraft.Deconstruct(out string! Name, out string! Dialect, out string! Host, out int Port, out string! Database, out string! UserName, out string! SecretRef, out string? Schema, out string? Encoding) -> void
+Kun.Data.DataConnectionDraft.Dialect.get -> string!
+Kun.Data.DataConnectionDraft.Dialect.init -> void
+Kun.Data.DataConnectionDraft.Encoding.get -> string?
+Kun.Data.DataConnectionDraft.Encoding.init -> void
+Kun.Data.DataConnectionDraft.Equals(Kun.Data.DataConnectionDraft? other) -> bool
+Kun.Data.DataConnectionDraft.Host.get -> string!
+Kun.Data.DataConnectionDraft.Host.init -> void
+Kun.Data.DataConnectionDraft.Name.get -> string!
+Kun.Data.DataConnectionDraft.Name.init -> void
+Kun.Data.DataConnectionDraft.Port.get -> int
+Kun.Data.DataConnectionDraft.Port.init -> void
+Kun.Data.DataConnectionDraft.Schema.get -> string?
+Kun.Data.DataConnectionDraft.Schema.init -> void
+Kun.Data.DataConnectionDraft.SecretRef.get -> string!
+Kun.Data.DataConnectionDraft.SecretRef.init -> void
+Kun.Data.DataConnectionDraft.UserName.get -> string!
+Kun.Data.DataConnectionDraft.UserName.init -> void
+Kun.Data.DataConnectionList
+Kun.Data.DataConnectionList.<Clone>$() -> Kun.Data.DataConnectionList!
+Kun.Data.DataConnectionList.DataConnectionList(System.Collections.Generic.IReadOnlyList<Kun.Data.DataConnectionProfile!>! Items) -> void
+Kun.Data.DataConnectionList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Data.DataConnectionProfile!>! Items) -> void
+Kun.Data.DataConnectionList.Equals(Kun.Data.DataConnectionList? other) -> bool
+Kun.Data.DataConnectionList.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Data.DataConnectionProfile!>!
+Kun.Data.DataConnectionList.Items.init -> void
+Kun.Data.DataConnectionProbe
+Kun.Data.DataConnectionProbe.<Clone>$() -> Kun.Data.DataConnectionProbe!
+Kun.Data.DataConnectionProbe.DataConnectionProbe(string! ServerVersion) -> void
+Kun.Data.DataConnectionProbe.Deconstruct(out string! ServerVersion) -> void
+Kun.Data.DataConnectionProbe.Equals(Kun.Data.DataConnectionProbe? other) -> bool
+Kun.Data.DataConnectionProbe.ServerVersion.get -> string!
+Kun.Data.DataConnectionProbe.ServerVersion.init -> void
+Kun.Data.DataConnectionProfile
+Kun.Data.DataConnectionProfile.<Clone>$() -> Kun.Data.DataConnectionProfile!
+Kun.Data.DataConnectionProfile.CreatedAt.get -> System.DateTime
+Kun.Data.DataConnectionProfile.CreatedAt.init -> void
+Kun.Data.DataConnectionProfile.DataConnectionProfile(System.Guid Id, string! Name, string! Dialect, string! Host, int Port, string! Database, string! UserName, string! SecretRef, string? Schema, string? Encoding, System.DateTime CreatedAt, System.DateTime? UpdatedAt) -> void
+Kun.Data.DataConnectionProfile.Database.get -> string!
+Kun.Data.DataConnectionProfile.Database.init -> void
+Kun.Data.DataConnectionProfile.Deconstruct(out System.Guid Id, out string! Name, out string! Dialect, out string! Host, out int Port, out string! Database, out string! UserName, out string! SecretRef, out string? Schema, out string? Encoding, out System.DateTime CreatedAt, out System.DateTime? UpdatedAt) -> void
+Kun.Data.DataConnectionProfile.Dialect.get -> string!
+Kun.Data.DataConnectionProfile.Dialect.init -> void
+Kun.Data.DataConnectionProfile.Encoding.get -> string?
+Kun.Data.DataConnectionProfile.Encoding.init -> void
+Kun.Data.DataConnectionProfile.Equals(Kun.Data.DataConnectionProfile? other) -> bool
+Kun.Data.DataConnectionProfile.Host.get -> string!
+Kun.Data.DataConnectionProfile.Host.init -> void
+Kun.Data.DataConnectionProfile.Id.get -> System.Guid
+Kun.Data.DataConnectionProfile.Id.init -> void
+Kun.Data.DataConnectionProfile.Name.get -> string!
+Kun.Data.DataConnectionProfile.Name.init -> void
+Kun.Data.DataConnectionProfile.Port.get -> int
+Kun.Data.DataConnectionProfile.Port.init -> void
+Kun.Data.DataConnectionProfile.Schema.get -> string?
+Kun.Data.DataConnectionProfile.Schema.init -> void
+Kun.Data.DataConnectionProfile.SecretRef.get -> string!
+Kun.Data.DataConnectionProfile.SecretRef.init -> void
+Kun.Data.DataConnectionProfile.UpdatedAt.get -> System.DateTime?
+Kun.Data.DataConnectionProfile.UpdatedAt.init -> void
+Kun.Data.DataConnectionProfile.UserName.get -> string!
+Kun.Data.DataConnectionProfile.UserName.init -> void
+Kun.Data.DataConnectionTarget
+Kun.Data.DataConnectionTarget.<Clone>$() -> Kun.Data.DataConnectionTarget!
+Kun.Data.DataConnectionTarget.DataConnectionTarget(string! Host, int Port, string! Database, string! UserName, string? Schema = null, string? Encoding = null) -> void
+Kun.Data.DataConnectionTarget.Database.get -> string!
+Kun.Data.DataConnectionTarget.Database.init -> void
+Kun.Data.DataConnectionTarget.Deconstruct(out string! Host, out int Port, out string! Database, out string! UserName, out string? Schema, out string? Encoding) -> void
+Kun.Data.DataConnectionTarget.Encoding.get -> string?
+Kun.Data.DataConnectionTarget.Encoding.init -> void
+Kun.Data.DataConnectionTarget.Equals(Kun.Data.DataConnectionTarget? other) -> bool
+Kun.Data.DataConnectionTarget.Host.get -> string!
+Kun.Data.DataConnectionTarget.Host.init -> void
+Kun.Data.DataConnectionTarget.Port.get -> int
+Kun.Data.DataConnectionTarget.Port.init -> void
+Kun.Data.DataConnectionTarget.Schema.get -> string?
+Kun.Data.DataConnectionTarget.Schema.init -> void
+Kun.Data.DataConnectionTarget.UserName.get -> string!
+Kun.Data.DataConnectionTarget.UserName.init -> void
+Kun.Data.DataConnectionTestResult
+Kun.Data.DataConnectionTestResult.<Clone>$() -> Kun.Data.DataConnectionTestResult!
+Kun.Data.DataConnectionTestResult.DataConnectionTestResult(string! Dialect, string! ServerVersion, int LatencyMs) -> void
+Kun.Data.DataConnectionTestResult.Deconstruct(out string! Dialect, out string! ServerVersion, out int LatencyMs) -> void
+Kun.Data.DataConnectionTestResult.Dialect.get -> string!
+Kun.Data.DataConnectionTestResult.Dialect.init -> void
+Kun.Data.DataConnectionTestResult.Equals(Kun.Data.DataConnectionTestResult? other) -> bool
+Kun.Data.DataConnectionTestResult.LatencyMs.get -> int
+Kun.Data.DataConnectionTestResult.LatencyMs.init -> void
+Kun.Data.DataConnectionTestResult.ServerVersion.get -> string!
+Kun.Data.DataConnectionTestResult.ServerVersion.init -> void
+Kun.Data.DataDialectContract
+Kun.Data.DataFieldDefinition
+Kun.Data.DataFieldDefinition.<Clone>$() -> Kun.Data.DataFieldDefinition!
+Kun.Data.DataFieldDefinition.DataFieldDefinition(string! Type, int? Length = null, int? Precision = null, int? Scale = null, decimal? Minimum = null, decimal? Maximum = null) -> void
+Kun.Data.DataFieldDefinition.Deconstruct(out string! Type, out int? Length, out int? Precision, out int? Scale, out decimal? Minimum, out decimal? Maximum) -> void
+Kun.Data.DataFieldDefinition.Equals(Kun.Data.DataFieldDefinition? other) -> bool
+Kun.Data.DataFieldDefinition.Length.get -> int?
+Kun.Data.DataFieldDefinition.Length.init -> void
+Kun.Data.DataFieldDefinition.Maximum.get -> decimal?
+Kun.Data.DataFieldDefinition.Maximum.init -> void
+Kun.Data.DataFieldDefinition.Minimum.get -> decimal?
+Kun.Data.DataFieldDefinition.Minimum.init -> void
+Kun.Data.DataFieldDefinition.Precision.get -> int?
+Kun.Data.DataFieldDefinition.Precision.init -> void
+Kun.Data.DataFieldDefinition.Scale.get -> int?
+Kun.Data.DataFieldDefinition.Scale.init -> void
+Kun.Data.DataFieldDefinition.Type.get -> string!
+Kun.Data.DataFieldDefinition.Type.init -> void
+Kun.Data.DataFieldMapping
+Kun.Data.DataFieldMapping.<Clone>$() -> Kun.Data.DataFieldMapping!
+Kun.Data.DataFieldMapping.DataFieldMapping(string! Type, string! NativeType, int? Length, int? Precision, int? Scale) -> void
+Kun.Data.DataFieldMapping.Deconstruct(out string! Type, out string! NativeType, out int? Length, out int? Precision, out int? Scale) -> void
+Kun.Data.DataFieldMapping.Equals(Kun.Data.DataFieldMapping? other) -> bool
+Kun.Data.DataFieldMapping.Length.get -> int?
+Kun.Data.DataFieldMapping.Length.init -> void
+Kun.Data.DataFieldMapping.NativeType.get -> string!
+Kun.Data.DataFieldMapping.NativeType.init -> void
+Kun.Data.DataFieldMapping.Precision.get -> int?
+Kun.Data.DataFieldMapping.Precision.init -> void
+Kun.Data.DataFieldMapping.Scale.get -> int?
+Kun.Data.DataFieldMapping.Scale.init -> void
+Kun.Data.DataFieldMapping.Type.get -> string!
+Kun.Data.DataFieldMapping.Type.init -> void
+Kun.Data.DataPermissions
+Kun.Data.DataTypeCatalog
+Kun.Data.DataTypeCatalog.<Clone>$() -> Kun.Data.DataTypeCatalog!
+Kun.Data.DataTypeCatalog.DataTypeCatalog(System.Collections.Generic.IReadOnlyList<Kun.Data.BaseDataType!>! Types, System.Collections.Generic.IReadOnlyList<Kun.Data.DbDialect!>! Dialects) -> void
+Kun.Data.DataTypeCatalog.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Data.BaseDataType!>! Types, out System.Collections.Generic.IReadOnlyList<Kun.Data.DbDialect!>! Dialects) -> void
+Kun.Data.DataTypeCatalog.Dialects.get -> System.Collections.Generic.IReadOnlyList<Kun.Data.DbDialect!>!
+Kun.Data.DataTypeCatalog.Dialects.init -> void
+Kun.Data.DataTypeCatalog.Equals(Kun.Data.DataTypeCatalog? other) -> bool
+Kun.Data.DataTypeCatalog.Types.get -> System.Collections.Generic.IReadOnlyList<Kun.Data.BaseDataType!>!
+Kun.Data.DataTypeCatalog.Types.init -> void
+Kun.Data.DataTypeContracts
+Kun.Data.DataTypeFacets
+Kun.Data.DataTypeLimit
+Kun.Data.DataTypeLimit.<Clone>$() -> Kun.Data.DataTypeLimit!
+Kun.Data.DataTypeLimit.DataTypeLimit(int Min, int Max, int Default) -> void
+Kun.Data.DataTypeLimit.Deconstruct(out int Min, out int Max, out int Default) -> void
+Kun.Data.DataTypeLimit.Default.get -> int
+Kun.Data.DataTypeLimit.Default.init -> void
+Kun.Data.DataTypeLimit.Equals(Kun.Data.DataTypeLimit? other) -> bool
+Kun.Data.DataTypeLimit.Max.get -> int
+Kun.Data.DataTypeLimit.Max.init -> void
+Kun.Data.DataTypeLimit.Min.get -> int
+Kun.Data.DataTypeLimit.Min.init -> void
+Kun.Data.DataValueRange
+Kun.Data.DataValueRange.<Clone>$() -> Kun.Data.DataValueRange!
+Kun.Data.DataValueRange.DataValueRange(decimal Min, decimal Max, int? FractionDigits = null) -> void
+Kun.Data.DataValueRange.Deconstruct(out decimal Min, out decimal Max, out int? FractionDigits) -> void
+Kun.Data.DataValueRange.Equals(Kun.Data.DataValueRange? other) -> bool
+Kun.Data.DataValueRange.FractionDigits.get -> int?
+Kun.Data.DataValueRange.FractionDigits.init -> void
+Kun.Data.DataValueRange.Max.get -> decimal
+Kun.Data.DataValueRange.Max.init -> void
+Kun.Data.DataValueRange.Min.get -> decimal
+Kun.Data.DataValueRange.Min.init -> void
+Kun.Data.DbDialect
+Kun.Data.DbDialect.<Clone>$() -> Kun.Data.DbDialect!
+Kun.Data.DbDialect.Code.get -> string!
+Kun.Data.DbDialect.Code.init -> void
+Kun.Data.DbDialect.ConnectionTemplate.get -> string!
+Kun.Data.DbDialect.ConnectionTemplate.init -> void
+Kun.Data.DbDialect.DbDialect(string! Code, string! Name, string! Driver, int DefaultPort, string! ConnectionTemplate, System.Collections.Generic.IReadOnlyList<Kun.Data.DialectTypeMapping!>! Mappings) -> void
+Kun.Data.DbDialect.Deconstruct(out string! Code, out string! Name, out string! Driver, out int DefaultPort, out string! ConnectionTemplate, out System.Collections.Generic.IReadOnlyList<Kun.Data.DialectTypeMapping!>! Mappings) -> void
+Kun.Data.DbDialect.DefaultPort.get -> int
+Kun.Data.DbDialect.DefaultPort.init -> void
+Kun.Data.DbDialect.Driver.get -> string!
+Kun.Data.DbDialect.Driver.init -> void
+Kun.Data.DbDialect.Equals(Kun.Data.DbDialect? other) -> bool
+Kun.Data.DbDialect.Mappings.get -> System.Collections.Generic.IReadOnlyList<Kun.Data.DialectTypeMapping!>!
+Kun.Data.DbDialect.Mappings.init -> void
+Kun.Data.DbDialect.Name.get -> string!
+Kun.Data.DbDialect.Name.init -> void
+Kun.Data.DbDialect.Validate(System.Collections.Generic.IEnumerable<Kun.Data.BaseDataType!>! types) -> void
+Kun.Data.DialectTypeMapping
+Kun.Data.DialectTypeMapping.<Clone>$() -> Kun.Data.DialectTypeMapping!
+Kun.Data.DialectTypeMapping.Deconstruct(out string! Type, out string! NativeType, out Kun.Data.DataTypeLimit? Length, out Kun.Data.DataTypeLimit? Precision, out Kun.Data.DataTypeLimit? Scale, out Kun.Data.DataValueRange? Range) -> void
+Kun.Data.DialectTypeMapping.DialectTypeMapping(string! Type, string! NativeType, Kun.Data.DataTypeLimit? Length = null, Kun.Data.DataTypeLimit? Precision = null, Kun.Data.DataTypeLimit? Scale = null, Kun.Data.DataValueRange? Range = null) -> void
+Kun.Data.DialectTypeMapping.Equals(Kun.Data.DialectTypeMapping? other) -> bool
+Kun.Data.DialectTypeMapping.Length.get -> Kun.Data.DataTypeLimit?
+Kun.Data.DialectTypeMapping.Length.init -> void
+Kun.Data.DialectTypeMapping.Map(Kun.Data.BaseDataType! type, Kun.Data.DataFieldDefinition! field) -> Kun.Data.DataFieldMapping!
+Kun.Data.DialectTypeMapping.NativeType.get -> string!
+Kun.Data.DialectTypeMapping.NativeType.init -> void
+Kun.Data.DialectTypeMapping.Precision.get -> Kun.Data.DataTypeLimit?
+Kun.Data.DialectTypeMapping.Precision.init -> void
+Kun.Data.DialectTypeMapping.Range.get -> Kun.Data.DataValueRange?
+Kun.Data.DialectTypeMapping.Range.init -> void
+Kun.Data.DialectTypeMapping.Scale.get -> Kun.Data.DataTypeLimit?
+Kun.Data.DialectTypeMapping.Scale.init -> void
+Kun.Data.DialectTypeMapping.Type.get -> string!
+Kun.Data.DialectTypeMapping.Type.init -> void
+Kun.Data.IDataConnectionRegistry
+Kun.Data.IDataConnectionRegistry.CreateAsync(Kun.Data.DataConnectionDraft! draft, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Data.DataConnectionProfile!>!
+Kun.Data.IDataConnectionRegistry.DeleteAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Kun.Data.IDataConnectionRegistry.GetAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Data.DataConnectionProfile!>!
+Kun.Data.IDataConnectionRegistry.ListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Data.DataConnectionList!>!
+Kun.Data.IDataConnectionRegistry.TestAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Data.DataConnectionTestResult!>!
+Kun.Data.IDataConnectionRegistry.UpdateAsync(System.Guid id, Kun.Data.DataConnectionDraft! draft, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Data.DataConnectionProfile!>!
+Kun.Data.IDataDialect
+Kun.Data.IDataDialect.Descriptor.get -> Kun.Data.DbDialect!
+Kun.Data.IDataDialect.ProbeAsync(Kun.Data.DataConnectionTarget! target, Qian.Config.SecretValue! password, System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.DataConnectionProbe!>
+Kun.Data.IDataDialectRegistry
+Kun.Data.IDataDialectRegistry.Find(string! name) -> Kun.Data.IDataDialect?
+Kun.Data.IDataDialectRegistry.List() -> System.Collections.Generic.IReadOnlyList<Kun.Data.DbDialect!>!
+Kun.Data.IDataDialectRegistry.Register(string! name, Kun.Data.IDataDialect! dialect) -> System.IDisposable!
+Kun.Data.IDataTypeCatalog
+Kun.Data.IDataTypeCatalog.DeleteTypeAsync(string! code, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Data.IDataTypeCatalog.FindType(string! code) -> Kun.Data.BaseDataType?
+Kun.Data.IDataTypeCatalog.MapField(string! dialect, Kun.Data.DataFieldDefinition! field) -> Kun.Data.DataFieldMapping!
+Kun.Data.IDataTypeCatalog.Snapshot() -> Kun.Data.DataTypeCatalog!
+const Kun.Data.DataDialectContract.ExtensionPoint = "qian.data.dialect/v1" -> string!
+const Kun.Data.DataDialectContract.Registry = "Data.Dialects" -> string!
+const Kun.Data.DataPermissions.ConnectionRead = "qian.data:connection:read" -> string!
+const Kun.Data.DataPermissions.ConnectionTest = "qian.data:connection:test" -> string!
+const Kun.Data.DataPermissions.ConnectionWrite = "qian.data:connection:write" -> string!
+const Kun.Data.DataPermissions.TypeDelete = "qian.data:type:delete" -> string!
+const Kun.Data.DataPermissions.TypeRead = "qian.data:type:read" -> string!
+const Kun.Data.DataTypeFacets.Length = "length" -> string!
+const Kun.Data.DataTypeFacets.Precision = "precision" -> string!
+const Kun.Data.DataTypeFacets.Range = "range" -> string!
+const Kun.Data.DataTypeFacets.Scale = "scale" -> string!
+override Kun.Data.BaseDataType.Equals(object? obj) -> bool
+override Kun.Data.BaseDataType.GetHashCode() -> int
+override Kun.Data.BaseDataType.ToString() -> string!
+override Kun.Data.DataConnectionDraft.Equals(object? obj) -> bool
+override Kun.Data.DataConnectionDraft.GetHashCode() -> int
+override Kun.Data.DataConnectionDraft.ToString() -> string!
+override Kun.Data.DataConnectionList.Equals(object? obj) -> bool
+override Kun.Data.DataConnectionList.GetHashCode() -> int
+override Kun.Data.DataConnectionList.ToString() -> string!
+override Kun.Data.DataConnectionProbe.Equals(object? obj) -> bool
+override Kun.Data.DataConnectionProbe.GetHashCode() -> int
+override Kun.Data.DataConnectionProbe.ToString() -> string!
+override Kun.Data.DataConnectionProfile.Equals(object? obj) -> bool
+override Kun.Data.DataConnectionProfile.GetHashCode() -> int
+override Kun.Data.DataConnectionProfile.ToString() -> string!
+override Kun.Data.DataConnectionTarget.Equals(object? obj) -> bool
+override Kun.Data.DataConnectionTarget.GetHashCode() -> int
+override Kun.Data.DataConnectionTarget.ToString() -> string!
+override Kun.Data.DataConnectionTestResult.Equals(object? obj) -> bool
+override Kun.Data.DataConnectionTestResult.GetHashCode() -> int
+override Kun.Data.DataConnectionTestResult.ToString() -> string!
+override Kun.Data.DataFieldDefinition.Equals(object? obj) -> bool
+override Kun.Data.DataFieldDefinition.GetHashCode() -> int
+override Kun.Data.DataFieldDefinition.ToString() -> string!
+override Kun.Data.DataFieldMapping.Equals(object? obj) -> bool
+override Kun.Data.DataFieldMapping.GetHashCode() -> int
+override Kun.Data.DataFieldMapping.ToString() -> string!
+override Kun.Data.DataTypeCatalog.Equals(object? obj) -> bool
+override Kun.Data.DataTypeCatalog.GetHashCode() -> int
+override Kun.Data.DataTypeCatalog.ToString() -> string!
+override Kun.Data.DataTypeLimit.Equals(object? obj) -> bool
+override Kun.Data.DataTypeLimit.GetHashCode() -> int
+override Kun.Data.DataTypeLimit.ToString() -> string!
+override Kun.Data.DataValueRange.Equals(object? obj) -> bool
+override Kun.Data.DataValueRange.GetHashCode() -> int
+override Kun.Data.DataValueRange.ToString() -> string!
+override Kun.Data.DbDialect.Equals(object? obj) -> bool
+override Kun.Data.DbDialect.GetHashCode() -> int
+override Kun.Data.DbDialect.ToString() -> string!
+override Kun.Data.DialectTypeMapping.Equals(object? obj) -> bool
+override Kun.Data.DialectTypeMapping.GetHashCode() -> int
+override Kun.Data.DialectTypeMapping.ToString() -> string!
+static Kun.Data.BaseDataType.operator !=(Kun.Data.BaseDataType? left, Kun.Data.BaseDataType? right) -> bool
+static Kun.Data.BaseDataType.operator ==(Kun.Data.BaseDataType? left, Kun.Data.BaseDataType? right) -> bool
+static Kun.Data.DataConnectionDraft.operator !=(Kun.Data.DataConnectionDraft? left, Kun.Data.DataConnectionDraft? right) -> bool
+static Kun.Data.DataConnectionDraft.operator ==(Kun.Data.DataConnectionDraft? left, Kun.Data.DataConnectionDraft? right) -> bool
+static Kun.Data.DataConnectionList.operator !=(Kun.Data.DataConnectionList? left, Kun.Data.DataConnectionList? right) -> bool
+static Kun.Data.DataConnectionList.operator ==(Kun.Data.DataConnectionList? left, Kun.Data.DataConnectionList? right) -> bool
+static Kun.Data.DataConnectionProbe.operator !=(Kun.Data.DataConnectionProbe? left, Kun.Data.DataConnectionProbe? right) -> bool
+static Kun.Data.DataConnectionProbe.operator ==(Kun.Data.DataConnectionProbe? left, Kun.Data.DataConnectionProbe? right) -> bool
+static Kun.Data.DataConnectionProfile.operator !=(Kun.Data.DataConnectionProfile? left, Kun.Data.DataConnectionProfile? right) -> bool
+static Kun.Data.DataConnectionProfile.operator ==(Kun.Data.DataConnectionProfile? left, Kun.Data.DataConnectionProfile? right) -> bool
+static Kun.Data.DataConnectionTarget.operator !=(Kun.Data.DataConnectionTarget? left, Kun.Data.DataConnectionTarget? right) -> bool
+static Kun.Data.DataConnectionTarget.operator ==(Kun.Data.DataConnectionTarget? left, Kun.Data.DataConnectionTarget? right) -> bool
+static Kun.Data.DataConnectionTestResult.operator !=(Kun.Data.DataConnectionTestResult? left, Kun.Data.DataConnectionTestResult? right) -> bool
+static Kun.Data.DataConnectionTestResult.operator ==(Kun.Data.DataConnectionTestResult? left, Kun.Data.DataConnectionTestResult? right) -> bool
+static Kun.Data.DataContractJson.ConnectionDraftTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DataConnectionDraft!>!
+static Kun.Data.DataContractJson.ConnectionListTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DataConnectionList!>!
+static Kun.Data.DataContractJson.ConnectionProfileTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DataConnectionProfile!>!
+static Kun.Data.DataContractJson.ConnectionTestResultTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DataConnectionTestResult!>!
+static Kun.Data.DataContractJson.DataTypeCatalogTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DataTypeCatalog!>!
+static Kun.Data.DataContractJson.DialectTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DbDialect!>!
+static Kun.Data.DataContractJson.FieldDefinitionTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DataFieldDefinition!>!
+static Kun.Data.DataContractJson.FieldMappingTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Data.DataFieldMapping!>!
+static Kun.Data.DataContractSchemas.BaseDataTypes.get -> string!
+static Kun.Data.DataContractSchemas.DataConnection.get -> string!
+static Kun.Data.DataContractSchemas.DataTypes.get -> string!
+static Kun.Data.DataErrors.TypesAndConnections.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
+static Kun.Data.DataFieldDefinition.operator !=(Kun.Data.DataFieldDefinition? left, Kun.Data.DataFieldDefinition? right) -> bool
+static Kun.Data.DataFieldDefinition.operator ==(Kun.Data.DataFieldDefinition? left, Kun.Data.DataFieldDefinition? right) -> bool
+static Kun.Data.DataFieldMapping.operator !=(Kun.Data.DataFieldMapping? left, Kun.Data.DataFieldMapping? right) -> bool
+static Kun.Data.DataFieldMapping.operator ==(Kun.Data.DataFieldMapping? left, Kun.Data.DataFieldMapping? right) -> bool
+static Kun.Data.DataTypeCatalog.operator !=(Kun.Data.DataTypeCatalog? left, Kun.Data.DataTypeCatalog? right) -> bool
+static Kun.Data.DataTypeCatalog.operator ==(Kun.Data.DataTypeCatalog? left, Kun.Data.DataTypeCatalog? right) -> bool
+static Kun.Data.DataTypeContracts.ReadDialect(System.IO.Stream! utf8Json) -> Kun.Data.DbDialect!
+static Kun.Data.DataTypeContracts.SystemTypes.get -> System.Collections.Generic.IReadOnlyList<Kun.Data.BaseDataType!>!
+static Kun.Data.DataTypeLimit.operator !=(Kun.Data.DataTypeLimit? left, Kun.Data.DataTypeLimit? right) -> bool
+static Kun.Data.DataTypeLimit.operator ==(Kun.Data.DataTypeLimit? left, Kun.Data.DataTypeLimit? right) -> bool
+static Kun.Data.DataValueRange.operator !=(Kun.Data.DataValueRange? left, Kun.Data.DataValueRange? right) -> bool
+static Kun.Data.DataValueRange.operator ==(Kun.Data.DataValueRange? left, Kun.Data.DataValueRange? right) -> bool
+static Kun.Data.DbDialect.operator !=(Kun.Data.DbDialect? left, Kun.Data.DbDialect? right) -> bool
+static Kun.Data.DbDialect.operator ==(Kun.Data.DbDialect? left, Kun.Data.DbDialect? right) -> bool
+static Kun.Data.DialectTypeMapping.operator !=(Kun.Data.DialectTypeMapping? left, Kun.Data.DialectTypeMapping? right) -> bool
+static Kun.Data.DialectTypeMapping.operator ==(Kun.Data.DialectTypeMapping? left, Kun.Data.DialectTypeMapping? right) -> bool
+static readonly Kun.Data.DataErrors.ConnectionNameConflict -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.ConnectionNotFound -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.ConnectionRejected -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.ConnectionUnreachable -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.DialectNotFound -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.FieldDefinitionInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.FieldFacetUnsupported -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.FieldOutOfRange -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.FieldRangeInverted -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.TypeNotFound -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.TypeProtected -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.ConnectionCredentialInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataErrors.ConnectionTargetDenied -> Kun.Errors.ErrorCode!
+static readonly Kun.Data.DataDialectContract.Key -> Kun.Runtime.ServiceKey

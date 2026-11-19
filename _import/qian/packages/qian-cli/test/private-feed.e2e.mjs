@@ -24,7 +24,8 @@ function files(root,base=root){return readdirSync(root,{withFileTypes:true}).fla
 function manifest(id){return JSON.parse(readFileSync(path.join(repo,'plugins',id,'.qian-plugin/plugin.json'),'utf8'));}
 
 // 宿主程序：usings 与 services 是各组合的宿主装配，其余按 CLI 解析出的 profile 挂载已安装组件。
-const program=(usings,services,checks='')=>`using System.Text.Json;
+const program=(usings,services,checks='')=>`using System.Reflection;
+using System.Text.Json;
 ${usings}using Qian.Runtime;
 
 // 按 CLI 解析出的 profile 挂载已安装组件：代码入口取自 .qian/plugins 里的组件清单，配置取自 profile 条目。
@@ -39,7 +40,26 @@ foreach (var item in resolved.RootElement.GetProperty("entries").EnumerateArray(
     var id = plugin[..plugin.IndexOf('@')];
     using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(".qian", "plugins", id, ".qian-plugin", "plugin.json")));
     // 入口类型只从私有源还原的程序集解析；缺入口或类型不存在即失败。
-    var type = Type.GetType(document.RootElement.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!;
+    var runtimeManifest = document.RootElement.GetProperty("runtime");
+    var entry = runtimeManifest.GetProperty("entry").GetString()!;
+    var pinned = runtimeManifest.TryGetProperty("nuget", out var nuget) ? nuget.EnumerateArray().Select(reference => reference.GetProperty("id").GetString()!).ToArray() : Array.Empty<string>();
+    var comma = entry.IndexOf(',');
+    Type type;
+    if (comma < 0 || pinned.Length == 0 || pinned.Contains(entry[(comma + 1)..].Trim(), StringComparer.OrdinalIgnoreCase))
+        type = Type.GetType(entry, throwOnError: true)!;
+    else
+    {
+        // 过渡期放宽（S1-KUN-022 发新包、清单改钉之后，连同 e2e 里的名单一起删掉）：清单入口已挪到还没发布的包里，
+        // 钉住的仍是私有源上的旧包。只在钉住的包的程序集里找带同一组件 id 特性的类型，必须恰好一个，并打一行标记。
+        var candidates = pinned.Select(name => Assembly.Load(new AssemblyName(name))).SelectMany(assembly => assembly.GetTypes())
+            .Where(candidate => candidate.GetCustomAttributesData().Any(attribute => attribute.AttributeType.FullName == "Qian.Plugin.Sdk.QianPluginAttribute"
+                && attribute.ConstructorArguments.Count == 1 && Equals(attribute.ConstructorArguments[0].Value, id)))
+            .ToArray();
+        if (candidates.Length != 1)
+            throw new InvalidOperationException(id + " 的入口 " + entry + " 不在钉住的包里，钉住的包里带同一组件 id 特性的类型有 " + candidates.Length + " 个，应恰好一个");
+        type = candidates[0];
+        Console.WriteLine("entry-fallback:" + id + "|" + entry + "|" + type.FullName + ", " + type.Assembly.GetName().Name);
+    }
     var provides = item.GetProperty("provides").EnumerateArray().Select(key => new ServiceKey(key.GetString()!)).ToArray();
     definitions.Add(new PluginDefinition(new PluginEntry(item.GetProperty("id").GetString()!, id, plugin[(plugin.IndexOf('@') + 1)..], ScopeKey.Global, 0, item.GetProperty("config").Clone()),
         (IQianPlugin)Activator.CreateInstance(type)!, provides));
@@ -90,6 +110,20 @@ if (!revoked) throw new InvalidOperationException("身份服务旧上下文未�
 Console.WriteLine("identity-service-revoked");`);
 // 组件 Provider 的程序集版本 = 清单钉的锁步版本（NuGet 包版本 x.y.z 对应程序集版本 x.y.z.0）。
 const ready=items=>items.map(item=>item.id+'='+manifest(item.id).runtime.nuget[0].version+'.0').sort();
+// 过渡期放宽（S1-KUN-022 发新包、清单改钉之后连同宿主里的那一支一起删掉）：清单入口已挪到还没发布的包里的组件。
+// 组件清单的 runtime.nuget[] 钉的是私有源上已发布的旧包，新包发布前不动；入口却随代码挪到了新包，宿主严格按入口解析必然失败。
+// 宿主对这些组件改在钉住的包里找带同一组件 id 特性的类型，并打一行 entry-fallback 标记。每个场景断言走了这一支的组件
+// 正好是名单里属于本场景的那些：名单之外的组件走了这一支（比如入口所在的包忘了钉），或新包发布、清单改钉后名单里的组件
+// 不再走这一支，测试都失败。之后各批挪了入口的组件往这里加。其余断言（钉版与摘要、表面逐字节、Ready、Provider 版本）不变。
+const entryInUnpublishedPackage=['qian.data'];
+function assertEntryFallback(stdout,items){
+ const marks=stdout.split(/\r?\n/).filter(text=>text.startsWith('entry-fallback:')).map(text=>text.slice('entry-fallback:'.length).split('|'));
+ for(const [id,entry,mounted] of marks){
+  assert.equal(entry,manifest(id).runtime.entry,stdout);
+  assert.ok(manifest(id).runtime.nuget.some(reference=>mounted.endsWith(', '+reference.id)),stdout);
+ }
+ assert.deepEqual(marks.map(([id])=>id).sort(),items.map(item=>item.id).filter(id=>entryInUnpublishedPackage.includes(id)).sort(),stdout);
+}
 function nugetConfig(project,cache){
  // 只用私有源与 nuget.org；Qian.* 映射到私有源，凭据以环境变量引用，配置文件里不出现令牌。独立包目录、不设回退目录，证明包确实取自源。
  write(project,'NuGet.Config',`<?xml version="1.0" encoding="utf-8"?>
@@ -161,6 +195,7 @@ test('空白 ASP.NET Core 项目经签名市场安装私有源已发布的 data 
   assert.equal(started.status,0,started.stdout+started.stderr);
   const line=started.stdout.split('\n').find(text=>text.startsWith('installed-providers-ready:'));
   assert.ok(line,started.stdout);assert.deepEqual(line.slice('installed-providers-ready:'.length).split(',').sort(),ready(components));
+  assertEntryFallback(started.stdout,components);
   writeFileSync(programFile,original);
 
   const listed=qian(project,'list');assert.equal(listed.status,0,listed.stderr);
@@ -220,6 +255,7 @@ test('空白 ASP.NET Core 项目经签名市场把私有源已发布的 data / f
   assert.equal(started.status,0,started.stdout+started.stderr);
   const line=started.stdout.split('\n').find(text=>text.startsWith('installed-providers-ready:'));
   assert.ok(line,started.stdout);assert.deepEqual(line.slice('installed-providers-ready:'.length).split(',').sort(),ready(selected));
+  assertEntryFallback(started.stdout,selected);
   // local 后端按沿用的存储配置建好了对象根目录。
   assert.ok(existsSync(objects));
   writeFileSync(programFile,original);
@@ -267,6 +303,7 @@ test('空白宿主从私有源安装 identity：精确版本与归档摘要、�
   assert.equal(started.status,0,started.stdout+started.stderr);
   const line=started.stdout.split('\n').find(text=>text.startsWith('installed-providers-ready:'));
   assert.ok(line,started.stdout);assert.deepEqual(line.slice('installed-providers-ready:'.length).split(','),ready(selected));
+  assertEntryFallback(started.stdout,selected);
   assert.ok(started.stdout.split(/\r?\n/).includes('identity-service-revoked'),started.stdout);
   writeFileSync(programFile,original);
 

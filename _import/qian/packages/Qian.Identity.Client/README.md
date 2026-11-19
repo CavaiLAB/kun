@@ -117,7 +117,7 @@ app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();
 - `resource` 只在授权请求里带：Kun 的 `OidcCodeExchange` 与刷新都不能追加参数，所以换码与刷新请求不带。qian-identity 的授权码与 refresh token 已绑定授权时请求的资源，换码、刷新沿用，受众不变。对接要求令牌请求也带 `resource` 的发行方（MCP 授权规范对客户端的要求），要等 Kun 支持追加参数。
 - 授权参数只透传 `prompt=select_account`；`login_hint`、租户提示等尚未透传。
 - 清单已由 SDK 派生稳定入口与 configSchema，并声明了 `x-aot`（依据见上文的 NativeAOT 冒烟）。S1-IDP-015 已完成包族 0.3.0 发布、`runtime.nuget` 精确版本与归档摘要钉定、真实 `qian add identity` 安装和移除验收，骨架标记已移除；安装准备与声明式配置见[组件 README](../../plugins/qian.identity.client/README.md#安装)。按 S1-DEC-029，开发期 gateway 使用 JIT，gateway 整体的 NativeAOT 门仍由 GW-001 / DEP-008 验收。
-- `Kun.Plugin.Sdk` 经 `Qian.Data.Abstractions` 把 EF Core 带进依赖闭包。NativeAOT 发布时这部分不可达，会被裁掉；JIT 宿主的输出目录里会多出这些程序集。
+- `Kun.Plugin.Sdk` 经 `Kun.Data.Abstractions` 把 EF Core 带进依赖闭包。NativeAOT 发布时这部分不可达，会被裁掉；JIT 宿主的输出目录里会多出这些程序集。
 
 ## 测试
 

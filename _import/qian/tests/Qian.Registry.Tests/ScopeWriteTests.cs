@@ -12,7 +12,7 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Config;
 using Qian.Config.Apollo;
-using Qian.Data;
+using Kun.Data;
 using Qian.Lifecycle;
 using Kun.Runtime;
 
@@ -29,9 +29,9 @@ public sealed partial class PatchPersistenceTests
         await using var running = await CreateRunningRegistry(tenant, events: true, services: services =>
         {
             AddAuthz(services, checker: true);
-            services.AddQianData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(platform).UseKunSchema(AuthzDbContext.Schema));
-            services.AddQianData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
-            services.AddQianData<LifecycleDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(LifecycleDbContext.Schema));
+            services.AddKunData<PlatformAuthzDbContext>((_, options) => options.UseNpgsql(platform).UseKunSchema(AuthzDbContext.Schema));
+            services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
+            services.AddKunData<LifecycleDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(LifecycleDbContext.Schema));
         }, prepareHost: async host =>
         {
             using var scope = host.Services.CreateScope();

@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
-using Qian.Data;
+using Kun.Data;
 
 namespace Qian.Sample.Crm;
 

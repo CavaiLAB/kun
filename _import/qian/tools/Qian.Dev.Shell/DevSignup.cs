@@ -3,11 +3,11 @@ using Kun.EntityFrameworkCore.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Qian.Data;
+using Kun.Data;
 using Qian.Dev.TenantOps;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;
-using Qian.Tenancy.Signup;
+using Kun.Tenancy.Signup;
 
 namespace Qian.Dev.Shell;
 
@@ -39,7 +39,7 @@ internal sealed class DevSignup
     internal bool HostsPages => _uiDist is not null;
 
     internal static void Configure(WebApplicationBuilder builder, DevDatabase database) =>
-        builder.Services.AddQianData<TenancySignupDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(TenancySignupDbContext.Schema));
+        builder.Services.AddKunData<TenancySignupDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(TenancySignupDbContext.Schema));
 
     // 开通申请库与生产同一套迁移，授权给应用登录（全局表，无 RLS）。
     internal static string SchemaSql(IServiceProvider services)
@@ -73,12 +73,12 @@ internal sealed class DevSignup
     internal void Use(IApplicationBuilder branch)
     {
         branch.UseWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), errors => errors.UseKunErrors());
-        if (_uiDist is not null) branch.UseQianTenancySignupPages(_uiDist);
+        if (_uiDist is not null) branch.UseKunTenancySignupPages(_uiDist);
     }
 
     internal void Map(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapQianTenancySignupApplicant(_ => _loader().GetContext("tenancy.signup", ScopeKey.Global));
+        endpoints.MapKunTenancySignupApplicant(_ => _loader().GetContext("tenancy.signup", ScopeKey.Global));
         endpoints.MapGet(DevSignupOutbox.Route, Outbox.Read);
     }
 

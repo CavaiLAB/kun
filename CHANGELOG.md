@@ -76,6 +76,12 @@
 - `Kun.IntegrationTests` 的存储测试原来用 `minio/minio` 镜像，它已从 Docker Hub 删除，Quay 上的同名镜像要登录才能拉，没有本地缓存的执行环境拉不到：5 个测试失败，另外 6 个把拉取失败当成没有 Docker 而跳过。改用 RustFS 1.0.6（Apache-2.0），镜像 `ghcr.io/rustfs/rustfs:1.0.6` 钉到摘要，匿名可拉；三个存储测试类共用 `Fixtures/S3CompatibleServer.cs`，`MinioFixture` 改名为 `S3StorageFixture`，断言不变。测试包由 `Testcontainers.Minio` 换成同版本的通用 `Testcontainers`，中央版本删去 `Testcontainers.Minio`。
 - 拉不到镜像、容器起不来不再算作跳过。只有本机确实没有容器环境时才跳过，环境变量 `CI` 为真时这种情况也算失败（`Fixtures/ContainerRuntime.cs`）。
 
+### Fixed — RabbitMQ 连接已被对端关掉时，释放不再抛异常（S1-QA-023）
+
+- `Kun.EventBus.RabbitMQ` 的 `RabbitMqConnectionProvider.DisposeAsync` 在连接已被 RabbitMQ（或网络）关掉时，不再把 `AlreadyClosedException` 抛给宿主，照常释放连接。
+  - 原因：客户端只在关闭前查一次连接是否打开；对端的关闭落在查与关之间时，关闭就抛这个异常。宿主停止时偶发失败。
+- 关闭时的其他异常照常抛出，但连接与内部锁会先释放。
+
 ## [2026.10.25] - 2026-10-25
 
 ### Fixed — 数据约定与实体审计不再占用当前主体 / 租户端口（S1-KUN-017）

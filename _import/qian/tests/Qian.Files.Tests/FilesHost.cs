@@ -32,7 +32,7 @@ using Qian.Capabilities;
 using Kun.Data;
 using Qian.Events;
 using Qian.Files.AspNetCore;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;

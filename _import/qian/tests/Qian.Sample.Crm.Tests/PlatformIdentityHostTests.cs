@@ -16,7 +16,7 @@ using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Qian.Audit;
 using Qian.Gateway;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Platform.Host;
 using Kun.Runtime;
 using Kun.Tenancy;

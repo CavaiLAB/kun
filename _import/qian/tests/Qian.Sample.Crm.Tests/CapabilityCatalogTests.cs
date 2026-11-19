@@ -379,7 +379,7 @@ public abstract partial class CustomerCommandTests
         {
             var caller = CapabilitySource(http);
             return Results.Text(await caller.Capabilities().ComposePromptAsync(caller,
-                http.RequestServices.GetRequiredService<Qian.Identity.Abstractions.ICurrentUser>(), http.RequestAborted));
+                http.RequestServices.GetRequiredService<Kun.Identity.Abstractions.ICurrentUser>(), http.RequestAborted));
         }).RequireAuthorization();
     }
     // probes 随 crm 条目一起登记（同一组件、同一安装条目）；capabilitiesConfig 是 qian.capabilities 条目的组件配置，缺省为 {}。
@@ -402,8 +402,8 @@ public abstract partial class CustomerCommandTests
         var identity = loader.DumpConfig().SingleOrDefault(entry => entry.Plugin == "qian.identity.server");
         if (identity is not null)
         {
-            var component = new Qian.Identity.Server.IdentityServerComponent();
-            var metadata = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(Qian.Identity.Server.IdentityServerComponent).Assembly
+            var component = new Kun.Identity.Server.IdentityServerComponent();
+            var metadata = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(Kun.Identity.Server.IdentityServerComponent).Assembly
                 .GetCustomAttributes(typeof(KunCodeMetadataAttribute), false).Cast<KunCodeMetadataAttribute>().Single().FactoryType)!).Create();
             Add(identity.Id, identity.Plugin, component, metadata.Provides.Select(name => new ServiceKey(name)).ToArray(), identity.Config);
             var artifact = Path.Combine(RepositoryRoot(), "plugins/qian.identity.server");

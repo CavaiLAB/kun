@@ -15,8 +15,8 @@ using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
 using Qian.Gateway;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Client;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Client;
 using Kun.Runtime;
 using StackExchange.Redis;
 
@@ -68,7 +68,7 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
             Policies = [new("qian.identity.client", [new("identity/*", "platform")], [new("identity/*", "platform")])]
         });
         builder.Services.AddQianConfiguration(new ConfigurationRoot([]));
-        builder.Services.AddQianIdentityClient(new IdentityClientOptions
+        builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
             Authority = new Uri(identityIssuer), ClientId = clientId, Resource = identityAudience,
             // scopes：外壳经 bridge.invoke 调应用能力时客户端另外申请的应用 scope（能力声明的 requiredScopes）。
@@ -78,8 +78,8 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
         });
         builder.Services.AddQianGateway(configuration, IdentityClientDefaults.SessionScheme);
         var app = builder.Build();
-        app.UseForwardedHeaders(); app.UseRouting(); app.UseQianIdentityClient(); app.UseQianGateway();
-        app.MapQianIdentityClient(); app.MapQianGateway(); map?.Invoke(app);
+        app.UseForwardedHeaders(); app.UseRouting(); app.UseKunIdentityClient(); app.UseQianGateway();
+        app.MapKunIdentityClient(); app.MapQianGateway(); map?.Invoke(app);
         var loader = new PluginLoader(app.Services);
         try
         {

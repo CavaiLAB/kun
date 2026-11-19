@@ -1,0 +1,156 @@
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Tenancy;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+
+namespace Kun.Identity.Server;
+
+// Membership：person × tenant。创建在同一事务里持计数锁，先过租户配额判定端口再插入，并发创建不会一起越过上限。
+internal sealed partial class IdentityAccountService
+{
+    private static readonly Regex AccountPattern = new(@"\A[a-z0-9][a-z0-9_.@\-]{0,63}\z", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
+
+    public async ValueTask<Membership> CreateMembershipAsync(CreateMembership request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var tenantId = RequireTenant();
+        var name = request.DisplayName?.Trim();
+        if (string.IsNullOrEmpty(name) || name.Length > 200 || name.Any(char.IsControl)) throw IdentifierRules.Invalid("#/display_name");
+        string? account = null;
+        if (request.Account is not null)
+        {
+            account = request.Account.Normalize(System.Text.NormalizationForm.FormKC).Trim().ToLowerInvariant();
+            if (!AccountPattern.IsMatch(account)) throw IdentifierRules.Invalid("#/account");
+        }
+        if (request.MembershipId == Guid.Empty) throw IdentifierRules.Invalid("#/membership_id");
+        return await CreateMembershipCoreAsync(tenantId, request.PersonId, name, account, request.IsTenantAdministrator, request.MembershipId, cancellationToken).ConfigureAwait(false);
+    }
+
+    // 开户编排的成员创建端口（ITenantMembershipProvisioner）：按 (成员 ID, Person) 幂等，重试不会重复占用配额。
+    public async ValueTask ProvisionAsync(TenantAdministrator administrator, string idempotencyKey, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(administrator);
+        if (string.IsNullOrWhiteSpace(idempotencyKey) || idempotencyKey.Length > 200) throw IdentifierRules.Invalid("#/idempotency_key");
+        var tenantId = RequireTenant();
+        if (administrator.MembershipId == Guid.Empty || !Guid.TryParseExact(administrator.SubjectId, "D", out var personId) || personId == Guid.Empty)
+            throw IdentifierRules.Invalid("#/administrator");
+        // 管理员必须已是一个存在的 Person（经本组件创建或选择）；缺席时失败，不把它当作成功。
+        Person person;
+        {
+            using var neutral = TenantScope(null);
+            await using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
+            person = await LoadPersonAsync(session.Context, personId, cancellationToken).ConfigureAwait(false) ?? throw Error(PlatformErrors.NotFound);
+        }
+        if (person.Status == AccountStatuses.Purged) throw Error(PlatformErrors.NotFound);
+        await CreateMembershipCoreAsync(tenantId, personId, person.DisplayName, null, true, administrator.MembershipId, cancellationToken).ConfigureAwait(false);
+    }
+
+    // 运营替换租户管理员时撤销原管理员的标志（S1-TEN-010）：与成员创建持同一把计数锁，标志变化才递增成员修订。
+    public async ValueTask<Membership> SetTenantAdministratorAsync(Guid membershipId, bool administrator, CancellationToken cancellationToken = default)
+    {
+        var tenantId = RequireTenant();
+        using var scope = TenantScope(tenantId);
+        await using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        var db = session.Context;
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        await IdentitySql.LockAsync(db, "members:" + tenantId.ToString("D"), cancellationToken).ConfigureAwait(false);
+        var row = await db.Memberships.SingleOrDefaultAsync(m => m.Id == membershipId, cancellationToken).ConfigureAwait(false);
+        if (row is null || row.Status == AccountStatuses.Purged || row.DirectoryDeleted) throw Error(PlatformErrors.NotFound);
+        if (row.IsTenantAdministrator != administrator)
+        {
+            row.IsTenantAdministrator = administrator; row.IdentityRevision++;
+            await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return ToMembership(row);
+    }
+
+    private async Task<Membership> CreateMembershipCoreAsync(Guid tenantId, Guid personId, string displayName, string? account, bool administrator, Guid? membershipId, CancellationToken ct)
+    {
+        using var scope = TenantScope(tenantId); using var origin = OpenOrigin();
+        for (var attempt = 0; ; attempt++)
+        {
+            await using var session = await OpenAsync(ct).ConfigureAwait(false);
+            var db = session.Context;
+            await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+            // 同租户的成员创建串行：计数、配额判定与插入在同一把事务锁内。
+            await IdentitySql.LockAsync(db, "members:" + tenantId.ToString("D"), ct).ConfigureAwait(false);
+            // 新建与重新启用都会递增目录修订行，所以接着取目录锁，并且先于任何行锁（加锁顺序见 LockDirectoryAsync）。
+            var directoryLock = await LockDirectoryAsync(db, tenantId, ct).ConfigureAwait(false);
+            var person = await db.Persons.AsNoTracking().SingleOrDefaultAsync(p => p.Id == personId, ct).ConfigureAwait(false);
+            if (person is null || person.Status == AccountStatuses.Purged) throw Error(PlatformErrors.NotFound);
+            // 已有的成员行先加行锁再读：重新启用改的就是这一行，读到的是最新值，不会因为不取目录锁的成员行写入
+            // （如 BumpIdentityRevisionAsync）在读与存之间提交而乐观并发冲突。
+            await IdentitySql.QueryAsync(db, $"SELECT id FROM {IdentitySql.Memberships} WHERE person_id = @person FOR UPDATE", reader => reader.GetGuid(0), ct, ("person", personId)).ConfigureAwait(false);
+            var existing = await db.Memberships.SingleOrDefaultAsync(m => m.PersonId == personId, ct).ConfigureAwait(false);
+            if (existing is not null)
+            {
+                // 同一 Person 重复建立：指针一致则幂等返回，必要时补上管理员标志与可用状态；指针不一致是冲突。
+                if (existing.Status == AccountStatuses.Purged || existing.DirectoryDeleted || membershipId is { } wanted && wanted != existing.Id) throw Error(PlatformErrors.Conflict);
+                if (administrator && !existing.IsTenantAdministrator || existing.Status != AccountStatuses.Active)
+                {
+                    var previousStatus = existing.Status;
+                    existing.IsTenantAdministrator |= administrator; existing.Status = AccountStatuses.Active; existing.IdentityRevision++;
+                    var reactivated = new DirectoryEventBatch();
+                    if (previousStatus != existing.Status)
+                        reactivated.Add(revision => new DirectoryMemberStatusChangedEvent(revision, existing.Id, existing.PersonId, existing.Status, previousStatus, false, existing.IdentityRevision));
+                    var changed = await RaiseDirectoryEventsAsync(db, directoryLock, reactivated, ct).ConfigureAwait(false);
+                    await session.SaveChangesAsync(ct).ConfigureAwait(false);
+                    EnsurePublished(changed);
+                }
+                await transaction.CommitAsync(ct).ConfigureAwait(false);
+                return ToMembership(existing);
+            }
+            if (membershipId is { } id && await db.Memberships.AnyAsync(m => m.Id == id, ct).ConfigureAwait(false)) throw Error(PlatformErrors.Conflict);
+            var kind = person.PlatformAccess ? TenantMemberKind.PlatformSuperadmin : administrator ? TenantMemberKind.Administrator : TenantMemberKind.Member;
+            // 配额端口缺席（未装配租户组件的独立宿主）时不限额；装配后超限抛 CARDINALITY_USER_LIMIT。
+            if (_ctx.TryInject<ITenantQuota>(TenantSettings.QuotaKey) is { } quota)
+                await quota.EnsureCanAddUserAsync(await CountMembersAsync(db, ct).ConfigureAwait(false), kind, ct).ConfigureAwait(false);
+            var row = new MembershipRow
+            {
+                Id = membershipId ?? Guid.CreateVersion7(),
+                PersonId = personId,
+                DisplayName = displayName,
+                Status = AccountStatuses.Active,
+                IsTenantAdministrator = administrator,
+                Account = account ?? await DefaultAccountAsync(db, personId, attempt, ct).ConfigureAwait(false)
+            };
+            db.Memberships.Add(row);
+            // 新成员即目录变更：directory.member.created.v1 随成员行同事务进入 Outbox；唯一约束冲突时整个事务回滚、换会话重试，事件不会残留。
+            var created = new DirectoryEventBatch();
+            created.Add(revision => new DirectoryMemberCreatedEvent(revision, row.Id, row.PersonId, row.Status, row.IdentityRevision));
+            var changes = await RaiseDirectoryEventsAsync(db, directoryLock, created, ct).ConfigureAwait(false);
+            try { await session.SaveChangesAsync(ct).ConfigureAwait(false); EnsurePublished(changes); }
+            catch (DbUpdateException error) when (IsUniqueViolation(error))
+            {
+                var constraint = (error.InnerException as PostgresException)?.ConstraintName ?? "";
+                if (constraint.Contains("account", StringComparison.Ordinal))
+                {
+                    // 调用方指定的账号被占用是业务拒绝；自动生成的账号撞车（几乎不可能）换一个重试。
+                    if (account is not null || attempt >= 3) throw Error(IdentityErrors.AccountInUse);
+                    continue;
+                }
+                throw Error(PlatformErrors.Conflict);
+            }
+            // 维护登录索引：与成员行同事务，且只追加不存在的租户。
+            await IdentitySql.ExecuteAsync(db, $"UPDATE {IdentitySql.Persons} SET tenant_ids = array_append(tenant_ids, @tenant) WHERE id = @id AND NOT (@tenant = ANY(tenant_ids))", ct,
+                ("tenant", tenantId.ToString("D")), ("id", personId)).ConfigureAwait(false);
+            await transaction.CommitAsync(ct).ConfigureAwait(false);
+            return ToMembership(row);
+        }
+    }
+
+    // 默认账号：Person 的用户名（若有且未被占用），否则随机的不透明账号；账号创建后不可改，所以不取手机号或邮箱。
+    private static async Task<string> DefaultAccountAsync(IdentityDbContext db, Guid personId, int attempt, CancellationToken ct)
+    {
+        if (attempt == 0)
+        {
+            var username = await db.Identifiers.AsNoTracking().Where(i => i.PersonId == personId && i.Kind == "username").Select(i => i.Value).FirstOrDefaultAsync(ct).ConfigureAwait(false);
+            if (username is not null && !await db.Memberships.AnyAsync(m => m.Account == username, ct).ConfigureAwait(false)) return username;
+        }
+        return "m" + Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(6));
+    }
+}

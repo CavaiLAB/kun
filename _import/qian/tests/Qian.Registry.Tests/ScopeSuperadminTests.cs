@@ -12,7 +12,7 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Kun.Data;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 

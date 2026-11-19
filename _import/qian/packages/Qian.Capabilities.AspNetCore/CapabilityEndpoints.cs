@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Qian.Authz.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Plugin.Sdk.AspNetCore;

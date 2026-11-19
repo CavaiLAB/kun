@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;
 

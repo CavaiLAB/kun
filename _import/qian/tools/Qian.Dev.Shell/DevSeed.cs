@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Qian.Authz.Abstractions;
 using Qian.Dev.TenantOps;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Lifecycle;
 using Kun.Runtime;
 using Kun.Tenancy;

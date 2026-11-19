@@ -115,7 +115,7 @@ const ready=items=>items.map(item=>item.id+'='+manifest(item.id).runtime.nuget[0
 // 宿主对这些组件改在钉住的包里找带同一组件 id 特性的类型，并打一行 entry-fallback 标记。每个场景断言走了这一支的组件
 // 正好是名单里属于本场景的那些：名单之外的组件走了这一支（比如入口所在的包忘了钉），或新包发布、清单改钉后名单里的组件
 // 不再走这一支，测试都失败。之后各批挪了入口的组件往这里加。其余断言（钉版与摘要、表面逐字节、Ready、Provider 版本）不变。
-const entryInUnpublishedPackage=['qian.data'];
+const entryInUnpublishedPackage=['qian.data','qian.identity.client'];
 function assertEntryFallback(stdout,items){
  const marks=stdout.split(/\r?\n/).filter(text=>text.startsWith('entry-fallback:')).map(text=>text.slice('entry-fallback:'.length).split('|'));
  for(const [id,entry,mounted] of marks){

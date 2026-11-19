@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><Using Include="Xunit" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Kun.Identity.Connector.Oidc/Kun.Identity.Connector.Oidc.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="coverlet.MTP" />
+  </ItemGroup>
+</Project>

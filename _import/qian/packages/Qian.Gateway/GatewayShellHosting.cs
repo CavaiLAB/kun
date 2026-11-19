@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Routing.Template;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 

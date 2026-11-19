@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.FileProviders;
 using OpenIddict.Abstractions;
 using Kun.Data;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Server;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
 using Kun.Runtime;
 using Kun.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -40,7 +40,7 @@ internal sealed class DevTenantIdentity(Uri issuer) : IDisposable
         client.RedirectUris.Add(new Uri(issuer, "callback"));
         client.Permissions.UnionWith([Permissions.Endpoints.Authorization, Permissions.Endpoints.Token, Permissions.GrantTypes.AuthorizationCode, Permissions.ResponseTypes.Code]);
         builder.Services.AddSingleton<IStartupFilter>(new IdentityBranchFilter());
-        builder.Services.AddQianIdentityServer(new IdentityServerOptions
+        builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
             Issuer = issuer, AllowLoopbackHttp = true, SigningCertificates = [_certificate], EncryptionCertificates = [_certificate],
             Clients = [new() { Application = client, Resources = [Resource] }]
@@ -89,8 +89,8 @@ internal sealed class DevTenantIdentity(Uri issuer) : IDisposable
             app.MapWhen(http => http.Request.Path.StartsWithSegments("/api/identity") || http.Request.Path.StartsWithSegments("/api/directory") ||
                 http.Request.Path.StartsWithSegments("/connect") || http.Request.Path.StartsWithSegments("/.well-known"), branch =>
             {
-                branch.UseQianIdentityServer(); branch.UseRouting(); branch.UseAuthentication();
-                branch.UseEndpoints(endpoints => { endpoints.MapQianIdentityServer(); endpoints.MapQianIdentityAccounts(); });
+                branch.UseKunIdentityServer(); branch.UseRouting(); branch.UseAuthentication();
+                branch.UseEndpoints(endpoints => { endpoints.MapKunIdentityServer(); endpoints.MapKunIdentityAccounts(); });
             });
             next(app);
         };

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><Using Include="Xunit" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
+    <!-- 以下只为测试搭真实的发行方与密钥解析：qian-identity（内置账号模型）、Data、Events，以及 Config 的 secretRef 解析。 -->
+    <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
+    <ProjectReference Include="../../packages/Qian.Events/Qian.Events.csproj" />
+    <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
+    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <PackageReference Include="xunit.v3" />
+    <ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
+    <PackageReference Include="StackExchange.Redis" />
+    <PackageReference Include="JsonSchema.Net" />
+  </ItemGroup>
+  <ItemGroup><Compile Include="../Shared/LoopbackPort.cs" Link="LoopbackPort.cs" /></ItemGroup>
+</Project>

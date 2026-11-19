@@ -37,7 +37,7 @@ public sealed partial class ShellSurfaceTests
         IServiceCollection? services = null;
         await using var business = await Start(identity: true, capabilities: true, relyingParty: new Uri(address, "auth/callback"), decisionLogSampling: 1,
             configure: builder => services = builder.Services);
-        AssertDataComponentsFirst(business, services!, typeof(Qian.Identity.Server.IdentityDbContext));
+        AssertDataComponentsFirst(business, services!, typeof(Kun.Identity.Server.IdentityDbContext));
         var loader = Runtime(business).Loader;
         await using var surface = PlatformSurfaceHost.Build(id => loader.GetContext(id, ScopeKey.Global), new TokenValidationParameters
         {

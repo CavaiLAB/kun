@@ -6,7 +6,7 @@ using Kun.EventBus;
 using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;

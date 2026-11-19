@@ -15,8 +15,8 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Qian.Audit;
 using Qian.Config;
-using Qian.Identity.Client;
-using Qian.Identity.Client.Tests;
+using Kun.Identity.Client;
+using Kun.Identity.Client.Tests;
 using Qian.Testing;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeAudit;
@@ -147,7 +147,7 @@ public sealed class GatewayHostTests(PostgresFixture postgres, RedisFixture redi
         var services = new ServiceCollection(); services.AddLogging(); services.AddDataProtection();
         var connection = await ConnectionMultiplexer.ConnectAsync(redis.ConnectionString);
         services.AddSingleton<IConnectionMultiplexer>(_ => connection);
-        services.AddQianIdentityClient(new IdentityClientOptions
+        services.AddKunIdentityClient(new IdentityClientOptions
         {
             Authority = new Uri(identity.Issuer), ClientId = IdentityServerHost.ClientId, Resource = IdentityServerHost.Resource,
             RedirectUri = new Uri(address, "auth/callback"), RequireHttpsMetadata = false, SessionKeyPrefix = "qian:gateway:sessions:"

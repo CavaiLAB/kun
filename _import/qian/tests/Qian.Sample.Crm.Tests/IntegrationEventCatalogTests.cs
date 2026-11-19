@@ -6,7 +6,7 @@ using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Data;
 using Qian.Events;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Lifecycle;
 using Qian.Registry;
 using Kun.Tenancy;

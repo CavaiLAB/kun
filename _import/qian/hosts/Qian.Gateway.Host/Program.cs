@@ -16,8 +16,8 @@ using Kun.Data.Native;
 using Kun.Data.Native.Postgres;
 using Qian.Gateway;
 using Qian.Gateway.Host;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Client;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Client;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using StackExchange.Redis;
@@ -67,7 +67,7 @@ builder.Services.AddQianSecrets(new SecretResolverOptions
     Bindings = [new(identitySecret, new KubernetesSecretLocation("qian", "identity", "client-secret"))],
     Policies = [new("qian.identity.client", [new("identity/*", "platform")], [new("identity/*", "platform")])]
 });
-builder.Services.AddQianIdentityClient(new IdentityClientOptions
+builder.Services.AddKunIdentityClient(new IdentityClientOptions
 {
     Authority = new Uri(gateway.IdentityIssuer), ClientId = Required("Identity:ClientId"), Resource = gateway.IdentityAudience,
     RedirectUri = new Uri(Required("Identity:RedirectUri")), Scopes = ["openid", "offline_access", "qian.api"],
@@ -85,8 +85,8 @@ var shell = builder.Configuration["Shell:Root"] is { Length: > 0 } shellRoot ? n
 await using var app = builder.Build();
 app.UseForwardedHeaders();
 if (shell is not null) app.UseQianShell(shell);
-app.UseRouting(); app.UseQianIdentityClient(); app.UseQianGateway();
-app.MapQianIdentityClient(); app.MapQianGateway();
+app.UseRouting(); app.UseKunIdentityClient(); app.UseQianGateway();
+app.MapKunIdentityClient(); app.MapQianGateway();
 if (shell is not null) { app.MapQianShellBootstrap(); app.MapQianShell(shell); }
 await using var loader = new PluginLoader(app.Services);
 observer.Source = () => loader.GetContext("config", ScopeKey.Global);

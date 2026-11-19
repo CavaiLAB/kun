@@ -126,7 +126,7 @@ AREAS: Dict[str, Area] = {
         "目录选择器验收",
         (
             q("tests/directory-e2e/**", "tests/gates/ui/pins.test.ts",
-              "tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json", "packages/Qian.*/**", "packages/Common/**",
+              "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json", "packages/Qian.*/**", "packages/Common/**",
               "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
               "Directory.*.props", "Directory.Build.targets", ".editorconfig",
@@ -190,7 +190,7 @@ AREAS: Dict[str, Area] = {
         (
             q("apps/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
               "packages/qian-identity-ui/**", "packages/qian-shell-kit/**", "samples/qian-sample-crm-ui/**",
-              "tests/directory-e2e/**", "tests/gates/ui/**", "tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json",
+              "tests/directory-e2e/**", "tests/gates/ui/**", "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json",
               "plugins/qian.tenancy/contracts/**", "plugins/qian.tenancy.signup/contracts/**", "tools/openapi-codegen/**",
               "website/demo/**", "scripts/ui-tokens.mjs", "eslint.config.mjs", "eslint.boundaries.config.mjs",
               "eslint.i18n.mjs", ".dependency-cruiser.cjs", "vitest.config.ts", "tsconfig.base.json", "turbo.json",

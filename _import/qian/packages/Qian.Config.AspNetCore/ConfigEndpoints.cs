@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;

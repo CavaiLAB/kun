@@ -26,7 +26,7 @@ using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities.AspNetCore;
 using Kun.Data;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;

@@ -13,7 +13,7 @@ using Qian.Authz.Abstractions;
 using Qian.Config.Apollo;
 using Kun.Data.Native;
 using Kun.Data.Native.Postgres;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Qian.Testing.Containers;

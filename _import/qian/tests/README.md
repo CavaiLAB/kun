@@ -10,9 +10,9 @@ tests/
   Qian.Testing.Containers/                    集成测试共用的 Testcontainers fixture（不打包）
     ApolloMock/apollo_mock.py                 Apollo 协议替身，在容器里运行
   Qian.Testing.Containers.IntegrationTests/   fixture 自身的集成测试与单元测试
-  Qian.Identity.Server.Tests/                 真实 OpenIddict + PostgreSQL + Kun 客户端协议验收、跨宿主吊销、后通道与密钥轮换；账号模型（Argon2id、标识与绑定守卫、sub 不碰撞、配额）、统一登录流水线（审计、限流与并发、强制改密、租户选择与切换、MFA 不降级）与账号 HTTP 面端到端（可控时钟 + 可控租户目录）、会话中心（吊销即时与旁路、并发上限与单端、租户冻结、真实 Redis 索引与宕机降级、管理面、多副本竞争、日志卫生）
-  Qian.Identity.Client.Tests/                 依赖方：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码与 qian.sid 会话、篡改 nonce / iss / state 重放、刷新单飞与轮换（真实 Redis）、登出防伪、卸载、后通道登出；会话主体经 Kun 网关签发器铸 S2S 后下游接受；S2S 契约逐条违约与透传拒绝
-  Qian.Identity.Client.Standalone.Tests/      独立宿主 E2E：只引用 Qian.Identity.Client，对接 Dex（DexFixture）完成登录与登出，并断言依赖闭包
+  Kun.Identity.Server.Tests/                 真实 OpenIddict + PostgreSQL + Kun 客户端协议验收、跨宿主吊销、后通道与密钥轮换；账号模型（Argon2id、标识与绑定守卫、sub 不碰撞、配额）、统一登录流水线（审计、限流与并发、强制改密、租户选择与切换、MFA 不降级）与账号 HTTP 面端到端（可控时钟 + 可控租户目录）、会话中心（吊销即时与旁路、并发上限与单端、租户冻结、真实 Redis 索引与宕机降级、管理面、多副本竞争、日志卫生）
+  Kun.Identity.Client.Tests/                 依赖方：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码与 qian.sid 会话、篡改 nonce / iss / state 重放、刷新单飞与轮换（真实 Redis）、登出防伪、卸载、后通道登出；会话主体经 Kun 网关签发器铸 S2S 后下游接受；S2S 契约逐条违约与透传拒绝
+  Kun.Identity.Client.Standalone.Tests/      独立宿主 E2E：只引用 Kun.Identity.Client，对接 Dex（DexFixture）完成登录与登出，并断言依赖闭包
   Qian.Authz.Tests/                           授权：权限目录与默认角色、RBAC 判定与快照缓存（真实 PostgreSQL + Redis，两宿主授予 / 撤销传播）、平台超管旁路（专用平台登录 + 真实 Audit 插件）
   Kun.Data.AspNetCore.Tests/                  数据端点：基准类型目录（无数据库）与数据连接档案（真实 PostgreSQL、挂载式密钥、连通测试）
   Kun.Data.Native.Postgres.Tests/             NativeData：受限登录、精确 RLS 策略、租户/平台原始 SQL、事务与可撤销会话生命周期（真实 PostgreSQL）
@@ -179,7 +179,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qi
 | `publicapi/Qian.GateSample.Stale` | RS0017，构建失败 |
 | `publicapi/Qian.GateSample.NoApiFiles` | QIAN0001，构建失败 |
 | `publicapi/GateSample.NotPackable` | 构建通过：不打包的项目不受约束 |
-| 仓库根 `tests/gates/test_check_deps.py` 与 `tests/gates/depgraph/` | 依赖门禁的自测（见仓库根 `AGENTS.md`「档位与依赖」）。S1-RT-014（SDK 包族的完整传递依赖里没有平台档的提供者，也没有 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`）与 S1-IDP-007（OIDC 连接器不依赖 `Qian.Identity.Server`）两条验收在它的 `RealGraphTests` 里，读真实依赖图 |
+| 仓库根 `tests/gates/test_check_deps.py` 与 `tests/gates/depgraph/` | 依赖门禁的自测（见仓库根 `AGENTS.md`「档位与依赖」）。S1-RT-014（SDK 包族的完整传递依赖里没有平台档的提供者，也没有 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`）与 S1-IDP-007（OIDC 连接器不依赖 `Kun.Identity.Server`）两条验收在它的 `RealGraphTests` 里，读真实依赖图 |
 | `test_dotnet_release.py`（合成 `.nupkg`，不需要 dotnet 与网络） | 包族锁步发布的制品核对：缺包、多包、版本不一致、包族内依赖下限未钉同一版本或指向包族外、源生成器包带 `lib/` 或不是开发依赖、许可证与仓库地址缺失都失败；版本号须为不带前缀与构建元数据的 SemVer 2.0；推送后的包源核对缺包、仓库关联不符、可见性与仓库不一致或缺版本都失败（S1-RT-014） |
 | `test_check_docs.py`（不用样例项目，临时目录里搭最小仓库） | 文档门禁对文档站内容生效：站内路由、`/design/` 镜像路由与生成页路由的解析，生成目录跳过，禁用词在 `.mdx` 与站点源码里同样拦截（S1-DOCS-001）；Kun 小节的路由在生成前交给构建时的断链检查，显式给出的生成目录照查，生成目录里的文件进 Git 即失败，禁用词整词匹配（S1-DOCS-005） |
 | `test_dotnet_ci.py`（临时目录里搭 git 跟踪的最小仓库） | 触发过滤自检认得 §5.1 列的每类写法：.NET 源码的单个字面量、`Path.Combine` 分段、`../` 相对路径、插值前缀与洞后段、定位了仓库根的文件里的根目录 Markdown，csproj 的 `None` / `Content` / `Update`（含通配），工作流直接运行的脚本、unittest 收集的模块与它们导入的模块；对照样例不拦：注释、夹在变量后的段、不定位仓库根的 `README.md`、临时目录上的路径、被测试换掉仓库根的模块。`verify` 对 `Qian.slnf` 外的测试项目按名字告警，门禁样例与专属作业运行的项目除外（S1-QA-021）。匹配式取自仓库根区域表里的 dotnet 区域，只看 dotnet 区域的作业运行的脚本（含在仓库根运行的）；`verify` 另核分片 k，`coverage` 核对每个单元测试项目恰好一份覆盖率（S1-KUN-020）。`images` 列不出镜像即工具出错：夹具目录不在、解析不出缺省镜像、分片里有项目引用了夹具（含经测试宿主项目间接引用）却一个镜像也没解析出来，没有容器测试的分片 0 个镜像不算错；`prefetch` 拉取失败只记录。`registration` 认测试项目（各种测试运行器的包、`IsTestProject`，只引断言库的支撑库不算），专属作业认项目文件与目录、仓库根与本目录两种工作目录、`\|` 块的续行与 `>` 块，别的区域的作业不算；`NOT_IN_CI` 里的路径不在、不是测试项目或又登记在别处即失败（S1-KUN-028） |

@@ -2,9 +2,9 @@
   {
     "name": "identity/member-disabled",
     "mode": "parallel",
-    "payload": "Qian.Identity.Abstractions.MembershipChanged",
+    "payload": "Kun.Identity.Abstractions.MembershipChanged",
     "result": "System.Collections.Generic.IReadOnlyList`1[[System.Object, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-    "source": "Qian.Identity.Abstractions.IdentityRuntimeEvents.MemberDisabled",
+    "source": "Kun.Identity.Abstractions.IdentityRuntimeEvents.MemberDisabled",
     "definitionComponent": "qian.identity.server"
   },
   {
@@ -12,23 +12,23 @@
     "mode": "emit",
     "payload": "Kun.Security.Principal",
     "result": "System.Object",
-    "source": "Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedIn",
+    "source": "Kun.Identity.Abstractions.IdentityRuntimeEvents.SignedIn",
     "definitionComponent": "qian.identity.server"
   },
   {
     "name": "identity/signed-out",
     "mode": "emit",
-    "payload": "Qian.Identity.Abstractions.SessionRevocation",
+    "payload": "Kun.Identity.Abstractions.SessionRevocation",
     "result": "System.Object",
-    "source": "Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedOut",
+    "source": "Kun.Identity.Abstractions.IdentityRuntimeEvents.SignedOut",
     "definitionComponent": "qian.identity.server"
   },
   {
     "name": "identity/signing-in",
     "mode": "waterfall",
-    "payload": "Qian.Identity.Abstractions.LoginInput",
-    "result": "Qian.Identity.Abstractions.SignInResult",
-    "source": "Qian.Identity.Abstractions.IdentityRuntimeEvents.SigningIn",
+    "payload": "Kun.Identity.Abstractions.LoginInput",
+    "result": "Kun.Identity.Abstractions.SignInResult",
+    "source": "Kun.Identity.Abstractions.IdentityRuntimeEvents.SigningIn",
     "definitionComponent": "qian.identity.server"
   }
 ]

@@ -2,8 +2,8 @@ using System.Net;
 using Kun.Core.MultiTenancy;
 using Kun.Security;
 using Qian.Dev.TenantOps;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Server;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Gateway;
 using Kun.Runtime;
@@ -55,7 +55,7 @@ internal static class DevShellHost
         var signup = new DevSignup(issuer, settings.State, signupDist, () => assembly.Loader);
         using var identity = new DevIdentity(issuer, new Uri(gateway, "auth/callback"), identityDist, keys.ClientSecret, dex, signup);
         await using var business = DevHost.Business(database, trust, assembly, new BusinessS2s(DevGateway.Issuer, DevGateway.Cluster, keys.PublicJwks), issuer.AbsoluteUri,
-            builder => { identity.Configure(builder, database); DevSignup.Configure(builder, database); }, registrar => registrar.RegisterIdentityEvents(), mediator => mediator.AddQianIdentityEvents());
+            builder => { identity.Configure(builder, database); DevSignup.Configure(builder, database); }, registrar => registrar.RegisterIdentityEvents(), mediator => mediator.AddKunIdentityEvents());
         // 身份库与开通申请库与生产同一套迁移，先于迁移器建表（迁移器只对 Capabilities / Lifecycle 用属主连接）；在线连接仍是受限应用登录。
         await database.ExecuteAdminAsync(DevIdentity.SchemaSql(business.Services), ct).ConfigureAwait(false);
         await database.ExecuteAdminAsync(DevSignup.SchemaSql(business.Services), ct).ConfigureAwait(false);

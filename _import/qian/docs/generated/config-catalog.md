@@ -296,7 +296,7 @@
 
 ## global/identity
 
-组件：` qian.identity.client@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.identity.client@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 

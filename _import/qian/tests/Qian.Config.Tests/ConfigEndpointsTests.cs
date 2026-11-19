@@ -24,7 +24,7 @@ using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config.Apollo;
 using Qian.Config.AspNetCore;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;

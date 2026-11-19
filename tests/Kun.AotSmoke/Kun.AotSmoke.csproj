@@ -53,7 +53,7 @@
     <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Gateway.Abstractions/Qian.Gateway.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Gateway/Qian.Gateway.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
     <ProjectReference Include="../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../../src/Kun.Errors/Kun.Errors.csproj" />
   </ItemGroup>

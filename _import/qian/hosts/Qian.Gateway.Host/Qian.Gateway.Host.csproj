@@ -10,7 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <ProjectReference Include="../../packages/Qian.Gateway/Qian.Gateway.csproj" />
-    <ProjectReference Include="../../packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />

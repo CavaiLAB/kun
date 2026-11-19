@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.Containers;

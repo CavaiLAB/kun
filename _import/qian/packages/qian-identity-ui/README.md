@@ -4,7 +4,7 @@ qian-identity 宿主同源托管的静态制品：登录（账号密码、连接
 
 ## 路由与入口
 
-构建以 `/login/` 为基路径。身份宿主调用产品扩展 `UseQianIdentityPages(dist)`（[Qian.Identity.Server](../Qian.Identity.Server/README.md)，S1-YUE-012）把 `dist/` 托管在 `/login` 下：无扩展名的子路径回落到 `index.html`，HTML `no-store`，`/login/assets/` 带哈希长缓存，全部响应带 `frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff`；`Accounts.SelectionPath` 不在 `/login` 下时启动即抛错。生产镜像的接线与实测响应头归 S1-DEP-008。
+构建以 `/login/` 为基路径。身份宿主调用产品扩展 `UseKunIdentityPages(dist)`（[Kun.Identity.Server](../../../../src/Kun.Identity.Server/README.md)，S1-YUE-012）把 `dist/` 托管在 `/login` 下：无扩展名的子路径回落到 `index.html`，HTML `no-store`，`/login/assets/` 带哈希长缓存，全部响应带 `frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff`；`Accounts.SelectionPath` 不在 `/login` 下时启动即抛错。生产镜像的接线与实测响应头归 S1-DEP-008。
 
 | 路径 | 用途 |
 |---|---|

@@ -27,13 +27,13 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
 using Kun.Data;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using IdentitySession = Qian.Identity.Abstractions.Session;
+using IdentitySession = Kun.Identity.Abstractions.Session;
 
-using Qian.Identity.Server;
+using Kun.Identity.Server;
 
 namespace Qian.Testing.Identity;
 
@@ -76,12 +76,12 @@ internal static class IdentityProtocolHost
             Permissions.GrantTypes.ClientCredentials, Permissions.Prefixes.Scope + serviceScope]);
         var publicWeb = new OpenIddictApplicationDescriptor { ClientId = "public", ClientType = ClientTypes.Public, ConsentType = ConsentTypes.Implicit };
         publicWeb.RedirectUris.Add(new Uri(issuer + "public-callback")); publicWeb.Permissions.UnionWith(web.Permissions);
-        builder.Services.AddQianIdentityServer(new IdentityServerOptions
+        builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
             Issuer = new Uri(issuer), AllowLoopbackHttp = true, SigningCertificates = retired is null ? [cert] : [cert, retired], EncryptionCertificates = retired is null ? [cert] : [cert, retired],
             Clients = [new() { Application = publicWeb, Resources = ["https://api.qian.test"] }, new() { Application = web, Resources = ["https://api.qian.test"], BackchannelLogoutUri = new Uri(issuer + "_test/backchannel") }, new() { Application = machine, Resources = ["https://api.qian.test"], TenantId = serviceTenant, PluginId = serviceTenant is null ? null : "qian.sample.crm" }]
         }, builder.Environment);
-        var app = builder.Build(); app.UseQianIdentityServer(); app.UseAuthentication(); app.MapQianIdentityServer();
+        var app = builder.Build(); app.UseKunIdentityServer(); app.UseAuthentication(); app.MapKunIdentityServer();
         var person = Guid.CreateVersion7(); var tenant = Guid.CreateVersion7(); var sid = Guid.CreateVersion7();
         // 仅测试程序集的账号夹具：真实 Cookie 认证，协议服务中没有此路由或假登录。
         app.MapPost("/_test/authenticated-account", () => Results.SignIn(new ClaimsPrincipal(new ClaimsIdentity(new[]

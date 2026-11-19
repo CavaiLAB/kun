@@ -36,7 +36,7 @@ public static class KunCommandRegistration
             throw new ArgumentException("生成契约与 Mediator 请求响应类型不一致。");
         builder.Services.AddSingleton(new CommandRegistration<TRequest, TResponse>(source, channel));
         builder.Services.AddTransient<THandler>();
-        builder.Services.TryAddScoped<Kun.Core.Security.ICurrentUser>(sp => sp.GetRequiredService<Qian.Identity.Abstractions.ICurrentUser>());
+        builder.Services.TryAddScoped<Kun.Core.Security.ICurrentUser>(sp => sp.GetRequiredService<Kun.Identity.Abstractions.ICurrentUser>());
         builder.Services.AddHostedService<FrameworkPrincipalPortCheck>();
         builder.Services.TryAddScoped<CommandDataSession<TContext>>();
         builder.Services.TryAddScoped(_ => new CommandState());
@@ -60,7 +60,7 @@ internal sealed class FrameworkPrincipalPortCheck(IServiceScopeFactory scopes) :
         using var scope = scopes.CreateScope();
         if (scope.ServiceProvider.GetService<Kun.Core.Security.ICurrentUser>() is Kun.Core.Security.AnonymousCurrentUser)
             throw new InvalidOperationException("宿主登记了 Qian 能力，但框架当前主体端口（Kun.Core.Security.ICurrentUser）解析为匿名兜底 AnonymousCurrentUser：" +
-                "命令管道要求它与 Qian 主体一致，会对一切能力执行判拒（403 AUTHZ_DENIED）。请登记真实的身份适配器（如 AddKunSecurity、AddQianIdentityS2s），" +
+                "命令管道要求它与 Qian 主体一致，会对一切能力执行判拒（403 AUTHZ_DENIED）。请登记真实的身份适配器（如 AddKunSecurity、AddKunIdentityS2s），" +
                 "或去掉把这个端口绑定为匿名的登记。");
         return Task.CompletedTask;
     }
@@ -75,7 +75,7 @@ internal sealed class CommandState
 
 internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(IServiceProvider services,
     CommandRegistration<TRequest, TResponse> registration, CommandState state, CommandDataSession<TContext> work,
-    ITenantContext tenant, Qian.Identity.Abstractions.ICurrentUser currentUser, Kun.Core.Security.ICurrentUser frameworkUser) : IPipelineBehavior<TRequest, TResponse>
+    ITenantContext tenant, Kun.Identity.Abstractions.ICurrentUser currentUser, Kun.Core.Security.ICurrentUser frameworkUser) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : ICapabilityRequest<TResponse> where TContext : KunStrictDbContext
 {
     public async ValueTask<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -126,7 +126,7 @@ internal sealed class CommandTransactionBehavior<TRequest, TResponse, TContext>(
         ExpiresAt = 0
     };
 
-    private static Principal Capture(Qian.Identity.Abstractions.ICurrentUser user, ITenantContext tenant, IPluginContext source)
+    private static Principal Capture(Kun.Identity.Abstractions.ICurrentUser user, ITenantContext tenant, IPluginContext source)
     {
         var principal = user.Principal; var tenantId = tenant.TenantId;
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || string.IsNullOrWhiteSpace(principal.Subject) ||

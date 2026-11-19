@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Authz.AspNetCore;
 using Qian.Capabilities.AspNetCore;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;

@@ -13,8 +13,8 @@ using Qian.Audit;
 using Qian.Authz;
 using Qian.Authz.Abstractions;
 using Qian.Capabilities;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Server;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
@@ -23,7 +23,7 @@ using Qian.Surfaces;
 namespace Qian.Sample.Crm.Tests;
 
 // 租户管理员新增成员（S1-IDP-017）在参考宿主上的验收：真实 Authz（目录、默认角色、RBAC 判定与授予端口）、真实 Audit 与标准能力目录。
-// 身份宿主用例（Qian.Identity.Server.Tests 的 DirectoryMemberAddTests）覆盖 HTTP 入口的规则、配额与恢复；这里验初始角色、能力契约、共用守卫与两个入口的审计。
+// 身份宿主用例（Kun.Identity.Server.Tests 的 DirectoryMemberAddTests）覆盖 HTTP 入口的规则、配额与恢复；这里验初始角色、能力契约、共用守卫与两个入口的审计。
 public sealed partial class IdentityAuthzTests
 {
     [Fact]

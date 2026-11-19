@@ -15,9 +15,9 @@ for path in (root / "src").rglob("*.cs"):
         failures.append(f"{path.relative_to(root)}: 产品名称不能作为框架默认值")
     if "Kun.Identity" not in str(path):
         continue
-    if re.search(r'\{(?:SessionId|Sid|Cookie)\}', source, re.I):
+    if re.search(r'\{(?:SessionId|Sid|Cookie)\}', code, re.I):
         failures.append(f"{path.relative_to(root)}: 会话日志模板必须使用哈希标识")
-    if re.search(r'(?:Log\.[A-Za-z]+|_logger\.Log[A-Za-z]+)\([^;]*,\s*(?:cookie|sid|sessionId)\s*[,)]', source, re.I):
+    if re.search(r'(?:Log\.[A-Za-z]+|_logger\.Log[A-Za-z]+)\([^;]*,\s*(?:cookie|sid|sessionId)\s*[,)]', code, re.I):
         failures.append(f"{path.relative_to(root)}: 日志调用不能传入明文会话标识")
 for path in (root / "src").rglob("*.csproj"):
     if re.search(r'<Description>[^<]*(?:neuroagent|iclaw)', path.read_text(), re.I):

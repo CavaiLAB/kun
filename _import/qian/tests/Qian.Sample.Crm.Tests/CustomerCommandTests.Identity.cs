@@ -29,8 +29,8 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using Kun.Data;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Server;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
@@ -92,7 +92,7 @@ public abstract partial class CustomerCommandTests
             Permissions.GrantTypes.AuthorizationCode, Permissions.GrantTypes.RefreshToken, Permissions.ResponseTypes.Code, Permissions.Prefixes.Scope + "qian.api"]);
         // 同机混合部署：身份的账号接口在 /api 之下，而业务宿主对 /api 一律要求已认证的租户。身份请求走自己的分支，不经过业务管线。
         builder.Services.AddSingleton<IStartupFilter>(new IdentityBranchFilter());
-        builder.Services.AddQianIdentityServer(new IdentityServerOptions
+        builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
             Issuer = new Uri(parts.Issuer), AllowLoopbackHttp = true, SigningCertificates = [parts.Certificate], EncryptionCertificates = [parts.Certificate],
             // 租户状态对账缩到 1 秒，联调测试不必等满默认的 30 秒（生产的上限就是 30 秒）。
@@ -181,8 +181,8 @@ public abstract partial class CustomerCommandTests
         {
             app.MapWhen(http => http.Request.Path.StartsWithSegments("/api/identity") || http.Request.Path.StartsWithSegments("/api/directory") || http.Request.Path.StartsWithSegments("/connect") || http.Request.Path.StartsWithSegments("/.well-known"), branch =>
             {
-                branch.UseQianIdentityServer(); branch.UseRouting(); branch.UseAuthentication();
-                branch.UseEndpoints(endpoints => { endpoints.MapQianIdentityServer(); endpoints.MapQianIdentityAccounts(); });
+                branch.UseKunIdentityServer(); branch.UseRouting(); branch.UseAuthentication();
+                branch.UseEndpoints(endpoints => { endpoints.MapKunIdentityServer(); endpoints.MapKunIdentityAccounts(); });
             });
             next(app);
         };

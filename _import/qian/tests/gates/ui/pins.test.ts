@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 // 包的 exports 不导出这些文件，按外壳的直接依赖链接读。
 const root = new URL('../../../', import.meta.url);
 const PINS = [
-  { copy: 'tests/Qian.Identity.Server.Tests/Contracts/biz.openapi.json', installed: 'apps/qian-shell/node_modules/@cavailab/qian-biz/contracts/biz.openapi.json' },
+  { copy: 'tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json', installed: 'apps/qian-shell/node_modules/@cavailab/qian-biz/contracts/biz.openapi.json' },
 ];
 
 describe('钉住的副本与安装的包逐字节相同', () => {

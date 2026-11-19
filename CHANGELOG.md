@@ -8,6 +8,11 @@
 
 ## [Unreleased]
 
+### Changed — 身份平台项目（S1-KUN-026）
+
+- 身份包 `Qian.Identity.Abstractions`、`Qian.Identity.Client`、`Qian.Identity.Server`、`Qian.Identity.Connector.Oidc` 迁至仓库根 `src/`，包名与命名空间统一使用 `Kun.Identity.*`。宿主使用的 `AddQianIdentity…`、`MapQianIdentity…`、`UseQianIdentity…` 方法同步更名为 `AddKunIdentity…`、`MapKunIdentity…`、`UseKunIdentity…`。
+- 组件 `qian.identity.client` 升至 1.1.0，`qian.identity.server` 升至 1.2.0。入口程序集和身份事件元数据随代码更新。已发布的 NuGet 运行时坐标继续沿用当前包源的版本。
+
 ### Changed — 事件契约并进 Kun.EventBus.Abstractions（S1-KUN-025）
 
 - 组件 `qian.events` 从 1.0.1 升至 1.0.2，组件说明中的契约包链接指向 `Kun.EventBus.Abstractions`。

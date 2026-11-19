@@ -11,7 +11,7 @@
     <ProjectReference Include="../../../../src/Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Identity.Abstractions/Qian.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Configuration.Apollo/Kun.Configuration.Apollo.csproj" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Configuration.KeyPerFile" />

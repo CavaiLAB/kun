@@ -2,8 +2,8 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using OpenIddict.Abstractions;
-using Qian.Identity.Abstractions;
-using Qian.Identity.Server;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
 using Kun.Errors.AspNetCore;
 using Kun.Tenancy.Signup;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -45,12 +45,12 @@ public static class PlatformIdentity
         var environment = composition.Builder.Environment;
         composition
             .AddPatch(configuration["Identity:Overlay"] is { Length: > 0 } overlay ? overlay : Path.Combine(AppContext.BaseDirectory, OverlayFile))
-            .AddComponent(new PlatformComponent("qian.identity.server", "Qian.Identity.Server.IdentityServerComponent, Qian.Identity.Server", _ => new IdentityServerComponent(),
+            .AddComponent(new PlatformComponent("qian.identity.server", "Kun.Identity.Server.IdentityServerComponent, Kun.Identity.Server", _ => new IdentityServerComponent(),
                 services => RegisterIdentity(services, environment)))
             .AddComponent(new PlatformComponent("qian.tenancy.signup", "Kun.Tenancy.Signup.TenancySignupComponent, Kun.Tenancy.Signup", _ => new TenancySignupComponent(),
                 services => services.AddAppData<TenancySignupDbContext>(TenancySignupDbContext.Schema)))
             .AddEvents(registrar => registrar.RegisterIdentityEvents())
-            .AddMediator(mediator => mediator.AddQianIdentityEvents())
+            .AddMediator(mediator => mediator.AddKunIdentityEvents())
             // 运营端点组：列表、详情、通过、驳回、重试与状态机元数据，经 Authz 超管旁路放行并写平台审计链；MapKunTenancySignupOperations 一次映射两个前缀下的端点。
             .AddOperations(OperationPrefixes[0], (endpoints, runtime) => endpoints.MapKunTenancySignupOperations(_ => runtime.Global("tenancy.signup")))
             .AddOperations(OperationPrefixes[1]);
@@ -98,7 +98,7 @@ public static class PlatformIdentity
         // 账号 Cookie scheme：未登录的授权请求挑战到同源认证页族 /login?ReturnUrl=…（页面登录后回到授权请求签发授权码）。
         services.Services.AddAuthentication().AddCookie("qian.identity.signin", cookie => cookie.LoginPath = IdentityPagesHosting.PagesPath);
         services.Services.AddHttpClient();
-        services.Services.AddQianIdentityServer(new IdentityServerOptions
+        services.Services.AddKunIdentityServer(new IdentityServerOptions
         {
             Issuer = issuer, AllowLoopbackHttp = configuration.GetValue<bool>("Identity:AllowLoopbackHttp"),
             SigningCertificates = [Certificate(configuration, "Signing")], EncryptionCertificates = [Certificate(configuration, "Encryption")],
@@ -157,14 +157,14 @@ public static class PlatformIdentity
             app.MapWhen(http => Owns(http.Request.Path), branch =>
             {
                 if (forwarded is not null) branch.UseForwardedHeaders(forwarded);
-                branch.UseQianIdentityServer();
-                branch.UseQianIdentityPages(pages);
+                branch.UseKunIdentityServer();
+                branch.UseKunIdentityPages(pages);
                 branch.UseWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), errors => errors.UseKunErrors());
                 if (signupPages is not null) branch.UseKunTenancySignupPages(signupPages);
                 branch.UseRouting(); branch.UseAuthentication();
                 branch.UseEndpoints(endpoints =>
                 {
-                    endpoints.MapQianIdentityServer(); endpoints.MapQianIdentityAccounts();
+                    endpoints.MapKunIdentityServer(); endpoints.MapKunIdentityAccounts();
                     endpoints.MapKunTenancySignupApplicant(http => http.RequestServices.GetRequiredService<PlatformRuntime>().Global("tenancy.signup"));
                 });
             });

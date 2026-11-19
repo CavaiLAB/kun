@@ -93,6 +93,8 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 ### 安全、多租户、审计
 
+身份平台的四个项目在 `src/` 下。[`Kun.Identity.Abstractions`](../../src/Kun.Identity.Abstractions/README.md) 定义账号与身份连接器端口。[`Kun.Identity.Client`](../../src/Kun.Identity.Client/README.md) 为应用提供 OIDC 登录和服务间令牌校验。[`Kun.Identity.Server`](../../src/Kun.Identity.Server/README.md) 提供账号目录和协议端点，[`Kun.Identity.Connector.Oidc`](../../src/Kun.Identity.Connector.Oidc/README.md) 连接上游身份提供方。
+
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
 | `Kun.Security` | S2S JWT 校验 / JWKS 热加载 / `ITenantContext` / `ICurrentUser` 实现 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |

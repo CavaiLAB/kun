@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 
 namespace Qian.Platform.Host;
 

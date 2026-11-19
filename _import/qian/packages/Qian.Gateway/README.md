@@ -60,9 +60,9 @@ Kun 的默认代理变换使用固定 audience，Qian 在代理前先为实际�
 app.UseForwardedHeaders();
 app.UseQianShell(shell);          // 可选：外壳静态托管（S1-YUE-012），放在 UseRouting 之前
 app.UseRouting();
-app.UseQianIdentityClient();
+app.UseKunIdentityClient();
 app.UseQianGateway();
-app.MapQianIdentityClient();
+app.MapKunIdentityClient();
 app.MapQianGateway();
 app.MapQianShellBootstrap();      // 可选：GET /api/shell/bootstrap
 app.MapQianShell(shell);          // 可选：/app-config.json 与外壳入口兜底，放在最后

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 using Qian.Audit;
-using Qian.Identity.Abstractions;
+using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;

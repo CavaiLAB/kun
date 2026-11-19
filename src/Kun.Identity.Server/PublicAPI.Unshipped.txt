@@ -1,0 +1,153 @@
+#nullable enable
+Kun.Identity.Server.IdentityClientRegistration
+Kun.Identity.Server.IdentityClientRegistration.Application.get -> OpenIddict.Abstractions.OpenIddictApplicationDescriptor!
+Kun.Identity.Server.IdentityClientRegistration.Application.init -> void
+Kun.Identity.Server.IdentityClientRegistration.BackchannelLogoutUri.get -> System.Uri?
+Kun.Identity.Server.IdentityClientRegistration.BackchannelLogoutUri.init -> void
+Kun.Identity.Server.IdentityClientRegistration.IdentityClientRegistration() -> void
+Kun.Identity.Server.IdentityClientRegistration.PluginId.get -> string?
+Kun.Identity.Server.IdentityClientRegistration.PluginId.init -> void
+Kun.Identity.Server.IdentityClientRegistration.Resources.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Identity.Server.IdentityClientRegistration.Resources.init -> void
+Kun.Identity.Server.IdentityClientRegistration.TenantId.get -> System.Guid?
+Kun.Identity.Server.IdentityClientRegistration.TenantId.init -> void
+Kun.Identity.Server.IdentityDbContext
+Kun.Identity.Server.IdentityDbContext.IdentityDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Identity.Server.IdentityDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Identity.Server.IdentityProtocolEndpoints
+Kun.Identity.Server.IdentityServerHosting
+Kun.Identity.Server.IdentityServerOptions
+Kun.Identity.Server.IdentityServerOptions.AllowLoopbackHttp.get -> bool
+Kun.Identity.Server.IdentityServerOptions.AllowLoopbackHttp.init -> void
+Kun.Identity.Server.IdentityServerOptions.Clients.get -> System.Collections.Generic.IReadOnlyList<Kun.Identity.Server.IdentityClientRegistration!>!
+Kun.Identity.Server.IdentityServerOptions.Clients.init -> void
+Kun.Identity.Server.IdentityServerOptions.EncryptionCertificates.get -> System.Collections.Generic.IReadOnlyList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+Kun.Identity.Server.IdentityServerOptions.EncryptionCertificates.init -> void
+Kun.Identity.Server.IdentityServerOptions.IdentityServerOptions() -> void
+Kun.Identity.Server.IdentityServerOptions.Issuer.get -> System.Uri!
+Kun.Identity.Server.IdentityServerOptions.Issuer.init -> void
+Kun.Identity.Server.IdentityServerOptions.SignInScheme.get -> string!
+Kun.Identity.Server.IdentityServerOptions.SignInScheme.init -> void
+Kun.Identity.Server.IdentityServerOptions.SigningCertificates.get -> System.Collections.Generic.IReadOnlyList<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+Kun.Identity.Server.IdentityServerOptions.SigningCertificates.init -> void
+Kun.Identity.Server.IdentityServerPlugin
+Kun.Identity.Server.IdentityServerPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Identity.Server.IdentityServerPlugin.IdentityServerPlugin(Kun.Identity.Abstractions.IIdentityService! accounts) -> void
+Kun.Identity.Server.IdentityServerPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+const Kun.Identity.Server.IdentityDbContext.Schema = "plugin_qian_identity" -> string!
+override Kun.Identity.Server.IdentityClientRegistration.ToString() -> string!
+override Kun.Identity.Server.IdentityServerOptions.ToString() -> string!
+static Kun.Identity.Server.IdentityProtocolEndpoints.MapKunIdentityServer(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Identity.Server.IdentityServerHosting.AddKunIdentityServer(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Kun.Identity.Server.IdentityServerOptions! options, Microsoft.Extensions.Hosting.IHostEnvironment! environment) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Identity.Server.IdentityServerHosting.UseKunIdentityServer(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
+Kun.Identity.Server.CaptchaMode.Off = 0 -> Kun.Identity.Server.CaptchaMode
+Kun.Identity.Server.SessionPolicy
+Kun.Identity.Server.Argon2idOptions
+Kun.Identity.Server.SessionPolicy.SessionPolicy() -> void
+Kun.Identity.Server.Argon2idOptions.Argon2idOptions() -> void
+Kun.Identity.Server.LockoutMode
+Kun.Identity.Server.PasswordPolicy
+Kun.Identity.Server.PasswordPolicy.PasswordPolicy() -> void
+Kun.Identity.Server.LoginPolicy
+Kun.Identity.Server.LoginPolicy.LoginPolicy() -> void
+Kun.Identity.Server.CaptchaMode
+Kun.Identity.Server.LockoutMode.Delay = 1 -> Kun.Identity.Server.LockoutMode
+Kun.Identity.Server.LockoutMode.Lock = 0 -> Kun.Identity.Server.LockoutMode
+Kun.Identity.Server.CaptchaMode.AfterFailures = 2 -> Kun.Identity.Server.CaptchaMode
+Kun.Identity.Server.CaptchaMode.Always = 1 -> Kun.Identity.Server.CaptchaMode
+Kun.Identity.Server.IdentityEventHandlers
+Kun.Identity.Server.IdentityAccountOptions
+Kun.Identity.Server.IdentityAccountOptions.IdentityAccountOptions() -> void
+Kun.Identity.Server.IdentityAccountEndpoints
+Kun.Identity.Server.IdentityAccountOptions.Hashing.init -> void
+Kun.Identity.Server.PasswordPolicy.MinLength.get -> int
+Kun.Identity.Server.Argon2idOptions.MemoryKiB.get -> int
+Kun.Identity.Server.PasswordPolicy.MinLength.init -> void
+Kun.Identity.Server.IdentityAccountOptions.Hashing.get -> Kun.Identity.Server.Argon2idOptions!
+Kun.Identity.Server.Argon2idOptions.MemoryKiB.init -> void
+Kun.Identity.Server.IdentityAccountOptions.Password.get -> Kun.Identity.Server.PasswordPolicy!
+Kun.Identity.Server.Argon2idOptions.Iterations.get -> int
+Kun.Identity.Server.PasswordPolicy.MaxLength.get -> int
+Kun.Identity.Server.PasswordPolicy.MaxLength.init -> void
+Kun.Identity.Server.PasswordPolicy.HistorySize.get -> int
+Kun.Identity.Server.Argon2idOptions.Iterations.init -> void
+Kun.Identity.Server.Argon2idOptions.Parallelism.get -> int
+Kun.Identity.Server.IdentityAccountOptions.Login.init -> void
+Kun.Identity.Server.SessionPolicy.AbsoluteLifetime.get -> System.TimeSpan
+Kun.Identity.Server.PasswordPolicy.HistorySize.init -> void
+Kun.Identity.Server.IdentityAccountOptions.Login.get -> Kun.Identity.Server.LoginPolicy!
+Kun.Identity.Server.LoginPolicy.MaxFailedAttempts.get -> int
+Kun.Identity.Server.Argon2idOptions.Parallelism.init -> void
+Kun.Identity.Server.Argon2idOptions.SaltBytes.get -> int
+Kun.Identity.Server.LoginPolicy.MaxFailedAttempts.init -> void
+Kun.Identity.Server.IdentityAccountOptions.Session.get -> Kun.Identity.Server.SessionPolicy!
+Kun.Identity.Server.SessionPolicy.AbsoluteLifetime.init -> void
+Kun.Identity.Server.Argon2idOptions.SaltBytes.init -> void
+Kun.Identity.Server.IdentityAccountOptions.Session.init -> void
+Kun.Identity.Server.IdentityAccountOptions.DefaultPhoneCountryCode.get -> string!
+Kun.Identity.Server.LoginPolicy.Mode.get -> Kun.Identity.Server.LockoutMode
+Kun.Identity.Server.Argon2idOptions.HashBytes.get -> int
+Kun.Identity.Server.IdentityAccountOptions.DefaultPhoneCountryCode.init -> void
+Kun.Identity.Server.LoginPolicy.Mode.init -> void
+Kun.Identity.Server.Argon2idOptions.HashBytes.init -> void
+Kun.Identity.Server.LoginPolicy.LockoutDuration.get -> System.TimeSpan
+Kun.Identity.Server.LoginPolicy.LockoutDuration.init -> void
+Kun.Identity.Server.LoginPolicy.DelayBase.init -> void
+Kun.Identity.Server.LoginPolicy.DelayBase.get -> System.TimeSpan
+Kun.Identity.Server.LoginPolicy.MaxDelay.get -> System.TimeSpan
+override Kun.Identity.Server.IdentityAccountOptions.ToString() -> string!
+Kun.Identity.Server.LoginPolicy.MaxDelay.init -> void
+Kun.Identity.Server.LoginPolicy.FailureWindow.init -> void
+Kun.Identity.Server.LoginPolicy.FailureWindow.get -> System.TimeSpan
+Kun.Identity.Server.LoginPolicy.Captcha.get -> Kun.Identity.Server.CaptchaMode
+Kun.Identity.Server.LoginPolicy.Captcha.init -> void
+Kun.Identity.Server.LoginPolicy.CaptchaAfterFailures.get -> int
+Kun.Identity.Server.LoginPolicy.CaptchaAfterFailures.init -> void
+Kun.Identity.Server.LoginPolicy.SelectionLifetime.get -> System.TimeSpan
+Kun.Identity.Server.LoginPolicy.SelectionLifetime.init -> void
+Kun.Identity.Server.LoginPolicy.ChangeTicketLifetime.get -> System.TimeSpan
+Kun.Identity.Server.LoginPolicy.ChangeTicketLifetime.init -> void
+Kun.Identity.Server.LoginPolicy.LockoutFor(int failed) -> System.TimeSpan?
+static Kun.Identity.Server.IdentityAccountEndpoints.MapKunIdentityAccounts(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+Kun.Identity.Server.IdentityAccountOptions.Password.init -> void
+static Kun.Identity.Server.IdentityEventHandlers.AddKunIdentityEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
+Kun.Identity.Server.IdentityServerPlugin.IdentityServerPlugin() -> void
+Kun.Identity.Server.IdentityServerOptions.Accounts.get -> Kun.Identity.Server.IdentityAccountOptions!
+Kun.Identity.Server.IdentityServerOptions.Accounts.init -> void
+Kun.Identity.Server.IdentityClientRegistration.DeviceType.get -> string!
+Kun.Identity.Server.IdentityClientRegistration.DeviceType.init -> void
+Kun.Identity.Server.SessionPolicy.MaxConcurrentSessions.get -> int
+Kun.Identity.Server.SessionPolicy.MaxConcurrentSessions.init -> void
+Kun.Identity.Server.SessionPolicy.SingleSessionPerDeviceType.get -> bool
+Kun.Identity.Server.SessionPolicy.SingleSessionPerDeviceType.init -> void
+Kun.Identity.Server.SessionPolicy.ReconcileInterval.get -> System.TimeSpan
+Kun.Identity.Server.SessionPolicy.ReconcileInterval.init -> void
+Kun.Identity.Server.SessionPolicy.OnlineWindow.get -> System.TimeSpan
+Kun.Identity.Server.SessionPolicy.OnlineWindow.init -> void
+Kun.Identity.Server.TenantSuspendedSessionHandler
+Kun.Identity.Server.TenantSuspendedSessionHandler.TenantSuspendedSessionHandler(System.IServiceProvider! services) -> void
+Kun.Identity.Server.TenantSuspendedSessionHandler.HandleAsync(Kun.Tenancy.TenantSuspended! event, Kun.EventBus.MessageContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Identity.Server.TenantExpiredSessionHandler
+Kun.Identity.Server.TenantExpiredSessionHandler.TenantExpiredSessionHandler(System.IServiceProvider! services) -> void
+Kun.Identity.Server.TenantExpiredSessionHandler.HandleAsync(Kun.Tenancy.TenantExpired! event, Kun.EventBus.MessageContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+static Kun.Identity.Server.IdentityEventHandlers.AddKunIdentitySessionHandlers(this Kun.EventBus.DependencyInjection.KunEventBusBuilder! builder) -> Kun.EventBus.DependencyInjection.KunEventBusBuilder!
+Kun.Identity.Server.ConnectorPolicy
+Kun.Identity.Server.ConnectorPolicy.BindingLifetime.get -> System.TimeSpan
+Kun.Identity.Server.ConnectorPolicy.BindingLifetime.init -> void
+Kun.Identity.Server.ConnectorPolicy.ConnectorPolicy() -> void
+Kun.Identity.Server.ConnectorPolicy.FlowLifetime.get -> System.TimeSpan
+Kun.Identity.Server.ConnectorPolicy.FlowLifetime.init -> void
+Kun.Identity.Server.ConnectorPolicy.LandingPath.get -> string!
+Kun.Identity.Server.ConnectorPolicy.LandingPath.init -> void
+Kun.Identity.Server.ConnectorPolicy.ReauthenticationWindow.get -> System.TimeSpan
+Kun.Identity.Server.ConnectorPolicy.ReauthenticationWindow.init -> void
+Kun.Identity.Server.IdentityAccountOptions.Connectors.get -> Kun.Identity.Server.ConnectorPolicy!
+Kun.Identity.Server.IdentityAccountOptions.SelectionPath.get -> string!
+Kun.Identity.Server.IdentityAccountOptions.SelectionPath.init -> void
+Kun.Identity.Server.IdentityAccountOptions.Connectors.init -> void
+Kun.Identity.Server.IdentityServerComponent
+Kun.Identity.Server.IdentityServerComponent.IdentityServerComponent() -> void
+Kun.Identity.Server.IdentityServerComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Identity.Server.IdentityServerComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Identity.Server.IdentityPagesHosting
+const Kun.Identity.Server.IdentityPagesHosting.PagesPath = "/login" -> string!
+static Kun.Identity.Server.IdentityPagesHosting.UseKunIdentityPages(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app, string! root) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!

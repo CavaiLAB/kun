@@ -1,5 +1,5 @@
 using Qian.Authz.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz;
 
@@ -27,6 +27,6 @@ internal sealed class TenantRoleGrantService(PostgresTenantRoleStore store) : IT
     private static void Builtin(string roleCode)
     {
         if (roleCode is not ("tenant.owner" or "tenant.admin" or "tenant.developer" or "tenant.user"))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
     }
 }

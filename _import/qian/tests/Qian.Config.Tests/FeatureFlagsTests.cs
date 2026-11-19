@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Config.Apollo;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Tests;
 
@@ -79,7 +79,7 @@ public sealed class FeatureFlagsTests
     {
         using var root = Build(rule);
         using var services = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
-        var error = Assert.Throws<QianErrorException>(() => services.GetRequiredService<IFeatureFlags>());
+        var error = Assert.Throws<ErrorException>(() => services.GetRequiredService<IFeatureFlags>());
         Assert.Equal("CONFIG_RELOAD_REJECTED", error.Error.Code.Code);
         Assert.Null(error.InnerException);
         Assert.DoesNotContain(rule, error.ToString(), StringComparison.Ordinal);

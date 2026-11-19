@@ -11,7 +11,7 @@ public static class DirectoryRules
     public static void ValidateDepth(int parentDepth, int subtreeHeight)
     {
         if (parentDepth < 0 || subtreeHeight < 1 || parentDepth + subtreeHeight > MaximumDepth)
-            throw new Qian.Runtime.Errors.QianErrorException(new Qian.Runtime.Errors.QianError(IdentityErrors.DirectoryDepthExceeded));
+            throw new Kun.Errors.ErrorException(new Kun.Errors.Error(IdentityErrors.DirectoryDepthExceeded));
     }
     /// <summary>启用与禁用可互转，只有禁用可进入锁定；锁定须先由可信账号管理流程解除。</summary>
     public static bool CanTransition(string from, string to) => from == to && from is AccountStatuses.Active or AccountStatuses.Disabled or AccountStatuses.Locked ||

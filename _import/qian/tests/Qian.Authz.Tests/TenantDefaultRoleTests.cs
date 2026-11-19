@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.Tests;
 
@@ -15,7 +15,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         var tenant = new AsyncLocalTenantContext(); using var host = Host(tenant); await host.StartAsync(Ct); await Prepare(host);
         await Store(host).PutAsync(Catalog(), Ct);
         var roles = new PostgresTenantRoleStore(host.Services.GetRequiredService<IDataService>(), tenant);
-        var anonymous = await Assert.ThrowsAsync<QianErrorException>(() => roles.EnsureBuiltinsAsync("operator", Ct)); Assert.Equal("UNAUTHENTICATED", anonymous.Error.Code.Code);
+        var anonymous = await Assert.ThrowsAsync<ErrorException>(() => roles.EnsureBuiltinsAsync("operator", Ct)); Assert.Equal("UNAUTHENTICATED", anonymous.Error.Code.Code);
         using (tenant.BeginScope("a"))
         {
             await roles.EnsureBuiltinsAsync("operator", Ct);
@@ -89,7 +89,7 @@ public sealed partial class PermissionCatalogPersistenceTests
         await using var session = await first.Services.GetRequiredService<IDataService>().OpenAsync<AuthzDbContext>(Ct);
         var active = await session.Context.PolicyInstalls.SingleAsync(Ct); Assert.Equal("1.0.0", active.Version); Assert.Equal(1, active.Revision);
         Assert.Equal(4, await session.Context.Grants.CountAsync(Ct)); Assert.Equal(3, (await one.ReadDirectUserPermissionsAsync("owner", Ct)).Count);
-        var stale = await Assert.ThrowsAsync<QianErrorException>(() => one.InstallDefaultsAsync("qian.sample.crm", "2.0.0", "0.9.0", "operator", Ct)); Assert.Equal("CONFLICT", stale.Error.Code.Code);
+        var stale = await Assert.ThrowsAsync<ErrorException>(() => one.InstallDefaultsAsync("qian.sample.crm", "2.0.0", "0.9.0", "operator", Ct)); Assert.Equal("CONFLICT", stale.Error.Code.Code);
     }
 
     [Fact]

@@ -4,7 +4,7 @@ using Kun.Core.MultiTenancy;
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Plugin.Sdk;
 
@@ -30,7 +30,7 @@ public static class CapabilityBindingRegistration
         ArgumentNullException.ThrowIfNull(context);
         var contract = TRequest.QianCapability;
         if (contract.ComponentId != context.Entry.Plugin || contract.RequestTypeInfo is not JsonTypeInfo<TRequest> request || contract.ResponseTypeInfo is not JsonTypeInfo<TResponse> response)
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         // 平台宿主登记了契约检查时，登记前生成目录条目并预编译输入校验器：不合格的契约在登记阶段拒绝，不留到首次调用。
         context.Services.GetService<ICapabilityContractCheck>()?.Check(contract);
         var binding = new Binding<TRequest, TResponse>(context, contract, request, response,
@@ -58,7 +58,7 @@ public static class CapabilityBindingRegistration
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token);
             TRequest command;
             try { command = input.Deserialize(request) ?? throw new JsonException(); }
-            catch (JsonException) { throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)); }
+            catch (JsonException) { throw new ErrorException(new Error(PlatformErrors.InputInvalid)); }
             var result = await sender.Send(command, linked.Token).ConfigureAwait(false);
             return JsonSerializer.SerializeToElement(result, response);
         }
@@ -67,6 +67,6 @@ public static class CapabilityBindingRegistration
             if (Interlocked.Exchange(ref _disposed, 1) == 0) { try { _lifetime.Source.Cancel(); } finally { _lifetime.Source.Dispose(); } }
         }
         private static (CancellationTokenSource, CancellationToken) CreateLifetime() { var source = new CancellationTokenSource(); return (source, source.Token); }
-        private static QianErrorException Missing() => new(new QianError(PlatformErrors.NotFound));
+        private static ErrorException Missing() => new(new Error(PlatformErrors.NotFound));
     }
 }

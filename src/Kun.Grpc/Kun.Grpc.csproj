@@ -3,7 +3,7 @@
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
-    <Description>Kun Framework — gRPC host integration: Result→RpcException mapping, auth/tracing interceptors.</Description>
+    <Description>Kun Framework — gRPC host integration: ErrorException→RpcException mapping, auth/tracing interceptors.</Description>
   </PropertyGroup>
 
   <PropertyGroup Label="档位">

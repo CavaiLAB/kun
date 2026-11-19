@@ -10,8 +10,8 @@ using Qian.Identity.Abstractions;
 using Qian.Lifecycle;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Sample.Crm;
 using Qian.Surfaces;
 using Qian.Tenancy;
@@ -86,7 +86,7 @@ internal static partial class DevOperations
         // 开通步骤表：ITenantProvisioning.GetStepsAsync 是只接受无租户上下文的内部端口，TEN-005 页面之前用它看每步状态。
         app.MapGet("/__dev/tenancy/tenants/{id:guid}/provision-steps", (HttpContext http, Guid id) => Authorized(http, source, "read", id, async ctx =>
         {
-            _ = await ctx.Tenancy().GetByIdAsync(id, http.RequestAborted).ConfigureAwait(false) ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            _ = await ctx.Tenancy().GetByIdAsync(id, http.RequestAborted).ConfigureAwait(false) ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
             return Results.Ok(new { items = await ctx.Inject<ITenantProvisioning>(TenantProvisioning.Key).GetStepsAsync(id, http.RequestAborted).ConfigureAwait(false) });
         })).RequireAuthorization();
         // 到期扫描：qian.tenancy/tenant.scan-expired 只收 global qian.tenancy 或 qian.scheduler 的可信调用。
@@ -107,10 +107,10 @@ internal static partial class DevOperations
             // 主体检查与 TenancyEndpoints 的运营端点逐条相同。
             var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
             if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || http.User.Identity?.IsAuthenticated != true ||
-                http.User.FindFirst("sub")?.Value != principal.Subject) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+                http.User.FindFirst("sub")?.Value != principal.Subject) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
             if (principal.TenantId is not null || principal.Actor is not null || principal.Kind != PrincipalKind.User ||
                 http.User.Claims.Any(claim => claim.Type == "tenant_id" && !string.IsNullOrEmpty(claim.Value)) ||
-                http.RequestServices.GetRequiredService<ITenantContext>().TenantId is not null) throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+                http.RequestServices.GetRequiredService<ITenantContext>().TenantId is not null) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             var ctx = source(); var permission = "qian.tenancy:tenant:" + action;
             var decision = await ctx.Inject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey).AuthorizeAsync(new SuperadminAccess(
                 new AuthorizationSubject(principal.Subject, null, "user"), permission, null, id is null ? "tenancy/tenants" : "tenancy/tenants/" + id, "api"),
@@ -118,13 +118,13 @@ internal static partial class DevOperations
             if (!decision.Allow)
             {
                 LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Dev.TenantOps"), decision.Reason, principal.Subject, permission);
-                throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+                throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             }
             return await execute(ctx).ConfigureAwait(false);
         }
-        catch (QianErrorException error) { return QianResults.Error(error.Error); }
+        catch (ErrorException error) { return KunResults.Error(error.Error); }
         catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException)
-        { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+        { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
     }
 
     [LoggerMessage(EventId = 1001, Level = LogLevel.Warning, Message = "开发路由授权拒绝：{Reason}；主体 {Subject}；权限 {Permission}")]

@@ -7,8 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using Qian.Capabilities.AspNetCore;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Tenancy.AspNetCore;
 
 namespace Qian.Sample.Crm;
@@ -34,14 +34,14 @@ public static class TenantOperationsHost
             options.MapInboundClaims = false; options.TokenValidationParameters = validation.Clone();
             options.Events.OnTokenValidated = context => { PlatformCurrentUser.Capture(context); return Task.CompletedTask; };
         });
-        builder.Services.AddAuthorization(); builder.Services.AddQianErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.PropertyNameCaseInsensitive = false;
             options.SerializerOptions.RespectRequiredConstructorParameters = true;
             options.SerializerOptions.RespectNullableAnnotations = true;
         });
-        var app = builder.Build(); app.UseQianErrors(); app.UseAuthentication(); app.UseAuthorization();
+        var app = builder.Build(); app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();
         app.MapQianTenancy(_ => source());
         return app;
     }

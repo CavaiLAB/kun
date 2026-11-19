@@ -146,14 +146,24 @@ class RuleTests(unittest.TestCase):
             projects={"Bravo"}, private={"Microsoft.CodeAnalysis.PublicApiAnalyzers"}, build_only={"Microsoft.CodeAnalysis.PublicApiAnalyzers"})}
         violations, _ = run(packages, assets)
         self.assertEqual({("C", "Alpha → Some.Vendor"), ("C", "Alpha → Bravo")}, found(violations))
-        self.assertEqual({"项目引用"}, {v.detail for v in violations if v.dependency == "Bravo"})
+        self.assertEqual({"项目引用的不是零依赖的包"}, {v.detail for v in violations if v.dependency == "Bravo"})
 
     def test_zero_dependency_rejects_project_references_whatever_their_name(self):
         packages = [package("Alpha", "kernel", "contract", zero="true"), package("Microsoft.Extensions.Local", "kernel", "contract")]
         assets = {"Alpha": make_assets("Alpha", ["Microsoft.Extensions.Local"], {"Microsoft.Extensions.Local": []},
                                        projects={"Microsoft.Extensions.Local"})}
         [violation] = run(packages, assets)[0]
-        self.assertEqual(("C", "项目引用"), (violation.rule, violation.detail))
+        self.assertEqual(("C", "项目引用的不是零依赖的包"), (violation.rule, violation.detail))
+
+    def test_zero_dependency_may_depend_on_other_zero_dependency_packages(self):
+        # Kun.Core 与 Kun.Errors 都零依赖，前者引用后者（S1-KUN-023）。项目引用与包引用都按声明算，不看名字。
+        packages = [package("Alpha", "kernel", "contract", zero="true"), package("Bravo", "kernel", "contract", zero="true"),
+                    package("Charlie", "kernel", "contract", zero="true"), package("Delta", "kernel", "contract")]
+        assets = {
+            "Alpha": make_assets("Alpha", ["Bravo", "Charlie"], {"Bravo": [], "Charlie": []}, projects={"Bravo"}),
+            "Bravo": make_assets("Bravo", ["Delta"], {"Delta": []}, projects={"Delta"}),
+        }
+        self.assertEqual({("C", "Bravo → Delta")}, found(run(packages, assets)[0]))
 
     def test_private_build_only_references_do_not_count(self):
         # 分析器之类：PrivateAssets=all 且不带程序集，只在构建时用，规则 D、C 都不计。
@@ -246,7 +256,7 @@ class SampleProjectTests(unittest.TestCase):
         code, report = self.run_gate("good.slnx")
         self.assertEqual(0, code, report["violations"])
         packages = {p["packageId"]: (p["tier"], p["role"]) for p in report["packages"]}
-        self.assertEqual({"Gate.Amber", "Gate.Birch", "Gate.Cedar", "Gate.Delta", "Gate.Grove", "Gate.Hazel"}, set(packages))
+        self.assertEqual({"Gate.Amber", "Gate.Birch", "Gate.Cedar", "Gate.Delta", "Gate.Grove", "Gate.Hazel", "Gate.Tansy"}, set(packages))
         self.assertNotIn("Gate.Host", packages)  # 宿主不打包，不在检查范围
         self.assertEqual([("Gate.Grove", "Gate.Cedar", "K", "")],
                          [(e["package"], e["target"], e["rule"], e["problem"]) for e in report["exceptions"]])
@@ -260,7 +270,7 @@ class SampleProjectTests(unittest.TestCase):
             ("P", "Gate.Kelp → Gate.Delta"),
             ("D", "Gate.Laurel → Gate.Birch"),
             ("D", "Gate.Maple → Gate.Elm.Abstractions"),
-            ("C", "Gate.Nectar → Gate.Amber"),
+            ("C", "Gate.Nectar → Gate.Umber"),  # Gate.Nectar → Gate.Amber 不报：两个都零依赖
             ("C", "Gate.Nectar → Dapper"),
             ("P", "Gate.Rowan → Gate.Delta"),
             ("C", "Gate.Sorrel → Dapper"),
@@ -320,11 +330,12 @@ class RealGraphTests(unittest.TestCase):
 
     def test_declared_roles_and_exceptions(self):
         # 计划会话复核附录 A 时定的归类（B3 PR-4）：这 4 个包记契约，组件建在它们上面；Kun.Authorization 本来就记契约。
-        expected = {"Qian.Runtime": ("kernel", "contract"), "Qian.Runtime.Errors": ("kernel", "contract"),
+        expected = {"Qian.Runtime": ("kernel", "contract"), "Kun.Errors": ("kernel", "contract"),
                     "Kun.Mediator": ("kernel", "contract"), "Qian.Plugin.Sdk.AspNetCore": ("platform", "contract"),
                     "Kun.Authorization": ("kernel", "contract"), "Kun.Core": ("kernel", "contract")}
         self.assertEqual(expected, {n: (self.packages[n].tier, self.packages[n].role) for n in expected})
         self.assertEqual("true", self.packages["Kun.Core"].zero_dependency)
+        self.assertEqual("true", self.packages["Kun.Errors"].zero_dependency)
         self.assertEqual([], [v for v in self.violations])
         self.assertEqual(11, len(self.statuses))
         self.assertEqual([], [s for s in self.statuses if s.problem])
@@ -332,18 +343,18 @@ class RealGraphTests(unittest.TestCase):
     def test_reclassification_does_not_hollow_out_rules(self):
         # 假想几条边，按真实的声明判：契约或平台包依赖别的平台组件的提供者、契约直接依赖内核档提供者，都仍要报。
         cases = {
-            ("Qian.Plugin.Sdk.AspNetCore", "Qian.Registry"): "P",  # 平台档契约 → 别的平台组件的提供者
-            ("Qian.Authz.AspNetCore", "Qian.Registry"): "P",  # 平台档提供者 → 别的平台组件的提供者
-            ("Qian.Runtime", "Qian.Events"): "D",  # 内核档契约 → 内核档提供者
-            ("Kun.Mediator", "Kun.EventBus"): "D",
-            ("Qian.Runtime.Errors", "Qian.Tenancy.Abstractions"): "K",  # 内核档 → 平台档
+            ("Qian.Plugin.Sdk.AspNetCore", "Qian.Registry"): ["P"],  # 平台档契约 → 别的平台组件的提供者
+            ("Qian.Authz.AspNetCore", "Qian.Registry"): ["P"],  # 平台档提供者 → 别的平台组件的提供者
+            ("Qian.Runtime", "Qian.Events"): ["D"],  # 内核档契约 → 内核档提供者
+            ("Kun.Mediator", "Kun.EventBus"): ["D"],
+            ("Kun.Errors", "Qian.Tenancy.Abstractions"): ["K", "C"],  # 内核档 → 平台档；Kun.Errors 零依赖，C 也报
         }
-        for (subject, target), rule in cases.items():
+        for (subject, target), rules in cases.items():
             with self.subTest(edge=f"{subject} → {target}"):
                 a, b = self.packages[subject], self.packages[target]
                 assets = make_assets(subject, [target], {target: []})  # 按包引用合成：规则只看档位与角色，与引用方式无关
                 violations, _ = check_deps.evaluate([a, b], lambda path: assets if path == a.assets_file else make_assets(target, [], {}))
-                self.assertEqual([(rule, [subject, target])], [(v.rule, v.path) for v in violations if v.package == subject])
+                self.assertEqual([(rule, [subject, target]) for rule in rules], [(v.rule, v.path) for v in violations if v.package == subject])
 
     def test_sdk_closure_has_no_platform_provider(self):
         # S1-RT-014：SDK 包族的完整传递依赖里没有平台档的提供者，也没有平台插件 Qian.Registry / Qian.Lifecycle / Qian.Capabilities。

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using StackExchange.Redis;
 
 namespace Qian.Data;
@@ -233,8 +233,8 @@ internal sealed partial class RedisSnowflakeIdGenerator(IConnectionMultiplexer r
 
     internal static RedisKey HighWaterKey(int worker) => KeyPrefix + worker.ToString(CultureInfo.InvariantCulture) + ":hwm";
 
-    private static QianErrorException Unavailable(string reason) =>
-        new(new QianError(DataErrors.IdWorkerUnavailable, new Dictionary<string, string> { ["reason"] = reason }));
+    private static ErrorException Unavailable(string reason) =>
+        new(new Error(DataErrors.IdWorkerUnavailable, new Dictionary<string, string> { ["reason"] = reason }));
 
     public override void Dispose()
     {

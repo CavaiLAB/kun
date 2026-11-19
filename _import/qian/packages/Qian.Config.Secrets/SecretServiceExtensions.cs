@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Secrets;
 

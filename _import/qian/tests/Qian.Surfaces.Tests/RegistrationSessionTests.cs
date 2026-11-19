@@ -4,7 +4,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces.Tests;
@@ -38,7 +38,7 @@ public sealed class RegistrationSessionTests
                 {
                     // 新旧快照都有 keep：任何一次读取都必须拿到旧内容或新内容，不能出现 NOT_FOUND 或空集合。
                     try { observed.TryAdd(host.Context.Inject<SurfaceDocument>(key, keep).Data.GetProperty("description").GetString()!, 0); }
-                    catch (QianErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { Interlocked.Increment(ref misses); }
+                    catch (ErrorException error) when (error.Error.Code == PlatformErrors.NotFound) { Interlocked.Increment(ref misses); }
                     if (host.Context.TryInject<SurfaceDocument>(new ServiceKey(key.Name + ":" + keep)) is null) Interlocked.Increment(ref misses);
                     if (host.Context.List(key).Count(item => item.Name == keep) != 1) Interlocked.Increment(ref misses);
                     Interlocked.Increment(ref reads);
@@ -67,7 +67,7 @@ public sealed class RegistrationSessionTests
         var original = host.Context.Inject<SurfaceDocument>(SurfaceKeys.Skills, Plugin + "/keep");
         // 新快照要新增的名称已被同 scope 的其它注册占用；独占注册（R38）让本次替换整体失败。
         using var occupied = host.Context.Provide(SurfaceKeys.Tools, Plugin + "/add", new object());
-        var error = Assert.Throws<QianErrorException>(() => session.Replace(after));
+        var error = Assert.Throws<ErrorException>(() => session.Replace(after));
         Assert.Equal(PlatformErrors.RegistrationConflict, error.Error.Code);
         Assert.Same(original, host.Context.Inject<SurfaceDocument>(SurfaceKeys.Skills, Plugin + "/keep"));
         Assert.Equal(First, host.Context.Inject<SurfaceDocument>(SurfaceKeys.Tools, Plugin + "/keep").Data.GetProperty("description").GetString());

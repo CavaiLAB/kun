@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Files.Tests;
@@ -80,7 +80,7 @@ public sealed class FilesUnitTests
             ("""{"storage":{"kind":"local"},"policies":[{"purpose":"acme.crm/x","allowedTypes":["text/plain"],"maxSize":1},{"purpose":"acme.crm/x","allowedTypes":["text/plain"],"maxSize":2}]}""", "#/policies/1")
         })
         {
-            var error = Assert.Throws<QianErrorException>(() => Read(config));
+            var error = Assert.Throws<ErrorException>(() => Read(config));
             Assert.Equal((PlatformErrors.InputInvalid, pointer), (error.Error.Code, error.Error.Pointer));
         }
     }
@@ -101,14 +101,14 @@ public sealed class FilesUnitTests
         value = null;
         Assert.Equal(100L, await runtime.QuotaLimitAsync(Ct));
         // 宿主没有 Registry（参考宿主、独立模式）或 Registry 里没有 qian.files 条目：回退组件配置，而不是让上传失败。
-        foreach (var unavailable in new Exception[] { new ServiceNotReadyException(), new KeyNotFoundException(), new QianErrorException(new QianError(PlatformErrors.NotFound)) })
+        foreach (var unavailable in new Exception[] { new ServiceNotReadyException(), new KeyNotFoundException(), new ErrorException(new Error(PlatformErrors.NotFound)) })
         {
             failure = unavailable;
             Assert.Equal(100L, await runtime.QuotaLimitAsync(Ct));
         }
         // 其余错误（例如租户上下文无效）照常抛出，不被静默吞掉。
-        failure = new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
-        Assert.Same(failure, await Assert.ThrowsAsync<QianErrorException>(async () => await runtime.QuotaLimitAsync(Ct)));
+        failure = new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        Assert.Same(failure, await Assert.ThrowsAsync<ErrorException>(async () => await runtime.QuotaLimitAsync(Ct)));
         settings = null;
         Assert.Equal(100L, await runtime.QuotaLimitAsync(Ct));
     }
@@ -119,10 +119,10 @@ public sealed class FilesUnitTests
         var policies = new UploadPolicyRegistry();
         var policy = new UploadPolicy("acme.crm/attachment", ["text/plain"], 10);
         var lease = policies.Register(policy);
-        var conflict = Assert.Throws<QianErrorException>(() => policies.Register(policy with { MaxSize = 20 }));
+        var conflict = Assert.Throws<ErrorException>(() => policies.Register(policy with { MaxSize = 20 }));
         Assert.Equal(PlatformErrors.RegistrationConflict, conflict.Error.Code);
         Assert.Equal(new Dictionary<string, string> { ["key"] = "Files.Policies:acme.crm/attachment", ["owner"] = "qian.files" }, conflict.Error.Args);
-        Assert.Equal("#/purpose", Assert.Throws<QianErrorException>(() => policies.Register(policy with { Purpose = "acme/other" })).Error.Pointer);
+        Assert.Equal("#/purpose", Assert.Throws<ErrorException>(() => policies.Register(policy with { Purpose = "acme/other" })).Error.Pointer);
         lease.Dispose(); lease.Dispose();
         Assert.Null(policies.Find(policy.Purpose));
         using (policies.Register(policy with { MaxSize = 20 })) Assert.Equal(20, policies.Find(policy.Purpose)!.MaxSize);
@@ -130,8 +130,8 @@ public sealed class FilesUnitTests
         var backends = new FileBackendRegistry();
         using var local = backends.Register("local", new LocalFileBackendFactory(default));
         Assert.Equal(new Dictionary<string, string> { ["key"] = "Files.Backends:local", ["owner"] = "qian.files" },
-            Assert.Throws<QianErrorException>(() => backends.Register("local", new LocalFileBackendFactory(default))).Error.Args);
-        Assert.Equal("#/name", Assert.Throws<QianErrorException>(() => backends.Register("Local", new LocalFileBackendFactory(default))).Error.Pointer);
+            Assert.Throws<ErrorException>(() => backends.Register("local", new LocalFileBackendFactory(default))).Error.Args);
+        Assert.Equal("#/name", Assert.Throws<ErrorException>(() => backends.Register("Local", new LocalFileBackendFactory(default))).Error.Pointer);
         Assert.Equal(["local"], backends.List());
     }
 

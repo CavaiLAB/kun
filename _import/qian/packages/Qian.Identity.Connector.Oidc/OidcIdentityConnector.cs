@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Config;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Connector.Oidc;
 
@@ -292,5 +292,5 @@ public sealed class OidcIdentityConnector : IIdentityConnector, IDisposable
     private static bool FixedTimeEquals(string? left, string right) =>
         left is not null && CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(left), Encoding.UTF8.GetBytes(right));
 
-    private static QianErrorException Fail(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Fail(ErrorCode code) => new(new Error(code));
 }

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Registry;
@@ -41,7 +41,7 @@ internal sealed class RegistryArtifactContent
         {
             ValidatePath(item.Key);
             size += item.Value.Length;
-            if (size > 64 * 1024 * 1024) throw new QianErrorException(new QianError(PlatformErrors.PayloadTooLarge));
+            if (size > 64 * 1024 * 1024) throw new ErrorException(new Error(PlatformErrors.PayloadTooLarge));
             if (!names.Add(item.Key)) throw Invalid("artifact.json#/files", "文件名存在大小写冲突。");
             files.Add(item.Key, item.Value.ToArray());
         }
@@ -85,11 +85,11 @@ internal sealed class RegistryArtifactContent
             parts.Length > 64 || parts.Any(part => part is "" or "." or ".." or ".git"))
             throw Invalid("artifact.json#/files", "制品路径无效或包含受限目录。");
     }
-    private static QianErrorException Diagnostics(IReadOnlyList<SurfaceDiagnostic> diagnostics) => new(new QianError(PlatformErrors.InputInvalid)
+    private static ErrorException Diagnostics(IReadOnlyList<SurfaceDiagnostic> diagnostics) => new(new Error(PlatformErrors.InputInvalid)
     {
-        Errors = diagnostics.Where(d => d.Severity == "error").Take(100).Select(d => new QianFieldError(RegistryErrors.Invalid,
+        Errors = diagnostics.Where(d => d.Severity == "error").Take(100).Select(d => new FieldError(RegistryErrors.Invalid,
             d.Error.Pointer ?? "artifact.json#", new Dictionary<string, string> { ["reason"] = "制品未通过共用静态校验。" })).ToArray()
     });
-    internal static QianErrorException Invalid(string location, string reason) => new(new QianError(PlatformErrors.InputInvalid)
-    { Errors = [new QianFieldError(RegistryErrors.Invalid, location, new Dictionary<string, string> { ["reason"] = reason })] });
+    internal static ErrorException Invalid(string location, string reason) => new(new Error(PlatformErrors.InputInvalid)
+    { Errors = [new FieldError(RegistryErrors.Invalid, location, new Dictionary<string, string> { ["reason"] = reason })] });
 }

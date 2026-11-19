@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server;
 
@@ -147,7 +147,7 @@ internal sealed partial class IdentityAccountService
         {
             cancellationToken.ThrowIfCancellationRequested();
             try { await SetDirectoryMemberStatusAsync(id, AccountStatuses.Disabled, reason, cancellationToken).ConfigureAwait(false); results.Add(new(id, true, null)); }
-            catch (QianErrorException error) { results.Add(new(id, false, error.Error.Code.Code)); }
+            catch (ErrorException error) { results.Add(new(id, false, error.Error.Code.Code)); }
         }
         var success = results.Count(row => row.Succeeded);
         return new(success == results.Count ? "SUCCESS" : success == 0 ? "FAILED" : "PARTIAL_SUCCESS", results.AsReadOnly());

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Events;
 

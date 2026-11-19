@@ -29,7 +29,7 @@ IDataMigrator 是多副本迁移协调端口：逐个业务上下文在 schema �
 
 JSON Schema 为 data-types.schema.json 与 data-connection.schema.json，源生成元数据在 `DataContractJson`。上下限在 JSON 中以十进制字符串表示，避免 64 位整数失真。
 
-DataErrors.Misconfigured 定义统一 DATA_MISCONFIGURED，QianDataMisconfiguredException 携带 QianError。序号与雪花 ID 另有 DATA_SEQUENCE_RULE_INVALID、DATA_SEQUENCE_RULE_NOT_FOUND、DATA_SEQUENCE_EXHAUSTED 与 DATA_ID_WORKER_UNAVAILABLE，经 QianErrorException 抛出。基准类型与数据连接另有 DATA_TYPE_*、DATA_DIALECT_NOT_FOUND、DATA_FIELD_*、DATA_CONNECTION_* 共 11 个错误码，宿主经 `DataErrors.TypesAndConnections` 一次登记，含义见 [Qian.Data](../Qian.Data/README.md)。宿主统一映射为 ErrorDetail，不自造错误体。
+DataErrors.Misconfigured 定义统一 DATA_MISCONFIGURED，QianDataMisconfiguredException 携带 Error。序号与雪花 ID 另有 DATA_SEQUENCE_RULE_INVALID、DATA_SEQUENCE_RULE_NOT_FOUND、DATA_SEQUENCE_EXHAUSTED 与 DATA_ID_WORKER_UNAVAILABLE，经 ErrorException 抛出。基准类型与数据连接另有 DATA_TYPE_*、DATA_DIALECT_NOT_FOUND、DATA_FIELD_*、DATA_CONNECTION_* 共 11 个错误码，宿主经 `DataErrors.TypesAndConnections` 一次登记，含义见 [Qian.Data](../Qian.Data/README.md)。宿主统一映射为 ErrorDetail，不自造错误体。
 
 ## 组件位置
 

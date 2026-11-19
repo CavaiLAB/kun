@@ -2,7 +2,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz;
 
@@ -22,7 +22,7 @@ internal sealed class PostgresPlatformRoleStore(IDataService data, ITenantContex
     internal Task AssignSuperadminAsync(string userId, string actor, CancellationToken ct, DateTimeOffset? validFrom = null, DateTimeOffset? validTo = null)
     {
         Identifier(userId);
-        if (validFrom is not null && validTo <= validFrom) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (validFrom is not null && validTo <= validFrom) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         return Write(actor, async db =>
         {
             var role = await db.Roles.SingleOrDefaultAsync(row => row.Code == PlatformRoles.Superadmin, ct).ConfigureAwait(false);
@@ -97,7 +97,7 @@ internal sealed class PostgresPlatformRoleStore(IDataService data, ITenantContex
     private async Task Write(string actor, Func<PlatformAuthzDbContext, Task> update, CancellationToken ct)
     {
         Identifier(actor);
-        if (!string.IsNullOrEmpty(tenant.TenantId)) throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+        if (!string.IsNullOrEmpty(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         await using var session = await data.OpenAsync<PlatformAuthzDbContext>(ct).ConfigureAwait(false);
         var db = session.Context;
         await db.Database.OpenConnectionAsync(ct).ConfigureAwait(false);
@@ -105,13 +105,13 @@ internal sealed class PostgresPlatformRoleStore(IDataService data, ITenantContex
         await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({"authz-platform-roles"}, 0))", ct).ConfigureAwait(false);
         await update(db).ConfigureAwait(false);
-        if (!string.IsNullOrEmpty(tenant.TenantId)) throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+        if (!string.IsNullOrEmpty(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         await session.SaveChangesAsync(ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);
     }
 
     private static void Identifier(string value)
     {
-        if (string.IsNullOrWhiteSpace(value) || value.Length > 200 || value.Any(char.IsControl)) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 200 || value.Any(char.IsControl)) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
     }
 }

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Tests;
 
@@ -36,8 +36,8 @@ public sealed class CanonicalizerTests
     [Fact]
     public void 拒绝重复键与过大指数_变动补充字段和委托主体改变哈希()
     {
-        Assert.Throws<QianErrorException>(() => AuditCanonicalizer.Canonicalize(Json("{\"x\":1,\"x\":2}")));
-        Assert.Throws<QianErrorException>(() => AuditCanonicalizer.Canonicalize(Json("1e1001")));
+        Assert.Throws<ErrorException>(() => AuditCanonicalizer.Canonicalize(Json("{\"x\":1,\"x\":2}")));
+        Assert.Throws<ErrorException>(() => AuditCanonicalizer.Canonicalize(Json("1e1001")));
         var id = Guid.CreateVersion7(); var original = Record(id: id, payload: "{\"bypass\":false}");
         Assert.NotEqual(AuditCanonicalizer.Hash(original, 1, null), AuditCanonicalizer.Hash(Record(id: id, payload: "{\"bypass\":true}"), 1, null));
         Assert.NotEqual(AuditCanonicalizer.Hash(original, 1, null), AuditCanonicalizer.Hash(Record(id: id, onBehalfOf: "user1", payload: "{\"bypass\":false}"), 1, null));

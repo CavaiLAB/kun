@@ -7,7 +7,7 @@ using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Events;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.Abstractions.Tests;
 
@@ -338,7 +338,7 @@ public sealed class DataContractTests
         Assert.True(result.Allowed);
         Assert.Null(result.Error);
         Assert.Equal("normalized", result.Payload!.Value.GetProperty("name").GetString());
-        var error = new QianError(PlatformErrors.AuthzDenied);
+        var error = new Error(PlatformErrors.AuthzDenied);
         var rejected = RecordHookResult.Reject(error);
         Assert.False(rejected.Allowed);
         Assert.Same(error, rejected.Error);

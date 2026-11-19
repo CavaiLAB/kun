@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using YamlDotNet.Serialization;
 
@@ -60,7 +60,7 @@ public sealed class RuntimeScenarioTests
                     var definitions = step.GetProperty("entries").EnumerateArray().Select(e => Definition(e.GetString()!)).ToArray();
                     if (step.TryGetProperty("error", out var error))
                     {
-                        var exception = await Assert.ThrowsAsync<QianErrorException>(async () => await loader.MountAsync(definitions, TestContext.Current.CancellationToken));
+                        var exception = await Assert.ThrowsAsync<ErrorException>(async () => await loader.MountAsync(definitions, TestContext.Current.CancellationToken));
                         Assert.Equal(error.GetProperty("code").GetString(), exception.Error.Code.Code);
                         Assert.Equal("qian.runtime", exception.Error.Code.Owner);
                         foreach (var arg in error.GetProperty("args").EnumerateObject())
@@ -85,7 +85,7 @@ public sealed class RuntimeScenarioTests
                     Assert.Equal(step.GetProperty("value").GetInt32(), logger.CleanupErrors);
                     break;
                 case "failure":
-                    var failure = Assert.IsType<QianErrorException>(loader.GetFailure(step.GetProperty("entry").GetString()!, Scope(step)));
+                    var failure = Assert.IsType<ErrorException>(loader.GetFailure(step.GetProperty("entry").GetString()!, Scope(step)));
                     Assert.Equal(step.GetProperty("code").GetString(), failure.Error.Code.Code);
                     foreach (var arg in step.GetProperty("args").EnumerateObject()) Assert.Equal(arg.Value.GetString(), failure.Error.Args[arg.Name]);
                     break;
@@ -126,8 +126,8 @@ public sealed class RuntimeScenarioTests
                 case "notFoundEquivalent":
                     var view = Context(loader, step);
                     var registry = new ServiceKey(step.GetProperty("key").GetString()!);
-                    var filtered = Assert.Throws<QianErrorException>(() => view.Inject<string>(registry, step.GetProperty("name").GetString()!));
-                    var absent = Assert.Throws<QianErrorException>(() => view.Inject<string>(registry, "does-not-exist"));
+                    var filtered = Assert.Throws<ErrorException>(() => view.Inject<string>(registry, step.GetProperty("name").GetString()!));
+                    var absent = Assert.Throws<ErrorException>(() => view.Inject<string>(registry, "does-not-exist"));
                     var catalog = ErrorCatalog.CreateDefault();
                     var traceId = new string('a', 32);
                     Assert.Equal(JsonSerializer.Serialize(catalog.CreateDetail(absent.Error, traceId), ErrorDetailJson.TypeInfo),

@@ -6,7 +6,7 @@ using Npgsql;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Identity.Server;
@@ -58,9 +58,9 @@ internal sealed partial class IdentityAccountService : IIdentityService, IIdenti
 
     // 当前已验证的租户上下文；Membership 级操作不接受请求自带的租户。
     private Guid RequireTenant() => Guid.TryParseExact(_tenant.TenantId, "D", out var id) && id != Guid.Empty
-        ? id : throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+        ? id : throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
 
-    private static QianErrorException Error(ErrorCode code, IReadOnlyDictionary<string, string>? args = null) => new(new QianError(code, args));
+    private static ErrorException Error(ErrorCode code, IReadOnlyDictionary<string, string>? args = null) => new(new Error(code, args));
 
     private static bool IsUniqueViolation(DbUpdateException error) => error.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 

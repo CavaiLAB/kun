@@ -8,7 +8,7 @@ using Qian.Lifecycle;
 using Qian.Events;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Tenancy;
@@ -166,7 +166,7 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
                 {
                     // 不记录上游消息、SQL 或凭据；取消/崩溃留下 running 同样可重入。
                     if (!cancellationToken.IsCancellationRequested)
-                        await Finish("failed", error is QianErrorException qian ? qian.Error.Code.Code : "step_failed", cancellationToken).ConfigureAwait(false);
+                        await Finish("failed", error is ErrorException qian ? qian.Error.Code.Code : "step_failed", cancellationToken).ConfigureAwait(false);
                     throw;
                 }
                 async Task Finish(string status, string? reason, CancellationToken ct)
@@ -212,6 +212,6 @@ internal sealed class TenantProvisioningOrchestrator(IPluginContext context, Pos
     }
     private static void ValidateActor(string actor)
     { if (string.IsNullOrWhiteSpace(actor) || actor.Length > 200 || actor.Any(char.IsControl)) throw Error(PlatformErrors.InputInvalid); }
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
     private sealed record ProvisionInput(CreateTenant Request, TenantAdministrator Administrator);
 }

@@ -5,7 +5,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.Signup;
 
@@ -43,11 +43,11 @@ public sealed class TenancySignupPlugin : IQianPlugin
     public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(ctx); ct.ThrowIfCancellationRequested();
-        if (ctx.Scope != ScopeKey.Global) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (ctx.Scope != ScopeKey.Global) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var options = TenancySignupOptions.Read(config);
         // 数据上下文由宿主登记（连接、schema 与迁移属于部署）；没登记就无处存申请，装载失败而不是首个请求才报错。
         if (ctx.Services.GetService<IDataContextCatalog>() is not { } contexts || !contexts.ContextTypes.Contains(typeof(TenancySignupDbContext)))
-            throw new QianErrorException(new QianError(PlatformErrors.PreconditionFailed));
+            throw new ErrorException(new Error(PlatformErrors.PreconditionFailed));
         var errors = ctx.Services.GetRequiredService<ErrorCatalog>();
         foreach (var code in TenancySignupErrors.All) ctx.Effect(errors.Register(code));
         var service = new TenantSignupService(ctx, options);

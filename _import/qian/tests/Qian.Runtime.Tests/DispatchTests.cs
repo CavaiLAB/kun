@@ -31,7 +31,7 @@ public sealed class DispatchTests
             LifecycleTests.Define("A", ctx => ctx.On(first, first.Mode, listener)),
             LifecycleTests.Define("B", ctx => ctx.On(second, second.Mode, listener))], TestContext.Current.CancellationToken);
         Assert.Equal(PluginState.Failed, loader.GetState("B", ScopeKey.Global));
-        Assert.Equal("A", Assert.IsType<Errors.QianErrorException>(loader.GetFailure("B", ScopeKey.Global)).Error.Args["owner"]);
+        Assert.Equal("A", Assert.IsType<Kun.Errors.ErrorException>(loader.GetFailure("B", ScopeKey.Global)).Error.Args["owner"]);
         await loader.UnmountAsync("A", ScopeKey.Global, TestContext.Current.CancellationToken);
         await loader.ReloadAsync(LifecycleTests.Define("B", ctx => ctx.On(second, second.Mode, listener)), TestContext.Current.CancellationToken);
         Assert.Equal(PluginState.Ready, loader.GetState("B", ScopeKey.Global));

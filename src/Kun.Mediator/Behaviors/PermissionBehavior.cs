@@ -1,8 +1,8 @@
 using Kun.Authorization;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
-using Kun.Core.Results;
 using Kun.Core.Security;
+using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -11,7 +11,10 @@ namespace Kun.Mediator.Behaviors;
 /// <summary>为静态声明权限的命令装配判定行为，缺失引擎时拒绝执行。</summary>
 public static class PermissionBehaviorExtensions
 {
-    /// <summary>拒绝响应由调用方的 Result 工厂提供，不以异常表达正常权限失败。</summary>
+    /// <summary>
+    /// 拒绝响应由调用方的 Result 工厂提供，不以异常表达正常权限失败；未认证给 <see cref="PlatformErrors.Unauthenticated"/>，
+    /// 其余拒绝（引擎或权限声明缺失、主体类型无效、判定不允许）一律给 <see cref="PlatformErrors.AuthzDenied"/>。
+    /// </summary>
     public static KunMediatorBuilder AddPermissionBehavior<TRequest, TResponse>(this KunMediatorBuilder builder,
         Func<Error, TResponse> denied) where TRequest : IRequest<TResponse>, IPermissionProtectedRequest
     {
@@ -35,18 +38,18 @@ internal sealed class PermissionBehavior<TRequest, TResponse>(IPermissionChecker
     public async ValueTask<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         if (user?.IsAuthenticated != true || string.IsNullOrWhiteSpace(user.UserId))
-            return denied(Error.Unauthorized("authorization.unauthenticated", "请求未认证。"));
+            return denied(new Error(PlatformErrors.Unauthenticated));
         if (checker is null || TRequest.RequiredPermissions.Count == 0)
-            return denied(Error.Forbidden("authorization.denied", "权限引擎或权限声明未配置。"));
+            return denied(new Error(PlatformErrors.AuthzDenied));
         var kind = user.PrincipalKind;
         if (kind is not ("user" or "service" or "agent"))
-            return denied(Error.Forbidden("authorization.denied", "主体类型无效。"));
+            return denied(new Error(PlatformErrors.AuthzDenied));
         var subject = new AuthorizationSubject(user.UserId, tenant?.TenantId, kind);
         foreach (var permission in TRequest.RequiredPermissions)
         {
             if (string.IsNullOrWhiteSpace(permission) ||
                 !(await checker.CheckAsync(new PermissionRequest(subject, permission), cancellationToken).ConfigureAwait(false)).Allow)
-                return denied(Error.Forbidden("authorization.denied", "不允许执行此操作。"));
+                return denied(new Error(PlatformErrors.AuthzDenied));
         }
         return await next().ConfigureAwait(false);
     }

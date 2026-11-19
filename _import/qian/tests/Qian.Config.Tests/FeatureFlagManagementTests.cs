@@ -8,7 +8,7 @@ using Qian.Config.Apollo;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Config.Tests;
@@ -178,7 +178,7 @@ public sealed class FeatureFlagManagementTests(PostgresFixture postgres) : IClas
     private static FeatureFlagDraft Request(Guid? key = null, bool enabled = true, bool confirmed = true) => new()
     { Name = "preview", Rule = new FeatureFlagPolicy { Default = enabled }, Confirmed = confirmed, IdempotencyKey = key ?? Guid.NewGuid() };
     private static async Task Error(string code, Func<ValueTask<FeatureFlagDraftResult>> call) =>
-        Assert.Equal(code, (await Assert.ThrowsAsync<QianErrorException>(() => call().AsTask())).Error.Code.Code);
+        Assert.Equal(code, (await Assert.ThrowsAsync<ErrorException>(() => call().AsTask())).Error.Code.Code);
 
     private sealed class Portal(WebApplication app) : IAsyncDisposable
     {

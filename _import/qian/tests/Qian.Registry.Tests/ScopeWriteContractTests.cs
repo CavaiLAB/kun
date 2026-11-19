@@ -8,8 +8,8 @@ using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
 using Qian.Registry.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Registry.Tests;
 
@@ -22,9 +22,9 @@ public sealed class ScopeWriteContractTests
     public async Task 注册表写入契约由真实端点导出_含条件修订与权限_发布契约无漂移_移除PUT被准入拒绝()
     {
         var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
-        builder.Services.AddAuthorization(); builder.Services.AddQianErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
         await using var app = builder.Build();
-        app.UseQianErrors(); app.UseQianRegistryAliases();
+        app.UseKunErrors(); app.UseQianRegistryAliases();
         app.MapQianRegistry(_ => throw new InvalidOperationException("契约编译不会执行端点。"));
         await app.StartAsync(Ct);
         var contract = await app.Services.GetRequiredService<IHttpContractSource>().CompileDocumentAsync("qian.registry", Ct);
@@ -55,7 +55,7 @@ public sealed class ScopeWriteContractTests
         document["paths"]![path]!.AsObject().Remove("put");
         await runtime.MountAsync([new PluginDefinition(entry, new OpenApiContractPlugin(inner, probe, "qian.registry.http/v1", contract, JsonSerializer.SerializeToElement(document)), [])], Ct);
         Assert.Equal(PluginState.Failed, runtime.GetState("registry", ScopeKey.Global)); Assert.Equal(1, inner.Applied);
-        Assert.Equal("PRECONDITION_FAILED", Assert.IsType<QianErrorException>(runtime.GetFailure("registry", ScopeKey.Global)).Error.Code.Code);
+        Assert.Equal("PRECONDITION_FAILED", Assert.IsType<ErrorException>(runtime.GetFailure("registry", ScopeKey.Global)).Error.Code.Code);
     }
 
     private sealed class ContractMarker : IQianPlugin

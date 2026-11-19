@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>门禁自测样例：零依赖的包引用别的零依赖的包（规则 C 允许，如 Kun.Core 引用 Kun.Errors）</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>contract</KunRole>
+    <KunZeroDependency>true</KunZeroDependency>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Gate.Amber/Gate.Amber.csproj" />
+  </ItemGroup>
+
+</Project>

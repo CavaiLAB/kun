@@ -14,7 +14,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Capabilities;
@@ -97,7 +97,7 @@ internal sealed class NavigationService(IRegistryService registry, IPermissionCh
             {
                 if (!ReferenceEquals(caller.Inject<ShellRemoteContribution>(CapabilitiesDefinition.ShellRemotesKey, contribution.PluginId), contribution)) continue;
             }
-            catch (Exception error) when (error is QianErrorException or ObjectDisposedException) { continue; }
+            catch (Exception error) when (error is ErrorException or ObjectDisposedException) { continue; }
             result.Add(new ShellRemote(contribution.PluginId, entry.Version, ScopeText(registration.Scope), contribution.Manifest));
         }
         linked.Token.ThrowIfCancellationRequested(); Check(user, actor);
@@ -146,7 +146,7 @@ internal sealed class NavigationService(IRegistryService registry, IPermissionCh
     private static bool Current<TService>(IPluginContext caller, ServiceKey key, string name, TService contribution) where TService : class
     {
         try { return ReferenceEquals(caller.Inject<TService>(key, name), contribution); }
-        catch (Exception error) when (error is QianErrorException or ObjectDisposedException) { return false; }
+        catch (Exception error) when (error is ErrorException or ObjectDisposedException) { return false; }
     }
     // 平台控制台只给人类平台用户：无租户、无委托、全局上下文；租户主体、服务、Agent 与委托一律按不存在拒绝。
     private AuthorizationSubject PlatformSubject(IPluginContext caller, ICurrentUser user)
@@ -185,7 +185,7 @@ internal sealed class NavigationService(IRegistryService registry, IPermissionCh
             {
                 if (ReferenceEquals(caller.Inject<NavigationContribution>(CapabilitiesDefinition.NavigationItemsKey, contribution.Name), contribution)) result.Add(contribution.Describe(actor.TenantId!));
             }
-            catch (Exception error) when (error is QianErrorException or ObjectDisposedException) { }
+            catch (Exception error) when (error is ErrorException or ObjectDisposedException) { }
         }
         ct.ThrowIfCancellationRequested(); Check(user, actor); return (actor, result.AsReadOnly());
     }
@@ -216,5 +216,5 @@ internal sealed class NavigationService(IRegistryService registry, IPermissionCh
     }
     private static string SubjectKey(AuthorizationSubject actor) => Hash(actor.Kind + ":" + actor.Id);
     private static string Hash(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 }

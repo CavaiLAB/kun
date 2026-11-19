@@ -15,8 +15,8 @@ using Qian.Authz;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
 using Qian.Tenancy.Signup;
 using Qian.Testing.Containers;
@@ -386,7 +386,7 @@ public sealed partial class TenantSignupTests(PostgresFixture postgres) : Custom
         {
             app.MapWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), branch =>
             {
-                branch.UseQianErrors(); branch.UseRouting();
+                branch.UseKunErrors(); branch.UseRouting();
                 branch.UseEndpoints(endpoints => endpoints.MapQianTenancySignupApplicant(http =>
                     http.RequestServices.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("signup", ScopeKey.Global)));
             });

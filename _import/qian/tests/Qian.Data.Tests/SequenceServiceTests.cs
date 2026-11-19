@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Data.Tests;
@@ -51,7 +51,7 @@ public sealed class SequenceServiceTests(PostgresFixture postgres) : IClassFixtu
         using (host.Tenant.BeginScope(TenantB))
         {
             // 另一租户看不到 A 的规则，定义后计数独立。
-            Assert.Equal(DataErrors.SequenceRuleNotFound, (await Assert.ThrowsAsync<QianErrorException>(() => host.Sequences.NextAsync("order", "default", Ct))).Error.Code);
+            Assert.Equal(DataErrors.SequenceRuleNotFound, (await Assert.ThrowsAsync<ErrorException>(() => host.Sequences.NextAsync("order", "default", Ct))).Error.Code);
             await host.Sequences.DefineAsync("order", "'B' + seq(4)", Ct);
             Assert.Equal("B0001", await host.Sequences.NextAsync("order", "default", Ct));
         }
@@ -68,13 +68,13 @@ public sealed class SequenceServiceTests(PostgresFixture postgres) : IClassFixtu
         using (host.Tenant.BeginScope(TenantC))
         {
             foreach (var pattern in new[] { "'SO' + yyyyMMdd", "seq(6) + seq(2)", "'SO' + yyyymmdd + seq(6)", "'unterminated + seq(3)", "seq(19)", "'A' + + seq(3)" })
-                Assert.Equal(DataErrors.SequenceRuleInvalid, (await Assert.ThrowsAsync<QianErrorException>(() => host.Sequences.DefineAsync("bad", pattern, Ct))).Error.Code);
-            Assert.Equal(DataErrors.SequenceRuleInvalid, (await Assert.ThrowsAsync<QianErrorException>(() => host.Sequences.DefineAsync("Bad Code", "seq(3)", Ct))).Error.Code);
-            Assert.Equal(DataErrors.SequenceRuleInvalid, (await Assert.ThrowsAsync<QianErrorException>(() => host.Sequences.NextAsync("tiny", "bad scope", Ct))).Error.Code);
+                Assert.Equal(DataErrors.SequenceRuleInvalid, (await Assert.ThrowsAsync<ErrorException>(() => host.Sequences.DefineAsync("bad", pattern, Ct))).Error.Code);
+            Assert.Equal(DataErrors.SequenceRuleInvalid, (await Assert.ThrowsAsync<ErrorException>(() => host.Sequences.DefineAsync("Bad Code", "seq(3)", Ct))).Error.Code);
+            Assert.Equal(DataErrors.SequenceRuleInvalid, (await Assert.ThrowsAsync<ErrorException>(() => host.Sequences.NextAsync("tiny", "bad scope", Ct))).Error.Code);
             await host.Sequences.DefineAsync("tiny", "seq(1)", Ct);
             for (var expected = 1; expected <= 9; expected++)
                 Assert.Equal(expected.ToString(CultureInfo.InvariantCulture), await host.Sequences.NextAsync("tiny", "default", Ct));
-            Assert.Equal(DataErrors.SequenceExhausted, (await Assert.ThrowsAsync<QianErrorException>(() => host.Sequences.NextAsync("tiny", "default", Ct))).Error.Code);
+            Assert.Equal(DataErrors.SequenceExhausted, (await Assert.ThrowsAsync<ErrorException>(() => host.Sequences.NextAsync("tiny", "default", Ct))).Error.Code);
         }
     }
 

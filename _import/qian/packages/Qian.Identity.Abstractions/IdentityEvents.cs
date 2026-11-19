@@ -1,6 +1,6 @@
 using Kun.EventBus;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Abstractions;
 
@@ -76,7 +76,7 @@ public sealed record CaptchaAnswer(string ChallengeId, string Answer)
 /// 需要选择租户或修改初始密码时 Succeeded 为 false，Status 与 Ticket 指明下一步。
 /// 访问令牌由协议端点据账号会话签发，Principal 在此不填。
 /// </summary>
-public sealed record SignInResult(bool Succeeded, Principal? Principal, QianError? Error)
+public sealed record SignInResult(bool Succeeded, Principal? Principal, Error? Error)
 {
     /// <summary>流水线下一步。</summary>
     public SignInStatus Status { get; init; } = Succeeded ? SignInStatus.Authenticated : SignInStatus.Failed;
@@ -89,7 +89,7 @@ public sealed record SignInResult(bool Succeeded, Principal? Principal, QianErro
     /// <summary>被锁定或延时拒绝时，建议等待多久后重试；宿主据此写 Retry-After 头。</summary>
     public TimeSpan? RetryAfter { get; init; }
     /// <summary>失败结果。</summary>
-    public static SignInResult Failure(QianError error, TimeSpan? retryAfter = null) =>
+    public static SignInResult Failure(Error error, TimeSpan? retryAfter = null) =>
         new(false, null, error ?? throw new ArgumentNullException(nameof(error))) { RetryAfter = retryAfter };
     /// <summary>已建立会话。</summary>
     public static SignInResult Authenticated(AccountSession session) => new(true, null, null) { Session = session ?? throw new ArgumentNullException(nameof(session)) };

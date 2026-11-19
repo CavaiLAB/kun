@@ -74,9 +74,9 @@ internal static partial class AccountSupport
     internal static async Task<T> Throws<T>(Func<Task> action) where T : Exception => await Assert.ThrowsAsync<T>(action);
 
     /// <summary>断言一次调用以指定的稳定错误码被拒绝，返回出错内容以便继续断言参数与位置。</summary>
-    internal static async Task<Qian.Runtime.Errors.QianError> Rejected(string code, Func<Task> action)
+    internal static async Task<Kun.Errors.Error> Rejected(string code, Func<Task> action)
     {
-        var failure = await Assert.ThrowsAsync<Qian.Runtime.Errors.QianErrorException>(action);
+        var failure = await Assert.ThrowsAsync<Kun.Errors.ErrorException>(action);
         Assert.Equal(code, failure.Error.Code.Code);
         return failure.Error;
     }

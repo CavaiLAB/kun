@@ -5,6 +5,7 @@ using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Results;
 using Kun.Core.Security;
+using Kun.Errors;
 using Kun.Mediator.Behaviors;
 using Kun.Mediator.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,7 +95,7 @@ public sealed class CapabilityAndPermissionTests
         if (allow == true) Assert.Equal(["check", "handler"], calls);
         else
         {
-            Assert.Equal(ErrorType.Forbidden, result.Error.Type);
+            Assert.Same(PlatformErrors.AuthzDenied, result.Error.Code);
             Assert.DoesNotContain("handler", calls);
         }
     }
@@ -152,7 +153,7 @@ public sealed class CapabilityAndPermissionTests
         var result = await provider.GetRequiredService<ISender>().Send(new ProtectedCommand(), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorType.Unauthorized, result.Error.Type);
+        Assert.Same(PlatformErrors.Unauthenticated, result.Error.Code);
         Assert.Empty(calls);
     }
 

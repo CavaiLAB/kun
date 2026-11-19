@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Primitives;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config;
 
@@ -15,7 +15,7 @@ public static class ConfigDefinition
     public static IConfigService Config(this IPluginContext context) => context.Inject<IConfigService>(Key);
     /// <summary>按当前插件的声明、审批与租户上下文解析，已解析值不能进入模型消息。</summary>
     public static ValueTask<SecretValue> ResolveSecretAsync(this IPluginContext context, string reference, CancellationToken cancellationToken = default) =>
-        (context.Config().Secrets ?? throw new QianErrorException(new QianError(SecretErrors.Unavailable)))
+        (context.Config().Secrets ?? throw new ErrorException(new Error(SecretErrors.Unavailable)))
             .ForPlugin(context).ResolveAsync(reference, cancellationToken);
 }
 /// <summary>供受信任代码读取配置；不提供写入入口，也不自动公开为模型工具。</summary>

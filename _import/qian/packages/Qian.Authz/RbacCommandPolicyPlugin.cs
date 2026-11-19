@@ -7,7 +7,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz;
 
@@ -20,7 +20,7 @@ public sealed class RbacCommandPolicyPlugin : IQianPlugin
     public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(ctx); ct.ThrowIfCancellationRequested();
-        if (config.ValueKind != JsonValueKind.Object || config.EnumerateObject().Any()) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (config.ValueKind != JsonValueKind.Object || config.EnumerateObject().Any()) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var tenant = ctx.Services.GetRequiredService<ITenantContext>();
         var checker = new RbacPermissionChecker(ctx.Data(), tenant, ctx.Services.GetRequiredService<IPermissionRegistry>(),
             ctx.Services.GetService<IAuthzExecutionConstraints>(), ctx.Services.GetService<IKunCache>());
@@ -56,5 +56,5 @@ internal sealed class RbacCommandPolicy(IAuthzEnforcement enforcement)
         });
         return await next().ConfigureAwait(false);
     }
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 }

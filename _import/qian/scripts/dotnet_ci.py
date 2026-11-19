@@ -71,7 +71,7 @@ SHARDS: Dict[str, Optional[List[str]]] = {
     "a": [
         "Qian.Config.Tests", "Qian.Scheduler.Tests", "Qian.Lifecycle.Tests", "Qian.Plugin.Sdk.Tests",
         "Qian.Profiles.Tests", "Qian.Gateway.Tests", "Qian.Common.Tests", "Qian.Docs.Tests", "Qian.Runtime.Tests",
-        "Qian.Capabilities.Tests", "Qian.Tenancy.Tests", "Qian.Runtime.Errors.Tests", "Qian.Surfaces.Tests",
+        "Qian.Capabilities.Tests", "Qian.Tenancy.Tests", "Qian.Surfaces.Tests",
         "Qian.Config.Secrets.Tests",
     ],
     # 恰好 4 个模块，全部一开始就跑。Sample.Crm 与 Registry 的用例调真实 qian CLI，工作流只在这个分片构建它。

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Qian.Runtime;
 using Qian.Plugin.Sdk;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Tenancy;
@@ -20,7 +20,7 @@ public sealed class TenancyPlugin : IQianPlugin
     {
         ArgumentNullException.ThrowIfNull(ctx); ct.ThrowIfCancellationRequested();
         if (ctx.Scope != ScopeKey.Global || config.ValueKind != JsonValueKind.Object)
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var initializationCapabilities = ReadConfiguration(config);
         var directory = new PostgresTenantDirectory(ctx.Data(), ctx.Services.GetRequiredService<Kun.Core.MultiTenancy.ITenantContext>());
         ctx.Effect(directory.Dispose);
@@ -51,7 +51,7 @@ public sealed class TenancyPlugin : IQianPlugin
             var tenant = await directory.GetByIdAsync(Guid.Parse(invocation.Principal.TenantId!), invocation.CancellationToken).ConfigureAwait(false);
             var initializing = invocation.Channel == "hook" && TenantInitializationAuthorization.Allows(invocation.Contract.Id, invocation.Source.Scope);
             if (tenant is null || (tenant.Status is not (TenantStatus.Active or TenantStatus.Trial) && !(tenant.Status == TenantStatus.Pending && initializing)))
-                throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+                throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             return await next().ConfigureAwait(false);
         });
         return ValueTask.CompletedTask;
@@ -84,5 +84,5 @@ public sealed class TenancyPlugin : IQianPlugin
         return initializationCapabilities;
     }
     private static readonly Regex CapabilityId = new("\\A[a-z][a-z0-9.-]*/[a-z][A-Za-z0-9_.-]*\\z", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }

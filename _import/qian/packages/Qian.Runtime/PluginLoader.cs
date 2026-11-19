@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Runtime;
 
@@ -214,7 +214,7 @@ public sealed partial class PluginLoader : IAsyncDisposable
                 if (provider is null)
                 {
                     if (!added.Contains(node)) continue; // 既有 Pending 条目允许暂时缺少已撤销的 Provider。
-                    throw new QianErrorException(new QianError(PlatformErrors.DependencyMissing,
+                    throw new ErrorException(new Error(PlatformErrors.DependencyMissing,
                         new Dictionary<string, string> { ["key"] = key.Name, ["entry"] = node.Entry.Id })
                     { Pointer = ErrorPointer.Input("entries", node.Entry.Id, "inject") });
                 }
@@ -228,7 +228,7 @@ public sealed partial class PluginLoader : IAsyncDisposable
         {
             var index = path.IndexOf(node);
             if (index >= 0)
-                throw new QianErrorException(new QianError(PlatformErrors.DependencyCycle,
+                throw new ErrorException(new Error(PlatformErrors.DependencyCycle,
                     new Dictionary<string, string> { ["cycle"] = string.Join(" → ", path.Skip(index).Append(node).Select(n => n.Entry.Id)) })
                 { Pointer = ErrorPointer.Input("entries", node.Entry.Id, "inject") });
             if (!visited.Add(node)) return;
@@ -363,7 +363,7 @@ public sealed partial class PluginLoader : IAsyncDisposable
 
     private static TaskCompletionSource NewSignal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
     private Node FindNode(string id, ScopeKey scope) => _nodes.Single(n => n.Entry.Id == id && n.Entry.Scope == scope);
-    private static QianErrorException Conflict(string key, string owner) => new(new QianError(PlatformErrors.RegistrationConflict,
+    private static ErrorException Conflict(string key, string owner) => new(new Error(PlatformErrors.RegistrationConflict,
         new Dictionary<string, string> { ["key"] = key, ["owner"] = owner }));
 
     internal sealed record ServiceRegistration(ServiceKey Key, PluginContext Context, ServiceDescriptor Descriptor);

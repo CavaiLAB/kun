@@ -14,8 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Gateway;
 
@@ -331,7 +331,7 @@ public static partial class GatewayShellHosting
     private static Task Write(HttpContext http, ShellBootstrapView view) =>
         http.Response.WriteAsJsonAsync(view, GatewayShellJson.Default.ShellBootstrapView, cancellationToken: http.RequestAborted);
 
-    private static Task Error(HttpContext http, ErrorCode code) => QianResults.Error(new QianError(code)).ExecuteAsync(http);
+    private static Task Error(HttpContext http, ErrorCode code) => KunResults.Error(new Error(code)).ExecuteAsync(http);
 
     private static partial class Log
     {

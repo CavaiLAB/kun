@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Qian.Runtime;
 using Qian.Authz.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Plugin.Sdk;
@@ -15,7 +15,7 @@ public static class HookCapabilityRegistration
     {
         ArgumentNullException.ThrowIfNull(context); ArgumentException.ThrowIfNullOrWhiteSpace(name); ArgumentNullException.ThrowIfNull(request);
         var contract = TRequest.QianCapability;
-        if (contract.ComponentId != context.Entry.Plugin) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (contract.ComponentId != context.Entry.Plugin) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var binding = context.Inject<IExecutableCapability>(CapabilityBindingRegistration.Key, contract.Id);
         return context.Provide<IHookHandler>(HookDefinition.Handlers, contract.ComponentId + "/" + name, new CapabilityHook<TRequest>(binding, request));
     }
@@ -28,7 +28,7 @@ public static class HookCapabilityRegistration
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(notification.CancellationToken, cancellationToken);
             // 只有此真实 hook 适配器能够消费开户凭据；普通 Invoke/Send 没有该分支。
             if (TenantInitializationAuthorization.HasGrant && binding.Contract.Metadata.GetProperty("sideEffect").GetString() is not ("read" or "write"))
-                throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+                throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             using var initialization = TenantInitializationAuthorization.Enter(notification.Source, binding.Contract.Id, typeof(TRequest), TRequest.RequiredPermissions);
             using var origin = HookCommandOrigin.Begin(binding.Contract.Id, notification.Source.Scope);
             var input = JsonSerializer.SerializeToElement(convert(notification), binding.Contract.RequestTypeInfo);

@@ -83,7 +83,7 @@ AREAS: Dict[str, Area] = {
             q("deploy/images/**", "tools/Qian.Image.SelfCheck*/**", "tools/Qian.Build.Analyzers/**", "scripts/images.py",
               "scripts/prepare_image_tools.py", "scripts/image-tools.lock.json", "tests/gates/test_images.py",
               "profiles/**", "plugins/**", "packages/Qian.Profiles*/**", "packages/Qian.Surfaces*/**",
-              "packages/Qian.Runtime/**", "packages/Qian.Runtime.Errors/**", "packages/Common/**", "schemas/**",
+              "packages/Qian.Runtime/**", "packages/Common/**", "schemas/**",
               "contracts/v0/**", "*.props", "*.targets", ".editorconfig", ".github/workflows/images.yml"),
             DOTNET_BASE,
         ),

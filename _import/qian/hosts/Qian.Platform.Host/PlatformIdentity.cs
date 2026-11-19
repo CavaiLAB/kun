@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using OpenIddict.Abstractions;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 using Qian.Tenancy.Signup;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -159,7 +159,7 @@ public static class PlatformIdentity
                 if (forwarded is not null) branch.UseForwardedHeaders(forwarded);
                 branch.UseQianIdentityServer();
                 branch.UseQianIdentityPages(pages);
-                branch.UseWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), errors => errors.UseQianErrors());
+                branch.UseWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), errors => errors.UseKunErrors());
                 if (signupPages is not null) branch.UseQianTenancySignupPages(signupPages);
                 branch.UseRouting(); branch.UseAuthentication();
                 branch.UseEndpoints(endpoints =>

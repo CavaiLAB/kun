@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 using StackExchange.Redis;
 
@@ -89,7 +89,7 @@ public sealed class SnowflakeIdTests(RedisFixture redis) : IClassFixture<RedisFi
         Assert.Equal("intruder", (await _admin.GetDatabase().StringGetAsync("qian:snowflake:worker:" + worker)).ToString());
 
         await replica.Host.StopAsync(Ct);
-        Assert.Equal(DataErrors.IdWorkerUnavailable, Assert.Throws<QianErrorException>(() => replica.Ids.NextId()).Error.Code);
+        Assert.Equal(DataErrors.IdWorkerUnavailable, Assert.Throws<ErrorException>(() => replica.Ids.NextId()).Error.Code);
         replica.Host.Dispose();
     }
 
@@ -127,7 +127,7 @@ public sealed class SnowflakeIdTests(RedisFixture redis) : IClassFixture<RedisFi
     private static int CurrentWorker(ISnowflakeIdGenerator ids)
     {
         try { return ids.WorkerId; }
-        catch (QianErrorException) { return -1; }
+        catch (ErrorException) { return -1; }
     }
 
     private sealed record Replica(IHost Host, ISnowflakeIdGenerator Ids);

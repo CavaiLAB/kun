@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Kun.Core.Cqrs;
 using Kun.Core.Results;
+using Kun.Errors;
 using Kun.Mediator;
 using Kun.Mediator.DependencyInjection;
 using Kun.Validation.DependencyInjection;
@@ -26,7 +27,7 @@ internal sealed class CreateOrderResultHandler : IRequestHandler<CreateOrderComm
         _tracker.WasInvoked = true;
         // Let the test control whether the handler itself returns success or failure.
         return ValueTask.FromResult(_tracker.ReturnFailure
-            ? Result<string>.Fail(Error.NotFound("sku.notFound", "sku " + r.Sku + " missing"))
+            ? Result<string>.Fail(new Error(PlatformErrors.NotFound))
             : Result<string>.Ok("order:" + r.Sku));
     }
 }
@@ -43,7 +44,7 @@ internal sealed class SkuRequiredValidator : IValidator<CreateOrderCommand>
     {
         if (string.IsNullOrWhiteSpace(instance.Sku))
         {
-            var errors = new[] { new ValidationError(nameof(instance.Sku), "sku.required", "SKU is required.") };
+            var errors = new[] { new FieldError(PlatformErrors.Required, ErrorPointer.Input("sku")) };
             return ValueTask.FromResult(ValidationResult.Failure(errors));
         }
         return ValueTask.FromResult(ValidationResult.Success);
@@ -56,7 +57,7 @@ internal sealed class QuantityPositiveValidator : IValidator<CreateOrderCommand>
     {
         if (instance.Quantity <= 0)
         {
-            var errors = new[] { new ValidationError(nameof(instance.Quantity), "qty.positive", "Quantity must be > 0.") };
+            var errors = new[] { new FieldError(PlatformErrors.OutOfRange, ErrorPointer.Input("quantity")) };
             return ValueTask.FromResult(ValidationResult.Failure(errors));
         }
         return ValueTask.FromResult(ValidationResult.Success);
@@ -130,14 +131,13 @@ public sealed class ValidationResultPipelineBehaviorTests
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Code.Should().Be("request.invalid");
-        result.Error.Type.Should().Be(ErrorType.Validation);
-        result.Error.Message.Should().Contain("SKU is required");
+        result.Error.Code.Should().BeSameAs(PlatformErrors.InputInvalid);
+        result.Error.Errors.Should().ContainSingle(e => e.Code == PlatformErrors.Required && e.Pointer == "#/sku");
         tracker.WasInvoked.Should().BeFalse();
     }
 
     [Fact]
-    public async Task MultipleValidatorsEachReportErrors_AggregatesIntoSingleFailMessage()
+    public async Task MultipleValidatorsEachReportErrors_AggregatesIntoSingleError()
     {
         await using var sp = BuildServices(svc =>
         {
@@ -153,9 +153,8 @@ public sealed class ValidationResultPipelineBehaviorTests
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("SKU is required");
-        result.Error.Message.Should().Contain("Quantity must be > 0");
-        result.Error.Message.Should().Contain(";"); // joined separator
+        result.Error.Code.Should().BeSameAs(PlatformErrors.InputInvalid);
+        result.Error.Errors.Select(e => e.Pointer).Should().Equal("#/sku", "#/quantity");
         tracker.WasInvoked.Should().BeFalse();
     }
 
@@ -175,8 +174,7 @@ public sealed class ValidationResultPipelineBehaviorTests
 
         result.IsFailure.Should().BeTrue();
         // Handler-produced error survives — behaviour must NOT overwrite it.
-        result.Error.Code.Should().Be("sku.notFound");
-        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Code.Should().BeSameAs(PlatformErrors.NotFound);
         tracker.WasInvoked.Should().BeTrue();
     }
 
@@ -192,7 +190,7 @@ public sealed class ValidationResultPipelineBehaviorTests
         {
             _tracker.WasInvoked = true;
             return ValueTask.FromResult(_tracker.ReturnFailure
-                ? Result.Fail(Error.NotFound("user.notFound", "user " + r.UserId + " missing"))
+                ? Result.Fail(new Error(PlatformErrors.NotFound))
                 : Result.Ok());
         }
     }
@@ -203,7 +201,7 @@ public sealed class ValidationResultPipelineBehaviorTests
         {
             if (string.IsNullOrWhiteSpace(instance.UserId))
             {
-                var errors = new[] { new ValidationError(nameof(instance.UserId), "userId.required", "UserId is required.") };
+                var errors = new[] { new FieldError(PlatformErrors.Required, ErrorPointer.Input("userId")) };
                 return ValueTask.FromResult(ValidationResult.Failure(errors));
             }
             return ValueTask.FromResult(ValidationResult.Success);
@@ -216,7 +214,7 @@ public sealed class ValidationResultPipelineBehaviorTests
         {
             if (instance.UserId is { Length: > 20 })
             {
-                var errors = new[] { new ValidationError(nameof(instance.UserId), "userId.tooLong", "UserId must be ≤ 20 chars.") };
+                var errors = new[] { new FieldError(PlatformErrors.OutOfRange, ErrorPointer.Input("userId")) };
                 return ValueTask.FromResult(ValidationResult.Failure(errors));
             }
             return ValueTask.FromResult(ValidationResult.Success);
@@ -248,14 +246,13 @@ public sealed class ValidationResultPipelineBehaviorTests
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Code.Should().Be("request.invalid");
-        result.Error.Type.Should().Be(ErrorType.Validation);
-        result.Error.Message.Should().Contain("UserId is required");
+        result.Error.Code.Should().BeSameAs(PlatformErrors.InputInvalid);
+        result.Error.Errors.Should().ContainSingle(e => e.Code == PlatformErrors.Required && e.Pointer == "#/userId");
         tracker.WasInvoked.Should().BeFalse();
     }
 
     [Fact]
-    public async Task NonGeneric_MultipleValidatorsEachReportErrors_AggregatesIntoSingleFailMessage()
+    public async Task NonGeneric_EachValidatorFailure_SurfacesAsInputInvalid()
     {
         await using var sp = BuildNonGenericServices(svc =>
         {
@@ -266,31 +263,18 @@ public sealed class ValidationResultPipelineBehaviorTests
         var sender = sp.GetRequiredService<ISender>();
         var tracker = sp.GetRequiredService<ResultInvocationTracker>();
 
-        // Empty UserId triggers both validators — "required" and "tooLong"
-        // (length > 20 is false for "", but we seed an explicit long value
-        // in a second Send to exercise both errors together).
-        // Here UserId="this-is-a-very-long-user-identifier-over-twenty-chars"
-        // is non-empty but too long; UserIdRequired passes but
-        // UserIdLengthValidator fails. To exercise aggregation we need
-        // both to fire — use an intentionally-bad value that hits both:
-        // UserIdRequired considers "   " (whitespace) invalid AND
-        // UserIdLength considers a 21+ character string invalid.
-        // Simplest path: run the test twice — once for each failure,
-        // verify the joined format via the multi-validator scenario of
-        // the generic variant which already covers joining. For the
-        // non-generic path, just assert each error surfaces in its own
-        // aggregated run.
+        // Whitespace fails only UserIdRequiredValidator; a 25-character id fails only UserIdLengthValidator.
         var r1 = await sender.Send(
             new DeleteUserCommand(UserId: "   "),
             TestContext.Current.CancellationToken);
         r1.IsFailure.Should().BeTrue();
-        r1.Error.Message.Should().Contain("UserId is required");
+        r1.Error.Errors.Should().ContainSingle(e => e.Code == PlatformErrors.Required && e.Pointer == "#/userId");
 
         var r2 = await sender.Send(
             new DeleteUserCommand(UserId: new string('x', 25)),
             TestContext.Current.CancellationToken);
         r2.IsFailure.Should().BeTrue();
-        r2.Error.Message.Should().Contain("UserId must be");
+        r2.Error.Errors.Should().ContainSingle(e => e.Code == PlatformErrors.OutOfRange && e.Pointer == "#/userId");
 
         tracker.WasInvoked.Should().BeFalse();
     }
@@ -310,8 +294,7 @@ public sealed class ValidationResultPipelineBehaviorTests
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Code.Should().Be("user.notFound");
-        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Code.Should().BeSameAs(PlatformErrors.NotFound);
         tracker.WasInvoked.Should().BeTrue();
     }
 }

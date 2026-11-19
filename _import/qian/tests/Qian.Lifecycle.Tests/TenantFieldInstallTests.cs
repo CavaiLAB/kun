@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Lifecycle.Tests;
@@ -52,7 +52,7 @@ public sealed class TenantFieldInstallTests(PostgresFixture postgres) : IClassFi
                 accepted = artifact.Digest;
                 continue;
             }
-            var error = (await Assert.ThrowsAsync<QianErrorException>(() => host.Lifecycle.InstallAsync(artifact, "tck", Ct).AsTask())).Error;
+            var error = (await Assert.ThrowsAsync<ErrorException>(() => host.Lifecycle.InstallAsync(artifact, "tck", Ct).AsTask())).Error;
             Assert.Equal("INPUT_INVALID", error.Code.Code);
             Assert.Equal("REGISTRY_INPUT_INVALID", Assert.Single(error.Errors!).Code.Code);
             Assert.True(expected.SequenceEqual(error.Errors!.Select(field => field.Pointer)), name + ": " + string.Join(", ", error.Errors!.Select(field => field.Pointer)));

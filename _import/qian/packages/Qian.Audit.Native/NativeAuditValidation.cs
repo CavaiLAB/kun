@@ -1,6 +1,6 @@
 using System.Data.Common;
 using System.Text.Json;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Native;
 
@@ -129,5 +129,5 @@ internal static class NativeAuditValidation
         }
         if (!RequiredIndexes.All(indexes.Contains)) throw Invalid();
     }
-    private static QianErrorException Invalid() => new(new QianError(NativeAuditErrors.Misconfigured));
+    private static ErrorException Invalid() => new(new Error(NativeAuditErrors.Misconfigured));
 }

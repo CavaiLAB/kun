@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.Tests;
 
@@ -27,7 +27,7 @@ public sealed class PermissionRegistryTests
     public void 一批声明冲突时不残留前半批_不同版本保持独立()
     {
         var registry = new PermissionRegistry(); using var initial = registry.Register("1.0.0", [Permission("read")]);
-        var error = Assert.Throws<QianErrorException>(() => registry.Register("1.0.0", [Permission("write"), Permission("read", PermissionRisk.High)]));
+        var error = Assert.Throws<ErrorException>(() => registry.Register("1.0.0", [Permission("write"), Permission("read", PermissionRisk.High)]));
         Assert.Equal("CONFLICT", error.Error.Code.Code); Assert.Null(registry.Find(Plugin + ":customer:write", "1.0.0"));
         using var next = registry.Register("2.0.0", [Permission("read", PermissionRisk.High)]);
         Assert.Equal(PermissionRisk.Low, registry.Find(Plugin + ":customer:read", "1.0.0")!.Risk);

@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server;
 
@@ -20,9 +20,9 @@ internal sealed partial class IdentityAccountService
     private async ValueTask<SignInResult?> CheckCaptchaAsync(LoginInput input, AuditSubject subject, Guid? personId, CancellationToken ct)
     {
         if (input.Captcha is null)
-            return await RejectAsync(subject, new QianError(IdentityErrors.CaptchaRequired), "captcha_required", personId, ct).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(IdentityErrors.CaptchaRequired), "captcha_required", personId, ct).ConfigureAwait(false);
         if (!await VerifyCaptchaAsync(input.Captcha, ct).ConfigureAwait(false))
-            return await RejectAsync(subject, new QianError(IdentityErrors.CaptchaInvalid), "captcha_invalid", personId, ct).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(IdentityErrors.CaptchaInvalid), "captcha_invalid", personId, ct).ConfigureAwait(false);
         return null;
     }
 

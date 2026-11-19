@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Runtime;
 
@@ -131,5 +131,5 @@ public sealed class ServiceNotReadyException : InvalidOperationException
     /// <summary>构造不暴露不可见原因的异常。</summary>
     public ServiceNotReadyException() : base("服务不存在或尚未就绪。") { }
     /// <summary>供宿主转换的统一 NOT_FOUND 错误。</summary>
-    public QianError Error { get; } = new(PlatformErrors.NotFound);
+    public Error Error { get; } = new(PlatformErrors.NotFound);
 }

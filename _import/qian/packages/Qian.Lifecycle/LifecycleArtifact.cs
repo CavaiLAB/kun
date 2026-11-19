@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -71,8 +71,8 @@ internal sealed partial class LifecycleArtifact
         return value.Length != 0;
     }
 
-    internal static QianErrorException Invalid(string pointer, string reason) => new(new QianError(PlatformErrors.InputInvalid)
-    { Errors = [new QianFieldError(LifecycleErrors.Invalid, pointer, new Dictionary<string, string> { ["reason"] = reason })] });
+    internal static ErrorException Invalid(string pointer, string reason) => new(new Error(PlatformErrors.InputInvalid)
+    { Errors = [new FieldError(LifecycleErrors.Invalid, pointer, new Dictionary<string, string> { ["reason"] = reason })] });
 
     [GeneratedRegex("^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$", RegexOptions.CultureInvariant)] internal static partial Regex PluginIdPattern();
     [GeneratedRegex("^oci://[A-Za-z0-9.-]+(:[0-9]+)?(/[a-z0-9._-]+)+@sha256:[0-9a-f]{64}$", RegexOptions.CultureInvariant)] private static partial Regex ImagePattern();

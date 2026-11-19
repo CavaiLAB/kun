@@ -1,4 +1,4 @@
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.Abstractions;
 

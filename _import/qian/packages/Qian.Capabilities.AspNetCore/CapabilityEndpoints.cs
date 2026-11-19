@@ -7,7 +7,7 @@ using Microsoft.Extensions.Primitives;
 using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Plugin.Sdk.AspNetCore;
 
 namespace Qian.Capabilities.AspNetCore;
@@ -109,7 +109,7 @@ public static class CapabilityEndpoints
                 return Results.Json(await caller.Navigation().GetConsoleAsync(caller, http.RequestServices.GetRequiredService<ICurrentUser>(), http.RequestAborted).ConfigureAwait(false));
             }
             // Capabilities 或 Registry 尚未就绪、已停止时与不存在无法区分。
-            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
         })).RequireAuthorization().WithMetadata(ConsoleInHandler, new PlatformHttpContract("qian.capabilities")).Produces<PlatformConsoleCatalog>();
         return endpoints;
     }
@@ -124,10 +124,10 @@ public static class CapabilityEndpoints
     private static Guid? IdempotencyKey(StringValues values)
     {
         if (values.Count == 0) return null;
-        if (values.Count != 1 || values[0] is not { } raw) throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        if (values.Count != 1 || values[0] is not { } raw) throw new ErrorException(new Error(PlatformErrors.BadRequest));
         var text = raw.Trim();
         if (text.Length >= 2 && text[0] == '"' && text[^1] == '"') text = text[1..^1];
-        if (!Guid.TryParseExact(text, "D", out var key) || key == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.BadRequest));
+        if (!Guid.TryParseExact(text, "D", out var key) || key == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.BadRequest));
         return key;
     }
 }

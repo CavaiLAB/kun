@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Authz.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.AspNetCore;
 
@@ -46,18 +46,18 @@ public sealed partial class AuthzGrpcServerInterceptor(AuthzEnforcementSource so
         if (permissions.Length == 0 && !source.IsProduction(http.RequestServices)) { LogUndeclared(logger, context.Method); return; }
         try
         {
-            if (HttpEnforcement.ReadSubject(http, out var subject) is { } unauthenticated) throw new QianErrorException(unauthenticated);
+            if (HttpEnforcement.ReadSubject(http, out var subject) is { } unauthenticated) throw new ErrorException(unauthenticated);
             IEnumerable<string?> required = permissions.Length == 0 ? new string?[] { null } : permissions;
             foreach (var permission in required)
             {
                 var decision = await HttpEnforcement.EnforceAsync(http, source, subject, permission, AuthzEnforcement.GrpcEntryPoint, context.Method).ConfigureAwait(false);
-                if (!decision.Allow) throw new QianErrorException(new QianError(QianPermissionHandler.Denial(decision)));
+                if (!decision.Allow) throw new ErrorException(new Error(QianPermissionHandler.Denial(decision)));
             }
         }
-        catch (QianErrorException error) { throw Rpc(http, context, error.Error); }
+        catch (ErrorException error) { throw Rpc(http, context, error.Error); }
     }
 
-    private static RpcException Rpc(HttpContext http, ServerCallContext context, QianError error)
+    private static RpcException Rpc(HttpContext http, ServerCallContext context, Error error)
     {
         var catalog = http.RequestServices.GetService<ErrorCatalog>() ?? ErrorCatalog.CreateDefault();
         var trace = Activity.Current?.TraceId is { } id && id != default ? id.ToHexString() : ActivityTraceId.CreateRandom().ToHexString();

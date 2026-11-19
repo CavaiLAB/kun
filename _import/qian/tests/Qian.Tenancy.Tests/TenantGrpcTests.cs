@@ -16,8 +16,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Tenancy.Tests;
 
@@ -78,13 +78,13 @@ public sealed class TenantGrpcTests
     {
         await using var host = await GrpcHost.Start(Ct); var sender = new AsyncLocalTenantContext();
         var client = host.Channel.Intercept(new TenantGrpcClientInterceptor(sender));
-        await Assert.ThrowsAsync<QianErrorException>(() => Call(client, MethodType.Unary, host.Headers(A)));
+        await Assert.ThrowsAsync<ErrorException>(() => Call(client, MethodType.Unary, host.Headers(A)));
         using var scope = sender.BeginScope(A.ToString());
         foreach (var values in new[] { new[] { B.ToString() }, new[] { A.ToString(), A.ToString() } })
         {
             var headers = host.Headers(A); foreach (var value in values) headers.Add("tenant_id", value);
             foreach (var shape in Enum.GetValues<MethodType>())
-                await Assert.ThrowsAsync<QianErrorException>(() => Call(client, shape, headers));
+                await Assert.ThrowsAsync<ErrorException>(() => Call(client, shape, headers));
             Assert.Equal(values, headers.Where(entry => entry.Key == "tenant_id").Select(entry => entry.Value));
         }
         Assert.Empty(host.Calls);
@@ -156,9 +156,9 @@ public sealed class TenantGrpcTests
                     };
                 });
                 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
-                builder.Services.AddQianErrors();
+                builder.Services.AddKunErrors();
                 builder.Services.AddAuthorization(); host._app = builder.Build();
-                host._app.UseQianErrors(); host._app.UseAuthentication(); host._app.UseAuthorization(); host._app.MapGrpcService<Echo>().RequireAuthorization();
+                host._app.UseKunErrors(); host._app.UseAuthentication(); host._app.UseAuthorization(); host._app.MapGrpcService<Echo>().RequireAuthorization();
                 await host._app.StartAsync(ct); host.Channel = GrpcChannel.ForAddress(host._app.Urls.Single(), new GrpcChannelOptions { HttpHandler = new SocketsHttpHandler { UseProxy = false }, DisposeHttpClient = true }); return host;
             }
             catch { await host.DisposeAsync(); throw; }

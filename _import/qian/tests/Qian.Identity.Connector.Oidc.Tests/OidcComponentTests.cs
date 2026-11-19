@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Config;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Connector.Oidc.Tests;
 
@@ -26,9 +26,9 @@ public sealed class OidcComponentTests
         ["issuer"] = issuer, ["clientId"] = FakeOpenIdProvider.ClientId, ["clientSecret"] = secret ?? FakeOpenIdProvider.SecretRef, ["name"] = name, ["displayName"] = displayName
     }.Where(pair => pair.Value is not null).ToDictionary(StringComparer.Ordinal);
 
-    private static IReadOnlyList<QianFieldError> Invalid(object config)
+    private static IReadOnlyList<FieldError> Invalid(object config)
     {
-        var error = Assert.Throws<QianErrorException>(() => OidcConnectorOptions.FromConfig(Config(config)));
+        var error = Assert.Throws<ErrorException>(() => OidcConnectorOptions.FromConfig(Config(config)));
         Assert.Equal(PlatformErrors.InputInvalid, error.Error.Code);
         return error.Error.Errors!;
     }
@@ -40,7 +40,7 @@ public sealed class OidcComponentTests
     [InlineData("secretRef://other/identity/oidc")]
     public void 客户端密钥只接受secretRef_错误里不回显输入(string secret)
     {
-        var error = Assert.Throws<QianErrorException>(() => OidcConnectorOptions.FromConfig(Config(Valid(secret))));
+        var error = Assert.Throws<ErrorException>(() => OidcConnectorOptions.FromConfig(Config(Valid(secret))));
         var field = Assert.Single(error.Error.Errors!);
         Assert.Equal((PlatformErrors.FormatInvalid, "#/clientSecret"), (field.Code, field.Pointer));
         Assert.DoesNotContain(secret, JsonSerializer.Serialize(error.Error), StringComparison.Ordinal);
@@ -138,7 +138,7 @@ public sealed class OidcComponentTests
         Assert.Equal("企业身份源", Assert.Single(global.IdentityConnectors().List()).DisplayName);
         Assert.Equal("租户自己的 IdP", global.Scoped(tenant).IdentityConnectors().Find("oidc")!.Descriptor.DisplayName);
         Assert.Equal(PluginState.Failed, runtime.GetState("bad", ScopeKey.Global));
-        var failure = Assert.IsType<QianErrorException>(runtime.GetFailure("bad", ScopeKey.Global));
+        var failure = Assert.IsType<ErrorException>(runtime.GetFailure("bad", ScopeKey.Global));
         Assert.Contains(failure.Error.Errors!, e => e.Pointer == "#/clientSecret");
         Assert.Null(global.IdentityConnectors().Find("bad"));
 
@@ -150,7 +150,7 @@ public sealed class OidcComponentTests
         await runtime.MountAsync([new(new PluginEntry("renamed", "qian.identity.connector.oidc", "1.0.0", ScopeKey.Global, 1, Config(Valid(name: "corporate"))),
             (IQianPlugin)Activator.CreateInstance(entry)!, code.Provides.Select(name => new ServiceKey(name)).ToArray())], Ct);
         Assert.Equal(PluginState.Failed, runtime.GetState("renamed", ScopeKey.Global));
-        Assert.Contains(Assert.IsType<QianErrorException>(runtime.GetFailure("renamed", ScopeKey.Global)).Error.Errors!, error => error.Pointer == "#/name");
+        Assert.Contains(Assert.IsType<ErrorException>(runtime.GetFailure("renamed", ScopeKey.Global)).Error.Errors!, error => error.Pointer == "#/name");
         Assert.Empty(global.IdentityConnectors().List());
     }
 

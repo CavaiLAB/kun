@@ -2,7 +2,7 @@ using System.Text.Json;
 using Json.Schema;
 using Qian.Authz.Abstractions;
 using Qian.Registry;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Authz;
@@ -98,12 +98,12 @@ public sealed class PermissionCatalogCompiler(ISurfaceReader reader)
         if (string.IsNullOrWhiteSpace(file) || file.Any(char.IsControl)) throw Invalid("metadata#", "元数据来源名无效。");
         var parsed = reader.Parse(file, data.GetRawText());
         if (parsed.Syntax is null || parsed.Diagnostics.Any(d => d.Severity == "error"))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = parsed.Diagnostics.Where(d => d.Severity == "error").Select(d =>
-                new QianFieldError(AuthzErrors.MetadataInvalid, d.Error.Pointer ?? file + "#", new Dictionary<string, string> { ["reason"] = "元数据 JSON 语法无效。" })).ToArray() });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = parsed.Diagnostics.Where(d => d.Severity == "error").Select(d =>
+                new FieldError(AuthzErrors.MetadataInvalid, d.Error.Pointer ?? file + "#", new Dictionary<string, string> { ["reason"] = "元数据 JSON 语法无效。" })).ToArray() });
         var result = schema.Evaluate(parsed.Syntax.Data, new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical });
-        if (!result.IsValid) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)
+        if (!result.IsValid) throw new ErrorException(new Error(PlatformErrors.InputInvalid)
         {
-            Errors = Leaves(result).Take(100).Select(item => new QianFieldError(AuthzErrors.MetadataInvalid, Source(file) + "#" + item.InstanceLocation,
+            Errors = Leaves(result).Take(100).Select(item => new FieldError(AuthzErrors.MetadataInvalid, Source(file) + "#" + item.InstanceLocation,
                 new Dictionary<string, string> { ["reason"] = "权限元数据不符合 Schema。" })).ToArray()
         });
         return parsed.Syntax.Data;
@@ -134,6 +134,6 @@ public sealed class PermissionCatalogCompiler(ISurfaceReader reader)
         using var text = new StreamReader(input);
         return JsonSchema.FromText(text.ReadToEnd(), new BuildOptions { Dialect = Dialect.Draft202012, SchemaRegistry = new SchemaRegistry { Fetch = (_, _) => null } });
     }
-    private static QianErrorException Invalid(string location, string reason) => new(new QianError(PlatformErrors.InputInvalid)
-    { Errors = [new QianFieldError(AuthzErrors.MetadataInvalid, location, new Dictionary<string, string> { ["reason"] = reason })] });
+    private static ErrorException Invalid(string location, string reason) => new(new Error(PlatformErrors.InputInvalid)
+    { Errors = [new FieldError(AuthzErrors.MetadataInvalid, location, new Dictionary<string, string> { ["reason"] = reason })] });
 }

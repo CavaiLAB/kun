@@ -1,7 +1,7 @@
 using System.Globalization;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
@@ -67,7 +67,7 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         {
             using var proof = Proof(Password);
             try { return (Person?)await host.Accounts.CreatePersonAsync(new CreatePerson("竞争者" + i, [new(IdentifierKind.Phone, shared, true)]) { InitialPassword = proof }, Ct); }
-            catch (QianErrorException error) { Assert.Equal("IDENTIFIER_IN_USE", error.Error.Code.Code); return null; }
+            catch (ErrorException error) { Assert.Equal("IDENTIFIER_IN_USE", error.Error.Code.Code); return null; }
         }));
         var winner = Assert.Single(racers, p => p is not null)!;
         Assert.Equal(11, racers.Count(p => p is null));
@@ -250,7 +250,7 @@ public sealed class AccountModelTests(PostgresFixture postgres) : IClassFixture<
         var results = await Task.WhenAll(candidates.Select(async candidate =>
         {
             try { await Join(host, contested, candidate.Id); return "ok"; }
-            catch (QianErrorException error) { return error.Error.Code.Code; }
+            catch (ErrorException error) { return error.Error.Code.Code; }
         }));
         Assert.Equal(1, results.Count(r => r == "ok"));
         Assert.Equal(5, results.Count(r => r == "CARDINALITY_USER_LIMIT"));

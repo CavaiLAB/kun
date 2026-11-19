@@ -13,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Sample.Crm;
 
 namespace Qian.Audit.Tests;
@@ -87,7 +87,7 @@ public sealed partial class AuditStoreTests
         using var scope = tenant.BeginScope(A);
         await using (var weak = await app.BeginTransactionAsync(IsolationLevel.ReadCommitted, Ct))
         {
-            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), weak, Ct))).Error.Code.Code);
+            Assert.Equal("INPUT_INVALID", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), weak, Ct))).Error.Code.Code);
             await SetTenant(app, weak, A);
             await using var raw = new NpgsqlCommand("SELECT * FROM plugin_qian_audit.transaction_tip(@id)", app, weak);
             raw.Parameters.AddWithValue("id", Guid.CreateVersion7());
@@ -96,11 +96,11 @@ public sealed partial class AuditStoreTests
         }
         await using (var transaction = await app.BeginTransactionAsync(IsolationLevel.Serializable, Ct))
         {
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), transaction, Ct))).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), transaction, Ct))).Error.Code.Code);
             await SetTenant(app, transaction, B);
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), transaction, Ct))).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), transaction, Ct))).Error.Code.Code);
             await SetTenant(app, transaction, A);
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(tenant: B), transaction, Ct))).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(tenant: B), transaction, Ct))).Error.Code.Code);
             await transaction.RollbackAsync(Ct);
         }
         await using (var transaction = await app.BeginTransactionAsync(IsolationLevel.Serializable, Ct))
@@ -159,14 +159,14 @@ public sealed partial class AuditStoreTests
         await using (var session = await data.OpenAsync<CrmDbContext>(Ct))
         {
             await using var transaction = await session.Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
-            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(id: record.Id), transaction.GetDbTransaction(), Ct))).Error.Code.Code);
+            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(id: record.Id), transaction.GetDbTransaction(), Ct))).Error.Code.Code);
             await transaction.RollbackAsync(Ct);
         }
         await Admin("UPDATE plugin_qian_audit.audit_chain_state SET tip_seq = 8;");
         await using (var session = await data.OpenAsync<CrmDbContext>(Ct))
         {
             await using var transaction = await session.Context.Database.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
-            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QianErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), transaction.GetDbTransaction(), Ct))).Error.Code.Code);
+            Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<ErrorException>(() => audit.AppendEnlistedAsync(CanonicalizerTests.Record(), transaction.GetDbTransaction(), Ct))).Error.Code.Code);
             await transaction.RollbackAsync(Ct);
         }
     }

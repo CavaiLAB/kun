@@ -68,7 +68,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 每个可打包的项目都在项目文件里写档位与角色（`<PropertyGroup Label="档位">`）：
   - `KunTier`：`kernel` 是内核档，放通用机制，不知道租户目录、人员、角色、组件清单这些产品概念；`platform` 是平台档，带产品语义，以组件形式装配；
   - `KunRole`：`contract` 是契约，`provider` 是提供者；
-  - `Kun.Core` 另写 `<KunZeroDependency>true</KunZeroDependency>`。
+  - `Kun.Core` 与 `Kun.Errors` 另写 `<KunZeroDependency>true</KunZeroDependency>`。
 
   没写或取值不对（区分大小写），构建报 KUNTIER001、KUNTIER002（仓库根的 `Directory.Build.targets`）。测试、工具、宿主、样例不打包，不写。新包的档位按蓝图 D23.9 的归并对照定，各批次开工时按依赖图复核。
 - 依赖门禁 `scripts/check_deps.py` 读各项目的 `obj/project.assets.json`，包与项目两类依赖都查：
@@ -78,12 +78,12 @@ dotnet format --verify-no-changes --exclude _import/qian
   | K | 内核档包的传递依赖里不得有平台档的包 |
   | P | 平台档包的传递依赖里，平台档的包只能是契约；内核档的包不限 |
   | D | 契约包对内核档包的直接依赖只能是契约 |
-  | C | 零依赖的包不得有项目引用，包引用只许 `Microsoft.Extensions.*` |
+  | C | 零依赖的包只能依赖别的零依赖包；除此之外的包引用只许 `Microsoft.Extensions.*` |
 
   D、C 不计只在构建时用的包引用，即 `PrivateAssets="all"` 而且不带编译、运行时程序集的，比如分析器。`PrivateAssets="all"` 引用运行时库照样算：它不进 nuspec，使用方拿不到它，包会坏。
 - 暂时去不掉的违规边记成例外，写在边起点的项目文件里，一条边一项：`<KunTierException Include="被依赖的包" Rule="K" Until="B5" Reason="…" />`。三个属性都必填，`Until` 写最早能去掉的批次。K、P 查传递依赖时跳过记了例外的边，所以只在出问题的那条边的起点记一次。边没了或者不再违规，门禁报例外已失效，要删掉；例外只减不增，现有的用 `git grep KunTierException` 查。
 - 本机跑：`python3 scripts/check_deps.py`（先还原 `Kun.slnx`，已还原时加 `--no-restore`）。自测与样例在 `tests/gates/`：`python3 -m unittest discover -s tests/gates -v`。
-- `Kun.Core` 只依赖 BCL，不加第三方包引用（规则 C 把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
+- `Kun.Core` 只依赖 BCL 与同为零依赖的 `Kun.Errors`，不加第三方包引用（规则 C 把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
 - 禁用符号与平台分析器按档位接入（D23.14 第 4 点，仓库根的 `Directory.Build.targets`）：`BannedSymbols.txt`（RS0030）与 `_import/qian/tools/Qian.Build.Analyzers`（QIAN0002–QIAN0006）接平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`，现在是 `_import/qian/hosts/` 下的两个）；过渡期 `_import/qian/` 下的项目全部接入，内核档的包也在内，各域批次把包搬出过渡目录时再按归属收窄。仓库根上 Kun 的项目不接，被禁的类型就定义在 `src/` 下；Kun 旧类型上的 `Obsolete` 诊断号（如 KUNS2S001、KUNLEGACY001）照旧随警告即错误报错。新写的宿主要写 `KunHost`。
 - 新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。
 - 蓝图的归档名单里有 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9），各域批次会把它们移出解决方案。
@@ -111,7 +111,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - Saga 只做编排：一个 Saga 是有序的步骤，每步有执行与补偿；补偿从失败的那一步起逆序执行，补偿本身要幂等，没执行过的步骤也要能安全补偿。
 - 服务间零信任：外部令牌只在 `Kun.Gateway` 校验；网关用自己的私钥签发内部短期令牌（RS256 或 ES256，不用 HS256），下游经 `Kun.Security` 校验。身份（`sub`、`tenant_id`）只从内部令牌的声明里取，不信 `X-User-Id` 这类请求头。
 - 多租户：`Kun.Core` 的 `ITenantContext` 贯穿全栈；实现 `IMultiTenant` 的实体自动带 `TenantId` 查询过滤器，除明确的管理场景外不要用 `IgnoreQueryFilters()`；可以再加 PostgreSQL 行级安全作纵深防御。租户号改为只收 Guid 是 B5 的事（D23.5）。
-- 业务失败返回 `Result` / `Result<T>`，异常只留给系统性故障（并发、网络、基础设施）。gRPC 端点可以 `result.EnsureSuccess()`，由全局拦截器把失败转成对应的状态码。
+- 业务失败返回 `Result` / `Result<T>`，异常只留给系统性故障（并发、网络、基础设施）。失败带的是 `Kun.Errors` 的 `Error`：错误码先定义成 `ErrorCode` 并登记进错误码目录（平台内置的在 `PlatformErrors`），需要抛的时候只抛 `ErrorException`。HTTP 宿主用 `Kun.Errors.AspNetCore` 的 `AddKunErrors()` 与 `UseKunErrors()` 把错误写成 problem+json（`ErrorDetail`）；gRPC 端点可以 `result.EnsureSuccess()`，由 `Kun.Grpc` 的拦截器按错误码的 HTTP 状态转成 gRPC 状态码。
 - 审计按需开启：命令用 `AddKunMediator(b => b.AddAuditBehavior<TCommand, TResponse>())` 登记，查询默认不审计。
 
 ### 命名与提交

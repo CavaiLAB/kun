@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using SemanticVersion = SemanticVersioning.Version;
 
 namespace Qian.Capabilities;
@@ -41,6 +41,6 @@ internal sealed class ContractAdmission(InstalledContractRepository repository, 
     {
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) =>
-            throw new QianErrorException(new QianError(PlatformErrors.PreconditionFailed) { Pointer = ErrorPointer.Input("contracts", contractId) });
+            throw new ErrorException(new Error(PlatformErrors.PreconditionFailed) { Pointer = ErrorPointer.Input("contracts", contractId) });
     }
 }

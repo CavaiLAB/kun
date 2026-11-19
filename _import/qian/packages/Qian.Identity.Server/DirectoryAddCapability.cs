@@ -8,7 +8,7 @@ using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server;
 
@@ -43,8 +43,8 @@ internal sealed class DirectoryAddCapability(IPluginContext owner, IdentityAccou
         var (tenantId, personId) = await DirectoryCapabilityGuard.AuthorizeAsync(caller, accounts, Permission, linked.Token).ConfigureAwait(false);
         AddDirectoryMember request;
         try { request = input.Deserialize(DirectoryCapabilityJson.Default.AddDirectoryMember) ?? throw new JsonException(); }
-        catch (JsonException) { throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)); }
-        if (request.IdempotencyKey == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        catch (JsonException) { throw new ErrorException(new Error(PlatformErrors.InputInvalid)); }
+        if (request.IdempotencyKey == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.identity", EventActor.User(personId.ToString("D"))));
         var fingerprint = new AuditInputProjection(JsonSerializer.SerializeToElement(Definition.InputSchema), isCommand: true).InputHash(input)!;
         using var password = request.InitialPassword is null ? null : new AuthenticationProof(Encoding.UTF8.GetBytes(request.InitialPassword));
@@ -54,7 +54,7 @@ internal sealed class DirectoryAddCapability(IPluginContext owner, IdentityAccou
             added = await DirectoryMemberAddition.RunAsync(accounts, caller.Audit(), tenantId, personId, "api", fingerprint, request.IdempotencyKey,
                 new DirectoryMemberInput(request.Identifier, request.DisplayName) { InitialPassword = password, Account = request.Account }, linked.Token).ConfigureAwait(false);
         }
-        catch (QianErrorException error) { throw DirectoryMemberAddition.Remap(error, Pointers); }
+        catch (ErrorException error) { throw DirectoryMemberAddition.Remap(error, Pointers); }
         var membership = added.Membership;
         return JsonSerializer.SerializeToElement(new DirectoryMemberAddResult(membership.Id, membership.PersonId, membership.Account, membership.Status, added.PersonCreated, added.Restored, added.GrantedRoles),
             DirectoryCapabilityJson.Default.DirectoryMemberAddResult);
@@ -87,7 +87,7 @@ internal static class DirectoryMemberAddition
         catch (Exception error) when (audit is not null)
         {
             using var finish = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            var code = (error as QianErrorException)?.Error.Code.Code;
+            var code = (error as ErrorException)?.Error.Code.Code;
             await audit.AppendAsync(Record("failure", JsonSerializer.SerializeToElement(new { attempt, code })), finish.Token).ConfigureAwait(false);
             throw;
         }
@@ -103,15 +103,15 @@ internal static class DirectoryMemberAddition
     }
 
     // 映射表之外的位置换成整个请求体，不把身份组件内部的字段名带进别的契约。
-    internal static QianErrorException Remap(QianErrorException error, IReadOnlyDictionary<string, string> pointers)
+    internal static ErrorException Remap(ErrorException error, IReadOnlyDictionary<string, string> pointers)
     {
         string Map(string pointer) => pointers.TryGetValue(pointer, out var mapped) ? mapped : "#";
         var source = error.Error;
         if (source.Pointer is null && source.Errors.Count == 0) return error;
-        return new QianErrorException(new QianError(source.Code, source.Args)
+        return new ErrorException(new Error(source.Code, source.Args)
         {
             Pointer = source.Pointer is null ? null : Map(source.Pointer), Allowed = source.Allowed,
-            Errors = [.. source.Errors.Select(item => new QianFieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
+            Errors = [.. source.Errors.Select(item => new FieldError(item.Code, Map(item.Pointer), item.Args) { Allowed = item.Allowed })]
         }, error);
     }
 }

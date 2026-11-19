@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Registry.Tests;
 
@@ -45,7 +45,7 @@ public sealed partial class PatchPersistenceTests
                 Assert.Equal("Submitted", entry.State); Assert.Equal(digest, entry.Digest); accepted++;
                 continue;
             }
-            var error = await Assert.ThrowsAsync<QianErrorException>(() => running.Registry.SubmitArtifactAsync(files, digest, "tck", Ct).AsTask());
+            var error = await Assert.ThrowsAsync<ErrorException>(() => running.Registry.SubmitArtifactAsync(files, digest, "tck", Ct).AsTask());
             Assert.Equal("INPUT_INVALID", error.Error.Code.Code);
             Assert.All(error.Error.Errors, field => Assert.Equal("REGISTRY_INPUT_INVALID", field.Code.Code));
             Assert.True(expected.Order(StringComparer.Ordinal).SequenceEqual(error.Error.Errors.Select(field => field.Pointer).Order(StringComparer.Ordinal)),

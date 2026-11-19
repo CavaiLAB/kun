@@ -1,6 +1,7 @@
 using Kun.Core.Cqrs;
 using Kun.Core.Results;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.Sample.Catalog.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +25,7 @@ public sealed class AdjustStockCommandHandler(
             .FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken);
 
         if (product is null)
-            return Result.Fail(Error.NotFound("Product.NotFound", $"Product '{request.ProductId}' was not found."));
+            return Result.Fail(new Error(PlatformErrors.NotFound));
 
         product.AdjustStock(request.Delta);
         await unitOfWork.SaveChangesAsync(cancellationToken);

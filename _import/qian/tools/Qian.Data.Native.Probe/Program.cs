@@ -9,7 +9,7 @@ using Npgsql;
 using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 try
 {

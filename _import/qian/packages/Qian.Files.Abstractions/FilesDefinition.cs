@@ -75,7 +75,7 @@ public interface IFileBackendRegistry
 /// <summary>存储后端工厂：由组件配置的 storage 节创建后端实例。</summary>
 public interface IFileBackendFactory
 {
-    /// <summary>创建后端；配置不合法时抛出带 INPUT_INVALID 的 QianErrorException。</summary>
+    /// <summary>创建后端；配置不合法时抛出带 INPUT_INVALID 的 ErrorException。</summary>
     IFileBackend Create(FileBackendContext context);
 }
 

@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Lifecycle;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;

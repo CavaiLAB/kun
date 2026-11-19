@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Apollo;
 
@@ -15,7 +15,7 @@ internal sealed class ConfigurationService(IConfiguration configuration, IFeatur
         return configuration[key];
     }
     public string GetRequiredValue(string key) => GetValue(key) is { Length: > 0 } value ? value :
-        throw new QianErrorException(new QianError(ConfigErrors.RequiredMissing, new Dictionary<string, string> { ["key"] = key }));
+        throw new ErrorException(new Error(ConfigErrors.RequiredMissing, new Dictionary<string, string> { ["key"] = key }));
     public IReadOnlyDictionary<string, string?> ReadSection(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);

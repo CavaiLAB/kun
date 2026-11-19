@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 using Qian.Registry;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -142,8 +142,8 @@ internal sealed class PermissionSet
 
     private static bool Valid(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= MaxLength && !value.Any(char.IsControl);
 
-    private static QianErrorException Invalid(IEnumerable<(string Pointer, string Reason)> errors) => new(new QianError(PlatformErrors.InputInvalid)
+    private static ErrorException Invalid(IEnumerable<(string Pointer, string Reason)> errors) => new(new Error(PlatformErrors.InputInvalid)
     {
-        Errors = errors.Take(100).Select(error => new QianFieldError(LifecycleErrors.Invalid, error.Pointer, new Dictionary<string, string> { ["reason"] = error.Reason })).ToArray()
+        Errors = errors.Take(100).Select(error => new FieldError(LifecycleErrors.Invalid, error.Pointer, new Dictionary<string, string> { ["reason"] = error.Reason })).ToArray()
     });
 }

@@ -17,7 +17,7 @@
 内置 Provider 额外提供三个端口，服务键在 `IdentityDefinition` 上，`ctx.IdentityAccounts()` / `ctx.IdentitySignIn()` / `ctx.IdentityFactors()` 按当前 scope 注入：
 
 - `IIdentityAccounts`：创建 Person（多标识，初始密码，可选平台资格）、按标识查找、在当前租户建立成员（经租户配额判定，幂等）、绑定 / 解绑 / 换绑标识、自助改密、运营重置密码、状态变更、设置成员的租户管理员标志（`SetTenantAdministratorAsync`，运营替换管理员时撤销原管理员的标志，S1-TEN-010）、外部身份绑定，以及 `BumpIdentityRevisionAsync(personId, reason)`——授权变更后递增该 Person 在当前租户的身份修订（返回新的 `identity_revision`），旧令牌随即被服务端拒绝。`sub`（Person.Id）创建后永不改写；解绑最后一个已验证标识返回结构化的 `LAST_VERIFIED_IDENTIFIER`。返回值只含掩码后的标识。
-- `ISignInPipeline`：`SignInAsync(LoginInput, LoginContext)`、`SelectAsync`（用 5 分钟选择令牌换具体 Membership 或平台身份，切换租户同样走这里）、`ChangeInitialPasswordAsync`、`BeginSwitchAsync`。结果 `SignInResult` 的 `Status` 为 `Authenticated`（带 `AccountSession`）/ `SelectionRequired`（带票据与可选身份）/ `PasswordChangeRequired` / `Failed`（带 `QianError`，锁定时带 `RetryAfter`）。所有登录方式构造同一个 `LoginInput`，临时证明（`AuthenticationProof`）使用后由调用方释放。
+- `ISignInPipeline`：`SignInAsync(LoginInput, LoginContext)`、`SelectAsync`（用 5 分钟选择令牌换具体 Membership 或平台身份，切换租户同样走这里）、`ChangeInitialPasswordAsync`、`BeginSwitchAsync`。结果 `SignInResult` 的 `Status` 为 `Authenticated`（带 `AccountSession`）/ `SelectionRequired`（带票据与可选身份）/ `PasswordChangeRequired` / `Failed`（带 `Error`，锁定时带 `RetryAfter`）。所有登录方式构造同一个 `LoginInput`，临时证明（`AuthenticationProof`）使用后由调用方释放。
 - `IAuthenticatorFactorRegistry`：认证因子注册表，同名独占、可撤销；内置的 `password` 由身份 Provider 占用，短信 OTP、TOTP 由各自组件注册。
 
 `IdentityErrors` 是身份领域稳定错误码的唯一定义处，由 Provider 在挂载时登记到 `ErrorCatalog`。
@@ -38,12 +38,12 @@
 - **注册表 seam（R38）**：`IdentityDefinition.ConnectorsKey` 即 `Identity.Connectors`；`ctx.IdentityConnectors()` 返回绑定当前上下文的注册表，`Register(name, connector)` 等价于提供具名服务键 `Identity.Connectors:<name>`，组件清单的 `provides` 写同一个键。注册名必须等于清单 `Id`。挂在租户 scope 的同名注册遮蔽全局项；`Find` 与 `List` 只看得到当前 scope 可见的，被 restriction 过滤的与不存在的同样查不到，非法名字直接返回 null。`IIdentityService.Connectors` 按调用时的租户上下文解析。
 - **清单（connector.manifest）** 即 `ConnectorDescriptor`：`Id`（小写字母开头，小写字母、数字或连字符，最长 64，也是回调路径段）、`DisplayName`（1–64 字，无控制字符）、`Protocol`（小写短名，如 `oidc`）、`Terminals`（非空、不重复，取自 `ConnectorTerminals`：`pc` / `mobile` / `workbench`）、`ConfigSchema` 与 `CallbackTemplate`（固定为 `/connect/callback/{connectorId}`，回调由身份 Provider 统一接收）。`ConnectorManifest.Check` 逐项返回带 pointer 的字段错误，`Validate` 抛 INPUT_INVALID；注册时校验，TCK 用同一个校验器。
 - **配置 Schema 规则**：根与每个嵌套 object 都是 `"type": "object"` 且 `additionalProperties: false`；名字像密钥的属性（secret、password、token、credential、private key、api key）必须带 `x-qian-sensitive: true`；敏感属性必须是 string，且 `pattern` 以 `^secretRef://` 开头，即只能填 secretRef。描述本身不含任何配置值。
-- **上下文与失败**：`ConnectorContext` 带身份 Provider 生成的 state、nonce、PKCE `CodeVerifier` 与回调地址，连接器原样使用、不自己保存。协议失败抛 `QianErrorException`：nonce 不符用 `AUTH_CONNECTOR_STATE_INVALID`，上游响应无效或签名不符用 `BAD_GATEWAY`，上游超时用 `GATEWAY_TIMEOUT`；上游的 `error` 回调由 Provider 先行处理，不会传给连接器。`ExternalAssertion.Profile` 只放展示用资料，`ToString` 不打印内容。
+- **上下文与失败**：`ConnectorContext` 带身份 Provider 生成的 state、nonce、PKCE `CodeVerifier` 与回调地址，连接器原样使用、不自己保存。协议失败抛 `ErrorException`：nonce 不符用 `AUTH_CONNECTOR_STATE_INVALID`，上游响应无效或签名不符用 `BAD_GATEWAY`，上游超时用 `GATEWAY_TIMEOUT`；上游的 `error` 回调由 Provider 先行处理，不会传给连接器。`ExternalAssertion.Profile` 只放展示用资料，`ToString` 不打印内容。
 - **错误码**：`IdentityErrors` 增加连接器登录的四个业务码 `AUTH_CONNECTOR_STATE_INVALID`（422）、`AUTH_CONNECTOR_DENIED`（422）、`AUTH_BINDING_CONFLICT`（409，不透露对方账号）、`AUTH_BINDING_EXPIRED`（422）；归属 `qian.identity`，随身份 Provider 挂载登记，不进平台内置目录。依赖方 Qian.Identity.Client 的登录回调复用前两个码（state 失效、发行方拒绝），外壳只需识别一套。
 
 通用 OIDC 连接器见 [Qian.Identity.Connector.Oidc](../Qian.Identity.Connector.Oidc/README.md)。
 
-`IAuthenticatorFactor` 提供挑战与验证端口。AuthenticationProof 复制临时材料、禁止默认打印／JSON 序列化并在 Dispose 时清零；失败携带 QianError，由宿主映射为 ErrorDetail，不自建错误体。
+`IAuthenticatorFactor` 提供挑战与验证端口。AuthenticationProof 复制临时材料、禁止默认打印／JSON 序列化并在 Dispose 时清零；失败携带 Error，由宿主映射为 ErrorDetail，不自建错误体。
 
 进程内事件为 signing-in（waterfall）、signed-in / signed-out（emit）、member-disabled（parallel）。跨进程五类事件有稳定 `[IntegrationEventId]`、源生成 JSON 与各自 payload Schema；通过 `RegisterIdentityEvents()` 显式登记，外层事件信封仍遵守 contracts/v0。载荷只有身份投影：event_id、occurred_at 由 Qian.Events 写入端入队时生成，tenant_id 取发布时的租户上下文，三者只在信封上，载荷类型也不实现 Kun 的 `IIntegrationEvent`（[S1-DEC-020](../../pm/tasks/S1-DEC-020.md)）。事件和 Session 的 ToString 不打印 sid，载荷不含密码、认证答案或 access/refresh token。
 

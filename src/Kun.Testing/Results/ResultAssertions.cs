@@ -1,4 +1,5 @@
 using Kun.Core.Results;
+using Kun.Errors;
 
 namespace Kun.Testing.Results;
 
@@ -22,7 +23,7 @@ public static class ResultAssertions
     {
         if (result.IsSuccess) return;
         throw new KunAssertionException(
-            $"ShouldBeSuccess — expected success but saw failure with Error {{ Code={result.Error.Code}, Type={result.Error.Type}, Message={result.Error.Message} }}.");
+            $"ShouldBeSuccess — expected success but saw failure with Error {{ Code={result.Error.Code.Code}, Message={result.Error.Message} }}.");
     }
 
     /// <summary>Asserts the result is a failure and returns its <see cref="Error"/> for further inspection.</summary>
@@ -33,7 +34,7 @@ public static class ResultAssertions
     }
 
     /// <summary>
-    /// Asserts the result is a failure whose <see cref="Error.Code"/>
+    /// Asserts the result is a failure whose error code (<see cref="ErrorCode.Code"/>)
     /// equals <paramref name="code"/> (ordinal comparison). Returns
     /// the <see cref="Error"/> for further inspection.
     /// </summary>
@@ -42,25 +43,21 @@ public static class ResultAssertions
         ArgumentNullException.ThrowIfNull(code);
         if (result.IsSuccess)
             throw new KunAssertionException($"ShouldHaveErrorCode — expected failure with Code={code} but saw success.");
-        if (!string.Equals(result.Error.Code, code, StringComparison.Ordinal))
+        if (!string.Equals(result.Error.Code.Code, code, StringComparison.Ordinal))
             throw new KunAssertionException(
-                $"ShouldHaveErrorCode — expected Code={code} but saw Code={result.Error.Code}.");
+                $"ShouldHaveErrorCode — expected Code={code} but saw Code={result.Error.Code.Code}.");
         return result.Error;
     }
 
     /// <summary>
-    /// Asserts the result is a failure whose <see cref="Error.Type"/>
-    /// equals <paramref name="type"/>. Returns the <see cref="Error"/>
+    /// Asserts the result is a failure carrying <paramref name="code"/>
+    /// (compared by <see cref="ErrorCode.Code"/>). Returns the <see cref="Error"/>
     /// for further inspection.
     /// </summary>
-    public static Error ShouldHaveErrorType(this Result result, ErrorType type)
+    public static Error ShouldHaveErrorCode(this Result result, ErrorCode code)
     {
-        if (result.IsSuccess)
-            throw new KunAssertionException($"ShouldHaveErrorType — expected failure with Type={type} but saw success.");
-        if (result.Error.Type != type)
-            throw new KunAssertionException(
-                $"ShouldHaveErrorType — expected Type={type} but saw Type={result.Error.Type}.");
-        return result.Error;
+        ArgumentNullException.ThrowIfNull(code);
+        return result.ShouldHaveErrorCode(code.Code);
     }
 
     // ── Result<T> ───────────────────────────────────────────────────────────
@@ -75,7 +72,7 @@ public static class ResultAssertions
     {
         if (result.IsSuccess) return result.Value;
         throw new KunAssertionException(
-            $"ShouldBeSuccess<{typeof(T).Name}> — expected success but saw failure with Error {{ Code={result.Error.Code}, Type={result.Error.Type}, Message={result.Error.Message} }}.");
+            $"ShouldBeSuccess<{typeof(T).Name}> — expected success but saw failure with Error {{ Code={result.Error.Code.Code}, Message={result.Error.Message} }}.");
     }
 
     /// <summary>Asserts the result is a failure and returns its <see cref="Error"/> for further inspection.</summary>
@@ -87,7 +84,7 @@ public static class ResultAssertions
     }
 
     /// <summary>
-    /// Asserts the result is a failure whose <see cref="Error.Code"/>
+    /// Asserts the result is a failure whose error code (<see cref="ErrorCode.Code"/>)
     /// equals <paramref name="code"/> (ordinal comparison). Returns
     /// the <see cref="Error"/> for further inspection.
     /// </summary>
@@ -97,25 +94,20 @@ public static class ResultAssertions
         if (result.IsSuccess)
             throw new KunAssertionException(
                 $"ShouldHaveErrorCode<{typeof(T).Name}> — expected failure with Code={code} but saw success (Value={result.Value}).");
-        if (!string.Equals(result.Error.Code, code, StringComparison.Ordinal))
+        if (!string.Equals(result.Error.Code.Code, code, StringComparison.Ordinal))
             throw new KunAssertionException(
-                $"ShouldHaveErrorCode<{typeof(T).Name}> — expected Code={code} but saw Code={result.Error.Code}.");
+                $"ShouldHaveErrorCode<{typeof(T).Name}> — expected Code={code} but saw Code={result.Error.Code.Code}.");
         return result.Error;
     }
 
     /// <summary>
-    /// Asserts the result is a failure whose <see cref="Error.Type"/>
-    /// equals <paramref name="type"/>. Returns the <see cref="Error"/>
+    /// Asserts the result is a failure carrying <paramref name="code"/>
+    /// (compared by <see cref="ErrorCode.Code"/>). Returns the <see cref="Error"/>
     /// for further inspection.
     /// </summary>
-    public static Error ShouldHaveErrorType<T>(this Result<T> result, ErrorType type)
+    public static Error ShouldHaveErrorCode<T>(this Result<T> result, ErrorCode code)
     {
-        if (result.IsSuccess)
-            throw new KunAssertionException(
-                $"ShouldHaveErrorType<{typeof(T).Name}> — expected failure with Type={type} but saw success (Value={result.Value}).");
-        if (result.Error.Type != type)
-            throw new KunAssertionException(
-                $"ShouldHaveErrorType<{typeof(T).Name}> — expected Type={type} but saw Type={result.Error.Type}.");
-        return result.Error;
+        ArgumentNullException.ThrowIfNull(code);
+        return result.ShouldHaveErrorCode(code.Code);
     }
 }

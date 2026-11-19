@@ -190,7 +190,7 @@ public sealed partial class AccountRulesTests
         Assert.False(await IdentityAccountService.JitEnabledAsync(null, "qian.identity.server", ct));
         Assert.True(await IdentityAccountService.JitEnabledAsync(new JitSetting(() => true), "qian.identity.server", ct));
         // 读失败也含租户设置服务解析组件清单时的 InvalidOperationException（本组件直接挂载、没有已安装组件记录的宿主）。
-        foreach (var value in new Func<bool?>[] { () => null, () => false, () => throw new Qian.Runtime.Errors.QianErrorException(new Qian.Runtime.Errors.QianError(Qian.Runtime.Errors.PlatformErrors.Unavailable)),
+        foreach (var value in new Func<bool?>[] { () => null, () => false, () => throw new Kun.Errors.ErrorException(new Kun.Errors.Error(Kun.Errors.PlatformErrors.Unavailable)),
             () => throw new System.Text.Json.JsonException(), () => throw new InvalidOperationException("Sequence contains no matching element") })
             Assert.False(await IdentityAccountService.JitEnabledAsync(new JitSetting(value), "qian.identity.server", ct));
         var asked = new JitSetting(() => true);
@@ -217,7 +217,7 @@ public sealed partial class AccountRulesTests
         {
             new LoginInput("web", null, null, null, proof) { Identifier = "13812345678" }, new TenantSelection("ticket-value", Guid.NewGuid()),
             new InitialPasswordChange("ticket-value", proof), new CreatePerson("张三", []) { InitialPassword = proof }, new PasswordChange(proof, proof), new PasswordReset(proof, "reason"),
-            new CaptchaAnswer("id", "answer"), new LoginTicket(LoginTicketPurpose.Selection, "ticket-value", DateTimeOffset.UtcNow), new IdentityAccountOptions(), SignInResult.Failure(new Qian.Runtime.Errors.QianError(IdentityErrors.InvalidCredentials))
+            new CaptchaAnswer("id", "answer"), new LoginTicket(LoginTicketPurpose.Selection, "ticket-value", DateTimeOffset.UtcNow), new IdentityAccountOptions(), SignInResult.Failure(new Kun.Errors.Error(IdentityErrors.InvalidCredentials))
         };
         foreach (var value in texts)
         {

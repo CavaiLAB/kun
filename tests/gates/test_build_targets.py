@@ -219,7 +219,7 @@ class AotGuardTests(unittest.TestCase):
                 self.assertNotIn("error KUNAOT", output)
 
     def test_projects_in_both_trees_import_the_root_guards(self):
-        for project in ("src/Kun.Core/Kun.Core.csproj", "_import/qian/packages/Qian.Runtime.Errors/Qian.Runtime.Errors.csproj"):
+        for project in ("src/Kun.Core/Kun.Core.csproj", "src/Kun.Errors/Kun.Errors.csproj"):
             with self.subTest(project=project):
                 returncode, output = msbuild_targets(ROOT / project, "KunAotGuard;KunRequirePublicApiFiles")
                 self.assertEqual(0, returncode, output)
@@ -242,7 +242,7 @@ class AotListTests(unittest.TestCase):
         names = {p.name for p in aot_projects.aot_projects(self.projects)}
         self.assertIn("Kun.Identity.AspNetCore", names)  # 旧的四份清单都漏了它（S1-KUN-015）
         self.assertNotIn("Kun.Auditing", names)  # EF 拦截器带出 IL2091；B6 并入平台档，不做 AOT（D23.9）
-        self.assertTrue({"Qian.Gateway", "Qian.Identity.Client", "Qian.Runtime.Errors"} <= names)
+        self.assertTrue({"Qian.Gateway", "Qian.Identity.Client", "Kun.Errors"} <= names)
 
     def test_compatible_projects_keep_the_analyzers_on_and_nobody_writes_the_old_switch(self):
         for path, (props, _) in evaluated().items():

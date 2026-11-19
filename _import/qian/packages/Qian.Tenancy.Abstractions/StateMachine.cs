@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy;
 

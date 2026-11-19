@@ -13,8 +13,8 @@ using Qian.Capabilities;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Tenancy.AspNetCore;
 
@@ -33,7 +33,7 @@ public static partial class TenancyEndpoints
                 {
                     null => (TenantStatus?)null, "pending" => TenantStatus.Pending, "trial" => TenantStatus.Trial,
                     "active" => TenantStatus.Active, "grace" => TenantStatus.Grace, "suspended" => TenantStatus.Suspended,
-                    _ => throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, "#/status")] })
+                    _ => throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.ValueNotAllowed, "#/status")] })
                 };
                 var result = await ctx.Inject<ITenantOperations>(TenantOperations.Key).OverviewAsync(skip, take, filter, keyword, http.RequestAborted).ConfigureAwait(false);
                 return Results.Ok(new TenantList(result.Items) { Total = result.Total, Counts = result.Counts });
@@ -42,7 +42,7 @@ public static partial class TenancyEndpoints
         Bind(endpoints.MapPost("/api/tenancy/tenants", (HttpContext http, CreateTenant input) =>
             Respond(http, source, "create", null, async (ctx, principal) =>
             {
-                var administrator = input.Administrator ?? throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+                var administrator = input.Administrator ?? throw new ErrorException(new Error(PlatformErrors.InputInvalid));
                 // 先按 R163 核对开户请求与指定的管理员账号（需要时用初始密码设定它的密码）；初始密码到此为止，不交给开通编排。
                 await ctx.Inject<ITenantAdministration>(TenantAdministration.Key).PrepareAdministratorAsync(input, principal.Subject, http.RequestAborted).ConfigureAwait(false);
                 var designated = administrator with { InitialPassword = null };
@@ -51,11 +51,11 @@ public static partial class TenancyEndpoints
             }, () =>
             {
                 if (input.Administrator is null || input.Isolation != TenantIsolation.Row)
-                    throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+                    throw new ErrorException(new Error(PlatformErrors.InputInvalid));
             }, Credential(input.Administrator?.InitialPassword, "tenancy/tenants", "#/administrator/initialPassword")))).Produces<TenantDescriptor>(StatusCodes.Status201Created);
         Bind(endpoints.MapGet("/api/tenancy/tenants/{id:guid}", (HttpContext http, Guid id) =>
             Respond(http, source, "read", id, async (ctx, _) => Results.Ok(await ctx.Tenancy().GetByIdAsync(id, http.RequestAborted).ConfigureAwait(false)
-                ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound)))))).Produces<TenantDescriptor>();
+                ?? throw new ErrorException(new Error(PlatformErrors.NotFound)))))).Produces<TenantDescriptor>();
         Bind(endpoints.MapPut("/api/tenancy/tenants/{id:guid}", (HttpContext http, Guid id, UpdateTenant input) =>
             Respond(http, source, "edit", id, async (ctx, _) => Results.Ok(await ctx.Inject<ITenantOperations>(TenantOperations.Key)
                 .UpdateAsync(id, input, http.RequestAborted).ConfigureAwait(false))))).Produces<TenantDescriptor>();
@@ -89,18 +89,18 @@ public static partial class TenancyEndpoints
             if (principal.TenantId is not null || principal.Actor is not null || principal.Kind != PrincipalKind.User ||
                 http.User.Claims.Any(claim => claim.Type == "tenant_id" && !string.IsNullOrEmpty(claim.Value)) ||
                 http.RequestServices.GetRequiredService<ITenantContext>().TenantId is not null)
-            { Denied("tenant_principal"); throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied)); }
+            { Denied("tenant_principal"); throw new ErrorException(new Error(PlatformErrors.AuthzDenied)); }
             validate?.Invoke();
             var ctx = source(http);
             if (ctx.Scope != ScopeKey.Global || ctx.Entry.Plugin != "qian.tenancy")
-            { Denied("context_mismatch"); throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+            { Denied("context_mismatch"); throw new ErrorException(new Error(PlatformErrors.NotFound)); }
             var bypass = ctx.Inject<ISuperadminBypass>(AuthzDefinition.SuperadminBypassKey);
             var subject = new AuthorizationSubject(principal.Subject, null, "user");
             var decision = await bypass.AuthorizeAsync(new SuperadminAccess(subject, permission, null, resource, "api"), http.RequestAborted).ConfigureAwait(false);
             if (!decision.Allow)
             {
                 LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), decision.Reason, principal.Subject, permission);
-                throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+                throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             }
             if (credential is not null)
             {
@@ -109,23 +109,23 @@ public static partial class TenancyEndpoints
                 if (!setting.Allow)
                 {
                     LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), setting.Reason, principal.Subject, CredentialPermission);
-                    throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied) { Pointer = credential.Pointer });
+                    throw new ErrorException(new Error(PlatformErrors.AuthzDenied) { Pointer = credential.Pointer });
                 }
             }
             void Denied(string reason) => LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Tenancy.Operations"), reason, principal.Subject, permission);
             using var origin = EventEnvelopeScope.Begin(new EventOrigin("qian.tenancy", EventActor.User(principal.Subject)));
             return await execute(ctx, principal).ConfigureAwait(false);
         }
-        catch (QianErrorException error) { return QianResults.Error(error.Error); }
+        catch (ErrorException error) { return KunResults.Error(error.Error); }
         catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException)
-        { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+        { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
     }
     // 宿主已验签的主体快照与认证结果须一致，否则一律按未认证处理。
     private static Principal Authenticated(HttpContext http)
     {
         var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || http.User.Identity?.IsAuthenticated != true ||
-            http.User.FindFirst("sub")?.Value != principal.Subject) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+            http.User.FindFirst("sub")?.Value != principal.Subject) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         return principal;
     }
     private static void ValidateQuery(HttpContext http, string name, object? value)
@@ -133,7 +133,7 @@ public static partial class TenancyEndpoints
         var parameter = http.GetEndpoint()!.Metadata.OfType<IParameterBindingMetadata>().Single(item => item.Name == name).ParameterInfo;
         if (value is null && parameter.HasDefaultValue && parameter.DefaultValue is null) return;
         if (parameter.GetCustomAttributes<ValidationAttribute>().Any(rule => !rule.IsValid(value)))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/" + name });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/" + name });
     }
     [LoggerMessage(EventId = 1001, Level = LogLevel.Warning, Message = "租户运营授权拒绝：{Reason}；主体 {Subject}；权限 {Permission}")]
     private static partial void LogDenied(ILogger logger, string reason, string subject, string permission);

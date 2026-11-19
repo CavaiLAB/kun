@@ -12,7 +12,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -42,7 +42,7 @@ internal sealed partial class LifecycleController
             try { return await Approve(audit, tenantId, pluginId, version, approved, approver, via, cancellationToken).ConfigureAwait(false); }
             catch (Exception error) when (attempt < 5 && Retryable(error))
             { await Task.Delay(10 * (attempt + 1), cancellationToken).ConfigureAwait(false); }
-            catch (Exception error) when (Retryable(error)) { throw new QianErrorException(new QianError(PlatformErrors.Conflict)); }
+            catch (Exception error) when (Retryable(error)) { throw new ErrorException(new Error(PlatformErrors.Conflict)); }
         }
     }
 
@@ -116,7 +116,7 @@ internal sealed partial class LifecycleController
             rows.OrderByDescending(row => row.ApprovedAt).ThenBy(row => row.Version, StringComparer.Ordinal).FirstOrDefault();
         var missing = declared.Except(approval is null ? PermissionSet.Empty : PermissionSet.Parse(approval.Approved));
         if (!missing.IsEmpty)
-            throw new QianErrorException(new QianError(LifecycleErrors.PermissionsUnapproved, new Dictionary<string, string> { ["missing"] = missing.Describe() }));
+            throw new ErrorException(new Error(LifecycleErrors.PermissionsUnapproved, new Dictionary<string, string> { ["missing"] = missing.Describe() }));
     }
 
     // 修订声明的反向权限取自 Registry 保存的已校验清单快照（plugin_revisions 不存清单）；安装时已登记，缺失说明目录不一致，不能放行。
@@ -135,9 +135,9 @@ internal sealed partial class LifecycleController
     private static void CheckManagement(string tenantId, string pluginId, string version, ICurrentUser user)
     {
         ArgumentNullException.ThrowIfNull(user);
-        if (!user.IsAuthenticated || user.Principal is not { } principal || user.UserId != principal.Subject) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!user.IsAuthenticated || user.Principal is not { } principal || user.UserId != principal.Subject) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         try { CheckTenant(tenantId); CheckPlugin(pluginId); CheckVersion(version, "#/version"); }
-        catch (QianErrorException) { throw NotFound(); }
+        catch (ErrorException) { throw NotFound(); }
         // 批准人取主体：与 Authz 对主体的约束一致（不超过 200 字符、不含控制字符），宿主换用别的判定端口时也不会写出超长的批准人。
         if (principal.Subject.Length > 200 || principal.Subject.Any(char.IsControl)) throw NotFound();
     }

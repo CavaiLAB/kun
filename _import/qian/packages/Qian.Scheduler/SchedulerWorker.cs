@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Scheduler;
@@ -92,7 +92,7 @@ internal sealed partial class SchedulerWorker(IPluginContext context, ITenantCon
                 {
                     var caller = context.Scoped(new ScopeKey("tenant", claim.TenantId));
                     var currentTenant = await caller.Tenancy().GetByIdAsync(Guid.Parse(claim.TenantId), lifetime.Token).ConfigureAwait(false);
-                    if (currentTenant?.Status is not (TenantStatus.Active or TenantStatus.Trial)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                    if (currentTenant?.Status is not (TenantStatus.Active or TenantStatus.Trial)) throw new ErrorException(new Error(PlatformErrors.NotFound));
                     var job = PostgresScheduler.Resolve(caller, definition.Target);
                     using var parameters = JsonDocument.Parse(definition.Parameters);
                     var input = PostgresScheduler.Input(job, parameters.RootElement, claim.RunId);

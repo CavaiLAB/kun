@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 
@@ -36,7 +36,7 @@ public sealed class ContractRepositoryTests
         Assert.True((await repository.CheckOpenApiAsync(Plugin, "1.0.0", "1.1.0", document.Id, Ct)).IsCompatible);
         Assert.False((await repository.CheckOpenApiAsync(Plugin, "1.0.0", "1.2.0", document.Id, Ct)).IsCompatible);
         Assert.Null(repository.Find(Plugin, "9.0.0", document.Id));
-        var error = await Assert.ThrowsAsync<QianErrorException>(() => repository.CheckOpenApiAsync(Plugin, "1.0.0", "9.0.0", document.Id, Ct).AsTask());
+        var error = await Assert.ThrowsAsync<ErrorException>(() => repository.CheckOpenApiAsync(Plugin, "1.0.0", "9.0.0", document.Id, Ct).AsTask());
         Assert.Equal("NOT_FOUND", error.Error.Code.Code);
         repository.Dispose();
         Assert.Throws<ObjectDisposedException>(() => repository.GetContracts(Plugin, "1.0.0"));
@@ -50,7 +50,7 @@ public sealed class ContractRepositoryTests
             Artifact("1.0.0", captureFiles: false), Artifact("1.0.1", contractPath: "../outside.json"),
             Artifact("1.0.2", contractPath: "./contracts/missing.json"), Artifact("1.0.3", invalidSchema: true)
         })
-            Assert.Throws<QianErrorException>(() => new InstalledContractRepository([component], null, new SurfaceValidator()));
+            Assert.Throws<ErrorException>(() => new InstalledContractRepository([component], null, new SurfaceValidator()));
     }
 
     private static InstalledComponentMetadata Artifact(string version, string description = "客户列表", bool removePath = false,

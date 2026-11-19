@@ -1,5 +1,5 @@
 using Qian.Authz.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz;
 
@@ -66,7 +66,7 @@ public sealed class PermissionRegistry : IPermissionRegistry
             // 先检查整个批次，不能写入一半后才发现另一个组件已登记不同声明。
             for (var i = 0; i < values.Length; i++)
                 if (table.TryGetValue(keys[i], out var existing) && !same(existing.Value, values[i]))
-                    throw new QianErrorException(new QianError(PlatformErrors.Conflict));
+                    throw new ErrorException(new Error(PlatformErrors.Conflict));
             for (var i = 0; i < values.Length; i++)
             {
                 if (!table.TryGetValue(keys[i], out var entry)) table.Add(keys[i], entry = new Entry<T>(values[i]));
@@ -86,8 +86,8 @@ public sealed class PermissionRegistry : IPermissionRegistry
     {
         if (string.IsNullOrWhiteSpace(version) || version.Length > 200 || version.Any(char.IsControl)) throw Invalid();
     }
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid)
-    { Errors = [new QianFieldError(AuthzErrors.MetadataInvalid, "authz/registry#", new Dictionary<string, string> { ["reason"] = "权限注册参数无效。" })] });
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid)
+    { Errors = [new FieldError(AuthzErrors.MetadataInvalid, "authz/registry#", new Dictionary<string, string> { ["reason"] = "权限注册参数无效。" })] });
     private sealed class Entry<T>(T value) where T : class
     {
         internal readonly T Value = value;

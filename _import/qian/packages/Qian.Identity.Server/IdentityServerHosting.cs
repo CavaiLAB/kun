@@ -9,8 +9,8 @@ using OpenIddict.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Tenancy;
 using StackExchange.Redis;
 using System.Text.Json;
@@ -36,7 +36,7 @@ public static class IdentityServerHosting
         services.AddHostedService<IdentitySessionProcessor>();
         services.AddHttpClient("Qian.Identity.Backchannel", client => client.Timeout = TimeSpan.FromSeconds(5))
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
-        services.AddAntiforgery(); services.AddQianErrors();
+        services.AddAntiforgery(); services.AddKunErrors();
         // 协议库的 Trace 会打印令牌，Hosting 的请求日志会打印 id_token_hint 查询串；保留警告及以上诊断。
         services.AddLogging(logging => logging.AddFilter("OpenIddict", LogLevel.Warning)
             .AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning));
@@ -93,7 +93,7 @@ public static class IdentityServerHosting
     /// <summary>必须在 UseAuthentication 前安装；卸载组件后协议面返回 404。</summary>
     public static IApplicationBuilder UseQianIdentityServer(this IApplicationBuilder app)
     {
-        app.UseQianErrors();
+        app.UseKunErrors();
         return app.Use(async (http, next) =>
         {
             var accountApi = http.Request.Path.StartsWithSegments(IdentityAccountEndpoints.Prefix) || http.Request.Path.StartsWithSegments(IdentityDirectoryEndpoints.Prefix);
@@ -172,7 +172,7 @@ public sealed class IdentityServerPlugin : IQianPlugin
         var options = ctx.Services.GetRequiredService<IdentityServerOptions>();
         if (ctx.Scope != ScopeKey.Global || config.ValueKind != JsonValueKind.Object || config.EnumerateObject().Count() != 1 ||
             !config.TryGetProperty("issuer", out var issuer) || issuer.ValueKind != JsonValueKind.String || issuer.GetString() != options.Issuer.AbsoluteUri)
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         await using var scope = ctx.Services.CreateAsyncScope();
         var gate = ctx.Services.GetRequiredService<IdentityProtocolGate>();
         if (gate.Active) throw new InvalidOperationException("同一宿主只允许一个 Identity Server。");

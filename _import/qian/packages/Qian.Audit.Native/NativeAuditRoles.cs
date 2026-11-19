@@ -1,4 +1,4 @@
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Native;
 
@@ -22,5 +22,5 @@ public sealed class NativeAuditRoles
     {
         if (role is not { Length: > 0 and <= 63 } || role[0] is < 'a' or > 'z' || role.Any(c => !(c is >= 'a' and <= 'z' or >= '0' and <= '9' or '_'))) throw Invalid();
     }
-    internal static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    internal static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }

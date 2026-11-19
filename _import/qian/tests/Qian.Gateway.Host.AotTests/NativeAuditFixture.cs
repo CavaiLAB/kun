@@ -8,7 +8,7 @@ using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.NativeAudit;
 
 namespace Qian.Gateway.Host.AotTests;

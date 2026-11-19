@@ -7,7 +7,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Sample.Crm;
@@ -44,7 +44,7 @@ public sealed class CrmCommandRuntime(IServiceProvider services, ITenantContext 
     }
     public IPluginContext Source()
     {
-        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         try
         {
             // 平台宿主经 Lifecycle 把组件挂进租户 scope 时优先用该租户自己的条目（版本可能与全局不同），否则用全局条目。
@@ -54,15 +54,15 @@ public sealed class CrmCommandRuntime(IServiceProvider services, ITenantContext 
             _ = context.Inject<ICrmCommands>(CrmDefinition.Key); return context;
         }
         catch (Exception error) when (error is ServiceNotReadyException or KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
     // 当前租户视角的 authz 组件上下文（me/permissions 用）；授权组件未挂载或已卸载时与不存在同为 404。
     internal IPluginContext AuthzSource()
     {
-        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!Guid.TryParseExact(tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         try { return _loader.GetContext("authz", ScopeKey.Global).Scoped(new ScopeKey("tenant", tenant.TenantId!)); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
     public Task StopAsync(CancellationToken cancellationToken) => DisposeAsync().AsTask();
     public async ValueTask DisposeAsync()

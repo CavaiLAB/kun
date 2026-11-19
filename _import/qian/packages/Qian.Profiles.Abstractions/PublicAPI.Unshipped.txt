@@ -8,7 +8,7 @@ Qian.Profiles.Abstractions.ProfileLayer.Present.get -> bool
 Qian.Profiles.Abstractions.ProfileLoadOptions
 Qian.Profiles.Abstractions.ProfileLayer.Reference.init -> void
 Qian.Profiles.Abstractions.ProfileLayer.Kind.init -> void
-static readonly Qian.Profiles.Abstractions.ProfileErrors.Invalid -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Profiles.Abstractions.ProfileErrors.Invalid -> Kun.Errors.ErrorCode!
 Qian.Profiles.Abstractions.ProfileErrors
 Qian.Profiles.Abstractions.ProfileLayer.Present.init -> void
 Qian.Profiles.Abstractions.ProfileLoadOptions.ProfileLoadOptions() -> void

@@ -10,7 +10,7 @@ using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 
 namespace Qian.Lifecycle.Tests;
@@ -463,15 +463,15 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         return null!;
     }
 
-    private static string[] Pointers(QianError error) => [.. error.Errors!.Select(field => field.Pointer)];
+    private static string[] Pointers(Error error) => [.. error.Errors!.Select(field => field.Pointer)];
     private static (string, string?) Pick(TenantPluginInstallView view) => (view.State, view.Version);
     private static (DateTimeOffset, string) Pick(PermissionApprovalView view) => (view.ApprovedAt, view.ApprovedBy);
     private static (string, string?, string?) Pick3(TenantPluginInstallView view) => (view.State, view.Version, view.TargetVersion);
     private static (string, int) PickRun(LifecycleRunView run) => (run.Status, run.Attempts);
 
-    private static async Task<QianError> AssertCode(ErrorCode code, Func<Task> action)
+    private static async Task<Error> AssertCode(ErrorCode code, Func<Task> action)
     {
-        var error = await Assert.ThrowsAsync<QianErrorException>(action);
+        var error = await Assert.ThrowsAsync<ErrorException>(action);
         Assert.Equal(code.Code, error.Error.Code.Code);
         return error.Error;
     }
@@ -486,7 +486,7 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         {
             if (context.Hook != LifecycleHooks.TenantProvision) return ValueTask.FromResult<JsonElement?>(null);
             lock (Versions) Versions.Add(context.ToVersion);
-            if (Interlocked.Increment(ref _calls) == 1) throw new QianErrorException(new QianError(PlatformErrors.Unavailable));
+            if (Interlocked.Increment(ref _calls) == 1) throw new ErrorException(new Error(PlatformErrors.Unavailable));
             return ValueTask.FromResult<JsonElement?>(null);
         }
     }

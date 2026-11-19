@@ -4,7 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server.Tests;
 
@@ -58,9 +58,9 @@ internal sealed class FakeConnector(string id = FakeConnector.DefaultId, string 
     {
         Interlocked.Increment(ref _completed);
         if (Delay > TimeSpan.Zero) await Task.Delay(Delay, cancellationToken);
-        if (callback.Context.CodeVerifier is not { Length: >= 43 }) throw new QianErrorException(new QianError(PlatformErrors.BadGateway));
-        if (!callback.Parameters.TryGetValue("code", out var code) || !_codes.TryRemove(code, out var grant)) throw new QianErrorException(new QianError(PlatformErrors.BadGateway));
-        if (grant.Nonce != callback.Context.Nonce) throw new QianErrorException(new QianError(IdentityErrors.ConnectorStateInvalid));
+        if (callback.Context.CodeVerifier is not { Length: >= 43 }) throw new ErrorException(new Error(PlatformErrors.BadGateway));
+        if (!callback.Parameters.TryGetValue("code", out var code) || !_codes.TryRemove(code, out var grant)) throw new ErrorException(new Error(PlatformErrors.BadGateway));
+        if (grant.Nonce != callback.Context.Nonce) throw new ErrorException(new Error(IdentityErrors.ConnectorStateInvalid));
         return new ExternalAssertion(Issuer, grant.Subject, null, grant.Profile, ["pwd"]);
     }
 }
@@ -75,7 +75,7 @@ internal sealed class StaticSecrets(string reference, string value) : Qian.Confi
     public ValueTask<Qian.Config.SecretValue> ResolveAsync(string requested, CancellationToken cancellationToken = default)
     {
         Interlocked.Increment(ref _resolved);
-        if (requested != reference) throw new QianErrorException(new QianError(Qian.Config.SecretErrors.AccessDenied));
+        if (requested != reference) throw new ErrorException(new Error(Qian.Config.SecretErrors.AccessDenied));
         return ValueTask.FromResult(new Qian.Config.SecretValue(System.Text.Encoding.UTF8.GetBytes(value)));
     }
 }

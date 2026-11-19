@@ -7,7 +7,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Registry;
@@ -70,9 +70,9 @@ internal sealed partial class RegistryService : IRegistryService
         var identity = entry.Plugin.Split('@', 2);
         var installed = _installed.SingleOrDefault(component => component.PluginId == identity[0] && component.Version == identity[1]);
         if (installed is null || !System.Text.Json.JsonElement.DeepEquals(installed.Manifest, entry.Manifest))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid)
             {
-                Errors = [new QianFieldError(RegistryErrors.Invalid, "registry/scope-patches.json#/plugin",
+                Errors = [new FieldError(RegistryErrors.Invalid, "registry/scope-patches.json#/plugin",
                     new Dictionary<string, string> { ["reason"] = "组件不在宿主已校验的预装集合中，或清单已变化。" })]
             });
         return _options.Resolve(entry);
@@ -104,16 +104,16 @@ internal sealed partial class RegistryService : IRegistryService
     {
         if (_disposed || _lifetime.IsCancellationRequested || _listener is null) throw new ServiceNotReadyException();
         // 不能因为调用方传了 app/session id 就推断归属；这些种类待 Tenancy 的真实 lineage 接入。
-        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
-        if (scope.Kind != "tenant" || scope.Id != _tenant.TenantId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        if (scope.Kind != "tenant" || scope.Id != _tenant.TenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
         await _scopes.ActivateAsync(_tenant.TenantId, scope, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<IReadOnlyList<RegistryScopeEntry>> GetScopeEntriesAsync(ScopeKey scope, ServiceKey key, CancellationToken cancellationToken = default)
     {
         if (_disposed || _lifetime.IsCancellationRequested || _listener is null) throw new ServiceNotReadyException();
-        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
-        if (scope.Kind != "tenant" || scope.Id != _tenant.TenantId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        if (scope.Kind != "tenant" || scope.Id != _tenant.TenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
         ArgumentException.ThrowIfNullOrWhiteSpace(key.Name);
         var entries = await _scopes.ReadAsync(_tenant.TenantId, scope, key, cancellationToken).ConfigureAwait(false);
         return Array.AsReadOnly(entries.Where(entry => _installed.Any(component => component.PluginId == entry.PluginId && component.Version == entry.Version)).ToArray());
@@ -188,7 +188,7 @@ internal sealed partial class RegistryService : IRegistryService
         if (current is null)
         {
             if (await _patches.DeletedRevisionAsync(scope, entryId, cancellationToken).ConfigureAwait(false) is not { } removed) throw NotFound();
-            if (removed != expectedRevision) throw new QianErrorException(new QianError(RegistryErrors.RevisionConflict));
+            if (removed != expectedRevision) throw new ErrorException(new Error(RegistryErrors.RevisionConflict));
             return removed;
         }
         return await _writer.RemoveAsync(scope, entryId, expectedRevision, actor, true, cancellationToken).ConfigureAwait(false);
@@ -297,7 +297,7 @@ internal sealed partial class RegistryService : IRegistryService
     private void WriteTenant(ScopeKey scope)
     {
         if (_disposed || _lifetime.IsCancellationRequested) throw new ServiceNotReadyException();
-        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         if (scope.Kind != "tenant" || scope.Id != _tenant.TenantId) throw NotFound();
     }
 
@@ -317,8 +317,8 @@ internal sealed partial class RegistryService : IRegistryService
         { CorrelationId = outer?.CorrelationId, CausationId = outer?.CausationId, TraceParent = outer?.TraceParent });
     }
 
-    private static QianErrorException Invalid(string pointer, string reason) => new(new QianError(PlatformErrors.InputInvalid)
-    { Errors = [new QianFieldError(RegistryErrors.Invalid, "registry/scope-patches.json" + pointer, new Dictionary<string, string> { ["reason"] = reason })] });
+    private static ErrorException Invalid(string pointer, string reason) => new(new Error(PlatformErrors.InputInvalid)
+    { Errors = [new FieldError(RegistryErrors.Invalid, "registry/scope-patches.json" + pointer, new Dictionary<string, string> { ["reason"] = reason })] });
 
     private ValueTask<string> AuthorizeAsync(ScopeKey scope, ICurrentUser user, CancellationToken ct, string permission = RegistryDefinition.ScopeReadPermission) =>
         AuthorizeAsync(scope, user, permission, "registry/scope:" + scope.Kind + ":" + scope.Id, ct);
@@ -331,7 +331,7 @@ internal sealed partial class RegistryService : IRegistryService
         ArgumentNullException.ThrowIfNull(user);
         var principal = user.Principal;
         if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || !_tenant.IsMultiTenant || string.IsNullOrWhiteSpace(_tenant.TenantId))
-            throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+            throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         var tenantId = _tenant.TenantId;
         if (principal.Actor is null && principal.Kind == PrincipalKind.User && principal.TenantId is null && scope.Kind == "tenant" && scope.Id == tenantId)
             return await BypassAsync(user, principal, tenantId, permission, resource, ct).ConfigureAwait(false);
@@ -359,7 +359,7 @@ internal sealed partial class RegistryService : IRegistryService
         return tenantId;
     }
 
-    private static QianErrorException NotFound() => new(new QianError(PlatformErrors.NotFound));
+    private static ErrorException NotFound() => new(new Error(PlatformErrors.NotFound));
 
     internal void Cancel()
     {

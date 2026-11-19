@@ -130,7 +130,7 @@ scope Reconciler 解析条目时，对在 `metadata/contracts.json` 声明契约
 
 成功授权后经 Lifecycle 的 `MountAtRevisionAsync` / `UnmountAtRevisionAsync` 复用既有 Mount / Unmount 编排与数据库条件写入。`disabled: true` 走卸载，平台条目写禁用 patch，纯租户条目撤销为墓碑；带当前修订重复卸载不再发事件，删除后重建沿用递增修订。required 条目不能禁用。patch 与 `registry.scope.*.v1` 信封同事务入 Outbox，Lifecycle 即时同步并沿用通知和补偿读取，装配失败恢复原 patch 并返回 `state: Failed` 与原因码。平台安装、开通和全局配置均不被此端点修改。
 
-宿主使用 `UseQianErrors()` → `UseRouting()` → `UseQianRegistryAliases()` → 身份与租户边界 → `UseAuthorization()`，再 `MapQianRegistry(...)`；平台运营 PUT 必须允许无租户平台身份到达注册表，由服务在授权时进入路径目标租户。别名中间件在路由后捕获后继路径，认证 401、绑定 400 和业务错误也带 `Deprecation` / `Link`。写端点声明 `PlatformHttpContract`，由真实 ApiExplorer 导出 [OpenAPI](../../plugins/qian.registry/contracts/http-v1.openapi.json)，不进入业务能力聚合；发布时经 RT-006 的 OpenAPI 兼容准入，移除 PUT 会被拒绝。
+宿主使用 `UseKunErrors()` → `UseRouting()` → `UseQianRegistryAliases()` → 身份与租户边界 → `UseAuthorization()`，再 `MapQianRegistry(...)`；平台运营 PUT 必须允许无租户平台身份到达注册表，由服务在授权时进入路径目标租户。别名中间件在路由后捕获后继路径，认证 401、绑定 400 和业务错误也带 `Deprecation` / `Link`。写端点声明 `PlatformHttpContract`，由真实 ApiExplorer 导出 [OpenAPI](../../plugins/qian.registry/contracts/http-v1.openapi.json)，不进入业务能力聚合；发布时经 RT-006 的 OpenAPI 兼容准入，移除 PUT 会被拒绝。
 
 运营 CLI 的连接、单条操作与失败语义见 [CLI](../qian-cli/README.md#租户-scope-运营入口)。真实集成测试覆盖 JWT、PG 受限角色、Authz、Audit、Lifecycle、Outbox、五秒内生效、其他租户与全局隔离、CLI add/remove、过期修订和别名错误响应。
 

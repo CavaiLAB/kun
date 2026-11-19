@@ -4,7 +4,7 @@ using System.Threading.RateLimiting;
 using Kun.Gateway.RateLimiting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 using StackExchange.Redis;
 
@@ -87,7 +87,7 @@ public sealed class GatewayRateLimitTests
     public async Task Redis故障必须失败关闭且不伪装为超限()
     {
         using var limiter = new GatewayRedisRateLimiter(new Unavailable(), "key", 100, TimeSpan.FromMinutes(1));
-        var failure = await Assert.ThrowsAsync<QianErrorException>(() => limiter.AcquireAsync(cancellationToken: TestContext.Current.CancellationToken).AsTask());
+        var failure = await Assert.ThrowsAsync<ErrorException>(() => limiter.AcquireAsync(cancellationToken: TestContext.Current.CancellationToken).AsTask());
         Assert.Equal(PlatformErrors.Unavailable, failure.Error.Code);
     }
 

@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit.Tests;
 
@@ -26,12 +26,12 @@ public sealed partial class AuditStoreTests
         var local = Store(host, tenant);
         await global.AppendAsync(PlatformRecord(), Ct); Assert.Single(await global.ReadAsync(0, 10, null, Ct));
         Assert.Equal(new AuditChainVerification(true, 1, null, null), await global.VerifyAsync(Ct));
-        Assert.Equal("UNAUTHENTICATED", (await Assert.ThrowsAsync<QianErrorException>(() => local.AppendAsync(PlatformRecord(), Ct))).Error.Code.Code);
+        Assert.Equal("UNAUTHENTICATED", (await Assert.ThrowsAsync<ErrorException>(() => local.AppendAsync(PlatformRecord(), Ct))).Error.Code.Code);
         using (tenant.BeginScope(A))
         {
             await local.AppendAsync(CanonicalizerTests.Record(), Ct);
             Assert.Equal(A, Assert.Single(await local.ReadAsync(0, 10, null, Ct)).Record.TenantId);
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => global.AppendAsync(PlatformRecord(), Ct))).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => global.AppendAsync(PlatformRecord(), Ct))).Error.Code.Code);
         }
         Assert.Equal(1, (await global.VerifyAsync(Ct)).CheckedEntries);
         await using var app = new NpgsqlConnection(postgres.AppConnectionString); await app.OpenAsync(Ct);
@@ -75,7 +75,7 @@ public sealed partial class AuditStoreTests
         var wrong = new PostgresAuditStore<PlatformAuditDbContext>(host.Services.GetRequiredService<IDataService>(), tenant, "wrong_role");
         await Assert.ThrowsAsync<QianDataMisconfiguredException>(() => wrong.AppendAsync(PlatformRecord(), Ct));
         foreach (var invalid in new[] { "bad';drop", "bad\n", "Upper", new string('a', 64) })
-            Assert.Throws<QianErrorException>(() => AuditPlatformAccess.CreateMigrationSql(invalid));
+            Assert.Throws<ErrorException>(() => AuditPlatformAccess.CreateMigrationSql(invalid));
     }
 
     [Fact]
@@ -90,21 +90,21 @@ public sealed partial class AuditStoreTests
         using (tenant.BeginScope(A))
         {
             await service.AppendAsync(CanonicalizerTests.Record(), Ct); Assert.Single(await service.ReadAsync(0, 10, cancellationToken: Ct));
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => service.AppendPlatformAsync(consumer.Context!, PlatformRecord(), Ct))).Error.Code.Code);
+            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => service.AppendPlatformAsync(consumer.Context!, PlatformRecord(), Ct))).Error.Code.Code);
         }
         Assert.Single(await service.ReadPlatformAsync(consumer.Context!, 0, 10, cancellationToken: Ct));
         var tenantConsumer = new AuditConsumer();
         await runtime.MountAsync([new PluginDefinition(new PluginEntry("tenant-producer", "sample.tenant-producer", "1.0.0",
             new ScopeKey("tenant", A), 0, JsonSerializer.SerializeToElement(new { })), tenantConsumer, [])], Ct);
         var liftedTenantProducer = tenantConsumer.Context!.Scoped(ScopeKey.Global);
-        Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => service.AppendPlatformAsync(liftedTenantProducer, PlatformRecord(), Ct))).Error.Code.Code);
+        Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => service.AppendPlatformAsync(liftedTenantProducer, PlatformRecord(), Ct))).Error.Code.Code);
         var tenantProducer = consumer.Context!.Scoped(new ScopeKey("tenant", A));
-        Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => service.AppendPlatformAsync(tenantProducer, PlatformRecord(), Ct))).Error.Code.Code);
+        Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => service.AppendPlatformAsync(tenantProducer, PlatformRecord(), Ct))).Error.Code.Code);
         await runtime.UnmountAsync("audit", ScopeKey.Global, Ct);
         await Assert.ThrowsAsync<ObjectDisposedException>(() => service.VerifyPlatformAsync(consumer.Context!, Ct));
         await runtime.MountAsync([Define("audit", new AuditPlugin(), [AuditDefinition.Key])], Ct);
         var ordinary = runtime.GetContext("consumer", ScopeKey.Global).Audit();
-        Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<QianErrorException>(() => ordinary.AppendPlatformAsync(runtime.GetContext("consumer", ScopeKey.Global), PlatformRecord(), Ct))).Error.Code.Code);
+        Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(() => ordinary.AppendPlatformAsync(runtime.GetContext("consumer", ScopeKey.Global), PlatformRecord(), Ct))).Error.Code.Code);
     }
 
     [Fact]

@@ -31,7 +31,7 @@ using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 using Qian.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -312,7 +312,7 @@ public sealed partial class IdentityAuthzTests(PostgresFixture postgres) : Custo
         async Task<string?> TryJoin(Person person)
         {
             try { await Join(host, A, person.Id, "成员"); return null; }
-            catch (QianErrorException failure) { Assert.Equal("5", failure.Error.Args["limit"]); return failure.Error.Code.Code; }
+            catch (ErrorException failure) { Assert.Equal("5", failure.Error.Args["limit"]); return failure.Error.Code.Code; }
         }
 
         // 租户管理员计入：1 位管理员 + 3 位成员 = 4。
@@ -328,7 +328,7 @@ public sealed partial class IdentityAuthzTests(PostgresFixture postgres) : Custo
         Assert.Equal(5, await Users());
         // 第 6 个：真实配额端口给出结构化的 422 CARDINALITY_USER_LIMIT。
         var sixth = (await NewPerson(host, "第六个")).Person;
-        var rejected = await Assert.ThrowsAsync<QianErrorException>(() => Join(host, A, sixth.Id, "第六个"));
+        var rejected = await Assert.ThrowsAsync<ErrorException>(() => Join(host, A, sixth.Id, "第六个"));
         Assert.Equal(("CARDINALITY_USER_LIMIT", 422, "5"), (rejected.Error.Code.Code, rejected.Error.Code.Status, rejected.Error.Args["limit"]));
         // 平台超管不计入：满额时仍可加入，计数不变。
         var superadmin = (await NewPerson(host, "平台超管", platform: true)).Person;

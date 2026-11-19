@@ -685,16 +685,16 @@ public class KunResultToRpcInterceptor : Interceptor
         {
             return await continuation(request, context);
         }
-        catch (ResultFailureException ex)  // Kun 框架约定的失败异常
+        catch (ErrorException ex)  // Kun 唯一带错误码的异常（Kun.Errors）
         {
-            var status = ex.Error.Type switch
+            var status = ex.Error.Code.Status switch  // 按错误码的 HTTP 状态映射
             {
-                ErrorType.NotFound       => StatusCode.NotFound,
-                ErrorType.Validation     => StatusCode.InvalidArgument,
-                ErrorType.Conflict       => StatusCode.FailedPrecondition,
-                ErrorType.Unauthorized   => StatusCode.Unauthenticated,
-                ErrorType.Forbidden      => StatusCode.PermissionDenied,
-                _                        => StatusCode.Internal
+                404               => StatusCode.NotFound,
+                400               => StatusCode.InvalidArgument,
+                409 or 412 or 422 => StatusCode.FailedPrecondition,
+                401               => StatusCode.Unauthenticated,
+                403               => StatusCode.PermissionDenied,
+                _                 => StatusCode.Internal
             };
             throw new RpcException(new Status(status, ex.Error.Message));
         }
@@ -967,7 +967,7 @@ public class OutboxIntegrationTests : IClassFixture<KunTestFixture>
 public async Task OrderSaga_WhenPaymentFails_ShouldCompensateInventoryReservation()
 {
     // Arrange：让 Payment 步骤返回失败
-    _fixture.MockPaymentService(result: Result.Fail(Error.Conflict("Card declined")));
+    _fixture.MockPaymentService(result: Result.Fail(new Error(PlatformErrors.Conflict)));
 
     // Act
     var sagaId = await _orchestrator.StartAsync(new OrderSagaContext { ... }, CancellationToken.None);

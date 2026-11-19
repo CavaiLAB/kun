@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Qian.Data;
 using Qian.Dev.TenantOps;
 using Qian.Runtime;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 using Qian.Tenancy.Signup;
 
 namespace Qian.Dev.Shell;
@@ -72,7 +72,7 @@ internal sealed class DevSignup
     // 身份分支在业务管线的错误映射之前：开通申请的路径在分支里自带 ErrorDetail 映射（绑定失败的 400 / 415 等空响应体也写成 ErrorDetail），再托管公开页。
     internal void Use(IApplicationBuilder branch)
     {
-        branch.UseWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), errors => errors.UseQianErrors());
+        branch.UseWhen(http => TenancySignupEndpoints.IsApplicantPath(http.Request.Path), errors => errors.UseKunErrors());
         if (_uiDist is not null) branch.UseQianTenancySignupPages(_uiDist);
     }
 

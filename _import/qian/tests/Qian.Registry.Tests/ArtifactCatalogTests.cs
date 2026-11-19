@@ -6,7 +6,7 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
@@ -33,7 +33,7 @@ public sealed partial class PatchPersistenceTests
         Array.Fill(copy!, (byte)0);
         Assert.Equal(expected, binding.Metadata.ReadFile("metadata/permissions.json"));
         Assert.Null(binding.Metadata.ReadFile("../outside"));
-        Assert.Throws<QianErrorException>(() => RegistryComponentBinding.FromArtifact(definition, files, digest, validator, ArtifactOptions));
+        Assert.Throws<ErrorException>(() => RegistryComponentBinding.FromArtifact(definition, files, digest, validator, ArtifactOptions));
     }
 
     [Fact]
@@ -69,16 +69,16 @@ public sealed partial class PatchPersistenceTests
     {
         var (files, digest, _) = ArtifactFixture();
         var changed = new Dictionary<string, ReadOnlyMemory<byte>>(files) { ["说明.md"] = Encoding.UTF8.GetBytes("已被替换") };
-        var mismatch = Assert.Throws<QianErrorException>(() => RegistryArtifactContent.Read(changed, digest, new SurfaceValidator(), ArtifactOptions));
+        var mismatch = Assert.Throws<ErrorException>(() => RegistryArtifactContent.Read(changed, digest, new SurfaceValidator(), ArtifactOptions));
         Assert.Equal("INPUT_INVALID", mismatch.Error.Code.Code); Assert.Equal("artifact.json#/digest", Assert.Single(mismatch.Error.Errors!).Pointer);
         foreach (var bad in new[] { "../escape", "/escape", "a\\escape", "a/../escape", "x:escape", ".git/config", "line\nbreak" })
         {
             var unsafeFiles = new Dictionary<string, ReadOnlyMemory<byte>>(files) { [bad] = new byte[] { 1 } };
-            var error = Assert.Throws<QianErrorException>(() => RegistryArtifactContent.Read(unsafeFiles, digest, new SurfaceValidator(), ArtifactOptions));
+            var error = Assert.Throws<ErrorException>(() => RegistryArtifactContent.Read(unsafeFiles, digest, new SurfaceValidator(), ArtifactOptions));
             Assert.Equal("artifact.json#/files", Assert.Single(error.Error.Errors!).Pointer);
         }
         var conflicting = new Dictionary<string, ReadOnlyMemory<byte>>(files) { ["METADATA/roles.json"] = Encoding.UTF8.GetBytes("[]") };
-        Assert.Throws<QianErrorException>(() => RegistryArtifactContent.Read(conflicting, digest, new SurfaceValidator(), ArtifactOptions));
+        Assert.Throws<ErrorException>(() => RegistryArtifactContent.Read(conflicting, digest, new SurfaceValidator(), ArtifactOptions));
     }
 
     [Fact]
@@ -88,12 +88,12 @@ public sealed partial class PatchPersistenceTests
         var manifest = JsonNode.Parse(files[".qian-plugin/plugin.json"].Span)!;
         manifest["policy"]!["required"] = true; // private 组件不得成为 required 平台组件。
         files[".qian-plugin/plugin.json"] = Encoding.UTF8.GetBytes(manifest.ToJsonString());
-        var invalid = Assert.Throws<QianErrorException>(() => RegistryArtifactContent.Read(files, TestDigest(files), new SurfaceValidator(), ArtifactOptions));
+        var invalid = Assert.Throws<ErrorException>(() => RegistryArtifactContent.Read(files, TestDigest(files), new SurfaceValidator(), ArtifactOptions));
         Assert.Contains(invalid.Error.Errors!, error => error.Pointer == ".qian-plugin/plugin.json#/policy/required");
         manifest["policy"]!["required"] = false;
         files[".qian-plugin/plugin.json"] = Encoding.UTF8.GetBytes(manifest.ToJsonString());
         files["metadata/roles.json"] = Encoding.UTF8.GetBytes("{\"secret\":\"DO-NOT-LEAK\",\"secret\":\"duplicate\"}");
-        var duplicate = Assert.Throws<QianErrorException>(() => RegistryArtifactContent.Read(files, TestDigest(files), new SurfaceValidator(), ArtifactOptions));
+        var duplicate = Assert.Throws<ErrorException>(() => RegistryArtifactContent.Read(files, TestDigest(files), new SurfaceValidator(), ArtifactOptions));
         Assert.Contains(duplicate.Error.Errors!, error => error.Pointer.StartsWith("metadata/roles.json#", StringComparison.Ordinal));
         Assert.DoesNotContain("DO-NOT-LEAK", duplicate.ToString(), StringComparison.Ordinal);
     }
@@ -113,7 +113,7 @@ public sealed partial class PatchPersistenceTests
         Assert.Equal(2, artifact.Metadata.Count); Assert.Contains(prefix + "roles.json", artifact.Metadata.Keys);
         manifest["surfaces"]!["metadata"] = "./" + prefix + "roles.json";
         files[".qian-plugin/plugin.json"] = Encoding.UTF8.GetBytes(manifest.ToJsonString());
-        var invalid = Assert.Throws<QianErrorException>(() => RegistryArtifactContent.Read(files, TestDigest(files), new SurfaceValidator(), ArtifactOptions));
+        var invalid = Assert.Throws<ErrorException>(() => RegistryArtifactContent.Read(files, TestDigest(files), new SurfaceValidator(), ArtifactOptions));
         Assert.Contains(invalid.Error.Errors!, error => error.Pointer == ".qian-plugin/plugin.json#/surfaces/metadata");
     }
 

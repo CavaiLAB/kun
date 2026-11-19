@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using Kun.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.Abstractions.Tests;
 
@@ -22,8 +22,8 @@ public sealed class TenantInitializationAuthorizationTests
         Assert.False(TenantInitializationAccess.Allows("qian.test/init", source.Scope));
         using (TenantInitializationAccess.Begin(source, "operator", new HashSet<string> { "qian.test/init" }))
         {
-            Assert.Throws<QianErrorException>(() => TenantInitializationAccess.Enter(wrong, "qian.test/init", typeof(Request), Request.RequiredPermissions));
-            Assert.Throws<QianErrorException>(() => TenantInitializationAccess.Enter(source, "qian.test/other", typeof(Request), Request.RequiredPermissions));
+            Assert.Throws<ErrorException>(() => TenantInitializationAccess.Enter(wrong, "qian.test/init", typeof(Request), Request.RequiredPermissions));
+            Assert.Throws<ErrorException>(() => TenantInitializationAccess.Enter(source, "qian.test/other", typeof(Request), Request.RequiredPermissions));
             using (TenantInitializationAccess.Enter(source, "qian.test/init", typeof(Request), Request.RequiredPermissions))
             {
                 Assert.True(TenantInitializationAccess.Allows<Request>());
@@ -32,9 +32,9 @@ public sealed class TenantInitializationAuthorizationTests
                 Assert.Equal(source.Scope.Id, TenantInitializationAccess.Tenant);
                 Assert.False(TenantInitializationAccess.Allows("qian.test/init", wrong.Scope));
                 TenantInitializationAccess.Claim<Request>("qian.test/init", source.Scope);
-                Assert.Throws<QianErrorException>(() => TenantInitializationAccess.Claim<Request>("qian.test/init", source.Scope));
+                Assert.Throws<ErrorException>(() => TenantInitializationAccess.Claim<Request>("qian.test/init", source.Scope));
             }
-            Assert.Throws<QianErrorException>(() => TenantInitializationAccess.Enter(source, "qian.test/init", typeof(Request), Request.RequiredPermissions));
+            Assert.Throws<ErrorException>(() => TenantInitializationAccess.Enter(source, "qian.test/init", typeof(Request), Request.RequiredPermissions));
         }
         Assert.False(TenantInitializationAccess.Allows("qian.test/init", source.Scope));
     }
@@ -53,7 +53,7 @@ public sealed class TenantInitializationAuthorizationTests
             escaped = Task.Run(async () =>
             {
                 await gate.Task;
-                Assert.Throws<QianErrorException>(() => TenantInitializationAccess.Enter(source, "qian.test/init", typeof(Request), Request.RequiredPermissions));
+                Assert.Throws<ErrorException>(() => TenantInitializationAccess.Enter(source, "qian.test/init", typeof(Request), Request.RequiredPermissions));
             }, TestContext.Current.CancellationToken);
         gate.SetResult(); await escaped;
     }
@@ -73,9 +73,9 @@ public sealed class TenantInitializationAuthorizationTests
         await using var loader = new PluginLoader(services);
         var source = await Source(loader);
         using var grant = TenantInitializationAccess.Begin(source, "operator", new HashSet<string> { "qian.test/init", "qian.test/other" });
-        Assert.Throws<QianErrorException>(() => TenantInitializationAccess.Begin(source, "operator", new HashSet<string>()));
+        Assert.Throws<ErrorException>(() => TenantInitializationAccess.Begin(source, "operator", new HashSet<string>()));
         using var invocation = TenantInitializationAccess.Enter(source, "qian.test/init", typeof(Request), Request.RequiredPermissions);
-        Assert.Throws<QianErrorException>(() => TenantInitializationAccess.Enter(source, "qian.test/other", typeof(Request), Request.RequiredPermissions));
+        Assert.Throws<ErrorException>(() => TenantInitializationAccess.Enter(source, "qian.test/other", typeof(Request), Request.RequiredPermissions));
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public sealed class TenantInitializationAuthorizationTests
         {
             await start.Task;
             try { using var invocation = TenantInitializationAccess.Enter(source, "qian.test/init", typeof(Request), Request.RequiredPermissions); return true; }
-            catch (QianErrorException error) { Assert.Equal("AUTHZ_DENIED", error.Error.Code.Code); return false; }
+            catch (ErrorException error) { Assert.Equal("AUTHZ_DENIED", error.Error.Code.Code); return false; }
         }, TestContext.Current.CancellationToken)).ToArray();
         start.SetResult();
         Assert.Equal(1, (await Task.WhenAll(attempts)).Count(allowed => allowed));
@@ -109,7 +109,7 @@ public sealed class TenantInitializationAuthorizationTests
         {
             await start.Task;
             try { TenantInitializationAccess.Claim<Request>("qian.test/init", source.Scope); return true; }
-            catch (QianErrorException error) { Assert.Equal("AUTHZ_DENIED", error.Error.Code.Code); return false; }
+            catch (ErrorException error) { Assert.Equal("AUTHZ_DENIED", error.Error.Code.Code); return false; }
         }, TestContext.Current.CancellationToken)).ToArray();
         start.SetResult();
         Assert.Equal(1, (await Task.WhenAll(attempts)).Count(allowed => allowed));

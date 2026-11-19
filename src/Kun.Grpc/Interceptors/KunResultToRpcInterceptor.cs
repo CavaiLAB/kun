@@ -1,12 +1,12 @@
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Kun.Core.Results;
+using Kun.Errors;
 
 namespace Kun.Grpc.Interceptors;
 
 /// <summary>
-/// gRPC server interceptor that catches <see cref="ResultFailureException"/> thrown by
-/// <c>Result&lt;T&gt;.EnsureSuccess()</c> in any RPC handler and translates the carried
+/// gRPC server interceptor that catches <see cref="ErrorException"/> — thrown by business code or by
+/// <c>Result&lt;T&gt;.EnsureSuccess()</c> — in any RPC handler and translates the carried
 /// <see cref="Error"/> into the appropriate <see cref="RpcException"/>.
 /// </summary>
 internal sealed class KunResultToRpcInterceptor : Interceptor
@@ -21,7 +21,7 @@ internal sealed class KunResultToRpcInterceptor : Interceptor
         {
             return await continuation(request, context).ConfigureAwait(false);
         }
-        catch (ResultFailureException ex)
+        catch (ErrorException ex)
         {
             throw ToRpcException(ex.Error);
         }
@@ -35,7 +35,7 @@ internal sealed class KunResultToRpcInterceptor : Interceptor
     public override async Task<TResponse> ClientStreamingServerHandler<TRequest, TResponse>(IAsyncStreamReader<TRequest> requestStream, ServerCallContext context, ClientStreamingServerMethod<TRequest, TResponse> continuation)
     {
         try { return await continuation(requestStream, context).ConfigureAwait(false); }
-        catch (ResultFailureException error) { throw ToRpcException(error.Error); }
+        catch (ErrorException error) { throw ToRpcException(error.Error); }
     }
 
     /// <inheritdoc />
@@ -45,39 +45,43 @@ internal sealed class KunResultToRpcInterceptor : Interceptor
     private static async Task MapAsync(Func<Task> next)
     {
         try { await next().ConfigureAwait(false); }
-        catch (ResultFailureException error) { throw ToRpcException(error.Error); }
+        catch (ErrorException error) { throw ToRpcException(error.Error); }
     }
 
     /// <summary>
-    /// Maps a <see cref="Error"/> to an <see cref="RpcException"/> with the appropriate
-    /// <see cref="StatusCode"/>. The error <see cref="Error.Code"/> is included in the
-    /// response trailers as <c>kun-error-code</c>.
+    /// Maps an <see cref="Error"/> to an <see cref="RpcException"/>: the status code follows the HTTP status
+    /// of the error code (<see cref="MapStatus"/>), the status detail is <see cref="Error.Message"/>, and the
+    /// error code (<see cref="ErrorCode.Code"/>, e.g. <c>NOT_FOUND</c>) is included in the response trailers
+    /// as <c>kun-error-code</c>.
     /// </summary>
     /// <param name="error">The error to map.</param>
     /// <returns>An <see cref="RpcException"/> with the mapped status code.</returns>
     public static RpcException ToRpcException(Error error)
     {
-        var statusCode = MapErrorType(error.Type);
+        ArgumentNullException.ThrowIfNull(error);
         var trailers = new Metadata
         {
-            { "kun-error-code", error.Code }
+            { "kun-error-code", error.Code.Code }
         };
-        return new RpcException(new Status(statusCode, error.Message), trailers);
+        return new RpcException(new Status(MapStatus(error.Code.Status), error.Message), trailers);
     }
 
     /// <summary>
-    /// Maps an <see cref="ErrorType"/> to the corresponding gRPC <see cref="StatusCode"/>.
+    /// Maps the HTTP status of an error code (<see cref="ErrorCode.Status"/>) to the corresponding gRPC
+    /// <see cref="StatusCode"/>; statuses without a closer gRPC equivalent map to <see cref="StatusCode.Internal"/>.
     /// </summary>
-    /// <param name="errorType">The error type to map.</param>
+    /// <param name="httpStatus">The HTTP status of the error code (field-level codes have none).</param>
     /// <returns>The gRPC status code.</returns>
-    public static StatusCode MapErrorType(ErrorType errorType) => errorType switch
+    public static StatusCode MapStatus(int? httpStatus) => httpStatus switch
     {
-        ErrorType.Validation => StatusCode.InvalidArgument,
-        ErrorType.NotFound => StatusCode.NotFound,
-        ErrorType.Conflict => StatusCode.FailedPrecondition,
-        ErrorType.Unauthorized => StatusCode.Unauthenticated,
-        ErrorType.Forbidden => StatusCode.PermissionDenied,
-        ErrorType.Unavailable => StatusCode.Unavailable,
+        400 => StatusCode.InvalidArgument,
+        401 => StatusCode.Unauthenticated,
+        403 => StatusCode.PermissionDenied,
+        404 => StatusCode.NotFound,
+        408 or 504 => StatusCode.DeadlineExceeded,
+        409 or 412 or 422 => StatusCode.FailedPrecondition,
+        413 or 429 => StatusCode.ResourceExhausted,
+        502 or 503 => StatusCode.Unavailable,
         _ => StatusCode.Internal
     };
 }

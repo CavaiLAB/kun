@@ -19,8 +19,8 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Identity.Server;
 
@@ -184,7 +184,7 @@ public static class IdentityProtocolEndpoints
                 $"<input type=\"hidden\" name=\"{HtmlEncoder.Default.Encode(parameter.Key)}\" value=\"{HtmlEncoder.Default.Encode(parameter.Value.ToString() ?? "")}\">"));
             return Results.Content($"<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><title>退出登录</title><form method=\"post\" action=\"{action}\">{fields}<input type=\"hidden\" name=\"{name}\" value=\"{token}\"><button type=\"submit\">确认退出登录</button></form></html>", "text/html; charset=utf-8");
         }
-        if (!await antiforgery.IsRequestValidAsync(http).ConfigureAwait(false)) return QianResults.Error(new QianError(PlatformErrors.InputInvalid));
+        if (!await antiforgery.IsRequestValidAsync(http).ConfigureAwait(false)) return KunResults.Error(new Error(PlatformErrors.InputInvalid));
         var ticket = await http.AuthenticateAsync(Server).ConfigureAwait(false);
         var principal = ticket.Principal ?? (await http.AuthenticateAsync(options.SignInScheme).ConfigureAwait(false)).Principal;
         if (principal?.GetClaim(Claims.Subject) is { } subject && principal.GetClaim("sid") is { } sid)

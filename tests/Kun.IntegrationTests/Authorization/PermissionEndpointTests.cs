@@ -2,12 +2,9 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Kun.AspNetCore.Authorization;
-using Kun.AspNetCore.DependencyInjection;
 using Kun.Authorization;
-using Kun.Core.Results;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -54,34 +51,6 @@ public sealed class PermissionEndpointTests
         Assert.Equal(expected, response.StatusCode);
         if (allow == true) Assert.Equal(["check", "handler"], calls);
         else Assert.DoesNotContain("handler", calls);
-    }
-
-    [Fact]
-    public async Task KunException_UsesHostProblemDetailsWriter()
-    {
-        var builder = WebApplication.CreateBuilder();
-        builder.WebHost.UseTestServer();
-        builder.Services.AddSingleton<IProblemDetailsWriter, MarkerWriter>();
-        builder.Services.AddKunAspNetCore();
-        await using var app = builder.Build();
-        app.UseExceptionHandler();
-        app.MapGet("/failure", () => ThrowFailure());
-        await app.StartAsync(TestContext.Current.CancellationToken);
-        var response = await app.GetTestClient().GetAsync("/failure", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        Assert.Equal("custom:item.conflict", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
-    }
-
-    private static IResult ThrowFailure() => throw new ResultFailureException(Error.Conflict("item.conflict", "冲突"));
-
-    private sealed class MarkerWriter : IProblemDetailsWriter
-    {
-        public bool CanWrite(ProblemDetailsContext context) => true;
-        public async ValueTask WriteAsync(ProblemDetailsContext context)
-        {
-            Assert.IsType<ResultFailureException>(context.Exception);
-            await context.HttpContext.Response.WriteAsync("custom:" + ((ResultFailureException)context.Exception).Error.Code);
-        }
     }
 
     private sealed class TestAuthentication(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder)

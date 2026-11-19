@@ -19,7 +19,7 @@ using Qian.Plugin.Sdk;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities.AspNetCore;
 
@@ -27,8 +27,8 @@ internal sealed class AspNetCoreHttpContractSource(IApiDescriptionGroupCollectio
 {
     public async ValueTask<JsonElement> GetDocumentAsync(IPluginContext caller, ICurrentUser user, CancellationToken cancellationToken = default)
     {
-        var http = accessor.HttpContext ?? throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
-        if (!user.IsAuthenticated || http.User.Identity?.IsAuthenticated != true || user.Principal?.TenantId != caller.Scope.Id || !SameIdentity(http.User, user)) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        var http = accessor.HttpContext ?? throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        if (!user.IsAuthenticated || http.User.Identity?.IsAuthenticated != true || user.Principal?.TenantId != caller.Scope.Id || !SameIdentity(http.User, user)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         var services = http.RequestServices;
         var policies = services.GetRequiredService<IAuthorizationPolicyProvider>(); var authorize = services.GetRequiredService<IAuthorizationService>();
         var selected = new List<(ApiDescription Api, bool Anonymous)>();
@@ -67,7 +67,7 @@ internal sealed class AspNetCoreHttpContractSource(IApiDescriptionGroupCollectio
             selected.Add((api, anonymous));
         }
         cancellationToken.ThrowIfCancellationRequested();
-        if (!SameIdentity(http.User, user)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (!SameIdentity(http.User, user)) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return Render(selected, jsonOptions.Value.SerializerOptions);
     }
     public async ValueTask<JsonElement> CompileDocumentAsync(string pluginId, CancellationToken cancellationToken = default)

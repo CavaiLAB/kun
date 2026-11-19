@@ -3,6 +3,6 @@
   <PropertyGroup Label="档位"><KunTier>kernel</KunTier><KunRole>contract</KunRole></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Runtime/Qian.Runtime.csproj" />
-    <ProjectReference Include="../Qian.Runtime.Errors/Qian.Runtime.Errors.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Errors/Kun.Errors.csproj" />
   </ItemGroup>
 </Project>

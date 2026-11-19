@@ -4,6 +4,6 @@
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Registry;
 
@@ -24,9 +24,9 @@ internal sealed class RegistryPatchWriter(PostgresPatchRepository patches, Regis
     {
         ct.ThrowIfCancellationRequested();
         var result = composer.Compose(scope, rows);
-        if (!result.IsValid) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid)
+        if (!result.IsValid) throw new ErrorException(new Error(PlatformErrors.InputInvalid)
         {
-            Errors = result.Diagnostics.Where(d => d.Severity == "error").Take(100).Select(d => new QianFieldError(
+            Errors = result.Diagnostics.Where(d => d.Severity == "error").Take(100).Select(d => new FieldError(
                 RegistryErrors.Invalid, d.Error.Pointer ?? "registry/scope-patches.json#",
                 new Dictionary<string, string> { ["reason"] = "候选 scope patch 未通过共用装配校验。" })).ToArray()
         });

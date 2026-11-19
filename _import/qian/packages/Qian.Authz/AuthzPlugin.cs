@@ -10,7 +10,7 @@ using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Authz;
@@ -131,7 +131,7 @@ public sealed class AuthzPlugin : IQianPlugin
             .Select(compiler.FromInstalled).ToArray();
     }
 
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }
 
 // ctx.Authz 的实现：Kun 的五个判定方法、有效权限列表与完整解释直接委托真实 RBAC；数据与字段端口在 S2 编译器交付前恒拒绝，而不是放行全部。
@@ -158,7 +158,7 @@ internal sealed class AuthzService(RbacPermissionChecker checker) : IAuthzServic
             ValueTask.FromResult<Expression<Func<T, bool>>>(_ => false);
         // 谓词 AST 还没有「恒假」的约定词汇，返回任何谓词都可能被编译器当作放宽；直接拒绝。
         public ValueTask<DataPermissionPredicate> GetPredicateAsync(PermissionRequest request, CancellationToken cancellationToken = default) =>
-            throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+            throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
     }
 
     private sealed class DenyAllFields : IFieldPolicy

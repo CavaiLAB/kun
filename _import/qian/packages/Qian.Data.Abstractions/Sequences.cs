@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data;
 
@@ -59,7 +59,7 @@ public sealed partial class SequencePattern
     public static SequencePattern Parse(string pattern)
     {
         if (TryParse(pattern, out var result, out var error)) return result;
-        throw new QianErrorException(new QianError(DataErrors.SequenceRuleInvalid, new Dictionary<string, string> { ["reason"] = error }));
+        throw new ErrorException(new Error(DataErrors.SequenceRuleInvalid, new Dictionary<string, string> { ["reason"] = error }));
     }
 
     /// <summary>尝试解析模式，失败时给出原因。</summary>

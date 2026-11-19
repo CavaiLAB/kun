@@ -1,6 +1,6 @@
 #nullable enable
 Qian.Identity.Connector.Oidc.OidcConnectorOptions
-Qian.Identity.Connector.Oidc.OidcConnectorOptions.Check() -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.QianFieldError!>!
+Qian.Identity.Connector.Oidc.OidcConnectorOptions.Check() -> System.Collections.Generic.IReadOnlyList<Kun.Errors.FieldError!>!
 Qian.Identity.Connector.Oidc.OidcConnectorOptions.ClientId.get -> string!
 Qian.Identity.Connector.Oidc.OidcConnectorOptions.ClientId.init -> void
 Qian.Identity.Connector.Oidc.OidcConnectorOptions.ClientSecret.get -> string!

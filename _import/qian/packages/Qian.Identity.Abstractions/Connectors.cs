@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Abstractions;
 
@@ -41,23 +41,23 @@ public static partial class ConnectorManifest
             : throw new ArgumentException("连接器标识不合法。", nameof(connectorId));
 
     /// <summary>逐项检查清单，返回字段错误（pointer 指向描述的成员）；空列表表示通过。</summary>
-    public static IReadOnlyList<QianFieldError> Check(ConnectorDescriptor descriptor)
+    public static IReadOnlyList<FieldError> Check(ConnectorDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        var errors = new List<QianFieldError>();
-        if (!IsValidId(descriptor.Id)) errors.Add(new QianFieldError(PlatformErrors.PatternMismatch, "#/id"));
-        if (string.IsNullOrWhiteSpace(descriptor.DisplayName)) errors.Add(new QianFieldError(PlatformErrors.Required, "#/displayName"));
-        else if (descriptor.DisplayName.Length > 64 || descriptor.DisplayName.Any(char.IsControl)) errors.Add(new QianFieldError(PlatformErrors.OutOfRange, "#/displayName"));
-        if (descriptor.Protocol is null || !ProtocolPattern().IsMatch(descriptor.Protocol)) errors.Add(new QianFieldError(PlatformErrors.PatternMismatch, "#/protocol"));
-        if (descriptor.Terminals is null || descriptor.Terminals.Count == 0) errors.Add(new QianFieldError(PlatformErrors.Required, "#/terminals"));
+        var errors = new List<FieldError>();
+        if (!IsValidId(descriptor.Id)) errors.Add(new FieldError(PlatformErrors.PatternMismatch, "#/id"));
+        if (string.IsNullOrWhiteSpace(descriptor.DisplayName)) errors.Add(new FieldError(PlatformErrors.Required, "#/displayName"));
+        else if (descriptor.DisplayName.Length > 64 || descriptor.DisplayName.Any(char.IsControl)) errors.Add(new FieldError(PlatformErrors.OutOfRange, "#/displayName"));
+        if (descriptor.Protocol is null || !ProtocolPattern().IsMatch(descriptor.Protocol)) errors.Add(new FieldError(PlatformErrors.PatternMismatch, "#/protocol"));
+        if (descriptor.Terminals is null || descriptor.Terminals.Count == 0) errors.Add(new FieldError(PlatformErrors.Required, "#/terminals"));
         else
         {
             var seen = new HashSet<string>(StringComparer.Ordinal);
             for (var i = 0; i < descriptor.Terminals.Count; i++)
                 if (descriptor.Terminals[i] is not { } terminal || !ConnectorTerminals.All.Contains(terminal) || !seen.Add(terminal))
-                    errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("terminals", i)));
+                    errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("terminals", i)));
         }
-        if (descriptor.CallbackTemplate != CallbackTemplate) errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, "#/callbackTemplate"));
+        if (descriptor.CallbackTemplate != CallbackTemplate) errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, "#/callbackTemplate"));
         CheckSchema(descriptor.ConfigSchema, "#/configSchema", errors, 0);
         return errors;
     }
@@ -66,31 +66,31 @@ public static partial class ConnectorManifest
     public static void Validate(ConnectorDescriptor descriptor)
     {
         var errors = Check(descriptor);
-        if (errors.Count > 0) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [.. errors.Take(100)] });
+        if (errors.Count > 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [.. errors.Take(100)] });
     }
 
     // 配置 Schema：关闭的 object；密钥类属性必须标记敏感，敏感属性必须是 string 且 pattern 以 ^secretRef:// 开头（只能填 secretRef）。嵌套 object 同样检查。
-    private static void CheckSchema(JsonElement schema, string pointer, List<QianFieldError> errors, int depth)
+    private static void CheckSchema(JsonElement schema, string pointer, List<FieldError> errors, int depth)
     {
-        if (depth > 16) { errors.Add(new QianFieldError(PlatformErrors.OutOfRange, pointer)); return; }
+        if (depth > 16) { errors.Add(new FieldError(PlatformErrors.OutOfRange, pointer)); return; }
         if (schema.ValueKind != JsonValueKind.Object || !schema.TryGetProperty("type", out var type) || type.ValueKind != JsonValueKind.String || type.GetString() != "object")
-        { errors.Add(new QianFieldError(PlatformErrors.TypeMismatch, pointer)); return; }
+        { errors.Add(new FieldError(PlatformErrors.TypeMismatch, pointer)); return; }
         if (!schema.TryGetProperty("additionalProperties", out var additional) || additional.ValueKind != JsonValueKind.False)
-            errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, pointer + "/additionalProperties"));
+            errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, pointer + "/additionalProperties"));
         if (!schema.TryGetProperty("properties", out var properties)) return;
-        if (properties.ValueKind != JsonValueKind.Object) { errors.Add(new QianFieldError(PlatformErrors.TypeMismatch, pointer + "/properties")); return; }
+        if (properties.ValueKind != JsonValueKind.Object) { errors.Add(new FieldError(PlatformErrors.TypeMismatch, pointer + "/properties")); return; }
         foreach (var property in properties.EnumerateObject())
         {
             var at = pointer + "/properties/" + Escape(property.Name);
             var value = property.Value;
-            if (value.ValueKind != JsonValueKind.Object) { errors.Add(new QianFieldError(PlatformErrors.TypeMismatch, at)); continue; }
+            if (value.ValueKind != JsonValueKind.Object) { errors.Add(new FieldError(PlatformErrors.TypeMismatch, at)); continue; }
             var sensitive = value.TryGetProperty(SensitiveKeyword, out var flag) && flag.ValueKind == JsonValueKind.True;
             var kind = value.TryGetProperty("type", out var t) && t.ValueKind == JsonValueKind.String ? t.GetString() : null;
-            if (SecretName().IsMatch(property.Name) && !sensitive) errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, at + "/" + SensitiveKeyword));
-            if (sensitive && kind != "string") errors.Add(new QianFieldError(PlatformErrors.TypeMismatch, at + "/type"));
+            if (SecretName().IsMatch(property.Name) && !sensitive) errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, at + "/" + SensitiveKeyword));
+            if (sensitive && kind != "string") errors.Add(new FieldError(PlatformErrors.TypeMismatch, at + "/type"));
             if (sensitive && (!value.TryGetProperty("pattern", out var pattern) || pattern.ValueKind != JsonValueKind.String ||
                 !pattern.GetString()!.StartsWith("^secretRef://", StringComparison.Ordinal)))
-                errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, at + "/pattern"));
+                errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, at + "/pattern"));
             if (kind == "object") CheckSchema(value, at, errors, depth + 1);
         }
     }
@@ -117,10 +117,10 @@ internal sealed class PluginConnectorRegistry(IPluginContext context) : IIdentit
     public IDisposable Register(string name, IIdentityConnector connector)
     {
         ArgumentNullException.ThrowIfNull(connector);
-        var descriptor = connector.Descriptor ?? throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        var descriptor = connector.Descriptor ?? throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         ConnectorManifest.Validate(descriptor);
         if (name != descriptor.Id)
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, "#/id")] });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.ValueNotAllowed, "#/id")] });
         return context.Provide<IIdentityConnector>(IdentityDefinition.ConnectorsKey, name, connector);
     }
 

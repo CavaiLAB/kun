@@ -115,7 +115,7 @@ builder.Services.AddQianEventsSubscriber("qian.identity", subscriber => subscrib
 | 分类 | 情形 | 处置 | 计数 |
 |---|---|---|---|
 | 契约不满足（handler 之前） | 信封解析或校验失败（含缺少 tenant_id）、与 AMQP 属性不一致、本队列没有订阅这个事件 ID、平台级事件而订阅不接受、租户进入被拒（传播器判定、非法租户 id，或进入后当前租户不等于信封租户）、载荷反序列化失败 | 不重投、不记幂等，原样转入订阅的死信队列 | rejected |
-| handler 确定性失败 | `QianEventsException`；`InvalidOperationException` 本身（`RecordChangedEvent.FromEnvelope` 等派生失败抛的就是它；包着内层异常时按内层判定）；`ArgumentException`、`JsonException`、`NotSupportedException`；错误码不可重试的 `QianErrorException` | 不重投、不记幂等，转入死信队列 | dead_lettered |
+| handler 确定性失败 | `QianEventsException`；`InvalidOperationException` 本身（`RecordChangedEvent.FromEnvelope` 等派生失败抛的就是它；包着内层异常时按内层判定）；`ArgumentException`、`JsonException`、`NotSupportedException`；错误码不可重试的 `ErrorException` | 不重投、不记幂等，转入死信队列 | dead_lettered |
 | handler 瞬时失败 | 其余异常，包括 `InvalidOperationException` 的其他子类（如 `ObjectDisposedException`）和包着瞬时故障的 `InvalidOperationException` | 退避后重投；用尽后转入死信队列 | retried，用尽时 dead_lettered |
 | 转发失败 | 重试或死信副本连续 3 次发不出去（broker 退回、确认超时、声明失败） | 原消息 nack 不放回，交 broker 按队列的死信参数处理，见「重试与死信」 | forward_failed |
 | 宿主停机 | 停机令牌触发后 handler 抛出的任何异常 | 放回队列，不计一次尝试 | 无 |

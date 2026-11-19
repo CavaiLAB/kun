@@ -1,5 +1,5 @@
 using Qian.Docs.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Docs;
@@ -18,9 +18,9 @@ internal sealed class Diagnostics
     internal void Add(string file, int line, ErrorCode code, string reason, bool warning = false)
     {
         var pointer = string.Join('/', file.Replace('\\', '/').Split('/').Select(Uri.EscapeDataString)) + "#";
-        var error = new QianError(PlatformErrors.InputInvalid)
+        var error = new Error(PlatformErrors.InputInvalid)
         {
-            Errors = [new QianFieldError(code, pointer, new Dictionary<string, string> { ["reason"] = reason })]
+            Errors = [new FieldError(code, pointer, new Dictionary<string, string> { ["reason"] = reason })]
         };
         Items.Add(new SurfaceDiagnostic(file, line, warning ? "warning" : "error", _catalog.CreateDetail(error, _trace)));
     }

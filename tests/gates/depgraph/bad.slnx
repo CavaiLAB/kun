@@ -10,6 +10,7 @@
   <Project Path="Gate.Elm.Abstractions/Gate.Elm.Abstractions.csproj" />
   <Project Path="Gate.Maple/Gate.Maple.csproj" />
   <Project Path="Gate.Nectar/Gate.Nectar.csproj" />
+  <Project Path="Gate.Umber/Gate.Umber.csproj" />
   <Project Path="Gate.Rowan/Gate.Rowan.csproj" />
   <Project Path="Gate.Sorrel/Gate.Sorrel.csproj" />
   <Project Path="Gate.Oak/Gate.Oak.csproj" />

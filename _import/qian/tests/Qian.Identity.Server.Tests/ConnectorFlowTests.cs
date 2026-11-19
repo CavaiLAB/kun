@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
@@ -48,7 +48,7 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture re
         Assert.NotEmpty(ConnectorManifest.Check(broken.Descriptor));
         await host.MountAsync(ConnectorsPlugin.Define("broken", ScopeKey.Global, broken));
         Assert.Equal(PluginState.Failed, host.Loader.GetState("broken", ScopeKey.Global));
-        var failure = Assert.IsType<QianErrorException>(host.Loader.GetFailure("broken", ScopeKey.Global));
+        var failure = Assert.IsType<ErrorException>(host.Loader.GetFailure("broken", ScopeKey.Global));
         Assert.Equal(PlatformErrors.InputInvalid, failure.Error.Code);
         var browser = host.NewBrowser();
         var (status, list, _) = await browser.Json(HttpMethod.Get, "api/identity/connectors?tenant=alpha");
@@ -682,7 +682,7 @@ public sealed class ConnectorFlowTests(PostgresFixture postgres, RedisFixture re
         Assert.Equal(PluginState.Ready, host.Loader.GetState("connector.oidc", ScopeKey.Global));
         // 明文密钥：组件装配即失败，连接器不出现。
         Assert.Equal(PluginState.Failed, host.Loader.GetState("connector.plain", ScopeKey.Global));
-        var failure = Assert.IsType<QianErrorException>(host.Loader.GetFailure("connector.plain", ScopeKey.Global));
+        var failure = Assert.IsType<ErrorException>(host.Loader.GetFailure("connector.plain", ScopeKey.Global));
         Assert.Contains(failure.Error.Errors!, e => e.Pointer == "#/clientSecret");
         Assert.DoesNotContain(Secret, failure.ToString(), StringComparison.Ordinal);
 

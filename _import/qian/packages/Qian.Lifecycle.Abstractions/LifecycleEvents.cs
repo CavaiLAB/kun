@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using Kun.EventBus;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 

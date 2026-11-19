@@ -209,7 +209,7 @@ public sealed partial class CatalogContractTests(PostgresFixture postgres) : Cus
             OpenApiContractPlugin.FromRepository(new CrmPlugin(), repository, "qian.sample.crm", "0.9.0", "1.1.0", "qian.sample.crm.api/v1"),
             [CrmDefinition.Key])], Ct);
         Assert.Equal(PluginState.Failed, runtime.GetState("crm", ScopeKey.Global));
-        var failure = Assert.IsType<Qian.Runtime.Errors.QianErrorException>(runtime.GetFailure("crm", ScopeKey.Global));
+        var failure = Assert.IsType<Kun.Errors.ErrorException>(runtime.GetFailure("crm", ScopeKey.Global));
         Assert.Equal("PRECONDITION_FAILED", failure.Error.Code.Code);
         await AssertAbsent(host, A);
         await runtime.UnmountAsync("crm", ScopeKey.Global, Ct);

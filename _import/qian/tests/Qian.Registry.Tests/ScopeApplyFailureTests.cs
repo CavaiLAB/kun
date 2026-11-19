@@ -4,7 +4,7 @@ using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Registry.Tests;
 
@@ -21,7 +21,7 @@ public sealed partial class PatchPersistenceTests
         await repository.PutAsync(TenantA, "private", Patch("""{"id":"private","plugin":"test.private","config":{"label":"precondition"}}"""), 0, "operator-a", Ct);
         var refused = await Assert.ThrowsAsync<RegistryScopeApplyException>(() => running.Registry.SynchronizeAsync(TenantA, Ct).AsTask());
         Assert.Equal((TenantA, "private", "test.private@1.0.0", (int?)1, "PRECONDITION_FAILED"), (refused.Scope, refused.EntryId, refused.Plugin, refused.Revision, refused.ReasonCode));
-        Assert.Equal("PRECONDITION_FAILED", Assert.IsType<QianErrorException>(refused.InnerException).Error.Code.Code);
+        Assert.Equal("PRECONDITION_FAILED", Assert.IsType<ErrorException>(refused.InnerException).Error.Code.Code);
         Assert.Equal(["entryId", "plugin", "reasonCode", "revision", "scope"], refused.Data.Keys.Cast<string>().Order(StringComparer.Ordinal));
         Assert.Equal("tenant:a", refused.Data["scope"]); Assert.Equal(1, refused.Data["revision"]); Assert.Equal("PRECONDITION_FAILED", refused.Data["reasonCode"]);
         foreach (var part in new[] { "tenant:a", "private", "test.private@1.0.0", "修订 1", "PRECONDITION_FAILED" }) Assert.Contains(part, refused.Message, StringComparison.Ordinal);
@@ -99,7 +99,7 @@ public sealed partial class PatchPersistenceTests
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) =>
             (config.TryGetProperty("label", out var label) ? label.GetString() : null) switch
             {
-                "precondition" => throw new QianErrorException(new QianError(PlatformErrors.PreconditionFailed)),
+                "precondition" => throw new ErrorException(new Error(PlatformErrors.PreconditionFailed)),
                 "crash" => throw new InvalidOperationException(Secret),
                 "contract" => throw new CapabilityContractException("test.private", "probe", "test.private/probe#/inputSchema/properties/tenantId", "tenant-field"),
                 "forged" => throw new InvalidOperationException(Secret) { Data = { ["reasonCode"] = "drop table; --" } },

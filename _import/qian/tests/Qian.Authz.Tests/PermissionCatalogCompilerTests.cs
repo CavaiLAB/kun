@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using Qian.Authz.Abstractions;
 using Qian.Registry;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 
 namespace Qian.Authz.Tests;
@@ -42,7 +42,7 @@ public sealed class PermissionCatalogCompilerTests
     public void 角色模板不能授予外部或未知权限(string grant)
     {
         var roles = JsonSerializer.SerializeToElement(new[] { new { role = "tenant.owner", grant = new[] { grant } } });
-        var error = Assert.Throws<QianErrorException>(() => new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata(Plugin, "1.0.0", Permissions, roles));
+        var error = Assert.Throws<ErrorException>(() => new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata(Plugin, "1.0.0", Permissions, roles));
         Assert.Equal("INPUT_INVALID", error.Error.Code.Code);
         Assert.Equal("metadata/roles.json#/0/grant/0", Assert.Single(error.Error.Errors!).Pointer);
     }
@@ -55,7 +55,7 @@ public sealed class PermissionCatalogCompilerTests
     [InlineData("[{\"resource\":\"customer\",\"resource\":\"other\",\"actions\":[\"read\"]}]")]
     public void 重复声明和不存在的风险或终端动作被拒绝(string source)
     {
-        var error = Assert.Throws<QianErrorException>(() => new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata(Plugin, "1.0.0", Json(source), Json("[]")));
+        var error = Assert.Throws<ErrorException>(() => new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata(Plugin, "1.0.0", Json(source), Json("[]")));
         Assert.Equal("INPUT_INVALID", error.Error.Code.Code); Assert.NotEmpty(error.Error.Errors!);
     }
 
@@ -63,17 +63,17 @@ public sealed class PermissionCatalogCompilerTests
     public void 非法风险值不会回显_平台角色不能由组件默认模板创建()
     {
         var compiler = new PermissionCatalogCompiler(new SurfaceValidator());
-        var error = Assert.Throws<QianErrorException>(() => compiler.FromMetadata(Plugin, "1.0.0", Json("""[{"resource":"customer","actions":["read"],"risk":{"read":"DO-NOT-LEAK"}}]"""), Json("[]")));
+        var error = Assert.Throws<ErrorException>(() => compiler.FromMetadata(Plugin, "1.0.0", Json("""[{"resource":"customer","actions":["read"],"risk":{"read":"DO-NOT-LEAK"}}]"""), Json("[]")));
         var catalog = ErrorCatalog.CreateDefault(); using var registration = AuthzErrors.Register(catalog);
         Assert.DoesNotContain("DO-NOT-LEAK", ErrorDetailJson.Serialize(catalog.CreateDetail(error.Error, new string('a', 32))), StringComparison.Ordinal);
-        Assert.Throws<QianErrorException>(() => compiler.FromMetadata(Plugin, "1.0.0", Permissions, Json("""[{"role":"platform.superadmin","grant":["qian.sample.crm:customer:read"]}]""")));
+        Assert.Throws<ErrorException>(() => compiler.FromMetadata(Plugin, "1.0.0", Permissions, Json("""[{"role":"platform.superadmin","grant":["qian.sample.crm:customer:read"]}]""")));
     }
 
     [Fact]
     public void 自定义元数据目录的错误指针保持有效URI并不读取文件()
     {
         var compiler = new PermissionCatalogCompiler(new SurfaceValidator());
-        var error = Assert.Throws<QianErrorException>(() => compiler.FromMetadata(Plugin, "1.0.0", Json("""[{"resource":"customer","actions":["read"],"stepUp":["missing"]}]"""), Json("[]"), "custom #目录/permissions.json"));
+        var error = Assert.Throws<ErrorException>(() => compiler.FromMetadata(Plugin, "1.0.0", Json("""[{"resource":"customer","actions":["read"],"stepUp":["missing"]}]"""), Json("[]"), "custom #目录/permissions.json"));
         Assert.Equal("custom%20%23%E7%9B%AE%E5%BD%95/permissions.json#/0", Assert.Single(error.Error.Errors!).Pointer);
     }
 

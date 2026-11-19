@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.AspNetCore.Http;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Plugin.Sdk.AspNetCore;
 
@@ -19,7 +19,7 @@ public sealed class PluginEnabledMiddleware(RequestDelegate next, PluginEndpoint
         var endpoint = context.GetEndpoint(); var binding = endpoint?.Metadata.GetMetadata<PluginEndpointBinding>();
         if (binding is null) { await next(context).ConfigureAwait(false); return; }
         if (context.User.Identity is not ClaimsIdentity { IsAuthenticated: true } identity || !tenant.IsMultiTenant || string.IsNullOrWhiteSpace(tenant.TenantId))
-            throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+            throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         var claims = identity.FindAll("tenant_id").ToArray();
         if (claims.Length != 1 || claims[0].Value != tenant.TenantId) throw NotFound();
         var scope = new ScopeKey("tenant", tenant.TenantId);
@@ -43,6 +43,6 @@ public sealed class PluginEnabledMiddleware(RequestDelegate next, PluginEndpoint
     internal static bool HasEvidence(HttpContext context, PluginEndpointBinding binding, ITenantContext tenant) =>
         context.Items.TryGetValue(EvidenceKey, out var value) && value is Evidence evidence && ReferenceEquals(evidence.Endpoint, context.GetEndpoint()) &&
         ReferenceEquals(evidence.Binding, binding) && evidence.Scope.Kind == "tenant" && evidence.Scope.Id == tenant.TenantId;
-    internal static QianErrorException NotFound() => new(new QianError(PlatformErrors.NotFound));
+    internal static ErrorException NotFound() => new(new Error(PlatformErrors.NotFound));
     private sealed record Evidence(Endpoint Endpoint, PluginEndpointBinding Binding, ScopeKey Scope);
 }

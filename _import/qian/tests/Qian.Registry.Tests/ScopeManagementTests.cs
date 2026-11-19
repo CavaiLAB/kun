@@ -28,7 +28,7 @@ using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Registry.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
 using Qian.Tenancy;
 
@@ -211,7 +211,7 @@ public sealed partial class PatchPersistenceTests
         var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
         builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunSecurity(); builder.Services.AddHttpContextAccessor();
         // 单容器的平台宿主由 RegistryPlugin 登记原因码；本测试的 HTTP 宿主与插件宿主分开，需在自己的目录中登记一次。
-        builder.Services.AddQianErrors(catalog => RegistryErrors.Register(catalog));
+        builder.Services.AddKunErrors(catalog => RegistryErrors.Register(catalog));
         builder.Services.AddScoped<TenantRequestBoundary>();
         builder.Services.AddScoped<ICurrentUser, VerifiedServiceUser>();
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
@@ -229,7 +229,7 @@ public sealed partial class PatchPersistenceTests
             };
         });
         var app = builder.Build();
-        app.UseQianErrors(); app.UseRouting(); app.UseQianRegistryAliases(); app.UseAuthentication();
+        app.UseKunErrors(); app.UseRouting(); app.UseQianRegistryAliases(); app.UseAuthentication();
         app.Use(async (context, next) =>
         {
             // 平台运营宿主预先选择的可信目标，不从 path/header/body 推导；普通租户请求仍走原边界。

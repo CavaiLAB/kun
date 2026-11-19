@@ -56,8 +56,8 @@
     <ProjectReference Include="../../_import/qian/packages/Qian.Gateway.Abstractions/Qian.Gateway.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Gateway/Qian.Gateway.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Identity.Client/Qian.Identity.Client.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Runtime.Errors.AspNetCore/Qian.Runtime.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Runtime.Errors/Qian.Runtime.Errors.csproj" />
+    <ProjectReference Include="../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Errors/Kun.Errors.csproj" />
   </ItemGroup>
 
   <ItemGroup>

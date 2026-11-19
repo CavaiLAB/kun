@@ -14,7 +14,7 @@ Directory.Build.targets 在构建时核对写没写、取值对不对（KUNTIER0
   K  内核档  内核档包的传递依赖里不得有平台档的包
   P  平台档  平台档包的传递依赖里，平台档的包只能是契约；内核档的包不限
   D  契约    契约包对内核档包的直接依赖只能是契约
-  C  零依赖  KunZeroDependency=true 的包不得有项目引用，包引用只许 Microsoft.Extensions.*
+  C  零依赖  KunZeroDependency=true 的包只依赖别的零依赖包；除此之外的包引用只许 Microsoft.Extensions.*
 
 D、C 不计只在构建时用的包引用：PrivateAssets=all（或 SDK 自动加的）且不带编译、运行时程序集的，比如分析器。
 PrivateAssets=all 引用运行时库照样算：它不进 nuspec，使用方拿不到它，包会坏。
@@ -65,7 +65,7 @@ REASONS = {
     "K": "内核档包的传递依赖里不得有平台档的包（D23.7）",
     "P": "平台档包只依赖内核档的包与平台档的契约包，不依赖平台档的提供者包（D23.7）",
     "D": "契约包对内核档包的直接依赖只能是契约",
-    "C": "零依赖的包不得有项目引用，包引用只许 Microsoft.Extensions.*",
+    "C": "零依赖的包只依赖别的零依赖包；除此之外的包引用只许 Microsoft.Extensions.*",
     "X": "档位例外",
 }
 
@@ -212,6 +212,9 @@ def evaluate(packages: List[Package], load_assets: Callable[[Path], dict]) -> Tu
     def role(name: str) -> str:
         return declared[name].role if name in declared else ""
 
+    def zero(name: str) -> bool:
+        return name in declared and declared[name].zero_dependency == "true"
+
     def violates(package: Package, rule: str, name: str, edge: Direct) -> bool:
         """起点 package 到 name 的这条直接依赖本身是否违反 rule。"""
         if rule == "K":
@@ -220,7 +223,10 @@ def evaluate(packages: List[Package], load_assets: Callable[[Path], dict]) -> Tu
             return package.tier == "platform" and tier(name) == "platform" and role(name) == "provider"
         if rule == "D":
             return package.role == "contract" and not edge.build_only and tier(name) == "kernel" and role(name) == "provider"
-        return package.zero_dependency == "true" and not edge.build_only and (edge.project or not name.startswith(ZERO_DEPENDENCY_PACKAGES.lower()))
+        # 零依赖的包可以依赖别的零依赖包（如 Kun.Core 依赖 Kun.Errors），项目引用与包引用都一样；
+        # 别的项目引用一律不行，别的包引用只许 Microsoft.Extensions.*。
+        return (package.zero_dependency == "true" and not edge.build_only and not zero(name)
+                and (edge.project or not name.startswith(ZERO_DEPENDENCY_PACKAGES.lower())))
 
     violations: List[Violation] = []
     statuses: List[ExceptionStatus] = []
@@ -256,7 +262,7 @@ def evaluate(packages: List[Package], load_assets: Callable[[Path], dict]) -> Tu
                 for name, edge in sorted(graph.direct.items()):
                     for rule in ("D", "C"):
                         if violates(package, rule, name, edge) and (source, rule, name) not in excepted:
-                            detail = ("项目引用" if edge.project else "PrivateAssets=all 引用运行时库：它不进 nuspec，使用方拿不到"
+                            detail = ("项目引用的不是零依赖的包" if edge.project else "PrivateAssets=all 引用运行时库：它不进 nuspec，使用方拿不到"
                                       if edge.private else "") if rule == "C" else ""
                             violations.append(Violation(rule, package.package_id, rel, graph.framework, display(name, name),
                                                         [package.package_id, display(name, name)], detail))

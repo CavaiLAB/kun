@@ -7,7 +7,7 @@ using Qian.Data;
 using Qian.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Files;
@@ -57,7 +57,7 @@ public sealed class FilesPlugin : IQianPlugin
         var runtime = new FilesRuntime(options.Clock, backends, policies, settings.QuotaPerTenantBytes, () => ctx.TryInject<ITenantSettings>(TenantSettings.Key));
         // S1 只有 local；s3 / oss 由 S1-FILE-002 作为后端登记，未登记的名称启动即拒绝。
         var factory = backends.Find(settings.Kind)
-            ?? throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/storage/kind", Allowed = AllowedValues.Of([.. backends.List()]) });
+            ?? throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/storage/kind", Allowed = AllowedValues.Of([.. backends.List()]) });
         runtime.Use(factory.Create(new FileBackendContext(settings.Storage, options.Clock, services)));
         if (services.GetService<ErrorCatalog>() is { } catalog) ctx.Effect(FilesErrors.Register(catalog));
         ctx.Provide<IFileService>(FilesDefinition.Key, new FileService(services.GetRequiredService<ISender>(), runtime));

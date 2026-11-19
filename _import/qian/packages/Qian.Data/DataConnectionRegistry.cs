@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Qian.Config;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data;
 
@@ -168,16 +168,16 @@ internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes
         await using var scope = scopes.CreateAsyncScope();
         var record = await FindAsync(Connections(scope).AsNoTracking(), id, cancellationToken).ConfigureAwait(false);
         var dialect = dialects.Find(record.Dialect)
-            ?? throw new QianErrorException(new QianError(DataErrors.DialectNotFound, new Dictionary<string, string> { ["dialect"] = record.Dialect }));
+            ?? throw new ErrorException(new Error(DataErrors.DialectNotFound, new Dictionary<string, string> { ["dialect"] = record.Dialect }));
         var secrets = scope.ServiceProvider.GetService<ISecretResolverFactory>()
-            ?? throw new QianErrorException(new QianError(SecretErrors.Unavailable));
+            ?? throw new ErrorException(new Error(SecretErrors.Unavailable));
         var settings = options.Value;
         var started = clock.GetTimestamp();
         // 先检查出网目标再解析口令：被拒的目标既不出网，也不读取密钥。
         var addresses = await ResolveAsync(record.Host, settings, cancellationToken).ConfigureAwait(false);
         using var password = await secrets.ForHost(settings.SecretPolicyId, tenant).ResolveAsync(record.SecretRef, cancellationToken).ConfigureAwait(false);
         // 与驱动自行解析时一样按顺序尝试每个地址（如双栈主机先 ::1 后 127.0.0.1），只有不可达才换下一个；全部地址共用同一个超时。
-        QianErrorException? unreachable = null;
+        ErrorException? unreachable = null;
         foreach (var address in addresses)
         {
             var remaining = settings.TestTimeout - clock.GetElapsedTime(started);
@@ -190,7 +190,7 @@ internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes
                 var latency = (int)Math.Min(int.MaxValue, Math.Round(clock.GetElapsedTime(probing).TotalMilliseconds));
                 return new DataConnectionTestResult(record.Dialect, probe.ServerVersion, latency);
             }
-            catch (QianErrorException error) when (error.Error.Code == DataErrors.ConnectionUnreachable) { unreachable = error; }
+            catch (ErrorException error) when (error.Error.Code == DataErrors.ConnectionUnreachable) { unreachable = error; }
         }
         throw unreachable ?? Unreachable(null);
     }
@@ -210,30 +210,30 @@ internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes
             catch (SocketException error) { throw Unreachable(error); }
         }
         if (addresses.Length == 0) throw Unreachable(null);
-        if (!addresses.All(settings.Egress.Permits)) throw new QianErrorException(new QianError(DataErrors.ConnectionTargetDenied));
+        if (!addresses.All(settings.Egress.Permits)) throw new ErrorException(new Error(DataErrors.ConnectionTargetDenied));
         return addresses.Select(address => address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address).Distinct().ToArray();
     }
 
-    private static QianErrorException Unreachable(Exception? inner) => new(new QianError(DataErrors.ConnectionUnreachable), inner);
+    private static ErrorException Unreachable(Exception? inner) => new(new Error(DataErrors.ConnectionUnreachable), inner);
 
     private static DbSet<DataConnectionRecord> Connections(AsyncServiceScope scope) =>
         scope.ServiceProvider.GetRequiredService<DataSystemDbContext>().Set<DataConnectionRecord>();
 
     private static async Task<DataConnectionRecord> FindAsync(IQueryable<DataConnectionRecord> connections, Guid id, CancellationToken cancellationToken) =>
         await connections.SingleOrDefaultAsync(connection => connection.Id == id, cancellationToken).ConfigureAwait(false)
-            ?? throw new QianErrorException(new QianError(DataErrors.ConnectionNotFound));
+            ?? throw new ErrorException(new Error(DataErrors.ConnectionNotFound));
 
     private static async Task SaveAsync(DataSystemDbContext context, string? name, CancellationToken cancellationToken)
     {
         try { await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false); }
         catch (DbUpdateConcurrencyException error)
         {
-            throw new QianErrorException(new QianError(PlatformErrors.Conflict), error);
+            throw new ErrorException(new Error(PlatformErrors.Conflict), error);
         }
         catch (DbUpdateException error) when (name is not null && error.InnerException is PostgresException
             { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: DataSystemDbContext.NameIndex })
         {
-            throw new QianErrorException(new QianError(DataErrors.ConnectionNameConflict, new Dictionary<string, string> { ["name"] = name }), error);
+            throw new ErrorException(new Error(DataErrors.ConnectionNameConflict, new Dictionary<string, string> { ["name"] = name }), error);
         }
     }
 
@@ -256,29 +256,29 @@ internal sealed partial class DataConnectionRegistry(IServiceScopeFactory scopes
     private void Validate(DataConnectionDraft draft)
     {
         ArgumentNullException.ThrowIfNull(draft);
-        var errors = new List<QianFieldError>();
+        var errors = new List<FieldError>();
         Check(errors, "#/name", draft.Name, 64, NamePattern());
-        if (string.IsNullOrEmpty(draft.Dialect)) errors.Add(new QianFieldError(PlatformErrors.Required, "#/dialect"));
+        if (string.IsNullOrEmpty(draft.Dialect)) errors.Add(new FieldError(PlatformErrors.Required, "#/dialect"));
         else if (dialects.Find(draft.Dialect) is null)
-            errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, "#/dialect") { Allowed = Codes(dialects.List()) });
+            errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, "#/dialect") { Allowed = Codes(dialects.List()) });
         Check(errors, "#/host", draft.Host, 253, HostPattern());
-        if (draft.Port is < 1 or > 65535) errors.Add(new QianFieldError(PlatformErrors.OutOfRange, "#/port"));
+        if (draft.Port is < 1 or > 65535) errors.Add(new FieldError(PlatformErrors.OutOfRange, "#/port"));
         Check(errors, "#/database", draft.Database, 63, IdentifierPattern());
         Check(errors, "#/userName", draft.UserName, 63, IdentifierPattern());
         if (draft.Schema is not null) Check(errors, "#/schema", draft.Schema, 63, IdentifierPattern());
         if (draft.Encoding is not null) Check(errors, "#/encoding", draft.Encoding, 32, EncodingPattern());
         // 只接受租户作用域的引用：平台与开发引用不能被租户借去连接任意主机。
-        if (string.IsNullOrEmpty(draft.SecretRef)) errors.Add(new QianFieldError(PlatformErrors.Required, "#/secretRef"));
+        if (string.IsNullOrEmpty(draft.SecretRef)) errors.Add(new FieldError(PlatformErrors.Required, "#/secretRef"));
         else if (draft.SecretRef.Length > 256 || !SecretReference.IsValid(draft.SecretRef) || SecretReference.Parse(draft.SecretRef).Scope != "tenant")
-            errors.Add(new QianFieldError(PlatformErrors.PatternMismatch, "#/secretRef"));
-        if (errors.Count > 0) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = errors });
+            errors.Add(new FieldError(PlatformErrors.PatternMismatch, "#/secretRef"));
+        if (errors.Count > 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = errors });
     }
 
-    private static void Check(List<QianFieldError> errors, string pointer, string? value, int maxLength, Regex pattern)
+    private static void Check(List<FieldError> errors, string pointer, string? value, int maxLength, Regex pattern)
     {
-        if (string.IsNullOrEmpty(value)) errors.Add(new QianFieldError(PlatformErrors.Required, pointer));
-        else if (value.Length > maxLength) errors.Add(new QianFieldError(PlatformErrors.OutOfRange, pointer));
-        else if (!pattern.IsMatch(value)) errors.Add(new QianFieldError(PlatformErrors.PatternMismatch, pointer));
+        if (string.IsNullOrEmpty(value)) errors.Add(new FieldError(PlatformErrors.Required, pointer));
+        else if (value.Length > maxLength) errors.Add(new FieldError(PlatformErrors.OutOfRange, pointer));
+        else if (!pattern.IsMatch(value)) errors.Add(new FieldError(PlatformErrors.PatternMismatch, pointer));
     }
 
     private static JsonElement[] Codes(IReadOnlyList<DbDialect> registered)

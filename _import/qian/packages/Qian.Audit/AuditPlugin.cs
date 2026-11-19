@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Qian.Data;
 using Qian.Runtime;
 using Qian.Plugin.Sdk;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Audit;
 
@@ -42,7 +42,7 @@ public sealed class AuditPlugin : IQianPlugin
         ctx.Provide<IAuditService>(AuditDefinition.Key, service);
         CommandPolicies.Register(ctx, CommandPolicyKind.Audit, new AuditCommandPolicy(service).Handle);
     }
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }
 
 internal sealed class AuditService(IDataService data, ITenantContext tenant, ScopeKey scope, string? platformRole) : IAuditService, IAsyncDisposable
@@ -81,7 +81,7 @@ internal sealed class AuditService(IDataService data, ITenantContext tenant, Sco
         ArgumentNullException.ThrowIfNull(producer);
         if (scope != ScopeKey.Global || producer.Scope != ScopeKey.Global || producer.Entry.Scope != ScopeKey.Global ||
             !ReferenceEquals(producer.Audit(), this) || _platform is null)
-            throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+            throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         return _platform;
     }
     private async Task<T> Run<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct)
@@ -89,7 +89,7 @@ internal sealed class AuditService(IDataService data, ITenantContext tenant, Sco
         lock (_gate)
         {
             ObjectDisposedException.ThrowIf(_stopping, this);
-            if (scope.Kind == "tenant" && tenant.TenantId != scope.Id) throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+            if (scope.Kind == "tenant" && tenant.TenantId != scope.Id) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             _pending++;
         }
         try

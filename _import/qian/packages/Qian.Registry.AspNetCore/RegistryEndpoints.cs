@@ -6,8 +6,8 @@ using Qian.Capabilities;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Registry.AspNetCore;
 
@@ -71,15 +71,15 @@ public static class RegistryEndpoints
             http.Response.Headers.CacheControl = "private, no-store";
             if (alias) DeprecatedAlias.Apply(http, "/api/registry" + http.Request.Path.Value![KernelPrefix.Length..]);
             var parts = scope.Split(':', 2);
-            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0) return QianResults.Error(new QianError(PlatformErrors.NotFound));
+            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0) return KunResults.Error(new Error(PlatformErrors.NotFound));
             try
             {
                 var result = await source(http).Registry().PutScopePatchAsync(tenant, new ScopeKey(parts[0], parts[1]), entry, input,
                     http.RequestServices.GetRequiredService<ICurrentUser>(), http.RequestAborted).ConfigureAwait(false);
                 return Results.Json(result, RegistryHttpJson.Default.RegistryScopePatchResult);
             }
-            catch (QianErrorException error) { return QianResults.Error(error.Error); }
-            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+            catch (ErrorException error) { return KunResults.Error(error.Error); }
+            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
         }
 
         // 声明随制品版本而异：路径带版本；租户只来自宿主已验证的上下文。
@@ -92,8 +92,8 @@ public static class RegistryEndpoints
                 return Results.Json(await source(http).Registry().GetPluginPermissionsAsync(pluginId, version, http.RequestServices.GetRequiredService<ICurrentUser>(),
                     http.RequestAborted).ConfigureAwait(false), RegistryHttpJson.Default.RegistryArtifactPermissions);
             }
-            catch (QianErrorException error) { return QianResults.Error(error.Error); }
-            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+            catch (ErrorException error) { return KunResults.Error(error.Error); }
+            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
         }
 
         Task<IResult> List(HttpContext http, string scopeKey, bool alias) => Respond(http, alias, async (registry, scope, user) =>
@@ -110,11 +110,11 @@ public static class RegistryEndpoints
             http.Response.Headers.CacheControl = "private, no-store";
             if (alias) DeprecatedAlias.Apply(http, "/api/registry" + http.Request.Path.Value![KernelPrefix.Length..]);
             var parts = scopeKey.Split(':', 2);
-            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0) return QianResults.Error(new QianError(PlatformErrors.NotFound));
+            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0) return KunResults.Error(new Error(PlatformErrors.NotFound));
             try { return await read(source(http).Registry(), new ScopeKey(parts[0], parts[1]), http.RequestServices.GetRequiredService<ICurrentUser>()).ConfigureAwait(false); }
-            catch (QianErrorException error) { return QianResults.Error(error.Error); }
+            catch (ErrorException error) { return KunResults.Error(error.Error); }
             // 与插件端点中间件一致：注册表尚未就绪或已停止时与不存在无法区分。
-            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+            catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException) { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
         }
     }
 }

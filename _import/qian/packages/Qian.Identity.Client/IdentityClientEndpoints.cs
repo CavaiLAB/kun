@@ -11,8 +11,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Identity.Client;
 
@@ -198,7 +198,7 @@ internal static partial class IdentityClientEndpoints
     }
 
     private static Task Error(HttpContext http, ErrorCode code, IReadOnlyDictionary<string, string>? args = null) =>
-        QianResults.Error(new QianError(code, args)).ExecuteAsync(http);
+        KunResults.Error(new Error(code, args)).ExecuteAsync(http);
 
     private static void Unavailable(HttpContext http, Exception error)
     {

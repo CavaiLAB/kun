@@ -27,8 +27,8 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
     // 被测宿主的依赖闭包里只允许出现 Client 本身及其 Runtime / SDK / Abstractions 依赖；Qian.Testing.Containers 是夹具。
     private static readonly string[] AllowedQianAssemblies =
     [
-        "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Qian.Runtime", "Qian.Runtime.Errors",
-        "Qian.Runtime.Errors.AspNetCore", "Qian.Testing.Containers", "Qian.Plugin.Sdk", "Qian.Data.Abstractions",
+        "Qian.Identity.Client", "Qian.Identity.Abstractions", "Qian.Config.Abstractions", "Qian.Runtime", "Kun.Errors",
+        "Kun.Errors.AspNetCore", "Qian.Testing.Containers", "Qian.Plugin.Sdk", "Qian.Data.Abstractions",
         "Qian.Authz.Abstractions", "Qian.Events.Abstractions", "Qian.Surfaces.Abstractions"
     ];
 

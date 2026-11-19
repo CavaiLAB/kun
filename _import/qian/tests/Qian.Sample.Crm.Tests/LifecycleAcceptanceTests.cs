@@ -30,7 +30,7 @@ using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;
@@ -207,7 +207,7 @@ public sealed partial class LifecycleProfileTests(PostgresFixture postgres) : Cu
         var chain = await TenantChain(host, A);
         using (EventEnvelopeScope.Begin(Operator))
         {
-            var error = await Assert.ThrowsAsync<QianErrorException>(() => lifecycle.UpgradeAsync(A, "qian.sample.crm", "1.0.0", "1.1.0", "operator", Ct).AsTask());
+            var error = await Assert.ThrowsAsync<ErrorException>(() => lifecycle.UpgradeAsync(A, "qian.sample.crm", "1.0.0", "1.1.0", "operator", Ct).AsTask());
             Assert.Equal((LifecycleErrors.MountFailed.Code, "crm", PlatformErrors.PreconditionFailed.Code), (error.Error.Code.Code, error.Error.Args["entryId"], error.Error.Args["reasonCode"]));
         }
         // 挂载失败的升级回到 Installed(from) 不入链（ADR-009「业务失败即无审计」，S1-RT-038）：A 的链与失败之前一条不差，生命周期条目只有开通与那次成功的改版。
@@ -320,9 +320,9 @@ public abstract partial class CustomerCommandTests
         return [.. types];
     }
 
-    private protected static async Task AssertCode(Qian.Runtime.Errors.ErrorCode code, Func<Task> action)
+    private protected static async Task AssertCode(Kun.Errors.ErrorCode code, Func<Task> action)
     {
-        var error = await Assert.ThrowsAsync<QianErrorException>(action);
+        var error = await Assert.ThrowsAsync<ErrorException>(action);
         Assert.Equal(code.Code, error.Error.Code.Code);
     }
 

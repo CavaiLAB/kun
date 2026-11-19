@@ -1,4 +1,4 @@
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Events;
 
@@ -34,11 +34,11 @@ public sealed class QianEventsException : InvalidOperationException
     public QianEventsException(ErrorCode code, string reason) : base(code.Code + "：" + reason)
     {
         ArgumentNullException.ThrowIfNull(code);
-        Error = new QianError(code, new Dictionary<string, string> { ["reason"] = reason });
+        Error = new Error(code, new Dictionary<string, string> { ["reason"] = reason });
     }
 
     /// <summary>供宿主记录的统一错误详情。</summary>
-    public QianError Error { get; }
+    public Error Error { get; }
 
     internal static QianEventsException Misconfigured(string reason) => new(EventsErrors.Misconfigured, reason);
     internal static QianEventsException Rejected(string reason) => new(EventsErrors.PublishRejected, reason);

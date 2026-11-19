@@ -5,12 +5,12 @@ qian.data 的 HTTP 表面：基准类型目录（全局元数据）与数据连�
 ## 宿主装配
 
 ```csharp
-builder.Services.AddQianErrors();
+builder.Services.AddKunErrors();
 builder.Services.AddKunAuthorization();            // 另需登记 IPermissionChecker（如 Qian.Authz）
 builder.Services.AddQianPgDialect();
 builder.Services.AddQianDataConnections((sp, options) => options.UseNpgsql(appConnection));
 var app = builder.Build();
-app.UseQianErrors();
+app.UseKunErrors();
 app.UseAuthentication();
 app.UseKunMultiTenancy();
 app.UseAuthorization();

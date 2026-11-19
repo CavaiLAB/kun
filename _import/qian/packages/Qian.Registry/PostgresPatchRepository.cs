@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Registry;
@@ -163,7 +163,7 @@ internal sealed partial class PostgresPatchRepository(IDataService data, ITenant
     {
         if (patch.ValueKind != JsonValueKind.Object) throw Invalid("#/0", "patch 必须为条目对象。");
         var raw = patch.GetRawText();
-        if (Encoding.UTF8.GetByteCount(raw) > 1_048_576) throw new QianErrorException(new QianError(PlatformErrors.PayloadTooLarge));
+        if (Encoding.UTF8.GetByteCount(raw) > 1_048_576) throw new ErrorException(new Error(PlatformErrors.PayloadTooLarge));
         var parsed = reader.Parse(File, raw);
         if (parsed.Syntax is null || parsed.Diagnostics.Any(d => d.Severity == "error")) throw FromDiagnostics(parsed.Diagnostics);
         var diagnostics = reader.ValidateSchema("patch", File, JsonSerializer.SerializeToElement(new[] { parsed.Syntax.Data }));
@@ -190,16 +190,16 @@ internal sealed partial class PostgresPatchRepository(IDataService data, ITenant
 
     private string Owner(ScopeKey scope)
     {
-        if (!tenant.IsMultiTenant || string.IsNullOrWhiteSpace(tenant.TenantId)) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!tenant.IsMultiTenant || string.IsNullOrWhiteSpace(tenant.TenantId)) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         if (tenant.TenantId.Length > 200 || tenant.TenantId.Any(char.IsControl)) throw Invalid("#/scope", "租户上下文标识无效。");
         if (scope.Kind is not ("tenant" or "app" or "agent-session") || string.IsNullOrEmpty(scope.Id) || scope.Id.Length > 200 || scope.Id.Any(value => char.IsWhiteSpace(value) || value == ':'))
             throw Invalid("#/scope", "数据库 patch 必须属于合法租户、应用或会话 scope。");
-        if (scope.Kind == "tenant" && scope.Id != tenant.TenantId) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (scope.Kind == "tenant" && scope.Id != tenant.TenantId) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return tenant.TenantId;
     }
     private void CheckOwner(string owner)
     {
-        if (!tenant.IsMultiTenant || tenant.TenantId != owner) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!tenant.IsMultiTenant || tenant.TenantId != owner) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
     }
     private static string ScopeName(ScopeKey scope) => scope.Kind + ":" + scope.Id;
     private static void CheckEntry(string entryId)
@@ -229,11 +229,11 @@ internal sealed partial class PostgresPatchRepository(IDataService data, ITenant
         if (row.Extensions is not null) foreach (var property in JsonSerializer.Deserialize<JsonElement>(row.Extensions).EnumerateObject()) patch[property.Name] = property.Value.Clone();
         return new ScopePatchSnapshot(row.TenantId, scope, row.EntryId, JsonSerializer.SerializeToElement(patch), row.Revision, row.UpdatedBy, row.UpdatedAt);
     }
-    private static QianErrorException Conflict() => new(new QianError(RegistryErrors.RevisionConflict) { Pointer = File + "#/revision" });
-    private static QianErrorException Invalid(string pointer, string reason) => new(new QianError(PlatformErrors.InputInvalid)
-    { Errors = [new QianFieldError(RegistryErrors.Invalid, File + pointer, new Dictionary<string, string> { ["reason"] = reason })] });
-    private static QianErrorException FromDiagnostics(IReadOnlyList<SurfaceDiagnostic> diagnostics) => new(new QianError(PlatformErrors.InputInvalid)
-    { Errors = diagnostics.Where(d => d.Severity == "error").Take(100).Select(d => new QianFieldError(RegistryErrors.Invalid,
+    private static ErrorException Conflict() => new(new Error(RegistryErrors.RevisionConflict) { Pointer = File + "#/revision" });
+    private static ErrorException Invalid(string pointer, string reason) => new(new Error(PlatformErrors.InputInvalid)
+    { Errors = [new FieldError(RegistryErrors.Invalid, File + pointer, new Dictionary<string, string> { ["reason"] = reason })] });
+    private static ErrorException FromDiagnostics(IReadOnlyList<SurfaceDiagnostic> diagnostics) => new(new Error(PlatformErrors.InputInvalid)
+    { Errors = diagnostics.Where(d => d.Severity == "error").Take(100).Select(d => new FieldError(RegistryErrors.Invalid,
         d.Error.Pointer ?? File + "#", new Dictionary<string, string> { ["reason"] = "patch 未通过共用解析或 Schema 校验。" })).ToArray() });
     [GeneratedRegex("^[a-z][a-z0-9.-]*$", RegexOptions.CultureInvariant)] private static partial Regex EntryId();
 }

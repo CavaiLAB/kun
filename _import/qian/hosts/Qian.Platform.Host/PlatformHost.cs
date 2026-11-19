@@ -11,8 +11,8 @@ using Qian.Config;
 using Qian.Data;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Qian.Tenancy.AspNetCore;
 
 namespace Qian.Platform.Host;
@@ -123,7 +123,7 @@ public static class PlatformHost
         ArgumentNullException.ThrowIfNull(app);
         var tenantContext = app.Services.GetRequiredService<ITenantContext>();
         // 路由必须先于认证：受众按路由实际匹配到的端点选（GatewayS2s.Select），不按路径写法。WebApplication 缺省也把路由放在最前，这里显式写出这个依赖。
-        app.UseRouting(); app.UseQianErrors(); app.UseAuthentication();
+        app.UseRouting(); app.UseKunErrors(); app.UseAuthentication();
         app.Use(async (http, next) =>
         {
             if (GatewayS2s.Principal(http) is { TenantId: { } tenant })
@@ -165,7 +165,7 @@ public static class PlatformHost
     internal static IPluginContext Scoped(HttpContext http, string id)
     {
         var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId;
-        if (!Guid.TryParseExact(tenant, "D", out var parsed) || parsed == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!Guid.TryParseExact(tenant, "D", out var parsed) || parsed == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         return http.RequestServices.GetRequiredService<PlatformRuntime>().Global(id).Scoped(new ScopeKey("tenant", tenant!));
     }
 
@@ -174,7 +174,7 @@ public static class PlatformHost
     // 去掉这里结果不变（同为 404 NOT_FOUND）；外部契约由 PlatformHostTests 第一例「租户主体访问平台控制台目录 404」钉住。
     private static IPluginContext Console(HttpContext http, PlatformRuntime runtime)
     {
-        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId)) throw new ErrorException(new Error(PlatformErrors.NotFound));
         return runtime.Global("capabilities");
     }
 }

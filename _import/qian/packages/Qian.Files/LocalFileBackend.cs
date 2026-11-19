@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Files;
 
@@ -49,8 +49,8 @@ internal sealed class LocalFileBackendFactory(ReadOnlyMemory<byte> signingKey) :
         return new LocalFileBackend(storage, signingKey.Length == 0 ? RandomNumberGenerator.GetBytes(32) : signingKey.ToArray(), context.Clock);
     }
 
-    private static QianErrorException Invalid(string member) =>
-        new(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/storage/" + member });
+    private static ErrorException Invalid(string member) =>
+        new(new Error(PlatformErrors.InputInvalid) { Pointer = "#/storage/" + member });
 }
 
 internal sealed class LocalFileBackend(LocalFileSystemStorage storage, byte[] key, TimeProvider clock) : IFileBackend, IFileTransferGateway

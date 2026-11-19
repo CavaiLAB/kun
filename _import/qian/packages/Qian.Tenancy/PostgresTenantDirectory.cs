@@ -4,7 +4,7 @@ using Npgsql;
 using Qian.Data;
 using Kun.Core.MultiTenancy;
 using Qian.Events;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy;
 
@@ -76,6 +76,6 @@ internal sealed class PostgresTenantDirectory(IDataService data, ITenantContext 
         if (name.Length > 200) throw Invalid(PlatformErrors.OutOfRange, "#/name");
         if (name.Any(char.IsControl)) throw Invalid(PlatformErrors.PatternMismatch, "#/name");
     }
-    private static QianErrorException Invalid(ErrorCode code, string pointer) => new(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(code, pointer)] });
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Invalid(ErrorCode code, string pointer) => new(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(code, pointer)] });
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
 }

@@ -9,7 +9,7 @@ using Qian.Data;
 using Qian.Events;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -23,7 +23,7 @@ internal sealed partial class LifecycleController(
     {
         ArgumentNullException.ThrowIfNull(artifact); CheckActor(actor);
         // 先判签名是否存在，再核对内容摘要，最后对重新计算的摘要验签：签名不符与内容被改动都不能进入登记。
-        if (artifact.Signature is not { } signature) throw new QianErrorException(new QianError(LifecycleErrors.ArtifactUnsigned));
+        if (artifact.Signature is not { } signature) throw new ErrorException(new Error(LifecycleErrors.ArtifactUnsigned));
         var content = LifecycleArtifact.Read(artifact);
         using var platform = tenant.BeginScope(null);
         var signedBy = await trust.VerifyAsync(content.Digest, signature, cancellationToken).ConfigureAwait(false);
@@ -33,7 +33,7 @@ internal sealed partial class LifecycleController(
         if (existing is not null && (existing.Form != "service" || existing.Workload is not null)) return existing.View();
         if (content.Form == "module" && !registry.GetInstalledComponents().Any(component => component.PluginId == content.PluginId &&
             component.Version == content.Version && component.ArtifactDigest == content.Digest))
-            throw new QianErrorException(new QianError(LifecycleErrors.RevisionNotDeployed));
+            throw new ErrorException(new Error(LifecycleErrors.RevisionNotDeployed));
         if (content.Form is "function" or "package") throw Unavailable("runtime.form 为 function / package 的组件待 S2 的执行器。");
         if (content.Form == "service" && executor is null) throw Unavailable("宿主没有配置部署执行器，不能安装 service 组件。");
         // 登记修订须入平台审计链（ADR-009 D9.8）：宿主没有装配审计时在提交候选制品之前就拒绝。
@@ -217,7 +217,7 @@ internal sealed partial class LifecycleController(
     private static async Task Save(IDataSession<LifecycleDbContext> session, LifecycleChange? change, CancellationToken ct)
     {
         try { await session.SaveChangesAsync(ct).ConfigureAwait(false); }
-        catch (DbUpdateConcurrencyException) { throw new QianErrorException(new QianError(LifecycleErrors.InProgress)); }
+        catch (DbUpdateConcurrencyException) { throw new ErrorException(new Error(LifecycleErrors.InProgress)); }
         if (change is { Published: false }) throw new InvalidOperationException("生命周期事件未进入 Outbox：平台宿主须以 AddQianLifecycleEvents 登记处理器。");
     }
 
@@ -269,7 +269,7 @@ internal sealed partial class LifecycleController(
             throw LifecycleArtifact.Invalid("#/tenantId", "租户标识必须是小写规范 UUID。");
     }
 
-    private static QianErrorException NotFound() => new(new QianError(PlatformErrors.NotFound));
-    private static QianErrorException Conflict(string reason) => new(new QianError(LifecycleErrors.StateConflict, new Dictionary<string, string> { ["reason"] = reason }));
-    private static QianErrorException Unavailable(string reason) => GitOpsDeploymentExecutor.Unavailable(reason);
+    private static ErrorException NotFound() => new(new Error(PlatformErrors.NotFound));
+    private static ErrorException Conflict(string reason) => new(new Error(LifecycleErrors.StateConflict, new Dictionary<string, string> { ["reason"] = reason }));
+    private static ErrorException Unavailable(string reason) => GitOpsDeploymentExecutor.Unavailable(reason);
 }

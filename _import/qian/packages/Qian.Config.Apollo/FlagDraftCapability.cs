@@ -13,7 +13,7 @@ using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Apollo;
 
@@ -169,7 +169,7 @@ internal sealed partial class FlagDraftCapability : IExecutableCapability, IFeat
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         _stop.Cancel(); _client.Dispose(); _stop.Dispose();
     }
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
     [LoggerMessage(EventId = 2122, Level = LogLevel.Warning, Message = "特性开关草稿操作 {Attempt} 的 {Outcome} 收尾审计未写入；Portal 的已提交状态不回退。")]
     private static partial void LogCompletionFailed(ILogger logger, Guid attempt, string outcome);
 }

@@ -5,7 +5,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Qian.Config;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -33,7 +33,7 @@ internal sealed class TrustRoots(IPluginContext context, TimeProvider time)
                 using var secret = await context.ResolveSecretAsync(root.PublicKey, ct).ConfigureAwait(false);
                 spki = ReadPublicKey(secret.RevealUtf8());
             }
-            catch (Exception error) when (error is QianErrorException or FormatException or InvalidOperationException or CryptographicException)
+            catch (Exception error) when (error is ErrorException or FormatException or InvalidOperationException or CryptographicException)
             {
                 // 单把公钥无法读取只让它不可信，不影响其它信任根；原因进日志，不带引用之外的内容。
                 LifecycleLog.TrustRootUnreadable(context.Logger, root.PublicKey);
@@ -87,7 +87,7 @@ internal sealed class TrustRoots(IPluginContext context, TimeProvider time)
     internal static bool Fingerprint(string? value) => value is { Length: 71 } && value.StartsWith("sha256:", StringComparison.Ordinal) &&
         value.AsSpan(7).IndexOfAnyExcept(LowerHex) < 0;
 
-    private static QianErrorException Invalid() => new(new QianError(LifecycleErrors.SignatureInvalid));
+    private static ErrorException Invalid() => new(new Error(LifecycleErrors.SignatureInvalid));
 
     private sealed record TrustRoot(string PublicKey, DateTimeOffset? NotBefore, DateTimeOffset? NotAfter);
 }

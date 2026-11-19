@@ -18,7 +18,7 @@ using Qian.Capabilities;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Tenancy;
 using Qian.Tenancy.AspNetCore;
@@ -141,7 +141,7 @@ public sealed partial class TenantOperationsTests(PostgresFixture postgres) : Cu
                 JsonSerializer.SerializeToElement(new { })), new OpenApiContractPlugin(new TenancyPlugin(), probe, "qian.tenancy.http/v1", published,
                     JsonSerializer.SerializeToElement(candidate)), [TenancyDefinition.Key, Qian.Plugin.Sdk.CommandPolicies.TenancyKey])], Ct);
             Assert.Equal(PluginState.Failed, runtime.GetState("tenancy", ScopeKey.Global));
-            var rejected = Assert.IsType<QianErrorException>(runtime.GetFailure("tenancy", ScopeKey.Global));
+            var rejected = Assert.IsType<ErrorException>(runtime.GetFailure("tenancy", ScopeKey.Global));
             Assert.Equal("PRECONDITION_FAILED", rejected.Error.Code.Code);
             Assert.Equal("#/contracts/qian.tenancy.http~1v1", rejected.Error.Pointer);
         }

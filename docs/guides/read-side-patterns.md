@@ -71,8 +71,9 @@ Key points:
   `AS "PropertyName"` pattern consistently.
 - **Soft-delete filter** (`is_deleted = false`) applied directly in SQL. There is no EF Core
   global filter on the read side — the SQL is the filter.
-- The handler returns `null` when no row matches, which maps to a `404 Not Found` response via
-  `Kun.AspNetCore`'s `Error.ToProblemDetails()` mapping.
+- The handler returns `null` when no row matches; the endpoint turns that into `Results.NotFound()`,
+  and `Kun.Errors.AspNetCore` (`UseKunErrors()`) writes the empty 404 as an ErrorDetail with the
+  error code `NOT_FOUND`.
 
 ---
 

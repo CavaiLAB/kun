@@ -1,13 +1,14 @@
 using FluentAssertions;
 using Kun.Core.Results;
+using Kun.Errors;
 using Xunit;
 
 namespace Kun.Core.Tests.Results;
 
 public class ResultExtensionsTests
 {
-    private static readonly Error TestError = Error.Failure("test.fail", "test failure");
-    private static readonly Error OtherError = Error.Validation("test.bad", "validation failed");
+    private static readonly Error TestError = new(PlatformErrors.Internal);
+    private static readonly Error OtherError = new(PlatformErrors.InputInvalid);
 
     // ── Sync — Result<T> ────────────────────────────────────────────────────
 
@@ -117,9 +118,9 @@ public class ResultExtensionsTests
     public void Match_OnFailure_InvokesOnFailureOnly()
     {
         var which = "";
-        var r = Result<int>.Fail(TestError).Match(_ => which = "ok", e => which = $"fail:{e.Code}");
-        which.Should().Be("fail:test.fail");
-        r.Should().Be("fail:test.fail");
+        var r = Result<int>.Fail(TestError).Match(_ => which = "ok", e => which = $"fail:{e.Code.Code}");
+        which.Should().Be("fail:INTERNAL");
+        r.Should().Be("fail:INTERNAL");
     }
 
     // ── Sync — non-generic Result ───────────────────────────────────────────
@@ -263,9 +264,9 @@ public class ResultExtensionsTests
         var r = await Task.FromResult(Result<int>.Fail(TestError))
             .MatchAsync(
                 (_, _) => Task.FromResult(0),
-                (e, ct) => { seen = ct; return Task.FromResult(e.Code.Length); },
+                (e, ct) => { seen = ct; return Task.FromResult(e.Code.Code.Length); },
                 cts.Token);
-        r.Should().Be(TestError.Code.Length);
+        r.Should().Be(TestError.Code.Code.Length);
         seen.Should().Be(cts.Token);
     }
 

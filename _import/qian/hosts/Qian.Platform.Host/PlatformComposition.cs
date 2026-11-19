@@ -23,7 +23,7 @@ using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
 using Qian.Tenancy;
 
@@ -148,7 +148,7 @@ public sealed class PlatformHostComposition
         services.AddSingleton(settings);
         services.TryAddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         services.AddHttpContextAccessor();
-        services.AddQianErrors();
+        services.AddKunErrors();
         services.AddKunSecurity();
         services.AddScoped<ICurrentUser, GatewayCurrentUser>();
         services.AddKunEventBus(registrar =>

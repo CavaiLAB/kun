@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle.Tests;
 
@@ -59,7 +59,7 @@ public sealed class LifecycleUnitTests
     [InlineData("""{"executor":{"kind":"local"}}""", "#/executor/stateDirectory")]
     public void 组件配置严格解析_未知字段明文令牌内嵌凭据与越界路径都拒绝(string config, string location)
     {
-        var error = Assert.Throws<QianErrorException>(() => LifecycleSettings.Parse(JsonSerializer.Deserialize<JsonElement>(config)));
+        var error = Assert.Throws<ErrorException>(() => LifecycleSettings.Parse(JsonSerializer.Deserialize<JsonElement>(config)));
         Assert.Equal(PlatformErrors.InputInvalid.Code, error.Error.Code.Code);
         Assert.Equal("plugins/qian.lifecycle/config" + location, Assert.Single(error.Error.Errors).Pointer);
     }

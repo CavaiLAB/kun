@@ -116,8 +116,8 @@ Qian.Events.QianEventEnvelope.Version.get -> string!
 Qian.Events.QianEventEnvelope.Version.init -> void
 Qian.Events.QianEventTopology
 Qian.Events.QianEventsException
-Qian.Events.QianEventsException.Error.get -> Qian.Runtime.Errors.QianError!
-Qian.Events.QianEventsException.QianEventsException(Qian.Runtime.Errors.ErrorCode! code, string! reason) -> void
+Qian.Events.QianEventsException.Error.get -> Kun.Errors.Error!
+Qian.Events.QianEventsException.QianEventsException(Kun.Errors.ErrorCode! code, string! reason) -> void
 const Qian.Events.IntegrationEventTypes.MaxSubjectLength = 200 -> int
 const Qian.Events.IntegrationEventTypes.MaxTypeLength = 210 -> int
 const Qian.Events.QianEventEnvelope.CurrentVersion = "v1" -> string!
@@ -158,6 +158,6 @@ static Qian.Events.QianEventTopology.RetryQueue(string! service, string! name, i
 static Qian.Events.QianEventTopology.RoutingKey(string! type) -> string!
 static Qian.Events.QianEventTopology.SubscriptionQueue(string! service, string! subscription) -> string!
 static readonly Qian.Events.EventsDefinition.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Events.EventsErrors.ConsumeRejected -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Events.EventsErrors.Misconfigured -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Events.EventsErrors.PublishRejected -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Events.EventsErrors.ConsumeRejected -> Kun.Errors.ErrorCode!
+static readonly Qian.Events.EventsErrors.Misconfigured -> Kun.Errors.ErrorCode!
+static readonly Qian.Events.EventsErrors.PublishRejected -> Kun.Errors.ErrorCode!

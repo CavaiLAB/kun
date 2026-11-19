@@ -100,7 +100,7 @@ public sealed class LifecycleTests
             Define("first", ctx => ctx.Provide(new("X"), "original"), provides: [new("X")]),
             Define("second", ctx => { ctx.Provide(new("Y"), "rollback"); ctx.Provide(new("X"), "duplicate"); }, provides: [new("X")])], TestContext.Current.CancellationToken);
         Assert.Equal(PluginState.Failed, loader.GetState("second", ScopeKey.Global));
-        var error = Assert.IsType<Errors.QianErrorException>(loader.GetFailure("second", ScopeKey.Global));
+        var error = Assert.IsType<Kun.Errors.ErrorException>(loader.GetFailure("second", ScopeKey.Global));
         Assert.Equal("first", error.Error.Args["owner"]);
         var context = loader.GetContext("first", ScopeKey.Global);
         Assert.Equal("original", context.Inject<string>(new("X")));

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy.AspNetCore;
 
@@ -19,7 +19,7 @@ public static partial class TenancyEndpoints
         const string accounts = "tenancy/admin-accounts";
         Bind(endpoints.MapPost("/api/tenancy/admin-accounts:lookup", (HttpContext http, TenantAdminAccountLookup input) =>
             Execute(http, source, Admin("read"), accounts, async (ctx, _) => Results.Ok(await Administration(ctx).FindAccountAsync(input, http.RequestAborted).ConfigureAwait(false)
-                ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound))), () => ValidateBody(input)))).Produces<TenantAdminAccount>();
+                ?? throw new ErrorException(new Error(PlatformErrors.NotFound))), () => ValidateBody(input)))).Produces<TenantAdminAccount>();
         Bind(endpoints.MapPost("/api/tenancy/admin-accounts", (HttpContext http, CreateTenantAdminAccount input) =>
             Execute(http, source, Admin("create"), accounts, async (ctx, _) =>
                 Results.Created((string?)null, await Administration(ctx).CreateAccountAsync(input, http.RequestAborted).ConfigureAwait(false)), () => ValidateBody(input))))
@@ -33,7 +33,7 @@ public static partial class TenancyEndpoints
                 {
                     ValidateBody(input);
                     if (input.Items is not [{ SubjectId: var subject }] || subject == Guid.Empty)
-                        throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/items/0/subjectId" });
+                        throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/items/0/subjectId" });
                 }, Credential(input.Items is [{ InitialPassword: { } password }] ? password : null, "tenancy/tenants/" + id + "/admins", "#/items/0/initialPassword"))))
             .Produces<TenantAdminList>().Produces<ErrorDetail>(422, ErrorDetailJson.MediaType);
         Bind(endpoints.MapPost("/api/tenancy/tenants/{id:guid}/admins/{membershipId:guid}:reset-password", (HttpContext http, Guid id, Guid membershipId, ResetTenantAdminPassword input) =>
@@ -51,6 +51,6 @@ public static partial class TenancyEndpoints
         var results = new List<ValidationResult>();
         if (Validator.TryValidateObject(body, new ValidationContext(body), results, validateAllProperties: true)) return;
         var member = results[0].MemberNames.FirstOrDefault();
-        throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = member is null ? "#" : "#/" + JsonNamingPolicy.CamelCase.ConvertName(member) });
+        throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = member is null ? "#" : "#/" + JsonNamingPolicy.CamelCase.ConvertName(member) });
     }
 }

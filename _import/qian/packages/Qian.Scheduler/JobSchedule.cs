@@ -1,6 +1,6 @@
 using System.Globalization;
 using Quartz;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Scheduler;
 
@@ -17,5 +17,5 @@ internal static class JobSchedule
     {
         if (cron.Length > 256 || cron.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length is not (6 or 7) || !CronExpression.TryParse(cron, out _)) throw Invalid();
     }
-    internal static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    internal static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }

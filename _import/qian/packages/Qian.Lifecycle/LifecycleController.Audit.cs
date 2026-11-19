@@ -10,7 +10,7 @@ using Qian.Audit;
 using Qian.Data;
 using Qian.Events;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Lifecycle;
 
@@ -49,8 +49,8 @@ internal sealed partial class LifecycleController
         throw AuditUnavailable(operation);
     }
 
-    private static QianErrorException AuditUnavailable(string operation) =>
-        new(new QianError(LifecycleErrors.AuditUnavailable, new Dictionary<string, string> { ["operation"] = operation }));
+    private static ErrorException AuditUnavailable(string operation) =>
+        new(new Error(LifecycleErrors.AuditUnavailable, new Dictionary<string, string> { ["operation"] = operation }));
 
     // 状态迁移与审计条目同一可串行化事务（审计端口只接受这种事务）：work 先保存再返回记录，记录为 null 表示本次没有迁移（幂等返回），不追加。
     // 同租户审计链的可串行化冲突或死锁时丢弃整个会话重做（attempt < 5：5 次重做、共 6 次尝试），仍冲突返回 409 CONFLICT（审计端口的重做约定，与批准相同）。
@@ -69,7 +69,7 @@ internal sealed partial class LifecycleController
             }
             catch (Exception error) when (attempt < 5 && Retryable(error))
             { await Task.Delay(10 * (attempt + 1), ct).ConfigureAwait(false); }
-            catch (Exception error) when (Retryable(error)) { throw new QianErrorException(new QianError(PlatformErrors.Conflict)); }
+            catch (Exception error) when (Retryable(error)) { throw new ErrorException(new Error(PlatformErrors.Conflict)); }
         }
     }
 
@@ -91,7 +91,7 @@ internal sealed partial class LifecycleController
             }
             catch (Exception error) when (attempt < 5 && Retryable(error))
             { await Task.Delay(10 * (attempt + 1), ct).ConfigureAwait(false); }
-            catch (Exception error) when (Retryable(error)) { throw new QianErrorException(new QianError(PlatformErrors.Conflict)); }
+            catch (Exception error) when (Retryable(error)) { throw new ErrorException(new Error(PlatformErrors.Conflict)); }
         }
     }
 
@@ -101,7 +101,7 @@ internal sealed partial class LifecycleController
     private async Task AppendPlatformAsync(IAuditWriter audit, string operation, AuditRecord record, DbTransaction transaction, CancellationToken ct)
     {
         try { await audit.AppendPlatformEnlistedAsync(context, record, transaction, ct).ConfigureAwait(false); }
-        catch (QianErrorException error) when (error.Error.Code.Code == PlatformErrors.AuthzDenied.Code)
+        catch (ErrorException error) when (error.Error.Code.Code == PlatformErrors.AuthzDenied.Code)
         {
             LifecycleLog.PlatformAuditUnavailable(context.Logger, operation, "审计端口拒绝本组件为平台生产方（端口不区分原因）：平台链未配置 chain.platformRole、审计重挂后本组件持有的是陈旧的审计句柄，" +
                 "或本组件的数据库连接不能调用平台链同事务函数（本组件的登录没有经 AuditPlatformAccess 三参迁移直接获得执行权，或连接不是未切换角色、无租户 GUC 的受限登录）");

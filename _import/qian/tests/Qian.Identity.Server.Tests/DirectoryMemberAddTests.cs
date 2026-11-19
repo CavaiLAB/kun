@@ -241,7 +241,7 @@ public sealed class DirectoryMemberAddTests(PostgresFixture postgres) : IClassFi
             async Task<string> ViaPort()
             {
                 try { await Join(host, edge, joiner.Id, "端口加入"); return "OK"; }
-                catch (Qian.Runtime.Errors.QianErrorException error) { return error.Error.Code.Code; }
+                catch (Kun.Errors.ErrorException error) { return error.Error.Code.Code; }
             }
             async Task<string> ViaAdd()
             {

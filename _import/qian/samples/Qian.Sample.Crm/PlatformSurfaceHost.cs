@@ -9,8 +9,8 @@ using Qian.Capabilities.AspNetCore;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk.AspNetCore;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Sample.Crm;
 
@@ -45,7 +45,7 @@ public static class PlatformSurfaceHost
             options.MapInboundClaims = false; options.TokenValidationParameters = validation.Clone();
             options.Events.OnTokenValidated = context => { S2sCurrentUser.Capture(context); return Task.CompletedTask; };
         });
-        builder.Services.AddAuthorization(); builder.Services.AddQianErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
         builder.Services.AddQianPluginEndpoints(_ => component("registry"));
         builder.Services.AddQianAuthzEnforcement(http => Scoped(component, "authz", http), options => options.Production = true);
         builder.Services.ConfigureHttpJsonOptions(options =>
@@ -55,7 +55,7 @@ public static class PlatformSurfaceHost
             options.SerializerOptions.RespectNullableAnnotations = true;
         });
         var app = builder.Build();
-        app.UseQianErrors(); app.UseAuthentication();
+        app.UseKunErrors(); app.UseAuthentication();
         // 租户只取自已验证令牌：成员主体进入其租户 scope（授权判定与修订下限按租户 RLS 读写）；平台身份不进任何租户。
         app.Use(async (http, next) =>
         {
@@ -76,20 +76,20 @@ public static class PlatformSurfaceHost
     // 平台控制台用组件的全局上下文，只给不带租户的请求（平台身份）；租户成员的请求按不存在拒绝，与目录服务自己的主体检查一致。
     private static IPluginContext Global(Func<string, IPluginContext> component, string id, HttpContext http)
     {
-        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+        if (!string.IsNullOrEmpty(http.RequestServices.GetRequiredService<ITenantContext>().TenantId)) throw new ErrorException(new Error(PlatformErrors.NotFound));
         try { return component(id); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     // 与参考宿主的 CapabilitySource / AuthzSource 同形：全局 Provider 上下文按请求租户收窄；没有租户（平台身份）即未认证，组件不在即 404。
     private static IPluginContext Scoped(Func<string, IPluginContext> component, string id, HttpContext http)
     {
         var tenant = http.RequestServices.GetRequiredService<ITenantContext>().TenantId;
-        if (!Guid.TryParseExact(tenant, "D", out var parsed) || parsed == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!Guid.TryParseExact(tenant, "D", out var parsed) || parsed == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         try { return component(id).Scoped(new ScopeKey("tenant", tenant!)); }
         catch (Exception error) when (error is KeyNotFoundException or ObjectDisposedException or InvalidOperationException)
-        { throw new QianErrorException(new QianError(PlatformErrors.NotFound)); }
+        { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
     }
 
     // 令牌载荷即主体快照（冻结的 S2S claim 集）；与参考命令宿主不同，这里接受 user / service / agent 三种主体。

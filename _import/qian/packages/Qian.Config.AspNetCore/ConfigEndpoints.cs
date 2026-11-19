@@ -12,8 +12,8 @@ using Qian.Capabilities;
 using Qian.Identity.Abstractions;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Config.AspNetCore;
 
@@ -70,21 +70,21 @@ public static partial class ConfigEndpoints
         {
             var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
             if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || http.User.Identity?.IsAuthenticated != true ||
-                http.User.FindFirst("sub")?.Value != principal.Subject) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
-            if (!PluginId().IsMatch(plugin)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                http.User.FindFirst("sub")?.Value != principal.Subject) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+            if (!PluginId().IsMatch(plugin)) throw new ErrorException(new Error(PlatformErrors.NotFound));
             var ctx = source(http);
-            if (ctx.Scope != ScopeKey.Global) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            if (ctx.Scope != ScopeKey.Global) throw new ErrorException(new Error(PlatformErrors.NotFound));
             if (values) await AuthorizeAsync(http, ctx, principal, plugin).ConfigureAwait(false);
             // 先判定再查存在：未授权调用方看不到哪些组件已预装。
             var component = ctx.Registry().GetInstalledComponents().SingleOrDefault(item => item.PluginId == plugin)
-                ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
-            var schema = ReadSchema(component) ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
+            var schema = ReadSchema(component) ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
             return execute(ctx, component, schema);
         }
-        catch (QianErrorException error) { return QianResults.Error(error.Error); }
+        catch (ErrorException error) { return KunResults.Error(error.Error); }
         // 配置、注册表或授权组件尚未就绪、已卸载或未装配时与不存在无法区分。
         catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException)
-        { return QianResults.Error(new QianError(PlatformErrors.NotFound)); }
+        { return KunResults.Error(new Error(PlatformErrors.NotFound)); }
     }
 
     // 平台配置（ADR-007：租户级配置不进 Apollo）只对平台主体开放：租户主体在判定前拒绝，不能借平台旁路读取。
@@ -94,7 +94,7 @@ public static partial class ConfigEndpoints
         if (principal.TenantId is not null || http.User.Claims.Any(claim => claim.Type == "tenant_id" && !string.IsNullOrEmpty(claim.Value)))
         {
             if (logger is not null) LogDenied(logger, "tenant_principal", principal.Subject, ConfigDefinition.ValuesReadPermission);
-            throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+            throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
         }
         var kind = principal.Kind switch { PrincipalKind.User => "user", PrincipalKind.Service => "service", _ => "agent" };
         var decision = await ctx.Enforcement().EnforceAsync(new EnforcementRequest(
@@ -103,7 +103,7 @@ public static partial class ConfigEndpoints
         if (decision.Allow) return;
         if (logger is not null) LogDenied(logger, decision.Reason, principal.Subject, ConfigDefinition.ValuesReadPermission);
         // 审计组件已卸载时整个入口不可用，与不存在同为 404（S1-AUD-001）；其余拒绝 403。
-        throw new QianErrorException(new QianError(decision.Reason == AuthzEnforcement.AuditUnavailable ? PlatformErrors.NotFound : PlatformErrors.AuthzDenied));
+        throw new ErrorException(new Error(decision.Reason == AuthzEnforcement.AuditUnavailable ? PlatformErrors.NotFound : PlatformErrors.AuthzDenied));
     }
 
     // 与运行期装配同一路径规则：runtime.configSchema 或缺省 ./schemas/config.schema.json，只读制品快照，不读宿主目录。

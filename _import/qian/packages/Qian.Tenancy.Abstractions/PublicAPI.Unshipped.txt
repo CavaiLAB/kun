@@ -245,7 +245,7 @@ static Qian.Tenancy.TenantSuspended.operator !=(Qian.Tenancy.TenantSuspended? le
 static Qian.Tenancy.TenantSuspended.operator ==(Qian.Tenancy.TenantSuspended? left, Qian.Tenancy.TenantSuspended? right) -> bool
 static Qian.Tenancy.TenantTransitionApproval.operator !=(Qian.Tenancy.TenantTransitionApproval? left, Qian.Tenancy.TenantTransitionApproval? right) -> bool
 static Qian.Tenancy.TenantTransitionApproval.operator ==(Qian.Tenancy.TenantTransitionApproval? left, Qian.Tenancy.TenantTransitionApproval? right) -> bool
-static readonly Qian.Tenancy.TenancyErrors.StateConflict -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Tenancy.TenancyErrors.StateConflict -> Kun.Errors.ErrorCode!
 static readonly Qian.Tenancy.TenantLifecycle.Approving -> Qian.Runtime.QianEvent<Qian.Tenancy.TenantTransitionApproval!, System.Collections.Generic.IReadOnlyList<bool>!>!
 static readonly Qian.Tenancy.TenantLifecycle.Key -> Qian.Runtime.ServiceKey
 Qian.Tenancy.CreateTenant.Quotas.get -> Qian.Tenancy.TenantQuotas?
@@ -327,7 +327,7 @@ static Qian.Tenancy.TenantSettingsDocument.operator !=(Qian.Tenancy.TenantSettin
 static Qian.Tenancy.TenantSettingsDocument.operator ==(Qian.Tenancy.TenantSettingsDocument? left, Qian.Tenancy.TenantSettingsDocument? right) -> bool
 static Qian.Tenancy.UpdateTenantSettings.operator !=(Qian.Tenancy.UpdateTenantSettings? left, Qian.Tenancy.UpdateTenantSettings? right) -> bool
 static Qian.Tenancy.UpdateTenantSettings.operator ==(Qian.Tenancy.UpdateTenantSettings? left, Qian.Tenancy.UpdateTenantSettings? right) -> bool
-static readonly Qian.Tenancy.TenancyErrors.UserLimit -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Tenancy.TenancyErrors.UserLimit -> Kun.Errors.ErrorCode!
 static readonly Qian.Tenancy.TenantSettings.Key -> Qian.Runtime.ServiceKey
 static readonly Qian.Tenancy.TenantSettings.OperationsKey -> Qian.Runtime.ServiceKey
 static readonly Qian.Tenancy.TenantSettings.QuotaKey -> Qian.Runtime.ServiceKey

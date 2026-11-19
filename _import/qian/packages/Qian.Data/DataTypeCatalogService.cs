@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data;
 
@@ -47,7 +47,7 @@ internal sealed class DataDialectRegistry : IDataDialectRegistry
         lock (_gate)
         {
             if (!_dialects.TryAdd(name, (dialect, owner)))
-                throw new QianErrorException(new QianError(PlatformErrors.RegistrationConflict, new Dictionary<string, string>
+                throw new ErrorException(new Error(PlatformErrors.RegistrationConflict, new Dictionary<string, string>
                 {
                     ["key"] = DataDialectContract.Registry + ":" + name,
                     ["owner"] = _dialects[name].Dialect.Descriptor.Name
@@ -93,11 +93,11 @@ internal sealed class DataTypeCatalogService(IDataDialectRegistry dialects) : ID
     {
         ArgumentNullException.ThrowIfNull(field);
         var descriptor = dialects.Find(dialect)?.Descriptor
-            ?? throw new QianErrorException(new QianError(DataErrors.DialectNotFound, new Dictionary<string, string> { ["dialect"] = dialect ?? "" }));
+            ?? throw new ErrorException(new Error(DataErrors.DialectNotFound, new Dictionary<string, string> { ["dialect"] = dialect ?? "" }));
         if (FindType(field.Type) is not { } type)
-            throw new QianErrorException(new QianError(DataErrors.FieldDefinitionInvalid, new Dictionary<string, string> { ["type"] = field.Type ?? "" })
+            throw new ErrorException(new Error(DataErrors.FieldDefinitionInvalid, new Dictionary<string, string> { ["type"] = field.Type ?? "" })
             {
-                Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, "#/type") { Allowed = TypeCodes }]
+                Errors = [new FieldError(PlatformErrors.ValueNotAllowed, "#/type") { Allowed = TypeCodes }]
             });
         var mapping = descriptor.Mappings.Single(candidate => candidate.Type == type.Code);
         return mapping.Map(type, field);
@@ -107,8 +107,8 @@ internal sealed class DataTypeCatalogService(IDataDialectRegistry dialects) : ID
     {
         cancellationToken.ThrowIfCancellationRequested();
         var args = new Dictionary<string, string> { ["type"] = code ?? "" };
-        if (FindType(code!) is { IsSystem: true }) throw new QianErrorException(new QianError(DataErrors.TypeProtected, args));
-        throw new QianErrorException(new QianError(DataErrors.TypeNotFound, args));
+        if (FindType(code!) is { IsSystem: true }) throw new ErrorException(new Error(DataErrors.TypeProtected, args));
+        throw new ErrorException(new Error(DataErrors.TypeNotFound, args));
     }
 
     private static JsonElement[] ParseCodes()

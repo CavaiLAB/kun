@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Plugin.Sdk;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Data.Dialect.Pg;
 
@@ -22,7 +22,7 @@ public sealed class PgDialectPlugin : IQianPlugin
         ct.ThrowIfCancellationRequested();
         // 现有数据目录由宿主全局维护；尚未迁为 scope 视图前，禁止租户挂载污染其他租户的目录。
         if (ctx.Scope != ScopeKey.Global || config.ValueKind != JsonValueKind.Object || config.EnumerateObject().Any())
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var dialect = new PgDialect();
         var registry = ctx.Services.GetRequiredService<IDataDialectRegistry>();
         ctx.Provide<IDataDialect>(DataDialectContract.Key, "pg", dialect);

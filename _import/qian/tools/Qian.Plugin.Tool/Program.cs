@@ -3,7 +3,7 @@ using System.Runtime.Loader;
 using System.Text.Json;
 using Qian.Plugin.Sdk;
 using Qian.Plugin.Tool;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 try
 {
@@ -48,7 +48,7 @@ catch (Exception error) when (error is ManifestException or ArgumentException or
     var failure = error as ManifestException ?? new ManifestException(ManifestErrors.ManifestInvalid, error.InnerException?.Message ?? error.Message, ManifestPlan.ManifestFile + "#");
     var catalog = ErrorCatalog.CreateDefault(); using var code = catalog.Register(failure.Code); using var field = catalog.Register(ManifestErrors.Field);
     var reason = new Dictionary<string, string> { ["reason"] = failure.Message };
-    var detail = new QianError(failure.Code, reason) { Errors = [new QianFieldError(ManifestErrors.Field, failure.Pointer, reason)] };
+    var detail = new Error(failure.Code, reason) { Errors = [new FieldError(ManifestErrors.Field, failure.Pointer, reason)] };
     Console.Error.WriteLine(ErrorDetailJson.Serialize(catalog.CreateDetail(detail, Guid.NewGuid().ToString("N"))));
     return 2;
 }

@@ -2,7 +2,7 @@ using System.Text.Json;
 using Json.Schema;
 using Qian.Registry;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Files.Tests;
 
@@ -40,7 +40,7 @@ public sealed class FilesDeclaredPolicyTests
     public void 声明不合法时报INPUT_INVALID并指向声明组件的元数据_结构错误Schema同样拒绝(string document, string location, bool structural)
     {
         using var json = JsonDocument.Parse(document);
-        var error = Assert.Throws<QianErrorException>(() => DeclaredUploadPolicies.Compile([Docs(json.RootElement)])).Error;
+        var error = Assert.Throws<ErrorException>(() => DeclaredUploadPolicies.Compile([Docs(json.RootElement)])).Error;
         Assert.Equal((PlatformErrors.InputInvalid.Code, "acme.docs/metadata/upload-policies.json" + location), (error.Code.Code, error.Pointer));
         // 用途归属与同文件不重复是 Schema 表达不了的语义：Schema 只拦结构错误。
         Assert.Equal(!structural, Schema().Evaluate(json.RootElement).IsValid);
@@ -55,7 +55,7 @@ public sealed class FilesDeclaredPolicyTests
         var many = JsonSerializer.SerializeToElement(Enumerable.Range(0, DeclaredUploadPolicies.MaxPolicies + 1)
             .Select(index => new { purpose = "acme.docs/p" + index, allowedTypes = Pdf, maxSize = 1L }));
         Assert.False(Schema().Evaluate(many).IsValid);
-        Assert.Equal("acme.docs/metadata/upload-policies.json#", Assert.Throws<QianErrorException>(() => DeclaredUploadPolicies.Compile([Docs(many)])).Error.Pointer);
+        Assert.Equal("acme.docs/metadata/upload-policies.json#", Assert.Throws<ErrorException>(() => DeclaredUploadPolicies.Compile([Docs(many)])).Error.Pointer);
     }
 
     [Fact]

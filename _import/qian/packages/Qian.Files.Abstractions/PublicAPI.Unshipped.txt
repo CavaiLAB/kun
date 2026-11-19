@@ -321,8 +321,8 @@ static Qian.Files.FilesContractJson.PresignedUploadTypeInfo.get -> System.Text.J
 static Qian.Files.FilesContractJson.PresignUploadRequestTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Qian.Files.PresignUploadRequest!>!
 static Qian.Files.FilesContractJson.UploadPolicyTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Qian.Files.UploadPolicy!>!
 static Qian.Files.FilesDefinition.Files(this Qian.Runtime.IPluginContext! context) -> Qian.Files.IFileService!
-static Qian.Files.FilesErrors.All.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.Errors.ErrorCode!>!
-static Qian.Files.FilesErrors.Register(Qian.Runtime.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Qian.Files.FilesErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
+static Qian.Files.FilesErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 static Qian.Files.FilesEventIds.All.get -> System.Collections.Generic.IReadOnlyList<string!>!
 static Qian.Files.FilesEventRegistration.RegisterFilesEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
 static Qian.Files.FileTransferDownload.operator !=(Qian.Files.FileTransferDownload? left, Qian.Files.FileTransferDownload? right) -> bool
@@ -340,11 +340,11 @@ static Qian.Files.UploadPolicy.operator ==(Qian.Files.UploadPolicy? left, Qian.F
 static readonly Qian.Files.FilesDefinition.BackendsKey -> Qian.Runtime.ServiceKey
 static readonly Qian.Files.FilesDefinition.Key -> Qian.Runtime.ServiceKey
 static readonly Qian.Files.FilesDefinition.PoliciesKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Files.FilesErrors.ChecksumMismatch -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Files.FilesErrors.CountExceeded -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Files.FilesErrors.NotAvailable -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Files.FilesErrors.QuotaExceeded -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Files.FilesErrors.TooLarge -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Files.FilesErrors.TypeNotAllowed -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Files.FilesErrors.UploadExpired -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Files.FilesErrors.UploadIncomplete -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Files.FilesErrors.ChecksumMismatch -> Kun.Errors.ErrorCode!
+static readonly Qian.Files.FilesErrors.CountExceeded -> Kun.Errors.ErrorCode!
+static readonly Qian.Files.FilesErrors.NotAvailable -> Kun.Errors.ErrorCode!
+static readonly Qian.Files.FilesErrors.QuotaExceeded -> Kun.Errors.ErrorCode!
+static readonly Qian.Files.FilesErrors.TooLarge -> Kun.Errors.ErrorCode!
+static readonly Qian.Files.FilesErrors.TypeNotAllowed -> Kun.Errors.ErrorCode!
+static readonly Qian.Files.FilesErrors.UploadExpired -> Kun.Errors.ErrorCode!
+static readonly Qian.Files.FilesErrors.UploadIncomplete -> Kun.Errors.ErrorCode!

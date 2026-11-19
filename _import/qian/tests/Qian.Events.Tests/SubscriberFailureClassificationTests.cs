@@ -5,7 +5,7 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Events.Tests;
 
@@ -27,7 +27,7 @@ public sealed class SubscriberFailureClassificationTests
         { "参数为空", new ArgumentNullException("event") },
         { "载荷不合法", new JsonException("bad") },
         { "不支持的操作", new NotSupportedException() },
-        { "错误码不可重试", new QianErrorException(new QianError(PlatformErrors.NotFound)) },
+        { "错误码不可重试", new ErrorException(new Error(PlatformErrors.NotFound)) },
     };
 
     public static TheoryData<string, Exception> Transient() => new()
@@ -35,7 +35,7 @@ public sealed class SubscriberFailureClassificationTests
         { "对象已释放", new ObjectDisposedException("connection") },
         { "包着超时的 InvalidOperationException", new InvalidOperationException("An exception has been raised that is likely due to a transient failure.", new TimeoutException()) },
         { "包着 IO 故障的两层 InvalidOperationException", new InvalidOperationException("外层", new InvalidOperationException("内层", new IOException("reset"))) },
-        { "错误码可重试", new QianErrorException(new QianError(PlatformErrors.Unavailable)) },
+        { "错误码可重试", new ErrorException(new Error(PlatformErrors.Unavailable)) },
         { "下游不可用", new HttpRequestException("503") },
         { "超时", new TimeoutException() },
     };

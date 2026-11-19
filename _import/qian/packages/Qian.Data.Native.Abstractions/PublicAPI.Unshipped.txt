@@ -15,4 +15,4 @@ Qian.Data.Native.NativeDataDefinition
 Qian.Data.Native.NativeDataErrors
 static Qian.Data.Native.NativeDataDefinition.NativeData(this Qian.Runtime.IPluginContext! context) -> Qian.Data.Native.INativeDataService!
 static readonly Qian.Data.Native.NativeDataDefinition.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Data.Native.NativeDataErrors.Misconfigured -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Data.Native.NativeDataErrors.Misconfigured -> Kun.Errors.ErrorCode!

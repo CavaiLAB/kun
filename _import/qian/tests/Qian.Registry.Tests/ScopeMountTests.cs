@@ -9,7 +9,7 @@ using Npgsql;
 using Qian.Data;
 using Qian.Events;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Registry.Tests;
 

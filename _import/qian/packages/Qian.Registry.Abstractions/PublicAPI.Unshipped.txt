@@ -22,15 +22,15 @@ Qian.Registry.ScopePatchSnapshot.UpdatedBy.init -> void
 override Qian.Registry.ScopePatchSnapshot.Equals(object? obj) -> bool
 override Qian.Registry.ScopePatchSnapshot.GetHashCode() -> int
 override Qian.Registry.ScopePatchSnapshot.ToString() -> string!
-static Qian.Registry.RegistryErrors.Register(Qian.Runtime.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Qian.Registry.RegistryErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
 static Qian.Registry.ScopePatchSnapshot.operator !=(Qian.Registry.ScopePatchSnapshot? left, Qian.Registry.ScopePatchSnapshot? right) -> bool
 static Qian.Registry.ScopePatchSnapshot.operator ==(Qian.Registry.ScopePatchSnapshot? left, Qian.Registry.ScopePatchSnapshot? right) -> bool
-static readonly Qian.Registry.RegistryErrors.DependencyPending -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Registry.RegistryErrors.Invalid -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Registry.RegistryErrors.NotEntitled -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Registry.RegistryErrors.NotMounted -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Registry.RegistryErrors.Restricted -> Qian.Runtime.Errors.ErrorCode!
-static readonly Qian.Registry.RegistryErrors.RevisionConflict -> Qian.Runtime.Errors.ErrorCode!
+static readonly Qian.Registry.RegistryErrors.DependencyPending -> Kun.Errors.ErrorCode!
+static readonly Qian.Registry.RegistryErrors.Invalid -> Kun.Errors.ErrorCode!
+static readonly Qian.Registry.RegistryErrors.NotEntitled -> Kun.Errors.ErrorCode!
+static readonly Qian.Registry.RegistryErrors.NotMounted -> Kun.Errors.ErrorCode!
+static readonly Qian.Registry.RegistryErrors.Restricted -> Kun.Errors.ErrorCode!
+static readonly Qian.Registry.RegistryErrors.RevisionConflict -> Kun.Errors.ErrorCode!
 Qian.Registry.IRegistryService
 Qian.Registry.IRegistryService.DisposeAsync() -> System.Threading.Tasks.ValueTask
 Qian.Registry.IRegistryService.StartAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask

@@ -9,7 +9,7 @@ using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeData;
 
@@ -28,12 +28,12 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
     {
         await using var host = await Setup();
         object? backend = null;
-        await Assert.ThrowsAsync<QianErrorException>(() => host.Data.OpenTenantAsync("tenant", Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenTenantAsync("tenant", Ct).AsTask());
         using (host.Tenant.BeginScope(A))
         {
-            await Assert.ThrowsAsync<QianErrorException>(() => host.Data.OpenTenantAsync("unregistered", Ct).AsTask());
+            await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenTenantAsync("unregistered", Ct).AsTask());
             using (var ambient = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled))
-                await Assert.ThrowsAsync<QianErrorException>(() => host.Data.OpenTenantAsync("tenant", Ct).AsTask());
+                await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenTenantAsync("tenant", Ct).AsTask());
             await using var session = await host.Data.OpenTenantAsync("tenant", Ct);
             backend = await Scalar(session.Connection, "SELECT pg_backend_pid()");
             Assert.Equal(A, await Scalar(session.Connection, "SELECT current_setting('app.current_tenant_id')"));
@@ -41,7 +41,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
             Assert.Equal(1L, await Scalar(session.Connection, $"SELECT count(*) FROM {host.Table}"));
             await using var command = session.Connection.CreateCommand(); command.CommandText = $"SELECT count(*) FROM {host.Table}";
             using (host.Tenant.BeginScope(B))
-                await Assert.ThrowsAsync<QianErrorException>(() => command.ExecuteScalarAsync(Ct));
+                await Assert.ThrowsAsync<ErrorException>(() => command.ExecuteScalarAsync(Ct));
         }
         using (host.Tenant.BeginScope(B))
         {
@@ -123,17 +123,17 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         }
         using (host.Tenant.BeginScope(A))
         {
-            await Assert.ThrowsAsync<QianErrorException>(() => host.Data.OpenPlatformAsync("platform", host.Global, Ct).AsTask());
+            await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenPlatformAsync("platform", host.Global, Ct).AsTask());
             await using var tenant = await host.Data.OpenTenantAsync("tenant", Ct);
             Assert.Equal(0L, await Scalar(tenant.Connection, $"SELECT count(*) FROM {host.Table}"));
         }
         var tenantContext = host.Loader.GetContext("tenant-consumer", new ScopeKey("tenant", A));
         Assert.Equal(ScopeKey.Global, tenantContext.Scoped(ScopeKey.Global).Scope);
-        await Assert.ThrowsAsync<QianErrorException>(() => host.Data.OpenPlatformAsync("platform", tenantContext.Scoped(ScopeKey.Global), Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenPlatformAsync("platform", tenantContext.Scoped(ScopeKey.Global), Ct).AsTask());
         await host.Loader.MountAsync([new(new PluginEntry("invalid-owner", "qian.data.native", "1.0.0", new ScopeKey("tenant", A), 0,
             JsonSerializer.SerializeToElement(new { connections = TenantBindings })), new NativeDataComponent(), [NativeDataDefinition.Key])], Ct);
         Assert.Equal(PluginState.Failed, host.Loader.GetState("invalid-owner", new ScopeKey("tenant", A)));
-        await Assert.ThrowsAsync<QianErrorException>(() => host.Data.OpenPlatformAsync("tenant", host.Global, Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenPlatformAsync("tenant", host.Global, Ct).AsTask());
         await host.Loader.UnmountAsync("consumer", ScopeKey.Global, Ct);
         await Assert.ThrowsAsync<ObjectDisposedException>(() => host.Data.OpenPlatformAsync("platform", host.Global, Ct).AsTask());
     }
@@ -176,7 +176,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
             _ => throw new ArgumentException("未知反例。", nameof(violation))
         };
         await Admin(sql); using var tenant = host.Tenant.BeginScope(A);
-        await Assert.ThrowsAsync<QianErrorException>(() => host.Data.OpenTenantAsync("tenant", Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => host.Data.OpenTenantAsync("tenant", Ct).AsTask());
         await host.Loader.UnmountAsync("native", ScopeKey.Global, Ct);
         await host.MountNative(); Assert.Equal(PluginState.Failed, host.Loader.GetState("native", ScopeKey.Global));
     }
@@ -196,16 +196,16 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         }
         Assert.Equal(0L, await Scalar(external, $"SELECT count(*) FROM {host.Table}"));
         await using (var weak = await external.BeginTransactionAsync(IsolationLevel.ReadCommitted, Ct))
-            await Assert.ThrowsAsync<QianErrorException>(() => host.Data.ValidateTenantTransactionAsync("tenant", weak, Ct).AsTask());
+            await Assert.ThrowsAsync<ErrorException>(() => host.Data.ValidateTenantTransactionAsync("tenant", weak, Ct).AsTask());
         await using (var transaction = await external.BeginTransactionAsync(IsolationLevel.Serializable, Ct))
         {
             await Execute(external, $"SELECT set_config('app.current_tenant_id','{B}',true)");
-            await Assert.ThrowsAsync<QianErrorException>(() => host.Data.ValidateTenantTransactionAsync("tenant", transaction, Ct).AsTask());
+            await Assert.ThrowsAsync<ErrorException>(() => host.Data.ValidateTenantTransactionAsync("tenant", transaction, Ct).AsTask());
         }
         await using (var wrongRole = new NpgsqlConnection(postgres.ConnectionString))
         {
             await wrongRole.OpenAsync(Ct); await using var transaction = await wrongRole.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
-            await Assert.ThrowsAsync<QianErrorException>(() => host.Data.ValidateTenantTransactionAsync("tenant", transaction, Ct).AsTask());
+            await Assert.ThrowsAsync<ErrorException>(() => host.Data.ValidateTenantTransactionAsync("tenant", transaction, Ct).AsTask());
         }
         await using var managed = await host.Data.OpenTenantAsync("tenant", Ct);
         var owned = await managed.BeginTransactionAsync(IsolationLevel.Serializable, Ct);
@@ -222,9 +222,9 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
         await Execute(session.Connection, $"INSERT INTO {host.Table} VALUES ('{A}','canceled-commit')");
         using var canceled = new CancellationTokenSource(); canceled.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.CommitAsync(canceled.Token).AsTask());
-        await Assert.ThrowsAsync<QianErrorException>(() => session.ValidateAsync(Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => session.ValidateAsync(Ct).AsTask());
         await session.RollbackAsync(Ct);
-        await Assert.ThrowsAsync<QianErrorException>(() => session.ValidateAsync(Ct).AsTask());
+        await Assert.ThrowsAsync<ErrorException>(() => session.ValidateAsync(Ct).AsTask());
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public sealed class NativeDataTests(PostgresFixture postgres) : IClassFixture<Po
             async Task Open()
             {
                 try { await using var session = await data.OpenTenantAsync("tenant", Ct); }
-                catch (Exception error) when (error is ObjectDisposedException or OperationCanceledException or QianErrorException)
+                catch (Exception error) when (error is ObjectDisposedException or OperationCanceledException or ErrorException)
                 { openDiagnostics.Enqueue(error); }
             }
             var opens = Enumerable.Range(0, 12).Select(_ => Task.Run(Open, Ct)).ToArray();

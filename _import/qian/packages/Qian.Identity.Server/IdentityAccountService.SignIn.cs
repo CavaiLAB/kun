@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -49,13 +49,13 @@ internal sealed partial class IdentityAccountService
     }
 
     // 失败也写且仅写一条审计；返回给调用方的错误不区分账号不存在与密码错误。
-    private async ValueTask<SignInResult> RejectAsync(AuditSubject subject, QianError error, string reason, Guid? personId, CancellationToken ct, TimeSpan? retryAfter = null, Guid? tenantId = null)
+    private async ValueTask<SignInResult> RejectAsync(AuditSubject subject, Error error, string reason, Guid? personId, CancellationToken ct, TimeSpan? retryAfter = null, Guid? tenantId = null)
     {
         await WriteAuditAsync(NewAudit(subject, "failure", reason, Now, personId, tenantId: tenantId), ct).ConfigureAwait(false);
         return SignInResult.Failure(error, retryAfter);
     }
 
-    private static QianError Field(ErrorCode code, string pointer) => new(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(code, pointer)] };
+    private static Error Field(ErrorCode code, string pointer) => new(PlatformErrors.InputInvalid) { Errors = [new FieldError(code, pointer)] };
 
     // ---- 登录 ----
 
@@ -100,7 +100,7 @@ internal sealed partial class IdentityAccountService
         {
             // 账号不存在也做一次等价成本的哈希，响应时间不泄露账号是否存在。
             if (factor.Descriptor.Id == PasswordFactorId) { using var secret = PasswordSecret.From(input.Proof); _hasher.BurnDummy(secret.Bytes); }
-            return new(await RejectAsync(subject, new QianError(IdentityErrors.InvalidCredentials), "unknown_account", null, cancellationToken).ConfigureAwait(false));
+            return new(await RejectAsync(subject, new Error(IdentityErrors.InvalidCredentials), "unknown_account", null, cancellationToken).ConfigureAwait(false));
         }
         var now = Now;
         if (login.Captcha == CaptchaMode.AfterFailures && RecentFailures(person, now) >= login.CaptchaAfterFailures &&
@@ -113,15 +113,15 @@ internal sealed partial class IdentityAccountService
             return await factor.VerifyAsync(input.Proof, factorContext, token).ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
         if (outcome.Locked)
-            return new(await RejectAsync(subject, new QianError(IdentityErrors.AccountLocked), outcome.JustLocked ? "locked_now" : "locked", person.Id, cancellationToken, outcome.RetryAfter).ConfigureAwait(false));
+            return new(await RejectAsync(subject, new Error(IdentityErrors.AccountLocked), outcome.JustLocked ? "locked_now" : "locked", person.Id, cancellationToken, outcome.RetryAfter).ConfigureAwait(false));
         if (outcome.Result is not { Succeeded: true } verified)
-            return new(await RejectAsync(subject, outcome.Result?.Error ?? new QianError(IdentityErrors.InvalidCredentials), "bad_credentials", person.Id, cancellationToken).ConfigureAwait(false));
+            return new(await RejectAsync(subject, outcome.Result?.Error ?? new Error(IdentityErrors.InvalidCredentials), "bad_credentials", person.Id, cancellationToken).ConfigureAwait(false));
         // 凭据正确之后才暴露账号状态。
         if (person.Status != AccountStatuses.Active)
-            return new(await RejectAsync(subject, new QianError(IdentityErrors.AccountDisabled), "account_" + person.Status, person.Id, cancellationToken).ConfigureAwait(false));
+            return new(await RejectAsync(subject, new Error(IdentityErrors.AccountDisabled), "account_" + person.Status, person.Id, cancellationToken).ConfigureAwait(false));
         // 已登记第二因子的账号一律拒绝：第二因子的挑战与校验步骤由认证因子任务（S1-IDP-006）接入流水线，在此之前绝不降级成单因子。
         if (HasEnrolledFactors(person))
-            return new(await RejectAsync(subject, new QianError(IdentityErrors.MfaUnavailable), "mfa_unavailable", person.Id, cancellationToken).ConfigureAwait(false));
+            return new(await RejectAsync(subject, new Error(IdentityErrors.MfaUnavailable), "mfa_unavailable", person.Id, cancellationToken).ConfigureAwait(false));
         return new(null, person, client, verified);
     }
 
@@ -131,9 +131,9 @@ internal sealed partial class IdentityAccountService
         context ??= new LoginContext();
         var subject = new AuditSubject("select", null, null, null, null, context);
         var hash = TicketHash(selection.Ticket);
-        if (hash is null) return await RejectAsync(subject, new QianError(IdentityErrors.LoginTicketInvalid), "ticket_invalid", null, cancellationToken).ConfigureAwait(false);
+        if (hash is null) return await RejectAsync(subject, new Error(IdentityErrors.LoginTicketInvalid), "ticket_invalid", null, cancellationToken).ConfigureAwait(false);
         var ticket = await PeekTicketAsync(hash, SelectionPurpose, cancellationToken).ConfigureAwait(false);
-        if (ticket is null) return await RejectAsync(subject, new QianError(IdentityErrors.LoginTicketInvalid), "ticket_invalid", null, cancellationToken).ConfigureAwait(false);
+        if (ticket is null) return await RejectAsync(subject, new Error(IdentityErrors.LoginTicketInvalid), "ticket_invalid", null, cancellationToken).ConfigureAwait(false);
         subject = subject with { ClientId = ticket.ClientId, Method = ticket.FromSession is null ? "selection" : "switch" };
         // 只能在签发时确认过的集合内选；集合外的成员 ID 既可能是篡改，也可能属于别的账号。
         var index = ticket.Choices.ToList().FindIndex(c => c.Membership == selection.MembershipId);
@@ -149,11 +149,11 @@ internal sealed partial class IdentityAccountService
         var subject = new AuditSubject("change_password", null, PasswordFactorId, null, null, context);
         var hash = TicketHash(change.Ticket);
         var ticket = hash is null ? null : await PeekTicketAsync(hash, PasswordChangePurpose, cancellationToken).ConfigureAwait(false);
-        if (hash is null || ticket is null) return await RejectAsync(subject, new QianError(IdentityErrors.LoginTicketInvalid), "ticket_invalid", null, cancellationToken).ConfigureAwait(false);
+        if (hash is null || ticket is null) return await RejectAsync(subject, new Error(IdentityErrors.LoginTicketInvalid), "ticket_invalid", null, cancellationToken).ConfigureAwait(false);
         subject = subject with { ClientId = ticket.ClientId };
         using var next = PasswordSecret.From(change.NewPassword);
         try { CheckPassword(next); }
-        catch (QianErrorException policy) { return await RejectAsync(subject, policy.Error, "password_policy", ticket.PersonId, cancellationToken).ConfigureAwait(false); }
+        catch (ErrorException policy) { return await RejectAsync(subject, policy.Error, "password_policy", ticket.PersonId, cancellationToken).ConfigureAwait(false); }
         var now = Now;
         long revision; string? refused = null;
         try
@@ -176,7 +176,7 @@ internal sealed partial class IdentityAccountService
             await SaveAsync(session, row, new IdentityPasswordChangedEvent(row.Id, row.IdentityRevision), cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (QianErrorException failure)
+        catch (ErrorException failure)
         {
             return await RejectAsync(subject, failure.Error, refused ?? (failure.Error.Code == IdentityErrors.PasswordReused ? "password_reused" : "change_rejected"), ticket.PersonId, cancellationToken).ConfigureAwait(false);
         }
@@ -195,7 +195,7 @@ internal sealed partial class IdentityAccountService
         var revision = await PersonRevisionAsync(current.PersonId, cancellationToken).ConfigureAwait(false);
         var validation = revision is null ? null : await ValidateAsync(current.SessionId, current.PersonId, current.MembershipId, cancellationToken).ConfigureAwait(false);
         if (revision is null || validation is null)
-            return await RejectAsync(subject, new QianError(PlatformErrors.Unauthenticated), "session_invalid", current.PersonId, cancellationToken).ConfigureAwait(false);
+            return await RejectAsync(subject, new Error(PlatformErrors.Unauthenticated), "session_invalid", current.PersonId, cancellationToken).ConfigureAwait(false);
         var state = new AuthState(current.PersonId, current.ClientId, current.DeviceType, current.Amr, current.Acr, current.AuthenticatedAt, revision.Value);
         return await ContinueAsync(subject, state, null, current.SessionId, "switch_begin", true, cancellationToken).ConfigureAwait(false);
     }
@@ -312,7 +312,7 @@ internal sealed partial class IdentityAccountService
             using var secret = PasswordSecret.From(proof);
             return await owner.VerifyStoredPasswordAsync(context.PersonId, secret, cancellationToken).ConfigureAwait(false)
                 ? new AuthenticationResult(true, null, [PasswordAmr], null)
-                : new AuthenticationResult(false, new QianError(IdentityErrors.InvalidCredentials), [], null);
+                : new AuthenticationResult(false, new Error(IdentityErrors.InvalidCredentials), [], null);
         }
     }
 
@@ -413,7 +413,7 @@ internal sealed partial class IdentityAccountService
     {
         var resolution = await ResolveChoicesAsync(state.PersonId, tenantFilter, ct).ConfigureAwait(false);
         if (resolution.Choices.Count == 0)
-            return await RejectAsync(subject, new QianError(resolution.Blocked ? IdentityErrors.TenantNotActive : IdentityErrors.NoAvailableTenant),
+            return await RejectAsync(subject, new Error(resolution.Blocked ? IdentityErrors.TenantNotActive : IdentityErrors.NoAvailableTenant),
                 resolution.Blocked ? "tenant_not_active" : "no_membership", state.PersonId, ct).ConfigureAwait(false);
         if (resolution.Choices.Count == 1 && !alwaysSelect)
         {
@@ -506,7 +506,7 @@ internal sealed partial class IdentityAccountService
             if (evicted > 0 || replaceSession is not null) _signal.Notify();
             return SignInResult.Authenticated(new AccountSession(person.Id, pick.Tenant, member?.Id, sid, revision, [.. state.Amr], state.Acr, state.AuthenticatedAt, expires, state.ClientId, state.DeviceType));
         }
-        catch (QianErrorException failure)
+        catch (ErrorException failure)
         {
             var code = failure.Error.Code;
             return await RejectAsync(subject, failure.Error, refused ?? (code == IdentityErrors.LoginTicketInvalid ? "ticket_invalid" : code == IdentityErrors.TenantNotActive ? "tenant_not_active" : code == IdentityErrors.AccountDisabled ? "account_disabled" : "no_membership"),

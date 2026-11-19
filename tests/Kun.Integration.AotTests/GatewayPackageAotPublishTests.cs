@@ -29,7 +29,7 @@ public sealed class GatewayPackageAotPublishTests
         {
             // 普通 NuGet 制品是被测对象。库不启用 PublishAot/RDG，且使用隔离的 obj/bin，
             // 避免库自己的宿主发布结果或并行 Sample 测试污染这次构建。
-            foreach (var package in new[] { "Kun.Core", "Kun.MultiTenancy", "Kun.Security", "Kun.Observability", "Kun.Gateway" })
+            foreach (var package in new[] { "Kun.Errors", "Kun.Core", "Kun.MultiTenancy", "Kun.Security", "Kun.Observability", "Kun.Gateway" })
             {
                 var result = await RunAsync(repository, "dotnet", TimeSpan.FromMinutes(5),
                     "pack", Path.Combine(repository, "src", package, package + ".csproj"),

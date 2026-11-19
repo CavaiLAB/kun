@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces;
@@ -109,13 +109,13 @@ public sealed class HotReloadSurfacePlugin : IQianPlugin
             }
         }
     }
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
     private sealed class RuntimeDiagnostic(HotReloadSurfacePlugin plugin, PluginEntry entry) : ISurfaceReloadDiagnosticSource
     {
         internal volatile bool Active = true;
         public JsonElement Read()
         {
-            if (!Active) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            if (!Active) throw new ErrorException(new Error(PlatformErrors.NotFound));
             var status = plugin.Status;
             return JsonSerializer.SerializeToElement(new
             {
@@ -148,7 +148,7 @@ public sealed class HotReloadSurfacePlugin : IQianPlugin
                     if (Interlocked.Exchange(ref _dirty, 0) == 0 && ++ticks < 10) continue;
                     ticks = 0;
                     try { refresh(); }
-                    catch (Exception error) when (error is IOException or UnauthorizedAccessException or QianErrorException or InvalidOperationException)
+                    catch (Exception error) when (error is IOException or UnauthorizedAccessException or ErrorException or InvalidOperationException)
                     { rejected(); Interlocked.Exchange(ref _dirty, 1); } // 正在写入或无效输入不替换旧注册，也不回显文件内容。
                 }
             }

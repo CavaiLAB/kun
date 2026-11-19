@@ -1,112 +1,84 @@
+using System.Globalization;
 using FluentAssertions;
 using Grpc.Core;
-using Kun.Core.Results;
+using Kun.Errors;
 using Kun.Grpc.Interceptors;
 using Xunit;
 
 namespace Kun.Grpc.Tests;
 
 /// <summary>
-/// Tests that each <see cref="ErrorType"/> maps to the correct gRPC <see cref="StatusCode"/>
-/// via <see cref="KunResultToRpcInterceptor.MapErrorType"/> and
+/// Tests that the HTTP status of each error code maps to the correct gRPC <see cref="StatusCode"/>
+/// via <see cref="KunResultToRpcInterceptor.MapStatus"/> and
 /// <see cref="KunResultToRpcInterceptor.ToRpcException"/>.
 /// </summary>
 public sealed class ResultMappingTests
 {
     [Theory]
-    [InlineData(ErrorType.Validation, StatusCode.InvalidArgument)]
-    [InlineData(ErrorType.NotFound, StatusCode.NotFound)]
-    [InlineData(ErrorType.Conflict, StatusCode.FailedPrecondition)]
-    [InlineData(ErrorType.Unauthorized, StatusCode.Unauthenticated)]
-    [InlineData(ErrorType.Forbidden, StatusCode.PermissionDenied)]
-    [InlineData(ErrorType.Unavailable, StatusCode.Unavailable)]
-    [InlineData(ErrorType.Failure, StatusCode.Internal)]
-    public void MapErrorType_MapsErrorTypeToCorrectStatusCode(ErrorType errorType, StatusCode expectedCode)
-    {
-        // Act
-        var statusCode = KunResultToRpcInterceptor.MapErrorType(errorType);
-
-        // Assert
-        statusCode.Should().Be(expectedCode);
-    }
-
-    [Fact]
-    public void ToRpcException_SetsStatusCodeFromErrorType()
-    {
-        // Arrange
-        var error = Error.NotFound("order.notFound", "Order not found");
-
-        // Act
-        var ex = KunResultToRpcInterceptor.ToRpcException(error);
-
-        // Assert
-        ex.StatusCode.Should().Be(StatusCode.NotFound);
-    }
-
-    [Fact]
-    public void ToRpcException_SetsStatusMessageFromErrorMessage()
+    [InlineData("BAD_REQUEST", StatusCode.InvalidArgument)]
+    [InlineData("INPUT_INVALID", StatusCode.InvalidArgument)]
+    [InlineData("UNAUTHENTICATED", StatusCode.Unauthenticated)]
+    [InlineData("AUTHZ_DENIED", StatusCode.PermissionDenied)]
+    [InlineData("INSUFFICIENT_SCOPE", StatusCode.PermissionDenied)]
+    [InlineData("NOT_FOUND", StatusCode.NotFound)]
+    [InlineData("REQUEST_TIMEOUT", StatusCode.DeadlineExceeded)]
+    [InlineData("GATEWAY_TIMEOUT", StatusCode.DeadlineExceeded)]
+    [InlineData("CONFLICT", StatusCode.FailedPrecondition)]
+    [InlineData("PRECONDITION_FAILED", StatusCode.FailedPrecondition)]
+    [InlineData("BUSINESS_RULE_VIOLATED", StatusCode.FailedPrecondition)]
+    [InlineData("PAYLOAD_TOO_LARGE", StatusCode.ResourceExhausted)]
+    [InlineData("RATE_LIMITED", StatusCode.ResourceExhausted)]
+    [InlineData("BAD_GATEWAY", StatusCode.Unavailable)]
+    [InlineData("UNAVAILABLE", StatusCode.Unavailable)]
+    [InlineData("INTERNAL", StatusCode.Internal)]
+    [InlineData("METHOD_NOT_ALLOWED", StatusCode.Internal)]
+    public void ToRpcException_StatusCodeFollowsTheHttpStatusOfTheErrorCode(string code, StatusCode expectedCode)
     {
         // Arrange
-        var error = Error.Validation("name.required", "Name is required");
+        ErrorCatalog.CreateDefault().TryGet(code, out var errorCode).Should().BeTrue();
 
         // Act
-        var ex = KunResultToRpcInterceptor.ToRpcException(error);
+        var ex = KunResultToRpcInterceptor.ToRpcException(new Error(errorCode!));
 
         // Assert
-        ex.Status.Detail.Should().Be("Name is required");
+        ex.StatusCode.Should().Be(expectedCode);
     }
 
     [Fact]
     public void ToRpcException_IncludesErrorCodeInTrailers()
     {
-        // Arrange
-        var error = Error.Conflict("order.duplicate", "Order already exists");
-
         // Act
-        var ex = KunResultToRpcInterceptor.ToRpcException(error);
+        var ex = KunResultToRpcInterceptor.ToRpcException(new Error(PlatformErrors.Conflict));
 
         // Assert
         var codeTrailer = ex.Trailers.FirstOrDefault(e => e.Key == "kun-error-code");
         codeTrailer.Should().NotBeNull();
-        codeTrailer!.Value.Should().Be("order.duplicate");
+        codeTrailer!.Value.Should().Be("CONFLICT");
     }
 
     [Fact]
-    public void ToRpcException_GenericFailure_MapsToInternal()
+    public void ToRpcException_StatusDetailIsTheMessageInTheCurrentUiLanguage()
     {
         // Arrange
-        var error = Error.Failure("system.error", "Unexpected error");
+        var previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+        try
+        {
+            // Act
+            var ex = KunResultToRpcInterceptor.ToRpcException(new Error(PlatformErrors.NotFound));
 
-        // Act
-        var ex = KunResultToRpcInterceptor.ToRpcException(error);
-
-        // Assert
-        ex.StatusCode.Should().Be(StatusCode.Internal);
+            // Assert
+            ex.Status.Detail.Should().Be("The requested resource does not exist or is not visible to the caller.");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
     }
 
     [Fact]
-    public void ToRpcException_Unauthorized_MapsToUnauthenticated()
+    public void MapStatus_UnknownStatus_MapsToInternal()
     {
-        // Arrange
-        var error = Error.Unauthorized("auth.required", "Authentication required");
-
-        // Act
-        var ex = KunResultToRpcInterceptor.ToRpcException(error);
-
-        // Assert
-        ex.StatusCode.Should().Be(StatusCode.Unauthenticated);
-    }
-
-    [Fact]
-    public void ToRpcException_Forbidden_MapsToPermissionDenied()
-    {
-        // Arrange
-        var error = Error.Forbidden("access.denied", "Access denied");
-
-        // Act
-        var ex = KunResultToRpcInterceptor.ToRpcException(error);
-
-        // Assert
-        ex.StatusCode.Should().Be(StatusCode.PermissionDenied);
+        KunResultToRpcInterceptor.MapStatus(418).Should().Be(StatusCode.Internal);
     }
 }

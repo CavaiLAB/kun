@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Qian.Lifecycle;
 using Qian.Registry;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Platform.Host;
 
@@ -68,7 +68,7 @@ internal static class PlatformSystemRevisions
                     await lifecycle.ActivateAsync(revision.PluginId, revision.Revision, Actor, ct).ConfigureAwait(false);
                     activated++;
                 }
-                catch (QianErrorException error)
+                catch (ErrorException error)
                 {
                     // 错误码与逐项字段错误一并带出：验签失败、制品校验不过、修订冲突等都要让运维看得出是哪个组件、哪一项。
                     var fields = string.Join("；", error.Error.Errors.Select(item =>

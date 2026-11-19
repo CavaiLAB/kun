@@ -43,7 +43,7 @@ public sealed partial class TenantSignupTests
         async Task<string> ClaimDirectly(Guid person, string number, string name)
         {
             using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes("Direct-Claim-2026"));
-            return (await Assert.ThrowsAsync<Qian.Runtime.Errors.QianErrorException>(() =>
+            return (await Assert.ThrowsAsync<Kun.Errors.ErrorException>(() =>
                 accounts.ClaimPersonAsync(new PersonClaim(person, number, name, proof), Ct).AsTask())).Error.Code.Code;
         }
 

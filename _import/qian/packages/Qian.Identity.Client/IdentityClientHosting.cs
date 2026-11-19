@@ -16,8 +16,8 @@ using Microsoft.Extensions.Logging;
 using Qian.Config;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Identity.Client;
 
@@ -39,7 +39,7 @@ public static class IdentityClientHosting
         services.AddSingleton(options);
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpContextAccessor();
-        services.AddQianErrors();
+        services.AddKunErrors();
         // 回调地址的查询串带授权码与 state，ASP.NET Core 的请求日志会原样打印；与身份服务一致，只保留警告及以上。
         services.AddLogging(logging => logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning));
         // 发行方访问只经这一个命名客户端：不跟随重定向、不带 Cookie，超时 10 秒；宿主可再为它配置代理或受信根证书。
@@ -90,7 +90,7 @@ public static class IdentityClientHosting
         options.Validate();
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpContextAccessor();
-        services.AddQianErrors();
+        services.AddKunErrors();
         services.Configure<AuthenticationOptions>(authentication => authentication.DefaultScheme ??= IdentityClientDefaults.S2sScheme);
         services.AddAuthentication().AddKunServiceAuthentication(kun =>
         {
@@ -111,7 +111,7 @@ public static class IdentityClientHosting
         ArgumentNullException.ThrowIfNull(app);
         var runtime = app.ApplicationServices.GetRequiredService<IdentityClientRuntime>();
         var options = runtime.Options;
-        app.UseQianErrors();
+        app.UseKunErrors();
         app.Use(async (http, next) =>
         {
             if (http.Request.Path.StartsWithSegments(options.PathPrefix) || options.RedirectUri is { } redirect && http.Request.Path.Equals(redirect.AbsolutePath, StringComparison.Ordinal))
@@ -206,5 +206,5 @@ public sealed class IdentityClientPlugin : IQianPlugin
         return ValueTask.CompletedTask;
     }
 
-    private static QianErrorException Invalid() => new(new QianError(PlatformErrors.InputInvalid));
+    private static ErrorException Invalid() => new(new Error(PlatformErrors.InputInvalid));
 }

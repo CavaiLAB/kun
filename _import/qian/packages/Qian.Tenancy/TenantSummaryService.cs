@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy;
 
@@ -14,11 +14,11 @@ internal sealed class TenantSummaryService(IPluginContext context, TenantAdminis
     private readonly ITenantContext _tenant = context.Services.GetRequiredService<ITenantContext>();
     public async ValueTask<TenantSummary> CurrentAsync(CancellationToken cancellationToken = default)
     {
-        if (!Guid.TryParseExact(_tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new QianErrorException(new QianError(PlatformErrors.Unauthenticated));
+        if (!Guid.TryParseExact(_tenant.TenantId, "D", out var id) || id == Guid.Empty) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
         TenantRow row;
         await using (var session = await context.Data().OpenAsync<TenancyDbContext>(cancellationToken).ConfigureAwait(false))
             row = await session.Context.Tenants.AsNoTracking().SingleOrDefaultAsync(item => item.Id == id, cancellationToken).ConfigureAwait(false)
-                ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+                ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
         var tenant = PostgresTenantDirectory.Describe(row);
         // 用户数由身份侧在本租户上下文里统计；端口缺席时为 null，页面显示「—」而不是 0。
         var counter = context.Scoped(new ScopeKey("tenant", id.ToString())).TryInject<ITenantUserCounter>(TenantSettings.UserCounterKey);

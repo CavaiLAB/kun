@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Config.Secrets;
 
@@ -12,7 +12,7 @@ public sealed partial class KubernetesSecretLocation
         if (@namespace is null || @namespace.Length > 63 || !NamespacePattern().IsMatch(@namespace) ||
             name is null || name.Length > 253 || !NamePattern().IsMatch(name) || name.Split('.').Any(part => part.Length > 63 || !NamespacePattern().IsMatch(part)) ||
             key is null || key.Length > 253 || key is "." or ".." || !KeyPattern().IsMatch(key))
-            throw new QianErrorException(new QianError(SecretErrors.InvalidReference));
+            throw new ErrorException(new Error(SecretErrors.InvalidReference));
         Namespace = @namespace; Name = name; Key = key;
     }
     /// <summary>Kubernetes namespace。</summary>
@@ -25,11 +25,11 @@ public sealed partial class KubernetesSecretLocation
     public static KubernetesSecretLocation Parse(string locator)
     {
         if (locator is null || !locator.StartsWith("secretRef://k8s/", StringComparison.Ordinal) || locator.Contains('%', StringComparison.Ordinal))
-            throw new QianErrorException(new QianError(SecretErrors.InvalidReference));
+            throw new ErrorException(new Error(SecretErrors.InvalidReference));
         var pieces = locator["secretRef://k8s/".Length..].Split('#');
         var names = pieces[0].Split('/');
         if (pieces.Length != 2 || names.Length != 2)
-            throw new QianErrorException(new QianError(SecretErrors.InvalidReference));
+            throw new ErrorException(new Error(SecretErrors.InvalidReference));
         return new KubernetesSecretLocation(names[0], names[1], pieces[1]);
     }
     /// <inheritdoc />

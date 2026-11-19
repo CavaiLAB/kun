@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz;
 
@@ -23,7 +23,7 @@ internal sealed class PostgresPermissionCatalogStore(IDataService data)
         if (existing is not null)
         {
             if (!JsonElement.DeepEquals(JsonSerializer.Deserialize<JsonElement>(existing.Snapshot), JsonSerializer.Deserialize<JsonElement>(snapshot)))
-                throw new QianErrorException(new QianError(PlatformErrors.Conflict) { Pointer = "metadata#/version" });
+                throw new ErrorException(new Error(PlatformErrors.Conflict) { Pointer = "metadata#/version" });
             return;
         }
         session.Context.Catalogs.Add(new PermissionCatalogRow { PluginId = normalized.PluginId, Version = normalized.Version, Snapshot = snapshot });
@@ -51,11 +51,11 @@ internal sealed class PostgresPermissionCatalogStore(IDataService data)
     {
         if (catalog.PluginId.Length > 128 || catalog.Version.Length > 200 || catalog.Permissions.Any(permission => permission.PluginId != catalog.PluginId ||
             permission.Code.Length > 512 || permission.Resource.Length > 128 || permission.Action.Length > 128) || catalog.Roles.Any(role => role.Role.Length > 128))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var codes = catalog.Permissions.Select(permission => permission.Code).ToHashSet(StringComparer.Ordinal);
         if (codes.Count != catalog.Permissions.Count || catalog.Roles.Select(role => role.Role).Distinct(StringComparer.Ordinal).Count() != catalog.Roles.Count ||
             catalog.Roles.Any(role => role.Grants.Any(grant => !codes.Contains(grant))))
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         return new PermissionCatalog(catalog.PluginId, catalog.Version,
             catalog.Permissions.OrderBy(permission => permission.Code, StringComparer.Ordinal).Select(permission => new PermissionDefinition(permission.PluginId,
                 permission.Resource, permission.Action, permission.Risk, permission.RequiresStepUp, permission.Terminals.Order(StringComparer.Ordinal).ToArray())).ToArray(),

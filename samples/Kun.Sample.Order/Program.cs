@@ -1,10 +1,10 @@
-using Kun.AspNetCore.DependencyInjection;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Time;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Behaviors;
 using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors.AspNetCore;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
@@ -99,7 +99,7 @@ builder.Services.AddKunMediator(m =>
 });
 
 // ── ASP.NET Core ──────────────────────────────────────────────────────────────
-builder.Services.AddKunAspNetCore();
+builder.Services.AddKunErrors();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
@@ -112,7 +112,7 @@ await using (var scope = app.Services.CreateAsyncScope())
 }
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-app.UseExceptionHandler();
+app.UseKunErrors();
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 app.MapDemoEndpoints();

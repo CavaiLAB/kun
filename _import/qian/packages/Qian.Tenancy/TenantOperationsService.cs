@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Data;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy;
 
@@ -15,7 +15,7 @@ internal sealed class TenantOperationsService(IPluginContext context, PostgresTe
     private readonly ITenantContext _tenant = context.Services.GetRequiredService<ITenantContext>();
     private void Check()
     {
-        if (_tenant.TenantId is not null) throw new QianErrorException(new QianError(PlatformErrors.AuthzDenied));
+        if (_tenant.TenantId is not null) throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
     }
     public async ValueTask<IReadOnlyList<TenantDescriptor>> ListAsync(int skip, int take, CancellationToken cancellationToken = default)
         => (await QueryAsync(skip, take, cancellationToken: cancellationToken).ConfigureAwait(false)).Items;
@@ -64,9 +64,9 @@ internal sealed class TenantOperationsService(IPluginContext context, PostgresTe
     }
     private static void Validate(int skip, int take, TenantStatus? status, string? keyword)
     {
-        if (skip < 0 || take is < 1 or > 100) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
-        if (status.HasValue && !Enum.IsDefined(status.Value)) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/status" });
-        if (keyword?.Length > 200) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Pointer = "#/keyword" });
+        if (skip < 0 || take is < 1 or > 100) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
+        if (status.HasValue && !Enum.IsDefined(status.Value)) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/status" });
+        if (keyword?.Length > 200) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/keyword" });
     }
     private static IQueryable<TenantRow> WithKeyword(IQueryable<TenantRow> query, string? keyword)
     {
@@ -95,7 +95,7 @@ internal sealed class TenantOperationsService(IPluginContext context, PostgresTe
     {
         Check();
         try { return await directory.UpdateAsync(id, request, cancellationToken).ConfigureAwait(false); }
-        catch (QianErrorException error) when (error.Error.Code == PlatformErrors.PreconditionFailed)
-        { throw new QianErrorException(new QianError(PlatformErrors.Conflict)); }
+        catch (ErrorException error) when (error.Error.Code == PlatformErrors.PreconditionFailed)
+        { throw new ErrorException(new Error(PlatformErrors.Conflict)); }
     }
 }

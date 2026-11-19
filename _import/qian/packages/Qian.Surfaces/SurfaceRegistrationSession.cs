@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces;
@@ -79,9 +79,9 @@ public sealed class SurfaceRegistrationSession : IDisposable
     internal static Dictionary<(ServiceKey Key, string Name), SurfaceDocument> Plan(SurfaceValidationResult result, IPluginContext? context = null)
     {
         ArgumentNullException.ThrowIfNull(result);
-        if (!result.IsValid || result.Component is not { } component) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+        if (!result.IsValid || result.Component is not { } component) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         if (context is not null && (component.Id != context.Entry.Plugin || component.Manifest.GetProperty("version").GetString() != context.Entry.Version ||
-            !component.Manifest.GetProperty("scopes").EnumerateArray().Any(value => value.GetString() == context.Scope.Kind))) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            !component.Manifest.GetProperty("scopes").EnumerateArray().Any(value => value.GetString() == context.Scope.Kind))) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var entries = new Dictionary<(ServiceKey, string), SurfaceDocument>();
         foreach (var document in component.Documents)
         {
@@ -107,7 +107,7 @@ public sealed class SurfaceRegistrationSession : IDisposable
         return entries;
         void Add(ServiceKey key, string name, SurfaceDocument document)
         {
-            if (!entries.TryAdd((key, name), document)) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid));
+            if (!entries.TryAdd((key, name), document)) throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         }
     }
     private static bool Same(SurfaceDocument first, SurfaceDocument second) => first.Kind == second.Kind && first.Name == second.Name && first.File == second.File && first.Body == second.Body && JsonElement.DeepEquals(first.Data, second.Data);

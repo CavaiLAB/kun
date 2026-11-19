@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Qian.Data;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Registry;
@@ -65,7 +65,7 @@ internal sealed class PostgresArtifactCatalog(IDataService data)
         if (!RegistryArtifactContent.ValidDigest(signedBy)) throw RegistryArtifactContent.Invalid("artifact.json#/signedBy", "验签公钥指纹无效。");
         await using var session = await data.OpenAsync<RegistryDbContext>(ct).ConfigureAwait(false);
         var row = await session.Context.PluginArtifacts.SingleOrDefaultAsync(row => row.Digest == digest, ct).ConfigureAwait(false)
-            ?? throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
         row.State = state;
         row.SignatureVerification = JsonSerializer.Serialize(new { algorithm = "ed25519", keyId = signedBy });
         await session.SaveChangesAsync(ct).ConfigureAwait(false);

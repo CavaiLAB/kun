@@ -5,7 +5,7 @@ using Qian.Authz.Abstractions;
 using Qian.Events;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Tenancy;
 
 namespace Qian.Identity.Server;
@@ -38,13 +38,13 @@ internal sealed partial class IdentityAccountService
         }
         // 初始密码总是必填，在拿锁之前校验并哈希（Argon2id 较慢）。恢复原成员时这份哈希不用、不保存：他沿用自己的凭据。
         if (request.InitialPassword is null)
-            throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(PlatformErrors.Required, InitialPasswordPointer)] });
+            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.Required, InitialPasswordPointer)] });
         string hash;
         using (var secret = PasswordSecret.From(request.InitialPassword))
         {
             try { CheckPassword(secret); }
-            catch (QianErrorException error) when (error.Error.Code == IdentityErrors.PasswordPolicyViolation)
-            { throw new QianErrorException(new QianError(error.Error.Code, error.Error.Args) { Pointer = InitialPasswordPointer }, error); }
+            catch (ErrorException error) when (error.Error.Code == IdentityErrors.PasswordPolicyViolation)
+            { throw new ErrorException(new Error(error.Error.Code, error.Error.Args) { Pointer = InitialPasswordPointer }, error); }
             hash = _hasher.Hash(secret.Bytes);
         }
         var kind = IdentifierRules.KindName(identifier.Kind);
@@ -67,16 +67,16 @@ internal sealed partial class IdentityAccountService
             // 唯一的例外是标识就属于占着这个账号的人（恢复原成员时指定他自己的账号，或在册成员按已被占用处理）。
             if (account is not null && await db.Memberships.AsNoTracking().Where(m => m.Account == account).Select(m => (Guid?)m.PersonId)
                     .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false) is { } holder && holder != owner)
-                throw new QianErrorException(new QianError(IdentityErrors.AccountInUse) { Pointer = "#/account" });
+                throw new ErrorException(new Error(IdentityErrors.AccountInUse) { Pointer = "#/account" });
             var events = new DirectoryEventBatch();
             MembershipRow row;
             if (owner is { } occupied)
             {
                 row = await RestorableMemberAsync(db, occupied, cancellationToken).ConfigureAwait(false)
-                    ?? throw new QianErrorException(new QianError(IdentityErrors.IdentifierInUse) { Pointer = "#/identifier" });
+                    ?? throw new ErrorException(new Error(IdentityErrors.IdentifierInUse) { Pointer = "#/identifier" });
                 // 恢复原成员：成员 id 与账号不变（账号创建后不可改），显示名取这次请求的值。
                 if (account is not null && account != row.Account)
-                    throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = [new QianFieldError(PlatformErrors.ValueNotAllowed, "#/account")] });
+                    throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = [new FieldError(PlatformErrors.ValueNotAllowed, "#/account")] });
                 var previousStatus = row.Status;
                 row.DirectoryDeleted = false; row.Status = AccountStatuses.Active; row.DisplayName = name; row.IdentityRevision++;
                 events.Add(revision => new DirectoryMemberStatusChangedEvent(revision, row.Id, row.PersonId, row.Status, previousStatus, false, row.IdentityRevision));
@@ -114,7 +114,7 @@ internal sealed partial class IdentityAccountService
                 if (constraint.Contains("account", StringComparison.Ordinal))
                 {
                     // 调用方指定的账号被占用是业务拒绝；自动生成的账号撞车换一个重试。
-                    if (account is not null || attempt >= 3) throw new QianErrorException(new QianError(IdentityErrors.AccountInUse) { Pointer = "#/account" });
+                    if (account is not null || attempt >= 3) throw new ErrorException(new Error(IdentityErrors.AccountInUse) { Pointer = "#/account" });
                     continue;
                 }
                 // 主键撞车（几乎不可能）换号重试，绝不覆盖已有自然人。

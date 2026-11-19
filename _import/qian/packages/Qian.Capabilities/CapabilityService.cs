@@ -14,7 +14,7 @@ using Qian.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Tenancy;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Capabilities;
 
@@ -34,11 +34,11 @@ internal sealed partial class CapabilityService(IRegistryService registry, IPerm
 
     public async ValueTask<CapabilityCatalog> ListAsync(IPluginContext caller, ICurrentUser user, string? kind = null, string? query = null, CancellationToken cancellationToken = default)
     {
-        var errors = new List<QianFieldError>();
+        var errors = new List<FieldError>();
         if (kind is not null && !Kinds.Contains(kind, StringComparer.Ordinal))
-            errors.Add(new QianFieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("kind")) { Allowed = AllowedValues.Of(Kinds) });
-        if (query?.Length > 200) errors.Add(new QianFieldError(PlatformErrors.OutOfRange, ErrorPointer.Input("q")));
-        if (errors.Count != 0) throw new QianErrorException(new QianError(PlatformErrors.InputInvalid) { Errors = errors });
+            errors.Add(new FieldError(PlatformErrors.ValueNotAllowed, ErrorPointer.Input("kind")) { Allowed = AllowedValues.Of(Kinds) });
+        if (query?.Length > 200) errors.Add(new FieldError(PlatformErrors.OutOfRange, ErrorPointer.Input("q")));
+        if (errors.Count != 0) throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Errors = errors });
         using var linked = Link(cancellationToken);
         var visible = await Visible(caller, user, false, linked.Token).ConfigureAwait(false);
         // 事件与实体条目尚未交付（R77：事件归 S1-EVT-003，实体待分配），这两类 kind 在交付前返回空集合。
@@ -157,7 +157,7 @@ internal sealed partial class CapabilityService(IRegistryService registry, IPerm
         {
             if (receipt.RequestSha256 != fingerprint) throw Error(PlatformErrors.Conflict);
             if (receipt.Withheld is { } reason)
-                throw new QianErrorException(new QianError(CapabilitiesErrors.ReplayUnavailable, new Dictionary<string, string>(StringComparer.Ordinal) { ["reason"] = reason }));
+                throw new ErrorException(new Error(CapabilitiesErrors.ReplayUnavailable, new Dictionary<string, string>(StringComparer.Ordinal) { ["reason"] = reason }));
             if (receipt.Response is null) throw Error(PlatformErrors.Conflict);
             return (receipt.Response, default);
         }
@@ -258,7 +258,7 @@ internal sealed partial class CapabilityService(IRegistryService registry, IPerm
     private static bool Current(IPluginContext caller, VisibleCapability item)
     {
         try { return ReferenceEquals(caller.Inject<IExecutableCapability>(CapabilityBindingRegistration.Key, item.Id), item.Binding); }
-        catch (Exception error) when (error is QianErrorException or ObjectDisposedException) { return false; }
+        catch (Exception error) when (error is ErrorException or ObjectDisposedException) { return false; }
     }
     private CancellationTokenSource Link(CancellationToken ct)
     {
@@ -302,7 +302,7 @@ internal sealed partial class CapabilityService(IRegistryService registry, IPerm
     }
     private static string Hash(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     private static string KindName(PrincipalKind kind) => kind switch { PrincipalKind.User => "user", PrincipalKind.Service => "service", _ => "agent" };
-    private static QianErrorException Error(ErrorCode code) => new(new QianError(code));
+    private static ErrorException Error(ErrorCode code) => new(new Error(code));
     private sealed record VisibleCapability(string Id, JsonElement Entry, IExecutableCapability Binding);
     private sealed record ReceiptKey(string TenantId, string SubjectKey, string CapabilityId, Guid IdempotencyKey);
     // 成功收尾写入的内容：原样响应与不保存的原因二者取一。

@@ -10,7 +10,7 @@ using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Authz.Tests;
 
@@ -150,7 +150,7 @@ public sealed partial class SuperadminBypassTests
         private ValueTask<long> Bump(Guid person, string reason)
         {
             var tenant = _tenant!.TenantId; Calls.Enqueue((tenant, person, reason));
-            if (Missing.Contains(person)) throw new QianErrorException(new QianError(PlatformErrors.NotFound));
+            if (Missing.Contains(person)) throw new ErrorException(new Error(PlatformErrors.NotFound));
             if (Broken.Contains(person)) throw new TimeoutException("身份库不可用");
             if (Transient.TryGetValue(person, out var left) && left > 0) { Transient[person] = left - 1; throw new TimeoutException("瞬时故障"); }
             return ValueTask.FromResult(_revisions.AddOrUpdate((tenant, person), 1, (_, value) => value + 1));

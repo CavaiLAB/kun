@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Data;
-using Qian.Runtime.Errors;
-using Qian.Runtime.Errors.AspNetCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 
 namespace Qian.Sample.Crm;
 
@@ -34,7 +34,7 @@ public static class CrmApplication
         var keys = new JsonWebKeySet(Required("S2S:PublicJwks"));
         if (keys.Keys.Count == 0 || keys.Keys.Any(key => key.HasPrivateKey || key.Kty is not ("RSA" or "EC")))
             throw new InvalidOperationException("S2S:PublicJwks 必须只包含非对称公钥。");
-        builder.Services.AddQianErrors();
+        builder.Services.AddKunErrors();
         builder.Services.AddKunSecurity();
         builder.Services.AddKunMultiTenancy(options => { options.Production = true; options.FallbackTenantId = null; });
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
@@ -56,7 +56,7 @@ public static class CrmApplication
         if (builder.Configuration.GetConnectionString("Migrations") is { Length: > 0 } migrations)
             builder.Services.AddQianDataMigrations(options => options.ResolveConnection = (_, _) => migrations);
         var app = builder.Build();
-        app.UseQianErrors();
+        app.UseKunErrors();
         app.UseAuthentication();
         app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"), branch => branch.UseKunMultiTenancy());
         app.UseAuthorization();
@@ -67,7 +67,7 @@ public static class CrmApplication
                 var offset = skip ?? 0;
                 var limit = take ?? 100;
                 if (offset < 0 || limit is < 1 or > 100)
-                    return QianResults.Error(new QianError(PlatformErrors.BadRequest));
+                    return KunResults.Error(new Error(PlatformErrors.BadRequest));
                 await using var session = await data.OpenAsync<CrmDbContext>(ct);
                 var query = session.Context.Customers.AsNoTracking();
                 var total = await query.CountAsync(ct);
@@ -80,7 +80,7 @@ public static class CrmApplication
                 await using var session = await data.OpenAsync<CrmDbContext>(ct);
                 var item = await session.Context.Customers.AsNoTracking().Where(customer => customer.Id == id)
                     .Select(customer => new CustomerItem(customer.Id, customer.TenantId!, customer.Name)).SingleOrDefaultAsync(ct);
-                return item is null ? QianResults.Error(new QianError(PlatformErrors.NotFound)) : Results.Ok(item);
+                return item is null ? KunResults.Error(new Error(PlatformErrors.NotFound)) : Results.Ok(item);
             }).RequireAuthorization("crm-data-reader").RequireKunPermission(CrmReadPolicy.Permission);
         }
         return app;

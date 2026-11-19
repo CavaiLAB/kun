@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Qian.Identity.Abstractions;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Identity.Server;
 

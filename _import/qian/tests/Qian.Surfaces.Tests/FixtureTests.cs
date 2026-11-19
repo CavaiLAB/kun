@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using Json.Schema;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Runtime;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Surfaces.Tests;
@@ -39,7 +39,7 @@ public sealed class FixtureTests
             var details = name + ": " + JsonSerializer.Serialize(normalized, DetailOptions);
             Assert.True(result.IsValid == entry.GetProperty("valid").GetBoolean(), details);
             if (name is "hooks-shell-command" or "command-server-shell" or "command-unapproved-shell")
-                Assert.Equal(PlatformErrors.InputInvalid, Assert.Throws<QianErrorException>(() => new HotReloadSurfacePlugin(fixture.Directory, validator, options)).Error.Code);
+                Assert.Equal(PlatformErrors.InputInvalid, Assert.Throws<ErrorException>(() => new HotReloadSurfacePlugin(fixture.Directory, validator, options)).Error.Code);
             if (name == "all-surfaces") _ = new HotReloadSurfacePlugin(fixture.Directory, validator, options); // 明确授权的人类 CLI 声明仍可装载。
             foreach (var expected in entry.GetProperty("expected").EnumerateArray())
                 Assert.True(result.Diagnostics.Any(d => d.File == expected.GetProperty("file").GetString() &&

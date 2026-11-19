@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Qian.Runtime.Errors;
+using Kun.Errors;
 
 namespace Qian.Tenancy;
 
@@ -50,5 +50,5 @@ public sealed class TenantContextPropagator(ITenantContext tenant) : ITenantCont
     }
     private static Guid Read(JsonElement field) => field.ValueKind == JsonValueKind.String ? Parse(field.GetString()) : throw Denied();
     internal static Guid Parse(string? value) => Guid.TryParseExact(value, "D", out var id) && id != Guid.Empty ? id : throw Denied();
-    internal static QianErrorException Denied() => new(new QianError(PlatformErrors.Unauthenticated));
+    internal static ErrorException Denied() => new(new Error(PlatformErrors.Unauthenticated));
 }

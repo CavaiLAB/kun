@@ -33,7 +33,7 @@ var order = builder.AddProject<Projects.Kun_Sample_Order>("order")
     .WaitFor(postgres)
     .WaitFor(rabbitmq);
 
-var gateway = builder.AddProject<Projects.Kun_Gateway>("gateway")
+var gateway = builder.AddProject<Projects.Kun_Gateway_Standalone>("gateway")
     .WithReference(catalog)
     .WithReference(order);
 

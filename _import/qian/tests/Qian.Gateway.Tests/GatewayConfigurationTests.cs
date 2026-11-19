@@ -109,8 +109,8 @@ public sealed class GatewayConfigurationTests
     [Fact]
     public void 输出目录只有Kun网关的程序集_没有它作为宿主的配置与启动文件()
     {
-        // Kun.Gateway 经 Qian.Gateway 项目引用进来（S1-KUN-020），它同时是独立宿主。_import/qian/Directory.Build.targets
-        // 把它的 appsettings.json、启动器、deps.json、runtimeconfig.json 与 staticwebassets 清单挡在输出目录外，与按包引用时一致。
+        // Kun.Gateway 经 Qian.Gateway 项目引用进来（S1-KUN-020）。它是类库，独立宿主在仓库根的 hosts/Kun.Gateway.Standalone：
+        // 输出目录里只有它的程序集，没有宿主的配置与启动文件。这里留作回归检查，防它退回可执行项目。
         var output = AppContext.BaseDirectory;
         Assert.True(File.Exists(Path.Combine(output, "Kun.Gateway.dll")));
         string[] hostFiles = ["appsettings.json", "Kun.Gateway", "Kun.Gateway.exe", "Kun.Gateway.deps.json", "Kun.Gateway.runtimeconfig.json", "Kun.Gateway.staticwebassets.endpoints.json"];

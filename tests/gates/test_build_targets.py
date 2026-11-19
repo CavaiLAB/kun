@@ -34,7 +34,7 @@ NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI"
 PROPERTIES = ("IsPackable", "KunTier", "KunHost", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
               "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
 ITEMS = ("PackageReference", "ProjectReference", "AdditionalFiles")
-HOSTS = {"Qian.Platform.Host", "Qian.Gateway.Host"}
+HOSTS = {"Qian.Platform.Host", "Qian.Gateway.Host", "Kun.Gateway.Standalone"}
 # ILC 按冒烟宿主的这些属性与 IlcArg 项决定报哪些警告、警告算不算错误（ILCompiler 包的 Microsoft.NETCore.Native.targets）。
 SMOKE_PROPERTIES = ("PublishAot", "NoWarn", "WarningsNotAsErrors", "SuppressTrimAnalysisWarnings", "SuppressAotAnalysisWarnings",
                     "TreatWarningsAsErrors", "IlcTreatWarningsAsErrors", "TrimmerSingleWarn",

@@ -8,7 +8,6 @@
 
     项目引用必须正好等于清单：库写上 IsAotCompatible=true 时把它加进来，去掉时从这里删掉。
     门禁自测（仓库根的 tests/gates）与 scripts/aot_projects.py 的核对模式（CI 发布前先跑）都查这一点。
-    Kun.Gateway 同时是宿主，它的启动器、runtimeconfig 与 appsettings.json 会跟着进发布目录；冒烟宿主不读它们。
   -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>

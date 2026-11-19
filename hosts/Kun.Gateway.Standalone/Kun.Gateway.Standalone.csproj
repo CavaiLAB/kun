@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Kun.Gateway 的独立宿主：外部 JWT 换内部 S2S JWT、YARP 反向代理、限流与 JWKS，路由与集群读 appsettings.json。
+    网关的库在 src/Kun.Gateway（nuget.org 上的 Kun.Gateway 包）；自己写宿主的照这里的 Program.cs 组合库。
+    本项目不打包。PublishAot 让普通构建也对本项目的代码跑 AOT 分析器；原生发布用 dotnet publish hosts/Kun.Gateway.Standalone -c Release
+    （按本机的 RID；交叉发布另给 -r）。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
+    <!-- 宿主：禁用符号与平台分析器按它接入（仓库根的 Directory.Build.targets）。 -->
+    <KunHost>true</KunHost>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Kun.Gateway/Kun.Gateway.csproj" />
+    <ProjectReference Include="../../src/Kun.Observability/Kun.Observability.csproj" />
+    <PackageReference Include="Grpc.AspNetCore.Web" />
+  </ItemGroup>
+
+</Project>

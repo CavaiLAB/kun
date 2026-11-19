@@ -2,14 +2,13 @@
 
 ## Purpose
 
-YARP-based API gateway. Validates external IdP-issued JWTs from incoming client requests, mints short-lived S2S JWTs via `S2sTokenIssuer` and replaces the Authorization header on forwarded requests (via the internal `S2sAuthTransform`), applies rate limiting (ASP.NET Core Rate Limiting, tenant-partitioned by default), and exposes a JWKS endpoint so downstream services can validate the S2S tokens.
+YARP-based API gateway library. A host built on it validates external IdP-issued JWTs from incoming client requests, mints short-lived S2S JWTs via `S2sTokenIssuer` and replaces the Authorization header on forwarded requests (via the internal `S2sAuthTransform`), applies rate limiting (ASP.NET Core Rate Limiting, tenant-partitioned by default), and exposes a JWKS endpoint so downstream services can validate the S2S tokens. The repository's standalone host is `hosts/Kun.Gateway.Standalone`; its `Program.cs` is the reference composition.
 
 ## Key Files
 
 | File | Description |
 |------|-------------|
-| `Kun.Gateway.csproj` | `IsAotCompatible=true`, `Sdk=Microsoft.NET.Sdk.Web`, `OutputType=Exe` |
-| `Program.cs` | Composition root: external JWT bearer + YARP + rate limiter + JWKS endpoint |
+| `Kun.Gateway.csproj` | `IsAotCompatible=true`, `Sdk=Microsoft.NET.Sdk` with a `Microsoft.AspNetCore.App` framework reference; a class library |
 | `Configuration/KunGatewayOptions.cs` | Options for external IdP, internal issuer/audience, key file paths |
 | `S2sTokenIssuer.cs` | Issues internal S2S JWTs through the shared hot-reloading signing ring (RS256, 60 s TTL) |
 | `Transforms/S2sAuthTransform.cs` | Internal YARP `RequestTransform`; replaces `Authorization` header with minted S2S JWT |
@@ -19,7 +18,6 @@ YARP-based API gateway. Validates external IdP-issued JWTs from incoming client 
 | `RateLimiting/Resolvers/IpRateLimitPartitionResolver.cs` | Partitions by normalized `RemoteIpAddress`; raw forwarding headers are never trusted |
 | `RateLimiting/KunRateLimiterExtensions.cs` | `AddKunRateLimiter()` — fixed-window 100 req/min, policy name `kun-default` |
 | `DependencyInjection/KunGatewayServiceCollectionExtensions.cs` | `AddKunGateway()` — registers options, issuer, resolver, YARP with transform |
-| `appsettings.json` | Skeleton config: KunGateway section + sample YARP routes/clusters |
 
 ## For AI Agents
 
@@ -58,7 +56,7 @@ Gateway-level integration tests (auth transform, rate limiter, JWKS rotation) be
 - Key rotation: atomically replace `SigningKeyPath`; `S2sSigningKeyRing` reloads on signing/JWKS access without restart (default minimum interval one second). Old public keys overlap for five minutes; invalid replacements retain the last good key. Restart loses overlap history, so coordinate replicas and restarts.
 - `AddKunGateway` applies authenticated/default-rate policies to routes unless explicitly configured. Public routes require `AuthorizationPolicy: "Anonymous"`; anonymous forwarding strips Authorization.
 - `UseForwardedHeaders` must precede auth and rate limiting. `TrustedProxyAddresses` / `TrustedProxyNetworks` default to empty (processing disabled); never clear KnownProxies alone and assume it means deny all.
-- The standalone host calls `AddKunObservability` with EF instrumentation disabled and remains Native AOT gated.
+- The standalone host (`hosts/Kun.Gateway.Standalone`) composes the library: external JWT bearer, `AddKunObservability` with EF instrumentation disabled, gRPC-Web, health checks and the JWKS endpoint. Its native publish runs in `tests/Kun.Integration.AotTests`.
 
 ## gRPC-Web Support
 
@@ -66,7 +64,7 @@ The gateway transparently proxies gRPC-Web requests (browser clients using `grpc
 
 **How it works:**
 
-1. `UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true })` is registered in the pipeline after `UseRateLimiter()` and before `MapReverseProxy()`.
+1. The host registers `UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true })` in the pipeline after `UseRateLimiter()` and before `MapReverseProxy()` (the standalone host does; the library does not reference `Grpc.AspNetCore.Web`, so a host that wants gRPC-Web references it).
 2. The middleware detects `Content-Type: application/grpc-web` or `application/grpc-web+proto` and translates the framing to standard gRPC (`application/grpc`) automatically.
 3. YARP then forwards the translated request to the backend cluster, which must be configured for HTTP/2 (`HttpRequest.Version = "2"`).
 
@@ -84,14 +82,13 @@ The gateway transparently proxies gRPC-Web requests (browser clients using `grpc
 }
 ```
 
-**AOT note:** `Grpc.AspNetCore.Web` is AOT-safe for the gateway use case — it translates HTTP framing only and does not deserialize gRPC message payloads. `IsAotCompatible=true` is retained.
+**AOT note:** `Grpc.AspNetCore.Web` is AOT-safe for the gateway use case — it translates HTTP framing only and does not deserialize gRPC message payloads. The standalone host's native publish covers it.
 
 ## Dependencies
 
 ### Internal
 
 - `Kun.Core` — base types.
-- `Kun.Observability` — standalone host telemetry.
 - `Kun.Security` — `S2sTokenOptions`, JWKS provider pattern.
 
 ### External
@@ -99,4 +96,4 @@ The gateway transparently proxies gRPC-Web requests (browser clients using `grpc
 - `Yarp.ReverseProxy` (2.2.0)
 - `Microsoft.AspNetCore.Authentication.JwtBearer` (10.0.0)
 - `Microsoft.IdentityModel.Tokens` (8.2.0)
-- `Grpc.AspNetCore.Web` (2.67.0)
+- `StackExchange.Redis` — optional Redis rate-limit store

@@ -70,7 +70,7 @@ Thumbs.db
 .omc/
 
 # Gateway dev-mode RSA key pair (auto-generated on first launch)
-src/Kun.Gateway/certs/
+hosts/Kun.Gateway.Standalone/certs/
 
 # Clawhip local state
 .clawhip/

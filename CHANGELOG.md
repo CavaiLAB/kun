@@ -25,7 +25,7 @@
 
 ### Changed — 网关装配与限流（S1-KUN-026）
 
-- `Kun.Gateway.Abstractions` 提供 `GatewayConfiguration`、网关服务与路由契约。宿主使用 `AddKunGateway`，YARP 在分发前按目标服务签发一次 S2S。独立宿主的配置节从 `KunGateway` 更名为 `Gateway`，其中 `ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`。其余原选项使用新节中的原键名，独立 YARP 路由继续读取 `ReverseProxy`。
+- `Kun.Gateway.Abstractions` 提供 `GatewayConfiguration`、网关服务与路由契约。宿主使用 `AddKunGateway`，YARP 在分发前按目标服务签发一次 S2S。独立宿主读取 `Gateway` 配置节。迁移 `KunGateway` 配置时，将  `ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`。其余原选项使用新节中的原键名，独立 YARP 路由继续读取 `ReverseProxy`。
 - 平台外壳托管、引导端点与组件登记位于 `Kun.Gateway.Shell`，通过 `AddKunGatewayShell` 注册。Redis 固定窗口计数器现由 `Kun.RateLimit` 提供，路由分区由 `Kun.Gateway` 选择。
 - 生产网关宿主在 `hosts/Kun.Gateway.Host`。镜像工具的 `--project` 参数现使用相对仓库根的项目路径。
 

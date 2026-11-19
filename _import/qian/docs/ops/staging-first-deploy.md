@@ -107,12 +107,12 @@
    rsync -a web-platform web-gateway qd:kun-build/
    ```
    还没推到 GitHub 的提交，改用 `git bundle create kun.bundle <分支>` 打包拷过去，在 qd 上 `git clone -b <分支> kun.bundle kun`。
-3. 构建与推送（qd 的 `~/kun-build/kun/_import/qian`）。`build` 构建完即推送到标签所在的仓库，再从推送结果取 digest。推送的标签写 `192.168.1.201:80/…`：Harbor 只开 HTTP 80，qd 的 Docker 用 containerd 镜像存储，不带端口时先连 443、连不上也不回落到 HTTP（与部署仓库流水线的 `HARBOR_PUSH_HOST` 相同）。清单里写不带端口的 `192.168.1.201/qian/…@sha256:…`，节点的 `registries.yaml` 把它映射到 HTTP 端点，两种写法是同一个仓库、同一个 digest。
+3. 构建与推送在构建机的 `~/kun-build/kun/_import/qian` 下执行。设置 `QIAN_IMAGE_REGISTRY` 为镜像仓库的主机名及端口，`QIAN_IMAGE_REVISION` 为源码提交的短 SHA。当前 Harbor 通过 HTTP 80 提供服务，构建机的 Docker 需要在仓库地址中显式写出该端口。构建工具推送镜像后从结果读取 digest。
    ```bash
-   python3 scripts/images.py build --kind jit --project _import/qian/hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag 192.168.1.201:80/qian/qian-platform:<短 SHA> --web ~/kun-build/web-platform
+   python3 scripts/images.py build --kind jit --project _import/qian/hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag "$QIAN_IMAGE_REGISTRY/qian/qian-platform:$QIAN_IMAGE_REVISION" --web ~/kun-build/web-platform
    ```
    ```bash
-   python3 scripts/images.py build --kind aot --project hosts/Kun.Gateway.Host/Kun.Gateway.Host.csproj --assembly Kun.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ~/kun-build/web-gateway
+   python3 scripts/images.py build --kind aot --project hosts/Kun.Gateway.Host/Kun.Gateway.Host.csproj --assembly Kun.Gateway.Host --tag "$QIAN_IMAGE_REGISTRY/qian/qian-gateway:$QIAN_IMAGE_REVISION" --web ~/kun-build/web-gateway
    ```
    - 每条命令打印一段 JSON：`ref` 是按 digest 的引用，`build` 是构建证据（源码 SHA、profile 与组件目录的树修订、`webDigest` 等）。两段都记进任务进度日志。
    - 推送失败时命令以非零退出、不打印 JSON，镜像留在本机；修好仓库权限后重跑，BuildKit 缓存让重跑很快。

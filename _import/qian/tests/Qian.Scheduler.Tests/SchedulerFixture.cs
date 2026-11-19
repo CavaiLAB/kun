@@ -118,6 +118,8 @@ public sealed class SchedulerFixture : IAsyncLifetime
     // 等待上限按测试租约的份数给（S1-QA-023）：一份覆盖一次「领取到初始续租」的准备或一次到期，用例经过几段就给几份；
     // 不写死秒数，改 HostConfig.LeaseSeconds 时随之伸缩。只是上限，条件一满足就返回，不拖慢通过的运行。用长租约的用例传它自己的配置。
     internal TimeSpan Leases(double count, HostConfig? config = null) => TimeSpan.FromSeconds((config ?? Config).LeaseSeconds * count);
+    // 接管用例等待数据库里的真实租约到期，同时给首次领取后的准备留出半份租约。
+    internal HostConfig TakeoverLease => Config with { LeaseSeconds = 12 };
     // 不测租约到期的用例（分钟验收、同业务键、冻结租户、misfire、超时重试与取消）用生产缺省的 30 秒租约（S1-QA-023 验收线第二步）：
     // 租约短了，冷路径恰好慢时第一次执行会在准备阶段丢租约；分钟验收与 misfire 的 worker 第一批还一次领多个、同时准备。
     internal HostConfig LongLease => Config with { LeaseSeconds = 30 };

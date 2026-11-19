@@ -13,8 +13,9 @@ public sealed class SchedulerTakeoverTests(SchedulerFixture fixture) : IClassFix
     [InlineData("effect-then-hold", 1)]
     public async Task 真杀执行副本_到期后另一副本用同run接管_副作用幂等与执行尝试分别计数(string mode, long effectsBeforeKill)
     {
-        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(fixture.Config, false, Ct);
-        await using var a = await WorkerProcess.Start(fixture.Config, TenantA); await using var b = await WorkerProcess.Start(fixture.Config, TenantA); await using var c = await WorkerProcess.Start(fixture.Config, TenantA);
+        var config = fixture.TakeoverLease;
+        await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
+        await using var a = await WorkerProcess.Start(config, TenantA); await using var b = await WorkerProcess.Start(config, TenantA); await using var c = await WorkerProcess.Start(config, TenantA);
         var phases = new Dictionary<string, DateTimeOffset> { ["workersReady"] = DateTimeOffset.UtcNow };
         JsonElement? claimBeforeKill = null;
         try
@@ -25,12 +26,12 @@ public sealed class SchedulerTakeoverTests(SchedulerFixture fixture) : IClassFix
                 await caller.Scheduler().ScheduleOnce(caller, "crash", DateTimeOffset.UtcNow.AddSeconds(1), Target, JsonSerializer.SerializeToElement(new { mode, delayMs = 0 }), new JobOptions { Timeout = TimeSpan.FromMinutes(3), Misfire = MisfirePolicy.CatchUp }, Ct);
             }
             phases["scheduled"] = DateTimeOffset.UtcNow;
-            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts") == 1, fixture.Leases(2));
+            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts") == 1, fixture.Leases(2, config));
             phases["firstHandlerObserved"] = DateTimeOffset.UtcNow;
             await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects") == effectsBeforeKill, TimeSpan.FromSeconds(3));
             var pid = await fixture.Scalar<int>("SELECT process_id FROM public.sch_probe_attempts LIMIT 1");
             var run = await fixture.Scalar<Guid>("SELECT run_id FROM public.sch_probe_attempts LIMIT 1");
-            claimBeforeKill = await fixture.RenewedLease(run);
+            claimBeforeKill = await fixture.RenewedLease(run, config);
             var originalOwner = claimBeforeKill.Value.GetProperty("lease_owner").GetString();
             phases["liveRenewedLeaseObserved"] = DateTimeOffset.UtcNow;
             phases["beforeKill"] = DateTimeOffset.UtcNow;
@@ -41,7 +42,7 @@ public sealed class SchedulerTakeoverTests(SchedulerFixture fixture) : IClassFix
             var leaseUntil = SchedulerFixture.AssertLiveFirstLease(frozenLease, run, originalOwner).UtcDateTime;
             phases["leaseObservedExpiresAt"] = new DateTimeOffset(leaseUntil);
             phases["beforeRecoveryWait"] = DateTimeOffset.UtcNow;
-            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 1, fixture.Leases(3));
+            await SchedulerFixture.WaitUntil(async () => await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs WHERE status='succeeded'") == 1, fixture.Leases(3, config));
             Assert.Equal(2, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts"));
             Assert.Equal(1, await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"));
             Assert.Equal(run, await fixture.Scalar<Guid>("SELECT id FROM plugin_qian_scheduler.job_runs"));
@@ -71,7 +72,7 @@ public sealed class SchedulerTakeoverTests(SchedulerFixture fixture) : IClassFix
     [InlineData("effect-then-hold", 1)]
     public async Task 正常Stop无需异常收尾_保留同run供另一真实worker接管(string mode, long effectsBeforeStop)
     {
-        var config = fixture.Config with { LeaseSeconds = 12 };
+        var config = fixture.TakeoverLease;
         await fixture.Reset(); await using var producer = await ProbeHost.CreateAsync(config, false, Ct);
         await using var first = await WorkerProcess.Start(config, TenantA);
         var phases = new Dictionary<string, DateTimeOffset> { ["firstReady"] = DateTimeOffset.UtcNow };

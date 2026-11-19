@@ -28,7 +28,8 @@ name: ci
 # - _import/qian/.github/workflows/dotnet.yml：构建与门禁、测试分片 a/b/c、汇总核对、四个原生发布作业，命令照原件，在
 #   _import/qian 下运行。「构建与门禁」的还原与构建换成仓库根的 Kun.slnx，测试分片用 Qian.slnf；依赖图门禁换成仓库根
 #   按档位检查的依赖门禁，覆盖 Kun.slnx 里全部可打包项目，自测在仓库根的 tests/gates；runs-on 由 ubuntu-latest
-#   改为 ubuntu-24.04；汇总核对另核分片 k；触发过滤自检读区域表里的 dotnet 区域。
+#   改为 ubuntu-24.04；汇总核对另核分片 k；触发过滤自检读区域表里的 dotnet 区域。分片与门禁作业的结果构件名带尝试号，
+#   汇总核对按尝试号取每个分片最新的一份，原件的合并构件改为上传取好的那份：「重跑失败的作业」之后汇总能按重跑的结果变绿。
 # - _import/qian/.github/workflows/images.yml：镜像自检，构建上下文改为仓库根（只接自检，不接推送与正式签名）。
 # - _import/qian/.github/workflows/ 下其余 10 个：.github/workflows/qian-<名字>.yml，由本文件调用，改动写在各自的文件头。
 
@@ -160,11 +161,11 @@ jobs:
         working-directory: _import/qian
         run: python3 scripts/dotnet_ci.py paths-check
 
-      - name: 上传 namespace 骨架
+      - name: 上传 namespace 骨架（构件名带尝试号，见「测试分片汇总核对」）
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-gates
+          name: test-results-gates-attempt-${{ github.run_attempt }}
           path: _import/qian/TestResults/
           if-no-files-found: ignore
 
@@ -315,12 +316,16 @@ jobs:
           name: coverage
           path: TestResults/unit/*.coverage.cobertura.xml
           if-no-files-found: error
+          # 重跑分片 k 时先删上一次尝试的同名构件（尽力而为，删不掉也照样上传）。没有作业下载它。
+          overwrite: true
 
+      # 构件名带尝试号：重跑失败的作业时，同名构件会每次尝试各有一份，download-artifact 按构件 ID 只留一份，
+      # 而重跑后的 ID 不一定更大，会取到上一次尝试的结果。汇总作业按尝试号取每个分片最新的一份。
       - name: 上传测试结果
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.shard }}
+          name: test-results-${{ matrix.shard }}-attempt-${{ github.run_attempt }}
           path: ${{ matrix.shard == 'k' && 'TestResults/' || '_import/qian/TestResults/' }}
           if-no-files-found: ignore
 
@@ -337,22 +342,30 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 下载各分片的测试结果
+      # 重跑失败的作业之后，重跑过的分片每次尝试各有一份结果，没重跑的只有第 1 次的；构件名里的尝试号区分它们。
+      - name: 下载各分片的测试结果（每次尝试各一份）
         uses: actions/download-artifact@v4
         with:
-          pattern: test-results-*
-          path: ${{ runner.temp }}/test-results
+          pattern: test-results-*-attempt-*
+          path: ${{ runner.temp }}/test-results-attempts
+
+      - name: 每个分片只取最新一次尝试的结果（按构件名里的尝试号，不看构件 ID）
+        working-directory: _import/qian
+        run: python3 scripts/dotnet_ci.py latest-attempts "$RUNNER_TEMP/test-results-attempts" "$RUNNER_TEMP/test-results"
 
       - name: 每个测试项目恰好在所属分片跑过一次、没有失败（Qian.slnf 的测试项目与分片 k 的项目；少一个模块即失败）
         working-directory: _import/qian
         run: python3 scripts/dotnet_ci.py verify "$RUNNER_TEMP/test-results"
 
-      - name: 合并为 test-results 构件（各分片的 TRX、覆盖率与证据、门禁作业的 namespace 骨架）
+      - name: 上传 test-results 构件（各分片最新一次尝试的 TRX、覆盖率与证据、门禁作业的 namespace 骨架，每个分片一个子目录）
         if: always()
-        uses: actions/upload-artifact/merge@v4
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
-          pattern: test-results-*
+          path: ${{ runner.temp }}/test-results/
+          if-no-files-found: ignore
+          # 重跑时先删上一次尝试的同名构件（尽力而为，删不掉也照样上传）。没有作业下载它。
+          overwrite: true
 
   # AOT 冒烟宿主（S1-KUN-020）：tests/Kun.AotSmoke 引用 AOT 清单里的每一个项目（项目文件里写了 IsAotCompatible=true 的，
   # scripts/aot_projects.py 列出），对每个程序集整体扎根，原生发布后运行。ILC 有任何裁剪或 AOT 警告即失败，逐条列出。

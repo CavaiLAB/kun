@@ -25,6 +25,7 @@
     <PackageReference Include="JsonSchema.Net" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="coverlet.MTP" />
   </ItemGroup>
 
 </Project>

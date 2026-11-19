@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Qian.Config;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Identity.Client;
 

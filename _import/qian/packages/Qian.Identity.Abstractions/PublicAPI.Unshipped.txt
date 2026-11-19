@@ -1,5 +1,5 @@
 #nullable enable
-static readonly Qian.Identity.Abstractions.IdentityDefinition.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Identity.Abstractions.IdentityDefinition.Key -> Kun.Runtime.ServiceKey
 Qian.Identity.Abstractions.IdentityDefinition
 Qian.Identity.Abstractions.IIdentityConnectorRegistry
 Qian.Identity.Abstractions.IAuthenticatedUser
@@ -348,14 +348,14 @@ Qian.Identity.Abstractions.IdentityLockedEvent.Equals(Qian.Identity.Abstractions
 override Qian.Identity.Abstractions.IdentityLogoutEvent.<Clone>$() -> Qian.Identity.Abstractions.IdentityLogoutEvent!
 override Qian.Identity.Abstractions.IdentityLockedEvent.<Clone>$() -> Qian.Identity.Abstractions.IdentityLockedEvent!
 Qian.Identity.Abstractions.IdentityRuntimeEvents
-static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedOut -> Qian.Runtime.QianEvent<Qian.Identity.Abstractions.SessionRevocation!, object?>!
-static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedIn -> Qian.Runtime.QianEvent<Qian.Identity.Abstractions.Principal!, object?>!
+static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedOut -> Kun.Runtime.KunEvent<Qian.Identity.Abstractions.SessionRevocation!, object?>!
+static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.SignedIn -> Kun.Runtime.KunEvent<Qian.Identity.Abstractions.Principal!, object?>!
 Qian.Identity.Abstractions.IdentityLogoutEvent.Deconstruct(out System.Guid PersonId, out long IdentityRevision, out System.Guid SessionId, out string! Reason, out System.Guid? MembershipId) -> void
 Qian.Identity.Abstractions.IdentityLoginEvent.ClientId.get -> string!
 Qian.Identity.Abstractions.IdentityLockedEvent.Deconstruct(out System.Guid PersonId, out long IdentityRevision, out string! Reason, out System.DateTimeOffset? LockedUntil) -> void
 Qian.Identity.Abstractions.IdentityLoginEvent.ClientId.init -> void
 Qian.Identity.Abstractions.IdentityLoginEvent.Amr.get -> System.Collections.Generic.IReadOnlyList<string!>!
-static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.MemberDisabled -> Qian.Runtime.QianEvent<Qian.Identity.Abstractions.MembershipChanged!, System.Collections.Generic.IReadOnlyList<object?>!>!
+static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.MemberDisabled -> Kun.Runtime.KunEvent<Qian.Identity.Abstractions.MembershipChanged!, System.Collections.Generic.IReadOnlyList<object?>!>!
 Qian.Identity.Abstractions.IdentityLoginEvent.Amr.init -> void
 Qian.Identity.Abstractions.ClientType.Machine = 2 -> Qian.Identity.Abstractions.ClientType
 Qian.Identity.Abstractions.ClientType.Public = 1 -> Qian.Identity.Abstractions.ClientType
@@ -415,7 +415,7 @@ Qian.Identity.Abstractions.IIdentityService.GetMembershipAsync(System.Guid membe
 Qian.Identity.Abstractions.IIdentityService.GetPersonAsync(System.Guid personId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Qian.Identity.Abstractions.Person?>!
 Qian.Identity.Abstractions.IIdentityService.RevokeSessionsAsync(Qian.Identity.Abstractions.SessionRevocation! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Qian.Identity.Abstractions.IIdentityService.ListSessionsAsync(System.Guid personId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Qian.Identity.Abstractions.Session!>!>!
-static Qian.Identity.Abstractions.IdentityDefinition.Identity(this Qian.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityService!
+static Qian.Identity.Abstractions.IdentityDefinition.Identity(this Kun.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityService!
 Qian.Identity.Abstractions.Membership.Membership(System.Guid Id, System.Guid PersonId, System.Guid TenantId, string! DisplayName, string! Status, bool IsTenantAdministrator) -> void
 Qian.Identity.Abstractions.ConnectorContext.ConnectorContext(string! ClientId, System.Guid? TenantId, System.Uri! CallbackUri, string! State, string! Nonce) -> void
 Qian.Identity.Abstractions.Client.Client(string! Id, Qian.Identity.Abstractions.ClientType Type, System.Collections.Generic.IReadOnlyList<System.Uri!>! RedirectUris, System.Collections.Generic.IReadOnlyList<string!>! Scopes, System.Collections.Generic.IReadOnlyList<string!>! Resources, System.Guid? OwnerPersonId) -> void
@@ -517,7 +517,7 @@ Qian.Identity.Abstractions.AuthenticationResult.Succeeded.init -> void
 Qian.Identity.Abstractions.AuthenticationResult.Amr.get -> System.Collections.Generic.IReadOnlyList<string!>!
 Qian.Identity.Abstractions.AuthenticationResult.Error.init -> void
 Qian.Identity.Abstractions.AuthenticationResult.Amr.init -> void
-static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.SigningIn -> Qian.Runtime.QianEvent<Qian.Identity.Abstractions.LoginInput!, Qian.Identity.Abstractions.SignInResult!>!
+static readonly Qian.Identity.Abstractions.IdentityRuntimeEvents.SigningIn -> Kun.Runtime.KunEvent<Qian.Identity.Abstractions.LoginInput!, Qian.Identity.Abstractions.SignInResult!>!
 Qian.Identity.Abstractions.SignInResult.Succeeded.get -> bool
 Qian.Identity.Abstractions.SignInResult.Principal.get -> Qian.Identity.Abstractions.Principal?
 Qian.Identity.Abstractions.SignInResult.Error.get -> Kun.Errors.Error?
@@ -604,8 +604,8 @@ Qian.Identity.Abstractions.PasswordReset.Reason.get -> string!
 Qian.Identity.Abstractions.PasswordReset.Reason.init -> void
 Qian.Identity.Abstractions.CreatePerson.Identifiers.get -> System.Collections.Generic.IReadOnlyList<Qian.Identity.Abstractions.IdentifierInput!>!
 Qian.Identity.Abstractions.CreatePerson.Identifiers.init -> void
-static readonly Qian.Identity.Abstractions.IdentityDefinition.AccountsKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Identity.Abstractions.IdentityDefinition.SignInKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Identity.Abstractions.IdentityDefinition.AccountsKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Identity.Abstractions.IdentityDefinition.SignInKey -> Kun.Runtime.ServiceKey
 Qian.Identity.Abstractions.CreatePerson
 static Qian.Identity.Abstractions.CreatePerson.operator !=(Qian.Identity.Abstractions.CreatePerson? left, Qian.Identity.Abstractions.CreatePerson? right) -> bool
 Qian.Identity.Abstractions.PasswordReset
@@ -830,10 +830,10 @@ override Qian.Identity.Abstractions.PasswordReset.ToString() -> string!
 Qian.Identity.Abstractions.CreatePerson.PlatformAccess.init -> void
 Qian.Identity.Abstractions.CreatePerson.PlatformAccess.get -> bool
 override Qian.Identity.Abstractions.CreatePerson.ToString() -> string!
-static Qian.Identity.Abstractions.IdentityDefinition.IdentitySignIn(this Qian.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.ISignInPipeline!
+static Qian.Identity.Abstractions.IdentityDefinition.IdentitySignIn(this Kun.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.ISignInPipeline!
 Qian.Identity.Abstractions.CreateMembership.MembershipId.get -> System.Guid?
 Qian.Identity.Abstractions.CreateMembership.MembershipId.init -> void
-static Qian.Identity.Abstractions.IdentityDefinition.IdentityAccounts(this Qian.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityAccounts!
+static Qian.Identity.Abstractions.IdentityDefinition.IdentityAccounts(this Kun.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityAccounts!
 Qian.Identity.Abstractions.Person.Status.get -> string!
 Qian.Identity.Abstractions.CreateMembership.Account.get -> string?
 Qian.Identity.Abstractions.CreateMembership.Account.init -> void
@@ -883,9 +883,9 @@ static Qian.Identity.Abstractions.IdentityErrors.Register(Kun.Errors.ErrorCatalo
 static Qian.Identity.Abstractions.SignInResult.Authenticated(Qian.Identity.Abstractions.AccountSession! session) -> Qian.Identity.Abstractions.SignInResult!
 static Qian.Identity.Abstractions.SignInResult.SelectionRequired(Qian.Identity.Abstractions.LoginTicket! ticket, System.Collections.Generic.IReadOnlyList<Qian.Identity.Abstractions.TenantChoice!>! choices) -> Qian.Identity.Abstractions.SignInResult!
 static Qian.Identity.Abstractions.SignInResult.PasswordChangeRequired(Qian.Identity.Abstractions.LoginTicket! ticket) -> Qian.Identity.Abstractions.SignInResult!
-static readonly Qian.Identity.Abstractions.IdentityDefinition.FactorsKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Identity.Abstractions.IdentityDefinition.FactorsKey -> Kun.Runtime.ServiceKey
 Qian.Identity.Abstractions.IAuthenticatorFactorRegistry
-static Qian.Identity.Abstractions.IdentityDefinition.IdentityFactors(this Qian.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IAuthenticatorFactorRegistry!
+static Qian.Identity.Abstractions.IdentityDefinition.IdentityFactors(this Kun.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IAuthenticatorFactorRegistry!
 Qian.Identity.Abstractions.IAuthenticatorFactorRegistry.Find(string! id) -> Qian.Identity.Abstractions.IAuthenticatorFactor?
 Qian.Identity.Abstractions.IAuthenticatorFactorRegistry.Register(Qian.Identity.Abstractions.IAuthenticatorFactor! factor) -> System.IDisposable!
 Qian.Identity.Abstractions.IAuthenticatorFactorRegistry.List() -> System.Collections.Generic.IReadOnlyList<Qian.Identity.Abstractions.FactorDescriptor!>!
@@ -912,8 +912,8 @@ static Qian.Identity.Abstractions.ConnectorManifest.Check(Qian.Identity.Abstract
 static Qian.Identity.Abstractions.ConnectorManifest.IsValidId(string? id) -> bool
 static Qian.Identity.Abstractions.ConnectorManifest.Validate(Qian.Identity.Abstractions.ConnectorDescriptor! descriptor) -> void
 static Qian.Identity.Abstractions.ConnectorTerminals.All.get -> System.Collections.Generic.IReadOnlyList<string!>!
-static Qian.Identity.Abstractions.IdentityDefinition.IdentityConnectors(this Qian.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityConnectorRegistry!
-static readonly Qian.Identity.Abstractions.IdentityDefinition.ConnectorsKey -> Qian.Runtime.ServiceKey
+static Qian.Identity.Abstractions.IdentityDefinition.IdentityConnectors(this Kun.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityConnectorRegistry!
+static readonly Qian.Identity.Abstractions.IdentityDefinition.ConnectorsKey -> Kun.Runtime.ServiceKey
 static readonly Qian.Identity.Abstractions.IdentityErrors.BindingConflict -> Kun.Errors.ErrorCode!
 static readonly Qian.Identity.Abstractions.IdentityErrors.BindingExpired -> Kun.Errors.ErrorCode!
 static readonly Qian.Identity.Abstractions.IdentityErrors.ConnectorDenied -> Kun.Errors.ErrorCode!
@@ -1187,7 +1187,7 @@ static Qian.Identity.Abstractions.DirectoryPosition.operator !=(Qian.Identity.Ab
 static Qian.Identity.Abstractions.DirectoryPosition.operator ==(Qian.Identity.Abstractions.DirectoryPosition? left, Qian.Identity.Abstractions.DirectoryPosition? right) -> bool
 static Qian.Identity.Abstractions.DirectoryRules.CanTransition(string! from, string! to) -> bool
 static Qian.Identity.Abstractions.DirectoryRules.ValidateDepth(int parentDepth, int subtreeHeight) -> void
-static Qian.Identity.Abstractions.IdentityDefinition.IdentityDirectory(this Qian.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityDirectory!
+static Qian.Identity.Abstractions.IdentityDefinition.IdentityDirectory(this Kun.Runtime.IPluginContext! context) -> Qian.Identity.Abstractions.IIdentityDirectory!
 static Qian.Identity.Abstractions.MemberRelation.operator !=(Qian.Identity.Abstractions.MemberRelation? left, Qian.Identity.Abstractions.MemberRelation? right) -> bool
 static Qian.Identity.Abstractions.MemberRelation.operator ==(Qian.Identity.Abstractions.MemberRelation? left, Qian.Identity.Abstractions.MemberRelation? right) -> bool
 static Qian.Identity.Abstractions.Organization.operator !=(Qian.Identity.Abstractions.Organization? left, Qian.Identity.Abstractions.Organization? right) -> bool
@@ -1202,7 +1202,7 @@ static Qian.Identity.Abstractions.UserProfile.operator !=(Qian.Identity.Abstract
 static Qian.Identity.Abstractions.UserProfile.operator ==(Qian.Identity.Abstractions.UserProfile? left, Qian.Identity.Abstractions.UserProfile? right) -> bool
 static Qian.Identity.Abstractions.UserProfileInput.operator !=(Qian.Identity.Abstractions.UserProfileInput? left, Qian.Identity.Abstractions.UserProfileInput? right) -> bool
 static Qian.Identity.Abstractions.UserProfileInput.operator ==(Qian.Identity.Abstractions.UserProfileInput? left, Qian.Identity.Abstractions.UserProfileInput? right) -> bool
-static readonly Qian.Identity.Abstractions.IdentityDefinition.DirectoryKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Identity.Abstractions.IdentityDefinition.DirectoryKey -> Kun.Runtime.ServiceKey
 static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryAdministratorProtected -> Kun.Errors.ErrorCode!
 static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryCycle -> Kun.Errors.ErrorCode!
 static readonly Qian.Identity.Abstractions.IdentityErrors.DirectoryDepthExceeded -> Kun.Errors.ErrorCode!

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Authz.Tests;
@@ -60,9 +60,9 @@ public sealed class PermissionRegistryTests
         Assert.DoesNotContain(runtime.DumpConfig(), entry => entry.Id == "declarations");
     }
 
-    private static PluginDefinition Definition(string id, IQianPlugin plugin, IReadOnlyList<ServiceKey> provides) => new(
+    private static PluginDefinition Definition(string id, IKunPlugin plugin, IReadOnlyList<ServiceKey> provides) => new(
         new PluginEntry(id, "test." + id, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })), plugin, provides);
-    private sealed class RegistryProvider(IPermissionRegistry registry) : IQianPlugin
+    private sealed class RegistryProvider(IPermissionRegistry registry) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
@@ -71,7 +71,7 @@ public sealed class PermissionRegistryTests
             return ValueTask.CompletedTask;
         }
     }
-    private sealed class DeclarationConsumer : IQianPlugin
+    private sealed class DeclarationConsumer : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [AuthzDefinition.PermissionsKey, AuthzDefinition.ResourceTypesKey];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

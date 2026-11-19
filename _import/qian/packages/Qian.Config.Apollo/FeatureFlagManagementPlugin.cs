@@ -4,7 +4,7 @@ using Qian.Audit;
 using Qian.Data.Native;
 using Qian.Authz.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Config.Apollo;
 
@@ -14,7 +14,7 @@ namespace Qian.Config.Apollo;
 [CapabilitySource(typeof(FlagDraftCapability), nameof(FlagDraftCapability.Definition))]
 [DelegatePlugin(typeof(FeatureFlagManagementImplementation))]
 [Provides(typeof(FeatureFlagManagement), nameof(FeatureFlagManagement.Key))]
-public sealed class FeatureFlagManagementPlugin : IQianPlugin
+public sealed class FeatureFlagManagementPlugin : IKunPlugin
 {
     internal const string Schema = """{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","required":["bindingId"],"properties":{"bindingId":{"type":"string","pattern":"^[a-z][a-z0-9._-]{0,99}$"}},"additionalProperties":false}""";
     /// <inheritdoc />
@@ -24,7 +24,7 @@ public sealed class FeatureFlagManagementPlugin : IQianPlugin
         new FeatureFlagManagementImplementation().ApplyAsync(ctx, config, ct);
 }
 
-internal sealed class FeatureFlagManagementImplementation : IQianPlugin
+internal sealed class FeatureFlagManagementImplementation : IKunPlugin
 {
     public IReadOnlyList<ServiceKey> Inject => [ConfigDefinition.Key, AuthzEnforcement.Key, AuditDefinition.Key, NativeDataDefinition.Key];
     /// <inheritdoc />

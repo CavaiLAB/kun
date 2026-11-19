@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Kun.Authorization;
 using Qian.Authz.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Testing;
 

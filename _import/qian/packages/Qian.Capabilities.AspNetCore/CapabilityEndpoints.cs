@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Plugin.Sdk.AspNetCore;
 

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Tenancy;
@@ -152,7 +152,7 @@ public static class IdentityServerHosting
 /// Identity Provider 的可撤销挂载。无参构造使用内置的 Person / Membership 账号模型与统一登录流水线（需要 Data 与 Tenancy）；
 /// 传入 <see cref="IIdentityService"/> 则由宿主自带账号服务，本组件只承担协议面。
 /// </summary>
-public sealed class IdentityServerPlugin : IQianPlugin
+public sealed class IdentityServerPlugin : IKunPlugin
 {
     private readonly IIdentityService? _accounts;
 

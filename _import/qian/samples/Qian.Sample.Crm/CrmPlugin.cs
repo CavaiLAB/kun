@@ -5,7 +5,7 @@ using Npgsql;
 using Qian.Data;
 using Qian.Lifecycle;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Sample.Crm;
@@ -23,7 +23,7 @@ public interface ICrmCommands
 
 [QianPlugin("qian.sample.crm")]
 [QianConfigSchema("""{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false}""")]
-public sealed class CrmPlugin : IQianPlugin, IPluginLifecycleHooks
+public sealed class CrmPlugin : IKunPlugin, IPluginLifecycleHooks
 {
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, CommandPolicies.TenancyKey, CommandPolicies.AuthorizationKey, CommandPolicies.AuditKey];
     public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

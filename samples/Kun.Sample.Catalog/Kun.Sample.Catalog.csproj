@@ -11,13 +11,13 @@
     <ProjectReference Include="..\..\src\Kun.Validation\Kun.Validation.csproj" />
     <ProjectReference Include="..\..\src\Kun.EventBus\Kun.EventBus.csproj" />
     <ProjectReference Include="..\..\src\Kun.EntityFrameworkCore\Kun.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="..\..\src\Kun.Dapper\Kun.Dapper.csproj" />
     <ProjectReference Include="..\..\src\Kun.AspNetCore\Kun.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.Errors.AspNetCore\Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.Audit\Kun.Audit.csproj" />
     <ProjectReference Include="..\..\src\Kun.Sandbox\Kun.Sandbox.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Npgsql" />
+    <PackageReference Include="Dapper" />
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <!-- Microsoft.AspNetCore.OpenApi 10.0.x 要求 Microsoft.OpenApi [2.12.0, 3.0.0)；中央版本是 _import/qian/ 下的项目用的 3.x，这里留在 2.x（S1-KUN-020）。 -->

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces;
 
 namespace Qian.Authz.Tests;

@@ -8,14 +8,14 @@ using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Tenancy;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces.Abstractions;
 
 namespace Qian.Capabilities;
 
 /// <summary>平台能力目录，消费真实 Registry 与授权端口，不把预装元数据作为执行资格。</summary>
-public sealed class CapabilitiesPlugin : IQianPlugin
+public sealed class CapabilitiesPlugin : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, AuditDefinition.Key, RegistryDefinition.Key, TenancyDefinition.Key, CommandPolicies.TenancyKey, CommandPolicies.AuthorizationKey, CommandPolicies.AuditKey];

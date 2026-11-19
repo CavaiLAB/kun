@@ -14,7 +14,7 @@ Qian.Audit.Native.NativeAuditPlugin
 Qian.Audit.Native.NativeAuditPlugin.NativeAuditPlugin() -> void
 Qian.Audit.Native.NativeAuditComponent
 Qian.Audit.Native.NativeAuditComponent.NativeAuditComponent() -> void
-Qian.Audit.Native.NativeAuditComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Audit.Native.NativeAuditPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Audit.Native.NativeAuditComponent.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Qian.Audit.Native.NativeAuditPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Audit.Native.NativeAuditComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Audit.Native.NativeAuditPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Audit.Native.NativeAuditComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Audit.Native.NativeAuditPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask

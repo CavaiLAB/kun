@@ -61,7 +61,7 @@ public sealed partial class CodeDerivedManifestTests
             .Replace("[JsonSerializable(typeof(NoteResponse))]", "[JsonSerializable(typeof(NoteResponse))]\n[JsonSerializable(typeof(OtherJob))]", StringComparison.Ordinal) + """
 
             [QianPlugin("qian.other")]
-            public sealed class OtherPlugin : IQianPlugin {
+            public sealed class OtherPlugin : IKunPlugin {
                 public IReadOnlyList<ServiceKey> Inject => [];
                 public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;
             }

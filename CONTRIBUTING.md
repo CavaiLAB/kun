@@ -36,7 +36,7 @@ Kun Framework 严格遵守分层依赖，**任何 PR 违反这些规则都会被
 ```
 Kun.Core
   └─ Kun.Mediator / Kun.Infrastructure / Kun.EventBus / Kun.Security / Kun.Validation
-       └─ Kun.EntityFrameworkCore / Kun.Dapper / Kun.EventBus.RabbitMQ / Kun.Saga
+       └─ Kun.EntityFrameworkCore / Kun.EventBus.RabbitMQ / Kun.Saga
             └─ Kun.AspNetCore / Kun.Grpc / Kun.Gateway
 ```
 
@@ -51,7 +51,7 @@ AOT 兼容的模块在 csproj 里写 `<IsAotCompatible>true</IsAotCompatible>`�
 - ❌ 禁止使用运行时反射（`Activator.CreateInstance`、`Type.GetMethod`、`MakeGenericType` 等）
 - ❌ 禁止在运行时生成 IL（`System.Reflection.Emit`）
 - ✅ 必须使用 `JsonSerializerContext` 源生成而非默认 `JsonSerializer.Serialize`
-- ✅ 必须使用 `[DapperAot]` 特性标注读侧查询方法
+- ❌ 不引用 Dapper：它的经典 API 靠运行期反射生成读取代码
 - ✅ 普通构建就开着裁剪与 AOT 分析器；CI 再原生发布并运行 AOT 冒烟宿主 `tests/Kun.AotSmoke`（引用全部 AOT 兼容的模块并整体扎根），ILC 零警告才允许合入
 
 ## 🤖 编码代理

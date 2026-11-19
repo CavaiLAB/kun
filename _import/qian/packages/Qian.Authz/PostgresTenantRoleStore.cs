@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Qian.Authz.Abstractions;
 using Qian.Data;
 using Qian.Events;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Authz;

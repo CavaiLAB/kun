@@ -61,11 +61,12 @@ public sealed class PermissionContractTests
             typeof(IPermissionChecker).GetMethods().Select(m => m.Name).Order(StringComparer.Ordinal));
         var directory = Path.Combine(Root, "packages/Qian.Authz.Abstractions");
         var project = XDocument.Load(Path.Combine(directory, "Qian.Authz.Abstractions.csproj"));
-        // 原 Qian 改为项目引用 Kun 源码（S1-KUN-020）：Kun 的两个抽象改为引用仓库 src/ 下的项目，不再有包引用。
+        // 只以项目引用依赖仓库 src/ 下的 Kun 项目（S1-KUN-020），没有包引用：组件运行时、两个 Kun 抽象，以及登记受保护命令用的中介。
         // Kun.EventBus.Abstractions 只为 authz.grant.changed.v1 / authz.role.changed.v1 的集成事件记录与登记入口（S1-AZ-004），仍是 Definition 允许的 Kun 抽象。
         Assert.Empty(project.Descendants("PackageReference"));
         var repository = Path.GetFullPath(Path.Combine(Root, "..", ".."));
-        Assert.Equal(["_import/qian/packages/Qian.Runtime/Qian.Runtime.csproj", "src/Kun.Authorization/Kun.Authorization.csproj", "src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj"],
+        Assert.Equal(["src/Kun.Authorization/Kun.Authorization.csproj", "src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj",
+                "src/Kun.Mediator/Kun.Mediator.csproj", "src/Kun.Runtime/Kun.Runtime.csproj"],
             project.Descendants("ProjectReference")
                 .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
                 .Order(StringComparer.Ordinal));

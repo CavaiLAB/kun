@@ -2,7 +2,7 @@ using System.Data.Common;
 using Kun.Mediator;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
 

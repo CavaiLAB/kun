@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Authz;
 using Qian.Data;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Surfaces;
@@ -405,7 +405,7 @@ public sealed partial class TenantSignupTests(PostgresFixture postgres) : Custom
         internal string Phone(Guid challenge) => Codes.Single(item => item.Id == challenge).Phone;
     }
 
-    private sealed class MessengerPlugin(Outbox outbox) : IQianPlugin
+    private sealed class MessengerPlugin(Outbox outbox) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

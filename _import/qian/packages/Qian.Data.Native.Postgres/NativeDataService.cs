@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.Common;
 using Kun.Core.MultiTenancy;
 using Npgsql;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Data.Native.Postgres;
 

@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Audit;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Tenancy;
 
@@ -131,7 +131,7 @@ public sealed partial class TenantOperationsTests
 
 public abstract partial class CustomerCommandTests
 {
-    private protected sealed class ScanSchedulerProbe : IQianPlugin
+    private protected sealed class ScanSchedulerProbe : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

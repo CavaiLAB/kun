@@ -14,7 +14,7 @@ using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Data;
 using Qian.Lifecycle;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Registry.Tests;
 

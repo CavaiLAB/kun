@@ -10,7 +10,7 @@ using Qian.Audit.Native;
 using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 var stage = "平台检查";
@@ -106,7 +106,7 @@ static async Task<object?> Scalar(DbConnection connection, string sql)
 { await using var command = connection.CreateCommand(); command.CommandText = sql; return await command.ExecuteScalarAsync(); }
 static async Task Execute(DbConnection connection, string sql)
 { await using var command = connection.CreateCommand(); command.CommandText = sql; await command.ExecuteNonQueryAsync(); }
-internal sealed class Consumer : IQianPlugin
+internal sealed class Consumer : IKunPlugin
 {
     public IReadOnlyList<ServiceKey> Inject => [];
     public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

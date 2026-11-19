@@ -22,15 +22,15 @@ Qian.Authz.RbacPermissionChecker.ExplainDetailedAsync(Kun.Authorization.Permissi
 Qian.Authz.RbacPermissionChecker.ListAllowedActionsAsync(Kun.Authorization.AuthorizationSubject! subject, string! resourceType, string? resourceId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<string!>!>
 Qian.Authz.RbacPermissionChecker.ListPermissionsAsync(Kun.Authorization.AuthorizationSubject! subject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<string!>!>
 Qian.Authz.RbacCommandPolicyPlugin
-Qian.Authz.RbacCommandPolicyPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Qian.Authz.RbacCommandPolicyPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Authz.RbacCommandPolicyPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Authz.RbacCommandPolicyPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Authz.RbacCommandPolicyPlugin.RbacCommandPolicyPlugin() -> void
 Qian.Authz.AuthzDbContext.AuthzDbContext(Microsoft.EntityFrameworkCore.DbContextOptions! options, Kun.Core.MultiTenancy.ITenantContext! tenant, bool platform) -> void
 Qian.Authz.AuthzPlatformAccess
 Qian.Authz.AuthzPlugin
-Qian.Authz.AuthzPlugin.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Authz.AuthzPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Authz.AuthzPlugin.AuthzPlugin() -> void
-Qian.Authz.AuthzPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
+Qian.Authz.AuthzPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Qian.Authz.PlatformAuthzDbContext
 Qian.Authz.PlatformAuthzDbContext.PlatformAuthzDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Qian.Authz.PlatformAuthzDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
 Qian.Authz.RbacPermissionChecker.RbacPermissionChecker(Qian.Data.IDataService! data, Kun.Core.MultiTenancy.ITenantContext! tenant, Qian.Authz.Abstractions.IPermissionRegistry! registry, Qian.Authz.Abstractions.IAuthzExecutionConstraints? constraints = null, Kun.Caching.Abstractions.IKunCache? cache = null) -> void
@@ -45,8 +45,8 @@ Qian.Authz.AuthzEventHandlers
 static Qian.Authz.AuthzEventHandlers.AddQianAuthzEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
 Qian.Authz.AuthzComponent
 Qian.Authz.AuthzComponent.AuthzComponent() -> void
-Qian.Authz.AuthzComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Qian.Runtime.ServiceKey>!
-Qian.Authz.AuthzComponent.ApplyAsync(Qian.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Authz.AuthzComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Authz.AuthzComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Qian.Authz.PlatformSuperadminBootstrap
 static Qian.Authz.PlatformSuperadminBootstrap.AssignFirstAsync(System.IServiceProvider! services, string! platformRole, string! userId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
 static Qian.Authz.PlatformSuperadminBootstrap.ExistsAsync(System.IServiceProvider! services, string! platformRole, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!

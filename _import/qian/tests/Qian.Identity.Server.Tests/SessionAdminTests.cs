@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Events;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 using static Qian.Identity.Server.Tests.AccountSupport;
 using static Qian.Identity.Server.Tests.SessionSupport;

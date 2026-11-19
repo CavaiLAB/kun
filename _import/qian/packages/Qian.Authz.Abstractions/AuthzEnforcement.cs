@@ -1,4 +1,4 @@
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Authz.Abstractions;
 
@@ -114,11 +114,11 @@ public sealed class AuthorizationDecision
 public static class AuthzRuntimeEvents
 {
     /// <summary>环绕一次判定：高级权限模式或 step-up 可包裹链尾（真实 Explain）；链尾之外不产生放行。</summary>
-    [QianEvent(Mode = DispatchMode.Waterfall)]
-    public static readonly QianEvent<EnforcementRequest, AuthorizationExplanation> Checking =
-        QianEvent.Define<EnforcementRequest, AuthorizationExplanation>("authz/checking", DispatchMode.Waterfall);
+    [KunEvent(Mode = DispatchMode.Waterfall)]
+    public static readonly KunEvent<EnforcementRequest, AuthorizationExplanation> Checking =
+        KunEvent.Define<EnforcementRequest, AuthorizationExplanation>("authz/checking", DispatchMode.Waterfall);
     /// <summary>每次已记录的判定，供审计与可解释性消费者观察；监听器异常被隔离，不影响判定结果。</summary>
-    [QianEvent(Mode = DispatchMode.Emit)]
-    public static readonly QianEvent<AuthorizationDecision, object?> Decided =
-        QianEvent.Define<AuthorizationDecision, object?>("authz/decided", DispatchMode.Emit);
+    [KunEvent(Mode = DispatchMode.Emit)]
+    public static readonly KunEvent<AuthorizationDecision, object?> Decided =
+        KunEvent.Define<AuthorizationDecision, object?>("authz/decided", DispatchMode.Emit);
 }

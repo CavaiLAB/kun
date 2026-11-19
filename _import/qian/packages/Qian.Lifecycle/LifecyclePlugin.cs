@@ -6,7 +6,7 @@ using Qian.Authz.Abstractions;
 using Qian.Config;
 using Qian.Data;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Lifecycle;
@@ -19,7 +19,7 @@ public sealed class LifecycleRuntimeOptions
 }
 
 /// <summary>平台 Lifecycle Provider（服务键 ctx.Lifecycle）：只进 platform profile，依赖真实的 Data、Registry 与 Config（信任根与秘密解析）。</summary>
-public sealed class LifecyclePlugin(LifecycleRuntimeOptions options) : IQianPlugin
+public sealed class LifecyclePlugin(LifecycleRuntimeOptions options) : IKunPlugin
 {
     /// <inheritdoc />
     public IReadOnlyList<ServiceKey> Inject => [DataDefinition.Key, RegistryDefinition.Key, ConfigDefinition.Key];

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Qian.Identity.Abstractions;
 using Qian.Identity.Server;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Tenancy;
 
@@ -24,7 +24,7 @@ public sealed partial class CatalogContractTests
         Assert.Equal(crm.RuntimeEntry, manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString());
         Assert.Equal(crm.Provides, manifest.RootElement.GetProperty("provides").EnumerateArray().Select(item => item.GetString()!));
         await loader.UnmountAsync("crm", ScopeKey.Global, Ct);
-        var entry = (IQianPlugin)Activator.CreateInstance(Type.GetType(crm.RuntimeEntry, throwOnError: true)!)!;
+        var entry = (IKunPlugin)Activator.CreateInstance(Type.GetType(crm.RuntimeEntry, throwOnError: true)!)!;
         await loader.MountAsync([new(new PluginEntry("crm", crm.ComponentId, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })),
             entry, crm.Provides.Select(key => new ServiceKey(key)).ToArray())], Ct);
         Assert.Equal(PluginState.Ready, loader.GetState("crm", ScopeKey.Global));

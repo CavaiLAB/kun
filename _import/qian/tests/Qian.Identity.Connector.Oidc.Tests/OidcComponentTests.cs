@@ -6,7 +6,7 @@ using Qian.Plugin.Sdk;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Identity.Connector.Oidc.Tests;
@@ -127,9 +127,9 @@ public sealed class OidcComponentTests
         await runtime.MountAsync([
             new(new PluginEntry("config", "qian.config", "1.0.0", ScopeKey.Global, 0, Config(new { })), new ConfigurationPlugin(), [ConfigDefinition.Key]),
             new(new PluginEntry("identity", "qian.identity.server", "1.0.0", ScopeKey.Global, 0, Config(new { })), new StubIdentity(), [IdentityDefinition.Key]),
-            new(new PluginEntry("oidc", "qian.identity.connector.oidc", "1.0.0", ScopeKey.Global, 1, Config(Valid())), (IQianPlugin)Activator.CreateInstance(entry)!,
+            new(new PluginEntry("oidc", "qian.identity.connector.oidc", "1.0.0", ScopeKey.Global, 1, Config(Valid())), (IKunPlugin)Activator.CreateInstance(entry)!,
                 code.Provides.Select(name => new ServiceKey(name)).ToArray()),
-            new(new PluginEntry("oidc", "qian.identity.connector.oidc", "1.0.0", tenant, 1, Config(Valid(displayName: "租户自己的 IdP"))), (IQianPlugin)Activator.CreateInstance(entry)!,
+            new(new PluginEntry("oidc", "qian.identity.connector.oidc", "1.0.0", tenant, 1, Config(Valid(displayName: "租户自己的 IdP"))), (IKunPlugin)Activator.CreateInstance(entry)!,
                 code.Provides.Select(name => new ServiceKey(name)).ToArray()),
             new(new PluginEntry("bad", "qian.identity.connector.oidc", "1.0.0", ScopeKey.Global, 1, Config(Valid("plain-text-secret", name: "bad"))), new OidcConnectorPlugin(secrets, op),
                 [new ServiceKey("Identity.Connectors:bad")])], Ct);
@@ -148,13 +148,13 @@ public sealed class OidcComponentTests
         Assert.Null(global.IdentityConnectors().Find("oidc"));
         Assert.Empty(global.Scoped(tenant).IdentityConnectors().List());
         await runtime.MountAsync([new(new PluginEntry("renamed", "qian.identity.connector.oidc", "1.0.0", ScopeKey.Global, 1, Config(Valid(name: "corporate"))),
-            (IQianPlugin)Activator.CreateInstance(entry)!, code.Provides.Select(name => new ServiceKey(name)).ToArray())], Ct);
+            (IKunPlugin)Activator.CreateInstance(entry)!, code.Provides.Select(name => new ServiceKey(name)).ToArray())], Ct);
         Assert.Equal(PluginState.Failed, runtime.GetState("renamed", ScopeKey.Global));
         Assert.Contains(Assert.IsType<ErrorException>(runtime.GetFailure("renamed", ScopeKey.Global)).Error.Errors!, error => error.Pointer == "#/name");
         Assert.Empty(global.IdentityConnectors().List());
     }
 
-    private sealed class StubIdentity : IQianPlugin, IIdentityService
+    private sealed class StubIdentity : IKunPlugin, IIdentityService
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

@@ -4,7 +4,7 @@
 
 ## 代码契约
 
-QianPluginAttribute 标注一个组件 ID 的顶层非泛型 IQianPlugin 入口。同程序集可以有多个不同 ID；每个 ID 对应唯一清单、一个 runtime.entry，check / sync 按目标清单 ID 选择元数据。重复 ID、跨组件能力归属均失败；多组件程序集里的 CapabilityAttribute 必须填写 ComponentId，单组件程序集可省略。
+QianPluginAttribute 标注一个组件 ID 的顶层非泛型 IKunPlugin 入口。同程序集可以有多个不同 ID；每个 ID 对应唯一清单、一个 runtime.entry，check / sync 按目标清单 ID 选择元数据。重复 ID、跨组件能力归属均失败；多组件程序集里的 CapabilityAttribute 必须填写 ComponentId，单组件程序集可省略。
 
 ComponentMetadataGenerator 用 Roslyn 语义符号读取 Inject 集合和 ApplyAsync 的服务登记。直接 Provide 支持公开静态只读 ServiceKey 字段与常量构造，也支持固定名称的 Provide(key, name, value)。CommandPolicies.Register 按真实 SDK 方法与固定策略种类派生 CommandTenancy / CommandAuthorization / CommandAudit，并核对组件归属。注册表 Register 由独立 Contributes 声明绑定具体注册表类型、服务键字段和固定贡献名；同名的无关 Register 不能冒充扩展点：
 
@@ -13,9 +13,9 @@ ComponentMetadataGenerator 用 Roslyn 语义符号读取 Inject 集合和 ApplyA
     RegistryType = typeof(IDataDialectRegistry))]
 ```
 
-条件服务注册、动态 Inject、动态贡献名、未知上下文逃逸仍报 QIANSDK002，不把未知结果当作空集合。不同构造模式改变依赖的可编程实现，使用固定模式的薄入口与 DelegatePlugin 声明：入口显式给出 Inject，通过 Provides / Contributes 声明完整的普通服务输出，只能恰好一次无条件委托给指定 IQianPlugin 的真正 ApplyAsync，并转交同一 ctx、config 和 ct。运行时装载仍校验实际提供项；调用方不得把不同模式的依赖并成一个虚假清单。
+条件服务注册、动态 Inject、动态贡献名、未知上下文逃逸仍报 QIANSDK002，不把未知结果当作空集合。不同构造模式改变依赖的可编程实现，使用固定模式的薄入口与 DelegatePlugin 声明：入口显式给出 Inject，通过 Provides / Contributes 声明完整的普通服务输出，只能恰好一次无条件委托给指定 IKunPlugin 的真正 ApplyAsync，并转交同一 ctx、config 和 ct。运行时装载仍校验实际提供项；调用方不得把不同模式的依赖并成一个虚假清单。
 
-这些实现构件及契约包装器、动态表面适配器不另造组件 ID。具体归属在 [实现构件分类](../../scripts/plugin-implementations.json) 登记：Authz、Identity、OIDC 的原可编程实现归所属组件；Capabilities 的 OpenAPI / gRPC / 导航包装器和 Registry 的 scope 适配器保留被包装组件归属；Surfaces / HookBridge 使用输入组件快照。CI 从全部已编译的 packages / samples 程序集发现真实 IQianPlugin 实现，新实现既无入口注解也无有效分类就失败，删除实现后留下的分类也失败。
+这些实现构件及契约包装器、动态表面适配器不另造组件 ID。具体归属在 [实现构件分类](../../scripts/plugin-implementations.json) 登记：Authz、Identity、OIDC 的原可编程实现归所属组件；Capabilities 的 OpenAPI / gRPC / 导航包装器和 Registry 的 scope 适配器保留被包装组件归属；Surfaces / HookBridge 使用输入组件快照。CI 从全部已编译的 packages / samples 程序集发现真实 IKunPlugin 实现，新实现既无入口注解也无有效分类就失败，删除实现后留下的分类也失败。
 
 CapabilityAttribute 标注顶层非泛型 partial 请求，并指定响应类型和 System.Text.Json 源生成上下文。上下文必须显式登记请求与响应。生成器校验短名、描述、冻结词汇、scope、权限点和幂等声明，生成该请求的 QianCapability 属性。它使用正式 Kun CapabilityDescriptor 从 JsonTypeInfo 导出输入/输出 Schema；不会用反射序列化请求，也不执行业务 handler。序列化设置属于真实契约：例如 UnmappedMemberHandling.Disallow 和必填构造参数必须与公开输入 Schema 一致。
 
@@ -55,11 +55,11 @@ sync 合并唯一清单的派生字段与既有表面；数组与入口不改变
 | 配置契约 | QianConfigSchema 的完整代码 Schema 常量 → runtime.configSchema 与其指向文件；它是显式代码声明，不猜测任意 JsonElement 分支 |
 | 能力与工具 | Capability + 源生成 JsonTypeInfo，或 CapabilitySource 引用的静态只读 CapabilityContract → tools/*.json |
 | 权限声明 | 现有 Permission 属性 → metadata/permissions.json；资源、动作、风险、step-up、终端保留；不写入 plugin.json |
-| 事件声明 | 现有 QianEvent 属性 → metadata/events.json；核对静态事件的实际模式，保留名称、载荷/结果类型和声明来源 |
+| 事件声明 | 现有 KunEvent 属性 → metadata/events.json；核对静态事件的实际模式，保留名称、载荷/结果类型和声明来源 |
 | 组件身份、版本与发布 | id、version、author、license、interface、runtime 的包/镜像信息、policy、scopes、依赖与路径仍手写；身份必须匹配代码 |
 | 尚未有代码声明的权限、角色、其他表面 | 保持手写；未声明的文件不会被自动接管或删除 |
 
-Definition 包的事件/权限可通过 QianPlugin.MetadataTypes 显式纳入组件；同一类型只有一个拥有者。同程序集的其它 Provider 可以用 `[SharedEvents(typeof(Events), "拥有者组件ID")]` 显式引用该组件已纳入的事件类型：生成器要求唯一且实际存在的拥有者，类型必须有 QianEvent，不能带 Permission。两个事件文件保存同一 name / mode / payload / source 及 definitionComponent；这只共享事件契约，不改变权限、服务或组件归属。跨程序集拥有者尚不可静态确认时明确诊断。多组件程序集的本地声明用 ComponentOwner 指定归属。CapabilitySource 只引用与真实绑定共用的静态契约，不能构造业务插件或 handler；同样经过跨组件归属、重名与工具 Schema 校验。SDK 内部 ExecutableCapabilities 注册按完整 capability ID 走能力与 tools 协议，不伪装成普通 serviceKeys 中的贡献短名。
+Definition 包的事件/权限可通过 QianPlugin.MetadataTypes 显式纳入组件；同一类型只有一个拥有者。同程序集的其它 Provider 可以用 `[SharedEvents(typeof(Events), "拥有者组件ID")]` 显式引用该组件已纳入的事件类型：生成器要求唯一且实际存在的拥有者，类型必须有 KunEvent，不能带 Permission。两个事件文件保存同一 name / mode / payload / source 及 definitionComponent；这只共享事件契约，不改变权限、服务或组件归属。跨程序集拥有者尚不可静态确认时明确诊断。多组件程序集的本地声明用 ComponentOwner 指定归属。CapabilitySource 只引用与真实绑定共用的静态契约，不能构造业务插件或 handler；同样经过跨组件归属、重名与工具 Schema 校验。SDK 内部 ExecutableCapabilities 注册按完整 capability ID 走能力与 tools 协议，不伪装成普通 serviceKeys 中的贡献短名。
 
 check 只读，并以文件路径及 JSON Pointer 报告漂移，发现差异返回非零。删除代码能力后，旧工具仍存在也会失败；sync 只有同时具备清单索引与文件所属标记才删除过期工具，不覆盖同名手写工具。孤立派生文件、重复键、越界路径、符号链接及第二份清单被拒绝。元数据的删除与覆盖还须核对允许的表面路径、所属组件与原内容哈希；被手改后拒绝覆盖且保留文件，恢复原派生内容后再修改代码并同步。删除配置代码声明时同步撤下所属 Schema 文件和 runtime.configSchema 指针。先在临时快照验证完整组件，再改目标文件；单次写入用临时文件替换，同步中抛错会恢复已改文件。预检最多 4096 个文件、64 MiB，不复制构建输出、依赖目录或 Git 数据。
 
@@ -116,7 +116,7 @@ python3 scripts/dotnet_release.py verify-consumer --version 0.1.0-local.1 --sour
 
 SDK 自身的依赖边界由 CI 的依赖图门禁守住：`Qian.Plugin.Sdk`、`.AspNetCore`、`.Generators` 的完整传递依赖里不能出现任何 Provider 包与 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，门禁自测另断言这三个包在 `Qian.slnf` 的检查范围内（见 [tests/README.md](../../tests/README.md) 4.3）。
 
-真实 CRM 已验证创建、同事务 Outbox/审计、错误回滚、幂等、并发租户与锁等待时卸载取消；列表与详情也通过同一真实管道，分别覆盖默认不审计和显式审计。查询会拒绝已跟踪的业务变更，且不开放 Outbox 写入端口。按 R94 推迟到 S2 的是 IQianPlugin 基类、客户端门面、生命周期钩子基类与 DI 注册代码生成；S1 以接口和 ctx.Inject 为准。QianJob 已随 S1-SCH-001 交付：在已有 Capability 的 partial 请求上标注 QianJob("code")，Apply 用 ProvideJob 同时登记真实能力与 local 作业目录；生成 metadata/jobs.json，目录同步、归属与手改保护沿用同一工具。调度及取消语义见 [Scheduler 主文档](../Qian.Scheduler/README.md)。UI/低代码与 Wasm 表面按各自 S2 规划，代码热装卸尚未承诺；动态注册不会自动变成清单模板。具名 seam 已由 Contributes 的独立声明覆盖，权限与事件已派生到各自 metadata 文件。应用/会话执行边界与完整平台验收继续按各自任务推进；这些局部验收不代替 QA-002。
+真实 CRM 已验证创建、同事务 Outbox/审计、错误回滚、幂等、并发租户与锁等待时卸载取消；列表与详情也通过同一真实管道，分别覆盖默认不审计和显式审计。查询会拒绝已跟踪的业务变更，且不开放 Outbox 写入端口。按 R94 推迟到 S2 的是 IKunPlugin 基类、客户端门面、生命周期钩子基类与 DI 注册代码生成；S1 以接口和 ctx.Inject 为准。QianJob 已随 S1-SCH-001 交付：在已有 Capability 的 partial 请求上标注 QianJob("code")，Apply 用 ProvideJob 同时登记真实能力与 local 作业目录；生成 metadata/jobs.json，目录同步、归属与手改保护沿用同一工具。调度及取消语义见 [Scheduler 主文档](../Qian.Scheduler/README.md)。UI/低代码与 Wasm 表面按各自 S2 规划，代码热装卸尚未承诺；动态注册不会自动变成清单模板。具名 seam 已由 Contributes 的独立声明覆盖，权限与事件已派生到各自 metadata 文件。应用/会话执行边界与完整平台验收继续按各自任务推进；这些局部验收不代替 QA-002。
 
 ## 可执行能力绑定
 

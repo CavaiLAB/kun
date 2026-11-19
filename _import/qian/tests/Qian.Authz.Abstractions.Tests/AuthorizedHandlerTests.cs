@@ -9,7 +9,7 @@ using Kun.Mediator;
 using Kun.Mediator.Behaviors;
 using Kun.Mediator.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing;
 
 namespace Qian.Authz.Abstractions.Tests;
@@ -177,7 +177,7 @@ public sealed class AuthorizedHandlerTests
         Assert.Throws<ServiceNotReadyException>(() => loader.GetContext("empty", ScopeKey.Global).Authz());
     }
 
-    private sealed class Provider(IAuthzService? service) : IQianPlugin
+    private sealed class Provider(IAuthzService? service) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

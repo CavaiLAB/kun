@@ -24,7 +24,7 @@
 | 名字 | 层 | 是什么 | 仓库 | 版本 · 许可 | 文档在哪 |
 |---|---|---|---|---|---|
 | Kun | 框架层（底座） | .NET 10 云原生微服务框架，32 个 `Kun.*` 模块：Mediator、Outbox、Saga、多租户与 RLS、网关与 S2S、存储、缓存、可观测 | `CavaiLAB/kun`（仓库根） | CalVer · MIT · 正式包（含同日修复版 `-hotfix.N`）在 nuget.org | 文档站第 3 部分「Kun 框架」，按 Kun 最新的发布版从 kun 仓库 `docs/` 镜像 |
-| Qian | 平台层 | 基于 Kun 的多租户 PaaS：`Qian.Runtime` + 平台插件 + profile + `qian` CLI + 目录市场 | `CavaiLAB/kun` 的 `_import/qian/`（本仓库） | SemVer 锁步 · Apache-2.0 | 本仓库 `docs/` 与文档站全部七个部分 |
+| Qian | 平台层 | 基于 Kun 的多租户 PaaS：`Kun.Runtime` + 平台插件 + profile + `qian` CLI + 目录市场 | `CavaiLAB/kun` 的 `_import/qian/`（本仓库） | SemVer 锁步 · Apache-2.0 | 本仓库 `docs/` 与文档站全部七个部分 |
 | qian | 前端层 | React 组件库与外壳，`@cavailab/qian-*` | `CavaiLAB/qian`（本仓库装 GitHub Packages 上的已发布包） | SemVer · MIT | 文档站第 2 部分（活演示 + props 表） |
 | `qian-plugins` | 市场 | 官方目录市场 `.qian/marketplace.json` | `qian-plugins`（S1 私有，待建） | — | 文档站第 6 部分 |
 
@@ -101,7 +101,7 @@ python3 scripts/pm.py build                              # 想在本地看看板
 
 S1 按四波推进（见 [迁移方案总览 §4.2](docs/migration/README.md) 与看板的「波次」筛选）：
 
-1. **第 1 波 可信计算基**：`Qian.Runtime` 与三个平台插件、Kun 缺口修复、租户、身份唯一 issuer、鉴权端口与 RBAC、网关、事件、审计、Apollo 配置。
+1. **第 1 波 可信计算基**：`Kun.Runtime` 与三个平台插件、Kun 缺口修复、租户、身份唯一 issuer、鉴权端口与 RBAC、网关、事件、审计、Apollo 配置。
 2. **第 2 波 开发者可用**：`qian` CLI 与 SDK、官方目录市场、文件、组织目录、消息、调度、实时、可观测、yue 最小集合与外壳。
 3. **第 3 波 S2 契约冻结**：Filter AST、Field Type Catalog、表单 / 列表 Schema 草案、可发布元数据与导入导出框架等契约。
 4. **第 4 波 收尾与可选**：企业微信连接器与 TOTP、模型网关底座接线、SchemaPerTenant 验证等。

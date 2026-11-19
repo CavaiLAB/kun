@@ -3,7 +3,7 @@ using System.Text.Json.Serialization.Metadata;
 using Kun.Core.MultiTenancy;
 using Kun.Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Plugin.Sdk;

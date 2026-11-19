@@ -275,12 +275,12 @@ CONSUMER_SOURCE = """using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace ReleaseProbe;
 
 [QianPlugin("qian.release-probe")]
-public sealed class ProbePlugin : IQianPlugin
+public sealed class ProbePlugin : IKunPlugin
 {
     public static readonly ServiceKey Probe = new("ReleaseProbe");
     public IReadOnlyList<ServiceKey> Inject => [];

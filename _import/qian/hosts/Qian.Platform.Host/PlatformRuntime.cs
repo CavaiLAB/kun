@@ -8,7 +8,7 @@ using Qian.Capabilities;
 using Qian.Lifecycle;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
@@ -125,7 +125,7 @@ public sealed class PlatformRuntime : IHostedService, IAsyncDisposable
         return known with { Entry = new PluginEntry(entry.Id, plugin, entry.Plugin.Split('@', 2)[1], scope, entry.Layer, entry.Config) };
     }
 
-    private static PluginDefinition Definition(ResolvedProfileEntry entry, IQianPlugin plugin)
+    private static PluginDefinition Definition(ResolvedProfileEntry entry, IKunPlugin plugin)
     {
         var reference = entry.Plugin.Split('@', 2);
         return new PluginDefinition(new PluginEntry(entry.Id, reference[0], reference[1], ScopeKey.Global, entry.Layer, entry.Config.Clone()), plugin,
@@ -157,7 +157,7 @@ public sealed class PlatformRuntime : IHostedService, IAsyncDisposable
         entry.Manifest.TryGetProperty("surfaces", out var surfaces) && surfaces.ValueKind == JsonValueKind.Object && surfaces.TryGetProperty("ui", out _);
 
     // 第一遍的声明实例只携带清单的 inject，不挂载；真正挂载的是目录创建的 Provider。
-    private sealed class DeclaredOnly(ResolvedProfileEntry entry) : IQianPlugin
+    private sealed class DeclaredOnly(ResolvedProfileEntry entry) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject { get; } = entry.Inject.Select(name => new ServiceKey(name)).ToArray();
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) =>

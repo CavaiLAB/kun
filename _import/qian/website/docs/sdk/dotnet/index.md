@@ -1,6 +1,6 @@
 ---
 title: 后端 SDK（.NET）
-description: Qian.Runtime 的编程模型：插件、共享上下文 ctx、服务注册与注入、类型化事件、可逆副作用与 scope。
+description: Kun.Runtime 的编程模型：插件、共享上下文 ctx、服务注册与注入、类型化事件、可逆副作用与 scope。
 part: sdk
 project: qian
 audience: [developer]
@@ -9,7 +9,7 @@ updated: 2026-11-19
 
 # 后端 SDK（.NET）
 
-`Qian.Runtime` 极小、无业务语义：共享上下文 `ctx`、服务注册、类型化事件、可逆副作用、装载器，是组件库唯一必需的 Qian 依赖。平台能力都是向 `ctx` 贡献服务键的插件。
+`Kun.Runtime` 极小、无业务语义：共享上下文 `ctx`、服务注册、类型化事件、可逆副作用、装载器，是组件库唯一必需的 Qian 依赖。平台能力都是向 `ctx` 贡献服务键的插件。
 
 ## 安装
 
@@ -36,7 +36,7 @@ updated: 2026-11-19
 
 ## 编程模型
 
-- **插件**：实现 `IQianPlugin` / `IQianPlugin<TConfig>`，在 `ApplyAsync` 里向上下文贡献内容；运行时先按清单的 `configSchema` 校验配置再反序列化。
+- **插件**：实现 `IKunPlugin` / `IKunPlugin<TConfig>`，在 `ApplyAsync` 里向上下文贡献内容；运行时先按清单的 `configSchema` 校验配置再反序列化。
 - **服务**：`Provide(key, instance)` 填充服务键，`Inject<T>(key)` 取用；`ctx.Files()` 这类扩展方法由 Definition 包提供，等价于 `Inject`。装载器按 `inject → provides` 决定挂载顺序，依赖未就绪的插件保持 `Pending`。
 - **事件**：事件在 Definition 包里定义并标注分发模式，见[事件与中间件](/sdk/dotnet/events)。
 - **副作用皆可逆**：`Provide`、`On` 等注册都返回释放函数并压入插件的效果栈，`Effect(...)` 把第三方资源也纳入同一栈；卸载时按注册逆序释放。
@@ -47,7 +47,7 @@ updated: 2026-11-19
 节选自[组件模型规格](/design/prd/specs/component-model) §5.2 的 API 草图（以规格为准）：
 
 ```csharp
-public interface IQianPlugin
+public interface IKunPlugin
 {
     IReadOnlyList<ServiceKey> Inject { get; }
     ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct);
@@ -59,8 +59,8 @@ public interface IPluginContext
     IDisposable Provide<TService>(ServiceKey key, TService instance) where TService : class;
     TService Inject<TService>(ServiceKey key) where TService : class;
     void Effect(Func<ValueTask> disposeAsync);
-    IDisposable On<TPayload, TResult>(QianEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority = 0);
-    ValueTask<TResult> DispatchAsync<TPayload, TResult>(QianEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct);
+    IDisposable On<TPayload, TResult>(KunEvent<TPayload, TResult> evt, DispatchMode mode, Delegate handler, int priority = 0);
+    ValueTask<TResult> DispatchAsync<TPayload, TResult>(KunEvent<TPayload, TResult> evt, TPayload payload, CancellationToken ct);
     IPluginContext Scoped(ScopeKey scope);
 }
 ```

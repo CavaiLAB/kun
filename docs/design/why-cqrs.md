@@ -32,9 +32,8 @@ trade-off: correctness matters more than throughput.
 
 ## The read side: performance first
 
-Query handlers use `Kun.Dapper` — specifically `IReadDbConnectionFactory`, which opens a
-dedicated read connection (potentially to a read replica). Queries are raw SQL annotated with
-`[DapperAot]` so Dapper's source generator produces the mapping code at compile time. No EF
+Query handlers open connections from a dedicated read-side `NpgsqlDataSource` (potentially
+pointing at a read replica) and run raw SQL with Dapper; Kun does not wrap either library. No EF
 Core context is involved; there is no change tracker, no aggregate loading, no domain logic.
 
 The result is flat DTOs returned directly to the caller. Because there is no object graph to
@@ -42,10 +41,10 @@ navigate and no invariants to enforce, the read side can denormalize freely: a s
 join five tables and return a DTO shaped exactly for the API response, avoiding the N+1 problems
 that appear when EF Core navigation properties are misused.
 
-AOT compatibility is a direct benefit. `Kun.Dapper` is an AOT candidate module. The
-`[DapperAot]` annotation tells the Dapper source generator to emit the reader code at build time,
-eliminating the reflection that Dapper's classic `Query<T>` relies on. The read side is therefore
-both faster at runtime and publishable as a native AOT binary.
+The read side can also be published as a native AOT binary, which the EF Core write side cannot.
+Dapper's classic `Query<T>` builds its row readers with reflection, so an AOT-published service
+adds Dapper's source generator (`Dapper.AOT`, `[DapperAot]`) or reads rows with
+`NpgsqlDataReader` directly; see [read-side patterns](../guides/read-side-patterns.md#aot-note).
 
 ---
 
@@ -86,10 +85,10 @@ data is not re-projected, the read side and the write side can express different
 same entity.
 
 **No EF Core in query handlers.** Using EF Core in a query handler breaks the `UoW` pipeline
-behavior's transaction boundary assumptions and bypasses the AOT guarantee of the read-side path.
-This is not enforced by the compiler, but `Kun.Dapper` depends on `Kun.Infrastructure` and not
-on `Kun.EntityFrameworkCore`, so adding an EF Core dependency to a query handler requires a
-deliberate csproj change that reviewers will catch.
+behavior's transaction boundary assumptions and gives up the option of publishing the read side
+as a native AOT binary. Neither the compiler nor the project references enforce this — command
+and query handlers usually live in the same project — so reviewers check that query handlers
+take no EF Core types.
 
 The split is explicit and by design. It makes each side independently optimizable and keeps the
 invariants of each clearly scoped.

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Qian.Audit;
 using Qian.Data;
 using Qian.Events;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Lifecycle;

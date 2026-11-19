@@ -22,7 +22,7 @@ using Qian.Plugin.Sdk;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Registry;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Qian.Tenancy;
@@ -275,7 +275,7 @@ public sealed partial class CatalogContractTests(PostgresFixture postgres) : Cus
 public abstract partial class CustomerCommandTests
 {
     // 在真实 CRM 组件之后再登记一个输入带租户字段的能力（租户只能来自令牌，PRD 7.2.1）。
-    private protected sealed class TenantFieldProbePlugin(IQianPlugin inner) : IQianPlugin
+    private protected sealed class TenantFieldProbePlugin(IKunPlugin inner) : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => inner.Inject;
         public async ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)
@@ -498,7 +498,7 @@ public abstract partial class CustomerCommandTests
                 new SurfaceValidationOptions { Profile = "platform", ExecutionPlane = "server", CatalogComplete = true, Capabilities = callable });
         }
 
-        void Add(string id, string component, IQianPlugin plugin, ServiceKey[] provides, object? config = null)
+        void Add(string id, string component, IKunPlugin plugin, ServiceKey[] provides, object? config = null)
         {
             var definition = new PluginDefinition(new PluginEntry(id, component, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config ?? new { })), plugin, provides);
             definitions.Add(id, definition);

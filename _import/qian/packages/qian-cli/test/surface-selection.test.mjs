@@ -44,8 +44,9 @@ test('真实 CLI 从代码组件仅装技能，不取代码依赖；投影可被
   write(probe,'Probe.csproj','<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings></PropertyGroup><ItemGroup><ProjectReference Include="'+xml(path.join(repo,'packages/Qian.Surfaces/Qian.Surfaces.csproj'))+'" /></ItemGroup></Project>');
   write(probe,'Program.cs',`using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Surfaces;
+using Qian.Surfaces.Abstractions;
 var checkedComponent = new SurfaceValidator().ValidateComponent(args[0]);
 if (!checkedComponent.IsValid) throw new Exception(JsonSerializer.Serialize(checkedComponent.Diagnostics));
 var plugin = new DeclarativeSurfacePlugin(checkedComponent);

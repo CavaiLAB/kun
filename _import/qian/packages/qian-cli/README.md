@@ -34,7 +34,7 @@ CLI 离线校验（安装、远端解析与 doctor）拿不到宿主的完整能
 
 每个结果提供 `defaultPrompt` 和 `nextSteps`：列出仍需在宿主密钥提供者配置的 `secretRef://` 引用，以及清单/市场推荐的 profile。CLI 不解析密钥引用、不读取私钥、不执行组件入口，下一步提示不代表密钥已配置或服务已就绪。
 
-`engines.kun` 来自 `Kun.Core`，`engines.qian`（前端框架版本）来自 `@cavailab/qian-core`。平台运行时（`Qian.Runtime`、`@cavailab/qian-runtime`）不当引擎证据：它不在 Kun 的日历版本线上，将并入 Kun、由 `engines.kun` 覆盖，并入之前没有单独的版本检查。版本证据读取宿主 `project.assets.json` 与实际 npm 包；预检按整批包计划判断：拟新增或升级的引擎包直接引用采用计划精确版本，未改变且精确钉定的宿主直接引用采用实际版本。候选包的隔离还原图不能覆盖宿主引用；可能随本次还原变化的传递引擎包在 `enginePlan.pending` 中列出，提交前必须以宿主最终还原结果核验。已确定版本仍在写入前检查；不兼容或末检缺少证据都会失败回滚。CLI 自身版本不能作为宿主版本。范围遵循标准 SemVer，未显式许可的预发布版本不会被放行。`engines.kun` 只约束带 `runtime.nuget` 的组件，`engines.qian` 只约束声明了 `surfaces.ui` 的组件；`--no-code` 投影去掉了代码与界面，也就不再要求这两项。
+`engines.kun` 来自 `Kun.Core`，`engines.qian`（前端框架版本）来自 `@cavailab/qian-core`。组件运行时 `Kun.Runtime` 随 Kun 发布、与 `Kun.Core` 同一版本，由 `engines.kun` 覆盖，不另当证据；前端运行时 `@cavailab/qian-runtime` 不当引擎证据，没有单独的版本检查。版本证据读取宿主 `project.assets.json` 与实际 npm 包；预检按整批包计划判断：拟新增或升级的引擎包直接引用采用计划精确版本，未改变且精确钉定的宿主直接引用采用实际版本。候选包的隔离还原图不能覆盖宿主引用；可能随本次还原变化的传递引擎包在 `enginePlan.pending` 中列出，提交前必须以宿主最终还原结果核验。已确定版本仍在写入前检查；不兼容或末检缺少证据都会失败回滚。CLI 自身版本不能作为宿主版本。范围遵循标准 SemVer，未显式许可的预发布版本不会被放行。`engines.kun` 只约束带 `runtime.nuget` 的组件，`engines.qian` 只约束声明了 `surfaces.ui` 的组件；`--no-code` 投影去掉了代码与界面，也就不再要求这两项。
 
 ```bash
 qian list --outdated

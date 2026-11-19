@@ -12,7 +12,7 @@ using Qian.Audit;
 using Qian.Authz.Abstractions;
 using Qian.Identity.Abstractions;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Config.Apollo;

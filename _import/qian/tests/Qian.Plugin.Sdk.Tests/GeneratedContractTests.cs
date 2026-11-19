@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Plugin.Sdk.Tests;
 
@@ -45,7 +45,7 @@ public sealed class GeneratedContractTests
 }
 
 [QianPlugin("qian.sdk-tests")]
-internal sealed class ContractPlugin : IQianPlugin
+internal sealed class ContractPlugin : IKunPlugin
 {
     public IReadOnlyList<ServiceKey> Inject => [ContractKeys.Input];
     public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct)

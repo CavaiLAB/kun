@@ -323,14 +323,14 @@ class RealGraphTests(unittest.TestCase):
         return sorted(n for n in names if (p := self.declared.get(n.lower())) and p.tier == "platform" and p.role == "provider")
 
     def test_qian_projects_import_the_root_declaration_check(self):
-        project = ROOT / "_import/qian/packages/Qian.Runtime/Qian.Runtime.csproj"
+        project = ROOT / "src/Kun.Runtime/Kun.Runtime.csproj"
         result = subprocess.run(["dotnet", "msbuild", str(project), "-t:KunRequireTierDeclaration", "-nologo"],
                                 capture_output=True, text=True, env=check_deps._env())
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
     def test_declared_roles_and_exceptions(self):
         # 计划会话复核附录 A 时定的归类（B3 PR-4）：这 4 个包记契约，组件建在它们上面；Kun.Authorization 本来就记契约。
-        expected = {"Qian.Runtime": ("kernel", "contract"), "Kun.Errors": ("kernel", "contract"),
+        expected = {"Kun.Runtime": ("kernel", "contract"), "Kun.Errors": ("kernel", "contract"),
                     "Kun.Mediator": ("kernel", "contract"), "Qian.Plugin.Sdk.AspNetCore": ("platform", "contract"),
                     "Kun.Authorization": ("kernel", "contract"), "Kun.Core": ("kernel", "contract")}
         self.assertEqual(expected, {n: (self.packages[n].tier, self.packages[n].role) for n in expected})
@@ -345,7 +345,7 @@ class RealGraphTests(unittest.TestCase):
         cases = {
             ("Qian.Plugin.Sdk.AspNetCore", "Qian.Registry"): ["P"],  # 平台档契约 → 别的平台组件的提供者
             ("Qian.Authz.AspNetCore", "Qian.Registry"): ["P"],  # 平台档提供者 → 别的平台组件的提供者
-            ("Qian.Runtime", "Qian.Events"): ["D"],  # 内核档契约 → 内核档提供者
+            ("Kun.Runtime", "Qian.Events"): ["D"],  # 内核档契约 → 内核档提供者
             ("Kun.Mediator", "Kun.EventBus"): ["D"],
             ("Kun.Errors", "Qian.Tenancy.Abstractions"): ["K", "C"],  # 内核档 → 平台档；Kun.Errors 零依赖，C 也报
         }
@@ -366,7 +366,7 @@ class RealGraphTests(unittest.TestCase):
                 self.assertFalse({"qian.registry", "qian.lifecycle", "qian.capabilities"} & {n.lower() for n in closure})
                 self.assertEqual([], self.violations_of(package_id))
                 if package_id != "Qian.Plugin.Sdk.Generators":
-                    self.assertIn("Qian.Runtime", closure)  # 读到的是真实依赖图而不是空图
+                    self.assertIn("Kun.Runtime", closure)  # 读到的是真实依赖图而不是空图
 
     def test_oidc_connector_does_not_depend_on_identity_server(self):
         # S1-IDP-007：通用 OIDC 连接器只经身份契约接入，完整传递依赖里没有 Qian.Identity.Server（也没有别的平台档提供者）。
@@ -375,7 +375,7 @@ class RealGraphTests(unittest.TestCase):
         self.assertNotIn("qian.identity.server", {n.lower() for n in closure})
         self.assertEqual([], self.platform_providers(closure))
         self.assertEqual([], self.violations_of("Qian.Identity.Connector.Oidc"))
-        self.assertTrue({"Qian.Identity.Abstractions", "Qian.Runtime"} <= closure)
+        self.assertTrue({"Qian.Identity.Abstractions", "Kun.Runtime"} <= closure)
 
 
 if __name__ == "__main__":

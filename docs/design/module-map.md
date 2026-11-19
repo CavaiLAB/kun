@@ -44,12 +44,22 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 `AddKunMediator` 可以对同一个服务集合调多次：第一次建 `KunMediatorBuilder` 并登记 `KunMediator`、`ISender`、`IPublisher`，之后的调用往同一个 builder 里加，几个模块各自登记的处理器与行为合进同一个中介。同一请求只能有一个处理器，登记第二个时当场抛 `InvalidOperationException`。`AddPermissionBehavior` 多一个带 `PermissionBehaviorOptions` 的重载，只改这一个请求取权限判定器与当前主体的方式，判定算法与拒绝映射不变。描述符被拷进另一个服务集合时，那个集合另建自己的 builder，不往原来的 builder 里加。权限行为因装配不全（没有判定器、没有权限声明）拒绝时记一条警告日志，与正常的无权分得出来。
 
+### 组件运行时（S1-KUN-023）
+
+| 模块 | 职责 | 主要 API | AOT |
+|---|---|---|---|
+| `Kun.Runtime` | 组件运行时：插件装载、服务键与注入、类型化事件、可逆副作用、扁平 scope；只引用 `Kun.Errors` | `PluginLoader`、`IPluginContext`、`IKunPlugin`、`KunEvent`、`ScopeKey` | — |
+
+运行时不带产品语义：`ScopeKey` 只查语法（`global`，或小写的种类名加非空 id），种类有哪些由平台档定；声明式表面的目录键 `SurfaceKeys` 在平台档。语言无关的场景用例在 `_import/qian/tck/runtime`，.NET 一侧是 `tests/Kun.Runtime.Tests`。
+
 ### 持久化（Infrastructure 层）
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
 | `Kun.EntityFrameworkCore` | 写侧 EF Core 实现 + `KunDbContext` + Outbox 落库 + 多租户过滤器 | 所有业务写路径；事务边界与 Outbox 同事务 | `AddKunEntityFrameworkCore()` / `KunDbContext` | ⚠️ trim-safe | — |
 | `Kun.Dapper` | 读侧 Dapper AOT 薄包 | 查询 handler 的连接池 + 分页模型 | `IReadDbConnectionFactory` / `PagedResult<T>` | ⚠️ trim-safe | 6 |
+
+`Kun.Dapper` 已归档（S1-KUN-024）：移出解决方案，包名停发。读侧直接用 Npgsql 的数据源与 Dapper（见[读侧模式](../guides/read-side-patterns.md)），分页的请求与结果类型由应用自己定义。上表与下面非 AOT 白名单里的这一行按原样保留。
 
 ### 事件与编排
 
@@ -123,7 +133,6 @@ graph TD
     Core --> Audit[Kun.Audit<br/>操作审计/哈希链]
 
     Infra --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
-    Infra --> Dapper[Kun.Dapper<br/>读侧查询]
 
     EventBus --> Saga[Kun.Saga<br/>Saga 编排器/补偿/超时]
     EventBus --> RabbitMq[Kun.EventBus.RabbitMQ<br/>集成事件传输]
@@ -154,7 +163,7 @@ graph TD
 │  Kun.AspNetCore / Kun.Grpc / Kun.Gateway                │
 ├─────────────────────────────────────────────────────────┤
 │  Infrastructure Layer                                   │
-│  Kun.EntityFrameworkCore / Kun.Dapper                   │
+│  Kun.EntityFrameworkCore                                │
 │  Kun.EventBus.RabbitMQ / Kun.Saga / Kun.Storage         │
 ├─────────────────────────────────────────────────────────┤
 │  Abstraction Layer                                      │
@@ -214,7 +223,7 @@ Kun.Mediator.Send(Query)
 Query Handler
     │
     ▼
-Kun.Dapper (读侧连接)            [AOT 源生成的映射代码]
+Npgsql 数据源 + Dapper (读侧连接)  [原生 SQL，DTO 投影]
     │
     ▼
 PostgreSQL (只读副本 / 读库)

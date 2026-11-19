@@ -7,7 +7,7 @@ using Qian.Audit.Native;
 using Qian.Data.Native;
 using Qian.Data.Native.Postgres;
 using Qian.Plugin.Sdk;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.NativeAudit;
 
@@ -56,12 +56,12 @@ internal sealed class NativeAuditReader(ServiceProvider provider, PluginLoader l
         }
         catch { await loader.DisposeAsync(); await provider.DisposeAsync(); throw; }
     }
-    private static PluginDefinition Define(string id, string plugin, IQianPlugin implementation, object config, params ServiceKey[] provides) =>
+    private static PluginDefinition Define(string id, string plugin, IKunPlugin implementation, object config, params ServiceKey[] provides) =>
         new(new PluginEntry(id, plugin, "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(config)), implementation, provides);
     public async ValueTask DisposeAsync() { await loader.DisposeAsync(); await provider.DisposeAsync(); }
 }
 
-internal sealed class AuditConsumer : IQianPlugin
+internal sealed class AuditConsumer : IKunPlugin
 {
     internal IPluginContext? Context { get; private set; }
     public IReadOnlyList<ServiceKey> Inject => [AuditDefinition.Key];

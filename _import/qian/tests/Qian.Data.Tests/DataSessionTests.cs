@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing.Containers;
 
 namespace Qian.Data.Tests;

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Kun 组件运行时：插件装载、服务键、事件与可逆副作用；不带产品语义（scope 种类与表面目录键由平台档定）。</Description>
+  </PropertyGroup>
+  <!-- 记契约：组件建在它上面，与 Kun.Core 同理，旧门禁对运行时与 SDK 一律放行（S1-KUN-020，B3 PR-4 归类）。 -->
+  <PropertyGroup Label="档位">
+    <KunTier>kernel</KunTier>
+    <KunRole>contract</KunRole>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <ProjectReference Include="../Kun.Errors/Kun.Errors.csproj" />
+  </ItemGroup>
+</Project>

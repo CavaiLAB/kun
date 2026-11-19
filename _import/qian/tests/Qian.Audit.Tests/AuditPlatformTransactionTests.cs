@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using NpgsqlTypes;
 using Qian.Data;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Audit.Tests;

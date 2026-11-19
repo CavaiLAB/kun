@@ -53,7 +53,7 @@ Qian.Config.Secrets.KubernetesSecretLocation.Namespace.get -> string!
 Qian.Config.Secrets.MountedSecretStore.MountedSecretStore(string! rootDirectory) -> void
 static Qian.Config.Secrets.KubernetesSecretLocation.Parse(string! locator) -> Qian.Config.Secrets.KubernetesSecretLocation!
 static Qian.Config.Secrets.SecretServiceExtensions.AddQianSecrets(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Qian.Config.Secrets.SecretResolverOptions! options) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-Qian.Config.Secrets.SecretResolverFactory.ForPlugin(Qian.Runtime.IPluginContext! context) -> Qian.Config.ISecretResolver!
+Qian.Config.Secrets.SecretResolverFactory.ForPlugin(Kun.Runtime.IPluginContext! context) -> Qian.Config.ISecretResolver!
 Qian.Config.Secrets.SecretResolverFactory.ForHost(string! policyId, Kun.Core.MultiTenancy.ITenantContext? tenantContext = null) -> Qian.Config.ISecretResolver!
 override Qian.Config.Secrets.KubernetesSecretLocation.ToString() -> string!
 Qian.Config.Secrets.MountedSecretStore.ReadAsync(Qian.Config.Secrets.KubernetesSecretLocation! location, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Config.SecretValue!>

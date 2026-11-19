@@ -38,6 +38,17 @@
 - `PermissionBehaviorOptions` 与 `AddPermissionBehavior<TRequest, TResponse>(denied, configure)` 重载：只改这一个请求取权限判定器（`PermissionChecker`）与当前主体（`CurrentUser`）的方式，比如在特定流程里包一层判定器；判定算法与拒绝映射不变。
 - 权限行为因装配不全（没有权限判定器、没有权限声明）拒绝时记一条警告日志；拒绝结果照旧是 `AUTHZ_DENIED`。
 
+### Changed — 组件运行时统一到 Kun.Runtime（S1-KUN-023）
+
+- 包 `Qian.Runtime`（已发布 0.2.0）换成 `Kun.Runtime`，命名空间跟着换。类型：`IQianPlugin`、`IQianPlugin<TConfig>` → `IKunPlugin`、`IKunPlugin<TConfig>`；`QianEvent`、`QianEvent<TPayload, TResult>` → `KunEvent`、`KunEvent<TPayload, TResult>`；`QianEventAttribute` → `KunEventAttribute`。
+- `Kun.Runtime` 只引用 `Kun.Errors`，不再传递带来 `Kun.Core`、`Kun.Mediator`、`Kun.Authorization`。**迁移**：用到这些包的项目直接引用它们。
+- `ScopeKey` 只查语法：`global`，或小写的种类名（小写字母开头，小写字母、数字与连字符）加非空 id；之前只认 `tenant`、`app`、`agent-session` 三种。平台档（Profiles、Registry）的种类校验不变，种类常量在 `Qian.Profiles.Abstractions.ScopeKinds`。
+- `SurfaceKeys` 移到 `Qian.Surfaces.Abstractions`（命名空间同包名）。
+
+### Removed — 归档 Kun.Dapper（S1-KUN-024）
+
+- 包 `Kun.Dapper` 停发、移出解决方案，nuget.org 上已发布的版本不动。随包删掉的公共 API：`IReadDbConnectionFactory`、`ReadDbOptions`、`PageRequest`、`PagedResult<T>`、`Kun.Dapper.Npgsql.NpgsqlReadDbConnectionFactory`、`DapperAotExtensions.QueryPageAsync<T>`、`AddKunDapper` / `AddKunDapperNpgsql`。**迁移**：读侧直接引用 `Npgsql` 与 `Dapper`；登记一个读侧数据源（`services.AddSingleton(_ => NpgsqlDataSource.Create(readConnectionString))`），查询处理器注入 `NpgsqlDataSource`，用 `OpenConnectionAsync` 取连接后以 Dapper 查询；分页的请求与结果类型在应用里自己定义；要原生 AOT 发布的服务，在自己的项目里加 Dapper 的源生成器（`Dapper.AOT`）或直接用 `NpgsqlDataReader` 读行。写法见 `docs/guides/read-side-patterns.md`，样例见 `samples/Kun.Sample.Catalog`。
+
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
 
 - 样例编排宿主 `samples/Kun.Sample.AppHost` 的 Aspire 从 9.0.0 升到 13.6.5（`Aspire.AppHost.Sdk` 与中央版本里的 `Aspire.Hosting.AppHost` / `PostgreSQL` / `RabbitMQ` / `Redis`），修复 NuGet 审计报出的 [GHSA-4g86-54fm-h9h8](https://github.com/advisories/GHSA-4g86-54fm-h9h8)（`Aspire.Dashboard.Sdk.*`，严重）与 [GHSA-f7vh-h5g3-7jrh](https://github.com/advisories/GHSA-f7vh-h5g3-7jrh)（`Aspire.Hosting`、`Aspire.Hosting.AppHost`，高）。这两条公告发布后，`dotnet restore` 在警告即错误下失败，CI 的构建、测试与格式检查随之失败。编排代码不用改，资源、依赖与启动顺序不变。

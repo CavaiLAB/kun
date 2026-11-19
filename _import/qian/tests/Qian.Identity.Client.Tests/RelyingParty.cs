@@ -16,7 +16,7 @@ using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 using Qian.Testing;
 using StackExchange.Redis;
 

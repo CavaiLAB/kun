@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Qian.Identity.Abstractions;
-using Qian.Runtime;
+using Kun.Runtime;
 
 namespace Qian.Capabilities;
 

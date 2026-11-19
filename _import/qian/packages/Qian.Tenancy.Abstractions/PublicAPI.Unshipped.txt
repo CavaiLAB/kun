@@ -63,12 +63,12 @@ override Qian.Tenancy.UpdateTenant.GetHashCode() -> int
 override Qian.Tenancy.UpdateTenant.ToString() -> string!
 static Qian.Tenancy.CreateTenant.operator !=(Qian.Tenancy.CreateTenant? left, Qian.Tenancy.CreateTenant? right) -> bool
 static Qian.Tenancy.CreateTenant.operator ==(Qian.Tenancy.CreateTenant? left, Qian.Tenancy.CreateTenant? right) -> bool
-static Qian.Tenancy.TenancyDefinition.Tenancy(this Qian.Runtime.IPluginContext! context) -> Qian.Tenancy.ITenantDirectory!
+static Qian.Tenancy.TenancyDefinition.Tenancy(this Kun.Runtime.IPluginContext! context) -> Qian.Tenancy.ITenantDirectory!
 static Qian.Tenancy.TenantDescriptor.operator !=(Qian.Tenancy.TenantDescriptor? left, Qian.Tenancy.TenantDescriptor? right) -> bool
 static Qian.Tenancy.TenantDescriptor.operator ==(Qian.Tenancy.TenantDescriptor? left, Qian.Tenancy.TenantDescriptor? right) -> bool
 static Qian.Tenancy.UpdateTenant.operator !=(Qian.Tenancy.UpdateTenant? left, Qian.Tenancy.UpdateTenant? right) -> bool
 static Qian.Tenancy.UpdateTenant.operator ==(Qian.Tenancy.UpdateTenant? left, Qian.Tenancy.UpdateTenant? right) -> bool
-static readonly Qian.Tenancy.TenancyDefinition.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenancyDefinition.Key -> Kun.Runtime.ServiceKey
 Qian.Tenancy.ITenantDirectory.GetByIdAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Tenancy.TenantDescriptor?>
 Qian.Tenancy.ITenantMembershipProvisioner
 Qian.Tenancy.ITenantMembershipProvisioner.ProvisionAsync(Qian.Tenancy.TenantAdministrator! administrator, string! idempotencyKey, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
@@ -111,9 +111,9 @@ static Qian.Tenancy.TenantAdministrator.operator !=(Qian.Tenancy.TenantAdministr
 static Qian.Tenancy.TenantAdministrator.operator ==(Qian.Tenancy.TenantAdministrator? left, Qian.Tenancy.TenantAdministrator? right) -> bool
 static Qian.Tenancy.TenantProvisionStep.operator !=(Qian.Tenancy.TenantProvisionStep? left, Qian.Tenancy.TenantProvisionStep? right) -> bool
 static Qian.Tenancy.TenantProvisionStep.operator ==(Qian.Tenancy.TenantProvisionStep? left, Qian.Tenancy.TenantProvisionStep? right) -> bool
-static readonly Qian.Tenancy.TenantProvisioning.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Tenancy.TenantProvisioning.MembershipKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Tenancy.TenantProvisioning.NotificationKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantProvisioning.Key -> Kun.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantProvisioning.MembershipKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantProvisioning.NotificationKey -> Kun.Runtime.ServiceKey
 Qian.Tenancy.CreateTenant.Administrator.get -> Qian.Tenancy.TenantAdministrator?
 Qian.Tenancy.CreateTenant.Administrator.init -> void
 Qian.Tenancy.ITenantOperations
@@ -122,7 +122,7 @@ Qian.Tenancy.ITenantOperations.UpdateAsync(System.Guid id, Qian.Tenancy.UpdateTe
 Qian.Tenancy.TenantDescriptor.Revision.get -> uint
 Qian.Tenancy.TenantDescriptor.Revision.init -> void
 Qian.Tenancy.TenantOperations
-static readonly Qian.Tenancy.TenantOperations.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantOperations.Key -> Kun.Runtime.ServiceKey
 Qian.Tenancy.ActivateTenant
 Qian.Tenancy.ActivateTenant.<Clone>$() -> Qian.Tenancy.ActivateTenant!
 Qian.Tenancy.ActivateTenant.ActivateTenant(bool Trial = false, System.DateTimeOffset? ValidUntil = null) -> void
@@ -246,8 +246,8 @@ static Qian.Tenancy.TenantSuspended.operator ==(Qian.Tenancy.TenantSuspended? le
 static Qian.Tenancy.TenantTransitionApproval.operator !=(Qian.Tenancy.TenantTransitionApproval? left, Qian.Tenancy.TenantTransitionApproval? right) -> bool
 static Qian.Tenancy.TenantTransitionApproval.operator ==(Qian.Tenancy.TenantTransitionApproval? left, Qian.Tenancy.TenantTransitionApproval? right) -> bool
 static readonly Qian.Tenancy.TenancyErrors.StateConflict -> Kun.Errors.ErrorCode!
-static readonly Qian.Tenancy.TenantLifecycle.Approving -> Qian.Runtime.QianEvent<Qian.Tenancy.TenantTransitionApproval!, System.Collections.Generic.IReadOnlyList<bool>!>!
-static readonly Qian.Tenancy.TenantLifecycle.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantLifecycle.Approving -> Kun.Runtime.KunEvent<Qian.Tenancy.TenantTransitionApproval!, System.Collections.Generic.IReadOnlyList<bool>!>!
+static readonly Qian.Tenancy.TenantLifecycle.Key -> Kun.Runtime.ServiceKey
 Qian.Tenancy.CreateTenant.Quotas.get -> Qian.Tenancy.TenantQuotas?
 Qian.Tenancy.CreateTenant.Quotas.init -> void
 Qian.Tenancy.ITenantQuota
@@ -328,10 +328,10 @@ static Qian.Tenancy.TenantSettingsDocument.operator ==(Qian.Tenancy.TenantSettin
 static Qian.Tenancy.UpdateTenantSettings.operator !=(Qian.Tenancy.UpdateTenantSettings? left, Qian.Tenancy.UpdateTenantSettings? right) -> bool
 static Qian.Tenancy.UpdateTenantSettings.operator ==(Qian.Tenancy.UpdateTenantSettings? left, Qian.Tenancy.UpdateTenantSettings? right) -> bool
 static readonly Qian.Tenancy.TenancyErrors.UserLimit -> Kun.Errors.ErrorCode!
-static readonly Qian.Tenancy.TenantSettings.Key -> Qian.Runtime.ServiceKey
-static readonly Qian.Tenancy.TenantSettings.OperationsKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Tenancy.TenantSettings.QuotaKey -> Qian.Runtime.ServiceKey
-static readonly Qian.Tenancy.TenantSettings.UserCounterKey -> Qian.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantSettings.Key -> Kun.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantSettings.OperationsKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantSettings.QuotaKey -> Kun.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantSettings.UserCounterKey -> Kun.Runtime.ServiceKey
 Qian.Tenancy.ITenantOperations.QueryAsync(int skip, int take, Qian.Tenancy.TenantStatus? status = null, string? keyword = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<(System.Collections.Generic.IReadOnlyList<Qian.Tenancy.TenantDescriptor!>! Items, int Total)>
 static Qian.Tenancy.TenantStateMetadata.Schema.get -> System.Text.Json.JsonElement
 Qian.Tenancy.CreateTenantAdminAccount
@@ -479,7 +479,7 @@ static Qian.Tenancy.TenantAdminIdentifier.operator !=(Qian.Tenancy.TenantAdminId
 static Qian.Tenancy.TenantAdminIdentifier.operator ==(Qian.Tenancy.TenantAdminIdentifier? left, Qian.Tenancy.TenantAdminIdentifier? right) -> bool
 static Qian.Tenancy.TenantAdminList.operator !=(Qian.Tenancy.TenantAdminList? left, Qian.Tenancy.TenantAdminList? right) -> bool
 static Qian.Tenancy.TenantAdminList.operator ==(Qian.Tenancy.TenantAdminList? left, Qian.Tenancy.TenantAdminList? right) -> bool
-static readonly Qian.Tenancy.TenantAdministration.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantAdministration.Key -> Kun.Runtime.ServiceKey
 Qian.Tenancy.TenantOverviewPage.Total.get -> int
 Qian.Tenancy.TenantOverviewPage.Total.init -> void
 Qian.Tenancy.TenantOverviewPage.Counts.get -> Qian.Tenancy.TenantStatusCounts!
@@ -552,7 +552,7 @@ Qian.Tenancy.TenantOverviewPage.Equals(Qian.Tenancy.TenantOverviewPage? other) -
 Qian.Tenancy.TenantOverviewPage.<Clone>$() -> Qian.Tenancy.TenantOverviewPage!
 Qian.Tenancy.TenantOverviewPage.Deconstruct(out System.Collections.Generic.IReadOnlyList<Qian.Tenancy.TenantOverview!>! Items, out int Total, out Qian.Tenancy.TenantStatusCounts! Counts) -> void
 Qian.Tenancy.TenantSummaries
-static readonly Qian.Tenancy.TenantSummaries.Key -> Qian.Runtime.ServiceKey
+static readonly Qian.Tenancy.TenantSummaries.Key -> Kun.Runtime.ServiceKey
 Qian.Tenancy.ITenantSummaries
 Qian.Tenancy.ITenantSummaries.CurrentAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Tenancy.TenantSummary!>
 Qian.Tenancy.TenantSummary

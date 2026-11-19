@@ -5,7 +5,7 @@ using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Config.Apollo;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Config.Secrets.Tests;
@@ -168,7 +168,7 @@ public sealed partial class SecretResolverTests
     [DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
     private static partial int Rename(string source, string destination);
     private sealed class Tenant : ITenantContext { public string? TenantId { get; set; } public bool IsMultiTenant => true; }
-    private sealed class Consumer : IQianPlugin
+    private sealed class Consumer : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [ConfigDefinition.Key];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

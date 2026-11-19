@@ -3,7 +3,7 @@ using Qian.Testing;
 using System.Runtime.CompilerServices;
 using Kun.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Runtime;
+using Kun.Runtime;
 using Kun.Errors;
 
 namespace Qian.Authz.Abstractions.Tests;
@@ -122,7 +122,7 @@ public sealed class TenantInitializationAuthorizationTests
         return loader.GetContext("tenancy", ScopeKey.Global).Scoped(new ScopeKey("tenant", Guid.NewGuid().ToString()));
     }
 
-    private sealed class Producer : IQianPlugin
+    private sealed class Producer : IKunPlugin
     {
         public IReadOnlyList<ServiceKey> Inject => [];
         public ValueTask ApplyAsync(IPluginContext ctx, JsonElement config, CancellationToken ct) => ValueTask.CompletedTask;

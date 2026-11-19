@@ -38,7 +38,7 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
         path = root / relative
         configuration = ET.parse(path).getroot()
         if configuration.findtext(".//TargetFramework", "").startswith("netstandard"):
-            continue  # 分析器程序集不是可执行组件，不能实现 net10 的 IQianPlugin。
+            continue  # 分析器程序集不是可执行组件，不能实现 net10 的 IKunPlugin。
         name = configuration.findtext(".//AssemblyName") or path.stem
         assembly = path.parent / "bin/Release/net10.0" / (name + ".dll")
         if not assembly.is_file():
@@ -55,7 +55,7 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
             else:
                 declaration = classifications.get(key)
                 if not declaration or not declaration.get("owner") or not declaration.get("reason"):
-                    raise ValueError("IQianPlugin 实现没有入口注解或显式归属：" + key)
+                    raise ValueError("IKunPlugin 实现没有入口注解或显式归属：" + key)
                 used.add(key)
     stale = set(classifications) - used
     if stale:

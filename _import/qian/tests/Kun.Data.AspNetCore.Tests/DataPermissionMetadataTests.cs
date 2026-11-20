@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Data.Dialect.Pg;
 using Kun.Authorization.AspNetCore;
-using Qian.Files.AspNetCore;
+using Kun.Files.AspNetCore;
 
 namespace Kun.Data.AspNetCore.Tests;
 
@@ -26,7 +26,7 @@ public sealed class DataPermissionMetadataTests
         builder.Services.AddKunDataTypes().AddKunPgDialect();
         await using var app = builder.Build();
         if (component == "files")
-            app.MapQianFiles(_ => throw new InvalidOperationException(), DeclarePermission);
+            app.MapKunFiles(_ => throw new InvalidOperationException(), DeclarePermission);
         else
             app.MapKunDataTypes(DeclarePermission);
         var error = Assert.Throws<InvalidOperationException>(() => ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).ToArray());

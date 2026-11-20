@@ -5,7 +5,7 @@
     <ProjectReference Include="../Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Configuration.Abstractions/Kun.Configuration.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Audit.Abstractions/Kun.Audit.Abstractions.csproj" />

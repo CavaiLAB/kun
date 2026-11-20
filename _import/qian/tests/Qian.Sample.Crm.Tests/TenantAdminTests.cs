@@ -19,7 +19,7 @@ using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Qian.Sample.Crm.Tests;
 

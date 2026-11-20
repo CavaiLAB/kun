@@ -138,7 +138,7 @@ HTTP 端点见 [Kun.Data.AspNetCore](../Kun.Data.AspNetCore/README.md)。
 services.AddKunPgDialect();
 services.AddKunDataConnections((sp, options) => options.UseNpgsql(appConnection));
 services.AddSingleton<ISecretAccessObserver>(auditSink);
-services.AddQianSecrets(new SecretResolverOptions
+services.AddKunSecrets(new SecretResolverOptions
 {
     MountRoot = "/var/run/secrets/qian",
     Bindings = [new("secretRef://tenant/<租户>/data/warehouse", new("qian", "warehouse", "password"), "<租户>")],

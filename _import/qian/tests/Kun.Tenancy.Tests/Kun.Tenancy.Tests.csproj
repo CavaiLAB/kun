@@ -5,7 +5,7 @@
     <ProjectReference Include="../../../../src/Kun.Tenancy/Kun.Tenancy.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <ProjectReference Include="../../../../src/Kun.Grpc/Kun.Grpc.csproj" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" /><PackageReference Include="Grpc.Net.Client" />
     <PackageReference Include="Microsoft.Extensions.Hosting" /><PackageReference Include="xunit.v3" />

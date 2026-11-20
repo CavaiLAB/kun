@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using Qian.Config.Apollo;
-using Qian.Testing.Containers;
+using Kun.Configuration.Platform;
+using Kun.Testing.Containers;
 
 namespace Kun.Gateway.Host.AotTests;
 
@@ -44,7 +44,7 @@ public sealed class GatewayBootstrapTests(ApolloFixture apollo) : IClassFixture<
             {
                 // 与生产入口相同：Add 时立即加载 Apollo，环境/CLI 最终覆盖此时尚未加入根。
                 configuration.Sources.Clear();
-                configuration.AddQianConfigurationSources(options);
+                configuration.AddKunConfigurationSources(options);
                 Assert.Equal("signed", configuration["Marker:Remote"]);
                 Assert.Equal("yes", configuration["Marker:Mounted"]);
             }
@@ -54,7 +54,7 @@ public sealed class GatewayBootstrapTests(ApolloFixture apollo) : IClassFixture<
             using (var reloaded = new ConfigurationManager())
             {
                 reloaded.Sources.Clear();
-                reloaded.AddQianConfigurationSources(options);
+                reloaded.AddKunConfigurationSources(options);
                 Assert.Equal("signed", reloaded["Marker:Remote"]);
             }
             foreach (var cache in Directory.GetFiles(Path.Combine(directory, "cache"), "*.json", SearchOption.AllDirectories))

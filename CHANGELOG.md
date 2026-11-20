@@ -8,6 +8,13 @@
 
 ## [Unreleased]
 
+### Changed — 配置、文件与测试支持（S1-KUN-028）
+
+- 配置契约、平台提供者、ASP.NET Core 端点与挂载式密钥包现在分别使用 `Kun.Configuration.Abstractions`、`Kun.Configuration.Platform`、`Kun.Configuration.AspNetCore` 和 `Kun.Configuration.Secrets`。平台配置、选项、特性开关与端点扩展统一使用 `Kun` 前缀。
+- 文件的契约、提供者和 HTTP 端点分别迁至 `Kun.Files.Abstractions`、`Kun.Files` 与 `Kun.Files.AspNetCore`。配置和文件组件升至 1.1.0。清单中的组件标识、权限点、路由、数据库 schema 与已发布包钉继续兼容。
+- 平台配置计量器由 `Qian.Config` 改为 `Kun.Configuration.Platform`，继续报告 `qian.config.reload.failed`。日志类别 `Qian.Config.Flags`、`Qian.Config.Options` 与 `Qian.Config.Http` 对应改为 `Kun.Configuration.Platform.Flags`、`Kun.Configuration.Platform.Options` 与 `Kun.Configuration.AspNetCore.Http`。
+- 配置与密钥命令行工具分别迁至仓库根的 `tools/Kun.Configuration.Tool` 和 `tools/Kun.Configuration.Secrets.Tool`。集成测试共享夹具使用 `Kun.Testing.Containers` 命名空间。
+
 ### Changed — HTTP 和 gRPC 授权执行点（S1-KUN-027）
 
 - 在 `Kun.Authorization.AspNetCore` 中使用 `AddKunAuthorization`、`RequireKunPermission`、`UseKunAuthorization` 及 `AddKunAuthorizationInterceptor`。普通宿主登记自己的 `IPermissionChecker`，组件宿主提供当前请求的插件上下文。库模式的启动日志说明不写决策审计、不比对身份修订。原来从 Kun.AspNetCore 间接取得 Kun.Authorization 或 Kun.Security 的项目需要显式引用。

@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Kun.Data;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using RabbitMQ.Client;
 
 namespace Kun.EventBus.IntegrationTests;

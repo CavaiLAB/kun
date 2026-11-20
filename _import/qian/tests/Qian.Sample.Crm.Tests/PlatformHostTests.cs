@@ -35,7 +35,7 @@ using Kun.Runtime;
 using Qian.Surfaces;
 using Kun.Tenancy;
 using Qian.Testing;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Qian.Testing.Gateway;
 
 namespace Qian.Sample.Crm.Tests;
@@ -71,7 +71,8 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
             runtime.Profile.Entries.Select(entry => entry.Id).Order(StringComparer.Ordinal));
         Assert.Equal(["qian.bundle.base@1.0.0", "qian.bundle.model-gateway@1.0.0", "qian.bundle.shell@1.0.0"],
             runtime.Profile.Layers.Where(layer => layer.Kind == "bundle").Select(layer => layer.Reference!).Order(StringComparer.Ordinal));
-        Assert.Equal("qian.config@1.0.1", runtime.Profile.Entries.Single(entry => entry.Id == "config").Plugin);
+        var configVersion = JsonNode.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins", "qian.config", ".qian-plugin", "plugin.json")))!["version"]!.GetValue<string>();
+        Assert.Equal("qian.config@" + configVersion, runtime.Profile.Entries.Single(entry => entry.Id == "config").Plugin);
         foreach (var entry in runtime.Profile.Entries)
         {
             Assert.True(runtime.Loader.GetState(entry.Id, ScopeKey.Global) == PluginState.Ready, entry.Id + " " + runtime.Loader.GetFailure(entry.Id, ScopeKey.Global));

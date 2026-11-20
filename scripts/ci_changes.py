@@ -153,7 +153,7 @@ AREAS: Dict[str, Area] = {
         "外壳联邦验收",
         (
             q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-tenancy-ui/**", "plugins/qian.shell/**",
-              "plugins/qian.tenancy/ui/**", "tests/Qian.Shell.TestHost/**", "tests/Qian.Testing.Containers/**",
+              "plugins/qian.tenancy/ui/**", "tests/Qian.Shell.TestHost/**", "tests/Kun.Testing.Containers/**",
               "tests/Shared/NativeAuditDatabase.cs",
               "Directory.*", "pnpm-lock.yaml", "pnpm-workspace.yaml",
               "package.json", ".github/workflows/shell-federation.yml"),

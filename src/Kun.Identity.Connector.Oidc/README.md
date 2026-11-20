@@ -42,7 +42,7 @@ Apply 按配置构造 `OidcIdentityConnector`，以配置的 `name`（缺省 `oi
 
 ## 依赖边界
 
-连接器通过内核 `Kun.Identity` 完成发现、换码、JWKS 刷新与验签。平台通过 `Kun.Identity.Abstractions` 提供身份端口，通过 `Qian.Config.Abstractions` 在每次换码时解析 secretRef。签名验证后的声明投影为本组件的 `ExternalAssertion`。依赖边界由 `scripts/check_deps.py` 和 `tests/gates/test_check_deps.py` 检查。
+连接器通过内核 `Kun.Identity` 完成发现、换码、JWKS 刷新与验签。平台通过 `Kun.Identity.Abstractions` 提供身份端口，通过 `Kun.Configuration.Abstractions` 在每次换码时解析 secretRef。签名验证后的声明投影为本组件的 `ExternalAssertion`。依赖边界由 `scripts/check_deps.py` 和 `tests/gates/test_check_deps.py` 检查。
 
 ## 验收
 

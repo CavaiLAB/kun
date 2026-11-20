@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using System.Text.Json;
 
 namespace Kun.Data.Tests;

@@ -13,7 +13,7 @@
       <项目名>.coverage.cobertura.<时间戳>.xml（文件名前缀见仓库根 tests/Directory.Build.props），且是 Cobertura 格式；
       核对通过后去掉文件名里的时间戳，改成 <项目名>.coverage.cobertura.xml。
   python3 scripts/dotnet_ci.py images [<分片>]
-      列出分片里的测试项目会拉的容器镜像，不给分片则列出全部。镜像名取 tests/Qian.Testing.Containers 里
+      列出分片里的测试项目会拉的容器镜像，不给分片则列出全部。镜像名取 tests/Kun.Testing.Containers 里
       QIAN_TEST_IMAGE_* 变量的缺省值；环境变量已覆盖的取覆盖值，与测试实际拉的一致。列不出即工具出错：夹具目录（CONTAINERS）
       不在、解析不出缺省镜像、项目文件读不了，或者分片里有项目引用了夹具项目、却一个镜像也没解析出来（扫描器漏看了它们）。
       分片里没有容器测试、解析出 0 个镜像不算错。工作流在后台预拉之前先在前台跑它，列不出这一步就失败。
@@ -71,7 +71,7 @@ SOLUTION = ROOT / "Qian.slnf"
 WORKFLOW = REPO / ".github" / "workflows" / "ci.yml"
 CI_CHANGES = REPO / "scripts" / "ci_changes.py"
 PREFIX = "_import/qian/"
-CONTAINERS = ROOT / "tests" / "Qian.Testing.Containers"
+CONTAINERS = ROOT / "tests" / "Kun.Testing.Containers"
 
 # 按基线运行 40034799307 的模块壁钟配平。每个分片同时跑 4 个模块，模块启动顺序由 dotnet test 决定、每次不同，
 # 所以重模块（Config、Scheduler、Sample.Crm、Identity.Server，各 250–400 秒）所在分片的轻模块越少，重模块越早开跑。
@@ -81,11 +81,10 @@ CONTAINERS = ROOT / "tests" / "Qian.Testing.Containers"
 SHARDS: Dict[str, Optional[List[str]]] = {
     # 真实 Apollo 与调度两个重模块都以等待为主，另配一批不起容器或只起 PostgreSQL 的轻模块。
     "a": [
-        "Qian.Config.Tests", "Qian.Scheduler.Tests", "Qian.Lifecycle.Tests", "Qian.Profiles.Tests", "Kun.Gateway.IntegrationTests", "Qian.Common.Tests", "Qian.Docs.Tests", "Qian.Capabilities.Tests", "Kun.Tenancy.Tests", "Qian.Surfaces.Tests",
-        "Qian.Config.Secrets.Tests",
+        "Kun.Configuration.Platform.Tests", "Qian.Scheduler.Tests", "Qian.Lifecycle.Tests", "Qian.Profiles.Tests", "Kun.Gateway.IntegrationTests", "Qian.Common.Tests", "Qian.Docs.Tests", "Qian.Capabilities.Tests", "Kun.Tenancy.Tests", "Qian.Surfaces.Tests",
     ],
     # 恰好 4 个模块，全部一开始就跑。Sample.Crm 与 Registry 的用例调真实 qian CLI，工作流只在这个分片构建它。
-    "b": ["Qian.Sample.Crm.Tests", "Qian.Registry.Tests", "Kun.EventBus.IntegrationTests", "Qian.Files.Tests"],
+    "b": ["Qian.Sample.Crm.Tests", "Qian.Registry.Tests", "Kun.EventBus.IntegrationTests", "Kun.Files.Tests"],
     # 身份、鉴权、审计、数据、容器夹具自测，以及今后新增的测试项目。
     "c": None,
 }
@@ -335,7 +334,7 @@ def sources(directory: Path) -> List[Path]:
 
 
 class Fixtures:
-    """tests/Qian.Testing.Containers 的镜像声明与夹具类型，以及夹具之间的引用（如 InfrastructureFixture 组合四个夹具）。"""
+    """tests/Kun.Testing.Containers 的镜像声明与夹具类型，以及夹具之间的引用（如 InfrastructureFixture 组合四个夹具）。"""
 
     def __init__(self) -> None:
         if not CONTAINERS.is_dir():

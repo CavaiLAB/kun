@@ -24,7 +24,7 @@
         },
         "endpoint": {
           "type": "string",
-          "description": "local 必填：宿主映射直传 / 直下端点的公开基址（绝对 http(s) 地址，路径与 MapQianFiles 的 TransferPath 一致）；oss / s3：对象存储服务端点。"
+          "description": "local 必填：宿主映射直传 / 直下端点的公开基址（绝对 http(s) 地址，路径与 MapKunFiles 的 TransferPath 一致）；oss / s3：对象存储服务端点。"
         },
         "accessKey": {
           "type": "string",

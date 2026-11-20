@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Qian.Registry;
 using Kun.Errors;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Qian.Lifecycle.Tests;
 

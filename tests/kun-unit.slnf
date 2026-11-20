@@ -7,6 +7,7 @@
       "tests/Kun.Authorization.AspNetCore.Tests/Kun.Authorization.AspNetCore.Tests.csproj",
       "tests/Kun.Authorization.Rbac.Abstractions.Tests/Kun.Authorization.Rbac.Abstractions.Tests.csproj",
       "tests/Kun.Caching.Tests/Kun.Caching.Tests.csproj",
+      "tests/Kun.Configuration.Secrets.Tests/Kun.Configuration.Secrets.Tests.csproj",
       "tests/Kun.Configuration.Tests/Kun.Configuration.Tests.csproj",
       "tests/Kun.Core.Tests/Kun.Core.Tests.csproj",
       "tests/Kun.Data.Abstractions.Tests/Kun.Data.Abstractions.Tests.csproj",

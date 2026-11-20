@@ -12,8 +12,8 @@ using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Authorization.AspNetCore;
 using Qian.Capabilities.AspNetCore;
-using Qian.Config;
-using Qian.Config.Secrets;
+using Kun.Configuration;
+using Kun.Configuration.Secrets;
 using Kun.Data;
 using Kun.Identity.Abstractions;
 using Qian.Lifecycle;
@@ -176,7 +176,7 @@ public sealed class PlatformHostComposition
         {
             // 平台信任根：公钥 PEM 在 K8s Secret 里，Trust:PlatformKeys 经 secretRef 引用；每次解析写平台审计链。
             services.AddSingleton<ISecretAccessObserver>(sp => new PlatformSecretAudit(() => sp.GetRequiredService<PlatformRuntime>().Global("config")));
-            services.AddQianSecrets(new SecretResolverOptions
+            services.AddKunSecrets(new SecretResolverOptions
             {
                 MountRoot = mount,
                 Bindings = [new SecretBinding("secretRef://platform/trust/platform", new KubernetesSecretLocation("qian", "trust-platform", "public-key"))],

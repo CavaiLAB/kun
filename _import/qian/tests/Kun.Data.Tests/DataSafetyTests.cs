@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Kun.Errors;
 
 namespace Kun.Data.Tests;

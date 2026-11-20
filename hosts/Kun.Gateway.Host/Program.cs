@@ -7,6 +7,9 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Kun.Audit;
 using Kun.Audit.Postgres;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
+using Kun.Configuration.Secrets;
 using Kun.Data.Native;
 using Kun.Data.Native.Postgres;
 using Kun.Gateway;
@@ -19,16 +22,13 @@ using Kun.MultiTenancy.DependencyInjection;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Microsoft.AspNetCore.DataProtection;
-using Qian.Config;
-using Qian.Config.Apollo;
-using Qian.Config.Secrets;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.UseKestrelHttpsConfiguration();
 var configurationOptions = GatewayBootstrap.CreateOptions(builder.Environment.ContentRootPath, builder.Environment.EnvironmentName, args);
 builder.Configuration.Sources.Clear();
-builder.Configuration.AddQianConfigurationSources(configurationOptions);
+builder.Configuration.AddKunConfigurationSources(configurationOptions);
 var gateway = new GatewayConfiguration(Required("Gateway:IdentityIssuer"), Required("Gateway:IdentityAudience"), Required("Gateway:Issuer"),
     Required("Gateway:SigningKeyPath"), Required("Gateway:PublicKeyPath"),
     builder.Configuration.GetSection("Gateway:TrustedProxyNetworks").GetChildren().Select(item => item.Value ?? "").ToArray(),
@@ -48,7 +48,7 @@ var gateway = new GatewayConfiguration(Required("Gateway:IdentityIssuer"), Requi
 var gatewayJson = JsonSerializer.SerializeToElement(gateway, HostJson.Default.GatewayConfiguration);
 gateway = GatewayHosting.ReadConfiguration(gatewayJson);
 builder.Services.AddKunMultiTenancy();
-builder.Services.AddQianConfiguration(builder.Configuration);
+builder.Services.AddKunConfiguration(builder.Configuration);
 var auditRoles = new NativeAuditRoles(Required("Audit:TenantRole"), Required("Audit:FunctionOwner"), Required("Audit:PlatformRole"));
 var auditGuard = NativeAuditStorage.ExpectedGuard(auditRoles);
 NativeDataTable[] auditTables = [
@@ -65,7 +65,7 @@ builder.Services.AddDataProtection().SetApplicationName("qian.gateway")
 var observer = new GatewaySecretAudit();
 builder.Services.AddSingleton<ISecretAccessObserver>(observer);
 const string identitySecret = "secretRef://platform/identity/client-secret";
-builder.Services.AddQianSecrets(new SecretResolverOptions
+builder.Services.AddKunSecrets(new SecretResolverOptions
 {
     MountRoot = Required("Identity:SecretMountRoot"),
     Bindings = [new(identitySecret, new KubernetesSecretLocation("qian", "identity", "client-secret"))],

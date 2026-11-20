@@ -9,10 +9,10 @@
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.AspNetCore/Kun.Data.AspNetCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.Dialect.Pg/Kun.Data.Dialect.Pg.csproj" />
-    <ProjectReference Include="../../packages/Qian.Files.AspNetCore/Qian.Files.AspNetCore.csproj" />
-    <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Files.AspNetCore/Kun.Files.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <PackageReference Include="JsonSchema.Net" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />

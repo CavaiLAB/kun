@@ -2,13 +2,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Configuration;
 using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Config;
 
 namespace Kun.Identity.Connector.Oidc;
 

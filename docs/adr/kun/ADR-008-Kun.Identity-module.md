@@ -4,6 +4,8 @@
 
 > Implementation update (S1-KUN-004): the [identity client guide](../../guides/identity-client.md) and [canonical S2S guide](../../security/s2s-jwt.md) supersede the legacy issuer and incomplete cookie-flow examples below. The original rationale is retained as history.
 
+> S1-KUN-026 后续实现。平台 OIDC 连接器与 Cookie 应用复用 Kun.Identity 的发现、令牌交换和 ID token 校验。上游账号映射、用户目录与成员关系保留在平台包。参见[身份客户端指南](../../guides/identity-client.md)。
+
 **Status**: Accepted
 **Date**: 2026-04-22
 **Author**: claude-kun (Kun framework specialist)

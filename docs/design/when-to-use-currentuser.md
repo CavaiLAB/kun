@@ -1,51 +1,25 @@
 # When to use `ICurrentUser` vs `IAuthenticatedUser`
 
-**Status**: guidance (not an ADR — implements the direction set in
-[Kun ADR-008](../adr/kun/ADR-008-Kun.Identity-module.md) and
-[Kun ADR-010](../adr/kun/ADR-010-Kun.Identity-cookie-session.md))
-**Last touched**: 2026-10-25 (S1-KUN-017：端口登记与次序)
+The host selects the authentication scheme and registers a request-scoped adapter. Choose the interface by the data and authentication context the caller needs.
 
-Kun Framework exposes two user-context interfaces. They are **not**
-competing abstractions — they are layered, with
-`IAuthenticatedUser` inheriting `ICurrentUser`. The DI registration
-in `Kun.Identity.AspNetCore` binds both to the **same
-request-scoped instance**, so the choice of injected interface is
-purely about the fields a given caller needs.
+| Interface | Data available to the caller | Runtime source |
+|---|---|---|
+| `Kun.Core.Security.ICurrentUser` | UserId, PrincipalKind, Roles, IsAuthenticated | `Kun.Security.Security.JwtCurrentUser` after S2S validation, or a host's browser or platform adapter |
+| `Kun.Identity.IAuthenticatedUser` | Core fields plus an optional ClaimsPrincipal, tenant id, email and display name | `Kun.Identity.AspNetCore.KunCurrentUser` in an OIDC cookie host |
+| `Kun.Identity.Abstractions.ICurrentUser` | Core fields plus an optional `Kun.Security.Principal` snapshot | Identity.Client reads the authenticated session or validated service identity |
+| `Kun.Identity.Abstractions.IAuthenticatedUser` | Guaranteed Principal and UserId | A platform contract for callers that have already required authentication. The default client registers the nullable current-user view |
 
-This doc exists to answer the next sprint's question before anyone
-invents a third adapter.
-
-## Current state
-
-```
-Kun.Core.Security.ICurrentUser           ← minimal, S2S JWT-shaped
-    │  UserId, Roles, IsAuthenticated, PrincipalKind
-    │
-    └── Kun.Identity.IAuthenticatedUser
-           ← adds browser / cookie concerns
-           │  TenantId, Email, Name, Principal
-```
-
-Two runtime bindings ship today:
-
-| Binding | Source | Ships as |
-|---------|--------|----------|
-| `Kun.Security.JwtCurrentUser` | S2S JWT claims | `ICurrentUser` |
-| `Kun.Identity.AspNetCore.KunCurrentUser` | Cookie / OIDC code flow | `ICurrentUser` **and** `IAuthenticatedUser` |
-
-`AnonymousCurrentUser` in `Kun.Core.Security` is the no-auth
-sentinel — used by background workers and tests that have no
-request context.
+`AddKunIdentityAspNetCore` registers the core and browser interfaces against the same scoped adapter. `AddKunIdentityClient` makes the platform current-user interface available and offers its implementation to core callers through a scoped alias. The core alias uses `TryAddScoped`, so an explicitly registered core adapter retains its place. Background workers can supply `AnonymousCurrentUser.Instance`.
 
 ## Decision table
 
 | Caller scenario | Inject | Why |
 |-----------------|--------|-----|
-| gRPC service handler (S2S JWT) | `ICurrentUser` | S2S tokens only carry `sub` + `roles`; browser fields would always be `null`. |
+| gRPC service handler (S2S JWT) | `ICurrentUser` | The validated S2S principal supplies subject, kind and roles. |
 | gRPC interceptor / pipeline behaviour | `ICurrentUser` | Same — operates at the S2S boundary. |
 | ASP.NET Core **API** endpoint the browser hits directly | `IAuthenticatedUser` | Cookie middleware populated `TenantId` / `Email` / `Name` / `Principal`; skip the cast. |
 | ASP.NET Core **background** worker (`BackgroundService`) | `ICurrentUser` with a **null check** | No request scope exists; bind `AnonymousCurrentUser` explicitly. |
-| Outbox publisher | `ICurrentUser`, usually `AnonymousCurrentUser`. | Background context — inherit the S2S identity only if the invoker explicitly pushed it into OTel baggage (see `Kun.Observability.Enrichment.KunBaggageKeys`). |
+| Outbox publisher | `ICurrentUser`, usually `AnonymousCurrentUser`. | Background context — obtain any required identity from the authenticated message context. OpenTelemetry baggage carries diagnostic context. |
 | Unit test | `ICurrentUser` with a hand-rolled fake (a `record MyUser(…) : ICurrentUser`) or `AnonymousCurrentUser.Instance`. | Tests depend only on the narrow interface; no HTTP context is needed. |
 | Component that **reads tenant** (EF filter, cache key) | `ITenantContext`, **not** either of these. | Tenant identity propagation has its own abstraction — don't couple persistence-layer code to an auth interface. |
 

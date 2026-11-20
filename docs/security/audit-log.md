@@ -26,6 +26,8 @@ services.AddKunEventBus(registry => registry.RegisterAuditing());
 
 信封的 producer 为 `qian.audit`。命令内保留现有 actor、相关 ID 与 trace；没有命令时使用审计主体或已认证用户。后台保存要用 `EventEnvelopeScope.Begin` 指定实际服务主体。平台级事件的租户为 null。原有 v1、v2 业务字段均在信封的 `payload` 中。
 
+网关的内部令牌用 `sub` 标识当前主体，`principal_kind` 标识主体类型。业务审计可通过 `ICurrentUser` 取得已验证身份，需要记录委托关系时使用验证后的 `Principal.Actor`。链路关联使用当前 Activity 的 TraceId。
+
 应用可在当前租户的业务上下文中，通过 `db.Set<AuditLog>()` 与 EF 查询读取实体日志，继续使用本业务的访问控制和租户过滤。命令链的分页读取及验链分别使用 `IAuditReader.ReadAsync` 和 `VerifyAsync`。
 
 ## 数据约定

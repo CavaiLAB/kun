@@ -19,7 +19,7 @@ The external IdP — your OpenID Connect provider — issues JWTs to end users a
 Gateway validates these tokens using the IdP's published JWKS. External tokens are accepted only
 at `Kun.Gateway`; no downstream service ever sees or validates an external token directly.
 
-The standalone gateway accepts RS256 and ES256 external JWTs. `KunGatewayOptions.ExternalJwksUri`
+The standalone gateway accepts RS256 and ES256 external JWTs. `GatewayConfiguration.ExternalJwksUri`
 points to the IdP's JWKS endpoint. The Gateway fetches and caches keys from there.
 
 ### Internal key pair (Gateway-owned)
@@ -27,7 +27,7 @@ points to the IdP's JWKS endpoint. The Gateway fetches and caches keys from ther
 The Gateway holds its own RSA key pair. After validating an external token, the Gateway mints a
 new short-lived internal token signed with its private key and forwards that token to downstream
 services in place of the original. Downstream services validate against the Gateway's public JWKS,
-which is served at `/.well-known/jwks.json` on the internal network only.
+served at `/.well-known/jwks.json`. The gateway host controls network exposure.
 
 This means a downstream service never trusts anything that did not pass through the Gateway's
 signing step. Plain headers (`X-User-Id`, `X-Tenant-Id`) are untrusted and must never be used
@@ -39,12 +39,9 @@ for authorization decisions.
 
 A compromised component on the internal network cannot forge a valid S2S JWT without access to
 the Gateway's RSA private key. The private key lives only on the Gateway host, loaded at startup
-from `KunGatewayOptions.SigningKeyPath` as a PEM file. The corresponding public key is exposed via
-JWKS only on the internal network interface.
+from `GatewayConfiguration.SigningKeyPath` as a PEM file. The public JWKS contains only verification keys.
 
-Because every downstream service independently validates the JWT signature and checks the
-`aud=kun-internal` audience claim, a forged or replayed token from outside the trust boundary is
-rejected immediately at the JwtBearer middleware layer, before any handler code runs.
+Before a handler runs, the downstream service checks the token's signature, issuer, audience, lifetime and required identity claims. Each service configures its own audience.
 
 ---
 
@@ -78,8 +75,7 @@ public string SigningAlgorithm { get; init; } = "RS256";
 
 ## Token Lifetime
 
-The default TTL is **60 seconds**, set in both `S2sTokenOptions.Lifetime` and
-`KunGatewayOptions.InternalTokenLifetime`. The short TTL is intentional:
+The gateway defaults to a **60-second** lifetime. A standalone host supplies `GatewayConfiguration.InternalTokenLifetime`. The short TTL is intentional:
 
 - Configured lifetime must be between one and 300 seconds; expiry plus verifier clock skew bounds replay.
 - Session/revision revocation remains an authority check; token expiry alone does not implement immediate user logout.
@@ -144,8 +140,7 @@ The YARP transform awaits the resolver and honors request cancellation. Kernel i
 The `kid` is derived from the first 16 characters of the Base64-encoded SHA-256 hash of the RSA
 modulus, making it stable across Gateway restarts for the same key pair.
 
-This endpoint must be accessible only on the internal network. Do not expose it on a
-public-facing interface. Downstream services are configured with the internal URL via
+The public JWKS route is anonymous. A host can also opt into the separately gated internal JWKS route. Downstream services are configured with the internal URL via
 `KunServiceAuthenticationOptions.JwksUri`, and the built-in `ConfigurationManager` from
 `Microsoft.IdentityModel.Protocols.OpenIdConnect` fetches and caches the keys automatically,
 refreshing them when an unknown `kid` is encountered.
@@ -189,7 +184,7 @@ keys, switch signing to the new key, and wait for old-signed tokens to expire.
 ## Calling the next service
 
 The gateway issues a service token for the selected downstream audience through
-`S2sTokenIssuer.IssueForAudienceAsync`. Each hop needs its own token.
+`S2sTokenIssuer.IssueForAudienceAsync`. The YARP transform signs once for each authenticated request. A declarative gateway uses the selected cluster id as the audience. Standalone hosts use their configured internal audience.
 `PropagateS2sTokenHandler` and `AddKunServiceAuth` are obsolete (KUNS2S001).
 
 ---
@@ -207,21 +202,11 @@ tenant. `KunDbContext.OnModelCreating` applies a global query filter using `ITen
 automatically on any entity that implements `IMultiTenant` — so tenant isolation is enforced at
 the EF Core query level without any per-handler code.
 
+The gRPC server interceptor checks the authenticated subject against propagated tenant metadata and restores the previous scope when the call finishes. Tenant-required endpoints require a tenant, while an explicitly permitted platform RPC accepts a tenantless platform subject.
+
 ### ICurrentUser — JwtCurrentUser
 
-`src/Kun.Security/Security/JwtCurrentUser.cs` reads `sub`, `name`, and `roles` claims:
-
-```csharp
-public string? UserId =>
-    Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-    ?? Principal?.FindFirst("sub")?.Value;
-
-public IReadOnlyList<string> Roles => ...;
-public bool IsAuthenticated => ...;
-```
-
-Inject `ICurrentUser` when a handler needs to know who is making the request, for example to
-set `CreatedBy` on an audit entity.
+`JwtCurrentUser` exposes the authenticated primary identity through `Kun.Core.Security.ICurrentUser`. Handlers use its user identifier and roles to attribute an operation or set `CreatedBy` on an audit entity. The platform identity adapter also exposes the verified service principal, including the session identifier and identity revision.
 
 ### Registration
 
@@ -235,7 +220,7 @@ builder.Services
     {
         opts.Issuer   = "kun-gateway";
         opts.Audience = "kun-internal";
-        opts.JwksUri  = "http://gateway/.well-known/jwks.json";
+        opts.JwksUri  = "https://gateway.example.com/.well-known/jwks.json";
     });
 ```
 

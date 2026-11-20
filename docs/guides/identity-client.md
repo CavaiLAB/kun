@@ -1,6 +1,6 @@
 # Identity 客户端、浏览器会话与迁移
 
-Kun 提供依赖方客户端，不托管产品账号库或机器凭据签发端点。S2S 的唯一新入口是网关 [S2sTokenIssuer](../security/s2s-jwt.md)，本指南说明外部身份进入浏览器会话的路径。
+内核 Kun.Identity 提供 OIDC 依赖方协议与会话端口。平台包 Kun.Identity.Server 提供基于 OpenIddict 的身份服务，Kun.Identity.Client 将平台会话接入宿主。S2S 的唯一新入口是网关 [S2sTokenIssuer](../security/s2s-jwt.md)，本指南说明外部身份进入浏览器会话的路径。
 
 ## 装配
 
@@ -23,6 +23,8 @@ app.UseKunCookieAuth();
 app.UseAuthentication();
 app.UseAuthorization();
 ```
+
+将 `Authority` 设为发现文档公布的 `issuer` 原值，包括根路径末尾的斜杠。协议客户端对两个标识逐字比较。
 
 Web 装配登记 SignInHelper、ChallengeHelper、OidcLoginService、OidcLogoutService、当前用户接口及防跨站请求服务。默认使用 KunCookieAuth 方案返回 401；若宿主已选择认证方案则保留其选择。服务登记幂等，所有请求辅助类在请求 scope 中解析。生产副本必须共享 Data Protection 密钥和相同的会话 Redis 前缀；不同应用自行选择隔离前缀。开发/测试可显式 UseInMemoryStore，生产会话不走缓存失败后的本地内存回退。
 
@@ -53,9 +55,13 @@ ISessionRegistry 在 ISessionStore 的基础上提供 RenewAsync、RevokeUserAsy
 2. 字节缓存版 RedisSessionStore 构造器仅保留兼容（KUNSESSION001），不具备原子索引能力。UseRedisStore 改用直接 Redis 连接；新键格式与旧缓存不兼容，升级时安排重新登录，不能把旧会话当作已迁移。
 3. 不再用 SetAsync 做滑动续期；使用原子 RenewAsync。定制存储需实现 ISessionRegistry。
 4. 网关只签规范的 UUID 租户/会话/成员/项目标识；不能把不透明的提供方 sid 或浏览器 cookie 直接当作 S2S session_id。应用的可信主体解析器负责从身份权威投影完整字段及有效修订。
-5. 旧 Identity / Security S2S 签发入口标 KUNS2S001。Qian 的禁用符号门禁独立于发布版本，不能靠调用旧工厂或只声明旧类型绕开。
+5. 已退役的签发类型迁至归档。新调用方使用 Kun.Gateway.S2sTokenIssuer。
 6. Sandbox 默认模板为 kun-default；ProviderExtensions 由调用方显式选择后端支持的键。旧命名扩展仍按旧协议序列化并标记废弃，防止丢弃已有调用方明确要求的安全策略；新扩展不能覆盖核心资源字段。
 
-## 验证口径
+## 连接外部身份源
 
-Kun 的真实 Kestrel/HTTP、签名协议夹具和 Redis 测试证明客户端与会话边界；网关输出按冻结 2020-12 Schema 验证。该协议夹具不是 Qian 身份服务。S1-KUN-004 中“使用真实 qian-identity 完成 PKCE”的产品联调仍需 S1-IDP-002 交付，不能以本指南的框架测试替代。
+平台的 OIDC 连接器与应用依赖方共用发现、PKCE 换码、JWKS 缓存和 ID Token 验证。Issuer 必须与发现文档逐字相同。回调把发行方返回的 `iss` 传入 `OidcCodeExchange.ResponseIssuer`。声明支持 RFC 9207 的发行方需要返回该参数。
+
+两个入口默认允许 RS、PS、ES 系列的 256、384、512 位签名算法，均可按发行方收窄。应用依赖方默认要求单一受众，平台连接器可接受附带本客户端 azp 的多受众令牌。时钟容差缺省两分钟，可设为零至五分钟。平台身份服务负责创建并一次性消费登录事务，连接器通过 secretRef 在每次换码时解析客户端密钥。
+
+验收项目覆盖真实 OpenIddict 登录与刷新、Redis 浏览器会话、签名密钥轮换及带目标受众的网关令牌。[身份服务](../../src/Kun.Identity.Server/README.md) · [平台客户端](../../src/Kun.Identity.Client/README.md) · [OIDC 连接器](../../src/Kun.Identity.Connector.Oidc/README.md)

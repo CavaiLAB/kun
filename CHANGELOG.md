@@ -8,10 +8,6 @@
 
 ## [Unreleased]
 
-### Changed — 官方组件许可（S1-KUN-022）
-
-- 39 个官方组件的清单改用 MIT，并各自递增补丁版本。CRM 样例和命令行生成的技能清单也采用 MIT。13 个系统组件的目录摘要随之改变，部署前需按新镜像重新签名。包含清单的 NuGet 包将在下次发布时带上新版声明。
-
 ### Changed — .NET 构建、测试与打包（S1-KUN-029）
 
 - `Qian.slnf` 已移除。从仓库根运行 `dotnet build Kun.slnx -c Release`。平台测试使用 `tests/kun-platform.slnf`，根单元测试使用 `tests/kun-unit.slnf`。CI 的分片清单可用 `python3 scripts/dotnet_ci.py shard a --out /tmp/kun-tests-a.slnf` 生成。
@@ -313,6 +309,10 @@
 ### Changed — 包依赖版本
 
 - 使用其他包内部成员的程序集精确依赖该包的当前版本。消费者升级时，将这对包一起升级。
+
+### Changed — 官方组件许可（S1-KUN-022）
+
+- 39 个官方组件的清单改用 MIT，并各自递增补丁版本。CRM 样例和命令行生成的技能清单也采用 MIT。13 个系统组件的目录摘要随之改变，部署前需按新镜像重新签名。包含清单的 NuGet 包将在下次发布时带上新版声明。
 
 ## [2026.10.25] - 2026-10-25
 

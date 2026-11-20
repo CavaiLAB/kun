@@ -1,7 +1,5 @@
 # 任务看板上 K3s
 
-部署清单在 `deploy/pm-board`。仍使用原目录的部署继续跟踪同一条主干，原入口使用既有的任务前缀，根入口从仓库根构建。运行 `python3 deploy/pm-board/verify_source.py` 会渲染两份清单，并核对两边的看板页面、状态与 nginx 提供的任务原文。
-
 在集群里提供任务看板（看板页、`STATUS.md`、`tasks.json`），随时用浏览器看进度。**不构建镜像、不改 CI**：一个 Pod 里三个容器：
 
 - `git-sync` 每 60 秒拉一次仓库（`CavaiLAB/kun`）的 `main` 分支；

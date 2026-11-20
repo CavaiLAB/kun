@@ -1,7 +1,5 @@
 # 文档站上 K3s
 
-部署清单在 `deploy/docs-site`。使用原目录的部署会经 Kustomization 读取根清单。工作流对两个入口运行 `kubectl kustomize`，逐字节比较完整输出。
-
 文档站（`website/`，S1-DOCS-001）的托管方式：**CI 构建，git-sync 拉取，nginx 提供**。与[任务看板](../pm-board/README.md)同一套做法，不构建镜像：
 
 ```text

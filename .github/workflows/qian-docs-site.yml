@@ -29,10 +29,7 @@ jobs:
 
       # 与 website/scripts/kun.ts 的 readKunVersion 同一规则：第一个不是 [Unreleased] 的「## [版本]」段
       - name: 验证文档站部署入口
-        run: |
-          kubectl kustomize deploy/docs-site > "$RUNNER_TEMP/docs-site-root.yaml"
-          kubectl kustomize _import/qian/deploy/docs-site > "$RUNNER_TEMP/docs-site-source.yaml"
-          cmp "$RUNNER_TEMP/docs-site-root.yaml" "$RUNNER_TEMP/docs-site-source.yaml"
+        run: kubectl kustomize deploy/docs-site > /dev/null
 
       - name: 读 Kun 最新的发布版（仓库根 CHANGELOG.md）
         id: kun

@@ -813,7 +813,7 @@ class RegistrationTests(unittest.TestCase):
         project = "tests/Moved.Tests/Moved.Tests.csproj"
         self.box.write_repo(project, XUNIT_PROJECT)
         with self.box.patched():
-            with self.assertRaisesRegex(dotnet_ci.ToolError, "没有识别出测试项目"):
+            with self.assertRaisesRegex(dotnet_ci.ToolError, "kun-platform.slnf 里没有测试项目"):
                 dotnet_ci.test_projects()
             self.box.write_repo("tests/kun-platform.slnf", json.dumps({
                 "solution": {"path": "../Kun.slnx", "projects": [project]},

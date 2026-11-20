@@ -9,7 +9,7 @@
 本手册覆盖构建、部署、回退与首个平台运营账号的引导，并列出相对 PRD 7.17 的已知差异。
 
 - 装配方式与取值的裁决：[关键决策](../decisions/key-decisions-v0.md) 的 R150（扩展登记与 overlay、主机名与证书、引导 Job、D4 只开运营开户）与 R151（系统组件修订的签名、授权与免批）。
-- 配置键：以 [平台宿主](../../hosts/Qian.Platform.Host/README.md) 与 [网关宿主](../../../../hosts/Kun.Gateway.Host/README.md) 的文档为准。
+- 配置键：以 [平台宿主](../../hosts/Qian.Platform.Host/README.md) 与 [网关宿主](https://github.com/CavaiLAB/kun/blob/main/hosts/Kun.Gateway.Host/README.md) 的文档为准。
 - 清单与 Secret 引导脚本：在部署仓库（`idadawn/iclaw-deploy`）的 `2-qian/` 与 `env-ds/qian-staging/` 下，对象名以那里为准。
 
 凡是改动集群状态的操作（apply 或同步、建角色、建 Secret、改网络策略、跑 Job），都要先经产品负责人确认；只读查询不需要。密钥只经 Secret 注入，不进 git。

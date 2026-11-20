@@ -12,13 +12,13 @@
 
 ## 路径 A 的执行结果
 
-2026-10-23，源码 `e9cef6a70d` 消费正式 Kun `2026.10.23`，以固定 SDK 镜像发布实际 [Qian.Gateway.Host](../../../../hosts/Kun.Gateway.Host/README.md)，linux-arm64 严格 ILC 零诊断。产物满足 ELF 文件头、无同名托管 DLL，运行时动态代码能力关闭；同一 [完整 driver](../../tests/Kun.Gateway.Host.AotTests/README.md) 连接真实 Apollo 2.5.2、Redis、受限 PostgreSQL 和 Identity，完成 Cookie/Bearer 换签、平台审计和 SIGTERM 正常停机，3/3 用例通过。
+2026-10-23，源码 `e9cef6a70d` 消费正式 Kun `2026.10.23`，以固定 SDK 镜像发布实际 [Qian.Gateway.Host](https://github.com/CavaiLAB/kun/blob/main/hosts/Kun.Gateway.Host/README.md)，linux-arm64 严格 ILC 零诊断。产物满足 ELF 文件头、无同名托管 DLL，运行时动态代码能力关闭；同一 [完整 driver](../../tests/Kun.Gateway.Host.AotTests/README.md) 连接真实 Apollo 2.5.2、Redis、受限 PostgreSQL 和 Identity，完成 Cookie/Bearer 换签、平台审计和 SIGTERM 正常停机，3/3 用例通过。
 
 原生生产进程实际追加了密钥解析和 Apollo 发布的 3 条平台审计，独立真实 NativeAudit 组合读回并验链；NativeAudit 自身的读写/验链原生执行由 AUD-008 单独门同步证明。平台和 Scheduler 的 EF 安全路径没有被替换。`gateway-host-aot` CI 持续执行实际宿主严格发布与相同真实依赖 driver；组件私有源安装和业务镜像供应链不由此代替。
 
 ## 原始 EF 路径失败证据
 
-- 基线：`88c5f3c33d`，仅增加 [完整依赖探针](../../../../tools/Kun.Gateway.AotProbe/Program.cs)，没有修改 Data、Audit、Kun 的实现或安全检查。
+- 基线：`88c5f3c33d`，仅增加 [完整依赖探针](https://github.com/CavaiLAB/kun/blob/main/tools/Kun.Gateway.AotProbe/Program.cs)，没有修改 Data、Audit、Kun 的实现或安全检查。
 - 普通 Release 构建：`dotnet build tools/Qian.Gateway.AotProbe -c Release`，零警告、零错误。
 - Linux 环境：本机 Docker `linux/aarch64`；SDK 镜像 `mcr.microsoft.com/dotnet/sdk:10.0` 固定到摘要 `sha256:747cbade5bfd918a175ac32f8f1d931edec2c7d0d5397a3de72eaef1ac1f66d2`。
 - 可复现命令：`docker build --progress=plain -f tools/Qian.Gateway.AotProbe/Dockerfile -t qian-gateway-aot-probe:gw001 .`。Dockerfile 安装 clang / zlib 后执行严格的 `dotnet publish -c Release -r linux-arm64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false`。

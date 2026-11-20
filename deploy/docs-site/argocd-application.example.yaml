@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/CavaiLAB/kun.git
-    path: _import/qian/deploy/docs-site
+    path: deploy/docs-site
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc

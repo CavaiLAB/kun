@@ -7,7 +7,7 @@ name: qian-documentation
 #   路径过滤在区域表 scripts/ci_changes.py 的 documentation 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
 #   Kun.slnx、src/ 与 _import/qian/.npmrc。
 # - 位置：run 步骤的工作目录、package.json 与上传路径加 _import/qian/ 前缀；setup-dotnet 读仓库根的 global.json。
-#   派生文档新鲜度用 git status 看 docs/generated，pathspec 相对工作目录，看的仍是 _import/qian/docs/generated。
+#   派生文档新鲜度用 git status 看 docs/generated，pathspec 相对工作目录，看的仍是 docs/generated。
 # - 前端框架迁出（B11，见迁移执行计划）之后：TypeScript 运行时装 CavaiLAB/qian 发布在 GitHub Packages 上的
 #   @cavailab/qian-runtime，去掉构建 packages/qian-runtime 一步；命令行测试里有运行时一致性用例的 TS 一侧，区域含
 #   tck/runtime/。装依赖要读 GitHub Packages 上的公开包，
@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 15
     env:
       # 源码根与源码目录（见文件开头）；在仓库根目录运行。
-      DOCS_SOURCES: --source-root . --source packages --source plugins --source src --out _import/qian/docs/generated
+      DOCS_SOURCES: --source-root . --source packages --source plugins --source src --out docs/generated
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -61,10 +61,10 @@ jobs:
       # G2 文档新鲜度（ADR-020 D20.9、组件模型规格 §10.3、PRD §14 C18）：上一步已按当前源码重写 docs/generated，有修改或新文件即失败。
       - name: 派生文档新鲜度：docs/generated 必须与重新生成的结果一致
         run: |
-          drift="$(git status --porcelain -- _import/qian/docs/generated)"
+          drift="$(git status --porcelain -- docs/generated)"
           if [ -n "$drift" ]; then
             echo "$drift"
-            git --no-pager diff --stat -- _import/qian/docs/generated
+            git --no-pager diff --stat -- docs/generated
             echo "::error::docs/generated 与源码派生结果不一致：先 pnpm --filter qian... build，再在仓库根目录运行 pnpm exec qian docs generate --profile platform $DOCS_SOURCES，提交 docs/generated；也可下载本次运行的 derived-docs-and-events 产物（ADR-020 D20.9 / 组件模型规格 §10.3 G2）。"
             exit 1
           fi
@@ -73,5 +73,5 @@ jobs:
         with:
           name: derived-docs-and-events
           path: |
-            _import/qian/docs/generated/
+            docs/generated/
             TestResults/docs-*.json

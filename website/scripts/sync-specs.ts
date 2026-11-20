@@ -38,9 +38,25 @@ export const CLI_PAGES: Array<{ section: number; slug: string; title: string; de
 
 // ---------------------------------------------------------------- 路径与路由
 
+/** 仓库里的平台文档与已有站点路由。框架参考页由发布标签单独生成。 */
+const platformAliases: Record<string, string> = {
+  'docs/platform-overview.md': 'docs/README.md',
+  'docs/platform-roadmap.md': 'docs/ROADMAP.md',
+  'docs/platform-history.md': 'docs/CHANGELOG.md',
+  'docs/adr/decisions.md': 'docs/adr/README.md',
+};
+
+function designSource(repoRelPath: string): string {
+  return platformAliases[repoRelPath] ?? repoRelPath.replace(/^docs\/platform-migration\//, 'docs/migration/');
+}
+
+function isPlatformSource(rel: string): boolean {
+  return !/^docs\/(?:adr\/kun\/|(?:guides|security|design)\/|(?:architecture|agent-support|getting-started|migration-plan|migration)\.md$)/.test(rel);
+}
+
 /** docs/ 下的源文件 → design/ 下的页面路径，如 docs/adr/ADR-015-x.md → adr/adr-015-x.md。 */
 export function designPagePath(repoRelPath: string): string {
-  const rel = toPosix(repoRelPath);
+  const rel = designSource(toPosix(repoRelPath));
   if (!rel.startsWith('docs/') || !rel.endsWith('.md')) {
     throw new Error(`不是 docs/ 下的 Markdown：${repoRelPath}`);
   }
@@ -79,9 +95,10 @@ export function makeDocsResolver(sourceRepoRel: string, repoRoot: string = PLATF
     }
     const isDir = fs.statSync(abs).isDirectory();
     if (rel.startsWith('docs/') || rel === 'docs') {
-      if (!isDir && rel.endsWith('.md')) return designRoute(rel) + anchor;
-      const readme = path.join(abs, 'README.md');
-      if (isDir && fs.existsSync(readme)) return designRoute(toPosix(path.relative(repoRoot, readme))) + anchor;
+      if (!isDir && rel.endsWith('.md') && isPlatformSource(rel)) return designRoute(rel) + anchor;
+      const landing = rel === 'docs' ? 'platform-overview.md' : rel === 'docs/adr' ? 'decisions.md' : 'README.md';
+      const readme = path.join(abs, landing);
+      if (isDir && isPlatformSource(toPosix(path.relative(repoRoot, readme))) && fs.existsSync(readme)) return designRoute(toPosix(path.relative(repoRoot, readme))) + anchor;
     }
     return githubUrl(sourcePath, isDir) + anchor;
   };
@@ -100,7 +117,7 @@ export function listDocsSources(repoRoot: string = PLATFORM_DOCS_ROOT): string[]
     }
   };
   walk(docsDir);
-  return out.sort();
+  return out.filter(isPlatformSource).sort();
 }
 
 function sourceNote(repoRelPath: string, sourceRoot: string): string {
@@ -171,13 +188,14 @@ export function sidebarLabel(repoRelPath: string, source: string): string {
 type MetaItem = string | { type: 'file' | 'dir'; name: string; label: string; collapsible?: boolean; collapsed?: boolean };
 
 export function syncDesign(repoRoot: string = PLATFORM_DOCS_ROOT): GeneratedFile[] {
-  const sources = listDocsSources(repoRoot);
+  const actualSources = listDocsSources(repoRoot);
+  const sources = actualSources.map(designSource);
   const files: GeneratedFile[] = [];
   const labels = new Map<string, string>();
-  for (const rel of sources) {
+  for (const rel of actualSources) {
     const source = fs.readFileSync(path.join(repoRoot, rel), 'utf8');
     files.push({ path: designPagePath(rel), content: mirrorDoc(rel, source, repoRoot) });
-    labels.set(rel, sidebarLabel(rel, source));
+    labels.set(designSource(rel), sidebarLabel(designSource(rel), source));
   }
 
   // 侧栏：每个目录一份 _meta.json，目录首页（README → index）排第一。

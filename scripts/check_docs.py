@@ -22,15 +22,14 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
-PLATFORM_DOCS = Path("_import/qian/docs")
+ROOT = Path(__file__).resolve().parents[1]
 # 已作废项目的名字按整词匹配：前后不能紧挨英文字母，避免误伤 prefixing、mixing 这类英文单词
 BANNED = re.compile(r"jnpf|引迈|(?<![a-z])xing(?![a-z])", re.I)
 # 对标项目只能写「对标项目」，不写名字（ADR-020 §8）
 REFERENCE_NAMES = re.compile(r"claude-code-templates|deepseek|openai/plugins|aitmpl|davila7|codex-plugin", re.I)
 
 DEFAULT_TARGETS = [
-    "_import/qian/docs",
+    "docs",
     "contracts",
     "_import/qian/README.md",
     "_import/qian/AGENTS.md",
@@ -134,8 +133,17 @@ def source_files() -> list[Path]:
 def design_routes() -> frozenset[str]:
     """docs/ 下每个 .md 在文档站「设计与路线」的路由，规则同 website/scripts/sync-specs.ts 的 designRoute。"""
     routes = set()
-    for f in (ROOT / PLATFORM_DOCS).rglob("*.md"):
-        parts = [p.lower() for p in f.relative_to(ROOT / PLATFORM_DOCS).parts]
+    framework_pages = {"architecture.md", "agent-support.md", "getting-started.md", "migration-plan.md", "migration.md"}
+    aliases = {"platform-overview.md": "README.md", "platform-roadmap.md": "ROADMAP.md",
+               "platform-history.md": "CHANGELOG.md", "adr/decisions.md": "adr/README.md"}
+    for f in (ROOT / "docs").rglob("*.md"):
+        relative = f.relative_to(ROOT / "docs").as_posix()
+        if relative.startswith(("adr/kun/", "guides/", "security/", "design/")) or relative in framework_pages:
+            continue
+        relative = aliases.get(relative, relative)
+        if relative.startswith("platform-migration/"):
+            relative = "migration/" + relative.removeprefix("platform-migration/")
+        parts = [part.lower() for part in Path(relative).parts]
         name = parts.pop()
         page = "/".join(parts + ["index" if name == "readme.md" else name[: -len(".md")]])
         routes.add("/design/" + page)

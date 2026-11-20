@@ -15,7 +15,7 @@ export const WEBSITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.
 export const REPO_ROOT = path.resolve(WEBSITE_ROOT, '..');
 export const REPOSITORY_ROOT = REPO_ROOT;
 /** 平台规格与设计文档所在的工作区。 */
-export const PLATFORM_DOCS_ROOT = path.join(REPO_ROOT, '_import', 'qian');
+export const PLATFORM_DOCS_ROOT = REPO_ROOT;
 export const SITE_DOCS = path.join(WEBSITE_ROOT, 'docs');
 
 /**

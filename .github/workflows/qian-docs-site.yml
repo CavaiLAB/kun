@@ -10,8 +10,8 @@ name: qian-docs-site
 #   kun 仓库：版本标签在本仓库里，所以只从本仓库取这一个 tag 与它的历史，生成脚本（website/scripts/kun.ts）
 #   直接读本仓库，不设 KUN_DOCS_PATH。原件的 deploy key 与「检查 kun 仓库只读凭据」一步都用不上，没有接。
 # - 发布（B2 接上）：与原件一样只在 main 上发布正式站点（push 到 main，或在 main 上手动触发），用
-#   _import/qian/deploy/docs-site/publish.sh main 把构建产物推到本仓库的 docs-site 分支，集群里的 git-sync 拉这个分支
-#  （_import/qian/deploy/docs-site/）。作业权限只要 contents: write（原件另有 pull-requests: write，只给 PR 评论用）。
+#   deploy/docs-site/publish.sh main 把构建产物推到本仓库的 docs-site 分支，集群里的 git-sync 拉这个分支
+#  （deploy/docs-site/）。作业权限只要 contents: write（原件另有 pull-requests: write，只给 PR 评论用）。
 #   运行摘要只写发布的路径与来源提交，不写访问入口：原件的 DOCS_ORIGIN_WG、DOCS_ORIGIN_LAN 是内网地址，本仓库公开，
 #   这两个环境变量不接。
 # - PR 预览暂不发布：原件对同仓库分支的 PR 发布 /pr-preview/pr-<n>/、在 PR 里留带内网入口的评论、PR 关闭时删除预览。
@@ -56,6 +56,12 @@ jobs:
       - uses: actions/checkout@v4
 
       # 与 website/scripts/kun.ts 的 readKunVersion 同一规则：第一个不是 [Unreleased] 的「## [版本]」段
+      - name: 验证文档站部署入口
+        run: |
+          kubectl kustomize deploy/docs-site > "$RUNNER_TEMP/docs-site-root.yaml"
+          kubectl kustomize _import/qian/deploy/docs-site > "$RUNNER_TEMP/docs-site-source.yaml"
+          cmp "$RUNNER_TEMP/docs-site-root.yaml" "$RUNNER_TEMP/docs-site-source.yaml"
+
       - name: 读 Kun 最新的发布版（仓库根 CHANGELOG.md）
         id: kun
         run: |
@@ -144,7 +150,7 @@ jobs:
 
       # Kun 镜像页与 API 参考的源不在 _import/qian/ 里，生成后单独过文档门禁（禁用词、表格、断链）
       - name: 生成页过文档门禁（frontmatter、禁用词、链接；源不在本仓库的 Kun 页也在内）
-        run: python3 _import/qian/scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md
+        run: python3 scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md
 
       - name: Chromium 与真实组件交互验收
         run: |
@@ -192,7 +198,7 @@ jobs:
       - name: 推送到 docs-site 分支
         env:
           DOCS_SOURCE_SHA: ${{ github.sha }}
-        run: _import/qian/deploy/docs-site/publish.sh main "$RUNNER_TEMP/docs-site"
+        run: deploy/docs-site/publish.sh main "$RUNNER_TEMP/docs-site"
 
       - name: 记录发布结果
         run: |
@@ -201,5 +207,5 @@ jobs:
             echo ""
             echo "- 分支 \`docs-site\` 的根目录，来源提交 \`${GITHUB_SHA:0:12}\`"
             echo ""
-            echo "git-sync 每 60 秒拉取一次 docs-site 分支，推送后约一分钟可见；访问入口见 _import/qian/deploy/docs-site/README.md。"
+            echo "git-sync 每 60 秒拉取一次 docs-site 分支，推送后约一分钟可见；访问入口见 deploy/docs-site/README.md。"
           } >> "$GITHUB_STEP_SUMMARY"

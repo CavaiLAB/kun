@@ -28,11 +28,11 @@ function relativeLinks(markdown: string): string[] {
 describe('路径与路由', () => {
   it('小写短横线，README 变 index', () => {
     assert.equal(designPagePath('docs/adr/ADR-015-model-gateway.md'), 'adr/adr-015-model-gateway.md');
-    assert.equal(designPagePath('docs/README.md'), 'index.md');
-    assert.equal(designPagePath('docs/prd/specs/yue.md'), 'prd/specs/yue.md');
-    assert.equal(designRoute('docs/README.md'), '/design/');
-    assert.equal(designRoute('docs/adr/README.md'), '/design/adr/');
-    assert.equal(designRoute('docs/ROADMAP.md'), '/design/roadmap');
+    assert.equal(designPagePath('docs/platform-overview.md'), 'index.md');
+    assert.equal(designPagePath('docs/prd/specs/frontend.md'), 'prd/specs/frontend.md');
+    assert.equal(designRoute('docs/platform-overview.md'), '/design/');
+    assert.equal(designRoute('docs/adr/decisions.md'), '/design/adr/');
+    assert.equal(designRoute('docs/platform-roadmap.md'), '/design/roadmap');
   });
 
   it('不是 docs/ 下的 Markdown 时报错', () => {
@@ -42,22 +42,21 @@ describe('路径与路由', () => {
 
 describe('makeDocsResolver', () => {
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'qian-repo-'));
-  const platform = path.join(repo, '_import', 'qian');
   for (const [file, text] of [
     ['docs/a/README.md', '# A'],
     ['docs/a/B.md', '# B'],
     ['docs/c.md', '# C'],
     ['docs/d/e.md', '# E'],
-    ['pm/x.md', '# X'],
+    ['tools/x.md', '# X'],
   ] as const) {
-    fs.mkdirSync(path.dirname(path.join(platform, file)), { recursive: true });
-    fs.writeFileSync(path.join(platform, file), text);
+    fs.mkdirSync(path.dirname(path.join(repo, file)), { recursive: true });
+    fs.writeFileSync(path.join(repo, file), text);
   }
   fs.mkdirSync(path.join(repo, 'src/Common'), { recursive: true });
   fs.writeFileSync(path.join(repo, 'src/Common/README.md'), '# Common');
   fs.mkdirSync(path.join(repo, 'contracts'));
   fs.writeFileSync(path.join(repo, 'contracts', 'contract.json'), '{}');
-  const resolve = makeDocsResolver('docs/a/B.md', platform, repo);
+  const resolve = makeDocsResolver('docs/a/B.md', repo, repo);
 
   it('docs/ 内的文件与带 README 的目录 → 站内路由，保留锚点', () => {
     assert.equal(resolve('README.md#x'), '/design/a/#x');
@@ -66,10 +65,10 @@ describe('makeDocsResolver', () => {
   });
 
   it('docs/ 之外与没有 README 的目录 → GitHub 地址', () => {
-    assert.equal(resolve('../../../../src/Common/README.md#rules'), 'https://github.com/CavaiLAB/kun/blob/main/src/Common/README.md#rules');
-    assert.equal(resolve('../../../../contracts/contract.json'), 'https://github.com/CavaiLAB/kun/blob/main/contracts/contract.json');
-    assert.equal(resolve('../../pm/x.md'), 'https://github.com/CavaiLAB/kun/blob/main/_import/qian/pm/x.md');
-    assert.equal(resolve('../d/'), 'https://github.com/CavaiLAB/kun/tree/main/_import/qian/docs/d');
+    assert.equal(resolve('../../src/Common/README.md#rules'), 'https://github.com/CavaiLAB/kun/blob/main/src/Common/README.md#rules');
+    assert.equal(resolve('../../contracts/contract.json'), 'https://github.com/CavaiLAB/kun/blob/main/contracts/contract.json');
+    assert.equal(resolve('../../tools/x.md'), 'https://github.com/CavaiLAB/kun/blob/main/tools/x.md');
+    assert.equal(resolve('../d/'), 'https://github.com/CavaiLAB/kun/tree/main/docs/d');
   });
 
   it('外部地址与纯锚点不改', () => {
@@ -80,7 +79,7 @@ describe('makeDocsResolver', () => {
 
   it('目标不存在或越出仓库时报错', () => {
     assert.throws(() => resolve('missing.md'), /不存在/);
-    assert.throws(() => resolve('../../../../../outside.md'), /仓库之外/);
+    assert.throws(() => resolve('../../../outside.md'), /仓库之外/);
   });
 });
 

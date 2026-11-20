@@ -31,9 +31,9 @@ def write(path: Path, text: str) -> None:
 class SiteContentTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp(prefix="qian-check-docs-"))
-        write(self.tmp / "_import/qian/docs/README.md", "# 索引\n")
-        write(self.tmp / "_import/qian/docs/adr/README.md", "# ADR\n")
-        write(self.tmp / "_import/qian/docs/adr/ADR-001-kun.md", "# ADR-001\n")
+        write(self.tmp / "docs/platform-overview.md", "# 索引\n")
+        write(self.tmp / "docs/adr/decisions.md", "# ADR\n")
+        write(self.tmp / "docs/adr/ADR-001-kun.md", "# ADR-001\n")
         write(self.tmp / "website/scripts/sync-specs.ts", "{ section: 9, slug: 'commands' }\n")
         write(self.tmp / "website/scripts/collect-components.ts", "{ id: 'qian.files' }\n")
         site = self.tmp / "website/docs"
@@ -179,7 +179,7 @@ class FrontmatterTests(SiteContentTests):
         root = FM_OK.replace("title: 宿主", "pageType: custom\noutline: false\ntitle: 首页")
         self.assertEqual(self.fm_errors(root, "index.mdx"), [])
         # 非站点页面不检查
-        self.assertEqual(check_docs.check_frontmatter(self.tmp / "_import/qian/docs/README.md", "# 索引\n"), [])
+        self.assertEqual(check_docs.check_frontmatter(self.tmp / "docs/platform-overview.md", "# 索引\n"), [])
 
     def test_parser_subset(self) -> None:
         data = check_docs.parse_frontmatter(

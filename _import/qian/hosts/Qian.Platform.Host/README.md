@@ -134,7 +134,7 @@ dotnet run --project hosts/Qian.Platform.Host -c Release -- --bootstrap-operator
 
 表里的受众是对端点说的：路径的大小写与结尾斜杠变体路由到同一个端点，受众也相同。
 
-网关宿主的路由表（[`hosts/Qian.Gateway.Host/appsettings.json`](../Qian.Gateway.Host/appsettings.json)）按簇转发：能力与有效权限进 `qian-platform`，租户运营进 `qian-operations`，两个簇指向本宿主的同一个服务地址；以后要拆只改簇地址。
+网关宿主的路由表（[`hosts/Kun.Gateway.Host/appsettings.json`](https://github.com/CavaiLAB/kun/blob/main/hosts/Kun.Gateway.Host/appsettings.json)）按簇转发：能力与有效权限进 `qian-platform`，租户运营进 `qian-operations`，两个簇指向本宿主的同一个服务地址；以后要拆只改簇地址。
 
 ## 与参考宿主的差异
 

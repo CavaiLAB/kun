@@ -1,5 +1,4 @@
 using System.Net;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Kun.Gateway.Jwks;
 using Kun.Gateway.RateLimiting;
@@ -7,6 +6,7 @@ using Kun.Gateway.RateLimiting.Resolvers;
 using Kun.Gateway.Transforms;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
@@ -21,7 +21,7 @@ public static class KunGatewayServiceCollectionExtensions
     /// <summary>
     /// Registers core Kun Gateway services:
     /// <list type="bullet">
-    ///   <item><see cref="KunGatewayOptions"/> bound from the provided delegate.</item>
+    ///   <item><see cref="GatewayConfiguration"/> as supplied by the host.</item>
     ///   <item><see cref="S2sTokenIssuer"/> as a singleton.</item>
     ///   <item>Default <see cref="TenantRateLimitPartitionResolver"/> (override by registering your own before calling this).</item>
     ///   <item>YARP reverse proxy with the <see cref="S2sAuthTransform"/> applied to all routes.</item>
@@ -31,7 +31,8 @@ public static class KunGatewayServiceCollectionExtensions
     /// descriptive <see cref="InvalidOperationException"/> on host start if one is missing.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <param name="configure">Delegate to configure <see cref="KunGatewayOptions"/>.</param>
+    /// <param name="configuration">Gateway identity, routes, key files and host settings. When omitted, the standalone host reads the Gateway section from its final configuration.</param>
+    /// <param name="sessionAuthenticationScheme">Cookie scheme for a declaratively routed gateway.</param>
     /// <param name="reverseProxyConfig">
     /// Optional YARP configuration section (e.g. <c>Configuration.GetSection("ReverseProxy")</c>)
     /// to bind Routes/Clusters. When null, callers must register their own
@@ -40,14 +41,23 @@ public static class KunGatewayServiceCollectionExtensions
     /// <returns>The same <see cref="IServiceCollection"/> for chaining.</returns>
     public static IServiceCollection AddKunGateway(
         this IServiceCollection services,
-        Action<KunGatewayOptions> configure,
+        GatewayConfiguration? configuration = null,
+        string? sessionAuthenticationScheme = null,
         Microsoft.Extensions.Configuration.IConfiguration? reverseProxyConfig = null)
     {
         ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(configure);
-
-        services.AddOptions<KunGatewayOptions>()
-            .Configure(configure);
+        if (configuration is null)
+        {
+            if (sessionAuthenticationScheme is not null) throw new ArgumentException("A session scheme requires a declarative gateway configuration.", nameof(sessionAuthenticationScheme));
+            services.AddSingleton(provider => Options.Create(GatewayConfigurationReader.ReadStandalone(
+                provider.GetRequiredService<IConfiguration>().GetRequiredSection("Gateway"))));
+        }
+        else
+        {
+            if (sessionAuthenticationScheme is not null || configuration.Routes is { Count: > 0 } || configuration.Clusters is { Count: > 0 })
+                configuration = GatewayHosting.AddManaged(services, configuration, sessionAuthenticationScheme ?? "qian.session");
+            services.AddSingleton(Options.Create(configuration));
+        }
 
         services.AddHttpContextAccessor();
         services.AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -55,7 +65,7 @@ public static class KunGatewayServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<S2sSigningKeyRing>();
         services.AddHealthChecks().AddCheck<GatewaySigningHealthCheck>("gateway-signing", tags: ["ready"]);
-        services.AddOptions<ForwardedHeadersOptions>().Configure<IOptions<KunGatewayOptions>>((forwarded, gateway) =>
+        services.AddOptions<ForwardedHeadersOptions>().Configure<IOptions<GatewayConfiguration>>((forwarded, gateway) =>
         {
             var options = gateway.Value;
             if (options.ForwardLimit <= 0) throw new InvalidOperationException("ForwardLimit must be positive.");
@@ -64,7 +74,7 @@ public static class KunGatewayServiceCollectionExtensions
             foreach (var address in options.TrustedProxyAddresses) forwarded.KnownProxies.Add(IPAddress.Parse(address));
             foreach (var network in options.TrustedProxyNetworks) forwarded.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
             // 空白名单时关闭处理，不能把清空 KnownProxies 误当成默认拒绝（ASP.NET 会视为信任全部）。
-            forwarded.ForwardedHeaders = options.TrustedProxyAddresses.Length + options.TrustedProxyNetworks.Length > 0
+            forwarded.ForwardedHeaders = options.TrustedProxyAddresses.Length + options.TrustedProxyNetworks.Count > 0
                 ? ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto : ForwardedHeaders.None;
         });
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IProxyConfigFilter, GatewayRouteDefaults>());
@@ -78,7 +88,7 @@ public static class KunGatewayServiceCollectionExtensions
         // Gateway endpoints use the shared signing ring, including its overlap keys.
         services.TryAddSingleton<JwksResponseBuilder>();
 
-        services.TryAddSingleton(provider => new S2sTokenIssuer(provider.GetRequiredService<IOptions<KunGatewayOptions>>(), provider.GetRequiredService<IHostEnvironment>(), provider.GetRequiredService<IS2sPrincipalResolver>(), provider.GetService<IHttpContextAccessor>(), provider.GetRequiredService<S2sSigningKeyRing>()));
+        services.TryAddSingleton(provider => new S2sTokenIssuer(provider.GetRequiredService<IOptions<GatewayConfiguration>>(), provider.GetRequiredService<IHostEnvironment>(), provider.GetRequiredService<IS2sPrincipalResolver>(), provider.GetService<IHttpContextAccessor>(), provider.GetRequiredService<S2sSigningKeyRing>()));
 
         // Default partition resolver — tenant-based; can be overridden before calling AddKunGateway
         services.TryAddSingleton<RateLimiting.IRateLimitPartitionResolver, TenantRateLimitPartitionResolver>();
@@ -91,7 +101,9 @@ public static class KunGatewayServiceCollectionExtensions
             .AddTransforms(ctx =>
             {
                 var issuer = ctx.Services.GetRequiredService<S2sTokenIssuer>();
-                ctx.RequestTransforms.Add(new S2sAuthTransform(issuer));
+                var runtime = ctx.Services.GetService<GatewayRuntime>();
+                var audience = runtime?.AudienceFor(ctx.Route.ClusterId ?? throw new InvalidOperationException("网关路由必须绑定 cluster。"));
+                ctx.RequestTransforms.Add(new S2sAuthTransform(issuer, runtime, audience));
             });
 
         if (reverseProxyConfig is not null)
@@ -132,7 +144,7 @@ internal sealed class ReverseProxyConfigValidationService : IHostedService
         {
             throw new InvalidOperationException(
                 "Kun.Gateway was registered without a ReverseProxy config source. " +
-                "Call AddKunGateway(configure, Configuration.GetSection(\"ReverseProxy\")) OR register an " +
+                "Call AddKunGateway(configuration, reverseProxyConfig: Configuration.GetSection(\"ReverseProxy\")) OR register an " +
                 "IProxyConfigProvider yourself before MapReverseProxy.");
         }
 

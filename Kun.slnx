@@ -9,6 +9,7 @@
     <Project Path="benchmarks/Kun.Benchmarks/Kun.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/hosts/">
+    <Project Path="hosts/Kun.Gateway.Host/Kun.Gateway.Host.csproj" />
     <Project Path="hosts/Kun.Gateway.Standalone/Kun.Gateway.Standalone.csproj" />
   </Folder>
   <Folder Name="/samples/">
@@ -47,6 +48,8 @@
     <Project Path="src/Kun.EventBus.EntityFrameworkCore/Kun.EventBus.EntityFrameworkCore.csproj" />
     <Project Path="src/Kun.EventBus.RabbitMQ/Kun.EventBus.RabbitMQ.csproj" />
     <Project Path="src/Kun.EventBus/Kun.EventBus.csproj" />
+    <Project Path="src/Kun.Gateway.Abstractions/Kun.Gateway.Abstractions.csproj" />
+    <Project Path="src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
     <Project Path="src/Kun.Gateway/Kun.Gateway.csproj" />
     <Project Path="src/Kun.Grpc/Kun.Grpc.csproj" />
     <Project Path="src/Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
@@ -126,7 +129,6 @@
   <Folder Name="/_import/" />
   <Folder Name="/_import/qian/" />
   <Folder Name="/_import/qian/hosts/">
-    <Project Path="_import/qian/hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj" />
     <Project Path="_import/qian/hosts/Qian.Platform.Host/Qian.Platform.Host.csproj" />
   </Folder>
   <Folder Name="/_import/qian/packages/">
@@ -145,8 +147,6 @@
     <Project Path="_import/qian/packages/Qian.Files.Abstractions/Qian.Files.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Files.AspNetCore/Qian.Files.AspNetCore.csproj" />
     <Project Path="_import/qian/packages/Qian.Files/Qian.Files.csproj" />
-    <Project Path="_import/qian/packages/Qian.Gateway.Abstractions/Qian.Gateway.Abstractions.csproj" />
-    <Project Path="_import/qian/packages/Qian.Gateway/Qian.Gateway.csproj" />
     <Project Path="_import/qian/packages/Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
     <Project Path="_import/qian/packages/Qian.Lifecycle.AspNetCore/Qian.Lifecycle.AspNetCore.csproj" />
     <Project Path="_import/qian/packages/Qian.Lifecycle/Qian.Lifecycle.csproj" />
@@ -170,6 +170,7 @@
     <Project Path="_import/qian/tests/Kun.Data.AspNetCore.Tests/Kun.Data.AspNetCore.Tests.csproj" />
     <Project Path="_import/qian/tests/Kun.Data.Native.Postgres.Tests/Kun.Data.Native.Postgres.Tests.csproj" />
     <Project Path="_import/qian/tests/Kun.Data.Tests/Kun.Data.Tests.csproj" />
+    <Project Path="_import/qian/tests/Kun.Gateway.IntegrationTests/Kun.Gateway.IntegrationTests.csproj" />
     <Project Path="_import/qian/tests/Kun.Identity.Client.Standalone.Tests/Kun.Identity.Client.Standalone.Tests.csproj" />
     <Project Path="_import/qian/tests/Kun.Identity.Client.Tests/Kun.Identity.Client.Tests.csproj" />
     <Project Path="_import/qian/tests/Kun.Identity.Server.Tests/Kun.Identity.Server.Tests.csproj" />
@@ -183,7 +184,6 @@
     <Project Path="_import/qian/tests/Qian.Docs.Tests/Qian.Docs.Tests.csproj" />
     <Project Path="_import/qian/tests/Kun.EventBus.IntegrationTests/Kun.EventBus.IntegrationTests.csproj" />
     <Project Path="_import/qian/tests/Qian.Files.Tests/Qian.Files.Tests.csproj" />
-    <Project Path="_import/qian/tests/Qian.Gateway.Tests/Qian.Gateway.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Lifecycle.Tests/Qian.Lifecycle.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Profiles.Tests/Qian.Profiles.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Registry.Tests/Qian.Registry.Tests.csproj" />

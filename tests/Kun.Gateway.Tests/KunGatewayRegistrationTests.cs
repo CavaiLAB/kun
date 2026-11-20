@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,13 +13,12 @@ namespace Kun.Gateway.Tests;
 /// </summary>
 public sealed class KunGatewayRegistrationTests
 {
-    private static Action<KunGatewayOptions> DefaultConfigure() =>
-        opts =>
-        {
-            opts.ExternalIssuer = "https://login.example.com";
-            opts.ExternalAudience = "my-api";
-            opts.ExternalJwksUri = "https://login.example.com/.well-known/openid-configuration";
-        };
+    private static GatewayConfiguration DefaultConfigure() => new()
+    {
+        IdentityIssuer = "https://login.example.com",
+        IdentityAudience = "my-api",
+        ExternalJwksUri = "https://login.example.com/.well-known/openid-configuration",
+    };
 
     // ── Test 1: double-registration does not throw ────────────────────────────
 

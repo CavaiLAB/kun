@@ -9,7 +9,7 @@ YARP-based API gateway library. A host built on it validates external IdP-issued
 | File | Description |
 |------|-------------|
 | `Kun.Gateway.csproj` | `IsAotCompatible=true`, `Sdk=Microsoft.NET.Sdk` with a `Microsoft.AspNetCore.App` framework reference; a class library |
-| `Configuration/KunGatewayOptions.cs` | Options for external IdP, internal issuer/audience, key file paths |
+| `../Kun.Gateway.Abstractions/GatewayDefinition.cs` | Options for external IdP, internal issuer/audience, key file paths |
 | `S2sTokenIssuer.cs` | Issues internal S2S JWTs through the shared hot-reloading signing ring (RS256, 60 s TTL) |
 | `Transforms/S2sAuthTransform.cs` | Internal YARP `RequestTransform`; replaces `Authorization` header with minted S2S JWT |
 | `Endpoints/JwksEndpoint.cs` | `MapKunJwks()` extension; serves `/.well-known/jwks.json` from the active/overlap signing ring |
@@ -24,7 +24,7 @@ YARP-based API gateway library. A host built on it validates external IdP-issued
 ### Working In This Directory
 
 - **YARP transform**: the internal `S2sAuthTransform` runs on every forwarded request; it reads `HttpContext.User`, asks `S2sTokenIssuer.IssueFor(principal)` for a token, and writes `Authorization: Bearer {token}` on the outbound request — replacing any existing Authorization header.
-- **JWKS for S2S keys** is served from `/.well-known/jwks.json`. The `kid` is a SHA-256 hash of the RSA modulus (first 16 Base64Url chars) for stable identification across restarts.
+- **JWKS for S2S keys** is served from `/.well-known/jwks.json`. The `kid` is a SHA-256 hash of the RSA modulus (first 16 Base64 characters) for stable identification across restarts.
 - **Canonical S2S**: only authenticated user/service principals with complete scope/session/revision/tenant context may be issued. aud/roles are arrays, UUIDs are canonical, lifetime is 1–300 seconds; arbitrary forwarded/trace claims are not supported. See GATEWAY.md.
 - **Rate limiting** partitions by `tenant_id` claim (default) or IP. Override by registering your own `IRateLimitPartitionResolver` singleton before `AddKunGateway`.
 - **Do NOT use `AddKunServiceAuthentication`** here — that extension is for downstream services validating *incoming* S2S tokens. The gateway validates *external* IdP tokens directly via `AddJwtBearer`.
@@ -34,11 +34,11 @@ YARP-based API gateway library. A host built on it validates external IdP-issued
 
 ```json
 {
-  "KunGateway": {
-    "ExternalIssuer": "https://login.example.com",
-    "ExternalAudience": "my-api",
+  "Gateway": {
+    "IdentityIssuer": "https://login.example.com",
+    "IdentityAudience": "my-api",
     "ExternalJwksUri": "https://login.example.com/.well-known/openid-configuration",
-    "InternalIssuer": "kun-gateway",
+    "Issuer": "kun-gateway",
     "InternalAudience": "kun-internal",
     "SigningKeyPath": "/etc/kun/gateway-private.pem",
     "PublicKeyPath": "/etc/kun/gateway-public.pem"

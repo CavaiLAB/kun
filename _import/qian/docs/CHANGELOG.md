@@ -20,7 +20,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-24 网关路由共享限流（S1-GW-002）
 
-[网关](../packages/Qian.Gateway/README.md#路由限流s1-gw-002) 支持 IP、租户和用户三策略及 Redis 共享固定窗口，超限返回带 `Retry-After` 的 429，Redis 故障返回 503。路由现在必须显式填写 `rateLimiterPolicy`；仓库配置已迁移，自定义宿主与 profile 需补充该字段。
+[网关](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Gateway.Shell/README.md#路由限流s1-gw-002) 支持 IP、租户和用户三策略及 Redis 共享固定窗口，超限返回带 `Retry-After` 的 429，Redis 故障返回 503。路由现在必须显式填写 `rateLimiterPolicy`；仓库配置已迁移，自定义宿主与 profile 需补充该字段。
 
 ## 2026-10-24 身份客户端可从私有源安装（S1-IDP-015）
 

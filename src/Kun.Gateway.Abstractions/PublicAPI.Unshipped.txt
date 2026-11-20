@@ -1,0 +1,107 @@
+#nullable enable
+Kun.Gateway.GatewayCluster
+Kun.Gateway.GatewayCluster.<Clone>$() -> Kun.Gateway.GatewayCluster!
+Kun.Gateway.GatewayCluster.Address.get -> string!
+Kun.Gateway.GatewayCluster.Address.init -> void
+Kun.Gateway.GatewayCluster.Deconstruct(out string! Id, out string! Address) -> void
+Kun.Gateway.GatewayCluster.Equals(Kun.Gateway.GatewayCluster? other) -> bool
+Kun.Gateway.GatewayCluster.GatewayCluster(string! Id, string! Address) -> void
+Kun.Gateway.GatewayCluster.Id.get -> string!
+Kun.Gateway.GatewayCluster.Id.init -> void
+Kun.Gateway.GatewayConfiguration
+Kun.Gateway.GatewayConfiguration.<Clone>$() -> Kun.Gateway.GatewayConfiguration!
+Kun.Gateway.GatewayConfiguration.Clusters.get -> System.Collections.Generic.IReadOnlyList<Kun.Gateway.GatewayCluster!>!
+Kun.Gateway.GatewayConfiguration.Clusters.init -> void
+Kun.Gateway.GatewayConfiguration.Deconstruct(out string! IdentityIssuer, out string! IdentityAudience, out string! Issuer, out string! SigningKeyPath, out string! PublicKeyPath, out System.Collections.Generic.IReadOnlyList<string!>! TrustedProxyNetworks, out System.Collections.Generic.IReadOnlyList<Kun.Gateway.GatewayRoute!>! Routes, out System.Collections.Generic.IReadOnlyList<Kun.Gateway.GatewayCluster!>! Clusters) -> void
+Kun.Gateway.GatewayConfiguration.Equals(Kun.Gateway.GatewayConfiguration? other) -> bool
+Kun.Gateway.GatewayConfiguration.GatewayConfiguration(string! IdentityIssuer, string! IdentityAudience, string! Issuer, string! SigningKeyPath, string! PublicKeyPath, System.Collections.Generic.IReadOnlyList<string!>! TrustedProxyNetworks, System.Collections.Generic.IReadOnlyList<Kun.Gateway.GatewayRoute!>! Routes, System.Collections.Generic.IReadOnlyList<Kun.Gateway.GatewayCluster!>! Clusters) -> void
+Kun.Gateway.GatewayConfiguration.IdentityAudience.get -> string!
+Kun.Gateway.GatewayConfiguration.IdentityAudience.init -> void
+Kun.Gateway.GatewayConfiguration.IdentityIssuer.get -> string!
+Kun.Gateway.GatewayConfiguration.IdentityIssuer.init -> void
+Kun.Gateway.GatewayConfiguration.Issuer.get -> string!
+Kun.Gateway.GatewayConfiguration.Issuer.init -> void
+Kun.Gateway.GatewayConfiguration.PublicKeyPath.get -> string!
+Kun.Gateway.GatewayConfiguration.PublicKeyPath.init -> void
+Kun.Gateway.GatewayConfiguration.RateLimits.get -> Kun.Gateway.GatewayRateLimits!
+Kun.Gateway.GatewayConfiguration.RateLimits.init -> void
+Kun.Gateway.GatewayConfiguration.Routes.get -> System.Collections.Generic.IReadOnlyList<Kun.Gateway.GatewayRoute!>!
+Kun.Gateway.GatewayConfiguration.Routes.init -> void
+Kun.Gateway.GatewayConfiguration.SigningKeyPath.get -> string!
+Kun.Gateway.GatewayConfiguration.SigningKeyPath.init -> void
+Kun.Gateway.GatewayConfiguration.TrustedProxyNetworks.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Gateway.GatewayConfiguration.TrustedProxyNetworks.init -> void
+Kun.Gateway.GatewayDefinition
+Kun.Gateway.GatewayRateLimits
+Kun.Gateway.GatewayRateLimits.<Clone>$() -> Kun.Gateway.GatewayRateLimits!
+Kun.Gateway.GatewayRateLimits.Equals(Kun.Gateway.GatewayRateLimits? other) -> bool
+Kun.Gateway.GatewayRateLimits.GatewayRateLimits() -> void
+Kun.Gateway.GatewayRateLimits.IpPermitLimit.get -> int
+Kun.Gateway.GatewayRateLimits.IpPermitLimit.init -> void
+Kun.Gateway.GatewayRateLimits.KeyPrefix.get -> string!
+Kun.Gateway.GatewayRateLimits.KeyPrefix.init -> void
+Kun.Gateway.GatewayRateLimits.TenantPermitLimit.get -> int
+Kun.Gateway.GatewayRateLimits.TenantPermitLimit.init -> void
+Kun.Gateway.GatewayRateLimits.UserPermitLimit.get -> int
+Kun.Gateway.GatewayRateLimits.UserPermitLimit.init -> void
+Kun.Gateway.GatewayRateLimits.WindowSeconds.get -> int
+Kun.Gateway.GatewayRateLimits.WindowSeconds.init -> void
+Kun.Gateway.GatewayRoute
+Kun.Gateway.GatewayRoute.<Clone>$() -> Kun.Gateway.GatewayRoute!
+Kun.Gateway.GatewayRoute.Cluster.get -> string!
+Kun.Gateway.GatewayRoute.Cluster.init -> void
+Kun.Gateway.GatewayRoute.Deconstruct(out string! Id, out string! Path, out string! Cluster) -> void
+Kun.Gateway.GatewayRoute.Equals(Kun.Gateway.GatewayRoute? other) -> bool
+Kun.Gateway.GatewayRoute.GatewayRoute(string! Id, string! Path, string! Cluster) -> void
+Kun.Gateway.GatewayRoute.Id.get -> string!
+Kun.Gateway.GatewayRoute.Id.init -> void
+Kun.Gateway.GatewayRoute.Path.get -> string!
+Kun.Gateway.GatewayRoute.Path.init -> void
+Kun.Gateway.GatewayRoute.RateLimiterPolicy.get -> string!
+Kun.Gateway.GatewayRoute.RateLimiterPolicy.init -> void
+Kun.Gateway.IGatewayService
+Kun.Gateway.IGatewayService.AudienceFor(string! clusterId) -> string!
+Kun.Gateway.IGatewayService.IsReady.get -> bool
+override Kun.Gateway.GatewayCluster.Equals(object? obj) -> bool
+override Kun.Gateway.GatewayCluster.GetHashCode() -> int
+override Kun.Gateway.GatewayCluster.ToString() -> string!
+override Kun.Gateway.GatewayConfiguration.Equals(object? obj) -> bool
+override Kun.Gateway.GatewayConfiguration.GetHashCode() -> int
+override Kun.Gateway.GatewayConfiguration.ToString() -> string!
+override Kun.Gateway.GatewayRateLimits.Equals(object? obj) -> bool
+override Kun.Gateway.GatewayRateLimits.GetHashCode() -> int
+override Kun.Gateway.GatewayRateLimits.ToString() -> string!
+override Kun.Gateway.GatewayRoute.Equals(object? obj) -> bool
+override Kun.Gateway.GatewayRoute.GetHashCode() -> int
+override Kun.Gateway.GatewayRoute.ToString() -> string!
+static Kun.Gateway.GatewayCluster.operator !=(Kun.Gateway.GatewayCluster? left, Kun.Gateway.GatewayCluster? right) -> bool
+static Kun.Gateway.GatewayCluster.operator ==(Kun.Gateway.GatewayCluster? left, Kun.Gateway.GatewayCluster? right) -> bool
+static Kun.Gateway.GatewayConfiguration.operator !=(Kun.Gateway.GatewayConfiguration? left, Kun.Gateway.GatewayConfiguration? right) -> bool
+static Kun.Gateway.GatewayConfiguration.operator ==(Kun.Gateway.GatewayConfiguration? left, Kun.Gateway.GatewayConfiguration? right) -> bool
+static Kun.Gateway.GatewayDefinition.Gateway(this Kun.Runtime.IPluginContext! context) -> Kun.Gateway.IGatewayService!
+static Kun.Gateway.GatewayRateLimits.operator !=(Kun.Gateway.GatewayRateLimits? left, Kun.Gateway.GatewayRateLimits? right) -> bool
+static Kun.Gateway.GatewayRateLimits.operator ==(Kun.Gateway.GatewayRateLimits? left, Kun.Gateway.GatewayRateLimits? right) -> bool
+static Kun.Gateway.GatewayRoute.operator !=(Kun.Gateway.GatewayRoute? left, Kun.Gateway.GatewayRoute? right) -> bool
+static Kun.Gateway.GatewayRoute.operator ==(Kun.Gateway.GatewayRoute? left, Kun.Gateway.GatewayRoute? right) -> bool
+static readonly Kun.Gateway.GatewayDefinition.Key -> Kun.Runtime.ServiceKey
+Kun.Gateway.GatewayConfiguration.EmitTraceIdClaim.get -> bool
+Kun.Gateway.GatewayConfiguration.EmitTraceIdClaim.init -> void
+Kun.Gateway.GatewayConfiguration.ExposeInternalJwks.get -> bool
+Kun.Gateway.GatewayConfiguration.ExposeInternalJwks.init -> void
+Kun.Gateway.GatewayConfiguration.ExternalJwksUri.get -> string!
+Kun.Gateway.GatewayConfiguration.ExternalJwksUri.init -> void
+Kun.Gateway.GatewayConfiguration.ForwardLimit.get -> int
+Kun.Gateway.GatewayConfiguration.ForwardLimit.init -> void
+Kun.Gateway.GatewayConfiguration.ForwardedClaimTypes.get -> string![]!
+Kun.Gateway.GatewayConfiguration.ForwardedClaimTypes.init -> void
+Kun.Gateway.GatewayConfiguration.GatewayConfiguration() -> void
+Kun.Gateway.GatewayConfiguration.InternalAudience.get -> string!
+Kun.Gateway.GatewayConfiguration.InternalAudience.init -> void
+Kun.Gateway.GatewayConfiguration.InternalTokenLifetime.get -> System.TimeSpan
+Kun.Gateway.GatewayConfiguration.InternalTokenLifetime.init -> void
+Kun.Gateway.GatewayConfiguration.KeyOverlapPeriod.get -> System.TimeSpan
+Kun.Gateway.GatewayConfiguration.KeyOverlapPeriod.init -> void
+Kun.Gateway.GatewayConfiguration.KeyReloadInterval.get -> System.TimeSpan
+Kun.Gateway.GatewayConfiguration.KeyReloadInterval.init -> void
+Kun.Gateway.GatewayConfiguration.TrustedProxyAddresses.get -> string![]!
+Kun.Gateway.GatewayConfiguration.TrustedProxyAddresses.init -> void

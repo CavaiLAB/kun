@@ -6,12 +6,33 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kun.RateLimit.Extensions;
 
 /// <summary>Service-collection extensions that register unified Kun rate limiting.</summary>
 public static class KunRateLimitServiceCollectionExtensions
 {
+    /// <summary>Registers the Redis fixed-window counter against the host's connection multiplexer.</summary>
+    public static IServiceCollection AddKunRedisRateLimitStore(
+        this IServiceCollection services,
+        Action<RedisRateLimitStoreOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        if (configure is not null)
+        {
+            services.Configure(configure);
+        }
+        else
+        {
+            services.AddOptions<RedisRateLimitStoreOptions>();
+        }
+
+        services.TryAddSingleton<IRedisRateLimitStore, RedisFixedWindowRateLimitStore>();
+        return services;
+    }
+
     /// <summary>
     /// Registers <see cref="RateLimiterOptions"/> built from the supplied
     /// <see cref="KunRateLimitOptions"/>. Each named window becomes a

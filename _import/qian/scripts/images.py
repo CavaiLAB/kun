@@ -6,7 +6,7 @@
 
 build：按 deploy/images/<kind>.Dockerfile 构建并推送，输出按 digest 的引用与构建证据（源码 SHA、
 profile 与组件目录的 git 树修订）。构建上下文是仓库根（S1-KUN-020）：本目录的项目从源码编译仓库根 src/ 下的 Kun 项目；
---project 写相对本目录（_import/qian）的路径。推到哪个 registry 由 --tag 决定；向外部 registry 发布归 S1-DEP-008 / S1-DEP-005。
+--project 写相对仓库根的路径。推到哪个 registry 由 --tag 决定；向外部 registry 发布归 S1-DEP-008 / S1-DEP-005。
 --web 给出前端构建产物目录（S1-DEP-011），以命名构建上下文 web 送入镜像的 /app/web，证据里记该目录的 D4 摘要；
 不给时送一个空目录（总是显式给出，避免 BuildKit 把空阶段与上一次的前端层当成同一缓存）。
 
@@ -53,8 +53,8 @@ SEVERITIES = ("negligible", "low", "medium", "high", "critical")
 SIGNER_IDENTITY = "https://github.com/CavaiLAB/kun/.github/workflows/ci.yml@refs/heads/main"
 SIGNER_ISSUER = "https://token.actions.githubusercontent.com"
 SELFCHECK_IMAGES = {
-    "jit": ("tools/Qian.Image.SelfCheck/Qian.Image.SelfCheck.csproj", "Qian.Image.SelfCheck", "qian-selfcheck-jit"),
-    "aot": ("tools/Qian.Image.SelfCheck.Aot/Qian.Image.SelfCheck.Aot.csproj", "Qian.Image.SelfCheck.Aot", "qian-selfcheck-aot"),
+    "jit": ("_import/qian/tools/Qian.Image.SelfCheck/Qian.Image.SelfCheck.csproj", "Qian.Image.SelfCheck", "qian-selfcheck-jit"),
+    "aot": ("_import/qian/tools/Qian.Image.SelfCheck.Aot/Qian.Image.SelfCheck.Aot.csproj", "Qian.Image.SelfCheck.Aot", "qian-selfcheck-aot"),
 }
 TAMPER_PROFILE = "standalone"
 TAMPER_PATCH = "- id: config\n  note: 镜像内篡改（漂移门禁反例）\n"
@@ -409,6 +409,12 @@ def cmd_build(args):
     return 0
 
 
+def build_source_dump_tool(log):
+    project = REPO / SELFCHECK_IMAGES["jit"][0]
+    run(["dotnet", "build", project, "-c", "Release", "-nologo"], log=log)
+    return project.parent / "bin" / "Release" / "net10.0" / f"{project.stem}.dll"
+
+
 def cmd_selfcheck(args):
     tools = args.tools.resolve()
     for name in ("syft", "grype", "cosign"):
@@ -440,8 +446,7 @@ def cmd_selfcheck(args):
         gate(f"反例 {name}", verdict == "拦住", verdict + "：" + outcome[1][-300:])
 
     try:
-        run(["dotnet", "build", ROOT / SELFCHECK_IMAGES["jit"][0], "-c", "Release", "-nologo"], log=log)
-        tool = ROOT / "tools" / "Qian.Image.SelfCheck" / "bin" / "Release" / "net10.0" / "Qian.Image.SelfCheck.dll"
+        tool = build_source_dump_tool(log)
         with temporary_registry(log) as registry, tempfile.TemporaryDirectory() as keys:
             cosign = Cosign(tools / "cosign", Path(keys), log)
             sha = evidence["build"]["sourceSha"][:12]
@@ -530,7 +535,7 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     build = sub.add_parser("build", help="按模板构建并推送一个 profile 镜像")
     build.add_argument("--kind", choices=("jit", "aot"), required=True)
-    build.add_argument("--project", required=True, help="csproj 相对 _import/qian 的路径")
+    build.add_argument("--project", required=True, help="csproj 相对仓库根的路径")
     build.add_argument("--assembly", required=True, help="程序集名（apphost 或原生可执行文件名）")
     build.add_argument("--tag", required=True, help="registry/名称:标签")
     build.add_argument("--role", choices=("product", "selfcheck"), default="product")

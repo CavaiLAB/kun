@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -104,10 +103,10 @@ public sealed class PrincipalResolverTests : IDisposable
 
     private S2sTokenIssuer CreateIssuer(IS2sPrincipalResolver resolver)
     {
-        var options = Options.Create(new KunGatewayOptions
+        var options = Options.Create(new GatewayConfiguration
         {
-            ExternalIssuer = "https://idp.example",
-            ExternalAudience = "kun-external",
+            IdentityIssuer = "https://idp.example",
+            IdentityAudience = "kun-external",
             ExternalJwksUri = "https://idp.example/.well-known/jwks.json",
             SigningKeyPath = _signingKeyPath,
             PublicKeyPath = _publicKeyPath,

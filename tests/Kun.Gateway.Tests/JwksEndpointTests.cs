@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using FluentAssertions;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Endpoints;
 using Kun.Gateway.Jwks;
 using Microsoft.AspNetCore.Authorization;
@@ -39,7 +38,7 @@ public sealed class JwksEndpointTests
                     services.AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
                     services.ConfigureHttpJsonOptions(options => options.SerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine());
                     services.AddSingleton<JwksResponseBuilder>();
-                    services.Configure<KunGatewayOptions>(options => options.PublicKeyPath = path);
+                    services.AddSingleton(Microsoft.Extensions.Options.Options.Create(new GatewayConfiguration { PublicKeyPath = path }));
                 });
                 web.Configure(app =>
                 {

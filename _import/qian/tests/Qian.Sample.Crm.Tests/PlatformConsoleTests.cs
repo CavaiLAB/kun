@@ -1,3 +1,4 @@
+using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
@@ -18,7 +19,6 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Kun.Authorization.Rbac;
 using Kun.Data;
-using Qian.Gateway;
 using Kun.Runtime;
 using Qian.Surfaces;
 using Kun.Tenancy.Signup;
@@ -120,7 +120,7 @@ public sealed partial class ShellSurfaceTests
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,
             redis.ConnectionString, ShellGatewayIssuer,
             [new("capabilities", "/api/capabilities/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }, new("authz", "/api/authz/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }],
-            [new(PlatformSurfaceHost.Audience, console.Surface.Urls.Single())], business.ManagementSigningKey.Rsa, map: app => app.MapQianShellBootstrap());
+            [new(PlatformSurfaceHost.Audience, console.Surface.Urls.Single())], business.ManagementSigningKey.Rsa, map: app => app.MapKunShellBootstrap());
         var roles = new PostgresPlatformRoleStore(business.App.Services.GetRequiredService<IDataService>(), business.App.Services.GetRequiredService<ITenantContext>(), console.Platform.AuthzRole);
 
         // 平台运营（持平台超管）：bootstrap 只问控制台目录，交出平台组件的远程、挂载与权益键、菜单与权限码，不代管；与经网关直调控制台目录逐项一致。

@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Security.Claims;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Kun.Gateway.Jwks;
 using Kun.Security;
@@ -20,7 +19,7 @@ public sealed class S2sTokenIssuer : IDisposable
 {
     private readonly S2sSigningKeyRing _keys;
     private readonly bool _ownsKeys;
-    private readonly KunGatewayOptions _options;
+    private readonly GatewayConfiguration _options;
     private readonly IS2sPrincipalResolver _resolver;
 
     /// <summary>
@@ -34,7 +33,7 @@ public sealed class S2sTokenIssuer : IDisposable
     /// Retained for constructor compatibility. Trace context is now propagated through HTTP headers.
     /// </param>
     public S2sTokenIssuer(
-        IOptions<KunGatewayOptions> options,
+        IOptions<GatewayConfiguration> options,
         IHostEnvironment env,
         IS2sPrincipalResolver resolver,
         IHttpContextAccessor? httpContextAccessor = null)
@@ -42,7 +41,7 @@ public sealed class S2sTokenIssuer : IDisposable
     {
     }
 
-    internal S2sTokenIssuer(IOptions<KunGatewayOptions> options, IHostEnvironment env, IS2sPrincipalResolver resolver, IHttpContextAccessor? httpContextAccessor, S2sSigningKeyRing? keys)
+    internal S2sTokenIssuer(IOptions<GatewayConfiguration> options, IHostEnvironment env, IS2sPrincipalResolver resolver, IHttpContextAccessor? httpContextAccessor, S2sSigningKeyRing? keys)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(env);
@@ -76,7 +75,7 @@ public sealed class S2sTokenIssuer : IDisposable
         DiagnosticId = "KUN0002",
         UrlFormat = "https://github.com/CavaiLAB/kun/issues")]
     public S2sTokenIssuer(
-        IOptions<KunGatewayOptions> options,
+        IOptions<GatewayConfiguration> options,
         IHostEnvironment env,
         IHttpContextAccessor? httpContextAccessor)
         : this(options, env, NoOpS2sPrincipalResolver.Instance, httpContextAccessor)
@@ -154,7 +153,7 @@ public sealed class S2sTokenIssuer : IDisposable
         var now = DateTimeOffset.UtcNow;
         var snapshot = new Principal
         {
-            Issuer = _options.InternalIssuer,
+            Issuer = _options.Issuer,
             Audience = new[] { audience },
             Subject = subject,
             Kind = kind,

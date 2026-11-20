@@ -42,7 +42,9 @@ Kun Framework 的核心源码。所有项目都继承 `/Directory.Build.props` �
 | [Kun.Validation](Kun.Validation/) | SourceGen 验证器 | ✅ |
 | [Kun.AspNetCore](Kun.AspNetCore/) | Minimal API 扩展、Pipeline Behaviors | ✅ |
 | [Kun.Grpc](Kun.Grpc/) | gRPC 拦截器、Result → RpcException 映射 | ✅ |
-| [Kun.Gateway](Kun.Gateway/) | YARP 扩展、S2S 签发、限流 | ✅ |
+| [Kun.Gateway.Abstractions](Kun.Gateway.Abstractions/) | 网关契约、配置与路由声明 | ✅ |
+| [Kun.Gateway](Kun.Gateway/) | YARP 转发、按目标服务签发 S2S、JWKS 与路由限流 | ✅ |
+| [Kun.Gateway.Shell](Kun.Gateway.Shell/) | 平台外壳静态托管、引导端点与网关组件登记 | ✅ |
 
 ## 开发规范
 

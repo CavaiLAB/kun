@@ -5,7 +5,7 @@
 每个用例在临时目录里搭出 git-sync 的布局（/git/.worktrees/<提交> + /git/current 链接），
 检出里放一个假的 <前缀>/scripts/pm.py，按检出里的 mode 文件模拟三种情形：正常生成、任务文件校验不过、
 生成途中 git-sync 同步到新提交（先改指 current，再删旧检出）。另有一个用例确认收到 SIGTERM 立即退出。
-全部用例跑两遍：前缀为空（检出根，原 Qian 仓库的布局）与前缀 _import/qian（迁入 CavaiLAB/kun 后的布局）；
+全部用例覆盖两个入口：默认从检出根读取，旧版看板可以通过 BOARD_PREFIX 指向子目录；
 另有用例核对 /site/source 链接与 BOARD_PREFIX 的规整。
 """
 from __future__ import annotations
@@ -51,7 +51,7 @@ A, B, C = "a" * 40, "b" * 40, "c" * 40
 
 
 class BuilderTest(unittest.TestCase):
-    PREFIX = ""  # 检出根：原 Qian 仓库的布局
+    PREFIX = ""  # 默认从检出根生成看板
 
     def setUp(self) -> None:
         # macOS 的临时目录经过 /var → /private/var 链接，builder 比较的是 realpath
@@ -210,7 +210,7 @@ class BuilderTest(unittest.TestCase):
 
 
 class PrefixedBuilderTest(BuilderTest):
-    """迁入 CavaiLAB/kun 后的布局：scripts/pm.py 与 pm/tasks/ 在检出的 _import/qian/ 下。"""
+    """带前缀的历史版本仍可从检出中的子目录生成看板。"""
     PREFIX = os.path.join("_import", "qian")
 
 

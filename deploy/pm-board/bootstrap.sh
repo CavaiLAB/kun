@@ -43,6 +43,7 @@ check() {
   prefix="$(kc -n "$NS" get deploy qian-pm-board -o jsonpath="'{.spec.template.spec.containers[?(@.name==\"builder\")].env[?(@.name==\"BOARD_PREFIX\")].value}'")"
   echo "   仓库 ${repo:-?}，前缀 ${prefix:-（检出根）}"
   if [[ "$repo" != "https://github.com/${REPO}.git" ]]; then echo "   仓库不是 ${REPO}"; ok=0; fi
+  if [[ -n "$prefix" ]]; then echo "   BOARD_PREFIX 应为空，任务位于检出根"; ok=0; fi
   echo "-- 同步到的提交 vs origin/main"
   local synced head
   synced="$(kc -n "$NS" exec deploy/qian-pm-board -c nginx -- readlink /git/current | tr -d '\r' | sed 's#.*/##')"
@@ -52,7 +53,7 @@ check() {
   local built
   built="$(kc -n "$NS" exec deploy/qian-pm-board -c nginx -- readlink /site/current | tr -d '\r')"
   if [[ -n "$built" && "$built" == "$synced" ]]; then echo "   ok：${built:0:7}"; else echo "   生成 ${built:0:7} ≠ 同步 ${synced:0:7}（等几秒再查，或看 builder 容器日志）"; ok=0; fi
-  echo "-- 任务源文件（/tasks/ 经 /site/source 取 /git/current/<前缀>/pm/tasks/）"
+  echo "-- 任务源文件（/tasks/ 经 /site/source 取 /git/current/pm/tasks/）"
   local tasks
   tasks="$(kc -n "$NS" exec deploy/qian-pm-board -c nginx -- sh -c "'ls /site/source/pm/tasks | wc -l'" | tr -d '\r ')"
   if [[ "$tasks" =~ ^[0-9]+$ && "$tasks" -gt 0 ]]; then echo "   ok：${tasks} 个文件"; else echo "   取不到任务源文件（${tasks:-无输出}）"; ok=0; fi

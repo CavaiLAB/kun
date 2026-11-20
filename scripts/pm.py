@@ -267,8 +267,7 @@ def repo_prefix(root: Path) -> str:
 
     仓库根取 root 往上第一个有 .git 的目录：普通克隆里 .git 是目录，git worktree 里是文件。看板 Pod 里 git-sync 把每个
     提交检出成 worktree（/git/.worktrees/<提交>，其中的 .git 是文件），builder 运行检出里的 <BOARD_PREFIX>/scripts/pm.py，
-    这里得出的就是 BOARD_PREFIX。只看文件系统、不调 git（builder 的镜像里没有 git）。现在原 Qian 在过渡目录里，得出
-    _import/qian；pm/ 与 scripts/pm.py 搬走后随之改变，不用改别处。往上找不到 .git（不在 git 检出里）时把 root 当作仓库根。
+    这里得出的就是 BOARD_PREFIX。builder 的镜像里没有 git，因此只检查文件系统。找不到 .git 时把 root 当作仓库根。
     """
     for directory in (root, *root.parents):
         if (directory / ".git").exists():

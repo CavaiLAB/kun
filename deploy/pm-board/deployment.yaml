@@ -38,7 +38,6 @@ spec:
         - name: git-sync
           image: registry.k8s.io/git-sync/git-sync:v4.4.0
           env:
-            # 迁移执行计划 B2：原 Qian 归档后任务文件在 CavaiLAB/kun 的 _import/qian/pm/tasks/ 下改。
             # CavaiLAB/kun 是公开仓库，经 HTTPS 匿名拉取，不需要 deploy key 与 Secret。
             - name: GITSYNC_REPO
               value: https://github.com/CavaiLAB/kun.git
@@ -64,16 +63,15 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             capabilities: { drop: [ALL] }
-        # 看板生成物不进 git（S1-PM-004）：每次 git-sync 换了提交，就用该提交的 <前缀>/scripts/pm.py 生成到 /site
+        # 看板生成物不进 git（S1-PM-004）：每次 git-sync 换了提交，就用该提交的 scripts/pm.py 生成到 /site
         - name: builder
           image: python:3.13-alpine
           command: ["python3", "-u", "/opt/builder/builder.py"]
           env:
             # 前缀：scripts/pm.py 与 pm/tasks/ 在检出里所在的目录，空串表示检出根。只在这一处写：
             # builder 按它找 pm.py，并建 /site/source → /git/current/<前缀> 供 nginx 的 /tasks/ 取任务源文件。
-            # 现在原 Qian 在过渡目录 _import/qian/ 里；pm/ 与 scripts/pm.py 提出过渡目录后只改这里。
             - name: BOARD_PREFIX
-              value: _import/qian
+              value: ""
             - name: PYTHONDONTWRITEBYTECODE
               value: "1"
           volumeMounts:

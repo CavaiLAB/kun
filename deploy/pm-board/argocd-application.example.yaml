@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/CavaiLAB/kun.git
-    path: _import/qian/deploy/pm-board
+    path: deploy/pm-board
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc

@@ -113,3 +113,8 @@ packages/qian-tenancy-signup-ui/dist/
 packages/qian-identity-ui/dist/
 # 参考应用远程模块构建产物（S1-YUE-012）
 samples/qian-sample-crm-ui/dist/
+
+# 任务看板由 scripts/pm.py build 生成
+pm/index.html
+pm/tasks.json
+pm/STATUS.md

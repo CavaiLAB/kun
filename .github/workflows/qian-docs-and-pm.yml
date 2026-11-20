@@ -1,11 +1,6 @@
 name: qian-docs-and-pm
 
-# 文档门禁、任务文件校验、生成看板（只上传为产物）与看板 builder 自测。由 ci.yml 调用，在 _import/qian/ 下运行。
-# 原件在 _import/qian/.github/workflows/docs-and-pm.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
-# - 触发：只留 workflow_call；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020），推 docs/**、feat/**、
-#   fix/** 分支不再触发。原件不设路径过滤，区域表 scripts/ci_changes.py 里的 docs-and-pm 区域是 _import/qian/** 与本文件。
-# - 位置：run 步骤的工作目录加 _import/qian/ 前缀；显式写出 permissions: contents: read。
-# 检查本身不变。
+# ci.yml 根据文档和看板路径调用。所有步骤在仓库根运行。
 
 on:
   # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 docs-and-pm），并发组由 ci.yml 统一管（S1-KUN-020）。
@@ -13,10 +8,6 @@ on:
 
 permissions:
   contents: read
-
-defaults:
-  run:
-    working-directory: _import/qian
 
 jobs:
   check:
@@ -27,7 +18,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: 文档门禁（禁用词 / 表格 / 链接）
-        working-directory: .
         run: python3 scripts/check_docs.py
       - name: 任务文件校验
         run: python3 scripts/pm.py validate
@@ -42,3 +32,5 @@ jobs:
       # 看板 Pod 的构建容器（deploy/pm-board/builder.py）的自测，只用标准库（S1-PM-005）
       - name: 看板 builder 自测
         run: python3 -m unittest discover -s deploy/pm-board -p 'test_*.py' -v
+      - name: 核对看板的两个部署入口和任务原文
+        run: python3 deploy/pm-board/verify_source.py

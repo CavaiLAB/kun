@@ -1,7 +1,7 @@
 """任务看板 scripts/pm.py 生成的链接的自测（S1-KUN-019，迁移执行计划 B2）。
 
 运行：python3 -m unittest discover -s tests/gates -v
-看板上任务文件与 refs 的链接指向 CavaiLAB/kun 的 main，路径要带 pm.py 的上一级目录在仓库里的前缀（现在是 _import/qian）。
+看板上任务文件与 refs 的链接指向 CavaiLAB/kun 的 main，按 pm.py 所在工作区在检出中的相对位置生成，仓库根使用空前缀。
 前缀由 pm.py 从自己的位置往上找第一个有 .git 的目录得出。这里在临时目录里搭出几种检出逐个核对：普通克隆（.git 是目录）、
 看板 Pod 里 git-sync 的检出（/git/.worktrees/<提交>，.git 是文件，上面还有 /git/.git 目录）、pm.py 就在仓库根、不在 git 检出里；
 再在 git-sync 的布局与仓库根的布局里各生成一次看板，核对 tasks.json 与看板页里的地址。只依赖标准库。
@@ -143,8 +143,14 @@ class BoardLinkTests(unittest.TestCase):
         rows = json.loads((out / "tasks.json").read_text(encoding="utf-8"))
         return rows, (out / "index.html").read_text(encoding="utf-8")
 
+    def test_git_sync_checkout_at_root_links_to_tasks_and_refs(self) -> None:
+        rows, page = self.build(git_sync_checkout(self.tmp / "git"))
+        self.assertEqual(rows[0]["fileUrl"], BLOB + "pm/tasks/S1-KUN-001.md")
+        self.assertEqual(rows[0]["refs"][0]["url"], BLOB + "docs/a.md")
+        self.assertIn(f'"fileUrl":"{BLOB}pm/tasks/S1-KUN-001.md"', page)
+
     def test_git_sync_checkout_links_carry_prefix(self) -> None:
-        """看板 Pod 的布局（/git/.worktrees/<提交>/_import/qian）：任务文件与 refs 的地址都带 _import/qian 前缀。"""
+        """从旧版子目录生成的看板链接继续保留该目录前缀。"""
         rows, page = self.build(git_sync_checkout(self.tmp / "git") / "_import" / "qian")
         row = rows[0]
         self.assertEqual(row["file"], "pm/tasks/S1-KUN-001.md")

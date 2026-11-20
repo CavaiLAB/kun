@@ -189,15 +189,15 @@ class CsharpReferenceTests(unittest.TestCase):
         self.box.write(path, csharp(*statements, locator=locator))
 
     def test_root_test_inputs_keep_the_platform_document_trigger(self) -> None:
-        prd = "_import/qian/docs/prd/14-quality.md"
-        task = "_import/qian/pm/tasks/S1-QA-001.md"
+        prd = "docs/prd/14-quality.md"
+        task = "pm/tasks/S1-QA-001.md"
         self.box.write_repo(prd, "# 质量")
         self.box.write_repo(task, "# 测试")
-        includes = ("**", "!_import/qian/docs/**", "!_import/qian/pm/**")
+        includes = ("**", "!docs/**", "!pm/**")
         self.box.areas(includes)
-        self.box.write_repo("tests/Moved.Tests/Case.cs", 'class Case { string path = "_import/qian/docs/prd/14-quality.md"; }')
+        self.box.write_repo("tests/Moved.Tests/Case.cs", 'class Case { string path = "docs/prd/14-quality.md"; }')
         self.box.write_repo("tests/Moved.Tests/Moved.Tests.csproj",
-                            '<Project><ItemGroup><None Include="../../_import/qian/pm/tasks/S1-QA-001.md" /></ItemGroup></Project>')
+                            '<Project><ItemGroup><None Include="../../pm/tasks/S1-QA-001.md" /></ItemGroup></Project>')
         message = self.box.blocked()
         self.assertIn("tests/Moved.Tests/Case.cs", message)
         self.assertIn("tests/Moved.Tests/Moved.Tests.csproj", message)

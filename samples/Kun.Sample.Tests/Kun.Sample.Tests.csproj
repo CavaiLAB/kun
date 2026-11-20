@@ -16,7 +16,7 @@
     <ProjectReference Include="..\Kun.Sample.Catalog\Kun.Sample.Catalog.csproj" Aliases="CatalogApp" />
     <ProjectReference Include="..\Kun.Sample.Order\Kun.Sample.Order.csproj" Aliases="OrderApp" />
     <PackageReference Include="xunit.v3" />
-    <!-- Microsoft.AspNetCore.OpenApi 10.0.x 要求 Microsoft.OpenApi [2.12.0, 3.0.0)；中央版本是 _import/qian/ 下的项目用的 3.x，这里留在 2.x（S1-KUN-020）。 -->
+    <!-- Microsoft.AspNetCore.OpenApi 10.0.x 要求 Microsoft.OpenApi [2.12.0, 3.0.0)；仓库中央版本是 3.x，这里留在 2.x（S1-KUN-020）。 -->
     <PackageReference Include="Microsoft.OpenApi" VersionOverride="2.13.1" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />

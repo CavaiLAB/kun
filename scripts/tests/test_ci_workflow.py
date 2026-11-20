@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import fnmatch
 import re
+import shlex
 import sys
 import unittest
 from pathlib import Path
@@ -164,6 +165,14 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertEqual([("test-results", "${{ runner.temp }}/test-results/")], [(item["name"], item["path"]) for item in merged],
                          "汇总上传的是取好的那份")
         self.assertFalse(fnmatch.fnmatchcase("test-results", downloads[0]["pattern"]), "汇总自己上传的构件不能被下一次尝试当成分片结果下载")
+
+    def test_image_evidence_upload_uses_the_selfcheck_output(self) -> None:
+        steps = self.jobs["images-selfcheck"]["steps"]
+        command = next(step["run"] for step in steps if "images.py selfcheck " in step.get("run", ""))
+        arguments = shlex.split(command)
+        output = arguments[arguments.index("--out") + 1]
+        upload = next(step["with"] for step in steps if step.get("with", {}).get("name") == "image-selfcheck")
+        self.assertEqual("$GITHUB_WORKSPACE/" + upload["path"].rstrip("/"), output)
 
     def test_shards_list_their_images_in_the_foreground_before_the_background_prefetch(self) -> None:
         # 夹具搬走、镜像变量改名、扫描器漏看了引用夹具的项目时，dotnet_ci.py images 退出码 2。它要在前台跑、退出码不被吞掉，

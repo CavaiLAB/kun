@@ -600,7 +600,7 @@ jobs:
       - name: 准备 syft / grype / cosign（锁定版本，校验 sha256）
         run: python3 scripts/prepare_image_tools.py --destination "$RUNNER_TEMP/image-tools"
       - name: 构建自检镜像，跑 SBOM、扫描、签名验签、漂移与运行期门禁及反例
-        run: python3 scripts/images.py selfcheck --tools "$RUNNER_TEMP/image-tools" --out "$GITHUB_WORKSPACE/_import/qian/TestResults/images"
+        run: python3 scripts/images.py selfcheck --tools "$RUNNER_TEMP/image-tools" --out "$GITHUB_WORKSPACE/TestResults/images"
       - name: 上传证据（evidence.json、SBOM、扫描报告、命令日志）
         if: always()
         uses: actions/upload-artifact@v4

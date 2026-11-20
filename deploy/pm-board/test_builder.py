@@ -211,18 +211,18 @@ class BuilderTest(unittest.TestCase):
 
 class PrefixedBuilderTest(BuilderTest):
     """带前缀的历史版本仍可从检出中的子目录生成看板。"""
-    PREFIX = os.path.join("_import", "qian")
+    PREFIX = os.path.join("fixtures", "workspace")
 
 
 class BoardPrefixTest(unittest.TestCase):
     def test_normalizes_relative_prefix(self) -> None:
         self.assertEqual(builder.board_prefix(""), "")
         self.assertEqual(builder.board_prefix("."), "")
-        self.assertEqual(builder.board_prefix(" _import/qian/ "), os.path.join("_import", "qian"))
-        self.assertEqual(builder.board_prefix("_import/./qian"), os.path.join("_import", "qian"))
+        self.assertEqual(builder.board_prefix(" fixtures/workspace/ "), os.path.join("fixtures", "workspace"))
+        self.assertEqual(builder.board_prefix("fixtures/./workspace"), os.path.join("fixtures", "workspace"))
 
     def test_rejects_prefix_outside_checkout(self) -> None:
-        for value in ("/abs", "..", "../qian", "_import/../../qian"):
+        for value in ("/abs", "..", "../workspace", "fixtures/../../workspace"):
             with self.subTest(value=value), self.assertRaises(SystemExit):
                 builder.board_prefix(value)
 

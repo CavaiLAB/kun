@@ -42,15 +42,15 @@ class MatchingTests(unittest.TestCase):
         self.assertFalse(ci_changes.group_matches(["src/**"], "srcx/a.cs"))
 
     def test_single_star_stays_in_one_directory(self) -> None:
-        self.assertTrue(ci_changes.group_matches(["_import/qian/*.props"], "_import/qian/Directory.Build.props"))
-        self.assertFalse(ci_changes.group_matches(["_import/qian/*.props"], "_import/qian/tests/Directory.Build.props"))
-        self.assertTrue(ci_changes.group_matches(["_import/qian/packages/Qian.*/**"], "_import/qian/packages/Qian.Data/a.cs"))
+        self.assertTrue(ci_changes.group_matches(["fixtures/platform/*.props"], "fixtures/platform/Directory.Build.props"))
+        self.assertFalse(ci_changes.group_matches(["fixtures/platform/*.props"], "fixtures/platform/tests/Directory.Build.props"))
+        self.assertTrue(ci_changes.group_matches(["fixtures/platform/packages/Example.*/**"], "fixtures/platform/packages/Example.Data/a.cs"))
 
     def test_last_matching_pattern_wins_within_a_group(self) -> None:
-        group = ["_import/qian/**", "!_import/qian/docs/**", "_import/qian/docs/generated/**"]
-        self.assertTrue(ci_changes.group_matches(group, "_import/qian/scripts/pm.py"))
-        self.assertFalse(ci_changes.group_matches(group, "_import/qian/docs/prd/01.md"))
-        self.assertTrue(ci_changes.group_matches(group, "_import/qian/docs/generated/events.md"))
+        group = ["fixtures/platform/**", "!fixtures/platform/docs/**", "fixtures/platform/docs/generated/**"]
+        self.assertTrue(ci_changes.group_matches(group, "fixtures/platform/scripts/pm.py"))
+        self.assertFalse(ci_changes.group_matches(group, "fixtures/platform/docs/prd/01.md"))
+        self.assertTrue(ci_changes.group_matches(group, "fixtures/platform/docs/generated/events.md"))
 
     def test_groups_are_evaluated_separately(self) -> None:
         area = ci_changes.Area("样例", (("src/**", "!**/*.md"), ("src/Kun.Core/README.md",)))

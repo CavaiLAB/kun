@@ -3,8 +3,7 @@
     "path": "../Kun.slnx",
     "projects": [
       "tests/Kun.AspNetCore.Tests/Kun.AspNetCore.Tests.csproj",
-      "tests/Kun.Audit.Tests/Kun.Audit.Tests.csproj",
-      "tests/Kun.Auditing.Tests/Kun.Auditing.Tests.csproj",
+      "tests/Kun.Audit.EntityFrameworkCore.Tests/Kun.Audit.EntityFrameworkCore.Tests.csproj",
       "tests/Kun.Authorization.AspNetCore.Tests/Kun.Authorization.AspNetCore.Tests.csproj",
       "tests/Kun.Authorization.Rbac.Abstractions.Tests/Kun.Authorization.Rbac.Abstractions.Tests.csproj",
       "tests/Kun.Caching.Tests/Kun.Caching.Tests.csproj",

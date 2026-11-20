@@ -1,25 +1,34 @@
-# 审计：同事务实体记录与 PostgreSQL 命令哈希链
+# 命令审计与实体审计
 
-实体审计入口为 `Kun.Auditing.AddKunAuditing<TContext>()`：在业务 `SavingChanges` 阶段把 `AuditLog` 和 Outbox 行登记到同一个 `KunDbContext`，由同一次保存提交。任一写入失败或业务事务回滚，两类审计记录都回滚；保存失败与取消会撤销暂存行，允许修正业务后重试。
+成功命令的哈希链由 `qian.audit` 组件维护。需要记录业务实体变化的宿主可以另外启用实体审计。
+
+## 命令审计哈希链
+
+`Kun.Audit.Abstractions` 定义 `Kun.Audit.IAuditWriter` 和 `Kun.Audit.IAuditReader`。平台的命令运行时把成功命令的审计记录与业务写入放在同一事务。命令返回失败或抛出异常时，事务回滚，命令链只保留已提交的记录。
+
+`Kun.Audit.EntityFrameworkCore` 提供 EF 宿主的实现，`Kun.Audit.Postgres` 提供原生 PostgreSQL 实现。两者保留相同的链协议、数据库 schema 和租户边界。普通读取与验链使用当前租户；平台级方法要求宿主显式提供有权限的插件上下文。组件装配和查询方式见 [EF 提供者](../../src/Kun.Audit.EntityFrameworkCore/README.md)与[原生提供者](../../src/Kun.Audit.Postgres/README.md)。
 
 ## 实体审计与读取
 
+非严格的 `KunDbContext` 可从 `Kun.Audit.EntityFrameworkCore` 登记实体拦截器。启动登记会拒绝严格上下文。宿主照常提供租户与已认证主体，按需登记数据库、数据约定、事件目录和要审计的实体。
+
 ```csharp
+using Kun.Auditing.DependencyInjection;
+
 services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 services.AddKunDataConventions<AppDbContext>();
 services.AddKunAuditing<AppDbContext>();
 services.AddAuditable<Order>();
-services.AddKunAudit().UseEntityFramework<AppDbContext>();
 services.AddKunEventBus(registry => registry.RegisterAuditing());
 ```
 
-`AddKunAuditing<TContext>()` 与 `AddKunDataConventions<TContext>()` 不登记 `ITenantContext`、`ICurrentUser` 这两个端口，由宿主提供可信实现（`AddKunSecurity()`、`AddKunMultiTenancy()` 等），在数据组件之前或之后登记都生效（见 [When to use ICurrentUser](../design/when-to-use-currentuser.md) 的「端口登记与次序」）。拦截器在上下文创建时按需解析：宿主没有登记 `ICurrentUser` 时按匿名记录；`KunDbContext` 的构造本身需要 `ITenantContext`，单租户宿主显式登记 `NullTenantContext.Instance`。`AddKunAuditing<TContext>()` 在宿主 `OnModelCreating` 前登记 `AuditLog`，使 `KunDbContext` 对它应用租户过滤。多租户宿主仍需装配 `AddKunTenantRls<TContext>()` 和数据库 RLS 策略。
+每个已登记实体的变化生成本库的 `AuditLog` 与一个 `kun.audit.event.v2` Outbox 信封。日志、Outbox 行与信封使用相同 ID。业务实体、日志和 Outbox 在同一个数据库事务中提交。已有 v1 宿主通过 `AddAuditingInterceptor` 使用当前正在保存的上下文暂存 `kun.audit.event.v1`。默认写入端在保存失败或取消时撤回本次添加的审计行，保留同一上下文里其他业务消息以供重试。实体应使用保存前即可确定的主键。
 
-- 每个被 `AddAuditable<TEntity>()` 声明的实体变更生成一行 `audit_logs` 与一行 Outbox，二者共享 Guid v7 标识。
-- `kun.audit.event.v2` 使用字符串 `tenantId` / `userId`，从上下文填写；`AuditContext` 可覆盖 actor、来源 IP 与 trace，`ActorType` 支持 `user/service/agent/system`。
-- 实体需要客户端已知的主键（推荐下面的 Guid v7 约定）；服务端自增键不能在 `SavingChanges` 阶段获得最终值。
-- 不自动采集实体内容，避免把敏感字段写进审计载荷。实体审计写入失败会使业务保存失败；旧 `SwallowWriterExceptions` 选项不控制此入口。
-- `IAuditReader.QueryAsync` 在数据库内按当前租户、主体、动作、资源与时间过滤，按时间、ID 倒序，限制每次 1–1,000 条。查询租户必须与当前上下文一致，不支持通过查询参数越权切换租户。
+信封的 producer 为 `qian.audit`。命令内保留现有 actor、相关 ID 与 trace；没有命令时使用审计主体或已认证用户。后台保存要用 `EventEnvelopeScope.Begin` 指定实际服务主体。平台级事件的租户为 null。原有 v1、v2 业务字段均在信封的 `payload` 中。
+
+网关的内部令牌用 `sub` 标识当前主体，`principal_kind` 标识主体类型。业务审计可通过 `ICurrentUser` 取得已验证身份，需要记录委托关系时使用验证后的 `Principal.Actor`。链路关联使用当前 Activity 的 TraceId。
+
+应用可在当前租户的业务上下文中，通过 `db.Set<AuditLog>()` 与 EF 查询读取实体日志，继续使用本业务的访问控制和租户过滤。命令链的分页读取及验链分别使用 `IAuditReader.ReadAsync` 和 `VerifyAsync`。
 
 ## 数据约定
 
@@ -32,42 +41,8 @@ services.AddKunEventBus(registry => registry.RegisterAuditing());
 - C# 无约束泛型的 `T?` 不会把值类型自动变成可空值类型。已有 `AggregateRoot<TKey>`（Guid 主体）需显式迁移为 `AggregateRoot<TKey, Guid?>`，并生成相应数据库迁移；旧公共基类保持兼容。
 - 审计实体映射 shadow `KunRowVersion` 至 PostgreSQL `xmin`。冲突保留 `DbUpdateConcurrencyException`；需要 Result 边界时调用 `SaveChangesResultAsync()`，映射为平台错误码 `CONFLICT`（409），不自动覆盖获胜写入。
 
-## 命令审计哈希链
+## 从旧包迁移
 
-```csharp
-// NpgsqlDataSource 由宿主管理生命周期。
-services.AddKunAudit(options => options.DefaultActorType = AuditActorType.Agent)
-    .UsePostgresChain(dataSource, "audit");
-services.AddKunMediator(builder => builder.AddAuditBehavior<CreateOrder, Result<Guid>>());
-```
-
-部署迁移阶段显式调用 `PostgresAuditChain.EnsureCreatedAsync()`；正常追加不建表。PostgreSQL 需 15+（测试为 16），使用 `UNIQUE NULLS NOT DISTINCT` 拦截相同前序，包括首条 null 前序。
-
-`PostgresAuditChain` 同时实现 `IAuditChainState` 和 `IAuditSink`，必须使用同一个实例。每次追加在事务内创建或锁定该租户唯一链头（`FOR UPDATE`），读取最新 tip、插入记录并推进 tip 后提交。采用 READ COMMITTED 的语句快照，避免持续写入副本使等待方拿着旧的 SERIALIZABLE 快照反复重试；租户行锁提供完整的读改写串行化。`content_hash`、`(tenant_key, seq)` 和 `(tenant_key, prev_hash)` 唯一约束防止分叉。全局链与任意租户字符串使用不同键空间。
-
-`WriteAsync()` 只接受当前追加作用域里租户、前序和内容哈希都匹配的一条记录；回调失败时记录与链头一起回滚。回调可能因数据库瞬时冲突重试，因此不得夹带事务外副作用。
-
-`AuditEntry.ActorType` 默认 `unknown`，保持历史条目的哈希兼容；明确主体类型的新条目采用固定字段顺序的 JSON 编码后计算 SHA-256，避免分隔符歧义。用 `AuditContentHasher.Compute(entry)` 重放；变更 actor 类型也会改变哈希。数据库额外保存 UTC ticks，避免 PostgreSQL 微秒精度损失。
-
-```csharp
-string? previous = null;
-await foreach (var row in chain.ReadAsync(tenantId, cancellationToken))
-{
-    if (row.PrevHash != previous || AuditContentHasher.Compute(row) != row.ContentHash)
-        throw new InvalidOperationException("审计链断裂");
-    previous = row.ContentHash;
-}
-```
-
-读取哈希链是基础设施 API，调用方必须先授权。命令 Pipeline 延续既有行为：审计失败记录告警，不覆盖 handler 的返回值或原始异常。它不承诺与业务事务原子提交；需要业务与审计原子性的实体记录使用前述 `AddKunAuditing<TContext>()`。
-
-## 旧入口迁移
-
-- `Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor` 与 `AddKunAuditEntityFrameworkCore()` 是业务保存后再写审计的旧路径，已标记 `KUNAUDIT001` 废弃警告。
-- `UseEventBus()`、`EventBusAuditWriter` 与 `kun.audit.record.v1` 路径已废弃；迁移到 `AddKunAuditing<TContext>()`，不要同时挂两个实体审计拦截器。
-- 无泛型 `AddKunAuditing()` 与 `AddAuditingInterceptor()` 保留兼容旧 `kun.audit.event.v1`，新宿主采用泛型入口；v1 的 Guid 载荷不能承载任意字符串主体，不能把类型改动伪装为原 v1 事件。
-- `RegisterAuditing()` 同时注册 v1/v2 稳定 ID，同时登记源生成的 JSON 类型信息；消费方应先同时支持两版，再切生产者，待历史消息排空后移除旧订阅。
-
-## 验证
-
-`TransactionalAuditTests` 验证业务／审计／Outbox 同提交与回滚、审计写入失败、失败后重试、创建字段保持、空主体、xmin 冲突与租户读取；`PostgresAuditChainTests` 用两个独立数据源并发追加 1,000 条，逐条重放验证无分叉，并覆盖追加后故障回滚及全局／租户隔离。
+- 原 `Kun.Audit` 命令管道和本地链存储已归档。依赖命令审计的宿主接入平台命令审计组件；原先由旧管道记录的失败命令不会进入替代链。
+- 原实体读端口 `IAuditReader.QueryAsync`、`AuditQuery` 和 `EfAuditReader` 已归档；实体日志继续保存在业务数据库。
+- 实体审计代码改为引用 `Kun.Audit.EntityFrameworkCore`。原生链提供者改为引用 `Kun.Audit.Postgres`。组件 ID、链数据与既有 Postgres schema 保持兼容。

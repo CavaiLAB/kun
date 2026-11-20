@@ -9,7 +9,7 @@ using Kun.Gateway.DependencyInjection;
 using Kun.Gateway.Endpoints;
 using Kun.MultiTenancy.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Qian.Audit;
+using Kun.Audit;
 using Qian.Config;
 using Qian.Config.Apollo;
 using Kun.Data;

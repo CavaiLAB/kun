@@ -6,6 +6,8 @@ using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
+using Kun.EventBus.Outbox;
+using Kun.IntegrationTests.EventBus;
 using Kun.IntegrationTests.Fixtures;
 using Kun.Mediator.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -29,12 +31,14 @@ internal sealed class AuditOrder : AggregateRoot<Guid>
         new() { Id = id, Name = name };
 }
 
-internal sealed class AuditFlowDbContext : KunDbContext
+internal class AuditFlowDbContext : KunDbContext
 {
     public DbSet<AuditOrder> Orders => Set<AuditOrder>();
 
     public AuditFlowDbContext(DbContextOptions<AuditFlowDbContext> options, ITenantContext tenantContext)
-        : base(options, tenantContext) { }
+        : this((DbContextOptions)options, tenantContext) { }
+
+    protected AuditFlowDbContext(DbContextOptions options, ITenantContext tenantContext) : base(options, tenantContext) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +58,9 @@ internal sealed class AuditFlowDbContext : KunDbContext
         });
     }
 }
+
+internal sealed class SecondaryAuditContext(DbContextOptions<SecondaryAuditContext> options, ITenantContext tenant)
+    : AuditFlowDbContext(options, tenant);
 
 public sealed class AuditEventFlowTests : IAsyncLifetime
 {
@@ -90,6 +97,9 @@ public sealed class AuditEventFlowTests : IAsyncLifetime
         services.AddDbContext<AuditFlowDbContext>((sp, opts) =>
             opts.UseNpgsql(_postgres.GetConnectionString())
                 .AddAuditingInterceptor(sp));
+
+        services.AddDbContext<SecondaryAuditContext>((sp, opts) =>
+            opts.UseNpgsql(_postgres.GetConnectionString()).AddAuditingInterceptor(sp));
 
         // EfUnitOfWork depends on KunDbContext — alias the concrete subclass.
         services.AddScoped<KunDbContext>(sp => sp.GetRequiredService<AuditFlowDbContext>());
@@ -151,4 +161,40 @@ public sealed class AuditEventFlowTests : IAsyncLifetime
         auditRows[0].Payload.Should().Contain("Added", "Action should reflect the EntityState");
         auditRows[0].Payload.Should().Contain(order.Id.ToString(), "ResourceId should carry the aggregate primary key");
     }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RetryStagesOneEnvelopeInTheSavingContextAndPreservesOtherRows(bool synchronous)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = _services.CreateAsyncScope();
+        var primary = scope.ServiceProvider.GetRequiredService<AuditFlowDbContext>();
+        var secondary = scope.ServiceProvider.GetRequiredService<SecondaryAuditContext>();
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.audit", EventActor.Service("audit-flow")));
+
+        var otherId = Guid.CreateVersion7();
+        var unrelated = EventMessages.Create(otherId, "sample.pending.v1", new TestEventBV1(otherId, "pending"),
+            VersioningJsonContext.Default.TestEventBV1);
+        secondary.OutboxMessages.Add(unrelated);
+        var order = AuditOrder.Create(Guid.NewGuid(), new string('x', 201));
+        secondary.Orders.Add(order);
+
+        if (synchronous) Assert.Throws<DbUpdateException>(() => secondary.SaveChanges());
+        else await Assert.ThrowsAsync<DbUpdateException>(() => secondary.SaveChangesAsync(ct));
+        Assert.Same(unrelated, Assert.Single(secondary.ChangeTracker.Entries<OutboxMessage>()).Entity);
+        Assert.Empty(primary.ChangeTracker.Entries<OutboxMessage>());
+
+        secondary.Entry(order).Property(item => item.Name).CurrentValue = "retry";
+        if (synchronous) secondary.SaveChanges();
+        else await secondary.SaveChangesAsync(ct);
+        Assert.Empty(primary.ChangeTracker.Entries<OutboxMessage>());
+        var rows = await primary.OutboxMessages.AsNoTracking().ToListAsync(ct);
+        Assert.Equal(2, rows.Count);
+        var audit = Assert.Single(rows, row => row.Id != otherId);
+        Assert.Equal("kun.audit.event.v1", audit.EventTypeId);
+        var envelope = KunEventEnvelope.Parse(audit.Payload);
+        Assert.Equal(audit.Id, envelope.EventId);
+        Assert.Equal("qian.audit", envelope.Producer);
+    }
+
 }

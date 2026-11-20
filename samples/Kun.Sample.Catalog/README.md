@@ -109,16 +109,9 @@ end-to-end recipe and the `SchemaConsistencyInterceptor` safety net.
 
 ### Audit wiring
 
-`Program.cs` registers Kun.Audit to demonstrate the minimal DI ergonomics new in Phase 1:
-
-```csharp
-// Kun.Audit — fallback NullAuditWriter; call .UseEventBus() or register
-// Kun.Audit.EntityFrameworkCore to enable persistence.
-builder.Services.AddKunAudit();
-```
-
-This line shows the API shape; the sample does not exercise the writer at runtime. See
-`src/Kun.Audit/AGENTS.md` for concrete backend choices.
+Catalog saves product changes and their integration events in the same database transaction.
+Services that record command or entity changes can follow the [audit guide](../../docs/security/audit-log.md)
+for the provider registrations and transaction requirements.
 
 ---
 

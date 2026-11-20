@@ -17,7 +17,7 @@ using Kun.Authorization.AspNetCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Identity.Abstractions;
 
 namespace Qian.Registry.Tests;

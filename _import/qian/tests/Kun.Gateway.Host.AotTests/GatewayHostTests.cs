@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Audit;
+using Kun.Audit;
 using Qian.Config;
 using Kun.Identity.Client;
 using Kun.Identity.Client.Tests;

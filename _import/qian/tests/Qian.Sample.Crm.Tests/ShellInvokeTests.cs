@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 using Qian.Testing;

@@ -37,7 +37,7 @@ app.MapGet("/orders", handler).RequireRateLimiting(KunRateLimiterExtensions.Slid
 
 `AddKunGateway()` 已注册 `kun-default`，并为未显式设置 `RateLimiterPolicy` 的 YARP 路由绑定它。业务路由同时默认要求认证；只有配置 `AuthorizationPolicy: "Anonymous"` 的路由可匿名访问。普通 ASP.NET 端点仍需调用上面的 `RequireRateLimiting`。三种内置策略超限均返回 429；限流器提供重试时间时，响应附整数秒 `Retry-After`。具名自定义策略也沿用默认拒绝回调，除非宿主显式覆盖。
 
-IP 分区仅读取 `Connection.RemoteIpAddress`。宿主须在认证和限流之前调用 `UseForwardedHeaders()`；独立网关已接好。`KunGateway.TrustedProxyAddresses`（IP 列表）和 `TrustedProxyNetworks`（CIDR 列表）只填写实际反向代理出口，`ForwardLimit` 默认 1。两张名单均为空时关闭转发头处理，非信任来源伪造 X-Forwarded-For 不会切换限流桶。不要单独清空框架的 KnownProxies/KnownIPNetworks：框架会将其理解为信任全部。
+IP 分区仅读取 `Connection.RemoteIpAddress`。宿主须在认证和限流之前调用 `UseForwardedHeaders()`；独立网关已接好。`Gateway:TrustedProxyAddresses`（IP 列表）和 `Gateway:TrustedProxyNetworks`（CIDR 列表）只填写实际反向代理出口，`ForwardLimit` 默认 1。两张名单均为空时关闭转发头处理，非信任来源伪造 X-Forwarded-For 不会切换限流桶。不要单独清空框架的 KnownProxies/KnownIPNetworks：框架会将其理解为信任全部。
 
 ## 典型组合
 
@@ -67,9 +67,11 @@ builder.Services.AddKunTokenBucketRateLimiter(o =>
 
 内置的 FixedWindow / SlidingWindow / TokenBucket 策略都是**进程内**（每个 Gateway pod 各自独立计数）。在多 pod 部署时 100 permits 会变成 `100 × podCount` 的实际吞吐。
 
-`Kun.Gateway.RateLimiting.IRedisRateLimitStore` 提供基础 primitive：
+`Kun.RateLimit.IRedisRateLimitStore` 提供基础 primitive：
 
 ```csharp
+using Kun.RateLimit.Extensions;
+
 services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("redis:6379"));
 services.AddKunRedisRateLimitStore(o => o.KeyPrefix = "kun:prod:rl");
 ```
@@ -81,24 +83,10 @@ var result = await store.HitAsync("tenant-a", TimeSpan.FromMinutes(1));
 if (result.Count > 100) { /* reject */ }
 ```
 
-**实现要点**：
-- 原子 `INCR`，首次命中额外 `EXPIRE` 设 TTL，后续命中不触发 `EXPIRE`（保持滑动边界）
-- 计数器自动到期自清理，无需后台 GC 任务
-- 多 Pod 共享计数，PgBouncer / Redis Cluster 环境里行为一致
+Redis 用一条 Lua 脚本完成计数、查询剩余 TTL 和设置有效期。首次命中与已有计数但缺 TTL 的桶会得到完整窗口。正常后续命中沿用已有到期时间。服务侧与网关可以共用这个存储实现。
 
-**限制**：当前 `RedisFixedWindowRateLimitStore` 是**低层 primitive**，不是 `PartitionedRateLimiter<HttpContext>` 实现。即你不能直接用 `RequireRateLimiting("redis-policy")` 让框架路由到它；需要手写一个 middleware 调 `HitAsync` 并在命中超限时返回 429。框架内置 `PartitionedRateLimiter` 适配留待未来（tracked as Part 3b）。
+## 声明式网关路由
 
-## 落地 checklist
+在 `Gateway:Routes` 中为每条路由指定 `RateLimiterPolicy`。组件网关把 `kun-default` 映射到可信客户端 IP、`tenant` 映射到租户、`user` 映射到租户内主体。网关使用 `Gateway:RateLimits` 中的前缀、窗口和各分区额度。所有副本配置相同的 Redis 连接与前缀即可共享额度。额度用尽时返回 429 和 Retry-After，存储不可用时返回 503。
 
-- [ ] 选一个 `IRateLimitPartitionResolver`（或默认 Tenant）
-- [ ] 选一个或多个限流策略（`AddKunXxxRateLimiter`）
-- [ ] 在需要的端点调 `.RequireRateLimiting(KunRateLimiterExtensions.XxxPolicyName)`
-- [ ] 多 Pod 部署：额外注册 `AddKunRedisRateLimitStore` + 写 middleware 替代/补强
-- [ ] 压测：推荐 `Testcontainers.Redis` + 100 并发 request，校验精度 < 2% drift
-
-## 相关代码
-
-- `src/Kun.Gateway/RateLimiting/IRateLimitPartitionResolver.cs` + `Resolvers/` 三种实现
-- `src/Kun.Gateway/RateLimiting/KunRateLimiterExtensions.cs` 三种 `AddKunXxxRateLimiter` + `AddKunRedisRateLimitStore`
-- `src/Kun.Gateway/RateLimiting/Kun{Sliding,TokenBucket}Options.cs`
-- `src/Kun.Gateway/RateLimiting/RedisFixedWindowRateLimitStore.cs`
+[固定窗口存储](../../src/Kun.RateLimit/Redis/RedisFixedWindowRateLimitStore.cs) · [网关分区与响应](../../src/Kun.Gateway/GatewayRateLimiting.cs) · [平台外壳与配置](../../src/Kun.Gateway.Shell/README.md)

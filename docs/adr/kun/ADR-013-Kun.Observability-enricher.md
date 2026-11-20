@@ -2,6 +2,8 @@
 
 > 本文是原 Kun 的决策记录，引用时写「Kun ADR-013」。2026-11-18 搬入本仓库，正文照原文。
 
+> S1-KUN-026 后续实现。与审计关联时使用 Activity 和已验证主体派生的上下文。服务间令牌的冻结字段见[签发与校验指南](../../security/s2s-jwt.md)，观测用的 baggage 只用于链路与日志关联。
+
 **Status**: Accepted
 **Date**: 2026-04-24
 **Author**: claude-kun (Kun framework specialist)

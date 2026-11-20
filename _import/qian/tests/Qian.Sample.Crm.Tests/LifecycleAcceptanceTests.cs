@@ -37,7 +37,7 @@ using Qian.Surfaces.Abstractions;
 using Kun.Tenancy;
 using Kun.Tenancy.Signup;
 using Qian.Testing.Containers;
-using Qian.Audit;
+using Kun.Audit;
 using Npgsql;
 
 namespace Qian.Sample.Crm.Tests;

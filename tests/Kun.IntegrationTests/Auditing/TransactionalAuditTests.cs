@@ -1,8 +1,5 @@
 using System.Security.Claims;
 using Kun.Audit;
-using Kun.Audit.Abstractions;
-using Kun.Audit.DependencyInjection;
-using Kun.Audit.EntityFrameworkCore.DependencyInjection;
 using Kun.Auditing;
 using Kun.Auditing.DependencyInjection;
 using Kun.Core.Domain;
@@ -67,7 +64,6 @@ public sealed class TransactionalAuditTests : IClassFixture<PostgresFixture>
         services.AddKunAuditing<TransactionalAuditDbContext>();
         services.AddAuditable<TransactionalOrder>();
         services.AddKunTenantRls<TransactionalAuditDbContext>();
-        services.AddKunAudit().UseEntityFramework<TransactionalAuditDbContext>();
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
     }
 
@@ -258,29 +254,6 @@ public sealed class TransactionalAuditTests : IClassFixture<PostgresFixture>
         var verify = verifyScope.ServiceProvider.GetRequiredService<TransactionalAuditDbContext>();
         Assert.Equal("winner", (await verify.Set<TransactionalOrder>().SingleAsync(x => x.Id == id, TestContext.Current.CancellationToken)).Name);
         Assert.Equal(2, await verify.Set<AuditLog>().CountAsync(x => x.ResourceId == id.ToString(), TestContext.Current.CancellationToken));
-    }
-
-    [Fact]
-    public async Task AuditReader_EnforcesTenantAndDatabaseFilters()
-    {
-        var tenant = Guid.NewGuid().ToString();
-        await using var services = Build(tenant);
-        await using var scope = services.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<TransactionalAuditDbContext>();
-        await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
-        scope.ServiceProvider.GetRequiredService<AuditContext>().ActorType = AuditActorType.Agent;
-        var order = TransactionalOrder.Create(tenant, "agent-action");
-        db.Add(order);
-        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
-        var reader = scope.ServiceProvider.GetRequiredService<IAuditReader>();
-        var found = new List<AuditLog>();
-        await foreach (var log in reader.QueryAsync(new AuditQuery(tenant, ActorId: User.Id.ToString(), ResourceId: order.Id.ToString(), Limit: 1), TestContext.Current.CancellationToken))
-            found.Add(log);
-        Assert.Equal(AuditActorType.Agent, Assert.Single(found).ActorType);
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            await foreach (var _ in reader.QueryAsync(new AuditQuery("other-tenant"), TestContext.Current.CancellationToken)) { }
-        });
     }
 
     // 数据约定与实体审计不占租户和当前主体端口：宿主之后才以 TryAdd 登记的两个端口照样生效。

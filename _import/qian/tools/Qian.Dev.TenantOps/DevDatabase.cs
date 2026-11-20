@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Qian.Capabilities;
 using Kun.Data;

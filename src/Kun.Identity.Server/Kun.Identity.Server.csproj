@@ -8,7 +8,7 @@
     <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Audit.Abstractions/Kun.Audit.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
     <PackageReference Include="OpenIddict.Server.AspNetCore" />
     <PackageReference Include="OpenIddict.EntityFrameworkCore" />

@@ -233,34 +233,20 @@ Handler 注册由配套的源生成器在编译期完成，`FrozenDictionary` �
 
 ### 4.4 租户上下文抽象
 
+HTTP 与 gRPC 的认证入口在请求范围内建立 `ITenantContext`。租户请求使用 UUID，平台请求可以使用空租户。后台消费者取得经过授权的租户标识后，可以用同一个端口建立作用域。
+
 ```csharp
-// Kun.Core
-public interface ITenantContext
+static async Task HandleForTenantAsync(
+    ITenantContext tenantContext,
+    Guid tenantId,
+    Func<Task> handle)
 {
-    string? TenantId { get; }
-    bool IsMultiTenant { get; }
-}
-
-// Kun.EntityFrameworkCore - 自动挂载全局过滤器
-public abstract class KunDbContext : DbContext
-{
-    private readonly ITenantContext _tenantContext;
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            if (typeof(IMultiTenant).IsAssignableFrom(entityType.ClrType))
-            {
-                // 对实现了 IMultiTenant 的实体自动附加 TenantId 过滤
-                modelBuilder.Entity(entityType.ClrType).AddTenantQueryFilter(_tenantContext);
-            }
-        }
-    }
+    using var scope = tenantContext.BeginScope(tenantId);
+    await handle();
 }
 ```
 
-v1 即约定清楚"租户 ID 从哪来、怎么传、怎么过滤"，业务开发者后续接入 SaaS 场景时零改动。
+`ITenantContext.TenantId` 的类型是 `Guid?`。`KunDbContext` 将当前 UUID 转为带连字符的小写 D 格式文本，并应用实体的 `IMultiTenant.TenantId` 查询过滤器。作用域释放后恢复原来的租户。
 
 ---
 
@@ -474,100 +460,57 @@ sequenceDiagram
     Gateway->>ServiceA: 请求 + Authorization: Bearer {S2S-JWT}
     ServiceA->>ServiceA: 校验 S2S JWT 签名/受众/过期
     ServiceA->>ServiceA: 提取 sub/tenant_id 注入 ITenantContext
-    ServiceA->>ServiceB: gRPC 调用 + 转发/重签 S2S JWT
+    ServiceA->>ServiceB: gRPC 调用 + 绑定服务 B 的令牌
     ServiceB->>ServiceB: 同样校验 S2S JWT
 ```
 
-关键设计点：
-
-1. **两套 JWT 分离**：外部 JWT（用户身份）由 IdP 签发、网关校验；内部 S2S JWT（服务间令牌）由网关用**独立私钥**签发，下游用**独立公钥**校验。两套密钥互不相干。
-2. **S2S JWT 短生命周期**：TTL 控制在 60 秒到 5 分钟，即使泄露风险窗口也极小。
-3. **内部签名密钥不暴露**：S2S 公钥只在内部网络 JWKS 端点暴露，永不对外发布。
-4. **特定 Audience**：S2S JWT 的 `aud` 声明为 `kun-internal`，下游只接受该 audience 的令牌，防止外部 JWT 被误用为内部令牌。
-5. **网络层兜底**：配合 Kubernetes NetworkPolicy，下游服务**仅接受来自网关命名空间**的入站流量，形成纵深防御。
+网关用 IdP 的签名公钥验证外部身份，随后用独立的内部私钥签发服务间令牌。独立宿主从配置读取内部受众，声明式网关选用所匹配路由的集群标识。下游服务按自己的受众验证令牌。宿主发布的 JWKS 只含公钥，网络策略可进一步限制下游入口。
 
 ### 9.2 S2S JWT Claim 结构
+
+下面是一枚租户用户令牌的载荷示例。服务主体使用自己的客户端标识作为 `sub`，平台范围用显式的 `"tenant_id": null` 表示。
 
 ```json
 {
   "iss": "kun-gateway",
-  "aud": "kun-internal",
-  "exp": 1713456789,
-  "iat": 1713456729,
-  "jti": "a1b2c3d4-...",
-  "sub": "user-42",
-  "tenant_id": "tenant-contoso",
+  "aud": ["catalog"],
+  "sub": "79b9ea0c-2555-419a-8851-4b9f97b5a856",
+  "principal_kind": "user",
+  "tenant_id": "fb08a071-13f0-4806-bca6-4eca3ec02fb6",
+  "membership_id": "85d61e68-124a-410a-8410-bc6d13058b5a",
+  "identity_revision": 1,
   "roles": ["customer"],
-  "original_token_jti": "external-jti-xyz",
-  "trace_id": "00-4bf92f3577b34da6a3ce929d0e0e4736-..."
+  "scope": "catalog.read",
+  "session_id": "7c4c4f56-d9c9-4f4b-b186-b8e7496965b3",
+  "jti": "40bf9620-ad74-43e5-9c9d-230025e483fe",
+  "iat": 1795132800,
+  "nbf": 1795132800,
+  "exp": 1795132860
 }
 ```
 
 ### 9.3 网关签发实现（Kun.Gateway）
 
+YARP 选定目的集群后，`S2sAuthTransform` 清理入站身份头，再为本跳生成令牌并替换出站请求的 `Authorization`。签发失败会在网关结束请求。
+
 ```csharp
-public class S2sTokenIssuer
-{
-    private readonly SigningCredentials _signingCredentials;
-    private readonly KunGatewayOptions _options;
-
-    public string Issue(ClaimsPrincipal externalPrincipal, string? traceId)
-    {
-        var now = DateTime.UtcNow;
-        var claims = new List<Claim>
-        {
-            new("sub",       externalPrincipal.FindFirstValue("sub")!),
-            new("tenant_id", externalPrincipal.FindFirstValue("tenant_id") ?? ""),
-            new("jti",       Guid.NewGuid().ToString()),
-            new("trace_id",  traceId ?? "")
-        };
-
-        foreach (var role in externalPrincipal.FindAll(ClaimTypes.Role))
-            claims.Add(new Claim("roles", role.Value));
-
-        var token = new JwtSecurityToken(
-            issuer: "kun-gateway",
-            audience: "kun-internal",
-            claims: claims,
-            notBefore: now,
-            expires: now.AddSeconds(_options.S2sTtlSeconds),  // 默认 60s
-            signingCredentials: _signingCredentials);         // RS256 / ES256
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-}
-
-// YARP Transform：在转发前替换 Authorization 头为 S2S JWT
-public class S2sAuthTransform : RequestTransform
-{
-    public override ValueTask ApplyAsync(RequestTransformContext ctx)
-    {
-        var principal = ctx.HttpContext.User;
-        var traceId = Activity.Current?.TraceId.ToString();
-        var s2sToken = _issuer.Issue(principal, traceId);
-
-        ctx.ProxyRequest.Headers.Authorization =
-            new AuthenticationHeaderValue("Bearer", s2sToken);
-
-        return default;
-    }
-}
+var token = await issuer.IssueForAudienceAsync(context.User, audience, context.RequestAborted);
+proxyRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 ```
 
 ### 9.4 下游服务校验（Kun.Security）
 
 ```csharp
-// 下游服务 Program.cs
-builder.Services.AddKunServiceAuthentication(options =>
-{
-    options.JwksUri = "http://kun-gateway/internal/.well-known/jwks.json";
-    options.ValidAudience = "kun-internal";
-    options.ValidIssuer = "kun-gateway";
-    options.ClockSkew = TimeSpan.FromSeconds(5);
-});
-
 builder.Services.AddKunSecurity();
+builder.Services.AddAuthentication("Bearer")
+    .AddKunServiceAuthentication(options =>
+    {
+        options.Issuer = "kun-gateway";
+        options.Audience = "catalog";
+        options.JwksUri = "https://gateway.example/.well-known/jwks.json";
+    });
 builder.Services.AddKunMultiTenancy();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 app.UseAuthentication();
@@ -585,11 +528,11 @@ app.UseAuthorization();
 | :--- | :--- |
 | 外部 JWT 与内部 S2S JWT 密钥分离 | ✅ 两套密钥对，不同 JWKS 端点 |
 | S2S JWT 短生命周期 | ✅ 默认 60 秒 |
-| 受众校验防误用 | ✅ `aud = kun-internal` |
-| 追踪 ID 随令牌传递 | ✅ `trace_id` claim |
+| 受众校验 | 下游验证 `aud` 包含本服务受众 |
+| 请求追踪 | 使用 Activity 与 W3C trace context |
 | 网络层隔离 | ✅ K8s NetworkPolicy 限制仅网关入站 |
 | 密钥轮换 | ✅ JWKS 多 `kid` 支持无缝轮换 |
-| 后台任务身份 | ✅ 机器身份 → 网关 `/s2s/issue` |
+| 后台任务身份 | 使用已授权的服务主体和本跳受众 |
 
 ---
 
@@ -757,7 +700,7 @@ CI 流水线中对所有应当走 AOT 的服务执行 `dotnet publish -p:Publish
 
 `Kun.Sandbox` 与旧线的 `Kun.Storage`（上表第一行）已归档（S1-KUN-028），上表与测试计数按 `0.1.0-phase1` 的交付原样保留。对象存储现在用 `Kun.Storage.Abstractions` 加 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`。
 
-### 13.2 最小集成示例：Audit + Security 组合根
+### 13.2 Phase 1 的 Audit 与 Security 组合根
 
 这是 Phase 1 下游 C# 服务最常见的组合：外部 JWT 由网关校验，内部 S2S JWT 由下游 `Kun.Security` 认证，业务操作记入 `Kun.Audit`。
 
@@ -792,7 +735,7 @@ app.UseAuthorization();
 app.Run();
 ```
 
-> 完整示例请见 `samples/Kun.Sample.Catalog/Program.cs`（已演示 `AddKunAudit()`）。
+> 上面的装配记录了 Phase 1 的 API。当前宿主通过 `qian.audit` 组件写入命令审计链，实体审计由 `Kun.Audit.EntityFrameworkCore` 提供。装配示例和读取方式见[命令审计与实体审计](../security/audit-log.md)。
 
 ### 13.3 AOT 一致性状态
 

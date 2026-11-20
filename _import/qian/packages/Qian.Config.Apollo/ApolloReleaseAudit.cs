@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Runtime;
 
 namespace Qian.Config.Apollo;

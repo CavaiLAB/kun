@@ -14,7 +14,7 @@
     <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
     <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
+    <ProjectReference Include="../../src/Kun.Audit.Postgres/Kun.Audit.Postgres.csproj" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 </Project>

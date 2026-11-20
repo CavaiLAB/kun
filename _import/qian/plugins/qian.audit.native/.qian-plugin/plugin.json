@@ -32,7 +32,7 @@
   ],
   "runtime": {
     "form": "module",
-    "entry": "Qian.Audit.Native.NativeAuditComponent, Qian.Audit.Native",
+    "entry": "Kun.Audit.Postgres.NativeAuditComponent, Kun.Audit.Postgres",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -49,7 +49,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.audit.native",
-        "source": "Qian.Audit.Native.NativeAuditComponent, Qian.Audit.Native",
+        "source": "Kun.Audit.Postgres.NativeAuditComponent, Kun.Audit.Postgres",
         "sha256": "05b224fa83740c021078cfb721355b36d07a2423c1226e6603bbb4aa1b2a9926",
         "fields": [
           ""

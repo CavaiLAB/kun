@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore.Storage;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Runtime;
 using Kun.Errors;
 

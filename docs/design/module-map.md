@@ -104,7 +104,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
-| `Kun.Security` | S2S JWT 校验、JWKS 热加载与当前用户 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
+| `Kun.Security` | S2S JWT 校验、JWKS 解析、主体声明读取与 `ICurrentUser` 实现 | 每个下游服务都必须装配，验证网关签发的内部 token | `AddKunSecurity()` / `AddKunServiceAuthentication()` | ✅ | 15 |
 | `Kun.Security.Abstractions` | 服务间令牌的主体模型与声明词汇表，零依赖 | 公共表面带主体的契约包引用它，不必引用 `Kun.Security` | `Principal` / `PrincipalKind` / `IdentityClaimNames` | ✅ | — |
 | `Kun.Identity` | 外部 IdP（OIDC）客户端、JWT 校验与原子会话；**不**自建用户存储 | 账号和凭据由身份权威提供，Kun 负责依赖方校验与会话 | `AddKunIdentity(...)` | ✅ | 11 |
 | `Kun.MultiTenancy` | 请求与消息的租户范围 | 登记租户上下文并传播当前标识 | `AddKunMultiTenancy()` / `UseKunMultiTenancy()` | ✅ | 5 |
@@ -113,8 +113,9 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Tenancy.AspNetCore` | 租户目录 HTTP 端点 | 查询和管理租户 | `MapKunTenancy()` | — | — |
 | `Kun.Tenancy.Signup.Abstractions` | 自助注册契约 | 提交及审核租户申请 | `ITenantSignup` / `ISignupMessenger` | — | — |
 | `Kun.Tenancy.Signup` | 自助注册流程 | 装配申请与运营端点 | `MapKunTenancySignupApplicant()` / `MapKunTenancySignupOperations()` | — | 10 |
-| `Kun.Audit` | 审计写入器抽象 + `NullAuditWriter` / `EventBusAuditWriter` | 下游服务的操作审计；通过 Outbox 异步记录 | `AddKunAudit()` / `.UseEventBus()` | ✅ | 13 |
-| `Kun.Audit.EntityFrameworkCore` | EF 持久化后端 | 需要审计 on-box 持久化时的可选后端 | `AddKunAuditEntityFrameworkCore()` | ⚠️ trim-safe | — |
+| `Kun.Audit.Abstractions` | 命令审计记录、追加、分页与验链契约 | 需要读写命令链的宿主 | `IAuditWriter` / `IAuditReader` | — | — |
+| `Kun.Audit.EntityFrameworkCore` | PostgreSQL 命令链、同事务实体日志 | EF 宿主 | `AuditComponent` / `AddKunAuditing<TContext>()` | — | — |
+| `Kun.Audit.Postgres` | 原生 PostgreSQL 命令链提供者 | Native AOT 宿主 | `NativeAuditComponent` | 专属探针 | — |
 | `Kun.RateLimit` | 按租户分区限流、Redis 原子固定窗口计数 | Gateway 与业务服务的请求级别保护 | `AddKunRateLimit(...)` | ✅ | 6 |
 
 租户过滤器、字段拦截器和模型缓存键由 `Kun.EntityFrameworkCore.MultiTenancy` 提供。HTTP 与 gRPC 的请求范围共享 `Kun.MultiTenancy` 的入口规则。
@@ -140,7 +141,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.EntityFrameworkCore` | `DbContext.Set<T>()` / `MakeGenericMethod` / 非 typed JSON 序列化 |
 | `Kun.Audit.EntityFrameworkCore` | 透传 EF Core |
 | `Kun.Saga` | `Persistence/Ef/` 透传 EF Core；Phase 2 跟进拆分 |
-| `Kun.Auditing` | EF 的 SaveChanges 拦截器带出 IL2091；按合并蓝图 D23.9 在 B6 并入平台档的 `Kun.Audit.EntityFrameworkCore` |
+
 
 ## 依赖关系图
 
@@ -156,7 +157,7 @@ graph TD
     Authorization --> AspNet
     Authorization --> Grpc
     Apollo[Kun.Configuration.Apollo<br/>HTTP 配置源]
-    Core --> Audit[Kun.Audit<br/>操作审计/哈希链]
+    Core --> Audit[Kun.Audit.Abstractions<br/>命令审计契约]
 
     Core --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
 
@@ -192,7 +193,7 @@ graph TD
 ├─────────────────────────────────────────────────────────┤
 │  Abstraction Layer                                      │
 │  Kun.Mediator                                           │
-│  Kun.EventBus / Kun.Security / Kun.Validation / Kun.Audit│
+│  Kun.EventBus / Kun.Security / Kun.Validation / Kun.Audit.Abstractions│
 ├─────────────────────────────────────────────────────────┤
 │  Core Layer                                             │
 │  Kun.Core (zero dependencies)                           │

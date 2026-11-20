@@ -6,7 +6,7 @@
     <ProjectReference Include="../../_import/qian/packages/Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Audit.Abstractions/Kun.Audit.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <!-- 授权变更后经身份端口递增 identity_revision（S1-DEC-027）：只用 Definition 里的 IIdentityAccounts 与服务键。 -->
     <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />

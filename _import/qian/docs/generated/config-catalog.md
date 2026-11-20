@@ -668,7 +668,7 @@
 
 ## global/audit
 
-组件：` qian.audit@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.audit@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 

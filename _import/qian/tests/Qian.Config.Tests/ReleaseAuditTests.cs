@@ -3,7 +3,7 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Audit;
+using Kun.Audit;
 using Qian.Config.Apollo;
 using Kun.Runtime;
 using Qian.Testing.Containers;

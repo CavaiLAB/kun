@@ -7,7 +7,7 @@ using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Plugin.Sdk;

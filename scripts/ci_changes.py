@@ -154,10 +154,10 @@ AREAS: Dict[str, Area] = {
         (
             q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-tenancy-ui/**", "plugins/qian.shell/**",
               "plugins/qian.tenancy/ui/**", "tests/Qian.Shell.TestHost/**", "tests/Qian.Testing.Containers/**",
-              "tests/Shared/NativeAuditDatabase.cs", "packages/Qian.Audit*/**",
+              "tests/Shared/NativeAuditDatabase.cs",
               "Directory.*", "pnpm-lock.yaml", "pnpm-workspace.yaml",
               "package.json", ".github/workflows/shell-federation.yml"),
-            (".github/workflows/qian-shell-federation.yml",),
+            ("src/Kun.Audit*/**", ".github/workflows/qian-shell-federation.yml"),
             DOTNET_BASE, NPMRC,
         ),
         original="shell-federation.yml", builds_dotnet=True, installs_npm=True),

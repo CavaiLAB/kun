@@ -68,20 +68,16 @@ public interface IAuthzEnforcement
 }
 
 /// <summary>
-/// 已认证主体的判定视图：从已校验令牌复制，不从请求参数推导。IdentityRevision 为令牌携带的身份修订（S2S 令牌可缺省）；
-/// Delegated 表示带 act 委托链，S1 一律拒绝。
+/// 已认证调用的判定输入。Subject、IdentityRevision 与 Delegated 均从已验证令牌复制。
+/// IdentityRevision 可为空，Delegated 表示携带委托链。Permission 为空时按缺少权限声明处理。
+/// Channel、EntryPoint 与 Target 标明审计通道、入口与目标。命令事务非空时，放行的审计随事务提交，拒绝独立写入。
 /// </summary>
-public sealed record EnforcementSubject(string Id, string? TenantId, string Kind, long? IdentityRevision = null, bool Delegated = false)
+public sealed record EnforcementRequest(AuthorizationSubject Subject, long? IdentityRevision, bool Delegated, string? Permission,
+    string? Resource, string Channel, string EntryPoint, string Target, System.Data.Common.DbTransaction? Transaction = null)
 {
     /// <inheritdoc />
-    public override string ToString() => "EnforcementSubject(redacted)";
+    public override string ToString() => "EnforcementRequest(redacted)";
 }
-
-/// <summary>
-/// 一次强制执行的输入。Permission 为端点 / 命令声明的权限点全名，未声明时为 null（缺省拒绝并记录）；
-/// Channel 为审计通道（ui / api / mcp / a2a / job / event / hook）；EntryPoint 为 http / grpc / command；Target 为路由、方法或能力 ID。
-/// ；Transaction 非空（命令管道）时放行的决策审计随该事务提交，拒绝仍独立写入。</summary>
-public sealed record EnforcementRequest(EnforcementSubject Subject, string? Permission, string? Resource, string Channel, string EntryPoint, string Target, System.Data.Common.DbTransaction? Transaction = null);
 
 /// <summary>一次已记录的判定：解释、是否经平台超管旁路、审计记录的 ID 与时间。</summary>
 public sealed class AuthorizationDecision

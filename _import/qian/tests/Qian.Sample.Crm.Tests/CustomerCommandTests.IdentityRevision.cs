@@ -1,3 +1,4 @@
+using Kun.Authorization;
 using System.Diagnostics;
 using System.Globalization;
 using System.Net;
@@ -35,7 +36,7 @@ public sealed partial class IdentityAuthzTests
             var token = new JsonWebToken(accessToken);
             using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
             return await Runtime(host).AuthzSource().Enforcement().EnforceAsync(new EnforcementRequest(
-                new EnforcementSubject(token.Subject, token.GetClaim("tenant_id").Value, token.GetClaim("principal_kind").Value, TokenRevision(accessToken)),
+                new AuthorizationSubject(token.Subject, token.GetClaim("tenant_id").Value, token.GetClaim("principal_kind").Value), TokenRevision(accessToken), token.TryGetClaim("act", out _),
                 CustomerRead, null, "api", AuthzEnforcement.CommandEntryPoint, "qian.sample.crm/customer.list"), Ct);
         }
 

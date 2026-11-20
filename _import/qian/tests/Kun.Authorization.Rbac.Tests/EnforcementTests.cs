@@ -36,13 +36,13 @@ public sealed partial class SuperadminBypassTests
         Assert.Equal(PluginState.Ready, runtime.GetState("authz", ScopeKey.Global));
         var ctx = observer.Context!; var enforcement = ctx.Enforcement(); var authz = ctx.Authz();
         var roles = new PostgresTenantRoleStore(data, tenant);
-        var owner = new EnforcementSubject("owner-a", A, "user", IdentityRevision: 7); var reader = new EnforcementSubject("reader-a", A, "user");
+        var owner = new AuthorizationSubject("owner-a", A, "user"); var reader = new AuthorizationSubject("reader-a", A, "user");
         using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "owner-a", "operator", Ct);
             await roles.AssignAsync("tenant.user", "user", "reader-a", "operator", Ct); await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
 
-            var allowed = await enforcement.EnforceAsync(Request(owner, CustomerWrite), Ct);
+            var allowed = await enforcement.EnforceAsync(Request(owner, CustomerWrite, 7), Ct);
             Assert.True(allowed.Allow); Assert.Equal("role_grant", allowed.Reason); Assert.Equal(["tenant.owner"], allowed.Explanation.MatchedRoles);
             Assert.True(allowed.Logged); Assert.False(allowed.Bypass); Assert.NotEqual(Guid.Empty, allowed.Id);
             var denied = await enforcement.EnforceAsync(Request(reader, CustomerWrite), Ct);
@@ -72,36 +72,36 @@ public sealed partial class SuperadminBypassTests
             foreach (var (request, reason) in new (EnforcementRequest Request, string Reason)[]
             {
                 (Request(reader, null), "permission_not_declared"), (Request(reader, "not a permission"), "invalid_permission"),
-                (Request(new EnforcementSubject("owner-a", A, "user", Delegated: true), CustomerWrite), "delegation_not_supported"),
-                (Request(new EnforcementSubject("agent-a", A, "agent"), CustomerWrite), "delegation_not_supported"),
-                (Request(new EnforcementSubject("owner-a", B, "user"), CustomerWrite), "subject_tenant_mismatch"),
-                (Request(new EnforcementSubject("root", null, "user"), CustomerWrite), "tenant_context_mismatch"),
+                (Request(new AuthorizationSubject("owner-a", A, "user"), CustomerWrite, delegated: true), "delegation_not_supported"),
+                (Request(new AuthorizationSubject("agent-a", A, "agent"), CustomerWrite), "delegation_not_supported"),
+                (Request(new AuthorizationSubject("owner-a", B, "user"), CustomerWrite), "subject_tenant_mismatch"),
+                (Request(new AuthorizationSubject("root", null, "user"), CustomerWrite), "tenant_context_mismatch"),
             })
             {
                 var decision = await enforcement.EnforceAsync(request, Ct);
                 Assert.False(decision.Allow); Assert.Equal(reason, decision.Reason); Assert.True(decision.Logged); Assert.Empty(decision.Explanation.MatchedRoles);
             }
             // 非法主体没有可写进审计的 actor：拒绝，但只能记日志（Logged=false）。
-            var invalid = await enforcement.EnforceAsync(Request(new EnforcementSubject(" ", A, "user"), CustomerWrite), Ct);
+            var invalid = await enforcement.EnforceAsync(Request(new AuthorizationSubject(" ", A, "user"), CustomerWrite), Ct);
             Assert.False(invalid.Allow); Assert.Equal("invalid_subject", invalid.Reason); Assert.False(invalid.Logged);
             var platformInTenant = (await ctx.Audit().ReadAsync(0, 20, cancellationToken: Ct)).Select(entry => entry.Record).Single(record => record.ActorId == "root");
             Assert.Equal((A, "denied", "tenant_context_mismatch"), (platformInTenant.TenantId, platformInTenant.Result, platformInTenant.Payload.GetProperty("reason").GetString()));
             Assert.Equal(8, (await ctx.Audit().ReadAsync(0, 20, cancellationToken: Ct)).Count);
             // 通道 / 入口 / 目标不在枚举内是调用方编程错误，不是判定。
-            await Assert.ThrowsAsync<ArgumentException>(async () => await enforcement.EnforceAsync(new EnforcementRequest(owner, CustomerWrite, null, "web", AuthzEnforcement.HttpEntryPoint, "GET /x"), Ct));
-            await Assert.ThrowsAsync<ArgumentException>(async () => await enforcement.EnforceAsync(new EnforcementRequest(owner, CustomerWrite, null, "api", "mcp", "tool"), Ct));
+            await Assert.ThrowsAsync<ArgumentException>(async () => await enforcement.EnforceAsync(new EnforcementRequest(owner, 7, false, CustomerWrite, null, "web", AuthzEnforcement.HttpEntryPoint, "GET /x"), Ct));
+            await Assert.ThrowsAsync<ArgumentException>(async () => await enforcement.EnforceAsync(new EnforcementRequest(owner, 7, false, CustomerWrite, null, "api", "mcp", "tool"), Ct));
         }
         // 已认证主体带租户、宿主却没有为本次调用建立租户上下文：抛错而不是拒绝（PEP 放错了位置）。
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await enforcement.EnforceAsync(Request(owner, CustomerWrite), Ct));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await enforcement.EnforceAsync(Request(owner, CustomerWrite, 7), Ct));
         // 平台主体（tenant_id=null）在无租户上下文里合法，只走显式旁路；没配 platformRole 时旁路一律拒绝；平台链未配置写不进审计，拒绝原因保留。
-        var platform = await enforcement.EnforceAsync(Request(new EnforcementSubject("root", null, "user"), CustomerWrite), Ct);
+        var platform = await enforcement.EnforceAsync(Request(new AuthorizationSubject("root", null, "user"), CustomerWrite), Ct);
         Assert.False(platform.Allow); Assert.Equal("platform_role_not_configured", platform.Reason); Assert.False(platform.Logged); Assert.True(platform.Bypass);
 
         // 审计不可用即拒绝：卸载 Audit 后 RBAC 仍命中，但放行无据可查，判定变为拒绝；拒绝保留原因但记不下来。
         await runtime.UnmountAsync("audit", ScopeKey.Global, Ct);
         using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
-            var unavailable = await enforcement.EnforceAsync(Request(owner, CustomerWrite), Ct);
+            var unavailable = await enforcement.EnforceAsync(Request(owner, CustomerWrite, 7), Ct);
             Assert.False(unavailable.Allow); Assert.Equal("audit_unavailable", unavailable.Reason); Assert.False(unavailable.Logged);
             Assert.Equal(["tenant.owner"], unavailable.Explanation.MatchedRoles); Assert.Equal([CustomerWrite], unavailable.Explanation.Missing);
             var unlogged = await enforcement.EnforceAsync(Request(reader, CustomerWrite), Ct);
@@ -119,7 +119,7 @@ public sealed partial class SuperadminBypassTests
         using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             var before = (await ctx.Audit().ReadAsync(0, 50, cancellationToken: Ct)).Count;
-            var sampledOut = await enforcement.EnforceAsync(Request(owner, CustomerWrite), Ct);
+            var sampledOut = await enforcement.EnforceAsync(Request(owner, CustomerWrite, 7), Ct);
             Assert.True(sampledOut.Allow); Assert.False(sampledOut.Logged);
             var stillLogged = await enforcement.EnforceAsync(Request(reader, CustomerWrite), Ct);
             Assert.False(stillLogged.Allow); Assert.True(stillLogged.Logged);
@@ -154,18 +154,18 @@ public sealed partial class SuperadminBypassTests
         var roles = new PostgresTenantRoleStore(first.Services.GetRequiredService<IDataService>(), firstTenant);
         await roles.EnsureBuiltinsAsync("operator", Ct); await roles.AssignAsync("tenant.owner", "user", "alice", "operator", Ct);
         await roles.InstallDefaultsAsync(catalog.PluginId, catalog.Version, null, "operator", Ct);
-        static EnforcementSubject Alice(long? revision) => new("alice", A, "user", revision);
+        var alice = new AuthorizationSubject("alice", A, "user");
 
         // 未携带修订的令牌不比对（S2S 令牌）；首次见到修订 1 即记为下限。
-        Assert.True((await one.EnforceAsync(Request(Alice(null), CustomerWrite), Ct)).Allow);
-        Assert.True((await one.EnforceAsync(Request(Alice(1), CustomerWrite), Ct)).Allow);
+        Assert.True((await one.EnforceAsync(Request(alice, CustomerWrite, null), Ct)).Allow);
+        Assert.True((await one.EnforceAsync(Request(alice, CustomerWrite, 1), Ct)).Allow);
         // 宿主二见到修订 2：下限抬到 2，宿主一随即拒绝修订 1 的旧令牌（不等 TTL，不靠共享缓存）。
-        Assert.True((await two.EnforceAsync(Request(Alice(2), CustomerWrite), Ct)).Allow);
-        var stale = await one.EnforceAsync(Request(Alice(1), CustomerWrite), Ct);
+        Assert.True((await two.EnforceAsync(Request(alice, CustomerWrite, 2), Ct)).Allow);
+        var stale = await one.EnforceAsync(Request(alice, CustomerWrite, 1), Ct);
         Assert.False(stale.Allow); Assert.Equal("identity_revision_stale", stale.Reason); Assert.True(stale.Logged); Assert.Equal([CustomerWrite], stale.Explanation.Missing);
-        Assert.True((await one.EnforceAsync(Request(Alice(2), CustomerWrite), Ct)).Allow);
-        Assert.Equal("identity_revision_stale", (await two.EnforceAsync(Request(Alice(1), CustomerWrite), Ct)).Reason);
-        Assert.Equal("identity_revision_stale", (await two.EnforceAsync(Request(Alice(-1), CustomerWrite), Ct)).Reason);
+        Assert.True((await one.EnforceAsync(Request(alice, CustomerWrite, 2), Ct)).Allow);
+        Assert.Equal("identity_revision_stale", (await two.EnforceAsync(Request(alice, CustomerWrite, 1), Ct)).Reason);
+        Assert.Equal("identity_revision_stale", (await two.EnforceAsync(Request(alice, CustomerWrite, -1), Ct)).Reason);
         // 拒绝原因进决策日志，带令牌修订。
         var record = (await oneObserver.Context!.Audit().ReadAsync(0, 20, cancellationToken: Ct)).Select(entry => entry.Record).First(r => r.Result == "denied" && r.ActorId == "alice");
         Assert.Equal(("deny", "identity_revision_stale", AuthzEnforcement.CommandEntryPoint, CommandTarget, 1L, false), Decision(record.Payload));
@@ -175,8 +175,8 @@ public sealed partial class SuperadminBypassTests
         // 撤销角色：租户授权修订递增，新令牌 3 秒内在另一宿主拒绝（no_matching_grant），旧令牌仍按旧修订拒绝。
         await roles.AssignAsync("tenant.admin", "user", "admin-a", "operator", Ct);
         Assert.True(await roles.RevokeAsync("tenant.owner", "user", "alice", "operator", Ct));
-        await Within(TimeSpan.FromSeconds(3), async () => (await two.EnforceAsync(Request(Alice(2), CustomerWrite), Ct)).Reason == "no_matching_grant");
-        Assert.Equal("identity_revision_stale", (await two.EnforceAsync(Request(Alice(1), CustomerWrite), Ct)).Reason);
+        await Within(TimeSpan.FromSeconds(3), async () => (await two.EnforceAsync(Request(alice, CustomerWrite, 2), Ct)).Reason == "no_matching_grant");
+        Assert.Equal("identity_revision_stale", (await two.EnforceAsync(Request(alice, CustomerWrite, 1), Ct)).Reason);
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public sealed partial class SuperadminBypassTests
         Assert.Null(ctx.TryInject<IAuthzEnforcement>(AuthzEnforcement.Key)); Assert.Null(ctx.TryInject<IAuthzService>(AuthzDefinition.Key));
         Assert.Empty(ctx.List(CommandPolicies.AuthorizationKey));
         using (tenant.BeginScope(Guid.ParseExact(A, "D")))
-            await Assert.ThrowsAnyAsync<Exception>(async () => await enforcement.EnforceAsync(Request(new EnforcementSubject("owner-a", A, "user"), CustomerWrite), Ct));
+            await Assert.ThrowsAnyAsync<Exception>(async () => await enforcement.EnforceAsync(Request(new AuthorizationSubject("owner-a", A, "user"), CustomerWrite), Ct));
 
         // 重装得到新的单个监听器，而不是在旧登记上叠加。
         await runtime.MountAsync([Define("authz", new AuthzPlugin(), AuthzKeys)], Ct);
@@ -303,8 +303,8 @@ public sealed partial class SuperadminBypassTests
         Assert.Equal(["authz", "observer"], DispatchListeners(ctx)); Assert.True(errors.Contains(AuthzErrors.ScopeMismatch));
     }
 
-    private static EnforcementRequest Request(EnforcementSubject subject, string? permission) =>
-        new(subject, permission, null, "api", AuthzEnforcement.CommandEntryPoint, CommandTarget);
+    private static EnforcementRequest Request(AuthorizationSubject subject, string? permission, long? revision = null, bool delegated = false) =>
+        new(subject, revision, delegated, permission, null, "api", AuthzEnforcement.CommandEntryPoint, CommandTarget);
 
     private static (string Decision, string Reason, string EntryPoint, string Target, long? IdentityRevision, bool Bypass) Decision(JsonElement payload) =>
         (payload.GetProperty("decision").GetString()!, payload.GetProperty("reason").GetString()!, payload.GetProperty("entryPoint").GetString()!, payload.GetProperty("target").GetString()!,

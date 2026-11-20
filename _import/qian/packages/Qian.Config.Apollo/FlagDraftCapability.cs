@@ -69,7 +69,7 @@ internal sealed partial class FlagDraftCapability : IExecutableCapability, IFeat
         if (!FeatureFlagRules.Validate(candidate) || SecretSafety.ScanConfiguration(candidate).Count != 0) throw Error(PlatformErrors.InputInvalid);
         var hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(rule)));
         var resource = "flags/" + request.Name;
-        var authorization = await _owner.Enforcement().EnforceAsync(new(new(principal.Subject, null, "user", principal.IdentityRevision),
+        var authorization = await _owner.Enforcement().EnforceAsync(new(new(principal.Subject, null, "user"), principal.IdentityRevision, principal.Actor is not null,
             FeatureFlagManagement.SetPermission, resource, "api", AuthzEnforcement.CommandEntryPoint, Contract.Id), linked.Token).ConfigureAwait(false);
         if (!authorization.Allow) throw Error(authorization.Reason switch
         {

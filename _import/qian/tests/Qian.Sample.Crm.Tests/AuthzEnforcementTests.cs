@@ -89,6 +89,19 @@ public sealed partial class IdentityAuthzTests
     }
 
     [Fact]
+    public async Task 带委托链的令牌在HTTP与gRPC入口均被拒绝()
+    {
+        await using var host = await Start(grpc: true, map: app => app.MapGrpcService<AcceptanceEcho>().RequireAuthorization("crm-command-reader"));
+        var token = host.Token(A, "crm.read", actor: new { sub = Reader, principal_kind = "service" });
+        using var denied = await host.Send(Get("/api/customers", token));
+        Assert.Equal(HttpStatusCode.Unauthorized, denied.StatusCode);
+        using var channel = GrpcChannel.ForAddress(host.GrpcAddress, new GrpcChannelOptions { HttpHandler = new SocketsHttpHandler { UseProxy = false }, DisposeHttpClient = true });
+        var error = await Assert.ThrowsAsync<RpcException>(() => channel.CreateCallInvoker().AsyncUnaryCall(
+            AcceptanceBindings.Read, null, Call(token), "ping").ResponseAsync);
+        Assert.Equal(StatusCode.Unauthenticated, error.StatusCode);
+    }
+
+    [Fact]
     public async Task 更高identity_revision出现后旧令牌被服务端拒绝_HTTP回401且gRPC回Unauthenticated_移除角色后授权修订递增旧快照三秒内失效_authz_grant_changed进Outbox()
     {
         await using var host = await Start(grpc: true, decisionLogSampling: 1, map: app => app.MapGrpcService<AcceptanceEcho>().RequireAuthorization("crm-command-reader"));

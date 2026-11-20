@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Gateway;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -180,10 +179,10 @@ internal sealed class GatewayKeys : IDisposable
     private string PrivateKey => Path.Combine(_directory.FullName, "private.pem");
     private string PublicKey => Path.Combine(_directory.FullName, "public.pem");
 
-    internal S2sTokenIssuer Issuer(IHostEnvironment environment) => new(Options.Create(new KunGatewayOptions
+    internal S2sTokenIssuer Issuer(IHostEnvironment environment) => new(Options.Create(new GatewayConfiguration
     {
-        ExternalIssuer = "https://id.qian.test/", ExternalAudience = IdentityServerHost.Resource, ExternalJwksUri = "https://id.qian.test/.well-known/jwks",
-        InternalIssuer = IssuerName, InternalAudience = "qian-platform", SigningKeyPath = PrivateKey, PublicKeyPath = PublicKey, InternalTokenLifetime = TimeSpan.FromSeconds(60)
+        IdentityIssuer = "https://id.qian.test/", IdentityAudience = IdentityServerHost.Resource, ExternalJwksUri = "https://id.qian.test/.well-known/jwks",
+        Issuer = IssuerName, InternalAudience = "qian-platform", SigningKeyPath = PrivateKey, PublicKeyPath = PublicKey, InternalTokenLifetime = TimeSpan.FromSeconds(60)
     }), environment, NoOpS2sPrincipalResolver.Instance);
 
     // 签发器给令牌头写的 kid 由密钥环决定；先签一枚取出 kid，再按同一 kid 发布公钥。

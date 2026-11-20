@@ -1,16 +1,16 @@
+using Kun.Gateway;
 using Kun.Gateway.DependencyInjection;
 using Kun.Gateway.Endpoints;
 using Kun.Observability.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Gateway core (S2sTokenIssuer, YARP with S2sAuthTransform + Routes/Clusters) ─
-builder.Services.AddKunGateway(
-    opts => builder.Configuration.GetSection("KunGateway").Bind(opts),
-    builder.Configuration.GetSection("ReverseProxy"));
+builder.Services.AddKunGateway(reverseProxyConfig: builder.Configuration.GetSection("ReverseProxy"));
 
 // ── Telemetry for the standalone host ───────────────────────────────────────
 builder.Services.AddKunObservability(options =>
@@ -23,24 +23,22 @@ builder.Services.AddKunObservability(options =>
 // ── External JWT validation (IdP-issued; gateway validates before proxying) ───
 // Note: AddKunServiceAuthentication is for downstream services validating S2S tokens.
 // The gateway validates external IdP tokens directly with JwtBearer.
-var gatewaySection = builder.Configuration.GetSection("KunGateway");
-var externalIssuer = gatewaySection["ExternalIssuer"] ?? string.Empty;
-var externalAudience = gatewaySection["ExternalAudience"] ?? string.Empty;
-var externalJwksUri = gatewaySection["ExternalJwksUri"] ?? string.Empty;
-
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    .AddJwtBearer();
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<IOptions<GatewayConfiguration>, IHostEnvironment>((options, configuredGateway, environment) =>
     {
-        options.MetadataAddress = externalJwksUri;
-        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        var gateway = configuredGateway.Value;
+        options.MetadataAddress = gateway.ExternalJwksUri;
+        options.RequireHttpsMetadata = !environment.IsDevelopment();
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = externalIssuer,
+            ValidIssuer = gateway.IdentityIssuer,
             ValidateAudience = true,
-            ValidAudience = externalAudience,
+            ValidAudience = gateway.IdentityAudience,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidAlgorithms = ["RS256", "ES256"],

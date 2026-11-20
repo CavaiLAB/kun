@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -29,6 +30,14 @@ def match(identifier, severity, package="pkg"):
 
 
 class DriftTests(unittest.TestCase):
+    def test_source_dump_tool_builds_the_registered_project(self):
+        project = images.REPO / images.SELFCHECK_IMAGES["jit"][0]
+        self.assertTrue(project.is_file())
+        with patch.object(images, "run") as build:
+            tool = images.build_source_dump_tool(None)
+        build.assert_called_once_with(["dotnet", "build", project, "-c", "Release", "-nologo"], log=None)
+        self.assertEqual(project.parent / "bin" / "Release" / "net10.0" / f"{project.stem}.dll", tool)
+
     def test_identical_dumps_have_no_drift(self):
         source = dump([{"id": "config", "config": {}, "layer": 0}])
         self.assertEqual(images.diff_json(source, json.loads(json.dumps(source))), [])

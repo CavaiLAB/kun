@@ -534,9 +534,9 @@ jobs:
             sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
           fi
       - name: 严格发布实际生产宿主
-        run: dotnet publish hosts/Qian.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/gateway-host"
+        run: dotnet publish ../../hosts/Kun.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/gateway-host"
       - name: 核验实际原生产物
-        run: test -x "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host" && test ! -e "$RUNNER_TEMP/gateway-host/Qian.Gateway.Host.dll"
+        run: test -x "$RUNNER_TEMP/gateway-host/Kun.Gateway.Host" && test ! -e "$RUNNER_TEMP/gateway-host/Kun.Gateway.Host.dll"
       # Kun.Gateway 是项目引用（S1-KUN-020）的类库：发布目录里没有它作为宿主的文件，appsettings.json 是本宿主自己的那份。
       # 下面这步留作回归检查，防它退回可执行项目。
       - name: 核验发布目录里没有 Kun.Gateway 的宿主文件
@@ -544,12 +544,12 @@ jobs:
           for name in Kun.Gateway Kun.Gateway.deps.json Kun.Gateway.runtimeconfig.json Kun.Gateway.staticwebassets.endpoints.json; do
             if [ -e "$RUNNER_TEMP/gateway-host/$name" ]; then echo "发布目录里有 Kun.Gateway 的宿主文件：$name" >&2; exit 1; fi
           done
-          cmp "$RUNNER_TEMP/gateway-host/appsettings.json" hosts/Qian.Gateway.Host/appsettings.json
+          cmp "$RUNNER_TEMP/gateway-host/appsettings.json" ../../hosts/Kun.Gateway.Host/appsettings.json
       - name: 原生网关运行真实 Apollo、受限 PG、Redis 与身份登录换签
         env:
           QIAN_REQUIRE_DOCKER: '1'
-          QIAN_GATEWAY_HOST_EXECUTABLE: ${{ runner.temp }}/gateway-host/Qian.Gateway.Host
-        run: dotnet test --project tests/Qian.Gateway.Host.AotTests -c Release --report-xunit-trx --results-directory TestResults/gateway-host-aot
+          QIAN_GATEWAY_HOST_EXECUTABLE: ${{ runner.temp }}/gateway-host/Kun.Gateway.Host
+        run: dotnet test --project tests/Kun.Gateway.Host.AotTests -c Release --report-xunit-trx --results-directory TestResults/gateway-host-aot
       - uses: actions/upload-artifact@v4
         if: always()
         with:

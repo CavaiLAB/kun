@@ -339,15 +339,18 @@ class RealGraphTests(unittest.TestCase):
                     "Kun.Plugin.Sdk.Generators": ("kernel", "provider"),
                     "Kun.Security.Abstractions": ("kernel", "contract"),
                     "Kun.EntityFrameworkCore": ("kernel", "contract"),
-                    "Kun.EntityFrameworkCore.PostgreSQL": ("kernel", "provider")}
+                    "Kun.EntityFrameworkCore.PostgreSQL": ("kernel", "provider"),
+                    "Kun.Gateway.Abstractions": ("kernel", "contract"), "Kun.Gateway": ("kernel", "provider"),
+                    "Kun.Gateway.Shell": ("platform", "provider")}
         self.assertEqual(expected, {n: (self.packages[n].tier, self.packages[n].role) for n in expected})
         self.assertEqual("true", self.packages["Kun.Core"].zero_dependency)
         self.assertEqual("true", self.packages["Kun.Errors"].zero_dependency)
         self.assertEqual("true", self.packages["Kun.Security.Abstractions"].zero_dependency)
         self.assertEqual([], [v for v in self.violations])
-        self.assertEqual(3, len(self.statuses))
+        self.assertEqual(1, len(self.statuses))
         self.assertEqual([],
                          [(s.rule, s.target, s.until) for s in self.statuses if s.package == "Kun.EntityFrameworkCore"])
+        self.assertFalse(any(s.package.startswith("Kun.Gateway") for s in self.statuses))
         self.assertEqual([], [s for s in self.statuses if s.problem])
         # 插件开发包没有例外了：命令策略协议的 CommandInvocation 带的 Principal 在内核契约 Kun.Security.Abstractions 里（B7）。
         self.assertEqual([], [(s.rule, s.target, s.until) for s in self.statuses if s.package.startswith("Kun.Plugin.Sdk")])
@@ -391,9 +394,12 @@ class RealGraphTests(unittest.TestCase):
         self.assertIn("Kun.Security.Abstractions", closure)
 
     def test_kernel_gateway_closure_has_no_entity_framework(self):
-        # 内核档的网关经插件开发包的内核一半接组件，拆包之后完整传递依赖里没有 EF Core（OpenTelemetry 的 EF 埋点包不算 EF）。
-        closure = {n.lower() for n in self.closure("Qian.Gateway")}
-        self.assertIn("kun.plugin.sdk", closure)
+        # 网关内核只消费网关契约。组件登记在平台外壳，EF Core 不得进入内核的完整传递闭包。
+        closure = {n.lower() for n in self.closure("Kun.Gateway")}
+        self.assertIn("kun.gateway.abstractions", closure)
+        self.assertNotIn("kun.plugin.sdk", closure)
+        self.assertEqual([], sorted(n for n in closure if (p := self.declared.get(n)) and p.tier == "platform"))
+        self.assertIn("Kun.Plugin.Sdk", self.closure("Kun.Gateway.Shell"))
         self.assertEqual([], sorted(n for n in closure if n in {"microsoft.entityframeworkcore", "kun.entityframeworkcore"}
                                     or n.startswith("microsoft.entityframeworkcore.")))
 

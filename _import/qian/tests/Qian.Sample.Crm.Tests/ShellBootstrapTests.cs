@@ -1,3 +1,4 @@
+using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
@@ -13,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Gateway;
 using Kun.Identity.Client;
 using Qian.Registry;
 using Kun.Runtime;
@@ -58,7 +58,7 @@ public sealed partial class ShellSurfaceTests(PostgresFixture postgres) : Custom
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,
             redis.ConnectionString, ShellGatewayIssuer,
             [new("capabilities", "/api/capabilities/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }, new("authz", "/api/authz/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }],
-            [new(PlatformSurfaceHost.Audience, surface.Urls.Single())], business.ManagementSigningKey.Rsa, map: app => app.MapQianShellBootstrap());
+            [new(PlatformSurfaceHost.Audience, surface.Urls.Single())], business.ManagementSigningKey.Rsa, map: app => app.MapKunShellBootstrap());
         var tenant = business.App.Services.GetRequiredService<ITenantContext>();
 
         // 匿名：401 ErrorDetail，不调任何下游。
@@ -163,7 +163,7 @@ public sealed partial class ShellSurfaceTests(PostgresFixture postgres) : Custom
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,
             redis.ConnectionString, ShellGatewayIssuer, [new("capabilities", "/api/capabilities/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }],
             [new(PlatformSurfaceHost.Audience, surface.Urls.Single())], business.ManagementSigningKey.Rsa,
-            map: app => { app.Services.GetRequiredService<ILoggerFactory>().AddProvider(logs); app.MapQianShellBootstrap(); });
+            map: app => { app.Services.GetRequiredService<ILoggerFactory>().AddProvider(logs); app.MapKunShellBootstrap(); });
         var (person, phone) = await NewPerson(business, "成员乙");
         await Join(business, A, person.Id, "成员乙");
         var (browser, cookies) = GatewayTestHost.Browser(tls); using var _ = browser;
@@ -299,7 +299,7 @@ public abstract partial class CustomerCommandTests
             public bool IsEnabled(LogLevel logLevel) => true;
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
             {
-                if (category == "Qian.Gateway" && eventId.Id is 62 or 63 && state is IEnumerable<KeyValuePair<string, object?>> values)
+                if (category == "Kun.Gateway" && eventId.Id is 62 or 63 && state is IEnumerable<KeyValuePair<string, object?>> values)
                     entries.Enqueue((eventId.Id, logLevel, values.ToDictionary(pair => pair.Key, pair => pair.Value)));
             }
         }

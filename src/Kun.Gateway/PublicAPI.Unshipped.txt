@@ -1,22 +1,4 @@
 #nullable enable
-Kun.Gateway.Configuration.KunGatewayOptions
-Kun.Gateway.Configuration.KunGatewayOptions.ExternalAudience.get -> string!
-Kun.Gateway.Configuration.KunGatewayOptions.ExternalAudience.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.ExternalIssuer.get -> string!
-Kun.Gateway.Configuration.KunGatewayOptions.ExternalIssuer.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.ExternalJwksUri.get -> string!
-Kun.Gateway.Configuration.KunGatewayOptions.ExternalJwksUri.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.InternalAudience.get -> string!
-Kun.Gateway.Configuration.KunGatewayOptions.InternalAudience.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.InternalIssuer.get -> string!
-Kun.Gateway.Configuration.KunGatewayOptions.InternalIssuer.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.InternalTokenLifetime.get -> System.TimeSpan
-Kun.Gateway.Configuration.KunGatewayOptions.InternalTokenLifetime.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.KunGatewayOptions() -> void
-Kun.Gateway.Configuration.KunGatewayOptions.PublicKeyPath.get -> string!
-Kun.Gateway.Configuration.KunGatewayOptions.PublicKeyPath.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.SigningKeyPath.get -> string!
-Kun.Gateway.Configuration.KunGatewayOptions.SigningKeyPath.set -> void
 Kun.Gateway.DependencyInjection.KunGatewayServiceCollectionExtensions
 Kun.Gateway.Endpoints.JwkDto
 Kun.Gateway.Endpoints.JwkDto.Alg.get -> string?
@@ -45,10 +27,6 @@ Kun.Gateway.RateLimiting.Resolvers.UserPrincipalRateLimitPartitionResolver.UserP
 Kun.Gateway.RateLimiting.Resolvers.UserPrincipalRateLimitPartitionResolver.ResolvePartitionKey(Microsoft.AspNetCore.Http.HttpContext! context) -> string!
 Kun.Gateway.S2sTokenIssuer
 Kun.Gateway.S2sTokenIssuer.IssueFor(System.Security.Claims.ClaimsPrincipal! externalPrincipal) -> string!
-Kun.Gateway.Configuration.KunGatewayOptions.EmitTraceIdClaim.get -> bool
-Kun.Gateway.Configuration.KunGatewayOptions.EmitTraceIdClaim.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.ExposeInternalJwks.get -> bool
-Kun.Gateway.Configuration.KunGatewayOptions.ExposeInternalJwks.set -> void
 Kun.Gateway.Jwks.KunInternalJwksEndpoint
 const Kun.Gateway.Jwks.KunInternalJwksEndpoint.DefaultPattern = "/internal/.well-known/jwks.json" -> string!
 static Kun.Gateway.Jwks.KunInternalJwksEndpoint.MapKunInternalJwks(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, string! pattern = "/internal/.well-known/jwks.json", System.Func<Microsoft.AspNetCore.Http.HttpContext!, bool>? additionalGate = null) -> Microsoft.AspNetCore.Builder.IEndpointConventionBuilder!
@@ -56,8 +34,8 @@ static Kun.Gateway.Endpoints.JwksEndpoint.MapKunJwks(this Microsoft.AspNetCore.R
 Kun.Gateway.Jwks.JwksResponseBuilder
 Kun.Gateway.Jwks.JwksResponseBuilder.JwksResponseBuilder() -> void
 Kun.Gateway.Jwks.JwksResponseBuilder.Build(string! publicKeyPath) -> Kun.Gateway.Endpoints.JwksResponse!
-Kun.Gateway.S2sTokenIssuer.S2sTokenIssuer(Microsoft.Extensions.Options.IOptions<Kun.Gateway.Configuration.KunGatewayOptions!>! options, Microsoft.Extensions.Hosting.IHostEnvironment! env, Microsoft.AspNetCore.Http.IHttpContextAccessor? httpContextAccessor) -> void
-Kun.Gateway.S2sTokenIssuer.S2sTokenIssuer(Microsoft.Extensions.Options.IOptions<Kun.Gateway.Configuration.KunGatewayOptions!>! options, Microsoft.Extensions.Hosting.IHostEnvironment! env, Kun.Gateway.Identity.IS2sPrincipalResolver! resolver, Microsoft.AspNetCore.Http.IHttpContextAccessor? httpContextAccessor = null) -> void
+Kun.Gateway.S2sTokenIssuer.S2sTokenIssuer(Microsoft.Extensions.Options.IOptions<Kun.Gateway.GatewayConfiguration!>! options, Microsoft.Extensions.Hosting.IHostEnvironment! env, Microsoft.AspNetCore.Http.IHttpContextAccessor? httpContextAccessor) -> void
+Kun.Gateway.S2sTokenIssuer.S2sTokenIssuer(Microsoft.Extensions.Options.IOptions<Kun.Gateway.GatewayConfiguration!>! options, Microsoft.Extensions.Hosting.IHostEnvironment! env, Kun.Gateway.Identity.IS2sPrincipalResolver! resolver, Microsoft.AspNetCore.Http.IHttpContextAccessor? httpContextAccessor = null) -> void
 Kun.Gateway.S2sTokenIssuer.IssueForAsync(System.Security.Claims.ClaimsPrincipal! externalPrincipal, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
 Kun.Gateway.Identity.IS2sPrincipalResolver
 Kun.Gateway.Identity.IS2sPrincipalResolver.ResolveAsync(System.Security.Claims.ClaimsPrincipal! externalPrincipal, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Security.Claims.ClaimsPrincipal!>!
@@ -65,7 +43,6 @@ Kun.Gateway.Identity.NoOpS2sPrincipalResolver
 Kun.Gateway.Identity.NoOpS2sPrincipalResolver.NoOpS2sPrincipalResolver() -> void
 Kun.Gateway.Identity.NoOpS2sPrincipalResolver.ResolveAsync(System.Security.Claims.ClaimsPrincipal! externalPrincipal, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Security.Claims.ClaimsPrincipal!>!
 static Kun.Gateway.Identity.NoOpS2sPrincipalResolver.Instance.get -> Kun.Gateway.Identity.NoOpS2sPrincipalResolver!
-static Kun.Gateway.DependencyInjection.KunGatewayServiceCollectionExtensions.AddKunGateway(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.Gateway.Configuration.KunGatewayOptions!>! configure, Microsoft.Extensions.Configuration.IConfiguration? reverseProxyConfig = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Kun.Gateway.RateLimiting.KunRateLimiterExtensions.AddKunRateLimiter(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 const Kun.Gateway.RateLimiting.KunRateLimiterExtensions.SlidingWindowPolicyName = "kun-sliding-window" -> string!
 const Kun.Gateway.RateLimiting.KunRateLimiterExtensions.TokenBucketPolicyName = "kun-token-bucket" -> string!
@@ -93,42 +70,10 @@ Kun.Gateway.RateLimiting.KunTokenBucketOptions.QueueLimit.get -> int
 Kun.Gateway.RateLimiting.KunTokenBucketOptions.QueueLimit.set -> void
 Kun.Gateway.RateLimiting.KunTokenBucketOptions.AutoReplenishment.get -> bool
 Kun.Gateway.RateLimiting.KunTokenBucketOptions.AutoReplenishment.set -> void
-Kun.Gateway.RateLimiting.IRedisRateLimitStore
-Kun.Gateway.RateLimiting.IRedisRateLimitStore.HitAsync(string! partitionKey, System.TimeSpan window, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Gateway.RateLimiting.RateLimitHitResult>!
-Kun.Gateway.RateLimiting.RateLimitHitResult
-Kun.Gateway.RateLimiting.RateLimitHitResult.RateLimitHitResult() -> void
-Kun.Gateway.RateLimiting.RateLimitHitResult.RateLimitHitResult(long Count, System.TimeSpan ResetsIn) -> void
-Kun.Gateway.RateLimiting.RateLimitHitResult.Count.get -> long
-Kun.Gateway.RateLimiting.RateLimitHitResult.Count.init -> void
-Kun.Gateway.RateLimiting.RateLimitHitResult.ResetsIn.get -> System.TimeSpan
-Kun.Gateway.RateLimiting.RateLimitHitResult.ResetsIn.init -> void
-Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions
-Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions.RedisRateLimitStoreOptions() -> void
-Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions.KeyPrefix.get -> string!
-Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions.KeyPrefix.set -> void
-const Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions.SectionName = "Kun:Gateway:RateLimit:Redis" -> string!
-Kun.Gateway.RateLimiting.RedisFixedWindowRateLimitStore
-Kun.Gateway.RateLimiting.RedisFixedWindowRateLimitStore.RedisFixedWindowRateLimitStore(StackExchange.Redis.IConnectionMultiplexer! redis, Microsoft.Extensions.Options.IOptions<Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions!>! options) -> void
-Kun.Gateway.RateLimiting.RedisFixedWindowRateLimitStore.HitAsync(string! partitionKey, System.TimeSpan window, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Gateway.RateLimiting.RateLimitHitResult>!
-static Kun.Gateway.RateLimiting.KunRateLimiterExtensions.AddKunRedisRateLimitStore(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.Gateway.RateLimiting.RedisRateLimitStoreOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-Kun.Gateway.Configuration.KunGatewayOptions.ForwardedClaimTypes.get -> string![]!
-Kun.Gateway.Configuration.KunGatewayOptions.ForwardedClaimTypes.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.TrustedProxyAddresses.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.TrustedProxyNetworks.get -> string![]!
-Kun.Gateway.Configuration.KunGatewayOptions.TrustedProxyNetworks.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.TrustedProxyAddresses.get -> string![]!
-Kun.Gateway.Configuration.KunGatewayOptions.ForwardLimit.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.ForwardLimit.get -> int
-Kun.Gateway.Configuration.KunGatewayOptions.KeyOverlapPeriod.get -> System.TimeSpan
-Kun.Gateway.Configuration.KunGatewayOptions.KeyOverlapPeriod.set -> void
-Kun.Gateway.Configuration.KunGatewayOptions.KeyReloadInterval.get -> System.TimeSpan
-Kun.Gateway.Configuration.KunGatewayOptions.KeyReloadInterval.set -> void
 Kun.Gateway.S2sTokenIssuer.Dispose() -> void
 Kun.Gateway.S2sTokenIssuer.IssueForAudienceAsync(System.Security.Claims.ClaimsPrincipal! externalPrincipal, string! audience, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
-Kun.Gateway.RateLimiting.RateLimitHitResult.Deconstruct(out long Count, out System.TimeSpan ResetsIn) -> void
-Kun.Gateway.RateLimiting.RateLimitHitResult.Equals(Kun.Gateway.RateLimiting.RateLimitHitResult other) -> bool
-override Kun.Gateway.RateLimiting.RateLimitHitResult.GetHashCode() -> int
-static Kun.Gateway.RateLimiting.RateLimitHitResult.operator !=(Kun.Gateway.RateLimiting.RateLimitHitResult left, Kun.Gateway.RateLimiting.RateLimitHitResult right) -> bool
-static Kun.Gateway.RateLimiting.RateLimitHitResult.operator ==(Kun.Gateway.RateLimiting.RateLimitHitResult left, Kun.Gateway.RateLimiting.RateLimitHitResult right) -> bool
-~override Kun.Gateway.RateLimiting.RateLimitHitResult.Equals(object obj) -> bool
-~override Kun.Gateway.RateLimiting.RateLimitHitResult.ToString() -> string
+Kun.Gateway.GatewayHosting
+static Kun.Gateway.GatewayHosting.MapKunGateway(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Gateway.GatewayHosting.ReadConfiguration(System.Text.Json.JsonElement configuration) -> Kun.Gateway.GatewayConfiguration!
+static Kun.Gateway.GatewayHosting.UseKunGateway(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
+static Kun.Gateway.DependencyInjection.KunGatewayServiceCollectionExtensions.AddKunGateway(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Kun.Gateway.GatewayConfiguration? configuration = null, string? sessionAuthenticationScheme = null, Microsoft.Extensions.Configuration.IConfiguration? reverseProxyConfig = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

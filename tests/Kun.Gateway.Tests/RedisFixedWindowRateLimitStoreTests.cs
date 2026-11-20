@@ -1,4 +1,5 @@
-using Kun.Gateway.RateLimiting;
+using Kun.RateLimit;
+using Kun.RateLimit.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -9,6 +10,10 @@ namespace Kun.Gateway.Tests;
 
 public sealed class RedisFixedWindowRateLimitStoreTests
 {
+    private static void Reply(IDatabase db, long count, long milliseconds) =>
+        db.ScriptEvaluateAsync(Arg.Any<string>(), Arg.Any<RedisKey[]>(), Arg.Any<RedisValue[]>())
+            .Returns(RedisResult.Create((RedisResult[])[RedisResult.Create((RedisValue)count), RedisResult.Create((RedisValue)milliseconds)]));
+
     [Fact]
     public void Ctor_NullRedis_Throws()
     {
@@ -64,8 +69,7 @@ public sealed class RedisFixedWindowRateLimitStoreTests
     public async Task HitAsync_FirstHit_SetsTtlAndReturnsCount1()
     {
         var db = Substitute.For<IDatabase>();
-        db.StringIncrementAsync(Arg.Any<RedisKey>(), 1).Returns(1L);
-        db.KeyExpireAsync(Arg.Any<RedisKey>(), Arg.Any<TimeSpan>()).Returns(true);
+        Reply(db, 1, 60000);
 
         var redis = Substitute.For<IConnectionMultiplexer>();
         redis.GetDatabase().Returns(db);
@@ -75,15 +79,14 @@ public sealed class RedisFixedWindowRateLimitStoreTests
 
         Assert.Equal(1, result.Count);
         Assert.Equal(TimeSpan.FromMinutes(1), result.ResetsIn);
-        await db.Received(1).KeyExpireAsync(Arg.Any<RedisKey>(), TimeSpan.FromMinutes(1));
+        await db.Received(1).ScriptEvaluateAsync(Arg.Any<string>(), Arg.Any<RedisKey[]>(), Arg.Is<RedisValue[]>(args => (long)args[0] == 60000));
     }
 
     [Fact]
     public async Task HitAsync_SubsequentHit_DoesNotResetTtlAndReturnsCurrentTtl()
     {
         var db = Substitute.For<IDatabase>();
-        db.StringIncrementAsync(Arg.Any<RedisKey>(), 1).Returns(7L);
-        db.KeyTimeToLiveAsync(Arg.Any<RedisKey>()).Returns(TimeSpan.FromSeconds(23));
+        Reply(db, 7, 23000);
 
         var redis = Substitute.For<IConnectionMultiplexer>();
         redis.GetDatabase().Returns(db);
@@ -100,8 +103,7 @@ public sealed class RedisFixedWindowRateLimitStoreTests
     public async Task HitAsync_KeyPrefixApplied()
     {
         var db = Substitute.For<IDatabase>();
-        db.StringIncrementAsync(Arg.Any<RedisKey>(), 1).Returns(1L);
-        db.KeyExpireAsync(Arg.Any<RedisKey>(), Arg.Any<TimeSpan>()).Returns(true);
+        Reply(db, 1, 60000);
 
         var redis = Substitute.For<IConnectionMultiplexer>();
         redis.GetDatabase().Returns(db);
@@ -111,8 +113,8 @@ public sealed class RedisFixedWindowRateLimitStoreTests
 
         await store.HitAsync("tenant-a", TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
 
-        await db.Received(1).StringIncrementAsync(
-            Arg.Is<RedisKey>(k => k.ToString() == "kun:staging:rl:tenant-a"), 1);
+        await db.Received(1).ScriptEvaluateAsync(Arg.Any<string>(),
+            Arg.Is<RedisKey[]>(keys => keys.Single().ToString() == "kun:staging:rl:tenant-a"), Arg.Any<RedisValue[]>());
     }
 
     [Fact]

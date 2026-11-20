@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using FluentAssertions;
 using Kun.Gateway;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Kun.Security.Authentication;
 using Microsoft.Extensions.FileProviders;
@@ -20,7 +19,7 @@ namespace Kun.IntegrationTests.Security;
 /// </summary>
 public sealed class S2sTokenRoundTripTests : IDisposable
 {
-    private const string InternalIssuer = "kun-gateway";
+    private const string Issuer = "kun-gateway";
     private const string InternalAudience = "kun-internal";
 
     private readonly RSA _rsa;
@@ -38,10 +37,10 @@ public sealed class S2sTokenRoundTripTests : IDisposable
         File.WriteAllText(_privateKeyPath, _rsa.ExportRSAPrivateKeyPem());
         File.WriteAllText(_publicKeyPath, _rsa.ExportRSAPublicKeyPem());
 
-        var options = Options.Create(new KunGatewayOptions
+        var options = Options.Create(new GatewayConfiguration
         {
-            ExternalIssuer = "https://login.example.com",
-            ExternalAudience = "my-api",
+            IdentityIssuer = "https://login.example.com",
+            IdentityAudience = "my-api",
             ExternalJwksUri = "https://login.example.com/.well-known/openid-configuration",
             SigningKeyPath = _privateKeyPath,
             PublicKeyPath = _publicKeyPath,
@@ -67,7 +66,7 @@ public sealed class S2sTokenRoundTripTests : IDisposable
         return new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = InternalIssuer,
+            ValidIssuer = Issuer,
             ValidateAudience = true,
             ValidAudience = InternalAudience,
             ValidateLifetime = true,
@@ -129,8 +128,8 @@ public sealed class S2sTokenRoundTripTests : IDisposable
         // aud == "kun-internal"
         jwt.Audiences.Should().Contain(InternalAudience);
 
-        // iss == KunGatewayOptions.InternalIssuer default
-        jwt.Issuer.Should().Be(InternalIssuer);
+        // iss == GatewayConfiguration.Issuer default
+        jwt.Issuer.Should().Be(Issuer);
     }
 
     [Fact]

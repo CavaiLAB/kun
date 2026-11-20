@@ -23,6 +23,12 @@
 
 - `Kun.Runtime` 支持 NativeAOT。实现 `IKunPlugin<TConfig>` 的组件须增加 `JsonTypeInfo<TConfig> ConfigTypeInfo { get; }`，从采用 `JsonSerializerDefaults.Web` 的源生成上下文返回配置契约。配置属性名继续按 Web 约定匹配。
 
+### Changed — 网关装配与限流（S1-KUN-026）
+
+- `Kun.Gateway.Abstractions` 提供 `GatewayConfiguration`、网关服务与路由契约。宿主使用 `AddKunGateway`，YARP 在分发前按目标服务签发一次 S2S。独立宿主读取 `Gateway` 配置节。迁移 `KunGateway` 配置时，将  `ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`。其余原选项使用新节中的原键名，独立 YARP 路由继续读取 `ReverseProxy`。
+- 平台外壳托管、引导端点与组件登记位于 `Kun.Gateway.Shell`，通过 `AddKunGatewayShell` 注册。Redis 固定窗口计数器现由 `Kun.RateLimit` 提供，路由分区由 `Kun.Gateway` 选择。
+- 生产网关宿主在 `hosts/Kun.Gateway.Host`。镜像工具的 `--project` 参数现使用相对仓库根的项目路径。
+
 ### Changed — OIDC 客户端与上游连接器（S1-KUN-026）
 
 - 两个入口共用发现、授权码交换与验签。配置的 issuer 必须与发现文档逐字相等，包括末尾斜杠。关闭 HTTPS 要求后仅允许回环 HTTP。回调应把授权响应中的 `iss` 原样传给 `OidcCodeExchange.ResponseIssuer`。声明支持 RFC 9207 的发行方必须返回该参数。

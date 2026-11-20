@@ -31,7 +31,7 @@
   "x-aot": true,
   "runtime": {
     "form": "module",
-    "entry": "Qian.Gateway.GatewayComponent, Qian.Gateway",
+    "entry": "Kun.Gateway.Shell.GatewayComponent, Kun.Gateway.Shell",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -48,7 +48,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.gateway",
-        "source": "Qian.Gateway.GatewayComponent, Qian.Gateway",
+        "source": "Kun.Gateway.Shell.GatewayComponent, Kun.Gateway.Shell",
         "sha256": "c8972796fe97054944a8b91d6526a895ec3fbe1c576f3b567419b6c163d571c4",
         "fields": [
           ""

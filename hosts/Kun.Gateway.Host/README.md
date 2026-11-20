@@ -1,0 +1,34 @@
+# gateway 业务宿主
+
+入口是本目录 `Program.cs`，可执行项目为 `Kun.Gateway.Host.csproj`，是 gateway profile 的业务启动项目。按 DEC-030 组合真实 Apollo、Identity.Client、Redis、NativeData、NativeAudit 与 Gateway；EF Data 留在平台与 Scheduler。网关契约与安全行为以 [Provider 主文档](../../src/Kun.Gateway.Shell/README.md) 为准。
+
+## 启动输入
+
+`appsettings.json` 提供不含凭据的配置结构。部署前把示例地址替换为当前环境的规范 issuer、下游地址与实际 Traefik CIDR；空 CIDR 数组不会信任任何转发头。环境变量前缀为 `QIAN_`，也可用命令行覆盖；Apollo 的公共/组件/application namespace 仍按 Config Provider 的固定优先级合成。
+
+- 身份服务登记 `Identity:ClientId`、精确的 `Identity:RedirectUri` 与 `Gateway:IdentityAudience`。回调在服务端 `/auth/callback`，与外壳未来页面的最终路径须按身份产品决定配置。
+- RSA 私钥投射到 `Gateway:SigningKeyPath`，以原子文件替换完成轮换；不会在生产缺钥时自动生成密钥。
+- `ConnectionFiles:Audit`、`ConnectionFiles:PlatformAudit`、`ConnectionFiles:Redis` 指向宿主 Secret 文件。数据库使用独立的 NOINHERIT 受限登录，分别对应 `Audit:TenantRole` / `Audit:PlatformRole`；`Audit:FunctionOwner` 是离线迁移配置的专用 NOLOGIN 函数 owner。宿主登记 `audit_tenant` / `audit_platform` 两个 NativeData 绑定，表与精确保护策略来自 NativeAudit 的固定源码声明。
+- `Identity:SecretMountRoot` 下的 `qian/identity/client-secret` 通过固定 `secretRef://platform/identity/client-secret` 解析。生产接收端把这次解析记入真实平台审计链，写失败不会返回密钥，不使用空审计接收端。
+- 交付的路由表按簇转发（R144）：`/api/capabilities/**`、`/api/authz/**` 与其余 `/api/**` 进 `qian-platform`，`/api/tenancy/**` 与开通申请的运营接口 `/api/signup/applications/**`、`/api/signup/meta/**`（S1-DEP-011）进 `qian-operations`；网关按簇 id 签不同受众的 S2S，两个簇都指向[平台生产宿主](../../_import/qian/hosts/Qian.Platform.Host/README.md)的同一服务地址，以后要拆只改簇地址。
+- 配置源 `Config:Source`（R150 ①）：缺省 `apollo`，按上文合成 Apollo 配置并挂 `qian.config.apollo`；`host` 只读宿主配置（JSON、Secret 目录、`QIAN_` 环境变量、命令行），挂只读宿主配置根的 `qian.config`，不连 Apollo、不需要 `Apollo:*`。`host` 是 staging 首次部署在 Apollo 联调（S1-DEP-005）之前的过渡形状；其它取值启动前拒绝。
+- 外壳托管（S1-DEP-011，R144 ②）：给出 `Shell:Root`（外壳 `dist/host` 构建产物目录，必须有 `index.html`）时网关托管外壳与远程制品：`UseKunShell` / `MapKunShell` 提供页面、`/app-config.json`（`Shell:ConfigFile`，ConfigMap 挂载）与 `/remotes/<组件>/**`（`Shell:Remotes:<组件>` 指向该组件 MF 远程的构建产物目录，如 `qian.tenancy`、`qian.tenancy.signup`），`MapKunShellBootstrap` 提供 `/api/shell/bootstrap`。不给 `Shell:Root` 时不托管，行为与之前相同。
+- 每条 `Gateway:Routes` 必填 `RateLimiterPolicy`（`kun-default` / `tenant` / `user`）；缺失时启动前拒绝。可用 `Gateway:RateLimits:KeyPrefix`、`WindowSeconds`、`IpPermitLimit`、`TenantPermitLimit`、`UserPermitLimit` 覆盖限额；配置含义与缺省值见 [Provider 主文档](../../src/Kun.Gateway.Shell/README.md#路由限流s1-gw-002)。所有副本使用相同前缀与配置，共享现有 Redis 连接。
+- `Identity:DataProtectionKeysDirectory` 是各副本共享的持久密钥目录，Redis 会话使用稳定前缀。
+- Apollo 启用 AccessKey 时，配置值为 `secretRef://platform/apollo/access-key`，`ConnectionFiles:ApolloAccessKey` 指向引导 Secret 文件。宿主先按 JSON → Secret 文件 → `QIAN_` 环境变量 → CLI 构造独立引导快照，冻结路径；签名回调每次读取该文件以支持原子轮换，不反向读取尚在装配的 Apollo 配置根。`QIAN_Secrets__Directory` 与 CLI 的 `--Secrets:Directory` 均可指定挂载配置目录。
+
+数据库 schema、函数和 RLS 策略由离线迁移连接调用 `NativeAuditStorage.MigrateAsync` 预先完成；在线宿主没有管理员连接，只校验，不建表、不迁移。全部真实组件挂载为 Ready 后才开始监听；任一依赖失败会阻止启动。启动日志记录动态代码能力；这个开关不是原生产物的独立证明，仍必须核验严格发布及真实二进制运行。停机先停止 HTTP、再逆序卸载 Runtime，最后释放 DI 容器。
+
+```bash
+dotnet run --project hosts/Kun.Gateway.Host -c Release -- --urls http://0.0.0.0:8080
+```
+
+此命令需要上述真实依赖和 Secret 文件，不会以测试替身自动补齐。开发诊断可使用 `ASPNETCORE_ENVIRONMENT=Development` 连接回环 HTTP 身份发行方；生产要求 HTTPS metadata。
+
+## 当前验证与接续
+
+宿主的 Release 编译与共享生产 Gateway / Identity.Client 的安全专项分别验收。完整原生门是 [生产宿主 driver](../../_import/qian/tests/Kun.Gateway.Host.AotTests/README.md)：直接运行本项目发布产物，连接真实 Apollo、受限 PostgreSQL、Redis 与身份服务，并读回实际生产进程写入的审计链。`Dockerfile.acceptance` 保留测试编排所需 SDK，只用于固定 Linux 验收环境。
+
+2026-10-23 使用正式 Kun `2026.10.23` 完成固定 Linux arm64 严格发布，零 IL 诊断；同一生产二进制通过 ELF/noDLL 与完整 driver，实际 Cookie/Bearer 换签、3 条平台审计的回读验链及 SIGTERM 正常停机均通过。默认 profile 据此恢复 `build.aot: true`。Kun JWKS 修复在上游交付并正式发包，Qian 只通过 KunVersion 消费。Linux x64 的相同持续门由 `gateway-host-aot` CI 执行。
+
+`_import/qian/plugins/qian.bundle.gateway/config/qian.patch.yml` 声明与本宿主一致的 NativeData / NativeAudit 绑定及网关默认值。CLI 当前负责 profile 合成/校验，不提供通用进程启动命令；启动本宿主的命令如上，发布入口为 `dotnet publish hosts/Kun.Gateway.Host`，实际运行文件为 `Kun.Gateway.Host`。业务镜像、签名、非 root / 只读根文件系统、distroless 与部署证据属于 DEP-008。

@@ -3,7 +3,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using FluentAssertions;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
@@ -124,10 +123,10 @@ public sealed class S2sTokenIssuerTraceIdTests : IDisposable
 
     private S2sTokenIssuer BuildIssuer(bool emitTraceId, bool hasHttpContext)
     {
-        var options = Options.Create(new KunGatewayOptions
+        var options = Options.Create(new GatewayConfiguration
         {
-            ExternalIssuer = "https://login.example.com",
-            ExternalAudience = "my-api",
+            IdentityIssuer = "https://login.example.com",
+            IdentityAudience = "my-api",
             ExternalJwksUri = "https://login.example.com/.well-known/openid-configuration",
             SigningKeyPath = _privateKeyPath,
             PublicKeyPath = _publicKeyPath,

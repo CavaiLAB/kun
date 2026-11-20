@@ -1,3 +1,5 @@
+using Kun.Gateway.DependencyInjection;
+using Kun.Gateway.Shell;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -16,7 +18,6 @@ using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
 using Qian.Dev.TenantOps;
-using Qian.Gateway;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
 using Kun.Runtime;
@@ -82,13 +83,14 @@ internal static class DevGateway
         // 其余 /api 走参考应用的命令宿主；/api-alt 是同一组路由的第二个前缀。
         var configuration = new GatewayConfiguration(identityIssuer.AbsoluteUri, Resource, Issuer, keys.SigningKeyPath, keys.PublicKeyPath, [],
             [.. Routes("api"), .. Routes("api-alt")], [new(Cluster, businessAddress), new(PlatformSurfaceHost.Audience, platformAddress), new(OperationsCluster, operationsAddress)]);
-        builder.Services.AddQianGateway(configuration, IdentityClientDefaults.SessionScheme);
+        builder.Services.AddKunGatewayShell();
+        builder.Services.AddKunGateway(configuration, IdentityClientDefaults.SessionScheme);
         builder.Services.AddSingleton<ITransformProvider, AlternatePrefixTransform>();
         var app = builder.Build();
-        app.UseForwardedHeaders(); app.UseQianShell(shell); app.UseRouting(); app.UseKunIdentityClient(); app.UseQianGateway();
-        app.MapKunIdentityClient(); app.MapQianGateway();
+        app.UseForwardedHeaders(); app.UseKunShell(shell); app.UseRouting(); app.UseKunIdentityClient(); app.UseKunGateway();
+        app.MapKunIdentityClient(); app.MapKunGateway();
         // bootstrap 聚合端点：规范路径 /api/shell/bootstrap，外壳把它随 apiBase 映射，所以 /api-alt 前缀下也挂一份（下游仍按网关路由表的 /api 路径选簇）。
-        app.MapQianShellBootstrap(); app.MapQianShellBootstrap("/api-alt/shell/bootstrap");
+        app.MapKunShellBootstrap(); app.MapKunShellBootstrap("/api-alt/shell/bootstrap");
         // 开发路由（不是产品契约）：只对已认证的本会话生效，且仍要带防伪令牌。expire 让服务端访问令牌立刻到期（下次请求透明刷新，页面无感）；
         // break 同时毁掉 refresh token（刷新必败 → 会话结束 → 并发 401 被 SDK 合并成一次刷新尝试，会话已不在、取防伪令牌即 401 不再 POST → 过期对话框）；
         // identity/bump 经真实身份端口递增当前成员的 identity_revision，再把平台表面的修订下限抬到新修订（同进程宿主里授权变更后 IdentityRevisionPropagation 就是这样做的，S1-DEC-027）：
@@ -101,7 +103,7 @@ internal static class DevGateway
         app.MapPost("/__dev/session/break", http => MutateSession(http, breakRefresh: true)).RequireAuthorization();
         app.MapPost("/__dev/identity/bump", http => BumpRevision(http, platformAddress, bump)).RequireAuthorization();
         app.MapPost("/__dev/identity/stale", http => StaleRevision(http, platformAddress)).RequireAuthorization();
-        app.MapQianShell(shell);
+        app.MapKunShell(shell);
         var loader = new PluginLoader(app.Services);
         try
         {

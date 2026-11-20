@@ -6,7 +6,7 @@
     <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
     <ProjectReference Include="../../../../src/Kun.Identity.Connector.Oidc/Kun.Identity.Connector.Oidc.csproj" />
     <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
-    <ProjectReference Include="../../packages/Qian.Gateway/Qian.Gateway.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
     <ProjectReference Include="../../../../src/Kun.Authorization.AspNetCore/Kun.Authorization.AspNetCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" />
   </ItemGroup>

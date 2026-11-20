@@ -1,3 +1,4 @@
+using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
@@ -15,7 +16,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Qian.Audit;
-using Qian.Gateway;
+using Kun.Gateway;
 using Kun.Identity.Abstractions;
 using Qian.Platform.Host;
 using Kun.Runtime;
@@ -60,7 +61,7 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
             var (routes, clusters) = ProductionRoutes(issuer);
             using var signing = RSA.Create(2048);
             await using var gateway = await GatewayTestHost.Start(gatewayPort, tls, issuer.AbsoluteUri, GatewayClientId, Resource, clientSecret, redis.ConnectionString, S2sIssuer,
-                routes, clusters, signing, map: app => app.MapQianShellBootstrap(),
+                routes, clusters, signing, map: app => app.MapKunShellBootstrap(),
                 rateLimits: new GatewayRateLimits { KeyPrefix = "qian:staging-shape:" + Guid.NewGuid().ToString("N"), IpPermitLimit = 10_000, TenantPermitLimit = 10_000, UserPermitLimit = 10_000 });
             settings["S2S:JwksUri"] = new Uri(gateway.HttpAddress, ".well-known/jwks.json").AbsoluteUri;
 
@@ -391,10 +392,10 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
         PlatformIdentity.Configure(builder);
     }
 
-    // 网关宿主交付的路由表与簇（hosts/Qian.Gateway.Host/appsettings.json），簇地址换成本宿主的回环地址；开通申请的两条运营路由进运营簇。
+    // 网关宿主交付的路由表与簇（hosts/Kun.Gateway.Host/appsettings.json），簇地址换成本宿主的回环地址；开通申请的两条运营路由进运营簇。
     private static (GatewayRoute[] Routes, GatewayCluster[] Clusters) ProductionRoutes(Uri platform)
     {
-        var configuration = new ConfigurationBuilder().AddJsonFile(Path.Combine(RepositoryRoot(), "hosts", "Qian.Gateway.Host", "appsettings.json"), optional: false, reloadOnChange: false).Build();
+        var configuration = new ConfigurationBuilder().AddJsonFile(Path.GetFullPath("../../hosts/Kun.Gateway.Host/appsettings.json", RepositoryRoot()), optional: false, reloadOnChange: false).Build();
         var routes = configuration.GetSection("Gateway:Routes").GetChildren().Select(item => new GatewayRoute(item["Id"] ?? "", item["Path"] ?? "", item["Cluster"] ?? "")
             { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
         foreach (var path in new[] { "/api/tenancy/{**rest}", "/api/signup/applications/{**rest}", "/api/signup/meta/{**rest}" })

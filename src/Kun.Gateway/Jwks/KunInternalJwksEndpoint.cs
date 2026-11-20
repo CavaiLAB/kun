@@ -1,4 +1,3 @@
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Endpoints;
 
 namespace Kun.Gateway.Jwks;
@@ -18,7 +17,7 @@ namespace Kun.Gateway.Jwks;
 /// </para>
 /// <para>
 /// Gating policy: the internal route is reachable only when either (a) the host runs in the
-/// <c>Development</c> environment, or (b) <see cref="KunGatewayOptions.ExposeInternalJwks"/> is
+/// <c>Development</c> environment, or (b) <see cref="GatewayConfiguration.ExposeInternalJwks"/> is
 /// explicitly set to <see langword="true"/>. Any other environment returns 404, so forgetting to
 /// set the flag in production fails closed.
 /// </para>
@@ -34,7 +33,7 @@ public static class KunInternalJwksEndpoint
     /// <param name="endpoints">The endpoint route builder.</param>
     /// <param name="pattern">Override the default <c>/internal/.well-known/jwks.json</c> path.</param>
     /// <param name="additionalGate">
-    /// Optional predicate evaluated on each request after the environment / <see cref="KunGatewayOptions.ExposeInternalJwks"/>
+    /// Optional predicate evaluated on each request after the environment / <see cref="GatewayConfiguration.ExposeInternalJwks"/>
     /// check passes. Return <see langword="false"/> to respond 404 (e.g. restrict to RFC1918 peers
     /// when no NetworkPolicy is in place). When <see langword="null"/>, no additional gating is applied.
     /// </param>
@@ -50,7 +49,7 @@ public static class KunInternalJwksEndpoint
         // 与公开入口一致，普通包中直接保留 AOT 安全的 RequestDelegate。
         RequestDelegate handler = httpContext =>
         {
-            var options = httpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<KunGatewayOptions>>();
+            var options = httpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<GatewayConfiguration>>();
             var environment = httpContext.RequestServices.GetRequiredService<IHostEnvironment>();
             var builder = httpContext.RequestServices.GetRequiredService<JwksResponseBuilder>();
             var opts = options.Value;

@@ -126,6 +126,13 @@ class DetectTests(unittest.TestCase):
             values = dict(line.split("=", 1) for line in output.read_text(encoding="utf-8").splitlines())
             return code, values, summary.read_text(encoding="utf-8")
 
+    def test_moved_gateway_host_triggers_image_checks(self) -> None:
+        with mock.patch.object(ci_changes, "diff", return_value=["hosts/Kun.Gateway.Host/Dockerfile.acceptance"]):
+            code, values, _ = self.run_detect("--base", "a", "--head", "b")
+        self.assertEqual(0, code)
+        self.assertEqual("true", values["images"])
+        self.assertEqual("true", values["dotnet"])
+
     def test_all_marks_every_area(self) -> None:
         code, values, summary = self.run_detect("--all")
         self.assertEqual(0, code)

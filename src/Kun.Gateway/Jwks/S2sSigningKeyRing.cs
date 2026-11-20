@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Kun.Gateway.Configuration;
 using Kun.Gateway.Endpoints;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -13,7 +12,7 @@ internal sealed class S2sSigningKeyRing : IDisposable
 {
     private static readonly Action<ILogger, Exception?> s_rejected = LoggerMessage.Define(LogLevel.Warning, new EventId(110, "SigningKeyReloadRejected"), "Signing key reload rejected; retaining the last valid signing key.");
     private readonly object _gate = new();
-    private readonly KunGatewayOptions _options;
+    private readonly GatewayConfiguration _options;
     private readonly TimeProvider _clock;
     private readonly ILogger<S2sSigningKeyRing> _logger;
     private readonly List<(JwkDto Key, DateTimeOffset Until)> _retired = [];
@@ -22,7 +21,7 @@ internal sealed class S2sSigningKeyRing : IDisposable
     private DateTimeOffset _nextCheck;
     private bool _disposed;
 
-    public S2sSigningKeyRing(IOptions<KunGatewayOptions> options, IHostEnvironment environment, TimeProvider clock, ILogger<S2sSigningKeyRing> logger)
+    public S2sSigningKeyRing(IOptions<GatewayConfiguration> options, IHostEnvironment environment, TimeProvider clock, ILogger<S2sSigningKeyRing> logger)
     {
         _options = options.Value; _clock = clock; _logger = logger;
         ArgumentException.ThrowIfNullOrWhiteSpace(_options.SigningKeyPath);

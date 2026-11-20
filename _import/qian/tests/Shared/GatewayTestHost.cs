@@ -1,3 +1,5 @@
+using Kun.Gateway.DependencyInjection;
+using Kun.Gateway.Shell;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography;
@@ -14,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
-using Qian.Gateway;
+using Kun.Gateway;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
 using Kun.Runtime;
@@ -37,7 +39,7 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
         string identityIssuer, string clientId, string identityAudience, string clientSecret, string redis,
         string issuer, IReadOnlyList<GatewayRoute> routes, IReadOnlyList<GatewayCluster> clusters, RSA signing,
         IReadOnlyList<string>? trustedNetworks = null, TimeProvider? clock = null, Action<WebApplication>? map = null,
-        IReadOnlyList<string>? scopes = null, GatewayRateLimits? rateLimits = null)
+        IReadOnlyList<string>? scopes = null, GatewayRateLimits? rateLimits = null, Action<IServiceCollection>? configure = null)
     {
         var address = new Uri($"https://localhost:{reservation.Port}/");
         var directory = Directory.CreateTempSubdirectory("qian-gateway-").FullName;
@@ -76,10 +78,12 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
             RequireHttpsMetadata = false, AllowedReturnPaths = ["/app"], DefaultReturnPath = "/app",
             SessionKeyPrefix = "qian:gateway-tests:" + Guid.NewGuid().ToString("N") + ":"
         });
-        builder.Services.AddQianGateway(configuration, IdentityClientDefaults.SessionScheme);
+        builder.Services.AddKunGatewayShell();
+        builder.Services.AddKunGateway(configuration, IdentityClientDefaults.SessionScheme);
+        configure?.Invoke(builder.Services);
         var app = builder.Build();
-        app.UseForwardedHeaders(); app.UseRouting(); app.UseKunIdentityClient(); app.UseQianGateway();
-        app.MapKunIdentityClient(); app.MapQianGateway(); map?.Invoke(app);
+        app.UseForwardedHeaders(); app.UseRouting(); app.UseKunIdentityClient(); app.UseKunGateway();
+        app.MapKunIdentityClient(); app.MapKunGateway(); map?.Invoke(app);
         var loader = new PluginLoader(app.Services);
         try
         {

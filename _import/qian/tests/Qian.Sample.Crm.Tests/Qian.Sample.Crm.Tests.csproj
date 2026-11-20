@@ -25,7 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
     <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
-    <ProjectReference Include="../../packages/Qian.Gateway/Qian.Gateway.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
     <ProjectReference Include="../../hosts/Qian.Platform.Host/Qian.Platform.Host.csproj" />
     <PackageReference Include="StackExchange.Redis" />
     <ProjectReference Include="../../../../src/Kun.Identity/Kun.Identity.csproj" />

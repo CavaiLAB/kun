@@ -1,0 +1,19 @@
+#nullable enable
+Kun.Gateway.Shell.GatewayComponent
+Kun.Gateway.Shell.GatewayComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Gateway.Shell.GatewayComponent.GatewayComponent() -> void
+Kun.Gateway.Shell.GatewayComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Gateway.Shell.GatewayShellHosting
+Kun.Gateway.Shell.ShellStaticOptions
+Kun.Gateway.Shell.ShellStaticOptions.ConfigFile.get -> string?
+Kun.Gateway.Shell.ShellStaticOptions.ConfigFile.init -> void
+Kun.Gateway.Shell.ShellStaticOptions.Remotes.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Gateway.Shell.ShellStaticOptions.Remotes.init -> void
+Kun.Gateway.Shell.ShellStaticOptions.Root.get -> string!
+Kun.Gateway.Shell.ShellStaticOptions.Root.init -> void
+Kun.Gateway.Shell.ShellStaticOptions.ShellStaticOptions() -> void
+const Kun.Gateway.Shell.GatewayShellHosting.BootstrapPath = "/api/shell/bootstrap" -> string!
+static Kun.Gateway.Shell.GatewayShellHosting.MapKunShell(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, Kun.Gateway.Shell.ShellStaticOptions! options) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Gateway.Shell.GatewayShellHosting.MapKunShellBootstrap(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, string! path = "/api/shell/bootstrap") -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Gateway.Shell.GatewayShellHosting.UseKunShell(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app, Kun.Gateway.Shell.ShellStaticOptions! options) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
+static Kun.Gateway.Shell.GatewayShellHosting.AddKunGatewayShell(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

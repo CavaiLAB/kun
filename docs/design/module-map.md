@@ -49,7 +49,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 |---|---|---|---|
 | `Kun.Runtime` | 组件运行时：插件装载、服务键与注入、类型化事件、可逆副作用、扁平 scope；只引用 `Kun.Errors` | `PluginLoader`、`IPluginContext`、`IKunPlugin`、`KunEvent`、`ScopeKey` | — |
 
-运行时不带产品语义：`ScopeKey` 只查语法（`global`，或小写的种类名加非空 id），种类有哪些由平台档定；声明式表面的目录键 `SurfaceKeys` 在平台档。语言无关的场景用例在 `_import/qian/tck/runtime`，.NET 一侧是 `tests/Kun.Runtime.Tests`。
+运行时不带产品语义：`ScopeKey` 只查语法（`global`，或小写的种类名加非空 id），种类有哪些由平台档定；声明式表面的目录键 `SurfaceKeys` 在平台档。语言无关的场景用例在 `tck/runtime`，.NET 一侧是 `tests/Kun.Runtime.Tests`。
 
 ### 插件开发包（S1-KUN-023）
 

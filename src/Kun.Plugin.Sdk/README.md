@@ -28,7 +28,7 @@ ComponentMetadataGenerator 用 Roslyn 语义符号读取 Inject 集合和 ApplyA
 
 条件服务注册、动态 Inject、动态贡献名、未知上下文逃逸仍报 KUNSDK002，不把未知结果当作空集合。不同构造模式改变依赖的可编程实现，使用固定模式的薄入口与 DelegatePlugin 声明：入口显式给出 Inject，通过 Provides / Contributes 声明完整的普通服务输出，只能恰好一次无条件委托给指定 IKunPlugin 的真正 ApplyAsync，并转交同一 ctx、config 和 ct。运行时装载仍校验实际提供项；调用方不得把不同模式的依赖并成一个虚假清单。
 
-这些实现构件及契约包装器、动态表面适配器不另造组件 ID。具体归属在 [实现构件分类](../../_import/qian/scripts/plugin-implementations.json) 登记：Authz、Identity、OIDC 的原可编程实现归所属组件；Capabilities 的 OpenAPI / gRPC / 导航包装器和 Registry 的 scope 适配器保留被包装组件归属；Surfaces / HookBridge 使用输入组件快照。CI 从全部已编译的 packages / samples 程序集发现真实 IKunPlugin 实现，新实现既无入口注解也无有效分类就失败，删除实现后留下的分类也失败。
+这些实现构件及契约包装器、动态表面适配器不另造组件 ID。具体归属在 [实现构件分类](../../scripts/plugin-implementations.json) 登记：Authz、Identity、OIDC 的原可编程实现归所属组件；Capabilities 的 OpenAPI / gRPC / 导航包装器和 Registry 的 scope 适配器保留被包装组件归属；Surfaces / HookBridge 使用输入组件快照。CI 从全部已编译的 packages / samples 程序集发现真实 IKunPlugin 实现，新实现既无入口注解也无有效分类就失败，删除实现后留下的分类也失败。
 
 CapabilityAttribute 标注顶层非泛型 partial 请求，并指定响应类型和 System.Text.Json 源生成上下文。上下文必须显式登记请求与响应。生成器校验短名、描述、冻结词汇、scope、权限点和幂等声明，生成该请求的 KunCapability 属性。它由 CapabilityContract 从 JsonTypeInfo 导出输入和输出 Schema。序列化设置属于真实契约：例如 UnmappedMemberHandling.Disallow 和必填构造参数必须与公开输入 Schema 一致。
 
@@ -55,8 +55,8 @@ SensitiveAttribute 把实际 JSON 属性标记为 sensitive。顶层字段及整
 工具只用于显式选择的本地可信项目构建。加载生成工厂及 JsonTypeInfo 会加载程序集，因此不能用于未知市场制品的准入或沙箱校验。工具与组件共用 SDK/Runtime 的程序集身份，避免独立加载上下文复制服务键类型。
 
 ```bash
-dotnet run --project tools/Kun.Plugin.Tool -c Release -- sync src/Kun.Data/bin/Release/net10.0/Kun.Data.dll _import/qian/plugins/qian.data
-dotnet run --project tools/Kun.Plugin.Tool -c Release -- check src/Kun.Data/bin/Release/net10.0/Kun.Data.dll _import/qian/plugins/qian.data
+dotnet run --project tools/Kun.Plugin.Tool -c Release -- sync src/Kun.Data/bin/Release/net10.0/Kun.Data.dll plugins/qian.data
+dotnet run --project tools/Kun.Plugin.Tool -c Release -- check src/Kun.Data/bin/Release/net10.0/Kun.Data.dll plugins/qian.data
 ```
 
 sync 合并唯一清单的派生字段与既有表面；数组与入口不改变协议形状。清单 x-qian-generated 记录字段指针、工具归属以及每份 metadata / 配置文件的来源、指针和内容哈希；权限文件仍是 authz-permissions 规定的数组，不往它里面塞生成标记。路径沿清单的 surfaces.tools、surfaces.metadata 与 runtime.configSchema；未声明时采用 ./tools、./metadata 与 ./schemas/config.schema.json。

@@ -4,7 +4,7 @@ qian-identity 宿主同源托管的静态制品：登录（账号密码、连接
 
 ## 路由与入口
 
-构建以 `/login/` 为基路径。身份宿主调用产品扩展 `UseKunIdentityPages(dist)`（[Kun.Identity.Server](../../../../src/Kun.Identity.Server/README.md)，S1-YUE-012）把 `dist/` 托管在 `/login` 下：无扩展名的子路径回落到 `index.html`，HTML `no-store`，`/login/assets/` 带哈希长缓存，全部响应带 `frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff`；`Accounts.SelectionPath` 不在 `/login` 下时启动即抛错。生产镜像的接线与实测响应头归 S1-DEP-008。
+构建以 `/login/` 为基路径。身份宿主调用产品扩展 `UseKunIdentityPages(dist)`（[Kun.Identity.Server](../../src/Kun.Identity.Server/README.md)，S1-YUE-012）把 `dist/` 托管在 `/login` 下：无扩展名的子路径回落到 `index.html`，HTML `no-store`，`/login/assets/` 带哈希长缓存，全部响应带 `frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff`；`Accounts.SelectionPath` 不在 `/login` 下时启动即抛错。生产镜像的接线与实测响应头归 S1-DEP-008。
 
 | 路径 | 用途 |
 |---|---|
@@ -14,7 +14,7 @@ qian-identity 宿主同源托管的静态制品：登录（账号密码、连接
 
 ## 本机运行
 
-`scripts/dev-shell.sh up` 会构建本包并由身份宿主托管，见 [联调环境说明](../../../../tools/Kun.Dev.Shell/README.md)。`pnpm --filter @qian/identity-ui dev` 在 `http://127.0.0.1:5178/login/` 起开发服务器，把 `/api/identity`、`/connect`、`/.well-known` 代理到本机身份宿主（`QIAN_DEV_SHELL_API_URL`，只许回环地址）。
+`scripts/dev-shell.sh up` 会构建本包并由身份宿主托管，见 [联调环境说明](../../tools/Kun.Dev.Shell/README.md)。`pnpm --filter @qian/identity-ui dev` 在 `http://127.0.0.1:5178/login/` 起开发服务器，把 `/api/identity`、`/connect`、`/.well-known` 代理到本机身份宿主（`QIAN_DEV_SHELL_API_URL`，只许回环地址）。
 
 ## 验证
 

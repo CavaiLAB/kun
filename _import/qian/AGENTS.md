@@ -65,7 +65,7 @@
 docs/        设计文档：decisions（决策清单）、adr、prd（含 specs）、migration、research、ROADMAP.md
 contracts/   冻结契约 v0：S2S claim、事件信封、ErrorDetail 与错误码目录、能力条目的 JSON Schema + fixture（见 contracts/v0/README.md）
 packages/    packages/qian-* 是 Node 包：命令行、声明式表面校验库、外壳接线与三个界面包。
-             前端框架（原 yue，现名 qian）已迁到 CavaiLAB/qian，这里装已发布的 @cavailab/qian-*（见 README.md「前端依赖与包源」）
+             前端框架由 CavaiLAB/qian 发布，这里装已发布的 @cavailab/qian-*（见 README.md「前端依赖与包源」）
 apps/        外壳应用 qian-shell（模块联邦宿主，见 apps/qian-shell/README.md）
 pm/          任务与看板（见 pm/README.md）
 scripts/     pm.py、check_docs.py 等平台工具，.NET 构建及分片脚本在仓库根 scripts/

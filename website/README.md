@@ -1,6 +1,6 @@
 # Qian 文档站
 
-> 对应任务 S1-DOCS-001（脚手架）、S1-DOCS-005（「Kun 框架」小节与 Kun API 参考）与 S1-DOCS-003（机器可读产物与 frontmatter 校验）。规范见 [docs/prd/specs/docs-site.md](../docs/prd/specs/docs-site.md)（七个部分、首页、组件页模板、frontmatter、机器可读产物），本文是它的实施说明：怎么本地运行、目录怎么分、内容从哪来、怎么发布。
+> 对应任务 S1-DOCS-001（脚手架）、S1-DOCS-005（「Kun 框架」小节与 Kun API 参考）与 S1-DOCS-003（机器可读产物与 frontmatter 校验）。规范见 [docs/prd/specs/docs-site.md](../_import/qian/docs/prd/specs/docs-site.md)（七个部分、首页、组件页模板、frontmatter、机器可读产物），本文是它的实施说明：怎么本地运行、目录怎么分、内容从哪来、怎么发布。
 
 Rspress 2.0（`@rspress/core` 2.0.23，React 19，MDX）。内置全文搜索（本地索引）与 Shiki 代码高亮，Mermaid 由 `rspress-plugin-mermaid` 渲染。站点只有中文，目录结构给英文预留 `/en/`（docs-site.md §5）。
 
@@ -138,14 +138,14 @@ docs-site.md §5.1 是契约，这里只说实现：
 
 ## 6 托管与预览：K3s 静态托管
 
-验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选的是 **K3s 静态托管**：文档面向内部团队，入口与任务看板一致，不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同：CI 构建，git-sync 拉取，nginx 提供。旧仓库归档之后（迁移执行计划 B2），文档站的源码在 `CavaiLAB/kun` 的过渡目录 `_import/qian/` 下，由本仓库的主干构建与发布，细节见 [deploy/docs-site/README.md](../deploy/docs-site/README.md)。
+验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选的是 **K3s 静态托管**：文档面向内部团队，入口与任务看板一致，不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同：CI 构建，git-sync 拉取，nginx 提供。文档站从 `CavaiLAB/kun` 的 `website/` 构建，细节见 [deploy/docs-site/README.md](../_import/qian/deploy/docs-site/README.md)。
 
-- CI：仓库根的 `qian-docs-site` 工作流（`.github/workflows/qian-docs-site.yml`，由 `ci.yml` 调用；原件 `_import/qian/.github/workflows/docs-site.yml` 留作对照，GitHub 不读它）。PR 与 `main` 上类型检查、单测、构建（含断链检查）、产物检查、生成页（含 Kun 镜像页）的文档门禁与浏览器交互验收。跑不跑由仓库根区域表 `scripts/ci_changes.py` 的 docs-site 区域决定：改到 `_import/qian/` 下的 `website/`、`docs/`、依赖清单、`Directory.Packages.props`、`deploy/docs-site/`、`.npmrc` 或工作流本身时跑，仓库根的 .NET 构建基线、`Kun.slnx`、`src/` 与 `CHANGELOG.md`（Kun 最新的发布版从这里取）改了也跑。
-- 发布：只在 `main` 上发布正式站点，把构建产物推到 `CavaiLAB/kun` 的 `docs-site` 分支的根目录（`deploy/docs-site/publish.sh`，分支只保留一个提交）。集群里 git-sync 每 60 秒经 HTTPS 匿名拉取该分支，nginx 提供访问。
-- 部署：集群里的应用由 Argo CD 管。Application 登记在部署仓库，跟踪 `CavaiLAB/kun` 主干上的 `_import/qian/deploy/docs-site/`，清单的改动合入主干后自动同步。
+- 仓库根 `ci.yml` 按 `scripts/ci_changes.py` 的 docs-site 区域调用 `.github/workflows/qian-docs-site.yml`。PR 和主干都运行类型检查、单测、断链与锚点检查、产物检查以及浏览器验收。
+- 发布：只在 `main` 上发布正式站点，把构建产物推到 `CavaiLAB/kun` 的 `docs-site` 分支的根目录（`_import/qian/deploy/docs-site/publish.sh`，分支只保留一个提交）。集群里 git-sync 每 60 秒经 HTTPS 匿名拉取该分支，nginx 提供访问。
+- 部署仓库的 Argo CD Application 指定 Kun 的版本和清单目录。当前版本的部署模板位于 `_import/qian/deploy/docs-site/`。
 - PR 预览：现在没有接，接不接由产品负责人定。原仓库的做法是同仓库分支的 PR 发布到 `pr-preview/pr-<n>/`、在 PR 里留访问链接、PR 关闭后删除预览；`CavaiLAB/kun` 是公开仓库，PR 评论人人可见，所以没有照搬。PR 上的构建仍带 `pr-preview/pr-<n>/` 前缀（`DOCS_BASE`），前缀检查照跑；nginx 与 `publish.sh` 仍支持这个路径，接回只改工作流。
 - 「Kun 框架」小节的来源：版本取仓库根 `CHANGELOG.md` 里 Kun 最新的发布版，它的 tag `v<版本>` 在本仓库（发版时打的，导入之前的随历史导入，提交号不变），工作流只从本仓库取这一个 tag 与它的历史，生成脚本直接读本仓库（`scripts/kun.ts`），不另外检出，也不要凭据。
-- 访问入口在内网，写在 `deploy/docs-site/README.md`，本文与工作流都不写。
+- 可通过集群查看站点地址或使用端口转发。命令见 `_import/qian/deploy/docs-site/README.md`。
 
 ## 7 门禁
 
@@ -154,7 +154,7 @@ CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内�
 | 检查 | 内容 | 在哪跑 |
 |---|---|---|
 | `scripts/check_docs.py` | 禁用词（整词匹配）、表格列数、链接、frontmatter（docs-site.md §4：必填、枚举、长度、日期、镜像页的 `source` 与 `version`、组件页的 `component`）；覆盖 `website/docs`（.md 与 .mdx）、本文件与 `AGENTS.md`，站点源码只查禁用词；站内路由、`/design/` 镜像路由与生成页路由都按规则解析，生成目录本身默认不查（它们的源已在查）；生成目录里的文件进了 Git 即失败。`/sdk/kun/`、`/sdk/api/` 下的路由在生成之前交给构建时的断链检查（手写页 `with-qian` 除外） | docs-and-pm 工作流 |
-| `scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md` | 生成页（含源不在 `_import/qian/` 下的 Kun 镜像页与 API 参考、版本矩阵）构建后显式检查一遍，frontmatter 也查（显式给出的生成目录与文件照查） | docs-site 工作流 |
+| `scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md` | 生成页（含 Kun 镜像页、API 参考与版本矩阵）构建后显式检查一遍，frontmatter 也查（显式给出的生成目录与文件照查） | docs-site 工作流 |
 | Rspress 断链检查 | 构建时检查全站（含生成页）的站内链接，断链即构建失败 | docs-site 工作流 |
 | `pnpm --filter website check` | 七个部分与首页、404、站点地图齐全；`lang="zh"`；不引用外部资源；站内引用都带部署前缀；搜索索引存在；C# / TypeScript / JSON / YAML / Bash 都有被高亮的代码块；`/sdk/kun/` 与 `/sdk/api/kun/` 下除手写页外每页都有镜像或生成横幅，横幅里的 tag 等于 Kun 最新发布版的 `v<版本>`（白名单外的页面混进来即失败）；产物总大小不超过预算（`SITE_SIZE_BUDGET_MB`，120 MB，R55），超出时报出最大的目录；机器可读产物（§4a）：`llms.txt`、`llms-full.txt`、`kb-index.json`、`sitemap.xml` 齐全，索引里每页的 `.md` 与 HTML 都在且 sha256 一致、三个清单都收录每页、没有索引外的 `.md`，每页 `.md` 无 JSX / ESM 残留、无空标题空列表项、代码块不少于源页 | docs-site 工作流 |
 | `pnpm --filter website test` | 路径映射、链接改写、章节拆分、生成目录写入、组件占位页；Kun：`CHANGELOG.md` 里没有已发布的版本段或版本无效、tag 不存在即失败，默认读本仓库的 tag（缺了从 origin 取，浅克隆里历史不全即失败），白名单与排除、slug 与路由、横幅与 frontmatter（`updated` 取文件日期）、链接改写、DocFX 输出转换（含 API 页 `sidebar: false`）；产物体积预算；frontmatter 子集解析、知识库索引与 sitemap、Markdown 产物质量与同步检查；版本矩阵的读取与渲染、llms.txt 分节、产品族页与 README 一致 | docs-site 工作流 |
@@ -178,4 +178,4 @@ CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内�
 
 SSR/SSG-MD 保留用途、源码和完整 API，纯交互 UI 在 Markdown 中只输出说明。SSG-MD 表格的对齐空格在生成后收敛，单元格与 fenced code 内容不变，再生成知识库哈希；全站保持 120 MB 预算（S1-QA-010 按 R55 调整，构成与原因见 docs-site.md §7）。
 
-`pnpm --filter website e2e` 在真实静态产物上逐条执行 126 个场景，包含交互结果、明暗、iframe、打开态 axe、无页面异常，并检查断外网编辑与 HTML/Markdown Props 一致。默认启动本地静态服务；`DOCS_BASE=/pr-preview/pr-N/` 验证前缀，`DOCS_URL=http://目标站点/` 验证已发布站点（`--grep '正式页面交互 smoke'` 可聚焦代表性交互）。CI 在发布前跑完整套件，新增 core 源码也会触发 docs-site 工作流。
+`pnpm --filter website e2e` 在真实静态产物上执行钉住的组件版本所提供的场景及站点交互用例，包含交互结果、明暗、iframe、打开态 axe、无页面异常，并检查断外网编辑与 HTML/Markdown Props 一致。默认启动本地静态服务；`DOCS_BASE=/pr-preview/pr-N/` 验证前缀，`DOCS_URL=http://目标站点/` 验证已发布站点（`--grep '正式页面交互 smoke'` 可聚焦代表性交互）。CI 在发布前跑完整套件，新增 core 源码也会触发 docs-site 工作流。

@@ -10,7 +10,7 @@
 - 本包只依赖 Runtime、SDK、所需 Abstractions 与 Kun，不引用 Identity.Client、Data 或 Audit Provider；它们由宿主组合。
 - `qian add gateway` 的正式私有源安装尚未验证，组件保留 `x-skeleton`。真实代码入口与可构建宿主不等于已完成发布或安装验收。
 
-组件配置由 `ComponentConfiguration.Schema` 派生到唯一 Schema。`GatewayHosting.ReadConfiguration()` 严格拒绝重复成员、未知字段、缺失下游、带凭据的 URL、相对密钥路径与全网代理 CIDR。示例在 [gateway 组合包](../../_import/qian/plugins/qian.bundle.gateway/config/qian.patch.yml)。密钥路径指向宿主的 Secret 文件，永不把 PEM 内容写进配置。
+组件配置由 `ComponentConfiguration.Schema` 派生到唯一 Schema。`GatewayHosting.ReadConfiguration()` 严格拒绝重复成员、未知字段、缺失下游、带凭据的 URL、相对密钥路径与全网代理 CIDR。示例在 [gateway 组合包](../../plugins/qian.bundle.gateway/config/qian.patch.yml)。密钥路径指向宿主的 Secret 文件，永不把 PEM 内容写进配置。
 
 ## 固定安全边界
 

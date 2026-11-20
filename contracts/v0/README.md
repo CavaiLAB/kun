@@ -1,6 +1,6 @@
 # contracts/v0：Qian 的冻结契约（frozen）
 
-> 依据：[PRD §07 7.18](../../docs/prd/07-s1-foundation.md) 第 2、3、5、9 项与技术落点；[ADR-016](../../docs/adr/ADR-016-iclaw-boundary.md) D16.3 / D16.12；[ADR-018](../../docs/adr/ADR-018-stages-s1-scope.md) D18.6。任务 S1-AGT-001。
+> 依据：[PRD §07 7.18](../../_import/qian/docs/prd/07-s1-foundation.md) 第 2、3、5、9 项与技术落点；[ADR-016](../../_import/qian/docs/adr/ADR-016-iclaw-boundary.md) D16.3 / D16.12；[ADR-018](../../_import/qian/docs/adr/ADR-018-stages-s1-scope.md) D18.6。任务 S1-AGT-001。
 >
 > 真相源是本目录的 JSON Schema 2020-12、数据文件与 fixture；PRD 与 ADR 里的字段列表是摘要，二者不一致时以本目录为准，并回头修正文档。与 iClaw 的差异见 [iclaw-alignment.md](iclaw-alignment.md)。
 
@@ -25,7 +25,7 @@ fixture 文件形状统一为 `[{ "name": "<这条样例说明什么>", "data": 
 
 - 全部 Schema 为 JSON Schema 2020-12，`$id` 前缀 `https://qian.dev/contracts/v0/`（标识符，不要求可解引用）。跨文件引用：`error-catalog` → `error-detail`，`event-envelope` → `s2s-claims`，`capability-entry` → 2020-12 元 Schema，`capability-catalog` → `capability-entry`。
 - 声明了 `properties` 的 object 一律 `additionalProperties: false`。开放容器只有三处，都由别处的 Schema 约束内容：事件 `payload`（事件目录中该 `type` 的 Schema）、能力的 `inputSchema` / `outputSchema`（它们本身是 Schema 文档）、多语言文案（语言标签 → 文本）。
-- 状态 `x-status: frozen`：2026-10-24 由 [S1-AGT-005](../../pm/tasks/S1-AGT-005.md) 按 R53 / R80 / R119 统一冻结六份 Schema；五个第 1 波消费方（S1-RT-004 registry、S1-IDP-001 identity、S1-AZ-001 authz、S1-EVT-001 events、S1-GW-001 gateway）均已 done。此后只允许向后兼容增量（additive-only）与不改变语义的说明修正，不得恢复 draft；破坏性变更新开 `contracts/v1/`，不覆盖 v0。修订须在同一 PR 同步 fixture、`Kun.Errors` 与已知消费方，并说明兼容性。
+- 状态 `x-status: frozen`：2026-10-24 由 [S1-AGT-005](../../_import/qian/pm/tasks/S1-AGT-005.md) 按 R53 / R80 / R119 统一冻结六份 Schema；五个第 1 波消费方（S1-RT-004 registry、S1-IDP-001 identity、S1-AZ-001 authz、S1-EVT-001 events、S1-GW-001 gateway）均已 done。此后只允许向后兼容增量（additive-only）与不改变语义的说明修正，不得恢复 draft；破坏性变更新开 `contracts/v1/`，不覆盖 v0。修订须在同一 PR 同步 fixture、`Kun.Errors` 与已知消费方，并说明兼容性。
 - 线上成员名：错误体、S2S claim、事件信封用 snake_case（与 iClaw 同形）；能力条目用 camelCase（与 `plugin.json` 和 tool/v2 一致）。
 - 契约格式（7.18）：HTTP 接口 OpenAPI 3.1 + `operationId`；数据 JSON Schema 2020-12 + `additionalProperties: false`。
 

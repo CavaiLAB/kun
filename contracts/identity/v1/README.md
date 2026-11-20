@@ -39,7 +39,7 @@
 
 ## 共同约定
 
-载荷不含信封字段（[S1-DEC-020](../../../pm/tasks/S1-DEC-020.md)）：`event_id`、`occurred_at` 由 Qian.Events 写入端入队时生成，`tenant_id` 取发布时的租户上下文，三者只在信封上，消费端从信封读取。生产方在事件所属租户的作用域内入队；平台级身份事件在租户作用域外入队，信封 `tenant_id` 为 null。目录事件一律在所属租户作用域内入队。
+载荷不含信封字段（[S1-DEC-020](../../../_import/qian/pm/tasks/S1-DEC-020.md)）：`event_id`、`occurred_at` 由 Qian.Events 写入端入队时生成，`tenant_id` 取发布时的租户上下文，三者只在信封上，消费端从信封读取。生产方在事件所属租户的作用域内入队；平台级身份事件在租户作用域外入队，信封 `tenant_id` 为 null。目录事件一律在所属租户作用域内入队。
 
 字段、属性标记和源生成 JSON 由 `Kun.Identity.Abstractions.Tests` 逐一校验。自首个发布版本起，破坏性变化新增 v2 类型与 Schema，不覆盖 v1；发布前去掉信封字段这一次就地修正由 S1-DEC-020 裁决。
 

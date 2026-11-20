@@ -5,7 +5,7 @@
 - **浏览器会话（BFF）**：服务端授权码 + PKCE（S256）换取，校验 `state`（一次性、防重放）、RFC 9207 `iss`、id_token 的签名 / 受众 / `nonce`；会话放在 Cookie `qian.sid`（256 位不透明标识，HttpOnly、Secure、SameSite=Lax），令牌只留在服务端会话存储里。
 - **刷新**：访问令牌到期前用 refresh token 换新；同一会话在进程内只发一次刷新请求，跨副本用 Kun 会话注册表的一次性标记互斥（qian-identity 开启了 refresh 轮换与零容忍复用检测，并发复用会吊销整族）；刷新失败即结束会话。
 - **discovery 定期刷新**：发现文档按 `DiscoveryRefreshInterval`（缺省 5 分钟）过期重取。OIDC 验签公钥缓存 1 小时，遇到未知签名密钥可提前刷新，两次强制刷新至少间隔 30 秒。
-- **下游 S2S 校验**：只信网关签发器的 issuer 与 JWKS，`aud` 必须恰好是本服务（每跳一个受众），载荷按冻结契约（[contracts/v0](../../_import/qian/contracts/v0/README.md) §4）逐条校验；上一跳收到的令牌转发给下一跳、用户访问令牌直接调用下游一律拒绝。Kun 的透传处理器 `PropagateS2sTokenHandler` / `AddKunServiceAuth` 在 BannedSymbols 里禁用。
+- **下游 S2S 校验**：只信网关签发器的 issuer 与 JWKS，`aud` 必须恰好是本服务（每跳一个受众），载荷按冻结契约（[contracts/v0](../../contracts/v0/README.md) §4）逐条校验；上一跳收到的令牌转发给下一跳、用户访问令牌直接调用下游一律拒绝。Kun 的透传处理器 `PropagateS2sTokenHandler` / `AddKunServiceAuth` 在 BannedSymbols 里禁用。
 
 同一个包进 `platform`、`gateway` 与独立宿主（ADR-019）：独立宿主只装本包即可对接任意 OIDC 发行方，不部署 Qian 平台、不需要 Config 组件（公开客户端）。
 
@@ -42,7 +42,7 @@ app.MapKunIdentityClient();   // /auth/login、回调、/auth/logout、/auth/csr
 await loader.MountAsync([new(new PluginEntry("identity", "qian.identity.client", "1.1.0", ScopeKey.Global, 0, config), new IdentityClientComponent(), [IdentityDefinition.Key])], ct);
 ```
 
-组件配置（[plugins/qian.identity.client](../../_import/qian/plugins/qian.identity.client/README.md)）：`issuer`、`clientId` 必须与宿主选项一致；`clientSecret` 只接受 `secretRef://platform/…` 或 `secretRef://dev/…`，第一次换码时经 Config 组件的密钥策略解析（清单声明 `identity/*`，宿主审批），密钥不经代码、选项或配置明文传入。公开客户端省略 `clientSecret`，此时不依赖 Config。轮换密钥 = 重新挂载组件。
+组件配置（[plugins/qian.identity.client](../../plugins/qian.identity.client/README.md)）：`issuer`、`clientId` 必须与宿主选项一致；`clientSecret` 只接受 `secretRef://platform/…` 或 `secretRef://dev/…`，第一次换码时经 Config 组件的密钥策略解析（清单声明 `identity/*`，宿主审批），密钥不经代码、选项或配置明文传入。公开客户端省略 `clientSecret`，此时不依赖 Config。轮换密钥 = 重新挂载组件。
 
 下游服务只需：
 
@@ -116,7 +116,7 @@ app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();
 - 本地登出与正在进行的刷新并发时，刷新的结果只续写仍存活的会话，已登出的会话不会复活；但刷新已经换到的令牌族要等发行方侧过期。
 - `resource` 只在授权请求里带：Kun 的 `OidcCodeExchange` 与刷新都不能追加参数，所以换码与刷新请求不带。qian-identity 的授权码与 refresh token 已绑定授权时请求的资源，换码、刷新沿用，受众不变。对接要求令牌请求也带 `resource` 的发行方（MCP 授权规范对客户端的要求），要等 Kun 支持追加参数。
 - 授权参数只透传 `prompt=select_account`；`login_hint`、租户提示等尚未透传。
-- 清单已由 SDK 派生稳定入口与 configSchema，并声明了 `x-aot`（依据见上文的 NativeAOT 冒烟）。S1-IDP-015 已完成包族 0.3.0 发布、`runtime.nuget` 精确版本与归档摘要钉定、真实 `qian add identity` 安装和移除验收，骨架标记已移除；安装准备与声明式配置见[组件 README](../../_import/qian/plugins/qian.identity.client/README.md#安装)。按 S1-DEC-029，开发期 gateway 使用 JIT，gateway 整体的 NativeAOT 门仍由 GW-001 / DEP-008 验收。
+- 清单已由 SDK 派生稳定入口与 configSchema，并声明了 `x-aot`（依据见上文的 NativeAOT 冒烟）。S1-IDP-015 已完成包族 0.3.0 发布、`runtime.nuget` 精确版本与归档摘要钉定、真实 `qian add identity` 安装和移除验收，骨架标记已移除；安装准备与声明式配置见[组件 README](../../plugins/qian.identity.client/README.md#安装)。按 S1-DEC-029，开发期 gateway 使用 JIT，gateway 整体的 NativeAOT 门仍由 GW-001 / DEP-008 验收。
 - `Kun.Plugin.Sdk` 经 `Kun.Data.Abstractions` 把 EF Core 带进依赖闭包。NativeAOT 发布时这部分不可达，会被裁掉；JIT 宿主的输出目录里会多出这些程序集。
 
 ## 测试

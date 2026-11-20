@@ -24,11 +24,11 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-24 身份客户端可从私有源安装（S1-IDP-015）
 
-[`qian.identity.client`](../plugins/qian.identity.client/README.md) 钉定已发布的 `Qian.Identity.Client` 0.3.0 及归档摘要，移除骨架标记。真实 `qian add identity` 安装门校验包源、版本、摘要、表面与 lock，再由宿主按清单挂载 Identity 服务并撤销；发行方与客户端标识由宿主显式配置。
+[`qian.identity.client`](../../../plugins/qian.identity.client/README.md) 钉定已发布的 `Qian.Identity.Client` 0.3.0 及归档摘要，移除骨架标记。真实 `qian add identity` 安装门校验包源、版本、摘要、表面与 lock，再由宿主按清单挂载 Identity 服务并撤销；发行方与客户端标识由宿主显式配置。
 
 ## 2026-10-24 通用契约 v0 冻结（S1-AGT-005）
 
-[contracts/v0](../contracts/v0/README.md) 的六份 Schema 按 R53 / R80 / R119 统一标记为 `frozen`，后续只接受向后兼容增量，破坏性变更进入 v1。现有字段与约束保持不变；[data/v1](../contracts/data/v1/README.md) 引用草稿信封的例外随之解除。
+[contracts/v0](../../../contracts/v0/README.md) 的六份 Schema 按 R53 / R80 / R119 统一标记为 `frozen`，后续只接受向后兼容增量，破坏性变更进入 v1。现有字段与约束保持不变；[data/v1](../../../contracts/data/v1/README.md) 引用草稿信封的例外随之解除。
 
 ## 2026-10-22 输入 Schema 的租户字段检查覆盖 properties 之外的写法（S1-AGT-004）
 
@@ -44,7 +44,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-16 qian CLI 包管理器超时可配置（S1-RT-030）
 
-`qian add` / `remove` 调用包管理器的超时缺省 600 秒，可用环境变量 `QIAN_PACKAGE_TIMEOUT`（1–86400 的整数秒）调整，非法值在任何改动之前以结构化错误失败；预检还原允许并行下载。详见 [qian CLI](../packages/qian-cli/README.md)。
+`qian add` / `remove` 调用包管理器的超时缺省 600 秒，可用环境变量 `QIAN_PACKAGE_TIMEOUT`（1–86400 的整数秒）调整，非法值在任何改动之前以结构化错误失败；预检还原允许并行下载。详见 [qian CLI](../../../packages/qian-cli/README.md)。
 
 ## 2026-10-16 出网检查缺省值：开发环境放行回环，缺省拒绝 K3s 集群网段（S1-DATA-007）
 
@@ -52,11 +52,11 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-16 qian add / remove / list 从 GitHub Packages 真实安装（S1-RT-011）
 
-`qian add <组件>…` 经签名市场把表面复制到 `.qian/plugins/<id>/`、按组件清单钉精确版本从 GitHub Packages 还原代码包、写 profile patch 与 `.qian/lock.json`，`qian remove` 逆序撤销、`qian list` 列出来源；未通过校验器或验签时以一行结构化错误失败且不留残留。真实源 E2E 用 data / events / config 三个组件（R98），PRD 7.2.3 的表面目录、patch 路径与钉版措辞按规格 §9 改写（R100）；收口项见 [S1-RT-035](../pm/tasks/S1-RT-035.md)。用法见 [qian CLI README](../packages/qian-cli/README.md)。
+`qian add <组件>…` 经签名市场把表面复制到 `.qian/plugins/<id>/`、按组件清单钉精确版本从 GitHub Packages 还原代码包、写 profile patch 与 `.qian/lock.json`，`qian remove` 逆序撤销、`qian list` 列出来源；未通过校验器或验签时以一行结构化错误失败且不留残留。真实源 E2E 用 data / events / config 三个组件（R98），PRD 7.2.3 的表面目录、patch 路径与钉版措辞按规格 §9 改写（R100）；收口项见 [S1-RT-035](../pm/tasks/S1-RT-035.md)。用法见 [qian CLI README](../../../packages/qian-cli/README.md)。
 
 ## 2026-10-16 Qian 包族 0.1.0 发到 GitHub Packages，SDK 源生成器与清单漂移门（S1-RT-014）
 
-`Qian.*` 35 个包以 0.1.0 锁步发布到 GitHub Packages（随公开仓库可见，安装需 GitHub 令牌，R93）；`Qian.Plugin.Sdk` / `Qian.Plugin.Sdk.Generators` 从 `[QianPlugin]` / `[Capability]` 派生 `inject` / `provides` / `runtime` 与 `tools/*.json`，`qian-plugin check` 在 CI 比对 qian.data / qian.events / qian.config 的清单与代码；`PluginEnabledMiddleware` 对未挂载组件返回 404。SDK 范围的 S1 收敛与后续见 R94 与 [S1-RT-033](../pm/tasks/S1-RT-033.md)；安装方式见 [SDK 文档](../website/docs/sdk/dotnet/index.md)。
+`Qian.*` 35 个包以 0.1.0 锁步发布到 GitHub Packages（随公开仓库可见，安装需 GitHub 令牌，R93）；`Qian.Plugin.Sdk` / `Qian.Plugin.Sdk.Generators` 从 `[QianPlugin]` / `[Capability]` 派生 `inject` / `provides` / `runtime` 与 `tools/*.json`，`qian-plugin check` 在 CI 比对 qian.data / qian.events / qian.config 的清单与代码；`PluginEnabledMiddleware` 对未挂载组件返回 404。SDK 范围的 S1 收敛与后续见 R94 与 [S1-RT-033](../pm/tasks/S1-RT-033.md)；安装方式见 [SDK 文档](../../../website/docs/sdk/dotnet/index.md)。
 
 ## 2026-10-15 任务看板生成物不再进 git（S1-PM-004）
 
@@ -76,7 +76,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-15 数据契约冻结、组件元数据与文档预算整改（S1-QA-010）
 
-[data/v1 契约](../contracts/data/v1/README.md) 按 R80 明确 frozen 状态、修订规则和已知例外，统一 `$id` 前缀并补结构测试；[yue manifest](https://github.com/CavaiLAB/kun/blob/5954ec3b86d814d36a639129bfc08345262ee588/packages/yue/core/README.md) 的属性元数据（含嵌套）递归取自 TS 注释，不存在的属性拒绝导出；[文档站预算](prd/specs/docs-site.md#7-门禁) 按 R55 调为 120 MB，idadawn/qian#95 合并时实测 96.2 MB。
+[data/v1 契约](../../../contracts/data/v1/README.md) 按 R80 明确 frozen 状态、修订规则和已知例外，统一 `$id` 前缀并补结构测试；[yue manifest](https://github.com/CavaiLAB/kun/blob/5954ec3b86d814d36a639129bfc08345262ee588/packages/yue/core/README.md) 的属性元数据（含嵌套）递归取自 TS 注释，不存在的属性拒绝导出；[文档站预算](prd/specs/docs-site.md#7-门禁) 按 R55 调为 120 MB，idadawn/qian#95 合并时实测 96.2 MB。
 
 ## 2026-10-15 数据连接连通测试的出网约束与凭据错误（S1-DATA-005）
 
@@ -85,14 +85,14 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-14 能力目录信封契约、别名 Link 头与通用执行入口规范化（S1-RT-019）
 
-`GET /api/capabilities` 的响应冻结为 [`contracts/v0/capability-catalog`](../contracts/v0/capability-catalog.schema.json)（`items`、`ttlMs`、`cacheScope`），`ttlMs` 来自组件配置 `catalogTtlMs`；`/api/kernel/capabilities` 别名同时返回 `Deprecation` 与 `Link: <后继路径>; rel="successor-version"`；`POST /api/capabilities/{plugin}/{name}/invoke` 先按条目 `inputSchema` 校验（400 `INPUT_INVALID`），写类能力支持 `Idempotency-Key`（24 小时内重放返回首次响应并带 `Idempotent-Replayed: true`）；`Qian.Capabilities` 随包提供 EF 迁移（偏好表、回执表，经 `Qian.Data` 生成器带 RLS）。详见[组件规格 §9.5](prd/specs/component-model.md) 与 [PRD 7.2.1](prd/07-s1-foundation.md)。
+`GET /api/capabilities` 的响应冻结为 [`contracts/v0/capability-catalog`](../../../contracts/v0/capability-catalog.schema.json)（`items`、`ttlMs`、`cacheScope`），`ttlMs` 来自组件配置 `catalogTtlMs`；`/api/kernel/capabilities` 别名同时返回 `Deprecation` 与 `Link: <后继路径>; rel="successor-version"`；`POST /api/capabilities/{plugin}/{name}/invoke` 先按条目 `inputSchema` 校验（400 `INPUT_INVALID`），写类能力支持 `Idempotency-Key`（24 小时内重放返回首次响应并带 `Idempotent-Replayed: true`）；`Qian.Capabilities` 随包提供 EF 迁移（偏好表、回执表，经 `Qian.Data` 生成器带 RLS）。详见[组件规格 §9.5](prd/specs/component-model.md) 与 [PRD 7.2.1](prd/07-s1-foundation.md)。
 
 ## 2026-10-14 yue 组件文档迁入 Rspress（S1-YUE-005）
 
 51 个组件入口、141 个公开组件/部件的 Props、令牌页与可编辑的真实演示统一进入现有 Rspress。共用示例及 126 个状态场景迁移到独立 Playwright，离线编辑器资源随站点发布；移除旧文档应用与依赖，保留原有八项门禁。使用说明见 [core 主文档](https://github.com/CavaiLAB/kun/blob/5954ec3b86d814d36a639129bfc08345262ee588/packages/yue/core/README.md)。
 ## 2026-10-14 身份事件载荷不再重复信封字段（S1-DEC-020、S1-IDP-011）
 
-破坏性变更：五类身份事件的载荷去掉 `event_id`、`occurred_at`、`tenant_id`，构造参数随之减少，`IdentityIntegrationEvent` 不再实现 Kun 的 `IIntegrationEvent`；三项只由 Qian.Events 写入端生成在信封上。v1 尚无生产方、消费方与已发布包，按 S1-DEC-020 就地修正，此后的破坏性变化才升 v2。见 [身份事件契约](../contracts/identity/v1/README.md) 与 [ADR-008](adr/ADR-008-events-messaging.md) D8.7。
+破坏性变更：五类身份事件的载荷去掉 `event_id`、`occurred_at`、`tenant_id`，构造参数随之减少，`IdentityIntegrationEvent` 不再实现 Kun 的 `IIntegrationEvent`；三项只由 Qian.Events 写入端生成在信封上。v1 尚无生产方、消费方与已发布包，按 S1-DEC-020 就地修正，此后的破坏性变化才升 v2。见 [身份事件契约](../../../contracts/identity/v1/README.md) 与 [ADR-008](adr/ADR-008-events-messaging.md) D8.7。
 
 ## 2026-10-14 记录变更事件改为登记载荷（S1-DATA-004）
 
@@ -137,7 +137,7 @@ KunVersion 升为 2026.10.14，身份契约改用 `Kun.EventBus.Abstractions`。
 
 ## 2026-10-10 Kun 升级到 2026.10.9（S1-KUN-009）
 
-- `KunVersion` 升到 2026.10.9，带入 Outbox 与消费可靠性（S1-KUN-002，上游 idadawn/kun#46）、审计原子性与数据约定（S1-KUN-005，idadawn/kun#45）、平台基础端口与废弃 API 标记（S1-KUN-006，idadawn/kun#47）三组修复；`Kun.Authorization` 与 `Kun.Configuration.Apollo` 首次随 Kun 发包。文档站的「Kun 框架」小节与 Kun API 参考随之切到 `v2026.10.9`，[与 Qian 的关系](../website/docs/sdk/kun/with-qian.mdx) 的修复状态表与模块表同步更新。
+- `KunVersion` 升到 2026.10.9，带入 Outbox 与消费可靠性（S1-KUN-002，上游 idadawn/kun#46）、审计原子性与数据约定（S1-KUN-005，idadawn/kun#45）、平台基础端口与废弃 API 标记（S1-KUN-006，idadawn/kun#47）三组修复；`Kun.Authorization` 与 `Kun.Configuration.Apollo` 首次随 Kun 发包。文档站的「Kun 框架」小节与 Kun API 参考随之切到 `v2026.10.9`，[与 Qian 的关系](../../../website/docs/sdk/kun/with-qian.mdx) 的修复状态表与模块表同步更新。
 - 下游要跟的行为变更已记入 S1-EVT-001（Outbox `NextAttemptAt` 迁移、非事务存储默认拒绝无锁）、S1-AZ-001（`PermissionBehavior` 逐命令注册、缺引擎即拒绝）、S1-DATA-001（snake_case / Guid v7 / `xmin` 为显式 opt-in）。
 
 ## 2026-10-09 yue 工程化基线、八项门禁与 Base UI 验证门（S1-YUE-003）

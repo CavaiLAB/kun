@@ -96,7 +96,7 @@ A local package consumer is used to verify this distribution path before release
 
 ## Canonical identity context
 
-`S2sTokenIssuer` is the single supported issuer. It always writes one closed shape, including `aud` and `roles` arrays even when empty/single-valued. The current contract fixture is copied from [`contracts/v0/s2s-claims.schema.json` at 5eaed840](https://github.com/CavaiLAB/kun/blob/5eaed84067cc28a7f950001c38f771d78c569538/contracts/v0/s2s-claims.schema.json) (the schema now lives in `_import/qian/contracts/v0/`) and tested through the real gateway HTTP boundary.
+`S2sTokenIssuer` is the single supported issuer. It always writes one closed shape, including `aud` and `roles` arrays even when empty/single-valued. The current contract fixture is copied from [`contracts/v0/s2s-claims.schema.json` at 5eaed840](https://github.com/CavaiLAB/kun/blob/5eaed84067cc28a7f950001c38f771d78c569538/contracts/v0/s2s-claims.schema.json) (the schema now lives in `contracts/v0/`) and tested through the real gateway HTTP boundary.
 
 | Field | Issuance rule |
 |---|---|

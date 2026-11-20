@@ -107,7 +107,7 @@ S1-TEN-003 增补 `TenantRoleGrant.Key` / `ITenantRoleGrant`：为当前租户�
 
 ## 数据范围契约与元数据（S1-AZ-006）
 
-DataScopeRule 在 Authz Definition 声明 resource、allData 与可选的 JSON Filter AST；规则 Schema、样例与离线用法见 [数据权限契约 v1](../../_import/qian/contracts/authz/v1/README.md)。Filter AST、矩阵和系统变量直接取 Data 的同一份源文件，不在授权库重建字段类型或变量目录，也不为 Definition 增加数据库依赖。
+DataScopeRule 在 Authz Definition 声明 resource、allData 与可选的 JSON Filter AST；规则 Schema、样例与离线用法见 [数据权限契约 v1](../../contracts/authz/v1/README.md)。Filter AST、矩阵和系统变量直接取 Data 的同一份源文件，不在授权库重建字段类型或变量目录，也不为 Definition 增加数据库依赖。
 
 GET /api/authz/meta 与 me/permissions 共用 MapKunAuthz 的认证入口；返回 dataScopeRule、filterAst、operators、systemVariables 和 merge 元数据，不返回主体角色、授权集合或实际数据。匿名拒绝，Agent/委托主体拒绝，Authz 未挂载时 404；响应 private/no-store。
 

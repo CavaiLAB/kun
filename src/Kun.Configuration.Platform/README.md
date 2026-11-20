@@ -133,13 +133,13 @@ L0–L4 降级矩阵、排查顺序与证据见 [配置运维手册](../../_impo
 {"default":false,"tenants":["00000000-0000-0000-0000-000000000001"],"percentage":10}
 ```
 
-[规则 Schema](../../_import/qian/plugins/qian.config.apollo/schemas/feature-flag.rule.schema.json) 固定三个字段：必填布尔 `default`、可选且不重复的非空规范 UUID 白名单 `tenants`（最多 256 项）、可选整数 `percentage`（0–100）。拒绝未知或重复属性、空租户、非整数百分比、超界与超过 16 KiB 的规则，最多 1024 个开关。名称为 1–100 个小写 ASCII 字符，首字符为字母，其余可为字母、数字、点、下划线或连字符。名称区分大小写，不能借 IConfiguration 的不区分大小写行为建立别名。
+[规则 Schema](../../plugins/qian.config.apollo/schemas/feature-flag.rule.schema.json) 固定三个字段：必填布尔 `default`、可选且不重复的非空规范 UUID 白名单 `tenants`（最多 256 项）、可选整数 `percentage`（0–100）。拒绝未知或重复属性、空租户、非整数百分比、超界与超过 16 KiB 的规则，最多 1024 个开关。名称为 1–100 个小写 ASCII 字符，首字符为字母，其余可为字母、数字、点、下划线或连字符。名称区分大小写，不能借 IConfiguration 的不区分大小写行为建立别名。
 
 求值顺序为白名单命中 true → 百分比命中 true → default；没有该名称返回 false。稳定桶协议为 `SHA-256(UTF8(name + "\n" + tenantId.ToString("D")))` 前 8 字节的大端无符号整数模 10000，桶小于 `percentage × 100` 即命中。同一个规则名与租户跨进程相同；百分比增加时原来命中的集合保留。它与进程随机化的 GetHashCode 无关。
 
 首次规则无效时拒绝取得服务；热更新先建立完整候选快照，任何规则无效即保留整份旧快照。标准源触发已有 `qian.config.reload.failed` 指标与 `config/reload-failed` 事件，日志不含值；Apollo 候选在进入缓存之前被拒绝，并复用发布拒绝审计。卸载只释放本实例监听器，已取得的灰度端口失效，宿主配置根仍由宿主拥有。
 
-可选的 [`qian.config.flags`](../../_import/qian/plugins/qian.config.flags/README.md) 独立负责草稿写入。S1-DEC-031 选择只保存草稿、Portal 人工发布：固定 Portal OpenAPI `PUT` 编辑，禁止重定向，不调用 release；编辑 Token 只授予目标 namespace 的 ModifyNamespace，独立操作员持有 ReleaseNamespace。每次请求经 Config 的秘密解析器取得平台 `secretRef://platform/apollo/flags/...`，不缓存 Token、不把它放入工具输入。Apollo 响应正文不进入错误或日志。
+可选的 [`qian.config.flags`](../../plugins/qian.config.flags/README.md) 独立负责草稿写入。S1-DEC-031 选择只保存草稿、Portal 人工发布：固定 Portal OpenAPI `PUT` 编辑，禁止重定向，不调用 release；编辑 Token 只授予目标 namespace 的 ModifyNamespace，独立操作员持有 ReleaseNamespace。每次请求经 Config 的秘密解析器取得平台 `secretRef://platform/apollo/flags/...`，不缓存 Token、不把它放入工具输入。Apollo 响应正文不进入错误或日志。
 
 可信宿主通过 `AddKunFeatureFlagManagement` 登记 `bindingId → ApolloFlagManagementBinding`，包含 Portal 根地址、AppId、UAT/PRO、Cluster、Portal 已存在操作员、Token 引用及 NativeData 平台回执绑定名；组件 JSON 只写 `{"bindingId":"primary"}`。该入口在本组件挂载时才登记实际 `FeatureFlagDrafts` 与执行绑定，不是绕过组件模型的任意配置写接口。默认 profile 不安装它。需要 HTTP 的宿主显式调用 `MapKunFeatureFlags`，通过 `POST /api/config/flags` 调用同一执行端口；入口固定要求 Bearer scheme，不接受 Cookie 认证，响应 `private, no-store`。
 

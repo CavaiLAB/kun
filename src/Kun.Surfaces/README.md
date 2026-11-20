@@ -4,7 +4,7 @@
 
 ## 装配位置
 
-本文件夹包含解析器、校验器、工具描述 JCS 哈希和运行时适配器；Schema 唯一源在 [schemas/v2](../../_import/qian/schemas/v2/README.md)。所有 profile 都可使用，不依赖 Registry、Lifecycle 或数据库。它承担声明式目录的 Provider，运行时拥有 Skills、Agents、Commands、Hooks、McpServers、Tools 服务键。
+本文件夹包含解析器、校验器、工具描述 JCS 哈希和运行时适配器；Schema 唯一源在 [schemas/v2](../../schemas/v2/README.md)。所有 profile 都可使用，不依赖 Registry、Lifecycle 或数据库。它承担声明式目录的 Provider，运行时拥有 Skills、Agents、Commands、Hooks、McpServers、Tools 服务键。
 
 `qian add` 的完整安装编排属于 CLI 任务，本包供它、profile 装载器、CI 和市场准入复用；无代码组件不需要加载程序集或实例化业务插件即可解析。
 
@@ -48,7 +48,7 @@ if (result.IsValid)
 
 ### 检查顺序与行号约定
 
-两端的解析器（.NET 的 `SurfaceReader`：YamlDotNet 18.1.0 与 `Utf8JsonReader`；CLI 的 `parseSurface`：`yaml` 2.9.1 与 `jsonc-parser` 3.3.1）对同一内容给出同一条诊断，有效性、指针（文件根）、行号与文案都相同，由[表面 TCK](../../_import/qian/tck/surfaces/README.md) 的 `syntax-vectors.json` 逐条核对（S1-RT-025）。行号从 1 起按换行符计，开头的 BOM 不占位置，CRLF 视同 LF；Markdown front matter 的行号从文件第 1 行（开头的 `---`）算起。
+两端的解析器（.NET 的 `SurfaceReader`：YamlDotNet 18.1.0 与 `Utf8JsonReader`；CLI 的 `parseSurface`：`yaml` 2.9.1 与 `jsonc-parser` 3.3.1）对同一内容给出同一条诊断，有效性、指针（文件根）、行号与文案都相同，由[表面 TCK](../../tck/surfaces/README.md) 的 `syntax-vectors.json` 逐条核对（S1-RT-025）。行号从 1 起按换行符计，开头的 BOM 不占位置，CRLF 视同 LF；Markdown front matter 的行号从文件第 1 行（开头的 `---`）算起。
 
 YAML（含 front matter）报最先遇到的一处：
 
@@ -98,7 +98,7 @@ JSON 的语法错误（含根值之后多余的内容）、第 65 层容器与�
 
 ## 验证
 
-[共同 fixture](../../_import/qian/tck/surfaces/README.md) 覆盖所有支持表面、225 个组件场景（194 个反例）、无 src 组件、自定义指针、两侧精确诊断对比、74 条解析诊断向量与 16 条 YAML 取值向量，以及独立 JCS 浮点／Unicode 向量。其中 68 个场景验证文件编码与配置 Schema 读取边界。.NET 还验证租户 A/B 隔离与卸载撤销。
+[共同 fixture](../../tck/surfaces/README.md) 覆盖所有支持表面、225 个组件场景（194 个反例）、无 src 组件、自定义指针、两侧精确诊断对比、74 条解析诊断向量与 16 条 YAML 取值向量，以及独立 JCS 浮点／Unicode 向量。其中 68 个场景验证文件编码与配置 Schema 读取边界。.NET 还验证租户 A/B 隔离与卸载撤销。
 
 ## 已知限制与延期项
 
@@ -107,7 +107,7 @@ JSON 的语法错误（含根值之后多余的内容）、第 65 层容器与�
 
 ## 市场文档
 
-`ISurfaceValidator.ValidateMarketplace(file, content)` 与 TS `validateMarketplace` 共用 marketplace/v2，检查字段、安装名唯一性、分类、路径、公钥与远程 URL 约束，并输出同样的文件指针和行号。失败不返回含敏感输入的市场对象。它是静态文档校验，不读取网络或信任根；来源取得、验签、digest 及每个实际组件的 ValidateComponent 由 [CLI 市场链路](../../_import/qian/packages/qian-cli/README.md) 继续完成。跨语言向量在 tck/marketplaces。
+`ISurfaceValidator.ValidateMarketplace(file, content)` 与 TS `validateMarketplace` 共用 marketplace/v2，检查字段、安装名唯一性、分类、路径、公钥与远程 URL 约束，并输出同样的文件指针和行号。失败不返回含敏感输入的市场对象。它是静态文档校验，不读取网络或信任根；来源取得、验签、digest 及每个实际组件的 ValidateComponent 由 [CLI 市场链路](../../packages/qian-cli/README.md) 继续完成。跨语言向量在 tck/marketplaces。
 
 能力目录可经 Definition 的 IToolContractHasher 端口使用 ToolContractHasher，复用同一 ToolContractHash/JCS 实现；不复制规范化算法，也不在组件库中反向引用本 Provider。
 
@@ -117,9 +117,9 @@ JSON 的语法错误（含根值之后多余的内容）、第 65 层容器与�
 
 `HotReloadSurfacePlugin` 可包装一个真实代码插件，也可作为无代码组件。它使用文件监视与定期核对，稳定读取并校验后调用上述刷新端口。非法新内容保留上一份有效注册；源码、清单身份或代码派生工具变化只标记 `RestartRequired`。状态不包含文件内容、配置或凭据。卸载先停止并等待监视工作，再撤销表面与代码效果，不在 effect 内递归等待装载器生命周期。
 
-.NET 与 TypeScript 使用同一份 [T19 场景](../../_import/qian/tck/runtime/hotreload.json)，实际修改文件，验证五秒内更新、租户隔离、代码对象引用及效果保持、非法内容保留、源码重启提示和卸载清理。CI 对照两侧实际测试产生的结果；不靠调用手工刷新方法代替文件监视。轮询期间 Tools 必须恰好一项，过渡期缺失即失败。两侧会话单测另覆盖并发读取方在反复替换期间从不缺失、每次登记/替换/撤销之后新旧都有的文档仍可解析、新增冲突与替换中途失败的回滚。
+.NET 与 TypeScript 使用同一份 [T19 场景](../../tck/runtime/hotreload.json)，实际修改文件，验证五秒内更新、租户隔离、代码对象引用及效果保持、非法内容保留、源码重启提示和卸载清理。CI 对照两侧实际测试产生的结果；不靠调用手工刷新方法代替文件监视。轮询期间 Tools 必须恰好一项，过渡期缺失即失败。两侧会话单测另覆盖并发读取方在反复替换期间从不缺失、每次登记/替换/撤销之后新旧都有的文档仍可解析、新增冲突与替换中途失败的回滚。
 
-[无代码技能场景](../../_import/qian/tck/runtime/skill-only.json) 另覆盖真实交付的 minimal profile 装配：组件只有清单与 SKILL.md，没有 runtime 声明或 src，两端均能装入租户 A、进入配置输出与 Skills/Tools，租户 B 不可见，卸载无残留。共享反例还验证任意 shell hook、服务端内联 shell 和未授权内联 shell 在创建运行时表面插件时即被拒绝；明确允许的人类 CLI 声明可以通过加载准入。这不代表本包实现了人类 CLI 的 shell 执行器。
+[无代码技能场景](../../tck/runtime/skill-only.json) 另覆盖真实交付的 minimal profile 装配：组件只有清单与 SKILL.md，没有 runtime 声明或 src，两端均能装入租户 A、进入配置输出与 Skills/Tools，租户 B 不可见，卸载无残留。共享反例还验证任意 shell hook、服务端内联 shell 和未授权内联 shell 在创建运行时表面插件时即被拒绝；明确允许的人类 CLI 声明可以通过加载准入。这不代表本包实现了人类 CLI 的 shell 执行器。
 
 当前已接入下节的 hook 执行增量与运行态诊断。按 R83，RT-009 的 hooks 桥接验收以测试宿主经真实 qian.tenancy 生产方上下文发布的租户事件为准，四项验收均有证据（见下节末段）；完整事件矩阵、真实开户事件生产方（S1-TEN-003）与 registry/entry-mounted 等生产方接线仍未完成。本次还修正运行时手动撤销注册后的效果栈清理；TypeScript 运行时需要在后续发布流程发布新的兼容补丁版本，不能覆盖已发布的 0.1.0。
 

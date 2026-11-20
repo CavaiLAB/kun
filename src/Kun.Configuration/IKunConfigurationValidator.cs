@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace Kun.Configuration.Abstractions;
+namespace Kun.Configuration;
 
 /// <summary>
 /// Reflection-free options validator — the AOT-safe alternative to

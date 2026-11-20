@@ -51,6 +51,8 @@ ConfigurationPlugin 对应 qian.config，借用宿主标准配置根。ApolloCon
 ## 强类型配置：先校验、失败保留旧值
 
 ```csharp
+using Kun.Configuration.Extensions;
+
 services.AddKunOptions<SampleOptions>("Sample", (section, options) =>
 {
     if (section["PageSize"] is { } value) options.PageSize = int.Parse(value, CultureInfo.InvariantCulture);
@@ -58,9 +60,11 @@ services.AddKunOptions<SampleOptions>("Sample", (section, options) =>
 services.AddSingleton<IValidateOptions<SampleOptions>, SampleOptionsValidator>(); // [OptionsValidator] 源生成的 DataAnnotations 校验器
 ```
 
-`AddKunOptions<T>` 把 `ValidatedOptionsMonitor<T>` 登记为 `IOptionsMonitor<T>`：配置根变更后先构造并校验候选值（`IValidateOptions<T>`，以及绑定委托抛出的格式、溢出与操作异常），通过才替换并通知监听者。失败时保留上一份有效值、不通知监听者，计数 `qian.config.reload.failed`（Meter `Kun.Configuration`，Prometheus 导出名 `qian_config_reload_failed_total`，标签 `options.type`、`options.name`、`plugin`），记 Warning 日志（EventId 2101，不含值），并在配置组件挂载期间发进程内事件 `config/reload-failed`；修正后的下一次变更照常生效。`critical` 默认 true，经 `ValidateOnStart` 在启动时校验；设为 false 时首次读取才校验，首次读取失败直接抛出。同一类型只能登记一次。绑定由调用方委托完成，不走反射绑定，配合源生成校验器接受 AOT 分析；本包打开 `IsAotCompatible` 启用兼容性分析；`qian.config.apollo` 的实际兼容声明以 GW-001 的完整生产宿主严格 Linux NativeAOT 发布与真实 Apollo 运行证据为依据，默认 gateway 已恢复 AOT。业务镜像交付仍由 DEP-008 验收。传入 `schema`（`JsonTypeInfo<T>`）时同时登记 `KunOptionsSchema`，`Export()` 输出不含配置值的 JSON Schema 2020-12。
+来自 `Kun.Configuration` 的四个 `AddKunOptions<T>` 重载共享最后有效值监视器。AOT 宿主传入绑定委托，并通过 `IValidateOptions<T>` 校验。三个反射重载支持节名、节名与启动校验开关，以及节名与源生成 Schema 元数据。
 
-Kun 的 `AddKunOptions` 三个重载都要求动态代码，`LastGoodOptionsMonitor` 是 internal 且没有失败钩子，所以本包自带等价监视器（S1-CFG-003 路线 b）；Kun 补上 AOT 入口与失败钩子后可以改回复用。
+`critical` 默认为 true，宿主启动时校验。关闭时首次读取才校验。重载被拒绝后保留上一份有效值，监听者在下一次有效配置到达时收到通知。内核计量器 `Kun.Configuration` 记录 `kun.configuration.reload.rejected`，日志类别 `Kun.Configuration.Options` 使用 EventId 2101，只包含类型、名称、节和失败条数。`AddKunConfiguration` 注册的平台观察者在 `Kun.Configuration.Platform` 上记录 `qian.config.reload.failed`，使用 `options.type`、`options.name` 及可选的 `plugin` 标签。配置组件挂载期间还会发出 `config/reload-failed`。
+
+传入源生成的 `JsonTypeInfo<T>` 可同时注册 `Kun.Configuration.OptionsSchema`。从 DI 读取 `IEnumerable<OptionsSchema>` 可获取各节的类型与组件标识，`Export()` 可生成 JSON Schema 2020-12。
 
 告警事件 `ConfigRuntimeEvents.ReloadFailed`（Emit）的载荷是 `ConfigReloadFailed`：options 类型与名称、配置节、失败条数、错误码 `CONFIG_RELOAD_REJECTED` 与可选组件 ID，不含配置值，监听者用 `ctx.On(ConfigRuntimeEvents.ReloadFailed, ...)`。两个 Provider 都会转发，所以 standalone 同样可用；事件 Definition 由 qian.config 唯一拥有，qian.config.apollo 以 SharedEvents 显式引用，两个 metadata/events.json 的 name、mode、payload、source 与 definitionComponent 同源。此共享只覆盖事件契约，不共享权限声明；配置组件未挂载时只有指标与日志。跨进程集成事件名 `config.reload.failed.v1`（`ConfigEvents.ReloadFailedType`）先保留：Kun 的集成事件总线只能在 DbContext 工作单元里暂存，配置重载不在业务事务中，跨进程投递等 S1-EVT-003 发布 Outbox 写入契约后接上。
 

@@ -7,6 +7,7 @@
     <KunRole>provider</KunRole>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Kun.Configuration/Kun.Configuration.csproj" />
     <ProjectReference Include="../Kun.Configuration.Abstractions/Kun.Configuration.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Audit.Abstractions/Kun.Audit.Abstractions.csproj" />

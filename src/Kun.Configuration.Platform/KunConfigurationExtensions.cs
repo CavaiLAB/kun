@@ -2,7 +2,6 @@ using Kun.Configuration.Apollo;
 using Kun.Errors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -47,7 +46,11 @@ public static class KunConfigurationExtensions
         if (catalog is null) { catalog = ErrorCatalog.CreateDefault(); services.AddSingleton(catalog); }
         ConfigErrors.Register(catalog);
         services.AddSingleton(configuration);
-        services.TryAddSingleton<ConfigReloadNotifier>();
+        if (!services.Any(service => service.ServiceType == typeof(ConfigReloadNotifier)))
+        {
+            services.AddSingleton<ConfigReloadNotifier>();
+            services.AddSingleton<IObserver<OptionsReloadFailure>>(sp => sp.GetRequiredService<ConfigReloadNotifier>());
+        }
         services.AddSingleton<IFeatureFlags>(sp => new FeatureFlagsService(configuration, sp.GetRequiredService<ConfigReloadNotifier>(),
             sp.GetService<ILoggerFactory>()?.CreateLogger("Kun.Configuration.Platform.Flags") ?? NullLogger.Instance));
         services.AddSingleton<IConfigService>(sp => new ConfigurationService(configuration, sp.GetRequiredService<IFeatureFlags>(), sp.GetService<ISecretResolverFactory>()));

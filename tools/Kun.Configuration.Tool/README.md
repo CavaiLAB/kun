@@ -11,16 +11,17 @@
 
 ## 用法
 
-构建 `Qian.slnf` 后：
+在仓库根目录运行以下命令。工具从 `_import/qian` 读取组件与 profile。
 
 ```bash
-dotnet tools/Qian.Config.Tool/bin/Release/net10.0/Qian.Config.Tool.dll . --out <目录>
+dotnet build tools/Kun.Configuration.Tool/Kun.Configuration.Tool.csproj -c Release
+dotnet tools/Kun.Configuration.Tool/bin/Release/net10.0/Kun.Configuration.Tool.dll _import/qian --out <目录>
 ```
 
-为每个 profile 写出 `<目录>/<profile>/<namespace>.properties`，按 Apollo Portal 文本模式书写（每行「键 = 值」，以第一个 = 分隔，不转义）：只写 Schema 的 `default`（或 `const`），没有默认值的键与敏感键写成注释，敏感键只能填 `secretRef://…`，必填键在文件头列出。仓库 CI 的 `dotnet` 工作流对全部 profile 执行这一步，骨架随测试结果上传。
+为每个 profile 写出 `<目录>/<profile>/<namespace>.properties`，按 Apollo Portal 文本模式书写（每行「键 = 值」，以第一个 = 分隔，不转义）：只写 Schema 的 `default`（或 `const`），没有默认值的键与敏感键写成注释，敏感键只能填 `secretRef://…`，必填键在文件头列出。仓库 .NET CI 的构建与门禁作业对全部 profile 执行这一步，骨架随测试结果上传。
 
 ```bash
-dotnet tools/Qian.Config.Tool/bin/Release/net10.0/Qian.Config.Tool.dll . --profile platform \
+dotnet tools/Kun.Configuration.Tool/bin/Release/net10.0/Kun.Configuration.Tool.dll _import/qian --profile platform \
   --compare http://apollo-config.apollo:8080 [--app-id qian-platform] [--cluster default] [--access-key-env QIAN_APOLLO_ACCESS_KEY]
 ```
 

@@ -7,9 +7,9 @@
     <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <ProjectReference Include="../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" />
     <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities.AspNetCore/Kun.Capabilities.AspNetCore.csproj" />
     <ProjectReference Include="../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" IncludeAssets="all" />
     <PackageReference Include="xunit.v3" />

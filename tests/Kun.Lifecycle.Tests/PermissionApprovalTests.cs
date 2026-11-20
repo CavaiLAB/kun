@@ -14,7 +14,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Testing.Containers;
 
-namespace Qian.Lifecycle.Tests;
+namespace Kun.Lifecycle.Tests;
 
 // S1-AGT-002 验收 3（UT）：清单 policy.permissions 与 policy.egress 五类随制品快照落库，经注册表端口按摘要读出；租户管理员批准 API（S1 只有 API），
 // 以及开通、升级在权益之后的第二道门。真实 PostgreSQL、Registry、Audit 与 Lifecycle；宿主的权限判定端口与 Authz 超管旁路是替身，

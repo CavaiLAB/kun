@@ -5,12 +5,12 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Profiles.Abstractions;
+using Kun.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 // 仅供注册表服务使用的持久化原语；不公开绕过权限、权益或组件配置校验的写入端口。
 internal sealed partial class PostgresPatchRepository(IDataService data, ITenantContext tenant, ISurfaceReader reader)
@@ -149,7 +149,7 @@ internal sealed partial class PostgresPatchRepository(IDataService data, ITenant
         {
             await session.SaveChangesAsync(ct).ConfigureAwait(false);
             // 保存前领域事件已分发；处理器没有执行说明宿主漏装了事件接线，宁可不提交也不丢事件。
-            if (change is { Published: false }) throw new InvalidOperationException("注册表变更事件未进入 Outbox：平台宿主须以 AddQianRegistryEvents 登记处理器。");
+            if (change is { Published: false }) throw new InvalidOperationException("注册表变更事件未进入 Outbox：平台宿主须以 AddKunRegistryEvents 登记处理器。");
             // PostgreSQL 仅在事务提交后投递通知；载荷不包含 config、note 或凭据。
             var payload = JsonSerializer.Serialize(new { tenantId = owner, scope = row.Scope, entryId = row.EntryId, revision = row.Revision, removed = row.IsDeleted });
             await session.Context.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_notify({ChangeChannel}, {payload})", ct).ConfigureAwait(false);

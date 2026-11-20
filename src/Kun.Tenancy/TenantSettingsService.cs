@@ -11,8 +11,8 @@ using Kun.Errors;
 using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Registry;
-using Qian.Surfaces.Abstractions;
+using Kun.Registry;
+using Kun.Surfaces.Abstractions;
 
 namespace Kun.Tenancy;
 

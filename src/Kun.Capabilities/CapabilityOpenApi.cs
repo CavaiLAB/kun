@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 using Microsoft.OpenApi;
 using Kun.Plugin.Sdk;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 // 来自可执行绑定的实际 HTTP 入口，不从预装清单推测可用路径。
 internal static class CapabilityOpenApi

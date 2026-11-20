@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 // S1-AGT-004：能力输入契约与表面校验器同一规则（packages/Common/TenantFieldRule.cs），properties 之外点名租户字段的写法同样返回位置段。
 public sealed class TenantInputContractTests

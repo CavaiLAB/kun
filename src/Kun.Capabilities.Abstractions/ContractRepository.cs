@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>版本化制品中的不可变契约；读取内容返回副本，不携带发布或授权结论。</summary>
 public sealed class ContractDocument

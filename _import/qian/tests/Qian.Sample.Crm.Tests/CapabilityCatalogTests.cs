@@ -16,16 +16,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
-using Qian.Capabilities;
-using Qian.Capabilities.AspNetCore;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
 using Kun.Data;
 using Kun.Plugin.Sdk;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 using Kun.Testing.Containers;
 
@@ -342,17 +342,17 @@ public abstract partial class CustomerCommandTests
     }
     private protected static void ConfigureCapabilities(WebApplicationBuilder builder, string connection, string navigationConnection, string migrations)
     {
-        builder.Services.AddQianHttpContracts();
+        builder.Services.AddKunHttpContracts();
         builder.Configuration["Qian:Profile"] = "platform"; // 业务端点的可见性门由参考宿主自身装配。
         builder.Services.AddKunData<CapabilitiesDbContext>((_, options) => options.UseNpgsql(navigationConnection).UseKunSchema(CapabilitiesDbContext.Schema));
         // 只有能力上下文随包带迁移；迁移连接用属主角色，在线连接仍是受限业务角色。
         builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, type) =>
-            type == typeof(CapabilitiesDbContext) || type == typeof(Qian.Lifecycle.LifecycleDbContext) ? migrations : null);
+            type == typeof(CapabilitiesDbContext) || type == typeof(Kun.Lifecycle.LifecycleDbContext) ? migrations : null);
         builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(RegistryDbContext.Schema));
         builder.Services.AddSingleton<ISurfaceReader, SurfaceValidator>();
         builder.Services.AddSingleton<IToolContractHasher, ToolContractHasher>();
         // 登记期契约检查：组件 ProvideCapability 时生成目录条目并预编译输入校验器，不合格的契约在登记阶段拒绝。
-        builder.Services.AddQianCapabilities();
+        builder.Services.AddKunCapabilities();
         builder.Services.AddSingleton<IOpenApiCompatibilityProbe>(_ => new OasDiffOpenApiProbe(Environment.GetEnvironmentVariable("QIAN_OASDIFF_PATH")
             ?? throw new InvalidOperationException("契约检查器必须预装。")));
     }
@@ -373,7 +373,7 @@ public abstract partial class CustomerCommandTests
                 throw;
             }
         });
-        app.MapQianCapabilities(CapabilitySource);
+        app.MapKunCapabilities(CapabilitySource);
         // 仅测试宿主的入口胶水；目录、提示与执行全部调用同一个生产 Provider。
         app.MapGet("/api/acceptance/prompt", async (HttpContext http) =>
         {

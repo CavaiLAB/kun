@@ -2,10 +2,10 @@
   <PropertyGroup><IsPackable>true</IsPackable><Description>读取 profile、配置 Schema 与 C# 事件代码的静态文档生成器。</Description></PropertyGroup>
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../Qian.Docs.Abstractions/Qian.Docs.Abstractions.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" />
-    <ProjectReference Include="../Qian.Profiles.Abstractions/Qian.Profiles.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Docs.Abstractions/Kun.Docs.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
+    <ProjectReference Include="../Kun.Profiles.Abstractions/Kun.Profiles.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Surfaces.Abstractions/Kun.Surfaces.Abstractions.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 </Project>

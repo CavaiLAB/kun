@@ -2,9 +2,9 @@ using System.Text.Json;
 using Kun.MultiTenancy;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 public sealed partial class PatchPersistenceTests
 {

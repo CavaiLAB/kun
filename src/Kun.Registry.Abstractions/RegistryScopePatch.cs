@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>条件写入请求；Patch 为 patch/v2 单条目，不能携带租户字段；Revision 为当前修订，创建为 0。</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

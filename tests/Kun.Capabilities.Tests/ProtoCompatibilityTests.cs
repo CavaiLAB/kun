@@ -1,7 +1,7 @@
 using System.Text;
 using Kun.Errors;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 public sealed class ProtoCompatibilityTests
 {

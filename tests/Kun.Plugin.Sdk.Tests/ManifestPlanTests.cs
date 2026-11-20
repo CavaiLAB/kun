@@ -1,7 +1,7 @@
 using System.Text.Json.Nodes;
 using Kun.Plugin.Tool;
 using Kun.Runtime;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
 namespace Kun.Plugin.Sdk.Tests;
 
@@ -19,7 +19,7 @@ public sealed class ManifestPlanTests
         Assert.Equal("手写展示名", manifest["interface"]!["displayName"]!.GetValue<string>());
         Assert.Equal("official", manifest["policy"]!["tier"]!.GetValue<string>());
         Assert.True(manifest["x-qian-generated"]!["$generated"]!.GetValue<bool>());
-        var check = new SurfaceValidator().ValidateComponent(fixture.Path, new Qian.Surfaces.Abstractions.SurfaceValidationOptions { Capabilities = code.Capabilities.Select(c => c.Id).ToArray() });
+        var check = new SurfaceValidator().ValidateComponent(fixture.Path, new Kun.Surfaces.Abstractions.SurfaceValidationOptions { Capabilities = code.Capabilities.Select(c => c.Id).ToArray() });
         Assert.True(check.IsValid, string.Join('\n', check.Diagnostics.Select(d => Kun.Errors.ErrorDetailJson.Serialize(d.Error))));
         Assert.Equal(3, Directory.GetFiles(fixture.Path, "*.json", SearchOption.AllDirectories).Count(path => System.IO.Path.GetDirectoryName(path)!.EndsWith("tools", StringComparison.Ordinal)));
         Assert.Single(Directory.GetFiles(fixture.Path, "plugin.json", SearchOption.AllDirectories));

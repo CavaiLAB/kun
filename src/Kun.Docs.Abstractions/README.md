@@ -1,6 +1,6 @@
-# Qian.Docs.Abstractions
+# Kun.Docs.Abstractions
 
-构建期文档 Definition，包含 `IDocumentGenerator`、输入、事件映射和结构化诊断定义。适用于全部 profile，不依赖具体 Provider。实现、表面及安装边界统一见 [Qian.Docs](../Qian.Docs/README.md)。
+构建期文档 Definition，包含 `IDocumentGenerator`、输入、事件映射和结构化诊断定义。适用于全部 profile，不依赖具体 Provider。实现、表面及安装边界统一见 [Kun.Docs](../Kun.Docs/README.md)。
 
 ## 模型体验
 

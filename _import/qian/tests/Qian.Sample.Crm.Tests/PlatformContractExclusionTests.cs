@@ -4,7 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;
 

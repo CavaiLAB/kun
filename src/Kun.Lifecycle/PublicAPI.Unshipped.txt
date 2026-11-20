@@ -1,20 +1,20 @@
 #nullable enable
-Qian.Lifecycle.LifecycleDbContext
-Qian.Lifecycle.LifecycleDbContext.LifecycleDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Qian.Lifecycle.LifecycleDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
-Qian.Lifecycle.LifecycleEventHandlers
-Qian.Lifecycle.LifecyclePlugin
-Qian.Lifecycle.LifecyclePlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Qian.Lifecycle.LifecyclePlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
-static Qian.Lifecycle.LifecyclePlugin.OptionalInject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
-Qian.Lifecycle.LifecyclePlugin.LifecyclePlugin(Qian.Lifecycle.LifecycleRuntimeOptions! options) -> void
-Qian.Lifecycle.LifecycleRuntimeOptions
-Qian.Lifecycle.LifecycleRuntimeOptions.Hooks.get -> System.Func<string!, string!, Qian.Lifecycle.IPluginLifecycleHooks?>!
-Qian.Lifecycle.LifecycleRuntimeOptions.Hooks.init -> void
-Qian.Lifecycle.LifecycleRuntimeOptions.LifecycleRuntimeOptions() -> void
-const Qian.Lifecycle.LifecycleDbContext.Schema = "plugin_qian_lifecycle" -> string!
-static Qian.Lifecycle.LifecycleEventHandlers.AddQianLifecycleEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
-Qian.Lifecycle.LifecycleComponent
-Qian.Lifecycle.LifecycleComponent.LifecycleComponent() -> void
-Qian.Lifecycle.LifecycleComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
-static Qian.Lifecycle.LifecycleComponent.OptionalInject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
-Qian.Lifecycle.LifecycleComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Lifecycle.LifecycleDbContext
+Kun.Lifecycle.LifecycleDbContext.LifecycleDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Lifecycle.LifecycleDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Lifecycle.LifecycleEventHandlers
+Kun.Lifecycle.LifecyclePlugin
+Kun.Lifecycle.LifecyclePlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Lifecycle.LifecyclePlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+static Kun.Lifecycle.LifecyclePlugin.OptionalInject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Lifecycle.LifecyclePlugin.LifecyclePlugin(Kun.Lifecycle.LifecycleRuntimeOptions! options) -> void
+Kun.Lifecycle.LifecycleRuntimeOptions
+Kun.Lifecycle.LifecycleRuntimeOptions.Hooks.get -> System.Func<string!, string!, Kun.Lifecycle.IPluginLifecycleHooks?>!
+Kun.Lifecycle.LifecycleRuntimeOptions.Hooks.init -> void
+Kun.Lifecycle.LifecycleRuntimeOptions.LifecycleRuntimeOptions() -> void
+const Kun.Lifecycle.LifecycleDbContext.Schema = "plugin_qian_lifecycle" -> string!
+static Kun.Lifecycle.LifecycleEventHandlers.AddKunLifecycleEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
+Kun.Lifecycle.LifecycleComponent
+Kun.Lifecycle.LifecycleComponent.LifecycleComponent() -> void
+Kun.Lifecycle.LifecycleComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+static Kun.Lifecycle.LifecycleComponent.OptionalInject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Lifecycle.LifecycleComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask

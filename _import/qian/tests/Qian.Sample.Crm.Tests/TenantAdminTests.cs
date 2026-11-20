@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

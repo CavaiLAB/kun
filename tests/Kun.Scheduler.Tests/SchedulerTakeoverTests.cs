@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Kun.Runtime;
-using Qian.Scheduler.TestHost;
-using static Qian.Scheduler.Tests.SchedulerScenario;
+using Kun.Scheduler.TestHost;
+using static Kun.Scheduler.Tests.SchedulerScenario;
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 // 租约交接：真杀执行副本后到期接管、正常 Stop 后另一真实 worker 接管同一 run。
 public sealed class SchedulerTakeoverTests(SchedulerFixture fixture) : IClassFixture<SchedulerFixture>

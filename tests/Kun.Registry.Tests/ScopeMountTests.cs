@@ -11,7 +11,7 @@ using Npgsql;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 // S1-RT-005 验收 4：公开挂载 / 卸载写 scope_patches，并在同一事务把 registry.scope.*.v1 信封放进 Outbox；卸载不改任何开关字段，
 // 业务表面经真实 SDK 中间件在 5 秒内恢复拦截。网关与外壳两处拦截的接线归 S1-ENT-002。
@@ -135,7 +135,7 @@ public sealed partial class PatchPersistenceTests
     public async Task 宿主漏装注册表事件处理器时公开写入在提交前失败_不留patch也不留Outbox()
     {
         var tenant = new AsyncLocalTenantContext();
-        // 装了 Mediator 与信封写入端，却没有登记 AddQianRegistryEvents。
+        // 装了 Mediator 与信封写入端，却没有登记 AddKunRegistryEvents。
         await using var running = await CreateRunningRegistry(tenant, services: services =>
         {
             services.AddKunMediator(_ => { }); services.AddKunEvents();
@@ -146,7 +146,7 @@ public sealed partial class PatchPersistenceTests
         {
             var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 running.Registry.MountAsync(scopeA, Patch("""{"id":"private","plugin":"test.private@1.0.0","config":{}}"""), 0, "operator", Ct).AsTask());
-            Assert.Contains("AddQianRegistryEvents", error.Message, StringComparison.Ordinal);
+            Assert.Contains("AddKunRegistryEvents", error.Message, StringComparison.Ordinal);
             Assert.Null(await running.Registry.GetScopePatchAsync(scopeA, "private", Ct));
         }
         await using var admin = new NpgsqlConnection(postgres.ConnectionString); await admin.OpenAsync(Ct);

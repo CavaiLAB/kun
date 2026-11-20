@@ -6,7 +6,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 public sealed partial class PatchPersistenceTests
 {

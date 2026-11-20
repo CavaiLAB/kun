@@ -10,7 +10,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Plugin.Sdk.AspNetCore;
 
-namespace Qian.Capabilities.AspNetCore;
+namespace Kun.Capabilities.AspNetCore;
 
 /// <summary>宿主提供已验证租户的 Runtime 视图；HTTP 输入不能指定主体或租户。</summary>
 public static class CapabilityEndpoints
@@ -21,11 +21,11 @@ public static class CapabilityEndpoints
     private static readonly PermissionEnforcedInHandlerAttribute ConsoleInHandler = new("平台控制台目录只给人类平台用户（无租户、无委托）列出全局 scope 实际挂载的平台组件远程、菜单与可用权限码，按 Authz 的平台超管只读判定过滤（不写审计、不放行任何操作），页面里的每次操作仍逐次经超管旁路判定并审计；其它主体按不存在拒绝。");
 
     /// <summary>登记认证目录、菜单、偏好、旧别名和实际调用。宿主须先配置身份、租户和 ErrorDetail 中间件。</summary>
-    public static IEndpointRouteBuilder MapQianCapabilities(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
-        => MapQianCapabilities(endpoints, source, new PluginEndpointBinding("capabilities", "qian.capabilities", CapabilitiesDefinition.Key));
+    public static IEndpointRouteBuilder MapKunCapabilities(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+        => MapKunCapabilities(endpoints, source, new PluginEndpointBinding("capabilities", "qian.capabilities", CapabilitiesDefinition.Key));
 
     /// <summary>显式指定实际组件条目的端点绑定，需安装 SDK 的插件端点中间件。</summary>
-    public static IEndpointRouteBuilder MapQianCapabilities(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source, PluginEndpointBinding binding)
+    public static IEndpointRouteBuilder MapKunCapabilities(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source, PluginEndpointBinding binding)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source); ArgumentNullException.ThrowIfNull(binding);
         endpoints.MapGet("/api/capabilities", (HttpContext http, string? kind, string? q) => Catalog(http, kind, q, null)).RequireAuthorization().RequireKunPlugin(binding).WithMetadata(InHandler).Produces<CapabilityCatalog>();
@@ -97,7 +97,7 @@ public static class CapabilityEndpoints
     /// 登记平台控制台目录 <c>GET /api/capabilities/console</c>（S1-YUE-018）。<paramref name="source"/> 返回 Capabilities 组件的全局上下文：请求不带租户、不经插件端点绑定，
     /// 端点归属平台契约（<see cref="PlatformHttpContract"/>），不进租户可见的组件 HTTP 聚合。宿主须先配置身份与 ErrorDetail 中间件。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianPlatformConsole(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunPlatformConsole(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         endpoints.MapGet("/api/capabilities/console", (Func<HttpContext, Task<IResult>>)(async http =>

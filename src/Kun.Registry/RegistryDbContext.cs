@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>注册表上下文；由宿主通过 AddKunData 装配并迁移，运行时不自动建表。</summary>
 public sealed class RegistryDbContext(DbContextOptions<RegistryDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)

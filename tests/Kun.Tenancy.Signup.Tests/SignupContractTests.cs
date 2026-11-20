@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Capabilities;
-using Qian.Capabilities.AspNetCore;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
 
 namespace Kun.Tenancy.Signup.Tests;
 
@@ -20,7 +20,7 @@ public sealed class SignupContractTests
     internal static async Task<JsonElement> CompileAsync()
     {
         var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
-        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddKunHttpContracts();
         // 与参考运营宿主相同的 JSON 绑定口径：属性名区分大小写、构造参数必填、可空注解生效。
         builder.Services.ConfigureHttpJsonOptions(options =>
         {

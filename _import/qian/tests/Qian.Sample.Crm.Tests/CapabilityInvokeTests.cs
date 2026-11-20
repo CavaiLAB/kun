@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
@@ -73,8 +73,8 @@ public sealed partial class CapabilityTests(PostgresFixture postgres) : Customer
         Assert.Equal(1000, catalog.GetProperty("ttlMs").GetInt32());
         var items = catalog.GetProperty("items").EnumerateArray().ToDictionary(item => item.GetProperty("id").GetString()!, StringComparer.Ordinal);
         Assert.Equal([CreateId, GetId, ListId], items.Keys.Order(StringComparer.Ordinal));
-        // schemaSha256 与生产实现 ToolContractHash 一致；该实现按 RFC 8785 的示例与附录 B 样本验证（Qian.Surfaces.Tests/ToolContractHashTests）。
-        foreach (var item in items.Values) Assert.Equal(Qian.Surfaces.ToolContractHash.Compute(item), item.GetProperty("schemaSha256").GetString());
+        // schemaSha256 与生产实现 ToolContractHash 一致；该实现按 RFC 8785 的示例与附录 B 样本验证（Kun.Surfaces.Tests/ToolContractHashTests）。
+        foreach (var item in items.Values) Assert.Equal(Kun.Surfaces.ToolContractHash.Compute(item), item.GetProperty("schemaSha256").GetString());
         AssertEntry(items[CreateId], "command", "write", true, "crm.write");
         AssertEntry(items[ListId], "query", "read", false, "crm.read");
         AssertEntry(items[GetId], "query", "read", false, "crm.read");

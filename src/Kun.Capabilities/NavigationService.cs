@@ -13,12 +13,12 @@ using System.Text;
 using Kun.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Kun.Identity.Abstractions;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 internal sealed class NavigationService(IRegistryService registry, IPermissionChecker permissions, IDataService data) : INavigationService, IDisposable
 {

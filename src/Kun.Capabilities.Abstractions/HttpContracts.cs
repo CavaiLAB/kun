@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>实际 HTTP 宿主的契约来源；必须按当前身份、端点策略和真实挂载视图裁剪。</summary>
 public interface IHttpContractSource

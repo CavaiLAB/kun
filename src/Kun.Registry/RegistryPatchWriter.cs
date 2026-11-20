@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 // 此入口只完成格式/配置/依赖准入，不代替服务层的真实鉴权、权益和制品信任检查。
 // publish 为 true 的写入来自公开挂载 / 卸载，随同一事务把 registry.scope.*.v1 放进 Outbox。

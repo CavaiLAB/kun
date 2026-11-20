@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Errors;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 // 组件配置，结构与 plugins/qian.capabilities/schemas/config.schema.json 一致；宿主未经 profile 装载时同样按此校验与取默认值。
 internal sealed record CapabilitiesOptions(int CatalogTtlMs, int ReceiptMaxBytes)

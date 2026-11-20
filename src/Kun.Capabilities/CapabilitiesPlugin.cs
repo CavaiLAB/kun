@@ -4,15 +4,15 @@ using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Plugin.Sdk;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Tenancy;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>平台能力目录，消费真实 Registry 与授权端口，不把预装元数据作为执行资格。</summary>
 public sealed class CapabilitiesPlugin : IKunPlugin
@@ -32,9 +32,9 @@ public sealed class CapabilitiesPlugin : IKunPlugin
         var options = CapabilitiesOptions.Parse(config);
         ctx.Effect(CapabilitiesErrors.Register(ctx.Services.GetRequiredService<ErrorCatalog>()));
         var loggers = ctx.Services.GetService<ILoggerFactory>();
-        // 宿主经 AddQianCapabilities 登记了登记期检查时复用同一实例：组件登记时已生成的条目与预编译的校验器直接进入目录与执行入口。
+        // 宿主经 AddKunCapabilities 登记了登记期检查时复用同一实例：组件登记时已生成的条目与预编译的校验器直接进入目录与执行入口。
         var checks = ctx.Services.GetService<CapabilityContractCheck>()
-            ?? throw new InvalidOperationException("platform 宿主必须先调用 AddQianCapabilities()，不能在首次访问时补做能力契约检查。");
+            ?? throw new InvalidOperationException("platform 宿主必须先调用 AddKunCapabilities()，不能在首次访问时补做能力契约检查。");
         var service = new CapabilityService(ctx.Registry(), ctx.Services.GetRequiredService<IPermissionChecker>(), checks, ctx.Data(), options,
             ctx.Services.GetService<IHttpContractSource>(), loggers?.CreateLogger<CapabilityService>());
         ctx.Effect(service.Dispose);

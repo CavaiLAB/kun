@@ -8,7 +8,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Scheduler;
+namespace Kun.Scheduler;
 
 /// <summary>可由 qian add 安装的调度组件唯一入口。</summary>
 [KunPlugin("qian.scheduler")]

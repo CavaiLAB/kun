@@ -1,8 +1,8 @@
-using Qian.Profiles.Abstractions;
+using Kun.Profiles.Abstractions;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Docs.Abstractions;
+namespace Kun.Docs.Abstractions;
 
 /// <summary>文档生成输入；只读取 profile 与源码，不运行组件。</summary>
 public sealed class DocumentOptions

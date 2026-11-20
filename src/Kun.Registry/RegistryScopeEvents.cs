@@ -2,7 +2,7 @@ using Kun.Core.Domain;
 using Kun.EventBus;
 using Kun.Mediator;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>平台宿主接入注册表集成事件的装配入口。</summary>
 public static class RegistryEventHandlers
@@ -12,7 +12,7 @@ public static class RegistryEventHandlers
     /// 宿主还须以 <see cref="RegistryEvents.RegisterRegistryEvents"/> 登记事件类型、装配写入信封的 Outbox 端口（AddKunEvents）；
     /// 漏装处理器时公开写入在提交前失败，不会静默丢掉事件。
     /// </summary>
-    public static KunMediatorBuilder AddQianRegistryEvents(this KunMediatorBuilder builder)
+    public static KunMediatorBuilder AddKunRegistryEvents(this KunMediatorBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         return builder.AddNotificationHandler<ScopePatchChanged, ScopePatchChangedHandler>();

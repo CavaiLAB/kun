@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Kun.Runtime;
-using Qian.Scheduler.TestHost;
-using static Qian.Scheduler.Tests.SchedulerScenario;
+using Kun.Scheduler.TestHost;
+using static Kun.Scheduler.Tests.SchedulerScenario;
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 // 分钟验收：三个独立 worker 进程、两个租户、100 个真实每分钟 cron，连续两个真实分钟各恰 100 次。
 // 时长由分钟边界决定（CI 上 90–143 秒），是本程序集的长杆，所以独占一个类与一个容器，和其他主题类并行（S1-QA-022）。

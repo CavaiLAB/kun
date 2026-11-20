@@ -7,9 +7,9 @@
     <ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Audit.Abstractions/Kun.Audit.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Configuration.Abstractions/Kun.Configuration.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Lifecycle.Abstractions/Kun.Lifecycle.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Registry.Abstractions/Kun.Registry.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Surfaces.Abstractions/Kun.Surfaces.Abstractions.csproj" />
     <!-- 管理员维护（S1-TEN-010）经身份端口读写账号、成员与凭据；只依赖 Definition，不引用身份 Provider。 -->
     <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
     <ProjectReference Include="../Kun.MultiTenancy/Kun.MultiTenancy.csproj" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />

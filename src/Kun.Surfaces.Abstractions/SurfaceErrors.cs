@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Surfaces.Abstractions;
+namespace Kun.Surfaces.Abstractions;
 
 /// <summary>表面 Definition 拥有的字段错误码；由使用它的错误目录显式登记。</summary>
 public static class SurfaceErrors

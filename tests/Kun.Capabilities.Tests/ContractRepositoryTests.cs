@@ -3,13 +3,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 public sealed class ContractRepositoryTests
 {

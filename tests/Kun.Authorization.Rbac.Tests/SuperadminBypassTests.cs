@@ -27,7 +27,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
 namespace Kun.Authorization.Rbac.Tests;
 

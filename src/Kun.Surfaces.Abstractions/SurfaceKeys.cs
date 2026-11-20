@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Surfaces.Abstractions;
+namespace Kun.Surfaces.Abstractions;
 
 /// <summary>声明式表面的目录键（平台档）；条目值由表面 Definition 提供，运行时只按键登记，不执行其中的内容。</summary>
 public static class SurfaceKeys

@@ -11,22 +11,22 @@ using Kun.Security.DependencyInjection;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Authorization.AspNetCore;
-using Qian.Capabilities.AspNetCore;
+using Kun.Capabilities.AspNetCore;
 using Kun.Configuration;
 using Kun.Configuration.Secrets;
 using Kun.Data;
 using Kun.Identity.Abstractions;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
 using Kun.Errors.AspNetCore;
-using Qian.Surfaces;
+using Kun.Surfaces;
 using Kun.Tenancy;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 平台宿主的组合：先收扩展登记（module 应用、S1-DEP-011 并入的身份分支等），再合成 platform profile、核对目录、登记宿主 DI。
@@ -157,7 +157,7 @@ public sealed class PlatformHostComposition
         });
         services.AddKunMediator(registry =>
         {
-            registry.AddKunTenancyEvents().AddKunAuthzEvents().AddQianRegistryEvents().AddQianLifecycleEvents();
+            registry.AddKunTenancyEvents().AddKunAuthzEvents().AddKunRegistryEvents().AddKunLifecycleEvents();
             foreach (var mediator in _mediator) mediator(registry);
         });
         // 数据会话的 Outbox 写成 v1 信封（只写不投递）；events 条目的 broker / 领取方式由它的登记再配。
@@ -169,7 +169,7 @@ public sealed class PlatformHostComposition
         services.AddSingleton<IPermissionRegistry, PermissionRegistry>();
         services.AddSingleton<Kun.Authorization.IPermissionChecker>(sp => new RbacPermissionChecker(sp.GetRequiredService<IDataService>(),
             sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<IPermissionRegistry>()));
-        services.AddQianHttpContracts();
+        services.AddKunHttpContracts();
         services.AddKunPluginEndpoints(sp => sp.GetRequiredService<PlatformRuntime>().Global("registry"));
         services.AddKunAuthorization(http => PlatformHost.Scoped(http, "authz"), options => options.Production = true);
         if (settings.SecretMountRoot is { } mount)

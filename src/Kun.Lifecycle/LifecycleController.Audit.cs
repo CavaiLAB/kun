@@ -12,7 +12,7 @@ using Kun.Audit;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // 生命周期操作入审计链（ADR-009 D9.8，S1-RT-037）。
 // 租户级操作（开通、升级、卸载、清除）：完成的状态迁移与该租户审计链的条目在同一个可串行化事务里提交，审计写不进去或提交失败时两者都不留；

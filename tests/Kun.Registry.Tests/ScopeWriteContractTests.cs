@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Capabilities;
-using Qian.Capabilities.AspNetCore;
-using Qian.Registry.AspNetCore;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
+using Kun.Registry.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 public sealed class ScopeWriteContractTests
 {
@@ -22,10 +22,10 @@ public sealed class ScopeWriteContractTests
     public async Task 注册表写入契约由真实端点导出_含条件修订与权限_发布契约无漂移_移除PUT被准入拒绝()
     {
         var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
-        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddKunHttpContracts();
         await using var app = builder.Build();
-        app.UseKunErrors(); app.UseQianRegistryAliases();
-        app.MapQianRegistry(_ => throw new InvalidOperationException("契约编译不会执行端点。"));
+        app.UseKunErrors(); app.UseKunRegistryAliases();
+        app.MapKunRegistry(_ => throw new InvalidOperationException("契约编译不会执行端点。"));
         await app.StartAsync(Ct);
         var contract = await app.Services.GetRequiredService<IHttpContractSource>().CompileDocumentAsync("qian.registry", Ct);
         const string path = "/api/registry/tenants/{tenant}/patches/{scope}/{entry}";

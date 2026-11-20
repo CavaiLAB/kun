@@ -1,8 +1,8 @@
-using Qian.Docs.Abstractions;
+using Kun.Docs.Abstractions;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Docs;
+namespace Kun.Docs;
 
 internal sealed class Diagnostics
 {

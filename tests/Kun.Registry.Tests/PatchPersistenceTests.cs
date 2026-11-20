@@ -19,17 +19,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Data;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Kun.Testing.Containers;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
@@ -403,7 +403,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         {
             // 与 platform 宿主相同的登记期能力契约检查：组件经 SDK ProvideCapability 登记时即检查。
             builder.Services.AddSingleton<ISurfaceReader, SurfaceValidator>(); builder.Services.AddSingleton<IToolContractHasher, ToolContractHasher>();
-            builder.Services.AddQianCapabilities();
+            builder.Services.AddKunCapabilities();
         }
         builder.Services.AddKunData<RegistryDbContext>((_, options) =>
         {
@@ -412,7 +412,7 @@ public sealed partial class PatchPersistenceTests(PostgresFixture postgres) : IC
         });
         // 公开挂载 / 卸载的平台接线：领域事件处理器 + 写信封的 Outbox 端口（替换 AddKunData 登记的 Kun 累加器）。
         // qian.authz 的授权变更事件处理器始终登记：装载 qian.authz 与写入角色授予都要求它在场（S1-AZ-004）。
-        builder.Services.AddKunMediator(mediator => { mediator.AddKunAuthzEvents(); if (events) mediator.AddQianRegistryEvents(); });
+        builder.Services.AddKunMediator(mediator => { mediator.AddKunAuthzEvents(); if (events) mediator.AddKunRegistryEvents(); });
         if (events) builder.Services.AddKunEvents();
         services?.Invoke(builder.Services);
         return builder.Build();

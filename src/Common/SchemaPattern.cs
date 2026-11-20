@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Qian.Common;
+namespace Kun.Common;
 
 // JSON Schema 正则（pattern 与 patternProperties 的键）的统一解释，以内部源文件编译进需要它的包，见 packages/Common/README.md。
 // 模式按 ECMA-262 不带标志的语义解释（JSON Schema 2020-12 核心规范 §6.4），逐 UTF-16 码元匹配：. 不匹配 \n \r U+2028 U+2029，

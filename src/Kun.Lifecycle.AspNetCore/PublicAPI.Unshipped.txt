@@ -1,15 +1,15 @@
 #nullable enable
-Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList
-Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.<Clone>$() -> Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList!
-Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Qian.Lifecycle.LifecycleDiagnosticView!>! Items) -> void
-Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.Equals(Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? other) -> bool
-Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.Items.get -> System.Collections.Generic.IReadOnlyList<Qian.Lifecycle.LifecycleDiagnosticView!>!
-Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.Items.init -> void
-Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.LifecycleDiagnosticList(System.Collections.Generic.IReadOnlyList<Qian.Lifecycle.LifecycleDiagnosticView!>! Items) -> void
-Qian.Lifecycle.AspNetCore.LifecycleEndpoints
-override Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.Equals(object? obj) -> bool
-override Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.GetHashCode() -> int
-override Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.ToString() -> string!
-static Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.operator !=(Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? left, Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? right) -> bool
-static Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList.operator ==(Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? left, Qian.Lifecycle.AspNetCore.LifecycleDiagnosticList? right) -> bool
-static Qian.Lifecycle.AspNetCore.LifecycleEndpoints.MapQianLifecycle(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList
+Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.<Clone>$() -> Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList!
+Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.LifecycleDiagnosticView!>! Items) -> void
+Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.Equals(Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList? other) -> bool
+Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.LifecycleDiagnosticView!>!
+Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.Items.init -> void
+Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.LifecycleDiagnosticList(System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.LifecycleDiagnosticView!>! Items) -> void
+Kun.Lifecycle.AspNetCore.LifecycleEndpoints
+override Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.Equals(object? obj) -> bool
+override Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.GetHashCode() -> int
+override Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.ToString() -> string!
+static Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.operator !=(Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList? left, Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList? right) -> bool
+static Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList.operator ==(Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList? left, Kun.Lifecycle.AspNetCore.LifecycleDiagnosticList? right) -> bool
+static Kun.Lifecycle.AspNetCore.LifecycleEndpoints.MapKunLifecycle(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!

@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Configuration;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 /// <summary>平台宿主提供的生命周期装配输入：已安装组件版本的进程内钩子由宿主解析，不从数据库或制品内容加载程序集。</summary>
 public sealed class LifecycleRuntimeOptions

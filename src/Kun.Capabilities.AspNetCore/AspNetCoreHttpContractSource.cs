@@ -18,11 +18,11 @@ using Microsoft.Extensions.Options;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Capabilities.AspNetCore;
+namespace Kun.Capabilities.AspNetCore;
 
 internal sealed class AspNetCoreHttpContractSource(IApiDescriptionGroupCollectionProvider descriptions, IHttpContextAccessor accessor, IOptions<Microsoft.AspNetCore.Http.Json.JsonOptions> jsonOptions, IServiceScopeFactory scopeFactory) : IHttpContractSource
 {

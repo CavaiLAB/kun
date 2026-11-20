@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 // 通知只唤醒重新读库；不把载荷当成新的配置或权限。一次宿主监听由服务分派到其已激活 scope。
 internal sealed class PostgresPatchListener : IAsyncDisposable

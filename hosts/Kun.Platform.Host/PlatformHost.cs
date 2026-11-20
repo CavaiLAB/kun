@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 using Kun.Core.MultiTenancy;
 using Kun.Audit;
 using Kun.Authorization.AspNetCore;
-using Qian.Capabilities.AspNetCore;
+using Kun.Capabilities.AspNetCore;
 using Kun.Configuration;
 using Kun.Data;
 using Kun.Plugin.Sdk.AspNetCore;
@@ -17,12 +17,12 @@ using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Tenancy.AspNetCore;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// platform profile 的生产宿主（S1-DEP-009）。装配拆成可组合的几步，<c>Program.cs</c> 只是按顺序调用：
-/// <see cref="CreateBuilder"/>（配置源）→ <see cref="AddQianPlatform"/>（扩展登记 + profile 合成 + DI）→ <see cref="UseQianPlatform"/>（中间件）→
-/// <see cref="MapQianPlatform"/>（健康、平台表面、运营接口与扩展端点）。S1-DEP-011 在同一宿主上并入身份分支时复用这些步骤，经扩展登记与 <c>configure</c> 插入自己的部分。
+/// <see cref="CreateBuilder"/>（配置源）→ <see cref="AddKunPlatform"/>（扩展登记 + profile 合成 + DI）→ <see cref="UseKunPlatform"/>（中间件）→
+/// <see cref="MapKunPlatform"/>（健康、平台表面、运营接口与扩展端点）。S1-DEP-011 在同一宿主上并入身份分支时复用这些步骤，经扩展登记与 <c>configure</c> 插入自己的部分。
 /// </summary>
 public static class PlatformHost
 {
@@ -71,12 +71,12 @@ public static class PlatformHost
     {
         var builder = CreateBuilder(args);
         configure?.Invoke(builder);
-        var composition = builder.AddQianPlatform(args, extend);
+        var composition = builder.AddKunPlatform(args, extend);
         var app = builder.Build();
         try
         {
-            app.UseQianPlatform();
-            app.MapQianPlatform(composition);
+            app.UseKunPlatform();
+            app.MapKunPlatform(composition);
             return app;
         }
         catch
@@ -107,7 +107,7 @@ public static class PlatformHost
     }
 
     /// <summary>读设置、收扩展登记、合成 platform profile 并登记宿主 DI 与插件树运行时；profile 不合格或有条目没有 Provider 即抛错。</summary>
-    public static PlatformHostComposition AddQianPlatform(this WebApplicationBuilder builder, string[] args, Action<PlatformHostComposition>? extend = null)
+    public static PlatformHostComposition AddKunPlatform(this WebApplicationBuilder builder, string[] args, Action<PlatformHostComposition>? extend = null)
     {
         ArgumentNullException.ThrowIfNull(builder); ArgumentNullException.ThrowIfNull(args);
         var composition = new PlatformHostComposition(builder, PlatformHostSettings.Read(builder.Configuration, args));
@@ -120,7 +120,7 @@ public static class PlatformHost
     /// 中间件：路由 → ErrorDetail → 网关 S2S 认证（按匹配到的端点选受众）→ 按令牌 <c>tenant_id</c> 进入租户 scope（平台身份不进任何租户）→ 授权 → 插件端点可见性 →
     /// 授权 PEP（生产模式，处理器内判定的端点也比对身份修订下限）。
     /// </summary>
-    public static WebApplication UseQianPlatform(this WebApplication app)
+    public static WebApplication UseKunPlatform(this WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
         // 路由必须先于认证：受众按路由实际匹配到的端点选（GatewayS2s.Select），不按路径写法。WebApplication 缺省也把路由放在最前，这里显式写出这个依赖。
@@ -134,7 +134,7 @@ public static class PlatformHost
     /// 健康端点（匿名）、平台表面（受众 <c>qian-platform</c>）、扩展端点（平台受众），以及运营端点组（受众 <c>qian-operations</c>）：租户运营接口与经
     /// <see cref="PlatformHostComposition.AddOperations"/> 挂上的端点。映射完核对运营端点组与声明的运营前缀一致，不一致即抛错。
     /// </summary>
-    public static WebApplication MapQianPlatform(this WebApplication app, PlatformHostComposition composition)
+    public static WebApplication MapKunPlatform(this WebApplication app, PlatformHostComposition composition)
     {
         ArgumentNullException.ThrowIfNull(app); ArgumentNullException.ThrowIfNull(composition);
         var runtime = app.Services.GetRequiredService<PlatformRuntime>();
@@ -142,8 +142,8 @@ public static class PlatformHost
         app.MapGet("/healthz", () => Results.Text("ok")).AllowAnonymous().ExcludeFromDescription();
         app.MapGet("/readyz", () => runtime.IsReady ? Results.Text("ready") : Results.Text("starting", statusCode: StatusCodes.Status503ServiceUnavailable))
             .AllowAnonymous().ExcludeFromDescription();
-        app.MapQianCapabilities(http => Scoped(http, "capabilities"));
-        app.MapQianPlatformConsole(http => Console(http, runtime));
+        app.MapKunCapabilities(http => Scoped(http, "capabilities"));
+        app.MapKunPlatformConsole(http => Console(http, runtime));
         app.MapKunAuthz(http => Scoped(http, "authz"));
         foreach (var map in composition.Endpoints) map(app, runtime);
         // 运营端点组：不加路由前缀，只给组里每个端点加运营受众元数据，认证按匹配到的端点选方案（GatewayS2s.Select）。

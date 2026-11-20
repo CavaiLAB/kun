@@ -3,7 +3,7 @@ using Kun.Configuration;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // qian.lifecycle 条目配置（plugins/qian.lifecycle/schemas/config.schema.json）：profile 装载已按 Schema 校验，这里再严格解析一次，未知字段一律拒绝。
 internal sealed class LifecycleSettings

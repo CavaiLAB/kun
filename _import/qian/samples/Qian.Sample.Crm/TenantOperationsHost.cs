@@ -5,7 +5,7 @@ using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Capabilities.AspNetCore;
+using Kun.Capabilities.AspNetCore;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
@@ -35,7 +35,7 @@ public static class TenantOperationsHost
             options.MapInboundClaims = false; options.TokenValidationParameters = validation.Clone();
             options.Events.OnTokenValidated = context => { PlatformCurrentUser.Capture(context); return Task.CompletedTask; };
         });
-        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddKunHttpContracts();
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.PropertyNameCaseInsensitive = false;

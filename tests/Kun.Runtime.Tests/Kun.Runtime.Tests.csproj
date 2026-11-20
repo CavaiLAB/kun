@@ -3,8 +3,8 @@
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Kun.Runtime/Kun.Runtime.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Profiles/Qian.Profiles.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Profiles/Kun.Profiles.csproj" />
+    <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="YamlDotNet" />
     <PackageReference Include="coverlet.MTP" />

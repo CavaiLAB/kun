@@ -16,7 +16,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Testing.Containers;
 
-namespace Qian.Lifecycle.Tests;
+namespace Kun.Lifecycle.Tests;
 
 // S1-RT-037 验收 1、3：租户级生命周期操作（开通、升级、卸载、清除）入该租户审计链（ADR-009 D9.8），与完成的状态迁移同一可串行化事务，审计写不进去或
 // 提交失败时两者都不留；钩子重试、续跑、幂等返回不重复记；同租户链冲突换新会话重做；宿主没有审计时 fail-closed 并记宿主级告警。

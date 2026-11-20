@@ -352,8 +352,8 @@ class RealGraphTests(unittest.TestCase):
     def test_reclassification_does_not_hollow_out_rules(self):
         # 假想几条边，按真实的声明判：契约或平台包依赖别的平台组件的提供者、契约直接依赖内核档提供者，都仍要报。
         cases = {
-            ("Kun.Plugin.Sdk.AspNetCore", "Qian.Registry"): ["P"],  # 平台档契约 → 别的平台组件的提供者
-            ("Kun.Authorization.AspNetCore", "Qian.Registry"): ["P"],  # 平台档提供者 → 别的平台组件的提供者
+            ("Kun.Plugin.Sdk.AspNetCore", "Kun.Registry"): ["P"],  # 平台档契约 → 别的平台组件的提供者
+            ("Kun.Authorization.AspNetCore", "Kun.Registry"): ["P"],  # 平台档提供者 → 别的平台组件的提供者
             ("Kun.Runtime", "Kun.EventBus.EntityFrameworkCore"): ["D"],  # 内核档契约 → 内核档提供者
             ("Kun.Mediator", "Kun.EventBus"): ["D"],
             ("Kun.Errors", "Kun.Tenancy.Abstractions"): ["K", "C"],  # 内核档 → 平台档；Kun.Errors 零依赖，C 也报
@@ -366,7 +366,7 @@ class RealGraphTests(unittest.TestCase):
                 self.assertEqual([(rule, [subject, target]) for rule in rules], [(v.rule, v.path) for v in violations if v.package == subject])
 
     def test_sdk_closure_has_no_platform_provider(self):
-        # S1-RT-014：SDK 包族的完整传递依赖里没有平台档的提供者，也没有平台插件 Qian.Registry / Qian.Lifecycle / Qian.Capabilities。
+        # S1-RT-014：SDK 包族的完整传递依赖里没有平台档的提供者，也没有平台插件 Kun.Registry / Kun.Lifecycle / Kun.Capabilities。
         for package_id in ("Kun.Plugin.Sdk", "Kun.Plugin.Sdk.Commands", "Kun.Plugin.Sdk.AspNetCore", "Kun.Plugin.Sdk.Generators"):
             with self.subTest(package=package_id):
                 self.assertIn(package_id, self.packages, "SDK 包必须在 Kun.slnx 里，依赖门禁才会检查它")

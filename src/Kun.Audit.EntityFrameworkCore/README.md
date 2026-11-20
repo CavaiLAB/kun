@@ -26,7 +26,7 @@ sensitive 和 x-qian-sensitive 的 true 标记统一遮盖为固定字符串 [RE
 
 各方言对少数字符判断不同：换行（影响 `$`），回车与 U+2028/2029（影响 `.`），非 ASCII 空白（影响 `\s`），U+0130（验证器的 `\w` 包含它），代理项（带 u 标志时按码点计数）。键名含这些字符、且对象声明了 patternProperties 时，该键的值整体遮盖，不按模式取舍。
 
-翻译与匹配和配置扫描、profile 装配共用 [共享内部源文件](../../_import/qian/packages/Common/README.md) 的实现；审计面对的是区分大小写的 JSON，不折叠大小写。模式翻译后交给 .NET NonBacktracking 引擎做线性时间匹配，过大的自动机在构造时即拒绝；同一模式在进程内复用编译实例，最多缓存 128 个，超出时清空重建。单次匹配超时 1 秒，超时同样返回 AUDIT_SCHEMA_INVALID，不会跳过敏感标记。
+翻译与匹配和配置扫描、profile 装配共用 [共享内部源文件](../Common/README.md) 的实现；审计面对的是区分大小写的 JSON，不折叠大小写。模式翻译后交给 .NET NonBacktracking 引擎做线性时间匹配，过大的自动机在构造时即拒绝；同一模式在进程内复用编译实例，最多缓存 128 个，超出时清空重建。单次匹配超时 1 秒，超时同样返回 AUDIT_SCHEMA_INVALID，不会跳过敏感标记。
 
 ## 存储与并发
 
@@ -82,7 +82,7 @@ RT-009 的已授权 hook 调用使用 hook 审计通道；SDK 可信适配器与
 
 `plugins/qian.audit/.qian-plugin/plugin.json` 的稳定入口是 `AuditComponent`，允许 global / tenant scope，依赖 `Data`，提供 `Audit` 与 `CommandAudit`。固定委托无参 `AuditPlugin`；宿主仍准备受限数据上下文与可选的平台审计登录。
 
-入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../_import/qian/hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。
+入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Kun.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。
 
 ## 实体审计
 

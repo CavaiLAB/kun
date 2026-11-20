@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Data;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 // dotnet ef 的设计时入口：经 AddKunData 的同一装配取上下文（命名约定、租户过滤、Qian 迁移生成器），迁移模型与运行时一致。
 // 不连接数据库；连接串只用于选定 Npgsql 提供程序。用法见仓库根 src/Kun.Data/README.md「迁移执行与 RLS 核查」：

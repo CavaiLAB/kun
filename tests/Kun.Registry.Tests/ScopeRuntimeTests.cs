@@ -5,14 +5,14 @@ using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Kun.Data;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 public sealed partial class PatchPersistenceTests
 {

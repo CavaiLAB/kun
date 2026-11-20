@@ -19,7 +19,7 @@ namespace Qian.Sample.Crm.Tests;
 
 public sealed partial class LifecycleProfileTests
 {
-    // R68 的 TCK 平台组合包宿主装配了登记期契约检查（AddQianCapabilities）：容器里只有一个检查实例，组件上下文经宿主服务拿到同一个；
+    // R68 的 TCK 平台组合包宿主装配了登记期契约检查（AddKunCapabilities）：容器里只有一个检查实例，组件上下文经宿主服务拿到同一个；
     // 不合格的契约在该宿主下于登记期被拒，组件挂载失败。platform 宿主漏掉装配时 Capabilities 组件拒绝挂载，不能退化为首次请求才检查。
     [Fact]
     public async Task TCK平台组合包宿主_容器里的契约检查是宿主单例且组件上下文共用_不合格契约在登记期被拒()
@@ -31,7 +31,7 @@ public sealed partial class LifecycleProfileTests
         var check = host.App.Services.GetRequiredService<ICapabilityContractCheck>();
         Assert.Same(check, host.App.Services.GetRequiredService<ICapabilityContractCheck>());
         using (var scope = host.App.Services.CreateScope()) Assert.Same(check, scope.ServiceProvider.GetRequiredService<ICapabilityContractCheck>());
-        Assert.Same(check, host.App.Services.GetRequiredService<Qian.Capabilities.CapabilityContractCheck>());
+        Assert.Same(check, host.App.Services.GetRequiredService<Kun.Capabilities.CapabilityContractCheck>());
         Assert.Same(check, loader.GetContext("crm", ScopeKey.Global).Services.GetService(typeof(ICapabilityContractCheck)));
 
         var crm = plan.Definitions["crm"];
@@ -46,21 +46,21 @@ public sealed partial class LifecycleProfileTests
     }
 
     // S1-RT-014 验收 6：R68 的 TCK 平台组合包宿主以 AddKunData<CapabilitiesDbContext> 把能力上下文纳入迁移目录，启动时由受限属主经
-    // IDataMigrator 执行包内迁移。包内迁移本身不含任何 RLS 语句，租户策略只能来自 Qian 迁移生成器；同一装配调用了 AddQianCapabilities()。
+    // IDataMigrator 执行包内迁移。包内迁移本身不含任何 RLS 语句，租户策略只能来自 Qian 迁移生成器；同一装配调用了 AddKunCapabilities()。
     [Fact]
     public async Task TCK平台组合包宿主_能力上下文经AddKunData纳入迁移目录_IDataMigrator执行包内迁移_真实PostgreSQL的迁移历史与pg_policies成立_RLS由迁移生成器补出_重复迁移无操作()
     {
         await using var host = await Start(runtimeProfile: "platform");
         var plan = (ProfileModeAssembly)host.App.Services.GetRequiredService<ICrmRuntimeAssembly>();
         Assert.Equal("qian.bundle.tck-platform@1.0.0", Assert.Single(plan.Snapshot.Layers, item => item.Kind == "bundle").Reference);
-        Assert.Contains(typeof(Qian.Capabilities.CapabilitiesDbContext), host.App.Services.GetRequiredService<IDataContextCatalog>().ContextTypes);
-        Assert.IsType<Qian.Capabilities.CapabilityContractCheck>(host.App.Services.GetRequiredService<ICapabilityContractCheck>());
+        Assert.Contains(typeof(Kun.Capabilities.CapabilitiesDbContext), host.App.Services.GetRequiredService<IDataContextCatalog>().ContextTypes);
+        Assert.IsType<Kun.Capabilities.CapabilityContractCheck>(host.App.Services.GetRequiredService<ICapabilityContractCheck>());
 
-        var schema = Qian.Capabilities.CapabilitiesDbContext.Schema;
+        var schema = Kun.Capabilities.CapabilitiesDbContext.Schema;
         string[] migrations;
         using (var scope = host.App.Services.CreateScope())
         {
-            var context = scope.ServiceProvider.GetRequiredService<Qian.Capabilities.CapabilitiesDbContext>();
+            var context = scope.ServiceProvider.GetRequiredService<Kun.Capabilities.CapabilitiesDbContext>();
             migrations = context.Database.GetMigrations().ToArray();
             Assert.Equal("KunTenantRlsMigrationsSqlGenerator", context.GetService<IMigrationsSqlGenerator>().GetType().Name);
             var assembly = context.GetService<IMigrationsAssembly>();
@@ -86,7 +86,7 @@ public sealed partial class LifecycleProfileTests
         }
 
         var again = await host.App.Services.GetRequiredService<IDataMigrator>().MigrateAsync(Ct);
-        Assert.Empty(Assert.Single(again, report => report.ContextType == typeof(Qian.Capabilities.CapabilitiesDbContext)).Applied);
+        Assert.Empty(Assert.Single(again, report => report.ContextType == typeof(Kun.Capabilities.CapabilitiesDbContext)).Applied);
         Assert.Equal(migrations, (await AdminRows(history)).Select(row => (string)row[0]));
     }
 

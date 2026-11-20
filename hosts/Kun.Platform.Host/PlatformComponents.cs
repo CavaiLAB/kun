@@ -8,19 +8,19 @@ using Microsoft.EntityFrameworkCore;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Configuration.Platform;
 using Kun.Data;
-using Qian.Lifecycle;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
+using Kun.Lifecycle;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 using StackExchange.Redis;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 宿主认识的一个组件：profile 条目的组件 id、清单 <c>runtime.entry</c> 应指向的入口类型、宿主登记（数据上下文、宿主服务）与实例工厂。
@@ -134,17 +134,17 @@ public static class PlatformComponents
             if (services.ConfigString("chain", "platformRole") is not null) services.AddData<PlatformAuditDbContext>(AuditDbContext.Schema, "PlatformAudit");
         }),
         new("qian.config", "Kun.Configuration.Platform.ConfigurationPlugin, Kun.Configuration.Platform", _ => new ConfigurationPlugin()),
-        new("qian.registry", "Qian.Registry.RegistryComponent, Qian.Registry", _ => new RegistryComponent(), services =>
+        new("qian.registry", "Kun.Registry.RegistryComponent, Kun.Registry", _ => new RegistryComponent(), services =>
         {
             services.AddAppData<RegistryDbContext>(RegistryDbContext.Schema);
             services.Services.AddSingleton(sp => sp.GetRequiredService<PlatformRuntime>().RegistryOptions);
         }),
-        new("qian.capabilities", "Qian.Capabilities.CapabilitiesComponent, Qian.Capabilities", _ => new CapabilitiesComponent(), services =>
+        new("qian.capabilities", "Kun.Capabilities.CapabilitiesComponent, Kun.Capabilities", _ => new CapabilitiesComponent(), services =>
         {
             services.AddAppData<CapabilitiesDbContext>(CapabilitiesDbContext.Schema);
-            services.Services.AddQianCapabilities();
+            services.Services.AddKunCapabilities();
         }),
-        new("qian.lifecycle", "Qian.Lifecycle.LifecycleComponent, Qian.Lifecycle", _ => new LifecycleComponent(), services =>
+        new("qian.lifecycle", "Kun.Lifecycle.LifecycleComponent, Kun.Lifecycle", _ => new LifecycleComponent(), services =>
         {
             services.AddAppData<LifecycleDbContext>(LifecycleDbContext.Schema);
             services.Services.AddSingleton(sp => sp.GetRequiredService<PlatformRuntime>().LifecycleOptions);

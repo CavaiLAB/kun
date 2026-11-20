@@ -7,7 +7,7 @@ using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Identity.Abstractions;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 首个平台运营账号的一次性引导（<c>--bootstrap-operator</c>，S1-DEP-011，R150 ③）：与 <c>--migrate-only</c> 同形，作为 K8s Job 在迁移之后运行一次。

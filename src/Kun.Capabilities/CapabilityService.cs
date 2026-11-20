@@ -12,12 +12,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Tenancy;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 internal sealed partial class CapabilityService(IRegistryService registry, IPermissionChecker permissions, CapabilityContractCheck contracts,
     IDataService data, CapabilitiesOptions options, IHttpContractSource? httpContracts = null, ILogger? logger = null) : ICapabilityService, IDisposable

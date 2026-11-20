@@ -2,9 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Plugin.Sdk;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>制品构建期从完整生成契约派生文档；不读取当前用户权限，也不授予运行资格。</summary>
 public static class CapabilityContractCompiler

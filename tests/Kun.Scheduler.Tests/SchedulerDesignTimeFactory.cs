@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Data;
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 internal sealed class SchedulerDesignTimeFactory : IDesignTimeDbContextFactory<SchedulerDbContext>
 {

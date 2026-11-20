@@ -10,9 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Plugin.Sdk;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
 namespace Qian.Sample.Crm.Tests;
 

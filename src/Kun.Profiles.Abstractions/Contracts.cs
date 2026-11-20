@@ -2,9 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Profiles.Abstractions;
+namespace Kun.Profiles.Abstractions;
 
 /// <summary>文件装配输入；宿主可附加已读取的 scope patch，装配器不访问数据库。</summary>
 public sealed class ProfileLoadOptions

@@ -11,11 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 using Kun.Audit;
 using Kun.Identity.Abstractions;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // 反向权限批准（PRD 7.18 第 6 项、plugin-manifest D7 / T5）：S1 只有 API，S2 才有 UI。批准记录在本组件的租户表 permission_approvals，
 // 与权益（Entitled，「买没买」）是两道门、不合并；开通与升级在权益之后核对批准（「同不同意」）。

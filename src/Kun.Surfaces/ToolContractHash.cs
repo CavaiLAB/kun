@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Qian.Surfaces;
+namespace Kun.Surfaces;
 
 /// <summary>冻结契约规定的工具哈希：{description,inputSchema,name} 的 RFC 8785/JCS 与 SHA-256。</summary>
 public static class ToolContractHash

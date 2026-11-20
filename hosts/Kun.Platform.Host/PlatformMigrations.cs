@@ -7,7 +7,7 @@ using Kun.Audit.Postgres;
 using Kun.Authorization.Rbac;
 using Kun.Data;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 迁移 Job（<c>--migrate-only</c>，S1-DEP-011）：在线副本启动之前执行，跑完退出。分三步：

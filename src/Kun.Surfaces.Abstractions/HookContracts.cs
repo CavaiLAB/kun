@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Runtime;
 
-namespace Qian.Surfaces.Abstractions;
+namespace Kun.Surfaces.Abstractions;
 
 /// <summary>受信任生产方在当前 scope 派发的进程内事件，不是可反序列化的调用者身份。</summary>
 public sealed class HookNotification

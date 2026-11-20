@@ -2,7 +2,7 @@ using System.Globalization;
 using Quartz;
 using Kun.Errors;
 
-namespace Qian.Scheduler;
+namespace Kun.Scheduler;
 
 internal static class JobSchedule
 {

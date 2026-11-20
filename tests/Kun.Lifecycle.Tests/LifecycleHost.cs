@@ -24,16 +24,16 @@ using Kun.Configuration.Platform;
 using Kun.Configuration.Secrets;
 using Kun.Data;
 using Kun.Plugin.Sdk;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Kun.Testing.Containers;
 
-namespace Qian.Lifecycle.Tests;
+namespace Kun.Lifecycle.Tests;
 
 // 真实平台插件树：Data + Config（宿主配置根 + K8s Secret 挂载解析）+ Registry（PostgreSQL）+ Audit（租户链：批准与租户级操作同事务入链；平台链：平台级操作同事务入链）
 // + Lifecycle（包内迁移建表）。
@@ -95,7 +95,7 @@ internal sealed class LifecycleHost : IAsyncDisposable
         await Admin(postgres, $"CREATE ROLE \"{auditRole}\" LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '{auditPassword}';", ct);
         var auditPlatform = new NpgsqlConnectionStringBuilder(postgres.AppConnectionString) { Username = auditRole, Password = auditPassword }.ConnectionString;
         builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(auditPlatform).UseKunSchema(AuditDbContext.Schema));
-        builder.Services.AddKunMediator(mediator => mediator.AddQianRegistryEvents().AddQianLifecycleEvents());
+        builder.Services.AddKunMediator(mediator => mediator.AddKunRegistryEvents().AddKunLifecycleEvents());
         builder.Services.AddKunEvents();
         builder.Services.AddSingleton<ISecretAccessObserver>(secrets);
         builder.Services.AddKunSecrets(new SecretResolverOptions

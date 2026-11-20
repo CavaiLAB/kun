@@ -6,7 +6,7 @@
     <ProjectReference Include="../../../../src/Kun.EventBus.EntityFrameworkCore/Kun.EventBus.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus.RabbitMQ/Kun.EventBus.RabbitMQ.csproj" />
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../../packages/Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Lifecycle.Abstractions/Kun.Lifecycle.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
     <ProjectReference Include="../../../../src/Kun.AspNetCore/Kun.AspNetCore.csproj" />
   </ItemGroup>
@@ -18,13 +18,13 @@
     <ProjectReference Include="../../../../src/Kun.Tenancy/Kun.Tenancy.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
     <EmbeddedResource Include="metadata/*.json" LogicalName="crm.metadata.%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="Qian.Sample.Crm.Tests" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../../../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" /><ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Commands/Kun.Plugin.Sdk.Commands.csproj" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.Tenancy.AspNetCore/Kun.Tenancy.AspNetCore.csproj" />
-    <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Capabilities.AspNetCore/Kun.Capabilities.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

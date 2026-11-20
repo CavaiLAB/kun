@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 public sealed class OpenApiCompatibilityTests
 {

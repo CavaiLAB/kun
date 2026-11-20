@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>当前租户内可访问的菜单项；资源引用使用 qian:{tenant}:{app}:page:{id}。</summary>
 public sealed record NavigationItem(string ResourceRef, string PluginId, string Route, string Title, string? Icon, int Order);

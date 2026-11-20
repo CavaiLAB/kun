@@ -3,7 +3,7 @@
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <ProjectReference Include="../Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../Kun.Surfaces.Abstractions/Kun.Surfaces.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
   </ItemGroup>
 </Project>

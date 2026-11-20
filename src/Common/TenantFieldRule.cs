@@ -3,10 +3,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Qian.Common;
+namespace Kun.Common;
 
-// 输入 Schema 不得点名租户字段（PRD 7.18：租户只来自令牌；S1-AGT-004）。以内部源文件编译进 Qian.Surfaces（工具语义校验）与
-// Qian.Capabilities.Abstractions（TenantInputContract），须同时链接 SchemaPattern.cs；@qian/surfaces 的 tenantFields 逐条对应，改动须三处同步。
+// 输入 Schema 不得点名租户字段（PRD 7.18：租户只来自令牌；S1-AGT-004）。以内部源文件编译进 Kun.Surfaces（工具语义校验）与
+// Kun.Capabilities.Abstractions（TenantInputContract），须同时链接 SchemaPattern.cs；@qian/surfaces 的 tenantFields 逐条对应，改动须三处同步。
 // 名称按 contracts/v0 的 TenantFieldName 整体匹配：tenant、tenantId、tenant_id、tenant-id 的 ASCII 大小写变体。点名的写法有 properties、dependentSchemas、
 // dependentRequired 与旧式 dependencies 的名称，required 与 dependentRequired / dependencies 的数组项，patternProperties 的模式
 // （按 SchemaPattern 的可移植子集能匹配任一租户名即违规，超出子集无法判定，同样违规），以及 propertyNames 在肯定位置用 const / enum 列出的名称。

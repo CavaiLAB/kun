@@ -1,6 +1,6 @@
-# Qian.Registry
+# Kun.Registry
 
-注册表属于 `Registry` seam 的 Provider，只进入 `platform` 的 base 组合包；Definition 为 `Qian.Registry.Abstractions`。分发表面位于 `plugins/qian.registry`，代码字段与配置 Schema 已派生，清单已去掉 `x-skeleton`（R144 ③）：安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；消费者的 standalone profile 不独立安装这项平台插件（R34）。已提供 `RegistryPlugin` 与宿主 scope 同步服务，并接通真实 Data / Runtime；管理面 scope 视图与条件写入（HTTP 适配器为 `Qian.Registry.AspNetCore`）、候选制品的清单准入、供可信平台插件调用的公开挂载 / 卸载与契约准入已接入，安装链由 [Qian.Lifecycle](../Qian.Lifecycle/README.md) 编排（S1-RT-005）。scope patch 的 HTTP 与运营 CLI 已接入；挂载只作用于平台已安装、租户已开通的组件，不代表从正式源安装。
+注册表属于 `Registry` seam 的 Provider，只进入 `platform` 的 base 组合包；Definition 为 `Kun.Registry.Abstractions`。分发表面位于 `plugins/qian.registry`，代码字段与配置 Schema 已派生，清单已去掉 `x-skeleton`（R144 ③）：安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Kun.Platform.Host/README.md)的 profile 装配与集成测试；消费者的 standalone profile 不独立安装这项平台插件（R34）。已提供 `RegistryPlugin` 与宿主 scope 同步服务，并接通真实 Data / Runtime；管理面 scope 视图与条件写入（HTTP 适配器为 `Kun.Registry.AspNetCore`）、候选制品的清单准入、供可信平台插件调用的公开挂载 / 卸载与契约准入已接入，安装链由 [Kun.Lifecycle](../Kun.Lifecycle/README.md) 编排（S1-RT-005）。scope patch 的 HTTP 与运营 CLI 已接入；挂载只作用于平台已安装、租户已开通的组件，不代表从正式源安装。
 
 ## 已实现的持久化基础
 
@@ -24,7 +24,7 @@
 
 ## 不可变制品候选目录
 
-内部 `RegistryArtifactContent` 接收已获取的文件字节，复制为私有快照后核对目录摘要，再用共用 `ISurfaceValidator` 读取清单与表面。源目录不会在摘要计算和校验之间被再次读取；路径、大小和文件数量受限，不执行组件内容。目录摘要与 CLI 使用同一 D4 格式，见[共用样例](../../tck/registry-artifacts/README.md)。`metadata/*.json` 直接取共用表面校验器的文档快照，CLI 与注册表共用目录、重复键与敏感值规则；其权限、角色等业务 Schema 仍由各 seam 在发布准入时验证。
+内部 `RegistryArtifactContent` 接收已获取的文件字节，复制为私有快照后核对目录摘要，再用共用 `ISurfaceValidator` 读取清单与表面。源目录不会在摘要计算和校验之间被再次读取；路径、大小和文件数量受限，不执行组件内容。目录摘要与 CLI 使用同一 D4 格式，见[共用样例](../../_import/qian/tck/registry-artifacts/README.md)。`metadata/*.json` 直接取共用表面校验器的文档快照，CLI 与注册表共用目录、重复键与敏感值规则；其权限、角色等业务 Schema 仍由各 seam 在发布准入时验证。
 
 `PostgresArtifactCatalog` 将清单、声明式文档、逐文件摘要与元数据快照写入 `plugin_artifacts`。该表是全局候选目录，不含租户挂载状态。摘要是不可变主键；两个宿主并发登记相同摘要只保存一份，后续重复提交不会覆盖首次提交主体与时间。内部读取返回独立的只读集合，不依赖仍可变的调用方文件内容。
 
@@ -69,7 +69,7 @@ await runtime.DisposeAsync();
 
 ## 管理面 scope 视图（R32 / R48）
 
-`GetScopeViewAsync` / `GetScopeEntryAsync` 是管理面的读取入口。HTTP 适配器 `Qian.Registry.AspNetCore` 的 `MapQianRegistry` 把它们映射为 `GET /api/registry/scopes/{scopeKey}/entries` 与 `GET /api/registry/scopes/{scopeKey}/entries/{entryId}`，并保留 v1 别名 `/api/kernel/scopes/...`：别名返回同一结果（含错误响应），带 `Deprecation` 与指向后继路径的 `Link: <…>; rel="successor-version"`，与能力目录共用 SDK 的 `DeprecatedAlias`（R33）。
+`GetScopeViewAsync` / `GetScopeEntryAsync` 是管理面的读取入口。HTTP 适配器 `Kun.Registry.AspNetCore` 的 `MapKunRegistry` 把它们映射为 `GET /api/registry/scopes/{scopeKey}/entries` 与 `GET /api/registry/scopes/{scopeKey}/entries/{entryId}`，并保留 v1 别名 `/api/kernel/scopes/...`：别名返回同一结果（含错误响应），带 `Deprecation` 与指向后继路径的 `Link: <…>; rel="successor-version"`，与能力目录共用 SDK 的 `DeprecatedAlias`（R33）。
 
 判定先于一切读取：调用者须是当前已验证租户的用户或服务主体（无委托），scope 只能是该租户自己的 tenant scope；权限经宿主装配的 Kun `IPermissionChecker` 判定 `qian.registry:scope:read`（`RegistryDefinition.ScopeReadPermission`，声明在 `plugins/qian.registry/metadata`，默认授予租户 Owner 与 Admin）。缺判定端口、无权限、跨租户与不存在的条目一律 404 `NOT_FOUND`，彼此无法区分；令牌中的角色不授予权限。
 
@@ -89,7 +89,7 @@ S1 不产生另外两个原因码：profile 没有 restriction 声明来源，`P
 
 ## 组件反向权限声明（S1-AGT-002）
 
-清单 `policy.permissions`（`platform`、`data`、`secrets[{name, scope}]`、`ui.connectSrc`）与 `policy.egress` 五类随制品快照保存在 `plugin_artifacts.manifest`，已过 plugin/v2 与 permissions/v2 Schema。读出时按清单中的顺序，缺省的类别为空数组，`x-` 扩展字段不计入；这只是声明，不代表任何租户已批准（批准见 [Qian.Lifecycle](../Qian.Lifecycle/README.md) 的「反向权限批准」）。
+清单 `policy.permissions`（`platform`、`data`、`secrets[{name, scope}]`、`ui.connectSrc`）与 `policy.egress` 五类随制品快照保存在 `plugin_artifacts.manifest`，已过 plugin/v2 与 permissions/v2 Schema。读出时按清单中的顺序，缺省的类别为空数组，`x-` 扩展字段不计入；这只是声明，不代表任何租户已批准（批准见 [Kun.Lifecycle](../Kun.Lifecycle/README.md) 的「反向权限批准」）。
 
 - `GetArtifactPermissionsAsync(digest)`：受信端口，按摘要读取，不论制品状态；未登记为 null，摘要格式无效为 `INPUT_INVALID`。Lifecycle 在开通、升级与批准时用它判定所需批准的内容。
 - `GetPluginPermissionsAsync(plugin, version, user)`：管理面读取，供安装时列出待批准的内容。只读 Lifecycle 已回写安装结论的制品（Installed / Progressing / Healthy），候选（Submitted）与未知版本都是 404。判定与 scope 视图同一入口，scope 取当前已验证租户，权限点同为 `qian.registry:scope:read`；平台主体经超管旁路，资源记为 `registry/artifact:<plugin>@<version>`。
@@ -107,7 +107,7 @@ S1 不产生另外两个原因码：profile 没有 restriction 声明来源，`P
 - `UnmountAsync` 对平台 profile 引入的条目写 `{id, disabled: true}`，对只由本 scope 引入的条目撤销 patch（墓碑）。本 scope 本来就看不到该条目时返回 NOT_FOUND。卸载不新增任何开关列或开关行。
 - 每次成功写入在同一事务把 `registry.scope.mounted.v1` 或 `registry.scope.unmounted.v1` 信封放进 Outbox，载荷只含 scope、条目、修订与组件引用，不含配置。
 
-宿主须以 `RegisterRegistryEvents` 登记事件类型、以 `AddQianRegistryEvents` 登记领域事件处理器，并装配 `AddQianEvents`。漏装处理器时写入在提交前失败，不留 patch 也不留 Outbox。
+宿主须以 `RegisterRegistryEvents` 登记事件类型、以 `AddKunRegistryEvents` 登记领域事件处理器，并装配 `AddQianEvents`。漏装处理器时写入在提交前失败，不留 patch 也不留 Outbox。
 
 Lifecycle 还用到另外三个入口：
 
@@ -118,9 +118,9 @@ Lifecycle 还用到另外三个入口：
 
 ## 契约准入与装配诊断（R76）
 
-scope Reconciler 解析条目时，对在 `metadata/contracts.json` 声明契约族的组件版本，经 Capabilities 以 `CapabilitiesDefinition.AdmissionKey` 提供的 `IContractAdmission` 包装插件（规则见 [Capabilities](../Qian.Capabilities/README.md) 的「平台挂载准入」）。准入服务不可见时该条目 Apply 失败（`UNAVAILABLE`），不跳过检查。
+scope Reconciler 解析条目时，对在 `metadata/contracts.json` 声明契约族的组件版本，经 Capabilities 以 `CapabilitiesDefinition.AdmissionKey` 提供的 `IContractAdmission` 包装插件（规则见 [Capabilities](../Kun.Capabilities/README.md) 的「平台挂载准入」）。准入服务不可见时该条目 Apply 失败（`UNAVAILABLE`），不跳过检查。
 
-装配失败沿用原有的收紧规则：已提交的禁用不回退，该 scope 被阻断，其他 scope 不受影响。本副本最近一次失败记为诊断：条目 Apply 失败带条目、组件修订与原因码，其余为 scope 级失败；下一次合入成功即清空。`GetScopeDiagnosticsAsync` 在与装载相同的锁内先合入数据库 scope，再返回这些诊断，供 Lifecycle 的管理面使用，调用方负责权限。Lifecycle 的挂载失败会恢复挂载前的 patch，并把原因另行持久化，见 [Qian.Lifecycle](../Qian.Lifecycle/README.md)。
+装配失败沿用原有的收紧规则：已提交的禁用不回退，该 scope 被阻断，其他 scope 不受影响。本副本最近一次失败记为诊断：条目 Apply 失败带条目、组件修订与原因码，其余为 scope 级失败；下一次合入成功即清空。`GetScopeDiagnosticsAsync` 在与装载相同的锁内先合入数据库 scope，再返回这些诊断，供 Lifecycle 的管理面使用，调用方负责权限。Lifecycle 的挂载失败会恢复挂载前的 patch，并把原因另行持久化，见 [Kun.Lifecycle](../Kun.Lifecycle/README.md)。
 
 ## 管理面条件写入（S1-RT-029）
 
@@ -130,9 +130,9 @@ scope Reconciler 解析条目时，对在 `metadata/contracts.json` 声明契约
 
 成功授权后经 Lifecycle 的 `MountAtRevisionAsync` / `UnmountAtRevisionAsync` 复用既有 Mount / Unmount 编排与数据库条件写入。`disabled: true` 走卸载，平台条目写禁用 patch，纯租户条目撤销为墓碑；带当前修订重复卸载不再发事件，删除后重建沿用递增修订。required 条目不能禁用。patch 与 `registry.scope.*.v1` 信封同事务入 Outbox，Lifecycle 即时同步并沿用通知和补偿读取，装配失败恢复原 patch 并返回 `state: Failed` 与原因码。平台安装、开通和全局配置均不被此端点修改。
 
-宿主使用 `UseKunErrors()` → `UseRouting()` → `UseQianRegistryAliases()` → 身份与租户边界 → `UseAuthorization()`，再 `MapQianRegistry(...)`；平台运营 PUT 必须允许无租户平台身份到达注册表，由服务在授权时进入路径目标租户。别名中间件在路由后捕获后继路径，认证 401、绑定 400 和业务错误也带 `Deprecation` / `Link`。写端点声明 `PlatformHttpContract`，由真实 ApiExplorer 导出 [OpenAPI](../../plugins/qian.registry/contracts/http-v1.openapi.json)，不进入业务能力聚合；发布时经 RT-006 的 OpenAPI 兼容准入，移除 PUT 会被拒绝。
+宿主使用 `UseKunErrors()` → `UseRouting()` → `UseKunRegistryAliases()` → 身份与租户边界 → `UseAuthorization()`，再 `MapKunRegistry(...)`；平台运营 PUT 必须允许无租户平台身份到达注册表，由服务在授权时进入路径目标租户。别名中间件在路由后捕获后继路径，认证 401、绑定 400 和业务错误也带 `Deprecation` / `Link`。写端点声明 `PlatformHttpContract`，由真实 ApiExplorer 导出 [OpenAPI](../../_import/qian/plugins/qian.registry/contracts/http-v1.openapi.json)，不进入业务能力聚合；发布时经 RT-006 的 OpenAPI 兼容准入，移除 PUT 会被拒绝。
 
-运营 CLI 的连接、单条操作与失败语义见 [CLI](../qian-cli/README.md#租户-scope-运营入口)。真实集成测试覆盖 JWT、PG 受限角色、Authz、Audit、Lifecycle、Outbox、五秒内生效、其他租户与全局隔离、CLI add/remove、过期修订和别名错误响应。
+运营 CLI 的连接、单条操作与失败语义见 [CLI](../../_import/qian/packages/qian-cli/README.md#租户-scope-运营入口)。真实集成测试覆盖 JWT、PG 受限角色、Authz、Audit、Lifecycle、Outbox、五秒内生效、其他租户与全局隔离、CLI add/remove、过期修订和别名错误响应。
 
 ## 剩余工作
 
@@ -162,4 +162,4 @@ S1-TEN-004（R97）增加 GetConfigurationViewAsync：可信平台组件在当�
 
 `plugins/qian.registry/.qian-plugin/plugin.json` 的稳定入口是 `RegistryComponent`，允许 global scope，依赖 `Data`，提供 `Registry`。从宿主读取必需的 `RegistryRuntimeOptions`，再委托 `RegistryPlugin`；选定 platform profile、运行时工厂和已安装组件目录仍由宿主装配。
 
-入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代真实安装验收：清单已去掉 `x-skeleton`（R144 ③），本组件只在平台宿主里运行，安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试，不提供 `qian add` 独立安装。
+入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代真实安装验收：清单已去掉 `x-skeleton`（R144 ③），本组件只在平台宿主里运行，安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Kun.Platform.Host/README.md)的 profile 装配与集成测试，不提供 `qian add` 独立安装。

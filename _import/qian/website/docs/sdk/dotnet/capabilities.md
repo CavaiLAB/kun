@@ -14,7 +14,7 @@ updated: 2026-10-22
 组件把自己的能力登记进**能力目录**（[qian.capabilities](/components/platform/qian.capabilities)），分四类：命令、查询、事件、实体。
 
 - 组件在 `Apply` 中用 `ctx.ProvideCapability<TRequest, TResponse>()` 登记能力，绑定携带源生成的契约，请求与响应的 JSON Schema 由类型信息派生；目录只列这些绑定里、当前 scope 已挂载且 Ready 的能力。
-- platform profile 宿主必须调用 `services.AddQianCapabilities()`，登记时就生成目录条目并预编译输入校验器（漏掉时退化为首次读目录或调用时才编译）。不合格的契约（输入含 `tenantId` 等租户字段、Schema 无法可靠校验）抛 `CapabilityContractException`，带组件 ID、能力短名与 JSON Pointer（如 `qian.sample.crm/customer.export#/inputSchema/properties/tenantId`），组件挂载失败；问题在登记时暴露，不会留到第一次调用。
+- platform profile 宿主必须调用 `services.AddKunCapabilities()`，登记时就生成目录条目并预编译输入校验器（漏掉时退化为首次读目录或调用时才编译）。不合格的契约（输入含 `tenantId` 等租户字段、Schema 无法可靠校验）抛 `CapabilityContractException`，带组件 ID、能力短名与 JSON Pointer（如 `qian.sample.crm/customer.export#/inputSchema/properties/tenantId`），组件挂载失败；问题在登记时暴露，不会留到第一次调用。
 - `GET /api/capabilities?kind=command|query|event|entity&q=` 按调用者权限与当前 scope 的 restrict 过滤，被过滤的项不出现；响应信封 `{ items, ttlMs, cacheScope: "private" }` 的冻结 Schema 是 `contracts/v0/capability-catalog.schema.json`。
 - `POST /api/capabilities/{plugin}/{name}/invoke` 是通用执行入口，规则见下节。
 - `GET /api/capabilities/openapi.json` 聚合全部已挂载组件的 OpenAPI 3.1（需认证，不等于公开 OpenAPI）；写类能力的路径列出 `Idempotency-Key` 参数、`Idempotent-Replayed` 响应头与两种 409（`CONFLICT`、`CAPABILITY_REPLAY_UNAVAILABLE`）。

@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>菜单展示偏好与调用幂等回执的上下文，使用 Data 的受限角色、过滤器与强制 RLS；表结构随包内迁移交付。</summary>
 public sealed class CapabilitiesDbContext(DbContextOptions<CapabilitiesDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)

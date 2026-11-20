@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Qian.Common.Tests;
+namespace Kun.Common.Tests;
 
 public sealed class SchemaPatternTests
 {

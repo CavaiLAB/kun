@@ -1,4 +1,4 @@
-namespace Qian.Docs;
+namespace Kun.Docs;
 
 internal static class Paths
 {

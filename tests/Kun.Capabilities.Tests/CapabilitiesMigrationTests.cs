@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 // S1-RT-020 第 3 项：设计时入口与运行时同一装配，模型与包内迁移一致；RLS 与策略在迁移执行期由 Qian 迁移生成器补出，不在迁移文件里。
 public sealed class CapabilitiesMigrationTests

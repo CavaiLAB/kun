@@ -2,7 +2,7 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Errors;
 using Kun.Runtime;
-using Qian.Registry;
+using Kun.Registry;
 
 namespace Kun.Files.Tests;
 

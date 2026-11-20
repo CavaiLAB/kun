@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Json.Schema;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Surfaces;
+namespace Kun.Surfaces;
 
 internal sealed class SchemaLibrary
 {

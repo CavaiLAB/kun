@@ -19,21 +19,21 @@ using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Configuration;
 using Kun.Configuration.Platform;
 using Kun.Configuration.Secrets;
 using Kun.Data;
-using Qian.Lifecycle;
-using Qian.Lifecycle.AspNetCore;
+using Kun.Lifecycle;
+using Kun.Lifecycle.AspNetCore;
 using Kun.Plugin.Sdk;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 using Kun.Tenancy.Signup;
 using Kun.Testing.Containers;
@@ -352,7 +352,7 @@ public abstract partial class CustomerCommandTests
     }
 
     private protected static void MapLifecycle(WebApplication app) =>
-        app.MapQianLifecycle(http => http.RequestServices.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("lifecycle", ScopeKey.Global));
+        app.MapKunLifecycle(http => http.RequestServices.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("lifecycle", ScopeKey.Global));
 
     // 平台插件树：CRM 撤下全局条目，只预装 1.0.0 / 1.0.1 / 1.1.0（module 制品随宿主镜像发布，摘要即安装时核对的摘要），由 Lifecycle 装进租户 scope。
     private protected static async Task AttachLifecycle(WebApplication app, LifecyclePlatform platform)

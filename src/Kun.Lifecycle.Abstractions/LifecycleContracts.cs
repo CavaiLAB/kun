@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 /// <summary>待安装的制品：组件文件夹的完整字节、D4 目录摘要（sha256:…）与分离签名；签名不写回清单。</summary>
 public sealed class PluginArtifact

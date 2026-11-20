@@ -1,217 +1,217 @@
 #nullable enable
-Qian.Capabilities.CapabilitiesDefinition
-Qian.Capabilities.CapabilityCatalog
-Qian.Capabilities.CapabilityCatalog.CacheScope.get -> string!
-Qian.Capabilities.CapabilityCatalog.CapabilityCatalog(System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>! items, int ttlMs) -> void
-Qian.Capabilities.CapabilityCatalog.Items.get -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>!
-Qian.Capabilities.CapabilityCatalog.TtlMs.get -> int
-Qian.Capabilities.ICapabilityService
-Qian.Capabilities.ICapabilityService.ComposePromptAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
-Qian.Capabilities.ICapabilityService.InvokeAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! id, System.Text.Json.JsonElement input, System.Guid? idempotencyKey = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.CapabilityInvocation!>
-Qian.Capabilities.ICapabilityService.ListAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string? kind = null, string? query = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.CapabilityCatalog!>
-static Qian.Capabilities.CapabilitiesDefinition.Capabilities(this Kun.Runtime.IPluginContext! context) -> Qian.Capabilities.ICapabilityService!
-static readonly Qian.Capabilities.CapabilitiesDefinition.Key -> Kun.Runtime.ServiceKey
-Qian.Capabilities.ICapabilityService.GetOpenApiAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
-Qian.Capabilities.ContractCompatibility
-Qian.Capabilities.ContractCompatibility.<Clone>$() -> Qian.Capabilities.ContractCompatibility!
-Qian.Capabilities.ContractCompatibility.BreakingRules.get -> System.Collections.Generic.IReadOnlyList<string!>!
-Qian.Capabilities.ContractCompatibility.BreakingRules.init -> void
-Qian.Capabilities.ContractCompatibility.ContractCompatibility(bool IsCompatible, System.Collections.Generic.IReadOnlyList<string!>! BreakingRules) -> void
-Qian.Capabilities.ContractCompatibility.Deconstruct(out bool IsCompatible, out System.Collections.Generic.IReadOnlyList<string!>! BreakingRules) -> void
-Qian.Capabilities.ContractCompatibility.Equals(Qian.Capabilities.ContractCompatibility? other) -> bool
-Qian.Capabilities.ContractCompatibility.IsCompatible.get -> bool
-Qian.Capabilities.ContractCompatibility.IsCompatible.init -> void
-Qian.Capabilities.IOpenApiCompatibilityProbe
-Qian.Capabilities.IOpenApiCompatibilityProbe.CompareAsync(System.Text.Json.JsonElement baseline, System.Text.Json.JsonElement candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ContractCompatibility!>
-override Qian.Capabilities.ContractCompatibility.Equals(object? obj) -> bool
-override Qian.Capabilities.ContractCompatibility.GetHashCode() -> int
-override Qian.Capabilities.ContractCompatibility.ToString() -> string!
-static Qian.Capabilities.ContractCompatibility.operator !=(Qian.Capabilities.ContractCompatibility? left, Qian.Capabilities.ContractCompatibility? right) -> bool
-static Qian.Capabilities.ContractCompatibility.operator ==(Qian.Capabilities.ContractCompatibility? left, Qian.Capabilities.ContractCompatibility? right) -> bool
-Qian.Capabilities.ContractDocument
-Qian.Capabilities.ContractDocument.ArtifactDigest.get -> string!
-Qian.Capabilities.ContractDocument.ContractDocument(string! pluginId, string! pluginVersion, string! id, string! kind, string! path, string! artifactDigest, System.ReadOnlyMemory<byte> content) -> void
-Qian.Capabilities.ContractDocument.Id.get -> string!
-Qian.Capabilities.ContractDocument.Kind.get -> string!
-Qian.Capabilities.ContractDocument.Path.get -> string!
-Qian.Capabilities.ContractDocument.PluginId.get -> string!
-Qian.Capabilities.ContractDocument.PluginVersion.get -> string!
-Qian.Capabilities.ContractDocument.ReadContent() -> byte[]!
-Qian.Capabilities.ContractDocument.Sha256.get -> string!
-Qian.Capabilities.IContractRepository
-Qian.Capabilities.IContractRepository.CheckOpenApiAsync(string! pluginId, string! baselineVersion, string! candidateVersion, string! contractId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ContractCompatibility!>
-Qian.Capabilities.IContractRepository.Find(string! pluginId, string! version, string! contractId) -> Qian.Capabilities.ContractDocument?
-Qian.Capabilities.IContractRepository.GetContracts(string! pluginId, string! version) -> System.Collections.Generic.IReadOnlyList<Qian.Capabilities.ContractDocument!>!
-static Qian.Capabilities.CapabilitiesDefinition.Contracts(this Kun.Runtime.IPluginContext! context) -> Qian.Capabilities.IContractRepository!
-static readonly Qian.Capabilities.CapabilitiesDefinition.ContractsKey -> Kun.Runtime.ServiceKey
-Qian.Capabilities.INavigationService
-Qian.Capabilities.INavigationService.GetAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! resourceRef, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.NavigationItem!>
-Qian.Capabilities.INavigationService.ListAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>!>
-Qian.Capabilities.INavigationService.SetPreferenceAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! resourceRef, Qian.Capabilities.NavigationPreference! preference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-Qian.Capabilities.NavigationItem
-Qian.Capabilities.NavigationItem.<Clone>$() -> Qian.Capabilities.NavigationItem!
-Qian.Capabilities.NavigationItem.Deconstruct(out string! ResourceRef, out string! PluginId, out string! Route, out string! Title, out string? Icon, out int Order) -> void
-Qian.Capabilities.NavigationItem.Equals(Qian.Capabilities.NavigationItem? other) -> bool
-Qian.Capabilities.NavigationItem.Icon.get -> string?
-Qian.Capabilities.NavigationItem.Icon.init -> void
-Qian.Capabilities.NavigationItem.NavigationItem(string! ResourceRef, string! PluginId, string! Route, string! Title, string? Icon, int Order) -> void
-Qian.Capabilities.NavigationItem.Order.get -> int
-Qian.Capabilities.NavigationItem.Order.init -> void
-Qian.Capabilities.NavigationItem.PluginId.get -> string!
-Qian.Capabilities.NavigationItem.PluginId.init -> void
-Qian.Capabilities.NavigationItem.ResourceRef.get -> string!
-Qian.Capabilities.NavigationItem.ResourceRef.init -> void
-Qian.Capabilities.NavigationItem.Route.get -> string!
-Qian.Capabilities.NavigationItem.Route.init -> void
-Qian.Capabilities.NavigationItem.Title.get -> string!
-Qian.Capabilities.NavigationItem.Title.init -> void
-Qian.Capabilities.NavigationPreference
-Qian.Capabilities.NavigationPreference.<Clone>$() -> Qian.Capabilities.NavigationPreference!
-Qian.Capabilities.NavigationPreference.Deconstruct(out bool Hidden, out int? Order) -> void
-Qian.Capabilities.NavigationPreference.Equals(Qian.Capabilities.NavigationPreference? other) -> bool
-Qian.Capabilities.NavigationPreference.Hidden.get -> bool
-Qian.Capabilities.NavigationPreference.Hidden.init -> void
-Qian.Capabilities.NavigationPreference.NavigationPreference(bool Hidden, int? Order = null) -> void
-Qian.Capabilities.NavigationPreference.Order.get -> int?
-Qian.Capabilities.NavigationPreference.Order.init -> void
-override Qian.Capabilities.NavigationItem.Equals(object? obj) -> bool
-override Qian.Capabilities.NavigationItem.GetHashCode() -> int
-override Qian.Capabilities.NavigationItem.ToString() -> string!
-override Qian.Capabilities.NavigationPreference.Equals(object? obj) -> bool
-override Qian.Capabilities.NavigationPreference.GetHashCode() -> int
-override Qian.Capabilities.NavigationPreference.ToString() -> string!
-static Qian.Capabilities.CapabilitiesDefinition.Navigation(this Kun.Runtime.IPluginContext! context) -> Qian.Capabilities.INavigationService!
-static Qian.Capabilities.NavigationItem.operator !=(Qian.Capabilities.NavigationItem? left, Qian.Capabilities.NavigationItem? right) -> bool
-static Qian.Capabilities.NavigationItem.operator ==(Qian.Capabilities.NavigationItem? left, Qian.Capabilities.NavigationItem? right) -> bool
-static Qian.Capabilities.NavigationPreference.operator !=(Qian.Capabilities.NavigationPreference? left, Qian.Capabilities.NavigationPreference? right) -> bool
-static Qian.Capabilities.NavigationPreference.operator ==(Qian.Capabilities.NavigationPreference? left, Qian.Capabilities.NavigationPreference? right) -> bool
-static readonly Qian.Capabilities.CapabilitiesDefinition.NavigationItemsKey -> Kun.Runtime.ServiceKey
-static readonly Qian.Capabilities.CapabilitiesDefinition.NavigationKey -> Kun.Runtime.ServiceKey
-Qian.Capabilities.IProtoCompatibilityProbe
-Qian.Capabilities.IProtoCompatibilityProbe.CompareAsync(Qian.Capabilities.ProtoContractSet! baseline, Qian.Capabilities.ProtoContractSet! candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ContractCompatibility!>
-Qian.Capabilities.IProtoCompatibilityProbe.CompileAsync(Qian.Capabilities.ProtoContractSet! source, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>
-Qian.Capabilities.ProtoContractSet
-Qian.Capabilities.ProtoContractSet.Paths.get -> System.Collections.Generic.IReadOnlyList<string!>!
-Qian.Capabilities.ProtoContractSet.ProtoContractSet(System.Collections.Generic.IReadOnlyDictionary<string!, System.ReadOnlyMemory<byte>>! files) -> void
-Qian.Capabilities.ProtoContractSet.ReadFile(string! path) -> byte[]!
-Qian.Capabilities.IGrpcContractProbe
-Qian.Capabilities.IGrpcContractProbe.CheckAsync(Qian.Capabilities.ProtoContractSet! expected, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ContractCompatibility!>
-Qian.Capabilities.IProtoCompatibilityProbe.CompareDescriptorsAsync(System.ReadOnlyMemory<byte> baseline, System.ReadOnlyMemory<byte> candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ContractCompatibility!>
-Qian.Capabilities.IContractRepository.CheckProtoAsync(string! pluginId, string! baselineVersion, string! candidateVersion, string! contractId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ContractCompatibility!>
-Qian.Capabilities.IContractRepository.GetProtoSource(string! pluginId, string! version, string! contractId) -> Qian.Capabilities.ProtoContractSet!
-Qian.Capabilities.IProtoCompatibilityProbe.CompareRuntimeDescriptorsAsync(System.ReadOnlyMemory<byte> baseline, System.ReadOnlyMemory<byte> candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ContractCompatibility!>
-Qian.Capabilities.IHttpContractSource
-Qian.Capabilities.IHttpContractSource.GetDocumentAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
-Qian.Capabilities.NavigationCatalog
-Qian.Capabilities.NavigationCatalog.<Clone>$() -> Qian.Capabilities.NavigationCatalog!
-Qian.Capabilities.NavigationCatalog.CacheScope.get -> string!
-Qian.Capabilities.NavigationCatalog.Deconstruct(out System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>! Items) -> void
-Qian.Capabilities.NavigationCatalog.Equals(Qian.Capabilities.NavigationCatalog? other) -> bool
-Qian.Capabilities.NavigationCatalog.Items.get -> System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>!
-Qian.Capabilities.NavigationCatalog.Items.init -> void
-Qian.Capabilities.NavigationCatalog.NavigationCatalog(System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>! Items) -> void
-override Qian.Capabilities.NavigationCatalog.Equals(object? obj) -> bool
-override Qian.Capabilities.NavigationCatalog.GetHashCode() -> int
-override Qian.Capabilities.NavigationCatalog.ToString() -> string!
-static Qian.Capabilities.NavigationCatalog.operator !=(Qian.Capabilities.NavigationCatalog? left, Qian.Capabilities.NavigationCatalog? right) -> bool
-static Qian.Capabilities.NavigationCatalog.operator ==(Qian.Capabilities.NavigationCatalog? left, Qian.Capabilities.NavigationCatalog? right) -> bool
-Qian.Capabilities.IHttpContractSource.CompileDocumentAsync(string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
-Qian.Capabilities.CapabilityInvocation
-Qian.Capabilities.CapabilityInvocation.CapabilityInvocation(System.Text.Json.JsonElement output, bool replayed) -> void
-Qian.Capabilities.CapabilityInvocation.Output.get -> System.Text.Json.JsonElement
-Qian.Capabilities.CapabilityInvocation.Replayed.get -> bool
-Qian.Capabilities.CapabilitiesErrors
-static Qian.Capabilities.CapabilitiesErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
-static readonly Qian.Capabilities.CapabilitiesErrors.ReplayUnavailable -> Kun.Errors.ErrorCode!
-Qian.Capabilities.IContractAdmission
-Qian.Capabilities.IContractAdmission.Admit(Kun.Runtime.IKunPlugin! plugin, string! pluginId, string! version) -> Kun.Runtime.IKunPlugin!
-Qian.Capabilities.IGrpcContractPeers
-Qian.Capabilities.IGrpcContractPeers.Find(string! pluginId, string! version) -> Qian.Capabilities.IGrpcContractProbe?
-static readonly Qian.Capabilities.CapabilitiesDefinition.AdmissionKey -> Kun.Runtime.ServiceKey
-Qian.Capabilities.PlatformHttpContract
-Qian.Capabilities.PlatformHttpContract.<Clone>$() -> Qian.Capabilities.PlatformHttpContract!
-Qian.Capabilities.PlatformHttpContract.Deconstruct(out string! PluginId) -> void
-Qian.Capabilities.PlatformHttpContract.Equals(Qian.Capabilities.PlatformHttpContract? other) -> bool
-Qian.Capabilities.PlatformHttpContract.PlatformHttpContract(string! PluginId) -> void
-Qian.Capabilities.PlatformHttpContract.PluginId.get -> string!
-Qian.Capabilities.PlatformHttpContract.PluginId.init -> void
-override Qian.Capabilities.PlatformHttpContract.Equals(object? obj) -> bool
-override Qian.Capabilities.PlatformHttpContract.GetHashCode() -> int
-override Qian.Capabilities.PlatformHttpContract.ToString() -> string!
-static Qian.Capabilities.PlatformHttpContract.operator !=(Qian.Capabilities.PlatformHttpContract? left, Qian.Capabilities.PlatformHttpContract? right) -> bool
-static Qian.Capabilities.PlatformHttpContract.operator ==(Qian.Capabilities.PlatformHttpContract? left, Qian.Capabilities.PlatformHttpContract? right) -> bool
-Qian.Capabilities.HttpResponseSchema
-Qian.Capabilities.HttpResponseSchema.HttpResponseSchema(int statusCode, System.Text.Json.JsonElement schema, string! mediaType = "application/json") -> void
-Qian.Capabilities.HttpResponseSchema.StatusCode.get -> int
-Qian.Capabilities.HttpResponseSchema.Schema.get -> System.Text.Json.JsonElement
-Qian.Capabilities.HttpResponseSchema.MediaType.get -> string!
-Qian.Capabilities.TenantInputContract
-static Qian.Capabilities.TenantInputContract.FindFields(System.Text.Json.JsonElement schema, System.Text.Json.JsonElement? document = null) -> System.Collections.Generic.IReadOnlyList<string![]!>!
-static Qian.Capabilities.TenantInputContract.IsTenantName(string! name) -> bool
-Qian.Capabilities.ShellCatalog
-Qian.Capabilities.ShellCatalog.<Clone>$() -> Qian.Capabilities.ShellCatalog!
-Qian.Capabilities.ShellCatalog.Deconstruct(out Qian.Capabilities.ShellTenant! Tenant, out System.Collections.Generic.IReadOnlyList<Qian.Capabilities.ShellRemote!>! Remotes) -> void
-Qian.Capabilities.ShellCatalog.Equals(Qian.Capabilities.ShellCatalog? other) -> bool
-Qian.Capabilities.ShellCatalog.Tenant.get -> Qian.Capabilities.ShellTenant!
-Qian.Capabilities.ShellCatalog.Tenant.init -> void
-Qian.Capabilities.ShellCatalog.Remotes.get -> System.Collections.Generic.IReadOnlyList<Qian.Capabilities.ShellRemote!>!
-Qian.Capabilities.ShellCatalog.Remotes.init -> void
-Qian.Capabilities.ShellCatalog.ShellCatalog(Qian.Capabilities.ShellTenant! Tenant, System.Collections.Generic.IReadOnlyList<Qian.Capabilities.ShellRemote!>! Remotes) -> void
-override Qian.Capabilities.ShellCatalog.Equals(object? obj) -> bool
-override Qian.Capabilities.ShellCatalog.GetHashCode() -> int
-override Qian.Capabilities.ShellCatalog.ToString() -> string!
-static Qian.Capabilities.ShellCatalog.operator !=(Qian.Capabilities.ShellCatalog? left, Qian.Capabilities.ShellCatalog? right) -> bool
-static Qian.Capabilities.ShellCatalog.operator ==(Qian.Capabilities.ShellCatalog? left, Qian.Capabilities.ShellCatalog? right) -> bool
-Qian.Capabilities.ShellCatalog.CacheScope.get -> string!
-Qian.Capabilities.ShellTenant
-Qian.Capabilities.ShellTenant.<Clone>$() -> Qian.Capabilities.ShellTenant!
-Qian.Capabilities.ShellTenant.Deconstruct(out string! Id, out string! Name) -> void
-Qian.Capabilities.ShellTenant.Equals(Qian.Capabilities.ShellTenant? other) -> bool
-Qian.Capabilities.ShellTenant.Id.get -> string!
-Qian.Capabilities.ShellTenant.Id.init -> void
-Qian.Capabilities.ShellTenant.Name.get -> string!
-Qian.Capabilities.ShellTenant.Name.init -> void
-Qian.Capabilities.ShellTenant.ShellTenant(string! Id, string! Name) -> void
-override Qian.Capabilities.ShellTenant.Equals(object? obj) -> bool
-override Qian.Capabilities.ShellTenant.GetHashCode() -> int
-override Qian.Capabilities.ShellTenant.ToString() -> string!
-static Qian.Capabilities.ShellTenant.operator !=(Qian.Capabilities.ShellTenant? left, Qian.Capabilities.ShellTenant? right) -> bool
-static Qian.Capabilities.ShellTenant.operator ==(Qian.Capabilities.ShellTenant? left, Qian.Capabilities.ShellTenant? right) -> bool
-Qian.Capabilities.PlatformConsoleCatalog
-Qian.Capabilities.PlatformConsoleCatalog.<Clone>$() -> Qian.Capabilities.PlatformConsoleCatalog!
-Qian.Capabilities.PlatformConsoleCatalog.CacheScope.get -> string!
-Qian.Capabilities.PlatformConsoleCatalog.Deconstruct(out System.Collections.Generic.IReadOnlyList<Qian.Capabilities.ShellRemote!>! Remotes, out System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>! Navigation, out System.Collections.Generic.IReadOnlyList<string!>! Permissions) -> void
-Qian.Capabilities.PlatformConsoleCatalog.Equals(Qian.Capabilities.PlatformConsoleCatalog? other) -> bool
-Qian.Capabilities.PlatformConsoleCatalog.Navigation.get -> System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>!
-Qian.Capabilities.PlatformConsoleCatalog.Navigation.init -> void
-Qian.Capabilities.PlatformConsoleCatalog.Permissions.get -> System.Collections.Generic.IReadOnlyList<string!>!
-Qian.Capabilities.PlatformConsoleCatalog.Permissions.init -> void
-Qian.Capabilities.PlatformConsoleCatalog.PlatformConsoleCatalog(System.Collections.Generic.IReadOnlyList<Qian.Capabilities.ShellRemote!>! Remotes, System.Collections.Generic.IReadOnlyList<Qian.Capabilities.NavigationItem!>! Navigation, System.Collections.Generic.IReadOnlyList<string!>! Permissions) -> void
-Qian.Capabilities.PlatformConsoleCatalog.Remotes.get -> System.Collections.Generic.IReadOnlyList<Qian.Capabilities.ShellRemote!>!
-Qian.Capabilities.PlatformConsoleCatalog.Remotes.init -> void
-override Qian.Capabilities.PlatformConsoleCatalog.Equals(object? obj) -> bool
-override Qian.Capabilities.PlatformConsoleCatalog.GetHashCode() -> int
-override Qian.Capabilities.PlatformConsoleCatalog.ToString() -> string!
-static Qian.Capabilities.PlatformConsoleCatalog.operator !=(Qian.Capabilities.PlatformConsoleCatalog? left, Qian.Capabilities.PlatformConsoleCatalog? right) -> bool
-static Qian.Capabilities.PlatformConsoleCatalog.operator ==(Qian.Capabilities.PlatformConsoleCatalog? left, Qian.Capabilities.PlatformConsoleCatalog? right) -> bool
-Qian.Capabilities.ShellRemote
-Qian.Capabilities.ShellRemote.<Clone>$() -> Qian.Capabilities.ShellRemote!
-Qian.Capabilities.ShellRemote.Deconstruct(out string! Id, out string! Version, out string! Scope, out System.Text.Json.JsonElement Manifest) -> void
-Qian.Capabilities.ShellRemote.Equals(Qian.Capabilities.ShellRemote? other) -> bool
-Qian.Capabilities.ShellRemote.Id.get -> string!
-Qian.Capabilities.ShellRemote.Id.init -> void
-Qian.Capabilities.ShellRemote.Version.get -> string!
-Qian.Capabilities.ShellRemote.Version.init -> void
-Qian.Capabilities.ShellRemote.Scope.get -> string!
-Qian.Capabilities.ShellRemote.Scope.init -> void
-Qian.Capabilities.ShellRemote.Manifest.get -> System.Text.Json.JsonElement
-Qian.Capabilities.ShellRemote.Manifest.init -> void
-Qian.Capabilities.ShellRemote.ShellRemote(string! Id, string! Version, string! Scope, System.Text.Json.JsonElement Manifest) -> void
-override Qian.Capabilities.ShellRemote.Equals(object? obj) -> bool
-override Qian.Capabilities.ShellRemote.GetHashCode() -> int
-override Qian.Capabilities.ShellRemote.ToString() -> string!
-static Qian.Capabilities.ShellRemote.operator !=(Qian.Capabilities.ShellRemote? left, Qian.Capabilities.ShellRemote? right) -> bool
-static Qian.Capabilities.ShellRemote.operator ==(Qian.Capabilities.ShellRemote? left, Qian.Capabilities.ShellRemote? right) -> bool
-Qian.Capabilities.INavigationService.GetShellAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.ShellCatalog!>
-Qian.Capabilities.INavigationService.GetConsoleAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Capabilities.PlatformConsoleCatalog!>
-static readonly Qian.Capabilities.CapabilitiesDefinition.ShellRemotesKey -> Kun.Runtime.ServiceKey
+Kun.Capabilities.CapabilitiesDefinition
+Kun.Capabilities.CapabilityCatalog
+Kun.Capabilities.CapabilityCatalog.CacheScope.get -> string!
+Kun.Capabilities.CapabilityCatalog.CapabilityCatalog(System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>! items, int ttlMs) -> void
+Kun.Capabilities.CapabilityCatalog.Items.get -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>!
+Kun.Capabilities.CapabilityCatalog.TtlMs.get -> int
+Kun.Capabilities.ICapabilityService
+Kun.Capabilities.ICapabilityService.ComposePromptAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
+Kun.Capabilities.ICapabilityService.InvokeAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! id, System.Text.Json.JsonElement input, System.Guid? idempotencyKey = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.CapabilityInvocation!>
+Kun.Capabilities.ICapabilityService.ListAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string? kind = null, string? query = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.CapabilityCatalog!>
+static Kun.Capabilities.CapabilitiesDefinition.Capabilities(this Kun.Runtime.IPluginContext! context) -> Kun.Capabilities.ICapabilityService!
+static readonly Kun.Capabilities.CapabilitiesDefinition.Key -> Kun.Runtime.ServiceKey
+Kun.Capabilities.ICapabilityService.GetOpenApiAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
+Kun.Capabilities.ContractCompatibility
+Kun.Capabilities.ContractCompatibility.<Clone>$() -> Kun.Capabilities.ContractCompatibility!
+Kun.Capabilities.ContractCompatibility.BreakingRules.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Capabilities.ContractCompatibility.BreakingRules.init -> void
+Kun.Capabilities.ContractCompatibility.ContractCompatibility(bool IsCompatible, System.Collections.Generic.IReadOnlyList<string!>! BreakingRules) -> void
+Kun.Capabilities.ContractCompatibility.Deconstruct(out bool IsCompatible, out System.Collections.Generic.IReadOnlyList<string!>! BreakingRules) -> void
+Kun.Capabilities.ContractCompatibility.Equals(Kun.Capabilities.ContractCompatibility? other) -> bool
+Kun.Capabilities.ContractCompatibility.IsCompatible.get -> bool
+Kun.Capabilities.ContractCompatibility.IsCompatible.init -> void
+Kun.Capabilities.IOpenApiCompatibilityProbe
+Kun.Capabilities.IOpenApiCompatibilityProbe.CompareAsync(System.Text.Json.JsonElement baseline, System.Text.Json.JsonElement candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+override Kun.Capabilities.ContractCompatibility.Equals(object? obj) -> bool
+override Kun.Capabilities.ContractCompatibility.GetHashCode() -> int
+override Kun.Capabilities.ContractCompatibility.ToString() -> string!
+static Kun.Capabilities.ContractCompatibility.operator !=(Kun.Capabilities.ContractCompatibility? left, Kun.Capabilities.ContractCompatibility? right) -> bool
+static Kun.Capabilities.ContractCompatibility.operator ==(Kun.Capabilities.ContractCompatibility? left, Kun.Capabilities.ContractCompatibility? right) -> bool
+Kun.Capabilities.ContractDocument
+Kun.Capabilities.ContractDocument.ArtifactDigest.get -> string!
+Kun.Capabilities.ContractDocument.ContractDocument(string! pluginId, string! pluginVersion, string! id, string! kind, string! path, string! artifactDigest, System.ReadOnlyMemory<byte> content) -> void
+Kun.Capabilities.ContractDocument.Id.get -> string!
+Kun.Capabilities.ContractDocument.Kind.get -> string!
+Kun.Capabilities.ContractDocument.Path.get -> string!
+Kun.Capabilities.ContractDocument.PluginId.get -> string!
+Kun.Capabilities.ContractDocument.PluginVersion.get -> string!
+Kun.Capabilities.ContractDocument.ReadContent() -> byte[]!
+Kun.Capabilities.ContractDocument.Sha256.get -> string!
+Kun.Capabilities.IContractRepository
+Kun.Capabilities.IContractRepository.CheckOpenApiAsync(string! pluginId, string! baselineVersion, string! candidateVersion, string! contractId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.IContractRepository.Find(string! pluginId, string! version, string! contractId) -> Kun.Capabilities.ContractDocument?
+Kun.Capabilities.IContractRepository.GetContracts(string! pluginId, string! version) -> System.Collections.Generic.IReadOnlyList<Kun.Capabilities.ContractDocument!>!
+static Kun.Capabilities.CapabilitiesDefinition.Contracts(this Kun.Runtime.IPluginContext! context) -> Kun.Capabilities.IContractRepository!
+static readonly Kun.Capabilities.CapabilitiesDefinition.ContractsKey -> Kun.Runtime.ServiceKey
+Kun.Capabilities.INavigationService
+Kun.Capabilities.INavigationService.GetAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! resourceRef, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.NavigationItem!>
+Kun.Capabilities.INavigationService.ListAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Capabilities.NavigationItem!>!>
+Kun.Capabilities.INavigationService.SetPreferenceAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, string! resourceRef, Kun.Capabilities.NavigationPreference! preference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Capabilities.NavigationItem
+Kun.Capabilities.NavigationItem.<Clone>$() -> Kun.Capabilities.NavigationItem!
+Kun.Capabilities.NavigationItem.Deconstruct(out string! ResourceRef, out string! PluginId, out string! Route, out string! Title, out string? Icon, out int Order) -> void
+Kun.Capabilities.NavigationItem.Equals(Kun.Capabilities.NavigationItem? other) -> bool
+Kun.Capabilities.NavigationItem.Icon.get -> string?
+Kun.Capabilities.NavigationItem.Icon.init -> void
+Kun.Capabilities.NavigationItem.NavigationItem(string! ResourceRef, string! PluginId, string! Route, string! Title, string? Icon, int Order) -> void
+Kun.Capabilities.NavigationItem.Order.get -> int
+Kun.Capabilities.NavigationItem.Order.init -> void
+Kun.Capabilities.NavigationItem.PluginId.get -> string!
+Kun.Capabilities.NavigationItem.PluginId.init -> void
+Kun.Capabilities.NavigationItem.ResourceRef.get -> string!
+Kun.Capabilities.NavigationItem.ResourceRef.init -> void
+Kun.Capabilities.NavigationItem.Route.get -> string!
+Kun.Capabilities.NavigationItem.Route.init -> void
+Kun.Capabilities.NavigationItem.Title.get -> string!
+Kun.Capabilities.NavigationItem.Title.init -> void
+Kun.Capabilities.NavigationPreference
+Kun.Capabilities.NavigationPreference.<Clone>$() -> Kun.Capabilities.NavigationPreference!
+Kun.Capabilities.NavigationPreference.Deconstruct(out bool Hidden, out int? Order) -> void
+Kun.Capabilities.NavigationPreference.Equals(Kun.Capabilities.NavigationPreference? other) -> bool
+Kun.Capabilities.NavigationPreference.Hidden.get -> bool
+Kun.Capabilities.NavigationPreference.Hidden.init -> void
+Kun.Capabilities.NavigationPreference.NavigationPreference(bool Hidden, int? Order = null) -> void
+Kun.Capabilities.NavigationPreference.Order.get -> int?
+Kun.Capabilities.NavigationPreference.Order.init -> void
+override Kun.Capabilities.NavigationItem.Equals(object? obj) -> bool
+override Kun.Capabilities.NavigationItem.GetHashCode() -> int
+override Kun.Capabilities.NavigationItem.ToString() -> string!
+override Kun.Capabilities.NavigationPreference.Equals(object? obj) -> bool
+override Kun.Capabilities.NavigationPreference.GetHashCode() -> int
+override Kun.Capabilities.NavigationPreference.ToString() -> string!
+static Kun.Capabilities.CapabilitiesDefinition.Navigation(this Kun.Runtime.IPluginContext! context) -> Kun.Capabilities.INavigationService!
+static Kun.Capabilities.NavigationItem.operator !=(Kun.Capabilities.NavigationItem? left, Kun.Capabilities.NavigationItem? right) -> bool
+static Kun.Capabilities.NavigationItem.operator ==(Kun.Capabilities.NavigationItem? left, Kun.Capabilities.NavigationItem? right) -> bool
+static Kun.Capabilities.NavigationPreference.operator !=(Kun.Capabilities.NavigationPreference? left, Kun.Capabilities.NavigationPreference? right) -> bool
+static Kun.Capabilities.NavigationPreference.operator ==(Kun.Capabilities.NavigationPreference? left, Kun.Capabilities.NavigationPreference? right) -> bool
+static readonly Kun.Capabilities.CapabilitiesDefinition.NavigationItemsKey -> Kun.Runtime.ServiceKey
+static readonly Kun.Capabilities.CapabilitiesDefinition.NavigationKey -> Kun.Runtime.ServiceKey
+Kun.Capabilities.IProtoCompatibilityProbe
+Kun.Capabilities.IProtoCompatibilityProbe.CompareAsync(Kun.Capabilities.ProtoContractSet! baseline, Kun.Capabilities.ProtoContractSet! candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.IProtoCompatibilityProbe.CompileAsync(Kun.Capabilities.ProtoContractSet! source, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>
+Kun.Capabilities.ProtoContractSet
+Kun.Capabilities.ProtoContractSet.Paths.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Capabilities.ProtoContractSet.ProtoContractSet(System.Collections.Generic.IReadOnlyDictionary<string!, System.ReadOnlyMemory<byte>>! files) -> void
+Kun.Capabilities.ProtoContractSet.ReadFile(string! path) -> byte[]!
+Kun.Capabilities.IGrpcContractProbe
+Kun.Capabilities.IGrpcContractProbe.CheckAsync(Kun.Capabilities.ProtoContractSet! expected, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.IProtoCompatibilityProbe.CompareDescriptorsAsync(System.ReadOnlyMemory<byte> baseline, System.ReadOnlyMemory<byte> candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.IContractRepository.CheckProtoAsync(string! pluginId, string! baselineVersion, string! candidateVersion, string! contractId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.IContractRepository.GetProtoSource(string! pluginId, string! version, string! contractId) -> Kun.Capabilities.ProtoContractSet!
+Kun.Capabilities.IProtoCompatibilityProbe.CompareRuntimeDescriptorsAsync(System.ReadOnlyMemory<byte> baseline, System.ReadOnlyMemory<byte> candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.IHttpContractSource
+Kun.Capabilities.IHttpContractSource.GetDocumentAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
+Kun.Capabilities.NavigationCatalog
+Kun.Capabilities.NavigationCatalog.<Clone>$() -> Kun.Capabilities.NavigationCatalog!
+Kun.Capabilities.NavigationCatalog.CacheScope.get -> string!
+Kun.Capabilities.NavigationCatalog.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Capabilities.NavigationItem!>! Items) -> void
+Kun.Capabilities.NavigationCatalog.Equals(Kun.Capabilities.NavigationCatalog? other) -> bool
+Kun.Capabilities.NavigationCatalog.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Capabilities.NavigationItem!>!
+Kun.Capabilities.NavigationCatalog.Items.init -> void
+Kun.Capabilities.NavigationCatalog.NavigationCatalog(System.Collections.Generic.IReadOnlyList<Kun.Capabilities.NavigationItem!>! Items) -> void
+override Kun.Capabilities.NavigationCatalog.Equals(object? obj) -> bool
+override Kun.Capabilities.NavigationCatalog.GetHashCode() -> int
+override Kun.Capabilities.NavigationCatalog.ToString() -> string!
+static Kun.Capabilities.NavigationCatalog.operator !=(Kun.Capabilities.NavigationCatalog? left, Kun.Capabilities.NavigationCatalog? right) -> bool
+static Kun.Capabilities.NavigationCatalog.operator ==(Kun.Capabilities.NavigationCatalog? left, Kun.Capabilities.NavigationCatalog? right) -> bool
+Kun.Capabilities.IHttpContractSource.CompileDocumentAsync(string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement>
+Kun.Capabilities.CapabilityInvocation
+Kun.Capabilities.CapabilityInvocation.CapabilityInvocation(System.Text.Json.JsonElement output, bool replayed) -> void
+Kun.Capabilities.CapabilityInvocation.Output.get -> System.Text.Json.JsonElement
+Kun.Capabilities.CapabilityInvocation.Replayed.get -> bool
+Kun.Capabilities.CapabilitiesErrors
+static Kun.Capabilities.CapabilitiesErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static readonly Kun.Capabilities.CapabilitiesErrors.ReplayUnavailable -> Kun.Errors.ErrorCode!
+Kun.Capabilities.IContractAdmission
+Kun.Capabilities.IContractAdmission.Admit(Kun.Runtime.IKunPlugin! plugin, string! pluginId, string! version) -> Kun.Runtime.IKunPlugin!
+Kun.Capabilities.IGrpcContractPeers
+Kun.Capabilities.IGrpcContractPeers.Find(string! pluginId, string! version) -> Kun.Capabilities.IGrpcContractProbe?
+static readonly Kun.Capabilities.CapabilitiesDefinition.AdmissionKey -> Kun.Runtime.ServiceKey
+Kun.Capabilities.PlatformHttpContract
+Kun.Capabilities.PlatformHttpContract.<Clone>$() -> Kun.Capabilities.PlatformHttpContract!
+Kun.Capabilities.PlatformHttpContract.Deconstruct(out string! PluginId) -> void
+Kun.Capabilities.PlatformHttpContract.Equals(Kun.Capabilities.PlatformHttpContract? other) -> bool
+Kun.Capabilities.PlatformHttpContract.PlatformHttpContract(string! PluginId) -> void
+Kun.Capabilities.PlatformHttpContract.PluginId.get -> string!
+Kun.Capabilities.PlatformHttpContract.PluginId.init -> void
+override Kun.Capabilities.PlatformHttpContract.Equals(object? obj) -> bool
+override Kun.Capabilities.PlatformHttpContract.GetHashCode() -> int
+override Kun.Capabilities.PlatformHttpContract.ToString() -> string!
+static Kun.Capabilities.PlatformHttpContract.operator !=(Kun.Capabilities.PlatformHttpContract? left, Kun.Capabilities.PlatformHttpContract? right) -> bool
+static Kun.Capabilities.PlatformHttpContract.operator ==(Kun.Capabilities.PlatformHttpContract? left, Kun.Capabilities.PlatformHttpContract? right) -> bool
+Kun.Capabilities.HttpResponseSchema
+Kun.Capabilities.HttpResponseSchema.HttpResponseSchema(int statusCode, System.Text.Json.JsonElement schema, string! mediaType = "application/json") -> void
+Kun.Capabilities.HttpResponseSchema.StatusCode.get -> int
+Kun.Capabilities.HttpResponseSchema.Schema.get -> System.Text.Json.JsonElement
+Kun.Capabilities.HttpResponseSchema.MediaType.get -> string!
+Kun.Capabilities.TenantInputContract
+static Kun.Capabilities.TenantInputContract.FindFields(System.Text.Json.JsonElement schema, System.Text.Json.JsonElement? document = null) -> System.Collections.Generic.IReadOnlyList<string![]!>!
+static Kun.Capabilities.TenantInputContract.IsTenantName(string! name) -> bool
+Kun.Capabilities.ShellCatalog
+Kun.Capabilities.ShellCatalog.<Clone>$() -> Kun.Capabilities.ShellCatalog!
+Kun.Capabilities.ShellCatalog.Deconstruct(out Kun.Capabilities.ShellTenant! Tenant, out System.Collections.Generic.IReadOnlyList<Kun.Capabilities.ShellRemote!>! Remotes) -> void
+Kun.Capabilities.ShellCatalog.Equals(Kun.Capabilities.ShellCatalog? other) -> bool
+Kun.Capabilities.ShellCatalog.Tenant.get -> Kun.Capabilities.ShellTenant!
+Kun.Capabilities.ShellCatalog.Tenant.init -> void
+Kun.Capabilities.ShellCatalog.Remotes.get -> System.Collections.Generic.IReadOnlyList<Kun.Capabilities.ShellRemote!>!
+Kun.Capabilities.ShellCatalog.Remotes.init -> void
+Kun.Capabilities.ShellCatalog.ShellCatalog(Kun.Capabilities.ShellTenant! Tenant, System.Collections.Generic.IReadOnlyList<Kun.Capabilities.ShellRemote!>! Remotes) -> void
+override Kun.Capabilities.ShellCatalog.Equals(object? obj) -> bool
+override Kun.Capabilities.ShellCatalog.GetHashCode() -> int
+override Kun.Capabilities.ShellCatalog.ToString() -> string!
+static Kun.Capabilities.ShellCatalog.operator !=(Kun.Capabilities.ShellCatalog? left, Kun.Capabilities.ShellCatalog? right) -> bool
+static Kun.Capabilities.ShellCatalog.operator ==(Kun.Capabilities.ShellCatalog? left, Kun.Capabilities.ShellCatalog? right) -> bool
+Kun.Capabilities.ShellCatalog.CacheScope.get -> string!
+Kun.Capabilities.ShellTenant
+Kun.Capabilities.ShellTenant.<Clone>$() -> Kun.Capabilities.ShellTenant!
+Kun.Capabilities.ShellTenant.Deconstruct(out string! Id, out string! Name) -> void
+Kun.Capabilities.ShellTenant.Equals(Kun.Capabilities.ShellTenant? other) -> bool
+Kun.Capabilities.ShellTenant.Id.get -> string!
+Kun.Capabilities.ShellTenant.Id.init -> void
+Kun.Capabilities.ShellTenant.Name.get -> string!
+Kun.Capabilities.ShellTenant.Name.init -> void
+Kun.Capabilities.ShellTenant.ShellTenant(string! Id, string! Name) -> void
+override Kun.Capabilities.ShellTenant.Equals(object? obj) -> bool
+override Kun.Capabilities.ShellTenant.GetHashCode() -> int
+override Kun.Capabilities.ShellTenant.ToString() -> string!
+static Kun.Capabilities.ShellTenant.operator !=(Kun.Capabilities.ShellTenant? left, Kun.Capabilities.ShellTenant? right) -> bool
+static Kun.Capabilities.ShellTenant.operator ==(Kun.Capabilities.ShellTenant? left, Kun.Capabilities.ShellTenant? right) -> bool
+Kun.Capabilities.PlatformConsoleCatalog
+Kun.Capabilities.PlatformConsoleCatalog.<Clone>$() -> Kun.Capabilities.PlatformConsoleCatalog!
+Kun.Capabilities.PlatformConsoleCatalog.CacheScope.get -> string!
+Kun.Capabilities.PlatformConsoleCatalog.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Capabilities.ShellRemote!>! Remotes, out System.Collections.Generic.IReadOnlyList<Kun.Capabilities.NavigationItem!>! Navigation, out System.Collections.Generic.IReadOnlyList<string!>! Permissions) -> void
+Kun.Capabilities.PlatformConsoleCatalog.Equals(Kun.Capabilities.PlatformConsoleCatalog? other) -> bool
+Kun.Capabilities.PlatformConsoleCatalog.Navigation.get -> System.Collections.Generic.IReadOnlyList<Kun.Capabilities.NavigationItem!>!
+Kun.Capabilities.PlatformConsoleCatalog.Navigation.init -> void
+Kun.Capabilities.PlatformConsoleCatalog.Permissions.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Capabilities.PlatformConsoleCatalog.Permissions.init -> void
+Kun.Capabilities.PlatformConsoleCatalog.PlatformConsoleCatalog(System.Collections.Generic.IReadOnlyList<Kun.Capabilities.ShellRemote!>! Remotes, System.Collections.Generic.IReadOnlyList<Kun.Capabilities.NavigationItem!>! Navigation, System.Collections.Generic.IReadOnlyList<string!>! Permissions) -> void
+Kun.Capabilities.PlatformConsoleCatalog.Remotes.get -> System.Collections.Generic.IReadOnlyList<Kun.Capabilities.ShellRemote!>!
+Kun.Capabilities.PlatformConsoleCatalog.Remotes.init -> void
+override Kun.Capabilities.PlatformConsoleCatalog.Equals(object? obj) -> bool
+override Kun.Capabilities.PlatformConsoleCatalog.GetHashCode() -> int
+override Kun.Capabilities.PlatformConsoleCatalog.ToString() -> string!
+static Kun.Capabilities.PlatformConsoleCatalog.operator !=(Kun.Capabilities.PlatformConsoleCatalog? left, Kun.Capabilities.PlatformConsoleCatalog? right) -> bool
+static Kun.Capabilities.PlatformConsoleCatalog.operator ==(Kun.Capabilities.PlatformConsoleCatalog? left, Kun.Capabilities.PlatformConsoleCatalog? right) -> bool
+Kun.Capabilities.ShellRemote
+Kun.Capabilities.ShellRemote.<Clone>$() -> Kun.Capabilities.ShellRemote!
+Kun.Capabilities.ShellRemote.Deconstruct(out string! Id, out string! Version, out string! Scope, out System.Text.Json.JsonElement Manifest) -> void
+Kun.Capabilities.ShellRemote.Equals(Kun.Capabilities.ShellRemote? other) -> bool
+Kun.Capabilities.ShellRemote.Id.get -> string!
+Kun.Capabilities.ShellRemote.Id.init -> void
+Kun.Capabilities.ShellRemote.Version.get -> string!
+Kun.Capabilities.ShellRemote.Version.init -> void
+Kun.Capabilities.ShellRemote.Scope.get -> string!
+Kun.Capabilities.ShellRemote.Scope.init -> void
+Kun.Capabilities.ShellRemote.Manifest.get -> System.Text.Json.JsonElement
+Kun.Capabilities.ShellRemote.Manifest.init -> void
+Kun.Capabilities.ShellRemote.ShellRemote(string! Id, string! Version, string! Scope, System.Text.Json.JsonElement Manifest) -> void
+override Kun.Capabilities.ShellRemote.Equals(object? obj) -> bool
+override Kun.Capabilities.ShellRemote.GetHashCode() -> int
+override Kun.Capabilities.ShellRemote.ToString() -> string!
+static Kun.Capabilities.ShellRemote.operator !=(Kun.Capabilities.ShellRemote? left, Kun.Capabilities.ShellRemote? right) -> bool
+static Kun.Capabilities.ShellRemote.operator ==(Kun.Capabilities.ShellRemote? left, Kun.Capabilities.ShellRemote? right) -> bool
+Kun.Capabilities.INavigationService.GetShellAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ShellCatalog!>
+Kun.Capabilities.INavigationService.GetConsoleAsync(Kun.Runtime.IPluginContext! caller, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.PlatformConsoleCatalog!>
+static readonly Kun.Capabilities.CapabilitiesDefinition.ShellRemotesKey -> Kun.Runtime.ServiceKey

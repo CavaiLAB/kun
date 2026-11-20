@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.Runtime;
 using Microsoft.AspNetCore.Http;
-using Qian.Registry;
+using Kun.Registry;
 
 namespace Kun.Plugin.Sdk.AspNetCore;
 

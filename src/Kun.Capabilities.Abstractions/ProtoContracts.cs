@@ -1,4 +1,4 @@
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>同一制品内的封闭 proto 源文件集合；不包含生成器、网络依赖或宿主路径。</summary>
 public sealed class ProtoContractSet

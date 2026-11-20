@@ -4,7 +4,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <ProjectReference Include="../../src/Kun.Authorization.Rbac/Kun.Authorization.Rbac.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
     <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../src/Kun.EventBus/Kun.EventBus.csproj" />

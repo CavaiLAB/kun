@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>注册表拥有的错误码；R48 的原因通过协议错误码表达，不扩展 ErrorDetail。</summary>
 public static class RegistryErrors

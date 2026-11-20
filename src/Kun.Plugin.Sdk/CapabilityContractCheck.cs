@@ -5,7 +5,7 @@ namespace Kun.Plugin.Sdk;
 /// <summary>
 /// 能力登记期的契约检查端口。平台宿主登记实现后，<see cref="CapabilityBindingRegistration.ProvideCapability{TRequest, TResponse}"/>
 /// 在登记前调用它：生成目录条目并预编译输入校验器，不合格的契约在登记阶段拒绝，不留到首次调用。platform profile 宿主必须登记
-/// （<c>AddQianCapabilities()</c>）；未登记时不做此检查，独立宿主没有通用执行入口，不需要它。
+/// （<c>AddKunCapabilities()</c>）；未登记时不做此检查，独立宿主没有通用执行入口，不需要它。
 /// </summary>
 public interface ICapabilityContractCheck
 {

@@ -1,7 +1,7 @@
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 using System.Text.RegularExpressions;
 
-namespace Qian.Surfaces;
+namespace Kun.Surfaces;
 
 public sealed partial class SurfaceValidator
 {

@@ -4,7 +4,7 @@ using Google.Protobuf.Reflection;
 using Grpc.Core;
 using Grpc.Reflection.V1Alpha;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 // S1-RT-028：服务端读请求前就结束调用（认证拒绝后立即回 401 并重置流）时，Grpc.Net.Client 写请求流可能先于调用状态就绪而报 Cancelled。
 // 这里按脚本回放双向流，确定性地构造这一时序，不依赖真实 HTTP/2 的线程调度；真实认证宿主下的匿名探测见 GrpcReflectionTests。

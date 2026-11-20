@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>能力组件拥有的错误码。</summary>
 public static class CapabilitiesErrors

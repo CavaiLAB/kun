@@ -9,7 +9,7 @@ using Kun.Errors.AspNetCore;
 using Kun.Runtime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
-using Qian.Capabilities;
+using Kun.Capabilities;
 
 namespace Kun.Tenancy.Signup;
 

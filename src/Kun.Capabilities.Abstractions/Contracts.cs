@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>平台能力目录 seam，独立模式不因此依赖平台 Provider。</summary>
 public static class CapabilitiesDefinition

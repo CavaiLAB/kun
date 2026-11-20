@@ -2,14 +2,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Registry.AspNetCore;
+namespace Kun.Registry.AspNetCore;
 
 /// <summary>管理面 scope 视图与组件反向权限声明（PRD 7.2.1、组件规格 §9.5）；宿主提供已验证租户的注册表上下文，HTTP 输入不能指定主体或租户。</summary>
 public static class RegistryEndpoints
@@ -17,7 +17,7 @@ public static class RegistryEndpoints
     private const string KernelPrefix = "/api/kernel";
 
     /// <summary>在 UseRouting 之后、身份与授权之前装配别名响应头；确保认证 401、请求绑定 400 与业务错误均保留弃用信息。</summary>
-    public static IApplicationBuilder UseQianRegistryAliases(this IApplicationBuilder app)
+    public static IApplicationBuilder UseKunRegistryAliases(this IApplicationBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app);
         return app.Use(async (http, next) =>
@@ -39,7 +39,7 @@ public static class RegistryEndpoints
     /// 宿主须先配置身份、租户与 ErrorDetail 中间件，并装配权限判定端口。source 返回可注入注册表的插件上下文，
     /// scope 由路径给出、由注册表按已验证租户判定。不挂插件端点门禁：scope 合入失败时本 scope 的注册全部收紧，诊断面仍须能说明原因。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianRegistry(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunRegistry(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         endpoints.MapGet("/api/registry/scopes/{scopeKey}/entries", (HttpContext http, string scopeKey) => List(http, scopeKey, false))

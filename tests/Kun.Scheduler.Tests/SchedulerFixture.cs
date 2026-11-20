@@ -10,10 +10,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Kun.Data;
-using Qian.Scheduler.TestHost;
+using Kun.Scheduler.TestHost;
 using Kun.Testing.Containers;
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 public sealed class SchedulerFixture : IAsyncLifetime
 {

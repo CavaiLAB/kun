@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Surfaces.Tests;
+namespace Kun.Surfaces.Tests;
 
 public sealed class HotReloadTests
 {

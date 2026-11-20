@@ -3,9 +3,9 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Kun.Plugin.Sdk;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 // 登记期与目录共用的能力契约检查：生成目录条目并预编译输入校验器，结果按契约实例缓存。登记期（SDK ProvideCapability）不合格即抛出；
 // 目录读取仍对动态绑定做防御性检查：不合格项被排除并记一次告警；platform 宿主缺少登记期检查时已由组件入口拒绝挂载。

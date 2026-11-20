@@ -10,7 +10,7 @@ using Kun.Configuration;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // GitOps 执行器：把 Kustomize 片段提交到部署仓库（Argo 收敛，S1-DEP-005），健康 = K8s Deployment 状态 + 经 API Server 服务代理访问组件 /health。
 // 仓库凭据由宿主环境的 git 凭据助手提供；K8s 令牌每次观测重新从秘密解析，轮换不重启。

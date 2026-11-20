@@ -4,9 +4,9 @@ using System.Text.Json;
 using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Surfaces;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Surfaces;
 using YamlDotNet.Serialization;
 
 namespace Kun.Runtime.Tests;

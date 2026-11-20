@@ -5,9 +5,9 @@ using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using Kun.Plugin.Sdk;
 using Kun.Errors;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 // S1-RT-020 第 1 项：输入 Schema 在登记阶段预编译；不合格的契约带组件、能力短名与 JSON Pointer 拒绝，不留到首次调用。
 public sealed class CapabilityContractCheckTests
@@ -269,7 +269,7 @@ public sealed class CapabilityContractCheckTests
         return new CapabilityContract("qian.test", metadata.ToJsonString(), ProbeJson.Default.PlainProbe, ProbeJson.Default.ProbeResult);
     }
 
-    private sealed class FailingHasher : Qian.Surfaces.Abstractions.IToolContractHasher
+    private sealed class FailingHasher : Kun.Surfaces.Abstractions.IToolContractHasher
     {
         internal InvalidOperationException Failure { get; } = new("摘要实现不可用。");
         internal int Calls { get; private set; }

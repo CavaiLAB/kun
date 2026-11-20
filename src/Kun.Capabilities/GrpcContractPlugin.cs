@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>业务 Apply 前核对版本制品与实际 gRPC 反射端点，任何探测失败均不公开业务注册。</summary>
 public sealed class GrpcContractPlugin : IKunPlugin

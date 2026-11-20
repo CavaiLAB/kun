@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Qian.Lifecycle;
-using Qian.Registry;
+using Kun.Lifecycle;
+using Kun.Registry;
 using Kun.Errors;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 系统组件修订的安装 Job（<c>--install-system-revisions</c>，S1-DEP-011，R151 ①）：与 <c>--migrate-only</c> 同形，每次部署在迁移之后、在线副本之前运行，跑完退出。

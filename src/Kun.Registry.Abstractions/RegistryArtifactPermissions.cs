@@ -1,4 +1,4 @@
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>
 /// 组件版本向平台申请的反向权限（组件规格 §3.4）：清单 policy.permissions 的 platform / data / secrets / ui.connectSrc 与 policy.egress 五类，

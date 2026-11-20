@@ -1,10 +1,10 @@
-# Qian.Scheduler
+# Kun.Scheduler
 
-[S1-SCH-001](../../pm/tasks/S1-SCH-001.md) 的 PostgreSQL 持久调度 Provider。Definition 为 `Qian.Scheduler.Abstractions`，服务键为 `Scheduler`；代码只依赖 Runtime、SDK 与各 Definition，不依赖 Registry、Capabilities 或 Data Provider。
+[S1-SCH-001](../../_import/qian/pm/tasks/S1-SCH-001.md) 的 PostgreSQL 持久调度 Provider。Definition 为 `Kun.Scheduler.Abstractions`，服务键为 `Scheduler`；代码只依赖 Runtime、SDK 与各 Definition，不依赖 Registry、Capabilities 或 Data Provider。
 
 ## 组件与安装边界
 
-组件文件夹在 [plugins/qian.scheduler](../../plugins/qian.scheduler/README.md)：唯一 plugin.json、配置 Schema、机器可读的作业定义 Schema。Provider 以 global 条目挂载，API 按调用者 tenant scope 分区；默认属于 platform 的 base 组合包，也可在 standalone 中装配。同一 Provider 和 local 作业绑定同时用于独立宿主与平台宿主。
+组件文件夹在 [plugins/qian.scheduler](../../_import/qian/plugins/qian.scheduler/README.md)：唯一 plugin.json、配置 Schema、机器可读的作业定义 Schema。Provider 以 global 条目挂载，API 按调用者 tenant scope 分区；默认属于 platform 的 base 组合包，也可在 standalone 中装配。同一 Provider 和 local 作业绑定同时用于独立宿主与平台宿主。
 
 入口是 SchedulerComponent。宿主已有的 Data/Tenancy 服务就绪后，Apply 校验专用 worker 连接、注册 Scheduler 并启动领取循环；卸载撤销服务、取消执行、释放循环。配置可由 profile patch 替换；不在 Runtime 中增加业务调度逻辑。当前源码与本地独立宿主已覆盖，组件保留 x-skeleton 安装标记：正式 NuGet 源发布与真实 qian add scheduler 安装尚未完成，不能把清单派生或本地 ProjectReference 运行当作该门通过。包族发布后按 S1-DEC-018 补版本/摘要与真实安装证据再移除标记。
 

@@ -2,7 +2,7 @@ using Kun.Core.Domain;
 using Kun.EventBus;
 using Kun.Mediator;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 /// <summary>平台宿主接入生命周期集成事件的装配入口。</summary>
 public static class LifecycleEventHandlers
@@ -11,7 +11,7 @@ public static class LifecycleEventHandlers
     /// 登记修订激活与租户升级的领域事件处理器：状态写入在保存时经它把 lifecycle.*.v1 放进同一事务的 Outbox。宿主还须以
     /// <see cref="LifecycleEvents.RegisterLifecycleEvents"/> 登记事件类型并装配写入信封的 Outbox 端口（AddKunEvents）；漏装处理器时状态写入在提交前失败。
     /// </summary>
-    public static KunMediatorBuilder AddQianLifecycleEvents(this KunMediatorBuilder builder)
+    public static KunMediatorBuilder AddKunLifecycleEvents(this KunMediatorBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         return builder.AddNotificationHandler<RevisionActivated, LifecycleChangeHandler>()

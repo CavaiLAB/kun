@@ -1,6 +1,6 @@
-# Qian.Scheduler.Abstractions
+# Kun.Scheduler.Abstractions
 
-拥有 Scheduler 服务键、IScheduler、JobOptions、misfire/并发策略与错误词汇。行为、数据库边界和完整用法以 [Provider 主文档](../Qian.Scheduler/README.md) 为准。
+拥有 Scheduler 服务键、IScheduler、JobOptions、misfire/并发策略与错误词汇。行为、数据库边界和完整用法以 [Provider 主文档](../Kun.Scheduler/README.md) 为准。
 
 ## 模型体验
 

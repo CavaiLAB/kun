@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>平台装配器使用的普通插件包装：在业务 Apply 前执行真实契约兼容检查，不修改 Runtime。</summary>
 public sealed partial class OpenApiContractPlugin : IKunPlugin

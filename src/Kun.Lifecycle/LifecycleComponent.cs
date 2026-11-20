@@ -2,11 +2,11 @@ using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Configuration;
 using Kun.Plugin.Sdk;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using System.Text.Json;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 LifecyclePlugin 保留。</summary>
 [KunPlugin("qian.lifecycle")]

@@ -16,7 +16,7 @@ using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 // S1-AZ-003（自 S1-RT-004 移交）：平台超管跨租户读取 scope 视图只走 Authz 的显式旁路，并记入目标租户审计链（bypass = superadmin）。
 // 真实 Registry、真实 Authz / Audit 插件、专用平台授权登录；令牌里的角色与请求头都不授予任何权限。

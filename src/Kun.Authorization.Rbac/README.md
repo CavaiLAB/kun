@@ -81,7 +81,7 @@ roles、role_assignments、grants 保留可空 tenant_id 的平台角色存储�
 
 HTTP 端点由 Kun.Authorization.AspNetCore 提供：`MapKunAuthz(source)` 登记 `GET /api/authz/me/permissions`，`source` 返回可注入 `Authz` 的插件上下文（参考应用传入 authz 组件按请求租户收窄的上下文）。主体与租户只取自已认证请求（`ICurrentUser`），不读请求参数；未认证 401（UNAUTHENTICATED），委托令牌与 Agent 主体在 S1 一律 403（AUTHZ_DENIED），授权组件未就绪或已卸载时与不存在同为 404，响应带 `Cache-Control: private, no-store`。响应为 `{ items: [{ permission, resource, action, risk, stepUp, terminals, allowed, reason }] }`，resource 为组件前缀的资源类型（如 `qian.sample.crm:customer`），risk 为 low / medium / high / critical。授权的其余 HTTP 端点（Check / Explain、角色与授权管理）归 S1-AZ-005。
 
-参考应用 TCK（Qian.Sample.Crm.Tests 的 `参考应用清单经tenant_provisioned实例化默认角色_…`）在真实宿主上验证：清单声明的 customer 读、写、导出登记为全名；非 qian.tenancy 生产方或主体不符的通知被拒；新租户经真实 qian.tenancy 上下文派发开通后，Owner 经 HTTP 读到三项（导出 high、step-up、web 终端、allowed=false），使用者只读到 read，与 Check 一致；重复开通不改变任何行与修订；卸载 Provider 后端点 404，持久目录与授予保留。平台模式由 Qian.Registry.Tests 的 `平台模式Authz从预装组件读取权限目录_…` 验证：从注册表预装组件编译、持久化并登记目录，开通后按 qian.registry 的默认角色授权，卸载后活动声明撤销。
+参考应用 TCK（Qian.Sample.Crm.Tests 的 `参考应用清单经tenant_provisioned实例化默认角色_…`）在真实宿主上验证：清单声明的 customer 读、写、导出登记为全名；非 qian.tenancy 生产方或主体不符的通知被拒；新租户经真实 qian.tenancy 上下文派发开通后，Owner 经 HTTP 读到三项（导出 high、step-up、web 终端、allowed=false），使用者只读到 read，与 Check 一致；重复开通不改变任何行与修订；卸载 Provider 后端点 404，持久目录与授予保留。平台模式由 Kun.Registry.Tests 的 `平台模式Authz从预装组件读取权限目录_…` 验证：从注册表预装组件编译、持久化并登记目录，开通后按 qian.registry 的默认角色授权，卸载后活动声明撤销。
 
 ## 平台超管显式旁路（ADR-006 D6.3 / D6.11）
 
@@ -89,11 +89,11 @@ HTTP 端点由 Kun.Authorization.AspNetCore 提供：`MapKunAuthz(source)` 登�
 
 放行前先写审计：租户资源经 `IAuditWriter.AppendAsync` 记入目标租户的链，平台资源经 `AppendPlatformAsync` 以 Authz 组件自己的 global 上下文为生产方记入平台链。记录的能力 ID 为 `qian.authz/superadmin.bypass`，结果 `allowed`，payload 为 `{ bypass: "superadmin", role: "platform.superadmin", permission }`，资源与通道取自请求，输入哈希由权限、租户、资源、通道算出。Audit 未装配或写入失败一律拒绝。放行结果的原因为 `superadmin_bypass`，命中策略为 `role:platform.superadmin` 与 `bypass:superadmin`。
 
-超管对租户不可见：超管的角色与绑定只存平台行，旁路不在目标租户创建任何角色、绑定或成员记录，租户的成员视图看不到超管，审计链里看得到（D6.11「对租户不可见，但审计可见」）。注册表管理面的 scope 视图已接入：平台主体在目标租户上下文中读取时只走旁路，见 Qian.Registry 主文档。tenancy 运营接口（S1-TEN-006，R85）按同一端口以平台资源接入。
+超管对租户不可见：超管的角色与绑定只存平台行，旁路不在目标租户创建任何角色、绑定或成员记录，租户的成员视图看不到超管，审计链里看得到（D6.11「对租户不可见，但审计可见」）。注册表管理面的 scope 视图已接入：平台主体在目标租户上下文中读取时只走旁路，见 Kun.Registry 主文档。tenancy 运营接口（S1-TEN-006，R85）按同一端口以平台资源接入。
 
 ### 平台超管只读判定（S1-YUE-018）
 
-`ISuperadminCheck.AllowedAsync(subject, permissions)`（服务键 `AuthzSuperadminCheck`）回答「此刻旁路会对这个平台主体放行哪些平台权限点」，供平台控制台目录（Qian.Capabilities 的 `GET /api/capabilities/console`）决定给平台身份展示哪些页面与菜单。条件与旁路的平台资源分支相同：主体是平台用户（TenantId 为 null、种类 user、标识合法）、当前没有租户上下文、配置了平台角色登录且主体持有效 `platform.superadmin`、Audit 已装配、权限点在持久目录的某个版本中且该版本仍在活动登记；返回满足条件的权限点（去重、按 Ordinal 排序），任一前提不满足即为空。它不写审计、不放行任何操作，也不暴露旁路本身（端口是只转发判定的独立外观）；页面里的每次操作仍由组件的运营端点逐次经旁路判定并写平台审计链。角色只查一次，登记按一条查询取出全部候选，和旁路共用同一个服务实例与平台角色存储。用例 `tests/Kun.Authorization.Rbac.Tests/SuperadminCheckTests.cs`（真实 PG、专用平台登录与真实 Audit）：持角色时只交出已登记的平台权限点，未登记、非法与重复的被滤掉；不持角色、撤销角色、活动登记释放、Audit 卸载后为空；租户上下文中，以及带租户、服务、Agent 与空标识的主体为空；判定全程一条审计也不写（对照经旁路访问一次，审计表才多一条）。
+`ISuperadminCheck.AllowedAsync(subject, permissions)`（服务键 `AuthzSuperadminCheck`）回答「此刻旁路会对这个平台主体放行哪些平台权限点」，供平台控制台目录（Kun.Capabilities 的 `GET /api/capabilities/console`）决定给平台身份展示哪些页面与菜单。条件与旁路的平台资源分支相同：主体是平台用户（TenantId 为 null、种类 user、标识合法）、当前没有租户上下文、配置了平台角色登录且主体持有效 `platform.superadmin`、Audit 已装配、权限点在持久目录的某个版本中且该版本仍在活动登记；返回满足条件的权限点（去重、按 Ordinal 排序），任一前提不满足即为空。它不写审计、不放行任何操作，也不暴露旁路本身（端口是只转发判定的独立外观）；页面里的每次操作仍由组件的运营端点逐次经旁路判定并写平台审计链。角色只查一次，登记按一条查询取出全部候选，和旁路共用同一个服务实例与平台角色存储。用例 `tests/Kun.Authorization.Rbac.Tests/SuperadminCheckTests.cs`（真实 PG、专用平台登录与真实 Audit）：持角色时只交出已登记的平台权限点，未登记、非法与重复的被滤掉；不持角色、撤销角色、活动登记释放、Audit 卸载后为空；租户上下文中，以及带租户、服务、Agent 与空标识的主体为空；判定全程一条审计也不写（对照经旁路访问一次，审计表才多一条）。
 
 ### 平台角色存储与专用登录
 
@@ -187,4 +187,4 @@ S1-YUE-012：Qian.Sample.Crm.Tests/AuthzRevisionGuardTests.cs（参考宿主，�
 
 `plugins/qian.authz/.qian-plugin/plugin.json` 的稳定入口是 `AuthzComponent`，允许 global scope，依赖 `Data`，提供 `Authz`、`AuthzPermissions`、`AuthzResourceTypes`、`AuthzSuperadminBypass`、`AuthzSuperadminCheck`、`AuthzEnforcement`、`AuthzTenantRoleGrant` 与 `CommandAuthorization`。固定委托无参 `AuthzPlugin`，不预置权限目录；宿主可单独登记活动目录。`AuthzPlugin(catalogs)` 与 `FromInstalledComponents()` 保留为程序化装配构件，后者的额外 `Registry` 依赖不合并进此入口。
 
-入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../_import/qian/hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。
+入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Kun.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。

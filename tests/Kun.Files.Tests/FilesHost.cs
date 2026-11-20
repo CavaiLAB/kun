@@ -38,10 +38,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Capabilities;
-using Qian.Registry;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Capabilities;
+using Kun.Registry;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 
 namespace Kun.Files.Tests;
 
@@ -151,7 +151,7 @@ internal sealed class FilesHost : IAsyncDisposable
         // 能力契约的登记期检查：ProvideCapability 时生成目录条目并预编译输入校验器，不合格的契约挂载即失败。
         builder.Services.AddSingleton<ISurfaceReader, SurfaceValidator>();
         builder.Services.AddSingleton<IToolContractHasher, ToolContractHasher>();
-        builder.Services.AddQianCapabilities();
+        builder.Services.AddKunCapabilities();
         // 命令管道里 Kun 的 PermissionBehavior 读宿主的 IPermissionChecker（缺失即拒绝）；与参考宿主一样接真实 RBAC，登记表与 authz 组件共用同一实例。
         builder.Services.AddSingleton<IPermissionRegistry, PermissionRegistry>();
         builder.Services.AddSingleton<Kun.Authorization.IPermissionChecker>(sp => new RbacPermissionChecker(sp.GetRequiredService<IDataService>(),
@@ -162,7 +162,7 @@ internal sealed class FilesHost : IAsyncDisposable
         builder.Services.AddKunMediator(registry =>
         {
             registry.AddKunTenancyEvents().AddKunAuthzEvents();
-            if (operations is not null) registry.AddQianRegistryEvents();
+            if (operations is not null) registry.AddKunRegistryEvents();
             registry.AddKunFiles(sp => sp.GetRequiredService<FilesHostRuntime>().Source(), options =>
             {
                 options.Clock = clock; options.LocalSigningKey = RandomNumberGenerator.GetBytes(32);

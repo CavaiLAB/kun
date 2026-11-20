@@ -6,7 +6,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 // 停机窗口的测试替身：包一层真实插件上下文，按开关模拟 Kun.Runtime 卸载时「先关闭上下文、后跑效果」的那段时间，不靠时序。
 // 关闭后和 PluginContext 一样，受关闭检查保护的成员抛 ObjectDisposedException；Entry、Scope、Services 照常。

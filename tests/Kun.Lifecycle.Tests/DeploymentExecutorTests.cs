@@ -8,10 +8,10 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Testing.Containers;
 
-namespace Qian.Lifecycle.Tests;
+namespace Kun.Lifecycle.Tests;
 
 // S1-RT-005 验收 6：GitOps 执行器为 runtime.form: service 组件生成 Kustomize 片段并提交部署仓库，健康 = K8s Deployment 状态 + 组件 /health
 // 双条件，结论回写修订与 Registry 制品目录。Argo 收敛（S1-DEP-005）在测试里以集群内 kubectl apply -k 代替，完整片段（资源、NetworkPolicy 等）归 S1-DEP-004。

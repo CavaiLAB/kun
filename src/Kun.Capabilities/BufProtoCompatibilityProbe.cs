@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Kun.Errors;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>通过固定版本 Buf 进行离线编译与 FILE 级兼容检查，不执行任何 protoc 插件或制品配置。</summary>
 public sealed partial class BufProtoCompatibilityProbe : IProtoCompatibilityProbe

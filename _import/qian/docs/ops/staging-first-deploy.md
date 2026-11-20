@@ -9,7 +9,7 @@
 本手册覆盖构建、部署、回退与首个平台运营账号的引导，并列出相对 PRD 7.17 的已知差异。
 
 - 装配方式与取值的裁决：[关键决策](../decisions/key-decisions-v0.md) 的 R150（扩展登记与 overlay、主机名与证书、引导 Job、D4 只开运营开户）与 R151（系统组件修订的签名、授权与免批）。
-- 配置键：以 [平台宿主](../../hosts/Qian.Platform.Host/README.md) 与 [网关宿主](https://github.com/CavaiLAB/kun/blob/main/hosts/Kun.Gateway.Host/README.md) 的文档为准。
+- 配置键：以 [平台宿主](../../../../hosts/Kun.Platform.Host/README.md) 与 [网关宿主](https://github.com/CavaiLAB/kun/blob/main/hosts/Kun.Gateway.Host/README.md) 的文档为准。
 - 清单与 Secret 引导脚本：在部署仓库（`idadawn/iclaw-deploy`）的 `2-qian/` 与 `env-ds/qian-staging/` 下，对象名以那里为准。
 
 凡是改动集群状态的操作（apply 或同步、建角色、建 Secret、改网络策略、跑 Job），都要先经产品负责人确认；只读查询不需要。密钥只经 Secret 注入，不进 git。
@@ -109,7 +109,7 @@
    还没推到 GitHub 的提交，改用 `git bundle create kun.bundle <分支>` 打包拷过去，在 qd 上 `git clone -b <分支> kun.bundle kun`。
 3. 构建与推送在构建机的 `~/kun-build/kun/_import/qian` 下执行。设置 `QIAN_IMAGE_REGISTRY` 为镜像仓库的主机名及端口，`QIAN_IMAGE_REVISION` 为源码提交的短 SHA。当前 Harbor 通过 HTTP 80 提供服务，构建机的 Docker 需要在仓库地址中显式写出该端口。构建工具推送镜像后从结果读取 digest。
    ```bash
-   python3 scripts/images.py build --kind jit --project _import/qian/hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag "$QIAN_IMAGE_REGISTRY/qian/qian-platform:$QIAN_IMAGE_REVISION" --web ~/kun-build/web-platform
+   python3 scripts/images.py build --kind jit --project hosts/Kun.Platform.Host/Kun.Platform.Host.csproj --assembly Kun.Platform.Host --tag "$QIAN_IMAGE_REGISTRY/qian/qian-platform:$QIAN_IMAGE_REVISION" --web ~/kun-build/web-platform
    ```
    ```bash
    python3 scripts/images.py build --kind aot --project hosts/Kun.Gateway.Host/Kun.Gateway.Host.csproj --assembly Kun.Gateway.Host --tag "$QIAN_IMAGE_REGISTRY/qian/qian-gateway:$QIAN_IMAGE_REVISION" --web ~/kun-build/web-gateway
@@ -176,7 +176,7 @@ kubectl -n qian-staging logs job/<Job 名>
 
    - 迁移 Job 只挂迁移属主与管理员的连接串。迁移模式下宿主把在线登录的连接一律改读迁移属主的连接串（`PlatformHostSettings.Connection`），在线登录的口令不给迁移 Job。
    - 在线副本不挂迁移属主与管理员的凭据。
-   - 离线 DDL 不做跨版本的表结构升级，详见[平台宿主的 Job](../../hosts/Qian.Platform.Host/README.md#job)。
+   - 离线 DDL 不做跨版本的表结构升级，详见[平台宿主的 Job](../../../../hosts/Kun.Platform.Host/README.md#job)。
 5. **系统组件修订 Job（钩子，-1，`--install-system-revisions`）。** 每次同步都跑，在迁移之后。
    - 它按签名清单把镜像预装的 system 级组件装成修订并激活：同摘要已激活则不动，新版本的新摘要安装后激活。
    - 同一版本换了摘要（组件文件夹变了、版本号没变）装不进去：Lifecycle 拒绝把同一版本装成另一个制品，authz 的权限目录也按组件版本不可变（内容不同返回 CONFLICT，平台插件树挂不起来）。在已有数据的库上，这时 Job 必然失败，处理见第 7 节「同版本换摘要」。

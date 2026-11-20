@@ -1,11 +1,11 @@
 # 共享内部源文件
 
-这里放多个 Qian 包共用、又不该成为公开 API 的实现。目录本身不是项目，也不单独打包：需要的包在 csproj 里把源文件链接进来编译，类型一律 `internal`，命名空间为 `Qian.Common`。
+这里放多个 Qian 包共用、又不该成为公开 API 的实现。目录本身不是项目，也不单独打包：需要的包在 csproj 里把源文件链接进来编译，类型一律 `internal`，命名空间为 `Kun.Common`。
 
 | 文件 | 编译进 | 用途 |
 |---|---|---|
-| `SchemaPattern.cs` | Kun.Audit.Abstractions、Kun.Configuration.Abstractions、Qian.Profiles、Qian.Surfaces、Qian.Capabilities.Abstractions | JSON Schema 正则（`pattern` 与 `patternProperties` 的键）的统一解释：按 ECMA-262 可移植子集翻译、可选按 OrdinalIgnoreCase 折叠、判断键名在各方言下是否稳定；NonBacktracking 引擎、1 秒超时与有界缓存也只在这里定义。@qian/surfaces 有逐条对应的 TS 移植，见下文 |
-| `TenantFieldRule.cs` | Qian.Surfaces、Qian.Capabilities.Abstractions（都须同时链接 `SchemaPattern.cs`） | 输入 Schema 不得点名租户字段：工具的语义校验与能力输入契约（`TenantInputContract`）共用的写法清单与遍历，见下文；@qian/surfaces 的 `tenantFields` 逐条对应 |
+| `SchemaPattern.cs` | Kun.Audit.Abstractions、Kun.Configuration.Abstractions、Kun.Profiles、Kun.Surfaces、Kun.Capabilities.Abstractions | JSON Schema 正则（`pattern` 与 `patternProperties` 的键）的统一解释：按 ECMA-262 可移植子集翻译、可选按 OrdinalIgnoreCase 折叠、判断键名在各方言下是否稳定；NonBacktracking 引擎、1 秒超时与有界缓存也只在这里定义。@qian/surfaces 有逐条对应的 TS 移植，见下文 |
+| `TenantFieldRule.cs` | Kun.Surfaces、Kun.Capabilities.Abstractions（都须同时链接 `SchemaPattern.cs`） | 输入 Schema 不得点名租户字段：工具的语义校验与能力输入契约（`TenantInputContract`）共用的写法清单与遍历，见下文；@qian/surfaces 的 `tenantFields` 逐条对应 |
 
 ## 约定
 
@@ -26,12 +26,12 @@
 - 只接受各方言含义相同的写法：字面量、字符类与范围、`\d \w \s` 及其否定、`.`、`^`、`$`、分组、非捕获组、`|` 与量词（含惰性）。其余写法翻译时抛 `NotSupportedException`，由调用方按 Schema 无效失败关闭：词边界、内联选项、Unicode 属性、命名组、环视、反向引用、代理项等。
 - 分组必须配对，`{n,m}` 要求 n ≤ m。展开量词后，字符、类、`.` 与锚点的总数不超过 1000（`MaxSize`），每个量词边界也不超过 1000；`{n,}` 按 n+1 份计。NonBacktracking 按展开后的规模估算自动机，含锚点时约为该数的 5 倍，超过 10000 即拒绝构造。这条规则在翻译时先行拒绝，接受与否不取决于 .NET 的估算；上限处的对抗写法都能构造，有测试守住。
 - `IsStable` 为假的键名含有方言判断不同的码元（换行、只有 ECMA-262 算作空白的字符、U+0130、代理项）。翻译结果按 ECMA-262 判断它们，但审计与配置扫描随后还由 Schema 验证器按 .NET 的 ECMAScript 选项判断，两者可能不同，所以调用方不对这类键名做匹配，而是整体按敏感处理。
-- profile 装配的两端 Schema 验证器（.NET 的 JsonSchema.Net 与 CLI 的 Ajv）也用翻译结果执行 `pattern` 与 `patternProperties`，字符串值与键名都按上述语义判断，见 [Qian.Profiles](../Qian.Profiles/README.md)。
+- profile 装配的两端 Schema 验证器（.NET 的 JsonSchema.Net 与 CLI 的 Ajv）也用翻译结果执行 `pattern` 与 `patternProperties`，字符串值与键名都按上述语义判断，见 [Kun.Profiles](../Kun.Profiles/README.md)。
 - `foldCase` 用于配置：配置键与 Web 默认反序列化都不区分大小写。折叠后，键名能匹配，当且仅当存在一个与它相等（`StringComparer.OrdinalIgnoreCase`）的键名按原模式能匹配。审计脱敏面对的是区分大小写的 JSON，不折叠。
 
 ## TS 移植
 
-本地 CLI 的 profile 装配（`packages/qian-cli/src/profiles.ts`）与 `ProfileLoader` 判定相同，表面校验器的工具租户字段检查（`packages/qian-surfaces/src/index.ts`）与 `Qian.Surfaces` 判定相同，所以 `SchemaPattern` 有一份逐条对应的移植 `packages/qian-surfaces/src/schema-pattern.ts`，由 `@qian/surfaces` 导出，CLI 从那里引入（S1-AGT-004 之前在 `packages/qian-cli/src`）：
+本地 CLI 的 profile 装配（`packages/qian-cli/src/profiles.ts`）与 `ProfileLoader` 判定相同，表面校验器的工具租户字段检查（`packages/qian-surfaces/src/index.ts`）与 `Kun.Surfaces` 判定相同，所以 `SchemaPattern` 有一份逐条对应的移植 `packages/qian-surfaces/src/schema-pattern.ts`，由 `@qian/surfaces` 导出，CLI 从那里引入（S1-AGT-004 之前在 `packages/qian-cli/src`）：
 
 - 接受与拒绝、规模上限、`IsStable`、折叠与翻译输出都与本实现逐字一致。
 - 匹配不交给 JS 正则：`KeyPattern` 把翻译结果构造成自动机逐码元模拟，与 NonBacktracking 一样线性时间。折叠会让原本互斥的分支重叠，例如 `^(?:[a-z]|[A-Z])+$` 折叠后两个分支相同，V8 的回溯引擎遇到以 `!` 结尾的长键名会指数级变慢；未折叠的 `^(a|a)*$` 同样如此。`KeyPattern` 也是 profile 装配时 Ajv 的正则引擎（`code.regExp`）。
@@ -53,7 +53,7 @@ pnpm --filter @qian/surfaces build && pnpm --filter @qian/surfaces test && pnpm 
 
 ## TenantFieldRule 的判定规则
 
-租户只来自令牌（PRD 7.18），所以输入 Schema 不得点名租户字段（S1-AGT-004）。工具文件的语义校验（`Qian.Surfaces` 与 @qian/surfaces，`SURFACE_POLICY_DENIED`）与能力输入契约（`TenantInputContract`，能力编译为 `tenant-field`）按同一规则报告：
+租户只来自令牌（PRD 7.18），所以输入 Schema 不得点名租户字段（S1-AGT-004）。工具文件的语义校验（`Kun.Surfaces` 与 @qian/surfaces，`SURFACE_POLICY_DENIED`）与能力输入契约（`TenantInputContract`，能力编译为 `tenant-field`）按同一规则报告：
 
 - 租户名按 contracts/v0 的 `TenantFieldName` 整体匹配：`tenant`、`tenantId`、`tenant_id`、`tenant-id` 的 ASCII 大小写变体。不用 `ToLowerInvariant` 加 `$`：.NET 的 `$` 会放过末尾换行，把 `tenant` 后接换行也算成租户名。
 - 点名的写法：`properties`、`dependentSchemas`、`dependentRequired` 与旧式 `dependencies` 的名称；`required` 与 `dependentRequired` / `dependencies` 的数组项；`patternProperties` 的模式；`propertyNames` 在肯定位置（根与 `allOf` / `anyOf` / `oneOf` / `then` / `else` 之下）用 `const` / `enum` 列出的名称。模式按 `SchemaPattern` 的可移植子集解释，与 JSON Schema 一样不隐式加锚点，能匹配租户名的任一 ASCII 大小写写法即违规；超出子集无法判定，同样违规。试配用全部 832 种写法而不用折叠，结果不随宿主 ICU 变化。

@@ -1,6 +1,6 @@
-# Qian.Lifecycle
+# Kun.Lifecycle
 
-平台生命周期控制器是 `Lifecycle` seam 的 Provider（服务键 `ctx.Lifecycle`），只进入 `platform` profile 的 base 组合包。Definition 在 `Qian.Lifecycle.Abstractions`，管理面 HTTP 适配器在 `Qian.Lifecycle.AspNetCore`。分发表面 `plugins/qian.lifecycle` 已带完整的配置 Schema 与诊断、批准两个权限声明，代码字段与配置 Schema 已由稳定入口派生；清单已去掉 `x-skeleton`（R144 ③）：安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试。设计依据：PRD 7.2.1 / 7.17、ADR-020 §2、组件规格 §7.6，任务 S1-RT-005。
+平台生命周期控制器是 `Lifecycle` seam 的 Provider（服务键 `ctx.Lifecycle`），只进入 `platform` profile 的 base 组合包。Definition 在 `Kun.Lifecycle.Abstractions`，管理面 HTTP 适配器在 `Kun.Lifecycle.AspNetCore`。分发表面 `plugins/qian.lifecycle` 已带完整的配置 Schema 与诊断、批准两个权限声明，代码字段与配置 Schema 已由稳定入口派生；清单已去掉 `x-skeleton`（R144 ③）：安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Kun.Platform.Host/README.md)的 profile 装配与集成测试。设计依据：PRD 7.2.1 / 7.17、ADR-020 §2、组件规格 §7.6，任务 S1-RT-005。
 
 控制器管三件事：
 
@@ -19,13 +19,13 @@
 - 信任根所在的配置节与秘密解析策略。
 - 可选的进程内钩子解析器 `LifecycleRuntimeOptions.Hooks`：按组件 ID 与精确版本返回 `IPluginLifecycleHooks`，组件没有钩子时返回 null。本包不从数据库或制品内容加载程序集。
 - 管理面端点（诊断与反向权限批准）需要宿主装配的权限判定端口（Kun `IPermissionChecker`），平台主体另需 Authz 的超管旁路；批准与租户级生命周期操作（开通、升级、卸载、清除）另需该租户 scope 可见的审计服务（`ctx.Audit()`），且 Lifecycle 的数据库登录须获审计同事务函数的执行权（`AuditTransactionAccess.CreateMigrationSql` 的生产方角色）；平台级操作（安装、激活、回切、弃用、退役）另需 global 审计条目配置平台链：宿主单独创建受限的平台审计登录、迁移时在租户守卫之后应用 `AuditPlatformAccess.CreateMigrationSql(role, writerRole, producerRole)`（三参重载另建平台链的同事务函数，函数属主同租户链，Lifecycle 的数据库登录作为生产方只获执行权，S1-AUD-009）、以 `AddKunData<PlatformAuditDbContext>` 绑定该登录（审计组件以它校验、读取平台链），并在 `qian.audit` 的 global 条目写 `chain.platformRole`（Audit README「受控平台链」；参考宿主见 `tests/Qian.Lifecycle.Tests/LifecycleHost.cs`、CRM 验收宿主与 `tools/Qian.Dev.TenantOps`）。
-- 缺审计时的口径（S1-RT-037，建议裁决 ② 2026-10-23 拍板）：管理面批准缺判定端口、缺旁路或缺审计都与不存在同为 404（R32），对外不区分；租户级生命周期操作缺审计时以 503 `LIFECYCLE_AUDIT_UNAVAILABLE`（`operation` 为操作名）拒绝，不认领执行记录、不改状态；平台级操作在 global 上下文看不到审计服务、或审计端口拒绝本组件为平台生产方（没配 `chain.platformRole`、审计重挂后本组件持有陈旧句柄，或本组件的数据库连接不能调用平台链同事务函数：登录没有经 `AuditPlatformAccess` 三参迁移直接获得执行权，或连接不是未切换角色、无租户 GUC 的受限登录；端口不区分原因）时同样 503 拒绝、状态不变（global 看不到审计服务时安装在提交候选制品之前就拒绝；端口的拒绝只在追加时发现，此时候选制品已提交、不登记修订，重提幂等）。三处都先经装载器的日志器记一条 Warning（`Qian.Lifecycle` 事件 7「审计服务不可用」记租户链缺失、事件 8「平台审计链不可用」记平台链缺失，只有操作名、租户或原因，不含载荷），宿主装配错误由日志与无权限、状态冲突区分。
+- 缺审计时的口径（S1-RT-037，建议裁决 ② 2026-10-23 拍板）：管理面批准缺判定端口、缺旁路或缺审计都与不存在同为 404（R32），对外不区分；租户级生命周期操作缺审计时以 503 `LIFECYCLE_AUDIT_UNAVAILABLE`（`operation` 为操作名）拒绝，不认领执行记录、不改状态；平台级操作在 global 上下文看不到审计服务、或审计端口拒绝本组件为平台生产方（没配 `chain.platformRole`、审计重挂后本组件持有陈旧句柄，或本组件的数据库连接不能调用平台链同事务函数：登录没有经 `AuditPlatformAccess` 三参迁移直接获得执行权，或连接不是未切换角色、无租户 GUC 的受限登录；端口不区分原因）时同样 503 拒绝、状态不变（global 看不到审计服务时安装在提交候选制品之前就拒绝；端口的拒绝只在追加时发现，此时候选制品已提交、不登记修订，重提幂等）。三处都先经装载器的日志器记一条 Warning（`Kun.Lifecycle` 事件 7「审计服务不可用」记租户链缺失、事件 8「平台审计链不可用」记平台链缺失，只有操作名、租户或原因，不含载荷），宿主装配错误由日志与无权限、状态冲突区分。
 
 ```csharp
 builder.Services.AddKunData<LifecycleDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(LifecycleDbContext.Schema));
 // Kun 的事件类型表只认第一次 AddKunEventBus：同一宿主的事件登记须并进同一次调用；AddKunMediator 的登记可以叠加。
 builder.Services.AddKunEventBus(events => events.RegisterRegistryEvents().RegisterLifecycleEvents());
-builder.Services.AddKunMediator(mediator => mediator.AddQianRegistryEvents().AddQianLifecycleEvents());
+builder.Services.AddKunMediator(mediator => mediator.AddKunRegistryEvents().AddKunLifecycleEvents());
 builder.Services.AddQianEvents();
 builder.Services.AddKunSecrets(new SecretResolverOptions
 {
@@ -37,7 +37,7 @@ builder.Services.AddKunSecrets(new SecretResolverOptions
 
 var lifecycle = new LifecyclePlugin(new LifecycleRuntimeOptions { Hooks = (pluginId, version) => hooks.Find(pluginId, version) });
 await runtime.MountAsync([/* data、config、registry、capabilities … */ lifecycleDefinition], ct);
-app.MapQianLifecycle(http => runtime.GetContext("lifecycle", ScopeKey.Global));
+app.MapKunLifecycle(http => runtime.GetContext("lifecycle", ScopeKey.Global));
 ```
 
 参考宿主 `samples/Qian.Sample.Crm` 的 `CrmCommandApplication.Build` 为此提供了 `events` / `mediator` 两个合成参数，嵌入平台组件的宿主经它们把登记并进同一次调用。漏装领域事件处理器时，激活与升级在提交前失败，不会出现状态已改、事件丢失的情况。
@@ -122,7 +122,7 @@ app.MapQianLifecycle(http => runtime.GetContext("lifecycle", ScopeKey.Global));
 - 目标版本没有自己的批准记录时，沿用该租户对该组件最近一次的批准。所以升级只有新增项才须重批，连续升级不会因中间版本没有记录而受阻。
 - `authentication: ON_USE` 在 S1 同样在开通与升级时核对（fail-closed）。
 
-批准 API（S1 只有 API，S2 才有 UI），由 `Qian.Lifecycle.AspNetCore` 的 `MapQianLifecycle` 映射：
+批准 API（S1 只有 API，S2 才有 UI），由 `Kun.Lifecycle.AspNetCore` 的 `MapKunLifecycle` 映射：
 
 - `PUT /api/lifecycle/tenants/{tenantId}/plugins/{pluginId}/versions/{version}/permissions`：请求体是五类批准内容 `{ platform, data, egress, secrets: [{ name, scope }], ui: { connectSrc } }`，缺省的类别视为空。整份替换该版本的批准记录；内容不变时不写入，批准时间、批准人与行版本都不变。
 - `GET` 同一路径读取批准记录，没有记录为 404。
@@ -206,7 +206,7 @@ app.MapQianLifecycle(http => runtime.GetContext("lifecycle", ScopeKey.Global));
 | `lifecycle.tenant-plugin.upgraded.v1` | 租户升级与租户级回切 | 组件、原版本、目标版本 |
 | `registry.scope.mounted.v1` / `registry.scope.unmounted.v1` | Registry 的公开挂载与卸载（见 Registry README） | scope、条目、修订；mounted 另带组件与版本 |
 
-状态行登记领域事件，`AddQianLifecycleEvents` 的处理器在同一 DI scope 把信封写进数据会话的 Outbox 缓冲，随本次保存落库；写入端在提交前核对已发布标记。
+状态行登记领域事件，`AddKunLifecycleEvents` 的处理器在同一 DI scope 把信封写进数据会话的 Outbox 缓冲，随本次保存落库；写入端在提交前核对已发布标记。
 
 ## 模型体验
 
@@ -251,4 +251,4 @@ S1-RT-029 的 Registry 管理写入通过 `MountAtRevisionAsync` / `UnmountAtRev
 
 `plugins/qian.lifecycle/.qian-plugin/plugin.json` 的稳定入口是 `LifecycleComponent`，允许 global scope，依赖 `Data`、`Registry` 与 `Config`，可选依赖 `Audit` 与 `AuthzSuperadminBypass`（`optionalInject`），提供 `Lifecycle`。使用宿主登记的 `LifecycleRuntimeOptions`，未登记时采用空钩子解析器，再委托 `LifecyclePlugin`。
 
-入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。`optionalInject` 不由生成器派生，手写在清单里，与 `LifecyclePlugin.OptionalInject` 的一致性由 `LifecycleUnitTests` 守住；seam 图把它画成虚线并标「（可选）」，profile 装配在 Provider 在树里时把它排在本组件之前。元数据补齐不替代真实安装验收：清单已去掉 `x-skeleton`（R144 ③），本组件只在平台宿主里运行，安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试，不提供 `qian add` 独立安装。
+入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。`optionalInject` 不由生成器派生，手写在清单里，与 `LifecyclePlugin.OptionalInject` 的一致性由 `LifecycleUnitTests` 守住；seam 图把它画成虚线并标「（可选）」，profile 装配在 Provider 在树里时把它排在本组件之前。元数据补齐不替代真实安装验收：清单已去掉 `x-skeleton`（R144 ③），本组件只在平台宿主里运行，安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Kun.Platform.Host/README.md)的 profile 装配与集成测试，不提供 `qian add` 独立安装。

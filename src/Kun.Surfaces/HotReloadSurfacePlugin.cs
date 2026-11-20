@@ -2,9 +2,9 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Surfaces;
+namespace Kun.Surfaces;
 
 /// <summary>开发态表面监视器的状态；不包含文件内容、配置或密钥。</summary>
 public sealed record SurfaceReloadStatus(long Revision, bool RestartRequired, IReadOnlyList<string> ChangedCodeFiles, IReadOnlyList<SurfaceDiagnostic> Diagnostics);

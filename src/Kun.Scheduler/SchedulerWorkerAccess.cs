@@ -2,7 +2,7 @@ using System.Data.Common;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
 
-namespace Qian.Scheduler;
+namespace Kun.Scheduler;
 
 /// <summary>跨租户领取的专用登录权限；普通租户仍受三表的强制 RLS 保护。</summary>
 public static class SchedulerWorkerAccess

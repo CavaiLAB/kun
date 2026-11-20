@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // runtime.form: service 修订的最小 Kustomize 片段：Deployment + Service + kustomization。资源、NetworkPolicy、迁移 Job 等完整片段由
 // qian pack 的部署任务（S1-DEP-004）生成；这里只产出让 Argo 收敛、让健康观测有据可依的部分。标量一律写成 JSON 字符串（合法 YAML）。

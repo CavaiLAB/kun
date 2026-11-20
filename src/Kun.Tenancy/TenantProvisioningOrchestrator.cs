@@ -7,9 +7,9 @@ using Kun.EventBus;
 using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Lifecycle;
-using Qian.Registry;
-using Qian.Surfaces.Abstractions;
+using Kun.Lifecycle;
+using Kun.Registry;
+using Kun.Surfaces.Abstractions;
 
 namespace Kun.Tenancy;
 

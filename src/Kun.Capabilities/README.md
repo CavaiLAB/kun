@@ -1,6 +1,6 @@
 # 平台能力目录
 
-本目录是 Capabilities seam 的 Provider；Definition 在 `Qian.Capabilities.Abstractions`，HTTP 适配器在 `Qian.Capabilities.AspNetCore`。平台声明式表面位于 `plugins/qian.capabilities`，只装入 `platform`。按 R34，它不是消费者 standalone 中独立安装的组件；插件目录的清单由 S1-RT-014 合并生成，完整平台安装与私有包发布归 S1-RT-005 / S1-RT-013。
+本目录是 Capabilities seam 的 Provider；Definition 在 `Kun.Capabilities.Abstractions`，HTTP 适配器在 `Kun.Capabilities.AspNetCore`。平台声明式表面位于 `plugins/qian.capabilities`，只装入 `platform`。按 R34，它不是消费者 standalone 中独立安装的组件；插件目录的清单由 S1-RT-014 合并生成，完整平台安装与私有包发布归 S1-RT-005 / S1-RT-013。
 
 组件配置（`plugins/qian.capabilities/schemas/config.schema.json`）有两项，宿主未经 profile 装载时 Provider 按同一规则校验并取默认值：
 
@@ -23,7 +23,7 @@
 
 ## HTTP 装配
 
-宿主先安装经过验证的身份、租户与 ErrorDetail 中间件，再调用 `MapQianCapabilities`，提供从当前可信租户解析实际 Runtime 视图的函数。身份从请求服务的 `ICurrentUser` 获取，HTTP 输入不能指定主体或租户。身份适配器在数据服务之前或之后登记都生效（Kun 2026.10.25 起数据约定不占框架身份端口，S1-KUN-017）；框架身份端口解析成匿名兜底的能力宿主启动即失败（见 [Kun.Plugin.Sdk](../../../../src/Kun.Plugin.Sdk/README.md)）。
+宿主先安装经过验证的身份、租户与 ErrorDetail 中间件，再调用 `MapKunCapabilities`，提供从当前可信租户解析实际 Runtime 视图的函数。身份从请求服务的 `ICurrentUser` 获取，HTTP 输入不能指定主体或租户。身份适配器在数据服务之前或之后登记都生效（Kun 2026.10.25 起数据约定不占框架身份端口，S1-KUN-017）；框架身份端口解析成匿名兜底的能力宿主启动即失败（见 [Kun.Plugin.Sdk](../Kun.Plugin.Sdk/README.md)）。
 
 - `GET /api/capabilities?kind=&q=`：返回 `{ items, ttlMs, cacheScope: "private" }`，同时设置私有且不存储的 HTTP 缓存指令。`kind` 只接受 `command` / `query` / `event` / `entity`，`q` 最长 200 字符；不符时返回 400 `INPUT_INVALID`，`errors[]` 分别为 `VALUE_NOT_ALLOWED #/kind`（带 `allowed`）与 `OUT_OF_RANGE #/q`。
 - `GET /api/capabilities/openapi.json`：按同一权限过滤生成 OpenAPI 3.1，仅包含当前实际可调用绑定的执行路径和输入/输出 Schema；递归 Schema 引用重定位到各自组件。
@@ -58,13 +58,13 @@
 
 登记后、写完成前进程崩溃时，租约到期后的重试会再执行一次，写类能力仍须按 `inputSchema` 中的 `idempotencyKey` 做业务幂等（tool/v2 的强制要求）。回放前照样重做第 1 步的判定（可见性、OAuth scope、RBAC），撤权后不能靠旧回执取回结果。
 
-回执存 `plugin_qian_capabilities.invoke_receipts`（租户 RLS，保存请求指纹，以及按回执策略保存的首次响应原文）。回执过期后不再回放；物理删除靠本租户后续带键写调用登记时的惰性清理，每次最多 100 行，用 `FOR UPDATE SKIP LOCKED` 跳过其他请求正在清理的行。长期没有带键写调用的租户，过期回执会一直留在表里，由运维按[运维手册](../../docs/ops/configuration-runbook.md)「过期幂等回执清理」一节的 SQL 清理。没有用 R63 的 Redis 幂等键：Kun 的 `IProcessedMessageStore` 只记录「已处理」标记，HTTP 重放要原样返回首次响应，且回执要和租户行级隔离同库。未修改 Kun，不需要 KUN 任务。
+回执存 `plugin_qian_capabilities.invoke_receipts`（租户 RLS，保存请求指纹，以及按回执策略保存的首次响应原文）。回执过期后不再回放；物理删除靠本租户后续带键写调用登记时的惰性清理，每次最多 100 行，用 `FOR UPDATE SKIP LOCKED` 跳过其他请求正在清理的行。长期没有带键写调用的租户，过期回执会一直留在表里，由运维按[运维手册](../../_import/qian/docs/ops/configuration-runbook.md)「过期幂等回执清理」一节的 SQL 清理。没有用 R63 的 Redis 幂等键：Kun 的 `IProcessedMessageStore` 只记录「已处理」标记，HTTP 重放要原样返回首次响应，且回执要和租户行级隔离同库。未修改 Kun，不需要 KUN 任务。
 
 ApiExplorer 不列这条通用模板：它只能描述静态、与调用者无关的路由，而这里的请求与响应形状随能力而变，可见集合随调用者而变。`/api/capabilities/openapi.json` 按同一判定为每个可见能力列出具体路径（`/api/capabilities/<plugin>/<name>/invoke`）、真实输入 / 输出 Schema；写类能力另列 `Idempotency-Key` 参数与 `Idempotent-Replayed` 响应头，只读能力不列。
 
 ## 登记期契约检查
 
-平台宿主调用 `services.AddQianCapabilities()`（须已登记 `ISurfaceReader` 与 `IToolContractHasher`）后，组件 `Apply` 里的 `ctx.ProvideCapability<TRequest, TResponse>()` 在登记前检查契约：生成目录条目、预编译输入校验器，结果按契约实例缓存，目录与执行入口直接复用，不在首次调用时编译。不合格的契约抛 SDK 的 `CapabilityContractException`，组件 Apply 失败、挂载为 Failed，已登记的能力随作用域一起撤销。异常带组件 ID、能力短名、以能力 ID 为文件的 JSON Pointer（如 `qian.sample.crm/customer.tenant-probe#/inputSchema/properties/tenantId`）与规则名，`Data["reasonCode"]` 为 `INPUT_INVALID`；Registry 的 scope 装载失败（`RegistryScopeApplyException`）沿用这个原因码。
+平台宿主调用 `services.AddKunCapabilities()`（须已登记 `ISurfaceReader` 与 `IToolContractHasher`）后，组件 `Apply` 里的 `ctx.ProvideCapability<TRequest, TResponse>()` 在登记前检查契约：生成目录条目、预编译输入校验器，结果按契约实例缓存，目录与执行入口直接复用，不在首次调用时编译。不合格的契约抛 SDK 的 `CapabilityContractException`，组件 Apply 失败、挂载为 Failed，已登记的能力随作用域一起撤销。异常带组件 ID、能力短名、以能力 ID 为文件的 JSON Pointer（如 `qian.sample.crm/customer.tenant-probe#/inputSchema/properties/tenantId`）与规则名，`Data["reasonCode"]` 为 `INPUT_INVALID`；Registry 的 scope 装载失败（`RegistryScopeApplyException`）沿用这个原因码。
 
 | 规则 | 含义 |
 |---|---|
@@ -78,11 +78,11 @@ ApiExplorer 不列这条通用模板：它只能描述静态、与调用者无�
 
 SDK 生成的契约由 System.Text.Json 导出 Schema，不会出现后四类问题，这几条是兜底。
 
-**platform profile 宿主必须调用 `AddQianCapabilities()`**，[运维手册](../../docs/ops/configuration-runbook.md)的部署步骤同样要求。漏掉时 `CapabilitiesComponent` / `CapabilitiesPlugin` 在挂载阶段拒绝，异常明确指出缺失的装配；不再退化为首次请求才检查。独立宿主没有通用执行入口时不需要调用。TCK 平台组合包宿主断言容器里的 `ICapabilityContractCheck` 是宿主单例，不合格契约在登记期被拒。
+**platform profile 宿主必须调用 `AddKunCapabilities()`**，[运维手册](../../_import/qian/docs/ops/configuration-runbook.md)的部署步骤同样要求。漏掉时 `CapabilitiesComponent` / `CapabilitiesPlugin` 在挂载阶段拒绝，异常明确指出缺失的装配；不再退化为首次请求才检查。独立宿主没有通用执行入口时不需要调用。TCK 平台组合包宿主断言容器里的 `ICapabilityContractCheck` 是宿主单例，不合格契约在登记期被拒。
 
 ## 验收与保留项
 
-`tests/Qian.Sample.Crm.Tests/CapabilityCatalogTests.cs` 与 `CapabilityInvokeTests.cs` 使用真实 Kestrel、签名 S2S、受限 PostgreSQL、RBAC、Registry、SDK 绑定与客户业务。验证目录信封与条目契约（`schemaSha256` 与生产实现 `ToolContractHash` 一致，该实现由 `Qian.Surfaces.Tests` 按 RFC 8785 的示例与附录 B 样本验证）、别名的 `Deprecation` / `Link` 头、参数校验与匿名 401 的 ErrorDetail、缺权限/scope、restrict、卸载、数据库 scope patch、撤权与冻结、执行入口的输入校验 / 幂等重放（含执行中 409、失败不留回执、只读能力忽略幂等键）/ 回执策略（按分级与上限不存响应体时同键 409、表上的硬上限、非默认组件配置）/ Agent 主体、登记期拒绝（组件挂载失败，目录与执行入口没有该能力），并检查实际客户、Outbox 和审计。测试组合使用必要的实际 Provider，不声称已经覆盖默认 platform 全部 Provider；测试签发器也不替代真实 Identity 登录验收。Agent 用例另在测试宿主打开「授权预览」，把 Agent 主体按同 ID 服务主体求值，以单独观察 `agent.expose` 过滤；预览默认关闭，不是生产判定。
+`tests/Qian.Sample.Crm.Tests/CapabilityCatalogTests.cs` 与 `CapabilityInvokeTests.cs` 使用真实 Kestrel、签名 S2S、受限 PostgreSQL、RBAC、Registry、SDK 绑定与客户业务。验证目录信封与条目契约（`schemaSha256` 与生产实现 `ToolContractHash` 一致，该实现由 `Kun.Surfaces.Tests` 按 RFC 8785 的示例与附录 B 样本验证）、别名的 `Deprecation` / `Link` 头、参数校验与匿名 401 的 ErrorDetail、缺权限/scope、restrict、卸载、数据库 scope patch、撤权与冻结、执行入口的输入校验 / 幂等重放（含执行中 409、失败不留回执、只读能力忽略幂等键）/ 回执策略（按分级与上限不存响应体时同键 409、表上的硬上限、非默认组件配置）/ Agent 主体、登记期拒绝（组件挂载失败，目录与执行入口没有该能力），并检查实际客户、Outbox 和审计。测试组合使用必要的实际 Provider，不声称已经覆盖默认 platform 全部 Provider；测试签发器也不替代真实 Identity 登录验收。Agent 用例另在测试宿主打开「授权预览」，把 Agent 主体按同 ID 服务主体求值，以单独观察 `agent.expose` 过滤；预览默认关闭，不是生产判定。
 
 OpenAPI 聚合已覆盖 SDK 真实调用入口及宿主标注绑定的原生 HTTP 路由，实际 gRPC 契约经独立反射探测；平台挂载路径的契约准入已由 S1-RT-005 接入（R76，见「平台挂载准入」）。菜单贡献及偏好已接入，范围与验证见下节。扩展点按 ADR-020 D20.3 和组件规格 §3.6 使用既有事件定义及可逆服务注册，不另建旧版独立扩展点注册表。platform / minimal 双宿主等价与表面热重载的运行时语义由 S1-QA-002 的 TCK（T19、T23）覆盖。本组件的交付与复核记录见 S1-RT-006 与 S1-RT-019。
 
@@ -162,17 +162,17 @@ Capabilities 同时提供 `Contracts` 服务键（`ctx.Contracts()` / `IContract
 - proto 契约套用 `GrpcContractPlugin`，反射对端由宿主经 DI 注册的 `IGrpcContractPeers` 按组件与精确版本给出。没有对端时 Apply 以 `PRECONDITION_FAILED` 失败，pointer 指向 `contracts/<契约 ID>`，不当作兼容。
 - json-schema 契约随制品登记，挂载时不比较。
 
-不兼容、比较无法完成或缺对端时条目为 Failed，业务注册不公开；失败原因经 `/api/lifecycle/diagnostics` 给出，见 [Qian.Lifecycle](../Qian.Lifecycle/README.md)。`GrpcReflectionTests` 验证 proto 的首个版本不比较、无对端 fail-closed、有对端时兼容版本 Ready；OpenAPI 的挂载、Reconciler 与升级三条路径由 `tests/Qian.Sample.Crm.Tests` 的 `LifecycleAcceptanceTests` 验证。
+不兼容、比较无法完成或缺对端时条目为 Failed，业务注册不公开；失败原因经 `/api/lifecycle/diagnostics` 给出，见 [Kun.Lifecycle](../Kun.Lifecycle/README.md)。`GrpcReflectionTests` 验证 proto 的首个版本不比较、无对端 fail-closed、有对端时兼容版本 Ready；OpenAPI 的挂载、Reconciler 与升级三条路径由 `tests/Qian.Sample.Crm.Tests` 的 `LifecycleAcceptanceTests` 验证。
 
 ## 实际 HTTP 端点聚合
 
-平台宿主注册 `AddQianHttpContracts()` 后，`IHttpContractSource` 从原生 ApiExplorer 读取实际 Minimal API/MVC 路由、参数、请求体和声明的响应类型。端点通过 SDK 的 `PluginEndpointBinding` 标注实际安装条目及服务/能力绑定，未标注的宿主路由不被猜测为组件接口。运行时先核对 Registry Ready 视图，再执行端点本身的 ASP.NET 授权策略；命中后的模型才导出到文档，避免无权限 Schema 残留。
+平台宿主注册 `AddKunHttpContracts()` 后，`IHttpContractSource` 从原生 ApiExplorer 读取实际 Minimal API/MVC 路由、参数、请求体和声明的响应类型。端点通过 SDK 的 `PluginEndpointBinding` 标注实际安装条目及服务/能力绑定，未标注的宿主路由不被猜测为组件接口。运行时先核对 Registry Ready 视图，再执行端点本身的 ASP.NET 授权策略；命中后的模型才导出到文档，避免无权限 Schema 残留。
 
 源生成能力的具体调用路径与原生 HTTP 文档共同组成 OpenAPI 3.1。宿主需提供准确的 `Produces` 等响应元数据；无法正确描述的输入来源会失败，不输出伪造 Schema。本期已覆盖 JSON 请求体、路径、查询与请求头参数，使用 S1 后端 S2S Bearer 认证口径。路由约束会转换为 OpenAPI 路径参数，JSON Schema 的递归引用共用 SDK 的重定位实现，命名冲突拒绝覆盖。
 
 `CompileDocumentAsync(pluginId)` 是可信构建流程的完整组件导出端口，不依赖当前 HTTP 用户或运行时权限裁剪，也没有公开 HTTP 路由。客户宿主的版本制品现已同时包含生成能力契约及实际 REST 路由契约；有限权限用户看不到创建接口，但发布基线仍保留完整操作，删掉原生路径会在挂载前被拒绝。
 
-`MapQianCapabilities` 的端点绑定默认为 capabilities 条目，可用重载指定真实条目。宿主必须先注册并安装 SDK 插件端点中间件；目录端点过滤器会拒绝缺失的中间件证据。业务宿主需使用同一绑定与中间件保护实际入口，不能只在文档里隐藏路径。参考客户 REST 路由已绑定到实际可执行能力，因此 restrict 后文档和直接访问都拒绝。
+`MapKunCapabilities` 的端点绑定默认为 capabilities 条目，可用重载指定真实条目。宿主必须先注册并安装 SDK 插件端点中间件；目录端点过滤器会拒绝缺失的中间件证据。业务宿主需使用同一绑定与中间件保护实际入口，不能只在文档里隐藏路径。参考客户 REST 路由已绑定到实际可执行能力，因此 restrict 后文档和直接访问都拒绝。
 
 平台运营端点可使用 Definition 的 PlatformHttpContract 标注归属，CompileDocumentAsync 将其纳入完整制品 OpenAPI；它不授予运行权限，也不进入租户可见的 GetDocumentAsync。租户业务端点仍使用 PluginEndpointBinding 与实际 Registry 挂载门禁（TEN-006）。
 
@@ -184,6 +184,6 @@ TenantInputContract 是能力 inputSchema 与 HTTP 契约检查共用的租户�
 
 ## 清单入口与代码派生
 
-`plugins/qian.capabilities/.qian-plugin/plugin.json` 的稳定入口是 `CapabilitiesComponent`，允许 global scope，依赖 `Data`、`Audit`、`Registry`、`Tenancy` 及三种命令策略键，提供 能力目录、契约仓库、契约准入与导航的四个 Definition 服务键。固定委托无参 `CapabilitiesPlugin`，宿主必须先调用 `AddQianCapabilities()`。OpenAPI / gRPC / 导航包装器和准入失败占位是实现构件，不是独立组件。
+`plugins/qian.capabilities/.qian-plugin/plugin.json` 的稳定入口是 `CapabilitiesComponent`，允许 global scope，依赖 `Data`、`Audit`、`Registry`、`Tenancy` 及三种命令策略键，提供 能力目录、契约仓库、契约准入与导航的四个 Definition 服务键。固定委托无参 `CapabilitiesPlugin`，宿主必须先调用 `AddKunCapabilities()`。OpenAPI / gRPC / 导航包装器和准入失败占位是实现构件，不是独立组件。
 
-入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代真实安装验收：清单已去掉 `x-skeleton`（R144 ③），本组件只在平台宿主里运行，安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试，不提供 `qian add` 独立安装。
+入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代真实安装验收：清单已去掉 `x-skeleton`（R144 ③），本组件只在平台宿主里运行，安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Kun.Platform.Host/README.md)的 profile 装配与集成测试，不提供 `qian add` 独立安装。

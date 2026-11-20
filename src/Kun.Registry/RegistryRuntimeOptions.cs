@@ -1,8 +1,8 @@
-using Qian.Profiles.Abstractions;
+using Kun.Profiles.Abstractions;
 using Kun.Runtime;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>平台宿主提供静态装配与已安装 Provider 的解析，不从数据库内容加载程序集。</summary>
 public sealed class RegistryRuntimeOptions

@@ -2,12 +2,12 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.OpenApi;
-using Qian.Registry;
-using Qian.Surfaces.Abstractions;
+using Kun.Registry;
+using Kun.Surfaces.Abstractions;
 using Json.Schema;
 using Kun.Errors;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 // 只消费 Registry 实际预装集合的文件快照，不读工作目录，不接受 Submitted 候选作为运行资格。
 internal sealed partial class InstalledContractRepository : IContractRepository, IDisposable

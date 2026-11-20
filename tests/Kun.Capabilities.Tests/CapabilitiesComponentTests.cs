@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 public sealed class CapabilitiesComponentTests
 {
@@ -19,7 +19,7 @@ public sealed class CapabilitiesComponentTests
             new(new PluginEntry("capabilities", "qian.capabilities", "1.0.0", ScopeKey.Global, 0, JsonSerializer.SerializeToElement(new { })),
                 component, [CapabilitiesDefinition.Key])], TestContext.Current.CancellationToken);
         Assert.Equal(PluginState.Failed, loader.GetState("capabilities", ScopeKey.Global));
-        Assert.Contains("AddQianCapabilities()", Assert.IsType<InvalidOperationException>(loader.GetFailure("capabilities", ScopeKey.Global)).Message, StringComparison.Ordinal);
+        Assert.Contains("AddKunCapabilities()", Assert.IsType<InvalidOperationException>(loader.GetFailure("capabilities", ScopeKey.Global)).Message, StringComparison.Ordinal);
         Assert.Null(loader.GetContext("prerequisites", ScopeKey.Global).TryInject<object>(CapabilitiesDefinition.Key));
     }
 

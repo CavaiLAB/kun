@@ -4,7 +4,7 @@ using Kun.Core.MultiTenancy;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Dev.TenantOps;
 using Kun.Identity.Abstractions;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 using Kun.Runtime;
 using Kun.Tenancy;
 

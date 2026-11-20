@@ -2,9 +2,9 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Surfaces.Hosting;
+namespace Kun.Surfaces.Hosting;
 
 /// <summary>将已校验 hook 声明连接到真实事件与 handler，不执行声明中的任意代码。</summary>
 public sealed class HookBridgePlugin : IKunPlugin, ISurfaceRuntimeValidator

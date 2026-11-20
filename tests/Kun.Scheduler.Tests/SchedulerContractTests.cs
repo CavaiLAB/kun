@@ -3,9 +3,9 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Qian.Scheduler.TestHost;
+using Kun.Scheduler.TestHost;
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 public sealed class SchedulerContractTests
 {

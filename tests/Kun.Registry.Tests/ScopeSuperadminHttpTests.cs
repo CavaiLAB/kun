@@ -11,7 +11,7 @@ using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Runtime;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 public sealed partial class PatchPersistenceTests
 {

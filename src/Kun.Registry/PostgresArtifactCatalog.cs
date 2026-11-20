@@ -4,9 +4,9 @@ using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 internal sealed class RegistryArtifactSnapshot
 {

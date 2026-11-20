@@ -3,7 +3,7 @@ using Google.Protobuf.Reflection;
 using Grpc.Core;
 using Grpc.Reflection.V1Alpha;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>使用真实 gRPC reflection 读取实际服务描述；传输、TLS 与认证凭据由宿主提供。</summary>
 public sealed class GrpcReflectionContractProbe : IGrpcContractProbe

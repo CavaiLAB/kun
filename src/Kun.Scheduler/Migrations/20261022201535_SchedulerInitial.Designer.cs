@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Qian.Scheduler;
+using Kun.Scheduler;
 
 #nullable disable
 
-namespace Qian.Scheduler.Migrations
+namespace Kun.Scheduler.Migrations
 {
     [DbContext(typeof(SchedulerDbContext))]
     [Migration("20261022201535_SchedulerInitial")]
@@ -93,7 +93,7 @@ namespace Qian.Scheduler.Migrations
                     b.ToTable("outbox_messages", "plugin_qian_scheduler");
                 });
 
-            modelBuilder.Entity("Qian.Scheduler.JobDefinitionRow", b =>
+            modelBuilder.Entity("Kun.Scheduler.JobDefinitionRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(36)
@@ -159,7 +159,7 @@ namespace Qian.Scheduler.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Scheduler.JobRunRow", b =>
+            modelBuilder.Entity("Kun.Scheduler.JobRunRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(36)
@@ -226,7 +226,7 @@ namespace Qian.Scheduler.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Scheduler.JobTriggerRow", b =>
+            modelBuilder.Entity("Kun.Scheduler.JobTriggerRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(36)
@@ -293,20 +293,20 @@ namespace Qian.Scheduler.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Scheduler.JobRunRow", b =>
+            modelBuilder.Entity("Kun.Scheduler.JobRunRow", b =>
                 {
-                    b.HasOne("Qian.Scheduler.JobTriggerRow", null)
+                    b.HasOne("Kun.Scheduler.JobTriggerRow", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "TriggerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Qian.Scheduler.JobTriggerRow", b =>
+            modelBuilder.Entity("Kun.Scheduler.JobTriggerRow", b =>
                 {
-                    b.HasOne("Qian.Scheduler.JobDefinitionRow", null)
+                    b.HasOne("Kun.Scheduler.JobDefinitionRow", null)
                         .WithOne()
-                        .HasForeignKey("Qian.Scheduler.JobTriggerRow", "TenantId", "Id")
+                        .HasForeignKey("Kun.Scheduler.JobTriggerRow", "TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

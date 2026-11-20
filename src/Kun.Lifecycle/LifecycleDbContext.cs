@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 /// <summary>生命周期上下文：平台修订（平台级目录）、租户安装、钩子执行记录、挂载失败诊断与反向权限批准（租户表，强制 RLS）；表结构随包内迁移交付。</summary>
 public sealed class LifecycleDbContext(DbContextOptions<LifecycleDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)

@@ -5,7 +5,7 @@ using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Errors;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 // S1-RT-004 TCK：共享表面 fixture（tck/surfaces/cases.json，.NET 与 TS 校验器逐项一致）中的清单准入用例，经注册表的候选制品登记入口执行。
 // 反例一律 INPUT_INVALID，字段错误的 JSON Pointer 与 fixture 一致，候选目录不留记录；正例登记为 Submitted。

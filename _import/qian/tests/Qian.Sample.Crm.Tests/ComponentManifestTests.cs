@@ -7,7 +7,7 @@ using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Qian.Surfaces;
+using Kun.Surfaces;
 using Kun.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Runtime;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 /// <summary>租户级钩子名。</summary>
 public static class LifecycleHooks

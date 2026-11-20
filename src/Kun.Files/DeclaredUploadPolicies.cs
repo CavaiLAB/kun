@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Kun.Errors;
 using Kun.Runtime;
-using Qian.Registry;
+using Kun.Registry;
 using SemanticVersion = SemanticVersioning.Version;
 
 namespace Kun.Files;

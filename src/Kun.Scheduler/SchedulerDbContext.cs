@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Scheduler;
+namespace Kun.Scheduler;
 
 /// <summary>调度器三表；普通应用角色始终受 tenant RLS 保护。</summary>
 public class SchedulerDbContext : KunStrictDbContext

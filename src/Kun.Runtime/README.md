@@ -24,9 +24,9 @@ await runtime.MountAsync(definitions, cancellationToken);
 
 `PluginDefinition` 绑定 `PluginEntry`、`IKunPlugin` 实例与清单的 `Provides`。每次 `MountAsync` 提交一组完整依赖，装载器在调用任何 `ApplyAsync` 前检查缺失键与环路。已装载条目的依赖被撤销后进入 `Pending`，同键恢复时重新 `ApplyAsync`。等待超过 30 秒会记录依赖警告，管理面可用 `GetPendingDependencies` 查询等待的键。Apply 失败会逆序回滚自身效果，独立条目继续启动，失败原因可由 `GetFailure` 查询。配置重载用 `ReloadAsync`。
 
-声明式表面的目录键 `SurfaceKeys`（Skills / Agents / Commands / Hooks / McpServers / Tools）带产品语义，在平台档的 [Qian.Surfaces.Abstractions](../../_import/qian/packages/Qian.Surfaces.Abstractions/README.md) 里；运行时只按键登记。目录中的文档由 [Qian.Surfaces](../../_import/qian/packages/Qian.Surfaces/README.md) 校验和登记，沿用同一 scope 与 Effect 语义。
+声明式表面的目录键 `SurfaceKeys`（Skills / Agents / Commands / Hooks / McpServers / Tools）带产品语义，在平台档的 [Kun.Surfaces.Abstractions](../Kun.Surfaces.Abstractions/README.md) 里；运行时只按键登记。目录中的文档由 [Kun.Surfaces](../Kun.Surfaces/README.md) 校验和登记，沿用同一 scope 与 Effect 语义。
 
-管理面用 `DumpConfig()` 读取当前真实挂载树的配置快照，正在移除与已卸载条目不进入结果；这是运行时快照，静态 profile 的完整来源层仍由 `Qian.Profiles` 提供。整树释放会先标记全部条目正在移除，再逐个逆序撤销，避免已释放依赖者被二次失效。共享 TCK 同时检查释放轨迹和清理异常为零。
+管理面用 `DumpConfig()` 读取当前真实挂载树的配置快照，正在移除与已卸载条目不进入结果；这是运行时快照，静态 profile 的完整来源层仍由 `Kun.Profiles` 提供。整树释放会先标记全部条目正在移除，再逐个逆序撤销，避免已释放依赖者被二次失效。共享 TCK 同时检查释放轨迹和清理异常为零。
 
 ## 服务与效果
 
@@ -55,7 +55,7 @@ emit 使用 `Func<P, ValueTask>`；waterfall 使用 `Func<P, Func<ValueTask<R>>,
 
 ## scope 与模型体验
 
-`Scoped` 共享条目效果栈，不同 scope 彼此独立。scope 是 `global`，或「种类 + 非空 id」：运行时只查语法（种类名由小写字母开头，只含小写字母、数字与连字符），种类有哪些（tenant、app、agent-session）由平台档定，见 `Qian.Profiles.Abstractions` 的 `ScopeKinds`。同 `(key, name)` 的 scoped 注册遮蔽全局注册；restriction 只过滤目标 scope 的全局注册，多条取交集。目录 `List`、注入和事件执行使用同一可见性规则。被过滤的具名注册与不存在的注册均抛携带 `NOT_FOUND` 的 `ErrorException`，不暴露过滤原因。监听器目录名为条目 id 加本次 Apply 内的事件序号；同条目不同 scope 的同序号监听器可遮蔽。
+`Scoped` 共享条目效果栈，不同 scope 彼此独立。scope 是 `global`，或「种类 + 非空 id」：运行时只查语法（种类名由小写字母开头，只含小写字母、数字与连字符），种类有哪些（tenant、app、agent-session）由平台档定，见 `Kun.Profiles.Abstractions` 的 `ScopeKinds`。同 `(key, name)` 的 scoped 注册遮蔽全局注册；restriction 只过滤目标 scope 的全局注册，多条取交集。目录 `List`、注入和事件执行使用同一可见性规则。被过滤的具名注册与不存在的注册均抛携带 `NOT_FOUND` 的 `ErrorException`，不暴露过滤原因。监听器目录名为条目 id 加本次 Apply 内的事件序号；同条目不同 scope 的同序号监听器可遮蔽。
 
 restriction 谓词应为无副作用的纯函数，抛异常时记录日志并按不可见处理。模型可见工具与目录消费方每次调用时都从当前 scope 重新解析；业务鉴权与租户策略由相应插件的事件监听器实施。scope 不推测任何业务 lineage。
 

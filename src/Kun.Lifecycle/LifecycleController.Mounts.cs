@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Identity.Abstractions;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // Mount / Unmount 写租户 scope patch（取代数据库开关）并立即合入；装配失败整体撤回，原因持久记入诊断（R76）。
 internal sealed partial class LifecycleController

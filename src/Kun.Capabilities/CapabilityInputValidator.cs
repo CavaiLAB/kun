@@ -5,7 +5,7 @@ using Json.Schema;
 using Microsoft.Extensions.Logging;
 using Kun.Errors;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 // 执行前按条目 inputSchema（JSON Schema 2020-12）校验输入；每个违反项映射为 contracts/v0 的字段级错误码与输入 JSON Pointer。
 internal sealed partial class CapabilityInputValidator

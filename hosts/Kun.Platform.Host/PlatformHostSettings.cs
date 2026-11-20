@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 平台宿主的启动输入。来源与网关宿主相同：<c>appsettings.json</c>、<c>QIAN_</c> 前缀的环境变量、命令行，测试可再加内存配置源。

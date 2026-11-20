@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Surfaces.Tests;
+namespace Kun.Surfaces.Tests;
 
 public sealed class MarketplaceTests
 {

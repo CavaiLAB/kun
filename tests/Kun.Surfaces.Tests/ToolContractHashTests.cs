@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Qian.Surfaces.Tests;
+namespace Kun.Surfaces.Tests;
 
 // S1-RT-020：schemaSha256 只有生产实现一份（ToolContractHash），这里直接用 RFC 8785 的正文示例与附录 B 的数值序列化样本断言它，
 // 不在测试里另写 JCS。期望值取自 RFC 原文：把样本放进 inputSchema，期望的规范化文本即

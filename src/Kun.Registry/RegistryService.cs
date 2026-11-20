@@ -9,9 +9,9 @@ using Kun.Authorization.Rbac.Abstractions;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 internal sealed partial class RegistryService : IRegistryService
 {
@@ -66,7 +66,7 @@ internal sealed partial class RegistryService : IRegistryService
     private bool DeclaresContracts(string pluginId, string version) => _installed.Any(component => component.PluginId == pluginId && component.Version == version &&
         component.Metadata.Keys.Any(path => Path.GetFileName(path) == "contracts.json"));
 
-    private PluginDefinition ResolveInstalled(Qian.Profiles.Abstractions.ResolvedProfileEntry entry)
+    private PluginDefinition ResolveInstalled(Kun.Profiles.Abstractions.ResolvedProfileEntry entry)
     {
         var identity = entry.Plugin.Split('@', 2);
         var installed = _installed.SingleOrDefault(component => component.PluginId == identity[0] && component.Version == identity[1]);

@@ -1,4 +1,4 @@
-namespace Qian.Profiles.Abstractions;
+namespace Kun.Profiles.Abstractions;
 
 /// <summary>平台承认的非全局 scope 种类。内核的 <c>ScopeKey</c> 只查语法，种类的取值在平台档定。</summary>
 public static class ScopeKinds

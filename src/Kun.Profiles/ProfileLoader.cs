@@ -3,14 +3,14 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Json.Schema;
 using Json.Schema.Keywords;
-using Qian.Common;
-using Qian.Profiles.Abstractions;
+using Kun.Common;
+using Kun.Profiles.Abstractions;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 using VersionRange = SemanticVersioning.Range;
 using SemanticVersion = SemanticVersioning.Version;
 
-namespace Qian.Profiles;
+namespace Kun.Profiles;
 
 /// <summary>组合包 → profile patch → home patch → CLI overlay 的静态装配器。</summary>
 public sealed class ProfileLoader(ISurfaceReader reader) : IProfileLoader

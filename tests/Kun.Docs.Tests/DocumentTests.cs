@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Json.Schema;
-using Qian.Docs.Abstractions;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
+using Kun.Docs.Abstractions;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
 using Kun.Errors;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
-namespace Qian.Docs.Tests;
+namespace Kun.Docs.Tests;
 
 public sealed class DocumentTests
 {

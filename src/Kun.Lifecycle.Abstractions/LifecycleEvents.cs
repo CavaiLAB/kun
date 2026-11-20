@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using Kun.EventBus;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 /// <summary>生命周期控制器发布的集成事件（PRD 7.2.1「插件化定位」），随状态写入同一事务进入 Outbox。</summary>
 public static class LifecycleEvents

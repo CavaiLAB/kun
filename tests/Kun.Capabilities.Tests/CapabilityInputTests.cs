@@ -4,7 +4,7 @@ using Json.Schema;
 using Microsoft.Extensions.Logging;
 using Kun.Errors;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 // S1-RT-019 / S1-RT-020：执行前的输入 Schema 校验、组件配置 catalogTtlMs 与 receiptMaxBytes、buf 输出解析。
 public sealed class CapabilityInputTests

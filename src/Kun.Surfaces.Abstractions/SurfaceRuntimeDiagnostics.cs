@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Runtime;
 
-namespace Qian.Surfaces.Abstractions;
+namespace Kun.Surfaces.Abstractions;
 
 /// <summary>实际监视器提供的当前状态；不包含配置或文件正文。</summary>
 public interface ISurfaceReloadDiagnosticSource

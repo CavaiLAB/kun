@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
-using Qian.Capabilities;
-using Qian.Profiles.Abstractions;
+using Kun.Capabilities;
+using Kun.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 // 只操作平台宿主交给自己的 scope 条目；没有数据库写入口，也不加载代码程序集。
 internal sealed partial class RegistryScopeReconciler(

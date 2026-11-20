@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Runtime;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
-using Qian.Surfaces.Hosting;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
+using Kun.Surfaces.Hosting;
 
 namespace Qian.Sample.Crm.Tests;
 
@@ -171,7 +171,7 @@ public abstract partial class CustomerCommandTests
     }
     private protected static void MapHookEntry(WebApplication app)
     {
-        app.MapQianSurfaceDiagnostics(http =>
+        app.MapKunSurfaceDiagnostics(http =>
             http.RequestServices.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("data", ScopeKey.Global)
                 .Scoped(new ScopeKey("tenant", Assert.IsType<Guid>(http.RequestServices.GetRequiredService<ITenantContext>().TenantId).ToString("D"))), "crm-data-writer");
         // 仅验证已有真实生产方上下文的事件桥接；这不是租户开户/开通 API 的替代实现。

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Runtime;
 
-namespace Qian.Scheduler;
+namespace Kun.Scheduler;
 
 /// <summary>持久调度 Definition，Provider 可由 profile 替换。</summary>
 public static class SchedulerDefinition

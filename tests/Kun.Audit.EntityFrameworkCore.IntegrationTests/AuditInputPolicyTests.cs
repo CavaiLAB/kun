@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Errors;
-using Qian.Common;
+using Kun.Common;
 
 namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 

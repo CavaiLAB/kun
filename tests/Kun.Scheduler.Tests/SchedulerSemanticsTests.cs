@@ -7,10 +7,10 @@ using Npgsql;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Scheduler.TestHost;
-using static Qian.Scheduler.Tests.SchedulerScenario;
+using Kun.Scheduler.TestHost;
+using static Kun.Scheduler.Tests.SchedulerScenario;
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 // 调度语义、准入与隔离：业务键幂等与取消、目录准入、迁移模型与 cron 解析、过期租约围栏、三表 RLS 与组合外键、
 // worker 专用登录的列权限、租户冻结、超时重试与取消终态、misfire，以及停机窗口里上下文已关闭时 worker 的收尾。

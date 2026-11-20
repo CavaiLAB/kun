@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.OpenApi;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>调用宿主预装的锁定版本检查器；不下载程序、不联网解析引用、不执行 shell。</summary>
 public sealed class OasDiffOpenApiProbe : IOpenApiCompatibilityProbe

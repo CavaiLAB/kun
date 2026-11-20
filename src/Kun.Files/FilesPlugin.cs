@@ -8,7 +8,7 @@ using Kun.Runtime;
 using Kun.Tenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Qian.Registry;
+using Kun.Registry;
 
 namespace Kun.Files;
 

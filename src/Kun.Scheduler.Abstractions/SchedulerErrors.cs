@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Scheduler;
+namespace Kun.Scheduler;
 
 /// <summary>调度组件的错误词汇。</summary>
 public static class SchedulerErrors

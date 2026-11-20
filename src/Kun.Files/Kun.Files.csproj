@@ -11,7 +11,7 @@
     <ProjectReference Include="../Kun.Files.Abstractions/Kun.Files.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Registry.Abstractions/Kun.Registry.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
     <ProjectReference Include="../Kun.Plugin.Sdk.Commands/Kun.Plugin.Sdk.Commands.csproj" />
     <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

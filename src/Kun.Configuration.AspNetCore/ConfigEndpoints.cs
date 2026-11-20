@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Capabilities;
-using Qian.Registry;
+using Kun.Capabilities;
+using Kun.Registry;
 
 namespace Kun.Configuration.AspNetCore;
 

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Qian.Capabilities.Migrations
+namespace Kun.Capabilities.Migrations
 {
     /// <inheritdoc />
     internal partial class NavigationAndInvokeReceipts : Migration

@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Surfaces;
+namespace Kun.Surfaces;
 
 /// <summary>把已经校验的静态快照注册到运行时；注册沿用条目 scope 与 Effect 逆序释放。</summary>
 public sealed class DeclarativeSurfacePlugin : IKunPlugin

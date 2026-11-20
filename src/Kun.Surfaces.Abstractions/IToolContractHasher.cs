@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Surfaces.Abstractions;
+namespace Kun.Surfaces.Abstractions;
 
 /// <summary>冻结工具契约的 JCS/SHA-256 端口，供能力目录复用，避免复制或变更哈希规则。</summary>
 public interface IToolContractHasher

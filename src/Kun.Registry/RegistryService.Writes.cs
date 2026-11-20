@@ -2,11 +2,11 @@ using System.Text.Json;
 using Kun.EventBus;
 using Kun.Security;
 using Kun.Identity.Abstractions;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 internal sealed partial class RegistryService
 {

@@ -9,7 +9,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Lifecycle.AspNetCore;
+namespace Kun.Lifecycle.AspNetCore;
 
 /// <summary>管理面装配诊断（PRD 7.2.1、S1-RT-006 复核 R76）与反向权限批准（PRD 7.18）；宿主提供已验证租户的生命周期上下文，HTTP 输入不能指定主体。</summary>
 public static class LifecycleEndpoints
@@ -22,7 +22,7 @@ public static class LifecycleEndpoints
     /// 宿主须先配置身份、租户与 ErrorDetail 中间件，并装配权限判定端口；source 返回可注入生命周期控制器的插件上下文。权限与 404 的判定全部在控制器内完成。
     /// 不挂插件端点门禁：scope 合入失败时本 scope 的注册全部收紧，诊断面仍须能说明原因。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianLifecycle(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunLifecycle(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         endpoints.MapGet("/api/lifecycle/diagnostics", Task<IResult> (HttpContext http) => Respond(http, async (lifecycle, user) =>

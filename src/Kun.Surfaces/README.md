@@ -1,10 +1,10 @@
-# Qian.Surfaces
+# Kun.Surfaces
 
-依据 [组件模型规格 §4](../../docs/prd/specs/component-model.md#4-声明式表面的文件格式) 与 [S1-RT-008](../../pm/tasks/S1-RT-008.md)。`Qian.Surfaces.Abstractions` 定义结果、诊断、错误码与端口；本包提供 JSON/YAML 解析、Schema 和静态语义校验。
+依据 [组件模型规格 §4](../../_import/qian/docs/prd/specs/component-model.md#4-声明式表面的文件格式) 与 [S1-RT-008](../../_import/qian/pm/tasks/S1-RT-008.md)。`Kun.Surfaces.Abstractions` 定义结果、诊断、错误码与端口；本包提供 JSON/YAML 解析、Schema 和静态语义校验。
 
 ## 装配位置
 
-本文件夹包含解析器、校验器、工具描述 JCS 哈希和运行时适配器；Schema 唯一源在 [schemas/v2](../../schemas/v2/README.md)。所有 profile 都可使用，不依赖 Registry、Lifecycle 或数据库。它承担声明式目录的 Provider，运行时拥有 Skills、Agents、Commands、Hooks、McpServers、Tools 服务键。
+本文件夹包含解析器、校验器、工具描述 JCS 哈希和运行时适配器；Schema 唯一源在 [schemas/v2](../../_import/qian/schemas/v2/README.md)。所有 profile 都可使用，不依赖 Registry、Lifecycle 或数据库。它承担声明式目录的 Provider，运行时拥有 Skills、Agents、Commands、Hooks、McpServers、Tools 服务键。
 
 `qian add` 的完整安装编排属于 CLI 任务，本包供它、profile 装载器、CI 和市场准入复用；无代码组件不需要加载程序集或实例化业务插件即可解析。
 
@@ -48,7 +48,7 @@ if (result.IsValid)
 
 ### 检查顺序与行号约定
 
-两端的解析器（.NET 的 `SurfaceReader`：YamlDotNet 18.1.0 与 `Utf8JsonReader`；CLI 的 `parseSurface`：`yaml` 2.9.1 与 `jsonc-parser` 3.3.1）对同一内容给出同一条诊断，有效性、指针（文件根）、行号与文案都相同，由[表面 TCK](../../tck/surfaces/README.md) 的 `syntax-vectors.json` 逐条核对（S1-RT-025）。行号从 1 起按换行符计，开头的 BOM 不占位置，CRLF 视同 LF；Markdown front matter 的行号从文件第 1 行（开头的 `---`）算起。
+两端的解析器（.NET 的 `SurfaceReader`：YamlDotNet 18.1.0 与 `Utf8JsonReader`；CLI 的 `parseSurface`：`yaml` 2.9.1 与 `jsonc-parser` 3.3.1）对同一内容给出同一条诊断，有效性、指针（文件根）、行号与文案都相同，由[表面 TCK](../../_import/qian/tck/surfaces/README.md) 的 `syntax-vectors.json` 逐条核对（S1-RT-025）。行号从 1 起按换行符计，开头的 BOM 不占位置，CRLF 视同 LF；Markdown front matter 的行号从文件第 1 行（开头的 `---`）算起。
 
 YAML（含 front matter）报最先遇到的一处：
 
@@ -98,7 +98,7 @@ JSON 的语法错误（含根值之后多余的内容）、第 65 层容器与�
 
 ## 验证
 
-[共同 fixture](../../tck/surfaces/README.md) 覆盖所有支持表面、225 个组件场景（194 个反例）、无 src 组件、自定义指针、两侧精确诊断对比、74 条解析诊断向量与 16 条 YAML 取值向量，以及独立 JCS 浮点／Unicode 向量。其中 68 个场景验证文件编码与配置 Schema 读取边界。.NET 还验证租户 A/B 隔离与卸载撤销。
+[共同 fixture](../../_import/qian/tck/surfaces/README.md) 覆盖所有支持表面、225 个组件场景（194 个反例）、无 src 组件、自定义指针、两侧精确诊断对比、74 条解析诊断向量与 16 条 YAML 取值向量，以及独立 JCS 浮点／Unicode 向量。其中 68 个场景验证文件编码与配置 Schema 读取边界。.NET 还验证租户 A/B 隔离与卸载撤销。
 
 ## 已知限制与延期项
 
@@ -107,7 +107,7 @@ JSON 的语法错误（含根值之后多余的内容）、第 65 层容器与�
 
 ## 市场文档
 
-`ISurfaceValidator.ValidateMarketplace(file, content)` 与 TS `validateMarketplace` 共用 marketplace/v2，检查字段、安装名唯一性、分类、路径、公钥与远程 URL 约束，并输出同样的文件指针和行号。失败不返回含敏感输入的市场对象。它是静态文档校验，不读取网络或信任根；来源取得、验签、digest 及每个实际组件的 ValidateComponent 由 [CLI 市场链路](../qian-cli/README.md) 继续完成。跨语言向量在 tck/marketplaces。
+`ISurfaceValidator.ValidateMarketplace(file, content)` 与 TS `validateMarketplace` 共用 marketplace/v2，检查字段、安装名唯一性、分类、路径、公钥与远程 URL 约束，并输出同样的文件指针和行号。失败不返回含敏感输入的市场对象。它是静态文档校验，不读取网络或信任根；来源取得、验签、digest 及每个实际组件的 ValidateComponent 由 [CLI 市场链路](../../_import/qian/packages/qian-cli/README.md) 继续完成。跨语言向量在 tck/marketplaces。
 
 能力目录可经 Definition 的 IToolContractHasher 端口使用 ToolContractHasher，复用同一 ToolContractHash/JCS 实现；不复制规范化算法，也不在组件库中反向引用本 Provider。
 
@@ -117,9 +117,9 @@ JSON 的语法错误（含根值之后多余的内容）、第 65 层容器与�
 
 `HotReloadSurfacePlugin` 可包装一个真实代码插件，也可作为无代码组件。它使用文件监视与定期核对，稳定读取并校验后调用上述刷新端口。非法新内容保留上一份有效注册；源码、清单身份或代码派生工具变化只标记 `RestartRequired`。状态不包含文件内容、配置或凭据。卸载先停止并等待监视工作，再撤销表面与代码效果，不在 effect 内递归等待装载器生命周期。
 
-.NET 与 TypeScript 使用同一份 [T19 场景](../../tck/runtime/hotreload.json)，实际修改文件，验证五秒内更新、租户隔离、代码对象引用及效果保持、非法内容保留、源码重启提示和卸载清理。CI 对照两侧实际测试产生的结果；不靠调用手工刷新方法代替文件监视。轮询期间 Tools 必须恰好一项，过渡期缺失即失败。两侧会话单测另覆盖并发读取方在反复替换期间从不缺失、每次登记/替换/撤销之后新旧都有的文档仍可解析、新增冲突与替换中途失败的回滚。
+.NET 与 TypeScript 使用同一份 [T19 场景](../../_import/qian/tck/runtime/hotreload.json)，实际修改文件，验证五秒内更新、租户隔离、代码对象引用及效果保持、非法内容保留、源码重启提示和卸载清理。CI 对照两侧实际测试产生的结果；不靠调用手工刷新方法代替文件监视。轮询期间 Tools 必须恰好一项，过渡期缺失即失败。两侧会话单测另覆盖并发读取方在反复替换期间从不缺失、每次登记/替换/撤销之后新旧都有的文档仍可解析、新增冲突与替换中途失败的回滚。
 
-[无代码技能场景](../../tck/runtime/skill-only.json) 另覆盖真实交付的 minimal profile 装配：组件只有清单与 SKILL.md，没有 runtime 声明或 src，两端均能装入租户 A、进入配置输出与 Skills/Tools，租户 B 不可见，卸载无残留。共享反例还验证任意 shell hook、服务端内联 shell 和未授权内联 shell 在创建运行时表面插件时即被拒绝；明确允许的人类 CLI 声明可以通过加载准入。这不代表本包实现了人类 CLI 的 shell 执行器。
+[无代码技能场景](../../_import/qian/tck/runtime/skill-only.json) 另覆盖真实交付的 minimal profile 装配：组件只有清单与 SKILL.md，没有 runtime 声明或 src，两端均能装入租户 A、进入配置输出与 Skills/Tools，租户 B 不可见，卸载无残留。共享反例还验证任意 shell hook、服务端内联 shell 和未授权内联 shell 在创建运行时表面插件时即被拒绝；明确允许的人类 CLI 声明可以通过加载准入。这不代表本包实现了人类 CLI 的 shell 执行器。
 
 当前已接入下节的 hook 执行增量与运行态诊断。按 R83，RT-009 的 hooks 桥接验收以测试宿主经真实 qian.tenancy 生产方上下文发布的租户事件为准，四项验收均有证据（见下节末段）；完整事件矩阵、真实开户事件生产方（S1-TEN-003）与 registry/entry-mounted 等生产方接线仍未完成。本次还修正运行时手动撤销注册后的效果栈清理；TypeScript 运行时需要在后续发布流程发布新的兼容补丁版本，不能覆盖已发布的 0.1.0。
 
@@ -127,13 +127,13 @@ JSON 的语法错误（含根值之后多余的内容）、第 65 层容器与�
 
 监视器把 `SurfaceReloadDiagnostics:<component>` 作为可逆的具名注册挂到同一 scope，属于表面监视的诊断集合，不是业务能力或安装状态来源。.NET 的 `SurfaceRuntimeDiagnostics.Read(ctx)` 与 TS 的 `readSurfaceRuntimeDiagnostics(ctx)` 都通过实际 `ctx.List` 读取，继承相同的遮蔽、restrict 和卸载语义；卸载后旧诊断对象也拒绝读取。输出只含条目、scope、修订号、变化的相对文件名以及重启/更新拒绝标志，不含配置和文件正文。
 
-`Qian.Surfaces.Hosting` 的 `MapQianSurfaceDiagnostics(source, authorizationPolicy)` 映射 `GET /api/lifecycle/diagnostics/surfaces`。宿主必须显式提供已登记的授权策略，source 从可信身份获得 scope，不能从请求参数接受租户。它适用于需要 HTTP 诊断的 minimal 参考宿主及后续 platform 组装；不实现完整 lifecycle 管理面。TS 宿主可在同一路径先完成自己的认证授权，再返回上述读取函数的结果。无代码表面组件仍通过现有 `qian add --no-code` 安装；监视器及 HTTP 代码的安装归完整代码包安装流程。
+`Kun.Surfaces.Hosting` 的 `MapKunSurfaceDiagnostics(source, authorizationPolicy)` 映射 `GET /api/lifecycle/diagnostics/surfaces`。宿主必须显式提供已登记的授权策略，source 从可信身份获得 scope，不能从请求参数接受租户。它适用于需要 HTTP 诊断的 minimal 参考宿主及后续 platform 组装；不实现完整 lifecycle 管理面。TS 宿主可在同一路径先完成自己的认证授权，再返回上述读取函数的结果。无代码表面组件仍通过现有 `qian add --no-code` 安装；监视器及 HTTP 代码的安装归完整代码包安装流程。
 
 `qian doctor --profile minimal --url https://host --json` 使用环境中的 `QIAN_ACCESS_TOKEN` 读取实时状态；本机回环允许 HTTP，远端只允许 HTTPS，拒绝重定向和超限/错误协议响应。`ROLLING_RESTART_REQUIRED` 提示滚动重启并返回非零，`SURFACE_UPDATE_REJECTED` 提示修正表面且保留上次有效注册。没有 `--url` 时仅验证静态 profile，`runtimeVerified` 为 false；不能将其作为运行态健康证明。诊断协议由 `schemas/v2/surface-diagnostics.schema.json` 共同校验。真实 CLI 进程已分别对 .NET Kestrel/签名 S2S 和 TS 文件监视宿主验收，T19 同时检查诊断 scope、重启状态与卸载失效。
 
 ## 真实 hook 桥接增量
 
-运行时执行位于 `Qian.Surfaces.Hosting`，其 Definition 复用 `Qian.Surfaces.Abstractions`；通用表面校验器仍只解析与校验。`HookBridgePlugin` 包装实际代码插件，在 Apply 中核对声明是否能解析到真实 `IHookHandler`，并通过普通 `ctx.On` 连接运行时事件。当前支持 R39 的四个 serial 事件：tenant/provisioned、tenant/purged、registry/entry-mounted、registry/entry-disabled。事件生产方与 scope 来自真实上下文，不能从 JSON 伪造。
+运行时执行位于 `Kun.Surfaces.Hosting`，其 Definition 复用 `Kun.Surfaces.Abstractions`；通用表面校验器仍只解析与校验。`HookBridgePlugin` 包装实际代码插件，在 Apply 中核对声明是否能解析到真实 `IHookHandler`，并通过普通 `ctx.On` 连接运行时事件。当前支持 R39 的四个 serial 事件：tenant/provisioned、tenant/purged、registry/entry-mounted、registry/entry-disabled。事件生产方与 scope 来自真实上下文，不能从 JSON 伪造。
 
 代码组件用 SDK 的 `ExposeCapabilityHook` 把已经实际登记的能力暴露为 handler，输入投影由可信代码完成。调用继续进入实际 Mediator，执行租户检查、RBAC、业务/Outbox 保存及同事务审计。SDK 的私有异步上下文只在本次目标能力调用期间标记 hook 通道，结束后恢复；请求体不能选择通道。hook 查询也会进入审计。Audit DTO、SDK 通道词汇与 PostgreSQL 事务函数现均接受任务规定的 hook 值。
 

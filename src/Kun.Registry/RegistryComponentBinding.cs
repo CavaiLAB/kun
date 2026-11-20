@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Kun.Runtime;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>宿主把预装 Provider 与同一组件的静态校验结果绑定；不能由管理请求中的可信标志替代。</summary>
 public sealed class RegistryComponentBinding

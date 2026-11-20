@@ -1,12 +1,12 @@
 using System.Text;
 using System.Text.Json;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>从已捕获的 UI 清单贡献菜单与外壳远程，随实际业务插件一起装载、遮蔽与撤销。</summary>
 public sealed class NavigationManifestPlugin : IKunPlugin

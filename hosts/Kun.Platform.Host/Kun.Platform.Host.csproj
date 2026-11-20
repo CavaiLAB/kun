@@ -7,31 +7,31 @@
     <Description>platform profile 的生产宿主：能力目录、导航、外壳目录、有效权限与平台运营接口。</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
-    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
-    <ProjectReference Include="../../../../src/Kun.EventBus.EntityFrameworkCore/Kun.EventBus.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.EventBus.RabbitMQ/Kun.EventBus.RabbitMQ.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Tenancy/Kun.Tenancy.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Tenancy.AspNetCore/Kun.Tenancy.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Authorization.Rbac/Kun.Authorization.Rbac.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Authorization.AspNetCore/Kun.Authorization.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
-    <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
-    <ProjectReference Include="../../packages/Qian.Capabilities/Qian.Capabilities.csproj" />
-    <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
-    <ProjectReference Include="../../packages/Qian.Lifecycle/Qian.Lifecycle.csproj" />
-    <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
-    <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus.EntityFrameworkCore/Kun.EventBus.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus.RabbitMQ/Kun.EventBus.RabbitMQ.csproj" />
+    <ProjectReference Include="../../src/Kun.Tenancy/Kun.Tenancy.csproj" />
+    <ProjectReference Include="../../src/Kun.Tenancy.AspNetCore/Kun.Tenancy.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Authorization.Rbac/Kun.Authorization.Rbac.csproj" />
+    <ProjectReference Include="../../src/Kun.Authorization.AspNetCore/Kun.Authorization.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
+    <ProjectReference Include="../../src/Kun.Registry/Kun.Registry.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities/Kun.Capabilities.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities.AspNetCore/Kun.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Lifecycle/Kun.Lifecycle.csproj" />
+    <ProjectReference Include="../../src/Kun.Profiles/Kun.Profiles.csproj" />
+    <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
     <!-- 同进程身份分支（S1-DEP-011，R150 ①）：身份服务、开通申请与网关原生审计的离线迁移。 -->
-    <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Audit.Postgres/Kun.Audit.Postgres.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
+    <ProjectReference Include="../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" />
+    <ProjectReference Include="../../src/Kun.Audit.Postgres/Kun.Audit.Postgres.csproj" />
+    <ProjectReference Include="../../src/Kun.Security/Kun.Security.csproj" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
   <ItemGroup>

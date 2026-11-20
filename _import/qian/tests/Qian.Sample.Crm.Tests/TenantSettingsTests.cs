@@ -20,11 +20,11 @@ using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Plugin.Sdk;
-using Qian.Registry;
-using Qian.Registry.AspNetCore;
+using Kun.Registry;
+using Kun.Registry.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;
@@ -154,7 +154,7 @@ public sealed partial class TenantOperationsTests
 
 public abstract partial class CustomerCommandTests
 {
-    private protected static void MapSettingsRegistry(WebApplication app) => app.MapQianRegistry(http =>
+    private protected static void MapSettingsRegistry(WebApplication app) => app.MapKunRegistry(http =>
         http.RequestServices.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("registry", ScopeKey.Global));
 
     private protected async Task<SettingsReaderHost> SettingsReplica(LifecyclePlatform platform)
@@ -162,7 +162,7 @@ public abstract partial class CustomerCommandTests
         var builder = Host.CreateApplicationBuilder(); builder.Logging.ClearProviders();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         builder.Services.AddKunEventBus(registrar => registrar.RegisterTenancyEvents().RegisterRegistryEvents().RegisterAuthzEvents());
-        builder.Services.AddKunMediator(mediator => mediator.AddKunTenancyEvents().AddQianRegistryEvents().AddKunAuthzEvents()); builder.Services.AddKunEvents();
+        builder.Services.AddKunMediator(mediator => mediator.AddKunTenancyEvents().AddKunRegistryEvents().AddKunAuthzEvents()); builder.Services.AddKunEvents();
         builder.Services.AddKunData<TenancyDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(TenancyDbContext.Schema));
         builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(RegistryDbContext.Schema));
         builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));

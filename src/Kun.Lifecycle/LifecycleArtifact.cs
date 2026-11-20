@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // 安装前从制品读出的清单要点；完整的静态校验与登记仍由 Registry 完成。
 internal sealed partial class LifecycleArtifact

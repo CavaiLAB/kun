@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 internal static class ContractToolProcess
 {

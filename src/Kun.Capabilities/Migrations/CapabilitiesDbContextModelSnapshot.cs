@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Qian.Capabilities;
+using Kun.Capabilities;
 
 #nullable disable
 
-namespace Qian.Capabilities.Migrations
+namespace Kun.Capabilities.Migrations
 {
     [DbContext(typeof(CapabilitiesDbContext))]
     partial class CapabilitiesDbContextModelSnapshot : ModelSnapshot
@@ -90,7 +90,7 @@ namespace Qian.Capabilities.Migrations
                     b.ToTable("outbox_messages", "plugin_qian_capabilities");
                 });
 
-            modelBuilder.Entity("Qian.Capabilities.InvokeReceiptRow", b =>
+            modelBuilder.Entity("Kun.Capabilities.InvokeReceiptRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(200)
@@ -153,7 +153,7 @@ namespace Qian.Capabilities.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Capabilities.NavigationPreferenceRow", b =>
+            modelBuilder.Entity("Kun.Capabilities.NavigationPreferenceRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(200)

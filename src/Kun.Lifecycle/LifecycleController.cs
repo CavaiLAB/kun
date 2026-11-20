@@ -7,11 +7,11 @@ using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Kun.Audit;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // 平台级修订状态机：Install / Activate / Rollback / Deprecate / Retire 与 service 修订的部署健康。所有写入在 PostgreSQL 事务内持
 // 组件级 advisory lock，多副本同样串行；每次状态变更与一条平台审计链条目在同一可串行化事务里提交（见 Audit 分部）。租户级与挂载操作见同名分部文件。
@@ -218,7 +218,7 @@ internal sealed partial class LifecycleController(
     {
         try { await session.SaveChangesAsync(ct).ConfigureAwait(false); }
         catch (DbUpdateConcurrencyException) { throw new ErrorException(new Error(LifecycleErrors.InProgress)); }
-        if (change is { Published: false }) throw new InvalidOperationException("生命周期事件未进入 Outbox：平台宿主须以 AddQianLifecycleEvents 登记处理器。");
+        if (change is { Published: false }) throw new InvalidOperationException("生命周期事件未进入 Outbox：平台宿主须以 AddKunLifecycleEvents 登记处理器。");
     }
 
     // 集成事件来源：producer 为本组件；actor 与关联沿用调用方（运营工具、宿主管理面）打开的事件作用域，没有时以本组件服务主体发布。

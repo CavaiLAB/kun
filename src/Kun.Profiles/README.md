@@ -1,6 +1,6 @@
-# Qian.Profiles
+# Kun.Profiles
 
-依据 [组件规格 §7](../../docs/prd/specs/component-model.md#7-profile组合包与-patch) 与 [S1-RT-002](../../pm/tasks/S1-RT-002.md)。`Qian.Profiles.Abstractions` 定义装配端口与快照；本包提供本地 profile、组合包及 patch 的静态装配，不依赖平台注册表、生命周期或数据库。
+依据 [组件规格 §7](../../_import/qian/docs/prd/specs/component-model.md#7-profile组合包与-patch) 与 [S1-RT-002](../../_import/qian/pm/tasks/S1-RT-002.md)。`Kun.Profiles.Abstractions` 定义装配端口与快照；本包提供本地 profile、组合包及 patch 的静态装配，不依赖平台注册表、生命周期或数据库。
 
 ## 装配位置与使用
 
@@ -19,7 +19,7 @@ var result = composer.Load(new ProfileLoadOptions
 // x-skeleton 条目仅供静态审阅，不能当成可启动的业务 Provider。
 ```
 
-宿主通过 `ISurfaceReader` 传入统一解析器，不引用表面 Provider 包。快照保留组件目录与清单供宿主校验其表面；这些辅助字段不进入 dump-config。表面实际装载示例与生命周期见 [Qian.Surfaces](../Qian.Surfaces/README.md)。
+宿主通过 `ISurfaceReader` 传入统一解析器，不引用表面 Provider 包。快照保留组件目录与清单供宿主校验其表面；这些辅助字段不进入 dump-config。表面实际装载示例与生命周期见 [Kun.Surfaces](../Kun.Surfaces/README.md)。
 
 ## 分层规则
 
@@ -82,7 +82,7 @@ gateway/identity 不允许 command hook，S1 拒绝代码热更新；AOT profile
 
 数值只在验证时归一。装配结果中的配置值，.NET 返回原值（JSON 补丁里超过 2^53 的整数保留原文），CLI 返回双精度，`-0` 输出为 `0`。
 
-补丁里含未成对代理项的字符串或键名由表面解析器在补丁文件处拒绝，两端诊断相同，见 [Qian.Surfaces](../Qian.Surfaces/README.md)（S1-RT-022）。
+补丁里含未成对代理项的字符串或键名由表面解析器在补丁文件处拒绝，两端诊断相同，见 [Kun.Surfaces](../Kun.Surfaces/README.md)（S1-RT-022）。
 
 键名不区分大小写的比较：.NET 按宿主 ICU 判断 OrdinalIgnoreCase，CLI 按 ICU 74 的等价类表。Unicode 16.0 起新增的大小写字母（如 U+A7CB 与 U+0264），宿主 ICU 较新（如 macOS）时 .NET 视为相等、CLI 视为不等，见[共享内部源文件](../Common/README.md#cli-的-ts-移植)。
 
@@ -90,6 +90,6 @@ gateway/identity 不允许 command hook，S1 拒绝代码热更新；AOT profile
 
 `ProfileLoadResult` 返回快照与 `SurfaceDiagnostic`；错误时 Snapshot 为空。诊断外层有文件、行号和级别，内层遵循冻结 ErrorDetail，字段码 `PROFILE_INVALID` 由 Definition 包声明。错误指针定位原 patch 的 `/条目序号/config/字段`；来源层指向最后改写条目的文件。
 
-默认 [profiles](../../profiles/README.md) 的业务叶节点目前均为 `x-skeleton`，会输出 warning；后续组件任务补真实 Provider、完整配置契约与依赖，不能据此宣称平台/网关/身份服务 Ready。按 [S1-DEC-012](../../pm/tasks/S1-DEC-012.md) 的确认结论，minimal 仅包含 Runtime 与表面装载器、初始 patch 为空；测试已从实际交付的 minimal 文件启动真实 Runtime，并通过 overlay 验证静态命令装载。
+默认 [profiles](../../_import/qian/profiles/README.md) 的业务叶节点目前均为 `x-skeleton`，会输出 warning；后续组件任务补真实 Provider、完整配置契约与依赖，不能据此宣称平台/网关/身份服务 Ready。按 [S1-DEC-012](../../_import/qian/pm/tasks/S1-DEC-012.md) 的确认结论，minimal 仅包含 Runtime 与表面装载器、初始 patch 为空；测试已从实际交付的 minimal 文件启动真实 Runtime，并通过 overlay 验证静态命令装载。
 
-CLI 使用方式见 [qian](../qian-cli/README.md)，双侧场景与全量检查见 [profile TCK](../../tck/profiles/README.md)。
+CLI 使用方式见 [qian](../../_import/qian/packages/qian-cli/README.md)，双侧场景与全量检查见 [profile TCK](../../_import/qian/tck/profiles/README.md)。

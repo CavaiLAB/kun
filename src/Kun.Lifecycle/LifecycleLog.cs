@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // 生命周期日志：只记引用、工作负载名、钩子与原因摘要，不记秘密、令牌或响应正文。
 internal static partial class LifecycleLog

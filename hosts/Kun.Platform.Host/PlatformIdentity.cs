@@ -8,7 +8,7 @@ using Kun.Errors.AspNetCore;
 using Kun.Tenancy.Signup;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 同进程身份分支（S1-DEP-011，R143 的 staging 过渡形状，装配方式按 R150 ①）：身份服务与开通申请组件进平台宿主的同一插件树，身份请求走自己的分支；

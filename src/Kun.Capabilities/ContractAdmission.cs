@@ -3,7 +3,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using SemanticVersion = SemanticVersioning.Version;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 // 平台挂载路径的契约准入（R76）：按预装制品里的契约族选择基线，用 S1-RT-006 的同一组包装插件在业务 Apply 前比较。
 internal sealed class ContractAdmission(InstalledContractRepository repository, IGrpcContractPeers? peers) : IContractAdmission

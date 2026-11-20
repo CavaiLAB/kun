@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Surfaces;
+namespace Kun.Surfaces;
 
 /// <summary>同一次 Apply 中可独立刷新和释放的声明式注册，不重放代码插件效果。</summary>
 public sealed class SurfaceRegistrationSession : IDisposable

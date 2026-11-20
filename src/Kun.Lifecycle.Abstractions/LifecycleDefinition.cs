@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 /// <summary>平台生命周期控制器 seam（PRD 7.2.1，服务键 ctx.Lifecycle）。</summary>
 public static class LifecycleDefinition

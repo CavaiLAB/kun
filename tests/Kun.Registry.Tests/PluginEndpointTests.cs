@@ -19,9 +19,9 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 public sealed partial class PatchPersistenceTests
 {

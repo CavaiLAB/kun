@@ -4,7 +4,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using System.Text.Json;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 RegistryPlugin 保留。</summary>
 [KunPlugin("qian.registry")]

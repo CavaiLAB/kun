@@ -5,9 +5,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 internal sealed record RegistryArtifactFile(string Path, long Bytes, string Sha256);
 

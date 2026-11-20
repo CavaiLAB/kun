@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>
 /// 平台挂载路径的契约准入（S1-RT-006 复核 R76）：组件版本在 metadata/contracts.json 声明契约族时，挂载前用 OpenApiContractPlugin /

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Kun.Plugin.Sdk.AspNetCore;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 // S1-RT-019 / S1-RT-020：别名的 successor-version 链接带宿主 PathBase，查询串按 RFC 3986 转义，孤立代理项按替换字符编码。
 // 能力目录与注册表的 v1 别名共用 SDK 的 DeprecatedAlias（S1-RT-004）。

@@ -9,7 +9,7 @@
 
 | 镜像 | 既定形态 | 当前缺口 | 负责的前置任务 |
 |---|---|---|---|
-| qian-platform | JIT，包含 shell 与 model-gateway 组合包 | 生产宿主 [`hosts/Qian.Platform.Host`](../../hosts/Qian.Platform.Host/README.md) 已交付（S1-DEP-009）：按 platform profile 装配平台插件树，承载平台表面与租户运营接口，构建上下文已放行；身份分支并入（S1-DEP-011）、RP 与其余业务组件仍待各自任务，镜像接入供应链流水线归 S1-DEP-008 | S1-DEP-011、S1-IDP-005、S1-DEP-008 及 profile 的业务组件任务 |
+| qian-platform | JIT，包含 shell 与 model-gateway 组合包 | 生产宿主 [`hosts/Qian.Platform.Host`](../../../../hosts/Kun.Platform.Host/README.md) 已交付（S1-DEP-009）：按 platform profile 装配平台插件树，承载平台表面与租户运营接口，构建上下文已放行；身份分支并入（S1-DEP-011）、RP 与其余业务组件仍待各自任务，镜像接入供应链流水线归 S1-DEP-008 | S1-DEP-011、S1-IDP-005、S1-DEP-008 及 profile 的业务组件任务 |
 | qian-identity | JIT | Kun.Identity.Server 与可启动的唯一 issuer 宿主尚未交付 | S1-IDP-002 |
 | qian-gateway | NativeAOT、distroless | `hosts/Kun.Gateway.Host` 已完成严格 Linux 原生发布与真实依赖运行；仍需接入产品镜像、供应链及只读非 root 验收 | S1-DEP-008；宿主证据见 S1-GW-001 |
 

@@ -1,10 +1,10 @@
 using System.Text;
 using System.Text.Json;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Errors;
 using Kun.Testing.Containers;
 
-namespace Qian.Lifecycle.Tests;
+namespace Kun.Lifecycle.Tests;
 
 // S1-RT-005 验收 3：强制验签——未签名、签名不符（签的是别的内容 / 内容被改 / 公钥不在信任根 / 签名字节被改）一律安装失败且不留任何记录；
 // 信任根经配置节 Trust:PlatformKeys 引用 K8s Secret，轮换时新旧公钥有效期重叠，重叠期内旧签名仍有效，过期或撤下后失效。

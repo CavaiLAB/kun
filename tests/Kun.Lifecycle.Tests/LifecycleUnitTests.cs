@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Kun.Errors;
 
-namespace Qian.Lifecycle.Tests;
+namespace Kun.Lifecycle.Tests;
 
 // 不依赖容器的部分：包内迁移与 RLS、Kustomize 片段的确定性、工作负载命名、组件配置的严格解析、钩子幂等键。
 public sealed class LifecycleUnitTests

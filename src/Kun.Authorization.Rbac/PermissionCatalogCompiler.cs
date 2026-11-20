@@ -2,8 +2,8 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
-using Qian.Registry;
-using Qian.Surfaces.Abstractions;
+using Kun.Registry;
+using Kun.Surfaces.Abstractions;
 
 namespace Kun.Authorization.Rbac;
 

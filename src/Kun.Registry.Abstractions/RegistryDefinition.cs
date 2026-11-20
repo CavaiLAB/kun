@@ -1,7 +1,7 @@
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>平台 Registry seam；管理 API 的权限边界由平台注册表服务负责。</summary>
 public static class RegistryDefinition

@@ -5,10 +5,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Globalization;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
@@ -25,7 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Qian.Capabilities.Tests;
+namespace Kun.Capabilities.Tests;
 
 public sealed class GrpcReflectionTests
 {

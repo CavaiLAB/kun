@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>真实契约检查器返回的兼容性结论；规则 ID 不含模型内容或请求值。</summary>
 public sealed record ContractCompatibility(bool IsCompatible, IReadOnlyList<string> BreakingRules);

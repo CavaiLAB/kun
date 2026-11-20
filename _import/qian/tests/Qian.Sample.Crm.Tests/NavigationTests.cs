@@ -10,10 +10,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
-using Qian.Capabilities;
-using Qian.Registry;
+using Kun.Capabilities;
+using Kun.Registry;
 using Kun.Runtime;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
 namespace Qian.Sample.Crm.Tests;
 

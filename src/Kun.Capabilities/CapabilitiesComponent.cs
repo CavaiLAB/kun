@@ -1,12 +1,12 @@
 using Kun.EntityFrameworkCore;
 using Kun.Audit;
 using Kun.Plugin.Sdk;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Tenancy;
 using System.Text.Json;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 CapabilitiesPlugin 保留。</summary>
 [KunPlugin("qian.capabilities")]

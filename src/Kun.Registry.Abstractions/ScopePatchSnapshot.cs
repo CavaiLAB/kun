@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Runtime;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>租户所属的一条有效数据库 patch；Patch 使用原有 patch/v2 格式，修订不混入该格式。</summary>
 public sealed record ScopePatchSnapshot(string TenantId, ScopeKey Scope, string EntryId, JsonElement Patch,

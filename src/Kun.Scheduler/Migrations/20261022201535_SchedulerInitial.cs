@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Qian.Scheduler.Migrations
+namespace Kun.Scheduler.Migrations
 {
     /// <inheritdoc />
     internal partial class SchedulerInitial : Migration

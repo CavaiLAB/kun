@@ -9,7 +9,7 @@ using System.Text.Json;
 // 写死后在处理器少于 4 个的机器上四个主题类也同时开跑；不起容器的 SchedulerContractTests 不到 2 秒，和某个主题类先后占同一槽位。
 [assembly: Xunit.v3.Parallelization(MaxThreads = 4)]
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 // 主题类共用的租户、作业目标与参数，都是只读值；各类的数据库状态在各自的容器里，类之间不共享。
 internal static class SchedulerScenario

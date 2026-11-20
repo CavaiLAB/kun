@@ -5,7 +5,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;

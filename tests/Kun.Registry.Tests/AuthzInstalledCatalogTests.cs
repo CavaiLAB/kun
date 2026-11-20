@@ -7,11 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 // 平台模式：qian.authz 从注册表的预装组件读取 metadata/permissions.json 与 roles.json，持久化目录并登记活动声明；真实 qian.tenancy 生产方派发
 // tenant/provisioned 后为该租户实例化各组件的默认策略。卸载 Provider 撤销活动声明，持久目录与租户授予保留。

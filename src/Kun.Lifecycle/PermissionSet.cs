@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // 反向权限五类的规范形：每类去重并按序数排序，秘密以 (name, scope) 为一项。批准记录、开通与升级的门禁和缺失项说明共用这一份。
 internal sealed class PermissionSet

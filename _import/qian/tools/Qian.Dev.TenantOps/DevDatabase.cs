@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Data;
-using Qian.Lifecycle;
-using Qian.Registry;
+using Kun.Lifecycle;
+using Kun.Registry;
 using Qian.Sample.Crm;
 using Kun.Tenancy;
 

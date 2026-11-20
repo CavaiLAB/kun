@@ -9,8 +9,8 @@ using Kun.EventBus;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Registry;
-using Qian.Surfaces.Abstractions;
+using Kun.Registry;
+using Kun.Surfaces.Abstractions;
 
 namespace Kun.Authorization.Rbac;
 

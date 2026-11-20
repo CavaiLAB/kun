@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Qian.Common;
+using Kun.Common;
 
-namespace Qian.Capabilities;
+namespace Kun.Capabilities;
 
 /// <summary>能力与 HTTP 输入共用的租户字段规则；字段必须来自可信上下文。</summary>
 public static class TenantInputContract

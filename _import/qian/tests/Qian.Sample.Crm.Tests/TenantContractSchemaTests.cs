@@ -63,14 +63,14 @@ public sealed class TenantContractSchemaTests
                     {
                         var resolved = Resolve(document, parameter!);
                         var name = resolved["name"]!.GetValue<string>();
-                        if (Qian.Capabilities.TenantInputContract.IsTenantName(name)) found.Add(path.Key + "/" + operation.Key + "/parameters/" + name);
+                        if (Kun.Capabilities.TenantInputContract.IsTenantName(name)) found.Add(path.Key + "/" + operation.Key + "/parameters/" + name);
                         if (resolved["schema"] is { } schema) Scan(schema, path.Key + "/" + operation.Key + "/parameters/" + name);
                     }
             }
         return found;
         void Scan(JsonNode node, string prefix)
         {
-            foreach (var field in Qian.Capabilities.TenantInputContract.FindFields(System.Text.Json.JsonSerializer.SerializeToElement(node), root))
+            foreach (var field in Kun.Capabilities.TenantInputContract.FindFields(System.Text.Json.JsonSerializer.SerializeToElement(node), root))
                 found.Add(prefix + "/" + string.Join('/', field));
         }
     }

@@ -2,21 +2,21 @@
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Lifecycle/Qian.Lifecycle.csproj" />
-    <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
-    <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
-    <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
+    <ProjectReference Include="../../src/Kun.Lifecycle/Kun.Lifecycle.csproj" />
+    <ProjectReference Include="../../src/Kun.Registry/Kun.Registry.csproj" />
+    <ProjectReference Include="../../src/Kun.Profiles/Kun.Profiles.csproj" />
+    <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
 
-    <ProjectReference Include="../../../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <ProjectReference Include="../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
+    <ProjectReference Include="../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Mediator/Kun.Mediator.csproj" />
-    <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../src/Kun.Mediator/Kun.Mediator.csproj" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>

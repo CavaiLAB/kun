@@ -13,7 +13,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Scheduler;
+namespace Kun.Scheduler;
 
 internal sealed class PostgresScheduler(IPluginContext owner, ITenantContext tenant) : IScheduler
 {

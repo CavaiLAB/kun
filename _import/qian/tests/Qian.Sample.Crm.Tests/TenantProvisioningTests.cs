@@ -8,8 +8,8 @@ using Kun.Plugin.Sdk;
 using Microsoft.AspNetCore.Builder;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Lifecycle;
-using Qian.Registry;
+using Kun.Lifecycle;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
@@ -61,8 +61,8 @@ public sealed partial class TenantOperationsTests
         using (host.App.Services.GetRequiredService<ITenantContext>().BeginScope(descriptor.Id))
         {
             var scoped = source.Scoped(new ScopeKey("tenant", descriptor.Id.ToString()));
-            await AssertCode(PlatformErrors.AuthzDenied, () => scoped.DispatchAsync(Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantProvisioned,
-                new Qian.Surfaces.Abstractions.HookNotification(scoped, descriptor.Id.ToString(), JsonSerializer.SerializeToElement(new { }), Ct), Ct).AsTask());
+            await AssertCode(PlatformErrors.AuthzDenied, () => scoped.DispatchAsync(Kun.Surfaces.Abstractions.SurfaceHookEvents.TenantProvisioned,
+                new Kun.Surfaces.Abstractions.HookNotification(scoped, descriptor.Id.ToString(), JsonSerializer.SerializeToElement(new { }), Ct), Ct).AsTask());
             // 租户链上只有 Tenancy 第 03 步为 system 组件开通时 Lifecycle 记的开通条目（S1-RT-037），被拒的派发没有留下记录。
             Assert.All(await ReadTenantChain(source.Audit()), entry => Assert.Equal("qian.lifecycle/tenant-plugin.provision", entry.Record.CapabilityId));
         }

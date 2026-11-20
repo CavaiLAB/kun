@@ -3,7 +3,7 @@ using Kun.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Qian.Capabilities;
+using Kun.Capabilities;
 
 namespace Kun.Tenancy.AspNetCore;
 

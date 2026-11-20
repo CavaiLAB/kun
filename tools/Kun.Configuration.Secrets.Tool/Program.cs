@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Kun.Configuration;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Surfaces;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Surfaces;
 
 // CI 输入只读；输出仅诊断位置与规则，不输出配置值或异常原文。
 if (args.Length >= 2 && args[0] == "--profiles") return ScanProfiles(args[1], args[2..]);

@@ -3,11 +3,11 @@ using System.Text.Json.Nodes;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Kun.Audit;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // 租户级状态机：Entitle / Provision / Upgrade / Uninstall / Purge。钩子不在数据库事务内执行：先在锁内认领执行记录（租约），
 // 钩子返回后再在锁内写结论，执行记录的 Attempts 即认领凭据。

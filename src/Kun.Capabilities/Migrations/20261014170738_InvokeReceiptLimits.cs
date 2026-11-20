@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Qian.Capabilities.Migrations
+namespace Kun.Capabilities.Migrations
 {
     /// <inheritdoc />
     internal partial class InvokeReceiptLimits : Migration

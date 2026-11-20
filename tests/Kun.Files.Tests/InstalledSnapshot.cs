@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
-using Qian.Registry;
+using Kun.Registry;
 
 namespace Kun.Files.Tests;
 

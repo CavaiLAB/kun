@@ -11,7 +11,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Scheduler;
+namespace Kun.Scheduler;
 
 internal sealed partial class SchedulerWorker(IPluginContext context, ITenantContext tenant, SchedulerSettings settings) : IAsyncDisposable
 {

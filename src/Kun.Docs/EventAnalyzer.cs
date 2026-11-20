@@ -2,10 +2,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
-using Qian.Docs.Abstractions;
+using Kun.Docs.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Docs;
+namespace Kun.Docs;
 
 // sourceRoot 是源码目录的边界，也是事件图里位置的基准。
 internal sealed class EventAnalyzer(string sourceRoot, Diagnostics diagnostics)

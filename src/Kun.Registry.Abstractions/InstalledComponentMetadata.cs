@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text.Json;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>宿主预装组件的不可变声明快照，不包含租户授权或制品发布结论。</summary>
 public sealed class InstalledComponentMetadata

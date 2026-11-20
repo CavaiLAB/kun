@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Qian.Lifecycle.Migrations
+namespace Kun.Lifecycle.Migrations
 {
     /// <inheritdoc />
     internal partial class PermissionApprovals : Migration

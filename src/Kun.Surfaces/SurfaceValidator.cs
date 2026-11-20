@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using Kun.Errors;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Surfaces;
+namespace Kun.Surfaces;
 
 /// <summary>读取声明式组件，组合结构与语义校验；所有内容只解析，不执行。</summary>
 public sealed partial class SurfaceValidator : ISurfaceValidator

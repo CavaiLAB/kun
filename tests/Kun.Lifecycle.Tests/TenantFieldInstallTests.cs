@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.Errors;
 using Kun.Testing.Containers;
 
-namespace Qian.Lifecycle.Tests;
+namespace Kun.Lifecycle.Tests;
 
 // S1-AGT-002 验收 2（TCK）：共享表面 fixture（tck/surfaces/cases.json，.NET 与 TS 校验器逐项一致）中工具输入含租户字段的用例，打成已签名的声明式制品经
 // InstallAsync 安装。反例一律 INPUT_INVALID，字段错误为 REGISTRY_INPUT_INVALID，pointer 与 fixture 一致，不登记修订、不留候选制品；只是含有 tenant 的名称照常安装。

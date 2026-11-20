@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>管理面 scope 视图中已挂载且 Ready 的条目；Scope 为所属作用域文本（global 或 tenant:&lt;id&gt;），Config 为该已授权视图中的实际合成配置，秘密仍为引用。</summary>
 public sealed record RegistryEntryView(string EntryId, string PluginId, string Version, string Scope, int Layer, int? Revision)

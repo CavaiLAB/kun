@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Kun.Runtime;
-using Qian.Scheduler.TestHost;
-using static Qian.Scheduler.Tests.SchedulerScenario;
+using Kun.Scheduler.TestHost;
+using static Kun.Scheduler.Tests.SchedulerScenario;
 
-namespace Qian.Scheduler.Tests;
+namespace Kun.Scheduler.Tests;
 
 // 续租与准备：真实续租的暂态异常、首次建 run 准备后的初始续租（有效续足、过期与异常保留 run）。
 // 两组用例各自建、删数据库触发器，同在一个类里串行，触发器不会叠加。

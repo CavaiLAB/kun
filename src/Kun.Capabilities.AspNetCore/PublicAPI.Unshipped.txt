@@ -1,7 +1,7 @@
 #nullable enable
-Qian.Capabilities.AspNetCore.CapabilityEndpoints
-static Qian.Capabilities.AspNetCore.CapabilityEndpoints.MapQianCapabilities(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
-Qian.Capabilities.AspNetCore.HttpContractSourceExtensions
-static Qian.Capabilities.AspNetCore.HttpContractSourceExtensions.AddQianHttpContracts(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-static Qian.Capabilities.AspNetCore.CapabilityEndpoints.MapQianCapabilities(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source, Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding! binding) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
-static Qian.Capabilities.AspNetCore.CapabilityEndpoints.MapQianPlatformConsole(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+Kun.Capabilities.AspNetCore.CapabilityEndpoints
+static Kun.Capabilities.AspNetCore.CapabilityEndpoints.MapKunCapabilities(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+Kun.Capabilities.AspNetCore.HttpContractSourceExtensions
+static Kun.Capabilities.AspNetCore.HttpContractSourceExtensions.AddKunHttpContracts(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Capabilities.AspNetCore.CapabilityEndpoints.MapKunCapabilities(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source, Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding! binding) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Capabilities.AspNetCore.CapabilityEndpoints.MapKunPlatformConsole(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!

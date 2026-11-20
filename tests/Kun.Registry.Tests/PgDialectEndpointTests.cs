@@ -12,7 +12,7 @@ using Kun.Data.AspNetCore;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces;
+using Kun.Surfaces;
 using Kun.Authorization.AspNetCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,7 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Kun.Audit;
 using Kun.Identity.Abstractions;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 public sealed partial class PatchPersistenceTests
 {

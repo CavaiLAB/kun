@@ -7,7 +7,7 @@ using Kun.Configuration;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Lifecycle;
+namespace Kun.Lifecycle;
 
 // 平台信任根（PRD 7.2.1 / 7.17）：Apollo 公共 namespace qian.common.trust 的 Trust:PlatformKeys 节逐项给出公钥的 secretRef 与有效期，
 // 公钥本身在 K8s Secret。每次验签重新读取配置与秘密，轮换不重启；有效期重叠时新旧公钥同时可信。

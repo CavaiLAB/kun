@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Kun.Authorization.AspNetCore;
-using Qian.Capabilities.AspNetCore;
+using Kun.Capabilities.AspNetCore;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
@@ -17,7 +17,7 @@ using Kun.Errors.AspNetCore;
 
 namespace Qian.Sample.Crm;
 
-// 面向用户的平台表面参考宿主：能力目录 / 导航 / 外壳目录（MapQianCapabilities）与有效权限（MapKunAuthz）。
+// 面向用户的平台表面参考宿主：能力目录 / 导航 / 外壳目录（MapKunCapabilities）与有效权限（MapKunAuthz）。
 // 与 TenantOperationsHost 同形：复用已装配的 Runtime（Registry / Capabilities / Authz），只认网关签发的 S2S（RS256、issuer、受众、有效期），
 // 接受 user / service / agent 主体，主体快照取自令牌，按其 tenant_id 进入租户 scope；平台身份（tenant_id 为 null）没有租户表面，按未认证拒绝，
 // 只读平台控制台目录（GET /api/capabilities/console，S1-YUE-018）：用 Capabilities 的全局上下文，按平台超管只读判定列出平台组件的远程与菜单，带租户的请求按不存在拒绝。
@@ -48,7 +48,7 @@ public static class PlatformSurfaceHost
             options.MapInboundClaims = false; options.TokenValidationParameters = validation.Clone();
             options.Events.OnTokenValidated = context => { S2sCurrentUser.Capture(context); return Task.CompletedTask; };
         });
-        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddKunHttpContracts();
         builder.Services.AddKunPluginEndpoints(_ => component("registry"));
         builder.Services.AddKunAuthorization(http => Scoped(component, "authz", http), options => options.Production = true);
         builder.Services.ConfigureHttpJsonOptions(options =>
@@ -62,8 +62,8 @@ public static class PlatformSurfaceHost
         // 租户只取自已验证令牌：成员主体进入其租户 scope（授权判定与修订下限按租户 RLS 读写）；平台身份不进任何租户。
         app.UseKunMultiTenancy(TenantRequestMode.PlatformPrincipalAllowed);
         app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseKunAuthorization();
-        app.MapQianCapabilities(http => Scoped(component, "capabilities", http));
-        app.MapQianPlatformConsole(http => Global(component, "capabilities", http));
+        app.MapKunCapabilities(http => Scoped(component, "capabilities", http));
+        app.MapKunPlatformConsole(http => Global(component, "capabilities", http));
         app.MapKunAuthz(http => Scoped(component, "authz", http));
         return app;
     }

@@ -1,16 +1,16 @@
 #nullable enable
-Qian.Registry.AspNetCore.RegistryEntryList.Items.get -> System.Collections.Generic.IReadOnlyList<Qian.Registry.RegistryEntryView!>!
-Qian.Registry.AspNetCore.RegistryEntryList.Items.init -> void
-Qian.Registry.AspNetCore.RegistryEntryList
-Qian.Registry.AspNetCore.RegistryEndpoints
-override Qian.Registry.AspNetCore.RegistryEntryList.ToString() -> string!
-static Qian.Registry.AspNetCore.RegistryEntryList.operator !=(Qian.Registry.AspNetCore.RegistryEntryList? left, Qian.Registry.AspNetCore.RegistryEntryList? right) -> bool
-static Qian.Registry.AspNetCore.RegistryEntryList.operator ==(Qian.Registry.AspNetCore.RegistryEntryList? left, Qian.Registry.AspNetCore.RegistryEntryList? right) -> bool
-override Qian.Registry.AspNetCore.RegistryEntryList.GetHashCode() -> int
-override Qian.Registry.AspNetCore.RegistryEntryList.Equals(object? obj) -> bool
-Qian.Registry.AspNetCore.RegistryEntryList.Equals(Qian.Registry.AspNetCore.RegistryEntryList? other) -> bool
-Qian.Registry.AspNetCore.RegistryEntryList.<Clone>$() -> Qian.Registry.AspNetCore.RegistryEntryList!
-Qian.Registry.AspNetCore.RegistryEntryList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Qian.Registry.RegistryEntryView!>! Items) -> void
-static Qian.Registry.AspNetCore.RegistryEndpoints.MapQianRegistry(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
-Qian.Registry.AspNetCore.RegistryEntryList.RegistryEntryList(System.Collections.Generic.IReadOnlyList<Qian.Registry.RegistryEntryView!>! Items) -> void
-static Qian.Registry.AspNetCore.RegistryEndpoints.UseQianRegistryAliases(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
+Kun.Registry.AspNetCore.RegistryEntryList.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryEntryView!>!
+Kun.Registry.AspNetCore.RegistryEntryList.Items.init -> void
+Kun.Registry.AspNetCore.RegistryEntryList
+Kun.Registry.AspNetCore.RegistryEndpoints
+override Kun.Registry.AspNetCore.RegistryEntryList.ToString() -> string!
+static Kun.Registry.AspNetCore.RegistryEntryList.operator !=(Kun.Registry.AspNetCore.RegistryEntryList? left, Kun.Registry.AspNetCore.RegistryEntryList? right) -> bool
+static Kun.Registry.AspNetCore.RegistryEntryList.operator ==(Kun.Registry.AspNetCore.RegistryEntryList? left, Kun.Registry.AspNetCore.RegistryEntryList? right) -> bool
+override Kun.Registry.AspNetCore.RegistryEntryList.GetHashCode() -> int
+override Kun.Registry.AspNetCore.RegistryEntryList.Equals(object? obj) -> bool
+Kun.Registry.AspNetCore.RegistryEntryList.Equals(Kun.Registry.AspNetCore.RegistryEntryList? other) -> bool
+Kun.Registry.AspNetCore.RegistryEntryList.<Clone>$() -> Kun.Registry.AspNetCore.RegistryEntryList!
+Kun.Registry.AspNetCore.RegistryEntryList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryEntryView!>! Items) -> void
+static Kun.Registry.AspNetCore.RegistryEndpoints.MapKunRegistry(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+Kun.Registry.AspNetCore.RegistryEntryList.RegistryEntryList(System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryEntryView!>! Items) -> void
+static Kun.Registry.AspNetCore.RegistryEndpoints.UseKunRegistryAliases(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!

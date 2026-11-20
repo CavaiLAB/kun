@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Profiles.Abstractions;
+using Kun.Profiles.Abstractions;
 using Kun.Runtime;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Profiles.Tests;
+namespace Kun.Profiles.Tests;
 
 public sealed class SkillOnlyTests
 {

@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Kun.Identity.Abstractions;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 网关 S2S 认证：两个 JWT 方案共用网关的签发方与 JWKS，受众分别是 <c>qian-platform</c>（能力目录、导航、外壳目录、有效权限）与 <c>qian-operations</c>（平台运营接口，R144）。
@@ -41,7 +41,7 @@ public static class GatewayS2s
 
     /// <summary>
     /// 按路由实际匹配到的端点选方案，不看路径的写法：端点路由不区分大小写、忽略结尾斜杠，<c>/api/Tenancy/tenants/</c> 与 <c>/api/tenancy/tenants</c> 是同一个端点，受众也必须相同。
-    /// 认证在路由之后执行（<see cref="PlatformHost.UseQianPlatform"/> 先调 <c>UseRouting</c>），这里读到的就是将要执行的端点。
+    /// 认证在路由之后执行（<see cref="PlatformHost.UseKunPlatform"/> 先调 <c>UseRouting</c>），这里读到的就是将要执行的端点。
     /// 带 <see cref="OperationsAudience"/> 的端点（运营端点组）只认运营方案，其余路由端点只认平台方案。没有匹配到路由端点的请求（404，或方法不符时的 405 拒绝端点，它不是路由端点）
     /// 不会执行任何处理器，按声明的运营前缀、与路由同样不区分大小写地选：网关签运营受众转来的请求得到 404 / 405，而不是会被外壳当成会话失效的 401。
     /// </summary>
@@ -134,7 +134,7 @@ public static class GatewayS2s
 }
 
 /// <summary>
-/// 运营端点组的端点元数据：带它的端点只收受众 <c>qian-operations</c> 的网关 S2S（R144 ①）。<see cref="PlatformHost.MapQianPlatform"/> 把它加在运营端点组上，
+/// 运营端点组的端点元数据：带它的端点只收受众 <c>qian-operations</c> 的网关 S2S（R144 ①）。<see cref="PlatformHost.MapKunPlatform"/> 把它加在运营端点组上，
 /// 租户运营接口与经 <see cref="PlatformHostComposition.AddOperations"/> 挂上的端点都在组里；扩展不直接使用它。
 /// </summary>
 internal sealed class OperationsAudience

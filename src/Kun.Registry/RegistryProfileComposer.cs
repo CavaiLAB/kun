@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Qian.Profiles.Abstractions;
+using Kun.Profiles.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 // 管理服务在权限与归属校验后调用；此类只读取当前租户的数据并复用静态装配规则。
 internal sealed class RegistryProfileComposer(PostgresPatchRepository patches, IProfileLoader loader, ProfileLoadOptions options)

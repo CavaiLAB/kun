@@ -13,7 +13,7 @@
     <ProjectReference Include="../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <ProjectReference Include="../../tools/Kun.Configuration.Tool/Kun.Configuration.Tool.csproj" />
     <ProjectReference Include="../../src/Kun.Configuration.AspNetCore/Kun.Configuration.AspNetCore.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities.AspNetCore/Kun.Capabilities.AspNetCore.csproj" />
     <ProjectReference Include="../../src/Kun.Configuration/Kun.Configuration.csproj" />
     <ProjectReference Include="../../src/Kun.Security/Kun.Security.csproj" />
     <PackageReference Include="xunit.v3" />

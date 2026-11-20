@@ -30,12 +30,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Capabilities.AspNetCore;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Capabilities.AspNetCore;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 
 namespace Kun.Files.Tests;
 
@@ -182,7 +182,7 @@ internal sealed class FilesPlatform : IAsyncDisposable
             };
             options.Events = new JwtBearerEvents { OnTokenValidated = context => { PlatformOperator.Capture(context); return Task.CompletedTask; } };
         });
-        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddKunHttpContracts();
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.PropertyNameCaseInsensitive = false;

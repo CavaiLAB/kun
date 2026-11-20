@@ -1,23 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="../../packages/Qian.Capabilities/Qian.Capabilities.csproj" /><PackageReference Include="xunit.v3" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../src/Kun.Capabilities/Kun.Capabilities.csproj" /><PackageReference Include="xunit.v3" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
-    <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
-    <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Registry/Kun.Registry.csproj" />
+    <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities.AspNetCore/Kun.Capabilities.AspNetCore.csproj" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Grpc.AspNetCore.Server" />
     <PackageReference Include="Grpc.Net.Client" />
-    <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
+    <ProjectReference Include="../../src/Kun.Security/Kun.Security.csproj" />
   </ItemGroup>
   <!-- dotnet ef 设计时入口（CapabilitiesDesignTimeFactory）：经 AddKunData 取上下文，迁移模型与运行时一致。 -->
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
-    <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
-    <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
   </ItemGroup>
 </Project>

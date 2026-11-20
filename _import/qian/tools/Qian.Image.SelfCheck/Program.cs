@@ -1,9 +1,9 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Qian.Image.SelfCheck;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Surfaces;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Surfaces;
 
 // 镜像流水线的 JIT 自检程序（S1-DEP-003 / R106）：只在 CI 内构建运行，不是任何 profile 的产品镜像。
 // dump-config 按交付文件合成 profile，供配置漂移门禁比对源码树与镜像内的结果；home 层关闭，层路径相对根目录。

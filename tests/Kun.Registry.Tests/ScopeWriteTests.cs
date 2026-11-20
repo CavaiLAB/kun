@@ -14,10 +14,10 @@ using Kun.Authorization.Rbac.Abstractions;
 using Kun.Configuration;
 using Kun.Configuration.Platform;
 using Kun.Data;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 using Kun.Runtime;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 // RT-029：HTTP/JWT → 真 Authz 超管审计 → Registry 管理服务 → Lifecycle → 受限 PG/Outbox → 真实 scope 重合入。
 public sealed partial class PatchPersistenceTests

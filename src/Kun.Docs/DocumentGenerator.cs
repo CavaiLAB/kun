@@ -4,10 +4,10 @@ using System.Text.Unicode;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Qian.Docs.Abstractions;
-using Qian.Profiles.Abstractions;
+using Kun.Docs.Abstractions;
+using Kun.Profiles.Abstractions;
 
-namespace Qian.Docs;
+namespace Kun.Docs;
 
 /// <summary>从静态装配与源码派生 Markdown；不装载或执行插件。</summary>
 public sealed class DocumentGenerator(IProfileLoader profiles) : IDocumentGenerator

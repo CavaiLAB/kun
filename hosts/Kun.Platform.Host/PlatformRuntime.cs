@@ -4,16 +4,16 @@ using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.Authorization.Rbac;
-using Qian.Capabilities;
-using Qian.Lifecycle;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
+using Kun.Capabilities;
+using Kun.Lifecycle;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 
-namespace Qian.Platform.Host;
+namespace Kun.Platform.Host;
 
 /// <summary>
 /// 平台插件树：按合成后的 platform profile 挂载全部启用条目。每个条目的组件文件夹（清单、Schema、metadata、UI 清单）就是它的预装绑定，

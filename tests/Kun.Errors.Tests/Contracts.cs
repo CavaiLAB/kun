@@ -151,8 +151,8 @@ internal static partial class Contracts
         return errors;
     }
 
-    /// <summary>contracts/v0 规定的 schemaSha256：生产实现 <see cref="Qian.Surfaces.ToolContractHash"/>（RFC 8785 规范化后 SHA-256），测试不另写 JCS。</summary>
-    public static string SchemaSha256(JsonElement capability) => Qian.Surfaces.ToolContractHash.Compute(capability);
+    /// <summary>contracts/v0 规定的 schemaSha256：生产实现 <see cref="Kun.Surfaces.ToolContractHash"/>（RFC 8785 规范化后 SHA-256），测试不另写 JCS。</summary>
+    public static string SchemaSha256(JsonElement capability) => Kun.Surfaces.ToolContractHash.Compute(capability);
 
     private static (BuildOptions, Dictionary<string, JsonSchema>) Load()
     {

@@ -1,15 +1,15 @@
 # platform 生产宿主
 
-入口是本目录 `Program.cs`，可执行项目为 `Qian.Platform.Host.csproj`，是 platform profile 的生产启动项目（S1-DEP-009），随 qian-platform 镜像发布。它按仓库交付的 platform profile 装配平台插件树，只认网关签发的 S2S，承载面向用户的平台表面（能力目录、导航、外壳目录、平台控制台目录、有效权限）与平台运营接口（租户运营）。组件的契约与安全行为以各组件的主文档为准，本宿主只做组合。staging 首次部署（S1-DEP-011，R143 / R150）用同一宿主并入身份分支：配置 `Identity:InProcess=true` 后，身份服务与开通申请组件进同一插件树，见下文「同进程身份分支」；不配置时宿主保持 S1-DEP-009 的形状。
+入口是本目录 `Program.cs`，可执行项目为 `Kun.Platform.Host.csproj`，是 platform profile 的生产启动项目（S1-DEP-009），随 qian-platform 镜像发布。它按仓库交付的 platform profile 装配平台插件树，只认网关签发的 S2S，承载面向用户的平台表面（能力目录、导航、外壳目录、平台控制台目录、有效权限）与平台运营接口（租户运营）。组件的契约与安全行为以各组件的主文档为准，本宿主只做组合。staging 首次部署（S1-DEP-011，R143 / R150）用同一宿主并入身份分支：配置 `Identity:InProcess=true` 后，身份服务与开通申请组件进同一插件树，见下文「同进程身份分支」；不配置时宿主保持 S1-DEP-009 的形状。
 
 ## 装配
 
 `Program.cs` 只调用 `PlatformHost.RunAsync`。装配拆成可组合的四步，后续宿主任务经扩展登记复用，不改 `Program.cs`：
 
 1. `CreateBuilder`：配置源依次是 `appsettings.json`（及环境名文件）、`QIAN_` 前缀环境变量、命令行；内容根是程序目录。
-2. `AddQianPlatform`：读设置、收扩展登记、合成 profile、登记宿主 DI 与插件树运行时。
-3. `UseQianPlatform`：ErrorDetail → 网关 S2S 认证 → 按令牌 `tenant_id` 进入租户 scope（平台身份不进任何租户）→ 授权 → 插件端点可见性 → 授权 PEP（生产模式）。
-4. `MapQianPlatform`：健康端点、平台表面、运营接口与扩展端点。
+2. `AddKunPlatform`：读设置、收扩展登记、合成 profile、登记宿主 DI 与插件树运行时。
+3. `UseKunPlatform`：ErrorDetail → 网关 S2S 认证 → 按令牌 `tenant_id` 进入租户 scope（平台身份不进任何租户）→ 授权 → 插件端点可见性 → 授权 PEP（生产模式）。
+4. `MapKunPlatform`：健康端点、平台表面、运营接口与扩展端点。
 
 profile 的合成顺序是：platform profile 的组合包（base / shell / model-gateway）→ 宿主 overlay [`platform.overlay.yml`](platform.overlay.yml) → 扩展 overlay → 环境 overlay（`--patch <文件>`，可重复，或 `Profile:Patches`）。宿主 overlay 只做两件与环境无关的事：关掉本宿主没有 Provider 的条目，以及让 data 条目不带 `connection`（本宿主按登录分别绑定数据上下文）。config 条目暂用读宿主配置根的 `qian.config`，Apollo 联调归 S1-DEP-005。
 
@@ -82,7 +82,7 @@ profile 的合成顺序是：platform profile 的组合包（base / shell / mode
 | `Identity:SigningCertificate` / `Identity:SigningKey`、`Identity:EncryptionCertificate` / `Identity:EncryptionKey` | 身份服务签名与加密证书、私钥的 PEM Secret 文件（RSA，绝对路径）。 |
 | `Identity:Clients:N:{ClientId,SecretFile,RedirectUri,Resource,DisplayName,Scopes}` | 官方客户端（网关 BFF）：机密客户端，授权码 + PKCE 与 refresh，密钥只从 Secret 文件读，回调与 resource 精确登记。 |
 | `Identity:DataProtectionKeysDirectory` | 账号 Cookie 与防伪令牌的数据保护密钥目录。只读根文件系统下必须给出可写目录；多副本时须共享。 |
-| `Identity:TrustedProxyNetworks`、`Identity:ForwardLimit` | 身份分支信任的反向代理网段（CIDR 数组，前缀长度不能为 0）与从右往左回溯的跳数上限（1–5，缺省 1；每回溯一跳，上一跳都必须在这些网段里）。恢复出的 scheme 与客户端地址供 OIDC 的 HTTPS 要求、Secure Cookie、登录审计、会话与申请人限流使用。staging 的取值与理由见[运维手册](../../docs/ops/staging-first-deploy.md)。 |
+| `Identity:TrustedProxyNetworks`、`Identity:ForwardLimit` | 身份分支信任的反向代理网段（CIDR 数组，前缀长度不能为 0）与从右往左回溯的跳数上限（1–5，缺省 1；每回溯一跳，上一跳都必须在这些网段里）。恢复出的 scheme 与客户端地址供 OIDC 的 HTTPS 要求、Secure Cookie、登录审计、会话与申请人限流使用。staging 的取值与理由见[运维手册](../../_import/qian/docs/ops/staging-first-deploy.md)。 |
 | `Identity:Overlay` | 替换内置扩展 overlay 的路径（缺省为程序目录下的 `identity.overlay.yml`）。 |
 | `Bootstrap:Username`、`Bootstrap:DisplayName`、`Bootstrap:PasswordFile` | 只在 `--bootstrap-operator` 时读：首个平台运营账号的用户名、显示名与初始密码 Secret 文件。 |
 | `SystemRevisions:SignaturesFile` | 只在 `--install-system-revisions` 时读：系统组件修订的签名清单（ConfigMap 挂载）。 |
@@ -111,7 +111,7 @@ dotnet run --project hosts/Qian.Platform.Host -c Release -- --bootstrap-operator
 ```
 
 - `--migrate-only`（[`PlatformMigrations`](PlatformMigrations.cs)）：三步，都可重复执行。① 配置了 `ConnectionFiles:MigrationAdmin` 时用管理员连接做离线 DDL：没有包内迁移的上下文（Tenancy、Authz、Audit、Registry）按 EF 模型建 schema 与表（含 RLS），schema 已在时只核对表都在；再执行两个平台登录与审计同事务函数的授权脚本，配置了网关审计角色时执行网关原生审计的离线迁移（`NativeAuditStorage`）。审计函数的属主必须是没有任何成员关系的 NOLOGIN 角色，改函数属主只能由管理员做，所以这一步不交给迁移属主。审计租户守卫带原生审计标记后不再重放 Audit 的平台访问脚本（否则原生迁移判为漂移）。② 迁移属主执行包内迁移（Capabilities、Lifecycle、身份、开通申请等）。③ 管理员把全部业务 schema 的表与序列授给应用登录，迁移历史表只读。离线 DDL 不做跨版本的表结构升级：schema 已在而缺表时拒绝执行，正式迁移链归 S1-DEP-005。
-- `--install-system-revisions`（[`PlatformSystemRevisions`](PlatformSystemRevisions.cs)，R151 ①）：开户编排第 03 步把宿主预装的 system 级组件逐个开通进租户，Lifecycle 要求每个组件有已激活、经信任根验签、摘要等于预装组件文件夹的修订。这个 Job 按签名清单（[`scripts/sign-system-revisions.py`](../../scripts/sign-system-revisions.py) 在构建机上对同一镜像生成，私钥不进集群）幂等地安装并激活这些修订：同摘要已激活则不动，新摘要安装后激活；清单缺任何一项即失败并列出缺项。安装与激活写平台审计链。
+- `--install-system-revisions`（[`PlatformSystemRevisions`](PlatformSystemRevisions.cs)，R151 ①）：开户编排第 03 步把宿主预装的 system 级组件逐个开通进租户，Lifecycle 要求每个组件有已激活、经信任根验签、摘要等于预装组件文件夹的修订。这个 Job 按签名清单（[`scripts/sign-system-revisions.py`](../../_import/qian/scripts/sign-system-revisions.py) 在构建机上对同一镜像生成，私钥不进集群）幂等地安装并激活这些修订：同摘要已激活则不动，新摘要安装后激活；清单缺任何一项即失败并列出缺项。安装与激活写平台审计链。
 - `--bootstrap-operator`（[`PlatformOperatorBootstrap`](PlatformOperatorBootstrap.cs)，R150 ③）：要求身份分支在进程内。库里已有平台超管时拒绝执行（退出码 1），不能拿它二次提权；否则经身份账号端口建平台身份（要求首登改密），在平台角色锁里授平台超管，写一条平台审计链记录。同名平台身份已存在（上次在授权之前失败）时沿用、不重置密码。跑完删除初始密码的 Secret。
 
 三个开关都不带值，宿主把它们从命令行配置里去掉再交给配置源，紧跟其后的参数（如 `--environment=…`）不会被吞掉。
@@ -125,8 +125,8 @@ dotnet run --project hosts/Qian.Platform.Host -c Release -- --bootstrap-operator
 | 路径 | 受众 | 说明 |
 |---|---|---|
 | `GET /healthz`、`GET /readyz` | 匿名 | 存活与就绪探针，不回显组件细节。 |
-| `/api/capabilities/**` | `qian-platform` | 能力目录、通用执行入口、导航、外壳目录（`MapQianCapabilities`）。 |
-| `GET /api/capabilities/console` | `qian-platform` | 平台控制台目录（`MapQianPlatformConsole`），只给平台身份。 |
+| `/api/capabilities/**` | `qian-platform` | 能力目录、通用执行入口、导航、外壳目录（`MapKunCapabilities`）。 |
+| `GET /api/capabilities/console` | `qian-platform` | 平台控制台目录（`MapKunPlatformConsole`），只给平台身份。 |
 | `/api/authz/**` | `qian-platform` | 有效权限（`MapKunAuthz`）。 |
 | `/api/tenancy/**` | `qian-operations` | 租户运营接口（`MapKunTenancy`，在运营端点组里），平台超管显式旁路，放行写平台审计链。 |
 | `/api/signup/applications/**`、`/api/signup/meta/**` | `qian-operations` | 开通申请的运营接口（身份分支并入时，`MapKunTenancySignupOperations`），同样经超管旁路、写平台审计链。 |
@@ -138,7 +138,7 @@ dotnet run --project hosts/Qian.Platform.Host -c Release -- --bootstrap-operator
 
 ## 与参考宿主的差异
 
-联调环境（[tools/Qian.Dev.Shell](../../tools/Qian.Dev.Shell/README.md)）与大部分集成测试仍用参考宿主：平台表面参考宿主 `PlatformSurfaceHost` 与运营参考宿主 `TenantOperationsHost`（[samples/Qian.Sample.Crm](../../samples/Qian.Sample.Crm/README.md)）。本宿主与它们的差异：
+联调环境（[tools/Qian.Dev.Shell](../../_import/qian/tools/Qian.Dev.Shell/README.md)）与大部分集成测试仍用参考宿主：平台表面参考宿主 `PlatformSurfaceHost` 与运营参考宿主 `TenantOperationsHost`（[samples/Qian.Sample.Crm](../../_import/qian/samples/Qian.Sample.Crm/README.md)）。本宿主与它们的差异：
 
 | 方面 | 参考宿主 | 本宿主 |
 |---|---|---|

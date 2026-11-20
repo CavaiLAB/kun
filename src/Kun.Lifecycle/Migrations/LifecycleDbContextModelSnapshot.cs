@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 
 #nullable disable
 
-namespace Qian.Lifecycle.Migrations
+namespace Kun.Lifecycle.Migrations
 {
     [DbContext(typeof(LifecycleDbContext))]
     partial class LifecycleDbContextModelSnapshot : ModelSnapshot
@@ -90,7 +90,7 @@ namespace Qian.Lifecycle.Migrations
                     b.ToTable("outbox_messages", "plugin_qian_lifecycle");
                 });
 
-            modelBuilder.Entity("Qian.Lifecycle.LifecycleRunRow", b =>
+            modelBuilder.Entity("Kun.Lifecycle.LifecycleRunRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(200)
@@ -159,7 +159,7 @@ namespace Qian.Lifecycle.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Lifecycle.MountFailureRow", b =>
+            modelBuilder.Entity("Kun.Lifecycle.MountFailureRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(200)
@@ -206,7 +206,7 @@ namespace Qian.Lifecycle.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Lifecycle.PermissionApprovalRow", b =>
+            modelBuilder.Entity("Kun.Lifecycle.PermissionApprovalRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(200)
@@ -260,7 +260,7 @@ namespace Qian.Lifecycle.Migrations
                     b.HasAnnotation("Qian:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Qian.Lifecycle.PluginRevisionRow", b =>
+            modelBuilder.Entity("Kun.Lifecycle.PluginRevisionRow", b =>
                 {
                     b.Property<string>("PluginId")
                         .HasMaxLength(128)
@@ -376,7 +376,7 @@ namespace Qian.Lifecycle.Migrations
                     b.ToTable("plugin_revisions", "plugin_qian_lifecycle");
                 });
 
-            modelBuilder.Entity("Qian.Lifecycle.TenantInstallRow", b =>
+            modelBuilder.Entity("Kun.Lifecycle.TenantInstallRow", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(200)

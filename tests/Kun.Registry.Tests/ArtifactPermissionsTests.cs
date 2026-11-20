@@ -14,10 +14,10 @@ using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 // S1-AGT-002 验收 3：清单 policy.permissions（platform / data / secrets / ui.connectSrc）与 policy.egress 五类随制品快照落库，经受信端口按摘要、
-// 经管理面按组件版本读出（安装时列出供租户管理员批准）。真实 PostgreSQL、真实 RBAC 判定、真实 Kestrel + JWT；批准本身见 Qian.Lifecycle.Tests。
+// 经管理面按组件版本读出（安装时列出供租户管理员批准）。真实 PostgreSQL、真实 RBAC 判定、真实 Kestrel + JWT；批准本身见 Kun.Lifecycle.Tests。
 public sealed partial class PatchPersistenceTests
 {
     private static readonly string[] DeclaredPlatform = ["tenant:read", "notify:send"];

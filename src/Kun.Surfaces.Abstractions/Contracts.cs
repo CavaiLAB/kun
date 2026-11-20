@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Errors;
 
-namespace Qian.Surfaces.Abstractions;
+namespace Kun.Surfaces.Abstractions;
 
 /// <summary>静态表面文档；正文保持原样，本库不执行提示、命令、hook 或 MCP。</summary>
 public sealed record SurfaceDocument(string Kind, string Name, string File, JsonElement Data, string Body);

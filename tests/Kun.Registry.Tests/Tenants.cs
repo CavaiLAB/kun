@@ -1,4 +1,4 @@
-namespace Qian.Registry.Tests;
+namespace Kun.Registry.Tests;
 
 internal static class Tenants
 {

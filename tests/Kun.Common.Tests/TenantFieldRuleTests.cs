@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Common.Tests;
+namespace Kun.Common.Tests;
 
 // S1-AGT-004：输入 Schema 点名租户字段的写法。@qian/surfaces 的 tenantFields 逐条对应，两端由 tck/surfaces 的共同 fixture 比对。
 public sealed class TenantFieldRuleTests

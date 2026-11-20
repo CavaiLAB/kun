@@ -21,7 +21,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Scheduler.TestHost;
+namespace Kun.Scheduler.TestHost;
 
 public sealed record HostConfig(string Application, string Worker, string WorkerRole, int LeaseSeconds = 6, IReadOnlyList<string>? WarmupTenants = null);
 

@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Kun.EventBus;
 
-namespace Qian.Registry;
+namespace Kun.Registry;
 
 /// <summary>注册表发布的集成事件（PRD 7.2.1「插件化定位」）：租户 scope patch 的挂载与卸载随写入同一事务进入 Outbox。</summary>
 public static class RegistryEvents

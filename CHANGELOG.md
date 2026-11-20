@@ -8,6 +8,11 @@
 
 ## [Unreleased]
 
+### Changed — .NET 构建、测试与打包（S1-KUN-029）
+
+- `Qian.slnf` 已移除。从仓库根运行 `dotnet build Kun.slnx -c Release`。平台测试使用 `tests/kun-platform.slnf`，根单元测试使用 `tests/kun-unit.slnf`。CI 的分片清单可用 `python3 scripts/dotnet_ci.py shard a --out /tmp/kun-tests-a.slnf` 生成。
+- `python3 scripts/release_packages.py list` 列出统一解决方案的发包项目。构建和打包使用同一个 `-p:Version` 值，随后用 `python3 scripts/release_packages.py verify-packages --version "$VERSION" --packages "$PACKAGES"` 核验该目录的制品。
+
 ### Changed — 平台分析器
 
 - `QIAN0001` 至 `QIAN0006` 的新诊断号依次为 `KUNAPI001`、`KUNLEGACY002`、`KUNDATA001`、`KUNDATA002`、`KUNAUTHZ001`、`KUNEVENT001`。配置本组诊断的项目须同步更新 `.editorconfig`、`NoWarn` 和 `#pragma warning` 中的编号。

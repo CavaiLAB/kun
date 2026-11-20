@@ -221,3 +221,7 @@ trivially reversible — each site still compiles with the old
   self-managed task (KN-SELF-xxx).
 - **F3**: ［下游的 C# 服务］ adoption tracked separately as a P1
   task if tests drift persists.
+
+## 容器测试夹具
+
+S1-KUN-028 的 `Kun.Testing.Containers` 使用 xUnit v3 的夹具生命周期、取消令牌和条件跳过，消费者需要 xUnit v3。该例外适用于使用 Testcontainers 的集成测试辅助包。基础断言仍由 `Kun.Testing` 提供。

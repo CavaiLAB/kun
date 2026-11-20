@@ -31,7 +31,7 @@ public sealed partial class TenantOperationsTests
                 received = http.Request.Headers.Authorization.ToString();
                 await next(http);
             }));
-        await using var redis = new RedisFixture(); await redis.InitializeAsync();
+        await using var redis = new RedisFixture(); await redis.InitializeAsync(TestContext.Current.CancellationToken);
         using var tls = GatewayTestHost.Certificate(); using var reservation = LoopbackPort.Reserve();
         var address = new Uri($"https://localhost:{reservation.Port}/");
         await using var identity = await IdentityServerHost.Start(Postgres, new Uri(address, "auth/callback"), platform: true);

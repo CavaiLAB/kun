@@ -3,7 +3,7 @@ using Kun.Identity;
 using Kun.Identity.AspNetCore;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations.Session;
-using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;

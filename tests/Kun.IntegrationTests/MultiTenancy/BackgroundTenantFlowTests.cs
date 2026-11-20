@@ -11,6 +11,7 @@ using Kun.EventBus.RabbitMQ;
 using Kun.IntegrationTests.EventBus;
 using Kun.IntegrationTests.Fixtures;
 using Kun.MultiTenancy.DependencyInjection;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,7 +95,7 @@ internal sealed partial class TenantProbeJsonContext : JsonSerializerContext;
 public sealed class BackgroundTenantFlowTests : IAsyncLifetime
 {
     private readonly PostgresFixture _postgres = new();
-    private readonly RabbitMqFixture _rabbit = new();
+    private readonly RabbitMq313Fixture _rabbit = new();
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource<TenantObservation>> _received = new();
     private IHost _host = null!;
     private const string EventType = "tenant.probe.v1";

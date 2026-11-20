@@ -1,4 +1,4 @@
-using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Npgsql;
 using Xunit;
 
@@ -15,7 +15,7 @@ namespace Kun.IntegrationTests.Persistence;
 [Collection("Postgres")]
 public sealed class RlsEnforcementTests(PostgresFixture fx) : IAsyncLifetime
 {
-    private const string TableDdl = """
+    private const string TableDdl = $"""
         CREATE TABLE IF NOT EXISTS rls_orders (
             id UUID PRIMARY KEY,
             tenant_id TEXT NOT NULL,
@@ -26,9 +26,9 @@ public sealed class RlsEnforcementTests(PostgresFixture fx) : IAsyncLifetime
         DROP POLICY IF EXISTS rls_tenant_iso ON rls_orders;
         CREATE POLICY rls_tenant_iso ON rls_orders
             USING (tenant_id = current_setting('app.current_tenant_id', true));
-        -- kun_app is the non-superuser role used by the tests; without the grant,
+        -- The fixture supplies the restricted role used by the tests. Without this grant,
         -- its INSERTs/SELECTs would fail with "permission denied".
-        GRANT SELECT, INSERT, UPDATE, DELETE ON rls_orders TO kun_app;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON rls_orders TO {PostgresFixture.AppRoleName};
         """;
 
     public async ValueTask InitializeAsync()
@@ -50,7 +50,7 @@ public sealed class RlsEnforcementTests(PostgresFixture fx) : IAsyncLifetime
     {
         if (string.IsNullOrEmpty(fx.ConnectionString))
         {
-            ContainerRuntime.ReportUnavailable("Postgres fixture did not start (Docker unavailable).");
+            DockerRequirement.ReportUnavailable("Postgres fixture did not start (Docker unavailable).");
             return;
         }
 

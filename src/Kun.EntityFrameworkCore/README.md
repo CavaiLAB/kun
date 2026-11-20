@@ -72,7 +72,7 @@ Host=pgbouncer;Port=6432;Database=kun;Username=kun;Password=***;
 No Reset On Close=true;Max Auto Prepare=0
 ```
 
-`tests/Kun.IntegrationTests/Fixtures/PgBouncerPostgresFixture.cs` applies
+`src/Kun.Testing.Containers/PgBouncerPostgresFixture.cs` applies
 these automatically; consult it if you stand up your own local PgBouncer
 container.
 

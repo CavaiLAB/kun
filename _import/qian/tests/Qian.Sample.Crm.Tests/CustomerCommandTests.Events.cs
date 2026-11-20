@@ -20,7 +20,7 @@ public sealed partial class EventTests(PostgresFixture postgres) : CustomerComma
     public async Task 参考应用创建客户后Outbox加一条v1信封_RabbitMQ恰好收到一条()
     {
         await using var rabbit = new RabbitMqFixture();
-        await rabbit.InitializeAsync();
+        await rabbit.InitializeAsync(TestContext.Current.CancellationToken);
         var factory = new ConnectionFactory { Uri = new Uri(rabbit.ConnectionString) };
         await using var connection = await factory.CreateConnectionAsync(Ct);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: Ct);

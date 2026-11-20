@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <KunTier>kernel</KunTier>
+    <KunRole>provider</KunRole>
+    <Description>使用 xUnit v3 的 .NET 集成测试容器夹具。支持 PostgreSQL、Redis、RabbitMQ、PgBouncer、S3 兼容存储、配置与身份协议以及 K3s。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Kun.Testing.Containers.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="ApolloMock/apollo_mock.py" LogicalName="Kun.Testing.Containers.ApolloMock.apollo_mock.py" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Dex 的本地密码库只收 bcrypt 哈希。 -->
+    <PackageReference Include="BouncyCastle.Cryptography" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Testcontainers" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.RabbitMq" />
+    <PackageReference Include="Testcontainers.Redis" />
+    <PackageReference Include="Testcontainers.K3s" />
+    <PackageReference Include="xunit.v3.assert" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+  </ItemGroup>
+
+</Project>

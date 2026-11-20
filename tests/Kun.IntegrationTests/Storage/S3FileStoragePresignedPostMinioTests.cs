@@ -3,9 +3,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using Amazon.S3;
 using FluentAssertions;
-using Kun.IntegrationTests.Fixtures;
 using Kun.Storage;
 using Kun.Storage.S3;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -38,7 +38,7 @@ public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            ContainerRuntime.ReportUnavailable("Docker is not available on this host — integration test requires Docker.");
+            DockerRequirement.ReportUnavailable("Docker is not available on this host — integration test requires Docker.");
             return;
         }
 
@@ -86,7 +86,7 @@ public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
     {
         if (_storage is null)
         {
-            ContainerRuntime.ReportUnavailable("Container was not started (Docker unavailable).");
+            DockerRequirement.ReportUnavailable("Container was not started (Docker unavailable).");
             return;
         }
 
@@ -115,7 +115,7 @@ public sealed class S3FileStoragePresignedPostMinioTests : IAsyncLifetime
     {
         if (_storage is null)
         {
-            ContainerRuntime.ReportUnavailable("Container was not started (Docker unavailable).");
+            DockerRequirement.ReportUnavailable("Container was not started (Docker unavailable).");
             return;
         }
 

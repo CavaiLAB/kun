@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <Description>仓库测试专用的真实 Apollo 服务与平台开关验收夹具。</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <EmbeddedResource Include="ApolloReal/apolloconfigdb.sql" LogicalName="Kun.Testing.Containers.ApolloReal.apolloconfigdb.sql" />
+    <EmbeddedResource Include="ApolloReal/apolloportaldb.sql" LogicalName="Kun.Testing.Containers.ApolloReal.apolloportaldb.sql" />
+  </ItemGroup>
+</Project>

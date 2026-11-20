@@ -7,6 +7,7 @@ using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Idempotency;
 using Kun.EventBus.RabbitMQ;
 using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -83,7 +84,7 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
     private const string ConsumerName = "test-consumer-stop-while-handling";
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(20);
 
-    private readonly RabbitMqFixture _rabbitmq = new();
+    private readonly RabbitMq313Fixture _rabbitmq = new();
 
     public ValueTask InitializeAsync() => _rabbitmq.InitializeAsync();
 
@@ -95,7 +96,7 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         if (string.IsNullOrEmpty(_rabbitmq.ConnectionString))
         {
-            ContainerRuntime.ReportUnavailable("Docker not available.");
+            DockerRequirement.ReportUnavailable("Docker not available.");
         }
 
         var store = new SharedProcessedStore();

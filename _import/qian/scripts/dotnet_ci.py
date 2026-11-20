@@ -13,7 +13,7 @@
       <项目名>.coverage.cobertura.<时间戳>.xml（文件名前缀见仓库根 tests/Directory.Build.props），且是 Cobertura 格式；
       核对通过后去掉文件名里的时间戳，改成 <项目名>.coverage.cobertura.xml。
   python3 scripts/dotnet_ci.py images [<分片>]
-      列出分片里的测试项目会拉的容器镜像，不给分片则列出全部。镜像名取 tests/Kun.Testing.Containers 里
+      列出分片里的测试项目会拉的容器镜像，不给分片则列出全部。镜像名取通用夹具和平台测试夹具里
       QIAN_TEST_IMAGE_* 变量的缺省值；环境变量已覆盖的取覆盖值，与测试实际拉的一致。列不出即工具出错：夹具目录（CONTAINERS）
       不在、解析不出缺省镜像、项目文件读不了，或者分片里有项目引用了夹具项目、却一个镜像也没解析出来（扫描器漏看了它们）。
       分片里没有容器测试、解析出 0 个镜像不算错。工作流在后台预拉之前先在前台跑它，列不出这一步就失败。
@@ -71,7 +71,8 @@ SOLUTION = ROOT / "Qian.slnf"
 WORKFLOW = REPO / ".github" / "workflows" / "ci.yml"
 CI_CHANGES = REPO / "scripts" / "ci_changes.py"
 PREFIX = "_import/qian/"
-CONTAINERS = ROOT / "tests" / "Kun.Testing.Containers"
+CONTAINERS = REPO / "src/Kun.Testing.Containers"
+PLATFORM_FIXTURES = REPO / "tests/Kun.Testing.PlatformFixtures"
 
 # 按基线运行 40034799307 的模块壁钟配平。每个分片同时跑 4 个模块，模块启动顺序由 dotnet test 决定、每次不同，
 # 所以重模块（Config、Scheduler、Sample.Crm、Identity.Server，各 250–400 秒）所在分片的轻模块越少，重模块越早开跑。
@@ -130,7 +131,7 @@ DOTNET_JOB = re.compile(r"\bneeds\.changes\.outputs\.dotnet\s*==\s*'true'")
 # 触发过滤自检
 CSHARP_STRING = re.compile(r'(\$+@|@\$+|\$+|@)?("{3,}|")')
 PATH_CALL = re.compile(r"\bPath\s*\.\s*(?:Combine|Join)\s*\(")
-ROOT_LOCATOR = re.compile(r'"Qian\.slnf"|Repo(?:sitory)?Root')
+ROOT_LOCATOR = re.compile(r'"(?:Qian\.slnf|Kun\.slnx)"|Repo(?:sitory)?Root')
 ESCAPES = {"n": "\n", "r": "\r", "t": "\t", "0": "\0", "a": "\a", "b": "\b", "f": "\f", "v": "\v"}
 MSBUILD_PATH = re.compile(r'\b(?:Include|Update|Project)\s*=\s*"([^"]*)"')
 PYTHON_SCRIPT = re.compile(r"\bpython3?\s+(?:-[A-Za-z]\S*\s+)*([\w./-]+\.py)\b")
@@ -148,14 +149,15 @@ class ToolError(Exception):
 
 # ---------- 解决方案与分片 ----------
 
-def filter_document() -> Tuple[Path, List[str]]:
+def filter_document(source: Optional[Path] = None) -> Tuple[Path, List[str]]:
     """读 Qian.slnf：它筛选的解决方案（仓库根的 Kun.slnx），与它列出的项目（路径相对那个解决方案所在的目录）。"""
+    source = source or SOLUTION
     try:
-        document = json.loads(SOLUTION.read_text(encoding="utf-8-sig"))
-        solution = (SOLUTION.parent / document["solution"]["path"].replace("\\", "/")).resolve()
+        document = json.loads(source.read_text(encoding="utf-8-sig"))
+        solution = (source.parent / document["solution"]["path"].replace("\\", "/")).resolve()
         listed = [str(project).replace("\\", "/") for project in document["solution"]["projects"]]
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
-        raise ToolError(f"读不了 {SOLUTION.name}：{error}") from error
+        raise ToolError(f"读不了 {source.name}：{error}") from error
     return solution, listed
 
 
@@ -174,6 +176,26 @@ def solution_projects() -> List[str]:
     return projects
 
 
+def platform_projects() -> List[str]:
+    """仓库根分片清单中的测试项目，路径相对仓库根。"""
+    source = REPO / "tests/kun-platform.slnf"
+    solution, listed = filter_document(source)
+    if solution != (REPO / "Kun.slnx").resolve():
+        raise ToolError(f"{source.name} 应筛选仓库根 Kun.slnx。")
+    if len(set(listed)) != len(listed):
+        raise ToolError(f"{source.name} 里有重复项目。")
+    for project in listed:
+        target = (REPO / project).resolve()
+        if not target.is_relative_to((REPO / "tests").resolve()) or not target.is_file() or not is_test_project(project, REPO):
+            raise ToolError(f"{source.name} 的 {project} 不是现有的仓库根测试项目。")
+    return listed
+
+
+def distributed_projects() -> List[str]:
+    """供 a、b、c 分片调度的项目，统一以脚本工作目录为基准。"""
+    return solution_projects() + [os.path.relpath((REPO / p).resolve(), ROOT.resolve()) for p in platform_projects()]
+
+
 def assembly_name(project: str, root: Optional[Path] = None) -> str:
     return ET.parse((root or ROOT) / project).getroot().findtext(".//AssemblyName") or Path(project).stem
 
@@ -189,7 +211,7 @@ def is_test_project(project: str, root: Optional[Path] = None) -> bool:
 
 def test_projects() -> Dict[str, str]:
     """Qian.slnf 里的测试项目：程序集名 → 项目路径。"""
-    found = {assembly_name(project): project for project in solution_projects() if is_test_project(project)}
+    found = {assembly_name(project): project for project in distributed_projects() if is_test_project(project)}
     if not found:
         raise ToolError("Qian.slnf 里没有识别出测试项目。")
     return found
@@ -221,8 +243,10 @@ def unlisted_test_projects() -> List[str]:
 
 def assignment() -> Dict[str, str]:
     """项目路径 → 分片。登记的名字必须是 Qian.slnf 里的项目，且只能登记一次。"""
-    projects = solution_projects()
+    projects = distributed_projects()
     by_name = {Path(project).stem: project for project in projects}
+    if len(by_name) != len(projects):
+        raise ToolError("分片项目清单含有同名项目。")
     rest = [shard for shard, names in SHARDS.items() if names is None]
     if len(rest) != 1:
         raise ToolError("SHARDS 必须恰好有一个收下其余项目的分片（值为 None）。")
@@ -292,7 +316,7 @@ def shard_projects(shard: str) -> List[str]:
     if shard not in SHARDS:
         raise ToolError(f"没有分片 {shard}，可选：{'、'.join(SHARDS)}。")
     owners = assignment()
-    return [project for project in solution_projects() if owners[project] == shard]
+    return [project for project in distributed_projects() if owners[project] == shard]
 
 
 def write_kun_filter(out: Path) -> None:
@@ -334,26 +358,31 @@ def sources(directory: Path) -> List[Path]:
 
 
 class Fixtures:
-    """tests/Kun.Testing.Containers 的镜像声明与夹具类型，以及夹具之间的引用（如 InfrastructureFixture 组合四个夹具）。"""
+    """通用与平台测试夹具的镜像声明与夹具类型，以及夹具之间的引用（如 InfrastructureFixture 组合四个夹具）。"""
 
     def __init__(self) -> None:
         if not CONTAINERS.is_dir():
             raise ToolError(f"容器夹具目录 {shown(CONTAINERS)} 不在：夹具搬了位置或改了名，要同步改 dotnet_ci.py 的 CONTAINERS。")
+        if not PLATFORM_FIXTURES.is_dir():
+            raise ToolError(f"平台测试夹具目录 {shown(PLATFORM_FIXTURES)} 不在。")
         self.defaults: Dict[str, str] = {}
         self.properties: Dict[str, str] = {}
         texts: Dict[str, str] = {}
-        for path in sources(CONTAINERS):
-            text = path.read_text(encoding="utf-8")
-            for variable, image in IMAGE_DEFAULT.findall(text):
-                self.defaults.setdefault(variable, image)
-            self.properties.update(IMAGE_PROPERTY.findall(text))
-            # 只认顶层类型（文件范围命名空间里顶格声明）：夹具里的嵌套类型（如 User）名字太泛，不单独算。
-            # ContainerImages 的属性逐个按 ContainerImages.X 解析，不能整类算作「用了全部镜像」。
-            for name in TOP_LEVEL_TYPE.findall(text):
-                if name != "ContainerImages":
-                    texts[name] = texts.get(name, "") + text
-        if not self.defaults:
-            raise ToolError(f"{shown(CONTAINERS)} 里没有解析出 QIAN_TEST_IMAGE_* 缺省镜像。")
+        for directory in (CONTAINERS, PLATFORM_FIXTURES):
+            defaults: Dict[str, str] = {}
+            for path in sources(directory):
+                text = path.read_text(encoding="utf-8")
+                for variable, image in IMAGE_DEFAULT.findall(text):
+                    defaults.setdefault(variable, image)
+                self.properties.update(IMAGE_PROPERTY.findall(text))
+                # 只认顶层类型（文件范围命名空间里顶格声明）：夹具里的嵌套类型（如 User）名字太泛，不单独算。
+                # ContainerImages 的属性逐个按 ContainerImages.X 解析，不能整类算作「用了全部镜像」。
+                for name in TOP_LEVEL_TYPE.findall(text):
+                    if name != "ContainerImages":
+                        texts[name] = texts.get(name, "") + text
+            if not defaults:
+                raise ToolError(f"{shown(directory)} 里没有解析出 QIAN_TEST_IMAGE_* 缺省镜像。")
+            self.defaults.update(defaults)
         self.direct = {name: self.variables(text) for name, text in texts.items()}
         self.references = {name: {other for other in texts if other != name and mentions(text, other)}
                            for name, text in texts.items()}
@@ -412,22 +441,24 @@ def project_sources(project: str, seen: Optional[Set[Path]] = None) -> List[Path
         include = (item.get("Include") or "").replace("\\", "/")
         if include:
             files.extend(sorted(match.resolve() for match in path.parent.joinpath(include).parent.glob(Path(include).name)))
-    tests, containers = (ROOT / "tests").resolve(), CONTAINERS.resolve()
+    tests = ((ROOT / "tests").resolve(), (REPO / "tests").resolve())
+    fixtures = {CONTAINERS.resolve(), PLATFORM_FIXTURES.resolve()}
     for reference in project_references(path):
-        if tests in reference.parents and containers not in reference.parents:
-            files.extend(project_sources(str(reference.relative_to(ROOT.resolve())), seen))
+        if any(area in reference.parents for area in tests) and not fixtures.intersection(reference.parents):
+            files.extend(project_sources(os.path.relpath(reference, ROOT.resolve()), seen))
     return files
 
 
 def fixture_users(projects: Iterable[str]) -> List[str]:
     """projects 里引用了容器夹具项目（CONTAINERS 下的项目文件）的项目，经 tests/ 下的测试宿主项目间接引用的也算。"""
-    tests, containers = (ROOT / "tests").resolve(), CONTAINERS.resolve()
+    tests = ((ROOT / "tests").resolve(), (REPO / "tests").resolve())
+    fixtures = {CONTAINERS.resolve(), PLATFORM_FIXTURES.resolve()}
 
     def uses(path: Path, seen: Set[Path]) -> bool:
         if path in seen:
             return False
         seen.add(path)
-        return any(containers in reference.parents or (tests in reference.parents and uses(reference, seen))
+        return any(fixtures.intersection(reference.parents) or (any(area in reference.parents for area in tests) and uses(reference, seen))
                    for reference in project_references(path))
 
     return [project for project in projects if uses((ROOT / project).resolve(), set())]
@@ -671,9 +702,9 @@ def coverage(directory: Path, rename: bool = False) -> Tuple[List[str], List[str
 
 # ---------- 测试项目的着落 ----------
 
-HOW_TO_REGISTER = ("登记办法任选其一：单元测试加进 tests/kun-unit.slnf；集成测试加进 _import/qian/scripts/dotnet_ci.py 的 KUN_INTEGRATION；"
+HOW_TO_REGISTER = ("登记办法任选其一：单元测试加进 tests/kun-unit.slnf；集成测试加进 _import/qian/scripts/dotnet_ci.py 的 KUN_INTEGRATION；平台测试加进 tests/kun-platform.slnf；"
                    "要专门环境的在 ci.yml 里由 dotnet 区域的作业 dotnet test --project 运行。明知不在 CI 跑的，写进同一文件的 NOT_IN_CI 并写明原因。")
-ROOT_KINDS = ("单元", "集成", "专属作业", "不进 CI")
+ROOT_KINDS = ("单元", "集成", "平台分片", "专属作业", "不进 CI")
 LOCAL_KINDS = ("Qian.slnf", "专属作业")
 
 
@@ -740,6 +771,7 @@ def registration() -> Tuple[List[Tuple[str, str]], List[str], Counter, Counter]:
     dedicated = dedicated_tests()
     _, kun = kun_projects()
     unit = {project for project in kun if project not in KUN_INTEGRATION}
+    platform = set(platform_projects())
     projects = repository_projects()
     rows: List[Tuple[str, str]] = []
     problems: List[str] = []
@@ -748,6 +780,10 @@ def registration() -> Tuple[List[Tuple[str, str]], List[str], Counter, Counter]:
         if not is_test_project(project, REPO):
             continue
         places: List[Tuple[str, str]] = []
+        if project in platform:
+            places.append(("平台分片", "平台测试分片（kun-platform.slnf）"))
+            if project in kun:
+                problems.append(f"{project} 同时登记在平台分片与分片 {KUN_SHARD}。")
         if project in unit:
             places.append(("单元", f"分片 {KUN_SHARD} 的单元测试（{KUN_UNIT.name}）"))
         if project in KUN_INTEGRATION:
@@ -1456,6 +1492,25 @@ def paths_check() -> Counter:
         for line, path in msbuild_references(source, text):
             covered = repository.matching(path) if re.search(r"[*?]", path) else repository.covered(path)
             check("MSBuild 项", f"{source}:{line}", path, covered)
+    # 根 tests/ 下的项目也会读取过渡目录的契约、任务与文档；用仓库路径判定它们在区域表中的着落。
+    platform_tests = {posixpath.dirname(project) for project in platform_projects()}
+    for source in tracked("tests/**/*.cs", cwd=REPO):
+        text = (REPO / source).read_text(encoding="utf-8", errors="replace")
+        project = "/".join(source.split("/")[:2])
+        reads_platform = (project in platform_tests or '"_import", "qian"' in text or '"_import/qian"' in text)
+        for line, path, complete in csharp_references(text, repository.top):
+            if path.startswith(PREFIX):
+                path = path[len(PREFIX):]
+            elif not reads_platform:
+                continue
+            check(".NET 源码", f"{source}:{line}", shown(path, complete), repository.covered(path, complete))
+    for source in tracked("tests/**/*.csproj", "tests/**/*.props", "tests/**/*.targets", cwd=REPO):
+        text = (REPO / source).read_text(encoding="utf-8", errors="replace")
+        for line, path in msbuild_references(source, text):
+            if path.startswith(PREFIX):
+                path = path[len(PREFIX):]
+                covered = repository.matching(path) if re.search(r"[*?]", path) else repository.covered(path)
+                check("MSBuild 项", f"{source}:{line}", path, covered)
     for source, references in python_references(repository):
         counts["Python 文件"] += 1
         for line, path, complete in references:

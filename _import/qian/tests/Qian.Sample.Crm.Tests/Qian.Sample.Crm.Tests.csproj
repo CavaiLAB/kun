@@ -3,7 +3,7 @@
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../samples/Qian.Sample.Crm/Qian.Sample.Crm.csproj" />
-    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities/Qian.Capabilities.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
@@ -33,6 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../Shared/GatewayTestHost.cs" Link="GatewayTestHost.cs" />
-    <Compile Include="../Kun.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityAccountHost.cs" />
+    <Compile Include="../../../../tests/Kun.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityAccountHost.cs" />
   </ItemGroup>
 </Project>

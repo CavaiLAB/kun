@@ -220,7 +220,7 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
         using var tls = GatewayTestHost.Certificate(); using var reservation = LoopbackPort.Reserve(); using var hostPort = LoopbackPort.Reserve();
         var address = new Uri($"https://localhost:{reservation.Port}/");
         await using var business = await Start(identity: true, relyingParty: new Uri(address, "auth/callback"));
-        await using var redis = new RedisFixture(); await redis.InitializeAsync();
+        await using var redis = new RedisFixture(); await redis.InitializeAsync(TestContext.Current.CancellationToken);
         var (routes, clusters) = ProductionRoutes(new Uri($"http://127.0.0.1:{hostPort.Port}/"));
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,
             redis.ConnectionString, ShellGatewayIssuer, routes, clusters, business.ManagementSigningKey.Rsa, map: app => app.MapKunShellBootstrap(), scopes: ["crm.read", "crm.write"]);

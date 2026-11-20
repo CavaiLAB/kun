@@ -8,8 +8,8 @@ using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.IntegrationTests.EventBus;
-using Kun.IntegrationTests.Fixtures;
 using Kun.Mediator.DependencyInjection;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
@@ -79,7 +79,7 @@ public sealed class AuditEventFlowTests : IAsyncLifetime
         }
         catch (ArgumentException ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase))
         {
-            ContainerRuntime.ReportUnavailable("Docker is not available on this host — integration test requires Docker (runs in CI).");
+            DockerRequirement.ReportUnavailable("Docker is not available on this host — integration test requires Docker (runs in CI).");
             return;
         }
 

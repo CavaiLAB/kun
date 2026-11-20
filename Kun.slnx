@@ -86,6 +86,7 @@
     <Project Path="src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" />
     <Project Path="src/Kun.Tenancy/Kun.Tenancy.csproj" />
     <Project Path="src/Kun.Testing.EntityFrameworkCore/Kun.Testing.EntityFrameworkCore.csproj" />
+    <Project Path="src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <Project Path="src/Kun.Testing/Kun.Testing.csproj" />
     <Project Path="src/Kun.Validation/Kun.Validation.csproj" />
   </Folder>
@@ -125,6 +126,7 @@
     <Project Path="tests/Kun.Storage.S3.Tests/Kun.Storage.S3.Tests.csproj" />
     <Project Path="tests/Kun.Tenancy.Signup.Tests/Kun.Tenancy.Signup.Tests.csproj" />
     <Project Path="tests/Kun.Testing.EntityFrameworkCore.Tests/Kun.Testing.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="tests/Kun.Testing.PlatformFixtures/Kun.Testing.PlatformFixtures.csproj" />
     <Project Path="tests/Kun.Testing.Tests/Kun.Testing.Tests.csproj" />
     <Project Path="tests/Kun.Validation.Tests/Kun.Validation.Tests.csproj" />
   </Folder>
@@ -167,25 +169,24 @@
     <Project Path="_import/qian/samples/Qian.Sample.Crm/Qian.Sample.Crm.csproj" />
   </Folder>
   <Folder Name="/_import/qian/tests/">
-    <Project Path="_import/qian/tests/Kun.Authorization.Rbac.Tests/Kun.Authorization.Rbac.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Configuration.Platform.Tests/Kun.Configuration.Platform.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Data.AspNetCore.Tests/Kun.Data.AspNetCore.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Data.Native.Postgres.Tests/Kun.Data.Native.Postgres.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Data.Tests/Kun.Data.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Files.Tests/Kun.Files.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Gateway.IntegrationTests/Kun.Gateway.IntegrationTests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Identity.Client.Standalone.Tests/Kun.Identity.Client.Standalone.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Identity.Client.Tests/Kun.Identity.Client.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Identity.Server.Tests/Kun.Identity.Server.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Tenancy.Tests/Kun.Tenancy.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Audit.Postgres.Tests/Kun.Audit.Postgres.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Audit.EntityFrameworkCore.IntegrationTests/Kun.Audit.EntityFrameworkCore.IntegrationTests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Testing.Containers.Tests/Kun.Testing.Containers.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <Project Path="tests/Kun.Authorization.Rbac.Tests/Kun.Authorization.Rbac.Tests.csproj" />
+    <Project Path="tests/Kun.Configuration.Platform.Tests/Kun.Configuration.Platform.Tests.csproj" />
+    <Project Path="tests/Kun.Data.AspNetCore.Tests/Kun.Data.AspNetCore.Tests.csproj" />
+    <Project Path="tests/Kun.Data.Native.Postgres.Tests/Kun.Data.Native.Postgres.Tests.csproj" />
+    <Project Path="tests/Kun.Data.Tests/Kun.Data.Tests.csproj" />
+    <Project Path="tests/Kun.Files.Tests/Kun.Files.Tests.csproj" />
+    <Project Path="tests/Kun.Gateway.IntegrationTests/Kun.Gateway.IntegrationTests.csproj" />
+    <Project Path="tests/Kun.Identity.Client.Standalone.Tests/Kun.Identity.Client.Standalone.Tests.csproj" />
+    <Project Path="tests/Kun.Identity.Client.Tests/Kun.Identity.Client.Tests.csproj" />
+    <Project Path="tests/Kun.Identity.Server.Tests/Kun.Identity.Server.Tests.csproj" />
+    <Project Path="tests/Kun.Tenancy.Tests/Kun.Tenancy.Tests.csproj" />
+    <Project Path="tests/Kun.Audit.Postgres.Tests/Kun.Audit.Postgres.Tests.csproj" />
+    <Project Path="tests/Kun.Audit.EntityFrameworkCore.IntegrationTests/Kun.Audit.EntityFrameworkCore.IntegrationTests.csproj" />
+    <Project Path="tests/Kun.Testing.Containers.Tests/Kun.Testing.Containers.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Capabilities.Tests/Qian.Capabilities.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Common.Tests/Qian.Common.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Docs.Tests/Qian.Docs.Tests.csproj" />
-    <Project Path="_import/qian/tests/Kun.EventBus.IntegrationTests/Kun.EventBus.IntegrationTests.csproj" />
+    <Project Path="tests/Kun.EventBus.IntegrationTests/Kun.EventBus.IntegrationTests.csproj" />
     <Project Path="_import/qian/tests/Qian.Lifecycle.Tests/Qian.Lifecycle.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Profiles.Tests/Qian.Profiles.Tests.csproj" />
     <Project Path="_import/qian/tests/Qian.Registry.Tests/Qian.Registry.Tests.csproj" />

@@ -27,7 +27,7 @@ dotnet run --project hosts/Kun.Gateway.Host -c Release -- --urls http://0.0.0.0:
 
 ## 当前验证与接续
 
-宿主的 Release 编译与共享生产 Gateway / Identity.Client 的安全专项分别验收。完整原生门是 [生产宿主 driver](../../_import/qian/tests/Kun.Gateway.Host.AotTests/README.md)：直接运行本项目发布产物，连接真实 Apollo、受限 PostgreSQL、Redis 与身份服务，并读回实际生产进程写入的审计链。`Dockerfile.acceptance` 保留测试编排所需 SDK，只用于固定 Linux 验收环境。
+宿主的 Release 编译与共享生产 Gateway / Identity.Client 的安全专项分别验收。完整原生门是 [生产宿主 driver](../../tests/Kun.Gateway.Host.AotTests/README.md)：直接运行本项目发布产物，连接真实 Apollo、受限 PostgreSQL、Redis 与身份服务，并读回实际生产进程写入的审计链。`Dockerfile.acceptance` 保留测试编排所需 SDK，只用于固定 Linux 验收环境。
 
 2026-10-23 使用正式 Kun `2026.10.23` 完成固定 Linux arm64 严格发布，零 IL 诊断；同一生产二进制通过 ELF/noDLL 与完整 driver，实际 Cookie/Bearer 换签、3 条平台审计的回读验链及 SIGTERM 正常停机均通过。默认 profile 据此恢复 `build.aot: true`。Kun JWKS 修复在上游交付并正式发包，Qian 只通过 KunVersion 消费。Linux x64 的相同持续门由 `gateway-host-aot` CI 执行。
 

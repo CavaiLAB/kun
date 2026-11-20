@@ -4,4 +4,4 @@
 
 清单保留 `x-skeleton`，补齐代码元数据不代表真实 `qian add` 安装验收已完成。
 
-`x-aot: true` 依据为 gateway 实际生产宿主的严格 Linux NativeAOT 发布和真实 Apollo 2.5.2 运行：配置发行方被网关采用，后续发布写入原生审计链；环境变量与 CLI 引导的 AccessKey 签名也单独验收。持续门和复现命令见 [完整宿主 driver](../../tests/Kun.Gateway.Host.AotTests/README.md)。
+`x-aot: true` 依据为 gateway 实际生产宿主的严格 Linux NativeAOT 发布和真实 Apollo 2.5.2 运行：配置发行方被网关采用，后续发布写入原生审计链；环境变量与 CLI 引导的 AccessKey 签名也单独验收。持续门和复现命令见 [完整宿主 driver](../../../../tests/Kun.Gateway.Host.AotTests/README.md)。

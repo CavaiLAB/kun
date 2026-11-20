@@ -1,6 +1,6 @@
 using Kun.Identity;
 using Kun.Identity.Implementations.Session;
-using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using StackExchange.Redis;
 using Xunit;
 

@@ -1,9 +1,9 @@
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore.Extensions;
-using Kun.IntegrationTests.Fixtures;
 using Kun.Sample.Catalog.Application.Queries;
 using Kun.Sample.Catalog.Domain;
 using Kun.Sample.Catalog.Infrastructure;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Xunit;

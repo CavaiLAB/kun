@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><Using Include="Xunit" /></ItemGroup>
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Testing.PlatformFixtures/Kun.Testing.PlatformFixtures.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
+    <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
+    <ProjectReference Include="../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
+    <ProjectReference Include="../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <ProjectReference Include="../../tools/Kun.Configuration.Tool/Kun.Configuration.Tool.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.AspNetCore/Kun.Configuration.AspNetCore.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration/Kun.Configuration.csproj" />
+    <ProjectReference Include="../../src/Kun.Security/Kun.Security.csproj" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+</Project>

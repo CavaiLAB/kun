@@ -5,6 +5,7 @@ using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.RabbitMQ;
 using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -53,7 +54,7 @@ internal sealed partial class VersioningJsonContext : JsonSerializerContext { }
 
 public sealed class EventVersioningTests : IAsyncLifetime
 {
-    private readonly RabbitMqFixture _rabbitmq = new();
+    private readonly RabbitMq313Fixture _rabbitmq = new();
     private IHost? _host;
     private readonly TaskCompletionSource<TestEventBV1> _v1Received = new();
     private readonly TaskCompletionSource<TestEventBV2> _v2Received = new();
@@ -64,7 +65,7 @@ public sealed class EventVersioningTests : IAsyncLifetime
 
         if (string.IsNullOrEmpty(_rabbitmq.ConnectionString))
         {
-            ContainerRuntime.ReportUnavailable("Docker not available.");
+            DockerRequirement.ReportUnavailable("Docker not available.");
             return;
         }
 
@@ -118,7 +119,7 @@ public sealed class EventVersioningTests : IAsyncLifetime
 
         if (_host is null)
         {
-            ContainerRuntime.ReportUnavailable("Docker not available.");
+            DockerRequirement.ReportUnavailable("Docker not available.");
             return;
         }
 

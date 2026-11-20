@@ -6,7 +6,7 @@
 
 ```bash
 docker build --progress=plain -f tools/Kun.Audit.Postgres.Probe/Dockerfile -t qian-native-audit-probe:local .
-QIAN_REQUIRE_DOCKER=1 dotnet test --project _import/qian/tests/Kun.Audit.Postgres.AotTests -c Release
+QIAN_REQUIRE_DOCKER=1 dotnet test --project tests/Kun.Audit.Postgres.AotTests -c Release
 ```
 
 Dockerfile 固定 SDK 镜像摘要，按 amd64 / arm64 选择 Linux RID；启用 `IlcTreatWarningsAsErrors`、逐条裁剪诊断，核验可执行文件存在且对应托管 DLL 不存在。它是验收镜像，业务 gateway 的 distroless 组合另由 GW-001 验收。
@@ -15,7 +15,7 @@ Linux CI 使用同一 driver 运行原生进程：
 
 ```bash
 dotnet publish tools/Kun.Audit.Postgres.Probe -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o /tmp/qian-native-audit
-QIAN_REQUIRE_DOCKER=1 QIAN_NATIVE_AUDIT_EXECUTABLE=/tmp/qian-native-audit/Kun.Audit.Postgres.Probe dotnet test --project _import/qian/tests/Kun.Audit.Postgres.AotTests -c Release
+QIAN_REQUIRE_DOCKER=1 QIAN_NATIVE_AUDIT_EXECUTABLE=/tmp/qian-native-audit/Kun.Audit.Postgres.Probe dotnet test --project tests/Kun.Audit.Postgres.AotTests -c Release
 ```
 
 临时配置文件只对当前用户开放读写，运行后删除；Docker 路径将配置复制到短期验收容器。随机凭据不进入命令行或输出。CI 入口为仓库根 `.github/workflows/ci.yml` 的 `native-audit-aot`，严格发布和真库运行都通过才算验收，不以普通构建或跳过代替。

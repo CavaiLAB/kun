@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.identity.server",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "提供 qian.identity.server 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "identity.server",
     "category": "platform"

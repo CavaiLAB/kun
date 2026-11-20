@@ -122,7 +122,7 @@ public sealed class ProfileTests
         Assert.Empty(empty.Diagnostics);
         Assert.Empty(empty.Snapshot!.Entries);
         Assert.Empty(empty.Snapshot.MountOrder);
-        Assert.Equal("qian.bundle.minimal@1.0.0", Assert.Single(empty.Snapshot.Layers, layer => layer.Kind == "bundle").Reference);
+        Assert.Equal("qian.bundle.minimal@1.0.1", Assert.Single(empty.Snapshot.Layers, layer => layer.Kind == "bundle").Reference);
         using var services = new ServiceCollection().BuildServiceProvider();
         await using var runtime = new PluginLoader(services);
         await runtime.MountAsync([], TestContext.Current.CancellationToken);

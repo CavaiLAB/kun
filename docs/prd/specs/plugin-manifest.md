@@ -59,7 +59,7 @@ displayName: { zh-CN: 客户管理（参考应用）, en: Sample CRM }
 description:  { zh-CN: 演示多租户应用如何只用平台能力完成登录、鉴权、存储、文件与审计, en: ... }
 publisher: { id: qian.platform, verified: true }
 icon: ./assets/icon.svg
-license: Apache-2.0
+license: MIT
 links: { homepage: https://docs.example.internal/qian/sample-crm, docs: ..., support: ... }
 categories: [sample, sales]
 

@@ -69,7 +69,7 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
         Assert.True(runtime.IsReady);
         Assert.Equal(["audit", "authz", "capabilities", "config", "crm", "data", "events", "lifecycle", "registry", "tenancy"],
             runtime.Profile.Entries.Select(entry => entry.Id).Order(StringComparer.Ordinal));
-        Assert.Equal(["qian.bundle.base@1.0.0", "qian.bundle.model-gateway@1.0.0", "qian.bundle.shell@1.0.0"],
+        Assert.Equal(["qian.bundle.base@1.0.1", "qian.bundle.model-gateway@1.0.1", "qian.bundle.shell@1.0.1"],
             runtime.Profile.Layers.Where(layer => layer.Kind == "bundle").Select(layer => layer.Reference!).Order(StringComparer.Ordinal));
         var configVersion = JsonNode.Parse(File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins", "qian.config", ".qian-plugin", "plugin.json")))!["version"]!.GetValue<string>();
         Assert.Equal("qian.config@" + configVersion, runtime.Profile.Entries.Single(entry => entry.Id == "config").Plugin);

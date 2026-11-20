@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 import { REPO_ROOT, SITE_DOCS } from './repo.ts';
+import { LICENSES } from '../theme/site.ts';
 
 /** 取 Markdown 里第一张以「| 名字 |」开头的表的数据行，每行按单元格拆开并去掉链接、反引号、首尾空白。 */
 function familyRows(markdown: string): string[][] {
@@ -31,4 +32,11 @@ describe('产品族页与仓库 README 的「产品族」表同一内容（docs-
       assert.ok((family[i]?.[5] ?? '').length > 0, `第 ${i + 1} 行缺「文档在哪」`);
     }
   });
+});
+
+it('首页页脚为 Kun 和 Qian 各提供一个指向所属仓库的许可链接', () => {
+  assert.deepEqual(LICENSES, [
+    { project: 'Kun', name: 'MIT', url: 'https://github.com/CavaiLAB/kun/blob/main/LICENSE' },
+    { project: 'Qian', name: 'MIT', url: 'https://github.com/CavaiLAB/qian/blob/main/LICENSE' },
+  ]);
 });

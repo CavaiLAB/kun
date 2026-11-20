@@ -6,7 +6,7 @@
 
 ## global/registry
 
-组件：` qian.registry@1.2.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.registry@1.2.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -36,7 +36,7 @@
 
 ## global/lifecycle
 
-组件：` qian.lifecycle@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.lifecycle@1.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -174,7 +174,7 @@
 
 ## global/capabilities
 
-组件：` qian.capabilities@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.capabilities@1.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -215,7 +215,7 @@
 
 ## global/hooks
 
-组件：` qian.hooks@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.hooks@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -240,7 +240,7 @@
 
 ## global/tenancy
 
-组件：` qian.tenancy@2.3.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.tenancy@2.3.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -296,7 +296,7 @@
 
 ## global/identity
 
-组件：` qian.identity.client@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.identity.client@1.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -344,7 +344,7 @@
 
 ## global/authz
 
-组件：` qian.authz@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.authz@1.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -392,7 +392,7 @@
 
 ## global/data
 
-组件：` qian.data@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.data@1.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -446,7 +446,7 @@
 
 ## global/files
 
-组件：` qian.files@2.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.files@2.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -570,7 +570,7 @@
 
 ## global/config
 
-组件：` qian.config.apollo@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.config.apollo@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -618,7 +618,7 @@
 
 ## global/events
 
-组件：` qian.events@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.events@1.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -668,7 +668,7 @@
 
 ## global/audit
 
-组件：` qian.audit@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.audit@1.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -717,7 +717,7 @@
 
 ## global/observability
 
-组件：` qian.observability@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.observability@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -748,7 +748,7 @@
 
 ## global/notify
 
-组件：` qian.notify@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.notify@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -786,7 +786,7 @@
 
 ## global/notify.inbox
 
-组件：` qian.notify.channel.inbox@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.notify.channel.inbox@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -811,7 +811,7 @@
 
 ## global/notify.email
 
-组件：` qian.notify.channel.email@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.notify.channel.email@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -843,7 +843,7 @@
 
 ## global/notify.sms
 
-组件：` qian.notify.channel.sms@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.notify.channel.sms@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -875,7 +875,7 @@
 
 ## global/scheduler
 
-组件：` qian.scheduler@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.scheduler@1.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -927,7 +927,7 @@
 
 ## global/realtime
 
-组件：` qian.realtime@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.realtime@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -958,7 +958,7 @@
 
 ## global/entitlement
 
-组件：` qian.entitlement@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.entitlement@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 
@@ -983,7 +983,7 @@
 
 ## global/shell
 
-组件：` qian.shell@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.shell/config/qian.patch.yml `。
+组件：` qian.shell@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.shell/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 

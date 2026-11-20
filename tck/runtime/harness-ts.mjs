@@ -10,7 +10,7 @@ export function runtimeScenarios({PluginLoader,defineEvent,RuntimeError,Parallel
 const fixtureRoot=path.join(root,'tck/runtime');
 for(const file of readdirSync(fixtureRoot).filter(f=>f.endsWith('.scenario.yml')).sort())test(file,async()=>{
  const scenario=parse(readFileSync(path.join(fixtureRoot,file),'utf8'));assert.equal(String(scenario.version),'1');
- const baseline=loadProfile({workingDirectory:root,profile:'minimal',includeHomePatch:false});assert.ok(baseline.isValid);assert.deepEqual(baseline.snapshot.entries,[]);assert.equal(baseline.snapshot.layers.find(l=>l.kind==='bundle').ref,'qian.bundle.minimal@1.0.0');
+ const baseline=loadProfile({workingDirectory:root,profile:'minimal',includeHomePatch:false});assert.ok(baseline.isValid);assert.deepEqual(baseline.snapshot.entries,[]);assert.equal(baseline.snapshot.layers.find(l=>l.kind==='bundle').ref,'qian.bundle.minimal@1.0.1');
  const errors=[];const loader=new PluginLoader({onError:error=>errors.push(error)}),trace=[],handles=new Map(),gates=new Map(),pending=[],events=new Map((scenario.events??[]).map(e=>[e.name,defineEvent(e.name,e.mode)])),entries=new Map(scenario.entries.map(e=>[e.id,e]));
  const context=step=>{const ctx=loader.getContext(step.entry,step.scope??'global');return step.view?ctx.scoped(step.view):ctx;};
  const definition=id=>{const entry=entries.get(id);return{entry:{id,plugin:id,version:'1.0.0',scope:entry.scope??'global',layer:0,config:{}},provides:entry.provides??[],plugin:{name:id,inject:entry.inject??[],apply(ctx){

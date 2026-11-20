@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.gateway",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "网关组件：强制认证、Cookie 换短时 S2S、逐 cluster 受众、可信代理与签名密钥热轮换；已完成生产宿主 Linux NativeAOT 发布与真实依赖运行验收。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "gateway",
     "category": "platform"

@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.data.native",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "原生 PostgreSQL 连接与事务 Provider：受限角色、租户隔离、明确的平台入口及可撤销会话生命周期。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "原生数据",
     "category": "platform"

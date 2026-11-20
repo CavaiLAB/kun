@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.events",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "提供 qian.events 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "events",
     "category": "platform"

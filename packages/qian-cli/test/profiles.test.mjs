@@ -54,7 +54,7 @@ test('真实 CLI dump-config、overlay 来源及非法配置退出',()=>{
  const run=(...args)=>spawnSync(process.execPath,[path.join(root,'packages/qian-cli/dist/main.js'),'--cwd',root,'--no-home','--profile','platform','--dump-config','--json',...args],{encoding:'utf8'});
  try{
   const minimal=run('--profile','minimal');assert.equal(minimal.status,0,minimal.stderr);
-  const baseline=JSON.parse(minimal.stdout);assert.equal(baseline.profile,'minimal');assert.deepEqual(baseline.entries,[]);assert.deepEqual(baseline.mountOrder,[]);assert.deepEqual(baseline.diagnostics,[]);assert.equal(baseline.layers.find(layer=>layer.kind==='bundle').ref,'qian.bundle.minimal@1.0.0');
+  const baseline=JSON.parse(minimal.stdout);assert.equal(baseline.profile,'minimal');assert.deepEqual(baseline.entries,[]);assert.deepEqual(baseline.mountOrder,[]);assert.deepEqual(baseline.diagnostics,[]);assert.equal(baseline.layers.find(layer=>layer.kind==='bundle').ref,'qian.bundle.minimal@1.0.1');
   const initial=run();assert.equal(initial.status,0,initial.stderr);const snapshot=JSON.parse(initial.stdout);assert.equal(snapshot.entries.length,21);
   const patch=path.join(directory,'override.yml');writeFileSync(patch,'- id: files\n  config:\n    storage: {kind: local, root: /tmp/profile-proof}\n');
   const updated=run('--patch',patch);assert.equal(updated.status,0,updated.stderr);const final=JSON.parse(updated.stdout),files=final.entries.find(e=>e.id==='files');assert.equal(files.config.storage.root,'/tmp/profile-proof');assert.equal(final.layers[files.layer].kind,'overlay');

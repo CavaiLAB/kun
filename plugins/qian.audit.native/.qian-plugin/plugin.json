@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.audit.native",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "原生 PostgreSQL 审计 Provider：共享哈希链、受限追加函数与真实同事务业务审计。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "原生审计",
     "category": "platform"

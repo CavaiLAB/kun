@@ -1,7 +1,7 @@
 {
   "id": "RT009-skill-only",
   "profile": "minimal",
-  "bundle": "qian.bundle.minimal@1.0.0",
+  "bundle": "qian.bundle.minimal@1.0.1",
   "plugin": "test.skill-only",
   "version": "1.0.0",
   "entry": "tenant-guide",

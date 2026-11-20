@@ -16,26 +16,26 @@ public sealed class PlatformIdentityProxyHeadersTests
     {
         var options = PlatformIdentity.ProxyHeaders(Configuration(new()
         {
-            ["Identity:TrustedProxyNetworks:0"] = "10.42.0.0/16",
-            ["Identity:TrustedProxyNetworks:1"] = "192.168.1.0/24",
+            ["Identity:TrustedProxyNetworks:0"] = "192.0.2.0/25",
+            ["Identity:TrustedProxyNetworks:1"] = "198.51.100.0/24",
             ["Identity:ForwardLimit"] = "2"
         }))!;
         Assert.Equal(ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto, options.ForwardedHeaders);
         Assert.Equal(2, options.ForwardLimit);
         Assert.Empty(options.KnownProxies);
-        Assert.Equal(["10.42.0.0/16", "192.168.1.0/24"], options.KnownIPNetworks.Select(network => network.ToString()));
-        Assert.Equal(1, PlatformIdentity.ProxyHeaders(Configuration(new() { ["Identity:TrustedProxyNetworks:0"] = "10.42.0.0/16" }))!.ForwardLimit);
+        Assert.Equal(["192.0.2.0/25", "198.51.100.0/24"], options.KnownIPNetworks.Select(network => network.ToString()));
+        Assert.Equal(1, PlatformIdentity.ProxyHeaders(Configuration(new() { ["Identity:TrustedProxyNetworks:0"] = "192.0.2.0/25" }))!.ForwardLimit);
     }
 
     [Theory]
     [InlineData("0.0.0.0/0", null)]
     [InlineData("::/0", null)]
-    [InlineData("10.42.0.0/33", null)]
+    [InlineData("192.0.2.0/33", null)]
     [InlineData("traefik", null)]
     [InlineData("", null)]
-    [InlineData("10.42.0.0/16", "0")]
-    [InlineData("10.42.0.0/16", "6")]
-    [InlineData("10.42.0.0/16", "two")]
+    [InlineData("192.0.2.0/25", "0")]
+    [InlineData("192.0.2.0/25", "6")]
+    [InlineData("192.0.2.0/25", "two")]
     public void InvalidSettingsStopTheHost(string network, string? limit) =>
         Assert.Throws<InvalidOperationException>(() => PlatformIdentity.ProxyHeaders(Configuration(new()
         {

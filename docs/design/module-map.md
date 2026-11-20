@@ -93,7 +93,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | 模块 | 职责 | 典型用途 | 主要 API | AOT | 测试 |
 |---|---|---|---|:---:|:---:|
 | `Kun.AspNetCore` | Minimal API 命令和查询端点映射 | 下游服务的对外 HTTP 路由 | `MapCommand<TReq, TResp>` / `MapQuery` | ⚠️ trim-safe | 5 |
-| `Kun.Grpc` | gRPC 跟踪、身份、权限装配检查与结果映射 | 服务间内部 RPC；Catalog / Order gRPC endpoint | `AddKunGrpc()` / `KunResultToRpcInterceptor` | ✅ | 7 |
+| `Kun.Grpc` | gRPC 跟踪、服务认证、租户边界、权限装配检查与结果映射 | 服务间内部 RPC；Catalog / Order gRPC endpoint | `AddKunGrpc()` / `KunResultToRpcInterceptor` | ✅ | 7 |
 | `Kun.Gateway` | YARP + 外部 JWT 校验 + S2S JWT 签发 + JWKS endpoint + 限流 | 统一边界：外部 JWT 验证 + 内部 S2S JWT 签发 | `AddKunGateway()` / `MapKunJwks()` | ✅ | 21 |
 
 ### 安全、多租户、审计

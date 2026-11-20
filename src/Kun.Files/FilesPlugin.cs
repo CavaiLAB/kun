@@ -19,7 +19,6 @@ namespace Kun.Files;
 /// 宿主须先 AddKunData&lt;FilesDbContext&gt;、在 AddKunEventBus 中 RegisterFilesEvents、在 AddKunMediator 中 AddKunFiles，否则 Apply 失败。
 /// </summary>
 [KunPlugin("qian.files")]
-[Contributes(typeof(FilesDefinition), nameof(FilesDefinition.BackendsKey), LocalFileBackendFactory.Name, RegistryType = typeof(FileBackendRegistry))]
 public sealed class FilesPlugin : IKunPlugin
 {
     /// <inheritdoc />
@@ -46,19 +45,12 @@ public sealed class FilesPlugin : IKunPlugin
         var options = services.GetService<IOptions<KunFilesOptions>>()?.Value ?? new KunFilesOptions();
         // 组件 metadata/upload-policies.json 的声明只在有 Registry 的平台宿主可见；Registry 不进 Inject（standalone 与 qian add 没有它，R34），经 TryInject 读取预装快照。
         var declared = new DeclaredUploadPolicies(() => ctx.TryInject<IRegistryService>(RegistryDefinition.Key));
-        var backends = new FileBackendRegistry(); var policies = new UploadPolicyRegistry(declared);
-        var local = new LocalFileBackendFactory(options.LocalSigningKey);
-        ctx.Effect(backends.Register(LocalFileBackendFactory.Name, local));
-        // 清单 provides 的 Files.Backends:local 由上面的 [Contributes] 派生，装载器在 Apply 后核对它确实已提供。
-        ctx.Provide<IFileBackendFactory>(FilesDefinition.BackendsKey, LocalFileBackendFactory.Name, local);
+        var policies = new UploadPolicyRegistry(declared);
         foreach (var policy in settings.Policies) ctx.Effect(policies.Register(policy));
         // Registry 已就绪时在挂载期就编译声明：坏的声明让 Apply 失败，而不是拖到第一次上传才报错。
         _ = declared.Policies;
-        var runtime = new FilesRuntime(options.Clock, backends, policies, settings.QuotaPerTenantBytes, () => ctx.TryInject<ITenantSettings>(TenantSettings.Key));
-        // S1 只有 local；s3 / oss 由 S1-FILE-002 作为后端登记，未登记的名称启动即拒绝。
-        var factory = backends.Find(settings.Kind)
-            ?? throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/storage/kind", Allowed = AllowedValues.Of([.. backends.List()]) });
-        runtime.Use(factory.Create(new FileBackendContext(settings.Storage, options.Clock, services)));
+        var runtime = new FilesRuntime(options.Clock, policies, settings.QuotaPerTenantBytes, () => ctx.TryInject<ITenantSettings>(TenantSettings.Key));
+        runtime.Use(FileStorageMount.Create(settings.Kind, settings.Storage, options.Clock, services, options.LocalSigningKey));
         if (services.GetService<ErrorCatalog>() is { } catalog) ctx.Effect(FilesErrors.Register(catalog));
         ctx.Provide<IFileService>(FilesDefinition.Key, new FileService(services.GetRequiredService<ISender>(), runtime));
         ctx.ProvideCapability<PresignUploadCommand, PresignedUpload>();

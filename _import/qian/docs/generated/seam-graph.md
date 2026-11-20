@@ -33,7 +33,6 @@
 | ` CommandAuthorization ` | ` global/authz ` | ` global/capabilities ` |
 | ` Data ` | ` global/data ` | ` global/registry `、` global/lifecycle `、` global/capabilities `、` global/tenancy `、` global/authz `、` global/files `、` global/audit `、` global/scheduler ` |
 | ` Files ` | ` global/files ` |  |
-| ` Files.Backends:local ` | ` global/files ` |  |
 | ` Config ` | ` global/config ` | ` global/lifecycle ` |
 | ` Events ` | ` global/events ` |  |
 | ` Audit ` | ` global/audit ` | ` global/capabilities `、` global/lifecycle `（可选） |
@@ -118,26 +117,24 @@ flowchart LR
   n7 --> s25
   s26(("Files"))
   n8 --> s26
-  s27(("Files.Backends:local"))
-  n8 --> s27
-  s28(("Config"))
-  n9 --> s28
-  s29(("Events"))
-  n10 --> s29
-  s30(("Audit"))
+  s27(("Config"))
+  n9 --> s27
+  s28(("Events"))
+  n10 --> s28
+  s29(("Audit"))
+  n11 --> s29
+  s30(("CommandAudit"))
   n11 --> s30
-  s31(("CommandAudit"))
-  n11 --> s31
-  s32(("Scheduler"))
-  n17 --> s32
-  s33(("Shell"))
-  n20 --> s33
+  s31(("Scheduler"))
+  n17 --> s31
+  s32(("Shell"))
+  n20 --> s32
   s25 --> n0
-  s28 --> n1
+  s27 --> n1
   s25 --> n1
   s0 --> n1
+  s29 --> n2
   s30 --> n2
-  s31 --> n2
   s24 --> n2
   s6 --> n2
   s25 --> n2
@@ -149,7 +146,7 @@ flowchart LR
   s25 --> n11
   s25 --> n17
   s7 --> n17
-  s30 -.-> n1
+  s29 -.-> n1
   s21 -.-> n1
   s22 -.-> n2
 ```

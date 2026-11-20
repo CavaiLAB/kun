@@ -15,6 +15,12 @@
 - 平台配置计量器由 `Qian.Config` 改为 `Kun.Configuration.Platform`，继续报告 `qian.config.reload.failed`。日志类别 `Qian.Config.Flags`、`Qian.Config.Options` 与 `Qian.Config.Http` 对应改为 `Kun.Configuration.Platform.Flags`、`Kun.Configuration.Platform.Options` 与 `Kun.Configuration.AspNetCore.Http`。
 - 配置与密钥命令行工具分别迁至仓库根的 `tools/Kun.Configuration.Tool` 和 `tools/Kun.Configuration.Secrets.Tool`。集成测试共享夹具使用 `Kun.Testing.Containers` 命名空间。
 
+### Changed — 文件存储与本地签名传输（S1-KUN-028）
+
+- 文件组件升为 2.0.0。公开服务键为 `Files`，按挂载的 `storage.kind` 使用 `IFileStorage`。`Files.Backends:local`、`IFileService.Backends`、旧后端注册表、工厂和后端上下文已移除。
+- `Kun.Storage.Local.LocalSignedTransfers` 可签发限时上传与附件下载地址，按内容类型与声明长度接收上传。`Kun.Files` 的 local 端点现在原子创建上传对象，并发写入同一地址时只有一个请求成功。
+- 开发宿主可以使用进程共享的临时签名密钥，其他环境须配置至少 32 字节的 `KunFilesOptions.LocalSigningKey`。多实例使用同一密钥。
+
 ### Changed — HTTP 和 gRPC 授权执行点（S1-KUN-027）
 
 - 在 `Kun.Authorization.AspNetCore` 中使用 `AddKunAuthorization`、`RequireKunPermission`、`UseKunAuthorization` 及 `AddKunAuthorizationInterceptor`。普通宿主登记自己的 `IPermissionChecker`，组件宿主提供当前请求的插件上下文。库模式的启动日志说明不写决策审计、不比对身份修订。原来从 Kun.AspNetCore 间接取得 Kun.Authorization 或 Kun.Security 的项目需要显式引用。

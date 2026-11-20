@@ -4,14 +4,14 @@
 
 ## 宿主装配
 
-`FilesPlugin`（`[KunPlugin("qian.files")]`，可挂 global 或 tenant scope，`Inject` 为 `Data`，提供 `Files` 与具名贡献 `Files.Backends:local`）在 `Apply` 里核对下面三项，缺任何一项都拒绝挂载：
+`FilesPlugin`（`[KunPlugin("qian.files")]`，可挂 global 或 tenant scope，`Inject` 为 `Data`，提供 `Files` 服务）在 `Apply` 里核对下面三项，缺任何一项都拒绝挂载：
 
 ```csharp
 builder.Services.AddKunEventBus(registrar => registrar.RegisterFilesEvents() /* 以及其他组件的事件 */);
 builder.Services.AddKunData<FilesDbContext>((_, options) => options.UseNpgsql(business).UseKunSchema(FilesDbContext.Schema));
 builder.Services.AddKunMediator(registry => registry.AddKunFiles(sp => /* 按请求租户收窄的 qian.files 上下文 */, options =>
 {
-    options.LocalSigningKey = signingKey; // 多实例共用同一把 ≥32 字节密钥；不给则每次挂载随机生成
+    options.LocalSigningKey = signingKey; // 多实例共用同一把 ≥32 字节密钥；开发环境可使用进程共享的临时密钥
 }));
 ```
 
@@ -25,7 +25,7 @@ builder.Services.AddKunMediator(registry => registry.AddKunFiles(sp => /* 按请
 
 | 成员 | 说明 |
 | --- | --- |
-| `storage.kind` | 必填，按名称选用 `Files.Backends` 里的后端；S1 只登记 `local` |
+| `storage.kind` | 必填，按挂载选用存储；当前支持 `local` |
 | `storage.root` | local 必填：对象根目录（绝对路径） |
 | `storage.endpoint` | local 必填：宿主映射直传 / 直下端点的公开基址（绝对 http(s) 地址，路径与 `MapKunFiles` 的 `TransferPath` 一致，缺省 `/files/blobs`） |
 | `quota.perTenantBytes` | 租户字节配额的平台默认值，缺省 10 GiB |

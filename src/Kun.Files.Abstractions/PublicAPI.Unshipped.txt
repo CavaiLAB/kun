@@ -26,9 +26,6 @@ override Kun.Files.DeleteFileRequest.ToString() -> string!
 override Kun.Files.DownloadTicket.Equals(object? obj) -> bool
 override Kun.Files.DownloadTicket.GetHashCode() -> int
 override Kun.Files.DownloadTicket.ToString() -> string!
-override Kun.Files.FileBackendContext.Equals(object? obj) -> bool
-override Kun.Files.FileBackendContext.GetHashCode() -> int
-override Kun.Files.FileBackendContext.ToString() -> string!
 override Kun.Files.FileDescriptor.Equals(object? obj) -> bool
 override Kun.Files.FileDescriptor.GetHashCode() -> int
 override Kun.Files.FileDescriptor.ToString() -> string!
@@ -47,9 +44,6 @@ override Kun.Files.FileTransferDownload.ToString() -> string!
 override Kun.Files.FileTransferRequest.Equals(object? obj) -> bool
 override Kun.Files.FileTransferRequest.GetHashCode() -> int
 override Kun.Files.FileTransferRequest.ToString() -> string!
-override Kun.Files.PresignedTransfer.Equals(object? obj) -> bool
-override Kun.Files.PresignedTransfer.GetHashCode() -> int
-override Kun.Files.PresignedTransfer.ToString() -> string!
 override Kun.Files.PresignedUpload.Equals(object? obj) -> bool
 override Kun.Files.PresignedUpload.GetHashCode() -> int
 override Kun.Files.PresignedUpload.ToString() -> string!
@@ -86,17 +80,6 @@ Kun.Files.DownloadTicket.ExpiresAt.get -> System.DateTimeOffset
 Kun.Files.DownloadTicket.ExpiresAt.init -> void
 Kun.Files.DownloadTicket.Url.get -> System.Uri!
 Kun.Files.DownloadTicket.Url.init -> void
-Kun.Files.FileBackendContext
-Kun.Files.FileBackendContext.<Clone>$() -> Kun.Files.FileBackendContext!
-Kun.Files.FileBackendContext.Clock.get -> System.TimeProvider!
-Kun.Files.FileBackendContext.Clock.init -> void
-Kun.Files.FileBackendContext.Deconstruct(out System.Text.Json.JsonElement Storage, out System.TimeProvider! Clock, out System.IServiceProvider! Services) -> void
-Kun.Files.FileBackendContext.Equals(Kun.Files.FileBackendContext? other) -> bool
-Kun.Files.FileBackendContext.FileBackendContext(System.Text.Json.JsonElement Storage, System.TimeProvider! Clock, System.IServiceProvider! Services) -> void
-Kun.Files.FileBackendContext.Services.get -> System.IServiceProvider!
-Kun.Files.FileBackendContext.Services.init -> void
-Kun.Files.FileBackendContext.Storage.get -> System.Text.Json.JsonElement
-Kun.Files.FileBackendContext.Storage.init -> void
 Kun.Files.FileDescriptor
 Kun.Files.FileDescriptor.<Clone>$() -> Kun.Files.FileDescriptor!
 Kun.Files.FileDescriptor.ContentType.get -> string!
@@ -209,22 +192,7 @@ Kun.Files.FileTransferResult.Conflict = 2 -> Kun.Files.FileTransferResult
 Kun.Files.FileTransferResult.Rejected = 1 -> Kun.Files.FileTransferResult
 Kun.Files.FileTransferResult.Stored = 0 -> Kun.Files.FileTransferResult
 Kun.Files.FileTransferResult.TooLarge = 3 -> Kun.Files.FileTransferResult
-Kun.Files.IFileBackend
-Kun.Files.IFileBackend.CreateDownloadAsync(string! objectKey, string! fileName, System.TimeSpan lifetime, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Files.PresignedTransfer!>
-Kun.Files.IFileBackend.CreateUploadAsync(string! objectKey, string! contentType, long maxBytes, System.TimeSpan lifetime, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Files.PresignedTransfer!>
-Kun.Files.IFileBackend.DeleteAsync(string! objectKey, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
-Kun.Files.IFileBackend.Name.get -> string!
-Kun.Files.IFileBackend.OpenReadAsync(string! objectKey, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.IO.Stream!>
-Kun.Files.IFileBackend.Transfer.get -> Kun.Files.IFileTransferGateway?
-Kun.Files.IFileBackend.WriteAsync(string! objectKey, System.IO.Stream! content, string! contentType, long maxBytes, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-Kun.Files.IFileBackendFactory
-Kun.Files.IFileBackendFactory.Create(Kun.Files.FileBackendContext! context) -> Kun.Files.IFileBackend!
-Kun.Files.IFileBackendRegistry
-Kun.Files.IFileBackendRegistry.Find(string! name) -> Kun.Files.IFileBackendFactory?
-Kun.Files.IFileBackendRegistry.List() -> System.Collections.Generic.IReadOnlyList<string!>!
-Kun.Files.IFileBackendRegistry.Register(string! name, Kun.Files.IFileBackendFactory! factory) -> System.IDisposable!
 Kun.Files.IFileService
-Kun.Files.IFileService.Backends.get -> Kun.Files.IFileBackendRegistry!
 Kun.Files.IFileService.CompleteAsync(Kun.Files.CompleteUploadRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Files.FileDescriptor!>
 Kun.Files.IFileService.DeleteAsync(Kun.Files.DeleteFileRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Files.FileDescriptor!>
 Kun.Files.IFileService.GetAsync(System.Guid fileId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Files.FileDescriptor!>
@@ -240,19 +208,6 @@ Kun.Files.IUploadPolicyRegistry
 Kun.Files.IUploadPolicyRegistry.Find(string! purpose) -> Kun.Files.UploadPolicy?
 Kun.Files.IUploadPolicyRegistry.List() -> System.Collections.Generic.IReadOnlyList<Kun.Files.UploadPolicy!>!
 Kun.Files.IUploadPolicyRegistry.Register(Kun.Files.UploadPolicy! policy) -> System.IDisposable!
-Kun.Files.PresignedTransfer
-Kun.Files.PresignedTransfer.<Clone>$() -> Kun.Files.PresignedTransfer!
-Kun.Files.PresignedTransfer.Deconstruct(out System.Uri! Url, out string! Method, out System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Headers, out System.DateTimeOffset ExpiresAt) -> void
-Kun.Files.PresignedTransfer.Equals(Kun.Files.PresignedTransfer? other) -> bool
-Kun.Files.PresignedTransfer.ExpiresAt.get -> System.DateTimeOffset
-Kun.Files.PresignedTransfer.ExpiresAt.init -> void
-Kun.Files.PresignedTransfer.Headers.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
-Kun.Files.PresignedTransfer.Headers.init -> void
-Kun.Files.PresignedTransfer.Method.get -> string!
-Kun.Files.PresignedTransfer.Method.init -> void
-Kun.Files.PresignedTransfer.PresignedTransfer(System.Uri! Url, string! Method, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Headers, System.DateTimeOffset ExpiresAt) -> void
-Kun.Files.PresignedTransfer.Url.get -> System.Uri!
-Kun.Files.PresignedTransfer.Url.init -> void
 Kun.Files.PresignedUpload
 Kun.Files.PresignedUpload.<Clone>$() -> Kun.Files.PresignedUpload!
 Kun.Files.PresignedUpload.Deconstruct(out System.Guid FileId, out System.Uri! Url, out string! Method, out System.Collections.Generic.IReadOnlyDictionary<string!, string!>! RequiredHeaders, out System.DateTimeOffset ExpiresAt) -> void
@@ -304,8 +259,6 @@ static Kun.Files.DeleteFileRequest.operator !=(Kun.Files.DeleteFileRequest? left
 static Kun.Files.DeleteFileRequest.operator ==(Kun.Files.DeleteFileRequest? left, Kun.Files.DeleteFileRequest? right) -> bool
 static Kun.Files.DownloadTicket.operator !=(Kun.Files.DownloadTicket? left, Kun.Files.DownloadTicket? right) -> bool
 static Kun.Files.DownloadTicket.operator ==(Kun.Files.DownloadTicket? left, Kun.Files.DownloadTicket? right) -> bool
-static Kun.Files.FileBackendContext.operator !=(Kun.Files.FileBackendContext? left, Kun.Files.FileBackendContext? right) -> bool
-static Kun.Files.FileBackendContext.operator ==(Kun.Files.FileBackendContext? left, Kun.Files.FileBackendContext? right) -> bool
 static Kun.Files.FileDescriptor.operator !=(Kun.Files.FileDescriptor? left, Kun.Files.FileDescriptor? right) -> bool
 static Kun.Files.FileDescriptor.operator ==(Kun.Files.FileDescriptor? left, Kun.Files.FileDescriptor? right) -> bool
 static Kun.Files.FileObjectCreatedEvent.operator !=(Kun.Files.FileObjectCreatedEvent? left, Kun.Files.FileObjectCreatedEvent? right) -> bool
@@ -329,15 +282,12 @@ static Kun.Files.FileTransferDownload.operator !=(Kun.Files.FileTransferDownload
 static Kun.Files.FileTransferDownload.operator ==(Kun.Files.FileTransferDownload? left, Kun.Files.FileTransferDownload? right) -> bool
 static Kun.Files.FileTransferRequest.operator !=(Kun.Files.FileTransferRequest? left, Kun.Files.FileTransferRequest? right) -> bool
 static Kun.Files.FileTransferRequest.operator ==(Kun.Files.FileTransferRequest? left, Kun.Files.FileTransferRequest? right) -> bool
-static Kun.Files.PresignedTransfer.operator !=(Kun.Files.PresignedTransfer? left, Kun.Files.PresignedTransfer? right) -> bool
-static Kun.Files.PresignedTransfer.operator ==(Kun.Files.PresignedTransfer? left, Kun.Files.PresignedTransfer? right) -> bool
 static Kun.Files.PresignedUpload.operator !=(Kun.Files.PresignedUpload? left, Kun.Files.PresignedUpload? right) -> bool
 static Kun.Files.PresignedUpload.operator ==(Kun.Files.PresignedUpload? left, Kun.Files.PresignedUpload? right) -> bool
 static Kun.Files.PresignUploadRequest.operator !=(Kun.Files.PresignUploadRequest? left, Kun.Files.PresignUploadRequest? right) -> bool
 static Kun.Files.PresignUploadRequest.operator ==(Kun.Files.PresignUploadRequest? left, Kun.Files.PresignUploadRequest? right) -> bool
 static Kun.Files.UploadPolicy.operator !=(Kun.Files.UploadPolicy? left, Kun.Files.UploadPolicy? right) -> bool
 static Kun.Files.UploadPolicy.operator ==(Kun.Files.UploadPolicy? left, Kun.Files.UploadPolicy? right) -> bool
-static readonly Kun.Files.FilesDefinition.BackendsKey -> Kun.Runtime.ServiceKey
 static readonly Kun.Files.FilesDefinition.Key -> Kun.Runtime.ServiceKey
 static readonly Kun.Files.FilesDefinition.PoliciesKey -> Kun.Runtime.ServiceKey
 static readonly Kun.Files.FilesErrors.ChecksumMismatch -> Kun.Errors.ErrorCode!

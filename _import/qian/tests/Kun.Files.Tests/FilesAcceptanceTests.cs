@@ -1,15 +1,15 @@
-using System.Net;
 using System.Net.Http.Json;
-using System.Text;
+using System.Net;
 using System.Text.Json;
+using System.Text;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Authorization;
+using Kun.Errors;
+using Kun.Plugin.Sdk.AspNetCore;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Plugin.Sdk.AspNetCore;
-using Kun.Errors;
-using Kun.Testing.Containers;
 
 namespace Kun.Files.Tests;
 
@@ -20,6 +20,28 @@ public sealed partial class FilesAcceptanceTests(PostgresFixture postgres) : ICl
     private static readonly string[] Capabilities = [FilesCapabilities.CompleteUpload, FilesCapabilities.Delete, FilesCapabilities.DownloadUrl, FilesCapabilities.Get,
         FilesCapabilities.PresignUpload, FilesCapabilities.Quota];
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task 同一上传地址并发写入后可以完成上传()
+    {
+        await using var host = await FilesHost.StartAsync(postgres, ct: Ct);
+        var bytes = Text("shared file");
+        var request = FilesHost.Request(bytes);
+        using var presigned = await host.Presign(FilesHost.A, request);
+        presigned.EnsureSuccessStatusCode();
+        var ticket = (await presigned.Content.ReadFromJsonAsync(FilesContractJson.PresignedUploadTypeInfo, Ct))!;
+        var writes = await Task.WhenAll(Enumerable.Range(0, 4).Select(_ => host.Put(ticket, bytes)));
+        try
+        {
+            Assert.Single(writes, response => response.StatusCode == HttpStatusCode.Created);
+            Assert.Equal(3, writes.Count(response => response.StatusCode == HttpStatusCode.Conflict));
+        }
+        finally { foreach (var response in writes) response.Dispose(); }
+        using var complete = await host.Send(FilesHost.A, HttpMethod.Post, "/api/files/" + ticket.FileId + ":complete");
+        complete.EnsureSuccessStatusCode();
+        var file = (await complete.Content.ReadFromJsonAsync(FilesContractJson.FileDescriptorTypeInfo, Ct))!;
+        Assert.Equal((FileStatus.Available, request.Sha256, (long)bytes.Length), (file.Status, file.Sha256, file.Size));
+    }
 
     [Fact]
     public async Task 验收1_租户A对B的文件ID一律404_存储键以租户前缀开头_受限角色只见本租户行_PEP按租户角色判定()
@@ -147,7 +169,7 @@ public sealed partial class FilesAcceptanceTests(PostgresFixture postgres) : ICl
         using (var storage = JsonDocument.Parse("""{"kind":"local","root":"/srv/files","endpoint":"http://127.0.0.1/files/blobs/","forceDownload":false}"""))
         {
             var error = Assert.Throws<ErrorException>(() =>
-                new LocalFileBackendFactory(default).Create(new FileBackendContext(storage.RootElement, TimeProvider.System, host.Services)));
+                FileStorageMount.Create("local", storage.RootElement, TimeProvider.System, host.Services, default));
             Assert.Equal((PlatformErrors.InputInvalid, "#/storage/forceDownload"), (error.Error.Code, error.Error.Pointer));
         }
         Assert.DoesNotContain(new[] { typeof(FilesSettings), typeof(KunFilesOptions), typeof(AspNetCore.FilesEndpointOptions) }.SelectMany(type => type.GetProperties()),

@@ -23,8 +23,7 @@ public sealed class FilesComponentManifestTests
         Assert.Equal((code.RuntimeEntry, "module"), (runtime.GetProperty("entry").GetString(), runtime.GetProperty("form").GetString()));
         Assert.Same(typeof(FilesPlugin), Type.GetType(code.RuntimeEntry, throwOnError: true));
         Assert.Equal(["Data"], code.Inject);
-        // local 后端经 [Contributes] 声明为 Files.Backends 的具名贡献（R38），由生成器派生进 provides。
-        Assert.Equal(["Files", "Files.Backends:local"], code.Provides);
+        Assert.Equal(["Files"], code.Provides);
         Assert.Equal(code.Inject, Strings(json.GetProperty("inject")));
         Assert.Equal(code.Provides, Strings(json.GetProperty("provides")));
         Assert.Equal((FilesDbContext.Schema, "./schemas/config.schema.json"), (runtime.GetProperty("dbSchema").GetString(), runtime.GetProperty("configSchema").GetString()));

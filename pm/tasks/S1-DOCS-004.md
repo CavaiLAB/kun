@@ -11,9 +11,9 @@ owner: "claude"
 estimate: 0.5d
 depends: [S1-DOCS-001, S1-YUE-004]
 refs:
-  - ../../docs/prd/specs/docs-site.md
-  - ../../docs/prd/specs/frontend.md
-  - ../../website/README.md
+  - docs/prd/specs/docs-site.md
+  - docs/prd/specs/frontend.md
+  - website/README.md
 updated: 2026-10-13
 ---
 

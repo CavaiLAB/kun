@@ -12,7 +12,7 @@ estimate: 1d
 depends: [S1-TEN-020, S1-YUE-019]
 refs:
   - pm/tasks/S1-YUE-019.md
-  - ../../docs/prd/specs/tenant-signup.md
+  - docs/prd/specs/tenant-signup.md
 updated: 2026-11-11
 ---
 

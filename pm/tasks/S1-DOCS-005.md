@@ -11,10 +11,10 @@ owner: "claude"
 estimate: 3d
 depends: [S1-DOCS-001]
 refs:
-  - ../../docs/adr/ADR-021-product-family-structure.md#D21.4
-  - ../../docs/prd/specs/docs-site.md#2b
-  - ../../docs/adr/ADR-001-kun-relationship.md#D1.8
-  - ../../docs/prd/07-s1-foundation.md#7.1
+  - docs/adr/ADR-021-product-family-structure.md#D21.4
+  - docs/prd/specs/docs-site.md#2b
+  - docs/adr/ADR-001-kun-relationship.md#D1.8
+  - docs/prd/07-s1-foundation.md#7.1
 updated: 2026-10-08
 ---
 

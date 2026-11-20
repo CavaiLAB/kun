@@ -12,7 +12,7 @@ estimate: 1d
 depends: []
 refs:
   - pm/tasks/S1-KUN-019.md
-  - ../../docs/prd/specs/docs-site.md
+  - docs/prd/specs/docs-site.md
 updated: 2026-11-19
 ---
 

@@ -11,10 +11,10 @@ owner: "cody"
 estimate: 2d
 depends: [S1-DATA-001]
 refs:
-  - ../../docs/prd/07-s1-foundation.md#7.6
-  - ../../docs/platform-migration/README.md#4.2
-  - ../../docs/adr/ADR-011-metadata-dynamic-data.md
-  - ../../docs/prd/specs/data-contracts.md
+  - docs/prd/07-s1-foundation.md#7.6
+  - docs/platform-migration/README.md#4.2
+  - docs/adr/ADR-011-metadata-dynamic-data.md
+  - docs/prd/specs/data-contracts.md
 updated: 2026-10-14
 ---
 

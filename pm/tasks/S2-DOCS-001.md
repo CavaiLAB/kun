@@ -11,10 +11,10 @@ owner: ""
 estimate: 5d
 depends: [S1-DOCS-003, S1-MGW-001, S1-YUE-005]
 refs:
-  - ../../docs/adr/ADR-013-frontend-framework.md#D13.18
-  - ../../docs/adr/ADR-015-model-gateway.md
-  - ../../docs/adr/ADR-016-agent-boundary.md
-  - ../../docs/prd/10-s4-agent.md
+  - docs/adr/ADR-013-frontend-framework.md#D13.18
+  - docs/adr/ADR-015-model-gateway.md
+  - docs/adr/ADR-016-agent-boundary.md
+  - docs/prd/10-s4-agent.md
 updated: 2026-10-07
 ---
 

@@ -11,10 +11,10 @@ owner: "claude"
 estimate: 2d
 depends: [S1-DOCS-001]
 refs:
-  - ../../docs/prd/specs/docs-site.md#4
-  - ../../docs/adr/ADR-013-frontend-framework.md#D13.18
-  - ../../docs/adr/ADR-020-component-model-v2.md#D20.9
-  - ../../docs/prd/10-s4-agent.md#10.1
+  - docs/prd/specs/docs-site.md#4
+  - docs/adr/ADR-013-frontend-framework.md#D13.18
+  - docs/adr/ADR-020-component-model-v2.md#D20.9
+  - docs/prd/10-s4-agent.md#10.1
 updated: 2026-10-09
 ---
 

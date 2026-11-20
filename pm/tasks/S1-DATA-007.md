@@ -11,8 +11,8 @@ owner: "claude"
 estimate: 0.5d
 depends: [S1-DATA-005]
 refs:
-  - ../../docs/decisions/key-decisions-v0.md
-  - ../../src/Kun.Data/README.md
+  - docs/decisions/key-decisions-v0.md
+  - src/Kun.Data/README.md
 updated: 2026-10-16
 ---
 

@@ -11,8 +11,8 @@ owner: ""
 estimate: 3d
 depends: [S1-FILE-001, S1-CFG-002, S1-RT-002]
 refs:
-  - ../../docs/prd/07-s1-foundation.md#7.7
-  - ../../docs/adr/ADR-020-component-model-v2.md#2
+  - docs/prd/07-s1-foundation.md#7.7
+  - docs/adr/ADR-020-component-model-v2.md#2
 updated: 2026-11-11
 ---
 

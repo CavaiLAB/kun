@@ -11,7 +11,7 @@ owner: "cody"
 estimate: 1d
 depends: [S1-DATA-008]
 refs:
-  - ../../src/Kun.Data.Native.Postgres/README.md
+  - src/Kun.Data.Native.Postgres/README.md
   - pm/tasks/S1-DATA-008.md
 updated: 2026-10-24
 ---

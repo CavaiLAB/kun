@@ -11,8 +11,8 @@ owner: "claude"
 estimate: 3d
 depends: [S1-FILE-001, S1-RT-011, S1-TEN-004]
 refs:
-  - ../../docs/prd/07-s1-foundation.md#7.7
-  - ../../docs/prd/specs/component-model.md#6.2
+  - docs/prd/07-s1-foundation.md#7.7
+  - docs/prd/specs/component-model.md#6.2
 updated: 2026-10-23
 ---
 

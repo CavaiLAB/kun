@@ -13,7 +13,7 @@ depends: [S1-DOCS-001, S1-YUE-004]
 refs:
   - docs/prd/specs/docs-site.md
   - docs/prd/specs/yue.md
-  - website/README.md
+  - ../../website/README.md
 updated: 2026-10-13
 ---
 

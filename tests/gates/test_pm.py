@@ -85,15 +85,15 @@ class RepoPrefixTests(unittest.TestCase):
     def test_plain_clone(self) -> None:
         """普通克隆：.git 是目录，前缀是 pm.py 的上一级相对仓库根的目录。"""
         (self.tmp / ".git").mkdir()
-        root = self.tmp / "_import" / "qian"
+        root = self.tmp / "fixtures" / "workspace"
         root.mkdir(parents=True)
-        self.assertEqual(pm.repo_prefix(root), "_import/qian")
+        self.assertEqual(pm.repo_prefix(root), "fixtures/workspace")
 
     def test_git_sync_worktree_stops_at_checkout(self) -> None:
         """看板 Pod 的检出：停在 worktree 里的 .git 文件这一层，不算到上面的 /git/.git 去。"""
-        root = git_sync_checkout(self.tmp / "git") / "_import" / "qian"
+        root = git_sync_checkout(self.tmp / "git") / "fixtures" / "workspace"
         root.mkdir(parents=True)
-        self.assertEqual(pm.repo_prefix(root), "_import/qian")
+        self.assertEqual(pm.repo_prefix(root), "fixtures/workspace")
 
     def test_repository_root(self) -> None:
         """pm/ 与 scripts/pm.py 提到仓库根之后前缀为空。"""
@@ -104,14 +104,14 @@ class RepoPrefixTests(unittest.TestCase):
         """不在 git 检出里时把 pm.py 的上一级当作仓库根。"""
         if any((directory / ".git").exists() for directory in self.tmp.parents):
             self.skipTest("临时目录在某个 git 检出里，搭不出「不在检出里」的情形")
-        root = self.tmp / "_import" / "qian"
+        root = self.tmp / "fixtures" / "workspace"
         root.mkdir(parents=True)
         self.assertEqual(pm.repo_prefix(root), "")
 
     def test_blob_url(self) -> None:
         """地址是 main 上的文件：拼上前缀，去掉 # 之后的小节，./ 这类写法规整掉。"""
-        self.assertEqual(pm.blob_url("_import/qian", "docs/a.md#3.1"), BLOB + "_import/qian/docs/a.md")
-        self.assertEqual(pm.blob_url("_import/qian", "./docs/a.md"), BLOB + "_import/qian/docs/a.md")
+        self.assertEqual(pm.blob_url("fixtures/workspace", "docs/a.md#3.1"), BLOB + "fixtures/workspace/docs/a.md")
+        self.assertEqual(pm.blob_url("fixtures/workspace", "./docs/a.md"), BLOB + "fixtures/workspace/docs/a.md")
         self.assertEqual(pm.blob_url("", "pm/tasks/S1-KUN-001.md"), BLOB + "pm/tasks/S1-KUN-001.md")
 
 
@@ -151,12 +151,12 @@ class BoardLinkTests(unittest.TestCase):
 
     def test_git_sync_checkout_links_carry_prefix(self) -> None:
         """从旧版子目录生成的看板链接继续保留该目录前缀。"""
-        rows, page = self.build(git_sync_checkout(self.tmp / "git") / "_import" / "qian")
+        rows, page = self.build(git_sync_checkout(self.tmp / "git") / "fixtures" / "workspace")
         row = rows[0]
         self.assertEqual(row["file"], "pm/tasks/S1-KUN-001.md")
-        self.assertEqual(row["fileUrl"], BLOB + "_import/qian/pm/tasks/S1-KUN-001.md")
-        self.assertEqual(row["refs"], [{"path": "docs/a.md#3.1", "url": BLOB + "_import/qian/docs/a.md"}])
-        self.assertIn(f'"fileUrl":"{BLOB}_import/qian/pm/tasks/S1-KUN-001.md"', page)
+        self.assertEqual(row["fileUrl"], BLOB + "fixtures/workspace/pm/tasks/S1-KUN-001.md")
+        self.assertEqual(row["refs"], [{"path": "docs/a.md#3.1", "url": BLOB + "fixtures/workspace/docs/a.md"}])
+        self.assertIn(f'"fileUrl":"{BLOB}fixtures/workspace/pm/tasks/S1-KUN-001.md"', page)
 
     def test_repository_root_links_have_no_prefix(self) -> None:
         """pm/ 与 scripts/pm.py 在仓库根时地址不带前缀。"""

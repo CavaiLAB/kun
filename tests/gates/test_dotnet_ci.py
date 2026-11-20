@@ -859,13 +859,13 @@ class RegistrationTests(unittest.TestCase):
                     dotnet test
                     --project tests/Kun.B.Tests
                     --configuration Release
-            qian-directory:
+            nested-directory:
               needs: changes
               if: ${{ !cancelled() && needs.changes.outputs.dotnet == 'true' }}
               runs-on: ubuntu-24.04
               defaults:
                 run:
-                  working-directory: _import/qian
+                  working-directory: fixtures/workspace
               steps:
                 - run: dotnet test --project "../../tests/Kun.C.Tests/Kun.C.Tests.csproj"
                 - run: |
@@ -881,7 +881,7 @@ class RegistrationTests(unittest.TestCase):
             """)
         rows, problems, counts = self.check()
         rows = dict(rows)
-        for name, job in (("A", "root-file"), ("B", "root-file"), ("C", "qian-directory"), ("D", "qian-directory")):
+        for name, job in (("A", "root-file"), ("B", "root-file"), ("C", "nested-directory"), ("D", "nested-directory")):
             self.assertEqual(f"作业 {job} 的 dotnet test --project", rows[f"tests/Kun.{name}.Tests/Kun.{name}.Tests.csproj"])
         self.assertEqual(5, counts["专属作业"])
         # 别的区域的作业不算：只改 .NET 代码的 PR 不跑它
@@ -942,7 +942,7 @@ class RegistrationTests(unittest.TestCase):
         self.assertIn("NOT_IN_CI 里的 tests/Kun.Smoke/Kun.Smoke.csproj 不是测试项目", problems[1])
 
     def test_projects_under_import_fail_even_if_they_are_gate_fixtures(self) -> None:
-        project = "_import/qian/tests/gates/Example/Example.csproj"
+        project = "_import/example/tests/gates/Example/Example.csproj"
         self.box.write_repo(project, XUNIT_PROJECT)
         self.assertIn(f"过渡目录内仍有 .NET 项目：{project}", self.problems())
         (self.box.root / project).unlink()

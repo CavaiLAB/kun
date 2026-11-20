@@ -28,7 +28,7 @@ class BuildMergeTests(unittest.TestCase):
             # 注释里提到它不算读取；换成同样多的换行，行号不变。
             text = COMMENT.sub(lambda match: "\n" * match.group(0).count("\n"), text)
             offenders += [f"{name}:{number}" for number, line in enumerate(text.splitlines(), 1) if KUN_VERSION.search(line)]
-        self.assertEqual([], offenders, "KunVersion 已删除：_import/qian/ 下的项目已改为项目引用 Kun 源码，文档站改读仓库根 CHANGELOG.md（S1-KUN-020）")
+        self.assertEqual([], offenders, "请使用 Kun 源码项目引用；文档站从仓库根 CHANGELOG.md 读取发布版本（S1-KUN-020）")
 
     def test_no_dotnet_build_inputs_under_import(self):
         remaining = tracked("_import/**/*.csproj", "_import/**/*.props", "_import/**/*.targets", "_import/**/*.slnf")

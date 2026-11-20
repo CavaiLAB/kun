@@ -28,7 +28,6 @@ import aot_projects  # noqa: E402
 import check_deps  # noqa: E402
 
 AOT_SAMPLES = ROOT / "tests" / "gates" / "aot"
-TRANSITIONAL = ROOT / "_import" / "qian"
 ANALYZERS = ROOT / "tools" / "Kun.Build.Analyzers" / "Kun.Build.Analyzers.csproj"
 NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI") == "true", "本机没有 dotnet")
 PROPERTIES = ("IsPackable", "KunTier", "KunHost", "KunPlatformAnalyzers", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
@@ -218,7 +217,7 @@ class AotGuardTests(unittest.TestCase):
                 self.assertEqual(0, returncode, output)
                 self.assertNotIn("error KUNAOT", output)
 
-    def test_projects_in_both_trees_import_the_root_guards(self):
+    def test_core_projects_import_root_guards(self):
         for project in ("src/Kun.Core/Kun.Core.csproj", "src/Kun.Errors/Kun.Errors.csproj"):
             with self.subTest(project=project):
                 returncode, output = msbuild_targets(ROOT / project, "KunAotGuard;KunRequirePublicApiFiles")
@@ -298,7 +297,7 @@ class PublicApiTests(unittest.TestCase):
 
 @NEEDS_DOTNET
 class AnalyzerScopeTests(unittest.TestCase):
-    """禁用符号与平台分析器只接平台档的包、宿主与 _import/qian/ 下的全部项目。"""
+    """平台分析器按包的档位、宿主声明或样例的显式设置生效。"""
 
     def test_scope_follows_tier_host_and_explicit_sample_setting(self):
         banned = (ROOT / "BannedSymbols.txt").resolve()
@@ -331,8 +330,8 @@ class AnalyzerScopeTests(unittest.TestCase):
         self.assertFalse(is_true(props, "IsPackable"))
 
     def test_banned_symbols_list_lives_at_the_root(self):
-        self.assertTrue((ROOT / "BannedSymbols.txt").is_file())
-        self.assertFalse((TRANSITIONAL / "BannedSymbols.txt").exists())
+        tracked = subprocess.check_output(["git", "ls-files", "--", "BannedSymbols.txt", ":(glob)**/BannedSymbols.txt"], cwd=ROOT, text=True)
+        self.assertEqual(["BannedSymbols.txt"], tracked.splitlines())
 
 
 if __name__ == "__main__":

@@ -25,17 +25,26 @@ public sealed class ConfigurationPlugin : IKunPlugin
         // 标准入口保持直接登记，清单派生不会执行插件或辅助方法。
         var root = ctx.Services.GetRequiredService<IConfiguration>();
         ctx.Effect(ConfigErrors.Register(ctx.Services.GetRequiredService<ErrorCatalog>()));
-        var flags = CreateFlags(ctx.Services, root);
+        var notifier = GetReloadObserver(ctx.Services, out var subscription);
+        if (subscription is not null) ctx.Effect(subscription);
+        var flags = CreateFlags(ctx.Services, root, notifier);
         ctx.Effect(flags);
         ctx.Provide<IConfigService>(ConfigDefinition.Key, new ConfigurationService(root, flags, ctx.Services.GetService<ISecretResolverFactory>()));
         // 宿主用 AddKunOptions 登记过强类型配置时，挂载期间把重载失败作为进程内事件发出。
-        if (ctx.Services.GetService<ConfigReloadNotifier>() is { } notifier)
-            ctx.Effect(notifier.Subscribe(async notice => await ctx.DispatchAsync(ConfigRuntimeEvents.ReloadFailed, notice.Payload, CancellationToken.None).ConfigureAwait(false)));
+        ctx.Effect(notifier.Subscribe(async notice => await ctx.DispatchAsync(ConfigRuntimeEvents.ReloadFailed, notice.Payload, CancellationToken.None).ConfigureAwait(false)));
         return ValueTask.CompletedTask;
     }
-    private static FeatureFlagsService CreateFlags(IServiceProvider services, IConfiguration root)
+    private static ConfigReloadNotifier GetReloadObserver(IServiceProvider services, out IDisposable? subscription)
     {
-        var flags = new FeatureFlagsService(root, services.GetService<ConfigReloadNotifier>() ?? new ConfigReloadNotifier(),
+        subscription = null;
+        if (services.GetService<ConfigReloadNotifier>() is { } registered) return registered;
+        var notifier = new ConfigReloadNotifier(services.GetService<ILoggerFactory>());
+        subscription = services.GetService<IObservable<OptionsReloadFailure>>()?.Subscribe(notifier);
+        return notifier;
+    }
+    private static FeatureFlagsService CreateFlags(IServiceProvider services, IConfiguration root, ConfigReloadNotifier notifier)
+    {
+        var flags = new FeatureFlagsService(root, notifier,
             services.GetService<ILoggerFactory>()?.CreateLogger("Kun.Configuration.Platform.Flags") ?? NullLogger.Instance);
         return flags;
     }
@@ -45,11 +54,12 @@ public sealed class ConfigurationPlugin : IKunPlugin
     {
         var root = ctx.Services.GetRequiredService<IConfiguration>();
         ctx.Effect(ConfigErrors.Register(ctx.Services.GetRequiredService<ErrorCatalog>()));
-        var flags = CreateFlags(ctx.Services, root);
+        var notifier = GetReloadObserver(ctx.Services, out var subscription);
+        if (subscription is not null) ctx.Effect(subscription);
+        var flags = CreateFlags(ctx.Services, root, notifier);
         ctx.Effect(flags);
         ctx.Provide<IConfigService>(ConfigDefinition.Key, new ConfigurationService(root, flags, ctx.Services.GetService<ISecretResolverFactory>()));
-        if (ctx.Services.GetService<ConfigReloadNotifier>() is { } notifier)
-            ctx.Effect(notifier.Subscribe(async notice => await ctx.DispatchAsync(ConfigRuntimeEvents.ReloadFailed, notice.Payload, CancellationToken.None).ConfigureAwait(false)));
+        ctx.Effect(notifier.Subscribe(async notice => await ctx.DispatchAsync(ConfigRuntimeEvents.ReloadFailed, notice.Payload, CancellationToken.None).ConfigureAwait(false)));
     }
 }
 

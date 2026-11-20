@@ -8,6 +8,12 @@
 
 ## [Unreleased]
 
+### Changed — 强类型配置与重载通知（S1-KUN-028）
+
+- `Kun.Configuration.Extensions` 提供四个 `AddKunOptions<T>` 重载，AOT 宿主使用绑定委托，三个反射重载保留动态代码与裁剪标注。反射重载现在在锁外报告被拒的候选值，释放配置根引发的 `ObjectDisposedException` 继续向调用方传播。
+- Schema 统一为 `Kun.Configuration.OptionsSchema`，按节名、选项类型和可选组件 id 枚举。`IKunConfigurationValidator<T>` 迁至 `Kun.Configuration` 命名空间。
+- 宿主可注册 `IObserver<OptionsReloadFailure>` 或订阅 `IObservable<OptionsReloadFailure>` 获取仅含元数据的失败通知。使用平台配置时，一次拒绝分别计入内核的 `kun.configuration.reload.rejected` 和平台的 `qian.config.reload.failed`。失败日志使用 `Kun.Configuration.Options` 类别和事件号 2101。
+
 ### Changed — 配置、文件与测试支持（S1-KUN-028）
 
 - 配置契约、平台提供者、ASP.NET Core 端点与挂载式密钥包现在分别使用 `Kun.Configuration.Abstractions`、`Kun.Configuration.Platform`、`Kun.Configuration.AspNetCore` 和 `Kun.Configuration.Secrets`。平台配置、选项、特性开关与端点扩展统一使用 `Kun` 前缀。

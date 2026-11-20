@@ -7,6 +7,7 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Kun.Configuration.Extensions;
 using Kun.Runtime;
 using Kun.Testing.Containers;
 
@@ -122,10 +123,10 @@ public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFix
     {
         var root = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Sample:PageSize"] = "42" }).Build();
         var services = new ServiceCollection().AddKunConfiguration(root);
-        services.AddKunOptions<SampleOptions>("Sample", Bind, schema: SampleJson.Default.SampleOptions);
+        services.AddKunOptions<SampleOptions>("Sample", Bind, schema: SampleJson.Default.SampleOptions, plugin: "qian.sample");
         using var provider = services.BuildServiceProvider();
-        var schema = Assert.Single(provider.GetServices<KunOptionsSchema>());
-        Assert.Equal(("Sample", typeof(SampleOptions).FullName), (schema.Section, schema.OptionsType));
+        var schema = Assert.Single(provider.GetServices<OptionsSchema>());
+        Assert.Equal(("Sample", typeof(SampleOptions).FullName, "qian.sample"), (schema.Section, schema.OptionsType, schema.Plugin));
         var exported = schema.Export();
         Assert.Equal("https://json-schema.org/draft/2020-12/schema", exported["$schema"]!.GetValue<string>());
         Assert.Equal("integer", exported["properties"]!["pageSize"]!["type"]!.GetValue<string>());

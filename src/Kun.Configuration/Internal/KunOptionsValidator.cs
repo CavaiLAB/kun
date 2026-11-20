@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using Kun.Configuration.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Kun.Configuration.Internal;

@@ -34,12 +34,6 @@ static Kun.Configuration.Platform.KunConfigurationExtensions.AddKunConfiguration
 Kun.Configuration.Platform.ApolloConfigurationPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 Kun.Configuration.Platform.KunConfigurationOptions.ApolloConfigurationSchema.init -> void
 Kun.Configuration.Platform.KunConfigurationOptions.ApolloConfigurationSchema.get -> System.Text.Json.JsonElement?
-Kun.Configuration.Platform.KunOptionsExtensions
-Kun.Configuration.Platform.KunOptionsSchema
-Kun.Configuration.Platform.KunOptionsSchema.Export() -> System.Text.Json.Nodes.JsonObject!
-Kun.Configuration.Platform.KunOptionsSchema.OptionsType.get -> string!
-Kun.Configuration.Platform.KunOptionsSchema.Section.get -> string!
-static Kun.Configuration.Platform.KunOptionsExtensions.AddKunOptions<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, string! section, System.Action<Microsoft.Extensions.Configuration.IConfiguration!, T!>! bind, bool critical = true, System.Text.Json.Serialization.Metadata.JsonTypeInfo<T!>? schema = null, string? plugin = null) -> Microsoft.Extensions.Options.OptionsBuilder<T!>!
 Kun.Configuration.Platform.ApolloFlagManagementBinding
 Kun.Configuration.Platform.ApolloFlagManagementBinding.ApolloFlagManagementBinding(System.Uri! portal, string! appId, string! environment, string! cluster, string! operatorName, string! tokenReference, string! receiptBinding) -> void
 Kun.Configuration.Platform.ApolloFlagManagementBinding.AppId.get -> string!

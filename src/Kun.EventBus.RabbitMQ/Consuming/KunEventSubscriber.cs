@@ -4,6 +4,7 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.EventBus.Idempotency;
+using Kun.EventBus.RabbitMQ.Consuming;
 using Kun.MultiTenancy.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,7 +23,8 @@ namespace Kun.EventBus.RabbitMQ;
 /// 宿主停机打断的消息放回队列，不计一次尝试。
 /// </summary>
 internal sealed partial class KunEventSubscriber(IServiceProvider services, EventSubscriptionRegistry registrations,
-    IOptions<KunEventsSubscriberOptions> settings, ILogger<KunEventSubscriber> logger) : BackgroundService
+    IOptions<KunEventsSubscriberOptions> settings, ILogger<KunEventSubscriber> logger, TimeProvider clock,
+    OpenConsumerConnection openConnection) : BackgroundService
 {
     internal const string AttemptsHeader = "x-qian-attempts";
     private const string ReasonHeader = "x-qian-reason";
@@ -44,7 +46,6 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
     private ITenantContext? _tenant;
     private ITenantContextPropagator? _propagator;
     private Func<string>? _amqp;
-    private int _inFlight;
 
     /// <summary>第一次声明完拓扑并开始消费后完成；测试据此在发布前等待订阅就绪。</summary>
     internal Task Ready => _ready.Task;
@@ -146,7 +147,7 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
             RequestedConnectionTimeout = TimeSpan.FromSeconds(5),
         };
         var session = new Session();
-        await using var connection = await factory.CreateConnectionAsync(stoppingToken).ConfigureAwait(false);
+        await using var connection = await openConnection(factory, stoppingToken).ConfigureAwait(false);
         connection.ConnectionShutdownAsync += (_, args) => session.Break("连接关闭：" + args.ReplyText);
         await using var publisher = new SettlePublisher(connection);
         await using (var setup = await connection.CreateChannelAsync(cancellationToken: stoppingToken).ConfigureAwait(false))
@@ -160,20 +161,21 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
                     : await RabbitTopology.DeclareBroadcastAsync(setup, registrations.Service, queue.RetryName, queue.Bindings, stoppingToken).ConfigureAwait(false);
             }
         }
-        var consumers = new List<(IChannel Channel, string Tag)>();
+        var consumers = new List<(ConsumeSession Lease, string Tag)>();
         try
         {
             foreach (var queue in _queues)
             {
                 var channel = await connection.CreateChannelAsync(cancellationToken: stoppingToken).ConfigureAwait(false);
-                consumers.Add((channel, ""));
+                var lease = new ConsumeSession(channel);
+                consumers.Add((lease, ""));
                 channel.ChannelShutdownAsync += (_, args) => session.Break("通道关闭：" + args.ReplyText);
                 await channel.BasicQosAsync(0, _options.PrefetchCount, global: false, stoppingToken).ConfigureAwait(false);
                 var consumer = new AsyncEventingBasicConsumer(channel);
-                consumer.ReceivedAsync += (_, delivery) => DeliverAsync(queue, channel, publisher, session, delivery, stoppingToken);
+                consumer.ReceivedAsync += (_, delivery) => DeliverAsync(queue, lease, publisher, session, delivery, stoppingToken);
                 consumer.UnregisteredAsync += (_, _) => session.Break("队列 " + queue.Name + " 的消费者被 broker 取消");
                 var tag = await channel.BasicConsumeAsync(queue.Name, autoAck: false, consumer, stoppingToken).ConfigureAwait(false);
-                consumers[^1] = (channel, tag);
+                consumers[^1] = (lease, tag);
                 Log.Subscribed(logger, queue.Name, queue.Subscriptions, queue.BindingList);
             }
             _ready.TrySetResult();
@@ -183,39 +185,43 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
         {
             // 先停止接收，再等手上的消息处理完（停机时 handler 已收到取消），最后关闭通道；未确认的预取消息由 broker 放回队列。
             session.Close();
-            foreach (var (channel, tag) in consumers)
+            foreach (var (lease, tag) in consumers)
             {
+                var channel = lease.Channel;
                 try { if (tag.Length > 0 && channel.IsOpen) await channel.BasicCancelAsync(tag, noWait: true, CancellationToken.None).ConfigureAwait(false); }
                 catch (Exception error) when (error is not OutOfMemoryException) { Log.CloseFailed(logger, error); }
             }
-            var drain = TimeProvider.System.GetTimestamp();
-            while (Volatile.Read(ref _inFlight) > 0 && TimeProvider.System.GetElapsedTime(drain) < DrainTimeout)
+            var drain = clock.GetTimestamp();
+            while (session.InFlight > 0 && clock.GetElapsedTime(drain) < DrainTimeout)
                 await Task.Delay(20, CancellationToken.None).ConfigureAwait(false);
-            foreach (var (channel, _) in consumers)
+            foreach (var (lease, _) in consumers)
             {
-                try { await channel.DisposeAsync().ConfigureAwait(false); }
+                try { await lease.CloseAsync().ConfigureAwait(false); }
+                catch (global::RabbitMQ.Client.Exceptions.AlreadyClosedException) { Log.AlreadyClosed(logger); }
+                catch (Exception error) when (error is not OutOfMemoryException) { Log.CloseFailed(logger, error); }
+                try { await lease.Channel.DisposeAsync().ConfigureAwait(false); }
                 catch (Exception error) when (error is not OutOfMemoryException) { Log.CloseFailed(logger, error); }
             }
         }
     }
 
-    private async Task DeliverAsync(ConsumerQueue queue, IChannel channel, SettlePublisher publisher, Session session, BasicDeliverEventArgs delivery, CancellationToken stoppingToken)
+    private async Task DeliverAsync(ConsumerQueue queue, ConsumeSession channel, SettlePublisher publisher, Session session, BasicDeliverEventArgs delivery, CancellationToken stoppingToken)
     {
-        Interlocked.Increment(ref _inFlight);
+        session.Enter();
         try
         {
-            if (session.Closing || stoppingToken.IsCancellationRequested) await RequeueAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
+            if (session.Closing || stoppingToken.IsCancellationRequested) await SettleAsync(channel, delivery.DeliveryTag, false, true).ConfigureAwait(false);
             else await ProcessAsync(queue, channel, publisher, delivery, stoppingToken).ConfigureAwait(false);
         }
         catch (Exception error) when (error is not OutOfMemoryException)
         {
             Log.DeliveryFailed(logger, error, queue.Name);
-            await RequeueAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
+            await SettleAsync(channel, delivery.DeliveryTag, false, true).ConfigureAwait(false);
         }
-        finally { Interlocked.Decrement(ref _inFlight); }
+        finally { session.Exit(); }
     }
 
-    private async Task ProcessAsync(ConsumerQueue queue, IChannel channel, SettlePublisher publisher, BasicDeliverEventArgs delivery, CancellationToken stoppingToken)
+    private async Task ProcessAsync(ConsumerQueue queue, ConsumeSession channel, SettlePublisher publisher, BasicDeliverEventArgs delivery, CancellationToken stoppingToken)
     {
         var attempt = ReadAttempts(delivery) + 1;
         var settle = new Settlement(this, queue, channel, publisher, delivery, attempt, stoppingToken);
@@ -252,7 +258,7 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
         {
             // 停机打断的处理不算一次失败：放回队列，由其他副本或重启后的本副本接手。
             Log.Requeued(logger, envelope.EventId, envelope.Type, target.Consumer);
-            await RequeueAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
+            await SettleAsync(channel, delivery.DeliveryTag, false, true).ConfigureAwait(false);
             return;
         }
         catch (Exception error) when (error is not OutOfMemoryException && IsDeterministic(error))
@@ -266,7 +272,7 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
             else await settle.DeadLetterAsync(envelope, target, "exhausted", error).ConfigureAwait(false);
             return;
         }
-        await AckAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
+        if (!await SettleAsync(channel, delivery.DeliveryTag, true, false).ConfigureAwait(false)) return;
         (duplicate ? EventsMetrics.ConsumerDuplicate : EventsMetrics.ConsumerProcessed).Add(1, Tags(target));
         if (duplicate) Log.Duplicate(logger, envelope.EventId, envelope.Type, target.Consumer);
     }
@@ -392,23 +398,14 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
         _ => false,
     };
 
-    private async Task AckAsync(IChannel channel, ulong deliveryTag)
+    private async Task<bool> SettleAsync(ConsumeSession channel, ulong deliveryTag, bool ack, bool requeue)
     {
-        try { await channel.BasicAckAsync(deliveryTag, multiple: false, CancellationToken.None).ConfigureAwait(false); }
-        catch (Exception error) when (error is not OutOfMemoryException) { Log.SettleFailed(logger, error); }
-    }
-
-    private async Task RequeueAsync(IChannel channel, ulong deliveryTag)
-    {
-        try { if (channel.IsOpen) await channel.BasicNackAsync(deliveryTag, multiple: false, requeue: true, CancellationToken.None).ConfigureAwait(false); }
-        catch (Exception error) when (error is not OutOfMemoryException) { Log.SettleFailed(logger, error); }
-    }
-
-    // nack 不放回：竞争队列由 broker 按队列的死信参数（qian.dlx、本订阅的死信队列名、at-least-once）转入死信队列，广播队列没有死信参数，消息丢弃。
-    private async Task DiscardAsync(IChannel channel, ulong deliveryTag)
-    {
-        try { if (channel.IsOpen) await channel.BasicNackAsync(deliveryTag, multiple: false, requeue: false, CancellationToken.None).ConfigureAwait(false); }
-        catch (Exception error) when (error is not OutOfMemoryException) { Log.SettleFailed(logger, error); }
+        try { return await channel.TrySettleAsync(deliveryTag, ack, requeue).ConfigureAwait(false); }
+        catch (Exception error) when (error is not OutOfMemoryException)
+        {
+            Log.SettleFailed(logger, error);
+            return false;
+        }
     }
 
     private static TagList Tags(Target? target, string? type = null, string? reason = null, string? consumer = null)
@@ -430,7 +427,7 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
     /// 转发失败时原地退避重发，不放回原消息：quorum 队列的 nack 放回不计入 x-delivery-limit，放回会让 handler 无上限地反复执行。
     /// 连续 <see cref="ForwardAttempts"/> 次失败后计 forward_failed 并 nack 不放回，交 broker 按队列的死信参数处理；停机时仍放回原消息，不计失败。
     /// </summary>
-    private sealed class Settlement(KunEventSubscriber owner, ConsumerQueue queue, IChannel channel, SettlePublisher publisher, BasicDeliverEventArgs delivery, int attempt,
+    private sealed class Settlement(KunEventSubscriber owner, ConsumerQueue queue, ConsumeSession channel, SettlePublisher publisher, BasicDeliverEventArgs delivery, int attempt,
         CancellationToken stoppingToken)
     {
         private string Service => owner.Service;
@@ -441,7 +438,7 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
             var deadLetter = target?.DeadLetterQueue ?? queue.DeadLetter;
             var consumer = target?.Consumer ?? (queue.Mode == EventSubscriptionMode.Competing ? Service + "." + queue.RetryName : Service + "@" + queue.RetryName);
             var type = envelope?.Type ?? delivery.BasicProperties.Type;
-            if (deadLetter is null) await owner.AckAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
+            if (deadLetter is null) await owner.SettleAsync(channel, delivery.DeliveryTag, true, false).ConfigureAwait(false);
             else if (!await ForwardAsync(KunEventTopology.DeadLetterExchange, deadLetter, null, DeadLetterHeaders(envelope, target, consumer, reason, error),
                 target, envelope?.EventId, type, consumer, reason).ConfigureAwait(false)) return;
             EventsMetrics.ConsumerRejected.Add(1, Tags(target, reason: reason, consumer: consumer));
@@ -506,6 +503,7 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
             var properties = new BasicProperties(delivery.BasicProperties) { Headers = headers, DeliveryMode = DeliveryModes.Persistent };
             for (var failures = 1; ; failures++)
             {
+                if (!channel.CanSettle) return false;
                 try
                 {
                     using var timeout = new CancellationTokenSource(SettleTimeout);
@@ -518,7 +516,7 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
                 }
                 if (stoppingToken.IsCancellationRequested)
                 {
-                    await owner.RequeueAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
+                    await owner.SettleAsync(channel, delivery.DeliveryTag, false, true).ConfigureAwait(false);
                     return false;
                 }
                 if (failures >= ForwardAttempts)
@@ -526,18 +524,17 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
                     // 与 rejected 一样，没有归属订阅时不带类型标签：类型取自未受信的消息属性，不能进指标维度。
                     EventsMetrics.ConsumerForwardFailed.Add(1, Tags(target, reason: reason, consumer: consumer));
                     Log.ForwardAbandoned(owner.Logger, eventId, type, consumer, attempt, routingKey, failures, reason);
-                    await owner.DiscardAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
+                    await owner.SettleAsync(channel, delivery.DeliveryTag, false, false).ConfigureAwait(false);
                     return false;
                 }
                 try { await Task.Delay(owner._options.RetryDelay(failures), stoppingToken).ConfigureAwait(false); }
                 catch (OperationCanceledException)
                 {
-                    await owner.RequeueAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
+                    await owner.SettleAsync(channel, delivery.DeliveryTag, false, true).ConfigureAwait(false);
                     return false;
                 }
             }
-            await owner.AckAsync(channel, delivery.DeliveryTag).ConfigureAwait(false);
-            return true;
+            return await owner.SettleAsync(channel, delivery.DeliveryTag, true, false).ConfigureAwait(false);
         }
     }
 
@@ -595,7 +592,11 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
         private readonly TaskCompletionSource<string> _broken = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private volatile bool _closing;
 
+        private int _inFlight;
         public bool Closing => _closing;
+        public int InFlight => Volatile.Read(ref _inFlight);
+        public void Enter() => Interlocked.Increment(ref _inFlight);
+        public void Exit() => Interlocked.Decrement(ref _inFlight);
 
         public void Close() => _closing = true;
 
@@ -614,6 +615,9 @@ internal sealed partial class KunEventSubscriber(IServiceProvider services, Even
 
     private static partial class Log
     {
+        [LoggerMessage(EventId = 39, Level = LogLevel.Debug, Message = "消费通道已由 broker 关闭。")]
+        public static partial void AlreadyClosed(ILogger logger);
+
         [LoggerMessage(EventId = 20, Level = LogLevel.Information, Message = "已订阅队列 {Queue}（订阅 {Subscriptions}，绑定 {Bindings}）。")]
         public static partial void Subscribed(ILogger logger, string queue, string subscriptions, string bindings);
 

@@ -49,25 +49,14 @@ Tags set on this span:
 If you want to add custom tags (e.g. command ID, tenant ID), do so from within the handler by
 calling `Activity.Current?.SetTag(...)`.
 
-### Kun.EventBus.Outbox
+### Kun.EventBus.EntityFrameworkCore
 
-**ActivitySource name:** `Kun.EventBus.Outbox`
+**ActivitySource name:** `Kun.EventBus.EntityFrameworkCore`
 
-`OutboxPublisherBackgroundService` starts one `ActivityKind.Producer` span named `outbox.publish`
-for each `OutboxMessage` it successfully publishes to the broker (see
-`src/Kun.EventBus/Background/OutboxPublisherBackgroundService.cs`).
-
-The critical detail is that the **parent context is restored from the stored row**, not from the
-current ambient activity. When `EfUnitOfWork.SaveChangesAsync` writes an `OutboxMessage` row, the
-`IntegrationEventOutboxAccumulator` captures `Activity.Current?.Id` and
-`Activity.Current?.TraceStateString` and stores them in the `TraceParent` and `TraceState`
-columns of the row. The background service reads those columns back hours or seconds later and
-calls `ActivityContext.TryParse(message.TraceParent, message.TraceState, ...)` to reconstruct the
-parent context before starting the publish span.
-
-This means the `outbox.publish` span appears as a **child of the original producer span** in the
-Dashboard, even though it runs in a different process tick, in a different background service
-invocation, potentially seconds after the HTTP response was already sent to the client.
+The EF relay creates one `ActivityKind.Producer` span named `outbox.publish` for each delivery
+attempt. The envelope writer stores the W3C parent identifier and trace state with the Outbox
+row during the command. The relay restores that parent before handing the stored envelope to
+the configured publisher. A retry creates another span with the same message ID.
 
 Tags set on `outbox.publish`:
 
@@ -104,32 +93,18 @@ incoming metadata — `ActivityKind.Server` causes the OTel SDK to look for an i
 
 ## How to Read a Happy-Path Trace
 
-The happy path is triggered by `POST /demo/orders` against the Order service. This is what
-you should see in the Aspire Dashboard Traces panel:
+Place an order using the Catalog and Order endpoints in the [getting started walkthrough](../getting-started.md).
+Find its `POST /demo/orders` request in the Aspire Dashboard.
 
-```
-[HTTP POST /demo/orders]  ← ASP.NET Core server span (root)
-  └─ [Mediator.Send PlaceOrderCommand]  ← TracingBehavior span
-       ├─ [gRPC call CatalogService/ReserveStock]  ← one per order line (HttpClient span)
-       └─ [outbox.publish order.completed.v1]  ← OutboxPublisherBackgroundService span
-            (parent context restored from OutboxMessage.TraceParent)
-```
-
-The timeline for the happy path looks like this in wall-clock order:
-
-1. `POST /demo/orders` arrives. ASP.NET Core opens a server span.
-2. `PlaceOrderCommand` is dispatched via `ISender.Send`. `TracingBehavior` opens a child span.
-3. The command handler calls the Catalog service's `ReserveStock` over gRPC for each order line.
-4. The handler adds the order and publishes `order.completed.v1`. The unit of work writes the order
-   row and the `OutboxMessage` row in one `SaveChangesAsync` call; the `TraceParent` of the
-   current span is captured into the outbox row.
-5. The HTTP response is sent. The server span closes.
-6. `OutboxPublisherBackgroundService` polls, finds the pending message, restores the trace
-   context from `TraceParent`, and opens an `outbox.publish` child span. The message is handed to
-   the configured `IIntegrationEventPublisher` and the row is marked `Published`.
-
-In the Dashboard, the `outbox.publish` span appears as a descendant of the request that produced
-it, giving you the full causal chain in one view.
+1. The mediator span contains the gRPC stock reservation for each order line.
+2. The handler stages an `order.completed.v1` envelope in the same transaction as the order.
+   The envelope carries the producer, actor, message ID and W3C trace parent.
+3. The EF relay claims the row and opens `outbox.publish` with its stored parent. The Order
+   sample logs the delivery. Its span tags include the event type and message ID.
+4. In a host configured with RabbitMQ, the publisher sends the envelope to `qian.events`
+   under the subject `order.completed`. A registered subscriber restores the envelope's parent
+   for its `consume order.completed` span and acknowledges after successful processing.
+   The publish and consume spans share the trace that the command stored in the envelope.
 
 ---
 
@@ -150,18 +125,17 @@ To measure lag in the Dashboard:
 4. The **start timestamp** of `outbox.publish` minus the end timestamp of the producer span is
    the outbox lag for that message.
 
-Under normal conditions with the default `OutboxPublisherOptions.PollInterval` of 2 seconds and
-`BatchSize` of 50, lag is typically 0–4 seconds. Under heavy load, lag grows as the batch fills.
-Reduce `PollInterval` or increase `BatchSize` to tune.
-
-The `OutboxPublisherOptions` defaults:
+The EF relay immediately polls again after a nonempty batch. The following defaults apply to
+`KunEventsOptions` in the publisher host.
 
 | Setting | Default | Effect |
 |---------|---------|--------|
-| `BatchSize` | 50 | Messages processed per poll cycle |
-| `PollInterval` | 2 seconds | Sleep between cycles when queue is non-empty |
-| `MaxAttempts` | 5 | Publish attempts before transitioning row to `Failed` |
-| `RetryBaseDelay` | 1 second | Exponential backoff base delay |
+| `BatchSize` | 100 | Maximum rows claimed per context per cycle |
+| `PollInterval` | 1 second | Delay after an empty cycle |
+| `PublishTimeout` | 10 seconds | Confirmation deadline per message |
+| `LeaseDuration` | 30 seconds | Other replicas can claim unfinished rows after expiry |
+| `MaxAttempts` | 5 | Maximum attempts after transient failures |
+| `RetryBaseDelay` | 1 second | Initial exponential backoff |
 
 A message in `OutboxStatus.Failed` will not be retried automatically. Monitor for `Failed` rows
 in the `outbox_messages` table and alert on them — they represent messages that could not be
@@ -173,7 +147,7 @@ delivered after all attempts.
 
 ### Background services that do not start an activity
 
-`OutboxPublisherBackgroundService` is a `BackgroundService` implementation.
+`KunOutboxRelay` is a `BackgroundService` implementation.
 Its `ExecuteAsync` loop does not have an ambient `Activity` unless one is explicitly started.
 This means:
 
@@ -183,7 +157,7 @@ This means:
 
 If you add custom background services to your application and want their spans connected to
 a broader trace, you must restore the parent context manually — the same pattern used by
-`OutboxPublisherBackgroundService` with `ActivityContext.TryParse`.
+`KunOutboxRelay` with `ActivityContext.TryParse`.
 
 ### async void timers and fire-and-forget
 
@@ -206,5 +180,6 @@ their own host choose their own observability registration.
 | Span name | Source | Meaning |
 |-----------|--------|---------|
 | `Mediator.Send {Type}` | `Kun.Mediator` | A command or query was dispatched |
-| `outbox.publish` | `Kun.EventBus.Outbox` | An outbox row was published to the broker |
+| `outbox.publish` | `Kun.EventBus.EntityFrameworkCore` | An outbox row was published to the broker |
+| `consume {subject}` | `Kun.EventBus.RabbitMQ` | The subscriber dispatched an envelope |
 | `grpc.server` | `Kun.Grpc` | A unary or streaming gRPC call was handled |

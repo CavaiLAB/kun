@@ -12,10 +12,6 @@ static Kun.EntityFrameworkCore.DependencyInjection.KunEntityFrameworkCoreService
 Kun.EntityFrameworkCore.EfUnitOfWork
 Kun.EntityFrameworkCore.EfUnitOfWork.EfUnitOfWork(Kun.EntityFrameworkCore.KunDbContext! dbContext, Kun.Core.Domain.IDomainEventDispatcher! domainEvents, Kun.EventBus.Outbox.IntegrationEventBuffer! integrationBuffer) -> void
 Kun.EntityFrameworkCore.EfUnitOfWork.SaveChangesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
-Kun.EntityFrameworkCore.IntegrationEventOutboxAccumulator
-Kun.EntityFrameworkCore.IntegrationEventOutboxAccumulator.IntegrationEventOutboxAccumulator(Kun.EventBus.Outbox.IntegrationEventBuffer! buffer, Kun.EventBus.IEventTypeRegistry! registry, Kun.Core.MultiTenancy.ITenantContext! tenantContext) -> void
-Kun.EntityFrameworkCore.IntegrationEventOutboxAccumulator.Publish<TEvent>(TEvent! event) -> void
-Kun.EntityFrameworkCore.IntegrationEventOutboxAccumulator.Enqueue<TEvent>(TEvent! event) -> void
 Kun.EntityFrameworkCore.IUnitOfWork
 Kun.EntityFrameworkCore.IUnitOfWork.SaveChangesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 Kun.EntityFrameworkCore.KunDbContext
@@ -86,13 +82,7 @@ override Kun.EntityFrameworkCore.Interceptors.AuditFieldsSaveChangesInterceptor.
 static Kun.EntityFrameworkCore.DependencyInjection.KunEntityFrameworkCoreServiceCollectionExtensions.AddKunDataConventions<TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Kun.EntityFrameworkCore.Conventions.KunDataConventions.ApplyKunDataConventions(this Microsoft.EntityFrameworkCore.ModelBuilder! modelBuilder) -> Microsoft.EntityFrameworkCore.ModelBuilder!
 Kun.EntityFrameworkCore.Interceptors.AuditFieldsSaveChangesInterceptor.AuditFieldsSaveChangesInterceptor(Kun.Core.Security.ICurrentUser! currentUser, System.TimeProvider! clock) -> void
-Kun.EntityFrameworkCore.EfOutboxMessageStore
 Kun.EntityFrameworkCore.InProcessDomainEventDispatcher.InProcessDomainEventDispatcher(Kun.Mediator.IPublisher! publisher, System.IServiceProvider! services) -> void
-Kun.EntityFrameworkCore.EfOutboxMessageStore.FetchPendingAsync(int batchSize, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Kun.EventBus.Outbox.OutboxMessage!>!>!
-Kun.EntityFrameworkCore.EfOutboxMessageStore.CompleteBatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Kun.EntityFrameworkCore.EfOutboxMessageStore.DisposeAsync() -> System.Threading.Tasks.ValueTask
-Kun.EntityFrameworkCore.EfOutboxMessageStore.UpdateAsync(Kun.EventBus.Outbox.OutboxMessage! message, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Kun.EntityFrameworkCore.EfOutboxMessageStore.EfOutboxMessageStore(Kun.EntityFrameworkCore.KunDbContext! context, System.TimeProvider! clock) -> void
 Kun.EntityFrameworkCore.DependencyInjection.KunMultiTenancyEntityFrameworkCoreServiceCollectionExtensions
 Kun.EntityFrameworkCore.MultiTenancy.IKunMultiTenantDbContext
 Kun.EntityFrameworkCore.MultiTenancy.IKunMultiTenantDbContext.TenantIdForModelCacheKey.get -> string?

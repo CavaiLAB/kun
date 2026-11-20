@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kun.Core\Kun.Core.csproj" />
+    <ProjectReference Include="..\..\src\Kun.MultiTenancy\Kun.MultiTenancy.csproj" />
     <ProjectReference Include="..\..\src\Kun.Observability\Kun.Observability.csproj" />
     <ProjectReference Include="..\..\src\Kun.Mediator\Kun.Mediator.csproj" />
     <ProjectReference Include="..\..\src\Kun.Validation\Kun.Validation.csproj" />

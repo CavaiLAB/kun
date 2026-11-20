@@ -23,7 +23,7 @@ PlaceOrderCommandHandler
 UnitOfWorkPipelineBehavior → EfUnitOfWork.SaveChangesAsync
   └─ order row + outbox_messages row committed in one transaction
 
-Background: OutboxPublisherBackgroundService drains outbox_messages
+Background: KunOutboxRelay drains outbox_messages
   └─ NoOpIntegrationEventPublisher logs the event (no RabbitMQ in this sample)
 ```
 

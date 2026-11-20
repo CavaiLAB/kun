@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Text.Json;
 using Kun.Audit;
 using Kun.Audit.Abstractions;
 using Kun.Audit.DependencyInjection;
@@ -14,6 +13,7 @@ using Kun.EntityFrameworkCore.Conventions;
 using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.Errors;
+using Kun.EventBus;
 using Kun.IntegrationTests.Fixtures;
 using Kun.MultiTenancy;
 using Kun.MultiTenancy.DependencyInjection;
@@ -107,9 +107,13 @@ public sealed class TransactionalAuditTests : IClassFixture<PostgresFixture>
         Assert.False(await verify.Set<AuditLog>().AnyAsync(x => x.ResourceId == rolledBackId.ToString(), TestContext.Current.CancellationToken));
         var message = await verify.OutboxMessages.SingleAsync(x => x.Id == log.Id, TestContext.Current.CancellationToken);
         Assert.Equal(AuditingServiceCollectionExtensions.AuditEventV2StableId, message.EventTypeId);
-        using var payload = JsonDocument.Parse(message.Payload);
-        Assert.Equal(tenant, payload.RootElement.GetProperty("tenantId").GetString());
-        Assert.Equal(User.Id.ToString(), payload.RootElement.GetProperty("userId").GetString());
+        var envelope = KunEventEnvelope.Parse(message.Payload);
+        Assert.Equal(log.Id, envelope.EventId);
+        Assert.Equal(log.Id, envelope.Payload.GetProperty("id").GetGuid());
+        Assert.Equal(log.ActorId, envelope.Actor.Id);
+        Assert.Equal(Guid.Parse(tenant), envelope.TenantId);
+        Assert.Equal(tenant, envelope.Payload.GetProperty("tenantId").GetString());
+        Assert.Equal(User.Id.ToString(), envelope.Payload.GetProperty("userId").GetString());
         Assert.False(await verify.OutboxMessages.AnyAsync(x => x.Payload.Contains(rolledBackId.ToString()), TestContext.Current.CancellationToken));
     }
 
@@ -141,7 +145,7 @@ public sealed class TransactionalAuditTests : IClassFixture<PostgresFixture>
         {
             var db = scope.ServiceProvider.GetRequiredService<TransactionalAuditDbContext>();
             await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
-            scope.ServiceProvider.GetRequiredService<AuditContext>().ActorType = new string('x', 33);
+            scope.ServiceProvider.GetRequiredService<AuditContext>().IpAddress = new string('x', 65);
             var order = TransactionalOrder.Create(tenant, "audit-rejected");
             db.Add(order);
             id = order.Id;
@@ -156,9 +160,29 @@ public sealed class TransactionalAuditTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task BackgroundSave_RequiresAnExplicitServiceOrigin_AndCanBeRetried()
+    {
+        var tenant = Guid.CreateVersion7().ToString("D");
+        await using var services = Build(tenant, authenticated: false);
+        await using var scope = services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionalAuditDbContext>();
+        var ct = TestContext.Current.CancellationToken;
+        await db.Database.EnsureCreatedAsync(ct);
+        var order = TransactionalOrder.Create(tenant, "background");
+        db.Add(order);
+        await Assert.ThrowsAsync<KunEventsException>(() => db.SaveChangesAsync(ct));
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.audit", EventActor.Service("audit-worker")));
+        await db.SaveChangesAsync(ct);
+        var log = await db.Set<AuditLog>().SingleAsync(x => x.ResourceId == order.Id.ToString(), ct);
+        var row = await db.OutboxMessages.SingleAsync(x => x.Id == log.Id, ct);
+        Assert.Equal("audit-worker", KunEventEnvelope.Parse(row.Payload).Actor.Id);
+    }
+
+    [Fact]
     public async Task Save_NullActorAndUpdates_PreservesCreationFields()
     {
         var tenant = Guid.NewGuid().ToString();
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.audit", EventActor.Service("background-task")));
         await using var services = Build(tenant, authenticated: false);
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<TransactionalAuditDbContext>();

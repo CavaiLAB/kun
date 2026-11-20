@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
@@ -8,17 +7,14 @@ using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EntityFrameworkCore.MultiTenancy;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
-using Kun.EventBus.Outbox;
 using Kun.EventBus.RabbitMQ;
-using Kun.EventBus.RabbitMQ.DependencyInjection;
-using Kun.EventBus.RabbitMQ.Options;
+using Kun.IntegrationTests.EventBus;
 using Kun.IntegrationTests.Fixtures;
 using Kun.MultiTenancy.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Npgsql;
 using RabbitMQ.Client;
 using Xunit;
@@ -125,31 +121,16 @@ public sealed class BackgroundTenantFlowTests : IAsyncLifetime
             services.AddSingleton(_received);
             services.AddDbContext<TenantProbeDbContext>(options => options.UseNpgsql(_postgres.AppConnectionString));
             services.AddKunTenantRls<TenantProbeDbContext>();
-            services.AddSingleton<IOptions<RabbitMqOptions>>(Options.Create(new RabbitMqOptions
-            {
-                ConnectionString = _rabbit.ConnectionString,
-                ConsumerName = Consumer
-            }));
             services.AddKunEventBus(bus =>
             {
-                bus.Register<TenantProbeEvent>(EventType);
+                bus.Register(EventType, TenantProbeJsonContext.Default.TenantProbeEvent);
                 bus.UseInMemoryIdempotency();
             });
-            services.AddRabbitMq(_ => { }, bus => bus.Subscribe<TenantProbeEvent, TenantProbeHandler>(
-                EventType, TenantProbeJsonContext.Default.TenantProbeEvent));
+            services.AddKunEventsBroker(_ => _rabbit.ConnectionString);
+            services.AddKunEventsSubscriber(Consumer, bus => bus.Subscribe<TenantProbeEvent, TenantProbeHandler>("probe"));
         }).Build();
-        // 启动前声明相同队列；后续等待 ConsumerCount，避免发布时队列尚未绑定。
-        var broker = await _host.Services.GetRequiredService<RabbitMqConnectionProvider>()
-            .GetConnectionAsync(TestContext.Current.CancellationToken);
-        await using var channel = await broker.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
-        await channel.QueueDeclareAsync($"{Consumer}.{EventType}", true, false, false,
-            new Dictionary<string, object?> { ["x-dead-letter-exchange"] = "kun.events.dlx" },
-            cancellationToken: TestContext.Current.CancellationToken);
         await _host.StartAsync(TestContext.Current.CancellationToken);
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(20));
-        while ((await channel.QueueDeclarePassiveAsync($"{Consumer}.{EventType}", timeout.Token)).ConsumerCount == 0)
-            await Task.Delay(50, timeout.Token);
+        await _host.Services.GetServices<IHostedService>().OfType<KunEventSubscriber>().Single().Ready.WaitAsync(TimeSpan.FromSeconds(20), TestContext.Current.CancellationToken);
     }
 
     public async ValueTask DisposeAsync()
@@ -167,12 +148,10 @@ public sealed class BackgroundTenantFlowTests : IAsyncLifetime
     {
         foreach (var tenantId in new[] { Tenants.AText, Tenants.BText, Tenants.AText })
         {
-            var id = Guid.NewGuid();
+            var id = Guid.CreateVersion7();
             var completion = new TaskCompletionSource<TenantObservation>(TaskCreationOptions.RunContinuationsAsynchronously);
             _received[id] = completion;
-            var message = new OutboxMessage(id, EventType,
-                JsonSerializer.Serialize(new TenantProbeEvent(id), TenantProbeJsonContext.Default.TenantProbeEvent),
-                tenantId, null, null, DateTimeOffset.UtcNow);
+            var message = EventMessages.Create(id, EventType, new TenantProbeEvent(id), TenantProbeJsonContext.Default.TenantProbeEvent, tenantId);
             await _host.Services.GetRequiredService<IIntegrationEventPublisher>()
                 .PublishAsync(message, TestContext.Current.CancellationToken);
             var observed = await completion.Task.WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
@@ -189,25 +168,20 @@ public sealed class BackgroundTenantFlowTests : IAsyncLifetime
         Assert.Null(_host.Services.GetRequiredService<ITenantContext>().TenantId);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("tenant-a\n")]
-    public async Task Publish_MissingOrInvalidTenant_DeadLettersBeforeHandler(string? tenantId)
+    [Fact]
+    public async Task PlatformEvent_IsDeadLetteredBeforeTenantHandler()
     {
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         var completion = new TaskCompletionSource<TenantObservation>(TaskCreationOptions.RunContinuationsAsynchronously);
         _received[id] = completion;
-        var payload = JsonSerializer.Serialize(new TenantProbeEvent(id), TenantProbeJsonContext.Default.TenantProbeEvent);
-        await _host.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(
-            new OutboxMessage(id, EventType, payload, tenantId, null, null, DateTimeOffset.UtcNow),
-            TestContext.Current.CancellationToken);
-        var broker = await _host.Services.GetRequiredService<RabbitMqConnectionProvider>()
-            .GetConnectionAsync(TestContext.Current.CancellationToken);
+        var message = EventMessages.Create(id, EventType, new TenantProbeEvent(id), TenantProbeJsonContext.Default.TenantProbeEvent);
+        await _host.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(message, TestContext.Current.CancellationToken);
+        await using var broker = await new ConnectionFactory { Uri = new Uri(_rabbit.ConnectionString) }.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await broker.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(15));
         BasicGetResult? rejected;
-        while ((rejected = await channel.BasicGetAsync($"{Consumer}.dead-letter", true, timeout.Token)) is null)
+        while ((rejected = await channel.BasicGetAsync(KunEventTopology.DeadLetterQueue(Consumer, "probe"), true, timeout.Token)) is null)
             await Task.Delay(50, timeout.Token);
         Assert.Equal(id.ToString(), rejected.BasicProperties.MessageId);
         Assert.False(completion.Task.IsCompleted);

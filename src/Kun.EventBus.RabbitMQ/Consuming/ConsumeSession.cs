@@ -18,6 +18,8 @@ internal sealed class ConsumeSession(IChannel channel)
 
     public IChannel Channel { get; } = channel;
 
+    public bool CanSettle => (Volatile.Read(ref _state) & Closing) == 0 && Channel.IsOpen;
+
     /// <summary>确认或拒绝一条投递；通道已开始关闭时什么都不发，返回 false。</summary>
     public async ValueTask<bool> TrySettleAsync(ulong deliveryTag, bool ack, bool requeue)
     {
@@ -40,6 +42,7 @@ internal sealed class ConsumeSession(IChannel channel)
 
         try
         {
+            if (!Channel.IsOpen) return false;
             if (ack)
             {
                 await Channel.BasicAckAsync(deliveryTag, multiple: false, CancellationToken.None).ConfigureAwait(false);

@@ -23,6 +23,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Kun.EventBus.RabbitMQ" KunPackageFriendReason="登记宿主的消息代理绑定并校验其配置引用" />
     <InternalsVisibleTo Include="Kun.EventBus.EntityFrameworkCore" KunPackageFriendReason="组件挂载时核对宿主登记的消息代理绑定" />
+    <InternalsVisibleTo Include="Kun.Auditing" KunPackageFriendReason="实体审计与业务事务共用标准 Outbox 信封构造器" />
     <InternalsVisibleTo Include="Kun.EventBus.IntegrationTests" />
     <InternalsVisibleTo Include="Kun.EventBus.Tests" />
     <InternalsVisibleTo Include="Kun.IntegrationTests" />

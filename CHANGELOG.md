@@ -30,6 +30,13 @@
 - 身份包 `Qian.Identity.Abstractions`、`Qian.Identity.Client`、`Qian.Identity.Server`、`Qian.Identity.Connector.Oidc` 迁至仓库根 `src/`，包名与命名空间统一使用 `Kun.Identity.*`。宿主使用的 `AddQianIdentity…`、`MapQianIdentity…`、`UseQianIdentity…` 方法同步更名为 `AddKunIdentity…`、`MapKunIdentity…`、`UseKunIdentity…`。
 - 组件 `qian.identity.client` 升至 1.1.0，`qian.identity.server` 升至 1.2.0。入口程序集和身份事件元数据随代码更新。已发布的 NuGet 运行时坐标继续沿用当前包源的版本。
 
+### Changed — 统一事件投递与收发（S1-KUN-025）
+
+- **Outbox 与 RabbitMQ**：发布端与消费端统一使用 v1 信封。升级前先排空旧 Outbox 行与队列，并协调切换收发两端。普通事件使用 `qian.events`、无版本后缀的 subject 和完整信封；竞争队列为 `q.<service>.<subscription>`，广播队列为 `q.<service>.<instance>`，死信按队列路由到 `qian.dlx`。重试头变为 `x-qian-attempts`，幂等键按订阅区分并默认保留 7 天。同一 subject 的不同版本共用路由键，未订阅的版本会转入相应死信队列。
+- 宿主用 `AddKunEventsBroker` 和 `AddKunEventsSubscriber` 取代 `AddRabbitMq`；订阅以具体 handler 类型登记。事件类型须登记源生成 JSON 元数据，并在 `EventEnvelopeScope` 内发布。普通 `KunDbContext` 调用 `AddKunOutboxRelay<TContext>()`，严格上下文沿用无泛型重载。原有 `IntegrationEventOutboxAccumulator`、`OutboxPublisherBackgroundService`、`EfOutboxMessageStore`、`AddKunOutboxPublisher` 和 `UseRedisOutboxLock` 归档。自定义发布器从 Outbox 信封读取租户。
+- 实体审计的 v1 和 v2 事件以标准信封发布，原字段在 `payload` 中。非命令的后台保存通过 `EventEnvelopeScope` 提供真实服务主体。
+- 投递活动源从 `Kun.EventBus.Outbox` 切换到 `Kun.EventBus.EntityFrameworkCore`；保留 `outbox.publish` 生产者 span。冻结的记录变更信封契约只改了描述文字。
+
 ### Changed — 事件发布、投递与订阅（S1-KUN-025）
 
 - `Kun.EventBus` 提供 `AddKunEvents()` 与事件目录。`Kun.EventBus.RabbitMQ` 提供 `AddKunEventsBroker` 和 `AddKunEventsSubscriber`。持有业务数据库的宿主另外调用 `Kun.EventBus.EntityFrameworkCore` 的 `AddKunOutboxRelay()` 启动投递，可用 `AddKunEvents(options => …)` 配置领取租约与重试。

@@ -4,6 +4,7 @@ using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.DependencyInjection;
+using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.IntegrationTests.Fixtures;
 using Kun.Mediator.DependencyInjection;
@@ -122,6 +123,13 @@ public sealed class AuditEventFlowTests : IAsyncLifetime
         var db = sp.GetRequiredService<AuditFlowDbContext>();
         var uow = sp.GetRequiredService<IUnitOfWork>();
 
+        var correlation = Guid.CreateVersion7();
+        var causation = Guid.CreateVersion7();
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.audit", EventActor.Service("audit-flow"))
+        {
+            CorrelationId = correlation,
+            CausationId = causation,
+        });
         var order = AuditOrder.Create(Guid.NewGuid(), "widget");
         db.Orders.Add(order);
 
@@ -133,7 +141,13 @@ public sealed class AuditEventFlowTests : IAsyncLifetime
 
         auditRows.Should().HaveCount(1, "one audit event per tracked change of a registered entity");
         auditRows[0].EventTypeId.Should().Be("kun.audit.event.v1");
-        auditRows[0].Payload.Should().Contain("AuditOrder", "ResourceType should be the CLR type name");
+        var envelope = KunEventEnvelope.Parse(auditRows[0].Payload);
+        Assert.Equal(auditRows[0].Id, envelope.EventId);
+        Assert.Equal("qian.audit", envelope.Producer);
+        Assert.Equal(correlation, envelope.CorrelationId);
+        Assert.Equal(causation, envelope.CausationId);
+        Assert.Equal("audit-flow", envelope.Actor.Id);
+        envelope.Payload.GetRawText().Should().Contain("AuditOrder", "ResourceType should be the CLR type name");
         auditRows[0].Payload.Should().Contain("Added", "Action should reflect the EntityState");
         auditRows[0].Payload.Should().Contain(order.Id.ToString(), "ResourceId should carry the aggregate primary key");
     }

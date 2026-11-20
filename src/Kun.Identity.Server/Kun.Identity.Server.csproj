@@ -2,6 +2,7 @@
   <PropertyGroup><IsPackable>true</IsPackable><Description>可嵌入的 OpenIddict 身份协议服务，含 Person / Membership 账号模型与统一登录流水线。</Description></PropertyGroup>
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Kun.EventBus/Kun.EventBus.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />

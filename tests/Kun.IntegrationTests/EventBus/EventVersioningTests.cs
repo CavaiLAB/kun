@@ -1,16 +1,13 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentAssertions;
+using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
-using Kun.EventBus.Outbox;
-using Kun.EventBus.RabbitMQ.DependencyInjection;
-using Kun.EventBus.RabbitMQ.Options;
+using Kun.EventBus.RabbitMQ;
 using Kun.IntegrationTests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Kun.IntegrationTests.EventBus;
@@ -78,32 +75,19 @@ public sealed class EventVersioningTests : IAsyncLifetime
             .ConfigureLogging(l => l.SetMinimumLevel(LogLevel.Warning))
             .ConfigureServices(services =>
             {
+                services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
                 services.AddKunEventBus(b =>
                 {
-                    b.Register<TestEventBV1>("integration.test.event-b.v1");
-                    b.Register<TestEventBV2>("integration.test.event-b.v2");
+                    b.Register("integration.test.event-b.v1", VersioningJsonContext.Default.TestEventBV1);
+                    b.Register("integration.test.event-b.v2", VersioningJsonContext.Default.TestEventBV2);
                     b.UseInMemoryIdempotency();
                 });
-
-                services.AddRabbitMq(
-                    _ => { },
-                    builder =>
-                    {
-                        builder.Subscribe<TestEventBV1, TestEventBV1Handler>(
-                            "integration.test.event-b.v1",
-                            VersioningJsonContext.Default.TestEventBV1);
-                        builder.Subscribe<TestEventBV2, TestEventBV2Handler>(
-                            "integration.test.event-b.v2",
-                            VersioningJsonContext.Default.TestEventBV2);
-                    });
-
-                services.AddSingleton<IOptions<RabbitMqOptions>>(
-                    Options.Create(new RabbitMqOptions
-                    {
-                        ConnectionString = _rabbitmq.ConnectionString,
-                        ConsumerName = "test-consumer-versioning",
-                    }));
-
+                services.AddKunEventsBroker(_ => _rabbitmq.ConnectionString);
+                services.AddKunEventsSubscriber("versioning", b =>
+                {
+                    b.Subscribe<TestEventBV1, TestEventBV1Handler>("events", acceptPlatformEvents: true);
+                    b.Subscribe<TestEventBV2, TestEventBV2Handler>("events", acceptPlatformEvents: true);
+                });
                 services.AddSingleton(v1Tcs);
                 services.AddSingleton(v2Tcs);
                 services.AddScoped<TestEventBV1Handler>();
@@ -112,7 +96,7 @@ public sealed class EventVersioningTests : IAsyncLifetime
             .Build();
 
         await _host.StartAsync(TestContext.Current.CancellationToken);
-        await _host.Services.GetRequiredService<Kun.EventBus.RabbitMQ.Consuming.RabbitMqIntegrationEventSubscriber>()
+        await _host.Services.GetServices<IHostedService>().OfType<KunEventSubscriber>().Single()
             .Ready.WaitAsync(TimeSpan.FromSeconds(20), TestContext.Current.CancellationToken);
     }
 
@@ -140,34 +124,10 @@ public sealed class EventVersioningTests : IAsyncLifetime
 
         var publisher = _host.Services.GetRequiredService<IIntegrationEventPublisher>();
 
-        var v1Id = Guid.NewGuid();
-        var v2Id = Guid.NewGuid();
-
-        var v1Payload = JsonSerializer.Serialize(
-            new TestEventBV1(v1Id, "v1-name"),
-            VersioningJsonContext.Default.TestEventBV1);
-
-        await publisher.PublishAsync(new OutboxMessage(
-            id: v1Id,
-            eventTypeId: "integration.test.event-b.v1",
-            payload: v1Payload,
-            tenantId: null,
-            traceParent: null,
-            traceState: null,
-            occurredAt: DateTimeOffset.UtcNow), ct);
-
-        var v2Payload = JsonSerializer.Serialize(
-            new TestEventBV2(v2Id, "v2-name", 2),
-            VersioningJsonContext.Default.TestEventBV2);
-
-        await publisher.PublishAsync(new OutboxMessage(
-            id: v2Id,
-            eventTypeId: "integration.test.event-b.v2",
-            payload: v2Payload,
-            tenantId: null,
-            traceParent: null,
-            traceState: null,
-            occurredAt: DateTimeOffset.UtcNow), ct);
+        var v1Id = Guid.CreateVersion7();
+        var v2Id = Guid.CreateVersion7();
+        await publisher.PublishAsync(EventMessages.Create(v1Id, "integration.test.event-b.v1", new TestEventBV1(v1Id, "v1-name"), VersioningJsonContext.Default.TestEventBV1), ct);
+        await publisher.PublishAsync(EventMessages.Create(v2Id, "integration.test.event-b.v2", new TestEventBV2(v2Id, "v2-name", 2), VersioningJsonContext.Default.TestEventBV2), ct);
 
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);

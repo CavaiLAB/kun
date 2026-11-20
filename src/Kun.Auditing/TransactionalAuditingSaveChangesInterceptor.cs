@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using Kun.Audit;
 using Kun.Auditing.DependencyInjection;
 using Kun.Auditing.Events;
@@ -46,7 +45,7 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
         foreach (var entry in changes)
         {
             var now = clock.GetUtcNow();
-            var id = Guid.CreateVersion7();
+            var id = Guid.CreateVersion7(now);
             var actor = auditContext.ActorId ?? (user.IsAuthenticated ? user.UserId : null);
             var actorType = auditContext.ActorType == AuditActorType.System && user.IsAuthenticated
                 ? AuditActorType.User : auditContext.ActorType;
@@ -55,7 +54,6 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
             var @event = new AuditEventIntegrationEventV2(id, tenant.TenantId?.ToString("D"),
                 user.IsAuthenticated ? user.UserId : null, actorType, actor, entry.State.ToString(),
                 entry.Metadata.ClrType.Name, resourceId, trace, auditContext.IpAddress, now);
-            var payload = JsonSerializer.Serialize(@event, AuditJsonContext.Default.AuditEventIntegrationEventV2);
             var log = new AuditLog
             {
                 Id = id,
@@ -69,8 +67,9 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
                 Timestamp = now,
                 IpAddress = auditContext.IpAddress
             };
-            var message = new OutboxMessage(id, AuditingServiceCollectionExtensions.AuditEventV2StableId,
-                payload, tenant.TenantId?.ToString("D"), Activity.Current?.Id, Activity.Current?.TraceStateString, now);
+            var origin = AuditEventOrigin.Resolve(actorType, actor);
+            var message = KunEnvelopeOutboxWriter.CreateMessage(AuditingServiceCollectionExtensions.AuditEventV2StableId, @event,
+                AuditJsonContext.Default.AuditEventIntegrationEventV2, origin, tenant.TenantId, id, now);
             context.Set<AuditLog>().Add(log);
             context.Set<OutboxMessage>().Add(message);
             pending.Add(log);

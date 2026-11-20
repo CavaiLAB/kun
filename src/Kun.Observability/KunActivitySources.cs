@@ -12,7 +12,7 @@ internal static class KunActivitySources
     public const string Mediator = "Kun.Mediator";
 
     /// <summary>Outbox publisher background service (<c>outbox.publish</c> spans).</summary>
-    public const string OutboxPublisher = "Kun.EventBus.Outbox";
+    public const string OutboxPublisher = "Kun.EventBus.EntityFrameworkCore";
 
     /// <summary>gRPC server + client interceptors (<c>grpc.server</c> spans).</summary>
     public const string Grpc = "Kun.Grpc";

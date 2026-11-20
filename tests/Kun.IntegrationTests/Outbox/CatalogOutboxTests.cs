@@ -30,7 +30,7 @@ public sealed class CatalogOutboxTests(PostgresFixture postgres) : IClassFixture
         services.AddDbContext<CatalogDbContext>(options => options.UseNpgsql(postgres.ConnectionString).UseKunSchema("catalog"));
         services.AddScoped<KunDbContext>(sp => sp.GetRequiredService<CatalogDbContext>());
         services.AddKunEntityFrameworkCore();
-        services.AddKunEventBus(builder => builder.Register<ProductPublishedIntegrationEvent>("product.published.v1"));
+        services.AddKunEventBus(builder => builder.Register("product.published.v1", CatalogEventJson.Default.ProductPublishedIntegrationEvent));
         services.AddKunMediator(builder =>
         {
             builder.AddRequestHandler<CreateProductCommand, Guid, CreateProductCommandHandler>()

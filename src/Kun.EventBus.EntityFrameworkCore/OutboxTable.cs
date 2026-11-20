@@ -35,10 +35,10 @@ internal sealed class OutboxTable
     private string ReleaseSql { get; }
 
     // 同一上下文类型在不同宿主可以绑定不同的插件 schema，缓存键带上生效 schema。
-    public static OutboxTable For(KunStrictDbContext context) =>
+    public static OutboxTable For(KunDbContext context) =>
         Cache.GetOrAdd((context.GetType(), context.Model.GetDefaultSchema() ?? ""), _ => Build(context));
 
-    private static OutboxTable Build(KunStrictDbContext context)
+    private static OutboxTable Build(KunDbContext context)
     {
         if (context.Database.ProviderName != "Npgsql.EntityFrameworkCore.PostgreSQL")
             throw new KunEventsException(EventsErrors.Misconfigured, "Outbox 投递要求 PostgreSQL 上下文。");

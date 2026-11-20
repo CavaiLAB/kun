@@ -6,7 +6,7 @@ using Kun.Core.MultiTenancy;
 namespace Kun.EventBus.Outbox;
 
 /// <summary>
-/// 替换 Kun 默认累加器的 Outbox 写入端：入队时就生成完整 v1 信封并写进 Outbox 行的 payload，
+/// Outbox 写入端：入队时就生成完整 v1 信封并写进 Outbox 行的 payload，
 /// 发布器原样发出。来源（producer、actor、因果链）取自 <see cref="EventEnvelopeScope"/>，缺失即拒绝，
 /// 这是「集成事件只能在命令 handler 同 scope 发出」的运行时兜底。
 /// </summary>
@@ -24,10 +24,17 @@ internal sealed class KunEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IEv
             ?? throw new KunEventsException(EventsErrors.PublishRejected, "事件类型未在 Kun 事件目录登记。");
         if (registry.GetJsonTypeInfo(typeof(TEvent)) is not JsonTypeInfo<TEvent> typeInfo)
             throw new KunEventsException(EventsErrors.PublishRejected, "事件必须以源生成 JsonTypeInfo 登记，payload Schema 才能与发出的 JSON 一致。");
-        var subject = IntegrationEventTypes.SubjectOf(type);
-        var payload = JsonSerializer.SerializeToElement(@event, typeInfo);
         var occurredAt = clock.GetUtcNow();
-        var tenantId = tenant.TenantId;
+        buffer.Add(CreateMessage(type, @event, typeInfo, origin, tenant.TenantId, Guid.CreateVersion7(occurredAt), occurredAt));
+    }
+
+    // EF SavingChanges runs after the unit of work has flushed the buffer. Transactional interceptors
+    // can stage the same envelope directly in the active context, using their audit row's existing ID.
+    internal static OutboxMessage CreateMessage<TEvent>(string type, TEvent value, JsonTypeInfo<TEvent> typeInfo, EventOrigin origin,
+        Guid? tenantId, Guid id, DateTimeOffset occurredAt) where TEvent : class
+    {
+        var subject = IntegrationEventTypes.SubjectOf(type);
+        var payload = JsonSerializer.SerializeToElement(value, typeInfo);
         if (tenantId == Guid.Empty) throw new KunEventsException(EventsErrors.PublishRejected, "租户标识必须是非空 UUID。");
         var activity = Activity.Current;
         var traceParent = origin.TraceParent ?? (activity is { IdFormat: ActivityIdFormat.W3C } && KunEventEnvelope.IsTraceParent(activity.Id) ? activity.Id : null)
@@ -35,7 +42,7 @@ internal sealed class KunEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IEv
         var envelope = new KunEventEnvelope
         {
             Version = KunEventEnvelope.CurrentVersion,
-            EventId = Guid.CreateVersion7(occurredAt),
+            EventId = id,
             Subject = subject,
             Type = type,
             OccurredAt = occurredAt,
@@ -47,8 +54,7 @@ internal sealed class KunEnvelopeOutboxWriter(IntegrationEventBuffer buffer, IEv
             TraceParent = traceParent,
             Payload = payload,
         };
-        buffer.Add(new OutboxMessage(envelope.EventId, type, envelope.ToJson(), tenantId?.ToString("D"), traceParent,
-            activity?.TraceStateString, occurredAt));
+        return new OutboxMessage(envelope.EventId, type, envelope.ToJson(), tenantId?.ToString("D"), traceParent, activity?.TraceStateString, occurredAt);
     }
 
     public void Enqueue<TEvent>(TEvent @event) where TEvent : class => Publish(@event);

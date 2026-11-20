@@ -9,9 +9,9 @@ EF Core 10 write-side persistence for the Kun Framework.
   `SchemaConsistencyInterceptor` safety net (auto-registered).
 - `EfUnitOfWork` — commits aggregate changes, dispatches domain events, and
   flushes the Outbox accumulator in a single transaction.
-- `IntegrationEventOutboxAccumulator` — scoped bridge that implements both
-  `IIntegrationEventBus` and `IOutboxWriter`, so aggregates and non-aggregate
-  enqueuers (e.g. audit interceptors) share a single in-request buffer.
+- `AddKunEventBus()` in Kun.EventBus provides the scoped envelope writer for
+  `IIntegrationEventBus` and `IOutboxWriter`. Register event JSON type information
+  and open an `EventEnvelopeScope` before enqueueing.
 - `TenantRlsTransactionInterceptor` — opt-in (`AddKunTenantRls()`) defence-in-depth
   for Postgres Row-Level Security (P1-4). Emits
   `SELECT set_config('app.current_tenant_id', @tenant, true)` at each

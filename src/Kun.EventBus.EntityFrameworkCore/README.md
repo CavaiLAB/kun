@@ -9,7 +9,8 @@ builder.Services.AddKunEventBus(events => events.Register(OrderEvents.Created, O
 builder.Services.AddKunData<OrderDbContext>((sp, options) => options.UseNpgsql(connection).UseKunSchema("plugin_order"));
 builder.Services.AddKunEvents();
 builder.Services.AddKunEventsBroker(sp => sp.GetRequiredService<IConfiguration>().GetConnectionString("Events")!);
-builder.Services.AddKunOutboxRelay();
+builder.Services.AddKunOutboxRelay(); // 已登记的严格上下文
+// 普通 KunDbContext 使用 builder.Services.AddKunOutboxRelay<OrderDbContext>();
 ```
 
 - `AddKunEvents` 把数据会话的 `IOutboxWriter` 与 `IIntegrationEventBus` 换成同一个 scoped 信封写入端，只写 Outbox、不投递。

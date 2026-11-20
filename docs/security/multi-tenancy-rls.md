@@ -155,8 +155,8 @@ app.UseKunMultiTenancy();
 
 `AddKunMultiTenancy()` 以单例登记 `AsyncLocalTenantContext`，并保留宿主已登记的 `ITenantContext`。只有显式进入的作用域提供当前租户，包括由 HTTP 中间件进入的作用域。自定义上下文应实现 `BeginScope` 以支持请求和后台工作。
 
-消费端在解析 handler 及其 scoped 依赖前，从信封恢复 `MessageContext.TenantId` 并打开作用域；多租户宿主的缺失或非法租户消息在幂等标记前进入死信队列。租户标识是内部可信发布者的信封元数据，不应直接接收外部请求字段；消息代理权限仍需由宿主限制。Outbox 发布器逐条恢复租户。
+消费端在解析 handler 及其 scoped 依赖前，从信封恢复 `MessageContext.TenantId` 并打开作用域；多租户宿主的缺失或非法租户消息在幂等标记前进入死信队列。租户标识是内部可信发布者的信封元数据，不应直接接收外部请求字段；消息代理权限仍需由宿主限制。Outbox 发布器核对行与信封的租户；订阅器从信封进入租户作用域，平台级消息须由订阅显式选择接收。
 
 在自定义后台任务中用 `using (tenantContext.BeginScope(tenantId))` 包围处理逻辑；不要把某个租户的 DbContext 保存为单例。PgBouncer 事务池下仍需显式事务，自动装配不改变其事务边界要求。
 
-验收证据位于 `BackgroundTenantFlowTests`（真实 PG + RabbitMQ，A/B 交替、EF 与 RLS 独立断言、无租户／非法租户死信）、`ProductionTenantTests`（真实 RSA JWT 验证）、`TenantContextRegistrationTests`、`SagaTenantScopeTests` 与 `OutboxPublisherBackgroundServiceTests`。
+验收证据位于 `BackgroundTenantFlowTests`（真实 PG + RabbitMQ，A/B 交替、EF 与 RLS 独立断言、无租户／非法租户死信）、`ProductionTenantTests`（真实 RSA JWT 验证）、`TenantContextRegistrationTests` 与 `SubscriberTests`。

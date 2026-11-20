@@ -4,6 +4,7 @@ using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Kun.Mediator;
@@ -20,6 +21,7 @@ namespace Kun.Data.Tests;
 
 public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
+
     [Fact]
     public async Task 缺少事件目录或含未实现配置_Provider挂载失败()
     {
@@ -42,6 +44,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
     [Fact]
     public async Task 真实Provider_领域通知和Outbox使用同一上下文_失败整体回滚()
     {
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.tests", EventActor.Service("test-runner")));
         var ct = TestContext.Current.CancellationToken;
         var tenant = new AsyncLocalTenantContext();
         using var host = BuildHost(tenant);
@@ -80,6 +83,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
     [Fact]
     public async Task 两个业务上下文的会话缓冲独立_不会写入最后注册的上下文()
     {
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.tests", EventActor.Service("test-runner")));
         var ct = TestContext.Current.CancellationToken;
         var tenant = new AsyncLocalTenantContext();
         using var host = BuildHost(tenant);
@@ -108,6 +112,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
     [Fact]
     public async Task 通知失败或缺少Mediator均不提交_卸载撤销入口并释放会话()
     {
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.tests", EventActor.Service("test-runner")));
         var ct = TestContext.Current.CancellationToken;
         foreach (var mediator in new[] { true, false })
         {
@@ -140,6 +145,7 @@ public sealed partial class DataSessionTests(PostgresFixture postgres) : IClassF
     [Fact]
     public async Task 不能在既有会话中切换租户或把其他租户的Outbox混入()
     {
+        using var origin = EventEnvelopeScope.Begin(new EventOrigin("sample.tests", EventActor.Service("test-runner")));
         var ct = TestContext.Current.CancellationToken;
         var tenant = new AsyncLocalTenantContext();
         using var host = BuildHost(tenant);

@@ -10,7 +10,7 @@ namespace Kun.EventBus;
 public static class KunEventsExtensions
 {
     /// <summary>
-    /// 把数据会话的 Outbox 写入端换成 v1 信封写入端，并登记事件目录。与 AddKunData 的调用顺序无关。
+    /// 登记 v1 信封写入端与事件目录。与 AddKunData 的调用顺序无关。
     /// 此入口登记写入端。持有 Outbox 的宿主单独登记投递后台服务。
     /// </summary>
     public static IServiceCollection AddKunEvents(this IServiceCollection services)
@@ -22,15 +22,20 @@ public static class KunEventsExtensions
         services.AddSingleton(new EventsHostMarker());
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton(ErrorCatalog.CreateDefault());
-        services.TryAddScoped<IntegrationEventBuffer>();
-        services.TryAddScoped(sp => new KunEnvelopeOutboxWriter(sp.GetRequiredService<IntegrationEventBuffer>(), sp.GetRequiredService<IEventTypeRegistry>(),
-            sp.GetRequiredService<Kun.Core.MultiTenancy.ITenantContext>(), sp.GetRequiredService<TimeProvider>()));
-        // AddKunData 以 TryAdd 登记 Kun 累加器；这里替换，两个端口解析到同一个 scoped 信封写入端。
-        services.Replace(ServiceDescriptor.Scoped<IIntegrationEventBus>(sp => sp.GetRequiredService<KunEnvelopeOutboxWriter>()));
-        services.Replace(ServiceDescriptor.Scoped<IOutboxWriter>(sp => sp.GetRequiredService<KunEnvelopeOutboxWriter>()));
+        RegisterWriter(services);
         services.TryAddSingleton<IEventsService>(sp => new EventsService(sp.GetRequiredService<IEventTypeRegistry>(), sp.GetService<IEventSubscriptionCatalog>()));
         services.AddHostedService<EventsStartupCheck>();
         return services;
+    }
+
+    internal static void RegisterWriter(IServiceCollection services)
+    {
+        services.TryAddSingleton(TimeProvider.System);
+        services.TryAddScoped<IntegrationEventBuffer>();
+        services.TryAddScoped(sp => new KunEnvelopeOutboxWriter(sp.GetRequiredService<IntegrationEventBuffer>(), sp.GetRequiredService<IEventTypeRegistry>(),
+            sp.GetRequiredService<Kun.Core.MultiTenancy.ITenantContext>(), sp.GetRequiredService<TimeProvider>()));
+        services.TryAddScoped<IIntegrationEventBus>(sp => sp.GetRequiredService<KunEnvelopeOutboxWriter>());
+        services.TryAddScoped<IOutboxWriter>(sp => sp.GetRequiredService<KunEnvelopeOutboxWriter>());
     }
 }
 
@@ -41,16 +46,20 @@ internal interface IEventSubscriptionCatalog
 internal sealed class EventsHostMarker;
 internal sealed class EventsStartupCheck(IServiceProvider services, ErrorCatalog catalog) : IHostedService, IDisposable
 {
+    private readonly Lock _gate = new();
     private readonly List<IDisposable> _registrations = [];
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (_registrations.Count == 0)
+        lock (_gate)
         {
-            _registrations.Add(catalog.Register(EventsErrors.Misconfigured));
-            _registrations.Add(catalog.Register(EventsErrors.PublishRejected));
-            _registrations.Add(catalog.Register(EventsErrors.ConsumeRejected));
+            if (_registrations.Count == 0)
+            {
+                _registrations.Add(catalog.Register(EventsErrors.Misconfigured));
+                _registrations.Add(catalog.Register(EventsErrors.PublishRejected));
+                _registrations.Add(catalog.Register(EventsErrors.ConsumeRejected));
+            }
         }
         if (services.GetService<IEventTypeRegistry>() is null)
             throw new KunEventsException(EventsErrors.Misconfigured, "宿主必须以 AddKunEventBus 显式登记事件类型目录。");
@@ -70,8 +79,11 @@ internal sealed class EventsStartupCheck(IServiceProvider services, ErrorCatalog
 
     public void Dispose()
     {
-        foreach (var registration in _registrations) registration.Dispose();
-        _registrations.Clear();
+        lock (_gate)
+        {
+            foreach (var registration in _registrations) registration.Dispose();
+            _registrations.Clear();
+        }
     }
 }
 

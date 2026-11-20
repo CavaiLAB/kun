@@ -15,6 +15,7 @@ public sealed class ConsumeSessionTests
     public async Task TrySettleAsync_BeforeClose_AcknowledgesAndRejectsOnTheChannel()
     {
         var channel = Substitute.For<IChannel>();
+        channel.IsOpen.Returns(true);
         var session = new ConsumeSession(channel);
 
         (await session.TrySettleAsync(1, ack: true, requeue: false)).Should().BeTrue();
@@ -29,6 +30,7 @@ public sealed class ConsumeSessionTests
     {
         var ct = TestContext.Current.CancellationToken;
         var channel = Substitute.For<IChannel>();
+        channel.IsOpen.Returns(true);
         // 关通道还没完成：真实客户端关通道要等正在执行的处理器返回，那些处理器这时来确认。
         var closing = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         CloseReturns(channel, closing.Task);
@@ -49,6 +51,7 @@ public sealed class ConsumeSessionTests
     {
         var ct = TestContext.Current.CancellationToken;
         var channel = Substitute.For<IChannel>();
+        channel.IsOpen.Returns(true);
         var ackWritten = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         AckReturns(channel, ackWritten.Task);
         var session = new ConsumeSession(channel);
@@ -69,6 +72,7 @@ public sealed class ConsumeSessionTests
     {
         var ct = TestContext.Current.CancellationToken;
         var channel = Substitute.For<IChannel>();
+        channel.IsOpen.Returns(true);
         AckReturns(channel, Task.FromException(new IOException("写确认帧失败")));
         var session = new ConsumeSession(channel);
 
@@ -79,7 +83,7 @@ public sealed class ConsumeSessionTests
     }
 
     private static IEnumerable<string> Calls(IChannel channel) =>
-        channel.ReceivedCalls().Select(call => call.GetMethodInfo().Name);
+        channel.ReceivedCalls().Select(call => call.GetMethodInfo().Name).Where(name => name != "get_IsOpen");
 
     private static void AckReturns(IChannel channel, Task written)
     {

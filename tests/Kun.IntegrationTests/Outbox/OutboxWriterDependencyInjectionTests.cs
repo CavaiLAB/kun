@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.DependencyInjection;
 using Kun.EventBus;
+using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Outbox;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -12,12 +12,12 @@ namespace Kun.IntegrationTests.Outbox;
 // Pure DI-container tests for the IOutboxWriter primitive introduced in P0-4.
 // No database is touched — these assertions only probe that the container
 // registration wires IIntegrationEventBus and IOutboxWriter to the same
-// scoped instance of IntegrationEventOutboxAccumulator.
+// scoped envelope writer bound to this scope’s transaction buffer.
 
 public sealed class OutboxWriterDependencyInjectionTests
 {
     [Fact]
-    public void AddKunEntityFrameworkCore_RegistersIOutboxWriter()
+    public void AddKunEventBus_RegistersIOutboxWriter()
     {
         var provider = BuildProvider();
         using var scope = provider.CreateScope();
@@ -25,7 +25,7 @@ public sealed class OutboxWriterDependencyInjectionTests
         var writer = scope.ServiceProvider.GetService<IOutboxWriter>();
 
         writer.Should().NotBeNull();
-        writer.Should().BeOfType<IntegrationEventOutboxAccumulator>();
+        ((IOutboxBufferBinding)writer!).Buffer.Should().BeSameAs(scope.ServiceProvider.GetRequiredService<IntegrationEventBuffer>());
     }
 
     [Fact]
@@ -64,25 +64,9 @@ public sealed class OutboxWriterDependencyInjectionTests
     {
         var services = new ServiceCollection();
 
-        // Minimal dependencies for the accumulator: tenant context + event registry.
         services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
-        services.AddSingleton<IEventTypeRegistry>(new FakeEventTypeRegistry());
-
-        // A DbContextOptions is required by the EfUnitOfWork registration path;
-        // we never call SaveChanges here so an in-memory InMemory provider would be
-        // overkill — register a minimal KunDbContext-less variant by supplying the
-        // options via a no-op AddDbContextOptions. Since EfUnitOfWork is unused in
-        // these DI-only assertions, we skip AddDbContext entirely.
         services.AddKunEntityFrameworkCore();
-
+        services.AddKunEventBus();
         return services.BuildServiceProvider(validateScopes: true);
-    }
-
-    private sealed class FakeEventTypeRegistry : IEventTypeRegistry
-    {
-        public Type? Resolve(string eventType) => null;
-        public string? GetEventType(Type clrType) => null;
-        public IReadOnlyCollection<(string EventId, Type ClrType)> GetAll() => [];
-        public System.Text.Json.Serialization.Metadata.JsonTypeInfo? GetJsonTypeInfo(Type clrType) => null;
     }
 }

@@ -1,20 +1,15 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentAssertions;
+using Kun.Core.MultiTenancy;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Idempotency;
-using Kun.EventBus.Outbox;
 using Kun.EventBus.RabbitMQ;
-using Kun.EventBus.RabbitMQ.Consuming;
-using Kun.EventBus.RabbitMQ.DependencyInjection;
-using Kun.EventBus.RabbitMQ.Options;
 using Kun.IntegrationTests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -86,7 +81,6 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
 {
     private const string EventTypeId = "integration.test.stop-while-handling.v1";
     private const string ConsumerName = "test-consumer-stop-while-handling";
-    private const int LeftUnsettled = 36; // RabbitMqIntegrationEventSubscriber 的日志事件号
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(20);
 
     private readonly RabbitMqFixture _rabbitmq = new();
@@ -105,7 +99,7 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
         }
 
         var store = new SharedProcessedStore();
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
 
         // 第一个宿主：消息处理到一半时停止。
         var first = new StopWhileHandlingProbe();
@@ -120,7 +114,7 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
                }))
         {
             await host.StartAsync(ct);
-            await host.Services.GetRequiredService<RabbitMqIntegrationEventSubscriber>().Ready.WaitAsync(Timeout, ct);
+            await host.Services.GetServices<IHostedService>().OfType<KunEventSubscriber>().Single().Ready.WaitAsync(Timeout, ct);
             await PublishAsync(host, id, ct);
             await first.Entered.Task.WaitAsync(Timeout, ct);
             await host.StopAsync(CancellationToken.None);
@@ -130,8 +124,7 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
         shutdowns.Should().OnlyContain(args => args.Initiator == ShutdownInitiator.Application && args.ReplyCode == 200,
             "停止时订阅端不能在已关的通道上确认，否则 RabbitMQ 以 504 CHANNEL_ERROR 关掉整条连接");
         first.Completed.Should().Be(1);
-        store.Contains(ConsumerName, id).Should().BeTrue("处理器成功之后照常写下已处理标记");
-        logs.Entries.Should().Contain(entry => entry.EventId == LeftUnsettled, "消费通道已在关，这条消息不再确认");
+        store.Contains(ConsumerName + ".work", id).Should().BeTrue("处理器成功之后照常写下已处理标记");
 
         // 第二个宿主：同一个消费者、同一份幂等记录。RabbitMQ 把没确认的那条重新投递过来，按幂等记录跳过。
         var redelivered = store.NextCheckAsync();
@@ -148,9 +141,8 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
 
     private static async Task PublishAsync(IHost host, Guid id, CancellationToken ct)
     {
-        var payload = JsonSerializer.Serialize(new StopWhileHandlingEvent(id), StopWhileHandlingJsonContext.Default.StopWhileHandlingEvent);
-        await host.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(
-            new OutboxMessage(id, EventTypeId, payload, null, null, null, DateTimeOffset.UtcNow), ct);
+        var row = EventMessages.Create(id, EventTypeId, new StopWhileHandlingEvent(id), StopWhileHandlingJsonContext.Default.StopWhileHandlingEvent);
+        await host.Services.GetRequiredService<IIntegrationEventPublisher>().PublishAsync(row, ct);
     }
 
     private IHost BuildHost(SharedProcessedStore store, StopWhileHandlingProbe probe, CapturingLoggerProvider? logs, Action<IConnection>? onConnected) =>
@@ -167,33 +159,19 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
             })
             .ConfigureServices(services =>
             {
-                services.AddSingleton<IOptions<RabbitMqOptions>>(Options.Create(new RabbitMqOptions
-                {
-                    ConnectionString = _rabbitmq.ConnectionString,
-                    ConsumerName = ConsumerName,
-                }));
+                services.AddSingleton<ITenantContext>(NullTenantContext.Instance);
+                services.AddSingleton<TimeProvider, ExpiredDrainClock>();
                 services.AddSingleton(probe);
-                // 先登记共用的幂等记录，UseInMemoryIdempotency 里的 TryAddSingleton 就不再登记。
                 services.AddSingleton<IProcessedMessageStore>(store);
-                // 真实连接外面套一层只转发的外壳，记下订阅端建的第一条通道（消费通道）。
-                services.AddSingleton(sp => new RabbitMqConnectionProvider(
-                    sp.GetRequiredService<IOptions<RabbitMqOptions>>(),
-                    sp.GetRequiredService<ILogger<RabbitMqConnectionProvider>>(),
-                    async (factory, cancellationToken) =>
-                    {
-                        var connection = await factory.CreateConnectionAsync(cancellationToken);
-                        onConnected?.Invoke(connection);
-                        return TapConsumerChannel(connection, probe);
-                    }));
-                services.AddKunEventBus(b =>
+                services.AddSingleton<OpenConsumerConnection>(async (factory, token) =>
                 {
-                    b.Register<StopWhileHandlingEvent>(EventTypeId);
-                    b.UseInMemoryIdempotency();
+                    var connection = await factory.CreateConnectionAsync(token);
+                    onConnected?.Invoke(connection);
+                    return TapConsumerChannel(connection, probe);
                 });
-                services.AddRabbitMq(
-                    _ => { },
-                    builder => builder.Subscribe<StopWhileHandlingEvent, StopWhileHandlingHandler>(
-                        EventTypeId, StopWhileHandlingJsonContext.Default.StopWhileHandlingEvent));
+                services.AddKunEventBus(b => b.Register(EventTypeId, StopWhileHandlingJsonContext.Default.StopWhileHandlingEvent));
+                services.AddKunEventsBroker(_ => _rabbitmq.ConnectionString);
+                services.AddKunEventsSubscriber(ConsumerName, b => b.Subscribe<StopWhileHandlingEvent, StopWhileHandlingHandler>("work", acceptPlatformEvents: true));
             })
             .Build();
 
@@ -206,7 +184,7 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
         tapped.CreateChannelAsync(default, default).ReturnsForAnyArgs(async call =>
         {
             var channel = await real.CreateChannelAsync(call.ArgAt<CreateChannelOptions?>(0), call.ArgAt<CancellationToken>(1));
-            if (Interlocked.Increment(ref channels) == 1)
+            if (Interlocked.Increment(ref channels) == 2)
             {
                 channel.ChannelShutdownAsync += (_, _) =>
                 {
@@ -219,7 +197,9 @@ public sealed class SubscriberStopWhileHandlingTests : IAsyncLifetime
         });
         tapped.CloseAsync(default, default!, default, default, default).ReturnsForAnyArgs(call =>
             real.CloseAsync(call.ArgAt<ushort>(0), call.ArgAt<string>(1), call.ArgAt<TimeSpan>(2), call.ArgAt<bool>(3), call.ArgAt<CancellationToken>(4)));
-        tapped.When(connection => connection.Dispose()).Do(_ => real.Dispose());
+#pragma warning disable CA2012 // Configure the substitute to forward exactly one asynchronous disposal.
+        tapped.DisposeAsync().Returns(_ => real.DisposeAsync());
+#pragma warning restore CA2012
         return tapped;
     }
 }

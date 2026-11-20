@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Text.Json;
 
 namespace Kun.Authorization;
 
@@ -23,15 +22,11 @@ public interface IPermissionChecker
     /// <summary>返回可解释判定。</summary>
     ValueTask<PermissionDecision> ExplainAsync(PermissionRequest request, CancellationToken cancellationToken = default);
 }
-/// <summary>可序列化的字段谓词 AST，SQL 编译与参数绑定由 Provider 实现。</summary>
-public sealed record DataPermissionPredicate(string Operator, string? Field, JsonElement? Value, IReadOnlyList<DataPermissionPredicate> Children);
 /// <summary>本地数据过滤端口，不依赖 EF 包或具体数据库。</summary>
 public interface IDataPermissionFilter
 {
     /// <summary>获取实体谓词；Provider 负责维持租户隔离与行级语义。</summary>
     ValueTask<Expression<Func<T, bool>>> GetExpressionAsync<T>(PermissionRequest request, CancellationToken cancellationToken = default);
-    /// <summary>获取参数化 SQL 编译器使用的谓词 AST。</summary>
-    ValueTask<DataPermissionPredicate> GetPredicateAsync(PermissionRequest request, CancellationToken cancellationToken = default);
 }
 /// <summary>字段可读、可写与需要脱敏的集合。</summary>
 public sealed record FieldDecision(IReadOnlyList<string> Readable, IReadOnlyList<string> Writable, IReadOnlyList<string> Masked);

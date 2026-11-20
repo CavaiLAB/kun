@@ -6,6 +6,15 @@ namespace Kun.Authorization.Rbac.Abstractions.Tests;
 
 public sealed class PermissionContractTests
 {
+    [Fact]
+    public void Enforcement_request_text_redacts_authenticated_subject_and_tenant()
+    {
+        var subject = new AuthorizationSubject("private-member", "private-tenant", "user");
+        var request = new EnforcementRequest(subject, 11, true, null, null, "api", AuthzEnforcement.HttpEntryPoint, "/permissions");
+        Assert.DoesNotContain(subject.Id, request.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(subject.TenantId!, request.ToString(), StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("qian.sample.crm", "customer", "read")]
     [InlineData("qian.crm-v2", "customer_group", "bulk-write")]

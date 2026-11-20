@@ -36,7 +36,7 @@ public sealed partial class SuperadminBypassTests
         var grants = authz.Inject<ITenantRoleGrant>(TenantRoleGrant.Key); var store = AuthzPlugin.RoleStore(authz, tenant);
         string alice = PersonId(), carol = PersonId(), dave = PersonId(), erin = PersonId(), frank = PersonId();
         identity.Missing.Add(Guid.Parse(carol)); identity.Transient[Guid.Parse(dave)] = 2; identity.Broken.Add(Guid.Parse(erin));
-        Task<AuthorizationDecision> Enforce(string subject, long revision) => enforcement.EnforceAsync(Request(new EnforcementSubject(subject, A, "user", revision), Read), Ct).AsTask();
+        Task<AuthorizationDecision> Enforce(string subject, long revision) => enforcement.EnforceAsync(Request(new AuthorizationSubject(subject, A, "user"), Read, revision), Ct).AsTask();
         using var scope = tenant.BeginScope(Guid.ParseExact(A, "D"));
 
         // 角色级变更（建内置角色、组件默认授权安装）只经租户授权修订生效，不扇出到成员（Q3）。

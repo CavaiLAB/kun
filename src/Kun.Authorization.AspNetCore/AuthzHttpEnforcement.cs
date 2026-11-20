@@ -20,7 +20,7 @@ internal static class HttpEnforcement
     private static readonly object FailureKey = new();
 
     // 主体不可信时返回要写出的错误；返回 null 表示 subject 可用。
-    internal static Error? ReadSubject(HttpContext http, out EnforcementSubject subject)
+    internal static Error? ReadSubject(HttpContext http, out Principal subject)
     {
         subject = null!;
         var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
@@ -28,27 +28,31 @@ internal static class HttpEnforcement
             !Kun.Security.Authentication.PrincipalClaims.TryRead(http.User, out var claimSubject, out var claimTenant, out var claimKind) ||
             claimSubject != principal.Subject || claimTenant != principal.TenantId || claimKind != Kind(principal.Kind))
             return new Error(PlatformErrors.Unauthenticated);
-        subject = new EnforcementSubject(principal.Subject, principal.TenantId, Kind(principal.Kind), principal.IdentityRevision, principal.Actor is not null);
+        subject = principal;
         return null;
     }
 
-    internal static async ValueTask<AuthorizationDecision> EnforceAsync(HttpContext http, AuthzEnforcementSource source, EnforcementSubject subject, string? permission, string entryPoint, string target)
+    internal static async ValueTask<AuthorizationDecision> EnforceAsync(HttpContext http, AuthzEnforcementSource source, Principal principal, string? permission, string entryPoint, string target)
     {
         IAuthzEnforcement enforcement;
         try { enforcement = source.Source(http).Enforcement(); }
         // 授权组件尚未就绪或已卸载时与不存在无法区分（与 me/permissions、T23 的 dependency-removed 一致）。
         catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException) { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
-        return await enforcement.EnforceAsync(new EnforcementRequest(subject, permission, null, "api", entryPoint, target), http.RequestAborted).ConfigureAwait(false);
+        return await enforcement.EnforceAsync(Request(principal, permission, entryPoint, target), http.RequestAborted).ConfigureAwait(false);
     }
 
     // 没有单一权限点的已认证入口只比对 identity_revision（S1-YUE-012）；执行端口取不到时与 EnforceAsync 同一映射（404）。
-    internal static async ValueTask<AuthorizationDecision?> CheckRevisionAsync(HttpContext http, AuthzEnforcementSource source, EnforcementSubject subject, string target)
+    internal static async ValueTask<AuthorizationDecision?> CheckRevisionAsync(HttpContext http, AuthzEnforcementSource source, Principal principal, string target)
     {
         IAuthzEnforcement enforcement;
         try { enforcement = source.Source(http).Enforcement(); }
         catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException) { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
-        return await enforcement.CheckIdentityRevisionAsync(new EnforcementRequest(subject, null, null, "api", AuthzEnforcement.HttpEntryPoint, target), http.RequestAborted).ConfigureAwait(false);
+        return await enforcement.CheckIdentityRevisionAsync(Request(principal, null, AuthzEnforcement.HttpEntryPoint, target), http.RequestAborted).ConfigureAwait(false);
     }
+
+    private static EnforcementRequest Request(Principal principal, string? permission, string entryPoint, string target) =>
+        new(new AuthorizationSubject(principal.Subject, principal.TenantId, Kind(principal.Kind)), principal.IdentityRevision,
+            principal.Actor is not null, permission, null, "api", entryPoint, target);
 
     internal static string Target(HttpContext http) => http.Request.Method + " " + ((http.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? http.Request.Path.Value ?? "/");
     internal static string Kind(PrincipalKind kind) => kind switch { PrincipalKind.User => "user", PrincipalKind.Service => "service", _ => "agent" };

@@ -50,6 +50,31 @@ public sealed class ConfigEndpointsTests
         """);
 
     [Fact]
+    public async Task 配置值端点传递已认证令牌的身份修订并遵从执行端口的拒绝()
+    {
+        var enforcement = new RecordingEnforcement { DeniedRevision = 3 };
+        await using var host = await ConfigHost.StartAsync(enforcement);
+        using var denied = await host.Get("/api/config/values/" + Plugin, Operator, null, revision: 3);
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        var request = Assert.Single(enforcement.Requests);
+        Assert.Equal(3L, request.IdentityRevision);
+        Assert.False(request.Delegated);
+
+        using var accepted = await host.Get("/api/config/values/" + Plugin, Operator, null, revision: 4);
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+    }
+
+    [Fact]
+    public async Task 配置宿主拒绝带委托链的令牌()
+    {
+        var enforcement = new RecordingEnforcement();
+        await using var host = await ConfigHost.StartAsync(enforcement);
+        using var denied = await host.Get("/api/config/values/" + Plugin, Operator, null, delegated: true);
+        Assert.Equal(HttpStatusCode.Unauthorized, denied.StatusCode);
+        Assert.Empty(enforcement.Requests);
+    }
+
+    [Fact]
     public async Task Schema对已认证调用方可读_配置值需平台主体且执行端口放行_敏感键只给键名()
     {
         var enforcement = new RecordingEnforcement();
@@ -201,12 +226,18 @@ public sealed class ConfigEndpointsTests
             catch { await app.DisposeAsync(); signing.Dispose(); await runtime.DisposeAsync(); await services.DisposeAsync(); throw; }
         }
 
-        public async Task<HttpResponseMessage> Get(string path, string subject, string? tenant)
+        public async Task<HttpResponseMessage> Get(string path, string subject, string? tenant, long revision = 0, bool delegated = false)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, path);
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
-            var payload = JsonSerializer.Serialize(new { iss = "config-http-test", aud = Audiences, sub = subject, principal_kind = "user", tenant_id = tenant,
-                identity_revision = 0, roles = Array.Empty<string>(), scope = "config.read", session_id = id, jti = id, iat = now, nbf = now, exp = now + 60 });
+            var claims = new Dictionary<string, object?>
+            {
+                ["iss"] = "config-http-test", ["aud"] = Audiences, ["sub"] = subject, ["principal_kind"] = "user", ["tenant_id"] = tenant,
+                ["identity_revision"] = revision, ["roles"] = Array.Empty<string>(), ["scope"] = "config.read", ["session_id"] = id, ["jti"] = id,
+                ["iat"] = now, ["nbf"] = now, ["exp"] = now + 60
+            };
+            if (delegated) claims["act"] = new { sub = Reader, principal_kind = "service" };
+            var payload = JsonSerializer.Serialize(claims);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", new JsonWebTokenHandler().CreateToken(payload, new SigningCredentials(_key, SecurityAlgorithms.RsaSha256)));
             return await Client.SendAsync(request, Ct);
         }
@@ -260,11 +291,14 @@ public sealed class ConfigEndpointsTests
     internal sealed class RecordingEnforcement : IAuthzEnforcement
     {
         private readonly List<EnforcementRequest> _requests = [];
+        public long? DeniedRevision { get; init; }
         public IReadOnlyList<EnforcementRequest> Requests { get { lock (_requests) return [.. _requests]; } }
         public ValueTask<AuthorizationDecision> EnforceAsync(EnforcementRequest request, CancellationToken cancellationToken = default)
         {
             lock (_requests) _requests.Add(request);
-            var (allow, reason) = request.Subject.Id switch
+            var (allow, reason) = DeniedRevision is { } denied && request.IdentityRevision == denied
+                ? (false, AuthzEnforcement.StaleIdentityRevision)
+                : request.Subject.Id switch
             {
                 Operator => (true, "granted"),
                 AuditGone => (false, AuthzEnforcement.AuditUnavailable),

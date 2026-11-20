@@ -230,7 +230,6 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
                 .AuthorizeAsync(new SuperadminAccess(Root, Read, A, null, "api"), Ct)).Reason);
             var expression = await ctx.Authz().DataPermissions.GetExpressionAsync<string>(owner, Ct);
             Assert.False(expression.Compile()("any-row"));
-            Assert.Equal("AUTHZ_DENIED", (await Assert.ThrowsAsync<ErrorException>(async () => await ctx.Authz().DataPermissions.GetPredicateAsync(owner, Ct))).Error.Code.Code);
             var fields = await ctx.Authz().Fields.EvaluateAsync(owner, ["name", "phone"], Ct);
             Assert.Empty(fields.Readable); Assert.Empty(fields.Writable); Assert.Empty(fields.Masked);
         }

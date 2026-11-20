@@ -703,10 +703,11 @@ public abstract partial class CustomerCommandTests
         return host.Send(request);
     }
 
-    private protected static Principal DirectPrincipal(DelegationActor? actor) => new()
+    private protected static Principal DirectPrincipal(DelegationActor? actor, long? identityRevision = null) => new()
     {
         Issuer = Issuer, Audience = [Audience], Subject = Writer, Kind = PrincipalKind.Service, TenantId = A, Roles = [], Scope = "crm.read crm.write",
-        SessionId = Guid.CreateVersion7().ToString(), TokenId = Guid.CreateVersion7().ToString(), IssuedAt = 1, NotBefore = 1, ExpiresAt = long.MaxValue, Actor = actor
+        SessionId = Guid.CreateVersion7().ToString(), TokenId = Guid.CreateVersion7().ToString(), IssuedAt = 1, NotBefore = 1, ExpiresAt = long.MaxValue,
+        Actor = actor, IdentityRevision = identityRevision
     };
 
     // 不经 HTTP 的已验证主体快照：直接交给 CapabilityService，观察端口自身的判定。

@@ -99,7 +99,7 @@ public static partial class ConfigEndpoints
         }
         var kind = principal.Kind switch { PrincipalKind.User => "user", PrincipalKind.Service => "service", _ => "agent" };
         var decision = await ctx.Enforcement().EnforceAsync(new EnforcementRequest(
-            new EnforcementSubject(principal.Subject, null, kind, principal.IdentityRevision, principal.Actor is not null),
+            new AuthorizationSubject(principal.Subject, null, kind), principal.IdentityRevision, principal.Actor is not null,
             ConfigDefinition.ValuesReadPermission, "config/values/" + plugin, "api", AuthzEnforcement.HttpEntryPoint, "GET " + ValuesRoute), http.RequestAborted).ConfigureAwait(false);
         if (decision.Allow) return;
         if (logger is not null) LogDenied(logger, decision.Reason, principal.Subject, ConfigDefinition.ValuesReadPermission);

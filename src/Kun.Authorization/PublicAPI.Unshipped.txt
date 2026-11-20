@@ -5,7 +5,6 @@ Kun.Authorization.AuthorizationSubject.Id.get -> string!
 Kun.Authorization.PermissionDecision.Reason.init -> void
 Kun.Authorization.AuthorizationSubject.Id.init -> void
 Kun.Authorization.PermissionDecision.Allow.init -> void
-Kun.Authorization.DataPermissionPredicate
 Kun.Authorization.PermissionDecision
 Kun.Authorization.PermissionRequest.Subject.get -> Kun.Authorization.AuthorizationSubject!
 Kun.Authorization.AuthorizationSubject
@@ -18,23 +17,15 @@ Kun.Authorization.AuthorizationSubject.TenantId.init -> void
 Kun.Authorization.PermissionRequest.Permission.get -> string!
 Kun.Authorization.PermissionRequest.Permission.init -> void
 Kun.Authorization.AuthorizationSubject.Kind.get -> string!
-Kun.Authorization.DataPermissionPredicate.Children.get -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.DataPermissionPredicate!>!
-Kun.Authorization.DataPermissionPredicate.Field.get -> string?
 Kun.Authorization.AuthorizationSubject.Kind.init -> void
-Kun.Authorization.DataPermissionPredicate.Children.init -> void
-Kun.Authorization.DataPermissionPredicate.Value.get -> System.Text.Json.JsonElement?
-Kun.Authorization.DataPermissionPredicate.Field.init -> void
-Kun.Authorization.DataPermissionPredicate.Value.init -> void
 Kun.Authorization.IFieldPolicy
 Kun.Authorization.IPermissionChecker
 Kun.Authorization.IDataPermissionFilter
 Kun.Authorization.FieldDecision.Writable.get -> System.Collections.Generic.IReadOnlyList<string!>!
 Kun.Authorization.FieldDecision.Masked.get -> System.Collections.Generic.IReadOnlyList<string!>!
 Kun.Authorization.FieldDecision.Readable.get -> System.Collections.Generic.IReadOnlyList<string!>!
-Kun.Authorization.DataPermissionPredicate.Operator.get -> string!
 Kun.Authorization.FieldDecision.Writable.init -> void
 Kun.Authorization.FieldDecision.Masked.init -> void
-Kun.Authorization.DataPermissionPredicate.Operator.init -> void
 Kun.Authorization.FieldDecision.Readable.init -> void
 Kun.Authorization.IPermissionProtectedRequest
 Kun.Authorization.RequiresPermissionAttribute.RequiresPermissionAttribute(string! permission) -> void
@@ -46,7 +37,6 @@ Kun.Authorization.IPermissionChecker.ExplainAsync(Kun.Authorization.PermissionRe
 Kun.Authorization.IFieldPolicy.EvaluateAsync(Kun.Authorization.PermissionRequest! request, System.Collections.Generic.IReadOnlyList<string!>! fields, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.FieldDecision!>
 Kun.Authorization.IPermissionChecker.ListAllowedActionsAsync(Kun.Authorization.AuthorizationSubject! subject, string! resourceType, string? resourceId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<string!>!>
 Kun.Authorization.IPermissionChecker.ListPermissionsAsync(Kun.Authorization.AuthorizationSubject! subject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<string!>!>
-Kun.Authorization.IDataPermissionFilter.GetPredicateAsync(Kun.Authorization.PermissionRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.DataPermissionPredicate!>
 Kun.Authorization.IDataPermissionFilter.GetExpressionAsync<T>(Kun.Authorization.PermissionRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Linq.Expressions.Expression<System.Func<T, bool>!>!>
 Kun.Authorization.IPermissionChecker.BatchCheckAsync(System.Collections.Generic.IReadOnlyList<Kun.Authorization.PermissionRequest!>! requests, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Authorization.PermissionDecision!>!>
 Kun.Authorization.PermissionRequest.ResourceId.get -> string?
@@ -55,14 +45,10 @@ Kun.Authorization.FieldDecision
 Kun.Authorization.RequiresPermissionAttribute
 Kun.Authorization.PermissionDecision.PermissionDecision(bool Allow, string! Reason, System.Collections.Generic.IReadOnlyList<string!>! MatchedPolicies) -> void
 Kun.Authorization.PermissionRequest.PermissionRequest(Kun.Authorization.AuthorizationSubject! Subject, string! Permission, string? ResourceId = null) -> void
-Kun.Authorization.DataPermissionPredicate.DataPermissionPredicate(string! Operator, string? Field, System.Text.Json.JsonElement? Value, System.Collections.Generic.IReadOnlyList<Kun.Authorization.DataPermissionPredicate!>! Children) -> void
 Kun.Authorization.AuthorizationSubject.AuthorizationSubject(string! Id, string? TenantId, string! Kind = "user") -> void
 Kun.Authorization.AuthorizationSubject.<Clone>$() -> Kun.Authorization.AuthorizationSubject!
 Kun.Authorization.AuthorizationSubject.Deconstruct(out string! Id, out string? TenantId, out string! Kind) -> void
 Kun.Authorization.AuthorizationSubject.Equals(Kun.Authorization.AuthorizationSubject? other) -> bool
-Kun.Authorization.DataPermissionPredicate.<Clone>$() -> Kun.Authorization.DataPermissionPredicate!
-Kun.Authorization.DataPermissionPredicate.Deconstruct(out string! Operator, out string? Field, out System.Text.Json.JsonElement? Value, out System.Collections.Generic.IReadOnlyList<Kun.Authorization.DataPermissionPredicate!>! Children) -> void
-Kun.Authorization.DataPermissionPredicate.Equals(Kun.Authorization.DataPermissionPredicate? other) -> bool
 Kun.Authorization.FieldDecision.<Clone>$() -> Kun.Authorization.FieldDecision!
 Kun.Authorization.FieldDecision.Deconstruct(out System.Collections.Generic.IReadOnlyList<string!>! Readable, out System.Collections.Generic.IReadOnlyList<string!>! Writable, out System.Collections.Generic.IReadOnlyList<string!>! Masked) -> void
 Kun.Authorization.FieldDecision.Equals(Kun.Authorization.FieldDecision? other) -> bool
@@ -75,9 +61,6 @@ Kun.Authorization.PermissionRequest.Equals(Kun.Authorization.PermissionRequest? 
 override Kun.Authorization.AuthorizationSubject.Equals(object? obj) -> bool
 override Kun.Authorization.AuthorizationSubject.GetHashCode() -> int
 override Kun.Authorization.AuthorizationSubject.ToString() -> string!
-override Kun.Authorization.DataPermissionPredicate.Equals(object? obj) -> bool
-override Kun.Authorization.DataPermissionPredicate.GetHashCode() -> int
-override Kun.Authorization.DataPermissionPredicate.ToString() -> string!
 override Kun.Authorization.FieldDecision.Equals(object? obj) -> bool
 override Kun.Authorization.FieldDecision.GetHashCode() -> int
 override Kun.Authorization.FieldDecision.ToString() -> string!
@@ -89,8 +72,6 @@ override Kun.Authorization.PermissionRequest.GetHashCode() -> int
 override Kun.Authorization.PermissionRequest.ToString() -> string!
 static Kun.Authorization.AuthorizationSubject.operator !=(Kun.Authorization.AuthorizationSubject? left, Kun.Authorization.AuthorizationSubject? right) -> bool
 static Kun.Authorization.AuthorizationSubject.operator ==(Kun.Authorization.AuthorizationSubject? left, Kun.Authorization.AuthorizationSubject? right) -> bool
-static Kun.Authorization.DataPermissionPredicate.operator !=(Kun.Authorization.DataPermissionPredicate? left, Kun.Authorization.DataPermissionPredicate? right) -> bool
-static Kun.Authorization.DataPermissionPredicate.operator ==(Kun.Authorization.DataPermissionPredicate? left, Kun.Authorization.DataPermissionPredicate? right) -> bool
 static Kun.Authorization.FieldDecision.operator !=(Kun.Authorization.FieldDecision? left, Kun.Authorization.FieldDecision? right) -> bool
 static Kun.Authorization.FieldDecision.operator ==(Kun.Authorization.FieldDecision? left, Kun.Authorization.FieldDecision? right) -> bool
 static Kun.Authorization.PermissionDecision.operator !=(Kun.Authorization.PermissionDecision? left, Kun.Authorization.PermissionDecision? right) -> bool

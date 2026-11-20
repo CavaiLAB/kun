@@ -8,6 +8,11 @@
 
 ## [Unreleased]
 
+### Changed — 权限执行请求与数据过滤（S1-KUN-027）
+
+- HTTP、gRPC、命令和配置入口使用 `Kun.Authorization.AuthorizationSubject`。把 `EnforcementSubject` 的身份修订、委托状态改传给 `EnforcementRequest` 的必填参数 `IdentityRevision` 与 `Delegated`。修订为空的令牌仍需显式传 `null`。
+- `IDataPermissionFilter` 的进程内过滤使用 `GetExpressionAsync<T>`。序列化的数据范围采用数据契约的 `filter-ast.schema.json` 和权限的数据范围计划。删除 `DataPermissionPredicate` 和 `GetPredicateAsync`。
+
 ### Changed — 权限包、组件入口与计量器（S1-KUN-027）
 
 - 将包引用与命名空间从 `Qian.Authz.Abstractions`、`Qian.Authz`、`Qian.Authz.AspNetCore` 分别改为 `Kun.Authorization.Rbac.Abstractions`、`Kun.Authorization.Rbac`、`Kun.Authorization.AspNetCore`。

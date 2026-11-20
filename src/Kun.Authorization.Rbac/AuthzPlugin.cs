@@ -156,9 +156,6 @@ internal sealed class AuthzService(RbacPermissionChecker checker) : IAuthzServic
     {
         public ValueTask<Expression<Func<T, bool>>> GetExpressionAsync<T>(PermissionRequest request, CancellationToken cancellationToken = default) =>
             ValueTask.FromResult<Expression<Func<T, bool>>>(_ => false);
-        // 谓词 AST 还没有「恒假」的约定词汇，返回任何谓词都可能被编译器当作放宽；直接拒绝。
-        public ValueTask<DataPermissionPredicate> GetPredicateAsync(PermissionRequest request, CancellationToken cancellationToken = default) =>
-            throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
     }
 
     private sealed class DenyAllFields : IFieldPolicy

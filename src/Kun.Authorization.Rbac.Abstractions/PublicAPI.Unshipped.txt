@@ -248,25 +248,10 @@ Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Permission.get -> string?
 Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Permission.init -> void
 Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Resource.get -> string?
 Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Resource.init -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Subject.get -> Kun.Authorization.Rbac.Abstractions.EnforcementSubject!
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Subject.get -> Kun.Authorization.AuthorizationSubject!
 Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Subject.init -> void
 Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Target.get -> string!
 Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Target.init -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.EnforcementSubject!
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Deconstruct(out string! Id, out string? TenantId, out string! Kind, out long? IdentityRevision, out bool Delegated) -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Delegated.get -> bool
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Delegated.init -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.EnforcementSubject(string! Id, string? TenantId, string! Kind, long? IdentityRevision = null, bool Delegated = false) -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Equals(Kun.Authorization.Rbac.Abstractions.EnforcementSubject? other) -> bool
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Id.get -> string!
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Id.init -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.IdentityRevision.get -> long?
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.IdentityRevision.init -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Kind.get -> string!
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Kind.init -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.TenantId.get -> string?
-Kun.Authorization.Rbac.Abstractions.EnforcementSubject.TenantId.init -> void
 Kun.Authorization.Rbac.Abstractions.IAuthzEnforcement
 Kun.Authorization.Rbac.Abstractions.IAuthzEnforcement.EnforceAsync(Kun.Authorization.Rbac.Abstractions.EnforcementRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.Rbac.Abstractions.AuthorizationDecision!>
 Kun.Authorization.Rbac.Abstractions.RoleBinding
@@ -306,9 +291,6 @@ override Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.GetHashCode()
 override Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Equals(object? obj) -> bool
 override Kun.Authorization.Rbac.Abstractions.EnforcementRequest.GetHashCode() -> int
 override Kun.Authorization.Rbac.Abstractions.EnforcementRequest.ToString() -> string!
-override Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Equals(object? obj) -> bool
-override Kun.Authorization.Rbac.Abstractions.EnforcementSubject.GetHashCode() -> int
-override Kun.Authorization.Rbac.Abstractions.EnforcementSubject.ToString() -> string!
 override Kun.Authorization.Rbac.Abstractions.RoleBinding.Equals(object? obj) -> bool
 override Kun.Authorization.Rbac.Abstractions.RoleBinding.GetHashCode() -> int
 override Kun.Authorization.Rbac.Abstractions.RoleBinding.ToString() -> string!
@@ -326,8 +308,6 @@ static Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.operator !=(Kun
 static Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.operator ==(Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent? left, Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent? right) -> bool
 static Kun.Authorization.Rbac.Abstractions.EnforcementRequest.operator !=(Kun.Authorization.Rbac.Abstractions.EnforcementRequest? left, Kun.Authorization.Rbac.Abstractions.EnforcementRequest? right) -> bool
 static Kun.Authorization.Rbac.Abstractions.EnforcementRequest.operator ==(Kun.Authorization.Rbac.Abstractions.EnforcementRequest? left, Kun.Authorization.Rbac.Abstractions.EnforcementRequest? right) -> bool
-static Kun.Authorization.Rbac.Abstractions.EnforcementSubject.operator !=(Kun.Authorization.Rbac.Abstractions.EnforcementSubject? left, Kun.Authorization.Rbac.Abstractions.EnforcementSubject? right) -> bool
-static Kun.Authorization.Rbac.Abstractions.EnforcementSubject.operator ==(Kun.Authorization.Rbac.Abstractions.EnforcementSubject? left, Kun.Authorization.Rbac.Abstractions.EnforcementSubject? right) -> bool
 static Kun.Authorization.Rbac.Abstractions.RoleBinding.operator !=(Kun.Authorization.Rbac.Abstractions.RoleBinding? left, Kun.Authorization.Rbac.Abstractions.RoleBinding? right) -> bool
 static Kun.Authorization.Rbac.Abstractions.RoleBinding.operator ==(Kun.Authorization.Rbac.Abstractions.RoleBinding? left, Kun.Authorization.Rbac.Abstractions.RoleBinding? right) -> bool
 static readonly Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.Key -> Kun.Runtime.ServiceKey
@@ -342,11 +322,15 @@ Kun.Authorization.Rbac.Abstractions.ITenantRoleGrant.BindAsync(Kun.Authorization
 Kun.Authorization.Rbac.Abstractions.PermissionEnforcedInHandlerAttribute
 Kun.Authorization.Rbac.Abstractions.PermissionEnforcedInHandlerAttribute.PermissionEnforcedInHandlerAttribute(string! reason) -> void
 Kun.Authorization.Rbac.Abstractions.PermissionEnforcedInHandlerAttribute.Reason.get -> string!
-Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Deconstruct(out Kun.Authorization.Rbac.Abstractions.EnforcementSubject! Subject, out string? Permission, out string? Resource, out string! Channel, out string! EntryPoint, out string! Target, out System.Data.Common.DbTransaction? Transaction) -> void
-Kun.Authorization.Rbac.Abstractions.EnforcementRequest.EnforcementRequest(Kun.Authorization.Rbac.Abstractions.EnforcementSubject! Subject, string? Permission, string? Resource, string! Channel, string! EntryPoint, string! Target, System.Data.Common.DbTransaction? Transaction = null) -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Deconstruct(out Kun.Authorization.AuthorizationSubject! Subject, out long? IdentityRevision, out bool Delegated, out string? Permission, out string? Resource, out string! Channel, out string! EntryPoint, out string! Target, out System.Data.Common.DbTransaction? Transaction) -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.EnforcementRequest(Kun.Authorization.AuthorizationSubject! Subject, long? IdentityRevision, bool Delegated, string? Permission, string? Resource, string! Channel, string! EntryPoint, string! Target, System.Data.Common.DbTransaction? Transaction = null) -> void
 Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Transaction.get -> System.Data.Common.DbTransaction?
 Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Transaction.init -> void
 const Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.AuditUnavailable = "audit_unavailable" -> string!
 const Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.StaleIdentityRevision = "identity_revision_stale" -> string!
 Kun.Authorization.Rbac.Abstractions.IAuthzEnforcement.CheckIdentityRevisionAsync(Kun.Authorization.Rbac.Abstractions.EnforcementRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.Rbac.Abstractions.AuthorizationDecision?>
 Kun.Authorization.Rbac.Abstractions.ITenantRoleGrant.RevokeAsync(string! roleCode, string! subjectType, string! subjectId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Delegated.get -> bool
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Delegated.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.IdentityRevision.get -> long?
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.IdentityRevision.init -> void

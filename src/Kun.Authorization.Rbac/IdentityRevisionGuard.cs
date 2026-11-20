@@ -14,9 +14,10 @@ namespace Kun.Authorization.Rbac;
 internal sealed class IdentityRevisionGuard(IDataService data, ITenantContext tenant)
 {
     // 返回 null 表示通过；否则为稳定拒绝原因。
-    internal async ValueTask<string?> CheckAsync(EnforcementSubject subject, CancellationToken ct)
+    internal async ValueTask<string?> CheckAsync(EnforcementRequest request, CancellationToken ct)
     {
-        if (subject.IdentityRevision is not { } presented || subject.TenantId is null) return null;
+        var subject = request.Subject;
+        if (request.IdentityRevision is not { } presented || subject.TenantId is null) return null;
         if (presented < 0) return AuthzEnforcement.StaleIdentityRevision;
         var owner = tenant.TenantId?.ToString("D")!;
         await using var session = await data.OpenAsync<AuthzDbContext>(ct).ConfigureAwait(false);

@@ -1,0 +1,4 @@
+#nullable enable
+Kun.GateSample.Stale.Greeter
+static Kun.GateSample.Stale.Greeter.Greet(string! name) -> string!
+static Kun.GateSample.Stale.Greeter.Farewell(string! name) -> string!

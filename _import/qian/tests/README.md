@@ -163,7 +163,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 ### 4.1 PublicAPI（C1 / G4）
 
 - 受约束的是**可打包的项目**：项目里写了 `<IsPackable>true</IsPackable>`，不看包名，仓库根 `src/` 下的 Kun 包同样受约束（S1-KUN-020）。本目录的 [Directory.Build.props](../Directory.Build.props) 默认不打包，宿主、样例、测试都不受约束。
-- 可打包的项目自动接入 `Microsoft.CodeAnalysis.PublicApiAnalyzers`（仓库根的 `Directory.Build.targets`）。项目目录必须有 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`，缺了报 QIAN0001。
+- 可打包的项目自动接入 `Microsoft.CodeAnalysis.PublicApiAnalyzers`（仓库根的 `Directory.Build.targets`）。项目目录必须有 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`，缺了报 KUNAPI001。
 - 新增公共 API 没登记报 RS0016，登记了但代码里已删除报 RS0017，都是编译错误。新 API 先登记进 Unshipped，发布时并入 Shipped；破坏性变更要引用 ADR（C1）。IDE 对 RS0016 的代码修复「添加到公共 API」会生成登记行。
 
 一个可打包项目的目录至少有：
@@ -193,7 +193,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 | `publicapi/Qian.GateSample.Declared` | 构建通过 |
 | `publicapi/Qian.GateSample.Undeclared` | RS0016，构建失败 |
 | `publicapi/Qian.GateSample.Stale` | RS0017，构建失败 |
-| `publicapi/Qian.GateSample.NoApiFiles` | QIAN0001，构建失败 |
+| `publicapi/Qian.GateSample.NoApiFiles` | KUNAPI001，构建失败 |
 | `publicapi/GateSample.NotPackable` | 构建通过：不打包的项目不受约束 |
 | 仓库根 `tests/gates/test_check_deps.py` 与 `tests/gates/depgraph/` | 依赖门禁的自测（见仓库根 `AGENTS.md`「档位与依赖」）。S1-RT-014（SDK 包族的完整传递依赖里没有平台档的提供者，也没有 `Kun.Registry` / `Kun.Lifecycle` / `Kun.Capabilities`）与 S1-IDP-007（OIDC 连接器不依赖 `Kun.Identity.Server`）两条验收在它的 `RealGraphTests` 里，读真实依赖图 |
 | `test_dotnet_release.py`（合成 `.nupkg`，不需要 dotnet 与网络） | 包族锁步发布的制品核对：缺包、多包、版本不一致、包族内依赖下限未钉同一版本或指向包族外、源生成器包带 `lib/` 或不是开发依赖、许可证与仓库地址缺失都失败；版本号须为不带前缀与构建元数据的 SemVer 2.0；推送后的包源核对缺包、仓库关联不符、可见性与仓库不一致或缺版本都失败（S1-RT-014） |
@@ -241,9 +241,9 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 
 ## 旧 Kun API 门禁（S1-KUN-006、S1-KUN-004）
 
-仓库根的 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030。作用域按档位（S1-KUN-020，仓库根的 `Directory.Build.targets`）：平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`）接入；过渡期本目录下的项目全部接入，去内核档的包也在内，各域批次把包搬出本目录时再按归属收窄；仓库根的 Kun 项目不接，被禁的类型就定义在那里。下面几道分析器门禁（QIAN0002–QIAN0006）的作用域相同。`tests/gates/bannedapi` 的样例通过项目引用编译真实接口，覆盖受限制的服务身份 API 和可用的存储 API。
+仓库根的 `BannedSymbols.txt` 与 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 对实际 API 使用产生编译错误 RS0030。作用域按档位（S1-KUN-020，仓库根的 `Directory.Build.targets`）：平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`）接入；过渡期本目录下的项目全部接入，去内核档的包也在内，各域批次把包搬出本目录时再按归属收窄；仓库根的 Kun 项目不接，被禁的类型就定义在那里。下面几道分析器门禁（KUNLEGACY002–KUNEVENT001）的作用域相同。`tests/gates/bannedapi` 的样例通过项目引用编译真实接口，覆盖受限制的服务身份 API 和可用的存储 API。
 
-标准分析器覆盖符号使用（例如 typeof、调用、构造）；`tools/Qian.Build.Analyzers` 使用同一清单补齐未使用的参数、字段、返回类型等声明，并发出 QIAN0002。负例包含纯参数声明，不依赖上游新包的 Obsolete 标记。
+标准分析器覆盖符号使用（例如 typeof、调用、构造）；`tools/Kun.Build.Analyzers` 使用同一清单补齐未使用的参数、字段、返回类型等声明，并发出 KUNLEGACY002。负例包含纯参数声明，不依赖上游新包的 Obsolete 标记。
 
 执行 `python3 -m unittest discover -s tests/gates`，同时验证 PublicAPI 与旧 API 的正反例（依赖门禁的自测在仓库根的 `tests/gates/`）。样例按项目引用 Kun 源码，Kun 的改动合入即进入这些正反例。
 
@@ -253,21 +253,21 @@ S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` �
 
 ## 数据安全编译门禁（S1-DATA-001）
 
-`DataBoundaryAnalyzer` 对非测试项目中直接或间接继承 EF `DbContext`、却不继承 `KunStrictDbContext` 的上下文报 QIAN0003。测试项目可定义验证用的上下文；编译样例显式设置 `IsTestProject=false` 模拟在线代码，不因位于 tests 目录而豁免。
+`DataBoundaryAnalyzer` 对非测试项目中直接或间接继承 EF `DbContext`、却不继承 `KunStrictDbContext` 的上下文报 KUNDATA001。测试项目可定义验证用的上下文；编译样例显式设置 `IsTestProject=false` 模拟在线代码，不因位于 tests 目录而豁免。
 
-接入分析器的项目里，对 EF `IgnoreQueryFilters` 的调用和方法委托引用报 QIAN0004，按语义符号识别，其他类的同名方法不误报。`test_data_boundary.py` 验证五组真实 EF 正反例，负例即使关闭 TreatWarningsAsErrors 也必须失败。真库隔离测试使用受限应用角色的原生 SQL，不调用过滤器旁路。
+接入分析器的项目里，对 EF `IgnoreQueryFilters` 的调用和方法委托引用报 KUNDATA002，按语义符号识别，其他类的同名方法不误报。`test_data_boundary.py` 验证五组真实 EF 正反例，负例即使关闭 TreatWarningsAsErrors 也必须失败。真库隔离测试使用受限应用角色的原生 SQL，不调用过滤器旁路。
 
 ### 受保护命令注册门禁（S1-AZ-001）
 
-QIAN0005 在接入分析器的项目里检查真正的 Kun `AddRequestHandler`：受保护请求或未确定请求类型的泛型封装必须改用 `Kun.Authorization.Rbac.Abstractions.AddAuthorizedHandler`，同一入口将处理器与权限行为登记到同一个 builder。两个重载、方法组引用、生成代码均受检查；关闭警告即错误不会降低规则。
+KUNAUTHZ001 在接入分析器的项目里检查真正的 Kun `AddRequestHandler`：受保护请求或未确定请求类型的泛型封装必须改用 `Kun.Authorization.Rbac.Abstractions.AddAuthorizedHandler`，同一入口将处理器与权限行为登记到同一个 builder。两个重载、方法组引用、生成代码均受检查；关闭警告即错误不会降低规则。
 
 `python3 -m unittest discover -s tests/gates -p test_authorized_handler.py` 编译八组真实样例：直接注册、能力注册、委托引用、泛型包装、应用伪造桥接类必须失败；安全入口、普通请求及无关同名方法必须通过。运行时拒绝/放行顺序由 Kun.Authorization.Rbac.Abstractions.Tests 验证。
 
 ### 集成事件发布位置门禁（S1-EVT-001）
 
-QIAN0006 落实「集成事件只能在命令 handler 同 scope 发出」：对 Kun `IIntegrationEventBus.Publish` 与 `IOutboxWriter.Enqueue` 的调用和方法组引用，只允许出现在写命令 handler（处理 Kun `ICommand`，或处理 `[Capability]` 且 SideEffect 不为 read 的请求）与领域事件通知 handler 内；直接向 Kun 缓冲器追加消息（`IntegrationEventBuffer.Add`、`IIntegrationEventOutbox.Add`）会绕过 v1 信封，只允许出现在 Outbox 写入端（实现 `IOutboxWriter` 或 `IIntegrationEventBus` 的类型）里。测试项目（引用了 xUnit 的编译）不受检查。运行时由 SDK 命令管道开启的事件来源作用域兜底，作用域外发布被拒绝。
+KUNEVENT001 落实「集成事件只能在命令 handler 同 scope 发出」：对 Kun `IIntegrationEventBus.Publish` 与 `IOutboxWriter.Enqueue` 的调用和方法组引用，只允许出现在写命令 handler（处理 Kun `ICommand`，或处理 `[Capability]` 且 SideEffect 不为 read 的请求）与领域事件通知 handler 内；直接向 Kun 缓冲器追加消息（`IntegrationEventBuffer.Add`、`IIntegrationEventOutbox.Add`）会绕过 v1 信封，只允许出现在 Outbox 写入端（实现 `IOutboxWriter` 或 `IIntegrationEventBus` 的类型）里。测试项目（引用了 xUnit 的编译）不受检查。运行时由 SDK 命令管道开启的事件来源作用域兜底，作用域外发布被拒绝。
 
-`python3 -m unittest discover -s tests/gates -p test_event_publish_scope.py` 编译 `tests/gates/events` 下八组真实样例：命令 handler、领域事件 handler、写能力和无关同名方法必须通过；查询 handler、只读能力、后台服务和直接写缓冲器必须以 QIAN0006 失败。
+`python3 -m unittest discover -s tests/gates -p test_event_publish_scope.py` 编译 `tests/gates/events` 下八组真实样例：命令 handler、领域事件 handler、写能力和无关同名方法必须通过；查询 handler、只读能力、后台服务和直接写缓冲器必须以 KUNEVENT001 失败。
 
 ### 能力契约的真实兼容检查
 

@@ -1,1 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../../../../../../src/Kun.Storage.Abstractions/Kun.Storage.Abstractions.csproj" /></ItemGroup></Project>

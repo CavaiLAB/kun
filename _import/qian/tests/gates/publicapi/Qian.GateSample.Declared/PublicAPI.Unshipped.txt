@@ -1,3 +1,0 @@
-#nullable enable
-Qian.GateSample.Declared.Greeter
-static Qian.GateSample.Declared.Greeter.Greet(string! name) -> string!

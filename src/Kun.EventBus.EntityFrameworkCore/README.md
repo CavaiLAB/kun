@@ -42,7 +42,7 @@ builder.Services.AddKunOutboxRelay(); // 已登记的严格上下文
 - 类型未登记，或缺少 JsonTypeInfo；
 - 租户不是 UUID。
 
-编译期规则 QIAN0006 限定发布位置：只允许写命令 handler（Kun `ICommand`，或 `[Capability]` 中 SideEffect 不为 read）与领域事件通知 handler。在查询、后台服务等处调用 `Publish` / `Enqueue` 直接编译失败；直接向 `IntegrationEventBuffer.Add` 写入只允许出现在写入端实现里。规则与正反例见 [tests/README.md](../../_import/qian/tests/README.md#集成事件发布位置门禁s1-evt-001)。
+编译期规则 KUNEVENT001 限定发布位置：只允许写命令 handler（Kun `ICommand`，或 `[Capability]` 中 SideEffect 不为 read）与领域事件通知 handler。在查询、后台服务等处调用 `Publish` / `Enqueue` 直接编译失败；直接向 `IntegrationEventBuffer.Add` 写入只允许出现在写入端实现里。规则与正反例见 [tests/README.md](../../_import/qian/tests/README.md#集成事件发布位置门禁s1-evt-001)。
 
 ## 投递
 
@@ -175,7 +175,7 @@ handler 想明确表示「重试也不会成功」时，抛携带 EVENTS_CONSUME
 
 - Kun `MessageContext` 由信封填充：MessageId 为 event_id，EventType 为 type，TraceParent 为 trace_parent，TenantId 为 tenant_id，OccurredOn 为 occurred_at。
 - 需要 producer、actor、correlation_id、causation_id 等完整信封时，在 handler 构造函数里注入 `KunEventDelivery`（订阅器在每条消息的作用域里提供，另带订阅名、消费者名与第几次投递）。
-- handler 里不要直接调用 `IIntegrationEventBus.Publish` 或 `IOutboxWriter.Enqueue`：QIAN0006 只放行命令 handler 与领域事件通知 handler，要发后续事件经 `ISender` 发命令。
+- handler 里不要直接调用 `IIntegrationEventBus.Publish` 或 `IOutboxWriter.Enqueue`：KUNEVENT001 只放行命令 handler 与领域事件通知 handler，要发后续事件经 `ISender` 发命令。
 
 ### 指标与选项
 

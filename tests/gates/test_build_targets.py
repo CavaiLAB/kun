@@ -29,9 +29,9 @@ import check_deps  # noqa: E402
 
 AOT_SAMPLES = ROOT / "tests" / "gates" / "aot"
 TRANSITIONAL = ROOT / "_import" / "qian"
-ANALYZERS = TRANSITIONAL / "tools" / "Qian.Build.Analyzers" / "Qian.Build.Analyzers.csproj"
+ANALYZERS = ROOT / "tools" / "Kun.Build.Analyzers" / "Kun.Build.Analyzers.csproj"
 NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI") == "true", "本机没有 dotnet")
-PROPERTIES = ("IsPackable", "KunTier", "KunHost", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
+PROPERTIES = ("IsPackable", "KunTier", "KunHost", "KunPlatformAnalyzers", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
               "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
 ITEMS = ("PackageReference", "ProjectReference", "AdditionalFiles")
 HOSTS = {"Kun.Platform.Host", "Kun.Gateway.Host", "Kun.Gateway.Standalone"}
@@ -300,10 +300,10 @@ class PublicApiTests(unittest.TestCase):
 class AnalyzerScopeTests(unittest.TestCase):
     """禁用符号与平台分析器只接平台档的包、宿主与 _import/qian/ 下的全部项目。"""
 
-    def test_scope_follows_tier_host_and_transitional_directory(self):
+    def test_scope_follows_tier_host_and_explicit_sample_setting(self):
         banned = (ROOT / "BannedSymbols.txt").resolve()
         for path, (props, items) in evaluated().items():
-            expected = props.get("KunTier") == "platform" or is_true(props, "KunHost") or TRANSITIONAL in path.parents
+            expected = props.get("KunTier") == "platform" or is_true(props, "KunHost") or is_true(props, "KunPlatformAnalyzers")
             with self.subTest(project=path.stem):
                 self.assertEqual(expected, is_true(props, "_KunPlatformAnalyzers"))
                 self.assertEqual(expected, "Microsoft.CodeAnalysis.BannedApiAnalyzers" in package_ids(items))
@@ -311,20 +311,24 @@ class AnalyzerScopeTests(unittest.TestCase):
                 if path.resolve() != ANALYZERS.resolve():
                     self.assertEqual(expected, ANALYZERS.resolve() in analyzer_references(items, path))
 
-    def test_hosts_transitional_directory_and_kun_projects(self):
+    def test_solution_uses_tier_and_host_declarations(self):
         projects = evaluated()
         self.assertEqual(HOSTS, {p.stem for p, (props, _) in projects.items() if is_true(props, "KunHost")})
-        # 过渡期 _import/qian/ 下的项目全部受检，内核档的包也在内：它们不定义被禁的类型，却够得着被禁的入口。
-        # 有人按档位或 IsPackable 把过渡目录下的包放出去，这里列出漏接的项目。各域批次把包搬出过渡目录时再按归属收窄。
-        transitional = {p: props for p, (props, _) in projects.items() if TRANSITIONAL in p.parents}
-        self.assertTrue(transitional, "过渡目录已清空，应一起收回该目录的分析器作用域")
-        self.assertEqual(set(), {p.stem for p, props in transitional.items() if not is_true(props, "_KunPlatformAnalyzers")})
-        # 仓库根上的项目：接入的正好是平台档的包与宿主，搬出过渡目录的内核档包与测试不接（D27）。
-        outside = {p: props for p, (props, _) in projects.items() if TRANSITIONAL not in p.parents}
-        self.assertTrue(any(props.get("KunTier") == "platform" for props in outside.values()),
-                        "仓库根上已没有平台档的项目：下面这条测不到平台档那一支，改这里")
-        self.assertEqual({p.stem for p, props in outside.items() if props.get("KunTier") == "platform" or is_true(props, "KunHost")},
-                         {p.stem for p, props in outside.items() if is_true(props, "_KunPlatformAnalyzers")})
+        self.assertTrue(any(props.get("KunTier") == "platform" for props, _ in projects.values()))
+        self.assertEqual([], [p.stem for p, (props, _) in projects.items()
+                              if props.get("KunPlatformAnalyzers") or "<KunPlatformAnalyzers" in p.read_text(encoding="utf-8")])
+
+    def test_sample_analyzers_are_explicit(self):
+        for group in ("authz", "bannedapi", "data", "events"):
+            for project in (ROOT / "tests/gates" / group).glob("*/*.csproj"):
+                with self.subTest(sample=project):
+                    props = msbuild_evaluate(project, ("_KunPlatformAnalyzers", "IsPackable"))["Properties"]
+                    self.assertTrue(is_true(props, "_KunPlatformAnalyzers"))
+                    self.assertFalse(is_true(props, "IsPackable"))
+        sample = ROOT / "tests/gates/publicapi/GateSample.NotPackable/GateSample.NotPackable.csproj"
+        props = msbuild_evaluate(sample, ("_KunPlatformAnalyzers", "IsPackable"))["Properties"]
+        self.assertFalse(is_true(props, "_KunPlatformAnalyzers"))
+        self.assertFalse(is_true(props, "IsPackable"))
 
     def test_banned_symbols_list_lives_at_the_root(self):
         self.assertTrue((ROOT / "BannedSymbols.txt").is_file())

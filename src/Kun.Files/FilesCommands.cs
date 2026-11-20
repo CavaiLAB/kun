@@ -202,7 +202,7 @@ internal sealed class DeleteFileHandler(CommandDataSession<FilesDbContext> work)
     public async ValueTask<FileDescriptor> Handle(DeleteFileCommand request, CancellationToken cancellationToken)
     {
         if (request.IdempotencyKey == Guid.Empty) throw PresignUploadHandler.Invalid("idempotencyKey");
-        // 软删的行被全局过滤器隐藏：重复删除返回 404，不会再次产生副作用（QIAN0004 不允许绕过过滤器取回原行）。
+        // 软删的行被全局过滤器隐藏：重复删除返回 404，不会再次产生副作用（KUNDATA002 不允许绕过过滤器取回原行）。
         var file = await work.Context.Files.SingleOrDefaultAsync(row => row.Id == request.FileId, cancellationToken).ConfigureAwait(false)
             ?? throw new ErrorException(new Error(PlatformErrors.NotFound));
         var published = file.Status == FileStatus.Available;

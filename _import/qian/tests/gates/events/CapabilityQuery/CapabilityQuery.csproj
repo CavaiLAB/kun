@@ -1,5 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
- <PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors><NoWarn>$(NoWarn);CS1591</NoWarn></PropertyGroup>
- <!-- 能力声明在内核档的 SDK；写入集成事件的 IOutboxWriter 经数据契约来，与别的样例一样。 -->
- <ItemGroup><ProjectReference Include="../../../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /><ProjectReference Include="../../../../../../src/Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" /></ItemGroup>
-</Project>

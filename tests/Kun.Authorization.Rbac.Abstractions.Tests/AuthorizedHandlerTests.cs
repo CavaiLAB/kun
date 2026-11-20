@@ -115,9 +115,9 @@ public sealed class AuthorizedHandlerTests
     }
 
     [Fact]
-    public void Reflection_registration_that_bypasses_QIAN0005_is_refused_before_any_handler_runs()
+    public void Reflection_registration_that_bypasses_KUNAUTHZ001_is_refused_before_any_handler_runs()
     {
-        // QIAN0005 只在编译期拦截；反射注册由 Kun 2026.10.13 起的 Mediator 构建期兜底拒绝（S1-KUN-014，S1-DEC-019 R66）。
+        // KUNAUTHZ001 只在编译期拦截；反射注册由 Kun 2026.10.13 起的 Mediator 构建期兜底拒绝（S1-KUN-014，S1-DEC-019 R66）。
         var calls = new List<string>();
         var services = new ServiceCollection();
         services.AddSingleton(calls);

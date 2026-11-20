@@ -73,14 +73,15 @@ AREAS: Dict[str, Area] = {
             q("**", "!pm/**", "!docs/**", "!*.md", "docs/generated/**", "docs/ops/configuration-runbook.md"),
             # 仓库根的 .NET 代码、宿主、测试、样例、基准与脚本；Markdown 不算，打进网关包的 GATEWAY.md 除外。
             ("src/**", "hosts/**", "tests/**", "samples/**", "benchmarks/**", "tools/**", "scripts/**", "!**/*.md",
-             "src/Kun.Gateway/GATEWAY.md", ".gitattributes"),
+             "src/Kun.Gateway/GATEWAY.md", "tools/Kun.Build.Analyzers/AnalyzerReleases.*.md", ".gitattributes"),
             DOTNET_BASE,
         ),
         original="dotnet.yml", builds_dotnet=True),
     "images": Area(
         "镜像自检",
         (
-            q("deploy/images/**", "tools/Qian.Build.Analyzers/**", "scripts/images.py",
+            ("tools/Kun.Build.Analyzers/**",),
+            q("deploy/images/**", "scripts/images.py",
               "scripts/prepare_image_tools.py", "scripts/image-tools.lock.json", "tests/gates/test_images.py",
               "profiles/**", "plugins/**",
               "schemas/**",
@@ -117,8 +118,9 @@ AREAS: Dict[str, Area] = {
     "dev-tenant-ops": Area(
         "租户运营手测环境",
         (
+            ("tools/Kun.Build.Analyzers/**",),
             q("packages/**", "samples/**", "plugins/**", "schemas/**", "contracts/**",
-              "tools/Qian.Build.Analyzers/**", "scripts/dev-tenant-ops.sh", "*.props", "*.targets",
+              "scripts/dev-tenant-ops.sh", "*.props", "*.targets",
               ".editorconfig", ".github/workflows/dev-tenant-ops.yml"),
             (".github/workflows/qian-dev-tenant-ops.yml",),
             ("tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),
@@ -128,9 +130,10 @@ AREAS: Dict[str, Area] = {
     "directory-e2e": Area(
         "目录选择器验收",
         (
+            ("tools/Kun.Build.Analyzers/**",),
             q("tests/directory-e2e/**", "tests/gates/ui/pins.test.ts",
               "plugins/**", "schemas/**", "contracts/**",
-              "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
+              "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
               "Directory.*.props", "Directory.Build.targets", ".editorconfig",
               "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "turbo.json", ".github/workflows/directory-e2e.yml"),
             (".github/workflows/qian-directory-e2e.yml", "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json"),
@@ -141,10 +144,11 @@ AREAS: Dict[str, Area] = {
     "shell-auth": Area(
         "外壳认证验收",
         (
+            ("tools/Kun.Build.Analyzers/**",),
             q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-identity-ui/**",
               "samples/qian-sample-crm-ui/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
               "plugins/**", "schemas/**",
-              "contracts/**", "tools/Qian.Build.Analyzers/**",
+              "contracts/**",
               "scripts/dev-shell.sh", "Directory.*.props", "Directory.Build.targets",
               ".editorconfig", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/shell-auth.yml"),
             (".github/workflows/qian-shell-auth.yml",),
@@ -180,9 +184,10 @@ AREAS: Dict[str, Area] = {
     "tenant-ui": Area(
         "租户运营页面验收",
         (
+            ("tools/Kun.Build.Analyzers/**",),
             q("packages/qian-tenancy-ui/**", "turbo.json",
               "plugins/**", "schemas/**", "contracts/**",
-              "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
+              "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
               "Directory.*.props", "Directory.Build.targets", ".editorconfig",
               "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/tenant-ui.yml"),
             (".github/workflows/qian-tenant-ui.yml",),

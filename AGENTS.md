@@ -85,7 +85,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 暂时去不掉的违规边记成例外，写在边起点的项目文件里，一条边一项：`<KunTierException Include="被依赖的包" Rule="K" Until="B5" Reason="…" />`。三个属性都必填，`Until` 写最早能去掉的批次。K、P 查传递依赖时跳过记了例外的边，所以只在出问题的那条边的起点记一次。边没了或者不再违规，门禁报例外已失效，要删掉；例外只减不增，现有的用 `git grep KunTierException` 查。
 - 本机跑：`python3 scripts/check_deps.py`（先还原 `Kun.slnx`，已还原时加 `--no-restore`）。自测与样例在 `tests/gates/`：`python3 -m unittest discover -s tests/gates -v`。
 - `Kun.Core` 只依赖 BCL 与同为零依赖的 `Kun.Errors`，不加第三方包引用（规则 C 把关）。领域类型（聚合根、值对象、领域事件）不带 ORM、JSON、校验特性，持久化映射放在 `Kun.EntityFrameworkCore` 的 `IEntityTypeConfiguration<T>` 里。
-- 禁用符号与平台分析器按档位接入（D23.14 第 4 点，仓库根的 `Directory.Build.targets`）：`BannedSymbols.txt`（RS0030）与 `_import/qian/tools/Qian.Build.Analyzers`（QIAN0002–QIAN0006）接平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`，包括 `hosts/` 下的网关宿主与过渡目录里的平台宿主）；过渡期 `_import/qian/` 下的项目全部接入，内核档的包也在内，各域批次把包搬出过渡目录时再按归属收窄。仓库根上除了平台档的包与宿主都不接，被禁的类型就定义在 `src/` 下（搬出过渡目录的平台档包照旧接入，即 `src/` 下 `KunTier` 为 `platform` 的包）；Kun 旧类型上的 `Obsolete` 诊断号（如 KUNS2S001）照旧随警告即错误报错。新写的宿主要写 `KunHost`。
+- 平台档包（`KunTier=platform`）与宿主（`KunHost=true`，含 `hosts/Kun.Platform.Host` 与 `hosts/Kun.Gateway.Host`）接入根目录的 `BannedSymbols.txt` 和 `tools/Kun.Build.Analyzers`。门禁样例可在项目中用 `KunPlatformAnalyzers=true` 显式接入，产品项目按档位和宿主声明接入。
 - 新的横切机制（认证、审计、多租户、事件总线）要先有决策记录。
 - 已归档的模块为 `Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure` 与旧线的 `Kun.Storage`（D23.9）。
 
@@ -97,7 +97,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - 发版的包名单就是 `Kun.slnx` 里可打包的项目，不另写：`python3 scripts/release_packages.py list --transitional` 列出并核对档位与角色。CI「构建与门禁」用占位版本打全部包，`verify-packages --transitional` 核对：恰好是名单上的包、版本一致、名单内的依赖都在且写成 `V`、`[V]` 或 `[V,)`、符号包配对（只带分析器的包免符号包、也不许带，两种模式一样：项目求值 `IncludeBuildOutput=false` 且包里 `lib/`、`runtimes/` 下没有 `.dll`、`.exe` 才算，不看包名，这样的项目写 `IncludeSymbols=false`）、MIT、仓库地址与提交号、作者与版权与项目地址（照 `src/Directory.Build.props`）、描述不空且不写过渡目录的名字、内核档不依赖平台档、稳定版不带预发布依赖（项目在 `NoWarn` 里写了 NU5104 的除外）。过渡模式只给项目在过渡目录（`_import/`）下的包放行其中几项（包名前缀、仓库地址、符号包、元数据、描述、预发布依赖），`src/` 下的包两种模式都按严格判，包一搬进 `src/` 当次就查；档位例外不分位置只报数。开关写在脚本开头，B10 之后去掉 `--transitional` 收紧。
 - 包间使用内部成员时，开放方在项目的 `InternalsVisibleTo` 项用 `KunPackageFriendReason` 记录原因；消费方打包后对开放方精确依赖 `[V]`。测试程序集也用项目项声明。制品核对会逐个读取程序集元数据，比对实际授权，并核验 AOT 清单中程序集的 `IsTrimmable=True`。
 - 包版本统一写在 `Directory.Packages.props`（中央包管理），项目里写 `<PackageReference Include="X" />`，不带 `Version`。加新包先查这里有没有；AOT 兼容的模块还要核对新包的 AOT 兼容性。
-- 公共 API 要写 XML 文档注释。可打包的项目都要带 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`（仓库根 `Directory.Build.targets` 的公共 API 门禁，按 `IsPackable` 判定）：缺文件报 QIAN0001；新增公共 API 没登记报 RS0016，登记了却已删除报 RS0017，都是编译错误。新 API 先登记进 Unshipped，IDE 对 RS0016 的代码修复会生成登记行。
+- 公共 API 要写 XML 文档注释。可打包的项目都要带 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`（仓库根 `Directory.Build.targets` 的公共 API 门禁，按 `IsPackable` 判定）：缺文件报 KUNAPI001；新增公共 API 没登记报 RS0016，登记了却已删除报 RS0017，都是编译错误。新 API 先登记进 Unshipped，IDE 对 RS0016 的代码修复会生成登记行。
 - 改一个模块之前，先读它目录里的说明文件（`AGENTS.md`、`README.md`）与 `docs/` 下对应的设计说明、指南与 Kun 决策记录，也读要引用的模块的。
 
 ### AOT 兼容模块里不许用的写法

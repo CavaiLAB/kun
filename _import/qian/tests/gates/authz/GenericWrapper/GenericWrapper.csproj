@@ -1,4 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
- <PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors><NoWarn>$(NoWarn);CS1591</NoWarn></PropertyGroup>
- <ItemGroup><ProjectReference Include="../../../../../../src/Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" /></ItemGroup>
-</Project>

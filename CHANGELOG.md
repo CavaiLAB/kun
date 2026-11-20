@@ -8,6 +8,11 @@
 
 ## [Unreleased]
 
+### Changed — 平台分析器
+
+- `QIAN0001` 至 `QIAN0006` 的新诊断号依次为 `KUNAPI001`、`KUNLEGACY002`、`KUNDATA001`、`KUNDATA002`、`KUNAUTHZ001`、`KUNEVENT001`。配置本组诊断的项目须同步更新 `.editorconfig`、`NoWarn` 和 `#pragma warning` 中的编号。
+- 平台档包与宿主通过项目声明接入禁用符号和平台分析器。门禁样例通过 `KunPlatformAnalyzers=true` 显式接入。
+
 ### Changed — 样例、开发工具与测试宿主（S1-KUN-029）
 
 - CRM 样例位于仓库根的 `samples/Kun.Sample.Crm`。开发工具、文档工具和镜像自检分别位于 `tools/Kun.Dev.Shell`、`tools/Kun.Dev.TenantOps`、`tools/Kun.Docs.Tool` 与 `tools/Kun.Image.SelfCheck*`。这些项目均为可执行程序。租户运营开发工具的日志类别为 `Kun.Dev.TenantOps`。

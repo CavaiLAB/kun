@@ -24,7 +24,7 @@ Authz seam 的 Definition，承接 ADR-006、ADR-019 与 S1-AZ-001。文件夹�
 
 沿用 Kun 的逐命令 `PermissionBehavior`。受保护命令实现 `IPermissionProtectedRequest`，并用 `AddAuthorizedHandler<TRequest, TResponse, THandler>(denied)` 一次登记权限行为与处理器；带能力 ID 和源生成 JSON 元数据的重载遵守相同规则。这个桥接只委托 Kun，实际授权仍由运行时注入的 `IPermissionChecker` 求值，缺引擎、匿名主体或任一权限被拒均不会进入 handler。
 
-编译门禁 QIAN0005 禁止对受保护请求直接调用或引用 Kun `AddRequestHandler` 的两个重载，也拦截请求类型未知的泛型包装器；只有本包的桥接实现可调用底层入口。普通未受保护命令和无关同名方法不受影响。门禁覆盖测试、生成代码及关闭 TreatWarningsAsErrors 的项目。它检查显式注册代码，不把反射或未纳入此构建的外部程序集宣称为已审计。
+编译门禁 KUNAUTHZ001 禁止对受保护请求直接调用或引用 Kun `AddRequestHandler` 的两个重载，也拦截请求类型未知的泛型包装器；只有本包的桥接实现可调用底层入口。普通未受保护命令和无关同名方法不受影响。门禁覆盖测试、生成代码及关闭 TreatWarningsAsErrors 的项目。它检查显式注册代码，不把反射或未纳入此构建的外部程序集宣称为已审计。
 
 这里不实现 `qian.authz` 的完整入口 PEP、生命周期和决策审计。下列能力都在 Provider `Kun.Authorization.Rbac` 实现：
 

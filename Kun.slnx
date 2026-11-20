@@ -163,6 +163,7 @@
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Kun.Audit.Postgres.Probe/Kun.Audit.Postgres.Probe.csproj" />
+    <Project Path="tools/Kun.Build.Analyzers/Kun.Build.Analyzers.csproj" />
     <Project Path="tools/Kun.Configuration.Secrets.Tool/Kun.Configuration.Secrets.Tool.csproj" />
     <Project Path="tools/Kun.Configuration.Tool/Kun.Configuration.Tool.csproj" />
     <Project Path="tools/Kun.Data.Native.Probe/Kun.Data.Native.Probe.csproj" />
@@ -178,9 +179,7 @@
   <Folder Name="/_import/" />
   <Folder Name="/_import/qian/" />
   <Folder Name="/_import/qian/hosts/" />
-  <Folder Name="/_import/qian/packages/">
-    <Project Path="_import/qian/tools/Qian.Build.Analyzers/Qian.Build.Analyzers.csproj" />
-  </Folder>
+  <Folder Name="/_import/qian/packages/" />
   <Folder Name="/_import/qian/samples/" />
   <Folder Name="/_import/qian/tests/">
     <Project Path="tests/Kun.Authorization.Rbac.Tests/Kun.Authorization.Rbac.Tests.csproj" />

@@ -1,0 +1,3 @@
+#nullable enable
+Kun.GateSample.Declared.Greeter
+static Kun.GateSample.Declared.Greeter.Greet(string! name) -> string!

@@ -152,7 +152,7 @@ jobs:
       - name: 依赖门禁自测（仓库根 tests/gates 的样例项目与真实依赖图）
         run: python3 -m unittest discover -s tests/gates -v
 
-      - name: 门禁自测（tests/gates 样例项目）
+      - name: 过渡目录的其余门禁自测
         working-directory: _import/qian
         run: python3 -m unittest discover -s tests/gates -v
 

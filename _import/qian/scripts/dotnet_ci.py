@@ -171,8 +171,6 @@ def solution_projects() -> List[str]:
         if root not in path.parents:
             raise ToolError(f"Qian.slnf 列出的 {raw} 不在 {root.name}/ 下。")
         projects.append(path.relative_to(root).as_posix())
-    if not projects:
-        raise ToolError("Qian.slnf 里没有项目。")
     return projects
 
 
@@ -210,10 +208,10 @@ def is_test_project(project: str, root: Optional[Path] = None) -> bool:
 
 
 def test_projects() -> Dict[str, str]:
-    """Qian.slnf 里的测试项目：程序集名 → 项目路径。"""
+    """从过渡清单和仓库根平台清单收集测试项目，按程序集名索引。"""
     found = {assembly_name(project): project for project in distributed_projects() if is_test_project(project)}
     if not found:
-        raise ToolError("Qian.slnf 里没有识别出测试项目。")
+        raise ToolError("Qian.slnf 与 tests/kun-platform.slnf 都没有列出测试项目。")
     return found
 
 

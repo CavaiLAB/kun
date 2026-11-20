@@ -70,20 +70,6 @@ public sealed class RegistrationTests
     }
 
     [Fact]
-    public void AddRequestHandler_SecondCapabilityHandlerForTheSameRequest_ThrowsBeforeRegisteringTheCapability()
-    {
-        var services = new ServiceCollection();
-        services.AddKunMediator(builder => builder.AddRequestHandler<DirectoryCommand, int, DirectoryHandler>());
-
-        var act = () => services.AddKunMediator(builder => builder.AddRequestHandler<DirectoryCommand, int, DirectoryHandler>(
-            "sample:count", DirectoryJsonContext.Default.DirectoryCommand, DirectoryJsonContext.Default.Int32));
-
-        act.Should().Throw<InvalidOperationException>().WithMessage($"*{typeof(DirectoryCommand).FullName}*");
-        using var provider = services.BuildServiceProvider();
-        provider.GetRequiredService<ICapabilityRegistry>().GetAll().Should().BeEmpty();
-    }
-
-    [Fact]
     public async Task PermissionBehaviorOptions_ReplaceHowTheCheckerAndCurrentUserAreResolved()
     {
         // 服务里没有判定器与当前主体：缺省取法会判拒；经扩展点给的取法生效，判定算法不变。

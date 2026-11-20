@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Schema;
 using System.Text.Json.Serialization.Metadata;
-using Kun.Mediator;
 
 namespace Kun.Plugin.Sdk;
 
@@ -9,7 +9,7 @@ namespace Kun.Plugin.Sdk;
 public sealed class CapabilityContract
 {
     private readonly string _metadata;
-    private readonly CapabilityDescriptor _descriptor;
+    private readonly string _outputSchema;
     private readonly string _inputSchema;
 
     /// <summary>从已编译的代码声明和源生成序列化契约建立只读快照。</summary>
@@ -23,8 +23,9 @@ public sealed class CapabilityContract
             throw new ArgumentException("能力声明缺少短名。", nameof(metadataJson));
         ComponentId = componentId; Name = name.GetString()!; Id = componentId + "/" + Name;
         request.MakeReadOnly(); response.MakeReadOnly();
-        _metadata = metadata.GetRawText(); _descriptor = new CapabilityDescriptor(Id, request, response);
-        var schema = _descriptor.RequestSchema;
+        _metadata = metadata.GetRawText();
+        _outputSchema = ExportSchema(response).ToJsonString();
+        var schema = ExportSchema(request);
         foreach (var fieldName in sensitiveProperties ?? [])
         {
             if (schema["properties"]?[fieldName] is not JsonObject property) throw new ArgumentException("敏感字段必须存在于实际输入 Schema。", nameof(sensitiveProperties));
@@ -48,5 +49,12 @@ public sealed class CapabilityContract
     /// <summary>由实际序列化器导出的输入 Schema 独立副本。</summary>
     public JsonNode InputSchema => JsonNode.Parse(_inputSchema)!;
     /// <summary>由实际序列化器导出的输出 Schema 独立副本。</summary>
-    public JsonNode OutputSchema => _descriptor.ResponseSchema;
+    public JsonNode OutputSchema => JsonNode.Parse(_outputSchema)!;
+
+    private static JsonNode ExportSchema(JsonTypeInfo info)
+    {
+        var schema = info.GetJsonSchemaAsNode(new JsonSchemaExporterOptions { TreatNullObliviousAsNonNullable = true });
+        if (schema is JsonObject obj) obj["$schema"] = "https://json-schema.org/draft/2020-12/schema";
+        return schema;
+    }
 }

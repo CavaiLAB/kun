@@ -30,7 +30,7 @@ ComponentMetadataGenerator 用 Roslyn 语义符号读取 Inject 集合和 ApplyA
 
 这些实现构件及契约包装器、动态表面适配器不另造组件 ID。具体归属在 [实现构件分类](../../_import/qian/scripts/plugin-implementations.json) 登记：Authz、Identity、OIDC 的原可编程实现归所属组件；Capabilities 的 OpenAPI / gRPC / 导航包装器和 Registry 的 scope 适配器保留被包装组件归属；Surfaces / HookBridge 使用输入组件快照。CI 从全部已编译的 packages / samples 程序集发现真实 IKunPlugin 实现，新实现既无入口注解也无有效分类就失败，删除实现后留下的分类也失败。
 
-CapabilityAttribute 标注顶层非泛型 partial 请求，并指定响应类型和 System.Text.Json 源生成上下文。上下文必须显式登记请求与响应。生成器校验短名、描述、冻结词汇、scope、权限点和幂等声明，生成该请求的 KunCapability 属性。它使用正式 Kun CapabilityDescriptor 从 JsonTypeInfo 导出输入/输出 Schema；不会用反射序列化请求，也不执行业务 handler。序列化设置属于真实契约：例如 UnmappedMemberHandling.Disallow 和必填构造参数必须与公开输入 Schema 一致。
+CapabilityAttribute 标注顶层非泛型 partial 请求，并指定响应类型和 System.Text.Json 源生成上下文。上下文必须显式登记请求与响应。生成器校验短名、描述、冻结词汇、scope、权限点和幂等声明，生成该请求的 KunCapability 属性。它由 CapabilityContract 从 JsonTypeInfo 导出输入和输出 Schema。序列化设置属于真实契约：例如 UnmappedMemberHandling.Disallow 和必填构造参数必须与公开输入 Schema 一致。
 
 描述、SideEffect、PolicyHint、RequiredScopes、RequiredPermission、RequiredSecrets、数据/成本分级、版本、Agent 设置与审计声明保存在不可变契约中。写操作默认审计，查询默认关闭，可显式覆盖；destructive 的策略提示默认 confirm。生成契约只提供事实，不会凭这些字段授予权限、建立可信主体或绕过安装状态。
 

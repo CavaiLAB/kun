@@ -32,7 +32,7 @@ public static class KunCommandRegistration
         ArgumentNullException.ThrowIfNull(builder); ArgumentNullException.ThrowIfNull(source);
         if (channel is not ("ui" or "api" or "mcp" or "a2a" or "job" or "event" or "hook")) throw new ArgumentException("调用通道无效。", nameof(channel));
         var contract = TRequest.KunCapability;
-        if (contract.RequestTypeInfo is not JsonTypeInfo<TRequest> request || contract.ResponseTypeInfo is not JsonTypeInfo<TResponse> response)
+        if (contract.RequestTypeInfo is not JsonTypeInfo<TRequest> || contract.ResponseTypeInfo is not JsonTypeInfo<TResponse>)
             throw new ArgumentException("生成契约与 Mediator 请求响应类型不一致。");
         builder.Services.AddSingleton(new CommandRegistration<TRequest, TResponse>(source, channel));
         builder.Services.AddTransient<THandler>();
@@ -44,8 +44,7 @@ public static class KunCommandRegistration
         builder.AddPipelineBehavior<TRequest, TResponse, CapabilityDispatchBehavior<TRequest, TResponse>>();
         builder.AddPipelineBehavior<TRequest, TResponse, CommandSaveBehavior<TRequest, TResponse, TContext>>();
         return builder.AddAuthorizedHandler<TRequest, TResponse, CommandHandlerProxy<TRequest, TResponse, THandler>>(
-            error => throw new ErrorException(error),
-            contract.Id, request, response, tenantInitialization: true);
+            error => throw new ErrorException(error), tenantInitialization: true);
     }
 }
 

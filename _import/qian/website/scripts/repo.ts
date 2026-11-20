@@ -119,7 +119,7 @@ export function toPosix(p: string): string {
 /** REPO_ROOT 下的路径 → 在本仓库里的路径（加上 REPO_SUBDIR 前缀，用 / 分隔）。 */
 export function repoPath(repoRelPath: string): string {
   const rel = toPosix(repoRelPath).replace(/\/$/, '');
-  return rel === '' ? REPO_SUBDIR : `${REPO_SUBDIR}/${rel}`;
+  return path.posix.join(REPO_SUBDIR, rel);
 }
 
 /** REPO_ROOT 下的路径 → GitHub 上的地址（目录用 tree，文件用 blob）。 */

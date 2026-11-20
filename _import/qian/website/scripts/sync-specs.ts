@@ -70,7 +70,8 @@ export function makeDocsResolver(sourceRepoRel: string, repoRoot: string = REPO_
     const anchor = hashAt === -1 ? '' : href.slice(hashAt);
     const abs = path.resolve(repoRoot, path.dirname(sourceRepoRel), decodeURI(rawPath));
     const rel = toPosix(path.relative(repoRoot, abs));
-    if (rel.startsWith('../') || path.isAbsolute(rel)) {
+    const sourcePath = repoPath(rel);
+    if (sourcePath === '..' || sourcePath.startsWith('../') || path.isAbsolute(rel)) {
       throw new Error(`${sourceRepoRel}：链接指向仓库之外 ${href}`);
     }
     if (!fs.existsSync(abs)) {

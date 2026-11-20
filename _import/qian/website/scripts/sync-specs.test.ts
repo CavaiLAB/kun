@@ -41,7 +41,8 @@ describe('路径与路由', () => {
 });
 
 describe('makeDocsResolver', () => {
-  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'qian-repo-'));
+  const checkout = fs.mkdtempSync(path.join(os.tmpdir(), 'qian-repo-'));
+  const repo = path.join(checkout, '_import', 'qian');
   for (const [file, text] of [
     ['docs/a/README.md', '# A'],
     ['docs/a/B.md', '# B'],
@@ -52,6 +53,8 @@ describe('makeDocsResolver', () => {
     fs.mkdirSync(path.dirname(path.join(repo, file)), { recursive: true });
     fs.writeFileSync(path.join(repo, file), text);
   }
+  fs.mkdirSync(path.join(checkout, 'src/Common'), { recursive: true });
+  fs.writeFileSync(path.join(checkout, 'src/Common/README.md'), '# Common');
   const resolve = makeDocsResolver('docs/a/B.md', repo);
 
   it('docs/ 内的文件与带 README 的目录 → 站内路由，保留锚点', () => {
@@ -61,6 +64,7 @@ describe('makeDocsResolver', () => {
   });
 
   it('docs/ 之外与没有 README 的目录 → GitHub 地址', () => {
+    assert.equal(resolve('../../../../src/Common/README.md#rules'), 'https://github.com/CavaiLAB/kun/blob/main/src/Common/README.md#rules');
     assert.equal(resolve('../../pm/x.md'), 'https://github.com/CavaiLAB/kun/blob/main/_import/qian/pm/x.md');
     assert.equal(resolve('../d/'), 'https://github.com/CavaiLAB/kun/tree/main/_import/qian/docs/d');
   });
@@ -73,7 +77,7 @@ describe('makeDocsResolver', () => {
 
   it('目标不存在或越出仓库时报错', () => {
     assert.throws(() => resolve('missing.md'), /不存在/);
-    assert.throws(() => resolve('../../../outside.md'), /仓库之外/);
+    assert.throws(() => resolve('../../../../../outside.md'), /仓库之外/);
   });
 });
 

@@ -33,3 +33,44 @@ override Kun.Configuration.Apollo.ApolloConfigurationProvider.Load() -> void
 Kun.Configuration.Apollo.ApolloConfigurationProvider.RefreshAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.Configuration.Apollo.ApolloConfigurationProvider.Dispose() -> void
 Kun.Configuration.Apollo.ApolloConfigurationSource.ApolloConfigurationSource(Kun.Configuration.Apollo.ApolloOptions! options, System.Net.Http.HttpClient? client = null, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+Kun.Configuration.Apollo.KunConfigurationOptions
+Kun.Configuration.Apollo.KunConfigurationOptions.KunConfigurationOptions() -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.BasePath.get -> string!
+Kun.Configuration.Apollo.KunConfigurationOptions.EnvironmentName.get -> string?
+Kun.Configuration.Apollo.KunConfigurationOptions.UseApollo.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.EnvironmentName.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.UseApollo.get -> bool
+Kun.Configuration.Apollo.KunConfigurationOptions.BasePath.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.SecretDirectory.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.SecretDirectory.get -> string?
+Kun.Configuration.Apollo.KunConfigurationOptions.EnvironmentPrefix.get -> string?
+Kun.Configuration.Apollo.KunConfigurationOptions.EnvironmentPrefix.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.Arguments.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.ResolveAccessKey.get -> System.Func<string!, string?>?
+Kun.Configuration.Apollo.KunConfigurationOptions.Arguments.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Configuration.Apollo.KunConfigurationOptions.ResolveAccessKey.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.ValidateApolloSnapshot.get -> System.Func<System.Collections.Generic.IReadOnlyDictionary<string!, string?>!, bool>?
+Kun.Configuration.Apollo.KunConfigurationOptions.ValidateApolloSnapshot.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.HttpClient.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.HttpClient.get -> System.Net.Http.HttpClient?
+Kun.Configuration.Apollo.KunConfigurationOptions.Logger.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.Logger.get -> Microsoft.Extensions.Logging.ILogger?
+static Kun.Configuration.Apollo.KunApolloConfigurationExtensions.AddKunConfigurationSources(this Microsoft.Extensions.Configuration.IConfigurationBuilder! builder, Kun.Configuration.Apollo.KunConfigurationOptions! options) -> Microsoft.Extensions.Configuration.IConfigurationBuilder!
+Kun.Configuration.Apollo.KunConfigurationOptions.ApolloConfigurationSchema.init -> void
+Kun.Configuration.Apollo.KunConfigurationOptions.ApolloConfigurationSchema.get -> System.Text.Json.JsonElement?
+Kun.Configuration.Apollo.ApolloConfigurationDescription
+Kun.Configuration.Apollo.ApolloConfigurationDescription.AppId.get -> string!
+Kun.Configuration.Apollo.ApolloConfigurationDescription.Environment.get -> string!
+Kun.Configuration.Apollo.ApolloConfigurationDescription.Namespaces.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Configuration.Apollo.ApolloConfigurationDescription.ReadReleaseAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kun.Configuration.Apollo.ApolloReleaseRecord!>
+Kun.Configuration.Apollo.ApolloConfigurationDescription.Servers.get -> System.Collections.Generic.IReadOnlyList<System.Uri!>!
+Kun.Configuration.Apollo.ApolloReleaseRecord
+Kun.Configuration.Apollo.ApolloReleaseRecord.ChangedKeys.get -> int
+Kun.Configuration.Apollo.ApolloReleaseRecord.InputHash.get -> string!
+Kun.Configuration.Apollo.ApolloReleaseRecord.Namespace.get -> string!
+Kun.Configuration.Apollo.ApolloReleaseRecord.OccurredAt.get -> System.DateTimeOffset
+Kun.Configuration.Apollo.ApolloReleaseRecord.Reasons.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Configuration.Apollo.ApolloReleaseRecord.Rejected.get -> bool
+Kun.Configuration.Apollo.ApolloReleaseRecord.Resource.get -> string!
+Kun.Configuration.Apollo.KunApolloConfigurationExtensions
+static Kun.Configuration.Apollo.ApolloConfigurationDescription.From(Microsoft.Extensions.Configuration.IConfigurationProvider! provider) -> Kun.Configuration.Apollo.ApolloConfigurationDescription?

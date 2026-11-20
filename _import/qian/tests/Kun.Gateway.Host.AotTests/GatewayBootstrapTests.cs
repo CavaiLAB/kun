@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kun.Configuration.Platform;
+using Kun.Configuration.Apollo;
 using Kun.Testing.Containers;
 
 namespace Kun.Gateway.Host.AotTests;

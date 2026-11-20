@@ -4,12 +4,13 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Kun.Configuration.Apollo;
 using Kun.Configuration.Extensions;
 using Kun.Runtime;
 using Kun.Testing.Containers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Kun.Configuration.Platform.Tests;
 
@@ -151,7 +152,8 @@ public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFix
     public sealed partial class SampleOptionsValidator : IValidateOptions<SampleOptions>;
 
     [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-    [JsonSerializable(typeof(SampleOptions))][JsonSerializable(typeof(ConfigReloadFailed))]
+    [JsonSerializable(typeof(SampleOptions))]
+    [JsonSerializable(typeof(ConfigReloadFailed))]
     internal sealed partial class SampleJson : JsonSerializerContext;
 
     private sealed class ReloadObserver : IKunPlugin

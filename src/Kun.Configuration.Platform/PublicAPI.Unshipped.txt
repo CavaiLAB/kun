@@ -4,36 +4,11 @@ Kun.Configuration.Platform.ConfigurationPlugin.ConfigurationPlugin() -> void
 Kun.Configuration.Platform.KunConfigurationExtensions
 Kun.Configuration.Platform.ApolloConfigurationPlugin
 Kun.Configuration.Platform.ApolloConfigurationPlugin.ApolloConfigurationPlugin() -> void
-Kun.Configuration.Platform.KunConfigurationOptions
-Kun.Configuration.Platform.KunConfigurationOptions.KunConfigurationOptions() -> void
-Kun.Configuration.Platform.KunConfigurationOptions.BasePath.get -> string!
 Kun.Configuration.Platform.ConfigurationPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
 Kun.Configuration.Platform.ApolloConfigurationPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
-Kun.Configuration.Platform.KunConfigurationOptions.EnvironmentName.get -> string?
-Kun.Configuration.Platform.KunConfigurationOptions.UseApollo.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.EnvironmentName.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.UseApollo.get -> bool
-Kun.Configuration.Platform.KunConfigurationOptions.BasePath.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.SecretDirectory.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.SecretDirectory.get -> string?
-Kun.Configuration.Platform.KunConfigurationOptions.EnvironmentPrefix.get -> string?
-Kun.Configuration.Platform.KunConfigurationOptions.EnvironmentPrefix.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.Arguments.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.ResolveAccessKey.get -> System.Func<string!, string?>?
-Kun.Configuration.Platform.KunConfigurationOptions.Arguments.get -> System.Collections.Generic.IReadOnlyList<string!>!
-Kun.Configuration.Platform.KunConfigurationOptions.ResolveAccessKey.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.ValidateApolloSnapshot.get -> System.Func<System.Collections.Generic.IReadOnlyDictionary<string!, string?>!, bool>?
-Kun.Configuration.Platform.KunConfigurationOptions.ValidateApolloSnapshot.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.HttpClient.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.HttpClient.get -> System.Net.Http.HttpClient?
-Kun.Configuration.Platform.KunConfigurationOptions.Logger.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.Logger.get -> Microsoft.Extensions.Logging.ILogger?
-static Kun.Configuration.Platform.KunConfigurationExtensions.AddKunConfigurationSources(this Microsoft.Extensions.Configuration.IConfigurationBuilder! builder, Kun.Configuration.Platform.KunConfigurationOptions! options) -> Microsoft.Extensions.Configuration.IConfigurationBuilder!
 Kun.Configuration.Platform.ConfigurationPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
 static Kun.Configuration.Platform.KunConfigurationExtensions.AddKunConfiguration(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Microsoft.Extensions.Configuration.IConfiguration! configuration) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 Kun.Configuration.Platform.ApolloConfigurationPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
-Kun.Configuration.Platform.KunConfigurationOptions.ApolloConfigurationSchema.init -> void
-Kun.Configuration.Platform.KunConfigurationOptions.ApolloConfigurationSchema.get -> System.Text.Json.JsonElement?
 Kun.Configuration.Platform.ApolloFlagManagementBinding
 Kun.Configuration.Platform.ApolloFlagManagementBinding.ApolloFlagManagementBinding(System.Uri! portal, string! appId, string! environment, string! cluster, string! operatorName, string! tokenReference, string! receiptBinding) -> void
 Kun.Configuration.Platform.ApolloFlagManagementBinding.AppId.get -> string!

@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using Kun.Audit;
 using Kun.Audit.Postgres;
 using Kun.Configuration;
+using Kun.Configuration.Apollo;
 using Kun.Configuration.Platform;
 using Kun.Configuration.Secrets;
 using Kun.Data.Native;

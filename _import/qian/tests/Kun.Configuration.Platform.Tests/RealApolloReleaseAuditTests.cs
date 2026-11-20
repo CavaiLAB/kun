@@ -1,23 +1,24 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Kun.Audit;
+using Kun.Configuration.Apollo;
 using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
+using Kun.Data;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.EntityFrameworkCore;
 using Kun.EventBus.DependencyInjection;
 using Kun.MultiTenancy;
-using Microsoft.EntityFrameworkCore;
+using Kun.Runtime;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Kun.Audit;
-using Kun.Data;
-using Kun.Runtime;
-using Kun.Testing.Containers;
 
 namespace Kun.Configuration.Platform.Tests;
 

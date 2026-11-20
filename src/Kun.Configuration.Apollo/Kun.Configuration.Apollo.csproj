@@ -8,6 +8,12 @@
     <KunRole>provider</KunRole>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Kun.Configuration.Abstractions/Kun.Configuration.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Core/Kun.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.KeyPerFile" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>

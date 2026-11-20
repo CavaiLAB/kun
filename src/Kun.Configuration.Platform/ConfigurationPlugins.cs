@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Kun.Configuration.Apollo;
 using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
@@ -110,16 +111,16 @@ internal sealed class ApolloConfigurationImplementation : IKunPlugin
             if (!matches) throw KunConfigurationExtensions.Invalid("Apollo.config." + property.Name);
         }
         ConfigurationPlugin.Register(ctx);
-        ApolloReleaseAudit.Attach(ctx, source.Releases);
+        ApolloReleaseAudit.Attach(ctx, source);
         return ValueTask.CompletedTask;
     }
 
-    private static IEnumerable<KunApolloProvider> Find(IConfiguration configuration, HashSet<IConfiguration> visited)
+    private static IEnumerable<ApolloConfigurationDescription> Find(IConfiguration configuration, HashSet<IConfiguration> visited)
     {
         if (!visited.Add(configuration) || configuration is not IConfigurationRoot root) yield break;
         foreach (var provider in root.Providers)
         {
-            if (provider is KunApolloProvider apollo) yield return apollo;
+            if (ApolloConfigurationDescription.From(provider) is { } apollo) yield return apollo;
             if (provider is ChainedConfigurationProvider chained)
                 foreach (var nested in Find(chained.Configuration, visited)) yield return nested;
         }

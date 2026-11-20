@@ -3,12 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 
-namespace Kun.Configuration.Platform;
-
-// 一次 Apollo 快照被实例接受或拒绝的记录（PRD 7.8「Apollo 发布事件进审计」、ADR-007 D7.13「实例拉取审计作为回读信号」）。
-// 只含 namespace、变更键数、原因码与脱敏快照的哈希，绝不含配置值。
-internal sealed record ApolloReleaseRecord(string Namespace, string Resource, bool Rejected, string InputHash, int ChangedKeys,
-    IReadOnlyList<string> Reasons, DateTimeOffset OccurredAt);
+namespace Kun.Configuration.Apollo;
 
 // Kun 的 Apollo 客户端只暴露校验委托与重载令牌（releaseKey / notificationId 是其内部类型），这里按两处信号重建每次发布的结论：
 // ValidateNamespace 登记本轮被拉取（非 304）的 namespace 候选，合并快照校验失败即「拒绝」；通过后以重载回调（合并结果变化）确认「接受」，
@@ -27,7 +22,6 @@ internal sealed class ApolloReleaseTracker(string appId, string environment, str
     private string? _pendingMerged;
     private string? _appliedMerged;
 
-    internal string AppId => appId;
     internal ChannelReader<ApolloReleaseRecord> Records => _records.Reader;
 
     // ValidateNamespace：namespace 原始快照扫描未通过即拒绝；本轮刷新随之中止，丢弃已登记的候选。

@@ -15,6 +15,10 @@ builder.Configuration.AddApollo(new ApolloOptions
 
 properties namespace 按列表顺序覆盖；.NET 层次键写为 `Section:Property`。源顺序由宿主负责：appsettings → Apollo → Secret 文件 → 环境变量 → 命令行。后续版本的 JSON/YAML namespace 内容展开不属于此基础 provider。
 
+使用 `AddKunConfigurationSources(new KunConfigurationOptions { BasePath = ... })` 一次装配宿主的配置源。加载顺序为 appsettings、Apollo、Secret 文件、环境变量、命令行。引导只读取宿主本地源。命名空间按公共、插件、application 的顺序覆盖。访问键通过 `ResolveAccessKey` 解析宿主给出的引用。装饰层检查每个命名空间和合并快照，再执行宿主提供的追加校验。
+
+`ApolloConfigurationDescription.From(provider)` 返回本实例公开的只读引导信息；宿主指定一个读取方按顺序消费 `ReadReleaseAsync` 返回的脱敏发布记录。平台宿主的 `Kun.Configuration.Platform` 将记录接入审计，提供租户开关求值与受限的草稿管理。
+
 默认客户端超时 70 秒，满足长轮询的 60 秒 hold；禁止自动重定向，避免将 AccessKey 签名发送到另一个端点。自定义 HttpClient 由调用方管理，必须保持对应超时和可信重定向策略。AccessKey 每次请求从回调解析，不进入缓存或日志。
 
 启动时网络不可达可回退本地快照，无缓存则失败；401/403 直接失败。`Validate` 可对整份候选快照校验，拒绝时不替换当前值或磁盘缓存。另用 `Kun.Configuration.AddKunOptions<T>` 保持运行期强类型配置的最后有效值；若仅配置 Options 校验而未配置快照 Validate，缓存保存的是协议合法的原始配置，重启时仍会执行关键 Options 校验。

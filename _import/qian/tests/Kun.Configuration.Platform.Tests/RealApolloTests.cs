@@ -1,11 +1,12 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Kun.Configuration.Apollo;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using Kun.Testing.Containers;
 
 namespace Kun.Configuration.Platform.Tests;
 
@@ -59,9 +60,14 @@ public sealed class RealApolloTests(RealApolloPortalFixture apollo)
                     Directory.CreateDirectory(evidence);
                     await File.WriteAllTextAsync(Path.Combine(evidence, "apollo-real-reload.json"), JsonSerializer.Serialize(new
                     {
-                        server = "Apollo 2.5.2 ConfigService/AdminService", database = "MySQL 8.0.43",
-                        before = 10, after = monitor.CurrentValue.PageSize, elapsedMilliseconds = watch.ElapsedMilliseconds,
-                        restart = false, sensitiveCandidateRejected = true, cacheContainsRejectedValue = false,
+                        server = "Apollo 2.5.2 ConfigService/AdminService",
+                        database = "MySQL 8.0.43",
+                        before = 10,
+                        after = monitor.CurrentValue.PageSize,
+                        elapsedMilliseconds = watch.ElapsedMilliseconds,
+                        restart = false,
+                        sensitiveCandidateRejected = true,
+                        cacheContainsRejectedValue = false,
                         recoveredAfterRejection = configuration["Service:credential"] == rotatedReference
                     }), ct);
                 }
@@ -79,7 +85,8 @@ public sealed class RealApolloTests(RealApolloPortalFixture apollo)
         IConfigurationRoot Build(string cache) => new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
         {
             BasePath = directory,
-            ApolloConfigurationSchema = schema.RootElement, Logger = log,
+            ApolloConfigurationSchema = schema.RootElement,
+            Logger = log,
             Arguments = ["--Apollo:AppId=" + appId, "--Apollo:Env=UAT", "--Apollo:Cluster=default",
                 "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri.AbsoluteUri, "--Apollo:CacheDir=" + cache]
         }).Build();

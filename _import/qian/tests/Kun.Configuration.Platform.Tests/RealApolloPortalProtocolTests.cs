@@ -1,10 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Kun.Configuration.Apollo;
+using Kun.Errors;
 using Kun.Testing.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
-using Kun.Errors;
 
 namespace Kun.Configuration.Platform.Tests;
 
@@ -31,7 +32,8 @@ public sealed class RealApolloPortalProtocolTests(RealApolloPortalFixture apollo
         {
             var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
             {
-                BasePath = directory, Arguments = ["--Apollo:AppId=" + apollo.AppId, "--Apollo:Env=UAT",
+                BasePath = directory,
+                Arguments = ["--Apollo:AppId=" + apollo.AppId, "--Apollo:Env=UAT",
                     "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri, "--Apollo:Namespaces:0=qian.common.flags"]
             }).Build();
             await using var host = await FlagManagementTestHost.Create(postgres, apollo.PortalUri, apollo.AppId, apollo.EditToken, ct, root);
@@ -50,7 +52,7 @@ public sealed class RealApolloPortalProtocolTests(RealApolloPortalFixture apollo
             Assert.True(host.Context.Config().Flags.IsEnabled("managed-preview", Guid.NewGuid()));
             host.Secrets.Token = apollo.UnauthorizedToken;
             var rejected = await Assert.ThrowsAsync<ErrorException>(() => host.Drafts.SetAsync(new FeatureFlagDraft
-                { Name = "rejected", Rule = new FeatureFlagPolicy { Default = true }, Confirmed = true, IdempotencyKey = Guid.NewGuid() }, ct).AsTask());
+            { Name = "rejected", Rule = new FeatureFlagPolicy { Default = true }, Confirmed = true, IdempotencyKey = Guid.NewGuid() }, ct).AsTask());
             Assert.Equal("AUTHZ_DENIED", rejected.Error.Code.Code);
             Assert.DoesNotContain(apollo.UnauthorizedToken, rejected.ToString(), StringComparison.Ordinal);
             Assert.All(host.Audit.Records, record => Assert.DoesNotContain(apollo.EditToken, record.Payload.GetRawText(), StringComparison.Ordinal));

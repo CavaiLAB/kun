@@ -1,9 +1,10 @@
 using System.Text.Json;
+using Kun.Configuration.Apollo;
+using Kun.Errors;
+using Kun.Runtime;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Testing.Containers;
 
 namespace Kun.Configuration.Platform.Tests;
 
@@ -37,7 +38,9 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         finally { Directory.Delete(directory, true); }
         IConfigurationRoot Build() => new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
         {
-            BasePath = directory, ApolloConfigurationSchema = schema.RootElement, ValidateApolloSnapshot = _ => true,
+            BasePath = directory,
+            ApolloConfigurationSchema = schema.RootElement,
+            ValidateApolloSnapshot = _ => true,
             Arguments = ["--Apollo:AppId=" + appId, "--Apollo:Env=UAT", "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri.AbsoluteUri,
                 "--Apollo:CacheDir=cache", "--Apollo:Namespaces:0=qian.common.test", "--Apollo:Namespaces:1=application"]
         }).Build();
@@ -54,9 +57,13 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         const string reference = "secretRef://platform/apollo/access-key";
         var variables = new Dictionary<string, string>
         {
-            ["Apollo__AppId"] = appId, ["Apollo__Env"] = "PRO", ["Apollo__Cluster"] = "default",
-            ["Apollo__ConfigServer__0"] = apollo.ConfigServiceUri.AbsoluteUri, ["Apollo__Label"] = "acceptance",
-            ["Apollo__CacheDir"] = "cache", ["Apollo__AccessKey"] = reference
+            ["Apollo__AppId"] = appId,
+            ["Apollo__Env"] = "PRO",
+            ["Apollo__Cluster"] = "default",
+            ["Apollo__ConfigServer__0"] = apollo.ConfigServiceUri.AbsoluteUri,
+            ["Apollo__Label"] = "acceptance",
+            ["Apollo__CacheDir"] = "cache",
+            ["Apollo__AccessKey"] = reference
         };
         try
         {
@@ -89,7 +96,8 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         }
         IConfigurationRoot Build(Func<string, string?> resolver) => new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
         {
-            BasePath = directory, EnvironmentPrefix = prefix,
+            BasePath = directory,
+            EnvironmentPrefix = prefix,
             ResolveAccessKey = name => { Assert.Equal(reference, name); return resolver(name); }
         }).Build();
     }
@@ -105,16 +113,22 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         {
             await apollo.SetHoldAsync(TimeSpan.FromSeconds(1), ct);
             await apollo.PublishAsync("qian-test", "qian.common.test", new Dictionary<string, string>
-                { ["Layer:Value"] = "common", ["Tier:Value"] = "common", ["CommonOnly"] = "yes" }, cancellationToken: ct);
+            { ["Layer:Value"] = "common", ["Tier:Value"] = "common", ["CommonOnly"] = "yes" }, cancellationToken: ct);
             await apollo.PublishAsync("qian-test", "qian.plugin.sample", new Dictionary<string, string>
-                { ["Layer:Value"] = "plugin", ["Tier:Value"] = "plugin" }, cancellationToken: ct);
+            { ["Layer:Value"] = "plugin", ["Tier:Value"] = "plugin" }, cancellationToken: ct);
             await apollo.PublishAsync("qian-test", "application", new Dictionary<string, string>
-                { ["Layer:Value"] = "application" }, cancellationToken: ct);
+            { ["Layer:Value"] = "application" }, cancellationToken: ct);
             await File.WriteAllTextAsync(Path.Combine(directory, "appsettings.json"), JsonSerializer.Serialize(new
             {
-                Apollo = new { AppId = "qian-test", Env = "UAT", ConfigServer = new[] { apollo.ConfigServiceUri.AbsoluteUri },
-                    Namespaces = s_namespaces },
-                Layer = new { Value = "json" }, JsonOnly = "yes"
+                Apollo = new
+                {
+                    AppId = "qian-test",
+                    Env = "UAT",
+                    ConfigServer = new[] { apollo.ConfigServiceUri.AbsoluteUri },
+                    Namespaces = s_namespaces
+                },
+                Layer = new { Value = "json" },
+                JsonOnly = "yes"
             }), ct);
             await File.WriteAllTextAsync(Path.Combine(secrets, "Layer__Value"), "secret", ct);
             Environment.SetEnvironmentVariable(prefix + "Layer__Value", "env");
@@ -124,7 +138,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
             Check("secret", secrets, []);
             Check("application", null, []);
             using var local = (IDisposable)new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
-                { BasePath = directory, EnvironmentPrefix = prefix, UseApollo = false }).Build();
+            { BasePath = directory, EnvironmentPrefix = prefix, UseApollo = false }).Build();
             Assert.Equal("json", ((IConfiguration)local)["Layer:Value"]);
         }
         finally { Environment.SetEnvironmentVariable(prefix + "Layer__Value", null); Directory.Delete(directory, true); }
@@ -132,7 +146,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         void Check(string expected, string? secretDirectory, string[] arguments)
         {
             var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
-                { BasePath = directory, SecretDirectory = secretDirectory, EnvironmentPrefix = prefix, Arguments = arguments }).Build();
+            { BasePath = directory, SecretDirectory = secretDirectory, EnvironmentPrefix = prefix, Arguments = arguments }).Build();
             using var owner = (IDisposable)root;
             Assert.Equal(expected, root["Layer:Value"]);
             Assert.Equal("plugin", root["Tier:Value"]);

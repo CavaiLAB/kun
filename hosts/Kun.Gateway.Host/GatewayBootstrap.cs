@@ -1,4 +1,4 @@
-using Kun.Configuration.Platform;
+using Kun.Configuration.Apollo;
 
 namespace Kun.Gateway.Host;
 

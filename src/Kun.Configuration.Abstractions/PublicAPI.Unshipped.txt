@@ -162,3 +162,14 @@ const Kun.Configuration.FeatureFlagManagement.SetPermission = "qian.config.flags
 static readonly Kun.Configuration.FeatureFlagManagement.Key -> Kun.Runtime.ServiceKey
 Kun.Configuration.FeatureFlagDraft.IdempotencyKey.get -> System.Guid
 Kun.Configuration.FeatureFlagDraft.IdempotencyKey.init -> void
+Kun.Configuration.FeatureFlagRule
+Kun.Configuration.FeatureFlagRule.Default.get -> bool
+Kun.Configuration.FeatureFlagRule.Percentage.get -> int
+Kun.Configuration.FeatureFlagRule.Tenants.get -> System.Collections.Generic.IReadOnlySet<System.Guid>!
+Kun.Configuration.FeatureFlagRules
+const Kun.Configuration.FeatureFlagRules.MaximumTenants = 256 -> int
+const Kun.Configuration.FeatureFlagRules.Namespace = "qian.common.flags" -> string!
+const Kun.Configuration.FeatureFlagRules.Prefix = "flag." -> string!
+static Kun.Configuration.FeatureFlagRules.Read(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string?>>! values) -> System.Collections.Frozen.FrozenDictionary<string!, Kun.Configuration.FeatureFlagRule!>!
+static Kun.Configuration.FeatureFlagRules.ValidName(string? name) -> bool
+static Kun.Configuration.FeatureFlagRules.Validate(System.Collections.Generic.IReadOnlyDictionary<string!, string?>! values) -> bool

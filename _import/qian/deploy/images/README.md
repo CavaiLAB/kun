@@ -2,18 +2,18 @@
 
 本目录记录 profile 镜像的真实输入和验收准备。2026-10-14 产品负责人确认 DEP-003 保持 blocked；2026-10-16 按 R106 拆为两段：
 
-- S1-DEP-003 交付镜像构建与供应链流水线，用 CI 内构建、不发布的自检镜像做端到端验证，现在即可推进；
+- S1-DEP-003 交付镜像构建与供应链流水线，已用 CI 内构建的自检镜像完成端到端验证；
 - S1-DEP-008 把三个业务镜像接入流水线并复验。原 DEP-003 的三项验收原文移到这里，等下表的前置交付。
 
 ## 已核对的输入
 
-| 镜像 | 既定形态 | 当前缺口 | 负责的前置任务 |
+| 镜像 | 既定形态 | 交付状态与待办 | 对应任务 |
 |---|---|---|---|
-| qian-platform | JIT，包含 shell 与 model-gateway 组合包 | 生产宿主 [`hosts/Kun.Platform.Host`](../../../../hosts/Kun.Platform.Host/README.md) 已交付（S1-DEP-009）：按 platform profile 装配平台插件树，承载平台表面与租户运营接口，构建上下文已放行；身份分支并入（S1-DEP-011）、RP 与其余业务组件仍待各自任务，镜像接入供应链流水线归 S1-DEP-008 | S1-DEP-011、S1-IDP-005、S1-DEP-008 及 profile 的业务组件任务 |
-| qian-identity | JIT | Kun.Identity.Server 与可启动的唯一 issuer 宿主尚未交付 | S1-IDP-002 |
+| qian-platform | JIT，包含 shell 与 model-gateway 组合包 | [平台宿主](../../../../hosts/Kun.Platform.Host/README.md) 已装配平台组件，并承载平台表面与租户运营接口。预发通过 `Identity:InProcess=true` 启用同进程身份发行方。其余业务组件按 profile 的交付状态接入。产品镜像仍待供应链验收。 | S1-DEP-009、S1-DEP-011、S1-DEP-008 |
+| qian-identity | JIT | `Kun.Identity.Server` 已提供唯一发行方，`Kun.Identity.Client` 已提供依赖方（RP）接入。独立身份产品镜像的发布入口和供应链验收待完成。 | S1-IDP-002、S1-IDP-005、S1-DEP-008 |
 | qian-gateway | NativeAOT、distroless | `hosts/Kun.Gateway.Host` 已完成严格 Linux 原生发布与真实依赖运行；仍需接入产品镜像、供应链及只读非 root 验收 | S1-DEP-008；宿主证据见 S1-GW-001 |
 
-证据来源是仓库现状：[profile 装配基线](../../profiles/README.md) 列出各 profile 仍为 `x-skeleton` 的业务叶节点；platform 的六个平台组件已以生产平台宿主的装配与集成测试为启动证据去标（R144 ③），minimal 的真实 Runtime 启动另有验收；`apps/` 当前仅有前端验证应用，相关身份、网关与外壳任务仍未完成。上述表格表示交付缺口。基线探针、minimal、Storybook 页面和 DEP-003 的自检镜像，都不能替代三个业务镜像。
+[Profile 装配基线](../../profiles/README.md) 列出各 profile 中带 `x-skeleton` 标记的业务组件。平台核心组件的启动证据见生产宿主的装配与集成测试（R144 ③），minimal profile 另有 Runtime 启动验收。三个业务镜像分别在 S1-DEP-008 核对构建产物、供应链记录与运行结果。
 
 ## 可以固定的构建与验收约定
 

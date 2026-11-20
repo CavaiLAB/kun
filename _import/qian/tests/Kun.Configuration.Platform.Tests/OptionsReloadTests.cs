@@ -7,7 +7,6 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Kun.Configuration.Platform;
 using Kun.Runtime;
 using Kun.Testing.Containers;
 

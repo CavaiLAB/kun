@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
 using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
@@ -7,8 +9,6 @@ using Kun.Runtime;
 using Kun.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Configuration;
-using Kun.Configuration.Platform;
 
 namespace Kun.Identity.Connector.Oidc.Tests;
 

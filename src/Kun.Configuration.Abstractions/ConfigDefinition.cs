@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Primitives;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
+using Microsoft.Extensions.Primitives;
 
 namespace Kun.Configuration;
 

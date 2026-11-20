@@ -4,7 +4,6 @@ using System.Text.Json;
 using Kun.Testing.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
-using Kun.Configuration.Platform;
 using Kun.Errors;
 
 namespace Kun.Configuration.Platform.Tests;

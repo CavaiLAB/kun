@@ -1,10 +1,10 @@
 using Kun.Configuration.Apollo;
+using Kun.Errors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Kun.Errors;
 
 namespace Kun.Configuration.Platform;
 
@@ -100,8 +100,11 @@ public static class KunConfigurationExtensions
         var schema = options.ApolloConfigurationSchema?.Clone();
         return (tracker => new ApolloOptions
         {
-            AppId = appId, ConfigServers = servers, Cluster = cluster,
-            Label = label, Namespaces = namespaces,
+            AppId = appId,
+            ConfigServers = servers,
+            Cluster = cluster,
+            Label = label,
+            Namespaces = namespaces,
             CacheDirectory = cache is null ? null : Path.Combine(Path.GetFullPath(cache, basePath), environment),
             Validate = snapshot =>
             {

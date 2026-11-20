@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Kun.Configuration.Platform;
 using Kun.Testing.Containers;
 
 namespace Kun.Configuration.Platform.Tests;

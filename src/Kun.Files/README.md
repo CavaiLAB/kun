@@ -52,7 +52,7 @@ builder.Services.AddKunMediator(registry => registry.AddKunFiles(sp => /* 按请
 
 ## 依赖边界
 
-依赖 `Kun.Files.Abstractions`、`Kun.Data.Abstractions`、`Kun.Tenancy.Abstractions`、`Kun.Plugin.Sdk` 与 Kun.Storage.Local；不引用其他 Provider（Authz、Audit、Tenancy 的实现由宿主组合）。Kun 旧存储线（`Kun.Storage.Abstractions.IFileStorage`）由仓库根 `BannedSymbols.txt` 禁用。
+依赖 `Kun.Files.Abstractions`、`Kun.Data.Abstractions`、`Kun.Tenancy.Abstractions`、`Kun.Plugin.Sdk` 与 Kun.Storage.Local；不引用其他 Provider（Authz、Audit、Tenancy 的实现由宿主组合）。本地文件后端使用 `Kun.Storage.Local` 的对象存储接口。
 
 ## 验证
 

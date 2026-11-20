@@ -1,6 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Authorization;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
+using Kun.Runtime;
 using Kun.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -8,10 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Capabilities;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 
 namespace Kun.Configuration.AspNetCore;
 
@@ -70,5 +70,6 @@ public static class FeatureFlagEndpoints
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     RespectRequiredConstructorParameters = true, RespectNullableAnnotations = true, AllowDuplicateProperties = false)]
-[JsonSerializable(typeof(FeatureFlagDraft))][JsonSerializable(typeof(FeatureFlagDraftResult))]
+[JsonSerializable(typeof(FeatureFlagDraft))]
+[JsonSerializable(typeof(FeatureFlagDraftResult))]
 internal sealed partial class FlagHttpJson : JsonSerializerContext;

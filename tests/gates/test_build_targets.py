@@ -316,8 +316,7 @@ class AnalyzerScopeTests(unittest.TestCase):
         # 过渡期 _import/qian/ 下的项目全部受检，内核档的包也在内：它们不定义被禁的类型，却够得着被禁的入口。
         # 有人按档位或 IsPackable 把过渡目录下的包放出去，这里列出漏接的项目。各域批次把包搬出过渡目录时再按归属收窄。
         transitional = {p: props for p, (props, _) in projects.items() if TRANSITIONAL in p.parents}
-        self.assertTrue(any(is_true(props, "IsPackable") and props.get("KunTier") == "kernel" for props in transitional.values()),
-                        "_import/qian/ 下已没有内核档的包：按归属重定作用域，再改这里")
+        self.assertTrue(transitional, "过渡目录已清空，应一起收回该目录的分析器作用域")
         self.assertEqual(set(), {p.stem for p, props in transitional.items() if not is_true(props, "_KunPlatformAnalyzers")})
         # 仓库根上的项目：接入的正好是平台档的包与宿主，搬出过渡目录的内核档包与测试不接（D27）。
         outside = {p: props for p, (props, _) in projects.items() if TRANSITIONAL not in p.parents}

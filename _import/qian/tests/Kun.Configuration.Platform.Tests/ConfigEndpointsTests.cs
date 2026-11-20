@@ -22,7 +22,6 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
-using Kun.Configuration.Platform;
 using Kun.Configuration.AspNetCore;
 using Kun.Identity.Abstractions;
 using Qian.Registry;

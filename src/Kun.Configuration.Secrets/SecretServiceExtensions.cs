@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Errors;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Configuration.Secrets;
 

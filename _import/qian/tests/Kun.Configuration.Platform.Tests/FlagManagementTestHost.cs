@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
-using Kun.Configuration.Platform;
 using Kun.Data.Native;
 using Kun.Data.Native.Postgres;
 using Kun.Identity.Abstractions;

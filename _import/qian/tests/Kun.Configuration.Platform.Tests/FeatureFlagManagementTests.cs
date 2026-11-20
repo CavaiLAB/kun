@@ -5,7 +5,6 @@ using Kun.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Npgsql;
-using Kun.Configuration.Platform;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;

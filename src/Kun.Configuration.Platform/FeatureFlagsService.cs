@@ -1,8 +1,8 @@
 using System.Collections.Frozen;
+using Kun.Errors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Kun.Errors;
 
 namespace Kun.Configuration.Platform;
 
@@ -57,7 +57,8 @@ internal sealed partial class FeatureFlagsService : IFeatureFlags, IDisposable
             new KeyValuePair<string, object?>("options.name", ""), new KeyValuePair<string, object?>("plugin", "qian.config"));
         LogRejected(_logger);
         _notifier.Publish(new ConfigReloadFailed(typeof(IFeatureFlags).FullName!, "", FeatureFlagRules.Namespace, 1,
-            ConfigErrors.ReloadRejected.Code) { Plugin = "qian.config" }, _logger);
+            ConfigErrors.ReloadRejected.Code)
+        { Plugin = "qian.config" }, _logger);
     }
 
     public void Dispose()

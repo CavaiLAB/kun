@@ -29,7 +29,7 @@ public sealed class FilesComponentManifestTests
         Assert.Equal(code.Provides, Strings(json.GetProperty("provides")));
         Assert.Equal((FilesDbContext.Schema, "./schemas/config.schema.json"), (runtime.GetProperty("dbSchema").GetString(), runtime.GetProperty("configSchema").GetString()));
         var packages = runtime.GetProperty("nuget").EnumerateArray().ToArray();
-        Assert.Equal(["Kun.Files.Abstractions", "Kun.Files"], packages.Select(item =>
+        Assert.Equal(["Qian.Files.Abstractions", "Qian.Files"], packages.Select(item =>
         {
             Assert.Equal(["id", "version", "digest"], item.EnumerateObject().Select(property => property.Name));
             Assert.Matches("^sha256:[0-9a-f]{64}$", item.GetProperty("digest").GetString());

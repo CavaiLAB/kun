@@ -3,10 +3,10 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
-using Microsoft.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Files;
 
@@ -95,9 +95,19 @@ internal sealed class PresignUploadHandler(CommandDataSession<FilesDbContext> wo
         var id = Guid.CreateVersion7(); var storageKey = FileKeys.Storage(FileKeys.Directory(tenantId, FilesConfiguration.OwnerOf(policy.Purpose), now), id, contentType);
         var file = new FileObject(id)
         {
-            PluginId = FilesConfiguration.OwnerOf(policy.Purpose), Purpose = policy.Purpose, Name = name, Size = request.Size, ContentType = contentType, Sha256 = sha256,
-            StorageKey = storageKey, UploadKey = FileKeys.Upload(storageKey, id), Provider = runtime.Backend.Name, Status = FileStatus.Uploading,
-            UploadExpiresAt = now + FilesRuntime.UploadLifetime, IdempotencyKey = request.IdempotencyKey, RequestHash = fingerprint
+            PluginId = FilesConfiguration.OwnerOf(policy.Purpose),
+            Purpose = policy.Purpose,
+            Name = name,
+            Size = request.Size,
+            ContentType = contentType,
+            Sha256 = sha256,
+            StorageKey = storageKey,
+            UploadKey = FileKeys.Upload(storageKey, id),
+            Provider = runtime.Backend.Name,
+            Status = FileStatus.Uploading,
+            UploadExpiresAt = now + FilesRuntime.UploadLifetime,
+            IdempotencyKey = request.IdempotencyKey,
+            RequestHash = fingerprint
         };
         db.Files.Add(file);
         return await Sign(runtime, file, FilesRuntime.UploadLifetime, cancellationToken).ConfigureAwait(false);
@@ -131,7 +141,8 @@ internal sealed class PresignUploadHandler(CommandDataSession<FilesDbContext> wo
         if (!ContentSniffer.Allows(policy, contentType))
             throw new ErrorException(new Error(FilesErrors.TypeNotAllowed, new Dictionary<string, string> { ["contentType"] = contentType })
             {
-                Pointer = ErrorPointer.Input("contentType"), Allowed = AllowedValues.Of(policy.AllowedTypes.Take(AllowedValues.MaxCount).ToArray())
+                Pointer = ErrorPointer.Input("contentType"),
+                Allowed = AllowedValues.Of(policy.AllowedTypes.Take(AllowedValues.MaxCount).ToArray())
             });
         sha256 = (request.Sha256 ?? "").ToLowerInvariant();
         if (sha256.Length != 64 || !sha256.All(char.IsAsciiHexDigitLower)) throw Invalid("sha256");

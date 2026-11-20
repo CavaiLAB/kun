@@ -1,8 +1,8 @@
 using System.Text.Json;
+using Kun.Configuration;
 using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Implementations;
-using Kun.Configuration;
 
 namespace Kun.Identity.Connector.Oidc;
 

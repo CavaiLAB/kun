@@ -84,7 +84,7 @@ internal sealed partial class ValidatedOptionsMonitor<[DynamicallyAccessedMember
         else ConfigTelemetry.ReloadFailed.Add(1, type, named, plugin);
         LogRejected(logger, registration.OptionsType, name, registration.Section, failures);
         notifier.Publish(new ConfigReloadFailed(registration.OptionsType, name, registration.Section, failures, ConfigErrors.ReloadRejected.Code)
-            { Plugin = registration.Plugin }, logger);
+        { Plugin = registration.Plugin }, logger);
     }
 
     public IDisposable OnChange(Action<T, string?> listener)

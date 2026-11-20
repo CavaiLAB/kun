@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TOOL = ROOT / "tools/Qian.Secrets.Tool/bin/Release/net10.0/Qian.Secrets.Tool.dll"
+TOOL = ROOT / "../../tools/Kun.Configuration.Secrets.Tool/bin/Release/net10.0/Kun.Configuration.Secrets.Tool.dll"
 
 
 class SecretScanGateTests(unittest.TestCase):

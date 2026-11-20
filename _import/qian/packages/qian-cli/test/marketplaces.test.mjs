@@ -184,7 +184,7 @@ test('真实 Config Provider 制成临时 NuGet 包后经签名市场安装，�
     if(!match[2].includes('ReferenceOutputAssembly="false"'))closure(path.resolve(path.dirname(project),match[1].replaceAll('\\','/')),order);
    order.push(project);return order;
   };
-  for(const project of closure(path.join(repo,'packages','Kun.Configuration.Platform','Kun.Configuration.Platform.csproj'))){
+  for(const project of closure(path.join(repo,'..','..','src','Kun.Configuration.Platform','Kun.Configuration.Platform.csproj'))){
    const packed=spawnSync('dotnet',['pack',project,'-c','Release','-p:Version='+version,'-p:CustomAfterMicrosoftCommonTargets='+packTargets,'-o',feed,'--artifacts-path',path.join(f.root,'build'),'--disable-build-servers','-m:1'],{cwd:repo,encoding:'utf8',timeout:120000});
    assert.equal(packed.status,0,packed.stdout+packed.stderr);
   }

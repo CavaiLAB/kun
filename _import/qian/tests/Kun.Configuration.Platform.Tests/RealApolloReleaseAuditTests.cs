@@ -15,7 +15,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Kun.Audit;
-using Kun.Configuration.Platform;
 using Kun.Data;
 using Kun.Runtime;
 using Kun.Testing.Containers;

@@ -1,7 +1,7 @@
 using Kun.Mediator;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Files;
 

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Audit;
-using Kun.Configuration.Platform;
 using Kun.Runtime;
 using Kun.Testing.Containers;
 

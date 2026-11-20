@@ -117,7 +117,7 @@ public static class ContainerImages
 """
 POSTGRES_FIXTURE = "namespace Kun.Testing.Containers;\n\npublic sealed class PostgresFixture\n{\n    public string Image => ContainerImages.Postgres;\n}\n"
 # 照仓库里的写法用反斜杠引用夹具项目
-FIXTURE_USER = XUNIT_PROJECT.replace("</ItemGroup>", '<ProjectReference Include="..\\Qian.Testing.Containers\\Qian.Testing.Containers.csproj" /></ItemGroup>')
+FIXTURE_USER = XUNIT_PROJECT.replace("</ItemGroup>", '<ProjectReference Include="..\\Kun.Testing.Containers\\Kun.Testing.Containers.csproj" /></ItemGroup>')
 
 
 def csharp(*statements: str, locator: bool = True) -> str:
@@ -684,7 +684,7 @@ class ImagesTests(unittest.TestCase):
         self.box = Sandbox(self)
         self.box.write("Qian.slnf", json.dumps({"solution": {"path": "Kun.slnx", "projects": [
             "tests/Sample.Tests/Sample.Tests.csproj", "tests/Plain.Tests/Plain.Tests.csproj"]}}) + "\n")
-        self.box.write("tests/Kun.Testing.Containers/Qian.Testing.Containers.csproj", CONTAINERS_PROJECT)
+        self.box.write("tests/Kun.Testing.Containers/Kun.Testing.Containers.csproj", CONTAINERS_PROJECT)
         self.box.write("tests/Kun.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES)
         self.box.write("tests/Kun.Testing.Containers/PostgresFixture.cs", POSTGRES_FIXTURE)
         self.box.write("tests/Sample.Tests/Sample.Tests.csproj", FIXTURE_USER)
@@ -729,7 +729,7 @@ class ImagesTests(unittest.TestCase):
         self.assertIn("分片 a 里 Sample.Tests 引用了容器夹具项目（_import/qian/tests/Kun.Testing.Containers），却一个镜像也没解析出来", errors)
         # 经 tests/ 下的测试宿主项目间接引用夹具项目的也算
         self.box.write("tests/Plain.Host/Plain.Host.csproj", '<Project Sdk="Microsoft.NET.Sdk"><ItemGroup>'
-                       '<ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" /></ItemGroup></Project>\n')
+                       '<ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" /></ItemGroup></Project>\n')
         self.box.write("tests/Plain.Tests/Plain.Tests.csproj",
                        XUNIT_PROJECT.replace("</ItemGroup>", '<ProjectReference Include="..\\Plain.Host\\Plain.Host.csproj" /></ItemGroup>'))
         code, _, errors = self.run_main("images", "b")

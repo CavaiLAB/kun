@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-using Kun.Configuration.Platform;
 using Kun.Plugin.Sdk;
 
 namespace Kun.Configuration.Platform.Tests;

@@ -42,7 +42,7 @@
   ],
   "runtime": {
     "form": "module",
-    "entry": "Qian.Config.Apollo.FeatureFlagManagementPlugin, Qian.Config.Apollo",
+    "entry": "Kun.Configuration.Platform.FeatureFlagManagementPlugin, Kun.Configuration.Platform",
     "nuget": [
       {
         "id": "Qian.Config.Apollo",
@@ -71,7 +71,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.config.flags",
-        "source": "Qian.Config.Apollo.FeatureFlagManagementPlugin, Qian.Config.Apollo",
+        "source": "Kun.Configuration.Platform.FeatureFlagManagementPlugin, Kun.Configuration.Platform",
         "sha256": "833e1157f8e5c4ba6368761539c585b49a61441abf8d223e409a601b34cd54ad",
         "fields": [
           ""

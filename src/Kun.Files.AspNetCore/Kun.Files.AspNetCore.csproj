@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Qian 文件组件的 HTTP 表面：申请上传、完成上传、下载地址与软删端点，以及 local 后端的签名直传 / 直下端点。</Description>
+    <Description>文件组件的 HTTP 表面：申请上传、完成上传、下载地址与软删端点，以及 local 后端的签名直传 / 直下端点。</Description>
   </PropertyGroup>
   <PropertyGroup Label="档位">
     <KunTier>platform</KunTier>

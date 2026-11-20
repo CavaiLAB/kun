@@ -1,20 +1,20 @@
-using System.Diagnostics;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Audit;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
 using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Kun.Audit;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Identity.Abstractions;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Configuration.Platform;
 
@@ -179,6 +179,9 @@ internal sealed record PortalDraft(string Key, string Value, string Comment, str
 internal sealed record FlagDraftAudit(Guid Attempt, Guid IdempotencyKey, string TargetHash, string Outcome);
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     RespectRequiredConstructorParameters = true, RespectNullableAnnotations = true, AllowDuplicateProperties = false)]
-[JsonSerializable(typeof(FeatureFlagDraft))][JsonSerializable(typeof(FeatureFlagPolicy))][JsonSerializable(typeof(FeatureFlagDraftResult))]
-[JsonSerializable(typeof(PortalDraft))][JsonSerializable(typeof(FlagDraftAudit))]
+[JsonSerializable(typeof(FeatureFlagDraft))]
+[JsonSerializable(typeof(FeatureFlagPolicy))]
+[JsonSerializable(typeof(FeatureFlagDraftResult))]
+[JsonSerializable(typeof(PortalDraft))]
+[JsonSerializable(typeof(FlagDraftAudit))]
 internal sealed partial class FlagManagementJson : JsonSerializerContext;

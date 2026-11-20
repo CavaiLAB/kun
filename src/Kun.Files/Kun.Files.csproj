@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <Description>Qian 文件组件 Provider：租户前缀存储键、配额、上传策略、MIME 嗅探、预签名能力与 local 后端（Kun.Storage.Local）。</Description>
+    <Description>文件组件 Provider：租户前缀存储键、配额、上传策略、MIME 嗅探、预签名能力与 local 后端（Kun.Storage.Local）。</Description>
   </PropertyGroup>
   <PropertyGroup Label="档位">
     <KunTier>platform</KunTier>

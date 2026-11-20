@@ -8,4 +8,4 @@
 
 当前源码实现与真实服务验收不等于已发布包源。保留 `x-skeleton`，正式发行与 `qian add` 安装门通过后再解除；默认组合包不自动加入此管理写端。现有 `qian add config` 的只读配置组件不因此获得写入权限。
 
-宿主装配、严格规则、权限与持久回执语义见 [Provider 主文档](../../../../src/Kun.Configuration.Platform/README.md#特性开关与草稿管理)。
+宿主装配、严格规则、权限与持久回执语义见 [Provider 主文档](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Configuration.Platform/README.md#特性开关与草稿管理)。

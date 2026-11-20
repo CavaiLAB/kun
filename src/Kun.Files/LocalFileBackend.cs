@@ -2,13 +2,13 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Kun.Errors;
 using Kun.Storage;
 using Kun.Storage.Local;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Kun.Errors;
 
 namespace Kun.Files;
 
@@ -44,7 +44,9 @@ internal sealed class LocalFileBackendFactory(ReadOnlyMemory<byte> signingKey) :
         var logger = context.Services.GetService<ILoggerFactory>()?.CreateLogger<LocalFileSystemStorage>() ?? NullLogger<LocalFileSystemStorage>.Instance;
         var storage = new LocalFileSystemStorage(Options.Create(new LocalFileStorageOptions
         {
-            RootPath = root, PublicBaseUrl = endpoint, DefaultPresignedUrlLifetime = FilesRuntime.UploadLifetime
+            RootPath = root,
+            PublicBaseUrl = endpoint,
+            DefaultPresignedUrlLifetime = FilesRuntime.UploadLifetime
         }), logger, context.Clock);
         return new LocalFileBackend(storage, signingKey.Length == 0 ? RandomNumberGenerator.GetBytes(32) : signingKey.ToArray(), context.Clock);
     }

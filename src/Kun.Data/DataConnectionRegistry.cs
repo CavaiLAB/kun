@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Kun.Configuration;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
@@ -11,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using Kun.Configuration;
 
 namespace Kun.Data;
 

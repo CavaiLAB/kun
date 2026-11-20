@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
+using Kun.Errors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
-using Kun.Errors;
 
 namespace Kun.Configuration.Platform;
 

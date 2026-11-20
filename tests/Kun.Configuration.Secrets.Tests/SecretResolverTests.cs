@@ -1,12 +1,12 @@
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Runtime.InteropServices;
+using Kun.Configuration.Platform;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
+using Kun.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Configuration.Platform;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Configuration.Secrets.Tests;
 
@@ -157,7 +157,9 @@ public sealed partial class SecretResolverTests
         var grants = new List<SecretGrant>(declared);
         var factory = new SecretResolverFactory(new SecretResolverOptions
         {
-            MountRoot = files.Root, AllowDevelopmentReferences = true, Bindings = options.Bindings,
+            MountRoot = files.Root,
+            AllowDevelopmentReferences = true,
+            Bindings = options.Bindings,
             Policies = [new("qian.consumer", grants, [new("app/*", "dev")])]
         }, new Observer());
         grants.Add(new("app/*", "dev"));

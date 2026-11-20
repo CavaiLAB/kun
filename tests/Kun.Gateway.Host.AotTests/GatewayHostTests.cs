@@ -17,9 +17,9 @@ using Kun.Audit;
 using Kun.Configuration;
 using Kun.Identity.Client;
 using Kun.Identity.Client.Tests;
-using Qian.Testing;
+using Kun.Testing;
 using Kun.Testing.Containers;
-using Qian.Testing.NativeAudit;
+using Kun.Testing.NativeAudit;
 using StackExchange.Redis;
 
 namespace Kun.Gateway.Host.AotTests;

@@ -953,7 +953,9 @@ class RegistrationTests(unittest.TestCase):
         for project, reason in dotnet_ci.NOT_IN_CI.items():
             self.assertEqual(f"不进 CI（NOT_IN_CI）：{reason}", places[project])
         self.assertTrue(all(counts[kind] for kind in ("单元", "集成", "专属作业")), counts)
-        self.assertTrue(local["Qian.slnf"], local)
+        self.assertEqual(len(dotnet_ci.platform_projects()), counts["平台分片"])
+        self.assertGreater(counts["平台分片"], 0)
+        self.assertEqual(0, sum(local.values()), local)
         self.assertTrue(all(project.startswith("tests/") for project in dotnet_ci.dedicated_tests()))
 
 

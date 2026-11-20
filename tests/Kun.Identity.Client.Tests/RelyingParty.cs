@@ -10,6 +10,7 @@ using Kun.Core.MultiTenancy;
 using Kun.Identity.Abstractions;
 using Kun.MultiTenancy;
 using Kun.Runtime;
+using Kun.Testing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -17,7 +18,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Testing;
 using StackExchange.Redis;
 
 namespace Kun.Identity.Client.Tests;

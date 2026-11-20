@@ -16,7 +16,7 @@ import { accessible, collectCspViolations, fillLogin, identity, loginPage, openS
 // SSO 跳转回调经真实上游 Dex（通用 OIDC 连接器）首次确认绑定、再次直接进入；验收 2：甲方已挂载参考应用时远程按需加载、丙方未挂载时 mf-manifest.json 从不请求；零令牌检测式自检不需要真实栈。
 const owner = person('owner'); const operator = person('operator'); const visitor = person('visitor'); const second = person('second');
 // 上游 Dex 本地密码库里的用户（scripts/dev-shell.sh 用同一文件渲染 Dex 配置）。
-const dex = JSON.parse(readFileSync(resolve(root, 'tools/Qian.Dev.Shell/seed/dex.json'), 'utf8')) as { email: string; password: string };
+const dex = JSON.parse(readFileSync(resolve(root, '../../tools/Kun.Dev.Shell/seed/dex.json'), 'utf8')) as { email: string; password: string };
 const acme = seed.tenants[0]!; const beta = seed.tenants[1]!; const gamma = seed.tenants[2]!;
 // 令牌检测：JWT（JWS / JWE 紧凑序列化）各段是 base64url，头段是 JSON，编码后以 eyJ 起头。两种形状都算令牌：令牌边界上的 eyJ 长串（JSON 字符串、URL、
 // Bearer 头里的整段令牌，或单独的载荷段）；任何位置的 eyJ 段后接点号与下一段（百分号编码里 eyJ 前一个字符也可能是字母数字）。防伪令牌这类数据保护的

@@ -24,11 +24,11 @@ function within(root:string,relative:string):string{
 export function generateDocumentation(options:DocumentationOptions):DocumentationResult{
  const root=path.resolve(options.workingDirectory);
  try{
-  const toolRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..','tools/Qian.Docs.Tool');
+  const toolRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../../../..','tools/Kun.Docs.Tool');
   const build=spawnSync('dotnet',['build',toolRoot,'-c','Release','--nologo','--verbosity','quiet'],{encoding:'utf8',timeout:120000,maxBuffer:8*1024*1024});
   if(build.error||build.status!==0)return failure('随 CLI 的文档工具构建失败；请检查 .NET SDK 与仓库包还原。');
   const input={workingDirectory:root,profile:options.profile??'platform',patches:options.patches??[],homeDirectory:options.homeDirectory??null,includeHomePatch:options.includeHomePatch??false,sourceDirectories:options.sourceDirectories??['packages','plugins','src'],sourceRoot:options.sourceRoot??null};
-  const run=spawnSync('dotnet',[path.join(toolRoot,'bin/Release/net10.0/Qian.Docs.Tool.dll')],{input:JSON.stringify(input),encoding:'utf8',timeout:120000,maxBuffer:16*1024*1024});
+  const run=spawnSync('dotnet',[path.join(toolRoot,'bin/Release/net10.0/Kun.Docs.Tool.dll')],{input:JSON.stringify(input),encoding:'utf8',timeout:120000,maxBuffer:16*1024*1024});
   if(run.error||!run.stdout)return failure('文档工具未返回完整结果。');
   const result=JSON.parse(run.stdout) as {documents:Record<string,string>;events:unknown[];diagnostics:SurfaceDiagnostic[];isValid:boolean};
   if(run.status!==0||!result.isValid)return{files:[],events:result.events,diagnostics:result.diagnostics,isValid:false};

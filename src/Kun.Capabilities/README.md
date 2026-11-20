@@ -82,7 +82,7 @@ SDK 生成的契约由 System.Text.Json 导出 Schema，不会出现后四类问
 
 ## 验收与保留项
 
-`tests/Qian.Sample.Crm.Tests/CapabilityCatalogTests.cs` 与 `CapabilityInvokeTests.cs` 使用真实 Kestrel、签名 S2S、受限 PostgreSQL、RBAC、Registry、SDK 绑定与客户业务。验证目录信封与条目契约（`schemaSha256` 与生产实现 `ToolContractHash` 一致，该实现由 `Kun.Surfaces.Tests` 按 RFC 8785 的示例与附录 B 样本验证）、别名的 `Deprecation` / `Link` 头、参数校验与匿名 401 的 ErrorDetail、缺权限/scope、restrict、卸载、数据库 scope patch、撤权与冻结、执行入口的输入校验 / 幂等重放（含执行中 409、失败不留回执、只读能力忽略幂等键）/ 回执策略（按分级与上限不存响应体时同键 409、表上的硬上限、非默认组件配置）/ Agent 主体、登记期拒绝（组件挂载失败，目录与执行入口没有该能力），并检查实际客户、Outbox 和审计。测试组合使用必要的实际 Provider，不声称已经覆盖默认 platform 全部 Provider；测试签发器也不替代真实 Identity 登录验收。Agent 用例另在测试宿主打开「授权预览」，把 Agent 主体按同 ID 服务主体求值，以单独观察 `agent.expose` 过滤；预览默认关闭，不是生产判定。
+`tests/Kun.Sample.Crm.Tests/CapabilityCatalogTests.cs` 与 `CapabilityInvokeTests.cs` 使用真实 Kestrel、签名 S2S、受限 PostgreSQL、RBAC、Registry、SDK 绑定与客户业务。验证目录信封与条目契约（`schemaSha256` 与生产实现 `ToolContractHash` 一致，该实现由 `Kun.Surfaces.Tests` 按 RFC 8785 的示例与附录 B 样本验证）、别名的 `Deprecation` / `Link` 头、参数校验与匿名 401 的 ErrorDetail、缺权限/scope、restrict、卸载、数据库 scope patch、撤权与冻结、执行入口的输入校验 / 幂等重放（含执行中 409、失败不留回执、只读能力忽略幂等键）/ 回执策略（按分级与上限不存响应体时同键 409、表上的硬上限、非默认组件配置）/ Agent 主体、登记期拒绝（组件挂载失败，目录与执行入口没有该能力），并检查实际客户、Outbox 和审计。测试组合使用必要的实际 Provider，不声称已经覆盖默认 platform 全部 Provider；测试签发器也不替代真实 Identity 登录验收。Agent 用例另在测试宿主打开「授权预览」，把 Agent 主体按同 ID 服务主体求值，以单独观察 `agent.expose` 过滤；预览默认关闭，不是生产判定。
 
 OpenAPI 聚合已覆盖 SDK 真实调用入口及宿主标注绑定的原生 HTTP 路由，实际 gRPC 契约经独立反射探测；平台挂载路径的契约准入已由 S1-RT-005 接入（R76，见「平台挂载准入」）。菜单贡献及偏好已接入，范围与验证见下节。扩展点按 ADR-020 D20.3 和组件规格 §3.6 使用既有事件定义及可逆服务注册，不另建旧版独立扩展点注册表。platform / minimal 双宿主等价与表面热重载的运行时语义由 S1-QA-002 的 TCK（T19、T23）覆盖。本组件的交付与复核记录见 S1-RT-006 与 S1-RT-019。
 
@@ -137,7 +137,7 @@ Capabilities 同时提供 `Contracts` 服务键（`ctx.Contracts()` / `IContract
 
 偏好更新与 `qian.capabilities/navigation.preference` 审计在同一个 PostgreSQL Serializable 事务中提交。审计只写已知非敏感输入的规范化哈希，字段为 hidden、order 和 ASCII 资源引用，payload 不复制输入。审计失败时偏好回滚；序列化、死锁及目标键冲突会重新验证资格并重试整笔更新，耗尽后返回 CONFLICT。宿主需给本上下文的受限应用角色配置既有审计事务函数权限，不授予审计历史 DML。
 
-真实 Kestrel/PostgreSQL 用例覆盖两个租户、两个服务主体的展示隔离，版本化租户菜单替换、禁用不回退、restriction、卸载、偏好恢复、审计失败回滚和并发更新单行；外壳目录另有用例覆盖只列本租户实际挂载的组件、restrict 与卸载后不出现、未挂载组件的远程地址不交出；平台控制台目录的用例（`tests/Qian.Sample.Crm.Tests/PlatformConsoleTests.cs`）覆盖持角色的平台身份拿到两个平台组件的远程、菜单与权限码且不写审计，不持角色为空、撤销角色后立即为空，租户主体、服务与 Agent 404，租户外壳目录与菜单不含平台组件。前端远程模块的真实加载与用户交互登录由外壳的真实流程验收（`apps/qian-shell`，`pnpm shell:auth`）覆盖。
+真实 Kestrel/PostgreSQL 用例覆盖两个租户、两个服务主体的展示隔离，版本化租户菜单替换、禁用不回退、restriction、卸载、偏好恢复、审计失败回滚和并发更新单行；外壳目录另有用例覆盖只列本租户实际挂载的组件、restrict 与卸载后不出现、未挂载组件的远程地址不交出；平台控制台目录的用例（`tests/Kun.Sample.Crm.Tests/PlatformConsoleTests.cs`）覆盖持角色的平台身份拿到两个平台组件的远程、菜单与权限码且不写审计，不持角色为空、撤销角色后立即为空，租户主体、服务与 Agent 404，租户外壳目录与菜单不含平台组件。前端远程模块的真实加载与用户交互登录由外壳的真实流程验收（`apps/qian-shell`，`pnpm shell:auth`）覆盖。
 
 ## proto 与实际 gRPC 服务探测
 
@@ -162,7 +162,7 @@ Capabilities 同时提供 `Contracts` 服务键（`ctx.Contracts()` / `IContract
 - proto 契约套用 `GrpcContractPlugin`，反射对端由宿主经 DI 注册的 `IGrpcContractPeers` 按组件与精确版本给出。没有对端时 Apply 以 `PRECONDITION_FAILED` 失败，pointer 指向 `contracts/<契约 ID>`，不当作兼容。
 - json-schema 契约随制品登记，挂载时不比较。
 
-不兼容、比较无法完成或缺对端时条目为 Failed，业务注册不公开；失败原因经 `/api/lifecycle/diagnostics` 给出，见 [Kun.Lifecycle](../Kun.Lifecycle/README.md)。`GrpcReflectionTests` 验证 proto 的首个版本不比较、无对端 fail-closed、有对端时兼容版本 Ready；OpenAPI 的挂载、Reconciler 与升级三条路径由 `tests/Qian.Sample.Crm.Tests` 的 `LifecycleAcceptanceTests` 验证。
+不兼容、比较无法完成或缺对端时条目为 Failed，业务注册不公开；失败原因经 `/api/lifecycle/diagnostics` 给出，见 [Kun.Lifecycle](../Kun.Lifecycle/README.md)。`GrpcReflectionTests` 验证 proto 的首个版本不比较、无对端 fail-closed、有对端时兼容版本 Ready；OpenAPI 的挂载、Reconciler 与升级三条路径由 `tests/Kun.Sample.Crm.Tests` 的 `LifecycleAcceptanceTests` 验证。
 
 ## 实际 HTTP 端点聚合
 

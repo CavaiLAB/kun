@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# 外壳认证联调环境（S1-YUE-002 / S1-YUE-012）。说明见 tools/Qian.Dev.Shell/README.md。
+# 外壳认证联调环境（S1-YUE-002 / S1-YUE-012）。说明见 tools/Kun.Dev.Shell/README.md。
 # 真实 qian.identity（与 CRM 参考运行时同宿主）+ 平台表面参考宿主 + 真实 Identity.Client / Kun.Gateway BFF（HTTPS 自签名，静态托管外壳与参考应用远程制品）+ 上游 OIDC 发行方 CNCF Dex（SSO 跳转回调）；
-# 开发库、平台插件树与运营前置复用 tools/Qian.Dev.TenantOps。这是开发机上的联调环境：不替代 qian dev（S1-RT-013），也不替代 K3s 部署（S1-DEP-002）。
+# 开发库、平台插件树与运营前置复用 tools/Kun.Dev.TenantOps。这是开发机上的联调环境：不替代 qian dev（S1-RT-013），也不替代 K3s 部署（S1-DEP-002）。
 # 兼容 macOS 自带的 bash 3.2：不用关联数组，也不在 set -u 下展开空数组。
 set -euo pipefail
 
@@ -15,8 +15,8 @@ REDIS_PORT="${QIAN_DEV_REDIS_PORT:-55434}"
 REDIS_IMAGE="${QIAN_DEV_REDIS_IMAGE:-${QIAN_TEST_IMAGE_REDIS:-redis:7-alpine}}"
 API_URL="${QIAN_DEV_SHELL_API_URL:-http://127.0.0.1:5090}"
 SHELL_URL="${QIAN_DEV_SHELL_URL:-https://localhost:5443}"
-PROJECT="$ROOT/tools/Qian.Dev.Shell"
-DLL="$PROJECT/bin/Debug/net10.0/Qian.Dev.Shell.dll"
+PROJECT="$ROOT/../../tools/Kun.Dev.Shell"
+DLL="$PROJECT/bin/Debug/net10.0/Kun.Dev.Shell.dll"
 PASSWORD_FILE="$STATE/pg-admin-password"
 # 上游 OIDC 发行方（CNCF Dex）：内存存储、本地密码库里一个用户（种子 seed/dex.json）、一个机密客户端 qian-identity；issuer 与回调地址写进配置，所以每次 up 都按当前端口重建。
 DEX_CONTAINER="${QIAN_DEV_DEX_CONTAINER:-qian-dev-shell-dex}"
@@ -48,7 +48,7 @@ need() { command -v "$1" >/dev/null 2>&1 || { echo "缺少命令：$1（$2）" >
 build() {
   need dotnet "安装 .NET 10 SDK，版本见仓库根目录 global.json"
   echo "构建联调宿主 ..."
-  dotnet build "$PROJECT/Qian.Dev.Shell.csproj" -c Debug -nologo -v quiet
+  dotnet build "$PROJECT/Kun.Dev.Shell.csproj" -c Debug -nologo -v quiet
 }
 
 build_ui() {

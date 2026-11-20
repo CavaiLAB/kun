@@ -18,7 +18,7 @@
 - Registry 与 Lifecycle 的集成事件类型和领域事件处理器。
 - 信任根所在的配置节与秘密解析策略。
 - 可选的进程内钩子解析器 `LifecycleRuntimeOptions.Hooks`：按组件 ID 与精确版本返回 `IPluginLifecycleHooks`，组件没有钩子时返回 null。本包不从数据库或制品内容加载程序集。
-- 管理面端点（诊断与反向权限批准）需要宿主装配的权限判定端口（Kun `IPermissionChecker`），平台主体另需 Authz 的超管旁路；批准与租户级生命周期操作（开通、升级、卸载、清除）另需该租户 scope 可见的审计服务（`ctx.Audit()`），且 Lifecycle 的数据库登录须获审计同事务函数的执行权（`AuditTransactionAccess.CreateMigrationSql` 的生产方角色）；平台级操作（安装、激活、回切、弃用、退役）另需 global 审计条目配置平台链：宿主单独创建受限的平台审计登录、迁移时在租户守卫之后应用 `AuditPlatformAccess.CreateMigrationSql(role, writerRole, producerRole)`（三参重载另建平台链的同事务函数，函数属主同租户链，Lifecycle 的数据库登录作为生产方只获执行权，S1-AUD-009）、以 `AddKunData<PlatformAuditDbContext>` 绑定该登录（审计组件以它校验、读取平台链），并在 `qian.audit` 的 global 条目写 `chain.platformRole`（Audit README「受控平台链」；参考宿主见 `tests/Qian.Lifecycle.Tests/LifecycleHost.cs`、CRM 验收宿主与 `tools/Qian.Dev.TenantOps`）。
+- 管理面端点（诊断与反向权限批准）需要宿主装配的权限判定端口（Kun `IPermissionChecker`），平台主体另需 Authz 的超管旁路；批准与租户级生命周期操作（开通、升级、卸载、清除）另需该租户 scope 可见的审计服务（`ctx.Audit()`），且 Lifecycle 的数据库登录须获审计同事务函数的执行权（`AuditTransactionAccess.CreateMigrationSql` 的生产方角色）；平台级操作（安装、激活、回切、弃用、退役）另需 global 审计条目配置平台链：宿主单独创建受限的平台审计登录、迁移时在租户守卫之后应用 `AuditPlatformAccess.CreateMigrationSql(role, writerRole, producerRole)`（三参重载另建平台链的同事务函数，函数属主同租户链，Lifecycle 的数据库登录作为生产方只获执行权，S1-AUD-009）、以 `AddKunData<PlatformAuditDbContext>` 绑定该登录（审计组件以它校验、读取平台链），并在 `qian.audit` 的 global 条目写 `chain.platformRole`（Audit README「受控平台链」；参考宿主见 `tests/Qian.Lifecycle.Tests/LifecycleHost.cs`、CRM 验收宿主与 `tools/Kun.Dev.TenantOps`）。
 - 缺审计时的口径（S1-RT-037，建议裁决 ② 2026-10-23 拍板）：管理面批准缺判定端口、缺旁路或缺审计都与不存在同为 404（R32），对外不区分；租户级生命周期操作缺审计时以 503 `LIFECYCLE_AUDIT_UNAVAILABLE`（`operation` 为操作名）拒绝，不认领执行记录、不改状态；平台级操作在 global 上下文看不到审计服务、或审计端口拒绝本组件为平台生产方（没配 `chain.platformRole`、审计重挂后本组件持有陈旧句柄，或本组件的数据库连接不能调用平台链同事务函数：登录没有经 `AuditPlatformAccess` 三参迁移直接获得执行权，或连接不是未切换角色、无租户 GUC 的受限登录；端口不区分原因）时同样 503 拒绝、状态不变（global 看不到审计服务时安装在提交候选制品之前就拒绝；端口的拒绝只在追加时发现，此时候选制品已提交、不登记修订，重提幂等）。三处都先经装载器的日志器记一条 Warning（`Kun.Lifecycle` 事件 7「审计服务不可用」记租户链缺失、事件 8「平台审计链不可用」记平台链缺失，只有操作名、租户或原因，不含载荷），宿主装配错误由日志与无权限、状态冲突区分。
 
 ```csharp
@@ -40,7 +40,7 @@ await runtime.MountAsync([/* data、config、registry、capabilities … */ life
 app.MapKunLifecycle(http => runtime.GetContext("lifecycle", ScopeKey.Global));
 ```
 
-参考宿主 `samples/Qian.Sample.Crm` 的 `CrmCommandApplication.Build` 为此提供了 `events` / `mediator` 两个合成参数，嵌入平台组件的宿主经它们把登记并进同一次调用。漏装领域事件处理器时，激活与升级在提交前失败，不会出现状态已改、事件丢失的情况。
+参考宿主 `samples/Kun.Sample.Crm` 的 `CrmCommandApplication.Build` 为此提供了 `events` / `mediator` 两个合成参数，嵌入平台组件的宿主经它们把登记并进同一次调用。漏装领域事件处理器时，激活与升级在提交前失败，不会出现状态已改、事件丢失的情况。
 
 ## 平台修订
 
@@ -223,7 +223,7 @@ app.MapKunLifecycle(http => runtime.GetContext("lifecycle", ScopeKey.Global));
   - `LifecycleAuditTests`：开通、升级、卸载、清除各写一条租户审计链条目（主体取事件作用域，否则为本组件服务主体），重复操作、续跑与钩子重试不重复记；审计写入失败或提交失败时状态迁移与条目都不留且可续跑；宿主撤下审计后操作以 503 `LIFECYCLE_AUDIT_UNAVAILABLE` 拒绝、状态不变并记宿主级告警，批准 API 仍 404 且同样记告警；同租户两个组件并发完成开通时链冲突的一方换新会话重做、三条记录都在。缺审计时开通与升级在认领执行记录之前就拒绝（安装行仍是授权后或已开通的状态、没有执行记录、钩子不执行），安装在提交候选制品之前就拒绝（注册表 `plugin_artifacts` 里没有该制品）；升级钩子失败回到 `Installed(from)` 时链上一条不多，重试成功后恰多一条升级条目；事件 8 的原因如实（端口拒绝时注明不区分原因并列出各种来源，与宿主没有装配审计时不同）（S1-RT-038）。平台链：安装、激活、回切、弃用、退役各一条平台条目（序号连续，资源、输入哈希与载荷逐字段核对，租户链为空），重复安装与幂等返回不记；平台条目写不进去时激活不提交，状态变更提交失败时平台条目与状态变更都不留，没配 `chain.platformRole`、缺平台链同事务函数的执行权或撤下审计时以 503 拒绝、状态不变并记事件 8 的告警；两个组件同时激活时平台链冲突的一方换新会话重做、两条激活条目都在（S1-AUD-009）。
   - `LifecycleUnitTests` 另核对清单的 `optionalInject` 与 `LifecyclePlugin.OptionalInject` 一致。
   - `TenantFieldInstallTests`：`tck/surfaces/cases.json` 中工具输入点名租户字段的 42 个反例（含 properties 之外的写法与越出 Schema 位置的引用，S1-AGT-004 / S1-AGT-007）经 `InstallAsync` 全部失败（`INPUT_INVALID` / `REGISTRY_INPUT_INVALID`，pointer 与 fixture 相同），不登记修订、不留候选制品；只是含有 tenant 的名称照常安装。
-- `tests/Qian.Sample.Crm.Tests` 的 `LifecycleAcceptanceTests`：参考应用 1.0.0 / 1.0.1 / 1.1.0 三个预装修订，在真实 PostgreSQL、Kestrel 与 JWT 下覆盖：
+- `tests/Kun.Sample.Crm.Tests` 的 `LifecycleAcceptanceTests`：参考应用 1.0.0 / 1.0.1 / 1.1.0 三个预装修订，在真实 PostgreSQL、Kestrel 与 JWT 下覆盖：
   - A、B 开通与挂载，重复开通无副作用，卸载后 5 秒内 SDK 入口恢复 404。
   - 激活 n+1 后 A 升级、B 保持 n，平台级与租户级回切后 A 由 n 处理且升级期间写入的数据可读。
   - 破坏性 OpenAPI 契约在挂载、Reconciler 与升级三条路径上为 Failed，原因进入诊断端点；挂载失败的升级回到原版本时租户审计链一条不多（S1-RT-038）。

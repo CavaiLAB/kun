@@ -4,7 +4,7 @@ import { expect, test, type APIRequestContext, type Browser, type Locator, type 
 import { accessible, collectCspViolations, fillLogin, identity, loginPage, openSession, person, seed, state } from './support';
 
 // 租户自助开通的真实流程（S1-TEN-020；企业首次进入 S1-TEN-021）：Dev.Shell 拉起的真实身份服务、开通组件、租户组件、平台控制台与网关 BFF。
-// 申请人在身份服务同源的公开页注册并申请，验证码从开发期发件箱读取（tools/Qian.Dev.Shell/DevSignupOutbox.cs，回环地址 + 状态目录里的开发令牌）；
+// 申请人在身份服务同源的公开页注册并申请，验证码从开发期发件箱读取（tools/Kun.Dev.Shell/DevSignupOutbox.cs，回环地址 + 状态目录里的开发令牌）；
 // 平台运营在外壳的平台控制台打开「开通申请」远程页审核；获批后申请人凭手机号与密码登录，直接进入新企业，首页显示试用提示、开通引导与企业信息。
 collectCspViolations();
 const operator = person('operator');

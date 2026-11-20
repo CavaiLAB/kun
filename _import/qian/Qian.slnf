@@ -2,15 +2,7 @@
   "solution": {
     "path": "../../Kun.slnx",
     "projects": [
-      "_import/qian/samples/Qian.Sample.Crm/Qian.Sample.Crm.csproj",
-      "_import/qian/tests/Qian.Shell.TestHost/Qian.Shell.TestHost.csproj",
-      "_import/qian/tests/Qian.Sample.Crm.Tests/Qian.Sample.Crm.Tests.csproj",
-      "_import/qian/tools/Qian.Docs.Tool/Qian.Docs.Tool.csproj",
-      "_import/qian/tools/Qian.Build.Analyzers/Qian.Build.Analyzers.csproj",
-      "_import/qian/tools/Qian.Image.SelfCheck/Qian.Image.SelfCheck.csproj",
-      "_import/qian/tools/Qian.Image.SelfCheck.Aot/Qian.Image.SelfCheck.Aot.csproj",
-      "_import/qian/tools/Qian.Dev.TenantOps/Qian.Dev.TenantOps.csproj",
-      "_import/qian/tools/Qian.Dev.Shell/Qian.Dev.Shell.csproj"
+      "_import/qian/tools/Qian.Build.Analyzers/Qian.Build.Analyzers.csproj"
     ]
   }
 }

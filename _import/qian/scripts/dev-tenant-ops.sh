@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 本机租户运营手测环境（S1-QA-012；CI 冒烟 S1-QA-013）。说明见 tools/Qian.Dev.TenantOps/README.md。
+# 本机租户运营手测环境（S1-QA-012；CI 冒烟 S1-QA-013）。说明见 tools/Kun.Dev.TenantOps/README.md。
 # 这是开发机上的手测环境：不替代 qian dev（S1-RT-013），也不替代 K3s 部署（S1-DEP-002）。
 # 兼容 macOS 自带的 bash 3.2：不用关联数组，也不在 set -u 下展开空数组。
 set -euo pipefail
@@ -12,8 +12,8 @@ PG_IMAGE="${QIAN_DEV_PG_IMAGE:-${QIAN_TEST_IMAGE_POSTGRES:-postgres:16-alpine}}"
 OPS_URL="${QIAN_DEV_OPS_URL:-http://127.0.0.1:5080}"
 # 真实 qian.identity 的发行方（S1-TEN-010）：业务宿主监听此地址，账号接口 /api/identity、目录 /api/directory。
 IDENTITY_URL="${QIAN_DEV_IDENTITY_URL:-http://127.0.0.1:5081}"
-PROJECT="$ROOT/tools/Qian.Dev.TenantOps"
-DLL="$PROJECT/bin/Debug/net10.0/Qian.Dev.TenantOps.dll"
+PROJECT="$ROOT/../../tools/Kun.Dev.TenantOps"
+DLL="$PROJECT/bin/Debug/net10.0/Kun.Dev.TenantOps.dll"
 PASSWORD_FILE="$STATE/pg-admin-password"
 
 usage() {
@@ -35,7 +35,7 @@ need() { command -v "$1" >/dev/null 2>&1 || { echo "缺少命令：$1（$2）" >
 build() {
   need dotnet "安装 .NET 10 SDK，版本见仓库根目录 global.json"
   echo "构建手测宿主 ..."
-  dotnet build "$PROJECT/Qian.Dev.TenantOps.csproj" -c Debug -nologo -v quiet
+  dotnet build "$PROJECT/Kun.Dev.TenantOps.csproj" -c Debug -nologo -v quiet
 }
 
 ensure_built() { [ -f "$DLL" ] || build >&2; }

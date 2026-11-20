@@ -36,7 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- 同进程形状的集成测试直接驱动迁移 Job 与引导 Job 的入口（PlatformMigrations / PlatformOperatorBootstrap）。 -->
-    <InternalsVisibleTo Include="Qian.Sample.Crm.Tests" />
+    <InternalsVisibleTo Include="Kun.Sample.Crm.Tests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="platform.overlay.yml" CopyToOutputDirectory="PreserveNewest" />

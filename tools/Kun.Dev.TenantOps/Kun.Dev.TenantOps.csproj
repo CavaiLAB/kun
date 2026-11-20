@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- 本机租户运营手测宿主（S1-QA-012）：只供开发机手测，不打包、不进任何 profile。 -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <!-- 外壳认证联调环境（S1-YUE-002）复用这里的开发库、平台插件树与运营前置，不另起一套装配。 -->
+  <ItemGroup><InternalsVisibleTo Include="Kun.Dev.Shell" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../samples/Kun.Sample.Crm/Kun.Sample.Crm.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities/Kun.Capabilities.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities.AspNetCore/Kun.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Registry/Kun.Registry.csproj" />
+    <ProjectReference Include="../../src/Kun.Profiles/Kun.Profiles.csproj" />
+    <ProjectReference Include="../../src/Kun.Lifecycle/Kun.Lifecycle.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
+    <!-- 管理员维护（S1-TEN-010）的账号、成员与凭据经真实 qian.identity。 -->
+    <ProjectReference Include="../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
+    <PackageReference Include="BouncyCastle.Cryptography" />
+  </ItemGroup>
+</Project>

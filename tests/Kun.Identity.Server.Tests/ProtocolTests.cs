@@ -8,10 +8,10 @@ using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
 using Kun.Runtime;
 using Kun.Testing.Containers;
+using Kun.Testing.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Testing.Identity;
 
 namespace Kun.Identity.Server.Tests;
 

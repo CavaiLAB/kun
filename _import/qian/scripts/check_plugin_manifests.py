@@ -32,12 +32,12 @@ def solution_projects(root: Path) -> list[str]:
     return [(base / project.replace("\\", "/")).resolve().relative_to(resolved).as_posix() for project in document["projects"]]
 
 
-def src_projects(root: Path) -> list[Path]:
-    """仓库根 Kun.slnx 里 src/ 下的项目。组件包搬出过渡目录后在这里，入口与实现构件照同一规则发现与核对。"""
+def repository_projects(root: Path) -> list[Path]:
+    """仓库根 Kun.slnx 里 src/、samples/ 下的项目。组件包搬出过渡目录后在这里，入口与实现构件照同一规则发现与核对。"""
     document = json.loads((root / "Qian.slnf").read_text(encoding="utf-8-sig"))["solution"]
     solution = (root / document["path"].replace("\\", "/")).resolve()
     paths = [element.get("Path", "").replace("\\", "/") for element in ET.parse(solution).getroot().iter("Project")]
-    return [solution.parent / path for path in paths if path.startswith("src/") and path.endswith(".csproj")]
+    return [solution.parent / path for path in paths if path.startswith(("src/", "samples/")) and path.endswith(".csproj")]
 
 
 def check(root: Path, sync: bool = False) -> tuple[int, int]:
@@ -48,10 +48,10 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
     classifications = json.loads((root / "scripts/plugin-implementations.json").read_text())
     used: set[str] = set()
     components: dict[str, tuple[Path, str]] = {}
-    # 过渡目录里 packages/、samples/ 下的项目，加上仓库根 src/ 下的项目（搬出过渡目录的组件包）。
+    # 过渡目录里 packages/、samples/ 下的项目，加上仓库根 src/、samples/ 下的组件与样例。
     projects = [root / relative for relative in solution_projects(root)
                 if relative.startswith(("packages/", "samples/")) and relative.endswith(".csproj")]
-    for path in projects + src_projects(root):
+    for path in projects + repository_projects(root):
         configuration = ET.parse(path).getroot()
         if configuration.findtext(".//TargetFramework", "").startswith("netstandard"):
             continue  # 分析器程序集不是可执行组件，不能实现 net10 的 IKunPlugin。
@@ -77,9 +77,13 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
     if stale:
         raise ValueError("实现构件分类已失效：" + ", ".join(sorted(stale)))
     manifests: dict[str, list[Path]] = {}
-    for base in (root / "plugins", root / "samples"):
+    directories = [root / "plugins", root / "samples"]
+    repository_samples = solution_root(root) / "samples"
+    if repository_samples != (root / "samples").resolve():
+        directories.append(repository_samples)
+    for base in directories:
         for manifest in base.rglob(".qian-plugin/plugin.json"):
-            if any(part in {"bin", "obj", "node_modules", ".git"} for part in manifest.relative_to(root).parts):
+            if any(part in {"bin", "obj", "node_modules", ".git"} for part in manifest.relative_to(base).parts):
                 continue
             identifier = json.loads(manifest.read_text())["id"]
             manifests.setdefault(identifier, []).append(manifest.parent.parent)

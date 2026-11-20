@@ -7,6 +7,11 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号采用 **CalVer**（`vYYYY.M.D[-hotfix.N|-beta.N]`，从 `main` 打 tag，见 `CONTRIBUTING.md`）；更早的历史条目遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
 ## [Unreleased]
+
+### Changed — 样例、开发工具与测试宿主（S1-KUN-029）
+
+- CRM 样例位于仓库根的 `samples/Kun.Sample.Crm`。开发工具、文档工具和镜像自检分别位于 `tools/Kun.Dev.Shell`、`tools/Kun.Dev.TenantOps`、`tools/Kun.Docs.Tool` 与 `tools/Kun.Image.SelfCheck*`。这些项目均为可执行程序。租户运营开发工具的日志类别为 `Kun.Dev.TenantOps`。
+
 ### Changed — 平台组件和平台宿主（S1-KUN-029）
 
 - 能力目录、注册表、表面、配置文件、文档、生命周期和调度共 18 个包使用 `Kun.*` 包名。更新项目的包引用、`using` 及按这些类型名设置的日志类别。能力目录、注册表、生命周期与调度的契约位于相应的 `Kun.<组件>` 命名空间。表面、配置文件和文档的契约位于 `Kun.<组件>.Abstractions`。

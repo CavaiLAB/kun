@@ -4,7 +4,7 @@ driver 启动实际 `hosts/Kun.Gateway.Host` 进程，不创建替代网关，�
 
 真实依赖由共享 fixture 编排：PostgreSQL 16、Redis 7、Apollo 2.5.2 ConfigService / AdminService 与 MySQL 8。数据库由离线 `NativeAuditStorage` 迁移，在线进程只有独立租户/平台受限登录；角色与凭据随机生成。身份侧复用真实 Qian Identity 内置账号、密码登录、防伪、PKCE、授权码与令牌流程，租户目录沿已有身份测试的可控 fixture。回调为测试证书保护的 HTTPS；生产程序只在明确 Development 环境接受回环 HTTP 身份发行方。
 
-验收顺序：真实 Apollo 发布网关 issuer → 生产宿主挂载全部组件并 ready → 匿名 401 → 真实 Cookie 和 Bearer 分别换为 60 秒 S2S → 独立下游按生产 JWKS 验签、核对租户/受众与冻结 Schema → 错误 Bearer 不降级 Cookie、伪造转发头不改变 IP → 读回密钥解析与 Apollo 发布产生的平台审计并验链 → SIGTERM 正常释放。下游是专门的验签端点；真实平台租户运营路由继续由 `Qian.Sample.Crm.Tests/GatewayAcceptanceTests.cs` 验收。
+验收顺序：真实 Apollo 发布网关 issuer → 生产宿主挂载全部组件并 ready → 匿名 401 → 真实 Cookie 和 Bearer 分别换为 60 秒 S2S → 独立下游按生产 JWKS 验签、核对租户/受众与冻结 Schema → 错误 Bearer 不降级 Cookie、伪造转发头不改变 IP → 读回密钥解析与 Apollo 发布产生的平台审计并验链 → SIGTERM 正常释放。下游是专门的验签端点；真实平台租户运营路由继续由 `Kun.Sample.Crm.Tests/GatewayAcceptanceTests.cs` 验收。
 
 Linux 本机或 CI 从仓库根执行：
 

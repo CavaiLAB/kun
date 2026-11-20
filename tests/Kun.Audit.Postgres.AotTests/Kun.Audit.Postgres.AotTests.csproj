@@ -6,5 +6,5 @@
     <ProjectReference Include="../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <PackageReference Include="xunit.v3" /><PackageReference Include="Npgsql" />
   </ItemGroup>
-  <ItemGroup><Compile Include="../../_import/qian/tests/Shared/NativeAuditDatabase.cs" Link="NativeAuditDatabase.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Shared/NativeAuditDatabase.cs" Link="NativeAuditDatabase.cs" /></ItemGroup>
 </Project>

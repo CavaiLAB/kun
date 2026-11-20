@@ -19,8 +19,8 @@
 !_import/qian/.editorconfig
 !hosts/Kun.Platform.Host/**
 !_import/qian/tools/Qian.Build.Analyzers/**
-!_import/qian/tools/Qian.Image.SelfCheck/**
-!_import/qian/tools/Qian.Image.SelfCheck.Aot/**
+!tools/Kun.Image.SelfCheck/**
+!tools/Kun.Image.SelfCheck.Aot/**
 !_import/qian/schemas/**
 !_import/qian/contracts/**
 !_import/qian/profiles/**

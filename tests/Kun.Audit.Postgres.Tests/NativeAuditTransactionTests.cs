@@ -8,6 +8,8 @@ using Kun.Errors;
 using Kun.EventBus.DependencyInjection;
 using Kun.MultiTenancy;
 using Kun.Runtime;
+using Kun.Sample.Crm;
+using Kun.Testing.NativeAudit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -16,8 +18,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Sample.Crm;
-using Qian.Testing.NativeAudit;
 
 namespace Kun.Audit.Postgres.Tests;
 

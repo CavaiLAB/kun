@@ -9,5 +9,5 @@
     <ProjectReference Include="../../tools/Kun.Plugin.Tool/Kun.Plugin.Tool.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" /><PackageReference Include="xunit.v3" /><PackageReference Include="coverlet.MTP" />
   </ItemGroup>
-  <ItemGroup><Compile Include="../../_import/qian/tests/Shared/TenantInitializationAccess.cs" Link="TenantInitializationAccess.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Shared/TenantInitializationAccess.cs" Link="TenantInitializationAccess.cs" /></ItemGroup>
 </Project>

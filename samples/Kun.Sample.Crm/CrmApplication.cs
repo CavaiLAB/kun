@@ -1,0 +1,98 @@
+using System.Security.Claims;
+using Kun.Authorization;
+using Kun.Authorization.AspNetCore;
+using Kun.Data;
+using Kun.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
+using Kun.EventBus.DependencyInjection;
+using Kun.MultiTenancy.DependencyInjection;
+using Kun.MultiTenancy.Middleware;
+using Kun.Security.Authentication;
+using Kun.Security.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.Tokens;
+
+namespace Kun.Sample.Crm;
+
+/// <summary>参考应用的数据入口；只接受指定内部服务的有效租户 S2S 令牌。</summary>
+public static class CrmApplication
+{
+    public const string ListQueryTag = "qian.sample.crm.customer-list";
+
+    public static WebApplication Build(string[] args, Action<WebApplicationBuilder>? configure = null, bool mapReadEndpoints = true)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+        configure?.Invoke(builder);
+        var connection = builder.Configuration.GetConnectionString("Crm")
+            ?? throw new InvalidOperationException("缺少 ConnectionStrings:Crm。");
+        var issuer = Required("S2S:Issuer");
+        var audience = Required("S2S:Audience");
+        var clientId = Required("S2S:ReaderClientId");
+        var keys = new JsonWebKeySet(Required("S2S:PublicJwks"));
+        if (keys.Keys.Count == 0 || keys.Keys.Any(key => key.HasPrivateKey || key.Kty is not ("RSA" or "EC")))
+            throw new InvalidOperationException("S2S:PublicJwks 必须只包含非对称公钥。");
+        builder.Services.AddKunErrors();
+        builder.Services.AddKunSecurity();
+        builder.Services.AddKunMultiTenancy();
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
+        {
+            options.Issuer = issuer;
+            options.Audience = audience;
+            options.StaticKeySet = keys;
+        });
+        builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options => options.MapInboundClaims = false);
+        builder.Services.AddAuthorizationBuilder().AddPolicy("crm-data-reader", policy => policy
+            .RequireAuthenticatedUser().RequireClaim("principal_kind", "service").RequireClaim("sub", clientId)
+            .RequireAssertion(context => (context.User.FindFirstValue("scope") ?? "").Split(' ').Contains("crm.read", StringComparer.Ordinal))
+            .RequireAssertion(context => Guid.TryParse(context.User.FindFirstValue("tenant_id"), out _)));
+        if (mapReadEndpoints)
+        {
+            builder.Services.TryAddSingleton<IPermissionChecker>(new CrmReadPolicy(clientId));
+            builder.Services.AddKunAuthorization();
+        }
+        builder.Services.AddKunEventBus();
+        builder.Services.AddKunData<CrmDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(CrmDbContext.Schema));
+        // 迁移任务（--migrate-only）用属主角色的连接执行 DDL；未配置时沿用各上下文自身的连接。
+        if (builder.Configuration.GetConnectionString("Migrations") is { Length: > 0 } migrations)
+            builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, _) => migrations);
+        var app = builder.Build();
+        app.UseKunErrors();
+        app.UseAuthentication();
+        app.UseWhen(context => context.Request.Path.StartsWithSegments("/api") ||
+            context.GetEndpoint()?.Metadata.GetMetadata<IAuthorizeData>() is not null,
+            branch => branch.UseKunMultiTenancy());
+        app.UseAuthorization();
+        if (mapReadEndpoints)
+        {
+            app.MapGet("/api/customers", async (int? skip, int? take, IDataService data, CancellationToken ct) =>
+            {
+                var offset = skip ?? 0;
+                var limit = take ?? 100;
+                if (offset < 0 || limit is < 1 or > 100)
+                    return KunResults.Error(new Error(PlatformErrors.BadRequest));
+                await using var session = await data.OpenAsync<CrmDbContext>(ct);
+                var query = session.Context.Customers.AsNoTracking();
+                var total = await query.CountAsync(ct);
+                var items = await query.TagWith(ListQueryTag).OrderBy(customer => customer.Id).Skip(offset).Take(limit)
+                    .Select(customer => new CustomerItem(customer.Id, customer.TenantId!, customer.Name)).ToArrayAsync(ct);
+                return Results.Ok(new CustomerPage(total, items));
+            }).RequireAuthorization("crm-data-reader").RequireKunPermission(CrmReadPolicy.Permission);
+            app.MapGet("/api/customers/{id:guid}", async (Guid id, IDataService data, CancellationToken ct) =>
+            {
+                await using var session = await data.OpenAsync<CrmDbContext>(ct);
+                var item = await session.Context.Customers.AsNoTracking().Where(customer => customer.Id == id)
+                    .Select(customer => new CustomerItem(customer.Id, customer.TenantId!, customer.Name)).SingleOrDefaultAsync(ct);
+                return item is null ? KunResults.Error(new Error(PlatformErrors.NotFound)) : Results.Ok(item);
+            }).RequireAuthorization("crm-data-reader").RequireKunPermission(CrmReadPolicy.Permission);
+        }
+        return app;
+
+        string Required(string key) => builder.Configuration[key] is { Length: > 0 } value
+            ? value : throw new InvalidOperationException("缺少必要的 S2S 配置项：" + key);
+    }
+}

@@ -138,7 +138,7 @@ dotnet run --project hosts/Kun.Platform.Host -c Release -- --bootstrap-operator 
 
 ## 与参考宿主的差异
 
-联调环境（[tools/Qian.Dev.Shell](../../_import/qian/tools/Qian.Dev.Shell/README.md)）与大部分集成测试仍用参考宿主：平台表面参考宿主 `PlatformSurfaceHost` 与运营参考宿主 `TenantOperationsHost`（[samples/Qian.Sample.Crm](../../_import/qian/samples/Qian.Sample.Crm/README.md)）。本宿主与它们的差异：
+联调环境（[tools/Kun.Dev.Shell](../../tools/Kun.Dev.Shell/README.md)）与大部分集成测试仍用参考宿主：平台表面参考宿主 `PlatformSurfaceHost` 与运营参考宿主 `TenantOperationsHost`（[samples/Kun.Sample.Crm](../../samples/Kun.Sample.Crm/README.md)）。本宿主与它们的差异：
 
 | 方面 | 参考宿主 | 本宿主 |
 |---|---|---|

@@ -45,7 +45,7 @@ using Npgsql;
 
 namespace Kun.Files.Tests;
 
-// 验收宿主：与参考宿主（samples/Qian.Sample.Crm）同一装配——真实 S2S 令牌、生产模式租户解析、Tenancy / Authz（含生产模式 HTTP PEP）/ Audit / Events 组件。
+// 验收宿主：与参考宿主（samples/Kun.Sample.Crm）同一装配——真实 S2S 令牌、生产模式租户解析、Tenancy / Authz（含生产模式 HTTP PEP）/ Audit / Events 组件。
 // 文件元数据经包内迁移由受限属主角色建表，业务连接是独立的 NOSUPERUSER / NOBYPASSRLS 登录；qian.files 在 Kestrel 起来后挂载，local 后端的 endpoint 才有端口。
 internal sealed class FilesHost : IAsyncDisposable
 {

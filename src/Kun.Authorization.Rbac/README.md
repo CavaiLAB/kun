@@ -81,7 +81,7 @@ roles、role_assignments、grants 保留可空 tenant_id 的平台角色存储�
 
 HTTP 端点由 Kun.Authorization.AspNetCore 提供：`MapKunAuthz(source)` 登记 `GET /api/authz/me/permissions`，`source` 返回可注入 `Authz` 的插件上下文（参考应用传入 authz 组件按请求租户收窄的上下文）。主体与租户只取自已认证请求（`ICurrentUser`），不读请求参数；未认证 401（UNAUTHENTICATED），委托令牌与 Agent 主体在 S1 一律 403（AUTHZ_DENIED），授权组件未就绪或已卸载时与不存在同为 404，响应带 `Cache-Control: private, no-store`。响应为 `{ items: [{ permission, resource, action, risk, stepUp, terminals, allowed, reason }] }`，resource 为组件前缀的资源类型（如 `qian.sample.crm:customer`），risk 为 low / medium / high / critical。授权的其余 HTTP 端点（Check / Explain、角色与授权管理）归 S1-AZ-005。
 
-参考应用 TCK（Qian.Sample.Crm.Tests 的 `参考应用清单经tenant_provisioned实例化默认角色_…`）在真实宿主上验证：清单声明的 customer 读、写、导出登记为全名；非 qian.tenancy 生产方或主体不符的通知被拒；新租户经真实 qian.tenancy 上下文派发开通后，Owner 经 HTTP 读到三项（导出 high、step-up、web 终端、allowed=false），使用者只读到 read，与 Check 一致；重复开通不改变任何行与修订；卸载 Provider 后端点 404，持久目录与授予保留。平台模式由 Kun.Registry.Tests 的 `平台模式Authz从预装组件读取权限目录_…` 验证：从注册表预装组件编译、持久化并登记目录，开通后按 qian.registry 的默认角色授权，卸载后活动声明撤销。
+参考应用 TCK（Kun.Sample.Crm.Tests 的 `参考应用清单经tenant_provisioned实例化默认角色_…`）在真实宿主上验证：清单声明的 customer 读、写、导出登记为全名；非 qian.tenancy 生产方或主体不符的通知被拒；新租户经真实 qian.tenancy 上下文派发开通后，Owner 经 HTTP 读到三项（导出 high、step-up、web 终端、allowed=false），使用者只读到 read，与 Check 一致；重复开通不改变任何行与修订；卸载 Provider 后端点 404，持久目录与授予保留。平台模式由 Kun.Registry.Tests 的 `平台模式Authz从预装组件读取权限目录_…` 验证：从注册表预装组件编译、持久化并登记目录，开通后按 qian.registry 的默认角色授权，卸载后活动声明撤销。
 
 ## 平台超管显式旁路（ADR-006 D6.3 / D6.11）
 
@@ -169,7 +169,7 @@ DataScopeComposition.ForResource 只建立逻辑计划：同角色 AND（重复�
 
 ### 验收记录
 
-Kun.Authorization.Rbac.Tests/EnforcementTests.cs（真实 PG、真实 Audit 链、真实 PluginLoader）：放行与拒绝各写一条决策日志且与 `ExplainDetailedAsync` 同源，七种边界一律拒绝并记录，无租户上下文抛错，采样 0 只省放行，卸载 Audit 后放行变 `audit_unavailable`；两宿主各自内存缓存下修订 2 出现后修订 1 的令牌在任一宿主立即拒绝、快照键带修订、撤销角色后 3 秒内 `no_matching_grant`；授权变更按修订号发出事件信封，漏装处理器时写入回滚；两条守卫经组件端口返回结构化错误且不落库；卸载 authz 时 `command/dispatching` 监听器、执行端口与错误码按登记逆序撤销、无残留、重装后只有一个监听器。Qian.Sample.Crm.Tests/AuthzEnforcementTests.cs（参考宿主，生产模式）：同一权限点 HTTP 200 / 403 与 gRPC 一元、服务端流 OK / PermissionDenied 一致，未声明的组件端点与 gRPC 方法缺省 403，每次判定进租户链；更高 identity_revision 出现后旧令牌 HTTP 401 `UNAUTHENTICATED`、gRPC `Unauthenticated`，移除角色后持最新修订的令牌 3 秒内 403，`authz.grant.changed.v1` 进 Outbox；OpenAPI 中每个组件端点带 `x-qian-permission` 与 401 / 403 响应。
+Kun.Authorization.Rbac.Tests/EnforcementTests.cs（真实 PG、真实 Audit 链、真实 PluginLoader）：放行与拒绝各写一条决策日志且与 `ExplainDetailedAsync` 同源，七种边界一律拒绝并记录，无租户上下文抛错，采样 0 只省放行，卸载 Audit 后放行变 `audit_unavailable`；两宿主各自内存缓存下修订 2 出现后修订 1 的令牌在任一宿主立即拒绝、快照键带修订、撤销角色后 3 秒内 `no_matching_grant`；授权变更按修订号发出事件信封，漏装处理器时写入回滚；两条守卫经组件端口返回结构化错误且不落库；卸载 authz 时 `command/dispatching` 监听器、执行端口与错误码按登记逆序撤销、无残留、重装后只有一个监听器。Kun.Sample.Crm.Tests/AuthzEnforcementTests.cs（参考宿主，生产模式）：同一权限点 HTTP 200 / 403 与 gRPC 一元、服务端流 OK / PermissionDenied 一致，未声明的组件端点与 gRPC 方法缺省 403，每次判定进租户链；更高 identity_revision 出现后旧令牌 HTTP 401 `UNAUTHENTICATED`、gRPC `Unauthenticated`，移除角色后持最新修订的令牌 3 秒内 403，`authz.grant.changed.v1` 进 Outbox；OpenAPI 中每个组件端点带 `x-qian-permission` 与 401 / 403 响应。
 
 S1-AZ-009：
 
@@ -177,11 +177,11 @@ S1-AZ-009：
   - 授予、改期、撤销各递增一次，下限随之抬高，旧修订即刻 `identity_revision_stale`；重复授予与角色级变更不递增。
   - 非 user、非 GUID 主体不调端口；`NOT_FOUND` 调一次即跳过；瞬时故障重试后成功。
   - 下限只增不减；持续失败在预算内放弃、授予已提交；身份组件卸载后跳过。
-- Qian.Sample.Crm.Tests/CustomerCommandTests.IdentityRevision.cs（参考宿主同进程挂真实身份组件）：
+- Kun.Sample.Crm.Tests/CustomerCommandTests.IdentityRevision.cs（参考宿主同进程挂真实身份组件）：
   - 经生产授予端口授予后修订递增；撤销后 3 秒内旧令牌在 userinfo（401）与 PEP 执行端口（`identity_revision_stale`）都被拒。
   - refresh 拿到新修订、两侧放行；非 user、非 Person、无成员身份的主体不递增。
 
-S1-YUE-012：Qian.Sample.Crm.Tests/AuthzRevisionGuardTests.cs（参考宿主，生产模式，真实 PG 与审计链）：见到修订 3 的令牌后，`me/permissions`、`meta`、能力目录、导航与外壳目录对修订 2 的令牌一律 401 `UNAUTHENTICATED`（`private, no-store`）并各记一条 `identity_revision_stale` 拒绝决策，修订 3 与不带修订的令牌放行。
+S1-YUE-012：Kun.Sample.Crm.Tests/AuthzRevisionGuardTests.cs（参考宿主，生产模式，真实 PG 与审计链）：见到修订 3 的令牌后，`me/permissions`、`meta`、能力目录、导航与外壳目录对修订 2 的令牌一律 401 `UNAUTHENTICATED`（`private, no-store`）并各记一条 `identity_revision_stale` 拒绝决策，修订 3 与不带修订的令牌放行。
 
 ## 清单入口与代码派生
 

@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
-// Qian 外壳（S1-YUE-012）：构建产物不含任何环境值。运行时配置是同源 /app-config.json（K8s ConfigMap；本机联调是 tools/Qian.Dev.Shell 状态目录里的文件），
+// Qian 外壳（S1-YUE-012）：构建产物不含任何环境值。运行时配置是同源 /app-config.json（K8s ConfigMap；本机联调是 tools/Kun.Dev.Shell 状态目录里的文件），
 // 安全策略是构建期写进 index.html 的 meta CSP（内联脚本只有首帧主题脚本，按内容哈希放行）；frame-ancestors 只能走响应头，由网关静态托管统一下发。
 // 外壳报给插件开发包、登记共享依赖用的前端框架版本：取安装目录里 @cavailab/qian-shell 的版本（8 个层包同一版本，版本钉在 pnpm-workspace.yaml 的版本目录）。
 // 包的 exports 不导出 package.json，按 pnpm 的直接依赖链接读。

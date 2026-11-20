@@ -17,7 +17,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <ProjectReference Include="../Kun.Audit.Abstractions/Kun.Audit.Abstractions.csproj" />
   </ItemGroup>
-  <ItemGroup><InternalsVisibleTo Include="Kun.Capabilities.Tests" /><InternalsVisibleTo Include="Qian.Sample.Crm.Tests" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Capabilities.Tests" /><InternalsVisibleTo Include="Kun.Sample.Crm.Tests" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

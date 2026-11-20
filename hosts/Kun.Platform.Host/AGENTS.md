@@ -5,4 +5,4 @@
 - 只认网关 S2S：受众 `qian-platform` 与 `qian-operations` 按路由匹配到的端点分（R144），不按路径写法：运营端点放进运营端点组（`AddOperations`），不要回到按路径前缀比较；校验 issuer、受众、有效期与签名，只收 RS256；不加 Cookie、外部访问令牌或开发期签名钥。
 - 运行期连接只用受限登录，凭据只从 Secret 文件读；迁移走 `--migrate-only`，在线副本不挂迁移属主的凭据。
 - 装配入口要能复用：身份分支（S1-DEP-011）、module 应用等经 `PlatformHostComposition` 的扩展登记接入，不把逻辑堆进 `Program.cs`。
-- 改动后跑 CRM 集成测试里的 `PlatformHostTests`（`dotnet test --project tests/Qian.Sample.Crm.Tests --filter-class Qian.Sample.Crm.Tests.PlatformHostTests`）。
+- 改动后跑 CRM 集成测试里的 `PlatformHostTests`（`dotnet test --project tests/Kun.Sample.Crm.Tests --filter-class Kun.Sample.Crm.Tests.PlatformHostTests`）。

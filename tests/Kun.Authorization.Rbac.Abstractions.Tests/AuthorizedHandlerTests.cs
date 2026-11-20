@@ -7,8 +7,8 @@ using Kun.Mediator;
 using Kun.Mediator.Behaviors;
 using Kun.Mediator.DependencyInjection;
 using Kun.Runtime;
+using Kun.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Testing;
 
 namespace Kun.Authorization.Rbac.Abstractions.Tests;
 

@@ -37,7 +37,7 @@ node apps/qian-shell/scripts/package-static.mjs
 
 ## 本机运行
 
-先按 [联调环境说明](../../tools/Qian.Dev.Shell/README.md) 运行 `scripts/dev-shell.sh up`（它构建认证页族、申请人公开页、参考应用与平台控制台的远程模块和本外壳，并经网关静态托管 `dist/host/`），浏览器打开 <https://localhost:5443/>。改前端代码后 `pnpm --filter qian-shell build`，刷新即可。`pnpm --filter qian-shell dev` 的开发服务器用缺省配置顶替 `/app-config.json`，并把 `/api`、`/api-alt`、`/auth`、`/__dev`、`/remotes` 代理到本机网关（只许回环地址）；开发服务器不带 meta CSP。
+先按 [联调环境说明](../../../../tools/Kun.Dev.Shell/README.md) 运行 `scripts/dev-shell.sh up`（它构建认证页族、申请人公开页、参考应用与平台控制台的远程模块和本外壳，并经网关静态托管 `dist/host/`），浏览器打开 <https://localhost:5443/>。改前端代码后 `pnpm --filter qian-shell build`，刷新即可。`pnpm --filter qian-shell dev` 的开发服务器用缺省配置顶替 `/app-config.json`，并把 `/api`、`/api-alt`、`/auth`、`/__dev`、`/remotes` 代理到本机网关（只许回环地址）；开发服务器不带 meta CSP。
 
 ## 验收
 
@@ -46,7 +46,7 @@ node apps/qian-shell/scripts/package-static.mjs
 | 门禁 | 入口 | 内容 |
 |---|---|---|
 | `pnpm shell:federation`（CI `qian-shell-federation`） | `scripts/e2e.mjs` → `playwright.config.ts` + `e2e/` | 夹具 bootstrap（`scripts/serve-acceptance.mjs`）+ 真实审计宿主：官方租户远程按页面加载；共享 React、PlatformClient、SDK 与 Button 引用一致；scope 遮蔽与卸载恢复；租户 B 未挂载时 manifest 请求为零；`engines.qian` 拒绝并在控制台与真实 PostgreSQL 审计链留痕；window bridge 的 getContext / navigate / invoke 与撤销；运行时配置不合法时只有配置错误页、零请求；全程零 CSP 违规（含一次真实 SchemaForm 提交校验）；首屏 JS gzip ≤ 250 KiB（`acceptance-results/first-screen.json`）。验收控制面只由 `--mode acceptance` 引用。 |
-| `pnpm shell:auth`（CI `qian-shell-auth`） | `scripts/e2e-auth.mjs` → `playwright.auth.config.ts` + `e2e-auth/` | 对 `tools/Qian.Dev.Shell` 拉起的真实 qian.identity + 平台表面宿主 + 上游 Dex + 网关 BFF 跑完整浏览器流程，见下表。失败时宿主、PostgreSQL 与 Dex 的日志在 `TestResults/shell-auth/logs`。只跑某个文件或用例时把参数交给 Playwright：`pnpm --filter qian-shell e2e:auth -- e2e-auth/signup.spec.ts`。 |
+| `pnpm shell:auth`（CI `qian-shell-auth`） | `scripts/e2e-auth.mjs` → `playwright.auth.config.ts` + `e2e-auth/` | 对 `tools/Kun.Dev.Shell` 拉起的真实 qian.identity + 平台表面宿主 + 上游 Dex + 网关 BFF 跑完整浏览器流程，见下表。失败时宿主、PostgreSQL 与 Dex 的日志在 `TestResults/shell-auth/logs`。只跑某个文件或用例时把参数交给 Playwright：`pnpm --filter qian-shell e2e:auth -- e2e-auth/signup.spec.ts`。 |
 
 真实流程（S1-YUE-002 验收 1–4）：
 

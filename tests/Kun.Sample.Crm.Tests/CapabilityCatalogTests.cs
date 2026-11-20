@@ -1,24 +1,20 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text;
-using System.Globalization;
-using System.Security.Cryptography;
 using Json.Schema;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Kun.EntityFrameworkCore.Extensions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Capabilities;
 using Kun.Capabilities.AspNetCore;
+using Kun.Core.MultiTenancy;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.Extensions;
 using Kun.Plugin.Sdk;
 using Kun.Profiles;
 using Kun.Profiles.Abstractions;
@@ -28,6 +24,10 @@ using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 using Kun.Testing.Containers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -336,7 +336,7 @@ public abstract partial class CustomerCommandTests
     private protected static Task<HttpResponseMessage> Invoke(RunningApp host, string tenant)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/capabilities/qian.sample.crm/customer.create/invoke")
-            { Content = JsonContent.Create(new CreateCustomerCommand(Guid.CreateVersion7(), "catalog customer")) };
+        { Content = JsonContent.Create(new CreateCustomerCommand(Guid.CreateVersion7(), "catalog customer")) };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", host.Token(tenant, "crm.read crm.write"));
         return host.Send(request);
     }
@@ -423,9 +423,16 @@ public abstract partial class CustomerCommandTests
             .Where(item => item.Value is IExecutableCapability binding && binding.Contract.Id == item.Name).Select(item => item.Name).ToArray();
         var registry = new RegistryPlugin(new RegistryRuntimeOptions
         {
-            InstalledComponents = installed, Runtime = loader, Profiles = new ProfileLoader(validator), Profile = options, Surfaces = validator,
-            Resolve = entry => (entry.Plugin == "qian.sample.crm@1.0.1" ? scopedCrm! : definitions[entry.Id]) with { Entry = new PluginEntry(entry.Id, entry.Plugin.Split('@')[0], entry.Plugin.Split('@')[1],
-                entry.Scope == "global" ? ScopeKey.Global : new ScopeKey(entry.Scope.Split(':', 2)[0], entry.Scope.Split(':', 2)[1]), entry.Layer, entry.Config) }
+            InstalledComponents = installed,
+            Runtime = loader,
+            Profiles = new ProfileLoader(validator),
+            Profile = options,
+            Surfaces = validator,
+            Resolve = entry => (entry.Plugin == "qian.sample.crm@1.0.1" ? scopedCrm! : definitions[entry.Id]) with
+            {
+                Entry = new PluginEntry(entry.Id, entry.Plugin.Split('@')[0], entry.Plugin.Split('@')[1],
+                entry.Scope == "global" ? ScopeKey.Global : new ScopeKey(entry.Scope.Split(':', 2)[0], entry.Scope.Split(':', 2)[1]), entry.Layer, entry.Config)
+            }
         });
         Add("registry", "qian.registry", registry, [RegistryDefinition.Key]);
         Add("capabilities", "qian.capabilities", new CapabilitiesPlugin(), [CapabilitiesDefinition.Key, CapabilitiesDefinition.ContractsKey, CapabilitiesDefinition.NavigationKey], capabilitiesConfig);
@@ -505,9 +512,16 @@ public abstract partial class CustomerCommandTests
             definitions.Add(id, definition);
             Write($"plugins/{id}/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id = component, version = "1.0.0", description = "能力目录集成验收使用实际 Provider 的平台组合。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = id, category = "testing" }, inject = plugin.Inject.Select(key => key.Name), provides = provides.Select(key => key.Name),
-                policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL", required = false }, scopes = CatalogScopes
+                id = component,
+                version = "1.0.0",
+                description = "能力目录集成验收使用实际 Provider 的平台组合。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = id, category = "testing" },
+                inject = plugin.Inject.Select(key => key.Name),
+                provides = provides.Select(key => key.Name),
+                policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL", required = false },
+                scopes = CatalogScopes
             }));
         }
         void Write(string path, string content)

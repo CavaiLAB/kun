@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 

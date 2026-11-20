@@ -5,21 +5,21 @@ using System.Text;
 using System.Text.Json;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Kun.Audit;
 using Kun.Authorization;
+using Kun.Authorization.AspNetCore;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.EventBus;
+using Kun.Plugin.Sdk;
+using Kun.Plugin.Sdk.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Audit;
-using Kun.Authorization.Rbac;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Authorization.AspNetCore;
-using Kun.Plugin.Sdk;
-using Kun.Plugin.Sdk.AspNetCore;
-using Kun.Errors;
 
 namespace Kun.Sample.Crm.Tests;
 

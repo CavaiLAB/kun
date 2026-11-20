@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
-using Npgsql;
 using Kun.Audit.Postgres;
 using Kun.Testing.Containers;
+using Npgsql;
 
 namespace Kun.Testing.NativeAudit;
 

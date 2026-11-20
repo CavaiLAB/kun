@@ -1,12 +1,20 @@
-using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Authorization.Rbac;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Gateway.Shell;
+using Kun.Runtime;
+using Kun.Surfaces;
+using Kun.Tenancy.Signup;
+using Kun.Testing;
+using Kun.Testing.Containers;
+using Kun.Testing.Gateway;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -17,14 +25,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Kun.Authorization.Rbac;
-using Kun.Data;
-using Kun.Runtime;
-using Kun.Surfaces;
-using Kun.Tenancy.Signup;
-using Kun.Testing;
-using Kun.Testing.Containers;
-using Kun.Testing.Gateway;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -204,9 +204,17 @@ public abstract partial class CustomerCommandTests
             Assert.True(loader.GetState("signup", ScopeKey.Global) == PluginState.Ready, loader.GetFailure("signup", ScopeKey.Global)?.ToString());
             surface = PlatformSurfaceHost.Build(id => loader.GetContext(id, ScopeKey.Global), new TokenValidationParameters
             {
-                ValidateIssuer = true, ValidIssuer = ShellGatewayIssuer, ValidateAudience = true, ValidAudience = PlatformSurfaceHost.Audience, ValidateLifetime = true,
-                ValidateIssuerSigningKey = true, IssuerSigningKey = business.ManagementSigningKey, ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
-                RequireSignedTokens = true, RequireExpirationTime = true, ClockSkew = TimeSpan.Zero
+                ValidateIssuer = true,
+                ValidIssuer = ShellGatewayIssuer,
+                ValidateAudience = true,
+                ValidAudience = PlatformSurfaceHost.Audience,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = business.ManagementSigningKey,
+                ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+                RequireSignedTokens = true,
+                RequireExpirationTime = true,
+                ClockSkew = TimeSpan.Zero
             }, builder =>
             {
                 builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();

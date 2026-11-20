@@ -55,9 +55,18 @@ internal static class DevKeys
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
         var payload = new Dictionary<string, object?>
         {
-            ["iss"] = Issuer, ["aud"] = new[] { audience }, ["sub"] = subject, ["principal_kind"] = kind, ["tenant_id"] = tenant,
-            ["roles"] = Array.Empty<string>(), ["scope"] = "", ["session_id"] = id, ["jti"] = id,
-            ["iat"] = now, ["nbf"] = now, ["exp"] = now + (long)lifetime.TotalSeconds
+            ["iss"] = Issuer,
+            ["aud"] = new[] { audience },
+            ["sub"] = subject,
+            ["principal_kind"] = kind,
+            ["tenant_id"] = tenant,
+            ["roles"] = Array.Empty<string>(),
+            ["scope"] = "",
+            ["session_id"] = id,
+            ["jti"] = id,
+            ["iat"] = now,
+            ["nbf"] = now,
+            ["exp"] = now + (long)lifetime.TotalSeconds
         };
         return new JsonWebTokenHandler().CreateToken(JsonSerializer.Serialize(payload), new SigningCredentials(key, SecurityAlgorithms.RsaSha256));
     }

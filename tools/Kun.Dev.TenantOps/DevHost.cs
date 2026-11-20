@@ -1,7 +1,3 @@
-using Kun.EntityFrameworkCore.Extensions;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.EntityFrameworkCore;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Capabilities;
@@ -9,6 +5,7 @@ using Kun.Capabilities.AspNetCore;
 using Kun.Configuration;
 using Kun.Configuration.Secrets;
 using Kun.Data;
+using Kun.EntityFrameworkCore.Extensions;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Kun.Lifecycle;
@@ -18,6 +15,9 @@ using Kun.Runtime;
 using Kun.Sample.Crm;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Dev.TenantOps;
 
@@ -90,11 +90,17 @@ internal static class DevHost
             });
             builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Trust:PlatformKeys:0:PublicKey"] = "secretRef://platform/trust/platform", ["Trust:PlatformKeys:0:NotBefore"] = "2026-01-01T00:00:00Z",
-                ["ConnectionStrings:Crm"] = database.Business, ["ConnectionStrings:Authz"] = database.App,
-                ["ConnectionStrings:Tenancy"] = database.App, ["ConnectionStrings:Audit"] = database.App,
-                ["S2S:Issuer"] = s2s.Issuer, ["S2S:Audience"] = s2s.Audience, ["S2S:PublicJwks"] = s2s.PublicJwks,
-                ["S2S:ReaderClientId"] = "crm-dev-reader", ["S2S:WriterClientId"] = "crm-dev-writer"
+                ["Trust:PlatformKeys:0:PublicKey"] = "secretRef://platform/trust/platform",
+                ["Trust:PlatformKeys:0:NotBefore"] = "2026-01-01T00:00:00Z",
+                ["ConnectionStrings:Crm"] = database.Business,
+                ["ConnectionStrings:Authz"] = database.App,
+                ["ConnectionStrings:Tenancy"] = database.App,
+                ["ConnectionStrings:Audit"] = database.App,
+                ["S2S:Issuer"] = s2s.Issuer,
+                ["S2S:Audience"] = s2s.Audience,
+                ["S2S:PublicJwks"] = s2s.PublicJwks,
+                ["S2S:ReaderClientId"] = "crm-dev-reader",
+                ["S2S:WriterClientId"] = "crm-dev-writer"
             });
             configure?.Invoke(builder);
         }, registrar => { registrar.RegisterRegistryEvents().RegisterLifecycleEvents(); events?.Invoke(registrar); },

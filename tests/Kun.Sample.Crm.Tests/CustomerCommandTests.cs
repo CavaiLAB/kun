@@ -1,38 +1,38 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Kun.Audit;
+using Kun.Authorization.AspNetCore;
+using Kun.Authorization.Rbac;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
+using Kun.Lifecycle;
+using Kun.Plugin.Sdk;
+using Kun.Registry;
+using Kun.Runtime;
+using Kun.Tenancy;
+using Kun.Testing;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Kun.Audit;
-using Kun.Authorization.Rbac;
-using Kun.Authorization.AspNetCore;
-using Kun.Data;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
-using Kun.Lifecycle;
-using Kun.Registry;
-using Kun.Tenancy;
-using Kun.Testing;
-using Kun.Testing.Containers;
 
 // 下面八个主题类都起完整宿主，CPU 有富余时大半时间在等数据库、容器与超时，按处理器数（CI 上是 4）限并发会让后排的主题干等，所以放宽到 8（S1-QA-017）。
 // 8 个槽位不够全部同时开跑：xUnit 按集合（这里一个类一个集合）分槽位，类跑完才让出，而程序集共 13 个类（八个主题类、四个独立类与基类守卫 CustomerCommandLayoutTests）。
@@ -335,10 +335,16 @@ public abstract partial class CustomerCommandTests
                 if (concurrentWrites) builder.Services.ConfigureDbContext<CrmDbContext>((_, options) => options.AddInterceptors(barrier));
                 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:Crm"] = connection, ["ConnectionStrings:Authz"] = postgres.AppConnectionString,
-                    ["ConnectionStrings:Tenancy"] = postgres.AppConnectionString, ["ConnectionStrings:Audit"] = postgres.AppConnectionString,
-                    ["S2S:Issuer"] = Issuer, ["S2S:Audience"] = Audience, ["S2S:PublicJwks"] = publicJwks,
-                    ["S2S:ReaderClientId"] = "crm-command-reader", ["S2S:WriterClientId"] = Writer, ["ConnectionStrings:Events"] = events,
+                    ["ConnectionStrings:Crm"] = connection,
+                    ["ConnectionStrings:Authz"] = postgres.AppConnectionString,
+                    ["ConnectionStrings:Tenancy"] = postgres.AppConnectionString,
+                    ["ConnectionStrings:Audit"] = postgres.AppConnectionString,
+                    ["S2S:Issuer"] = Issuer,
+                    ["S2S:Audience"] = Audience,
+                    ["S2S:PublicJwks"] = publicJwks,
+                    ["S2S:ReaderClientId"] = "crm-command-reader",
+                    ["S2S:WriterClientId"] = Writer,
+                    ["ConnectionStrings:Events"] = events,
                     // 决策审计采样：早于 S1-AZ-004 的用例按命令审计数断言链长，缺省不记放行判定（拒绝仍必记）；PEP 验收显式传 1。
                     ["Authz:DecisionLogSampling"] = decisionLogSampling.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 });
@@ -491,8 +497,21 @@ public abstract partial class CustomerCommandTests
         internal string Token(string? tenant, string scope, string? subject = null, string kind = "service", object? actor = null, long? identityRevision = null)
         {
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
-            var payload = new Dictionary<string, object?> { ["iss"] = Issuer, ["aud"] = new[] { Audience }, ["sub"] = subject ?? Writer, ["principal_kind"] = kind,
-                ["tenant_id"] = tenant, ["roles"] = DeclaredTokenRoles, ["scope"] = scope, ["session_id"] = id, ["jti"] = id, ["iat"] = now, ["nbf"] = now, ["exp"] = now + 60 };
+            var payload = new Dictionary<string, object?>
+            {
+                ["iss"] = Issuer,
+                ["aud"] = new[] { Audience },
+                ["sub"] = subject ?? Writer,
+                ["principal_kind"] = kind,
+                ["tenant_id"] = tenant,
+                ["roles"] = DeclaredTokenRoles,
+                ["scope"] = scope,
+                ["session_id"] = id,
+                ["jti"] = id,
+                ["iat"] = now,
+                ["nbf"] = now,
+                ["exp"] = now + 60
+            };
             if (actor is not null) payload["act"] = actor;
             if (identityRevision is not null) payload["identity_revision"] = identityRevision;
             return new JsonWebTokenHandler().CreateToken(JsonSerializer.Serialize(payload), new SigningCredentials(key, SecurityAlgorithms.RsaSha256));

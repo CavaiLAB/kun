@@ -3,22 +3,22 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Audit;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
+using Kun.Runtime;
+using Kun.Testing;
+using Kun.Testing.Containers;
+using Kun.Testing.Gateway;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Audit;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Runtime;
-using Kun.Testing;
-using Kun.Testing.Containers;
-using Kun.Testing.Gateway;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -41,9 +41,17 @@ public sealed partial class ShellSurfaceTests
         var loader = Runtime(business).Loader;
         await using var surface = PlatformSurfaceHost.Build(id => loader.GetContext(id, ScopeKey.Global), new TokenValidationParameters
         {
-            ValidateIssuer = true, ValidIssuer = ShellGatewayIssuer, ValidateAudience = true, ValidAudience = PlatformSurfaceHost.Audience, ValidateLifetime = true,
-            ValidateIssuerSigningKey = true, IssuerSigningKey = business.ManagementSigningKey, ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
-            RequireSignedTokens = true, RequireExpirationTime = true, ClockSkew = TimeSpan.Zero
+            ValidateIssuer = true,
+            ValidIssuer = ShellGatewayIssuer,
+            ValidateAudience = true,
+            ValidAudience = PlatformSurfaceHost.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = business.ManagementSigningKey,
+            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+            RequireSignedTokens = true,
+            RequireExpirationTime = true,
+            ClockSkew = TimeSpan.Zero
         }, builder => { builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders(); });
         await surface.StartAsync(Ct);
         await using var redis = new RedisFixture(); await redis.InitializeAsync(TestContext.Current.CancellationToken);
@@ -147,8 +155,14 @@ public sealed partial class ShellSurfaceTests
         // 六、外部机器客户端：归属甲方的机器客户端向真实身份服务取 client_credentials 令牌，带 Bearer 经网关同一路由到平台表面的通用执行入口，
         //     列表以该服务主体本人执行（命令 PEP 按它的 tenant.user 判定）；没有写权限点的新建、令牌不含 crm.read 时的列表都与不存在一样 404（RBAC 与 scope 两道门禁）。
         //     同一服务主体经参考应用自己受众的执行入口同样 200：平台表面对服务主体没有放出新的权限面，判定还是这两道。
-        using var machine = new KunOidcClient(new KunOidcClientOptions { Name = MachineClientId, Authority = business.Identity.Issuer, ClientId = MachineClientId,
-            ClientSecret = business.Identity.Secret, RequireHttpsMetadata = false }, business.App.Services.GetRequiredService<IHttpClientFactory>());
+        using var machine = new KunOidcClient(new KunOidcClientOptions
+        {
+            Name = MachineClientId,
+            Authority = business.Identity.Issuer,
+            ClientId = MachineClientId,
+            ClientSecret = business.Identity.Secret,
+            RequireHttpsMetadata = false
+        }, business.App.Services.GetRequiredService<IHttpClientFactory>());
         var machineToken = (await machine.ClientCredentialsAsync("crm.read crm.write", Ct)).AccessToken;
         var (externalClient, _) = GatewayTestHost.Browser(tls); using var external = externalClient;
         var gatewayList = new Uri(address, "api/capabilities/" + ListId + "/invoke").AbsoluteUri; var gatewayCreate = new Uri(address, "api/capabilities/" + CreateId + "/invoke").AbsoluteUri;
@@ -232,8 +246,11 @@ public abstract partial class CustomerCommandTests
     {
         var claims = new Dictionary<string, object?>
         {
-            ["sub"] = (string?)session["subject"], ["principal_kind"] = "user", ["tenant_id"] = (string?)session["tenantId"],
-            ["membership_id"] = (string?)session["membershipId"], ["identity_revision"] = (long)session["identityRevision"]!
+            ["sub"] = (string?)session["subject"],
+            ["principal_kind"] = "user",
+            ["tenant_id"] = (string?)session["tenantId"],
+            ["membership_id"] = (string?)session["membershipId"],
+            ["identity_revision"] = (long)session["identityRevision"]!
         };
         if (actor is not null) claims["act"] = actor;
         return SignSurfaceToken(host, claims);
@@ -248,8 +265,15 @@ public abstract partial class CustomerCommandTests
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
         var payload = new Dictionary<string, object?>(claims)
         {
-            ["iss"] = ShellGatewayIssuer, ["aud"] = new[] { PlatformSurfaceHost.Audience }, ["roles"] = Array.Empty<string>(), ["scope"] = "crm.read crm.write",
-            ["session_id"] = id, ["jti"] = id, ["iat"] = now, ["nbf"] = now, ["exp"] = now + 60
+            ["iss"] = ShellGatewayIssuer,
+            ["aud"] = new[] { PlatformSurfaceHost.Audience },
+            ["roles"] = Array.Empty<string>(),
+            ["scope"] = "crm.read crm.write",
+            ["session_id"] = id,
+            ["jti"] = id,
+            ["iat"] = now,
+            ["nbf"] = now,
+            ["exp"] = now + 60
         };
         return new JsonWebTokenHandler().CreateToken(JsonSerializer.Serialize(payload), new SigningCredentials(host.ManagementSigningKey, SecurityAlgorithms.RsaSha256));
     }

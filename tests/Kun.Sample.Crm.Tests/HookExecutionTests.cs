@@ -1,19 +1,19 @@
-using System.Net;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Kun.Audit;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Kun.Audit;
 using Kun.Runtime;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 using Kun.Surfaces.Hosting;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -205,8 +205,20 @@ public abstract partial class CustomerCommandTests
         try
         {
             Directory.CreateDirectory(Path.Combine(directory.FullName, ".qian-plugin")); Directory.CreateDirectory(Path.Combine(directory.FullName, "hooks"));
-            var manifest = new { id = "qian.sample.crm", version = "1.0.0", description = "真实事件到实际客户命令的桥接验收组件。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = "客户", category = "testing" }, inject = new CrmPlugin().Inject.Select(key => key.Name), provides = HookProvides, runtime = new { form = "module", entry = typeof(CrmPlugin).FullName + ", " + typeof(CrmPlugin).Assembly.GetName().Name }, policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL" }, scopes = CatalogScopes };
+            var manifest = new
+            {
+                id = "qian.sample.crm",
+                version = "1.0.0",
+                description = "真实事件到实际客户命令的桥接验收组件。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = "客户", category = "testing" },
+                inject = new CrmPlugin().Inject.Select(key => key.Name),
+                provides = HookProvides,
+                runtime = new { form = "module", entry = typeof(CrmPlugin).FullName + ", " + typeof(CrmPlugin).Assembly.GetName().Name },
+                policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL" },
+                scopes = CatalogScopes
+            };
             File.WriteAllText(Path.Combine(directory.FullName, ".qian-plugin/plugin.json"), JsonSerializer.Serialize(manifest));
             File.WriteAllText(Path.Combine(directory.FullName, "hooks/hooks.json"), JsonSerializer.Serialize(new { hooks = new Dictionary<string, object> { ["tenant/provisioned"] = new[] { new { hooks = new[] { new { type = "plugin", plugin = "qian.sample.crm", handler } } } } } }));
             var validation = new SurfaceValidator().ValidateComponent(directory.FullName, new SurfaceValidationOptions { Profile = "minimal", ExecutionPlane = "server", Capabilities = handler == "seedCustomer" ? HookTargets : ["qian.sample.crm/missing"] });

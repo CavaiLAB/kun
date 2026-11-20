@@ -1,6 +1,4 @@
 using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Capabilities;
@@ -9,6 +7,8 @@ using Kun.Lifecycle;
 using Kun.Registry;
 using Kun.Sample.Crm;
 using Kun.Tenancy;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Kun.Dev.TenantOps;
 

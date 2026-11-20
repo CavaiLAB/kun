@@ -5,22 +5,22 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
+using Kun.Audit;
 using Kun.Authorization;
+using Kun.Authorization.Rbac;
+using Kun.Capabilities;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
 using Kun.Security;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Kun.Audit;
-using Kun.Authorization.Rbac;
-using Kun.Capabilities;
-using Kun.Data;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Testing.Containers;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -705,9 +705,20 @@ public abstract partial class CustomerCommandTests
 
     private protected static Principal DirectPrincipal(DelegationActor? actor, long? identityRevision = null) => new()
     {
-        Issuer = Issuer, Audience = [Audience], Subject = Writer, Kind = PrincipalKind.Service, TenantId = A, Roles = [], Scope = "crm.read crm.write",
-        SessionId = Guid.CreateVersion7().ToString(), TokenId = Guid.CreateVersion7().ToString(), IssuedAt = 1, NotBefore = 1, ExpiresAt = long.MaxValue,
-        Actor = actor, IdentityRevision = identityRevision
+        Issuer = Issuer,
+        Audience = [Audience],
+        Subject = Writer,
+        Kind = PrincipalKind.Service,
+        TenantId = A,
+        Roles = [],
+        Scope = "crm.read crm.write",
+        SessionId = Guid.CreateVersion7().ToString(),
+        TokenId = Guid.CreateVersion7().ToString(),
+        IssuedAt = 1,
+        NotBefore = 1,
+        ExpiresAt = long.MaxValue,
+        Actor = actor,
+        IdentityRevision = identityRevision
     };
 
     // 不经 HTTP 的已验证主体快照：直接交给 CapabilityService，观察端口自身的判定。

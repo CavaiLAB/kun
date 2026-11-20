@@ -1,12 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Nodes;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Capabilities;
-using Kun.Capabilities.AspNetCore;
 
 namespace Kun.Sample.Crm.Tests;
 

@@ -1,11 +1,11 @@
 using System.Net;
 using System.Net.Sockets;
+using Kun.Testing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Kun.Testing;
 
 namespace Kun.Identity.Server.Tests;
 

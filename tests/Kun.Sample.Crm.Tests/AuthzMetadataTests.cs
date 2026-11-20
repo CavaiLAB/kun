@@ -4,10 +4,10 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Json.Schema;
 using Kun.Authorization;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 

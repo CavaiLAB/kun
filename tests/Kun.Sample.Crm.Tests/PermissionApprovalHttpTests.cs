@@ -3,15 +3,15 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Kun.EventBus;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
+using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
+using Kun.Errors;
+using Kun.EventBus;
 using Kun.Lifecycle;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -60,7 +60,11 @@ public sealed partial class LifecycleProfileTests
             view.GetProperty("version").GetString(), view.GetProperty("approvedBy").GetString(), view.GetProperty("approvedVia").GetString()));
         Assert.True(JsonElement.DeepEquals(JsonSerializer.SerializeToElement(new
         {
-            platform = ConnectorPlatformSorted, data = Array.Empty<string>(), egress = ConnectorEgress, secrets = ConnectorSecrets, ui = new { connectSrc = Array.Empty<string>() }
+            platform = ConnectorPlatformSorted,
+            data = Array.Empty<string>(),
+            egress = ConnectorEgress,
+            secrets = ConnectorSecrets,
+            ui = new { connectSrc = Array.Empty<string>() }
         }), view.GetProperty("approved")), view.ToString());
         // 同一次批准写入 A 的审计链：主体是 Owner 的服务主体，渠道 tenant，上一次为空。
         AssertApprovalAudit(Assert.Single(await ApprovalAudit(host, A)), "service", Writer);
@@ -158,11 +162,21 @@ public abstract partial class CustomerCommandTests
         {
             [".qian-plugin/plugin.json"] = JsonSerializer.SerializeToUtf8Bytes(new
             {
-                id = Connector, version = "1.0.0", description = "声明反向权限、经租户管理员批准后才开通的连接器组件。", author = new { name = "Acme" }, license = "Apache-2.0",
-                @interface = new { displayName = "connector", category = "testing" }, inject = Array.Empty<string>(), provides = Array.Empty<string>(), scopes = ConnectorScopes,
+                id = Connector,
+                version = "1.0.0",
+                description = "声明反向权限、经租户管理员批准后才开通的连接器组件。",
+                author = new { name = "Acme" },
+                license = "Apache-2.0",
+                @interface = new { displayName = "connector", category = "testing" },
+                inject = Array.Empty<string>(),
+                provides = Array.Empty<string>(),
+                scopes = ConnectorScopes,
                 policy = new
                 {
-                    tier = "official", sandbox = "none", authentication = "ON_INSTALL", egress = ConnectorEgress,
+                    tier = "official",
+                    sandbox = "none",
+                    authentication = "ON_INSTALL",
+                    egress = ConnectorEgress,
                     permissions = new { platform = ConnectorPlatform, secrets = ConnectorSecrets }
                 }
             })
@@ -196,7 +210,10 @@ public abstract partial class CustomerCommandTests
             (record.TenantId, record.ActorType, record.ActorId, record.Channel, record.Resource, record.Result));
         var expected = JsonSerializer.SerializeToElement(new
         {
-            pluginId = Connector, version = "1.0.0", via = PermissionApprovalChannels.Tenant, previous = (object?)null,
+            pluginId = Connector,
+            version = "1.0.0",
+            via = PermissionApprovalChannels.Tenant,
+            previous = (object?)null,
             approved = new { platform = ConnectorPlatformSorted, data = Array.Empty<string>(), egress = ConnectorEgress, secrets = ConnectorSecrets, ui = new { connectSrc = Array.Empty<string>() } }
         });
         Assert.True(JsonElement.DeepEquals(expected, record.Payload), record.Payload.GetRawText());

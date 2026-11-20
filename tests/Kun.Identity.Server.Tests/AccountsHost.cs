@@ -17,6 +17,7 @@ using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
 using Kun.Runtime;
 using Kun.Tenancy;
+using Kun.Testing;
 using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -31,7 +32,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
-using Kun.Testing;
 using StackExchange.Redis;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 

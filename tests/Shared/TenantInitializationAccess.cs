@@ -1,8 +1,8 @@
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Kun.Authorization;
-using Kun.Runtime;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Runtime;
 
 namespace Kun.Testing;
 

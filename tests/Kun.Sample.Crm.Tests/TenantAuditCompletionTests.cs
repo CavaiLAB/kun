@@ -3,15 +3,15 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Kun.Audit;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
+using Kun.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Audit;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Tenancy;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -78,7 +78,7 @@ public sealed partial class TenantOperationsTests
         using var client = new HttpClient { BaseAddress = new Uri(management.Urls.Single()) };
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", business.Token(null, "", "root", "user"));
         using var created = await client.PostAsJsonAsync("/api/tenancy/tenants", new CreateTenant("audittest", "审计故障测试")
-            { Administrator = new(Guid.CreateVersion7(), "owner-audit") }, Ct);
+        { Administrator = new(Guid.CreateVersion7(), "owner-audit") }, Ct);
         Assert.True(created.StatusCode == HttpStatusCode.Created, await created.Content.ReadAsStringAsync(Ct));
         var id = (await created.Content.ReadFromJsonAsync<TenantDescriptor>(Ct))!.Id;
         var path = "/api/tenancy/tenants/" + id + "/settings/qian.audit";

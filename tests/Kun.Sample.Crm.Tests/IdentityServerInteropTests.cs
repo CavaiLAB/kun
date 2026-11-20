@@ -5,10 +5,10 @@ using System.Security.Claims;
 using System.Text.Json;
 using Kun.Gateway;
 using Kun.Gateway.Identity;
+using Kun.Testing.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Testing.Identity;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -24,9 +24,17 @@ public sealed partial class IdentityAuthzTests
         var jwks = new JsonWebKeySet(await identity.Browser.GetStringAsync(discovery.RootElement.GetProperty("jwks_uri").GetString()!, Ct));
         var validation = await new JsonWebTokenHandler { MapInboundClaims = false }.ValidateTokenAsync(token.AccessToken, new TokenValidationParameters
         {
-            ValidateIssuer = true, ValidIssuer = identity.Issuer, ValidateAudience = true, ValidAudience = "https://api.qian.test",
-            ValidateIssuerSigningKey = true, IssuerSigningKeys = jwks.GetSigningKeys(), ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
-            ValidateLifetime = true, RequireExpirationTime = true, RequireSignedTokens = true, ClockSkew = TimeSpan.Zero
+            ValidateIssuer = true,
+            ValidIssuer = identity.Issuer,
+            ValidateAudience = true,
+            ValidAudience = "https://api.qian.test",
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKeys = jwks.GetSigningKeys(),
+            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+            ValidateLifetime = true,
+            RequireExpirationTime = true,
+            RequireSignedTokens = true,
+            ClockSkew = TimeSpan.Zero
         });
         Assert.True(validation.IsValid, validation.Exception?.Message);
         var external = new ClaimsPrincipal(validation.ClaimsIdentity);
@@ -42,15 +50,21 @@ public sealed partial class IdentityAuthzTests
             await File.WriteAllTextAsync(publicKey, business.ManagementSigningKey.Rsa.ExportRSAPublicKeyPem(), Ct);
             using var gateway = new S2sTokenIssuer(Options.Create(new GatewayConfiguration
             {
-                ExternalJwksUri = discovery.RootElement.GetProperty("jwks_uri").GetString()!, IdentityIssuer = identity.Issuer, IdentityAudience = "https://api.qian.test", Issuer = Issuer, InternalAudience = Audience,
-                SigningKeyPath = privateKey, PublicKeyPath = publicKey, InternalTokenLifetime = TimeSpan.FromSeconds(60)
+                ExternalJwksUri = discovery.RootElement.GetProperty("jwks_uri").GetString()!,
+                IdentityIssuer = identity.Issuer,
+                IdentityAudience = "https://api.qian.test",
+                Issuer = Issuer,
+                InternalAudience = Audience,
+                SigningKeyPath = privateKey,
+                PublicKeyPath = publicKey,
+                InternalTokenLifetime = TimeSpan.FromSeconds(60)
             }), business.App.Environment, NoOpS2sPrincipalResolver.Instance);
             var s2s = await gateway.IssueForAsync(external, Ct);
             var payload = new JsonWebToken(s2s);
             Assert.Equal(Writer, payload.Subject); Assert.Equal("service", payload.GetClaim("principal_kind").Value);
             Assert.Equal(payload.GetClaim("jti").Value, payload.GetClaim("session_id").Value);
             using var request = new HttpRequestMessage(HttpMethod.Post, "/api/customers")
-                { Content = JsonContent.Create(new CreateCustomerCommand(Guid.CreateVersion7(), "真实身份服务客户")) };
+            { Content = JsonContent.Create(new CreateCustomerCommand(Guid.CreateVersion7(), "真实身份服务客户")) };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", s2s);
             using var response = await business.Send(request);
             Assert.True(response.StatusCode == HttpStatusCode.Created, await response.Content.ReadAsStringAsync(Ct));

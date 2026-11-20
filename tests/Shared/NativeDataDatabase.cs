@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
-using Npgsql;
 using Kun.Testing.Containers;
+using Npgsql;
 
 namespace Kun.Testing.NativeData;
 

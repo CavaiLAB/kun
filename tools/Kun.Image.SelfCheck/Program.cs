@@ -43,7 +43,10 @@ static int DumpConfig(string[] arguments)
 
     var result = new ProfileLoader(new SurfaceValidator()).Load(new ProfileLoadOptions
     {
-        WorkingDirectory = root, Profile = profile, Patches = patches, IncludeHomePatch = false,
+        WorkingDirectory = root,
+        Profile = profile,
+        Patches = patches,
+        IncludeHomePatch = false,
     });
     var json = new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     if (!result.IsValid)

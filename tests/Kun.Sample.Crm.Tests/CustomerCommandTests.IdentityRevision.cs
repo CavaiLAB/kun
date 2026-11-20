@@ -1,19 +1,19 @@
-using Kun.Authorization;
 using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Kun.Authorization;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.Mediator;
+using Kun.Runtime;
 using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Kun.Authorization.Rbac;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Runtime;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -132,7 +132,10 @@ public abstract partial class CustomerCommandTests
         using var http = new HttpClient { BaseAddress = new Uri(host.Identity.Issuer) };
         using var response = await http.PostAsync("connect/token", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["grant_type"] = "refresh_token", ["refresh_token"] = refreshToken, ["client_id"] = "web", ["client_secret"] = host.Identity.Secret
+            ["grant_type"] = "refresh_token",
+            ["refresh_token"] = refreshToken,
+            ["client_id"] = "web",
+            ["client_secret"] = host.Identity.Secret
         }), Ct);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return (await response.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("access_token").GetString()!;

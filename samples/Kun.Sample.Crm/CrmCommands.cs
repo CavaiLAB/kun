@@ -2,10 +2,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using Kun.Core.Cqrs;
-using Kun.EventBus;
-using Microsoft.EntityFrameworkCore;
-using Kun.Plugin.Sdk;
 using Kun.Errors;
+using Kun.EventBus;
+using Kun.Plugin.Sdk;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Sample.Crm;
 

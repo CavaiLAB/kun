@@ -1,21 +1,21 @@
 using System.Text.Json;
-using Kun.Authorization;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Kun.Security;
-using Microsoft.IdentityModel.Tokens;
 using Kun.Audit;
+using Kun.Authorization;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Kun.Identity.Abstractions;
 using Kun.Lifecycle;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
 using Kun.Sample.Crm;
+using Kun.Security;
 using Kun.Surfaces;
 using Kun.Tenancy;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kun.Dev.TenantOps;
 
@@ -31,9 +31,15 @@ internal static partial class DevOperations
         await GrantSuperadminAsync(services, DevKeys.LimitedOperator, ct).ConfigureAwait(false);
         var app = TenantOperationsHost.Build(() => new DevLimitedOperatorContext(loader.GetContext("tenancy", ScopeKey.Global)), new TokenValidationParameters
         {
-            ValidateIssuer = true, ValidIssuer = DevKeys.Issuer, ValidateAudience = true, ValidAudience = DevKeys.OperationsAudience,
-            ValidateLifetime = true, ValidateIssuerSigningKey = true, IssuerSigningKey = DevKeys.PublicOnly(key),
-            ValidAlgorithms = [SecurityAlgorithms.RsaSha256], ClockSkew = TimeSpan.Zero
+            ValidateIssuer = true,
+            ValidIssuer = DevKeys.Issuer,
+            ValidateAudience = true,
+            ValidAudience = DevKeys.OperationsAudience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = DevKeys.PublicOnly(key),
+            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+            ClockSkew = TimeSpan.Zero
         }, builder => { builder.WebHost.UseUrls(url); logging(builder.Logging); });
         MapDevelopmentRoutes(app, () => loader.GetContext("tenancy", ScopeKey.Global));
         await app.StartAsync(ct).ConfigureAwait(false);

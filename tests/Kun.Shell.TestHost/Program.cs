@@ -1,21 +1,21 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 using Kun.Audit;
 using Kun.Audit.Postgres;
+using Kun.Core.MultiTenancy;
 using Kun.Data.Native;
 using Kun.Data.Native.Postgres;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
+using Kun.MultiTenancy;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
 using Kun.Shell.TestHost;
 using Kun.Testing.Containers;
 using Kun.Testing.NativeAudit;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 
 // 独立浏览器验收宿主：使用真实 PostgreSQL 与正式审计 Provider，不属于生产 profile。
 if (args.Length != 2 || args[0] != "--state") throw new ArgumentException("需要 --state 指定临时验收状态文件。");
@@ -58,9 +58,17 @@ var key = new RsaSecurityKey(rsa) { KeyId = Guid.NewGuid().ToString("N") };
 var tokens = new JsonWebTokenHandler { MapInboundClaims = false };
 var validation = new TokenValidationParameters
 {
-    ValidateIssuer = true, ValidIssuer = "qian-shell-acceptance", ValidateAudience = true, ValidAudience = "qian-shell-audit",
-    ValidateLifetime = true, RequireExpirationTime = true, RequireSignedTokens = true, ValidateIssuerSigningKey = true,
-    IssuerSigningKey = key, ValidAlgorithms = [SecurityAlgorithms.RsaSha256], ClockSkew = TimeSpan.Zero
+    ValidateIssuer = true,
+    ValidIssuer = "qian-shell-acceptance",
+    ValidateAudience = true,
+    ValidAudience = "qian-shell-audit",
+    ValidateLifetime = true,
+    RequireExpirationTime = true,
+    RequireSignedTokens = true,
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = key,
+    ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+    ClockSkew = TimeSpan.Zero
 };
 app.UseKunErrors();
 ShellAuditEndpoints.Map(app, consumer, tenant, tokens, validation, qianVersion);
@@ -70,9 +78,12 @@ var temporary = state + ".tmp";
 var payload = JsonSerializer.Serialize(new
 {
     url = app.Urls.Single(),
-    tenantA = ShellAuditEndpoints.TenantA, tenantB = ShellAuditEndpoints.TenantB,
-    writerToken = Token(ShellAuditEndpoints.TenantA, "report"), writerTokenB = Token(ShellAuditEndpoints.TenantB, "report"),
-    readerToken = Token(ShellAuditEndpoints.TenantA, "read"), qianVersion
+    tenantA = ShellAuditEndpoints.TenantA,
+    tenantB = ShellAuditEndpoints.TenantB,
+    writerToken = Token(ShellAuditEndpoints.TenantA, "report"),
+    writerTokenB = Token(ShellAuditEndpoints.TenantB, "report"),
+    readerToken = Token(ShellAuditEndpoints.TenantA, "read"),
+    qianVersion
 });
 try
 {
@@ -86,8 +97,12 @@ finally { File.Delete(temporary); File.Delete(state); }
 
 string Token(string tenantId, string purpose) => tokens.CreateToken(new SecurityTokenDescriptor
 {
-    Issuer = validation.ValidIssuer, Audience = validation.ValidAudience, IssuedAt = DateTime.UtcNow, NotBefore = DateTime.UtcNow.AddSeconds(-1),
-    Expires = DateTime.UtcNow.AddHours(1), SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256),
+    Issuer = validation.ValidIssuer,
+    Audience = validation.ValidAudience,
+    IssuedAt = DateTime.UtcNow,
+    NotBefore = DateTime.UtcNow.AddSeconds(-1),
+    Expires = DateTime.UtcNow.AddHours(1),
+    SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256),
     Subject = new ClaimsIdentity([new Claim("sub", "shell-acceptance-user"), new Claim("tenant_id", tenantId),
         new Claim("principal_kind", "user"), new Claim("purpose", purpose)])
 });

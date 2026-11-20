@@ -5,21 +5,21 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Kun.Authorization;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Kun.Audit;
+using Kun.Authorization;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Capabilities;
+using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Tenancy;
 using Kun.Testing.Containers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -57,7 +57,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
             await Rejected(await Send(client, HttpMethod.Put, Admins(A), root, new Dictionary<string, object?> { ["items"] = new[] { new { subjectId = Guid.NewGuid() } }, [forbidden] = A }), HttpStatusCode.BadRequest, "BAD_REQUEST");
             await Rejected(await Send(client, HttpMethod.Put, Admins(A), root, new { items = new[] { new Dictionary<string, object?> { ["subjectId"] = Guid.NewGuid(), [forbidden] = A } } }), HttpStatusCode.BadRequest, "BAD_REQUEST");
             await Rejected(await Send(client, HttpMethod.Post, Accounts, root, new Dictionary<string, object?>
-                { ["displayName"] = "甲", ["identifierKind"] = "phone", ["identifier"] = phone, ["initialPassword"] = TemporaryPassword, [forbidden] = A }), HttpStatusCode.BadRequest, "BAD_REQUEST");
+            { ["displayName"] = "甲", ["identifierKind"] = "phone", ["identifier"] = phone, ["initialPassword"] = TemporaryPassword, [forbidden] = A }), HttpStatusCode.BadRequest, "BAD_REQUEST");
             await Rejected(await Send(client, HttpMethod.Post, Admins(A) + "/" + Guid.NewGuid() + ":reset-password", root, new Dictionary<string, object?> { ["newPassword"] = TemporaryPassword, [forbidden] = A }),
                 HttpStatusCode.BadRequest, "BAD_REQUEST");
         }

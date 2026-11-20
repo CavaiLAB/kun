@@ -1,10 +1,23 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using Kun.Audit;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Capabilities;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Runtime;
+using Kun.Surfaces;
+using Kun.Tenancy;
+using Kun.Tenancy.AspNetCore;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,19 +25,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Kun.Audit;
-using Kun.Authorization.Rbac;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Capabilities;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Surfaces;
-using Kun.Tenancy;
-using Kun.Tenancy.AspNetCore;
-using Kun.Testing.Containers;
-using System.Collections.Concurrent;
-using System.Text.Json.Nodes;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -64,7 +64,7 @@ public sealed partial class TenantOperationsTests(PostgresFixture postgres) : Cu
         await AssertHttp(await Request(HttpMethod.Post, path, root, new { code = "bad", name = "Bad" }), HttpStatusCode.BadRequest, "BAD_REQUEST");
         await AssertHttp(await Request(HttpMethod.Post, path, root, new { code = "bad", name = "Bad", administrator = (object?)null }), HttpStatusCode.BadRequest, "INPUT_INVALID");
         await AssertHttp(await Request(HttpMethod.Post, path, root, new CreateTenant("bad", "Bad", TenantIsolation.Schema)
-            { Administrator = new(Guid.NewGuid(), "owner") }), HttpStatusCode.BadRequest, "INPUT_INVALID");
+        { Administrator = new(Guid.NewGuid(), "owner") }), HttpStatusCode.BadRequest, "INPUT_INVALID");
         Assert.Equal(0, await AuditCount()); // 400/401/403 均未得到成功旁路，不应写放行审计。
         Assert.Equal(6, logs.Entries.Count);
         Assert.Equal(3, logs.Entries.Count(entry => Equals(entry["Reason"], "tenant_principal") && Equals(entry["Subject"], "root")));
@@ -82,7 +82,7 @@ public sealed partial class TenantOperationsTests(PostgresFixture postgres) : Cu
         var beforeRejectedEdit = await AuditCount();
         foreach (var forbidden in new[] { "tenantId", "tenant_id", "id", "code", "isolation" })
             await AssertHttp(await Request(HttpMethod.Put, path + "/" + created.Id, root, new Dictionary<string, object?>
-                { ["name"] = "bad", ["expectedRevision"] = created.Revision, [forbidden] = "forbidden" }), HttpStatusCode.BadRequest, "BAD_REQUEST");
+            { ["name"] = "bad", ["expectedRevision"] = created.Revision, [forbidden] = "forbidden" }), HttpStatusCode.BadRequest, "BAD_REQUEST");
         Assert.Equal(beforeRejectedEdit, await AuditCount());
         using var updated = await Request(HttpMethod.Put, path + "/" + created.Id, root, new UpdateTenant("Updated", created.Revision));
         Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
@@ -247,9 +247,18 @@ public abstract partial class CustomerCommandTests
             await lifecycle.ActivateAsync(crm.PluginId, crm.Revision, "root", Ct);
         }
         var app = TenantOperationsHost.Build(() => context?.Invoke() ?? loader.GetContext("tenancy", ScopeKey.Global),
-            new TokenValidationParameters { ValidateIssuer = true, ValidIssuer = expectedIssuer ?? Issuer, ValidateAudience = true, ValidAudience = expectedAudience ?? Audience,
-                ValidateLifetime = true, ValidateIssuerSigningKey = true, IssuerSigningKey = business.ManagementSigningKey,
-                ValidAlgorithms = [SecurityAlgorithms.RsaSha256], ClockSkew = TimeSpan.Zero }, builder =>
+            new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = expectedIssuer ?? Issuer,
+                ValidateAudience = true,
+                ValidAudience = expectedAudience ?? Audience,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = business.ManagementSigningKey,
+                ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+                ClockSkew = TimeSpan.Zero
+            }, builder =>
             {
                 builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
                 if (logs is not null) builder.Logging.AddProvider(logs);

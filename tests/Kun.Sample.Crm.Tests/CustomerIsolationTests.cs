@@ -8,6 +8,7 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -19,7 +20,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Kun.Testing.Containers;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -49,8 +49,10 @@ public sealed class CustomerIsolationTests(PostgresFixture postgres) : IClassFix
             builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:Crm"] = postgres.AppConnectionString,
-                ["S2S:Issuer"] = Issuer, ["S2S:Audience"] = Audience,
-                ["S2S:ReaderClientId"] = Client, ["S2S:PublicJwks"] = publicJwks
+                ["S2S:Issuer"] = Issuer,
+                ["S2S:Audience"] = Audience,
+                ["S2S:ReaderClientId"] = Client,
+                ["S2S:PublicJwks"] = publicJwks
             });
             builder.Services.ConfigureDbContext<CrmDbContext>((_, options) => options.AddInterceptors(capture));
         });
@@ -152,8 +154,18 @@ public sealed class CustomerIsolationTests(PostgresFixture postgres) : IClassFix
         var jti = Guid.NewGuid().ToString();
         var payload = JsonSerializer.Serialize(new
         {
-            iss = Issuer, aud = new[] { Audience }, sub = client, principal_kind = "service", tenant_id = tenant,
-            roles = Array.Empty<string>(), scope, session_id = jti, iat = now, nbf = now, exp = now + 60, jti
+            iss = Issuer,
+            aud = new[] { Audience },
+            sub = client,
+            principal_kind = "service",
+            tenant_id = tenant,
+            roles = Array.Empty<string>(),
+            scope,
+            session_id = jti,
+            iat = now,
+            nbf = now,
+            exp = now + 60,
+            jti
         });
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Qian.slnf"))) root = root.Parent;

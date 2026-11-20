@@ -114,9 +114,21 @@ public sealed class CrmCurrentUserTests
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
         return new Principal
         {
-            Issuer = "https://gateway.qian.test/s2s", Audience = [PlatformSurfaceHost.Audience], Subject = subject, Kind = kind, TenantId = Tenant,
-            MembershipId = kind == PrincipalKind.User ? Guid.CreateVersion7().ToString() : null, IdentityRevision = kind == PrincipalKind.User ? 1 : null,
-            Roles = [], Scope = "crm.read crm.write", SessionId = id, Actor = actor, IssuedAt = now, NotBefore = now, ExpiresAt = now + 60, TokenId = id
+            Issuer = "https://gateway.qian.test/s2s",
+            Audience = [PlatformSurfaceHost.Audience],
+            Subject = subject,
+            Kind = kind,
+            TenantId = Tenant,
+            MembershipId = kind == PrincipalKind.User ? Guid.CreateVersion7().ToString() : null,
+            IdentityRevision = kind == PrincipalKind.User ? 1 : null,
+            Roles = [],
+            Scope = "crm.read crm.write",
+            SessionId = id,
+            Actor = actor,
+            IssuedAt = now,
+            NotBefore = now,
+            ExpiresAt = now + 60,
+            TokenId = id
         };
     }
 
@@ -126,8 +138,18 @@ public sealed class CrmCurrentUserTests
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
         var payload = new Dictionary<string, object?>
         {
-            ["iss"] = "crm-command-acceptance", ["aud"] = new[] { "qian.sample.crm" }, ["sub"] = subject, ["principal_kind"] = kind, ["tenant_id"] = Tenant,
-            ["roles"] = Array.Empty<string>(), ["scope"] = "crm.read crm.write", ["session_id"] = id, ["jti"] = id, ["iat"] = now, ["nbf"] = now, ["exp"] = now + 60
+            ["iss"] = "crm-command-acceptance",
+            ["aud"] = new[] { "qian.sample.crm" },
+            ["sub"] = subject,
+            ["principal_kind"] = kind,
+            ["tenant_id"] = Tenant,
+            ["roles"] = Array.Empty<string>(),
+            ["scope"] = "crm.read crm.write",
+            ["session_id"] = id,
+            ["jti"] = id,
+            ["iat"] = now,
+            ["nbf"] = now,
+            ["exp"] = now + 60
         };
         if (kind == "user") { payload["membership_id"] = Guid.CreateVersion7().ToString(); payload["identity_revision"] = 1; }
         if (actor is not null) payload["act"] = actor;

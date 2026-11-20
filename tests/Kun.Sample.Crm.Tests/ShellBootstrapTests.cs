@@ -1,19 +1,13 @@
-using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Kun.Authorization.Rbac.Abstractions;
+using Kun.Gateway.Shell;
 using Kun.Identity.Client;
 using Kun.Registry;
 using Kun.Runtime;
@@ -21,6 +15,12 @@ using Kun.Surfaces;
 using Kun.Testing;
 using Kun.Testing.Containers;
 using Kun.Testing.Gateway;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -45,9 +45,17 @@ public sealed partial class ShellSurfaceTests(PostgresFixture postgres) : Custom
         var seen = new ConcurrentQueue<string>();
         await using var surface = PlatformSurfaceHost.Build(id => loader.GetContext(id, ScopeKey.Global), new TokenValidationParameters
         {
-            ValidateIssuer = true, ValidIssuer = ShellGatewayIssuer, ValidateAudience = true, ValidAudience = PlatformSurfaceHost.Audience, ValidateLifetime = true,
-            ValidateIssuerSigningKey = true, IssuerSigningKey = business.ManagementSigningKey, ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
-            RequireSignedTokens = true, RequireExpirationTime = true, ClockSkew = TimeSpan.Zero
+            ValidateIssuer = true,
+            ValidIssuer = ShellGatewayIssuer,
+            ValidateAudience = true,
+            ValidAudience = PlatformSurfaceHost.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = business.ManagementSigningKey,
+            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+            RequireSignedTokens = true,
+            RequireExpirationTime = true,
+            ClockSkew = TimeSpan.Zero
         }, builder =>
         {
             builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
@@ -279,7 +287,7 @@ public abstract partial class CustomerCommandTests
         using var csrf = await browser.GetAsync(new Uri(issuer, "api/identity/csrf"), Ct); csrf.EnsureSuccessStatusCode();
         var token = await csrf.Content.ReadFromJsonAsync<JsonElement>(Ct);
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(issuer, "api/identity/login"))
-            { Content = JsonContent.Create(new { client_id = GatewayClientId, identifier = phone, password = IdentityPassword, tenant_id = tenant is null ? (Guid?)null : Guid.Parse(tenant) }) };
+        { Content = JsonContent.Create(new { client_id = GatewayClientId, identifier = phone, password = IdentityPassword, tenant_id = tenant is null ? (Guid?)null : Guid.Parse(tenant) }) };
         request.Headers.Add(token.GetProperty("header").GetString()!, token.GetProperty("token").GetString());
         using var response = await browser.SendAsync(request, Ct);
         var body = await response.Content.ReadAsStringAsync(Ct);

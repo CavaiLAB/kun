@@ -2,21 +2,21 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Json.Schema;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Kun.Security;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Capabilities;
+using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Kun.Security;
 using Kun.Surfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -130,9 +130,20 @@ public abstract partial class CustomerCommandTests
         Assert.True(login.Succeeded, login.Error?.Code.Code); var session = login.Session!; var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         return new DirectoryCurrentUser(host.App.Services.GetRequiredService<ITenantContext>(), new Principal
         {
-            Issuer = host.Identity.Issuer, Audience = [IdentityResource], Subject = session.PersonId.ToString("D"), Kind = PrincipalKind.User,
-            TenantId = session.TenantId!.Value.ToString("D"), MembershipId = session.MembershipId!.Value.ToString("D"), IdentityRevision = session.IdentityRevision,
-            Roles = [], Scope = "qian.api", SessionId = session.SessionId.ToString("D"), TokenId = Guid.NewGuid().ToString("D"), IssuedAt = now, NotBefore = now, ExpiresAt = now + 60
+            Issuer = host.Identity.Issuer,
+            Audience = [IdentityResource],
+            Subject = session.PersonId.ToString("D"),
+            Kind = PrincipalKind.User,
+            TenantId = session.TenantId!.Value.ToString("D"),
+            MembershipId = session.MembershipId!.Value.ToString("D"),
+            IdentityRevision = session.IdentityRevision,
+            Roles = [],
+            Scope = "qian.api",
+            SessionId = session.SessionId.ToString("D"),
+            TokenId = Guid.NewGuid().ToString("D"),
+            IssuedAt = now,
+            NotBefore = now,
+            ExpiresAt = now + 60
         });
     }
     private protected sealed class DirectoryCurrentUser(ITenantContext tenant, Principal principal) : ICurrentUser

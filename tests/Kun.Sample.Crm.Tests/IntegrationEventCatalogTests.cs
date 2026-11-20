@@ -1,15 +1,15 @@
 using System.Reflection;
 using System.Text.Json;
 using Json.Schema;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Data;
 using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 using Kun.Identity.Abstractions;
 using Kun.Lifecycle;
 using Kun.Registry;
 using Kun.Tenancy;
-using Kun.Authorization.Rbac.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 

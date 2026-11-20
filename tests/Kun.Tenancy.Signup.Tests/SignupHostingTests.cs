@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Kun.Dev.Shell;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Kun.Dev.Shell;
 
 namespace Kun.Tenancy.Signup.Tests;
 

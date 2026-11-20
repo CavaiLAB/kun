@@ -6,13 +6,18 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
+using Kun.Identity.Abstractions;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
+using Kun.Identity.Server;
 using Kun.MultiTenancy;
+using Kun.Runtime;
 using Kun.Security;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -26,14 +31,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
-using Kun.Data;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using IdentitySession = Kun.Identity.Abstractions.Session;
-
-using Kun.Identity.Server;
 
 namespace Kun.Testing.Identity;
 
@@ -78,7 +77,10 @@ internal static class IdentityProtocolHost
         publicWeb.RedirectUris.Add(new Uri(issuer + "public-callback")); publicWeb.Permissions.UnionWith(web.Permissions);
         builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
-            Issuer = new Uri(issuer), AllowLoopbackHttp = true, SigningCertificates = retired is null ? [cert] : [cert, retired], EncryptionCertificates = retired is null ? [cert] : [cert, retired],
+            Issuer = new Uri(issuer),
+            AllowLoopbackHttp = true,
+            SigningCertificates = retired is null ? [cert] : [cert, retired],
+            EncryptionCertificates = retired is null ? [cert] : [cert, retired],
             Clients = [new() { Application = publicWeb, Resources = ["https://api.qian.test"] }, new() { Application = web, Resources = ["https://api.qian.test"], BackchannelLogoutUri = new Uri(issuer + "_test/backchannel") }, new() { Application = machine, Resources = ["https://api.qian.test"], TenantId = serviceTenant, PluginId = serviceTenant is null ? null : "qian.sample.crm" }]
         }, builder.Environment);
         var app = builder.Build(); app.UseKunIdentityServer(); app.UseAuthentication(); app.MapKunIdentityServer();
@@ -138,8 +140,13 @@ internal static class IdentityProtocolHost
             var verifier = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(48)); var nonce = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(24));
             using var response = await browser.GetAsync(QueryHelpers.AddQueryString("connect/authorize", new Dictionary<string, string?>
             {
-                ["client_id"] = client, ["redirect_uri"] = client == "public" ? issuer + "public-callback" : Redirect, ["response_type"] = "code", ["scope"] = "openid offline_access qian.api",
-                ["nonce"] = nonce, ["code_challenge_method"] = "S256", ["code_challenge"] = Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)))
+                ["client_id"] = client,
+                ["redirect_uri"] = client == "public" ? issuer + "public-callback" : Redirect,
+                ["response_type"] = "code",
+                ["scope"] = "openid offline_access qian.api",
+                ["nonce"] = nonce,
+                ["code_challenge_method"] = "S256",
+                ["code_challenge"] = Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)))
             }), Ct);
             Assert.True(response.StatusCode == HttpStatusCode.Redirect, await response.Content.ReadAsStringAsync(Ct));
             var query = QueryHelpers.ParseQuery(response.Headers.Location!.Query);

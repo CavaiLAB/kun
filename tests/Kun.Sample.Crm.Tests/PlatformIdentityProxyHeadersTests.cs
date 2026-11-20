@@ -1,6 +1,6 @@
+using Kun.Platform.Host;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
-using Kun.Platform.Host;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -16,7 +16,9 @@ public sealed class PlatformIdentityProxyHeadersTests
     {
         var options = PlatformIdentity.ProxyHeaders(Configuration(new()
         {
-            ["Identity:TrustedProxyNetworks:0"] = "10.42.0.0/16", ["Identity:TrustedProxyNetworks:1"] = "192.168.1.0/24", ["Identity:ForwardLimit"] = "2"
+            ["Identity:TrustedProxyNetworks:0"] = "10.42.0.0/16",
+            ["Identity:TrustedProxyNetworks:1"] = "192.168.1.0/24",
+            ["Identity:ForwardLimit"] = "2"
         }))!;
         Assert.Equal(ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto, options.ForwardedHeaders);
         Assert.Equal(2, options.ForwardLimit);
@@ -37,7 +39,8 @@ public sealed class PlatformIdentityProxyHeadersTests
     public void InvalidSettingsStopTheHost(string network, string? limit) =>
         Assert.Throws<InvalidOperationException>(() => PlatformIdentity.ProxyHeaders(Configuration(new()
         {
-            ["Identity:TrustedProxyNetworks:0"] = network, ["Identity:ForwardLimit"] = limit
+            ["Identity:TrustedProxyNetworks:0"] = network,
+            ["Identity:ForwardLimit"] = limit
         })));
 
     private static IConfiguration Configuration(Dictionary<string, string?> values) => new ConfigurationBuilder().AddInMemoryCollection(values).Build();

@@ -2,15 +2,15 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Kun.Authorization;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
-using Kun.Runtime;
+using Kun.Core.MultiTenancy;
+using Kun.EntityFrameworkCore;
 using Kun.Errors;
+using Kun.Runtime;
 using Kun.Surfaces.Abstractions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -108,7 +108,8 @@ public sealed partial class IdentityAuthzTests
             await using var session = await data.OpenAsync<AuthzDbContext>(Ct);
             var db = session.Context;
             var roles = await db.Roles.AsNoTracking().Select(row => row.Code).ToListAsync(Ct);
-            var grants = await (from grant in db.Grants.AsNoTracking() join role in db.Roles.AsNoTracking() on grant.RoleId equals role.Id
+            var grants = await (from grant in db.Grants.AsNoTracking()
+                                join role in db.Roles.AsNoTracking() on grant.RoleId equals role.Id
                                 select role.Code + "=" + grant.PermissionCode).ToListAsync(Ct);
             var installs = await db.PolicyInstalls.AsNoTracking().Select(row => row.PluginId + "@" + row.Version).ToListAsync(Ct);
             var revision = await db.Revisions.AsNoTracking().Select(row => (long?)row.Revision).SingleOrDefaultAsync(Ct) ?? 0;

@@ -1,8 +1,11 @@
 using System.Security.Claims;
-using Kun.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Kun.Authorization;
+using Kun.Authorization.AspNetCore;
+using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
+using Kun.Errors.AspNetCore;
 using Kun.EventBus.DependencyInjection;
 using Kun.MultiTenancy.DependencyInjection;
 using Kun.MultiTenancy.Middleware;
@@ -11,11 +14,8 @@ using Kun.Security.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Data;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
-using Kun.Authorization.AspNetCore;
 
 namespace Kun.Sample.Crm;
 

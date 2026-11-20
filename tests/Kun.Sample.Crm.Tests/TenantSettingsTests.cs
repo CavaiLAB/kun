@@ -1,31 +1,31 @@
-using Kun.EventBus;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Kun.Audit;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
+using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
+using Kun.Plugin.Sdk;
+using Kun.Registry;
+using Kun.Registry.AspNetCore;
+using Kun.Runtime;
+using Kun.Surfaces.Abstractions;
+using Kun.Tenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Kun.Audit;
-using Kun.Authorization.Rbac;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Data;
-using Kun.Plugin.Sdk;
-using Kun.Registry;
-using Kun.Registry.AspNetCore;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Surfaces.Abstractions;
-using Kun.Tenancy;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -57,7 +57,7 @@ public sealed partial class TenantOperationsTests
         foreach (var code in new[] { "c", "d" })
         {
             using var response = await Manage(HttpMethod.Post, "/api/tenancy/tenants", new CreateTenant(code, code.ToUpperInvariant())
-                { Administrator = new(Guid.CreateVersion7(), "owner-" + code), Quotas = new TenantQuotas(5) });
+            { Administrator = new(Guid.CreateVersion7(), "owner-" + code), Quotas = new TenantQuotas(5) });
             Assert.True(response.StatusCode == HttpStatusCode.Created, await response.Content.ReadAsStringAsync(Ct));
             var tenant = (await response.Content.ReadFromJsonAsync<TenantDescriptor>(Ct))!; created.Add(tenant); Assert.Equal(TenantStatus.Pending, tenant.Status);
             var steps = await source.Inject<ITenantProvisioning>(TenantProvisioning.Key).GetStepsAsync(tenant.Id, Ct);
@@ -168,8 +168,15 @@ public abstract partial class CustomerCommandTests
         builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
         var host = builder.Build(); await host.StartAsync(Ct); var loader = new PluginLoader(host.Services);
         var original = platform.RegistryOptions;
-        var registry = new RegistryPlugin(new RegistryRuntimeOptions { Runtime = loader, InstalledComponents = original.InstalledComponents, Profiles = original.Profiles,
-            Profile = original.Profile, Surfaces = original.Surfaces, Resolve = original.Resolve });
+        var registry = new RegistryPlugin(new RegistryRuntimeOptions
+        {
+            Runtime = loader,
+            InstalledComponents = original.InstalledComponents,
+            Profiles = original.Profiles,
+            Profile = original.Profile,
+            Surfaces = original.Surfaces,
+            Resolve = original.Resolve
+        });
         await loader.MountAsync([
             Definition("data", new DataPlugin(), [DataDefinition.Key]), Definition("audit", new AuditPlugin(), [AuditDefinition.Key, CommandPolicies.AuditKey]),
             Definition("registry", registry, [RegistryDefinition.Key]), Definition("tenancy", new TenancyPlugin(), [TenancyDefinition.Key, CommandPolicies.TenancyKey])], Ct);

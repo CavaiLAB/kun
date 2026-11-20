@@ -1,5 +1,3 @@
-using Kun.Gateway.DependencyInjection;
-using Kun.Gateway.Shell;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -7,21 +5,23 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
-using Kun.Core.MultiTenancy;
-using Kun.Gateway;
-using Kun.Identity;
-using Kun.MultiTenancy;
-using Kun.Security;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.IdentityModel.Tokens;
 using Kun.Configuration;
 using Kun.Configuration.Platform;
 using Kun.Configuration.Secrets;
+using Kun.Core.MultiTenancy;
 using Kun.Dev.TenantOps;
+using Kun.Gateway;
+using Kun.Gateway.DependencyInjection;
+using Kun.Gateway.Shell;
+using Kun.Identity;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
+using Kun.MultiTenancy;
 using Kun.Runtime;
 using Kun.Sample.Crm;
+using Kun.Security;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Transforms.Builder;
@@ -76,8 +76,14 @@ internal static class DevGateway
         // OpenIddict 按 AbsoluteUri 发布本机 issuer（根路径含末尾斜杠）。依赖方使用同一标识。
         builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
-            Authority = new Uri(identityIssuer.AbsoluteUri), ClientId = DevIdentity.ClientId, Resource = Resource, RedirectUri = new Uri(address, "auth/callback"),
-            Scopes = ["openid", "offline_access", "qian.api", .. DevIdentity.ApplicationScopes], RequireHttpsMetadata = false, UseInMemorySessionStore = true, DefaultReturnPath = "/"
+            Authority = new Uri(identityIssuer.AbsoluteUri),
+            ClientId = DevIdentity.ClientId,
+            Resource = Resource,
+            RedirectUri = new Uri(address, "auth/callback"),
+            Scopes = ["openid", "offline_access", "qian.api", .. DevIdentity.ApplicationScopes],
+            RequireHttpsMetadata = false,
+            UseInMemorySessionStore = true,
+            DefaultReturnPath = "/"
         });
         // 受众分簇：面向用户的平台表面（能力目录 / 导航 / 外壳目录 / 平台控制台目录、有效权限）走平台表面宿主，租户运营与开通申请的运营接口走运营宿主，
         // 其余 /api 走参考应用的命令宿主；/api-alt 是同一组路由的第二个前缀。

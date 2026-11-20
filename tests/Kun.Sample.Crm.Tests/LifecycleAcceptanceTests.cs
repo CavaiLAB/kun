@@ -5,25 +5,19 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Kun.EntityFrameworkCore.Extensions;
-using Kun.EventBus;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
-using Org.BouncyCastle.Security;
+using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Capabilities;
 using Kun.Configuration;
 using Kun.Configuration.Platform;
 using Kun.Configuration.Secrets;
+using Kun.Core.MultiTenancy;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
+using Kun.EventBus;
 using Kun.Lifecycle;
 using Kun.Lifecycle.AspNetCore;
 using Kun.Plugin.Sdk;
@@ -31,14 +25,20 @@ using Kun.Profiles;
 using Kun.Profiles.Abstractions;
 using Kun.Registry;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 using Kun.Tenancy.Signup;
 using Kun.Testing.Containers;
-using Kun.Audit;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Security;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -347,7 +347,8 @@ public abstract partial class CustomerCommandTests
         });
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Trust:PlatformKeys:0:PublicKey"] = "secretRef://platform/trust/platform", ["Trust:PlatformKeys:0:NotBefore"] = "2026-01-01T00:00:00Z"
+            ["Trust:PlatformKeys:0:PublicKey"] = "secretRef://platform/trust/platform",
+            ["Trust:PlatformKeys:0:NotBefore"] = "2026-01-01T00:00:00Z"
         });
     }
 
@@ -372,7 +373,11 @@ public abstract partial class CustomerCommandTests
         Add("config", "qian.config", new ConfigurationPlugin(), [ConfigDefinition.Key]);
         var registryOptions = new RegistryRuntimeOptions
         {
-            InstalledComponents = installed, Runtime = loader, Profiles = new ProfileLoader(validator), Profile = options, Surfaces = validator,
+            InstalledComponents = installed,
+            Runtime = loader,
+            Profiles = new ProfileLoader(validator),
+            Profile = options,
+            Surfaces = validator,
             Resolve = entry =>
             {
                 var reference = entry.Plugin.Split('@');
@@ -394,9 +399,16 @@ public abstract partial class CustomerCommandTests
         var crm = new CrmPlugin();
         Write("plugins/crm/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
         {
-            id = "qian.sample.crm", version = "1.0.0", description = "参考应用：客户管理，由生命周期装进租户 scope。", author = new { name = "Qian" }, license = "Apache-2.0",
-            @interface = new { displayName = "crm", category = "sample" }, inject = crm.Inject.Select(key => key.Name), provides = new[] { CrmDefinition.Key.Name },
-            policy = new { tier = platform.ProvisionCrmByDefault ? "system" : "official", sandbox = "none", authentication = "ON_INSTALL", required = platform.ProvisionCrmByDefault }, scopes = CatalogScopes,
+            id = "qian.sample.crm",
+            version = "1.0.0",
+            description = "参考应用：客户管理，由生命周期装进租户 scope。",
+            author = new { name = "Qian" },
+            license = "Apache-2.0",
+            @interface = new { displayName = "crm", category = "sample" },
+            inject = crm.Inject.Select(key => key.Name),
+            provides = new[] { CrmDefinition.Key.Name },
+            policy = new { tier = platform.ProvisionCrmByDefault ? "system" : "official", sandbox = "none", authentication = "ON_INSTALL", required = platform.ProvisionCrmByDefault },
+            scopes = CatalogScopes,
             runtime = new { form = "module", entry = "Kun.Sample.Crm" }
         }));
         var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.KunCapability, ListCustomersQuery.KunCapability, GetCustomerQuery.KunCapability], validator, new ToolContractHasher());
@@ -414,9 +426,16 @@ public abstract partial class CustomerCommandTests
             var signup = new TenancySignupPlugin();
             Write("plugins/signup/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id = TenancySignupDefinition.ComponentId, version = "1.0.0", description = "平台控制台验收挂在全局 scope 的开通申请组件。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = "signup", category = "testing" }, inject = signup.Inject.Select(key => key.Name), provides = new[] { TenancySignupDefinition.Key.Name },
-                policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL", required = false }, scopes = GlobalSettingsScopes,
+                id = TenancySignupDefinition.ComponentId,
+                version = "1.0.0",
+                description = "平台控制台验收挂在全局 scope 的开通申请组件。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = "signup", category = "testing" },
+                inject = signup.Inject.Select(key => key.Name),
+                provides = new[] { TenancySignupDefinition.Key.Name },
+                policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL", required = false },
+                scopes = GlobalSettingsScopes,
                 runtime = new { form = "module", entry = typeof(TenancySignupPlugin).FullName + ", " + typeof(TenancySignupPlugin).Assembly.GetName().Name }
             }));
             Write("plugins/signup/ui/manifest.json", platform.SignupUi ?? File.ReadAllText(Path.Combine(RepositoryRoot(), "plugins/qian.tenancy.signup/ui/manifest.json")));
@@ -475,9 +494,16 @@ public abstract partial class CustomerCommandTests
             definitions.Add(id, definition);
             Write($"plugins/{id}/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id = component, version = "1.0.0", description = "生命周期端到端验收使用实际 Provider 的平台组合。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = id, category = "testing" }, inject = plugin.Inject.Select(key => key.Name), provides = provides.Select(key => key.Name),
-                policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true }, scopes = component is "qian.config" or "qian.tenancy" ? GlobalSettingsScopes : CatalogScopes,
+                id = component,
+                version = "1.0.0",
+                description = "生命周期端到端验收使用实际 Provider 的平台组合。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = id, category = "testing" },
+                inject = plugin.Inject.Select(key => key.Name),
+                provides = provides.Select(key => key.Name),
+                policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true },
+                scopes = component is "qian.config" or "qian.tenancy" ? GlobalSettingsScopes : CatalogScopes,
                 runtime = new { form = "module", entry = plugin.GetType().FullName + ", " + plugin.GetType().Assembly.GetName().Name }
             }));
         }

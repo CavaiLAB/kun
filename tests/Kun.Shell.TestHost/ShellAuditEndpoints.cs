@@ -2,13 +2,13 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kun.MultiTenancy;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 using Kun.Audit;
-using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
+using Kun.MultiTenancy;
+using Kun.Runtime;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kun.Shell.TestHost;
 
@@ -45,8 +45,17 @@ internal static class ShellAuditEndpoints
                     json.GetProperty("hostVersion").GetString() != qianVersion || json.GetProperty("requiredVersion").GetString() != "^99.0.0")
                     return Error(PlatformErrors.InputInvalid);
                 using var scope = tenant.BeginScope(Guid.ParseExact(tenantId, "D"));
-                var metadata = JsonSerializer.SerializeToElement(new { name = "shell.remote.rejected", remoteId = "qian.tenancy", scope = "tenant:" + tenantId,
-                    reason = "engines.qian", code = "INPUT_INVALID", hostVersion = qianVersion, requiredVersion = "^99.0.0", source = "browser-report" });
+                var metadata = JsonSerializer.SerializeToElement(new
+                {
+                    name = "shell.remote.rejected",
+                    remoteId = "qian.tenancy",
+                    scope = "tenant:" + tenantId,
+                    reason = "engines.qian",
+                    code = "INPUT_INVALID",
+                    hostVersion = qianVersion,
+                    requiredVersion = "^99.0.0",
+                    source = "browser-report"
+                });
                 var record = new AuditRecord(Guid.NewGuid(), tenantId, "user", identity.FindFirst("sub")!.Value, null,
                     "qian.shell.remote.rejected", "1.0.0", Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(metadata))), "ui", "qian.tenancy",
                     "reported-rejected", ActivityTraceId.CreateRandom().ToString(), DateTimeOffset.UtcNow, metadata);
@@ -71,9 +80,20 @@ internal static class ShellAuditEndpoints
                 if (page.Count < 100) break;
                 after = page[^1].Sequence;
             }
-            return Results.Json(new { valid = verification.Valid, checkedEntries = verification.CheckedEntries,
-                records = entries.Select(e => new { sequence = e.Sequence, contentHash = e.ContentHash, actorId = e.Record.ActorId,
-                    tenantId = e.Record.TenantId, capabilityId = e.Record.CapabilityId, payload = e.Record.Payload }) });
+            return Results.Json(new
+            {
+                valid = verification.Valid,
+                checkedEntries = verification.CheckedEntries,
+                records = entries.Select(e => new
+                {
+                    sequence = e.Sequence,
+                    contentHash = e.ContentHash,
+                    actorId = e.Record.ActorId,
+                    tenantId = e.Record.TenantId,
+                    capabilityId = e.Record.CapabilityId,
+                    payload = e.Record.Payload
+                })
+            });
         });
     }
 

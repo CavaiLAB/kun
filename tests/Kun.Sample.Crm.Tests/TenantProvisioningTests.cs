@@ -1,18 +1,18 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Net;
 using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
-using Kun.Identity.Abstractions;
-using Kun.Plugin.Sdk;
-using Microsoft.AspNetCore.Builder;
 using Kun.Core.MultiTenancy;
-using Microsoft.Extensions.DependencyInjection;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
 using Kun.Lifecycle;
+using Kun.Plugin.Sdk;
 using Kun.Registry;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Tenancy;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 

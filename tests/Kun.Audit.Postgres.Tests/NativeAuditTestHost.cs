@@ -6,9 +6,9 @@ using Kun.Errors;
 using Kun.MultiTenancy;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
+using Kun.Testing.NativeAudit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Kun.Testing.NativeAudit;
 
 namespace Kun.Audit.Postgres.Tests;
 

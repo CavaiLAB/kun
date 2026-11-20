@@ -2,10 +2,6 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Kun.EntityFrameworkCore;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
-using Org.BouncyCastle.Security;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
@@ -13,6 +9,7 @@ using Kun.Capabilities;
 using Kun.Configuration;
 using Kun.Configuration.Platform;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.Lifecycle;
 using Kun.Plugin.Sdk;
 using Kun.Profiles;
@@ -23,6 +20,9 @@ using Kun.Sample.Crm;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Security;
 
 namespace Kun.Dev.TenantOps;
 
@@ -64,7 +64,11 @@ internal sealed class DevPlatform(string repository) : IDisposable
         Add("config", "qian.config", new ConfigurationPlugin(), [ConfigDefinition.Key]);
         var registry = new RegistryPlugin(new RegistryRuntimeOptions
         {
-            InstalledComponents = installed, Runtime = loader, Profiles = new ProfileLoader(validator), Profile = options, Surfaces = validator,
+            InstalledComponents = installed,
+            Runtime = loader,
+            Profiles = new ProfileLoader(validator),
+            Profile = options,
+            Surfaces = validator,
             Resolve = entry =>
             {
                 var scope = entry.Scope == "global" ? ScopeKey.Global : new ScopeKey(entry.Scope.Split(':', 2)[0], entry.Scope.Split(':', 2)[1]);
@@ -116,9 +120,16 @@ internal sealed class DevPlatform(string repository) : IDisposable
             definitions.Add(id, definition);
             Write($"plugins/{id}/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id = component, version = "1.0.0", description = "本机租户运营手测宿主装载的实际平台 Provider。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = id, category = "testing" }, inject = plugin.Inject.Select(key => key.Name), provides = provides.Select(key => key.Name),
-                policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true }, scopes = component is "qian.config" or "qian.tenancy" ? GlobalSettingsScopes : CatalogScopes,
+                id = component,
+                version = "1.0.0",
+                description = "本机租户运营手测宿主装载的实际平台 Provider。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = id, category = "testing" },
+                inject = plugin.Inject.Select(key => key.Name),
+                provides = provides.Select(key => key.Name),
+                policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true },
+                scopes = component is "qian.config" or "qian.tenancy" ? GlobalSettingsScopes : CatalogScopes,
                 runtime = new { form = "module", entry = plugin.GetType().FullName + ", " + plugin.GetType().Assembly.GetName().Name }
             }));
         }
@@ -131,9 +142,16 @@ internal sealed class DevPlatform(string repository) : IDisposable
         var crm = new CrmPlugin();
         Write("plugins/crm/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
         {
-            id = "qian.sample.crm", version = "1.0.0", description = "参考应用：客户管理，由生命周期装进租户 scope。", author = new { name = "Qian" }, license = "Apache-2.0",
-            @interface = new { displayName = "crm", category = "sample" }, inject = crm.Inject.Select(key => key.Name), provides = new[] { CrmDefinition.Key.Name },
-            policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true }, scopes = CatalogScopes,
+            id = "qian.sample.crm",
+            version = "1.0.0",
+            description = "参考应用：客户管理，由生命周期装进租户 scope。",
+            author = new { name = "Qian" },
+            license = "Apache-2.0",
+            @interface = new { displayName = "crm", category = "sample" },
+            inject = crm.Inject.Select(key => key.Name),
+            provides = new[] { CrmDefinition.Key.Name },
+            policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true },
+            scopes = CatalogScopes,
             runtime = new { form = "module", entry = "Kun.Sample.Crm" }
         }));
         var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.KunCapability, ListCustomersQuery.KunCapability, GetCustomerQuery.KunCapability], validator, new ToolContractHasher());
@@ -169,9 +187,16 @@ internal sealed class DevPlatform(string repository) : IDisposable
         var id = definition.Entry.Id;
         Write($"plugins/{id}/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
         {
-            id = definition.Entry.Plugin, version = definition.Entry.Version, description = "外壳联调环境挂在全局 scope 的平台组件（平台控制台）。", author = new { name = "Qian" }, license = "Apache-2.0",
-            @interface = new { displayName = id, category = "testing" }, inject = definition.Plugin.Inject.Select(key => key.Name), provides = definition.Provides.Select(key => key.Name),
-            policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL", required = false }, scopes = GlobalSettingsScopes,
+            id = definition.Entry.Plugin,
+            version = definition.Entry.Version,
+            description = "外壳联调环境挂在全局 scope 的平台组件（平台控制台）。",
+            author = new { name = "Qian" },
+            license = "Apache-2.0",
+            @interface = new { displayName = id, category = "testing" },
+            inject = definition.Plugin.Inject.Select(key => key.Name),
+            provides = definition.Provides.Select(key => key.Name),
+            policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL", required = false },
+            scopes = GlobalSettingsScopes,
             runtime = new { form = "module", entry = definition.Plugin.GetType().FullName + ", " + definition.Plugin.GetType().Assembly.GetName().Name }
         }));
         Write($"plugins/{id}/ui/manifest.json", File.ReadAllText(Path.Combine(repository, manifest)));

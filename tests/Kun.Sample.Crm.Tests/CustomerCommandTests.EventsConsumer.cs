@@ -1,6 +1,3 @@
-using Kun.EventBus.RabbitMQ;
-using Kun.MultiTenancy;
-using Kun.MultiTenancy.Abstractions;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
@@ -9,15 +6,18 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Kun.Authorization.Rbac;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
+using Kun.EventBus.RabbitMQ;
+using Kun.MultiTenancy;
+using Kun.MultiTenancy.Abstractions;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Authorization.Rbac;
-using Kun.Testing.Containers;
 using RabbitMQ.Client;
 using StackExchange.Redis;
 
@@ -184,8 +184,14 @@ public abstract partial class CustomerCommandTests
         var occurredAt = DateTimeOffset.UtcNow;
         return new KunEventEnvelope
         {
-            Version = KunEventEnvelope.CurrentVersion, EventId = Guid.CreateVersion7(occurredAt), Subject = "crm.customer.created", Type = CrmEvents.CustomerCreated,
-            OccurredAt = occurredAt, TenantId = tenant is null ? null : Guid.Parse(tenant), Producer = "qian.sample.crm", Actor = EventActor.Service(Writer),
+            Version = KunEventEnvelope.CurrentVersion,
+            EventId = Guid.CreateVersion7(occurredAt),
+            Subject = "crm.customer.created",
+            Type = CrmEvents.CustomerCreated,
+            OccurredAt = occurredAt,
+            TenantId = tenant is null ? null : Guid.Parse(tenant),
+            Producer = "qian.sample.crm",
+            Actor = EventActor.Service(Writer),
             TraceParent = "00-" + ActivityTraceId.CreateRandom().ToHexString() + "-" + ActivitySpanId.CreateRandom().ToHexString() + "-01",
             Payload = JsonSerializer.SerializeToElement(new CrmCustomerCreated(customerId), CrmCommandJson.Default.CrmCustomerCreated),
         };
@@ -212,8 +218,12 @@ public abstract partial class CustomerCommandTests
         if (tenantHeader is not null) headers["tenant_id"] = tenantHeader;
         var properties = new BasicProperties
         {
-            MessageId = envelope.EventId.ToString("D"), Type = envelope.Type, AppId = envelope.Producer, ContentType = "application/json",
-            DeliveryMode = DeliveryModes.Persistent, Headers = headers,
+            MessageId = envelope.EventId.ToString("D"),
+            Type = envelope.Type,
+            AppId = envelope.Producer,
+            ContentType = "application/json",
+            DeliveryMode = DeliveryModes.Persistent,
+            Headers = headers,
         };
         await channel.BasicPublishAsync(KunEventTopology.Exchange, envelope.Subject, mandatory: true, properties, Encoding.UTF8.GetBytes(body), Ct);
     }

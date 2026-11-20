@@ -4,9 +4,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Capabilities;
 using Kun.Tenancy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 

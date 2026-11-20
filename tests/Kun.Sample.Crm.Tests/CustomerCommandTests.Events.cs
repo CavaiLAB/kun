@@ -6,10 +6,10 @@ using Json.Schema;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Kun.Testing.Containers;
 using RabbitMQ.Client;
 
 namespace Kun.Sample.Crm.Tests;

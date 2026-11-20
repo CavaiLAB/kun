@@ -1,11 +1,11 @@
 using System.Text.Json;
+using Kun.Identity.Abstractions;
 using Kun.Security;
 using Kun.Security.Authentication;
 using Kun.Security.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Identity.Abstractions;
 
 namespace Kun.Sample.Crm;
 

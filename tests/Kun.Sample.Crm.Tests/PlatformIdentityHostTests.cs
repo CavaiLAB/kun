@@ -1,4 +1,3 @@
-using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
@@ -6,6 +5,17 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Audit;
+using Kun.Gateway;
+using Kun.Gateway.Shell;
+using Kun.Identity.Abstractions;
+using Kun.Platform.Host;
+using Kun.Runtime;
+using Kun.Tenancy;
+using Kun.Tenancy.Signup;
+using Kun.Testing;
+using Kun.Testing.Containers;
+using Kun.Testing.Gateway;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -15,16 +25,6 @@ using Npgsql;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
-using Kun.Audit;
-using Kun.Gateway;
-using Kun.Identity.Abstractions;
-using Kun.Platform.Host;
-using Kun.Runtime;
-using Kun.Tenancy;
-using Kun.Tenancy.Signup;
-using Kun.Testing;
-using Kun.Testing.Containers;
-using Kun.Testing.Gateway;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -201,7 +201,12 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
                 await Json(await applicant.Send(HttpMethod.Post, "/api/signup/session", new { verificationId = challenge, code = outbox.Code(challenge) }), HttpStatusCode.OK);
                 var submitted = await Json(await applicant.Send(HttpMethod.Post, "/api/signup/me/applications", new Dictionary<string, object?>
                 {
-                    ["companyName"] = "丙方物流", ["code"] = "gamma", ["size"] = "1-20", ["acceptTerms"] = true, ["displayName"] = "丙方申请人", ["password"] = AdminPassword
+                    ["companyName"] = "丙方物流",
+                    ["code"] = "gamma",
+                    ["size"] = "1-20",
+                    ["acceptTerms"] = true,
+                    ["displayName"] = "丙方申请人",
+                    ["password"] = AdminPassword
                 }), HttpStatusCode.Created);
                 applicationId = submitted.GetProperty("id").GetGuid();
             }
@@ -285,9 +290,13 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
         var clientSecret = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         var files = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["ConnectionFiles:App"] = postgres.AppConnectionString, ["ConnectionFiles:PlatformAuthz"] = Login(AuthzRole), ["ConnectionFiles:PlatformAudit"] = Login(AuditRole),
-            ["ConnectionFiles:Migrations"] = Login(Migrator), ["ConnectionFiles:MigrationAdmin"] = postgres.ConnectionString,
-            ["Identity:Clients:0:SecretFile"] = clientSecret, ["Bootstrap:PasswordFile"] = OperatorInitial
+            ["ConnectionFiles:App"] = postgres.AppConnectionString,
+            ["ConnectionFiles:PlatformAuthz"] = Login(AuthzRole),
+            ["ConnectionFiles:PlatformAudit"] = Login(AuditRole),
+            ["ConnectionFiles:Migrations"] = Login(Migrator),
+            ["ConnectionFiles:MigrationAdmin"] = postgres.ConnectionString,
+            ["Identity:Clients:0:SecretFile"] = clientSecret,
+            ["Bootstrap:PasswordFile"] = OperatorInitial
         };
         foreach (var purpose in new[] { "Signing", "Encryption" })
         {
@@ -299,14 +308,27 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
         }
         var settings = new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            ["Root"] = RepositoryRoot(), ["S2S:Issuer"] = S2sIssuer, ["S2S:AllowHttpJwks"] = "true", ["Secrets:MountRoot"] = directory,
-            ["Identity:InProcess"] = "true", ["Identity:AllowLoopbackHttp"] = "true", ["Identity:PagesRoot"] = Pages(directory, "identity-pages"),
+            ["Root"] = RepositoryRoot(),
+            ["S2S:Issuer"] = S2sIssuer,
+            ["S2S:AllowHttpJwks"] = "true",
+            ["Secrets:MountRoot"] = directory,
+            ["Identity:InProcess"] = "true",
+            ["Identity:AllowLoopbackHttp"] = "true",
+            ["Identity:PagesRoot"] = Pages(directory, "identity-pages"),
             // 可信代理链（staging 是 hub → WireGuard → Traefik）：测试客户端在回环上充当最后一跳代理，192.0.2.0/24 充当上一跳；回溯两跳。
-            ["Identity:TrustedProxyNetworks:0"] = "127.0.0.0/8", ["Identity:TrustedProxyNetworks:1"] = "192.0.2.0/24", ["Identity:ForwardLimit"] = "2",
-            ["Identity:Clients:0:ClientId"] = GatewayClientId, ["Identity:Clients:0:RedirectUri"] = new Uri(shell, "auth/callback").AbsoluteUri, ["Identity:Clients:0:Resource"] = Resource,
-            ["Migrations:AppRole"] = PostgresFixture.AppRoleName, ["Migrations:AuditWriterRole"] = AuditWriter,
-            ["Migrations:GatewayAudit:TenantRole"] = GatewayTenantRole, ["Migrations:GatewayAudit:PlatformRole"] = GatewayPlatformRole, ["Migrations:GatewayAudit:FunctionOwner"] = GatewayWriter,
-            ["Bootstrap:Username"] = OperatorName, ["Bootstrap:DisplayName"] = "平台运营",
+            ["Identity:TrustedProxyNetworks:0"] = "127.0.0.0/8",
+            ["Identity:TrustedProxyNetworks:1"] = "192.0.2.0/24",
+            ["Identity:ForwardLimit"] = "2",
+            ["Identity:Clients:0:ClientId"] = GatewayClientId,
+            ["Identity:Clients:0:RedirectUri"] = new Uri(shell, "auth/callback").AbsoluteUri,
+            ["Identity:Clients:0:Resource"] = Resource,
+            ["Migrations:AppRole"] = PostgresFixture.AppRoleName,
+            ["Migrations:AuditWriterRole"] = AuditWriter,
+            ["Migrations:GatewayAudit:TenantRole"] = GatewayTenantRole,
+            ["Migrations:GatewayAudit:PlatformRole"] = GatewayPlatformRole,
+            ["Migrations:GatewayAudit:FunctionOwner"] = GatewayWriter,
+            ["Bootstrap:Username"] = OperatorName,
+            ["Bootstrap:DisplayName"] = "平台运营",
             // Lifecycle 信任根：公钥在 Secret 挂载 <MountRoot>/qian/trust-platform/public-key（平台宿主的固定绑定），签名清单由 ConfigMap 挂载。
             ["Trust:PlatformKeys:0:PublicKey"] = "secretRef://platform/trust/platform",
             [PlatformSystemRevisions.SignaturesFileKey] = await SystemRevisionSignatures(directory)
@@ -362,7 +384,10 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
         var file = Path.Combine(directory, "system-revisions.json");
         await File.WriteAllTextAsync(file, JsonSerializer.Serialize(new
         {
-            format = PlatformSystemRevisions.Format, keyId = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(spki)), source = "dir:plugins", artifacts
+            format = PlatformSystemRevisions.Format,
+            keyId = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(spki)),
+            source = "dir:plugins",
+            artifacts
         }), Ct);
         return file;
 
@@ -397,7 +422,7 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
     {
         var configuration = new ConfigurationBuilder().AddJsonFile(Path.GetFullPath("../../hosts/Kun.Gateway.Host/appsettings.json", RepositoryRoot()), optional: false, reloadOnChange: false).Build();
         var routes = configuration.GetSection("Gateway:Routes").GetChildren().Select(item => new GatewayRoute(item["Id"] ?? "", item["Path"] ?? "", item["Cluster"] ?? "")
-            { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
+        { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
         foreach (var path in new[] { "/api/tenancy/{**rest}", "/api/signup/applications/{**rest}", "/api/signup/meta/{**rest}" })
             Assert.Equal(PlatformHostSettings.OperationsAudience, routes.Single(route => route.Path == path).Cluster);
         return (routes, [.. configuration.GetSection("Gateway:Clusters").GetChildren().Select(cluster => new GatewayCluster(cluster["Id"]!, platform.AbsoluteUri))]);

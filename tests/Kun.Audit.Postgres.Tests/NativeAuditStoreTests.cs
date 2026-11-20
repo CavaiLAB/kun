@@ -5,8 +5,8 @@ using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Testing.Containers;
-using Npgsql;
 using Kun.Testing.NativeAudit;
+using Npgsql;
 
 namespace Kun.Audit.Postgres.Tests;
 

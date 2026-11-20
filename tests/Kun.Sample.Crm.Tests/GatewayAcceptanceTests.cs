@@ -1,17 +1,17 @@
 using System.Net;
 using System.Text.Json;
+using Kun.Authorization.Rbac;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
-using Kun.Authorization.Rbac;
 using Kun.Identity.Client;
 using Kun.Identity.Client.Tests;
 using Kun.Testing;
 using Kun.Testing.Containers;
 using Kun.Testing.Gateway;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kun.Sample.Crm.Tests;
 

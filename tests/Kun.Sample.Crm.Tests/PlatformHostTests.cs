@@ -1,4 +1,3 @@
-using Kun.Gateway.Shell;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
@@ -6,26 +5,17 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Kun.Identity.Configuration;
-using Kun.Identity.Implementations;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
-using Npgsql;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Capabilities;
+using Kun.Core.MultiTenancy;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.Gateway;
+using Kun.Gateway.Shell;
+using Kun.Identity.Configuration;
+using Kun.Identity.Implementations;
 using Kun.Lifecycle;
 using Kun.Platform.Host;
 using Kun.Plugin.Sdk;
@@ -37,6 +27,16 @@ using Kun.Tenancy;
 using Kun.Testing;
 using Kun.Testing.Containers;
 using Kun.Testing.Gateway;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -149,8 +149,14 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
         //     非 RS256（RS384 / HS256 / 不签名）、未知密钥签名、改过载荷；浏览器 Cookie 与身份服务签发的外部访问令牌都不是本宿主的凭据。
         using var unknown = RSA.Create(2048);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        using var machine = new KunOidcClient(new KunOidcClientOptions { Name = MachineClientId, Authority = business.Identity.Issuer, ClientId = MachineClientId,
-            ClientSecret = business.Identity.Secret, RequireHttpsMetadata = false }, business.App.Services.GetRequiredService<IHttpClientFactory>());
+        using var machine = new KunOidcClient(new KunOidcClientOptions
+        {
+            Name = MachineClientId,
+            Authority = business.Identity.Issuer,
+            ClientId = MachineClientId,
+            ClientSecret = business.Identity.Secret,
+            RequireHttpsMetadata = false
+        }, business.App.Services.GetRequiredService<IHttpClientFactory>());
         var external = (await machine.ClientCredentialsAsync("crm.read crm.write", Ct)).AccessToken;
         var rejected = new (string Case, string Path, string? Token)[]
         {
@@ -436,8 +442,18 @@ public abstract partial class CustomerCommandTests
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
         var payload = new Dictionary<string, object?>
         {
-            ["iss"] = issuer, ["aud"] = new[] { audience }, ["sub"] = subject, ["principal_kind"] = kind, ["tenant_id"] = tenant, ["roles"] = Array.Empty<string>(),
-            ["scope"] = "crm.read crm.write", ["session_id"] = id, ["jti"] = id, ["iat"] = now, ["nbf"] = now, ["exp"] = now + 60
+            ["iss"] = issuer,
+            ["aud"] = new[] { audience },
+            ["sub"] = subject,
+            ["principal_kind"] = kind,
+            ["tenant_id"] = tenant,
+            ["roles"] = Array.Empty<string>(),
+            ["scope"] = "crm.read crm.write",
+            ["session_id"] = id,
+            ["jti"] = id,
+            ["iat"] = now,
+            ["nbf"] = now,
+            ["exp"] = now + 60
         };
         foreach (var (name, value) in claims ?? new Dictionary<string, object?>()) payload[name] = value;
         edit?.Invoke(payload);
@@ -481,7 +497,7 @@ public abstract partial class CustomerCommandTests
     {
         var configuration = new ConfigurationBuilder().AddJsonFile(Path.GetFullPath("../../hosts/Kun.Gateway.Host/appsettings.json", RepositoryRoot()), optional: false, reloadOnChange: false).Build();
         var routes = configuration.GetSection("Gateway:Routes").GetChildren().Select(item => new GatewayRoute(item["Id"] ?? "", item["Path"] ?? "", item["Cluster"] ?? "")
-            { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
+        { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
         var clusters = configuration.GetSection("Gateway:Clusters").GetChildren().ToArray();
         Assert.Equal([PlatformHostSettings.OperationsAudience, PlatformHostSettings.PlatformAudience], clusters.Select(cluster => cluster["Id"]!).Order(StringComparer.Ordinal));
         Assert.Single(clusters.Select(cluster => cluster["Address"]).Distinct(StringComparer.Ordinal));
@@ -553,14 +569,20 @@ public abstract partial class CustomerCommandTests
             """);
         var connections = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["App"] = Login(app), ["PlatformAuthz"] = Login(authz), ["PlatformAudit"] = Login(audit), ["Migrations"] = Login(migrator)
+            ["App"] = Login(app),
+            ["PlatformAuthz"] = Login(authz),
+            ["PlatformAudit"] = Login(audit),
+            ["Migrations"] = Login(migrator)
         };
         var directory = Directory.CreateTempSubdirectory("qian-platform-host-");
         try
         {
             var settings = new Dictionary<string, string?>(StringComparer.Ordinal)
             {
-                ["Root"] = RepositoryRoot(), ["S2S:Issuer"] = ShellGatewayIssuer, ["S2S:JwksUri"] = jwks.AbsoluteUri, ["S2S:AllowHttpJwks"] = "true",
+                ["Root"] = RepositoryRoot(),
+                ["S2S:Issuer"] = ShellGatewayIssuer,
+                ["S2S:JwksUri"] = jwks.AbsoluteUri,
+                ["S2S:AllowHttpJwks"] = "true",
                 ["Secrets:MountRoot"] = directory.FullName
             };
             foreach (var (name, connection) in connections)

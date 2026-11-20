@@ -1,25 +1,25 @@
-using Kun.Gateway.DependencyInjection;
-using Kun.Gateway.Shell;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
+using Kun.Configuration.Secrets;
 using Kun.Core.MultiTenancy;
+using Kun.Gateway;
+using Kun.Gateway.DependencyInjection;
+using Kun.Gateway.Shell;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Client;
 using Kun.MultiTenancy;
+using Kun.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Configuration;
-using Kun.Configuration.Platform;
-using Kun.Configuration.Secrets;
-using Kun.Gateway;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Client;
-using Kun.Runtime;
 using StackExchange.Redis;
 
 namespace Kun.Testing.Gateway;
@@ -72,10 +72,15 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
         builder.Services.AddKunConfiguration(new ConfigurationRoot([]));
         builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
-            Authority = new Uri(identityIssuer), ClientId = clientId, Resource = identityAudience,
+            Authority = new Uri(identityIssuer),
+            ClientId = clientId,
+            Resource = identityAudience,
             // scopes：外壳经 bridge.invoke 调应用能力时客户端另外申请的应用 scope（能力声明的 requiredScopes）。
-            RedirectUri = new Uri(address, "auth/callback"), Scopes = ["openid", "offline_access", "qian.api", .. scopes ?? []],
-            RequireHttpsMetadata = false, AllowedReturnPaths = ["/app"], DefaultReturnPath = "/app",
+            RedirectUri = new Uri(address, "auth/callback"),
+            Scopes = ["openid", "offline_access", "qian.api", .. scopes ?? []],
+            RequireHttpsMetadata = false,
+            AllowedReturnPaths = ["/app"],
+            DefaultReturnPath = "/app",
             SessionKeyPrefix = "qian:gateway-tests:" + Guid.NewGuid().ToString("N") + ":"
         });
         builder.Services.AddKunGatewayShell();
@@ -125,9 +130,14 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
         var cookies = new CookieContainer();
         var handler = new SocketsHttpHandler
         {
-            AllowAutoRedirect = false, UseCookies = true, CookieContainer = cookies,
-            SslOptions = new SslClientAuthenticationOptions { RemoteCertificateValidationCallback = (_, certificate, _, _) =>
-                certificate is not null && certificate.GetCertHashString() == tls.GetCertHashString() }
+            AllowAutoRedirect = false,
+            UseCookies = true,
+            CookieContainer = cookies,
+            SslOptions = new SslClientAuthenticationOptions
+            {
+                RemoteCertificateValidationCallback = (_, certificate, _, _) =>
+                certificate is not null && certificate.GetCertHashString() == tls.GetCertHashString()
+            }
         };
         return (new HttpClient(handler), cookies);
     }

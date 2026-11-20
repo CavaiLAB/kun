@@ -78,7 +78,7 @@ public sealed partial class CapabilityTests
 
         // 探针只登记契约：持 crm.admin 与写权限的服务主体调用也只得到 503 UNAVAILABLE，不执行清除。
         var invoke = new HttpRequestMessage(HttpMethod.Post, "/api/capabilities/qian.sample.crm/customer.purge/invoke")
-            { Content = new StringContent(JsonSerializer.Serialize(new { idempotencyKey = Guid.CreateVersion7() }), Encoding.UTF8, "application/json") };
+        { Content = new StringContent(JsonSerializer.Serialize(new { idempotencyKey = Guid.CreateVersion7() }), Encoding.UTF8, "application/json") };
         invoke.Headers.Authorization = new AuthenticationHeaderValue("Bearer", host.Token(A, AgentFieldScopes));
         using var refused = await host.Send(invoke);
         Assert.True(refused.StatusCode == HttpStatusCode.ServiceUnavailable, host.FailureEvidence + await refused.Content.ReadAsStringAsync(Ct));

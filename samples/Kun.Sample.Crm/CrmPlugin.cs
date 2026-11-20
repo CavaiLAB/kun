@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Kun.EntityFrameworkCore;
-using Kun.Mediator;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
+using Kun.Errors;
 using Kun.Lifecycle;
+using Kun.Mediator;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Kun.Sample.Crm;
 

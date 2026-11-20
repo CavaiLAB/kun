@@ -2,8 +2,8 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Kun.Errors;
 using Kun.Runtime;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Authorization.Rbac.Abstractions.Tests;
 

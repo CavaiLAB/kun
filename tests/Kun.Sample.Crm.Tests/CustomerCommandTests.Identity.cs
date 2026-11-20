@@ -1,19 +1,26 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
-using System.Reflection;
-using Kun.EntityFrameworkCore;
-using Kun.Plugin.Sdk;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
+using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
 using Kun.Identity;
+using Kun.Identity.Abstractions;
 using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
+using Kun.Identity.Server;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
+using Kun.Tenancy;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -28,13 +35,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
-using Kun.Data;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Server;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Tenancy;
-using Kun.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Kun.Sample.Crm.Tests;
@@ -94,7 +94,10 @@ public abstract partial class CustomerCommandTests
         builder.Services.AddSingleton<IStartupFilter>(new IdentityBranchFilter());
         builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
-            Issuer = new Uri(parts.Issuer), AllowLoopbackHttp = true, SigningCertificates = [parts.Certificate], EncryptionCertificates = [parts.Certificate],
+            Issuer = new Uri(parts.Issuer),
+            AllowLoopbackHttp = true,
+            SigningCertificates = [parts.Certificate],
+            EncryptionCertificates = [parts.Certificate],
             // 租户状态对账缩到 1 秒，联调测试不必等满默认的 30 秒（生产的上限就是 30 秒）。
             Accounts = new IdentityAccountOptions { Session = new SessionPolicy { ReconcileInterval = TimeSpan.FromSeconds(1) } },
             Clients = [new() { Application = web, Resources = [IdentityResource] }, .. relyingParty is null ? [] : new[]
@@ -134,9 +137,16 @@ public abstract partial class CustomerCommandTests
             if (!header.StartsWith("Bearer ", StringComparison.Ordinal)) return null;
             var result = await new JsonWebTokenHandler { MapInboundClaims = false }.ValidateTokenAsync(header["Bearer ".Length..], new TokenValidationParameters
             {
-                ValidateIssuer = true, ValidIssuer = parts.Issuer, ValidateAudience = true, ValidAudience = IdentityResource,
-                ValidateIssuerSigningKey = true, IssuerSigningKey = new X509SecurityKey(parts.Certificate), ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
-                ValidateLifetime = true, RequireExpirationTime = true, RequireSignedTokens = true
+                ValidateIssuer = true,
+                ValidIssuer = parts.Issuer,
+                ValidateAudience = true,
+                ValidAudience = IdentityResource,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new X509SecurityKey(parts.Certificate),
+                ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+                ValidateLifetime = true,
+                RequireExpirationTime = true,
+                RequireSignedTokens = true
             });
             if (!result.IsValid) return null;
             var principal = new ClaimsPrincipal(result.ClaimsIdentity);
@@ -221,8 +231,13 @@ public abstract partial class CustomerCommandTests
         var verifier = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(48)); var nonce = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(24));
         using var authorize = await browser.GetAsync(QueryHelpers.AddQueryString("connect/authorize", new Dictionary<string, string?>
         {
-            ["client_id"] = "web", ["redirect_uri"] = parts.Issuer + "callback", ["response_type"] = "code", ["scope"] = "openid offline_access qian.api", ["nonce"] = nonce,
-            ["code_challenge_method"] = "S256", ["code_challenge"] = Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)))
+            ["client_id"] = "web",
+            ["redirect_uri"] = parts.Issuer + "callback",
+            ["response_type"] = "code",
+            ["scope"] = "openid offline_access qian.api",
+            ["nonce"] = nonce,
+            ["code_challenge_method"] = "S256",
+            ["code_challenge"] = Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)))
         }), Ct);
         Assert.Equal(HttpStatusCode.Redirect, authorize.StatusCode);
         var query = QueryHelpers.ParseQuery(authorize.Headers.Location!.Query);

@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Kun.Runtime;
 using Kun.Tenancy;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Kun.Sample.Crm.Tests;
 
@@ -15,7 +15,10 @@ public abstract partial class CustomerCommandTests
         using var http = new HttpClient { BaseAddress = new Uri(host.Identity.Issuer) };
         using var response = await http.PostAsync("connect/token", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["grant_type"] = "refresh_token", ["refresh_token"] = refreshToken, ["client_id"] = "web", ["client_secret"] = host.Identity.Secret
+            ["grant_type"] = "refresh_token",
+            ["refresh_token"] = refreshToken,
+            ["client_id"] = "web",
+            ["client_secret"] = host.Identity.Secret
         }), Ct);
         return response.StatusCode;
     }

@@ -1,14 +1,14 @@
-using Kun.Gateway.Shell;
 using System.Net;
 using Kun.Core.MultiTenancy;
-using Kun.Security;
 using Kun.Dev.TenantOps;
+using Kun.Gateway.Shell;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
-using Microsoft.IdentityModel.Tokens;
 using Kun.Runtime;
 using Kun.Sample.Crm;
+using Kun.Security;
 using Kun.Tenancy.Signup;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Kun.Dev.Shell;
 
@@ -78,18 +78,34 @@ internal static class DevShellHost
         // 平台表面宿主只认网关签发的 S2S（RS256、issuer、受众 qian-platform、有效期，不留时钟偏差）。
         await using var platformApi = PlatformSurfaceHost.Build(id => assembly.Loader.GetContext(id, ScopeKey.Global), new TokenValidationParameters
         {
-            ValidateIssuer = true, ValidIssuer = DevGateway.Issuer, ValidateAudience = true, ValidAudience = PlatformSurfaceHost.Audience, ValidateLifetime = true,
-            ValidateIssuerSigningKey = true, IssuerSigningKey = keys.PublicKey, ValidAlgorithms = [SecurityAlgorithms.RsaSha256], RequireSignedTokens = true,
-            RequireExpirationTime = true, ClockSkew = TimeSpan.Zero
+            ValidateIssuer = true,
+            ValidIssuer = DevGateway.Issuer,
+            ValidateAudience = true,
+            ValidAudience = PlatformSurfaceHost.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = keys.PublicKey,
+            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+            RequireSignedTokens = true,
+            RequireExpirationTime = true,
+            ClockSkew = TimeSpan.Zero
         }, builder => { builder.WebHost.UseUrls("http://127.0.0.1:0"); DevHost.Logging(builder.Logging); });
         await platformApi.StartAsync(ct).ConfigureAwait(false);
         // 运营宿主：直接复用参考运营宿主 TenantOperationsHost（同集成测试的管理面宿主），再挂开通申请的运营接口；只认网关签发、受众为运营簇的 S2S。
         // 平台控制台的页面经网关调它，每次操作经超管旁路判定并写平台审计链（种子 operator 持平台超管）。
         await using var operations = TenantOperationsHost.Build(() => assembly.Loader.GetContext("tenancy", ScopeKey.Global), new TokenValidationParameters
         {
-            ValidateIssuer = true, ValidIssuer = DevGateway.Issuer, ValidateAudience = true, ValidAudience = DevGateway.OperationsCluster, ValidateLifetime = true,
-            ValidateIssuerSigningKey = true, IssuerSigningKey = keys.PublicKey, ValidAlgorithms = [SecurityAlgorithms.RsaSha256], RequireSignedTokens = true,
-            RequireExpirationTime = true, ClockSkew = TimeSpan.Zero
+            ValidateIssuer = true,
+            ValidIssuer = DevGateway.Issuer,
+            ValidateAudience = true,
+            ValidAudience = DevGateway.OperationsCluster,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = keys.PublicKey,
+            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+            RequireSignedTokens = true,
+            RequireExpirationTime = true,
+            ClockSkew = TimeSpan.Zero
         }, builder => { builder.WebHost.UseUrls("http://127.0.0.1:0"); DevHost.Logging(builder.Logging); });
         operations.MapKunTenancySignupOperations(_ => assembly.Loader.GetContext("tenancy.signup", ScopeKey.Global));
         await operations.StartAsync(ct).ConfigureAwait(false);
@@ -98,7 +114,8 @@ internal static class DevShellHost
         if (!File.Exists(appConfig)) await File.WriteAllTextAsync(appConfig, DevGateway.DefaultAppConfig, ct).ConfigureAwait(false);
         var shell = new ShellStaticOptions
         {
-            Root = shellDist, ConfigFile = appConfig,
+            Root = shellDist,
+            ConfigFile = appConfig,
             Remotes = new Dictionary<string, string>(StringComparer.Ordinal) { ["qian.sample.crm"] = crmRemote, ["qian.tenancy"] = tenancyRemote, ["qian.tenancy.signup"] = signupRemote }
         };
         await using var bff = await DevGateway.StartAsync(gateway, keys, issuer, DevHost.Address(business), DevHost.Address(platformApi), DevHost.Address(operations), shell, Bump,

@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
-using Kun.Core.MultiTenancy;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Core.MultiTenancy;
 using Kun.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Kun.Lifecycle;
@@ -51,7 +51,7 @@ internal static class DevSeed
         {
             using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(item.Password));
             persons[item.Key] = await accounts.CreatePersonAsync(new CreatePerson(item.DisplayName, [new IdentifierInput(IdentifierKind.Username, item.Username, true)])
-                { InitialPassword = proof, RequirePasswordChange = false, PlatformAccess = item.Platform }, ct).ConfigureAwait(false);
+            { InitialPassword = proof, RequirePasswordChange = false, PlatformAccess = item.Platform }, ct).ConfigureAwait(false);
             // 平台运营：经内部平台角色存储授平台超管（与引导超管同一条路），外壳里即出现平台控制台的页面与菜单。
             if (item.Superadmin) await DevOperations.GrantSuperadminAsync(services, persons[item.Key].Id.ToString("D"), ct).ConfigureAwait(false);
         }

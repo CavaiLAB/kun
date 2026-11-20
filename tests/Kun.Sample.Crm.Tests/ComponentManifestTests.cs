@@ -2,13 +2,13 @@ using System.Net;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Surfaces;
 using Kun.Tenancy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Sample.Crm.Tests;
 

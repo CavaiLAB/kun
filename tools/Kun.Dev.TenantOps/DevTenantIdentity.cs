@@ -1,18 +1,18 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using Kun.Data;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
+using Kun.Runtime;
+using Kun.Tenancy;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.FileProviders;
 using OpenIddict.Abstractions;
-using Kun.Data;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Server;
-using Kun.Runtime;
-using Kun.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Kun.Dev.TenantOps;
@@ -42,7 +42,10 @@ internal sealed class DevTenantIdentity(Uri issuer) : IDisposable
         builder.Services.AddSingleton<IStartupFilter>(new IdentityBranchFilter());
         builder.Services.AddKunIdentityServer(new IdentityServerOptions
         {
-            Issuer = issuer, AllowLoopbackHttp = true, SigningCertificates = [_certificate], EncryptionCertificates = [_certificate],
+            Issuer = issuer,
+            AllowLoopbackHttp = true,
+            SigningCertificates = [_certificate],
+            EncryptionCertificates = [_certificate],
             Clients = [new() { Application = client, Resources = [Resource] }]
         }, new DevelopmentEnvironment());
     }

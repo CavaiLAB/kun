@@ -35,7 +35,11 @@ internal sealed class ProfileModeAssembly(string profile, string repositoryRoot)
         {
             Add("registry", "qian.registry", new RegistryPlugin(new RegistryRuntimeOptions
             {
-                Runtime = runtime, Profiles = composer, Profile = options, Surfaces = validator, InstalledComponents = installed,
+                Runtime = runtime,
+                Profiles = composer,
+                Profile = options,
+                Surfaces = validator,
+                InstalledComponents = installed,
                 Resolve = entry => Resolve(entry)
             }), [RegistryDefinition.Key]);
             Add("capabilities", "qian.capabilities", new CapabilitiesPlugin(), [CapabilitiesDefinition.Key, CapabilitiesDefinition.ContractsKey, CapabilitiesDefinition.NavigationKey]);
@@ -45,9 +49,15 @@ internal sealed class ProfileModeAssembly(string profile, string repositoryRoot)
             var platformPlugin = definition.Entry.Id is "registry" or "capabilities";
             Write($"plugins/{definition.Entry.Id}/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id = definition.Entry.Plugin, version = definition.Entry.Version, description = "T23 宿主装载同一份已实现 Provider 的组件。",
-                author = new { name = "Qian" }, license = "Apache-2.0", @interface = new { displayName = definition.Entry.Id, category = "testing" },
-                inject = definition.Plugin.Inject.Select(key => key.Name), provides = definition.Provides.Select(key => key.Name), scopes = AllowedScopes,
+                id = definition.Entry.Plugin,
+                version = definition.Entry.Version,
+                description = "T23 宿主装载同一份已实现 Provider 的组件。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = definition.Entry.Id, category = "testing" },
+                inject = definition.Plugin.Inject.Select(key => key.Name),
+                provides = definition.Provides.Select(key => key.Name),
+                scopes = AllowedScopes,
                 policy = new { tier = platformPlugin ? "system" : "official", sandbox = "none", authentication = "ON_INSTALL", required = platformPlugin },
                 runtime = new { form = "module", entry = EntryType(definition.Plugin) }
             }));

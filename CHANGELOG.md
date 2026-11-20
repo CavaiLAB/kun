@@ -11,6 +11,7 @@
 ### Changed — .NET 构建、测试与打包（S1-KUN-029）
 
 - `Qian.slnf` 已移除。从仓库根运行 `dotnet build Kun.slnx -c Release`。平台测试使用 `tests/kun-platform.slnf`，根单元测试使用 `tests/kun-unit.slnf`。CI 的分片清单可用 `python3 scripts/dotnet_ci.py shard a --out /tmp/kun-tests-a.slnf` 生成。
+- 需要每个测试项目分别输出 TRX 的命令和 CI 作业，请将 `-p:QianTrxPerModule=true` 改为 `-p:KunTrxPerModule=true`。打包工具可读取 `scripts/release_packages.py list` 的项目清单，`QianIsPackage` 和 `QianPackageId` 两个 MSBuild 属性已移除。
 - `python3 scripts/release_packages.py list` 列出统一解决方案的发包项目。构建和打包使用同一个 `-p:Version` 值，随后用 `python3 scripts/release_packages.py verify-packages --version "$VERSION" --packages "$PACKAGES"` 核验该目录的制品。
 
 ### Changed — 平台分析器

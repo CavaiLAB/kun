@@ -11,8 +11,8 @@ owner: "cody"
 estimate: 3d
 depends: [S1-DEC-030, S1-DATA-001, S1-RT-033]
 refs:
-  - docs/decisions/gateway-native-aot-options.md
-  - docs/adr/ADR-019-library-first-packages.md
+  - ../../docs/decisions/gateway-native-aot-options.md
+  - ../../docs/adr/ADR-019-library-first-packages.md
 updated: 2026-10-23
 ---
 

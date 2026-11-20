@@ -11,9 +11,9 @@ owner: "cody"
 estimate: 5d
 depends: [S1-KUN-001, S1-KUN-005, S1-RT-001, S1-KUN-009]
 refs:
-  - docs/prd/07-s1-foundation.md#7.6
-  - docs/adr/ADR-004-database-tenant-isolation.md
-  - docs/adr/ADR-011-metadata-dynamic-data.md
+  - ../../docs/prd/07-s1-foundation.md#7.6
+  - ../../docs/adr/ADR-004-database-tenant-isolation.md
+  - ../../docs/adr/ADR-011-metadata-dynamic-data.md
 updated: 2026-10-12
 ---
 

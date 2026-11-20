@@ -11,10 +11,10 @@ owner: "claude"
 estimate: 1.5d
 depends: [S1-DOCS-001]
 refs:
-  - docs/adr/ADR-021-product-family-structure.md#D21.2
-  - docs/adr/ADR-021-product-family-structure.md#D21.5
-  - docs/prd/specs/docs-site.md#2b.4
-  - docs/prd/specs/docs-site.md#4
+  - ../../docs/adr/ADR-021-product-family-structure.md#D21.2
+  - ../../docs/adr/ADR-021-product-family-structure.md#D21.5
+  - ../../docs/prd/specs/docs-site.md#2b.4
+  - ../../docs/prd/specs/docs-site.md#4
 updated: 2026-10-09
 ---
 

@@ -11,8 +11,8 @@ owner: "claude"
 estimate: 3d
 depends: [S1-DATA-001, S1-CFG-002]
 refs:
-  - docs/prd/07-s1-foundation.md#7.6
-  - docs/adr/ADR-019-library-first-packages.md#2
+  - ../../docs/prd/07-s1-foundation.md#7.6
+  - ../../docs/adr/ADR-019-library-first-packages.md#2
 updated: 2026-10-14
 ---
 

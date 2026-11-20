@@ -11,10 +11,10 @@ owner: "claude"
 estimate: 3d
 depends: [S1-QA-001]
 refs:
-  - docs/prd/specs/docs-site.md
-  - docs/adr/ADR-013-frontend-yue.md#D13.18
-  - docs/adr/ADR-020-component-model-v2.md#D20.9
-  - docs/prd/14-quality.md
+  - ../../docs/prd/specs/docs-site.md
+  - ../../docs/adr/ADR-013-frontend-framework.md#D13.18
+  - ../../docs/adr/ADR-020-component-model-v2.md#D20.9
+  - ../../docs/prd/14-quality.md
 updated: 2026-10-08
 ---
 

@@ -11,12 +11,12 @@ owner: ""
 estimate: 5d
 depends: [S1-DOCS-001, S1-YUE-005, S1-RT-010, S1-QA-010]
 refs:
-  - docs/prd/specs/docs-site.md#3
-  - docs/adr/ADR-022-rspress-unified-component-docs.md
-  - docs/adr/ADR-020-component-model-v2.md#D20.9
-  - docs/prd/specs/component-model.md#2
-  - docs/adr/ADR-013-frontend-yue.md#D13.18
-  - docs/prd/07-s1-foundation.md#7.2.2
+  - ../../docs/prd/specs/docs-site.md#3
+  - ../../docs/adr/ADR-022-rspress-unified-component-docs.md
+  - ../../docs/adr/ADR-020-component-model-v2.md#D20.9
+  - ../../docs/prd/specs/component-model.md#2
+  - ../../docs/adr/ADR-013-frontend-framework.md#D13.18
+  - ../../docs/prd/07-s1-foundation.md#7.2.2
 updated: 2026-11-11
 ---
 

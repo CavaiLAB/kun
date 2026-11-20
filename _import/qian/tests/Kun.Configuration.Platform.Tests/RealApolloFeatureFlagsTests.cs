@@ -1,10 +1,11 @@
 using System.Text.Json;
+using Kun.Configuration.Apollo;
+using Kun.Runtime;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Kun.Runtime;
-using Kun.Testing.Containers;
 
 namespace Kun.Configuration.Platform.Tests;
 
@@ -32,7 +33,8 @@ public sealed class RealApolloFeatureFlagsTests(RealApolloPortalFixture apollo)
             await apollo.WaitForPublishedAsync(consumerApp, "qian.common.flags", "flag.preview", initial, ct);
             var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
             {
-                BasePath = directory, Logger = log,
+                BasePath = directory,
+                Logger = log,
                 Arguments = ["--Apollo:AppId=" + consumerApp, "--Apollo:Env=UAT", "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri,
                     "--Apollo:Namespaces:0=qian.common.flags", "--Apollo:CacheDir=cache"]
             }).Build();

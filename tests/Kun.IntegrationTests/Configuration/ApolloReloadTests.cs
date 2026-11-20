@@ -16,7 +16,7 @@ namespace Kun.IntegrationTests.Configuration;
 
 [RequiresDynamicCode("集成验证标准 Options 反射绑定。")]
 [RequiresUnreferencedCode("集成验证标准 Options DataAnnotations。")]
-public sealed class ApolloReloadTests
+public sealed partial class ApolloReloadTests
 {
     [Fact]
     public async Task SignedApolloRefresh_InvalidOptionsRetainLastGood_AndCacheCanStartOffline()
@@ -219,6 +219,7 @@ public sealed class ApolloReloadTests
     {
         public string Value = "3";
         public string? CommonValue;
+        public string? FlagRule;
         public bool Offline;
         public bool Denied;
         public int SignedRequests;
@@ -262,7 +263,9 @@ public sealed class ApolloReloadTests
                 cluster = "default",
                 namespaceName = name,
                 releaseKey = "revision-" + value,
-                configurations = new Dictionary<string, string> { ["Service:Retries"] = value }
+                configurations = FlagRule is null
+                    ? new Dictionary<string, string> { ["Service:Retries"] = value }
+                    : new Dictionary<string, string> { ["Service:Retries"] = value, ["flag.beta"] = FlagRule }
             });
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(payload, Encoding.UTF8, "application/json") };
         }

@@ -1,11 +1,12 @@
 using System.Text.Json;
 using System.Threading.Channels;
+using Kun.Audit;
+using Kun.Configuration.Apollo;
+using Kun.Runtime;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Audit;
-using Kun.Runtime;
-using Kun.Testing.Containers;
 
 namespace Kun.Configuration.Platform.Tests;
 
@@ -31,7 +32,9 @@ public sealed class ReleaseAuditTests(ApolloFixture apollo) : IClassFixture<Apol
             await apollo.PublishAsync(appId, "application", new Dictionary<string, string> { ["Sample:PageSize"] = "10", ["Service:credential"] = Original }, cancellationToken: ct);
             var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
             {
-                BasePath = directory, ApolloConfigurationSchema = schema.RootElement, Logger = retries,
+                BasePath = directory,
+                ApolloConfigurationSchema = schema.RootElement,
+                Logger = retries,
                 Arguments = ["--Apollo:AppId=" + appId, "--Apollo:Env=UAT", "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri.AbsoluteUri]
             }).Build();
             using var owner = (IDisposable)root;

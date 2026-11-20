@@ -347,13 +347,7 @@ class RealGraphTests(unittest.TestCase):
         self.assertEqual("true", self.packages["Kun.Errors"].zero_dependency)
         self.assertEqual("true", self.packages["Kun.Security.Abstractions"].zero_dependency)
         self.assertEqual([], [v for v in self.violations])
-        self.assertEqual(1, len(self.statuses))
-        self.assertEqual([],
-                         [(s.rule, s.target, s.until) for s in self.statuses if s.package == "Kun.EntityFrameworkCore"])
-        self.assertFalse(any(s.package.startswith("Kun.Gateway") for s in self.statuses))
-        self.assertEqual([], [s for s in self.statuses if s.problem])
-        # 插件开发包没有例外了：命令策略协议的 CommandInvocation 带的 Principal 在内核契约 Kun.Security.Abstractions 里（B7）。
-        self.assertEqual([], [(s.rule, s.target, s.until) for s in self.statuses if s.package.startswith("Kun.Plugin.Sdk")])
+        self.assertEqual([], self.statuses)
 
     def test_reclassification_does_not_hollow_out_rules(self):
         # 假想几条边，按真实的声明判：契约或平台包依赖别的平台组件的提供者、契约直接依赖内核档提供者，都仍要报。

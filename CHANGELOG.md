@@ -8,6 +8,11 @@
 
 ## [Unreleased]
 
+### Changed — Apollo 配置源与配置契约（S1-KUN-028）
+
+- 引导参数 `KunConfigurationOptions` 和扩展 `AddKunConfigurationSources` 迁至内核包与命名空间 `Kun.Configuration.Apollo`。使用宿主原有的代码时引入这个命名空间。宿主仍可使用相同的源顺序、AccessKey 引用解析、快照扫描和缓存。
+- 内核契约 `Kun.Configuration.Abstractions` 提供配置与密钥读取端口、开关规则的解析及不可变结果。租户命中、百分比放量、管理与审计写入继续由 `Kun.Configuration.Platform` 提供。独立配置源通过 `ApolloConfigurationDescription.From` 暴露本实例的只读引导信息和脱敏发布记录。
+
 ### Changed — 强类型配置与重载通知（S1-KUN-028）
 
 - `Kun.Configuration.Extensions` 提供四个 `AddKunOptions<T>` 重载，AOT 宿主使用绑定委托，三个反射重载保留动态代码与裁剪标注。反射重载现在在锁外报告被拒的候选值，释放配置根引发的 `ObjectDisposedException` 继续向调用方传播。

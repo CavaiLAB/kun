@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Kun.Audit;
+using Kun.Configuration.Apollo;
 using Kun.Runtime;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +13,7 @@ internal static partial class ApolloReleaseAudit
 {
     internal const string ContractVersion = "1.0.0";
 
-    internal static void Attach(IPluginContext ctx, ApolloReleaseTracker releases)
+    internal static void Attach(IPluginContext ctx, ApolloConfigurationDescription releases)
     {
         var stop = new CancellationTokenSource();
         var pump = Task.Run(() => PumpAsync(ctx, releases, stop.Token));
@@ -25,7 +26,7 @@ internal static partial class ApolloReleaseAudit
         });
     }
 
-    private static async Task PumpAsync(IPluginContext ctx, ApolloReleaseTracker releases, CancellationToken ct)
+    private static async Task PumpAsync(IPluginContext ctx, ApolloConfigurationDescription releases, CancellationToken ct)
     {
         ApolloReleaseRecord? carry = null;
         var warned = false;
@@ -37,7 +38,7 @@ internal static partial class ApolloReleaseAudit
                 var audit = await ctx.WhenReadyAsync<IAuditService>(AuditDefinition.Key, ct).ConfigureAwait(false);
                 while (true)
                 {
-                    var release = carry ?? await releases.Records.ReadAsync(ct).ConfigureAwait(false);
+                    var release = carry ?? await releases.ReadReleaseAsync(ct).ConfigureAwait(false);
                     carry = release;
                     try
                     {

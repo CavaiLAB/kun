@@ -1,3 +1,4 @@
+using Kun.Configuration.Apollo;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;

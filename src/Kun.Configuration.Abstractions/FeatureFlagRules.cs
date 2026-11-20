@@ -1,39 +1,26 @@
-using System.Buffers.Binary;
 using System.Collections.Frozen;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
-namespace Kun.Configuration.Platform;
+namespace Kun.Configuration;
 
-// 规则只含非敏感、平台级的放量策略；租户 ID 是定向条件，不是租户配置存储。
-internal sealed record FeatureFlagRule(bool Default, FrozenSet<Guid> Tenants, int Percentage)
+/// <summary>解析并校验配置快照中的特性开关规则。</summary>
+public static class FeatureFlagRules
 {
-    internal bool Evaluate(string name, Guid tenantId)
-    {
-        if (Tenants.Contains(tenantId)) return true;
-        if (Percentage > 0)
-        {
-            // 明确字节协议，不用进程随机化的 string.GetHashCode。增加百分比只扩大同一集合。
-            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(name + "\n" + tenantId.ToString("D")));
-            if (BinaryPrimitives.ReadUInt64BigEndian(hash) % 10_000 < (ulong)Percentage * 100) return true;
-        }
-        return Default;
-    }
-}
+    /// <summary>约定的开关命名空间。</summary>
+    public const string Namespace = "qian.common.flags";
+    /// <summary>规则键前缀。</summary>
+    public const string Prefix = "flag.";
+    private const int MaximumRules = 1024;
+    /// <summary>每份规则最多指定的租户数。</summary>
+    public const int MaximumTenants = 256;
 
-internal static class FeatureFlagRules
-{
-    internal const string Namespace = "qian.common.flags";
-    internal const string Prefix = "flag.";
-    internal const int MaximumRules = 1024;
-    internal const int MaximumTenants = 256;
-
-    internal static bool ValidName(string? name) => name is { Length: > 0 and <= 100 } &&
+    /// <summary>检查开关名称的格式。</summary>
+    public static bool ValidName(string? name) => name is { Length: > 0 and <= 100 } &&
         name[0] is >= 'a' and <= 'z' && name.All(character =>
             character is >= 'a' and <= 'z' or >= '0' and <= '9' or '.' or '-' or '_');
 
-    internal static FrozenDictionary<string, FeatureFlagRule> Read(IEnumerable<KeyValuePair<string, string?>> values)
+    /// <summary>读取不可变规则集，规则无效时抛出 InvalidDataException。</summary>
+    public static FrozenDictionary<string, FeatureFlagRule> Read(IEnumerable<KeyValuePair<string, string?>> values)
     {
         var result = new Dictionary<string, FeatureFlagRule>(StringComparer.Ordinal);
         foreach (var (key, value) in values)
@@ -46,7 +33,8 @@ internal static class FeatureFlagRules
         return result.ToFrozenDictionary(StringComparer.Ordinal);
     }
 
-    internal static bool Validate(IReadOnlyDictionary<string, string?> values)
+    /// <summary>检查快照中的规则是否都能解析。</summary>
+    public static bool Validate(IReadOnlyDictionary<string, string?> values)
     {
         try { _ = Read(values); return true; }
         catch (InvalidDataException) { return false; }

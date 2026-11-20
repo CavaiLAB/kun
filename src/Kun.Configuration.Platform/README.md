@@ -2,11 +2,15 @@
 
 Apollo 原始 namespace、合并快照和离线缓存强制经过 `SecretSafety` 扫描；`ApolloConfigurationSchema` 可传入敏感属性规则，`ValidateApolloSnapshot` 只能追加校验。秘密通过 Config seam 的 [密钥 Provider](../Kun.Configuration.Secrets/README.md) 使用时解析，不能以明文写入 Apollo。
 
-Config seam 的 Provider，复用 Kun.Configuration.Apollo 的协议客户端（项目引用仓库根 `src/` 下的源码，S1-KUN-020）。文件夹包含标准配置源装配、Apollo 引导解析、只读适配器、两个只读插件入口与一个可选草稿管理入口。标准模式只用 IConfiguration；Apollo 模式用于平台/服务配置，租户设置仍由 Tenancy 管理。
+Config seam 的 Provider，复用 Kun.Configuration.Apollo 的协议客户端（项目引用仓库根 `src/` 下的源码，S1-KUN-020）。标准配置源装配与 Apollo 引导解析由内核包 Kun.Configuration.Apollo 提供。平台包包含只读适配器、两个只读插件入口与一个可选草稿管理入口。标准模式只用 IConfiguration；Apollo 模式用于平台/服务配置，租户设置仍由 Tenancy 管理。
 
 ## 独立使用与源顺序
 
 ```csharp
+using Kun.Configuration.Apollo;
+using Kun.Configuration.Platform;
+using Microsoft.Extensions.Configuration;
+
 var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
 {
     BasePath = contentRoot,
@@ -42,7 +46,7 @@ AccessKey 每次签名前解析；解析为空或服务返回 401/403 时，不�
 
 ## 插件装配与模型体验
 
-ConfigurationPlugin 对应 qian.config，借用宿主标准配置根。ApolloConfigurationPlugin 对应 qian.config.apollo，要求根中确有本包安装的 Apollo 源，并核对 appId、env、meta 和 namespaces 声明；不匹配直接失败。两者只挂载于 global，提供 Config 服务键，经 ctx.Config() 读取。插件卸载撤销自己登记的服务和错误码，宿主配置根继续由宿主管理，不破坏独立消费者。
+ConfigurationPlugin 对应 qian.config，借用宿主标准配置根。ApolloConfigurationPlugin 对应 qian.config.apollo，要求根中确有 Kun.Configuration.Apollo 安装的宿主配置源，并核对 appId、env、meta 和 namespaces 声明；不匹配直接失败。两者只挂载于 global，提供 Config 服务键，经 ctx.Config() 读取。插件卸载撤销自己登记的服务和错误码，宿主配置根继续由宿主管理，不破坏独立消费者。
 
 `ConfigurationPlugin` 与 `ApolloConfigurationPlugin` 分别带 `[KunPlugin]`，对应 `qian.config` 与 `qian.config.apollo`。同一程序集生成两份按 ID 隔离的元数据，分别同步各自唯一清单的 inject、provides、runtime 和 configSchema；标准入口直接登记 Config 服务；Apollo 公开入口通过 DelegatePlugin 显式委托内部实现，包含同一 Config 登记、重载通知与发布审计。CI 检查两个入口的清单漂移。程序集引用 Kun.Plugin.Sdk，生成器只参与编译。S1-RT-011 已从私有源 `qian add config` 安装并运行标准入口；Apollo 的清单已派生，完整安装门仍待验收。
 

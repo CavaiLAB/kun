@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Kun.Authorization/Kun.Authorization.csproj" />
     <ProjectReference Include="../../src/Kun.Caching/Kun.Caching.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Abstractions/Kun.Configuration.Abstractions.csproj" />
     <ProjectReference Include="../../src/Kun.Configuration.Apollo/Kun.Configuration.Apollo.csproj" />
     <ProjectReference Include="../../src/Kun.Configuration/Kun.Configuration.csproj" />
     <ProjectReference Include="../../src/Kun.Core/Kun.Core.csproj" />

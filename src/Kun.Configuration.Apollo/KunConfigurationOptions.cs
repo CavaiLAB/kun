@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
-namespace Kun.Configuration.Platform;
+namespace Kun.Configuration.Apollo;
 
 /// <summary>配置装配参数；引导值来自宿主源，Apollo 不能改变自己的访问地址或访问密钥引用。</summary>
 public sealed class KunConfigurationOptions

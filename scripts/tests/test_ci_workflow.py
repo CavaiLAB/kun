@@ -183,10 +183,26 @@ class CiWorkflowTests(unittest.TestCase):
 
     def test_the_gates_job_checks_that_every_test_project_is_run_somewhere(self) -> None:
         steps = [step for step in self.jobs["dotnet-build"]["steps"] if "dotnet_ci.py registration" in str(step.get("run", ""))]
-        self.assertEqual([("_import/qian", "python3 scripts/dotnet_ci.py registration")],
+        self.assertEqual([(None, "python3 scripts/dotnet_ci.py registration")],
                          [(step.get("working-directory"), str(step["run"]).strip()) for step in steps],
-                         "门禁作业要核对每个测试项目都有着落（仓库根与 _import/qian 下的）")
+                         "门禁作业要核对每个测试项目都有着落")
         self.assertFalse({"if", "continue-on-error"} & set(steps[0]), "这一步不能有条件，失败不能放过")
+
+    def test_platform_shards_restore_build_and_test_the_same_filter(self) -> None:
+        steps = self.jobs["dotnet-test"]["steps"]
+        filtered = [step for step in steps if step.get("if") == "matrix.shard != 'k'"]
+        commands = [str(step.get("run", "")) for step in filtered]
+        generate = next(i for i, script in enumerate(commands) if "dotnet_ci.py shard" in script)
+        build = next(i for i, script in enumerate(commands) if "dotnet build" in script)
+        test = next(i for i, script in enumerate(commands) if "dotnet test" in script)
+        self.assertLess(generate, build)
+        self.assertLess(build, test)
+        for i in (generate, build, test):
+            self.assertNotIn("working-directory", filtered[i])
+            self.assertIn('"$RUNNER_TEMP/tests.slnf"', commands[i])
+        self.assertIn('dotnet restore "$RUNNER_TEMP/tests.slnf"', commands[generate])
+        self.assertIn("-p:KunTrxPerModule=true", commands[test])
+        self.assertEqual({"a", "b", "c", "k"}, {entry["shard"] for entry in self.jobs["dotnet-test"]["strategy"]["matrix"]["include"]})
 
     def test_dotnet_jobs_use_the_shared_sdk_action_and_ubuntu_24_04(self) -> None:
         for name, job in self.jobs.items():

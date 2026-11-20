@@ -5,9 +5,8 @@
 
   python3 scripts/dotnet_ci.py shard <分片> --out <文件.slnf>
       写出分片的解决方案筛选文件，交给 dotnet test --solution。分片清单见 SHARDS；
-      其余分片是 Qian.slnf 里没登记到别的分片的全部项目（含非测试项目，由 dotnet test 自己识别测试模块），
-      新加的测试项目不用登记也不会漏跑。分片 k（KUN_SHARD）是仓库根 tests/ 下的测试：tests/kun-unit.slnf
-      列出的单元测试与 KUN_INTEGRATION 里的集成测试，筛选文件列出两者，供构建用。
+      tests/kun-platform.slnf 的平台测试按 SHARDS 分到 a、b、c。分片 k 运行
+      tests/kun-unit.slnf 的单元测试与 KUN_INTEGRATION 的集成测试。
   python3 scripts/dotnet_ci.py coverage <目录>
       分片 k 上传覆盖率之前核对：tests/kun-unit.slnf 里每个测试项目在目录下恰好一份
       <项目名>.coverage.cobertura.<时间戳>.xml（文件名前缀见仓库根 tests/Directory.Build.props），且是 Cobertura 格式；
@@ -28,16 +27,11 @@
       这里每个分片取尝试号最大的那份，挪到 <结果目录>/test-results-<分片>，交给 verify；认不出的子目录即失败。
       不按构件 ID 取：download-artifact 对同名构件只留 ID 最大的一份，而重跑后的 ID 不一定更大。
   python3 scripts/dotnet_ci.py verify <结果目录>
-      汇总各分片上传的 TRX（每个分片一个子目录 test-results-<分片>）：Qian.slnf 里每个测试项目、分片 k 登记的每个测试项目，
-      都恰好在所属分片跑过一次、没有失败，少一个模块即不通过；分片、模块、用例数与耗时写进作业摘要。跳过的用例只告警；
-      本目录下的测试项目不在 Qian.slnf 里（哪个分片都不跑）也告警，门禁样例 tests/gates 与专属作业运行的项目除外。
+      按两个筛选文件及集成测试清单核对 TRX。每个模块应在所属分片运行一次，失败或缺失都会拦截。
   python3 scripts/dotnet_ci.py registration
-      核对每个测试项目都有着落，门禁作业运行它。仓库根（git 跟踪的、_import/ 之外的全部项目文件，tests/gates 除外）的测试项目
-      要在 tests/kun-unit.slnf 里、在 KUN_INTEGRATION 里，或由 ci.yml 里 dotnet 区域的作业 dotnet test --project 运行；明知不在
-      CI 跑的写进 NOT_IN_CI 并写明原因，表里的路径要在、要是测试项目、不能又登记在别处。本目录下的测试项目要在 Qian.slnf 里
-      或由专属作业运行（verify 那条告警的口径，这里不通过即失败）。测试项目怎么认见 is_test_project。
+      逐个核对登记到平台分片、单元与集成分片、专属作业的项目，并检查已标明原因的豁免。
   python3 scripts/dotnet_ci.py paths-check
-      ci.yml 的 dotnet 区域（仓库根 scripts/ci_changes.py 的区域表）管本目录的那一组匹配式不看 pm/、docs/ 与根目录 Markdown。
+      从仓库根扫描 .NET 项目及工作流的 Python 入口，按真实工作目录核对区域表。
       dotnet 区域的作业读到的这些文件必须被重新纳入，否则只改它们的 PR 会漏跑读取它们的测试。核对 .NET 源码的字符串、
       MSBuild 项的路径与 ci.yml 运行的 Python 写成的仓库路径，识别的写法见 tests/README.md §5.1。
 
@@ -59,20 +53,17 @@ import types
 import time
 import xml.etree.ElementTree as ET
 from collections import Counter
+from functools import lru_cache
+import shlex
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
-REPO = ROOT.parents[1]
-# Qian.slnf：仓库根 Kun.slnx 的解决方案筛选文件，列出原 Qian 的全部项目，也是测试定位本目录用的锚（S1-KUN-020）。
-SOLUTION = ROOT / "Qian.slnf"
-# 跑本脚本的工作流与区域表都在仓库根（S1-KUN-020）。
-WORKFLOW = REPO / ".github" / "workflows" / "ci.yml"
-CI_CHANGES = REPO / "scripts" / "ci_changes.py"
-PREFIX = "_import/qian/"
-CONTAINERS = REPO / "src/Kun.Testing.Containers"
-PLATFORM_FIXTURES = REPO / "tests/Kun.Testing.PlatformFixtures"
+WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
+CI_CHANGES = ROOT / "scripts" / "ci_changes.py"
+CONTAINERS = ROOT / "src" / "Kun.Testing.Containers"
+PLATFORM_FIXTURES = ROOT / "tests" / "Kun.Testing.PlatformFixtures"
 
 # 按基线运行 40034799307 的模块壁钟配平。每个分片同时跑 4 个模块，模块启动顺序由 dotnet test 决定、每次不同，
 # 所以重模块（Config、Scheduler、Sample.Crm、Identity.Server，各 250–400 秒）所在分片的轻模块越少，重模块越早开跑。
@@ -90,12 +81,12 @@ SHARDS: Dict[str, Optional[List[str]]] = {
     "c": None,
 }
 
-# 分片 k：仓库根 tests/ 下的测试，不在 Qian.slnf 里，单独登记（S1-KUN-020）。单元测试照 tests/kun-unit.slnf
+# 分片 k：仓库根 tests/ 下的测试，不在 kun-platform.slnf 里，单独登记（S1-KUN-020）。单元测试照 tests/kun-unit.slnf
 # （收覆盖率），集成测试照下面的清单（Testcontainers）。仓库根其余测试项目由 ci.yml 里 dotnet 区域的专属作业
 # dotnet test --project 运行（如样例 NativeAOT 作业运行的 tests/Kun.Integration.AotTests），或者写在 NOT_IN_CI 里；
 # 每个测试项目都有着落由 registration 核对。
 KUN_SHARD = "k"
-KUN_UNIT = REPO / "tests" / "kun-unit.slnf"
+KUN_UNIT = ROOT / "tests" / "kun-unit.slnf"
 KUN_INTEGRATION = ["tests/Kun.IntegrationTests/Kun.IntegrationTests.csproj"]
 # 仓库根明知不在 CI 跑的测试项目：项目文件（相对仓库根）→ 原因。registration 核对表里的路径是 git 跟踪的测试项目、不在
 # 别处登记；表过期了（项目搬走、改名，或者已经进了 CI）即失败。
@@ -103,7 +94,7 @@ NOT_IN_CI: Dict[str, str] = {
     "samples/Kun.Sample.Tests/Kun.Sample.Tests.csproj": "要 Aspire 的服务发现环境变量",
 }
 # 读 ci.yml 用的 YAML 子集读取器，与仓库根 scripts/tests/test_ci_workflow.py 核对工作流结构用的是同一个。
-CI_YAML = REPO / "scripts" / "tests" / "ci_yaml.py"
+CI_YAML = ROOT / "scripts" / "tests" / "ci_yaml.py"
 # coverlet 写出的文件名是 <前缀>.coverage.cobertura.<毫秒时间戳>.xml，核对后改成不带时间戳的 COVERAGE。
 COVERAGE = "{module}.coverage.cobertura.xml"
 COVERAGE_WRITTEN = re.compile(r"(.+)\.coverage\.cobertura(?:\.\d+)?\.xml\Z")
@@ -126,12 +117,11 @@ NOT_TEST_PROJECT = re.compile(r"<IsTestProject>\s*false\s*</IsTestProject>", re.
 # 工作流一步的 run 里 dotnet test 的 --project 参数（--project 路径、--project=路径，可带引号）。
 DOTNET_TEST = re.compile(r"\bdotnet\s+test\b(?P<arguments>[^\n;&|]*)")
 PROJECT_ARGUMENT = re.compile(r"""(?:^|\s)--project(?:\s+|=)(?:"(?P<double>[^"]+)"|'(?P<single>[^']+)'|(?P<plain>[^\s"']+))""")
-JOB = re.compile(r"^  ([A-Za-z0-9_-]+):[ \t]*(?:#.*)?$")
 DOTNET_JOB = re.compile(r"\bneeds\.changes\.outputs\.dotnet\s*==\s*'true'")
 # 触发过滤自检
 CSHARP_STRING = re.compile(r'(\$+@|@\$+|\$+|@)?("{3,}|")')
 PATH_CALL = re.compile(r"\bPath\s*\.\s*(?:Combine|Join)\s*\(")
-ROOT_LOCATOR = re.compile(r'"(?:Qian\.slnf|Kun\.slnx)"|Repo(?:sitory)?Root')
+ROOT_LOCATOR = re.compile(r'"Kun\.slnx"|Repo(?:sitory)?Root')
 ESCAPES = {"n": "\n", "r": "\r", "t": "\t", "0": "\0", "a": "\a", "b": "\b", "f": "\f", "v": "\v"}
 MSBUILD_PATH = re.compile(r'\b(?:Include|Update|Project)\s*=\s*"([^"]*)"')
 PYTHON_SCRIPT = re.compile(r"\bpython3?\s+(?:-[A-Za-z]\S*\s+)*([\w./-]+\.py)\b")
@@ -149,49 +139,39 @@ class ToolError(Exception):
 
 # ---------- 解决方案与分片 ----------
 
-def filter_document(source: Optional[Path] = None) -> Tuple[Path, List[str]]:
-    """读 Qian.slnf：它筛选的解决方案（仓库根的 Kun.slnx），与它列出的项目（路径相对那个解决方案所在的目录）。"""
-    source = source or SOLUTION
+def filter_document(source: Path) -> Tuple[Path, List[str]]:
+    """读取分片筛选文件。项目路径统一相对仓库根的 Kun.slnx。"""
     try:
         document = json.loads(source.read_text(encoding="utf-8-sig"))
         solution = (source.parent / document["solution"]["path"].replace("\\", "/")).resolve()
         listed = [str(project).replace("\\", "/") for project in document["solution"]["projects"]]
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
         raise ToolError(f"读不了 {source.name}：{error}") from error
-    return solution, listed
-
-
-def solution_projects() -> List[str]:
-    """Qian.slnf 里全部项目相对本目录（ROOT）的路径，保持文件里的顺序。"""
-    solution, listed = filter_document()
-    root = ROOT.resolve()
-    projects: List[str] = []
+    repo = ROOT.resolve()
+    if solution != repo / "Kun.slnx":
+        raise ToolError(f"{source.name} 应筛选仓库根 Kun.slnx。")
+    if not listed:
+        raise ToolError(f"{source.name} 里没有测试项目。")
+    projects = []
     for raw in listed:
-        path = (solution.parent / raw).resolve()
-        if root not in path.parents:
-            raise ToolError(f"Qian.slnf 列出的 {raw} 不在 {root.name}/ 下。")
-        projects.append(path.relative_to(root).as_posix())
-    return projects
+        path = (repo / raw).resolve()
+        if repo not in path.parents:
+            raise ToolError(f"{source.name} 列出的 {raw} 不在仓库里。")
+        projects.append(path.relative_to(repo).as_posix())
+    if len(set(projects)) != len(projects):
+        raise ToolError(f"{source.name} 里有重复项目。")
+    return solution, projects
 
 
 def platform_projects() -> List[str]:
     """仓库根分片清单中的测试项目，路径相对仓库根。"""
-    source = REPO / "tests/kun-platform.slnf"
-    solution, listed = filter_document(source)
-    if solution != (REPO / "Kun.slnx").resolve():
-        raise ToolError(f"{source.name} 应筛选仓库根 Kun.slnx。")
-    if len(set(listed)) != len(listed):
-        raise ToolError(f"{source.name} 里有重复项目。")
+    source = ROOT / "tests/kun-platform.slnf"
+    _, listed = filter_document(source)
     for project in listed:
-        target = (REPO / project).resolve()
-        if not target.is_relative_to((REPO / "tests").resolve()) or not target.is_file() or not is_test_project(project, REPO):
+        target = (ROOT / project).resolve()
+        if not target.is_relative_to((ROOT / "tests").resolve()) or not target.is_file() or not is_test_project(project, ROOT):
             raise ToolError(f"{source.name} 的 {project} 不是现有的仓库根测试项目。")
     return listed
-
-
-def distributed_projects() -> List[str]:
-    """供 a、b、c 分片调度的项目，统一以脚本工作目录为基准。"""
-    return solution_projects() + [os.path.relpath((REPO / p).resolve(), ROOT.resolve()) for p in platform_projects()]
 
 
 def assembly_name(project: str, root: Optional[Path] = None) -> str:
@@ -208,40 +188,16 @@ def is_test_project(project: str, root: Optional[Path] = None) -> bool:
 
 
 def test_projects() -> Dict[str, str]:
-    """从过渡清单和仓库根平台清单收集测试项目，按程序集名索引。"""
-    found = {assembly_name(project): project for project in distributed_projects() if is_test_project(project)}
+    """kun-platform.slnf 里的测试项目：程序集名 → 项目路径。"""
+    found = {assembly_name(project): project for project in platform_projects()}
     if not found:
-        raise ToolError("Qian.slnf 与 tests/kun-platform.slnf 都没有列出测试项目。")
+        raise ToolError("kun-platform.slnf 里没有识别出测试项目。")
     return found
 
 
-def local_test_projects(dedicated: Dict[str, List[str]]) -> Tuple[Counter, List[str]]:
-    """本目录下 git 跟踪的测试项目（门禁样例 tests/gates 除外）：在 Qian.slnf 里的、不在但由 dotnet 区域的专属作业
-    dotnet test --project 运行的各几个，以及两处都不在的项目（相对本目录）。dedicated 是 dedicated_tests() 的结果。"""
-    listed = set(solution_projects())
-    counts: Counter = Counter()
-    unlisted: List[str] = []
-    for project in tracked("*.csproj"):
-        if project.startswith("tests/gates/") or not is_test_project(project):
-            continue
-        if project in listed:
-            counts["Qian.slnf"] += 1
-        elif runs_in(PREFIX + project, dedicated):
-            counts["专属作业"] += 1
-        else:
-            unlisted.append(project)
-    return counts, unlisted
-
-
-def unlisted_test_projects() -> List[str]:
-    """本目录下不在 Qian.slnf 里的测试项目的名字：哪个分片都不跑，verify 也核对不到。门禁样例（tests/gates）与
-    ci.yml 里 dotnet 区域的专属作业用 dotnet test --project 运行的项目（目前是三个 *.AotTests）除外。"""
-    return sorted(Path(project).stem for project in local_test_projects(dedicated_tests())[1])
-
-
 def assignment() -> Dict[str, str]:
-    """项目路径 → 分片。登记的名字必须是 Qian.slnf 里的项目，且只能登记一次。"""
-    projects = distributed_projects()
+    """项目路径 → 分片。登记的名字必须是 kun-platform.slnf 里的项目，且只能登记一次。"""
+    projects = platform_projects()
     by_name = {Path(project).stem: project for project in projects}
     if len(by_name) != len(projects):
         raise ToolError("分片项目清单含有同名项目。")
@@ -252,7 +208,7 @@ def assignment() -> Dict[str, str]:
     for shard, names in SHARDS.items():
         for name in names or []:
             if name not in by_name:
-                raise ToolError(f"分片 {shard} 登记的 {name} 不在 Qian.slnf 里。")
+                raise ToolError(f"分片 {shard} 登记的 {name} 不在 kun-platform.slnf 里。")
             if by_name[name] in result:
                 raise ToolError(f"{name} 同时登记在分片 {result[by_name[name]]} 与 {shard}。")
             result[by_name[name]] = shard
@@ -264,25 +220,11 @@ def assignment() -> Dict[str, str]:
 def kun_projects() -> Tuple[Path, List[str]]:
     """分片 k：tests/kun-unit.slnf 筛选的解决方案（仓库根的 Kun.slnx），与分片要跑的项目——它列出的单元测试项目在前、
     KUN_INTEGRATION 的集成测试项目在后，路径相对仓库根。"""
-    try:
-        document = json.loads(KUN_UNIT.read_text(encoding="utf-8-sig"))
-        solution = (KUN_UNIT.parent / document["solution"]["path"].replace("\\", "/")).resolve()
-        listed = [str(project).replace("\\", "/") for project in document["solution"]["projects"]]
-    except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
-        raise ToolError(f"读不了 {KUN_UNIT.name}：{error}") from error
-    repo = REPO.resolve()
-    projects: List[str] = []
-    for raw in listed:
-        path = (solution.parent / raw).resolve()
-        if repo not in path.parents:
-            raise ToolError(f"{KUN_UNIT.name} 列出的 {raw} 不在仓库里。")
-        projects.append(path.relative_to(repo).as_posix())
-    if not projects:
-        raise ToolError(f"{KUN_UNIT.name} 里没有项目。")
+    solution, projects = filter_document(KUN_UNIT)
     for project in [*projects, *KUN_INTEGRATION]:
-        if not (REPO / project).is_file():
+        if not (ROOT / project).is_file():
             raise ToolError(f"分片 {KUN_SHARD} 登记的 {project} 不存在。")
-        if not is_test_project(project, REPO):
+        if not is_test_project(project, ROOT):
             raise ToolError(f"分片 {KUN_SHARD} 登记的 {project} 不是测试项目（没有引用测试运行器的包）。")
     return solution, [*projects, *(project for project in KUN_INTEGRATION if project not in projects)]
 
@@ -290,7 +232,7 @@ def kun_projects() -> Tuple[Path, List[str]]:
 def kun_test_projects() -> Dict[str, str]:
     """分片 k 的测试项目：程序集名 → 项目路径（相对仓库根）。"""
     _, projects = kun_projects()
-    return {assembly_name(project, REPO): project for project in projects}
+    return {assembly_name(project, ROOT): project for project in projects}
 
 
 def kun_unit_projects() -> List[str]:
@@ -300,12 +242,12 @@ def kun_unit_projects() -> List[str]:
 
 
 def expected_shards() -> Dict[str, str]:
-    """每个测试模块（程序集名）应在的分片：Qian.slnf 的测试项目照 SHARDS，分片 k 的照 kun_projects。"""
+    """每个测试模块（程序集名）应在的分片：kun-platform.slnf 的测试项目照 SHARDS，分片 k 的照 kun_projects。"""
     owners = assignment()
     result = {module: owners[project] for module, project in test_projects().items()}
     for module in kun_test_projects():
         if module in result:
-            raise ToolError(f"测试模块 {module} 既在 Qian.slnf 里，又登记在分片 {KUN_SHARD}。")
+            raise ToolError(f"测试模块 {module} 既在 kun-platform.slnf 里，又登记在分片 {KUN_SHARD}。")
         result[module] = KUN_SHARD
     return result
 
@@ -314,14 +256,14 @@ def shard_projects(shard: str) -> List[str]:
     if shard not in SHARDS:
         raise ToolError(f"没有分片 {shard}，可选：{'、'.join(SHARDS)}。")
     owners = assignment()
-    return [project for project in distributed_projects() if owners[project] == shard]
+    return [project for project in platform_projects() if owners[project] == shard]
 
 
 def write_kun_filter(out: Path) -> None:
     """分片 k 的筛选文件：筛选仓库根的 Kun.slnx，列出 kun_projects 的项目，供还原与构建。"""
     solution, projects = kun_projects()
     out.parent.mkdir(parents=True, exist_ok=True)
-    listed = [Path(os.path.relpath(REPO.resolve() / project, solution.parent)).as_posix() for project in projects]
+    listed = [Path(os.path.relpath(ROOT.resolve() / project, solution.parent)).as_posix() for project in projects]
     document = {"solution": {"path": str(solution), "projects": listed}}
     out.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"分片 {KUN_SHARD}：{len(projects)} 个测试项目 → {out}")
@@ -336,10 +278,8 @@ def write_filter(shard: str, out: Path) -> None:
     projects = shard_projects(shard)
     tests = set(test_projects().values())
     out.parent.mkdir(parents=True, exist_ok=True)
-    # 分片筛选文件与 Qian.slnf 一样筛选仓库根的 Kun.slnx，项目路径换算成相对 Kun.slnx 所在的目录。
-    solution, _ = filter_document()
-    root = ROOT.resolve()
-    listed = [Path(os.path.relpath(root / project, solution.parent)).as_posix() for project in projects]
+    solution = (ROOT / "Kun.slnx").resolve()
+    listed = projects
     document = {"solution": {"path": str(solution), "projects": listed}}
     out.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     names = [Path(project).stem for project in projects if project in tests]
@@ -415,7 +355,7 @@ def mentions(text: str, name: str) -> bool:
 def shown(path: Path) -> str:
     """报错里的路径：写成相对仓库根的。"""
     try:
-        return path.resolve().relative_to(REPO.resolve()).as_posix()
+        return path.resolve().relative_to(ROOT.resolve()).as_posix()
     except ValueError:
         return str(path)
 
@@ -439,24 +379,24 @@ def project_sources(project: str, seen: Optional[Set[Path]] = None) -> List[Path
         include = (item.get("Include") or "").replace("\\", "/")
         if include:
             files.extend(sorted(match.resolve() for match in path.parent.joinpath(include).parent.glob(Path(include).name)))
-    tests = ((ROOT / "tests").resolve(), (REPO / "tests").resolve())
+    tests = (ROOT / "tests").resolve()
     fixtures = {CONTAINERS.resolve(), PLATFORM_FIXTURES.resolve()}
     for reference in project_references(path):
-        if any(area in reference.parents for area in tests) and not fixtures.intersection(reference.parents):
+        if tests in reference.parents and not fixtures.intersection(reference.parents):
             files.extend(project_sources(os.path.relpath(reference, ROOT.resolve()), seen))
     return files
 
 
 def fixture_users(projects: Iterable[str]) -> List[str]:
     """projects 里引用了容器夹具项目（CONTAINERS 下的项目文件）的项目，经 tests/ 下的测试宿主项目间接引用的也算。"""
-    tests = ((ROOT / "tests").resolve(), (REPO / "tests").resolve())
+    tests = (ROOT / "tests").resolve()
     fixtures = {CONTAINERS.resolve(), PLATFORM_FIXTURES.resolve()}
 
     def uses(path: Path, seen: Set[Path]) -> bool:
         if path in seen:
             return False
         seen.add(path)
-        return any(fixtures.intersection(reference.parents) or (any(area in reference.parents for area in tests) and uses(reference, seen))
+        return any(fixtures.intersection(reference.parents) or (tests in reference.parents and uses(reference, seen))
                    for reference in project_references(path))
 
     return [project for project in projects if uses((ROOT / project).resolve(), set())]
@@ -634,10 +574,8 @@ def verify(results: Path) -> Tuple[List[str], List[str], List[str]]:
     for module in sorted(set(expected) - set(seen)):
         if expected[module] in rows:
             problems.append(f"{module}（分片 {expected[module]}）没有测试结果。")
-    unlisted = unlisted_test_projects()
-    if unlisted:
-        warnings.append(f"{PREFIX} 下有 {len(unlisted)} 个测试项目不在 Qian.slnf 里，哪个分片都不跑、也不在本核对范围内：{'、'.join(unlisted)}。"
-                        "加进 Kun.slnx 与 Qian.slnf，或在 ci.yml 里由 dotnet 区域的专属作业 dotnet test --project 运行。")
+    _, registration_problems, _ = registration()
+    problems.extend(registration_problems)
 
     summary = ["## 测试分片汇总", "",
                "| 分片 | 模块 | 用例 | 通过 | 未通过 | 跳过 | 模块累计秒 | 首尾跨度秒 |", "|---|---|---|---|---|---|---|---|"]
@@ -653,9 +591,7 @@ def verify(results: Path) -> Tuple[List[str], List[str], List[str]]:
         summary.append(f"| {shard} | {len(entries)} | {sum(totals.values())} | {passed} | {failed} | "
                        f"{sum(totals.values()) - passed - failed} | {sum(seconds for _, _, seconds in entries):.0f} | {span:.0f} |")
     summary += ["", f"合计 {sum(len(entries) for entries in rows.values())} 个模块、{sum(grand.values())} 条用例；"
-                    f"Qian.slnf 里识别出 {len(expected) - kun} 个测试项目，分片 {KUN_SHARD} 登记 {kun} 个。", ""]
-    if unlisted:
-        summary += [f"{PREFIX} 下不在 Qian.slnf 里、没有任何分片运行的测试项目：{'、'.join(unlisted)}。", ""]
+                    f"kun-platform.slnf 里识别出 {len(expected) - kun} 个测试项目，分片 {KUN_SHARD} 登记 {kun} 个。", ""]
     summary += ["<details><summary>各模块</summary>", "", "| 分片 | 模块 | 用例 | 秒 |", "|---|---|---|---|"]
     for shard, entries in rows.items():
         for module, outcomes, seconds in sorted(entries, key=lambda entry: -entry[2]):
@@ -700,10 +636,9 @@ def coverage(directory: Path, rename: bool = False) -> Tuple[List[str], List[str
 
 # ---------- 测试项目的着落 ----------
 
-HOW_TO_REGISTER = ("登记办法任选其一：单元测试加进 tests/kun-unit.slnf；集成测试加进 _import/qian/scripts/dotnet_ci.py 的 KUN_INTEGRATION；平台测试加进 tests/kun-platform.slnf；"
+HOW_TO_REGISTER = ("登记办法任选其一：单元测试加进 tests/kun-unit.slnf；集成测试加进 scripts/dotnet_ci.py 的 KUN_INTEGRATION；平台测试加进 tests/kun-platform.slnf；"
                    "要专门环境的在 ci.yml 里由 dotnet 区域的作业 dotnet test --project 运行。明知不在 CI 跑的，写进同一文件的 NOT_IN_CI 并写明原因。")
 ROOT_KINDS = ("单元", "集成", "平台分片", "专属作业", "不进 CI")
-LOCAL_KINDS = ("Qian.slnf", "专属作业")
 
 
 def workflow_document() -> Dict[str, object]:
@@ -724,11 +659,8 @@ def mapping(value: object) -> Dict[str, object]:
     return value if isinstance(value, dict) else {}
 
 
-def dedicated_tests() -> Dict[str, List[str]]:
-    """ci.yml 里 dotnet 区域的作业（条件含 needs.changes.outputs.dotnet == 'true'）用 dotnet test --project 运行的项目：
-    路径（相对仓库根，按那一步的 working-directory 或作业的 defaults 换算；是项目文件或它所在的目录）→ 作业 id。
-    run 是 | 块时认反斜杠续行，是 > 块时由读取器折成一行；路径里带 $ 的（变量、表达式）认不出，不算。"""
-    found: Dict[str, List[str]] = {}
+def dotnet_steps() -> Iterable[Tuple[str, str, str]]:
+    """按 CI 各作业和步骤的实际工作目录返回构建命令。"""
     for job_id, job in mapping(workflow_document()["jobs"]).items():
         job = mapping(job)
         if not DOTNET_JOB.search(str(job.get("if", ""))):
@@ -740,15 +672,24 @@ def dedicated_tests() -> Dict[str, List[str]]:
                 continue
             directory = str(step.get("working-directory", default) or "")
             script = re.sub(r"\\\r?\n", " ", str(step["run"]))
-            for command in DOTNET_TEST.finditer(script):
-                for argument in PROJECT_ARGUMENT.finditer(command.group("arguments")):
-                    raw = argument.group("double") or argument.group("single") or argument.group("plain")
-                    if "$" in raw or "$" in directory:
-                        continue
-                    path = posixpath.normpath(posixpath.join(directory, raw.replace("\\", "/")))
-                    jobs = found.setdefault(path, [])
-                    if job_id not in jobs:
-                        jobs.append(job_id)
+            yield job_id, directory, script
+
+
+def dedicated_tests() -> Dict[str, List[str]]:
+    """ci.yml 里 dotnet 区域的作业（条件含 needs.changes.outputs.dotnet == 'true'）用 dotnet test --project 运行的项目：
+    路径（相对仓库根，按那一步的 working-directory 或作业的 defaults 换算；是项目文件或它所在的目录）→ 作业 id。
+    run 是 | 块时认反斜杠续行，是 > 块时由读取器折成一行；路径里带 $ 的（变量、表达式）认不出，不算。"""
+    found: Dict[str, List[str]] = {}
+    for job_id, directory, script in dotnet_steps():
+        for command in DOTNET_TEST.finditer(script):
+            for argument in PROJECT_ARGUMENT.finditer(command.group("arguments")):
+                raw = argument.group("double") or argument.group("single") or argument.group("plain")
+                if "$" in raw or "$" in directory:
+                    continue
+                path = posixpath.normpath(posixpath.join(directory, raw.replace("\\", "/")))
+                jobs = found.setdefault(path, [])
+                if job_id not in jobs:
+                    jobs.append(job_id)
     return found
 
 
@@ -759,12 +700,12 @@ def runs_in(project: str, dedicated: Dict[str, List[str]]) -> List[str]:
 
 def repository_projects() -> List[str]:
     """仓库根这边 git 跟踪的项目文件（相对仓库根）：_import/ 之外的全部，门禁样例 tests/gates 除外。"""
-    return [project for project in tracked("*.csproj", cwd=REPO)
+    return [project for project in tracked("*.csproj", cwd=ROOT)
             if not project.startswith("_import/") and not project.startswith("tests/gates/")]
 
 
-def registration() -> Tuple[List[Tuple[str, str]], List[str], Counter, Counter]:
-    """每个测试项目都有着落。返回仓库根每个测试项目一行 (路径, 着落)、发现的问题，以及仓库根、本目录各类着落的个数；
+def registration() -> Tuple[List[Tuple[str, str]], List[str], Counter]:
+    """每个测试项目都有着落。返回仓库根每个测试项目一行 (路径, 着落)、发现的问题，以及各类着落的个数；
     没有问题才算通过。一个项目有几处着落时按 ROOT_KINDS 的顺序计入第一处（如 KUN_INTEGRATION 的项目也由分片 k 的一步运行）。"""
     dedicated = dedicated_tests()
     _, kun = kun_projects()
@@ -775,7 +716,7 @@ def registration() -> Tuple[List[Tuple[str, str]], List[str], Counter, Counter]:
     problems: List[str] = []
     counts: Counter = Counter()
     for project in projects:
-        if not is_test_project(project, REPO):
+        if not is_test_project(project, ROOT):
             continue
         places: List[Tuple[str, str]] = []
         if project in platform:
@@ -798,68 +739,37 @@ def registration() -> Tuple[List[Tuple[str, str]], List[str], Counter, Counter]:
             continue
         counts[places[0][0]] += 1
         rows.append((project, "；".join(text for _, text in places)))
+    for project in tracked("_import/**/*.csproj", cwd=ROOT):
+        problems.append(f"过渡目录内仍有 .NET 项目：{project}")
     known = set(projects)
     for project in NOT_IN_CI:
         if project not in known:
             problems.append(f"NOT_IN_CI 里的 {project} 不是 git 跟踪的项目文件（_import/ 与 tests/gates 不在核对范围）：表过期了，"
                             "改成项目现在的路径或去掉。")
-        elif not is_test_project(project, REPO):
+        elif not is_test_project(project, ROOT):
             problems.append(f"NOT_IN_CI 里的 {project} 不是测试项目：从 NOT_IN_CI 去掉。")
-    local, unlisted = local_test_projects(dedicated)
-    problems += [f"{PREFIX}{project} 是测试项目，却不在 Qian.slnf 里，也没有 dotnet 区域的专属作业运行它：哪个分片都不跑。"
-                 "加进 Kun.slnx 与 Qian.slnf，或在 ci.yml 里由 dotnet 区域的专属作业 dotnet test --project 运行。" for project in unlisted]
-    return rows, problems, counts, local
+    return rows, problems, counts
 
 
 # ---------- 触发过滤自检 ----------
 
-def dotnet_paths() -> List[str]:
-    """ci.yml 的 dotnet 区域管本目录的那一组匹配式，去掉 _import/qian/ 前缀。区域表在仓库根的 scripts/ci_changes.py：
-    这一组以 '**' 开头，排除 pm/、docs/ 与根目录 Markdown，再逐条重新纳入 dotnet 区域的作业读到的文件。dotnet 区域的
-    其余几组是仓库根的路径（Kun 的源码与测试、仓库根的构建基线），对不上本目录的文件。"""
+def dotnet_paths() -> List[Tuple[str, ...]]:
+    """区域表中各组独立匹配，其中一组纳入文件就应触发 .NET 作业。"""
     # 按源码执行，不经字节码缓存：区域表在同一秒里改两次也读到新的。
     module = types.ModuleType("ci_changes")
     module.__file__ = str(CI_CHANGES)
     try:
         exec(compile(CI_CHANGES.read_text(encoding="utf-8"), str(CI_CHANGES), "exec", dont_inherit=True), module.__dict__)
         groups = [tuple(group) for group in module.AREAS["dotnet"].groups]  # type: ignore[attr-defined]
+        everything = tuple(module.EVERYTHING)  # type: ignore[attr-defined]
     except (OSError, SyntaxError, AttributeError, KeyError, TypeError) as error:
         raise ToolError(f"读不出区域表 {CI_CHANGES.name} 里的 dotnet 区域：{error}") from error
-    mine = [group for group in groups if group and all(pattern.lstrip("!").startswith(PREFIX) for pattern in group)]
-    if len(mine) != 1:
-        raise ToolError(f"区域表里的 dotnet 区域应恰好有一组全是 {PREFIX} 下的匹配式，实际 {len(mine)} 组。")
-    patterns = [("!" if pattern.startswith("!") else "") + pattern.lstrip("!")[len(PREFIX):] for pattern in mine[0]]
-    if patterns[0] != "**":
-        raise ToolError(f"区域表里 dotnet 区域管 {PREFIX} 的那一组要以 '{PREFIX}**' 开头。")
-    return patterns
+    if not groups or any(not group for group in groups):
+        raise ToolError("dotnet 区域必须有非空的路径组。")
+    return [*groups, everything] if everything else groups
 
 
-def dotnet_jobs() -> str:
-    """ci.yml 里 dotnet 区域的作业（条件含 needs.changes.outputs.dotnet == 'true'）的原文，接在一起。
-    作业固定写在顶层 jobs: 下、缩进两格，结构由仓库根的 scripts/tests/test_ci_workflow.py 核对。"""
-    blocks: List[List[str]] = []
-    inside = False
-    for line in WORKFLOW.read_text(encoding="utf-8").splitlines():
-        if line[:1] not in ("", " ", "\t", "#"):  # 顶层的键
-            inside = bool(re.match(r"jobs:\s*(?:#.*)?$", line))
-            continue
-        if not inside:
-            continue
-        if JOB.match(line):
-            blocks.append([])
-        if blocks:
-            blocks[-1].append(line)
-    chosen = ["\n".join(block) for block in blocks if DOTNET_JOB.search("\n".join(block))]
-    if not chosen:
-        raise ToolError(f"没能从 {WORKFLOW.name} 读出 dotnet 区域的作业（条件 needs.changes.outputs.dotnet == 'true'）。")
-    return "\n".join(chosen)
-
-
-def qian_path(path: str) -> str:
-    """作业在仓库根运行时把本目录的文件写成 _import/qian/<路径>，在本目录运行时写成 <路径>：都换成相对本目录。"""
-    return path[len(PREFIX):] if path.startswith(PREFIX) else path
-
-
+@lru_cache(maxsize=512)
 def glob_regex(pattern: str) -> re.Pattern:
     """GitHub Actions 路径过滤的通配：** 跨目录，* 不跨目录。"""
     parts = []
@@ -1097,7 +1007,7 @@ def csharp_references(text: str, top: Set[str]) -> List[Tuple[int, str, bool]]:
       后面还有非字面量实参时只得到前缀，更靠后的字面量段相对未知的子目录，不算；
     - 插值字符串的常量前缀（$"docs/{x}.md"），以及插值洞后以 / 起头的段（$"{root}/docs/x.md"）；字面量后紧跟 + 时也只是前缀，
       前面紧跟 + 时去掉开头的 /（root + "/docs/x.md"）；
-    - 单写一个根目录文件名（"AGENTS.md"、Path.Combine(root, "README.md")）只在本文件定位了仓库根（写到 "Qian.slnf"，
+    - 单写一个根目录文件名（"AGENTS.md"、Path.Combine(root, "README.md")）只在本文件定位了仓库根（写到 "Kun.slnx"，
       或用到 RepositoryRoot / RepoRoot）时算：README.md 这类常见文件名在别处多半指临时目录或包里的文件。"""
     literals, masked = csharp_strings(text)
     anchored = ROOT_LOCATOR.search(text) is not None
@@ -1240,8 +1150,9 @@ class PythonSource:
     （如 ROOT、SCRIPT），以及传给 Path()、os.path.join()、open() 的相对路径字符串（dotnet 区域的作业在本目录运行它们）；在锚上用 /、joinpath、
     os.path.join 拼常量段，f-string 取常量前缀。临时目录这类别的锚上拼出的路径不算。"""
 
-    def __init__(self, path: str, text: str) -> None:
+    def __init__(self, path: str, text: str, cwd: str = "") -> None:
         self.path = path
+        self.cwd = cwd
         try:
             self.tree = ast.parse(text, filename=path)
         except SyntaxError as error:
@@ -1279,7 +1190,7 @@ class PythonSource:
             return None
         name, args = dotted(node.func) or "", node.args
         if name in ("Path.cwd", "pathlib.Path.cwd", "os.getcwd"):
-            return "", True
+            return self.cwd, True
         if name in ("str", "os.fspath", "os.path.abspath", "os.path.realpath", "os.path.normpath") and args:
             return self.value(args[0], names)
         if name == "os.path.dirname" and args:
@@ -1288,7 +1199,7 @@ class PythonSource:
             base = self.value(args[0], names) if args else None
             if base is not None:
                 return join(base, args[1:])
-            return join(("", True), args) if args and literal(args[0]) else None
+            return join((self.cwd, True), args) if args and literal(args[0]) else None
         if isinstance(node.func, ast.Attribute):
             base = self.value(node.func.value, names)
             if node.func.attr in ("resolve", "absolute", "expanduser"):
@@ -1317,7 +1228,7 @@ class PythonSource:
                 value = self.value(node, names)
                 if value is None and isinstance(node, ast.Call) and dotted(node.func) in ("open", "io.open") and node.args:
                     first = node.args[0]
-                    value = self.value(first, names) or (join(("", True), [first]) if literal(first) else None)
+                    value = self.value(first, names) or (join((self.cwd, True), [first]) if literal(first) else None)
                 if value is not None:
                     if value[0]:
                         found.append((node.lineno, *value))
@@ -1398,70 +1309,75 @@ class PythonSource:
         return found
 
 
-def workflow_python(repository: Repository) -> List[str]:
-    """ci.yml 里 dotnet 区域的作业直接运行的本目录 Python：python3 <脚本>，以及 python3 -m unittest discover 收集的测试模块。"""
-    text = dotnet_jobs()
-    found = [qian_path(path) for path in PYTHON_SCRIPT.findall(text) if qian_path(path) in repository.names]
-    for options in PYTHON_UNITTEST.findall(text):
-        words, values, positional = options.split(), {"-s": ".", "-p": "test*.py"}, []
-        aliases = {"--start-directory": "-s", "--pattern": "-p", "-t": "-t", "--top-level-directory": "-t"}
-        index = 0
-        while index < len(words):
-            flag = aliases.get(words[index], words[index])
-            if flag in ("-s", "-p", "-t") and index + 1 < len(words):
-                values[flag] = words[index + 1]
-                index += 2
-                continue
-            if not words[index].startswith("-"):
-                positional.append(words[index])
-            index += 1
-        start = posixpath.normpath(qian_path(positional[0] if positional else values["-s"])).strip("/")
-        start = "" if start == "." else start
-        pattern = positional[1] if len(positional) > 1 else values["-p"]
-        for name in repository.files:
-            directory = posixpath.dirname(name)
-            if not fnmatch.fnmatchcase(posixpath.basename(name), pattern) or start and not (directory + "/").startswith(start + "/"):
-                continue
-            # unittest 在起始目录之下只进包目录（有 __init__.py）
-            parts = directory[len(start):].strip("/").split("/") if directory != start else []
-            if all(posixpath.join(start, *parts[:depth], "__init__.py") in repository.names for depth in range(1, len(parts) + 1)):
-                found.append(name)
-    return list(dict.fromkeys(found))
+def workflow_python(repository: Repository) -> List[Tuple[str, str]]:
+    """直接运行的 Python 入口及工作目录，包括 unittest discover 实际找到的模块。"""
+    found: Set[Tuple[str, str]] = set()
+    for _, cwd, script in dotnet_steps():
+        for path in PYTHON_SCRIPT.findall(script):
+            path = posixpath.normpath(posixpath.join(cwd, path))
+            if path in repository.names:
+                found.add((path, cwd))
+        for options in PYTHON_UNITTEST.findall(script):
+            words = shlex.split(options)
+            parser = argparse.ArgumentParser(add_help=False)
+            parser.add_argument("-s", "--start-directory", default=".")
+            parser.add_argument("-p", "--pattern", default="test*.py")
+            parser.add_argument("-t", "--top-level-directory")
+            parser.add_argument("positional", nargs="*")
+            parsed, _ = parser.parse_known_args(words)
+            start = posixpath.normpath(posixpath.join(cwd, parsed.positional[0] if parsed.positional else parsed.start_directory))
+            start = "" if start == "." else start
+            pattern = parsed.positional[1] if len(parsed.positional) > 1 else parsed.pattern
+            for name in repository.files:
+                directory = posixpath.dirname(name)
+                if not fnmatch.fnmatchcase(posixpath.basename(name), pattern) or start and not (directory + "/").startswith(start + "/"):
+                    continue
+                parts = directory[len(start):].strip("/").split("/") if directory != start else []
+                if all(posixpath.join(start, *parts[:depth], "__init__.py") in repository.names for depth in range(1, len(parts) + 1)):
+                    found.add((name, cwd))
+    return sorted(found)
 
 
 def python_references(repository: Repository) -> List[Tuple[str, List[Tuple[int, str, bool]]]]:
     """工作流运行的每个 Python 文件及其仓库路径引用。只被测试按名字加载、又被该测试换掉模块级名字的模块（如
     test_check_docs.py 把 check_docs.ROOT 换成临时目录），函数里用到这些名字的路径不算读取仓库。"""
     entries = set(workflow_python(repository))
-    sources: Dict[str, PythonSource] = {}
-    loaders: Dict[str, List[Tuple[str, Optional[str]]]] = {}
+    sources: Dict[Tuple[str, str], PythonSource] = {}
+    loaders: Dict[Tuple[str, str], List[Tuple[Tuple[str, str], Optional[str]]]] = {}
     pending = sorted(entries)
     while pending:
-        path = pending.pop()
-        if path in sources:
+        key = pending.pop()
+        if key in sources:
             continue
-        sources[path] = PythonSource(path, (ROOT / path).read_text(encoding="utf-8", errors="replace"))
-        for module, alias in sources[path].loads(repository):
-            loaders.setdefault(module, []).append((path, alias))
-            pending.append(module)
+        path, cwd = key
+        source = PythonSource(path, (ROOT / path).read_text(encoding="utf-8", errors="replace"), cwd)
+        sources[key] = source
+        for module, alias in source.loads(repository):
+            target = (module, cwd)
+            loaders.setdefault(target, []).append((key, alias))
+            pending.append(target)
     result = []
-    for path in sorted(sources):
-        users = loaders.get(path, [])
+    for key, source in sorted(sources.items()):
+        users = loaders.get(key, [])
         rebound: Set[str] = set()
-        if path not in entries and users and all(alias for _, alias in users):
+        if key not in entries and users and all(alias for _, alias in users):
             rebound = set.intersection(*(sources[user].rebound(alias) for user, alias in users))  # type: ignore[arg-type]
-        result.append((path, sources[path].references(rebound)))
+        result.append((key[0], source.references(rebound)))
     return result
 
 
-ADD_TO_AREA = "把{what}加进仓库根 scripts/ci_changes.py 里 dotnet 区域的 q(…) 那一组（写相对 _import/qian/ 的路径）。"
+ADD_TO_AREA = "把{what}加进仓库根 scripts/ci_changes.py 里的 dotnet 区域（路径相对仓库根）。"
 
 
 def paths_check() -> Counter:
     """返回各类来源里对得上仓库文件的引用数，以及其中落在排除区、已被重新纳入的引用数（键「重新纳入」）。"""
-    patterns = dotnet_paths()
-    excluded = [glob_regex(pattern[1:]) for pattern in patterns if pattern.startswith("!")]
+    groups = dotnet_paths()
+    excluded = [glob_regex(pattern[1:]) for group in groups for pattern in group if pattern.startswith("!")]
     repository = Repository(tracked())
+    # 平台资源暂由部分根测试宿主从这个目录读取。目录锚本身没有说明读了其中哪个文件。
+    assets = "_import/qian"
+    prefix = assets + "/"
+    asset_files = Repository(path[len(prefix):] for path in repository.files if path.startswith(prefix))
     problems: List[str] = []
     counts: Counter = Counter()
 
@@ -1469,7 +1385,7 @@ def paths_check() -> Counter:
         if not covered:
             return
         counts[kind] += 1
-        missed = [name for name in covered if not triggers(patterns, name)]
+        missed = [name for name in covered if not any(triggers(group, name) for group in groups)]
         if not missed:
             counts["重新纳入"] += any(regex.match(name) for name in covered for regex in excluded)
         elif len(missed) == 1:
@@ -1478,41 +1394,32 @@ def paths_check() -> Counter:
             problems.append(f"{place} 读取 {shown}，其中 {len(missed)} 个文件只改它们的 PR 不触发 dotnet 区域的作业（如 "
                             f"{'、'.join(missed[:3])}）；{ADD_TO_AREA.format(what='它们')}")
 
+    def covered(path: str, complete: bool) -> List[str]:
+        if path.rstrip("/") == assets:
+            return []
+        return repository.covered(path, complete)
+
     def shown(path: str, complete: bool) -> str:
         return path if complete else path + "…"
 
     for source in tracked("*.cs"):
         text = (ROOT / source).read_text(encoding="utf-8", errors="replace")
         for line, path, complete in csharp_references(text, repository.top):
-            check(".NET 源码", f"{source}:{line}", shown(path, complete), repository.covered(path, complete))
+            check(".NET 源码", f"{source}:{line}", shown(path, complete), covered(path, complete))
+        for line, path, complete in csharp_references(text, asset_files.top):
+            files = [prefix + name for name in asset_files.covered(path, complete)]
+            check(".NET 源码", f"{source}:{line}", shown(prefix + path, complete), files)
     for source in tracked("*.csproj", "*.props", "*.targets"):
         text = (ROOT / source).read_text(encoding="utf-8", errors="replace")
         for line, path in msbuild_references(source, text):
-            covered = repository.matching(path) if re.search(r"[*?]", path) else repository.covered(path)
-            check("MSBuild 项", f"{source}:{line}", path, covered)
-    # 根 tests/ 下的项目也会读取过渡目录的契约、任务与文档；用仓库路径判定它们在区域表中的着落。
-    platform_tests = {posixpath.dirname(project) for project in platform_projects()}
-    for source in tracked("tests/**/*.cs", cwd=REPO):
-        text = (REPO / source).read_text(encoding="utf-8", errors="replace")
-        project = "/".join(source.split("/")[:2])
-        reads_platform = (project in platform_tests or '"_import", "qian"' in text or '"_import/qian"' in text)
-        for line, path, complete in csharp_references(text, repository.top):
-            if path.startswith(PREFIX):
-                path = path[len(PREFIX):]
-            elif not reads_platform:
-                continue
-            check(".NET 源码", f"{source}:{line}", shown(path, complete), repository.covered(path, complete))
-    for source in tracked("tests/**/*.csproj", "tests/**/*.props", "tests/**/*.targets", cwd=REPO):
-        text = (REPO / source).read_text(encoding="utf-8", errors="replace")
-        for line, path in msbuild_references(source, text):
-            if path.startswith(PREFIX):
-                path = path[len(PREFIX):]
-                covered = repository.matching(path) if re.search(r"[*?]", path) else repository.covered(path)
-                check("MSBuild 项", f"{source}:{line}", path, covered)
+            resolved = repository.matching(path) if re.search(r"[*?]", path) else repository.covered(path)
+            check("MSBuild 项", f"{source}:{line}", path, resolved)
     for source, references in python_references(repository):
         counts["Python 文件"] += 1
         for line, path, complete in references:
-            check("Python", f"{source}:{line}", shown(path, complete), repository.covered(path, complete))
+            check("Python", f"{source}:{line}", shown(path, complete), covered(path, complete))
+    if counts[".NET 源码"] < 1:
+        problems.append("没有找到读取仓库文件的 .NET 源码，请核对扫描范围。")
     if problems:
         raise CheckFailed("\n".join(problems))
     return counts
@@ -1543,7 +1450,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     coverage_parser = commands.add_parser("coverage", help="核对分片 k 的覆盖率文件：kun-unit.slnf 里每个测试项目恰好一份；通过后去掉文件名里的时间戳")
     coverage_parser.add_argument("directory", type=Path)
     commands.add_parser("paths-check", help="核对 dotnet 区域的路径匹配没有漏掉作业读取的文档")
-    commands.add_parser("registration", help="核对每个测试项目都有着落：仓库根的在分片 k、专属作业或 NOT_IN_CI 里，本目录的在 Qian.slnf 里或由专属作业运行")
+    commands.add_parser("registration", help="核对每个测试项目都有着落：核对两个根筛选文件、集成测试名单、专属作业和显式豁免")
     args = parser.parse_args(argv)
 
     try:
@@ -1583,15 +1490,14 @@ def main(argv: Optional[List[str]] = None) -> int:
                   f"dotnet 区域的作业运行的 {counts['Python 文件']} 个 Python 文件 {counts['Python']} 处，只改这些文件的 PR 都会触发 dotnet 区域的作业；"
                   f"其中 {counts['重新纳入']} 处落在 dotnet 区域排除的 pm/、docs/ 或根目录 Markdown 里、已被重新纳入。")
         elif args.command == "registration":
-            rows, problems, counts, local = registration()
+            rows, problems, counts = registration()
             print(f"仓库根的测试项目（_import/ 之外，tests/gates 除外）{len(rows)} 个，各自的着落：")
             for project, place in rows:
                 print(f"  {project}：{place}")
             if problems:
                 raise CheckFailed("测试项目着落核对不通过：\n" + "\n".join(problems))
             kinds = "、".join(f"{kind} {counts[kind]}" for kind in ROOT_KINDS if counts[kind])
-            places = "、".join(f"{kind} {local[kind]}" for kind in LOCAL_KINDS if local[kind])
-            print(f"测试项目着落核对通过：仓库根 {sum(counts.values())} 个（{kinds}），{PREFIX} 下 {sum(local.values())} 个（{places}）。")
+            print(f"测试项目着落核对通过：仓库根 {sum(counts.values())} 个（{kinds}），过渡目录 0 个。")
         return 0
     except CheckFailed as error:
         print(str(error), file=sys.stderr)

@@ -12,7 +12,7 @@ TOOL = ROOT / "../../tools/Kun.Configuration.Secrets.Tool/bin/Release/net10.0/Ku
 
 class SecretScanGateTests(unittest.TestCase):
     def test_schema_and_heuristics_are_blocking(self):
-        self.assertTrue(TOOL.exists(), "Build Qian.slnf in Release before running gates")
+        self.assertTrue(TOOL.exists(), "Build Kun.slnx in Release before running gates")
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
             schema = directory / "schema.json"
@@ -42,7 +42,7 @@ class SecretScanGateTests(unittest.TestCase):
 
     def test_repository_profiles_are_clean_and_injected_literals_are_blocking(self):
         """CI 对仓库实际 profile 的生效配置执行同一扫描；注入的明文必须阻断且不回显。"""
-        self.assertTrue(TOOL.exists(), "Build Qian.slnf in Release before running gates")
+        self.assertTrue(TOOL.exists(), "Build Kun.slnx in Release before running gates")
         result = subprocess.run(["dotnet", str(TOOL), "--profiles", str(ROOT)], capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         cases = [("marker", "aZ8pQ1mB9xR2vC7nH5jD3kL6wS4tF0uE"), ("secret", "synthetic-private-data")]

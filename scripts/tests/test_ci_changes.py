@@ -67,7 +67,7 @@ class MatchingTests(unittest.TestCase):
         hits = ci_changes.changed_areas([".github/workflows/ci.yml"])
         self.assertEqual(set(ci_changes.AREAS), {name for name, files in hits.items() if files})
         hits = ci_changes.changed_areas(["README.md"])
-        self.assertEqual(set(), {name for name, files in hits.items() if files})
+        self.assertEqual({"dotnet"}, {name for name, files in hits.items() if files})  # 根 README.md 随全部 NuGet 包打包
 
 
 class AreaTableTests(unittest.TestCase):
@@ -140,11 +140,11 @@ class DetectTests(unittest.TestCase):
         self.assertIn("全部区域都跑", summary)
 
     def test_diff_selects_areas_by_changed_files(self) -> None:
-        with mock.patch.object(ci_changes, "diff", return_value=["_import/qian/pm/tasks/S1-KUN-020.md", "README.md"]):
+        with mock.patch.object(ci_changes, "diff", return_value=["_import/qian/pm/tasks/S1-KUN-020.md", "CONTRIBUTING.md"]):
             code, values, summary = self.run_detect("--base", "a", "--head", "b")
         self.assertEqual(0, code)
         self.assertEqual({"docs-and-pm"}, {name for name, value in values.items() if value == "true"})
-        self.assertIn("README.md", summary)  # 不落进任何区域的改动列在摘要里
+        self.assertIn("CONTRIBUTING.md", summary)  # 不落进任何区域的改动列在摘要里
 
 
 class SummaryTests(unittest.TestCase):

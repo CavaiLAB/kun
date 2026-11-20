@@ -424,6 +424,8 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str, 
             report.problems.append(f"{package.id} 缺少对朋友程序集所有者 {missing} 的精确依赖")
         for dependency, range_text in spec["dependencies"]:
             target = dependency.lower()
+            if not transitional and target.startswith("qian."):
+                report.problems.append(f"{package.id} 依赖已停止使用的包 {dependency}，请引用现行包")
             if target in listed:
                 if target in exact and range_text != f"[{version}]":
                     report.problems.append(f"{package.id} 对 {dependency} 的朋友程序集依赖应为 [{version}]，实际为 {range_text}")

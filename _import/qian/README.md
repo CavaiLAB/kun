@@ -37,7 +37,7 @@ Kun 与 Qian 在同一个仓库里：`Qian.*` 直接引用仓库根 `src/` 下�
 | `docs/` | 决策清单、21 份 ADR、PRD 17 章与四份专题规格、迁移方案、路线图 | [docs/README.md](docs/README.md) |
 | `pm/` | 任务文件与看板模板（任务即文件，git 是唯一真相源；看板与进度表按需生成，不进 git） | [pm/README.md](pm/README.md) · [看板](http://10.78.1.161:30810/) |
 | `scripts/` | `pm.py`（任务校验 / 生成 / 改状态）、`check_docs.py`（文档门禁）；.NET 依赖门禁在仓库根的 `scripts/check_deps.py` | — |
-| `tests/` | 集成测试共用的 Testcontainers fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身）、门禁自测 | [tests/README.md](tests/README.md) |
+| `tests/` | 集成测试共用的 Testcontainers fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身）、门禁自测 | [tests/README.md](../../tests/README.md) |
 | `AGENTS.md` | 给 Codex、Claude Code 等编码代理的入口约定（`CLAUDE.md` 指向它） | [AGENTS.md](AGENTS.md) |
 | `website/` | 文档站（Rspress 2.0）：七个部分、首页、主题；设计文档在站内「设计与路线」镜像 | [website/README.md](website/README.md) |
 | `apps/` | 外壳应用 `qian-shell`（pnpm workspace + `catalog:` + Turborepo）；前端框架（原 yue，现名 qian）已迁到 `CavaiLAB/qian`，这里装已发布的 `@cavailab/qian-*`，见下文「前端依赖与包源」 | [apps/qian-shell/README.md](apps/qian-shell/README.md) · [前端框架](https://github.com/CavaiLAB/qian/blob/main/packages/qian/README.md) |

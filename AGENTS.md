@@ -1,6 +1,6 @@
 # AGENTS.md：给编码代理的入口说明
 
-这个仓库是 **Kun**：匠心智能体平台的企业级后端框架（.NET 10）。**两个原仓库的代码已带历史迁入本仓库，原仓库已归档为只读。Kun 框架的代码在仓库根，文档在 `docs/`；平台代码与工具仍在过渡目录 `_import/qian/`，正按迁移执行计划分批并轨，再按域归并到 `Kun.*` 名下。**
+这个仓库是 **Kun**：匠心智能体平台的企业级后端框架（.NET 10）。**两个原仓库的代码已带历史迁入本仓库，原仓库已归档为只读。内核与平台的 .NET 项目在仓库根，框架文档在 `docs/`。组件资产、前端工作区、文档站与任务看板位于 `_import/qian/`。**
 
 ## 要改代码
 
@@ -8,12 +8,12 @@
 
 | 位置 | 内容 | 怎么构建与测试 |
 |---|---|---|
-| 仓库根 | Kun 框架：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.slnx`（`_import/qian/` 下的 .NET 项目也在里面）与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「Kun 框架的构建、测试与代码约定」，命令在仓库根运行 |
-| `_import/qian/` | 平台代码与工具：.NET 包、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
+| 仓库根 | Kun 框架：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.slnx`与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「Kun 框架的构建、测试与代码约定」，命令在仓库根运行 |
+| `_import/qian/` | 平台资源与工具：组件资产、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
 
-构建基线正在并轨（B3，S1-KUN-020）。仓库根上的 `Directory.Build.props`（目标框架、质量门槛、确定性构建）、`Directory.Build.targets`（档位声明检查、公共 API 门禁、AOT 守卫，以及禁用符号与平台分析器的作用域）、`Directory.Packages.props`（中央包版本）、`NuGet.config`（只用 nuget.org）、`BannedSymbols.txt`（禁用符号清单）与 `global.json` 两边共用；`src/` 下 Kun 包的版本与包元数据在 `src/Directory.Build.props`。解决方案只有一个：仓库根的 `Kun.slnx`，含仓库根与 `_import/qian/` 下的全部项目。`_import/qian/` 下的项目改为项目引用 `src/` 下的 Kun 源码，不再按包引用 Kun。`_import/qian/Qian.slnf` 是它们的筛选文件，列出 `_import/qian/` 下的项目，那里的脚本与测试以它所在的目录为根；在 `_import/qian/` 下新加项目，要同时加进 `Kun.slnx` 与 `Qian.slnf`，门禁自测会核对。`_import/qian/` 下的 `Directory.Build.props`、`Directory.Build.targets` 与 `Directory.Packages.props` 先导入根上的：第一个只留那里的打包设置，第二个只留发版脚本读的包判定与网关引用的处理，第三个只剩这一句导入（原来给文档站读的 `KunVersion` 已删，文档站改读仓库根 `CHANGELOG.md` 里 Kun 最新的发布版，门禁自测保证没有 MSBuild 文件再定义或引用它）。SDK 版本只钉在仓库根的 `global.json`，`_import/qian/` 下没有另一份；那里另有带 `root = true` 的 `.editorconfig` 与 pnpm 工作区。在仓库根上不带参数跑 `dotnet`，构建的是整个 `Kun.slnx`；只构建 `_import/qian/` 下的项目时，在那里用 `Qian.slnf`，它引用的 Kun 项目会跟着构建。`_import/qian/` 的其余命令一律在那里跑，不要在仓库根上跑 `pnpm`。仓库根的 `.gitignore` 与 `.gitattributes` 对 `_import/qian/` 同样生效。
+从仓库根使用 `Kun.slnx` 构建内核、平台与宿主。根 `Directory.Build.props`、`Directory.Build.targets`、`Directory.Packages.props`、`NuGet.config`、`BannedSymbols.txt`、`.editorconfig` 与 `global.json` 共同定义构建基线。包版本与元数据在 `src/Directory.Build.props`。前端 pnpm 工作区及门禁资源在 `_import/qian/`。
 
-检查只有一个入口：仓库根的 `.github/workflows/ci.yml`（S1-KUN-020）。它先跑变更检测，按区域表 `scripts/ci_changes.py` 把改动的文件归到各个区域（.NET 的构建、门禁、测试与原生发布，镜像自检，文档与看板，文档站，各项前端验收等），只跑涉及的区域的作业；推 `main` 与手动触发时全部区域都跑。前端与文档的检查是 `.github/workflows/` 下的 `qian-*.yml`，只由 `ci.yml` 调用，在 `_import/qian/` 下运行；其余作业直接写在 `ci.yml` 里，仓库根上的 Kun 框架与 `_import/qian/` 下的 .NET 项目都在其中。两边导入时带来的 `.github/` 原件，Kun 框架的在 `.github/originals/kun/`，平台的在 `_import/qian/.github/`，GitHub 都不读；`ci.yml` 与 `qian-*.yml` 的开头写着对应哪个原件、相对原件改了什么，Kun 框架没接的工作流与模板见 `.github/originals/kun/README.md`。
+检查只有一个入口：仓库根的 `.github/workflows/ci.yml`（S1-KUN-020）。它先跑变更检测，按区域表 `scripts/ci_changes.py` 把改动的文件归到各个区域（.NET 的构建、门禁、测试与原生发布，镜像自检，文档与看板，文档站，各项前端验收等），只跑涉及的区域的作业；推 `main` 与手动触发时全部区域都跑。前端与文档的检查是 `.github/workflows/` 下的 `qian-*.yml`，只由 `ci.yml` 调用，在 `_import/qian/` 下运行；其余作业直接写在 `ci.yml` 里，仓库根的内核、平台和宿主项目都在其中。两边导入时带来的 `.github/` 原件，Kun 框架的在 `.github/originals/kun/`，平台的在 `_import/qian/.github/`，GitHub 都不读；`ci.yml` 与 `qian-*.yml` 的开头写着对应哪个原件、相对原件改了什么，Kun 框架没接的工作流与模板见 `.github/originals/kun/README.md`。
 
 最后一个作业「CI 汇总」汇总全部作业的结果，必需检查只设它一个：变更检测没有成功、或任一作业失败或取消，即不通过；没涉及而跳过的作业算通过。几条约定：
 
@@ -45,15 +45,15 @@
 dotnet restore
 dotnet build -c Release
 dotnet test --solution tests/kun-unit.slnf -c Release --no-build
-dotnet format --verify-no-changes --exclude _import/qian
+dotnet format Kun.slnx --verify-no-changes
 ```
 
-- 不带参数的 `dotnet restore`、`dotnet build` 用的是 `Kun.slnx`，`_import/qian/` 下的项目也一起构建。格式检查排除 `_import/qian`，与 CI 一致：`_import/qian/` 有自己的 `.editorconfig`，格式门禁不管它。
-- `tests/kun-unit.slnf` 列出 Kun 框架除 `Kun.IntegrationTests`、`Kun.Sample.Tests`、`Kun.Integration.AotTests` 之外的全部测试项目，即单元测试；新加单元测试项目时同时加进这个文件。覆盖率加 `--coverlet --coverlet-output-format cobertura`（单元测试项目都引用了 coverlet.MTP）。
+- 不带参数的 `dotnet restore` 和 `dotnet build` 使用根 `Kun.slnx`。在仓库根运行格式核对。
+- 单元测试登记在 `tests/kun-unit.slnf`，与覆盖率一起运行时加 `--coverlet --coverlet-output-format cobertura`。平台测试登记在 `tests/kun-platform.slnf`，分片 a、b、c 的归属由 `scripts/dotnet_ci.py` 核对。
 - 单个测试项目：`dotnet test --project tests/Kun.Mediator.Tests -c Release`；单个测试类或方法用 xunit 的筛选参数，如 `--filter-class "*.类名"`、`--filter-method "*.类名.方法名"`。
 - 集成测试（`tests/Kun.IntegrationTests`）用 Testcontainers 起容器，对象存储测试用 RustFS 作 S3 兼容服务。本机没有容器环境时跳过；设了 `CI` 时改为失败；拉不到镜像一律失败。跑法：`dotnet test --project tests/Kun.IntegrationTests -c Release`。
-- `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑，写在 `_import/qian/scripts/dotnet_ci.py` 的 `NOT_IN_CI` 里。
-- 每个测试项目都要有着落，CI 的门禁作业用 `python3 _import/qian/scripts/dotnet_ci.py registration` 核对：`_import/` 之外（`tests/gates/` 除外）引用了测试运行器的包或写了 `<IsTestProject>true</IsTestProject>` 的项目，要在 `tests/kun-unit.slnf` 里、在同一脚本的 `KUN_INTEGRATION` 里，或由 `ci.yml` 里 dotnet 区域的作业 `dotnet test --project` 运行；明知不在 CI 跑的写进 `NOT_IN_CI` 并写明原因，表里的项目搬走、改名或进了 CI 时要跟着改。`_import/qian/` 下的测试项目要在 `Qian.slnf` 里或由专属作业运行。
+- `samples/Kun.Sample.Tests` 要 Aspire 的服务发现环境变量，CI 不跑，写在 `scripts/dotnet_ci.py` 的 `NOT_IN_CI` 里。
+- 运行 `python3 scripts/dotnet_ci.py registration` 核对两个筛选文件、`KUN_INTEGRATION`、专属作业及带原因的 `NOT_IN_CI` 名单。每个分片都核对每个模块恰好产生一份 TRX，分片 k 的单元测试另核覆盖率。
 - CI（`ci.yml` 的 dotnet 区域）另外：原生发布并运行 AOT 冒烟宿主 `tests/Kun.AotSmoke`，ILC 有任何警告即失败（清单见下面「项目文件与包」）；跑 `tests/Kun.Integration.AotTests`（样例、网关包与网关独立宿主的 NativeAOT 发布并运行）；按档位检查依赖（`scripts/check_deps.py`，见下面「档位与依赖」）与身份模块的日志隐私和产品中立（`scripts/check-identity-boundaries.py`）；用占位版本打全部可打包项目并核对产物（`scripts/release_packages.py`，见下面「项目文件与包」），不推送。单元测试与集成测试在测试分片 k 里跑：每个模块各写一份 TRX 与覆盖率，覆盖率上传前核对 `tests/kun-unit.slnf` 里每个测试项目恰好一份；汇总作业再核对每个模块都跑过、没有失败。提交前至少跑一遍格式检查。
 - 基准与对象存储实测不进 CI（S1-DEC-038 D21），在本机跑。基准：`dotnet run -c Release --project benchmarks/Kun.Benchmarks -- --filter '*'`，gRPC 的基准换成 `benchmarks/Kun.Benchmarks.Grpc`，结果写在当前目录的 `BenchmarkDotNet.Artifacts/`。对象存储实测连真实的 OSS 桶，四个 `OSS_SMOKE_*` 环境变量都设了才跑，缺一个就跳过（CI 的分片 k 里没有它们，这组用例跳过）：
 
@@ -94,7 +94,7 @@ dotnet format --verify-no-changes --exclude _import/qian
 - `TargetFramework`、`Nullable`、`LangVersion`、`TreatWarningsAsErrors`、分析器只在 `Directory.Build.props` 里设，不写进单个项目文件。
 - AOT 按项目选择：AOT 兼容的库在项目文件里写 `<IsAotCompatible>true</IsAotCompatible>`，SDK 据此打开 `IsTrimmable` 与裁剪、AOT、单文件三个分析器，普通构建里就查；不兼容的什么都不写，项目文件里写一句为什么。几条守卫在仓库根的 `Directory.Build.targets`：写了 `IsAotCandidate`（已经不用的开关）报 KUNAOT001；可打包的库在项目文件里写 `PublishAot` 报 KUNAOT002，它只写在要原生发布的可执行项目里；写了 `IsAotCompatible` 却关掉分析器报 KUNAOT003。
 - AOT 清单就是写了 `IsAotCompatible=true` 的项目，没有别的副本：`python3 scripts/aot_projects.py` 列出它们。AOT 冒烟宿主 `tests/Kun.AotSmoke` 引用其中每一个并整体扎根，CI 原生发布后运行它；它的项目引用必须正好等于清单，库加上或去掉 `IsAotCompatible` 时同时改它，`python3 scripts/aot_projects.py --check` 与 `tests/gates` 的自测核对。本机原生发布：`dotnet publish tests/Kun.AotSmoke -c Release`（要 clang；在 macOS 上发布的是本机架构，IL 分析与 CI 的 linux-x64 相同）。`scripts/release.sh` 发版前照 CI 的做法核对、原生发布并运行冒烟宿主。
-- 发版的包名单就是 `Kun.slnx` 里可打包的项目，不另写：`python3 scripts/release_packages.py list --transitional` 列出并核对档位与角色。CI「构建与门禁」用占位版本打全部包，`verify-packages --transitional` 核对：恰好是名单上的包、版本一致、名单内的依赖都在且写成 `V`、`[V]` 或 `[V,)`、符号包配对（只带分析器的包免符号包、也不许带，两种模式一样：项目求值 `IncludeBuildOutput=false` 且包里 `lib/`、`runtimes/` 下没有 `.dll`、`.exe` 才算，不看包名，这样的项目写 `IncludeSymbols=false`）、MIT、仓库地址与提交号、作者与版权与项目地址（照 `src/Directory.Build.props`）、描述不空且不写过渡目录的名字、内核档不依赖平台档、稳定版不带预发布依赖（项目在 `NoWarn` 里写了 NU5104 的除外）。过渡模式只给项目在过渡目录（`_import/`）下的包放行其中几项（包名前缀、仓库地址、符号包、元数据、描述、预发布依赖），`src/` 下的包两种模式都按严格判，包一搬进 `src/` 当次就查；档位例外不分位置只报数。开关写在脚本开头，B10 之后去掉 `--transitional` 收紧。
+- `python3 scripts/release_packages.py list` 从 `Kun.slnx` 列出可打包项目和档位。CI 以占位版本打包，再由 `verify-packages` 核对包名、精确依赖、档位、符号包、仓库与提交、许可、作者、项目地址和描述。仅发布分析器且不含运行程序集的项目使用 `IncludeSymbols=false`。
 - 包间使用内部成员时，开放方在项目的 `InternalsVisibleTo` 项用 `KunPackageFriendReason` 记录原因；消费方打包后对开放方精确依赖 `[V]`。测试程序集也用项目项声明。制品核对会逐个读取程序集元数据，比对实际授权，并核验 AOT 清单中程序集的 `IsTrimmable=True`。
 - 包版本统一写在 `Directory.Packages.props`（中央包管理），项目里写 `<PackageReference Include="X" />`，不带 `Version`。加新包先查这里有没有；AOT 兼容的模块还要核对新包的 AOT 兼容性。
 - 公共 API 要写 XML 文档注释。可打包的项目都要带 `PublicAPI.Shipped.txt` 与 `PublicAPI.Unshipped.txt`，首行写 `#nullable enable`（仓库根 `Directory.Build.targets` 的公共 API 门禁，按 `IsPackable` 判定）：缺文件报 KUNAPI001；新增公共 API 没登记报 RS0016，登记了却已删除报 RS0017，都是编译错误。新 API 先登记进 Unshipped，IDE 对 RS0016 的代码修复会生成登记行。

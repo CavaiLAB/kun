@@ -90,7 +90,7 @@ class DeclarationTests(unittest.TestCase):
         self.assertIn("Kernel", details["Bravo"])
 
     def test_project_dependency_outside_the_checked_set_is_reported(self):
-        # 只查子集（如 Qian.slnf）时，子集外的项目没有档位可查；可打包项目引用不可打包的项目同样档位不明。
+        # 只查子集（如 tests/kun-platform.slnf）时，子集外的项目没有档位可查；可打包项目引用不可打包的项目同样档位不明。
         packages = [package("Alpha", "kernel", "provider")]
         assets = {"Alpha": make_assets("Alpha", ["Helper"], {"Helper": ["Kun.Core"], "Kun.Core": []}, projects={"Helper", "Kun.Core"})}
         [violation] = run(packages, assets)[0]

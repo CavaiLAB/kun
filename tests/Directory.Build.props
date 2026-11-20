@@ -12,13 +12,13 @@
   </PropertyGroup>
 
   <!--
-    CI 的测试分片 k 让每个测试模块按项目名写 TRX 与覆盖率（S1-KUN-020）。dotnet test 同时启动几个模块，
+    CI 的四个分片按模块写 TRX，分片 k 的单元测试另写覆盖率。dotnet test 同时启动几个模块，
     TRX 的缺省文件名只有「用户_机器_时间戳」，覆盖率的缺省文件名只有毫秒时间戳，同名时后写完的覆盖先写完的。
-    -p:QianTrxPerModule=true 与 _import/qian/tests/Directory.Build.props 里的同名开关一样；-p:CoveragePerModule=true
+    -p:KunTrxPerModule=true 给 TRX 加项目名前缀。-p:CoveragePerModule=true
     给覆盖率文件加项目名前缀，要和 coverlet 一起给，CI 核对份数后再去掉文件名里的时间戳
-    （_import/qian/scripts/dotnet_ci.py coverage）。两个都默认不开：本机运行与 dotnet run 照旧。
+    （scripts/dotnet_ci.py coverage）。两个都默认不开：本机运行与 dotnet run 照旧。
   -->
-  <PropertyGroup Label="Per-module TRX" Condition="'$(QianTrxPerModule)' == 'true'">
+  <PropertyGroup Label="Per-module TRX" Condition="'$(KunTrxPerModule)' == 'true'">
     <RunArguments>$(RunArguments) --report-xunit-trx-filename $(MSBuildProjectName).trx</RunArguments>
   </PropertyGroup>
   <PropertyGroup Label="Per-module coverage" Condition="'$(CoveragePerModule)' == 'true'">

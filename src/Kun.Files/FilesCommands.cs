@@ -103,7 +103,7 @@ internal sealed class PresignUploadHandler(CommandDataSession<FilesDbContext> wo
             Sha256 = sha256,
             StorageKey = storageKey,
             UploadKey = FileKeys.Upload(storageKey, id),
-            Provider = runtime.Backend.Name,
+            Provider = FileStorageMount.Local,
             Status = FileStatus.Uploading,
             UploadExpiresAt = now + FilesRuntime.UploadLifetime,
             IdempotencyKey = request.IdempotencyKey,
@@ -116,7 +116,7 @@ internal sealed class PresignUploadHandler(CommandDataSession<FilesDbContext> wo
     private static async ValueTask<PresignedUpload> Sign(FilesRuntime runtime, FileObject file, TimeSpan lifetime, CancellationToken cancellationToken)
     {
         var transfer = await runtime.Backend.CreateUploadAsync(file.UploadKey, file.ContentType, file.Size, lifetime, cancellationToken).ConfigureAwait(false);
-        return new PresignedUpload(file.Id, transfer.Url, transfer.Method, transfer.Headers, transfer.ExpiresAt);
+        return new PresignedUpload(file.Id, transfer.Url, "PUT", transfer.RequiredHeaders, transfer.ExpiresAt);
     }
 
     // 输入 Schema 表达不了的规则：用途须已登记，文件名为单段名称，类型须为合法 MIME 且在策略内，SHA-256 为 64 位十六进制。
@@ -231,7 +231,7 @@ internal static class UploadVerifier
     internal static async ValueTask VerifyAsync(FilesRuntime runtime, FileObject file, CancellationToken cancellationToken)
     {
         Stream staging;
-        try { staging = await runtime.Backend.OpenReadAsync(file.UploadKey, cancellationToken).ConfigureAwait(false); }
+        try { staging = await runtime.Backend.Storage.OpenReadAsync(file.UploadKey, cancellationToken).ConfigureAwait(false); }
         catch (FileNotFoundException) { throw new ErrorException(new Error(FilesErrors.UploadIncomplete)); }
         await using (staging.ConfigureAwait(false))
         {
@@ -254,7 +254,7 @@ internal static class UploadVerifier
             await using var content = new HashingStream(head.AsMemory(0, length), staging, hash);
             try
             {
-                await runtime.Backend.WriteAsync(storageKey, content, detected, file.Size, cancellationToken).ConfigureAwait(false);
+                await runtime.Backend.Storage.UploadAsync(storageKey, content, detected, new Kun.Storage.UploadConstraints(file.Size), cancellationToken).ConfigureAwait(false);
             }
             catch (InvalidOperationException) when (content.Length > file.Size)
             {
@@ -265,7 +265,7 @@ internal static class UploadVerifier
             var reason = content.Length != file.Size ? FileQuarantineReason.SizeMismatch : sha256 != file.Sha256 ? FileQuarantineReason.ChecksumMismatch : null;
             if (reason is not null)
             {
-                await runtime.Backend.DeleteAsync(storageKey, cancellationToken).ConfigureAwait(false);
+                await runtime.Backend.Storage.DeleteAsync(storageKey, cancellationToken).ConfigureAwait(false);
                 Quarantine(file, reason, detected);
                 return;
             }

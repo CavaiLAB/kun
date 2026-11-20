@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Kun.Runtime;
 
 namespace Kun.Files;
@@ -8,8 +7,6 @@ public static class FilesDefinition
 {
     /// <summary>当前 scope 可见的文件服务（单例 seam，组件模型 §6.2）。</summary>
     public static readonly ServiceKey Key = new("Files");
-    /// <summary>存储后端注册表（R38 具名 seam）：后端以 <c>Files.Backends:&lt;名称&gt;</c> 登记，组件用 <c>[Contributes]</c> 声明。</summary>
-    public static readonly ServiceKey BackendsKey = new("Files.Backends");
     /// <summary>上传策略注册表：策略是数据而不是具名服务，冲突时以 <c>Files.Policies:&lt;用途&gt;</c> 报告。</summary>
     public static readonly ServiceKey PoliciesKey = new("Files.Policies");
 
@@ -32,8 +29,6 @@ public interface IFileService
 {
     /// <summary>上传策略注册表：消费组件在 Apply 里按用途登记，释放句柄交给 ctx.Effect（R38 注册表 seam）。</summary>
     IUploadPolicyRegistry Policies { get; }
-    /// <summary>存储后端注册表：按名称登记后端工厂，组件配置 storage.kind 按名称选用（R38 注册表 seam）。</summary>
-    IFileBackendRegistry Backends { get; }
     /// <summary>当前后端需要宿主代为执行直传与直下时的网关（local 后端）；后端自带签名（S3 / OSS）时为 null。</summary>
     IFileTransferGateway? Transfer { get; }
     /// <summary>能力 qian.files/presign-upload：校验策略与配额、预占配额并签发短时 PUT 地址（不超过 15 分钟）。</summary>
@@ -60,49 +55,6 @@ public interface IUploadPolicyRegistry
     /// <summary>按用途排序的已登记策略快照。</summary>
     IReadOnlyList<UploadPolicy> List();
 }
-
-/// <summary>按名称登记的存储后端工厂；同名独占。</summary>
-public interface IFileBackendRegistry
-{
-    /// <summary>登记名称 <paramref name="name"/> 的后端工厂，返回可重复释放的撤销句柄。</summary>
-    IDisposable Register(string name, IFileBackendFactory factory);
-    /// <summary>读取名称对应的工厂；未登记返回 null。</summary>
-    IFileBackendFactory? Find(string name);
-    /// <summary>按名称排序的已登记后端名。</summary>
-    IReadOnlyList<string> List();
-}
-
-/// <summary>存储后端工厂：由组件配置的 storage 节创建后端实例。</summary>
-public interface IFileBackendFactory
-{
-    /// <summary>创建后端；配置不合法时抛出带 INPUT_INVALID 的 ErrorException。</summary>
-    IFileBackend Create(FileBackendContext context);
-}
-
-/// <summary>创建后端所需的输入：组件配置 storage 节、文件组件的时钟与宿主服务（日志等）。</summary>
-public sealed record FileBackendContext(JsonElement Storage, TimeProvider Clock, IServiceProvider Services);
-
-/// <summary>最小存储后端端口：对象键由文件服务生成，后端不感知租户与配额。</summary>
-public interface IFileBackend
-{
-    /// <summary>后端名称，写入 file_objects.provider。</summary>
-    string Name { get; }
-    /// <summary>需要宿主代为执行直传与直下时返回网关，否则 null。</summary>
-    IFileTransferGateway? Transfer { get; }
-    /// <summary>签发 PUT 上传地址：请求体超过 <paramref name="maxBytes"/> 必须被拒绝。</summary>
-    ValueTask<PresignedTransfer> CreateUploadAsync(string objectKey, string contentType, long maxBytes, TimeSpan lifetime, CancellationToken cancellationToken = default);
-    /// <summary>签发 GET 下载地址：恒定 Content-Disposition: attachment，文件名为 <paramref name="fileName"/>。</summary>
-    ValueTask<PresignedTransfer> CreateDownloadAsync(string objectKey, string fileName, TimeSpan lifetime, CancellationToken cancellationToken = default);
-    /// <summary>服务端读取对象内容；对象不存在时抛出 FileNotFoundException。</summary>
-    ValueTask<Stream> OpenReadAsync(string objectKey, CancellationToken cancellationToken = default);
-    /// <summary>服务端写入对象；超过 <paramref name="maxBytes"/> 时不留对象并抛出 InvalidOperationException。</summary>
-    ValueTask WriteAsync(string objectKey, Stream content, string contentType, long maxBytes, CancellationToken cancellationToken = default);
-    /// <summary>删除对象；不存在时返回 false。</summary>
-    ValueTask<bool> DeleteAsync(string objectKey, CancellationToken cancellationToken = default);
-}
-
-/// <summary>后端签发的直传 / 直下地址；Headers 对上传是必须携带的请求头，对下载是响应将带的头。</summary>
-public sealed record PresignedTransfer(Uri Url, string Method, IReadOnlyDictionary<string, string> Headers, DateTimeOffset ExpiresAt);
 
 /// <summary>
 /// 由宿主 HTTP 层代为执行签名直传与直下的网关（local 后端）。签名即授权：网关校验签名与过期，不读租户上下文；

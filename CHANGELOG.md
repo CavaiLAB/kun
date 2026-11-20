@@ -26,6 +26,12 @@
 - 权限点为 `<plugin-id>:<resource>:<action>`，例如 `sample.crm:item:read`。缺少组件前缀的 `sample:item:read` 在端点声明时抛出「权限点必须是 <plugin-id>:<resource>:<action> 全名」。权限拒绝由 HTTP ErrorDetail 或 gRPC 状态返回，gRPC 对权限执行点和漏装拒绝都写入 `kun-error-code` 和 `qian-error-bin`。
 - 调用 `AddKunGrpc()` 的宿主在全局或按服务登记 `AddKunAuthorizationInterceptor()`，带权限声明的调用在漏装时被拒绝。映射数据端点时传入 `(route, permission) => route.RequireKunPermission(permission)`，与文件端点使用相同的回调校验。
 
+### Changed — 文件存储与本地签名传输（S1-KUN-028）
+
+- 文件组件升为 2.0.0。公开服务键为 `Files`，按挂载的 `storage.kind` 使用 `IFileStorage`。`Files.Backends:local`、`IFileService.Backends`、旧后端注册表、工厂和后端上下文已移除。
+- `Kun.Storage.Local.LocalSignedTransfers` 可签发限时上传与附件下载地址，按内容类型与声明长度接收上传。`Kun.Files` 的 local 端点现在原子创建上传对象，并发写入同一地址时只有一个请求成功。
+- 开发宿主可以使用进程共享的临时签名密钥，其他环境须配置至少 32 字节的 `KunFilesOptions.LocalSigningKey`。多实例使用同一密钥。
+
 ### Changed — 权限执行请求与数据过滤（S1-KUN-027）
 
 - HTTP、gRPC、命令和配置入口使用 `Kun.Authorization.AuthorizationSubject`。把 `EnforcementSubject` 的身份修订、委托状态改传给 `EnforcementRequest` 的必填参数 `IdentityRevision` 与 `Delegated`。修订为空的令牌仍需显式传 `null`。

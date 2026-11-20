@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Files.AspNetCore;
+using Microsoft.Extensions.DependencyInjection;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Surfaces;
@@ -17,7 +17,9 @@ public sealed class FilesProfileConfigurationTests
     {
         var profile = new ProfileLoader(new SurfaceValidator()).Load(new ProfileLoadOptions
         {
-            WorkingDirectory = FilesMetadata.RepositoryRoot(), Profile = "platform", IncludeHomePatch = false
+            WorkingDirectory = FilesMetadata.RepositoryRoot(),
+            Profile = "platform",
+            IncludeHomePatch = false
         });
         Assert.True(profile.IsValid, JsonSerializer.Serialize(profile.Diagnostics));
         var settings = FilesConfiguration.Read(Assert.Single(profile.Snapshot!.Entries, entry => entry.Id == "files").Config);
@@ -31,8 +33,7 @@ public sealed class FilesProfileConfigurationTests
             var storage = JsonNode.Parse(settings.Storage.GetRawText())!.AsObject();
             Assert.True(Path.IsPathFullyQualified(storage["root"]!.GetValue<string>()));
             storage["root"] = root;
-            Assert.NotNull(new LocalFileBackendFactory(new byte[32]).Create(new FileBackendContext(
-                JsonSerializer.SerializeToElement(storage), TimeProvider.System, new ServiceCollection().BuildServiceProvider())).Transfer);
+            Assert.NotNull(FileStorageMount.Create("local", JsonSerializer.SerializeToElement(storage), TimeProvider.System, new ServiceCollection().BuildServiceProvider(), new byte[32]));
         }
         finally { Directory.Delete(root, recursive: true); }
     }

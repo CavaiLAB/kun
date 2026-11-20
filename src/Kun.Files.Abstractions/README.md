@@ -21,7 +21,7 @@
 ## 注册表 seam（R38）
 
 - `IFileService.Policies`（`IUploadPolicyRegistry`，`FilesDefinition.PoliciesKey`）：上传用途的策略表。`Register(policy)` 按策略里的用途登记并返回释放句柄，组件在 `Apply` 里交给 `ctx.Effect`，卸载即撤销；同名用途独占，重复登记报 `REGISTRATION_CONFLICT`（`key` 为 `Files.Policies:<用途>`）。策略是数据而不是具名服务，不进清单 `provides`。平台宿主里，组件还可以在自己文件夹的 `metadata/upload-policies.json` 声明用途策略（结构见 `schemas/v2/files-upload-policies.schema.json`，只能声明以本组件 ID 开头的用途）：Provider 从 Registry 预装快照汇总，同组件预装多个版本时取最高版本；同用途已有登记（组件配置或 `Register`）时以登记为准，不报冲突。
-- `IFileService.Backends`（`IFileBackendRegistry`，`FilesDefinition.BackendsKey`）：存储后端工厂表，`local` 由 Provider 自带。登记后端的组件在入口上写 `[Contributes(typeof(FilesDefinition), nameof(FilesDefinition.BackendsKey), "<名称>", RegistryType = …)]`，生成器据此把 `Files.Backends:<名称>` 派生进 `provides`；S1-FILE-002 的 s3 / oss 以同一方式登记。
+- 组件按挂载选用存储。服务端对象访问使用 `Kun.Storage.IFileStorage`，上传策略通过公开的 `IUploadPolicyRegistry` 登记。
 
 用途形如 `<组件 ID>/<名称>`（例如 `acme.crm/attachment`），组件 ID 段进入存储键。`UploadPolicy` 的 `AllowedTypes` 为精确 MIME 或 `type/*`，`MaxSize` 为单文件上限，`MaxCount` 非空时限制每个租户该用途的在用文件数。
 

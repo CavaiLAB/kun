@@ -1,23 +1,36 @@
-using Kun.EventBus.EntityFrameworkCore;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
+using Kun.Audit;
+using Kun.Authorization.AspNetCore;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Authorization.Rbac;
 using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
+using Kun.Data;
 using Kun.EntityFrameworkCore.Extensions;
-using Kun.EventBus;
+using Kun.EntityFrameworkCore;
+using Kun.Errors.AspNetCore;
+using Kun.Errors;
 using Kun.EventBus.DependencyInjection;
+using Kun.EventBus.EntityFrameworkCore;
+using Kun.EventBus;
+using Kun.Files.AspNetCore;
+using Kun.Identity.Abstractions;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy.DependencyInjection;
 using Kun.MultiTenancy.Middleware;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
 using Kun.Security.Authentication;
 using Kun.Security.DependencyInjection;
+using Kun.Tenancy;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,23 +38,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Kun.Audit;
-using Kun.Authorization.Rbac;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Authorization.AspNetCore;
 using Qian.Capabilities;
-using Kun.Data;
-using Kun.Files.AspNetCore;
-using Kun.Identity.Abstractions;
-using Kun.Plugin.Sdk;
 using Qian.Registry;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Errors.AspNetCore;
-using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
-using Kun.Tenancy;
-using Kun.Testing.Containers;
+using Qian.Surfaces;
 
 namespace Kun.Files.Tests;
 
@@ -210,7 +210,8 @@ internal sealed class FilesHost : IAsyncDisposable
             await runtime.ProvisionAsync(A, "tenant.owner", Subject, ct);
             await runtime.ProvisionAsync(B, "tenant.user", Subject, ct);
             return new FilesHost(app, runtime, signing, key, new HttpClient { BaseAddress = new Uri(address) }, clock, storage,
-                postgres.ConnectionString, business, migrations) { Platform = operations };
+                postgres.ConnectionString, business, migrations)
+            { Platform = operations };
         }
         catch
         {
@@ -238,8 +239,18 @@ internal sealed class FilesHost : IAsyncDisposable
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
         var payload = new Dictionary<string, object?>
         {
-            ["iss"] = Issuer, ["aud"] = new[] { Audience }, ["sub"] = subject ?? Subject, ["principal_kind"] = "service", ["tenant_id"] = tenant,
-            ["roles"] = TokenRoles, ["scope"] = "files", ["session_id"] = id, ["jti"] = id, ["iat"] = now, ["nbf"] = now, ["exp"] = now + 60
+            ["iss"] = Issuer,
+            ["aud"] = new[] { Audience },
+            ["sub"] = subject ?? Subject,
+            ["principal_kind"] = "service",
+            ["tenant_id"] = tenant,
+            ["roles"] = TokenRoles,
+            ["scope"] = "files",
+            ["session_id"] = id,
+            ["jti"] = id,
+            ["iat"] = now,
+            ["nbf"] = now,
+            ["exp"] = now + 60
         };
         return new JsonWebTokenHandler().CreateToken(JsonSerializer.Serialize(payload), new SigningCredentials(_key, SecurityAlgorithms.RsaSha256));
     }
@@ -250,8 +261,18 @@ internal sealed class FilesHost : IAsyncDisposable
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
         var payload = new Dictionary<string, object?>
         {
-            ["iss"] = Issuer, ["aud"] = new[] { Audience }, ["sub"] = subject, ["principal_kind"] = "user", ["tenant_id"] = null,
-            ["roles"] = Array.Empty<string>(), ["scope"] = "", ["session_id"] = id, ["jti"] = id, ["iat"] = now, ["nbf"] = now, ["exp"] = now + 60
+            ["iss"] = Issuer,
+            ["aud"] = new[] { Audience },
+            ["sub"] = subject,
+            ["principal_kind"] = "user",
+            ["tenant_id"] = null,
+            ["roles"] = Array.Empty<string>(),
+            ["scope"] = "",
+            ["session_id"] = id,
+            ["jti"] = id,
+            ["iat"] = now,
+            ["nbf"] = now,
+            ["exp"] = now + 60
         };
         return new JsonWebTokenHandler().CreateToken(JsonSerializer.Serialize(payload), new SigningCredentials(_key, SecurityAlgorithms.RsaSha256));
     }
@@ -374,7 +395,7 @@ internal sealed class FilesHostRuntime(IServiceProvider services, ITenantContext
                 platform is null ? new { decisionLogSampling = 0d } : (object)new { decisionLogSampling = 0d, platformRole = platform.AuthzRole }),
             Define("audit", "qian.audit", new AuditPlugin(), [AuditDefinition.Key, CommandPolicies.AuditKey],
                 platform is null ? null : new { chain = new { platformRole = platform.AuditRole } }),
-            // provides 取自仓库清单（含 [Contributes] 派生的 Files.Backends:local）：装载器在 Apply 后核对每个声明的服务键都已提供。
+            // provides 取自仓库清单：装载器在 Apply 后核对每个声明的服务键都已提供。
             Define("files", "qian.files", new FilesPlugin(), FilesMetadata.Provides(), files)];
         if (platform is not null) providers = [.. providers, platform.Registry(_loader, providers)];
         await _loader.MountAsync(providers, ct);
@@ -438,7 +459,7 @@ internal static class FilesMetadata
         return new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata("qian.files", Version(), permissions.RootElement, roles.RootElement);
     }
 
-    // 清单的 provides（具名项形如 Files.Backends:local，与 ctx.Provide(key, name, …) 提供的服务键同名）。
+    // 清单的 provides。
     internal static IReadOnlyList<ServiceKey> Provides()
     {
         using var manifest = Manifest();

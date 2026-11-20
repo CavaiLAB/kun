@@ -74,47 +74,24 @@ public sealed partial class LocalFileSystemStorage : IFileStorage
                 $"Upload size {content.Length} bytes exceeds MaxBytes={preflight}.");
         }
 
-        long size;
-        const int bufferSize = 81920;
-        var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-        var fs = new FileStream(
-            target, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: true);
-        try
+        long? size;
+        await using (var output = new FileStream(target, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
         {
-            long totalWritten = 0;
-            int read;
-            while ((read = await content.ReadAsync(buffer.AsMemory(0, bufferSize), cancellationToken).ConfigureAwait(false)) > 0)
-            {
-                // Stream-level enforcement: bail mid-copy the instant the next chunk would
-                // push us past MaxBytes. The file is deleted below; no partial bytes remain
-                // on disk once the caller sees the exception.
-                if (maxBytes is { } max && totalWritten + read > max)
-                {
-                    await fs.DisposeAsync().ConfigureAwait(false);
-                    try { File.Delete(target); } catch (IOException) { /* best-effort cleanup */ }
-                    throw new InvalidOperationException(
-                        $"Upload size exceeds MaxBytes={max}.");
-                }
-
-                await fs.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
-                totalWritten += read;
-            }
-
-            size = fs.Length;
+            size = await CopyBoundedAsync(content, output, maxBytes, cancellationToken).ConfigureAwait(false);
         }
-        finally
+        if (!size.HasValue)
         {
-            ArrayPool<byte>.Shared.Return(buffer);
-            await fs.DisposeAsync().ConfigureAwait(false);
+            try { File.Delete(target); } catch (IOException) { }
+            throw new InvalidOperationException($"Upload size exceeds MaxBytes={maxBytes}.");
         }
 
         WriteContentType(target, contentType);
 
         var lastModified = new DateTimeOffset(File.GetLastWriteTimeUtc(target), TimeSpan.Zero);
-        var etag = ComputeETag(size, lastModified);
+        var etag = ComputeETag(size.Value, lastModified);
 
-        Log.Uploaded(_logger, objectKey, size, contentType);
-        return new ObjectMetadata(objectKey, size, contentType, etag, lastModified);
+        Log.Uploaded(_logger, objectKey, size.Value, contentType);
+        return new ObjectMetadata(objectKey, size.Value, contentType, etag, lastModified);
     }
 
     /// <inheritdoc/>
@@ -123,11 +100,12 @@ public sealed partial class LocalFileSystemStorage : IFileStorage
         DownloadOptions? options = null,
         TimeSpan? expiresIn = null,
         CancellationToken cancellationToken = default)
+        => Task.FromResult(CreateDownloadUrl(_options.PublicBaseUrl, objectKey, options,
+            _timeProvider.GetUtcNow().Add(expiresIn ?? _options.DefaultPresignedUrlLifetime)));
+
+    internal PresignedDownloadUrl CreateDownloadUrl(Uri endpoint, string objectKey, DownloadOptions? options, DateTimeOffset expiresAt)
     {
         ValidateKey(objectKey);
-
-        var lifetime = expiresIn ?? _options.DefaultPresignedUrlLifetime;
-        var expiresAt = _timeProvider.GetUtcNow().Add(lifetime);
 
         var contentType = ReadContentType(ResolvePath(objectKey));
         var active = ActiveWebContentTypes.Contains(contentType);
@@ -166,8 +144,8 @@ public sealed partial class LocalFileSystemStorage : IFileStorage
             responseHeaders["Content-Disposition"] = disposition!;
         }
 
-        var uri = BuildUri(_options.PublicBaseUrl, objectKey, query);
-        return Task.FromResult(new PresignedDownloadUrl(uri, responseHeaders, expiresAt, active));
+        var uri = BuildUri(endpoint, objectKey, query);
+        return new PresignedDownloadUrl(uri, responseHeaders, expiresAt, active);
     }
 
     /// <inheritdoc/>
@@ -177,13 +155,15 @@ public sealed partial class LocalFileSystemStorage : IFileStorage
         UploadConstraints? constraints = null,
         TimeSpan? expiresIn = null,
         CancellationToken cancellationToken = default)
+        => Task.FromResult(CreateUploadUrl(_options.PublicBaseUrl, objectKey, contentType, constraints,
+            _timeProvider.GetUtcNow().Add(expiresIn ?? _options.DefaultPresignedUrlLifetime)));
+
+    internal static PresignedUploadUrl CreateUploadUrl(Uri endpoint, string objectKey, string contentType, UploadConstraints? constraints, DateTimeOffset expiresAt)
     {
         ValidateKey(objectKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
         ValidateContentType(contentType, constraints);
 
-        var lifetime = expiresIn ?? _options.DefaultPresignedUrlLifetime;
-        var expiresAt = _timeProvider.GetUtcNow().Add(lifetime);
 
         var query = new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -191,7 +171,7 @@ public sealed partial class LocalFileSystemStorage : IFileStorage
             ["contentType"] = contentType,
         };
 
-        var uri = BuildUri(_options.PublicBaseUrl, objectKey, query);
+        var uri = BuildUri(endpoint, objectKey, query);
 
         var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -203,7 +183,7 @@ public sealed partial class LocalFileSystemStorage : IFileStorage
             headers["X-Kun-Max-Bytes"] = max.ToString(CultureInfo.InvariantCulture);
         }
 
-        return Task.FromResult(new PresignedUploadUrl(uri, headers, expiresAt));
+        return new PresignedUploadUrl(uri, headers, expiresAt);
     }
 
     /// <inheritdoc/>
@@ -333,6 +313,25 @@ public sealed partial class LocalFileSystemStorage : IFileStorage
         }
 
         return Task.FromResult(new ListObjectsResult(results, next));
+    }
+
+    private static async ValueTask<long?> CopyBoundedAsync(Stream source, Stream destination, long? maxBytes, CancellationToken cancellationToken)
+    {
+        const int bufferSize = 81920;
+        var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+        try
+        {
+            long size = 0;
+            int read;
+            while ((read = await source.ReadAsync(buffer.AsMemory(0, bufferSize), cancellationToken).ConfigureAwait(false)) > 0)
+            {
+                if (maxBytes is { } limit && read > limit - size) return null;
+                await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+                size += read;
+            }
+            return size;
+        }
+        finally { ArrayPool<byte>.Shared.Return(buffer); }
     }
 
     private static void ValidateKey(string objectKey)

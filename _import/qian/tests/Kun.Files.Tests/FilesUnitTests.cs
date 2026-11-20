@@ -1,9 +1,10 @@
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
 using Kun.Tenancy;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Kun.Files.Tests;
 
@@ -95,7 +96,7 @@ public sealed class FilesUnitTests
             reads.Add((plugin, key));
             return failure is null ? value : throw failure;
         });
-        var runtime = new FilesRuntime(TimeProvider.System, new FileBackendRegistry(), new UploadPolicyRegistry(), 100, () => settings);
+        var runtime = new FilesRuntime(TimeProvider.System, new UploadPolicyRegistry(), 100, () => settings);
         Assert.Equal(42L, await runtime.QuotaLimitAsync(Ct));
         Assert.Equal(("qian.files", "quota.perTenantBytes"), Assert.Single(reads));
         value = null;
@@ -127,12 +128,7 @@ public sealed class FilesUnitTests
         Assert.Null(policies.Find(policy.Purpose));
         using (policies.Register(policy with { MaxSize = 20 })) Assert.Equal(20, policies.Find(policy.Purpose)!.MaxSize);
 
-        var backends = new FileBackendRegistry();
-        using var local = backends.Register("local", new LocalFileBackendFactory(default));
-        Assert.Equal(new Dictionary<string, string> { ["key"] = "Files.Backends:local", ["owner"] = "qian.files" },
-            Assert.Throws<ErrorException>(() => backends.Register("local", new LocalFileBackendFactory(default))).Error.Args);
-        Assert.Equal("#/name", Assert.Throws<ErrorException>(() => backends.Register("Local", new LocalFileBackendFactory(default))).Error.Pointer);
-        Assert.Equal(["local"], backends.List());
+
     }
 
     [Fact]
@@ -143,14 +139,14 @@ public sealed class FilesUnitTests
         try
         {
             using var storage = JsonDocument.Parse(JsonSerializer.Serialize(new { kind = "local", root, endpoint = "http://127.0.0.1:5000/files/blobs" }));
-            var backend = new LocalFileBackendFactory(new byte[32]).Create(new FileBackendContext(storage.RootElement, clock, new ServiceCollection().BuildServiceProvider()));
+            var backend = FileStorageMount.Create("local", storage.RootElement, clock, new ServiceCollection().BuildServiceProvider(), new byte[32]);
             const string Key = "tenants/t1/acme.crm/2026/10/a.upload";
             var upload = await backend.CreateUploadAsync(Key, "text/plain", 3, TimeSpan.FromMinutes(15), Ct);
             var later = await backend.CreateUploadAsync("tenants/t1/acme.crm/2026/10/b.upload", "text/plain", 3, TimeSpan.FromMinutes(15), Ct);
             Assert.Equal("http://127.0.0.1:5000/files/blobs/" + Key, upload.Url.GetLeftPart(UriPartial.Path));
-            var gateway = backend.Transfer!;
+            var gateway = backend;
             var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(upload.Url.Query).ToDictionary(pair => pair.Key, pair => pair.Value.ToString());
-            var headers = new Dictionary<string, string>(upload.Headers, StringComparer.OrdinalIgnoreCase);
+            var headers = new Dictionary<string, string>(upload.RequiredHeaders, StringComparer.OrdinalIgnoreCase);
             async Task<FileTransferResult> Put(string key, IReadOnlyDictionary<string, string> values, IReadOnlyDictionary<string, string> head, string body = "abc") =>
                 await gateway.ReceiveAsync(new FileTransferRequest(key, values, head), new MemoryStream(Encoding.UTF8.GetBytes(body)), Ct);
 
@@ -166,12 +162,12 @@ public sealed class FilesUnitTests
             clock.Advance(TimeSpan.FromMinutes(16));
             Assert.Equal(FileTransferResult.Rejected, await Put("tenants/t1/acme.crm/2026/10/b.upload",
                 Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(later.Url.Query).ToDictionary(pair => pair.Key, pair => pair.Value.ToString()),
-                new Dictionary<string, string>(later.Headers, StringComparer.OrdinalIgnoreCase)));
+                new Dictionary<string, string>(later.RequiredHeaders, StringComparer.OrdinalIgnoreCase)));
             Assert.False(File.Exists(Path.Combine(root, "tenants/t1/acme.crm/2026/10/b.upload")));
 
             // 下载只签正式键：暂存键不能签发；签发的地址恒为附件，改处置参数即失效。
             await Assert.ThrowsAsync<ArgumentException>(async () => await backend.CreateDownloadAsync(Key, "a.txt", TimeSpan.FromMinutes(5), Ct));
-            await backend.WriteAsync("tenants/t1/acme.crm/2026/10/a.txt", new MemoryStream("abc"u8.ToArray()), "text/plain", 3, Ct);
+            await backend.Storage.UploadAsync("tenants/t1/acme.crm/2026/10/a.txt", new MemoryStream("abc"u8.ToArray()), "text/plain", new Kun.Storage.UploadConstraints(3), Ct);
             var download = await backend.CreateDownloadAsync("tenants/t1/acme.crm/2026/10/a.txt", "a.txt", TimeSpan.FromMinutes(5), Ct);
             var signed = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(download.Url.Query).ToDictionary(pair => pair.Key, pair => pair.Value.ToString());
             Assert.StartsWith("attachment;", signed["disposition"], StringComparison.Ordinal);
@@ -183,6 +179,27 @@ public sealed class FilesUnitTests
             Assert.Null(await gateway.OpenAsync(new FileTransferRequest(Key, signed, new Dictionary<string, string>()), Ct));
         }
         finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
+    public async Task 同一开发进程的挂载共享临时密钥_生产挂载需要显式密钥()
+    {
+        var directory = Directory.CreateTempSubdirectory("kun-files-mount-");
+        try
+        {
+            using var config = JsonDocument.Parse(JsonSerializer.Serialize(new { kind = "local", root = directory.FullName, endpoint = "https://files.test/objects" }));
+            using var production = new HostBuilder().UseEnvironment(Environments.Production).Build();
+            Assert.Throws<InvalidOperationException>(() => FileStorageMount.Create("local", config.RootElement, TimeProvider.System, production.Services, default));
+            using var development = new HostBuilder().UseEnvironment(Environments.Development).Build();
+            var issuer = FileStorageMount.Create("local", config.RootElement, TimeProvider.System, development.Services, default);
+            var receiver = FileStorageMount.Create("local", config.RootElement, TimeProvider.System, development.Services, default);
+            const string key = "tenants/example/shared.upload";
+            var upload = await issuer.CreateUploadAsync(key, "text/plain", 2, TimeSpan.FromMinutes(1), Ct);
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(upload.Url.Query).ToDictionary(pair => pair.Key, pair => pair.Value.ToString());
+            using var input = new MemoryStream("ok"u8.ToArray());
+            Assert.Equal(FileTransferResult.Stored, await receiver.ReceiveAsync(new FileTransferRequest(key, query, upload.RequiredHeaders), input, Ct));
+        }
+        finally { directory.Delete(recursive: true); }
     }
 
     private static FilesSettings Read(string json)

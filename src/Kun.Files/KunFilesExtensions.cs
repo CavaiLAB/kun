@@ -10,7 +10,7 @@ public sealed class KunFilesOptions
 {
     /// <summary>预签名有效期、完成时限与配额预占所用的时钟。</summary>
     public TimeProvider Clock { get; set; } = TimeProvider.System;
-    /// <summary>local 后端直传 / 直下地址的 HMAC 密钥（至少 32 字节）；为空时每次挂载随机生成，重启后旧地址失效，多实例须给同一密钥。</summary>
+    /// <summary>local 后端直传 / 直下地址的 HMAC 密钥（至少 32 字节）；开发环境可使用进程共享的临时密钥。其他环境必须配置，多实例须使用同一密钥。</summary>
     public ReadOnlyMemory<byte> LocalSigningKey { get; set; }
 }
 

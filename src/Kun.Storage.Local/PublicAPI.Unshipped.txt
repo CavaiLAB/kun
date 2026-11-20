@@ -20,3 +20,48 @@ Kun.Storage.Local.LocalFileSystemStorage.GetPresignedUploadAsync(string! objectK
 Kun.Storage.Local.LocalFileSystemStorage.ListAsync(string? prefix = null, int maxKeys = 1000, string? continuationToken = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Storage.ListObjectsResult!>!
 Kun.Storage.Local.LocalFileSystemStorage.LocalFileSystemStorage(Microsoft.Extensions.Options.IOptions<Kun.Storage.Local.LocalFileStorageOptions!>! options, Microsoft.Extensions.Logging.ILogger<Kun.Storage.Local.LocalFileSystemStorage!>! logger, System.TimeProvider? timeProvider = null) -> void
 Kun.Storage.Local.LocalFileSystemStorage.UploadAsync(string! objectKey, System.IO.Stream! content, string! contentType, Kun.Storage.UploadConstraints? constraints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Storage.ObjectMetadata!>!
+override Kun.Storage.Local.LocalTransferRequest.Equals(object? obj) -> bool
+override Kun.Storage.Local.LocalTransferRequest.GetHashCode() -> int
+override Kun.Storage.Local.LocalTransferRequest.ToString() -> string!
+Kun.Storage.Local.LocalTransferRequest
+Kun.Storage.Local.LocalTransferRequest.<Clone>$() -> Kun.Storage.Local.LocalTransferRequest!
+Kun.Storage.Local.LocalTransferRequest.Deconstruct(out string! ObjectKey, out System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Query, out System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Headers) -> void
+Kun.Storage.Local.LocalTransferRequest.Equals(Kun.Storage.Local.LocalTransferRequest? other) -> bool
+Kun.Storage.Local.LocalTransferRequest.LocalTransferRequest(string! ObjectKey, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Query, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Headers) -> void
+Kun.Storage.Local.LocalTransferRequest.Headers.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Storage.Local.LocalTransferRequest.Headers.init -> void
+Kun.Storage.Local.LocalTransferRequest.ObjectKey.get -> string!
+Kun.Storage.Local.LocalTransferRequest.ObjectKey.init -> void
+Kun.Storage.Local.LocalTransferRequest.Query.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Storage.Local.LocalTransferRequest.Query.init -> void
+static Kun.Storage.Local.LocalTransferRequest.operator !=(Kun.Storage.Local.LocalTransferRequest? left, Kun.Storage.Local.LocalTransferRequest? right) -> bool
+static Kun.Storage.Local.LocalTransferRequest.operator ==(Kun.Storage.Local.LocalTransferRequest? left, Kun.Storage.Local.LocalTransferRequest? right) -> bool
+Kun.Storage.Local.LocalTransferWriteResult
+Kun.Storage.Local.LocalTransferWriteResult.Conflict = 2 -> Kun.Storage.Local.LocalTransferWriteResult
+Kun.Storage.Local.LocalTransferWriteResult.Rejected = 1 -> Kun.Storage.Local.LocalTransferWriteResult
+Kun.Storage.Local.LocalTransferWriteResult.Stored = 0 -> Kun.Storage.Local.LocalTransferWriteResult
+Kun.Storage.Local.LocalTransferWriteResult.TooLarge = 3 -> Kun.Storage.Local.LocalTransferWriteResult
+override Kun.Storage.Local.LocalTransferRead.Equals(object? obj) -> bool
+override Kun.Storage.Local.LocalTransferRead.GetHashCode() -> int
+override Kun.Storage.Local.LocalTransferRead.ToString() -> string!
+Kun.Storage.Local.LocalTransferRead
+Kun.Storage.Local.LocalTransferRead.<Clone>$() -> Kun.Storage.Local.LocalTransferRead!
+Kun.Storage.Local.LocalTransferRead.Content.get -> System.IO.Stream!
+Kun.Storage.Local.LocalTransferRead.Content.init -> void
+Kun.Storage.Local.LocalTransferRead.ContentDisposition.get -> string!
+Kun.Storage.Local.LocalTransferRead.ContentDisposition.init -> void
+Kun.Storage.Local.LocalTransferRead.ContentType.get -> string!
+Kun.Storage.Local.LocalTransferRead.ContentType.init -> void
+Kun.Storage.Local.LocalTransferRead.Deconstruct(out System.IO.Stream! Content, out long Length, out string! ContentType, out string! ContentDisposition) -> void
+Kun.Storage.Local.LocalTransferRead.Equals(Kun.Storage.Local.LocalTransferRead? other) -> bool
+Kun.Storage.Local.LocalTransferRead.LocalTransferRead(System.IO.Stream! Content, long Length, string! ContentType, string! ContentDisposition) -> void
+Kun.Storage.Local.LocalTransferRead.Length.get -> long
+Kun.Storage.Local.LocalTransferRead.Length.init -> void
+static Kun.Storage.Local.LocalTransferRead.operator !=(Kun.Storage.Local.LocalTransferRead? left, Kun.Storage.Local.LocalTransferRead? right) -> bool
+static Kun.Storage.Local.LocalTransferRead.operator ==(Kun.Storage.Local.LocalTransferRead? left, Kun.Storage.Local.LocalTransferRead? right) -> bool
+Kun.Storage.Local.LocalSignedTransfers
+Kun.Storage.Local.LocalSignedTransfers.LocalSignedTransfers(Kun.Storage.Local.LocalFileSystemStorage! storage, System.ReadOnlyMemory<byte> signingKey, System.TimeProvider! clock, System.Func<string!, bool>! acceptUploadKey, System.Func<string!, bool>! acceptDownloadKey) -> void
+Kun.Storage.Local.LocalSignedTransfers.CreateUploadAsync(System.Uri! endpoint, string! objectKey, string! contentType, long maxBytes, System.TimeSpan lifetime, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Storage.PresignedUploadUrl!>
+Kun.Storage.Local.LocalSignedTransfers.CreateDownloadAsync(System.Uri! endpoint, string! objectKey, string! fileName, System.TimeSpan lifetime, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Storage.PresignedDownloadUrl!>
+Kun.Storage.Local.LocalSignedTransfers.ReceiveAsync(Kun.Storage.Local.LocalTransferRequest! request, System.IO.Stream! content, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Storage.Local.LocalTransferWriteResult>
+Kun.Storage.Local.LocalSignedTransfers.OpenAsync(Kun.Storage.Local.LocalTransferRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Storage.Local.LocalTransferRead?>

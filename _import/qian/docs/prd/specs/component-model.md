@@ -133,7 +133,7 @@
     "dbSchema": "plugin_qian_files"
   },
   "inject": ["Tenancy", "Config", "Authz", "Events", "Audit"],
-  "provides": ["Files", "Files.Backends:local", "Files.Backends:s3", "Files.Backends:oss"],
+  "provides": ["Files"],
   "policy": {
     "tier": "system", "sandbox": "none", "authentication": "ON_INSTALL", "profiles": ["platform", "standalone"],
     "egress": ["oss-cn-hangzhou.example.internal:443"],
@@ -770,31 +770,23 @@ TS 侧服务键小驼峰（`files`），.NET 侧大驼峰（`Files`）；两侧 
 - 整树 teardown 按挂载顺序逆序 Unmount；同一 `(scope, id)` 只能有一个条目；`service` 形态的条目在其 `/readyz` 通过后由装载器把 `provides[]` 标记就绪（Provider 为远程代理；`platform` 下其状态由 `qian.registry` 维护）。
 - 装载器属于 `Qian.Runtime`（D20.1），任何 profile 都能从文件 patch 直接装树；`qian.registry` / `qian.lifecycle` / `qian.capabilities` 只是 `platform` profile 里叠加的数据库注册表、生命周期管理 API 与能力目录（R34）。
 
-### 5.7 示例：C# 插件——把 `Kun.Storage` 包装为 `ctx.Files` Provider
+### 5.7 示例：C# 宿主装配文件 Provider
+
+`Kun.Files` 的宿主登记文件能力时传入当前请求的组件上下文与签名密钥。
 
 ```csharp
-using Kun.Storage.Abstractions;                 // IFileStorage（Kun 新线）
-using Qian.Files.Abstractions;                  // FilesKeys.Files、IFileService、FilesConfig
-using Qian.Runtime;
+using Kun.Files;
+using Kun.Mediator;
+using Kun.Runtime;
 
-[QianPlugin("qian.files")]
-public sealed class FilesPlugin : IQianPlugin<FilesConfig>
+static void RegisterFileCapabilities(KunMediatorBuilder registry,
+    Func<IServiceProvider, IPluginContext> requestScope, ReadOnlyMemory<byte> signingKey)
 {
-    public IReadOnlyList<ServiceKey> Inject => [TenancyKeys.Tenancy, ConfigKeys.Config, AuthzKeys.Authz, EventsKeys.Events, AuditKeys.Audit];
-    public async ValueTask ApplyAsync(IPluginContext ctx, FilesConfig config, CancellationToken ct)
-    {
-        var files = new FileService(ctx.Tenancy(), ctx.Authz(), config);                  // 租户前缀、配额、上传策略、元数据表；含 Backends 注册表
-        foreach (var (name, factory) in KunStorageBackends.BuiltIn)                       // local / s3 / oss（Kun.Storage.Local / .S3 / .Oss）
-            files.Backends.Register(name, factory);                                       // => provides "Files.Backends:<name>"（R38 注册表 seam）
-        files.UseBackend(config.Storage.Kind);                                            // 按名称选用
-        ctx.Provide(FilesKeys.Files, (IFileService)files);                                // => ctx.Files()
-        ctx.On(TenancyEvents.Provisioned, DispatchMode.Serial, (TenantProvisioned e) => files.EnsureBucketAsync(e.TenantId, ct));
-        ctx.On(TenancyEvents.Purged, DispatchMode.Serial, (TenantPurged e) => files.PurgeAsync(e.TenantId, ct));
-        ctx.Effect(files.DisposeAsync);
-        await files.WarmupAsync(ct);
-    }
+    registry.AddKunFiles(requestScope, options => options.LocalSigningKey = signingKey);
 }
 ```
+
+组件挂载时，`FilesPlugin` 按 `storage.kind` 为该范围创建存储实例，向宿主提供 `Files`。文件服务经 `IFileStorage` 读写对象，已有的六项能力继续负责租户、权限、配额与元数据。开发环境可以使用进程共享的临时密钥，其他环境需要显式密钥。[文件组件宿主装配](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Files/README.md)
 
 ### 5.8 示例：TS 插件——把平台文件 API 包装为外壳的 `ctx.files`
 
@@ -837,8 +829,8 @@ S1-KUN-010 对 Definition 的 Kun 直接依赖设置门禁；因既有公开契�
 
 - **seam 分两种风格**（已裁决 R38）：
   - (a) **单例 seam**：同 scope 内同键只能有一个 `Provide`，第二个即挂载失败；多实现靠 patch 替换条目或租户 scope 遮蔽。S1：`Tenancy`、`Identity`、`Authz`、`Files`、`Config`、`Events`、`Audit`、`Notify`、`Scheduler`…
-  - (b) **注册表 seam**：Definition 本身（或其子服务）是一个注册表 `IRegistry<T> { IDisposable Register(string name, T impl); T? Get(string name); IReadOnlyList<Registration> List(); }`；Provider 按名称独占注册（同名第二个失败），消费者按名称或策略选用；清单 `provides` 写 `<Key>.<Registry>:<name>`。S1 的注册表子服务：`Identity.Connectors`（连接器组件经 `ctx.IdentityConnectors()` 注册，注册落在自己的上下文与 scope；消费方经 `ctx.Identity().Connectors` 按当前租户上下文解析，S1-IDP-007）、`Notify.Channels`、`Files.Backends`、`Scheduler.JobTypes`。注册表注册同样带 scope：租户 scope 内注册同名项遮蔽全局项。
-  - **连接器一律走 (b)**：身份连接器经 `ctx.IdentityConnectors()` 注册到 `Identity.Connectors`，通知渠道注册到 `ctx.Notify.Channels`，存储后端注册到 `ctx.Files.Backends`。
+  - (b) **注册表 seam**：Definition 本身（或其子服务）是一个注册表 `IRegistry<T> { IDisposable Register(string name, T impl); T? Get(string name); IReadOnlyList<Registration> List(); }`；Provider 按名称独占注册（同名第二个失败），消费者按名称或策略选用；清单 `provides` 写 `<Key>.<Registry>:<name>`。S1 的注册表子服务：`Identity.Connectors`（连接器组件经 `ctx.IdentityConnectors()` 注册，注册落在自己的上下文与 scope；消费方经 `ctx.Identity().Connectors` 按当前租户上下文解析，S1-IDP-007）、`Notify.Channels`、`Scheduler.JobTypes`。注册表注册同样带 scope：租户 scope 内注册同名项遮蔽全局项。
+  - **连接器一律走 (b)**：身份连接器经 `ctx.IdentityConnectors()` 注册到 `Identity.Connectors`，通知渠道注册到 `ctx.Notify.Channels`。
 - 组件 id 与包名映射：Provider 组件 id = 去掉 `Qian.` 前缀、小写、加 `qian.`（`Qian.Files` → `qian.files`、`Qian.Identity.Server` → `qian.identity.server`、`Qian.Data.Dialect.Pg` → `qian.data.dialect.pg`）；不同名处在 `runtime.nuget[]` 显式列出即可，CLI 不要求同名（ADR-019 §7 的映射遗留项由此消解）。
 - `AddQian<X>()` 保留在 Provider 包内，只是 `Apply` 内部的装配细节（D20.10）；独立模式（ADR-019 D19.4）= `minimal` / `standalone` profile 上的同一份代码。
 - CI（§10.3 G3）用 `dotnet list package --include-transitive` 与 npm lockfile 断言上表的禁止项。
@@ -847,8 +839,8 @@ S1-KUN-010 对 Definition 的 Kun 直接依赖设置门禁；因既有公开契�
 
 | 角色 | 包 / 组件 | 内容 |
 |---|---|---|
-| Definition | `Qian.Files.Abstractions` / `@qian/files-abstractions` | 键 `Files`（TS `files`）→ `IFileService { UploadAsync, GetAsync, GetDownloadUrlAsync, DeleteAsync, GetQuotaAsync, ListAsync, Backends }`；`Backends` 为注册表子服务（R38）：`Register(name, IStorageBackendFactory)` 返回释放函数、同名独占，`config.storage.kind` 按名称选用；DTO `FileDescriptor`、`UploadPolicy`、`Quota`、`DownloadTicket`；SPI `IFilePreviewProvider`（可替换预览提供者，ADR-003 D3.9）；事件 `files/uploading`（waterfall）、`files/uploaded`（emit）、`files/deleting`（bail）、`files/deleted`（emit）；错误码 `files.quota_exceeded`、`files.type_not_allowed`、`files.not_found` |
-| S1 Provider | `Qian.Files` → 组件 `qian.files`（§3.1） | 基于 Kun 新线 `IFileStorage`：租户前缀、配额、上传策略、元数据表 `plugin_qian_files`、`ContentDispositionPolicy` 不可关闭、预览票据；内置后端 `local` / `s3` / `oss`（`Kun.Storage.Local / .S3 / .Oss`）注册进 `Files.Backends`，故 `provides: ["Files", "Files.Backends:local", "Files.Backends:s3", "Files.Backends:oss"]`（§3.1）；第三方后端组件（如 `com.example.files.sharepoint`）`inject: ["Files"]`、`provides: ["Files.Backends:sharepoint"]`、`policy.egress` 声明出网目标。上传策略由组件在 `metadata/upload-policies.json` 声明本组件的用途（Schema `schemas/v2/files-upload-policies.schema.json`，取代 v1 的 `contributes: qian.files.upload-policy/v1`），平台宿主由 Provider 经 Registry 预装快照汇总，同用途以组件配置 `policies[]` 为准（S1-FILE-004） |
+| Definition | `Qian.Files.Abstractions` / `@qian/files-abstractions` | 键 `Files`（TS `files`）→ `IFileService { UploadAsync, GetAsync, GetDownloadUrlAsync, DeleteAsync, GetQuotaAsync, ListAsync }`；DTO `FileDescriptor`、`UploadPolicy`、`Quota`、`DownloadTicket`；SPI `IFilePreviewProvider`（可替换预览提供者，ADR-003 D3.9）；事件 `files/uploading`（waterfall）、`files/uploaded`（emit）、`files/deleting`（bail）、`files/deleted`（emit）；错误码 `files.quota_exceeded`、`files.type_not_allowed`、`files.not_found` |
+| S1 Provider | `Qian.Files` → 组件 `qian.files`（§3.1） | 基于 Kun 新线 `IFileStorage`：租户前缀、配额、上传策略、元数据表 `plugin_qian_files`、`ContentDispositionPolicy` 不可关闭、预览票据；组件按挂载选用 `storage.kind`。2.0.0 提供 `Files` 服务键，使用 `Kun.Storage.Local` 执行签名直传与附件下载。上传策略由组件在 `metadata/upload-policies.json` 声明本组件的用途（Schema `schemas/v2/files-upload-policies.schema.json`，取代 v1 的 `contributes: qian.files.upload-policy/v1`），平台宿主由 Provider 经 Registry 预装快照汇总，同用途以组件配置 `policies[]` 为准（S1-FILE-004） |
 | S1 Consumer | `qian.sample.crm`（附件）、`qian.identity.server`（头像）、`qian.notify`（邮件附件）、`qian.shell` 的 Upload 控件（经 `@qian/files-abstractions`）、工具 `qian.files/upload` 等、技能 `upload-with-policy` | 全部只依赖 Definition；换 `Files` 的 Provider 或新增一个后端都不改一行 |
 
 ### 6.3 Identity seam

@@ -9,20 +9,19 @@ using Npgsql;
 namespace Kun.Files;
 
 // 组件运行时状态：时钟、选用的后端、两个注册表、配额默认值与租户配置读取入口。由 FilesPlugin 在 Apply 中建立，handler 经 FileService 取用。
-internal sealed class FilesRuntime(TimeProvider clock, FileBackendRegistry backends, UploadPolicyRegistry policies, long defaultQuota, Func<ITenantSettings?> settings)
+internal sealed class FilesRuntime(TimeProvider clock, UploadPolicyRegistry policies, long defaultQuota, Func<ITenantSettings?> settings)
 {
     internal static readonly TimeSpan UploadLifetime = TimeSpan.FromMinutes(15);
     internal static readonly TimeSpan DownloadLifetime = TimeSpan.FromMinutes(5);
     // 上传地址到期后仍给完成上传留的时限：到期前一刻才传完的内容也能完成；过了时限的预占不再计入配额。
     internal static readonly TimeSpan CompleteGrace = TimeSpan.FromMinutes(10);
-    private IFileBackend? _backend;
+    private FileStorageMount? _backend;
 
     internal TimeProvider Clock => clock;
-    internal FileBackendRegistry Backends => backends;
     internal UploadPolicyRegistry Policies => policies;
-    internal IFileBackend Backend => _backend ?? throw new InvalidOperationException("文件后端尚未选用。");
+    internal FileStorageMount Backend => _backend ?? throw new InvalidOperationException("文件后端尚未选用。");
 
-    internal void Use(IFileBackend backend) => _backend = backend;
+    internal void Use(FileStorageMount backend) => _backend = backend;
 
     // 上限：租户配置覆盖（ITenantSettings，经 TEN-004 写入 Registry 合成配置）优先，其次组件配置默认。
     // 宿主没有 Registry（参考宿主、独立模式）或 Registry 里没有 qian.files 条目时，租户覆盖不可用，回退组件配置。
@@ -57,7 +56,7 @@ internal static class FileKeys
         "tenants/" + tenant + "/" + plugin + "/" + now.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture) + "/" +
         now.ToString("MM", System.Globalization.CultureInfo.InvariantCulture) + "/";
     internal static string Storage(string directory, Guid id, string contentType) => directory + id.ToString("D") + ContentSniffer.Extension(contentType);
-    internal static string Upload(string storageKey, Guid id) => storageKey[..(storageKey.LastIndexOf('/') + 1)] + id.ToString("D") + LocalFileBackend.UploadSuffix;
+    internal static string Upload(string storageKey, Guid id) => storageKey[..(storageKey.LastIndexOf('/') + 1)] + id.ToString("D") + FileStorageMount.UploadSuffix;
 }
 
 // IFileService 的实现：每个操作作为 qian.files 的能力经 Kun Mediator 发送，进入 SDK 命令管道（租户、授权、审计与同事务 Outbox）。
@@ -65,8 +64,7 @@ internal sealed class FileService(ISender sender, FilesRuntime runtime) : IFileS
 {
     internal FilesRuntime Runtime => runtime;
     public IUploadPolicyRegistry Policies => runtime.Policies;
-    public IFileBackendRegistry Backends => runtime.Backends;
-    public IFileTransferGateway? Transfer => runtime.Backend.Transfer;
+    public IFileTransferGateway? Transfer => runtime.Backend;
 
     public ValueTask<PresignedUpload> PresignUploadAsync(PresignUploadRequest request, CancellationToken cancellationToken = default)
     {
@@ -80,7 +78,7 @@ internal sealed class FileService(ISender sender, FilesRuntime runtime) : IFileS
         var file = await Retry(() => sender.Send(new CompleteUploadCommand(request.IdempotencyKey, request.FileId), cancellationToken), cancellationToken).ConfigureAwait(false);
         if (file.Status == FileStatus.Quarantined) throw QuarantineError(file);
         // 能力事务已提交：暂存对象只是上传通道，删除失败不影响结果，残留由保留期作业清理（S1-FILE-003）。
-        try { await runtime.Backend.DeleteAsync(FileKeys.Upload(file.StorageKey, file.Id), CancellationToken.None).ConfigureAwait(false); }
+        try { await runtime.Backend.Storage.DeleteAsync(FileKeys.Upload(file.StorageKey, file.Id), CancellationToken.None).ConfigureAwait(false); }
         catch (IOException) { }
         return file;
     }
@@ -159,24 +157,6 @@ internal sealed class UploadPolicyRegistry(DeclaredUploadPolicies? declared = nu
     }
 
     internal static Dictionary<string, string> Conflict(ServiceKey key, string name) => new() { ["key"] = key.Name + ":" + name, ["owner"] = "qian.files" };
-}
-
-internal sealed class FileBackendRegistry : IFileBackendRegistry
-{
-    private readonly Dictionary<string, IFileBackendFactory> _items = new(StringComparer.Ordinal);
-    private readonly Lock _gate = new();
-
-    public IDisposable Register(string name, IFileBackendFactory factory)
-    {
-        ArgumentNullException.ThrowIfNull(factory);
-        if (string.IsNullOrEmpty(name) || name.Length > 32 || !name.All(c => char.IsAsciiLetterLower(c) || char.IsAsciiDigit(c) || c == '-') || !char.IsAsciiLetterLower(name[0]))
-            throw new ErrorException(new Error(PlatformErrors.InputInvalid) { Pointer = "#/name" });
-        lock (_gate)
-            if (!_items.TryAdd(name, factory)) throw new ErrorException(new Error(PlatformErrors.RegistrationConflict, UploadPolicyRegistry.Conflict(FilesDefinition.BackendsKey, name)));
-        return new Release(() => { lock (_gate) if (_items.TryGetValue(name, out var current) && ReferenceEquals(current, factory)) _items.Remove(name); });
-    }
-    public IFileBackendFactory? Find(string name) { lock (_gate) return _items.GetValueOrDefault(name); }
-    public IReadOnlyList<string> List() { lock (_gate) return Array.AsReadOnly(_items.Keys.Order(StringComparer.Ordinal).ToArray()); }
 }
 
 internal sealed class Release(Action release) : IDisposable

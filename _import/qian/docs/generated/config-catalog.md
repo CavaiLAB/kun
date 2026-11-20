@@ -446,7 +446,7 @@
 
 ## global/files
 
-组件：` qian.files@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.files@2.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -483,7 +483,7 @@
             "oss",
             "s3"
           ],
-          "description": "按名称选用 Files.Backends 中登记的存储后端。S1 只登记 local；oss / s3 由 S1-FILE-002 接入，选用未登记的后端在挂载时报 INPUT_INVALID。"
+          "description": "按挂载选用存储，目前支持 local。未知名称在挂载时返回 INPUT_INVALID。"
         },
         "root": {
           "type": "string",

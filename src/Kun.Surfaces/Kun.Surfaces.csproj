@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>声明式表面的 JSON/YAML 解析、Schema 与语义校验。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Surfaces.Abstractions/Kun.Surfaces.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
+    <PackageReference Include="YamlDotNet" /><PackageReference Include="JsonSchema.Net" />
+    <EmbeddedResource Include="../../_import/qian/schemas/v2/surface-rules.json" LogicalName="schemas/surface-rules.json" />
+    <EmbeddedResource Include="../../_import/qian/schemas/v2/*.schema.json" LogicalName="schemas/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../_import/qian/contracts/v0/capability-entry.schema.json" LogicalName="schemas/capability-entry.schema.json" />
+  </ItemGroup>
+  <ItemGroup><Compile Include="../Common/SchemaPattern.cs" Link="Common/SchemaPattern.cs" /><Compile Include="../Common/TenantFieldRule.cs" Link="Common/TenantFieldRule.cs" /></ItemGroup>
+</Project>

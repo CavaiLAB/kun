@@ -2,13 +2,13 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Qian.Capabilities;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
+using Kun.Capabilities;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 
 namespace Qian.Sample.Crm.Tests;
 

@@ -2,5 +2,5 @@
   <PropertyGroup><IsPackable>true</IsPackable><IsAotCompatible>true</IsAotCompatible><Description>配置 seam 的只读端口与错误词汇。</Description></PropertyGroup>
   <PropertyGroup Label="档位"><KunTier>kernel</KunTier><KunRole>contract</KunRole></PropertyGroup>
   <ItemGroup><ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" /><ProjectReference Include="../Kun.Core/Kun.Core.csproj" /><PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" /><InternalsVisibleTo Include="Kun.Configuration.Secrets.Tests" /></ItemGroup>
-  <ItemGroup><Compile Include="../../_import/qian/packages/Common/SchemaPattern.cs" Link="Common/SchemaPattern.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Common/SchemaPattern.cs" Link="Common/SchemaPattern.cs" /></ItemGroup>
 </Project>

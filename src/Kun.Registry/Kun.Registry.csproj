@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>平台注册表制品目录、租户 scope patch 与 PostgreSQL 持久化。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Lifecycle.Abstractions/Kun.Lifecycle.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Registry.Abstractions/Kun.Registry.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Profiles.Abstractions/Kun.Profiles.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Surfaces.Abstractions/Kun.Surfaces.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Capabilities.Abstractions/Kun.Capabilities.Abstractions.csproj" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <ProjectReference Include="../Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../Kun.Mediator/Kun.Mediator.csproj" />
+  </ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Registry.Tests" /><InternalsVisibleTo Include="Qian.Sample.Crm.Tests" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

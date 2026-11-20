@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
-using Qian.Platform.Host;
+using Kun.Platform.Host;
 
 namespace Qian.Sample.Crm.Tests;
 

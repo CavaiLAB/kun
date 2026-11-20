@@ -14,10 +14,10 @@
 | ` identity/signed-in ` | ` emit ` | ` Kun.Identity.Abstractions.IdentityRuntimeEvents.SignedIn `（` src/Kun.Identity.Abstractions/IdentityEvents.cs `:116） |  |  |
 | ` identity/signed-out ` | ` emit ` | ` Kun.Identity.Abstractions.IdentityRuntimeEvents.SignedOut `（` src/Kun.Identity.Abstractions/IdentityEvents.cs `:119） |  |  |
 | ` identity/signing-in ` | ` waterfall ` | ` Kun.Identity.Abstractions.IdentityRuntimeEvents.SigningIn `（` src/Kun.Identity.Abstractions/IdentityEvents.cs `:113） |  |  |
-| ` registry/entry-disabled ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.EntryDisabled `（` _import/qian/packages/Qian.Surfaces.Abstractions/HookContracts.cs `:51） |  |  |
-| ` registry/entry-mounted ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.EntryMounted `（` _import/qian/packages/Qian.Surfaces.Abstractions/HookContracts.cs `:49） | ` Qian.Registry.RegistryService.MountAsync(Kun.Runtime.ScopeKey, System.Text.Json.JsonElement, int, string, System.Threading.CancellationToken) `（` _import/qian/packages/Qian.Registry/RegistryService.cs `:174） | ` Kun.Tenancy.TenancyPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken) `（` src/Kun.Tenancy/TenancyPlugin.cs `:33） |
-| ` tenant/provisioned ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantProvisioned `（` _import/qian/packages/Qian.Surfaces.Abstractions/HookContracts.cs `:45） | ` lambda expression `（` src/Kun.Tenancy/TenantProvisioningOrchestrator.cs `:116） | ` Kun.Authorization.Rbac.AuthzPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken) `（` src/Kun.Authorization.Rbac/AuthzPlugin.cs `:96） |
-| ` tenant/purged ` | ` serial ` | ` Qian.Surfaces.Abstractions.SurfaceHookEvents.TenantPurged `（` _import/qian/packages/Qian.Surfaces.Abstractions/HookContracts.cs `:47） |  |  |
+| ` registry/entry-disabled ` | ` serial ` | ` Kun.Surfaces.Abstractions.SurfaceHookEvents.EntryDisabled `（` src/Kun.Surfaces.Abstractions/HookContracts.cs `:51） |  |  |
+| ` registry/entry-mounted ` | ` serial ` | ` Kun.Surfaces.Abstractions.SurfaceHookEvents.EntryMounted `（` src/Kun.Surfaces.Abstractions/HookContracts.cs `:49） | ` Kun.Registry.RegistryService.MountAsync(Kun.Runtime.ScopeKey, System.Text.Json.JsonElement, int, string, System.Threading.CancellationToken) `（` src/Kun.Registry/RegistryService.cs `:176） | ` Kun.Tenancy.TenancyPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken) `（` src/Kun.Tenancy/TenancyPlugin.cs `:33） |
+| ` tenant/provisioned ` | ` serial ` | ` Kun.Surfaces.Abstractions.SurfaceHookEvents.TenantProvisioned `（` src/Kun.Surfaces.Abstractions/HookContracts.cs `:45） | ` lambda expression `（` src/Kun.Tenancy/TenantProvisioningOrchestrator.cs `:116） | ` Kun.Authorization.Rbac.AuthzPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken) `（` src/Kun.Authorization.Rbac/AuthzPlugin.cs `:96） |
+| ` tenant/purged ` | ` serial ` | ` Kun.Surfaces.Abstractions.SurfaceHookEvents.TenantPurged `（` src/Kun.Surfaces.Abstractions/HookContracts.cs `:47） |  |  |
 | ` tenant/transition-approving ` | ` serial ` | ` Kun.Tenancy.TenantLifecycle.Approving `（` src/Kun.Tenancy.Abstractions/StateMachine.cs `:13） | ` Kun.Tenancy.TenantStateMachine.Change(System.Guid, string, string, System.DateTimeOffset?, System.Threading.CancellationToken, System.Action?) `（` src/Kun.Tenancy/TenantStateMachine.cs `:59） |  |
 
 ```mermaid
@@ -40,7 +40,7 @@ flowchart LR
   e7["identity/signing-in / waterfall"]
   e8["registry/entry-disabled / serial"]
   e9["registry/entry-mounted / serial"]
-  p9_0["Qian.Registry.RegistryService.MountAsync(Kun.Runtime.ScopeKey, System.Text.Json.JsonElement, int, string, System.Threading.CancellationToken)"] --> e9
+  p9_0["Kun.Registry.RegistryService.MountAsync(Kun.Runtime.ScopeKey, System.Text.Json.JsonElement, int, string, System.Threading.CancellationToken)"] --> e9
   e9 --> c9_0["Kun.Tenancy.TenancyPlugin.ApplyAsync(Kun.Runtime.IPluginContext, System.Text.Json.JsonElement, System.Threading.CancellationToken)"]
   e10["tenant/provisioned / serial"]
   p10_0["lambda expression"] --> e10
@@ -52,7 +52,7 @@ flowchart LR
 
 ## 校验诊断
 
-- warning：` _import/qian/packages/Qian.Surfaces.Hosting/HookBridgePlugin.cs `:32，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
 - warning：` src/Kun.Runtime/Contracts.cs `:93，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
 - warning：` src/Kun.Runtime/Contracts.cs `:97，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
 - warning：` src/Kun.Runtime/PluginContext.Events.cs `:51，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。
+- warning：` src/Kun.Surfaces.Hosting/HookBridgePlugin.cs `:32，事件来自动态参数或外部二进制，未能静态解析；此调用不计入已验证映射。

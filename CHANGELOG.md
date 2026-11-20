@@ -7,6 +7,13 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。版本号采用 **CalVer**（`vYYYY.M.D[-hotfix.N|-beta.N]`，从 `main` 打 tag，见 `CONTRIBUTING.md`）；更早的历史条目遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
 ## [Unreleased]
+### Changed — 平台组件和平台宿主（S1-KUN-029）
+
+- 能力目录、注册表、表面、配置文件、文档、生命周期和调度共 18 个包使用 `Kun.*` 包名。更新项目的包引用、`using` 及按这些类型名设置的日志类别。能力目录、注册表、生命周期与调度的契约位于相应的 `Kun.<组件>` 命名空间。表面、配置文件和文档的契约位于 `Kun.<组件>.Abstractions`。
+- 宿主使用 `hosts/Kun.Platform.Host`。装配入口为 `AddKunPlatform`、`UseKunPlatform`、`MapKunPlatform`。能力目录、注册表、生命周期与表面的扩展方法同样使用 `Kun` 前缀。镜像构建的 `--project` 参数接受相对仓库根的项目路径。
+- HTTP 契约的类型键由完整类型名和程序集简单名派生，泛型实参递归使用同一规则。注册表、租户与开户的三份 OpenAPI 和两个界面包已重新生成，端点与 operationId 保持兼容。
+- 组件版本为 `qian.capabilities` 1.1.0、`qian.lifecycle` 1.1.0、`qian.registry` 1.2.0、`qian.scheduler` 1.1.0、`qian.tenancy` 2.3.0、`qian.tenancy.signup` 2.3.0。
+
 
 ### Added — 容器测试支持（S1-KUN-028）
 

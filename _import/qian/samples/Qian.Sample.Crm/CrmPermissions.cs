@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
 namespace Qian.Sample.Crm;
 

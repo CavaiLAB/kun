@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Kun.Common;
 using Kun.Errors;
-using Qian.Common;
 
 namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 

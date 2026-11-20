@@ -34,7 +34,7 @@ NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI"
 PROPERTIES = ("IsPackable", "KunTier", "KunHost", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
               "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
 ITEMS = ("PackageReference", "ProjectReference", "AdditionalFiles")
-HOSTS = {"Qian.Platform.Host", "Kun.Gateway.Host", "Kun.Gateway.Standalone"}
+HOSTS = {"Kun.Platform.Host", "Kun.Gateway.Host", "Kun.Gateway.Standalone"}
 # ILC 按冒烟宿主的这些属性与 IlcArg 项决定报哪些警告、警告算不算错误（ILCompiler 包的 Microsoft.NETCore.Native.targets）。
 SMOKE_PROPERTIES = ("PublishAot", "NoWarn", "WarningsNotAsErrors", "SuppressTrimAnalysisWarnings", "SuppressAotAnalysisWarnings",
                     "TreatWarningsAsErrors", "IlcTreatWarningsAsErrors", "TrimmerSingleWarn",
@@ -280,7 +280,8 @@ class PublicApiTests(unittest.TestCase):
 
     def test_packable_projects_have_both_files_and_the_analyzer(self):
         packable = {path: v for path, v in evaluated().items() if is_true(v[0], "IsPackable")}
-        self.assertTrue(any(p.stem.startswith("Kun.") for p in packable) and any(p.stem.startswith("Qian.") for p in packable))
+        self.assertTrue(packable)
+        self.assertEqual([], [p.stem for p in packable if not p.stem.startswith("Kun.")])
         for path, (props, items) in packable.items():
             with self.subTest(project=path.stem):
                 self.assertTrue((path.parent / "PublicAPI.Shipped.txt").is_file())

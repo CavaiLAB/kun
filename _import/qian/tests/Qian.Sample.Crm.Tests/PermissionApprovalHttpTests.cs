@@ -9,7 +9,7 @@ using Kun.EventBus;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 using Kun.Runtime;
 using Kun.Errors;
 
@@ -119,7 +119,7 @@ public sealed partial class LifecycleProfileTests
         using (tenant.BeginScope(Guid.ParseExact(A, "D")))
         {
             // 只授角色、不另授权限点：管理员能否批准完全取决于仓库 plugins/qian.lifecycle/metadata/roles.json（宿主按它把角色模板装进 A）。
-            // 参考宿主只收机器主体，两者都是 A 的服务主体；用户主体的批准人与主体类型见 Qian.Lifecycle.Tests。
+            // 参考宿主只收机器主体，两者都是 A 的服务主体；用户主体的批准人与主体类型见 Kun.Lifecycle.Tests。
             var roles = new PostgresTenantRoleStore(data, tenant);
             await roles.AssignAsync("tenant.admin", "service", ApprovalAdmin, "test-bootstrap", Ct);
             await roles.AssignAsync("tenant.user", "service", ApprovalMember, "test-bootstrap", Ct);

@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.registry",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "提供 qian.registry 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
@@ -28,7 +28,7 @@
   ],
   "runtime": {
     "form": "module",
-    "entry": "Qian.Registry.RegistryComponent, Qian.Registry",
+    "entry": "Kun.Registry.RegistryComponent, Kun.Registry",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -45,7 +45,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.registry",
-        "source": "Qian.Registry.RegistryComponent, Qian.Registry",
+        "source": "Kun.Registry.RegistryComponent, Kun.Registry",
         "sha256": "b6d2cd16ca154b7cb1f166c7df05b03e646bc0536e314be8b0e897d90f66507c",
         "fields": [
           ""

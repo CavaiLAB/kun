@@ -57,7 +57,7 @@ URL / Git 完整 CLI 安装、lock 和移除用例分别用替代 fetch 传输�
 
 ## 已交付命令
 
-当前实现 [S1-RT-002](../../pm/tasks/S1-RT-002.md) 的 `dump-config`，以及 [S1-RT-010](../../pm/tasks/S1-RT-010.md) 的文档生成与 skill-only 文档模板初始化。共享表面解析与 Schema 包为 `@qian/surfaces`，profile 合成规则以 [Qian.Profiles](../Qian.Profiles/README.md) 为唯一说明。
+当前实现 [S1-RT-002](../../pm/tasks/S1-RT-002.md) 的 `dump-config`，以及 [S1-RT-010](../../pm/tasks/S1-RT-010.md) 的文档生成与 skill-only 文档模板初始化。共享表面解析与 Schema 包为 `@qian/surfaces`，profile 合成规则以 [Qian.Profiles](../../../../src/Kun.Profiles/README.md) 为唯一说明。
 
 在仓库根目录执行：
 
@@ -89,11 +89,11 @@ overlay 示例（不会修改 base 组合包）：
 pnpm exec qian doctor --profile minimal --url https://host --no-home --json
 ```
 
-授权令牌从 `QIAN_ACCESS_TOKEN` 环境变量读取，不写入命令参数或输出。诊断读取实际宿主的表面监视状态，重启或更新拒绝会给出操作提示并退出 1；连接、授权或协议失败同样退出 1，不降级成静态检查成功。没有 `--url` 时只检查本地 profile 装配，输出 `runtimeVerified: false` 与已执行的 `checks`。当前不覆盖过期版本、密钥可解析性等完整 doctor 项，不能用 `healthy` 判断未执行的检查。接口、scope 和卸载语义见 [表面主文档](../Qian.Surfaces/README.md#运行态诊断)。
+授权令牌从 `QIAN_ACCESS_TOKEN` 环境变量读取，不写入命令参数或输出。诊断读取实际宿主的表面监视状态，重启或更新拒绝会给出操作提示并退出 1；连接、授权或协议失败同样退出 1，不降级成静态检查成功。没有 `--url` 时只检查本地 profile 装配，输出 `runtimeVerified: false` 与已执行的 `checks`。当前不覆盖过期版本、密钥可解析性等完整 doctor 项，不能用 `healthy` 判断未执行的检查。接口、scope 和卸载语义见 [表面主文档](../../../../src/Kun.Surfaces/README.md#运行态诊断)。
 
 ## 派生文档与文档模板
 
-`qian docs generate --profile platform` 输出配置目录、模块图、事件图与 seam 图；事件模式错误返回非零并保留旧文档。`--source-root` 与可重复的 `--source` 指定源码根与扫描的源码目录。参数与边界见 [文档生成器](../Qian.Docs/README.md)。生成器默认不叠加 home，显式 `--home` 可开启。
+`qian docs generate --profile platform` 输出配置目录、模块图、事件图与 seam 图；事件模式错误返回非零并保留旧文档。`--source-root` 与可重复的 `--source` 指定源码根与扫描的源码目录。参数与边界见 [文档生成器](../../../../src/Kun.Docs/README.md)。生成器默认不叠加 home，显式 `--home` 可开启。
 
 `qian init --template skill-only --id com.example.guide --name 使用指引` 消费同一套 README/AGENTS 模板，生成可校验的无代码技能与 minimal 配置；拒绝覆盖已有文件。其它 init 模板留给完整 CLI 任务。
 

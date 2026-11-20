@@ -25,7 +25,7 @@ export interface SurfaceValidationOptions {
   tools?: readonly string[]; skills?: readonly string[]; events?: readonly string[]; capabilities?: readonly string[];
   catalogComplete?: boolean; traceId?: string; serviceKeys?: readonly string[];
 }
-/** 与 Qian.Surfaces.Abstractions.SurfaceErrors 同源语义的字段错误目录。 */
+/** 与 Kun.Surfaces.Abstractions.SurfaceErrors 同源语义的字段错误目录。 */
 export const surfaceErrorCodes = { syntax: 'SURFACE_SYNTAX_INVALID', schema: 'SURFACE_SCHEMA_INVALID', name: 'SURFACE_NAME_MISMATCH', reference: 'SURFACE_REFERENCE_UNKNOWN', path: 'SURFACE_PATH_INVALID', policy: 'SURFACE_POLICY_DENIED', secret: 'SURFACE_SECRET_LITERAL', hash: 'SURFACE_HASH_MISMATCH', signature: 'SURFACE_SIGNATURE_INVALID', digest: 'SURFACE_DIGEST_MISMATCH', installationBusy: 'SURFACE_INSTALLATION_BUSY', modified: 'SURFACE_LOCAL_MODIFIED', profile: 'SURFACE_PROFILE_DENIED', recovery: 'SURFACE_RECOVERY_REQUIRED', packageUnavailable: 'SURFACE_PACKAGE_UNAVAILABLE', engine: 'SURFACE_ENGINE_INCOMPATIBLE' } as const;
 const codes = surfaceErrorCodes;
 /** 市场登记与条目共用的无凭据 HTTPS 规则；Git 登记的引用片段由调用方移除后校验。 */

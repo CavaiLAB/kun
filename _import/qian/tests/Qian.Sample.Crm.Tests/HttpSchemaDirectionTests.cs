@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Capabilities;
-using Qian.Capabilities.AspNetCore;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
 
 namespace Qian.Sample.Crm.Tests;
 
@@ -17,7 +17,7 @@ public sealed class HttpSchemaDirectionTests
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
-        builder.Services.AddAuthorization(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunHttpContracts();
         await using var app = builder.Build();
         app.MapPost("/probe", (NullableRead input) => Results.Ok(input))
             .WithMetadata(new PlatformHttpContract("qian.test")).Produces<NullableRead>();
@@ -40,7 +40,7 @@ public sealed class HttpSchemaDirectionTests
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
-        builder.Services.AddAuthorization(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunHttpContracts();
         await using var app = builder.Build();
         app.MapPost("/lengths", (Lengths input) => Results.NoContent()).WithMetadata(new PlatformHttpContract("qian.test"));
         await app.StartAsync(TestContext.Current.CancellationToken);

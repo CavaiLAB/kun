@@ -5,5 +5,5 @@ Kun.Plugin.Sdk.CommandDataSession<TContext>.Context.get -> TContext!
 Kun.Plugin.Sdk.CommandDataSession<TContext>.Outbox.get -> Kun.EventBus.Outbox.IOutboxWriter!
 Kun.Plugin.Sdk.HookCapabilityRegistration
 Kun.Plugin.Sdk.KunCommandRegistration
-static Kun.Plugin.Sdk.HookCapabilityRegistration.ExposeCapabilityHook<TRequest, TResponse>(this Kun.Runtime.IPluginContext! context, string! name, System.Func<Qian.Surfaces.Abstractions.HookNotification!, TRequest>! request) -> System.IDisposable!
+static Kun.Plugin.Sdk.HookCapabilityRegistration.ExposeCapabilityHook<TRequest, TResponse>(this Kun.Runtime.IPluginContext! context, string! name, System.Func<Kun.Surfaces.Abstractions.HookNotification!, TRequest>! request) -> System.IDisposable!
 static Kun.Plugin.Sdk.KunCommandRegistration.AddKunCapability<TRequest, TResponse, THandler, TContext>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>! source, string! channel = "api") -> Kun.Mediator.KunMediatorBuilder!

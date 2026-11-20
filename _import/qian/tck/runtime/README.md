@@ -81,7 +81,7 @@ S1-RT-003 已合并并完成 `@idadawn/qian-runtime@0.1.0` 私有发布与逻辑
 
 ### T19 的实际文件监视场景
 
-[hotreload.json](hotreload.json) 由 Qian.Surfaces 的 .NET 与 TypeScript 测试直接读取。测试启动真实监视器并写入技能文件，在五秒界限内观察 Tools 与 Skills 的内容变化，同时验证代码对象未替换、代码效果未释放；非法更新保留旧内容，src 变化只标记需要重启，卸载后效果恰好释放一次。两侧还校验实际诊断注册的 scope 隔离、共享响应 Schema、重启状态与卸载后的旧引用失效。设置 QIAN_HOT_RELOAD_REPORT 可保存实际断言后的结果，surfaces CI 会精确比较两侧报告。真实 CLI 读取运行态另由 CRM 的签名认证 Kestrel 集成测试及 TS 宿主测试覆盖，包含错误更新恢复。RT-009 的完整 hook 生产方与生产注册表触发、QA-002 的其余验收仍分别跟踪。
+[hotreload.json](hotreload.json) 由 Kun.Surfaces 的 .NET 与 TypeScript 测试直接读取。测试启动真实监视器并写入技能文件，在五秒界限内观察 Tools 与 Skills 的内容变化，同时验证代码对象未替换、代码效果未释放；非法更新保留旧内容，src 变化只标记需要重启，卸载后效果恰好释放一次。两侧还校验实际诊断注册的 scope 隔离、共享响应 Schema、重启状态与卸载后的旧引用失效。设置 QIAN_HOT_RELOAD_REPORT 可保存实际断言后的结果，surfaces CI 会精确比较两侧报告。真实 CLI 读取运行态另由 CRM 的签名认证 Kestrel 集成测试及 TS 宿主测试覆盖，包含错误更新恢复。RT-009 的完整 hook 生产方与生产注册表触发、QA-002 的其余验收仍分别跟踪。
 
 ### 无代码技能的 minimal 装载
 

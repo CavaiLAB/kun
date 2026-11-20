@@ -1,0 +1,4 @@
+#nullable enable
+Kun.Profiles.ProfileLoader
+Kun.Profiles.ProfileLoader.ProfileLoader(Kun.Surfaces.Abstractions.ISurfaceReader! reader) -> void
+Kun.Profiles.ProfileLoader.Load(Kun.Profiles.Abstractions.ProfileLoadOptions! options) -> Kun.Profiles.Abstractions.ProfileLoadResult!

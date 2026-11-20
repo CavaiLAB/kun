@@ -4,11 +4,11 @@ using Kun.Errors;
 using Kun.EventBus;
 using Kun.Mediator;
 using Kun.Plugin.Sdk;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Tenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Qian.Registry;
 
 namespace Kun.Files;
 

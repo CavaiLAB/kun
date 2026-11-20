@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Json.Schema;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Tenancy;
 
 namespace Qian.Sample.Crm.Tests;

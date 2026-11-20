@@ -102,7 +102,7 @@ T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实
 - 不传时行为与独立宿主相同。
 - `CrmCommandRuntime.Source()` 优先取本租户 scope 的 `crm` 条目；没有时回到全局条目的 scope 视图。由 Lifecycle 装进租户 scope 的版本因此由各租户自己的条目处理。
 
-真实验收在测试工程的 `LifecycleAcceptanceTests`。宿主只预装参考应用 1.0.0 / 1.0.1 / 1.1.0 三个版本、不挂全局条目，由 Lifecycle 完成开通、挂载、升级、回切与契约准入。证据与边界见 [Qian.Lifecycle](../../packages/Qian.Lifecycle/README.md#测试证据)。这不代表参考应用已经以正式包安装，正式安装验收仍归 S1-RT-011。
+真实验收在测试工程的 `LifecycleAcceptanceTests`。宿主只预装参考应用 1.0.0 / 1.0.1 / 1.1.0 三个版本、不挂全局条目，由 Lifecycle 完成开通、挂载、升级、回切与契约准入。证据与边界见 [Kun.Lifecycle](../../../../src/Kun.Lifecycle/README.md#测试证据)。这不代表参考应用已经以正式包安装，正式安装验收仍归 S1-RT-011。
 
 ## 平台租户运营宿主
 
@@ -116,13 +116,13 @@ T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实
 
 ## 面向用户的平台表面参考宿主（S1-YUE-012）
 
-[PlatformSurfaceHost](PlatformSurfaceHost.cs) 与运营宿主同形：复用调用方已装配的 Runtime（Registry / Capabilities / Authz），只认网关签发的 S2S（要求 issuer、受众、有效期、签名完整校验且只接受 RS256，受众常量 `PlatformSurfaceHost.Audience` 即 `qian-platform`），接受 user / service / agent 主体，主体快照取自令牌，按其 `tenant_id` 进入租户 scope；平台身份没有租户表面，按未认证拒绝。它映射 `MapQianCapabilities`（能力目录、导航、外壳目录 `GET /api/capabilities/shell` 与执行入口）与 `MapKunAuthz`（有效权限），授权 PEP 按生产模式装配：处理器内判定的端点也比对 identity_revision，旧修订 401 `UNAUTHENTICATED`。
+[PlatformSurfaceHost](PlatformSurfaceHost.cs) 与运营宿主同形：复用调用方已装配的 Runtime（Registry / Capabilities / Authz），只认网关签发的 S2S（要求 issuer、受众、有效期、签名完整校验且只接受 RS256，受众常量 `PlatformSurfaceHost.Audience` 即 `qian-platform`），接受 user / service / agent 主体，主体快照取自令牌，按其 `tenant_id` 进入租户 scope；平台身份没有租户表面，按未认证拒绝。它映射 `MapKunCapabilities`（能力目录、导航、外壳目录 `GET /api/capabilities/shell` 与执行入口）与 `MapKunAuthz`（有效权限），授权 PEP 按生产模式装配：处理器内判定的端点也比对 identity_revision，旧修订 401 `UNAUTHENTICATED`。
 
 S1-YUE-018 另映射平台控制台目录 `MapQianPlatformConsole`（`GET /api/capabilities/console`）：只对不带租户的请求（平台身份）交出 Capabilities 组件的全局上下文，带租户的请求 404；目录服务再按平台超管只读判定列出平台组件（租户运营 `qian.tenancy`、开通申请 `qian.tenancy.signup`）的远程、菜单与权限码，不持角色为空，判定不写审计（细节见 Qian.Capabilities）。页面里的操作不经本宿主，而是经运营宿主（`TenantOperationsHost`，逐次超管旁路并写平台审计链）。用例 `PlatformConsoleTests`：持角色的平台身份拿到两个平台组件、不写审计，撤销角色后立即为空，租户主体、服务、Agent 与不持角色的平台身份拿不到，租户的外壳目录与菜单不含平台组件；网关 bootstrap 对持角色的平台身份交出同一份目录、不代管，不持角色仍代管，响应不含令牌。参考宿主的平台组件装配（租户运营与开通申请组件按 UI 清单登记菜单与远程）在 `LifecycleAcceptanceTests.AttachLifecycle` 的 `Console` 开关里。
 
 参考应用的命令宿主（`CrmCommandApplication`）只认机器身份，所以用户主体的这些表面单独成宿主，网关按受众分簇转发；外壳 bootstrap（Kun.Gateway 的 `MapKunShellBootstrap`）经它取外壳目录、导航与有效权限，平台身份则只取平台控制台目录。`ShellBootstrapTests` 与外壳联调环境（[tools/Qian.Dev.Shell](../../tools/Qian.Dev.Shell/README.md)）都用它；生产里由 platform profile 的平台宿主提供同一表面，归 S1-DEP-009。参考应用的界面（UI 清单与 MF2 远程模块）在 [samples/qian-sample-crm-ui](../qian-sample-crm-ui/README.md)。
 
-生产对应物是 [platform 生产宿主](../../hosts/Qian.Platform.Host/README.md)（S1-DEP-009）：按 platform profile 自行装配插件树，平台表面与运营接口同一进程、按匹配到的端点分受众，参考应用这类 module 应用经组合的扩展登记并进同一插件树；两者的差异见它的 README「与参考宿主的差异」。
+生产对应物是 [platform 生产宿主](../../../../hosts/Kun.Platform.Host/README.md)（S1-DEP-009）：按 platform profile 自行装配插件树，平台表面与运营接口同一进程、按匹配到的端点分受众，参考应用这类 module 应用经组合的扩展登记并进同一插件树；两者的差异见它的 README「与参考宿主的差异」。
 
 用户主体经平台表面执行参考应用能力（S1-YUE-015 裁决 A1）：命令由参考应用的命令运行时执行，从参考宿主的 DI 取当前主体。平台表面宿主验签后，把同一份已验证快照（user / service / agent，不含 `act`）交给参考应用的身份适配器，能力因此以调用者本人执行：命令 PEP 按其角色判权限点与 scope 并记决策，审计链按主体种类记 `actor_type`（用户记 `user`；外部机器客户端带 Bearer 经网关时是服务主体，记 `service`，S1-YUE-016），通道沿用能力登记的 `api`（裁决 ③，`ui` 归因见 S1-AUD-011）。user 只认这一来源，参考应用自己的受众（`qian.sample.crm`）验签仍只收机器主体。调用方可以先登记数据组件（例如同进程挂身份库）：Kun 2026.10.25 起数据约定不再以匿名兜底占住框架当前主体端口（S1-KUN-017），`CrmCommandApplication` 不再抢先登记 `JwtCurrentUser`；端口若仍解析成匿名兜底，SDK 的启动检查让宿主启动即失败。生产里 `module` 应用与平台表面同在 platform 宿主、解析同一个身份适配器（S1-DEP-009）。
 
@@ -132,4 +132,4 @@ S1-YUE-018 另映射平台控制台目录 `MapQianPlatformConsole`（`GET /api/c
 
 设置 `Qian:Profile=platform`，或由平台组合根显式登记 `PluginEndpointOptions` 后，参考宿主自己装配 `AddKunPluginEndpoints` / `UseKunPluginEndpoints`，创建、列表、详情三个端点都使用 `RequireKunPlugin`。Registry 的 scope 视图没有当前绑定、被 restrict 过滤或卸载后均返回 404；filter 还会拒绝遗漏中间件的接线。平台宿主仍须装配真实 Registry 及其上下文，不能用配置值冒充可见性。
 
-默认 standalone 与 `--data-only` 没有 Registry 可见性门；仍执行既有可信身份、租户边界、权限、数据与审计规则。需要平台能力目录时，宿主必须调用 `AddQianCapabilities()`，缺失时平台能力组件拒绝挂载。
+默认 standalone 与 `--data-only` 没有 Registry 可见性门；仍执行既有可信身份、租户边界、权限、数据与审计规则。需要平台能力目录时，宿主必须调用 `AddKunCapabilities()`，缺失时平台能力组件拒绝挂载。

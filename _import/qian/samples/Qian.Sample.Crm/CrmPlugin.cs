@@ -3,7 +3,7 @@ using Kun.EntityFrameworkCore;
 using Kun.Mediator;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;

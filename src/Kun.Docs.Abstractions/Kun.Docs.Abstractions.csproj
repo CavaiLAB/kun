@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>配置、模块、事件与 seam 派生文档契约。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>contract</KunRole></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
+    <ProjectReference Include="../Kun.Profiles.Abstractions/Kun.Profiles.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Surfaces.Abstractions/Kun.Surfaces.Abstractions.csproj" />
+  </ItemGroup>
+</Project>

@@ -17,9 +17,7 @@
 !_import/qian/Directory.Build.targets
 !_import/qian/Directory.Packages.props
 !_import/qian/.editorconfig
-!_import/qian/packages/Common/**
-!_import/qian/packages/Qian.*/**
-!_import/qian/hosts/Qian.Platform.Host/**
+!hosts/Kun.Platform.Host/**
 !_import/qian/tools/Qian.Build.Analyzers/**
 !_import/qian/tools/Qian.Image.SelfCheck/**
 !_import/qian/tools/Qian.Image.SelfCheck.Aot/**

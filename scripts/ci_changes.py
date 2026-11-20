@@ -82,8 +82,8 @@ AREAS: Dict[str, Area] = {
         (
             q("deploy/images/**", "tools/Qian.Image.SelfCheck*/**", "tools/Qian.Build.Analyzers/**", "scripts/images.py",
               "scripts/prepare_image_tools.py", "scripts/image-tools.lock.json", "tests/gates/test_images.py",
-              "profiles/**", "plugins/**", "packages/Qian.Profiles*/**", "packages/Qian.Surfaces*/**",
-              "packages/Common/**", "schemas/**",
+              "profiles/**", "plugins/**",
+              "schemas/**",
               "contracts/v0/**", "*.props", "*.targets", ".editorconfig", ".github/workflows/images.yml"),
             ("hosts/Kun.Gateway.Host/**",),
             DOTNET_BASE,
@@ -106,10 +106,10 @@ AREAS: Dict[str, Area] = {
     "documentation": Area(
         "派生文档与事件模式",
         (
-            q("packages/**", "plugins/**", "profiles/**", "tools/Qian.Docs.Tool/**", "tests/Qian.Docs.Tests/**",
+            q("packages/**", "plugins/**", "profiles/**", "tools/Qian.Docs.Tool/**",
               "schemas/**", "tck/runtime/**", "docs/generated/**", "*.props", "*.targets", "Qian.slnf",
               "package.json", "pnpm*", ".github/workflows/documentation.yml"),
-            (".github/workflows/qian-documentation.yml",),
+            (".github/workflows/qian-documentation.yml", "tests/Kun.Docs.Tests/**", "tests/Directory.Build.props"),
             DOTNET_BASE, NPMRC,
         ),
         original="documentation.yml", builds_dotnet=True, installs_npm=True),
@@ -127,7 +127,6 @@ AREAS: Dict[str, Area] = {
         "目录选择器验收",
         (
             q("tests/directory-e2e/**", "tests/gates/ui/pins.test.ts",
-              "packages/Qian.*/**", "packages/Common/**",
               "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
               "Directory.*.props", "Directory.Build.targets", ".editorconfig",
@@ -141,7 +140,7 @@ AREAS: Dict[str, Area] = {
         (
             q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-identity-ui/**",
               "samples/qian-sample-crm-ui/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
-              "packages/Qian.*/**", "packages/Common/**", "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**",
+              "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**",
               "contracts/**", "tools/Qian.Dev.Shell/**", "tools/Qian.Dev.TenantOps/**", "tools/Qian.Build.Analyzers/**",
               "scripts/dev-shell.sh", "Directory.*.props", "Directory.Build.targets",
               ".editorconfig", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/shell-auth.yml"),
@@ -164,20 +163,20 @@ AREAS: Dict[str, Area] = {
     "surfaces": Area(
         "声明式表面",
         (
-            q("packages/Qian.Surfaces*/**", "packages/qian-surfaces/**",
-              "packages/Qian.Profiles*/**", "packages/qian-cli/**", "profiles/**", "plugins/**", "tck/profiles/**",
-              "tck/registry-artifacts/**", "tests/Qian.Profiles.Tests/**", "package.json", "schemas/v2/**",
-              "tck/surfaces/**", "tck/runtime/**", "tck/marketplaces/**", "contracts/v0/**", "tests/Qian.Surfaces.Tests/**",
-              "scripts/generate_surface_fixtures.py", "packages/Common/**", "pnpm*", "*.props", "*.targets", "Qian.slnf",
+            q("packages/qian-surfaces/**",
+              "packages/qian-cli/**", "profiles/**", "plugins/**", "tck/profiles/**",
+              "tck/registry-artifacts/**", "package.json", "schemas/v2/**",
+              "tck/surfaces/**", "tck/runtime/**", "tck/marketplaces/**", "contracts/v0/**",
+              "scripts/generate_surface_fixtures.py", "pnpm*", "*.props", "*.targets", "Qian.slnf",
               ".github/workflows/surfaces.yml"),
-            (".github/workflows/qian-surfaces.yml",),
+            (".github/workflows/qian-surfaces.yml", "tests/Kun.Profiles.Tests/**", "tests/Kun.Surfaces.Tests/**", "tests/Directory.Build.props"),
             DOTNET_BASE, NPMRC,
         ),
         original="surfaces.yml", builds_dotnet=True, installs_npm=True),
     "tenant-ui": Area(
         "租户运营页面验收",
         (
-            q("packages/qian-tenancy-ui/**", "turbo.json", "packages/Qian.*/**", "packages/Common/**",
+            q("packages/qian-tenancy-ui/**", "turbo.json",
               "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
               "Directory.*.props", "Directory.Build.targets", ".editorconfig",

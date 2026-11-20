@@ -6,7 +6,7 @@
 
 ## global/registry
 
-组件：` qian.registry@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.registry@1.2.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -36,7 +36,7 @@
 
 ## global/lifecycle
 
-组件：` qian.lifecycle@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.lifecycle@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -174,7 +174,7 @@
 
 ## global/capabilities
 
-组件：` qian.capabilities@1.0.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.capabilities@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -240,7 +240,7 @@
 
 ## global/tenancy
 
-组件：` qian.tenancy@2.2.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.tenancy@2.3.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -875,7 +875,7 @@
 
 ## global/scheduler
 
-组件：` qian.scheduler@1.0.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.scheduler@1.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 此条目为业务配置骨架，未证明 Provider 已实现或 Ready。
 

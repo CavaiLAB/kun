@@ -18,7 +18,7 @@ using Org.BouncyCastle.Security;
 using Kun.Audit;
 using Kun.Gateway;
 using Kun.Identity.Abstractions;
-using Qian.Platform.Host;
+using Kun.Platform.Host;
 using Kun.Runtime;
 using Kun.Tenancy;
 using Kun.Tenancy.Signup;

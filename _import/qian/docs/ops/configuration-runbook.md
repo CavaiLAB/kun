@@ -34,7 +34,7 @@
 
 ## 部署步骤：平台宿主装配
 
-platform profile 宿主（包括自建的组合包）在登记 `ISurfaceReader` 与 `IToolContractHasher` 之后，必须调用 `services.AddQianCapabilities()`。它装配能力契约的登记期检查：组件登记能力时就生成目录条目、预编译输入校验器，不合格的契约让组件挂载为 Failed，见 [Qian.Capabilities](../../packages/Qian.Capabilities/README.md)「登记期契约检查」。
+platform profile 宿主（包括自建的组合包）在登记 `ISurfaceReader` 与 `IToolContractHasher` 之后，必须调用 `services.AddKunCapabilities()`。它装配能力契约的登记期检查：组件登记能力时就生成目录条目、预编译输入校验器，不合格的契约让组件挂载为 Failed，见 [Kun.Capabilities](../../../../src/Kun.Capabilities/README.md)「登记期契约检查」。
 
 漏掉这一步宿主照常启动，但检查退化为首次读目录或调用时才编译：不合格的能力不会在挂载时暴露，目录排除它并记一次告警（「能力 … 的契约不合格（规则），位置 …；该能力不登记、不进入目录。」），执行入口对它返回 404。预发环境上线后检查宿主日志：出现这条告警说明有组件带了不合格的契约；该组件的挂载状态仍是 Ready 而不是 Failed，说明组合包漏了这一步。
 

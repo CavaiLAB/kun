@@ -6,9 +6,12 @@ using System.Text;
 using System.Text.Json;
 using Kun.Authorization;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
 using Kun.Configuration.AspNetCore;
 using Kun.Errors.AspNetCore;
 using Kun.Identity.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Security;
 using Kun.Security.Authentication;
@@ -24,9 +27,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Capabilities;
-using Qian.Capabilities.AspNetCore;
-using Qian.Registry;
 
 namespace Kun.Configuration.Platform.Tests;
 
@@ -200,7 +200,7 @@ public sealed class ConfigEndpointsTests
             var jwks = new JsonWebKeySet(JsonSerializer.Serialize(new { keys = new[] { new { kty = jwk.Kty, kid = jwk.Kid, n = jwk.N, e = jwk.E } } }));
             var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
             builder.Services.AddKunSecurity(); builder.Services.AddHttpContextAccessor(); builder.Services.AddKunErrors(_ => { });
-            builder.Services.AddScoped<ICurrentUser, TokenUser>(); builder.Services.AddQianHttpContracts();
+            builder.Services.AddScoped<ICurrentUser, TokenUser>(); builder.Services.AddKunHttpContracts();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddKunServiceAuthentication(options =>
             { options.Issuer = "config-http-test"; options.Audience = "config-http"; options.StaticKeySet = jwks; });
             builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options => options.MapInboundClaims = false);

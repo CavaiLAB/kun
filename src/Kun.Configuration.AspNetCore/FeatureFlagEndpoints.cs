@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Authorization;
+using Kun.Capabilities;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Identity.Abstractions;
@@ -11,7 +12,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Capabilities;
 
 namespace Kun.Configuration.AspNetCore;
 

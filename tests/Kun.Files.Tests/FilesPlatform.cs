@@ -7,6 +7,7 @@ using System.Text.Json;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Capabilities.AspNetCore;
 using Kun.Core.MultiTenancy;
 using Kun.Data;
 using Kun.EntityFrameworkCore;
@@ -14,9 +15,14 @@ using Kun.EntityFrameworkCore.Extensions;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Identity.Abstractions;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Security;
 using Kun.Security.Authentication;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Kun.Tenancy.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -30,12 +36,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Capabilities.AspNetCore;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Registry;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
 
 namespace Kun.Files.Tests;
 
@@ -182,7 +182,7 @@ internal sealed class FilesPlatform : IAsyncDisposable
             };
             options.Events = new JwtBearerEvents { OnTokenValidated = context => { PlatformOperator.Capture(context); return Task.CompletedTask; } };
         });
-        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddQianHttpContracts();
+        builder.Services.AddAuthorization(); builder.Services.AddKunErrors(); builder.Services.AddKunHttpContracts();
         builder.Services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.PropertyNameCaseInsensitive = false;

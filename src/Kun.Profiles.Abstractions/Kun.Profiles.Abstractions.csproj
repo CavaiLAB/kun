@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>profile 装配结果、来源层与装载端口。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>contract</KunRole></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" /><ProjectReference Include="../Kun.Surfaces.Abstractions/Kun.Surfaces.Abstractions.csproj" /></ItemGroup>
+</Project>

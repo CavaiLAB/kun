@@ -99,7 +99,7 @@ public sealed class LifecycleTests
         Assert.Equal(PluginState.Ready, loader.GetState("consumer", ScopeKey.Global));
     }
 
-    // Qian.Scheduler 的 SchedulerWorker 靠这条行为认停机：卸载时先关闭上下文、再逆序跑效果，效果里与之后的 TryInject
+    // Kun.Scheduler 的 SchedulerWorker 靠这条行为认停机：卸载时先关闭上下文、再逆序跑效果，效果里与之后的 TryInject
     // （含关闭前取得的 Scoped 子上下文）都抛 ObjectDisposedException；上下文开着而服务缺失时返回 null、不抛。
     // 改这条行为要同步改调度器的停机分支（SchedulerWorker.ContextClosed）。
     [Fact]

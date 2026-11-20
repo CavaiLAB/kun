@@ -6,11 +6,11 @@
 
 | 条目 | 组件 | 来源层 | 状态 |
 |---|---|---|---|
-| ` global/registry ` | ` qian.registry@1.1.0 ` | 0（bundle） | 已解析，尚未执行 |
-| ` global/lifecycle ` | ` qian.lifecycle@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |
-| ` global/capabilities ` | ` qian.capabilities@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/registry ` | ` qian.registry@1.2.0 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/lifecycle ` | ` qian.lifecycle@1.1.0 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/capabilities ` | ` qian.capabilities@1.1.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/hooks ` | ` qian.hooks@1.0.0 ` | 0（bundle） | 配置骨架 |
-| ` global/tenancy ` | ` qian.tenancy@2.2.0 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/tenancy ` | ` qian.tenancy@2.3.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/identity ` | ` qian.identity.client@1.1.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/authz ` | ` qian.authz@1.1.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/data ` | ` qian.data@1.1.0 ` | 0（bundle） | 已解析，尚未执行 |
@@ -23,7 +23,7 @@
 | ` global/notify.inbox ` | ` qian.notify.channel.inbox@1.0.0 ` | 0（bundle） | 配置骨架 |
 | ` global/notify.email ` | ` qian.notify.channel.email@1.0.0 ` | 0（bundle） | 配置骨架 |
 | ` global/notify.sms ` | ` qian.notify.channel.sms@1.0.0 ` | 0（bundle） | 配置骨架 |
-| ` global/scheduler ` | ` qian.scheduler@1.0.1 ` | 0（bundle） | 配置骨架 |
+| ` global/scheduler ` | ` qian.scheduler@1.1.0 ` | 0（bundle） | 配置骨架 |
 | ` global/realtime ` | ` qian.realtime@1.0.0 ` | 0（bundle） | 配置骨架 |
 | ` global/entitlement ` | ` qian.entitlement@1.0.0 ` | 0（bundle） | 配置骨架 |
 | ` global/shell ` | ` qian.shell@1.0.0 ` | 1（bundle） | 配置骨架 |

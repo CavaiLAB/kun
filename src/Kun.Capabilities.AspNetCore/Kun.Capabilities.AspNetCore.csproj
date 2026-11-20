@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>能力目录的认证 HTTP 表面。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Capabilities.Abstractions/Kun.Capabilities.Abstractions.csproj" /><ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /><ProjectReference Include="../Kun.Security/Kun.Security.csproj" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Capabilities.Tests" /></ItemGroup>
+</Project>

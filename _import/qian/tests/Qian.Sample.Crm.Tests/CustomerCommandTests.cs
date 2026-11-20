@@ -28,8 +28,8 @@ using Kun.Authorization.AspNetCore;
 using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Qian.Lifecycle;
-using Qian.Registry;
+using Kun.Lifecycle;
+using Kun.Registry;
 using Kun.Tenancy;
 using Qian.Testing;
 using Kun.Testing.Containers;
@@ -350,7 +350,7 @@ public abstract partial class CustomerCommandTests
                 if (identity) Kun.Identity.Abstractions.IdentityEventRegistration.RegisterIdentityEvents(registrar);
             }, lifecycle is null && !identity ? null : mediator =>
             {
-                if (lifecycle is not null) mediator.AddQianRegistryEvents().AddQianLifecycleEvents();
+                if (lifecycle is not null) mediator.AddKunRegistryEvents().AddKunLifecycleEvents();
                 if (identity) Kun.Identity.Server.IdentityEventHandlers.AddKunIdentityEvents(mediator);
             });
             try
@@ -358,7 +358,7 @@ public abstract partial class CustomerCommandTests
                 using (var scope = app.Services.CreateScope())
                 {
                     var schemas = new[] { CrmDbContext.Schema, AuthzDbContext.Schema, TenancyDbContext.Schema, AuditDbContext.Schema };
-                    if (platform) schemas = [.. schemas, Qian.Registry.RegistryDbContext.Schema, Qian.Capabilities.CapabilitiesDbContext.Schema, Qian.Lifecycle.LifecycleDbContext.Schema];
+                    if (platform) schemas = [.. schemas, Kun.Registry.RegistryDbContext.Schema, Kun.Capabilities.CapabilitiesDbContext.Schema, Kun.Lifecycle.LifecycleDbContext.Schema];
                     if (identity) schemas = [.. schemas, Kun.Identity.Server.IdentityDbContext.Schema];
                     var sql = string.Join('\n', schemas.Select(schema => "DROP SCHEMA IF EXISTS " + schema + " CASCADE;"));
                     sql += scope.ServiceProvider.GetRequiredService<CrmDbContext>().Database.GenerateCreateScript();
@@ -366,7 +366,7 @@ public abstract partial class CustomerCommandTests
                     sql += scope.ServiceProvider.GetRequiredService<TenancyDbContext>().Database.GenerateCreateScript();
                     sql += scope.ServiceProvider.GetRequiredService<AuditDbContext>().Database.GenerateCreateScript();
                     // 能力上下文随包提供迁移，下面经迁移器建表，不用 GenerateCreateScript。
-                    if (platform) sql += scope.ServiceProvider.GetRequiredService<Qian.Registry.RegistryDbContext>().Database.GenerateCreateScript();
+                    if (platform) sql += scope.ServiceProvider.GetRequiredService<Kun.Registry.RegistryDbContext>().Database.GenerateCreateScript();
                     if (identity) sql += IdentitySchemaSql(scope.ServiceProvider);
                     // 用例自己登记的上下文（如开通申请组件，S1-TEN-019）：建表脚本自带清理与授权，在宿主启动校验迁移之前执行。
                     if (schema is not null) sql += schema(scope.ServiceProvider);
@@ -383,11 +383,11 @@ public abstract partial class CustomerCommandTests
                 {
                     // 与 --migrate-only 迁移任务同一入口：属主角色在 advisory lock 内执行包内迁移；没有迁移的上下文照常跳过。
                     var reports = await app.Services.GetRequiredService<IDataMigrator>().MigrateAsync(Ct);
-                    Assert.NotEmpty(Assert.Single(reports, report => report.ContextType == typeof(Qian.Capabilities.CapabilitiesDbContext)).Applied);
+                    Assert.NotEmpty(Assert.Single(reports, report => report.ContextType == typeof(Kun.Capabilities.CapabilitiesDbContext)).Applied);
                     await Admin($"GRANT USAGE ON SCHEMA plugin_qian_capabilities TO \"{role}\"; GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA plugin_qian_capabilities TO \"{role}\";");
                     if (lifecycle is not null)
                     {
-                        Assert.NotEmpty(Assert.Single(reports, report => report.ContextType == typeof(Qian.Lifecycle.LifecycleDbContext)).Applied);
+                        Assert.NotEmpty(Assert.Single(reports, report => report.ContextType == typeof(Kun.Lifecycle.LifecycleDbContext)).Applied);
                         await Admin($"GRANT USAGE ON SCHEMA plugin_qian_lifecycle TO \"{role}\"; GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA plugin_qian_lifecycle TO \"{role}\";");
                     }
                 }

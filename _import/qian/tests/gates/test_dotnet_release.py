@@ -73,10 +73,10 @@ class PackageVerificationTests(unittest.TestCase):
 
     def test_family_dependencies_must_be_pinned_to_the_same_version_and_stay_inside_the_family(self):
         self.write_family()
-        self.write("Kun.Plugin.Sdk", dependencies={"Qian.Runtime": "[0.0.9, )", "Qian.Registry": VERSION})
+        self.write("Kun.Plugin.Sdk", dependencies={"Qian.Runtime": "[0.0.9, )", "Qian.MissingDependency": VERSION})
         message = self.failures()
         self.assertIn("对 Qian.Runtime 的依赖是 [0.0.9, )", message)
-        self.assertIn("依赖的 Qian.Registry 不在包族里", message)
+        self.assertIn("依赖的 Qian.MissingDependency 不在包族里", message)
 
     def test_generator_package_carries_only_its_analyzer_and_is_a_development_dependency(self):
         self.write_family()

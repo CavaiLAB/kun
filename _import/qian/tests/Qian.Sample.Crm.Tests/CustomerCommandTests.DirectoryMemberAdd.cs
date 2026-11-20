@@ -12,13 +12,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Capabilities;
+using Kun.Capabilities;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
 namespace Qian.Sample.Crm.Tests;
 

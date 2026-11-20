@@ -30,8 +30,8 @@ tests/
   Kun.Testing.Containers.Tests/              fixture 自身的集成测试与单元测试
 _import/qian/tests/
   Directory.Build.props                       过渡目录中测试项目的构建设置
-  Qian.Lifecycle.Tests/                       生命周期：验签与信任根轮换（真实 PostgreSQL）、GitOps 执行器（本机裸仓库 + K3s 单节点集群）、Local 执行器
-  Qian.Common.Tests/                          packages/Common 共享内部源文件的测试，直接编译源文件；并生成 CLI 移植比对用的 tck/profiles/key-vectors.json 与等价类表
+  Kun.Lifecycle.Tests/                       生命周期：验签与信任根轮换（真实 PostgreSQL）、GitOps 执行器（本机裸仓库 + K3s 单节点集群）、Local 执行器
+  Kun.Common.Tests/                          packages/Common 共享内部源文件的测试，直接编译源文件；并生成 CLI 移植比对用的 tck/profiles/key-vectors.json 与等价类表
   gates/                                      门禁自测：样例项目 + Python 测试，不在 Kun.slnx 与 Qian.slnf 里
     publicapi/                                PublicAPI 门禁样例
     ui/                                       外壳与界面包的门禁自测（依赖边界、循环依赖样例、文案规则、令牌、外壳产物校验、钉住的副本），由 pnpm ui:test 跑
@@ -52,7 +52,7 @@ done
 
 - 在 `_import/qian` 执行上面的命令。`Qian.slnf` 登记过渡目录内的项目，[kun-platform.slnf](../../../tests/kun-platform.slnf) 登记仓库根参加平台分片的集成测试。分片工具按统一的分组从两份清单生成实际测试名单，专属的 NativeAOT 作业单独运行。
 
-- 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Qian.Capabilities.Tests` 与 `Qian.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
+- 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Kun.Capabilities.Tests` 与 `Qian.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
   - `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
   - `python3 scripts/prepare_contract_tools.py --destination <目录>`，再导出 `QIAN_BUF_PATH=<目录>/buf` 与 `QIAN_OASDIFF_PATH=<目录>/oasdiff`：能力契约的真实兼容检查器，缺失时相关用例按设计拒绝跳过。
 - `dotnet test` 走 Microsoft Testing Platform（仓库根 [global.json](../../../global.json) 的 `test.runner`）；xUnit v3 测试项目是可执行程序，csproj 里写 `<OutputType>Exe</OutputType>`。
@@ -136,7 +136,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 
 ### 调度验收的用例写法
 
-`Qian.Scheduler.Tests` 的用例按主题分在四个 sealed 类里，各自一个 `SchedulerFixture`（独立的 PostgreSQL 容器、角色与 schema），类之间并行、类内串行（S1-QA-022）；各类的范围见 [SchedulerScenario.cs](Qian.Scheduler.Tests/SchedulerScenario.cs) 开头的注释。
+`Kun.Scheduler.Tests` 的用例按主题分在四个 sealed 类里，各自一个 `SchedulerFixture`（独立的 PostgreSQL 容器、角色与 schema），类之间并行、类内串行（S1-QA-022）；各类的范围见 [SchedulerScenario.cs](../../../tests/Kun.Scheduler.Tests/SchedulerScenario.cs) 开头的注释。
 
 - 共用的租户、作业目标与参数是静态类 `SchedulerScenario` 的只读成员，各文件 `using static` 引用；没有公共基类，新用例直接写进对应主题类。
 - 分钟验收 `SchedulerMinuteTests` 要等两个真实分钟边界（CI 上 90–143 秒），是程序集的长杆，独占一个类；不往里加用例，其他类的总时长也要留在它之下。100 个 cron 分 10 路并发建：逐个建时 CPU 被挤要 20–60 秒，会跨过分钟边界。
@@ -180,7 +180,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 依赖门禁已移到仓库根（S1-KUN-020）：[scripts/check_deps.py](../../../scripts/check_deps.py) 检查 `Kun.slnx` 里每个可打包的项目，按项目文件里写的档位（`KunTier`：内核档或平台档）与角色（`KunRole`：契约或提供者）判定，不再按 `Qian.` 前缀与 `.Abstractions` 后缀。规则、例外的写法与本机跑法见仓库根 [AGENTS.md](../../../AGENTS.md)「档位与依赖」，自测与样例在仓库根的 `tests/gates/`。
 
 - 本目录的项目写了 `<IsPackable>true</IsPackable>`，就要同时写档位与角色，否则构建报 KUNTIER001。
-- 原来按名字的几条规则这样对应：组件之间只经契约包引用、不依赖平台插件 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`，对应规则 P（平台档包只依赖内核档的包与平台档的契约包）；Definition 的 Kun 直接依赖对应规则 D（契约包直接依赖的内核档包只能是契约）。
+- 原来按名字的几条规则这样对应：组件之间只经契约包引用、不依赖平台插件 `Kun.Registry` / `Kun.Lifecycle` / `Kun.Capabilities`，对应规则 P（平台档包只依赖内核档的包与平台档的契约包）；Definition 的 Kun 直接依赖对应规则 D（契约包直接依赖的内核档包只能是契约）。
 - 原来白名单里的四条边：`Kun.Core`、`Kun.Authorization` 记为契约，`Kun.Tenancy.Abstractions → Kun.Core` 与 `Kun.Authorization.Rbac.Abstractions → Kun.Authorization` 不再需要；`Kun.Data.Abstractions` 的两条记成档位例外，写在它的项目文件里。
 - 组合包 `Qian.Bundle.*` 不再整包豁免。现在一个也没有，以后加了同样要写档位。
 
@@ -195,7 +195,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 | `publicapi/Qian.GateSample.Stale` | RS0017，构建失败 |
 | `publicapi/Qian.GateSample.NoApiFiles` | QIAN0001，构建失败 |
 | `publicapi/GateSample.NotPackable` | 构建通过：不打包的项目不受约束 |
-| 仓库根 `tests/gates/test_check_deps.py` 与 `tests/gates/depgraph/` | 依赖门禁的自测（见仓库根 `AGENTS.md`「档位与依赖」）。S1-RT-014（SDK 包族的完整传递依赖里没有平台档的提供者，也没有 `Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`）与 S1-IDP-007（OIDC 连接器不依赖 `Kun.Identity.Server`）两条验收在它的 `RealGraphTests` 里，读真实依赖图 |
+| 仓库根 `tests/gates/test_check_deps.py` 与 `tests/gates/depgraph/` | 依赖门禁的自测（见仓库根 `AGENTS.md`「档位与依赖」）。S1-RT-014（SDK 包族的完整传递依赖里没有平台档的提供者，也没有 `Kun.Registry` / `Kun.Lifecycle` / `Kun.Capabilities`）与 S1-IDP-007（OIDC 连接器不依赖 `Kun.Identity.Server`）两条验收在它的 `RealGraphTests` 里，读真实依赖图 |
 | `test_dotnet_release.py`（合成 `.nupkg`，不需要 dotnet 与网络） | 包族锁步发布的制品核对：缺包、多包、版本不一致、包族内依赖下限未钉同一版本或指向包族外、源生成器包带 `lib/` 或不是开发依赖、许可证与仓库地址缺失都失败；版本号须为不带前缀与构建元数据的 SemVer 2.0；推送后的包源核对缺包、仓库关联不符、可见性与仓库不一致或缺版本都失败（S1-RT-014） |
 | `test_check_docs.py`（不用样例项目，临时目录里搭最小仓库） | 文档门禁对文档站内容生效：站内路由、`/design/` 镜像路由与生成页路由的解析，生成目录跳过，禁用词在 `.mdx` 与站点源码里同样拦截（S1-DOCS-001）；Kun 小节的路由在生成前交给构建时的断链检查，显式给出的生成目录照查，生成目录里的文件进 Git 即失败，禁用词整词匹配（S1-DOCS-005） |
 | `test_dotnet_ci.py`（临时目录里搭 git 跟踪的最小仓库） | 触发过滤自检认得 §5.1 列的每类写法：.NET 源码的单个字面量、`Path.Combine` 分段、`../` 相对路径、插值前缀与洞后段、定位了仓库根的文件里的根目录 Markdown，csproj 的 `None` / `Content` / `Update`（含通配），工作流直接运行的脚本、unittest 收集的模块与它们导入的模块；对照样例不拦：注释、夹在变量后的段、不定位仓库根的 `README.md`、临时目录上的路径、被测试换掉仓库根的模块。`verify` 对 `Qian.slnf` 外的测试项目按名字告警，门禁样例与专属作业运行的项目除外（S1-QA-021）。匹配式取自仓库根区域表里的 dotnet 区域，只看 dotnet 区域的作业运行的脚本（含在仓库根运行的）；`verify` 另核分片 k，`coverage` 核对每个单元测试项目恰好一份覆盖率（S1-KUN-020）。`images` 列不出镜像即工具出错：夹具目录不在、解析不出缺省镜像、分片里有项目引用了夹具（含经测试宿主项目间接引用）却一个镜像也没解析出来，没有容器测试的分片 0 个镜像不算错；`prefetch` 拉取失败只记录。`registration` 认测试项目（各种测试运行器的包、`IsTestProject`，只引断言库的支撑库不算），专属作业认项目文件与目录、仓库根与本目录两种工作目录、`\|` 块的续行与 `>` 块，别的区域的作业不算；`NOT_IN_CI` 里的路径不在、不是测试项目或又登记在别处即失败（S1-KUN-028） |
@@ -217,7 +217,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 
 | 重新纳入 | 读取方 |
 |---|---|
-| `docs/generated/**` | `Kun.Tenancy.Tests` 的 `TenancyConfigurationTests` 读 `docs/generated/config-catalog.md`，核对 tenancy 的实际配置与发布的配置目录一致。`Qian.Docs.Tests` 只用样例项目测生成器，不读这个目录；派生文档与源码是否一致（新鲜度）由仓库根的 [qian-documentation.yml](../../../.github/workflows/qian-documentation.yml) 重新生成后比对，它所在的 documentation 区域含 `docs/generated/**` |
+| `docs/generated/**` | `Kun.Tenancy.Tests` 的 `TenancyConfigurationTests` 读 `docs/generated/config-catalog.md`，核对 tenancy 的实际配置与发布的配置目录一致。`Kun.Docs.Tests` 只用样例项目测生成器，不读这个目录；派生文档与源码是否一致（新鲜度）由仓库根的 [qian-documentation.yml](../../../.github/workflows/qian-documentation.yml) 重新生成后比对，它所在的 documentation 区域含 `docs/generated/**` |
 | `docs/ops/configuration-runbook.md` | `Qian.Sample.Crm.Tests` 的 `CapabilityInvokeTests` 原样执行手册里的过期回执清理 SQL |
 
 测试或门禁新读一个这类文件时，把它加进那一组（写相对本目录的路径）。门禁作业的触发过滤自检（`python3 scripts/dotnet_ci.py paths-check`）读这一组，从下面三处找写成仓库路径的引用，对得上 git 跟踪的文件、而只改该文件的 PR 不跑 dotnet 区域的作业即失败：
@@ -226,7 +226,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
   - 含 `/` 或 `\` 的字面量，去掉开头的 `./`、`../` 后按仓库相对路径算：`"docs/x.md"`、`"../docs/x.md"`、`@"..\docs\x.md"`。
   - `Path.Combine` / `Path.Join` 从第一个实参或紧跟它起的连续字面量段拼成一条路径：`Path.Combine(root, "docs", "prd", "x.md")`。后面还有变量时按目录前缀算，如 `Path.Combine(root, "pm", "tasks", name)` 算 `pm/tasks/` 下的全部文件；夹在变量之后的段相对未知目录，不算。
   - 插值字符串的常量前缀，如 `$"docs/prd/{name}.md"` 算 `docs/prd/` 起头的全部文件；插值洞后以 `/` 起头的段，如 `$"{root}/docs/x.md"`。`+` 拼接同理：`root + "/docs/x.md"`，字面量后面还接 `+` 时按前缀算。
-  - 单写一个根目录文件名（`"AGENTS.md"`、`Path.Combine(root, "README.md")`）只在本文件定位了仓库根时算：写到 `"Qian.slnf"`（向上找仓库根），或用到名为 `RepositoryRoot` / `RepoRoot` 的辅助方法。`README.md` 这类常见名字在别处多半指临时目录或包里的文件，如 `Qian.Lifecycle.Tests` 的临时部署仓库。
+  - 单写一个根目录文件名（`"AGENTS.md"`、`Path.Combine(root, "README.md")`）只在本文件定位了仓库根时算：写到 `"Qian.slnf"`（向上找仓库根），或用到名为 `RepositoryRoot` / `RepoRoot` 的辅助方法。`README.md` 这类常见名字在别处多半指临时目录或包里的文件，如 `Kun.Lifecycle.Tests` 的临时部署仓库。
 - MSBuild 项：`*.csproj`、`*.props`、`*.targets` 里 `Include`、`Update`、`Project` 属性指向的文件，相对本文件所在目录解析，认得通配与 `$(MSBuildThisFileDirectory)`、`$(MSBuildProjectDirectory)`，含其他属性的路径跳过。`.props` / `.targets` 里的相对路径实际按导入它的项目目录求值，这里写路径用 `$(MSBuildThisFileDirectory)` 起头，自检才对得上。
 - dotnet 区域的作业运行的 Python：`ci.yml` 里这些作业的 `run:` 里 `python3 <脚本>` 直接运行的脚本（在仓库根运行时写成 `_import/qian/<脚本>`）、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
   - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（作业在 `_import/qian` 下运行这些脚本）。
@@ -271,6 +271,6 @@ QIAN0006 落实「集成事件只能在命令 handler 同 scope 发出」：对 
 
 ### 能力契约的真实兼容检查
 
-运行 `Qian.Capabilities.Tests` 和客户目录契约挂载用例前，先执行 `python3 scripts/prepare_contract_tools.py --destination /tmp/qian-contract-tools`，再设置 `QIAN_OASDIFF_PATH=/tmp/qian-contract-tools/oasdiff`（Windows 使用对应 exe）。下载版本与 SHA-256 固定在 `scripts/contract-tools.lock.json`，不会运行远程安装脚本。全部 .NET 测试也需要此环境变量；工具缺失按失败处理。CI 已包含安装步骤。
+运行 `Kun.Capabilities.Tests` 和客户目录契约挂载用例前，先执行 `python3 scripts/prepare_contract_tools.py --destination /tmp/qian-contract-tools`，再设置 `QIAN_OASDIFF_PATH=/tmp/qian-contract-tools/oasdiff`（Windows 使用对应 exe）。下载版本与 SHA-256 固定在 `scripts/contract-tools.lock.json`，不会运行远程安装脚本。全部 .NET 测试也需要此环境变量；工具缺失按失败处理。CI 已包含安装步骤。
 
 proto 与反射用例还需设置 `QIAN_BUF_PATH=/tmp/qian-contract-tools/buf`（Windows 使用 buf.exe）；同一安装脚本会下载并核验该二进制。运行全部 .NET 测试时同时提供 QIAN_OASDIFF_PATH 与 QIAN_BUF_PATH。

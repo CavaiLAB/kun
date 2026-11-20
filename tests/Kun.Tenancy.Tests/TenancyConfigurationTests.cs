@@ -3,10 +3,10 @@ using System.Text.Json.Nodes;
 using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
 using Kun.Runtime;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Surfaces;
+using Kun.Surfaces;
 
 namespace Kun.Tenancy.Tests;
 

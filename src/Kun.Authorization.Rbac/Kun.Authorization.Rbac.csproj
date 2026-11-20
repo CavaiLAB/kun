@@ -3,8 +3,8 @@
   <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Registry.Abstractions/Kun.Registry.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Surfaces.Abstractions/Kun.Surfaces.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Audit.Abstractions/Kun.Audit.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
@@ -18,7 +18,7 @@
   <ItemGroup><InternalsVisibleTo Include="Kun.Authorization.Rbac.Tests" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /></ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="Qian.Sample.Crm.Tests" /></ItemGroup>
-  <ItemGroup><InternalsVisibleTo Include="Qian.Registry.Tests" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Registry.Tests" /></ItemGroup>
   <!-- 本机租户运营手测宿主（S1-QA-012）引导平台超管：与测试一样经内部平台角色存储，S1-AZ-005 的管理 API 交付后改用它。 -->
   <ItemGroup><InternalsVisibleTo Include="Qian.Dev.TenantOps" /></ItemGroup>
   <!-- qian.files 平台模式验收宿主（S1-FILE-004）同样经内部平台角色存储授予平台超管。 -->

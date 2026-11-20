@@ -4,20 +4,20 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.EntityFrameworkCore;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
-using Qian.Capabilities;
-using Qian.Capabilities.AspNetCore;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
 using Kun.Configuration;
 using Kun.Configuration.Secrets;
 using Kun.Data;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
-using Qian.Lifecycle;
+using Kun.Lifecycle;
 using Kun.Plugin.Sdk.AspNetCore;
-using Qian.Registry;
+using Kun.Registry;
 using Kun.Runtime;
 using Qian.Sample.Crm;
-using Qian.Surfaces;
-using Qian.Surfaces.Abstractions;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 
 namespace Qian.Dev.TenantOps;
 
@@ -66,7 +66,7 @@ internal static class DevHost
         {
             builder.WebHost.UseUrls(url); Logging(builder.Logging);
             builder.Services.AddSingleton<ICrmRuntimeAssembly>(assembly);
-            builder.Services.AddQianHttpContracts();
+            builder.Services.AddKunHttpContracts();
             builder.Services.AddKunPluginEndpoints(_ => assembly.Loader.GetContext("registry", ScopeKey.Global));
             builder.Services.AddKunData<CapabilitiesDbContext>((_, options) => options.UseNpgsql(database.Business).UseKunSchema(CapabilitiesDbContext.Schema));
             builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, type) =>
@@ -74,7 +74,7 @@ internal static class DevHost
             builder.Services.AddKunData<RegistryDbContext>((_, options) => options.UseNpgsql(database.App).UseKunSchema(RegistryDbContext.Schema));
             builder.Services.AddSingleton<ISurfaceReader, SurfaceValidator>();
             builder.Services.AddSingleton<IToolContractHasher, ToolContractHasher>();
-            builder.Services.AddQianCapabilities();
+            builder.Services.AddKunCapabilities();
             // 契约检查器只在组件升级准入时调用，手测流程不升级组件；本机装了 oasdiff（QIAN_OASDIFF_PATH）就照常接入。
             if (Environment.GetEnvironmentVariable("QIAN_OASDIFF_PATH") is { Length: > 0 } oasdiff && File.Exists(oasdiff))
                 builder.Services.AddSingleton<IOpenApiCompatibilityProbe>(_ => new OasDiffOpenApiProbe(oasdiff));
@@ -98,7 +98,7 @@ internal static class DevHost
             });
             configure?.Invoke(builder);
         }, registrar => { registrar.RegisterRegistryEvents().RegisterLifecycleEvents(); events?.Invoke(registrar); },
-        registry => { registry.AddQianRegistryEvents().AddQianLifecycleEvents(); mediator?.Invoke(registry); });
+        registry => { registry.AddKunRegistryEvents().AddKunLifecycleEvents(); mediator?.Invoke(registry); });
 
     // 只显示警告以上；运营授权拒绝的原因按设计只进结构化日志（响应统一 AUTHZ_DENIED），这里能看到。
     // EF 的命令日志关掉：迁移器首次探测 __EFMigrationsHistory 必然失败一次，属预期；请求里的异常仍由异常处理中间件记录。

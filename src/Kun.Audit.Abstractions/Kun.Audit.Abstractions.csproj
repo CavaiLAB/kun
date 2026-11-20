@@ -2,6 +2,6 @@
 <PropertyGroup><IsPackable>true</IsPackable><Description>审计记录、链校验与错误契约。</Description></PropertyGroup>
   <PropertyGroup Label="档位"><KunTier>kernel</KunTier><KunRole>contract</KunRole></PropertyGroup>
 <ItemGroup><ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" /></ItemGroup>
-<ItemGroup><PackageReference Include="JsonSchema.Net" /><Compile Include="../../_import/qian/packages/Common/SchemaPattern.cs" Link="Common/SchemaPattern.cs" /></ItemGroup>
+<ItemGroup><PackageReference Include="JsonSchema.Net" /><Compile Include="../Common/SchemaPattern.cs" Link="Common/SchemaPattern.cs" /></ItemGroup>
 <ItemGroup><InternalsVisibleTo Include="Kun.Audit.EntityFrameworkCore" KunPackageFriendReason="审计上下文访问" /><InternalsVisibleTo Include="Kun.Audit.EntityFrameworkCore.IntegrationTests" /></ItemGroup>
 </Project>

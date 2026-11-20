@@ -1,8 +1,9 @@
 // 版本矩阵（docs-site.md §2b.4，ADR-021 D21.2 第 3 条）：从仓库里的钉版文件产出 docs/start/versions.md，不手改。
-// 来源：仓库根的 CHANGELOG.md（Kun 最新的发布版）与 global.json（.NET SDK）；本目录的 packages/*/*.csproj（Qian.* 包清单与版本）、
+// 来源：仓库根的 CHANGELOG.md（Kun 最新的发布版）与 global.json（.NET SDK）；仓库根 src/ 下的可打包平台项目与版本、
 // package.json（Node、pnpm）、pnpm-workspace.yaml 版本目录里的前端框架包（@cavailab/qian-*）、deploy/baseline.json（K3s）。
 import fs from 'node:fs';
 import path from 'node:path';
+import { kunTier } from './build-kun-api.ts';
 import { readKunVersion } from './kun.ts';
 import { REPO_ROOT, REPOSITORY_ROOT, repoFileDate, yamlString, type GeneratedFile } from './repo.ts';
 
@@ -18,7 +19,7 @@ export interface VersionMatrix {
   /** 文档版本：多版本开启前只有 main（开发版）。 */
   docVersion: string;
   kun: string;
-  qian: PackageVersion[];
+  platform: PackageVersion[];
   /** 前端框架（@cavailab/qian-*）。 */
   frontend: PackageVersion[];
   dotnetSdk: string;
@@ -27,28 +28,27 @@ export interface VersionMatrix {
   pnpm: string;
   /** 部署基线里的 K3s 版本；没有基线文件时为 null。 */
   k3s: string | null;
-  /** 每一项的钉版文件：kun 与 dotnet 相对仓库的顶层，其余相对本目录（REPO_ROOT）。 */
+  /** 每一项的钉版文件：kun、platform 与 dotnet 相对仓库的顶层，其余相对本目录（REPO_ROOT）。 */
   sources: Record<string, string>;
 }
 
-const QIAN_VERSION_RE = /<(?:Version|VersionPrefix)>\s*([^<\s]+)\s*<\/(?:Version|VersionPrefix)>/;
+const PACKAGE_VERSION_RE = /<(?:Version|VersionPrefix)>\s*([^<\s]+)\s*<\/(?:Version|VersionPrefix)>/;
 
-/** Qian 的可打包项目：packages/<名>/<名>.csproj 里写了 <IsPackable>true</IsPackable> 的；版本取 csproj 或 Directory.Build.props 的 Version / VersionPrefix。 */
-export function readQianPackages(repoRoot: string = REPO_ROOT): PackageVersion[] {
-  const dir = path.join(repoRoot, 'packages');
-  if (!fs.existsSync(dir)) return [];
-  const shared = fs.existsSync(path.join(repoRoot, 'Directory.Build.props')) ? fs.readFileSync(path.join(repoRoot, 'Directory.Build.props'), 'utf8') : '';
-  const sharedVersion = QIAN_VERSION_RE.exec(shared)?.[1] ?? null;
-  const out: PackageVersion[] = [];
+/** 从仓库根 src 下读取平台档包，项目中显式声明的版本优先。 */
+export function readPlatformPackages(repositoryRoot: string = REPOSITORY_ROOT): PackageVersion[] {
+  const dir = path.join(repositoryRoot, 'src');
+  const sharedVersion = PACKAGE_VERSION_RE.exec(fs.readFileSync(path.join(dir, 'Directory.Build.props'), 'utf8'))?.[1] ?? null;
+  const packages: PackageVersion[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const csproj = path.join(dir, entry.name, `${entry.name}.csproj`);
-    if (!fs.existsSync(csproj)) continue;
-    const text = fs.readFileSync(csproj, 'utf8');
-    if (!/<IsPackable>\s*true\s*<\/IsPackable>/i.test(text)) continue;
-    out.push({ name: entry.name, version: QIAN_VERSION_RE.exec(text)?.[1] ?? sharedVersion });
+    const projectFile = path.join(dir, entry.name, `${entry.name}.csproj`);
+    if (!fs.existsSync(projectFile)) continue;
+    const project = fs.readFileSync(projectFile, 'utf8');
+    if (kunTier(project) !== 'platform' || !/<IsPackable>\s*true\s*<\/IsPackable>/i.test(project)) continue;
+    packages.push({ name: entry.name, version: PACKAGE_VERSION_RE.exec(project)?.[1] ?? sharedVersion });
   }
-  return out.sort((a, b) => a.name.localeCompare(b.name));
+  if (packages.length === 0) throw new Error('仓库根 src 下缺少可打包的平台档项目，无法生成版本矩阵');
+  return packages.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
@@ -74,7 +74,7 @@ export function readVersionMatrix(repoRoot: string = REPO_ROOT, repositoryRoot: 
   return {
     docVersion: 'main',
     kun: readKunVersion(repositoryRoot),
-    qian: readQianPackages(repoRoot),
+    platform: readPlatformPackages(repositoryRoot),
     frontend: readFrontendPackages(repoRoot),
     dotnetSdk: sdk,
     dotnetRollForward: globalJson.sdk?.rollForward ?? '',
@@ -83,7 +83,7 @@ export function readVersionMatrix(repoRoot: string = REPO_ROOT, repositoryRoot: 
     k3s: baseline.k3s ?? null,
     sources: {
       kun: 'CHANGELOG.md',
-      qian: 'packages/*/*.csproj',
+      platform: 'src/*/*.csproj',
       frontend: 'pnpm-workspace.yaml',
       dotnet: 'global.json',
       node: 'package.json',
@@ -103,13 +103,13 @@ function summarize(packages: PackageVersion[], unreleased: string, none: string)
 
 /** 版本矩阵页：一张矩阵表 + 来源表 + 包清单。multi-version 开启后每个文档版本一行。 */
 export function renderVersionsPage(m: VersionMatrix, updated: string): string {
-  const qianSummary = summarize(m.qian, '未发布，开发版 main', '尚无可打包的 Qian.* 项目');
+  const platformSummary = summarize(m.platform, '未发布，开发版 main', '尚无可打包的平台项目');
   const frontendSummary = summarize(m.frontend, '未写版本', '版本目录里没有');
   const packageList = (packages: PackageVersion[]) => packages.map((p) => `- \`${p.name}\`${p.version ? ` ${p.version}` : '（未发布）'}`).join('\n');
   return [
     '---',
     `title: ${yamlString('版本矩阵')}`,
-    `description: ${yamlString('当前文档版本对应的 Kun、Qian.*、@cavailab/qian-*、.NET SDK、Node 与 K3s 基线，由仓库钉版文件生成。')}`,
+    `description: ${yamlString('当前文档版本对应的 Kun、平台包、@cavailab/qian-*、.NET SDK、Node 与 K3s 基线，由仓库钉版文件生成。')}`,
     'part: start',
     'project: qian',
     'audience: [developer, operator]',
@@ -120,13 +120,13 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '',
     '> 本页由 `website/scripts/build-versions.ts` 从仓库钉版文件生成（[ADR-021](/design/adr/adr-021-product-family-structure) D21.2 第 3 条），不要手改；改版本去改下表列出的源文件。',
     '',
-    'Kun 与 `Qian.*` 在同一个仓库里，`Qian.*` 直接引用仓库根 `src/` 下的 Kun 源码，不另钉 Kun 的版本。表里的 Kun 是它最新的发布版，取仓库根 `CHANGELOG.md` 里最新的发布段；[Kun 框架](/sdk/kun/)小节与 [Kun API 参考](/sdk/api/kun/)都按它镜像。',
+    '平台包清单列出仓库根 `src/` 下平台档项目的开发版本。Kun 一列取仓库根 `CHANGELOG.md` 中最新的发布版。[Kun 框架](/sdk/kun/)小节与 [Kun API 参考](/sdk/api/kun/)都按它镜像。',
     '',
     'Kun 的同日修复版 `-hotfix.N` 是正式修复：最新的发布版按 `CHANGELOG.md` 里的先后算，不按 NuGet 的预发布排序。',
     '',
-    '| 文档版本 | Kun | Qian.* | @cavailab/qian-* | .NET SDK | Node / pnpm | K3s |',
+    '| 文档版本 | Kun | 平台包 | @cavailab/qian-* | .NET SDK | Node / pnpm | K3s |',
     '|---|---|---|---|---|---|---|',
-    `| ${m.docVersion}（开发版） | ${cell(m.kun)} | ${cell(qianSummary)} | ${cell(frontendSummary)} | ${cell(m.dotnetSdk)}${m.dotnetRollForward ? `（rollForward ${cell(m.dotnetRollForward)}）` : ''} | ${cell(m.node || '未钉版')} / ${cell(m.pnpm || '未钉版')} | ${m.k3s ? cell(m.k3s) : '未钉版'} |`,
+    `| ${m.docVersion}（开发版） | ${cell(m.kun)} | ${cell(platformSummary)} | ${cell(frontendSummary)} | ${cell(m.dotnetSdk)}${m.dotnetRollForward ? `（rollForward ${cell(m.dotnetRollForward)}）` : ''} | ${cell(m.node || '未钉版')} / ${cell(m.pnpm || '未钉版')} | ${m.k3s ? cell(m.k3s) : '未钉版'} |`,
     '',
     '多版本（docs-site.md §5）开启后每个文档版本一行；现在只有开发版 `main`。',
     '',
@@ -135,15 +135,15 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '| 项 | 钉版文件 | 说明 |',
     '|---|---|---|',
     `| Kun | 仓库根的 \`${m.sources.kun}\` | 最新的发布段 \`## [版本] - 日期\`，CalVer；发版脚本 \`scripts/release.sh\` 写入，同一提交打 \`v<版本>\` 标签 |`,
-    `| Qian.* | \`${m.sources.qian}\` | 写了 \`<IsPackable>true</IsPackable>\` 的项目；版本随首个包族发布钉在 \`Directory.Build.props\` |`,
+    `| 平台包 | \`${m.sources.platform}\` | 平台档可打包项目。版本优先取项目文件，默认值来自 \`src/Directory.Build.props\` |`,
     `| @cavailab/qian-* | \`${m.sources.frontend}\` | 版本目录（catalog）里的前端框架包，写精确版本；源码在 CavaiLAB/qian |`,
     `| .NET SDK | 仓库根的 \`${m.sources.dotnet}\` | \`sdk.version\` 与 \`rollForward\` |`,
     `| Node / pnpm | \`${m.sources.node}\` | \`engines.node\` 与 \`packageManager\` |`,
     `| K3s | \`${m.sources.k3s}\` | 部署基线（S1-DEP-001）；集群本身在部署仓库 \`idadawn/iclaw-deploy\` |`,
     '',
-    '## Qian 包清单',
+    '## 平台包清单',
     '',
-    m.qian.length > 0 ? packageList(m.qian) : '- （尚无可打包的项目）',
+    packageList(m.platform),
     '',
     '## 前端框架包清单',
     '',
@@ -156,8 +156,8 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
 export function buildVersions(repoRoot: string = REPO_ROOT, repositoryRoot: string = REPOSITORY_ROOT): GeneratedFile {
   const matrix = readVersionMatrix(repoRoot, repositoryRoot);
   const sources: [string, string][] = [
-    ...['CHANGELOG.md', 'global.json'].map((rel): [string, string] => [repositoryRoot, rel]),
-    ...['Directory.Build.props', 'package.json', 'pnpm-workspace.yaml', 'deploy/baseline.json'].map((rel): [string, string] => [repoRoot, rel]),
+    ...['CHANGELOG.md', 'global.json', 'src/Directory.Build.props', ...matrix.platform.map((p) => `src/${p.name}/${p.name}.csproj`)].map((rel): [string, string] => [repositoryRoot, rel]),
+    ...['package.json', 'pnpm-workspace.yaml', 'deploy/baseline.json'].map((rel): [string, string] => [repoRoot, rel]),
   ];
   const updated = sources
     .filter(([root, rel]) => fs.existsSync(path.join(root, rel)))

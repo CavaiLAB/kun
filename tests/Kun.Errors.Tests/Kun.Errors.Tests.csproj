@@ -18,7 +18,7 @@
     <ProjectReference Include="../../src/Kun.Errors/Kun.Errors.csproj" />
     <ProjectReference Include="../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <!-- schemaSha256 语义规则用生产实现 ToolContractHash，不在测试里复刻 JCS。 -->
-    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>

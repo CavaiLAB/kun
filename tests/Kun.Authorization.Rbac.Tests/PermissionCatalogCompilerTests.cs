@@ -2,8 +2,8 @@ using System.Reflection;
 using System.Text.Json;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Errors;
-using Qian.Registry;
-using Qian.Surfaces;
+using Kun.Registry;
+using Kun.Surfaces;
 
 namespace Kun.Authorization.Rbac.Tests;
 

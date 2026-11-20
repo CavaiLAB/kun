@@ -1,9 +1,9 @@
 using System.Text.Json;
-using Qian.Docs;
-using Qian.Docs.Abstractions;
-using Qian.Profiles;
-using Qian.Profiles.Abstractions;
-using Qian.Surfaces;
+using Kun.Docs;
+using Kun.Docs.Abstractions;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Surfaces;
 
 // CLI 仅发送结构化输入；宿主把实际 Provider 组合在这里，组件库不依赖 Provider。
 var input = JsonSerializer.Deserialize<Input>(await Console.In.ReadToEndAsync(), JsonSerializerOptions.Web)

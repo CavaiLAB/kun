@@ -299,10 +299,10 @@ export function makeKunResolver(kun: KunCheckout, source: string, files: Readonl
 
 function banner(kun: KunCheckout, source: string, lead: string): string {
   return [
-    ':::info 镜像页',
+    ':::info 发布版本来源',
     `${lead} [\`${source}\`](${kunGithubUrl(kun, source)})（\`${kun.tag}\`）。` +
       'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；' +
-      '平台集成方式见[内核与平台组件](/sdk/kun/with-qian)。改动请提到 kun 仓库。',
+      '平台集成方式见[内核与平台组件](/sdk/kun/with-qian)。',
     ':::',
   ].join('\n');
 }
@@ -348,7 +348,7 @@ export function mirrorPage(kun: KunCheckout, source: string, files: ReadonlySet<
   const rest = h1 ? h1.after : body;
   const description = plainText(firstParagraph(rest));
   const head = h1 ? `${h1.before ? `${h1.before}\n` : ''}${h1.heading}` : `# ${title}`;
-  const content = `${frontmatter(kun, source, title, description)}\n${head}\n\n${banner(kun, source, '本页镜像自 kun 仓库')}\n${rest}`;
+  const content = `${frontmatter(kun, source, title, description)}\n${head}\n\n${banner(kun, source, '本页由本仓库的发布标签生成，源文件为')}\n${rest}`;
   return { source, page, title, content: content.endsWith('\n') ? content : `${content}\n` };
 }
 
@@ -397,12 +397,12 @@ function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: Mirro
     frontmatter(kun, 'README.md', 'Kun 框架', description),
     '# Kun 框架',
     '',
-    banner(kun, 'README.md', '本页由 kun 仓库的定位与模块矩阵拼装，来源'),
+    banner(kun, 'README.md', '本页由本仓库发布标签下的 README 和模块矩阵生成，入口为'),
     '',
     ...(tagline ? [`> ${tagline}`, ''] : []),
     'Kun 提供 .NET 内核与平台组件，Qian 提供前端框架。[产品族](/start/family)列出两者的仓库与版本来源。' +
-      `本节镜像 kun 仓库 **${kun.tag}** 的文档，这是 Kun 最新的发布版，取仓库根 \`CHANGELOG.md\` 里最新的发布段；` +
-      `Kun 的代码与文档改动去 [kun 仓库](${KUN_REPO_URL})提。`,
+      `本节读取本仓库 **${kun.tag}** 标签下的文档。版本取根目录 \`CHANGELOG.md\` 里最新的正式发布段。` +
+      `[Kun 源码与文档](${KUN_REPO_URL})由同一仓库维护。`,
     '',
     '## 本节内容',
     '',

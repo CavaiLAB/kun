@@ -261,7 +261,7 @@ describe('同步样例 kun 仓库', () => {
     assert.match(frontmatter, /^version: "2026\.9\.13"$/m);
     assert.match(frontmatter, /^source: "CavaiLAB\/kun@v2026\.9\.13:docs\/architecture\/ADR-003-Kun\.Audit-module\.md"$/m);
     assert.match(frontmatter, /^updated: 2026-04-01$/m);
-    assert.match(body, /^# ADR-003: Introduce `Kun\.Audit` Module\n\n:::info 镜像页\n本页镜像自 kun 仓库/m);
+    assert.match(body, /^# ADR-003: Introduce `Kun\.Audit` Module\n\n:::info 发布版本来源\n本页由本仓库的发布标签生成，源文件为/m);
     assert.match(body, /（`v2026\.9\.13`）/);
     assert.match(body, /\[内核与平台组件\]\(\/sdk\/kun\/with-qian\)/);
     assert.match(body, /Handlers return Result&lt;T>/);

@@ -89,7 +89,7 @@
 
 ## 2b Kun 框架小节与产品族页（ADR-021）
 
-本仓库同时维护内核与平台。SDK 里的 Kun 小节镜像最近一次发布的指南及内核 API，手写页说明两档的依赖关系。镜像发布标签与当前开发分支可以处于不同进度。
+本仓库同时维护内核与平台。SDK 里的 Kun 小节从本仓库正式发布标签读取指南，从该版本已发布的内核包生成 API。手写页说明内核与平台组件的依赖关系。开发分支上的文档可先于正式版本更新。
 
 ### 2b.1 版本与来源
 
@@ -101,9 +101,9 @@
 
 ### 2b.2 镜像范围（白名单）
 
-| kun 仓库来源 | 站内路径 | 说明 |
+| 本仓库发布标签中的源文件 | 站内路径 | 说明 |
 |---|---|---|
-| `README.md` 的定位段与模块矩阵、`docs/architecture/module-map.md` | `/sdk/kun/`、`/sdk/kun/modules` | 概览页由脚本拼装：一句话定位、版本、模块矩阵、指向「与 Qian 的关系」 |
+| `README.md` 的定位段与模块矩阵、`docs/architecture/module-map.md` | `/sdk/kun/`、`/sdk/kun/modules` | 概览页由脚本拼装：一句话定位、版本、模块矩阵、链接「内核与平台组件」 |
 | `docs/getting-started.md` | `/sdk/kun/getting-started` | 上手 |
 | `docs/guides/*.md`、`docs/observability/*.md`、`docs/schema-per-service.md` | `/sdk/kun/guides/<slug>` | 指南 |
 | `docs/security/*.md` | `/sdk/kun/security/<slug>` | 安全 |
@@ -118,7 +118,7 @@
 ### 2b.3 页面规则
 
 - slug 取源文件名小写并把 `.` 与空格换成 `-`（`ADR-003-Kun.Audit-module.md` 变为 `adr-003-kun-audit-module`）。
-- 镜像页顶部标明 Kun 源文件、发布标签与源码入口，并链接站内的框架使用说明。
+- 版本页顶部链接本仓库中的源文件并标明发布标签，并链接站内的框架使用说明。
 - frontmatter：`project: kun`、`part: sdk`、`version: <发布版本>`、`source: <owner>/kun@v<发布版本>:<path>`、`updated` 取源文件在该 tag 的最后提交日期；`title` 取首个一级标题，`description` 取首段（截到 120 字）；`audience: [developer]`。
 - 站内相对链接：目标在白名单内改写为站内路径，否则改写为 kun 仓库该 tag 的文件链接。
 - 镜像页同样过 `scripts/check_docs.py`（禁用词、表格、断链）。

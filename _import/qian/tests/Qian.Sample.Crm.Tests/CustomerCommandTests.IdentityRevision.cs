@@ -5,7 +5,11 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
+using Kun.Mediator;
+using Kun.Security;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
@@ -21,6 +25,35 @@ namespace Qian.Sample.Crm.Tests;
 // 陈旧令牌在 HTTP 映射为 401、在 gRPC 映射为 Unauthenticated，由 AuthzEnforcementTests 覆盖。
 public sealed partial class IdentityAuthzTests
 {
+    [Fact]
+    public async Task 命令管道用已认证主体的修订拒绝旧请求并在处理器前拒绝委托()
+    {
+        var current = new DirectUser(DirectPrincipal(null, 7));
+        await using var host = await Start(configure: builder =>
+            builder.Host.ConfigureContainer<IServiceCollection>(services =>
+            {
+                services.AddScoped<Kun.Identity.Abstractions.ICurrentUser>(_ => current);
+                services.AddScoped<Kun.Core.Security.ICurrentUser>(_ => current);
+            }));
+
+        async Task<CustomerItem> Send(string name)
+        {
+            using var scope = host.App.Services.CreateScope();
+            using var tenant = scope.ServiceProvider.GetRequiredService<ITenantContext>().BeginScope(Guid.ParseExact(A, "D"));
+            return await scope.ServiceProvider.GetRequiredService<ISender>().Send(new CreateCustomerCommand(Guid.CreateVersion7(), name), Ct);
+        }
+
+        var granted = await Send("revision-current");
+        Assert.Equal(A, granted.TenantId);
+        current = new DirectUser(DirectPrincipal(null, 6));
+        var stale = await Assert.ThrowsAsync<ErrorException>(() => Send("revision-stale"));
+        Assert.Equal(PlatformErrors.Unauthenticated, stale.Error.Code);
+        current = new DirectUser(DirectPrincipal(new DelegationActor { Subject = AgentId, Kind = PrincipalKind.Agent }, 7));
+        var delegated = await Assert.ThrowsAsync<ErrorException>(() => Send("revision-delegated"));
+        Assert.Equal(PlatformErrors.AuthzDenied, delegated.Error.Code);
+        Assert.Equal("0", await Text("SELECT count(*) FROM plugin_qian_sample_crm.customers WHERE name IN ('revision-stale', 'revision-delegated')"));
+    }
+
     [Fact]
     public async Task 撤销授予后三秒内身份修订递增_旧令牌在userinfo与PEP执行端口都被拒_refresh拿到新修订并被放行_非user与无成员身份的主体不递增()
     {

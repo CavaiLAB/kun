@@ -99,7 +99,7 @@ public sealed class OrderVisibilityTests(InfrastructureFixture infra)
 | `K3sFixture` | `rancher/k3s:v1.31.5-k3s1`（`QIAN_TEST_IMAGE_K3S`），特权容器 | `Kubeconfig`（API Server 已映射到宿主端口）；`KubectlAsync` 在容器内执行 kubectl（含 kustomize），`CopyAsync` 写入待 apply 的清单。K3s 启动时会短暂占满 CPU，容器在就绪前自行退出时重建，最多三次（只重建容器，不重试断言）；用例里的工作负载镜像由集群自行拉取，需要出网 |
 | `DexFixture` | `ghcr.io/dexidp/dex:v2.41.1`（`QIAN_TEST_IMAGE_DEX`） | 独立实现的外部 OIDC 发行方（S1-IDP-005 的独立宿主 E2E）：`Issuer`、`RedirectUri`（登记给公开 PKCE 客户端 `ClientId` 的唯一回调，依赖方须在该端口以 HTTPS 监听）、`Email` / `Password`（本地密码库用户，口令每次随机、配置里只有 bcrypt 哈希）。issuer 要写进配置，宿主端口在启动前选定，不用随机映射 |
 
-- 版本：PostgreSQL 16、Redis 7 与部署基线一致（ADR-017 D17.2）；RabbitMQ 取当前 4.x 稳定线。环境变量用来与 staging 对齐或换内网镜像源。
+- 版本：PostgreSQL 16、Redis 7 与部署基线一致（ADR-017 D17.2）；RabbitMQ 取当前 4.x 稳定线。可通过环境变量选择与预发一致的版本或指定镜像源。
 - 容器口令每次运行随机生成，仓库里没有写死的凭据。
 - 启动失败只在环境原因下重试（S1-QA-011）：
   - Ryuk 初始化失败：Testcontainers 在每个测试进程第一次启动容器时初始化 Ryuk（资源回收容器），等待连接确认的超时写死为 60 秒，宿主繁忙（如多个会话并发跑容器测试）时会耗尽，抛 `ResourceReaperException`。

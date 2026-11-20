@@ -31,8 +31,8 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
       - 稳定版不带预发布依赖，除非项目在 NoWarn 里写了 NU5104（有意为之，比如上游只发预发布版）。
         打包时要传 -p:WarningsNotAsErrors=NU5104，让 NU5104 先不挡打包，由这里按项目判。
 
-过渡模式（--transitional）：B4–B10 归并期间用，CI「构建与门禁」的打包核对带着它跑。TRANSITIONAL 里的几项
-在过渡模式下只报数、不判失败，其余各项两种模式一样；B10 之后去掉 --transitional，这几项全部判失败。
+CI 和发布使用默认的严格模式，以下各项均会阻断有问题的制品。显式传入 --transitional 可核对过渡时期的项目清单，
+以下适用项目只报数，其余项目继续严格检查。
 放行只给项目在过渡目录（LEGACY_ROOT，即 _import/）下的包：src/ 等别处的包两种模式都按严格判，包一搬进
 src/，当次 CI 就查。只有 exception 不分位置、只报数：每条例外写着到期的批次，由依赖门禁那边管。
 

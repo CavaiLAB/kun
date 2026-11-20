@@ -409,6 +409,12 @@ def cmd_build(args):
     return 0
 
 
+def build_source_dump_tool(log):
+    project = REPO / SELFCHECK_IMAGES["jit"][0]
+    run(["dotnet", "build", project, "-c", "Release", "-nologo"], log=log)
+    return project.parent / "bin" / "Release" / "net10.0" / f"{project.stem}.dll"
+
+
 def cmd_selfcheck(args):
     tools = args.tools.resolve()
     for name in ("syft", "grype", "cosign"):
@@ -440,8 +446,7 @@ def cmd_selfcheck(args):
         gate(f"反例 {name}", verdict == "拦住", verdict + "：" + outcome[1][-300:])
 
     try:
-        run(["dotnet", "build", ROOT / SELFCHECK_IMAGES["jit"][0], "-c", "Release", "-nologo"], log=log)
-        tool = ROOT / "tools" / "Qian.Image.SelfCheck" / "bin" / "Release" / "net10.0" / "Qian.Image.SelfCheck.dll"
+        tool = build_source_dump_tool(log)
         with temporary_registry(log) as registry, tempfile.TemporaryDirectory() as keys:
             cosign = Cosign(tools / "cosign", Path(keys), log)
             sha = evidence["build"]["sourceSha"][:12]

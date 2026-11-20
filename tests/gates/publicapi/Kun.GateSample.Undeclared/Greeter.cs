@@ -1,4 +1,4 @@
-namespace Qian.GateSample.Undeclared;
+namespace Kun.GateSample.Undeclared;
 
 /// <summary>门禁自测样例的公共类型。</summary>
 public static class Greeter

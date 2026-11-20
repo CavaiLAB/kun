@@ -4,14 +4,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Qian.Build.Analyzers;
+namespace Kun.Build.Analyzers;
 
 /// <summary>受保护请求不可绕开原子注册入口；泛型封装同样不能掩盖实际请求类型。</summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class AuthorizedHandlerAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor Rule = new(
-        "QIAN0005", "受保护命令必须同时登记权限行为",
+        "KUNAUTHZ001", "受保护命令必须同时登记权限行为",
         "请求 {0} 必须使用 AddAuthorizedHandler 注册，不能直接调用或引用 AddRequestHandler",
         "Security", DiagnosticSeverity.Error, isEnabledByDefault: true);
 

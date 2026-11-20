@@ -4,14 +4,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Qian.Build.Analyzers;
+namespace Kun.Build.Analyzers;
 
 /// <summary>补充标准 Banned API 的声明边界，与它共用 BannedSymbols.txt，不维护第二份禁用清单。</summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class BannedTypeDeclarationAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor Rule = new(
-        "QIAN0002", "旧 API 类型声明被禁止", "类型 {0} 已被禁用：{1}", "Compatibility", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        "KUNLEGACY002", "旧 API 类型声明被禁止", "类型 {0} 已被禁用：{1}", "Compatibility", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);

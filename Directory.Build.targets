@@ -58,7 +58,7 @@
     公共 API（S1-KUN-020）。
     可打包的项目自动接 Microsoft.CodeAnalysis.PublicApiAnalyzers：公共 API 必须登记在项目目录的 PublicAPI.Shipped.txt 与
     PublicAPI.Unshipped.txt 里，新增未登记（RS0016）、登记了却已删除（RS0017）、缺登记文件（RS0048）等一律编译失败。
-    这里单列 WarningsAsErrors，是为了项目即使关掉 TreatWarningsAsErrors 也绕不过去。两份文件缺一个报 QIAN0001；
+    这里单列 WarningsAsErrors，是为了项目即使关掉 TreatWarningsAsErrors 也绕不过去。两份文件缺一个报 KUNAPI001；
     这个诊断号按合并蓝图 D23.10 在改名批次里随分析器的诊断号一起改。
   -->
   <PropertyGroup Label="公共 API" Condition="'$(IsPackable)' == 'true'">
@@ -72,7 +72,7 @@
   </ItemGroup>
 
   <Target Name="KunRequirePublicApiFiles" BeforeTargets="CoreCompile" Condition="'$(IsPackable)' == 'true'">
-    <Error Code="QIAN0001"
+    <Error Code="KUNAPI001"
            Condition="!Exists('$(MSBuildProjectDirectory)/PublicAPI.Shipped.txt') or !Exists('$(MSBuildProjectDirectory)/PublicAPI.Unshipped.txt')"
            Text="$(MSBuildProjectName) 可打包（IsPackable=true），项目目录下必须有 PublicAPI.Shipped.txt 与 PublicAPI.Unshipped.txt，首行写 #nullable enable。做法见仓库根 AGENTS.md「项目文件与包」。" />
   </Target>
@@ -102,7 +102,7 @@
   <!--
     禁用符号与平台分析器的作用域（S1-KUN-020；合并蓝图 D23.14 第 4 点）。
     仓库根的 BannedSymbols.txt（Microsoft.CodeAnalysis.BannedApiAnalyzers，RS0030）与 _import/qian/tools/Qian.Build.Analyzers
-    （QIAN0002–QIAN0006）只接下面三类项目，诊断号不变：
+    （KUNLEGACY002–KUNEVENT001）只接下面三类项目，诊断号不变：
 
       - 平台档的包（KunTier=platform）；
       - 宿主：项目文件里写了 <KunHost>true</KunHost> 的可执行项目；
@@ -126,14 +126,14 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
   </ItemGroup>
 
-  <ItemGroup Label="分析器作用域" Condition="'$(_KunPlatformAnalyzers)' == 'true' and '$(MSBuildProjectName)' != 'Qian.Build.Analyzers'">
+  <ItemGroup Label="分析器作用域" Condition="'$(_KunPlatformAnalyzers)' == 'true' and '$(MSBuildProjectName)' != 'Kun.Build.Analyzers'">
     <CompilerVisibleProperty Include="IsTestProject" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)_import/qian/tools/Qian.Build.Analyzers/Qian.Build.Analyzers.csproj"
+    <ProjectReference Include="$(MSBuildThisFileDirectory)tools/Kun.Build.Analyzers/Kun.Build.Analyzers.csproj"
                       OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <PropertyGroup Label="分析器作用域" Condition="'$(_KunPlatformAnalyzers)' == 'true'">
-    <WarningsAsErrors>$(WarningsAsErrors);RS0030;QIAN0002;QIAN0003;QIAN0004;QIAN0005;QIAN0006;KUNS2S001</WarningsAsErrors>
+    <WarningsAsErrors>$(WarningsAsErrors);RS0030;KUNLEGACY002;KUNDATA001;KUNDATA002;KUNAUTHZ001;KUNEVENT001;KUNS2S001</WarningsAsErrors>
   </PropertyGroup>
 
 </Project>

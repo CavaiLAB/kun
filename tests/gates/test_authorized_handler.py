@@ -18,4 +18,4 @@ class AuthorizedHandlerTests(unittest.TestCase):
                 output = result.stdout + result.stderr
                 self.assertEqual(result.returncode == 0, succeeds, output[-5000:])
                 if not succeeds:
-                    self.assertIn("error QIAN0005", output)
+                    self.assertIn("error KUNAUTHZ001", output)

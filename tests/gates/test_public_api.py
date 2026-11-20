@@ -17,10 +17,10 @@ SAMPLES = ROOT / "tests" / "gates" / "publicapi"
 
 # 样例项目 -> 期望：(构建是否成功, 必须出现的诊断号)
 EXPECTED = {
-    "Qian.GateSample.Declared": (True, None),       # 公共 API 已登记
-    "Qian.GateSample.Undeclared": (False, "RS0016"),  # 新增公共 API 未登记
-    "Qian.GateSample.Stale": (False, "RS0017"),       # 登记了已删除的公共 API
-    "Qian.GateSample.NoApiFiles": (False, "QIAN0001"),  # Qian 包缺 PublicAPI 文件
+    "Kun.GateSample.Declared": (True, None),       # 公共 API 已登记
+    "Kun.GateSample.Undeclared": (False, "RS0016"),  # 新增公共 API 未登记
+    "Kun.GateSample.Stale": (False, "RS0017"),       # 登记了已删除的公共 API
+    "Kun.GateSample.NoApiFiles": (False, "KUNAPI001"),  # Qian 包缺 PublicAPI 文件
     "GateSample.NotPackable": (True, None),         # 不打包的项目不受约束
 }
 

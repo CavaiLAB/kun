@@ -3,17 +3,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Qian.Build.Analyzers;
+namespace Kun.Build.Analyzers;
 
 /// <summary>禁止在线上下文绕开 Qian 安全基类，也禁止直接或委托调用 EF 查询过滤器旁路。</summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DataBoundaryAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor ContextRule = new(
-        "QIAN0003", "在线数据上下文必须安全装配", "上下文 {0} 必须继承 Kun.EntityFrameworkCore.KunStrictDbContext",
+        "KUNDATA001", "在线数据上下文必须安全装配", "上下文 {0} 必须继承 Kun.EntityFrameworkCore.KunStrictDbContext",
         "Security", DiagnosticSeverity.Error, isEnabledByDefault: true);
     private static readonly DiagnosticDescriptor FilterRule = new(
-        "QIAN0004", "禁止绕过数据过滤器", "禁止使用 EF Core 的 IgnoreQueryFilters；迁移和运维使用受控的独立数据库连接",
+        "KUNDATA002", "禁止绕过数据过滤器", "禁止使用 EF Core 的 IgnoreQueryFilters；迁移和运维使用受控的独立数据库连接",
         "Security", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     /// <inheritdoc />

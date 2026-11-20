@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Qian.Build.Analyzers;
+namespace Kun.Build.Analyzers;
 
 /// <summary>
 /// 集成事件只能在命令 handler 同 scope 发出（ADR-008 D8.2、PRD 7.1 第 2 项）：
@@ -14,7 +14,7 @@ namespace Qian.Build.Analyzers;
 public sealed class EventPublishScopeAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor Rule = new(
-        "QIAN0006", "集成事件只能在命令 handler 同 scope 发出",
+        "KUNEVENT001", "集成事件只能在命令 handler 同 scope 发出",
         "{0} 不是写命令的处理器或领域事件处理器，不能调用 {1}；把发布移进命令 handler，或经领域事件在同一工作单元内发出",
         "Reliability", DiagnosticSeverity.Error, isEnabledByDefault: true);
 

@@ -1,4 +1,4 @@
-"""QIAN0006：集成事件只能在写命令处理器或领域事件处理器内发布，用真实 Kun / SDK 类型编译正反例。"""
+"""KUNEVENT001：集成事件只能在写命令处理器或领域事件处理器内发布，用真实 Kun / SDK 类型编译正反例。"""
 from pathlib import Path
 import os
 import subprocess
@@ -29,9 +29,9 @@ class EventPublishScopeTests(unittest.TestCase):
                 output = result.stdout + result.stderr
                 self.assertEqual(result.returncode == 0, succeeds, output[-5000:])
                 if not succeeds:
-                    self.assertIn("error QIAN0006", output)
+                    self.assertIn("error KUNEVENT001", output)
                 else:
-                    self.assertNotIn("QIAN0006", output)
+                    self.assertNotIn("KUNEVENT001", output)
 
 
 if __name__ == "__main__":

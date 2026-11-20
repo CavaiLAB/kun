@@ -1,8 +1,6 @@
 {
   "solution": {
     "path": "../../Kun.slnx",
-    "projects": [
-      "_import/qian/tools/Qian.Build.Analyzers/Qian.Build.Analyzers.csproj"
-    ]
+    "projects": []
   }
 }

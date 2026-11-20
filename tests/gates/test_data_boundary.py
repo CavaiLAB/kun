@@ -10,9 +10,9 @@ ROOT = Path(__file__).resolve().parents[2]
 class DataBoundaryTests(unittest.TestCase):
     def test_context_and_filter_boundaries(self):
         cases = [
-            ("DirectContext", "QIAN0003"),
-            ("IndirectContext", "QIAN0003"),
-            ("FilterBypass", "QIAN0004"),
+            ("DirectContext", "KUNDATA001"),
+            ("IndirectContext", "KUNDATA001"),
+            ("FilterBypass", "KUNDATA002"),
             ("SafeContext", None),
             ("UnrelatedMethod", None),
         ]

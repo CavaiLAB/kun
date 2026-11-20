@@ -67,7 +67,7 @@ builder.Services.AddKunMediator(registry => registry.AddKunFiles(sp => /* 按请
 - 只有 `local` 后端；local 是单节点磁盘，多实例需共享存储目录并配置同一 `LocalSigningKey`。s3 / oss 与 patch 切换归 S1-FILE-002。
 - 不支持分片上传、秒传；暂存残留、软删对象与隔离证据的保留期物理清理归 S1-FILE-003。完成上传在能力事务内同步复制整个文件，单文件大小应由用途策略的 `maxSize` 控制在合理范围，大文件走分片后再改。
 - 不做病毒扫描与预览：`scanStatus` 恒为 `unscanned`，预览归 S2。
-- 软删后的文件对全局查询过滤器不可见，重复删除返回 404 而不是原回执（QIAN0004 不允许绕过过滤器），不会重复产生副作用。
+- 软删后的文件对全局查询过滤器不可见，重复删除返回 404 而不是原回执（KUNDATA002 不允许绕过过滤器），不会重复产生副作用。
 - `qian add files` 只按 configSchema 缺省值合成条目配置，`storage` 必填却没有缺省值：安装前要在 profile patch 里放一条 `disabled: true` 的 files 条目写好存储配置（安装时沿用）；安装时直接给配置的入口不在本包范围。基础组合包（`qian.bundle.base`、`qian.bundle.identity-server`）的 files 补丁已带 `storage.endpoint`（示例域名，部署时按实际公开基址覆盖）；`runtime.nuget` 的版本与摘要在发布后人工同步，发布链自动给出待同步清单归 S1-RT-034。
 - 宿主装配要自带 `Kun.EventBus` 实现包（组件包只传递带来其抽象），并 `AddKunEventBus(registrar => registrar.RegisterFilesEvents())`、在 `AddKunMediator` 里 `AddKunFiles`；还要显式选择 `ITenantContext`（例如 Kun 的 `AsyncLocalTenantContext`，随包传递带来），缺了挂载即失败；文件能力的命令管道另需当前主体（`ICurrentUser`）与 `AddKunData<FilesDbContext>` 数据会话，缺了处理器无法构造；独立模式的完整上传与下载样例归 S1-QA-005。
 - 组件声明的上传策略（`metadata/upload-policies.json`）只在平台宿主经 Registry 预装快照汇总，同组件预装多个版本时取最高版本的声明；不按租户实际挂载的组件过滤。声明不合法时，Registry 已就绪则挂载失败，否则在第一次用到策略时报 `INPUT_INVALID`（指针形如 `acme.crm/metadata/upload-policies.json#/0/purpose`）。

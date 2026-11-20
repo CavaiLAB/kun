@@ -53,7 +53,7 @@
 - 三道 .NET 门禁会自动拦截（细节见 `tests/README.md`，都在仓库根的 `Directory.Build.targets` 与 `scripts/` 下，不看包名）：
   - 可打包的项目（写了 `<IsPackable>true</IsPackable>`）都必须带 `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`，新公共 API 未登记即编译失败；
   - 可打包的项目都要在项目文件里写档位与角色（`KunTier`、`KunRole`），仓库根的 `scripts/check_deps.py` 按它们检查依赖，不看包名：内核档不依赖平台档，平台档只依赖内核档与平台档的契约包，契约包直接依赖的内核档包只能是契约。写法、例外与本机跑法见仓库根 `AGENTS.md`「档位与依赖」；
-  - 禁用符号与平台分析器（RS0030、QIAN0002–QIAN0006）接平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`）；过渡期本目录下的项目全部接入，去内核档的包也在内，各域批次把包搬出本目录时再按归属收窄。新写的宿主要写 `KunHost`。
+  - 禁用符号与平台分析器（RS0030、KUNLEGACY002–KUNEVENT001）接平台档的包与宿主（项目文件里写 `<KunHost>true</KunHost>`）；过渡期本目录下的项目全部接入，去内核档的包也在内，各域批次把包搬出本目录时再按归属收窄。新写的宿主要写 `KunHost`。
 - 错误响应一律是 `contracts/v0/error-detail.schema.json` 的 ErrorDetail：用 `Kun.Errors` 定义与登记错误码（大写下划线、全局唯一、在本组件 Definition 包里定义），HTTP 宿主装 `AddKunErrors()` + `UseKunErrors()`；不要自己拼 ProblemDetails 或 `{ error: ... }`。
 - 改了 `contracts/v0/` 的 Schema 必须同时改 fixture 与 `Kun.Errors`，`dotnet test` 会校验 Schema、fixture 与内置错误码目录 `error-codes.json` 是否一致。
 - 集成测试用 仓库根 `src/Kun.Testing.Containers` 的 fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身），不要各自再写一套容器启动代码。

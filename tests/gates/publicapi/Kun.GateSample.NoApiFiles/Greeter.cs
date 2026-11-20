@@ -1,4 +1,4 @@
-namespace Qian.GateSample.NoApiFiles;
+namespace Kun.GateSample.NoApiFiles;
 
 /// <summary>门禁自测样例的公共类型。</summary>
 public static class Greeter

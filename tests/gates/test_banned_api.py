@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 class BannedApiTests(unittest.TestCase):
     def test_old_and_current_interfaces(self):
         for name, succeeds, diagnostic in [
-            ("LegacyDeclaration", False, "QIAN0002"),
+            ("LegacyDeclaration", False, "KUNLEGACY002"),
             ("CurrentStorage", True, None),
             ("LegacyIdentityIssuer", False, "CS0234"),
             ("LegacyIdentityFactory", False, "CS1061"),

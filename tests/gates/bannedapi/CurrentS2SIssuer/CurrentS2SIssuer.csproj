@@ -1,1 +1,1 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup><ItemGroup><ProjectReference Include="../../../../../../src/Kun.Gateway/Kun.Gateway.csproj" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup><ItemGroup><ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" /></ItemGroup></Project>

@@ -29,7 +29,7 @@ import check_deps  # noqa: E402
 
 AOT_SAMPLES = ROOT / "tests" / "gates" / "aot"
 TRANSITIONAL = ROOT / "_import" / "qian"
-ANALYZERS = TRANSITIONAL / "tools" / "Qian.Build.Analyzers" / "Qian.Build.Analyzers.csproj"
+ANALYZERS = TRANSITIONAL / "tools" / "Kun.Build.Analyzers" / "Kun.Build.Analyzers.csproj"
 NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI") == "true", "本机没有 dotnet")
 PROPERTIES = ("IsPackable", "KunTier", "KunHost", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
               "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")

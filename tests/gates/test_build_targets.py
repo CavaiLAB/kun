@@ -280,7 +280,8 @@ class PublicApiTests(unittest.TestCase):
 
     def test_packable_projects_have_both_files_and_the_analyzer(self):
         packable = {path: v for path, v in evaluated().items() if is_true(v[0], "IsPackable")}
-        self.assertTrue(any(p.stem.startswith("Kun.") for p in packable) and any(p.stem.startswith("Qian.") for p in packable))
+        self.assertTrue(packable)
+        self.assertEqual([], [p.stem for p in packable if not p.stem.startswith("Kun.")])
         for path, (props, items) in packable.items():
             with self.subTest(project=path.stem):
                 self.assertTrue((path.parent / "PublicAPI.Shipped.txt").is_file())

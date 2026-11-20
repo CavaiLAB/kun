@@ -177,7 +177,7 @@ describe('白名单、slug 与路由', () => {
   });
 
   it('白名单外的文件不进站：路线图、差距分析、AOT 审计、各级 AGENTS.md', () => {
-    for (const file of ['docs/roadmap.md', 'docs/example-phase1-gap.md', 'docs/AGENTS.md', 'docs/guides/AGENTS.md', 'docs/architecture/AGENTS.md', 'docs/architecture/AOT-audit-2026-04-23.md', 'src/Kun.Core/README.md']) {
+    for (const file of ['docs/roadmap.md', 'docs/example-phase1-gap.md', 'docs/guides/openapi-template.md', 'docs/AGENTS.md', 'docs/guides/AGENTS.md', 'docs/architecture/AGENTS.md', 'docs/architecture/AOT-audit-2026-04-23.md', 'src/Kun.Core/README.md']) {
       assert.equal(kunPagePath(file), null, file);
     }
   });

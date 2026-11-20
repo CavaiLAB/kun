@@ -81,7 +81,7 @@ const KUN_EXCLUDED = /(?:^|\/)(?:AGENTS|CLAUDE)\.md$/;
 
 /** 源文件 → sdk/kun/ 下的页面路径；不在白名单里返回 null。 */
 export function kunPagePath(file: string): string | null {
-  if (KUN_EXCLUDED.test(file)) return null;
+  if (KUN_EXCLUDED.test(file) || file === 'docs/guides/openapi-template.md') return null;
   const rule = KUN_WHITELIST.find((r) => matches(r.pattern, file));
   if (!rule) return null;
   const name = rule.name ?? kunSlug(file);

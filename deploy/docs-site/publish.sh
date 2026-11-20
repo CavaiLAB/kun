@@ -101,7 +101,7 @@ for attempt in $(seq 1 "$ATTEMPTS"); do
   commit="$(git commit-tree "$tree" -m "docs-site: $mode ${target:-/} @ ${source_sha:0:12}" -m "当前预览：${previews:-无}")"
 
   if git push --quiet --force-with-lease="refs/heads/$BRANCH:$lease" "$REMOTE" "$commit:refs/heads/$BRANCH"; then
-    echo "已发布到 $BRANCH（$mode ${target:-/}），提交 ${commit:0:12}；当前预览：${previews:-无}"
+    echo "已发布到 ${BRANCH}（$mode ${target:-/}），提交 ${commit:0:12}；当前预览：${previews:-无}"
     exit 0
   fi
   echo "第 $attempt 次推送被拒（分支已被其他发布更新），重新取最新内容再试" >&2

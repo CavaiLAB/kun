@@ -169,7 +169,7 @@ describe('Kun API 参考', () => {
     assert.equal(result.namespaces, 1);
   });
 
-  it('sdk/api/ 落地页列出 Kun，Qian.*、前端与 HTTP API 都在 /sdk/api/ 下（R56）', () => {
+  it('sdk/api/ 落地页列出内核档，平台档、前端与 HTTP API 都在 /sdk/api/ 下（R56）', () => {
     const files = apiReferenceFiles(kun, convertDocfx(kun, output, ['Kun.Core']));
     const landing = files.find((f) => f.path === 'index.md')?.content ?? '';
     assert.match(landing, /^project: qian$/m);

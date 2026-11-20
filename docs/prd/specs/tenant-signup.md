@@ -2,6 +2,8 @@
 
 > 状态：S1（S1-DEC-032）。产品负责人 2026-11-03 指示按开通流程原型完成租户相关开发，PRD 7.3 原列为 S3 的「自助申请 / 审核」随之提前到 S1；加入、退出与邀请仍在 S3。本文是实现与验收的依据，裁决编号见 S1-DEC-032。
 
+开通服务由 Kun 平台组件 `qian.tenancy.signup` 提供。公共页面与运营界面由本仓库的界面包实现，并消费 Qian 前端框架。见[开通组件](../../../src/Kun.Tenancy.Signup/README.md)。
+
 ## 1 范围
 
 ✅ S1 做：
@@ -56,7 +58,7 @@
 |---|---|
 | 文件夹里的表面 | `.qian-plugin/plugin.json`；`schemas/config.schema.json`（由代码派生）；`contracts/http-v1.openapi.json` 与 `metadata/contracts.json`；`metadata/permissions.json`（资源 `application`：read / approve / reject）；`ui/manifest.json`（运营页 MF2 远程）。申请人页面是同一 UI 包构建的公开静态页，由申请人接口所在宿主托管 |
 | 装进哪个 profile | `identity`（`qian.bundle.identity-server`）：申请人接口必须在身份服务那个公开入口上（网关对代理路由一律要求认证并剥离 Cookie），建账号要进程内调 `IIdentityAccounts`，开通要进程内调 `ITenantProvisioning`，这两者都与身份服务同宿主 |
-| seam 角色 | Definition `Qian.Tenancy.Signup.Abstractions`（服务键 `TenancySignup`、错误码、发件端口 `ISignupMessenger`）+ Provider `Qian.Tenancy.Signup`（含两组 HTTP 端点与公开页托管扩展）。Inject：`Data`、`TenancyProvisioning`、`TenancyLifecycle`、`Tenancy`（目录）、身份账号端口、`SuperadminBypass`、`Audit` |
+| seam 角色 | 契约包 `Kun.Tenancy.Signup.Abstractions` 定义 `TenancySignup` 服务键、错误码与 `ISignupMessenger`。实现包 `Kun.Tenancy.Signup` 提供 HTTP 端点和公开页面托管扩展，依赖 Data、TenancyProvisioning、TenancyLifecycle、Tenancy、身份账号、SuperadminBypass 与 Audit 端口。 |
 | 能否 `qian add` | 能；装入即开放公开申请接口，不装即不提供自助开通（取代「数据库开关」） |
 
 数据（schema `plugin_qian_tenancy_signup`，全局表、无租户列）：

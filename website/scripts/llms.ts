@@ -20,9 +20,9 @@ export interface LlmsTxtInput {
   sections: LlmsSection[];
 }
 
-/** 项目顺序与显示名；frontmatter 没写 project 的页归入 Qian（手写页默认 qian，docs-site.md §4）。 */
+/** 项目顺序与显示名；frontmatter 没写 project 的页归入平台（手写页默认 qian，docs-site.md §4）。 */
 export const PROJECT_ORDER: ReadonlyArray<{ id: string; label: string }> = [
-  { id: 'qian', label: 'Qian' },
+  { id: 'qian', label: '平台' },
   { id: 'kun', label: 'Kun' },
   // 这个 project 的 id 与 /components/yue/ 的路由一样，组件页来源定下来之前不改；显示名用组件库现在的名字。
   { id: 'yue', label: 'qian 组件库' },

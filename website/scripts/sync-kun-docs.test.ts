@@ -263,7 +263,7 @@ describe('同步样例 kun 仓库', () => {
     assert.match(frontmatter, /^updated: 2026-04-01$/m);
     assert.match(body, /^# ADR-003: Introduce `Kun\.Audit` Module\n\n:::info 镜像页\n本页镜像自 kun 仓库/m);
     assert.match(body, /（`v2026\.9\.13`）/);
-    assert.match(body, /\[与 Qian 的关系\]\(\/sdk\/kun\/with-qian\)/);
+    assert.match(body, /\[内核与平台组件\]\(\/sdk\/kun\/with-qian\)/);
     assert.match(body, /Handlers return Result&lt;T>/);
     assert.match(body, /var r = Result<T>\.Ok\(\);/);
     assert.match(byPath.get('architecture/adr-p2d-multitenancy.md') ?? '', /^description: "共享库、独立 Schema、独立库三种隔离策略。"$/m);

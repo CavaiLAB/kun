@@ -3,14 +3,16 @@
 > 状态：已确认（产品负责人 2026-10-07；Kun 进站与产品族页同日经 ADR-021 补充） · 决策引用：ADR-013 D13.18、ADR-020 D20.9、ADR-015、ADR-016、ADR-021 · 实施任务：S1-DOCS-001 / 002 / 003 / 005 / 006、S2-DOCS-001
 > 本文回答三件事：文档站分几部分、每部分给谁看从哪来、页面与元数据长什么样。站点源码在仓库 `website/`，文档内容的真相源仍是各组件文件夹与 `docs/`。
 
+本站是 Kun 的组件文档站。产品总览和跨仓文档由 [CavaiLAB/jiangxin](https://github.com/CavaiLAB/jiangxin) 汇集。
+
 ## 1 读者与目标
 
 | 读者 | 要解决的问题 | 主要去的部分 |
 |---|---|---|
-| 新开发者 | 30 分钟内在空白项目里用上 Qian 的组件 | 1 开始、2 组件目录 |
+| 新开发者 | 30 分钟内在空白项目里用上 Kun 的平台组件 | 1 开始、2 组件目录 |
 | 用组件的开发者 | 某个组件怎么装、怎么配、暴露了什么 | 2 组件目录、4 CLI 与规格 |
 | 写组件的开发者 | 编程模型、API、怎么让 Agent 用上我的组件 | 3 SDK、4 CLI 与规格 |
-| 用 Kun 写服务的开发者 | Kun 模块怎么用、Qian 锁定的是哪个 Kun 版本、哪些 Kun API 是 Qian 认可的 canonical 实现 | 3 SDK 的「Kun 框架」小节、1 开始的版本矩阵 |
+| 用 Kun 写服务的开发者 | 查内核与平台两档的实现、各自的包源和当前文档对应的发布版本 | 3 SDK 的「Kun 框架」小节、1 开始的版本矩阵 |
 | 部署与运营 | profile 怎么上 K3s、怎么升级回切、模型网关怎么接 | 5 运维 |
 | 第三方 / ISV | 怎么上架、信任等级与签名 | 6 市场与 ISV |
 | Agent 与知识库 | 机器可读的全文与元数据 | 全站的 `.md` 产物与 `kb-index.json` |
@@ -20,9 +22,9 @@
 
 | # | 部分 | 路径 | 内容 | 来源 | 版本化 |
 |---|---|---|---|---|---|
-| 1 | 开始 | `/start/` | 30 分钟跑通 `qian add identity authz files`；核心概念五页：组件、表面、scope、seam、profile / patch；产品族地图 `/start/family`（Kun / Qian / 前端框架与周边仓库的层次与关系）与版本矩阵 `/start/versions`（§2b.4） | 手写 MDX（版本矩阵生成） | 否 |
-| 2 | 组件目录 | `/components/` | 每个组件一页（模板见 §3）：前端框架 UI 组件带活演示与 props 表；平台插件（身份、鉴权、文件、配置、事件…）同一模板 | 从各组件文件夹自动收集（S1-DOCS-002），**生成目录勿手改** | 是，随包版本 |
-| 3 | SDK | `/sdk/` | **Kun 框架**（第一节 `/sdk/kun/`，排在本部分概览页之后（已裁决 R57）：底座框架的概览、模块地图、上手、指南、安全、Kun 的 ADR、变更日志与 API，按锁定版本从 kun 仓库镜像，另有唯一手写页「与 Qian 的关系」，规则见 §2b）、后端 SDK（.NET：`Qian.Runtime`、`Qian.Plugin.Sdk`、`Qian.*`）、前端 SDK（`@cavailab/qian-runtime`、`@cavailab/qian-plugin-sdk`、`@cavailab/qian-sdk`、MF2 远程模块）、AI SDK（对外统一名称，见 2a.2：在插件与前端里调模型 / Embedding 与能力契约、配额；写 skills / agents / commands / hooks / tools 表面、工具副作用与策略、能力目录、MCP 门面、下游智能体平台接入；不教写 Agent loop）；每节「编程模型 → 示例 → API 参考」；API 参考统一挂在 `/sdk/api/` 下：`kun/`、`dotnet/`、`frontend/`、`http/`（平台 OpenAPI），不另设顶层 `/api/`（已裁决 R56） | 手写 MDX + TypeDoc / DocFX 生成 + Kun 镜像（§2b） | 是（Kun 小节随该 Qian 版本的 `KunVersion`） |
+| 1 | 开始 | `/start/` | 30 分钟跑通 `qian add identity authz files`；核心概念五页：组件、表面、scope、seam、profile / patch；产品族地图 `/start/family`（Kun 后端 / Qian 前端与周边仓库的层次与关系）与版本矩阵 `/start/versions`（§2b.4） | 手写 MDX（版本矩阵生成） | 否 |
+| 2 | 组件目录 | `/components/` | 每个组件一页（模板见 §3）：Qian UI 组件带活演示与 props 表；平台插件（身份、鉴权、文件、配置、事件…）同一模板 | 从各组件文件夹自动收集（S1-DOCS-002），**生成目录勿手改** | 是，随包版本 |
+| 3 | SDK | `/sdk/` | Kun 后端框架、平台组件与 .NET SDK；Qian 前端 SDK；AI SDK 与声明式表面。已发布内核版的指南与 API 见 §2b。 | 本仓库的说明、发布标签与 API 生成物 | 是 |
 | 4 | CLI 与规格 | `/cli/` | `qian` 十个命令；`plugin.json`、`marketplace.json`、profile / patch 字段参考 | 从 `docs/prd/specs/component-model.md` 同步，不另写 | 是 |
 | 5 | 运维 | `/ops/` | profile 部署到 K3s、Apollo、升级与回切、模型网关接线（GPUStack → Higress）、监控与审计 | 手写 MDX | 否 |
 | 6 | 市场与 ISV | `/marketplace/` | 组件上架流程、信任等级、签名、租户私有市场；S3 前只放规则 | 手写 MDX | 否 |
@@ -38,39 +40,39 @@
 
 | 区块 | 内容 | 来源 |
 |---|---|---|
-| 标题与搜索 | 「Qian 文档」一句话定位（点明基于 Kun 框架构建、前端用前端框架）+ 搜索框 | 手写 |
-| 三条起步命令 | ① 装一个组件：`qian add identity authz files`；② 配置你的编码代理：读 `AGENTS.md`、安装 Qian 技能、接入 MCP；③ 调一个模型：经模型网关的 OpenAI 兼容端点发一条请求 | 手写，命令与第 1 部分「开始」同源 |
-| 配置你的编码代理 | Qian 技能（组件的 `skills/` 表面可直接装进 Claude Code / Codex 等代理）、`AGENTS.md` 约定、Qian MCP（S1 文档检索 MCP 可选，S4 能力门面）、代理用 Qian 的提示词模板 | 第 3 部分 AI SDK 与 pm/README 第 7 节 |
+| 标题与搜索 | 标题说明 Kun 后端与 Qian 前端的位置，主页提供文档搜索。 | 手写 |
+| 三条起步命令 | ① 装一个组件：`qian add identity authz files`；② 配置你的编码代理：读 `AGENTS.md`、安装 组件技能、接入 MCP；③ 调一个模型：经模型网关的 OpenAI 兼容端点发一条请求 | 手写，命令与第 1 部分「开始」同源 |
+| 配置你的编码代理 | 组件技能（组件的 `skills/` 表面可直接装进 Claude Code / Codex 等代理）、`AGENTS.md` 约定、平台 MCP（S1 文档检索 MCP 可选，S4 能力门面）、供代理使用的平台提示词模板 | 第 3 部分 AI SDK 与 pm/README 第 7 节 |
 | 最新动态 | 最近 4 条变更日志条目，链接到完整变更日志 | `CHANGELOG`（第 7 部分） |
 | 产品能力分栏 | 见 2a.2 的五栏 | 各部分 |
 | 指南与教程 | Agent 栈、后端模式、安全、集成、从参考平台迁移 | 第 1 / 5 部分与 `docs/migration/` |
-| 页脚 | 站点地图、产品族仓库（Qian、Kun、前端框架、`qian-plugins`）、Kun 和 Qian 各自仓库的 MIT 许可证；没有公司链接 | 手写 |
+| 页脚 | 站点地图、Kun 后端仓库、Qian 前端仓库、官方市场入口，以及 Kun 和 Qian 各自仓库的 MIT 许可证。 | 手写 |
 
 ### 2a.2 产品能力五栏与条目映射
 
-对标产品的栏目与 Qian 的对应关系如下；「处理」列说明保留、改名或移除的理由。路径指向 §2 的七个部分。
+对标产品的栏目与本平台的对应关系如下；「处理」列说明保留、改名或移除的理由。路径指向 §2 的七个部分。
 
-| 栏 | 对标条目 | Qian 条目 | 阶段 | 落点 | 处理 |
+| 栏 | 对标条目 | 平台条目 | 阶段 | 落点 | 处理 |
 |---|---|---|---|---|---|
 | 用 AI 构建 | AI Gateway | 模型网关：一个端点调所有模型，配额、回退、计量（ADR-015） | S1·P1 | `/sdk/ai/gateway`、`/ops/model-gateway` | 保留，改名 |
 | 用 AI 构建 | AI SDK | AI SDK：在插件与前端里调模型与 Embedding、写 skills / agents / commands / hooks / tools 表面、声明工具副作用与策略 | S1 | `/sdk/ai/` | 保留；原「Agent SDK + 模型服务 SDK」合并为此名 |
-| 用 AI 构建 | 后端 Agent 框架 | Agent 运行时对接：Qian 不写 Agent loop，运行时为下游智能体平台（ADR-016），文档只写接入方式 | S1 | `/sdk/ai/agent-runtime` | 保留，改为「对接」而非产品 |
+| 用 AI 构建 | 后端 Agent 框架 | Agent 运行时对接：平台不写 Agent loop，运行时为下游智能体平台（ADR-016），文档只写接入方式 | S1 | `/sdk/ai/agent-runtime` | 保留，改为「对接」而非产品 |
 | 用 AI 构建 | Sandbox | 沙箱：隔离执行不可信或 Agent 生成的代码（CubeSandbox 对接） | S4 | `/sdk/ai/sandbox` | 保留，打 S4 标记 |
 | 用 AI 构建 | Workflows | 流程与自动化：审批内核与触发器（ADR-012） | S2 | `/components/platform/qian.workflow` | 保留，打 S2 标记 |
 | 用 AI 构建 | MCP Servers | MCP：组件的 `.mcp.json` 表面（S1）、每租户 MCP 能力门面（S4） | S1 / S4 | `/sdk/ai/mcp` | 保留 |
-| 构建应用 | Frameworks | 宿主与框架：ASP.NET Core 独立模式、`platform` profile、React + 前端框架、与 Kun 的关系 | S1 | `/start/hosts`、`/sdk/kun/with-qian` | 保留，改名 |
-| 构建应用 | （新增） | Kun 框架：Qian 的底座，.NET 10 微服务框架的模块地图、指南、安全与 API；哪个 Qian 配哪个 Kun 看版本矩阵 | S1 | `/sdk/kun/`、`/start/versions` | Qian 独有，新增（ADR-021） |
+| 构建应用 | Frameworks | ASP.NET Core 独立宿主、`platform` profile、Qian React 组件和平台外壳 | S1 | `/start/hosts`、`/sdk/kun/with-qian` | 提供宿主与框架入口 |
+| 构建应用 | （新增） | Kun 的内核与平台档提供 .NET 10 模块、指南与 API，版本矩阵列出文档采用的版本。 | S1 | `/sdk/kun/`、`/start/versions` | 产品族入口（ADR-023） |
 | 构建应用 | Functions | 能力与函数：能力目录（命令 / 查询 / 事件 / 实体）、`function` 表面（Wasm，S2 可选） | S1 / S2 | `/sdk/dotnet/capabilities` | 保留，函数部分打 S2 标记 |
 | 构建应用 | Routing Middleware | 事件与中间件：五种分发模式，`waterfall` 即环绕中间件 | S1 | `/sdk/dotnet/events` | 保留，改名 |
 | 构建应用 | Incremental Static Regeneration | — | — | — | 移除，无对应 |
 | 构建应用 | Image Optimization | — | — | — | 移除，无对应 |
 | 构建应用 | Environments | profile 与 patch：环境 = profile + 分层 patch，`qian dump-config` | S1 | `/start/concepts/profile` | 保留，改名 |
-| 构建应用 | （新增） | 组件与 `qian add`、前端框架组件库、微前端（外壳与远程模块）、存储（文件与数据）、低代码（表单 / 列表，S2） | S1 / S2 | `/components/`、`/sdk/frontend/` | Qian 独有，新增 |
-| 多租户平台 | Platforms（多租户 SaaS） | 租户、身份与 SSO、鉴权、权益与计费（S3）、配置中心、事件与消息、调度与实时、市场（S3） | S1 / S3 | `/components/platform/` | Qian 的核心，单独成栏 |
+| 构建应用 | （新增） | `qian add`、Qian 组件库与微前端、文件与数据。S2 目标包含表单和列表搭建。 | S1 / S2 | `/components/`、`/sdk/frontend/` | 平台与前端入口 |
+| 多租户平台 | Platforms（多租户 SaaS） | 租户、身份与 SSO、鉴权、权益与计费（S3）、配置中心、事件与消息、调度与实时、市场（S3） | S1 / S3 | `/components/platform/` | 平台核心能力，单独成栏 |
 | 保护应用 | Web Application Firewall | 网关防护：强制认证、路由级限流、可信代理、出网 SSRF 基线（ADR-010） | S1 | `/components/platform/qian.gateway` | 保留，改名 |
 | 保护应用 | Bot Management / BotID | — | — | — | 移除，无对应 |
 | 保护应用 | Deployment Protection | 发布保护：制品验签、修订回切、灰度开关 | S1 | `/ops/release` | 保留，改名 |
-| 保护应用 | （新增） | 审计与密钥：命令级哈希链审计、`secretRef`、密钥轮换 | S1 | `/components/platform/qian.audit`、`/ops/secrets` | Qian 独有，新增 |
+| 保护应用 | （新增） | 审计与密钥：命令级哈希链审计、`secretRef`、密钥轮换 | S1 | `/components/platform/qian.audit`、`/ops/secrets` | 平台专有，新增 |
 | 部署与运维 | Deploy from Git | GitOps 部署：Argo CD app-of-apps、Kustomize、digest 回写（ADR-017） | S1 | `/ops/deploy` | 保留，改名 |
 | 部署与运维 | Domains | — | S3 评估 | — | 移除；租户自助品牌与域名 S3 再议 |
 | 部署与运维 | CDN | — | — | — | 移除，无对应 |
@@ -87,15 +89,15 @@
 
 ## 2b Kun 框架小节与产品族页（ADR-021）
 
-Kun 是 Qian 的底座框架，没有自己的文档站，读者与本站 SDK 读者高度重叠，所以 Kun 文档在本站以**镜像**方式出现：真相源仍是 kun 仓库的 `docs/`，本站不改写、不另写一份；要改 Kun 文档去 kun 仓库提 PR。首版规格「Kun 外链不重写」作废。
+本仓库同时维护内核与平台。SDK 里的 Kun 小节镜像最近一次发布的指南及内核 API，手写页说明两档的依赖关系。镜像发布标签与当前开发分支可以处于不同进度。
 
 ### 2b.1 版本与来源
 
-- 镜像哪个版本由仓库根 `Directory.Packages.props` 的 `<KunVersion>` 属性决定（如 `2026.9.13` 对应 kun 仓库 tag `v2026.9.13`）；属性缺失时构建失败，不回退到 `main`。全部 `Kun.*` PackageVersion 引用同一属性，所以「代码用的 Kun」与「文档里的 Kun」永远是同一个版本（ADR-021 D21.3）。
-- CI 以只读凭据（deploy key 或细粒度 token）读取私有 kun 仓库；本地构建可用环境变量 `KUN_DOCS_PATH` 指向本机克隆。
-- 构建因此需要 .NET SDK（DocFX）与 kun 仓库的读权限。fork 来的 PR 与 Dependabot 拿不到本仓库的 Actions Secret，文档站不在 fork 上构建（仓库私有，协作者在本仓库的分支上工作）；接入 Dependabot 时在 Dependabot secrets 里配同名 Secret（已裁决 R60）。
-- DocFX 复用仓库根的 `NuGet.config`（`packageSourceMapping` 把 `Kun.*` 映射到 nuget.org），无凭据还原同版本的 `Kun.*`。`KunVersion` 默认钉 nuget.org 上的正式版；若改钉只在 GitHub Packages 上的预发布版，docs-site 工作流也要配该源的读凭据，否则构建失败（已裁决 R62）。Kun 的同日修复版 `-hotfix.N` 也推送 nuget.org（NuGet 按预发布排序），无需额外凭据；`Kun.*` 以 `[$(KunVersion)]` 精确钉定（S1-DEC-019 R65）。
-- 文档站多版本时，每个 Qian 文档版本内嵌各自 `KunVersion` 的镜像，Kun 小节不单独选版本。
+- `website/scripts/kun.ts` 从根 `CHANGELOG.md` 读取最新稳定版或正式修复版，并打开对应的 `v<版本>` 标签。缺少版本段或找不到标签时构建失败。
+- 默认从本仓库读取 Git 对象；`KUN_DOCS_PATH` 可指定含所需发布标签的本地检出。
+- 构建需要 .NET SDK 与 DocFX，检出方式和 CI 触发条件由站点工作流控制。
+- DocFX 按该标签的内核档项目名单和精确版本从 nuget.org 还原，读取程序集 XML 文档。平台包与预发布渠道见[包迁移指南](../../guides/package-migration.md)。
+- 版本矩阵记录页面采用的发布版本与开发树的平台项目。读者可沿每个生成页的来源定位具体版本。
 
 ### 2b.2 镜像范围（白名单）
 
@@ -105,27 +107,27 @@ Kun 是 Qian 的底座框架，没有自己的文档站，读者与本站 SDK �
 | `docs/getting-started.md` | `/sdk/kun/getting-started` | 上手 |
 | `docs/guides/*.md`、`docs/observability/*.md`、`docs/schema-per-service.md` | `/sdk/kun/guides/<slug>` | 指南 |
 | `docs/security/*.md` | `/sdk/kun/security/<slug>` | 安全 |
-| `docs/architecture/why-*.md`、`docs/architecture/when-to-use-*.md`、`docs/architecture/ADR-*.md`、`docs/architecture/adr-*.md` | `/sdk/kun/architecture/<slug>` | 设计说明与 Kun 的 ADR；不与第 7 部分 Qian 的 ADR 混放。Kun 的 ADR 文件名大小写不统一，大写、小写都收（已裁决 R58） |
+| `docs/architecture/why-*.md`、`docs/architecture/when-to-use-*.md`、`docs/architecture/ADR-*.md`、`docs/architecture/adr-*.md` | `/sdk/kun/architecture/<slug>` | 设计说明与 Kun 的 ADR；不与第 7 部分平台的 ADR 混放。Kun 的 ADR 文件名大小写不统一，大写、小写都收（已裁决 R58） |
 | `docs/whitepaper.md` | `/sdk/kun/whitepaper` | 白皮书 |
 | `CHANGELOG.md`、`docs/releases/*.md` | `/sdk/kun/releases` | 变更日志与发布说明 |
-| DocFX（锁定版本 `Kun.*` 包的 XML 注释） | `/sdk/api/kun/` | API 参考，与 `/sdk/api/dotnet/`（`Qian.*`）并列。API 页不进侧栏，命名空间页与类型页也不渲染侧栏（`sidebar: false`），只有两个概览页保留侧栏；入口是 SDK 侧栏末尾的「API 参考」、各概览页、包 → 命名空间 → 类型的链接与全文搜索（已裁决 R54） |
-| 本仓库手写 `website/docs/sdk/kun/with-qian.mdx` | `/sdk/kun/with-qian` | 唯一的 Qian 自写页：Kun 模块 ↔ 平台插件 / seam 映射、canonical API 选择（§07 7.1「插件化定位」）、Qian 的强制装配与禁用项、补丁包状态 |
+| 发布标签内核包的 DocFX XML 注释 | `/sdk/api/kun/` | 显示该版内核程序集的命名空间与类型。其它 SDK、平台 HTTP 契约与前端接口有各自入口。 |
+| 本仓库手写 `website/docs/sdk/kun/with-qian.mdx` | `/sdk/kun/with-qian` | 解释 Kun 两档、平台组件与 Qian 前端的关系。 |
 
 不镜像：面向其它下游产品的差距分析、路线图与 backlog、AOT 审计与基准报告、贡献者文档（发布清单、OpenAPI 模板）、各级 `AGENTS.md`。白名单外的文件进站即构建失败；要扩白名单改本表。
 
 ### 2b.3 页面规则
 
 - slug 取源文件名小写并把 `.` 与空格换成 `-`（`ADR-003-Kun.Audit-module.md` 变为 `adr-003-kun-audit-module`）。
-- 每页顶部横幅：「本页镜像自 kun 仓库 `<path>`（`v<KunVersion>`）。Kun 文档与代码不一致处以代码为准（ADR-001 D1.8）；Qian 对 Kun 的选用与约束见 `/sdk/kun/with-qian`。改动请提到 kun 仓库。」
-- frontmatter：`project: kun`、`part: sdk`、`version: <KunVersion>`、`source: <owner>/kun@v<KunVersion>:<path>`、`updated` 取源文件在该 tag 的最后提交日期；`title` 取首个一级标题，`description` 取首段（截到 120 字）；`audience: [developer]`。
+- 镜像页顶部标明 Kun 源文件、发布标签与源码入口，并链接站内的框架使用说明。
+- frontmatter：`project: kun`、`part: sdk`、`version: <发布版本>`、`source: <owner>/kun@v<发布版本>:<path>`、`updated` 取源文件在该 tag 的最后提交日期；`title` 取首个一级标题，`description` 取首段（截到 120 字）；`audience: [developer]`。
 - 站内相对链接：目标在白名单内改写为站内路径，否则改写为 kun 仓库该 tag 的文件链接。
 - 镜像页同样过 `scripts/check_docs.py`（禁用词、表格、断链）。
 - 上游文档的问题（越出仓库根的相对链接、比表头少列的表格行）由脚本机械处理并告警，不让构建失败；源头修复提到 kun 仓库，随下一个 Kun 版本进站。DocFX 的 `InvalidCref` 告警若来自继承的第三方 XML 文档（如 `<inheritdoc/>` 带进来的 EF Core `O:DbContext.SaveChanges*`），不处理，页面显示为代码文本（已裁决 R59）。
 
 ### 2b.4 产品族页
 
-- `/start/family`（手写）：Kun / Qian / 前端框架与周边仓库（官方市场、Agent 运行时、部署与模型服务）的层、是什么、仓库、版本与许可、文档位置；与仓库 README 的「产品族」表同一内容。
-- `/start/versions`（生成）：每个文档版本对应的 Kun CalVer（`KunVersion`）、`Qian.*` 版本、`@cavailab/qian-*` 版本、.NET SDK（`global.json`）、Node、K3s 基线；由 `build-versions.ts` 从仓库钉版文件产出，不手改。钉版文件：`Directory.Packages.props`（Kun）、`packages/*/*.csproj` 与 `Directory.Build.props`（`Qian.*`，写了 `IsPackable` 的项目；版本随首个包族发布钉入）、`pnpm-workspace.yaml` 版本目录里的 `@cavailab/qian-*` 包、`global.json`、根 `package.json`（`engines.node`、`packageManager`）、`deploy/baseline.json`（K3s，S1-DEP-001 维护）。多版本开启前只有 `main`（开发版）一行。产品族页的表与仓库 README 的「产品族」表前五列由单测核对一致（`website/scripts/family.test.ts`）。
+- `/start/family`（手写）说明 Kun 两档、Qian 前端及相关仓库的职责、版本与许可，和根 README 的产品族表对应。
+- `/start/versions` 由 `website/scripts/build-versions.ts` 生成。Kun 发布版取自根 `CHANGELOG.md`；平台档包取自 `src/*/*.csproj`，Qian 前端版本取自 `pnpm-workspace.yaml` 的依赖目录。.NET SDK、Node / pnpm 与 K3s 的来源分别为 `global.json`、根 `package.json` 和 `deploy/baseline.json`。
 
 ## 3 组件页模板
 
@@ -135,7 +137,7 @@ Kun 是 Qian 的底座框架，没有自己的文档站，读者与本站 SDK �
 2. **安装**：`qian add <id>`、所属 profile、`runtime.nuget[]` / `npm[]` 包名与版本
 3. **配置**：`plugin.json` 中 `config` 的字段表（从 JSON Schema 生成）与一份最小 patch 示例
 4. **表面**：该组件提供的 skills / agents / commands / hooks / MCP / tools / ui 列表，各自链接
-5. **API**：服务键与 Definition 接口（.NET 来自 DocFX，TS 来自 TypeDoc）；前端框架组件为 props 表与活演示
+5. **API**：服务键与 Definition 接口（.NET 来自 DocFX，TS 来自 TypeDoc）；Qian UI 组件展示 props 表和可交互示例
 6. **示例**：组件 `docs/*.mdx` 的正文
 7. **模型体验**：Agent 怎么发现与调用它、工具的副作用与策略提示（来自 README 同名节）
 8. **已知限制与延期项**（来自 README 同名节）
@@ -164,10 +166,10 @@ Kun 是 Qian 的底座框架，没有自己的文档站，读者与本站 SDK �
 | `title` | 是 | 文本 | 页面标题 |
 | `description` | 是 | ≤ 120 字 | 列表摘要、`llms.txt` 条目、知识库摘要 |
 | `part` | 是 | `start` / `components` / `sdk` / `cli` / `ops` / `marketplace` / `design` | 所属部分 |
-| `project` | 是 | `qian` / `kun` / `yue` | 所属项目；`llms.txt` 按它分节，知识库按它过滤（ADR-021 D21.5） |
+| `project` | 是 | `qian` / `kun` / `yue` | 三个兼容标识对应「平台」「Kun」「qian 组件库」。知识库与 `llms.txt` 按标识分组。前端组件页位于 `/components/yue/`。 |
 | `audience` | 是 | 数组：`developer` / `operator` / `isv` / `agent` / `decision-maker` | 知识库与「问 AI」按读者过滤 |
 | `component` | 组件页必填 | 组件 id，如 `qian.files` | 关联组件 |
-| `version` | 组件页与 SDK 页必填 | SemVer | 多版本切换 |
+| `version` | 有发布版本时 | 组件版本、Kun CalVer 或前端包 SemVer | 定位对应发行版本 |
 | `profile` | 组件页 | 默认 profile 名 | 运维检索 |
 | `surface` | 表面页 | `skill` / `agent` / `command` / `hook` / `mcp` / `tool` / `ui` | 按表面检索 |
 | `source` | 镜像页必填 | `<owner>/<repo>@<tag>:<path>` | 镜像来源（第 3 部分 Kun 小节、第 7 部分 `docs/` 镜像） |
@@ -179,10 +181,10 @@ Kun 是 Qian 的底座框架，没有自己的文档站，读者与本站 SDK �
 
 ## 5 版本、语言与机器可读产物
 
-- **版本**：第 2、3、4 部分随 Qian 包族的 SemVer 锁步版本走多版本；第 1、5、6、7 部分只有当前版。第 3 部分的 Kun 小节不单独选版本：每个 Qian 文档版本内嵌该版本 `KunVersion` 锁定的 Kun CalVer（ADR-021 D21.3）。
+- **版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包独立使用 SemVer。多版本站点属于后续目标。
 - **语言**：中文为唯一一等语言；英文在 S3 评估，目录结构预留 `/en/` 前缀，不提前翻译。
-- **机器可读**：开启 `llms: true`，构建产出 `llms.txt`、`llms-full.txt`、每页 `.md`（SSG-MD），加 `sitemap.xml` 与 `kb-index.json`（每页 url、md url、标题、frontmatter 含 `project` / `version` / `source`、内容 sha256、更新时间），契约见 §5.1；`llms.txt` 按 `project` 分节（Qian / Kun / 前端框架，S1-DOCS-006；S1-DOCS-003 先按七个部分分节）。知识库只读这些产物，不解析 MDX 源。每页标题下与首页有「复制为 Markdown」「复制 Markdown 链接」入口（Rspress `themeConfig.llmsUI`，不放外部 AI 服务入口）。
-- **站内「问 AI」**：S2 由前端框架组件 `<AskDocs>` 提供，检索基于上述产物，模型只经模型网关（S2-DOCS-001）。
+- **机器可读**：开启 `llms: true`，构建产出 `llms.txt`、`llms-full.txt`、每页 `.md`（SSG-MD），加 `sitemap.xml` 与 `kb-index.json`（每页 url、md url、标题、frontmatter 含 `project` / `version` / `source`、内容 sha256、更新时间），契约见 §5.1；`llms.txt` 按 `project` 分节（平台 / 内核 / 前端，S1-DOCS-006；S1-DOCS-003 先按七个部分分节）。知识库只读这些产物，不解析 MDX 源。每页标题下与首页有「复制为 Markdown」「复制 Markdown 链接」入口（Rspress `themeConfig.llmsUI`，不放外部 AI 服务入口）。
+- **站内「问 AI」**。S2 规划的 `<AskDocs>` 组件检索站点生成的文档与索引，模型调用经模型网关（S2-DOCS-001）。
 
 ### 5.1 知识库导入契约（S1-DOCS-003）
 
@@ -202,7 +204,7 @@ Kun 是 Qian 的底座框架，没有自己的文档站，读者与本站 SDK �
 |---|---|
 | `version`、`generatedAt` | 契约版本；生成时间（ISO 8601） |
 | `base`、`siteUrl` | 部署前缀（正式站点 `/`，预览 `/pr-preview/pr-<n>/`）与站点入口 |
-| `kunVersion` | 本次构建镜像的 Kun 版本（`Directory.Packages.props` 的 `KunVersion`） |
+| `kunVersion` | 本次构建从 Kun 根 `CHANGELOG.md` 选取的发布版本 |
 | `pages[]` | 按路由排序。每页：`route`、`url`（HTML）、`md`（Markdown 地址，两者都带前缀）、`sourceFile`（相对 `website/docs`）、`title`、`description`、`project`、`part`、`audience[]`、`version`（有则给）、`source`（镜像页）、`updated`、`sha256`（`.md` 内容的 SHA-256）、`bytes`、`frontmatter`（完整 frontmatter 解析结果） |
 
 消费方（S2 的知识库与 `<AskDocs>`）的用法：定期拉 `kb-index.json`，按 `project` / `audience` / `part` 过滤，`sha256` 变了才重新抓该页 `.md`；引用来源给 `url`，列表摘要用 `description`。Markdown 里的约定：每页第一行是给代理的提示（指向 `llms.txt` 与 `llms-full.txt`）；Rspress 的容器语法 `:::info … :::` 原样保留；站内链接指向对应页的 `.md`；自定义组件（首页卡片、最新动态、站点地图）在 SSG-MD 下只输出标题、段落、列表与链接；JSX 容器内部的 Markdown 里不能再放行内组件（会原样残留），阶段标记写成文字。
@@ -221,9 +223,9 @@ website/
       yue/core/<name>.mdx       52 个 core 入口；yue/api/ 共享继承属性表
       platform/<id>.mdx
     sdk/                       3 SDK
-      kun/                     Kun 框架小节：sync-kun-docs.ts 按 KunVersion 镜像 kun 仓库 docs/（生成，勿手改）；with-qian.mdx 为唯一手写页
+      kun/                     按 Kun 最近的发布标签镜像文档；with-qian.mdx 为手写页
       dotnet/  frontend/  ai/            ai = AI SDK（模型调用 + Agent 表面 + MCP + 沙箱）
-      api/                     TypeDoc / DocFX 生成物（dotnet/ = Qian.*，kun/ = 锁定版本的 Kun.*，frontend/，http/ = 平台 OpenAPI）；不进侧栏（R54、R56）
+      api/                     TypeDoc / DocFX 生成物（dotnet/ = Kun 平台档，kun/ = 锁定版本的 Kun.*，frontend/，http/ = 平台 OpenAPI）；不进侧栏（R54、R56）
     cli/                       4 CLI 与规格（从 specs 同步）
     ops/                       5 运维
     marketplace/               6 市场与 ISV
@@ -234,7 +236,7 @@ website/
     build-yue-demos.ts         Rsbuild 编译 iframe 与本地编辑器资源 → docs/public/
     sync-specs.ts              specs → docs/cli/、docs/ → docs/design/
     build-kb-index.ts          构建后产出 kb-index.json 与 sitemap.xml（§5.1）
-    sync-kun-docs.ts           kun 仓库 v<KunVersion> 的 docs/ 白名单 → docs/sdk/kun/（§2b）
+    sync-kun-docs.ts           kun 仓库 v<发布版本> 的 docs/ 白名单 → docs/sdk/kun/（§2b）
     build-versions.ts          Directory.Packages.props / csproj / global.json / package.json / pnpm 工作区 / deploy/baseline.json → docs/start/versions.md
   demo/                        普通 React iframe 预览、状态工具栏与离线编辑运行
   theme/                       主题覆盖：接入 @cavailab/qian-tokens、首页的「复制为 Markdown」（文档页由 llmsUI 注入）、AskDocs 挂载点；自定义组件带 SSG-MD 分支
@@ -247,7 +249,7 @@ S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整�
 - `scripts/check_docs.py` 覆盖 `website/docs`：禁用词、表格、断链、frontmatter 必填与枚举（§4）；生成目录在 CI 里构建后显式检查（`scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api`）。
 - CI 构建站点后 `pnpm --filter website check`：`llms.txt`、`llms-full.txt`、每页 `.md`、`kb-index.json`、`sitemap.xml` 齐全；索引里每页的 `.md` 与 HTML 都在且 `sha256` 一致，`llms.txt`、`llms-full.txt`、`sitemap.xml` 收录每页，产物里没有索引外的 `.md`；每页 `.md` 没有 JSX / ESM 残留与空标题、空列表项，代码块不少于源页（§5.1）。
 - 生成目录（`components/`、`sdk/api/`、`sdk/kun/`（`with-qian.mdx` 除外）、`cli/`、`design/`）与生成文件 `start/versions.md` 不接受手改 PR（进了 Git 即失败）。
-- Kun 小节：镜像的 Kun tag 与 `Directory.Packages.props` 的 `KunVersion` 不一致即失败；§2b.2 白名单外的文件进站即失败；`KunVersion` 缺失时构建失败而不是取 `main`。
+- Kun 小节必须与最近的发布段及对应标签一致；§2b.2 白名单与版本来源由站点测试校验。
 - 产物总大小超过预算即失败（`website/scripts/check-site.ts` 的 `SITE_SIZE_BUDGET_MB`，现为 120 MB），并报出最大的目录。预算挡的是结构性膨胀，比如同一块内容被重复渲染进每一页；确属正常增长时调高预算，并在 PR 里写明原因（已裁决 R55）。
 
 ## 8 验收
@@ -257,7 +259,7 @@ S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整�
 - [x] 全站页面 frontmatter 通过 §4 校验（S1-DOCS-003）
 - [x] §5 的四类机器可读产物齐全并经 CI 新鲜度校验（S1-DOCS-003，§5.1）
 - [ ] 第 2 部分前端框架页有活演示与 props 表，平台插件页有配置字段表与最小 patch 示例
-- [ ] 第 3 部分「Kun 框架」小节按 §2b 生成：版本与 `KunVersion` 一致、每页有来源横幅与 `project: kun`、`/sdk/api/kun/` 可用、`/sdk/kun/with-qian` 手写页存在
+- [ ] 第 3 部分按 §2b 生成。版本与发布标签一致，镜像页有来源与 `project: kun`，内核 API 和 `/sdk/kun/with-qian` 手写页可达。
 - [x] `/start/family` 与 `/start/versions` 存在，后者由脚本生成并与仓库钉版一致（S1-DOCS-006）
 
 ## 修订历史

@@ -177,7 +177,7 @@ export function collectComponents(repoRoot: string = REPO_ROOT, docsRoot: string
       '',
       '# qian 组件库',
       '',
-      `qian 组件库是 Qian 的前端组件库（[ADR-013](${designRoute('docs/adr/ADR-013-frontend-framework.md')})、[组件库专题规格](${designRoute('docs/prd/specs/frontend.md')})），源码在 [CavaiLAB/qian](${QIAN_REPO_URL})；本小节由它的标签 \`${qian.tag}\` 生成（版本钉在 \`pnpm-workspace.yaml\` 的版本目录）。包发在 GitHub Packages，包名 \`@cavailab/qian-<包>\`；设计文档里沿用旧包名，对应关系见 [CavaiLAB/qian 迁移说明第 2 节](${QIAN_REPO_URL}/blob/main/docs/migrating-from-yue.md#2-包名与安装)。core 提供 ${readYueDocs().docs.length} 个组件入口，每页包含真实交互演示、源码与完整 Props。`,
+      `Qian 提供 React 组件、TypeScript 运行时和前端插件 SDK（[ADR-013](${designRoute('docs/adr/ADR-013-frontend-framework.md')})、[组件库专题规格](${designRoute('docs/prd/specs/frontend.md')})），源码在 [CavaiLAB/qian](${QIAN_REPO_URL})；本小节由它的标签 \`${qian.tag}\` 生成（版本钉在 \`pnpm-workspace.yaml\` 的版本目录）。包发在 GitHub Packages，包名 \`@cavailab/qian-<包>\`；设计文档里沿用旧包名，对应关系见 [CavaiLAB/qian 迁移说明第 2 节](${QIAN_REPO_URL}/blob/main/docs/migrating-from-yue.md#2-包名与安装)。core 提供 ${readYueDocs().docs.length} 个组件入口，每页包含真实交互演示、源码与完整 Props。`,
       '',
       '安装前在项目的 `.npmrc` 写 `@cavailab:registry=https://npm.pkg.github.com`；令牌行 `//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}` 写进用户级配置（`~/.npmrc`）——10.34.2 起的 pnpm 10、11.5.3 起的 pnpm 11，以及 pnpm 12 不展开仓库里 `.npmrc` 认证行的环境变量（安全公告 GHSA-3qhv-2rgh-x77r；11.0.0–11.5.2 仍会展开）——再把有 `read:packages` 权限的个人访问令牌（classic）放进环境变量 `NODE_AUTH_TOKEN`。从这个包源安装公开包也要令牌，详见 [CavaiLAB/qian 迁移说明第 2 节](' + QIAN_REPO_URL + '/blob/main/docs/migrating-from-yue.md#2-包名与安装)。下表是 S1 各包的范围。',
       '',

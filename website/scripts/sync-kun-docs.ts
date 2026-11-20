@@ -302,7 +302,7 @@ function banner(kun: KunCheckout, source: string, lead: string): string {
     ':::info 镜像页',
     `${lead} [\`${source}\`](${kunGithubUrl(kun, source)})（\`${kun.tag}\`）。` +
       'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；' +
-      'Qian 对 Kun 的选用与约束见[与 Qian 的关系](/sdk/kun/with-qian)。改动请提到 kun 仓库。',
+      '平台集成方式见[内核与平台组件](/sdk/kun/with-qian)。改动请提到 kun 仓库。',
     ':::',
   ].join('\n');
 }
@@ -375,7 +375,7 @@ function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: Mirro
   const byDir = (dir: string) => pages.filter((p) => p.page.startsWith(`${dir}/`) && !p.page.endsWith('/index.md'));
   const link = (p: MirroredPage) => `[${kunLabel(p.title)}](${kunRoute(p.page)})`;
   const find = (page: string) => pages.find((p) => p.page === page);
-  const toc: string[] = ['- [与 Qian 的关系](/sdk/kun/with-qian)：Qian 自写的唯一一页——Kun 模块与平台插件、seam 的对应，canonical API，强制装配与禁用项，补丁包状态'];
+  const toc: string[] = ['- [内核与平台组件](/sdk/kun/with-qian)列出平台组件使用的模块、公共 API、宿主装配和历史版本'];
   const gettingStarted = find('getting-started.md');
   if (gettingStarted) toc.push(`- 上手：${link(gettingStarted)}`);
   const modules = find('modules.md');
@@ -392,7 +392,7 @@ function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: Mirro
   }
   toc.push(`- [API 参考](/sdk/api/kun/)：DocFX 从 ${packages} 个 \`Kun.*\` 包生成`);
 
-  const description = tagline || 'Qian 的底座框架 Kun：按锁定版本镜像的文档与 API 参考';
+  const description = tagline || 'Kun 框架按正式版本生成的文档与 API 参考';
   return [
     frontmatter(kun, 'README.md', 'Kun 框架', description),
     '# Kun 框架',
@@ -400,7 +400,7 @@ function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: Mirro
     banner(kun, 'README.md', '本页由 kun 仓库的定位与模块矩阵拼装，来源'),
     '',
     ...(tagline ? [`> ${tagline}`, ''] : []),
-    'Kun 是 Qian 的底座框架：Qian 平台基于 Kun 框架构建，前端使用 qian 组件库（[ADR-021](/design/adr/adr-021-product-family-structure)）。' +
+    'Kun 提供 .NET 内核与平台组件，Qian 提供前端框架。[产品族](/start/family)列出两者的仓库与版本来源。' +
       `本节镜像 kun 仓库 **${kun.tag}** 的文档，这是 Kun 最新的发布版，取仓库根 \`CHANGELOG.md\` 里最新的发布段；` +
       `Kun 的代码与文档改动去 [kun 仓库](${KUN_REPO_URL})提。`,
     '',
@@ -458,7 +458,7 @@ export function syncKunDocs(kun: KunCheckout, packages: number): KunDocsResult {
 
   const root: unknown[] = [
     { type: 'file', name: 'index', label: '概览' },
-    { type: 'file', name: 'with-qian', label: '与 Qian 的关系' },
+    { type: 'file', name: 'with-qian', label: '内核与平台组件' },
   ];
   const single = (page: string, label: string) => {
     if (pages.some((p) => p.page === page)) root.push({ type: 'file', name: page.replace(/\.md$/, ''), label });

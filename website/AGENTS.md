@@ -8,8 +8,8 @@
 |---|---|---|
 | 开始、SDK、运维、市场的页面 | `website/docs/{start,sdk,ops,marketplace}/` | — |
 | ADR、PRD、规格、路线图、变更日志 | 仓库 `docs/`（站内 `/design/` 自动镜像） | `website/docs/design/` |
-| Kun 的文档 | kun 仓库（提 PR）；站内「Kun 框架」小节与 Kun API 参考按 Kun 最新的发布版生成，版本取仓库根 `CHANGELOG.md` 里最新的发布段，Kun 发版后自动跟随 | `website/docs/sdk/kun/`（`with-qian.mdx` 除外）、`website/docs/sdk/api/` |
-| Qian 对 Kun 的选用与约束 | `website/docs/sdk/kun/with-qian.mdx`（只转述 ADR-001 / ADR-021 与 PRD §07，不另立规则） | — |
+| Kun 的文档 | kun 仓库（提 PR）；站内「Kun 框架」小节与 Kun API 参考按仓库根 `CHANGELOG.md` 里最新的正式发布段生成；稳定版或正式修复版的版本日志 PR 合入后跟随，beta 沿用原版本 | `website/docs/sdk/kun/`（`with-qian.mdx` 除外）、`website/docs/sdk/api/` |
+| 内核与平台组件的装配关系 | `website/docs/sdk/kun/with-qian.mdx`（按 ADR-023 和现行项目公开 API 核对，旧版本记录按对应标签查阅） | — |
 | Kun 镜像的白名单、侧栏与横幅 | `docs/prd/specs/docs-site.md` §2b 与 `website/scripts/sync-kun-docs.ts` 一起改 | 生成出来的页面 |
 | CLI 命令与清单字段 | `docs/prd/specs/component-model.md`（站内 `/cli/` 自动同步） | `website/docs/cli/` |
 | 组件页 | qian 组件库：源码与文档在 CavaiLAB/qian（提 PR），站内按版本目录里 `@cavailab/qian-core` 的版本检出同名标签生成，生成规则在 `website/scripts/yue-docs.ts`、`qian.ts`；其它组件：`collect-components.ts` 的规划清单，S1-DOCS-002 后改为组件目录 | `website/docs/components/` |

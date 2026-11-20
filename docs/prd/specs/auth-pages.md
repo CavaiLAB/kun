@@ -21,7 +21,7 @@
 | `docs/decisions/framework-refinement-2026-10.md` §7.3 / Q20 / Q22 | Agent 时代新增的设备码（RFC 8628）/ loopback PKCE 取令牌页与授权同意页；备忘录尚未拍板，本文按其默认建议预留并标条件 |
 | `contracts/v0` | 全部错误响应为 ErrorDetail（必填 `type` / `title` / `status` / `code` / `message` / `trace_id`，可选 `detail` / `instance` / `pointer` / `allowed` / `errors[]`；业务错误只用 409 / 422；封闭对象）；本文新增的 `AUTH_*` 码为提案，需登记进 `error-codes.json` |
 
-三层口径：Kun = 框架层（`Kun.Identity.AspNetCore` RP 侧 Cookie 会话、`Identity.Client`），Qian = 平台层（`qian.identity` 唯一 issuer、`qian.tenancy`、`qian.realtime`），前端框架 = 前端层（`@cavailab/qian-shell` 认证页族、`@cavailab/qian-form` 登录表单、`@cavailab/qian-core` 组件、`@cavailab/qian-tokens` 令牌、`@cavailab/qian-sdk` i18n / `PlatformClient`）。
+Kun 的内核包 `Kun.Identity.AspNetCore` 提供依赖方 Cookie 会话；平台包 `Kun.Identity.Server` 承载签发端（组件 `qian.identity.server`），`Kun.Identity.Client` 承载平台客户端。`qian.tenancy` 提供租户能力，`qian.realtime` 为预留组件。Qian 提供前端组件，认证页与外壳接线在本仓库。见[身份服务](../../../src/Kun.Identity.Server/README.md)和[前端规格](frontend.md)。
 
 ## 1 设计原则
 
@@ -165,7 +165,7 @@ flowchart TD
 
 **元素清单**（自上而下）：
 
-| 元素 | @yue 组件 | 说明 |
+| 元素 | Qian 前端组件 | 说明 |
 |---|---|---|
 | 品牌栏 | 文本 + `Avatar` | 平台标识与名称来自 `window.__APP_CONF__.brand`；S3 才接租户 `data-brand` |
 | 租户区 | `Avatar` / `AvatarFallback` + 文本 + `Button ghost sm`「切换租户」 | 有 `tenantHint` 时显示租户 LOGO + 名称；无则显示平台名 + `Button ghost sm`「指定租户」 |
@@ -465,7 +465,7 @@ flowchart TD
 
 ### 4.10 登出确认 `/connect/logout`（S1-P0，服务端渲染）
 
-**用途**：RP 发起登出的确认页；GET 只展示表单，POST 带 antiforgery（`Qian.Identity.Server` 既有）；后通道登出对用户静默。
+**用途**：RP 发起登出的确认页；GET 只展示表单，POST 带 antiforgery（`Kun.Identity.Server` 既有）；后通道登出对用户静默。
 
 **版式**：服务端渲染的极简 HTML（不加载 React），引用 `@cavailab/qian-tokens` 生成的 CSS 变量 + 一份 `auth.css`，版式与 `AuthLayout` 一致；需为此页单独加截图基线（前端框架视觉门禁对 16px 图标有盲区）。
 
@@ -577,7 +577,7 @@ flowchart TD
 
 ### 4.16 授权同意 `/consent?flow=`（条件：Q5 / Q22 / Q25 / IDP-012）
 
-**用途**：第三方 / CLI / Agent 客户端授权；展示 client、scope、resource、委托与有效期；公开客户端每次同意（RFC 8252 §8.6）；官方受信 implicit-consent 客户端不出现本页（`Qian.Identity.Server` README：S1 只接受此类客户端，显式同意需 IDP-012 放开 `ConsentType` 校验）。
+**用途**：第三方 / CLI / Agent 客户端授权；展示 client、scope、resource、委托与有效期；公开客户端每次同意（RFC 8252 §8.6）；官方受信 implicit-consent 客户端不出现本页（`Kun.Identity.Server` README：S1 只接受此类客户端，显式同意需 IDP-012 放开 `ConsentType` 校验）。
 
 **版式**：同外框，内容列 32rem；客户端卡 → 身份行 → 权限分组 → 资源 → 委托 → 有效期 → 按钮行（拒绝在前）。
 
@@ -685,7 +685,7 @@ flowchart TD
 | D8 | 登录域与外壳域不同源时的主题 / 语言偏好：登录域默认跟随系统 + 自带切换；或 authorize 带 `ui_locales` / 主题参数透传 | 跟随系统 + 自带切换；`ui_locales` 透传语言 |
 | D9 | 权限变更的前端行为：ADR-005 D5.4 / 7.4.1 把「权限变更」列为会话失效触发，PRD 13.3.3 第 5 条说令牌可用到刷新；本规格按 `identityRevisionChanged` 静默刷新 + Toast，不跳登录 | 按 13.3.3 第 5 条静默刷新；需一次文档裁决消除 ADR / PRD 内部不一致 |
 | D10 | 会话失效「≤ 3s」依赖 7.13.2 实时通道；备忘录建议砍 SCH-003 并改「明确不支持」 | 两档验收：有通道 ≤ 3s；无通道（v0）下一请求被拒 → 刷新失败 → 对话框 |
-| D11 | `tenant_hint` 作为 authorize 的 Qian 私有扩展参数并在 discovery 声明；登录页 `?tenant=` 与路径 `/t/{code}/login` 别名 | 接受扩展参数；否则登录前无法按租户 scope 过滤连接器，IDP-008 验收要改为登录后判定 |
+| D11 | `tenant_hint` 作为 authorize 的 签发服务私有扩展参数并在 discovery 声明；登录页 `?tenant=` 与路径 `/t/{code}/login` 别名 | 接受扩展参数；否则登录前无法按租户 scope 过滤连接器，IDP-008 验收要改为登录后判定 |
 | D12 | 改密后当前设备会话是否豁免（7.4.1 字面为「全部会话 ≤ 5s 失效」） | 豁免当前 sid，服务端重签；IDP-003 / 004 提供语义并在审计区分 |
 | D13 | 设备码 / 同意页 / `/connect/error` 的立项：依赖 Q22 / Q5 / Q25 拍板与候选 IDP-012；备忘录 §7.2 把 YUE-001 / 002 / 006 列为 v0.1 可选，而 v0 需要取令牌通道 | 这三页在 v0 由 identity 宿主以同源静态制品提供（与 D1 一致），不依赖外壳 |
 | D14 | Captcha 与无障碍冲突：若策略要求对匿名发码强制图形验证码〔已删节〕，视障用户无替代路径 | Captcha 默认关、只按策略开，优先延时 / 锁定与发码预算；开启的租户在策略说明里标注并提供管理员通道；音频替代 S2 |

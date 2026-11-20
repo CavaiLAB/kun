@@ -1,15 +1,15 @@
 ---
 title: 开始
-description: 30 分钟在空白项目里用上 Qian 的组件，再用五页读懂组件、表面、scope、seam 与 profile。
+description: 从空白 ASP.NET Core 项目开始使用 Kun 组件，了解组件、表面、scope、seam 与 profile。
 part: start
 project: qian
 audience: [developer]
-updated: 2026-10-07
+updated: 2026-11-20
 ---
 
 # 开始
 
-Qian 的能力都以**组件**交付：一个文件夹、一份清单、若干声明式表面，加上可选的代码。装一个组件只要一条命令，不需要先部署 Qian 平台；同一组件放进 `platform` profile，就成了多租户平台的一部分。
+Kun 平台以**组件**交付能力。组件目录包含清单、声明式表面与可选代码。应用可以将所需组件装入自己的宿主，或通过 `platform` profile 组装多租户平台。
 
 ## 从这里开始
 

@@ -75,6 +75,9 @@ describe('版本矩阵（docs-site.md §2b.4）', () => {
     assert.match(frontmatter, /^updated: \d{4}-\d{2}-\d{2}$/m);
     assert.match(body, /^# 版本矩阵$/m);
     assert.match(body, /不要手改/);
+    assert.match(body, /平台包（源码开发版本）/);
+    assert.match(body, /release-packages\.json/);
+    assert.match(body, /@cavailab\/qian-runtime.*单独钉住/);
     assert.ok(body.includes('| main（开发版） | 2026.10.8 | 未发布，开发版 main（2 个包） | 版本目录里没有 | 10.0.100（rollForward latestFeature） | ^20.19.0 \\|\\| >=22.12.0 / 12.9.1 | v1.35 |'), body);
     assert.match(body, /\| Kun \| 仓库根的 `CHANGELOG\.md` \|/);
     assert.match(body, /\| \.NET SDK \| 仓库根的 `global\.json` \|/);

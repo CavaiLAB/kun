@@ -2,7 +2,7 @@
 
 > 状态：草案 v1 · 更新日期：2026-10-06 · 决策引用：ADR-001、ADR-002、ADR-005、ADR-007、ADR-012、ADR-013、ADR-015、ADR-016、ADR-020 · 上级索引：[README](README.md)
 
-本章说明 Qian 借鉴了哪些外部项目、以什么许可证、借鉴了什么、以及我们的态度。态度分四种：**引入代码**（作为依赖或搬运代码，须遵守其许可证）；**只借鉴设计**（不引入任何代码，含许可证限制与我们主动选择两种原因）；**运维侧使用**（作为基础设施运行，不进入产品代码）；**不采用**（评估后放弃，留作记录）。许可证以引入时在仓库内核验为准，本表为规划期口径。
+本章说明平台借鉴了哪些外部项目、以什么许可证、借鉴了什么、以及我们的态度。态度分四种：**引入代码**（作为依赖或搬运代码，须遵守其许可证）；**只借鉴设计**（不引入任何代码，含许可证限制与我们主动选择两种原因）；**运维侧使用**（作为基础设施运行，不进入产品代码）；**不采用**（评估后放弃，留作记录）。许可证以引入时在仓库内核验为准，本表为规划期口径。
 
 > 一套商业低代码产品的功能集作为需求参照：只借鉴其功能全集、概念模型与反例教训，不引入任何代码、品牌、资源与源码路径；全文统称「参考平台」。
 
@@ -12,9 +12,9 @@
 |---|---|---|---|
 | Kun（自研 .NET 10 微服务框架） | MIT | 四层依赖、Result 错误模型、显式注册的 Mediator、Outbox 与稳定事件 ID、schema-per-service、RLS、PublicAPI 门禁 | 引入代码（NuGet + CalVer 锁版本）；S1 修关键缺口，上游 PR 优先 |
 | 下游智能体平台（同一所有者的 Agent 运行时项目） | 内部项目 | 文档体系与 PRD 体例、前端工程规范与令牌架构、S2S JWT claim 形状、事件信封、工具元数据、Higress 治理契约、部署三层范式 | 引入代码仅限四处：审计拦截器、租户主数据模型、OIDC 授权码实现、通知通道范式；其余只借鉴思路 |
-| 对标项目（见 ADR-020 §1）：三类 Agent 时代组件化设计 | 以引入时在仓库内核验为准（其中「一切皆插件」运行时为 MIT） | ① 文件即组件与一键安装：组件目录按领域分文件夹、每个组件是带 front matter 的 Markdown 或一份 JSON、`npx … --yes` 一条命令安装、健康检查与目录网站；② `plugin.json` 清单 + 若干声明式表面（skills / agents / commands / hooks / MCP）+ `marketplace.json` 目录市场（条目只写来源与策略）；③ 「一切皆插件」运行时：无特权内核、服务 / 类型化事件 / 可逆副作用、`inject` 声明依赖、能力 seam 三角色、scope 遮蔽与 restrict、profile / 组合包 / patch 层叠、文档由代码生成并设 CI 新鲜度门禁 | 只借鉴设计：.NET 侧自研同语义 `Qian.Runtime`、`qian` CLI 与 `.qian-plugin/plugin.json` / `.qian/marketplace.json` 格式；TypeScript 侧（前端框架外壳、CLI）公共 API 为 `@qian/runtime`，S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现、薄适配层对齐我们的语义（已拍板，ADR-020 §7 第 1 条，见下一行） |
+| 对标项目（见 ADR-020 §1）：三类 Agent 时代组件化设计 | 以引入时在仓库内核验为准（其中「一切皆插件」运行时为 MIT） | ① 文件即组件与一键安装：组件目录按领域分文件夹、每个组件是带 front matter 的 Markdown 或一份 JSON、`npx … --yes` 一条命令安装、健康检查与目录网站；② `plugin.json` 清单 + 若干声明式表面（skills / agents / commands / hooks / MCP）+ `marketplace.json` 目录市场（条目只写来源与策略）；③ 「一切皆插件」运行时：无特权内核、服务 / 类型化事件 / 可逆副作用、`inject` 声明依赖、能力 seam 三角色、scope 遮蔽与 restrict、profile / 组合包 / patch 层叠、文档由代码生成并设 CI 新鲜度门禁 | 只借鉴设计：.NET 侧自研同语义 `Kun.Runtime`、`qian` CLI 与 `.qian-plugin/plugin.json` / `.qian/marketplace.json` 格式；TypeScript 侧（前端框架外壳、CLI）公共 API 为 `@cavailab/qian-runtime`，S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现、薄适配层对齐我们的语义（已拍板，ADR-020 §7 第 1 条，见下一行） |
 | Rspress 2.0 | MIT | 文档站生成器：MDX、内置搜索、`llms.txt` 与 SSG-MD、组件预览 / 演练场 / API 生成插件 | 引入使用（ADR-013 D13.18）；配套 DocFX（MIT）生成 .NET API 参考、Scalar（MIT）渲染 OpenAPI |
-| Cordis | MIT | TS 侧「一切皆插件」运行时实现：ctx / inject / 可逆副作用 / 五种分发 / scope / loader 与 HMR | 引入代码：S1 以固定版本 vendor 为 `@qian/runtime` 的内部实现，对外只暴露 `@qian/runtime`，TCK 以我们的语义为准、可替换为自研（ADR-020 §7 第 1 条）；.NET 侧不引入 |
+| Cordis | MIT | TS 侧「一切皆插件」运行时实现：ctx / inject / 可逆副作用 / 五种分发 / scope / loader 与 HMR | 引入代码：S1 以固定版本 vendor 为 `@cavailab/qian-runtime` 的内部实现，对外只暴露 `@cavailab/qian-runtime`，TCK 以我们的语义为准、可替换为自研（ADR-020 §7 第 1 条）；.NET 侧不引入 |
 | OpenIddict | Apache-2.0 | OIDC / OAuth 2.1 服务器实现 | 引入代码（`qian.identity` 的协议层） |
 | Apollo（配置中心） | Apache-2.0 | 配置中心服务与公开 HTTP 协议 | 运维侧使用；.NET provider 自研（官方 SDK 只作 PoC） |
 | Higress | Apache-2.0 | AI 网关、模型路由、MCP 托管、token 限流 | 运维侧使用；Qian 只写 Provider Adapter 与路由配置 |
@@ -34,7 +34,7 @@
 | MCP 规范与官方 C# SDK | MIT（规范与 SDK），规范由中立基金会托管 | 2026-07-28 协议、Tasks / Apps / Skills 扩展、授权要求 | 引入代码（SDK）；以 2026-07-28 为目标版本 |
 | A2A 规范 | Apache-2.0 | Agent Card、Task 状态机 | 只借鉴设计（S4 可选端点） |
 | Agent Skills 规范（SKILL.md） | Apache-2.0 | 技能目录格式、渐进加载、清单摘要 | 只借鉴设计；组件的 `skills/<name>/SKILL.md` 表面遵循其规范（S1 起为一等表面，ADR-020 D20.9） |
-| Microsoft Agent Framework | MIT | .NET 侧 Agent 编排（若 S4 需要） | 候选；Qian 本身不写 Agent loop |
+| Microsoft Agent Framework | MIT | .NET 侧 Agent 编排（若 S4 需要） | 候选；平台本身不写 Agent loop |
 | agentgateway | Apache-2.0 | MCP / A2A 网关的 RBAC 与工具联邦 | 只借鉴设计（Higress 的对照） |
 | Elsa Workflows | MIT | 工作流引擎 | 不采用为引擎；S1 末 PoC 对照 |
 | Flowable | Apache-2.0 | BPMN 引擎 | 不采用为引擎；S3 后可选 BPMN 适配器 |
@@ -79,7 +79,7 @@
 
 ## 17.3 只借鉴设计、不能引入代码的开源低代码 / AI 平台
 
-以下项目的许可证含有禁止用于低代码 / AI 平台 SaaS/PaaS 运营、禁止多租户运营、Copyleft 或非 OSI 条款；Qian 作为多租户低代码 PaaS 不能把它们作为代码底座或租户可用的内嵌组件，只借鉴公开的设计思路。
+以下项目的许可证含有禁止用于低代码 / AI 平台 SaaS/PaaS 运营、禁止多租户运营、Copyleft 或非 OSI 条款；平台作为多租户低代码 PaaS 不能把它们作为代码底座或租户可用的内嵌组件，只借鉴公开的设计思路。
 
 | 项目 | 许可证 | 借鉴内容 | 我们的态度 |
 |---|---|---|---|

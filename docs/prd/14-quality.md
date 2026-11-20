@@ -18,7 +18,7 @@
 
 | 层级 | 覆盖对象 | 工具与约束 | 阻断级别 | 阶段 |
 |---|---|---|---|---|
-| 单元测试 | 领域规则、权限求值、Filter AST 编译、表达式解释器、令牌对比度 | xUnit / Vitest；覆盖率阈值按包设定（`Qian.Runtime` 与 `qian.authz` ≥ 85%，其余 ≥ 70%；建议值，待研发负责人校准） | PR 阻断 | S1 |
+| 单元测试 | 领域规则、权限求值、Filter AST 编译、表达式解释器、令牌对比度 | xUnit / Vitest；覆盖率阈值按包设定（`Kun.Runtime` 与 `qian.authz` ≥ 85%，其余 ≥ 70%；建议值，待研发负责人校准） | PR 阻断 | S1 |
 | 属性测试 | 流程逆向语义交叉（退回 / 撤回 / 撤销 / 拒绝续流 × 子流程 / 加签 / 计时器）、Schema Migrator 的「扩展 → 迁移 → 收缩」可重放性 | FsCheck / fast-check；只追加流转记录为不变量 | PR 阻断 | S2 |
 | 集成测试（Testcontainers） | PostgreSQL 16 + RLS、RabbitMQ、Redis、Apollo（mock server）；**多副本**（同一消费者 / Saga 执行器 / Outbox 发布器起 2–3 个实例）；**至少一次**（重投、乱序、重复）；**租户回灌**（消息 / Saga / 作业中的租户作用域） | 每个平台插件至少一组；跑真库而非 InMemory；断言含 `tenant_id` 行计数与审计条目 | PR 阻断 | S1 |
 | 契约测试 | OpenAPI 3.1 diff（additive-only，`x-status: draft` 期例外）、proto breaking（buf）、AsyncAPI diff、JSON Schema 2020-12 兼容性、前端框架的 FormSchema / ListSchema / 控件 manifest 版本兼容 | 契约文件为真相源；前端类型从 OpenAPI 生成并作快照 | PR 阻断 | S1 |
@@ -202,7 +202,7 @@ judge:
 
 | # | 门禁 | 检查内容 | 失败即 | 阶段 |
 |---|---|---|---|---|
-| C1 | PublicAPI | Kun、`Qian.Runtime` 与各 `Qian.<X>.Abstractions` 公共 API 变更必须更新 `PublicAPI.Shipped/Unshipped.txt`；破坏性变更需 ADR 引用 | PR 阻断 | S1 |
+| C1 | PublicAPI | Kun、`Kun.Runtime` 与各 `Kun.<X>.Abstractions` 公共 API 变更必须更新 `PublicAPI.Shipped/Unshipped.txt`；破坏性变更需 ADR 引用 | PR 阻断 | S1 |
 | C2 | 分层边界 lint | 后端四层依赖（Kun 约定）；前端框架六层依赖方向（eslint-plugin-boundaries / dependency-cruiser）；横切包只被上层消费 | PR 阻断 | S1 |
 | C3 | 清单与代码漂移 | 源生成器重新生成 `.qian-plugin/plugin.json` 的代码部分字段并与仓库中的清单比对（只有一份清单，不存在手写 YAML 与派生文件并存）；端点权限点声明与 OpenAPI `x-qian-*` 扩展一致 | PR 阻断 | S1 |
 | C4 | 契约 lint | 写入端点必须有 JSON Schema；`inputSchema` 禁止 `tenant_id / tenantId` 等租户字段；命令元数据必须含 `sideEffect`；事件必须有稳定 ID 与 Schema | PR 阻断 | S1 |
@@ -220,7 +220,7 @@ judge:
 | C16 | TCK | 组件发布前三套 TCK（运行时语义 / 独立模式 / 组件一致性）全绿；can-i-deploy | 发布阻断 | S1 |
 | C17 | 文档一致性 | PRD 验收 checkbox 引用的用例 id 必须存在；ADR 状态与 PRD 引用一致 | PR 警告 → S2 阻断 | S1 |
 | C18 | 文档新鲜度 | 配置目录、模块图、事件图（生产方与消费方映射）、能力 seam 图由 `qian docs generate` 从代码生成，CI 重新生成并与提交内容比对，漂移即失败（ADR-020 D20.9） | PR 阻断 | S1 |
-| C19 | 依赖图断言 | 组件库（`Qian.<X>.Abstractions` 与 Provider 包）只依赖 `Qian.Runtime`，不依赖 `qian.registry` / `qian.lifecycle` / `qian.capabilities` 等插件（取代 ADR-019 的「不依赖 `Qian.Kernel`」断言）；扩展插件只依赖 Service Definition、不依赖具体 Provider；事件分发模式声明与调用点一致（ADR-020 D20.3 / D20.4 / D20.10） | PR 阻断 | S1 |
+| C19 | 依赖图断言 | 组件库（`Kun.<X>.Abstractions` 与 Provider 包）只依赖 `Kun.Runtime`，不依赖 `qian.registry` / `qian.lifecycle` / `qian.capabilities` 等插件（取代 ADR-019 的「不依赖 `Qian.Kernel`」断言）；扩展插件只依赖 Service Definition、不依赖具体 Provider；事件分发模式声明与调用点一致（ADR-020 D20.3 / D20.4 / D20.10） | PR 阻断 | S1 |
 | C20 | `dump-config` 漂移 | 每个发行 profile（`platform` / `gateway` / `identity` / `standalone` / `minimal`）的 `qian --profile <p> --dump-config` 输出与仓库内基线快照比对，条目增删或 config 变化须随 PR 更新快照并说明；patch 不得移除 profile 标记为不可移除的强制执行点（租户、鉴权、审计监听器） | PR 阻断 | S1 |
 
 ---
@@ -232,7 +232,7 @@ judge:
 | 阶段 | 准则 | 量化指标 | 证据 |
 |---|---|---|---|
 | **S1** | 开发人员用代码写出多租户应用，八项技术组件全部由平台提供 | 示范应用 E2E（登录 / SSO / 鉴权 / 存储 / 文件 / 配置 / 网关 / 事件 / 审计）100% 通过；从零到可运行 ≤ 2 人日 | E2E 报告、示范应用仓库 |
-| S1 | 一键安装（ADR-020 §6） | 空白 ASP.NET Core 项目 `qian add identity authz files` 后 ≤ 30 分钟跑通登录、权限检查与上传，不部署 Qian 平台；由未参与运行时开发的开发者计时；独立模式 TCK 通过 | 计时记录、独立模式 TCK 报告、`samples/standalone-minimal` |
+| S1 | 一键安装（ADR-020 §6） | 空白 ASP.NET Core 项目 `qian add identity authz files` 后 ≤ 30 分钟跑通登录、权限检查与上传，不部署平台；由未参与运行时开发的开发者计时；独立模式 TCK 通过 | 计时记录、独立模式 TCK 报告、`samples/standalone-minimal` |
 | S1 | 多租户隔离 | 跨租户渗透用例（§14.3 示例 1 及其变体）0 漏洞；外部渗透测试高危 0、中危已修复 | 渗透报告、用例结果 |
 | S1 | 消息与事件 | 至少一次 + 幂等用例 0 丢失 0 重复副作用；Outbox 最终 pending = 0；死信可追溯 | 用例产物 |
 | S1 | 审计 | 哈希链 100% 可验证；每个写命令 100% 有审计条目；`actor_type / channel` 填充率 100% | 链校验报告 |
@@ -325,8 +325,8 @@ judge:
 
 ## 14.9 待确认
 
-1. 覆盖率阈值（`Qian.Runtime` 与 `qian.authz` ≥ 85%、其余 ≥ 70%）为本章建议值，需研发负责人确认。
-2. S1「7 天 crash ≤ 3%」「trace ≥ 95%」借鉴了团队既有阶段准则的量级，需结合 Qian 的 staging 规模校准。
+1. 覆盖率阈值（`Kun.Runtime` 与 `qian.authz` ≥ 85%、其余 ≥ 70%）为本章建议值，需研发负责人确认。
+2. S1「7 天 crash ≤ 3%」「trace ≥ 95%」借鉴了团队既有阶段准则的量级，需结合平台的 staging 规模校准。
 3. 外部渗透测试的频次（每阶段一次）与供应商预算需产品负责人确认（ADR-001 风险 1 要求显式列安全预算）。
 4. 契约 lint 对「`x-status: draft` 期允许破坏性修订」的放行窗口长度需与下游智能体平台对齐（ADR-016）。
 5. 品牌字样闸门（C5）的具体词表由本章维护但不写入正文，需确认存放位置（建议 CI 配置而非文档）。

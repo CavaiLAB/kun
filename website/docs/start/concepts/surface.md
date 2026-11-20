@@ -29,4 +29,4 @@ updated: 2026-11-19
 
 skill、agent、command、hook、MCP、tool 这些 Agent 原生表面在 S1 就是一等公民，不是 S4 才有（[ADR-020 D20.9](/design/adr/adr-020-component-model-v2)）。所有模型可见的内容都注册在 `ctx.Tools` 等注册表里。
 
-`qian add <组件> --surfaces skills,commands` 只装一部分表面；`npx qian@latest --skill <组件>` 只把技能装进编码代理。文件格式见 [声明式表面的文件格式](/cli/surfaces)。
+`qian add <组件> --surfaces skills,commands` 只装一部分表面。仅需技能文件时使用 `qian add <组件> --surfaces skills --no-code`。文件格式见 [声明式表面的文件格式](/cli/surfaces)。

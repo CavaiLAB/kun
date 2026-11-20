@@ -10,7 +10,7 @@
 
 **措施。**
 - 平台插件（原称系统插件）= `platform` profile 的 base 组合包，数量由组合包定义而不是决策（ADR-020 D20.7；S1 默认内容见 §04 4.1 读图要点与 §07 7.0.4）：全部有 `.qian-plugin/plugin.json`，全部过 TCK，各自按 seam 三角色（Definition / Provider / Consumer）拆包，每一个都能被 patch 替换、被租户 scope 遮蔽。
-- 没有特权内核：运行时 `Qian.Runtime` 只剩上下文 `ctx`、服务注册、类型化事件、可逆副作用与装载器；原内核的注册表、生命周期控制器、能力目录本身也是插件（`qian.registry` / `qian.lifecycle` / `qian.capabilities`），每一项都能从配置替换；扩展 Qian 的方式是把插件挂到其他插件旁边，而不是修改内核（ADR-020 D20.1，取代 ADR-003 D3.1）。
+- 没有特权内核：运行时 `Kun.Runtime` 只剩上下文 `ctx`、服务注册、类型化事件、可逆副作用与装载器；原内核的注册表、生命周期控制器、能力目录本身也是插件（`qian.registry` / `qian.lifecycle` / `qian.capabilities`），每一项都能从配置替换；扩展平台的方式是把插件挂到其他插件旁边，而不是修改内核（ADR-020 D20.1，取代 ADR-003 D3.1）。
 - 清单只有一份（`plugin.json`）：代码部分的字段由源生成器从代码派生并合并进同一份、CI 校验一致；宿主不执行插件代码即可派生路由、权限点、菜单、配置命名空间、OpenAPI 聚合、MCP 工具描述。
 - 文件即组件，无代码组件是常态：skill / agent / command / hook / MCP 服务器等声明式表面是 Markdown 与 JSON，Agent 可直接读写，S1 支持运行中重载；一个只含 `skills/` 的组件没有任何构建步骤；S2 设计器保存一张表单，产出的就是组件文件夹里的 `forms/<name>.json`（ADR-020 D20.6 / D20.9）。
 - 一键安装与目录市场：`qian add <component>[@version]` 把声明式表面复制进项目、把代码部分加为 NuGet / npm 依赖、把配置条目写进当前 profile 的 patch，配套 `remove / list / doctor / dump-config / init --template <stack>`；目录市场是 git 仓库里的一份 `.qian/marketplace.json`，官方、租户私有、社区多市场并存；空白项目 `qian add identity authz files` 后 30 分钟跑通登录、权限检查与上传是 S1 退出标准之一（ADR-020 D20.8 / §6）。
@@ -33,15 +33,15 @@
 - Operation/Task 状态机对齐 MCP Tasks 与 A2A Task；审批待办与 Agent 补参同一模型。
 - 以 MCP 2026-07-28 为目标版本：端点无状态、授权服务器对齐 RFC 8414 / 9728 / 8707、`iss` 校验、规划 CIMD；工具描述哈希钉死防篡改。
 - 错误结构化、可被模型自我纠正；`inputSchema` 禁止租户字段；追踪与计量从 S1 贯通。
-- 边界清晰：Qian 不写 Agent loop、沙箱、记忆、技能引擎；S4 经 MCP / HTTP 对接外部 Agent 运行时（ADR-016）。
+- 边界清晰：平台不写 Agent loop、沙箱、记忆、技能引擎；S4 经 MCP / HTTP 对接外部 Agent 运行时（ADR-016）。
 
 ## 支柱 3：开发者优先的 SDK / CLI / TCK（S1）
 
-**承诺。** 一个 .NET 开发者从空仓库到部署好一个多租户应用，半天内完成；在空白项目里 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传，不部署 Qian 平台（ADR-020 §6）；不写一行租户过滤、鉴权判断或审计代码。
+**承诺。** 一个 .NET 开发者从空仓库到部署好一个多租户应用，半天内完成；在空白项目里 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传，不部署平台（ADR-020 §6）；不写一行租户过滤、鉴权判断或审计代码。
 
 **措施。**
-- SDK：源生成器从代码派生清单的代码部分字段与 Schema，合并进同一份 `plugin.json`；`MapCommand` 类端点模式自动获得租户注入、权限判定、审计、幂等、Outbox；组件库只依赖 `Qian.Runtime`（ADR-019 经 ADR-020 修订）。
-- CLI（R33）：`qian init --template <stack>`（按技术栈脚手架）、`qian add <component>[@version]` / `remove` / `list`（一键安装与目录市场，等价 `npx qian@latest --skill x --agent y --plugin z --yes`）、`doctor`（健康检查与清单 / 契约 lint，含「inputSchema 不得含 tenant 字段」等规则）、`dump-config`（打印整棵插件树）、`dev`（本地依赖与宿主一键拉起）、`pack`（代码部分 OCI artifact）、`sign`、`publish`（推制品并更新 marketplace 条目）；原 `validate / install / provision / tck` 并入上述动词。
+- SDK：源生成器从代码派生清单的代码部分字段与 Schema，合并进同一份 `plugin.json`；`MapCommand` 类端点模式自动获得租户注入、权限判定、审计、幂等、Outbox；组件库只依赖 `Kun.Runtime`（ADR-019 经 ADR-020 修订）。
+- CLI（R33）：`qian init --template <stack>`（按技术栈脚手架）、`qian add <component>[@version]` / `remove` / `list`（一键安装与目录市场，等价 原设计的公开 npm 入口 `npx qian@latest --skill x --agent y --plugin z --yes`）、`doctor`（健康检查与清单 / 契约 lint，含「inputSchema 不得含 tenant 字段」等规则）、`dump-config`（打印整棵插件树）、`dev`（本地依赖与宿主一键拉起）、`pack`（代码部分 OCI artifact）、`sign`、`publish`（推制品并更新 marketplace 条目）；原 `validate / install / provision / tck` 并入上述动词。
 - TCK 三套（§14）：运行时语义（可逆副作用、scope 过滤、五种分发）、独立模式（`standalone` 宿主下 `qian add` 后可用）、组件一致性（多租户隔离、权限强制、审计完整、事件至少一次、修订回切、逐租户钩子幂等等用例）；官方插件与第三方插件同一套。
 - 契约生成：OpenAPI 3.1、TypeScript 客户端（供前端框架）、MCP 工具描述、权限点、默认角色模板由同一契约生成；前后端校验器共用。
 - Kun 以 NuGet + CalVer 消费，公共 API 兼容承诺、弃用窗口与变更日志；S1 必修的 Kun 关键缺口（后台链路丢租户、至多一次、Outbox 无锁、网关不强制认证、gRPC 流式绕过鉴权、OIDC 客户端缺口）以集成测试实证（ADR-001）。
@@ -50,7 +50,7 @@
 
 ## 支柱 4：多租户与鉴权做成不可绕过的强制执行点（S1）
 
-**承诺。** 租户与权限不是「开发者记得加」的东西，而是 `platform` profile base 组合包里的强制执行点（waterfall 监听器，profile 标记为不可移除、patch 动不了，ADR-020）；绕过它们在 Qian 里没有代码路径。
+**承诺。** 租户与权限不是「开发者记得加」的东西，而是 `platform` profile base 组合包里的强制执行点（waterfall 监听器，profile 标记为不可移除、patch 动不了，ADR-020）；绕过它们在平台里没有代码路径。
 
 **措施。**
 - 租户只来自已校验令牌，fail-closed；生产禁用请求头兜底与默认租户回退；消息消费、Saga、Outbox 发布、调度回调全部恢复租户上下文（ADR-004、ADR-001）。

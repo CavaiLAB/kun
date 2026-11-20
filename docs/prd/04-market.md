@@ -2,7 +2,7 @@
 
 > 状态：草案 v1 · 更新日期：2026-10-06 · 决策引用：ADR-003、ADR-004、ADR-007、ADR-010、ADR-013、ADR-014、ADR-015、ADR-017、ADR-018、ADR-020 · 上级索引：[README](README.md)
 
-本章回答「Qian 长什么样、卖给谁、怎么交付」。架构图只到 profile（可部署单元 = profile，ADR-020）、组合包与共享组件一级，内部结构见 §07–§10；部署细节见 ADR-017；市场数字一律写「待定」或区间，不编造。
+本章回答「平台长什么样、卖给谁、怎么交付」。架构图只到 profile（可部署单元 = profile，ADR-020）、组合包与共享组件一级，内部结构见 §07–§10；部署细节见 ADR-017；市场数字一律写「待定」或区间，不编造。
 
 ## 4.1 架构总图（S1 目标态）
 
@@ -35,7 +35,7 @@
 │ profile identity（OpenIddict，独立安全边界；镜像 qian-identity）  │
 │   唯一 issuer · Person + Membership · 会话中心 · 连接器 Provider  │
 ├───────────────────────────────────────────────────────────────────┤
-│ profile platform（Qian.Runtime 宿主 + base 组合包的平台插件）     │
+│ profile platform（Kun.Runtime 宿主 + base 组合包的平台插件）     │
 │   运行时：ctx · 服务注册 · 类型化事件 · 可逆副作用 · 装载器       │
 │   平台插件：qian.registry  qian.lifecycle  qian.capabilities      │
 │            qian.tenancy  qian.authz  qian.data  qian.files        │
@@ -73,17 +73,17 @@
 | 两套网关职责从 S1 画清 | Traefik 只做入口；`qian.gateway` 是业务 API 边界（强制认证、限流、换签）；Higress 只管模型与 MCP 流量、对租户无感。互不承担对方职责 | ADR-010、ADR-015 |
 | 可部署单元 = profile，S1 默认只出三个 .NET 镜像 | 可部署单元 = profile（ADR-020 D20.7，取代 ADR-003 固定 5 个单元）：S1 随发行版交付 `platform`（镜像 `qian-platform`）、`gateway`（镜像 `qian-gateway`，可 AOT）、`identity`（镜像 `qian-identity`）、`standalone`（消费者自己的宿主，不出镜像）、`minimal`（测试与 SDK 用最小树，不出镜像）；`shell`（前端框架外壳静态制品，经 `gateway` 提供）与 `model-gateway`（可选，可拆为独立 profile，镜像 `qian-model-gateway-adapter`）是挂在 `platform` 的组合包（R31）；三节点 K3s 的现实不变。S2 以 profile 形式新增 `lowcode`（JIT 宿主，承载 metadata / dynamic-data / forms / lists 的服务端与动态 SQL 生成）与 `workflow`，另有挂在 `lowcode` 的 `file-preview` 组合包与可选 profile `wasm-runtime`，见 §08 8.0.3；新增一个可部署单元只是新增一个 profile 文件 | ADR-020、§07 7.0.4、§08 |
 | S2 `workflow` 独立成 profile | `qian.workflow` 全部（定义、引擎、运行态、解析器、通知绑定、SLA、子流程）住独立 profile 而不进 `lowcode`：审批域体量大，计时器与令牌推进有自己的伸缩曲线，与表单运行时解耦便于单独回滚（R21） | §08 8.0.3、ADR-003 §6 |
-| 平台插件（原称系统插件）= `platform` profile 的 base 组合包 | 数量由组合包定义而不是决策（取代「18 个系统插件」，ADR-020 D20.7；规范术语 R30）。S1 默认内容：`qian.registry` / `qian.lifecycle` / `qian.capabilities`（原 `qian.kernel`；`qian.plugin-sdk` 的大部分并入 `Qian.Runtime` 与 `qian` CLI）、`qian.tenancy`、`qian.identity`（+ `connector.*`，为 `ctx.Identity` seam 提供 Provider）、`qian.authz`、`qian.data`、`qian.files`、`qian.config`、`qian.gateway`、`qian.events`、`qian.audit`、`qian.observability`、`qian.shell`、`qian.entitlement`、`qian.model-gateway`（P1，可选）、`qian.notify`（P0）、`qian.scheduler`（P0）、`qian.realtime`（P1）；各自按 seam 三角色拆包，每个都能被 patch 替换、被租户 scope 遮蔽。组织目录最小集是 `qian.identity` 的子模块（§07 7.4.3），不独立成插件 | ADR-020、§07 7.0.4 |
+| 平台插件（原称系统插件）= `platform` profile 的 base 组合包 | 数量由组合包定义而不是决策（取代「18 个系统插件」，ADR-020 D20.7；规范术语 R30）。S1 默认内容：`qian.registry` / `qian.lifecycle` / `qian.capabilities`（原 `qian.kernel`；`qian.plugin-sdk` 的大部分并入 `Kun.Runtime` 与 `qian` CLI）、`qian.tenancy`、`qian.identity`（+ `connector.*`，为 `ctx.Identity` seam 提供 Provider）、`qian.authz`、`qian.data`、`qian.files`、`qian.config`、`qian.gateway`、`qian.events`、`qian.audit`、`qian.observability`、`qian.shell`、`qian.entitlement`、`qian.model-gateway`（P1，可选）、`qian.notify`（P0）、`qian.scheduler`（P0）、`qian.realtime`（P1）；各自按 seam 三角色拆包，每个都能被 patch 替换、被租户 scope 遮蔽。组织目录最小集是 `qian.identity` 的子模块（§07 7.4.3），不独立成插件 | ADR-020、§07 7.0.4 |
 | PostgreSQL 唯一一等库 | 默认共享库 + 行级 `tenant_id` + RLS；平台表 schema-per-service；动态表混合存储。本期不支持 MySQL / 国产库作业务库 | ADR-004 |
 | Apollo 的边界 | 只存平台 / 服务级非敏感配置与密钥引用；租户级配置不进 Apollo；需新增 MySQL；自研 .NET provider | ADR-007 |
-| 模型接入不自建 | GPUStack 作为 OpenAI 兼容上游注册进 Higress；Qian 只做 Provider Adapter 与 `model-capabilities` 契约；租户 / 配额 / 计量在平台侧 | ADR-015 |
-| 与 Agent 运行时的分工 | Qian = 能力提供方 + 业务主数据权威；外部 Agent 运行时 = Agent loop + AI 资产控制面；共用 Kun 与 Higress | ADR-016 |
+| 模型接入不自建 | GPUStack 作为 OpenAI 兼容上游注册进 Higress；平台只做 Provider Adapter 与 `model-capabilities` 契约；租户 / 配额 / 计量在平台侧 | ADR-015 |
+| 与 Agent 运行时的分工 | 平台 = 能力提供方 + 业务主数据权威；外部 Agent 运行时 = Agent loop + AI 资产控制面；共用 Kun 与 Higress | ADR-016 |
 
 ## 4.2 产品形态按阶段
 
 | 阶段 | 对外形态 | 一句话 |
 |---|---|---|
-| S1 技术底座 | `Qian.Runtime` + 一组 NuGet / npm 组件包 + `qian` CLI（`qian add` 一键安装）+ 官方目录市场（`marketplace.json`）+ TCK + 部署物料（profile 镜像）+ 后台控制台 | 「开发者用它半天写出一个多租户应用；空白项目 `qian add identity authz files` 30 分钟跑通」 |
+| S1 技术底座 | `Kun.Runtime` + 一组 NuGet / npm 组件包 + `qian` CLI（`qian add` 一键安装）+ 官方目录市场（`marketplace.json`）+ TCK + 部署物料（profile 镜像）+ 后台控制台 | 「开发者用它半天写出一个多租户应用；空白项目 `qian add identity authz files` 30 分钟跑通」 |
 | S2 低代码构建 | 在 S1 之上的设计器（表单 / 列表 / 审批）与运行时，应用可打包 | 「搭建者不写代码建出带审批的应用并授权给租户用户」 |
 | S3 面向客户 | 私有目录型市场 → 开放 ISV 与在线交易；租户自助（IdP、品牌、套餐） | 「租户自己从市场选购、开通、升级」 |
 | S4 AI 原生 Agent 平台 | 每租户 MCP 门面、Agent 主体与委托链、元数据生成闭环 | 「Agent 能发现、调用、编排乃至生成平台能力与应用」 |

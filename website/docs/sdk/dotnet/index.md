@@ -4,34 +4,22 @@ description: Kun.Runtime 的编程模型：插件、共享上下文 ctx、服务
 part: sdk
 project: qian
 audience: [developer]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # 后端 SDK（.NET）
 
-`Kun.Runtime` 极小、无业务语义：共享上下文 `ctx`、服务注册、类型化事件、可逆副作用、装载器，是组件库唯一必需的 Qian 依赖。平台能力都是向 `ctx` 贡献服务键的插件。
+内核包 `Kun.Runtime` 提供插件上下文、服务注册、类型化事件、可逆副作用与装载器。平台组件通过同一套运行时提供有业务含义的服务。
 
 ## 安装
 
-`Qian.*` 包族以同一 SemVer 版本发布在 GitHub Packages 的 NuGet 源（ADR-019 D19.7），包公开可见；Kun 正式包在 nuget.org。项目的 `nuget.config` 用 `packageSourceMapping` 把 `Qian.*` 指向该源，从 GitHub Packages 安装需要带 `read:packages` 权限的 GitHub 令牌：
+首个合并版发布前，仓库内的组件和宿主使用同一解决方案的项目引用。合并版发布后，可从所选 [Kun Release](https://github.com/CavaiLAB/kun/releases) 下载该版本的 `NuGet.config` 和 `release-packages.json`。正式版的内核包从 nuget.org 还原，平台包逐个映射到 CavaiLAB 的 GitHub Packages。beta 的两档包均从 GitHub Packages 还原。将 `KUN_PLATFORM_FEED_USER` 与 `KUN_PLATFORM_FEED_TOKEN` 设为有读包权限的凭据。
+
+组件项目引用同一发布版本的 SDK 与源生成器。下面的 `KunReleaseVersion` 是消费项目自定义的 MSBuild 属性，填写所选 Release 的实际版本号。
 
 ```xml
-<packageSources>
-  <clear />
-  <add key="qian" value="https://nuget.pkg.github.com/idadawn/index.json" />
-  <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-</packageSources>
-<packageSourceMapping>
-  <packageSource key="qian"><package pattern="Qian.*" /></packageSource>
-  <packageSource key="nuget.org"><package pattern="*" /></packageSource>
-</packageSourceMapping>
-```
-
-组件项目引用同一版本的 `Kun.Plugin.Sdk` 与 `Kun.Plugin.Sdk.Generators`；源生成器是开发依赖，写 `PrivateAssets="all"`：
-
-```xml
-<PackageReference Include="Kun.Plugin.Sdk" Version="0.1.0" />
-<PackageReference Include="Kun.Plugin.Sdk.Generators" Version="0.1.0" PrivateAssets="all" />
+<PackageReference Include="Kun.Plugin.Sdk" Version="$(KunReleaseVersion)" />
+<PackageReference Include="Kun.Plugin.Sdk.Generators" Version="$(KunReleaseVersion)" PrivateAssets="all" />
 ```
 
 ## 编程模型
@@ -69,4 +57,4 @@ public interface IPluginContext
 
 ## 示例
 
-把 `Kun.Storage` 包装为 `ctx.Files` Provider 的完整示例见规格 §5.7。API 参考（DocFX 生成）随 S1-DOCS-002 上线。
+把文件存储后端包装为 `ctx.Files` Provider 的完整示例见规格 §5.7。已发布内核包的 XML 注释收录在 [Kun API 参考](/sdk/api/kun/)。平台档包的 API 参考列在 [S1-DOCS-002 的交付范围](/sdk/api/)。

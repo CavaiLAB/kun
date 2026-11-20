@@ -5,14 +5,14 @@ part: ops
 project: qian
 audience: [operator]
 stage: S1
-updated: 2026-10-07
+updated: 2026-11-20
 ---
 
 # 模型网关接线
 
 **阶段**：S1 可选（P1）。开发者怎么调用见[模型网关](/sdk/ai/gateway)。
 
-Qian 的模型网关并入团队现有的 Higress / MaaS 基础设施，复用 `maas-*` 路由、网关专用 Redis HA、MaaS 日志与 AI 大盘，不另起一套（[ADR-015](/design/adr/adr-015-model-gateway)）。
+平台的模型网关并入团队现有的 Higress / MaaS 基础设施，复用 `maas-*` 路由、网关专用 Redis HA、MaaS 日志与 AI 大盘，不另起一套（[ADR-015](/design/adr/adr-015-model-gateway)）。
 
 ## 接线步骤
 

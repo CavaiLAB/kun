@@ -44,8 +44,8 @@ WORKDIR /app
 COPY --from=build /out/ /app/
 COPY --from=build --chown=$APP_UID:$APP_UID /probe /app/.write-probe
 # profile、组合包与组件清单随镜像发布（环境级 overlay 由 ConfigMap 挂载），漂移门禁在镜像内对它们执行 dump-config。
-COPY _import/qian/profiles/ /app/qian/profiles/
-COPY _import/qian/plugins/ /app/qian/plugins/
+COPY profiles/ /app/qian/profiles/
+COPY plugins/ /app/qian/plugins/
 COPY --from=web / /app/web/
 ENV QIAN_ROOT=/app/qian
 USER $APP_UID

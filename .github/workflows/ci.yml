@@ -136,12 +136,10 @@ jobs:
         run: python3 scripts/check_plugin_manifests.py
 
       - name: 仓库 profile 生效配置的明文密钥扫描（S1-CFG-002）
-        working-directory: _import/qian
-        run: dotnet ../../tools/Kun.Configuration.Secrets.Tool/bin/Release/net10.0/Kun.Configuration.Secrets.Tool.dll --profiles .
+        run: dotnet tools/Kun.Configuration.Secrets.Tool/bin/Release/net10.0/Kun.Configuration.Secrets.Tool.dll --profiles .
 
       - name: 由组件 config.schema 推导各 profile 的 Apollo namespace 骨架（S1-CFG-003，随测试结果上传）
-        working-directory: _import/qian
-        run: dotnet ../../tools/Kun.Configuration.Tool/bin/Release/net10.0/Kun.Configuration.Tool.dll . --out "${{ github.workspace }}/TestResults/evidence/apollo-namespaces"
+        run: dotnet tools/Kun.Configuration.Tool/bin/Release/net10.0/Kun.Configuration.Tool.dll . --out "${{ github.workspace }}/TestResults/evidence/apollo-namespaces"
 
       - name: 依赖门禁（Kun.slnx 里每个可打包项目按档位与角色检查）
         run: python3 scripts/check_deps.py --no-restore
@@ -231,10 +229,9 @@ jobs:
         if: matrix.doctor
         with:
           version: 12.9.1
-          package_json_file: _import/qian/package.json
+          package_json_file: package.json
       - name: 构建真实 doctor 客户端供宿主验收
         if: matrix.doctor
-        working-directory: _import/qian
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm install --frozen-lockfile && pnpm --filter qian... build
@@ -251,7 +248,6 @@ jobs:
 
       - name: 安装固定摘要的真实 OpenAPI 兼容检查器
         if: matrix.shard != 'k'
-        working-directory: _import/qian
         run: python3 scripts/prepare_contract_tools.py --destination "$RUNNER_TEMP/qian-contract-tools"
 
       - name: 等待镜像预拉结束（至多 120 秒，超时照常测试，没拉完的由 Testcontainers 补拉）
@@ -479,9 +475,6 @@ jobs:
     if: needs.changes.outputs.dotnet == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: _import/qian
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-dotnet
@@ -491,7 +484,7 @@ jobs:
             sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
           fi
       - name: 严格发布 Linux 原生探针
-        run: dotnet publish ../../tools/Kun.Data.Native.Probe -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/native-data"
+        run: dotnet publish tools/Kun.Data.Native.Probe -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/native-data"
       - name: 核验产物形态
         run: test -x "$RUNNER_TEMP/native-data/Kun.Data.Native.Probe" && test ! -e "$RUNNER_TEMP/native-data/Kun.Data.Native.Probe.dll"
       - name: 原生进程执行真实受限 PostgreSQL 事务与隔离
@@ -512,9 +505,6 @@ jobs:
     if: needs.changes.outputs.dotnet == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: _import/qian
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-dotnet
@@ -524,7 +514,7 @@ jobs:
             sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
           fi
       - name: 严格发布实际生产宿主
-        run: dotnet publish ../../hosts/Kun.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/gateway-host"
+        run: dotnet publish hosts/Kun.Gateway.Host -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/gateway-host"
       - name: 核验实际原生产物
         run: test -x "$RUNNER_TEMP/gateway-host/Kun.Gateway.Host" && test ! -e "$RUNNER_TEMP/gateway-host/Kun.Gateway.Host.dll"
       # Kun.Gateway 是项目引用（S1-KUN-020）的类库：发布目录里没有它作为宿主的文件，appsettings.json 是本宿主自己的那份。
@@ -534,7 +524,7 @@ jobs:
           for name in Kun.Gateway Kun.Gateway.deps.json Kun.Gateway.runtimeconfig.json Kun.Gateway.staticwebassets.endpoints.json; do
             if [ -e "$RUNNER_TEMP/gateway-host/$name" ]; then echo "发布目录里有 Kun.Gateway 的宿主文件：$name" >&2; exit 1; fi
           done
-          cmp "$RUNNER_TEMP/gateway-host/appsettings.json" ../../hosts/Kun.Gateway.Host/appsettings.json
+          cmp "$RUNNER_TEMP/gateway-host/appsettings.json" hosts/Kun.Gateway.Host/appsettings.json
       - name: 原生网关运行真实 Apollo、受限 PG、Redis 与身份登录换签
         env:
           QIAN_REQUIRE_DOCKER: '1'
@@ -553,9 +543,6 @@ jobs:
     if: needs.changes.outputs.dotnet == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: _import/qian
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-dotnet
@@ -565,7 +552,7 @@ jobs:
             sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
           fi
       - name: 严格发布 Linux 原生探针
-        run: dotnet publish ../../tools/Kun.Audit.Postgres.Probe -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/native-audit"
+        run: dotnet publish tools/Kun.Audit.Postgres.Probe -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/native-audit"
       - name: 核验产物形态
         run: test -x "$RUNNER_TEMP/native-audit/Kun.Audit.Postgres.Probe" && test ! -e "$RUNNER_TEMP/native-audit/Kun.Audit.Postgres.Probe.dll"
       - name: 原生进程执行真实受限 PostgreSQL 审计链与业务事务
@@ -589,9 +576,6 @@ jobs:
     if: needs.changes.outputs.images == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: _import/qian
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-dotnet

@@ -31,7 +31,7 @@ def match(identifier, severity, package="pkg"):
 
 class DriftTests(unittest.TestCase):
     def test_source_dump_tool_builds_the_registered_project(self):
-        project = images.REPO / images.SELFCHECK_IMAGES["jit"][0]
+        project = images.ROOT / images.SELFCHECK_IMAGES["jit"][0]
         self.assertTrue(project.is_file())
         with patch.object(images, "run") as build:
             tool = images.build_source_dump_tool(None)

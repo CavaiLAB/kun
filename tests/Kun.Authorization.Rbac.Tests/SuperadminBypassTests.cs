@@ -205,7 +205,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
         await using var runtime = new PluginLoader(host.Services); var consumer = new Consumer();
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
-        using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "_import/qian", "plugins/qian.authz/.qian-plugin/plugin.json")));
+        using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "plugins/qian.authz/.qian-plugin/plugin.json")));
         var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(AuthzComponent).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType)!).Create();
         var entryType = Type.GetType(manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!;
         var component = (IKunPlugin)Activator.CreateInstance(entryType)!;

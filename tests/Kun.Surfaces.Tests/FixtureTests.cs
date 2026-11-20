@@ -174,7 +174,7 @@ public sealed class FixtureTests
     private static string FindRoot()
     {
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-            if (File.Exists(Path.Combine(dir.FullName, "Kun.slnx"))) return Path.Combine(dir.FullName, "_import", "qian");
+            if (File.Exists(Path.Combine(dir.FullName, "Kun.slnx"))) return dir.FullName;
         throw new InvalidOperationException("找不到仓库根目录。");
     }
 }

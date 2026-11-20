@@ -387,9 +387,9 @@ public sealed class DataContractTests
     private static void AssertValid(string schema, string json) => Assert.True(Schema(schema).Evaluate(JsonDocument.Parse(json).RootElement).IsValid, json);
     private static string FindRoot()
     {
-        // 契约文件在过渡目录 _import/qian 下。
+        // 契约文件位于仓库根的 contracts/。
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) directory = directory.Parent;
-        return directory is null ? throw new InvalidOperationException("找不到仓库根目录（Kun.slnx）。") : Path.Combine(directory.FullName, "_import", "qian");
+        return directory is null ? throw new InvalidOperationException("找不到仓库根目录（Kun.slnx）。") : directory.FullName;
     }
 }

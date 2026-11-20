@@ -9,5 +9,5 @@
     <PackageReference Include="YamlDotNet" />
     <PackageReference Include="coverlet.MTP" />
   </ItemGroup>
-  <ItemGroup><None Include="../../_import/qian/tck/runtime/*.scenario.yml" Link="tck/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Include="../../tck/runtime/*.scenario.yml" Link="tck/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

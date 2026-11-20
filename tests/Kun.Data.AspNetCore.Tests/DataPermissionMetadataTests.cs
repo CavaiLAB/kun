@@ -84,6 +84,6 @@ public sealed class DataPermissionMetadataTests
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) directory = directory.Parent;
-        return Path.Combine(directory?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。"), "_import", "qian");
+        return directory?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
     }
 }

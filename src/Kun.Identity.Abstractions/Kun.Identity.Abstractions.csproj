@@ -5,6 +5,6 @@
     <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
     <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Security.Abstractions/Kun.Security.Abstractions.csproj" />
-    <EmbeddedResource Include="../../_import/qian/contracts/identity/v1/*.schema.json" LogicalName="identity/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../contracts/identity/v1/*.schema.json" LogicalName="identity/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

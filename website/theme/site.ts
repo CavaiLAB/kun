@@ -1,8 +1,6 @@
 // 站点常量：主题（浏览器）与生成脚本（Node）共用，只放纯数据。
 export const REPO_URL = 'https://github.com/CavaiLAB/kun';
 export const DEFAULT_BRANCH = 'main';
-/** website/ 的上一级目录在本仓库里的路径：脚本里的仓库内路径都相对它，拼 GitHub 地址与 source 时加上这个前缀。 */
-export const REPO_SUBDIR = '_import/qian';
 
 /** 正式站点的默认入口（deploy/docs-site/README「访问入口」），sitemap.xml 与知识库索引用它拼绝对地址；CI 可用 DOCS_SITE_URL 覆盖。 */
 export const DEFAULT_SITE_URL = 'http://10.78.1.161:30820';

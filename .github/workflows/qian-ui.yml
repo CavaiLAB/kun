@@ -3,7 +3,7 @@ name: qian-ui
 # 外壳与界面包的门禁，没有原件，前端框架迁出（B11，见迁移执行计划）时新加。前端框架迁到 CavaiLAB/qian 时删掉了查它的
 # 那份工作流，其中覆盖留在本仓库的外壳应用、外壳接线、三个界面包、参考应用远程模块与真实目录验收页的几项由这里接着查：
 # lint（含令牌门禁）、typecheck、unit、boundaries、circular，另加 build。前端框架本身的门禁（a11y、lighthouse、publint、
-# 视觉回归）随源码归 CavaiLAB/qian。脚本见 _import/qian/package.json 的 ui:*；门禁自测在 _import/qian/tests/gates/ui/。
+# 视觉回归）随源码归 CavaiLAB/qian。脚本见 package.json 的 ui:*；门禁自测在 _import/qian/tests/gates/ui/。
 # 依赖里有 CavaiLAB/qian 发布在 GitHub Packages 上的公开包 @cavailab/qian-*：用本次运行的 GITHUB_TOKEN 只读安装
 # （权限 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN）。
 # 由 ci.yml 调用（S1-KUN-020）：只留 workflow_call 与 workflow_dispatch，推送与拉取请求的触发、路径过滤与并发组都由
@@ -21,10 +21,6 @@ permissions:
 env:
   TURBO_TELEMETRY_DISABLED: 1
   CI: true
-
-defaults:
-  run:
-    working-directory: _import/qian
 
 jobs:
   gate:
@@ -44,14 +40,14 @@ jobs:
           scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: _import/qian/package.json
+          package_json_file: package.json
       - name: pnpm 缓存目录
         id: pnpm-store
         run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: pnpm-${{ runner.os }}-${{ hashFiles('_import/qian/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
       - run: pnpm install --frozen-lockfile
         env:

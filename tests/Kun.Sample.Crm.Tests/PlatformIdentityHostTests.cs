@@ -420,7 +420,7 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
     // 网关宿主交付的路由表与簇（hosts/Kun.Gateway.Host/appsettings.json），簇地址换成本宿主的回环地址；开通申请的两条运营路由进运营簇。
     private static (GatewayRoute[] Routes, GatewayCluster[] Clusters) ProductionRoutes(Uri platform)
     {
-        var configuration = new ConfigurationBuilder().AddJsonFile(Path.GetFullPath("../../hosts/Kun.Gateway.Host/appsettings.json", RepositoryRoot()), optional: false, reloadOnChange: false).Build();
+        var configuration = new ConfigurationBuilder().AddJsonFile(Path.Combine(RepositoryRoot(), "hosts/Kun.Gateway.Host/appsettings.json"), optional: false, reloadOnChange: false).Build();
         var routes = configuration.GetSection("Gateway:Routes").GetChildren().Select(item => new GatewayRoute(item["Id"] ?? "", item["Path"] ?? "", item["Cluster"] ?? "")
         { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
         foreach (var path in new[] { "/api/tenancy/{**rest}", "/api/signup/applications/{**rest}", "/api/signup/meta/{**rest}" })
@@ -561,7 +561,7 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
-        return Path.Combine(root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。"), "_import", "qian");
+        return root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
     }
 
     // 申请人的浏览器：发行方同源，带 Cookie 容器与同源 Origin（申请人写接口要求同源）。

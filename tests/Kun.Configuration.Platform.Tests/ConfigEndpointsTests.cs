@@ -149,7 +149,7 @@ public sealed class ConfigEndpointsTests
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
-        using var permissions = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "_import/qian", "plugins/qian.config/metadata/permissions.json")));
+        using var permissions = JsonDocument.Parse(File.ReadAllText(Path.Combine(root!.FullName, "plugins/qian.config/metadata/permissions.json")));
         var declared = permissions.RootElement.EnumerateArray().SelectMany(item => item.GetProperty("actions").EnumerateArray()
             .Select(action => "qian.config:" + item.GetProperty("resource").GetString() + ":" + action.GetString())).ToArray();
         Assert.Equal([ConfigDefinition.ValuesReadPermission], declared);

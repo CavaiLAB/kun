@@ -43,8 +43,6 @@ import urllib.error
 import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
-# 仓库根：镜像的构建上下文（S1-KUN-020）。
-REPO = ROOT.parents[1]
 # 临时 registry 用 distribution 项目在 GHCR 发布的官方镜像，避开 Docker Hub 的拉取限流与镜像站差异。
 REGISTRY_IMAGE = "ghcr.io/distribution/distribution:3.0.0@sha256:4ba3adf47f5c866e9a29288c758c5328ef03396cb8f5f6454463655fa8bc83e2"
 PROFILES = ("platform", "identity", "gateway", "standalone", "minimal")
@@ -224,9 +222,8 @@ def build_evidence():
     def git(*args):
         return run(["git", *args]).stdout.strip()
     source = git("rev-parse", "HEAD")
-    # git 在本目录运行：HEAD:./<目录> 相对本目录解析，不带 ./ 时相对仓库根，找不到 profiles 与 plugins。
     evidence = {"sourceSha": source, "kunVersion": source,
-                "profileRevision": git("rev-parse", "HEAD:./profiles"), "pluginsRevision": git("rev-parse", "HEAD:./plugins"),
+                "profileRevision": git("rev-parse", "HEAD:profiles"), "pluginsRevision": git("rev-parse", "HEAD:plugins"),
                 "profileTreeDirty": bool(git("status", "--porcelain", "--", "profiles", "plugins"))}
     ci = ci_context()
     if ci:
@@ -263,7 +260,7 @@ def docker_build(kind, project, assembly, tag, evidence, role, log=None, web=Non
                    "--build-arg", f"PROJECT={project}", "--build-arg", f"ASSEMBLY={assembly}",
                    "--build-arg", f"SOURCE_SHA={evidence['sourceSha']}", "--build-arg", f"KUN_VERSION={evidence['kunVersion']}",
                    "--build-arg", f"PROFILE_REVISION={evidence['profileRevision']}",
-                   "--build-arg", f"PLUGINS_REVISION={evidence['pluginsRevision']}", "--build-arg", f"IMAGE_ROLE={role}", REPO]
+                   "--build-arg", f"PLUGINS_REVISION={evidence['pluginsRevision']}", "--build-arg", f"IMAGE_ROLE={role}", ROOT]
         run(command, env={"DOCKER_BUILDKIT": "1"}, log=log)
 
 
@@ -410,7 +407,7 @@ def cmd_build(args):
 
 
 def build_source_dump_tool(log):
-    project = REPO / SELFCHECK_IMAGES["jit"][0]
+    project = ROOT / SELFCHECK_IMAGES["jit"][0]
     run(["dotnet", "build", project, "-c", "Release", "-nologo"], log=log)
     return project.parent / "bin" / "Release" / "net10.0" / f"{project.stem}.dll"
 

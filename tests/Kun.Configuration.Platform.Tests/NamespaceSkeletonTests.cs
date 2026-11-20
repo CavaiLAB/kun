@@ -229,7 +229,7 @@ public sealed class NamespaceSkeletonTests(ApolloFixture apollo) : IClassFixture
             {
                 var target = Path.Combine(Root, "plugins/qian.config.apollo", file);
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                File.Copy(Path.Combine(source!.FullName, "_import/qian", "plugins/qian.config.apollo", file), target);
+                File.Copy(Path.Combine(source!.FullName, "plugins/qian.config.apollo", file), target);
             }
             Directory.CreateDirectory(Path.Combine(Root, "plugins/test.sample/.qian-plugin"));
             Directory.CreateDirectory(Path.Combine(Root, "plugins/test.sample/schemas"));

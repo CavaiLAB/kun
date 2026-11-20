@@ -101,7 +101,7 @@ public sealed class ProfileTests
         var bindings = data.Config.GetProperty("connections").EnumerateArray().Select(value => value.GetString()).ToArray();
         Assert.Contains(audit.Config.GetProperty("tenantBinding").GetString(), bindings);
         Assert.Contains(audit.Config.GetProperty("platformBinding").GetString(), bindings);
-        using var host = JsonDocument.Parse(File.ReadAllText(Path.GetFullPath("../../hosts/Kun.Gateway.Host/appsettings.json", Root)));
+        using var host = JsonDocument.Parse(File.ReadAllText(Path.GetFullPath("hosts/Kun.Gateway.Host/appsettings.json", Root)));
         foreach (var field in new[] { "TenantRole", "PlatformRole", "FunctionOwner" })
             Assert.Equal(host.RootElement.GetProperty("Audit").GetProperty(field).GetString(),
                 audit.Config.GetProperty(char.ToLowerInvariant(field[0]) + field[1..]).GetString());
@@ -166,7 +166,7 @@ public sealed class ProfileTests
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
         while (current is not null && !File.Exists(Path.Combine(current.FullName, "Kun.slnx"))) current = current.Parent;
-        return Path.Combine(current?.FullName ?? throw new InvalidOperationException("找不到仓库。"), "_import", "qian");
+        return current?.FullName ?? throw new InvalidOperationException("找不到仓库。");
     }
     private sealed class Fixture : IDisposable
     {

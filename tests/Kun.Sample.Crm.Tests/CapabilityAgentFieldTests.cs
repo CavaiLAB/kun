@@ -36,7 +36,7 @@ public sealed partial class CapabilityTests
     public async Task 能力目录对同一插件的条目带全部Agent字段_取值同Capability声明_与仓库提交的打包工具文件逐字段一致()
     {
         // 打包时的工具文件：仓库提交的 tools/*.json，恰为四条能力各一份；清单派生字段的工具索引也恰是这四份。
-        var component = Path.Combine(RepositoryRoot(), "../../samples/Kun.Sample.Crm");
+        var component = Path.Combine(RepositoryRoot(), "samples/Kun.Sample.Crm");
         var packed = Directory.EnumerateFiles(Path.Combine(component, "tools"), "*.json").ToDictionary(path => Path.GetFileNameWithoutExtension(path),
             path => JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(path)), StringComparer.Ordinal);
         Assert.Equal(AgentFieldTable.Select(row => row.Name).Order(StringComparer.Ordinal), packed.Keys.Order(StringComparer.Ordinal));

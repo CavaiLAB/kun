@@ -23,7 +23,7 @@ public sealed class PermissionContractTests
         var code = PermissionCode.Format(plugin, resource, action);
         Assert.Equal($"{plugin}:{resource}:{action}", code);
         Assert.True(PermissionCode.IsValid(code));
-        using var schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "_import/qian/contracts/v0/capability-entry.schema.json")));
+        using var schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "contracts/v0/capability-entry.schema.json")));
         var pattern = schema.RootElement.GetProperty("properties").GetProperty("requiredPermission").GetProperty("pattern").GetString()!;
         Assert.Matches(new Regex(pattern, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)), code);
     }

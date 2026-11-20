@@ -15,7 +15,7 @@ REDIS_PORT="${QIAN_DEV_REDIS_PORT:-55434}"
 REDIS_IMAGE="${QIAN_DEV_REDIS_IMAGE:-${QIAN_TEST_IMAGE_REDIS:-redis:7-alpine}}"
 API_URL="${QIAN_DEV_SHELL_API_URL:-http://127.0.0.1:5090}"
 SHELL_URL="${QIAN_DEV_SHELL_URL:-https://localhost:5443}"
-PROJECT="$ROOT/../../tools/Kun.Dev.Shell"
+PROJECT="$ROOT/tools/Kun.Dev.Shell"
 DLL="$PROJECT/bin/Debug/net10.0/Kun.Dev.Shell.dll"
 PASSWORD_FILE="$STATE/pg-admin-password"
 # 上游 OIDC 发行方（CNCF Dex）：内存存储、本地密码库里一个用户（种子 seed/dex.json）、一个机密客户端 qian-identity；issuer 与回调地址写进配置，所以每次 up 都按当前端口重建。

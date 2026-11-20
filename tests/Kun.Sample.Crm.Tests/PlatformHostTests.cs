@@ -495,7 +495,7 @@ public abstract partial class CustomerCommandTests
     // 网关宿主交付的路由表与簇（hosts/Kun.Gateway.Host/appsettings.json），簇地址换成本宿主的回环地址。
     private protected static (GatewayRoute[] Routes, GatewayCluster[] Clusters) ProductionRoutes(Uri platform)
     {
-        var configuration = new ConfigurationBuilder().AddJsonFile(Path.GetFullPath("../../hosts/Kun.Gateway.Host/appsettings.json", RepositoryRoot()), optional: false, reloadOnChange: false).Build();
+        var configuration = new ConfigurationBuilder().AddJsonFile(Path.Combine(RepositoryRoot(), "hosts/Kun.Gateway.Host/appsettings.json"), optional: false, reloadOnChange: false).Build();
         var routes = configuration.GetSection("Gateway:Routes").GetChildren().Select(item => new GatewayRoute(item["Id"] ?? "", item["Path"] ?? "", item["Cluster"] ?? "")
         { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
         var clusters = configuration.GetSection("Gateway:Clusters").GetChildren().ToArray();
@@ -661,7 +661,7 @@ public abstract partial class CustomerCommandTests
     // UI 清单取自远程模块 samples/qian-sample-crm-ui（与外壳联调环境托管的同一份），清单加上 surfaces.ui。
     private static void CrmComponent(string folder)
     {
-        var source = Path.GetFullPath("../../samples/Kun.Sample.Crm", RepositoryRoot());
+        var source = Path.GetFullPath("samples/Kun.Sample.Crm", RepositoryRoot());
         var files = CrmComponentFiles
             .Concat(Directory.EnumerateFiles(Path.Combine(source, "tools"), "*.json").Select(file => "tools/" + Path.GetFileName(file)));
         foreach (var relative in files) Copy(Path.Combine(source, relative), relative);

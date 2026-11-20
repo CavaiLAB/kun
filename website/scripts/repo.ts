@@ -4,17 +4,18 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_BRANCH, REPO_SUBDIR, REPO_URL } from '../theme/site.ts';
+import { DEFAULT_BRANCH, REPO_URL } from '../theme/site.ts';
 
-export { DEFAULT_BRANCH, REPO_SUBDIR, REPO_URL };
+export { DEFAULT_BRANCH, REPO_URL };
 
 /** 仓库坐标 owner/repo，用于生成页 frontmatter 的 source（docs-site.md §4）。 */
 export const OWNER_REPO = new URL(REPO_URL).pathname.replace(/^\/+|\/+$/g, '');
 
 export const WEBSITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const REPO_ROOT = path.resolve(WEBSITE_ROOT, '..');
-/** 仓库的顶层：REPO_ROOT 在它的 REPO_SUBDIR 下。Kun 的版本来源（CHANGELOG.md）与 SDK 版本（global.json）在这里。 */
-export const REPOSITORY_ROOT = path.resolve(REPO_ROOT, ...REPO_SUBDIR.split('/').filter(Boolean).map(() => '..'));
+export const REPOSITORY_ROOT = REPO_ROOT;
+/** 平台规格与设计文档所在的工作区。 */
+export const PLATFORM_DOCS_ROOT = path.join(REPO_ROOT, '_import', 'qian');
 export const SITE_DOCS = path.join(WEBSITE_ROOT, 'docs');
 
 /**
@@ -116,16 +117,14 @@ export function toPosix(p: string): string {
   return p.split(path.sep).join('/');
 }
 
-/** REPO_ROOT 下的路径 → 在本仓库里的路径（加上 REPO_SUBDIR 前缀，用 / 分隔）。 */
-export function repoPath(repoRelPath: string): string {
-  const rel = toPosix(repoRelPath).replace(/\/$/, '');
-  return path.posix.join(REPO_SUBDIR, rel);
+/** 将源码工作区的相对路径换算为仓库根路径，用于 GitHub 地址与页面来源。 */
+export function repoPath(relativePath: string, sourceRoot: string = REPO_ROOT, repositoryRoot: string = REPO_ROOT): string {
+  return toPosix(path.relative(repositoryRoot, path.resolve(sourceRoot, relativePath)));
 }
 
-/** REPO_ROOT 下的路径 → GitHub 上的地址（目录用 tree，文件用 blob）。 */
 export function githubUrl(repoRelPath: string, isDir: boolean): string {
   const kind = isDir ? 'tree' : 'blob';
-  return `${REPO_URL}/${kind}/${DEFAULT_BRANCH}/${repoPath(repoRelPath)}`;
+  return [REPO_URL, kind, DEFAULT_BRANCH, repoRelPath].filter(Boolean).join('/');
 }
 
 /** 把源 Markdown 里的一个链接目标映射成站内路由或外部地址；返回 null 表示保持原样。 */

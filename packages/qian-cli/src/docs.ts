@@ -24,7 +24,7 @@ function within(root:string,relative:string):string{
 export function generateDocumentation(options:DocumentationOptions):DocumentationResult{
  const root=path.resolve(options.workingDirectory);
  try{
-  const toolRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../../../..','tools/Kun.Docs.Tool');
+  const toolRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..','tools/Kun.Docs.Tool');
   const build=spawnSync('dotnet',['build',toolRoot,'-c','Release','--nologo','--verbosity','quiet'],{encoding:'utf8',timeout:120000,maxBuffer:8*1024*1024});
   if(build.error||build.status!==0)return failure('随 CLI 的文档工具构建失败；请检查 .NET SDK 与仓库包还原。');
   const input={workingDirectory:root,profile:options.profile??'platform',patches:options.patches??[],homeDirectory:options.homeDirectory??null,includeHomePatch:options.includeHomePatch??false,sourceDirectories:options.sourceDirectories??['packages','plugins','src'],sourceRoot:options.sourceRoot??null};

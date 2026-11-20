@@ -186,7 +186,7 @@ public sealed class DocumentTests
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) directory = directory.Parent;
-        return Path.Combine(directory?.FullName ?? throw new InvalidOperationException("找不到仓库。"), "_import", "qian");
+        return directory?.FullName ?? throw new InvalidOperationException("找不到仓库。");
     }
     private sealed class Fixture : IDisposable
     {

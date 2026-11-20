@@ -1,7 +1,7 @@
 name: qian-dev-tenant-ops
 
 # 租户运营手测环境的冒烟：原样执行 scripts/dev-tenant-ops.sh smoke（脚本按自身位置定 _import/qian/ 为根）。
-# 由 ci.yml 调用，在 _import/qian/ 下运行。
+# 由 ci.yml 调用，在仓库根目录运行。
 # 原件在 _import/qian/.github/workflows/dev-tenant-ops.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
 # - 触发：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
 #   路径过滤在区域表 scripts/ci_changes.py 的 dev-tenant-ops 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
@@ -21,10 +21,6 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-
-defaults:
-  run:
-    working-directory: _import/qian
 
 jobs:
   smoke:

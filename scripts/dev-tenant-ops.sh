@@ -12,7 +12,7 @@ PG_IMAGE="${QIAN_DEV_PG_IMAGE:-${QIAN_TEST_IMAGE_POSTGRES:-postgres:16-alpine}}"
 OPS_URL="${QIAN_DEV_OPS_URL:-http://127.0.0.1:5080}"
 # 真实 qian.identity 的发行方（S1-TEN-010）：业务宿主监听此地址，账号接口 /api/identity、目录 /api/directory。
 IDENTITY_URL="${QIAN_DEV_IDENTITY_URL:-http://127.0.0.1:5081}"
-PROJECT="$ROOT/../../tools/Kun.Dev.TenantOps"
+PROJECT="$ROOT/tools/Kun.Dev.TenantOps"
 DLL="$PROJECT/bin/Debug/net10.0/Kun.Dev.TenantOps.dll"
 PASSWORD_FILE="$STATE/pg-admin-password"
 

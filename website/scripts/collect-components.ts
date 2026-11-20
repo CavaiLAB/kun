@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { collectYuePages, readYueDocs } from './yue-docs.ts';
 import path from 'node:path';
 import { QIAN_REPO_URL, openQian, qianPackageDir, qianSource, type QianCheckout } from './qian.ts';
-import { REPO_ROOT, repoFileDate, yamlString, type GeneratedFile } from './repo.ts';
+import { PLATFORM_DOCS_ROOT, REPO_ROOT, repoFileDate, yamlString, type GeneratedFile } from './repo.ts';
 import { designRoute } from './sync-specs.ts';
 
 type Stage = 'S1' | 'S2' | 'S3' | 'S4';
@@ -87,7 +87,7 @@ function refLinks(refs: PlannedComponent['refs'], repoRoot: string): string {
     .join('\n');
 }
 
-function componentPage(c: PlannedComponent, repoRoot: string): string {
+function componentPage(c: PlannedComponent, repoRoot: string, docsRoot: string): string {
   return [
     '---',
     `title: ${yamlString(`${c.id} ${c.name}`)}`,
@@ -112,18 +112,18 @@ function componentPage(c: PlannedComponent, repoRoot: string): string {
     '',
     '## 设计依据',
     '',
-    refLinks(c.refs, repoRoot),
+    refLinks(c.refs, docsRoot),
     '',
   ].join('\n');
 }
 
-export function collectComponents(repoRoot: string = REPO_ROOT): GeneratedFile[] {
+export function collectComponents(repoRoot: string = REPO_ROOT, docsRoot: string = PLATFORM_DOCS_ROOT): GeneratedFile[] {
   const ids = new Set<string>();
   for (const c of PLATFORM_COMPONENTS) {
     if (ids.has(c.id)) throw new Error(`组件 id 重复：${c.id}`);
     ids.add(c.id);
   }
-  const files: GeneratedFile[] = PLATFORM_COMPONENTS.map((c) => ({ path: `platform/${c.id}.md`, content: componentPage(c, repoRoot) }));
+  const files: GeneratedFile[] = PLATFORM_COMPONENTS.map((c) => ({ path: `platform/${c.id}.md`, content: componentPage(c, repoRoot, docsRoot) }));
 
   const platformRows = PLATFORM_COMPONENTS.map((c) => `| [${c.id}](/components/platform/${c.id}) | ${c.name} | ${c.stage} | ${c.summary} |`).join('\n');
   files.push({

@@ -4,7 +4,7 @@
 // 两个目录都不进 Git，构建前由 sources-plugin.ts 调用重新生成。
 import fs from 'node:fs';
 import path from 'node:path';
-import { DEFAULT_BRANCH, OWNER_REPO, REPO_ROOT, githubUrl, parseFrontmatter, plainText, repoFileDate, repoPath, rewriteLinks, splitFrontmatter, toPosix, type GeneratedFile, type LinkResolver, yamlString } from './repo.ts';
+import { DEFAULT_BRANCH, OWNER_REPO, PLATFORM_DOCS_ROOT, REPO_ROOT, githubUrl, parseFrontmatter, plainText, repoFileDate, repoPath, rewriteLinks, splitFrontmatter, toPosix, type GeneratedFile, type LinkResolver, yamlString } from './repo.ts';
 import { firstParagraph, truncate } from './sync-kun-docs.ts';
 
 export const COMPONENT_MODEL_SPEC = 'docs/prd/specs/component-model.md';
@@ -61,7 +61,7 @@ export function designRoute(repoRelPath: string): string {
  * 源文件里的相对链接 → 站内路由（目标在 docs/ 内且有对应页面）或 GitHub 地址（其余仓库文件）。
  * 目标不存在时报错：docs/ 的链接已由 check_docs.py 把关，到这里还断说明两边规则不一致。
  */
-export function makeDocsResolver(sourceRepoRel: string, repoRoot: string = REPO_ROOT): LinkResolver {
+export function makeDocsResolver(sourceRepoRel: string, repoRoot: string = PLATFORM_DOCS_ROOT, repositoryRoot: string = REPO_ROOT): LinkResolver {
   return (href) => {
     if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//') || href.startsWith('/')) return null;
     if (href.startsWith('#')) return null;
@@ -70,8 +70,8 @@ export function makeDocsResolver(sourceRepoRel: string, repoRoot: string = REPO_
     const anchor = hashAt === -1 ? '' : href.slice(hashAt);
     const abs = path.resolve(repoRoot, path.dirname(sourceRepoRel), decodeURI(rawPath));
     const rel = toPosix(path.relative(repoRoot, abs));
-    const sourcePath = repoPath(rel);
-    if (sourcePath === '..' || sourcePath.startsWith('../') || path.isAbsolute(rel)) {
+    const sourcePath = repoPath(rel, repoRoot, repositoryRoot);
+    if (sourcePath === '..' || sourcePath.startsWith('../') || path.isAbsolute(sourcePath)) {
       throw new Error(`${sourceRepoRel}：链接指向仓库之外 ${href}`);
     }
     if (!fs.existsSync(abs)) {
@@ -83,13 +83,13 @@ export function makeDocsResolver(sourceRepoRel: string, repoRoot: string = REPO_
       const readme = path.join(abs, 'README.md');
       if (isDir && fs.existsSync(readme)) return designRoute(toPosix(path.relative(repoRoot, readme))) + anchor;
     }
-    return githubUrl(rel, isDir) + anchor;
+    return githubUrl(sourcePath, isDir) + anchor;
   };
 }
 
 // ---------------------------------------------------------------- design/
 
-export function listDocsSources(repoRoot: string = REPO_ROOT): string[] {
+export function listDocsSources(repoRoot: string = PLATFORM_DOCS_ROOT): string[] {
   const docsDir = path.join(repoRoot, 'docs');
   const out: string[] = [];
   const walk = (dir: string) => {
@@ -103,8 +103,9 @@ export function listDocsSources(repoRoot: string = REPO_ROOT): string[] {
   return out.sort();
 }
 
-function sourceNote(repoRelPath: string): string {
-  return `> 本页由构建脚本镜像自仓库 [\`${repoPath(repoRelPath)}\`](${githubUrl(repoRelPath, false)})，请修改源文件，不要改本页。`;
+function sourceNote(repoRelPath: string, sourceRoot: string): string {
+  const sourcePath = repoPath(repoRelPath, sourceRoot);
+  return `> 本页由构建脚本镜像自仓库 [\`${sourcePath}\`](${githubUrl(sourcePath, false)})，请修改源文件，不要改本页。`;
 }
 
 /** 在第一个一级标题之后插入一段说明；没有一级标题时放在正文最前。 */
@@ -116,10 +117,10 @@ function insertAfterTitle(body: string, block: string): string {
   return lines.join('\n');
 }
 
-export function mirrorDoc(repoRelPath: string, source: string, repoRoot: string = REPO_ROOT): string {
+export function mirrorDoc(repoRelPath: string, source: string, repoRoot: string = PLATFORM_DOCS_ROOT): string {
   const { frontmatter, body } = splitFrontmatter(source);
   const rewritten = rewriteLinks(body, makeDocsResolver(repoRelPath, repoRoot));
-  const withNote = insertAfterTitle(rewritten, sourceNote(repoRelPath));
+  const withNote = insertAfterTitle(rewritten, sourceNote(repoRelPath, repoRoot));
   return `---\n${designFrontmatter(repoRelPath, frontmatter, body, repoRoot)}\n---\n${withNote}`;
 }
 
@@ -130,7 +131,7 @@ const DESIGN_FRONTMATTER_KEYS = new Set(['title', 'description', 'part', 'projec
  * description 取首段（去标记、截到 120 字），updated 取源文件最后提交日期，source 指回仓库；源文件自带的其它字段
  * （ADR 的 status、date、decision_id 等）原样保留。
  */
-export function designFrontmatter(repoRelPath: string, sourceFrontmatter: string, body: string, repoRoot: string = REPO_ROOT): string {
+export function designFrontmatter(repoRelPath: string, sourceFrontmatter: string, body: string, repoRoot: string = PLATFORM_DOCS_ROOT): string {
   const own = sourceFrontmatter ? parseFrontmatter(sourceFrontmatter) : {};
   const ownTitle = typeof own.title === 'string' ? own.title.trim() : '';
   const h1 = /^#\s+(.+)$/m.exec(body)?.[1]?.trim() ?? '';
@@ -145,7 +146,7 @@ export function designFrontmatter(repoRelPath: string, sourceFrontmatter: string
     'project: qian',
     'audience: [decision-maker, developer]',
     `updated: ${repoFileDate(repoRelPath, repoRoot)}`,
-    `source: ${yamlString(`${OWNER_REPO}@${DEFAULT_BRANCH}:${repoPath(repoRelPath)}`)}`,
+    `source: ${yamlString(`${OWNER_REPO}@${DEFAULT_BRANCH}:${repoPath(repoRelPath, repoRoot)}`)}`,
   ];
   for (const line of sourceFrontmatter.split('\n')) {
     const key = /^([A-Za-z_][\w-]*):/.exec(line)?.[1];
@@ -169,7 +170,7 @@ export function sidebarLabel(repoRelPath: string, source: string): string {
 
 type MetaItem = string | { type: 'file' | 'dir'; name: string; label: string; collapsible?: boolean; collapsed?: boolean };
 
-export function syncDesign(repoRoot: string = REPO_ROOT): GeneratedFile[] {
+export function syncDesign(repoRoot: string = PLATFORM_DOCS_ROOT): GeneratedFile[] {
   const sources = listDocsSources(repoRoot);
   const files: GeneratedFile[] = [];
   const labels = new Map<string, string>();
@@ -285,7 +286,7 @@ export function promoteHeadings(markdown: string): string {
     .join('\n');
 }
 
-export function syncCli(repoRoot: string = REPO_ROOT): GeneratedFile[] {
+export function syncCli(repoRoot: string = PLATFORM_DOCS_ROOT): GeneratedFile[] {
   const specPath = path.join(repoRoot, COMPONENT_MODEL_SPEC);
   const { body } = splitFrontmatter(fs.readFileSync(specPath, 'utf8'));
   const sections = splitSections(body);
@@ -314,7 +315,7 @@ export function syncCli(repoRoot: string = REPO_ROOT): GeneratedFile[] {
         '',
         `# ${page.title}`,
         '',
-        `> 本页由构建脚本同步自 [组件模型规格 §${page.section}](${specRoute})（仓库 \`${repoPath(COMPONENT_MODEL_SPEC)}\`），不另写；请修改规格源文件。`,
+        `> 本页由构建脚本同步自 [组件模型规格 §${page.section}](${specRoute})（仓库 \`${repoPath(COMPONENT_MODEL_SPEC, repoRoot)}\`），不另写；请修改规格源文件。`,
         '',
         content,
         '',

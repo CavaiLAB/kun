@@ -46,8 +46,8 @@ LABEL org.opencontainers.image.source="https://github.com/CavaiLAB/kun" \
 WORKDIR /app
 COPY --from=build /out/ /app/
 COPY --from=build --chown=$APP_UID:$APP_UID /probe /app/.write-probe
-COPY _import/qian/profiles/ /app/qian/profiles/
-COPY _import/qian/plugins/ /app/qian/plugins/
+COPY profiles/ /app/qian/profiles/
+COPY plugins/ /app/qian/plugins/
 COPY --from=web / /app/web/
 ENV QIAN_ROOT=/app/qian
 USER $APP_UID

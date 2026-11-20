@@ -11,9 +11,9 @@ let host, temporary;
 try {
   let state = process.env.QIAN_MF_AUDIT_STATE;
   if (!state) {
-    await run('dotnet', ['build', '../../tests/Kun.Shell.TestHost/Kun.Shell.TestHost.csproj', '-c', 'Release', '--nologo']);
+    await run('dotnet', ['build', 'tests/Kun.Shell.TestHost/Kun.Shell.TestHost.csproj', '-c', 'Release', '--nologo']);
     temporary = mkdtempSync(resolve(tmpdir(), 'qian-mf-audit-')); state = resolve(temporary, 'state.json');
-    host = spawn('dotnet', ['../../tests/Kun.Shell.TestHost/bin/Release/net10.0/Kun.Shell.TestHost.dll', '--state', state], { cwd: root, stdio: ['ignore', 'inherit', 'inherit'], env: process.env });
+    host = spawn('dotnet', ['tests/Kun.Shell.TestHost/bin/Release/net10.0/Kun.Shell.TestHost.dll', '--state', state], { cwd: root, stdio: ['ignore', 'inherit', 'inherit'], env: process.env });
     const deadline = Date.now() + 60_000;
     while (!existsSync(state)) {
       if (host.exitCode !== null) throw new Error('真实审计验收宿主提前退出');

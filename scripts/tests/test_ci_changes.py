@@ -76,6 +76,9 @@ class AreaTableTests(unittest.TestCase):
         cls.files = tracked()
 
     def test_1_each_area_covers_the_filter_it_was_moved_from(self) -> None:
+        def original_path(path):
+            return ci_changes.Q + path if ci_changes.group_matches(ci_changes.PLATFORM_ASSETS, path) else path
+
         problems = []
         for name, area in ci_changes.AREAS.items():
             if area.original is None:
@@ -83,7 +86,7 @@ class AreaTableTests(unittest.TestCase):
             document = ci_yaml.load((ORIGINALS / area.original).read_text(encoding="utf-8"))
             original = ci_yaml.pull_request_paths(document)
             patterns = prefixed(original if original is not None else ["**"])
-            missed = [path for path in self.files if ci_changes.group_matches(patterns, path) and not ci_changes.area_matches(area, path)]
+            missed = [path for path in self.files if ci_changes.group_matches(patterns, original_path(path)) and not ci_changes.area_matches(area, path)]
             if missed:
                 problems.append(f"区域 {name} 漏了 {area.original} 的过滤覆盖的 {len(missed)} 个文件，如 {'、'.join(missed[:3])}")
         self.assertEqual([], problems)

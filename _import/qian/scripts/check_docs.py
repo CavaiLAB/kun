@@ -22,20 +22,22 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
+PLATFORM_DOCS = Path("_import/qian/docs")
 # 已作废项目的名字按整词匹配：前后不能紧挨英文字母，避免误伤 prefixing、mixing 这类英文单词
 BANNED = re.compile(r"jnpf|引迈|(?<![a-z])xing(?![a-z])", re.I)
 # 对标项目只能写「对标项目」，不写名字（ADR-020 §8）
 REFERENCE_NAMES = re.compile(r"claude-code-templates|deepseek|openai/plugins|aitmpl|davila7|codex-plugin", re.I)
 
 DEFAULT_TARGETS = [
-    "docs",
+    "_import/qian/docs",
     "contracts",
-    "README.md",
-    "AGENTS.md",
-    "pm/README.md",
-    "pm/tasks",
-    "tests/README.md",
+    "_import/qian/README.md",
+    "_import/qian/AGENTS.md",
+    "_import/qian/pm/README.md",
+    "_import/qian/pm/tasks",
+    "_import/qian/tests/README.md",
+    "_import/qian/deploy",
     "deploy",
     "website/README.md",
     "website/AGENTS.md",
@@ -132,8 +134,8 @@ def source_files() -> list[Path]:
 def design_routes() -> frozenset[str]:
     """docs/ 下每个 .md 在文档站「设计与路线」的路由，规则同 website/scripts/sync-specs.ts 的 designRoute。"""
     routes = set()
-    for f in (ROOT / "docs").rglob("*.md"):
-        parts = [p.lower() for p in f.relative_to(ROOT / "docs").parts]
+    for f in (ROOT / PLATFORM_DOCS).rglob("*.md"):
+        parts = [p.lower() for p in f.relative_to(ROOT / PLATFORM_DOCS).parts]
         name = parts.pop()
         page = "/".join(parts + ["index" if name == "readme.md" else name[: -len(".md")]])
         routes.add("/design/" + page)

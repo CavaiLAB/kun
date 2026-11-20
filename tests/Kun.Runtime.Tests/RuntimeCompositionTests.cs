@@ -14,7 +14,7 @@ public sealed class RuntimeCompositionTests
         var repository = new DirectoryInfo(AppContext.BaseDirectory);
         while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "Kun.slnx"))) repository = repository.Parent;
         Assert.NotNull(repository);
-        var root = new DirectoryInfo(Path.Combine(repository.FullName, "_import", "qian"));
+        var root = repository;
         using var scenarios = JsonDocument.Parse(File.ReadAllText(Path.Combine(root.FullName, "tck/runtime/assembly.json")));
         foreach (var item in scenarios.RootElement.EnumerateArray())
         {

@@ -7,7 +7,7 @@ name: qian-docs-site
 #   上传路径都加了 _import/qian/ 前缀；路径过滤见最后「触发」一条。
 # - 「Kun 框架」小节按 Kun 最新的发布版取 Kun 的 tag：原件读 Directory.Packages.props 的 KunVersion，B3 之后它已删除，
 #   改读仓库根 CHANGELOG.md 里最新的发布段（发版脚本 scripts/release.sh 写入，同一提交打 v<版本> 标签）。不再另外检出
-#   kun 仓库：版本标签在本仓库里，所以只从本仓库取这一个 tag 与它的历史，生成脚本（_import/qian/website/scripts/kun.ts）
+#   kun 仓库：版本标签在本仓库里，所以只从本仓库取这一个 tag 与它的历史，生成脚本（website/scripts/kun.ts）
 #   直接读本仓库，不设 KUN_DOCS_PATH。原件的 deploy key 与「检查 kun 仓库只读凭据」一步都用不上，没有接。
 # - 发布（B2 接上）：与原件一样只在 main 上发布正式站点（push 到 main，或在 main 上手动触发），用
 #   _import/qian/deploy/docs-site/publish.sh main 把构建产物推到本仓库的 docs-site 分支，集群里的 git-sync 拉这个分支
@@ -19,7 +19,7 @@ name: qian-docs-site
 #   「删除预览」作业都没有接，触发类型里也就没有只为删除预览而设的 closed，构建作业也不用跳过 closed。
 #   PR 上的构建仍带 /pr-preview/pr-<n>/ 前缀，前缀检查照跑。接回时照原件补齐这几处即可。
 # - 组件目录：qian 组件库的源码在 CavaiLAB/qian（B11 迁出，见迁移执行计划）。构建按 pnpm-workspace.yaml 版本目录里
-#   @cavailab/qian-core 的版本，检出 CavaiLAB/qian 的同名标签 @cavailab/qian-core@<版本> 到 _import/qian/.qian（公开仓库，
+#   @cavailab/qian-core 的版本，检出 CavaiLAB/qian 的同名标签 @cavailab/qian-core@<版本> 到 .qian（公开仓库，
 #   缺省的 GITHUB_TOKEN 经 HTTPS 只读检出；要完整历史，组件页的 updated 取文件在该标签上的最后提交日期），在检出里按它自己的
 #   锁文件装 packages/qian/* 的依赖（公共 npm 源），QIAN_DOCS_PATH 指向它（website/README.md §1）。本仓库的依赖里有 GitHub Packages
 #   上的公开包 @cavailab/qian-*：工作流权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
@@ -44,10 +44,6 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
-defaults:
-  run:
-    working-directory: _import/qian
-
 jobs:
   build:
     name: 构建与检查
@@ -55,7 +51,7 @@ jobs:
     timeout-minutes: 15
     env:
       DOCS_BASE: ${{ github.event_name == 'pull_request' && format('/pr-preview/pr-{0}/', github.event.pull_request.number) || '/' }}
-      QIAN_DOCS_PATH: ${{ github.workspace }}/_import/qian/.qian
+      QIAN_DOCS_PATH: ${{ github.workspace }}/.qian
     steps:
       - uses: actions/checkout@v4
 
@@ -81,7 +77,7 @@ jobs:
         run: |
           version="$(sed -n 's/^[[:space:]]*"@cavailab\/qian-core":[[:space:]]*\([^[:space:]#]*\).*/\1/p' pnpm-workspace.yaml | head -n 1)"
           if [ -z "$version" ]; then
-            echo "::error file=_import/qian/pnpm-workspace.yaml::版本目录里缺少 @cavailab/qian-core：组件目录按它检出 CavaiLAB/qian 的同名标签"
+            echo "::error file=pnpm-workspace.yaml::版本目录里缺少 @cavailab/qian-core：组件目录按它检出 CavaiLAB/qian 的同名标签"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -92,7 +88,7 @@ jobs:
         with:
           repository: CavaiLAB/qian
           ref: refs/tags/@cavailab/qian-core@${{ steps.qian.outputs.version }}
-          path: _import/qian/.qian
+          path: .qian
           fetch-depth: 0
           persist-credentials: false
 
@@ -103,10 +99,10 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: nuget-docs-${{ runner.os }}-${{ steps.kun.outputs.version }}-${{ hashFiles('_import/qian/website/.config/dotnet-tools.json') }}
+          key: nuget-docs-${{ runner.os }}-${{ steps.kun.outputs.version }}-${{ hashFiles('website/.config/dotnet-tools.json') }}
           restore-keys: nuget-docs-${{ runner.os }}-
 
-      # 先装 Node 24 再装 pnpm：pnpm 版本取自 _import/qian/package.json 的 packageManager，它本身要求较新的 Node
+      # 先装 Node 24 再装 pnpm：pnpm 版本取自 package.json 的 packageManager，它本身要求较新的 Node
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -114,14 +110,14 @@ jobs:
           scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: _import/qian/package.json
+          package_json_file: package.json
       - name: pnpm 缓存目录
         id: pnpm-store
         run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: pnpm-${{ runner.os }}-${{ hashFiles('_import/qian/pnpm-lock.yaml', '_import/qian/.qian/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.qian/pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
 
       - name: 安装依赖
@@ -131,7 +127,7 @@ jobs:
 
       # 只装 8 个层包的依赖，按检出里 qian 自己的锁文件（website/scripts/qian.ts 的 QIAN_INSTALL_ARGS）
       - name: 安装组件文档源的依赖（CavaiLAB/qian 检出）
-        working-directory: _import/qian/.qian
+        working-directory: .qian
         run: pnpm install --frozen-lockfile --filter "./packages/qian/*"
 
       - name: 类型检查
@@ -148,7 +144,7 @@ jobs:
 
       # Kun 镜像页与 API 参考的源不在 _import/qian/ 里，生成后单独过文档门禁（禁用词、表格、断链）
       - name: 生成页过文档门禁（frontmatter、禁用词、链接；源不在本仓库的 Kun 页也在内）
-        run: python3 scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md
+        run: python3 _import/qian/scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md
 
       - name: Chromium 与真实组件交互验收
         run: |
@@ -157,8 +153,8 @@ jobs:
           docker run --rm --init --ipc=host --user "$(id -u):$(id -g)" \
             -e CI=1 -e DOCS_BASE -e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
             -e PLAYWRIGHT_HTML_OUTPUT_DIR=/workspace/website/.browser-results/playwright-report \
-            -v "$GITHUB_WORKSPACE/_import/qian:/workspace:ro" \
-            -v "$GITHUB_WORKSPACE/_import/qian/website/.browser-results:/workspace/website/.browser-results:rw" \
+            -v "$GITHUB_WORKSPACE:/workspace:ro" \
+            -v "$GITHUB_WORKSPACE/website/.browser-results:/workspace/website/.browser-results:rw" \
             -w /workspace/website \
             mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f \
             node node_modules/@playwright/test/cli.js test --output .browser-results/test-results
@@ -168,13 +164,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: docs-browser-report
-          path: _import/qian/website/.browser-results
+          path: website/.browser-results
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         with:
           name: docs-site
-          path: _import/qian/website/doc_build
+          path: website/doc_build
           retention-days: 7
 
   publish:
@@ -196,7 +192,7 @@ jobs:
       - name: 推送到 docs-site 分支
         env:
           DOCS_SOURCE_SHA: ${{ github.sha }}
-        run: deploy/docs-site/publish.sh main "$RUNNER_TEMP/docs-site"
+        run: _import/qian/deploy/docs-site/publish.sh main "$RUNNER_TEMP/docs-site"
 
       - name: 记录发布结果
         run: |

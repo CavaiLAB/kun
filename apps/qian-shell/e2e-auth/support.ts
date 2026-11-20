@@ -6,7 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 // 真实流程 E2E 的共用件：种子账号、宿主地址、CSP 违规收集、动画结束后的 axe 扫描与登录表单。
 export const root = resolve(import.meta.dirname, '../../..');
 export interface SeedPerson { key: string; displayName: string; username: string; password: string }
-export const seed = JSON.parse(readFileSync(resolve(root, '../../tools/Kun.Dev.Shell/seed/accounts.json'), 'utf8')) as { persons: SeedPerson[]; tenants: { code: string; name: string }[] };
+export const seed = JSON.parse(readFileSync(resolve(root, 'tools/Kun.Dev.Shell/seed/accounts.json'), 'utf8')) as { persons: SeedPerson[]; tenants: { code: string; name: string }[] };
 export const person = (key: string) => seed.persons.find(item => item.key === key)!;
 export const identity = (process.env.QIAN_DEV_SHELL_API_URL ?? 'http://127.0.0.1:5090').replace(/\/$/, '');
 export const state = process.env.QIAN_DEV_STATE ?? resolve(root, '.qian-dev/shell');

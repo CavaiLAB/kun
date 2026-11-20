@@ -1,7 +1,7 @@
 // 首页「最新动态」：直接读仓库 docs/CHANGELOG.md，取最近几条（docs-site.md §2a.1），不另维护一份。
 import { withBase } from '@rspress/core/runtime';
 import { Link } from '@rspress/core/theme';
-import changelog from '../../../docs/CHANGELOG.md?raw';
+import changelog from '../../../_import/qian/docs/CHANGELOG.md?raw';
 
 export interface ChangeEntry {
   date: string;

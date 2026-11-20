@@ -1,6 +1,6 @@
 # Kun.Data.Dialect.Pg
 
-PostgreSQL 方言组件（组件 id `qian.data.dialect.pg`），实现 Data seam 的方言 SPI qian.data.dialect/v1。契约在 [Kun.Data.Abstractions](../Kun.Data.Abstractions/README.md)，目录与连接档案在 [Kun.Data](../Kun.Data/README.md)，基础能力见 [S1-DATA-003](../../_import/qian/pm/tasks/S1-DATA-003.md)，组件挂卸验收见 [S1-DATA-006](../../_import/qian/pm/tasks/S1-DATA-006.md)。
+PostgreSQL 方言组件（组件 id `qian.data.dialect.pg`），实现 Data seam 的方言 SPI qian.data.dialect/v1。契约在 [Kun.Data.Abstractions](../Kun.Data.Abstractions/README.md)，目录与连接档案在 [Kun.Data](../Kun.Data/README.md)，基础能力见 [S1-DATA-003](../../pm/tasks/S1-DATA-003.md)，组件挂卸验收见 [S1-DATA-006](../../pm/tasks/S1-DATA-006.md)。
 
 ## 宿主装配
 

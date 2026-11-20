@@ -73,7 +73,7 @@ Kun 只做依赖方（RP）一侧：OIDC 发现 + 授权码 + PKCE 跳转、id_t
 
 ## 9 身份客户端与产品联调分阶段验收（2026-10-11）
 
-产品负责人已通过 [S1-DEC-015](../../_import/qian/pm/tasks/S1-DEC-015.md) 确认分阶段验收，消除 S1-KUN-004 与 S1-IDP-002 的循环等待。
+产品负责人已通过 [S1-DEC-015](../../pm/tasks/S1-DEC-015.md) 确认分阶段验收，消除 S1-KUN-004 与 S1-IDP-002 的循环等待。
 
 - SDK 阶段（S1-KUN-004）：以真实 HTTP/RSA 协议夹具验证 PKCE verifier、nonce、state/到期/重放保护，以真实 Redis 和 HTTP 会话验证吊销、CSRF 与日志脱敏，并通过 S2S 冻结 Schema 和 Qian 编译门禁。该阶段可以独立完成，不要求尚未实现的产品身份服务先启动。
 - 产品阶段（S1-IDP-002）：使用已修复的 Kun Identity 客户端，对真实 `qian-identity` 完成强制 PKCE 的授权码换取，并拒绝篡改 nonce 的 id_token。这是身份服务完成及后续发布的必过项，不能用协议夹具、外部 IdP 或 SDK 单测代替。

@@ -1,6 +1,6 @@
 # Kun.Surfaces
 
-依据 [组件模型规格 §4](../../docs/prd/specs/component-model.md#4-声明式表面的文件格式) 与 [S1-RT-008](../../_import/qian/pm/tasks/S1-RT-008.md)。`Kun.Surfaces.Abstractions` 定义结果、诊断、错误码与端口；本包提供 JSON/YAML 解析、Schema 和静态语义校验。
+依据 [组件模型规格 §4](../../docs/prd/specs/component-model.md#4-声明式表面的文件格式) 与 [S1-RT-008](../../pm/tasks/S1-RT-008.md)。`Kun.Surfaces.Abstractions` 定义结果、诊断、错误码与端口；本包提供 JSON/YAML 解析、Schema 和静态语义校验。
 
 ## 装配位置
 

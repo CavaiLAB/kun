@@ -1,6 +1,6 @@
 # 测试与门禁
 
-> 对应任务 S1-QA-001。依据：[PRD §14 质量与评估](../_import/qian/docs/prd/14-quality.md)（测试金字塔、C1 PublicAPI、C10 测试门禁、C19 依赖图断言）、[ADR-019](../_import/qian/docs/adr/ADR-019-library-first-packages.md) D19.7 / D19.8、[组件模型规格](../_import/qian/docs/prd/specs/component-model.md) §6.1 与 §10.3。
+> 对应任务 S1-QA-001。依据：[PRD §14 质量与评估](../docs/prd/14-quality.md)（测试金字塔、C1 PublicAPI、C10 测试门禁、C19 依赖图断言）、[ADR-019](../docs/adr/ADR-019-library-first-packages.md) D19.7 / D19.8、[组件模型规格](../docs/prd/specs/component-model.md) §6.1 与 §10.3。
 
 ## 1 目录
 
@@ -53,8 +53,10 @@ dotnet test --solution /tmp/kun-tests-a.slnf -c Release --no-build
 
 根 `Kun.slnx` 描述全部 .NET 项目。`tests/kun-platform.slnf` 登记分片 a、b、c 的测试。`tests/kun-unit.slnf` 登记分片 k 的单元测试，集成测试与专属作业由 `python3 scripts/dotnet_ci.py registration` 核对。
 
+外壳与界面包使用仓库根的 pnpm 工作区。运行 `pnpm ui:gates` 检查界面规则，运行 `pnpm e2e:directory` 验收目录选择器。
+
 - 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Kun.Capabilities.Tests` 与 `Kun.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
-  - 在仓库根运行 `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
+  - 在仓库根 运行 `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
   - `python3 scripts/prepare_contract_tools.py --destination <目录>`，再导出 `QIAN_BUF_PATH=<目录>/buf` 与 `QIAN_OASDIFF_PATH=<目录>/oasdiff`：能力契约的真实兼容检查器，缺失时相关用例按设计拒绝跳过。
 - `dotnet test` 走 Microsoft Testing Platform（仓库根 [global.json](../global.json) 的 `test.runner`）；xUnit v3 测试项目是可执行程序，csproj 里写 `<OutputType>Exe</OutputType>`。
 - 单跑一个测试项目用 `dotnet run --project tests/<X>.Tests -c Release`；`dotnet test <项目路径>` 或 `dotnet test --project …` 在部分机器上会报「运行了零个测试、退出码 5」，以 `--solution` 或 `dotnet run` 的结果为准。
@@ -229,8 +231,8 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
   - 插值字符串的常量前缀，如 `$"docs/prd/{name}.md"` 算 `docs/prd/` 起头的全部文件；插值洞后以 `/` 起头的段，如 `$"{root}/docs/x.md"`。`+` 拼接同理：`root + "/docs/x.md"`，字面量后面还接 `+` 时按前缀算。
   - 单写一个根目录文件名（`"AGENTS.md"`、`Path.Combine(root, "README.md")`）只在本文件定位了仓库根时算：写到 `"Kun.slnx"`（向上找仓库根），或用到名为 `RepositoryRoot` / `RepoRoot` 的辅助方法。`README.md` 这类常见名字在别处多半指临时目录或包里的文件，如 `Kun.Lifecycle.Tests` 的临时部署仓库。
 - MSBuild 项：`*.csproj`、`*.props`、`*.targets` 里 `Include`、`Update`、`Project` 属性指向的文件，相对本文件所在目录解析，认得通配与 `$(MSBuildThisFileDirectory)`、`$(MSBuildProjectDirectory)`，含其他属性的路径跳过。`.props` / `.targets` 里的相对路径实际按导入它的项目目录求值，这里写路径用 `$(MSBuildThisFileDirectory)` 起头，自检才对得上。
-- dotnet 区域的作业运行的 Python：`ci.yml` 里这些作业的 `run:` 里 `python3 <脚本>` 直接运行的脚本（相对作业的工作目录解析）、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
-  - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（这些作业从仓库根运行）。
+- dotnet 区域的作业运行的 Python：`ci.yml` 里这些作业的 `run:` 里 `python3 <脚本>` 直接运行的脚本、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
+  - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（作业在仓库根 下运行这些脚本）。
   - 临时目录等别的锚上拼的路径不算。被测试按名字加载、又被该测试换成临时目录的模块级名字，在函数里不算：`test_check_docs.py` 把 `check_docs.ROOT` 换掉，`check_docs.py` 函数里读的 `docs/` 就是临时目录。
 
 写法约定：读取仓库里的文件，写成仓库根（或上面的锚）后跟常量路径段。自检认不出的写法：路径来自变量、配置、命令行参数或文件内容，目录枚举后按名字筛选（如 `Directory.GetFiles(root)`），以及经外部程序间接读取（测试调用的 qian CLI 是 TypeScript，不在扫描范围）。这些情况改用常量路径，或者手工把读到的文件加进区域表的那一组。各类写法的正反例见 [gates/test_dotnet_ci.py](gates/test_dotnet_ci.py)。

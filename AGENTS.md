@@ -1,41 +1,50 @@
-# AGENTS.md：给编码代理的入口说明
+# AGENTS.md
 
-这个仓库是 **Kun**：匠心智能体平台的企业级后端框架（.NET 10）。**两个原仓库的代码已带历史迁入本仓库，原仓库已归档为只读。内核与平台的 .NET 项目在仓库根，框架文档在 `docs/`。组件资产、前端工作区、文档站与任务看板位于 `_import/qian/`。**
+Kun 是匠心智能体平台的企业级后端框架。命令在仓库根运行。`Kun.slnx` 包含内核、平台组件和宿主；前端工作区使用根 `pnpm-workspace.yaml`，站点位于 `website/`。组件清单在 `plugins/`，约定在 `contracts/` 和 `schemas/`，开发工作按 [PM 说明](pm/README.md)跟踪。
 
-## 要改代码
+## 仓库检查与合并
 
-迁移已于 2026-11-17 启动，分批的做法见[迁移执行计划](docs/migration-plan.md)。历史导入（计划里的 B1）把两个原仓库的 `main` 带历史导入了两个过渡目录，原提交的 SHA 原样保留；B2 的整理随后把 Kun 框架由 `_import/kun/` 提到了仓库根、把它的文档整理进了 `docs/`（git 把这些搬动记成文件重命名，看导入前的历史用 `git log --follow -m -- <路径>`）：
-
-| 位置 | 内容 | 怎么构建与测试 |
-|---|---|---|
-| 仓库根 | Kun 框架：`src/`、`tests/`、`samples/`、`benchmarks/`、`tools/`、`scripts/`、`Kun.slnx`与构建基线；它的文档在 `docs/`，与本仓库的框架级文档放在一起（入门、`guides/`、`security/`、`design/`，决策记录在 `adr/kun/`） | 见下面「Kun 框架的构建、测试与代码约定」，命令在仓库根运行 |
-| `_import/qian/` | 平台资源与工具：组件资产、前端工作区、文档站、任务看板 | 按 `_import/qian/AGENTS.md`，命令在 `_import/qian/` 下运行 |
-
-从仓库根使用 `Kun.slnx` 构建内核、平台与宿主。根 `Directory.Build.props`、`Directory.Build.targets`、`Directory.Packages.props`、`NuGet.config`、`BannedSymbols.txt`、`.editorconfig` 与 `global.json` 共同定义构建基线。包版本与元数据在 `src/Directory.Build.props`。前端 pnpm 工作区及门禁资源在 `_import/qian/`。
-
-检查只有一个入口：仓库根的 `.github/workflows/ci.yml`（S1-KUN-020）。它先跑变更检测，按区域表 `scripts/ci_changes.py` 把改动的文件归到各个区域（.NET 的构建、门禁、测试与原生发布，镜像自检，文档与看板，文档站，各项前端验收等），只跑涉及的区域的作业；推 `main` 与手动触发时全部区域都跑。前端与文档的检查是 `.github/workflows/` 下的 `qian-*.yml`，只由 `ci.yml` 调用，在 `_import/qian/` 下运行；其余作业直接写在 `ci.yml` 里，仓库根的内核、平台和宿主项目都在其中。两边导入时带来的 `.github/` 原件，Kun 框架的在 `.github/originals/kun/`，平台的在 `_import/qian/.github/`，GitHub 都不读；`ci.yml` 与 `qian-*.yml` 的开头写着对应哪个原件、相对原件改了什么，Kun 框架没接的工作流与模板见 `.github/originals/kun/README.md`。
-
-最后一个作业「CI 汇总」汇总全部作业的结果，必需检查只设它一个：变更检测没有成功、或任一作业失败或取消，即不通过；没涉及而跳过的作业算通过。几条约定：
+变更由根工作流 `.github/workflows/ci.yml` 按 `scripts/ci_changes.py` 的区域触发。
+PR 的必需检查是「CI 汇总」。相关作业全部通过后，以合并提交合入主干并保留完整历史。
 
 - 「CI 汇总」这个检查名不改。分支保护按名字认必需检查，改了名，PR 会一直等一个不会出现的检查。
 - 提交说明里不写跳过 CI 的标记（`[skip ci]`、`[ci skip]`、`[no ci]`、`[skip actions]`、`[actions skip]`），PR 标题也不写，合并提交会带上它。带了标记，整次运行不触发，「CI 汇总」没有结果，PR 合不进去，`main` 上也不跑。
 - 加文件、挪目录时，让它落进区域表里合适的区域（要构建 .NET 的区域都含仓库根的构建基线、`Kun.slnx` 与 `src/`），或者明列进不跑检查的名单。区域表的自测与 `ci.yml` 的结构自测在 `scripts/tests/`，变更检测作业每次先跑，本机跑法 `python3 -m unittest discover -s scripts/tests -p 'test_ci_*.py' -v`；查一个区域管哪些文件用 `python3 scripts/ci_changes.py files <区域>`。
 
-原仓库归档之后的规矩：
+## 任务流程（必须遵守）
 
-- 两个原仓库 2026-11-17 冻结，同日归档为只读。最后一次同步的来源头是归档时的最终头：Kun 框架那一支的 `51b480775c` 与平台那一支的 `5954ec3b86`，两个提交都在本仓库的历史里；同步时 `_import/kun/`、`_import/qian/` 与这两个头的树逐字节相同。两边的源码、文档与任务文件从此以本仓库为准，原仓库不再接受改动。
-- 两边的内容从此在本仓库改，在本仓库开 PR。`_import/qian/` 里改的是文件内容；它的搬动与拆分属于后面的批次（见最后一条），不要顺手做。
-- Kun 框架的约定已并进本文件（下一节），`_import/qian/AGENTS.md` 里构建、测试与代码约定的部分照用。任务文件照 `_import/qian/pm/README.md` 改：任务文件在 `_import/qian/pm/tasks/` 下，`pm.py` 在 `_import/qian/` 下运行（如 `cd _import/qian && python3 scripts/pm.py validate`），`set` 与 `add` 要带 `--by`，生成物不进 git。迁移任务（S1-KUN-018–022）的文件也在这里改（迁移执行计划第 3 节第 7 条）。`_import/qian/AGENTS.md` 与仓库根的 `CONTRIBUTING.md` 里讲提 PR、分支、发版、发布文档站的部分说的是原仓库，在本仓库以本文件与迁移执行计划为准。
-- 两个原仓库冻结时写的去处说明随最后一次同步带了进来，在本仓库不适用：`_import/qian/` 的 `README.md` 开头那一段与 `AGENTS.md` 的「本仓库已冻结」一节（Kun 框架那一份 `README.md`、`CLAUDE.md` 原件已在整理的第二段删除）。Kun 框架自管的任务队列（含 `docs/roadmap/BACKLOG.md`）与第三方生成的代理配置已按合并蓝图删除（D23.13 第 6 点），任务管理统一到 `_import/qian/pm/`；各层工具给 Kun 框架生成的 `AGENTS.md` 也一并删了，模块目录里留下的 `AGENTS.md` 只有生成之后写进去的模块规则。
-- 前端框架 qian 在 `CavaiLAB/qian`，改前端框架去那边改。`_import/qian/` 下归它的部分（框架包与演练场、TypeScript 运行时、前端插件开发包、对应的门禁与视觉回归脚本、`.changeset/`，以及四个工作流和它们在仓库根上的两份接入）已在 B11 由前端计划的执行会话删除（见迁移执行计划的 B11）。外壳应用与外壳工具包、三个界面包、参考应用的远程模块、文档站、命令行、声明式表面的校验库留在本仓库，装 `CavaiLAB/qian` 发布在 GitHub Packages 上的 `@cavailab/qian-*`：版本钉在 `_import/qian/pnpm-workspace.yaml` 的版本目录，装依赖要令牌（见 `_import/qian/README.md`「前端依赖与包源」），外壳与界面包的门禁在 `qian-ui.yml`。
-- 一批一个 PR。本仓库的 PR 一律用合并提交合入，不压缩、不变基，否则导入的历史会丢。除迁移批次的 PR 之外，不要新建顶层代码目录，也不要把代码搬出 `_import/qian/`。
-- 不要抢跑：整理的第二段（树内的历史 PR 编号改写成带仓库名的形式、指向原仓库的地址改指本仓库、`_import/qian/` 下文档站的「Kun 框架」小节改为同仓来源、导入的文档里写给特定下游的内容怎么处理）由计划指定的执行会话做，Kun 框架一侧已经做完（文档整理进 `docs/`，`_import/kun/` 已搬空）；构建并轨是 B3；包名、命名空间与类型名统一到 Kun 下是 B4–B10。
+- 任务在 `pm/tasks/<id>.md`，一个任务一个文件。开始前认领：
+  `python3 scripts/pm.py set <id> --status doing --owner <你的代理名> --by <你的代理名> --note "开始"`
+- 日志必须署名：`pm.py set` / `pm.py add` 带 `--by <你的代理名>`（或设环境变量 `PM_ACTOR`），缺省时命令报错；`pm.py validate` 拒绝署名为 someone 的日志行（S1-DEC-019 R71）。
+- 先建档再交付：任务以 `todo` / `doing` 建档并认领后再提交实现，不要在创建任务的提交里直接写 `done` 并勾满验收。
+- 结束时把「验收」里完成的项改为 `[x]`，改状态（`review` 或 `done`），运行 `python3 scripts/pm.py validate`，只提交任务文件。
+- 提交信息末尾带任务 id，如 `feat(runtime): ctx.Effect 逆序释放 [S1-RT-001]`。
+- 遇到需要人拍板的问题：不要自作主张改设计。用
+  `python3 scripts/pm.py add --stage S1 --area DEC --type decision --wave 0 --by <你的代理名> --title "..."`
+  新建决策任务并把当前任务标 `blocked`。
+- `pm/index.html`、`pm/tasks.json`、`pm/STATUS.md` 是生成物，不进 git（S1-PM-004），不要提交，也不要手改：
+  - 本地想看看板，运行 `python3 scripts/pm.py build`，结果已被 `.gitignore` 忽略；
+  - 集群看板由看板 Pod 按 `CavaiLAB/kun` 主干上 `pm/tasks/` 的任务文件自行生成（访问方式见 `deploy/pm-board/README.md`；应用由 Argo CD 管，Application 在部署仓库）；
 
-目标仓库已定为本仓库（产品负责人，2026-11-17）。合并蓝图里写的目标仓库以[迁移与归并](docs/migration.md)第 6 节与迁移执行计划为准。
+## 写文档与代码的硬规则
+
+- 文档一律中文。文档里不得出现参考平台的品牌名（统一写「参考平台」），也不要写对标项目的名字（写「对标项目」）。`python3 scripts/check_docs.py` 会检查禁用词、表格列数与链接，提交前跑一遍。
+- Markdown 表格单元格里的反引号内若有竖线，写成 `\|`。
+- 组件设计先回答四个问题：文件夹里有哪些表面、装进哪个 profile、属于哪个 seam 的哪个角色、能否 `qian add`。凡是把能力绑死在特权内核、DI 扩展方法或数据库开关上的写法都是倒退。
+- 术语：平台插件（不是「系统插件」）、运行时 `Kun.Runtime`（不是「内核」）、profile（不是「可部署单元」）、`.qian-plugin/plugin.json`（不是 `qian-plugin.yaml`）、租户 scope patch（不是「租户开关」）。
+- Kun 的 .NET 包分内核档和平台档；Qian 为前端框架。站点的 `website/docs/sdk/kun/` 根据根 `CHANGELOG.md` 的正式发布版生成，手写说明为 `with-qian.mdx`。
+- 仓库内 .NET 项目使用项目引用。包版本集中在 `Directory.Packages.props`，包源在根 `NuGet.config`。
+- 组件的公共端口与提供者按[组件包依赖约定](docs/adr/ADR-019-library-first-packages.md)分包。组件声明使用宿主提供的能力端口。
+- 三道 .NET 门禁会自动拦截（细节见 `tests/README.md`，都在仓库根的 `Directory.Build.targets` 与 `scripts/` 下，不看包名）：
+  - 可打包的项目（写了 `<IsPackable>true</IsPackable>`）都必须带 `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`，新公共 API 未登记即编译失败；
+  - 可打包的项目都要在项目文件里写档位与角色（`KunTier`、`KunRole`），仓库根的 `scripts/check_deps.py` 按它们检查依赖，不看包名：内核档不依赖平台档，平台档只依赖内核档与平台档的契约包，契约包直接依赖的内核档包只能是契约。写法、例外与本机跑法见仓库根 `AGENTS.md`「档位与依赖」；
+  - `BannedSymbols.txt` 和 `tools/Kun.Build.Analyzers` 检查平台档的包和宿主。平台宿主在项目中声明 `<KunHost>true</KunHost>`。
+- 错误响应一律是 `contracts/v0/error-detail.schema.json` 的 ErrorDetail：用 `Kun.Errors` 定义与登记错误码（大写下划线、全局唯一、在本组件 Definition 包里定义），HTTP 宿主装 `AddKunErrors()` + `UseKunErrors()`；不要自己拼 ProblemDetails 或 `{ error: ... }`。
+- 改了 `contracts/v0/` 的 Schema 必须同时改 fixture 与 `Kun.Errors`，`dotnet test` 会校验 Schema、fixture 与内置错误码目录 `error-codes.json` 是否一致。
+- 集成测试使用 `src/Kun.Testing.Containers` 中的共享夹具，测试分片与预拉取镜像按[测试说明](tests/README.md)登记。
+- 组件、运行时与数据的变更按[已接受的决策](docs/adr/decisions.md)与对应任务的验收项核对。
 
 ## Kun 框架的构建、测试与代码约定
-
-本节并自 Kun 框架的 `CLAUDE.md` 与根上那份 `AGENTS.md`（两份都已删除；原文见 git 历史，Kun 框架那一支的最终头 `51b480775c` 上的同名文件，如 `git show 51b480775c:CLAUDE.md`）。Kun 框架的文档已整理进 `docs/`：入门在 `docs/getting-started.md`，指南、安全与设计说明在 `docs/guides/`、`docs/security/`、`docs/design/`，决策记录在 `docs/adr/kun/`（引用时写「Kun ADR-0xx」）；AOT 审计、基准结果、路线图、发版手册与发布说明等历史文档已删除，原文同样在 `51b480775c`。代码与构建文件注释里写的 `docs/…` 是整理之前的路径，没有改：`docs/architecture/` 下的 `ADR-*`、`adr-*` 现在在 `docs/adr/kun/`，其余的在 `docs/design/`；`docs/observability/`、`docs/schema-per-service.md`、`docs/openapi-template.md` 在 `docs/guides/`；`docs/whitepaper.md` 在 `docs/design/`；别的路径不变。原件里讲原仓库流程（分支、合并、发版、派单）的部分以本文件为准。原件里的分层规则已由档位与依赖门禁取代（D23.7、D23.14，见下面「档位与依赖」）；包名与命名空间在 B4–B10 改，在那之前照下面的做。
 
 ### 构建与测试
 
@@ -131,10 +140,21 @@ dotnet format Kun.slnx --verify-no-changes
 
 ## 要改文档
 
-1. 先读 [README.md](README.md) 与平台总览仓库的[术语表](https://github.com/CavaiLAB/jiangxin/blob/main/docs/glossary.md)。「Qian」只作前端框架的名字，`_import/qian/` 下的平台后端并入 Kun。组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留；`qian` 命令行与 `@qian/*` 导入名本次不改。
-2. 合并蓝图是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
+1. 先读 [README.md](README.md) 与平台总览仓库的[术语表](https://github.com/CavaiLAB/jiangxin/blob/main/docs/glossary.md)。「Qian」只作前端框架的名字，Kun 提供平台组件。组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留；`qian` 命令行与 `@qian/*` 导入名本次不改。
+2. 合并蓝图是本仓库里的 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `pm/tasks/S1-DEC-036.md`（D1–D14）。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
 3. 文档用中文，不写参考平台和对标项目的名字。
 4. 分清「已定」「提议」「待定」。说现状的时候写清是「已有」（在原仓库里已经实现）还是「规划」。
 5. 平台级的口径（名称、三个框架的分工、Agent 协同）在 [jiangxin](https://github.com/CavaiLAB/jiangxin) 里改，这里只引用。
 6. 在 `docs/` 下新增文档，要在 `docs/_meta.json` 里加上它的文件名（不带扩展名）。这个文件定这些文档在平台文档站侧栏里的顺序；漏列的话，文档站升级到这个版本时构建会报错。子目录在 `docs/_meta.json` 里写成对象，如 `{ "type": "dir", "name": "guides", "label": "指南" }`，label 用中文；在子目录里加文档不用改顶层这一份。子目录自己的 `_meta.json` 可以不写，不写就按文件名排；写了就要列全，漏列的页面会从侧栏里消失，构建不报错。
 7. 改动走分支和 PR，不直接推 `main`。建仓期间的初始文档除外，见平台总览的[协作约定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/07-governance.md)第 2 节。
+
+<!-- BEGIN:turborepo-agent-rules -->
+
+# This is NOT the Turborepo you know
+
+Turborepo configuration, task behavior, and CLI commands can vary between installed versions and may differ from your training data. Resolve the `turbo` package from this file's directory or relevant workspace; in monorepos, it may not be visible from the repository root. For example, run `node -p "require.resolve('turbo/package.json')"` from a workspace that depends on `turbo`.
+
+Read `docs/README.md` inside that installed package first, then read the relevant pages from its `docs/` directory before changing Turborepo configuration or commands. Heed deprecation notices. These bundled docs match the installed package version and are available without network access.
+
+This block is written and re-added by `turbo` before repository-scoped commands when an AI agent is detected. In the Turborepo source repository, its template is defined in `crates/turborepo-cli/src/cli/agent_guidance.rs`. Removing the managed block while updates are enabled means a later qualifying invocation will add it again. Set `"agentGuidance": false` in the root `turbo.json` or `turbo.jsonc` to opt out; this does not remove an existing block. Keep the block committed with your work to avoid an uncommitted change on the next agent invocation.
+<!-- END:turborepo-agent-rules -->

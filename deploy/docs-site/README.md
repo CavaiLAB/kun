@@ -1,6 +1,8 @@
 # 文档站上 K3s
 
-文档站（`website/`，S1-DOCS-001）的托管方式：**CI 构建，git-sync 拉取，nginx 提供**。与[任务看板](../../_import/qian/deploy/pm-board/README.md)同一套做法，不构建镜像：
+部署清单在 `deploy/docs-site`。使用原目录的部署会经 Kustomization 读取根清单。工作流对两个入口运行 `kubectl kustomize`，逐字节比较完整输出。
+
+文档站（`website/`，S1-DOCS-001）的托管方式：**CI 构建，git-sync 拉取，nginx 提供**。与[任务看板](../pm-board/README.md)同一套做法，不构建镜像：
 
 ```text
 main 的 CI ──构建──> 推到 CavaiLAB/kun 的 docs-site 分支 ──git-sync 每 60s──> emptyDir /git/current ──nginx──> Service ──> 浏览器
@@ -28,7 +30,7 @@ git-sync 经 HTTPS（`github.com:443`）匿名拉取公开仓库 `CavaiLAB/kun` 
 
 | 文件 | 作用 |
 |---|---|
-| `kustomization.yaml` | 命名空间 `qian-tools`（由 `_import/qian/deploy/pm-board` 创建并持有，这里不重复声明） |
+| `kustomization.yaml` | 命名空间 `qian-tools`（由 `deploy/pm-board` 创建并持有，这里不重复声明） |
 | `deployment.yaml` | `git-sync`（`GITSYNC_REF=docs-site`）+ `nginx-unprivileged`，非 root；经 HTTPS 匿名拉取，不挂 Secret |
 | `nginx-configmap.yaml` | 根目录与 `pr-preview/pr-<n>/` 都可打开；`/a/b`、`/a/b.html`、`/a/b/` 三种写法等价；带哈希的 `static/` 长缓存，页面协商缓存；隐藏点文件 |
 | `service.yaml`、`ingress.yaml` | 固定负载均衡地址与 NodePort，Ingress 按配置的域名转发到站点。 |

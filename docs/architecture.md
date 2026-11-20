@@ -2,7 +2,7 @@
 
 > 状态：规划稿（2026-11-17）。本文描述归并之后的 Kun，依据是合并蓝图（本仓库里的 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受）。「已有」指在原仓库里已经实现。
 >
-> 2026-11-19 补：加一种 Agent 一级的范围、人审两道、`agent` 主体在路线的里程碑 M1 启用（已定，[2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md) P29、P28、P31），见第 3、8 节。这批裁定与过渡目录里决策记录的出入登记在 `_import/qian/pm/tasks/S1-DEC-038.md`（D22–D26），决策记录的原文没有改。
+> 2026-11-19 补：加一种 Agent 一级的范围、人审两道、`agent` 主体在路线的里程碑 M1 启用（已定，[2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md) P29、P28、P31），见第 3、8 节。这批裁定与过渡目录里决策记录的出入登记在 `pm/tasks/S1-DEC-038.md`（D22–D26），决策记录的原文没有改。
 
 ## 1 边界
 

@@ -12,7 +12,7 @@ updated: 2026-10-07
 目标：一个空白 ASP.NET Core 项目，**不部署 Qian 平台**，装 `identity`、`authz`、`files` 三个组件，照组件 README 在 30 分钟内跑通文件上传与权限检查。这是 S1 的验收标准之一（[ADR-019 D19.8](/design/adr/adr-019-library-first-packages)），样例工程为 `samples/standalone-minimal`。
 
 :::warning 尚未可用
-`qian` CLI 与 `Qian.Files`、`Qian.Authz`、`Kun.Identity.Client` 包随 S1 任务交付。下面的命令描述交付后的用法，字段与行为以 [qian 命令](/cli/commands) 为准。
+`qian` CLI 与 `Qian.Files`、`Kun.Authorization.Rbac`、`Kun.Identity.Client` 包随 S1 任务交付。下面的命令描述交付后的用法，字段与行为以 [qian 命令](/cli/commands) 为准。
 :::
 
 ## 1. 建项目

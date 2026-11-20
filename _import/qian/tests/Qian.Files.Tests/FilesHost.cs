@@ -26,9 +26,9 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Qian.Audit;
-using Qian.Authz;
-using Qian.Authz.Abstractions;
-using Qian.Authz.AspNetCore;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Authorization.AspNetCore;
 using Qian.Capabilities;
 using Kun.Data;
 using Qian.Files.AspNetCore;
@@ -161,7 +161,7 @@ internal sealed class FilesHost : IAsyncDisposable
         builder.Services.AddQianAuthzEnforcement(http => http.RequestServices.GetRequiredService<FilesHostRuntime>().AuthzSource(), options => options.Production = true);
         builder.Services.AddKunMediator(registry =>
         {
-            registry.AddKunTenancyEvents().AddQianAuthzEvents();
+            registry.AddKunTenancyEvents().AddKunAuthzEvents();
             if (operations is not null) registry.AddQianRegistryEvents();
             registry.AddQianFiles(sp => sp.GetRequiredService<FilesHostRuntime>().Source(), options =>
             {

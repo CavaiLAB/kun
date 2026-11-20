@@ -2,17 +2,17 @@
   {
     "name": "authz/checking",
     "mode": "waterfall",
-    "payload": "Qian.Authz.Abstractions.EnforcementRequest",
-    "result": "Qian.Authz.Abstractions.AuthorizationExplanation",
-    "source": "Qian.Authz.Abstractions.AuthzRuntimeEvents.Checking",
+    "payload": "Kun.Authorization.Rbac.Abstractions.EnforcementRequest",
+    "result": "Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation",
+    "source": "Kun.Authorization.Rbac.Abstractions.AuthzRuntimeEvents.Checking",
     "definitionComponent": "qian.authz"
   },
   {
     "name": "authz/decided",
     "mode": "emit",
-    "payload": "Qian.Authz.Abstractions.AuthorizationDecision",
+    "payload": "Kun.Authorization.Rbac.Abstractions.AuthorizationDecision",
     "result": "System.Object",
-    "source": "Qian.Authz.Abstractions.AuthzRuntimeEvents.Decided",
+    "source": "Kun.Authorization.Rbac.Abstractions.AuthzRuntimeEvents.Decided",
     "definitionComponent": "qian.authz"
   }
 ]

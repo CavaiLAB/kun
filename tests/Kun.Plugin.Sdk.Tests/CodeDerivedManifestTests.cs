@@ -179,7 +179,7 @@ public sealed partial class CodeDerivedManifestTests
         using var work = new WorkDirectory();
         var source = Source.Replace("[KunPlugin(\"qian.sdk-manifest\")]", """
             [KunPlugin("qian.sdk-manifest")]
-            [Qian.Authz.Abstractions.Permission("notes", "write", Risk = Qian.Authz.Abstractions.PermissionRisk.High, RequiresStepUp = true, Terminals = ["pc"])]
+            [Kun.Authorization.Rbac.Abstractions.Permission("notes", "write", Risk = Kun.Authorization.Rbac.Abstractions.PermissionRisk.High, RequiresStepUp = true, Terminals = ["pc"])]
             [KunConfigSchema("{\"type\":\"object\",\"properties\":{\"limit\":{\"type\":\"integer\",\"minimum\":1}},\"additionalProperties\":false}")]
             """, StringComparison.Ordinal).Replace("/*export*/", "", StringComparison.Ordinal) + """
             public static class Events {
@@ -215,7 +215,7 @@ public sealed partial class CodeDerivedManifestTests
     public async Task 自定义metadata目录被尊重_删除代码声明同时移除Schema指针_伪造索引不删除手写文件()
     {
         using var work = new WorkDirectory();
-        const string attributes = "[Qian.Authz.Abstractions.Permission(\"notes\", \"read\")][KunConfigSchema(\"{\\\"type\\\":\\\"object\\\"}\")]";
+        const string attributes = "[Kun.Authorization.Rbac.Abstractions.Permission(\"notes\", \"read\")][KunConfigSchema(\"{\\\"type\\\":\\\"object\\\"}\")]";
         var source = Source.Replace("/*export*/", "", StringComparison.Ordinal);
         var withDeclarations = work.Compile("with-declarations", source.Replace("[KunPlugin(\"qian.sdk-manifest\")]", "[KunPlugin(\"qian.sdk-manifest\")]" + attributes, StringComparison.Ordinal));
         var withoutDeclarations = work.Compile("without-declarations", source);

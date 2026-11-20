@@ -1,0 +1,58 @@
+#nullable enable
+Kun.Authorization.AspNetCore.AuthzEndpoints
+Kun.Authorization.AspNetCore.AuthzPermissionList
+Kun.Authorization.AspNetCore.AuthzPermissionList.<Clone>$() -> Kun.Authorization.AspNetCore.AuthzPermissionList!
+Kun.Authorization.AspNetCore.AuthzPermissionList.AuthzPermissionList(System.Collections.Generic.IReadOnlyList<Kun.Authorization.AspNetCore.AuthzPermissionView!>! Items) -> void
+Kun.Authorization.AspNetCore.AuthzPermissionList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Authorization.AspNetCore.AuthzPermissionView!>! Items) -> void
+Kun.Authorization.AspNetCore.AuthzPermissionList.Equals(Kun.Authorization.AspNetCore.AuthzPermissionList? other) -> bool
+Kun.Authorization.AspNetCore.AuthzPermissionList.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.AspNetCore.AuthzPermissionView!>!
+Kun.Authorization.AspNetCore.AuthzPermissionList.Items.init -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView
+Kun.Authorization.AspNetCore.AuthzPermissionView.<Clone>$() -> Kun.Authorization.AspNetCore.AuthzPermissionView!
+Kun.Authorization.AspNetCore.AuthzPermissionView.Action.get -> string!
+Kun.Authorization.AspNetCore.AuthzPermissionView.Action.init -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.Allowed.get -> bool
+Kun.Authorization.AspNetCore.AuthzPermissionView.Allowed.init -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.AuthzPermissionView(string! Permission, string! Resource, string! Action, Kun.Authorization.Rbac.Abstractions.PermissionRisk Risk, bool StepUp, System.Collections.Generic.IReadOnlyList<string!>! Terminals, bool Allowed, string! Reason) -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.Deconstruct(out string! Permission, out string! Resource, out string! Action, out Kun.Authorization.Rbac.Abstractions.PermissionRisk Risk, out bool StepUp, out System.Collections.Generic.IReadOnlyList<string!>! Terminals, out bool Allowed, out string! Reason) -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.Equals(Kun.Authorization.AspNetCore.AuthzPermissionView? other) -> bool
+Kun.Authorization.AspNetCore.AuthzPermissionView.Permission.get -> string!
+Kun.Authorization.AspNetCore.AuthzPermissionView.Permission.init -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.Reason.get -> string!
+Kun.Authorization.AspNetCore.AuthzPermissionView.Reason.init -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.Resource.get -> string!
+Kun.Authorization.AspNetCore.AuthzPermissionView.Resource.init -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.Risk.get -> Kun.Authorization.Rbac.Abstractions.PermissionRisk
+Kun.Authorization.AspNetCore.AuthzPermissionView.Risk.init -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.StepUp.get -> bool
+Kun.Authorization.AspNetCore.AuthzPermissionView.StepUp.init -> void
+Kun.Authorization.AspNetCore.AuthzPermissionView.Terminals.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Authorization.AspNetCore.AuthzPermissionView.Terminals.init -> void
+override Kun.Authorization.AspNetCore.AuthzPermissionList.Equals(object? obj) -> bool
+override Kun.Authorization.AspNetCore.AuthzPermissionList.GetHashCode() -> int
+override Kun.Authorization.AspNetCore.AuthzPermissionList.ToString() -> string!
+override Kun.Authorization.AspNetCore.AuthzPermissionView.Equals(object? obj) -> bool
+override Kun.Authorization.AspNetCore.AuthzPermissionView.GetHashCode() -> int
+override Kun.Authorization.AspNetCore.AuthzPermissionView.ToString() -> string!
+static Kun.Authorization.AspNetCore.AuthzEndpoints.MapKunAuthz(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Authorization.AspNetCore.AuthzPermissionList.operator !=(Kun.Authorization.AspNetCore.AuthzPermissionList? left, Kun.Authorization.AspNetCore.AuthzPermissionList? right) -> bool
+static Kun.Authorization.AspNetCore.AuthzPermissionList.operator ==(Kun.Authorization.AspNetCore.AuthzPermissionList? left, Kun.Authorization.AspNetCore.AuthzPermissionList? right) -> bool
+static Kun.Authorization.AspNetCore.AuthzPermissionView.operator !=(Kun.Authorization.AspNetCore.AuthzPermissionView? left, Kun.Authorization.AspNetCore.AuthzPermissionView? right) -> bool
+static Kun.Authorization.AspNetCore.AuthzPermissionView.operator ==(Kun.Authorization.AspNetCore.AuthzPermissionView? left, Kun.Authorization.AspNetCore.AuthzPermissionView? right) -> bool
+Kun.Authorization.AspNetCore.AuthzEnforcementExtensions
+Kun.Authorization.AspNetCore.AuthzEnforcementOptions
+Kun.Authorization.AspNetCore.AuthzEnforcementOptions.AuthzEnforcementOptions() -> void
+Kun.Authorization.AspNetCore.AuthzEnforcementOptions.Production.get -> bool?
+Kun.Authorization.AspNetCore.AuthzEnforcementOptions.Production.set -> void
+Kun.Authorization.AspNetCore.AuthzEnforcementSource
+Kun.Authorization.AspNetCore.AuthzGrpcServerInterceptor
+Kun.Authorization.AspNetCore.AuthzGrpcServerInterceptor.AuthzGrpcServerInterceptor(Kun.Authorization.AspNetCore.AuthzEnforcementSource! source, Microsoft.Extensions.Logging.ILogger<Kun.Authorization.AspNetCore.AuthzGrpcServerInterceptor!>! logger) -> void
+const Kun.Authorization.AspNetCore.AuthzGrpcServerInterceptor.ErrorDetailTrailer = "qian-error-bin" -> string!
+override Kun.Authorization.AspNetCore.AuthzGrpcServerInterceptor.ClientStreamingServerHandler<TRequest, TResponse>(Grpc.Core.IAsyncStreamReader<TRequest!>! requestStream, Grpc.Core.ServerCallContext! context, Grpc.Core.ClientStreamingServerMethod<TRequest!, TResponse!>! continuation) -> System.Threading.Tasks.Task<TResponse!>!
+override Kun.Authorization.AspNetCore.AuthzGrpcServerInterceptor.DuplexStreamingServerHandler<TRequest, TResponse>(Grpc.Core.IAsyncStreamReader<TRequest!>! requestStream, Grpc.Core.IServerStreamWriter<TResponse!>! responseStream, Grpc.Core.ServerCallContext! context, Grpc.Core.DuplexStreamingServerMethod<TRequest!, TResponse!>! continuation) -> System.Threading.Tasks.Task!
+override Kun.Authorization.AspNetCore.AuthzGrpcServerInterceptor.ServerStreamingServerHandler<TRequest, TResponse>(TRequest! request, Grpc.Core.IServerStreamWriter<TResponse!>! responseStream, Grpc.Core.ServerCallContext! context, Grpc.Core.ServerStreamingServerMethod<TRequest!, TResponse!>! continuation) -> System.Threading.Tasks.Task!
+override Kun.Authorization.AspNetCore.AuthzGrpcServerInterceptor.UnaryServerHandler<TRequest, TResponse>(TRequest! request, Grpc.Core.ServerCallContext! context, Grpc.Core.UnaryServerMethod<TRequest!, TResponse!>! continuation) -> System.Threading.Tasks.Task<TResponse!>!
+static Kun.Authorization.AspNetCore.AuthzEnforcementExtensions.AddQianAuthzEnforcement(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source, System.Action<Kun.Authorization.AspNetCore.AuthzEnforcementOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Authorization.AspNetCore.AuthzEnforcementExtensions.AddQianAuthzInterceptor(this Grpc.AspNetCore.Server.GrpcServiceOptions! options) -> Grpc.AspNetCore.Server.GrpcServiceOptions!
+static Kun.Authorization.AspNetCore.AuthzEnforcementExtensions.RequireQianPermission<TBuilder>(this TBuilder builder, string! permission) -> TBuilder
+static Kun.Authorization.AspNetCore.AuthzEnforcementExtensions.UseQianAuthzEnforcement(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!

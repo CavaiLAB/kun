@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Core.MultiTenancy;
 using Qian.Audit;
-using Qian.Authz.AspNetCore;
+using Kun.Authorization.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config;
 using Kun.Data;
@@ -144,7 +144,7 @@ public static class PlatformHost
             .AllowAnonymous().ExcludeFromDescription();
         app.MapQianCapabilities(http => Scoped(http, "capabilities"));
         app.MapQianPlatformConsole(http => Console(http, runtime));
-        app.MapQianAuthz(http => Scoped(http, "authz"));
+        app.MapKunAuthz(http => Scoped(http, "authz"));
         foreach (var map in composition.Endpoints) map(app, runtime);
         // 运营端点组：不加路由前缀，只给组里每个端点加运营受众元数据，认证按匹配到的端点选方案（GatewayS2s.Select）。
         var operations = app.MapGroup("").WithMetadata(OperationsAudience.Instance);

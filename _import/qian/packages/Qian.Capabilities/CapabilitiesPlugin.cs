@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Tenancy;
 using Kun.Runtime;
 using Kun.Errors;

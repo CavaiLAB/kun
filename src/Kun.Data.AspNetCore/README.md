@@ -6,7 +6,7 @@ qian.data 的 HTTP 表面：基准类型目录（全局元数据）与数据连�
 
 ```csharp
 builder.Services.AddKunErrors();
-builder.Services.AddKunAuthorization();            // 另需登记 IPermissionChecker（如 Qian.Authz）
+builder.Services.AddKunAuthorization();            // 另需登记 IPermissionChecker（如 Kun.Authorization.Rbac）
 builder.Services.AddKunPgDialect();
 builder.Services.AddKunDataConnections((sp, options) => options.UseNpgsql(appConnection));
 var app = builder.Build();

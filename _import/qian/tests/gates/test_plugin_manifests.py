@@ -104,7 +104,7 @@ class PluginManifestGateTests(unittest.TestCase):
 
     def test_tool_declares_the_aspnetcore_shared_framework_itself(self):
         # 清单工具装载组件程序集盘点类型，*.AspNetCore 组件要 ASP.NET Core 共享框架。工具在自己的项目文件里声明，
-        # 不靠被引用的包顺带传递：插件开发包拆包后传递就断过，盘点 Qian.Authz.AspNetCore 时加载不到程序集。
+        # 不靠被引用的包顺带传递：插件开发包拆包后传递就断过，盘点 Kun.Authorization.AspNetCore 时加载不到程序集。
         project = GATE.solution_root(SOURCE.parents[1]) / "tools/Kun.Plugin.Tool/Kun.Plugin.Tool.csproj"
         references = {item.get("Include") for item in ET.parse(project).getroot().iter("FrameworkReference")}
         self.assertIn("Microsoft.AspNetCore.App", references, f"{project.name} 没有自己声明 ASP.NET Core 共享框架")

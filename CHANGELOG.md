@@ -8,6 +8,12 @@
 
 ## [Unreleased]
 
+### Changed — 权限包、组件入口与计量器（S1-KUN-027）
+
+- 将包引用与命名空间从 `Qian.Authz.Abstractions`、`Qian.Authz`、`Qian.Authz.AspNetCore` 分别改为 `Kun.Authorization.Rbac.Abstractions`、`Kun.Authorization.Rbac`、`Kun.Authorization.AspNetCore`。
+- 映射组件端点改用 `MapKunAuthz`，登记授权事件改用 `AddKunAuthzEvents`。组件 `qian.authz` 的版本升至 1.1.0，清单入口为 `Kun.Authorization.Rbac.AuthzComponent, Kun.Authorization.Rbac`。
+- 订阅授权指标的宿主将计量器名从 `Qian.Authz` 改为 `Kun.Authorization.Rbac`。仪表继续使用 `qian.authz.*`。
+
 ### Changed — 组件运行时的类型化配置
 
 - `Kun.Runtime` 支持 NativeAOT。实现 `IKunPlugin<TConfig>` 的组件须增加 `JsonTypeInfo<TConfig> ConfigTypeInfo { get; }`，从采用 `JsonSerializerDefaults.Web` 的源生成上下文返回配置契约。配置属性名继续按 Web 约定匹配。

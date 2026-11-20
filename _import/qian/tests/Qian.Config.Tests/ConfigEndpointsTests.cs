@@ -19,7 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config.Apollo;

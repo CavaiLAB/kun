@@ -36,11 +36,11 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-16 租户域 RBAC 判定、完整 Explain 与平台超管旁路（S1-AZ-003）
 
-`qian.authz` 按租户的真实角色、授权与当前策略版本判定权限，缺省拒绝：缺租户上下文、主体跨租户、未登记权限点或无匹配授权都拒绝，BatchCheck 与逐条 Check 结果一致。判定快照按租户授权修订缓存，授予或撤销后下一次判定即生效（R103）。组件经 `ctx.Authz()` 调 `ExplainDetailedAsync`，得到命中角色、授权定位与缺少的权限点。平台超管只能经显式旁路访问租户资源：放行前写入目标租户审计链（`bypass = superadmin`），审计写不进就拒绝。详见 [Qian.Authz](../packages/Qian.Authz/README.md)。
+`qian.authz` 按租户的真实角色、授权与当前策略版本判定权限，缺省拒绝：缺租户上下文、主体跨租户、未登记权限点或无匹配授权都拒绝，BatchCheck 与逐条 Check 结果一致。判定快照按租户授权修订缓存，授予或撤销后下一次判定即生效（R103）。组件经 `ctx.Authz()` 调 `ExplainDetailedAsync`，得到命中角色、授权定位与缺少的权限点。平台超管只能经显式旁路访问租户资源：放行前写入目标租户审计链（`bypass = superadmin`），审计写不进就拒绝。详见 [Qian.Authz](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Authorization.Rbac/README.md)。
 
 ## 2026-10-16 审计哈希链、权限点注册表与默认角色（S1-AUD-001、S1-AZ-002）
 
-`qian.audit` 在命令的同一事务里按租户追加哈希链审计：查询默认不记，`Audit = true` 时记录；输入按 Schema `sensitive` 脱敏后再取哈希。`qian.authz` 从组件 `metadata/permissions.json` / `roles.json` 登记权限点（独立模式用 `[Permission]`），新租户开通时实例化默认角色；`GET /api/authz/me/permissions` 列出当前主体的有效权限及风险、step-up。详见 [Qian.Audit](../packages/Qian.Audit/README.md)、[Qian.Authz](../packages/Qian.Authz/README.md)；复核裁决 R101–R103 见[关键决策](decisions/key-decisions-v0.md)。
+`qian.audit` 在命令的同一事务里按租户追加哈希链审计：查询默认不记，`Audit = true` 时记录；输入按 Schema `sensitive` 脱敏后再取哈希。`qian.authz` 从组件 `metadata/permissions.json` / `roles.json` 登记权限点（独立模式用 `[Permission]`），新租户开通时实例化默认角色；`GET /api/authz/me/permissions` 列出当前主体的有效权限及风险、step-up。详见 [Qian.Audit](../packages/Qian.Audit/README.md)、[Qian.Authz](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Authorization.Rbac/README.md)；复核裁决 R101–R103 见[关键决策](decisions/key-decisions-v0.md)。
 
 ## 2026-10-16 qian CLI 包管理器超时可配置（S1-RT-030）
 

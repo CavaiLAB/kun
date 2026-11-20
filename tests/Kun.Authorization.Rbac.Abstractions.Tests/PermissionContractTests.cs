@@ -1,0 +1,83 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+
+namespace Kun.Authorization.Rbac.Abstractions.Tests;
+
+public sealed class PermissionContractTests
+{
+    [Theory]
+    [InlineData("qian.sample.crm", "customer", "read")]
+    [InlineData("qian.crm-v2", "customer_group", "bulk-write")]
+    public void Qualified_names_agree_with_frozen_capability_contract(string plugin, string resource, string action)
+    {
+        var code = PermissionCode.Format(plugin, resource, action);
+        Assert.Equal($"{plugin}:{resource}:{action}", code);
+        Assert.True(PermissionCode.IsValid(code));
+        using var schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "_import/qian/contracts/v0/capability-entry.schema.json")));
+        var pattern = schema.RootElement.GetProperty("properties").GetProperty("requiredPermission").GetProperty("pattern").GetString()!;
+        Assert.Matches(new Regex(pattern, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)), code);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("sample:customer:read")]
+    [InlineData("Qian.crm:customer:read")]
+    [InlineData("qian.crm:qian.crm.customer:read")]
+    [InlineData("qian.crm:customer:")]
+    [InlineData("qian.crm:customer:read:all")]
+    [InlineData("qian.crm:customer:read\n")]
+    [InlineData("qian.crm:customer:*")]
+    public void Invalid_names_are_rejected(string? code) => Assert.False(PermissionCode.IsValid(code));
+
+    [Fact]
+    public void Metadata_roundtrip_preserves_short_resource_and_copies_terminal_list()
+    {
+        var terminals = new List<string> { "web", "mobile" };
+        var declaration = new PermissionDefinition("qian.sample.crm", "customer", "export", PermissionRisk.High, true, terminals);
+        terminals.Clear();
+        var json = JsonSerializer.Serialize(declaration);
+        Assert.Contains("\"Risk\":\"high\"", json, StringComparison.Ordinal);
+        var copy = JsonSerializer.Deserialize<PermissionDefinition>(json)!;
+        Assert.Equal("qian.sample.crm:customer:export", copy.Code);
+        Assert.Equal("customer", copy.Resource);
+        Assert.True(copy.RequiresStepUp);
+        Assert.Equal(["web", "mobile"], copy.Terminals);
+        Assert.Throws<ArgumentException>(() => PermissionCode.Format("qian.crm", "qian.crm:customer", "read"));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new PermissionDefinition("qian.crm", "customer", "read", (PermissionRisk)100, false, []));
+        Assert.Throws<ArgumentException>(() => new PermissionDefinition("qian.crm", "customer", "read", PermissionRisk.Low, false, ["web", "web"]));
+        Assert.Throws<ArgumentException>(() => new PermissionDefinition("qian.crm", "customer", "read", PermissionRisk.Low, false, [" "]));
+    }
+
+    [Fact]
+    public void Definition_reuses_Kun_ports_and_has_only_permitted_direct_dependencies()
+    {
+        Assert.True(typeof(IPermissionChecker).IsAssignableFrom(typeof(IAuthzService)));
+        Assert.Equal(typeof(IDataPermissionFilter), typeof(IAuthzService).GetProperty(nameof(IAuthzService.DataPermissions))!.PropertyType);
+        Assert.Equal(typeof(IFieldPolicy), typeof(IAuthzService).GetProperty(nameof(IAuthzService.Fields))!.PropertyType);
+        Assert.Equal(["BatchCheckAsync", "CheckAsync", "ExplainAsync", "ListAllowedActionsAsync", "ListPermissionsAsync"],
+            typeof(IPermissionChecker).GetMethods().Select(m => m.Name).Order(StringComparer.Ordinal));
+        var directory = Path.Combine(Root, "src/Kun.Authorization.Rbac.Abstractions");
+        var project = XDocument.Load(Path.Combine(directory, "Kun.Authorization.Rbac.Abstractions.csproj"));
+        // 只以项目引用依赖仓库 src/ 下的 Kun 项目（S1-KUN-020），没有包引用：组件运行时、两个 Kun 抽象，以及登记受保护命令用的中介。
+        // Kun.EventBus.Abstractions 只为 authz.grant.changed.v1 / authz.role.changed.v1 的集成事件记录与登记入口（S1-AZ-004），仍是 Definition 允许的 Kun 抽象。
+        Assert.Empty(project.Descendants("PackageReference"));
+        var repository = Root;
+        Assert.Equal(["src/Kun.Authorization/Kun.Authorization.csproj", "src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj",
+                "src/Kun.Mediator/Kun.Mediator.csproj", "src/Kun.Runtime/Kun.Runtime.csproj"],
+            project.Descendants("ProjectReference")
+                .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
+                .Order(StringComparer.Ordinal));
+    }
+
+    internal static string Root
+    {
+        get
+        {
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+            while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) directory = directory.Parent;
+            return directory?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
+        }
+    }
+}

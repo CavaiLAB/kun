@@ -149,7 +149,7 @@ public sealed class ComponentGeneratorTests
             "missing-owner" => source.Replace("MetadataTypes = [typeof(Events)]", "MetadataTypes = []", StringComparison.Ordinal),
             "wrong-owner" => source.Replace("SharedEvents(typeof(Events), \"qian.owner\")", "SharedEvents(typeof(Events), \"qian.missing\")", StringComparison.Ordinal),
             "duplicate-owner" => source.Replace("KunPlugin(\"qian.consumer\")", "KunPlugin(\"qian.consumer\", MetadataTypes = [typeof(Events)])", StringComparison.Ordinal),
-            "permissions" => source.Replace("public static class Events", "[Qian.Authz.Abstractions.Permission(\"notes\", \"read\")] public static class Events", StringComparison.Ordinal),
+            "permissions" => source.Replace("public static class Events", "[Kun.Authorization.Rbac.Abstractions.Permission(\"notes\", \"read\")] public static class Events", StringComparison.Ordinal),
             "empty" => source.Replace("[KunEvent(Mode = DispatchMode.Emit)]", "", StringComparison.Ordinal),
             _ => source
         };

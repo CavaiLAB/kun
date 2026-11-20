@@ -4,7 +4,7 @@ using Kun.EntityFrameworkCore;
 using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;

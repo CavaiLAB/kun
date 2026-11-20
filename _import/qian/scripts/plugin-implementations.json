@@ -1,8 +1,8 @@
 {
   "Qian.Audit.Native:Qian.Audit.Native.NativeAuditPlugin": {"owner":"qian.audit.native","reason":"NativeAuditComponent 的程序化实现，提供相同服务与受限存储边界。"},
   "Qian.Audit:Qian.Audit.AuditPlugin": {"owner":"qian.audit","reason":"AuditComponent 的可编程实现，独立宿主可直接组合。"},
-  "Qian.Authz:Qian.Authz.AuthzPlugin": {"owner":"qian.authz","reason":"AuthzComponent 固定默认模式；FromInstalledComponents 是平台宿主的安装目录适配模式。"},
-  "Qian.Authz:Qian.Authz.RbacCommandPolicyPlugin": {"owner":"qian.authz","reason":"宿主只组合命令 PEP 的子插件，不是独立组件。"},
+  "Kun.Authorization.Rbac:Kun.Authorization.Rbac.AuthzPlugin": {"owner":"qian.authz","reason":"AuthzComponent 固定默认模式；FromInstalledComponents 是平台宿主的安装目录适配模式。"},
+  "Kun.Authorization.Rbac:Kun.Authorization.Rbac.RbacCommandPolicyPlugin": {"owner":"qian.authz","reason":"宿主只组合命令 PEP 的子插件，不是独立组件。"},
   "Qian.Capabilities:Qian.Capabilities.CapabilitiesPlugin": {"owner":"qian.capabilities","reason":"CapabilitiesComponent 的平台能力目录实现。"},
   "Qian.Capabilities:Qian.Capabilities.OpenApiContractPlugin": {"owner":"qian.capabilities","reason":"接收其它组件的 OpenAPI 契约包装器，保留被包装组件的 ID 与生命周期。"},
   "Qian.Capabilities:Qian.Capabilities.GrpcContractPlugin": {"owner":"qian.capabilities","reason":"接收其它组件的 gRPC 契约包装器。"},

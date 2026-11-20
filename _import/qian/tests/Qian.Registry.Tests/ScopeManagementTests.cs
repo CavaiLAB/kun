@@ -23,8 +23,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Authz;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
@@ -35,7 +35,7 @@ using Qian.Surfaces;
 
 namespace Qian.Registry.Tests;
 
-// S1-RT-004 管理面 scope 视图（R32 / R48 / R33）：真实 PostgreSQL、真实 RBAC 判定（Qian.Authz 的 RbacPermissionChecker 读真实角色授予）、
+// S1-RT-004 管理面 scope 视图（R32 / R48 / R33）：真实 PostgreSQL、真实 RBAC 判定（Kun.Authorization.Rbac 的 RbacPermissionChecker 读真实角色授予）、
 // 真实 Kestrel + JWT 与租户边界；没有替身判定器，令牌里的角色也不授予任何权限。
 public sealed partial class PatchPersistenceTests
 {

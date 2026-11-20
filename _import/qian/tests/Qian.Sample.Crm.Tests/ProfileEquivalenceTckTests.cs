@@ -161,7 +161,7 @@ public sealed partial class LifecycleProfileTests
                 // 命令管道没有执行，链上没有新的命令审计；只多出 HTTP PEP 的放行决策日志（S1-AZ-004，判定在注册表缺失被发现之前完成）。
                 var audit = loader.GetContext("audit", ScopeKey.Global).Audit();
                 var extra = (await audit.ReadAsync(auditA, 10, cancellationToken: Ct)).Select(entry => entry.Record).ToArray();
-                Assert.All(extra, record => Assert.Equal((Qian.Authz.Abstractions.AuthzEnforcement.DecisionCapabilityId, "allowed"), (record.CapabilityId, record.Result)));
+                Assert.All(extra, record => Assert.Equal((Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.DecisionCapabilityId, "allowed"), (record.CapabilityId, record.Result)));
                 Assert.Equal(auditA + extra.Length, (await audit.VerifyAsync(Ct)).CheckedEntries);
             }
             await host.App.StopAsync(Ct); Assert.Empty(loader.DumpConfig());

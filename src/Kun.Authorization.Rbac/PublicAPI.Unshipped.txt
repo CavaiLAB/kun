@@ -1,0 +1,52 @@
+#nullable enable
+Kun.Authorization.Rbac.PermissionCatalogCompiler
+Kun.Authorization.Rbac.PermissionCatalogCompiler.FromAttributes(string! pluginId, string! version, System.Collections.Generic.IEnumerable<Kun.Authorization.Rbac.Abstractions.PermissionAttribute!>! attributes, System.Text.Json.JsonElement roles, string! roleFile = "metadata/roles.json") -> Kun.Authorization.Rbac.Abstractions.PermissionCatalog!
+Kun.Authorization.Rbac.PermissionCatalogCompiler.FromInstalled(Qian.Registry.InstalledComponentMetadata! component) -> Kun.Authorization.Rbac.Abstractions.PermissionCatalog!
+Kun.Authorization.Rbac.PermissionCatalogCompiler.FromMetadata(string! pluginId, string! version, System.Text.Json.JsonElement permissions, System.Text.Json.JsonElement roles, string! permissionFile = "metadata/permissions.json", string! roleFile = "metadata/roles.json") -> Kun.Authorization.Rbac.Abstractions.PermissionCatalog!
+Kun.Authorization.Rbac.PermissionCatalogCompiler.PermissionCatalogCompiler(Qian.Surfaces.Abstractions.ISurfaceReader! reader) -> void
+Kun.Authorization.Rbac.AuthzDbContext
+Kun.Authorization.Rbac.AuthzDbContext.AuthzDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Authorization.Rbac.AuthzDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+const Kun.Authorization.Rbac.AuthzDbContext.Schema = "plugin_qian_authz" -> string!
+Kun.Authorization.Rbac.PermissionRegistry
+Kun.Authorization.Rbac.PermissionRegistry.Find(string! code, string! version) -> Kun.Authorization.Rbac.Abstractions.PermissionDefinition?
+Kun.Authorization.Rbac.PermissionRegistry.List(string! pluginId, string! version) -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.PermissionDefinition!>!
+Kun.Authorization.Rbac.PermissionRegistry.ListResources(string! pluginId, string! version) -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition!>!
+Kun.Authorization.Rbac.PermissionRegistry.PermissionRegistry() -> void
+Kun.Authorization.Rbac.PermissionRegistry.Register(string! version, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.PermissionDefinition!>! permissions) -> System.IDisposable!
+Kun.Authorization.Rbac.PermissionRegistry.RegisterResources(string! version, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition!>! resources) -> System.IDisposable!
+Kun.Authorization.Rbac.RbacPermissionChecker
+Kun.Authorization.Rbac.RbacPermissionChecker.BatchCheckAsync(System.Collections.Generic.IReadOnlyList<Kun.Authorization.PermissionRequest!>! requests, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Authorization.PermissionDecision!>!>
+Kun.Authorization.Rbac.RbacPermissionChecker.CheckAsync(Kun.Authorization.PermissionRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.PermissionDecision!>
+Kun.Authorization.Rbac.RbacPermissionChecker.ExplainAsync(Kun.Authorization.PermissionRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.PermissionDecision!>
+Kun.Authorization.Rbac.RbacPermissionChecker.ExplainDetailedAsync(Kun.Authorization.PermissionRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation!>
+Kun.Authorization.Rbac.RbacPermissionChecker.ListAllowedActionsAsync(Kun.Authorization.AuthorizationSubject! subject, string! resourceType, string? resourceId = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<string!>!>
+Kun.Authorization.Rbac.RbacPermissionChecker.ListPermissionsAsync(Kun.Authorization.AuthorizationSubject! subject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<string!>!>
+Kun.Authorization.Rbac.RbacCommandPolicyPlugin
+Kun.Authorization.Rbac.RbacCommandPolicyPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Authorization.Rbac.RbacCommandPolicyPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Authorization.Rbac.RbacCommandPolicyPlugin.RbacCommandPolicyPlugin() -> void
+Kun.Authorization.Rbac.AuthzDbContext.AuthzDbContext(Microsoft.EntityFrameworkCore.DbContextOptions! options, Kun.Core.MultiTenancy.ITenantContext! tenant, bool platform) -> void
+Kun.Authorization.Rbac.AuthzPlatformAccess
+Kun.Authorization.Rbac.AuthzPlugin
+Kun.Authorization.Rbac.AuthzPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Authorization.Rbac.AuthzPlugin.AuthzPlugin() -> void
+Kun.Authorization.Rbac.AuthzPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Authorization.Rbac.PlatformAuthzDbContext
+Kun.Authorization.Rbac.PlatformAuthzDbContext.PlatformAuthzDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Authorization.Rbac.PlatformAuthzDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Authorization.Rbac.RbacPermissionChecker.RbacPermissionChecker(Kun.EntityFrameworkCore.IDataService! data, Kun.Core.MultiTenancy.ITenantContext! tenant, Kun.Authorization.Rbac.Abstractions.IPermissionRegistry! registry, Kun.Authorization.Rbac.Abstractions.IAuthzExecutionConstraints? constraints = null, Kun.Caching.Abstractions.IKunCache? cache = null) -> void
+override Kun.Authorization.Rbac.AuthzDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder! modelBuilder) -> void
+static Kun.Authorization.Rbac.AuthzPlatformAccess.CreateMigrationSql(string! platformRole) -> string!
+Kun.Authorization.Rbac.AuthzPlugin.AuthzPlugin(System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.PermissionCatalog!>! catalogs) -> void
+Kun.Authorization.Rbac.RbacPermissionChecker.ListEffectivePermissionsAsync(Kun.Authorization.AuthorizationSubject! subject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.EffectiveGrant!>!>
+static Kun.Authorization.Rbac.AuthzPlugin.FromInstalledComponents() -> Kun.Authorization.Rbac.AuthzPlugin!
+Kun.Authorization.Rbac.DataScopeComposition
+static Kun.Authorization.Rbac.DataScopeComposition.ForResource(string! resource, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.RoleDataScope!>! roles) -> Kun.Authorization.Rbac.Abstractions.DataScopePlan!
+Kun.Authorization.Rbac.AuthzEventHandlers
+static Kun.Authorization.Rbac.AuthzEventHandlers.AddKunAuthzEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!
+Kun.Authorization.Rbac.AuthzComponent
+Kun.Authorization.Rbac.AuthzComponent.AuthzComponent() -> void
+Kun.Authorization.Rbac.AuthzComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Authorization.Rbac.AuthzComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Authorization.Rbac.PlatformSuperadminBootstrap
+static Kun.Authorization.Rbac.PlatformSuperadminBootstrap.AssignFirstAsync(System.IServiceProvider! services, string! platformRole, string! userId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
+static Kun.Authorization.Rbac.PlatformSuperadminBootstrap.ExistsAsync(System.IServiceProvider! services, string! platformRole, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!

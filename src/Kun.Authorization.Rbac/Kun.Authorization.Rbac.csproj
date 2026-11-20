@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>权限目录、默认角色模板与租户授权 Provider。</Description></PropertyGroup>
+  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
+    <!-- 授权变更后经身份端口递增 identity_revision（S1-DEC-027）：只用 Definition 里的 IIdentityAccounts 与服务键。 -->
+    <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
+    <PackageReference Include="JsonSchema.Net" />
+    <ProjectReference Include="../Kun.Caching/Kun.Caching.csproj" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+  <ItemGroup><EmbeddedResource Include="../../_import/qian/schemas/v2/authz-*.schema.json" LogicalName="schemas/%(Filename)%(Extension)" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Kun.Authorization.Rbac.Tests" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Qian.Sample.Crm.Tests" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Qian.Registry.Tests" /></ItemGroup>
+  <!-- 本机租户运营手测宿主（S1-QA-012）引导平台超管：与测试一样经内部平台角色存储，S1-AZ-005 的管理 API 交付后改用它。 -->
+  <ItemGroup><InternalsVisibleTo Include="Qian.Dev.TenantOps" /></ItemGroup>
+  <!-- qian.files 平台模式验收宿主（S1-FILE-004）同样经内部平台角色存储授予平台超管。 -->
+  <ItemGroup><InternalsVisibleTo Include="Qian.Files.Tests" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

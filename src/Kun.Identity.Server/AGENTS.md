@@ -13,5 +13,5 @@
 - 日志点只用 `[LoggerMessage]`，参数不得是会话标识或 Guid（`SessionLogHygieneTests` 扫描把关）；管理面的判定是内置规则，集中在 `ResolveCallerAsync` 与端点的 `Scope`，不要在别处加分支，待 PEP 接入后统一换成权限点。
 - 事件只经领域通知 → 集成事件总线 → 同事务 Outbox 发布（QIAN0006）；写事件的操作必须在 `EventEnvelopeScope` 内。
 - 协议错误由 OpenIddict 按 OIDC/OAuth2 输出；账号接口与平台管理接口使用 ErrorDetail，错误码在 `IdentityErrors` 登记。
-- 只依赖 Runtime*、`*.Abstractions` 与第三方协议库（不引用 Kun.Tenancy / Qian.Authz 等 Provider 包）；宿主组合 Data 与 Tenancy。公共 API 变更同步 `PublicAPI.Unshipped.txt`。
+- 只依赖 Runtime*、`*.Abstractions` 与第三方协议库（不引用 Kun.Tenancy / Kun.Authorization.Rbac 等 Provider 包）；宿主组合 Data 与 Tenancy。公共 API 变更同步 `PublicAPI.Unshipped.txt`。
 - 不复制其他产品的身份代码；绑定守卫、软删除绑定、掩码投影只借鉴设计思路，实现自写并配结构化错误测试。

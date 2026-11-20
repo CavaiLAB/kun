@@ -2,14 +2,14 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Kun.Authorization;
 using Kun.Runtime;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 
 namespace Qian.Testing;
 
 // 直接验证发布程序集的内部实现；不为测试程序集授予 InternalsVisibleTo，也不复制授权算法。
 internal static class TenantInitializationAccess
 {
-    private static readonly Type Target = typeof(AuthzDefinition).Assembly.GetType("Qian.Authz.Abstractions.TenantInitializationAuthorization", true)!;
+    private static readonly Type Target = typeof(AuthzDefinition).Assembly.GetType("Kun.Authorization.Rbac.Abstractions.TenantInitializationAuthorization", true)!;
     private static object? Call(string name, object?[] args, Type? generic = null)
     {
         var method = Target.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Single(method =>

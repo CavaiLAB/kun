@@ -7,7 +7,7 @@
 ```csharp
 app.MapQianFiles(
     http => /* 按请求租户收窄、可注入 Files 的 qian.files 上下文 */,
-    (endpoint, permission) => endpoint.RequireQianPermission(permission), // Qian.Authz.AspNetCore 的 HTTP PEP
+    (endpoint, permission) => endpoint.RequireQianPermission(permission), // Kun.Authorization.AspNetCore 的 HTTP PEP
     new FilesEndpointOptions { TransferSource = http => /* qian.files 的 global 上下文 */ });
 ```
 

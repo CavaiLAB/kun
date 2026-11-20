@@ -1,7 +1,7 @@
 using System.Net;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 
 namespace Qian.Sample.Crm.Tests;
 

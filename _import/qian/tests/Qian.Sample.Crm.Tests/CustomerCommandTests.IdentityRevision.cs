@@ -6,8 +6,8 @@ using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Qian.Authz;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 
 namespace Qian.Sample.Crm.Tests;

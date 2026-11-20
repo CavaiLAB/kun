@@ -7,7 +7,7 @@ using Kun.EntityFrameworkCore;
 using Kun.Security;
 using Microsoft.EntityFrameworkCore.Storage;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Npgsql;
 using System.Text;
 using Kun.Authorization;

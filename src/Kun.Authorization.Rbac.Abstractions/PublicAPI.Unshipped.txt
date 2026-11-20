@@ -1,0 +1,352 @@
+#nullable enable
+Kun.Authorization.Rbac.Abstractions.AuthzDefinition
+Kun.Authorization.Rbac.Abstractions.AuthzErrors
+Kun.Authorization.Rbac.Abstractions.IAuthzService
+Kun.Authorization.Rbac.Abstractions.IAuthzService.DataPermissions.get -> Kun.Authorization.IDataPermissionFilter!
+Kun.Authorization.Rbac.Abstractions.IAuthzService.Fields.get -> Kun.Authorization.IFieldPolicy!
+Kun.Authorization.Rbac.Abstractions.PermissionCode
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition.Action.get -> string!
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition.Code.get -> string!
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition.PermissionDefinition(string! pluginId, string! resource, string! action, Kun.Authorization.Rbac.Abstractions.PermissionRisk risk, bool requiresStepUp, System.Collections.Generic.IReadOnlyList<string!>! terminals) -> void
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition.PluginId.get -> string!
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition.RequiresStepUp.get -> bool
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition.Resource.get -> string!
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition.Risk.get -> Kun.Authorization.Rbac.Abstractions.PermissionRisk
+Kun.Authorization.Rbac.Abstractions.PermissionDefinition.Terminals.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Authorization.Rbac.Abstractions.PermissionRisk
+Kun.Authorization.Rbac.Abstractions.PermissionRisk.Critical = 3 -> Kun.Authorization.Rbac.Abstractions.PermissionRisk
+Kun.Authorization.Rbac.Abstractions.PermissionRisk.High = 2 -> Kun.Authorization.Rbac.Abstractions.PermissionRisk
+Kun.Authorization.Rbac.Abstractions.PermissionRisk.Low = 0 -> Kun.Authorization.Rbac.Abstractions.PermissionRisk
+Kun.Authorization.Rbac.Abstractions.PermissionRisk.Medium = 1 -> Kun.Authorization.Rbac.Abstractions.PermissionRisk
+static Kun.Authorization.Rbac.Abstractions.AuthzDefinition.Authz(this Kun.Runtime.IPluginContext! context) -> Kun.Authorization.Rbac.Abstractions.IAuthzService!
+static Kun.Authorization.Rbac.Abstractions.AuthzErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
+static Kun.Authorization.Rbac.Abstractions.AuthzErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Kun.Authorization.Rbac.Abstractions.PermissionCode.Format(string! pluginId, string! resource, string! action) -> string!
+static Kun.Authorization.Rbac.Abstractions.PermissionCode.IsValid(string? value) -> bool
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.CardinalityUserLimit -> Kun.Errors.ErrorCode!
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.ConstraintMutex -> Kun.Errors.ErrorCode!
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.Denied -> Kun.Errors.ErrorCode!
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.PartialSuccess -> Kun.Errors.ErrorCode!
+Kun.Authorization.Rbac.Abstractions.AuthorizedHandlerRegistration
+static Kun.Authorization.Rbac.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Errors.Error!, TResponse>! denied) -> Kun.Mediator.KunMediatorBuilder!
+static Kun.Authorization.Rbac.Abstractions.AuthorizedHandlerRegistration.AddAuthorizedHandler<TRequest, TResponse, THandler>(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<Kun.Errors.Error!, TResponse>! denied, string! capabilityId, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TRequest>! request, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TResponse>! response) -> Kun.Mediator.KunMediatorBuilder!
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.Action.get -> string!
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.PermissionAttribute(string! resource, string! action) -> void
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.RequiresStepUp.get -> bool
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.RequiresStepUp.set -> void
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.Resource.get -> string!
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.Risk.get -> Kun.Authorization.Rbac.Abstractions.PermissionRisk
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.Risk.set -> void
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.Terminals.get -> string![]!
+Kun.Authorization.Rbac.Abstractions.PermissionAttribute.Terminals.set -> void
+Kun.Authorization.Rbac.Abstractions.PermissionCatalog
+Kun.Authorization.Rbac.Abstractions.PermissionCatalog.PermissionCatalog(string! pluginId, string! version, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.PermissionDefinition!>! permissions, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.RoleTemplate!>! roles) -> void
+Kun.Authorization.Rbac.Abstractions.PermissionCatalog.Permissions.get -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.PermissionDefinition!>!
+Kun.Authorization.Rbac.Abstractions.PermissionCatalog.PluginId.get -> string!
+Kun.Authorization.Rbac.Abstractions.PermissionCatalog.Roles.get -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.RoleTemplate!>!
+Kun.Authorization.Rbac.Abstractions.PermissionCatalog.Version.get -> string!
+Kun.Authorization.Rbac.Abstractions.RoleTemplate
+Kun.Authorization.Rbac.Abstractions.RoleTemplate.Grants.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Authorization.Rbac.Abstractions.RoleTemplate.Patterns.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Authorization.Rbac.Abstractions.RoleTemplate.Role.get -> string!
+Kun.Authorization.Rbac.Abstractions.RoleTemplate.RoleTemplate(string! role, System.Collections.Generic.IReadOnlyList<string!>! patterns, System.Collections.Generic.IReadOnlyList<string!>! grants) -> void
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.MetadataInvalid -> Kun.Errors.ErrorCode!
+Kun.Authorization.Rbac.Abstractions.IPermissionRegistry
+Kun.Authorization.Rbac.Abstractions.IPermissionRegistry.Find(string! code, string! version) -> Kun.Authorization.Rbac.Abstractions.PermissionDefinition?
+Kun.Authorization.Rbac.Abstractions.IPermissionRegistry.List(string! pluginId, string! version) -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.PermissionDefinition!>!
+Kun.Authorization.Rbac.Abstractions.IPermissionRegistry.Register(string! version, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.PermissionDefinition!>! permissions) -> System.IDisposable!
+Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition
+Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition.Code.get -> string!
+Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition.Description.get -> string?
+Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition.PluginId.get -> string!
+Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition.Resource.get -> string!
+Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition.ResourceTypeDefinition(string! pluginId, string! resource, string? description = null) -> void
+Kun.Authorization.Rbac.Abstractions.IResourceTypeRegistry
+Kun.Authorization.Rbac.Abstractions.IResourceTypeRegistry.ListResources(string! pluginId, string! version) -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition!>!
+Kun.Authorization.Rbac.Abstractions.IResourceTypeRegistry.RegisterResources(string! version, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.ResourceTypeDefinition!>! resources) -> System.IDisposable!
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzDefinition.PermissionsKey -> Kun.Runtime.ServiceKey
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzDefinition.ResourceTypesKey -> Kun.Runtime.ServiceKey
+Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation
+Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation.AuthorizationExplanation(Kun.Authorization.PermissionDecision! decision, System.Collections.Generic.IReadOnlyList<string!>! matchedRoles, System.Collections.Generic.IReadOnlyList<string!>! matchedGrants, System.Collections.Generic.IReadOnlyList<string!>! missing) -> void
+Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation.Decision.get -> Kun.Authorization.PermissionDecision!
+Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation.MatchedGrants.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation.MatchedRoles.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation.Missing.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Authorization.Rbac.Abstractions.IAuthzExecutionConstraints
+Kun.Authorization.Rbac.Abstractions.IAuthzExecutionConstraints.CheckAsync(Kun.Authorization.AuthorizationSubject! subject, Kun.Authorization.Rbac.Abstractions.PermissionDefinition! permission, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.PermissionDecision!>
+Kun.Authorization.Rbac.Abstractions.ISuperadminBypass
+Kun.Authorization.Rbac.Abstractions.ISuperadminBypass.AuthorizeAsync(Kun.Authorization.Rbac.Abstractions.SuperadminAccess! access, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.PermissionDecision!>
+Kun.Authorization.Rbac.Abstractions.ISuperadminCheck
+Kun.Authorization.Rbac.Abstractions.ISuperadminCheck.AllowedAsync(Kun.Authorization.AuthorizationSubject! subject, System.Collections.Generic.IReadOnlyCollection<string!>! permissions, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<string!>!>
+Kun.Authorization.Rbac.Abstractions.PlatformRoles
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.SuperadminAccess!
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Channel.get -> string!
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Channel.init -> void
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Deconstruct(out Kun.Authorization.AuthorizationSubject! Subject, out string! Permission, out string? TenantId, out string? Resource, out string! Channel) -> void
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Equals(Kun.Authorization.Rbac.Abstractions.SuperadminAccess? other) -> bool
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Permission.get -> string!
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Permission.init -> void
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Resource.get -> string?
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Resource.init -> void
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Subject.get -> Kun.Authorization.AuthorizationSubject!
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Subject.init -> void
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.SuperadminAccess(Kun.Authorization.AuthorizationSubject! Subject, string! Permission, string? TenantId, string? Resource, string! Channel) -> void
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.TenantId.get -> string?
+Kun.Authorization.Rbac.Abstractions.SuperadminAccess.TenantId.init -> void
+const Kun.Authorization.Rbac.Abstractions.PlatformRoles.Superadmin = "platform.superadmin" -> string!
+const Kun.Authorization.Rbac.Abstractions.PlatformRoles.SuperadminBypass = "superadmin" -> string!
+override Kun.Authorization.Rbac.Abstractions.SuperadminAccess.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.SuperadminAccess.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.SuperadminAccess.ToString() -> string!
+static Kun.Authorization.Rbac.Abstractions.SuperadminAccess.operator !=(Kun.Authorization.Rbac.Abstractions.SuperadminAccess? left, Kun.Authorization.Rbac.Abstractions.SuperadminAccess? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.SuperadminAccess.operator ==(Kun.Authorization.Rbac.Abstractions.SuperadminAccess? left, Kun.Authorization.Rbac.Abstractions.SuperadminAccess? right) -> bool
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzDefinition.SuperadminBypassKey -> Kun.Runtime.ServiceKey
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzDefinition.SuperadminCheckKey -> Kun.Runtime.ServiceKey
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.EffectiveGrant!
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Allowed.get -> bool
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Allowed.init -> void
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Deconstruct(out Kun.Authorization.Rbac.Abstractions.PermissionDefinition! Definition, out bool Allowed, out string! Reason) -> void
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Definition.get -> Kun.Authorization.Rbac.Abstractions.PermissionDefinition!
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Definition.init -> void
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.EffectiveGrant(Kun.Authorization.Rbac.Abstractions.PermissionDefinition! Definition, bool Allowed, string! Reason) -> void
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Equals(Kun.Authorization.Rbac.Abstractions.EffectiveGrant? other) -> bool
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Reason.get -> string!
+Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Reason.init -> void
+Kun.Authorization.Rbac.Abstractions.IAuthzService.ListEffectivePermissionsAsync(Kun.Authorization.AuthorizationSubject! subject, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.EffectiveGrant!>!>
+Kun.Authorization.Rbac.Abstractions.IAuthzService.ExplainDetailedAsync(Kun.Authorization.PermissionRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation!>
+override Kun.Authorization.Rbac.Abstractions.EffectiveGrant.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.EffectiveGrant.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.EffectiveGrant.ToString() -> string!
+static Kun.Authorization.Rbac.Abstractions.EffectiveGrant.operator !=(Kun.Authorization.Rbac.Abstractions.EffectiveGrant? left, Kun.Authorization.Rbac.Abstractions.EffectiveGrant? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.EffectiveGrant.operator ==(Kun.Authorization.Rbac.Abstractions.EffectiveGrant? left, Kun.Authorization.Rbac.Abstractions.EffectiveGrant? right) -> bool
+Kun.Authorization.Rbac.Abstractions.ITenantRoleGrant
+Kun.Authorization.Rbac.Abstractions.ITenantRoleGrant.AssignAsync(string! roleCode, string! subjectType, string! subjectId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Authorization.Rbac.Abstractions.TenantRoleGrant
+static readonly Kun.Authorization.Rbac.Abstractions.TenantRoleGrant.Key -> Kun.Runtime.ServiceKey
+Kun.Authorization.Rbac.Abstractions.DataScopeContracts
+Kun.Authorization.Rbac.Abstractions.DataScopePlan
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.DataScopePlan!
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.AllData.get -> bool
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.AllData.init -> void
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.DataScopePlan(string! Resource, bool AllData, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan!>! Roles) -> void
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.Deconstruct(out string! Resource, out bool AllData, out System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan!>! Roles) -> void
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.Equals(Kun.Authorization.Rbac.Abstractions.DataScopePlan? other) -> bool
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.Resource.get -> string!
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.Resource.init -> void
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.Roles.get -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan!>!
+Kun.Authorization.Rbac.Abstractions.DataScopePlan.Roles.init -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan!
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.DataScopeRolePlan(string! Role, System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>! Filters) -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.Deconstruct(out string! Role, out System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>! Filters) -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.Equals(Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan? other) -> bool
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.Filters.get -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>!
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.Filters.init -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.Role.get -> string!
+Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.Role.init -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRule
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.DataScopeRule!
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.AllData.get -> bool
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.AllData.init -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.DataScopeRule(string! Resource, bool AllData, System.Text.Json.JsonElement? Filter = null) -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.Deconstruct(out string! Resource, out bool AllData, out System.Text.Json.JsonElement? Filter) -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.Equals(Kun.Authorization.Rbac.Abstractions.DataScopeRule? other) -> bool
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.Filter.get -> System.Text.Json.JsonElement?
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.Filter.init -> void
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.Resource.get -> string!
+Kun.Authorization.Rbac.Abstractions.DataScopeRule.Resource.init -> void
+Kun.Authorization.Rbac.Abstractions.RoleDataScope
+Kun.Authorization.Rbac.Abstractions.RoleDataScope.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.RoleDataScope!
+Kun.Authorization.Rbac.Abstractions.RoleDataScope.Deconstruct(out string! Role, out System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.DataScopeRule!>! Rules) -> void
+Kun.Authorization.Rbac.Abstractions.RoleDataScope.Equals(Kun.Authorization.Rbac.Abstractions.RoleDataScope? other) -> bool
+Kun.Authorization.Rbac.Abstractions.RoleDataScope.Role.get -> string!
+Kun.Authorization.Rbac.Abstractions.RoleDataScope.Role.init -> void
+Kun.Authorization.Rbac.Abstractions.RoleDataScope.RoleDataScope(string! Role, System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.DataScopeRule!>! Rules) -> void
+Kun.Authorization.Rbac.Abstractions.RoleDataScope.Rules.get -> System.Collections.Generic.IReadOnlyList<Kun.Authorization.Rbac.Abstractions.DataScopeRule!>!
+Kun.Authorization.Rbac.Abstractions.RoleDataScope.Rules.init -> void
+override Kun.Authorization.Rbac.Abstractions.DataScopePlan.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.DataScopePlan.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.DataScopePlan.ToString() -> string!
+override Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.ToString() -> string!
+override Kun.Authorization.Rbac.Abstractions.DataScopeRule.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.DataScopeRule.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.DataScopeRule.ToString() -> string!
+override Kun.Authorization.Rbac.Abstractions.RoleDataScope.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.RoleDataScope.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.RoleDataScope.ToString() -> string!
+static Kun.Authorization.Rbac.Abstractions.DataScopeContracts.Metadata.get -> System.Text.Json.JsonElement
+static Kun.Authorization.Rbac.Abstractions.DataScopeContracts.PlanTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Authorization.Rbac.Abstractions.DataScopePlan!>!
+static Kun.Authorization.Rbac.Abstractions.DataScopeContracts.RuleSchema.get -> string!
+static Kun.Authorization.Rbac.Abstractions.DataScopeContracts.RuleTypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Authorization.Rbac.Abstractions.DataScopeRule!>!
+static Kun.Authorization.Rbac.Abstractions.DataScopePlan.operator !=(Kun.Authorization.Rbac.Abstractions.DataScopePlan? left, Kun.Authorization.Rbac.Abstractions.DataScopePlan? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.DataScopePlan.operator ==(Kun.Authorization.Rbac.Abstractions.DataScopePlan? left, Kun.Authorization.Rbac.Abstractions.DataScopePlan? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.operator !=(Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan? left, Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan.operator ==(Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan? left, Kun.Authorization.Rbac.Abstractions.DataScopeRolePlan? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.DataScopeRule.operator !=(Kun.Authorization.Rbac.Abstractions.DataScopeRule? left, Kun.Authorization.Rbac.Abstractions.DataScopeRule? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.DataScopeRule.operator ==(Kun.Authorization.Rbac.Abstractions.DataScopeRule? left, Kun.Authorization.Rbac.Abstractions.DataScopeRule? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.RoleDataScope.operator !=(Kun.Authorization.Rbac.Abstractions.RoleDataScope? left, Kun.Authorization.Rbac.Abstractions.RoleDataScope? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.RoleDataScope.operator ==(Kun.Authorization.Rbac.Abstractions.RoleDataScope? left, Kun.Authorization.Rbac.Abstractions.RoleDataScope? right) -> bool
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.Allow.get -> bool
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.AuthorizationDecision(System.Guid id, Kun.Authorization.Rbac.Abstractions.EnforcementRequest! request, Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation! explanation, bool bypass, bool logged, System.DateTimeOffset decidedAt) -> void
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.Bypass.get -> bool
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.DecidedAt.get -> System.DateTimeOffset
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.Explanation.get -> Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation!
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.Id.get -> System.Guid
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.Logged.get -> bool
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.Reason.get -> string!
+Kun.Authorization.Rbac.Abstractions.AuthorizationDecision.Request.get -> Kun.Authorization.Rbac.Abstractions.EnforcementRequest!
+Kun.Authorization.Rbac.Abstractions.AuthzEnforcement
+Kun.Authorization.Rbac.Abstractions.AuthzEventIds
+Kun.Authorization.Rbac.Abstractions.AuthzEventRegistration
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.AuthzGrantChangedEvent(long AuthzRevision, string! SubjectType, string! SubjectId, string! RoleCode, string! Change) -> void
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.Change.get -> string!
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.Change.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.Deconstruct(out long AuthzRevision, out string! SubjectType, out string! SubjectId, out string! RoleCode, out string! Change) -> void
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.Equals(Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent? other) -> bool
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.RoleCode.get -> string!
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.RoleCode.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.SubjectId.get -> string!
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.SubjectId.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.SubjectType.get -> string!
+Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.SubjectType.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent
+Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.AuthzIntegrationEvent(Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent! original) -> void
+Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.AuthzIntegrationEvent(long AuthzRevision) -> void
+Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.AuthzRevision.get -> long
+Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.AuthzRevision.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.Deconstruct(out long AuthzRevision) -> void
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.AuthzRoleChangedEvent(long AuthzRevision, string! RoleCode, string! Change, string? PluginId, string? PluginVersion) -> void
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.Change.get -> string!
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.Change.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.Deconstruct(out long AuthzRevision, out string! RoleCode, out string! Change, out string? PluginId, out string? PluginVersion) -> void
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.Equals(Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent? other) -> bool
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.PluginId.get -> string?
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.PluginId.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.PluginVersion.get -> string?
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.PluginVersion.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.RoleCode.get -> string!
+Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.RoleCode.init -> void
+Kun.Authorization.Rbac.Abstractions.AuthzRuntimeEvents
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.EnforcementRequest!
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Channel.get -> string!
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Channel.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.EntryPoint.get -> string!
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.EntryPoint.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Equals(Kun.Authorization.Rbac.Abstractions.EnforcementRequest? other) -> bool
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Permission.get -> string?
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Permission.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Resource.get -> string?
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Resource.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Subject.get -> Kun.Authorization.Rbac.Abstractions.EnforcementSubject!
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Subject.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Target.get -> string!
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Target.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.EnforcementSubject!
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Deconstruct(out string! Id, out string? TenantId, out string! Kind, out long? IdentityRevision, out bool Delegated) -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Delegated.get -> bool
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Delegated.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.EnforcementSubject(string! Id, string? TenantId, string! Kind, long? IdentityRevision = null, bool Delegated = false) -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Equals(Kun.Authorization.Rbac.Abstractions.EnforcementSubject? other) -> bool
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Id.get -> string!
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Id.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.IdentityRevision.get -> long?
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.IdentityRevision.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Kind.get -> string!
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Kind.init -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.TenantId.get -> string?
+Kun.Authorization.Rbac.Abstractions.EnforcementSubject.TenantId.init -> void
+Kun.Authorization.Rbac.Abstractions.IAuthzEnforcement
+Kun.Authorization.Rbac.Abstractions.IAuthzEnforcement.EnforceAsync(Kun.Authorization.Rbac.Abstractions.EnforcementRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.Rbac.Abstractions.AuthorizationDecision!>
+Kun.Authorization.Rbac.Abstractions.RoleBinding
+Kun.Authorization.Rbac.Abstractions.RoleBinding.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.RoleBinding!
+Kun.Authorization.Rbac.Abstractions.RoleBinding.Actor.get -> string!
+Kun.Authorization.Rbac.Abstractions.RoleBinding.Actor.init -> void
+Kun.Authorization.Rbac.Abstractions.RoleBinding.Deconstruct(out string! RoleCode, out string! SubjectType, out string! SubjectId, out string! Actor, out Kun.Runtime.ScopeKey? Scope, out System.DateTimeOffset? ValidFrom, out System.DateTimeOffset? ValidTo) -> void
+Kun.Authorization.Rbac.Abstractions.RoleBinding.Equals(Kun.Authorization.Rbac.Abstractions.RoleBinding? other) -> bool
+Kun.Authorization.Rbac.Abstractions.RoleBinding.RoleBinding(string! RoleCode, string! SubjectType, string! SubjectId, string! Actor, Kun.Runtime.ScopeKey? Scope = null, System.DateTimeOffset? ValidFrom = null, System.DateTimeOffset? ValidTo = null) -> void
+Kun.Authorization.Rbac.Abstractions.RoleBinding.RoleCode.get -> string!
+Kun.Authorization.Rbac.Abstractions.RoleBinding.RoleCode.init -> void
+Kun.Authorization.Rbac.Abstractions.RoleBinding.Scope.get -> Kun.Runtime.ScopeKey?
+Kun.Authorization.Rbac.Abstractions.RoleBinding.Scope.init -> void
+Kun.Authorization.Rbac.Abstractions.RoleBinding.SubjectId.get -> string!
+Kun.Authorization.Rbac.Abstractions.RoleBinding.SubjectId.init -> void
+Kun.Authorization.Rbac.Abstractions.RoleBinding.SubjectType.get -> string!
+Kun.Authorization.Rbac.Abstractions.RoleBinding.SubjectType.init -> void
+Kun.Authorization.Rbac.Abstractions.RoleBinding.ValidFrom.get -> System.DateTimeOffset?
+Kun.Authorization.Rbac.Abstractions.RoleBinding.ValidFrom.init -> void
+Kun.Authorization.Rbac.Abstractions.RoleBinding.ValidTo.get -> System.DateTimeOffset?
+Kun.Authorization.Rbac.Abstractions.RoleBinding.ValidTo.init -> void
+abstract Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent!
+const Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.CommandEntryPoint = "command" -> string!
+const Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.DecisionCapabilityId = "qian.authz/decision" -> string!
+const Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.GrpcEntryPoint = "grpc" -> string!
+const Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.HttpEntryPoint = "http" -> string!
+const Kun.Authorization.Rbac.Abstractions.AuthzEventIds.GrantChanged = "authz.grant.changed.v1" -> string!
+const Kun.Authorization.Rbac.Abstractions.AuthzEventIds.RoleChanged = "authz.role.changed.v1" -> string!
+override Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent!
+override Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.<Clone>$() -> Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent!
+override Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.EnforcementRequest.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.EnforcementRequest.ToString() -> string!
+override Kun.Authorization.Rbac.Abstractions.EnforcementSubject.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.EnforcementSubject.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.EnforcementSubject.ToString() -> string!
+override Kun.Authorization.Rbac.Abstractions.RoleBinding.Equals(object? obj) -> bool
+override Kun.Authorization.Rbac.Abstractions.RoleBinding.GetHashCode() -> int
+override Kun.Authorization.Rbac.Abstractions.RoleBinding.ToString() -> string!
+override sealed Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.Equals(Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent? other) -> bool
+override sealed Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.ToString() -> string!
+override sealed Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.Equals(Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent? other) -> bool
+static Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.Enforcement(this Kun.Runtime.IPluginContext! context) -> Kun.Authorization.Rbac.Abstractions.IAuthzEnforcement!
+static Kun.Authorization.Rbac.Abstractions.AuthzEventIds.All.get -> System.Collections.Generic.IReadOnlyList<string!>!
+static Kun.Authorization.Rbac.Abstractions.AuthzEventRegistration.RegisterAuthzEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
+static Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.operator !=(Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent? left, Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent.operator ==(Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent? left, Kun.Authorization.Rbac.Abstractions.AuthzGrantChangedEvent? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.operator !=(Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent? left, Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.operator ==(Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent? left, Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.operator !=(Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent? left, Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent.operator ==(Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent? left, Kun.Authorization.Rbac.Abstractions.AuthzRoleChangedEvent? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.EnforcementRequest.operator !=(Kun.Authorization.Rbac.Abstractions.EnforcementRequest? left, Kun.Authorization.Rbac.Abstractions.EnforcementRequest? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.EnforcementRequest.operator ==(Kun.Authorization.Rbac.Abstractions.EnforcementRequest? left, Kun.Authorization.Rbac.Abstractions.EnforcementRequest? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.EnforcementSubject.operator !=(Kun.Authorization.Rbac.Abstractions.EnforcementSubject? left, Kun.Authorization.Rbac.Abstractions.EnforcementSubject? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.EnforcementSubject.operator ==(Kun.Authorization.Rbac.Abstractions.EnforcementSubject? left, Kun.Authorization.Rbac.Abstractions.EnforcementSubject? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.RoleBinding.operator !=(Kun.Authorization.Rbac.Abstractions.RoleBinding? left, Kun.Authorization.Rbac.Abstractions.RoleBinding? right) -> bool
+static Kun.Authorization.Rbac.Abstractions.RoleBinding.operator ==(Kun.Authorization.Rbac.Abstractions.RoleBinding? left, Kun.Authorization.Rbac.Abstractions.RoleBinding? right) -> bool
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.LastAdministratorLockout -> Kun.Errors.ErrorCode!
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzErrors.ScopeMismatch -> Kun.Errors.ErrorCode!
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzRuntimeEvents.Checking -> Kun.Runtime.KunEvent<Kun.Authorization.Rbac.Abstractions.EnforcementRequest!, Kun.Authorization.Rbac.Abstractions.AuthorizationExplanation!>!
+static readonly Kun.Authorization.Rbac.Abstractions.AuthzRuntimeEvents.Decided -> Kun.Runtime.KunEvent<Kun.Authorization.Rbac.Abstractions.AuthorizationDecision!, object?>!
+virtual Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.EqualityContract.get -> System.Type!
+virtual Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.Equals(Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent? other) -> bool
+virtual Kun.Authorization.Rbac.Abstractions.AuthzIntegrationEvent.PrintMembers(System.Text.StringBuilder! builder) -> bool
+Kun.Authorization.Rbac.Abstractions.ITenantRoleGrant.BindAsync(Kun.Authorization.Rbac.Abstractions.RoleBinding! binding, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Authorization.Rbac.Abstractions.PermissionEnforcedInHandlerAttribute
+Kun.Authorization.Rbac.Abstractions.PermissionEnforcedInHandlerAttribute.PermissionEnforcedInHandlerAttribute(string! reason) -> void
+Kun.Authorization.Rbac.Abstractions.PermissionEnforcedInHandlerAttribute.Reason.get -> string!
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Deconstruct(out Kun.Authorization.Rbac.Abstractions.EnforcementSubject! Subject, out string? Permission, out string? Resource, out string! Channel, out string! EntryPoint, out string! Target, out System.Data.Common.DbTransaction? Transaction) -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.EnforcementRequest(Kun.Authorization.Rbac.Abstractions.EnforcementSubject! Subject, string? Permission, string? Resource, string! Channel, string! EntryPoint, string! Target, System.Data.Common.DbTransaction? Transaction = null) -> void
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Transaction.get -> System.Data.Common.DbTransaction?
+Kun.Authorization.Rbac.Abstractions.EnforcementRequest.Transaction.init -> void
+const Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.AuditUnavailable = "audit_unavailable" -> string!
+const Kun.Authorization.Rbac.Abstractions.AuthzEnforcement.StaleIdentityRevision = "identity_revision_stale" -> string!
+Kun.Authorization.Rbac.Abstractions.IAuthzEnforcement.CheckIdentityRevisionAsync(Kun.Authorization.Rbac.Abstractions.EnforcementRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Authorization.Rbac.Abstractions.AuthorizationDecision?>
+Kun.Authorization.Rbac.Abstractions.ITenantRoleGrant.RevokeAsync(string! roleCode, string! subjectType, string! subjectId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>

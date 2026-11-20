@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><Using Include="Xunit" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
+    <PackageReference Include="JsonSchema.Net" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="coverlet.MTP" />
+  </ItemGroup>
+  <ItemGroup><Compile Include="../../_import/qian/tests/Shared/TenantInitializationAccess.cs" Link="TenantInitializationAccess.cs" /></ItemGroup>
+</Project>

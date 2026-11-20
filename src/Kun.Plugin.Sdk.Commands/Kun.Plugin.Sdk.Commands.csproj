@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />

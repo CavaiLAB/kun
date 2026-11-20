@@ -7,7 +7,7 @@
     <!-- 开通只经 qian.tenancy 的开通编排、状态机与目录端口；账号只经身份组件的账号端口。都只引用 Definition。 -->
     <ProjectReference Include="../Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Capabilities.Abstractions/Qian.Capabilities.Abstractions.csproj" />

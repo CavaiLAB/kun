@@ -36,7 +36,7 @@ public sealed partial class ComponentMetadataGenerator
             if (owners.Length != 1 || Id(owners[0]) != definitionComponent || definitionComponent == Id(plugin) || plugins.Count(p => Id(p) == definitionComponent) != 1)
             { Report(output, plugin, "SharedEvents 须引用同程序集内由一个其它组件通过 MetadataTypes 唯一拥有的事件契约。"); return null; }
             var members = new ISymbol[] { type }.Concat(type.GetMembers()).ToArray();
-            if (members.Any(m => m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Qian.Authz.Abstractions.PermissionAttribute")) ||
+            if (members.Any(m => m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Kun.Authorization.Rbac.Abstractions.PermissionAttribute")) ||
                 !members.Any(m => m.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "Kun.Runtime.KunEventAttribute")))
             { Report(output, plugin, "SharedEvents 只共享非空的事件声明类型，不能携带 Permission 权限声明。"); return null; }
             sharedTypes.Add(type, definitionComponent); symbols.AddRange(members);
@@ -44,7 +44,7 @@ public sealed partial class ComponentMetadataGenerator
         var permissions = new List<string>(); var events = new List<string>(); var permissionNames = new HashSet<string>(StringComparer.Ordinal);
         foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default).OrderBy(s => s.ToDisplayString(), StringComparer.Ordinal))
         {
-            foreach (var attribute in symbol.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() is "Qian.Authz.Abstractions.PermissionAttribute" or "Kun.Runtime.KunEventAttribute"))
+            foreach (var attribute in symbol.GetAttributes().Where(a => a.AttributeClass?.ToDisplayString() is "Kun.Authorization.Rbac.Abstractions.PermissionAttribute" or "Kun.Runtime.KunEventAttribute"))
             {
                 var explicitOwner = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.ComponentOwnerAttribute")?.ConstructorArguments[0].Value as string
                     ?? symbol.ContainingType?.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "Kun.Plugin.Sdk.ComponentOwnerAttribute")?.ConstructorArguments[0].Value as string;

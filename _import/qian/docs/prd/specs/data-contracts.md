@@ -133,4 +133,4 @@ Authz 的 [DataScopeRule Schema](../../../contracts/authz/v1/data-scope-rule.sch
 
 合并规则固定为同角色 AND、跨角色 OR、任一全部数据放开目标资源的数据范围；重复角色分段必须先归并，其他资源的 allData 不影响当前资源。没有适用规则或空角色集合为拒绝。合并计划保留每份 AST 的边界，不把 AST 内部 OR 与角色间 OR 混为一层；租户隔离、软删除与业务权限始终叠加。
 
-GET /api/authz/meta 发布 dataScopeRule、filterAst、operators、systemVariables 与 merge，均由同一套源文件生成或原样嵌入。消费者先注册 filterAst 的 $id 再解析引用，支持离线使用；15 个系统变量继续沿用 §4 的中文说明、基数与类型。Authz 元数据及逻辑计划不代表 S2 行级/字段编译器已实现，S1 的执行端口仍拒绝。实现边界与验收见 [数据权限契约 v1](../../../contracts/authz/v1/README.md) 和 [Qian.Authz](../../../packages/Qian.Authz/README.md)。
+GET /api/authz/meta 发布 dataScopeRule、filterAst、operators、systemVariables 与 merge，均由同一套源文件生成或原样嵌入。消费者先注册 filterAst 的 $id 再解析引用，支持离线使用；15 个系统变量继续沿用 §4 的中文说明、基数与类型。Authz 元数据及逻辑计划不代表 S2 行级/字段编译器已实现，S1 的执行端口仍拒绝。实现边界与验收见 [数据权限契约 v1](../../../contracts/authz/v1/README.md) 和 [Qian.Authz](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Authorization.Rbac/README.md)。

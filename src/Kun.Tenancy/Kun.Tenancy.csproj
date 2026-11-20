@@ -4,7 +4,7 @@
   <ItemGroup>
     <ProjectReference Include="../Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
     <ProjectReference Include="../../_import/qian/packages/Qian.Lifecycle.Abstractions/Qian.Lifecycle.Abstractions.csproj" />

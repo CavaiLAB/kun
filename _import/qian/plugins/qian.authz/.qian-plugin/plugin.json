@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.authz",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "提供 qian.authz 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
@@ -35,7 +35,7 @@
   ],
   "runtime": {
     "form": "module",
-    "entry": "Qian.Authz.AuthzComponent, Qian.Authz",
+    "entry": "Kun.Authorization.Rbac.AuthzComponent, Kun.Authorization.Rbac",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -52,8 +52,8 @@
       "metadata/events.json": {
         "$generated": true,
         "component": "qian.authz",
-        "source": "Qian.Authz.AuthzComponent, Qian.Authz",
-        "sha256": "0d0e19694bbee6b473d716fd286bff65e75d01771c9cb667e93c8c1dd82dca29",
+        "source": "Kun.Authorization.Rbac.AuthzComponent, Kun.Authorization.Rbac",
+        "sha256": "f86a8fdcbc3375b975ecff6ab72cd6b59934d598c661f30f2bad23281a06ee90",
         "fields": [
           ""
         ]
@@ -61,7 +61,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.authz",
-        "source": "Qian.Authz.AuthzComponent, Qian.Authz",
+        "source": "Kun.Authorization.Rbac.AuthzComponent, Kun.Authorization.Rbac",
         "sha256": "eb13f410c0a85b54b266c7fbdbb87e51137ef1a8ec5967c1d2c6e12bd342ec58",
         "fields": [
           ""

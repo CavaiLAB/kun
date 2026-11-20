@@ -36,8 +36,8 @@ public sealed class AuthorizedHandlerAnalyzer : DiagnosticAnalyzer
                     !SymbolEqualityComparer.Default.Equals(method.ContainingType, builder) || method.TypeArguments.Length != 3) return;
                 // 唯一可信桥接位于 Definition 程序集本身；应用里复制同名类型不会得到豁免。
                 var enclosing = node.SemanticModel.GetEnclosingSymbol(name.SpanStart, node.CancellationToken);
-                if (enclosing?.ContainingAssembly?.Name == "Qian.Authz.Abstractions" &&
-                    enclosing.ContainingType?.ToDisplayString() == "Qian.Authz.Abstractions.AuthorizedHandlerRegistration" &&
+                if (enclosing?.ContainingAssembly?.Name == "Kun.Authorization.Rbac.Abstractions" &&
+                    enclosing.ContainingType?.ToDisplayString() == "Kun.Authorization.Rbac.Abstractions.AuthorizedHandlerRegistration" &&
                     enclosing.Name == "AddAuthorizedHandler") return;
                 var request = method.TypeArguments[0];
                 if (request is ITypeParameterSymbol || request.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, contract)))

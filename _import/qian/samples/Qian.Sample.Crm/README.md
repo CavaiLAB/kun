@@ -116,7 +116,7 @@ T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实
 
 ## 面向用户的平台表面参考宿主（S1-YUE-012）
 
-[PlatformSurfaceHost](PlatformSurfaceHost.cs) 与运营宿主同形：复用调用方已装配的 Runtime（Registry / Capabilities / Authz），只认网关签发的 S2S（要求 issuer、受众、有效期、签名完整校验且只接受 RS256，受众常量 `PlatformSurfaceHost.Audience` 即 `qian-platform`），接受 user / service / agent 主体，主体快照取自令牌，按其 `tenant_id` 进入租户 scope；平台身份没有租户表面，按未认证拒绝。它映射 `MapQianCapabilities`（能力目录、导航、外壳目录 `GET /api/capabilities/shell` 与执行入口）与 `MapQianAuthz`（有效权限），授权 PEP 按生产模式装配：处理器内判定的端点也比对 identity_revision，旧修订 401 `UNAUTHENTICATED`。
+[PlatformSurfaceHost](PlatformSurfaceHost.cs) 与运营宿主同形：复用调用方已装配的 Runtime（Registry / Capabilities / Authz），只认网关签发的 S2S（要求 issuer、受众、有效期、签名完整校验且只接受 RS256，受众常量 `PlatformSurfaceHost.Audience` 即 `qian-platform`），接受 user / service / agent 主体，主体快照取自令牌，按其 `tenant_id` 进入租户 scope；平台身份没有租户表面，按未认证拒绝。它映射 `MapQianCapabilities`（能力目录、导航、外壳目录 `GET /api/capabilities/shell` 与执行入口）与 `MapKunAuthz`（有效权限），授权 PEP 按生产模式装配：处理器内判定的端点也比对 identity_revision，旧修订 401 `UNAUTHENTICATED`。
 
 S1-YUE-018 另映射平台控制台目录 `MapQianPlatformConsole`（`GET /api/capabilities/console`）：只对不带租户的请求（平台身份）交出 Capabilities 组件的全局上下文，带租户的请求 404；目录服务再按平台超管只读判定列出平台组件（租户运营 `qian.tenancy`、开通申请 `qian.tenancy.signup`）的远程、菜单与权限码，不持角色为空，判定不写审计（细节见 Qian.Capabilities）。页面里的操作不经本宿主，而是经运营宿主（`TenantOperationsHost`，逐次超管旁路并写平台审计链）。用例 `PlatformConsoleTests`：持角色的平台身份拿到两个平台组件、不写审计，撤销角色后立即为空，租户主体、服务、Agent 与不持角色的平台身份拿不到，租户的外壳目录与菜单不含平台组件；网关 bootstrap 对持角色的平台身份交出同一份目录、不代管，不持角色仍代管，响应不含令牌。参考宿主的平台组件装配（租户运营与开通申请组件按 UI 清单登记菜单与远程）在 `LifecycleAcceptanceTests.AttachLifecycle` 的 `Console` 开关里。
 

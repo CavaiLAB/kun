@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Qian.Audit;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 using Qian.Testing;
 using Qian.Testing.Containers;

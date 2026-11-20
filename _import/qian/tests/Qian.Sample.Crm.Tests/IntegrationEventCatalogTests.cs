@@ -9,7 +9,7 @@ using Kun.Identity.Abstractions;
 using Qian.Lifecycle;
 using Qian.Registry;
 using Kun.Tenancy;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 
 namespace Qian.Sample.Crm.Tests;
 

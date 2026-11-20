@@ -5,7 +5,7 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Runtime;
 

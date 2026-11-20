@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Qian.Audit;
 using Kun.Data.Native;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 

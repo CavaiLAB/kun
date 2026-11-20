@@ -6,7 +6,7 @@
     <ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" />
     <ProjectReference Include="../Qian.Registry.Abstractions/Qian.Registry.Abstractions.csproj" />
     <ProjectReference Include="../Qian.Surfaces.Abstractions/Qian.Surfaces.Abstractions.csproj" />
-    <ProjectReference Include="../Qian.Authz.Abstractions/Qian.Authz.Abstractions.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Authorization.Rbac.Abstractions/Kun.Authorization.Rbac.Abstractions.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy.Abstractions/Kun.Tenancy.Abstractions.csproj" />
     <PackageReference Include="Microsoft.OpenApi" />
     <PackageReference Include="Grpc.Reflection" />

@@ -6,7 +6,7 @@ using Kun.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Authz.Abstractions;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Errors;
 using Qian.Testing.Containers;

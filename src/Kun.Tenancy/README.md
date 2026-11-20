@@ -50,7 +50,7 @@ TenancyPlugin 额外提供 `TenantProvisioning.Key` 的 `ITenantProvisioning`。
 
 `tenant_provision_steps` 受租户过滤和 RLS 保护。步骤为主档（同事务保存输入和成功标记）、Kun Shared 开户器与 GUC/RLS 校验、逐组件 Lifecycle.ProvisionAsync、tenant/provisioned、Membership、管理员指针、tenant.owner 授予、通知。每步独立提交，同一租户由 PostgreSQL 会话锁串行化，进程退出后锁释放；成功步骤不再执行，running/failed 按稳定幂等键重试。组件级仍使用 Lifecycle 的独立步骤表。步骤原因只保存稳定码，不保存上游异常内容。
 
-管理员输入含已有或待 Identity 确认的 Membership UUID 与主体 ID；指针存在不代表成员已能登录。Identity/Notify 通过 `TenantProvisioning.MembershipKey` / `NotificationKey` 的可选端口提供适配器，缺席时分别保存 skipped 和 identity_unavailable / notify_unavailable；后续续跑重新解析端口，仅补未成功步骤。初始授权通过 `Qian.Authz.Abstractions.ITenantRoleGrant`，不引用 Authz Provider 或跨插件写表。
+管理员输入含已有或待 Identity 确认的 Membership UUID 与主体 ID；指针存在不代表成员已能登录。Identity/Notify 通过 `TenantProvisioning.MembershipKey` / `NotificationKey` 的可选端口提供适配器，缺席时分别保存 skipped 和 identity_unavailable / notify_unavailable；后续续跑重新解析端口，仅补未成功步骤。初始授权通过 `Kun.Authorization.Rbac.Abstractions.ITenantRoleGrant`，不引用 Authz Provider 或跨插件写表。
 
 真库用例验证第三步失败后的续跑、平台组件和参考应用的 lifecycle_runs、管理员指针与初始授权、缺席端口的 skipped，以及重复请求的幂等。
 

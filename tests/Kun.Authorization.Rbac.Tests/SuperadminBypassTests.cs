@@ -392,7 +392,7 @@ public sealed partial class SuperadminBypassTests(PostgresFixture postgres, Redi
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
-        var directory = Path.Combine(root!.FullName, "_import/qian", "samples/Qian.Sample.Crm/metadata");
+        var directory = Path.Combine(root!.FullName, "samples/Kun.Sample.Crm/metadata");
         return new PermissionCatalogCompiler(new SurfaceValidator()).FromMetadata("qian.sample.crm", "1.0.0",
             JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(Path.Combine(directory, "permissions.json"))),
             JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(Path.Combine(directory, "roles.json"))));

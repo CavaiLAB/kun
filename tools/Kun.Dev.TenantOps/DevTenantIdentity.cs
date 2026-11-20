@@ -19,7 +19,7 @@ namespace Kun.Dev.TenantOps;
 
 // 运营手测宿主上的真实 qian.identity（S1-TEN-010）：管理员维护的账号查找、新建、管理员成员与重置密码都经它，
 // 开通编排第 05 步也由它建管理员成员。照集成测试 CustomerCommandTests.Identity 的装配，只开账号 HTTP 接口与目录接口（统一登录流水线），
-// 不托管认证页族、不挂上游连接器、不签发外壳令牌——那些在外壳联调环境（tools/Qian.Dev.Shell 的 DevIdentity）。
+// 不托管认证页族、不挂上游连接器、不签发外壳令牌——那些在外壳联调环境（tools/Kun.Dev.Shell 的 DevIdentity）。
 internal sealed class DevTenantIdentity(Uri issuer) : IDisposable
 {
     /// <summary>登录接口要求的已登记客户端；手测与 E2E 只用账号会话，不走授权码。</summary>

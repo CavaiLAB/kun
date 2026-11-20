@@ -40,7 +40,7 @@ using Npgsql;
 namespace Kun.Files.Tests;
 
 // 平台模式（S1-FILE-004）：Registry 是真实 Provider（pg 存储），按临时 platform profile 预装组件。qian.files 用仓库里已去骨架的组件文件夹，
-// 其余平台组件的清单由实际 Provider 派生（照 tools/Qian.Dev.TenantOps 的 DevPlatform）；贡献方组件只带 metadata/upload-policies.json。
+// 其余平台组件的清单由实际 Provider 派生（照 tools/Kun.Dev.TenantOps 的 DevPlatform）；贡献方组件只带 metadata/upload-policies.json。
 // TEN-004 的设置端点挂在独立运营宿主（照参考运营宿主 TenantOperationsHost）：平台用户令牌，超管旁路由 authz 的平台登录角色提供。
 internal sealed class FilesPlatform : IAsyncDisposable
 {

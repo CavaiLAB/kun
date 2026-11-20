@@ -129,7 +129,7 @@ internal static class DevShellHost
               运营宿主          {DevHost.Address(operations)}（租户运营 /api/tenancy/**，开通申请运营 /api/signup/applications/**、/api/signup/meta/**；受众 {DevGateway.OperationsCluster}）
               平台控制台        {string.Join("、", seed.Persons.Where(person => person.Superadmin).Select(person => person.Username))} 持平台超管，外壳里有「租户管理」「开通申请」；其余平台身份代管
               运行时配置        {appConfig}（改 apiBase 后刷新页面即生效，不重编译）
-              种子账号          tools/Qian.Dev.Shell/seed/accounts.json（{string.Join("、", seed.Persons.Select(person => person.Username))}）
+              种子账号          tools/Kun.Dev.Shell/seed/accounts.json（{string.Join("、", seed.Persons.Select(person => person.Username))}）
               上游 Dex          {(dex is null ? "未配置（不登记连接器）" : dex.Issuer.AbsoluteUri + "（通用 OIDC 连接器 dex；用户见 seed/dex.json）")}
               开通申请          申请人接口 {issuer}api/signup/**；公开页 {(signup.HostsPages ? issuer + "signup" : "未构建（只开放申请人接口）")}
               开发期发件箱      GET {issuer}__dev/signup/outbox?phone=（请求头 {DevSignupOutbox.TokenHeader}，令牌在 {signup.TokenFile}）

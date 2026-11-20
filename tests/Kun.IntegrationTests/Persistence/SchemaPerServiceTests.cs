@@ -2,7 +2,7 @@ using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
-using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -84,7 +84,7 @@ public sealed class SchemaPerServiceTests(PostgresFixture fx)
     {
         if (string.IsNullOrEmpty(fx.ConnectionString))
         {
-            ContainerRuntime.ReportUnavailable("Postgres fixture did not start (Docker unavailable).");
+            DockerRequirement.ReportUnavailable("Postgres fixture did not start (Docker unavailable).");
             return;
         }
 
@@ -148,7 +148,7 @@ public sealed class SchemaPerServiceTests(PostgresFixture fx)
     {
         if (string.IsNullOrEmpty(fx.ConnectionString))
         {
-            ContainerRuntime.ReportUnavailable("Postgres fixture did not start (Docker unavailable).");
+            DockerRequirement.ReportUnavailable("Postgres fixture did not start (Docker unavailable).");
             return;
         }
 

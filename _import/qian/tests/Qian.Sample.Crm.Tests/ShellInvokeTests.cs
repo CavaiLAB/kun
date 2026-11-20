@@ -46,7 +46,7 @@ public sealed partial class ShellSurfaceTests
             RequireSignedTokens = true, RequireExpirationTime = true, ClockSkew = TimeSpan.Zero
         }, builder => { builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders(); });
         await surface.StartAsync(Ct);
-        await using var redis = new RedisFixture(); await redis.InitializeAsync();
+        await using var redis = new RedisFixture(); await redis.InitializeAsync(TestContext.Current.CancellationToken);
         // 外壳客户端另申请参考应用的两个 scope（能力声明的 requiredScopes），与联调栈的外壳客户端一致。
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,
             redis.ConnectionString, ShellGatewayIssuer, [new("capabilities", "/api/capabilities/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }],

@@ -248,12 +248,14 @@ jobs:
       - name: 还原
         if: matrix.shard != 'k'
         working-directory: _import/qian
-        run: dotnet restore Qian.slnf
+        run: |
+          python3 scripts/dotnet_ci.py shard ${{ matrix.shard }} --out "$RUNNER_TEMP/tests.slnf"
+          dotnet restore "$RUNNER_TEMP/tests.slnf"
 
       - name: 构建
         if: matrix.shard != 'k'
         working-directory: _import/qian
-        run: dotnet build Qian.slnf -c Release --no-restore
+        run: dotnet build "$RUNNER_TEMP/tests.slnf" -c Release --no-restore
 
       - name: 安装固定摘要的真实 OpenAPI 兼容检查器
         if: matrix.shard != 'k'
@@ -274,9 +276,7 @@ jobs:
           QIAN_TEST_EVIDENCE_DIR: ${{ github.workspace }}/_import/qian/TestResults/evidence
           QIAN_PRODUCT_FILTER_REPORT: ${{ github.workspace }}/_import/qian/TestResults/evidence/product-capability-filter.json
           QIAN_PROFILE_EQUIVALENCE_REPORT: ${{ github.workspace }}/_import/qian/TestResults/evidence/profile-equivalence.json
-        run: |
-          python3 scripts/dotnet_ci.py shard ${{ matrix.shard }} --out "$RUNNER_TEMP/tests.slnf"
-          dotnet test --solution "$RUNNER_TEMP/tests.slnf" -c Release --no-build --results-directory TestResults --report-xunit-trx -p:QianTrxPerModule=true
+        run: dotnet test --solution "$RUNNER_TEMP/tests.slnf" -c Release --no-build --results-directory TestResults --report-xunit-trx -p:QianTrxPerModule=true
 
       - name: 还原与构建分片 k 的测试项目
         if: matrix.shard == 'k'
@@ -509,12 +509,13 @@ jobs:
         env:
           QIAN_REQUIRE_DOCKER: '1'
           QIAN_NATIVE_DATA_EXECUTABLE: ${{ runner.temp }}/native-data/Kun.Data.Native.Probe
+        working-directory: .
         run: dotnet test --project tests/Kun.Data.Native.Postgres.AotTests -c Release --report-xunit-trx --results-directory TestResults/native-data-aot
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: native-data-aot-results
-          path: _import/qian/TestResults/native-data-aot/
+          path: TestResults/native-data-aot/
 
   gateway-host-aot:
     name: 生产网关完整 NativeAOT 与真实依赖验收
@@ -549,12 +550,13 @@ jobs:
         env:
           QIAN_REQUIRE_DOCKER: '1'
           QIAN_GATEWAY_HOST_EXECUTABLE: ${{ runner.temp }}/gateway-host/Kun.Gateway.Host
+        working-directory: .
         run: dotnet test --project tests/Kun.Gateway.Host.AotTests -c Release --report-xunit-trx --results-directory TestResults/gateway-host-aot
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: gateway-host-aot-results
-          path: _import/qian/TestResults/gateway-host-aot/
+          path: TestResults/gateway-host-aot/
 
   native-audit-aot:
     name: 原生审计严格发布与真实 PostgreSQL 验收
@@ -581,12 +583,13 @@ jobs:
         env:
           QIAN_REQUIRE_DOCKER: '1'
           QIAN_NATIVE_AUDIT_EXECUTABLE: ${{ runner.temp }}/native-audit/Kun.Audit.Postgres.Probe
+        working-directory: .
         run: dotnet test --project tests/Kun.Audit.Postgres.AotTests -c Release --report-xunit-trx --results-directory TestResults/native-audit-aot
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: native-audit-aot-results
-          path: _import/qian/TestResults/native-audit-aot/
+          path: TestResults/native-audit-aot/
 
   # profile 镜像构建与供应链门禁自检（S1-DEP-003 / R106），作业与 _import/qian/.github/workflows/images.yml 相同。
   # JIT 与 NativeAOT 两个自检镜像以仓库根为构建上下文，只推到本作业里的临时 registry，不发布任何镜像；

@@ -145,6 +145,7 @@ class Sandbox:
         subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
         # 与仓库里的 Qian.slnf 同形：筛选一个 Kun.slnx（临时仓库里不必真有），项目路径相对它所在的目录。
         self.write("Qian.slnf", '{"solution": {"path": "Kun.slnx", "projects": ["tests/Sample.Tests/Sample.Tests.csproj"]}}\n')
+        self.write_repo("tests/kun-platform.slnf", '{"solution": {"path": "../Kun.slnx", "projects": []}}\n')
         self.write("tests/Sample.Tests/Sample.Tests.csproj", XUNIT_PROJECT)
         self.write("AGENTS.md", "# 约定\n")
         self.write("README.md", "# 仓库\n")
@@ -181,7 +182,8 @@ class Sandbox:
                                    WORKFLOW=self.repo / ".github" / "workflows" / "ci.yml",
                                    CI_CHANGES=self.repo / "scripts" / "ci_changes.py",
                                    KUN_UNIT=self.repo / "tests" / "kun-unit.slnf", KUN_INTEGRATION=[KUN_INTEGRATION],
-                                   CONTAINERS=self.root / "tests" / "Kun.Testing.Containers", NOT_IN_CI=dict(self.not_in_ci))
+                                   CONTAINERS=self.root / "tests" / "Kun.Testing.Containers",
+                                   PLATFORM_FIXTURES=self.repo / "tests/Kun.Testing.PlatformFixtures", NOT_IN_CI=dict(self.not_in_ci))
 
     def passes(self):
         with self.patched():
@@ -199,6 +201,16 @@ class CsharpReferenceTests(unittest.TestCase):
 
     def source(self, *statements: str, locator: bool = True, path: str = "tests/Sample.Tests/Sample.cs") -> None:
         self.box.write(path, csharp(*statements, locator=locator))
+
+    def test_root_test_inputs_keep_the_platform_document_trigger(self) -> None:
+        self.box.write_repo("tests/Moved.Tests/Case.cs", 'class Case { string path = "_import/qian/docs/prd/14-quality.md"; }')
+        self.box.write_repo("tests/Moved.Tests/Moved.Tests.csproj",
+                            '<Project><ItemGroup><None Include="../../_import/qian/pm/tasks/S1-QA-001.md" /></ItemGroup></Project>')
+        message = self.box.blocked()
+        self.assertIn("tests/Moved.Tests/Case.cs", message)
+        self.assertIn("tests/Moved.Tests/Moved.Tests.csproj", message)
+        self.box.workflow("docs/prd/14-quality.md", "pm/tasks/S1-QA-001.md")
+        self.box.passes()
 
     def test_single_literal_is_blocked_until_the_filter_reincludes_the_file(self) -> None:
         self.source('var text = File.ReadAllText(Path.Combine(root, "docs/prd/14-quality.md"));')
@@ -685,6 +697,8 @@ class ImagesTests(unittest.TestCase):
         self.box.write("Qian.slnf", json.dumps({"solution": {"path": "Kun.slnx", "projects": [
             "tests/Sample.Tests/Sample.Tests.csproj", "tests/Plain.Tests/Plain.Tests.csproj"]}}) + "\n")
         self.box.write("tests/Kun.Testing.Containers/Kun.Testing.Containers.csproj", CONTAINERS_PROJECT)
+        self.box.write_repo("tests/Kun.Testing.PlatformFixtures/RealFixture.cs",
+                            'public sealed class RealFixture { string Image() => Read("QIAN_TEST_IMAGE_PLATFORM", "platform:2"); }\n')
         self.box.write("tests/Kun.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES)
         self.box.write("tests/Kun.Testing.Containers/PostgresFixture.cs", POSTGRES_FIXTURE)
         self.box.write("tests/Sample.Tests/Sample.Tests.csproj", FIXTURE_USER)
@@ -707,13 +721,17 @@ class ImagesTests(unittest.TestCase):
     def test_images_of_a_shard_and_of_all_tests(self) -> None:
         self.assertEqual((0, "postgres:16-alpine\n", ""), self.run_main("images", "a"))
         self.assertEqual((0, "", ""), self.run_main("images", "b"))  # 没有容器测试：0 个镜像不算错
-        self.assertEqual((0, "postgres:16-alpine\nredis:7-alpine\n", ""), self.run_main("images"))
+        self.assertEqual((0, "postgres:16-alpine\nredis:7-alpine\nplatform:2\n", ""), self.run_main("images"))
 
     def test_missing_fixture_directory_fails_naming_the_path(self) -> None:
         shutil.rmtree(self.box.root / "tests" / "Kun.Testing.Containers")
         code, output, errors = self.run_main("images", "a")
         self.assertEqual((2, ""), (code, output))
         self.assertIn("容器夹具目录 _import/qian/tests/Kun.Testing.Containers 不在", errors)
+
+    def test_platform_fixture_images_are_selected_by_the_actual_fixture_type(self) -> None:
+        self.box.write("tests/Sample.Tests/Probe.cs", "public sealed class Probe(RealFixture fixture);")
+        self.assertEqual((0, "platform:2\n", ""), self.run_main("images", "a"))
 
     def test_fixture_without_image_defaults_fails(self) -> None:
         self.box.write("tests/Kun.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES.replace("QIAN_TEST_IMAGE_", "TEST_IMAGE_"))
@@ -785,6 +803,22 @@ class RegistrationTests(unittest.TestCase):
         self.assertIn("tools/Kun.Tool.Tests/Kun.Tool.Tests.csproj 是测试项目，却没有着落", problems[1])
         for way in ("tests/kun-unit.slnf", "KUN_INTEGRATION", "dotnet test --project", "NOT_IN_CI"):
             self.assertIn(way, problems[0])
+
+    def test_platform_projects_keep_their_shard_across_the_repository_boundary(self) -> None:
+        self.box.write("Qian.slnf", json.dumps({"solution": {"path": "../../Kun.slnx", "projects": [
+            "_import/qian/tests/Sample.Tests/Sample.Tests.csproj"]}}))
+        project = "tests/Kun.Moved.Tests/Kun.Moved.Tests.csproj"
+        self.box.write_repo(project, XUNIT_PROJECT)
+        self.box.write_repo("tests/kun-platform.slnf", json.dumps({"solution": {"path": "../Kun.slnx", "projects": [project]}}))
+        with self.box.patched(), mock.patch.object(dotnet_ci, "SHARDS", {"a": ["Kun.Moved.Tests"], "b": None}):
+            self.assertEqual("a", dotnet_ci.expected_shards()["Kun.Moved.Tests"])
+            destination = self.box.repo / "build/test.slnf"
+            with contextlib.redirect_stdout(io.StringIO()):
+                dotnet_ci.write_filter("a", destination)
+            self.assertEqual([project], json.loads(destination.read_text())["solution"]["projects"])
+            rows, problems, _, _ = dotnet_ci.registration()
+            self.assertFalse(problems)
+            self.assertIn("kun-platform.slnf", dict(rows)[project])
 
     def test_unit_and_integration_registrations(self) -> None:
         rows = dict(self.check()[0])
@@ -919,7 +953,8 @@ class RegistrationTests(unittest.TestCase):
         for project, reason in dotnet_ci.NOT_IN_CI.items():
             self.assertEqual(f"不进 CI（NOT_IN_CI）：{reason}", places[project])
         self.assertTrue(all(counts[kind] for kind in ("单元", "集成", "专属作业")), counts)
-        self.assertTrue(local["Qian.slnf"] and local["专属作业"], local)
+        self.assertTrue(local["Qian.slnf"], local)
+        self.assertTrue(all(project.startswith("tests/") for project in dotnet_ci.dedicated_tests()))
 
 
 if __name__ == "__main__":

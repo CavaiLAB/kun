@@ -5,18 +5,31 @@
 ## 1 目录
 
 ```text
+src/Kun.Testing.Containers/                  通用容器夹具 NuGet 包
+  ApolloMock/apollo_mock.py                  容器内运行的 Apollo 协议替身
 tests/
-  Directory.Build.props                       测试项目公共设置：不打包、不要求 XML 注释
-  Kun.Testing.Containers/                    集成测试共用的 Testcontainers fixture（不打包）
-    ApolloMock/apollo_mock.py                 Apollo 协议替身，在容器里运行
-  Kun.Testing.Containers.Tests/   fixture 自身的集成测试与单元测试
-  Kun.Identity.Server.Tests/                 真实 OpenIddict + PostgreSQL + Kun 客户端协议验收、跨宿主吊销、后通道与密钥轮换；账号模型（Argon2id、标识与绑定守卫、sub 不碰撞、配额）、统一登录流水线（审计、限流与并发、强制改密、租户选择与切换、MFA 不降级）与账号 HTTP 面端到端（可控时钟 + 可控租户目录）、会话中心（吊销即时与旁路、并发上限与单端、租户冻结、真实 Redis 索引与宕机降级、管理面、多副本竞争、日志卫生）
-  Kun.Identity.Client.Tests/                 依赖方：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码与 qian.sid 会话、篡改 nonce / iss / state 重放、刷新单飞与轮换（真实 Redis）、登出防伪、卸载、后通道登出；会话主体经 Kun 网关签发器铸 S2S 后下游接受；S2S 契约逐条违约与透传拒绝
+  Kun.Testing.PlatformFixtures/               真实 Apollo 服务与数据库种子
+  kun-platform.slnf                          从根目录参与 a/b/c 分片的测试项目
+  Kun.Audit.EntityFrameworkCore.IntegrationTests/命令审计的 EF 与 PostgreSQL 契约
+  Kun.Audit.Postgres.AotTests/               严格原生审计探针与真实数据库
+  Kun.Audit.Postgres.Tests/                  原生 PostgreSQL 审计存储
+  Kun.Authorization.Rbac.Tests/              授权：权限目录与默认角色、RBAC 判定与快照缓存（真实 PostgreSQL + Redis，两宿主授予 / 撤销传播）、平台超管旁路（专用平台登录 + 真实 Audit 插件）
+  Kun.Configuration.Platform.Tests/          配置与真实 Apollo 的宿主集成
+  Kun.Data.AspNetCore.Tests/                 数据端点：基准类型目录（无数据库）与数据连接档案（真实 PostgreSQL、挂载式密钥、连通测试）
+  Kun.Data.Native.Postgres.AotTests/         独立原生持续门：运行严格发布的 Linux 二进制，复用共享 fixture 验证真实数据库；不在常规解决方案测试中跳过
+  Kun.Data.Native.Postgres.Tests/            NativeData：受限登录、精确 RLS 策略、租户/平台原始 SQL、事务与可撤销会话生命周期（真实 PostgreSQL）
+  Kun.Data.Tests/                            数据会话、事务与 Outbox
+  Kun.EventBus.IntegrationTests/             事件信封、Outbox 和消息代理
+  Kun.Files.Tests/                           文件服务与 HTTP 端点
+  Kun.Gateway.Host.AotTests/                 生产网关的 Linux NativeAOT 验收
+  Kun.Gateway.IntegrationTests/              网关路由、限流和外壳宿主
   Kun.Identity.Client.Standalone.Tests/      独立宿主 E2E：只引用 Kun.Identity.Client，对接 Dex（DexFixture）完成登录与登出，并断言依赖闭包
-  Kun.Authorization.Rbac.Tests/                           授权：权限目录与默认角色、RBAC 判定与快照缓存（真实 PostgreSQL + Redis，两宿主授予 / 撤销传播）、平台超管旁路（专用平台登录 + 真实 Audit 插件）
-  Kun.Data.AspNetCore.Tests/                  数据端点：基准类型目录（无数据库）与数据连接档案（真实 PostgreSQL、挂载式密钥、连通测试）
-  Kun.Data.Native.Postgres.Tests/             NativeData：受限登录、精确 RLS 策略、租户/平台原始 SQL、事务与可撤销会话生命周期（真实 PostgreSQL）
-  Kun.Data.Native.Postgres.AotTests/          独立原生持续门：运行严格发布的 Linux 二进制，复用共享 fixture 验证真实数据库；不在常规解决方案测试中跳过
+  Kun.Identity.Client.Tests/                 依赖方：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码与 qian.sid 会话、篡改 nonce / iss / state 重放、刷新单飞与轮换（真实 Redis）、登出防伪、卸载、后通道登出；会话主体经 Kun 网关签发器铸 S2S 后下游接受；S2S 契约逐条违约与透传拒绝
+  Kun.Identity.Server.Tests/                 真实 OpenIddict + PostgreSQL + Kun 客户端协议验收、跨宿主吊销、后通道与密钥轮换；账号模型（Argon2id、标识与绑定守卫、sub 不碰撞、配额）、统一登录流水线（审计、限流与并发、强制改密、租户选择与切换、MFA 不降级）与账号 HTTP 面端到端（可控时钟 + 可控租户目录）、会话中心（吊销即时与旁路、并发上限与单端、租户冻结、真实 Redis 索引与宕机降级、管理面、多副本竞争、日志卫生）
+  Kun.Tenancy.Tests/                         租户目录与宿主契约
+  Kun.Testing.Containers.Tests/              fixture 自身的集成测试与单元测试
+_import/qian/tests/
+  Directory.Build.props                       过渡目录中测试项目的构建设置
   Qian.Lifecycle.Tests/                       生命周期：验签与信任根轮换（真实 PostgreSQL）、GitOps 执行器（本机裸仓库 + K3s 单节点集群）、Local 执行器
   Qian.Common.Tests/                          packages/Common 共享内部源文件的测试，直接编译源文件；并生成 CLI 移植比对用的 tck/profiles/key-vectors.json 与等价类表
   gates/                                      门禁自测：样例项目 + Python 测试，不在 Kun.slnx 与 Qian.slnf 里
@@ -31,10 +44,13 @@ tests/
 dotnet build Qian.slnf -c Release
 python3 ../../scripts/check_deps.py --no-restore
 python3 -m unittest discover -s tests/gates -v
-dotnet test --solution Qian.slnf -c Release --no-build
+for shard in a b c; do
+  python3 scripts/dotnet_ci.py shard "$shard" --out "TestResults/$shard.slnf"
+  dotnet test --solution "TestResults/$shard.slnf" -c Release
+done
 ```
 
-- `Qian.slnf` 是仓库根 `Kun.slnx` 的解决方案筛选文件，列出原 Qian 的全部项目；原 Qian 改为项目引用仓库根 `src/` 下的 Kun 源码（S1-KUN-020），构建时引用到的 Kun 项目跟着构建。新加项目要同时加进 `Kun.slnx` 与 `Qian.slnf`，`tests/gates/test_build_merge.py` 会核对。
+- 在 `_import/qian` 执行上面的命令。`Qian.slnf` 登记过渡目录内的项目，[kun-platform.slnf](../../../tests/kun-platform.slnf) 登记仓库根参加平台分片的集成测试。分片工具按统一的分组从两份清单生成实际测试名单，专属的 NativeAOT 作业单独运行。
 
 - 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Qian.Capabilities.Tests` 与 `Qian.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
   - `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
@@ -97,7 +113,7 @@ public sealed class OrderVisibilityTests(InfrastructureFixture infra)
 
 ### Apollo 协议替身
 
-PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Kun.Testing.Containers/ApolloMock/apollo_mock.py) 只依赖 Python 标准库，实现 Apollo「其它语言客户端接入」HTTP 协议里客户端会用到的部分：
+PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](../../../src/Kun.Testing.Containers/ApolloMock/apollo_mock.py) 只依赖 Python 标准库，实现 Apollo「其它语言客户端接入」HTTP 协议里客户端会用到的部分：
 
 | 接口 | 行为 |
 |---|---|
@@ -192,7 +208,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Ku
 - 单元与集成测试，本目录的项目分三个分片（a、b、c）：各自还原、构建，再用 `scripts/dotnet_ci.py shard` 写出的解决方案筛选文件只跑本分片的模块。作业开头先在前台列出本分片用到的测试镜像（`scripts/dotnet_ci.py images`，列不出即失败），再在后台预拉，测试前有界等待；拉取失败只记录，由 Testcontainers 补拉。分片清单是脚本里的 `SHARDS`，新加的测试项目不用登记，自动落入其余分片。
   - 测试命令带 `-p:QianTrxPerModule=true`，每个模块的 TRX 按项目名命名（`<项目名>.trx`，见 [Directory.Build.props](Directory.Build.props)）。xUnit 缺省文件名只有用户、机器和时间戳，同时启动的模块会撞名，后写完的覆盖先写完的（S1-QA-017）。
 - 分片 k 跑仓库根 `tests/` 下的测试：`tests/kun-unit.slnf` 的单元测试收覆盖率，每个模块一份 TRX、一份覆盖率（开关在仓库根的 `tests/Directory.Build.props`），上传前用 `scripts/dotnet_ci.py coverage` 核对每个测试项目恰好一份，通过后文件名去掉时间戳；`tests/Kun.IntegrationTests` 用 Testcontainers 起容器。
-- 测试分片汇总核对：`Qian.slnf` 里每个测试项目、分片 k 登记的每个测试项目，都恰好在所属分片跑过一次、没有失败。各分片与门禁作业的结果构件名带尝试号（`test-results-<分片>-attempt-<尝试号>`），汇总作业全部下载后用 `scripts/dotnet_ci.py latest-attempts` 给每个分片只留尝试号最大的一份再核对，取好的那份上传为 `test-results` 构件（每个分片一个子目录）。所以碰到偶发失败时点「重跑失败的作业」就行：没重跑的分片用第 1 次的结果，重跑过的用最新一次的，汇总按重跑的结果变绿。不按构件 ID 取最新：同名构件 download-artifact 只留 ID 最大的一份，而重跑后的 ID 不一定更大。本目录下不在 `Qian.slnf` 里的测试项目哪个分片都不跑：门禁作业的 `scripts/dotnet_ci.py registration` 即失败（S1-KUN-028），汇总核对也按名字告警；门禁样例 `tests/gates/**` 与 ci.yml 里由 dotnet 区域的专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。仓库根的测试项目由同一条命令核对，口径见仓库根 `AGENTS.md` 的「构建与测试」。
+- 测试分片汇总核对：`Qian.slnf`、`tests/kun-platform.slnf` 和分片 k 登记的每个测试项目，都恰好在所属分片跑过一次、没有失败。各分片与门禁作业的结果构件名带尝试号（`test-results-<分片>-attempt-<尝试号>`），汇总作业全部下载后用 `scripts/dotnet_ci.py latest-attempts` 给每个分片只留尝试号最大的一份再核对，取好的那份上传为 `test-results` 构件（每个分片一个子目录）。所以碰到偶发失败时点「重跑失败的作业」就行：没重跑的分片用第 1 次的结果，重跑过的用最新一次的，汇总按重跑的结果变绿。不按构件 ID 取最新：同名构件 download-artifact 只留 ID 最大的一份，而重跑后的 ID 不一定更大。本目录下不在 `Qian.slnf` 里的测试项目哪个分片都不跑：门禁作业的 `scripts/dotnet_ci.py registration` 即失败（S1-KUN-028），汇总核对也按名字告警；门禁样例 `tests/gates/**` 与 ci.yml 里由 dotnet 区域的专属作业 `dotnet test --project` 运行的项目（目前是三个 `*.AotTests`）除外（S1-QA-021）。仓库根的测试项目由同一条命令核对，口径见仓库根 `AGENTS.md` 的「构建与测试」。
 - AOT 冒烟宿主：仓库根的 `tests/Kun.AotSmoke` 引用 AOT 清单里的每一个项目（项目文件里写了 `IsAotCompatible=true` 的，本目录的 8 个包也在里面），对每个程序集整体扎根，原生发布后运行，ILC 有任何警告即失败（S1-KUN-020）。清单与写法见仓库根 `AGENTS.md`「项目文件与包」。本目录的四个原生发布作业照旧。
 
 ### 5.1 触发过滤与写法约定

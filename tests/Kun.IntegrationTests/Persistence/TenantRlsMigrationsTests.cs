@@ -6,7 +6,7 @@ using Kun.EntityFrameworkCore.Extensions;
 using Kun.EntityFrameworkCore.Interceptors;
 using Kun.EntityFrameworkCore.MultiTenancy;
 using Kun.EntityFrameworkCore.PostgreSQL;
-using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -37,7 +37,7 @@ public sealed class TenantRlsMigrationsTests(PostgresFixture postgres) : IClassF
             await admin.OpenAsync(ct);
             await using (var ddl = new NpgsqlCommand(script, admin)) await ddl.ExecuteNonQueryAsync(ct);
             await using (var grant = new NpgsqlCommand(
-                $"GRANT USAGE ON SCHEMA {Schema} TO kun_app; GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA {Schema} TO kun_app;", admin))
+                $"GRANT USAGE ON SCHEMA {Schema} TO {PostgresFixture.AppRoleName}; GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA {Schema} TO {PostgresFixture.AppRoleName};", admin))
                 await grant.ExecuteNonQueryAsync(ct);
 
             Assert.Equal((true, true), await RowSecurityAsync(admin, tenantTable, ct));

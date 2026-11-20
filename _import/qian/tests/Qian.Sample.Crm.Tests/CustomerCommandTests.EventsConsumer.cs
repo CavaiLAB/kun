@@ -38,9 +38,9 @@ public sealed partial class EventTests
     public async Task 消费端handler内租户为事件租户_EF查询自动带tenant_id过滤且只读到本租户_两个租户并发互不串()
     {
         await using var rabbit = new RabbitMqFixture();
-        await rabbit.InitializeAsync();
+        await rabbit.InitializeAsync(TestContext.Current.CancellationToken);
         await using var redis = new RedisFixture();
-        await redis.InitializeAsync();
+        await redis.InitializeAsync(TestContext.Current.CancellationToken);
         var probe = new TenantProbe();
         await using var host = await Start(events: rabbit.ConnectionString, configure: builder => ConsumeWithProbe(builder, redis, probe, peer: true));
         await ConsumingAsync(rabbit, CustomerCreatedQueue, TenantProbeQueue, TenantPeerQueue);
@@ -95,9 +95,9 @@ public sealed partial class EventTests
     public async Task 消费端经ITenantContextPropagator回灌信封租户_缺失重复与头不一致及平台级都fail_closed_不进handler不记幂等不重投()
     {
         await using var rabbit = new RabbitMqFixture();
-        await rabbit.InitializeAsync();
+        await rabbit.InitializeAsync(TestContext.Current.CancellationToken);
         await using var redis = new RedisFixture();
-        await redis.InitializeAsync();
+        await redis.InitializeAsync(TestContext.Current.CancellationToken);
         var probe = new TenantProbe();
         await using var host = await Start(events: rabbit.ConnectionString, configure: builder => ConsumeWithProbe(builder, redis, probe));
         await ConsumingAsync(rabbit, CustomerCreatedQueue, TenantProbeQueue);

@@ -54,7 +54,7 @@ public sealed class PlatformIdentityHostTests(PostgresFixture postgres) : IClass
         var directory = Directory.CreateTempSubdirectory("qian-staging-shape-");
         try
         {
-            await using var redis = new RedisFixture(); await redis.InitializeAsync();
+            await using var redis = new RedisFixture(); await redis.InitializeAsync(TestContext.Current.CancellationToken);
             var (settings, clientSecret) = await Prepare(directory.FullName, issuer, shell);
             string[] args = ["--environment=Development", "--patch", Path.Combine(directory.FullName, "environment.yml")];
             // 网关先起（身份发行方的元数据按需取），平台宿主再取网关公开的 JWKS 验 S2S。

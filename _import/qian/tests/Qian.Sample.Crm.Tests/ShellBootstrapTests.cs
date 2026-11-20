@@ -54,7 +54,7 @@ public sealed partial class ShellSurfaceTests(PostgresFixture postgres) : Custom
             builder.Services.AddSingleton<IStartupFilter>(new RequestLog(seen));
         });
         await surface.StartAsync(Ct);
-        await using var redis = new RedisFixture(); await redis.InitializeAsync();
+        await using var redis = new RedisFixture(); await redis.InitializeAsync(TestContext.Current.CancellationToken);
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,
             redis.ConnectionString, ShellGatewayIssuer,
             [new("capabilities", "/api/capabilities/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }, new("authz", "/api/authz/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }],
@@ -157,7 +157,7 @@ public sealed partial class ShellSurfaceTests(PostgresFixture postgres) : Custom
             await http.Response.WriteAsync(ShellCatalogWithForeignManifests.Replace("TENANT-A", A, StringComparison.Ordinal), http.RequestAborted);
         });
         await surface.StartAsync(Ct);
-        await using var redis = new RedisFixture(); await redis.InitializeAsync();
+        await using var redis = new RedisFixture(); await redis.InitializeAsync(TestContext.Current.CancellationToken);
         var logs = new ShellLogs();
         // 路由表只有能力表面一条（外壳目录与能力导航经它到替身），有效权限没有路由。
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,

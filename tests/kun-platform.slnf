@@ -1,0 +1,22 @@
+{
+  "solution": {
+    "path": "../Kun.slnx",
+    "projects": [
+      "tests/Kun.Audit.EntityFrameworkCore.IntegrationTests/Kun.Audit.EntityFrameworkCore.IntegrationTests.csproj",
+      "tests/Kun.Audit.Postgres.Tests/Kun.Audit.Postgres.Tests.csproj",
+      "tests/Kun.Authorization.Rbac.Tests/Kun.Authorization.Rbac.Tests.csproj",
+      "tests/Kun.Configuration.Platform.Tests/Kun.Configuration.Platform.Tests.csproj",
+      "tests/Kun.Data.AspNetCore.Tests/Kun.Data.AspNetCore.Tests.csproj",
+      "tests/Kun.Data.Native.Postgres.Tests/Kun.Data.Native.Postgres.Tests.csproj",
+      "tests/Kun.Data.Tests/Kun.Data.Tests.csproj",
+      "tests/Kun.EventBus.IntegrationTests/Kun.EventBus.IntegrationTests.csproj",
+      "tests/Kun.Files.Tests/Kun.Files.Tests.csproj",
+      "tests/Kun.Gateway.IntegrationTests/Kun.Gateway.IntegrationTests.csproj",
+      "tests/Kun.Identity.Client.Standalone.Tests/Kun.Identity.Client.Standalone.Tests.csproj",
+      "tests/Kun.Identity.Client.Tests/Kun.Identity.Client.Tests.csproj",
+      "tests/Kun.Identity.Server.Tests/Kun.Identity.Server.Tests.csproj",
+      "tests/Kun.Tenancy.Tests/Kun.Tenancy.Tests.csproj",
+      "tests/Kun.Testing.Containers.Tests/Kun.Testing.Containers.Tests.csproj"
+    ]
+  }
+}

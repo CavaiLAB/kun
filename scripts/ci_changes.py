@@ -127,12 +127,12 @@ AREAS: Dict[str, Area] = {
         "目录选择器验收",
         (
             q("tests/directory-e2e/**", "tests/gates/ui/pins.test.ts",
-              "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json", "packages/Qian.*/**", "packages/Common/**",
+              "packages/Qian.*/**", "packages/Common/**",
               "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
               "Directory.*.props", "Directory.Build.targets", ".editorconfig",
               "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "turbo.json", ".github/workflows/directory-e2e.yml"),
-            (".github/workflows/qian-directory-e2e.yml",),
+            (".github/workflows/qian-directory-e2e.yml", "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json"),
             DOTNET_BASE, NPMRC,
         ),
         original="directory-e2e.yml", builds_dotnet=True, installs_npm=True),
@@ -153,7 +153,7 @@ AREAS: Dict[str, Area] = {
         "外壳联邦验收",
         (
             q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-tenancy-ui/**", "plugins/qian.shell/**",
-              "plugins/qian.tenancy/ui/**", "tests/Qian.Shell.TestHost/**", "tests/Kun.Testing.Containers/**",
+              "plugins/qian.tenancy/ui/**", "tests/Qian.Shell.TestHost/**",
               "tests/Shared/NativeAuditDatabase.cs",
               "Directory.*", "pnpm-lock.yaml", "pnpm-workspace.yaml",
               "package.json", ".github/workflows/shell-federation.yml"),
@@ -191,12 +191,12 @@ AREAS: Dict[str, Area] = {
         (
             q("apps/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
               "packages/qian-identity-ui/**", "packages/qian-shell-kit/**", "samples/qian-sample-crm-ui/**",
-              "tests/directory-e2e/**", "tests/gates/ui/**", "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json",
+              "tests/directory-e2e/**", "tests/gates/ui/**",
               "plugins/qian.tenancy/contracts/**", "plugins/qian.tenancy.signup/contracts/**", "tools/openapi-codegen/**",
               "website/demo/**", "scripts/ui-tokens.mjs", "eslint.config.mjs", "eslint.boundaries.config.mjs",
               "eslint.i18n.mjs", ".dependency-cruiser.cjs", "vitest.config.ts", "tsconfig.base.json", "turbo.json",
               ".npmrc", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"),
-            (".github/workflows/qian-ui.yml",),
+            (".github/workflows/qian-ui.yml", "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json"),
         ),
         installs_npm=True),
 }

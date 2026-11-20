@@ -38,7 +38,7 @@ Write-side persistence for Kun Framework: `KunDbContext` base with automatic `IM
 
 租户查询过滤器通过 DbContext 自身的 `TenantIdForModelCacheKey` 读取当前访问器；不能把 `ITenantContext` 实例常量存进共享模型，后者会在多宿主或 scoped 访问器场景复用已经失效的租户上下文。
 
-- 修改严格基类的隔离检查必须同步 `_import/qian/tests/Kun.Data.Tests` 与本项目的测试，禁止为了通过测试关闭校验；启动安全范围见本目录 README。
+- 修改严格基类的隔离检查必须同步 `tests/Kun.Data.Tests` 与本项目的测试，禁止为了通过测试关闭校验；启动安全范围见本目录 README。
 - DeletedBy 沿用 CreatedBy 的可空用户键类型；直接 Remove 必须转软删除，不能绕过删除审计。
 
 ### 多租户

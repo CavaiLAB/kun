@@ -8,6 +8,11 @@
 
 ## [Unreleased]
 
+### Added — 容器测试支持（S1-KUN-028）
+
+- xUnit v3 集成测试可引用内核包 `Kun.Testing.Containers`，使用 PostgreSQL、Redis、RabbitMQ、PgBouncer 与 S3 兼容服务等夹具。镜像可按变量覆盖，PgBouncer 和 RustFS 的默认镜像按摘要钉住。
+- 框架的 RabbitMQ 兼容套件继续使用 3.13，通用夹具默认使用 4.3。应用连接使用受行级安全约束的 DML 角色，建表和准备数据使用夹具的管理连接。
+
 ### Changed — Apollo 配置源与配置契约（S1-KUN-028）
 
 - 引导参数 `KunConfigurationOptions` 和扩展 `AddKunConfigurationSources` 迁至内核包与命名空间 `Kun.Configuration.Apollo`。使用宿主原有的代码时引入这个命名空间。宿主仍可使用相同的源顺序、AccessKey 引用解析、快照扫描和缓存。
@@ -250,7 +255,7 @@
 ### Fixed — 集成测试的对象存储改用有公开来源的 S3 兼容服务（S1-KUN-019）
 
 - `Kun.IntegrationTests` 的存储测试原来用 `minio/minio` 镜像，它已从 Docker Hub 删除，Quay 上的同名镜像要登录才能拉，没有本地缓存的执行环境拉不到：5 个测试失败，另外 6 个把拉取失败当成没有 Docker 而跳过。改用 RustFS 1.0.6（Apache-2.0），镜像 `ghcr.io/rustfs/rustfs:1.0.6` 钉到摘要，匿名可拉；三个存储测试类共用 `Fixtures/S3CompatibleServer.cs`，`MinioFixture` 改名为 `S3StorageFixture`，断言不变。测试包由 `Testcontainers.Minio` 换成同版本的通用 `Testcontainers`，中央版本删去 `Testcontainers.Minio`。
-- 拉不到镜像、容器起不来不再算作跳过。只有本机确实没有容器环境时才跳过，环境变量 `CI` 为真时这种情况也算失败（`Fixtures/ContainerRuntime.cs`）。
+- 拉不到镜像、容器起不来不再算作跳过。只有本机确实没有容器环境时才跳过，环境变量 `CI` 为真时这种情况也算失败（现位于 `src/Kun.Testing.Containers/DockerRequirement.cs`）。
 
 ### Fixed — RabbitMQ 连接已被对端关掉时，释放不再抛异常（S1-QA-023）
 

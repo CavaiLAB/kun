@@ -1,4 +1,4 @@
-using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Npgsql;
 using Xunit;
 
@@ -47,7 +47,7 @@ public sealed class TenantRlsInterceptorPgBouncerTests(PgBouncerPostgresFixture 
     {
         if (string.IsNullOrEmpty(fx.BouncerConnectionString))
         {
-            ContainerRuntime.ReportUnavailable("PgBouncer fixture did not start (Docker unavailable).");
+            DockerRequirement.ReportUnavailable("PgBouncer fixture did not start (Docker unavailable).");
             return;
         }
 

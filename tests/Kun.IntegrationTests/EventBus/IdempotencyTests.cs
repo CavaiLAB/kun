@@ -6,6 +6,7 @@ using Kun.EventBus.DependencyInjection;
 using Kun.EventBus.Idempotency;
 using Kun.EventBus.RabbitMQ;
 using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -46,7 +47,7 @@ internal sealed partial class IdempotencyJsonContext : JsonSerializerContext { }
 
 public sealed class IdempotencyTests : IAsyncLifetime
 {
-    private readonly RabbitMqFixture _rabbitmq = new() { PreservePortAcrossRestarts = true };
+    private readonly RabbitMq313Fixture _rabbitmq = new() { PreservePortAcrossRestarts = true };
     private readonly RedisFixture _redis = new();
     private IHost? _host;
     private CountingHandler? _handler;
@@ -59,7 +60,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
 
         if (string.IsNullOrEmpty(_rabbitmq.ConnectionString) || string.IsNullOrEmpty(_redis.ConnectionString))
         {
-            ContainerRuntime.ReportUnavailable("Docker not available.");
+            DockerRequirement.ReportUnavailable("Docker not available.");
             return;
         }
 
@@ -107,7 +108,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
 
         if (_host is null)
         {
-            ContainerRuntime.ReportUnavailable("Docker not available.");
+            DockerRequirement.ReportUnavailable("Docker not available.");
             return;
         }
 

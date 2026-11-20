@@ -7,6 +7,7 @@ using Kun.EventBus.Outbox;
 using Kun.EventBus.RabbitMQ;
 using Kun.IntegrationTests.EventBus;
 using Kun.IntegrationTests.Fixtures;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,8 +19,8 @@ namespace Kun.IntegrationTests.Outbox;
 internal sealed class PublisherDbContext(DbContextOptions<PublisherDbContext> options)
     : KunDbContext(options, NullTenantContext.Instance);
 
-public sealed class OutboxReplicasTests(PostgresFixture postgres, RabbitMqFixture rabbit)
-    : IClassFixture<PostgresFixture>, IClassFixture<RabbitMqFixture>
+public sealed class OutboxReplicasTests(PostgresFixture postgres, RabbitMq313Fixture rabbit)
+    : IClassFixture<PostgresFixture>, IClassFixture<RabbitMq313Fixture>
 {
     private IHost Build()
     {

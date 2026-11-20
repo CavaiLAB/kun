@@ -11,7 +11,7 @@
     <ProjectReference Include="../../../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
     <ProjectReference Include="../../../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
-    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />

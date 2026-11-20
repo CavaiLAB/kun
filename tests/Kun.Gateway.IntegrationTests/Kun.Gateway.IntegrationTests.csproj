@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><Using Include="Xunit" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="../Kun.Plugin.Sdk.Tests/GeneratedMetadata.cs" Link="GeneratedMetadata.cs" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <ProjectReference Include="../../src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
+    <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
+    <ProjectReference Include="../../src/Kun.EventBus/Kun.EventBus.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
+    <ProjectReference Include="../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="JsonSchema.Net" />
+    <PackageReference Include="StackExchange.Redis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../_import/qian/tests/Shared/LoopbackPort.cs" Link="LoopbackPort.cs" />
+    <Compile Include="../../_import/qian/tests/Shared/IdentityProtocolHost.cs" Link="IdentityProtocolHost.cs" />
+    <Compile Include="../../_import/qian/tests/Shared/GatewayTestHost.cs" Link="GatewayTestHost.cs" />
+    <Compile Include="../Kun.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityAccountHost.cs" />
+  </ItemGroup>
+</Project>

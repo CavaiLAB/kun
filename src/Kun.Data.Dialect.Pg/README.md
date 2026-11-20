@@ -22,11 +22,11 @@ services.AddKunDataConnections(...); // 或连同数据连接档案
 
 [平台端点集成测试](../../_import/qian/tests/Qian.Registry.Tests/PgDialectEndpointTests.cs) 复用真实 PostgreSQL 注册表、RBAC 权限判定和已签名的两租户主体，通过 `PluginEndpointBinding` 调用 Kestrel 端点：挂载前列表为空，挂载后出现 pg 与 10 条映射，卸载后列表为空且 pg 映射不可用，再挂载可恢复。匿名请求返回 401、无权限租户返回 403；仅对租户 A 隐藏 Data 后返回 404，租户 B 不受影响。
 
-[组件与宿主测试](../../_import/qian/tests/Kun.Data.AspNetCore.Tests/PgDialectComponentTests.cs) 比对仓库清单与源生成元数据、从清单入口装载，并验证 `AddKunPgDialect()` 无论先于还是后于目录装配、重复调用都只有一个常驻方言。[注册句柄测试](../../_import/qian/tests/Kun.Data.AspNetCore.Tests/MetaTypesEndpointTests.cs) 验证释放即注销，旧句柄重复释放不会删掉重新注册的方言。
+[组件与宿主测试](../../tests/Kun.Data.AspNetCore.Tests/PgDialectComponentTests.cs) 比对仓库清单与源生成元数据、从清单入口装载，并验证 `AddKunPgDialect()` 无论先于还是后于目录装配、重复调用都只有一个常驻方言。[注册句柄测试](../../tests/Kun.Data.AspNetCore.Tests/MetaTypesEndpointTests.cs) 验证释放即注销，旧句柄重复释放不会删掉重新注册的方言。
 
 ```bash
 dotnet run --project tests/Kun.Data.AspNetCore.Tests -c Release -- -class '*PgDialectComponentTests' -class '*MetaTypesEndpointTests'
-QIAN_REQUIRE_DOCKER=1 dotnet run --project tests/Qian.Registry.Tests -c Release -- -method '*平台类型端点随PG方言*'
+QIAN_REQUIRE_DOCKER=1 dotnet run --project _import/qian/tests/Qian.Registry.Tests -c Release -- -method '*平台类型端点随PG方言*'
 ```
 
 ## 方言数据

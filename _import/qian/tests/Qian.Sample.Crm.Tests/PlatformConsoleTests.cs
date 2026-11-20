@@ -116,7 +116,7 @@ public sealed partial class ShellSurfaceTests
         var seen = new ConcurrentQueue<string>();
         await using var console = await StartConsole(new Uri(address, "auth/callback"), seen);
         var business = console.Business;
-        await using var redis = new RedisFixture(); await redis.InitializeAsync();
+        await using var redis = new RedisFixture(); await redis.InitializeAsync(TestContext.Current.CancellationToken);
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,
             redis.ConnectionString, ShellGatewayIssuer,
             [new("capabilities", "/api/capabilities/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }, new("authz", "/api/authz/{**rest}", PlatformSurfaceHost.Audience) { RateLimiterPolicy = "user" }],

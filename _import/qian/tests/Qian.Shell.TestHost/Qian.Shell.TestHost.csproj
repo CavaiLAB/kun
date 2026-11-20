@@ -4,7 +4,7 @@
     <ProjectReference Include="../../../../src/Kun.Audit.Postgres/Kun.Audit.Postgres.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
-    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
   </ItemGroup>

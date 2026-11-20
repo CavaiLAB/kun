@@ -3,8 +3,8 @@ using Kun.Core.Domain;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.MultiTenancy;
-using Kun.IntegrationTests.Fixtures;
 using Kun.MultiTenancy;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Npgsql;
@@ -76,10 +76,10 @@ public sealed class TenantContextBindingTests(PostgresFixture postgres) : IClass
         // This table deliberately has no RLS: the test must prove the application filter independently.
         await using var connection = new NpgsqlConnection(postgres.ConnectionString);
         await connection.OpenAsync(ct);
-        await using var command = new NpgsqlCommand("""
+        await using var command = new NpgsqlCommand($"""
             CREATE TABLE IF NOT EXISTS tenant_context_binding (id uuid PRIMARY KEY, tenant_id text NOT NULL);
             TRUNCATE tenant_context_binding;
-            GRANT SELECT ON tenant_context_binding TO kun_app;
+            GRANT SELECT ON tenant_context_binding TO {PostgresFixture.AppRoleName};
             INSERT INTO tenant_context_binding VALUES (@own_id, @own), (@foreign_id, @foreign);
             """, connection);
         command.Parameters.AddWithValue("own_id", Guid.NewGuid());

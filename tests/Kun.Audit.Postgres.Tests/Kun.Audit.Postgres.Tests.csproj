@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><Using Include="Xunit" />
+    <ProjectReference Include="../../src/Kun.Audit.Postgres/Kun.Audit.Postgres.csproj" />
+    <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
+    <ProjectReference Include="../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../../_import/qian/samples/Qian.Sample.Crm/Qian.Sample.Crm.csproj" />
+    <ProjectReference Include="../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" /><PackageReference Include="xunit.v3" />
+  </ItemGroup>
+  <ItemGroup><Compile Include="../../_import/qian/tests/Shared/NativeAuditDatabase.cs" Link="NativeAuditDatabase.cs" /></ItemGroup>
+</Project>

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Qian.Testing;
+using Kun.Testing;
 
 namespace Kun.Identity.Server.Tests;
 

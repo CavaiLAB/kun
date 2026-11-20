@@ -9,11 +9,11 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Authorization.Rbac;
 using Kun.Identity.Client;
 using Kun.Identity.Client.Tests;
-using Qian.Testing;
+using Kun.Testing;
 using Kun.Testing.Containers;
-using Qian.Testing.Gateway;
+using Kun.Testing.Gateway;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed partial class TenantOperationsTests
 {

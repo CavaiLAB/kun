@@ -4,7 +4,7 @@ using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 /// <summary>
 /// 参考宿主自己的订阅（S1-EVT-002）：客户建档事件到达后，在订阅器按信封 tenant_id 回灌的租户里经 EF 读回该客户，记一条内存回执。

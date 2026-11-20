@@ -5,6 +5,6 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../Qian.Image.SelfCheck/SelfReport.cs" Link="SelfReport.cs" />
+    <Compile Include="../Kun.Image.SelfCheck/SelfReport.cs" Link="SelfReport.cs" />
   </ItemGroup>
 </Project>

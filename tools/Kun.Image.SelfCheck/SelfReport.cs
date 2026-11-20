@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
-namespace Qian.Image.SelfCheck;
+namespace Kun.Image.SelfCheck;
 
 // 运行期证据（S1-DEP-003）：进程的有效 UID / GID、根挂载是否只读、写探针是否被拒、声明的临时目录是否可写。
 // 只读 /proc，不依赖 shell，JIT 与 NativeAOT 两个自检程序共用；不用反射序列化，保证可裁剪。

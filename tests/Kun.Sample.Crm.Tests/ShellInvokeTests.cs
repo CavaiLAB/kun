@@ -16,11 +16,11 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
-using Qian.Testing;
+using Kun.Testing;
 using Kun.Testing.Containers;
-using Qian.Testing.Gateway;
+using Kun.Testing.Gateway;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 用户主体经外壳执行应用能力（S1-YUE-015，裁决 A1）：真实身份 → 网关 BFF 会话 → 网关按路由表换 S2S（受众 qian-platform）→ 平台表面参考宿主的通用执行入口 →
 // 参考应用的命令管道以调用者本人执行：命令 PEP 按该用户的角色判定，审计链记 actor_type = user；参考应用自己的受众（qian.sample.crm）仍只收机器主体。

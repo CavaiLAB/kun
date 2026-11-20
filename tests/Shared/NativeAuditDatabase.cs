@@ -3,7 +3,7 @@ using Npgsql;
 using Kun.Audit.Postgres;
 using Kun.Testing.Containers;
 
-namespace Qian.Testing.NativeAudit;
+namespace Kun.Testing.NativeAudit;
 
 internal sealed record NativeAuditDatabase(NativeAuditRoles Roles, string TenantConnection, string PlatformConnection)
 {

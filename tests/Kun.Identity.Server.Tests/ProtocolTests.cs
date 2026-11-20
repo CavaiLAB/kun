@@ -11,7 +11,7 @@ using Kun.Testing.Containers;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Testing.Identity;
+using Kun.Testing.Identity;
 
 namespace Kun.Identity.Server.Tests;
 

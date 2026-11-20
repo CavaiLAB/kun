@@ -10,7 +10,7 @@ using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 using Kun.Tenancy.Signup;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 开通申请的平台运营一侧（S1-TEN-019）：运营宿主上的列表、详情、通过、驳回、重试与状态机元数据；
 // 授权只走平台超管显式旁路（每次放行在平台审计链记一条），开通经 qian.tenancy 的开通编排与生命周期端口完成。

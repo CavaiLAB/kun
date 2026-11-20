@@ -21,9 +21,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Testing;
-using Qian.Testing.Gateway;
-using Qian.Testing.Identity;
+using Kun.Testing;
+using Kun.Testing.Gateway;
+using Kun.Testing.Identity;
 
 namespace Kun.Gateway.IntegrationTests;
 

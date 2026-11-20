@@ -19,12 +19,12 @@ using Kun.Profiles;
 using Kun.Profiles.Abstractions;
 using Kun.Registry;
 using Kun.Runtime;
-using Qian.Sample.Crm;
+using Kun.Sample.Crm;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 
-namespace Qian.Dev.TenantOps;
+namespace Kun.Dev.TenantOps;
 
 // 平台插件树，照集成测试 LifecycleAcceptanceTests 的 AttachLifecycle 装配：Data / Tenancy / Authz / Audit / Config / Registry /
 // Capabilities / Lifecycle 都是实际 Provider，组件文件夹写进临时 platform profile，制品摘要经本次启动的平台钥签名后交给 Lifecycle 安装。
@@ -134,7 +134,7 @@ internal sealed class DevPlatform(string repository) : IDisposable
             id = "qian.sample.crm", version = "1.0.0", description = "参考应用：客户管理，由生命周期装进租户 scope。", author = new { name = "Qian" }, license = "Apache-2.0",
             @interface = new { displayName = "crm", category = "sample" }, inject = crm.Inject.Select(key => key.Name), provides = new[] { CrmDefinition.Key.Name },
             policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true }, scopes = CatalogScopes,
-            runtime = new { form = "module", entry = "Qian.Sample.Crm" }
+            runtime = new { form = "module", entry = "Kun.Sample.Crm" }
         }));
         var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.KunCapability, ListCustomersQuery.KunCapability, GetCustomerQuery.KunCapability], validator, new ToolContractHasher());
         var contracts = new List<object> { new { id = "qian.sample.crm.api/v1", kind = "openapi", path = "./contracts/http-v1.openapi.json" } };

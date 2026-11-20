@@ -2,15 +2,15 @@ using Kun.Gateway.Shell;
 using System.Net;
 using Kun.Core.MultiTenancy;
 using Kun.Security;
-using Qian.Dev.TenantOps;
+using Kun.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Microsoft.IdentityModel.Tokens;
 using Kun.Runtime;
-using Qian.Sample.Crm;
+using Kun.Sample.Crm;
 using Kun.Tenancy.Signup;
 
-namespace Qian.Dev.Shell;
+namespace Kun.Dev.Shell;
 
 /// <summary>启动参数：状态目录、管理员连接、身份 / 业务宿主地址（即 OIDC 发行方）、网关 BFF 地址，以及可选的上游 Dex（issuer 与客户端密钥文件）。</summary>
 internal sealed record DevShellSettings(string State, string Admin, string Urls, string Gateway, string? Dex = null, string? DexSecret = null, int RedisPort = 55434);
@@ -43,7 +43,7 @@ internal static class DevShellHost
         var signupRemote = Dist(repository, "packages/qian-tenancy-signup-ui/dist/remote", "mf-manifest.json", "@qian/tenancy-signup-ui", "build:remote");
         // 开通申请的公开页（S1-TEN-020 的构建产物）可选：QIAN_DEV_SIGNUP_UI_DIST 指定目录，缺省找 packages/qian-tenancy-signup-ui/dist/public；没有就只开放申请人接口。
         var signupDist = OptionalDist(repository, Environment.GetEnvironmentVariable("QIAN_DEV_SIGNUP_UI_DIST") ?? "packages/qian-tenancy-signup-ui/dist/public");
-        var seed = DevSeed.Load(Path.Combine(repository, "tools", "Qian.Dev.Shell", "seed", "accounts.json"));
+        var seed = DevSeed.Load(Path.Combine(repository, "tools", "Kun.Dev.Shell", "seed", "accounts.json"));
         Directory.CreateDirectory(settings.State);
         Console.WriteLine("重建开发库 " + DevDatabase.Name + "（每次启动都从空库开始）……");
         var database = await DevDatabase.ResetAsync(settings.Admin, ct).ConfigureAwait(false);

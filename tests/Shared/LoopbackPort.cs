@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Connections;
 
-namespace Qian.Testing;
+namespace Kun.Testing;
 
 // 测试宿主的回环端口（S1-QA-014）。发行方地址里带端口，必须在构建宿主前确定，所以只能先向系统要一个空闲端口、放掉，
 // 再在建表、挂载组件之后交给 Kestrel 绑定。这几秒里端口可能被占走：并行的测试进程（--max-parallel-test-modules），

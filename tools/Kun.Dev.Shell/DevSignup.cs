@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Kun.Data;
-using Qian.Dev.TenantOps;
+using Kun.Dev.TenantOps;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 using Kun.Tenancy.Signup;
 
-namespace Qian.Dev.Shell;
+namespace Kun.Dev.Shell;
 
 // 租户自助开通（S1-TEN-019）挂进身份 / 业务宿主：与身份服务同宿主（identity profile 的形状），申请人接口（/api/signup/verifications、
 // /session、/code-availability、/me/**）与公开页（/signup，有构建产物时）走身份的公开分支，不经业务管线；

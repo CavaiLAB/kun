@@ -12,7 +12,7 @@ using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Tenancy.AspNetCore;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 // 平台运营的独立真实宿主，复用已装配的 Runtime/Data/Authz/Audit，不经过业务 TenantRequestBoundary。
 // 源上下文每次从运行时解析，声明式重挂载后不会持有失效的旧上下文。

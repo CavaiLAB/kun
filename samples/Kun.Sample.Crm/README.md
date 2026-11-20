@@ -30,7 +30,7 @@ dotnet run --project samples/Qian.Sample.Crm
 
 ## 真实验收
 
-Qian.Sample.Crm.Tests 启动真实 Kestrel 与共享 PostgresFixture，使用受限应用角色。管理员只建表并为 A/B 各造 1000 行；测试签发真实 RS256 令牌，遍历 A 的 1000 行、验证 B 隔离、越租户 404、伪造令牌/租户头/错误客户端和 scope 被拒绝。
+Kun.Sample.Crm.Tests 启动真实 Kestrel 与共享 PostgresFixture，使用受限应用角色。管理员只建表并为 A/B 各造 1000 行；测试签发真实 RS256 令牌，遍历 A 的 1000 行、验证 B 隔离、越租户 404、伪造令牌/租户头/错误客户端和 scope 被拒绝。
 
 测试捕获 HTTP 列表实际发出的 SQL 和参数，使用同一应用角色及租户会话执行 EXPLAIN ANALYZE，要求命中 ix_customers_tenant_id_id。不会关闭顺序扫描或扩大数据集来制造结果。CI 把实际计划保存在 test-results 的 evidence/crm-customer-list-explain.json。
 
@@ -85,7 +85,7 @@ IntegrationEventCatalogTests 扫描测试输出里全部 Qian 程序集的 `[Int
 
 `ICrmRuntimeAssembly` 是宿主的装配入口：在首次 Mount 前接收上述同组真实业务 Provider，交由宿主的 ProfileLoader 与已安装组件解析器决定条目、配置及顺序；全部 Ready 后启动宿主监听。未注册该入口时仍使用默认独立装配。接口只依赖 Runtime，客户业务组件没有新增 Registry/Capabilities 依赖，也没有按运行模式分叉业务处理。
 
-T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实 ProfileLoader、模块清单、制品摘要、Registry/Capabilities 与 PostgreSQL；minimal 与 platform 的边界和四次实际执行结果见 [运行时 TCK](../../tck/runtime/README.md#t23-的真实-profile-宿主对照)。这证明该运行时组合的行为等价，不宣称所有平台模块或 QA-003/QA-005 的独立安装验收已经完成。
+T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实 ProfileLoader、模块清单、制品摘要、Registry/Capabilities 与 PostgreSQL；minimal 与 platform 的边界和四次实际执行结果见 [运行时 TCK](../../_import/qian/tck/runtime/README.md#t23-的真实-profile-宿主对照)。这证明该运行时组合的行为等价，不宣称所有平台模块或 QA-003/QA-005 的独立安装验收已经完成。
 
 ## 生命周期钩子与平台宿主（S1-RT-005）
 
@@ -102,17 +102,17 @@ T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实
 - 不传时行为与独立宿主相同。
 - `CrmCommandRuntime.Source()` 优先取本租户 scope 的 `crm` 条目；没有时回到全局条目的 scope 视图。由 Lifecycle 装进租户 scope 的版本因此由各租户自己的条目处理。
 
-真实验收在测试工程的 `LifecycleAcceptanceTests`。宿主只预装参考应用 1.0.0 / 1.0.1 / 1.1.0 三个版本、不挂全局条目，由 Lifecycle 完成开通、挂载、升级、回切与契约准入。证据与边界见 [Kun.Lifecycle](../../../../src/Kun.Lifecycle/README.md#测试证据)。这不代表参考应用已经以正式包安装，正式安装验收仍归 S1-RT-011。
+真实验收在测试工程的 `LifecycleAcceptanceTests`。宿主只预装参考应用 1.0.0 / 1.0.1 / 1.1.0 三个版本、不挂全局条目，由 Lifecycle 完成开通、挂载、升级、回切与契约准入。证据与边界见 [Kun.Lifecycle](../../src/Kun.Lifecycle/README.md#测试证据)。这不代表参考应用已经以正式包安装，正式安装验收仍归 S1-RT-011。
 
 ## 平台租户运营宿主
 
 [TenantOperationsHost](TenantOperationsHost.cs) 提供可独立启动的真实Kestrel/JwtBearer宿主，复用调用方已装配的Runtime/Data/Authz/Audit，并实际映射MapKunTenancy。启动方调用Build，传入每次重新解析global qian.tenancy的函数、可信平台issuer/audience/RS256签名校验参数及监听地址配置，然后RunAsync。它要求签名、过期时间、issuer/audience/lifetime/signature完整验证；不经过业务TenantRequestBoundary。ICurrentUser从已验证的原始令牌捕获，并经PrincipalClaims核对，MapInboundClaims=false。
 
-这与只接受机器业务请求的CrmCommandApplication是两个监听宿主；S1-GW-001探针应使用运营宿主的地址、真实平台超管令牌及已就绪的Registry/Lifecycle/Authz/Audit，不能把CRM业务端口当作运营端口。TenantManagementTests与六步用例直接调用同一Build工厂；测试密钥不替代正式Identity签发，部署由相应任务完成。具体HTTP契约与前置见[Tenancy主文档](../../../../src/Kun.Tenancy/README.md#运营-http-契约与宿主s1-ten-008)。
+这与只接受机器业务请求的CrmCommandApplication是两个监听宿主；S1-GW-001探针应使用运营宿主的地址、真实平台超管令牌及已就绪的Registry/Lifecycle/Authz/Audit，不能把CRM业务端口当作运营端口。TenantManagementTests与六步用例直接调用同一Build工厂；测试密钥不替代正式Identity签发，部署由相应任务完成。具体HTTP契约与前置见[Tenancy主文档](../../src/Kun.Tenancy/README.md#运营-http-契约与宿主s1-ten-008)。
 
-本机想逐个调用这些运营接口，见 [本机租户运营手测环境](../../tools/Qian.Dev.TenantOps/README.md)（S1-QA-012）：一条命令起 PostgreSQL 并用同一个 Build 工厂启动运营宿主，不替代 qian dev（S1-RT-013）或 K3s 部署（S1-DEP-002）。
+本机想逐个调用这些运营接口，见 [本机租户运营手测环境](../../tools/Kun.Dev.TenantOps/README.md)（S1-QA-012）：一条命令起 PostgreSQL 并用同一个 Build 工厂启动运营宿主，不替代 qian dev（S1-RT-013）或 K3s 部署（S1-DEP-002）。
 
-宿主读取 Tenancy:Resolver:Mode、Tenancy:Resolver:AllowHeaderFallback 和 Tenancy:InitializationCapabilities 配置节，并传入 tenancy 的同一 config。Resolver 仅接受 production/false，初始化清单须是完整能力 ID，不支持通配符；空清单不会授予开户 hook 例外。失败诊断先查 GetStepsAsync 的 04:provisioned Reason，再按 [Tenancy 主文档](../../../../src/Kun.Tenancy/README.md) 区分重放、清单缺席和高风险能力拒绝。
+宿主读取 Tenancy:Resolver:Mode、Tenancy:Resolver:AllowHeaderFallback 和 Tenancy:InitializationCapabilities 配置节，并传入 tenancy 的同一 config。Resolver 仅接受 production/false，初始化清单须是完整能力 ID，不支持通配符；空清单不会授予开户 hook 例外。失败诊断先查 GetStepsAsync 的 04:provisioned Reason，再按 [Tenancy 主文档](../../src/Kun.Tenancy/README.md) 区分重放、清单缺席和高风险能力拒绝。
 
 ## 面向用户的平台表面参考宿主（S1-YUE-012）
 
@@ -120,9 +120,9 @@ T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实
 
 S1-YUE-018 另映射平台控制台目录 `MapQianPlatformConsole`（`GET /api/capabilities/console`）：只对不带租户的请求（平台身份）交出 Capabilities 组件的全局上下文，带租户的请求 404；目录服务再按平台超管只读判定列出平台组件（租户运营 `qian.tenancy`、开通申请 `qian.tenancy.signup`）的远程、菜单与权限码，不持角色为空，判定不写审计（细节见 Qian.Capabilities）。页面里的操作不经本宿主，而是经运营宿主（`TenantOperationsHost`，逐次超管旁路并写平台审计链）。用例 `PlatformConsoleTests`：持角色的平台身份拿到两个平台组件、不写审计，撤销角色后立即为空，租户主体、服务、Agent 与不持角色的平台身份拿不到，租户的外壳目录与菜单不含平台组件；网关 bootstrap 对持角色的平台身份交出同一份目录、不代管，不持角色仍代管，响应不含令牌。参考宿主的平台组件装配（租户运营与开通申请组件按 UI 清单登记菜单与远程）在 `LifecycleAcceptanceTests.AttachLifecycle` 的 `Console` 开关里。
 
-参考应用的命令宿主（`CrmCommandApplication`）只认机器身份，所以用户主体的这些表面单独成宿主，网关按受众分簇转发；外壳 bootstrap（Kun.Gateway 的 `MapKunShellBootstrap`）经它取外壳目录、导航与有效权限，平台身份则只取平台控制台目录。`ShellBootstrapTests` 与外壳联调环境（[tools/Qian.Dev.Shell](../../tools/Qian.Dev.Shell/README.md)）都用它；生产里由 platform profile 的平台宿主提供同一表面，归 S1-DEP-009。参考应用的界面（UI 清单与 MF2 远程模块）在 [samples/qian-sample-crm-ui](../qian-sample-crm-ui/README.md)。
+参考应用的命令宿主（`CrmCommandApplication`）只认机器身份，所以用户主体的这些表面单独成宿主，网关按受众分簇转发；外壳 bootstrap（Kun.Gateway 的 `MapKunShellBootstrap`）经它取外壳目录、导航与有效权限，平台身份则只取平台控制台目录。`ShellBootstrapTests` 与外壳联调环境（[tools/Qian.Dev.Shell](../../tools/Kun.Dev.Shell/README.md)）都用它；生产里由 platform profile 的平台宿主提供同一表面，归 S1-DEP-009。参考应用的界面（UI 清单与 MF2 远程模块）在 [samples/qian-sample-crm-ui](../../_import/qian/samples/qian-sample-crm-ui/README.md)。
 
-生产对应物是 [platform 生产宿主](../../../../hosts/Kun.Platform.Host/README.md)（S1-DEP-009）：按 platform profile 自行装配插件树，平台表面与运营接口同一进程、按匹配到的端点分受众，参考应用这类 module 应用经组合的扩展登记并进同一插件树；两者的差异见它的 README「与参考宿主的差异」。
+生产对应物是 [platform 生产宿主](../../hosts/Kun.Platform.Host/README.md)（S1-DEP-009）：按 platform profile 自行装配插件树，平台表面与运营接口同一进程、按匹配到的端点分受众，参考应用这类 module 应用经组合的扩展登记并进同一插件树；两者的差异见它的 README「与参考宿主的差异」。
 
 用户主体经平台表面执行参考应用能力（S1-YUE-015 裁决 A1）：命令由参考应用的命令运行时执行，从参考宿主的 DI 取当前主体。平台表面宿主验签后，把同一份已验证快照（user / service / agent，不含 `act`）交给参考应用的身份适配器，能力因此以调用者本人执行：命令 PEP 按其角色判权限点与 scope 并记决策，审计链按主体种类记 `actor_type`（用户记 `user`；外部机器客户端带 Bearer 经网关时是服务主体，记 `service`，S1-YUE-016），通道沿用能力登记的 `api`（裁决 ③，`ui` 归因见 S1-AUD-011）。user 只认这一来源，参考应用自己的受众（`qian.sample.crm`）验签仍只收机器主体。调用方可以先登记数据组件（例如同进程挂身份库）：Kun 2026.10.25 起数据约定不再以匿名兜底占住框架当前主体端口（S1-KUN-017），`CrmCommandApplication` 不再抢先登记 `JwtCurrentUser`；端口若仍解析成匿名兜底，SDK 的启动检查让宿主启动即失败。生产里 `module` 应用与平台表面同在 platform 宿主、解析同一个身份适配器（S1-DEP-009）。
 

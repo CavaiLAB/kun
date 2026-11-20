@@ -22,11 +22,11 @@ using Kun.Data;
 using Kun.Runtime;
 using Kun.Surfaces;
 using Kun.Tenancy.Signup;
-using Qian.Testing;
+using Kun.Testing;
 using Kun.Testing.Containers;
-using Qian.Testing.Gateway;
+using Kun.Testing.Gateway;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 平台控制台（S1-YUE-018）：平台组件（清单 scopes 只含 global）真实挂在全局 scope——租户运营 qian.tenancy 与开通申请 qian.tenancy.signup，
 // 各带制品快照里的 UI 清单；Authz 带平台角色登录与两份权限目录（管理面宿主同一套装配）。平台表面参考宿主复用同一 Runtime，按 Authz 的只读判定

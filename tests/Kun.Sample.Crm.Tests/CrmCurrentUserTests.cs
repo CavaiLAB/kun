@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 参考应用身份适配器 CrmCurrentUser 的逐层单测（S1-YUE-016，R132 ②）：平台表面交快照（AcceptPlatformSurface）、本宿主验签（Capture）与 IsAuthenticated 的逐项比对各自单独钉住。
 // 外壳整条链路（ShellInvokeTests）只能整体测到它们：平台表面验签时已核对 sub 与快照一致、Kun.Capabilities 对带 act 的主体先回 404、本宿主验签从不存 user 快照，

@@ -15,7 +15,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 // 面向用户的平台表面参考宿主：能力目录 / 导航 / 外壳目录（MapKunCapabilities）与有效权限（MapKunAuthz）。
 // 与 TenantOperationsHost 同形：复用已装配的 Runtime（Registry / Capabilities / Authz），只认网关签发的 S2S（RS256、issuer、受众、有效期），

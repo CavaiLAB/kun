@@ -8,7 +8,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 public static class CrmDefinition
 {

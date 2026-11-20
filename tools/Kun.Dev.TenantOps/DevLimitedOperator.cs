@@ -2,7 +2,7 @@ using Kun.Authorization;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Dev.TenantOps;
+namespace Kun.Dev.TenantOps;
 
 // 本机手测的受限运营（S1-TEN-027）：持平台超管，但不持 qian.tenancy:admin:reset-credential，用来看带初始密码开户与更换管理员被拒时页面的提示（R165）。
 // 平台目前只有超管一个平台角色，持角色即持全部已登记的权限点，所以在真实旁路之前收窄：只对这个身份、只扣这一个权限点，按旁路拒绝处理（不写审计）；

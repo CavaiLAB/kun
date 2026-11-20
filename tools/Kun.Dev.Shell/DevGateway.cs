@@ -17,16 +17,16 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Configuration;
 using Kun.Configuration.Platform;
 using Kun.Configuration.Secrets;
-using Qian.Dev.TenantOps;
+using Kun.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
 using Kun.Runtime;
-using Qian.Sample.Crm;
+using Kun.Sample.Crm;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Transforms.Builder;
 
-namespace Qian.Dev.Shell;
+namespace Kun.Dev.Shell;
 
 /// <summary>网关 BFF 宿主与它的插件装载器；停机时一起释放。</summary>
 internal sealed class DevGatewayHost(WebApplication app, PluginLoader loader) : IAsyncDisposable

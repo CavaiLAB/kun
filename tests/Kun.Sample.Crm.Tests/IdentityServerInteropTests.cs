@@ -8,9 +8,9 @@ using Kun.Gateway.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Testing.Identity;
+using Kun.Testing.Identity;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed partial class IdentityAuthzTests
 {

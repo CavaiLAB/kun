@@ -37,7 +37,7 @@ using Kun.Tenancy;
 using Kun.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {

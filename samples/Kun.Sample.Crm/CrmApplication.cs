@@ -17,7 +17,7 @@ using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Authorization.AspNetCore;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 /// <summary>参考应用的数据入口；只接受指定内部服务的有效租户 S2S 令牌。</summary>
 public static class CrmApplication

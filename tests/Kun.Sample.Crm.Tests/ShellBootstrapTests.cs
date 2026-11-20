@@ -18,11 +18,11 @@ using Kun.Identity.Client;
 using Kun.Registry;
 using Kun.Runtime;
 using Kun.Surfaces;
-using Qian.Testing;
+using Kun.Testing;
 using Kun.Testing.Containers;
-using Qian.Testing.Gateway;
+using Kun.Testing.Gateway;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {

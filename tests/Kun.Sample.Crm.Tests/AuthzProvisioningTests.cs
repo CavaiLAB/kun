@@ -12,7 +12,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Surfaces.Abstractions;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {

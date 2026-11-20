@@ -35,7 +35,7 @@
   },
   "runtime": {
     "form": "module",
-    "entry": "Qian.Sample.Crm.CrmPlugin, Qian.Sample.Crm",
+    "entry": "Kun.Sample.Crm.CrmPlugin, Kun.Sample.Crm",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -57,7 +57,7 @@
       "metadata/permissions.json": {
         "$generated": true,
         "component": "qian.sample.crm",
-        "source": "Qian.Sample.Crm.CrmPlugin, Qian.Sample.Crm",
+        "source": "Kun.Sample.Crm.CrmPlugin, Kun.Sample.Crm",
         "sha256": "c2c25568be6176459a831b87d6acb9679490c0e1b47c40b43cb71aebe8b1974d",
         "fields": [
           ""
@@ -66,7 +66,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.sample.crm",
-        "source": "Qian.Sample.Crm.CrmPlugin, Qian.Sample.Crm",
+        "source": "Kun.Sample.Crm.CrmPlugin, Kun.Sample.Crm",
         "sha256": "24dc3e25230eda824a1af2819b7fc263a39cc3d19c735bab027064acb585ccec",
         "fields": [
           ""

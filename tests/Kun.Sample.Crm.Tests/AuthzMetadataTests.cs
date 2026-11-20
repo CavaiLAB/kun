@@ -9,7 +9,7 @@ using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Runtime;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed partial class IdentityAuthzTests
 {

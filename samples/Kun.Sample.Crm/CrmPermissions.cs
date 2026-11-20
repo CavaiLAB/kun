@@ -3,7 +3,7 @@ using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Surfaces;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 [Permission("customer", "read")]
 [Permission("customer", "write")]

@@ -6,7 +6,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Testing.Containers;
 using Npgsql;
-using Qian.Testing.NativeAudit;
+using Kun.Testing.NativeAudit;
 
 namespace Kun.Audit.Postgres.Tests;
 

@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Capabilities;
 using Kun.Capabilities.AspNetCore;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed class HttpSchemaDirectionTests
 {

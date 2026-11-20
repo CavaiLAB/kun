@@ -52,7 +52,7 @@ done
 
 - 在 `_import/qian` 执行上面的命令。`Qian.slnf` 登记过渡目录内的项目，[kun-platform.slnf](../../../tests/kun-platform.slnf) 登记仓库根参加平台分片的集成测试。分片工具按统一的分组从两份清单生成实际测试名单，专属的 NativeAOT 作业单独运行。
 
-- 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Kun.Capabilities.Tests` 与 `Qian.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
+- 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Kun.Capabilities.Tests` 与 `Kun.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
   - `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
   - `python3 scripts/prepare_contract_tools.py --destination <目录>`，再导出 `QIAN_BUF_PATH=<目录>/buf` 与 `QIAN_OASDIFF_PATH=<目录>/oasdiff`：能力契约的真实兼容检查器，缺失时相关用例按设计拒绝跳过。
 - `dotnet test` 走 Microsoft Testing Platform（仓库根 [global.json](../../../global.json) 的 `test.runner`）；xUnit v3 测试项目是可执行程序，csproj 里写 `<OutputType>Exe</OutputType>`。
@@ -127,7 +127,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 
 ### CRM 参考宿主验收的用例写法
 
-`Qian.Sample.Crm.Tests` 的 `CustomerCommandTests` 是抽象的公共基类：`Start()` 起完整宿主，另有各主题共用的辅助方法、常量与探针类型，本身不含用例。用例分在八个 sealed 主题类里，各自一个 `PostgresFixture` 容器，主题之间并行、主题内串行（S1-QA-017）；主题类与各自的范围见 [CustomerCommandTests.cs](Qian.Sample.Crm.Tests/CustomerCommandTests.cs) 开头的注释。
+`Kun.Sample.Crm.Tests` 的 `CustomerCommandTests` 是抽象的公共基类：`Start()` 起完整宿主，另有各主题共用的辅助方法、常量与探针类型，本身不含用例。用例分在八个 sealed 主题类里，各自一个 `PostgresFixture` 容器，主题之间并行、主题内串行（S1-QA-017）；主题类与各自的范围见 [CustomerCommandTests.cs](../../../tests/Kun.Sample.Crm.Tests/CustomerCommandTests.cs) 开头的注释。
 
 - 新用例写进对应的主题类，即文件里 `public sealed partial class <主题类>` 那一部分；配套的辅助方法、常量与探针类型照旧写进同一文件里基类的 `public abstract partial class CustomerCommandTests` 部分。
 - 基类不放 `[Fact]` / `[Theory]`：xUnit 按继承发现测试方法，写在基类的用例会在八个主题类各跑一遍。
@@ -218,7 +218,7 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
 | 重新纳入 | 读取方 |
 |---|---|
 | `docs/generated/**` | `Kun.Tenancy.Tests` 的 `TenancyConfigurationTests` 读 `docs/generated/config-catalog.md`，核对 tenancy 的实际配置与发布的配置目录一致。`Kun.Docs.Tests` 只用样例项目测生成器，不读这个目录；派生文档与源码是否一致（新鲜度）由仓库根的 [qian-documentation.yml](../../../.github/workflows/qian-documentation.yml) 重新生成后比对，它所在的 documentation 区域含 `docs/generated/**` |
-| `docs/ops/configuration-runbook.md` | `Qian.Sample.Crm.Tests` 的 `CapabilityInvokeTests` 原样执行手册里的过期回执清理 SQL |
+| `docs/ops/configuration-runbook.md` | `Kun.Sample.Crm.Tests` 的 `CapabilityInvokeTests` 原样执行手册里的过期回执清理 SQL |
 
 测试或门禁新读一个这类文件时，把它加进那一组（写相对本目录的路径）。门禁作业的触发过滤自检（`python3 scripts/dotnet_ci.py paths-check`）读这一组，从下面三处找写成仓库路径的引用，对得上 git 跟踪的文件、而只改该文件的 PR 不跑 dotnet 区域的作业即失败：
 

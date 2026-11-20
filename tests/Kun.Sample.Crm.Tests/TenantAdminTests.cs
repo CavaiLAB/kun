@@ -21,7 +21,7 @@ using Kun.Errors;
 using Kun.Tenancy;
 using Kun.Testing.Containers;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 运营后台维护租户管理员（S1-TEN-010）：账号查找与新建、替换管理员、重置管理员密码。
 // 身份组件、租户运营宿主、超管旁路与两条审计链都是真的；成员、凭据与会话只经 qian.identity 的端口改变。

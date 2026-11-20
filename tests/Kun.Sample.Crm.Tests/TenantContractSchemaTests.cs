@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed class TenantContractSchemaTests
 {

@@ -31,7 +31,7 @@ using Kun.Runtime;
 using Kun.Lifecycle;
 using Kun.Registry;
 using Kun.Tenancy;
-using Qian.Testing;
+using Kun.Testing;
 using Kun.Testing.Containers;
 
 // 下面八个主题类都起完整宿主，CPU 有富余时大半时间在等数据库、容器与超时，按处理器数（CI 上是 4）限并发会让后排的主题干等，所以放宽到 8（S1-QA-017）。
@@ -41,7 +41,7 @@ using Kun.Testing.Containers;
 // CI 的分片 b 上同批模块存在资源争用，壁钟与各类耗时见 S1-QA-019。
 [assembly: Xunit.v3.Parallelization(MaxThreads = 8)]
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // CRM 参考宿主验收的公共基类：Start() 起完整宿主，另有各主题共用的辅助方法、常量与探针类型，本身不含用例。
 // xUnit 对同一个类的用例一律串行、不同类之间并行，所以用例按主题分在下面八个类里（S1-QA-017）。各类长短并不相近：

@@ -13,11 +13,11 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
-using Qian.Sample.Crm;
+using Kun.Sample.Crm;
 using Kun.Surfaces;
 using Kun.Tenancy;
 
-namespace Qian.Dev.TenantOps;
+namespace Kun.Dev.TenantOps;
 
 // 运营宿主的前置与启动，照集成测试 TenantManagementTests 的 ManagementHost：Authz / Audit 换成带专用平台登录的条目并登记
 // qian.tenancy 与 qian.registry 的权限目录，引导一个平台超管，经 Lifecycle 安装并激活全部 system 组件制品，再启动 TenantOperationsHost。
@@ -118,7 +118,7 @@ internal static partial class DevOperations
                 http.RequestAborted).ConfigureAwait(false);
             if (!decision.Allow)
             {
-                LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Dev.TenantOps"), decision.Reason, principal.Subject, permission);
+                LogDenied(http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Dev.TenantOps"), decision.Reason, principal.Subject, permission);
                 throw new ErrorException(new Error(PlatformErrors.AuthzDenied));
             }
             return await execute(ctx).ConfigureAwait(false);

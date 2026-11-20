@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Testing;
+using Kun.Testing;
 using StackExchange.Redis;
 
 namespace Kun.Identity.Client.Tests;

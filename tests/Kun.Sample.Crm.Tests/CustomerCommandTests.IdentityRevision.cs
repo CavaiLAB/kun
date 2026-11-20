@@ -15,7 +15,7 @@ using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // S1-AZ-009（S1-DEC-027，R7）：真实身份组件与授权组件同在参考宿主（同进程）。撤销授予后 3 秒内：
 // - 身份修订递增；

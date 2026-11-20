@@ -15,7 +15,7 @@ using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 using Kun.Surfaces.Hosting;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {

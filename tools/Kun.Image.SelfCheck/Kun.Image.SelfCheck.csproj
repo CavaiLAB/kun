@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Profiles/Kun.Profiles.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
+    <ProjectReference Include="../../src/Kun.Profiles/Kun.Profiles.csproj" />
+    <ProjectReference Include="../../src/Kun.Surfaces/Kun.Surfaces.csproj" />
   </ItemGroup>
 </Project>

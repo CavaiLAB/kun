@@ -15,7 +15,7 @@ using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed partial class LifecycleProfileTests
 {

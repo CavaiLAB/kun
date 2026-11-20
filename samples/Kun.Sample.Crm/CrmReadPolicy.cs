@@ -1,6 +1,6 @@
 using Kun.Authorization;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 /// <summary>参考应用自己的最小只读服务策略：只授予配置中的客户端读取当前租户客户的能力。</summary>
 internal sealed class CrmReadPolicy(string clientId) : IPermissionChecker

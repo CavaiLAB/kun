@@ -1,6 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using Qian.Image.SelfCheck;
+using Kun.Image.SelfCheck;
 using Kun.Profiles;
 using Kun.Profiles.Abstractions;
 using Kun.Surfaces;

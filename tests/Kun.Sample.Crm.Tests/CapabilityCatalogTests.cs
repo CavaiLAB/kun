@@ -29,7 +29,7 @@ using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
 using Kun.Testing.Containers;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {

@@ -15,11 +15,11 @@ using Kun.Lifecycle;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Registry;
 using Kun.Runtime;
-using Qian.Sample.Crm;
+using Kun.Sample.Crm;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 
-namespace Qian.Dev.TenantOps;
+namespace Kun.Dev.TenantOps;
 
 // 本机租户运营手测宿主（S1-QA-012）。CRM 命令宿主只充当运行时容器（与集成测试同形，监听随机本机端口），
 // 产品负责人调用的是另起的运营宿主 TenantOperationsHost。不是产品宿主，不替代 qian dev（S1-RT-013）与 K3s 部署（S1-DEP-002）。

@@ -10,7 +10,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Shell.TestHost;
+namespace Kun.Shell.TestHost;
 
 // 验收端口只接受固定结构的浏览器拒绝报告；租户与主体始终来自验签结果，报告不是授权事实。
 internal static class ShellAuditEndpoints

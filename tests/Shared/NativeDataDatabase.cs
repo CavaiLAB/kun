@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using Npgsql;
 using Kun.Testing.Containers;
 
-namespace Qian.Testing.NativeData;
+namespace Kun.Testing.NativeData;
 
 internal sealed record NativeDataDatabase(string Schema, string TenantRole, string PlatformRole,
     string TenantConnection, string PlatformConnection, string Predicate)

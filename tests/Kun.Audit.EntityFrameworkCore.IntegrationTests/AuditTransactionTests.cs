@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Qian.Sample.Crm;
+using Kun.Sample.Crm;
 
 namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 

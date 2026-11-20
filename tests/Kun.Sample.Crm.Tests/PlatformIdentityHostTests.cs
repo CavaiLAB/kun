@@ -22,11 +22,11 @@ using Kun.Platform.Host;
 using Kun.Runtime;
 using Kun.Tenancy;
 using Kun.Tenancy.Signup;
-using Qian.Testing;
+using Kun.Testing;
 using Kun.Testing.Containers;
-using Qian.Testing.Gateway;
+using Kun.Testing.Gateway;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // staging 首次部署的同进程形状（S1-DEP-011，R143；装配方式 R150 ①）：生产平台宿主 hosts/Qian.Platform.Host 并入身份分支（Identity:InProcess=true），网关是独立进程，
 // 用网关宿主 appsettings.json 的生产路由表。数据库从空库开始，角色照部署侧的建角色脚本建好（应用登录沿用基线的 qian_app，库的 CONNECT 收回 PUBLIC 后逐个授予），

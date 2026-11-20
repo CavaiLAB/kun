@@ -31,7 +31,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
-using Qian.Testing;
+using Kun.Testing;
 using StackExchange.Redis;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 

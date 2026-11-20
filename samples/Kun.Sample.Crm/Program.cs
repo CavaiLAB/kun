@@ -1,5 +1,5 @@
 using Kun.Data;
-using Qian.Sample.Crm;
+using Kun.Sample.Crm;
 
 var dataOnly = args.Contains("--data-only", StringComparer.Ordinal);
 var migrateOnly = KunDataMigrationExtensions.IsMigrateOnly(args);

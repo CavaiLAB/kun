@@ -8,7 +8,7 @@ using Kun.Capabilities;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {

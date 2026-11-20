@@ -8,7 +8,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Qian.Testing.NativeAudit;
+using Kun.Testing.NativeAudit;
 
 namespace Kun.Audit.Postgres.Tests;
 

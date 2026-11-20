@@ -26,7 +26,7 @@ using Kun.Testing.Containers;
 using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed partial class TenantOperationsTests(PostgresFixture postgres) : CustomerCommandTests(postgres), IClassFixture<PostgresFixture>
 {

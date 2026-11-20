@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Tenancy;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 本租户摘要（S1-TEN-021）：外壳首页的试用提示、开通引导与企业信息读自这里。只给同一租户的人类用户；平台读租户仍走运营接口（超管旁路与审计）。
 public sealed partial class TenantAdminTests

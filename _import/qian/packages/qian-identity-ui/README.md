@@ -14,7 +14,7 @@ qian-identity 宿主同源托管的静态制品：登录（账号密码、连接
 
 ## 本机运行
 
-`scripts/dev-shell.sh up` 会构建本包并由身份宿主托管，见 [联调环境说明](../../tools/Qian.Dev.Shell/README.md)。`pnpm --filter @qian/identity-ui dev` 在 `http://127.0.0.1:5178/login/` 起开发服务器，把 `/api/identity`、`/connect`、`/.well-known` 代理到本机身份宿主（`QIAN_DEV_SHELL_API_URL`，只许回环地址）。
+`scripts/dev-shell.sh up` 会构建本包并由身份宿主托管，见 [联调环境说明](../../../../tools/Kun.Dev.Shell/README.md)。`pnpm --filter @qian/identity-ui dev` 在 `http://127.0.0.1:5178/login/` 起开发服务器，把 `/api/identity`、`/connect`、`/.well-known` 代理到本机身份宿主（`QIAN_DEV_SHELL_API_URL`，只许回环地址）。
 
 ## 验证
 

@@ -7,10 +7,10 @@ using Kun.Capabilities;
 using Kun.Data;
 using Kun.Lifecycle;
 using Kun.Registry;
-using Qian.Sample.Crm;
+using Kun.Sample.Crm;
 using Kun.Tenancy;
 
-namespace Qian.Dev.TenantOps;
+namespace Kun.Dev.TenantOps;
 
 // 开发库：每次启动按集成测试的角色形状重建。管理员连接只做 DDL 与授权；运行期一律用 NOSUPERUSER / NOBYPASSRLS 的受限登录，
 // 平台 Authz / Audit 各用一个专用登录（ADR-006 D6.11、Audit 平台链）。口令每次随机生成，只留在本进程内存里。

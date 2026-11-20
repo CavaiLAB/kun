@@ -35,7 +35,7 @@ using IdentitySession = Kun.Identity.Abstractions.Session;
 
 using Kun.Identity.Server;
 
-namespace Qian.Testing.Identity;
+namespace Kun.Testing.Identity;
 
 internal static class IdentityProtocolHost
 {

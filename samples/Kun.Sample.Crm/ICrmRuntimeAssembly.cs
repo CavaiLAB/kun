@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 /// <summary>宿主装配入口；业务 Provider 保持同一份代码，宿主负责读取 profile 与解析已安装组件。</summary>
 public interface ICrmRuntimeAssembly

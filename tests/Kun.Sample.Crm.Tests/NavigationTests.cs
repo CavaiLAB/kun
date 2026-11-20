@@ -15,7 +15,7 @@ using Kun.Registry;
 using Kun.Runtime;
 using Kun.Surfaces;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed partial class ShellSurfaceTests
 {

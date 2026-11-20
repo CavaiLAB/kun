@@ -13,9 +13,9 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
-using Qian.Shell.TestHost;
+using Kun.Shell.TestHost;
 using Kun.Testing.Containers;
-using Qian.Testing.NativeAudit;
+using Kun.Testing.NativeAudit;
 
 // 独立浏览器验收宿主：使用真实 PostgreSQL 与正式审计 Provider，不属于生产 profile。
 if (args.Length != 2 || args[0] != "--state") throw new ArgumentException("需要 --state 指定临时验收状态文件。");

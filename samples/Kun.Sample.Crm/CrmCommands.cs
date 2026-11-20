@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
 using Kun.Errors;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 // 客户名称是个人信息：响应含它的 customer.create / list / get 都标为 pii，通用执行入口的幂等回执不保存其响应体，同键重放返回 409 CAPABILITY_REPLAY_UNAVAILABLE。
 [Capability("customer.create", typeof(CustomerItem), typeof(CrmCommandJson), Description = "为当前租户创建客户；重复提交同一幂等键会返回原创建结果。",

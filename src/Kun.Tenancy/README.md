@@ -98,7 +98,7 @@ standalone 组合包移除从未被运行时消费的 `resolver.mode: single-ten
 
 `POST /api/tenancy/tenants` 的 Location 指向同一平台授权路径下的 `GET /api/tenancy/tenants/{id}`；未知目标统一404。创建请求的 administrator 必填且不可为null，isolation本期只接受row；列表skip≥0，take为1..100（默认50）。实际端点发布上述约束及400/401/403/404/409的ErrorDetail响应，快照使用缩进JSON。
 
-运营入口的组装样例是 [TenantOperationsHost](../../_import/qian/samples/Qian.Sample.Crm/TenantOperationsHost.cs)，由真实Kestrel/JwtBearer托管，复用已经装配的Runtime、Data、Authz和Audit。它与CRM业务入口是独立宿主，不装TenantRequestBoundary；平台主体没有tenant_id，不能经过业务边界再回退成平台。JwtBearer设置MapInboundClaims=false，ICurrentUser只从验签后的SecurityToken建立快照，使用Kun的PrincipalClaims读取并比对sub、tenant_id和principal_kind；请求体、请求头和令牌角色不能授予平台权限。
+运营入口的组装样例是 [TenantOperationsHost](../../samples/Kun.Sample.Crm/TenantOperationsHost.cs)，由真实Kestrel/JwtBearer托管，复用已经装配的Runtime、Data、Authz和Audit。它与CRM业务入口是独立宿主，不装TenantRequestBoundary；平台主体没有tenant_id，不能经过业务边界再回退成平台。JwtBearer设置MapInboundClaims=false，ICurrentUser只从验签后的SecurityToken建立快照，使用Kun的PrincipalClaims读取并比对sub、tenant_id和principal_kind；请求体、请求头和令牌角色不能授予平台权限。
 
 S1-GW-001探针应接入这个运营宿主的监听地址和平台issuer/audience/签名公钥，使用真实平台超管令牌；不能把只开放机器业务请求的CrmCommandApplication地址当作运营入口。生产启动方提供每次解析global qian.tenancy的source函数和完整TokenValidationParameters，装齐Registry/Lifecycle的实际制品、Authz权限目录/专用平台登录及Audit平台链后，再运行TenantOperationsHost.Build(...).RunAsync()。集成测试直接启动同一Host工厂；本任务不声称Identity签发或集群部署已交付。
 

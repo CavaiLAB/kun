@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 public sealed class Customer : AggregateRoot<Guid, string>, IMultiTenant
 {

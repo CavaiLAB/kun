@@ -37,7 +37,7 @@ node apps/qian-shell/scripts/package-static.mjs
 
 ## 本机运行
 
-先按 [联调环境说明](../../tools/Qian.Dev.Shell/README.md) 运行 `scripts/dev-shell.sh up`（它构建认证页族、申请人公开页、参考应用与平台控制台的远程模块和本外壳，并经网关静态托管 `dist/host/`），浏览器打开 <https://localhost:5443/>。改前端代码后 `pnpm --filter qian-shell build`，刷新即可。`pnpm --filter qian-shell dev` 的开发服务器用缺省配置顶替 `/app-config.json`，并把 `/api`、`/api-alt`、`/auth`、`/__dev`、`/remotes` 代理到本机网关（只许回环地址）；开发服务器不带 meta CSP。
+先按 [联调环境说明](../../../../tools/Kun.Dev.Shell/README.md) 运行 `scripts/dev-shell.sh up`（它构建认证页族、申请人公开页、参考应用与平台控制台的远程模块和本外壳，并经网关静态托管 `dist/host/`），浏览器打开 <https://localhost:5443/>。改前端代码后 `pnpm --filter qian-shell build`，刷新即可。`pnpm --filter qian-shell dev` 的开发服务器用缺省配置顶替 `/app-config.json`，并把 `/api`、`/api-alt`、`/auth`、`/__dev`、`/remotes` 代理到本机网关（只许回环地址）；开发服务器不带 meta CSP。
 
 ## 验收
 

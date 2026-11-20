@@ -1,4 +1,4 @@
-using Qian.Dev.TenantOps;
+using Kun.Dev.TenantOps;
 
 // 本机租户运营手测环境（S1-QA-012）的宿主与令牌小工具；一般经 scripts/dev-tenant-ops.sh 调用，用法见 README.md。
 var options = Options(args.Skip(1));

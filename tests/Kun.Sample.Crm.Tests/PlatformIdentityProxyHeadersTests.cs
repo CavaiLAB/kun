@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Kun.Platform.Host;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 同进程身份分支的可信代理配置（S1-DEP-011）：没有网段时不处理任何转发头（不挂中间件）；给了网段就替换 ASP.NET 的缺省名单，
 // 网段或回溯上限不合格时宿主拒绝启动。转发头在真实宿主里的效果（Secure Cookie、会话记下的客户端地址）由 PlatformIdentityHostTests 第十一步覆盖。

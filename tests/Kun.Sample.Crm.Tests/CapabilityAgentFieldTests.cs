@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Kun.Plugin.Sdk;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {

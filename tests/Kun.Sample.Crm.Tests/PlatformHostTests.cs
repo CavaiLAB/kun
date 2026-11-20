@@ -34,11 +34,11 @@ using Kun.Registry;
 using Kun.Runtime;
 using Kun.Surfaces;
 using Kun.Tenancy;
-using Qian.Testing;
+using Kun.Testing;
 using Kun.Testing.Containers;
-using Qian.Testing.Gateway;
+using Kun.Testing.Gateway;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 生产平台宿主（S1-DEP-009）：hosts/Qian.Platform.Host 的同一装配入口（PlatformHost.Build），按仓库交付的 platform profile、宿主 overlay 与一份环境 overlay
 // 装配平台插件树；参考应用作为 module 应用，经组合的扩展登记并进同一插件树。身份服务由参考宿主（同进程身份）充当，数据库与它共用。
@@ -584,7 +584,7 @@ public abstract partial class CustomerCommandTests
             {
                 composition
                     .AddComponentDirectory(components).AddPatch(modules)
-                    .AddComponent(new PlatformComponent("qian.sample.crm", "Qian.Sample.Crm.CrmPlugin, Qian.Sample.Crm", _ => new CrmPlugin(),
+                    .AddComponent(new PlatformComponent("qian.sample.crm", "Kun.Sample.Crm.CrmPlugin, Kun.Sample.Crm", _ => new CrmPlugin(),
                         services => services.AddAppData<CrmDbContext>(CrmDbContext.Schema)))
                     .AddEvents(registrar => registrar.RegisterCrmEvents())
                     .AddMediator(mediator => mediator
@@ -639,7 +639,7 @@ public abstract partial class CustomerCommandTests
     // UI 清单取自远程模块 samples/qian-sample-crm-ui（与外壳联调环境托管的同一份），清单加上 surfaces.ui。
     private static void CrmComponent(string folder)
     {
-        var source = Path.Combine(RepositoryRoot(), "samples", "Qian.Sample.Crm");
+        var source = Path.Combine(RepositoryRoot(), "samples", "Kun.Sample.Crm");
         var files = CrmComponentFiles
             .Concat(Directory.EnumerateFiles(Path.Combine(source, "tools"), "*.json").Select(file => "tools/" + Path.GetFileName(file)));
         foreach (var relative in files) Copy(Path.Combine(source, relative), relative);

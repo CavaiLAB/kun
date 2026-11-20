@@ -40,7 +40,7 @@ using Kun.Testing.Containers;
 using Kun.Audit;
 using Npgsql;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {
@@ -397,7 +397,7 @@ public abstract partial class CustomerCommandTests
             id = "qian.sample.crm", version = "1.0.0", description = "参考应用：客户管理，由生命周期装进租户 scope。", author = new { name = "Qian" }, license = "Apache-2.0",
             @interface = new { displayName = "crm", category = "sample" }, inject = crm.Inject.Select(key => key.Name), provides = new[] { CrmDefinition.Key.Name },
             policy = new { tier = platform.ProvisionCrmByDefault ? "system" : "official", sandbox = "none", authentication = "ON_INSTALL", required = platform.ProvisionCrmByDefault }, scopes = CatalogScopes,
-            runtime = new { form = "module", entry = "Qian.Sample.Crm" }
+            runtime = new { form = "module", entry = "Kun.Sample.Crm" }
         }));
         var contract = CapabilityContractCompiler.CreateOpenApi([CreateCustomerCommand.KunCapability, ListCustomersQuery.KunCapability, GetCustomerQuery.KunCapability], validator, new ToolContractHasher());
         Write("plugins/crm/metadata/contracts.json", JsonSerializer.Serialize(new[]

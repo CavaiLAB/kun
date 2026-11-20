@@ -10,7 +10,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // S1-RT-038 验收 3：缺审计时租户级生命周期操作的 503 LIFECYCLE_AUDIT_UNAVAILABLE 经真实管理面宿主按 ErrorDetail 渲染（错误码目录里漏登记只会变成 500）。
 // 租户级操作没有自己的 HTTP 端点，仓库里经 HTTP 触发 ProvisionAsync 的只有管理面开户的第 03 步；开户先过平台超管旁路（旁路缺审计时自身 fail-closed），

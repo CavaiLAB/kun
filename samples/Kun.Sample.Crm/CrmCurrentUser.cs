@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Kun.Identity.Abstractions;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 // 只消费认证事件已验证的 SecurityToken；请求头、正文与客户端提供的布尔值均不是身份来源。
 // 本宿主（受众 qian.sample.crm）验签只接受服务与 Agent 两类机器主体：Agent 只用于验证能力目录与执行入口的过滤（S1 的 RBAC 不授予 Agent 权限，REST 端点仍只收服务主体）。

@@ -11,7 +11,7 @@ using Microsoft.Extensions.FileProviders;
 using OpenIddict.Abstractions;
 using Kun.Configuration;
 using Kun.Data;
-using Qian.Dev.TenantOps;
+using Kun.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Connector.Oidc;
 using Kun.Identity.Server;
@@ -20,7 +20,7 @@ using Kun.Errors;
 using Kun.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Dev.Shell;
+namespace Kun.Dev.Shell;
 
 /// <summary>脚本拉起的上游 Dex：issuer（回环 http）与机密客户端 qian-identity 的密钥文件（状态目录，仅本人可读）。</summary>
 internal sealed record DevDexConnector(Uri Issuer, string SecretFile);

@@ -2,13 +2,13 @@ using System.Text;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Dev.TenantOps;
+using Kun.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Kun.Lifecycle;
 using Kun.Runtime;
 using Kun.Tenancy;
 
-namespace Qian.Dev.Shell;
+namespace Kun.Dev.Shell;
 
 /// <summary>种子自然人；<paramref name="Superadmin"/> 为 true 的平台身份另授平台超管（平台控制台 S1-YUE-018），只对平台身份有意义。</summary>
 internal sealed record SeedPerson(string Key, string DisplayName, string Username, string Password, bool Platform, bool Superadmin = false);

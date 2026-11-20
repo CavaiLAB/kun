@@ -21,7 +21,7 @@ using Kun.Surfaces;
 using Kun.Tenancy.Signup;
 using Kun.Testing.Containers;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // 租户自助开通（S1-TEN-019）：申请人接口挂在身份服务同一宿主的公开分支上（identity profile 的形状），运营接口挂在平台运营宿主上；
 // 身份组件、租户开通编排与状态机、Authz 超管旁路与平台审计链都是真的。发件端口是测试里的记录器（开发宿主用开发期发件箱）。

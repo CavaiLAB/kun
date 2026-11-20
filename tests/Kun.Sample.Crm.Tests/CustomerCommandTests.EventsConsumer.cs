@@ -21,7 +21,7 @@ using Kun.Testing.Containers;
 using RabbitMQ.Client;
 using StackExchange.Redis;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public abstract partial class CustomerCommandTests
 {

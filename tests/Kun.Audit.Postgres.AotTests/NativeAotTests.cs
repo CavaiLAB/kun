@@ -4,7 +4,7 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using Npgsql;
 using Kun.Testing.Containers;
-using Qian.Testing.NativeAudit;
+using Kun.Testing.NativeAudit;
 
 namespace Kun.Audit.Postgres.AotTests;
 

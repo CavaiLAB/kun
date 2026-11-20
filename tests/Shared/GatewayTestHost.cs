@@ -22,7 +22,7 @@ using Kun.Identity.Client;
 using Kun.Runtime;
 using StackExchange.Redis;
 
-namespace Qian.Testing.Gateway;
+namespace Kun.Testing.Gateway;
 
 // 安全验收用真实 Kestrel 组合：同一份 Gateway / Identity.Client / Config 生产入口，不冒充完整 Apollo/Audit/Data AOT 验收。
 internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, GatewayConfiguration configuration, Uri address, string directory) : IAsyncDisposable

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Qian.Dev.Shell;
+using Kun.Dev.Shell;
 
 namespace Kun.Tenancy.Signup.Tests;
 

@@ -1,5 +1,5 @@
-using Qian.Dev.Shell;
-using Qian.Dev.TenantOps;
+using Kun.Dev.Shell;
+using Kun.Dev.TenantOps;
 
 // 外壳认证联调环境：真实 qian.identity（与 CRM 参考运行时同宿主）+ 真实 Identity.Client / Kun.Gateway.Shell BFF（静态托管外壳）。
 // 一般经 scripts/dev-shell.sh 调用，用法见 README.md。

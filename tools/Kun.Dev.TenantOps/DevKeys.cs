@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Qian.Dev.TenantOps;
+namespace Kun.Dev.TenantOps;
 
 // 本机开发签发方：私钥首次使用时在状态目录生成（仅本人可读），不进仓库，也不打印。
 // 令牌形状与集成测试相同（冻结的 S2S claim 集），只被本机手测宿主接受，不代表 Identity 已签发或登录（IDP-002/003）。

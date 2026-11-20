@@ -4,7 +4,7 @@ using Kun.Authorization;
 using Kun.Runtime;
 using Kun.Authorization.Rbac.Abstractions;
 
-namespace Qian.Testing;
+namespace Kun.Testing;
 
 // 直接验证发布程序集的内部实现；不为测试程序集授予 InternalsVisibleTo，也不复制授权算法。
 internal static class TenantInitializationAccess

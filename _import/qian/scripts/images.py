@@ -53,8 +53,8 @@ SEVERITIES = ("negligible", "low", "medium", "high", "critical")
 SIGNER_IDENTITY = "https://github.com/CavaiLAB/kun/.github/workflows/ci.yml@refs/heads/main"
 SIGNER_ISSUER = "https://token.actions.githubusercontent.com"
 SELFCHECK_IMAGES = {
-    "jit": ("_import/qian/tools/Qian.Image.SelfCheck/Qian.Image.SelfCheck.csproj", "Qian.Image.SelfCheck", "qian-selfcheck-jit"),
-    "aot": ("_import/qian/tools/Qian.Image.SelfCheck.Aot/Qian.Image.SelfCheck.Aot.csproj", "Qian.Image.SelfCheck.Aot", "qian-selfcheck-aot"),
+    "jit": ("tools/Kun.Image.SelfCheck/Kun.Image.SelfCheck.csproj", "Kun.Image.SelfCheck", "qian-selfcheck-jit"),
+    "aot": ("tools/Kun.Image.SelfCheck.Aot/Kun.Image.SelfCheck.Aot.csproj", "Kun.Image.SelfCheck.Aot", "qian-selfcheck-aot"),
 }
 TAMPER_PROFILE = "standalone"
 TAMPER_PATCH = "- id: config\n  note: 镜像内篡改（漂移门禁反例）\n"

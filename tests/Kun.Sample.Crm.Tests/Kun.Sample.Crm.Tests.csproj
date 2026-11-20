@@ -2,37 +2,37 @@
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../samples/Qian.Sample.Crm/Qian.Sample.Crm.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Capabilities/Kun.Capabilities.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Capabilities.AspNetCore/Kun.Capabilities.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Registry/Kun.Registry.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Profiles/Kun.Profiles.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Lifecycle/Kun.Lifecycle.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Lifecycle.AspNetCore/Kun.Lifecycle.AspNetCore.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
+    <ProjectReference Include="../../samples/Kun.Sample.Crm/Kun.Sample.Crm.csproj" />
+    <ProjectReference Include="../../src/Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities/Kun.Capabilities.csproj" />
+    <ProjectReference Include="../../src/Kun.Capabilities.AspNetCore/Kun.Capabilities.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Registry/Kun.Registry.csproj" />
+    <ProjectReference Include="../../src/Kun.Profiles/Kun.Profiles.csproj" />
+    <ProjectReference Include="../../src/Kun.Lifecycle/Kun.Lifecycle.csproj" />
+    <ProjectReference Include="../../src/Kun.Lifecycle.AspNetCore/Kun.Lifecycle.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
     <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="Grpc.Net.Client" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="JsonSchema.Net" />
   </ItemGroup>
-  <ItemGroup><ProjectReference Include="../../../../src/Kun.Surfaces.Hosting/Kun.Surfaces.Hosting.csproj" /></ItemGroup>
-<ItemGroup><ProjectReference Include="../../../../src/Kun.Tenancy.AspNetCore/Kun.Tenancy.AspNetCore.csproj" /></ItemGroup>
-<ItemGroup><ProjectReference Include="../../../../src/Kun.Registry.AspNetCore/Kun.Registry.AspNetCore.csproj" /></ItemGroup>
-<ItemGroup><ProjectReference Include="../../../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../src/Kun.Surfaces.Hosting/Kun.Surfaces.Hosting.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../src/Kun.Tenancy.AspNetCore/Kun.Tenancy.AspNetCore.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../src/Kun.Registry.AspNetCore/Kun.Registry.AspNetCore.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" /></ItemGroup>
   <ItemGroup><Compile Include="../Shared/IdentityProtocolHost.cs" Link="IdentityProtocolHost.cs" /><Compile Include="../Shared/LoopbackPort.cs" Link="LoopbackPort.cs" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
-    <ProjectReference Include="../../../../hosts/Kun.Platform.Host/Kun.Platform.Host.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
+    <ProjectReference Include="../../src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
+    <ProjectReference Include="../../hosts/Kun.Platform.Host/Kun.Platform.Host.csproj" />
     <PackageReference Include="StackExchange.Redis" />
-    <ProjectReference Include="../../../../src/Kun.Identity/Kun.Identity.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity/Kun.Identity.csproj" />
+    <ProjectReference Include="../../src/Kun.Gateway/Kun.Gateway.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../Shared/GatewayTestHost.cs" Link="GatewayTestHost.cs" />
-    <Compile Include="../../../../tests/Kun.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityAccountHost.cs" />
+    <Compile Include="../Kun.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityAccountHost.cs" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 # 本机租户运营手测环境
 
-一条命令在本机起 PostgreSQL、租户运营宿主与真实 qian.identity，再用开发令牌按顺序调用 S1-TEN-006 / 002 / 004 / 010 交付的运营 HTTP。不用写代码，也不用等页面、staging 或真实登录。任务见 [S1-QA-012](../../pm/tasks/S1-QA-012.md)。
+一条命令在本机起 PostgreSQL、租户运营宿主与真实 qian.identity，再用开发令牌按顺序调用 S1-TEN-006 / 002 / 004 / 010 交付的运营 HTTP。不用写代码，也不用等页面、staging 或真实登录。任务见 [S1-QA-012](../../_import/qian/pm/tasks/S1-QA-012.md)。
 
 ## 这是什么，不是什么
 
@@ -10,7 +10,7 @@
 - 运行期连接全部是受限 PostgreSQL 角色（NOSUPERUSER、NOBYPASSRLS）；
 - Authz 用专用平台登录，Audit 用平台链；
 - 平台组件制品经 Lifecycle 签名校验后安装、激活；
-- 调用的是与产品相同的 [TenantOperationsHost](../../samples/Qian.Sample.Crm/TenantOperationsHost.cs) 与 `MapKunTenancy`。
+- 调用的是与产品相同的 [TenantOperationsHost](../../samples/Kun.Sample.Crm/TenantOperationsHost.cs) 与 `MapKunTenancy`。
 
 它不是：
 
@@ -97,7 +97,7 @@ scripts/dev-tenant-ops.sh smoke
 
 ## 接口一览
 
-运营契约 [http-v1.openapi.json](../../plugins/qian.tenancy/contracts/http-v1.openapi.json) 的 12 个路径、16 个操作都在走查里，另有两条开发路由：
+运营契约 [http-v1.openapi.json](../../_import/qian/plugins/qian.tenancy/contracts/http-v1.openapi.json) 的 12 个路径、16 个操作都在走查里，另有两条开发路由：
 
 | 方法 | 路径 | 用途 | 走查步骤 |
 |---|---|---|---|

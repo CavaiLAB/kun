@@ -9,7 +9,7 @@ using Kun.Data.Native.Postgres;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Testing.NativeAudit;
+using Kun.Testing.NativeAudit;
 
 namespace Kun.Gateway.Host.AotTests;
 

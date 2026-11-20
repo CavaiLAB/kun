@@ -17,7 +17,7 @@ namespace Kun.Authorization.Rbac.Tests;
 
 // S1-AZ-009（S1-DEC-027）：授予的增、改、撤提交后，经同进程的身份端口递增 user 主体在该租户的 identity_revision，并把 PEP 下限同步抬到新值。
 // 真实 PostgreSQL、真实 Audit 与 PluginLoader；身份端口是只实现 BumpIdentityRevisionAsync 的替身组件，用来编排不存在的成员与瞬时故障。
-// 真实身份组件的端到端（userinfo、refresh、PEP 401）见 Qian.Sample.Crm.Tests 的 CustomerCommandTests.IdentityRevision。
+// 真实身份组件的端到端（userinfo、refresh、PEP 401）见 Kun.Sample.Crm.Tests 的 CustomerCommandTests.IdentityRevision。
 public sealed partial class SuperadminBypassTests
 {
     [Fact]

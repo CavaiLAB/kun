@@ -26,7 +26,7 @@ using Kun.Tenancy;
 using Kun.Runtime;
 using StackExchange.Redis;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 /// <summary>独立参考宿主：真实 S2S、RBAC、租户、业务/Outbox/审计事务。凭据和迁移由宿主负责。</summary>
 public static class CrmCommandApplication

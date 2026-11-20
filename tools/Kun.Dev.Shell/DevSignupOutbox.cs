@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Kun.Tenancy.Signup;
 
-namespace Qian.Dev.Shell;
+namespace Kun.Dev.Shell;
 
 /// <summary>
 /// 开发期发件箱（S1-TEN-019）：<see cref="ISignupMessenger"/> 的开发实现，把验证码与审核结果记在内存里，供手测与 E2E 经

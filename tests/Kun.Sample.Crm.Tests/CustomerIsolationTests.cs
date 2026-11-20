@@ -21,7 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Kun.Testing.Containers;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed class CustomerIsolationTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

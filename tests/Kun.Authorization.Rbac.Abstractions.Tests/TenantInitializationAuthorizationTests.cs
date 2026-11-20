@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.Errors;
 using Kun.Runtime;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Testing;
+using Kun.Testing;
 
 namespace Kun.Authorization.Rbac.Abstractions.Tests;
 

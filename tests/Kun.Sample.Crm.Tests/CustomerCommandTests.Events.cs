@@ -12,7 +12,7 @@ using Npgsql;
 using Kun.Testing.Containers;
 using RabbitMQ.Client;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed partial class EventTests(PostgresFixture postgres) : CustomerCommandTests(postgres), IClassFixture<PostgresFixture>
 {

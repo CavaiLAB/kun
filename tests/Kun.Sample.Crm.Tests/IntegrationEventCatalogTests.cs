@@ -11,7 +11,7 @@ using Kun.Registry;
 using Kun.Tenancy;
 using Kun.Authorization.Rbac.Abstractions;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 public sealed class IntegrationEventCatalogTests
 {

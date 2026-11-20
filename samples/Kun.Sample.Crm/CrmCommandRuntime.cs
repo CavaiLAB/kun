@@ -12,7 +12,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Sample.Crm;
+namespace Kun.Sample.Crm;
 
 /// <summary>参考宿主的实际插件树；不宣称完整 platform 或 Identity 服务已部署。</summary>
 public sealed class CrmCommandRuntime(IServiceProvider services, ITenantContext tenant) : IHostedService, IAsyncDisposable

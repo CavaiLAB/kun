@@ -17,8 +17,8 @@
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="../../_import/qian/tests/Shared/LoopbackPort.cs" Link="LoopbackPort.cs" />
-    <Compile Include="../../_import/qian/tests/Shared/NativeAuditDatabase.cs" Link="NativeAuditDatabase.cs" />
+    <Compile Include="../Shared/LoopbackPort.cs" Link="LoopbackPort.cs" />
+    <Compile Include="../Shared/NativeAuditDatabase.cs" Link="NativeAuditDatabase.cs" />
     <Compile Include="../../hosts/Kun.Gateway.Host/GatewayBootstrap.cs" Link="GatewayBootstrap.cs" />
     <Compile Include="../Kun.Identity.Client.Tests/IdentityServerHost.cs" Link="IdentityServerHost.cs" />
   </ItemGroup>

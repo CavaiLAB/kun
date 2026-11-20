@@ -10,7 +10,7 @@ using Kun.Runtime;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 
-namespace Qian.Sample.Crm.Tests;
+namespace Kun.Sample.Crm.Tests;
 
 // T23 的实际宿主装配：profile 决定挂载顺序，所有叶节点均为生产 Provider，没有骨架或替身服务。
 internal sealed class ProfileModeAssembly(string profile, string repositoryRoot) : ICrmRuntimeAssembly, IDisposable

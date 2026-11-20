@@ -15,7 +15,7 @@ using Kun.Runtime;
 using Kun.Tenancy;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Qian.Dev.TenantOps;
+namespace Kun.Dev.TenantOps;
 
 // 运营手测宿主上的真实 qian.identity（S1-TEN-010）：管理员维护的账号查找、新建、管理员成员与重置密码都经它，
 // 开通编排第 05 步也由它建管理员成员。照集成测试 CustomerCommandTests.Identity 的装配，只开账号 HTTP 接口与目录接口（统一登录流水线），

@@ -111,7 +111,7 @@ dotnet run --project hosts/Kun.Platform.Host -c Release -- --bootstrap-operator 
 ```
 
 - `--migrate-only`（[`PlatformMigrations`](PlatformMigrations.cs)）：三步，都可重复执行。① 配置了 `ConnectionFiles:MigrationAdmin` 时用管理员连接做离线 DDL：没有包内迁移的上下文（Tenancy、Authz、Audit、Registry）按 EF 模型建 schema 与表（含 RLS），schema 已在时只核对表都在；再执行两个平台登录与审计同事务函数的授权脚本，配置了网关审计角色时执行网关原生审计的离线迁移（`NativeAuditStorage`）。审计函数的属主必须是没有任何成员关系的 NOLOGIN 角色，改函数属主只能由管理员做，所以这一步不交给迁移属主。审计租户守卫带原生审计标记后不再重放 Audit 的平台访问脚本（否则原生迁移判为漂移）。② 迁移属主执行包内迁移（Capabilities、Lifecycle、身份、开通申请等）。③ 管理员把全部业务 schema 的表与序列授给应用登录，迁移历史表只读。离线 DDL 不做跨版本的表结构升级：schema 已在而缺表时拒绝执行，正式迁移链归 S1-DEP-005。
-- `--install-system-revisions`（[`PlatformSystemRevisions`](PlatformSystemRevisions.cs)，R151 ①）：开户编排第 03 步把宿主预装的 system 级组件逐个开通进租户，Lifecycle 要求每个组件有已激活、经信任根验签、摘要等于预装组件文件夹的修订。这个 Job 按签名清单（[`scripts/sign-system-revisions.py`](../../_import/qian/scripts/sign-system-revisions.py) 在构建机上对同一镜像生成，私钥不进集群）幂等地安装并激活这些修订：同摘要已激活则不动，新摘要安装后激活；清单缺任何一项即失败并列出缺项。安装与激活写平台审计链。
+- `--install-system-revisions`（[`PlatformSystemRevisions`](PlatformSystemRevisions.cs)，R151 ①）：开户编排第 03 步把宿主预装的 system 级组件逐个开通进租户，Lifecycle 要求每个组件有已激活、经信任根验签、摘要等于预装组件文件夹的修订。这个 Job 按签名清单（[`scripts/sign-system-revisions.py`](../../scripts/sign-system-revisions.py) 在构建机上对同一镜像生成，私钥不进集群）幂等地安装并激活这些修订：同摘要已激活则不动，新摘要安装后激活；清单缺任何一项即失败并列出缺项。安装与激活写平台审计链。
 - `--bootstrap-operator`（[`PlatformOperatorBootstrap`](PlatformOperatorBootstrap.cs)，R150 ③）：要求身份分支在进程内。库里已有平台超管时拒绝执行（退出码 1），不能拿它二次提权；否则经身份账号端口建平台身份（要求首登改密），在平台角色锁里授平台超管，写一条平台审计链记录。同名平台身份已存在（上次在授权之前失败）时沿用、不重置密码。跑完删除初始密码的 Secret。
 
 三个开关都不带值，宿主把它们从命令行配置里去掉再交给配置源，紧跟其后的参数（如 `--environment=…`）不会被吞掉。

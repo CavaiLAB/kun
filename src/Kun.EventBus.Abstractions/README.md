@@ -22,7 +22,7 @@
 
 ## 信封
 
-`KunEventEnvelope` 是 [event-envelope.schema.json](../../_import/qian/contracts/v0/event-envelope.schema.json) 的 .NET 形状：version、event_id（UUID v7）、subject、type（`<subject>.v<N>`）、occurred_at（必须带时区偏移，写出为 UTC）、tenant_id（租户 UUID，平台级事件为 null）、producer、actor（kind 为 user / service / agent，可带 on_behalf_of）、trace_parent、payload，以及可选的 correlation_id、causation_id。
+`KunEventEnvelope` 是 [event-envelope.schema.json](../../contracts/v0/event-envelope.schema.json) 的 .NET 形状：version、event_id（UUID v7）、subject、type（`<subject>.v<N>`）、occurred_at（必须带时区偏移，写出为 UTC）、tenant_id（租户 UUID，平台级事件为 null）、producer、actor（kind 为 user / service / agent，可带 on_behalf_of）、trace_parent、payload，以及可选的 correlation_id、causation_id。
 
 `Parse` 拒绝未知字段，并做 Schema 表达不了的语义校验：type 与 subject 一致、tenant_id 不是空串、producer 是组件 id、traceparent 格式正确、payload 是对象。任何一项不满足都抛 EVENTS_PUBLISH_REJECTED。UUID 一律写成小写规范格式，同一条信封往返后逐字段不变。
 

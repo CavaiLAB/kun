@@ -43,7 +43,7 @@ internal static class DevShellHost
         var signupRemote = Dist(repository, "packages/qian-tenancy-signup-ui/dist/remote", "mf-manifest.json", "@qian/tenancy-signup-ui", "build:remote");
         // 开通申请的公开页（S1-TEN-020 的构建产物）可选：QIAN_DEV_SIGNUP_UI_DIST 指定目录，缺省找 packages/qian-tenancy-signup-ui/dist/public；没有就只开放申请人接口。
         var signupDist = OptionalDist(repository, Environment.GetEnvironmentVariable("QIAN_DEV_SIGNUP_UI_DIST") ?? "packages/qian-tenancy-signup-ui/dist/public");
-        var seed = DevSeed.Load(Path.GetFullPath("../../tools/Kun.Dev.Shell/seed/accounts.json", repository));
+        var seed = DevSeed.Load(Path.GetFullPath("tools/Kun.Dev.Shell/seed/accounts.json", repository));
         Directory.CreateDirectory(settings.State);
         Console.WriteLine("重建开发库 " + DevDatabase.Name + "（每次启动都从空库开始）……");
         var database = await DevDatabase.ResetAsync(settings.Admin, ct).ConfigureAwait(false);

@@ -11,7 +11,7 @@ public sealed class AuthzErrorTests
     public void Catalog_and_localized_details_conform_to_frozen_schemas()
     {
         var options = new BuildOptions { SchemaRegistry = new SchemaRegistry() };
-        var directory = Path.Combine(PermissionContractTests.Root, "_import/qian/contracts/v0");
+        var directory = Path.Combine(PermissionContractTests.Root, "contracts/v0");
         var detailSchema = JsonSchema.FromText(File.ReadAllText(Path.Combine(directory, "error-detail.schema.json")), options);
         var catalogSchema = JsonSchema.FromText(File.ReadAllText(Path.Combine(directory, "error-catalog.schema.json")), options);
         var catalog = ErrorCatalog.CreateDefault();

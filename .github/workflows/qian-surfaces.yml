@@ -1,13 +1,13 @@
 name: qian-surfaces
 
 # 声明式表面：TypeScript 与 .NET 两侧一致性（样例、JCS、诊断、市场规则、profile 的构建与装载），
-# 另有私有源已发布组件的 qian add E2E。由 ci.yml 调用，在 _import/qian/ 下运行。
+# 另有私有源已发布组件的 qian add E2E。由 ci.yml 调用，在仓库根目录运行。
 # 原件在 _import/qian/.github/workflows/surfaces.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
 # - 触发：只留 workflow_call；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
 #   路径过滤在区域表 scripts/ci_changes.py 的 surfaces 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
 #   Kun.slnx、src/ 与 _import/qian/.npmrc。
 # - 位置：run 步骤的工作目录、package.json 与 GITHUB_WORKSPACE 下的报告路径加 _import/qian/ 前缀（比较步骤按工作目录
-#   读 TestResults/，报告必须写进 _import/qian/TestResults/）；setup-dotnet 读仓库根的 global.json。
+#   读 TestResults/，报告必须写进 TestResults/）；setup-dotnet 读仓库根的 global.json。
 # - 「私有源已发布组件的 qian add E2E」照原件用本次运行的 GITHUB_TOKEN（packages: read）读 GitHub Packages 上
 #   已发布的公开 Qian.* 包；包源地址写在 _import/qian/ 的测试代码里，没有改。
 # - 前端框架迁出（B11，见迁移执行计划）之后：TypeScript 运行时装 CavaiLAB/qian 发布在 GitHub Packages 上的
@@ -23,9 +23,6 @@ on:
 permissions:
   contents: read
   packages: read
-defaults:
-  run:
-    working-directory: _import/qian
 jobs:
   parity:
     name: 声明式表面双侧一致性
@@ -44,7 +41,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 12.9.1
-          package_json_file: _import/qian/package.json
+          package_json_file: package.json
       - run: pnpm install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,9 +52,9 @@ jobs:
       - run: pnpm --filter @qian/surfaces build
       - run: pnpm --filter @qian/surfaces check:api
       - name: TypeScript 样例与 JCS
-        run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/hotreload-ts.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/surfaces-ts.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/markets-ts.json" pnpm --filter @qian/surfaces test
+        run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/TestResults/hotreload-ts.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/TestResults/surfaces-ts.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/TestResults/markets-ts.json" pnpm --filter @qian/surfaces test
       - name: .NET 样例、JCS 与 scope/effect
-        run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/hotreload-dotnet.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/surfaces-dotnet.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/markets-dotnet.json" dotnet run --project ../../tests/Kun.Surfaces.Tests -c Release
+        run: QIAN_HOT_RELOAD_REPORT="$GITHUB_WORKSPACE/TestResults/hotreload-dotnet.json" QIAN_SURFACE_REPORT="$GITHUB_WORKSPACE/TestResults/surfaces-dotnet.json" QIAN_MARKET_REPORT="$GITHUB_WORKSPACE/TestResults/markets-dotnet.json" dotnet run --project tests/Kun.Surfaces.Tests -c Release
       - name: 精确比较自动热重载场景
         run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/hotreload-dotnet.json TestResults/hotreload-ts.json
       - name: 精确比较诊断
@@ -67,9 +64,9 @@ jobs:
       - name: profile CLI 构建与验收
         run: |
           pnpm --filter qian... build
-          QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/skill-only-ts.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/profiles-ts.json" pnpm --filter qian test
+          QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/TestResults/skill-only-ts.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/TestResults/profiles-ts.json" pnpm --filter qian test
       - name: profile .NET 装配与真实 Runtime 装载
-        run: QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/skill-only-dotnet.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/_import/qian/TestResults/profiles-dotnet.json" dotnet run --project ../../tests/Kun.Profiles.Tests -c Release
+        run: QIAN_SKILL_ONLY_REPORT="$GITHUB_WORKSPACE/TestResults/skill-only-dotnet.json" QIAN_PROFILE_REPORT="$GITHUB_WORKSPACE/TestResults/profiles-dotnet.json" dotnet run --project tests/Kun.Profiles.Tests -c Release
       - name: 精确比较 minimal 无代码技能与隔离
         run: node packages/qian-surfaces/scripts/compare-fixtures.mjs TestResults/skill-only-dotnet.json TestResults/skill-only-ts.json
       - name: 精确比较 profile 来源、配置和诊断
@@ -96,7 +93,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 12.9.1
-          package_json_file: _import/qian/package.json
+          package_json_file: package.json
       - run: pnpm install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

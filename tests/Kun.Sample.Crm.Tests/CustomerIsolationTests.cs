@@ -170,7 +170,7 @@ public sealed class CustomerIsolationTests(PostgresFixture postgres) : IClassFix
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
         Assert.NotNull(root);
-        var schema = JsonSchema.FromText(File.ReadAllText(Path.Combine(root.FullName, "_import", "qian", "contracts/v0/s2s-claims.schema.json")),
+        var schema = JsonSchema.FromText(File.ReadAllText(Path.Combine(root.FullName, "contracts/v0/s2s-claims.schema.json")),
             new BuildOptions { SchemaRegistry = new SchemaRegistry() });
         using var json = JsonDocument.Parse(payload);
         Assert.True(schema.Evaluate(json.RootElement).IsValid);

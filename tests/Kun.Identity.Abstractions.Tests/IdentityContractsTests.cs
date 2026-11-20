@@ -178,14 +178,13 @@ public sealed class IdentityContractsTests
     [Fact]
     public void DefinitionReferencesOnlyRuntimeAndFrameworkEventPort()
     {
-        var directory = Path.Combine(Root, "../../src/Kun.Identity.Abstractions");
+        var directory = Path.Combine(Root, "src/Kun.Identity.Abstractions");
         var project = XDocument.Load(Path.Combine(directory, "Kun.Identity.Abstractions.csproj"));
         // 只以项目引用依赖仓库 src/ 下的三个 Kun 项目：事件端口、组件运行时（S1-KUN-020）与主体模型的内核契约（S1-KUN-026）；没有包引用。
-        var repository = Path.GetFullPath(Path.Combine(Root, "..", ".."));
         Assert.Equal(["src/Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj", "src/Kun.Runtime/Kun.Runtime.csproj",
             "src/Kun.Security.Abstractions/Kun.Security.Abstractions.csproj"],
             project.Descendants("ProjectReference")
-                .Select(e => Path.GetRelativePath(repository, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
+                .Select(e => Path.GetRelativePath(Root, Path.GetFullPath(Path.Combine(directory, (string)e.Attribute("Include")!))).Replace('\\', '/'))
                 .Order(StringComparer.Ordinal).ToArray());
         Assert.Empty(project.Descendants("PackageReference"));
         Assert.DoesNotContain(typeof(IIdentityService).Assembly.GetReferencedAssemblies(), assembly => assembly.Name == "Kun.EventBus" || assembly.Name!.Contains("Redis", StringComparison.Ordinal) || assembly.Name.Contains("OpenIddict", StringComparison.Ordinal) || assembly.Name.Contains("EntityFrameworkCore", StringComparison.Ordinal) || assembly.Name.Contains("Identity.Server", StringComparison.Ordinal));
@@ -195,7 +194,7 @@ public sealed class IdentityContractsTests
     public void EventContracts_DoNotPullEventBusProviderOrRedisIntoDefinitionPackage()
     {
         using var assets = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root,
-            "../../src/Kun.Identity.Abstractions/obj/project.assets.json")));
+            "src/Kun.Identity.Abstractions/obj/project.assets.json")));
         var libraries = assets.RootElement.GetProperty("libraries").EnumerateObject()
             .Select(property => property.Name.Split('/')[0]).ToArray();
         Assert.Contains("Kun.EventBus.Abstractions", libraries);
@@ -258,7 +257,7 @@ public sealed class IdentityContractsTests
     private static string FindRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-            if (File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) return Path.Combine(directory.FullName, "_import", "qian");
+            if (File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) return directory.FullName;
         throw new InvalidOperationException("找不到仓库根目录。");
     }
 }

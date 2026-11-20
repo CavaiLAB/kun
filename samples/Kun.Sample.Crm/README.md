@@ -85,7 +85,7 @@ IntegrationEventCatalogTests 扫描测试输出里全部 Qian 程序集的 `[Int
 
 `ICrmRuntimeAssembly` 是宿主的装配入口：在首次 Mount 前接收上述同组真实业务 Provider，交由宿主的 ProfileLoader 与已安装组件解析器决定条目、配置及顺序；全部 Ready 后启动宿主监听。未注册该入口时仍使用默认独立装配。接口只依赖 Runtime，客户业务组件没有新增 Registry/Capabilities 依赖，也没有按运行模式分叉业务处理。
 
-T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实 ProfileLoader、模块清单、制品摘要、Registry/Capabilities 与 PostgreSQL；minimal 与 platform 的边界和四次实际执行结果见 [运行时 TCK](../../_import/qian/tck/runtime/README.md#t23-的真实-profile-宿主对照)。这证明该运行时组合的行为等价，不宣称所有平台模块或 QA-003/QA-005 的独立安装验收已经完成。
+T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实 ProfileLoader、模块清单、制品摘要、Registry/Capabilities 与 PostgreSQL；minimal 与 platform 的边界和四次实际执行结果见 [运行时 TCK](../../tck/runtime/README.md#t23-的真实-profile-宿主对照)。这证明该运行时组合的行为等价，不宣称所有平台模块或 QA-003/QA-005 的独立安装验收已经完成。
 
 ## 生命周期钩子与平台宿主（S1-RT-005）
 
@@ -120,7 +120,7 @@ T23 的具体宿主装配在测试工程的 `ProfileModeAssembly`，复用真实
 
 S1-YUE-018 另映射平台控制台目录 `MapQianPlatformConsole`（`GET /api/capabilities/console`）：只对不带租户的请求（平台身份）交出 Capabilities 组件的全局上下文，带租户的请求 404；目录服务再按平台超管只读判定列出平台组件（租户运营 `qian.tenancy`、开通申请 `qian.tenancy.signup`）的远程、菜单与权限码，不持角色为空，判定不写审计（细节见 Qian.Capabilities）。页面里的操作不经本宿主，而是经运营宿主（`TenantOperationsHost`，逐次超管旁路并写平台审计链）。用例 `PlatformConsoleTests`：持角色的平台身份拿到两个平台组件、不写审计，撤销角色后立即为空，租户主体、服务、Agent 与不持角色的平台身份拿不到，租户的外壳目录与菜单不含平台组件；网关 bootstrap 对持角色的平台身份交出同一份目录、不代管，不持角色仍代管，响应不含令牌。参考宿主的平台组件装配（租户运营与开通申请组件按 UI 清单登记菜单与远程）在 `LifecycleAcceptanceTests.AttachLifecycle` 的 `Console` 开关里。
 
-参考应用的命令宿主（`CrmCommandApplication`）只认机器身份，所以用户主体的这些表面单独成宿主，网关按受众分簇转发；外壳 bootstrap（Kun.Gateway 的 `MapKunShellBootstrap`）经它取外壳目录、导航与有效权限，平台身份则只取平台控制台目录。`ShellBootstrapTests` 与外壳联调环境（[tools/Kun.Dev.Shell](../../tools/Kun.Dev.Shell/README.md)）都用它；生产里由 platform profile 的平台宿主提供同一表面，归 S1-DEP-009。参考应用的界面（UI 清单与 MF2 远程模块）在 [samples/qian-sample-crm-ui](../../_import/qian/samples/qian-sample-crm-ui/README.md)。
+参考应用的命令宿主（`CrmCommandApplication`）只认机器身份，所以用户主体的这些表面单独成宿主，网关按受众分簇转发；外壳 bootstrap（Kun.Gateway 的 `MapKunShellBootstrap`）经它取外壳目录、导航与有效权限，平台身份则只取平台控制台目录。`ShellBootstrapTests` 与外壳联调环境（[tools/Kun.Dev.Shell](../../tools/Kun.Dev.Shell/README.md)）都用它；生产里由 platform profile 的平台宿主提供同一表面，归 S1-DEP-009。参考应用的界面（UI 清单与 MF2 远程模块）在 [samples/qian-sample-crm-ui](../../samples/qian-sample-crm-ui/README.md)。
 
 生产对应物是 [platform 生产宿主](../../hosts/Kun.Platform.Host/README.md)（S1-DEP-009）：按 platform profile 自行装配插件树，平台表面与运营接口同一进程、按匹配到的端点分受众，参考应用这类 module 应用经组合的扩展登记并进同一插件树；两者的差异见它的 README「与参考宿主的差异」。
 

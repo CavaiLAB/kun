@@ -10,10 +10,10 @@ public sealed class SignupUnitTests
     private static readonly string[] Ops = ["ops"];
     private static string Root()
     {
-        // 组件文件夹在过渡目录 _import/qian 下。
+        // 组件文件夹位于仓库根的 plugins/。
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
-        return Path.Combine(root!.FullName, "_import", "qian");
+        return root!.FullName;
     }
 
     [Fact]

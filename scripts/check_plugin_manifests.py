@@ -59,7 +59,7 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
     if stale:
         raise ValueError("实现构件分类已失效：" + ", ".join(sorted(stale)))
     manifests: dict[str, list[Path]] = {}
-    for base in (root / "_import/qian/plugins", root / "samples"):
+    for base in (root / "plugins", root / "samples"):
         for manifest in base.rglob(".qian-plugin/plugin.json"):
             if any(part in {"bin", "obj", "node_modules", ".git"} for part in manifest.relative_to(base).parts):
                 continue

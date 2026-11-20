@@ -123,7 +123,7 @@ internal static class DevHost
     {
         foreach (var start in new[] { Environment.CurrentDirectory, AppContext.BaseDirectory })
             for (var root = new DirectoryInfo(start); root is not null; root = root.Parent)
-                if (File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) return Path.Combine(root.FullName, "_import", "qian");
+                if (File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) return root.FullName;
         throw new InvalidOperationException("找不到仓库根目录（Kun.slnx）；请在仓库内运行。");
     }
 }

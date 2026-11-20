@@ -331,7 +331,7 @@ public sealed class CapabilityInputTests
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
-        return Path.Combine(root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。"), "_import", "qian");
+        return root?.FullName ?? throw new InvalidOperationException("找不到仓库根目录。");
     }
 
     private sealed class RecordingLogger : ILogger

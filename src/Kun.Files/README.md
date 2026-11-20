@@ -21,7 +21,7 @@ builder.Services.AddKunMediator(registry => registry.AddKunFiles(sp => /* 按请
 
 ## 组件配置
 
-与 [plugins/qian.files/schemas/config.schema.json](../../_import/qian/plugins/qian.files/schemas/config.schema.json) 一致，未知字段一律 `INPUT_INVALID` 并指向该字段：
+与 [plugins/qian.files/schemas/config.schema.json](../../plugins/qian.files/schemas/config.schema.json) 一致，未知字段一律 `INPUT_INVALID` 并指向该字段：
 
 | 成员 | 说明 |
 | --- | --- |

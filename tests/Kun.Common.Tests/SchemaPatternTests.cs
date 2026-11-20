@@ -260,7 +260,7 @@ public sealed class SchemaPatternTests
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
         Assert.NotNull(root);
-        var workspace = Path.Combine(root.FullName, "_import", "qian");
+        var workspace = root.FullName;
         foreach (var (relative, content) in new[] { ("tck/profiles/key-vectors.json", Vectors()), ("packages/qian-surfaces/src/ordinal-case.ts", CaseTable()) })
         {
             var path = Path.Combine(workspace, relative);

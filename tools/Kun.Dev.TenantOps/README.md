@@ -32,13 +32,13 @@
 1. 起环境，终端保持运行，看到「租户运营手测宿主已就绪」即可：
 
    ```bash
-   _import/qian/scripts/dev-tenant-ops.sh up
+   scripts/dev-tenant-ops.sh up
    ```
 
 2. 另开一个终端，按顺序走一遍。每步先打印等价的 curl 命令，再打印响应并核对状态码，回车进入下一步：
 
    ```bash
-   _import/qian/scripts/dev-tenant-ops.sh walkthrough
+   scripts/dev-tenant-ops.sh walkthrough
    ```
 
    顺序是：建租户（含新建、查找管理员账号）→ 开通步骤 → 激活 → 写设置 / 读配额 → 管理员维护 → 冻结 / 恢复 → 扫描到期 → 权限反例。加 `--yes` 一口气跑完；任一检查不符时退出码为 1。
@@ -46,7 +46,7 @@
 3. 用完在第一个终端按 Ctrl+C 停宿主，再删容器：
 
    ```bash
-   _import/qian/scripts/dev-tenant-ops.sh down
+   scripts/dev-tenant-ops.sh down
    ```
 
 ## 单独调用某个接口
@@ -54,19 +54,19 @@
 以平台超管身份调用一次，响应体自动缩进：
 
 ```bash
-_import/qian/scripts/dev-tenant-ops.sh api GET /api/tenancy/tenants
+scripts/dev-tenant-ops.sh api GET /api/tenancy/tenants
 ```
 
 带请求体时把 JSON 作为第三个参数；路径和 JSON 都用单引号括起来：
 
 ```bash
-_import/qian/scripts/dev-tenant-ops.sh api POST '/api/tenancy/tenants/<租户 id>:activate' '{"validUntil":"2026-12-31T00:00:00Z"}'
+scripts/dev-tenant-ops.sh api POST '/api/tenancy/tenants/<租户 id>:activate' '{"validUntil":"2026-12-31T00:00:00Z"}'
 ```
 
 想用自己的 curl 或 HTTP 客户端，先取令牌：
 
 ```bash
-export TOKEN=$(_import/qian/scripts/dev-tenant-ops.sh token)
+export TOKEN=$(scripts/dev-tenant-ops.sh token)
 ```
 
 令牌默认 8 小时有效。`token` 还能签别的身份，用来看 403：
@@ -82,7 +82,7 @@ export TOKEN=$(_import/qian/scripts/dev-tenant-ops.sh token)
 `dev-tenant-ops` 工作流（S1-QA-013）在 ubuntu-latest 上执行与本机相同的命令：
 
 ```bash
-_import/qian/scripts/dev-tenant-ops.sh smoke
+scripts/dev-tenant-ops.sh smoke
 ```
 
 它的步骤：
@@ -97,7 +97,7 @@ _import/qian/scripts/dev-tenant-ops.sh smoke
 
 ## 接口一览
 
-运营契约 [http-v1.openapi.json](../../_import/qian/plugins/qian.tenancy/contracts/http-v1.openapi.json) 的 12 个路径、16 个操作都在走查里，另有两条开发路由：
+运营契约 [http-v1.openapi.json](../../plugins/qian.tenancy/contracts/http-v1.openapi.json) 的 12 个路径、16 个操作都在走查里，另有两条开发路由：
 
 | 方法 | 路径 | 用途 | 走查步骤 |
 |---|---|---|---|

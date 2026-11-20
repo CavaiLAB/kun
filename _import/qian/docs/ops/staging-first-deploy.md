@@ -72,11 +72,11 @@
 
 ## 3 构建镜像与签名清单
 
-镜像在 qd 上构建：qd 是 amd64、有 Docker、到得了 Harbor，而 Mac 到不了 192.168.1.x。qd 没有 Node，前端在开发机上构建好再拷过去。构建入口是 [scripts/images.py](../../scripts/images.py) 的 `build`，模板与构建上下文见 [deploy/images](../../deploy/images/README.md)。
+前端产物由开发机生成，镜像由具备 Docker 和仓库访问权限的 amd64 构建主机生成。构建入口是 [scripts/images.py](../../../../scripts/images.py) 的 `build`，模板与构建上下文见 [deploy/images](../../../../deploy/images/README.md)。
 
-源码取本仓库 [CavaiLAB/kun](https://github.com/CavaiLAB/kun) 里要部署的提交。两个镜像从同一个提交构建、一起换：外壳与远程打在网关镜像里，界面清单在平台镜像的组件文件夹里，外壳按界面清单的 `engines.qian` 决定装不装远程，新旧两边混用时远程会被拒绝。平台代码在过渡目录 `_import/qian/`：下面的前端命令与 `scripts/…` 都在这个目录下运行；`--project` 相对仓库根。镜像的构建上下文是仓库根，由 `images.py` 自己取，前端产物经 `--web` 另行送入。
+源码取本仓库 [CavaiLAB/kun](https://github.com/CavaiLAB/kun) 里要部署的提交。两个镜像从同一个提交构建、一起换：外壳与远程打在网关镜像里，界面清单在平台镜像的组件文件夹里，外壳按界面清单的 `engines.qian` 决定装不装远程，新旧两边混用时远程会被拒绝。在仓库根目录执行前端命令和镜像脚本。`--project` 相对仓库根目录，`--web` 指向组装好的前端产物目录。
 
-1. 前端（开发机，在本仓库的 `_import/qian/` 下，检出要构建的提交）。前端框架的包 `@cavailab/qian-*` 装自 GitHub Packages，那里的 npm 源连公开包也要令牌（有 `read:packages` 即可）：照 [README「前端依赖与包源」](../../README.md#前端依赖与包源)，在用户级 npm 配置里写一行引用环境变量 `NODE_AUTH_TOKEN` 的令牌行；仓库里的 `.npmrc` 只写包源，不写令牌。
+1. 前端（开发机，在本仓库根目录，检出要构建的提交）。前端框架的包 `@cavailab/qian-*` 装自 GitHub Packages，那里的 npm 源连公开包也要令牌（有 `read:packages` 即可）：照 [README「前端依赖与包源」](../../../../README.md#前端依赖与包源)，在用户级 npm 配置里写一行引用环境变量 `NODE_AUTH_TOKEN` 的令牌行；仓库里的 `.npmrc` 只写包源，不写令牌。
    ```bash
    NODE_AUTH_TOKEN=$(gh auth token) pnpm install --frozen-lockfile
    ```
@@ -89,7 +89,7 @@
    ```bash
    pnpm --filter @qian/tenancy-signup-ui run build:remote
    ```
-   组装两个目录，分别作为两个镜像的 `--web`（来源相对 `_import/qian/`）：
+   组装两个目录，分别作为两个镜像的 `--web`（来源相对仓库根目录）：
 
    | 目录 | 内容 | 来源 |
    |---|---|---|
@@ -107,7 +107,7 @@
    rsync -a web-platform web-gateway qd:kun-build/
    ```
    还没推到 GitHub 的提交，改用 `git bundle create kun.bundle <分支>` 打包拷过去，在 qd 上 `git clone -b <分支> kun.bundle kun`。
-3. 构建与推送在构建机的 `~/kun-build/kun/_import/qian` 下执行。设置 `QIAN_IMAGE_REGISTRY` 为镜像仓库的主机名及端口，`QIAN_IMAGE_REVISION` 为源码提交的短 SHA。当前 Harbor 通过 HTTP 80 提供服务，构建机的 Docker 需要在仓库地址中显式写出该端口。构建工具推送镜像后从结果读取 digest。
+3. 构建与推送在构建机的 `~/kun-build/kun` 下执行。设置 `QIAN_IMAGE_REGISTRY` 为镜像仓库的主机名及端口，`QIAN_IMAGE_REVISION` 为源码提交的短 SHA。当前 Harbor 通过 HTTP 80 提供服务，构建机的 Docker 需要在仓库地址中显式写出该端口。构建工具推送镜像后从结果读取 digest。
    ```bash
    python3 scripts/images.py build --kind jit --project hosts/Kun.Platform.Host/Kun.Platform.Host.csproj --assembly Kun.Platform.Host --tag "$QIAN_IMAGE_REGISTRY/qian/qian-platform:$QIAN_IMAGE_REVISION" --web ~/kun-build/web-platform
    ```
@@ -217,7 +217,7 @@ kubectl -n qian-staging logs job/<Job 名>
 
 逐条对应任务验收，结果记进 `pm/tasks/S1-DEP-011.md` 的进度日志。
 
-E2E 部分由 [scripts/staging-e2e.py](../../scripts/staging-e2e.py) 经公网主机名、照外壳的真实路径跑一遍，在 qd 上执行。证据 JSON 进进度日志，测试账号与租户留在 staging，代码带运行后缀：
+E2E 部分由 [scripts/staging-e2e.py](../../../../scripts/staging-e2e.py) 经公网主机名、照外壳的真实路径跑一遍，在 qd 上执行。证据 JSON 进进度日志，测试账号与租户留在 staging，代码带运行后缀：
 ```bash
 python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn --issuer https://qian-staging-id.deepsingularity.cn --operator <平台运营用户名> --operator-password-file <当前密码文件> --operator-new-password-file ~/.qian/staging-operator-password --out staging-e2e.json
 ```

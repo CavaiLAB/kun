@@ -24,7 +24,7 @@
 
 ## 不可变制品候选目录
 
-内部 `RegistryArtifactContent` 接收已获取的文件字节，复制为私有快照后核对目录摘要，再用共用 `ISurfaceValidator` 读取清单与表面。源目录不会在摘要计算和校验之间被再次读取；路径、大小和文件数量受限，不执行组件内容。目录摘要与 CLI 使用同一 D4 格式，见[共用样例](../../_import/qian/tck/registry-artifacts/README.md)。`metadata/*.json` 直接取共用表面校验器的文档快照，CLI 与注册表共用目录、重复键与敏感值规则；其权限、角色等业务 Schema 仍由各 seam 在发布准入时验证。
+内部 `RegistryArtifactContent` 接收已获取的文件字节，复制为私有快照后核对目录摘要，再用共用 `ISurfaceValidator` 读取清单与表面。源目录不会在摘要计算和校验之间被再次读取；路径、大小和文件数量受限，不执行组件内容。目录摘要与 CLI 使用同一 D4 格式，见[共用样例](../../tck/registry-artifacts/README.md)。`metadata/*.json` 直接取共用表面校验器的文档快照，CLI 与注册表共用目录、重复键与敏感值规则；其权限、角色等业务 Schema 仍由各 seam 在发布准入时验证。
 
 `PostgresArtifactCatalog` 将清单、声明式文档、逐文件摘要与元数据快照写入 `plugin_artifacts`。该表是全局候选目录，不含租户挂载状态。摘要是不可变主键；两个宿主并发登记相同摘要只保存一份，后续重复提交不会覆盖首次提交主体与时间。内部读取返回独立的只读集合，不依赖仍可变的调用方文件内容。
 
@@ -130,9 +130,9 @@ scope Reconciler 解析条目时，对在 `metadata/contracts.json` 声明契约
 
 成功授权后经 Lifecycle 的 `MountAtRevisionAsync` / `UnmountAtRevisionAsync` 复用既有 Mount / Unmount 编排与数据库条件写入。`disabled: true` 走卸载，平台条目写禁用 patch，纯租户条目撤销为墓碑；带当前修订重复卸载不再发事件，删除后重建沿用递增修订。required 条目不能禁用。patch 与 `registry.scope.*.v1` 信封同事务入 Outbox，Lifecycle 即时同步并沿用通知和补偿读取，装配失败恢复原 patch 并返回 `state: Failed` 与原因码。平台安装、开通和全局配置均不被此端点修改。
 
-宿主使用 `UseKunErrors()` → `UseRouting()` → `UseKunRegistryAliases()` → 身份与租户边界 → `UseAuthorization()`，再 `MapKunRegistry(...)`；平台运营 PUT 必须允许无租户平台身份到达注册表，由服务在授权时进入路径目标租户。别名中间件在路由后捕获后继路径，认证 401、绑定 400 和业务错误也带 `Deprecation` / `Link`。写端点声明 `PlatformHttpContract`，由真实 ApiExplorer 导出 [OpenAPI](../../_import/qian/plugins/qian.registry/contracts/http-v1.openapi.json)，不进入业务能力聚合；发布时经 RT-006 的 OpenAPI 兼容准入，移除 PUT 会被拒绝。
+宿主使用 `UseKunErrors()` → `UseRouting()` → `UseKunRegistryAliases()` → 身份与租户边界 → `UseAuthorization()`，再 `MapKunRegistry(...)`；平台运营 PUT 必须允许无租户平台身份到达注册表，由服务在授权时进入路径目标租户。别名中间件在路由后捕获后继路径，认证 401、绑定 400 和业务错误也带 `Deprecation` / `Link`。写端点声明 `PlatformHttpContract`，由真实 ApiExplorer 导出 [OpenAPI](../../plugins/qian.registry/contracts/http-v1.openapi.json)，不进入业务能力聚合；发布时经 RT-006 的 OpenAPI 兼容准入，移除 PUT 会被拒绝。
 
-运营 CLI 的连接、单条操作与失败语义见 [CLI](../../_import/qian/packages/qian-cli/README.md#租户-scope-运营入口)。真实集成测试覆盖 JWT、PG 受限角色、Authz、Audit、Lifecycle、Outbox、五秒内生效、其他租户与全局隔离、CLI add/remove、过期修订和别名错误响应。
+运营 CLI 的连接、单条操作与失败语义见 [CLI](../../packages/qian-cli/README.md#租户-scope-运营入口)。真实集成测试覆盖 JWT、PG 受限角色、Authz、Audit、Lifecycle、Outbox、五秒内生效、其他租户与全局隔离、CLI add/remove、过期修订和别名错误响应。
 
 ## 剩余工作
 

@@ -3,5 +3,5 @@
   <PropertyGroup Label="档位"><KunTier>kernel</KunTier><KunRole>provider</KunRole></PropertyGroup>
   <ItemGroup><ProjectReference Include="../Kun.Audit.Abstractions/Kun.Audit.Abstractions.csproj" /><ProjectReference Include="../Kun.Core/Kun.Core.csproj" /><ProjectReference Include="../Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" /><ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /><ProjectReference Include="../Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" /></ItemGroup>
   <ItemGroup><EmbeddedResource Include="Sql/*.sql" LogicalName="audit-native/%(Filename)%(Extension)" /><InternalsVisibleTo Include="Kun.Audit.Postgres.Tests" /></ItemGroup>
-  <ItemGroup><None Include="../../_import/qian/plugins/qian.audit.native/**/*" Pack="true" PackagePath="qian/%(RecursiveDir)%(Filename)%(Extension)" /></ItemGroup>
+  <ItemGroup><None Include="../../plugins/qian.audit.native/**/*" Pack="true" PackagePath="qian/%(RecursiveDir)%(Filename)%(Extension)" /></ItemGroup>
 </Project>

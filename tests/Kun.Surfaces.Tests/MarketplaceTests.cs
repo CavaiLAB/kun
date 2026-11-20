@@ -13,7 +13,7 @@ public sealed class MarketplaceTests
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
         Assert.NotNull(root);
-        var workspace = Path.Combine(root.FullName, "_import", "qian");
+        var workspace = root.FullName;
         using var vectors = JsonDocument.Parse(File.ReadAllText(Path.Combine(workspace, "tck/marketplaces/cases.json")));
         var validator = new SurfaceValidator(); var report = new JsonObject();
         var expected = JsonSerializer.Deserialize<string[]>(File.ReadAllText(Path.Combine(workspace, "tck/marketplaces/field-codes.json")))!;

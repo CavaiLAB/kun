@@ -14,7 +14,7 @@
     <ProjectReference Include="../Kun.Caching/Kun.Caching.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
-  <ItemGroup><EmbeddedResource Include="../../_import/qian/schemas/v2/authz-*.schema.json" LogicalName="schemas/%(Filename)%(Extension)" /></ItemGroup>
+  <ItemGroup><EmbeddedResource Include="../../schemas/v2/authz-*.schema.json" LogicalName="schemas/%(Filename)%(Extension)" /></ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="Kun.Authorization.Rbac.Tests" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /></ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="Kun.Sample.Crm.Tests" /></ItemGroup>

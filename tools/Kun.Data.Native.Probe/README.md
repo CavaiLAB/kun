@@ -11,7 +11,7 @@ QIAN_REQUIRE_DOCKER=1 dotnet test --project tests/Kun.Data.Native.Postgres.AotTe
 
 Dockerfile 固定 SDK 镜像摘要，按实际 amd64 / arm64 平台选择 Linux RID，开启 `IlcTreatWarningsAsErrors` 与逐条裁剪诊断，并核验可执行文件存在、对应托管 DLL 不存在。镜像只是验收工具，不是业务 distroless 镜像。
 
-Linux CI 路径（在仓库根运行；CI 作业的工作目录是 `_import/qian`，路径相应加 `../../`）：
+Linux CI 路径（在仓库根运行；CI 作业也在仓库根执行）：
 
 ```bash
 dotnet publish tools/Kun.Data.Native.Probe -c Release -r linux-x64 -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o /tmp/qian-native-data

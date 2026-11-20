@@ -48,7 +48,20 @@ DOTNET_BASE: Tuple[str, ...] = ("src/**", "Kun.slnx", "Directory.Build.props", "
                                 "Directory.Packages.props", "global.json", "NuGet.config", ".editorconfig",
                                 "BannedSymbols.txt")
 # 装 GitHub Packages 上的 @cavailab/qian-* 的区域都含这一组：包源写在这个文件里。
-NPMRC: Tuple[str, ...] = (Q + ".npmrc",)
+NPMRC: Tuple[str, ...] = (".npmrc",)
+# 组件、Node 工作区、镜像与共同契约在仓库根使用的路径。
+PLATFORM_ASSETS: Tuple[str, ...] = ("apps/**", "contracts/**", "deploy/baseline.json", "deploy/baseline/**", "deploy/images/**",
+     "packages/qian-*/**", "plugins/**", "profiles/**", "samples/qian-sample-crm-ui/**", "schemas/**",
+     "tck/**", "tests/directory-e2e/**", "tests/gates/ui/**", "tests/gates/test_images.py",
+     "tests/gates/test_config_namespaces.py", "tests/gates/test_secret_scan.py",
+     "tools/openapi-codegen/**", "website/**", ".dependency-cruiser.cjs", ".npmrc",
+     "eslint.boundaries.config.mjs", "eslint.config.mjs", "eslint.i18n.mjs", "package.json",
+     "pnpm-lock.yaml", "pnpm-workspace.yaml", "scripts/contract-tools.lock.json", "scripts/dev-shell.sh",
+     "scripts/dev-tenant-ops.sh", "scripts/generate_surface_fixtures.py", "scripts/image-tools.lock.json",
+     "scripts/images.py", "scripts/prepare_contract_tools.py", "scripts/prepare_image_tools.py",
+     "scripts/proto-tools.lock.json", "scripts/sign-system-revisions.py", "scripts/staging-e2e.py",
+     "scripts/ui-tokens.mjs", "tsconfig.base.json", "turbo.json", "vitest.config.ts")
+
 # 这些文件一改，全部区域都算改动：作业的定义、区域表本身或共用的复合动作变了。
 EVERYTHING: Tuple[str, ...] = (".github/workflows/ci.yml", ".github/actions/**", "scripts/ci_changes.py")
 # 不落进任何区域、改了不跑检查的文件。
@@ -62,7 +75,7 @@ class Area(NamedTuple):
     original: Optional[str] = None
     # 要构建 .NET：必须含 DOTNET_BASE。
     builds_dotnet: bool = False
-    # 装 GitHub Packages 上的 @cavailab/qian-*：必须含 _import/qian/.npmrc。
+    # 装 GitHub Packages 上的 @cavailab/qian-*：必须含仓库根的 .npmrc。
     installs_npm: bool = False
 
 
@@ -70,7 +83,7 @@ AREAS: Dict[str, Area] = {
     "dotnet": Area(
         "构建、门禁、测试与原生发布",
         (
-            q("**", "!pm/**", "!docs/**", "!*.md", "docs/generated/**", "docs/ops/configuration-runbook.md"),
+            q("**", "!pm/**", "!docs/**", "!*.md", "docs/generated/**", "docs/ops/configuration-runbook.md"), PLATFORM_ASSETS,
             # 仓库根的 .NET 代码、宿主、测试、样例、基准与脚本；Markdown 不算，打进网关包的 GATEWAY.md 除外。
             ("src/**", "hosts/**", "tests/**", "samples/**", "benchmarks/**", "tools/**", "scripts/**", "!**/*.md",
              "src/Kun.Gateway/GATEWAY.md", "tools/**/*.md", "tests/**/*.md", "samples/Kun.Sample.Crm/**", "README.md", ".gitattributes"),
@@ -81,35 +94,35 @@ AREAS: Dict[str, Area] = {
         "镜像自检",
         (
             ("tools/Kun.Build.Analyzers/**",),
-            q("deploy/images/**", "scripts/images.py",
-              "scripts/prepare_image_tools.py", "scripts/image-tools.lock.json", "tests/gates/test_images.py",
-              "profiles/**", "plugins/**",
-              "schemas/**",
-              "contracts/v0/**", ".github/workflows/images.yml"),
+            q(".github/workflows/images.yml"),
+            ("deploy/images/**", "scripts/images.py", "scripts/prepare_image_tools.py",
+             "scripts/image-tools.lock.json", "tests/gates/test_images.py", "profiles/**", "plugins/**",
+             "schemas/**", "contracts/v0/**"),
             ("hosts/Kun.Gateway.Host/**", "tools/Kun.Image.SelfCheck*/**"),
             DOTNET_BASE,
         ),
         original="images.yml", builds_dotnet=True),
     "docs-and-pm": Area(
         "文档门禁、任务文件与看板",
-        (q("**"), (".github/workflows/qian-docs-and-pm.yml",)),
+        (q("**"), PLATFORM_ASSETS, (".github/workflows/qian-docs-and-pm.yml",)),
         original="docs-and-pm.yml"),
     "docs-site": Area(
         "文档站",
         (
-            q("website/**", "apps/qian-shell/e2e/settle.ts", "docs/**", "package.json", "pnpm-lock.yaml",
-              "pnpm-workspace.yaml", "deploy/docs-site/**", ".github/workflows/docs-site.yml"),
+            q("docs/**", "deploy/docs-site/**", ".github/workflows/docs-site.yml"),
+            ("website/**", "apps/qian-shell/e2e/settle.ts", "package.json", "pnpm-lock.yaml",
+             "pnpm-workspace.yaml"),
             # 仓库根的 CHANGELOG.md：Kun 最新的发布版从这里取（_import/qian/website/scripts/kun.ts）。
-            (".github/workflows/qian-docs-site.yml", "CHANGELOG.md"),
+            (".github/workflows/qian-docs-site.yml", "CHANGELOG.md", "README.md"),
             DOTNET_BASE, NPMRC,
         ),
         original="docs-site.yml", builds_dotnet=True, installs_npm=True),
     "documentation": Area(
         "派生文档与事件模式",
         (
-            q("packages/**", "plugins/**", "profiles/**",
-              "schemas/**", "tck/runtime/**", "docs/generated/**",
-              "package.json", "pnpm*", ".github/workflows/documentation.yml"),
+            q("docs/generated/**", ".github/workflows/documentation.yml"),
+            ("packages/**", "plugins/**", "profiles/**", "schemas/**", "tck/runtime/**", "package.json",
+             "pnpm*"),
             (".github/workflows/qian-documentation.yml", "tests/Kun.Docs.Tests/**", "tests/Directory.Build.props"),
             ("tools/Kun.Docs.Tool/**",),
             DOTNET_BASE, NPMRC,
@@ -119,9 +132,9 @@ AREAS: Dict[str, Area] = {
         "租户运营手测环境",
         (
             ("tools/Kun.Build.Analyzers/**",),
-            q("packages/**", "samples/**", "plugins/**", "schemas/**", "contracts/**",
-              "scripts/dev-tenant-ops.sh",
-              ".github/workflows/dev-tenant-ops.yml"),
+            q(".github/workflows/dev-tenant-ops.yml"),
+            ("packages/**", "samples/qian-sample-crm-ui/**", "plugins/**", "schemas/**", "contracts/**",
+             "scripts/dev-tenant-ops.sh"),
             (".github/workflows/qian-dev-tenant-ops.yml",),
             ("tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),
             DOTNET_BASE,
@@ -131,11 +144,10 @@ AREAS: Dict[str, Area] = {
         "目录选择器验收",
         (
             ("tools/Kun.Build.Analyzers/**",),
-            q("tests/directory-e2e/**", "tests/gates/ui/pins.test.ts",
-              "plugins/**", "schemas/**", "contracts/**",
-              "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
-
-              "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "turbo.json", ".github/workflows/directory-e2e.yml"),
+            q(".github/workflows/directory-e2e.yml"),
+            ("tests/directory-e2e/**", "tests/gates/ui/pins.test.ts", "plugins/**", "schemas/**",
+             "contracts/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh", "package.json",
+             "pnpm-lock.yaml", "pnpm-workspace.yaml", "turbo.json"),
             (".github/workflows/qian-directory-e2e.yml", "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json"),
             ("tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),
             DOTNET_BASE, NPMRC,
@@ -145,12 +157,11 @@ AREAS: Dict[str, Area] = {
         "外壳认证验收",
         (
             ("tools/Kun.Build.Analyzers/**",),
-            q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-identity-ui/**",
-              "samples/qian-sample-crm-ui/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
-              "plugins/**", "schemas/**",
-              "contracts/**",
-              "scripts/dev-shell.sh",
-              "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/shell-auth.yml"),
+            q(".github/workflows/shell-auth.yml"),
+            ("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-identity-ui/**",
+             "samples/qian-sample-crm-ui/**", "packages/qian-tenancy-ui/**",
+             "packages/qian-tenancy-signup-ui/**", "plugins/**", "schemas/**", "contracts/**",
+             "scripts/dev-shell.sh", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"),
             (".github/workflows/qian-shell-auth.yml",),
             ("tools/Kun.Dev.Shell/**", "tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),
             DOTNET_BASE, NPMRC,
@@ -159,10 +170,10 @@ AREAS: Dict[str, Area] = {
     "shell-federation": Area(
         "外壳联邦验收",
         (
-            q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-tenancy-ui/**", "plugins/qian.shell/**",
-              "plugins/qian.tenancy/ui/**",
-              "pnpm-lock.yaml", "pnpm-workspace.yaml",
-              "package.json", ".github/workflows/shell-federation.yml"),
+            q(".github/workflows/shell-federation.yml"),
+            ("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-tenancy-ui/**",
+             "plugins/qian.shell/**", "plugins/qian.tenancy/ui/**", "pnpm-lock.yaml",
+             "pnpm-workspace.yaml", "package.json"),
             ("src/Kun.Audit*/**", ".github/workflows/qian-shell-federation.yml"),
             ("tests/Kun.Shell.TestHost/**", "tests/Shared/NativeAuditDatabase.cs", "tests/Directory.Build.props"),
             DOTNET_BASE, NPMRC,
@@ -171,12 +182,11 @@ AREAS: Dict[str, Area] = {
     "surfaces": Area(
         "声明式表面",
         (
-            q("packages/qian-surfaces/**",
-              "packages/qian-cli/**", "profiles/**", "plugins/**", "tck/profiles/**",
-              "tck/registry-artifacts/**", "package.json", "schemas/v2/**",
-              "tck/surfaces/**", "tck/runtime/**", "tck/marketplaces/**", "contracts/v0/**",
-              "scripts/generate_surface_fixtures.py", "pnpm*",
-              ".github/workflows/surfaces.yml"),
+            q(".github/workflows/surfaces.yml"),
+            ("packages/qian-surfaces/**", "packages/qian-cli/**", "profiles/**", "plugins/**",
+             "tck/profiles/**", "tck/registry-artifacts/**", "package.json", "schemas/v2/**",
+             "tck/surfaces/**", "tck/runtime/**", "tck/marketplaces/**", "contracts/v0/**",
+             "scripts/generate_surface_fixtures.py", "pnpm*"),
             (".github/workflows/qian-surfaces.yml", "tests/Kun.Profiles.Tests/**", "tests/Kun.Surfaces.Tests/**", "tests/Directory.Build.props"),
             DOTNET_BASE, NPMRC,
         ),
@@ -185,11 +195,10 @@ AREAS: Dict[str, Area] = {
         "租户运营页面验收",
         (
             ("tools/Kun.Build.Analyzers/**",),
-            q("packages/qian-tenancy-ui/**", "turbo.json",
-              "plugins/**", "schemas/**", "contracts/**",
-              "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
-
-              "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/tenant-ui.yml"),
+            q(".github/workflows/tenant-ui.yml"),
+            ("packages/qian-tenancy-ui/**", "turbo.json", "plugins/**", "schemas/**", "contracts/**",
+             "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh", "package.json", "pnpm-lock.yaml",
+             "pnpm-workspace.yaml"),
             (".github/workflows/qian-tenant-ui.yml",),
             ("tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),
             DOTNET_BASE, NPMRC,
@@ -198,13 +207,13 @@ AREAS: Dict[str, Area] = {
     "ui": Area(
         "外壳与界面包门禁",
         (
-            q("apps/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
-              "packages/qian-identity-ui/**", "packages/qian-shell-kit/**", "samples/qian-sample-crm-ui/**",
-              "tests/directory-e2e/**", "tests/gates/ui/**",
-              "plugins/qian.tenancy/contracts/**", "plugins/qian.tenancy.signup/contracts/**", "tools/openapi-codegen/**",
-              "website/demo/**", "scripts/ui-tokens.mjs", "eslint.config.mjs", "eslint.boundaries.config.mjs",
-              "eslint.i18n.mjs", ".dependency-cruiser.cjs", "vitest.config.ts", "tsconfig.base.json", "turbo.json",
-              ".npmrc", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"),
+            ("apps/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
+             "packages/qian-identity-ui/**", "packages/qian-shell-kit/**", "samples/qian-sample-crm-ui/**",
+             "tests/directory-e2e/**", "tests/gates/ui/**", "plugins/qian.tenancy/contracts/**",
+             "plugins/qian.tenancy.signup/contracts/**", "tools/openapi-codegen/**", "website/demo/**",
+             "scripts/ui-tokens.mjs", "eslint.config.mjs", "eslint.boundaries.config.mjs",
+             "eslint.i18n.mjs", ".dependency-cruiser.cjs", "vitest.config.ts", "tsconfig.base.json",
+             "turbo.json", ".npmrc", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"),
             (".github/workflows/qian-ui.yml", "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json"),
         ),
         installs_npm=True),

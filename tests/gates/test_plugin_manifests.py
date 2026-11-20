@@ -33,7 +33,7 @@ class PluginManifestGateTests(unittest.TestCase):
         assembly.parent.mkdir(parents=True)
         assembly.touch()
         (self.root / "Kun.slnx").write_text('<Solution><Project Path="src/Kun.New/Kun.New.csproj" /></Solution>')
-        manifest = self.root / "_import/qian/plugins/qian.new/.qian-plugin/plugin.json"
+        manifest = self.root / "plugins/qian.new/.qian-plugin/plugin.json"
         manifest.parent.mkdir(parents=True)
         manifest.write_text('{"id":"qian.new"}')
 
@@ -49,7 +49,7 @@ class PluginManifestGateTests(unittest.TestCase):
         document = ET.parse(solution)
         ET.SubElement(document.getroot(), "Project", Path="src/Kun.Moved/Kun.Moved.csproj")
         document.write(solution)
-        manifest = self.root / "_import/qian/plugins/qian.moved/.qian-plugin/plugin.json"
+        manifest = self.root / "plugins/qian.moved/.qian-plugin/plugin.json"
         manifest.parent.mkdir(parents=True)
         manifest.write_text('{"id":"qian.moved"}')
 
@@ -70,7 +70,7 @@ class PluginManifestGateTests(unittest.TestCase):
         result, commands = self.run_gate([{"type": "Kun.New.Entry", "component": "qian.new"}])
         self.assertEqual((1, 0), result)
         self.assertEqual(["inventory", "check"], [command[2] for command in commands])
-        self.assertEqual(str(self.root / "_import/qian/plugins/qian.new"), commands[1][-1])
+        self.assertEqual(str(self.root / "plugins/qian.new"), commands[1][-1])
 
     def test_new_unclassified_implementation_fails(self):
         with self.assertRaisesRegex(ValueError, "没有入口注解或显式归属"):
@@ -106,7 +106,7 @@ class PluginManifestGateTests(unittest.TestCase):
         self.assertEqual(sample.resolve(), Path(run.call_args_list[1].args[0][-1]).resolve())
 
     def test_tool_is_located_next_to_the_solution(self):
-        nested = self.root / "_import/qian"
+        nested = self.root / "alternate"
         with patch.object(GATE, "run", return_value="[]"), contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaisesRegex(ValueError, "没有发现任何组件入口"):
                 GATE.check(self.root)
@@ -133,7 +133,7 @@ class PluginManifestGateTests(unittest.TestCase):
                                           {"type": "Kun.Moved.Worker", "component": None}])
         self.assertEqual((2, 1), result)
         checked = [command[-1] for command in commands if command[2] == "check"]
-        self.assertIn(str(self.root / "_import/qian/plugins/qian.moved"), checked)
+        self.assertIn(str(self.root / "plugins/qian.moved"), checked)
 
     def test_component_in_repository_src_with_a_wrong_classification_fails(self):
         self.add_src_component()

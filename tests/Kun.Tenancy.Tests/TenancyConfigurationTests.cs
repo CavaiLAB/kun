@@ -20,7 +20,7 @@ public sealed partial class TenantDirectoryTests
         var profile = new ProfileLoader(new SurfaceValidator()).Load(new ProfileLoadOptions { WorkingDirectory = root, Profile = "platform", IncludeHomePatch = false });
         Assert.True(profile.IsValid, JsonSerializer.Serialize(profile.Diagnostics));
         var config = Assert.Single(profile.Snapshot!.Entries, entry => entry.Id == "tenancy").Config;
-        var documentation = File.ReadAllText(Path.Combine(root, "docs/generated/config-catalog.md"));
+        var documentation = File.ReadAllText(Path.Combine(root, "_import/qian/docs/generated/config-catalog.md"));
         var tenancy = documentation[documentation.IndexOf("组件：` qian.tenancy@", StringComparison.Ordinal)..];
         var begin = tenancy.IndexOf("```json\n", StringComparison.Ordinal) + "```json\n".Length;
         var published = JsonSerializer.Deserialize<JsonElement>(tenancy[begin..tenancy.IndexOf("\n```", begin, StringComparison.Ordinal)]);
@@ -83,6 +83,6 @@ public sealed partial class TenantDirectoryTests
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) directory = directory.Parent;
-        return Path.Combine(directory?.FullName ?? throw new InvalidOperationException("仓库根目录不存在。"), "_import", "qian");
+        return directory?.FullName ?? throw new InvalidOperationException("仓库根目录不存在。");
     }
 }

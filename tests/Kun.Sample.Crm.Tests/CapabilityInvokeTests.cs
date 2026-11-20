@@ -574,7 +574,7 @@ public sealed partial class CapabilityTests(PostgresFixture postgres) : Customer
             Assert.Contains("app.current_tenant_id", (string)policies[1][3], StringComparison.Ordinal);
         }
         // 数据包说明（仓库根 src/Kun.Data/README.md）给运维的核查 SQL 原样执行：能力上下文的两张租户表在列，且库里每张租户表都强制 RLS、恰有两条策略。
-        var readme = File.ReadAllText(Path.Combine(RepositoryRoot(), "../../src/Kun.Data/README.md"));
+        var readme = File.ReadAllText(Path.Combine(RepositoryRoot(), "src/Kun.Data/README.md"));
         var verification = readme.Split("```").Single(block => block.StartsWith("sql", StringComparison.Ordinal) && block.Contains("pg_policies", StringComparison.Ordinal))[3..];
         var tenantTables = await AdminRows(verification);
         Assert.Contains(tenantTables, row => (string)row[0] == schema && (string)row[1] == "invoke_receipts");
@@ -593,7 +593,7 @@ public sealed partial class CapabilityTests(PostgresFixture postgres) : Customer
         Assert.Equal(0L, await BusinessCount(host, null)); Assert.Equal(0L, await BusinessCount(host, B)); Assert.Equal(1L, await BusinessCount(host, A));
 
         // docs/ops/configuration-runbook.md 给运维的过期回执清理 SQL 原样执行。A、B 各添一条已过期的回执，A 原有的回执未过期。
-        var runbook = File.ReadAllText(Path.Combine(RepositoryRoot(), "docs/ops/configuration-runbook.md"));
+        var runbook = File.ReadAllText(Path.Combine(RepositoryRoot(), "_import/qian/docs/ops/configuration-runbook.md"));
         var cleanup = runbook.Split("```").Where(block => block.StartsWith("sql", StringComparison.Ordinal) && block.Contains("invoke_receipts", StringComparison.Ordinal))
             .Select(block => block[3..]).ToArray();
         var perTenant = Assert.Single(cleanup, block => block.Contains("set_config", StringComparison.Ordinal));

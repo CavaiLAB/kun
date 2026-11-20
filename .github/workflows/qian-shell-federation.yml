@@ -1,7 +1,7 @@
 name: qian-shell-federation
 
 # 外壳联邦验收：执行 pnpm shell:federation，核对 MF2 的真实制品与审计链。
-# 由 ci.yml 调用，在 _import/qian/ 下运行。
+# 由 ci.yml 调用，在仓库根目录运行。
 # 原件在 _import/qian/.github/workflows/shell-federation.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
 # - 触发：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
 #   路径过滤在区域表 scripts/ci_changes.py 的 shell-federation 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
@@ -19,9 +19,6 @@ on:
 permissions:
   contents: read
   packages: read
-defaults:
-  run:
-    working-directory: _import/qian
 jobs:
   acceptance:
     name: MF2 真实制品与审计链
@@ -43,7 +40,7 @@ jobs:
           scope: '@cavailab'
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: _import/qian/package.json
+          package_json_file: package.json
       - run: pnpm install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,9 +52,9 @@ jobs:
         with:
           name: shell-federation-report
           path: |
-            _import/qian/apps/qian-shell/playwright-report
-            _import/qian/apps/qian-shell/test-results
-            _import/qian/apps/qian-shell/acceptance-results/audit-chain.json
-            _import/qian/apps/qian-shell/acceptance-results/*.png
-            _import/qian/apps/qian-shell/acceptance-results/first-screen.json
+            apps/qian-shell/playwright-report
+            apps/qian-shell/test-results
+            apps/qian-shell/acceptance-results/audit-chain.json
+            apps/qian-shell/acceptance-results/*.png
+            apps/qian-shell/acceptance-results/first-screen.json
           if-no-files-found: ignore

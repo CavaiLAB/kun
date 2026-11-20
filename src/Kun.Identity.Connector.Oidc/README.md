@@ -13,7 +13,7 @@ Apply 按配置构造 `OidcIdentityConnector`，以配置的 `name`（缺省 `oi
 
 ## 配置
 
-配置声明来自代码 `ComponentConfiguration.Schema`，派生为组件文件夹的 [schemas/config.schema.json](../../_import/qian/plugins/qian.identity.connector.oidc/schemas/config.schema.json)。动态适配器从同一声明仅移除 name 的固定值约束，其他字段规则共用：
+配置声明来自代码 `ComponentConfiguration.Schema`，派生为组件文件夹的 [schemas/config.schema.json](../../plugins/qian.identity.connector.oidc/schemas/config.schema.json)。动态适配器从同一声明仅移除 name 的固定值约束，其他字段规则共用：
 
 | 成员 | 说明 |
 | --- | --- |

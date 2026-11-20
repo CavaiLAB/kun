@@ -158,10 +158,10 @@ public sealed class RuntimeScenarioTests
 
     private static string FindRoot()
     {
-        // 场景引用的 profile 与组件在过渡目录 _import/qian 下。
+        // 场景读取仓库根的 profiles 与 plugins。
         var current = new DirectoryInfo(AppContext.BaseDirectory);
         while (current is not null && !File.Exists(Path.Combine(current.FullName, "Kun.slnx"))) current = current.Parent;
-        return current is null ? throw new InvalidOperationException("找不到仓库。") : Path.Combine(current.FullName, "_import", "qian");
+        return current is null ? throw new InvalidOperationException("找不到仓库。") : current.FullName;
     }
 
     private sealed class ScenarioLogger : ILogger

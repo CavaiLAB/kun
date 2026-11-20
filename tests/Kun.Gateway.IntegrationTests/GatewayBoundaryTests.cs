@@ -318,7 +318,7 @@ public sealed class GatewayBoundaryTests(PostgresFixture postgres, RedisFixture 
     {
         var path = AppContext.BaseDirectory;
         while (!File.Exists(Path.Combine(path, "Kun.slnx"))) path = Directory.GetParent(path)!.FullName;
-        return Path.Combine(path, "_import", "qian");
+        return path;
     }
     private sealed class RingClock : TimeProvider
     {

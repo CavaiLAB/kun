@@ -23,7 +23,7 @@ var state = Path.GetFullPath(args[1]);
 var repository = FindRepository();
 // 外壳报给插件开发包的前端框架版本，取外壳安装目录里基础组件包的版本（8 个层包同一版本，钉在 pnpm-workspace.yaml 的版本目录）。
 var corePackage = Path.Combine(repository, "apps/qian-shell/node_modules/@cavailab/qian-core/package.json");
-if (!File.Exists(corePackage)) throw new InvalidOperationException("外壳安装目录里没有 @cavailab/qian-core：先在 _import/qian 下 pnpm install（包源与令牌见 README）。");
+if (!File.Exists(corePackage)) throw new InvalidOperationException("外壳安装目录里没有 @cavailab/qian-core：先在仓库根目录运行 pnpm install（包源与令牌见 README）。");
 var qianVersion = JsonDocument.Parse(File.ReadAllText(corePackage)).RootElement.GetProperty("version").GetString()!;
 await using var postgres = new PostgresFixture();
 await postgres.InitializeAsync();
@@ -111,6 +111,6 @@ static PluginDefinition Define(string id, string plugin, IKunPlugin implementati
 static string FindRepository()
 {
     for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        if (File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) return Path.Combine(directory.FullName, "_import", "qian");
+        if (File.Exists(Path.Combine(directory.FullName, "Kun.slnx"))) return directory.FullName;
     throw new InvalidOperationException("找不到验收仓库根目录。");
 }

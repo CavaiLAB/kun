@@ -1,7 +1,7 @@
 name: qian-tenant-ui
 
 # 租户运营页面验收：页面七步跑在 dev-tenant-ops.sh 装配的真实宿主上。
-# 由 ci.yml 调用，在 _import/qian/ 下运行。
+# 由 ci.yml 调用，在仓库根目录运行。
 # 原件在 _import/qian/.github/workflows/tenant-ui.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
 # - 触发：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
 #   路径过滤在区域表 scripts/ci_changes.py 的 tenant-ui 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
@@ -19,9 +19,6 @@ on:
 permissions:
   contents: read
   packages: read
-defaults:
-  run:
-    working-directory: _import/qian
 jobs:
   acceptance:
     name: 真实租户运营页面七步验收
@@ -40,7 +37,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 12.9.1
-          package_json_file: _import/qian/package.json
+          package_json_file: package.json
       - run: pnpm install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,5 +48,5 @@ jobs:
         if: always()
         with:
           name: tenant-ui-acceptance
-          path: _import/qian/TestResults/tenant-ui/
+          path: TestResults/tenant-ui/
           if-no-files-found: error

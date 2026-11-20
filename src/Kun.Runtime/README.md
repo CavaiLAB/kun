@@ -67,6 +67,6 @@ restriction 谓词应为无副作用的纯函数，抛异常时记录日志并�
 
 ## 验证与已知限制
 
-在仓库根运行 `dotnet run --project tests/Kun.Runtime.Tests -c Release`，执行 [语言无关场景](../../_import/qian/tck/runtime/README.md) 与 .NET 单元测试。
+在仓库根运行 `dotnet run --project tests/Kun.Runtime.Tests -c Release`，执行 [语言无关场景](../../tck/runtime/README.md) 与 .NET 单元测试。
 
 本任务只实现 .NET 最小运行时。TS harness 属于 S1-RT-003，完整 TCK 属于 S1-QA-002；profile/patch 解析、清单/configSchema 校验、声明式表面重载由对应装配器任务提供，传入本包前完成。代码实例随宿主程序集加载，S1 代码更新通过进程重启。已有对象引用的业务执行仍由调用方的权限检查负责，运行时不代理任意对象的方法。

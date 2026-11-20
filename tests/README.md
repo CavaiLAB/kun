@@ -4,7 +4,7 @@
 
 ## 1 目录
 
-`tests/` 收录 .NET 测试、测试宿主、原生发布验证及分析器样例。`tests/Directory.Build.props` 提供项目级 TRX 与覆盖率文件名。`src/Kun.Testing.Containers/` 提供 Testcontainers 夹具。浏览器目录验收在 `_import/qian/tests/directory-e2e/`，界面包门禁在 `_import/qian/tests/gates/ui/`。
+`tests/` 收录 .NET 测试、测试宿主、原生发布验证及分析器样例。`tests/Directory.Build.props` 提供项目级 TRX 与覆盖率文件名。`src/Kun.Testing.Containers/` 提供 Testcontainers 夹具。浏览器目录验收在 `tests/directory-e2e/`，界面包门禁在 `tests/gates/ui/`。
 
 ```text
 src/Kun.Testing.Containers/                  通用容器夹具 NuGet 包
@@ -54,8 +54,8 @@ dotnet test --solution /tmp/kun-tests-a.slnf -c Release --no-build
 根 `Kun.slnx` 描述全部 .NET 项目。`tests/kun-platform.slnf` 登记分片 a、b、c 的测试。`tests/kun-unit.slnf` 登记分片 k 的单元测试，集成测试与专属作业由 `python3 scripts/dotnet_ci.py registration` 核对。
 
 - 本机跑全量 `dotnet test` 前先补齐 CI 的两个前置，否则 `Kun.Capabilities.Tests` 与 `Kun.Sample.Crm.Tests` 会出现 19 个环境性失败（S1-DEC-019）：
-  - 在 `_import/qian/` 运行 `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
-  - `python3 _import/qian/scripts/prepare_contract_tools.py --destination <目录>`，再导出 `QIAN_BUF_PATH=<目录>/buf` 与 `QIAN_OASDIFF_PATH=<目录>/oasdiff`：能力契约的真实兼容检查器，缺失时相关用例按设计拒绝跳过。
+  - 在仓库根运行 `pnpm install --frozen-lockfile && pnpm --filter "qian..." build`（装依赖要 GitHub Packages 的令牌，见 `README.md`「前端依赖与包源」）：doctor 用例要调用 `packages/qian-cli/dist/main.js`；
+  - `python3 scripts/prepare_contract_tools.py --destination <目录>`，再导出 `QIAN_BUF_PATH=<目录>/buf` 与 `QIAN_OASDIFF_PATH=<目录>/oasdiff`：能力契约的真实兼容检查器，缺失时相关用例按设计拒绝跳过。
 - `dotnet test` 走 Microsoft Testing Platform（仓库根 [global.json](../global.json) 的 `test.runner`）；xUnit v3 测试项目是可执行程序，csproj 里写 `<OutputType>Exe</OutputType>`。
 - 单跑一个测试项目用 `dotnet run --project tests/<X>.Tests -c Release`；`dotnet test <项目路径>` 或 `dotnet test --project …` 在部分机器上会报「运行了零个测试、退出码 5」，以 `--solution` 或 `dotnet run` 的结果为准。
 - CLI 的私有源 E2E（`packages/qian-cli/test/private-feed.e2e.mjs`）不随 `pnpm --filter qian test` 运行，单独用 `QIAN_FEED_TOKEN=<读包令牌> pnpm --filter qian test:feed`；本机可取 `gh auth token`（需 `read:packages`）。令牌只放环境变量，缺失即失败、不跳过。网络很慢时可另设 `QIAN_PACKAGE_TIMEOUT`（整数秒，缺省 600）放宽 CLI 包管理器操作的超时。
@@ -229,8 +229,8 @@ PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](..
   - 插值字符串的常量前缀，如 `$"docs/prd/{name}.md"` 算 `docs/prd/` 起头的全部文件；插值洞后以 `/` 起头的段，如 `$"{root}/docs/x.md"`。`+` 拼接同理：`root + "/docs/x.md"`，字面量后面还接 `+` 时按前缀算。
   - 单写一个根目录文件名（`"AGENTS.md"`、`Path.Combine(root, "README.md")`）只在本文件定位了仓库根时算：写到 `"Kun.slnx"`（向上找仓库根），或用到名为 `RepositoryRoot` / `RepoRoot` 的辅助方法。`README.md` 这类常见名字在别处多半指临时目录或包里的文件，如 `Kun.Lifecycle.Tests` 的临时部署仓库。
 - MSBuild 项：`*.csproj`、`*.props`、`*.targets` 里 `Include`、`Update`、`Project` 属性指向的文件，相对本文件所在目录解析，认得通配与 `$(MSBuildThisFileDirectory)`、`$(MSBuildProjectDirectory)`，含其他属性的路径跳过。`.props` / `.targets` 里的相对路径实际按导入它的项目目录求值，这里写路径用 `$(MSBuildThisFileDirectory)` 起头，自检才对得上。
-- dotnet 区域的作业运行的 Python：`ci.yml` 里这些作业的 `run:` 里 `python3 <脚本>` 直接运行的脚本（在仓库根运行时写成 `_import/qian/<脚本>`）、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
-  - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（作业在 `_import/qian` 下运行这些脚本）。
+- dotnet 区域的作业运行的 Python：`ci.yml` 里这些作业的 `run:` 里 `python3 <脚本>` 直接运行的脚本（相对作业的工作目录解析）、`python3 -m unittest discover` 收集的测试模块，以及它们 import、按路径加载（`importlib`）或当脚本运行的本仓库模块，按语法树判断。
+  - 以仓库根为锚的路径才算：`Path(__file__)` 推出的路径与模块顶层赋给名字的这类路径（`ROOT = Path(__file__).resolve().parents[1]`、`SCRIPT = ROOT / "scripts" / "x.py"`）、`Path.cwd()`，在锚上用 `/`、`joinpath`、`os.path.join` 拼的常量段（f-string 取常量前缀）；传给 `Path()`、`os.path.join()`、`open()` 的相对路径字符串按仓库根算（这些作业从仓库根运行）。
   - 临时目录等别的锚上拼的路径不算。被测试按名字加载、又被该测试换成临时目录的模块级名字，在函数里不算：`test_check_docs.py` 把 `check_docs.ROOT` 换掉，`check_docs.py` 函数里读的 `docs/` 就是临时目录。
 
 写法约定：读取仓库里的文件，写成仓库根（或上面的锚）后跟常量路径段。自检认不出的写法：路径来自变量、配置、命令行参数或文件内容，目录枚举后按名字筛选（如 `Directory.GetFiles(root)`），以及经外部程序间接读取（测试调用的 qian CLI 是 TypeScript，不在扫描范围）。这些情况改用常量路径，或者手工把读到的文件加进区域表的那一组。各类写法的正反例见 [gates/test_dotnet_ci.py](gates/test_dotnet_ci.py)。

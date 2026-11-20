@@ -10,7 +10,7 @@
 | [`decisions/system-component-same-version.md`](decisions/system-component-same-version.md) | system 级预装组件的文件夹变了而版本号没变（2026-11-17 staging 部署撞上后清库重来）：权限目录与 Lifecycle 修订的同版本约束、只升版本时现有租户的权限缺口、契约准入在平台宿主上找不到基线等代码事实；升版本门禁并补租户升级、同版本受控替换、staging 清库重来三种做法的改动、用例与影响；D1–D5 | 已裁决（2026-11-17，R167：取升版本门禁并补租户升级、分三步，执行任务 S1-DEP-012 / 013；S1-DEC-037） |
 | `adr/` | 架构决策记录 ADR-001…023 + 索引 `adr/README.md`（Status / Context / Decision / Rationale / Consequences / 各阶段影响 / 待确认；ADR-020 组件模型 v2 部分取代 ADR-002 / 003、修订 ADR-014 / 019；ADR-019 / ADR-020 已于 2026-10-07 Accepted；ADR-021 产品族结构同日新增，修订 ADR-001 / 013；ADR-023 合并蓝图 2026-11-17 Accepted，部分取代 ADR-001 / 021、修订 ADR-013 / 019 / 020） | 草案 v1（组件模型 v2 已定稿，2026-10-07） |
 | [`adr/ADR-022-rspress-unified-component-docs.md`](adr/ADR-022-rspress-unified-component-docs.md) | 统一 Rspress，替换 Storybook；能力实测、Props/离线限制与迁移验收 | 已确认；替换与正式站验收已于 2026-10-14 完成（S1-YUE-005） |
-| [`adr/ADR-023-kun-qian-merge-blueprint.md`](adr/ADR-023-kun-qian-merge-blueprint.md) | Qian 并入 Kun 并重新定位 Kun 的合并蓝图：新定位、内核档与平台档、命名规则、逐模块归并对照、名字面的改与不改、许可、版本与发布渠道、仓库布局、门禁并轨、分步与时点、前端由 yue 更名为 qian | Accepted（2026-11-17，S1-DEC-036 D1–D14）；按阶段落地，对应阶段开工前现行代码规则照旧 |
+| [`adr/ADR-023-kun-qian-merge-blueprint.md`](adr/ADR-023-kun-qian-merge-blueprint.md) | Qian 并入 Kun 并重新定位 Kun 的合并蓝图：新定位、内核档与平台档、命名规则、逐模块归并对照、名字面的改与不改、许可、版本与发布渠道、仓库布局、门禁并轨、分步与时点、前端框架的仓库与发布范围 | Accepted（2026-11-17，S1-DEC-036 D1–D14）；按阶段落地，对应阶段开工前现行代码规则照旧 |
 | `prd/` | 产品需求文档：索引 `prd/README.md` + 17 章（01–17）+ 专题 spec | 草案 v1（组件模型 v2 已定稿（2026-10-07）：§02 / §03 / §07–§12、specs 已回填，待确认项全部拍板） |
 | `prd/specs/component-model.md` | 组件模型 v2 专题 spec（权威）：`.qian-plugin/plugin.json` 清单字段族、五种表面、scope / 遮蔽 / restrict、seam 三角色、profile / 组合包 / patch、`marketplace.json`、`qian` CLI、运行时语义与 TCK | 草案 v1（另有人负责；落盘前以 ADR-020 为准） |
 | `prd/specs/plugin-manifest.md` | 插件清单 `qian-plugin.yaml` 专题 spec：字段、JSON Schema、派生物、签名与 digest、反向权限、`capabilities` 条目 | v1，迁移对照（`kind` → `runtime.form`；权威规格见 component-model.md） |
@@ -22,9 +22,9 @@
 | `generated/` | `qian docs generate` 从实际 profile、配置 Schema 与 C# 事件代码派生的配置目录、模块图、事件图、seam 图，CI 重新生成并比对、漂移即失败；实现说明见 `../packages/Qian.Docs/README.md` | 生成物 |
 | `CHANGELOG.md` | 变更日志：对读者可见的变化（新文档与规格、新组件与命令、破坏性变更），按日期倒序；文档站首页「最新动态」取最近 4 条 | 持续更新 |
 | `ROADMAP.md` | 阶段路线唯一真相源：S1–S4 目标、退出标准、核心交付、里程碑占位、依赖与风险、跨阶段约束 | 草案 v1（S1 交付已按 ADR-020 更新） |
-| [`../contracts/v0/`](../contracts/v0/README.md) | 冻结契约 v0（仓库根目录，不在 docs 下）：ErrorDetail 与错误码目录、S2S claim、事件信封、能力条目四类 JSON Schema 2020-12 + fixture，及[与 iClaw 的差异说明](../contracts/v0/iclaw-alignment.md)；字段以此为准 | frozen（S1-AGT-005，2026-10-24；后续仅兼容增量） |
+| [`../contracts/v0/`](../../../contracts/v0/README.md) | 冻结契约 v0（仓库根目录，不在 docs 下）：ErrorDetail 与错误码目录、S2S claim、事件信封、能力条目四类 JSON Schema 2020-12 + fixture，及[契约索引中的下游对齐说明](../../../contracts/v0/README.md)；字段以此为准 | frozen（S1-AGT-005，2026-10-24；后续仅兼容增量） |
 | `migration/` | 从参考平台到 Qian 的迁移方案 | 草案 v1 |
 | [`ops/configuration-runbook.md`](ops/configuration-runbook.md) | 配置分工、secretRef、扫描门禁、L0–L4 降级矩阵及真实 Apollo 验收证据 | 随 S1-CFG-001 / 002 实现维护 |
 | [`ops/k3s-control-plane-recovery.md`](ops/k3s-control-plane-recovery.md) | K3s 控制面崩溃循环的证据、根因、方案选择（推荐 qd 单控制面 + 三个 agent）与分阶段执行、回退、验收（S1-DEP-007） | 待产品负责人批准方案后执行，随 S1-DEP-007 维护 |
 
-命名约定：产品 = Qian（乾），底座框架 = Kun，前端组件库 = yue，插件 ID 前缀 = `qian.`，运行时 = `Qian.Runtime`（.NET）/ `@qian/runtime`（TS），CLI = `qian`。三层口径：Kun = 框架层、Qian = 平台层、yue = 前端层，对外说「Qian 基于 Kun 构建」（ADR-021）。2026-11-17 起（ADR-023）：Qian 并入 Kun，口径改为「Kun 是框架，内部分内核档与平台档；qian 是前端层（原名 yue）」，许可证全部改 MIT；改名按阶段落地，落地前本目录的文档仍按现有名字描述现状。被借鉴的商业低代码产品一律称「参考平台」。
+Kun 分内核档与平台档，.NET 运行时为 `Kun.Runtime`。Qian 的前端组件库和 TypeScript 运行时由 [CavaiLAB/qian](https://github.com/CavaiLAB/qian) 发布，运行时包是 `@cavailab/qian-runtime`。平台组件 ID 使用 `qian.` 前缀，命令行为 `qian`。本文将参照的商业低代码产品称为「参考平台」。

@@ -5,7 +5,7 @@
 **/node_modules
 **/.git
 TestResults
-_import/qian/TestResults
-_import/qian/.pnpm-store
-_import/qian/website
+TestResults
+.pnpm-store
+website
 _import/qian/docs/generated

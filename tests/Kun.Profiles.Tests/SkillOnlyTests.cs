@@ -15,7 +15,7 @@ public sealed class SkillOnlyTests
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Kun.slnx"))) root = root.Parent;
         Assert.NotNull(root);
-        var workspace = Path.Combine(root.FullName, "_import", "qian");
+        var workspace = root.FullName;
         using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(workspace, "tck/runtime/skill-only.json")));
         var spec = fixture.RootElement;
         var directory = Directory.CreateTempSubdirectory("qian-skill-only-net-");

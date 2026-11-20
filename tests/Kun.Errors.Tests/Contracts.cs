@@ -17,7 +17,7 @@ internal static partial class Contracts
     public static string RepoRoot { get; } = FindRepoRoot();
 
     /// <summary>冻结契约所在目录（前端仓库按这里的路径钉住其中几个文件）。</summary>
-    public static string V0 => Path.Combine(RepoRoot, "_import", "qian", "contracts", "v0");
+    public static string V0 => Path.Combine(RepoRoot, "contracts", "v0");
 
     public static JsonSchema Schema(string name) => s_loaded.Value.Schemas[name];
 

@@ -54,8 +54,6 @@ PLATFORM_ASSETS: Tuple[str, ...] = ("apps/**", "contracts/**", "deploy/baseline.
      "scripts/proto-tools.lock.json", "scripts/sign-system-revisions.py", "scripts/staging-e2e.py",
      "scripts/ui-tokens.mjs", "tsconfig.base.json", "turbo.json", "vitest.config.ts")
 
-BOARD_SOURCE = ("_import/qian/deploy/pm-board/kustomization.yaml", "_import/qian/scripts/pm.py", "_import/qian/pm/tasks")
-DOCS_SOURCE = ("_import/qian/deploy/docs-site/kustomization.yaml",)
 PLATFORM_BOARD: Tuple[str, ...] = ("pm/**", "scripts/pm.py", "tests/gates/test_pm.py", "deploy/pm-board/**")
 
 PLATFORM_DOCUMENTATION: Tuple[str, ...] = ("docs/**", "deploy/docs-site/**", "scripts/check_docs.py",
@@ -82,7 +80,6 @@ AREAS: Dict[str, Area] = {
         "构建、门禁、测试与原生发布",
         (
             PLATFORM_ASSETS,
-            DOCS_SOURCE,
             (".github/workflows/release.yml", "CHANGELOG.md", "docs/guides/package-migration.md"),
             ("docs/generated/**", "docs/ops/configuration-runbook.md", "deploy/docs-site/**", "deploy/pm-board/**"),
             # 仓库根的 .NET 代码、宿主、测试、样例、基准与脚本；Markdown 不算，打进网关包的 GATEWAY.md 除外。
@@ -105,12 +102,11 @@ AREAS: Dict[str, Area] = {
         builds_dotnet=True),
     "docs-and-pm": Area(
         "文档门禁、任务文件与看板",
-        (PLATFORM_ASSETS, PLATFORM_DOCUMENTATION, PLATFORM_BOARD, DOCS_SOURCE, BOARD_SOURCE, (".github/workflows/qian-docs-and-pm.yml",)),),
+        (PLATFORM_ASSETS, PLATFORM_DOCUMENTATION, PLATFORM_BOARD, (".github/workflows/qian-docs-and-pm.yml",)),),
     "docs-site": Area(
         "文档站",
         (
 
-            DOCS_SOURCE,
             ("docs/**", "deploy/docs-site/**", "website/**", "apps/qian-shell/e2e/settle.ts", "package.json", "pnpm-lock.yaml",
              "pnpm-workspace.yaml"),
             # 仓库根的 CHANGELOG.md：Kun 最新的发布版从这里取（website/scripts/kun.ts）。

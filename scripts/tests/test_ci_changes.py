@@ -69,22 +69,12 @@ class AreaTableTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.files = tracked()
 
-    def test_deployment_compatibility_has_four_tracked_entries(self) -> None:
-        expected = {
-            "_import/qian/deploy/docs-site/kustomization.yaml",
-            "_import/qian/deploy/pm-board/kustomization.yaml",
-            "_import/qian/pm/tasks",
-            "_import/qian/scripts/pm.py",
-        }
-        remaining = {path for path in self.files if path == "_import" or path.startswith("_import/")}
-        self.assertEqual(expected, remaining)
+    def test_import_directory_has_no_tracked_files(self) -> None:
+        remaining = [path for path in self.files if path == "_import" or path.startswith("_import/")]
+        self.assertEqual([], remaining)
 
     def test_workflow_areas_cover_their_inputs(self) -> None:
         cases = {
-            "_import/qian/deploy/docs-site/kustomization.yaml": ({"dotnet", "docs-site", "docs-and-pm"}, {"images"}),
-            "_import/qian/deploy/pm-board/kustomization.yaml": ({"docs-and-pm"}, {"docs-site", "images"}),
-            "_import/qian/scripts/pm.py": ({"docs-and-pm"}, {"images"}),
-            "_import/qian/pm/tasks": ({"docs-and-pm"}, {"images"}),
             "pm/tasks/S1-KUN-030.md": ({"docs-and-pm"}, {"dotnet", "docs-site"}),
             "docs/prd/specs/frontend.md": ({"docs-and-pm", "docs-site"}, {"dotnet", "images"}),
             "docs/generated/event-graph.md": ({"dotnet", "docs-and-pm", "docs-site", "documentation"}, {"images"}),

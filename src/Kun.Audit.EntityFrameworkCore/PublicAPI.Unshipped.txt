@@ -1,26 +1,30 @@
 #nullable enable
-Kun.Audit.EntityFrameworkCore.AuditLogConfiguration
-Kun.Audit.EntityFrameworkCore.AuditLogConfiguration.AuditLogConfiguration() -> void
-Kun.Audit.EntityFrameworkCore.AuditLogConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Kun.Audit.AuditLog!>! builder) -> void
-Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor
-Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor.AuditSaveChangesInterceptor(Kun.Audit.Abstractions.IAuditWriter! writer, Kun.Core.MultiTenancy.ITenantContext! tenantContext, Kun.Core.Security.ICurrentUser! currentUser, Kun.Core.Time.ISystemClock! clock, Microsoft.Extensions.Options.IOptions<Kun.Audit.DependencyInjection.KunAuditOptions!>! options, Microsoft.Extensions.Logging.ILogger<Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor!>! logger) -> void
-Kun.Audit.EntityFrameworkCore.DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions
-Kun.Audit.EntityFrameworkCore.EfAuditWriter<TDbContext>
-Kun.Audit.EntityFrameworkCore.EfAuditWriter<TDbContext>.EfAuditWriter(TDbContext! dbContext) -> void
-Kun.Audit.EntityFrameworkCore.EfAuditWriter<TDbContext>.WriteAsync(Kun.Audit.AuditLog! entry, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-override Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor.SaveChangesFailed(Microsoft.EntityFrameworkCore.Diagnostics.DbContextErrorEventData! eventData) -> void
-override Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor.SaveChangesFailedAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextErrorEventData! eventData, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-override Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor.SavedChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesCompletedEventData! eventData, int result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<int>
-override Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor.SavingChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>>
-static Kun.Audit.EntityFrameworkCore.DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions.AddKunAuditEntityFrameworkCore(this Kun.Audit.DependencyInjection.KunAuditBuilder! builder) -> Kun.Audit.DependencyInjection.KunAuditBuilder!
-static Kun.Audit.EntityFrameworkCore.DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions.UseEntityFramework<TDbContext>(this Kun.Audit.DependencyInjection.KunAuditBuilder! builder) -> Kun.Audit.DependencyInjection.KunAuditBuilder!
-Kun.Audit.EntityFrameworkCore.PostgresAuditChain
-Kun.Audit.EntityFrameworkCore.EfAuditReader<TContext>
-Kun.Audit.EntityFrameworkCore.EfAuditReader<TContext>.EfAuditReader(TContext! context, Kun.Core.MultiTenancy.ITenantContext! tenantContext) -> void
-Kun.Audit.EntityFrameworkCore.PostgresAuditChain.PostgresAuditChain(Npgsql.NpgsqlDataSource! dataSource, string! schema = "audit") -> void
-static Kun.Audit.EntityFrameworkCore.DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions.UsePostgresChain(this Kun.Audit.DependencyInjection.KunAuditBuilder! builder, Npgsql.NpgsqlDataSource! dataSource, string! schema = "audit") -> Kun.Audit.DependencyInjection.KunAuditBuilder!
-Kun.Audit.EntityFrameworkCore.PostgresAuditChain.EnsureCreatedAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Kun.Audit.EntityFrameworkCore.EfAuditReader<TContext>.QueryAsync(Kun.Audit.AuditQuery! query, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Kun.Audit.AuditLog!>!
-Kun.Audit.EntityFrameworkCore.PostgresAuditChain.AppendAsync(string? tenantKey, System.Func<string?, System.Threading.Tasks.ValueTask<string!>>! computeNewHash, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<string!>
-Kun.Audit.EntityFrameworkCore.PostgresAuditChain.WriteAsync(Kun.Audit.AuditEntry! entry, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-Kun.Audit.EntityFrameworkCore.PostgresAuditChain.ReadAsync(string? tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Kun.Audit.AuditEntry!>!
+Qian.Audit.AuditCanonicalizer
+Qian.Audit.AuditDbContext
+Qian.Audit.AuditDbContext.AuditDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Qian.Audit.AuditDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+const Qian.Audit.AuditDbContext.Schema = "plugin_qian_audit" -> string!
+static Qian.Audit.AuditCanonicalizer.Canonicalize(System.Text.Json.JsonElement value) -> string!
+static Qian.Audit.AuditCanonicalizer.Hash(Qian.Audit.AuditRecord! record, long sequence, string? previousHash) -> string!
+Qian.Audit.AuditInputPolicy
+Qian.Audit.AuditInputPolicy.AuditInputPolicy(System.Text.Json.JsonElement schema, bool isCommand, bool? audit = null) -> void
+Qian.Audit.AuditInputPolicy.InputHash(System.Text.Json.JsonElement input) -> string?
+Qian.Audit.AuditInputPolicy.Redact(System.Text.Json.JsonElement input) -> System.Text.Json.JsonElement
+Qian.Audit.AuditInputPolicy.ShouldRecord.get -> bool
+const Qian.Audit.AuditInputPolicy.Redacted = "[REDACTED]" -> string!
+Qian.Audit.AuditDbContext.AuditDbContext(Microsoft.EntityFrameworkCore.DbContextOptions! options, Kun.Core.MultiTenancy.ITenantContext! tenant, bool platform) -> void
+Qian.Audit.AuditPlatformAccess
+Qian.Audit.AuditPlugin
+Qian.Audit.AuditPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Qian.Audit.AuditPlugin.AuditPlugin() -> void
+Qian.Audit.AuditPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Audit.PlatformAuditDbContext
+Qian.Audit.PlatformAuditDbContext.PlatformAuditDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Qian.Audit.PlatformAuditDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+override Qian.Audit.AuditDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder! modelBuilder) -> void
+static Qian.Audit.AuditPlatformAccess.CreateMigrationSql(string! platformRole) -> string!
+Qian.Audit.AuditTransactionAccess
+static Qian.Audit.AuditTransactionAccess.CreateMigrationSql(string! writerRole, string! producerRole) -> string!
+Qian.Audit.AuditComponent
+Qian.Audit.AuditComponent.AuditComponent() -> void
+Qian.Audit.AuditComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Qian.Audit.AuditComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+static Qian.Audit.AuditPlatformAccess.CreateMigrationSql(string! platformRole, string! writerRole, string! producerRole) -> string!

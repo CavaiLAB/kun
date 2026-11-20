@@ -4,6 +4,8 @@
 >
 > 迁移已于 2026-11-17 启动。分几批、每批做到什么算完，见[迁移执行计划](migration-plan.md)。
 
+首个合并版的 beta 从 CavaiLAB 的 GitHub Packages 还原。稳定版内核档从 nuget.org 还原，平台档从 CavaiLAB 的公开 GitHub Packages 还原，组织包关联 `CavaiLAB/kun`。下文记录 2026-11-17 的规划。升级时可按已安装的包名查找该版本的目标包与包源。[NuGet 包迁移指南](guides/package-migration.md)
+
 ## 1 两个来源
 
 | | 原 Kun | 原 Qian 的后端 |

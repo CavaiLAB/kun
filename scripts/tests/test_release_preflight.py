@@ -40,13 +40,29 @@ class PreflightTests(unittest.TestCase):
             with self.subTest(version=version), patch.object(feed, "_read", side_effect=replies), self.assertRaises(feed.FeedError):
                 feed.check_unpublished(self.packages, version, "fixture")
 
+    def test_resume_accepts_the_same_version_but_refuses_a_newer_release(self):
+        with patch.object(feed, "_read", return_value={"versions": ["2026.11.1"]}):
+            feed.check_unpublished(self.packages, "2026.11.1", "fixture", resume=True)
+        with patch.object(feed, "_read", return_value={"versions": ["2026.11.2"]}), self.assertRaises(feed.FeedError):
+            feed.check_unpublished(self.packages, "2026.11.1", "fixture", resume=True)
+
     def test_read_failure_or_missing_credentials_cannot_approve_publication(self):
         with self.assertRaises(feed.FeedError):
             feed.check_unpublished(self.packages, "2026.11.1", None)
-        with patch.object(feed, "_read", side_effect=ConnectionError("e")), self.assertRaises(feed.FeedError):
+        with patch.object(feed.time, "sleep"), patch.object(feed, "_read", side_effect=ConnectionError("e")) as read, self.assertRaises(feed.FeedError):
             feed.check_unpublished(self.packages, "2026.11.1", "fixture")
+        self.assertEqual(read.call_count, 3)
         with patch.object(feed, "_read", return_value=[{}]), self.assertRaises(feed.FeedError):
             feed.check_unpublished(self.packages, "2026.11.1", "fixture")
+
+    def test_transient_error_retries_only_the_interrupted_index(self):
+        replies = [[], ConnectionError("connection interrupted"), {"versions": ["0.1.0"]}, []]
+        with patch.object(feed.time, "sleep") as sleep, patch.object(feed, "_read", side_effect=replies) as read:
+            feed.check_unpublished(self.packages, "2026.11.1", "fixture")
+        urls = [call.args[0] for call in read.call_args_list]
+        self.assertEqual(urls[1:3], [feed.NUGET_INDEX + "kun.core/index.json"] * 2)
+        self.assertEqual(len(urls), 4)
+        sleep.assert_called_once_with(1)
 
 
 if __name__ == "__main__":

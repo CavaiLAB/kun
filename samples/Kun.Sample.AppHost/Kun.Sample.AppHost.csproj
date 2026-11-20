@@ -9,6 +9,9 @@
     <!-- 本项目的依赖闭包只有 Aspire 自己的包（项目资源不进 NuGet 依赖图）。仓库的中央传递钉版是给 Kun 库包定的，
          套在这里会把 Aspire 13 要求的依赖版本往下压（NU1109）。只对本项目关闭传递钉版；NuGet 安全审计与警告即错误不变。 -->
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+    <!-- dotnet run uses the version-matched DCP and dashboard NuGet packages from the AppHost SDK. -->
+    <AspireUseCliBundle Condition="'$(AspireUseCliBundle)' == ''">false</AspireUseCliBundle>
+    <MSBuildWarningsAsMessages Condition="'$(AspireUseCliBundle)' == 'false'">$(MSBuildWarningsAsMessages);ASPIRE010</MSBuildWarningsAsMessages>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" />

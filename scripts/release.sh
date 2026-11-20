@@ -6,28 +6,9 @@
 #        bash scripts/release.sh 2026.6.12-hotfix.2
 #        bash scripts/release.sh 2026.6.12-beta.1
 #
-# Release pre-flight + tag preparation for Kun Framework.
-#
-# Phases:
-#   0. CalVer shape / branch / clean-tree / tag-absence gates
-#   1. dotnet build -c Release /warnaserror
-#   2. dotnet test (unit tests; IntegrationTests / Sample.Tests /
-#      Integration.AotTests filtered out — the maintainer runs those in
-#      CI via the Build & Test + sample-aot-integration jobs)
-#   3. AOT smoke host, the same steps as the CI aot-smoke job: check that
-#      tests/Kun.AotSmoke references exactly the AOT list (projects whose csproj
-#      sets IsAotCompatible=true, listed by scripts/aot_projects.py), publish it
-#      NativeAOT for linux-x64 with every ILC warning as an error, run it.
-#      Skipped only when clang / gcc is missing on PATH.
-#   4. CHANGELOG.md: rename [Unreleased] → [<version>] with today's date
-#   5. git commit + annotated tag (NO push)
-#   6. Print explicit maintainer-review-required push instructions
-#
-# IMPORTANT: This script never pushes. The tag is created locally only so
-# the maintainer can review (`git show v<version>`) before running
-# `git push origin <branch> && git push origin v<version>` themselves.
-# Never run `git push --tags` — it would push every local tag including
-# experiments.
+# Local pre-flight for a candidate version. Builds the solution, runs its unit
+# tests, and publishes/runs the NativeAOT smoke host on Linux with a compiler.
+# Publish the verified main commit via the release workflow in GitHub Actions.
 #
 # Windows: run via Git Bash ("bash scripts/release.sh ...") or WSL.
 
@@ -46,7 +27,7 @@ err()  { printf '\033[1;31m✗ %s\033[0m\n' "$*" >&2; }
 # ---------------------------------------------------------------------------
 # Phase 0: gates
 # ---------------------------------------------------------------------------
-log "Phase 0/5 · Gates (calver / branch / clean tree / tag-absence)"
+log "Phase 0/3 · Gates (calver / branch / clean tree / tag-absence)"
 
 # The same validator is used by CI, including the calendar and NuGet suffix constraints.
 python3 "$(dirname "${BASH_SOURCE[0]}")/release_version.py" --version "$VERSION"
@@ -74,13 +55,13 @@ fi
 # ---------------------------------------------------------------------------
 # Phase 1: build
 # ---------------------------------------------------------------------------
-log "Phase 1/5 · dotnet build -c Release /warnaserror"
-dotnet build -c Release /warnaserror
+log "Phase 1/3 · dotnet build -c Release /warnaserror"
+dotnet build -c Release -p:Version="$VERSION" /warnaserror
 
 # ---------------------------------------------------------------------------
 # Phase 2: tests
 # ---------------------------------------------------------------------------
-log "Phase 2/5 · dotnet test (unit only; IntegrationTests / Sample.Tests / Integration.AotTests left out)"
+log "Phase 2/3 · dotnet test (unit only; IntegrationTests / Sample.Tests / Integration.AotTests left out)"
 # Microsoft.Testing.Platform (global.json test.runner): the unit projects are listed in
 # tests/kun-unit.slnf, which leaves out the same three projects the old VSTest filter excluded.
 dotnet test --solution tests/kun-unit.slnf -c Release --no-build
@@ -100,9 +81,11 @@ dotnet test --solution tests/kun-unit.slnf -c Release --no-build
 # flows into every project reference, which fails restore for the
 # netstandard2.0 analyzer projects (NETSDK1207) and turns the AOT analyzers on
 # in dependencies that are not AOT-compatible.
-log "Phase 3/5 · AOT smoke host (tests/Kun.AotSmoke)"
+log "Phase 3/3 · AOT smoke host (tests/Kun.AotSmoke)"
 
-if ! command -v clang >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1; then
+if [[ "$(uname -s)" != Linux ]]; then
+  warn "The linux-x64 NativeAOT smoke host runs on the release runner."
+elif ! command -v clang >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1; then
   warn "No clang / gcc on PATH — skipping the AOT smoke host."
   warn "The CI AOT smoke host job (tests/Kun.AotSmoke) is the authoritative AOT gate."
   warn "Install build-essential + clang + zlib1g-dev to run this phase locally."
@@ -110,7 +93,7 @@ else
   python3 "$(dirname "${BASH_SOURCE[0]}")/aot_projects.py" --check
   AOT_SMOKE_OUT="$(mktemp -d "${TMPDIR:-/tmp}/kun-aot-smoke.XXXXXX")"
   dotnet publish tests/Kun.AotSmoke/Kun.AotSmoke.csproj -c Release -r linux-x64 \
-    -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false \
+    -p:Version="$VERSION" -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false \
     -o "$AOT_SMOKE_OUT" --verbosity minimal --nologo < /dev/null
   if [ -e "$AOT_SMOKE_OUT/Kun.AotSmoke.dll" ]; then
     err "tests/Kun.AotSmoke was not published as NativeAOT: its csproj must set PublishAot"
@@ -120,73 +103,5 @@ else
   rm -rf "$AOT_SMOKE_OUT"
 fi
 
-# ---------------------------------------------------------------------------
-# Phase 4: CHANGELOG rename
-# ---------------------------------------------------------------------------
-log "Phase 4/5 · CHANGELOG [Unreleased] → [$VERSION]"
-CHANGELOG="CHANGELOG.md"
-if [ ! -f "$CHANGELOG" ]; then
-  err "$CHANGELOG not found in $(pwd)"
-  exit 1
-fi
-
-if ! grep -q '## \[Unreleased\]' "$CHANGELOG"; then
-  err "$CHANGELOG has no '## [Unreleased]' section to rename"
-  exit 1
-fi
-
-DATE=$(date +%Y-%m-%d)
-
-# Guard: if [Unreleased] has no concrete entries (only the placeholder
-# "（尚无新变更。）" we seeded at Phase 1 release), abort so the user
-# doesn't ship an empty changelog section.
-UNRELEASED_BODY=$(awk '
-  /^## \[Unreleased\]/       {flag=1; next}
-  /^## \[/ && flag           {exit}
-  flag {print}
-' "$CHANGELOG" | grep -v '^[[:space:]]*$' | grep -v '^（尚无新变更。）$' || true)
-
-if [ -z "$UNRELEASED_BODY" ]; then
-  err "$CHANGELOG [Unreleased] section is empty — add entries before tagging"
-  exit 1
-fi
-
-# Portable sed (GNU + BSD): write to .bak, delete the backup.
-sed -i.bak "s|^## \[Unreleased\]|## [Unreleased]\n\n（尚无新变更。）\n\n## [$VERSION] - $DATE|" "$CHANGELOG"
-rm -f "${CHANGELOG}.bak"
-
-echo "Updated $CHANGELOG: [Unreleased] → [$VERSION] - $DATE"
-
-# ---------------------------------------------------------------------------
-# Phase 5: commit + annotated tag (NO push)
-# ---------------------------------------------------------------------------
-log "Phase 5/5 · git commit + annotated tag (no push)"
-git add "$CHANGELOG"
-git commit -m "chore(release): $VERSION"
-git tag -a "$TAG" -m "Kun $VERSION"
-
-# ---------------------------------------------------------------------------
-# Done — push is the maintainer's job
-# ---------------------------------------------------------------------------
-cat <<EOF
-
-============================================================================
-  ✅  Tag '$TAG' created locally on branch '$BRANCH'.
-
-  ⏸   HUMAN REVIEW REQUIRED before pushing — the script will NOT push.
-      Review first:
-        git show $TAG
-        git log --oneline origin/$BRANCH..$BRANCH
-
-  ⏩  When approved, the maintainer runs:
-        git push origin $BRANCH
-        git push origin $TAG
-
-  ℹ   Release workflow: .github/workflows/release.yml
-      Pre-release ('vYYYY.M.D-beta.N')          → GitHub Packages
-      Stable ('vYYYY.M.D' / 'vYYYY.M.D-hotfix.N') → nuget.org (needs NUGET_API_KEY)
-
-  🛑  Never run 'git push --tags' — it would push every local tag,
-      including experiments.
-============================================================================
-EOF
+log "Local validation completed for $VERSION."
+printf 'Run the release workflow on main with version %s and dry_run=true to prepare and verify the complete bundle.\n' "$VERSION"

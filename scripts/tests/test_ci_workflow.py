@@ -6,7 +6,7 @@ ci.yml 的变更检测作业每次都先跑它。核对的是「CI 汇总」能�
   - 除变更检测与汇总外，每个作业都依赖变更检测、带区域条件，区域都在区域表里，区域表的每个区域都有作业用；
   - 汇总作业的 id 是 summary、名字字面是「CI 汇总」、带 if: always()、needs 正好是全部其余作业；
   - 作业名不重复，「CI 汇总」不与被调用工作流里的作业重名；
-  - .github/workflows/ 下别的工作流只能由 ci.yml 调用（workflow_call，可留 workflow_dispatch），且都被调用、没有自己的并发组；
+  - release.yml 只手动运行。其余检查工作流只能由 ci.yml 调用（workflow_call，可留 workflow_dispatch），且都被调用、没有自己的并发组；
   - 调用前端与文档工作流的作业给 packages: read；被调用方有要写权限的作业时，调用方给 contents: write；
   - 区域表里「要构建 .NET」「装 GitHub Packages 上的 npm 包」两个标记与作业实际做的事一致；
   - 测试结果构件名带尝试号，测试分片汇总核对按尝试号取每个分片最新的一份：「重跑失败的作业」之后汇总能按重跑的结果变绿；
@@ -96,10 +96,17 @@ class CiWorkflowTests(unittest.TestCase):
             for job_id, job in document["jobs"].items():
                 self.assertNotEqual(SUMMARY_NAME, job.get("name"), f"{name} 调用的工作流里作业 {job_id} 与汇总重名")
 
-    def test_other_workflows_are_only_called_by_ci(self) -> None:
+    def test_release_is_manual_and_independent_of_ci(self) -> None:
+        release = load(WORKFLOWS / "release.yml")
+        self.assertEqual({"workflow_dispatch"}, set(release["on"]))
+        self.assertEqual("github.ref == 'refs/heads/main'", release["jobs"]["prepare"]["if"])
+        self.assertEqual("release", release["jobs"]["publish"]["environment"])
+        self.assertFalse(any(job.get("uses") == "./.github/workflows/release.yml" for job in self.jobs.values()))
+
+    def test_check_workflows_are_only_called_by_ci(self) -> None:
         called_files = {Path(job["uses"]).name for job in self.jobs.values() if isinstance(job.get("uses"), str)}
         for path in sorted(WORKFLOWS.glob("*.y*ml")):
-            if path.name == "ci.yml":
+            if path.name in {"ci.yml", "release.yml"}:
                 continue
             document = load(path)
             self.assertIn(path.name, called_files, f"{path.name} 没有被 ci.yml 调用，它的检查进不了「CI 汇总」")

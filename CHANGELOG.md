@@ -8,6 +8,12 @@
 
 ## [Unreleased]
 
+本版停发 8 个旧包，包括 `Kun.Infrastructure`、`Kun.Dapper`、`Kun.Saga`、`Kun.Sandbox`、`Kun.Storage`、`Kun.Auditing`、`Kun.Audit` 和 `Kun.MultiTenancy.EntityFrameworkCore`。nuget.org 保留既有版本，各包的替代实现与升级步骤见下文。
+
+平台 0.x 的 54 个 NuGet 包停更并保留全部历史版本。当前升级路径见[包迁移指南](https://github.com/CavaiLAB/kun/blob/main/docs/guides/package-migration.md)。
+
+<!-- package-migration-table -->
+
 ### Changed — .NET 构建、测试与打包（S1-KUN-029）
 
 - `Qian.slnf` 已移除。从仓库根运行 `dotnet build Kun.slnx -c Release`。平台测试使用 `tests/kun-platform.slnf`，根单元测试使用 `tests/kun-unit.slnf`。CI 的分片清单可用 `python3 scripts/dotnet_ci.py shard a --out /tmp/kun-tests-a.slnf` 生成。
@@ -86,7 +92,7 @@
 
 - `Qian.Audit.Abstractions`、`Qian.Audit`、`Qian.Audit.Native` 的代码分别迁入 `Kun.Audit.Abstractions`、`Kun.Audit.EntityFrameworkCore`、`Kun.Audit.Postgres`。命令链契约使用 `Kun.Audit` 命名空间。原生提供者使用 `Kun.Audit.Postgres` 命名空间。实体拦截器沿用 `Kun.Auditing.AuditingSaveChangesInterceptor` 日志类别。组件 `qian.audit` 升至 1.1.0。数据库 schema、链协议、组件 ID 均保持兼容。
 - 原 `Kun.Audit` 命令管道、链存储与实体日志读端口 `IAuditReader.QueryAsync`、`AuditQuery`、`EfAuditReader` 归档。新的 `IAuditWriter` 与 `IAuditReader` 用于命令链，成功命令与业务同事务提交，失败命令不入链。
-- 原 `Kun.Auditing` 的实体审计现由 `Kun.Audit.EntityFrameworkCore` 提供，只支持非严格的 `KunDbContext`。宿主通过业务上下文的 `Set<AuditLog>()` 读取实体日志。默认 v1 和 v2 拦截器在正在保存的上下文暂存标准 Outbox 信封，数据库失败后可在原上下文重试。
+- `Kun.Audit.EntityFrameworkCore` 保留包名，改为平台档的命令链与实体审计实现。原来从 nuget.org 引用该包的项目须将其映射到 CavaiLAB 的 GitHub Packages。迁移原 `Kun.Auditing` 实体审计时，业务宿主通过 `AddKunAuditing<TContext>()` 登记非严格的 `KunDbContext`。宿主通过业务上下文的 `Set<AuditLog>()` 读取实体日志。默认 v1 和 v2 拦截器在正在保存的上下文暂存标准 Outbox 信封，数据库失败后可在原上下文重试。
 
 ### Changed — 组件运行时的类型化配置
 
@@ -94,7 +100,7 @@
 
 ### Changed — 网关装配与限流（S1-KUN-026）
 
-- `Kun.Gateway.Abstractions` 提供 `GatewayConfiguration`、网关服务与路由契约。宿主使用 `AddKunGateway`，YARP 在分发前按目标服务签发一次 S2S。独立宿主读取 `Gateway` 配置节。迁移 `KunGateway` 配置时，将  `ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`。其余原选项使用新节中的原键名，独立 YARP 路由继续读取 `ReverseProxy`。
+- `Kun.Gateway.Abstractions` 提供 `GatewayConfiguration`、网关服务与路由契约。宿主使用 `AddKunGateway`，YARP 在分发前按目标服务签发一次 S2S。独立宿主读取 `Gateway` 配置节。迁移 `KunGateway` 配置时，将 `ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`。其余原选项使用新节中的原键名，独立 YARP 路由继续读取 `ReverseProxy`。
 - 平台外壳托管、引导端点与组件登记位于 `Kun.Gateway.Shell`，通过 `AddKunGatewayShell` 注册。Redis 固定窗口计数器现由 `Kun.RateLimit` 提供，路由分区由 `Kun.Gateway` 选择。
 - 生产网关宿主在 `hosts/Kun.Gateway.Host`。镜像工具的 `--project` 参数现使用相对仓库根的项目路径。
 
@@ -127,7 +133,7 @@
 ### Changed — 事件契约并进 Kun.EventBus.Abstractions（S1-KUN-025）
 
 - 组件 `qian.events` 从 1.0.1 升至 1.0.2，组件说明中的契约包链接指向 `Kun.EventBus.Abstractions`。
-- 包 `Qian.Events.Abstractions`（已发布 0.2.0）并进 `Kun.EventBus.Abstractions`，命名空间 `Qian.Events` → `Kun.EventBus`。带前缀的 4 个类型：`QianEventEnvelope` → `KunEventEnvelope`、`QianEventTopology` → `KunEventTopology`、`QianEventDelivery` → `KunEventDelivery`、`QianEventsException` → `KunEventsException`；`EventsDefinition`、`IEventsService`、`EventEnvelopeScope`、`EventOrigin`、`EventActor`、`IntegrationEventTypes`、`EventsErrors` 等名字不变。**迁移**：项目引用改指 `Kun.EventBus.Abstractions`，`using Qian.Events;` 换成 `using Kun.EventBus;`；同时用到 `AddQianEvents` 等提供者登记的文件两条都留。信封、MQ 拓扑名与错误码的线上形状不变。
+- 包 `Qian.Events.Abstractions`（已发布 0.2.0）并进 `Kun.EventBus.Abstractions`，命名空间 `Qian.Events` → `Kun.EventBus`。带前缀的 4 个类型：`QianEventEnvelope` → `KunEventEnvelope`、`QianEventTopology` → `KunEventTopology`、`QianEventDelivery` → `KunEventDelivery`、`QianEventsException` → `KunEventsException`；`EventsDefinition`、`IEventsService`、`EventEnvelopeScope`、`EventOrigin`、`EventActor`、`IntegrationEventTypes`、`EventsErrors` 等名字不变。**迁移**：项目引用改指 `Kun.EventBus.Abstractions`，`using Qian.Events;` 换成 `using Kun.EventBus;`。原先调用 `AddQianEvents` 的宿主另引用 `Kun.EventBus` 并调用 `AddKunEvents()`。平台 0.x 事件沿用 v1 信封和 `qian.events` 交换机。原 Kun RabbitMQ 使用方按上文「统一事件投递与收发」迁移交换机、路由键与消息体。
 - `Kun.EventBus.Abstractions` 新依赖 `Kun.Runtime`（事件服务键与插件上下文）：只声明事件的契约包随之传递引入 `Kun.Runtime`、`Microsoft.Extensions.DependencyInjection` 与 `Microsoft.Extensions.Logging.Abstractions`。
 - `IIntegrationEventBus` 与 `Kun.EventBus.Outbox` 的 `IOutboxWriter`、`IIntegrationEventOutbox`、`IntegrationEventBuffer`、`OutboxMessage`、`OutboxStatus` 移进 `Kun.EventBus.Abstractions`，命名空间不变，`Kun.EventBus` 留类型转发：源码与按 `Kun.EventBus` 编译的程序集不用改；按程序集反射找这些类型的（如比对 `typeof(OutboxMessage).Assembly`）拿到的是 `Kun.EventBus.Abstractions`。
 - 日志类别、活动源与计量器的名字都不变：挪动的类型不写日志，也不建活动源或计量器。
@@ -149,7 +155,7 @@
 
 ### Changed — 租户上下文使用 UUID（S1-KUN-024）
 
-- `ITenantContext.TenantId` 和 `BeginScope` 使用 `Guid?`。租户范围要求非空 UUID，平台范围用 `null`。消息与 HTTP 仍以 D 格式传输租户标识。实体租户列与 RLS 配置项继续使用小写 UUID 文本。
+- `ITenantContext.TenantId` 和 `BeginScope` 使用 `Guid?`。租户范围要求非空 UUID。需要租户的请求缺少有效 `tenant_id` 即拒绝，原 `default` 租户回落已移除。平台范围用 `null`。消息与 HTTP 仍以 D 格式传输租户标识。实体租户列与 RLS 配置项继续使用小写 UUID 文本。
 - 宽松和严格的 EF 上下文在插入多租户实体时都会检查显式租户标识。已赋值的标识须为非空 UUID 的小写 D 格式，格式不符时保存失败。未赋值的标识从当前租户范围填入。
 - `TenantInfo`、租户开户与注销、数据库连接解析、上下文工厂、原生数据会话的租户端口使用 UUID。配置连接映射时以 UUID 为键。架构隔离的开户器与上下文工厂通过 `KunMultiTenancyOptions.GetSchemaName` 取得同一个架构名。已有按旧标识命名的架构需要在切换前迁移。
 
@@ -183,7 +189,7 @@
 ### Changed — 中介登记可叠加（S1-KUN-023）
 
 - `AddKunMediator` 可以对同一个服务集合调多次：第一次建 `KunMediatorBuilder` 并登记 `KunMediator`、`ISender`、`IPublisher`，之后的调用往同一个 builder 里加，几个模块的登记叠进同一个中介。之前每次调用都新建 builder，最后一次生效，前面登记的处理器与行为都丢。**迁移**：靠「再调一次就整体替换」的宿主，删掉重复的登记或合成一次。描述符被拷进另一个服务集合时，那个集合另建自己的 builder。
-- 同一请求登记第二个处理器时，登记当场抛 `InvalidOperationException`，消息写明请求与两个处理器；之前要到首次解析 `ISender` 才以 `ArgumentException` 失败。带能力 ID 的登记先查重，查重不过不登记能力。
+- 同一请求登记第二个处理器时，登记当场抛 `InvalidOperationException`，消息写明请求与两个处理器；之前要到首次解析 `ISender` 才以 `ArgumentException` 失败。
 
 ### Added — 权限行为的正式扩展点（S1-KUN-023）
 
@@ -194,14 +200,14 @@
 
 - 包 `Qian.Runtime`（已发布 0.2.0）换成 `Kun.Runtime`，命名空间跟着换。类型：`IQianPlugin`、`IQianPlugin<TConfig>` → `IKunPlugin`、`IKunPlugin<TConfig>`；`QianEvent`、`QianEvent<TPayload, TResult>` → `KunEvent`、`KunEvent<TPayload, TResult>`；`QianEventAttribute` → `KunEventAttribute`。
 - `Kun.Runtime` 只引用 `Kun.Errors`，不再传递带来 `Kun.Core`、`Kun.Mediator`、`Kun.Authorization`。**迁移**：用到这些包的项目直接引用它们。
-- `ScopeKey` 只查语法：`global`，或小写的种类名（小写字母开头，小写字母、数字与连字符）加非空 id；之前只认 `tenant`、`app`、`agent-session` 三种。平台档（Profiles、Registry）的种类校验不变，种类常量在 `Qian.Profiles.Abstractions.ScopeKinds`。
-- `SurfaceKeys` 移到 `Qian.Surfaces.Abstractions`（命名空间同包名）。
+- `ScopeKey` 只查语法：`global`，或小写的种类名（小写字母开头，小写字母、数字与连字符）加非空 id；之前只认 `tenant`、`app`、`agent-session` 三种。平台档（Profiles、Registry）的种类校验不变，种类常量在 `Kun.Profiles.Abstractions.ScopeKinds`。
+- `SurfaceKeys` 由 `Kun.Surfaces.Abstractions` 提供，命名空间同包名。
 
 ### Changed — 插件开发包拆成四个包（S1-KUN-023）
 
 - 已发布的包 `Qian.Plugin.Sdk` 拆成两个：`Kun.Plugin.Sdk`（内核档：代码声明、生成契约、命令策略协议）与新包 `Kun.Plugin.Sdk.Commands`（平台档：命令管道）。`Qian.Plugin.Sdk.Generators`、`Qian.Plugin.Sdk.AspNetCore` 换成 `Kun.Plugin.Sdk.Generators`、`Kun.Plugin.Sdk.AspNetCore`。命名空间跟着包名换；`Kun.Plugin.Sdk.Commands` 里的类型仍在命名空间 `Kun.Plugin.Sdk`。清单工具搬到仓库根的 `tools/Kun.Plugin.Tool`，不打包。
 - 进了 `Kun.Plugin.Sdk.Commands` 的公共类型：`KunCommandRegistration`（`AddKunCapability`）、`CommandDataSession<TContext>`、`HookCapabilityRegistration`（`ExposeCapabilityHook`）。**迁移**：登记能力命令、用数据会话或钩子能力的项目另引用 `Kun.Plugin.Sdk.Commands`，代码不用改。
-- `Kun.Plugin.Sdk` 不再引用 `Qian.Data.Abstractions`、`Qian.Authz.Abstractions`、`Qian.Surfaces.Abstractions`，也就不再传递带来 EF Core、`Kun.EventBus` 与这几个平台档契约。**迁移**：用到它们的项目直接引用（或引用 `Kun.Plugin.Sdk.Commands`）。
+- 只引用 `Kun.Plugin.Sdk` 的项目如果使用数据、权限或表面契约，须按需直接引用 `Kun.Data.Abstractions`、`Kun.Authorization.Rbac.Abstractions` 或 `Kun.Surfaces.Abstractions`。`Kun.Plugin.Sdk.Commands` 已引用这三个包。
 - 类型名里的 `Qian` 换成 `Kun`：`QianPluginAttribute`、`QianConfigSchemaAttribute`、`QianCodeMetadataAttribute`、`QianJobAttribute` → `KunPluginAttribute`、`KunConfigSchemaAttribute`、`KunCodeMetadataAttribute`、`KunJobAttribute`；静态抽象属性 `QianCapability`、`QianJobCode` → `KunCapability`、`KunJobCode`；`QianCommandRegistration`、`AddQianCapability` → `KunCommandRegistration`、`AddKunCapability`；`AddQianPluginEndpoints`、`UseQianPluginEndpoints`、`RequireQianPlugin` → `AddKunPluginEndpoints`、`UseKunPluginEndpoints`、`RequireKunPlugin`。源生成器产出的元数据工厂类名的后缀 `QianCodeMetadata` 换成 `KunCodeMetadata`（如 `GatewayComponentKunCodeMetadata`）。特性里写的组件 id（`qian.events` 等）不变。
 - 源生成器的诊断号 `QIANSDK001`–`QIANSDK003` 换成 `KUNSDK001`–`KUNSDK003`，类别 `QianSdk` 换成 `KunSdk`。**迁移**：`.editorconfig`、`NoWarn` 与 `#pragma` 里按诊断号压的警告改写新号。
 - 组件 `qian.config`、`qian.data`、`qian.events`、`qian.files`、`qian.scheduler` 1.0.0 → 1.0.1：组件文件夹里的说明随工具与特性的名字改了，只动文档。
@@ -219,7 +225,7 @@
 
 ### Changed — Kun.Gateway 改成纯库，独立宿主拆到 hosts/（S1-KUN-026）
 
-- `Kun.Gateway` 由可执行项目改成类库：不再有入口，程序集里不再有顶层语句生成的公开类型 `Program`；包里不再带 `appsettings.json`（`content/` 与 `contentFiles/`）与 `Kun.Gateway.runtimeconfig.json`。包名、程序集名、命名空间与其余公共 API 不变。**迁移**：把网关当程序跑的，改跑仓库里的独立宿主 `hosts/Kun.Gateway.Standalone`（`dotnet run --project hosts/Kun.Gateway.Standalone`，原生发布 `dotnet publish hosts/Kun.Gateway.Standalone -c Release`），配置节 `KunGateway`、`ReverseProxy`、`KunObservability` 不变，签名密钥目录 `certs/` 跟着挪到宿主目录下；自己写宿主的照它的 `Program.cs` 组合库。
+- `Kun.Gateway` 由可执行项目改成类库：不再有入口，程序集里不再有顶层语句生成的公开类型 `Program`；包里不再带 `appsettings.json`（`content/` 与 `contentFiles/`）与 `Kun.Gateway.runtimeconfig.json`。包名、程序集名与 `Kun.Gateway` 命名空间保留。**迁移**：把网关当程序跑的，改跑仓库里的独立宿主 `hosts/Kun.Gateway.Standalone`（`dotnet run --project hosts/Kun.Gateway.Standalone`，原生发布 `dotnet publish hosts/Kun.Gateway.Standalone -c Release`），原 `KunGateway` 节迁至 `Gateway`，签发方与受众的三个键名按上文「网关装配与限流」调整。`ReverseProxy`、`KunObservability` 配置节继续沿用，签名密钥目录 `certs/` 跟着挪到宿主目录下；自己写宿主的照它的 `Program.cs` 组合库。
 - `Kun.Gateway` 包不再依赖 `Kun.Observability` 与 `Grpc.AspNetCore.Web`（只有独立宿主用到），也就不再间接带上预发布的 `OpenTelemetry.Instrumentation.EntityFrameworkCore`。**迁移**：自己的宿主调了 `AddKunObservability` 或 `UseGrpcWeb`、又没有直接引用这两个包的，加上引用。
 - 独立宿主不打包，不发布到 nuget.org。
 - 样例 `samples/Kun.Sample.AppHost` 编排的网关换成独立宿主，资源名 `gateway` 不变。
@@ -227,12 +233,12 @@
 ### Changed — 数据与租户的包统一到 Kun.Data、Kun.Tenancy（S1-KUN-024）
 
 - 包 `Qian.Data`、`Qian.Data.Abstractions`、`Qian.Data.AspNetCore`、`Qian.Data.Dialect.Pg`、`Qian.Data.Native.Abstractions`、`Qian.Data.Native.Postgres`、`Qian.Tenancy`、`Qian.Tenancy.Abstractions`、`Qian.Tenancy.AspNetCore`、`Qian.Tenancy.Signup`、`Qian.Tenancy.Signup.Abstractions` 换成对应的 `Kun.Data.*`、`Kun.Tenancy.*`，命名空间跟着换；包源上已发布的旧包不动。
-- 类型与方法：严格基类 `QianDbContext` → `KunStrictDbContext`；`QianSoftDeleteInterceptor`、`QianApplicationRoleInterceptor`、`QianDataModelExtensions`（`UseQianDataModel`）、`QianDataMisconfiguredException` → `KunSoftDeleteInterceptor`、`KunApplicationRoleInterceptor`、`KunDataModelExtensions`（`UseKunDataModel`）、`KunDataMisconfiguredException`。这几个类型与数据会话契约 `DataDefinition`、`IDataService`、`IDataSession<T>`、`IDataContextCatalog`、`IOutboxBufferBinding` 都在内核的 `Kun.EntityFrameworkCore` 包里，命名空间 `Kun.EntityFrameworkCore`；`Kun.Data.Abstractions` 引用它，引用数据契约包的组件照旧拿得到。**迁移**：用到它们的文件写 `using Kun.EntityFrameworkCore;`。登记与端点的扩展方法、它们所在的静态类与选项类，名字里的 `Qian` 一律换成 `Kun`：`AddKunData`、`AddKunDataMigrations`、`AddKunSequences`、`AddKunSnowflakeIds`、`AddKunDataConnections`、`AddKunDataTypes`、`AddKunPgDialect`、`AddKunNativeData`、`MapKunData`、`MapKunDataConnections`、`MapKunDataTypes`、`MapKunTenancy`、`AddKunTenancyEvents`、`UseKunTenancySignupPages`、`MapKunTenancySignupApplicant`、`MapKunTenancySignupOperations`，`KunDataMigrationOptions`、`KunSequenceOptions`、`KunSnowflakeOptions`、`KunDataConnectionOptions` 等。
+- 类型与方法：严格基类 `QianDbContext` → `KunStrictDbContext`；`QianSoftDeleteInterceptor`、`QianApplicationRoleInterceptor`、`QianDataModelExtensions`（`UseQianDataModel`）、`QianDataMisconfiguredException` → `KunSoftDeleteInterceptor`、`KunApplicationRoleInterceptor`、`KunDataModelExtensions`（`UseKunDataModel`）、`KunDataMisconfiguredException`。这几个类型与数据会话契约 `DataDefinition`、`IDataService`、`IDataSession<T>`、`IDataContextCatalog` 都在内核的 `Kun.EntityFrameworkCore` 包里，命名空间 `Kun.EntityFrameworkCore`；`Kun.Data.Abstractions` 引用它，引用数据契约包的组件照旧拿得到。**迁移**：用到它们的文件写 `using Kun.EntityFrameworkCore;`。登记与端点的扩展方法、它们所在的静态类与选项类，名字里的 `Qian` 一律换成 `Kun`：`AddKunData`、`AddKunDataMigrations`、`AddKunSequences`、`AddKunSnowflakeIds`、`AddKunDataConnections`、`AddKunDataTypes`、`AddKunPgDialect`、`AddKunNativeData`、`MapKunData`、`MapKunDataConnections`、`MapKunDataTypes`、`MapKunTenancy`、`AddKunTenancyEvents`、`UseKunTenancySignupPages`、`MapKunTenancySignupApplicant`、`MapKunTenancySignupOperations`，`KunDataMigrationOptions`、`KunSequenceOptions`、`KunSnowflakeOptions`、`KunDataConnectionOptions` 等。
 - `QianDataConventions.DeletedByPropertyName` 并进 `Kun.EntityFrameworkCore.Conventions.KunDataConventions`（值仍是 `"DeletedBy"`），数据契约包里不再有约定类。**迁移**：`using Kun.EntityFrameworkCore.Conventions;`，写 `KunDataConventions.DeletedByPropertyName`。
-- EF 迁移的命名空间与迁移快照里的实体全名跟着换，迁移生成的 SQL 与库表结构不变。分析器 QIAN0003 按 `Kun.EntityFrameworkCore.KunStrictDbContext` 找严格基类，诊断号不变。
+- EF 迁移的命名空间与迁移快照里的实体全名跟着换，迁移生成的 SQL 与库表结构不变。分析器按 `Kun.EntityFrameworkCore.KunStrictDbContext` 找严格基类，原 `QIAN0003` 需改为 `KUNDATA001`。
 - 运行期字面不变：组件 id（`qian.data` 等）、库 schema `plugin_qian_*`、模型注解键 `"Qian:MultiTenant"`、行级安全策略名 `qian_tenant_access` / `qian_tenant_guard`、索引名、配置节名与租户 GUC `app.current_tenant_id`。
 - 日志类别跟着包名换：代码里显式写的类别名 `Qian.Tenancy.Operations`、`Qian.Tenancy.AuditCompletion`、`Qian.Tenancy.Summary`、`Qian.Tenancy.Signup.Operations` 换成 `Kun.Tenancy.Operations`、`Kun.Tenancy.AuditCompletion`、`Kun.Tenancy.Summary`、`Kun.Tenancy.Signup.Operations`，按类型取的类别随命名空间换。按换名前的类别名配的日志级别（如 `Logging:LogLevel` 下的键）或告警规则要跟着改。这一域没有计量器（Meter）与活动源（ActivitySource）。
-- 组件 `qian.data` 1.0.1 → 1.1.0，`qian.tenancy`、`qian.tenancy.signup` 2.1.0 → 2.2.0：清单入口换成新程序集；两份发布的 HTTP 契约里 Schema 键随程序集名与版本变了，`$ref` 跟着变，线上形状与 operationId 不变。`qian.data` 清单的 `runtime.nuget[]` 仍钉包源上已发布的旧包，新包发布时一并改；在那之前用命令行从包源安装 `qian.data`，装上的旧包里没有清单写的入口，宿主挂载失败（从源码引用这些项目的宿主不受影响）。
+- 组件 `qian.data` 1.0.1 → 1.1.0，`qian.tenancy`、`qian.tenancy.signup` 2.1.0 → 2.2.0：清单入口换成新程序集；两份发布的 HTTP 契约按类型全名与程序集简单名重建 Schema 键，同步更新 `$ref`，线上形状与 operationId 不变。`qian.data` 清单的 `runtime.nuget[]` 仍钉包源上已发布的旧包，正式包发布并核对下载摘要后更新清单。在完成改钉前用命令行从包源安装 `qian.data`，装上的旧包里没有清单写的入口，宿主挂载失败（从源码引用这些项目的宿主不受影响）。
 
 ### Changed — EF 的三处实现并进 Kun.EntityFrameworkCore（S1-KUN-024）
 
@@ -243,7 +249,7 @@
 - 新包 `Kun.EntityFrameworkCore.PostgreSQL`（内核档、非 AOT）：建租户表时紧跟 `CREATE TABLE` 打开行级安全并建租户策略的迁移 SQL 生成器搬到这里，`UseKunTenantRlsMigrations()` 装上它，`UsesKunTenantRlsMigrations()` 判断上下文实际用的是不是它，生成的 SQL 不变。`AddKunData` 已经装上，平台组件不用改。
 - 严格上下文的 schema 前缀改由宿主设定：严格基类自己只要求合法的小写标识符（小写字母开头，只含小写字母、数字和下划线，最长 63 个字符）；宿主用 `RequireKunSchemaPrefix(prefix)` 加前缀，设定后不能改成别的。`AddKunData` 设 `plugin_`，平台接受与拒绝的 schema 都不变；报错文字去掉了「插件」二字。
 - 装配错误码 `DATA_MISCONFIGURED` 改由 `KunDataMisconfiguredException.Code` 公开（字面、HTTP 500、归属 `qian.data` 与文案不变），`DataErrors` 里不再有 `Misconfigured`。**迁移**：`DataErrors.Misconfigured` 换成 `KunDataMisconfiguredException.Code`。
-- 档位：`Kun.EntityFrameworkCore` 由内核提供者改记内核契约，新记一条到 `Kun.EventBus` 的依赖例外（Outbox 写入端还在那里，B6 去掉）；`Kun.Data.Abstractions` 的两条与 `Qian.Events` 的一条例外去掉，`Qian.Events` 改引 `Kun.EntityFrameworkCore`。
+- `Kun.EntityFrameworkCore` 属于内核契约档。自定义 Outbox 写入端需要的 `IOutboxBufferBinding` 在 `Kun.EventBus.Abstractions` 包的 `Kun.EventBus.Outbox` 命名空间。
 - 按类型取的日志类别随命名空间换：租户字段拦截器的类别 `Kun.MultiTenancy.EntityFrameworkCore.KunTenantSaveChangesInterceptor` 变成 `Kun.EntityFrameworkCore.MultiTenancy.KunTenantSaveChangesInterceptor`，按它配的日志级别或告警规则要跟着改。别的搬动的类型不写日志。
 - 迁移生成的 SQL、库表结构与查询过滤器都不变。
 
@@ -258,15 +264,15 @@
 
 ### Added — 文档生成可指定源码根（S1-KUN-029）
 
-- `Qian.Docs.Abstractions` 的 `DocumentOptions` 加 `SourceRoot`：源码目录相对它解析、不能越出它，事件映射与事件分析诊断里的位置相对它书写（装配诊断与配置目录仍相对工作区）。相对路径按工作区解析，只能是工作区本身或它的上级目录，到工作区的路径上不能有符号链接；不设时等于工作区，输出与之前相同。
+- `Kun.Docs.Abstractions` 的 `DocumentOptions` 加 `SourceRoot`：源码目录相对它解析、不能越出它，事件映射与事件分析诊断里的位置相对它书写（装配诊断与配置目录仍相对工作区）。相对路径按工作区解析，只能是工作区本身或它的上级目录，到工作区的路径上不能有符号链接；不设时等于工作区，输出与之前相同。
 - `qian docs generate` 加对应的 `--source-root <目录>`。本仓库的派生文档改以仓库根为源码根，仓库根 `src/` 下的包也计入事件图。
 
 ### Changed — Principal 一组进新的内核契约包 Kun.Security.Abstractions（S1-KUN-026）
 
 - 新增零依赖包 `Kun.Security.Abstractions`（内核档，AOT 兼容），命名空间 `Kun.Security`。服务间令牌的主体模型 `Principal`、`DelegationActor`、`PrincipalKind` 与声明名 `IdentityClaimNames` 从 `Qian.Identity.Abstractions` 挪进来，成员不变；JSON 属性名、先后与令牌里的声明名都不变。**迁移**：`using Kun.Security;`；写全名的把 `Qian.Identity.Abstractions.Principal` 等改成 `Kun.Security.Principal` 等。引用身份契约的项目经它传递拿到新包，不用另加引用。
 - `PrincipalKind` 的 JSON 转换器 `PrincipalKindConverter` 改为公开类型：别的程序集里的 JSON 源生成上下文要引用它。读写不变：只收 `user`、`service`、`agent`，数字、大小写不对与其它值都报错。
-- `ClientType` 留在 `Qian.Identity.Abstractions`，命名空间不变。
-- `Kun.Plugin.Sdk` 不再引用 `Qian.Identity.Abstractions`，改引用 `Kun.Security.Abstractions`（`CommandInvocation.Principal` 的类型是 `Kun.Security.Principal`），也就不再传递带来身份契约与 `Kun.EventBus.Abstractions`。**迁移**：用到身份契约里其余类型（如 `ICurrentUser`、`IIdentityService`）的项目直接引用 `Qian.Identity.Abstractions`。`Kun.Plugin.Sdk.Commands` 改为直接引用身份契约，经它拿到身份契约的项目不受影响。
+- `ClientType` 由 `Kun.Identity.Abstractions` 提供，命名空间同包名。
+- `Kun.Plugin.Sdk` 不再引用 `Qian.Identity.Abstractions`，改引用 `Kun.Security.Abstractions`（`CommandInvocation.Principal` 的类型是 `Kun.Security.Principal`），也就不再传递带来身份契约与 `Kun.EventBus.Abstractions`。**迁移**：用到身份契约里其余类型（如 `ICurrentUser`、`IIdentityService`）的项目直接引用 `Kun.Identity.Abstractions`。`Kun.Plugin.Sdk.Commands` 改为直接引用身份契约，经它拿到身份契约的项目不受影响。
 - 组件 `qian.identity.server` 1.0.0 → 1.1.0：派生的事件元数据里 `identity/signed-in` 的载荷类型全名换成 `Kun.Security.Principal`，对外行为不变。
 
 ### Fixed — 样例 AppHost 的 Aspire 安全补丁（S1-KUN-019）
@@ -297,7 +303,7 @@
 
 ### Fixed — 调度器 worker 正常停止时不再记错误，已跑完的作业照常提交（S1-QA-023）
 
-- `Qian.Scheduler` 的 worker 正常停止时，不再记「调度领取失败」「续租失败」「收尾失败」这几条 Error，错误输出里也不再有 `ObjectDisposedException`。
+- `Kun.Scheduler` 的 worker 正常停止时，不再记「调度领取失败」「续租失败」「收尾失败」这几条 Error，错误输出里也不再有 `ObjectDisposedException`。
   - 原因：停止时 Kun.Runtime 先关闭插件上下文、再执行卸载效果，worker 在效果里才停；这段时间里领取、续租与收尾都经插件上下文取数据服务，抛 `ObjectDisposedException`。
 - 这段时间里的行为：
   - 在途领取提交前再次检查上下文。如果调度器在等待数据库时已关闭，整批触发器的租约和代次均回滚，其他 worker 可以立即领取。

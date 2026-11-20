@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // 验收之外的边界：直传网关只认服务端签发的地址，完成时以服务端嗅探的类型为准，申请按策略与幂等键判定。
 public sealed partial class FilesAcceptanceTests

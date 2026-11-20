@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Config;
+namespace Kun.Configuration;
 
 /// <summary>配置组件的事件与审计词汇；只含稳定标识，不含任何配置值。</summary>
 public static class ConfigEvents

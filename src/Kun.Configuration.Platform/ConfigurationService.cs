@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Kun.Errors;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 internal sealed class ConfigurationService(IConfiguration configuration, IFeatureFlags flags, ISecretResolverFactory? secrets = null) : IConfigService
 {

@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Qian.Testing.Containers.IntegrationTests;
+namespace Kun.Testing.Containers.Tests;
 
 /// <summary>以 Apollo 客户端的视角验证协议替身：拉配置、304、长轮询、访问密钥签名、Meta Server。</summary>
 [Collection(SharedInfrastructure.Name)]

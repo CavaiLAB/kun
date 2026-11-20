@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Identity.Client;
 

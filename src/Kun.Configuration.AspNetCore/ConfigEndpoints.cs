@@ -16,7 +16,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Config.AspNetCore;
+namespace Kun.Configuration.AspNetCore;
 
 /// <summary>
 /// 组件配置 Schema 与平台配置值的只读 HTTP 表面（PRD 7.8）。宿主认证后从 global 配置组件上下文解析，该上下文须能注入
@@ -35,7 +35,7 @@ public static partial class ConfigEndpoints
     /// （平台配置节 qian.plugin.&lt;组件 id&gt; 的当前值：只对平台主体开放，经执行端口判定持有 <see cref="ConfigDefinition.ValuesReadPermission"/>
     /// 后返回，敏感键只给键名）。两者只认 Registry 预装集合中由制品捕获的组件文件；未预装、没有文件快照或没有 Schema 的组件为 404。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianConfig(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunConfig(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         Bind(endpoints.MapGet("/api/config/schemas/{plugin}", (HttpContext http, string plugin) =>
@@ -91,7 +91,7 @@ public static partial class ConfigEndpoints
     // 平台配置（ADR-007：租户级配置不进 Apollo）只对平台主体开放：租户主体在判定前拒绝，不能借平台旁路读取。
     private static async Task AuthorizeAsync(HttpContext http, IPluginContext ctx, Principal principal, string plugin)
     {
-        var logger = http.RequestServices.GetService<ILoggerFactory>()?.CreateLogger("Qian.Config.Http");
+        var logger = http.RequestServices.GetService<ILoggerFactory>()?.CreateLogger("Kun.Configuration.AspNetCore.Http");
         if (principal.TenantId is not null || http.User.Claims.Any(claim => claim.Type == "tenant_id" && !string.IsNullOrEmpty(claim.Value)))
         {
             if (logger is not null) LogDenied(logger, "tenant_principal", principal.Subject, ConfigDefinition.ValuesReadPermission);

@@ -1,4 +1,4 @@
-# Qian.Files
+# Kun.Files
 
 文件组件 `qian.files` 的 Provider（S1-FILE-001，PRD 7.7）：服务端生成租户前缀存储键，按用途上传策略与租户配额签发短时直传地址，完成时由服务端自算大小与 SHA-256、嗅探真实类型，下载恒为附件。S1 只接 `local` 后端（Kun.Storage.Local），s3 / oss 由 S1-FILE-002 作为后端登记。
 
@@ -9,29 +9,29 @@
 ```csharp
 builder.Services.AddKunEventBus(registrar => registrar.RegisterFilesEvents() /* 以及其他组件的事件 */);
 builder.Services.AddKunData<FilesDbContext>((_, options) => options.UseNpgsql(business).UseKunSchema(FilesDbContext.Schema));
-builder.Services.AddKunMediator(registry => registry.AddQianFiles(sp => /* 按请求租户收窄的 qian.files 上下文 */, options =>
+builder.Services.AddKunMediator(registry => registry.AddKunFiles(sp => /* 按请求租户收窄的 qian.files 上下文 */, options =>
 {
     options.LocalSigningKey = signingKey; // 多实例共用同一把 ≥32 字节密钥；不给则每次挂载随机生成
 }));
 ```
 
-能力经 SDK 命令管道执行，宿主还须与参考宿主（`samples/Qian.Sample.Crm`）一样装好基础组合：Tenancy / Authz / Audit 三个 Provider 提供命令策略，DI 里登记 `IPermissionChecker`（真实 RBAC，Kun 的 `PermissionBehavior` 读它），`ICurrentUser` 只取已验证令牌。缺任一命令策略时每个能力都按 `AUTHZ_DENIED` 拒绝，不会降级放行。HTTP 端点见 [Qian.Files.AspNetCore](../Qian.Files.AspNetCore/README.md)。
+能力经 SDK 命令管道执行，宿主还须与参考宿主（`samples/Qian.Sample.Crm`）一样装好基础组合：Tenancy / Authz / Audit 三个 Provider 提供命令策略，DI 里登记 `IPermissionChecker`（真实 RBAC，Kun 的 `PermissionBehavior` 读它），`ICurrentUser` 只取已验证令牌。缺任一命令策略时每个能力都按 `AUTHZ_DENIED` 拒绝，不会降级放行。HTTP 端点见 [Kun.Files.AspNetCore](../Kun.Files.AspNetCore/README.md)。
 
 元数据表随包提供 EF 迁移（schema `plugin_qian_files`：`file_objects` 与 `outbox_messages`），由迁移任务（`--migrate-only` / `IDataMigrator`）以属主角色执行；业务连接只需该 schema 的 DML 权限，`file_objects` 按 `tenant_id` 启用 RLS。
 
 ## 组件配置
 
-与 [plugins/qian.files/schemas/config.schema.json](../../plugins/qian.files/schemas/config.schema.json) 一致，未知字段一律 `INPUT_INVALID` 并指向该字段：
+与 [plugins/qian.files/schemas/config.schema.json](../../_import/qian/plugins/qian.files/schemas/config.schema.json) 一致，未知字段一律 `INPUT_INVALID` 并指向该字段：
 
 | 成员 | 说明 |
 | --- | --- |
 | `storage.kind` | 必填，按名称选用 `Files.Backends` 里的后端；S1 只登记 `local` |
 | `storage.root` | local 必填：对象根目录（绝对路径） |
-| `storage.endpoint` | local 必填：宿主映射直传 / 直下端点的公开基址（绝对 http(s) 地址，路径与 `MapQianFiles` 的 `TransferPath` 一致，缺省 `/files/blobs`） |
+| `storage.endpoint` | local 必填：宿主映射直传 / 直下端点的公开基址（绝对 http(s) 地址，路径与 `MapKunFiles` 的 `TransferPath` 一致，缺省 `/files/blobs`） |
 | `quota.perTenantBytes` | 租户字节配额的平台默认值，缺省 10 GiB |
 | `policies[]` | 平台默认上传策略：`purpose`、`allowedTypes`、`maxSize`、可选 `maxCount`；与组件 `metadata/upload-policies.json` 的声明同用途时以这里为准 |
 
-宿主选项 `QianFilesOptions` 只有时钟与 local 签名密钥；没有任何配置项或选项能改变下载处置方式。
+宿主选项 `KunFilesOptions` 只有时钟与 local 签名密钥；没有任何配置项或选项能改变下载处置方式。
 
 ## 上传与下载
 
@@ -52,11 +52,11 @@ builder.Services.AddKunMediator(registry => registry.AddQianFiles(sp => /* 按�
 
 ## 依赖边界
 
-依赖 `Qian.Files.Abstractions`、`Kun.Data.Abstractions`、`Kun.Tenancy.Abstractions`、`Kun.Plugin.Sdk` 与 Kun.Storage.Local；不引用其他 Provider（Authz、Audit、Tenancy 的实现由宿主组合）。Kun 旧存储线（`Kun.Storage.Abstractions.IFileStorage`）由仓库根 `BannedSymbols.txt` 禁用。
+依赖 `Kun.Files.Abstractions`、`Kun.Data.Abstractions`、`Kun.Tenancy.Abstractions`、`Kun.Plugin.Sdk` 与 Kun.Storage.Local；不引用其他 Provider（Authz、Audit、Tenancy 的实现由宿主组合）。Kun 旧存储线（`Kun.Storage.Abstractions.IFileStorage`）由仓库根 `BannedSymbols.txt` 禁用。
 
 ## 验证
 
-`tests/Qian.Files.Tests`：真实宿主（S2S 令牌、生产模式租户解析与 HTTP PEP、Tenancy / Authz / Audit / Events 组件、包内迁移由受限属主角色执行、业务连接为 NOSUPERUSER / NOBYPASSRLS 登录）上逐条验收租户隔离与存储键前缀、HTML 附件下载、10 MiB 配额与软删释放、直传过期与哈希不符隔离、审计与事件；平台模式（真实 Registry 按制品字节绑定组件、TEN-004 运营端点与平台超管旁路）另验经设置端点写入的租户配额覆盖，以及真实预装快照里贡献方组件的上传策略声明；另有直传网关篡改、嗅探隔离、幂等与策略校验、配置读取、配额来源顺序、清单与代码一致等用例。
+`tests/Kun.Files.Tests`：真实宿主（S2S 令牌、生产模式租户解析与 HTTP PEP、Tenancy / Authz / Audit / Events 组件、包内迁移由受限属主角色执行、业务连接为 NOSUPERUSER / NOBYPASSRLS 登录）上逐条验收租户隔离与存储键前缀、HTML 附件下载、10 MiB 配额与软删释放、直传过期与哈希不符隔离、审计与事件；平台模式（真实 Registry 按制品字节绑定组件、TEN-004 运营端点与平台超管旁路）另验经设置端点写入的租户配额覆盖，以及真实预装快照里贡献方组件的上传策略声明；另有直传网关篡改、嗅探隔离、幂等与策略校验、配置读取、配额来源顺序、清单与代码一致等用例。
 
 ## 模型体验
 
@@ -69,6 +69,6 @@ builder.Services.AddKunMediator(registry => registry.AddQianFiles(sp => /* 按�
 - 不做病毒扫描与预览：`scanStatus` 恒为 `unscanned`，预览归 S2。
 - 软删后的文件对全局查询过滤器不可见，重复删除返回 404 而不是原回执（QIAN0004 不允许绕过过滤器），不会重复产生副作用。
 - `qian add files` 只按 configSchema 缺省值合成条目配置，`storage` 必填却没有缺省值：安装前要在 profile patch 里放一条 `disabled: true` 的 files 条目写好存储配置（安装时沿用）；安装时直接给配置的入口不在本包范围。基础组合包（`qian.bundle.base`、`qian.bundle.identity-server`）的 files 补丁已带 `storage.endpoint`（示例域名，部署时按实际公开基址覆盖）；`runtime.nuget` 的版本与摘要在发布后人工同步，发布链自动给出待同步清单归 S1-RT-034。
-- 宿主装配要自带 `Kun.EventBus` 实现包（组件包只传递带来其抽象），并 `AddKunEventBus(registrar => registrar.RegisterFilesEvents())`、在 `AddKunMediator` 里 `AddQianFiles`；还要显式选择 `ITenantContext`（例如 Kun 的 `AsyncLocalTenantContext`，随包传递带来），缺了挂载即失败；文件能力的命令管道另需当前主体（`ICurrentUser`）与 `AddKunData<FilesDbContext>` 数据会话，缺了处理器无法构造；独立模式的完整上传与下载样例归 S1-QA-005。
+- 宿主装配要自带 `Kun.EventBus` 实现包（组件包只传递带来其抽象），并 `AddKunEventBus(registrar => registrar.RegisterFilesEvents())`、在 `AddKunMediator` 里 `AddKunFiles`；还要显式选择 `ITenantContext`（例如 Kun 的 `AsyncLocalTenantContext`，随包传递带来），缺了挂载即失败；文件能力的命令管道另需当前主体（`ICurrentUser`）与 `AddKunData<FilesDbContext>` 数据会话，缺了处理器无法构造；独立模式的完整上传与下载样例归 S1-QA-005。
 - 组件声明的上传策略（`metadata/upload-policies.json`）只在平台宿主经 Registry 预装快照汇总，同组件预装多个版本时取最高版本的声明；不按租户实际挂载的组件过滤。声明不合法时，Registry 已就绪则挂载失败，否则在第一次用到策略时报 `INPUT_INVALID`（指针形如 `acme.crm/metadata/upload-policies.json#/0/purpose`）。
 - 独立模式（不装 Tenancy / Authz / Audit）没有命令策略，能力一律拒绝；最小独立组合与样例归 S1-QA-005。

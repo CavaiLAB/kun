@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Testing.Containers.IntegrationTests;
+namespace Kun.Testing.Containers.Tests;
 
 public sealed class DexFixtureTests(DexFixture dex) : IClassFixture<DexFixture>
 {

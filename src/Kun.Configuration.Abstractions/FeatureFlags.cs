@@ -1,4 +1,4 @@
-namespace Qian.Config;
+namespace Kun.Configuration;
 
 /// <summary>只读租户灰度求值；不读取权益，不改变租户 scope 的组件挂载。</summary>
 public interface IFeatureFlags

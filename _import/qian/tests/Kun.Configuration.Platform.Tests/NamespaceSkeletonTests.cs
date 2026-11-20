@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Qian.Config.Tool;
-using Qian.Testing.Containers;
+using Kun.Configuration.Tool;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 // S1-CFG-003 验收 2：config.schema 变更后，由 profile 推导的 namespace 骨架与线上键比对（ApolloFixture 协议替身作线上），缺键 / 多键即失败；
 // 工具只输出键名与 Schema 指针，不回显线上值。真实工具进程的门禁自测见 tests/gates/test_config_namespaces.py。

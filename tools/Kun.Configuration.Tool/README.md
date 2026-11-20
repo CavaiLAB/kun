@@ -31,10 +31,10 @@ dotnet tools/Qian.Config.Tool/bin/Release/net10.0/Qian.Config.Tool.dll . --profi
 
 `--compare` 也接受导出的 JSON 文件（不是 http(s) 地址即按文件读取），形状为 `{ "<namespace>": { "<键>": "<值>" } }`，只能与单个启用 Apollo 的 profile 一起用；文件里没有的 namespace 等同线上不存在。值只用于确认形状，不读取内容。
 
-AppId 默认取 profile 的 Apollo 条目，`--app-id` 只能与单个启用 Apollo 的 profile 一起用。开启 AccessKey 的 AppId 用 `--access-key-env` 指定存放密钥的环境变量名（不接受命令行明文），签名与运行期 `Qian.Config.Apollo` 相同。
+AppId 默认取 profile 的 Apollo 条目，`--app-id` 只能与单个启用 Apollo 的 profile 一起用。开启 AccessKey 的 AppId 用 `--access-key-env` 指定存放密钥的环境变量名（不接受命令行明文），签名与运行期 `Kun.Configuration.Platform` 相同。
 
 返回 0 表示通过；1 表示有缺键 / 多键或 profile 装配失败；2 表示参数错误、仓库不可读、ConfigService 不可达或拒绝访问。
 
 ## 验证
 
-`tests/Qian.Config.Tests/NamespaceSkeletonTests.cs` 以 ApolloFixture 协议替身作线上，覆盖 Schema 变更后的缺键 / 多键、线上漂移、未订阅 namespace、AccessKey 与骨架文件内容；`tests/gates/test_config_namespaces.py` 真实启动本工具与本机协议替身，对仓库 profile 推导骨架并验证缺键 / 多键非零退出、不回显线上值。对 staging Apollo 的比对是部署流水线的发布前步骤，见 [配置运维手册](../../docs/ops/configuration-runbook.md)。
+`tests/Kun.Configuration.Platform.Tests/NamespaceSkeletonTests.cs` 以 ApolloFixture 协议替身作线上，覆盖 Schema 变更后的缺键 / 多键、线上漂移、未订阅 namespace、AccessKey 与骨架文件内容；`tests/gates/test_config_namespaces.py` 真实启动本工具与本机协议替身，对仓库 profile 推导骨架并验证缺键 / 多键非零退出、不回显线上值。对 staging Apollo 的比对是部署流水线的发布前步骤，见 [配置运维手册](../../_import/qian/docs/ops/configuration-runbook.md)。

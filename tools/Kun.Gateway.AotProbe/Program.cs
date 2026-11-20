@@ -10,8 +10,8 @@ using Kun.Gateway.Endpoints;
 using Kun.MultiTenancy.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Kun.Audit;
-using Qian.Config;
-using Qian.Config.Apollo;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
 using Kun.Data;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
@@ -25,7 +25,7 @@ using Yarp.ReverseProxy.Configuration;
 if (RuntimeFeature.IsDynamicCodeSupported || !OperatingSystem.IsLinux())
     throw new InvalidOperationException("必须运行 Linux NativeAOT 可执行文件。");
 
-var configuration = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+var configuration = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
 {
     BasePath = AppContext.BaseDirectory,
     Arguments = args,
@@ -36,7 +36,7 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.Configuration.AddConfiguration(configuration);
 builder.Services.AddKunMultiTenancy();
 builder.Services.AddKunEventBus();
-builder.Services.AddQianConfiguration(configuration);
+builder.Services.AddKunConfiguration(configuration);
 builder.Services.AddKunData<AuditDbContext>((_, options) => options
     .UseNpgsql(Required("Audit:Connection")).UseKunSchema(AuditDbContext.Schema));
 builder.Services.AddDataProtection();

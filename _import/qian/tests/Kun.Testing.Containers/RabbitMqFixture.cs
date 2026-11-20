@@ -1,6 +1,6 @@
 using Testcontainers.RabbitMq;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>RabbitMQ 容器。韧性测试可经 <see cref="ContainerFixture{TContainer}.Container"/> 停启 broker。</summary>
 public sealed class RabbitMqFixture : ContainerFixture<RabbitMqContainer>

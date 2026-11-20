@@ -1,6 +1,6 @@
 using System.Data.Common;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 /// <summary>平台草稿回执的离线迁移与固定 RLS 声明；在线组件不执行 DDL。</summary>
 public static class FeatureFlagDraftStorage

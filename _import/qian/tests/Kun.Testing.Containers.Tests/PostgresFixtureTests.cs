@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace Qian.Testing.Containers.IntegrationTests;
+namespace Kun.Testing.Containers.Tests;
 
 [Collection(SharedInfrastructure.Name)]
 public sealed class PostgresFixtureTests(InfrastructureFixture infrastructure)

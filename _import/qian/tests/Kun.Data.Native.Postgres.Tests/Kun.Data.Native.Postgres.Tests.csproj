@@ -3,7 +3,7 @@
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>

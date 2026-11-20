@@ -4,7 +4,7 @@ using System.Text.Json;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// Apollo 配置服务的协议替身（PRD §14.2：集成测试层的 Apollo 用 mock server）。
@@ -19,7 +19,7 @@ public sealed class ApolloFixture : ContainerFixture<IContainer>
 
     private const ushort ContainerPort = 8080;
     private const string ScriptPath = "/opt/apollo-mock/apollo_mock.py";
-    private const string ScriptResource = "Qian.Testing.Containers.ApolloMock.apollo_mock.py";
+    private const string ScriptResource = "Kun.Testing.Containers.ApolloMock.apollo_mock.py";
 
     private HttpClient? _control;
 

@@ -4,11 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Audit;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Runtime;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 // S1-CFG-003 验收 3 后半句的快速回归（协议替身 + 记录型审计服务）：接受与拒绝各记一条、拒绝在重试周期里不重复、
 // 审计缺席时暂存并在就绪后按序补写；记录只含 namespace、键数与原因码。真实 Apollo + 平台链见 RealApolloReleaseAuditTests。
@@ -30,13 +30,13 @@ public sealed class ReleaseAuditTests(ApolloFixture apollo) : IClassFixture<Apol
         try
         {
             await apollo.PublishAsync(appId, "application", new Dictionary<string, string> { ["Sample:PageSize"] = "10", ["Service:credential"] = Original }, cancellationToken: ct);
-            var root = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+            var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
             {
                 BasePath = directory, ApolloConfigurationSchema = schema.RootElement, Logger = retries,
                 Arguments = ["--Apollo:AppId=" + appId, "--Apollo:Env=UAT", "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri.AbsoluteUri]
             }).Build();
             using var owner = (IDisposable)root;
-            await using var provider = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
+            await using var provider = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider();
             await using var runtime = new PluginLoader(provider);
             await runtime.MountAsync([new PluginDefinition(new PluginEntry("config", "qian.config.apollo", "1.0.0", ScopeKey.Global, 0,
                 JsonSerializer.SerializeToElement(new { appId, env = "UAT", meta = apollo.ConfigServiceUri.AbsoluteUri, namespaces = s_application })),

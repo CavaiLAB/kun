@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Kun.Errors;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 /// <summary>
 /// local 后端工厂（Kun.Storage.Local，仅开发与单节点）。storage.root 为对象根目录（绝对路径），storage.endpoint 为宿主映射直传 / 直下端点的公开基址。

@@ -2,7 +2,7 @@ using Microsoft.Extensions.Primitives;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Config;
+namespace Kun.Configuration;
 
 /// <summary>平台/服务级只读配置 seam；租户设置由 Tenancy 管理。</summary>
 public static class ConfigDefinition

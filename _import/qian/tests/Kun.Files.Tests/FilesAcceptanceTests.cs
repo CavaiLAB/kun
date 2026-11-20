@@ -9,9 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Errors;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // S1-FILE-001 验收：全部经真实宿主（S2S 令牌、生产模式租户解析与 HTTP PEP、命令管道的租户 / 授权 / 审计、受限业务登录与 RLS）走 HTTP。
 public sealed partial class FilesAcceptanceTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
@@ -150,7 +150,7 @@ public sealed partial class FilesAcceptanceTests(PostgresFixture postgres) : ICl
                 new LocalFileBackendFactory(default).Create(new FileBackendContext(storage.RootElement, TimeProvider.System, host.Services)));
             Assert.Equal((PlatformErrors.InputInvalid, "#/storage/forceDownload"), (error.Error.Code, error.Error.Pointer));
         }
-        Assert.DoesNotContain(new[] { typeof(FilesSettings), typeof(QianFilesOptions), typeof(AspNetCore.FilesEndpointOptions) }.SelectMany(type => type.GetProperties()),
+        Assert.DoesNotContain(new[] { typeof(FilesSettings), typeof(KunFilesOptions), typeof(AspNetCore.FilesEndpointOptions) }.SelectMany(type => type.GetProperties()),
             property => Switch(property.Name));
     }
 

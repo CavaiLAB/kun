@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Kun.Identity.Abstractions;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // 与参考宿主的 CrmCurrentUser 同一做法：只消费认证事件已验证的令牌，主体快照取自令牌载荷；验收只用服务主体，带 act 的委托令牌一律拒绝。
 internal sealed class FilesCurrentUser(IHttpContextAccessor accessor) : ICurrentUser

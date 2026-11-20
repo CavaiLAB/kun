@@ -22,14 +22,14 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
-using Qian.Config.Apollo;
-using Qian.Config.AspNetCore;
+using Kun.Configuration.Platform;
+using Kun.Configuration.AspNetCore;
 using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 // S1-CFG-003 验收 4：GET /api/config/schemas/{plugin} 对已认证调用方可读（不含值）；配置值只对平台主体、经执行端口放行且非敏感时可读。
 // 真实 Kestrel + RS256 JWT；执行端口与注册表用记录型替身，配置走真实 qian.config 组件与 IConfiguration。
@@ -181,7 +181,7 @@ public sealed class ConfigEndpointsTests
                 ["qian.plugin.test.sample:storage:token"] = "synthetic-token-literal",
                 ["qian.plugin.other:pageSize"] = "99"
             }).Build();
-            var services = new ServiceCollection().AddQianConfiguration(configuration).BuildServiceProvider();
+            var services = new ServiceCollection().AddKunConfiguration(configuration).BuildServiceProvider();
             var runtime = new PluginLoader(services); var surface = new HttpSurface();
             var manifest = JsonSerializer.SerializeToElement(new { id = Plugin, version = "1.0.0" });
             InstalledComponentMetadata[] installed = [
@@ -217,7 +217,7 @@ public sealed class ConfigEndpointsTests
             });
             var app = builder.Build();
             app.UseKunErrors(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
-            app.MapQianConfig(_ => surface.Context!);
+            app.MapKunConfig(_ => surface.Context!);
             try
             {
                 await app.StartAsync(Ct); var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();

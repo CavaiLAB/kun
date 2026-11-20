@@ -1,164 +1,164 @@
 #nullable enable
-static readonly Qian.Config.SecretErrors.Exposed -> Kun.Errors.ErrorCode!
-static readonly Qian.Config.SecretErrors.SchemaInvalid -> Kun.Errors.ErrorCode!
-Qian.Config.IConfigService.ReadSection(string! path) -> System.Collections.Generic.IReadOnlyDictionary<string!, string?>!
-Qian.Config.IConfigService
-Qian.Config.ConfigDefinition
-static readonly Qian.Config.ConfigDefinition.Key -> Kun.Runtime.ServiceKey
-static readonly Qian.Config.ConfigErrors.BootstrapInvalid -> Kun.Errors.ErrorCode!
-Qian.Config.IConfigService.GetValue(string! key) -> string?
-static readonly Qian.Config.ConfigErrors.RequiredMissing -> Kun.Errors.ErrorCode!
-Qian.Config.IConfigService.GetRequiredValue(string! key) -> string!
-static Qian.Config.ConfigDefinition.Config(this Kun.Runtime.IPluginContext! context) -> Qian.Config.IConfigService!
-Qian.Config.IConfigService.GetReloadToken() -> Microsoft.Extensions.Primitives.IChangeToken!
-Qian.Config.ConfigErrors
-static Qian.Config.ConfigErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
-Qian.Config.ISecretResolver
-Qian.Config.SecretValueJsonConverter
-Qian.Config.SecretValue
-Qian.Config.ISecretResolverFactory
-Qian.Config.ISecretAccessObserver
-Qian.Config.SecretErrors
-static readonly Qian.Config.SecretErrors.InvalidReference -> Kun.Errors.ErrorCode!
-static readonly Qian.Config.SecretErrors.AccessDenied -> Kun.Errors.ErrorCode!
-Qian.Config.SecretValueJsonConverter.SecretValueJsonConverter() -> void
-static readonly Qian.Config.SecretErrors.NotFound -> Kun.Errors.ErrorCode!
-static readonly Qian.Config.SecretErrors.Unavailable -> Kun.Errors.ErrorCode!
-Qian.Config.SecretAccessEvent
-override Qian.Config.SecretAccessEvent.ToString() -> string!
-static Qian.Config.SecretAccessEvent.operator !=(Qian.Config.SecretAccessEvent? left, Qian.Config.SecretAccessEvent? right) -> bool
-static Qian.Config.SecretAccessEvent.operator ==(Qian.Config.SecretAccessEvent? left, Qian.Config.SecretAccessEvent? right) -> bool
-override Qian.Config.SecretAccessEvent.GetHashCode() -> int
-override Qian.Config.SecretAccessEvent.Equals(object? obj) -> bool
-Qian.Config.SecretAccessEvent.Equals(Qian.Config.SecretAccessEvent? other) -> bool
-Qian.Config.SecretAccessEvent.<Clone>$() -> Qian.Config.SecretAccessEvent!
-Qian.Config.SecretAccessEvent.Deconstruct(out string! Caller, out string! Reference, out string? TenantId, out bool Allowed, out string! Outcome) -> void
-Qian.Config.SecretGrant
-override Qian.Config.SecretGrant.ToString() -> string!
-static Qian.Config.SecretGrant.operator !=(Qian.Config.SecretGrant? left, Qian.Config.SecretGrant? right) -> bool
-static Qian.Config.SecretGrant.operator ==(Qian.Config.SecretGrant? left, Qian.Config.SecretGrant? right) -> bool
-override Qian.Config.SecretGrant.GetHashCode() -> int
-override Qian.Config.SecretGrant.Equals(object? obj) -> bool
-Qian.Config.SecretAccessEvent.Caller.get -> string!
-Qian.Config.SecretGrant.Name.get -> string!
-Qian.Config.SecretAccessEvent.Reference.get -> string!
-Qian.Config.SecretGrant.Equals(Qian.Config.SecretGrant? other) -> bool
-Qian.Config.SecretGrant.Scope.get -> string!
-Qian.Config.SecretGrant.<Clone>$() -> Qian.Config.SecretGrant!
-Qian.Config.SecretGrant.Deconstruct(out string! Name, out string! Scope) -> void
-Qian.Config.SecretAccessEvent.Reference.init -> void
-Qian.Config.SecretGrant.Scope.init -> void
-Qian.Config.SecretGrant.Name.init -> void
-Qian.Config.SecretAccessEvent.Caller.init -> void
-Qian.Config.SecretAccessEvent.TenantId.get -> string?
-Qian.Config.SecretAccessEvent.TenantId.init -> void
-Qian.Config.SecretAccessEvent.Allowed.get -> bool
-Qian.Config.SecretAccessEvent.Allowed.init -> void
-Qian.Config.SecretAccessEvent.Outcome.get -> string!
-Qian.Config.SecretAccessEvent.Outcome.init -> void
-Qian.Config.SecretReference
-Qian.Config.IConfigService.Secrets.get -> Qian.Config.ISecretResolverFactory?
-Qian.Config.ISecretAccessObserver.RecordAsync(Qian.Config.SecretAccessEvent! access, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-Qian.Config.ISecretResolver.ResolveAsync(string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Config.SecretValue!>
-Qian.Config.SecretAccessEvent.SecretAccessEvent(string! Caller, string! Reference, string? TenantId, bool Allowed, string! Outcome) -> void
-Qian.Config.ISecretResolverFactory.ForPlugin(Kun.Runtime.IPluginContext! context) -> Qian.Config.ISecretResolver!
-Qian.Config.SecretGrant.SecretGrant(string! Name, string! Scope) -> void
-static Qian.Config.SecretErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
-Qian.Config.ISecretResolverFactory.ForHost(string! policyId, Kun.Core.MultiTenancy.ITenantContext? tenantContext = null) -> Qian.Config.ISecretResolver!
-override Qian.Config.SecretValueJsonConverter.Read(ref System.Text.Json.Utf8JsonReader reader, System.Type! typeToConvert, System.Text.Json.JsonSerializerOptions! options) -> Qian.Config.SecretValue!
-Qian.Config.SecretReference.Scope.get -> string!
-Qian.Config.SecretValue.SecretValue(System.ReadOnlySpan<byte> value) -> void
-Qian.Config.SecretReference.Path.get -> string!
-Qian.Config.SecretValue.RevealUtf8() -> string!
-override Qian.Config.SecretValueJsonConverter.Write(System.Text.Json.Utf8JsonWriter! writer, Qian.Config.SecretValue! value, System.Text.Json.JsonSerializerOptions! options) -> void
-static Qian.Config.ConfigDefinition.ResolveSecretAsync(this Kun.Runtime.IPluginContext! context, string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Config.SecretValue!>
-Qian.Config.SecretValue.Bytes.get -> System.ReadOnlyMemory<byte>
-override Qian.Config.SecretValue.ToString() -> string!
-Qian.Config.SecretValue.Dispose() -> void
-static Qian.Config.SecretReference.Parse(string! value) -> Qian.Config.SecretReference!
-override Qian.Config.SecretReference.ToString() -> string!
-static Qian.Config.SecretReference.IsValid(string? value) -> bool
-Qian.Config.SecretDiagnostic
-override Qian.Config.SecretDiagnostic.ToString() -> string!
-static Qian.Config.SecretDiagnostic.operator !=(Qian.Config.SecretDiagnostic? left, Qian.Config.SecretDiagnostic? right) -> bool
-static Qian.Config.SecretDiagnostic.operator ==(Qian.Config.SecretDiagnostic? left, Qian.Config.SecretDiagnostic? right) -> bool
-override Qian.Config.SecretDiagnostic.GetHashCode() -> int
-override Qian.Config.SecretDiagnostic.Equals(object? obj) -> bool
-Qian.Config.SecretDiagnostic.Equals(Qian.Config.SecretDiagnostic? other) -> bool
-Qian.Config.SecretDiagnostic.<Clone>$() -> Qian.Config.SecretDiagnostic!
-Qian.Config.SecretDiagnostic.Deconstruct(out string! Code, out string! Location, out string! Reason) -> void
-Qian.Config.SecretDiagnostic.Code.get -> string!
-Qian.Config.SecretDiagnostic.Code.init -> void
-Qian.Config.SecretDiagnostic.Reason.get -> string!
-Qian.Config.SecretDiagnostic.Reason.init -> void
-Qian.Config.SecretSafety
-Qian.Config.SecretDiagnostic.Location.get -> string!
-Qian.Config.SecretDiagnostic.Location.init -> void
-static Qian.Config.SecretSafety.Scan(System.Text.Json.JsonElement value, System.Text.Json.JsonElement? schema = null) -> System.Collections.Generic.IReadOnlyList<Qian.Config.SecretDiagnostic!>!
-Qian.Config.SecretDiagnostic.SecretDiagnostic(string! Code, string! Location, string! Reason) -> void
-static Qian.Config.SecretSafety.ScanConfiguration(System.Collections.Generic.IReadOnlyDictionary<string!, string?>! values, System.Text.Json.JsonElement? schema = null) -> System.Collections.Generic.IReadOnlyList<Qian.Config.SecretDiagnostic!>!
-Qian.Config.ConfigEvents
-Qian.Config.ConfigReloadFailed
-Qian.Config.ConfigReloadFailed.<Clone>$() -> Qian.Config.ConfigReloadFailed!
-Qian.Config.ConfigReloadFailed.Code.get -> string!
-Qian.Config.ConfigReloadFailed.Code.init -> void
-Qian.Config.ConfigReloadFailed.ConfigReloadFailed(string! OptionsType, string! OptionsName, string! Section, int Failures, string! Code) -> void
-Qian.Config.ConfigReloadFailed.Deconstruct(out string! OptionsType, out string! OptionsName, out string! Section, out int Failures, out string! Code) -> void
-Qian.Config.ConfigReloadFailed.Equals(Qian.Config.ConfigReloadFailed? other) -> bool
-Qian.Config.ConfigReloadFailed.Failures.get -> int
-Qian.Config.ConfigReloadFailed.Failures.init -> void
-Qian.Config.ConfigReloadFailed.OptionsName.get -> string!
-Qian.Config.ConfigReloadFailed.OptionsName.init -> void
-Qian.Config.ConfigReloadFailed.OptionsType.get -> string!
-Qian.Config.ConfigReloadFailed.OptionsType.init -> void
-Qian.Config.ConfigReloadFailed.Plugin.get -> string?
-Qian.Config.ConfigReloadFailed.Plugin.init -> void
-Qian.Config.ConfigReloadFailed.Section.get -> string!
-Qian.Config.ConfigReloadFailed.Section.init -> void
-Qian.Config.ConfigRuntimeEvents
-const Qian.Config.ConfigDefinition.ValuesReadPermission = "qian.config:values:read" -> string!
-const Qian.Config.ConfigEvents.ReleaseAppliedCapabilityId = "qian.config/release.applied" -> string!
-const Qian.Config.ConfigEvents.ReleaseRejectedCapabilityId = "qian.config/release.rejected" -> string!
-const Qian.Config.ConfigEvents.ReloadFailedType = "config.reload.failed.v1" -> string!
-override Qian.Config.ConfigReloadFailed.Equals(object? obj) -> bool
-override Qian.Config.ConfigReloadFailed.GetHashCode() -> int
-override Qian.Config.ConfigReloadFailed.ToString() -> string!
-static Qian.Config.ConfigReloadFailed.operator !=(Qian.Config.ConfigReloadFailed? left, Qian.Config.ConfigReloadFailed? right) -> bool
-static Qian.Config.ConfigReloadFailed.operator ==(Qian.Config.ConfigReloadFailed? left, Qian.Config.ConfigReloadFailed? right) -> bool
-static readonly Qian.Config.ConfigErrors.ReloadRejected -> Kun.Errors.ErrorCode!
-static readonly Qian.Config.ConfigRuntimeEvents.ReloadFailed -> Kun.Runtime.KunEvent<Qian.Config.ConfigReloadFailed!, object?>!
+static readonly Kun.Configuration.SecretErrors.Exposed -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.SecretErrors.SchemaInvalid -> Kun.Errors.ErrorCode!
+Kun.Configuration.IConfigService.ReadSection(string! path) -> System.Collections.Generic.IReadOnlyDictionary<string!, string?>!
+Kun.Configuration.IConfigService
+Kun.Configuration.ConfigDefinition
+static readonly Kun.Configuration.ConfigDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Configuration.ConfigErrors.BootstrapInvalid -> Kun.Errors.ErrorCode!
+Kun.Configuration.IConfigService.GetValue(string! key) -> string?
+static readonly Kun.Configuration.ConfigErrors.RequiredMissing -> Kun.Errors.ErrorCode!
+Kun.Configuration.IConfigService.GetRequiredValue(string! key) -> string!
+static Kun.Configuration.ConfigDefinition.Config(this Kun.Runtime.IPluginContext! context) -> Kun.Configuration.IConfigService!
+Kun.Configuration.IConfigService.GetReloadToken() -> Microsoft.Extensions.Primitives.IChangeToken!
+Kun.Configuration.ConfigErrors
+static Kun.Configuration.ConfigErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+Kun.Configuration.ISecretResolver
+Kun.Configuration.SecretValueJsonConverter
+Kun.Configuration.SecretValue
+Kun.Configuration.ISecretResolverFactory
+Kun.Configuration.ISecretAccessObserver
+Kun.Configuration.SecretErrors
+static readonly Kun.Configuration.SecretErrors.InvalidReference -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.SecretErrors.AccessDenied -> Kun.Errors.ErrorCode!
+Kun.Configuration.SecretValueJsonConverter.SecretValueJsonConverter() -> void
+static readonly Kun.Configuration.SecretErrors.NotFound -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.SecretErrors.Unavailable -> Kun.Errors.ErrorCode!
+Kun.Configuration.SecretAccessEvent
+override Kun.Configuration.SecretAccessEvent.ToString() -> string!
+static Kun.Configuration.SecretAccessEvent.operator !=(Kun.Configuration.SecretAccessEvent? left, Kun.Configuration.SecretAccessEvent? right) -> bool
+static Kun.Configuration.SecretAccessEvent.operator ==(Kun.Configuration.SecretAccessEvent? left, Kun.Configuration.SecretAccessEvent? right) -> bool
+override Kun.Configuration.SecretAccessEvent.GetHashCode() -> int
+override Kun.Configuration.SecretAccessEvent.Equals(object? obj) -> bool
+Kun.Configuration.SecretAccessEvent.Equals(Kun.Configuration.SecretAccessEvent? other) -> bool
+Kun.Configuration.SecretAccessEvent.<Clone>$() -> Kun.Configuration.SecretAccessEvent!
+Kun.Configuration.SecretAccessEvent.Deconstruct(out string! Caller, out string! Reference, out string? TenantId, out bool Allowed, out string! Outcome) -> void
+Kun.Configuration.SecretGrant
+override Kun.Configuration.SecretGrant.ToString() -> string!
+static Kun.Configuration.SecretGrant.operator !=(Kun.Configuration.SecretGrant? left, Kun.Configuration.SecretGrant? right) -> bool
+static Kun.Configuration.SecretGrant.operator ==(Kun.Configuration.SecretGrant? left, Kun.Configuration.SecretGrant? right) -> bool
+override Kun.Configuration.SecretGrant.GetHashCode() -> int
+override Kun.Configuration.SecretGrant.Equals(object? obj) -> bool
+Kun.Configuration.SecretAccessEvent.Caller.get -> string!
+Kun.Configuration.SecretGrant.Name.get -> string!
+Kun.Configuration.SecretAccessEvent.Reference.get -> string!
+Kun.Configuration.SecretGrant.Equals(Kun.Configuration.SecretGrant? other) -> bool
+Kun.Configuration.SecretGrant.Scope.get -> string!
+Kun.Configuration.SecretGrant.<Clone>$() -> Kun.Configuration.SecretGrant!
+Kun.Configuration.SecretGrant.Deconstruct(out string! Name, out string! Scope) -> void
+Kun.Configuration.SecretAccessEvent.Reference.init -> void
+Kun.Configuration.SecretGrant.Scope.init -> void
+Kun.Configuration.SecretGrant.Name.init -> void
+Kun.Configuration.SecretAccessEvent.Caller.init -> void
+Kun.Configuration.SecretAccessEvent.TenantId.get -> string?
+Kun.Configuration.SecretAccessEvent.TenantId.init -> void
+Kun.Configuration.SecretAccessEvent.Allowed.get -> bool
+Kun.Configuration.SecretAccessEvent.Allowed.init -> void
+Kun.Configuration.SecretAccessEvent.Outcome.get -> string!
+Kun.Configuration.SecretAccessEvent.Outcome.init -> void
+Kun.Configuration.SecretReference
+Kun.Configuration.IConfigService.Secrets.get -> Kun.Configuration.ISecretResolverFactory?
+Kun.Configuration.ISecretAccessObserver.RecordAsync(Kun.Configuration.SecretAccessEvent! access, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Configuration.ISecretResolver.ResolveAsync(string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Configuration.SecretValue!>
+Kun.Configuration.SecretAccessEvent.SecretAccessEvent(string! Caller, string! Reference, string? TenantId, bool Allowed, string! Outcome) -> void
+Kun.Configuration.ISecretResolverFactory.ForPlugin(Kun.Runtime.IPluginContext! context) -> Kun.Configuration.ISecretResolver!
+Kun.Configuration.SecretGrant.SecretGrant(string! Name, string! Scope) -> void
+static Kun.Configuration.SecretErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+Kun.Configuration.ISecretResolverFactory.ForHost(string! policyId, Kun.Core.MultiTenancy.ITenantContext? tenantContext = null) -> Kun.Configuration.ISecretResolver!
+override Kun.Configuration.SecretValueJsonConverter.Read(ref System.Text.Json.Utf8JsonReader reader, System.Type! typeToConvert, System.Text.Json.JsonSerializerOptions! options) -> Kun.Configuration.SecretValue!
+Kun.Configuration.SecretReference.Scope.get -> string!
+Kun.Configuration.SecretValue.SecretValue(System.ReadOnlySpan<byte> value) -> void
+Kun.Configuration.SecretReference.Path.get -> string!
+Kun.Configuration.SecretValue.RevealUtf8() -> string!
+override Kun.Configuration.SecretValueJsonConverter.Write(System.Text.Json.Utf8JsonWriter! writer, Kun.Configuration.SecretValue! value, System.Text.Json.JsonSerializerOptions! options) -> void
+static Kun.Configuration.ConfigDefinition.ResolveSecretAsync(this Kun.Runtime.IPluginContext! context, string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Configuration.SecretValue!>
+Kun.Configuration.SecretValue.Bytes.get -> System.ReadOnlyMemory<byte>
+override Kun.Configuration.SecretValue.ToString() -> string!
+Kun.Configuration.SecretValue.Dispose() -> void
+static Kun.Configuration.SecretReference.Parse(string! value) -> Kun.Configuration.SecretReference!
+override Kun.Configuration.SecretReference.ToString() -> string!
+static Kun.Configuration.SecretReference.IsValid(string? value) -> bool
+Kun.Configuration.SecretDiagnostic
+override Kun.Configuration.SecretDiagnostic.ToString() -> string!
+static Kun.Configuration.SecretDiagnostic.operator !=(Kun.Configuration.SecretDiagnostic? left, Kun.Configuration.SecretDiagnostic? right) -> bool
+static Kun.Configuration.SecretDiagnostic.operator ==(Kun.Configuration.SecretDiagnostic? left, Kun.Configuration.SecretDiagnostic? right) -> bool
+override Kun.Configuration.SecretDiagnostic.GetHashCode() -> int
+override Kun.Configuration.SecretDiagnostic.Equals(object? obj) -> bool
+Kun.Configuration.SecretDiagnostic.Equals(Kun.Configuration.SecretDiagnostic? other) -> bool
+Kun.Configuration.SecretDiagnostic.<Clone>$() -> Kun.Configuration.SecretDiagnostic!
+Kun.Configuration.SecretDiagnostic.Deconstruct(out string! Code, out string! Location, out string! Reason) -> void
+Kun.Configuration.SecretDiagnostic.Code.get -> string!
+Kun.Configuration.SecretDiagnostic.Code.init -> void
+Kun.Configuration.SecretDiagnostic.Reason.get -> string!
+Kun.Configuration.SecretDiagnostic.Reason.init -> void
+Kun.Configuration.SecretSafety
+Kun.Configuration.SecretDiagnostic.Location.get -> string!
+Kun.Configuration.SecretDiagnostic.Location.init -> void
+static Kun.Configuration.SecretSafety.Scan(System.Text.Json.JsonElement value, System.Text.Json.JsonElement? schema = null) -> System.Collections.Generic.IReadOnlyList<Kun.Configuration.SecretDiagnostic!>!
+Kun.Configuration.SecretDiagnostic.SecretDiagnostic(string! Code, string! Location, string! Reason) -> void
+static Kun.Configuration.SecretSafety.ScanConfiguration(System.Collections.Generic.IReadOnlyDictionary<string!, string?>! values, System.Text.Json.JsonElement? schema = null) -> System.Collections.Generic.IReadOnlyList<Kun.Configuration.SecretDiagnostic!>!
+Kun.Configuration.ConfigEvents
+Kun.Configuration.ConfigReloadFailed
+Kun.Configuration.ConfigReloadFailed.<Clone>$() -> Kun.Configuration.ConfigReloadFailed!
+Kun.Configuration.ConfigReloadFailed.Code.get -> string!
+Kun.Configuration.ConfigReloadFailed.Code.init -> void
+Kun.Configuration.ConfigReloadFailed.ConfigReloadFailed(string! OptionsType, string! OptionsName, string! Section, int Failures, string! Code) -> void
+Kun.Configuration.ConfigReloadFailed.Deconstruct(out string! OptionsType, out string! OptionsName, out string! Section, out int Failures, out string! Code) -> void
+Kun.Configuration.ConfigReloadFailed.Equals(Kun.Configuration.ConfigReloadFailed? other) -> bool
+Kun.Configuration.ConfigReloadFailed.Failures.get -> int
+Kun.Configuration.ConfigReloadFailed.Failures.init -> void
+Kun.Configuration.ConfigReloadFailed.OptionsName.get -> string!
+Kun.Configuration.ConfigReloadFailed.OptionsName.init -> void
+Kun.Configuration.ConfigReloadFailed.OptionsType.get -> string!
+Kun.Configuration.ConfigReloadFailed.OptionsType.init -> void
+Kun.Configuration.ConfigReloadFailed.Plugin.get -> string?
+Kun.Configuration.ConfigReloadFailed.Plugin.init -> void
+Kun.Configuration.ConfigReloadFailed.Section.get -> string!
+Kun.Configuration.ConfigReloadFailed.Section.init -> void
+Kun.Configuration.ConfigRuntimeEvents
+const Kun.Configuration.ConfigDefinition.ValuesReadPermission = "qian.config:values:read" -> string!
+const Kun.Configuration.ConfigEvents.ReleaseAppliedCapabilityId = "qian.config/release.applied" -> string!
+const Kun.Configuration.ConfigEvents.ReleaseRejectedCapabilityId = "qian.config/release.rejected" -> string!
+const Kun.Configuration.ConfigEvents.ReloadFailedType = "config.reload.failed.v1" -> string!
+override Kun.Configuration.ConfigReloadFailed.Equals(object? obj) -> bool
+override Kun.Configuration.ConfigReloadFailed.GetHashCode() -> int
+override Kun.Configuration.ConfigReloadFailed.ToString() -> string!
+static Kun.Configuration.ConfigReloadFailed.operator !=(Kun.Configuration.ConfigReloadFailed? left, Kun.Configuration.ConfigReloadFailed? right) -> bool
+static Kun.Configuration.ConfigReloadFailed.operator ==(Kun.Configuration.ConfigReloadFailed? left, Kun.Configuration.ConfigReloadFailed? right) -> bool
+static readonly Kun.Configuration.ConfigErrors.ReloadRejected -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.ConfigRuntimeEvents.ReloadFailed -> Kun.Runtime.KunEvent<Kun.Configuration.ConfigReloadFailed!, object?>!
 
-Qian.Config.IFeatureFlags
-Qian.Config.IFeatureFlags.IsEnabled(string! name, System.Guid tenantId) -> bool
-Qian.Config.IConfigService.Flags.get -> Qian.Config.IFeatureFlags!
-Qian.Config.FeatureFlagDraft
-Qian.Config.FeatureFlagDraft.Confirmed.get -> bool
-Qian.Config.FeatureFlagDraft.Confirmed.init -> void
-Qian.Config.FeatureFlagDraft.FeatureFlagDraft() -> void
-Qian.Config.FeatureFlagDraft.Name.get -> string!
-Qian.Config.FeatureFlagDraft.Name.init -> void
-Qian.Config.FeatureFlagDraft.Rule.get -> Qian.Config.FeatureFlagPolicy!
-Qian.Config.FeatureFlagDraft.Rule.init -> void
-Qian.Config.FeatureFlagDraftResult
-Qian.Config.FeatureFlagDraftResult.FeatureFlagDraftResult() -> void
-Qian.Config.FeatureFlagDraftResult.Name.get -> string!
-Qian.Config.FeatureFlagDraftResult.Name.init -> void
-Qian.Config.FeatureFlagDraftResult.RuleHash.get -> string!
-Qian.Config.FeatureFlagDraftResult.RuleHash.init -> void
-Qian.Config.FeatureFlagDraftResult.Status.get -> string!
-Qian.Config.FeatureFlagManagement
-Qian.Config.FeatureFlagPolicy
-Qian.Config.FeatureFlagPolicy.Default.get -> bool
-Qian.Config.FeatureFlagPolicy.Default.init -> void
-Qian.Config.FeatureFlagPolicy.FeatureFlagPolicy() -> void
-Qian.Config.FeatureFlagPolicy.Percentage.get -> int
-Qian.Config.FeatureFlagPolicy.Percentage.set -> void
-Qian.Config.FeatureFlagPolicy.Tenants.get -> System.Collections.Generic.IReadOnlyList<System.Guid>!
-Qian.Config.FeatureFlagPolicy.Tenants.set -> void
-Qian.Config.IFeatureFlagDrafts
-Qian.Config.IFeatureFlagDrafts.SetAsync(Qian.Config.FeatureFlagDraft! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Qian.Config.FeatureFlagDraftResult!>
-const Qian.Config.FeatureFlagManagement.SetCapabilityId = "qian.config.flags/flags.set" -> string!
-const Qian.Config.FeatureFlagManagement.SetPermission = "qian.config.flags:flag:set" -> string!
-static readonly Qian.Config.FeatureFlagManagement.Key -> Kun.Runtime.ServiceKey
-Qian.Config.FeatureFlagDraft.IdempotencyKey.get -> System.Guid
-Qian.Config.FeatureFlagDraft.IdempotencyKey.init -> void
+Kun.Configuration.IFeatureFlags
+Kun.Configuration.IFeatureFlags.IsEnabled(string! name, System.Guid tenantId) -> bool
+Kun.Configuration.IConfigService.Flags.get -> Kun.Configuration.IFeatureFlags!
+Kun.Configuration.FeatureFlagDraft
+Kun.Configuration.FeatureFlagDraft.Confirmed.get -> bool
+Kun.Configuration.FeatureFlagDraft.Confirmed.init -> void
+Kun.Configuration.FeatureFlagDraft.FeatureFlagDraft() -> void
+Kun.Configuration.FeatureFlagDraft.Name.get -> string!
+Kun.Configuration.FeatureFlagDraft.Name.init -> void
+Kun.Configuration.FeatureFlagDraft.Rule.get -> Kun.Configuration.FeatureFlagPolicy!
+Kun.Configuration.FeatureFlagDraft.Rule.init -> void
+Kun.Configuration.FeatureFlagDraftResult
+Kun.Configuration.FeatureFlagDraftResult.FeatureFlagDraftResult() -> void
+Kun.Configuration.FeatureFlagDraftResult.Name.get -> string!
+Kun.Configuration.FeatureFlagDraftResult.Name.init -> void
+Kun.Configuration.FeatureFlagDraftResult.RuleHash.get -> string!
+Kun.Configuration.FeatureFlagDraftResult.RuleHash.init -> void
+Kun.Configuration.FeatureFlagDraftResult.Status.get -> string!
+Kun.Configuration.FeatureFlagManagement
+Kun.Configuration.FeatureFlagPolicy
+Kun.Configuration.FeatureFlagPolicy.Default.get -> bool
+Kun.Configuration.FeatureFlagPolicy.Default.init -> void
+Kun.Configuration.FeatureFlagPolicy.FeatureFlagPolicy() -> void
+Kun.Configuration.FeatureFlagPolicy.Percentage.get -> int
+Kun.Configuration.FeatureFlagPolicy.Percentage.set -> void
+Kun.Configuration.FeatureFlagPolicy.Tenants.get -> System.Collections.Generic.IReadOnlyList<System.Guid>!
+Kun.Configuration.FeatureFlagPolicy.Tenants.set -> void
+Kun.Configuration.IFeatureFlagDrafts
+Kun.Configuration.IFeatureFlagDrafts.SetAsync(Kun.Configuration.FeatureFlagDraft! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Configuration.FeatureFlagDraftResult!>
+const Kun.Configuration.FeatureFlagManagement.SetCapabilityId = "qian.config.flags/flags.set" -> string!
+const Kun.Configuration.FeatureFlagManagement.SetPermission = "qian.config.flags:flag:set" -> string!
+static readonly Kun.Configuration.FeatureFlagManagement.Key -> Kun.Runtime.ServiceKey
+Kun.Configuration.FeatureFlagDraft.IdempotencyKey.get -> System.Guid
+Kun.Configuration.FeatureFlagDraft.IdempotencyKey.init -> void

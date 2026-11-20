@@ -6,7 +6,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 // 组件运行时状态：时钟、选用的后端、两个注册表、配额默认值与租户配置读取入口。由 FilesPlugin 在 Apply 中建立，handler 经 FileService 取用。
 internal sealed class FilesRuntime(TimeProvider clock, FileBackendRegistry backends, UploadPolicyRegistry policies, long defaultQuota, Func<ITenantSettings?> settings)

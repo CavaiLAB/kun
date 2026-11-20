@@ -3,7 +3,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 /// <summary>qian.files 的业务上下文：file_objects 一张租户表（RLS 由 Qian 迁移生成器随迁移输出）。宿主以 AddKunData&lt;FilesDbContext&gt; 装配。</summary>
 public sealed class FilesDbContext(DbContextOptions<FilesDbContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant)

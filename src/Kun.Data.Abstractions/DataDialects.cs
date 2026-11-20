@@ -1,5 +1,5 @@
 using Kun.Runtime;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Data;
 

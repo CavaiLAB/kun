@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

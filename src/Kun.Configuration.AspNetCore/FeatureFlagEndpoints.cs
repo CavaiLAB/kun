@@ -13,13 +13,13 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Config.AspNetCore;
+namespace Kun.Configuration.AspNetCore;
 
 /// <summary>平台特性开关草稿写入表面；Bearer 认证，不接受 Cookie 认证，也不提供发布端点。</summary>
 public static class FeatureFlagEndpoints
 {
     /// <summary>挂载可选的草稿入口；source 指向 qian.config.flags 的当前实际上下文，执行端口每次重做权限和审计。</summary>
-    public static IEndpointRouteBuilder MapQianFeatureFlags(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
+    public static IEndpointRouteBuilder MapKunFeatureFlags(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source);
         endpoints.MapPost("/api/config/flags", (RequestDelegate)(async http =>

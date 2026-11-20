@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 // 服务端 MIME 判定：不信任客户端声明。二进制按魔数识别；能解码为文本时先找活跃 Web 标记（HTML / SVG / XML / XHTML），
 // 声明为活跃类型或脚本的文本保持该声明（只会更严格），其余文本沿用声明的文本类型或退为 text/plain；不认识的二进制为 application/octet-stream。

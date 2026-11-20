@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 using Kun.Core.MultiTenancy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Config.Secrets.Tests;
+namespace Kun.Configuration.Secrets.Tests;
 
 public sealed partial class SecretResolverTests
 {
@@ -115,7 +115,7 @@ public sealed partial class SecretResolverTests
         using var root = new ConfigurationRoot([]);
         using var services = new ServiceCollection().AddSingleton<ITenantContext>(tenant)
             .AddSingleton<ISecretAccessObserver>(new Observer())
-            .AddQianSecrets(Options(files.Root)).AddQianConfiguration(root).BuildServiceProvider();
+            .AddKunSecrets(Options(files.Root)).AddKunConfiguration(root).BuildServiceProvider();
         await using var runtime = new PluginLoader(services);
         var config = JsonSerializer.SerializeToElement(new { });
         var scope = new ScopeKey("tenant", TenantA);
@@ -163,7 +163,7 @@ public sealed partial class SecretResolverTests
         grants.Add(new("app/*", "dev"));
         await Assert.ThrowsAsync<ErrorException>(async () => await factory.ForHost("qian.consumer")
             .ResolveAsync("secretRef://dev/app/token", TestContext.Current.CancellationToken));
-        using var services = new ServiceCollection().AddQianSecrets(options).BuildServiceProvider();
+        using var services = new ServiceCollection().AddKunSecrets(options).BuildServiceProvider();
         Assert.Throws<InvalidOperationException>(() => services.GetRequiredService<ISecretResolverFactory>());
     }
     // 模拟 K8s AtomicWriter 的 rename；File.Move 不支持覆盖目录符号链接。

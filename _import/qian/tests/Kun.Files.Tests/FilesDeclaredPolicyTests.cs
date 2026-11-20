@@ -4,7 +4,7 @@ using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // 组件 metadata/upload-policies.json 的汇总规则（S1-FILE-004）：只能声明本组件的用途、同组件取最高版本、已登记的策略优先。
 public sealed class FilesDeclaredPolicyTests

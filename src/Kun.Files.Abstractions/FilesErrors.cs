@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 /// <summary>文件领域的错误词汇，归属 qian.files；跨租户与不存在一律复用 NOT_FOUND，不另立错误码。</summary>
 public static class FilesErrors

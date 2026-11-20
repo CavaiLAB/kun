@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Files.AspNetCore;
+using Kun.Files.AspNetCore;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Surfaces;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // 组合包里 qian.files 的配置（qian.bundle.base 进 platform；qian.bundle.identity-server 的同名条目默认 disabled）：
 // local 后端必须有公开基址，缺 endpoint 会在挂载时报 INPUT_INVALID #/storage/endpoint；基址路径要与直传端点的缺省路径一致。

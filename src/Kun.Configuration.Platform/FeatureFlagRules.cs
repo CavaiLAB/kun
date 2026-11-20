@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 // 规则只含非敏感、平台级的放量策略；租户 ID 是定向条件，不是租户配置存储。
 internal sealed record FeatureFlagRule(bool Default, FrozenSet<Guid> Tenants, int Percentage)

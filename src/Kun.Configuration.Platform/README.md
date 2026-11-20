@@ -1,13 +1,13 @@
-# Qian.Config.Apollo
+# Kun.Configuration.Platform
 
-Apollo 原始 namespace、合并快照和离线缓存强制经过 `SecretSafety` 扫描；`ApolloConfigurationSchema` 可传入敏感属性规则，`ValidateApolloSnapshot` 只能追加校验。秘密通过 Config seam 的 [密钥 Provider](../Qian.Config.Secrets/README.md) 使用时解析，不能以明文写入 Apollo。
+Apollo 原始 namespace、合并快照和离线缓存强制经过 `SecretSafety` 扫描；`ApolloConfigurationSchema` 可传入敏感属性规则，`ValidateApolloSnapshot` 只能追加校验。秘密通过 Config seam 的 [密钥 Provider](../Kun.Configuration.Secrets/README.md) 使用时解析，不能以明文写入 Apollo。
 
 Config seam 的 Provider，复用 Kun.Configuration.Apollo 的协议客户端（项目引用仓库根 `src/` 下的源码，S1-KUN-020）。文件夹包含标准配置源装配、Apollo 引导解析、只读适配器、两个只读插件入口与一个可选草稿管理入口。标准模式只用 IConfiguration；Apollo 模式用于平台/服务配置，租户设置仍由 Tenancy 管理。
 
 ## 独立使用与源顺序
 
 ```csharp
-var root = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
 {
     BasePath = contentRoot,
     EnvironmentName = environmentName,
@@ -15,7 +15,7 @@ var root = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfig
     Arguments = args,
     ResolveAccessKey = reference => secretStore.Resolve(reference)
 }).Build();
-services.AddQianConfiguration(root);
+services.AddKunConfiguration(root);
 services.Configure<SampleOptions>(root.GetSection("Sample"));
 ```
 
@@ -51,14 +51,14 @@ ConfigurationPlugin 对应 qian.config，借用宿主标准配置根。ApolloCon
 ## 强类型配置：先校验、失败保留旧值
 
 ```csharp
-services.AddQianOptions<SampleOptions>("Sample", (section, options) =>
+services.AddKunOptions<SampleOptions>("Sample", (section, options) =>
 {
     if (section["PageSize"] is { } value) options.PageSize = int.Parse(value, CultureInfo.InvariantCulture);
 }, plugin: "qian.sample", schema: SampleJson.Default.SampleOptions);
 services.AddSingleton<IValidateOptions<SampleOptions>, SampleOptionsValidator>(); // [OptionsValidator] 源生成的 DataAnnotations 校验器
 ```
 
-`AddQianOptions<T>` 把 `ValidatedOptionsMonitor<T>` 登记为 `IOptionsMonitor<T>`：配置根变更后先构造并校验候选值（`IValidateOptions<T>`，以及绑定委托抛出的格式、溢出与操作异常），通过才替换并通知监听者。失败时保留上一份有效值、不通知监听者，计数 `qian.config.reload.failed`（Meter `Qian.Config`，Prometheus 导出名 `qian_config_reload_failed_total`，标签 `options.type`、`options.name`、`plugin`），记 Warning 日志（EventId 2101，不含值），并在配置组件挂载期间发进程内事件 `config/reload-failed`；修正后的下一次变更照常生效。`critical` 默认 true，经 `ValidateOnStart` 在启动时校验；设为 false 时首次读取才校验，首次读取失败直接抛出。同一类型只能登记一次。绑定由调用方委托完成，不走反射绑定，配合源生成校验器接受 AOT 分析；本包打开 `IsAotCompatible` 启用兼容性分析；`qian.config.apollo` 的实际兼容声明以 GW-001 的完整生产宿主严格 Linux NativeAOT 发布与真实 Apollo 运行证据为依据，默认 gateway 已恢复 AOT。业务镜像交付仍由 DEP-008 验收。传入 `schema`（`JsonTypeInfo<T>`）时同时登记 `QianOptionsSchema`，`Export()` 输出不含配置值的 JSON Schema 2020-12。
+`AddKunOptions<T>` 把 `ValidatedOptionsMonitor<T>` 登记为 `IOptionsMonitor<T>`：配置根变更后先构造并校验候选值（`IValidateOptions<T>`，以及绑定委托抛出的格式、溢出与操作异常），通过才替换并通知监听者。失败时保留上一份有效值、不通知监听者，计数 `qian.config.reload.failed`（Meter `Kun.Configuration`，Prometheus 导出名 `qian_config_reload_failed_total`，标签 `options.type`、`options.name`、`plugin`），记 Warning 日志（EventId 2101，不含值），并在配置组件挂载期间发进程内事件 `config/reload-failed`；修正后的下一次变更照常生效。`critical` 默认 true，经 `ValidateOnStart` 在启动时校验；设为 false 时首次读取才校验，首次读取失败直接抛出。同一类型只能登记一次。绑定由调用方委托完成，不走反射绑定，配合源生成校验器接受 AOT 分析；本包打开 `IsAotCompatible` 启用兼容性分析；`qian.config.apollo` 的实际兼容声明以 GW-001 的完整生产宿主严格 Linux NativeAOT 发布与真实 Apollo 运行证据为依据，默认 gateway 已恢复 AOT。业务镜像交付仍由 DEP-008 验收。传入 `schema`（`JsonTypeInfo<T>`）时同时登记 `KunOptionsSchema`，`Export()` 输出不含配置值的 JSON Schema 2020-12。
 
 Kun 的 `AddKunOptions` 三个重载都要求动态代码，`LastGoodOptionsMonitor` 是 internal 且没有失败钩子，所以本包自带等价监视器（S1-CFG-003 路线 b）；Kun 补上 AOT 入口与失败钩子后可以改回复用。
 
@@ -72,10 +72,10 @@ ApolloConfigurationPlugin 把每个 namespace 快照的接受与拒绝写进平�
 
 ## 配置 Schema 与配置值接口
 
-`Qian.Config.AspNetCore` 只依赖 Definition 与 Runtime：
+`Kun.Configuration.AspNetCore` 只依赖 Definition 与 Runtime：
 
 ```csharp
-app.MapQianConfig(http => configContext); // global 配置组件上下文，须能注入 Registry、Config 与 AuthzEnforcement
+app.MapKunConfig(http => configContext); // global 配置组件上下文，须能注入 Registry、Config 与 AuthzEnforcement
 ```
 
 - `GET /api/config/schemas/{plugin}`：对已认证调用方返回组件 config.schema 原文（`application/schema+json`），不含配置值。Schema 只取 Registry 预装集合中由 `RegistryComponentBinding.FromArtifact` 捕获的制品文件；未预装、只有静态绑定（没有文件快照）或没有 Schema 的组件为 404。
@@ -84,11 +84,11 @@ app.MapQianConfig(http => configContext); // global 配置组件上下文，须�
 
 ## Apollo namespace 骨架
 
-组件私有 namespace 为 `qian.plugin.<组件 id>`，键名约定 `qian.plugin.<组件 id>:<属性路径>`（带 namespace 名，合并进 `IConfiguration` 后不与其它组件或 application 撞键，组件以 `ReadSection("qian.plugin.<组件 id>")` 读取）。[Qian.Config.Tool](../../tools/Qian.Config.Tool/README.md) 由组件 config.schema 推导每个宿主的 namespace 骨架并比对线上键，缺键、多键即非零退出。
+组件私有 namespace 为 `qian.plugin.<组件 id>`，键名约定 `qian.plugin.<组件 id>:<属性路径>`（带 namespace 名，合并进 `IConfiguration` 后不与其它组件或 application 撞键，组件以 `ReadSection("qian.plugin.<组件 id>")` 读取）。[Kun.Configuration.Tool](../../tools/Kun.Configuration.Tool/README.md) 由组件 config.schema 推导每个宿主的 namespace 骨架并比对线上键，缺键、多键即非零退出。
 
 ## 运维边界
 
-L0–L4 降级矩阵、排查顺序与证据见 [配置运维手册](../../docs/ops/configuration-runbook.md)。
+L0–L4 降级矩阵、排查顺序与证据见 [配置运维手册](../../_import/qian/docs/ops/configuration-runbook.md)。
 
 ## 验证与边界
 
@@ -104,7 +104,7 @@ L0–L4 降级矩阵、排查顺序与证据见 [配置运维手册](../../docs/
 
 ## 特性开关与草稿管理
 
-`IFeatureFlags` 是 Config seam 的只读子端口：组件通过 `ctx.Config().Flags.IsEnabled(name, tenantId)` 求值，独立宿主的 `AddQianConfiguration` 同时登记 `IFeatureFlags`。它不查询权益、不增删租户 scope，也不把灰度规则当作租户设置。规则源为公共 namespace `qian.common.flags` 的 `flag.<name>`；标准 IConfiguration 模式可提供同样的键。配置优先级沿既有源顺序，Apollo 原始 namespace 和合并快照都先校验，合法高优先级覆盖仍被允许。
+`IFeatureFlags` 是 Config seam 的只读子端口：组件通过 `ctx.Config().Flags.IsEnabled(name, tenantId)` 求值，独立宿主的 `AddKunConfiguration` 同时登记 `IFeatureFlags`。它不查询权益、不增删租户 scope，也不把灰度规则当作租户设置。规则源为公共 namespace `qian.common.flags` 的 `flag.<name>`；标准 IConfiguration 模式可提供同样的键。配置优先级沿既有源顺序，Apollo 原始 namespace 和合并快照都先校验，合法高优先级覆盖仍被允许。
 
 首次启用时先在 Apollo 建立并发布公共 namespace `qian.common.flags`；跨应用消费先关联该公共 namespace。随后在消费宿主的可信 `Apollo:Namespaces` 引导和该宿主 `qian.config.apollo` 条目的 `config.namespaces` 中同时加入它，两处必须与真实配置源匹配。用该宿主自己的配置或 patch 声明订阅；仓库默认 base / gateway / identity-server 仍保留原订阅列表，不因引入这个库自动请求新 namespace。没有订阅或没有该规则时默认 false；已声明但服务端不存在或尚未发布的 namespace 会按现有启动门拒绝，不能把 404 当作有效空配置。
 
@@ -125,15 +125,15 @@ L0–L4 降级矩阵、排查顺序与证据见 [配置运维手册](../../docs/
 {"default":false,"tenants":["00000000-0000-0000-0000-000000000001"],"percentage":10}
 ```
 
-[规则 Schema](../../plugins/qian.config.apollo/schemas/feature-flag.rule.schema.json) 固定三个字段：必填布尔 `default`、可选且不重复的非空规范 UUID 白名单 `tenants`（最多 256 项）、可选整数 `percentage`（0–100）。拒绝未知或重复属性、空租户、非整数百分比、超界与超过 16 KiB 的规则，最多 1024 个开关。名称为 1–100 个小写 ASCII 字符，首字符为字母，其余可为字母、数字、点、下划线或连字符。名称区分大小写，不能借 IConfiguration 的不区分大小写行为建立别名。
+[规则 Schema](../../_import/qian/plugins/qian.config.apollo/schemas/feature-flag.rule.schema.json) 固定三个字段：必填布尔 `default`、可选且不重复的非空规范 UUID 白名单 `tenants`（最多 256 项）、可选整数 `percentage`（0–100）。拒绝未知或重复属性、空租户、非整数百分比、超界与超过 16 KiB 的规则，最多 1024 个开关。名称为 1–100 个小写 ASCII 字符，首字符为字母，其余可为字母、数字、点、下划线或连字符。名称区分大小写，不能借 IConfiguration 的不区分大小写行为建立别名。
 
 求值顺序为白名单命中 true → 百分比命中 true → default；没有该名称返回 false。稳定桶协议为 `SHA-256(UTF8(name + "\n" + tenantId.ToString("D")))` 前 8 字节的大端无符号整数模 10000，桶小于 `percentage × 100` 即命中。同一个规则名与租户跨进程相同；百分比增加时原来命中的集合保留。它与进程随机化的 GetHashCode 无关。
 
 首次规则无效时拒绝取得服务；热更新先建立完整候选快照，任何规则无效即保留整份旧快照。标准源触发已有 `qian.config.reload.failed` 指标与 `config/reload-failed` 事件，日志不含值；Apollo 候选在进入缓存之前被拒绝，并复用发布拒绝审计。卸载只释放本实例监听器，已取得的灰度端口失效，宿主配置根仍由宿主拥有。
 
-可选的 [`qian.config.flags`](../../plugins/qian.config.flags/README.md) 独立负责草稿写入。S1-DEC-031 选择只保存草稿、Portal 人工发布：固定 Portal OpenAPI `PUT` 编辑，禁止重定向，不调用 release；编辑 Token 只授予目标 namespace 的 ModifyNamespace，独立操作员持有 ReleaseNamespace。每次请求经 Config 的秘密解析器取得平台 `secretRef://platform/apollo/flags/...`，不缓存 Token、不把它放入工具输入。Apollo 响应正文不进入错误或日志。
+可选的 [`qian.config.flags`](../../_import/qian/plugins/qian.config.flags/README.md) 独立负责草稿写入。S1-DEC-031 选择只保存草稿、Portal 人工发布：固定 Portal OpenAPI `PUT` 编辑，禁止重定向，不调用 release；编辑 Token 只授予目标 namespace 的 ModifyNamespace，独立操作员持有 ReleaseNamespace。每次请求经 Config 的秘密解析器取得平台 `secretRef://platform/apollo/flags/...`，不缓存 Token、不把它放入工具输入。Apollo 响应正文不进入错误或日志。
 
-可信宿主通过 `AddQianFeatureFlagManagement` 登记 `bindingId → ApolloFlagManagementBinding`，包含 Portal 根地址、AppId、UAT/PRO、Cluster、Portal 已存在操作员、Token 引用及 NativeData 平台回执绑定名；组件 JSON 只写 `{"bindingId":"primary"}`。该入口在本组件挂载时才登记实际 `FeatureFlagDrafts` 与执行绑定，不是绕过组件模型的任意配置写接口。默认 profile 不安装它。需要 HTTP 的宿主显式调用 `MapQianFeatureFlags`，通过 `POST /api/config/flags` 调用同一执行端口；入口固定要求 Bearer scheme，不接受 Cookie 认证，响应 `private, no-store`。
+可信宿主通过 `AddKunFeatureFlagManagement` 登记 `bindingId → ApolloFlagManagementBinding`，包含 Portal 根地址、AppId、UAT/PRO、Cluster、Portal 已存在操作员、Token 引用及 NativeData 平台回执绑定名；组件 JSON 只写 `{"bindingId":"primary"}`。该入口在本组件挂载时才登记实际 `FeatureFlagDrafts` 与执行绑定，不是绕过组件模型的任意配置写接口。默认 profile 不安装它。需要 HTTP 的宿主显式调用 `MapKunFeatureFlags`，通过 `POST /api/config/flags` 调用同一执行端口；入口固定要求 Bearer scheme，不接受 Cookie 认证，响应 `private, no-store`。
 
 `flags.set` 元数据为 `write`、`confirm`、`requiresConfirmation:true`、`idempotent:true`，要求 `qian.config.flags:flag:set`。输入包括 `name`、`rule`、必填非空 UUID `idempotencyKey` 和 `confirmed:true`；确认字段只表达显式动作确认，不能代替身份、权限或未来 S3 审批票据。执行每次重读宿主已经认证的 ICurrentUser，拒绝租户、Agent 与委托主体，经 AuthzEnforcement 的平台旁路判定，再先写平台审计；任一前置失败都不请求 Portal。S1 不向 Agent 开放此平台工具。
 

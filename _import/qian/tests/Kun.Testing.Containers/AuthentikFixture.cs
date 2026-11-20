@@ -6,7 +6,7 @@ using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
 using Testcontainers.PostgreSql;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// 真实 Authentik（server + worker + 专属 PostgreSQL），作为 OIDC 连接器的上游身份源（S1-IDP-007 验收 1）。

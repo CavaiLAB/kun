@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Qian.Testing.NativeData;
 
 namespace Kun.Data.Native.Postgres.Tests;

@@ -1,8 +1,8 @@
 # qian.files
 
-文件组件的 Provider 位于 [packages/Qian.Files](../../packages/Qian.Files/README.md)，Definition 在 [Qian.Files.Abstractions](../../packages/Qian.Files.Abstractions/README.md)，HTTP 表面在 [Qian.Files.AspNetCore](../../packages/Qian.Files.AspNetCore/README.md)（S1-FILE-001）。已提供租户前缀存储键、用途上传策略、租户配额、local 后端的签名直传 / 直下、完成时服务端校验与隔离、附件下载、审计与 `files.object.created/deleted.v1` 事件。
+文件组件的 Provider 位于 [packages/Qian.Files](../../../../src/Kun.Files/README.md)，Definition 在 [Kun.Files.Abstractions](../../../../src/Kun.Files.Abstractions/README.md)，HTTP 表面在 [Kun.Files.AspNetCore](../../../../src/Kun.Files.AspNetCore/README.md)（S1-FILE-001）。已提供租户前缀存储键、用途上传策略、租户配额、local 后端的签名直传 / 直下、完成时服务端校验与隔离、附件下载、审计与 `files.object.created/deleted.v1` 事件。
 
-清单的 inject、provides 与 runtime 字段，以及 `tools/*.json`（六个能力 `qian.files/presign-upload`、`complete-upload`、`get`、`download-url`、`delete`、`quota`）由 Kun.Plugin.Tool 从实际程序集同步，CI 的 `scripts/check_plugin_manifests.py` 发现入口后核对不漂移；`provides` 含 local 后端的具名贡献 `Files.Backends:local`（入口上的 `[Contributes]` 声明）。`runtime.nuget` 钉 `Qian.Files.Abstractions` 与 `Qian.Files` 的锁步版本和归档摘要，发布后人工同步（发布链给出待同步清单归 S1-RT-034）。
+清单的 inject、provides 与 runtime 字段，以及 `tools/*.json`（六个能力 `qian.files/presign-upload`、`complete-upload`、`get`、`download-url`、`delete`、`quota`）由 Kun.Plugin.Tool 从实际程序集同步，CI 的 `scripts/check_plugin_manifests.py` 发现入口后核对不漂移；`provides` 含 local 后端的具名贡献 `Files.Backends:local`（入口上的 `[Contributes]` 声明）。`runtime.nuget` 钉 `Kun.Files.Abstractions` 与 `Kun.Files` 的锁步版本和归档摘要，发布后人工同步（发布链给出待同步清单归 S1-RT-034）。
 
 - `schemas/config.schema.json`：`storage`（`kind`；local 还须 `root` 与 `endpoint`）、`quota.perTenantBytes`（平台默认，租户覆盖经租户配置优先）、`policies[]`（平台默认上传策略）。各层都不接受未知字段，也没有任何下载处置开关。
 - `metadata/permissions.json` 与 `metadata/roles.json`：资源 `file` 的 read / write / delete（write 中风险、delete 高风险）；tenant.owner 与 tenant.admin 全权，tenant.developer 与 tenant.user 只读写、不能删除。

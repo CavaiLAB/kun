@@ -9,9 +9,9 @@ using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Files.AspNetCore;
+namespace Kun.Files.AspNetCore;
 
-/// <summary><see cref="FilesEndpoints.MapQianFiles"/> 的可选项。</summary>
+/// <summary><see cref="FilesEndpoints.MapKunFiles"/> 的可选项。</summary>
 public sealed class FilesEndpointOptions
 {
     /// <summary>端点绑定的安装条目 ID（<see cref="PluginEndpointBinding.EntryId"/>）。</summary>
@@ -38,7 +38,7 @@ public static class FilesEndpoints
     /// 例如 <c>(endpoint, permission) =&gt; endpoint.RequireKunPermission(permission)</c>（Kun.Authorization.AspNetCore）。只加元数据而不接 PEP 的回调在构建端点时即被拒绝。
     /// 宿主须先装配认证、可信租户边界、PEP 与 ErrorDetail 中间件（AddKunErrors / UseKunErrors）。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianFiles(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source,
+    public static IEndpointRouteBuilder MapKunFiles(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source,
         Action<RouteHandlerBuilder, string> requirePermission, FilesEndpointOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(source); ArgumentNullException.ThrowIfNull(requirePermission);

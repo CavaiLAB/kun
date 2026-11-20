@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Text.Json;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Plugin.Sdk;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 public sealed class ConfigMetadataTests
 {
@@ -14,15 +14,15 @@ public sealed class ConfigMetadataTests
             .Select(attribute => Assert.IsAssignableFrom<IComponentCodeMetadataFactory>(Activator.CreateInstance(attribute.FactoryType)).Create())
             .ToDictionary(item => item.ComponentId, StringComparer.Ordinal);
         Assert.Equal(3, metadata.Count);
-        Assert.Equal("Qian.Config.Apollo.ConfigurationPlugin, Qian.Config.Apollo", metadata["qian.config"].RuntimeEntry);
-        Assert.Equal("Qian.Config.Apollo.ApolloConfigurationPlugin, Qian.Config.Apollo", metadata["qian.config.apollo"].RuntimeEntry);
+        Assert.Equal("Kun.Configuration.Platform.ConfigurationPlugin, Kun.Configuration.Platform", metadata["qian.config"].RuntimeEntry);
+        Assert.Equal("Kun.Configuration.Platform.ApolloConfigurationPlugin, Kun.Configuration.Platform", metadata["qian.config.apollo"].RuntimeEntry);
         var expected = Assert.Single(metadata["qian.config"].Events.EnumerateArray());
         Assert.True(JsonElement.DeepEquals(expected, Assert.Single(metadata["qian.config.apollo"].Events.EnumerateArray())));
         Assert.Equal("qian.config", expected.GetProperty("definitionComponent").GetString());
         Assert.Equal(ConfigRuntimeEvents.ReloadFailed.Name, expected.GetProperty("name").GetString());
         Assert.Equal("emit", expected.GetProperty("mode").GetString());
         Assert.Equal(typeof(ConfigReloadFailed).FullName, expected.GetProperty("payload").GetString());
-        Assert.Equal("Qian.Config.ConfigRuntimeEvents.ReloadFailed", expected.GetProperty("source").GetString());
+        Assert.Equal("Kun.Configuration.ConfigRuntimeEvents.ReloadFailed", expected.GetProperty("source").GetString());
 
         var root = RepositoryRoot();
         foreach (var (id, code) in metadata.Where(pair => pair.Key != "qian.config.flags"))

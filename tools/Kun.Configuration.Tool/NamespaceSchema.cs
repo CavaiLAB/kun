@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 
-namespace Qian.Config.Tool;
+namespace Kun.Configuration.Tool;
 
 // 组件 config.schema 的键结构。支持 properties / required / additionalProperties / items / type / enum / const / default /
 // x-qian-sensitive 与文档内 $ref；oneOf / anyOf / allOf 的分支属性并入（只有 allOf 与 $ref 的 required 计入），

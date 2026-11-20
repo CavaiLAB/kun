@@ -1,4 +1,4 @@
-# Qian.Config.Abstractions
+# Kun.Configuration.Abstractions
 
 - 本包定义 Config seam 的只读端口、错误词汇、事件与审计能力 ID、权限点常量；S1-CFG-004 / S1-DEC-031 另定义可选 FeatureFlagDrafts 草稿管理契约。Config 本身仍无写方法，管理输入不能接收任意配置键、地址、namespace、操作员或 Token；不实现 Apollo、租户配置或密钥存储。
 - 事件载荷与审计相关类型不得携带配置值。

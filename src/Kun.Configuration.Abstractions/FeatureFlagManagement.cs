@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Kun.Runtime;
 
-namespace Qian.Config;
+namespace Kun.Configuration;
 
 /// <summary>可选平台管理组件的声明；只保存 Apollo 草稿，发布仍由 Portal 操作员完成。</summary>
 public static class FeatureFlagManagement

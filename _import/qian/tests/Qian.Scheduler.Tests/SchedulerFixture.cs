@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Kun.Data;
 using Qian.Scheduler.TestHost;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Qian.Scheduler.Tests;
 

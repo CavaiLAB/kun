@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Qian.Config;
+using Kun.Configuration;
 using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Surfaces;
@@ -10,7 +10,7 @@ var apollo = args.Length != 0 && args[0] == "--apollo";
 var files = apollo ? args[1..] : args;
 if (files.Length is < 1 or > 2)
 {
-    Console.Error.WriteLine("用法：Qian.Secrets.Tool [--apollo] <配置 JSON> [配置 Schema JSON]\n      Qian.Secrets.Tool --profiles <仓库根> [profile 名称...]");
+    Console.Error.WriteLine("用法：Kun.Configuration.Secrets.Tool [--apollo] <配置 JSON> [配置 Schema JSON]\n      Kun.Configuration.Secrets.Tool --profiles <仓库根> [profile 名称...]");
     return 2;
 }
 try

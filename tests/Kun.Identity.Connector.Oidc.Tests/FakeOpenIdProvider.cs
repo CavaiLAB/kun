@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Identity.Connector.Oidc.Tests;
 

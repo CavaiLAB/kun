@@ -1,4 +1,4 @@
-# Qian.Config.Secrets
+# Kun.Configuration.Secrets
 
 - 公开引用按组件模型 v2；k8s 定位只属于可信存储绑定，不给模型直接访问文件路径。
 - 声明与已审批权限取交集；租户引用同时检查真实租户上下文。

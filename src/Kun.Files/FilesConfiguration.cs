@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Errors;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 internal sealed record FilesSettings(string Kind, JsonElement Storage, long QuotaPerTenantBytes, IReadOnlyList<UploadPolicy> Policies);
 

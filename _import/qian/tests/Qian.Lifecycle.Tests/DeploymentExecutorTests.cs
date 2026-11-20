@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Qian.Registry;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Qian.Lifecycle.Tests;
 

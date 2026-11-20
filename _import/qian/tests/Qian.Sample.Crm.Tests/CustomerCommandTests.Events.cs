@@ -9,7 +9,7 @@ using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using RabbitMQ.Client;
 
 namespace Qian.Sample.Crm.Tests;

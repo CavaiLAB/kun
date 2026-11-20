@@ -6,7 +6,7 @@ using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 /// <summary>可选平台草稿管理组件；绑定目标来自可信宿主，只编辑 qian.common.flags。</summary>
 [KunPlugin("qian.config.flags")]
@@ -34,7 +34,7 @@ internal sealed class FeatureFlagManagementImplementation : IKunPlugin
         if (ctx.Scope != ScopeKey.Global || ctx.Entry.Scope != ScopeKey.Global || config.ValueKind != JsonValueKind.Object || config.EnumerateObject().Count() != 1 ||
             !config.TryGetProperty("bindingId", out var bindingId) || bindingId.ValueKind != JsonValueKind.String ||
             ctx.Services.GetService<FlagManagementBindings>() is not { } bindings ||
-            !bindings.Items.TryGetValue(bindingId.GetString()!, out var binding)) throw QianConfigurationExtensions.Invalid("flags.bindingId");
+            !bindings.Items.TryGetValue(bindingId.GetString()!, out var binding)) throw KunConfigurationExtensions.Invalid("flags.bindingId");
         await new FlagDraftReceipts(ctx, binding).ValidateAsync(ct).ConfigureAwait(false);
         var capability = new FlagDraftCapability(ctx, binding);
         ctx.Effect(capability);

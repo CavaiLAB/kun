@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Kun.Authorization.Rbac;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using RabbitMQ.Client;
 using StackExchange.Redis;
 

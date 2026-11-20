@@ -1,7 +1,7 @@
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 
-namespace Qian.Testing.Containers.IntegrationTests;
+namespace Kun.Testing.Containers.Tests;
 
 /// <summary>单元测试：不需要 Docker，不进 SharedInfrastructure collection。</summary>
 public sealed class DockerRequirementTests

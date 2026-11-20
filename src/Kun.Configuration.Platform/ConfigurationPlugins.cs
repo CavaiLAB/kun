@@ -7,7 +7,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 /// <summary>标准配置适配器，借用宿主配置根；只撤销本组件拥有的服务登记。</summary>
 [KunPlugin("qian.config", MetadataTypes = [typeof(ConfigRuntimeEvents)])]
@@ -21,14 +21,14 @@ public sealed class ConfigurationPlugin : IKunPlugin
     {
         ct.ThrowIfCancellationRequested();
         if (ctx.Scope != ScopeKey.Global || config.ValueKind != JsonValueKind.Object || config.EnumerateObject().Any())
-            throw QianConfigurationExtensions.Invalid("qian.config");
+            throw KunConfigurationExtensions.Invalid("qian.config");
         // 标准入口保持直接登记，清单派生不会执行插件或辅助方法。
         var root = ctx.Services.GetRequiredService<IConfiguration>();
         ctx.Effect(ConfigErrors.Register(ctx.Services.GetRequiredService<ErrorCatalog>()));
         var flags = CreateFlags(ctx.Services, root);
         ctx.Effect(flags);
         ctx.Provide<IConfigService>(ConfigDefinition.Key, new ConfigurationService(root, flags, ctx.Services.GetService<ISecretResolverFactory>()));
-        // 宿主用 AddQianOptions 登记过强类型配置时，挂载期间把重载失败作为进程内事件发出。
+        // 宿主用 AddKunOptions 登记过强类型配置时，挂载期间把重载失败作为进程内事件发出。
         if (ctx.Services.GetService<ConfigReloadNotifier>() is { } notifier)
             ctx.Effect(notifier.Subscribe(async notice => await ctx.DispatchAsync(ConfigRuntimeEvents.ReloadFailed, notice.Payload, CancellationToken.None).ConfigureAwait(false)));
         return ValueTask.CompletedTask;
@@ -36,7 +36,7 @@ public sealed class ConfigurationPlugin : IKunPlugin
     private static FeatureFlagsService CreateFlags(IServiceProvider services, IConfiguration root)
     {
         var flags = new FeatureFlagsService(root, services.GetService<ConfigReloadNotifier>() ?? new ConfigReloadNotifier(),
-            services.GetService<ILoggerFactory>()?.CreateLogger("Qian.Config.Flags") ?? NullLogger.Instance);
+            services.GetService<ILoggerFactory>()?.CreateLogger("Kun.Configuration.Platform.Flags") ?? NullLogger.Instance);
         return flags;
     }
 
@@ -78,14 +78,14 @@ internal sealed class ApolloConfigurationImplementation : IKunPlugin
     {
         ct.ThrowIfCancellationRequested();
         if (ctx.Scope != ScopeKey.Global || config.ValueKind != JsonValueKind.Object)
-            throw QianConfigurationExtensions.Invalid("qian.config.apollo");
+            throw KunConfigurationExtensions.Invalid("qian.config.apollo");
         var providers = Find(ctx.Services.GetRequiredService<IConfiguration>(), new HashSet<IConfiguration>(ReferenceEqualityComparer.Instance)).ToArray();
-        if (providers.Length != 1) throw QianConfigurationExtensions.Invalid("Apollo.provider");
+        if (providers.Length != 1) throw KunConfigurationExtensions.Invalid("Apollo.provider");
         var source = providers[0];
         var names = new HashSet<string>(StringComparer.Ordinal);
         foreach (var property in config.EnumerateObject())
         {
-            if (!names.Add(property.Name)) throw QianConfigurationExtensions.Invalid("Apollo.config");
+            if (!names.Add(property.Name)) throw KunConfigurationExtensions.Invalid("Apollo.config");
             var matches = property.Name switch
             {
                 "appId" => property.Value.ValueKind == JsonValueKind.String && property.Value.GetString() == source.AppId,
@@ -97,19 +97,19 @@ internal sealed class ApolloConfigurationImplementation : IKunPlugin
                         .SequenceEqual(source.Namespaces.Order(StringComparer.Ordinal)),
                 _ => false
             };
-            if (!matches) throw QianConfigurationExtensions.Invalid("Apollo.config." + property.Name);
+            if (!matches) throw KunConfigurationExtensions.Invalid("Apollo.config." + property.Name);
         }
         ConfigurationPlugin.Register(ctx);
         ApolloReleaseAudit.Attach(ctx, source.Releases);
         return ValueTask.CompletedTask;
     }
 
-    private static IEnumerable<QianApolloProvider> Find(IConfiguration configuration, HashSet<IConfiguration> visited)
+    private static IEnumerable<KunApolloProvider> Find(IConfiguration configuration, HashSet<IConfiguration> visited)
     {
         if (!visited.Add(configuration) || configuration is not IConfigurationRoot root) yield break;
         foreach (var provider in root.Providers)
         {
-            if (provider is QianApolloProvider apollo) yield return apollo;
+            if (provider is KunApolloProvider apollo) yield return apollo;
             if (provider is ChainedConfigurationProvider chained)
                 foreach (var nested in Find(chained.Configuration, visited)) yield return nested;
         }

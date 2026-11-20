@@ -1,13 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Errors;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 [Collection(RealApolloGroup.Name)]
 public sealed class RealApolloPortalProtocolTests(RealApolloPortalFixture apollo, PostgresFixture postgres) : IClassFixture<PostgresFixture>
@@ -30,7 +30,7 @@ public sealed class RealApolloPortalProtocolTests(RealApolloPortalFixture apollo
         var directory = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "qian-flags-portal-" + Guid.NewGuid().ToString("N"))).FullName;
         try
         {
-            var root = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+            var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
             {
                 BasePath = directory, Arguments = ["--Apollo:AppId=" + apollo.AppId, "--Apollo:Env=UAT",
                     "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri, "--Apollo:Namespaces:0=qian.common.flags"]

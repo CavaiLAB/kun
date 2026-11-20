@@ -7,11 +7,11 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Runtime;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 // S1-CFG-003 验收 1：强类型配置热更新先校验，失败保留旧值、计数并发告警，修正后恢复。
 public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFixture<ApolloFixture>
@@ -28,14 +28,14 @@ public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFix
         try
         {
             await apollo.PublishAsync(appId, "application", new Dictionary<string, string> { ["Sample:PageSize"] = "10" }, cancellationToken: ct);
-            var root = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+            var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
             {
                 BasePath = directory,
                 Arguments = ["--Apollo:AppId=" + appId, "--Apollo:Env=UAT", "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri.AbsoluteUri]
             }).Build();
             using var owner = (IDisposable)root;
-            var services = new ServiceCollection().AddQianConfiguration(root);
-            services.AddQianOptions<SampleOptions>("Sample", Bind, plugin: "qian.sample", schema: SampleJson.Default.SampleOptions);
+            var services = new ServiceCollection().AddKunConfiguration(root);
+            services.AddKunOptions<SampleOptions>("Sample", Bind, plugin: "qian.sample", schema: SampleJson.Default.SampleOptions);
             services.AddSingleton<IValidateOptions<SampleOptions>, SampleOptionsValidator>();
             await using var provider = services.BuildServiceProvider();
             var monitor = provider.GetRequiredService<IOptionsMonitor<SampleOptions>>();
@@ -88,24 +88,24 @@ public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFix
         using var metrics = new FailureMeter(typeof(BindOnlyOptions).FullName!);
         var root = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Sample:PageSize"] = "500", ["Other:PageSize"] = "7" }).Build();
 
-        var critical = new ServiceCollection().AddQianConfiguration(root);
-        critical.AddQianOptions<SampleOptions>("Sample", Bind);
+        var critical = new ServiceCollection().AddKunConfiguration(root);
+        critical.AddKunOptions<SampleOptions>("Sample", Bind);
         critical.AddSingleton<IValidateOptions<SampleOptions>, SampleOptionsValidator>();
         await using (var provider = critical.BuildServiceProvider())
             Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IStartupValidator>().Validate());
 
-        var optional = new ServiceCollection().AddQianConfiguration(root);
-        optional.AddQianOptions<SampleOptions>("Sample", Bind, critical: false);
+        var optional = new ServiceCollection().AddKunConfiguration(root);
+        optional.AddKunOptions<SampleOptions>("Sample", Bind, critical: false);
         optional.AddSingleton<IValidateOptions<SampleOptions>, SampleOptionsValidator>();
         await using (var provider = optional.BuildServiceProvider())
         {
             Assert.Null(provider.GetService<IStartupValidator>());
             Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IOptionsMonitor<SampleOptions>>().CurrentValue);
-            Assert.Throws<InvalidOperationException>(() => optional.AddQianOptions<SampleOptions>("Sample", Bind));
+            Assert.Throws<InvalidOperationException>(() => optional.AddKunOptions<SampleOptions>("Sample", Bind));
         }
 
-        var binding = new ServiceCollection().AddQianConfiguration(root);
-        binding.AddQianOptions<BindOnlyOptions>("Other", (section, options) => options.PageSize = int.Parse(section["PageSize"]!, CultureInfo.InvariantCulture));
+        var binding = new ServiceCollection().AddKunConfiguration(root);
+        binding.AddKunOptions<BindOnlyOptions>("Other", (section, options) => options.PageSize = int.Parse(section["PageSize"]!, CultureInfo.InvariantCulture));
         await using (var provider = binding.BuildServiceProvider())
         {
             var monitor = provider.GetRequiredService<IOptionsMonitor<BindOnlyOptions>>();
@@ -122,10 +122,10 @@ public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFix
     public void 登记Schema时导出不含配置值的JSON_Schema_2020_12()
     {
         var root = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Sample:PageSize"] = "42" }).Build();
-        var services = new ServiceCollection().AddQianConfiguration(root);
-        services.AddQianOptions<SampleOptions>("Sample", Bind, schema: SampleJson.Default.SampleOptions);
+        var services = new ServiceCollection().AddKunConfiguration(root);
+        services.AddKunOptions<SampleOptions>("Sample", Bind, schema: SampleJson.Default.SampleOptions);
         using var provider = services.BuildServiceProvider();
-        var schema = Assert.Single(provider.GetServices<QianOptionsSchema>());
+        var schema = Assert.Single(provider.GetServices<KunOptionsSchema>());
         Assert.Equal(("Sample", typeof(SampleOptions).FullName), (schema.Section, schema.OptionsType));
         var exported = schema.Export();
         Assert.Equal("https://json-schema.org/draft/2020-12/schema", exported["$schema"]!.GetValue<string>());
@@ -146,7 +146,7 @@ public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFix
     }
     public sealed class BindOnlyOptions { public int PageSize { get; set; } }
 
-    // DataAnnotations 走 Options 源生成校验器，不用反射；与 AddQianOptions 一起在 AOT profile 可用。
+    // DataAnnotations 走 Options 源生成校验器，不用反射；与 AddKunOptions 一起在 AOT profile 可用。
     [OptionsValidator]
     public sealed partial class SampleOptionsValidator : IValidateOptions<SampleOptions>;
 
@@ -178,7 +178,7 @@ public sealed partial class OptionsReloadTests(ApolloFixture apollo) : IClassFix
             _type = type;
             _listener.InstrumentPublished = (instrument, listener) =>
             {
-                if (instrument.Meter.Name == "Qian.Config" && instrument.Name == "qian.config.reload.failed") listener.EnableMeasurementEvents(instrument);
+                if (instrument.Meter.Name == "Kun.Configuration.Platform" && instrument.Name == "qian.config.reload.failed") listener.EnableMeasurementEvents(instrument);
             };
             _listener.SetMeasurementEventCallback<long>((_, value, tags, _) =>
             {

@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Kun.Errors;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 /// <summary>固定配置源顺序，复用 Kun 的协议、缓存、签名与重载实现。</summary>
-public static class QianConfigurationExtensions
+public static class KunConfigurationExtensions
 {
     /// <summary>向空构建器加入 appsettings、Apollo、Secret 文件、环境变量和命令行。</summary>
-    public static IConfigurationBuilder AddQianConfigurationSources(this IConfigurationBuilder builder, QianConfigurationOptions options)
+    public static IConfigurationBuilder AddKunConfigurationSources(this IConfigurationBuilder builder, KunConfigurationOptions options)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(options);
@@ -30,14 +30,14 @@ public static class QianConfigurationExtensions
             var bootstrap = bootstrapBuilder.Build();
             using var owner = (IDisposable)bootstrap;
             var settings = ReadApollo(bootstrap, options, basePath);
-            builder.Add(new QianApolloSource(settings.Create, settings.Environment, settings.Cluster, settings.AppId, options));
+            builder.Add(new KunApolloSource(settings.Create, settings.Environment, settings.Cluster, settings.AppId, options));
         }
         AddOverrides(builder, options, reload: true);
         return builder;
     }
 
     /// <summary>向独立宿主登记同一配置根与只读服务；配置根的释放仍由创建方负责。</summary>
-    public static IServiceCollection AddQianConfiguration(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddKunConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -49,19 +49,19 @@ public static class QianConfigurationExtensions
         services.AddSingleton(configuration);
         services.TryAddSingleton<ConfigReloadNotifier>();
         services.AddSingleton<IFeatureFlags>(sp => new FeatureFlagsService(configuration, sp.GetRequiredService<ConfigReloadNotifier>(),
-            sp.GetService<ILoggerFactory>()?.CreateLogger("Qian.Config.Flags") ?? NullLogger.Instance));
+            sp.GetService<ILoggerFactory>()?.CreateLogger("Kun.Configuration.Platform.Flags") ?? NullLogger.Instance));
         services.AddSingleton<IConfigService>(sp => new ConfigurationService(configuration, sp.GetRequiredService<IFeatureFlags>(), sp.GetService<ISecretResolverFactory>()));
         return services;
     }
 
-    private static void AddFiles(IConfigurationBuilder builder, QianConfigurationOptions options, string basePath, bool reload)
+    private static void AddFiles(IConfigurationBuilder builder, KunConfigurationOptions options, string basePath, bool reload)
     {
         builder.SetBasePath(basePath).AddJsonFile("appsettings.json", optional: true, reloadOnChange: reload);
         if (options.EnvironmentName is { } environment)
             builder.AddJsonFile("appsettings." + environment + ".json", optional: true, reloadOnChange: reload);
     }
 
-    private static void AddOverrides(IConfigurationBuilder builder, QianConfigurationOptions options, bool reload)
+    private static void AddOverrides(IConfigurationBuilder builder, KunConfigurationOptions options, bool reload)
     {
         if (options.SecretDirectory is { } secrets)
             builder.AddKeyPerFile(Path.GetFullPath(secrets, Path.GetFullPath(options.BasePath)), optional: false, reloadOnChange: reload);
@@ -71,7 +71,7 @@ public static class QianConfigurationExtensions
 
     // 校验委托绑定到每个 provider 自己的发布记录器：扫描与追加校验的结论原样返回给 Kun，同时记成「接受 / 拒绝」。
     private static (Func<ApolloReleaseTracker, ApolloOptions> Create, string Environment, string Cluster, string AppId) ReadApollo(
-        IConfiguration bootstrap, QianConfigurationOptions options, string basePath)
+        IConfiguration bootstrap, KunConfigurationOptions options, string basePath)
     {
         var appId = Required(bootstrap, "Apollo:AppId");
         var environment = Required(bootstrap, "Apollo:Env").ToUpperInvariant();

@@ -15,12 +15,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Kun.Audit;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Data;
 using Kun.Runtime;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 // S1-CFG-003 验收 3 后半句：真实 Apollo 2.5.2（AdminService 编辑并发布）一次发布 → 平台审计链多一条记录、链校验通过、记录不含配置值。
 // 平台链按 Kun.Audit.EntityFrameworkCore.IntegrationTests 的 AuditPlatformTests 装配：受限 NOINHERIT 登录角色、两条独立凭据、global AuditPlugin 显式配置 chain.platformRole。
@@ -42,7 +42,7 @@ public sealed class RealApolloReleaseAuditTests(RealApolloPortalFixture apollo, 
             var platformConnection = await CreatePlatformRole(role);
             await apollo.CreateAppAsync(appId, Ct);
             await apollo.PublishAsync(appId, "Sample:PageSize", "10", Ct);
-            var configuration = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+            var configuration = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
             {
                 BasePath = directory,
                 Arguments = ["--Apollo:AppId=" + appId, "--Apollo:Env=UAT", "--Apollo:Cluster=default", "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri.AbsoluteUri]
@@ -52,7 +52,7 @@ public sealed class RealApolloReleaseAuditTests(RealApolloPortalFixture apollo, 
             var tenant = new AsyncLocalTenantContext();
             var builder = Host.CreateApplicationBuilder(); builder.Logging.ClearProviders();
             builder.Services.AddSingleton<ITenantContext>(tenant); builder.Services.AddKunEventBus();
-            builder.Services.AddQianConfiguration(configuration);
+            builder.Services.AddKunConfiguration(configuration);
             builder.Services.AddKunData<AuditDbContext>((_, options) => options.UseNpgsql(postgres.AppConnectionString).UseKunSchema(AuditDbContext.Schema));
             builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(platformConnection).UseKunSchema(AuditDbContext.Schema));
             using var host = builder.Build(); await host.StartAsync(Ct);

@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixture<ApolloFixture>
 {
@@ -36,7 +36,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
             Assert.DoesNotContain("synthetic-literal", await File.ReadAllTextAsync(cache, ct), StringComparison.Ordinal);
         }
         finally { Directory.Delete(directory, true); }
-        IConfigurationRoot Build() => new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+        IConfigurationRoot Build() => new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
         {
             BasePath = directory, ApolloConfigurationSchema = schema.RootElement, ValidateApolloSnapshot = _ => true,
             Arguments = ["--Apollo:AppId=" + appId, "--Apollo:Env=UAT", "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri.AbsoluteUri,
@@ -67,7 +67,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
             var resolutions = 0;
             var root = Build(_ => { Interlocked.Increment(ref resolutions); return secret; });
             using (var owner = (IDisposable)root)
-            using (var services = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider())
+            using (var services = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider())
             {
                 Assert.Equal("18", root["Sample:PageSize"]);
                 Assert.Equal(reference, root["Apollo:AccessKey"]);
@@ -88,7 +88,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
             foreach (var name in variables.Keys) Environment.SetEnvironmentVariable(prefix + name, null);
             Directory.Delete(directory, true);
         }
-        IConfigurationRoot Build(Func<string, string?> resolver) => new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+        IConfigurationRoot Build(Func<string, string?> resolver) => new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
         {
             BasePath = directory, EnvironmentPrefix = prefix,
             ResolveAccessKey = name => { Assert.Equal(reference, name); return resolver(name); }
@@ -124,7 +124,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
             Environment.SetEnvironmentVariable(prefix + "Layer__Value", null);
             Check("secret", secrets, []);
             Check("application", null, []);
-            using var local = (IDisposable)new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+            using var local = (IDisposable)new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
                 { BasePath = directory, EnvironmentPrefix = prefix, UseApollo = false }).Build();
             Assert.Equal("json", ((IConfiguration)local)["Layer:Value"]);
         }
@@ -132,7 +132,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
 
         void Check(string expected, string? secretDirectory, string[] arguments)
         {
-            var root = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+            var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
                 { BasePath = directory, SecretDirectory = secretDirectory, EnvironmentPrefix = prefix, Arguments = arguments }).Build();
             using var owner = (IDisposable)root;
             Assert.Equal(expected, root["Layer:Value"]);
@@ -148,7 +148,7 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         using var root = new ConfigurationRoot([new Microsoft.Extensions.Configuration.Memory.MemoryConfigurationProvider(
             new Microsoft.Extensions.Configuration.Memory.MemoryConfigurationSource { InitialData = new Dictionary<string, string?> { ["Feature:Mode"] = "safe" } })]);
         root.Reload();
-        using var services = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
+        using var services = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider();
         var standalone = services.GetRequiredService<IConfigService>();
         Assert.Equal("safe", standalone.GetRequiredValue("Feature:Mode"));
         var error = Assert.Throws<ErrorException>(() => standalone.GetRequiredValue("Missing"));
@@ -178,8 +178,8 @@ public sealed class ConfigurationSourceTests(ApolloFixture apollo) : IClassFixtu
         {
             var args = new Dictionary<string, string> { ["Apollo:AppId"] = "test", ["Apollo:Env"] = "UAT", ["Apollo:ConfigServer:0"] = "http://localhost:1/" };
             args[key] = value;
-            var error = Assert.Throws<ErrorException>(() => new ConfigurationBuilder().AddQianConfigurationSources(
-                new QianConfigurationOptions { BasePath = directory, ResolveAccessKey = _ => "synthetic-unused", Arguments = args.Select(pair => "--" + pair.Key + "=" + pair.Value).ToArray() }));
+            var error = Assert.Throws<ErrorException>(() => new ConfigurationBuilder().AddKunConfigurationSources(
+                new KunConfigurationOptions { BasePath = directory, ResolveAccessKey = _ => "synthetic-unused", Arguments = args.Select(pair => "--" + pair.Key + "=" + pair.Value).ToArray() }));
             Assert.Equal("CONFIG_BOOTSTRAP_INVALID", error.Error.Code.Code);
         }
         finally { Directory.Delete(directory, true); }

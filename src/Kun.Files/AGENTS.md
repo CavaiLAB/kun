@@ -1,4 +1,4 @@
-# Qian.Files
+# Kun.Files
 
 - 存储键只由服务端生成（`FileKeys`）：`tenants/{tenant_id}/{plugin_id}/{yyyy}/{MM}/{uuid}{ext}`，任何一段都不能来自请求；改格式要同步验收用例与 README。
 - 下载恒为附件：不要给配置、宿主选项或端点加处置开关；local 网关的签名必须覆盖处置参数，验收 2 的用例会检查 Schema、配置读取器与选项类型里没有这类字段。

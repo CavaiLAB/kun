@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Kun.Errors;
 
-namespace Qian.Config.Secrets;
+namespace Kun.Configuration.Secrets;
 
 /// <summary>可信引导中的 Kubernetes 文件定位，不作为公开组件引用。</summary>
 public sealed partial class KubernetesSecretLocation

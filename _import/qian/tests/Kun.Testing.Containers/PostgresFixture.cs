@@ -1,7 +1,7 @@
 using Npgsql;
 using Testcontainers.PostgreSql;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// PostgreSQL 16 容器。提供两条连接串：

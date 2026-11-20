@@ -1,4 +1,4 @@
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// 没有 Docker 时集成测试怎么办：本机跳过；CI 上直接失败，因为 PR 级门禁要求集成测试必须真跑（PRD §14.4 C10）。

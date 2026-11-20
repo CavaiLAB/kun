@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Qian.Files.Migrations
+namespace Kun.Files.Migrations
 {
     /// <inheritdoc />
     internal partial class FilesObjects : Migration

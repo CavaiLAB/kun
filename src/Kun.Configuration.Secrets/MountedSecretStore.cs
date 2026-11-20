@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Kun.Errors;
 
-namespace Qian.Config.Secrets;
+namespace Kun.Configuration.Secrets;
 
 /// <summary>读取受信任根目录中的 K8s 投射文件，支持根内的 ..data 原子轮换。</summary>
 public sealed class MountedSecretStore

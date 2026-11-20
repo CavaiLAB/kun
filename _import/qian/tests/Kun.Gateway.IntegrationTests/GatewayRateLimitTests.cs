@@ -6,7 +6,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Kun.Errors;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using StackExchange.Redis;
 
 namespace Kun.Gateway.IntegrationTests;

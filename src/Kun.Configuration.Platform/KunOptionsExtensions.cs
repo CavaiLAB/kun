@@ -10,20 +10,20 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 /// <summary>
 /// 强类型配置的注册入口：重载先构造并校验候选值，失败保留上一份有效值、计数 qian.config.reload.failed 并发出 config/reload-failed。
 /// 绑定由调用方以委托给出（可用配置绑定源生成器或手写赋值），本入口不调用反射绑定，可用于 AOT profile。
 /// </summary>
-public static class QianOptionsExtensions
+public static class KunOptionsExtensions
 {
     /// <summary>
     /// 登记 <typeparamref name="T"/> 绑定到 <paramref name="section"/>：<paramref name="bind"/> 收到该配置节；校验器照常以 IValidateOptions 登记
     /// （DataAnnotations 可用 OptionsValidator 源生成器）。critical 为 true 时宿主启动即校验，否则首次读取时校验；给出 <paramref name="schema"/> 时同时登记
     /// JSON Schema 2020-12 导出。同一类型只能登记一次。
     /// </summary>
-    public static OptionsBuilder<T> AddQianOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
+    public static OptionsBuilder<T> AddKunOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
         this IServiceCollection services, string section, Action<IConfiguration, T> bind, bool critical = true,
         JsonTypeInfo<T>? schema = null, string? plugin = null) where T : class
     {
@@ -38,8 +38,8 @@ public static class QianOptionsExtensions
         services.AddSingleton<IOptionsChangeTokenSource<T>>(sp => new SectionChangeTokenSource<T>(sp.GetRequiredService<IConfiguration>().GetSection(section)));
         services.AddSingleton<IOptionsMonitor<T>>(sp => new ValidatedOptionsMonitor<T>(sp.GetRequiredService<IOptionsFactory<T>>(),
             sp.GetServices<IOptionsChangeTokenSource<T>>(), registration, sp.GetRequiredService<ConfigReloadNotifier>(),
-            sp.GetService<ILoggerFactory>()?.CreateLogger("Qian.Config.Options") ?? NullLogger.Instance).Start());
-        if (schema is not null) services.AddSingleton(new QianOptionsSchema(section, registration.OptionsType, schema));
+            sp.GetService<ILoggerFactory>()?.CreateLogger("Kun.Configuration.Platform.Options") ?? NullLogger.Instance).Start());
+        if (schema is not null) services.AddSingleton(new KunOptionsSchema(section, registration.OptionsType, schema));
         var builder = services.AddOptions<T>().Configure<IConfiguration>((options, root) => bind(root.GetSection(section), options));
         return critical ? builder.ValidateOnStart() : builder;
     }
@@ -54,10 +54,10 @@ public static class QianOptionsExtensions
 }
 
 /// <summary>由源生成 JSON 元数据导出的强类型配置契约（与 Kun 的 OptionsSchema 等价），不含任何运行时配置值；宿主以 IEnumerable 取得全部登记。</summary>
-public sealed class QianOptionsSchema
+public sealed class KunOptionsSchema
 {
     private readonly JsonTypeInfo _typeInfo;
-    internal QianOptionsSchema(string section, string optionsType, JsonTypeInfo typeInfo)
+    internal KunOptionsSchema(string section, string optionsType, JsonTypeInfo typeInfo)
     {
         Section = section; OptionsType = optionsType; _typeInfo = typeInfo;
     }

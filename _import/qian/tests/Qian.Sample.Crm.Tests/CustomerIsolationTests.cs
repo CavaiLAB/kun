@@ -19,7 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Qian.Sample.Crm.Tests;
 

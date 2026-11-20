@@ -10,15 +10,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Data.Native;
 using Kun.Data.Native.Postgres;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 internal sealed class FlagManagementTestHost : IAsyncDisposable
 {
@@ -43,11 +43,11 @@ internal sealed class FlagManagementTestHost : IAsyncDisposable
         _root = root ?? new ConfigurationBuilder().AddInMemoryCollection().Build();
         Secrets = new RotatingSecrets(token);
         var guard = FeatureFlagDraftStorage.ExpectedGuard(role);
-        var services = new ServiceCollection().AddLogging().AddQianConfiguration(_root);
+        var services = new ServiceCollection().AddLogging().AddKunConfiguration(_root);
         services.AddSingleton<ICurrentUser>(User).AddSingleton<ISecretResolverFactory>(Secrets).AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
         services.AddKunNativeData(new(ReceiptBinding, role, NativeDataAccess.Platform, _ => ValueTask.FromResult(platformConnection),
             [new(FeatureFlagDraftStorage.Schema, FeatureFlagDraftStorage.Table, FeatureFlagDraftStorage.GuardPolicy, guard, guard)]));
-        services.AddQianFeatureFlagManagement(new Dictionary<string, ApolloFlagManagementBinding>
+        services.AddKunFeatureFlagManagement(new Dictionary<string, ApolloFlagManagementBinding>
         { ["primary"] = new(portal, appId, "UAT", "default", "apollo", TokenReference, ReceiptBinding) });
         configure?.Invoke(services);
         Services = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });

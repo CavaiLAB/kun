@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 // 一次 Apollo 快照被实例接受或拒绝的记录（PRD 7.8「Apollo 发布事件进审计」、ADR-007 D7.13「实例拉取审计作为回读信号」）。
 // 只含 namespace、变更键数、原因码与脱敏快照的哈希，绝不含配置值。

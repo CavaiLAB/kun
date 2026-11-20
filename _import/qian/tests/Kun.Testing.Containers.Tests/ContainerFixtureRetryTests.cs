@@ -1,7 +1,7 @@
 using System.Reflection;
 using DotNet.Testcontainers.Containers;
 
-namespace Qian.Testing.Containers.IntegrationTests;
+namespace Kun.Testing.Containers.Tests;
 
 /// <summary>
 /// 单元测试（假容器，不需要 Docker，不进 SharedInfrastructure collection）：启动失败的有界重试。

@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 using Kun.Runtime;
 using Kun.Tenancy;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // S1-FILE-004 验收 4：清单去骨架后，平台宿主的真实 Registry 接受 qian.files 条目；平台运营经 TEN-004 的设置端点写租户配置，租户配额覆盖组件配置。
 public sealed partial class FilesAcceptanceTests

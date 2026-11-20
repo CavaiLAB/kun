@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// 一次拉起全部四个依赖（PostgreSQL / Redis / RabbitMQ / Apollo 替身），并行启动。

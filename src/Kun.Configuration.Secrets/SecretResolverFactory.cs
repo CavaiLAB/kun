@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Config.Secrets;
+namespace Kun.Configuration.Secrets;
 
 /// <summary>不可变策略与按需文件读取的组合；不缓存已解析值。</summary>
 public sealed class SecretResolverFactory : ISecretResolverFactory

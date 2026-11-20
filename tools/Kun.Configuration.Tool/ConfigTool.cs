@@ -7,16 +7,16 @@ using Qian.Profiles;
 using Qian.Profiles.Abstractions;
 using Qian.Surfaces;
 
-namespace Qian.Config.Tool;
+namespace Kun.Configuration.Tool;
 
 // 由 profile 装配结果推导每个宿主的 Apollo namespace 骨架（PRD 7.8：插件 config.schema → namespace 骨架与校验器），可选写出骨架文件、
 // 与 ConfigService 上的线上键比对。global 条目里配置 Schema 有属性的组件各得一个 namespace qian.plugin.<组件 id>；
 // 配置组件自身（qian.config、qian.config.*）的条目是引导配置，不进 Apollo。输出只有键名、计数与 Schema 指针，不读取也不回显配置值。
 internal static class ConfigTool
 {
-    internal const string Usage = "用法：Qian.Config.Tool <仓库根> [--profile <名称>]... [--out <目录>]\n" +
-        "      Qian.Config.Tool <仓库根> --compare <ConfigService 地址> [--profile <名称>]... [--app-id <AppId>] [--cluster <集群>] [--access-key-env <环境变量名>]\n" +
-        "      Qian.Config.Tool <仓库根> --compare <导出的 JSON 文件> --profile <名称>";
+    internal const string Usage = "用法：Kun.Configuration.Tool <仓库根> [--profile <名称>]... [--out <目录>]\n" +
+        "      Kun.Configuration.Tool <仓库根> --compare <ConfigService 地址> [--profile <名称>]... [--app-id <AppId>] [--cluster <集群>] [--access-key-env <环境变量名>]\n" +
+        "      Kun.Configuration.Tool <仓库根> --compare <导出的 JSON 文件> --profile <名称>";
     internal const string NamespacePrefix = "qian.plugin.";
     // ApolloConfigDB：AppNamespace.Name / Namespace.NamespaceName 为 varchar(32)，Item.Key 为 varchar(128)。
     internal const int NamespaceLimit = 32;
@@ -164,7 +164,7 @@ internal static class ConfigTool
         using var request = new HttpRequestMessage(HttpMethod.Get, $"configs/{Uri.EscapeDataString(appId)}/{Uri.EscapeDataString(cluster)}/{Uri.EscapeDataString(name)}");
         if (secret is not null)
         {
-            // Apollo 公开 AccessKey 协议：签名 = Base64(HMAC-SHA1(密钥, 时间戳 + "\n" + 路径与查询))，与 Qian.Config.Apollo 运行期一致。
+            // Apollo 公开 AccessKey 协议：签名 = Base64(HMAC-SHA1(密钥, 时间戳 + "\n" + 路径与查询))，与 Kun.Configuration.Platform 运行期一致。
             var uri = new Uri(client.BaseAddress!, request.RequestUri!);
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
 #pragma warning disable CA5350 // Apollo 公共 AccessKey 协议指定 HMAC-SHA1；不用于新密码学方案。

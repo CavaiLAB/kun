@@ -37,7 +37,7 @@ using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Kun.Tenancy.AspNetCore;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // 平台模式（S1-FILE-004）：Registry 是真实 Provider（pg 存储），按临时 platform profile 预装组件。qian.files 用仓库里已去骨架的组件文件夹，
 // 其余平台组件的清单由实际 Provider 派生（照 tools/Qian.Dev.TenantOps 的 DevPlatform）；贡献方组件只带 metadata/upload-policies.json。

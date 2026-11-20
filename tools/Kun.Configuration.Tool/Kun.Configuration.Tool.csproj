@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
-    <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
-    <InternalsVisibleTo Include="Qian.Config.Tests" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Profiles/Qian.Profiles.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Surfaces/Qian.Surfaces.csproj" />
+    <InternalsVisibleTo Include="Kun.Configuration.Platform.Tests" />
   </ItemGroup>
 </Project>

@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Implementations;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Identity.Connector.Oidc;
 

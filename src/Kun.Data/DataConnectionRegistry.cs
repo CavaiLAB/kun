@@ -11,14 +11,14 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Data;
 
 /// <summary>数据连接档案的宿主设置。</summary>
 public sealed class KunDataConnectionOptions
 {
-    /// <summary>解析连接口令所用的宿主密钥策略 ID；须在 AddQianSecrets 的策略中登记，只批准 tenant 作用域的路径（如 data/*）。</summary>
+    /// <summary>解析连接口令所用的宿主密钥策略 ID；须在 AddKunSecrets 的策略中登记，只批准 tenant 作用域的路径（如 data/*）。</summary>
     public string SecretPolicyId { get; set; } = "qian.data";
     /// <summary>单次连通测试的超时（含解析目标主机），超过即视为不可达；1 秒到 1 分钟，默认 5 秒。</summary>
     public TimeSpan TestTimeout { get; set; } = TimeSpan.FromSeconds(5);
@@ -75,7 +75,7 @@ public static class KunDataConnectionExtensions
     /// <summary>
     /// 登记 <see cref="IDataConnectionRegistry"/> 及其表所在的 qian.data 系统上下文（与序号服务共用，schema plugin_qian_data），
     /// 并登记基准类型目录与方言注册表。<paramref name="configure"/> 只需配置连接；表随包内迁移交付。
-    /// 连通测试经宿主登记的 ISecretResolverFactory（AddQianSecrets）解析口令，方言由 IDataDialect 组件提供（如 AddKunPgDialect）。
+    /// 连通测试经宿主登记的 ISecretResolverFactory（AddKunSecrets）解析口令，方言由 IDataDialect 组件提供（如 AddKunPgDialect）。
     /// 宿主环境为 Development 时，出网检查缺省放行回环（见 <see cref="DataConnectionEgressOptions.BlockedNetworks"/>）。
     /// </summary>
     public static IServiceCollection AddKunDataConnections(this IServiceCollection services, Action<IServiceProvider, DbContextOptionsBuilder> configure,

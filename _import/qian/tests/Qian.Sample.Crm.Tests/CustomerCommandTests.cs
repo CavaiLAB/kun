@@ -32,7 +32,7 @@ using Qian.Lifecycle;
 using Qian.Registry;
 using Kun.Tenancy;
 using Qian.Testing;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 // 下面八个主题类都起完整宿主，CPU 有富余时大半时间在等数据库、容器与超时，按处理器数（CI 上是 4）限并发会让后排的主题干等，所以放宽到 8（S1-QA-017）。
 // 8 个槽位不够全部同时开跑：xUnit 按集合（这里一个类一个集合）分槽位，类跑完才让出，而程序集共 13 个类（八个主题类、四个独立类与基类守卫 CustomerCommandLayoutTests）。

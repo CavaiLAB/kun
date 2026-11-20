@@ -4,7 +4,7 @@
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.Authorization.AspNetCore/Kun.Authorization.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Lifecycle/Qian.Lifecycle.csproj" />
-    <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
     <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
@@ -14,7 +14,7 @@
     <ProjectReference Include="../../packages/Qian.Surfaces/Qian.Surfaces.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities/Qian.Capabilities.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>

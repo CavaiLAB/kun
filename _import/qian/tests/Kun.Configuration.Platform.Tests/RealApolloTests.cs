@@ -5,10 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Qian.Config.Apollo;
-using Qian.Testing.Containers;
+using Kun.Configuration.Platform;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 [Collection(RealApolloGroup.Name)]
 public sealed class RealApolloTests(RealApolloPortalFixture apollo)
@@ -30,7 +30,7 @@ public sealed class RealApolloTests(RealApolloPortalFixture apollo)
             await apollo.PublishAsync(appId, "Service:credential", originalReference, ct);
             var configuration = Build("cache");
             using (var owner = (IDisposable)configuration)
-            using (var services = new ServiceCollection().AddQianConfiguration(configuration)
+            using (var services = new ServiceCollection().AddKunConfiguration(configuration)
                 .Configure<SampleOptions>(configuration.GetSection("Sample")).BuildServiceProvider())
             {
                 var monitor = services.GetRequiredService<IOptionsMonitor<SampleOptions>>();
@@ -77,7 +77,7 @@ public sealed class RealApolloTests(RealApolloPortalFixture apollo)
         }
         finally { Directory.Delete(directory, true); }
 
-        IConfigurationRoot Build(string cache) => new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+        IConfigurationRoot Build(string cache) => new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
         {
             BasePath = directory,
             ApolloConfigurationSchema = schema.RootElement, Logger = log,

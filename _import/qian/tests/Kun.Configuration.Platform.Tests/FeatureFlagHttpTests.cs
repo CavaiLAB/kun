@@ -15,12 +15,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Config.AspNetCore;
+using Kun.Configuration.AspNetCore;
 using Kun.Identity.Abstractions;
 using Kun.Errors.AspNetCore;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 public sealed class FeatureFlagHttpTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {
@@ -58,7 +58,7 @@ public sealed class FeatureFlagHttpTests(PostgresFixture postgres) : IClassFixtu
         builder.Services.AddAuthorization();
         await using var app = builder.Build();
         app.UseKunErrors(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
-        app.MapQianFeatureFlags(_ => management.Context);
+        app.MapKunFeatureFlags(_ => management.Context);
         app.MapPost("/fixture-cookie", async (HttpContext http) =>
         {
             await http.SignInAsync("Cookies", new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub", "operator")], "Cookies")));

@@ -5,7 +5,7 @@ using Kun.Data.Native;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 internal sealed class FlagDraftReceipts(IPluginContext owner, ApolloFlagManagementBinding binding)
 {
@@ -81,7 +81,7 @@ internal sealed class FlagDraftReceipts(IPluginContext owner, ApolloFlagManageme
         if (!await reader.ReadAsync(ct).ConfigureAwait(false) || !reader.GetBoolean(1) ||
             reader.GetString(2) != FeatureFlagDraftStorage.ExpectedGuard(reader.GetString(0)) ||
             reader.GetString(3) != FeatureFlagDraftStorage.ExpectedGuard(reader.GetString(0)))
-            throw QianConfigurationExtensions.Invalid("flags.receipts");
+            throw KunConfigurationExtensions.Invalid("flags.receipts");
     }
     private static DbCommand Command(INativeDataSession session, string sql, params (string Name, object Value)[] parameters)
     {

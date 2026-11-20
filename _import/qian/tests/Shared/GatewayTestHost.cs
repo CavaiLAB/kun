@@ -13,9 +13,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Config;
-using Qian.Config.Apollo;
-using Qian.Config.Secrets;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
+using Kun.Configuration.Secrets;
 using Kun.Gateway;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
@@ -63,13 +63,13 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redis));
         builder.Services.AddSingleton<ISecretAccessObserver>(new SecretObserver());
-        builder.Services.AddQianSecrets(new SecretResolverOptions
+        builder.Services.AddKunSecrets(new SecretResolverOptions
         {
             MountRoot = directory,
             Bindings = [new(reference, new KubernetesSecretLocation("qian", "identity", "client-secret"))],
             Policies = [new("qian.identity.client", [new("identity/*", "platform")], [new("identity/*", "platform")])]
         });
-        builder.Services.AddQianConfiguration(new ConfigurationRoot([]));
+        builder.Services.AddKunConfiguration(new ConfigurationRoot([]));
         builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
             Authority = new Uri(identityIssuer), ClientId = clientId, Resource = identityAudience,

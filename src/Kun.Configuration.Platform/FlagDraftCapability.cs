@@ -16,7 +16,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 // 平台能力不走强制 tenant scope 的普通命令绑定；本绑定与 HTTP 共用完全相同的执行与授权。
 internal sealed partial class FlagDraftCapability : IExecutableCapability, IFeatureFlagDrafts, IDisposable
@@ -79,7 +79,7 @@ internal sealed partial class FlagDraftCapability : IExecutableCapability, IFeat
         });
         Check();
         var audit = _owner.Audit();
-        var logger = _owner.Services.GetService<ILoggerFactory>()?.CreateLogger("Qian.Config.Flags") ?? NullLogger.Instance;
+        var logger = _owner.Services.GetService<ILoggerFactory>()?.CreateLogger("Kun.Configuration.Platform.Flags") ?? NullLogger.Instance;
         var receipts = new FlagDraftReceipts(_owner, _binding);
         var attempt = Guid.CreateVersion7(); var trace = ActivityTraceId.CreateRandom().ToHexString();
         await audit.AppendPlatformAsync(_owner, Record("started"), linked.Token).ConfigureAwait(false);

@@ -3,7 +3,7 @@ using System.Text.Json;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // 仓库里 qian.files 的唯一清单：代码字段由源生成器派生，每个能力一个工具文件且与生成契约一致（CI 另由 scripts/check_plugin_manifests.py 跑 Plugin.Tool check）。
 // 已过锁步发布与私有源真实安装两门（S1-FILE-004，R100 口径），清单不再带 x-skeleton，NuGet 条目钉同一锁步版本并带归档摘要；权限与角色声明能被授权组件编译成目录。
@@ -29,7 +29,7 @@ public sealed class FilesComponentManifestTests
         Assert.Equal(code.Provides, Strings(json.GetProperty("provides")));
         Assert.Equal((FilesDbContext.Schema, "./schemas/config.schema.json"), (runtime.GetProperty("dbSchema").GetString(), runtime.GetProperty("configSchema").GetString()));
         var packages = runtime.GetProperty("nuget").EnumerateArray().ToArray();
-        Assert.Equal(["Qian.Files.Abstractions", "Qian.Files"], packages.Select(item =>
+        Assert.Equal(["Kun.Files.Abstractions", "Kun.Files"], packages.Select(item =>
         {
             Assert.Equal(["id", "version", "digest"], item.EnumerateObject().Select(property => property.Name));
             Assert.Matches("^sha256:[0-9a-f]{64}$", item.GetProperty("digest").GetString());

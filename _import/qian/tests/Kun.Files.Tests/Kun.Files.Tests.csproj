@@ -3,9 +3,9 @@
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Files/Qian.Files.csproj" />
-    <ProjectReference Include="../../packages/Qian.Files.AspNetCore/Qian.Files.AspNetCore.csproj" />
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Files/Kun.Files.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Files.AspNetCore/Kun.Files.AspNetCore.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
   <!-- 集成测试宿主：真实 Data / Events / Tenancy / Authz（含 HTTP PEP）/ Audit 组件与 ErrorDetail、HTTP 契约导出；平台模式另有真实 Registry 与 TEN-004 运营端点。测试工程不受依赖图门禁约束。 -->

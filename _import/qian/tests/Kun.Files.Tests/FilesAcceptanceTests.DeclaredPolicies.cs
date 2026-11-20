@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // S1-FILE-004 验收 5：组件在 metadata/upload-policies.json 声明的上传策略，经 Registry 预装快照汇总后可用于申请直传；与组件配置同用途时以配置为准。
 public sealed partial class FilesAcceptanceTests

@@ -7,9 +7,9 @@
 ```text
 tests/
   Directory.Build.props                       测试项目公共设置：不打包、不要求 XML 注释
-  Qian.Testing.Containers/                    集成测试共用的 Testcontainers fixture（不打包）
+  Kun.Testing.Containers/                    集成测试共用的 Testcontainers fixture（不打包）
     ApolloMock/apollo_mock.py                 Apollo 协议替身，在容器里运行
-  Qian.Testing.Containers.IntegrationTests/   fixture 自身的集成测试与单元测试
+  Kun.Testing.Containers.Tests/   fixture 自身的集成测试与单元测试
   Kun.Identity.Server.Tests/                 真实 OpenIddict + PostgreSQL + Kun 客户端协议验收、跨宿主吊销、后通道与密钥轮换；账号模型（Argon2id、标识与绑定守卫、sub 不碰撞、配额）、统一登录流水线（审计、限流与并发、强制改密、租户选择与切换、MFA 不降级）与账号 HTTP 面端到端（可控时钟 + 可控租户目录）、会话中心（吊销即时与旁路、并发上限与单端、租户冻结、真实 Redis 索引与宕机降级、管理面、多副本竞争、日志卫生）
   Kun.Identity.Client.Tests/                 依赖方：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码与 qian.sid 会话、篡改 nonce / iss / state 重放、刷新单飞与轮换（真实 Redis）、登出防伪、卸载、后通道登出；会话主体经 Kun 网关签发器铸 S2S 后下游接受；S2S 契约逐条违约与透传拒绝
   Kun.Identity.Client.Standalone.Tests/      独立宿主 E2E：只引用 Kun.Identity.Client，对接 Dex（DexFixture）完成登录与登出，并断言依赖闭包
@@ -97,7 +97,7 @@ public sealed class OrderVisibilityTests(InfrastructureFixture infra)
 
 ### Apollo 协议替身
 
-PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Qian.Testing.Containers/ApolloMock/apollo_mock.py) 只依赖 Python 标准库，实现 Apollo「其它语言客户端接入」HTTP 协议里客户端会用到的部分：
+PRD §14.2 规定集成测试层的 Apollo 用 mock server。[apollo_mock.py](Kun.Testing.Containers/ApolloMock/apollo_mock.py) 只依赖 Python 标准库，实现 Apollo「其它语言客户端接入」HTTP 协议里客户端会用到的部分：
 
 | 接口 | 行为 |
 |---|---|

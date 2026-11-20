@@ -5,7 +5,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using SemanticVersion = SemanticVersioning.Version;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 // 组件在 metadata/upload-policies.json 声明的上传策略（组件模型 §3：声明式贡献放 metadata/；PRD 7.7 的清单 contributes 按 S1-FILE-004 裁决落在这里）。
 // 只能声明本组件的用途：用途的组件段就是存储键里的 plugin_id，冒名会写进别的组件的键前缀。同一组件预装多个版本时取最高版本的声明。

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.FileProviders;
 using OpenIddict.Abstractions;
-using Qian.Config;
+using Kun.Configuration;
 using Kun.Data;
 using Qian.Dev.TenantOps;
 using Kun.Identity.Abstractions;

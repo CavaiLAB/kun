@@ -6,8 +6,8 @@ using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;
-using Qian.Config;
-using Qian.Config.Secrets;
+using Kun.Configuration;
+using Kun.Configuration.Secrets;
 using Kun.Data;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
@@ -82,7 +82,7 @@ internal static class DevHost
             builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(database.AuditPlatform).UseKunSchema(AuditDbContext.Schema));
             builder.Services.AddKunData<LifecycleDbContext>((_, options) => options.UseNpgsql(database.Business).UseKunSchema(LifecycleDbContext.Schema));
             builder.Services.AddSingleton<ISecretAccessObserver>(trust);
-            builder.Services.AddQianSecrets(new SecretResolverOptions
+            builder.Services.AddKunSecrets(new SecretResolverOptions
             {
                 MountRoot = trust.SecretRoot,
                 Bindings = [new SecretBinding("secretRef://platform/trust/platform", new KubernetesSecretLocation("qian", "trust-platform", "public-key"))],

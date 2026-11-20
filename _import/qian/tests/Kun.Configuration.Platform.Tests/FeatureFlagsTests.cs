@@ -4,11 +4,11 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 public sealed class FeatureFlagsTests
 {
@@ -19,7 +19,7 @@ public sealed class FeatureFlagsTests
     public void 白名单默认与未定义开关_仅依赖名称租户与规则()
     {
         using var root = Build("""{"default":false,"tenants":["00000000-0000-0000-0000-000000000001"]}""");
-        using var services = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
+        using var services = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider();
         var flags = services.GetRequiredService<IConfigService>().Flags;
         Assert.Same(flags, services.GetRequiredService<IFeatureFlags>());
         Assert.True(flags.IsEnabled("preview", TenantA));
@@ -37,8 +37,8 @@ public sealed class FeatureFlagsTests
     public void 百分比固定向量_多实例与重载稳定_增量放量集合单调()
     {
         using var root = Build("""{"default":false,"percentage":22}""");
-        using var first = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
-        using var second = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
+        using var first = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider();
+        using var second = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider();
         var flags = first.GetRequiredService<IFeatureFlags>();
         var other = second.GetRequiredService<IFeatureFlags>();
         // SHA-256(UTF8("preview\n" + Guid:D)) 前 8 字节大端数 % 10000：A=2108，B=9106。
@@ -78,7 +78,7 @@ public sealed class FeatureFlagsTests
     public void 非法初值拒绝启动_异常不含原始规则(string rule)
     {
         using var root = Build(rule);
-        using var services = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
+        using var services = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider();
         var error = Assert.Throws<ErrorException>(() => services.GetRequiredService<IFeatureFlags>());
         Assert.Equal("CONFIG_RELOAD_REJECTED", error.Error.Code.Code);
         Assert.Null(error.InnerException);
@@ -91,7 +91,7 @@ public sealed class FeatureFlagsTests
     public void 非规范名称拒绝_不因配置键大小写规则产生别名(string name)
     {
         using var root = Build("""{"default":true}""");
-        using var services = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
+        using var services = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider();
         var flags = services.GetRequiredService<IFeatureFlags>();
         Assert.Throws<ArgumentException>(() => flags.IsEnabled(name, TenantA));
         Assert.Throws<ArgumentException>(() => flags.IsEnabled("preview", Guid.Empty));
@@ -103,11 +103,11 @@ public sealed class FeatureFlagsTests
         var ct = TestContext.Current.CancellationToken;
         using var root = Build("""{"default":true}""");
         using var log = new CapturedLogs();
-        using var services = new ServiceCollection().AddQianConfiguration(root).AddSingleton<ILoggerFactory>(log).BuildServiceProvider();
+        using var services = new ServiceCollection().AddKunConfiguration(root).AddSingleton<ILoggerFactory>(log).BuildServiceProvider();
         using var meter = new MeterListener();
         long rejected = 0;
         meter.InstrumentPublished = (instrument, listener) =>
-        { if (instrument.Meter.Name == "Qian.Config" && instrument.Name == "qian.config.reload.failed") listener.EnableMeasurementEvents(instrument); };
+        { if (instrument.Meter.Name == "Kun.Configuration.Platform" && instrument.Name == "qian.config.reload.failed") listener.EnableMeasurementEvents(instrument); };
         meter.SetMeasurementEventCallback<long>((_, value, tags, _) =>
         { foreach (var tag in tags) if (tag.Key == "options.type" && Equals(tag.Value, typeof(IFeatureFlags).FullName)) Interlocked.Add(ref rejected, value); });
         meter.Start();

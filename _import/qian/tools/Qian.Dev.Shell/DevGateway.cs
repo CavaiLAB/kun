@@ -14,9 +14,9 @@ using Kun.MultiTenancy;
 using Kun.Security;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Config;
-using Qian.Config.Apollo;
-using Qian.Config.Secrets;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
+using Kun.Configuration.Secrets;
 using Qian.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
@@ -65,13 +65,13 @@ internal static class DevGateway
         builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect($"127.0.0.1:{redisPort}"));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddSingleton<ISecretAccessObserver>(new SecretObserver());
-        builder.Services.AddQianSecrets(new SecretResolverOptions
+        builder.Services.AddKunSecrets(new SecretResolverOptions
         {
             MountRoot = keys.SecretRoot,
             Bindings = [new(SecretReference, new KubernetesSecretLocation("qian", "identity", "client-secret"))],
             Policies = [new("qian.identity.client", [new("identity/*", "platform")], [new("identity/*", "platform")])]
         });
-        builder.Services.AddQianConfiguration(new ConfigurationRoot([]));
+        builder.Services.AddKunConfiguration(new ConfigurationRoot([]));
         // 单进程开发宿主用进程内会话存储（生产是 Redis）；其余与生产相同：规范模式（带 resource）、refresh 单飞、Secure Cookie。
         // OpenIddict 按 AbsoluteUri 发布本机 issuer（根路径含末尾斜杠）。依赖方使用同一标识。
         builder.Services.AddKunIdentityClient(new IdentityClientOptions

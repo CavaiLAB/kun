@@ -1,8 +1,8 @@
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Xunit.Sdk;
 using Xunit.v3;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 /// <summary>
 /// 真实 Apollo 测试类共用的集合：一套 Portal 版真实 Apollo（MySQL + AdminService + ConfigService + Portal）供集合内各类使用，

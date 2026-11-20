@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Qian.Files;
+using Kun.Files;
 
 #nullable disable
 
-namespace Qian.Files.Migrations
+namespace Kun.Files.Migrations
 {
     [DbContext(typeof(FilesDbContext))]
     partial class FilesDbContextModelSnapshot : ModelSnapshot
@@ -90,7 +90,7 @@ namespace Qian.Files.Migrations
                     b.ToTable("outbox_messages", "plugin_qian_files");
                 });
 
-            modelBuilder.Entity("Qian.Files.FileObject", b =>
+            modelBuilder.Entity("Kun.Files.FileObject", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

@@ -5,13 +5,13 @@ using Kun.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Npgsql;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 public sealed class FeatureFlagManagementTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

@@ -14,7 +14,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Qian.Shell.TestHost;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Qian.Testing.NativeAudit;
 
 // 独立浏览器验收宿主：使用真实 PostgreSQL 与正式审计 Provider，不属于生产 profile。

@@ -2,26 +2,26 @@ using Kun.Configuration.Apollo;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 // 每次 Build 建一份发布记录器，校验委托绑定到它；同一构建器重复 Build 时各自记录。
-internal sealed class QianApolloSource(Func<ApolloReleaseTracker, ApolloOptions> options, string environment, string cluster, string appId,
-    QianConfigurationOptions owner) : IConfigurationSource
+internal sealed class KunApolloSource(Func<ApolloReleaseTracker, ApolloOptions> options, string environment, string cluster, string appId,
+    KunConfigurationOptions owner) : IConfigurationSource
 {
     public IConfigurationProvider Build(IConfigurationBuilder builder)
     {
         var tracker = new ApolloReleaseTracker(appId, environment, cluster);
-        return new QianApolloProvider(options(tracker), environment, owner, tracker);
+        return new KunApolloProvider(options(tracker), environment, owner, tracker);
     }
 }
 
-internal sealed class QianApolloProvider : IConfigurationProvider, IDisposable
+internal sealed class KunApolloProvider : IConfigurationProvider, IDisposable
 {
     private readonly ApolloOptions _options;
     private readonly ApolloConfigurationProvider _inner;
     private readonly IDisposable _reloads;
 
-    internal QianApolloProvider(ApolloOptions options, string environment, QianConfigurationOptions owner, ApolloReleaseTracker releases)
+    internal KunApolloProvider(ApolloOptions options, string environment, KunConfigurationOptions owner, ApolloReleaseTracker releases)
     {
         _options = options; Environment = environment; Releases = releases;
         _inner = new ApolloConfigurationProvider(options, owner.HttpClient, owner.Logger);

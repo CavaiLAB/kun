@@ -3,7 +3,7 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using Xunit;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// 单个容器 fixture 的公共骨架：启动容器（瞬时失败时有界重试）、按 <see cref="DockerRequirement"/> 处理 Docker 缺失、随 fixture 一起释放。

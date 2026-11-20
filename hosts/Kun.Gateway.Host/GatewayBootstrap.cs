@@ -1,4 +1,4 @@
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 
 namespace Kun.Gateway.Host;
 
@@ -9,7 +9,7 @@ internal static class GatewayBootstrap
     internal const string ConfigSourceKey = "Config:Source";
     internal const string ApolloSource = "apollo";
     internal const string HostSource = "host";
-    internal static QianConfigurationOptions CreateOptions(string basePath, string? environmentName, IReadOnlyList<string> arguments)
+    internal static KunConfigurationOptions CreateOptions(string basePath, string? environmentName, IReadOnlyList<string> arguments)
     {
         var root = Path.GetFullPath(basePath);
         if (environmentName is not null && (environmentName.Length == 0 || environmentName.IndexOfAny(['/', '\\']) >= 0))
@@ -29,7 +29,7 @@ internal static class GatewayBootstrap
         var bootstrap = bootstrapSources.AddEnvironmentVariables("QIAN_").AddCommandLine(arguments.ToArray()).Build();
         using var bootstrapOwner = (IDisposable)bootstrap;
         var accessKeyPath = bootstrap["ConnectionFiles:ApolloAccessKey"];
-        return new QianConfigurationOptions
+        return new KunConfigurationOptions
         {
             BasePath = root,
             EnvironmentName = environmentName,

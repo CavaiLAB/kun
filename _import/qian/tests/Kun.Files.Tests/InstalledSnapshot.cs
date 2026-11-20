@@ -4,7 +4,7 @@ using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // 只提供预装快照的 Registry 替身：qian.files 只经 GetInstalledComponents 读各组件的 metadata 声明，其余管理面不在本项目的测试范围。
 internal sealed class InstalledSnapshotPlugin(IReadOnlyList<InstalledComponentMetadata> installed) : IKunPlugin

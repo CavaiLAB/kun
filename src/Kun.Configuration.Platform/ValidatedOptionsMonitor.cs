@@ -4,11 +4,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 internal static class ConfigTelemetry
 {
-    internal const string MeterName = "Qian.Config";
+    internal const string MeterName = "Kun.Configuration.Platform";
     private static readonly Meter Meter = new(MeterName);
     // 点号命名；Prometheus 导出后即 qian_config_reload_failed_total。
     internal static readonly Counter<long> ReloadFailed = Meter.CreateCounter<long>("qian.config.reload.failed", description: "强类型配置重载被校验拒绝、保留上一份有效值的次数");

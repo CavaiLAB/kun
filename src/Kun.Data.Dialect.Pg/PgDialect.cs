@@ -4,7 +4,7 @@ using Kun.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Data.Dialect.Pg;
 

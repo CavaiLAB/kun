@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Kun.Data.Tests;
 

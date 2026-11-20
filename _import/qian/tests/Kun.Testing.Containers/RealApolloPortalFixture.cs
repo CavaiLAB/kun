@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Org.BouncyCastle.Crypto.Generators;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>真实 Portal 2.5.2 + ConfigService/AdminService；编辑和发布使用不同的 namespace ACL。</summary>
 public sealed class RealApolloPortalFixture : RealApolloFixture

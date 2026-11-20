@@ -1,4 +1,4 @@
-# Qian.Files.Abstractions
+# Kun.Files.Abstractions
 
 - 本包是 `qian.files` 的 Definition：只放服务键、门面与注册表接口、契约记录、错误码与事件；不引用 Provider、Kun 存储包或任何 SDK 实现，依赖图门禁把关。
 - 能力 ID 按 R23 写成 `qian.files/<名称>`，权限点为 `qian.files:file:<动作>`；能力 ID 或权限点有变动时要同步 Provider 的 `[Capability]`、`plugins/qian.files/tools`（`Kun.Plugin.Tool sync` 生成）、`metadata/permissions.json` 与 README。

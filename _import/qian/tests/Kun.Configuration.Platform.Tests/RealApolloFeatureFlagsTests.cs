@@ -3,11 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Runtime;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
-namespace Qian.Config.Tests;
+namespace Kun.Configuration.Platform.Tests;
 
 [Collection(RealApolloGroup.Name)]
 public sealed class RealApolloFeatureFlagsTests(RealApolloPortalFixture apollo)
@@ -31,14 +31,14 @@ public sealed class RealApolloFeatureFlagsTests(RealApolloPortalFixture apollo)
             await apollo.PublishAsync(consumerApp, "Fixture", "ready", ct);
             await apollo.AssociateNamespaceAsync(consumerApp, "qian.common.flags", ct);
             await apollo.WaitForPublishedAsync(consumerApp, "qian.common.flags", "flag.preview", initial, ct);
-            var root = new ConfigurationBuilder().AddQianConfigurationSources(new QianConfigurationOptions
+            var root = new ConfigurationBuilder().AddKunConfigurationSources(new KunConfigurationOptions
             {
                 BasePath = directory, Logger = log,
                 Arguments = ["--Apollo:AppId=" + consumerApp, "--Apollo:Env=UAT", "--Apollo:ConfigServer:0=" + apollo.ConfigServiceUri,
                     "--Apollo:Namespaces:0=qian.common.flags", "--Apollo:CacheDir=cache"]
             }).Build();
             using var rootOwner = (IDisposable)root;
-            using var services = new ServiceCollection().AddQianConfiguration(root).BuildServiceProvider();
+            using var services = new ServiceCollection().AddKunConfiguration(root).BuildServiceProvider();
             await using var runtime = new PluginLoader(services);
             await runtime.MountAsync([new(new PluginEntry("config", "qian.config.apollo", "1.0.0", ScopeKey.Global, 0,
                 JsonElement.Parse("{}")), new ApolloConfigurationPlugin(), [ConfigDefinition.Key])], ct);

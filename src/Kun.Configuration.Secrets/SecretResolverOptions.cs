@@ -1,4 +1,4 @@
-namespace Qian.Config.Secrets;
+namespace Kun.Configuration.Secrets;
 
 /// <summary>公开引用到 Kubernetes 挂载文件的可信绑定。</summary>
 public sealed record SecretBinding(string Reference, KubernetesSecretLocation Location, string? TenantId = null);

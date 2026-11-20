@@ -1,6 +1,6 @@
-# Qian.Files.Abstractions
+# Kun.Files.Abstractions
 
-文件组件 `qian.files` 的 Definition 包（S1-FILE-001，PRD 7.7）：服务键、门面接口、注册表 seam、契约类型、错误码与集成事件。业务组件只引用本包，经 `Files` 服务键取用文件能力，不依赖 Provider（`Qian.Files`）或任何存储 SDK。
+文件组件 `qian.files` 的 Definition 包（S1-FILE-001，PRD 7.7）：服务键、门面接口、注册表 seam、契约类型、错误码与集成事件。业务组件只引用本包，经 `Files` 服务键取用文件能力，不依赖 Provider（`Kun.Files`）或任何存储 SDK。
 
 ## 服务键与门面
 

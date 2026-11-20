@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Qian.Common;
 
-namespace Qian.Config;
+namespace Kun.Configuration;
 
 /// <summary>不含原值的配置扫描诊断。</summary>
 public sealed record SecretDiagnostic(string Code, string Location, string Reason);

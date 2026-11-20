@@ -3,15 +3,15 @@
   <ItemGroup><Using Include="Xunit" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../samples/Qian.Sample.Crm/Qian.Sample.Crm.csproj" />
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities/Qian.Capabilities.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
     <ProjectReference Include="../../packages/Qian.Profiles/Qian.Profiles.csproj" />
     <ProjectReference Include="../../packages/Qian.Lifecycle/Qian.Lifecycle.csproj" />
     <ProjectReference Include="../../packages/Qian.Lifecycle.AspNetCore/Qian.Lifecycle.AspNetCore.csproj" />
-    <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
-    <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
     <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="Grpc.Net.Client" />
     <PackageReference Include="xunit.v3" />

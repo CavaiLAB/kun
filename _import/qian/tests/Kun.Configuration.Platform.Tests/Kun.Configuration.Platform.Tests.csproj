@@ -5,13 +5,13 @@
   <ItemGroup>
     <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
     <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
-    <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
-    <ProjectReference Include="../../tools/Qian.Config.Tool/Qian.Config.Tool.csproj" />
-    <ProjectReference Include="../../packages/Qian.Config.AspNetCore/Qian.Config.AspNetCore.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
+    <ProjectReference Include="../../../../tools/Kun.Configuration.Tool/Kun.Configuration.Tool.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Configuration.AspNetCore/Kun.Configuration.AspNetCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Capabilities.AspNetCore/Qian.Capabilities.AspNetCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Configuration/Kun.Configuration.csproj" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />

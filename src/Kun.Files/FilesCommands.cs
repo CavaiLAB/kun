@@ -8,7 +8,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 [Capability("presign-upload", typeof(PresignedUpload), typeof(FilesCommandJson),
     Description = "按上传策略与租户配额申请一个文件的直传地址（不超过 15 分钟）；存储键由服务端生成，重复提交同一幂等键返回同一文件。",

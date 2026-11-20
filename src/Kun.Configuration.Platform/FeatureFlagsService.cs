@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Kun.Errors;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 // 配置根由宿主拥有。本实例只拥有监听器和已校验的不可变快照。
 internal sealed partial class FeatureFlagsService : IFeatureFlags, IDisposable

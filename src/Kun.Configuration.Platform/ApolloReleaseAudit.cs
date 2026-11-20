@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Kun.Audit;
 using Kun.Runtime;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 // 把 Apollo 发布记录写进平台审计链（PRD 7.8 / 7.11）。审计端口可缺席（standalone 无 qian.audit），就绪后按序补写暂存记录；
 // 审计组件卸载后等新的服务就绪再继续。写入失败只记日志，不阻断配置生效：配置发布不在业务事务里，平台链未启用时同样只记日志。

@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 /// <summary>file_objects.status 的取值。</summary>
 public static class FileStatus

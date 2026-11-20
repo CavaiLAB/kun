@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Kun.EventBus;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 /// <summary>文件的稳定跨进程事件 ID；首个发布版本之后，破坏性载荷改动必须升版本。</summary>
 public static class FilesEventIds

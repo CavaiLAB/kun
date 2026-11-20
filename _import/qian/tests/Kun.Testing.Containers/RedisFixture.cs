@@ -1,6 +1,6 @@
 using Testcontainers.Redis;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>Redis 7 容器。</summary>
 public sealed class RedisFixture : ContainerFixture<RedisContainer>

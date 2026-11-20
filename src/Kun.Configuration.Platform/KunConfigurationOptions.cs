@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 /// <summary>配置装配参数；引导值来自宿主源，Apollo 不能改变自己的访问地址或访问密钥引用。</summary>
-public sealed class QianConfigurationOptions
+public sealed class KunConfigurationOptions
 {
     /// <summary>appsettings 文件与相对缓存路径的根目录。</summary>
     public required string BasePath { get; init; }

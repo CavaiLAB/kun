@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Qian.Common;
 
-namespace Qian.Config.Secrets.Tests;
+namespace Kun.Configuration.Secrets.Tests;
 
 public sealed class SecretSafetyTests
 {

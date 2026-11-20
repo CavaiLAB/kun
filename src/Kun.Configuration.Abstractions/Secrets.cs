@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 using Kun.Runtime;
 using Kun.Core.MultiTenancy;
 
-namespace Qian.Config;
+namespace Kun.Configuration;
 
 /// <summary>已绑定调用方权限的按需密钥解析端口。</summary>
 public interface ISecretResolver

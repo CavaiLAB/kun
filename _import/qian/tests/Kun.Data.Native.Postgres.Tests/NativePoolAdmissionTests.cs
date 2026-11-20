@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using Npgsql;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Kun.Data.Native.Postgres.Tests;
 

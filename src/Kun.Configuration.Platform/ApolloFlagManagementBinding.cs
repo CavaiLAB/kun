@@ -1,7 +1,7 @@
 using System.Collections.Frozen;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Config.Apollo;
+namespace Kun.Configuration.Platform;
 
 /// <summary>可信宿主预先登记的单一 Apollo 草稿目标；不能由组件配置或模型请求替换。</summary>
 public sealed class ApolloFlagManagementBinding
@@ -13,7 +13,7 @@ public sealed class ApolloFlagManagementBinding
             portal.Query.Length != 0 || portal.Fragment.Length != 0 || portal.AbsolutePath != "/" ||
             !FeatureFlagRules.ValidName(receiptBinding) || !Safe(appId) || !Safe(cluster) || !Safe(operatorName) || environment is not ("UAT" or "PRO") ||
             !SecretReference.IsValid(tokenReference) || SecretReference.Parse(tokenReference).Scope != "platform")
-            throw QianConfigurationExtensions.Invalid("flags.binding");
+            throw KunConfigurationExtensions.Invalid("flags.binding");
         Portal = portal; AppId = appId; Environment = environment; Cluster = cluster; OperatorName = operatorName; TokenReference = tokenReference; ReceiptBinding = receiptBinding;
     }
     /// <summary>可信 Portal 根地址。</summary>
@@ -37,11 +37,11 @@ public sealed class ApolloFlagManagementBinding
 public static class FeatureFlagManagementHosting
 {
     /// <summary>复制受信任绑定表；不读取 Apollo 自身返回的地址或 Token 引用。</summary>
-    public static IServiceCollection AddQianFeatureFlagManagement(this IServiceCollection services, IReadOnlyDictionary<string, ApolloFlagManagementBinding> bindings)
+    public static IServiceCollection AddKunFeatureFlagManagement(this IServiceCollection services, IReadOnlyDictionary<string, ApolloFlagManagementBinding> bindings)
     {
         ArgumentNullException.ThrowIfNull(services); ArgumentNullException.ThrowIfNull(bindings);
         if (bindings.Count == 0 || bindings.Any(pair => !FeatureFlagRules.ValidName(pair.Key) || pair.Value is null) ||
-            services.Any(service => service.ServiceType == typeof(FlagManagementBindings))) throw QianConfigurationExtensions.Invalid("flags.bindings");
+            services.Any(service => service.ServiceType == typeof(FlagManagementBindings))) throw KunConfigurationExtensions.Invalid("flags.bindings");
         services.AddSingleton(new FlagManagementBindings(bindings.ToFrozenDictionary(StringComparer.Ordinal)));
         return services;
     }

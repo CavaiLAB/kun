@@ -9,7 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Configuration.Abstractions/Kun.Configuration.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EventBus.Abstractions/Kun.EventBus.Abstractions.csproj" />
     <ProjectReference Include="../Kun.EntityFrameworkCore/Kun.EntityFrameworkCore.csproj" />
     <EmbeddedResource Include="../../_import/qian/contracts/v0/event-envelope.schema.json;../../_import/qian/contracts/v0/s2s-claims.schema.json" LogicalName="data/v0/%(Filename)%(Extension)" />

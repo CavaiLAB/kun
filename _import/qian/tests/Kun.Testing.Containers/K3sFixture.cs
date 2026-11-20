@@ -1,6 +1,6 @@
 using Testcontainers.K3s;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// K3s 单节点集群（特权容器）。<see cref="Kubeconfig"/> 里的 API Server 已映射到宿主端口；容器内自带 kubectl（含 kustomize），

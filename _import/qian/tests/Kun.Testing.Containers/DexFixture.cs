@@ -7,7 +7,7 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using Org.BouncyCastle.Crypto.Generators;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// 独立实现的外部 OIDC 发行方（CNCF Dex），用来验证依赖方能对接 Qian 之外的任意发行方。内存存储、本地密码库里一个用户、一个启用 PKCE 的公开客户端，

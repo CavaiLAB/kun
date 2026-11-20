@@ -1,4 +1,4 @@
-# Qian.Files.AspNetCore
+# Kun.Files.AspNetCore
 
 - 本包只做 HTTP 适配：端点调用 `IFileService` 门面，不直接读写数据库或存储，不引用任何 Provider；PEP 由宿主经 `requirePermission` 回调接入（本包不依赖 `Kun.Authorization.AspNetCore`）。
 - 每个 `/api/files` 端点必须带 `PluginEndpointBinding` 与权限点，构建期核对授权要求确实接上；新增端点同时补能力、权限点与验收用例中的端点清单断言。

@@ -8,7 +8,7 @@ using Kun.Identity.Configuration;
 using Kun.Identity.Implementations;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Identity.Connector.Oidc;
 

@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Kun.Identity.Client.Standalone.Tests;
 
@@ -24,12 +24,12 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    // 被测宿主的依赖闭包里只允许出现 Client 本身、它的 Abstractions、Runtime / SDK 及其依赖的 Kun 内核包；Qian.Testing.Containers 是夹具。
+    // 被测宿主的依赖闭包里只允许出现 Client 本身、它的 Abstractions、Runtime / SDK 及其依赖的 Kun 内核包；Kun.Testing.Containers 是夹具。
     // Qian. 与 Kun. 开头的程序集都收：两个前缀下都有 Provider，只收一个前缀，另一边的包进了闭包也看不见。
     // Client 只用插件开发包的内核一半，数据、授权、事件与表面的契约随命令管道留在平台档的一半里，不再进闭包。
     private static readonly string[] AllowedQianAssemblies =
     [
-        "Kun.Identity.Client", "Kun.Identity.Abstractions", "Qian.Config.Abstractions", "Qian.Testing.Containers",
+        "Kun.Identity.Client", "Kun.Identity.Abstractions", "Kun.Configuration.Abstractions", "Kun.Testing.Containers",
         "Kun.Authorization", "Kun.Caching", "Kun.Core", "Kun.Errors", "Kun.Errors.AspNetCore", "Kun.EventBus.Abstractions",
         "Kun.Identity", "Kun.Identity.AspNetCore", "Kun.Mediator", "Kun.MultiTenancy", "Kun.Plugin.Sdk", "Kun.Runtime", "Kun.Security", "Kun.Security.Abstractions"
     ];
@@ -117,7 +117,7 @@ public sealed partial class StandaloneLoginTests(DexFixture dex) : IClassFixture
 
     [Theory]
     [InlineData("Kun.Data")]
-    [InlineData("Qian.Config.Apollo")]
+    [InlineData("Kun.Configuration.Platform")]
     [InlineData("Kun.Identity.Server")]
     [InlineData("Qian.Registry")]
     [InlineData("Kun.Authorization.Rbac")]

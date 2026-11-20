@@ -1,11 +1,11 @@
-# Qian.Files.AspNetCore
+# Kun.Files.AspNetCore
 
 `qian.files` 的 HTTP 表面（S1-FILE-001）：每个端点调用 `IFileService` 的能力门面，错误一律 ErrorDetail；另有 local 后端的直传 / 直下端点。本包不引用任何 Provider，权限点由宿主回调接到 PEP。
 
 ## 映射
 
 ```csharp
-app.MapQianFiles(
+app.MapKunFiles(
     http => /* 按请求租户收窄、可注入 Files 的 qian.files 上下文 */,
     (endpoint, permission) => endpoint.RequireKunPermission(permission), // Kun.Authorization.AspNetCore 的 HTTP PEP
     new FilesEndpointOptions { TransferSource = http => /* qian.files 的 global 上下文 */ });

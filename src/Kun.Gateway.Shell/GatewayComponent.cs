@@ -3,7 +3,7 @@ using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Gateway.Shell;
 

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Runtime;
 
-namespace Qian.Files;
+namespace Kun.Files;
 
 /// <summary>文件 seam 的稳定服务键；消费者只依赖本 Definition，换 Provider 或新增存储后端都不改调用代码。</summary>
 public static class FilesDefinition

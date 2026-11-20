@@ -5,7 +5,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
 
-namespace Qian.Files.Tests;
+namespace Kun.Files.Tests;
 
 // 不依赖数据库的规则：服务端类型嗅探、组件配置读取、配额上限的来源顺序、注册表 seam 与 local 直传网关的签名校验。
 public sealed class FilesUnitTests

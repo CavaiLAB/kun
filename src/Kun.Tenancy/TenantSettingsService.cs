@@ -10,7 +10,7 @@ using Kun.Errors;
 using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Config;
+using Kun.Configuration;
 using Qian.Registry;
 using Qian.Surfaces.Abstractions;
 

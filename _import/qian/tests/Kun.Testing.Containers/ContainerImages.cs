@@ -1,4 +1,4 @@
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// 集成测试使用的镜像。版本与部署基线一致：PostgreSQL 16、Redis 7（ADR-017 D17.2）；

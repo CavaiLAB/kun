@@ -1,6 +1,6 @@
 using StackExchange.Redis;
 
-namespace Qian.Testing.Containers.IntegrationTests;
+namespace Kun.Testing.Containers.Tests;
 
 [Collection(SharedInfrastructure.Name)]
 public sealed class RedisFixtureTests(InfrastructureFixture infrastructure)

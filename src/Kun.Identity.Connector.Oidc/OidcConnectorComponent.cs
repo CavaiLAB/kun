@@ -3,7 +3,7 @@ using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Qian.Config;
+using Kun.Configuration;
 
 namespace Kun.Identity.Connector.Oidc;
 

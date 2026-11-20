@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Qian.Config;
+namespace Kun.Configuration;
 
 /// <summary>公开的规范引用；Kubernetes 定位只在受信任存储绑定中使用。</summary>
 public sealed partial class SecretReference

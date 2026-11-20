@@ -4,7 +4,7 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
 
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 /// <summary>
 /// 真实 Apollo 2.5.2 ConfigService/AdminService + MySQL 8。网关宿主 AOT 验收直接使用本类；
@@ -219,7 +219,7 @@ public class RealApolloFixture : ContainerFixture<IContainer>
     private static string Image(string name, string fallback) => Environment.GetEnvironmentVariable(name) is { Length: > 0 } image ? image : fallback;
     private static byte[] ReadSql(string name)
     {
-        using var stream = typeof(RealApolloFixture).Assembly.GetManifestResourceStream("Qian.Testing.Containers.ApolloReal." + name)
+        using var stream = typeof(RealApolloFixture).Assembly.GetManifestResourceStream("Kun.Testing.Containers.ApolloReal." + name)
             ?? throw new InvalidOperationException("缺少 Apollo 原版数据库脚本。");
         using var buffer = new MemoryStream(); stream.CopyTo(buffer); return buffer.ToArray();
     }

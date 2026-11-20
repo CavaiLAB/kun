@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Config;
+namespace Kun.Configuration;
 
 /// <summary>秘密解析的统一错误，不把输入值或物理路径放进错误文案。</summary>
 public static class SecretErrors

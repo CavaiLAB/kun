@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Capabilities.Tests;
 

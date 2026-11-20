@@ -7,10 +7,10 @@ using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Kun.EventBus;
 using Kun.Plugin.Sdk;
-using Kun.Runtime;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Registry;
+using Kun.Runtime;
 using Kun.Surfaces.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Authorization.Rbac;
 

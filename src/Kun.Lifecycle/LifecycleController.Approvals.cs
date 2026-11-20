@@ -4,16 +4,16 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Audit;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Registry;
+using Kun.Runtime;
 using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
-using Kun.Audit;
-using Kun.Identity.Abstractions;
-using Kun.Registry;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Lifecycle;
 
@@ -78,7 +78,11 @@ internal sealed partial class LifecycleController
 
     private static JsonElement ApprovalPayload(PermissionApprovalRow row, JsonNode? approved, JsonNode? previous) => JsonSerializer.SerializeToElement(new JsonObject
     {
-        ["pluginId"] = row.PluginId, ["version"] = row.Version, ["via"] = row.ApprovedVia, ["approved"] = approved, ["previous"] = previous
+        ["pluginId"] = row.PluginId,
+        ["version"] = row.Version,
+        ["via"] = row.ApprovedVia,
+        ["approved"] = approved,
+        ["previous"] = previous
     });
 
     // 可串行化冲突或死锁：放弃整个会话，从新会话重做读取、写入与审计（审计端口的约定）。

@@ -2,11 +2,11 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
 using Kun.Errors;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Kun.Profiles;
 using Kun.Profiles.Abstractions;
 using Kun.Surfaces;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 
 namespace Kun.Runtime.Tests;

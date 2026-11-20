@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
 using Kun.Errors.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Capabilities;
-using Kun.Capabilities.AspNetCore;
 
 namespace Kun.Tenancy.Signup.Tests;
 

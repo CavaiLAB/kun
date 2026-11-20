@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
 using Kun.Surfaces.Abstractions;
 
 namespace Kun.Surfaces;
@@ -49,8 +49,11 @@ public sealed class HotReloadSurfacePlugin : IKunPlugin
         ctx.Effect(() => diagnostic.Active = false);
         var lifetime = new WatchLifetime(_directory, () => Refresh(ctx, session, current, before), () =>
         {
-            lock (_gate) _status = _status with { Diagnostics = [Diagnostics.Create("runtime", "", 1, SurfaceErrors.Reference,
-                "表面更新未通过运行时检查，继续保留上次有效注册。", Guid.NewGuid().ToString("N"))] };
+            lock (_gate) _status = _status with
+            {
+                Diagnostics = [Diagnostics.Create("runtime", "", 1, SurfaceErrors.Reference,
+                "表面更新未通过运行时检查，继续保留上次有效注册。", Guid.NewGuid().ToString("N"))]
+            };
         });
         ctx.Effect(lifetime.DisposeAsync);
         lifetime.Start();
@@ -119,8 +122,12 @@ public sealed class HotReloadSurfacePlugin : IKunPlugin
             var status = plugin.Status;
             return JsonSerializer.SerializeToElement(new
             {
-                entryId = entry.Id, plugin = entry.Plugin, scope = SurfaceRuntimeDiagnostics.ScopeName(entry.Scope),
-                revision = status.Revision, restartRequired = status.RestartRequired, changedCodeFiles = status.ChangedCodeFiles,
+                entryId = entry.Id,
+                plugin = entry.Plugin,
+                scope = SurfaceRuntimeDiagnostics.ScopeName(entry.Scope),
+                revision = status.Revision,
+                restartRequired = status.RestartRequired,
+                changedCodeFiles = status.ChangedCodeFiles,
                 invalidSurface = status.Diagnostics.Any(item => item.Severity == "error")
             });
         }

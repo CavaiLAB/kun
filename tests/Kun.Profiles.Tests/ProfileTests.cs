@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Profiles.Tests;
 
@@ -135,8 +135,11 @@ public sealed class ProfileTests
         File.WriteAllText(patch, "- id: hello\n  plugin: test.other\n  config: {}\n");
         var result = composer.Load(new ProfileLoadOptions
         {
-            WorkingDirectory = Root, Profile = "minimal", IncludeHomePatch = false,
-            Patches = [patch], ComponentDirectories = [componentDirectory]
+            WorkingDirectory = Root,
+            Profile = "minimal",
+            IncludeHomePatch = false,
+            Patches = [patch],
+            ComponentDirectories = [componentDirectory]
         });
         Assert.True(result.IsValid, JsonSerializer.Serialize(result.Diagnostics, Json));
         Assert.Empty(result.Diagnostics);
@@ -185,8 +188,15 @@ public sealed class ProfileTests
                 else File.WriteAllText(target, file.Value.GetString());
             }
             if (item.TryGetProperty("missingHome", out var absent) && absent.GetBoolean()) File.Delete(Path.Combine(Directory, "home/qian.patch.yml"));
-            Options = new ProfileLoadOptions { WorkingDirectory = Directory, Profile = "test", HomeDirectory = "home", IncludeHomePatch = item.GetProperty("home").GetBoolean(), Patches = item.GetProperty("patches").EnumerateArray().Select(v => v.GetString()!).ToArray(),
-                ScopePatches = item.TryGetProperty("scopePatches", out var scoped) ? scoped.Deserialize<ScopePatchLayer[]>(Json)! : [] };
+            Options = new ProfileLoadOptions
+            {
+                WorkingDirectory = Directory,
+                Profile = "test",
+                HomeDirectory = "home",
+                IncludeHomePatch = item.GetProperty("home").GetBoolean(),
+                Patches = item.GetProperty("patches").EnumerateArray().Select(v => v.GetString()!).ToArray(),
+                ScopePatches = item.TryGetProperty("scopePatches", out var scoped) ? scoped.Deserialize<ScopePatchLayer[]>(Json)! : []
+            };
         }
         public void Dispose() => System.IO.Directory.Delete(Directory, true);
     }

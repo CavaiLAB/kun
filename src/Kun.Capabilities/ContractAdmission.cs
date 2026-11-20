@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
 using SemanticVersion = SemanticVersioning.Version;
 
 namespace Kun.Capabilities;

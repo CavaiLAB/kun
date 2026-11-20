@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using Kun.Registry;
+using Kun.Testing.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -8,8 +10,6 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Registry;
-using Kun.Testing.Containers;
 
 namespace Kun.Lifecycle.Tests;
 
@@ -56,8 +56,13 @@ public sealed partial class GitOpsExecutorTests(PostgresFixture postgres, K3sFix
         {
             executor = new
             {
-                kind = "gitops", repository = repository.Bare, branch = "main", path = "apps/qian-plugins", @namespace = "qian-plugins",
-                workingDirectory = repository.Work, healthTimeoutSeconds = 5,
+                kind = "gitops",
+                repository = repository.Bare,
+                branch = "main",
+                path = "apps/qian-plugins",
+                @namespace = "qian-plugins",
+                workingDirectory = repository.Work,
+                healthTimeoutSeconds = 5,
                 kubernetes = new { server, token = "secretRef://platform/lifecycle/k8s-token", certificateAuthority = "secretRef://platform/lifecycle/k8s-ca" }
             }
         };

@@ -7,15 +7,15 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Authorization;
 using Kun.EntityFrameworkCore;
-using Kun.Security;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Registry;
-using Kun.Tenancy;
 using Kun.Runtime;
-using Kun.Errors;
+using Kun.Security;
+using Kun.Tenancy;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Kun.Capabilities;
 
@@ -166,8 +166,14 @@ internal sealed partial class CapabilityService(IRegistryService registry, IPerm
         await session.Context.Database.ExecuteSqlRawAsync(PurgeSql, [key.TenantId, now], ct).ConfigureAwait(false);
         session.Context.InvokeReceipts.Add(new InvokeReceiptRow
         {
-            TenantId = key.TenantId, SubjectKey = key.SubjectKey, CapabilityId = key.CapabilityId, IdempotencyKey = key.IdempotencyKey,
-            RequestSha256 = fingerprint, Response = null, CreatedAt = now, ExpiresAt = now + ClaimLease
+            TenantId = key.TenantId,
+            SubjectKey = key.SubjectKey,
+            CapabilityId = key.CapabilityId,
+            IdempotencyKey = key.IdempotencyKey,
+            RequestSha256 = fingerprint,
+            Response = null,
+            CreatedAt = now,
+            ExpiresAt = now + ClaimLease
         });
         await session.SaveChangesAsync(ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);

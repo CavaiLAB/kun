@@ -1,15 +1,15 @@
 using System.Text.Json;
 using Kun.Authorization;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.EventBus;
-using Kun.Security;
-using Microsoft.Extensions.DependencyInjection;
-using Kun.Authorization.Rbac.Abstractions;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
-using Kun.Errors;
+using Kun.Security;
 using Kun.Surfaces.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Registry;
 
@@ -152,7 +152,9 @@ internal sealed partial class RegistryService : IRegistryService
         // 平台镜像预装的组件经 Lifecycle 装成修订时就是这种情况（R151 ①）；其余候选制品不带代码能力，命令型工具照旧被拒。
         var content = RegistryArtifactContent.Read(files, digest, _options.Surfaces, new SurfaceValidationOptions
         {
-            Profile = "platform", ExecutionPlane = "server", ServiceKeys = _serviceKeys,
+            Profile = "platform",
+            ExecutionPlane = "server",
+            ServiceKeys = _serviceKeys,
             Capabilities = _preinstalledCapabilities.TryGetValue(digest, out var capabilities) ? capabilities : []
         });
         var saved = await _artifacts.SubmitAsync(content, actor, cancellationToken).ConfigureAwait(false);

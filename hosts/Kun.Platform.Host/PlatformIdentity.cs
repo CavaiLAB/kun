@@ -1,11 +1,11 @@
 using System.Security.Cryptography.X509Certificates;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
+using Kun.Identity.Server;
+using Kun.Tenancy.Signup;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using OpenIddict.Abstractions;
-using Kun.Identity.Abstractions;
-using Kun.Identity.Server;
-using Kun.Errors.AspNetCore;
-using Kun.Tenancy.Signup;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Kun.Platform.Host;
@@ -100,8 +100,10 @@ public static class PlatformIdentity
         services.Services.AddHttpClient();
         services.Services.AddKunIdentityServer(new IdentityServerOptions
         {
-            Issuer = issuer, AllowLoopbackHttp = configuration.GetValue<bool>("Identity:AllowLoopbackHttp"),
-            SigningCertificates = [Certificate(configuration, "Signing")], EncryptionCertificates = [Certificate(configuration, "Encryption")],
+            Issuer = issuer,
+            AllowLoopbackHttp = configuration.GetValue<bool>("Identity:AllowLoopbackHttp"),
+            SigningCertificates = [Certificate(configuration, "Signing")],
+            EncryptionCertificates = [Certificate(configuration, "Encryption")],
             Clients = [.. configuration.GetSection("Identity:Clients").GetChildren().Select(Client)]
         }, environment);
     }
@@ -112,8 +114,11 @@ public static class PlatformIdentity
         var id = Required(section, "ClientId");
         var descriptor = new OpenIddictApplicationDescriptor
         {
-            ClientId = id, ClientSecret = PlatformHostSettings.ReadSecret(Required(section, "SecretFile")), ClientType = ClientTypes.Confidential,
-            ConsentType = ConsentTypes.Implicit, DisplayName = section["DisplayName"] is { Length: > 0 } name ? name : id
+            ClientId = id,
+            ClientSecret = PlatformHostSettings.ReadSecret(Required(section, "SecretFile")),
+            ClientType = ClientTypes.Confidential,
+            ConsentType = ConsentTypes.Implicit,
+            DisplayName = section["DisplayName"] is { Length: > 0 } name ? name : id
         };
         descriptor.RedirectUris.Add(new Uri(Required(section, "RedirectUri"), UriKind.Absolute));
         descriptor.Permissions.UnionWith([Permissions.Endpoints.Authorization, Permissions.Endpoints.Token, Permissions.Endpoints.EndSession, Permissions.Endpoints.Revocation,

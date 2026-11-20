@@ -71,7 +71,11 @@ public sealed class SchedulerRenewalTests(SchedulerFixture fixture) : IClassFixt
                 var recoveredProcess = await fixture.Scalar<int>("SELECT process_id FROM public.sch_probe_attempts ORDER BY id DESC LIMIT 1");
                 SchedulerFixture.Evidence("renewal-error-result-" + replaceWorker, new
                 {
-                    status, effects, originalRun, firstProcess = worker.Id, recoveredProcess,
+                    status,
+                    effects,
+                    originalRun,
+                    firstProcess = worker.Id,
+                    recoveredProcess,
                     state = await fixture.Scalar<string>("SELECT state FROM plugin_qian_scheduler.job_triggers"),
                     runCount = await fixture.Scalar<long>("SELECT run_count FROM plugin_qian_scheduler.job_triggers"),
                     attempts = await fixture.Scalar<int>("SELECT attempts FROM plugin_qian_scheduler.job_runs"),

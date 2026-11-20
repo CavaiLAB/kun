@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Kun.Core.MultiTenancy;
 using Kun.Capabilities;
+using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Kun.Profiles.Abstractions;
 using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Registry;
 
@@ -148,7 +148,8 @@ internal sealed partial class RegistryScopeReconciler(
 
     private static RegistryEntryView View(ScopeState state, PluginEntry entry, bool local) => new(entry.Id, entry.Plugin, entry.Version,
         entry.Scope == ScopeKey.Global ? "global" : entry.Scope.Kind + ":" + entry.Scope.Id, entry.Layer,
-        local && state.Revisions.TryGetValue(entry.Id, out var revision) ? revision : null) { Config = entry.Config.Clone() };
+        local && state.Revisions.TryGetValue(entry.Id, out var revision) ? revision : null)
+    { Config = entry.Config.Clone() };
 
     private static string Disabling(ScopeState state, DisabledProfileEntry disabled)
     {

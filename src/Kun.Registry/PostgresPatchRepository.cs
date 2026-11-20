@@ -3,12 +3,12 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
+using Kun.Errors;
 using Kun.Profiles.Abstractions;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Surfaces.Abstractions;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Kun.Registry;
 
@@ -234,7 +234,9 @@ internal sealed partial class PostgresPatchRepository(IDataService data, ITenant
     private static ErrorException Invalid(string pointer, string reason) => new(new Error(PlatformErrors.InputInvalid)
     { Errors = [new FieldError(RegistryErrors.Invalid, File + pointer, new Dictionary<string, string> { ["reason"] = reason })] });
     private static ErrorException FromDiagnostics(IReadOnlyList<SurfaceDiagnostic> diagnostics) => new(new Error(PlatformErrors.InputInvalid)
-    { Errors = diagnostics.Where(d => d.Severity == "error").Take(100).Select(d => new FieldError(RegistryErrors.Invalid,
-        d.Error.Pointer ?? File + "#", new Dictionary<string, string> { ["reason"] = "patch 未通过共用解析或 Schema 校验。" })).ToArray() });
+    {
+        Errors = diagnostics.Where(d => d.Severity == "error").Take(100).Select(d => new FieldError(RegistryErrors.Invalid,
+        d.Error.Pointer ?? File + "#", new Dictionary<string, string> { ["reason"] = "patch 未通过共用解析或 Schema 校验。" })).ToArray()
+    });
     [GeneratedRegex("^[a-z][a-z0-9.-]*$", RegexOptions.CultureInvariant)] private static partial Regex EntryId();
 }

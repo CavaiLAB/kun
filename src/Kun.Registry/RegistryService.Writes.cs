@@ -1,10 +1,10 @@
 using System.Text.Json;
+using Kun.Errors;
 using Kun.EventBus;
-using Kun.Security;
 using Kun.Identity.Abstractions;
 using Kun.Lifecycle;
 using Kun.Runtime;
-using Kun.Errors;
+using Kun.Security;
 
 namespace Kun.Registry;
 

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Kun.Authorization;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Capabilities;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
@@ -15,7 +16,6 @@ using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Capabilities;
 
 namespace Kun.Tenancy.AspNetCore;
 

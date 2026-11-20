@@ -7,11 +7,11 @@ using System.Text.Json.Nodes;
 using Json.Schema;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Tenancy;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Scheduler;
 
@@ -54,8 +54,18 @@ internal sealed class PostgresScheduler(IPluginContext owner, ITenantContext ten
             return new ScheduledJob(existing.Id, key);
         }
         var id = Guid.CreateVersion7(); first = Microseconds(first);
-        session.Context.Definitions.Add(new JobDefinitionRow { TenantId = tenantId, Id = id, BusinessKey = key, Target = target,
-            Parameters = parameters.GetRawText(), Options = optionsJson, Schedule = schedule, Fingerprint = fingerprint, CreatedBy = caller.Entry.Plugin });
+        session.Context.Definitions.Add(new JobDefinitionRow
+        {
+            TenantId = tenantId,
+            Id = id,
+            BusinessKey = key,
+            Target = target,
+            Parameters = parameters.GetRawText(),
+            Options = optionsJson,
+            Schedule = schedule,
+            Fingerprint = fingerprint,
+            CreatedBy = caller.Entry.Plugin
+        });
         session.Context.Triggers.Add(new JobTriggerRow { TenantId = tenantId, Id = id, NextRunAt = first, AvailableAt = first });
         await session.SaveChangesAsync(ct).ConfigureAwait(false); await transaction.CommitAsync(ct).ConfigureAwait(false);
         return new ScheduledJob(id, key);

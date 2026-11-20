@@ -2,10 +2,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Logging;
-using Kun.Plugin.Sdk;
 using Kun.Errors;
+using Kun.Plugin.Sdk;
 using Kun.Surfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Kun.Capabilities.Tests;
 
@@ -295,7 +295,10 @@ public sealed class CapabilityContractCheckTests
         using var schema = JsonDocument.Parse(inputSchema);
         return JsonSerializer.SerializeToElement(new
         {
-            id = "qian.test/" + name, plugin = "qian.test", name, inputSchema = schema.RootElement,
+            id = "qian.test/" + name,
+            plugin = "qian.test",
+            name,
+            inputSchema = schema.RootElement,
             schemaSha256 = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(inputSchema)))
         });
     }

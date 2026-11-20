@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Errors;
 using Kun.MultiTenancy;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Registry.Tests;
 

@@ -23,7 +23,7 @@ public sealed class ProtoCompatibilityTests
         var probe = Probe();
         await Assert.ThrowsAsync<ErrorException>(() => probe.CompileAsync(Source("invalid syntax"), Ct).AsTask());
         var missing = new ProtoContractSet(new Dictionary<string, ReadOnlyMemory<byte>>
-            { ["service.proto"] = Encoding.UTF8.GetBytes("syntax = \"proto3\"; import \"missing.proto\"; package sample.v1;") });
+        { ["service.proto"] = Encoding.UTF8.GetBytes("syntax = \"proto3\"; import \"missing.proto\"; package sample.v1;") });
         await Assert.ThrowsAsync<ErrorException>(() => probe.CompileAsync(missing, Ct).AsTask());
         Assert.Throws<ArgumentException>(() => new ProtoContractSet(new Dictionary<string, ReadOnlyMemory<byte>> { ["../escape.proto"] = Encoding.UTF8.GetBytes("bad") }));
     }

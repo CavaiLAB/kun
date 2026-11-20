@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Kun.Errors;
 using Kun.MultiTenancy;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Surfaces.Abstractions;
 
 namespace Kun.Registry.Tests;

@@ -75,9 +75,12 @@ public sealed class SchemaPatternTests
     private static Regex Validator(string pattern) => new(pattern, RegexOptions.ECMAScript);
     private static bool Ecma(string token, char c) => token switch
     {
-        @"\w" => char.IsAsciiLetterOrDigit(c) || c == '_', @"\W" => !(char.IsAsciiLetterOrDigit(c) || c == '_'),
-        @"\d" => char.IsAsciiDigit(c), @"\D" => !char.IsAsciiDigit(c),
-        @"\s" => EcmaSpace.Contains(c), @"\S" => !EcmaSpace.Contains(c),
+        @"\w" => char.IsAsciiLetterOrDigit(c) || c == '_',
+        @"\W" => !(char.IsAsciiLetterOrDigit(c) || c == '_'),
+        @"\d" => char.IsAsciiDigit(c),
+        @"\D" => !char.IsAsciiDigit(c),
+        @"\s" => EcmaSpace.Contains(c),
+        @"\S" => !EcmaSpace.Contains(c),
         _ => c is not ('\n' or '\r' or (char)0x2028 or (char)0x2029),
     };
 
@@ -320,7 +323,9 @@ public sealed class SchemaPatternTests
     // 只原样输出可打印 ASCII，其余码元一律写成 JSON 转义，残缺的代理项也能原样往返。
     private static string Quote(string text) => "\"" + string.Concat(text.Select(c => c switch
     {
-        '"' => "\\\"", '\\' => "\\\\", >= ' ' and <= '~' => c.ToString(),
+        '"' => "\\\"",
+        '\\' => "\\\\",
+        >= ' ' and <= '~' => c.ToString(),
         _ => "\\u" + ((int)c).ToString("x4", CultureInfo.InvariantCulture),
     })) + "\"";
 

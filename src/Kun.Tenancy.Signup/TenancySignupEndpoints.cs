@@ -4,12 +4,12 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using Kun.Capabilities;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Runtime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
-using Kun.Capabilities;
 
 namespace Kun.Tenancy.Signup;
 

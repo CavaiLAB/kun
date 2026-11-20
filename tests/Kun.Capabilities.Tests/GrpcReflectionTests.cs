@@ -1,20 +1,20 @@
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Globalization;
-using Kun.Registry;
-using Kun.Runtime;
-using Kun.Surfaces;
-using Kun.Surfaces.Abstractions;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Grpc.Reflection;
+using Kun.Registry;
+using Kun.Runtime;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -49,8 +49,15 @@ public sealed class GrpcReflectionTests
             options.MapInboundClaims = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {
-                ValidateIssuer = true, ValidIssuer = Issuer, ValidateAudience = true, ValidAudience = Audience,
-                ValidateLifetime = true, ValidateIssuerSigningKey = true, IssuerSigningKey = key, RequireSignedTokens = true, ClockSkew = TimeSpan.Zero
+                ValidateIssuer = true,
+                ValidIssuer = Issuer,
+                ValidateAudience = true,
+                ValidAudience = Audience,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                RequireSignedTokens = true,
+                ClockSkew = TimeSpan.Zero
             };
         });
         builder.Services.AddAuthorizationBuilder().AddPolicy("contracts", policy => policy.RequireAuthenticatedUser().RequireClaim("scope", "qian.registry:contract:read"));
@@ -116,9 +123,16 @@ public sealed class GrpcReflectionTests
         {
             [".qian-plugin/plugin.json"] = JsonSerializer.SerializeToUtf8Bytes(new
             {
-                id = "test.rpc", version, description = "外部协议准入的真实声明式组件测试。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = "协议", category = "testing" }, inject = Array.Empty<string>(), provides = Array.Empty<string>(),
-                policy = new { tier = "private", sandbox = "none", authentication = "ON_INSTALL" }, scopes = GlobalScopes
+                id = "test.rpc",
+                version,
+                description = "外部协议准入的真实声明式组件测试。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = "协议", category = "testing" },
+                inject = Array.Empty<string>(),
+                provides = Array.Empty<string>(),
+                policy = new { tier = "private", sandbox = "none", authentication = "ON_INSTALL" },
+                scopes = GlobalScopes
             }),
             ["metadata/contracts.json"] = Encoding.UTF8.GetBytes("[{\"id\":\"test.rpc.api/v1\",\"kind\":\"proto\",\"path\":\"./echo.proto\"}]"),
             ["echo.proto"] = Source().ReadFile("echo.proto"),

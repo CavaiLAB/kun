@@ -1,5 +1,5 @@
-using Kun.Profiles.Abstractions;
 using Kun.Errors;
+using Kun.Profiles.Abstractions;
 using Kun.Surfaces.Abstractions;
 
 namespace Kun.Docs.Abstractions;

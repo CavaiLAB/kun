@@ -1,21 +1,21 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
-using Kun.EntityFrameworkCore;
-using Kun.EntityFrameworkCore.Extensions;
-using Kun.MultiTenancy;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Configuration;
 using Kun.Configuration.Platform;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.Extensions;
 using Kun.Lifecycle;
+using Kun.MultiTenancy;
 using Kun.Runtime;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Registry.Tests;
 

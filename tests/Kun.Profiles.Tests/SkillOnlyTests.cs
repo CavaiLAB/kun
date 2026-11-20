@@ -1,9 +1,9 @@
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Profiles.Abstractions;
 using Kun.Runtime;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Profiles.Tests;
 
@@ -50,8 +50,18 @@ public sealed class SkillOnlyTests
             if (Environment.GetEnvironmentVariable("QIAN_SKILL_ONLY_REPORT") is { Length: > 0 } report)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(report))!);
-                File.WriteAllText(report, JsonSerializer.Serialize(new { id = spec.GetProperty("id").GetString(), noCode = true, profile = result.Snapshot.Name,
-                    entryId = dumped.Id, plugin = dumped.Plugin + "@" + dumped.Version, scope = SurfaceRuntimeDiagnostics.ScopeName(dumped.Scope), skill = name, otherVisible = false, clean = runtime.DumpConfig().Count == 0 }));
+                File.WriteAllText(report, JsonSerializer.Serialize(new
+                {
+                    id = spec.GetProperty("id").GetString(),
+                    noCode = true,
+                    profile = result.Snapshot.Name,
+                    entryId = dumped.Id,
+                    plugin = dumped.Plugin + "@" + dumped.Version,
+                    scope = SurfaceRuntimeDiagnostics.ScopeName(dumped.Scope),
+                    skill = name,
+                    otherVisible = false,
+                    clean = runtime.DumpConfig().Count == 0
+                }));
             }
             void Copy(string relative)
             {

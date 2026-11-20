@@ -1,15 +1,15 @@
 using System.Text.Json;
 using Kun.Authorization;
-using Kun.EntityFrameworkCore;
-using Kun.MultiTenancy;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.EntityFrameworkCore;
+using Kun.MultiTenancy;
 using Kun.Runtime;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 using Kun.Tenancy;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Registry.Tests;
 

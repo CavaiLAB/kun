@@ -1,13 +1,27 @@
-using Kun.EventBus;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Kun.Audit;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
+using Kun.Configuration.Secrets;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
+using Kun.EventBus;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
+using Kun.Plugin.Sdk;
+using Kun.Profiles;
+using Kun.Profiles.Abstractions;
+using Kun.Registry;
+using Kun.Runtime;
+using Kun.Surfaces;
+using Kun.Surfaces.Abstractions;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
@@ -18,20 +32,6 @@ using Npgsql;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
-using Kun.Audit;
-using Kun.Configuration;
-using Kun.Configuration.Platform;
-using Kun.Configuration.Secrets;
-using Kun.Data;
-using Kun.Plugin.Sdk;
-using Kun.Profiles;
-using Kun.Profiles.Abstractions;
-using Kun.Registry;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Surfaces;
-using Kun.Surfaces.Abstractions;
-using Kun.Testing.Containers;
 
 namespace Kun.Lifecycle.Tests;
 
@@ -201,7 +201,11 @@ internal sealed class LifecycleHost : IAsyncDisposable
         Add("config", "qian.config", new ConfigurationPlugin(), [ConfigDefinition.Key]);
         var registry = new RegistryPlugin(new RegistryRuntimeOptions
         {
-            InstalledComponents = installed, Runtime = runtime, Profiles = new ProfileLoader(validator), Profile = options, Surfaces = validator,
+            InstalledComponents = installed,
+            Runtime = runtime,
+            Profiles = new ProfileLoader(validator),
+            Profile = options,
+            Surfaces = validator,
             Resolve = entry => definitions[entry.Id] with { Entry = new PluginEntry(entry.Id, entry.Plugin.Split('@')[0], entry.Plugin.Split('@')[1], ScopeKey.Global, entry.Layer, entry.Config) }
         });
         Add("registry", "qian.registry", registry, [RegistryDefinition.Key], new { store = "pg" });
@@ -231,9 +235,16 @@ internal sealed class LifecycleHost : IAsyncDisposable
             definitions.Add(id, definition);
             Write($"plugins/{id}/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id = component, version = "1.0.0", description = "生命周期集成验收使用实际 Provider 的平台组合。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = id, category = "testing" }, inject = plugin.Inject.Select(key => key.Name), provides = provides.Select(key => key.Name),
-                policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true }, scopes = Scopes
+                id = component,
+                version = "1.0.0",
+                description = "生命周期集成验收使用实际 Provider 的平台组合。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = id, category = "testing" },
+                inject = plugin.Inject.Select(key => key.Name),
+                provides = provides.Select(key => key.Name),
+                policy = new { tier = "system", sandbox = "none", authentication = "ON_INSTALL", required = true },
+                scopes = Scopes
             }));
         }
         void Write(string path, string content)
@@ -299,9 +310,17 @@ internal static class Artifacts
     {
         var manifest = new Dictionary<string, object?>
         {
-            ["$schema"] = "https://qian.dev/schemas/plugin/v2", ["id"] = id, ["version"] = version, ["description"] = "生命周期集成验收使用的组件制品。", ["author"] = new { name = "Acme" },
-            ["license"] = "Apache-2.0", ["interface"] = new { displayName = id, category = "testing" }, ["inject"] = Array.Empty<string>(), ["provides"] = Array.Empty<string>(),
-            ["policy"] = new { tier = "official", sandbox, authentication = "ON_INSTALL", required = false }, ["scopes"] = new[] { "tenant" }
+            ["$schema"] = "https://qian.dev/schemas/plugin/v2",
+            ["id"] = id,
+            ["version"] = version,
+            ["description"] = "生命周期集成验收使用的组件制品。",
+            ["author"] = new { name = "Acme" },
+            ["license"] = "Apache-2.0",
+            ["interface"] = new { displayName = id, category = "testing" },
+            ["inject"] = Array.Empty<string>(),
+            ["provides"] = Array.Empty<string>(),
+            ["policy"] = new { tier = "official", sandbox, authentication = "ON_INSTALL", required = false },
+            ["scopes"] = new[] { "tenant" }
         };
         if (runtime is not null) manifest["runtime"] = runtime;
         return new Dictionary<string, ReadOnlyMemory<byte>>(StringComparer.Ordinal) { [".qian-plugin/plugin.json"] = JsonSerializer.SerializeToUtf8Bytes(manifest) };

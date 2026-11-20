@@ -3,9 +3,11 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Kun.Authorization;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Capabilities;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Identity.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Security;
 using Microsoft.AspNetCore.Builder;
@@ -13,8 +15,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Capabilities;
-using Kun.Registry;
 
 namespace Kun.Configuration.AspNetCore;
 

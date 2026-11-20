@@ -5,8 +5,8 @@ using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Kun.Runtime;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Surfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Authorization.Rbac.Tests;
 

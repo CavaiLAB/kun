@@ -1,11 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Kun.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using Kun.Audit;
+using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.Registry;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Lifecycle;
 
@@ -303,8 +303,13 @@ internal sealed partial class LifecycleController
                 using var producer = Origin(pluginId);
                 var value = await hooks.InvokeAsync(new LifecycleHookContext
                 {
-                    Hook = hook, TenantId = tenantId, PluginId = pluginId, FromVersion = fromVersion, ToVersion = toVersion,
-                    IdempotencyKey = IdempotencyKey(tenantId, pluginId, hook, toVersion), Context = context.Scoped(new ScopeKey("tenant", tenantId))
+                    Hook = hook,
+                    TenantId = tenantId,
+                    PluginId = pluginId,
+                    FromVersion = fromVersion,
+                    ToVersion = toVersion,
+                    IdempotencyKey = IdempotencyKey(tenantId, pluginId, hook, toVersion),
+                    Context = context.Scoped(new ScopeKey("tenant", tenantId))
                 }, ct).ConfigureAwait(false);
                 // 结果只留 64 KiB 以内的 JSON；更大的结果不保存，不影响结论。
                 if (value is { ValueKind: not JsonValueKind.Undefined } json && json.GetRawText() is { Length: <= 65536 } raw) result = raw;

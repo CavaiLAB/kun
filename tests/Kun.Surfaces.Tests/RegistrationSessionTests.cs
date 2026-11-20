@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
+using Kun.Errors;
+using Kun.Runtime;
+using Kun.Surfaces.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Surfaces.Abstractions;
 
 namespace Kun.Surfaces.Tests;
 
@@ -128,9 +128,16 @@ public sealed class RegistrationSessionTests
         {
             Write(".qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id = Plugin, version = "1.0.0", description = "声明式表面替换的并发读取验收组件。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = "表面替换", category = "testing" }, inject = Array.Empty<string>(), provides = Array.Empty<string>(),
-                policy = new { tier = "private", sandbox = "none", authentication = "ON_INSTALL" }, scopes = Scopes
+                id = Plugin,
+                version = "1.0.0",
+                description = "声明式表面替换的并发读取验收组件。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = "表面替换", category = "testing" },
+                inject = Array.Empty<string>(),
+                provides = Array.Empty<string>(),
+                policy = new { tier = "private", sandbox = "none", authentication = "ON_INSTALL" },
+                scopes = Scopes
             }));
             foreach (var (name, description) in skills) Write("skills/" + name + "/SKILL.md", "---\nname: " + name + "\ndescription: " + description + "\n---\n只读取当前 scope 的已授权内容。\n");
             var result = new SurfaceValidator().ValidateComponent(directory.FullName, new SurfaceValidationOptions { Profile = "minimal", ExecutionPlane = "server" });

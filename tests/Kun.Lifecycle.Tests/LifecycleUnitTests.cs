@@ -1,8 +1,8 @@
 using System.Text.Json;
+using Kun.Errors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Kun.Errors;
 
 namespace Kun.Lifecycle.Tests;
 

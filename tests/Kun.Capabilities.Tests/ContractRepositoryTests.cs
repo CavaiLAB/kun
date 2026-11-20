@@ -3,9 +3,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kun.Errors;
 using Kun.Registry;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 
@@ -58,9 +58,16 @@ public sealed class ContractRepositoryTests
     {
         var manifest = JsonSerializer.SerializeToElement(new
         {
-            id = Plugin, version, description = "版本化契约仓库真实制品测试组件。", author = new { name = "Qian" }, license = "Apache-2.0",
-            @interface = new { displayName = "契约", category = "testing" }, inject = NoKeys, provides = NoKeys,
-            policy = new { tier = "private", sandbox = "none", authentication = "ON_INSTALL" }, scopes = Scopes
+            id = Plugin,
+            version,
+            description = "版本化契约仓库真实制品测试组件。",
+            author = new { name = "Qian" },
+            license = "Apache-2.0",
+            @interface = new { displayName = "契约", category = "testing" },
+            inject = NoKeys,
+            provides = NoKeys,
+            policy = new { tier = "private", sandbox = "none", authentication = "ON_INSTALL" },
+            scopes = Scopes
         });
         var openapi = JsonNode.Parse("""{"openapi":"3.1.1","info":{"title":"客户契约","version":"1.0.0"},"paths":{"/customers":{"get":{"operationId":"listCustomers","responses":{"200":{"description":"成功"}}}}}}""")!;
         if (removePath) openapi["paths"] = new JsonObject();

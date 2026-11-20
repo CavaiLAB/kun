@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Json.Schema;
 using Kun.Docs.Abstractions;
+using Kun.Errors;
 using Kun.Profiles;
 using Kun.Profiles.Abstractions;
-using Kun.Errors;
 using Kun.Surfaces;
 
 namespace Kun.Docs.Tests;
@@ -204,9 +204,16 @@ public sealed class DocumentTests
             {
                 var manifest = new Dictionary<string, object?>
                 {
-                    ["id"] = "test." + name, ["version"] = "1.0.0", ["description"] = "用于文档生成器验收的静态组件", ["author"] = new { name = "Qian" }, ["license"] = "Apache-2.0",
-                    ["interface"] = new { displayName = name, category = "test" }, ["inject"] = name == "consumer" ? new[] { "Settings" } : [],
-                    ["provides"] = name == "provider" ? new[] { "Settings" } : [], ["policy"] = new { tier = "private", sandbox = "none", authentication = "ON_INSTALL" }, ["scopes"] = new[] { "global" }
+                    ["id"] = "test." + name,
+                    ["version"] = "1.0.0",
+                    ["description"] = "用于文档生成器验收的静态组件",
+                    ["author"] = new { name = "Qian" },
+                    ["license"] = "Apache-2.0",
+                    ["interface"] = new { displayName = name, category = "test" },
+                    ["inject"] = name == "consumer" ? new[] { "Settings" } : [],
+                    ["provides"] = name == "provider" ? new[] { "Settings" } : [],
+                    ["policy"] = new { tier = "private", sandbox = "none", authentication = "ON_INSTALL" },
+                    ["scopes"] = new[] { "global" }
                 };
                 if (name == "observer") manifest["optionalInject"] = new[] { "Settings" };
                 Write("plugins/" + name + "/.qian-plugin/plugin.json", JsonSerializer.Serialize(manifest));

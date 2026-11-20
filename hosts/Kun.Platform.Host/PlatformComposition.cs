@@ -1,28 +1,28 @@
 using System.Reflection;
 using System.Text.Json;
-using Kun.Core.MultiTenancy;
-using Kun.EntityFrameworkCore;
-using Kun.EventBus;
-using Kun.EventBus.DependencyInjection;
-using Kun.Mediator;
-using Kun.Mediator.DependencyInjection;
-using Kun.MultiTenancy.DependencyInjection;
-using Kun.Security.DependencyInjection;
+using Kun.Authorization.AspNetCore;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
-using Kun.Authorization.AspNetCore;
 using Kun.Capabilities.AspNetCore;
 using Kun.Configuration;
 using Kun.Configuration.Secrets;
+using Kun.Core.MultiTenancy;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
+using Kun.Errors.AspNetCore;
+using Kun.EventBus;
+using Kun.EventBus.DependencyInjection;
 using Kun.Identity.Abstractions;
 using Kun.Lifecycle;
+using Kun.Mediator;
+using Kun.Mediator.DependencyInjection;
+using Kun.MultiTenancy.DependencyInjection;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Profiles;
 using Kun.Profiles.Abstractions;
 using Kun.Registry;
-using Kun.Errors.AspNetCore;
+using Kun.Security.DependencyInjection;
 using Kun.Surfaces;
 using Kun.Tenancy;
 
@@ -103,8 +103,11 @@ public sealed class PlatformHostComposition
         var loader = new ProfileLoader(validator);
         var options = new ProfileLoadOptions
         {
-            WorkingDirectory = Settings.Root, Profile = "platform", IncludeHomePatch = false,
-            Patches = [Settings.HostOverlay, .. _patches, .. Settings.Patches], ComponentDirectories = [.. _directories, .. Settings.ComponentDirectories]
+            WorkingDirectory = Settings.Root,
+            Profile = "platform",
+            IncludeHomePatch = false,
+            Patches = [Settings.HostOverlay, .. _patches, .. Settings.Patches],
+            ComponentDirectories = [.. _directories, .. Settings.ComponentDirectories]
         };
         var result = loader.Load(options);
         if (!result.IsValid) throw new InvalidOperationException("platform profile 装配失败：" + JsonSerializer.Serialize(result.Diagnostics.Where(item => item.Severity == "error").Select(item => item.Error)));

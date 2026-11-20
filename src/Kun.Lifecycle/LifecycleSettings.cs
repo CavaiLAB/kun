@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Configuration;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
 
 namespace Kun.Lifecycle;
 
@@ -119,8 +119,15 @@ internal sealed class GitOpsSettings : ExecutorSettings
         if (server is null || token is null) throw LifecycleSettings.Invalid("#/executor/kubernetes", "gitops 执行器必须配置 K8s API 地址与令牌引用。");
         return new GitOpsSettings
         {
-            Repository = repository, Branch = branch ?? "main", Path = path ?? "apps/qian-plugins", Namespace = ns ?? "qian-plugins", WorkingDirectory = working,
-            Server = server, Token = token, CertificateAuthority = authority, HealthTimeout = TimeSpan.FromSeconds(timeout)
+            Repository = repository,
+            Branch = branch ?? "main",
+            Path = path ?? "apps/qian-plugins",
+            Namespace = ns ?? "qian-plugins",
+            WorkingDirectory = working,
+            Server = server,
+            Token = token,
+            CertificateAuthority = authority,
+            HealthTimeout = TimeSpan.FromSeconds(timeout)
         };
     }
 

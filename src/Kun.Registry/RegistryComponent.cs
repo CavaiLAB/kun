@@ -1,8 +1,8 @@
+using System.Text.Json;
 using Kun.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Registry;
 

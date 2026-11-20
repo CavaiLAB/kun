@@ -3,13 +3,22 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Kun.Authorization;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors.AspNetCore;
+using Kun.Identity.Abstractions;
 using Kun.MultiTenancy;
+using Kun.Plugin.Sdk.AspNetCore;
+using Kun.Registry.AspNetCore;
+using Kun.Runtime;
 using Kun.Security;
 using Kun.Security.Authentication;
 using Kun.Security.DependencyInjection;
+using Kun.Surfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -23,15 +32,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Kun.Authorization.Rbac;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Data;
-using Kun.Identity.Abstractions;
-using Kun.Plugin.Sdk.AspNetCore;
-using Kun.Registry.AspNetCore;
-using Kun.Runtime;
-using Kun.Errors.AspNetCore;
-using Kun.Surfaces;
 
 namespace Kun.Registry.Tests;
 
@@ -267,8 +267,22 @@ public sealed partial class PatchPersistenceTests
         internal string Token(string? tenant, string subject)
         {
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var payload = JsonSerializer.Serialize(new { iss = "registry-http-test", aud = HttpAudiences, sub = subject, principal_kind = tenant is null ? "user" : "service", tenant_id = tenant,
-                identity_revision = 0, roles = PlatformClaimedRoles, scope = "registry.write", session_id = Guid.CreateVersion7(), jti = Guid.CreateVersion7(), iat = now, nbf = now, exp = now + 300 });
+            var payload = JsonSerializer.Serialize(new
+            {
+                iss = "registry-http-test",
+                aud = HttpAudiences,
+                sub = subject,
+                principal_kind = tenant is null ? "user" : "service",
+                tenant_id = tenant,
+                identity_revision = 0,
+                roles = PlatformClaimedRoles,
+                scope = "registry.write",
+                session_id = Guid.CreateVersion7(),
+                jti = Guid.CreateVersion7(),
+                iat = now,
+                nbf = now,
+                exp = now + 300
+            });
             return new JsonWebTokenHandler().CreateToken(payload, new SigningCredentials(key, SecurityAlgorithms.RsaSha256));
         }
         internal async Task<HttpResponseMessage> Put(string path, object body, string? tenant, string? subject = "root")
@@ -283,8 +297,21 @@ public sealed partial class PatchPersistenceTests
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, path); request.Headers.Add("X-Tenant-Id", tenant == HttpTenantB ? HttpTenantA : HttpTenantB);
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
-            var payload = JsonSerializer.Serialize(new { iss = "registry-http-test", aud = HttpAudiences, sub = subject, principal_kind = "service", tenant_id = tenant,
-                roles = ClaimedRoles, scope = "registry.read", session_id = id, jti = id, iat = now, nbf = now, exp = now + 60 });
+            var payload = JsonSerializer.Serialize(new
+            {
+                iss = "registry-http-test",
+                aud = HttpAudiences,
+                sub = subject,
+                principal_kind = "service",
+                tenant_id = tenant,
+                roles = ClaimedRoles,
+                scope = "registry.read",
+                session_id = id,
+                jti = id,
+                iat = now,
+                nbf = now,
+                exp = now + 60
+            });
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", new JsonWebTokenHandler().CreateToken(payload, new SigningCredentials(key, SecurityAlgorithms.RsaSha256)));
             return await client.SendAsync(request, Ct);
         }
@@ -292,8 +319,22 @@ public sealed partial class PatchPersistenceTests
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, path); request.Headers.Add("X-Tenant-Id", HttpTenantB);
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var payload = JsonSerializer.Serialize(new { iss = "registry-http-test", aud = HttpAudiences, sub = subject, principal_kind = "user", tenant_id = (string?)null,
-                identity_revision = 0, roles = PlatformClaimedRoles, scope = "registry.read", session_id = Guid.CreateVersion7(), jti = Guid.CreateVersion7(), iat = now, nbf = now, exp = now + 60 });
+            var payload = JsonSerializer.Serialize(new
+            {
+                iss = "registry-http-test",
+                aud = HttpAudiences,
+                sub = subject,
+                principal_kind = "user",
+                tenant_id = (string?)null,
+                identity_revision = 0,
+                roles = PlatformClaimedRoles,
+                scope = "registry.read",
+                session_id = Guid.CreateVersion7(),
+                jti = Guid.CreateVersion7(),
+                iat = now,
+                nbf = now,
+                exp = now + 60
+            });
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", new JsonWebTokenHandler().CreateToken(payload, new SigningCredentials(key, SecurityAlgorithms.RsaSha256)));
             return await client.SendAsync(request, Ct);
         }

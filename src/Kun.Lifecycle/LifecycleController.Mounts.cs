@@ -1,14 +1,14 @@
 using System.Text.Json;
 using Kun.Authorization;
-using Kun.EntityFrameworkCore;
-using Kun.Security;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Registry;
 using Kun.Runtime;
-using Kun.Errors;
+using Kun.Security;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Lifecycle;
 

@@ -3,9 +3,13 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.Errors.AspNetCore;
 using Kun.MultiTenancy;
+using Kun.Plugin.Sdk.AspNetCore;
+using Kun.Runtime;
 using Kun.Security.Authentication;
 using Kun.Security.DependencyInjection;
+using Kun.Surfaces.Abstractions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,10 +20,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Plugin.Sdk.AspNetCore;
-using Kun.Runtime;
-using Kun.Errors.AspNetCore;
-using Kun.Surfaces.Abstractions;
 
 namespace Kun.Registry.Tests;
 
@@ -118,8 +118,21 @@ public sealed partial class PatchPersistenceTests
             if (tenant is not null)
             {
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); var id = Guid.CreateVersion7().ToString();
-                var payload = JsonSerializer.Serialize(new { iss = "registry-http-test", aud = HttpAudiences, sub = "reader", principal_kind = "service", tenant_id = tenant,
-                    roles = Array.Empty<string>(), scope = "surface.read", session_id = id, jti = id, iat = now, nbf = now, exp = now + 60 });
+                var payload = JsonSerializer.Serialize(new
+                {
+                    iss = "registry-http-test",
+                    aud = HttpAudiences,
+                    sub = "reader",
+                    principal_kind = "service",
+                    tenant_id = tenant,
+                    roles = Array.Empty<string>(),
+                    scope = "surface.read",
+                    session_id = id,
+                    jti = id,
+                    iat = now,
+                    nbf = now,
+                    exp = now + 60
+                });
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", new JsonWebTokenHandler().CreateToken(payload, new SigningCredentials(key, SecurityAlgorithms.RsaSha256)));
             }
             return await client.SendAsync(request, Ct);

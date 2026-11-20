@@ -6,9 +6,12 @@ using System.Text;
 using System.Text.Json;
 using Kun.Authorization;
 using Kun.Authorization.Rbac.Abstractions;
+using Kun.Capabilities;
+using Kun.Capabilities.AspNetCore;
 using Kun.Configuration.AspNetCore;
 using Kun.Errors.AspNetCore;
 using Kun.Identity.Abstractions;
+using Kun.Registry;
 using Kun.Runtime;
 using Kun.Security;
 using Kun.Security.Authentication;
@@ -24,9 +27,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Capabilities;
-using Kun.Capabilities.AspNetCore;
-using Kun.Registry;
 
 namespace Kun.Configuration.Platform.Tests;
 

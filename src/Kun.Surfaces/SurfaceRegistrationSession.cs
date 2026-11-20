@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
 using Kun.Surfaces.Abstractions;
 
 namespace Kun.Surfaces;
@@ -87,8 +87,13 @@ public sealed class SurfaceRegistrationSession : IDisposable
         {
             var key = document.Kind switch
             {
-                "skill" => SurfaceKeys.Skills, "agent" => SurfaceKeys.Agents, "command" => SurfaceKeys.Commands,
-                "hooks" => SurfaceKeys.Hooks, "mcp" => SurfaceKeys.McpServers, "tool" => SurfaceKeys.Tools, _ => (ServiceKey?)null
+                "skill" => SurfaceKeys.Skills,
+                "agent" => SurfaceKeys.Agents,
+                "command" => SurfaceKeys.Commands,
+                "hooks" => SurfaceKeys.Hooks,
+                "mcp" => SurfaceKeys.McpServers,
+                "tool" => SurfaceKeys.Tools,
+                _ => (ServiceKey?)null
             };
             if (key is null) continue;
             if (document.Kind == "mcp")

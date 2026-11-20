@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using Kun.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Kun.Errors;
 using Kun.Surfaces.Abstractions;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Kun.Registry;
 
@@ -44,10 +44,16 @@ internal sealed class PostgresArtifactCatalog(IDataService data)
         var now = DateTimeOffset.UtcNow;
         var row = new PluginArtifactRow
         {
-            Digest = artifact.Digest, PluginId = artifact.Component.Id, Version = version,
-            Manifest = artifact.Component.Manifest.GetRawText(), Documents = JsonSerializer.Serialize(artifact.Component.Documents),
-            Files = JsonSerializer.Serialize(artifact.Files), Metadata = JsonSerializer.Serialize(artifact.Metadata),
-            Profile = artifact.Component.Profile, SubmittedBy = actor, SubmittedAt = new DateTimeOffset(now.Ticks - now.Ticks % 10, TimeSpan.Zero)
+            Digest = artifact.Digest,
+            PluginId = artifact.Component.Id,
+            Version = version,
+            Manifest = artifact.Component.Manifest.GetRawText(),
+            Documents = JsonSerializer.Serialize(artifact.Component.Documents),
+            Files = JsonSerializer.Serialize(artifact.Files),
+            Metadata = JsonSerializer.Serialize(artifact.Metadata),
+            Profile = artifact.Component.Profile,
+            SubmittedBy = actor,
+            SubmittedAt = new DateTimeOffset(now.Ticks - now.Ticks % 10, TimeSpan.Zero)
         };
         session.Context.PluginArtifacts.Add(row);
         try { await session.SaveChangesAsync(ct).ConfigureAwait(false); }
@@ -93,11 +99,15 @@ internal sealed class PostgresArtifactCatalog(IDataService data)
 
     private static RegistryArtifactSnapshot Snapshot(PluginArtifactRow row) => new()
     {
-        Digest = row.Digest, State = row.State,
+        Digest = row.Digest,
+        State = row.State,
         Component = new ParsedComponent(row.PluginId, JsonSerializer.Deserialize<JsonElement>(row.Manifest),
-            Array.AsReadOnly(JsonSerializer.Deserialize<SurfaceDocument[]>(row.Documents)!)) { Profile = row.Profile },
-        Files = Array.AsReadOnly(JsonSerializer.Deserialize<RegistryArtifactFile[]>(row.Files)!), Metadata = new ReadOnlyDictionary<string, JsonElement>(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(row.Metadata)!),
-        SubmittedBy = row.SubmittedBy, SubmittedAt = row.SubmittedAt,
+            Array.AsReadOnly(JsonSerializer.Deserialize<SurfaceDocument[]>(row.Documents)!))
+        { Profile = row.Profile },
+        Files = Array.AsReadOnly(JsonSerializer.Deserialize<RegistryArtifactFile[]>(row.Files)!),
+        Metadata = new ReadOnlyDictionary<string, JsonElement>(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(row.Metadata)!),
+        SubmittedBy = row.SubmittedBy,
+        SubmittedAt = row.SubmittedAt,
         SignatureVerification = row.SignatureVerification is null ? null : JsonSerializer.Deserialize<JsonElement>(row.SignatureVerification)
     };
 }

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
-using Kun.EventBus;
 using Kun.Errors;
+using Kun.EventBus;
 
 namespace Kun.Lifecycle;
 

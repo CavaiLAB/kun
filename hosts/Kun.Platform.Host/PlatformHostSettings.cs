@@ -65,7 +65,9 @@ public sealed class PlatformHostSettings
             HostOverlay = configuration["Profile:HostOverlay"] is { Length: > 0 } overlay ? Path.GetFullPath(overlay) : Path.Combine(AppContext.BaseDirectory, HostOverlayFile),
             Patches = patches.Select(patch => Path.GetFullPath(patch)).ToArray(),
             ComponentDirectories = configuration.GetSection("Profile:ComponentDirectories").GetChildren().Select(item => item.Value).OfType<string>().Select(Path.GetFullPath).ToArray(),
-            S2sIssuer = issuer, S2sJwks = jwksUri, S2sClockSkew = skew,
+            S2sIssuer = issuer,
+            S2sJwks = jwksUri,
+            S2sClockSkew = skew,
             MigrateOnly = arguments.Contains("--migrate-only", StringComparer.Ordinal),
             SecretMountRoot = configuration["Secrets:MountRoot"] is { Length: > 0 } secrets ? Path.GetFullPath(secrets) : null,
             ConnectionFiles = files

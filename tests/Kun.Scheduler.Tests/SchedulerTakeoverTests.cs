@@ -52,8 +52,14 @@ public sealed class SchedulerTakeoverTests(SchedulerFixture fixture) : IClassFix
             Assert.True(recoveredStartedAt >= leaseUntil, "接管的持久 StartedAt 不得早于冻结的租约到期点。");
             SchedulerFixture.Evidence(mode, new
             {
-                killedProcess = pid, recoveredProcess = await fixture.Scalar<int>("SELECT process_id FROM public.sch_probe_attempts ORDER BY id DESC LIMIT 1"),
-                runId = run, leaseExpiresAtUtc = leaseUntil, recoveredStartedAt, phases, claimBeforeKill, frozenLease,
+                killedProcess = pid,
+                recoveredProcess = await fixture.Scalar<int>("SELECT process_id FROM public.sch_probe_attempts ORDER BY id DESC LIMIT 1"),
+                runId = run,
+                leaseExpiresAtUtc = leaseUntil,
+                recoveredStartedAt,
+                phases,
+                claimBeforeKill,
+                frozenLease,
                 attempts = await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_attempts"),
                 effects = await fixture.Scalar<long>("SELECT count(*) FROM public.sch_probe_effects"),
                 runRows = await fixture.Scalar<long>("SELECT count(*) FROM plugin_qian_scheduler.job_runs")

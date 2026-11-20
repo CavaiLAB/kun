@@ -8,11 +8,11 @@ using Kun.Configuration;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
+using Kun.Registry;
 using Kun.Runtime;
+using Kun.Surfaces.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Registry;
-using Kun.Surfaces.Abstractions;
 
 namespace Kun.Tenancy;
 

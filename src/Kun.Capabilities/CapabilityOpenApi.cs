@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.OpenApi;
 using Kun.Plugin.Sdk;
+using Microsoft.OpenApi;
 
 namespace Kun.Capabilities;
 
@@ -36,8 +36,10 @@ internal static class CapabilityOpenApi
                 };
             var operation = new JsonObject
             {
-                ["operationId"] = key, ["description"] = entry.GetProperty("description").GetString(),
-                ["x-qian-capability"] = id, ["x-qian-required-scopes"] = JsonNode.Parse(entry.GetProperty("requiredScopes").GetRawText()),
+                ["operationId"] = key,
+                ["description"] = entry.GetProperty("description").GetString(),
+                ["x-qian-capability"] = id,
+                ["x-qian-required-scopes"] = JsonNode.Parse(entry.GetProperty("requiredScopes").GetRawText()),
                 ["requestBody"] = new JsonObject { ["required"] = true, ["content"] = Content(key + "Input") },
                 ["responses"] = new JsonObject
                 {
@@ -53,7 +55,9 @@ internal static class CapabilityOpenApi
             if (keyed)
                 operation["parameters"] = new JsonArray(new JsonObject
                 {
-                    ["name"] = "Idempotency-Key", ["in"] = "header", ["required"] = false,
+                    ["name"] = "Idempotency-Key",
+                    ["in"] = "header",
+                    ["required"] = false,
                     ["description"] = "可选幂等键（UUID）：同一主体、同一能力、同一键在回放窗口内重复请求时返回首次成功响应且不再执行；" +
                         "同键请求仍在执行或键相同而输入不同时返回 409 CONFLICT；" + NotReplayable + "。",
                     ["schema"] = new JsonObject { ["type"] = "string", ["format"] = "uuid" }
@@ -62,8 +66,10 @@ internal static class CapabilityOpenApi
         }
         var document = new JsonObject
         {
-            ["openapi"] = "3.1.1", ["info"] = new JsonObject { ["title"] = "Qian 能力接口", ["version"] = "1.0.0" },
-            ["paths"] = paths, ["components"] = new JsonObject
+            ["openapi"] = "3.1.1",
+            ["info"] = new JsonObject { ["title"] = "Qian 能力接口", ["version"] = "1.0.0" },
+            ["paths"] = paths,
+            ["components"] = new JsonObject
             {
                 ["schemas"] = schemas,
                 ["securitySchemes"] = new JsonObject { ["bearerAuth"] = new JsonObject { ["type"] = "http", ["scheme"] = "bearer", ["bearerFormat"] = "JWT" } }

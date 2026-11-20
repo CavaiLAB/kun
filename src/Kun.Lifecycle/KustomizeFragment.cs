@@ -57,7 +57,9 @@ internal static class KustomizeFragment
             "resources:\n- deployment.yaml\n- service.yaml\n";
         return new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["deployment.yaml"] = deployment, ["service.yaml"] = service, ["kustomization.yaml"] = kustomization
+            ["deployment.yaml"] = deployment,
+            ["service.yaml"] = service,
+            ["kustomization.yaml"] = kustomization
         };
     }
 

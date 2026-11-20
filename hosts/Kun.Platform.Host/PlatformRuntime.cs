@@ -2,14 +2,14 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Kun.Core.MultiTenancy;
 using Kun.Authorization.Rbac;
 using Kun.Capabilities;
+using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Kun.Lifecycle;
 using Kun.Profiles.Abstractions;
 using Kun.Registry;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
 
@@ -92,7 +92,11 @@ public sealed class PlatformRuntime : IHostedService, IAsyncDisposable
         }
         _registry = new RegistryRuntimeOptions
         {
-            InstalledComponents = installed, Runtime = Loader, Profiles = _composition.ProfileLoader, Profile = _composition.LoadOptions, Surfaces = validator,
+            InstalledComponents = installed,
+            Runtime = Loader,
+            Profiles = _composition.ProfileLoader,
+            Profile = _composition.LoadOptions,
+            Surfaces = validator,
             Resolve = Resolve
         };
         await Loader.MountAsync(Profile.MountOrder.Select(key => _definitions[key["global/".Length..]]).ToArray(), cancellationToken).ConfigureAwait(false);
@@ -136,7 +140,10 @@ public sealed class PlatformRuntime : IHostedService, IAsyncDisposable
     private RegistryComponentBinding Bind(ResolvedProfileEntry entry, Artifact artifact, PluginDefinition definition, SurfaceValidator validator) =>
         RegistryComponentBinding.FromArtifact(definition, artifact.Files, artifact.Digest, validator, new SurfaceValidationOptions
         {
-            Profile = "platform", ExecutionPlane = "server", CatalogComplete = true, Capabilities = _composition.Capabilities[entry.Id]
+            Profile = "platform",
+            ExecutionPlane = "server",
+            CatalogComplete = true,
+            Capabilities = _composition.Capabilities[entry.Id]
         });
 
     // 组件文件夹即制品：按路径排序的「路径、长度、SHA-256」清单再取 SHA-256（与 Lifecycle 核对制品的摘要算法相同）。构建产物与依赖目录不属于制品。

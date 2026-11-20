@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
 
 namespace Kun.Capabilities;
 
@@ -50,7 +50,7 @@ public sealed partial class OpenApiContractPlugin : IKunPlugin
             throw new ErrorException(new Error(PlatformErrors.InputInvalid));
         var result = await _check(ct).ConfigureAwait(false);
         if (!result.IsCompatible) throw new ErrorException(new Error(PlatformErrors.PreconditionFailed)
-            { Pointer = ErrorPointer.Input("contracts", _contractId) });
+        { Pointer = ErrorPointer.Input("contracts", _contractId) });
         ct.ThrowIfCancellationRequested();
         await _inner.ApplyAsync(ctx, config, ct).ConfigureAwait(false);
     }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Kun.Identity.Abstractions;
 using Kun.Security;
 using Kun.Security.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -6,7 +7,6 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Kun.Identity.Abstractions;
 
 namespace Kun.Platform.Host;
 
@@ -83,9 +83,16 @@ public static class GatewayS2s
         options.ConfigurationManager = jwks;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true, ValidIssuer = settings.S2sIssuer, ValidateAudience = true, ValidAudience = audience,
-            ValidateLifetime = true, RequireExpirationTime = true, ValidateIssuerSigningKey = true, RequireSignedTokens = true,
-            ValidAlgorithms = [SecurityAlgorithms.RsaSha256], ClockSkew = settings.S2sClockSkew
+            ValidateIssuer = true,
+            ValidIssuer = settings.S2sIssuer,
+            ValidateAudience = true,
+            ValidAudience = audience,
+            ValidateLifetime = true,
+            RequireExpirationTime = true,
+            ValidateIssuerSigningKey = true,
+            RequireSignedTokens = true,
+            ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
+            ClockSkew = settings.S2sClockSkew
         };
         options.Events = new JwtBearerEvents { OnTokenValidated = context => { Capture(context, audience); return Task.CompletedTask; } };
     }

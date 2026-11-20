@@ -2,14 +2,14 @@ using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Kun.Audit;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.EventBus;
-using Microsoft.EntityFrameworkCore;
-using Kun.Audit;
 using Kun.Registry;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kun.Lifecycle;
 
@@ -47,9 +47,17 @@ internal sealed partial class LifecycleController(
             if (rows.Any(row => row.Version == content.Version)) throw Conflict("同一版本已安装为另一个制品。");
             var row = new PluginRevisionRow
             {
-                PluginId = content.PluginId, Revision = rows.Count == 0 ? 1 : rows.Max(item => item.Revision) + 1, Version = content.Version,
-                ArtifactDigest = content.Digest, Form = content.Form, State = PluginRevisionStates.Installed, SignedBy = signedBy, Required = content.Required,
-                Health = content.Form == "service" ? DeploymentHealthStates.Progressing : null, InstalledBy = actor, InstalledAt = Now()
+                PluginId = content.PluginId,
+                Revision = rows.Count == 0 ? 1 : rows.Max(item => item.Revision) + 1,
+                Version = content.Version,
+                ArtifactDigest = content.Digest,
+                Form = content.Form,
+                State = PluginRevisionStates.Installed,
+                SignedBy = signedBy,
+                Required = content.Required,
+                Health = content.Form == "service" ? DeploymentHealthStates.Progressing : null,
+                InstalledBy = actor,
+                InstalledAt = Now()
             };
             db.Revisions.Add(row);
             await Save(session, null, cancellationToken).ConfigureAwait(false);

@@ -1,6 +1,6 @@
 using System.Globalization;
-using Quartz;
 using Kun.Errors;
+using Quartz;
 
 namespace Kun.Scheduler;
 

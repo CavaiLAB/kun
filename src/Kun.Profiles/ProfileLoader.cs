@@ -4,11 +4,11 @@ using System.Text.RegularExpressions;
 using Json.Schema;
 using Json.Schema.Keywords;
 using Kun.Common;
-using Kun.Profiles.Abstractions;
 using Kun.Errors;
+using Kun.Profiles.Abstractions;
 using Kun.Surfaces.Abstractions;
-using VersionRange = SemanticVersioning.Range;
 using SemanticVersion = SemanticVersioning.Version;
+using VersionRange = SemanticVersioning.Range;
 
 namespace Kun.Profiles;
 
@@ -237,7 +237,7 @@ public sealed class ProfileLoader(ISurfaceReader reader) : IProfileLoader
                     Error(entry.SourceFile, entry.SourcePointer + "/plugin", "配置骨架不代表业务 Provider 已实现；启动宿主仍需真实代码。", "warning");
                 result.Add(new ResolvedProfileEntry(entry.Id, entry.Scope, component.Id + "@" + component.Version, config, entry.Layer,
                     Strings(component.Manifest, "inject"), Strings(component.Manifest, "optionalInject"), Strings(component.Manifest, "provides"), entry.Note)
-                    { ComponentDirectory = component.Directory, Manifest = component.Manifest });
+                { ComponentDirectory = component.Directory, Manifest = component.Manifest });
             }
             return result.ToArray();
         }

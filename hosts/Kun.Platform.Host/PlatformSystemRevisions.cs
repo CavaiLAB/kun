@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Kun.Lifecycle;
 using Kun.Registry;
-using Kun.Errors;
 
 namespace Kun.Platform.Host;
 

@@ -1,26 +1,26 @@
-using System.Security.Cryptography;
-using System.Reflection;
 using System.ComponentModel.DataAnnotations;
-using Kun.Security;
-using Microsoft.AspNetCore.Http.Metadata;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Routing.Patterns;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Registry;
 using Kun.Runtime;
-using Kun.Errors;
+using Kun.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Kun.Capabilities.AspNetCore;
 
@@ -179,8 +179,10 @@ internal sealed class AspNetCoreHttpContractSource(IApiDescriptionGroupCollectio
         }
         using var document = JsonDocument.Parse(new JsonObject
         {
-            ["openapi"] = "3.1.1", ["info"] = new JsonObject { ["title"] = "组件 HTTP 接口", ["version"] = "1.0.0" },
-            ["paths"] = paths, ["components"] = new JsonObject
+            ["openapi"] = "3.1.1",
+            ["info"] = new JsonObject { ["title"] = "组件 HTTP 接口", ["version"] = "1.0.0" },
+            ["paths"] = paths,
+            ["components"] = new JsonObject
             { ["schemas"] = schemas, ["securitySchemes"] = new JsonObject { ["bearerAuth"] = new JsonObject { ["type"] = "http", ["scheme"] = "bearer", ["bearerFormat"] = "JWT" } } }
         }.ToJsonString());
         return document.RootElement.Clone();

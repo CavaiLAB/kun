@@ -5,8 +5,8 @@ using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Surfaces.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Tenancy;
 

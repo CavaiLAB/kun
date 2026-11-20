@@ -1,25 +1,25 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kun.Authorization;
+using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.Cqrs;
 using Kun.Core.MultiTenancy;
 using Kun.Core.Security;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
 using Kun.EventBus.DependencyInjection;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
+using Kun.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Data;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Tenancy;
 
 namespace Kun.Scheduler.TestHost;
 
@@ -156,7 +156,8 @@ public sealed class ProbePlugin : IKunPlugin
 public sealed partial record ProbeRequest(Guid IdempotencyKey, string Mode = "normal", int DelayMs = 0);
 public sealed record ProbeResponse(bool Applied);
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(ProbeRequest))][JsonSerializable(typeof(ProbeResponse))]
+[JsonSerializable(typeof(ProbeRequest))]
+[JsonSerializable(typeof(ProbeResponse))]
 public sealed partial class ProbeJson : JsonSerializerContext;
 
 public sealed class ProbeHandler(HostConfig config, ITenantContext tenant) : IRequestHandler<ProbeRequest, ProbeResponse>

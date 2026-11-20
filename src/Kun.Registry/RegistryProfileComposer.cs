@@ -23,8 +23,12 @@ internal sealed class RegistryProfileComposer(PostgresPatchRepository patches, I
         if (rows.Any(row => row.Scope != scope)) throw new InvalidOperationException("scope patch 集合包含其它作用域。");
         return loader.Load(new ProfileLoadOptions
         {
-            WorkingDirectory = options.WorkingDirectory, Profile = options.Profile, Patches = options.Patches,
-            HomeDirectory = options.HomeDirectory, IncludeHomePatch = options.IncludeHomePatch, ComponentDirectories = options.ComponentDirectories,
+            WorkingDirectory = options.WorkingDirectory,
+            Profile = options.Profile,
+            Patches = options.Patches,
+            HomeDirectory = options.HomeDirectory,
+            IncludeHomePatch = options.IncludeHomePatch,
+            ComponentDirectories = options.ComponentDirectories,
             ScopePatches = [new ScopePatchLayer
             {
                 Scope = scope, Source = "registry/scope-patches.json",

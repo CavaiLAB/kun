@@ -61,7 +61,14 @@ internal sealed partial class LifecycleArtifact
         }
         return new LifecycleArtifact
         {
-            Digest = artifact.Digest, PluginId = id, Version = version, Form = form, Required = required, Image = image["oci://".Length..], Port = port, HealthPath = health
+            Digest = artifact.Digest,
+            PluginId = id,
+            Version = version,
+            Form = form,
+            Required = required,
+            Image = image["oci://".Length..],
+            Port = port,
+            HealthPath = health
         };
     }
 

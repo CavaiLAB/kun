@@ -4,12 +4,12 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
 using Kun.EventBus;
-using Kun.Runtime;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Lifecycle;
 using Kun.Registry;
+using Kun.Runtime;
 using Kun.Surfaces.Abstractions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Tenancy;
 

@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Errors;
 
 namespace Kun.Registry.Tests;
 

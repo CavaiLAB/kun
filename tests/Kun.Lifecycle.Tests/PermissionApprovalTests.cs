@@ -1,18 +1,18 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Kun.Audit;
 using Kun.Authorization;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.Runtime;
 using Kun.Security;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Kun.Audit;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Testing.Containers;
 
 namespace Kun.Lifecycle.Tests;
 
@@ -27,8 +27,10 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
     private static readonly object FullPermissions = new
     {
-        platform = new[] { "tenant:read", "notify:send" }, data = new[] { "qian.sample.crm:customer" },
-        secrets = new[] { new { name = "oss/*", scope = "platform" }, new { name = "db/token", scope = "tenant" } }, ui = new { connectSrc = new[] { "https://api.example.test" } }
+        platform = new[] { "tenant:read", "notify:send" },
+        data = new[] { "qian.sample.crm:customer" },
+        secrets = new[] { new { name = "oss/*", scope = "platform" }, new { name = "db/token", scope = "tenant" } },
+        ui = new { connectSrc = new[] { "https://api.example.test" } }
     };
     private static readonly string[] FullEgress = ["api.example.test", "*.files.example.test:443"];
     private static readonly string[] TenantRead = ["tenant:read"];
@@ -311,7 +313,10 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
             Assert.Equal(Sha256(approved), entry.Record.InputHash);
             var expected = JsonSerializer.SerializeToElement(new
             {
-                pluginId = Plugin, version = "1.0.0", via = PermissionApprovalChannels.Tenant, approved = new { sha256 = Sha256(approved) },
+                pluginId = Plugin,
+                version = "1.0.0",
+                via = PermissionApprovalChannels.Tenant,
+                approved = new { sha256 = Sha256(approved) },
                 previous = previous is null ? null : new { sha256 = Sha256(previous) }
             });
             Assert.True(JsonElement.DeepEquals(expected, entry.Record.Payload), entry.Record.Payload.GetRawText());
@@ -360,8 +365,10 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         // 续跑核对的是原目标版本 1.0.0 的声明，不是 Active 修订（1.0.1）的：按 Active 核对会把 1.0.1 新增的 platform tenant:write 也列为缺失。
         var wider = new
         {
-            platform = new[] { "tenant:read", "notify:send", "tenant:write" }, data = new[] { "qian.sample.crm:customer" },
-            secrets = new[] { new { name = "oss/*", scope = "platform" }, new { name = "db/token", scope = "tenant" } }, ui = new { connectSrc = new[] { "https://api.example.test" } }
+            platform = new[] { "tenant:read", "notify:send", "tenant:write" },
+            data = new[] { "qian.sample.crm:customer" },
+            secrets = new[] { new { name = "oss/*", scope = "platform" }, new { name = "db/token", scope = "tenant" } },
+            ui = new { connectSrc = new[] { "https://api.example.test" } }
         };
         Assert.Equal((PluginRevisionStates.Active, "1.0.1"), ((await Install(host, "1.0.1", Policy(wider, FullEgress))).State, "1.0.1"));
         Assert.Equal(PluginRevisionStates.Installed, (await host.Lifecycle.GetRevisionsAsync(Plugin, Ct)).Single(revision => revision.Version == "1.0.0").State);
@@ -400,9 +407,17 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         {
             [".qian-plugin/plugin.json"] = JsonSerializer.SerializeToUtf8Bytes(new Dictionary<string, object?>
             {
-                ["$schema"] = "https://qian.dev/schemas/plugin/v2", ["id"] = plugin, ["version"] = version, ["description"] = "反向权限批准验收使用的声明式组件制品。",
-                ["author"] = new { name = "Acme" }, ["license"] = "Apache-2.0", ["interface"] = new { displayName = plugin, category = "testing" },
-                ["inject"] = Array.Empty<string>(), ["provides"] = Array.Empty<string>(), ["policy"] = policy, ["scopes"] = TenantScope
+                ["$schema"] = "https://qian.dev/schemas/plugin/v2",
+                ["id"] = plugin,
+                ["version"] = version,
+                ["description"] = "反向权限批准验收使用的声明式组件制品。",
+                ["author"] = new { name = "Acme" },
+                ["license"] = "Apache-2.0",
+                ["interface"] = new { displayName = plugin, category = "testing" },
+                ["inject"] = Array.Empty<string>(),
+                ["provides"] = Array.Empty<string>(),
+                ["policy"] = policy,
+                ["scopes"] = TenantScope
             })
         };
         var revision = await host.Lifecycle.InstallAsync(Artifacts.Signed(files, Key), "operator", Ct);
@@ -516,8 +531,18 @@ public sealed class PermissionApprovalTests(PostgresFixture postgres) : IClassFi
         private static readonly long Now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         public Principal? Principal { get; } = new()
         {
-            Issuer = "qian-lifecycle-test", Audience = ["lifecycle"], Subject = subject, Kind = kind, TenantId = tenant, Roles = [], Scope = "lifecycle",
-            SessionId = Guid.CreateVersion7().ToString(), IssuedAt = Now, NotBefore = Now, ExpiresAt = Now + 300, TokenId = Guid.CreateVersion7().ToString(),
+            Issuer = "qian-lifecycle-test",
+            Audience = ["lifecycle"],
+            Subject = subject,
+            Kind = kind,
+            TenantId = tenant,
+            Roles = [],
+            Scope = "lifecycle",
+            SessionId = Guid.CreateVersion7().ToString(),
+            IssuedAt = Now,
+            NotBefore = Now,
+            ExpiresAt = Now + 300,
+            TokenId = Guid.CreateVersion7().ToString(),
             Actor = actor ? new DelegationActor { Subject = "delegate", Kind = PrincipalKind.Service } : null
         };
         public string? UserId => subject;

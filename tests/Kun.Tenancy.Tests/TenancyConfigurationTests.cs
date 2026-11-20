@@ -3,9 +3,9 @@ using System.Text.Json.Nodes;
 using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
-using Kun.Runtime;
 using Kun.Profiles;
 using Kun.Profiles.Abstractions;
+using Kun.Runtime;
 using Kun.Surfaces;
 
 namespace Kun.Tenancy.Tests;

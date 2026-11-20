@@ -80,7 +80,10 @@ public sealed class GrpcReflectionContractProbeTests
     private static ProtoContractSet Source() => new(new Dictionary<string, ReadOnlyMemory<byte>> { ["echo.proto"] = Encoding.UTF8.GetBytes("syntax = \"proto3\";") });
     private static FileDescriptorProto Echo() => new()
     {
-        Name = "echo.proto", Package = "sample.v1", Syntax = "proto3", Dependency = { "google/protobuf/wrappers.proto" },
+        Name = "echo.proto",
+        Package = "sample.v1",
+        Syntax = "proto3",
+        Dependency = { "google/protobuf/wrappers.proto" },
         Service = { new ServiceDescriptorProto { Name = "EchoApi", Method = { new MethodDescriptorProto { Name = "Echo", InputType = ".google.protobuf.StringValue", OutputType = ".google.protobuf.StringValue" } } } }
     };
 

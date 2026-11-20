@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Runtime;
 using Kun.Surfaces.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Surfaces.Tests;
 
@@ -22,9 +22,16 @@ public sealed class HotReloadTests
             var skill = spec.GetProperty("skill").GetString()!;
             Write(".qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id = pluginId, version = "1.0.0", description = "真实表面热重载的共用运行时场景。", author = new { name = "Qian" }, license = "Apache-2.0",
-                @interface = new { displayName = "热重载", category = "testing" }, inject = Array.Empty<string>(), provides = Provides,
-                policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL" }, scopes = Scopes,
+                id = pluginId,
+                version = "1.0.0",
+                description = "真实表面热重载的共用运行时场景。",
+                author = new { name = "Qian" },
+                license = "Apache-2.0",
+                @interface = new { displayName = "热重载", category = "testing" },
+                inject = Array.Empty<string>(),
+                provides = Provides,
+                policy = new { tier = "official", sandbox = "none", authentication = "ON_INSTALL" },
+                scopes = Scopes,
                 runtime = new { form = "module", entry = typeof(CodePlugin).FullName + ", " + typeof(CodePlugin).Assembly.GetName().Name }
             }));
             Skill(spec.GetProperty("oldDescription").GetString()!); Write(spec.GetProperty("codeFile").GetString()!, "code one");

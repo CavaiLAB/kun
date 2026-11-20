@@ -1,20 +1,20 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Kun.Audit;
+using Kun.Authorization.Rbac;
+using Kun.Authorization.Rbac.Abstractions;
+using Kun.Data;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
 using Kun.MultiTenancy;
+using Kun.Runtime;
 using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Kun.Audit;
-using Kun.Authorization.Rbac;
-using Kun.Authorization.Rbac.Abstractions;
-using Kun.Data;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Registry.Tests;
 
@@ -94,8 +94,18 @@ public sealed partial class PatchPersistenceTests
         private static readonly long Now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         public Principal? Principal { get; } = new()
         {
-            Issuer = "qian-identity-test", Audience = ["registry-http"], Subject = subject, Kind = PrincipalKind.User, TenantId = null, Roles = ["platform.superadmin"],
-            Scope = "registry.read", SessionId = Guid.CreateVersion7().ToString(), IssuedAt = Now, NotBefore = Now, ExpiresAt = Now + 300, TokenId = Guid.CreateVersion7().ToString()
+            Issuer = "qian-identity-test",
+            Audience = ["registry-http"],
+            Subject = subject,
+            Kind = PrincipalKind.User,
+            TenantId = null,
+            Roles = ["platform.superadmin"],
+            Scope = "registry.read",
+            SessionId = Guid.CreateVersion7().ToString(),
+            IssuedAt = Now,
+            NotBefore = Now,
+            ExpiresAt = Now + 300,
+            TokenId = Guid.CreateVersion7().ToString()
         };
         public string? UserId => subject;
         public IReadOnlyList<string> Roles => Principal!.Roles;

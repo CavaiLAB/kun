@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
-using Kun.Registry;
 using Kun.Errors;
+using Kun.Registry;
 using Kun.Testing.Containers;
 
 namespace Kun.Lifecycle.Tests;

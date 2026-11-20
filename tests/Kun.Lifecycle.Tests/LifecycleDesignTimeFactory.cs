@@ -1,11 +1,11 @@
 using Kun.Core.MultiTenancy;
+using Kun.Data;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
 using Kun.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
-using Kun.Data;
 
 namespace Kun.Lifecycle.Tests;
 

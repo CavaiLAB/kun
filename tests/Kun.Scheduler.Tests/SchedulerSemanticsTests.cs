@@ -1,13 +1,13 @@
 using System.Text.Json;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
+using Kun.Plugin.Sdk;
+using Kun.Runtime;
+using Kun.Scheduler.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
-using Kun.Plugin.Sdk;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Scheduler.TestHost;
 using static Kun.Scheduler.Tests.SchedulerScenario;
 
 namespace Kun.Scheduler.Tests;

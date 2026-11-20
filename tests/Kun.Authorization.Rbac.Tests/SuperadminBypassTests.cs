@@ -19,6 +19,7 @@ using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
+using Kun.Surfaces;
 using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -27,7 +28,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
-using Kun.Surfaces;
 
 namespace Kun.Authorization.Rbac.Tests;
 

@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Kun.Core.MultiTenancy;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
+using Kun.Core.MultiTenancy;
 using Kun.Identity.Abstractions;
 
 namespace Kun.Platform.Host;
@@ -47,7 +47,7 @@ internal static class PlatformOperatorBootstrap
             {
                 using var proof = new AuthenticationProof(password);
                 person = await accounts.CreatePersonAsync(new CreatePerson(displayName, [new IdentifierInput(IdentifierKind.Username, username, true)])
-                    { InitialPassword = proof, RequirePasswordChange = true, PlatformAccess = true }, ct).ConfigureAwait(false);
+                { InitialPassword = proof, RequirePasswordChange = true, PlatformAccess = true }, ct).ConfigureAwait(false);
             }
             else if (!person.PlatformAccess || person.UserName != username)
                 throw new InvalidOperationException("用户名 " + username + " 已被一个不是平台身份的账号占用，引导拒绝执行。");

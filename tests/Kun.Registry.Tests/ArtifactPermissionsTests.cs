@@ -1,18 +1,18 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Kun.EntityFrameworkCore;
-using Kun.EntityFrameworkCore.Extensions;
-using Kun.MultiTenancy;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
+using Kun.MultiTenancy;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Registry.Tests;
 
@@ -58,8 +58,14 @@ public sealed partial class PatchPersistenceTests
         var body = await Json(read);
         Assert.True(JsonElement.DeepEquals(JsonSerializer.SerializeToElement(new
         {
-            pluginId = "acme.connector", version = "1.0.0", artifactDigest = installed, platform = DeclaredPlatform, data = DeclaredData, egress = DeclaredEgress,
-            secrets = DeclaredSecrets, ui = new { connectSrc = DeclaredConnectSrc }
+            pluginId = "acme.connector",
+            version = "1.0.0",
+            artifactDigest = installed,
+            platform = DeclaredPlatform,
+            data = DeclaredData,
+            egress = DeclaredEgress,
+            secrets = DeclaredSecrets,
+            ui = new { connectSrc = DeclaredConnectSrc }
         }), body), body.ToString());
         // 声明属于组件版本（平台级目录）：B 的持权限者读到同一份；租户只来自令牌，请求头里的 X-Tenant-Id 不起作用。
         using var readB = await http.Get(path, HttpTenantB, Holder);
@@ -94,8 +100,14 @@ public sealed partial class PatchPersistenceTests
         Assert.Equal(HttpStatusCode.OK, none.StatusCode);
         Assert.True(JsonElement.DeepEquals(JsonSerializer.SerializeToElement(new
         {
-            pluginId = "acme.plain", version = "1.0.0", artifactDigest = plain, platform = Array.Empty<string>(), data = Array.Empty<string>(), egress = Array.Empty<string>(),
-            secrets = Array.Empty<object>(), ui = new { connectSrc = Array.Empty<string>() }
+            pluginId = "acme.plain",
+            version = "1.0.0",
+            artifactDigest = plain,
+            platform = Array.Empty<string>(),
+            data = Array.Empty<string>(),
+            egress = Array.Empty<string>(),
+            secrets = Array.Empty<object>(),
+            ui = new { connectSrc = Array.Empty<string>() }
         }), await Json(none)));
     }
 
@@ -155,8 +167,15 @@ public sealed partial class PatchPersistenceTests
         if (egress is not null) policy["egress"] = egress;
         var manifest = JsonSerializer.Serialize(new Dictionary<string, object?>
         {
-            ["id"] = pluginId, ["version"] = version, ["description"] = "反向权限读取验收使用的声明式组件制品。", ["author"] = new { name = "Acme" }, ["license"] = "Apache-2.0",
-            ["interface"] = new { displayName = pluginId, category = "testing" }, ["inject"] = Array.Empty<string>(), ["provides"] = Array.Empty<string>(), ["policy"] = policy,
+            ["id"] = pluginId,
+            ["version"] = version,
+            ["description"] = "反向权限读取验收使用的声明式组件制品。",
+            ["author"] = new { name = "Acme" },
+            ["license"] = "Apache-2.0",
+            ["interface"] = new { displayName = pluginId, category = "testing" },
+            ["inject"] = Array.Empty<string>(),
+            ["provides"] = Array.Empty<string>(),
+            ["policy"] = policy,
             ["scopes"] = PermissionScopes
         });
         var files = new Dictionary<string, ReadOnlyMemory<byte>>(StringComparer.Ordinal) { [".qian-plugin/plugin.json"] = Encoding.UTF8.GetBytes(manifest) };

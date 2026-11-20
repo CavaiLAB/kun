@@ -1,24 +1,24 @@
 using System.Net;
 using System.Text.Json;
 using Json.Schema;
-using Kun.EntityFrameworkCore;
-using Kun.MultiTenancy;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+using Kun.Audit;
+using Kun.Authorization.AspNetCore;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Data.AspNetCore;
+using Kun.EntityFrameworkCore;
+using Kun.EntityFrameworkCore.Extensions;
+using Kun.Errors;
+using Kun.Identity.Abstractions;
+using Kun.MultiTenancy;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Surfaces;
-using Kun.Authorization.AspNetCore;
-using Kun.EntityFrameworkCore.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Kun.Audit;
-using Kun.Identity.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Registry.Tests;
 

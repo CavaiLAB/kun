@@ -3,18 +3,18 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Kun.Audit;
+using Kun.Errors;
 using Kun.EventBus;
+using Kun.Identity.Abstractions;
+using Kun.Runtime;
 using Kun.Security;
+using Kun.Testing.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Kun.Audit;
-using Kun.Identity.Abstractions;
-using Kun.Runtime;
-using Kun.Errors;
-using Kun.Testing.Containers;
 
 namespace Kun.Lifecycle.Tests;
 
@@ -561,8 +561,18 @@ public sealed class LifecycleAuditTests(PostgresFixture postgres) : IClassFixtur
         private static readonly long Now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         public Principal? Principal { get; } = new()
         {
-            Issuer = "qian-lifecycle-test", Audience = ["lifecycle"], Subject = subject, Kind = PrincipalKind.User, TenantId = tenant, Roles = [], Scope = "lifecycle",
-            SessionId = Guid.CreateVersion7().ToString(), IssuedAt = Now, NotBefore = Now, ExpiresAt = Now + 300, TokenId = Guid.CreateVersion7().ToString()
+            Issuer = "qian-lifecycle-test",
+            Audience = ["lifecycle"],
+            Subject = subject,
+            Kind = PrincipalKind.User,
+            TenantId = tenant,
+            Roles = [],
+            Scope = "lifecycle",
+            SessionId = Guid.CreateVersion7().ToString(),
+            IssuedAt = Now,
+            NotBefore = Now,
+            ExpiresAt = Now + 300,
+            TokenId = Guid.CreateVersion7().ToString()
         };
         public string? UserId => subject;
         public IReadOnlyList<string> Roles => [];

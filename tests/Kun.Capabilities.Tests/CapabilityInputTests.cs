@@ -1,8 +1,8 @@
 using System.Text;
 using System.Text.Json;
 using Json.Schema;
-using Microsoft.Extensions.Logging;
 using Kun.Errors;
+using Microsoft.Extensions.Logging;
 
 namespace Kun.Capabilities.Tests;
 

@@ -1,16 +1,16 @@
 using System.Reflection;
 using System.Text.Json;
-using Kun.EntityFrameworkCore;
-using Kun.MultiTenancy;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Kun.Data;
+using Kun.EntityFrameworkCore;
+using Kun.Errors;
+using Kun.MultiTenancy;
 using Kun.Profiles;
 using Kun.Profiles.Abstractions;
 using Kun.Runtime;
-using Kun.Errors;
 using Kun.Surfaces;
 using Kun.Surfaces.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Kun.Registry.Tests;
 
@@ -260,7 +260,7 @@ public sealed partial class PatchPersistenceTests
             var directory = Path.Combine(_directory, "plugins/private");
             var component = validator.ValidateComponent(directory, ArtifactOptions).Component!;
             return new ResolvedProfileEntry("private", "global", "test.private@1.0.0", Patch("{}"), 0, [], [], [], null)
-                { ComponentDirectory = directory, Manifest = component.Manifest };
+            { ComponentDirectory = directory, Manifest = component.Manifest };
         }
         internal void ChangePrivateMetadata() => Write("plugins/private/metadata/permissions.json", "[]");
         internal void AddUnbound() => Component("test.unbound", "unbound", [], [], false);
@@ -268,9 +268,16 @@ public sealed partial class PatchPersistenceTests
         {
             Write($"plugins/{directory}/.qian-plugin/plugin.json", JsonSerializer.Serialize(new
             {
-                id, version = "1.0.0", description = "注册表真实装载测试用组件，代码 Provider 由宿主静态装配。", author = new { name = "Qian" }, license = "MIT",
-                @interface = new { displayName = directory, category = "testing" }, inject, provides,
-                policy = new { tier = required ? "system" : "private", sandbox = "none", authentication = "ON_INSTALL", required }, scopes = AllowedScopes
+                id,
+                version = "1.0.0",
+                description = "注册表真实装载测试用组件，代码 Provider 由宿主静态装配。",
+                author = new { name = "Qian" },
+                license = "MIT",
+                @interface = new { displayName = directory, category = "testing" },
+                inject,
+                provides,
+                policy = new { tier = required ? "system" : "private", sandbox = "none", authentication = "ON_INSTALL", required },
+                scopes = AllowedScopes
             }));
             if (!required)
             {

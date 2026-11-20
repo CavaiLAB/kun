@@ -2,14 +2,14 @@ using System.Net;
 using System.Text.Json;
 using Json.Schema;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Kun.EventBus;
 using Kun.Mediator.DependencyInjection;
 using Kun.MultiTenancy;
+using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Kun.Runtime;
-using Kun.Errors;
 
 namespace Kun.Registry.Tests;
 

@@ -2,8 +2,7 @@
 
   <!--
     src/ 下 Kun 包专用的版本、包元数据与 README 打包。
-    仓库根的 Directory.Build.props 只放两边共用的基线（S1-KUN-020）；这些设置原来也写在那里，
-    挪到这里是为了不让 _import/qian/ 下的包吃到 Kun 包的版本号、元数据与 README。
+    仓库根的 Directory.Build.props 为所有项目提供构建基线。
     公共 API 清单的门禁对全部可打包项目生效，在仓库根的 Directory.Build.targets。
   -->
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />

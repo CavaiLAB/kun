@@ -171,7 +171,7 @@ public sealed class PlatformHostComposition
             sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<IPermissionRegistry>()));
         services.AddQianHttpContracts();
         services.AddKunPluginEndpoints(sp => sp.GetRequiredService<PlatformRuntime>().Global("registry"));
-        services.AddQianAuthzEnforcement(http => PlatformHost.Scoped(http, "authz"), options => options.Production = true);
+        services.AddKunAuthorization(http => PlatformHost.Scoped(http, "authz"), options => options.Production = true);
         if (settings.SecretMountRoot is { } mount)
         {
             // 平台信任根：公钥 PEM 在 K8s Secret 里，Trust:PlatformKeys 经 secretRef 引用；每次解析写平台审计链。

@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Kun.EventBus.EntityFrameworkCore/Kun.EventBus.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="../../src/Kun.Authorization.AspNetCore/Kun.Authorization.AspNetCore.csproj" />
     <ProjectReference Include="../../samples/Kun.Sample.Catalog/Kun.Sample.Catalog.csproj" />
     <ProjectReference Include="../../src/Kun.AspNetCore/Kun.AspNetCore.csproj" />
     <ProjectReference Include="../../src/Kun.Grpc/Kun.Grpc.csproj" />

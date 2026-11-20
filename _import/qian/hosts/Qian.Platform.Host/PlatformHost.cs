@@ -126,7 +126,7 @@ public static class PlatformHost
         // 路由必须先于认证：受众按路由实际匹配到的端点选（GatewayS2s.Select），不按路径写法。WebApplication 缺省也把路由放在最前，这里显式写出这个依赖。
         app.UseRouting(); app.UseKunErrors(); app.UseAuthentication();
         app.UseKunMultiTenancy(TenantRequestMode.PlatformPrincipalAllowed);
-        app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseQianAuthzEnforcement();
+        app.UseAuthorization(); app.UseKunPluginEndpoints(); app.UseKunAuthorization();
         return app;
     }
 

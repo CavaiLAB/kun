@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Kun.Data.Dialect.Pg;
 using Kun.Errors;
+using Kun.Authorization.AspNetCore;
 
 namespace Kun.Data.AspNetCore.Tests;
 
@@ -28,7 +29,7 @@ public sealed class MetaTypesEndpointTests : IAsyncLifetime
         builder.Services.AddKunPgDialect();
         _app = builder.Build();
         TestIdentity.Use(_app);
-        _app.MapKunDataTypes();
+        _app.MapKunDataTypes((route, permission) => route.RequireKunPermission(permission));
         await _app.StartAsync(Ct);
         _client = _app.GetTestClient();
     }

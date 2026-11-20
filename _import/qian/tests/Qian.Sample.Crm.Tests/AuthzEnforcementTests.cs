@@ -30,7 +30,7 @@ public abstract partial class CustomerCommandTests
     private protected const string CustomerWrite = "qian.sample.crm:customer:write";
 }
 
-// S1-AZ-004：参考宿主按生产模式运行的三处 PEP。HTTP 端点以 RequireQianPermission 声明权限点，gRPC 方法以 [RequiresPermission] 声明，
+// S1-AZ-004：参考宿主按生产模式运行的三处 PEP。HTTP 端点以 RequireKunPermission 声明权限点，gRPC 方法以 [RequiresPermission] 声明，
 // 两者经同一执行端口对同一权限点结论一致；未声明权限点的组件端点与方法缺省拒绝；每次拒绝都有决策日志；旧令牌按服务端 identity_revision 下限拒绝。
 public sealed partial class IdentityAuthzTests
 {
@@ -40,7 +40,7 @@ public sealed partial class IdentityAuthzTests
         await using var host = await Start(grpc: true, decisionLogSampling: 1, map: app =>
         {
             app.MapGrpcService<AcceptanceEcho>().RequireAuthorization("crm-command-reader");
-            // 带组件端点绑定却没有 RequireQianPermission 的端点：生产模式缺省拒绝。
+            // 带组件端点绑定却没有 RequireKunPermission 的端点：生产模式缺省拒绝。
             app.MapGet("/api/acceptance/undeclared", () => Results.Ok(new { ok = true })).RequireAuthorization("crm-command-reader")
                 .WithMetadata(new PluginEndpointBinding("crm", "qian.sample.crm", CapabilityBindingRegistration.Key, "qian.sample.crm/customer.list"));
         });

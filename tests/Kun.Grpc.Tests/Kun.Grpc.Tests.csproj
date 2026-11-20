@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../src/Kun.Authorization.AspNetCore/Kun.Authorization.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.Grpc\Kun.Grpc.csproj" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="coverlet.MTP" />

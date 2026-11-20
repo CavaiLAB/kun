@@ -11,6 +11,5 @@
   <ItemGroup>
     <ProjectReference Include="../Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" />
     <ProjectReference Include="../Kun.Plugin.Sdk.AspNetCore/Kun.Plugin.Sdk.AspNetCore.csproj" />
-    <ProjectReference Include="../Kun.AspNetCore/Kun.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

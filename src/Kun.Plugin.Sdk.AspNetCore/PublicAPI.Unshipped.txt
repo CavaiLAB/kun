@@ -15,6 +15,7 @@ Kun.Plugin.Sdk.AspNetCore.PluginEndpointOptions.PluginEndpointOptions(System.Fun
 Kun.Plugin.Sdk.AspNetCore.PluginEndpointOptions.RegistryContext.get -> System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>!
 static Kun.Plugin.Sdk.AspNetCore.PluginEndpointExtensions.AddKunPluginEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>! registryContext) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Kun.Plugin.Sdk.AspNetCore.PluginEndpointExtensions.RequireKunPlugin(this Microsoft.AspNetCore.Builder.RouteHandlerBuilder! builder, Kun.Plugin.Sdk.AspNetCore.PluginEndpointBinding! binding) -> Microsoft.AspNetCore.Builder.RouteHandlerBuilder!
+static Kun.Plugin.Sdk.AspNetCore.PluginEndpointExtensions.RequirePluginPermission(this Microsoft.AspNetCore.Builder.RouteHandlerBuilder! route, string! permission, System.Action<Microsoft.AspNetCore.Builder.RouteHandlerBuilder!, string!>! requirePermission) -> Microsoft.AspNetCore.Builder.RouteHandlerBuilder!
 static Kun.Plugin.Sdk.AspNetCore.PluginEndpointExtensions.UseKunPluginEndpoints(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 const Kun.Plugin.Sdk.AspNetCore.DeprecatedAlias.Deprecation = "@1791331200" -> string!
 Kun.Plugin.Sdk.AspNetCore.DeprecatedAlias

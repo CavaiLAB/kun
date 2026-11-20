@@ -158,7 +158,7 @@ internal sealed class FilesHost : IAsyncDisposable
             sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<IPermissionRegistry>()));
         builder.Services.AddSingleton<FilesHostRuntime>();
         // HTTP PEP：判定、identity_revision 比对与决策审计都经 authz 组件按请求租户收窄的上下文；生产模式下未声明权限点的组件端点缺省拒绝。
-        builder.Services.AddQianAuthzEnforcement(http => http.RequestServices.GetRequiredService<FilesHostRuntime>().AuthzSource(), options => options.Production = true);
+        builder.Services.AddKunAuthorization(http => http.RequestServices.GetRequiredService<FilesHostRuntime>().AuthzSource(), options => options.Production = true);
         builder.Services.AddKunMediator(registry =>
         {
             registry.AddKunTenancyEvents().AddKunAuthzEvents();
@@ -173,9 +173,9 @@ internal sealed class FilesHost : IAsyncDisposable
         app.UseAuthentication();
         app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"), branch => branch.UseKunMultiTenancy());
         app.UseAuthorization();
-        app.UseQianAuthzEnforcement();
+        app.UseKunAuthorization();
         var runtime = app.Services.GetRequiredService<FilesHostRuntime>();
-        app.MapQianFiles(http => http.RequestServices.GetRequiredService<FilesHostRuntime>().Source(), (endpoint, permission) => endpoint.RequireQianPermission(permission),
+        app.MapQianFiles(http => http.RequestServices.GetRequiredService<FilesHostRuntime>().Source(), (endpoint, permission) => endpoint.RequireKunPermission(permission),
             new FilesEndpointOptions { TransferSource = http => http.RequestServices.GetRequiredService<FilesHostRuntime>().TransferSource() });
         try
         {

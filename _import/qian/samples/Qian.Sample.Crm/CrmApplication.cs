@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Kun.AspNetCore.Authorization;
 using Kun.Authorization;
 using Kun.EntityFrameworkCore.Extensions;
 using Kun.EventBus.DependencyInjection;
@@ -16,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using Kun.Data;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
+using Kun.Authorization.AspNetCore;
 
 namespace Qian.Sample.Crm;
 
@@ -50,8 +50,11 @@ public static class CrmApplication
             .RequireAuthenticatedUser().RequireClaim("principal_kind", "service").RequireClaim("sub", clientId)
             .RequireAssertion(context => (context.User.FindFirstValue("scope") ?? "").Split(' ').Contains("crm.read", StringComparer.Ordinal))
             .RequireAssertion(context => Guid.TryParse(context.User.FindFirstValue("tenant_id"), out _)));
-        builder.Services.TryAddSingleton<IPermissionChecker>(new CrmReadPolicy(clientId));
-        builder.Services.AddKunAuthorization();
+        if (mapReadEndpoints)
+        {
+            builder.Services.TryAddSingleton<IPermissionChecker>(new CrmReadPolicy(clientId));
+            builder.Services.AddKunAuthorization();
+        }
         builder.Services.AddKunEventBus();
         builder.Services.AddKunData<CrmDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(CrmDbContext.Schema));
         // 迁移任务（--migrate-only）用属主角色的连接执行 DDL；未配置时沿用各上下文自身的连接。

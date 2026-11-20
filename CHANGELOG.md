@@ -8,6 +8,12 @@
 
 ## [Unreleased]
 
+### Changed — HTTP 和 gRPC 授权执行点（S1-KUN-027）
+
+- 在 `Kun.Authorization.AspNetCore` 中使用 `AddKunAuthorization`、`RequireKunPermission`、`UseKunAuthorization` 及 `AddKunAuthorizationInterceptor`。普通宿主登记自己的 `IPermissionChecker`，组件宿主提供当前请求的插件上下文。库模式的启动日志说明不写决策审计、不比对身份修订。原来从 Kun.AspNetCore 间接取得 Kun.Authorization 或 Kun.Security 的项目需要显式引用。
+- 权限点为 `<plugin-id>:<resource>:<action>`，例如 `sample.crm:item:read`。缺少组件前缀的 `sample:item:read` 在端点声明时抛出「权限点必须是 <plugin-id>:<resource>:<action> 全名」。权限拒绝由 HTTP ErrorDetail 或 gRPC 状态返回，gRPC 对权限执行点和漏装拒绝都写入 `kun-error-code` 和 `qian-error-bin`。
+- 调用 `AddKunGrpc()` 的宿主在全局或按服务登记 `AddKunAuthorizationInterceptor()`，带权限声明的调用在漏装时被拒绝。映射数据端点时传入 `(route, permission) => route.RequireKunPermission(permission)`，与文件端点使用相同的回调校验。
+
 ### Changed — 权限执行请求与数据过滤（S1-KUN-027）
 
 - HTTP、gRPC、命令和配置入口使用 `Kun.Authorization.AuthorizationSubject`。把 `EnforcementSubject` 的身份修订、委托状态改传给 `EnforcementRequest` 的必填参数 `IdentityRevision` 与 `Delegated`。修订为空的令牌仍需显式传 `null`。

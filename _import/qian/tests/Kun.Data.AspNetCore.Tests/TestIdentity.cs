@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using Kun.AspNetCore.Authorization;
 using Kun.Authorization;
 using Kun.MultiTenancy.DependencyInjection;
 using Kun.MultiTenancy;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Kun.Errors.AspNetCore;
+using Kun.Authorization.AspNetCore;
 
 namespace Kun.Data.AspNetCore.Tests;
 

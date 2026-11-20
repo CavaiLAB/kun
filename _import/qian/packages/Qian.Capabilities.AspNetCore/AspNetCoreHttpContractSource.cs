@@ -113,7 +113,7 @@ internal sealed class AspNetCoreHttpContractSource(IApiDescriptionGroupCollectio
                 ["x-qian-plugin"] = component,
                 ["security"] = anonymous ? new JsonArray() : new JsonArray(new JsonObject { ["bearerAuth"] = new JsonArray() })
             };
-            // 端点 → 权限点（PRD 7.5）：取端点声明的 RequiresPermission 元数据（RequireQianPermission / RequireKunPermission 都写它）；一个权限点写字符串，多个写有序数组。
+            // 端点 → 权限点（PRD 7.5）：取端点声明的 RequiresPermission 元数据（RequireKunPermission / RequireKunPermission 都写它）；一个权限点写字符串，多个写有序数组。
             var permissions = api.ActionDescriptor.EndpointMetadata.OfType<Kun.Authorization.RequiresPermissionAttribute>().Select(item => item.Permission)
                 .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
             if (permissions.Length == 1) operation["x-qian-permission"] = permissions[0];

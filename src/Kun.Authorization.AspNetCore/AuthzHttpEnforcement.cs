@@ -3,7 +3,6 @@ using Kun.Errors;
 using Kun.Errors.AspNetCore;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk.AspNetCore;
-using Kun.Runtime;
 using Kun.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
@@ -14,45 +13,35 @@ using Microsoft.Extensions.Logging;
 
 namespace Kun.Authorization.AspNetCore;
 
-// HTTP 入口共用：从已验证请求取主体（只信 ICurrentUser 的快照，不读请求参数），解析执行端口，按入口描述执行一次判定。
+// 两种模式均先读取认证方案建立的主身份；平台还核对 ICurrentUser 的完整快照。
 internal static class HttpEnforcement
 {
     private static readonly object FailureKey = new();
 
-    // 主体不可信时返回要写出的错误；返回 null 表示 subject 可用。
-    internal static Error? ReadSubject(HttpContext http, out Principal subject)
+    internal static bool TryReadRequest(HttpContext http, AuthzEnforcementSource source, string? permission, string entryPoint, string target,
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EnforcementRequest? request)
     {
-        subject = null!;
-        var user = http.RequestServices.GetRequiredService<ICurrentUser>(); var principal = user.Principal;
-        if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject || http.User.Identity?.IsAuthenticated != true ||
-            !Kun.Security.Authentication.PrincipalClaims.TryRead(http.User, out var claimSubject, out var claimTenant, out var claimKind) ||
-            claimSubject != principal.Subject || claimTenant != principal.TenantId || claimKind != Kind(principal.Kind))
-            return new Error(PlatformErrors.Unauthenticated);
-        subject = principal;
-        return null;
+        request = null;
+        if (!Kun.Security.Authentication.PrincipalClaims.TryRead(http.User, out var subject, out var tenant, out var kind)) return false;
+        long? revision = null;
+        bool delegated;
+        if (source.IsLibrary)
+        {
+            var identity = (System.Security.Claims.ClaimsIdentity)http.User.Identity!;
+            delegated = identity.HasClaim(claim => claim.Type == "act");
+        }
+        else
+        {
+            var user = http.RequestServices.GetRequiredService<ICurrentUser>();
+            var principal = user.Principal;
+            if (!user.IsAuthenticated || principal is null || user.UserId != principal.Subject ||
+                principal.Subject != subject || principal.TenantId != tenant || Kind(principal.Kind) != kind) return false;
+            revision = principal.IdentityRevision;
+            delegated = principal.Actor is not null;
+        }
+        request = new EnforcementRequest(new AuthorizationSubject(subject, tenant, kind), revision, delegated, permission, null, "api", entryPoint, target);
+        return true;
     }
-
-    internal static async ValueTask<AuthorizationDecision> EnforceAsync(HttpContext http, AuthzEnforcementSource source, Principal principal, string? permission, string entryPoint, string target)
-    {
-        IAuthzEnforcement enforcement;
-        try { enforcement = source.Source(http).Enforcement(); }
-        // 授权组件尚未就绪或已卸载时与不存在无法区分（与 me/permissions、T23 的 dependency-removed 一致）。
-        catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException) { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
-        return await enforcement.EnforceAsync(Request(principal, permission, entryPoint, target), http.RequestAborted).ConfigureAwait(false);
-    }
-
-    // 没有单一权限点的已认证入口只比对 identity_revision（S1-YUE-012）；执行端口取不到时与 EnforceAsync 同一映射（404）。
-    internal static async ValueTask<AuthorizationDecision?> CheckRevisionAsync(HttpContext http, AuthzEnforcementSource source, Principal principal, string target)
-    {
-        IAuthzEnforcement enforcement;
-        try { enforcement = source.Source(http).Enforcement(); }
-        catch (Exception error) when (error is ServiceNotReadyException or ObjectDisposedException or KeyNotFoundException) { throw new ErrorException(new Error(PlatformErrors.NotFound)); }
-        return await enforcement.CheckIdentityRevisionAsync(Request(principal, null, AuthzEnforcement.HttpEntryPoint, target), http.RequestAborted).ConfigureAwait(false);
-    }
-
-    private static EnforcementRequest Request(Principal principal, string? permission, string entryPoint, string target) =>
-        new(new AuthorizationSubject(principal.Subject, principal.TenantId, Kind(principal.Kind)), principal.IdentityRevision,
-            principal.Actor is not null, permission, null, "api", entryPoint, target);
 
     internal static string Target(HttpContext http) => http.Request.Method + " " + ((http.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? http.Request.Path.Value ?? "/");
     internal static string Kind(PrincipalKind kind) => kind switch { PrincipalKind.User => "user", PrincipalKind.Service => "service", _ => "agent" };
@@ -60,15 +49,27 @@ internal static class HttpEnforcement
     internal static Error? Failure(HttpContext http) => http.Items.TryGetValue(FailureKey, out var value) ? value as Error : null;
 }
 
-/// <summary>ASP.NET Core 授权处理器：对 <c>RequireQianPermission</c> 声明的每个权限点执行一次判定。</summary>
-internal sealed class QianPermissionHandler(AuthzEnforcementSource source) : AuthorizationHandler<QianPermissionRequirement, HttpContext>
+/// <summary>ASP.NET Core 授权处理器：对 <c>RequireKunPermission</c> 声明的每个权限点执行一次判定。</summary>
+internal sealed class KunPermissionHandler(AuthzEnforcementSource source) : AuthorizationHandler<KunPermissionRequirement, HttpContext>
 {
-    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, QianPermissionRequirement requirement, HttpContext http)
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, KunPermissionRequirement requirement, HttpContext http)
     {
-        if (HttpEnforcement.ReadSubject(http, out var subject) is { } unauthenticated) { Deny(context, http, unauthenticated, "unauthenticated"); return; }
+        if (source.IsLibrary && http.GetEndpoint()?.Metadata.GetMetadata<PluginEndpointBinding>() is not null)
+        {
+            var error = LibraryEnforcement.ComponentEndpoint(http.RequestServices.GetRequiredService<ILogger<KunPermissionHandler>>());
+            Deny(context, http, error, "component_endpoint_requires_platform");
+            return;
+        }
+        if (!HttpEnforcement.TryReadRequest(http, source, requirement.Permission, AuthzEnforcement.HttpEntryPoint, HttpEnforcement.Target(http), out var request))
+        {
+            // 普通宿主沿用 ASP.NET Core 的 Forbid：主身份已认证，但声明未形成可用的权限主体。
+            var error = source.IsLibrary && http.User.Identity?.IsAuthenticated == true ? PlatformErrors.AuthzDenied : PlatformErrors.Unauthenticated;
+            Deny(context, http, new Error(error), error.Code);
+            return;
+        }
         try
         {
-            var decision = await HttpEnforcement.EnforceAsync(http, source, subject, requirement.Permission, AuthzEnforcement.HttpEntryPoint, HttpEnforcement.Target(http)).ConfigureAwait(false);
+            var decision = await source.Resolve(http).EnforceAsync(request, http.RequestAborted).ConfigureAwait(false);
             if (decision.Allow) context.Succeed(requirement);
             else Deny(context, http, new Error(Denial(decision)), decision.Reason);
         }
@@ -90,7 +91,7 @@ internal sealed class QianPermissionHandler(AuthzEnforcementSource source) : Aut
 }
 
 /// <summary>授权失败写成 ErrorDetail；没有 PEP 记录的失败交给默认处理器（Challenge / Forbid）。</summary>
-internal sealed class QianAuthzResultHandler(AuthorizationMiddlewareResultHandler fallback) : IAuthorizationMiddlewareResultHandler
+internal sealed class KunAuthorizationResultHandler(AuthorizationMiddlewareResultHandler fallback) : IAuthorizationMiddlewareResultHandler
 {
     public Task HandleAsync(RequestDelegate next, HttpContext context, AuthorizationPolicy policy, PolicyAuthorizationResult authorizeResult)
     {
@@ -106,28 +107,36 @@ internal sealed class QianAuthzResultHandler(AuthorizationMiddlewareResultHandle
 /// <summary>
 /// 没有声明权限点的已认证端点：先比对令牌 identity_revision，旧令牌 401（处理器内判定的平台表面与只要求已认证的端点，S1-YUE-012）；
 /// 其中带组件端点绑定的，生产模式缺省拒绝并记录，开发模式告警放行；显式标记 <see cref="PermissionEnforcedInHandlerAttribute"/> 的端点不在缺省拒绝范围内。
-/// 声明了权限点的端点在 <see cref="QianPermissionHandler"/> 的判定里已比对修订，匿名端点不比对。
+/// 声明了权限点的端点在 <see cref="KunPermissionHandler"/> 的判定里已比对修订，匿名端点不比对。
 /// </summary>
 internal sealed partial class UndeclaredPermissionMiddleware(RequestDelegate next, AuthzEnforcementSource source, ILogger<UndeclaredPermissionMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {
         var endpoint = context.GetEndpoint();
-        if (endpoint is null || endpoint.Metadata.GetMetadata<IAllowAnonymous>() is not null || endpoint.Metadata.GetOrderedMetadata<Kun.Authorization.RequiresPermissionAttribute>().Count != 0)
-        { await next(context).ConfigureAwait(false); return; }
-        if (context.User.Identity?.IsAuthenticated == true && HttpEnforcement.ReadSubject(context, out var current) is null && current.TenantId is not null && current.IdentityRevision is not null &&
-            await HttpEnforcement.CheckRevisionAsync(context, source, current, HttpEnforcement.Target(context)).ConfigureAwait(false) is { } stale)
+        if (endpoint is null) { await next(context).ConfigureAwait(false); return; }
+        if (source.IsLibrary && endpoint.Metadata.GetMetadata<PluginEndpointBinding>() is not null)
         {
             context.Response.Headers.CacheControl = "private, no-store";
-            throw new ErrorException(new Error(QianPermissionHandler.Denial(stale)));
+            await KunResults.Error(LibraryEnforcement.ComponentEndpoint(logger)).ExecuteAsync(context).ConfigureAwait(false);
+            return;
+        }
+        if (endpoint.Metadata.GetMetadata<IAllowAnonymous>() is not null || endpoint.Metadata.GetOrderedMetadata<Kun.Authorization.RequiresPermissionAttribute>().Count != 0)
+        { await next(context).ConfigureAwait(false); return; }
+        var target = HttpEnforcement.Target(context);
+        var authenticated = HttpEnforcement.TryReadRequest(context, source, null, AuthzEnforcement.HttpEntryPoint, target, out var request);
+        if (request is { Subject.TenantId: not null, IdentityRevision: not null } &&
+            await source.Resolve(context).CheckIdentityRevisionAsync(request, context.RequestAborted).ConfigureAwait(false) is { } stale)
+        {
+            context.Response.Headers.CacheControl = "private, no-store";
+            throw new ErrorException(new Error(KunPermissionHandler.Denial(stale)));
         }
         if (endpoint.Metadata.GetMetadata<PluginEndpointBinding>() is null || endpoint.Metadata.GetMetadata<PermissionEnforcedInHandlerAttribute>() is not null)
         { await next(context).ConfigureAwait(false); return; }
-        var target = HttpEnforcement.Target(context);
         if (!source.IsProduction(context.RequestServices)) { LogUndeclared(logger, target); await next(context).ConfigureAwait(false); return; }
-        if (HttpEnforcement.ReadSubject(context, out var subject) is { } unauthenticated) throw new ErrorException(unauthenticated);
-        var decision = await HttpEnforcement.EnforceAsync(context, source, subject, null, AuthzEnforcement.HttpEntryPoint, target).ConfigureAwait(false);
-        if (!decision.Allow) throw new ErrorException(new Error(QianPermissionHandler.Denial(decision)));
+        if (!authenticated) throw new ErrorException(new Error(PlatformErrors.Unauthenticated));
+        var decision = await source.Resolve(context).EnforceAsync(request!, context.RequestAborted).ConfigureAwait(false);
+        if (!decision.Allow) throw new ErrorException(new Error(KunPermissionHandler.Denial(decision)));
         await next(context).ConfigureAwait(false);
     }
     [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "组件端点 {Target} 没有声明权限点；开发模式放行，生产模式将缺省拒绝。")]

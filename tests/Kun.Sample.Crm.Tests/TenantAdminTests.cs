@@ -283,7 +283,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
     {
         await using var ops = await StartOps();
         var (business, client) = (ops.Business, ops.Client);
-        var root = business.Token(null, "", "root", "user");
+        string RootToken() => business.Token(null, "", "root", "user");
         var source = business.App.Services.GetRequiredService<CrmCommandRuntime>().Loader.GetContext("tenancy", ScopeKey.Global);
         var accounts = business.Identity.Accounts;
         static string? Failure(SignInResult result) => result.Error?.Code.Code;
@@ -292,9 +292,9 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
             using var proof = new AuthenticationProof(Encoding.UTF8.GetBytes(password));
             return await business.Identity.SignIn.SignInAsync(new LoginInput("web", null, null, null, proof) { Identifier = identifier }, new LoginContext(), Ct);
         }
-        Task<HttpResponseMessage> Open(string code, Guid subject, string? initialPassword) => Send(client, HttpMethod.Post, "/api/tenancy/tenants", root,
+        Task<HttpResponseMessage> Open(string code, Guid subject, string? initialPassword) => Send(client, HttpMethod.Post, "/api/tenancy/tenants", RootToken(),
             new CreateTenant(code, "指定核对 " + code) { Administrator = new(Guid.CreateVersion7(), subject.ToString("D")) { InitialPassword = initialPassword } });
-        Task<HttpResponseMessage> Replace(string tenant, Guid subject, string? initialPassword) => Send(client, HttpMethod.Put, Admins(tenant), root,
+        Task<HttpResponseMessage> Replace(string tenant, Guid subject, string? initialPassword) => Send(client, HttpMethod.Put, Admins(tenant), RootToken(),
             new ReplaceTenantAdmins([new(subject) { InitialPassword = initialPassword }]));
         Task<string?> Tenants(string code) => Text($"SELECT count(*)::text FROM plugin_qian_tenancy.tenants WHERE code = '{code}'");
         Task<string?> Links(Guid person) => Text($"SELECT count(*)::text FROM plugin_qian_identity.external_identities WHERE person_id = '{person}' AND NOT is_deleted");
@@ -310,7 +310,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
             }
         }
         async Task<TenantAdminAccount> NewAccount(string name, string number) =>
-            await Read<TenantAdminAccount>(await Send(client, HttpMethod.Post, Accounts, root, new CreateTenantAdminAccount(name, TenantAdminIdentifierKind.Phone, number, TemporaryPassword)), HttpStatusCode.Created);
+            await Read<TenantAdminAccount>(await Send(client, HttpMethod.Post, Accounts, RootToken(), new CreateTenantAdminAccount(name, TenantAdminIdentifierKind.Phone, number, TemporaryPassword)), HttpStatusCode.Created);
 
         // 手机号经本人验证的账号：直接任管理员、不重置；开户与更换时给了初始密码反而 400（VALUE_NOT_ALLOWED），什么都不改。
         var (vouched, vouchedPhone) = await NewPerson(business, "已验证");
@@ -323,7 +323,7 @@ public sealed partial class TenantAdminTests(PostgresFixture postgres) : Custome
         // 只靠外部身份登录、没有经本人验证的联系方式的账号（连接器首登建出的那种：没有密码，邮箱未验证）：查找不返回，开户与更换都不能指定。
         var email = "ext" + Guid.NewGuid().ToString("N")[..10] + "@example.test";
         var external = await accounts.CreatePersonAsync(new CreatePerson("外部身份", [new IdentifierInput(IdentifierKind.Email, email, false)]), Ct);
-        await Rejected(await Send(client, HttpMethod.Post, Accounts + ":lookup", root, new TenantAdminAccountLookup(email)), HttpStatusCode.NotFound, "NOT_FOUND");
+        await Rejected(await Send(client, HttpMethod.Post, Accounts + ":lookup", RootToken(), new TenantAdminAccountLookup(email)), HttpStatusCode.NotFound, "NOT_FOUND");
         Assert.Equal("#/administrator/subjectId", await Rejected(await Open("external", external.Id, DesignatedPassword), HttpStatusCode.BadRequest, "INPUT_INVALID"));
         Assert.Equal("0", await Tenants("external"));
         Assert.Equal("#/items/0/subjectId", await Rejected(await Replace(id, external.Id, DesignatedPassword), HttpStatusCode.BadRequest, "INPUT_INVALID"));

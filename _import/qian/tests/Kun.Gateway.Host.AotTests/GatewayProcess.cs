@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-namespace Qian.Gateway.Host.AotTests;
+namespace Kun.Gateway.Host.AotTests;
 
 // 只编排独立生产进程，不在生产宿主添加测试端点或替换业务服务。
 internal sealed class GatewayProcess : IAsyncDisposable

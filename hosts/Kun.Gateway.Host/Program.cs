@@ -14,8 +14,8 @@ using Qian.Config.Apollo;
 using Qian.Config.Secrets;
 using Kun.Data.Native;
 using Kun.Data.Native.Postgres;
-using Qian.Gateway;
-using Qian.Gateway.Host;
+using Kun.Gateway;
+using Kun.Gateway.Host;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
 using Kun.Plugin.Sdk;
@@ -74,7 +74,7 @@ builder.Services.AddKunIdentityClient(new IdentityClientOptions
     PathPrefix = "/auth", RequireHttpsMetadata = !builder.Environment.IsDevelopment(),
     AllowedReturnPaths = ["/"], DefaultReturnPath = "/", SessionKeyPrefix = "qian:gateway:sessions:"
 });
-builder.Services.AddQianGateway(gateway, IdentityClientDefaults.SessionScheme);
+builder.Services.AddKunGateway(gateway, IdentityClientDefaults.SessionScheme);
 // 外壳与已部署组件的远程制品（S1-DEP-011，R144 ②）：shell 组合包的静态制品随网关镜像发布，运行时配置由 ConfigMap 挂成 /app-config.json；没有给出外壳目录时不托管。
 var shell = builder.Configuration["Shell:Root"] is { Length: > 0 } shellRoot ? new ShellStaticOptions
 {
@@ -84,10 +84,10 @@ var shell = builder.Configuration["Shell:Root"] is { Length: > 0 } shellRoot ? n
 } : null;
 await using var app = builder.Build();
 app.UseForwardedHeaders();
-if (shell is not null) app.UseQianShell(shell);
-app.UseRouting(); app.UseKunIdentityClient(); app.UseQianGateway();
-app.MapKunIdentityClient(); app.MapQianGateway();
-if (shell is not null) { app.MapQianShellBootstrap(); app.MapQianShell(shell); }
+if (shell is not null) app.UseKunShell(shell);
+app.UseRouting(); app.UseKunIdentityClient(); app.UseKunGateway();
+app.MapKunIdentityClient(); app.MapKunGateway();
+if (shell is not null) { app.MapKunShellBootstrap(); app.MapKunShell(shell); }
 await using var loader = new PluginLoader(app.Services);
 observer.Source = () => loader.GetContext("config", ScopeKey.Global);
 using var dataConfig = JsonDocument.Parse("""{"connections":["audit_tenant","audit_platform"]}""");

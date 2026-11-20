@@ -1,6 +1,6 @@
 using Qian.Config.Apollo;
 
-namespace Qian.Gateway.Host;
+namespace Kun.Gateway.Host;
 
 // Apollo 加入 ConfigurationManager 时会立即 Load；其签名回调不能再读取尚未合成的配置根。
 internal static class GatewayBootstrap

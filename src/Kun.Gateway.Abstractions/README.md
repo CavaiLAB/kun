@@ -4,7 +4,7 @@
 
 `GatewayRoute.RateLimiterPolicy` 必须显式设置为 `kun-default` / `tenant` / `user`，缺失时 Provider 在宿主装配前拒绝；`GatewayConfiguration.RateLimits` 缺省为三种策略各 100 次/分钟，副本间共享 Redis。
 
-默认 Provider 为 `Qian.Gateway`，进入 gateway profile。组件文件夹、配置 Schema、安装边界与验证见 [Provider 主文档](../Qian.Gateway/README.md)。
+默认 Provider 为 `Kun.Gateway`，进入 gateway profile。组件文件夹、配置 Schema、安装边界与验证见 [Provider 主文档](../Kun.Gateway.Shell/README.md)。
 
 ## 模型体验
 

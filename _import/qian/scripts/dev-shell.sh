@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 外壳认证联调环境（S1-YUE-002 / S1-YUE-012）。说明见 tools/Qian.Dev.Shell/README.md。
-# 真实 qian.identity（与 CRM 参考运行时同宿主）+ 平台表面参考宿主 + 真实 Identity.Client / Qian.Gateway BFF（HTTPS 自签名，静态托管外壳与参考应用远程制品）+ 上游 OIDC 发行方 CNCF Dex（SSO 跳转回调）；
+# 真实 qian.identity（与 CRM 参考运行时同宿主）+ 平台表面参考宿主 + 真实 Identity.Client / Kun.Gateway BFF（HTTPS 自签名，静态托管外壳与参考应用远程制品）+ 上游 OIDC 发行方 CNCF Dex（SSO 跳转回调）；
 # 开发库、平台插件树与运营前置复用 tools/Qian.Dev.TenantOps。这是开发机上的联调环境：不替代 qian dev（S1-RT-013），也不替代 K3s 部署（S1-DEP-002）。
 # 兼容 macOS 自带的 bash 3.2：不用关联数组，也不在 set -u 下展开空数组。
 set -euo pipefail

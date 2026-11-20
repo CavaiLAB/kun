@@ -24,7 +24,7 @@ using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
 using Kun.Data;
-using Qian.Gateway;
+using Kun.Gateway;
 using Qian.Lifecycle;
 using Qian.Platform.Host;
 using Kun.Plugin.Sdk;
@@ -221,7 +221,7 @@ public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerComman
         await using var redis = new RedisFixture(); await redis.InitializeAsync();
         var (routes, clusters) = ProductionRoutes(new Uri($"http://127.0.0.1:{hostPort.Port}/"));
         await using var gateway = await GatewayTestHost.Start(reservation, tls, business.Identity.Issuer, GatewayClientId, IdentityResource, business.Identity.Secret,
-            redis.ConnectionString, ShellGatewayIssuer, routes, clusters, business.ManagementSigningKey.Rsa, map: app => app.MapQianShellBootstrap(), scopes: ["crm.read", "crm.write"]);
+            redis.ConnectionString, ShellGatewayIssuer, routes, clusters, business.ManagementSigningKey.Rsa, map: app => app.MapKunShellBootstrap(), scopes: ["crm.read", "crm.write"]);
         var seen = new ConcurrentQueue<string>();
         await using var platform = await StartPlatformHost(business, new Uri(gateway.HttpAddress, ".well-known/jwks.json"), hostPort, seen);
         // 授权变更走身份侧（参考宿主同进程身份）：递增身份修订并抬高修订下限；本宿主的 PEP 每次判定读库比对下限（S1-DEC-027）。
@@ -477,7 +477,7 @@ public abstract partial class CustomerCommandTests
     // 网关宿主交付的路由表与簇（hosts/Qian.Gateway.Host/appsettings.json），簇地址换成本宿主的回环地址。
     private protected static (GatewayRoute[] Routes, GatewayCluster[] Clusters) ProductionRoutes(Uri platform)
     {
-        var configuration = new ConfigurationBuilder().AddJsonFile(Path.Combine(RepositoryRoot(), "hosts", "Qian.Gateway.Host", "appsettings.json"), optional: false, reloadOnChange: false).Build();
+        var configuration = new ConfigurationBuilder().AddJsonFile(Path.Combine(RepositoryRoot(), "hosts", "Kun.Gateway.Host", "appsettings.json"), optional: false, reloadOnChange: false).Build();
         var routes = configuration.GetSection("Gateway:Routes").GetChildren().Select(item => new GatewayRoute(item["Id"] ?? "", item["Path"] ?? "", item["Cluster"] ?? "")
             { RateLimiterPolicy = item["RateLimiterPolicy"] ?? "" }).ToArray();
         var clusters = configuration.GetSection("Gateway:Clusters").GetChildren().ToArray();

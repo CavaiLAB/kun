@@ -11,4 +11,4 @@ docker build --progress=plain -f tools/Qian.Gateway.AotProbe/Dockerfile -t qian-
 
 Dockerfile 固定 SDK 镜像摘要，按 Linux arm64 发布，启用 `IlcTreatWarningsAsErrors` 并逐条输出裁剪诊断。运行入口确实连接 Apollo、Redis、受限 PostgreSQL，挂载 Config / Identity / Data / Audit 并执行审计写入、读取和验链；运行配置由测试环境提供，不记录凭据。
 
-2026-10-23 实测：普通 Release 构建成功，严格 Linux NativeAOT 发布失败，原生运行尚未执行。定位、边界与待确认路径见[决策材料](../../docs/decisions/gateway-native-aot-options.md)。探针不进入正常解决方案的发布集合，避免把已知失败的诊断路径伪装成已交付的业务宿主。
+2026-10-23 实测：普通 Release 构建成功，严格 Linux NativeAOT 发布失败，原生运行尚未执行。定位、边界与待确认路径见[决策材料](../../_import/qian/docs/decisions/gateway-native-aot-options.md)。探针不进入正常解决方案的发布集合，避免把已知失败的诊断路径伪装成已交付的业务宿主。

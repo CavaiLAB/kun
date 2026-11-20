@@ -5,7 +5,7 @@ using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 
-namespace Qian.Gateway;
+namespace Kun.Gateway;
 
 /// <summary>网关唯一组件入口；宿主准备网络装配，插件挂载与卸载决定业务路由是否可以执行。</summary>
 [KunPlugin("qian.gateway")]

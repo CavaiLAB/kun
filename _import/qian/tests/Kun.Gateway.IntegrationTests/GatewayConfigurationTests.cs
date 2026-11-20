@@ -4,7 +4,7 @@ using Json.Schema;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
 
-namespace Qian.Gateway.Tests;
+namespace Kun.Gateway.IntegrationTests;
 
 public sealed class GatewayConfigurationTests
 {
@@ -51,14 +51,14 @@ public sealed class GatewayConfigurationTests
         var configuration = GatewayHosting.ReadConfiguration(document.RootElement);
         var route = Assert.Single(configuration.Routes);
         var policies = new[] { "kun-default", "tenant", "user" };
-        var services = new ServiceCollection().AddLogging().AddQianGateway(configuration with
+        var services = new ServiceCollection().AddLogging().AddKunGateway(configuration with
         { Routes = policies.Select(policy => route with { Id = policy, RateLimiterPolicy = policy }).ToArray() });
         using var provider = services.BuildServiceProvider();
         var generated = provider.GetRequiredService<IProxyConfigProvider>().GetConfig().Routes;
         Assert.Equal(policies, generated.Select(item => item.RateLimiterPolicy));
         Assert.All(generated, item => Assert.Equal("Default", item.AuthorizationPolicy));
         var empty = new ServiceCollection();
-        Assert.Throws<ArgumentException>(() => empty.AddQianGateway(configuration with
+        Assert.Throws<ArgumentException>(() => empty.AddKunGateway(configuration with
         { Routes = [new GatewayRoute("missing", "/missing", "qian-platform") { RateLimiterPolicy = "" }] }));
         Assert.Empty(empty);
     }
@@ -109,7 +109,7 @@ public sealed class GatewayConfigurationTests
     [Fact]
     public void 输出目录只有Kun网关的程序集_没有它作为宿主的配置与启动文件()
     {
-        // Kun.Gateway 经 Qian.Gateway 项目引用进来（S1-KUN-020）。它是类库，独立宿主在仓库根的 hosts/Kun.Gateway.Standalone：
+        // Kun.Gateway 经 Kun.Gateway 项目引用进来（S1-KUN-020）。它是类库，独立宿主在仓库根的 hosts/Kun.Gateway.Standalone：
         // 输出目录里只有它的程序集，没有宿主的配置与启动文件。这里留作回归检查，防它退回可执行项目。
         var output = AppContext.BaseDirectory;
         Assert.True(File.Exists(Path.Combine(output, "Kun.Gateway.dll")));

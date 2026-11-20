@@ -1,4 +1,4 @@
-namespace Qian.Gateway;
+namespace Kun.Gateway;
 
 internal static class ComponentConfiguration
 {

@@ -22,7 +22,7 @@ using Qian.Testing.Containers;
 using Qian.Testing.Gateway;
 using Qian.Testing.Identity;
 
-namespace Qian.Gateway.Tests;
+namespace Kun.Gateway.IntegrationTests;
 
 public sealed class GatewayBoundaryTests(PostgresFixture postgres, RedisFixture redis) : IClassFixture<PostgresFixture>, IClassFixture<RedisFixture>
 {

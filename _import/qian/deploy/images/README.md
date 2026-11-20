@@ -50,7 +50,7 @@ python3 scripts/images.py build --kind jit --project <csproj> --assembly <程序
 - 标签记录源码 SHA（`org.opencontainers.image.revision`）、Kun 的源码提交（`io.qian.kun-version`，Kun 与本目录同仓同提交编译，值与源码 SHA 相同）、profile 与组件目录修订和镜像角色（`io.qian.image-role`：`product` 或 `selfcheck`）；
 - 前端构建产物（S1-DEP-011）经 `--web <目录>` 以命名构建上下文 `web` 送入 `/app/web`，构建证据记该目录的 D4 摘要（`webDigest`）；不给 `--web` 时送空目录。平台镜像的目录里是 `identity/`（`packages/qian-identity-ui/dist`）与 `signup/`（`packages/qian-tenancy-signup-ui/dist/public`），网关镜像是 `shell/`（`apps/qian-shell/dist/host`）与 `remotes/qian.tenancy/`、`remotes/qian.tenancy.signup/`（两个 UI 包的 `dist/remote`）。前端在构建机之外先用 pnpm 构建好再拷过去，组装与构建命令见 [staging 运维手册](../../docs/ops/staging-first-deploy.md)。
 
-AOT 模板的构建上下文白名单放行了网关宿主（`hosts/Qian.Gateway.Host`）与全部 `contracts/`（S1-DEP-011），`--kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Qian.Gateway.Host` 可以直接构建 qian-gateway；JIT 模板早已放行平台宿主（S1-DEP-009）。
+AOT 模板的构建上下文白名单放行了网关宿主（`hosts/Qian.Gateway.Host`）与全部 `contracts/`（S1-DEP-011），`--kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Kun.Gateway.Host` 可以直接构建 qian-gateway；JIT 模板早已放行平台宿主（S1-DEP-009）。
 
 ### 门禁
 

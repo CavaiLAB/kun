@@ -8,7 +8,7 @@ using Kun.Errors;
 using Qian.Testing.Containers;
 using StackExchange.Redis;
 
-namespace Qian.Gateway.Tests;
+namespace Kun.Gateway.IntegrationTests;
 
 public sealed class GatewayRateLimitTests
 {

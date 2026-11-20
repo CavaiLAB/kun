@@ -8,13 +8,13 @@
     <TrimmerSingleWarn>false</TrimmerSingleWarn><InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
-    <ProjectReference Include="../../packages/Qian.Gateway/Qian.Gateway.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
-    <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
-    <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
-    <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <ProjectReference Include="../../src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
+    <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 </Project>

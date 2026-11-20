@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Qian.Config;
 using Qian.Config.Apollo;
 using Qian.Config.Secrets;
-using Qian.Gateway;
+using Kun.Gateway;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Client;
 using Kun.Runtime;
@@ -76,10 +76,10 @@ internal sealed class GatewayTestHost(WebApplication app, PluginLoader loader, G
             RequireHttpsMetadata = false, AllowedReturnPaths = ["/app"], DefaultReturnPath = "/app",
             SessionKeyPrefix = "qian:gateway-tests:" + Guid.NewGuid().ToString("N") + ":"
         });
-        builder.Services.AddQianGateway(configuration, IdentityClientDefaults.SessionScheme);
+        builder.Services.AddKunGateway(configuration, IdentityClientDefaults.SessionScheme);
         var app = builder.Build();
-        app.UseForwardedHeaders(); app.UseRouting(); app.UseKunIdentityClient(); app.UseQianGateway();
-        app.MapKunIdentityClient(); app.MapQianGateway(); map?.Invoke(app);
+        app.UseForwardedHeaders(); app.UseRouting(); app.UseKunIdentityClient(); app.UseKunGateway();
+        app.MapKunIdentityClient(); app.MapKunGateway(); map?.Invoke(app);
         var loader = new PluginLoader(app.Services);
         try
         {

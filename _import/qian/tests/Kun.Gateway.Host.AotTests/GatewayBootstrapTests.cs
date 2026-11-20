@@ -3,7 +3,7 @@ using System.Text.Json;
 using Qian.Config.Apollo;
 using Qian.Testing.Containers;
 
-namespace Qian.Gateway.Host.AotTests;
+namespace Kun.Gateway.Host.AotTests;
 
 [Collection(GatewayHostGroup.Name)]
 public sealed class GatewayBootstrapTests(ApolloFixture apollo) : IClassFixture<ApolloFixture>

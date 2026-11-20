@@ -8,11 +8,11 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
-    <ProjectReference Include="../../packages/Qian.Audit/Qian.Audit.csproj" />
-    <ProjectReference Include="../../../../src/Kun.Gateway/Kun.Gateway.csproj" />
-    <ProjectReference Include="../../../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <ProjectReference Include="../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
+    <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
+    <ProjectReference Include="../../_import/qian/packages/Qian.Audit/Qian.Audit.csproj" />
+    <ProjectReference Include="../../src/Kun.Gateway/Kun.Gateway.csproj" />
+    <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
   </ItemGroup>
 </Project>

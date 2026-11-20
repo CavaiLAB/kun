@@ -22,7 +22,7 @@ using Qian.Testing.Containers;
 using Qian.Testing.NativeAudit;
 using StackExchange.Redis;
 
-namespace Qian.Gateway.Host.AotTests;
+namespace Kun.Gateway.Host.AotTests;
 
 [Collection(GatewayHostGroup.Name)]
 public sealed class GatewayHostTests(PostgresFixture postgres, RedisFixture redis, RealApolloFixture apollo)

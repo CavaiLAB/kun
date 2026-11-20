@@ -34,7 +34,7 @@ NEEDS_DOTNET = unittest.skipUnless(shutil.which("dotnet") or os.environ.get("CI"
 PROPERTIES = ("IsPackable", "KunTier", "KunHost", "_KunPlatformAnalyzers", "IsAotCompatible", "IsAotCandidate", "HasPublicApi",
               "IsTrimmable", "EnableTrimAnalyzer", "EnableAotAnalyzer", "EnableSingleFileAnalyzer")
 ITEMS = ("PackageReference", "ProjectReference", "AdditionalFiles")
-HOSTS = {"Qian.Platform.Host", "Qian.Gateway.Host", "Kun.Gateway.Standalone"}
+HOSTS = {"Qian.Platform.Host", "Kun.Gateway.Host", "Kun.Gateway.Standalone"}
 # ILC 按冒烟宿主的这些属性与 IlcArg 项决定报哪些警告、警告算不算错误（ILCompiler 包的 Microsoft.NETCore.Native.targets）。
 SMOKE_PROPERTIES = ("PublishAot", "NoWarn", "WarningsNotAsErrors", "SuppressTrimAnalysisWarnings", "SuppressAotAnalysisWarnings",
                     "TreatWarningsAsErrors", "IlcTreatWarningsAsErrors", "TrimmerSingleWarn",
@@ -242,7 +242,7 @@ class AotListTests(unittest.TestCase):
         names = {p.name for p in aot_projects.aot_projects(self.projects)}
         self.assertIn("Kun.Identity.AspNetCore", names)  # 旧的四份清单都漏了它（S1-KUN-015）
         self.assertNotIn("Kun.Auditing", names)  # EF 拦截器带出 IL2091；B6 并入平台档，不做 AOT（D23.9）
-        self.assertTrue({"Qian.Gateway", "Kun.Identity.Client", "Kun.Errors"} <= names)
+        self.assertTrue({"Kun.Gateway", "Kun.Identity.Client", "Kun.Errors"} <= names)
 
     def test_compatible_projects_keep_the_analyzers_on_and_nobody_writes_the_old_switch(self):
         for path, (props, _) in evaluated().items():

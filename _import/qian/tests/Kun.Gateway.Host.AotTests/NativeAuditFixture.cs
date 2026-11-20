@@ -11,7 +11,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.NativeAudit;
 
-namespace Qian.Gateway.Host.AotTests;
+namespace Kun.Gateway.Host.AotTests;
 
 // 用第二个真实 Provider 组合读回原生生产宿主写入的审计链；它不替生产宿主写成功记录。
 internal sealed class NativeAuditReader(ServiceProvider provider, PluginLoader loader, AuditConsumer consumer) : IAsyncDisposable

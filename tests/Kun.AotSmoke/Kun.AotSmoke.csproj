@@ -51,8 +51,8 @@
     <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
     <ProjectReference Include="../../src/Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" />
     <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Gateway.Abstractions/Qian.Gateway.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Gateway/Qian.Gateway.csproj" />
+    <ProjectReference Include="../../src/Kun.Gateway.Abstractions/Kun.Gateway.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
     <ProjectReference Include="../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
     <ProjectReference Include="../../src/Kun.Errors.AspNetCore/Kun.Errors.AspNetCore.csproj" />
     <ProjectReference Include="../../src/Kun.Errors/Kun.Errors.csproj" />

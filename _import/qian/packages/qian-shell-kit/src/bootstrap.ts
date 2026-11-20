@@ -4,7 +4,7 @@ import { isBffSession, toBffSession, type BffSession } from './bff-session';
 import { isNavigationItem, type NavigationCatalogItem } from './navigation';
 
 /**
- * 网关 bootstrap 聚合端点（`GET /api/shell/bootstrap`，Qian.Gateway 的 MapQianShellBootstrap）的响应：会话快照（与 `GET /auth/session` 同形）、
+ * 网关 bootstrap 聚合端点（`GET /api/shell/bootstrap`，Kun.Gateway 的 MapKunShellBootstrap）的响应：会话快照（与 `GET /auth/session` 同形）、
  * 外壳上下文、本租户实际挂载且带 UI 清单的远程、挂载与权益键（`scope|组件 id`）、已放行的权限码、能力导航（下游失败时为 null）、是否代管。不含任何令牌。
  */
 export interface ShellBootstrap {

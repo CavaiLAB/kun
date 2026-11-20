@@ -1,6 +1,6 @@
 using Kun.Runtime;
 
-namespace Qian.Gateway;
+namespace Kun.Gateway;
 
 /// <summary>网关 seam；Provider 安装到 gateway profile，业务组件只消费本契约。</summary>
 public static class GatewayDefinition

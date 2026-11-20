@@ -18,7 +18,7 @@ using Kun.Identity.Abstractions;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
 
-namespace Qian.Gateway;
+namespace Kun.Gateway;
 
 /// <summary>
 /// 外壳的网关侧（S1-YUE-012）：bootstrap 聚合端点与外壳静态托管。外壳是 platform 的 shell 组合包（静态制品），经网关同源提供；
@@ -44,9 +44,9 @@ public static partial class GatewayShellHosting
     /// 外壳目录或有效权限 403 即 403，其余失败 502；能力导航失败降级为 null；下游 404（组件未挂载）按空处理。
     /// 平台身份（没有租户，S1-YUE-018）：人类用户按同一方式只调平台控制台目录，持平台超管时交出平台组件的远程、菜单与可用权限码（不代管）；
     /// 目录为空（不持角色）、下游 404 或没有路由时回代管上下文；401 / 403 / 其余失败与租户成员同一映射。平台服务主体不调下游，直接代管。
-    /// 权益（entitled）的真实来源归 S1-ENT-002，此前与 mounted 等价。须在 <see cref="GatewayHosting.AddQianGateway"/> 之后、与其它端点一起映射。
+    /// 权益（entitled）的真实来源归 S1-ENT-002，此前与 mounted 等价。须在 <see cref="GatewayHosting.AddKunGateway"/> 之后、与其它端点一起映射。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianShellBootstrap(this IEndpointRouteBuilder endpoints, string path = BootstrapPath)
+    public static IEndpointRouteBuilder MapKunShellBootstrap(this IEndpointRouteBuilder endpoints, string path = BootstrapPath)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         if (!IsLocalPath(path) || path.EndsWith('/')) throw new ArgumentException("bootstrap 路径必须是不含查询串、片段与结尾斜杠的同源相对路径。", nameof(path));
@@ -60,7 +60,7 @@ public static partial class GatewayShellHosting
     /// HTML <c>no-store</c>、<c>/assets/</c> 下带哈希的资源长缓存、远程制品与其余文件 <c>no-cache</c>；全部带 nosniff、<c>Referrer-Policy: no-referrer</c>
     /// 与 <c>frame-ancestors 'none'</c>（脚本来源由构建产物 index.html 的 meta CSP 声明）。
     /// </summary>
-    public static IApplicationBuilder UseQianShell(this IApplicationBuilder app, ShellStaticOptions options)
+    public static IApplicationBuilder UseKunShell(this IApplicationBuilder app, ShellStaticOptions options)
     {
         ArgumentNullException.ThrowIfNull(app); ArgumentNullException.ThrowIfNull(options);
         Validate(options);
@@ -81,9 +81,9 @@ public static partial class GatewayShellHosting
     /// <summary>
     /// 映射运行时配置 <c>GET /app-config.json</c>（取 <see cref="ShellStaticOptions.ConfigFile"/>，即 K8s 里 ConfigMap 挂成的文件，每次现读、<c>no-store</c>）
     /// 与外壳入口兜底：没有命中任何端点、不带扩展名、接受 <c>text/html</c> 的 GET / HEAD（浏览器的页面导航与深链接）回 index.html（<c>no-store</c>）；
-    /// 其余（API 前缀下打错的路径、脚本请求、其它方法）一律 404，不拿 HTML 冒充 JSON。与 <see cref="UseQianShell"/> 用同一份选项。
+    /// 其余（API 前缀下打错的路径、脚本请求、其它方法）一律 404，不拿 HTML 冒充 JSON。与 <see cref="UseKunShell"/> 用同一份选项。
     /// </summary>
-    public static IEndpointRouteBuilder MapQianShell(this IEndpointRouteBuilder endpoints, ShellStaticOptions options)
+    public static IEndpointRouteBuilder MapKunShell(this IEndpointRouteBuilder endpoints, ShellStaticOptions options)
     {
         ArgumentNullException.ThrowIfNull(endpoints); ArgumentNullException.ThrowIfNull(options);
         Validate(options);
@@ -175,7 +175,7 @@ public static partial class GatewayShellHosting
             { await Error(http, PlatformErrors.Unauthenticated).ConfigureAwait(false); return; }
             if (shell.Status == HttpStatusCode.Forbidden || permissions.Status == HttpStatusCode.Forbidden)
             { await Error(http, PlatformErrors.AuthzDenied).ConfigureAwait(false); return; }
-            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Gateway");
+            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Gateway");
             if (shell.Body is null && shell.Status != HttpStatusCode.NotFound || permissions.Body is null && permissions.Status != HttpStatusCode.NotFound)
             {
                 Log.DownstreamFailed(logger, (int)shell.Status, (int)permissions.Status);
@@ -220,7 +220,7 @@ public static partial class GatewayShellHosting
         {
             if (console.Status == HttpStatusCode.Unauthorized) { await Error(http, PlatformErrors.Unauthenticated).ConfigureAwait(false); return; }
             if (console.Status == HttpStatusCode.Forbidden) { await Error(http, PlatformErrors.AuthzDenied).ConfigureAwait(false); return; }
-            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Qian.Gateway");
+            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Kun.Gateway");
             // 控制台目录未部署、Capabilities 未挂载或网关没有对应路由：与租户成员的 404 同样按空处理并记警告，平台身份回代管上下文。
             if (console.Status == HttpStatusCode.NotFound) { Log.ConsoleMissing(logger, Describe(console)); await Write(http, managed).ConfigureAwait(false); return; }
             if (console.Body is null) { Log.ConsoleFailed(logger, (int)console.Status); await Error(http, PlatformErrors.BadGateway).ConfigureAwait(false); return; }

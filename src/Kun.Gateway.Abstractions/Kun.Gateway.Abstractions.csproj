@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>true</IsPackable><IsAotCompatible>true</IsAotCompatible><Description>业务网关的服务键、声明式路由与固定安全配置契约。</Description></PropertyGroup>
   <PropertyGroup Label="档位"><KunTier>kernel</KunTier><KunRole>contract</KunRole></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../../../../src/Kun.Runtime/Kun.Runtime.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Kun.Runtime/Kun.Runtime.csproj" /></ItemGroup>
 </Project>

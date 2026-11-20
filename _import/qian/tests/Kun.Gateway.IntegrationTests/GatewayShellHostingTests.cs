@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Qian.Gateway.Tests;
+namespace Kun.Gateway.IntegrationTests;
 
 // 外壳静态托管（S1-YUE-012）：入口与深链接 no-store、/assets 带哈希资源长缓存、远程制品按组件目录、运行时配置每次现读，全部响应带同一组安全头。
 public sealed class GatewayShellHostingTests
@@ -25,8 +25,8 @@ public sealed class GatewayShellHostingTests
             var options = new ShellStaticOptions { Root = dist, ConfigFile = config, Remotes = new Dictionary<string, string> { ["qian.sample.crm"] = remote } };
             var builder = WebApplication.CreateBuilder(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Logging.ClearProviders();
             await using var app = builder.Build();
-            app.UseQianShell(options); app.UseRouting();
-            app.MapGet("/api/ping", () => "pong"); app.MapQianShell(options);
+            app.UseKunShell(options); app.UseRouting();
+            app.MapGet("/api/ping", () => "pong"); app.MapKunShell(options);
             await app.StartAsync(Ct);
             using var http = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
 
@@ -73,11 +73,11 @@ public sealed class GatewayShellHostingTests
             var dist = Write(root, "dist/index.html", "<!doctype html>");
             var remote = Write(root, "remotes/crm/mf-manifest.json", "{}");
             var app = WebApplication.CreateBuilder().Build();
-            Assert.Throws<ArgumentException>(() => app.UseQianShell(new ShellStaticOptions { Root = Path.Combine(root.FullName, "remotes") }));
-            Assert.Throws<ArgumentException>(() => app.UseQianShell(new ShellStaticOptions { Root = dist, Remotes = new Dictionary<string, string> { ["../crm"] = remote } }));
-            Assert.Throws<ArgumentException>(() => app.UseQianShell(new ShellStaticOptions { Root = dist, Remotes = new Dictionary<string, string> { ["qian.sample.crm"] = Path.Combine(root.FullName, "nope") } }));
-            Assert.Throws<ArgumentException>(() => app.MapQianShellBootstrap("https://evil.test/bootstrap"));
-            Assert.Throws<ArgumentException>(() => app.MapQianShellBootstrap("/api/shell/bootstrap/"));
+            Assert.Throws<ArgumentException>(() => app.UseKunShell(new ShellStaticOptions { Root = Path.Combine(root.FullName, "remotes") }));
+            Assert.Throws<ArgumentException>(() => app.UseKunShell(new ShellStaticOptions { Root = dist, Remotes = new Dictionary<string, string> { ["../crm"] = remote } }));
+            Assert.Throws<ArgumentException>(() => app.UseKunShell(new ShellStaticOptions { Root = dist, Remotes = new Dictionary<string, string> { ["qian.sample.crm"] = Path.Combine(root.FullName, "nope") } }));
+            Assert.Throws<ArgumentException>(() => app.MapKunShellBootstrap("https://evil.test/bootstrap"));
+            Assert.Throws<ArgumentException>(() => app.MapKunShellBootstrap("/api/shell/bootstrap/"));
         }
         finally { root.Delete(recursive: true); }
     }

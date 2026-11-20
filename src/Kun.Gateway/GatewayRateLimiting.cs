@@ -15,7 +15,7 @@ using Kun.Errors.AspNetCore;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Model;
 
-namespace Qian.Gateway;
+namespace Kun.Gateway;
 
 internal static class GatewayRateLimiting
 {

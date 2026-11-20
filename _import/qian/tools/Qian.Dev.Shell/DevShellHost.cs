@@ -5,7 +5,7 @@ using Qian.Dev.TenantOps;
 using Kun.Identity.Abstractions;
 using Kun.Identity.Server;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Gateway;
+using Kun.Gateway;
 using Kun.Runtime;
 using Qian.Sample.Crm;
 using Kun.Tenancy.Signup;
@@ -24,7 +24,7 @@ internal sealed record DevShellSettings(string State, string Admin, string Urls,
 //      （丙方不挂：验收 2 的「未挂载」形态），补其余成员与 tenant.user 授权；
 //   4. 起面向用户的平台表面宿主（参考宿主 PlatformSurfaceHost：能力目录 / 导航 / 外壳目录 / 平台控制台目录与有效权限，授权 PEP 按生产模式执行身份修订下限），
 //      与运营宿主（参考运营宿主 TenantOperationsHost + 开通申请的运营接口：平台控制台的页面经它们运营租户与开通申请，S1-YUE-018）；
-//   5. 起 Identity.Client / Qian.Gateway BFF 宿主（HTTPS 自签名）：产品扩展静态托管外壳（apps/qian-shell）、参考应用的远程制品（samples/qian-sample-crm-ui）
+//   5. 起 Identity.Client / Kun.Gateway BFF 宿主（HTTPS 自签名）：产品扩展静态托管外壳（apps/qian-shell）、参考应用的远程制品（samples/qian-sample-crm-ui）
 //      与平台组件的远程制品（packages/qian-tenancy-ui、packages/qian-tenancy-signup-ui），/app-config.json 取自状态目录，bootstrap 聚合端点，
 //      /api 经 S2S 按受众分簇转发到业务宿主、平台表面宿主与运营宿主。
 // 不是产品宿主，不替代 qian dev（S1-RT-013）与 K3s 部署（S1-DEP-002）；浏览器只持有 HttpOnly Cookie，不接触任何令牌。

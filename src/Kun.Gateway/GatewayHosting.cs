@@ -23,7 +23,7 @@ using Yarp.ReverseProxy.Model;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Transforms.Builder;
 
-namespace Qian.Gateway;
+namespace Kun.Gateway;
 
 /// <summary>网关宿主装配；Identity.Client 的 Provider 由宿主独立组合，组件库不直接依赖其他 Provider。</summary>
 public static class GatewayHosting
@@ -35,7 +35,7 @@ public static class GatewayHosting
     public static GatewayConfiguration ReadConfiguration(JsonElement configuration) => GatewayConfigurationReader.Read(configuration);
 
     /// <summary>固定注册认证、路由、可信代理与热轮换。宿主需先装 Identity.Client 的规范 Cookie 方案，并在启用前挂载 GatewayComponent。</summary>
-    public static IServiceCollection AddQianGateway(this IServiceCollection services, GatewayConfiguration configuration, string sessionAuthenticationScheme = "qian.session")
+    public static IServiceCollection AddKunGateway(this IServiceCollection services, GatewayConfiguration configuration, string sessionAuthenticationScheme = "qian.session")
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionAuthenticationScheme);
@@ -102,7 +102,7 @@ public static class GatewayHosting
     }
 
     /// <summary>在 UseForwardedHeaders、UseRouting、UseKunIdentityClient 之后调用；业务请求还须通过真实组件挂载门。</summary>
-    public static IApplicationBuilder UseQianGateway(this IApplicationBuilder app)
+    public static IApplicationBuilder UseKunGateway(this IApplicationBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app);
         var runtime = app.ApplicationServices.GetRequiredService<GatewayRuntime>();
@@ -133,7 +133,7 @@ public static class GatewayHosting
     }
 
     /// <summary>映射受保护静态代理、公开 JWKS 及基础健康端点；完整依赖健康聚合由 GW-003 接续。</summary>
-    public static IEndpointRouteBuilder MapQianGateway(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapKunGateway(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         endpoints.MapKunJwks();

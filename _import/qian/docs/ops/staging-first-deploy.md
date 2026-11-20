@@ -9,7 +9,7 @@
 本手册覆盖构建、部署、回退与首个平台运营账号的引导，并列出相对 PRD 7.17 的已知差异。
 
 - 装配方式与取值的裁决：[关键决策](../decisions/key-decisions-v0.md) 的 R150（扩展登记与 overlay、主机名与证书、引导 Job、D4 只开运营开户）与 R151（系统组件修订的签名、授权与免批）。
-- 配置键：以 [平台宿主](../../hosts/Qian.Platform.Host/README.md) 与 [网关宿主](../../hosts/Qian.Gateway.Host/README.md) 的文档为准。
+- 配置键：以 [平台宿主](../../hosts/Qian.Platform.Host/README.md) 与 [网关宿主](../../../../hosts/Kun.Gateway.Host/README.md) 的文档为准。
 - 清单与 Secret 引导脚本：在部署仓库（`idadawn/iclaw-deploy`）的 `2-qian/` 与 `env-ds/qian-staging/` 下，对象名以那里为准。
 
 凡是改动集群状态的操作（apply 或同步、建角色、建 Secret、改网络策略、跑 Job），都要先经产品负责人确认；只读查询不需要。密钥只经 Secret 注入，不进 git。
@@ -112,7 +112,7 @@
    python3 scripts/images.py build --kind jit --project hosts/Qian.Platform.Host/Qian.Platform.Host.csproj --assembly Qian.Platform.Host --tag 192.168.1.201:80/qian/qian-platform:<短 SHA> --web ~/kun-build/web-platform
    ```
    ```bash
-   python3 scripts/images.py build --kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Qian.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ~/kun-build/web-gateway
+   python3 scripts/images.py build --kind aot --project hosts/Qian.Gateway.Host/Qian.Gateway.Host.csproj --assembly Kun.Gateway.Host --tag 192.168.1.201:80/qian/qian-gateway:<短 SHA> --web ~/kun-build/web-gateway
    ```
    - 每条命令打印一段 JSON：`ref` 是按 digest 的引用，`build` 是构建证据（源码 SHA、profile 与组件目录的树修订、`webDigest` 等）。两段都记进任务进度日志。
    - 推送失败时命令以非零退出、不打印 JSON，镜像留在本机；修好仓库权限后重跑，BuildKit 缓存让重跑很快。

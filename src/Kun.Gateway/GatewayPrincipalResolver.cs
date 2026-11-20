@@ -3,7 +3,7 @@ using Kun.Gateway.Identity;
 using Kun.Security;
 using Microsoft.AspNetCore.Http;
 
-namespace Qian.Gateway;
+namespace Kun.Gateway;
 
 // 输入仅来自身份发行方验签或 Identity.Client 的规范 Cookie 会话；最后的类型/条件校验仍由唯一 Kun S2sTokenIssuer 执行。
 internal sealed class GatewayPrincipalResolver(IHttpContextAccessor accessor) : IS2sPrincipalResolver

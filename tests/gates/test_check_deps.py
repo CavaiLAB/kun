@@ -392,7 +392,7 @@ class RealGraphTests(unittest.TestCase):
 
     def test_kernel_gateway_closure_has_no_entity_framework(self):
         # 内核档的网关经插件开发包的内核一半接组件，拆包之后完整传递依赖里没有 EF Core（OpenTelemetry 的 EF 埋点包不算 EF）。
-        closure = {n.lower() for n in self.closure("Qian.Gateway")}
+        closure = {n.lower() for n in self.closure("Kun.Gateway")}
         self.assertIn("kun.plugin.sdk", closure)
         self.assertEqual([], sorted(n for n in closure if n in {"microsoft.entityframeworkcore", "kun.entityframeworkcore"}
                                     or n.startswith("microsoft.entityframeworkcore.")))

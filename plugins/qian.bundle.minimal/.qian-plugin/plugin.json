@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.bundle.minimal",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "测试与 SDK 基准组合包：仅 Runtime 与声明式表面装载器，初始插件条目为空。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "最小基准组合包",
     "category": "bundle"

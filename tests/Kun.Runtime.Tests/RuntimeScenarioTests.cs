@@ -35,7 +35,7 @@ public sealed class RuntimeScenarioTests
         });
         Assert.True(baseline.IsValid);
         Assert.Empty(baseline.Snapshot!.Entries);
-        Assert.Equal("qian.bundle.minimal@1.0.0", Assert.Single(baseline.Snapshot.Layers, layer => layer.Kind == "bundle").Reference);
+        Assert.Equal("qian.bundle.minimal@1.0.1", Assert.Single(baseline.Snapshot.Layers, layer => layer.Kind == "bundle").Reference);
         using var services = new ServiceCollection().BuildServiceProvider();
         var logger = new ScenarioLogger();
         await using var loader = new PluginLoader(services, logger);

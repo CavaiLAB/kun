@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.identity.client",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "身份依赖方组件：服务端授权码 + PKCE 换取、qian.sid Cookie 会话与刷新，下游 S2S 令牌按受众校验；可对接任意 OIDC 发行方",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "identity.client",
     "category": "platform"

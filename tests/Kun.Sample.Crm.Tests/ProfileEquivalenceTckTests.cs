@@ -111,7 +111,7 @@ public sealed partial class LifecycleProfileTests
                 if (profile == "platform") expectedEntries.AddRange(spec.GetProperty("platformProviders").EnumerateArray().Select(item => item.GetString()!));
                 Assert.Equal(expectedEntries.Order(StringComparer.Ordinal), loader.DumpConfig().Select(item => item.Id).Order(StringComparer.Ordinal));
                 foreach (var entry in loader.DumpConfig()) Assert.Equal(PluginState.Ready, loader.GetState(entry.Id, entry.Scope));
-                if (profile == "minimal") Assert.Equal("qian.bundle.minimal@1.0.0", Assert.Single(plan.Snapshot.Layers, item => item.Kind == "bundle").Reference);
+                if (profile == "minimal") Assert.Equal("qian.bundle.minimal@1.0.1", Assert.Single(plan.Snapshot.Layers, item => item.Kind == "bundle").Reference);
                 else Assert.Equal("qian.bundle.tck-platform@1.0.0", Assert.Single(plan.Snapshot.Layers, item => item.Kind == "bundle").Reference);
                 var ids = new Dictionary<string, Guid>(); var observations = new List<JsonElement>();
                 foreach (var step in spec.GetProperty("steps").EnumerateArray())

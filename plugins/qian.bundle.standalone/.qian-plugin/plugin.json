@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.bundle.standalone",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "组合包装配骨架：qian.bundle.standalone",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "bundle.standalone",
     "category": "bundle"

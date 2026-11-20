@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.data.dialect.pg",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "提供 PostgreSQL 类型映射与连接探测；具名方言贡献随组件挂载和卸载生效。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "PostgreSQL 方言",
     "category": "data"

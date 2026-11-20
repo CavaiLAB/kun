@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.config.flags",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "可选平台特性开关管理组件；只编辑固定 Apollo namespace 草稿，需 Portal 人工发布。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "特性开关草稿",
     "category": "platform"

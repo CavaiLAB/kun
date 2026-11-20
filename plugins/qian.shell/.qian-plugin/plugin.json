@@ -1,12 +1,12 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.shell",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "基于 TypeScript 插件树的 MF2 前端外壳，提供版本化插槽、受控桥接与官方远程按需加载。",
   "author": {
     "name": "Qian"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "interface": {
     "displayName": "shell",
     "category": "platform"

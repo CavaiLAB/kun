@@ -13,11 +13,10 @@ export const FAMILY_REPOS: readonly { name: string; url?: string; note?: string 
   { name: 'qian-plugins' }, // 官方市场仓库，建仓后补 url
 ];
 
-/** 许可证（docs-site.md §2a.1）：Qian Apache-2.0，Kun MIT，前端的 qian 组件库（CavaiLAB/qian）MIT。 */
+/** 首页页脚为每个产品列出其仓库中的许可证。 */
 export const LICENSES = [
-  { project: 'Qian', name: 'Apache-2.0', url: 'https://www.apache.org/licenses/LICENSE-2.0' },
-  { project: 'Kun', name: 'MIT', url: 'https://opensource.org/license/mit' },
-  { project: 'qian 组件库', name: 'MIT', url: 'https://opensource.org/license/mit' },
+  { project: 'Kun', name: 'MIT', url: 'https://github.com/CavaiLAB/kun/blob/main/LICENSE' },
+  { project: 'Qian', name: 'MIT', url: 'https://github.com/CavaiLAB/qian/blob/main/LICENSE' },
 ] as const;
 
 /** 第 2、3、4 部分随 Qian 包族的 SemVer 多版本发布，其余部分只有当前版（docs-site.md §5）。 */

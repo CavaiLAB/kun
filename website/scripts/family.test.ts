@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it } from 'node:test';
-import { PLATFORM_DOCS_ROOT, SITE_DOCS } from './repo.ts';
+import { REPO_ROOT, SITE_DOCS } from './repo.ts';
 
 /** 取 Markdown 里第一张以「| 名字 |」开头的表的数据行，每行按单元格拆开并去掉链接、反引号、首尾空白。 */
 function familyRows(markdown: string): string[][] {
@@ -23,7 +23,7 @@ function familyRows(markdown: string): string[][] {
 
 describe('产品族页与仓库 README 的「产品族」表同一内容（docs-site.md §2b.4）', () => {
   it('名字、层、是什么、仓库、版本与许可五列逐行一致，文档位置一列各自指向站内与仓库', () => {
-    const readme = familyRows(fs.readFileSync(path.join(PLATFORM_DOCS_ROOT, 'README.md'), 'utf8'));
+    const readme = familyRows(fs.readFileSync(path.join(REPO_ROOT, 'README.md'), 'utf8'));
     const family = familyRows(fs.readFileSync(path.join(SITE_DOCS, 'start', 'family.md'), 'utf8'));
     assert.equal(family.length, readme.length, '行数不同');
     for (let i = 0; i < readme.length; i++) {

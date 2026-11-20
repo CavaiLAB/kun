@@ -1,6 +1,6 @@
 ---
 title: 产品族
-description: Kun、Qian 与 qian 组件库三层与官方市场仓库：各是什么、在哪个仓库、版本与许可、文档在哪。
+description: Kun 内核与平台组件、Qian 前端框架的源码、版本、许可与文档。
 part: start
 project: qian
 audience: [developer, operator, isv, decision-maker]
@@ -9,38 +9,12 @@ updated: 2026-11-19
 
 # 产品族
 
-> **合并后的去处（2026-11-17 起）**：Qian 并入 Kun（[ADR-023](/design/adr/adr-023-kun-qian-merge-blueprint)，S1-DEC-038 D17、D18），合并前 Kun 与 Qian 各自的仓库当天归档为只读。
->
-> - 两边的后端都带历史迁入 [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun)：Kun 的代码在仓库根；Qian 的 .NET 代码、外壳应用、本站、命令行、契约、部署清单、任务与看板、决策记录与设计文档暂放在 `_import/qian/` 下，由后续批次提出过渡目录，`Qian.*` 改名为 `Kun.*` 也在这些批次里做。本站与任务看板现在由 `CavaiLAB/kun` 的主干发布。
-> - 前端框架库 qian（八个组件包、组件演练场、前端插件开发包、TypeScript 运行时）迁往 [`CavaiLAB/qian`](https://github.com/CavaiLAB/qian)。「Qian」以后只作前端框架的名字。
-> - 迁移怎么分批，见 `CavaiLAB/kun` 的[迁移执行计划](https://github.com/CavaiLAB/kun/blob/main/docs/migration-plan.md)。
->
-> 下面的表格写的是现在的仓库，表里的「本仓库」指 `CavaiLAB/kun`；「四样东西把它们关联起来」一节是合并之前的做法（ADR-021 D21.2）。
-
-三个名字、三层，不是一个大单仓（[ADR-021](/design/adr/adr-021-product-family-structure)）。对外一句话：**Qian 平台基于 Kun 框架构建，前端使用 qian 组件库**。Kun 不是 Qian 的子项目（它有自己的下游与发布节奏），Qian 也不是 Kun 的扩展（它有自己的运行时、插件与产品面）。
-
-```text
-qian  前端层   React 组件库与外壳（@cavailab/qian-*）
-Qian  平台层   Kun.Runtime + 平台插件 + profile + qian CLI + 目录市场
-Kun   框架层   .NET 10 微服务框架（Kun.*），Qian 的底座
-```
-
-表里的 Qian 与 qian 只差大小写：后端仓库里以 `Qian.` 开头的 .NET 包、组件 id 前缀 `qian.` 与 `qian` 命令行都属于平台 Qian，不是前端框架 qian。
+Kun 在一个 .NET 源码树中提供内核与平台组件。前端宿主和插件从 Qian 获取 React 组件、前端 SDK 与运行时。
 
 | 名字 | 层 | 是什么 | 仓库 | 版本 · 许可 | 文档在哪 |
 |---|---|---|---|---|---|
-| Kun | 框架层（底座） | .NET 10 云原生微服务框架，`Kun.*` 模块包括 Mediator、Outbox、多租户与 RLS、网关与 S2S、存储、缓存、可观测 | [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun)（仓库根） | CalVer · MIT · 正式包（含同日修复版 `-hotfix.N`）在 nuget.org | [Kun 框架](/sdk/kun/)小节（按锁定版本镜像）与 [Kun API 参考](/sdk/api/kun/) |
-| Qian | 平台层 | 基于 Kun 的多租户 PaaS：`Kun.Runtime` + 平台插件 + profile + `qian` CLI + 目录市场 | [`CavaiLAB/kun`](https://github.com/CavaiLAB/kun/tree/main/_import/qian) 的 `_import/qian/`（本仓库） | SemVer 锁步 · Apache-2.0 | 本站全部七个部分；设计文档在[设计与路线](/design/) |
-| qian | 前端层 | React 组件库与外壳，`@cavailab/qian-*` | `CavaiLAB/qian`（本仓库装 GitHub Packages 上的已发布包） | SemVer · MIT | [组件目录](/components/yue/)（活演示 + props 表）与[前端 SDK](/sdk/frontend/) |
-| `qian-plugins` | 市场 | 官方目录市场 `.qian/marketplace.json` | `qian-plugins`（S1 私有，待建） | — | [市场与 ISV](/marketplace/) |
+| Kun | 内核 | .NET 10 的命令调度、租户上下文、数据访问、事件和可观测模块 | `CavaiLAB/kun` | CalVer · MIT | [框架文档](/sdk/kun/) |
+| Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台设计](/design/) |
+| Qian | 前端 | React 组件、外壳、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [组件目录](/components/yue/)与[前端 SDK](/sdk/frontend/) |
 
-## 四样东西把它们关联起来
-
-不建大单仓、不建 submodule 元仓库（ADR-021 D21.2）：
-
-1. **一个 GitHub 所有者**：产品族全部仓库同一所有者，一个 GitHub Packages 命名空间、一段源配置。Kun 正式版的主渠道是公开的 nuget.org。
-2. **一个文档站**：就是本站。Kun 是第 3 部分 SDK 的第一节，内容按 Kun 最新的发布版从 kun 仓库镜像。
-3. **一张版本矩阵**：[版本矩阵](/start/versions)由仓库钉版文件生成——哪个 Qian 配哪个 Kun、.NET SDK、Node、K3s 基线。
-4. **一个看板**：跨仓库工作在 Qian 仓库的 `pm/` 跟踪，kun 仓库的 PR 回链到任务。
-
-Kun 与 Qian 在同一个仓库里：`Qian.*` 直接引用仓库根 `src/` 下的 Kun 源码，不另钉 Kun 的版本；「Kun 框架」小节按 Kun 最新的发布版（仓库根 `CHANGELOG.md` 里最新的发布段）镜像。要改 Kun 的代码或文档，去 kun 仓库提 PR，Qian 的任务里只回链。本页与仓库 README 的「产品族」表同一内容，改一处要同步另一处（有单测核对）。
+正式版内核包发布到 nuget.org，平台包的可用渠道见[版本矩阵](/start/versions)。本站从发布标签构建 Kun 框架和前端组件参考，从后端仓库的当前文档构建[设计与路线](/design/)。开发任务在 [Kun 任务目录](https://github.com/CavaiLAB/kun/tree/main/_import/qian/pm/tasks)中维护。

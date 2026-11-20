@@ -67,7 +67,7 @@ class MatchingTests(unittest.TestCase):
         hits = ci_changes.changed_areas([".github/workflows/ci.yml"])
         self.assertEqual(set(ci_changes.AREAS), {name for name, files in hits.items() if files})
         hits = ci_changes.changed_areas(["README.md"])
-        self.assertEqual({"dotnet"}, {name for name, files in hits.items() if files})  # 根 README.md 随全部 NuGet 包打包
+        self.assertEqual({"dotnet", "docs-site"}, {name for name, files in hits.items() if files})
 
 
 class AreaTableTests(unittest.TestCase):

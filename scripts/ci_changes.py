@@ -113,7 +113,7 @@ AREAS: Dict[str, Area] = {
             ("website/**", "apps/qian-shell/e2e/settle.ts", "package.json", "pnpm-lock.yaml",
              "pnpm-workspace.yaml"),
             # 仓库根的 CHANGELOG.md：Kun 最新的发布版从这里取（_import/qian/website/scripts/kun.ts）。
-            (".github/workflows/qian-docs-site.yml", "CHANGELOG.md"),
+            (".github/workflows/qian-docs-site.yml", "CHANGELOG.md", "README.md"),
             DOTNET_BASE, NPMRC,
         ),
         original="docs-site.yml", builds_dotnet=True, installs_npm=True),

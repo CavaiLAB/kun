@@ -21,6 +21,14 @@ Kun 由两部分归并而成：
 
 在平台的理念「三元全智生命体」里，Kun 是「三元」的后端一半，也就是躯体。它为智能体提供身份与能力目录；模型服务也由它提供（已定）；Agent 之间的协同与人审提议也由它承担。人审的规则已定：发给 Agent 的内容、Agent 发出去的内容都要由人审核，起步出站、入站两道都必审，见平台总览的 [Agent 协同](https://github.com/CavaiLAB/jiangxin/blob/main/docs/04-agent-collaboration.md)第 4.2 节。它不写智能体的推理循环，那是 [SanYuanAgent](https://github.com/CavaiLAB/sanyuan-agent) 的事。
 
+## 产品族
+
+| 名字 | 层 | 是什么 | 仓库 | 版本 · 许可 | 文档在哪 |
+|---|---|---|---|---|---|
+| Kun | 内核 | .NET 10 的命令调度、租户上下文、数据访问、事件和可观测模块 | `CavaiLAB/kun` | CalVer · MIT | [架构](docs/architecture.md) |
+| Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台概览](_import/qian/README.md) |
+| Qian | 前端 | React 组件、外壳、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [前端框架](_import/qian/docs/prd/specs/yue.md) |
+
 ## 两档
 
 | 档位 | 是什么 | 规则 |

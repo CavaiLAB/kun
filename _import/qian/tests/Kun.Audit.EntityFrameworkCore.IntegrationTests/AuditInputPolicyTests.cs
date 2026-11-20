@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Qian.Common;
 using Kun.Errors;
 
-namespace Qian.Audit.Tests;
+namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 
 public sealed class AuditInputPolicyTests
 {

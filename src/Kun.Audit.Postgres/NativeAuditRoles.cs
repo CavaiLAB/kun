@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Audit.Native;
+namespace Kun.Audit.Postgres;
 
 /// <summary>离线迁移和在线核验共用的专用角色声明；角色名不是凭据。</summary>
 public sealed class NativeAuditRoles

@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Kun.Plugin.Sdk;
 using Kun.Errors;
+using Kun.Plugin.Sdk;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 // 生产 command/dispatching 监听器。next 包含实际 Mediator handler 及同会话 SaveChanges，外层事务尚未提交。
 internal sealed class AuditCommandPolicy(IAuditService audit)

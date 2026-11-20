@@ -1,7 +1,7 @@
 using System.Data.Common;
 using Kun.Runtime;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>组件间的审计 seam，不是客户端可直接调用的审计写入 HTTP API。</summary>
 public static class AuditDefinition

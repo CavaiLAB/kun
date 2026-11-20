@@ -30,5 +30,21 @@ public sealed class AuditingRegistrationTests
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<TransactionalAuditingSaveChangesInterceptor>());
     }
 
+    [Fact]
+    public void StrictContextsAreRejectedByBothRegistrationMethods()
+    {
+        var services = new ServiceCollection();
+        var registration = Assert.Throws<InvalidOperationException>(() => services.AddKunAuditing<StrictContext>());
+        Assert.Contains(nameof(StrictContext), registration.Message);
+
+        services.AddKunAuditing();
+        using var provider = services.BuildServiceProvider();
+        var options = new DbContextOptionsBuilder<StrictContext>();
+        var manual = Assert.Throws<InvalidOperationException>(() => options.AddAuditingInterceptor(provider));
+        Assert.Contains(nameof(StrictContext), manual.Message);
+    }
+
+    private sealed class StrictContext(DbContextOptions<StrictContext> options, ITenantContext tenant) : KunStrictDbContext(options, tenant);
+
     private sealed class AuditedContext(DbContextOptions<AuditedContext> options, ITenantContext tenant) : KunDbContext(options, tenant);
 }

@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Qian.Audit.Tests;
+namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 
 public sealed class AuditProtocolCompatibilityTests
 {

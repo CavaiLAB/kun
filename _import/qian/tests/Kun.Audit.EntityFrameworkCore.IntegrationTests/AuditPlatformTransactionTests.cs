@@ -10,7 +10,7 @@ using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Audit.Tests;
+namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 
 // S1-AUD-009：平台链的同事务入口。生产方（受限业务登录，只获 platform_tip / platform_append 的执行权）把平台记录挂进自己的 SERIALIZABLE 事务，
 // 函数以独立 NOLOGIN 属主追加；RLS 的平台登录分支不变，属主分支只在无租户 GUC、调用方不是平台登录且属主无成员关系时放行平台行。

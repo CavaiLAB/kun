@@ -2,7 +2,7 @@ using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Kun.MultiTenancy;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Data;
 using Kun.Runtime;

@@ -1,13 +1,13 @@
 using System.Data.Common;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
-using Microsoft.Extensions.DependencyInjection;
 using Kun.Data.Native;
+using Kun.Errors;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Qian.Audit.Native;
+namespace Kun.Audit.Postgres;
 
 /// <summary>原生 PostgreSQL 审计的唯一组件入口。</summary>
 [KunPlugin("qian.audit.native")]

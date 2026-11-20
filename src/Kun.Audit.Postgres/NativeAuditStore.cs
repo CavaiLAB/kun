@@ -2,10 +2,10 @@ using System.Data;
 using System.Data.Common;
 using System.Text.Json;
 using Kun.Data.Native;
-using Kun.Runtime;
 using Kun.Errors;
+using Kun.Runtime;
 
-namespace Qian.Audit.Native;
+namespace Kun.Audit.Postgres;
 
 internal sealed class NativeAuditStore(INativeDataService data, NativeAuditSettings settings, IPluginContext producer)
 {

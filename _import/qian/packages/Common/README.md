@@ -4,7 +4,7 @@
 
 | 文件 | 编译进 | 用途 |
 |---|---|---|
-| `SchemaPattern.cs` | Qian.Audit、Qian.Config.Abstractions、Qian.Profiles、Qian.Surfaces、Qian.Capabilities.Abstractions | JSON Schema 正则（`pattern` 与 `patternProperties` 的键）的统一解释：按 ECMA-262 可移植子集翻译、可选按 OrdinalIgnoreCase 折叠、判断键名在各方言下是否稳定；NonBacktracking 引擎、1 秒超时与有界缓存也只在这里定义。@qian/surfaces 有逐条对应的 TS 移植，见下文 |
+| `SchemaPattern.cs` | Kun.Audit.Abstractions、Qian.Config.Abstractions、Qian.Profiles、Qian.Surfaces、Qian.Capabilities.Abstractions | JSON Schema 正则（`pattern` 与 `patternProperties` 的键）的统一解释：按 ECMA-262 可移植子集翻译、可选按 OrdinalIgnoreCase 折叠、判断键名在各方言下是否稳定；NonBacktracking 引擎、1 秒超时与有界缓存也只在这里定义。@qian/surfaces 有逐条对应的 TS 移植，见下文 |
 | `TenantFieldRule.cs` | Qian.Surfaces、Qian.Capabilities.Abstractions（都须同时链接 `SchemaPattern.cs`） | 输入 Schema 不得点名租户字段：工具的语义校验与能力输入契约（`TenantInputContract`）共用的写法清单与遍历，见下文；@qian/surfaces 的 `tenantFields` 逐条对应 |
 
 ## 约定

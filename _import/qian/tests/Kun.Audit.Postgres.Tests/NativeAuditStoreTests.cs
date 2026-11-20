@@ -8,7 +8,7 @@ using Kun.Errors;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeAudit;
 
-namespace Qian.Audit.Native.Tests;
+namespace Kun.Audit.Postgres.Tests;
 
 public sealed partial class NativeAuditStoreTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

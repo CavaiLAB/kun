@@ -6,7 +6,7 @@ using Npgsql;
 using Qian.Testing.Containers;
 using Qian.Testing.NativeAudit;
 
-namespace Qian.Audit.Native.AotTests;
+namespace Kun.Audit.Postgres.AotTests;
 
 public sealed class NativeAotTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

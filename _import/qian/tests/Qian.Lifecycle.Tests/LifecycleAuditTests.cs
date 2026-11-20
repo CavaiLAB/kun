@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Kun.Errors;

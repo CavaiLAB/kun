@@ -17,7 +17,7 @@
 | ` global/files ` | ` qian.files@1.0.1 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/config ` | ` qian.config.apollo@1.0.0 ` | 0（bundle） | 配置骨架 |
 | ` global/events ` | ` qian.events@1.1.0 ` | 0（bundle） | 已解析，尚未执行 |
-| ` global/audit ` | ` qian.audit@1.0.0 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/audit ` | ` qian.audit@1.1.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/observability ` | ` qian.observability@1.0.0 ` | 0（bundle） | 配置骨架 |
 | ` global/notify ` | ` qian.notify@1.0.0 ` | 0（bundle） | 配置骨架 |
 | ` global/notify.inbox ` | ` qian.notify.channel.inbox@1.0.0 ` | 0（bundle） | 配置骨架 |

@@ -6,7 +6,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus;
 using Microsoft.EntityFrameworkCore;
-using Qian.Audit;
+using Kun.Audit;
 using Qian.Registry;
 using Kun.Runtime;
 using Kun.Errors;

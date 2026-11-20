@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using Npgsql;
 using Qian.Testing.Containers;
 
-namespace Qian.Audit.Native.Tests;
+namespace Kun.Audit.Postgres.Tests;
 
 public sealed class NativeSchemaSqlTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

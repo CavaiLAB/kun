@@ -1,9 +1,9 @@
+using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using System.Text.Json;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>清单分发的稳定入口；程序化适配模式由 AuditPlugin 保留。</summary>
 [KunPlugin("qian.audit")]

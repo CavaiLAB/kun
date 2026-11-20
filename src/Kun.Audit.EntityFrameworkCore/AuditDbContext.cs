@@ -2,7 +2,7 @@ using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>审计拥有的数据库模型，租户记录受 Data 双层隔离；null 平台行当前不自动开放。</summary>
 public class AuditDbContext : KunStrictDbContext
@@ -55,14 +55,21 @@ public sealed class PlatformAuditDbContext(DbContextOptions<PlatformAuditDbConte
 internal sealed class AuditChainRow
 {
     public string ChainKey { get; set; } = ""; public string? TenantId { get; set; }
-    public long TipSequence { get; set; } public string? TipHash { get; set; }
+    public long TipSequence { get; set; }
+    public string? TipHash { get; set; }
 }
 internal sealed class AuditEntryRow
 {
-    public Guid Id { get; set; } public string? TenantId { get; set; } public string ChainKey { get; set; } = "";
-    public long Sequence { get; set; } public string? PreviousHash { get; set; } public string ContentHash { get; set; } = "";
+    public Guid Id { get; set; }
+    public string? TenantId { get; set; }
+    public string ChainKey { get; set; } = "";
+    public long Sequence { get; set; }
+    public string? PreviousHash { get; set; }
+    public string ContentHash { get; set; } = "";
     public string ActorType { get; set; } = ""; public string ActorId { get; set; } = ""; public string? OnBehalfOf { get; set; }
     public string CapabilityId { get; set; } = ""; public string ContractVersion { get; set; } = ""; public string InputHash { get; set; } = "";
-    public string Channel { get; set; } = ""; public string? Resource { get; set; } public string Result { get; set; } = "";
-    public string TraceId { get; set; } = ""; public DateTimeOffset OccurredAt { get; set; } public string Payload { get; set; } = "{}";
+    public string Channel { get; set; } = ""; public string? Resource { get; set; }
+    public string Result { get; set; } = "";
+    public string TraceId { get; set; } = ""; public DateTimeOffset OccurredAt { get; set; }
+    public string Payload { get; set; } = "{}";
 }

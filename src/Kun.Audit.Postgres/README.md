@@ -1,6 +1,6 @@
 # 原生 PostgreSQL 审计
 
-`Qian.Audit.Native` 是 `qian.audit.native` 的 Provider，依赖 `Qian.Audit.Abstractions`、`Kun.Data.Native.Abstractions` 与 SDK，继续提供原 `IAuditService` / `Audit` 及 `CommandAudit`。唯一声明入口是 `NativeAuditComponent`，`NativeAuditPlugin` 保留程序化组合入口；没有 EF Provider 引用。目录表面为 `.qian-plugin/plugin.json`、代码派生的 `schemas/config.schema.json` 与本主文档链接。它属于 Audit seam 的原生存储与强制审计策略角色，供 DEC-030 的 gateway 原生组合安装；最终 profile 接线由 S1-GW-001 验收。正式 feed 的 `qian add` 安装门尚未完成，清单保留 `x-skeleton`。
+`Kun.Audit.Postgres` 是 `qian.audit.native` 的 Provider，依赖 `Kun.Audit.Abstractions`、`Kun.Data.Native.Abstractions` 与 SDK，继续提供原 `IAuditService` / `Audit` 及 `CommandAudit`。唯一声明入口是 `NativeAuditComponent`，`NativeAuditPlugin` 保留程序化组合入口；没有 EF Provider 引用。目录表面为 `.qian-plugin/plugin.json`、代码派生的 `schemas/config.schema.json` 与本主文档链接。它属于 Audit seam 的原生存储与强制审计策略角色，供 DEC-030 的 gateway 原生组合安装；最终 profile 接线由 S1-GW-001 验收。正式 feed 的 `qian add` 安装门尚未完成，清单保留 `x-skeleton`。
 
 ## 独立宿主
 
@@ -44,7 +44,7 @@ global 挂载必须没有 ambient tenant，并显式提供独立平台绑定，�
 
 ## 事务与协议
 
-唯一规范化、哈希及输入投影实现位于 Definition 包的 `AuditProtocol` / `AuditInputProjection`。旧公开 `Qian.Audit.AuditCanonicalizer` 继续转发，既有 API 与历史哈希字节保持一致；新旧 Provider 能共同读写、验链，包括平台链和全部委托、输入哈希、通道、追踪及 payload 字段。
+唯一规范化、哈希及输入投影实现位于 Definition 包的 `AuditProtocol` / `AuditInputProjection`。旧公开 `Kun.Audit.AuditCanonicalizer` 继续转发，既有 API 与历史哈希字节保持一致；新旧 Provider 能共同读写、验链，包括平台链和全部委托、输入哈希、通道、追踪及 payload 字段。
 
 独立追加先取得与旧 Provider 相同的会话 advisory 锁，再开始 SERIALIZABLE，防止等待锁时持有旧快照；同 ID、同内容重放返回原记录，不同内容报 CONFLICT。序列化冲突或死锁最多尝试 `maxAttempts` 次（默认 6，范围 1–10），每次新事务；唯一约束/损坏链头不能当作成功。读取每页 1–1000 条；验链使用 REPEATABLE READ 和 128 条分页。
 
@@ -52,6 +52,6 @@ global 挂载必须没有 ambient tenant，并显式提供独立平台绑定，�
 
 ## 验证
 
-`tests/Qian.Audit.Native.Tests` 的真实 PostgreSQL 专项覆盖两个独立 IHost、160 条并发、跨 128 条分页验链、同 ID 冲突、精确历史篡改、有界 40001 重试、CRM EF 业务提交/回滚、旧 EF 模型/权限及双向读写、平台/租户/NOLOGIN 中间成员冒充、权限和函数漂移、表达式唯一索引伪装，以及卸载真实锁等待。2026-10-23 当前代码的存储专项 18/18、配置与角色正反例 14/14、旧 EF 存储回归 17/17 通过。共享协议历史 fixture 与旧 Provider 回归分别在 `tests/Qian.Audit.Tests`，SDK 的原生 owner 授权与 listener 真撤销在仓库根的 `tests/Kun.Plugin.Sdk.Tests`。
+`tests/Kun.Audit.Postgres.Tests` 的真实 PostgreSQL 专项覆盖两个独立 IHost、160 条并发、跨 128 条分页验链、同 ID 冲突、精确历史篡改、有界 40001 重试、CRM EF 业务提交/回滚、旧 EF 模型/权限及双向读写、平台/租户/NOLOGIN 中间成员冒充、权限和函数漂移、表达式唯一索引伪装，以及卸载真实锁等待。2026-10-23 当前代码的存储专项 18/18、配置与角色正反例 14/14、旧 EF 存储回归 17/17 通过。共享协议历史 fixture 与旧 Provider 回归分别在 `tests/Kun.Audit.EntityFrameworkCore.IntegrationTests`，SDK 的原生 owner 授权与 listener 真撤销在仓库根的 `tests/Kun.Plugin.Sdk.Tests`。
 
-严格 Linux 原生发布与真库探针见 [验收说明](../../tools/Qian.Audit.Native.Probe/README.md)。该门独立于普通解决方案测试；gateway 的完整 Config/Identity/Redis 组合仍由 S1-GW-001 验收。
+严格 Linux 原生发布与真库探针见 [验收说明](../../tools/Kun.Audit.Postgres.Probe/README.md)。该门独立于普通解决方案测试；gateway 的完整 Config/Identity/Redis 组合仍由 S1-GW-001 验收。

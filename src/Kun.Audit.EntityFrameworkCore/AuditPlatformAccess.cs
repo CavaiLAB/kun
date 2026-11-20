@@ -2,7 +2,7 @@ using System.Data.Common;
 using Kun.EntityFrameworkCore;
 using Kun.Errors;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>平台审计链的显式存储权限；不授予租户业务操作权限，也不替代 Authz。</summary>
 public static class AuditPlatformAccess

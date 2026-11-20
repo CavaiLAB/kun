@@ -1,6 +1,6 @@
-# Qian.Audit
+# Kun.Audit.EntityFrameworkCore
 
-审计 Provider 与存储基础，当前对应 S1-AUD-001。权威设计为 ADR-009 与 PRD §7.11.1，Definition 位于 Qian.Audit.Abstractions。
+审计 Provider 与存储基础，当前对应 S1-AUD-001。权威设计为 ADR-009 与 PRD §7.11.1，Definition 位于 Kun.Audit.Abstractions。
 
 ## 组件与交付边界
 
@@ -26,7 +26,7 @@ sensitive 和 x-qian-sensitive 的 true 标记统一遮盖为固定字符串 [RE
 
 各方言对少数字符判断不同：换行（影响 `$`），回车与 U+2028/2029（影响 `.`），非 ASCII 空白（影响 `\s`），U+0130（验证器的 `\w` 包含它），代理项（带 u 标志时按码点计数）。键名含这些字符、且对象声明了 patternProperties 时，该键的值整体遮盖，不按模式取舍。
 
-翻译与匹配和配置扫描、profile 装配共用 [共享内部源文件](../Common/README.md) 的实现；审计面对的是区分大小写的 JSON，不折叠大小写。模式翻译后交给 .NET NonBacktracking 引擎做线性时间匹配，过大的自动机在构造时即拒绝；同一模式在进程内复用编译实例，最多缓存 128 个，超出时清空重建。单次匹配超时 1 秒，超时同样返回 AUDIT_SCHEMA_INVALID，不会跳过敏感标记。
+翻译与匹配和配置扫描、profile 装配共用 [共享内部源文件](../../_import/qian/packages/Common/README.md) 的实现；审计面对的是区分大小写的 JSON，不折叠大小写。模式翻译后交给 .NET NonBacktracking 引擎做线性时间匹配，过大的自动机在构造时即拒绝；同一模式在进程内复用编译实例，最多缓存 128 个，超出时清空重建。单次匹配超时 1 秒，超时同样返回 AUDIT_SCHEMA_INVALID，不会跳过敏感标记。
 
 ## 存储与并发
 
@@ -66,7 +66,7 @@ AppendPlatformAsync、AppendPlatformEnlistedAsync、ReadPlatformAsync、VerifyPl
 
 启用这个入口时，迁移改用 AuditPlatformAccess.CreateMigrationSql(platformRole, writerRole, producerRole)，同样在租户守卫之后、同一迁移事务应用（两个重载改写的是同一条守卫策略，以后应用的为准，用到同事务入口的宿主只应用三参重载）：在一参重载的策略与授权之外，新建 SECURITY DEFINER 函数 platform_tip / platform_append，属主 writerRole 与租户链函数是同一个独立受限 NOLOGIN 角色，producerRole 只获执行权，多个生产方各执行一次。平台登录的 RLS 分支一字不改；新增的属主分支只在 tenant_id 为空、无租户 GUC、current_user 是属主、session_user 不是平台登录且属主没有任何成员关系时放行平台行。属主不能登录，非超管无法 SET ROLE 成它，成为它的唯一路径是它拥有的函数；属主一旦被授予成员关系，这条分支与两个函数都随之拒绝，迁移也拒绝重跑。函数自身再核对：事务为 SERIALIZABLE 且无租户 GUC；调用方是受限登录、不是平台登录，且执行权直接授予该登录本身，借成员关系继承执行权或 SET ROLE 成生产方的其它登录都被拒绝；正文不带租户；摘要、序号与前序接得上链头。platform_tip 只返回序号与哈希（下一个序号与链头哈希；同一事件 ID 已在链上时返回它的序号、前序与内容哈希，供写入器判断幂等），不把平台记录内容交给生产方；链头一致性由函数核对，不一致时写入器返回 CONFLICT，整条平台链的读取与验链仍只经平台登录。同事务入口与独立追加共用 qian.audit:platform 锁键与同一条平台链，持旧快照的后到者以可串行化失败交给调用方重做。
 
-因此原有保证都不变：应用角色直接读写平台记录仍被 RLS 拒绝；平台登录不能更新、删除或清空历史，设置租户 GUC 也读不到租户行；普通角色借 SET ROLE 既不能冒充平台登录，也不能冒充函数属主。平台审计登录仍然必需：配置 chain.platformRole 时挂载要校验它，平台链的读取与验链、Authz 超管旁路等其它平台生产方的独立追加都经它。原生 Provider（Qian.Audit.Native）暂不提供这个入口，调用时抛 NotSupportedException。
+因此原有保证都不变：应用角色直接读写平台记录仍被 RLS 拒绝；平台登录不能更新、删除或清空历史，设置租户 GUC 也读不到租户行；普通角色借 SET ROLE 既不能冒充平台登录，也不能冒充函数属主。平台审计登录仍然必需：配置 chain.platformRole 时挂载要校验它，平台链的读取与验链、Authz 超管旁路等其它平台生产方的独立追加都经它。原生 Provider（Kun.Audit.Postgres）暂不提供这个入口，调用时抛 NotSupportedException。
 
 服务卸载先拒绝新调用、取消并排空进行中的数据库调用，再撤销错误码。等待数据库锁的追加也会取消并释放连接；旧缓存句柄在卸载后失效，重装取得新服务。tenant scope 的服务额外检查调用上下文与其挂载租户一致。
 
@@ -82,4 +82,8 @@ RT-009 的已授权 hook 调用使用 hook 审计通道；SDK 可信适配器与
 
 `plugins/qian.audit/.qian-plugin/plugin.json` 的稳定入口是 `AuditComponent`，允许 global / tenant scope，依赖 `Data`，提供 `Audit` 与 `CommandAudit`。固定委托无参 `AuditPlugin`；宿主仍准备受限数据上下文与可选的平台审计登录。
 
-入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。
+入口的 `Inject`、独立服务声明与 `ComponentConfiguration.Schema` 是清单代码字段及配置 Schema 的来源；通过 `qian-plugin sync` 更新组件目录，再用 `check` 验证漂移。元数据补齐不替代 `qian add` 的真实安装验收：清单已去掉 `x-skeleton`（R144 ③），安装路径是平台镜像预装，启动证据是[平台生产宿主](../../_import/qian/hosts/Qian.Platform.Host/README.md)的 profile 装配与集成测试；`qian add` 独立安装另见 S1-RT-040。
+
+## 实体审计
+
+同一包中的 `AddKunAuditing<TContext>()` 支持非严格业务上下文。实体、审计日志和事件信封在同一次保存提交。登记、读取以及后台主体的要求见[实体审计指南](../../docs/security/audit-log.md)。

@@ -9,7 +9,7 @@ using Kun.EventBus;
 using Kun.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;

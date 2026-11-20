@@ -2,7 +2,7 @@ using System.Text.Json;
 using Json.Schema;
 using Kun.Errors;
 
-namespace Qian.Audit.Native.Tests;
+namespace Kun.Audit.Postgres.Tests;
 
 public sealed class NativeAuditConfigurationTests
 {

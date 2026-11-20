@@ -1,4 +1,4 @@
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>通过 Audit 自有函数接入业务事务，不向生产方授予审计表直接访问权。</summary>
 public static class AuditTransactionAccess

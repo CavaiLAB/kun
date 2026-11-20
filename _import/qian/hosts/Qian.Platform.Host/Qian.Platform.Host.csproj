@@ -15,7 +15,7 @@
     <ProjectReference Include="../../../../src/Kun.Tenancy.AspNetCore/Kun.Tenancy.AspNetCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.Authorization.Rbac/Kun.Authorization.Rbac.csproj" />
     <ProjectReference Include="../../../../src/Kun.Authorization.AspNetCore/Kun.Authorization.AspNetCore.csproj" />
-    <ProjectReference Include="../../packages/Qian.Audit/Qian.Audit.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
     <ProjectReference Include="../../packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
     <ProjectReference Include="../../packages/Qian.Registry/Qian.Registry.csproj" />
@@ -30,7 +30,7 @@
     <!-- 同进程身份分支（S1-DEP-011，R150 ①）：身份服务、开通申请与网关原生审计的离线迁移。 -->
     <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />
     <ProjectReference Include="../../../../src/Kun.Tenancy.Signup/Kun.Tenancy.Signup.csproj" />
-    <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Audit.Postgres/Kun.Audit.Postgres.csproj" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>

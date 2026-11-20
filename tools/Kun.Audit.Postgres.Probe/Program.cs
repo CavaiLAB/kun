@@ -2,16 +2,16 @@ using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Kun.Audit;
+using Kun.Audit.Postgres;
 using Kun.Core.MultiTenancy;
-using Kun.MultiTenancy;
-using Microsoft.Extensions.DependencyInjection;
-using Qian.Audit;
-using Qian.Audit.Native;
 using Kun.Data.Native;
 using Kun.Data.Native.Postgres;
+using Kun.Errors;
+using Kun.MultiTenancy;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
-using Kun.Errors;
+using Microsoft.Extensions.DependencyInjection;
 
 var stage = "平台检查";
 try

@@ -15,7 +15,7 @@ namespace Kun.Auditing;
 public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntityRegistry registry,
     ITenantContext tenant, ICurrentUser user, AuditContext auditContext, TimeProvider clock) : SaveChangesInterceptor
 {
-    private readonly Dictionary<DbContext, List<object>> _staged = new();
+    private readonly StagedAuditRows _staged = new();
 
     /// <inheritdoc />
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
@@ -36,12 +36,23 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
     private void Stage(DbContext? context)
     {
         if (context is null) return;
-        RemoveStaged(context);
+        var pending = _staged.Begin(context);
         var changes = context.ChangeTracker.Entries().Where(e =>
             e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted &&
             registry.RegisteredTypes.Contains(e.Metadata.ClrType)).ToArray();
-        var pending = new List<object>();
-        _staged[context] = pending;
+        try
+        {
+            StageChanges(context, changes, pending);
+        }
+        catch
+        {
+            _staged.Rollback(context);
+            throw;
+        }
+    }
+
+    private void StageChanges(DbContext context, EntityEntry[] changes, List<object> pending)
+    {
         foreach (var entry in changes)
         {
             var now = clock.GetUtcNow();
@@ -71,8 +82,8 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
             var message = KunEnvelopeOutboxWriter.CreateMessage(AuditingServiceCollectionExtensions.AuditEventV2StableId, @event,
                 AuditJsonContext.Default.AuditEventIntegrationEventV2, origin, tenant.TenantId, id, now);
             context.Set<AuditLog>().Add(log);
-            context.Set<OutboxMessage>().Add(message);
             pending.Add(log);
+            context.Set<OutboxMessage>().Add(message);
             pending.Add(message);
         }
     }
@@ -83,17 +94,10 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
         return key is null ? null : string.Join('|', key.Properties.Select(p => entry.Property(p.Name).CurrentValue?.ToString()));
     }
 
-    private void RemoveStaged(DbContext? context)
-    {
-        if (context is null || !_staged.Remove(context, out var staged)) return;
-        foreach (var row in staged)
-            if (context.Entry(row).State == EntityState.Added) context.Entry(row).State = EntityState.Detached;
-    }
-
     /// <inheritdoc />
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
     {
-        if (eventData.Context is not null) _staged.Remove(eventData.Context);
+        _staged.Complete(eventData.Context);
         return result;
     }
 
@@ -102,21 +106,21 @@ public sealed class TransactionalAuditingSaveChangesInterceptor(IAuditableEntity
         CancellationToken cancellationToken = default) => ValueTask.FromResult(SavedChanges(eventData, result));
 
     /// <inheritdoc />
-    public override void SaveChangesFailed(DbContextErrorEventData eventData) => RemoveStaged(eventData.Context);
+    public override void SaveChangesFailed(DbContextErrorEventData eventData) => _staged.Rollback(eventData.Context);
     /// <inheritdoc />
     public override Task SaveChangesFailedAsync(DbContextErrorEventData eventData,
         CancellationToken cancellationToken = default)
     {
-        RemoveStaged(eventData.Context);
+        _staged.Rollback(eventData.Context);
         return Task.CompletedTask;
     }
     /// <inheritdoc />
-    public override void SaveChangesCanceled(DbContextEventData eventData) => RemoveStaged(eventData.Context);
+    public override void SaveChangesCanceled(DbContextEventData eventData) => _staged.Rollback(eventData.Context);
     /// <inheritdoc />
     public override Task SaveChangesCanceledAsync(DbContextEventData eventData,
         CancellationToken cancellationToken = default)
     {
-        RemoveStaged(eventData.Context);
+        _staged.Rollback(eventData.Context);
         return Task.CompletedTask;
     }
 }

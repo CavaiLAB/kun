@@ -2,7 +2,7 @@ using System.Data.Common;
 using System.Text.Json;
 using Kun.Errors;
 
-namespace Qian.Audit.Native;
+namespace Kun.Audit.Postgres;
 
 internal static class NativeAuditValidation
 {
@@ -93,13 +93,28 @@ internal static class NativeAuditValidation
     {
         var expected = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["audit_entries.id"]="uuid:true", ["audit_entries.tenant_id"]="character varying(36):false", ["audit_entries.chain_key"]="character varying(64):true",
-            ["audit_entries.seq"]="bigint:true", ["audit_entries.prev_hash"]="character varying(64):false", ["audit_entries.content_hash"]="character varying(64):true",
-            ["audit_entries.actor_type"]="character varying(16):true", ["audit_entries.actor_id"]="character varying(200):true", ["audit_entries.on_behalf_of"]="character varying(200):false",
-            ["audit_entries.capability_id"]="character varying(384):true", ["audit_entries.contract_version"]="character varying(100):true", ["audit_entries.input_hash"]="character varying(64):true",
-            ["audit_entries.channel"]="character varying(16):true", ["audit_entries.resource"]="character varying(512):false", ["audit_entries.result"]="character varying(64):true",
-            ["audit_entries.trace_id"]="character varying(32):true", ["audit_entries.occurred_at"]="timestamp with time zone:true", ["audit_entries.payload"]="jsonb:true",
-            ["audit_chain_state.chain_key"]="character varying(64):true", ["audit_chain_state.tenant_id"]="character varying(36):false", ["audit_chain_state.tip_seq"]="bigint:true", ["audit_chain_state.tip_hash"]="character varying(64):false"
+            ["audit_entries.id"] = "uuid:true",
+            ["audit_entries.tenant_id"] = "character varying(36):false",
+            ["audit_entries.chain_key"] = "character varying(64):true",
+            ["audit_entries.seq"] = "bigint:true",
+            ["audit_entries.prev_hash"] = "character varying(64):false",
+            ["audit_entries.content_hash"] = "character varying(64):true",
+            ["audit_entries.actor_type"] = "character varying(16):true",
+            ["audit_entries.actor_id"] = "character varying(200):true",
+            ["audit_entries.on_behalf_of"] = "character varying(200):false",
+            ["audit_entries.capability_id"] = "character varying(384):true",
+            ["audit_entries.contract_version"] = "character varying(100):true",
+            ["audit_entries.input_hash"] = "character varying(64):true",
+            ["audit_entries.channel"] = "character varying(16):true",
+            ["audit_entries.resource"] = "character varying(512):false",
+            ["audit_entries.result"] = "character varying(64):true",
+            ["audit_entries.trace_id"] = "character varying(32):true",
+            ["audit_entries.occurred_at"] = "timestamp with time zone:true",
+            ["audit_entries.payload"] = "jsonb:true",
+            ["audit_chain_state.chain_key"] = "character varying(64):true",
+            ["audit_chain_state.tenant_id"] = "character varying(36):false",
+            ["audit_chain_state.tip_seq"] = "bigint:true",
+            ["audit_chain_state.tip_hash"] = "character varying(64):false"
         };
         await using (var command = NativeAuditStore.Command(connection, transaction, """
             SELECT c.relname,a.attname,pg_catalog.format_type(a.atttypid,a.atttypmod),a.attnotnull FROM pg_catalog.pg_attribute a

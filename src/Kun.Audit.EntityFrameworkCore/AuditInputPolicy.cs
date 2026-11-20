@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>既有输入审计策略入口；脱敏协议由共享契约层唯一实现。</summary>
 public sealed class AuditInputPolicy

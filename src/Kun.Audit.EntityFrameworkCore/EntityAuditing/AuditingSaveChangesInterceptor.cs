@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Kun.Auditing.Events;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -27,6 +28,7 @@ namespace Kun.Auditing;
 /// </remarks>
 public sealed partial class AuditingSaveChangesInterceptor : ISaveChangesInterceptor
 {
+    private readonly StagedAuditRows _staged = new();
     private readonly IAuditableEntityRegistry _registry;
     private readonly IAuditSink _sink;
     private readonly AuditContext _auditContext;
@@ -59,61 +61,76 @@ public sealed partial class AuditingSaveChangesInterceptor : ISaveChangesInterce
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(eventData);
-
-        var context = eventData.Context;
-        if (context is null)
-        {
-            return result;
-        }
-
-        // Snapshot before WriteAsync — the default OutboxAuditSink writes a new
-        // OutboxMessage entry to the same DbContext, which mutates ChangeTracker.Entries()
-        // and trips InvalidOperationException on the live enumerator.
-        var auditable = context.ChangeTracker
-            .Entries()
-            .Where(ShouldAudit)
-            .ToList();
-
-        foreach (var entry in auditable)
-        {
-            var auditEvent = BuildEvent(entry);
-            await _sink.WriteAsync(auditEvent, cancellationToken).ConfigureAwait(false);
-            LogEmitted(_logger, auditEvent.ResourceType, auditEvent.Action);
-        }
-
+        if (eventData.Context is { } context)
+            await StageAsync(context, cancellationToken).ConfigureAwait(false);
         return result;
     }
 
     /// <inheritdoc />
-    public InterceptionResult<int> SavingChanges(
-        DbContextEventData eventData,
-        InterceptionResult<int> result)
+    public InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         ArgumentNullException.ThrowIfNull(eventData);
-
-        var context = eventData.Context;
-        if (context is null)
-        {
-            return result;
-        }
-
-        var auditable = context.ChangeTracker
-            .Entries()
-            .Where(ShouldAudit)
-            .ToList();
-
-        foreach (var entry in auditable)
-        {
-            var auditEvent = BuildEvent(entry);
-            // IAuditSink is async-first; block briefly on the sync path. The default
-            // outbox sink is non-blocking (in-memory enqueue) so this is effectively
-            // synchronous in production; custom sinks that perform I/O must provide a
-            // non-blocking implementation of WriteAsync.
-            _sink.WriteAsync(auditEvent, CancellationToken.None).AsTask().GetAwaiter().GetResult();
-            LogEmitted(_logger, auditEvent.ResourceType, auditEvent.Action);
-        }
-
+        if (eventData.Context is { } context)
+            StageAsync(context, CancellationToken.None).AsTask().GetAwaiter().GetResult();
         return result;
+    }
+
+    private async ValueTask StageAsync(DbContext context, CancellationToken cancellationToken)
+    {
+        var pending = _staged.Begin(context);
+        try
+        {
+            foreach (var entry in context.ChangeTracker.Entries().Where(ShouldAudit).ToArray())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var auditEvent = BuildEvent(entry);
+                if (_sink is OutboxAuditSink outbox)
+                    pending.Add(outbox.Stage(context, auditEvent));
+                else
+                    await _sink.WriteAsync(auditEvent, cancellationToken).ConfigureAwait(false);
+                LogEmitted(_logger, auditEvent.ResourceType, auditEvent.Action);
+            }
+        }
+        catch
+        {
+            _staged.Rollback(context);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    int ISaveChangesInterceptor.SavedChanges(SaveChangesCompletedEventData eventData, int result)
+    {
+        _staged.Complete(eventData.Context);
+        return result;
+    }
+
+    /// <inheritdoc />
+    ValueTask<int> ISaveChangesInterceptor.SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
+        CancellationToken cancellationToken)
+    {
+        _staged.Complete(eventData.Context);
+        return ValueTask.FromResult(result);
+    }
+
+    /// <inheritdoc />
+    void ISaveChangesInterceptor.SaveChangesFailed(DbContextErrorEventData eventData) => _staged.Rollback(eventData.Context);
+
+    /// <inheritdoc />
+    Task ISaveChangesInterceptor.SaveChangesFailedAsync(DbContextErrorEventData eventData, CancellationToken cancellationToken)
+    {
+        _staged.Rollback(eventData.Context);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    void ISaveChangesInterceptor.SaveChangesCanceled(DbContextEventData eventData) => _staged.Rollback(eventData.Context);
+
+    /// <inheritdoc />
+    Task ISaveChangesInterceptor.SaveChangesCanceledAsync(DbContextEventData eventData, CancellationToken cancellationToken)
+    {
+        _staged.Rollback(eventData.Context);
+        return Task.CompletedTask;
     }
 
     private bool ShouldAudit(EntityEntry entry)

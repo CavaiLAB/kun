@@ -13,7 +13,7 @@ using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Audit.Tests;
+namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 
 public sealed partial class AuditStoreTests
 {

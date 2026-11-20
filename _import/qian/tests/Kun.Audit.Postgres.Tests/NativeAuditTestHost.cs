@@ -10,7 +10,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Qian.Testing.NativeAudit;
 
-namespace Qian.Audit.Native.Tests;
+namespace Kun.Audit.Postgres.Tests;
 
 internal sealed class NativeAuditTestHost(IHost host, PluginLoader loader, AsyncLocalTenantContext tenant, NativeAuditDatabase database, ScopeKey auditScope) : IAsyncDisposable
 {

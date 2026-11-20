@@ -2,11 +2,11 @@ using System.Data;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
+using Kun.Errors;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Kun.Errors;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 // 存储基础，不直接映射为公共写入 API；独立追加的原子性不等于 CRM 业务同事务。
 internal sealed class PostgresAuditStore(IDataService data, ITenantContext tenant) : PostgresAuditStore<AuditDbContext>(data, tenant);
@@ -147,10 +147,24 @@ internal class PostgresAuditStore<TContext>(IDataService data, ITenantContext te
     private static ErrorException Error(ErrorCode code) => new(new Error(code));
     private static AuditEntryRow ToRow(AuditRecord record, long sequence, string? previous, string hash, string key) => new()
     {
-        Id = record.Id, TenantId = record.TenantId, ChainKey = key, Sequence = sequence, PreviousHash = previous, ContentHash = hash,
-        ActorType = record.ActorType, ActorId = record.ActorId, OnBehalfOf = record.OnBehalfOf, CapabilityId = record.CapabilityId,
-        ContractVersion = record.ContractVersion, InputHash = record.InputHash, Channel = record.Channel, Resource = record.Resource,
-        Result = record.Result, TraceId = record.TraceId, OccurredAt = record.OccurredAt, Payload = AuditCanonicalizer.Canonicalize(record.Payload)
+        Id = record.Id,
+        TenantId = record.TenantId,
+        ChainKey = key,
+        Sequence = sequence,
+        PreviousHash = previous,
+        ContentHash = hash,
+        ActorType = record.ActorType,
+        ActorId = record.ActorId,
+        OnBehalfOf = record.OnBehalfOf,
+        CapabilityId = record.CapabilityId,
+        ContractVersion = record.ContractVersion,
+        InputHash = record.InputHash,
+        Channel = record.Channel,
+        Resource = record.Resource,
+        Result = record.Result,
+        TraceId = record.TraceId,
+        OccurredAt = record.OccurredAt,
+        Payload = AuditCanonicalizer.Canonicalize(record.Payload)
     };
     private static AuditChainEntry ToEntry(AuditEntryRow row) => new(row.Sequence, row.PreviousHash, row.ContentHash,
         new AuditRecord(row.Id, row.TenantId, row.ActorType, row.ActorId, row.OnBehalfOf, row.CapabilityId, row.ContractVersion,

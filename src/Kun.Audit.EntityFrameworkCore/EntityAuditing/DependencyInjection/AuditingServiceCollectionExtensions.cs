@@ -36,6 +36,7 @@ public static class AuditingServiceCollectionExtensions
         where TContext : KunDbContext
     {
         ArgumentNullException.ThrowIfNull(services);
+        RequireRegularContext(typeof(TContext));
         services.AddKunAuditing();
         // 以 TryAdd 登记兜底会抢先占住租户与当前主体端口，之后安全组件的 TryAdd 全部落空；改为解析时才取。
         services.TryAddScoped(sp => new TransactionalAuditingSaveChangesInterceptor(sp.GetRequiredService<IAuditableEntityRegistry>(),
@@ -148,7 +149,14 @@ public static class AuditingServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(serviceProvider);
 
+        RequireRegularContext(builder.Options.ContextType);
         return builder.AddInterceptors(serviceProvider.GetRequiredService<AuditingSaveChangesInterceptor>());
+    }
+
+    private static void RequireRegularContext(Type contextType)
+    {
+        if (typeof(KunStrictDbContext).IsAssignableFrom(contextType))
+            throw new InvalidOperationException($"实体审计拦截器只支持非严格 KunDbContext。{contextType.Name} 应使用命令审计。");
     }
 
     /// <summary>

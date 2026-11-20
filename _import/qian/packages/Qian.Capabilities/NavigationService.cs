@@ -6,7 +6,7 @@ using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Kun.Security;
 using Microsoft.EntityFrameworkCore.Storage;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Npgsql;
 using System.Text;

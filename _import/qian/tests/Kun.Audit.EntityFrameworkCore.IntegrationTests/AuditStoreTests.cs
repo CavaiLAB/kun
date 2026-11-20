@@ -13,7 +13,7 @@ using Kun.Data;
 using Kun.Errors;
 using Qian.Testing.Containers;
 
-namespace Qian.Audit.Tests;
+namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 
 public sealed partial class AuditStoreTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
 {

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;

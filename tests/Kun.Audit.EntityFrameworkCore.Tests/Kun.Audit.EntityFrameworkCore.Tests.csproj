@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Kun.Auditing\Kun.Auditing.csproj" />
+    <ProjectReference Include="..\..\src\Kun.Audit.EntityFrameworkCore\Kun.Audit.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\src\Kun.Core\Kun.Core.csproj" />
     <ProjectReference Include="..\..\src\Kun.EventBus\Kun.EventBus.csproj" />
     <ProjectReference Include="..\..\src\Kun.EntityFrameworkCore\Kun.EntityFrameworkCore.csproj" />

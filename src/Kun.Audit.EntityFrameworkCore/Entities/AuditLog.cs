@@ -2,26 +2,9 @@ using Kun.Core.Domain;
 
 namespace Kun.Audit;
 
-/// <summary>
-/// Canonical audit-log record emitted by the framework on business-relevant
-/// state changes (aggregate create / update / delete, explicit
-/// <see cref="Abstractions.AuditableAttribute"/> invocations, login events, …).
-/// </summary>
-/// <remarks>
-/// <para>
-/// <see cref="AuditLog"/> is a persistence-agnostic POCO. ORM mapping (table
-/// name, column types, indexes, immutability triggers) lives in
-/// <c>Kun.Audit.EntityFrameworkCore/AuditLogConfiguration.cs</c> — no EF /
-/// JSON attributes are placed here so the type stays Core-layer friendly.
-/// </para>
-/// <para>
-/// Implements <see cref="IMultiTenant"/> so that when consumers store audit
-/// rows inside a <c>KunDbContext</c>-derived context, the automatic tenant
-/// global query filter isolates tenant A's audits from tenant B's without
-/// extra configuration. Consumers that run audits on a dedicated database
-/// can ignore this interface.
-/// </para>
-/// </remarks>
+/// <summary>Entity change recorded by the transactional auditing interceptor in the business context.</summary>
+/// <remarks>The entity participates in the standard tenant query filter. Its relational mapping lives in
+/// <see cref="EntityFrameworkCore.AuditLogConfiguration"/>.</remarks>
 public sealed class AuditLog : IMultiTenant
 {
     /// <summary>Surrogate primary key; deterministic GUID assigned by the writer.</summary>
@@ -39,7 +22,7 @@ public sealed class AuditLog : IMultiTenant
     /// <summary>
     /// Stable verb identifying what happened, e.g. <c>agent.created</c>,
     /// <c>artifact.uploaded</c>, <c>user.login.succeeded</c>. Business code
-    /// supplies this through <see cref="Abstractions.AuditableAttribute"/> or, for
+    /// supplies this through <see cref="Kun.Auditing.AuditableAttribute"/> or, for
     /// interceptor-driven audits, it is derived from the EF
     /// <c>EntityState</c> (<c>{resourceType}.created</c>,
     /// <c>{resourceType}.updated</c>, <c>{resourceType}.deleted</c>).

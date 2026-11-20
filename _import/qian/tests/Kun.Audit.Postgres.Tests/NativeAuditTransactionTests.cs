@@ -19,7 +19,7 @@ using Kun.Errors;
 using Qian.Sample.Crm;
 using Qian.Testing.NativeAudit;
 
-namespace Qian.Audit.Native.Tests;
+namespace Kun.Audit.Postgres.Tests;
 
 public sealed partial class NativeAuditStoreTests
 {

@@ -4,10 +4,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Json.Schema;
-using Qian.Common;
 using Kun.Errors;
+using Qian.Common;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>由可信能力契约构造的输入审计策略；元数据不能来自调用请求。脱敏后才计算输入哈希。</summary>
 public sealed class AuditInputProjection

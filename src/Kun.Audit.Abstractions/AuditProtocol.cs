@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Kun.Errors;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>审计 v1 的确定性 JSON：键按 ordinal 排序，精确十进制数规整，数组顺序保留，重复键拒绝。</summary>
 public static class AuditProtocol
@@ -66,7 +66,8 @@ public static class AuditProtocol
             case JsonValueKind.Object:
                 var fields = value.EnumerateObject().OrderBy(p => p.Name, StringComparer.Ordinal).ToArray();
                 if (fields.Select(p => p.Name).Distinct(StringComparer.Ordinal).Count() != fields.Length) throw Invalid();
-                writer.WriteStartObject(); foreach (var field in fields) { writer.WritePropertyName(field.Name); Write(writer, field.Value, depth + 1); } writer.WriteEndObject(); break;
+                writer.WriteStartObject(); foreach (var field in fields) { writer.WritePropertyName(field.Name); Write(writer, field.Value, depth + 1); }
+                writer.WriteEndObject(); break;
             case JsonValueKind.Array:
                 writer.WriteStartArray(); foreach (var item in value.EnumerateArray()) Write(writer, item, depth + 1); writer.WriteEndArray(); break;
             case JsonValueKind.Number: writer.WriteRawValue(Number(value.GetRawText())); break;

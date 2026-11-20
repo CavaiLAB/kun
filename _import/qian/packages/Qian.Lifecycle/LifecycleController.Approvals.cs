@@ -9,7 +9,7 @@ using Kun.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Identity.Abstractions;
 using Qian.Registry;
 using Kun.Runtime;

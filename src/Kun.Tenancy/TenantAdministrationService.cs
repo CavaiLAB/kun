@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Core.MultiTenancy;
 using Kun.EntityFrameworkCore;
@@ -10,7 +11,6 @@ using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Audit;
 
 namespace Kun.Tenancy;
 

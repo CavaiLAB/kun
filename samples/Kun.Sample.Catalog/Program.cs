@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Kun.AspNetCore.Endpoints;
-using Kun.Audit.DependencyInjection;
 using Kun.Core.Domain;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Behaviors;
@@ -102,14 +101,6 @@ builder.Services.AddKunMediator(m =>
 
 // Validator for CreateProductCommand
 builder.Services.AddValidator<CreateProductCommand, CreateProductCommandValidator>();
-
-// ── Audit (Kun.Audit) ─────────────────────────────────────────────────────────
-// Wires IAuditWriter with the NullAuditWriter fallback. Call
-// .UseEventBus() to route audit entries through the Outbox, or register
-// Kun.Audit.EntityFrameworkCore to persist them to a dedicated table.
-// This sample sticks with the null backend so the minimal wiring shape
-// is visible without a schema migration.
-builder.Services.AddKunAudit();
 
 // ── gRPC ──────────────────────────────────────────────────────────────────────
 builder.Services.AddKunGrpc();

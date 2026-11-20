@@ -1,6 +1,6 @@
 using Kun.Errors;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>原生审计 Provider 的安全装配错误，不包含连接凭据。</summary>
 public static class NativeAuditErrors

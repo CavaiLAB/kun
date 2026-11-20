@@ -5,6 +5,7 @@ using Kun.Core.MultiTenancy;
 using Kun.Core.Security;
 using Kun.EntityFrameworkCore;
 using Kun.EventBus.Outbox;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.Auditing;
@@ -18,17 +19,7 @@ namespace Kun.Auditing;
 /// whether the caller went through <see cref="EfUnitOfWork"/> or invoked
 /// <c>DbContext.SaveChangesAsync</c> directly.
 /// </summary>
-/// <remarks>
-/// <para>
-/// <b>Why <see cref="IServiceProvider"/> instead of injecting <see cref="KunDbContext"/>:</b>
-/// the sink is consumed from <see cref="AuditingSaveChangesInterceptor"/>, which itself is
-/// resolved by EF Core's <c>AddDbContext</c> factory while the <see cref="KunDbContext"/>
-/// is still under construction. Constructor-injecting <see cref="KunDbContext"/> here would
-/// re-enter that factory and either throw a circular-dependency exception or — worse — hang
-/// silently in some scoped-resolution paths. Resolving <see cref="KunDbContext"/> at
-/// <see cref="WriteAsync"/> time defers the lookup until after construction has completed.
-/// </para>
-/// </remarks>
+/// <remarks>The interceptor supplies the context currently saving. Direct sink callers use the host's default Kun context.</remarks>
 internal sealed class OutboxAuditSink : IAuditSink
 {
     private readonly IServiceProvider _serviceProvider;
@@ -44,16 +35,21 @@ internal sealed class OutboxAuditSink : IAuditSink
 
     public ValueTask WriteAsync(AuditEventIntegrationEvent @event, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(@event);
+        cancellationToken.ThrowIfCancellationRequested();
+        Stage(_serviceProvider.GetRequiredService<KunDbContext>(), @event);
+        return ValueTask.CompletedTask;
+    }
 
-        var dbContext = _serviceProvider.GetRequiredService<KunDbContext>();
+    internal OutboxMessage Stage(DbContext context, AuditEventIntegrationEvent @event)
+    {
+        ArgumentNullException.ThrowIfNull(@event);
         var currentUser = _serviceProvider.GetService<ICurrentUser>();
         var actorId = @event.ActorId ?? (currentUser?.IsAuthenticated == true ? currentUser.UserId : null);
         var actorType = @event.ActorType == AuditActorType.System && currentUser?.IsAuthenticated == true ? AuditActorType.User : @event.ActorType;
         var origin = AuditEventOrigin.Resolve(actorType, actorId);
         var message = KunEnvelopeOutboxWriter.CreateMessage(AuditingServiceCollectionExtensions.AuditEventStableId, @event,
             AuditJsonContext.Default.AuditEventIntegrationEvent, origin, _tenantContext.TenantId, Guid.CreateVersion7(@event.CreatedAt), @event.CreatedAt);
-        dbContext.OutboxMessages.Add(message);
-        return ValueTask.CompletedTask;
+        context.Set<OutboxMessage>().Add(message);
+        return message;
     }
 }

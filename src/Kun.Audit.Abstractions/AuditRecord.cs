@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Errors;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>进入审计链的不可变记录；输入只保留脱敏后的哈希，Payload 须由可信调用方按审计契约构造。</summary>
 public sealed class AuditRecord

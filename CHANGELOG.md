@@ -19,6 +19,12 @@
 - 映射组件端点改用 `MapKunAuthz`，登记授权事件改用 `AddKunAuthzEvents`。组件 `qian.authz` 的版本升至 1.1.0，清单入口为 `Kun.Authorization.Rbac.AuthzComponent, Kun.Authorization.Rbac`。
 - 订阅授权指标的宿主将计量器名从 `Qian.Authz` 改为 `Kun.Authorization.Rbac`。仪表继续使用 `qian.authz.*`。
 
+### Changed — 命令链与实体审计
+
+- `Qian.Audit.Abstractions`、`Qian.Audit`、`Qian.Audit.Native` 的代码分别迁入 `Kun.Audit.Abstractions`、`Kun.Audit.EntityFrameworkCore`、`Kun.Audit.Postgres`。命令链契约使用 `Kun.Audit` 命名空间。原生提供者使用 `Kun.Audit.Postgres` 命名空间。实体拦截器沿用 `Kun.Auditing.AuditingSaveChangesInterceptor` 日志类别。组件 `qian.audit` 升至 1.1.0。数据库 schema、链协议、组件 ID 均保持兼容。
+- 原 `Kun.Audit` 命令管道、链存储与实体日志读端口 `IAuditReader.QueryAsync`、`AuditQuery`、`EfAuditReader` 归档。新的 `IAuditWriter` 与 `IAuditReader` 用于命令链，成功命令与业务同事务提交，失败命令不入链。
+- 原 `Kun.Auditing` 的实体审计现由 `Kun.Audit.EntityFrameworkCore` 提供，只支持非严格的 `KunDbContext`。宿主通过业务上下文的 `Set<AuditLog>()` 读取实体日志。默认 v1 和 v2 拦截器在正在保存的上下文暂存标准 Outbox 信封，数据库失败后可在原上下文重试。
+
 ### Changed — 组件运行时的类型化配置
 
 - `Kun.Runtime` 支持 NativeAOT。实现 `IKunPlugin<TConfig>` 的组件须增加 `JsonTypeInfo<TConfig> ConfigTypeInfo { get; }`，从采用 `JsonSerializerDefaults.Web` 的源生成上下文返回配置契约。配置属性名继续按 Web 约定匹配。

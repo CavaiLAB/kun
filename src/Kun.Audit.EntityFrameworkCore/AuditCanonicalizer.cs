@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 /// <summary>兼容既有公开入口；唯一 v1 规范化与哈希实现由共享契约层拥有。</summary>
 public static class AuditCanonicalizer

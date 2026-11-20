@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kun.Core.MultiTenancy;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.AspNetCore;
 using Qian.Capabilities.AspNetCore;
 using Qian.Config;

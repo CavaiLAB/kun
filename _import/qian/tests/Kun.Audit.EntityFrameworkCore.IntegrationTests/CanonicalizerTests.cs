@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Kun.Errors;
 
-namespace Qian.Audit.Tests;
+namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 
 public sealed class CanonicalizerTests
 {

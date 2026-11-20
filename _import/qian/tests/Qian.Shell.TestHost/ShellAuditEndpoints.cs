@@ -5,7 +5,7 @@ using System.Text.Json;
 using Kun.MultiTenancy;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;

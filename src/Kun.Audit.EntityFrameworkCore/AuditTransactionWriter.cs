@@ -2,11 +2,11 @@ using System.Data;
 using System.Data.Common;
 using System.Text.Json;
 using Kun.Core.MultiTenancy;
+using Kun.Errors;
 using Npgsql;
 using NpgsqlTypes;
-using Kun.Errors;
 
-namespace Qian.Audit;
+namespace Kun.Audit;
 
 internal static class AuditTransactionWriter
 {

@@ -5,7 +5,7 @@ using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Kun.EntityFrameworkCore.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
@@ -128,7 +128,7 @@ public static class PlatformComponents
             // 配置了平台授权登录（platformRole）才有平台超管旁路与平台控制台的只读判定；登录凭据只在这里绑定。
             if (services.ConfigString("platformRole") is not null) services.AddData<PlatformAuthzDbContext>(AuthzDbContext.Schema, "PlatformAuthz");
         }),
-        new("qian.audit", "Qian.Audit.AuditComponent, Qian.Audit", _ => new AuditComponent(), services =>
+        new("qian.audit", "Kun.Audit.AuditComponent, Kun.Audit.EntityFrameworkCore", _ => new AuditComponent(), services =>
         {
             services.AddAppData<AuditDbContext>(AuditDbContext.Schema);
             if (services.ConfigString("chain", "platformRole") is not null) services.AddData<PlatformAuditDbContext>(AuditDbContext.Schema, "PlatformAudit");

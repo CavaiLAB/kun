@@ -2,8 +2,8 @@ using System.Text.Json;
 using Kun.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Qian.Audit;
-using Qian.Audit.Native;
+using Kun.Audit;
+using Kun.Audit.Postgres;
 using Kun.Authorization.Rbac;
 using Kun.Data;
 

@@ -17,7 +17,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Qian.Sample.Crm;
 
-namespace Qian.Audit.Tests;
+namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 
 public sealed partial class AuditStoreTests
 {

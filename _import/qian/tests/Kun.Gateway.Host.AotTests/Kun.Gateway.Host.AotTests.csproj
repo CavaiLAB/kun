@@ -2,7 +2,7 @@
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup><Using Include="Xunit" /><Using Include="Microsoft.Extensions.Configuration" /><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../packages/Qian.Audit.Native/Qian.Audit.Native.csproj" />
+    <ProjectReference Include="../../../../src/Kun.Audit.Postgres/Kun.Audit.Postgres.csproj" />
     <ProjectReference Include="../../../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
     <ProjectReference Include="../../../../src/Kun.Identity.Server/Kun.Identity.Server.csproj" />

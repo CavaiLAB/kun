@@ -1,7 +1,7 @@
 using System.Data;
 using System.Data.Common;
 
-namespace Qian.Audit.Native;
+namespace Kun.Audit.Postgres;
 
 /// <summary>原生审计的离线迁移和固定安全声明。在线 Provider 只校验，不调用迁移。</summary>
 public static class NativeAuditStorage

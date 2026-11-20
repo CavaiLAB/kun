@@ -8,7 +8,7 @@ using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
 
-namespace Qian.Audit.Tests;
+namespace Kun.Audit.EntityFrameworkCore.IntegrationTests;
 
 // S1-AUD-001：审计强制执行点是 base 组合包登记在 command/dispatching 上的 waterfall 监听器（PRD 7.11.1、ADR-020 D20.2），
 // 卸载组件时随效果栈按登记的逆序撤销。被测的是真实 AuditPlugin 与真实 PluginLoader；记录器只原样转发上下文调用，

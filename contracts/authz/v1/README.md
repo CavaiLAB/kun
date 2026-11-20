@@ -10,4 +10,4 @@ GET /api/authz/meta 在已认证、非 Agent/委托主体且当前 Authz Provide
 
 Kun.Authorization.Rbac.DataScopeComposition 只返回结构化计划，保留每份原 Filter AST 的逻辑边界，不展平、不生成 SQL、不解析变量，也不替代权限判定。S2 编译器仍须用 Data 的 FilterContracts 与可信字段目录校验字段及变量上下文；S1 已有 IDataPermissionFilter/IFieldPolicy 继续 fail-closed。
 
-权威规格见 [数据契约](../../../_import/qian/docs/prd/specs/data-contracts.md)，组件行为见 [Kun.Authorization.Rbac](../../../src/Kun.Authorization.Rbac/README.md)。
+权威规格见 [数据契约](../../../docs/prd/specs/data-contracts.md)，组件行为见 [Kun.Authorization.Rbac](../../../src/Kun.Authorization.Rbac/README.md)。

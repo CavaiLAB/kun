@@ -2,7 +2,7 @@
 
 状态：草案 2026-10-21，待产品负责人确认（§8 D1–D14）。合成自三份设计（企业后台派为主线，发行方视角派与无密码多渠道派并入）与九份评审，纠错记录见 §9。
 
-入库说明（2026-11-15）：本文写于 2026-10-21，此后一直是工作区里的未提交文件。2026-11-15 按产品负责人的指示入库：除本段与下面三条外，正文只在 §8 D14 一行删去一处括注（本仓库是公开仓库，删节处标「〔已删节〕」），其余一字未改；§8 的 D1–D14 仍未拍板，由 [S1-DEC-035](../../../pm/tasks/S1-DEC-035.md) 跟踪。读正文前先看三点：
+入库说明（2026-11-15）：本文写于 2026-10-21，此后一直是工作区里的未提交文件。2026-11-15 按产品负责人的指示入库：除本段与下面三条外，正文只在 §8 D14 一行删去一处括注（本仓库是公开仓库，删节处标「〔已删节〕」），其余一字未改；§8 的 D1–D14 仍未拍板，由 [S1-DEC-035](../../../_import/qian/pm/tasks/S1-DEC-035.md) 跟踪。读正文前先看三点：
 
 - 认证页已经实现。S1-YUE-006（认证页族）、S1-YUE-002（外壳认证流程）、S1-YUE-012（薄入口并入外壳）都已完成；S1-YUE-019 又按产品负责人给的开通流程原型复刻了登录页等八个页面；S1-YUE-021（待做）要把强制改密、SSO 回调与连接器回调页对齐现在的登录表单。入库时没有逐条核对本文与已实现页面是否一致。本文是未拍板的设计草案，不代表已实现页面的现状；要了解现状，看各任务的验收记录。
 - 文中的 IDP-012 是[框架细化备忘录](../../decisions/framework-refinement-2026-10.md) §8 的候选任务号，指拟新建的「agent 客户端与 token exchange」，这个任务还没有建档。看板上的 S1-IDP-012 是另一件事（拆分部署下授权变更到身份修订递增）。
@@ -14,14 +14,14 @@
 
 | 文档 | 关系 |
 |---|---|
-| ADR-005（D5.1–D5.13） | 本文是 D5.2 账号模型、D5.3 因子、D5.4 会话失效、D5.6 连接器、D5.11 显式绑定、D5.13 服务端强制「仅企业 IdP」在前端层（yue）的呈现规格；不改任何决策 |
+| ADR-005（D5.1–D5.13） | 本文是 D5.2 账号模型、D5.3 因子、D5.4 会话失效、D5.6 连接器、D5.11 显式绑定、D5.13 服务端强制「仅企业 IdP」在前端层（前端框架）的呈现规格；不改任何决策 |
 | PRD 7.4.1 / 7.4.2 | 后端登录状态机（锁定 / 延时、选择令牌、强制改密、绑定）的页面映射；连接器按租户 scope 过滤、未挂载与不存在不可区分 |
-| PRD 7.15.1 / 7.15.2 | 外壳认证流程（OIDC code + PKCE、AuthProvider、刷新队列、过期弹窗、租户切换器、代管横幅）与 yue 最小集的消费清单 |
-| `docs/prd/specs/yue.md` §1.1 | 本文是「认证页族」一行（账号密码、SSO 跳转与回调、多租户二次选择、登录过期弹窗；可选验证码登录、第三方登录按钮区、忘记密码、Captcha）的展开；实现归 S1-YUE-006（经注入的 `AuthProvider` 对 mock 验收），真实接线归 S1-YUE-002 |
+| PRD 7.15.1 / 7.15.2 | 外壳认证流程（OIDC code + PKCE、AuthProvider、刷新队列、过期弹窗、租户切换器、代管横幅）与前端框架最小集的消费清单 |
+| `docs/prd/specs/frontend.md` §1.1 | 本文是「认证页族」一行（账号密码、SSO 跳转与回调、多租户二次选择、登录过期弹窗；可选验证码登录、第三方登录按钮区、忘记密码、Captcha）的展开；实现归 S1-YUE-006（经注入的 `AuthProvider` 对 mock 验收），真实接线归 S1-YUE-002 |
 | `docs/decisions/framework-refinement-2026-10.md` §7.3 / Q20 / Q22 | Agent 时代新增的设备码（RFC 8628）/ loopback PKCE 取令牌页与授权同意页；备忘录尚未拍板，本文按其默认建议预留并标条件 |
 | `contracts/v0` | 全部错误响应为 ErrorDetail（必填 `type` / `title` / `status` / `code` / `message` / `trace_id`，可选 `detail` / `instance` / `pointer` / `allowed` / `errors[]`；业务错误只用 409 / 422；封闭对象）；本文新增的 `AUTH_*` 码为提案，需登记进 `error-codes.json` |
 
-三层口径：Kun = 框架层（`Kun.Identity.AspNetCore` RP 侧 Cookie 会话、`Identity.Client`），Qian = 平台层（`qian.identity` 唯一 issuer、`qian.tenancy`、`qian.realtime`），yue = 前端层（`@cavailab/qian-shell` 认证页族、`@cavailab/qian-form` 登录表单、`@cavailab/qian-core` 组件、`@cavailab/qian-tokens` 令牌、`@cavailab/qian-sdk` i18n / `PlatformClient`）。
+三层口径：Kun = 框架层（`Kun.Identity.AspNetCore` RP 侧 Cookie 会话、`Identity.Client`），Qian = 平台层（`qian.identity` 唯一 issuer、`qian.tenancy`、`qian.realtime`），前端框架 = 前端层（`@cavailab/qian-shell` 认证页族、`@cavailab/qian-form` 登录表单、`@cavailab/qian-core` 组件、`@cavailab/qian-tokens` 令牌、`@cavailab/qian-sdk` i18n / `PlatformClient`）。
 
 ## 1 设计原则
 
@@ -467,7 +467,7 @@ flowchart TD
 
 **用途**：RP 发起登出的确认页；GET 只展示表单，POST 带 antiforgery（`Qian.Identity.Server` 既有）；后通道登出对用户静默。
 
-**版式**：服务端渲染的极简 HTML（不加载 React），引用 `@cavailab/qian-tokens` 生成的 CSS 变量 + 一份 `auth.css`，版式与 `AuthLayout` 一致；需为此页单独加截图基线（yue 视觉门禁对 16px 图标有盲区）。
+**版式**：服务端渲染的极简 HTML（不加载 React），引用 `@cavailab/qian-tokens` 生成的 CSS 变量 + 一份 `auth.css`，版式与 `AuthLayout` 一致；需为此页单独加截图基线（前端框架视觉门禁对 16px 图标有盲区）。
 
 **元素清单**：`h1`「退出登录？」；说明「将结束您在 {client} 的登录；已连接的其他应用会同步退出」（`id_token_hint` 解析失败则省略 client）；`<form method=post>` + 隐藏 antiforgery 字段；按钮「取消」「退出」；完成态「已退出登录」+「重新登录」；携带已注册 `post_logout_redirect_uri` 时自动跳转前有 `role=status` 提示。
 
@@ -718,13 +718,13 @@ flowchart TD
 | 22 | 「以 {displayName} 继续」适用于 `prompt=login` | `prompt=login` 必须重新认证 | OIDC Core 1.0 §3.1.2.1；`IdentityProtocolEndpoints.cs` 对 prompt≠none 返回 interaction_required |
 | 23 | `/connect/consent`、`/connect/error` 作 React 页放 `/connect` 前缀；「OpenIddict 设备端点由 CLI 调用」为既有 | `/connect*` 现有 CSP `default-src 'none'` 无 script-src；`ConsentType` 强制 Implicit；设备授权 flow 未启用；路由改 `/consent`，三者随 IDP-012 | `IdentityServerHosting.cs:40/80/100` |
 | 24 | 「antiforgery 头由 `GET /account/antiforgery` 下发，与 `/connect/logout` 同一机制」 | `/connect/logout` 是服务端表单隐藏字段；cookie-to-header 为新提案 | `IdentityProtocolEndpoints.cs:125–136` |
-| 25 | `/connect/logout` 画成 yue Card / Result | 现为 identity 宿主自渲染裸 HTML；本规格要求引 tokens CSS 对齐并单独加截图基线 | README「登出」节 |
+| 25 | `/connect/logout` 画成前端框架 Card / Result | 现为 identity 宿主自渲染裸 HTML；本规格要求引 tokens CSS 对齐并单独加截图基线 | README「登出」节 |
 | 26 | 「Q20 裁决『加，S1-B』」「Q22 接受」「IDP-012 候选已接受」 | 备忘录为草案，Q 均未拍板；表述改为「默认建议」 | 备忘录状态行 |
 | 27 | 「Agent 专属 scope S4 启用」「act S4」 | 备忘录 §2.1 把 D18.5 前移 S1-A、§7.3 列入 IDP-012（v0）；本规格按条件标注 | 备忘录 §2.1 / §7.3 |
 | 28 | 「权限 ⊆ 本人、仅限人工不授权（13.11）」出处 | 13.11 只在「越权 / 混淆代理」行（Agent 只拿委托人权限子集）与「身份冒用」行（`humanOnly` 服务端拒绝）各有一句；完整定义在 13.1.1 Agent 主体行、13.5、key-decisions Q26，引用时并列 | 13-security.md |
 | 29 | 「扫码登 PC 为 ADR-005 S3 项」 | 出自 PRD 7.4.1 ❌ 清单；ADR-005 §6 S3 未列 | ADR-005 §6 |
 | 30 | 评审称「`ConnectorDescriptor` 尚无 `DisplayName` 字段，属提案」 | 该字段已存在：`ConnectorDescriptor(Id, DisplayName, Protocol, Terminals, ConfigSchema)`；`login-options` 下发的 `displayName` 取自此，只有连接器图标字段仍属提案 | `packages/Qian.Identity.Abstractions/Contracts.cs:84` |
-| 31 | 同意页「令牌最长 14 天」写死 | 由策略 / `expiresAt` 下发；14 天只是 issuer refresh 默认与 iClaw 过渡描述 | README；备忘录 §12.4 |
+| 31 | 同意页「令牌最长 14 天」写死 | 由策略 / `expiresAt` 下发；14 天只是 issuer refresh 默认与下游智能体平台过渡描述 | README；备忘录 §12.4 |
 | 32 | 「可在『安全 → 已授权的应用』随时撤销」（管理页 S2） | S1 文案改「联系租户管理员」，S2 起自助 | §7 |
 | 33 | `verification_uri_complete` 引作 RFC 8628 §3.3.1 | 定义在 §3.2；§3.3.1 是非文本 URI | RFC 8628 |
 | 34 | `TOTP 绑定`、`/login/wecom`、`/account/security` 标 S1-P1；`/consent` 标 S1-P1；邮箱 Tab 标 S1-P2 | TOTP 绑定 P0（7.4.1 E2E）但 S1-B；企微 S1-B；个人中心移出；同意页条件化；邮箱待 Q20 | 7.4.1；备忘录 §7.2 |

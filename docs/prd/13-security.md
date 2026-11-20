@@ -1,6 +1,6 @@
 # §13 权限与安全
 
-> 状态：草案 v0（2026-10-06）。依据：ADR-004（数据库与隔离）、ADR-005（身份）、ADR-006（鉴权）、ADR-007（Apollo）、ADR-009（审计）、ADR-010（网关）、ADR-002（插件模型）、ADR-020（组件模型 v2）、ADR-016（iClaw 边界）、ADR-017（部署）、ADR-018（阶段）及补充裁决。本章是平台的**可信计算基**规范：描述目标态；Kun 当前缺口写成「过渡态（2026-10）」并集中在 §13.14。
+> 状态：草案 v0（2026-10-06）。依据：ADR-004（数据库与隔离）、ADR-005（身份）、ADR-006（鉴权）、ADR-007（Apollo）、ADR-009（审计）、ADR-010（网关）、ADR-002（插件模型）、ADR-020（组件模型 v2）、ADR-016（下游智能体平台边界）、ADR-017（部署）、ADR-018（阶段）及补充裁决。本章是平台的**可信计算基**规范：描述目标态；Kun 当前缺口写成「过渡态（2026-10）」并集中在 §13.14。
 >
 > 四条总原则：
 > 1. **身份 ≠ 授权**：身份记录结构上不携带授权载荷；授权来自判定端口 + 委托链 + 运行时授权快照。
@@ -56,7 +56,7 @@
 | **L2 功能权限** | 应用、菜单、页面、按钮、API 端点、流程、打印等（资源类型由插件注册） | 端点声明权限点 → ASP.NET Core 策略 / Mediator 行为 / gRPC 拦截器调用 `IPermissionChecker.Check`；缺省拒绝 | `authz.permission_definition`（清单派生）、`authz.grant`、`authz.resource_type` | S1 |
 | **L3 资源实例** | 应用 / 表单 / 流程 / 报表 / 文件夹的所有者、编辑者、查看者、共享人；市场授权 | `qian.authz` 内置 ACL 表查询（S2）；OpenFGA 适配插件（S3，仅层级继承与共享，不做行过滤） | `authz.resource_acl`；OpenFGA 元组经 Outbox 同步 | S2 可选 / S3 |
 | **L4 数据权限（行级）** | 列表、查询、导出、报表、API 的记录集 | `IDataPermissionFilter` 把条件树 + 系统变量编译为 EF / SQL 谓词，在数据引擎唯一入口注入；与 L0 RLS 叠加；覆盖读、改、删、导出全部路径 | `authz.data_scope_rule`（条件树 JSON、全部数据标志）；系统变量目录 | S2（契约 S1） |
-| **L5 字段** | 字段可见 / 可编辑 / 脱敏 | 读：投影或按脱敏规则替换；写：白名单之外的字段拒绝；yue 按元数据渲染，以服务端为准 | `authz.field_policy`；字段敏感度标签 | S2 |
+| **L5 字段** | 字段可见 / 可编辑 / 脱敏 | 读：投影或按脱敏规则替换；写：白名单之外的字段拒绝；前端框架按元数据渲染，以服务端为准 | `authz.field_policy`；字段敏感度标签 | S2 |
 | **L6 上下文条件（ABAC）** | IP、时间窗、端类型、套餐、数据密级、step-up、Agent 委派 | 作为条件挂在 L1–L4 规则上；Agent 有效权限 = 委托人权限 ∩ scope | 规则 JSON 中的 `conditions[]`；令牌 `acr / amr / act / profile` | S1 部分（IP、端、step-up）/ S4 |
 
 ### 13.2.1 求值规则
@@ -114,7 +114,7 @@ sid, iat, nbf, exp, jti
 
 **选择令牌**：命中多个 Membership 时签发 5 分钟、只能换正式令牌的受限令牌。
 
-**S2S 令牌**（`qian.gateway` 换签下行，与 iClaw 契约同形、各签各的，Q15）：
+**S2S 令牌**（`qian.gateway` 换签下行，与下游智能体平台契约同形、各签各的，Q15）：
 
 ```
 iss / aud[]（每服务一个）/ sub / tenant_id / project_id? / roles[]（粗粒度角色代码）/ scope / session_id / iat, nbf, exp, jti
@@ -122,7 +122,7 @@ exp − iat ≤ 300s（网关换签默认 60s）
 plugin_id（服务主体为插件时）
 ```
 
-新能力授权 = 增加 scope 串，不新增 claim。下游每一跳重新验签；禁止把上游令牌透传给下游（混淆代理防线）。`roles[]` 是与 iClaw 同形的例外：只放粗粒度角色代码，不是权限点集合；Qian 服务不得仅凭它放行，必须调用 `Kun.Authorization` 决策端口，时效性由 `identity_revision` 管；`project_id` 为可选 claim，Qian 只透传不解释（R24）。
+新能力授权 = 增加 scope 串，不新增 claim。下游每一跳重新验签；禁止把上游令牌透传给下游（混淆代理防线）。`roles[]` 是与下游智能体平台同形的例外：只放粗粒度角色代码，不是权限点集合；Qian 服务不得仅凭它放行，必须调用 `Kun.Authorization` 决策端口，时效性由 `identity_revision` 管；`project_id` 为可选 claim，Qian 只透传不解释（R24）。
 
 ### 13.3.2 会话
 
@@ -274,7 +274,7 @@ plugin_id（服务主体为插件时）
 - `runtime.form: service` 组件：独立 K8s ServiceAccount + 含 `plugin_id` 的 S2S 令牌；每插件独立 Deployment、ResourceQuota、default-deny NetworkPolicy + 清单派生的放行规则；健康 = K8s 状态 + `/health` 双条件。
 - `function`（Wasm）：燃料、内存、超时限额来自清单 `runtime.limits`；无网络与文件系统能力，除非清单声明并被批准。
 - 事件：发布 / 订阅主题 ACL 来自 `metadata/events.json`（原 `provides.events`，R37）；越权主题在总线层拒绝。
-- 前端：`system / official` 以 MF2 挂载并共享 singleton 依赖；其余按 tier 走 Worker 远程渲染（白名单组件目录 = yue manifest）或 iframe（无 `allow-same-origin`，postMessage 握手）。
+- 前端：`system / official` 以 MF2 挂载并共享 singleton 依赖；其余按 tier 走 Worker 远程渲染（白名单组件目录 = 前端框架 manifest）或 iframe（无 `allow-same-origin`，postMessage 握手）。
 - 「未挂载」（租户 scope 未挂载，或被 `restrict` 过滤）在网关路由、SDK 入口、前端外壳三处同时拦截，一律 404、与不存在无法区分（管理面 403 原因码 `PLUGIN_NOT_MOUNTED` 等，R32 / R48）。
 
 ---
@@ -554,7 +554,7 @@ CREATE TABLE audit.chain_state (                           -- 链头持久化，
 | G3 | OIDC 客户端不发 `code_verifier`、不校验 nonce、无 refresh / client_credentials、discovery 不刷新 | 全部补齐；OIDC 一致性测试 | ADR-005 |
 | G4 | 会话无用户 → 会话索引；无后通道登出；日志打印明文 sid | 会话中心重做；只记 sid 哈希 | §13.3 |
 | G5 | CSRF 推迟 | Cookie 方案上线即带 CSRF | §13.3 |
-| G6 | 三套 S2S 签发器并存（RS256/60s、ES256/15min、Identity） | 收敛为一套，claim 对齐 iClaw 形状 | §13.3.1 |
+| G6 | 三套 S2S 签发器并存（RS256/60s、ES256/15min、Identity） | 收敛为一套，claim 对齐下游智能体平台形状 | §13.3.1 |
 | G7 | 租户 claim 名不统一（`tid` vs `tenant_id`）；`X-Tenant-Id` 头回退与 `FallbackTenantId="default"` fail-open | 统一 `tenant_id`；生产禁用头回退，fail-closed | §13.4 |
 | G8 | `SessionData` 单 TenantId，无一人多租户模型 | 引入 `membership_id`；切换租户重签 | ADR-005 |
 | G9 | 消费端 `MessageContext` 无 `TenantId`、Saga 执行器不建作用域、Outbox 发布器自建 scope → 后台链路丢租户 | 订阅器建作用域后回灌；Saga 按实例 `TenantId` 开作用域 | ADR-008 |
@@ -569,7 +569,7 @@ CREATE TABLE audit.chain_state (                           -- 链头持久化，
 ## 13.15 待确认
 
 1. 商密（SM2 / SM3）与等保定级：决定签名与哈希算法、日志保留期；本章按「不做假设」写，需产品负责人确认（Q18）。
-2. 已裁决（R24）：S2S 令牌与 iClaw 同形，`roles[]` 作为例外保留但限定为粗粒度角色代码，Qian 服务不得仅凭它放行、必须调用 `Kun.Authorization` 决策端口；`project_id` 保留为可选 claim，Qian 只透传不解释（§13.3、ADR-010 D10.4）。
+2. 已裁决（R24）：S2S 令牌与下游智能体平台同形，`roles[]` 作为例外保留但限定为粗粒度角色代码，Qian 服务不得仅凭它放行、必须调用 `Kun.Authorization` 决策端口；`project_id` 保留为可选 claim，Qian 只透传不解释（§13.3、ADR-010 D10.4）。
 3. 平台超管对租户「不可见、审计可见」（Q12）与「旁路须每次审计」在 UI 上如何呈现（审计条目是否对租户管理员展示超管身份），需产品决定。
 4. Agent 在 S4 前对转审 / 协办 / 撤销一律禁止（Q26）；S2 流程动作枚举需预留 `humanOnly` 与 `agentPolicy` 字段，与 ADR-012 核对。
 5. 哈希链分链粒度（按租户 vs 按服务）影响跨租户操作（平台运营）的链归属，本章默认按租户并对平台级操作使用 `platform` 分区，需与 ADR-009 核对。

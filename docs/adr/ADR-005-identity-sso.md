@@ -8,6 +8,8 @@ supersedes: none
 
 # ADR-005 身份与 SSO
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 ## 1 背景与问题（Context）
 
 Kun 只做依赖方（RP）一侧：OIDC 发现 + 授权码 + PKCE 跳转、id_token 验签、Cookie 不透明会话、外部 Bearer 校验、网关换发 S2S（基线 K §2.2）。已确认缺口 G1–G8：无鉴权抽象；外部 issuer 只能配一个；`ExchangeCodeAsync` 不发 `code_verifier`、nonce 不校验、无 refresh / client_credentials；会话无 user→sessions 索引、无后通道登出、日志打印明文 sid；CSRF 推迟；三套 S2S 签发器；claim 名不统一且请求头兜底 fail-open；`SessionData` 只有单 TenantId、无一人多租户模型（基线 S §6.1）。
@@ -22,12 +24,12 @@ Kun 只做依赖方（RP）一侧：OIDC 发现 + 授权码 + PKCE 跳转、id_t
 - **D5.4 会话中心（S1 必做）**：refresh 轮换、后通道登出双向、user→sessions 索引、强制下线、单端 / 并发上限（默认 5）、`identity_revision` 递增失效、CSRF；日志只记 sid 哈希。会话失效触发：改密、停用、锁定、租户冻结 / 到期、强制下线、权限变更。
 - **D5.5 客户端注册表**：平台与官方插件 client S1 建立；`client_credentials` S1 必做；S3「应用安装即建 client」。
 - **D5.6 上游联邦全部做成连接器插件 `qian.identity.connector.*`**：S1 只做通用 OIDC + 企业微信（扫码与工作台免登）；钉钉、飞书 S2 必做（P0）；微信网站扫码 S2 可选（P1）；S3 加 SAML / CAS / LDAP（先代理 IdP 连接器过渡）、租户自助配 IdP、域名验证与 HRD、Passkey、SCIM、ISV 第三方应用模式。登录流水线统一：所有方式构造同一「登录输入」走同一签发路径。
-- **D5.7 Authentik 退居运维侧**：升级后只服务 Apollo Portal、Headlamp、Argo，可作为一个上游连接器；客户 CIAM 不用它；与 iClaw 共用运维侧 Authentik（Q15）。
+- **D5.7 Authentik 退居运维侧**：升级后只服务 Apollo Portal、Headlamp、Argo，可作为一个上游连接器；客户 CIAM 不用它；与［下游智能体平台］共用运维侧 Authentik（Q15）。
 - **D5.8 同时修复 Kun.Identity G2–G8**：`codeVerifier`、nonce、refresh、discovery 刷新、会话索引、后通道登出、CSRF、签发器收敛、claim 统一、`membership_id`。
 - **D5.9 令牌只含身份**：`sub`、`tenant_id`、`membership_id`、`scope`、`identity_revision`、预留 `profile`；权限不进令牌（见 ADR-006）。
 - **D5.10 交付形态假定有私有化 / 离线交付**（Q3），因此不使用 AGPL 与商业许可的身份组件。
 - **D5.11 租户自助申请审核、「企业 × 应用」关系、邀请格式** 由 Qian 自行设计，写入 PRD 租户生命周期章（Q13 补充裁决）；第三方绑定同租户唯一、需显式确认，不做静默自动绑定。
-- **D5.12 代码复用**：允许从 iClaw 搬运 OIDC 授权码实现（含 `code_verifier`）与多渠道登录绑定模型（Q40），其余只借鉴思路。
+- **D5.12 代码复用**：允许从［下游智能体平台］搬运 OIDC 授权码实现（含 `code_verifier`）与多渠道登录绑定模型（Q40），其余只借鉴思路。
 - **D5.13 「仅企业 IdP 登录」在服务端策略层强制**，不靠前端跳转。
 
 ## 3 理由（Rationale）
@@ -45,13 +47,13 @@ Kun 只做依赖方（RP）一侧：OIDC 发现 + 授权码 + PKCE 跳转、id_t
 
 ## 5 后果与代价（Consequences）
 
-- 正面：账号、租户成员、会话、客户端在一处；连接器 SPI 使登录方式可插拔；与 iClaw 共享 claim 形状。
+- 正面：账号、租户成员、会话、客户端在一处；连接器 SPI 使登录方式可插拔；与［下游智能体平台］共享 claim 形状。
 - 负面：自建身份核心的安全责任全在团队——OIDC 一致性测试、渗透测试、长期补丁节奏必须进预算；这是 S1 最大的两项工作量之一，且与鉴权引擎互为前置（基线 K §7.1 第 1 条）。OpenIddict 8.0 的 resource 存储与会话特性尚在预览（基线 S §6.2 第 11 条）。
 - 配套：登录与密码策略、在线用户、登录审计；per-env 独立 OIDC client（现网 prod / staging 共用一个 client 是反例）。
 
 ## 6 对各阶段的影响
 
-- **S1**：OpenIddict Server、Person + Membership、三因子、会话中心、通用 OIDC + 企业微信连接器、client_credentials、G2–G8 修复、认证页族（yue）。
+- **S1**：OpenIddict Server、Person + Membership、三因子、会话中心、通用 OIDC + 企业微信连接器、client_credentials、G2–G8 修复、认证页族（［前端框架］）。
 - **S2**：钉钉、飞书连接器；委托 grant 原语；用户分组。
 - **S3**：租户自助 IdP、HRD、品牌登录域、Passkey、SCIM、SAML/CAS/LDAP、ISV 模式、安装即建 client、自助注销与导出。
 - **S4**：Agent 主体、令牌交换 `act` 链、CIMD、RFC 9728 元数据。
@@ -71,7 +73,7 @@ Kun 只做依赖方（RP）一侧：OIDC 发现 + 授权码 + PKCE 跳转、id_t
 
 ## 9 身份客户端与产品联调分阶段验收（2026-10-11）
 
-产品负责人已通过 [S1-DEC-015](../../pm/tasks/S1-DEC-015.md) 确认分阶段验收，消除 S1-KUN-004 与 S1-IDP-002 的循环等待。
+产品负责人已通过 [S1-DEC-015](../../_import/qian/pm/tasks/S1-DEC-015.md) 确认分阶段验收，消除 S1-KUN-004 与 S1-IDP-002 的循环等待。
 
 - SDK 阶段（S1-KUN-004）：以真实 HTTP/RSA 协议夹具验证 PKCE verifier、nonce、state/到期/重放保护，以真实 Redis 和 HTTP 会话验证吊销、CSRF 与日志脱敏，并通过 S2S 冻结 Schema 和 Qian 编译门禁。该阶段可以独立完成，不要求尚未实现的产品身份服务先启动。
 - 产品阶段（S1-IDP-002）：使用已修复的 Kun Identity 客户端，对真实 `qian-identity` 完成强制 PKCE 的授权码换取，并拒绝篡改 nonce 的 id_token。这是身份服务完成及后续发布的必过项，不能用协议夹具、外部 IdP 或 SDK 单测代替。

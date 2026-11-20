@@ -1,6 +1,6 @@
 # §09 S3 面向客户
 
-> 本章粒度：范围与退出标准。每个功能项至少给出范围边界（✅ ❌）与验收标准，小节可合并。决策引用写 `ADR-0xx`（ADR-014 市场、ADR-005 身份、ADR-004 数据库与隔离、ADR-010 网关、ADR-013 前端、ADR-016 iClaw 边界、ADR-018 阶段），S1 底座见 §07，S2 低代码构建见 §08。决策清单主表的待拍板问题写 `Q1–Q18`，补充裁决（基线汇编编号）写 `补充裁决 Qxx`。被借鉴的商业低代码产品一律称「参考平台」。
+> 本章粒度：范围与退出标准。每个功能项至少给出范围边界（✅ ❌）与验收标准，小节可合并。决策引用写 `ADR-0xx`（ADR-014 市场、ADR-005 身份、ADR-004 数据库与隔离、ADR-010 网关、ADR-013 前端、ADR-016 下游智能体平台边界、ADR-018 阶段），S1 底座见 §07，S2 低代码构建见 §08。决策清单主表的待拍板问题写 `Q1–Q18`，补充裁决（基线汇编编号）写 `补充裁决 Qxx`。被借鉴的商业低代码产品一律称「参考平台」。
 >
 > 优先级口径同 §08：P0 = S3 退出标准关键路径；P1 = S3 必做非关键路径；P2 = S3 可选。
 
@@ -49,7 +49,7 @@
 - 市场、权益、隔离三者中，**包格式与可定制性契约、升级与冲突处理、授权与权益 API** 在 S1/S2 已定且之后几乎改不了（ADR-014，经 ADR-020 修订）；S3 只在其上加 UI 与交易，不改契约。按 ADR-020 D20.8：应用包格式 = 组件文件夹 + marketplace 条目，OCI 制品只用于代码部分；商业市场（授权、计费、审核、ISV 入驻）叠在 `.qian/marketplace.json` 之上，不另起格式；授权状态机只管「买没买」，「开没开」由租户 scope patch 表达（§07 7.14）。
 - 所有面向客户的入口（市场、自助、工作台、开放 API、分享链接）都走 §07 的统一鉴权与审计；匿名访问只能经能力令牌，没有免鉴权资源类型。
 - 第三方代码永不进共享进程（ADR-002）；对第三方生效的运行时强制点（独立工作负载身份、独立 schema 与数据库角色、事件主题 ACL、出口 NetworkPolicy、CSP）在 S3 首次被真实第三方触发，S1 的规范在此验收。
-- 租户主数据权威归 Qian（Q15）；凡与 iClaw 共用的设施（Higress、运维侧 Authentik）只共用数据面与运维面，不共用租户模型。
+- 租户主数据权威归 Qian（Q15）；凡与下游智能体平台共用的设施（Higress、运维侧 Authentik）只共用数据面与运维面，不共用租户模型。
 
 ### 9.1 应用市场：私有目录型 → ISV 开放（P0 · S3）
 
@@ -97,7 +97,7 @@
 
 #### 技术落点 / 插件化定位
 
-`qian.marketplace`（可替换）+ `qian.entitlement` + `qian.billing`；商业字段（价格、套餐、席位、审核状态、ISV、评分）由 `qian.marketplace` 以 `.qian/marketplace.json` 条目 `name@version` 为外键存平台库，不写进 marketplace.json、不复制条目字段，官方 / 私有 / 社区市场文件仍是目录的真相源（§07 7.2.4，R36）；注册表形状对齐 iClaw 的 Package / Release / Publication / Installation 四层与 `pending → approve/sign → active`（ADR-016）；S3 预留 `server.json` 兼容字段，S4 市场兼任私有 MCP registry（「应用上架」与「MCP Server 发布」合成同一 publish 动作）。
+`qian.marketplace`（可替换）+ `qian.entitlement` + `qian.billing`；商业字段（价格、套餐、席位、审核状态、ISV、评分）由 `qian.marketplace` 以 `.qian/marketplace.json` 条目 `name@version` 为外键存平台库，不写进 marketplace.json、不复制条目字段，官方 / 私有 / 社区市场文件仍是目录的真相源（§07 7.2.4，R36）；注册表形状对齐下游智能体平台的 Package / Release / Publication / Installation 四层与 `pending → approve/sign → active`（ADR-016）；S3 预留 `server.json` 兼容字段，S4 市场兼任私有 MCP registry（「应用上架」与「MCP Server 发布」合成同一 publish 动作）。
 
 #### Agent 契约
 
@@ -123,7 +123,7 @@
 - ✅ **多管理员与邀请**：多管理员、转移；邀请链接/二维码含机器可读 payload（租户、应用、角色、有效期）；「加入」= 绑定目标租户已有账号；切换租户按 Membership 重签令牌。
 - ✅ **自助申请/审核**：申请 → 审核（可自动，规则：邮箱域、企业信息完备度）→ 开通 → 通知；参考平台未交付该部分，由 Qian 自行设计（补充裁决 Q13）。
 - ✅ **自助配 IdP 与 HRD**：租户级多个上游连接器（通用 OIDC 必做；企微/钉钉/飞书 ISV 模式见 9.10；SAML/CAS/LDAP 先用代理 IdP 连接器，P2）；按邮箱域 HRD；域名验证（DNS TXT）；「仅允许企业 IdP 登录」在服务端策略层强制（参考平台只在前端跳转是反例）。
-- ✅ **品牌与登录域**：LOGO、系统名称、登录页主题（yue 令牌由服务端按租户下发 `data-theme/data-brand`）；自定义登录域只换登录页宿主，不改 issuer（单 issuer，Q4）；白标域名 P2。
+- ✅ **品牌与登录域**：LOGO、系统名称、登录页主题（前端框架令牌由服务端按租户下发 `data-theme/data-brand`）；自定义登录域只换登录页宿主，不改 issuer（单 issuer，Q4）；白标域名 P2。
 - ✅ **SCIM 2.0 Server**（核心 schema + Qian 扩展：岗位、主管、成员身份）：入站按外部稳定 id 映射、删除只置禁用、冲突策略、对账报告；出站推送 P2。
 - ✅ **Passkey**（P2，认证因子插件；TOTP 已在 S1）；短信/微信 OTP P2。
 - ✅ **自助注销与数据导出**（PIPL 合规）：注销 = 停用 + 脱敏 + 导出；管理员禁止自助注销。
@@ -173,7 +173,7 @@
 #### 范围与边界
 
 - ✅ 门户实体两种类型（设计型 / 配置路径型，后者 S2 已有）、编码 `MH+日期+序列`、发布状态机复用可发布元数据框架、发布即挂菜单（选当前应用目录）。
-- ✅ 三栏设计器（与打印/大屏共用 yue 设计器基座）：布局控件（卡片面板、标签面板）、基础控件（文本/图片/轮播；视频与 iframe P2，iframe 需 CSP 白名单与令牌传递策略）、系统控件由 `qian.workflow`（待办/待签/在办）与公告插件经贡献点注入、图表控件（数据面板、表格、柱/饼/折线必做；雷达/时间轴/排行榜/地图 P2）基于 `@yue/charts`（ECharts 6 封装）、自定义图表 option（JSON，禁函数字符串，S4 模型生成图表的落点）。
+- ✅ 三栏设计器（与打印/大屏共用前端框架设计器基座）：布局控件（卡片面板、标签面板）、基础控件（文本/图片/轮播；视频与 iframe P2，iframe 需 CSP 白名单与令牌传递策略）、系统控件由 `qian.workflow`（待办/待签/在办）与公告插件经贡献点注入、图表控件（数据面板、表格、柱/饼/折线必做；雷达/时间轴/排行榜/地图 P2）基于 `图表组件`（ECharts 6 封装）、自定义图表 option（JSON，禁函数字符串，S4 模型生成图表的落点）。
 - ✅ 控件注册表与控件契约（类型 id、属性 Schema 含端差异与默认值、数据需求、事件、可注入参数位）；数据源选择器（静态/接口 → 参数来源三态 → 字段映射 → 自动刷新）复用 §08 8.11.4。
 - ✅ 筛选器与参数联动（门户级查询条件绑定到多个控件接口参数）由 `@qian/runtime` 的页面事件 / 参数总线实现，列表设计同样消费。
 - ✅ 多端（PC/APP）按「响应式 + 端差异覆盖」，不做独立 APP 配置；预览（Web / App 二维码）、复制、导入导出复用 §07 7.2.1 的导入导出框架契约。
@@ -233,7 +233,7 @@
 
 ### 9.9 不可信 UI 沙箱（P1 · S3）
 
-- ✅ 按信任等级选沙箱（ADR-002/013）：`system/official` → MF 直接挂载；`partner` → 审核后 MF 或 Worker 远程渲染；`private/community` → Worker 远程渲染（插件只产出受约束的 UI 描述，组件实现只在宿主，白名单 = yue 组件 props JSON Schema）或 iframe + 受限 CSP（由清单 `permissions.ui.connectSrc` 生成）。
+- ✅ 按信任等级选沙箱（ADR-002/013）：`system/official` → MF 直接挂载；`partner` → 审核后 MF 或 Worker 远程渲染；`private/community` → Worker 远程渲染（插件只产出受约束的 UI 描述，组件实现只在宿主，白名单 = 前端框架组件 props JSON Schema）或 iframe + 受限 CSP（由清单 `permissions.ui.connectSrc` 生成）。
 - ✅ 宿主与插件 UI 之间一律走带作用域校验的桥接 API，来自插件 UI 的消息视为不可信输入；令牌不进 URL/iframe（一次性票据或 postMessage 握手）。
 - ❌ 第三方不可信 UI 直接 MF 挂载（零隔离）。
 - **验收** - [ ] `community` 控件尝试调用白名单外组件或访问 `localStorage` 令牌被阻断并记审计；iframe 插件的 CSP 头与清单一致。**测法**：安全用例。
@@ -254,8 +254,8 @@
 
 #### 范围与边界
 
-- ✅ **计量事件**（S1 `qian.observability` 计量事件规范的 S3 落地）：统一以**租户 / 项目双键**计量——`tenant_id` 必填、`project_id?` 可选（对齐 iClaw S2S claim 形状，ADR-016），再细分 `plugin_id / principal_kind(user|service|agent) / capability_id`；计量维度：席位（用户数）、存储、API 调用、Operation 运行、模型用量（§10.5 的消费者用量按租户归集）。
-- ✅ **聚合与账单**：计量事件进时序/日志栈 → 按天聚合 → 与套餐配额比对 → 预算告警 → 周账单/月结；Usage Ledger 是否与 iClaw 共用待 S3 拍板（Q15），本章先按「Qian 自有 Ledger + 对账接口」写。
+- ✅ **计量事件**（S1 `qian.observability` 计量事件规范的 S3 落地）：统一以**租户 / 项目双键**计量——`tenant_id` 必填、`project_id?` 可选（对齐下游智能体平台 S2S claim 形状，ADR-016），再细分 `plugin_id / principal_kind(user|service|agent) / capability_id`；计量维度：席位（用户数）、存储、API 调用、Operation 运行、模型用量（§10.5 的消费者用量按租户归集）。
+- ✅ **聚合与账单**：计量事件进时序/日志栈 → 按天聚合 → 与套餐配额比对 → 预算告警 → 周账单/月结；Usage Ledger 是否与下游智能体平台共用待 S3 拍板（Q15），本章先按「Qian 自有 Ledger + 对账接口」写。
 - ✅ **配额执行**：超额策略按套餐配置（告警 / 限流 / 只读）；配额口径与 9.2 一致。
 - ✅ **结算**：ISV 分成规则、对账单、结算周期；在线支付与发票对接 P2（国内增值税发票流程属推断，待产品决策）。
 - ❌ 充值与兑换码；按用户级 AppSecret 计量。
@@ -283,12 +283,12 @@
 
 ### 9.14 待确认
 
-1. **Usage Ledger 与租户 API Key 是否与 iClaw 共用**（Q15 默认「待 S3」）：影响 9.12 计量落点与 §10.5 模型用量归集；本章按 Qian 自有 Ledger + 对账接口写。
+1. **Usage Ledger 与租户 API Key 是否与下游智能体平台共用**（Q15 默认「待 S3」）：影响 9.12 计量落点与 §10.5 模型用量归集；本章按 Qian 自有 Ledger + 对账接口写。
 2. **在线支付、发票、分成细则**：属 S3 产品决策，本章只定模型（Plan/Seat/Meter/Trial）与事件，不裁决定价。
 3. **默认分发模式 managed、禁止导出 managed 应用、共享/专属部署是否作套餐差异**：D14 待拍板项，本章按「默认 managed；禁止导出为 P2 选项；专属部署作为高隔离档套餐差异」写。
 4. **SAML/CAS/LDAP**：Q3 默认放 S3，本章列 P2「先代理 IdP 连接器」；若政企客户首期即需，需升 P1 并评估 OIDC 一致性测试与渗透预算。
 5. **报表深度**：S3 末是否自研展开引擎到交叉表/父子格（补充裁决 Q30），取决于子集上线后的客户反馈。
 6. **服务端 PDF 与大屏**是否启用（补充裁决 Q31/Q33），取决于 S3 中期的成本评估与客户需求。
-7. **门户/报表/打印多端策略**：本章按「响应式 + 端差异覆盖」写，与 §08 表单一致；若客户要求独立 APP 配置需重估 yue 控件属性 Schema。
+7. **门户/报表/打印多端策略**：本章按「响应式 + 端差异覆盖」写，与 §08 表单一致；若客户要求独立 APP 配置需重估前端框架控件属性 Schema。
 8. **工具描述哈希钉死**的实现位置（`qian.registry` / `qian.capabilities` 注册表（原 `qian.kernel`，ADR-020）vs `qian.marketplace`）与 §07 能力目录的 `schemaSha256` 字段需对齐，避免两处计算口径不同。
-9. **组件模型 v2 对本章的影响（ADR-020）**：(a)–(c) 已裁决（R36）——商业字段（价格、套餐、席位、审核状态）由 `qian.marketplace` 以 marketplace 条目 `name@version` 为外键存平台库，不写进 marketplace.json；租户私有市场 S3 默认平台托管（租户上传组件文件夹，平台生成其私有 marketplace.json），租户自带 git 仓库为 S3 可选；`ON_USE` 凭据录入 UI 归 `qian.identity` 连接器设置卡（`ui` 表面）。本章 9.0.3、9.1 已按此改。(d) 已拍板（ADR-020 §7 第 4、6 条）：官方市场仓库 `qian-plugins` S1 私有、S3 随许可证评估公开；Qian 包族、CLI、yue 一律 Apache-2.0，公开 feed S1 GitHub Packages 私有、S2 末或首个外部宿主试用时公开到 nuget.org / npm；社区市场与 ISV 再分发据此成立，S3 商业市场与计费组件的许可证到 S3 再定。
+9. **组件模型 v2 对本章的影响（ADR-020）**：(a)–(c) 已裁决（R36）——商业字段（价格、套餐、席位、审核状态）由 `qian.marketplace` 以 marketplace 条目 `name@version` 为外键存平台库，不写进 marketplace.json；租户私有市场 S3 默认平台托管（租户上传组件文件夹，平台生成其私有 marketplace.json），租户自带 git 仓库为 S3 可选；`ON_USE` 凭据录入 UI 归 `qian.identity` 连接器设置卡（`ui` 表面）。本章 9.0.3、9.1 已按此改。(d) 已拍板（ADR-020 §7 第 4、6 条）：官方市场仓库 `qian-plugins` S1 私有、S3 随许可证评估公开；Qian 包族、CLI、前端框架一律 Apache-2.0，公开 feed S1 GitHub Packages 私有、S2 末或首个外部宿主试用时公开到 nuget.org / npm；社区市场与 ISV 再分发据此成立，S3 商业市场与计费组件的许可证到 S3 再定。

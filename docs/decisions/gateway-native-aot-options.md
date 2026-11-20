@@ -1,6 +1,6 @@
 # 网关完整依赖的 NativeAOT 实施路径
 
-状态：产品负责人于 2026-10-23 在 [S1-DEC-030](../../pm/tasks/S1-DEC-030.md) 确认采用路径 A。原生 Data/Audit 与正式 Kun 修复现已接入实际生产网关，并完成严格 Linux NativeAOT 发布和真实依赖运行；默认 profile 已恢复 AOT。本文保留原始失败、备选路线与实施边界，DEP-008 的业务镜像门继续独立验收。
+状态：产品负责人于 2026-10-23 在 [S1-DEC-030](../../_import/qian/pm/tasks/S1-DEC-030.md) 确认采用路径 A。原生 Data/Audit 与正式 Kun 修复现已接入实际生产网关，并完成严格 Linux NativeAOT 发布和真实依赖运行；默认 profile 已恢复 AOT。本文保留原始失败、备选路线与实施边界，DEP-008 的业务镜像门继续独立验收。
 
 ## 已确认的实施边界
 

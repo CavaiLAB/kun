@@ -1,8 +1,8 @@
-# 专题 spec · yue 组件库
+# 专题 spec · 前端框架组件库
 
-> 状态：Draft v1（2026-10-06）。依据：ADR-013（前端与 yue）为主，兼引 ADR-002（插件模型与 MF2）、ADR-010（网关与令牌）、ADR-014（市场与 registry）、ADR-018（阶段）及补充裁决 Q12 / Q13 / Q37 / Q38 / Q39 / Q41。本 spec 规定 yue 的范围、分层、契约、流程与验收；安全规则以 §13 为准，验收方法以 §14 为准。
+> 状态：Draft v1（2026-10-06）。依据：ADR-013（前端与前端框架）为主，兼引 ADR-002（插件模型与 MF2）、ADR-010（网关与令牌）、ADR-014（市场与 registry）、ADR-018（阶段）及补充裁决 Q12 / Q13 / Q37 / Q38 / Q39 / Q41。本 spec 规定前端框架的范围、分层、契约、流程与验收；安全规则以 §13 为准，验收方法以 §14 为准。
 >
-> yue 是 Qian 全部前端面（平台控制台、应用运行时、设计器、移动 H5、S4 Agent 界面）共用的唯一组件库与运行时契约包。它不是「又一个 UI 库」，而是把参考平台「两套并存、三处呈现、控件无 Schema」的教训反过来写成约束。
+> 前端框架是 Qian 全部前端面（平台控制台、应用运行时、设计器、移动 H5、S4 Agent 界面）共用的唯一组件库与运行时契约包。它不是「又一个 UI 库」，而是把参考平台「两套并存、三处呈现、控件无 Schema」的教训反过来写成约束。
 
 ---
 
@@ -23,7 +23,7 @@
 | D11 | **S2 只做 PC 响应式**（Q13） | `@cavailab/qian-mobile` H5 渲染器 S2 可选 / S3；小程序原生渲染不纳入 S1–S3 |
 | D12 | **审批设计器为纵向节点树（DOM 自绘）；不用 bpmn-js** | React Flow 自由画布 S3 可选；BPMN 只作导出器 |
 | D13 | **联动三层** | 声明式动作 → 可序列化表达式 DSL（JSONLogic 类）→ QuickJS 沙箱脚本（S2 可选兜底，白名单 API、超时、内存上限、不暴露令牌）；自由 JS 按钮不做 |
-| D14 | **分发：私有 npm 为主**（Q41） | GitHub Packages，scope `@idadawn`，包名 `@idadawn/yue-<包>`（2026-10-09 拍板，§3.1；2026-11 迁到 CavaiLAB/qian 后为 `@cavailab/qian-<包>`）；shadcn 私有 registry + MCP Server S3 可选、S4 必做 |
+| D14 | **分发：私有 npm 为主**（Q41） | GitHub Packages，scope `@idadawn`，包名 `前端包名`（2026-10-09 拍板，§3.1；2026-11 迁到 CavaiLAB/qian 后为 `@cavailab/qian-<包>`）；shadcn 私有 registry + MCP Server S3 可选、S4 必做 |
 | D15 | **统一使用现有 Rspress 2 文档站，不再使用 Storybook** | 组件文档与演示同源，Vitest + Playwright + axe 独立验收；见 ADR-022 |
 | D16 | **控件包与后端 Field Type Provider 同名同版本发布** | 控件 `type` 即字段类型编码；前后端同一 SemVer，CI 校验配对 |
 
@@ -31,7 +31,7 @@
 
 ## 0. 定位与阅读方式
 
-yue 同时承担三种角色，三者缺一不可：
+前端框架同时承担三种角色，三者缺一不可：
 
 1. **组件库**：平台控制台、应用运行时、设计器、移动 H5 共用的 React 组件，S1 先交付支撑技术组件界面的最小集合。
 2. **运行时契约包**：FormSchema / ListSchema / 控件 manifest / SSE 事件等 JSON Schema 与由其生成的 TypeScript 类型。契约先于组件存在，后端、设计器、运行时、Agent 都对着同一份契约工作。
@@ -39,7 +39,7 @@ yue 同时承担三种角色，三者缺一不可：
 
 本 spec 的写法：D1–D16 是本版已拍板的决策，阅读时先确认是否认同这些前提；§1–§2 划范围，§3 是契约（最需要评审的部分），§4–§5 说明怎么做与谁消费，§6 是选型，§7–§8 对接 §13 与 §14，§9 指向后续阶段。所有「参考平台」的引用都只作为反例或功能对照，不代表实现路径。
 
-与参考平台前端的核心差异可以压缩成一句话：参考平台用「两套并存」换取快速堆功能（弹窗、表单、表格、树各有两到三套实现，控件在编辑、只读、单元格三处各自维护，元数据没有 Schema），yue 用「一套引擎 + 一份契约 + 工具强制的分层」换取多团队长期共用的可维护性。这决定了 yue 在 S1 看起来比参考平台「少」，但每一项都带着 S2–S4 要复用的契约。
+与参考平台前端的核心差异可以压缩成一句话：参考平台用「两套并存」换取快速堆功能（弹窗、表单、表格、树各有两到三套实现，控件在编辑、只读、单元格三处各自维护，元数据没有 Schema），前端框架用「一套引擎 + 一份契约 + 工具强制的分层」换取多团队长期共用的可维护性。这决定了前端框架在 S1 看起来比参考平台「少」，但每一项都带着 S2–S4 要复用的契约。
 
 ## 1. 范围
 
@@ -77,7 +77,7 @@ yue 同时承担三种角色，三者缺一不可：
 
 ### 1.3 S3 交付（面向客户）
 
-- 通知抽屉；门户设计器与运行时（Puck 模型或自研栅格）；不可信 UI 沙箱（Worker 远程渲染白名单 = yue manifest；iframe sandbox）。
+- 通知抽屉；门户设计器与运行时（Puck 模型或自研栅格）；不可信 UI 沙箱（Worker 远程渲染白名单 = 前端框架 manifest；iframe sandbox）。
 - 可选：多布局与偏好抽屉、主题预设、扫码登录 / 注册、申请 / 加入企业、自动化流设计器（React Flow）、打印（pdfme）/ 报表（Univer）/ 大屏设计器与运行时、透视表、外链运行时、工作台、移动 H5 审批与工作台、shadcn 私有 registry。
 
 ### 1.4 S4 预留（本期只定契约）
@@ -88,16 +88,16 @@ yue 同时承担三种角色，三者缺一不可：
 
 ## 2. 非目标
 
-1. 不混用两套设计体系：不在任何前端面并存 yue 与 antd / MUI / Element 之类的第二套组件库；Base UI 验证门不过则整体切 Radix。
+1. 不混用两套设计体系：不在任何前端面并存前端框架与 antd / MUI / Element 之类的第二套组件库；Base UI 验证门不过则整体切 Radix。
 2. 不做小程序原生渲染（S1–S3）、不做原生 App（本期）；移动端是同一 React 渲染器的端适配。
 3. 不 `eval` / `new Function` 执行租户脚本；不做「自定义按钮任意 JS」。
 4. 不维护两份端配置（PC / 移动各一份元数据）。
 5. 不复刻参考平台全量：7 种布局模式、锁屏、内置 IM、三面新窗口切换、两套图标体系、双 Modal 实现等不做。
-6. 不把 yue 做成「框架无关」口号：yue 只服务 React 19；分层靠工具强制，不靠约定。
-7. 不在 yue 内实现业务规则：权限判定、数据过滤、脱敏以服务端为准，yue 只按元数据渲染。
+6. 不把前端框架做成「框架无关」口号：前端框架只服务 React 19；分层靠工具强制，不靠约定。
+7. 不在前端框架内实现业务规则：权限判定、数据过滤、脱敏以服务端为准，前端框架只按元数据渲染。
 8. 不自建 Agent 对话引擎：`@cavailab/qian-agent` 只是事件流的展示组件。
 9. 不用 bpmn-js、Formily、amis、lowcode-engine、hiprint、vxe-table 等自带体系或许可证受限的库。
-10. 不把 Docusaurus（React 18）混入 yue 工作区。
+10. 不把 Docusaurus（React 18）混入前端框架工作区。
 
 ---
 
@@ -142,7 +142,7 @@ yue 同时承担三种角色，三者缺一不可：
 
 规则：下层不得 import 上层；同层之间 shell / data / form / charts / code-editor 互不依赖（shell 对 form 的登录表单依赖是唯一例外，经 ADR 记录）；横切包不得依赖除 tokens / contracts 以外的任何包。
 
-平台前端 SDK `@cavailab/qian-plugin-sdk` 位于上述 yue 分层之外的上层：只消费 `@cavailab/qian-sdk`、`tokens`、`contracts` 与 TypeScript 运行时 `@cavailab/qian-runtime`，不得依赖 yue 控件或应用。`apps/*` 与官方租户 UI 可消费它；所有 yue 包不得反向依赖平台 SDK 或 Qian Runtime。该方向由同一 `boundaries.config.mjs` 校验，前端 SDK 纳入 lint、类型、单测、包形状和循环依赖门禁。
+平台前端 SDK `@cavailab/qian-plugin-sdk` 位于上述前端框架分层之外的上层：只消费 `@cavailab/qian-sdk`、`tokens`、`contracts` 与 TypeScript 运行时 `@cavailab/qian-runtime`，不得依赖前端框架控件或应用。`apps/*` 与官方租户 UI 可消费它；所有前端框架包不得反向依赖平台 SDK 或 Qian Runtime。该方向由同一 `boundaries.config.mjs` 校验，前端 SDK 纳入 lint、类型、单测、包形状和循环依赖门禁。
 
 **归层判定题**（新组件进哪一层，按顺序回答）：
 1. 它是否需要知道「平台」的存在（组织、用户、字典、数据接口）？是 → 至少是 `@cavailab/qian-biz`；否 → 继续。
@@ -153,7 +153,7 @@ yue 同时承担三种角色，三者缺一不可：
 
 分层违规在 CI 直接失败，不接受「临时引用、下个迭代修」；需要跨层的能力一律通过 `@cavailab/qian-sdk` 的注册表或依赖注入（`PlatformClient`）解耦。
 
-**npm 包名**（2026-10-09 产品负责人拍板，2026-11 随前端迁到 CavaiLAB/qian 改名，S1-YUE-025）：文中写全名 `@cavailab/qian-<包>`（如 `@cavailab/qian-core`；原包名 `@idadawn/yue-<包>`，设计文档原来的简称 `@yue/<包>`），发到 GitHub Packages——它要求 scope 与仓库所有者同名（ADR-021 D21.2 的「一个 GitHub Packages 命名空间」）。目录是 CavaiLAB/qian 的 `packages/qian/<包>`，分层矩阵按目录名登记。
+**npm 包名**（2026-10-09 产品负责人拍板，2026-11 随前端迁到 CavaiLAB/qian 改名，S1-YUE-025）：文中写全名 `@cavailab/qian-<包>`（如 `@cavailab/qian-core`），发到 GitHub Packages——它要求 scope 与仓库所有者同名（ADR-021 D21.2 的「一个 GitHub Packages 命名空间」）。目录是 CavaiLAB/qian 的 `packages/qian/<包>`，分层矩阵按目录名登记。
 
 ### 3.2 控件注册表契约 `registerWidget`
 
@@ -261,7 +261,7 @@ export function listWidgets(filter?: { device?: Device; category?: string }): Wi
 }
 ```
 
-**四段为什么分开。** `data` 是唯一允许被后端、OpenAPI、MCP 直接复用的部分，所以它必须是标准 JSON Schema 2020-12 且 `additionalProperties: false`；`ui` 承载布局与控件选择，是 yue 自有的 UI Schema，允许随版本演进；`rules` 只放可序列化的声明式动作与表达式 DSL，保证 Agent 能生成、服务端能校验、小程序端能执行；`binding` 把表单与实体字段、系统列约定绑定，是 Schema Migrator 与数据引擎读取的部分。四段分开的直接收益是：改布局不触发数据契约版本变化，改规则不触发迁移，Agent 生成表单时可以只生成 `data + ui` 而把 `binding` 交给平台填充。
+**四段为什么分开。** `data` 是唯一允许被后端、OpenAPI、MCP 直接复用的部分，所以它必须是标准 JSON Schema 2020-12 且 `additionalProperties: false`；`ui` 承载布局与控件选择，是前端框架自有的 UI Schema，允许随版本演进；`rules` 只放可序列化的声明式动作与表达式 DSL，保证 Agent 能生成、服务端能校验、小程序端能执行；`binding` 把表单与实体字段、系统列约定绑定，是 Schema Migrator 与数据引擎读取的部分。四段分开的直接收益是：改布局不触发数据契约版本变化，改规则不触发迁移，Agent 生成表单时可以只生成 `data + ui` 而把 `binding` 交给平台填充。
 
 **版本与兼容。** `version` 遵循 SemVer：`data` 的破坏性变化（删字段、改类型、收紧必填）升大版本并要求迁移计划；`ui / rules` 的变化升小版本；草稿与发布快照各自不可变，运行时只读当前生效快照。校验器（前后端同一份 Schema；前端由 `@cavailab/qian-form` 解释执行、不在运行期生成代码，判定与 Ajv 逐条对照，R130）必须拒绝未知 `$schema` 与超出版本范围的文档，而不是宽松通过。
 
@@ -342,7 +342,7 @@ export function listWidgets(filter?: { device?: Device; category?: string }): Wi
 
 1. **令牌**：在 `@cavailab/qian-tokens` 修改 → 对比度单测与冲突单测 → 生成 CSS 变量与 TS 类型 →（可选）DTCG 导出。
 2. **组件**：shadcn CLI 生成源码进 `@cavailab/qian-core` 后品牌化；每个组件必须带可供 Rspress 与测试共用的 React 示例（由 `docs/scenarios.json` 登记适用状态，在预览工具栏切换；交互在示例内实际操作）、manifest、`data-slot / data-testid`、i18n key。
-3. **文档站**：统一接入现有 Rspress 2 的 `/components/yue/`，提供源码示例、活演示、完整 props 表与令牌页；示例源在组件目录，测试由独立 Vitest / Playwright + axe 执行。移除 Storybook 应用、CSF、依赖、脚本和 CI 作业；Props 完整性、离线编辑器与迁移验收见 [文档站规范 §3.1](docs-site.md#31-yue-组件文档与演示)。
+3. **文档站**：统一接入现有 Rspress 2 的 `/components/yue/`，提供源码示例、活演示、完整 props 表与令牌页；示例源在组件目录，测试由独立 Vitest / Playwright + axe 执行。移除 Storybook 应用、CSF、依赖、脚本和 CI 作业；Props 完整性、离线编辑器与迁移验收见 [文档站规范 §3.1](docs-site.md#31-前端框架组件文档与演示)。
 4. **视觉回归**：Playwright 截图比对，CI 固定字体与容器镜像，基线入库；自 S1-YUE-011 起为 PR 阻断门禁：`maxDiffPixels: 0`、刷新须显式 `--update-snapshots=all`、基线须与改动提交一致并有反例测试（R118）。
 5. **发包**：Changesets；SemVer（0.x 每个 minor 可破坏；1.0 后只在大版本破坏，废弃至少保留一个 minor 并附 codemod）；tsdown / Rslib 输出 ESM + d.ts，CSS 单独导出；重型物料（Monaco、富文本、ECharts、地图）独立包懒加载；publint；私有 npm。
 
@@ -355,13 +355,13 @@ export function listWidgets(filter?: { device?: Device; category?: string }): Wi
 
 ### 4.3 主版本并存
 
-yue 主版本可并存一个过渡窗口（MF2 共享依赖按主版本分组）；外壳只允许一个 React 版本；插件声明 `engines.qian` 范围，不满足即不加载并给出结构化错误。
+前端框架主版本可并存一个过渡窗口（MF2 共享依赖按主版本分组）；外壳只允许一个 React 版本；插件声明 `engines.qian` 范围，不满足即不加载并给出结构化错误。
 
 ### 4.4 Base UI 验证门（S1 首迭代）
 
 验证项：Menu / Select / Combobox / Tabs / Tooltip / Tree 的键盘导航、焦点管理、ARIA、RTL、受控 / 非受控、SSR 兼容；通过标准：axe critical = 0、键盘路径用例全过、无需 patch 包。不通过 → 整体切 Radix 并重新生成 shadcn 源码；不混用。结论记入 ADR-013 的 Status History。
 
-**结论（2026-10-09，S1-YUE-003）**：通过，锁定 `@base-ui/react` 1.8；组件级 21 个浏览器用例 + 页面级 7 个 axe 用例全过，critical + serious = 0，无需 patch 包。五项发现（Tooltip 的 ARIA 关联、Tabs 默认手动激活、Combobox 打开态 aria-hidden、无 Tree 原语、date-fns 可选 peer）与封装层处理见 [ADR-013 §9](../../adr/ADR-013-frontend-yue.md#9-状态历史status-history)。
+**结论（2026-10-09，S1-YUE-003）**：通过，锁定 `@base-ui/react` 1.8；组件级 21 个浏览器用例 + 页面级 7 个 axe 用例全过，critical + serious = 0，无需 patch 包。五项发现（Tooltip 的 ARIA 关联、Tabs 默认手动激活、Combobox 打开态 aria-hidden、无 Tree 原语、date-fns 可选 peer）与封装层处理见 [ADR-013 §9](../../adr/ADR-013-frontend-framework.md#9-状态历史status-history)。
 
 ---
 
@@ -386,9 +386,9 @@ yue 主版本可并存一个过渡窗口（MF2 共享依赖按主版本分组）
 
 ## 5. 职责映射
 
-### 5.1 插件 / 服务 ↔ yue 包
+### 5.1 插件 / 服务 ↔ 前端框架包
 
-| Qian 插件 / 服务 | 消费的 yue 部分 | 向 yue 注册的内容 |
+| Qian 插件 / 服务 | 消费的前端框架部分 | 向前端框架注册的内容 |
 |---|---|---|
 | `qian.shell`（前端外壳静态站） | `@cavailab/qian-shell`、`@cavailab/qian-tokens`、`@cavailab/qian-sdk` | 宿主：MF2 远程清单、插槽注册表、菜单类型注册表、运行时配置注入 |
 | `qian.identity` + `connector.*` | 认证页族、`@cavailab/qian-form` | 登录方式插件（`AuthProvider` 契约）、第三方登录按钮、多租户选择 |
@@ -422,11 +422,11 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 
 ### 5.5 多前端面共享与首屏预算
 
-平台控制台、应用运行时、设计器三个前端面共享同一个 yue，收益是一致性，风险是「共享 = 首屏膨胀」。约束：`@cavailab/qian-core + tokens + sdk` 是唯一允许进入外壳首屏的包；`data / form / biz` 按路由懒加载；`widgets / runtime / designer` 只在进入应用或设计器上下文时加载；重型第三方库（Monaco、ECharts、Univer、pdfme、富文本）各自独立包并由消费方显式引入。Lighthouse 对外壳首屏的 script 体积预算是 error 级门禁，预算值在 §14 维护。
+平台控制台、应用运行时、设计器三个前端面共享同一个前端框架，收益是一致性，风险是「共享 = 首屏膨胀」。约束：`@cavailab/qian-core + tokens + sdk` 是唯一允许进入外壳首屏的包；`data / form / biz` 按路由懒加载；`widgets / runtime / designer` 只在进入应用或设计器上下文时加载；重型第三方库（Monaco、ECharts、Univer、pdfme、富文本）各自独立包并由消费方显式引入。Lighthouse 对外壳首屏的 script 体积预算是 error 级门禁，预算值在 §14 维护。
 
 ## 6. 选型与待决策项
 
-选型遵守五条原则：**许可证先于功能**（排除 AGPL、要求水印可见、禁止多租户 PaaS 的条款）；**维护活跃度**（一年以上无发版的库不进推荐）；**React 生态原生**（不接受 Vue 生态移植或 jQuery 封装）；**可抽象隔离**（拖拽、画布、物料注册表都包一层 yue 抽象，供应链变动时只改适配层）；**一个场景一种原语**（同一职责不并存两个库）。表中「状态」列为锁定 / 验证门 / 待决策三种。
+选型遵守五条原则：**许可证先于功能**（排除 AGPL、要求水印可见、禁止多租户 PaaS 的条款）；**维护活跃度**（一年以上无发版的库不进推荐）；**React 生态原生**（不接受 Vue 生态移植或 jQuery 封装）；**可抽象隔离**（拖拽、画布、物料注册表都包一层前端框架抽象，供应链变动时只改适配层）；**一个场景一种原语**（同一职责不并存两个库）。表中「状态」列为锁定 / 验证门 / 待决策三种。
 
 
 
@@ -436,7 +436,7 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 | 无样式原语 | `@base-ui/react` 1.x | Radix | — | 锁定（验证门 2026-10-09 通过，ADR-013 §9） |
 | 表格 | TanStack Table v9 + TanStack Virtual | VisActor VTable / AntV S2（透视、大数据，S3）；AG Grid Community | 依赖 AG Grid Enterprise 却不采购；Vue 生态表格 | 锁定 |
 | 表单 | 自有 Schema（数据部分 JSON Schema 2020-12 + 自有 UI Schema）+ react-hook-form + 解释型 JSON Schema 子集校验（R130；Ajv 只作差分测试的对照） | RJSF / JSON Forms 作参考实现 | Formily（停滞）、amis（自带体系）；zod 只用于 TS 侧导出契约 | 锁定 |
-| 拖拽 | dnd-kit（yue 包一层抽象） | pragmatic-drag-and-drop；`@dnd-kit/react` 1.0 后迁移 | react-beautiful-dnd（废弃）、react-dnd（停更）、SortableJS | 锁定，抽象层隔离供应链风险 |
+| 拖拽 | dnd-kit（前端框架包一层抽象） | pragmatic-drag-and-drop；`@dnd-kit/react` 1.0 后迁移 | react-beautiful-dnd（废弃）、react-dnd（停更）、SortableJS | 锁定，抽象层隔离供应链风险 |
 | 流程 / 逻辑画布 | 审批流：DOM 节点树自绘；自动化流：`@xyflow/react` 12（S3） | AntV X6、LogicFlow | bpmn-js（水印许可证）、Elsa Studio 嵌入 | 锁定 |
 | 栅格布局 | react-grid-layout 2.x | — | Vue 生态 | 锁定 |
 | 页面 / 门户搭建 | S2 自研（借鉴 Puck 的注册表 + 字段描述 + slot）；S3 门户可直接用 Puck | GrapesJS | lowcode-engine、craft.js（停滞） | 待 S3 |
@@ -477,7 +477,7 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 对应 §14 的层级与门禁；证据按「PR、命令、环境、结果」四件事留存。
 
 **令牌与主题**
-- [x] `@cavailab/qian-tokens` 三层令牌生成 CSS 变量与 TS 类型；明暗两态对比度单测 WCAG AA ≥ 4.5:1 全部通过（CI）——PR idadawn/qian#32，CavaiLAB/qian 的 `packages/qian/tokens/src/tokens.test.ts`，那边 CI `qian` 的 unit 门禁（原 CI `yue`）
+- [x] `@cavailab/qian-tokens` 三层令牌生成 CSS 变量与 TS 类型；明暗两态对比度单测 WCAG AA ≥ 4.5:1 全部通过（CI）——PR idadawn/qian#32，CavaiLAB/qian 的 `packages/qian/tokens/src/tokens.test.ts`，那边 CI `qian` 的 unit 门禁
 - [x] 令牌命名冲突单测通过；不存在同名异义——同上，另由 CavaiLAB/qian 的 `packages/qian/tokens/scripts/check-tokens.mjs` 在 lint 门禁扫描工作区全部 CSS；本仓库的外壳与界面包由 `scripts/ui-tokens.mjs` 用已发布令牌包的同一条规则扫描
 - [x] `data-theme / data-brand` 运行时注入生效：切换后无需刷新且无首帧闪烁（Playwright 用例）——CavaiLAB/qian 的 `apps/qian-playground/e2e/theme.spec.ts` 的首帧状态快照，那边 CI `qian` 的 a11y 门禁
 - [x] 对比度门禁按文字 / 控件边界 / 装饰三类取阈值（4.5:1 / 3:1 / 豁免），语义令牌明度对齐 shadcn neutral，`theme.css` 与系统字体栈到位（R116 / R117，S1-YUE-011）——PR idadawn/qian#185，CavaiLAB/qian 的 `packages/qian/tokens/src/registry.json` 的 `contrast` 字段与 `tokens.test.ts`，那边 CI `qian` 的 unit / lint 门禁
@@ -514,10 +514,10 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 
 **工程化**
 - [x] 分层边界 lint（eslint-plugin-boundaries / dependency-cruiser）进 CI 且无违规（S1-YUE-003：CavaiLAB/qian 的 `packages/qian/boundaries.config.mjs`，自测 `tests/gates/qian/`；本仓库外壳与界面包的边界在 `eslint.boundaries.config.mjs`，自测 `tests/gates/ui/`）
-- [ ] CI 门禁矩阵全部启用：lint、typecheck、unit、a11y、Lighthouse（script 体积 error 级）、边界检查、publint、循环依赖、i18n 硬编码（S1-YUE-003 已启用前八项，工作流 `yue`；i18n 硬编码 lint 待 `@cavailab/qian-sdk` 的 i18n 落地后加入）
+- [ ] CI 门禁矩阵全部启用：lint、typecheck、unit、a11y、Lighthouse（script 体积 error 级）、边界检查、publint、循环依赖、i18n 硬编码（S1-YUE-003 已启用前八项，工作流 `qian`；i18n 硬编码 lint 待 `@cavailab/qian-sdk` 的 i18n 落地后加入）
 - [ ] Changesets 发包到私有 npm 成功一次；`0.x` 版本策略写入 CONTRIBUTING（S1-YUE-003 已配置 Changesets 与 `0.x` 策略，见 CavaiLAB/qian 的 `packages/qian/README.md`「版本策略」；发包渠道待定，见该节「发布」）
 - [ ] 现有 Rspress 站点覆盖全部 core 组件、完整 props 表与令牌页，离线演示可用；Storybook 应用、依赖与 CI 入口清零
-- [x] 视觉回归基线建立（S1-YUE-011 承担，不再可选：51 个组件页与 DataTable / SchemaForm 示例明暗两态截图基线进仓库并进 CI，样式变更须更新基线并列出变化页面）——PR idadawn/qian#186 / idadawn/qian#187，CavaiLAB/qian 的 CI `qian` 的「视觉回归」作业（原 CI `yue`），`apps/qian-playground/visual.config.ts` `maxDiffPixels: 0`，162 张基线与 6 个隐藏关闭图标反例（R118）
+- [x] 视觉回归基线建立（S1-YUE-011 承担，不再可选：51 个组件页与 DataTable / SchemaForm 示例明暗两态截图基线进仓库并进 CI，样式变更须更新基线并列出变化页面）——PR idadawn/qian#186 / idadawn/qian#187，CavaiLAB/qian 的 CI `qian` 的「视觉回归」作业，`apps/qian-playground/visual.config.ts` `maxDiffPixels: 0`，162 张基线与 6 个隐藏关闭图标反例（R118）
 
 ---
 
@@ -535,13 +535,13 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 |---|---|---|
 | S2 | `@cavailab/qian-widgets` 控件集、`@cavailab/qian-renderer`、三大设计器、DataTable 进阶、CodeEditor / Cron、`@cavailab/qian-charts`、manifest 全量、视觉回归阻断；`@cavailab/qian-mobile` H5 渲染器（可选） | S1 契约包与注册表 |
 | S3 | 不可信 UI 沙箱（Worker 远程渲染 + iframe）、门户设计器与运行时、通知抽屉、多布局与偏好抽屉、主题预设、打印 / 报表 / 大屏、外链运行时、shadcn 私有 registry（可选） | manifest 词表、CSP 生成、MF2 版本并存 |
-| S4 | `@cavailab/qian-agent`（ToolCallCard、ThinkingTimeline、AgentTrace、Composer）、shadcn MCP Server（Agent 检索与安装 yue 区块）、MCP Apps 视图、AI 助手悬浮窗、Agent 生成 UI 经 manifest 与校验器落库 | S1 定义的 SSE 事件契约、客户端动作注册表、机器可读 manifest |
+| S4 | `@cavailab/qian-agent`（ToolCallCard、ThinkingTimeline、AgentTrace、Composer）、shadcn MCP Server（Agent 检索与安装前端框架区块）、MCP Apps 视图、AI 助手悬浮窗、Agent 生成 UI 经 manifest 与校验器落库 | S1 定义的 SSE 事件契约、客户端动作注册表、机器可读 manifest |
 
 ---
 
 ## 待确认
 
-1. `@cavailab/qian-contracts` 作为独立无 UI 包是本 spec 的拆分建议（基线把契约放在「yue 内核」），需 ADR-013 确认包边界。
+1. `@cavailab/qian-contracts` 作为独立无 UI 包是本 spec 的拆分建议（基线把契约放在「前端框架内核」），需 ADR-013 确认包边界。
 2. `@cavailab/qian-shell` 对 `@cavailab/qian-form` 的同层依赖（登录表单）是分层规则的唯一例外，需 ADR-013 记录；否则认证页族应下沉为独立包。
 3. 已裁决（R17）：D16「控件包与 Field Type Provider 同名同版本发布」保留；ADR-011 D11.9 已补 Field Type Catalog 版本策略（按 `type@version` 登记、SemVer 判兼容），与本 spec 一致。
 4. 多标签 KeepAlive 等价能力的方案未定（S1 可选 / S2 必做），影响 `@cavailab/qian-shell` 路由设计。

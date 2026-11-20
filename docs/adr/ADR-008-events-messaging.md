@@ -1,5 +1,5 @@
 ---
-title: 事件与消息：RabbitMQ 上 K3s；修复 Outbox 丢消息与至少一次语义；事件信封对齐 iClaw 契约
+title: 事件与消息：RabbitMQ 上 K3s；修复 Outbox 丢消息与至少一次语义；事件信封对齐［下游智能体平台］契约
 status: Accepted
 date: 2026-10-06
 decision_id: D8
@@ -8,11 +8,13 @@ supersedes: none
 
 # ADR-008 事件与消息
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 ## 1 背景与问题（Context）
 
 Kun 的 `Kun.EventBus` + `.RabbitMQ` 提供 Outbox 表 / 发布器 / 锁（默认 Null 锁，可 Redis）、稳定事件 ID 注册表 + JSON Schema 导出工具、幂等装饰器、RabbitMQ topic 收发 + DLX，属于「可用但薄」（基线 K §1 EventBus 行）。已确认缺口：① **Outbox 丢消息**——`KunMediator.Publish` 新开 scope，通知 handler 里发出的集成事件写进另一个 `IntegrationEventBuffer`，随 scope 释放丢弃，框架默认的领域事件派发器同样走此路径，Saga 步骤内发事件同样不落库（推断，代码路径明确，无测试覆盖）；② 消费端「先标记后处理」实际是 **at-most-once**，对应集成测试被 Skip；③ **多副本不安全**——Outbox 默认 Null 锁、Saga 无锁、多副本并发 `MigrateAsync` 无协调；④ 消费端与 Saga 执行器**不回灌租户**；`IOutboxMessageStore` 无框架实现、`RetryBaseDelay` 未实现、无 publisher confirm（基线 K §2.4、§2.1 差距②）。
 
-现网 K3s 上**没有 RabbitMQ**，Outbox 处于空转（基线 K §6.1）。iClaw 已冻结事件 envelope 契约 `version / event_id / subject / occurred_at / tenant_id / payload`（基线 P §8.6）。参考平台 RabbitMQ 模式单队列、非持久化、先 ack 后处理、多实例竞争消费不能广播（基线 D §6 第 2 条）。事件目录（`IEventTypeRegistry.GetAll()` + SchemaGen）是 Kun 全仓唯一机器可读契约产物（基线 K §1）。
+现网 K3s 上**没有 RabbitMQ**，Outbox 处于空转（基线 K §6.1）。［下游智能体平台］已冻结事件 envelope 契约 `version / event_id / subject / occurred_at / tenant_id / payload`（基线 P §8.6）。参考平台 RabbitMQ 模式单队列、非持久化、先 ack 后处理、多实例竞争消费不能广播（基线 D §6 第 2 条）。事件目录（`IEventTypeRegistry.GetAll()` + SchemaGen）是 Kun 全仓唯一机器可读契约产物（基线 K §1）。
 
 ## 2 决策（Decision）
 
@@ -22,7 +24,7 @@ Kun 的 `Kun.EventBus` + `.RabbitMQ` 提供 Outbox 表 / 发布器 / 锁（默�
 - **D8.4 幂等**：消费端 Redis 幂等表（按 `event_id`）默认装配；写类处理器必须幂等。（2026-10-10 S1-DEC-013：上游 Kun 的 `IProcessedMessageStore` 只有 Redis 实现，PRD §07 7.10 原写的 PG `processed_messages` 兜底表不作默认，留作 S1-EVT-001 的可选项；PRD 已同步。）
 - **D8.5 多副本安全**：Outbox 轮询用 `FOR UPDATE SKIP LOCKED` 或 Redis 锁且默认开启；publisher confirm；`RetryBaseDelay` 指数退避落实；`IOutboxMessageStore` 的 EF 默认实现。
 - **D8.6 租户回灌**：`MessageContext.TenantId`；订阅器建 scope 后调用 `ITenantContext.BeginScope`；Saga 执行器按 `SagaInstance.TenantId` 开作用域；Outbox 发布器带 `tenant_id`。
-- **D8.7 事件信封对齐 iClaw**：必填 `version`（常量 v1）、`event_id`、`subject`（`<domain>.<entity>.<verb>`）、`occurred_at`、`tenant_id`、`payload`；可选 `correlation_id`、`causation_id`、`producer`；事件 ID 带版本后缀（如 `tenant.created.v1`）。（2026-10-14 S1-DEC-020：信封字段只在信封上。`event_id`、`occurred_at`、`tenant_id` 由 Qian.Events 写入端入队时生成，`[IntegrationEventId]` 标在载荷类型上，载荷不再声明独立的事件标识或发生时间；载荷因业务需要重复租户或主体时（如 `qian.record.changed.v1` 的 tenantId、actor），消费端须与信封核对一致。身份事件 v1 尚无生产方与已发布包，按此就地删去载荷里的这三项。）
+- **D8.7 事件信封对齐［下游智能体平台］**：必填 `version`（常量 v1）、`event_id`、`subject`（`<domain>.<entity>.<verb>`）、`occurred_at`、`tenant_id`、`payload`；可选 `correlation_id`、`causation_id`、`producer`；事件 ID 带版本后缀（如 `tenant.created.v1`）。（2026-10-14 S1-DEC-020：信封字段只在信封上。`event_id`、`occurred_at`、`tenant_id` 由 Qian.Events 写入端入队时生成，`[IntegrationEventId]` 标在载荷类型上，载荷不再声明独立的事件标识或发生时间；载荷因业务需要重复租户或主体时（如 `qian.record.changed.v1` 的 tenantId、actor），消费端须与信封核对一致。身份事件 v1 尚无生产方与已发布包，按此就地删去载荷里的这三项。）
 - **D8.8 事件目录升格为能力目录的一部分**：稳定 ID + JSON Schema 导出 + AsyncAPI 描述；主题 ACL 由插件清单 `provides.events.publish/subscribe` 生成；事件契约化为 S4 Agent 触发器预留。
 - **D8.9 两种订阅模式**：广播（每消费者组一份）与竞争消费；死信队列与重放工具。
 - **D8.10 S2 动态数据事件**用一个静态注册的通用信封事件 `qian.record.changed.v1`（EntityCode / RecordId / Op / TenantId / Payload），必须在命令 handler 同 scope 发出；需要面向 `NpgsqlTransaction` 的 `IOutboxWriter` 实现使动态记录与 `outbox_messages` 同事务。
@@ -32,7 +34,7 @@ Kun 的 `Kun.EventBus` + `.RabbitMQ` 提供 Outbox 表 / 发布器 / 锁（默�
 ## 3 理由（Rationale）
 
 - 这些缺口是「K3s 多副本 + 多租户」场景下必然触发的问题，不先修则多租户在后台链路泄漏（基线 K §7.1 第 2 条）。
-- 对齐 iClaw 信封让两个产品共用 Kun 事件基座，S4 Agent 触发器可直接消费（基线 P §8.6）。
+- 对齐［下游智能体平台］信封让两个产品共用 Kun 事件基座，S4 Agent 触发器可直接消费（基线 P §8.6）。
 - 至少一次 + 幂等是分布式消息的标准组合；MCP 2026-07-28 删除了 SSE 断点续传，写类工具必须幂等的要求与此同构（基线 P §8.2 调用）。
 
 ## 4 备选方案与放弃原因（Alternatives）

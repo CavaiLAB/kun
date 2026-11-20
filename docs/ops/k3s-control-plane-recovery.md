@@ -1,5 +1,7 @@
 # K3s 控制面故障处置方案（S1-DEP-007）
 
+> 文中的部署域名和节点地址使用文档示例值，执行时请代入所在环境的配置。
+
 2026-10-13 在 S1-DEC-019 R73 复核时发现，现网 K3s 的控制面自 2026-10-11 起持续崩溃重启，对外表现为 apiserver 间歇返回 ServiceUnavailable。本文给出证据、根因、方案选择与执行步骤。执行需要 qd、pve01 与两台 worker 的 root 权限，并需产品负责人审核；Claude 只做过只读核验。
 
 > 当前状态（2026-10-16）：方案 B、文档缓存内存隔离与 SSH443 修复均已落地。产品负责人在知晓最终连续观察约 20 小时、原定 24 小时尚未完成后要求「直接关闭吧」，S1-DEP-007 据此提前关闭。关闭证据与保留的运行措施见第 10 节，原 24 小时标准未记为完整通过。
@@ -13,7 +15,7 @@
 | 起点 | 2026-10-11 17:05 UTC（北京时间 10-12 01:05），一次 k3s 停止再启动之后 | journal 中 unit stopped 与 Starting 的时间 |
 | etcd 在 qd 本地读 lease 键 | 1.1 到 4.7 秒，期望 0.1 秒；`slow_apply` 单次运行内累计 1879 | etcd 日志、`127.0.0.1:2381/metrics` |
 | qd 到 worker01 的 etcd 对端延迟 | 平均约 210 ms，发送失败 132 次；到 worker02 平均 5 ms | `etcd_network_peer_round_trip_time_seconds`、`etcd_network_peer_sent_failures_total` |
-| qd 看到的对端状态 | `dial tcp 192.168.1.163:2380: connection refused` 52 次、`192.168.1.164:2380` 24 次（14:20 到 15:10 UTC） | etcd 日志 |
+| qd 看到的对端状态 | `dial tcp 192.0.2.12:2380: connection refused` 52 次、`192.0.2.13:2380` 24 次（14:20 到 15:10 UTC） | etcd 日志 |
 | 节点间网络 | ping 往返 0.4 ms 左右，无丢包 | `ping` |
 | qd 本机 | 8 核、385 GiB 内存、NVMe 系统盘；I/O 等待为 0，内存压力为 0，etcd 库 75 MB，WAL fsync 平均约 1 ms | PSI、vmstat、etcd 指标 |
 | qd 上的其他负载 | 两个 GitHub Actions runner 无 CPU / 内存上限；一个常驻进程 `cubemaster` 32 天占满一核 | `systemctl show`、`ps` |
@@ -71,8 +73,8 @@
 
    ```bash
    printf '[Slice]\nCPUQuota=400%%\nMemoryMax=48G\nIOWeight=50\n' > /etc/systemd/system/actions-runners.slice
-   for u in actions.runner.CavaiLAB-kun.qd-kun.service actions.runner.idadawn-iclaw.qd.service; do mkdir -p /etc/systemd/system/$u.d; printf '[Service]\nSlice=actions-runners.slice\nNice=10\n' > /etc/systemd/system/$u.d/10-slice.conf; done
-   systemctl daemon-reload; systemctl restart actions.runner.idadawn-iclaw.qd.service; systemctl stop actions.runner.CavaiLAB-kun.qd-kun.service; systemctl show actions-runners.slice -p CPUQuotaPerSecUSec -p MemoryMax
+   for u in actions.runner.CavaiLAB-kun.qd-kun.service "${AGENT_RUNNER_UNIT}"; do mkdir -p /etc/systemd/system/$u.d; printf '[Service]\nSlice=actions-runners.slice\nNice=10\n' > /etc/systemd/system/$u.d/10-slice.conf; done
+   systemctl daemon-reload; systemctl restart "${AGENT_RUNNER_UNIT}"; systemctl stop actions.runner.CavaiLAB-kun.qd-kun.service; systemctl show actions-runners.slice -p CPUQuotaPerSecUSec -p MemoryMax
    ```
 
 3. 在 qd 上弄清 `/usr/local/services/cubetoolbox/CubeMaster/bin/cubemaster` 是什么、谁在用；不需要就停掉，需要就限制到一核以内。不要盲目 kill。
@@ -107,10 +109,10 @@
 
    | 节点 | 运行中的工作负载 | 钉在该节点的数据卷 |
    |---|---|---|
-   | k3s-worker01 | qian-staging 2、pdm 3、safe-ai 1、iclaw 1、higress-gateway 1 副本、kube-system 1 | qian-staging 2、pdm 1、higress-system 1 |
-   | k3s-worker02 | iclaw-staging 3、iclaw 3、higress-system 3（含 higress-gateway 1 副本、maas-gateway-redis 1 副本）、apollo-prod 2（admin / config 各 1 副本）、harbor-nginx 1、pdm 1、kube-system 2 | iclaw-staging 3、higress-system 1 |
+   | k3s-worker01 | qian-staging 2、pdm 3、safe-ai 1、下游智能体平台 1、higress-gateway 1 副本、kube-system 1 | qian-staging 2、pdm 1、higress-system 1 |
+   | k3s-worker02 | Agent 预发命名空间 3、下游智能体平台 3、higress-system 3（含 higress-gateway 1 副本、maas-gateway-redis 1 副本）、apollo-prod 2（admin / config 各 1 副本）、harbor-nginx 1、pdm 1、kube-system 2 | Agent 预发命名空间 3、higress-system 1 |
 
-   顺序与缓解：一次只改一台，先 worker01 后 worker02，每台约 10 到 15 分钟的 Pod 中断；Higress 网关与 Apollo 生产服务各保留另一副本在线，Traefik 入口在 qd 上不受影响；改 worker02 之前先 `kubectl cordon k3s-worker02` 并删除其上的 harbor-nginx Pod，让 Harbor 入口（VIP .201）搬到 qd，Harbor 的有状态部分本来就在 qd。重装后的镜像从 daocloud 镜像源重新拉取，不经过 Harbor，不会形成死锁。
+   顺序与缓解：一次只改一台，先 worker01 后 worker02，每台约 10 到 15 分钟的 Pod 中断；Higress 网关与 Apollo 生产服务各保留另一副本在线，Traefik 入口在 qd 上不受影响；改 worker02 之前先 `kubectl cordon k3s-worker02` 并删除其上的 harbor-nginx Pod，让 Harbor 入口（VIP 192.0.2.21）搬到 qd，Harbor 的有状态部分本来就在 qd。重装后的镜像从 daocloud 镜像源重新拉取，不经过 Harbor，不会形成死锁。
 
 1. 共同暂停两台 worker 的旧 server 服务，以便重置 qd 成员列表。`stop` 不等于移除 etcd 成员；这是共同的控制面暂停，后续业务节点改装仍逐台执行。先核实 unit 的 `KillMode` 和实际容器状态，此时不运行 killall / 卸载脚本，不删除 Node 对象。
 
@@ -129,13 +131,13 @@
 
 3. 保存 Node / PV 基线并安全准备 agent 加入材料。不同时删除两台 Node；token 只通过受保护的文件或流传递，不回显到终端或写入任务日志。就地改装保留原 node password 和 Node UID；若选择经核实的卸载重装，仅在轮到对应节点时删除其 Node，以清除旧 node password Secret。
 
-4. 两台 worker 按第 0 步定的顺序逐台改装为 agent（先 worker01，确认其 Pod 与数据卷恢复后再做 worker02）。 就地改装使用既有 agent unit / EnvironmentFile，保留原节点名、node-ip、node password 和业务卷；备份并移开旧 server 专用配置，禁用旧 server unit，启用 agent unit。无需卸载或删除 server 数据目录；已有 unit 带 node-ip 时不要重复写进 YAML，StringSlice 可能合并成两个 IPv4。切换后只移除旧 control-plane / etcd 角色标签，保留其他标签、污点与调度状态。下面的安装示例仅适用于完整核实后的卸载重装路径。先卸载 server 安装（第 0 步已核实它只删 k3s 自身目录，不碰 `/data`），再按部署仓库的 agent 模式安装，配置文件照抄 [qian-prod-agent.yaml](https://github.com/idadawn/iclaw-deploy/blob/main/0-cluster/qian-prod-agent.yaml) 的形式，把 `node-name` 改为原节点名，去掉 prod 的标签与污点，保留原有标签：
+4. 两台 worker 按第 0 步定的顺序逐台改装为 agent（先 worker01，确认其 Pod 与数据卷恢复后再做 worker02）。 就地改装使用既有 agent unit / EnvironmentFile，保留原节点名、node-ip、node password 和业务卷；备份并移开旧 server 专用配置，禁用旧 server unit，启用 agent unit。无需卸载或删除 server 数据目录；已有 unit 带 node-ip 时不要重复写进 YAML，StringSlice 可能合并成两个 IPv4。切换后只移除旧 control-plane / etcd 角色标签，保留其他标签、污点与调度状态。下面的安装示例仅适用于完整核实后的卸载重装路径。先卸载 server 安装（第 0 步已核实它只删 k3s 自身目录，不碰 `/data`），再按部署仓库的 agent 模式安装，配置文件照抄 `qian-prod-agent.yaml` 的形式，把 `node-name` 改为原节点名，去掉 prod 的标签与污点，保留原有标签：
 
    ```bash
-   /usr/local/bin/k3s-uninstall.sh; mkdir -p /etc/rancher/k3s; install -m 0600 /dev/stdin /etc/rancher/k3s/agent-token <<< '<node-token>'; printf 'server: https://192.168.1.161:6443\ntoken-file: /etc/rancher/k3s/agent-token\nnode-name: k3s-worker01\n' > /etc/rancher/k3s/config.yaml; curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.35.5+k3s1 sh -s - agent
+   /usr/local/bin/k3s-uninstall.sh; mkdir -p /etc/rancher/k3s; install -m 0600 /dev/stdin /etc/rancher/k3s/agent-token <<< '<node-token>'; printf 'server: https://192.0.2.11:6443\ntoken-file: /etc/rancher/k3s/agent-token\nnode-name: k3s-worker01\n' > /etc/rancher/k3s/config.yaml; curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.35.5+k3s1 sh -s - agent
    ```
 
-   `registries.yaml` 按部署仓库的 [qian-prod-registries.yaml](https://github.com/idadawn/iclaw-deploy/blob/main/0-cluster/qian-prod-registries.yaml) 恢复。版本固定为现网的 v1.35.5+k3s1，不顺手升级。
+   `registries.yaml` 按部署仓库的 `qian-prod-registries.yaml` 恢复。版本固定为现网的 v1.35.5+k3s1，不顺手升级。
 
 5. 在 qd 上确认三个 agent 回来、数据卷重新绑定、staging 工作负载恢复：
 
@@ -183,7 +185,7 @@ for i in $(seq 1 288); do date -u +%FT%TZ; systemctl show k3s -p NRestarts; kube
 
 ## 8 执行结果（2026-10-14）
 
-方案 B 已执行。qd 于2026-10-13T17:19:39Z完成单成员重置，17:19:49Z readyz成功；两台worker以原UID和节点名成为agent，server unit永久masked，所有业务卷保留。阶段0至2证据、发生的配置重复修复、旧Pod回收及实际停机时点均在 [S1-DEP-007](../../pm/tasks/S1-DEP-007.md)。原约1小时是估计，实际受I/O、重启修复、驱逐回收和重新调度影响超过该估计。
+方案 B 已执行。qd 于2026-10-13T17:19:39Z完成单成员重置，17:19:49Z readyz成功；两台worker以原UID和节点名成为agent，server unit永久masked，所有业务卷保留。阶段0至2证据、发生的配置重复修复、旧Pod回收及实际停机时点均在 [S1-DEP-007](../../_import/qian/pm/tasks/S1-DEP-007.md)。原约1小时是估计，实际受I/O、重启修复、驱逐回收和重新调度影响超过该估计。
 
 宿主内存不足未被确认：MemAvailable约6023MiB、memory PSI近零。进一步测量发现机械RAID上VM105持续读取；临时读限额1200→200帮助恢复后，已回到原值，未永久改变该服务预算。运行中采样不冒充完整硬件性能测试。
 
@@ -219,7 +221,7 @@ I/O取样将高峰中的git/git-sync进程对应到`qian-tools/qian-docs-site`�
 
 ## 10 按产品负责人决定提前关闭（2026-10-16）
 
-产品负责人在已获知尚未满 24 小时后明确回复「直接关闭吧」，据此关闭 [S1-DEP-007](../../pm/tasks/S1-DEP-007.md)。最终连续窗口为 `2026-10-15T15:39:17.970161Z` 至已复核样本 `2026-10-16T11:49:29.746773Z`：243 个样本、约 20 小时 10 分钟，全部健康；独立 slow_apply 与有界 journal 的慢请求、WAL 慢同步、ReadIndex / 领导权告警均为 0。原计划最早在 `2026-10-16T15:39:17.970161Z` 满 24 小时，此段剩余观测未作为关闭前提继续执行，不能写作完整 24 小时验收通过。此前失败窗口保留，不合并计时。
+产品负责人在已获知尚未满 24 小时后明确回复「直接关闭吧」，据此关闭 [S1-DEP-007](../../_import/qian/pm/tasks/S1-DEP-007.md)。最终连续窗口为 `2026-10-15T15:39:17.970161Z` 至已复核样本 `2026-10-16T11:49:29.746773Z`：243 个样本、约 20 小时 10 分钟，全部健康；独立 slow_apply 与有界 journal 的慢请求、WAL 慢同步、ReadIndex / 领导权告警均为 0。原计划最早在 `2026-10-16T15:39:17.970161Z` 满 24 小时，此段剩余观测未作为关闭前提继续执行，不能写作完整 24 小时验收通过。此前失败窗口保留，不合并计时。
 
 交付状态为 qd 单控制面 / 单成员 etcd、三个 agent；四 Node UID、41 个 PVC 身份与绑定保留，prod / staging 数据协议和业务健康抽查通过。qd 与两台 worker agent 没有新增重启。文档站实际为 4Gi tmpfs、git-sync 2Gi / 5Gi、CPU 10m / 300m，原 Pod 两容器重启计数为 0，最近内存事件 max / oom / oom_kill 为 0；正式页、构建信息和既有预览可访问。Qian PR idadawn/qian#131 / idadawn/qian#134 与部署仓 PR #94 / #95 的生效时间和因果边界均见任务日志。
 

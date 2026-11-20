@@ -1,5 +1,7 @@
 # Qian 关键决策清单 v0（已全部拍板，作为历史记录保留）
 
+> 文中的部署域名和节点地址使用文档示例值，执行时请代入所在环境的配置。
+
 > 状态：草案，2026-10-06。用途：在写 PRD 之前把会牵动整体的决策摆到一处，每条给出推荐、备选、依据和需要产品负责人确认的前提。拍板后转为 ADR（`docs/adr/`），PRD 只引用不重复。
 > 依据来源：7 份领域基线（`research/baseline-digest.md` 为摘要；全文在仓库外的调研目录）。凡引用「参考平台」指被借鉴的商业低代码产品，只借鉴功能与教训，不引入代码。
 > 阶段口径：S1 技术底座期 → S2 低代码构建期 → S3 面向客户期 → S4 AI 原生 Agent 平台。各阶段退出标准见 D18。
@@ -17,21 +19,21 @@
 | D4 | 数据库与租户隔离 | PostgreSQL 唯一一等库；默认共享库 + RLS；schema-per-service | 是否接受不支持 MySQL/国产库 |
 | D5 | 身份与 SSO | 基于 OpenIddict 自建 `qian.identity` 作平台唯一 issuer；外部 IdP 一律做成连接器插件；Authentik 退居运维侧 | 是否有私有化交付、是否首期必须 SAML/CAS/LDAP、是否需要租户自定义登录域 |
 | D6 | 鉴权模型 | Kun 侧只加判定端口，Qian 自建权限引擎：权限点由插件清单声明 + 租户域 RBAC + 数据权限编译为查询谓词 + 字段权限；权限不进令牌 | 等保/商密要求；MFA 是否 S1 必做 |
-| D7 | 配置中心 | Apollo 作 L1 共享组件（需新增 MySQL），自研 AOT 友好的 .NET provider；只存非敏感配置与密钥引用；租户级配置不进 Apollo；Nacos 收窄为 AI 资产注册 | MySQL 用托管还是集群内；Apollo 首发 2.5.x 还是 3.0.x；是否与 iClaw 共用 |
-| D8 | 事件与消息 | RabbitMQ 上 K3s；修 Outbox 丢消息与至少一次语义；事件信封对齐 iClaw 契约 | — |
+| D7 | 配置中心 | Apollo 作 L1 共享组件（需新增 MySQL），自研 AOT 友好的 .NET provider；只存非敏感配置与密钥引用；租户级配置不进 Apollo；Nacos 收窄为 AI 资产注册 | MySQL 用托管还是集群内；Apollo 首发 2.5.x 还是 3.0.x；是否与下游智能体平台共用 |
+| D8 | 事件与消息 | RabbitMQ 上 K3s；修 Outbox 丢消息与至少一次语义；事件信封对齐下游智能体平台契约 | — |
 | D9 | 审计 | 只留一套：命令级哈希链落 PostgreSQL + 实体级同事务写入；actor 含 agent | — |
 | D10 | 网关分层 | Traefik（北向入口）→ `qian.gateway`（Kun.Gateway 加固，业务 API 边界）；Higress 只管模型与 MCP 流量 | — |
 | D11 | 元数据与动态数据层 | 元数据驱动运行时为主；动态表走「物理主表 + JSON 列」混合存储，不走 EF 模型；统一 Filter AST；正式的 Schema Migrator；代码生成退化为可选薄壳 | 是否保留代码生成；低代码业务库是否允许租户自带 |
 | D12 | 流程引擎 | 自研 .NET 轻量审批内核；简单/标准流程合并为一套 JSON 定义；S2 只做节点树视图设计器 | S2 最小集边界（加签/会签延后计算/子流程/超时哪些升为必做） |
-| D13 | 前端与 yue | React 19 + Vite + Tailwind v4 + Base UI + shadcn 源码自有化；六层分层；一套表单/表格/弹层引擎贯穿后台与低代码运行时；Module Federation 2 外壳 | 接受自建数据密集组件的交付风险；S2 是否出 H5 渲染器 |
+| D13 | 前端与前端框架 | React 19 + Vite + Tailwind v4 + Base UI + shadcn 源码自有化；六层分层；一套表单/表格/弹层引擎贯穿后台与低代码运行时；Module Federation 2 外壳 | 接受自建数据密集组件的交付风险；S2 是否出 H5 渲染器 |
 | D14 | 应用市场形态 | 应用 = 插件包（bundle）；template / managed 两种分发；S1 就定下包格式、升级与冲突处理、权益 API | 默认分发模式；共享/专属部署是否作为套餐差异 |
 | D15 | 模型服务网关 | 并入团队现有 Higress/MaaS 基础设施；GPUStack 作为 OpenAI 兼容上游 + Provider Adapter；不自写模型代理；不把 SSO 交给 Higress | GPU 归属；接入范围是否含 ASR/TTS/Rerank |
-| D16 | 与 iClaw 的边界 | Qian = 能力提供方 + 业务主数据权威；iClaw = Agent 运行时 + AI 资产控制面；共用 Kun、Higress；Qian 不写任何 Agent loop | 租户/身份权威归谁；是否共用 Authentik、S2S 签发、Usage Ledger |
-| D17 | 部署 | 沿用现有 K3s/ArgoCD/Kustomize/Harbor 约定；Qian 独立 ns + 专属 PG/Redis；不以 per-tenant namespace 为默认 | 生产与 iClaw 共集群还是独立集群/节点池 |
+| D16 | 与下游智能体平台的边界 | Qian = 能力提供方 + 业务主数据权威；下游智能体平台 = Agent 运行时 + AI 资产控制面；共用 Kun、Higress；Qian 不写任何 Agent loop | 租户/身份权威归谁；是否共用 Authentik、S2S 签发、Usage Ledger |
+| D17 | 部署 | 沿用现有 K3s/ArgoCD/Kustomize/Harbor 约定；Qian 独立 ns + 专属 PG/Redis；不以 per-tenant namespace 为默认 | 生产与下游智能体平台共集群还是独立集群/节点池 |
 | D18 | 阶段切分与 S1 范围 | S1 18 个系统插件 + SDK + 部署物料；每阶段有可验收的退出标准 | 阶段顺序是否认可；S1 是否含模型网关底座接线 |
 | D19 | 库优先与 Qian 包族 | 每个系统组件首先是可独立安装使用的 NuGet 包，其次才经清单成为插件（插件 = 库 + 清单）；`Abstractions` / 实现两层；独立 / 平台两种模式同一份代码；组件库不依赖 `Qian.Kernel` 运行时 | 已拍板（2026-10-07，ADR-019 §7）：许可证 Apache-2.0；S1 GitHub Packages（.NET 包公开可见、安装需令牌，R93）、S2 末或首个外部宿主试用时公开到 nuget.org / npm；安装入口由 ADR-020 定义（`qian add` + 目录市场）；外部应用清单不单独立项；S1 不提供元包 |
 | D20 | 组件模型 v2 | 一切皆插件、没有特权内核（极小的 `Qian.Runtime` / `@qian/runtime`）；组件 = 文件夹 + 清单 + 声明式表面 + 可选代码，`kind` 退为 `runtime.form`；能力按 seam 三角色拆分；作用域两层扁平，租户启用 = scope patch；profile / 组合包 / patch 分层取代固定可部署单元与 18 个系统插件；`qian add` 一键安装 + `marketplace.json` 目录市场；Agent 原生表面 S1 起 | 已拍板（2026-10-07，ADR-020 §7）：TS 侧 `@qian/runtime` 为公共 API、S1 内部 vendor Cordis 实现；清单 `.qian-plugin/plugin.json`；CLI 为 Node / TS 实现、`npx qian@latest`、`dotnet qian` 薄包装 P2；官方市场仓库 `qian-plugins`（S1 私有）；热装卸不进 S2 核心、RT 领域 5 天 spike；Apache-2.0 + GitHub Packages；遥测默认不采集；模板名以 spec §9.1 为准 |
-| D21 | 产品族结构（Kun / Qian / yue） | 三层口径；不建大单仓；一个组织 + 一个文档站 + 一张版本矩阵 + 一个看板关联各仓库；`KunVersion` 单点钉版；Kun 文档按锁定版本镜像进文档站 | 已拍板：所有者 `idadawn`，Kun 迁入（S1-DEC-009 关闭，S1-PM-003 执行）；仍待确认 Kun 仓库随文档站公开的时点 |
+| D21 | 产品族结构（Kun / Qian / 前端框架） | 三层口径；不建大单仓；一个组织 + 一个文档站 + 一张版本矩阵 + 一个看板关联各仓库；`KunVersion` 单点钉版；Kun 文档按锁定版本镜像进文档站 | 已拍板：所有者 `idadawn`，Kun 迁入（S1-DEC-009 关闭，S1-PM-003 执行）；仍待确认 Kun 仓库随文档站公开的时点 |
 
 ---
 
@@ -48,7 +50,7 @@
    - 身份客户端 OIDC 链路未打通（PKCE verifier 不发、nonce 不校验、无 refresh、无会话吊销）。
    - 三套 S2S 签发器、两族存储接口、多条审计路径并存；框架内写死了下游产品的默认值。
 
-**备选**：monorepo / ProjectReference 引用 Kun（iClaw 现状）。放弃原因：Kun 破坏性变更直接打断 Qian 构建，镜像构建依赖私有仓，第三方插件开发者无法依赖源码。
+**备选**：monorepo / ProjectReference 引用 Kun（下游智能体平台现状）。放弃原因：Kun 破坏性变更直接打断 Qian 构建，镜像构建依赖私有仓，第三方插件开发者无法依赖源码。
 
 **需要拍板**：§4 的修复走 Kun 上游 PR（需要明确维护人与响应节奏；Kun 事实上单人维护，近两月提交明显放缓）还是 Qian 维护 `Kun.*.Patches` 补丁包并设回合入期限。
 
@@ -121,15 +123,15 @@
 - 映射：AppId = 一个微服务/后端插件；Environment 只建 UAT + PRO；私有 namespace `application` 与 `qian.plugin.<id>`，公共 namespace `qian.common.*`。
 - 修订现有边界 ADR：Nacos 收窄为 AI 资产 / MCP 注册，不再承担配置职责。
 
-**需要拍板**：MySQL 托管 RDS 还是集群内 operator；首发版本；是否与 iClaw 共用一套 Apollo。
+**需要拍板**：MySQL 托管 RDS 还是集群内 operator；首发版本；是否与下游智能体平台共用一套 Apollo。
 
 ## D8 事件与消息
 
-**推荐**：RabbitMQ 上 K3s（现网未部署，Outbox 空转）；修复 Outbox 丢消息、消费端改至少一次、Redis 幂等、锁默认开、退避；事件信封对齐 iClaw 的 `version / event_id / subject / occurred_at / tenant_id / payload`；事件目录（稳定 ID + JSON Schema 导出）升格为能力目录的一部分。
+**推荐**：RabbitMQ 上 K3s（现网未部署，Outbox 空转）；修复 Outbox 丢消息、消费端改至少一次、Redis 幂等、锁默认开、退避；事件信封对齐下游智能体平台的 `version / event_id / subject / occurred_at / tenant_id / payload`；事件目录（稳定 ID + JSON Schema 导出）升格为能力目录的一部分。
 
 ## D9 审计
 
-**推荐**：固定一套——命令/能力级 `AuditEntry` 哈希链 + PostgreSQL 持久化链状态；实体级 `AuditLog` 走同事务拦截器（借 iClaw 写法）；弃用事后拦截器路径；`actor_type` 增 `agent`，记录 `on_behalf_of`、`capability_id`、`contract_version`；实现 `IAuditReader`。
+**推荐**：固定一套——命令/能力级 `AuditEntry` 哈希链 + PostgreSQL 持久化链状态；实体级 `AuditLog` 走同事务拦截器（借下游智能体平台写法）；弃用事后拦截器路径；`actor_type` 增 `agent`，记录 `on_behalf_of`、`capability_id`、`contract_version`；实现 `IAuditReader`。
 
 ## D10 网关分层
 
@@ -157,15 +159,15 @@
 
 **需要拍板**：S2 最小集边界——加签/减签、候选人、会签延后计算、子流程、限时/超时/催办目前列为可选，哪些升为必做；审批设计器形态（纵向节点树对 Agent 生成最友好 vs React Flow 自由画布）；是否需要 BPMN 导出。
 
-## D13 前端与 yue
+## D13 前端与前端框架
 
 **推荐**
-- 技术栈沿用 iClaw 已验证的：React 19 + TypeScript + Vite + Tailwind v4 + Base UI + shadcn 源码自有化（路线 A）；Zustand、react-router、i18next、Vitest + Playwright + axe、Lighthouse 预算、Changesets 发包。
-- yue 六层：`@yue/tokens`（三层令牌、明暗两态、DTCG 导出）→ `@yue/core`（约 30 个基础组件）→ 后台通用层（DataTable 基于 TanStack、SchemaForm 基于 react-hook-form + Ajv、AppShell、Upload、Tree/Cascader/日期）→ 业务选择器层（组织/用户/角色/字典/接口选择）→ 低代码运行时层（表单/列表渲染器、控件注册表）→ 设计器层（表单/列表/审批流）。依赖方向用 lint 强制。
+- 技术栈沿用下游智能体平台已验证的：React 19 + TypeScript + Vite + Tailwind v4 + Base UI + shadcn 源码自有化（路线 A）；Zustand、react-router、i18next、Vitest + Playwright + axe、Lighthouse 预算、Changesets 发包。
+- 前端框架六层：`设计令牌包`（三层令牌、明暗两态、DTCG 导出）→ `基础组件包`（约 30 个基础组件）→ 后台通用层（DataTable 基于 TanStack、SchemaForm 基于 react-hook-form + Ajv、AppShell、Upload、Tree/Cascader/日期）→ 业务选择器层（组织/用户/角色/字典/接口选择）→ 低代码运行时层（表单/列表渲染器、控件注册表）→ 设计器层（表单/列表/审批流）。依赖方向用 lint 强制。
 - 只保留一套表单/表格/弹层引擎贯穿 S1 后台 CRUD 与 S2 低代码运行时；参考平台的弹窗/表单/表格双轨、控件三处呈现各自维护是反例。
 - 外壳：Module Federation 2 运行时加载 + 带版本号的插槽注册表；共享依赖 singleton；不可信 UI 走 Worker 远程渲染或 iframe（S3）。
-- 控件注册表与 yue 组件 props 的 JSON Schema 机器可读，设计器、远程渲染白名单、S4 Agent 生成 UI 共用一份契约。
-- Base UI 原语覆盖未经验证（iClaw 只用了 Dialog），首迭代设验证门；不过则切 Radix。
+- 控件注册表与前端框架组件 props 的 JSON Schema 机器可读，设计器、远程渲染白名单、S4 Agent 生成 UI 共用一份契约。
+- Base UI 原语覆盖未经验证（下游智能体平台只用了 Dialog），首迭代设验证门；不过则切 Radix。
 
 **需要拍板**：接受自建数据密集组件的 S2 交付风险，还是允许平台控制台域临时用 antd 并约定迁移期限；S2 是否交付 H5 表单渲染器；后台壳是「控制台 / 应用前台 / 应用后台」三面还是统一一个壳按应用上下文切换。
 
@@ -190,26 +192,26 @@
 
 **需要拍板**：GPU 归属（首节点两块 3090 已借出一块）；接入范围仅 LLM/Embedding 还是含 ASR/TTS/Rerank；Provider Adapter 由谁维护。
 
-## D16 与 iClaw 的边界
+## D16 与下游智能体平台的边界
 
-**推荐**：Qian = 能力提供方 + 业务主数据权威；iClaw = Agent 运行时 + AI 资产控制面；Higress = 共用数据面；Kun = 共用身份/审计/Outbox 基座。Qian 不写任何 Agent loop、沙箱、记忆、技能引擎（S4 经 MCP/HTTP 对接 iClaw，沙箱对接 CubeSandbox）。对齐项：S2S JWT claim 形状、事件信封、工具元数据（`sideEffect / policyHint / requiredScopes / schemaSha256`）、契约格式（OpenAPI 3.1 + JSON Schema 2020-12）。MCP 以 2026-07-28 为目标版本并与 iClaw 制定对齐计划（其客户端仍钉在旧版）。
+**推荐**：Qian = 能力提供方 + 业务主数据权威；下游智能体平台 = Agent 运行时 + AI 资产控制面；Higress = 共用数据面；Kun = 共用身份/审计/Outbox 基座。Qian 不写任何 Agent loop、沙箱、记忆、技能引擎（S4 经 MCP/HTTP 对接下游智能体平台，沙箱对接 CubeSandbox）。对齐项：S2S JWT claim 形状、事件信封、工具元数据（`sideEffect / policyHint / requiredScopes / schemaSha256`）、契约格式（OpenAPI 3.1 + JSON Schema 2020-12）。MCP 以 2026-07-28 为目标版本并与下游智能体平台制定对齐计划（其客户端仍钉在旧版）。
 
-**需要拍板**：租户主数据权威归 Qian 内核还是 iClaw Edge（iClaw 已有两个 Tenant 实体之痛）；是否共用同一 Authentik、同一 S2S 签发、同一 Usage Ledger / 租户 API Key；Qian 应用市场与 iClaw 插件市场是否合成一个注册表。
+**需要拍板**：租户主数据权威归 Qian 内核还是下游智能体平台 Edge（下游智能体平台已有两个 Tenant 实体之痛）；是否共用同一 Authentik、同一 S2S 签发、同一 Usage Ledger / 租户 API Key；Qian 应用市场与下游智能体平台插件市场是否合成一个注册表。
 
 ## D17 部署
 
-**推荐**：沿用 iclaw-deploy 的 L0/L1/L2 三层、Argo CD app-of-apps、Kustomize、不可变发布事件、按 digest 写回、迁移 Job 先行、供应链证据；Qian 新建 `qian-<env>` 命名空间与专属 PG/Redis；每个服务 `/healthz` `/readyz`；业务命名空间补 default-deny NetworkPolicy 与 ResourceQuota（现网为零）；补 Alertmanager。多租户拓扑三档：默认共享（数据按 RLS 隔离）、高隔离租户独立 ns + 独立 PG/Redis（ApplicationSet 生成）、私有化客户整套 overlay 复制；不以 per-tenant namespace 为默认。新增第二类制品「插件包（OCI artifact）」推 Harbor。
+**推荐**：沿用 部署仓库 的 L0/L1/L2 三层、Argo CD app-of-apps、Kustomize、不可变发布事件、按 digest 写回、迁移 Job 先行、供应链证据；Qian 新建 `qian-<env>` 命名空间与专属 PG/Redis；每个服务 `/healthz` `/readyz`；业务命名空间补 default-deny NetworkPolicy 与 ResourceQuota（现网为零）；补 Alertmanager。多租户拓扑三档：默认共享（数据按 RLS 隔离）、高隔离租户独立 ns + 独立 PG/Redis（ApplicationSet 生成）、私有化客户整套 overlay 复制；不以 per-tenant namespace 为默认。新增第二类制品「插件包（OCI artifact）」推 Harbor。
 
-**需要拍板**：生产与 iClaw 共用同一 K3s（同 Argo/Authentik/Higress）还是独立集群/节点池（现网故障域是整台首节点）。
+**需要拍板**：生产与下游智能体平台共用同一 K3s（同 Argo/Authentik/Higress）还是独立集群/节点池（现网故障域是整台首节点）。
 
 ## D18 阶段切分与 S1 范围
 
 | 阶段 | 退出标准 | 核心交付 |
 |---|---|---|
-| S1 技术底座 | 开发人员用代码在 Qian 上写出一个多租户应用：登录/SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移、回切 | 18 个系统插件、SDK（源生成器 + CLI + TCK）、部署物料、Kun 缺口修复、能力目录与清单 v1、授权 v0、yue 令牌层 + 基础组件 + 后台壳 |
+| S1 技术底座 | 开发人员用代码在 Qian 上写出一个多租户应用：登录/SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移、回切 | 18 个系统插件、SDK（源生成器 + CLI + TCK）、部署物料、Kun 缺口修复、能力目录与清单 v1、授权 v0、前端框架令牌层 + 基础组件 + 后台壳 |
 | S2 低代码构建 | 跑通「建应用 → 建表单与列表 → 走审批 → 授权给租户用户使用」；同一应用包在两个租户分别安装、各自配置、独立升级互不影响 | 元数据注册表、动态数据引擎、Schema Migrator、表单/列表/审批流设计器与运行时、流程内核、控件注册表、数据权限与字段权限、Operation/Task；S2 可选项（不计入核心交付）：Wasm `function` 运行时（P2，ABI 在 S2 中期拍板；服务端公式与规则先用 JSON AST 表达式解释器） |
 | S3 面向客户 | 租户能从应用市场选购并开通应用，自助配置 IdP 与品牌 | 私有目录型市场 → ISV 开放、权益与计费、门户、报表、租户自助、高隔离档、不可信 UI 沙箱 |
-| S4 AI 原生 Agent 平台 | Agent 能发现、调用、编排乃至生成平台能力与应用 | 每租户 MCP 门面、Agent 主体与委托链、元数据生成闭环、与 iClaw 运行时对接 |
+| S4 AI 原生 Agent 平台 | Agent 能发现、调用、编排乃至生成平台能力与应用 | 每租户 MCP 门面、Agent 主体与委托链、元数据生成闭环、与下游智能体平台运行时对接 |
 
 S1 到 S3 期间必须提前做对、否则 S4 返工的设计（S1 起生效）：所有写操作走带 Schema 的命令（含副作用等级、幂等键、dryRun）；结构化可自纠正的错误；统一主体模型（user / service / agent）与委托链字段；可解释可预检的权限判定；一份契约多处生成；租户上下文只来自令牌、`inputSchema` 禁止租户字段；审计含主体链与来源通道；追踪与计量贯通；事件契约化；插件包签名与反向权限审批。
 
@@ -220,7 +222,7 @@ S1 到 S3 期间必须提前做对、否则 S4 返工的设计（S1 起生效）
 > 2026-10-06 方向修正新增：产品负责人希望「别人安装一个 NuGet 包就可以直接使用，尤其是通用的一些组件」，而不是只能作为客户端调用 Qian 平台 API。详见 ADR-019（Accepted，2026-10-07）。同日产品负责人进一步要求组件模型参考「声明式组件 + 一键安装 + 目录市场 + 一切皆插件」的设计，组件的安装入口与声明格式由后续 ADR 定义；本条只定库的形态与依赖规则。（已由 D20 / ADR-020 定义；本条 D19.2 / D19.4 的装配表述经 ADR-020 §6 修订为「`Apply` 内部细节」，组件库唯一必需的 Qian 依赖改为 `Qian.Runtime`。）
 
 **推荐**
-- 每个 Qian 系统组件首先是可在任意 ASP.NET Core（.NET 10）应用中独立安装使用的 NuGet 包，其次才通过清单成为 Qian 插件；「插件 = 库 + 清单」；Qian 平台 = `Qian.Kernel` + 这些库的装配。前端 yue 的 `@yue/*` npm 包同理（D13）。
+- 每个 Qian 系统组件首先是可在任意 ASP.NET Core（.NET 10）应用中独立安装使用的 NuGet 包，其次才通过清单成为 Qian 插件；「插件 = 库 + 清单」；Qian 平台 = `Qian.Kernel` + 这些库的装配。前端框架的 `前端包系列` npm 包同理（D13）。
 - 包分层：`Qian.<Component>.Abstractions`（接口 / 契约 / DTO，仅依赖 `Kun.*.Abstractions`）→ `Qian.<Component>`（实现 + EF 迁移随包；`AddQian<Component>()` 只是 .NET 宿主的底层装配方式，不是面向开发者的安装入口）；源生成器与钩子基类在 `Qian.Plugin.Sdk`；组件库不得依赖 `Qian.Kernel` 运行时。S1 包清单见 ADR-019 D19.3，与 D3 的 18 个系统插件一一对应。
 - 两种运行模式、同一份代码：**独立模式**（宿主未装配内核：宿主提供 `ITenantContext` 或用内置 `SingleTenant`；权限点经 `[Permission]` 特性注册、角色与授权用库自带表与 API；任意 OIDC 发行方或嵌入 `Qian.Identity.Server`；标准 `IConfiguration`，Apollo 可选；Outbox 用宿主 DbContext）与**平台模式**（内核接管注册表、两层生命周期、租户级配置、能力目录、权益开关）。切换不改业务代码。
 - 隔离规则：组件库只依赖 `Kun.*` 与 `Qian.*.Abstractions`，彼此只经 Abstractions 引用；各库只拥有自己的 schema；多租户安全默认（fail-closed、RLS）在独立模式同样生效，需显式 `SingleTenant` 才能关闭。
@@ -234,7 +236,7 @@ S1 到 S3 期间必须提前做对、否则 S4 返工的设计（S1 起生效）
 
 **已拍板（2026-10-07，ADR-019 §7）**：
 - 安装入口与组件模型：由 ADR-020 定义（`qian add`、`.qian-plugin/plugin.json`、`.qian/marketplace.json`）；D19.2 / D19.4 的装配表述以 ADR-020 为准。
-- 许可证：Qian 包族、`qian` CLI、yue 一律 Apache-2.0；S3 商业组件另定（理由与可回退条件见 ADR-020 §7 第 6 条）。
+- 许可证：Qian 包族、`qian` CLI、前端框架一律 Apache-2.0；S3 商业组件另定（理由与可回退条件见 ADR-020 §7 第 6 条）。
 - 分发渠道：S1 GitHub Packages 私有；S2 末或首个外部宿主试用时公开到 nuget.org / npm（前提：PublicApiAnalyzers 门禁与 0.x → 1.0 SemVer 策略就位）。
 - 「外部应用清单」：不单独立项——非 .NET 外部应用以「只含声明的组件文件夹」接入（无 `src/`），S1 不专门交付，S3 随 ISV 入驻给出模板。
 - 元包：S1 不提供 `Qian.All` / `Qian.Platform`，profile 的组合包承担「一组包一起装」的职责。
@@ -250,7 +252,7 @@ S1 到 S3 期间必须提前做对、否则 S4 返工的设计（S1 起生效）
 
 **推荐**（ADR-020 D20.1–D20.11 浓缩）
 1. 一切皆插件，没有特权内核：运行时只剩极小的 `Qian.Runtime`（上下文 `ctx`、服务注册、类型化事件、可逆副作用、加载器）；租户、身份、鉴权、文件、配置、网关、事件、审计、低代码运行时、Agent 门面全部是插件，向共享上下文贡献服务（`ctx.Tenancy`、`ctx.Identity`、`ctx.Authz`、`ctx.Files`…）；原 `qian.kernel` 的注册表、生命周期控制器、能力目录、契约仓库改为普通插件（`qian.registry`、`qian.lifecycle`、`qian.capabilities`），每一项都能从配置替换。
-2. 插件最小接口 = `Inject` + `Apply`：声明依赖的服务键，依赖就绪才启动，装载顺序由依赖表达；所有注册经 `ctx.Effect()` 返回释放函数，卸载 / 重载 / teardown 时逆序撤销。.NET 落地 `IQianPlugin`（keyed services + `Kun.Mediator`），TypeScript 落地 `@qian/runtime`（yue 外壳也是一棵插件树），语义相同。
+2. 插件最小接口 = `Inject` + `Apply`：声明依赖的服务键，依赖就绪才启动，装载顺序由依赖表达；所有注册经 `ctx.Effect()` 返回释放函数，卸载 / 重载 / teardown 时逆序撤销。.NET 落地 `IQianPlugin`（keyed services + `Kun.Mediator`），TypeScript 落地 `@qian/runtime`（前端框架外壳也是一棵插件树），语义相同。
 3. 事件即扩展点，五种分发模式（`emit` / `waterfall` / `parallel` / `serial` / `bail`）；定义处标注模式，CI 校验声明与调用点一致并生成「生产方与消费方」映射；拦截与策略优先用事件，直接能力调用优先用服务方法。
 4. 能力按 seam 三角色拆分：Service Definition（拥有 `ctx.<key>`，放 `Qian.<X>.Abstractions`）+ Provider（`Qian.<X>.<Provider>`）+ Consumer（含面向模型的工具）；扩展插件只依赖 Definition，换 Provider 不动 Consumer。D19 的 Abstractions / 实现分层据此落位。
 5. 作用域两层扁平：任一注册要么全局、要么归属恰好一个 scope（S1：租户、应用、Agent 会话）；带作用域的注册遮蔽同名全局项；`restrict` 过滤全局集合、多个取交集，被过滤项不出现在目录与提示词里且拒绝执行；scope 不继承。**租户启用插件 = 在租户 scope 挂载其配置条目；租户定制 = 带作用域的遮蔽注册**（取代 D2 的租户级生命周期与「预装 + 开关」）。
@@ -260,7 +262,7 @@ S1 到 S3 期间必须提前做对、否则 S4 返工的设计（S1 起生效）
 9. Agent 原生表面是一等公民、S1 起：skill、agent、command、hook、MCP 服务器、tool、提示词片段 S1 即受支持；模型可见的一切注册在 `ctx.Tools` 等注册表并受 scope 过滤；`AGENTS.md` 进每个仓库与包；配置目录 / 模块图 / 事件图 / seam 图由代码生成并设 CI 新鲜度门禁；S4 `extensions` 建立在同一装载器上，S1 只开放给人类 CLI。
 10. 与 Kun、NuGet 的关系：D19 保留为代码部分的打包规则，`AddQian<X>()` 只是 `Apply` 内部细节；`Qian.Runtime` 是组件库唯一必需的 Qian 依赖，组件库不依赖 `qian.registry` / `qian.lifecycle` 等插件；Kun 的 `AddKunXxx()` 包装为插件，`Kun.*` 不改；`gateway` 等边缘 profile 可 AOT，`platform` profile 不承诺 AOT。热重载：声明式表面 S1 支持运行中重载，代码插件热装卸 S2 可选、默认进程重启。
 
-**备选**（ADR-020 §4，均放弃）：保留 D2 / D3 只补一个 CLI（内核仍是特权层、租户开关仍在数据库、Agent 表面仍在 S4）；.NET 侧直接采用现成的 TypeScript 运行时（经 Node 侧车或 JS 引擎，与 D2「不引入进程共享的服务端 JS 引擎」冲突）；用 .NET 现有模块框架（传统「模块 + 特权内核」，无 scope、可逆副作用与 patch 分层）；声明式表面全部交给 iClaw 托管（组件无法脱离 iClaw 独立使用，违反 D19）。
+**备选**（ADR-020 §4，均放弃）：保留 D2 / D3 只补一个 CLI（内核仍是特权层、租户开关仍在数据库、Agent 表面仍在 S4）；.NET 侧直接采用现成的 TypeScript 运行时（经 Node 侧车或 JS 引擎，与 D2「不引入进程共享的服务端 JS 引擎」冲突）；用 .NET 现有模块框架（传统「模块 + 特权内核」，无 scope、可逆副作用与 patch 分层）；声明式表面全部交给下游智能体平台托管（组件无法脱离下游智能体平台独立使用，违反 D19）。
 
 **明确不做**：不再按物理形态做顶层分类；不把「预装全部 module + 数据库开关」作为租户启用的唯一路径（S1 预装仍是 `platform` profile 的默认组合包，租户开关改为 scope patch）；不维护第二套清单格式；不把现成 TypeScript 运行时的源码搬进 .NET（.NET 侧自研同语义运行时）；不在 S1 做代码插件热装卸；不为第三方代码打开共享进程（D2 信任等级规则保留，映射到 `policy.tier` 与 `policy.sandbox`）。
 
@@ -270,7 +272,7 @@ S1 到 S3 期间必须提前做对、否则 S4 返工的设计（S1 起生效）
 3. `qian` CLI：单一 Node / TypeScript 实现、发布到 npm，`npx qian@latest` 为一键入口，Node ≥ 22 为前置；`dotnet qian` 薄包装（定位并调用 Node 版 CLI、缺 Node 时提示安装）为 S1 可选 P2。
 4. 官方市场仓库：与 Qian 同组织下的独立仓库 `qian-plugins`，根目录 `.qian/marketplace.json`；S1 私有，S3 随许可证评估公开；社区发现用 GitHub topic `qian-plugin`。
 5. 代码插件热装卸不进 S2 核心交付；S2 内由 RT 领域做时间盒 5 天的 spike 验证 collectible `AssemblyLoadContext` 与 Kun 约束，结论写回 ADR-020；生产默认滚动重启，声明式表面热重载 S1 不变。
-6. 许可证：Qian 包族、`qian` CLI、yue 一律 Apache-2.0，S3 商业市场与计费组件的许可证到 S3 再定；公开 feed：S1 GitHub Packages（.NET 包公开可见、安装需令牌，TS 包私有，R93），S2 末或首个外部宿主试用时公开到 nuget.org 与 npm（前提：PublicApiAnalyzers 门禁与 0.x → 1.0 的 SemVer 策略就位）。
+6. 许可证：Qian 包族、`qian` CLI、前端框架一律 Apache-2.0，S3 商业市场与计费组件的许可证到 S3 再定；公开 feed：S1 GitHub Packages（.NET 包公开可见、安装需令牌，TS 包私有，R93），S2 末或首个外部宿主试用时公开到 nuget.org 与 npm（前提：PublicApiAnalyzers 门禁与 0.x → 1.0 的 SemVer 策略就位）。
 7. CLI 遥测：默认不采集；S2 提供 opt-in `qian telemetry on`，只采集命令名、CLI 版本、操作系统与匿名安装 id，不含路径、租户与代码；私有化部署可在 profile 中禁用。
 8. `qian init --template` 模板名统一为 specs/component-model.md §9.1 的集合（R42），后续新增模板在 spec 登记。
 
@@ -281,16 +283,16 @@ S1 到 S3 期间必须提前做对、否则 S4 返工的设计（S1 起生效）
 - R30：规范术语「平台插件」（`policy.tier: system`，`platform` profile base 组合包成员）；「系统插件」保留为别名，UI 文案用「平台插件」。
 - R31：原可部署单元 ↔ v2 落位定稿表（`qian-platform` → profile `platform`；`qian-gateway` → profile `gateway`，可 AOT；`qian-identity` → profile `identity`；`qian-shell` 不是 profile，为 `platform` 的 `shell` 组合包；`qian-model-gateway-adapter` → `model-gateway` 组合包，默认挂 `platform`、可选独立 profile；S2 `qian-lowcode` / `qian-workflow` → profile `lowcode` / `workflow`；S2 `qian-file-preview` → 挂在 `lowcode` 的 `file-preview` 组合包；`standalone` = 消费者宿主装最小组合包；`minimal` = 测试与 SDK 用最小树），表落在 prd/README 命名约定与 ROADMAP S1 核心交付；profile 可以被 patch 合并或拆分，表中为 S1 默认。
 
-## D21 产品族结构：Kun / Qian / yue 的定位、仓库关系与统一文档
+## D21 产品族结构：Kun / Qian / 前端框架的定位、仓库关系与统一文档
 
 > 2026-10-07 新增：产品负责人提问「Kun 和 Qian 如何定位，是不是创建一个大的项目关联起来各个子项目；Kun 也需要体现在文档中」。详见 ADR-021（Accepted）。D1 的消费方式（NuGet + CalVer 锁版本、不复制源码）不变。
 
 **推荐**
-1. 三层口径：Kun = 框架层（面向任何 .NET 微服务的底座 SDK，无产品观点的通用基础设施）、Qian = 平台层（基于 Kun 的多租户 PaaS：极小运行时 + 平台插件 + profile + CLI + 市场）、yue = 前端层（组件库与外壳）。对外说「Qian 平台基于 Kun 框架构建，前端使用 yue 组件库」；不说「Kun 是 Qian 的子项目」（Kun 有独立下游与发布节奏），也不说「Qian 是 Kun 的扩展」。
-2. 不建大单仓、不建 submodule 元仓库（ADR-001 §4 已否决）。「大项目」= 产品族，用四样东西关联：一个 GitHub 所有者（同一所有者等于一段包源配置、`qian-plugins` 不再占位；2026-10-07 拍板为 `idadawn`，Kun 从 CavaiLAB 迁入，因为 iClaw 源码与其余仓库都在 `idadawn`）、一个文档站（Qian 文档覆盖整个产品族，Kun 为第 3 部分第一节）、一张自动生成的版本矩阵（Qian、Kun CalVer、yue、.NET / Node / K3s）、一个看板（跨仓库工作在 `pm/` 的 KUN 领域跟踪，kun 仓库 PR 回链）。
+1. 三层口径：Kun = 框架层（面向任何 .NET 微服务的底座 SDK，无产品观点的通用基础设施）、Qian = 平台层（基于 Kun 的多租户 PaaS：极小运行时 + 平台插件 + profile + CLI + 市场）、前端框架 = 前端层（组件库与外壳）。对外说「Qian 平台基于 Kun 框架构建，前端使用前端框架组件库」；不说「Kun 是 Qian 的子项目」（Kun 有独立下游与发布节奏），也不说「Qian 是 Kun 的扩展」。
+2. 不建大单仓、不建 submodule 元仓库（ADR-001 §4 已否决）。「大项目」= 产品族，用四样东西关联：一个 GitHub 所有者（同一所有者等于一段包源配置、`qian-plugins` 不再占位；2026-10-07 拍板为 `idadawn`，Kun 从 CavaiLAB 迁入，因为下游智能体平台源码与其余仓库都在 `idadawn`）、一个文档站（Qian 文档覆盖整个产品族，Kun 为第 3 部分第一节）、一张自动生成的版本矩阵（Qian、Kun CalVer、前端框架、.NET / Node / K3s）、一个看板（跨仓库工作在 `pm/` 的 KUN 领域跟踪，kun 仓库 PR 回链）。
 3. Kun 版本单点：`Directory.Packages.props` 的 `KunVersion` 属性，全部 `Kun.*` 引用它；文档同步与版本矩阵读同一属性。
 4. Kun 文档进站：真相源在 kun 仓库 `docs/`，Qian 站按锁定版本镜像白名单内容到 `/sdk/kun/`、DocFX 生成 API；每页横幅注明来源与「以代码为准」（D1.8）；Qian 只手写一页「与 Qian 的关系」。首版 docs-site.md 的「Kun 外链不重写」作废。
-5. 全站 frontmatter 加 `project`（qian / kun / yue）；各仓库 README 开头同一段产品族地图。
+5. 全站 frontmatter 加 `project`（qian / kun / 前端框架）；各仓库 README 开头同一段产品族地图。
 
 **备选**：新建专用组织（公开形象更干净，但 Kun 的 feed、CI 与其它下游都要改源；S3 公开前再评估）；Kun 自建文档站（单人维护无带宽、读者重叠；否决）；把 Kun 文档复制改写进 Qian（双真相源；否决）。
 
@@ -298,7 +300,7 @@ S1 到 S3 期间必须提前做对、否则 S4 返工的设计（S1 起生效）
 
 ### contracts/v0 默认裁决 R45–R53（S1-DEC-010，2026-10-08）
 
-S1-AGT-001 写契约时的 8 条默认值由 Claude 在产品负责人授权下裁决：R45 错误码大写下划线、OAuth `error` 值仍小写；R46 业务错误只用 409 / 422，404 一律 `NOT_FOUND`，配额类为 422 业务错误；R47 `AUTHZ_DENIED` 平台内置；R48 R32 的 403 原因即错误码（`PLUGIN_NOT_ENTITLED` / `PLUGIN_NOT_MOUNTED` / `PLUGIN_RESTRICTED` / `PLUGIN_DEPENDENCY_PENDING`，`message` 带层级、`pointer` 指向 patch 条目，ErrorDetail 不加 `details`）；R49 `tenant_id` 可为 null，发往 iClaw 的不转发 null；R50 字段级码 + `pointer`，ADR-011 D11.5 在 S2 映射；R51 `schemaSha256` 用 RFC 8785 JCS；R52 `humanOnly` = `agent.expose: false` + 服务端 `ACTION_HUMAN_ONLY`；R53 `draft` 保留到 S1 第 1 波消费方全部 review，由 S1-AGT-002 统一去掉（R119：改由 S1-AGT-005 承接）；R80 补注：届时将 `x-status: draft` 改写为 `x-status: frozen`。原文见 contracts/v0/README.md 第 8 节。 执行补注（2026-10-24，S1-AGT-005）：上述五个消费方均已 done，六份 v0 Schema 统一改写为 frozen，开始执行 additive-only。
+S1-AGT-001 写契约时的 8 条默认值由 Claude 在产品负责人授权下裁决：R45 错误码大写下划线、OAuth `error` 值仍小写；R46 业务错误只用 409 / 422，404 一律 `NOT_FOUND`，配额类为 422 业务错误；R47 `AUTHZ_DENIED` 平台内置；R48 R32 的 403 原因即错误码（`PLUGIN_NOT_ENTITLED` / `PLUGIN_NOT_MOUNTED` / `PLUGIN_RESTRICTED` / `PLUGIN_DEPENDENCY_PENDING`，`message` 带层级、`pointer` 指向 patch 条目，ErrorDetail 不加 `details`）；R49 `tenant_id` 可为 null，发往下游智能体平台的不转发 null；R50 字段级码 + `pointer`，ADR-011 D11.5 在 S2 映射；R51 `schemaSha256` 用 RFC 8785 JCS；R52 `humanOnly` = `agent.expose: false` + 服务端 `ACTION_HUMAN_ONLY`；R53 `draft` 保留到 S1 第 1 波消费方全部 review，由 S1-AGT-002 统一去掉（R119：改由 S1-AGT-005 承接）；R80 补注：届时将 `x-status: draft` 改写为 `x-status: frozen`。原文见 contracts/v0/README.md 第 8 节。 执行补注（2026-10-24，S1-AGT-005）：上述五个消费方均已 done，六份 v0 Schema 统一改写为 frozen，开始执行 additive-only。
 
 ### 文档站 Kun 小节默认裁决 R54–R62（S1-DEC-011，2026-10-08）
 
@@ -343,7 +345,7 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 - R69：DEC-018 所说「QA-002 总目标」不是 S1-QA-002 的验收；S1-RT-011 依赖 S1-RT-014。
 - R70：DEC-014–018 的批准只有 cody 自述，补确认前按默认裁决继续生效；产品负责人 2026-10-13 已在聊天中确认，留痕见各任务文件「复核备注」。
 - R71：任务日志必须署实际代理名，先建档再交付。
-- R72：文档站换用 `@idadawn/yue-tokens`（S1-DOCS-004），yue 规格令牌三项勾选、暗色选择器与实现一致。
+- R72：文档站换用 `设计令牌包`（S1-DOCS-004），前端框架规格令牌三项勾选、暗色选择器与实现一致。
 - R73：DEP-001 的集群事实经只读核验部分确认，未覆盖项写明；Harbor OCI 制品与 egress 动态放行移交 S1-RT-013 / S1-DEP-004。
 - R74：修复状态表、PRD 7.1 第 4 项、RT-003 / RT-016 措辞、fixture 会话变量、Apollo 失败原因断言与本机测试前置对齐。
 
@@ -362,15 +364,15 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 | Q5 | 是否接受 PostgreSQL 为唯一一等库、不支持 MySQL/国产库 | 接受 |
 | Q6 | 默认隔离策略共享库 + RLS，独立库作 S3 付费选项 | 是 |
 | Q7 | Kun 缺口修复走上游 PR 还是 Qian 补丁包；Kun 维护人与响应节奏 | 上游 PR 优先，设 1 个迭代回合入期限，否则补丁包 |
-| Q8 | Apollo：MySQL 托管还是集群内；首发版本；是否与 iClaw 共用 | 集群内 operator 先跑 staging，生产托管；2.5.x；不共用 |
+| Q8 | Apollo：MySQL 托管还是集群内；首发版本；是否与下游智能体平台共用 | 集群内 operator 先跑 staging，生产托管；2.5.x；不共用 |
 | Q9 | S3 是否允许第三方任意代码容器上架 | 不允许，只开放 package / function / connector / 受限 ui |
 | Q10 | 元数据应用包默认分发模式 | 默认 managed，template 作为可选 |
 | Q11 | 是否保留代码生成 | 不作为主轨；S2 后期可选薄壳 |
 | Q12 | 前端组件底座：接受路线 A 自建数据组件风险 | 接受，首迭代设验证门 |
 | Q13 | S2 是否交付 H5 表单渲染器 | S2 只做 PC 响应式，预留端覆盖 |
 | Q14 | 流程 S2 最小集：加签/会签延后计算/子流程/超时哪些升为必做 | 子流程与超时催办升为必做，加签减签与候选人保持可选 |
-| Q15 | 与 iClaw：租户权威归属、是否共用 Authentik / S2S / Usage Ledger | 租户权威归 Qian；共用 Authentik（运维侧）与 Higress；S2S 各签各的但 claim 同形；Usage Ledger 待 S3 |
-| Q16 | 生产集群是否与 iClaw 共用 | 共用集群但独立节点池，达到一定租户数再拆 |
+| Q15 | 与下游智能体平台：租户权威归属、是否共用 Authentik / S2S / Usage Ledger | 租户权威归 Qian；共用 Authentik（运维侧）与 Higress；S2S 各签各的但 claim 同形；Usage Ledger 待 S3 |
+| Q16 | 生产集群是否与下游智能体平台共用 | 共用集群但独立节点池，达到一定租户数再拆 |
 | Q17 | 模型网关：GPU 归属、接入范围 | 先 LLM + Embedding；GPU 归属你定 |
 | Q18 | MFA 是否 S1 必做；等保/商密要求 | TOTP S1 做；商密不做假设，需你确认 |
 
@@ -409,8 +411,8 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 | Q37 | 后台壳多面策略 | 统一一个壳，按「平台控制台 / 应用」上下文切换，与插件外壳模型一致；不采用三面新窗口 |
 | Q38 | 布局模式与偏好 | S1 单一侧栏布局；多布局与偏好抽屉 S3 可选 |
 | Q39 | 富文本 / Markdown 编辑器 | 五份调研均未覆盖，S2 前补一次选型调研 |
-| Q40 | iClaw 代码复用授权 | iClaw 与 Qian 同属一个所有者，允许搬代码；但只搬审计拦截器、租户主数据模型、OIDC 授权码实现、通知通道范式四处，其余只借鉴思路 |
-| Q41 | yue 分发渠道 | 私有 npm 为主；shadcn 私有 registry + MCP Server S3 可选、S4 必做 |
+| Q40 | 下游智能体平台代码复用授权 | 下游智能体平台与 Qian 同属一个所有者，允许搬代码；但只搬审计拦截器、租户主数据模型、OIDC 授权码实现、通知通道范式四处，其余只借鉴思路 |
+| Q41 | 前端框架分发渠道 | 私有 npm 为主；shadcn 私有 registry + MCP Server S3 可选、S4 必做 |
 
 **基线之间的矛盾裁决（汇编 §3.5）**
 
@@ -419,14 +421,14 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 | IdP 形态 | 以 K/S 为准：OpenIddict 自建唯一 issuer；P 基线的「RP 侧 module + 托管 IdP」表述作废 |
 | 企微/钉钉/飞书连接器 | S1 必做：通用 OIDC + 企业微信（扫码与工作台免登）；钉钉、飞书 S2 必做；ISV 第三方应用模式 S3 |
 | refresh 令牌与单点登出 | S1 必做（K/S） |
-| 审计路径 | 以语义定：实体级审计必须与业务同事务写入 `AuditLog` 并经 Outbox 发事件（借 iClaw 拦截器写法）；命令级哈希链补 PostgreSQL 持久化；事后不同事务的拦截器弃用。具体落在哪个 Kun 包由 ADR 定 |
+| 审计路径 | 以语义定：实体级审计必须与业务同事务写入 `AuditLog` 并经 Outbox 发事件（借下游智能体平台拦截器写法）；命令级哈希链补 PostgreSQL 持久化；事后不同事务的拦截器弃用。具体落在哪个 Kun 包由 ADR 定 |
 | Wasm `function` 运行时 | S2 可选：公式与规则先用 JSON AST 表达式解释器；Wasm 在 ISV 函数插件（S3）前落地，ABI 在 S2 中期拍板 |
 | 打印 | S2 必做（模板、版本、数据绑定、浏览器打印）；打印设计器 S2 后期 |
 | 工作台 | S3 必做（S2 只有审批四列表 + 应用入口） |
 | 短信渠道 | S1 必做（登录验证码与找回密码依赖它） |
 | 公告 | S3 可选 |
 | DTCG 令牌 | 令牌三层结构 S1 必做；DTCG 格式导出 S1 可选 |
-| Module Federation 2 运行时 | S1 必做（K/P），U 基线的分层表补上 `@yue/shell` 对 MF2 的依赖 |
+| Module Federation 2 运行时 | S1 必做（K/P），U 基线的分层表补上 `前端外壳包` 对 MF2 的依赖 |
 
 ### 验收复核裁决 R75–R77（S1-RT-006 复核，2026-10-14）
 
@@ -494,7 +496,7 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 
 ### 租户批次排序裁决 R95–R97（S1-DEC-022，2026-10-16）
 
-产品负责人 2026-10-16 要求把看板上租户领域的全部待办按顺序交 cody 一次做完并「确保租户可用」。Claude 按 S1-DEC-021 的做法把伸进别的领域的验收移交到归属任务、解除不必要的依赖，产品负责人 2026-10-16 回复「认可 R95–R97」并自行把执行提示词交给 cody；顺序、暂缓说明（S1-TEN-005 等 yue 第 2 波）、「租户可用」收口检查与执行提示词见 `pm/tasks/S1-DEC-022.md`，有异议时新建决策任务。
+产品负责人 2026-10-16 要求把看板上租户领域的全部待办按顺序交 cody 一次做完并「确保租户可用」。Claude 按 S1-DEC-021 的做法把伸进别的领域的验收移交到归属任务、解除不必要的依赖，产品负责人 2026-10-16 回复「认可 R95–R97」并自行把执行提示词交给 cody；顺序、暂缓说明（S1-TEN-005 等前端框架第 2 波）、「租户可用」收口检查与执行提示词见 `pm/tasks/S1-DEC-022.md`，有异议时新建决策任务。
 
 - R95：S1-TEN-002 收口。到期扫描交付为 `qian.tenancy` 的幂等能力（能力目录条目，供 7.13 调度器以 callback 类型调用，不标 `humanOnly`），TEN-002 以进程内 IT 验证「到期 → 宽限 + `tenant.expired.v1` + 业务入口即时拒绝」；调度器准点触发与 staging E2E 移交 S1-SCH-002（callback 类型的首个真实作业），「新登录被拒」移交 S1-IDP-003（登录流水线按租户状态拒绝 pending / grace / suspended），「已登录会话 ≤ 60s 失效」移交 S1-IDP-004（会话中心订阅 `tenant.expired.v1` / `tenant.suspended.v1`）。状态迁移端点 `:activate|suspend|resume` 与 S1-TEN-006 同一资源、同一平台主体授权与审计路径；审批钩子是 `Qian.Tenancy.Abstractions` 定义的进程内事件，不进 hooks.json 矩阵（R92），S1 无监听器时放行。TEN-002 depends 改为 S1-TEN-001、S1-TEN-006、S1-EVT-001、S1-AZ-003，不再依赖 S1-SCH-001 / S1-IDP-004。
 - R96：S1-TEN-003 收口。验收第 3 条「租户管理员可登录」改为「管理员指针与 tenant.owner 初始授权已写入」，登录复验归 S1-IDP-003（R81 同口径）。步骤表里「创建租户管理员 Membership」「发通知」经 `qian.identity` / `qian.notify` 的端口调用，组件缺席时该步记 `skipped` 并写原因（不记成功、不算失败），整轮保持可重入，端口就位后重跑只补这些步；「写初始授权」经 `Qian.Authz.Abstractions` 的最小授予端口（为租户内主体绑定内置角色，幂等；TEN-003 顺手加入 Definition、`AuthzPlugin` 提供、登记 PublicAPI，并向 S1-AZ-005 登记，AZ-005 的授权 API 建在其上），`qian.tenancy` 不直写 authz 表、不引用 Provider 包；派发 `tenant/provisioned` 之后再写初始授权（S1-AZ-002 登记的时序）。S1-TEN-006 的 `POST /api/tenancy/tenants` 进入该编排（创建主档为第 1 步），重跑入口由 TEN-003 定并记入任务日志；TEN-003 depends 加 S1-AZ-002。
@@ -551,7 +553,7 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
     - ADR-017 §9、deploy/baseline 与 deploy/images 的 README 同步改写。
   - **前置链**按各自 wave 推进，本条不另排期：
     - 身份 / 网关：S1-IDP-002 → S1-IDP-005 → S1-GW-001。
-    - 外壳：S1-YUE-006、S1-YUE-007 与 S1-IDP-009 → S1-IDP-010 → S1-YUE-009，最后到 S1-YUE-001。其中 IDP-009 依赖 S1-IDP-003。（R109 补注：S1-YUE-009 拆分后只含 `@yue/sdk`，不再依赖 S1-YUE-007 与 S1-IDP-010，外壳一段为 S1-YUE-006 与 S1-YUE-009 → S1-YUE-001）
+    - 外壳：S1-YUE-006、S1-YUE-007 与 S1-IDP-009 → S1-IDP-010 → S1-YUE-009，最后到 S1-YUE-001。其中 IDP-009 依赖 S1-IDP-003。（R109 补注：S1-YUE-009 拆分后只含 `前端 SDK 包`，不再依赖 S1-YUE-007 与 S1-IDP-010，外壳一段为 S1-YUE-006 与 S1-YUE-009 → S1-YUE-001）
 
 ### 验收复核裁决 R107（S1-TEN-002 / S1-TEN-004 复核，2026-10-16）
 
@@ -559,18 +561,18 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 
 - R107：到期扫描能力 `qian.tenancy/tenant.scan-expired` 对模型不可见，契约 `agent.expose` 改为 `false`。R95 写「不标 humanOnly」时把 humanOnly 读成了「只许人调用」；R52 的定义是 `agent.expose: false` = 不派生为模型可见工具、服务端拒绝 `principal_kind = agent`，服务主体不受影响——调度器（S1-SCH-002 的 callback）是服务主体，照样可调。实现里 `TenantExpiryCapability.InvokeAsync` 只接受 global 的 `qian.tenancy` / `qian.scheduler` 调用方，与 `expose: true` 自相矛盾（目录把它派生给 Agent，调用却必拒）。R95 验收 2 的括注据此更正为「不派生为模型工具、服务主体可调」；契约、`TenantStateMetadata`、`TenantStateMachineTests` 的 expose 断言与 README「非 humanOnly」措辞的修改归 S1-TEN-009。S1-TEN-002 / S1-TEN-004 的四条验收按原文成立，done 维持；扫描审计无收尾、`settings.write` 审计追加失败的语义、迁移端点的审计口径一并归 S1-TEN-009。
 
-### yue 第 2 波与租户运营页面批次裁决 R108–R111（S1-DEC-024，2026-10-16）
+### 前端框架第 2 波与租户运营页面批次裁决 R108–R111（S1-DEC-024，2026-10-16）
 
-产品负责人 2026-10-16 想要一个能点的前端页面来测试租户。页面任务 S1-TEN-005 的三个 yue 前置（S1-YUE-007 / 008 / 009）全是 todo：YUE-008 后面排着 S1-FILE-001（其前置 S1-AZ-004 未开工），YUE-009 后面排着 S1-IDP-010 → S1-IDP-009 → S1-IDP-003 → S1-IDP-002。Claude 按 S1-DEC-021 / 022 的做法作默认裁决，把伸进别的领域的验收移交到归属任务，解除互锁与不必要的依赖，产品负责人 2026-10-16 回复「认可 R108–R111」并自行把执行提示词交给 cody 与第二人；产品负责人随后要求把不在页面路径上的 S1-YUE-006 也改好口径、便于交第二人并行（R111）。顺序、「页面可用」收口检查与执行提示词见 `pm/tasks/S1-DEC-024.md`，有异议时新建决策任务。
+产品负责人 2026-10-16 想要一个能点的前端页面来测试租户。页面任务 S1-TEN-005 的三个前端框架前置（S1-YUE-007 / 008 / 009）全是 todo：YUE-008 后面排着 S1-FILE-001（其前置 S1-AZ-004 未开工），YUE-009 后面排着 S1-IDP-010 → S1-IDP-009 → S1-IDP-003 → S1-IDP-002。Claude 按 S1-DEC-021 / 022 的做法作默认裁决，把伸进别的领域的验收移交到归属任务，解除互锁与不必要的依赖，产品负责人 2026-10-16 回复「认可 R108–R111」并自行把执行提示词交给 cody 与第二人；产品负责人随后要求把不在页面路径上的 S1-YUE-006 也改好口径、便于交第二人并行（R111）。顺序、「页面可用」收口检查与执行提示词见 `pm/tasks/S1-DEC-024.md`，有异议时新建决策任务。
 
-- R108：yue 组件任务在靶场对契约夹具与 mock 验收，真实后端的 E2E 归提供方或消费方任务。
-  - S1-YUE-007 验收 1「用 SchemaForm + DataTable 实现参考应用的客户 CRUD」改为在靶场（`apps/yue-playground`）用 SchemaForm 完成新增 / 编辑弹层、只读详情与提交，请求经 `@yue/sdk` 的 mock 中间件。参考应用 `qian.sample.crm` 没有前端，后端只有服务主体可调的列表、详情与新建，没有编辑与排序筛选；参考应用版本的 CRUD 已在 S1-QA-007 验收 2。真实后端上第一个 SchemaForm + DataTable 的 CRUD 由 S1-TEN-005 承担（R110）。
+- R108：前端框架组件任务在靶场对契约夹具与 mock 验收，真实后端的 E2E 归提供方或消费方任务。
+  - S1-YUE-007 验收 1「用 SchemaForm + DataTable 实现参考应用的客户 CRUD」改为在靶场（`apps/yue-playground`）用 SchemaForm 完成新增 / 编辑弹层、只读详情与提交，请求经 `前端 SDK 包` 的 mock 中间件。参考应用 `qian.sample.crm` 没有前端，后端只有服务主体可调的列表、详情与新建，没有编辑与排序筛选；参考应用版本的 CRUD 已在 S1-QA-007 验收 2。真实后端上第一个 SchemaForm + DataTable 的 CRUD 由 S1-TEN-005 承担（R110）。
   - S1-YUE-008 去掉对 S1-FILE-001 的依赖。验收 1 的「参考应用客户列表」改为靶场列表对 mock 中间件完成服务端分页 / 排序 / 筛选与列显隐，参考应用版本同在 QA-007。验收 2「Upload 分片上传经 7.7 成功；秒传命中返回已有 id」与 S1-FILE-003 验收 1 同义，合并到 FILE-003：分片端点 `uploads:init`、`parts`、`complete`、`lookup` 由 FILE-003 交付，FILE-001 只有单次预签名。YUE-008 改为按 FILE-003 背景所列契约，对 mock 完成分片、哈希、进度、断点续传与秒传命中的浏览器测试；FILE-003 depends 加 S1-YUE-008。原口径下两边互锁：YUE-008 的 Upload E2E 需要 FILE-003 的分片端点，FILE-003 的 E2E 又需要 YUE-008 的 Upload。PRD 7.7 写「MD5 秒传」而契约以 `sha256` 查询，Upload 按契约做，口径统一归 FILE-003。验收 3 的「story」读作 Rspress 场景示例（ADR-022 已移除 Storybook）。
   - YUE-007 与 YUE-008 的 depends 加 S1-YUE-009（mock 中间件与 i18n）。
   - PRD 7.15.2 验收第 4 条（参考应用 CRUD）由 S1-QA-007 承担；第 5 条拆为角色授予（S1-AZ-005，R109）与 Upload（S1-FILE-003）。
 - R109：S1-YUE-009 拆分，解除对 S1-IDP-010 的依赖。
-  - YUE-009 只保留 `@yue/sdk`（注册表 API、`PlatformClient`、请求拦截器链、i18n、mock 中间件、`.d.ts` 契约与 SSE 事件类型），depends 改为 S1-YUE-005，排在 S1-YUE-007 之前：form、data、页面与 biz 都经它取数、取文案、用 mock 测试。
-  - `@yue/biz` 基础版另立 S1-YUE-010，depends S1-YUE-007、S1-YUE-008、S1-YUE-009。OrganizeSelect 与授权树建在 `@yue/data` 的 Tree / TreeSelect 上，不另做一套树（yue 规格 D3）。
+  - YUE-009 只保留 `前端 SDK 包`（注册表 API、`PlatformClient`、请求拦截器链、i18n、mock 中间件、`.d.ts` 契约与 SSE 事件类型），depends 改为 S1-YUE-005，排在 S1-YUE-007 之前：form、data、页面与 biz 都经它取数、取文案、用 mock 测试。
+  - `业务组件包` 基础版另立 S1-YUE-010，depends S1-YUE-007、S1-YUE-008、S1-YUE-009。OrganizeSelect 与授权树建在 `数据组件包` 的 Tree / TreeSelect 上，不另做一套树（前端框架规格 D3）。
   - 原 YUE-009 验收 1「参考应用用 OrganizeSelect 选部门、UserSelect 选人，数据来自本租户目录」与 S1-IDP-010 验收 2 同义，合并到 IDP-010，IDP-010 depends 加 S1-YUE-010；YUE-010 对 mock 中间件按 PRD 7.4.3 的目录 API 验证选择器。原口径下两边互锁：YUE-009 依赖 IDP-010，IDP-010 的 E2E 又需要 YUE-009 的选择器。
   - S1-TEN-005 验收 2「租户管理页用 OrganizeSelect / UserSelect / RoleSelect / 授权树完成角色授予」与 S1-AZ-005 验收 2 同义，合并到 AZ-005。AZ-005 depends 的 S1-YUE-009 换为 S1-YUE-010，并加 S1-IDP-010（选择器的真实数据源）。
   - S1-YUE-001 仍依赖 S1-YUE-009：外壳只用 sdk。R106「前置链」的外壳一段据此为 S1-YUE-006 与 S1-YUE-009 → S1-YUE-001，S1-IDP-009 → S1-IDP-010 不再在外壳链上（R106 原文处加补注）。
@@ -579,10 +581,10 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
   - **后端补齐**：S1-TEN-006 交付的 `GET /api/tenancy/tenants` 只有 `skip` / `take`，响应没有总数；状态机元数据端点在契约里没有响应 Schema；租户号（小写字母数字、≤ 64）与名称（≤ 200）的约束只在 `PostgresTenantDirectory` 里校验，契约没有，违反时的 400 也不带 `pointer`。TEN-005 顺手补上：列表的可选筛选参数（状态、租户号或名称关键字）、稳定排序与总数；状态机元数据的响应 Schema；新建 / 编辑请求的这两项约束进契约，违反时的 400 带 `pointer`（R50）。契约经 S1-RT-006 准入，只增加可选参数、字段与约束说明，与服务端既有校验一致、向后兼容。这是同一组件的接口补齐，不违背 R85「页面任务是消费方」：端点仍由 qian.tenancy 提供，页面是第一个提出需要的消费方。
   - **移出**：管理员维护（PRD 7.3 API 行的 `GET/PUT /tenants/{id}/admins`，此前没有任务承接）、重置密码与「授权（调 7.14）」另立 S1-TEN-010，depends S1-TEN-005、S1-IDP-003、S1-ENT-001。R81 移交来的「各设管理员，管理员登录后只看到本租户数据」随之归 TEN-010，登录本身仍在 S1-IDP-003 的 R81 条目。角色授予归 S1-AZ-005（R109）。
   - **验收载体**：S1-TEN-006 的真实宿主（Kestrel + JwtBearer RS256 + 受限 PG 应用角色 + 专用平台授权登录写入的超管行）与测试签发的超管令牌。令牌不进 localStorage、URL 与 iframe（PRD 7.15.1 代码审查条）；登录页、令牌刷新与过期弹窗归 S1-YUE-002 / S1-IDP-003。S1-IDP-003 与 S1-TEN-010 交付前，新建表单的管理员按契约直接填 `membershipId` / `subjectId`；开通第 5 步因 `qian.identity` 缺席记 `skipped`，这是 R96 的既定行为，不是测试替身。
-  - **形态**：页面是 `qian.tenancy` 的 `ui` 表面（组件规格 §4.7、yue 规格 §5.1），源码作为 pnpm 工作区包交付，带独立开发入口。MF2 远程打包、`ui/manifest.json`（`ui/v2` Schema 尚未入库）与外壳加载归 S1-YUE-001。
+  - **形态**：页面是 `qian.tenancy` 的 `ui` 表面（组件规格 §4.7、前端框架规格 §5.1），源码作为 pnpm 工作区包交付，带独立开发入口。MF2 远程打包、`ui/manifest.json`（`ui/v2` Schema 尚未入库）与外壳加载归 S1-YUE-001。
 - R111：S1-YUE-006 改口径，可交第二人与本批并行。
-  - `@yue/shell` 是库，`qian.shell` 是用它的部署单元（yue 规格 §5.2）。YUE-006 验收 1「认证页族完成账号密码登录、SSO 回调与多租户二次选择；登录过期弹窗可触发」改为：在靶场经注入的 `AuthProvider` 与 `@yue/sdk` 的 mock 中间件完成，租户切换器同理。接 qian-identity 的真实流程（OIDC code + PKCE、selection_token、令牌重签）与 S1-YUE-002 验收 1 同义，合并到 YUE-002：它已依赖 S1-IDP-003，并经 S1-YUE-001 依赖 YUE-006。以 Authentik 为上游、经通用 OIDC 连接器的 SSO 登录仍以 S1-IDP-007 验收 1 为准，不重复登记。原口径下 YUE-006 只依赖 YUE-005，验收却要 S1-IDP-002 / 003 的真实登录。
-  - YUE-006 depends 加 S1-YUE-009 与 S1-YUE-007：菜单类型注册表建在 `@yue/sdk` 的注册表 API 上（规格 §3.1）；登录表单用 `@yue/form`，shell → form 是同层唯一例外，D3 只留一套表单引擎。验收 3 的「story」读作 Rspress 场景示例（ADR-022）。
+  - `前端外壳包` 是库，`qian.shell` 是用它的部署单元（前端框架规格 §5.2）。YUE-006 验收 1「认证页族完成账号密码登录、SSO 回调与多租户二次选择；登录过期弹窗可触发」改为：在靶场经注入的 `AuthProvider` 与 `前端 SDK 包` 的 mock 中间件完成，租户切换器同理。接 qian-identity 的真实流程（OIDC code + PKCE、selection_token、令牌重签）与 S1-YUE-002 验收 1 同义，合并到 YUE-002：它已依赖 S1-IDP-003，并经 S1-YUE-001 依赖 YUE-006。以 Authentik 为上游、经通用 OIDC 连接器的 SSO 登录仍以 S1-IDP-007 验收 1 为准，不重复登记。原口径下 YUE-006 只依赖 YUE-005，验收却要 S1-IDP-002 / 003 的真实登录。
+  - YUE-006 depends 加 S1-YUE-009 与 S1-YUE-007：菜单类型注册表建在 `前端 SDK 包` 的注册表 API 上（规格 §3.1）；登录表单用 `表单组件包`，shell → form 是同层唯一例外，D3 只留一套表单引擎。验收 3 的「story」读作 Rspress 场景示例（ADR-022）。
   - 第二人在 YUE-009、YUE-007 合入后开工，与 cody 的 YUE-008 / TEN-005 同期，只改 `packages/yue/shell` 与靶场；需要改 sdk、form 或 data 时在任务日志写建议，交 cody 处理。YUE-006 若先合入，TEN-005 可以用 Page / PageHeader，否则用 core 拼骨架。外壳链据此为 YUE-009 → YUE-007 → YUE-006 → YUE-001。
 - **顺序与归属**：一人（cody）串行 S1-YUE-009 → S1-YUE-007 → S1-YUE-008 → S1-TEN-005，TEN-005 转 review 前按 S1-DEC-024「页面可用」在本机真实宿主收口；S1-YUE-010 收尾，不阻塞页面可用。S1-YUE-006 按 R111 交第二人并行，不在 cody 的串行顺序里。
 ### 验收复核裁决 R112–R113（S1-TEN-007 / S1-TEN-008 复核，2026-10-17）
@@ -593,18 +595,18 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 ### 首次发布前契约纠偏 R114（S1-DEC-025，2026-10-17）
 
 产品负责人附五项条件确认 [租户 HTTP v1 基线纠偏](tenancy-http-v1-schema-correction.md)：九项 breaking 必须逐条对应修正前服务端代码和测试，保留规则 ID、前后快照及差异；不改 ignore、fail-on 或准入探针。只因 qian.tenancy 尚未进入平台契约仓库，允许 TEN-008/TEN-011 收口线一次形成首个 v1 发布基线；TEN-005 消费该结果，不再重复修改。后续 v1 收窄必须走 v2 及 R33 的别名、Deprecation 和 successor-version Link。发布前必须带齐服务端约束并有真实边界验收；RT-013 publish 或 DEP-005 发布链一旦跑过，或发现已登记基线，纠偏窗口关闭。观察未知不视为未发布。
-### 产品负责人指示与裁决 R116–R117（yue 组件视觉收口 S1-YUE-011，2026-10-17；原编号 R114–R115 与 S1-DEC-025 的 R114 撞号，idadawn/qian#179 先进 main，2026-10-17 改号）
+### 产品负责人指示与裁决 R116–R117（前端框架组件视觉收口 S1-YUE-011，2026-10-17；原编号 R114–R115 与 S1-DEC-025 的 R114 撞号，idadawn/qian#179 先进 main，2026-10-17 改号）
 
-产品负责人 2026-10-17 判定 yue 现有组件样式不可用，并指示前端组件主要参考 shadcn 与参考平台（产出物一律写「参考平台」）。复核定位到三处基础设施问题：对比度单测把 4.5:1 套到 border / input 等非文字令牌，迫使边框用 neutral-600（亮）/ neutral-300（暗）；全库没有字体栈定义；组件类名用 `*-[var(--x)]` 任意值绕开 Tailwind 主题映射，用不了带透明度的 shadcn 配方。
+产品负责人 2026-10-17 判定前端框架现有组件样式不可用，并指示前端组件主要参考 shadcn 与参考平台（产出物一律写「参考平台」）。复核定位到三处基础设施问题：对比度单测把 4.5:1 套到 border / input 等非文字令牌，迫使边框用 neutral-600（亮）/ neutral-300（暗）；全库没有字体栈定义；组件类名用 `*-[var(--x)]` 任意值绕开 Tailwind 主题映射，用不了带透明度的 shadcn 配方。
 
-- R116：令牌对比度门禁分三类：文字配对（foreground 对 background 等）≥ 4.5:1；控件边界（`--yue-input`、`--yue-ring` 对 background）≥ 3:1（WCAG 1.4.11 非文字对比）；`--yue-border`、`--yue-sidebar-border`、分隔线为装饰性，豁免。`registry.json` 每个语义色令牌标 `contrast: text | boundary | decorative`，`tokenContrasts()`、`check-tokens.mjs` 与 `tokens.test.ts` 按类取阈值；yue 规格 §3.5 / §8 同步。S1-YUE-004 已勾选的「全部语义色 ≥ 4.5:1」保留为历史事实，新口径由 S1-YUE-011 落地。
-- R117：yue 视觉基准与排版口径：视觉语言的唯一基准是 shadcn 以 Base UI 风格生成的组件源码（`components.json` 的 `style: base-nova`、`baseColor: neutral`、`cssVariables: true`），51 个组件逐个比对 className 配方；参考平台只借后台交互习惯（表格工具栏、查询表单、弹层表单、分页位置、按钮顺序），不借视觉、不抄代码。primary 保留品牌蓝（亮色取与白字 ≥ 4.5:1 的档，暗色降一档），其余语义令牌的明度对齐 shadcn neutral 主题（例外：`--yue-input` 等控件边界按 R116 取满足 3:1 的最浅档——shadcn 亮色 0.922 对白底只有约 1.26:1，暗色白 15% alpha 经浏览器 sRGB 合成后对 L = 0.145 背景约 1.47:1，同样要选达标灰（原 3.8:1 估算未按 sRGB 合成，执行时更正；验收以实际合成色为准）；卡片 / 表格 / 分隔线仍用 0.922。产品负责人 2026-10-17 在执行人提出冲突后选定「保留 3:1，输入边界用最浅达标灰」），`--yue-radius` 0.625rem；字体用系统栈（含 PingFang SC / Microsoft YaHei / Noto Sans CJK SC），不打包 webfont，正文与控件文字 14px；`@idadawn/yue-tokens/theme.css` 以 Tailwind v4 `@theme inline` 注册语义令牌，组件只用语义工具类，任意值清零；弹层 Trigger 不再自带裸按钮基类，示例用 `render={<Button />}`。视觉回归基线从 yue 规格 §8 的「S1 可选」改为 S1-YUE-011 必做。ADR-013 D13.1 / D13.7 的技术栈与 Base UI 锁定不变，不引入 Radix / antd 或第二套引擎。
+- R116：令牌对比度门禁分三类：文字配对（foreground 对 background 等）≥ 4.5:1；控件边界（`--yue-input`、`--yue-ring` 对 background）≥ 3:1（WCAG 1.4.11 非文字对比）；`--yue-border`、`--yue-sidebar-border`、分隔线为装饰性，豁免。`registry.json` 每个语义色令牌标 `contrast: text | boundary | decorative`，`tokenContrasts()`、`check-tokens.mjs` 与 `tokens.test.ts` 按类取阈值；前端框架规格 §3.5 / §8 同步。S1-YUE-004 已勾选的「全部语义色 ≥ 4.5:1」保留为历史事实，新口径由 S1-YUE-011 落地。
+- R117：前端框架视觉基准与排版口径：视觉语言的唯一基准是 shadcn 以 Base UI 风格生成的组件源码（`components.json` 的 `style: base-nova`、`baseColor: neutral`、`cssVariables: true`），51 个组件逐个比对 className 配方；参考平台只借后台交互习惯（表格工具栏、查询表单、弹层表单、分页位置、按钮顺序），不借视觉、不抄代码。primary 保留品牌蓝（亮色取与白字 ≥ 4.5:1 的档，暗色降一档），其余语义令牌的明度对齐 shadcn neutral 主题（例外：`--yue-input` 等控件边界按 R116 取满足 3:1 的最浅档——shadcn 亮色 0.922 对白底只有约 1.26:1，暗色白 15% alpha 经浏览器 sRGB 合成后对 L = 0.145 背景约 1.47:1，同样要选达标灰（原 3.8:1 估算未按 sRGB 合成，执行时更正；验收以实际合成色为准）；卡片 / 表格 / 分隔线仍用 0.922。产品负责人 2026-10-17 在执行人提出冲突后选定「保留 3:1，输入边界用最浅达标灰」），`--yue-radius` 0.625rem；字体用系统栈（含 PingFang SC / Microsoft YaHei / Noto Sans CJK SC），不打包 webfont，正文与控件文字 14px；`设计令牌包/theme.css` 以 Tailwind v4 `@theme inline` 注册语义令牌，组件只用语义工具类，任意值清零；弹层 Trigger 不再自带裸按钮基类，示例用 `render={<Button />}`。视觉回归基线从前端框架规格 §8 的「S1 可选」改为 S1-YUE-011 必做。ADR-013 D13.1 / D13.7 的技术栈与 Base UI 锁定不变，不引入 Radix / antd 或第二套引擎。
 
 ### 验收复核裁决 R118（S1-YUE-011 复核，2026-10-17）
 
 产品负责人 2026-10-17 要求验收 S1-YUE-011。第二轮复核发现 Dialog / AlertDialog / Sheet 明暗六张基线未随右上角关闭图标的改动刷新而 CI 仍绿：`maxDiffPixelRatio: 0.001` 在 1280×900 全页截图上放过约 1150 像素，Playwright 裸 `--update-snapshots` 只重写比对失败的图。执行人已在 idadawn/qian#187 修复，本条固化口径。
 
-- R118：yue 视觉基线一致性与像素门禁：（1）基线必须与改动提交一致——样式 PR 中受影响的基线在同一 PR 刷新，复核以基线文件的 git log 对照组件改动提交；（2）像素门禁取绝对值 `maxDiffPixels: 0`（比例阈值保留但不再起作用），刷新只能显式 `--update-snapshots=all`，普通校验把基线目录只读挂载，`scripts/yue-visual.mjs` 与 `tests/gates/yue/visual-cli.test.ts` 拒绝裸参数、`-u`、`changed` / `missing` 与重复模式；（3）门禁盲区须有反例——隐藏弹层关闭图标后比对必须失败，刷新模式下跳过反例；（4）升级 Playwright 须同步视觉镜像版本并重新审阅全部基线。yue 规格 §4.1 第 4 条由「S1 可选、S2 阻断」改为自 S1-YUE-011 起阻断，§8 对应三项按 idadawn/qian#185 / idadawn/qian#186 / idadawn/qian#187 勾选。验收复核结论：S1-YUE-011 十项成立，done 维持；HoverCard / Accordion 的 Trigger 仍以 button 配方为基类，列为观察项，不阻断。
+- R118：前端框架视觉基线一致性与像素门禁：（1）基线必须与改动提交一致——样式 PR 中受影响的基线在同一 PR 刷新，复核以基线文件的 git log 对照组件改动提交；（2）像素门禁取绝对值 `maxDiffPixels: 0`（比例阈值保留但不再起作用），刷新只能显式 `--update-snapshots=all`，普通校验把基线目录只读挂载，`scripts/yue-visual.mjs` 与 `tests/gates/yue/visual-cli.test.ts` 拒绝裸参数、`-u`、`changed` / `missing` 与重复模式；（3）门禁盲区须有反例——隐藏弹层关闭图标后比对必须失败，刷新模式下跳过反例；（4）升级 Playwright 须同步视觉镜像版本并重新审阅全部基线。前端框架规格 §4.1 第 4 条由「S1 可选、S2 阻断」改为自 S1-YUE-011 起阻断，§8 对应三项按 idadawn/qian#185 / idadawn/qian#186 / idadawn/qian#187 勾选。验收复核结论：S1-YUE-011 十项成立，done 维持；HoverCard / Accordion 的 Trigger 仍以 button 配方为基类，列为观察项，不阻断。
 
 ### 验收复核裁决 R119–R123（S1-AGT-002 / S1-AGT-004 / S1-EVT-002 复核，2026-10-23）
 
@@ -630,9 +632,9 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 - R126（落实 ADR-009 D9.8 的「插件生命周期操作」入审计，S1-RT-037 建议裁决 ① ②，产品负责人 2026-10-23 作答「A：提交前追加平台链，未配置则 503」「批准 API 维持 404，租户级操作 503」）：① 租户级生命周期操作（开通、升级、卸载、清除）完成的状态迁移与该租户审计链条目同一可串行化事务（`AppendEnlistedAsync`，与反向权限批准同一做法），只在最终迁移处记一条，钩子重试、续跑、幂等返回不重复记，业务失败不入链。平台级操作（安装、激活、回切、弃用、退役）没有租户，记平台链：审计端口的平台链入口 `AppendPlatformAsync` 是独立事务（专用平台登录，RLS 只放行该登录），挂不进 Lifecycle 的事务，所以在状态变更提交之前追加——审计写不进去则状态不提交；追加成功之后、本事务提交完成之前的任何失败都可能在平台链多留一条孤儿条目（ADR-009 §3 的崩溃窗口取「宁多不漏」，复核以修订行为准）；宿主没配 `chain.platformRole` 或撤下审计时与租户级一样 fail-closed。代价：有生命周期的宿主都要有平台审计登录（Lifecycle 测试宿主、CRM 验收宿主、Dev.TenantOps）。补平台链的同事务入口要改 Audit 的 RLS 与 SECURITY DEFINER 函数，由 S1-AUD-009 承接。② 缺审计时对外口径：管理面批准 API 维持 404（R32 的口径：无权限、跨租户、缺判定端口、缺审计对调用方不可区分，不泄露宿主装配状态）；租户级与平台级生命周期操作（受信调用方）以 503 `LIFECYCLE_AUDIT_UNAVAILABLE`（`operation` 为操作名）拒绝、不改状态；三处都先记宿主级 Warning（Qian.Lifecycle 事件 7 记租户链缺失、事件 8 记平台链缺失，不含载荷），宿主装配错误由日志与无权限、状态冲突区分。复核补记：Lifecycle 对 Audit 与 AuthzSuperadminBypass 的依赖以清单 `optionalInject` 声明，profile 装配（.NET 与 TS）把它当软边——Provider 在树里时先于消费方装载、缺席不报错、经软边回到装载中的条目不算环路；`optionalInject` 不由生成器派生，手写并由单测守住与代码一致，seam 图标「（可选）」并画虚线。补记（2026-10-23，S1-AUD-009，原文不改）：审计端口补上平台链同事务入口 `AppendPlatformEnlistedAsync` 后，① 的平台级操作改为与状态变更同一可串行化事务入平台链——审计写不进去或提交失败时两者都不留，「状态变更提交前追加、孤儿条目宁多不漏」不再适用；平台链未配置、缺同事务函数执行权或撤下审计时的 fail-closed 与 503 口径不变，宿主迁移改用 `AuditPlatformAccess.CreateMigrationSql(platformRole, writerRole, producerRole)`，平台审计登录仍保留（挂载校验、平台链读取与验链、其它平台生产方的独立追加）。
 - R127（S1-RT-038 建议裁决 ③，产品负责人 2026-10-23 在执行会话作答「A」）：缺审计时租户级生命周期操作 503 `LIFECYCLE_AUDIT_UNAVAILABLE` 的 HTTP 渲染用例走真实管理面开户 `POST /api/tenancy/tenants`。租户级操作没有自己的 HTTP 端点（`MapQianLifecycle` 只有诊断 GET 与批准 GET / PUT，批准缺审计是 404，R32），仓内唯一经 HTTP 触发开通的路径是开户第 03 步，而开户先过平台超管旁路、旁路缺审计时自身 403，「撤下审计后再发请求」到不了 Lifecycle；所以由第 02 步的宿主开户器（Kun `ITenantProvisioner`，CRM 宿主原本不登记、编排缺省用 NullTenantProvisioner）在旁路放行之后撤下 audit，第 03 步的开通 503 并经 Tenancy 端点 / ErrorDetail 渲染，断言 503、`application/problem+json`、code 与 operation、步骤原因、租户无安装行与执行记录，重装审计后重发同一请求幂等续跑 201。只有「审计何时撤下」是测试夹具，产品路径与错误渲染都是真实的；备选的仅测试路由（B）与最小渲染单测（C）不采用。用例 `tests/Qian.Sample.Crm.Tests/LifecycleAuditHttpTests.cs`。
 - R128（S1-AUD-009 建议裁决 ①②③，产品负责人 2026-10-23 在执行会话作答）：① 平台链同事务入口不给 `Qian.Audit.Native` 做——`NativeAuditService` 对新成员抛 NotSupportedException、Native README 写明（gateway 的原生组合不装 Lifecycle，当前没有调用方，需要时另立任务）。② RLS 的平台登录分支（current_user 与 session_user 都须是平台登录）一字不改；为 SECURITY DEFINER 函数的属主另加一条分支：tenant_id 为空、无租户 GUC、current_user 是属主、session_user 不是平台登录、属主无任何成员关系（策略求值时查 pg_auth_members，日后被授予成员资格即关闭）；属主复用租户链函数的 writerRole（NOLOGIN、NOINHERIT、无成员关系，非超管无法 SET ROLE 成它，成为它的唯一路径是它拥有的函数），迁移 SQL 为 `AuditPlatformAccess.CreateMigrationSql(platformRole, writerRole, producerRole)` 三参重载（在租户守卫之后、同一迁移事务，多个生产方各执行一次），一参重载保留给只用独立事务入口的宿主；函数自身另校验调用方（SERIALIZABLE、无租户 GUC、session_user 是受限登录且不是平台登录、本函数的执行权直接授予它、属主无成员关系、正文无租户）。③ `IAuditWriter` 新增 `AppendPlatformEnlistedAsync(IPluginContext producer, AuditRecord record, DbTransaction transaction, CancellationToken)`，生产方检查沿用 `AuditPlugin.Platform()`，存在租户上下文时拒绝（接口新成员，Abstractions 已随 0.2.0 发包，外部实现者会断，仓内三个实现同步）。随之 R126 ① 的平台级口径改为与状态变更同一可串行化事务、提交失败时两者都不留（补记在 R126 末尾，原文不改）：有生命周期的宿主在平台审计登录、`AddQianData<PlatformAuditDbContext>` 与 `chain.platformRole` 之外，还须对 Lifecycle 的登录应用三参迁移，否则平台级操作一律 503、事件 8 的原因含「不能调用平台链同事务函数」；平台审计登录仍必需（挂载校验、平台链读取与验链、其它平台生产方的独立追加）。复核补记：参考宿主（Lifecycle 测试宿主、CRM 验收宿主）里 producerRole 就是共享的 qian_app，生产宜给 Lifecycle 独立登录；属主被改成 LOGIN 的封堵、函数属主断言与执行权逐函数检查归 S1-AUD-010；R126 ① 原文里「状态变更提交前追加、孤儿条目宁多不漏」自本条起不再适用。
-- R129（S1-YUE-002 建议裁决 ①–④ 与「薄入口归属」，产品负责人 2026-10-23 在执行会话两次作答，均选推荐项）：① 验收 2（租户 scope 已挂载时 loadRemote、未挂载时不请求 mf-manifest.json）在没有 MF2 宿主时不可建，本任务只做验收 1 / 3 / 4，外壳侧接线以 `@idadawn/yue-shell` 库模块加薄入口交付，验收 2 留 S1-YUE-001 合入后补验。② 认证页族（登录、多租户选择、强制改密、连接器落点）是 qian.identity 宿主同源的静态制品 `packages/qian-identity-ui`，直接调同源 `/api/identity/*`（防伪令牌 cookie-to-header、HttpOnly 账号 Cookie），账号 Cookie scheme 的 LoginPath 指向 `/login`；外壳只做依赖方一侧，经网关的 Identity.Client BFF（`/auth/login` → code + PKCE → 服务端换码 → Cookie `qian.sid`），浏览器零令牌。外壳 SPA 跨源直调身份接口自行换码（B）与把 identity 挂到网关同源路径（C）不采用。③ 运行中切换租户走标准 OIDC `prompt=select_account`：Identity.Client 的 `/auth/login` 只透传白名单里的 `select_account`；Identity.Server 的 `/connect/authorize` 遇该 prompt 且账号 Cookie 仍有效时不再返回 interaction_required，而是 302 到同源选择页（新选项 `Accounts.SelectionPath`，缺省 `/login/select-tenant`，附 `return_url` = 去掉 prompt 的授权请求原地址，同源相对路径、不是开放重定向），页面调 `POST /api/identity/session/switch` → `/login/select`（S1-IDP-003 既有语义：新会话、旧会话吊销 reason=switch）后回到授权请求签新码，网关回调重建 `qian.sid`（旧会话删除）；配套 id_token 带标准 `name` claim（成员显示名；平台身份取自然人显示名；只进 id_token，不进访问令牌与 userinfo），网关新增 `GET /auth/session`（规范身份快照 + displayName，不含令牌）与 `POST /auth/session/refresh`（强制单飞刷新服务端访问令牌，要求防伪令牌，失败即结束会话 401 并删 Cookie）。④ 验收 1「令牌过期时刷新队列合并并发请求，失败弹过期对话框」在 BFF 下的口径：`@idadawn/yue-sdk` 的 `PlatformClient` 增加 `sessionProvider`（与 `tokenProvider` 并列、同一单飞队列），并发 401 合并成一次 `POST /auth/session/refresh`，成功重放一次、失败只触发一次 `onSessionExpired`；服务端访问令牌到期前的刷新单飞由 Identity.Client 承担；菜单取 `GET /api/capabilities/navigation`（能力导航目录，服务端按调用者权限与租户 scope 过滤）经 menuTypeRegistry 映射为页面 / 外链路由，权限取 `GET /api/authz/me/permissions`，登录、切换租户、会话刷新后都重拉；E2E 栈是真实 qian.identity（Docker PostgreSQL、内置账号模型、真实 qian.tenancy 开通编排）+ 真实 Identity.Client / Qian.Gateway BFF 宿主（HTTPS 自签名，静态托管外壳与 `/app-conf.js`）+ 平台表面宿主（capabilities / authz），由 `tools/Qian.Dev.Shell` + `scripts/dev-shell.sh` 一条命令拉起，Playwright 走完整浏览器流程；S1-YUE-006 的 mock 验收保留。薄入口归属：开工时 S1-YUE-001 尚未合入，① 的前提是本任务先建 `apps/qian-shell`；实际 YUE-001（idadawn/qian#248）先合入，`apps/qian-shell` 已是 MF2 静态宿主，与本任务薄入口 7 个文件 add/add 冲突且两条流程都要占 `/`，产品负责人改为**薄入口放 `apps/qian-shell-auth`，不碰 YUE-001 目录**（包名 qian-shell-auth、脚本 `yue:auth`、工作流 shell-auth、`scripts/dev-shell.sh` 跟随；库代码仍在 `@idadawn/yue-shell`）；两者的融合（真实会话 / 导航 / 权限喂给 MF2 宿主，需网关新增 bootstrap 聚合端点，之后本入口撤销）与验收 2 补验归 S1-YUE-012。复核补记（2026-10-23 验收复核）：④ 字面的「真实平台下游（CRM 参考宿主的 capabilities / authz / registry）」实际落为联调栈里 dev 拼装的平台表面宿主 `DevPlatformApi`（复用产品端点 `MapQianCapabilities` / `MapQianAuthz`、只认网关 S2S、接受用户主体并按令牌 tenant_id 进租户 scope），因为 CRM 参考命令宿主只认机器身份；生产里由谁提供这一表面归 S1-YUE-012。③ 的 name claim 与 ADR-005 D5.9「令牌只含身份、预留 profile」口径的补记归 S1-IDP-016。④ 的「会话刷新后重拉菜单与权限」在 idadawn/qian#252 里未实现（只在登录、切换租户与手动刷新时重拉），处置见 S1-YUE-002 的验收复核。
-- R130（S1-YUE-012 第一轮验收复核的结论与三处偏离，产品负责人 2026-10-24 在主会话逐条作答）：① 结论退回修复（阻断 + 小项一并）：外壳首载 / 重载在「依赖方会话仍在、平台表面持续 401」时不得顶层跳登录——`onSessionExpired` 须区分「依赖方说会话已结束（刷新失败或无会话）→ 跳登录」与「刷新成功、重放仍 401 → 不跳，弹粘性过期对话框或错误页」；这是 R129 / S1-YUE-002 二轮「会话结束对外壳是粘性的」硬约束的跨文档形态（复核探针：stale 后整页重载，10 秒内跳 /auth/login 42 次）。真实栈用例须覆盖 stale 后整页重载与点「重新登录」，断言顶层跳 `/auth/login` ≤ 1 且状态稳定。② 外壳 CSP 的 `'unsafe-eval'` 认可为已登记例外（`@idadawn/yue-form` 的 SchemaForm 运行期用 Ajv 编译表单 Schema，经共享依赖在外壳源执行），由跟进会话把 yue-form 改成解释型校验后去掉；`verify-dist` 的断言改为「允许至多一个已登记例外」而非必需项，并拒绝 `script-src-elem` / `script-src-attr` 等放宽指令。③ 验收 2「页面内容由远程模块真实渲染」的口径：参考应用命令运行时只认机器主体，「远程页面经 MF2 真实渲染 + customer.list 经网关发出被 403 AUTHZ_DENIED + 页面降级」即满足，用户主体真实执行应用能力归已立的跟进会话。④ 网关 bootstrap 把外壳目录 / 有效权限的下游 404（组件未挂载或平台表面未部署）按空处理予以认可（裁决 ① 之外执行方新增的口径），日志升 Warning 并补用例；其余失败仍 401 / 403 / 502，能力导航失败降级为 null。
-- R131（S1-YUE-014 第一轮验收复核的结论与四项裁决，产品负责人 2026-10-24 在主会话逐条作答，均选推荐项）：① 结论退回修复，同分支返工后二轮验收：解释器 `json-schema.ts:258` 判断「引用目标是否只有 $ref」须与 Ajv 同口径——除 `$ref` 外只剩 title、description、default、examples、deprecated、readOnly、writeOnly、`$defs`、`x-*` 时继续沿引用解析（`$comment` 不透明），否则别名定义带说明时 `schemaPath` 报被引用方而 Ajv 报引用方，带说明的自引用环还能通过 `assertFormSchema`、提交时栈溢出；`:112–120` 值为 `undefined` 的成员一律按缺失（现 `title: undefined` 被拒而 `minLength: undefined` 放行）；`docs/prd/specs/yue.md:413` 残留「与服务端共用的 Ajv 校验器」；门禁自测补「首位放宽源」用例钉住 verify-dist 的首位检查（新加的「'self' 不在开头」杀不死删首位检查的突变，S1-YUE-013 ⑰ 未关闭）。通过的证据（PR 头与 main + idadawn/qian#267 试合并树各一遍门禁全过、CI 26 项全绿、产物 CSP 无 'unsafe-eval'、注入 `new Function` 的突变被 CSP 与 E2E 击杀、复核方与三份只读审计合计约 200 万次差分零判定差异）记在任务日志。② changeset 维持 minor：子集外 Schema 渲染前拒绝与返回类型 `ErrorObject` → `SchemaError` 都是收窄，按 yue README「0.x 期间破坏性变更记 minor」；fixed 组 `@idadawn/yue-*` 八包随之 0.1.0 → 0.2.0，外壳 `__YUE_VERSION__` 随 yue-shell 到 0.2.0，`qian-plugin-sdk/src/host.ts:58` 对清单 `engines.yue` 的 satisfies 会拒载 `^0.1.0` 的远程——发版 PR 须同步 `plugins/qian.tenancy/ui/manifest.json` 与 `samples/qian-sample-crm-ui/ui/manifest.json` 的 `engines.yue`，以及 `packages/qian-tenancy-ui/vite.remote.config.ts` 与 `samples/qian-sample-crm-ui/vite.remote.config.ts` 的 `requiredVersion`，`pnpm yue:mf` 读真实清单能抓到漏改。③ 「子集外一律拒绝」维持：断言类关键字（anyOf / allOf / not / if-then-else、uniqueItems、multipleOf、patternProperties、propertyNames、prefixItems、contains、min/maxProperties、dependent*、unevaluated*、`$anchor` / `$dynamic*`、子 Schema `$id`、外部 `$ref`、date / time / date-time / uuid 以外的 format、`nullable`）在 Ajv 下是真执行的，改成忽略等于让校验静默空转、前后端判定漂移，未知关键字多为拼写错误或 OpenAPI 方言，均在渲染前以 `form.error.unsupportedKeyword` 拒绝；纯说明词（title、description、`$comment`、default、examples、deprecated、readOnly、writeOnly，以及 contentMediaType / contentEncoding / contentSchema）忽略、只查参数类型；设置页（yue.md 插件配置自动渲染）落地时按 yue-form README 的做法扩子集并补差分用例。④ 文档残留与 WASM 后果随返工一并改：ADR-013 §9 状态历史补一条（D13.2 原文不改）、`docs/prd/17-references.md:59` 改一行（Ajv 对 SchemaForm 只作差分对照，运行期仍用于 qian-cli 与 qian-surfaces、构建期用于 plugin-sdk）、yue README「0.1.0 未发布」过时、外壳 README 已知限制与 yue.md 前端脚本沙箱一行写明 script-src 不含 'wasm-unsafe-eval'、页面内不能编译 WASM（quickjs-emscripten 引入时须重新登记例外、改 asm.js 变体或放进 Worker）、插件 SDK README 补远程作者注意事项（不配 getPublicPath、remoteEntry 为 module、不定义 FEDERATION_ALLOW_NEW_FUNCTION、不能编译 WASM、Worker 不受 meta CSP 约束）；迁移文档与不复刻的 Ajv 怪癖登记 S1-YUE-013。⑤ 自 idadawn/qian#266 起 R130 ② 所述「'unsafe-eval' 为已登记例外、verify-dist 至多一个例外」撤销：外壳 meta CSP 的 script-src 只含 'self' 与内联脚本 sha256，verify-dist 与门禁自测把 'unsafe-eval' / 'wasm-unsafe-eval' / 'self' 不在首位均判失败。S1-YUE-014 任务文件随 idadawn/qian#266 分支，第一轮验收日志由执行会话按复核方原文追加。
+- R129（S1-YUE-002 建议裁决 ①–④ 与「薄入口归属」，产品负责人 2026-10-23 在执行会话两次作答，均选推荐项）：① 验收 2（租户 scope 已挂载时 loadRemote、未挂载时不请求 mf-manifest.json）在没有 MF2 宿主时不可建，本任务只做验收 1 / 3 / 4，外壳侧接线以 `前端外壳包` 库模块加薄入口交付，验收 2 留 S1-YUE-001 合入后补验。② 认证页族（登录、多租户选择、强制改密、连接器落点）是 qian.identity 宿主同源的静态制品 `packages/qian-identity-ui`，直接调同源 `/api/identity/*`（防伪令牌 cookie-to-header、HttpOnly 账号 Cookie），账号 Cookie scheme 的 LoginPath 指向 `/login`；外壳只做依赖方一侧，经网关的 Identity.Client BFF（`/auth/login` → code + PKCE → 服务端换码 → Cookie `qian.sid`），浏览器零令牌。外壳 SPA 跨源直调身份接口自行换码（B）与把 identity 挂到网关同源路径（C）不采用。③ 运行中切换租户走标准 OIDC `prompt=select_account`：Identity.Client 的 `/auth/login` 只透传白名单里的 `select_account`；Identity.Server 的 `/connect/authorize` 遇该 prompt 且账号 Cookie 仍有效时不再返回 interaction_required，而是 302 到同源选择页（新选项 `Accounts.SelectionPath`，缺省 `/login/select-tenant`，附 `return_url` = 去掉 prompt 的授权请求原地址，同源相对路径、不是开放重定向），页面调 `POST /api/identity/session/switch` → `/login/select`（S1-IDP-003 既有语义：新会话、旧会话吊销 reason=switch）后回到授权请求签新码，网关回调重建 `qian.sid`（旧会话删除）；配套 id_token 带标准 `name` claim（成员显示名；平台身份取自然人显示名；只进 id_token，不进访问令牌与 userinfo），网关新增 `GET /auth/session`（规范身份快照 + displayName，不含令牌）与 `POST /auth/session/refresh`（强制单飞刷新服务端访问令牌，要求防伪令牌，失败即结束会话 401 并删 Cookie）。④ 验收 1「令牌过期时刷新队列合并并发请求，失败弹过期对话框」在 BFF 下的口径：`前端 SDK 包` 的 `PlatformClient` 增加 `sessionProvider`（与 `tokenProvider` 并列、同一单飞队列），并发 401 合并成一次 `POST /auth/session/refresh`，成功重放一次、失败只触发一次 `onSessionExpired`；服务端访问令牌到期前的刷新单飞由 Identity.Client 承担；菜单取 `GET /api/capabilities/navigation`（能力导航目录，服务端按调用者权限与租户 scope 过滤）经 menuTypeRegistry 映射为页面 / 外链路由，权限取 `GET /api/authz/me/permissions`，登录、切换租户、会话刷新后都重拉；E2E 栈是真实 qian.identity（Docker PostgreSQL、内置账号模型、真实 qian.tenancy 开通编排）+ 真实 Identity.Client / Qian.Gateway BFF 宿主（HTTPS 自签名，静态托管外壳与 `/app-conf.js`）+ 平台表面宿主（capabilities / authz），由 `tools/Qian.Dev.Shell` + `scripts/dev-shell.sh` 一条命令拉起，Playwright 走完整浏览器流程；S1-YUE-006 的 mock 验收保留。薄入口归属：开工时 S1-YUE-001 尚未合入，① 的前提是本任务先建 `apps/qian-shell`；实际 YUE-001（idadawn/qian#248）先合入，`apps/qian-shell` 已是 MF2 静态宿主，与本任务薄入口 7 个文件 add/add 冲突且两条流程都要占 `/`，产品负责人改为**薄入口放 `apps/qian-shell-auth`，不碰 YUE-001 目录**（包名 qian-shell-auth、脚本 `yue:auth`、工作流 shell-auth、`scripts/dev-shell.sh` 跟随；库代码仍在 `前端外壳包`）；两者的融合（真实会话 / 导航 / 权限喂给 MF2 宿主，需网关新增 bootstrap 聚合端点，之后本入口撤销）与验收 2 补验归 S1-YUE-012。复核补记（2026-10-23 验收复核）：④ 字面的「真实平台下游（CRM 参考宿主的 capabilities / authz / registry）」实际落为联调栈里 dev 拼装的平台表面宿主 `DevPlatformApi`（复用产品端点 `MapQianCapabilities` / `MapQianAuthz`、只认网关 S2S、接受用户主体并按令牌 tenant_id 进租户 scope），因为 CRM 参考命令宿主只认机器身份；生产里由谁提供这一表面归 S1-YUE-012。③ 的 name claim 与 ADR-005 D5.9「令牌只含身份、预留 profile」口径的补记归 S1-IDP-016。④ 的「会话刷新后重拉菜单与权限」在 idadawn/qian#252 里未实现（只在登录、切换租户与手动刷新时重拉），处置见 S1-YUE-002 的验收复核。
+- R130（S1-YUE-012 第一轮验收复核的结论与三处偏离，产品负责人 2026-10-24 在主会话逐条作答）：① 结论退回修复（阻断 + 小项一并）：外壳首载 / 重载在「依赖方会话仍在、平台表面持续 401」时不得顶层跳登录——`onSessionExpired` 须区分「依赖方说会话已结束（刷新失败或无会话）→ 跳登录」与「刷新成功、重放仍 401 → 不跳，弹粘性过期对话框或错误页」；这是 R129 / S1-YUE-002 二轮「会话结束对外壳是粘性的」硬约束的跨文档形态（复核探针：stale 后整页重载，10 秒内跳 /auth/login 42 次）。真实栈用例须覆盖 stale 后整页重载与点「重新登录」，断言顶层跳 `/auth/login` ≤ 1 且状态稳定。② 外壳 CSP 的 `'unsafe-eval'` 认可为已登记例外（`表单组件包` 的 SchemaForm 运行期用 Ajv 编译表单 Schema，经共享依赖在外壳源执行），由跟进会话把 yue-form 改成解释型校验后去掉；`verify-dist` 的断言改为「允许至多一个已登记例外」而非必需项，并拒绝 `script-src-elem` / `script-src-attr` 等放宽指令。③ 验收 2「页面内容由远程模块真实渲染」的口径：参考应用命令运行时只认机器主体，「远程页面经 MF2 真实渲染 + customer.list 经网关发出被 403 AUTHZ_DENIED + 页面降级」即满足，用户主体真实执行应用能力归已立的跟进会话。④ 网关 bootstrap 把外壳目录 / 有效权限的下游 404（组件未挂载或平台表面未部署）按空处理予以认可（裁决 ① 之外执行方新增的口径），日志升 Warning 并补用例；其余失败仍 401 / 403 / 502，能力导航失败降级为 null。
+- R131（S1-YUE-014 第一轮验收复核的结论与四项裁决，产品负责人 2026-10-24 在主会话逐条作答，均选推荐项）：① 结论退回修复，同分支返工后二轮验收：解释器 `json-schema.ts:258` 判断「引用目标是否只有 $ref」须与 Ajv 同口径——除 `$ref` 外只剩 title、description、default、examples、deprecated、readOnly、writeOnly、`$defs`、`x-*` 时继续沿引用解析（`$comment` 不透明），否则别名定义带说明时 `schemaPath` 报被引用方而 Ajv 报引用方，带说明的自引用环还能通过 `assertFormSchema`、提交时栈溢出；`:112–120` 值为 `undefined` 的成员一律按缺失（现 `title: undefined` 被拒而 `minLength: undefined` 放行）；`docs/prd/specs/frontend.md:413` 残留「与服务端共用的 Ajv 校验器」；门禁自测补「首位放宽源」用例钉住 verify-dist 的首位检查（新加的「'self' 不在开头」杀不死删首位检查的突变，S1-YUE-013 ⑰ 未关闭）。通过的证据（PR 头与 main + idadawn/qian#267 试合并树各一遍门禁全过、CI 26 项全绿、产物 CSP 无 'unsafe-eval'、注入 `new Function` 的突变被 CSP 与 E2E 击杀、复核方与三份只读审计合计约 200 万次差分零判定差异）记在任务日志。② changeset 维持 minor：子集外 Schema 渲染前拒绝与返回类型 `ErrorObject` → `SchemaError` 都是收窄，按前端框架 README「0.x 期间破坏性变更记 minor」；fixed 组 `前端包系列` 八包随之 0.1.0 → 0.2.0，外壳 `__YUE_VERSION__` 随 yue-shell 到 0.2.0，`qian-plugin-sdk/src/host.ts:58` 对清单 `engines.yue` 的 satisfies 会拒载 `^0.1.0` 的远程——发版 PR 须同步 `plugins/qian.tenancy/ui/manifest.json` 与 `samples/qian-sample-crm-ui/ui/manifest.json` 的 `engines.yue`，以及 `packages/qian-tenancy-ui/vite.remote.config.ts` 与 `samples/qian-sample-crm-ui/vite.remote.config.ts` 的 `requiredVersion`，`pnpm yue:mf` 读真实清单能抓到漏改。③ 「子集外一律拒绝」维持：断言类关键字（anyOf / allOf / not / if-then-else、uniqueItems、multipleOf、patternProperties、propertyNames、prefixItems、contains、min/maxProperties、dependent*、unevaluated*、`$anchor` / `$dynamic*`、子 Schema `$id`、外部 `$ref`、date / time / date-time / uuid 以外的 format、`nullable`）在 Ajv 下是真执行的，改成忽略等于让校验静默空转、前后端判定漂移，未知关键字多为拼写错误或 OpenAPI 方言，均在渲染前以 `form.error.unsupportedKeyword` 拒绝；纯说明词（title、description、`$comment`、default、examples、deprecated、readOnly、writeOnly，以及 contentMediaType / contentEncoding / contentSchema）忽略、只查参数类型；设置页（yue.md 插件配置自动渲染）落地时按 yue-form README 的做法扩子集并补差分用例。④ 文档残留与 WASM 后果随返工一并改：ADR-013 §9 状态历史补一条（D13.2 原文不改）、`docs/prd/17-references.md:59` 改一行（Ajv 对 SchemaForm 只作差分对照，运行期仍用于 qian-cli 与 qian-surfaces、构建期用于 plugin-sdk）、前端框架 README「0.1.0 未发布」过时、外壳 README 已知限制与 yue.md 前端脚本沙箱一行写明 script-src 不含 'wasm-unsafe-eval'、页面内不能编译 WASM（quickjs-emscripten 引入时须重新登记例外、改 asm.js 变体或放进 Worker）、插件 SDK README 补远程作者注意事项（不配 getPublicPath、remoteEntry 为 module、不定义 FEDERATION_ALLOW_NEW_FUNCTION、不能编译 WASM、Worker 不受 meta CSP 约束）；迁移文档与不复刻的 Ajv 怪癖登记 S1-YUE-013。⑤ 自 idadawn/qian#266 起 R130 ② 所述「'unsafe-eval' 为已登记例外、verify-dist 至多一个例外」撤销：外壳 meta CSP 的 script-src 只含 'self' 与内联脚本 sha256，verify-dist 与门禁自测把 'unsafe-eval' / 'wasm-unsafe-eval' / 'self' 不在首位均判失败。S1-YUE-014 任务文件随 idadawn/qian#266 分支，第一轮验收日志由执行会话按复核方原文追加。
 - R132（S1-YUE-015 验收复核的结论与三项裁决，产品负责人 2026-10-24 在主会话逐条作答，均选推荐项）：① 结论 done 维持（idadawn/qian#267 已由产品负责人在执行会话合入 main aed90ae9a3，复核在 main 1d7c7f9ac1 的树上做）：两份只读审计无安全 / 功能阻断项——用户令牌直打参考应用受众的 REST 与执行入口仍 401（本宿主 Capture 拒 user、身份适配器只认平台表面交来的 user 快照、REST 再加 client id 策略三道），伪造 / 不一致令牌、带 act、平台身份、陈旧修订各至少两层拒绝，两宿主共用运行时靠 HttpContextAccessor 的静态 AsyncLocal，探针 200 × 200 并发请求零错配、不跨请求残留；新用例本机基线通过，复核方突变 7 条 4 杀 2 等价存活（删 `_current.UserId == snapshot.Subject` 与「放行任何来源的 user 快照」在可达状态下恒等价），「main + idadawn/qian#266」试合并树上 `pnpm yue:auth` 7 条全过，合并后 main CI 全绿。唯一文档错误随本登记改：`tools/Qian.Dev.Shell/README.md` 排障条把 403 `AUTHZ_DENIED` 归因为「缺权限点或 scope」——实际那种情况能力被可见性过滤、执行入口 404 `NOT_FOUND`，403 来自命令管道或命令 PEP 判拒且管道层判拒不写终端日志；外壳 README 两处措辞（「不在 S1」改「不在本任务」、乙方列表改「条目都属乙方、含示例客户」）一并改。任务日志「联调栈原来的 403 是这两层叠加」为误记：联调栈 `DevShellHost.cs` 先 AddKunSecurity 再登记数据组件，只有第一层，第二层只由 IT 与突变 M4 证明，在日志更正。② 测试强度缺口新建 S1-YUE-016：纵深防御各层只被整体测到（删 IsAuthenticated 的 Subject / Kind 比对、删 PlatformSurface 来源标志、AcceptPlatformSurface 去掉 Service，全部用例照过），service 主体经平台表面执行（外部机器客户端带 Bearer 经网关 `/api/capabilities/**`）成为只靠 RBAC + scope 门禁的新入口却无用例，E2E「多了这一条」以列表一页 100 条为界；现有行为（AcceptPlatformSurface 对 user / service / agent 都交快照）维持、与 README 一致，是否收窄到只收 user 由 S1-YUE-016 的 IT 结果再议。③ 匿名兜底占位新建 S1-KUN-017 到框架层解决：Kun 数据约定以 TryAdd 把 AnonymousCurrentUser 占进 Kun ICurrentUser 端口、AddKunSecurity 落空，已在测试宿主、联调栈、CrmCommandApplication 三处各自绕开而 Kun 文档没有登记次序约定——Kun 侧让 AddKunSecurity 替换可识别的匿名兜底或让数据约定不占该端口，或 Qian SDK 装配期检测到匿名兜底直接启动失败；登记次序约定与生产装配须知（根容器的身份适配器与 IPermissionChecker、单一 AddKunMediator、module REST 端点靠端点策略只收机器主体、跨宿主借 HttpContext 不复制到生产）写进 S1-DEP-009；S1-AUD-011 的范围纳入 HTTP PEP 决策里硬编码的 api。
 - R133（S1-QA-017 验收复核的结论与三项裁决，产品负责人 2026-10-25 在主会话逐条作答，均选推荐项）：① 结论 done 维持（idadawn/qian#265 已由产品负责人指令合入 main f4982afdfd，修复 TRX 撞名的 idadawn/qian#273 合入 9d83dff7e8）：Config 四个真实 Apollo 类共用 Portal 版栈、CRM 八个主题类并行在代码层面成立——用例 55 / 90 条、方法名与断言逐字节未改，类排序器与集合内串行有 xunit.v3 4.0.1 文档、探针与 8 份 TRX 三方印证（改前 CI 顺序 RealApolloTests 排第 2，排序器承重），各主题类独立 PostgreSQL 容器、无跨类共享状态，StartAlongsideAsync 三种失败路径都释放并按原规则重试；本机 main 实跑两模块全过，拆分后 CI 12 次 CRM 0 失败、无重跑掩盖。验收第 5 条的记录更正：PR 最终头 fb5d53f758 的运行 40056018354 已满足两模块 ≤150 秒（Config 118.4 / CRM 115.1），任务此前只引用 40051232742（132.5 / 178.9）；合入后 CRM 波动 110.7–196.8 秒（10 次中位数 158、5 次 ≤150，最新 main 40115982759 为 183.6 秒），Config 稳定 113–133 秒。② 「压到 150 秒内」的判定口径：以合入后 main 的 dotnet 工作流 TRX 为准，连续 5 次（不含被取消的运行）该模块壁钟全部 ≤150 秒，用例数不少、断言不削弱；Config 按此口径已稳定达标，CRM 归 S1-QA-019。S1-QA-019 随本登记更正：「并行只快了 7 秒」只比了一对运行（多次中位数约快 57 秒 / 26%）、「中位数 5.7 倍」实为单条用例耗时总和之比（逐条比值中位数 5.0）、「受 CPU 限制」改为「存在资源争用（模块累计秒 / 首尾跨度秒 2.7–2.9，串行 1.9–2.0），CPU 还是 I/O 未直接测量」，并补「tests/ 侧重新平衡主题类（每次都是 TenantOperationsTests 最后 7.7–14.2 秒独跑，尾部与 CPU 无关）」与「分片 b 加 CPU / iowait 采样」两条做法。③ 代码侧小修新建 S1-QA-020：CustomerCommandTests.cs「放宽到 8 各主题同时开跑 / 长短相近」（MaxThreads 8 而程序集 12 个类，ShellSurfaceTests 要等槽位）与 RealApolloGroup.cs「靠各自随机 appId 隔离」（PortalProtocol 用固定 AppId、与 FeatureFlags 共用公共 namespace qian.common.flags，P→F 顺序下依赖 Apollo「同名取最新」）两处注释更正、排序器显式把 FeatureFlags 排在 PortalProtocol 前并注明方案依赖 ParallelMode.Collections、RealApolloFixture.cs:17 / packages/Qian.Config.Apollo/README.md:95 / docs/ops/configuration-runbook.md:73 的三容器说法、tests/README.md:90 同级容器由子类释放的语义与「新用例写进主题类、抽象基类不放 [Fact]」约定、StartAlongsideAsync 三类用例（同级瞬时失败后重试、主容器失败时等同级结束再释放、两个都失败以先出错者判定）、基类无测试方法的守卫用例；固定时间窗（3 / 5 秒）用例若在并行下不稳，按验收第 2 条放进禁止并行集合而不是放宽时间窗。
 - R134（S1-QA-018 验收复核的结论与三项裁决，产品负责人 2026-10-25 在主会话逐条作答，均选推荐项）：① 结论 done 维持（idadawn/qian#262 已合入 c1a0df3200，复核在 main 39797d3630 的树上做，含 idadawn/qian#273 的 TRX 按模块命名修复）：九条验收全部有证据（触发过滤、自检两处突变、预拉日志、分片清单、汇总核对 9 个突变、PR 首轮与同底 main 逐模块条数一致、构件布局一致、README 同步），与任务书的七项偏离理由成立并维持：push 到 main 不过滤（dotnet-release.yml 要求发布提交有通过的 push 运行）、docs/ops/configuration-runbook.md 重新纳入、OpenAPI 检查器与 doctor 客户端只装在用到的分片、按分片预拉镜像、汇总改为「每个测试项目恰好在所属分片跑一次」的结构性核对而非写死条数、跳过只告警、--max-parallel-test-modules 6 按实测数据不采用（分片 a 最后约 217 秒只剩 Scheduler 一个模块，加并发度无用）；PR 级 dotnet 门禁的实际水平按合入后 main 记：9 次（不含被取消的）关键路径 517–551 秒、基线 860–887 秒，≤ 20 分钟达标；合入后唯一一次失败 40059112586 是同时启动的模块按 xUnit 缺省时间戳命名 TRX 撞名、互相覆盖，分片设计的逐模块核对把旧有撞名暴露出来，idadawn/qian#273（QianTrxPerModule）已修。② 四项遗留立 S1-QA-021（P2 infra）：触发过滤自检只认以 docs/ 或 pm/ 开头的单一字符串字面量，分段写法、相对路径、插值、根目录 Markdown、csproj Content / None、门禁作业里的 python 脚本都扫不到（现有源码没有这些写法）——在自检放宽前以「读取仓库文档写成以 docs/ 或 pm/ 开头的单一字面量」为写法约定并写进 tests/README；S1-QA-017 合入后分片 a 成唯一长杆（测试步骤 333–373 秒，b 112–246、c 174–292）须按 main 实测重新配平；工作流注释与 tests/README 把 docs/generated 的读取方写成 Qian.Docs.Tests，实为 TenancyConfigurationTests（派生文档新鲜度门禁在 documentation.yml）；汇总核对对没加进 Qian.slnx 的测试项目告警；并评估汇总作业排队的替代方案。③ 分片 a 的长杆是 Qian.Scheduler.Tests 本身（20 条串行 310 秒：cron 两轮用例 104 秒、两条真杀接管各 35–40 秒、六条续租 / 准备 / 正常 Stop 各 10–15 秒），立 S1-QA-022（P2 test）：拆类并行或缩短等待型用例，目标连续 5 次 main 运行 Scheduler 首尾跨度 ≤ 250 秒，用例数不少、断言不削弱、不放宽超时。
@@ -647,7 +649,7 @@ S1-DOCS-005（PR idadawn/qian#4）合并时留下的 9 个未决问题，由 Cla
 
 ### 产品负责人指示与裁决 R143（「初步可用」里程碑 S1-DEC-033，2026-11-11）
 
-产品负责人 2026-11-11 指示先让多租户可用、再让管理后台可用、然后模型服务可用，盘点后回复「建任务并重排」；同日就 staging 首次部署的形状选「平台身份同进程」。盘点结论、新建与拆分的任务、优先级清单见 [S1-DEC-033](../../pm/tasks/S1-DEC-033.md)。
+产品负责人 2026-11-11 指示先让多租户可用、再让管理后台可用、然后模型服务可用，盘点后回复「建任务并重排」；同日就 staging 首次部署的形状选「平台身份同进程」。盘点结论、新建与拆分的任务、优先级清单见 [S1-DEC-033](../../_import/qian/pm/tasks/S1-DEC-033.md)。
 
 - R143（S1-DEC-033 的 D1 与 D2。D3–D7 不在此裁决，仍待产品负责人逐条确认）：① 里程碑与顺序（D1）：「初步可用」依次是多租户可用、管理后台可用、模型服务可用。里程碑期间看板优先级按这条路径排，路径上的任务为 P0，不在路径上的原 P0 任务降为 P1；这只改先后，不改 PRD 7.0.3 对 S1 退出标准的口径，里程碑达成后复核降级清单。② staging 首次部署的形状（D2，选 A）：平台与身份同一个进程，网关独立进程；数据层用 S1-DEP-001 的专属 PG / Redis，清单手写，镜像按 digest，落地任务 S1-DEP-011。这是只用于 staging 的过渡形状：暂不满足 ADR-005 的身份独立安全边界与 PRD 7.17 的三镜像形状；不替代 S1-DEP-005 的发布门，S1-DEC-016 与 ADR-017 §9 不变，同进程部署的结果不能当作发布验收的证据；拆分部署仍是生产目标。S1-DEP-002、S1-DEP-008、S1-DEP-010、S1-IDP-012、S1-TEN-023 在里程碑期间降为 P1，S1 退出前仍要完成。权威结论写入 ADR-017 §10，PRD 7.17 过渡态同步。
 
@@ -663,15 +665,15 @@ S1-DEP-009（生产平台宿主）开工前，执行会话就两项向产品负�
 
 ### 验收复核与产品负责人裁决 R146（S1-DEP-009 / S1-YUE-010 两轮复核，2026-11-11）
 
-- R146（S1-DEP-009 与 S1-YUE-010 两轮验收复核的结论。产品负责人 2026-11-11 在主会话依次作答「两个都复核」「两个都发」「转绿后都合并」「按建议，合并」；文末 (a)(b)(c) 三项按复核方的建议确认）：① S1-YUE-010 通过，置 done。第一轮（头 936dc50d55 与同步 main 后的 01b70c4b04）没有发现功能缺陷，因测试盲区退回：18 处单点突变中 5 处未被抓住，分别是错误态、无匹配、成员截断提示三处文案写死，采纳已中止请求的结果，换客户端后沿用旧结果。第二轮（头 fbd37ebeac，只改测试）：伪语言包用例覆盖全部状态并加源码静态检查，竞态与换客户端各有用例，靶场 E2E 的两处 `focus()` 改为按键与焦点断言；原 18 处与复核方另加的 5 处英文写死文案的突变全部被抓住。目录接口契约与身份服务的端点、字段一致；键盘路径经复核方探针验证。idadawn/qian#298 已合入 main de2eecc638。② S1-DEP-009 第二轮通过，验收 1–4、6 成立，验收 5 按 (a) 改写为宿主侧范围，置 done。第一轮（头 7f616db75c）退回修复：宿主按路径前缀选受众时区分大小写，端点路由不区分，直调宿主时平台受众的令牌访问 `/api/Tenancy/tenants` 等写法返回 200，运营受众的令牌访问这些写法反而 401；经生产网关路由表这些写法被路由到运营簇后得到 401，当时绕不过去，但宿主没有自己守住 R144 ① 的边界。另有 4 处突变未被抓住。第二轮（头 1bb18f3c66）：受众改为按路由实际匹配到的端点选，运营端点组带受众元数据，启动时核对运营端点组与声明的运营前缀一致，不一致即不启动；复核方探针在直调宿主与经生产网关路由表两条路径上复验，各种写法与规范路径结果一致。去掉兜底认证策略、授权 PEP 关生产模式两处突变现被新用例抓住；针对新修法另加的 6 处突变全部被抓住；控制台目录的带租户检查、主体快照与已验证声明的一致性比较两处为等价突变，依据写在代码注释里。idadawn/qian#300 已合入 main 9c0a4b6bad。③ 合并方式：两个 PR 没有文件重叠，在「main + idadawn/qian#300 + idadawn/qian#298」的试合并树上跑看板与文档校验后，先合 idadawn/qian#300、再合 idadawn/qian#298，合入后 main 的树与试合并树一致（61f86b4242）。合入时两个 PR 的检查全绿；复核期间 idadawn/qian#298 的检查出现过两次与它无关的失败并经重跑通过：idadawn/qian#299 带入的开通页浏览器用例（main ccfe3c9099 上同样失败）、`Qian.Scheduler.Tests` 的多进程用例超时。产品负责人确认的三项：(a) S1-DEP-009 验收 5 按宿主侧范围通过：构建上下文放行本宿主，按 jit 模板能构建出带本宿主的 qian-platform 镜像，镜像以非 root、只读根文件系统运行，缺凭据或连不上依赖时拒绝启动并返回退出码 1。镜像的 digest、签名、SBOM、扫描、配置漂移门禁与镜像上的完整启动由 S1-DEP-008 承接。(b) 接受 R144 ③ 去掉 `x-skeleton` 的连带影响：标记写在组件清单上，identity 与 standalone 两个 profile 的骨架警告随之减少（7→5、1→0），这两个 profile 没有自己的启动证据；R144 ③ 已补说明。(c) idadawn/qian#298 的 9 条未决问题按该 PR 的口径接受：角色 / 权限目录接口是草案，路径与字段在 S1-AZ-005 接线时确认；授权树以资源类型为菜单、`read` 为菜单可见，勾按钮自动带上 `read`、取消 `read` 连带取消按钮；UserSelect 缺省取目录成员 id，`valueKey="person"` 取自然人 id；目录接口没有关键字搜索，UserSelect 最多加载 1000 位成员后在本地过滤，服务端搜索在 S1-IDP-010 补上后改走；S1 没有字典服务，DictSelect 由 `defineDictionary` 声明字典来源；IconPicker 不取数；TreeSelect / Cascader 的可访问名称为「标签 + 当前值」；yue 规格 §8「经 `PlatformClient` 取数」一条已勾选；core Combobox 丢焦点的观察与其余非阻断跟进项记入 S1-YUE-013 ㉟–㊳。
+- R146（S1-DEP-009 与 S1-YUE-010 两轮验收复核的结论。产品负责人 2026-11-11 在主会话依次作答「两个都复核」「两个都发」「转绿后都合并」「按建议，合并」；文末 (a)(b)(c) 三项按复核方的建议确认）：① S1-YUE-010 通过，置 done。第一轮（头 936dc50d55 与同步 main 后的 01b70c4b04）没有发现功能缺陷，因测试盲区退回：18 处单点突变中 5 处未被抓住，分别是错误态、无匹配、成员截断提示三处文案写死，采纳已中止请求的结果，换客户端后沿用旧结果。第二轮（头 fbd37ebeac，只改测试）：伪语言包用例覆盖全部状态并加源码静态检查，竞态与换客户端各有用例，靶场 E2E 的两处 `focus()` 改为按键与焦点断言；原 18 处与复核方另加的 5 处英文写死文案的突变全部被抓住。目录接口契约与身份服务的端点、字段一致；键盘路径经复核方探针验证。idadawn/qian#298 已合入 main de2eecc638。② S1-DEP-009 第二轮通过，验收 1–4、6 成立，验收 5 按 (a) 改写为宿主侧范围，置 done。第一轮（头 7f616db75c）退回修复：宿主按路径前缀选受众时区分大小写，端点路由不区分，直调宿主时平台受众的令牌访问 `/api/Tenancy/tenants` 等写法返回 200，运营受众的令牌访问这些写法反而 401；经生产网关路由表这些写法被路由到运营簇后得到 401，当时绕不过去，但宿主没有自己守住 R144 ① 的边界。另有 4 处突变未被抓住。第二轮（头 1bb18f3c66）：受众改为按路由实际匹配到的端点选，运营端点组带受众元数据，启动时核对运营端点组与声明的运营前缀一致，不一致即不启动；复核方探针在直调宿主与经生产网关路由表两条路径上复验，各种写法与规范路径结果一致。去掉兜底认证策略、授权 PEP 关生产模式两处突变现被新用例抓住；针对新修法另加的 6 处突变全部被抓住；控制台目录的带租户检查、主体快照与已验证声明的一致性比较两处为等价突变，依据写在代码注释里。idadawn/qian#300 已合入 main 9c0a4b6bad。③ 合并方式：两个 PR 没有文件重叠，在「main + idadawn/qian#300 + idadawn/qian#298」的试合并树上跑看板与文档校验后，先合 idadawn/qian#300、再合 idadawn/qian#298，合入后 main 的树与试合并树一致（61f86b4242）。合入时两个 PR 的检查全绿；复核期间 idadawn/qian#298 的检查出现过两次与它无关的失败并经重跑通过：idadawn/qian#299 带入的开通页浏览器用例（main ccfe3c9099 上同样失败）、`Qian.Scheduler.Tests` 的多进程用例超时。产品负责人确认的三项：(a) S1-DEP-009 验收 5 按宿主侧范围通过：构建上下文放行本宿主，按 jit 模板能构建出带本宿主的 qian-platform 镜像，镜像以非 root、只读根文件系统运行，缺凭据或连不上依赖时拒绝启动并返回退出码 1。镜像的 digest、签名、SBOM、扫描、配置漂移门禁与镜像上的完整启动由 S1-DEP-008 承接。(b) 接受 R144 ③ 去掉 `x-skeleton` 的连带影响：标记写在组件清单上，identity 与 standalone 两个 profile 的骨架警告随之减少（7→5、1→0），这两个 profile 没有自己的启动证据；R144 ③ 已补说明。(c) idadawn/qian#298 的 9 条未决问题按该 PR 的口径接受：角色 / 权限目录接口是草案，路径与字段在 S1-AZ-005 接线时确认；授权树以资源类型为菜单、`read` 为菜单可见，勾按钮自动带上 `read`、取消 `read` 连带取消按钮；UserSelect 缺省取目录成员 id，`valueKey="person"` 取自然人 id；目录接口没有关键字搜索，UserSelect 最多加载 1000 位成员后在本地过滤，服务端搜索在 S1-IDP-010 补上后改走；S1 没有字典服务，DictSelect 由 `defineDictionary` 声明字典来源；IconPicker 不取数；TreeSelect / Cascader 的可访问名称为「标签 + 当前值」；前端框架规格 §8「经 `PlatformClient` 取数」一条已勾选；core Combobox 丢焦点的观察与其余非阻断跟进项记入 S1-YUE-013 ㉟–㊳。
 
 ### 验收复核 R147（S1-YUE-019 第一轮复核，2026-11-11；R146 已由 S1-DEP-009 / S1-YUE-010 的验收登记 idadawn/qian#301 占用）
 
-- R147（S1-YUE-019 第一轮验收复核的结论。产品负责人 2026-11-11 在复核会话作答「退回返工」。19 处偏离与复核补出的漏列项不在此裁决，复核方的建议记在任务进度日志，待产品负责人逐条确认后再登记、建任务）：退回返工，任务回到 doing。idadawn/qian#299 已合入 main ccfe3c9099，复核在该树上做：本机 `pnpm yue:gates` 全链、`pnpm yue:auth` 11/11、租户运营页 E2E 1/1 通过；八个页面与原型在 1440×960 并排、按像素行带比对，整体复刻质量高，多数页面逐行偏差 1–2px；19 处偏离都属实，没有假入口；基础层七项改动没有回归。退回的原因是 8 项缺陷：① `AuthLayout` 不传 footer 时标题压在装饰条上，文档站 6 张认证页基线把重叠锁成了正确结果；② 令牌层去掉了 body 的 `antialiased`，但外壳、身份服务页与开通页的样式表仍然加着，这项改动没有生效；③ 外壳顶栏 57px，原型 56px；④ 登录页「其他登录方式」到「单点登录」按钮 12px，原型 24px；⑤ 进度页「审核中」的结果图标色与原型不同（#ae7c00 对 #896100）；⑥ 身份服务页把选择页平台卡片的说明写死为「平台超级管理员」，而会话并不带角色；⑦ 进度日志三处说法与实测不符，`BrandMark` 缺 `data-slot` 与默认 testId，DataTable 三个新属性没有文档场景与用例；⑧ idadawn/qian#299 改写的开通页浏览器用例在 CI 上偶发 AbortError，带 idadawn/qian#299 代码的 yue 工作流 7 次运行失败 3 次（含 main ccfe3c9099 那次），idadawn/qian#299 之前没有这类失败。返工同步 main 后另开 PR，偏离清单同时补上漏列项；修完置回 review，做第二轮复核。
+- R147（S1-YUE-019 第一轮验收复核的结论。产品负责人 2026-11-11 在复核会话作答「退回返工」。19 处偏离与复核补出的漏列项不在此裁决，复核方的建议记在任务进度日志，待产品负责人逐条确认后再登记、建任务）：退回返工，任务回到 doing。idadawn/qian#299 已合入 main ccfe3c9099，复核在该树上做：本机 `pnpm yue:gates` 全链、`pnpm yue:auth` 11/11、租户运营页 E2E 1/1 通过；八个页面与原型在 1440×960 并排、按像素行带比对，整体复刻质量高，多数页面逐行偏差 1–2px；19 处偏离都属实，没有假入口；基础层七项改动没有回归。退回的原因是 8 项缺陷：① `AuthLayout` 不传 footer 时标题压在装饰条上，文档站 6 张认证页基线把重叠锁成了正确结果；② 令牌层去掉了 body 的 `antialiased`，但外壳、身份服务页与开通页的样式表仍然加着，这项改动没有生效；③ 外壳顶栏 57px，原型 56px；④ 登录页「其他登录方式」到「单点登录」按钮 12px，原型 24px；⑤ 进度页「审核中」的结果图标色与原型不同（#ae7c00 对 #896100）；⑥ 身份服务页把选择页平台卡片的说明写死为「平台超级管理员」，而会话并不带角色；⑦ 进度日志三处说法与实测不符，`BrandMark` 缺 `data-slot` 与默认 testId，DataTable 三个新属性没有文档场景与用例；⑧ idadawn/qian#299 改写的开通页浏览器用例在 CI 上偶发 AbortError，带 idadawn/qian#299 代码的前端框架工作流 7 次运行失败 3 次（含 main ccfe3c9099 那次），idadawn/qian#299 之前没有这类失败。返工同步 main 后另开 PR，偏离清单同时补上漏列项；修完置回 review，做第二轮复核。
 
 ### 验收复核 R148（S1-YUE-019 第二轮复核，2026-11-11）
 
-- R148（S1-YUE-019 第二轮验收复核的结论。产品负责人 2026-11-11 在复核会话作答「置 done 并合并」。19 处偏离与第一轮补出的漏列项不在此裁决，仍待产品负责人逐条确认；复核方建议不变：维持 8 处，另立 11 处、归成 6 个新任务）：通过，置 done。返工 PR idadawn/qian#303 已合入 main dcad6f9277，合并树与 PR 头 bb75c9013b 一致。R147 的缺陷 ①–⑦ 在代码、基线与联调栈上逐条核实已修：认证页标题不再压住装饰条；正文字形用浏览器缺省，令牌检查拒绝样式表再强制灰阶抗锯齿；外壳顶栏 56px；登录页分隔线到单点登录 24px；新增状态图标档，「审核中」图标为 amber-600（#896100）；身份服务页回到 yue 缺省的平台卡片文案；进度日志就地更正，BrandMark 与 DataTable 的文档和用例补齐。缺陷 ⑧ 的真正原因是浏览器用例等待动画时没有接住被打断的过渡：`animation.finished` 会以没有调用栈的「The user aborted a request.」拒绝。返工第一次的修法（身份服务页测试请求替身）消除的是另一处冷缓存整页重载；复核方重跑 CI 时同一用例照样失败，日志里却没有重载，这次修法被反证。补修把四处等待改为接住拒绝，并加了回归用例；复核方独立复现并做了突变，新头上 unit 作业 4 次全部通过。本机 `pnpm yue:gates` 全链、`pnpm yue:auth`、租户运营页 E2E 通过。不挡验收的小问题记在任务进度日志：矮窗口下认证页标题碰到装饰条（与原型同一布局）；令牌检查的正则会误命中 `subpixel-antialiased`；文档示例的两个按钮高度不一；日志里一处运行次序的说法不准。
+- R148（S1-YUE-019 第二轮验收复核的结论。产品负责人 2026-11-11 在复核会话作答「置 done 并合并」。19 处偏离与第一轮补出的漏列项不在此裁决，仍待产品负责人逐条确认；复核方建议不变：维持 8 处，另立 11 处、归成 6 个新任务）：通过，置 done。返工 PR idadawn/qian#303 已合入 main dcad6f9277，合并树与 PR 头 bb75c9013b 一致。R147 的缺陷 ①–⑦ 在代码、基线与联调栈上逐条核实已修：认证页标题不再压住装饰条；正文字形用浏览器缺省，令牌检查拒绝样式表再强制灰阶抗锯齿；外壳顶栏 56px；登录页分隔线到单点登录 24px；新增状态图标档，「审核中」图标为 amber-600（#896100）；身份服务页回到前端框架缺省的平台卡片文案；进度日志就地更正，BrandMark 与 DataTable 的文档和用例补齐。缺陷 ⑧ 的真正原因是浏览器用例等待动画时没有接住被打断的过渡：`animation.finished` 会以没有调用栈的「The user aborted a request.」拒绝。返工第一次的修法（身份服务页测试请求替身）消除的是另一处冷缓存整页重载；复核方重跑 CI 时同一用例照样失败，日志里却没有重载，这次修法被反证。补修把四处等待改为接住拒绝，并加了回归用例；复核方独立复现并做了突变，新头上 unit 作业 4 次全部通过。本机 `pnpm yue:gates` 全链、`pnpm yue:auth`、租户运营页 E2E 通过。不挡验收的小问题记在任务进度日志：矮窗口下认证页标题碰到装饰条（与原型同一布局）；令牌检查的正则会误命中 `subpixel-antialiased`；文档示例的两个按钮高度不一；日志里一处运行次序的说法不准。
 
 ### 产品负责人裁决 R149（S1-YUE-019 的 19 处偏离与补列项，2026-11-11）
 
@@ -679,7 +681,7 @@ S1-DEP-009（生产平台宿主）开工前，执行会话就两项向产品负�
 
 ### 产品负责人裁决 R150（S1-DEP-011 开工前四问与 S1-DEC-033 D4，2026-11-11；R149 已由 S1-YUE-019 的偏离裁决占用）
 
-- R150（S1-DEP-011 开工前的四个问题，其中第四问即 S1-DEC-033 的 D4。产品负责人 2026-11-11 在执行会话作答：①③④ 选推荐项，② 选「同上，改用 .cn 主机名」。S1-DEC-033 的 D3、D6、D7 不在此裁决）：① 身份分支的装配方式与 profile 落位：平台宿主内置身份扩展，经 `PlatformHost.RunAsync(args, extend, configure)` 接入。`AddComponent` 登记 `qian.identity.server` 与 `qian.tenancy.signup` 的目录项与数据上下文，`AddEvents` / `AddMediator` 并入身份事件，`AddOperations` 挂 `/api/signup/applications`、`/api/signup/meta`，`configure` 装身份分支（OIDC 协议面、账号接口、认证页族、申请人接口与公开页）。不新建 profile：内置的扩展 overlay 把 platform profile 的 `identity` 条目由 `qian.identity.client` 换成 `qian.identity.server`，并加 `tenancy.signup` 条目，issuer 由环境 overlay 给。两个组件清单去掉 `x-skeleton`，R144 ③ 的限定例外扩到平台宿主预装的这两个组件，安装路径与启动证据同 R144 ③（平台镜像预装，平台宿主装配与集成测试）。同进程后经平台宿主做的授权变更按 S1-DEC-027 / S1-AZ-009 递增身份修订，同进程不登记身份侧订阅。网关宿主加配置源开关：staging 读宿主配置（JSON、Secret 文件、环境变量、命令行），缺省仍是 Apollo，Apollo 联调归 S1-DEP-005，并写入运维手册的已知差异。备选「新建 staging 专用 profile」与「宿主直接挂载、不进 profile」不采用。② 入口与镜像：外壳（网关）的主机名是 `qian-staging.deepsingularity.cn`，身份发行方是 `qian-staging-id.deepsingularity.cn`。证书由公网入口 hub 上的 certbot 签发 Let's Encrypt，TLS 在 hub 终结，经 WireGuard 到 Traefik 按 Host 分流；hub 的 vhost 配置进部署仓库的 edge 目录。两条 DNS A 记录与 Harbor 私有项目 `qian` 由产品负责人建。镜像在 qd（amd64）上经 `scripts/images.py build` 构建，推到 Harbor `192.168.1.201/qian`，清单按 digest 引用。③ 首个平台运营账号：平台宿主加一次性引导模式 `--bootstrap-operator`，与 `--migrate-only` 同形，作为 K8s Job 运行一次。用户名与显示名取自参数，初始密码取自 Secret 文件；经身份账号端口建平台身份并要求首登改密，经平台角色存储授平台超管，写平台审计链；库里已有平台超管时拒绝执行，不能拿它二次提权；跑完删除该 Secret。不用开发种子、运维 SQL 或启动时自动引导。④ S1-DEC-033 D4（自助注册的短信）：按推荐，里程碑内只开运营开户与审核。申请人接口与公开页照常挂载，没有发件端口时发验证码返回 503 `SIGNUP_UNAVAILABLE`（同 S1-DEC-032 D5），审核结果通知跳过；短信发件实现（`ISignupMessenger`）等通知渠道（S1-NTF-001 / S1-NTF-003）就绪后接入。S1-DEP-011 的验收 3 据此验「发码返回 503，且运营开户不受影响」。
+- R150（S1-DEP-011 开工前的四个问题，其中第四问即 S1-DEC-033 的 D4。产品负责人 2026-11-11 在执行会话作答：①③④ 选推荐项，② 选「同上，改用 .cn 主机名」。S1-DEC-033 的 D3、D6、D7 不在此裁决）：① 身份分支的装配方式与 profile 落位：平台宿主内置身份扩展，经 `PlatformHost.RunAsync(args, extend, configure)` 接入。`AddComponent` 登记 `qian.identity.server` 与 `qian.tenancy.signup` 的目录项与数据上下文，`AddEvents` / `AddMediator` 并入身份事件，`AddOperations` 挂 `/api/signup/applications`、`/api/signup/meta`，`configure` 装身份分支（OIDC 协议面、账号接口、认证页族、申请人接口与公开页）。不新建 profile：内置的扩展 overlay 把 platform profile 的 `identity` 条目由 `qian.identity.client` 换成 `qian.identity.server`，并加 `tenancy.signup` 条目，issuer 由环境 overlay 给。两个组件清单去掉 `x-skeleton`，R144 ③ 的限定例外扩到平台宿主预装的这两个组件，安装路径与启动证据同 R144 ③（平台镜像预装，平台宿主装配与集成测试）。同进程后经平台宿主做的授权变更按 S1-DEC-027 / S1-AZ-009 递增身份修订，同进程不登记身份侧订阅。网关宿主加配置源开关：staging 读宿主配置（JSON、Secret 文件、环境变量、命令行），缺省仍是 Apollo，Apollo 联调归 S1-DEP-005，并写入运维手册的已知差异。备选「新建 staging 专用 profile」与「宿主直接挂载、不进 profile」不采用。② 入口与镜像：外壳（网关）的主机名是 `gateway.staging.example`，身份发行方是 `identity.staging.example`。证书由公网入口 hub 上的 certbot 签发 Let's Encrypt，TLS 在 hub 终结，经 WireGuard 到 Traefik 按 Host 分流；hub 的 vhost 配置进部署仓库的 edge 目录。两条 DNS A 记录与 Harbor 私有项目 `qian` 由产品负责人建。镜像在 qd（amd64）上经 `scripts/images.py build` 构建，推到 Harbor `192.0.2.21/qian`，清单按 digest 引用。③ 首个平台运营账号：平台宿主加一次性引导模式 `--bootstrap-operator`，与 `--migrate-only` 同形，作为 K8s Job 运行一次。用户名与显示名取自参数，初始密码取自 Secret 文件；经身份账号端口建平台身份并要求首登改密，经平台角色存储授平台超管，写平台审计链；库里已有平台超管时拒绝执行，不能拿它二次提权；跑完删除该 Secret。不用开发种子、运维 SQL 或启动时自动引导。④ S1-DEC-033 D4（自助注册的短信）：按推荐，里程碑内只开运营开户与审核。申请人接口与公开页照常挂载，没有发件端口时发验证码返回 503 `SIGNUP_UNAVAILABLE`（同 S1-DEC-032 D5），审核结果通知跳过；短信发件实现（`ISignupMessenger`）等通知渠道（S1-NTF-001 / S1-NTF-003）就绪后接入。S1-DEP-011 的验收 3 据此验「发码返回 503，且运营开户不受影响」。
 
 ### 产品负责人裁决 R151（S1-DEP-011 实现中提问：系统组件修订的首装、system 级授权与免批，2026-11-11）
 
@@ -689,13 +691,13 @@ S1-DEP-009（生产平台宿主）开工前，执行会话就两项向产品负�
 
 S1-IDP-010（目录派生查询契约与 `directory.*.v1` 事件）开工前，执行会话就四项向产品负责人提问并给出推荐，产品负责人 2026-11-11 四项都选推荐项。
 
-- R152（S1-IDP-010 的成员检索、上级链、其余口径与 E2E 载体）：① 成员关键字检索与按 id 批量查询随本任务做：在现有 `GET /api/directory/members`、`/orgs/{id}/members` 上加 `q`（去首尾空白后 1–64 字，按显示名、账号与档案拼音做忽略大小写的包含匹配，不检索手机号与邮箱），`/members` 另加 `ids` / `person_ids`（各至多 100 个，只回本租户可见成员，查不到的省略、不报 404，不与 `q` 组合）；响应形状不变，按账号、成员 id 排序。UserSelect 改服务端检索：输入去抖，第一页 50 位，满页提示继续输入，已选值不在结果里时按 `ids` / `person_ids` 回查显示名，去掉 `max`。② 上级链：从主岗位起算（`position_id` 可指定本人担任的另一岗位，不是本人岗位 404），没有主岗位从主组织起算，都没有为空；沿岗位父链向上（不含起点，父岗位在别的组织也照走），每个责任岗位算一级；到顶后从最上层岗位所属组织起逐级取各组织的责任岗位，已出现的跳过；非责任岗位、没设责任岗位的组织不算级；责任岗位空缺照样占一级，给出 `vacancy`（`unassigned` 未设责任人、`inactive` 责任人已停用或删除），不返回人；本人就是责任人照常返回；多岗位只算起点这一条；主归属变了结果随之变。③ 直属主管取主组织（没有时取主岗位所属组织）的主管字段，本人就是主管、未设或已停用时逐级向上，返回 `{manager?, source_organization_id?}`；部门负责人 `GET /orgs/{id}/head` 返回责任岗位、现任责任人（空缺给原因）与主管字段；`/me/subordinates?depth=` 是上级链的反查（1 为以我为第 1 级的成员，n 为前 n 级，缺省为任一级），分页。目录事件 12 种：组织、岗位各 created / updated / moved / deleted，成员 created / relations_changed / status_changed / profile_updated，均为 v1，与写入同事务进 Outbox，载荷只带 id 与结构字段、不带名称与联系方式，移动只为被移动的子树根发一条（带新旧 path），删除子树逐行各一条，Schema 与 `identity.*.v1` 一样放 `contracts/identity/v1`。SCIM 2.0 按 RFC 7643 的 User、Group、EnterpriseUser 表示，加实例 JSON Schema、样例与映射说明，放 `contracts/scim/v2`（成员与档案 → User，用户组 → Group，主组织 → department，直属主管 → manager），服务由 S3 实现。Agent 契约为 OpenAPI 3.1 的 `contracts/identity/v1/directory.openapi.json`，每个查询带意图式描述与请求 / 响应示例；单测核对每个目录 GET 端点都在册、示例符合 Schema，yue/biz 契约的目录部分与它逐字段一致。④ E2E 载体：靶场新增真实目录页（不进靶场生产构建，不影响首屏预算），复用 `scripts/dev-tenant-ops.sh` 的真实身份宿主（真实 PostgreSQL、生产迁移，开通编排建租户 A、B），Vite 只监听回环、同源代理 `/api/identity` 与 `/api/directory`；A 的管理员经账号接口登录（Cookie 落在页面源），PlatformClient 同源携带；目录数据经真实目录写接口播种，B 放不同数据作隔离对照；断言组织树即真实组织树、选部门后只列该子树成员、关键字走服务端、选中值是真实成员 id、看不到 B 的数据；新增按路径触发的工作流。外壳页面经网关访问不到目录接口（目录只认身份服务自己的 Cookie），S1-IDP-018、S1-AZ-005 会用到，另立 [S1-IDP-021](../../pm/tasks/S1-IDP-021.md)，不在本任务做。
+- R152（S1-IDP-010 的成员检索、上级链、其余口径与 E2E 载体）：① 成员关键字检索与按 id 批量查询随本任务做：在现有 `GET /api/directory/members`、`/orgs/{id}/members` 上加 `q`（去首尾空白后 1–64 字，按显示名、账号与档案拼音做忽略大小写的包含匹配，不检索手机号与邮箱），`/members` 另加 `ids` / `person_ids`（各至多 100 个，只回本租户可见成员，查不到的省略、不报 404，不与 `q` 组合）；响应形状不变，按账号、成员 id 排序。UserSelect 改服务端检索：输入去抖，第一页 50 位，满页提示继续输入，已选值不在结果里时按 `ids` / `person_ids` 回查显示名，去掉 `max`。② 上级链：从主岗位起算（`position_id` 可指定本人担任的另一岗位，不是本人岗位 404），没有主岗位从主组织起算，都没有为空；沿岗位父链向上（不含起点，父岗位在别的组织也照走），每个责任岗位算一级；到顶后从最上层岗位所属组织起逐级取各组织的责任岗位，已出现的跳过；非责任岗位、没设责任岗位的组织不算级；责任岗位空缺照样占一级，给出 `vacancy`（`unassigned` 未设责任人、`inactive` 责任人已停用或删除），不返回人；本人就是责任人照常返回；多岗位只算起点这一条；主归属变了结果随之变。③ 直属主管取主组织（没有时取主岗位所属组织）的主管字段，本人就是主管、未设或已停用时逐级向上，返回 `{manager?, source_organization_id?}`；部门负责人 `GET /orgs/{id}/head` 返回责任岗位、现任责任人（空缺给原因）与主管字段；`/me/subordinates?depth=` 是上级链的反查（1 为以我为第 1 级的成员，n 为前 n 级，缺省为任一级），分页。目录事件 12 种：组织、岗位各 created / updated / moved / deleted，成员 created / relations_changed / status_changed / profile_updated，均为 v1，与写入同事务进 Outbox，载荷只带 id 与结构字段、不带名称与联系方式，移动只为被移动的子树根发一条（带新旧 path），删除子树逐行各一条，Schema 与 `identity.*.v1` 一样放 `contracts/identity/v1`。SCIM 2.0 按 RFC 7643 的 User、Group、EnterpriseUser 表示，加实例 JSON Schema、样例与映射说明，放 `contracts/scim/v2`（成员与档案 → User，用户组 → Group，主组织 → department，直属主管 → manager），服务由 S3 实现。Agent 契约为 OpenAPI 3.1 的 `contracts/identity/v1/directory.openapi.json`，每个查询带意图式描述与请求 / 响应示例；单测核对每个目录 GET 端点都在册、示例符合 Schema，yue/biz 契约的目录部分与它逐字段一致。④ E2E 载体：靶场新增真实目录页（不进靶场生产构建，不影响首屏预算），复用 `scripts/dev-tenant-ops.sh` 的真实身份宿主（真实 PostgreSQL、生产迁移，开通编排建租户 A、B），Vite 只监听回环、同源代理 `/api/identity` 与 `/api/directory`；A 的管理员经账号接口登录（Cookie 落在页面源），PlatformClient 同源携带；目录数据经真实目录写接口播种，B 放不同数据作隔离对照；断言组织树即真实组织树、选部门后只列该子树成员、关键字走服务端、选中值是真实成员 id、看不到 B 的数据；新增按路径触发的工作流。外壳页面经网关访问不到目录接口（目录只认身份服务自己的 Cookie），S1-IDP-018、S1-AZ-005 会用到，另立 [S1-IDP-021](../../_import/qian/pm/tasks/S1-IDP-021.md)，不在本任务做。
 
 ### 产品负责人裁决 R153（S1-IDP-010 交付时的 5 处偏离，2026-11-12）
 
 S1-IDP-010 转 review 时，执行会话在任务进度日志与 PR idadawn/qian#307 列出 5 处偏离，以已做的方案为建议；产品负责人 2026-11-12 在执行会话作答「偏离按建议」。
 
-- R153（S1-IDP-010 的 5 处偏离，均按执行会话已做的方案接受）：① E2E 的成员经运营的「更换租户管理员」接口建立（换下来的管理员留作普通成员，最后换回各自的管理员），不按 R152 ④ 经真实目录写接口播种，因为目录没有新建成员的接口；组织与主归属仍经目录写接口播种；S1-IDP-017 交付租户管理员新增成员的接口后改用它。② SCIM：Group 的 `displayName` 按 RFC 7643 第 4.2 节正文定为必填（第 8.7.1 节的示例表示写的是非必填），`Group.members` 带只读的 `display` 子属性（第 2.4 节的缺省子属性），属性描述用中文自写；`contracts/scim/v2` 按此为准。③ `UserSelect` 每次请求 51 条、显示 50 条，多取的一条用来判断后面是否还有；已选值的显示名回查等第一页返回后才发，免得与第一页重复。④ Agent 契约 `contracts/identity/v1/directory.openapi.json` 把目录原有的 7 个 GET 查询（组织类型、组织树、岗位、用户组、岗位任职、成员归属、成员档案）一并收录，单测要求目录的每个 GET 端点都在册。⑤ `q` 只在全是空白或超过 64 字时返回 400（`INPUT_INVALID`）；`ids` 含非 UUID 时返回 400（`BAD_REQUEST`，`person_ids` 走同一解析），与目录其他参数的口径一致。不在本次裁决内：[S1-IDP-021](../../pm/tasks/S1-IDP-021.md) 的接入方式（a 目录接口接受网关换签的 S2S 用户令牌 / b 网关为目录路径原样转发身份会话 / c 目录接口改由平台宿主经 `IIdentityDirectory` 承载），以及它与 S1-DEP-011 平台宿主 `/api/directory/**` 路径归属的对齐，仍待产品负责人选定。
+- R153（S1-IDP-010 的 5 处偏离，均按执行会话已做的方案接受）：① E2E 的成员经运营的「更换租户管理员」接口建立（换下来的管理员留作普通成员，最后换回各自的管理员），不按 R152 ④ 经真实目录写接口播种，因为目录没有新建成员的接口；组织与主归属仍经目录写接口播种；S1-IDP-017 交付租户管理员新增成员的接口后改用它。② SCIM：Group 的 `displayName` 按 RFC 7643 第 4.2 节正文定为必填（第 8.7.1 节的示例表示写的是非必填），`Group.members` 带只读的 `display` 子属性（第 2.4 节的缺省子属性），属性描述用中文自写；`contracts/scim/v2` 按此为准。③ `UserSelect` 每次请求 51 条、显示 50 条，多取的一条用来判断后面是否还有；已选值的显示名回查等第一页返回后才发，免得与第一页重复。④ Agent 契约 `contracts/identity/v1/directory.openapi.json` 把目录原有的 7 个 GET 查询（组织类型、组织树、岗位、用户组、岗位任职、成员归属、成员档案）一并收录，单测要求目录的每个 GET 端点都在册。⑤ `q` 只在全是空白或超过 64 字时返回 400（`INPUT_INVALID`）；`ids` 含非 UUID 时返回 400（`BAD_REQUEST`，`person_ids` 走同一解析），与目录其他参数的口径一致。不在本次裁决内：[S1-IDP-021](../../_import/qian/pm/tasks/S1-IDP-021.md) 的接入方式（a 目录接口接受网关换签的 S2S 用户令牌 / b 网关为目录路径原样转发身份会话 / c 目录接口改由平台宿主经 `IIdentityDirectory` 承载），以及它与 S1-DEP-011 平台宿主 `/api/directory/**` 路径归属的对齐，仍待产品负责人选定。
 
 ### 产品负责人裁决 R154（S1-IDP-010 第一轮复核提请的平台级停用口径，2026-11-12）
 

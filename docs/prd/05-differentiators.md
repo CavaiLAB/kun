@@ -43,7 +43,7 @@
 - SDK：源生成器从代码派生清单的代码部分字段与 Schema，合并进同一份 `plugin.json`；`MapCommand` 类端点模式自动获得租户注入、权限判定、审计、幂等、Outbox；组件库只依赖 `Qian.Runtime`（ADR-019 经 ADR-020 修订）。
 - CLI（R33）：`qian init --template <stack>`（按技术栈脚手架）、`qian add <component>[@version]` / `remove` / `list`（一键安装与目录市场，等价 `npx qian@latest --skill x --agent y --plugin z --yes`）、`doctor`（健康检查与清单 / 契约 lint，含「inputSchema 不得含 tenant 字段」等规则）、`dump-config`（打印整棵插件树）、`dev`（本地依赖与宿主一键拉起）、`pack`（代码部分 OCI artifact）、`sign`、`publish`（推制品并更新 marketplace 条目）；原 `validate / install / provision / tck` 并入上述动词。
 - TCK 三套（§14）：运行时语义（可逆副作用、scope 过滤、五种分发）、独立模式（`standalone` 宿主下 `qian add` 后可用）、组件一致性（多租户隔离、权限强制、审计完整、事件至少一次、修订回切、逐租户钩子幂等等用例）；官方插件与第三方插件同一套。
-- 契约生成：OpenAPI 3.1、TypeScript 客户端（供 yue）、MCP 工具描述、权限点、默认角色模板由同一契约生成；前后端校验器共用。
+- 契约生成：OpenAPI 3.1、TypeScript 客户端（供前端框架）、MCP 工具描述、权限点、默认角色模板由同一契约生成；前后端校验器共用。
 - Kun 以 NuGet + CalVer 消费，公共 API 兼容承诺、弃用窗口与变更日志；S1 必修的 Kun 关键缺口（后台链路丢租户、至多一次、Outbox 无锁、网关不强制认证、gRPC 流式绕过鉴权、OIDC 客户端缺口）以集成测试实证（ADR-001）。
 - 开发者租户与本地开发体验：一键起本地依赖、种子租户、模拟 IdP；S2 可选远程调试。
 - 文档从契约生成：能力目录即 API 文档；安全默认值是强制装配而非 opt-in。
@@ -81,7 +81,7 @@
 **承诺。** 后台 CRUD、低代码运行时、设计器预览、未来的 Agent 生成 UI 用的是同一套表单 / 表格 / 弹层引擎与同一份控件契约；不存在「两套并存」。
 
 **措施。**
-- yue 六层分层（tokens → core → shell / data / form → biz → runtime / widgets → designer），依赖方向用 lint 写死进 CI（ADR-013）。
+- 前端框架六层分层（tokens → core → shell / data / form → biz → runtime / widgets → designer），依赖方向用 lint 写死进 CI（ADR-013）。
 - 只保留一套表单 / 表格 / 弹层引擎；业务组件只做叶子，不得新建引擎。
 - 控件注册表：一次声明 `edit / readonly / cell` 三态，meta 含 props JSON Schema、`devices[]`、能力位；一份注册表同时作设计器左栏与 `GET /registry/widgets`。
 - 一份元数据 + `device` 维度覆盖，不要两份；端支持矩阵显式降级。

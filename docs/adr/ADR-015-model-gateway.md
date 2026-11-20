@@ -8,11 +8,13 @@ supersedes: none
 
 # ADR-015 模型服务网关
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 ## 1 背景与问题（Context）
 
 模型服务网关是本期唯一的 AI 范围。现网（2026-10-03 合入）已有 Higress 2.2.3（gateway 2 副本 + PDB，console 内网）、McpBridge 上游注册（DashScope 与 OpenRouter 已注册）、key-auth 双形态 consumer、网关专用 Redis Sentinel HA、MaaS 专用 Loki 90 天访问日志（账单原始数据，按请求 ID 去重）、官方 AI 大盘与 4 条告警、`maas-*` 路由命名约定（基线 K §4.2、§6.4）。差距：`ai-proxy` 供应商与逻辑模型名映射、`ai-quota / ai-token-ratelimit / ai-statistics` 插件绑定、`maas-*` 业务路由与消费者、价格表、账单脚本**尚未入 git**；推理层是 Xinference（0 副本）+ Ollama，无 GPUStack manifest；首节点两块 3090 已借出一块（基线 K §4.2、§6.4）。
 
-iClaw 已落地可直接复用的契约与控制面：Higress 对租户无感、纯数据面 chokepoint；`x-<product>-consumer` 头由服务端生成作限流桶键；usage 由调用方从响应回流落库；租户级模型路由「产品默认 + 租户覆盖」、坏配置 fail-open 到默认；BYO 端点只能注册为 Higress 上游；模型目录用 `model-capabilities` 契约（模态 / 工具 / 上下文 / 数据驻留 / 隐私 / 时延 / 成本档）描述；租户 API Key + OpenAI 兼容面 + QuotaEnforcer + Usage Ledger；认证收编（Wasm）明确延后（基线 K §4.1）。`Kun.Gateway` 与 Higress 是两个不同层次的网关（基线 K §6.4）。
+［下游智能体平台］已落地可直接复用的契约与控制面：Higress 对租户无感、纯数据面 chokepoint；`x-<product>-consumer` 头由服务端生成作限流桶键；usage 由调用方从响应回流落库；租户级模型路由「产品默认 + 租户覆盖」、坏配置 fail-open 到默认；BYO 端点只能注册为 Higress 上游；模型目录用 `model-capabilities` 契约（模态 / 工具 / 上下文 / 数据驻留 / 隐私 / 时延 / 成本档）描述；租户 API Key + OpenAI 兼容面 + QuotaEnforcer + Usage Ledger；认证收编（Wasm）明确延后（基线 K §4.1）。`Kun.Gateway` 与 Higress 是两个不同层次的网关（基线 K §6.4）。
 
 ## 2 决策（Decision）
 
@@ -24,16 +26,16 @@ iClaw 已落地可直接复用的契约与控制面：Higress 对租户无感、
 - **D15.6 不在 S1 把 SSO / S2S 交给 Higress**；业务 API 的身份边界仍在 `qian.gateway`（ADR-010）。
 - **D15.7 接入范围**（Q17）：先 LLM + Embedding；ASR / TTS / Rerank 后续按需评估；GPU 归属由产品负责人决定。
 - **D15.8 阶段**：S1 可选做底座接线（上游注册、adapter、逻辑模型目录）；S2 模型目录与按用途路由；S3 租户可见的模型门户、成本与配额预算告警；S4 Higress 托管每租户 MCP 逻辑门面。
-- **D15.9 与 iClaw 的计量共用**：Qian 应用经租户 API Key 的 OpenAI 兼容面调模型、计量进同一 Usage Ledger 的方案待 S3 定（Q15）；S1–S2 只保证契约形状与双键约定一致。
+- **D15.9 与［下游智能体平台］的计量共用**：Qian 应用经租户 API Key 的 OpenAI 兼容面调模型、计量进同一 Usage Ledger 的方案待 S3 定（Q15）；S1–S2 只保证契约形状与双键约定一致。
 - **D15.10 租户级模型路由**：「产品默认 + 租户覆盖」，坏配置 fail-open 到默认；BYO 模型端点只能注册为 Higress 上游，不允许应用直连。
 - **D15.11 密钥**：模型供应商密钥只以 `secretRef` 出现在配置与清单中。
-- **D15.12 Provider Adapter 的对外契约**：`model-capabilities` 与 `model-governance`（iClaw 契约）；模型目录含类型 / 能力标签 / 配额，S4 可经 MCP resources 暴露。
+- **D15.12 Provider Adapter 的对外契约**：`model-capabilities` 与 `model-governance`（［下游智能体平台］契约）；模型目录含类型 / 能力标签 / 配额，S4 可经 MCP resources 暴露。
 
 ## 3 理由（Rationale）
 
 - Higress 已是团队的唯一 LLM chokepoint，另起一套会分裂计量、限流与账单（基线 K §4.1、§6.4）。
 - 自写模型代理既无增量价值又会绕过 Higress 的 token 限流与缓存；Qian 的差异化在平台侧的租户 / 配额 / 权益，而非代理层。
-- 把 SSO 交给 Higress 会让 S1 的身份边界依赖第三方网关的认证收编能力，而该能力已被 iClaw 明确延后。
+- 把 SSO 交给 Higress 会让 S1 的身份边界依赖第三方网关的认证收编能力，而该能力已被［下游智能体平台］明确延后。
 - 先 LLM + Embedding 是低代码与 Agent 场景的最小集；ASR / TTS / Rerank 涉及不同的上游与计量口径。
 
 ## 4 备选方案与放弃原因（Alternatives）
@@ -45,7 +47,7 @@ iClaw 已落地可直接复用的契约与控制面：Higress 对租户无感、
 
 ## 5 后果与代价（Consequences）
 
-- 正面：Qian 零成本继承 MaaS 的限流、统计、账单与大盘；模型目录契约与 iClaw 同形，S4 对接顺畅。
+- 正面：Qian 零成本继承 MaaS 的限流、统计、账单与大盘；模型目录契约与［下游智能体平台］同形，S4 对接顺畅。
 - 负面：Qian 的模型能力受制于团队 MaaS 的推进节奏与 GPU 资源（首节点 GPU 已借出一半）；Provider Adapter 的维护方未定；GPUStack 控制面是否已在仓外存在待确认。
 - 配套：整合方案第 1–2 阶段的 GitOps 入库；GPUStack manifest；`maas-*` 路由与消费者；价格表。
 

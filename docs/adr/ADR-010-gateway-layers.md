@@ -8,6 +8,8 @@ supersedes: none
 
 # ADR-010 网关分层
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 ## 1 背景与问题（Context）
 
 现网有两个 IngressClass：`traefik`（业务北向）与 `higress`（AI 南向），各有 MetalLB VIP；集群不直接暴露公网，公网 nginx 终结 TLS 后经 WireGuard 直连；集群内无 cert-manager，Ingress 全 HTTP；Traefik `forwardedHeaders.trustedIPs` 必须配置否则 OIDC issuer 变成 http（基线 K §6.1）。Higress 2.2.3 两副本 + PDB，是模型流量的 chokepoint，对租户无感（基线 K §6.4）。
@@ -19,7 +21,7 @@ supersedes: none
 - **D10.1 三层网关，职责从 S1 画清、不互相承担**：Traefik（北向公网入口）→ `qian.gateway`（业务 API 边界）→ Higress（模型与 MCP 流量）。
 - **D10.2 Traefik 不做鉴权**，只做入口路由与 TLS 终结衔接；`trustedIPs` 必配；ingress 全 HTTP 直到引入 cert-manager。
 - **D10.3 `qian.gateway` 以库方式引用 `Kun.Gateway` 并加固**：认证回退策略（默认拒绝匿名）；路由级 `RateLimiterPolicy` 与全局限流器；可信代理网段；私钥热轮换（JWKS 双钥重叠）；Cookie 会话换 S2S（`IS2sPrincipalResolver` 注入租户 / 应用上下文）；按上游 cluster 铸造 per-service audience；`AddKunObservability`；`/healthz /readyz`；OpenAPI 聚合与能力目录端点（生产不公开 OpenAPI）。
-- **D10.4 S2S 签发器收敛为一套**：保留网关 `S2sTokenIssuer`（短 TTL、JWKS），吸收 `scope / session_id / membership_id / project_id` claim；claim 形状对齐 iClaw 契约 `iss / aud[] / sub / tenant_id / project_id? / roles[] / scope 串 / session_id / iat,nbf,exp,jti`，`exp − iat ≤ 300s`；「新能力授权 = 加 scope 串，不加 claim」；`roles[]` 作为与 iClaw 同形的例外保留，但限定为粗粒度角色代码而非权限点集合，Qian 自身服务不得仅凭 `roles[]` 放行、必须调用 `Kun.Authorization` 决策端口，时效性由 `identity_revision` 管；`project_id` 保留为可选 claim（iClaw 侧语义，Qian 只透传不解释）（R24）；`Kun.Identity.KunJwtIssuer` 与 `Kun.Security.S2SJwt` 标记废弃；去产品化（issuer 默认值等约 30 处）。
+- **D10.4 S2S 签发器收敛为一套**：保留网关 `S2sTokenIssuer`（短 TTL、JWKS），吸收 `scope / session_id / membership_id / project_id` claim；claim 形状对齐［下游智能体平台］契约 `iss / aud[] / sub / tenant_id / project_id? / roles[] / scope 串 / session_id / iat,nbf,exp,jti`，`exp − iat ≤ 300s`；「新能力授权 = 加 scope 串，不加 claim」；`roles[]` 作为与［下游智能体平台］同形的例外保留，但限定为粗粒度角色代码而非权限点集合，Qian 自身服务不得仅凭 `roles[]` 放行、必须调用 `Kun.Authorization` 决策端口，时效性由 `identity_revision` 管；`project_id` 保留为可选 claim（［下游智能体平台］侧语义，Qian 只透传不解释）（R24）；`Kun.Identity.KunJwtIssuer` 与 `Kun.Security.S2SJwt` 标记废弃；去产品化（issuer 默认值等约 30 处）。
 - **D10.5 机器身份签发**：`client_credentials` 由 `qian.identity` 提供（S1 必做）；后台任务 / 作业以服务自持私钥签发为过渡，S4 前统一经签发端点。
 - **D10.6 多 Pod 共享限流计数**：Redis `PartitionedRateLimiter`，S1 可选、S2 必做。
 - **D10.7 S3 动态路由 provider**：租户目录 × 已安装应用 → YARP routes / clusters，由插件清单 `components.service.protocols` 与 `tenancy` 派生；「未启用」在网关路由、SDK 入口、前端外壳三处同时拦截；域名 → 租户解析 S1 可选 / S3 必做。
@@ -37,7 +39,7 @@ supersedes: none
 
 ## 4 备选方案与放弃原因（Alternatives）
 
-- **Higress 统一所有流量与认证**：Higress 对租户无感，认证收编（Wasm）已被 iClaw 明确延后；会把 S1 的身份边界交给第三方网关。放弃。
+- **Higress 统一所有流量与认证**：Higress 对租户无感，认证收编（Wasm）已被［下游智能体平台］明确延后；会把 S1 的身份边界交给第三方网关。放弃。
 - **单层 Traefik + 服务各自鉴权**：参考平台「鉴权分散」的反例。放弃。
 - **保留 `Kun.Security.S2SJwt` 作唯一签发器**（基线 P §5 的建议）：与网关 JWKS 轮换链路重复；本 ADR 采 K 的方案并吸收其 claim。
 - **每服务独立网关**：三节点集群不可承受。放弃。

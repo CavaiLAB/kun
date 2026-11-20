@@ -90,7 +90,7 @@
 
 ## 3.4a 组件模型 v2 的六个概念（ADR-020，Accepted）
 
-**表面（surface）。** 组件对外暴露的声明式内容，是组件的顶层分类：`skills/<name>/SKILL.md`（技能，Agent 可读，含 front matter）、`agents/<name>.md`（子 Agent 定义）、`commands/<name>.md`（人类斜杠命令，命令平面，不进入模型消息）、`hooks/hooks.json`（Qian 事件与 Agent 宿主事件的桥接）、`.mcp.json`（MCP 服务器声明）、`tools/`（面向模型的工具描述）、`ui/`（yue 远程模块、页面、控件、设置卡）、`forms/ lists/ flows/ pages/`（低代码元数据，S2 起）。表面是 Markdown 与 JSON，Agent 可直接读写；S1 支持运行中重载。例：一个只含 `skills/` 的组件没有任何代码；S2 设计器保存一张表单，产出的就是组件文件夹里的 `forms/<name>.json`。✅ 五种表面（skills / agents / commands / hooks / MCP）的解析器与校验器 S1 交付；❌ 不存在绕过注册表的隐藏表面。
+**表面（surface）。** 组件对外暴露的声明式内容，是组件的顶层分类：`skills/<name>/SKILL.md`（技能，Agent 可读，含 front matter）、`agents/<name>.md`（子 Agent 定义）、`commands/<name>.md`（人类斜杠命令，命令平面，不进入模型消息）、`hooks/hooks.json`（Qian 事件与 Agent 宿主事件的桥接）、`.mcp.json`（MCP 服务器声明）、`tools/`（面向模型的工具描述）、`ui/`（前端框架远程模块、页面、控件、设置卡）、`forms/ lists/ flows/ pages/`（低代码元数据，S2 起）。表面是 Markdown 与 JSON，Agent 可直接读写；S1 支持运行中重载。例：一个只含 `skills/` 的组件没有任何代码；S2 设计器保存一张表单，产出的就是组件文件夹里的 `forms/<name>.json`。✅ 五种表面（skills / agents / commands / hooks / MCP）的解析器与校验器 S1 交付；❌ 不存在绕过注册表的隐藏表面。
 
 **作用域（scope）。** 任一注册（服务、工具、提示词片段、表单、流程、菜单、监听器）要么是全局的，要么归属恰好一个 scope key；S1 的 scope 种类为租户、应用、Agent 会话。带作用域的注册在该 scope 内**遮蔽（shadow）**同名全局项；`restrict` 为某个 scope 过滤全局集合，多个 restriction 取交集，被过滤掉的项既不出现在目录与提示词里也拒绝执行，与不存在无法区分。scope 不继承：子 scope 的行为用 lineage 数据表达，从不用 scope 层级。例：租户 A 启用文件组件 = 在租户 A 的 scope 挂载它的配置条目；租户 A 把登录页换成自家品牌 = 带租户 scope 的遮蔽注册；某个 Agent 会话只能看到三件工具 = 会话 scope 的 `restrict`。✅ 租户开关、租户定制、Agent 工具集三件事统一为「带作用域的注册 + restrict」；🔒 scope 过滤在 `ctx.Tools` 等注册表层生效，不依赖调用方自律。
 

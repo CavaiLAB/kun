@@ -8,6 +8,8 @@ supersedes: none
 
 # ADR-006 鉴权模型
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 ## 1 背景与问题（Context）
 
 Kun 对鉴权**全无**：`src/` 中没有任何 `IAuthorizationHandler`、策略或权限抽象；Mediator 没有授权行为；只有 `roles` claim 透传；`IPermissionChecker` 被 Kun 的 ADR 两次推迟（基线 K §2.3）。这是 S1 最大的单项工作量之一，且要同时服务 UI、API、MCP 三入口并与 RLS 协同（基线 P §10.1 第 4 条）。
@@ -22,7 +24,7 @@ Kun 对鉴权**全无**：`src/` 中没有任何 `IAuthorizationHandler`、策�
 - **D6.2 `qian.authz` 为内置实现**（`tier: system, alwaysEnabled`）：权限点与默认角色模板由插件清单 `provides.permissions` 声明并登记；资源类型（应用、菜单、按钮、API、流程、打印…）由插件注册。权限点编码统一为 `<plugin-id>:<resource>:<action>`（如 `qian.workflow:flow:launch`、`qian.crm:customer:read`）：清单只声明 `resource` 与 `actions`，插件 ID 前缀由 `qian.authz` 登记时拼接。
 - **D6.3 租户域 RBAC**：内置角色（平台超管；租户 Owner / Admin / 开发者 / 使用者）+ 自定义角色；主体可为用户、组织、岗位、用户组；有效角色 = 直接授予 ∪ 经组织 / 岗位 / 组获得；`Check` 缺省拒绝；平台超管旁路在策略中显式声明并审计。
 - **D6.4 数据权限（L4）**：条件树 + 系统变量（`@userId @userAndSub @organizeAndProgeny @positionAndSub` 等，每个带自然语言描述写进契约），**编译成 SQL / EF 谓词在本地执行**，RLS 永远兜底；合并语义固定为「同角色 AND / 跨角色 OR / 任一全部数据则放开」，不做可配置（Q19）；开了数据权限但主体无任何方案 = 查不到数据；行级策略覆盖所有读写路径，不只列表。
-- **D6.5 字段权限（L5）**：读投影或脱敏，写白名单；yue 按元数据渲染，以服务端为准。
+- **D6.5 字段权限（L5）**：读投影或脱敏，写白名单；［前端框架］按元数据渲染，以服务端为准。
 - **D6.6 每次决策可解释**（`{allow|deny, reason, matchedPolicies}`）并入 `qian.audit` 哈希链。
 - **D6.7 权限不进令牌**：令牌只含身份与会话类 claim（规范集 `sub`、`tenant_id`、`membership_id`、`scope`、`identity_revision`、`sid`、`amr`、`acr`，预留 `profile`、`act`），不含权限集合（S2S 令牌的 `roles[]` 例外见 ADR-010 D10.4 / R24）；有效权限按主体缓存，以 `identity_revision` 递增 + 推送刷新即时失效；网关 `ForwardedClaimTypes` 白名单只转发 `identity_revision`，不转发权限集合。（2026-10-22 S1-DEC-027：授予的增、改、撤提交后，授权组件在同一调用内经身份端口 `BumpIdentityRevisionAsync` 递增受影响 user 主体在该租户的修订，并把服务端修订下限同步抬到新值。这一做法只在同进程宿主里生效，身份组件不在本进程即跳过。瞬时故障退避重试，总时长不超过 3 秒；仍失败记警告与计数，不回滚授权变更。`authz.role.changed.v1` 不扇出。非 user 主体与无成员身份的主体跳过。陈旧令牌回 401（gRPC Unauthenticated），客户端据此换令牌。拆分部署（platform / identity 两个 Pod）由身份侧订阅 `authz.grant.changed.v1`，随 S1-EVT-002 闭环，见 S1-IDP-012。）
 - **D6.8 鉴权唯一入口**：UI、API、MCP 三入口同一个判定服务；网关 + 服务端双层强制；「端点 → 权限点」写进 OpenAPI 扩展并与能力清单共用；低代码数据引擎在唯一入口做「资源 + 动作 + 行级」三段式校验，不依赖设计器布尔开关与客户端传参；内部调用走服务身份。
@@ -50,7 +52,7 @@ Kun 对鉴权**全无**：`src/` 中没有任何 `IAuthorizationHandler`、策�
 
 - 正面：三入口一致；每次决策可解释、可审计，S4 的 `Explain` 直接作为 Agent 工具；数据权限对动态表与手写表一视同仁。
 - 负面：权限模型从零自建，S1 与身份核心互为前置；按主体缓存的跨服务一致性是工程难点；数据权限编译器依赖 S2 元数据，S1 只能落契约。
-- 配套：权限管理界面（S2）、授权界面含字段 / 数据（S2）、创建者自动 Owner、yue 权限渲染协议、决策审计查询。
+- 配套：权限管理界面（S2）、授权界面含字段 / 数据（S2）、创建者自动 Owner、［前端框架］权限渲染协议、决策审计查询。
 
 ## 6 对各阶段的影响
 

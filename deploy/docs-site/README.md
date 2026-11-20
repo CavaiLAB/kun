@@ -1,6 +1,6 @@
 # 文档站上 K3s
 
-文档站（`website/`，S1-DOCS-001）的托管方式：**CI 构建，git-sync 拉取，nginx 提供**。与[任务看板](../pm-board/README.md)同一套做法，不构建镜像：
+文档站（`website/`，S1-DOCS-001）的托管方式：**CI 构建，git-sync 拉取，nginx 提供**。与[任务看板](../../_import/qian/deploy/pm-board/README.md)同一套做法，不构建镜像：
 
 ```text
 main 的 CI ──构建──> 推到 CavaiLAB/kun 的 docs-site 分支 ──git-sync 每 60s──> emptyDir /git/current ──nginx──> Service ──> 浏览器
@@ -49,7 +49,7 @@ kubectl -n qian-tools port-forward svc/qian-docs-site 8080:80
 前提：看板已部署（命名空间 `qian-tools` 由它创建），`CavaiLAB/kun` 的 `docs-site` 分支已由 CI 发布过至少一次。在仓库根运行：
 
 ```bash
-kubectl apply -k _import/qian/deploy/docs-site
+kubectl apply -k deploy/docs-site
 ```
 
 按上节启动端口转发，在另一个终端核验发布版本。
@@ -68,12 +68,12 @@ curl -fsS http://localhost:8080/build-info.json
 
 ```bash
 pnpm --filter website build
-_import/qian/deploy/docs-site/publish.sh main website/doc_build
+deploy/docs-site/publish.sh main website/doc_build
 ```
 
-PR 预览要用对应的前缀构建：`DOCS_BASE=/pr-preview/pr-<n>/ pnpm --filter website build`，再 `_import/qian/deploy/docs-site/publish.sh preview <n> website/doc_build`。
+PR 预览要用对应的前缀构建：`DOCS_BASE=/pr-preview/pr-<n>/ pnpm --filter website build`，再 `deploy/docs-site/publish.sh preview <n> website/doc_build`。
 
 ## 之后
 
-- 部署仓库的 Argo CD Application `qian-docs-site` 选择 Kun 的源码版本和清单目录。本版本的清单位于 `_import/qian/deploy/docs-site`。部署模板使用自动同步与 `selfHeal: true`，保留 `prune: false`。
+- 部署仓库的 Argo CD Application `qian-docs-site` 选择 Kun 的源码版本和清单目录。本版本的清单位于 `deploy/docs-site`。部署模板使用自动同步与 `selfHeal: true`，保留 `prune: false`。
 - 接回预览之后：每个预览约 58 MB（gzip 后约 12 MB，nginx 已开 gzip；S1-DOCS-005 加入 Kun 小节与 Kun API 参考前约 17 MB，S1-DOCS-003 加入每页 .md、llms.txt 与知识库索引前约 48 MB），`docs-site` 分支随打开的 PR 数增长；PR 关闭即删除。产物检查有 120 MB 的总预算（R55）。

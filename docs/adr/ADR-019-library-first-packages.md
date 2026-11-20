@@ -10,6 +10,8 @@ amended_by: ADR-020、ADR-023
 
 # ADR-019 库优先（Library-first）与 Qian 包族
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 > **2026-10-06 经 ADR-020 修订。** 本 ADR 保留为「代码部分的打包规则」：D19.2 / D19.4 中 `AddQian<Component>()` 与「内核接管」的装配表述改为「`Apply(ctx, config)` 内部的装配细节」，平台模式 = 组件以插件形式挂进 `Qian.Runtime` 的插件树；组件库唯一必需的 Qian 依赖是 `Qian.Runtime`（极小、无业务语义），且不依赖 `qian.registry` / `qian.lifecycle` 等插件（取代「不依赖 `Qian.Kernel` 运行时」的表述）；§7 悬置的组件安装入口与声明格式由 ADR-020 定义（`qian add <component>`、`.qian-plugin/plugin.json`、`.qian/marketplace.json`）。详见 ADR-020 D20.4、D20.10 与 §6。
 
 > **2026-11-17 经 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) 修订。** D19.6「与 Kun 的分界」由 ADR-023 D23.7 的内核档与平台档取代；D19.7 的 SemVer 锁步改为 Kun 的日历版本线，发布渠道按 D23.12；许可证改为 MIT（D23.11）。包名由 `Qian.*` 改为 `Kun.*` 按 D23.15 分阶段落地，落地之前本文的包名与两道门禁照旧执行。
@@ -20,13 +22,13 @@ ADR-002 / ADR-003 把 Qian 的一切能力组织为插件，S1 的 18 个系统�
 
 产品负责人于 2026-10-06 给出方向修正：更想要的是「别人安装一个 NuGet 包就可以直接使用，尤其是通用的一些组件」。即 Qian 的通用组件应当像 `Microsoft.Extensions.*` 或 Kun 的 `Kun.*` 一样，加入依赖后即可在任意 ASP.NET Core 应用中使用，而不是只能在 Qian 平台内以插件形式存在。
 
-这与既有决策并不冲突，而是对「插件的物理形态」的补充：Kun 本身就是「每个能力一个 NuGet、一个显式注册入口」的框架（ADR-002 §1）；ADR-002 D2.6 已定清单由源生成器从代码派生；ADR-013 D13.12 已定 yue 以 npm 包分发。缺的是把「库可独立使用」写成明确的架构约束与验收条目，并约束组件库对内核的依赖方向——否则各组件库很容易在实现中悄悄依赖 `Qian.Kernel` 运行时，使「独立安装即用」在事实上失效。
+这与既有决策并不冲突，而是对「插件的物理形态」的补充：Kun 本身就是「每个能力一个 NuGet、一个显式注册入口」的框架（ADR-002 §1）；ADR-002 D2.6 已定清单由源生成器从代码派生；ADR-013 D13.12 已定［前端框架］以 npm 包分发。缺的是把「库可独立使用」写成明确的架构约束与验收条目，并约束组件库对内核的依赖方向——否则各组件库很容易在实现中悄悄依赖 `Qian.Kernel` 运行时，使「独立安装即用」在事实上失效。
 
 同日产品负责人进一步提出，组件模型要参考「声明式组件 + 一键安装 + 目录市场 + 一切皆插件」一类的设计。因此本 ADR 只定**库的形态与依赖规则**；组件的安装入口、声明格式与目录市场由后续 ADR 定义（见 §7）。
 
 ## 2 决策（Decision）
 
-- **D19.1 库优先原则**：每个 Qian 系统组件首先是一个可在任意 ASP.NET Core（.NET 10）应用中独立安装使用的 NuGet 包，其次才通过插件清单成为 Qian 插件。**插件 = 库 + 清单**：清单描述库、不替代库。Qian 平台 = `Qian.Kernel` + 这些库的装配。前端 yue 同理：`@yue/*` 以 npm 包分发、可在任意 React 应用中独立安装使用（ADR-013 D13.12、`specs/yue.md`）。
+- **D19.1 库优先原则**：每个 Qian 系统组件首先是一个可在任意 ASP.NET Core（.NET 10）应用中独立安装使用的 NuGet 包，其次才通过插件清单成为 Qian 插件。**插件 = 库 + 清单**：清单描述库、不替代库。Qian 平台 = `Qian.Kernel` + 这些库的装配。［前端框架］同理：`［前端包系列］` 以 npm 包分发、可在任意 React 应用中独立安装使用（ADR-013 D13.12、`specs/frontend.md`）。
 - 【经 ADR-020 修订：`AddQian<Component>()` 为 `Apply` 内部细节；唯一必需依赖改为 `Qian.Runtime`】**D19.2 包命名与分层**：每个组件两层包——`Qian.<Component>.Abstractions`（只含接口 / 契约 / DTO，仅依赖 `Kun.*.Abstractions`）→ `Qian.<Component>`（实现 + .NET 宿主的底层装配入口 `services.AddQian<Component>(options)` + EF 迁移随包）。清单相关的源生成器与生命周期钩子基类放在 `Qian.Plugin.Sdk`【R94：源生成器按 PRD 7.2.3 以 `Qian.Plugin.Sdk.Generators` 独立开发依赖包发布，与 `Qian.Plugin.Sdk` 同版本锁步、消费者同时引用】；组件库本身**不得依赖 `Qian.Kernel` 运行时**。清单由源生成器从代码派生（ADR-002 D2.6），独立使用时清单被忽略。`AddQian<Component>()` 只是 .NET 宿主的底层装配方式，不是面向开发者的安装入口；安装入口见 §7。
 - **D19.3 S1 包清单**（与 PRD §07 7.x 一一对应）：`Qian.Runtime`（唯一必需依赖）、`Qian.Registry` / `Qian.Lifecycle` / `Qian.Capabilities`（只进 `platform` profile 的平台插件，不供消费者独立安装；R34）、`Qian.Plugin.Sdk`、`Qian.Tenancy`、`Qian.Identity.Server`（可嵌入的 OpenIddict IdP，含 Person / Membership 与连接器 SPI）、`Qian.Identity.Client`（RP 接入、Cookie 会话、S2S 校验）、`Qian.Identity.Connector.Oidc` / `Qian.Identity.Connector.WeCom`、`Qian.Authz`、`Qian.Data`（含 `Qian.Data.Dialect.Pg`）、`Qian.Files`（含 `Qian.Files.Oss` / `.S3` / `.Local`）、`Qian.Config.Apollo`、`Qian.Gateway`、`Qian.Events`、`Qian.Audit`、`Qian.Observability`、`Qian.Notify`（含 `Qian.Notify.Channel.Inbox` / `.Email` / `.Sms`）、`Qian.Scheduler`、`Qian.Realtime`、`Qian.Entitlement`、`Qian.ModelGateway`（P1）。每个实现包都配套同名 `.Abstractions` 包。
 - 【经 ADR-020 修订：平台模式 = 挂进 `Qian.Runtime` 插件树】**D19.4 两种运行模式，同一份代码**：
@@ -75,7 +77,7 @@ ADR-002 / ADR-003 把 Qian 的一切能力组织为插件，S1 的 18 个系统�
 ## 7 待确认事项（2026-10-07 已拍板）
 
 - **安装入口与组件模型**：已由 ADR-020 定义（`qian add`、`.qian-plugin/plugin.json`、`.qian/marketplace.json`）；D19.2 / D19.4 的装配表述以 ADR-020 为准。
-- 【经 ADR-023 修订：全部改 MIT】**许可证**：Apache-2.0（Qian 包族、CLI、yue），理由与可回退条件见 ADR-020 §7 第 6 条；S3 商业组件另定。
+- 【经 ADR-023 修订：全部改 MIT】**许可证**：Apache-2.0（Qian 包族、CLI、［前端框架］），理由与可回退条件见 ADR-020 §7 第 6 条；S3 商业组件另定。
 - **分发渠道**：S1 GitHub Packages（.NET 包公开可见、安装需令牌，R93；TS 包私有，ADR-021 D21.6）；S2 末或首个外部宿主试用时公开到 nuget.org / npm（ADR-020 §7 第 6 条）。
 - **「外部应用清单」**：非 .NET 外部应用以「只含声明的组件文件夹」接入（无 `src/`，只有 `metadata/`、`tools/`、`ui/` 等表面），这在 ADR-020 D20.6 下已是常态，不需要单独机制；S1 不专门交付，S3 随 ISV 入驻给出模板。
 - **元包**：S1 不提供 `Qian.All` / `Qian.Platform`；profile 的组合包已承担「一组包一起装」的职责。
@@ -94,7 +96,7 @@ ADR-002 / ADR-003 把 Qian 的一切能力组织为插件，S1 的 18 个系统�
 | ADR-003 内核边界 | D19.2 / D19.5 约束依赖方向 | 内核定位处补「内核对组件库是可选的」 |
 | ADR-005 身份与 SSO | D19.3 `Qian.Identity.Server` / `.Client` | 补「`Qian.Identity.Server` 可嵌入任意 ASP.NET Core 宿主；平台部署形态仍是独立 `qian-identity`」 |
 | ADR-006 鉴权模型 | D19.4 独立模式权限点注册 | 补「独立模式下权限点经 `[Permission]` 特性登记，角色与授权用库自带表与 API」 |
-| ADR-013 前端与 yue | D19.1 前端对应 | D13.12 处呼应「`@yue/*` 以 npm 独立可用」 |
+| ADR-013 前端与［前端框架］ | D19.1 前端对应 | D13.12 处呼应「`［前端包系列］` 以 npm 独立可用」 |
 
-- PRD：`PRD §02`（设计原则，待补「库优先」）、`PRD §03`（待补「插件 = 库 + 清单」与独立 / 平台模式）、`PRD §07`（待补 S1 NuGet 包 ↔ 章节对照与验收）、`PRD §11`、`PRD §12`、`PRD §14`、`PRD §16`；`specs/plugin-manifest.md`、`specs/yue.md`。
+- PRD：`PRD §02`（设计原则，待补「库优先」）、`PRD §03`（待补「插件 = 库 + 清单」与独立 / 平台模式）、`PRD §07`（待补 S1 NuGet 包 ↔ 章节对照与验收）、`PRD §11`、`PRD §12`、`PRD §14`、`PRD §16`；`specs/plugin-manifest.md`、`specs/frontend.md`。
 - 决策清单：`docs/decisions/key-decisions-v0.md` D19。

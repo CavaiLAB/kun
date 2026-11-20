@@ -184,9 +184,9 @@
 | 连接器 | 受控出网的适配器（IdP、消息渠道、外部系统）；v2 口径（R28）：为某个 seam 提供 Provider 的组件，不是 `runtime.form`——清单上 `provides[]` 写服务键 + `policy.egress` 声明出网目标，`runtime.form` 按实现取 `module` 或 `service` | Connector · `connector.*` · `provides[]` + `policy.egress` | 已定义（v2 口径） |
 | 凭证保管 | 凭据唯一来源，配置只存引用 | Credential vault · `secretRef` | 已定义 |
 | 分享链接 / 预览票据 | 服务端签发、服务端校验的一次性访问凭证 | Share link / Preview ticket | 已定义 |
-| 外壳 | yue 的宿主应用，MF2 运行时加载 | Shell · `qian-shell` / `@yue/shell` | 已定义 |
+| 外壳 | 前端框架的宿主应用，MF2 运行时加载 | Shell · `qian-shell` / `@cavailab/qian-shell` | 已定义 |
 | 插槽注册表 | 带版本号的外壳扩展点注册 | Slot registry | 已定义 |
-| 令牌（设计） | tokens 三层：原语 → 语义 → 组件 | Design tokens · `@yue/tokens` | 已定义 |
+| 令牌（设计） | tokens 三层：原语 → 语义 → 组件 | Design tokens · `@cavailab/qian-tokens` | 已定义 |
 | 业务 API 网关 | Kun.Gateway 加固的业务边界 | `qian.gateway` | 已定义 |
 | AI 网关 | 模型与 MCP 流量的网关 | Higress | 已定义 |
 | 模型服务网关 | GPUStack + Higress 的整合层 | Model gateway · `qian.model-gateway` | 已定义 |

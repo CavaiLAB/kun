@@ -1,6 +1,6 @@
 # 专题 spec · 组件模型 v2（清单 · 表面 · 运行时 · profile · 市场 · CLI）
 
-> 状态：草案 v2（2026-10-06；2026-10-07 §13 待确认项全部拍板）。依据 [ADR-020 组件模型 v2](../../adr/ADR-020-component-model-v2.md)（Accepted）为唯一权威决策；兼引 [ADR-019 库优先](../../adr/ADR-019-library-first-packages.md)（代码部分的打包规则）、[ADR-002](../../adr/ADR-002-plugin-model.md)（信任等级、从代码派生、digest 引用等被保留并映射到新字段的条目）、[ADR-016](../../adr/ADR-016-iclaw-boundary.md)（工具元数据、事件信封、MCP 版本）。本 spec 取代 [`plugin-manifest.md`](plugin-manifest.md)（v1）为权威规格；v1 保留为字段迁移对照（§3.6）。
+> 状态：草案 v2（2026-10-06；2026-10-07 §13 待确认项全部拍板）。依据 [ADR-020 组件模型 v2](../../adr/ADR-020-component-model-v2.md)（Accepted）为唯一权威决策；兼引 [ADR-019 库优先](../../adr/ADR-019-library-first-packages.md)（代码部分的打包规则）、[ADR-002](../../adr/ADR-002-plugin-model.md)（信任等级、从代码派生、digest 引用等被保留并映射到新字段的条目）、[ADR-016](../../adr/ADR-016-agent-boundary.md)（工具元数据、事件信封、MCP 版本）。本 spec 取代 [`plugin-manifest.md`](plugin-manifest.md)（v1）为权威规格；v1 保留为字段迁移对照（§3.6）。
 >
 > 读者：组件作者（.NET / TypeScript）、`Qian.Runtime` 与 `@cavailab/qian-runtime` 的实现者、`qian` CLI 与市场仓库维护者、TCK 编写者。写法是「可直接照着实现」：每种文件格式给完整示例，每个运行时 API 给签名与语义表，每条规则给校验点。ADR-020 §7 的待确认项已于 2026-10-07 全部拍板，结论登记在 §13，正文标「→ §13」处以该节结论为准；本 spec 不自行新增决策。被借鉴的商业低代码产品一律称「参考平台」，被对标的 Agent 生态项目一律称「对标项目」。
 
@@ -18,7 +18,7 @@
 
 - 不定义具体能力的业务契约（各 `Qian.<X>.Abstractions` 的接口细节在 PRD §07 对应小节与包 README），只定义它们如何被声明、挂载、替换。
 - 不定义低代码表面 `forms/ lists/ flows/ pages/` 的内容格式（S2，ADR-011 / ADR-012 配套 spec），只预留目录与清单指针。
-- 不定义 Agent 运行时；skill / agent / command / hook 表面由 Agent 运行时（ADR-016：iClaw）执行，Qian 负责声明、校验、注册与 scope 过滤。
+- 不定义 Agent 运行时；skill / agent / command / hook 表面由 Agent 运行时（ADR-016：下游智能体平台）执行，Qian 负责声明、校验、注册与 scope 过滤。
 - 不定义 OCI 制品内部格式与 cosign 流程（沿 v1 §4.2 与 ADR-017），只规定 v2 中哪些东西仍走 OCI（仅代码部分）。
 - 不定义 S3 商业市场的授权、计费、审核流程，只保证 `marketplace.json` 可被叠加；不定义代码插件热装卸的实现（S2 可选，→ §13）。
 
@@ -58,7 +58,7 @@
   hooks/hooks.json              钩子：Agent 宿主事件与 Qian 事件的桥接（§4.4）
   .mcp.json                     MCP 服务器声明（§4.5）
   tools/<name>.json             面向模型的工具描述：代码派生或手写（§4.6）
-  ui/manifest.json  ui/dist/    yue 远程模块：exposes、页面、控件、设置卡（§4.7）
+  ui/manifest.json  ui/dist/    前端框架远程模块：exposes、页面、控件、设置卡（§4.7）
   metadata/                     permissions.json、roles.json、events.json、message-types.json（v1 provides.* 的落点）
   forms/ lists/ flows/ pages/   低代码元数据（S2 起）
   schemas/                      config.schema.json（有 config 的组件必需）与其它 JSON Schema
@@ -84,7 +84,7 @@
 | `hooks` | `hooks/hooks.json` | `ctx.Hooks` | 是 | 是 |
 | `mcpServers` | `.mcp.json` | `ctx.McpServers` | 是 | 是 |
 | `tools` | `tools/<name>.json` | `ctx.Tools`（kind = tool） | 是 | 手写：是；代码派生：否 |
-| `ui` | `ui/manifest.json` | `ctx.Ui`（yue 外壳） | 是 | 否 |
+| `ui` | `ui/manifest.json` | `ctx.Ui`（前端框架外壳） | 是 | 否 |
 | `metadata` | `metadata/*.json` | `qian.authz` / `qian.events` / `qian.notify` 各自注册表 | 是 | 是 |
 | `schemas` | `schemas/*.schema.json` | 契约仓库 | 否 | 是 |
 | `patch` | `config/qian.patch.yml` | 插件树 | 条目自带 `scope` | 是 |
@@ -514,7 +514,7 @@ metadata: { surface: command }
 
 `matcher` 是正则，匹配事件的主体（工具全局名 / 事件 subject）；省略 = 全部。`{{payload.<path>}}` 是 `command` / `http` 的参数模板，只能引用载荷中的标量。
 
-事件名矩阵（S1）。已裁决（R39）：Qian 事件行由 hooks Schema 固定（含分发模式）；Agent 宿主事件行是 S1 对接 Agent 运行时（iClaw）的透传约定，其定义与分发模式的权威在 Agent 运行时，Qian 只校验大驼峰命名：
+事件名矩阵（S1）。已裁决（R39）：Qian 事件行由 hooks Schema 固定（含分发模式）；Agent 宿主事件行是 S1 对接 Agent 运行时（下游智能体平台）的透传约定，其定义与分发模式的权威在 Agent 运行时，Qian 只校验大驼峰命名：
 
 | 事件 | 来源 | 分发模式（§5.4） | `matcher` 对象 | 载荷要点 | 典型用途 |
 |---|---|---|---|---|---|
@@ -600,7 +600,7 @@ Agent 宿主事件（大驼峰）由 Agent 运行时定义并透传：校验器�
 
 ### 4.7 `ui/manifest.json`
 
-格式以 [`yue.md`](yue.md) §3.6 的组件 manifest 与 MF2 外壳契约为准；本 spec 只规定位置与字段族。`pages[].nav` 取代 v1 的 `contributes: qian.shell.nav/v1`，`widgets[]` 对应 `registerWidget`，全部是外壳侧带 scope 的可逆注册。
+格式以 [`yue.md`](frontend.md) §3.6 的组件 manifest 与 MF2 外壳契约为准；本 spec 只规定位置与字段族。`pages[].nav` 取代 v1 的 `contributes: qian.shell.nav/v1`，`widgets[]` 对应 `registerWidget`，全部是外壳侧带 scope 的可逆注册。
 
 ```json
 {
@@ -825,7 +825,7 @@ export const filesHttp: QianPlugin<{ baseUrl: string }> = {
 | Service Provider | `Qian.<X>.<Provider>`（如 `Qian.Files`、`Qian.Identity.Server`、`Qian.Identity.Client`、`Qian.Authz`）/ `@qian/<x>-<provider>` | `IQianPlugin` 实现、`Provide` 该键、EF 迁移、组件文件夹（包内 `qian/`） | 自己与其它 seam 的 Definition、`Kun.*` 实现包、`Qian.Runtime` | 其它 seam 的 Provider；`qian.registry` / `qian.lifecycle` |
 | Consumer | 任何组件（含工具、UI、技能） | `inject` 该键，只经接口调用 | 所需 seam 的 Definition、`Qian.Runtime` | 任何 Provider 包 |
 
-S1-KUN-010 对 Definition 的 Kun 直接依赖设置门禁；因既有公开契约暂留的逐边例外及理由见 [测试规范](../../../../../tests/README.md#definition-的-kun-直接依赖s1-kun-010)，新增实现包不能自动沿用这些例外。
+S1-KUN-010 对 Definition 的 Kun 直接依赖设置门禁；因既有公开契约暂留的逐边例外及理由见 [测试规范](../../../tests/README.md#definition-的-kun-直接依赖s1-kun-010)，新增实现包不能自动沿用这些例外。
 
 - **seam 分两种风格**（已裁决 R38）：
   - (a) **单例 seam**：同 scope 内同键只能有一个 `Provide`，第二个即挂载失败；多实现靠 patch 替换条目或租户 scope 遮蔽。S1：`Tenancy`、`Identity`、`Authz`、`Files`、`Config`、`Events`、`Audit`、`Notify`、`Scheduler`…
@@ -962,7 +962,7 @@ health:
 - { id: entitlement,   plugin: qian.entitlement,     config: {} }
 ```
 
-`qian.bundle.shell` 的 patch 插入 `shell → qian.shell`（yue 外壳静态制品与外壳 API）；可选的 `qian.bundle.model-gateway` 的 patch 只有一条 `- { id: model-gateway, plugin: qian.model-gateway, config: { higress: "http://higress-gateway.higress:8080" }, disabled: true }`（P1，默认不挂载，需要时在 profile patch 里 `disabled: false`）。
+`qian.bundle.shell` 的 patch 插入 `shell → qian.shell`（前端框架外壳静态制品与外壳 API）；可选的 `qian.bundle.model-gateway` 的 patch 只有一条 `- { id: model-gateway, plugin: qian.model-gateway, config: { higress: "http://higress-gateway.higress:8080" }, disabled: true }`（P1，默认不挂载，需要时在 profile patch 里 `disabled: false`）。
 
 ### 7.4 patch 条目格式 `qian.patch.yml`
 
@@ -1069,7 +1069,7 @@ CREATE TABLE plugin_qian_registry.scope_patches (
 
 | profile | 组合包 | 组合包内容（条目 → 组件） | 备注 |
 |---|---|---|---|
-| `platform` | `qian.bundle.base` + `qian.bundle.shell` + 可选 `qian.bundle.model-gateway` | base：原 18 个平台插件按 seam 拆包——`registry`、`lifecycle`、`capabilities`、`hooks`、`tenancy`、`identity → qian.identity.client`、`authz`、`data`、`files`、`config → qian.config.apollo`、`events`、`audit`、`observability`、`notify` + 三个渠道、`scheduler`、`realtime`、`entitlement`（§7.3），并携带平台运维技能 / 命令 / 钩子表面；shell：`shell → qian.shell`（yue 外壳静态制品与外壳 API）；model-gateway：`model-gateway → qian.model-gateway`（P1，默认 `disabled: true`） | 不承诺 AOT |
+| `platform` | `qian.bundle.base` + `qian.bundle.shell` + 可选 `qian.bundle.model-gateway` | base：原 18 个平台插件按 seam 拆包——`registry`、`lifecycle`、`capabilities`、`hooks`、`tenancy`、`identity → qian.identity.client`、`authz`、`data`、`files`、`config → qian.config.apollo`、`events`、`audit`、`observability`、`notify` + 三个渠道、`scheduler`、`realtime`、`entitlement`（§7.3），并携带平台运维技能 / 命令 / 钩子表面；shell：`shell → qian.shell`（前端框架外壳静态制品与外壳 API）；model-gateway：`model-gateway → qian.model-gateway`（P1，默认 `disabled: true`） | 不承诺 AOT |
 | `gateway` | `qian.bundle.gateway` | `gateway → qian.gateway`、`identity → qian.identity.client`（Cookie 换 S2S、JWKS）、`config → qian.config.apollo`、`observability`、`audit`、`data`（Audit 的实际依赖） | 当前开发模板 JIT（`build.aot: false`，S1-DEC-029）；GW-001 / DEP-008 完成真实 NativeAOT 验收后恢复 true |
 | `identity` | `qian.bundle.identity-server` | `identity → qian.identity.server`（可嵌入 OpenIddict，唯一 issuer）、`identity.connector.oidc`、`identity.connector.wecom`（连接器组件，经 `ctx.IdentityConnectors()` 注册 `oidc` / `wecom`，R28 / R38）、`tenancy`、`data`、`config → qian.config.apollo`、`events`、`audit`、`files`（头像，可选） | 独立安全边界 |
 | `standalone` | `qian.bundle.standalone` | 供消费者宿主安装的最小组合包：`Qian.Runtime` + `config → qian.config`（标准 `IConfiguration`）、`data`（使用宿主连接，S1-DEC-029）、`tenancy`（条目配置只含空 `initializationCapabilities`；是否单租户由宿主显式提供 `ITenantContext` / `SingleTenant` 决定，不经配置字符串切换，ADR-019 D19.4，S1-TEN-007 复核对齐）+ 所选 seam 的 Definition / Provider（由 `qian add identity authz files …` 带入） | ADR-019 D19.8 的 30 分钟验收宿主；`qian init --template dotnet-webapi` 默认 |
@@ -1181,7 +1181,7 @@ trust:
 
 | 命令 | 参数 | 作用 |
 |---|---|---|
-| `qian init --template <stack>` | `<stack>`：`dotnet-webapi`（standalone profile 的 ASP.NET Core 项目）、`dotnet-platform`（platform 宿主）、`ts-shell`（yue 外壳）、`skill-only`（只含 `skills/` 的组件仓库）、`component-dotnet` / `component-ts`（带代码组件骨架）；`--id`、`--name` | 生成 `.qian/config.yml`、`profiles/<p>/qian.profile.yml`、`.qian-plugin/plugin.json`、`README.md` / `AGENTS.md` 骨架、TCK 配置 |
+| `qian init --template <stack>` | `<stack>`：`dotnet-webapi`（standalone profile 的 ASP.NET Core 项目）、`dotnet-platform`（platform 宿主）、`ts-shell`（前端框架外壳）、`skill-only`（只含 `skills/` 的组件仓库）、`component-dotnet` / `component-ts`（带代码组件骨架）；`--id`、`--name` | 生成 `.qian/config.yml`、`profiles/<p>/qian.profile.yml`、`.qian-plugin/plugin.json`、`README.md` / `AGENTS.md` 骨架、TCK 配置 |
 | `qian add <ref>…` | `<ref>` = `<name>[@<version>]` / `<market>/<name>[@<version>]` / 本地路径 / URL；`--from <market>`、`--scope <scope>`（写租户 scope patch，需平台连接）、`--surfaces skills,commands`（只装部分表面）、`--no-code`、`--force-profile`、`--allow-unverified`、`--force`、`--reset-config`、`--dry-run` | 安装（§9.3） |
 | `qian remove <ref>…` | `--purge`、`--scope <scope>` | 卸载（§9.4） |
 | `qian list` | `--outdated`、`--markets`、`--surfaces`、`--scope <scope>` | 列出已安装组件（来源、版本、digest、表面、条目）；`--outdated` 对比市场最新版 |
@@ -1352,7 +1352,7 @@ TCK 是**语言无关的场景文件**（`tck/runtime/*.scenario.yml`：给定�
 - 由 `Config` seam 的 `ISecretResolver` 在**使用时**解析（Apollo 引用 K8s Secret，ADR-007）；`policy.permissions.secrets[]` 声明允许解析的范围，越界被拒并审计；`secretRef://tenant/<id>/…` 只能被同租户上下文解析（RLS + resolver 双重检查）。
 - `secrets[]` 条目使用 `{ "name": "oss/*", "scope": "platform" }`，与既定权限对象口径一致。name 为精确路径或末尾 `/*` 前缀，scope 为 platform、tenant、dev；声明与宿主审批记录取交集。tenant 路径匹配后仍检查真实租户身份，dev 仅在开发宿主显式开启。
 - 只有 `configSchema` 中 `x-qian-sensitive: true` 的属性、`hooks.json` 与 `.mcp.json` 的 `headers / env` 允许 `secretRef://`；其它位置出现是 warning；疑似密钥键名的明文值与高熵值是 error（§10.1）。
-- 判定配置字段是否敏感时，属性名与 `patternProperties` 的键都不区分大小写（配置键与 Web 默认反序列化都如此）；模式按 ECMA-262 可移植子集解释，超出子集或规模上限即判 Schema 无效；键名含各正则方言判断不同的字符时按敏感处理，只接受 `secretRef://`。本地 CLI 与 .NET 的装配、配置扫描按同一规则判定，由共享 TCK 约束。装配时两端的 Schema 验证器也按这一子集执行 `pattern` 与 `patternProperties`（ECMA-262 不带标志、逐码元），超出子集的写法在 Schema 的对应位置报错；验证诊断归一为出错实例位置并按序数排序，两端逐字一致。`configSchema` 只接受 JSON Schema 2020-12 中两端解释相同的写法：不支持 `$id` 等标识与动态引用、`unevaluatedItems` 与 `unevaluatedProperties`、`nullable` 等，`$ref` 只指向本文档内的子 Schema 位置且不能构成循环；数值按双精度、文本长度按码点判断。逐条规则见 [Qian.Profiles](../../../../../src/Kun.Profiles/README.md#配置-schema-验证)。
+- 判定配置字段是否敏感时，属性名与 `patternProperties` 的键都不区分大小写（配置键与 Web 默认反序列化都如此）；模式按 ECMA-262 可移植子集解释，超出子集或规模上限即判 Schema 无效；键名含各正则方言判断不同的字符时按敏感处理，只接受 `secretRef://`。本地 CLI 与 .NET 的装配、配置扫描按同一规则判定，由共享 TCK 约束。装配时两端的 Schema 验证器也按这一子集执行 `pattern` 与 `patternProperties`（ECMA-262 不带标志、逐码元），超出子集的写法在 Schema 的对应位置报错；验证诊断归一为出错实例位置并按序数排序，两端逐字一致。`configSchema` 只接受 JSON Schema 2020-12 中两端解释相同的写法：不支持 `$id` 等标识与动态引用、`unevaluatedItems` 与 `unevaluatedProperties`、`nullable` 等，`$ref` 只指向本文档内的子 Schema 位置且不能构成循环；数值按双精度、文本长度按码点判断。逐条规则见 [Qian.Profiles](../../../src/Kun.Profiles/README.md#配置-schema-验证)。
 
 ### 11.4 hooks `command` 类型与内联 shell 的限制（已裁决 R41）
 
@@ -1400,7 +1400,7 @@ TCK 是**语言无关的场景文件**（`tck/runtime/*.scenario.yml`：给定�
 3. 已拍板（ADR-020 §7 第 3 条）：`qian` CLI 为单一 Node / TypeScript 实现、发布到 npm，`npx qian@latest` 为一键入口，Node ≥ 22 为前置；`dotnet qian` 薄包装为 S1 可选 P2（§9.1）。
 4. 已拍板（ADR-020 §7 第 4 条）：官方市场仓库为与 Qian 同组织下的独立仓库 `qian-plugins`，根目录 `.qian/marketplace.json`，S1 私有、S3 随许可证评估公开；社区发现用 GitHub topic `qian-plugin`（§8.3、§8.4）。组织名已定：产品族统一在 `idadawn`（ADR-021，2026-10-07 拍板），示例地址据此写定。
 5. 已拍板（ADR-020 §7 第 5 条）：代码插件热装卸不进 S2 核心交付，S2 内由 RT 领域做 5 天时间盒 spike 验证 collectible `AssemblyLoadContext` 与 Kun 约束，结论写回 ADR-020；生产默认滚动重启，S1 校验器继续拒绝 `hmr.code: true`（§5.6、§7.2），声明式表面热重载不变。
-6. 已拍板（ADR-020 §7 第 6 条）：Qian 包族、`qian` CLI、yue 一律 Apache-2.0，官方组件 `license` 写 `Apache-2.0`（§3.4）；S3 商业市场与计费组件的许可证到 S3 再定；公开 feed S1 为 GitHub Packages（.NET 包公开可见、安装需令牌，TS 包私有，R93），S2 末或首个外部宿主试用时公开到 nuget.org 与 npm，`runtime.nuget[]` / `runtime.npm[]` 的解析源随之切换（§11.5 验签要求不变）。
+6. 已拍板（ADR-020 §7 第 6 条）：Qian 包族、`qian` CLI、前端框架一律 Apache-2.0，官方组件 `license` 写 `Apache-2.0`（§3.4）；S3 商业市场与计费组件的许可证到 S3 再定；公开 feed S1 为 GitHub Packages（.NET 包公开可见、安装需令牌，TS 包私有，R93），S2 末或首个外部宿主试用时公开到 nuget.org 与 npm，`runtime.nuget[]` / `runtime.npm[]` 的解析源随之切换（§11.5 验签要求不变）。
 7. 已拍板（ADR-020 §7 第 7 条）：CLI 遥测默认不采集；S2 提供 opt-in `qian telemetry on`，只采集命令名、CLI 版本、操作系统与匿名安装 id，不含路径、租户与代码；私有化部署可在 profile 中禁用（§9.1）。
 8. 已拍板（ADR-020 §7 第 8 条）：`qian init --template` 模板名统一为 §9.1 的集合（R42），后续新增模板在本 spec 登记。
 
@@ -1410,9 +1410,9 @@ TCK 是**语言无关的场景文件**（`tck/runtime/*.scenario.yml`：给定�
 
 ## 参考
 
-- 决策：[ADR-020 组件模型 v2](../../adr/ADR-020-component-model-v2.md)（权威）、[ADR-019 库优先](../../adr/ADR-019-library-first-packages.md)、[ADR-002 插件模型](../../adr/ADR-002-plugin-model.md)、[ADR-003 内核边界](../../adr/ADR-003-kernel-boundary-s1-services.md)、[ADR-014 应用市场](../../adr/ADR-014-marketplace.md)、[ADR-016 与 iClaw 的边界](../../adr/ADR-016-iclaw-boundary.md)。
+- 决策：[ADR-020 组件模型 v2](../../adr/ADR-020-component-model-v2.md)（权威）、[ADR-019 库优先](../../adr/ADR-019-library-first-packages.md)、[ADR-002 插件模型](../../adr/ADR-002-plugin-model.md)、[ADR-003 内核边界](../../adr/ADR-003-kernel-boundary-s1-services.md)、[ADR-014 应用市场](../../adr/ADR-014-marketplace.md)、[ADR-016 与下游智能体平台的边界](../../adr/ADR-016-agent-boundary.md)。
 - PRD：[§03 核心概念模型](../03-concepts.md)、[§07 S1 技术底座](../07-s1-foundation.md)、[§13 权限与安全](../13-security.md)、[§14 质量与评估](../14-quality.md)。
-- 专题 spec：[`plugin-manifest.md`](plugin-manifest.md)（v1，字段迁移对照）、[`yue.md`](yue.md)（`ui/manifest.json` 与外壳契约）。
+- 专题 spec：[`plugin-manifest.md`](plugin-manifest.md)（v1，字段迁移对照）、[`yue.md`](frontend.md)（`ui/manifest.json` 与外壳契约）。
 
 ## 修订历史
 

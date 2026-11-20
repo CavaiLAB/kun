@@ -4,7 +4,7 @@
 >
 > 阶段口径：**S1** 技术底座期——开发人员能用技术组件写出一个多租户应用；**S2** 低代码构建期——跑通「建应用 → 建表单与列表 → 走审批 → 授权给租户用户」；**S3** 面向客户期——租户能从应用市场选购并开通应用；**S4** Agent 期（本期只规划模型服务网关）。
 >
-> 领域缩写：**K** Kun 能力与差距 · **P** 插件化内核与 Agent 架构 · **S** 租户/组织/身份/权限/系统管理 · **F** 应用/表单/列表/视图/发布 · **W** 流程与审批 · **D** 数据/集成/消息/调度/门户/报表/打印/大屏/预览 · **U** 前端与 yue。
+> 领域缩写：**K** Kun 能力与差距 · **P** 插件化内核与 Agent 架构 · **S** 租户/组织/身份/权限/系统管理 · **F** 应用/表单/列表/视图/发布 · **W** 流程与审批 · **D** 数据/集成/消息/调度/门户/报表/打印/大屏/预览 · **U** 前端与前端框架。
 
 ---
 
@@ -14,7 +14,7 @@
 
 **K · Kun 能力与差距。** Kun 是「微服务开发框架」而非平台内核：可生产级只有 `Kun.Core` 与 `Kun.Mediator`，关键路径有多处正确性缺口（丢消息、at-most-once、丢租户、无锁、网关不强制认证、gRPC 流式绕过鉴权）。六项硬性要求里微服务已具备，多租户部分具备，SSO 只有依赖方一侧，鉴权、Apollo、K3s 空白。S1 工作量落在空白处，没有必须推翻的核心设计，要改的是定位、AOT 承诺与不安全默认值；以 NuGet + CalVer 消费 Kun，PostgreSQL 为唯一一等数据库。
 
-**P · 插件化内核与 Agent 原生架构。** 内核 = 插件运行时 + 注册表 + 契约，其余皆插件，系统能力也按同一清单以 `tier: system` 交付。Kun 的严格 AOT 决定进程内插件只能是编译期 `module`，运行时新增代码一律进程外，第三方代码永不进共享进程。一份契约派生路由、权限点、菜单、Apollo namespace、OpenAPI 与 MCP 工具；生命周期分平台级与租户级两层。Agent 侧复用 iClaw 运行时，协议以 MCP 2026-07-28 为目标；元数据 `package` 插件是最大杠杆，也是 Agent 生成应用最安全的形态。
+**P · 插件化内核与 Agent 原生架构。** 内核 = 插件运行时 + 注册表 + 契约，其余皆插件，系统能力也按同一清单以 `tier: system` 交付。Kun 的严格 AOT 决定进程内插件只能是编译期 `module`，运行时新增代码一律进程外，第三方代码永不进共享进程。一份契约派生路由、权限点、菜单、Apollo namespace、OpenAPI 与 MCP 工具；生命周期分平台级与租户级两层。Agent 侧复用下游智能体平台运行时，协议以 MCP 2026-07-28 为目标；元数据 `package` 插件是最大杠杆，也是 Agent 生成应用最安全的形态。
 
 **S · 租户、组织、身份与 SSO、权限、系统管理。** 本域是平台的可信计算基，S1 工作量最大。参考平台概念模型可借鉴、实现不可照搬（权限校验恒 true、会话不可吊销、租户解析 fail-open）。路线是 OpenIddict 自建 Qian Identity 作唯一 issuer，账号 Person + Membership，上游联邦全部做成连接器插件，Authentik 退居运维侧。权限分 L0–L6 七层，权限点由插件清单声明，决策端口可解释，数据权限编译为谓词叠加 RLS。租户控制面是独立服务并带显式状态机；消息中心是内核 + 渠道适配器插件。
 
@@ -24,7 +24,7 @@
 
 **D · 数据、集成、消息与调度、门户、报表、打印、大屏、文件预览。** 多子域同构的横切能力只在内核实现一次：可发布元数据框架、导入导出框架、引用登记、分享链接、预览票据、编码规则。S1 交付数据连接与类型系统、数据接口契约、通知、调度、实时推送、凭证保管；S2 交付数据建模、接口设计器、打印、文件预览、模型服务网关；门户与报表按任务书归 S3（笔记建议更早，待拍板）。大屏延后且不复用参考平台大屏源码（许可不清）；参考平台的进程内状态、明文凭据、任意 SQL/URL 代理不可照搬。
 
-**U · 前端架构与 yue。** 参考平台前端「两套并存」是反面教材（去重后 251 条目、8 个设计器）；iClaw 有工程规范与令牌架构但没有组件库。yue 走路线 A：Base UI + Tailwind v4 + shadcn 源码自有化为基础层，数据密集组件在 TanStack 上自建，一套表单/表格/弹层引擎贯穿 S1 后台与 S2 低代码运行时，六层分层用工具强制。S1 起为 S4 预留机器可读 manifest、带版本的 Schema 与校验器、客户端动作注册表。三条安全硬线：不用 eval 执行租户脚本、令牌不进 URL/iframe、前端权限裁剪只是体验层。
+**U · 前端架构与前端框架。** 参考平台前端「两套并存」是反面教材（去重后 251 条目、8 个设计器）；下游智能体平台有工程规范与令牌架构但没有组件库。前端框架走路线 A：Base UI + Tailwind v4 + shadcn 源码自有化为基础层，数据密集组件在 TanStack 上自建，一套表单/表格/弹层引擎贯穿 S1 后台与 S2 低代码运行时，六层分层用工具强制。S1 起为 S4 预留机器可读 manifest、带版本的 Schema 与校验器、客户端动作注册表。三条安全硬线：不用 eval 执行租户脚本、令牌不进 URL/iframe、前端权限裁剪只是体验层。
 
 ### 1.2 阶段 × 领域矩阵
 
@@ -36,7 +36,7 @@
 | F | 应用实体,菜单模型,FilterAST,控件契约 | 表单/列表设计器,动态数据引擎,迁移器,发布向导 | 应用包安装,外链能力令牌,个人视图 | AI建表,OCR控件,Agent工具契约落地 |
 | W | 只交付前置:组织链,事件,调度,表达式规范 | 审批内核最小集,瀑布视图设计器,工作台 | SLA自动处置,委托签收撤销,决策,自由流 | AI建流程草稿,Agent作解析器/审批者 |
 | D | 类型系统,数据连接,接口契约,通知,调度,实时 | 建模,接口设计器,打印,预览,模型网关 | 门户设计器,表格报表,开放API,分享链接 | 接口即工具,注册表→MCP映射,模板自检 |
-| U | 令牌,核心组件,壳,表格,表单引擎,认证页 | 控件集,表单/列表运行时,三大设计器 | 门户/报表/打印设计器,移动H5,UI沙箱 | @yue/agent,MCP Apps,私有注册表 |
+| U | 令牌,核心组件,壳,表格,表单引擎,认证页 | 控件集,表单/列表运行时,三大设计器 | 门户/报表/打印设计器,移动H5,UI沙箱 | 智能体交互组件,MCP Apps,私有注册表 |
 
 ---
 
@@ -48,7 +48,7 @@
 - Kun 能力矩阵：32 个模块约 21k 行 C#，MIT、CalVer、单人维护；按「可生产 / 可用但薄 / 骨架 / 默认装配不可上线」逐模块判定。
 - 六项硬性要求逐条评估（补齐路径 K 在 Kun 补 / Q 在 Qian 新建 / T 引入第三方）与 S1 技术组件逐项判定。
 - 低代码动态性与 Kun「编译期已知、显式注册、AOT 零反射」世界观的 11 条张力及对策。
-- 既有资产复用（iClaw、iclaw-deploy）、部署基线、Apollo 引入方式、模型服务网关基线。
+- 既有资产复用（下游智能体平台、部署仓库）、部署基线、Apollo 引入方式、模型服务网关基线。
 
 **分级结论**
 
@@ -57,14 +57,14 @@
 | S1 | 修 Kun 关键缺口（租户回灌、至少一次、Saga/Outbox 锁、网关加固、gRPC 流式、Identity G2–G8、签发器与审计收敛）；租户目录与生命周期；`qian.identity`（OpenIddict）；`Kun.Authorization` 端口 + `qian.authz`；`qian.data` 默认安全装配；`qian.files` 新线；Apollo 部署 + 自研 provider + secretRef；能力目录；插件机制与 SDK/TCK；镜像、chart、健康端点、RabbitMQ K8s 化、default-deny、ResourceQuota；baggage；缓存租户前缀 | SchemaPerTenant 真库验证；Saga 修补；机器身份签发（S4 前必做）；Alertmanager；Redis 限流；通知通道插件 | 弃用 `Kun.Infrastructure` 死接口、旧线 `Kun.Storage`、`Kun.Audit.EFC` 事后拦截器、多余签发器；AOT 作平台级承诺——无带 EF 的服务被 AOT 发布过 |
 | S2 | 元数据聚合 + 动态记录存储 + SQL 生成 + 动态 DDL + 泛型 CRUD 命令 + 信封事件 + 元数据校验器；表单/列表/流程引擎；数据权限编译器与字段权限；表达式解释器 | Wasm `function` 运行时（ABI 先拍板）；`connector` 运行时 | — |
 | S3 | 自助开通、DatabasePerTenant；租户自助配 IdP/HRD/Passkey/SCIM/安装即建 client；动态路由 provider；接线 Application 生成器；市场、计费、门户、报表；不可信 UI 沙箱 | OpenFGA、网关 OPA；配置灰度/审核/回滚 | MySQL/国产库作业务库（本期，RLS 无等价物）；per-tenant namespace 默认拓扑；Dapr sidecar |
-| S4 | MCP 门面、A2A、Arazzo、Agent 生成 `package`；对接 CubeSandbox；Agent 主体与 `act` 链 | — | 自建 Agent 运行时（复用 iClaw）；自研模型代理层（绕过 Higress） |
+| S4 | MCP 门面、A2A、Arazzo、Agent 生成 `package`；对接 CubeSandbox；Agent 主体与 `act` 链 | — | 自建 Agent 运行时（复用下游智能体平台）；自研模型代理层（绕过 Higress） |
 
 **关键规则与数据对象**
 1. Kun 文档与代码不一致一律以代码为准（源生成器、`/s2s/issue`、NetworkPolicy 在代码里不存在）。
 2. 租户只来自已校验令牌：claim 统一 `tenant_id`，生产禁用 `X-Tenant-Id` 头兜底与 `"default"` 回退（fail-closed）。
 3. 集成事件只能在命令 handler 同 scope 发出，否则随子 scope 释放丢失；消费端改「处理成功后标记」。
 4. 审计只留一套：实体级同事务 + Outbox，命令级哈希链补 PG 持久化；`actor_type` 加 `agent`，记录 `on_behalf_of`。
-5. 三套 S2S 签发器收敛为一套，claim 对齐 iClaw 契约（`iss/aud[]/sub/tenant_id/project_id?/roles/scope/session_id`，exp−iat ≤ 300s）。
+5. 三套 S2S 签发器收敛为一套，claim 对齐下游智能体平台契约（`iss/aud[]/sub/tenant_id/project_id?/roles/scope/session_id`，exp−iat ≤ 300s）。
 6. 租户级配置不进 Apollo（无租户概念、namespace 上限），由 `qian.tenancy/qian.config` 承载；Apollo 只存非敏感与 secretRef；Nacos 收窄为 AI Registry。
 7. 插件按阶段：S1 kernel / plugin-sdk / tenancy / identity / authz / config / data / files / gateway / events / audit / observability；S2 metadata / dynamic-data / forms / lists / workflow；S3 marketplace / portal / reports / billing；model-gateway 跨 S1/S3。
 8. 现网：单集群 K3s v1.35 三节点只跨两台宿主、几乎全钉首节点、唯一存储类 local-path；没有 Apollo、MySQL、Alertmanager 与集群内 RabbitMQ。
@@ -74,21 +74,21 @@
 - 关键路径缺口不先修，多租户会在后台链路漏——K3s 多副本 + 多租户必然触发。
 - Kun 维护带宽：单人、节奏放缓、CHANGELOG 漏记；Qian 的框架需求通道与 SLA 未定。
 - Apollo 隐性成本：MySQL 运维面（现网全 PG）、官方 .NET 客户端停滞且不适配 AOT、与 Nacos/GitOps 双真相、边界 ADR 修订。
-- 现网单点与治理缺失须在多租户上线前补；许可证红线（开源低代码/AI 平台只借鉴设计，Zitadel、Duende 避开）；iClaw 可复用件多为设计态。
+- 现网单点与治理缺失须在多租户上线前补；许可证红线（开源低代码/AI 平台只借鉴设计，Zitadel、Duende 避开）；下游智能体平台可复用件多为设计态。
 
 **插件化与 Agent 可用性要点**
 - 低代码运行时 = 住在「非 AOT 孤岛」的 Kun 消费方模块：不走 EF 模型，少量泛型命令按元数据分派，通用信封事件 `qian.record.changed.v1`，`IMetadataValidator` 保留字段级错误。
 - 形态按信任等级分 module/service/package/function/connector/ui；安装拆制品/部署/租户三层状态机；S1 接受「预装全部官方插件 + 按租户开关」。
-- 能力目录（命令/查询/事件/实体四类注册表 + JSON Schema）直接升格为 S4 素材；复用 iClaw 的 Higress 治理契约、租户 API Key 与 OpenAI 兼容面，不复用 Agent loop。
+- 能力目录（命令/查询/事件/实体四类注册表 + JSON Schema）直接升格为 S4 素材；复用下游智能体平台的 Higress 治理契约、租户 API Key 与 OpenAI 兼容面，不复用 Agent loop。
 
 **待拍板问题**
 1. 身份路线：接受「混合 C2：OpenIddict 自建唯一 issuer，Authentik 退居运维侧」，还是选 Keycloak / Logto？前提：私有化/离线交付、首期是否必须 SAML/CAS/LDAP、自定义登录域名、等保/商密。
-2. Qian 与 iClaw 共用边界：是否共用 Authentik、S2S 签发与 claim 形状、Usage Ledger/租户 Key、Higress 实例；租户主数据权威归谁。
-3. 配置中心分叉：坚持 Apollo 并修订边界 ADR、Nacos 收窄；MySQL 托管 RDS 还是集群内 operator；是否与 iClaw 共用；首发 2.5.2 还是 3.0.x。
+2. Qian 与下游智能体平台共用边界：是否共用 Authentik、S2S 签发与 claim 形状、Usage Ledger/租户 Key、Higress 实例；租户主数据权威归谁。
+3. 配置中心分叉：坚持 Apollo 并修订边界 ADR、Nacos 收窄；MySQL 托管 RDS 还是集群内 operator；是否与下游智能体平台共用；首发 2.5.2 还是 3.0.x。
 4. Kun 消费与治理：NuGet + CalVer 还是 monorepo；修复走上游 PR 还是补丁包；维护人与响应 SLA。
 5. 数据库：是否接受 PostgreSQL 为唯一一等数据库；默认隔离策略 Shared + RLS 还是 SchemaPerTenant。
 6. 插件机制边界（与 P 域重复）：第三方 `service` 上架；宿主是否全部 AOT/需 JIT 宿主；专属部署是否售卖；应用包「拷贝即拥有」还是「引用随升级」；ABI Extism 还是 WIT；MCP 注册归属。
-7. 生产集群：与 iClaw 共用同一 K3s 还是独立集群只共用 IdP/Harbor；多租户隔离三档的目标客户与比例。
+7. 生产集群：与下游智能体平台共用同一 K3s 还是独立集群只共用 IdP/Harbor；多租户隔离三档的目标客户与比例。
 8. 模型服务网关归属：并入团队 MaaS 还是另起；GPUStack 接入范围；Adapter 维护方；GPU 归属。
 
 ### 2.2 P · 插件化内核与 Agent 原生架构
@@ -97,20 +97,20 @@
 - 「插件思维」11 条可检验原则（内核最小集闭合、系统能力也是插件、清单从代码派生、信任等级决定形态、一份契约多处生成、身份 ≠ 授权、制品按 digest 不可变等）。
 - 插件模型：kind × role × distribution 三轴 + bundle；清单 `qian-plugin.yaml` 字段草案与 10 类派生物。
 - 生命周期与治理：两层状态机、迁移「扩展 → 迁移 → 收缩」、升级同意规则、五级信任与签名审核、K3s 交付控制器。
-- 内核最小集 12 项、首批系统插件 15 项、市场演进 M0–M4；Agent 就绪（与 iClaw 分工、四条路径、16 条防返工）；前端插件化（MF2、版本化插槽、按信任等级选沙箱）。
+- 内核最小集 12 项、首批系统插件 15 项、市场演进 M0–M4；Agent 就绪（与下游智能体平台分工、四条路径、16 条防返工）；前端插件化（MF2、版本化插槽、按信任等级选沙箱）。
 
 **分级结论**
 
 | 阶段 | 必做 | 可选 | 明确不做及原因 |
 |---|---|---|---|
 | S1 | 清单 v1 Schema + 校验器 + 源生成器；注册表 + 两层状态机 + 逐租户幂等钩子；扩展点/契约仓库；鉴权后过滤的能力目录；修订回切、digest 引用、强制验签；GitOps 执行器；授权 v0 与 Apollo 开关分离；SDK/CLI/TCK；外壳 + MF2 + 插槽注册表；统一主体模型与委托链字段；可解释权限判定 API；审计含主体链与来源通道；bundle v0；K3s 交付物 | Operation/Task；模型网关底座接线；域名租户解析；Saga 平台内部长事务；多 Pod 共享限流 | 热插 DLL；参考平台式程序集目录加载；Dapr sidecar 默认依赖；进程共享 JS 引擎；接口体 AES 加密中间件（本质是混淆） |
-| S2 | `package` 元数据插件；`function` Wasm 运行时；逐租户批量迁移；升级同意规则；`template/managed` + 元数据分层；Operation/Task；元数据生成闭环（人用）；字段敏感度；工作流即能力；出网 SSRF 基线；业务插槽 + yue 组件目录机器可读；WebSocket 背板；调度；权限管理界面 | `connector` 运行时；开发者租户与远程调试 | 代码生成作低代码主轨（双轨漂移）；Nacos 作 Qian 配置中心 |
+| S2 | `package` 元数据插件；`function` Wasm 运行时；逐租户批量迁移；升级同意规则；`template/managed` + 元数据分层；Operation/Task；元数据生成闭环（人用）；字段敏感度；工作流即能力；出网 SSRF 基线；业务插槽 + 前端框架组件目录机器可读；WebSocket 背板；调度；权限管理界面 | `connector` 运行时；开发者租户与远程调试 | 代码生成作低代码主轨（双轨漂移）；Nacos 作 Qian 配置中心 |
 | S3 | 私有目录市场（目录/安装向导/试用/升级中心/审核台）；ISV 入驻与席位；Plan/Seat/Meter/Trial；三方合并冲突预检；授权服务器对齐 MCP（RFC 9728/8414/8707）；工具描述哈希钉死；成本与配额；不可信 UI 沙箱；第三方 `service` 独立工作负载身份 | 第三方 `service` 上架（待拍板）；支付、评分；Pact can-i-deploy；禁止导出 managed 应用 | 引入 NocoBase/Dify/Grafana/n8n 代码（许可证） |
-| S4 | 每租户 MCP 逻辑门面（Higress 托管）；Agent 生成 `package`；Skills over MCP；市场兼任私有 MCP registry | A2A 端点、急停；MCP Apps 视图；WebMCP | 自建 Agent 引擎、沙箱、记忆、技能（复用 iClaw） |
+| S4 | 每租户 MCP 逻辑门面（Higress 托管）；Agent 生成 `package`；Skills over MCP；市场兼任私有 MCP registry | A2A 端点、急停；MCP Apps 视图；WebMCP | 自建 Agent 引擎、沙箱、记忆、技能（复用下游智能体平台） |
 
 **关键规则与数据对象**
 1. 清单：`id` 反向域名发布后不可改；插件 SemVer 与 Kun CalVer 独立；`engines.qian/kun/yue` 声明兼容；OCI 只接受 `@sha256:`；签名不在清单里。
-2. `capabilities` 条目是 Agent 可发现的最小单元：`sideEffect read|write|external|destructive` + `policyHint`（采 iClaw 四值）、`requiredScopes`、`schemaSha256` 进授权（schema 变即旧授权失效）。
+2. `capabilities` 条目是 Agent 可发现的最小单元：`sideEffect read|write|external|destructive` + `policyHint`（采下游智能体平台四值）、`requiredScopes`、`schemaSha256` 进授权（schema 变即旧授权失效）。
 3. 两个方向的权限：`provides.permissions`（本插件定义的权限点）与反向权限 `permissions.platform/data/egress/secrets/ui`（租户管理员开通时逐项批准，升级新增即重批）。
 4. 平台级 Draft → Submitted → Verified → Published → Installed → Active → Deprecated → Retired；租户级 Available → Entitled → Provisioning → Enabled ⇄ Disabled → Upgrading / Uninstalled → Purged；Entitled（授权库）与 Enabled（Apollo 开关）分开存。
 5. 「未启用」在网关路由、SDK 入口、前端外壳三处同时拦截；信任等级 system/official/partner/private/community 决定允许的 kind 与 UI 沙箱；未签名直接安装失败。
@@ -121,19 +121,19 @@
 - 元数据运行时只能住进非 AOT 孤岛；大量租户下逐租户迁移与三方合并各平台都没有完美方案。
 - 权限模型从零自建且要同时服务 UI/API/MCP；Kun 的安全默认值要写成内核强制项。
 - Wasm 宿主缺口：wasmtime-dotnet 不支持组件模型，WIT 要多维护一个 Rust 宿主，C# 产 Wasm 不成熟。
-- MF 零隔离与共享依赖漂移；每个 `service` 一个 Deployment，三节点集群吃紧；iClaw 的 MCP Catalog / AI Registry / 市场均设计态；协议工具链仍预览级。
+- MF 零隔离与共享依赖漂移；每个 `service` 一个 Deployment，三节点集群吃紧；下游智能体平台的 MCP Catalog / AI Registry / 市场均设计态；协议工具链仍预览级。
 
 **插件化与 Agent 可用性要点**
-- 分工：Qian = 能力提供方 + 业务主数据权威；iClaw = Agent 运行时 + AI 资产控制面；Higress = 共用数据面；Kun = 共用基座。
+- 分工：Qian = 能力提供方 + 业务主数据权威；下游智能体平台 = Agent 运行时 + AI 资产控制面；Higress = 共用数据面；Kun = 共用基座。
 - 发现：能力目录按权限过滤；工具定义机械生成、暴露经 `agent.expose` 策划。调用：一律经 Higress MCP 路由，令牌受众绑定、禁透传、最小 scope，写类工具幂等。
 - 编排：Arazzo 描述多步流程；Operation/Task 对齐 MCP Tasks 与 A2A。生成：Agent 生成应用 = 生成 `package`，经校验 + TCK + 差异审阅 + 人工确认；代码只落 `function` 沙箱；记录 `generatedBy/promptHash`。
-- 与 iClaw 对齐 S2S claim、事件 envelope、工具元数据、授权快照、模型计量、契约格式（OpenAPI 3.1 + JSON Schema 2020-12）。
+- 与下游智能体平台对齐 S2S claim、事件 envelope、工具元数据、授权快照、模型计量、契约格式（OpenAPI 3.1 + JSON Schema 2020-12）。
 
 **待拍板问题**
 1. S3 是否允许第三方 `service`（任意代码容器）上架，还是只开放 `package/function/connector/受限 ui`？
 2. 内核宿主是否全部 Native AOT？是否需要 JIT 官方插件宿主以不重建镜像上新？
-3. 租户与身份权威归属：Qian 内核还是 iClaw Kun.Edge 签发 S2S JWT？是否共用同一 IdP？托管 IdP 还是自建？
-4. 配置与开关：是否给 iClaw `IConfigProvider` 加 Apollo 实现；授权与开关的权威存储；namespace 按「插件 × 租户」如何建模。
+3. 租户与身份权威归属：Qian 内核还是下游智能体平台 Kun.Edge 签发 S2S JWT？是否共用同一 IdP？托管 IdP 还是自建？
+4. 配置与开关：是否给下游智能体平台 `IConfigProvider` 加 Apollo 实现；授权与开关的权威存储；namespace 按「插件 × 租户」如何建模。
 5. AI 资产/MCP 注册放 Nacos 还是 Qian 注册表并兼容 `server.json`？两个市场是否合并，谁审核、谁签名？
 6. 应用包默认 `template` 还是 `managed`，或两者都支持？共享与专属部署是否作套餐差异售卖？
 7. `function` 插件 ABI 选 Extism 还是 WIT 组件？S2 前拍板。
@@ -183,7 +183,7 @@
 6. 隔离策略产品化：独立 schema/库是否作付费选项？是否承诺隔离策略迁移服务？
 7. 配置分工：租户级在线配置放平台配置服务、Apollo 只放部署级默认值，是否被架构接受？
 8. 合规要求：是否有等保 2.0 / 商用密码（SM2/SM3）要求？MFA 是否 S1 必做？
-9. 跨产品 SSO：Qian 与 iClaw 是否共用账号体系与 Authentik？
+9. 跨产品 SSO：Qian 与下游智能体平台是否共用账号体系与 Authentik？
 10. 配额口径：管理员是否计入用户配额；平台超管是否按租户可见。
 11. 参考平台 SaaS 租户服务未随源码交付，自助申请审核、邀请格式需自行设计。
 
@@ -213,7 +213,7 @@
 7. 核心对象：App、FunctionDef、FunctionRelease、FormSchema（Data/UI/Rule/Binding 四段）、Widget、ListSchema（base + overrides）、DataModel、FieldTypeMapping、FilterExpression、DataAuthScheme、Menu、PermissionItem、CapabilityManifest、DataLog、PublicLink、ImportJob。
 
 **在 Kun 上实现的差距与难点**（输入笔记无 Kun 材料，由硬性约束推出）
-- 元数据 Schema 缺失：参考平台 70 种控件共用 947 行 POCO、前后端隐式契约 → 版本化 JSON Schema，后端保存校验、yue 与运行时共用。
+- 元数据 Schema 缺失：参考平台 70 种控件共用 947 行 POCO、前后端隐式契约 → 版本化 JSON Schema，后端保存校验、前端框架与运行时共用。
 - 业务列迁移管道从零建（参考平台只补系统列）→「元数据 diff → 迁移计划 → 审核 → 执行（含租户批量）」。
 - 动态引擎 SQL 安全：约 47 处拼 SQL、逗号连接代替 JOIN、租户值字面量 → 参数化 + 标识符白名单 + 查询构建器。
 - 鉴权分散在控制器、依赖客户端传参、移动端控制器无校验 → 引擎入口「资源 + 动作 + 行级」三段式。
@@ -332,21 +332,21 @@
 8. 开放接口凭据：是否废弃用户级 AppSecret，统一为网关应用级客户端凭据并取消「公有」免鉴权。
 9. 需进一步调研（合并）：数据集表迁移关系、与 Kun 数据访问层分工、表格设计器选型等；部分手册分卷未输入。
 
-### 2.7 U · 前端架构与 yue 组件库
+### 2.7 U · 前端架构与前端框架组件库
 
 **领域全景**
-- 参考平台前端全集去重后 251 条目（原语 31、表单叶子 34、布局 22、业务选择器 18、壳部件 17、设计器 10 等）；控件库 68 个 key 为 yue 物料骨架。
-- iClaw 资产盘点：技术栈与令牌架构可沿用，组件库缺失全部自建，Agent 交互信息模型沉淀为 `@yue/agent`。
-- yue 六层分层 + 横切包、S1 最小集合、技术选型推荐、工程化基线 21 项、移动端策略、复杂度热点与风险。
+- 参考平台前端全集去重后 251 条目（原语 31、表单叶子 34、布局 22、业务选择器 18、壳部件 17、设计器 10 等）；控件库 68 个 key 为前端框架物料骨架。
+- 下游智能体平台资产盘点：技术栈与令牌架构可沿用，组件库缺失全部自建，Agent 交互信息模型沉淀为 `智能体交互组件`。
+- 前端框架六层分层 + 横切包、S1 最小集合、技术选型推荐、工程化基线 21 项、移动端策略、复杂度热点与风险。
 
 **分级结论**
 
 | 阶段 | 必做 | 可选 | 明确不做及原因 |
 |---|---|---|---|
-| S1 | `@yue/tokens` 三层令牌、明暗两态、对比度单测、运行时主题注入；`@yue/core` 全集 + `data-slot`/`data-testid`；`@yue/shell` AppShell 单一布局、后端菜单 → 路由 + `menuTypeRegistry`、Page/ColPage/LeftTree、Preferences、租户切换器、兜底页；`@yue/data` DataTable 基础版、Tree/TreeSelect/Cascader、Range、Upload（分片 + MD5）；`@yue/form` Field + react-hook-form + Ajv、SchemaForm + FormApi、基础联动、编辑/只读态、校验与脱敏规则目录、弹层 API；`@yue/biz` ApiSelect/DictSelect/OrganizeSelect/UserSelect/RoleSelect/授权树；认证页族（密码、SSO、多租户选择、过期弹窗）；`@yue/sdk` 注册表 API、PlatformClient、拦截器链、i18n、mock；元数据契约草案（含 `device`、`auth`）；SSE 事件 JSON Schema；工程化基线；移动端契约层 | 多标签基础版；Captcha；DTCG 导出；Qrcode 提前；视觉回归 | 锁屏（前端比对密码仅 UI 遮罩）；两套设计体系混用；`eval`/`new Function` |
-| S2 | Slider/Rate/ColorPicker/Steps/Timeline；DataTable 进阶（树表、列权限、行内编辑、复杂表头）；ImportWizard/ExportDialog、SuperQuery、ConditionBuilder；CodeEditor/Cron；PosSelect/GroupSelect、PopupSelect 族、RelationForm、授权树族；控件注册表交付控件集、表单渲染器三态、子表、三层联动、公式控件、列表渲染器（普通/左树/树形）、动作执行器、流程表单宿主、审批中心基础、端支持矩阵显式降级；设计器基础设施、表单/列表/审批流设计器、校验器共用；应用切换；组件 manifest 全量；视觉回归 | 密度模式；Command Palette；Watermark；Carousel/QrCode/Barcode；Transfer；富文本/Markdown；`@yue/charts`；全局搜索；分组/卡片列表；详情页签/数据日志；`@yue/mobile` H5 渲染器 | bpmn-js（许可证要求水印可见）；Formily/amis/lowcode-engine（停滞或自带体系） |
+| S1 | `@cavailab/qian-tokens` 三层令牌、明暗两态、对比度单测、运行时主题注入；`@cavailab/qian-core` 全集 + `data-slot`/`data-testid`；`@cavailab/qian-shell` AppShell 单一布局、后端菜单 → 路由 + `menuTypeRegistry`、Page/ColPage/LeftTree、Preferences、租户切换器、兜底页；`@cavailab/qian-data` DataTable 基础版、Tree/TreeSelect/Cascader、Range、Upload（分片 + MD5）；`@cavailab/qian-form` Field + react-hook-form + Ajv、SchemaForm + FormApi、基础联动、编辑/只读态、校验与脱敏规则目录、弹层 API；`@cavailab/qian-biz` ApiSelect/DictSelect/OrganizeSelect/UserSelect/RoleSelect/授权树；认证页族（密码、SSO、多租户选择、过期弹窗）；`@cavailab/qian-sdk` 注册表 API、PlatformClient、拦截器链、i18n、mock；元数据契约草案（含 `device`、`auth`）；SSE 事件 JSON Schema；工程化基线；移动端契约层 | 多标签基础版；Captcha；DTCG 导出；Qrcode 提前；视觉回归 | 锁屏（前端比对密码仅 UI 遮罩）；两套设计体系混用；`eval`/`new Function` |
+| S2 | Slider/Rate/ColorPicker/Steps/Timeline；DataTable 进阶（树表、列权限、行内编辑、复杂表头）；ImportWizard/ExportDialog、SuperQuery、ConditionBuilder；CodeEditor/Cron；PosSelect/GroupSelect、PopupSelect 族、RelationForm、授权树族；控件注册表交付控件集、表单渲染器三态、子表、三层联动、公式控件、列表渲染器（普通/左树/树形）、动作执行器、流程表单宿主、审批中心基础、端支持矩阵显式降级；设计器基础设施、表单/列表/审批流设计器、校验器共用；应用切换；组件 manifest 全量；视觉回归 | 密度模式；Command Palette；Watermark；Carousel/QrCode/Barcode；Transfer；富文本/Markdown；`图表组件`；全局搜索；分组/卡片列表；详情页签/数据日志；`移动端组件` H5 渲染器 | bpmn-js（许可证要求水印可见）；Formily/amis/lowcode-engine（停滞或自带体系） |
 | S3 | 通知抽屉；门户设计器与运行时；不可信 UI 沙箱 | 多布局/偏好抽屉；主题预设；扫码登录/注册；OCR 页签；自动化流设计器；打印（pdfme）/报表（Univer）/大屏设计器与运行时；透视表；外链运行时；工作台；移动 H5；shadcn 私有 registry | 内置 IM（非平台核心）；第三方不可信 UI 直接 MF 挂载（零隔离）；小程序原生渲染（S1–S3 不纳入，待拍板） |
-| S4 | `@yue/agent`（事件契约 S1 定义）；shadcn MCP Server | AI 助手悬浮窗/划词翻译；MCP Apps 视图；WebMCP | — |
+| S4 | `智能体交互组件`（事件契约 S1 定义）；shadcn MCP Server | AI 助手悬浮窗/划词翻译；MCP Apps 视图；WebMCP | — |
 
 **关键规则与数据对象**
 1. 分层依赖严格自下而上（tokens → core → shell/data/form/charts/code-editor → biz → runtime/widgets → designer），用 eslint-plugin-boundaries / dependency-cruiser 写死进 CI。
@@ -360,12 +360,12 @@
 
 **实现差距与难点**（本域主要是重建成本）
 - 复杂度热点从高到低：表单运行时 + 子表（联动图、三处呈现）；动态列表运行时（六种形态）；数据密集基础组件自建（路线 A 最大人力）；流程设计器约 30 个节点属性面板；设计器基础设施（嵌套拖拽、撤销重做）；多标签 KeepAlive 等价能力。
-- 风险：Base UI 成熟度未验证（S1 首迭代验证门，不通过整体切 Radix，不混用）；自建组件库人力与 S2 窗口冲突（备选 antd v6 限控制台域）；两套引擎复燃；DSL 表达力不足倒退回 eval；iClaw 代码复用授权不明；供应链（dnd-kit、Puck 0.x、Univer Pro 水印）。
+- 风险：Base UI 成熟度未验证（S1 首迭代验证门，不通过整体切 Radix，不混用）；自建组件库人力与 S2 窗口冲突（备选 antd v6 限控制台域）；两套引擎复燃；DSL 表达力不足倒退回 eval；下游智能体平台代码复用授权不明；供应链（dnd-kit、Puck 0.x、Univer Pro 水印）。
 - 与 Kun 的接口：API client 从 Kun OpenAPI 生成（orval / openapi-typescript）+ 契约测试；拦截器链（鉴权刷新队列、租户头、大数处理）。
 
 **插件化与 Agent 可用性要点**
-- 壳插槽与注册表（`@yue/sdk`）：导航、设置面、命令、快捷键、预览器、客户端动作（名称、参数 JSON Schema、权限、人话描述）——S1 定义、S3 客户可见、S4 Agent 消费。
-- S1 起预留：机器可读 manifest；带版本的 Schema 与校验器（Agent 生成物走同一校验再落库）；客户端动作/导航/命令注册表。`@yue/agent` S4 交付，SSE 事件契约 S1 定义。
+- 壳插槽与注册表（`@cavailab/qian-sdk`）：导航、设置面、命令、快捷键、预览器、客户端动作（名称、参数 JSON Schema、权限、人话描述）——S1 定义、S3 客户可见、S4 Agent 消费。
+- S1 起预留：机器可读 manifest；带版本的 Schema 与校验器（Agent 生成物走同一校验再落库）；客户端动作/导航/命令注册表。`智能体交互组件` S4 交付，SSE 事件契约 S1 定义。
 - 选型：Base UI + Tailwind v4 + shadcn 自有化；dnd-kit；`@xyflow/react` 12；react-grid-layout；TanStack Table v9 + Virtual；react-hook-form + Ajv；ECharts 6；Univer 开源核心；pdfme；Monaco + CodeMirror 6；quickjs-emscripten；Zustand + TanStack Query；富文本/Markdown 未决。
 - 移动端：同一 React 渲染器端适配，H5/PWA 为主，小程序与 App 以壳嵌 H5 + 少量原生桥。
 
@@ -375,8 +375,8 @@
 3. 后台壳多面策略：沿用「控制台 / 应用前台 / 应用后台」三面新窗口切换，还是一个壳按上下文切换。
 4. 布局与偏好系统范围：是否接受 S1 单一侧栏、S3 再做多布局与偏好抽屉。
 5. 富文本/Markdown 编辑器选型：笔记未覆盖，需补选型调研。
-6. iClaw 代码复用授权：iClaw 与 Qian 是否同一权利主体、能否直接搬代码。
-7. yue 分发渠道：私有 npm 之外是否建 shadcn 私有 registry + MCP Server 面向 ISV 与 Agent。
+6. 下游智能体平台代码复用授权：下游智能体平台与 Qian 是否同一权利主体、能否直接搬代码。
+7. 前端框架分发渠道：私有 npm 之外是否建 shadcn 私有 registry + MCP Server 面向 ISV 与 Agent。
 8. 审批流设计器形态：纵向节点树（对 Agent 生成最友好）还是 React Flow 自由画布；是否需要 BPMN 导出。
 
 ---
@@ -390,7 +390,7 @@
 - **插件机制**：清单 v1 + 源生成器、注册表、两层状态机、扩展点/契约仓库、能力目录、强制验签、修订回切、GitOps 执行器、授权 v0、SDK/CLI/TCK、bundle v0（P/K）；系统表单登记 → 插件清单（F）。
 - **配置、事件、审计、部署**：Apollo 部署 + 自研 provider + secretRef + 配置 Schema（K/S/P）；凭证保管（D）；租户级配置服务（K/S）；Outbox 至少一次 + 事件目录；审计一套 + PG 哈希链 + `agent` actor；baggage；RabbitMQ K8s 化、镜像与 chart、健康端点、default-deny、ResourceQuota（K/P）。
 - **数据、文件、消息、调度**：文件存储新线（K/P）；基准类型、PG 方言、数据连接、数据接口契约、引用登记、通知内核 + 渠道 Provider、调度器 + 回调契约、实时推送（D/S）；审计列 + 序号服务、数据规则策略、服务端 Hook、Filter AST（F）；可发布元数据框架、导入导出框架、控件注册表契约、i18n（D/F/S）。
-- **应用、导航、组织、前端**：应用实体、菜单与资源模型（F）；URN、偏好 KV、深链协议、多端同契约、组织树/岗位/用户档案、字典（S）；责任岗位链查询、表达式规范、消息模板注册（W）；令牌、`@yue/core`、AppShell、DataTable、SchemaForm、Upload、业务选择器、认证页族、壳插槽注册表、元数据契约草案、工程化基线（U）；MF2（P）。
+- **应用、导航、组织、前端**：应用实体、菜单与资源模型（F）；URN、偏好 KV、深链协议、多端同契约、组织树/岗位/用户档案、字典（S）；责任岗位链查询、表达式规范、消息模板注册（W）；令牌、`@cavailab/qian-core`、AppShell、DataTable、SchemaForm、Upload、业务选择器、认证页族、壳插槽注册表、元数据契约草案、工程化基线（U）；MF2（P）。
 - **Agent 防返工**：带 Schema 的写命令、结构化错误、`inputSchema` 禁 tenant、事件契约化、能力目录 ≠ 公开 OpenAPI、副作用分级（P）。
 
 ### 3.2 S2 必做清单
@@ -414,12 +414,12 @@
 |---|---|---|---|
 | Q1 | 身份路线：OpenIddict 自建唯一 issuer 还是 Keycloak / Logto；前提：私有化交付、SAML/CAS/LDAP 首期必要性、自定义登录域名、等保/商密 | K/S/P | 混合 C2，Authentik 退居运维；SAML 等先代理 IdP；自定义域只换登录页宿主 |
 | Q2 | 账号归属：全局自然人 + 租户成员，还是允许租户托管身份 | S | Person + Membership 为主，托管身份可选 |
-| Q3 | 与 iClaw 共用边界：IdP、S2S 签发与 claim、Usage Ledger、Higress；租户主数据权威 | K/P/S | claim 对齐 iClaw；Qian 为业务主数据权威；复用 Higress |
+| Q3 | 与下游智能体平台共用边界：IdP、S2S 签发与 claim、Usage Ledger、Higress；租户主数据权威 | K/P/S | claim 对齐下游智能体平台；Qian 为业务主数据权威；复用 Higress |
 | Q4 | 默认隔离 Shared + RLS 还是 SchemaPerTenant；PG 唯一一等库；独立库是否付费选项；是否承诺迁移 | K/P/S/F | Shared + RLS 默认，PG 唯一，独立库作 S3 高隔离档，不做在线迁移 |
 | Q5 | 配置中心：Apollo 与 ADR 修订；MySQL RDS 还是 operator；租户级配置归属；授权与开关权威存储；namespace 建模 | K/P/S | Apollo 为权威，Nacos 收窄；租户级配置不进 Apollo；授权在租户库、开关在 Apollo |
 | Q6 | Kun 消费：NuGet + CalVer 还是 monorepo；上游 PR 还是补丁包；维护 SLA | K | NuGet + CalVer，上游 PR 优先 |
 | Q7 | 插件边界：第三方 `service` 上架；宿主是否全 AOT；专属部署是否售卖；`package` 默认模式；`function` ABI；MCP 注册归属 | K/P | 第三方代码不进共享进程；AOT 只留边缘；两种分发都支持；Qian 注册表为真相源；ABI S2 前拍板 |
-| Q8 | 生产集群与 iClaw 共用还是独立；隔离三档客户比例 | K | 独立集群或独立节点池 |
+| Q8 | 生产集群与下游智能体平台共用还是独立；隔离三档客户比例 | K | 独立集群或独立节点池 |
 | Q9 | 模型网关并入 MaaS 还是另起；GPUStack 范围；GPU 归属 | K | 复用 MaaS，不另写模型代理 |
 | Q10 | 高级权限模式是否有客户在 S2 需要 | S | S3 可选；S1 预留 `profile` claim |
 | Q11 | 等保/商密要求；MFA 是否 S1 必做 | S | TOTP S1 可选 |
@@ -451,8 +451,8 @@
 | Q37 | 后台壳多面策略：三面新窗口 vs 一个壳按上下文切换 | U | — |
 | Q38 | 布局模式与偏好系统范围 | U | S1 单一侧栏，S3 可选 |
 | Q39 | 富文本/Markdown 编辑器选型 | U | 需补调研 |
-| Q40 | iClaw 代码复用授权 | U/K | 只借鉴思路或由所有方确认 |
-| Q41 | yue 分发渠道：shadcn 私有 registry + MCP Server | U | S3 可选 / S4 必做 |
+| Q40 | 下游智能体平台代码复用授权 | U/K | 只借鉴思路或由所有方确认 |
+| Q41 | 前端框架分发渠道：shadcn 私有 registry + MCP Server | U | S3 可选 / S4 必做 |
 
 ### 3.5 基线之间的矛盾与未对齐
 
@@ -461,7 +461,7 @@
 | IdP 形态 | K、S 已裁决 OpenIddict 自建唯一 issuer；P §6 仍写成「RP 侧 module + 托管 IdP 待拍板」，需按 K/S 统一 |
 | 企微/钉钉/飞书连接器 | K 列 S1 必做；S 裁决 S1 可选；P 列 S2 可选 / S3 必做 |
 | refresh 令牌与单点登出 | K/S 列 S1 必做；P 列 S2 可选 |
-| 审计路径 | K 以 `Kun.Auditing` 同事务 Outbox 为准；P 称「弃用 `Kun.Auditing`」改 `AuditLog` + iClaw 式拦截器 |
+| 审计路径 | K 以 `Kun.Auditing` 同事务 Outbox 为准；P 称「弃用 `Kun.Auditing`」改 `AuditLog` + 下游智能体平台式拦截器 |
 | Wasm `function` | K 列 S2 可选；P 列 S2 必做 |
 | 打印 | D 列 S2 必做；U 把打印设计器列 S3 可选 |
 | 工作台 | S 裁决 S3 必做；U 列 S3 可选 |
@@ -483,7 +483,7 @@
 9. **进程内状态外置**（D/S/W）：WebSocket 池、延时队列、缓存锁、调度无集群 → Redis/消息总线背板、平台调度、乐观并发。
 10. **Wasm 宿主与脚本沙箱**（P/F/U）：.NET 不支持组件模型、eval 不可用 → Extism vs WIT 早拍板、三层联动策略。
 11. **自建数据密集组件**（U）：DataTable/Tree/Upload 的 a11y 与 i18n 质量 → S1 最小集先行、Base UI 验证门、备选 antd 限域。
-12. **Kun 维护带宽与 iClaw 设计态资产**（K/P）：单人维护，想复用的注册中心/市场尚未实现 → 明确通道与 SLA、按同一契约先行。
+12. **Kun 维护带宽与下游智能体平台设计态资产**（K/P）：单人维护，想复用的注册中心/市场尚未实现 → 明确通道与 SLA、按同一契约先行。
 
 ---
 
@@ -491,17 +491,17 @@
 
 | 领域 | 文件路径 |
 |---|---|
-| K | `/Users/dawn/project/tmp/qian-refs/research/baselines/k-kun-capability-gap.md` |
-| P | `/Users/dawn/project/tmp/qian-refs/research/baselines/p-plugin-agent-architecture.md` |
-| S | `/Users/dawn/project/tmp/qian-refs/research/baselines/s-system-tenant-identity.md` |
-| F | `/Users/dawn/project/tmp/qian-refs/research/baselines/f-online-dev-form-list-app.md` |
-| W | `/Users/dawn/project/tmp/qian-refs/research/baselines/w-workflow.md` |
-| D | `/Users/dawn/project/tmp/qian-refs/research/baselines/d-data-integration-report-portal.md` |
-| U | `/Users/dawn/project/tmp/qian-refs/research/baselines/u-frontend-yue.md` |
+| K | `基线资料/k-kun-capability-gap.md` |
+| P | `基线资料/p-plugin-agent-architecture.md` |
+| S | `基线资料/s-system-tenant-identity.md` |
+| F | `基线资料/f-online-dev-form-list-app.md` |
+| W | `基线资料/w-workflow.md` |
+| D | `基线资料/d-data-integration-report-portal.md` |
+| U | `基线资料/u-frontend-yue.md` |
 
 **K**：0 导读 · 1 Kun 能力矩阵 · 2 六项硬性要求逐条评估 · 3 低代码特有需求与 Kun 设计取向的张力及对策 · 4 既有资产复用清单 · 5 「Kun 不能满足时可以重新构建」的判断 · 6 基础设施与部署基线 · 7 风险与未决问题 · 附录 A 能力分级与插件归属总表 · 附录 B 笔记间矛盾与裁决 · 附录 C 输入笔记索引
 
-**P**：0 结论先行 · 1 目标与原则 · 2 插件模型候选与推荐 · 3 插件清单字段草案 · 4 生命周期与治理 · 5 内核最小集 · 6 首批插件清单 · 7 从插件到应用市场 · 8 Agent 就绪设计 · 9 前端插件化与 yue 的关系 · 10 风险与未决问题 · 附录 A 矛盾与裁决 · 附录 B 分级总表 · 附录 C 阅读说明与未核实项
+**P**：0 结论先行 · 1 目标与原则 · 2 插件模型候选与推荐 · 3 插件清单字段草案 · 4 生命周期与治理 · 5 内核最小集 · 6 首批插件清单 · 7 从插件到应用市场 · 8 Agent 就绪设计 · 9 前端插件化与前端框架的关系 · 10 风险与未决问题 · 附录 A 矛盾与裁决 · 附录 B 分级总表 · 附录 C 阅读说明与未核实项
 
 **S**：1 领域全景 · 2 功能清单表· 3 关键业务规则与状态机 · 4 核心数据对象 · 5 与其它领域的依赖 · 6 在 Kun 上实现的差距与难点 · 7 值得沿用的交互与界面模式 · 8 插件化与 Agent 可用性 · 9 专题小节 · 10 矛盾与裁决 · 11 未决问题
 
@@ -511,4 +511,4 @@
 
 **D**：0 阅读指南 · 1 领域全景 · 2 功能清单表· 3 关键业务规则与状态机 · 4 核心数据对象 · 5 与其它领域的依赖 · 6 差距与难点 · 7 值得沿用的交互模式 · 8 插件化与 Agent 可用性 · 9 未决问题 · 附录 A 自研/集成开源/延后与许可证风险 · 附录 B AI 中心清单
 
-**U**：0 结论速览 · 1 参考平台前端的组件与设计器全集 · 2 我方既有前端资产盘点与可继承程度 · 3 yue 组件库分层建议 · 4 技术选型候选与推荐 · 5 工程化基线 · 6 移动端策略的输入 · 7 复杂度热点、风险与未决问题 · 附：出处索引
+**U**：0 结论速览 · 1 参考平台前端的组件与设计器全集 · 2 我方既有前端资产盘点与可继承程度 · 3 前端框架组件库分层建议 · 4 技术选型候选与推荐 · 5 工程化基线 · 6 移动端策略的输入 · 7 复杂度热点、风险与未决问题 · 附：出处索引

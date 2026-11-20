@@ -2,10 +2,59 @@
   "architecture",
   "agent-support",
   "getting-started",
-  { "type": "dir", "name": "guides", "label": "指南" },
-  { "type": "dir", "name": "security", "label": "安全" },
-  { "type": "dir", "name": "design", "label": "设计说明" },
-  { "type": "dir", "name": "adr", "label": "决策记录" },
+  {
+    "type": "dir",
+    "name": "guides",
+    "label": "指南"
+  },
+  {
+    "type": "dir",
+    "name": "security",
+    "label": "安全"
+  },
+  {
+    "type": "dir",
+    "name": "design",
+    "label": "设计说明"
+  },
+  {
+    "type": "dir",
+    "name": "adr",
+    "label": "决策记录"
+  },
   "migration",
-  "migration-plan"
+  "migration-plan",
+  "platform-overview",
+  "platform-roadmap",
+  "platform-history",
+  {
+    "type": "dir",
+    "name": "decisions",
+    "label": "平台决策"
+  },
+  {
+    "type": "dir",
+    "name": "generated",
+    "label": "组件与事件目录"
+  },
+  {
+    "type": "dir",
+    "name": "ops",
+    "label": "运维"
+  },
+  {
+    "type": "dir",
+    "name": "platform-migration",
+    "label": "迁移指南"
+  },
+  {
+    "type": "dir",
+    "name": "prd",
+    "label": "需求与规格"
+  },
+  {
+    "type": "dir",
+    "name": "research",
+    "label": "调研基线"
+  }
 ]

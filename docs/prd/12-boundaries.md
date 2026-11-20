@@ -81,14 +81,14 @@ S1 退出标准（ADR-018；ADR-020 §6 新增末句）：开发人员用代码�
 - C6. 一键安装与目录市场：`qian add / remove / list / doctor / dump-config / init --template` 可用；官方市场仓库与 `.qian/marketplace.json` 就绪；空白项目 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传。
 - C7. skill / agent / command / hook / MCP 五种表面的解析器与校验器 S1 交付；模型可见的一切注册在 `ctx.Tools` 等注册表并受 scope 过滤；配置目录、模块图、事件图、seam 图由代码生成并设 CI 新鲜度门禁。
 
-**前端 yue 与外壳（ADR-013；详见专题 spec《yue 组件库》）**
-37. `@yue/tokens` 三层令牌、明暗两态、WCAG AA 对比度单测；`@yue/core` 52 个基础组件；`@yue/shell` 单一侧栏布局外壳（后端菜单 → 路由、`menuTypeRegistry`、租户切换器、兜底页）；DataTable 基础版、SchemaForm 基础版、Upload、组织 / 用户 / 角色选择器、认证页族可用。
+**前端框架与外壳（ADR-013；详见专题 spec《前端框架组件库》）**
+37. `@cavailab/qian-tokens` 三层令牌、明暗两态、WCAG AA 对比度单测；`@cavailab/qian-core` 52 个基础组件；`@cavailab/qian-shell` 单一侧栏布局外壳（后端菜单 → 路由、`menuTypeRegistry`、租户切换器、兜底页）；DataTable 基础版、SchemaForm 基础版、Upload、组织 / 用户 / 角色选择器、认证页族可用。
 38. 外壳以 Module Federation 2 运行时加载官方插件 UI，带版本号的插槽注册表；共享依赖 singleton。
 39. 元数据契约草案（FormSchema / ListSchema，含 `device`、`auth` 字段）、控件注册表契约、SSE 事件 JSON Schema、权限码目录格式发布；分层依赖 lint 进 CI。
 
 **部署（ADR-017）**
 40. Qian 运行在独立命名空间 `qian-<env>`，专属 PostgreSQL / Redis；业务命名空间带 default-deny NetworkPolicy 与 ResourceQuota；Argo CD app-of-apps + Kustomize，按 digest 写回，迁移 Job 先行；K3s 开启 Secret 静态加密。
-41. 生产与 iClaw 共用集群但独立节点池（Q16）；多租户拓扑默认共享，高隔离与私有化为可选档。
+41. 生产与下游智能体平台共用集群但独立节点池（Q16）；多租户拓扑默认共享，高隔离与私有化为可选档。
 
 **模型服务网关（ADR-015，S1 可选）**
 42. GPUStack 以 OpenAI 兼容上游注册进 Higress；Provider Adapter 完成模型发现、健康与生命周期；`model-capabilities` 契约填写；接入范围先 LLM + Embedding（Q17）。
@@ -140,7 +140,7 @@ S2 退出标准：跑通「建应用 → 建表单与列表 → 走审批 → �
 28. 钉钉、飞书连接器 S2 必做（P0），微信网站扫码连接器 S2 可选（P1，R4）；数据建模、接口设计器、短信通道 UI、群机器人、监控 UI、任务管理 UI、文件预览提供者可替换（首选 .NET 方案，Q34）、模型目录与按用途路由。
 29. 自动化（任务流程）S2 可选，S3 必做；集合语义显式声明 `cardinality: single | each | batch`；破坏性动作声明 `destructive` 并提供试运行。
 
-**前端 yue（ADR-013）**
+**前端框架（ADR-013）**
 30. DataTable 进阶（树表、列权限、行内编辑、复杂表头）、ImportWizard / ExportDialog、SuperQuery、ConditionBuilder、CodeEditor / Cron、PosSelect / GroupSelect、PopupSelect 族、RelationForm、授权树族；设计器基础设施（dnd-kit 封装、schema 驱动属性面板、撤销重做、校验定位）；表单 / 列表 / 审批流三大设计器；校验器与设计器共用；视觉回归进 CI。
 
 ---
@@ -171,9 +171,9 @@ S4 退出标准：Agent 能发现、调用、编排乃至生成平台能力与�
 1. 每租户一个 MCP 逻辑门面（Higress 托管），工具定义由插件清单 `capabilities` 机械生成，暴露经 `agent.expose` 策划，按调用者权限过滤工具列表。
 2. Agent 主体（有归属人、可吊销）与委托链：RFC 8693 令牌交换带 `act`；有效权限 = 委托人权限 ∩ 授予 scope；`Check / ListAllowedActions / Explain` 以工具形式暴露。
 3. Agent 生成应用 = 生成 `package`，经校验 + TCK + 差异审阅 + 人工确认后落库；代码只落 `function` 沙箱；记录 `generatedBy / promptHash`。
-4. 与 iClaw 运行时经 MCP / HTTP 对接（ADR-016）；Qian 不写 Agent loop、沙箱、记忆、技能引擎；沙箱对接 CubeSandbox。
+4. 与下游智能体平台运行时经 MCP / HTTP 对接（ADR-016）；Qian 不写 Agent loop、沙箱、记忆、技能引擎；沙箱对接 CubeSandbox。
 5. 元数据生成闭环：AI 建表 / 建流程只产出「设计中」草稿并走同一校验器；元数据操作 API 化并暴露状态机。
-6. `@yue/agent`（ToolCallCard、ThinkingTimeline、Composer 等，只消费 S1 定义的 SSE 事件契约）；shadcn MCP Server；市场兼任私有 MCP registry。
+6. `智能体交互组件`（ToolCallCard、ThinkingTimeline、Composer 等，只消费 S1 定义的 SSE 事件契约）；shadcn MCP Server；市场兼任私有 MCP registry。
 7. 可选：A2A 端点与急停、MCP Apps 视图、WebMCP。
 
 ---
@@ -213,7 +213,7 @@ S4 退出标准：Agent 能发现、调用、编排乃至生成平台能力与�
 | N2 | 第三方代码进入任何共享进程 | 信任等级（`policy.tier`）决定允许的 `runtime.form` 与 `policy.sandbox`：`partner / private / community` 只允许声明式表面、`package`、`function`、受限 `ui`，以及为某个 seam 提供 Provider 的组件（原 connector：`provides[]` 写服务键 + `policy.egress` 声明出网目标；其 `runtime.form` 不得为 `module`，按实现取进程外 `service` 或由平台连接器运行时托管）；`service` 即便允许也必须独立工作负载身份（R28 口径，字段细节以 specs/component-model.md 为准） | ADR-002、ADR-020 |
 | N3 | 参考平台式匿名外链（读草稿、不校验开关 / 密码 / 条件、无有效期） | 匿名上下文只能访问「匿名可用」能力；外链一律经网关匿名路由 + 服务端签发的能力令牌（功能 + 动作 + 版本 + 过滤 + 有效期，S3） | ADR-010、§13 |
 | N4 | 进程共享的服务端 JS 引擎（全局单例 V8 / 任意脚本） | 无锁、无超时、无沙箱、可拼 SQL 到租户库；用 JSON AST 表达式解释器 + Wasm `function` 替代 | ADR-002、ADR-012 |
-| N5 | 自建 Agent 推理引擎、沙箱、记忆、技能引擎 | 复用 iClaw 运行时；Qian 只做能力提供方与业务主数据权威 | ADR-016 |
+| N5 | 自建 Agent 推理引擎、沙箱、记忆、技能引擎 | 复用下游智能体平台运行时；Qian 只做能力提供方与业务主数据权威 | ADR-016 |
 | N6 | 自研模型代理层（绕过 Higress） | 并入团队 MaaS / Higress 基础设施；Qian 只做 Provider Adapter 与契约 | ADR-015 |
 | N7 | Dapr sidecar 作为默认依赖 | 三节点 K3s 每 Pod 一个 sidecar 代价高；与 Kun EventBus / Outbox、S2S、YARP 大面积重叠；只借鉴其组件声明方式 | ADR-002、ADR-017 |
 | N8 | bpmn-js 作为流程画布 | 许可证要求水印始终可见；审批流用 DOM 节点树或 React Flow；BPMN 只在客户强制要求时做导出器，不作内部模型 | ADR-012、ADR-013 |
@@ -226,7 +226,7 @@ S4 退出标准：Agent 能发现、调用、编排乃至生成平台能力与�
 | N15 | 用户级 AppSecret 与「公有」免鉴权开放接口 | 统一为网关应用级客户端凭据（Q35） | ADR-010 |
 | N16 | 自定义按钮任意 JS、`eval` / `new Function` 执行租户脚本 | 多租户安全与 Agent 不可发现；联动三层策略替代 | ADR-013 |
 | N17 | 脚本型定时任务（任意代码执行） | 调度只管 Cron 与回调契约；任务处理器由插件注册，带参数 Schema 与幂等 | ADR-008 |
-| N18 | 两套设计体系长期混用（如 antd 与 yue 并存） | 参考平台双轨反例；Base UI 验证门不过则整体切 Radix，不混用（Q12） | ADR-013 |
+| N18 | 两套设计体系长期混用（如 antd 与前端框架并存） | 参考平台双轨反例；Base UI 验证门不过则整体切 Radix，不混用（Q12） | ADR-013 |
 | N19 | 内置 IM 聊天、自研服务器监控、请求日志落库 + 一键清空 | 非平台主线；多副本下单机指标无意义；日志进可观测栈并按保留策略归档 | ADR-003 |
 | N20 | 前端锁屏作为安全措施 | 密码前端比对仅 UI 遮罩 | ADR-013 |
 | N21 | 租户层级多级隔离下沉到 RLS | 按需以 `project_id` / 组织树在 `qian.authz` 解决 | ADR-004 |
@@ -260,10 +260,10 @@ S4 退出标准：Agent 能发现、调用、编排乃至生成平台能力与�
 |---|---|---|
 | AI 建表 / AI 生成字段 | S4 | 元数据 JSON Schema + 校验器；生成物只落草稿 |
 | AI 建流程 | S4 | 节点 JSON Schema、`:validate`、设计器「草稿导入」 |
-| 智能体 / Agent 编排、A2A | S4（经 iClaw） | Operation / Task、能力目录、委托链字段 |
-| 知识库 / RAG、提示词管理、MCP 管理台 | S4（AI 资产控制面归 iClaw） | 注册表 → MCP 映射约定 |
+| 智能体 / Agent 编排、A2A | S4（经下游智能体平台） | Operation / Task、能力目录、委托链字段 |
+| 知识库 / RAG、提示词管理、MCP 管理台 | S4（AI 资产控制面归下游智能体平台） | 注册表 → MCP 映射约定 |
 | OCR 控件库（证照识别回填） | S4 | 控件 manifest 预留 `category: ocr`；HTTP 契约由独立插件暴露 |
-| AI 助手悬浮窗、划词翻译、`@yue/agent` 组件 | S4 | SSE 事件 JSON Schema（S1 定义） |
+| AI 助手悬浮窗、划词翻译、`智能体交互组件` 组件 | S4 | SSE 事件 JSON Schema（S1 定义） |
 | Agent 作审批人解析器 / 外部审批者 / 自动化动作 | S4 | `IAssigneeResolver`、外部任务回调契约、`humanOnly` 标记 |
 | Agent 生成 `package` 应用 | S4 | bundle 格式 v0、TCK、差异审阅 |
 | AI 生成内容标识、模型路由按数据驻留 | S4 | 审计含 `createdBy.kind=agent`；模型目录含能力标签 |
@@ -285,5 +285,5 @@ S4 退出标准：Agent 能发现、调用、编排乃至生成平台能力与�
 10. 已拍板（ADR-020 §7 第 3 条）：`qian` CLI 为单一 Node / TypeScript 实现、`npx qian@latest` 一键入口、Node ≥ 22 前置，`dotnet qian` 薄包装为 S1 可选 P2；C6 的 `npx` 一键体验据此成立。
 11. 已拍板（ADR-020 §7 第 4 条）：官方市场仓库为同组织独立仓库 `qian-plugins`，S1 私有、S3 随许可证评估公开，社区发现用 GitHub topic `qian-plugin`；C6 与 §12.4 按此写。
 12. 已裁决（R27）、已拍板（ADR-020 §7 第 5 条）：N1 收窄为「不为第三方代码与可 AOT 的边缘 profile 做运行时热插 DLL」；代码插件热装卸不进 S2 核心交付，S2 内由 RT 领域做 5 天时间盒 spike 验证 collectible `AssemblyLoadContext` 与 Kun 约束、结论写回 ADR-020；生产默认滚动重启（ADR-020 D20.7 / D20.11），C4 按「S1 不承诺」写。
-13. 已拍板（ADR-020 §7 第 6 条）：Qian 包族、`qian` CLI、yue 一律 Apache-2.0；S1 GitHub Packages（.NET 包公开可见、安装需令牌，TS 包私有，R93），S2 末或首个外部宿主试用时公开到 nuget.org / npm；§12.2 第 33 条 SDK 的分发渠道按此写。
+13. 已拍板（ADR-020 §7 第 6 条）：Qian 包族、`qian` CLI、前端框架一律 Apache-2.0；S1 GitHub Packages（.NET 包公开可见、安装需令牌，TS 包私有，R93），S2 末或首个外部宿主试用时公开到 nuget.org / npm；§12.2 第 33 条 SDK 的分发渠道按此写。
 14. 已裁决（R28）：`connector` 不是 `runtime.form`，而是「为某个 seam 提供 Provider 的组件」——清单上体现为 `provides[]` 写出服务键 + `policy.egress` 声明出网目标，`runtime.form` 按其实现取 `module` 或 `service`；`bundle` = 组合包（有 `config/qian.patch.yml`，可携带多个组件），应用 = 组合包 + marketplace 条目。T3 / N2 与 §03 3.4 已按 `runtime.form` / `policy.tier` / `provides` 口径改写；字段细节以 specs/component-model.md 为准。

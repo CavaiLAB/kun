@@ -1,6 +1,6 @@
 # §08 S2 低代码构建
 
-> 本章粒度：范围清楚、关键模型与契约定型，比 §07（S1 技术底座）粗一级，但功能清单必须完整。决策引用写 `ADR-0xx`（ADR-011 元数据与动态数据、ADR-012 流程、ADR-013 前端与 yue、ADR-014 市场、ADR-006 鉴权、ADR-002 插件模型、ADR-018 阶段），基线与参考平台只作依据不作规范。决策清单主表的待拍板问题写 `Q1–Q18`，补充裁决（基线汇编编号）写 `补充裁决 Qxx`，两套编号互不混用。被借鉴的商业低代码产品一律称「参考平台」。
+> 本章粒度：范围清楚、关键模型与契约定型，比 §07（S1 技术底座）粗一级，但功能清单必须完整。决策引用写 `ADR-0xx`（ADR-011 元数据与动态数据、ADR-012 流程、ADR-013 前端与前端框架、ADR-014 市场、ADR-006 鉴权、ADR-002 插件模型、ADR-018 阶段），基线与参考平台只作依据不作规范。决策清单主表的待拍板问题写 `Q1–Q18`，补充裁决（基线汇编编号）写 `补充裁决 Qxx`，两套编号互不混用。被借鉴的商业低代码产品一律称「参考平台」。
 >
 > 优先级口径：**P0** = S2 退出标准关键路径，不做则 S2 不能验收；**P1** = S2 必做但不在关键路径，可在 S2 内后置；**P2** = S2 可选，可滑到 S3。阶段归属以 ADR-018 与补充裁决为准，与基线冲突处在 8.16 注明。
 >
@@ -311,7 +311,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 
 #### 技术落点
 
-- 前端：`@yue/form`（react-hook-form + 解释型 JSON Schema 校验）为底座，`@qian/lowcode-runtime` 的表单渲染器只做叶子与容器编排，不新建引擎；设计器基于 dnd-kit 嵌套拖拽，撤销栈以 JSON Patch 记录。
+- 前端：`@cavailab/qian-form`（react-hook-form + 解释型 JSON Schema 校验）为底座，`@qian/lowcode-runtime` 的表单渲染器只做叶子与容器编排，不新建引擎；设计器基于 dnd-kit 嵌套拖拽，撤销栈以 JSON Patch 记录。
 - 后端：`qian.forms` 在 `qian-lowcode` 提供校验器（与前端共用同一 Schema 包 `@qian/metadata-contracts` 生成 TS 与 C# 类型）、规则编译（声明式规则编译进 Compiled Model）、公式服务端复算、引用图维护、`generateFromTable`。
 - 服务端 Hook 与前端联动的边界：校验与计算以服务端为准，前端只做体验。
 
@@ -358,7 +358,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 
 #### 技术落点
 
-`@yue/data` DataTable（TanStack Table v9 + Virtual）进阶：树表、列权限、行内编辑、复杂表头为 S2 必做；`SuperQuery`、`ConditionBuilder`、`ImportWizard`、`ExportDialog` 为公共交互组件（8.13）。服务端 `qian.lists` 把 ListSchema 编译为查询计划（投影、过滤、排序、分页、合计），交 8.2 执行；动作执行器 `IActionExecutor` 按 `type` 分派到表单、数据接口、流程。
+`@cavailab/qian-data` DataTable（TanStack Table v9 + Virtual）进阶：树表、列权限、行内编辑、复杂表头为 S2 必做；`SuperQuery`、`ConditionBuilder`、`ImportWizard`、`ExportDialog` 为公共交互组件（8.13）。服务端 `qian.lists` 把 ListSchema 编译为查询计划（投影、过滤、排序、分页、合计），交 8.2 执行；动作执行器 `IActionExecutor` 按 `type` 分派到表单、数据接口、流程。
 
 #### 插件化定位
 
@@ -493,7 +493,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 
 - ✅ 数据权限方案 `DataAuthScheme{name, code, allData: bool, condition: FilterExpression, menuId}`；系统变量目录与 8.2 共用；相对范围条件（当前用户及下属等）不可用等于/不等于。
 - ✅ 编译器 `IDataPermissionFilter`：主体有效角色 → 每角色的方案 AND → 角色间 OR → 任一 `allData` 放开 → 输出谓词 AST 并合入 8.2 查询；无方案 = 查不到数据；覆盖 list/get/update/delete/export/import 全部路径（参考平台只管列表是反例）。
-- ✅ 字段权限 `FieldPolicy{resource, field, read: visible|masked|hidden, write: allow|deny}`：读时投影或按敏感度脱敏规则，写时白名单；yue 按元数据渲染但以服务端为准。
+- ✅ 字段权限 `FieldPolicy{resource, field, read: visible|masked|hidden, write: allow|deny}`：读时投影或按敏感度脱敏规则，写时白名单；前端框架按元数据渲染但以服务端为准。
 - ✅ 授权界面（多步向导：菜单 → 按钮 → 列表 → 表单字段 → 数据方案；大树勾选；授权人只能授出自己拥有的，其余置灰不隐藏）；资源管理页按菜单类型给出可配项与类型化空态。
 - ✅ 创建者自动成为应用 Owner（资源实例级 ACL 简版：所有者 + 共享，`qian.authz` 平台库表实现）。
 - ✅ 数据权限方案自动生成（8.7 挂载步骤）；手删后再发布补全。
@@ -607,7 +607,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 
 #### 8.11.7 配置路径型门户与报表子集（P2，补充裁决 Q29/Q30）
 
-> 已裁决（R16）：本节保持 S2 可选（P2）。S2 验收演示所需的「可用首页」由应用默认首页（菜单 + 功能列表，8.10）满足，不依赖本节门户；`@yue/charts` 维持 S2 可选。
+> 已裁决（R16）：本节保持 S2 可选（P2）。S2 验收演示所需的「可用首页」由应用默认首页（菜单 + 功能列表，8.10）满足，不依赖本节门户；`图表组件` 维持 S2 可选。
 
 - **范围** ✅ 门户配置路径型（固定模板 + 配置：指向页面/外链/功能，发布即挂菜单，作应用首页）；报表子集（列表 + 分组汇总 + 导出 XLSX，消费数据接口，服务端渲染）。❌ 门户设计型、交叉表/父子格/分栏、大屏（S3）。
 - **验收** - [ ] 应用首页指向配置路径型门户后，租户用户登录进应用落在该页。**测法**：UI。
@@ -640,11 +640,11 @@ Operation 是 Agent 感知长任务与审批中断的唯一方式：`async: task
 - [ ] 流程待办在 `GET /operations?status=input_required` 中可见，其 `inputRequest.actions` 与 `GET /workflow/workitems/{id}/actions` 一致。**测法**：接口比对。
 - [ ] 同一 `idempotencyKey` 重复发起 Operation 返回同一 `operationId`。**测法**：接口测试。
 
-### 8.13 yue S2 交付（P0 · S2）
+### 8.13 前端框架 S2 交付（P0 · S2）
 
 #### 设计理念
 
-沿用 ADR-013：React 19 + Vite + Tailwind v4 + Base UI + shadcn 源码自有化，六层分层用 lint 强制（tokens → core → shell/data/form/charts/code-editor → biz → runtime/widgets → designer）；只保留一套表单/表格/弹层引擎；控件注册表与 yue 组件 props 的 JSON Schema 机器可读，设计器、远程渲染白名单、S4 Agent 生成 UI 共用一份契约。S1 首迭代的 Base UI 验证门结论（§07）决定 S2 是否整体切 Radix，不混用。
+沿用 ADR-013：React 19 + Vite + Tailwind v4 + Base UI + shadcn 源码自有化，六层分层用 lint 强制（tokens → core → shell/data/form/charts/code-editor → biz → runtime/widgets → designer）；只保留一套表单/表格/弹层引擎；控件注册表与前端框架组件 props 的 JSON Schema 机器可读，设计器、远程渲染白名单、S4 Agent 生成 UI 共用一份契约。S1 首迭代的 Base UI 验证门结论（§07）决定 S2 是否整体切 Radix，不混用。
 
 #### 范围与边界
 
@@ -652,12 +652,12 @@ Operation 是 Agent 感知长任务与审批中断的唯一方式：`async: task
 - ✅ **渲染器**：表单渲染器三态、子表（InputTable）、三层联动、公式控件；列表渲染器（普通表格 P0；左树/树形/行内编辑/分组 P2）、动作执行器；流程表单宿主（按节点字段权限渲染）；审批中心基础（四列表 + 详情页）。
 - ✅ **三大设计器**：表单、列表、审批流（纵向节点树），共用设计器基础设施（dnd-kit 嵌套拖拽、撤销重做、Schema 驱动属性面板、校验浮层与定位、版本下拉、预览矩阵）。
 - ✅ **通用交互组件**：`ConditionBuilder`（条件组构造器，被数据过滤/高级查询/数据权限/启用规则/流程条件五处复用）、`ParamBinding`（参数绑定表格，来源五选一）、`SuperQuery`、`ImportWizard` / `ExportDialog`、`PopupSelect` 族、`RelationForm`、`InterfaceSelect`、`PosSelect / GroupSelect / UsersSelect`、授权树族（菜单/按钮/列/字段/数据权限页签）、字段权限矩阵、人员选择器 + 范围过滤、「只列已发布资源」选择弹窗、字段映射表格、弹窗三件套。
-- ✅ **`@yue/data` 进阶**：树表、列级权限、行内编辑、复杂表头、列宽拖拽与列序、虚拟滚动；合计与个人视图 P2。
-- ✅ **`@yue/core` 补充**：Steps、Descriptions、Timeline 必做；Slider/Rate/ColorPicker/Watermark/Transfer/Command Palette 可选。
-- ✅ **`@yue/code-editor`**：Monaco（桌面，SQL/表达式带白名单 `.d.ts` 补全）+ CodeMirror 6（轻量）、Cron 可视化；富文本/Markdown 选型调研后决定（补充裁决 Q39）。
+- ✅ **`@cavailab/qian-data` 进阶**：树表、列级权限、行内编辑、复杂表头、列宽拖拽与列序、虚拟滚动；合计与个人视图 P2。
+- ✅ **`@cavailab/qian-core` 补充**：Steps、Descriptions、Timeline 必做；Slider/Rate/ColorPicker/Watermark/Transfer/Command Palette 可选。
+- ✅ **`代码编辑组件`**：Monaco（桌面，SQL/表达式带白名单 `.d.ts` 补全）+ CodeMirror 6（轻量）、Cron 可视化；富文本/Markdown 选型调研后决定（补充裁决 Q39）。
 - ✅ **元数据契约包** `@qian/metadata-contracts`：FormSchema / ListSchema / FlowDefinition / PrintTemplate 的 JSON Schema 定稿（S1 草案 → S2 定稿），生成 TS 与 C# 类型，校验器前后端共用。
-- ✅ **组件 manifest 全量**：yue 组件目录（组件、props JSON Schema）机器可读，发布到私有 npm；应用切换器；视觉回归进 CI。
-- ❌ `@yue/mobile` H5 渲染器（Q13）；`@yue/charts` 完整版（S2 可选，门户/报表 S3 必做）；门户/报表/打印/大屏设计器（S3）；不可信 UI 沙箱（S3）；bpmn-js（许可证要求水印可见）、Formily/amis 等自带体系的低代码引擎。
+- ✅ **组件 manifest 全量**：前端框架组件目录（组件、props JSON Schema）机器可读，发布到私有 npm；应用切换器；视觉回归进 CI。
+- ❌ `移动端组件` H5 渲染器（Q13）；`图表组件` 完整版（S2 可选，门户/报表 S3 必做）；门户/报表/打印/大屏设计器（S3）；不可信 UI 沙箱（S3）；bpmn-js（许可证要求水印可见）、Formily/amis 等自带体系的低代码引擎。
 
 #### 验收标准
 
@@ -710,7 +710,7 @@ S2 不做任何 Agent 功能（§10），但以下四项必须在 S2 做对，�
 3. **插件命名与 App / 导航归属**：已裁决（R18 / R1 / R26）——统一用 `qian.dynamic-data` 与 `qian.plugin-sdk`（P 基线别名说明仅保留在 8.0.4 一处）；组织目录作为 `qian.identity` 子模块、不独立成插件；App 实体契约由 `qian.capabilities`（原 `qian.kernel`，ADR-020）在 S1 预留（`runtime.form: package` 组件的租户内安装记录，持有默认首页、菜单根与权限点归属），本章 8.10 在 `qian.metadata` 升为一等元数据对象；`qian.navigation` 在 S1 是 `qian.capabilities` 内「菜单由清单贡献 + URN 目录 + 用户偏好」的逻辑名（S1 菜单贡献走 `qian.shell.nav` 插槽、权限资源注册走 `qian.authz`），S2 允许拆出为独立插件。
 4. **权限点命名**：已裁决（R9）——统一为 `<plugin-id>:<resource>:<action>`（§07 7.5）；本章 8.8 的流程发起权限点已改为 `qian.workflow:flow:launch`。
 5. **数据接口 SQL 文本模式**：已裁决（R11 / R25）——高级权限为独立权限点 `qian.data-api:sql:author`，默认不在开发者角色内，由租户管理员显式授予具体人员；只读数据库账号由平台供给（平台 PG 中每租户绑定 RLS 的只读角色，运行时按租户切换），租户自带连接的只读账号 S3 随 D4 评估；发布需租户管理员批准。
-6. **门户配置路径型与报表子集**：已裁决（R16）——保持 S2 可选（P2）；S2 验收演示的「可用首页」由应用默认首页（菜单 + 功能列表）满足，不依赖门户；`@yue/charts` 维持 S2 可选。
+6. **门户配置路径型与报表子集**：已裁决（R16）——保持 S2 可选（P2）；S2 验收演示的「可用首页」由应用默认首页（菜单 + 功能列表）满足，不依赖门户；`图表组件` 维持 S2 可选。
 7. **富文本 / Markdown 编辑器选型**（补充裁决 Q39）：S2 前补选型调研，结论决定 8.4 富文本控件能否进 P1。
 8. **S2 示例自营应用的选题**（本章假定「请假与考勤」）与其是否随 S2 对外交付，待产品负责人确认。
 9. **组件模型 v2 对本章的影响（ADR-020）**：(a) 已裁决（R35）——`forms/` `lists/` `flows/` `pages/` 组件文件夹是分发形态、注册表是运行态真相源、同一校验器；git 修订是分发版本，8.1 的 Release / Pointer 不改；(b) `lowcode` / `workflow` profile 的组合包边界与是否允许租户私有市场分发 `package` 组件（S3）；(c) 已拍板（ADR-020 §7 第 5 条）：官方代码插件热装卸不进 S2 核心交付，S2 内由 RT 领域做 5 天时间盒 spike 验证 collectible `AssemblyLoadContext` 与 Kun 约束、结论写回 ADR-020，生产默认滚动重启（R27；8.0.4 列为 P2 spike）；(d) 已拍板（ADR-020 §7 第 2 条）：清单为 `.qian-plugin/plugin.json`（JSON），8.10 bundle 定义的字段按此落位；(e) 已拍板（ADR-020 §7 第 1 条）：TS 侧公共 API 为 `@qian/runtime`、S1 内部 vendor Cordis 实现，`@qian/designer` 与 `@qian/lowcode-runtime` 作为 `@qian/runtime` 插件树成员交付，不依赖实现选择。

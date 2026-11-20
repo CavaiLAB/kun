@@ -2,7 +2,7 @@
 
 > 状态：v0 草案，2026-10-06。本目录回答一个问题：我们如何从「参考平台」（一套成熟的商业低代码产品，只借鉴、不照搬、不引入代码）的能力集合，分阶段走到 Qian 的插件化平台。这不是数据迁移，而是**能力与设计的迁移 / 重建方案**。
 > 权威来源：决策清单（`docs/decisions/key-decisions-v0.md`，含补充裁决）是唯一权威；基线汇编与七份领域基线是素材。基线与决策冲突处一律按决策写，并在各映射文件的「未决问题」注明。
-> 引用约定：决策写 `ADR-0xx`（001 Kun 关系、002 插件模型、003 内核边界、004 数据库与隔离、005 身份、006 鉴权、007 Apollo、008 事件、009 审计、010 网关、011 元数据与动态数据、012 流程、013 前端 yue、014 市场、015 模型网关、016 iClaw 边界、017 部署、018 阶段）；PRD 章节写 `PRD §07` 等（01 愿景 … 07 S1 功能规格、08 S2、09 S3、10 S4、11 词表、12 边界、13 安全、14 质量、15 路线、16 指标、17 借鉴声明）。
+> 引用约定：决策写 `ADR-0xx`（001 Kun 关系、002 插件模型、003 内核边界、004 数据库与隔离、005 身份、006 鉴权、007 Apollo、008 事件、009 审计、010 网关、011 元数据与动态数据、012 流程、013 前端框架、014 市场、015 模型网关、016 下游智能体平台边界、017 部署、018 阶段）；PRD 章节写 `PRD §07` 等（01 愿景 … 07 S1 功能规格、08 S2、09 S3、10 S4、11 词表、12 边界、13 安全、14 质量、15 路线、16 指标、17 借鉴声明）。
 > 优先级口径（全目录统一）：**P0** = 该阶段退出标准所依赖的必做项；**P1** = 该阶段可选、下一阶段必做或高价值项；**P2** = 视客户需求再排。写法如「S2·P0」。
 > 组件模型 v2 口径（2026-10-06，ADR-020）：本目录各表中的「插件 ID」继续有效，但其落位按 v2 理解——`qian.kernel` 的注册表 / 生命周期 / 能力目录改为普通插件（`qian.registry` / `qian.lifecycle` / `qian.capabilities`），运行时只剩 `Qian.Runtime`；「宿主 / 可部署单元」= profile（S1：platform、gateway、identity、standalone、minimal）；「系统插件」= `platform` profile 的 base 组合包成员，按 seam 三角色拆为 `Qian.<X>.Abstractions` / Provider / Consumer 包并可 `qian add` 独立安装；租户开关 = 租户 scope patch。本目录的逐表回填待 PRD §07–§10 修订完成后进行。
 
@@ -15,7 +15,7 @@
 | `02-app-form-list.md` | 应用、表单设计、列表设计、视图、功能发布、运行时数据引擎 | F |
 | `03-workflow.md` | 流程与审批：五类流程、节点、审批方式、处置操作、运行态、工作台 | W |
 | `04-data-integration-presentation.md` | 数据中心、集成中心、消息与调度、门户、报表、打印、大屏、文件预览、AI 中心清单 | D |
-| `05-frontend-yue.md` | 参考平台前端组件与设计器全集 → yue 分层与阶段、工程化、移动端策略 | U |
+| `05-frontend.md` | 参考平台前端组件与设计器全集 → 前端框架分层与阶段、工程化、移动端策略 | U |
 
 每个映射文件的主体是一张表：参考平台功能 / 组件 → 概括其做法 → Qian 处理方式（沿用概念 / 重新设计 / 不做）→ 目标插件 ID → 阶段与优先级 → 说明与理由；文件末尾统一有「明确不做清单」「必须修正的做法」「未决问题」三节。
 
@@ -30,7 +30,7 @@
 1. **运行形态**：参考平台是 .NET 单体（另有独立 Java 引擎与预览进程），进程内事件总线、进程内 WebSocket 连接池、内存延时队列、本机地址自调用、无集群协调的调度器；Qian 是基于 Kun 的 .NET 10 微服务，部署在 K3s 多副本上（ADR-001 / ADR-017）。几乎所有「进程内状态」在 Qian 都不成立。
 2. **组织能力的方式**：参考平台用菜单树 + 系统模块组织能力，第三方登录源、消息渠道、控件类型、列表布局、菜单类型、权限资源类型全部写死为枚举；Qian 以插件思维组织一切能力，平台自带的技术组件也按同一清单以 `tier: system` 交付（ADR-002 / ADR-003），上述枚举全部变成扩展点。
 3. **多租户安全基线**：参考平台的租户解析 fail-open、接口层权限校验恒 `true`、会话不可吊销、凭据明文、任意 SQL / 任意 URL 代理；这些不是局部 bug，而是在单体 + 单租户假设下形成的实现习惯，Qian 作为多租户 PaaS 必须在 S1 把它们封死（ADR-004 / ADR-005 / ADR-006）。
-4. **前端技术栈**：参考平台是 Vue 3 且「两套并存」（框架无关原语 + 自绘壳之上再叠业务 UI 库与第三方表格）；Qian 前端重建为 React 19 + Base UI + Tailwind v4 + shadcn 源码自有化的 yue 组件库（ADR-013），不移植任何 Vue 代码。
+4. **前端技术栈**：参考平台是 Vue 3 且「两套并存」（框架无关原语 + 自绘壳之上再叠业务 UI 库与第三方表格）；Qian 前端重建为 React 19 + Base UI + Tailwind v4 + shadcn 源码自有化的前端框架组件库（ADR-013），不移植任何 Vue 代码。
 5. **许可证**：参考平台是商业产品，其大屏模块整体嵌入另一第三方商业版产品、流程设计器隐藏了 bpmn-js 水印；Qian 只借鉴功能与教训，不引入代码（PRD §17 借鉴声明）。
 
 ### 1.2 借鉴什么
@@ -39,7 +39,7 @@
 |---|---|---|
 | **概念模型** | 统一授权表 + 多层主体、身份收窄、数据权限方案自动生成、租户控制面与业务面分离、消息「发送配置 → 模板 → 渠道」三层、功能「未发布 / 已发布 / 已修改」三态、流程版本「设计中 / 启用中 / 已归档」三态、主 / 副 / 子表、权限「双重门」 | 映射 01 §2、02 §2、03 §1.1、04 §2 |
 | **功能清单与规则** | 参考平台九大功能域的功能树、业务规则、状态机、运算符矩阵、审批人解析规则、任务流程集合语义——作为 Qian 的需求参照与测试用例 | 各映射文件 §1 |
-| **交互模式** | 三栏设计器 + 右侧页签、向导式三步、校验浮层 + 定位、状态驱动的操作菜单、条件构造器五处复用、导入向导五步、参数绑定表格、「流程级默认 + 节点覆盖」四态选择器、授权向导 + 大树、主记录合并明细展开、「设计如下 / 效果如下」文档模式 | yue 组件与设计器 |
+| **交互模式** | 三栏设计器 + 右侧页签、向导式三步、校验浮层 + 定位、状态驱动的操作菜单、条件构造器五处复用、导入向导五步、参数绑定表格、「流程级默认 + 节点覆盖」四态选择器、授权向导 + 大树、主记录合并明细展开、「设计如下 / 效果如下」文档模式 | 前端框架组件与设计器 |
 | **教训** | 约 40 处「必须修正的做法」（§6）——它们定义了 Qian 的反向约束 | 各映射文件 §4 / §5 |
 
 ### 1.3 不借鉴什么
@@ -81,12 +81,12 @@
                                       · qian.realtime · qian.announce
 ⑥ 门户 / 报表 / 打印 / 大屏 /       →  qian.print(S2) · qian.portal(+widgets.*) · qian.reports  S2 打印
    文件预览                           · qian.screen(可选) · qian.geo · qian.file-preview · qian.archive  → S3
-⑦ 前端框架与组件库                 →  yue(@yue/tokens·core·shell·data·form·charts·     S1 最小集
+⑦ 前端框架与组件库                 →  前端框架(@cavailab/qian-tokens·core·shell·data·form·charts·     S1 最小集
    (两套并存·8 个设计器)              code-editor·biz·runtime·widgets·designer·sdk)   → S2 设计器
                                       · qian.shell(MF2 外壳)
-⑧ 移动端(uni-app 五端)             →  S1 契约层 · @yue/mobile(S3 可选) · 深链协议       S1 契约 → S3
+⑧ 移动端(uni-app 五端)             →  S1 契约层 · 移动端组件(S3 可选) · 深链协议       S1 契约 → S3
 ⑨ AI 中心                          →  qian.model-gateway(唯一本期范围) · 其余 S4         S1 底座 → S3/S4
-                                      (qian.agent-facade · qian.sandbox · 复用 iClaw)
+                                      (qian.agent-facade · qian.sandbox · 复用下游智能体平台)
 横切(内核一次实现)                 →  qian.kernel · qian.plugin-sdk · qian.entitlement   S1
                                       · qian.events · qian.gateway · qian.files
                                       · qian.observability · 可发布元数据 / 导入导出 /
@@ -103,7 +103,7 @@
 | ③ 流程 | 只交付前置：组织链、事件、调度、表达式规范、消息模板、元数据版本化契约 | 审批内核最小集 + 子流程 + 时效催办、纵向节点树设计器、工作台四列表、监控最小集 | 自由画布视图、SLA 自动处置、委托 / 签收 / 撤销、决策、自由流、归档、批量审批 | AI 建流程草稿、Agent 作解析器 / 审批者 |
 | ④⑤ 数据 / 集成 / 消息 / 调度 | 类型系统、PG 方言、数据连接、数据接口契约、凭证引用、通知、调度、实时推送 | 数据建模、接口设计器、监控与任务管理 UI、群机器人 | 开放 API、身份源同步、公告、第三方消息渠道 | 接口即工具、注册表 → MCP 映射 |
 | ⑥ 呈现 | 控件注册表契约、i18n、预览票据 | 打印全套（设计器后期）、文件预览、配置路径型门户与报表子集（可选） | 门户设计型、报表、分享链接、大屏（可选） | 模板 validate / render / explain |
-| ⑦⑧ 前端 / 移动 | 令牌、`@yue/core`、AppShell + MF2、DataTable、SchemaForm、Upload、业务选择器、认证页族、SDK、契约草案、工程化基线、移动端契约 | 控件集、三态渲染器、三大设计器、校验器共用 | 门户 / 打印 / 报表设计器、UI 沙箱、通知抽屉、H5（可选） | `@yue/agent`、shadcn MCP Server |
+| ⑦⑧ 前端 / 移动 | 令牌、`@cavailab/qian-core`、AppShell + MF2、DataTable、SchemaForm、Upload、业务选择器、认证页族、SDK、契约草案、工程化基线、移动端契约 | 控件集、三态渲染器、三大设计器、校验器共用 | 门户 / 打印 / 报表设计器、UI 沙箱、通知抽屉、H5（可选） | `智能体交互组件`、shadcn MCP Server |
 | ⑨ AI | 模型网关底座接线（可选） | — | 模型目录租户可见 | 每租户 MCP 门面、Agent 生成 package |
 
 ---
@@ -125,10 +125,10 @@
 | `qian.files` | `IFileStorage` 新线、租户前缀、配额、上传策略对象、元数据表 | module | `qian.files.oss` / `.s3` / `.local` |
 | `qian.config` | Apollo provider、热更新校验、配置 Schema → namespace、secretRef 解析（`ISecretResolver`） | module | 凭证保管入口（K8s Secret / Infisical） |
 | `qian.gateway` | Kun.Gateway 加固：强制认证、路由级限流、可信代理、密钥热轮换、Cookie 换 S2S、匿名路由、回调入口；S3 动态路由 | module（装进网关宿主） | — |
-| `qian.events` | Outbox 至少一次、租户回灌、Redis 幂等、事件目录 + AsyncAPI、信封对齐 iClaw | module | — |
+| `qian.events` | Outbox 至少一次、租户回灌、Redis 幂等、事件目录 + AsyncAPI、信封对齐下游智能体平台 | module | — |
 | `qian.audit` | 命令级哈希链（PG 持久化）+ 实体级同事务 `AuditLog`、`IAuditReader`、`actor_type` 含 agent | module | — |
 | `qian.observability` | OTel 装配、租户 / 用户 / 插件 baggage、计量事件 | module | — |
-| `qian.shell` | yue 外壳：MF2 运行时、带版本插槽注册表、桥接 API、统一一个壳按上下文切换 | ui | — |
+| `qian.shell` | 前端框架外壳：MF2 运行时、带版本插槽注册表、桥接 API、统一一个壳按上下文切换 | ui | — |
 | `qian.entitlement` | 授权 v0：租户 × 插件 / 应用 × 版本白名单，与开关分离 | module | S3 接 `qian.marketplace` |
 | `qian.model-gateway` | GPUStack → Higress 上游注册、Provider Adapter、`model-capabilities`、租户配额与计量 | service（可选） | S1 可选底座 / S3 必做；范围先 LLM + Embedding |
 | `qian.notify` | 消息类型注册、模板、发送配置、接收配置、投递、重试、记录、落地深链；渠道适配器契约 | module | S1·P0（R1 纳入）；`qian.notify.channel.inbox` / `.email` / `.sms`（S1）、`.webhook`（S2）、`.wecom` / `.dingtalk` / `.feishu` / `.wechat-mp` / `.push`（S3） |
@@ -187,7 +187,7 @@
 |---|---|
 | `qian.agent-facade` | 注册表派生的每租户 MCP 逻辑门面（Higress 托管）、A2A Agent Card、Arazzo、Agent 生成 `package` |
 | `qian.sandbox` | CubeSandbox（E2B 兼容）对接 |
-| — | Agent 运行时、记忆、Skills、工具门禁复用 iClaw，经 MCP / HTTP 对接（ADR-016） |
+| — | Agent 运行时、记忆、Skills、工具门禁复用下游智能体平台，经 MCP / HTTP 对接（ADR-016） |
 
 ### 3.6 别名对照（基线命名 → 本方案 ID）
 
@@ -213,7 +213,7 @@
 
 | 阶段 | 退出标准（D18） | 本方案补充的完成定义（迁移视角的检查项） |
 |---|---|---|
-| **S1 技术底座** | 开发人员用代码在 Qian 上写出一个多租户应用：登录 / SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移、回切 | ① §6 中标「S1」的必须修正项全部有集成测试实证（跨租户越权探测、at-least-once、fail-closed）；② 参考平台「系统表单登记」被插件清单替代：一个代码构建的页面 / 接口经清单登记后自动获得菜单、权限项、流程可引用；③ 以下契约冻结 v1：插件清单、Filter AST、FormSchema / ListSchema 草案、控件注册表 manifest、CapabilityManifest、消息类型、事件信封、URN、深链协议、bundle 包格式 v0、租户 / 会话 / 审计事件 Schema；④ Kun 关键缺口修复合入或补丁包就位（Q7）；⑤ yue S1 最小集合 + MF2 外壳 + Base UI 验证门结论；⑥ Apollo + MySQL、RabbitMQ、Qian 专属 PG / Redis、default-deny NetworkPolicy、ResourceQuota 上线 |
+| **S1 技术底座** | 开发人员用代码在 Qian 上写出一个多租户应用：登录 / SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移、回切 | ① §6 中标「S1」的必须修正项全部有集成测试实证（跨租户越权探测、at-least-once、fail-closed）；② 参考平台「系统表单登记」被插件清单替代：一个代码构建的页面 / 接口经清单登记后自动获得菜单、权限项、流程可引用；③ 以下契约冻结 v1：插件清单、Filter AST、FormSchema / ListSchema 草案、控件注册表 manifest、CapabilityManifest、消息类型、事件信封、URN、深链协议、bundle 包格式 v0、租户 / 会话 / 审计事件 Schema；④ Kun 关键缺口修复合入或补丁包就位（Q7）；⑤ 前端框架 S1 最小集合 + MF2 外壳 + Base UI 验证门结论；⑥ Apollo + MySQL、RabbitMQ、Qian 专属 PG / Redis、default-deny NetworkPolicy、ResourceQuota 上线 |
 | **S2 低代码构建** | 跑通「建应用 → 建表单与列表 → 走审批 → 授权给租户用户使用」；同一应用包在两个租户分别安装、各自配置、独立升级互不影响 | ① 元数据驱动运行时主轨成立：Records API 参数化、唯一入口三段式鉴权、Schema Migrator 逐租户执行并可回滚；② 一套表单 / 表格 / 弹层引擎贯穿后台 CRUD 与低代码运行时（无第二套引擎）；③ 审批内核最小集 + 子流程 + 时效催办（Q14）跑通，`node.stalled` 有第三结局；④ 打印全套（浏览器打印）可用；⑤ 代码生成不存在或只是薄壳；⑥ 流程 / 表单 / 列表设计器产出物带版本 Schema 且校验器前后端共用；⑦ 参考平台 S2 范围内的「必须修正」全部不复现（拼 SQL、eval、树表跳过数据权限、会签停滞、转审改写记录） |
 | **S3 面向客户** | 租户能从应用市场选购并开通应用，自助配置 IdP 与品牌 | ① bundle 的 `managed` 升级做三方比较并列冲突清单；② 授权（买没买）与开关（开没开）分开存且市场订单打通套餐；③ 租户 IdP 连接 + HRD + 服务端强制「仅企业 IdP」；④ 完整租户状态机含数据保留期与销毁；⑤ 门户设计型、报表、开放 API、分享链接走同一套可发布元数据与鉴权；⑥ 不可信 UI 走沙箱；⑦ 参考平台的用户级 AppSecret、「公有」免鉴权、匿名分享不存在 |
 | **S4 AI 原生 Agent** | Agent 能发现、调用、编排乃至生成平台能力与应用 | ① 能力目录按权限过滤后派生 MCP 工具；② Agent 主体 + 委托链 + `humanOnly`；③ 生成只落草稿并经同一校验器；④ 审计含主体链与来源通道 |
@@ -223,7 +223,7 @@
 | 波次 | 内容 | 依赖关系 |
 |---|---|---|
 | 第 1 波：可信计算基 | Kun 缺口修复（租户回灌含 Saga P0、至少一次、Outbox 锁（其余 Saga 修补 P1 可选，R13）、网关加固、gRPC 流式、OIDC G2–G8、签发器与审计收敛）；`qian.kernel` 清单 v1 + 注册表 + 状态机；`qian.tenancy` fail-closed + 主档 + 开通编排；`qian.data` 默认安全装配 + PG 唯一；`qian.identity` 唯一 issuer + Person / Membership + 会话中心 + 通用 OIDC；`qian.authz` 端口 + RBAC + 权限点清单 + API 强制校验；`qian.gateway`；`qian.events`；`qian.audit`；`qian.config`（Apollo + secretRef） | 一切的前提；身份与鉴权互为前置须并行 |
-| 第 2 波：开发者可用 | `qian.plugin-sdk`（源生成器 / CLI / TCK）；能力清单替代系统表单登记；`qian.files`；`qian.identity` 目录子模块（组织树 / 岗位 / 责任岗位链契约，R1）；`qian.navigation` + URN + 偏好；`qian.masterdata` / `qian.i18n`；`qian.notify` + inbox / email / sms；`qian.scheduler`；`qian.realtime`（P1）；`qian.observability`；yue 令牌 + `@yue/core` + AppShell + MF2 + DataTable 基础 + SchemaForm + Upload + 业务选择器 + 认证页族 | 依赖第 1 波的租户 / 身份 / 鉴权 |
+| 第 2 波：开发者可用 | `qian.plugin-sdk`（源生成器 / CLI / TCK）；能力清单替代系统表单登记；`qian.files`；`qian.identity` 目录子模块（组织树 / 岗位 / 责任岗位链契约，R1）；`qian.navigation` + URN + 偏好；`qian.masterdata` / `qian.i18n`；`qian.notify` + inbox / email / sms；`qian.scheduler`；`qian.realtime`（P1）；`qian.observability`；前端框架令牌 + `@cavailab/qian-core` + AppShell + MF2 + DataTable 基础 + SchemaForm + Upload + 业务选择器 + 认证页族 | 依赖第 1 波的租户 / 身份 / 鉴权 |
 | 第 3 波：S2 契约冻结 | Filter AST 与系统变量目录；Field Type Catalog；控件注册表 manifest；FormSchema / ListSchema 草案；可发布元数据框架；导入导出框架；引用登记；`qian.data-api` 契约 + SDK；`qian.expression` 规范；消息模板注册；流程鉴权资源类型；bundle 格式 v0；`qian.entitlement` 授权 v0；deeplink 协议 | 让 S1 开发者先用、S2 不返工 |
 | 第 4 波：收尾与可选 | 企业微信连接器 + TOTP（补充裁决升为 S1 必做）；SchemaPerTenant 真库验证；`qian.model-gateway` 底座接线（可选）；Elsa PoC 对照；`qian.saga`；DTCG 导出；视觉回归基线 | 不阻塞 S1 退出标准 |
 
@@ -247,7 +247,7 @@
 | 4 | 进程内状态：WebSocket 连接池、公告延时队列、线程休眠重试、内存延时队列、无集群协调调度器、非原子缓存锁、本机地址自调用 | 多副本下丢失或重复 | Redis / MQ 背板、平台调度、Outbox、乐观并发或分布式锁、内部服务契约调用 | S1 | 01 / 03 / 04 |
 | 5 | 凭据三处来源且明文入库、详情接口回传密钥、AES Key 一钥多用且仓库带默认值、数据库口令可回传还原 | 泄密 | 单一凭证来源 secretRef → K8s Secret / Infisical；配置只存引用；详情不回传（ADR-007） | S1 | 01 / 04 |
 | 6 | 改表 = 删表重建、只允许空表；只补系统列、无业务列迁移 | 生产库不可演进 | Schema Migrator：元数据 diff → 迁移计划 → 审核 → 逐租户执行（ADR-011） | S2 | 02 |
-| 7 | 前端两套并存：弹窗 / 表单 / 表格 / Tree 两到三套；控件三处呈现各自维护；两份端配置 | 维护成本、行为漂移 | yue 一套引擎贯穿后台 CRUD 与低代码；注册表三态呈现；一份 schema + `device` 覆盖（ADR-013） | S1 起 | 05 |
+| 7 | 前端两套并存：弹窗 / 表单 / 表格 / Tree 两到三套；控件三处呈现各自维护；两份端配置 | 维护成本、行为漂移 | 前端框架一套引擎贯穿后台 CRUD 与低代码；注册表三态呈现；一份 schema + `device` 覆盖（ADR-013） | S1 起 | 05 |
 | 8 | 运行时 + 代码生成双轨（95 个模板 Roslyn 编译，生成物不发事件、不校验按钮） | 第二真相源与能力漂移 | 元数据驱动运行时主轨；代码生成退化为 S2 后期可选薄壳（Q11） | S2 | 02 |
 | 9 | 元数据无 Schema：70 种控件共用一个 POCO；节点属性无 schema、属性面板 18.8k 行手写；77 个 JSON 列无约束 | 不可校验、不可生成、AI 只能出骨架 | 版本化 JSON Schema + 校验器前后端共用；节点类型发布 Schema + `uiMeta`；jsonb + 注册 Schema 版本 | S1 契约 / S2 | 02 / 03 / 04 |
 | 10 | 事件：事务提交前发布、订阅端吞异常、只有事后通知；RabbitMQ 单队列非持久化先 ack 后处理 | 丢消息、假成功 | Outbox 至少一次 + before / after Hook + 持久化 + 死信 + 两种订阅（ADR-008） | S1 | 02 / 04 |
@@ -282,7 +282,7 @@
 | 6 | **审批逆向语义交叉**（退回 / 撤回 / 撤销 / 拒绝续流 × 子流程 / 加签 / 计时器）且 Q14 增补了子流程与时效 | S2 流程域工作量再加约一个迭代 | 回归集 + 属性测试；流转记录只追加；压缩其他 S2 可选项 |
 | 7 | **现网单点与治理缺失**：三节点只跨两台宿主、几乎全钉首节点、无 ResourceQuota / NetworkPolicy / Alertmanager；需新增 Apollo + MySQL、RabbitMQ | 多租户上线前不可接受 | ADR-017：default-deny、ResourceQuota、Alertmanager；生产独立节点池（Q16） |
 | 8 | **许可证红线**：参考平台大屏嵌入商业产品、bpmn-js 水印、Univer Pro、AG Grid Enterprise、kkFileView 商业 CAD 依赖 | 法律风险 | 只借鉴设计；大屏不复用；React Flow / DOM 自绘；开源核心 + 排除商业包 |
-| 9 | **iClaw 对齐与设计态资产**：想复用的 MCP Catalog / AI Registry / 市场尚未实现；S2S claim、事件信封、工具元数据需对齐 | S4 返工 | Q15：租户权威归 Qian；claim 同形；按同一契约先行 |
+| 9 | **下游智能体平台对齐与设计态资产**：想复用的 MCP Catalog / AI Registry / 市场尚未实现；S2S claim、事件信封、工具元数据需对齐 | S4 返工 | Q15：租户权威归 Qian；claim 同形；按同一契约先行 |
 | 10 | **调研输入缺口**：消息中心、任务调度、集成助手手册分卷未输入；富文本编辑器选型未覆盖；系统变量清单只在截图 | PRD 细节缺失 | PRD 撰写时补读；Q39 补选型 |
 | 11 | **范围蔓延**：参考平台 251 个前端条目、68 个控件、27 个审批动作、23 个门户控件容易被当作「必须对齐」 | 分级失效 | 每阶段只做退出标准必需；各映射文件「明确不做清单」即边界 |
 
@@ -292,7 +292,7 @@
 |---|---|---|
 | Kun（NuGet + CalVer） | 底座 SDK | 13 项关键缺口 S1 先修；禁止复制源码进仓 |
 | PostgreSQL 16 | 唯一一等库 | 现网每环境专属 PG + pgvector；RLS 为默认隔离 |
-| Apollo（≥2.5.2）+ MySQL | 配置中心 | 现网无 Apollo、无 MySQL；集群内 operator 先跑 staging，生产托管（Q8）；不与 iClaw 共用 |
+| Apollo（≥2.5.2）+ MySQL | 配置中心 | 现网无 Apollo、无 MySQL；集群内 operator 先跑 staging，生产托管（Q8）；不与下游智能体平台共用 |
 | RabbitMQ | 事件总线 | 现网 K3s 上未部署，Outbox 空转；S1 上 K3s |
 | Redis | 缓存、会话、幂等、实时推送背板、限流 | Qian 专属实例 |
 | Traefik → `qian.gateway` → Higress | 三层网关 | Higress 只管模型与 MCP 流量（ADR-010） |
@@ -301,7 +301,7 @@
 | Harbor | 镜像与插件包（OCI artifact，只允许 digest 引用） | 现网已有 |
 | Infisical / K8s Secret | 密钥运行时权威 | Infisical 注入未接通（见 §8 问题 5） |
 | Argo CD / Kustomize | GitOps | 沿用 L0 / L1 / L2 三层 |
-| iClaw（代码复用四处：审计拦截器、租户主数据模型、OIDC 授权码实现、通知通道范式） | 复用 | Q40：其余只借鉴思路 |
+| 下游智能体平台（代码复用四处：审计拦截器、租户主数据模型、OIDC 授权码实现、通知通道范式） | 复用 | Q40：其余只借鉴思路 |
 
 ---
 
@@ -315,7 +315,7 @@
 | 02 应用 / 表单 / 列表 | ADR-002、006、008、011、013、014 | §07（应用 = bundle、能力清单、Filter AST、数据规则）、§08（设计器、动态数据引擎、Schema Migrator、发布） |
 | 03 流程 | ADR-012、008、006、011 | §07（流程前置）、§08（审批内核最小集、设计器、工作台）、§09（SLA、委托、决策、自由流） |
 | 04 数据 / 集成 / 消息 / 呈现 | ADR-004、007、008、010、011、015、016、017 | §07（数据连接、数据接口契约、通知、调度、实时、凭证）、§08（建模、接口设计器、打印、预览）、§09（门户、报表、开放 API、分享）、§10（模型网关、MCP 映射预留） |
-| 05 前端 / yue | ADR-013、002、016 | §07（外壳、基础组件、认证页）、§08（控件集、设计器）、§14 质量（工程化门禁）、§09（UI 沙箱、H5） |
+| 05 前端 / 前端框架 | ADR-013、002、016 | §07（外壳、基础组件、认证页）、§08（控件集、设计器）、§14 质量（工程化门禁）、§09（UI 沙箱、H5） |
 | README | ADR-001、003、018、014、017 | §01 愿景、§12 边界、§15 路线、§17 借鉴声明、§11 词表（术语对照见 03 §6 与各文件） |
 
 写作约定：ADR 引用本目录时写「见迁移映射 0x §y」；PRD 功能条目在「来源」列写映射文件编号与行标题，不再重复参考平台的做法描述。各映射文件的「未决问题」在拍板后应转为 ADR 或决策清单补充裁决，并从本目录删除。
@@ -334,5 +334,5 @@
 | 4 | **外链填单 / 公开查询的阶段**：基线 F 为 S3 可选（需能力令牌重做），P 基线为 S2 可选 | S3·P1 | 若 S2 需匿名采集表单演示，须提前交付能力令牌与网关匿名路由 |
 | 5 | **密钥运行时权威与短信供应商**：D7 写「K8s Secret / Infisical」二选未定，现网 Infisical 注入未接通；短信 S1 必做但供应商未选 | `ISecretResolver` 抽象两种后端；短信 Provider 先接一家云厂商 | `qian.config` 实现、连接器凭据字段、S1 登录验证码可用性 |
 | 6 | **跨域能力的阶段与交付归属**：节点打印（W 列 S3、D 列 S2 必做）、automation（触发器与动作跨数据 / 消息 / 流程三域，Q28 只定阶段） | 节点打印挂载契约 S2·P1、条件打印 S3；automation S2·P1 / S3·P0，归属待定 | 团队分工与 S2 可选项取舍 |
-| 7 | **控制台域临时 antd v6 备选是否允许、Base UI 验证门判定标准**：Q12 只说「接受路线 A 风险、首迭代设验证门」 | 不允许混用；验证门不过整体切 Radix；antd 备选未启用 | yue S1 人力与 S2 设计器窗口 |
+| 7 | **控制台域临时 antd v6 备选是否允许、Base UI 验证门判定标准**：Q12 只说「接受路线 A 风险、首迭代设验证门」 | 不允许混用；验证门不过整体切 Radix；antd 备选未启用 | 前端框架 S1 人力与 S2 设计器窗口 |
 | 8 | **S1 / S2 增补项的范围取舍**：补充裁决把企业微信连接器、TOTP 升为 S1 必做，把子流程、超时催办升为 S2 必做；原有范围未相应收缩 | 增补项放入 S1 第 4 波、S2 流程域再加一个迭代；未删减其他项 | 若不接受延期，需从 S1 可选（SchemaPerTenant 验证、Elsa PoC）或 S2 可选（数据传递、办理节点、选择分支）中明确删减 |

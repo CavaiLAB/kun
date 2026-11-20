@@ -1,6 +1,6 @@
 # Qian（乾）产品需求文档（PRD）— 索引
 
-> 状态：**草案 v1（组件模型 v2 已定稿，2026-10-07）** · 更新日期：2026-10-07 · 决策真相源：`docs/adr/`（拍板前为 `docs/decisions/key-decisions-v0.md`，D1–D18 与补充裁决已于 2026-10-06 全部获认可；D19 库优先、D20 组件模型 v2 为同日方向修正新增，ADR-019 / ADR-020 已于 2026-10-07 Accepted、待确认项全部拍板） · 路线真相源：[`docs/ROADMAP.md`](../ROADMAP.md) · 研究基线：`docs/research/baseline-digest.md`
+> 状态：**草案 v1（组件模型 v2 已定稿，2026-10-07）** · 更新日期：2026-10-07 · 决策真相源：`docs/adr/`（拍板前为 `docs/decisions/key-decisions-v0.md`，D1–D18 与补充裁决已于 2026-10-06 全部获认可；D19 库优先、D20 组件模型 v2 为同日方向修正新增，ADR-019 / ADR-020 已于 2026-10-07 Accepted、待确认项全部拍板） · 路线真相源：[`docs/ROADMAP.md`](../platform-roadmap.md) · 研究基线：`docs/research/baseline-digest.md`
 
 ## 命名约定
 
@@ -8,14 +8,14 @@
 |---|---|
 | 产品 | **Qian**（乾） |
 | 底座框架 | **Kun**（自研 .NET 10 微服务框架，NuGet + CalVer 消费；版本以 `KunVersion` 单点钉死，文档镜像进文档站第 3 部分「Kun 框架」小节，ADR-021） |
-| 前端组件库 | **yue**（React；包前缀 `@yue/`） |
+| 前端组件库 | **前端框架**（React；包前缀 `@cavailab/qian-`） |
 | 插件 ID 前缀 | `qian.`（反向域名风格，发布后不可改；第三方以自有域名前缀） |
 | 可部署单元 | `qian-<name>`（S1：`qian-gateway`、`qian-identity`、`qian-platform`、`qian-model-gateway-adapter`、`qian-shell`）；经 ADR-020：可部署单元 = profile（S1 交付 `platform` / `gateway` / `identity` / `standalone` / `minimal`）；`qian-<name>` ↔ profile / 组合包的定稿映射见下表（R31） |
 | 运行时 / CLI | `Qian.Runtime`（.NET）/ `@qian/runtime`（TS）；`qian` CLI（`qian add <component>[@version]`）；清单 `.qian-plugin/plugin.json`（JSON）；市场 `.qian/marketplace.json`（官方市场仓库 `qian-plugins`，S1 私有）；CLI 为 Node / TS 实现、`npx qian@latest` 一键入口（ADR-020，Accepted） |
 | 阶段 | **S1** 技术底座 → **S2** 低代码构建 → **S3** 面向客户 → **S4** AI 原生 Agent 平台 |
 | 优先级 | **P0** 当期退出标准关键路径 · **P1** 当期必做非关键路径 · **P2** 可选 / 可滑到下一阶段；功能项标题写成 `（P0 · S1）` |
-| 决策引用 | `ADR-0xx`（001 Kun 关系、002 插件模型、003 内核边界、004 数据库与隔离、005 身份、006 鉴权、007 Apollo、008 事件、009 审计、010 网关、011 元数据与动态数据、012 流程、013 前端 yue、014 市场、015 模型网关、016 与兄弟系统边界、017 部署、018 阶段、019 库优先、020 组件模型 v2、021 产品族结构） |
-| 章节引用 | `§07`、`§13.2` 等；专题 spec 引用 `specs/component-model.md`（权威）、`specs/plugin-manifest.md`（v1，迁移对照）、`specs/yue.md` |
+| 决策引用 | `ADR-0xx`（001 Kun 关系、002 插件模型、003 内核边界、004 数据库与隔离、005 身份、006 鉴权、007 Apollo、008 事件、009 审计、010 网关、011 元数据与动态数据、012 流程、013 前端框架、014 市场、015 模型网关、016 与兄弟系统边界、017 部署、018 阶段、019 库优先、020 组件模型 v2、021 产品族结构） |
+| 章节引用 | `§07`、`§13.2` 等；专题 spec 引用 `specs/component-model.md`（权威）、`specs/plugin-manifest.md`（v1，迁移对照）、`specs/frontend.md` |
 | 参照来源 | 被借鉴的商业低代码产品一律称「参考平台」，全文不出现其品牌、公司、域名与源码路径 |
 | 状态符号 | ✅ 已完成 / 可做 · 🚧 进行中 · ⬜ 未开始 · ❌ 不可做 · ⚠️ 有条件 · 🔒 保留与隔离 |
 | 平台插件 | 规范术语（R30）：`policy.tier: system`、`platform` profile base 组合包成员；「系统插件」为别名 |
@@ -27,7 +27,7 @@
 | `qian-platform` | profile `platform` |
 | `qian-gateway` | profile `gateway`（可 AOT） |
 | `qian-identity` | profile `identity` |
-| `qian-shell` | 不是 profile；yue 外壳为 `platform` profile 的 `shell` 组合包（静态前端制品，经 gateway 提供） |
+| `qian-shell` | 不是 profile；前端框架外壳为 `platform` profile 的 `shell` 组合包（静态前端制品，经 gateway 提供） |
 | `qian-model-gateway-adapter` | `model-gateway` 组合包，默认挂在 `platform`，可选独立 profile `model-gateway`（S1 · P1） |
 | S2 `qian-lowcode` | profile `lowcode` |
 | S2 `qian-workflow` | profile `workflow` |
@@ -49,7 +49,7 @@
 | 01 | 愿景与定位 | [01-vision.md](01-vision.md) | 一句话定位；与传统低代码 / Agent 平台的分化对比；为什么现在、为什么是插件思维、为什么先做开发者底座 |
 | 02 | 设计原则 | [02-principles.md](02-principles.md) | 插件思维七条（内核最小集、系统能力也是插件、清单先于代码且从代码派生、信任等级决定形态、两层生命周期、一份契约多处生成、制品按 digest）+ 组件模型 v2 两条（2.7a 一切皆插件没有特权内核、2.7b 声明式优先）；Agent 就绪六条；安全硬线六条；工程原则三条；每条含铁律 |
 | 03 | 核心概念模型 | [03-concepts.md](03-concepts.md) | 租户、自然人与成员、应用、插件 / 组件（文件夹 + 清单 + 声明式表面 + 可选代码；`runtime.form` × role × distribution × `policy.tier`）、3.4a 组件模型 v2 六概念（表面、作用域、能力 seam、profile 与组合包、patch、市场条目）、能力、元数据与版本、功能与发布、权限点与数据范围、事件、Operation/Task；易混术语精确定义（启用/停用 vs 上架/下架、授权 vs 开关、安装 vs 开通、template vs managed、撤回/撤销/催办、插件 vs 组件 vs 组合包、租户启用 vs 授权） |
-| 04 | 形态与目标市场 | [04-market.md](04-market.md) | ASCII 架构总图（Traefik → qian.gateway → 内核与系统插件 / Higress → GPUStack；Apollo、PostgreSQL、Redis、RabbitMQ、对象存储；yue 外壳）；按阶段客群画像；共享 SaaS / 高隔离 / 私有化三档交付；目标数量级（待定 / 区间） |
+| 04 | 形态与目标市场 | [04-market.md](04-market.md) | ASCII 架构总图（Traefik → qian.gateway → 内核与系统插件 / Higress → GPUStack；Apollo、PostgreSQL、Redis、RabbitMQ、对象存储；前端框架外壳）；按阶段客群画像；共享 SaaS / 高隔离 / 私有化三档交付；目标数量级（待定 / 区间） |
 | 05 | 核心差异化 | [05-differentiators.md](05-differentiators.md) | 六支柱：一切皆插件且吃自己的狗粮；Agent 就绪的契约层；开发者优先的 SDK / CLI / TCK；多租户与鉴权不可绕过；市场从 S1 包格式起步；一套前端引擎 |
 | 06 | 用户与场景 | [06-users-scenarios.md](06-users-scenarios.md) | 七角色（平台运营、平台开发者、ISV 开发者、租户管理员、业务搭建者、终端用户、Agent）；四阶段 Demo（S1 开发者半天多租户应用、S2 搭建者表单与审批、S3 租户市场安装、S4 Agent 生成草稿经人审批） |
 | 07 | S1 技术底座功能规格 | [07-s1-foundation.md](07-s1-foundation.md) | Kun 缺口修复；`Qian.Runtime` + `qian.registry` / `lifecycle` / `capabilities`（原 `qian.kernel`）/ `qian` CLI 与 `plugin-sdk` / `tenancy` / `identity` / `authz` / `data` / `files` / `config` / `gateway` / `events` / `audit` / `observability` / `notify` / `scheduler` / `realtime` / `entitlement` / `shell` / `model-gateway`；每项含设计理念、边界、技术落点、过渡态、插件化定位、Agent 契约、验收 |
@@ -65,7 +65,7 @@
 | 17 | 借鉴声明 | [17-references.md](17-references.md) | 开源项目 / 许可证 / 借鉴内容 / 态度（引入代码、只借鉴设计、运维侧使用、不采用）；只借鉴设计的开源低代码 / AI 平台；商业平台公开设计模式；贡献意向 |
 | spec | 组件模型 v2（权威） | [specs/component-model.md](specs/component-model.md) | `.qian-plugin/plugin.json` 清单字段族、五种表面、scope / 遮蔽 / restrict、seam 三角色、profile / 组合包 / patch、`marketplace.json`、`qian` CLI、运行时语义与 TCK；草案 v1（另有人负责），落盘前以 ADR-020 为准 |
 | spec | 插件清单（v1，迁移对照） | [specs/plugin-manifest.md](specs/plugin-manifest.md) | `qian-plugin.yaml` 字段草案、JSON Schema、十类派生物、签名与 digest、反向权限、`capabilities` 条目；经 ADR-020 降为 v1 字段迁移对照（`kind` → `runtime.form`），不再是权威规格 |
-| spec | yue 组件库 | [specs/yue.md](specs/yue.md) | 本版关键决策 D1–D16；六层分层；控件注册表契约；MF2 外壳与插槽；选型与验证门；S1 最小集验收 |
+| spec | 前端框架组件库 | [specs/frontend.md](specs/frontend.md) | 本版关键决策 D1–D16；六层分层；控件注册表契约；MF2 外壳与插槽；选型与验证门；S1 最小集验收 |
 | spec | 文档站信息架构与规范 | [specs/docs-site.md](specs/docs-site.md) | 七个部分、组件页九节模板、frontmatter 规范、机器可读产物、`website/` 目录骨架（ADR-013 D13.18） |
 
 ## 文档体系：各管一事
@@ -85,13 +85,13 @@
 ## 阅读顺序建议
 
 - 产品负责人：01 → 04 → 05 → 06 → 15 → 16。
-- 架构与开发：02 → 03 → 07 → 13 → 14 → specs/component-model.md（草案 v1）→ specs/yue.md；specs/plugin-manifest.md 仅作 v1 对照。
+- 架构与开发：02 → 03 → 07 → 13 → 14 → specs/component-model.md（草案 v1）→ specs/frontend.md；specs/plugin-manifest.md 仅作 v1 对照。
 - 低代码与市场：03 → 08 → 09 → 11 → 12。
 - 评审 Agent 就绪：02（第二组）→ 03.5 / 03.10 → 10 → 13.11 → 16（Agent 就绪 KPI）。
 
 ## 修订历史
 
-- 2026-10-06：草案 v1 首版；框架章节（01–06、11、15–17）、功能规格章（07–10、12–14）、专题 spec（plugin-manifest、yue）全部落盘。
+- 2026-10-06：草案 v1 首版；框架章节（01–06、11、15–17）、功能规格章（07–10、12–14）、专题 spec（plugin-manifest、前端框架）全部落盘。
 - 2026-10-06：一致性复核 R1–R20 落实（系统插件 18 个、`kind` 七值、微信网站扫码 S2 P1、规范 claim 集、权限点命名 `<plugin-id>:<resource>:<action>`、SSRF 基线两步、Operation/Task 契约预留等）；各章「待确认」中已裁决条目改写为「已裁决（R{n}）」。
 - 2026-10-06：组件模型 v2 回填（ADR-020，Proposed）——索引更新为 20 份 ADR；specs 列表加 `component-model.md`（权威，草案 v1）并把 `plugin-manifest.md` 标为 v1 迁移对照；§02 / §03 / §11 / §12 与 ROADMAP 已回填，§07–§10 回填中。「系统插件 18 个」「`kind` 七值」口径经 ADR-020 修订，见各章说明。
 - 2026-10-06：裁决 R27–R31 落实——R27 §12 N1 收窄（官方代码插件 `platform` 热装卸 S2 可选）；R28 connector = seam Provider 组件（`provides[]` + `policy.egress`）、bundle = 组合包、应用 = 组合包 + marketplace 条目；R29 接受 2.7a / 2.7b 编号；R30 规范术语「平台插件」；R31 原可部署单元 ↔ v2 落位映射表（本页命名约定与 ROADMAP S1）。

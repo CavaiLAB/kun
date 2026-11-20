@@ -1,6 +1,6 @@
 # Kun.Tenancy.Signup
 
-租户自助开通的 Provider（组件 `qian.tenancy.signup`，规格 [租户自助开通](../../_import/qian/docs/prd/specs/tenant-signup.md)，S1-TEN-019）：申请人在公开页凭手机号与验证码提交开通申请，平台运营审核，通过后经 `qian.tenancy` 的开通编排建立租户与管理员成员，申请人用自己的密码经统一登录流水线直接登录新租户。Definition 在 [Kun.Tenancy.Signup.Abstractions](../Kun.Tenancy.Signup.Abstractions/README.md)，组件表面在 [plugins/qian.tenancy.signup](../../plugins/qian.tenancy.signup/README.md)。
+租户自助开通的 Provider（组件 `qian.tenancy.signup`，规格 [租户自助开通](../../docs/prd/specs/tenant-signup.md)，S1-TEN-019）：申请人在公开页凭手机号与验证码提交开通申请，平台运营审核，通过后经 `qian.tenancy` 的开通编排建立租户与管理员成员，申请人用自己的密码经统一登录流水线直接登录新租户。Definition 在 [Kun.Tenancy.Signup.Abstractions](../Kun.Tenancy.Signup.Abstractions/README.md)，组件表面在 [plugins/qian.tenancy.signup](../../plugins/qian.tenancy.signup/README.md)。
 
 ## 组件四问
 

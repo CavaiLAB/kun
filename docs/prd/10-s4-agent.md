@@ -1,6 +1,6 @@
 # §10 S4 AI 原生 Agent 平台与模型服务网关
 
-> 本章粒度：S4 写到范围与退出标准；**模型服务网关（10.5）是本期唯一详细规划的 AI 范围**，按《GPUStack + Higress 模型服务整合方案》写细，并结合现网已有 Higress 设施的差距分析。决策引用写 `ADR-0xx`（ADR-015 模型网关、ADR-016 iClaw 边界、ADR-010 网关分层、ADR-007 配置中心、ADR-009 审计、ADR-018 阶段）。S1 底座见 §07，S2 低代码构建见 §08，S3 市场与计量见 §09。网关地址一律用占位 `gw.example.com`，不出现任何内部域名与密钥。决策清单主表的待拍板问题写 `Q1–Q18`，补充裁决（基线汇编编号）写 `补充裁决 Qxx`。
+> 本章粒度：S4 写到范围与退出标准；**模型服务网关（10.5）是本期唯一详细规划的 AI 范围**，按《GPUStack + Higress 模型服务整合方案》写细，并结合现网已有 Higress 设施的差距分析。决策引用写 `ADR-0xx`（ADR-015 模型网关、ADR-016 下游智能体平台边界、ADR-010 网关分层、ADR-007 配置中心、ADR-009 审计、ADR-018 阶段）。S1 底座见 §07，S2 低代码构建见 §08，S3 市场与计量见 §09。网关地址一律用占位 `gw.example.com`，不出现任何内部域名与密钥。决策清单主表的待拍板问题写 `Q1–Q18`，补充裁决（基线汇编编号）写 `补充裁决 Qxx`。
 >
 > 优先级口径同 §08：P0 = S4 退出标准关键路径；P1 = S4 必做非关键路径；P2 = S4 可选。10.5 另按整合方案的「第 1–4 阶段」标注，第 1–2 阶段为本期必做（接入范围先 LLM + Embedding，Q17）。
 
@@ -21,16 +21,16 @@ S4 退出标准：**Agent 能发现、调用、编排乃至生成平台能力与
 
 | 能力 | 归属 | 说明 |
 |---|---|---|
-| Agent 推理引擎、Sub-agent、Workflow 编排、路由器、记忆四层、Execution Trace、Skills 引擎、工具协议与门禁（ToolSpec / ToolPolicy / RiskGate / confirm） | **iClaw** | Qian 不写任何 Agent loop |
-| 沙箱 | iClaw 已接的 CubeSandbox（E2B 兼容 API） | Qian 只做对接层 `qian.sandbox` |
+| Agent 推理引擎、Sub-agent、Workflow 编排、路由器、记忆四层、Execution Trace、Skills 引擎、工具协议与门禁（ToolSpec / ToolPolicy / RiskGate / confirm） | **下游智能体平台** | Qian 不写任何 Agent loop |
+| 沙箱 | 下游智能体平台已接的 CubeSandbox（E2B 兼容 API） | Qian 只做对接层 `qian.sandbox` |
 | 模型数据面 | **Higress**（共用，10.5） | Higress 对租户无感；租户/配额/计量在平台侧 |
 | 身份/审计/Outbox 基座 | **Kun**（共用） | S2S claim 同形、事件信封同形 |
 | 能力提供方 + 业务主数据权威（租户、组织、元数据、数据、流程） | **Qian** | 以 MCP + 事件暴露；租户主数据权威归 Qian（Q15） |
-| 插件机制、应用市场、私有 MCP registry | Qian | 注册表形状对齐 iClaw 的 Package / Release / Publication / Installation 四层 |
+| 插件机制、应用市场、私有 MCP registry | Qian | 注册表形状对齐下游智能体平台的 Package / Release / Publication / Installation 四层 |
 
-一句话：**Qian = 能力提供方 + 业务主数据权威；iClaw = Agent 运行时 + AI 资产控制面；Higress = 共用数据面；Kun = 共用基座。** 与 iClaw 的对齐项：S2S JWT claim 形状（`iss / aud[] / sub / tenant_id / project_id? / roles[] / scope / session_id / jti`，exp−iat ≤ 300s）、事件信封（`version / event_id / subject / occurred_at / tenant_id / payload`）、工具元数据（`sideEffect / policyHint / requiredScopes / requiredSecrets / schemaSha256 / contractVersion`）、契约格式（OpenAPI 3.1 + JSON Schema 2020-12，`additionalProperties: false`）、协议版本（MCP 2026-07-28，见 10.2）。
+一句话：**Qian = 能力提供方 + 业务主数据权威；下游智能体平台 = Agent 运行时 + AI 资产控制面；Higress = 共用数据面；Kun = 共用基座。** 与下游智能体平台的对齐项：S2S JWT claim 形状（`iss / aud[] / sub / tenant_id / project_id? / roles[] / scope / session_id / jti`，exp−iat ≤ 300s）、事件信封（`version / event_id / subject / occurred_at / tenant_id / payload`）、工具元数据（`sideEffect / policyHint / requiredScopes / requiredSecrets / schemaSha256 / contractVersion`）、契约格式（OpenAPI 3.1 + JSON Schema 2020-12，`additionalProperties: false`）、协议版本（MCP 2026-07-28，见 10.2）。
 
-**AI 资产注册权威（R12）**。Qian 自身能力（插件、能力目录、由其派生的 MCP 工具与 resources、应用市场条目）以 Qian 注册表为真相源，向 Nacos AI Registry / iClaw Platform facade 的注册只是经 adapter 的投影，投影失败或滞后不改变 Qian 侧状态；iClaw 自有 AI 资产（智能体、提示词库、知识库、Skills、工具策略）的权威归 iClaw，Qian 只消费其只读视图，不复制、不改写（ADR-016 D16.8）。
+**AI 资产注册权威（R12）**。Qian 自身能力（插件、能力目录、由其派生的 MCP 工具与 resources、应用市场条目）以 Qian 注册表为真相源，向 Nacos AI Registry / 下游智能体平台 Platform facade 的注册只是经 adapter 的投影，投影失败或滞后不改变 Qian 侧状态；下游智能体平台自有 AI 资产（智能体、提示词库、知识库、Skills、工具策略）的权威归下游智能体平台，Qian 只消费其只读视图，不复制、不改写（ADR-016 D16.8）。
 
 #### 10.1.3 S4 新增单元与插件
 
@@ -44,7 +44,7 @@ S4 退出标准：**Agent 能发现、调用、编排乃至生成平台能力与
 | `qian.sandbox` | 对接层 | 代码模式：契约生成的强类型 SDK 在 CubeSandbox 执行 | P2 |
 | `qian.model-gateway`（S4 完整） | service adapter | 10.5 | P0 |
 | `qian.operations`（S4 增量） | module | Tasks / MRTR 映射、A2A Task 中断态；急停与监督收件箱（P2） | P1 / P2 |
-| `qian.shell`（S4 增量） | ui | `@yue/agent`、MCP Apps 视图（P2）、WebMCP（P2） | P2 |
+| `qian.shell`（S4 增量） | ui | `智能体交互组件`、MCP Apps 视图（P2）、WebMCP（P2） | P2 |
 
 ### 10.2 发现 / 调用 / 编排 / 生成四条路径与每租户 MCP 门面（P0 · S4）
 
@@ -73,7 +73,7 @@ S4 退出标准：**Agent 能发现、调用、编排乃至生成平台能力与
 - ✅ Agent 生成应用 = 生成 `package` 插件包（10.4）；Agent 生成的代码只允许落在 `function`（Wasm 沙箱）——S4 不放松任何 S3 的安全边界。
 
 **协议版本**
-- ✅ 目标 **MCP 2026-07-28**：无状态、`server/discover`、MRTR 取代服务端反向请求、头部路由、列表可缓存、JSON Schema 2020-12、Tasks/Apps/Skills 为官方扩展；经 `server/discover` 兼容旧客户端。iClaw 客户端仍钉旧版，与 iClaw 制定协议对齐计划（ADR-016）。Higress 自 v2.2.4 起实现该版本并支持新旧双模式。
+- ✅ 目标 **MCP 2026-07-28**：无状态、`server/discover`、MRTR 取代服务端反向请求、头部路由、列表可缓存、JSON Schema 2020-12、Tasks/Apps/Skills 为官方扩展；经 `server/discover` 兼容旧客户端。下游智能体平台客户端仍钉旧版，与下游智能体平台制定协议对齐计划（ADR-016）。Higress 自 v2.2.4 起实现该版本并支持新旧双模式。
 - ✅ 官方 C# MCP SDK 能否过 Kun `PublishAot /warnaserror` 门禁需实测；若不能，MCP 端点放在非 AOT 独立服务或交给 Higress 由契约生成。
 
 #### 验收标准
@@ -90,10 +90,10 @@ S4 退出标准：**Agent 能发现、调用、编排乃至生成平台能力与
 - ✅ **统一主体模型**（S1 设计、S4 启用）：`user / service / agent` 三类 actor；Agent 是客户端注册表中的一种客户端类型（有归属人、可吊销、可审计）；代表用户执行用 RFC 8693 令牌交换，令牌带 `act` 委托链；客户端注册优先 CIMD，DCR 兼容保留。
 - ✅ **有效权限 = 委托人权限 ∩ 授予 Agent 的 scope**；权限点带风险级别与 step-up；危险操作 Agent 只能发起申请（「待确认票据」契约）；签名类动作 `humanOnly`；转审、协办、撤销对 Agent 禁止（补充裁决 Q26）。
 - ✅ **运行授权快照**：工具 schema 哈希进入 `ToolGrant`，schema 变即授权失效；工具描述哈希钉死（§09）是其供给侧。
-- ✅ **审计**：`actor_type=agent`、`on_behalf_of`、`capability_id`、`contract_version`、输入哈希、来源通道（UI / API / MCP / A2A），接入 ADR-009 哈希链；`trace_id` 与 iClaw Execution Trace 贯通。
+- ✅ **审计**：`actor_type=agent`、`on_behalf_of`、`capability_id`、`contract_version`、输入哈希、来源通道（UI / API / MCP / A2A），接入 ADR-009 哈希链；`trace_id` 与下游智能体平台 Execution Trace 贯通。
 - ✅ **授权服务器对齐 MCP**（S3 必做、S4 前验证）：RFC 8414 / OIDC 发现、PKCE、`resource` 参数、RFC 9728 受保护资源元数据、`iss` 回传。
 - ✅ `Check / ListAllowedActions / Explain` 以工具形式暴露；结构化错误码与多语言文案导出为 JSON。
-- ❌ Qian 侧实现 ToolPolicy / RiskGate 运行时权威（归 iClaw；Qian 只提供 `sideEffect / policyHint` 默认值）。
+- ❌ Qian 侧实现 ToolPolicy / RiskGate 运行时权威（归下游智能体平台；Qian 只提供 `sideEffect / policyHint` 默认值）。
 
 #### 安全防线表（确定性控制优先）
 
@@ -113,7 +113,7 @@ S4 退出标准：**Agent 能发现、调用、编排乃至生成平台能力与
 
 - [ ] Agent 以委托 U 的令牌调用 U 无权限的能力返回 403 `INSUFFICIENT_SCOPE`（头部 `error="insufficient_scope"`，R45）；调用 `humanOnly` 动作返回 `ACTION_HUMAN_ONLY`；审计条目含 `actor=agent, on_behalf_of=U, channel=MCP`。**测法**：S2S 令牌模拟。
 - [ ] 已授权工具的 schema 变更后，旧 `ToolGrant` 失效，再次调用要求重新授权。**测法**：注册表接口。
-- [ ] 带指令的工具返回内容不会触发后续破坏性动作（策略降权生效）。**测法**：注入用例集（与 iClaw 联测）。
+- [ ] 带指令的工具返回内容不会触发后续破坏性动作（策略降权生效）。**测法**：注入用例集（与下游智能体平台联测）。
 
 ### 10.4 Agent 生成应用 = 生成 package 的闭环（P0 · S4）
 
@@ -213,7 +213,7 @@ provider:
     embed-default: "<如 bge-m3>"
 ```
 
-**（4）消费者（一平台一个，一 Agent 工具一个）**：用 key-auth 创建，例如 `platform-qian`（Qian 平台自身：AI 建表、公式建议等 S4 功能）、`platform-<其他内部平台>`、`agent-<iClaw 工具名>`、`billing-admin`（只用于配额管理接口）。key-auth 同时识别 `Authorization: Bearer` 与 `x-api-key`，OpenAI SDK 与 Anthropic SDK 用同一把 key。消费者授权在路由上勾选，勾了哪些路由就是该消费者的模型白名单。沿用现网 key-auth 双形态 consumer。
+**（4）消费者（一平台一个，一 Agent 工具一个）**：用 key-auth 创建，例如 `platform-qian`（Qian 平台自身：AI 建表、公式建议等 S4 功能）、`platform-<其他内部平台>`、`agent-<下游智能体平台工具名>`、`billing-admin`（只用于配额管理接口）。key-auth 同时识别 `Authorization: Bearer` 与 `x-api-key`，OpenAI SDK 与 Anthropic SDK 用同一把 key。消费者授权在路由上勾选，勾了哪些路由就是该消费者的模型白名单。沿用现网 key-auth 双形态 consumer。
 
 **（5）配额与限流（都要 Redis）**
 - ai-quota：每个消费者一个固定 token 配额；`admin_consumer` 设为 `billing-admin`，经 `<路由>/quota/refresh`、`/quota/delta`、`/quota` 三个管理接口刷新、增减、查询；月初由账单脚本按预算换算后刷新。
@@ -254,7 +254,7 @@ openrouter/*:        { markup: 1.1 }
 - **账单脚本**（每周跑，月初结账；以 §07 调度器任务承载）：拉取上一周期聚合表 → 金额 = Σ（输入 token × 输入单价 + 输出 token × 输出单价）+ Σ（按次请求数 × 单价）→ 按消费者出账单（附 top 模型与 fallback 占比）→ 月初按预算换算 token 数调用 `/quota/refresh`。
 - **配额换算取舍**：ai-quota 按 token 不按金额。先用简单做法（按该消费者上月加权平均单价换算，误差 10–20%，对内部结算够用）上线；有超支争议再切精确做法（脚本每小时算实际金额，超预算把配额刷成 0，相当于金额停机）。
 - **对账**：每月拿 GPUStack Usage 总 token 与 Higress 按 gpustack 供应商汇总的 token 对一次，差异 > 2% 说明有请求绕过网关或丢了流式 usage。
-- **与 Qian 计量的衔接**（§09 9.12）：Higress 消费者 = 平台级粒度；租户/项目级归集在平台侧——Qian 的模型调用经 `platform-qian` 消费者，由 `qian.model-gateway` 在请求侧打 `tenant_id / project_id?` 标签（请求头或自有日志）并把用量写入 Qian 计量事件；Usage Ledger 是否与 iClaw 共用待拍板（Q15）。
+- **与 Qian 计量的衔接**（§09 9.12）：Higress 消费者 = 平台级粒度；租户/项目级归集在平台侧——Qian 的模型调用经 `platform-qian` 消费者，由 `qian.model-gateway` 在请求侧打 `tenant_id / project_id?` 标签（请求头或自有日志）并把用量写入 Qian 计量事件；Usage Ledger 是否与下游智能体平台共用待拍板（Q15）。
 
 #### 10.5.6 多模态接入路径（第 3–4 阶段，按需）
 
@@ -276,7 +276,7 @@ openrouter/*:        { markup: 1.1 }
 
 - **OpenAI SDK**：`base_url="https://gw.example.com/v1"`，`model="chat-default"`，流式请求**必带** `stream_options={"include_usage": True}`，否则 token 统计缺最后一段。
 - **Anthropic SDK**：`base_url="https://gw.example.com"`（不带 `/v1`，SDK 自己拼），`model="chat-strong"`；`cache_control` 原样到达 Anthropic，prompt caching 生效。
-- **Agent 运行时（iClaw 及其他）**：按 API 形态拆两个 provider、同一把 key：`openai-completions` 形态 baseUrl 带 `/v1`，`anthropic-messages` 形态不带；每个逻辑模型声明 `reasoning / input 模态 / contextWindow / maxTokens`。
+- **Agent 运行时（下游智能体平台及其他）**：按 API 形态拆两个 provider、同一把 key：`openai-completions` 形态 baseUrl 带 `/v1`，`anthropic-messages` 形态不带；每个逻辑模型声明 `reasoning / input 模态 / contextWindow / maxTokens`。
 - **Qian 平台自身**（`qian.model-gateway` 的 .NET 客户端）：只用逻辑模型名；用途槽位（如 `form-generation → chat-default`、`embedding → embed-default`）在平台配置 Schema 中声明，不在代码写死。
 - **发 key 时一并交付**：网关地址、key、被授权的逻辑模型列表、每分钟 token 上限与月配额、`/v1/models` 可自助列出可用模型、出问题联系谁（日志按消费者名检索）。
 - 已知坑：个别 Agent 运行时的 custom provider 指向网关后会先探测 Ollama 风格端点，404 后曾静默挂起——接入时验证第一条请求 30 秒内返回。
@@ -343,7 +343,7 @@ Qian **只做**以下四件事，不另写模型代理层：
 
 1. **GPUStack 作为 OpenAI 兼容上游注册进 Higress**（McpBridge / 供应商配置经 GitOps 落地）。
 2. **Provider Adapter**（`model-gateway` 组合包，`runtime.form: service`，默认挂在 `platform` profile，可选独立 profile `model-gateway`（镜像 `qian-model-gateway-adapter`），S1 已预留，R31）：发现 GPUStack 模型部署、健康探测、生命周期（上线/下线/替换）同步到 Higress 映射的变更提案（人工批准后入 git），不直接改数据面。
-3. **填写 `model-capabilities` 契约**（对齐 iClaw）：模型目录含逻辑名、类型（chat / embedding / rerank / vision / tts / asr）、能力标签（工具调用、视觉、推理、缓存）、上下文长度、最大输出、配额、可用租户；用途槽位（`form-generation`、`flow-generation`、`embedding`、`ocr` 等）→ 逻辑名的映射放平台配置 Schema。
+3. **填写 `model-capabilities` 契约**（对齐下游智能体平台）：模型目录含逻辑名、类型（chat / embedding / rerank / vision / tts / asr）、能力标签（工具调用、视觉、推理、缓存）、上下文长度、最大输出、配额、可用租户；用途槽位（`form-generation`、`flow-generation`、`embedding`、`ocr` 等）→ 逻辑名的映射放平台配置 Schema。
 4. **租户/配额/计量在平台侧**：Qian 的所有模型调用经 `platform-qian` 消费者；`qian.model-gateway` 客户端为每次调用打 `tenant_id / project_id?` 并写计量事件（§09 9.12）；租户级配额与预算告警在平台执行，Higress 对租户无感；密钥全部 secretRef（ADR-007）。
 
 **验收标准**
@@ -357,12 +357,12 @@ Qian **只做**以下四件事，不另写模型代理层：
 
 | 不做 | 理由 | 替代 |
 |---|---|---|
-| 自建 Agent 运行时（推理引擎、Sub-agent、Workflow 编排、路由器） | ADR-016：复用 iClaw | S4 经 MCP/HTTP 对接 iClaw |
-| 自建沙箱、记忆、技能引擎、工具门禁运行时 | 同上 | CubeSandbox、iClaw 记忆四层、Skills、ToolPolicy/RiskGate |
+| 自建 Agent 运行时（推理引擎、Sub-agent、Workflow 编排、路由器） | ADR-016：复用下游智能体平台 | S4 经 MCP/HTTP 对接下游智能体平台 |
+| 自建沙箱、记忆、技能引擎、工具门禁运行时 | 同上 | CubeSandbox、下游智能体平台记忆四层、Skills、ToolPolicy/RiskGate |
 | 自写模型代理层（绕过 Higress） | ADR-015 | Higress 是唯一模型与 MCP chokepoint |
 | 把 SSO / S2S 交给 Higress | ADR-015 / ADR-010 | 业务鉴权在 `qian.gateway` 与 `qian.identity` |
 | 视频/3D/音乐生成任务服务、HiMarket 开发者门户 | 本期范围外（Q17 先 LLM + Embedding） | 第 3–4 阶段按需 |
-| 智能体管理、提示词库、知识库、MCP 工具目录 UI（参考平台 AI 中心形态） | 归 iClaw 的 AI 资产控制面 | Qian 的能力注册表是其唯一来源 |
+| 智能体管理、提示词库、知识库、MCP 工具目录 UI（参考平台 AI 中心形态） | 归下游智能体平台的 AI 资产控制面 | Qian 的能力注册表是其唯一来源 |
 | 「每插件一个 MCP Server、每操作一个工具」全量平铺 | 工具列表膨胀、提示缓存命中差 | 意图级工具 + 目录搜索 + 代码模式 |
 | A2A 作为内部编排协议、WebMCP、MCP Apps 视图作为必做 | 协议工具链仍预览级 | P2，待浏览器与宿主支持稳定 |
 | 自研 OCR 识别服务 | 视觉模型经模型网关即可 | OCR 控件库经 10.5 vision 路由 |
@@ -371,11 +371,11 @@ Qian **只做**以下四件事，不另写模型代理层：
 ### 10.7 待确认
 
 1. **GPU 归属与接入范围**（Q17 默认先 LLM + Embedding，GPU 归属由产品负责人定）：决定第 1 阶段能否起 GPUStack Worker；过渡方案是 chat-default 主路暂指 OpenRouter。Rerank 是否随 Embedding 一并接入（成本极低）待确认。
-2. **Usage Ledger / 租户 API Key 是否与 iClaw 共用**（Q15）：决定 10.5.5 的租户归集落在 Qian 自有 Ledger 还是 iClaw；本章按 Qian 自有写。
+2. **Usage Ledger / 租户 API Key 是否与下游智能体平台共用**（Q15）：决定 10.5.5 的租户归集落在 Qian 自有 Ledger 还是下游智能体平台；本章按 Qian 自有写。
 3. **Provider Adapter 由谁维护**（D15 待拍板）：Qian 团队还是 MaaS 基础设施团队；影响 `qian-model-gateway-adapter` 的发布节奏。
 4. **MCP 托管的阶段对齐**：已裁决（R14）——Higress ≥ 2.2.4 升级与开启 MCP 托管列为 S4 启动前置，放在 S3 末（ROADMAP S3 核心交付「S4 启动前置」行与 S3-M3）。
 5. **按 `Mcp-Method / Mcp-Name` 头路由限流的配置方式**与 **C# MCP SDK 能否过 Kun AOT 门禁**需 PoC；结论决定 `qian.mcp-facade` 的部署形态。
-6. **iClaw 协议对齐计划**（其 MCP 客户端钉旧版且只有 stdio）：谁牵头、何时切到 2026-07-28；否则 S4 发现/调用路径只能靠 `server/discover` 兼容。
-7. **是否与 iClaw 共用同一 Higress 实例**（Q16 默认共用集群、独立节点池）：影响消费者命名空间与配额隔离。
+6. **下游智能体平台协议对齐计划**（其 MCP 客户端钉旧版且只有 stdio）：谁牵头、何时切到 2026-07-28；否则 S4 发现/调用路径只能靠 `server/discover` 兼容。
+7. **是否与下游智能体平台共用同一 Higress 实例**（Q16 默认共用集群、独立节点池）：影响消费者命名空间与配额隔离。
 8. **MaaS 现网推理层切换到 GPUStack 的窗口**与「仓外是否已有 GPUStack 控制面」需与基础设施团队确认。
-9. **组件模型 v2 对本章的影响（ADR-020）**：(a) 已裁决（R36）——`extensions` 的自动挂载边界：Agent 会话 scope 自动、应用 scope 需应用管理员确认、租户 scope 需租户管理员确认；Agent 会话 scope 的生命周期与审计字段随 specs/component-model.md 定稿；(b) 草稿组件文件夹的存放：沿 R36 租户私有市场默认平台托管（Agent 产物上传为组件文件夹，平台生成私有 marketplace 条目），进入官方市场前的审核流水线归 §09 9.1 审核台；(c) 已拍板（ADR-020 §7 第 1 条）：TS 侧公共 API 为 `@qian/runtime`、S1 内部以固定版本 vendor 的 Cordis 作为实现，`@yue/agent` 与 MCP Apps 视图作为 `@qian/runtime` 插件树成员交付，不依赖实现选择；(d) 每租户 MCP 门面派生自 `ctx.Tools` scope 视图后，10.3 的 `ToolGrant` 哈希与 §07 `schemaSha256` 需同一计算口径（与 §09 9.14 第 8 条合并处理）。
+9. **组件模型 v2 对本章的影响（ADR-020）**：(a) 已裁决（R36）——`extensions` 的自动挂载边界：Agent 会话 scope 自动、应用 scope 需应用管理员确认、租户 scope 需租户管理员确认；Agent 会话 scope 的生命周期与审计字段随 specs/component-model.md 定稿；(b) 草稿组件文件夹的存放：沿 R36 租户私有市场默认平台托管（Agent 产物上传为组件文件夹，平台生成私有 marketplace 条目），进入官方市场前的审核流水线归 §09 9.1 审核台；(c) 已拍板（ADR-020 §7 第 1 条）：TS 侧公共 API 为 `@qian/runtime`、S1 内部以固定版本 vendor 的 Cordis 作为实现，`智能体交互组件` 与 MCP Apps 视图作为 `@qian/runtime` 插件树成员交付，不依赖实现选择；(d) 每租户 MCP 门面派生自 `ctx.Tools` scope 视图后，10.3 的 `ToolGrant` 哈希与 §07 `schemaSha256` 需同一计算口径（与 §09 9.14 第 8 条合并处理）。

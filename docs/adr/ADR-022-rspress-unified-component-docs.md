@@ -8,15 +8,17 @@ supersedes: ADR-013 D13.1 的 Storybook 选型；修订 D13.18
 
 # ADR-022 统一 Rspress 组件文档与验收
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 ## 1 背景与问题（Context）
 
 S1-YUE-005 按原验收交付了 51 个组件入口、manifest 和 Storybook；平台文档已使用 Rspress 2.0.23。两套文档入口使使用者需要切换导航、搜索和预览。2026-10-14 产品负责人明确要求「统一使用 Rspress，不再 Storybook」，并要求先评估能力。本 ADR 记录这次已授权修订，不重新讨论其它前端选型。
 
 ## 2 决策（Decision）
 
-- **D22.1 唯一文档与演示体系**：Qian、Kun、yue 使用现有 `website/` Rspress 站点。yue 页面归 `/components/yue/`；按产品负责人补充的组件页参考组织预览、源码、安装、用法、组合结构、场景示例与 API，全部在现有 Rspress 一个入口中完成；移除 Storybook 应用、CSF、依赖、命令与 CI 入口，不保留内部 Storybook。组件文档源仍在组件目录，不手写生成目录。
+- **D22.1 唯一文档与演示体系**：Qian、Kun、［前端框架］使用现有 `website/` Rspress 站点。［前端框架］页面归 `/components/yue/`；按产品负责人补充的组件页参考组织预览、源码、安装、用法、组合结构、场景示例与 API，全部在现有 Rspress 一个入口中完成；移除 Storybook 应用、CSF、依赖、命令与 CI 入口，不保留内部 Storybook。组件文档源仍在组件目录，不手写生成目录。
 - **D22.2 测试独立**：Rspress 承担文档和演示；Vitest 浏览器模式、SSR 测试、Playwright、axe 与 Lighthouse 承担原有质量门禁。共用普通 React 示例，迁移 Storybook 状态与交互覆盖；可交互组件必须在 Rspress 实际构建页面上完成操作与结果断言，发布后复验代表性交互，不把删除测试或仅渲染视为完成替换。
-- **D22.3 完整 API**：React Props 从真实 TypeScript 类型生成，清单的 JSON Schema 继续负责机器可序列化契约。使用插件或底层解析器时都必须有属性完整性检查，缺失函数、继承属性或组合部件即失败。配置、示例与迁移验收以 [文档站规范 §3.1](../prd/specs/docs-site.md#31-yue-组件文档与演示) 为准。
+- **D22.3 完整 API**：React Props 从真实 TypeScript 类型生成，清单的 JSON Schema 继续负责机器可序列化契约。使用插件或底层解析器时都必须有属性完整性检查，缺失函数、继承属性或组合部件即失败。配置、示例与迁移验收以 [文档站规范 §3.1](../prd/specs/docs-site.md#31-前端框架组件文档与演示) 为准。
 - **D22.4 任务边界**：重新打开 S1-YUE-005，负责 core 文档接入、测试迁移与 Storybook 清理。S1-DOCS-002 继续依赖它，复用接线并完成通用收集器及平台、TS、.NET、HTTP API 文档；不得反向新增依赖造成循环。本 ADR 初次交付为评估与任务/规格修订；替换已于 2026-10-14 随 PR idadawn/qian#88、idadawn/qian#90、idadawn/qian#91 完成，S1-YUE-005 已完成正式站交互、离线编辑与 API 验收。
 
 ## 3 理由与能力评估（Rationale）
@@ -63,4 +65,4 @@ S1-YUE-005 按原验收交付了 51 个组件入口、manifest 和 Storybook；�
 - [Rspress 官方 playground](https://rspress.rs/zh/plugin/official-plugins/playground)：编辑器、模块限制及 Babel/Monaco 配置。
 - [Rspress 官方 api-docgen](https://rspress.rs/zh/plugin/official-plugins/api-docgen)：解析入口与 TypeScript 配置。
 - [Rspress api-docgen 2.0.23 发布源码](https://unpkg.com/@rspress/plugin-api-docgen@2.0.23/dist/index.js)：本次验证的过滤行为。
-- [原前端决策](ADR-013-frontend-yue.md)、[文档站规范](../prd/specs/docs-site.md)、[YUE-005](../../pm/tasks/S1-YUE-005.md)、[DOCS-002](../../pm/tasks/S1-DOCS-002.md)。
+- [原前端决策](ADR-013-frontend-framework.md)、[文档站规范](../prd/specs/docs-site.md)、[YUE-005](../../_import/qian/pm/tasks/S1-YUE-005.md)、[DOCS-002](../../_import/qian/pm/tasks/S1-DOCS-002.md)。

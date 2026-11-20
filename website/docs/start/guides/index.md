@@ -13,7 +13,7 @@ updated: 2026-10-07
 
 ## Agent 栈 {#agent-stack}
 
-Qian 是能力提供方与业务主数据权威，Agent 运行时是 iClaw，模型与 MCP 流量走共用的 Higress；Qian 不写 Agent loop、沙箱、记忆与技能引擎（[ADR-016](/design/adr/adr-016-iclaw-boundary)）。组件的 skills、tools 等 Agent 原生表面在 S1 可用；每租户 MCP 能力门面在 S4。开发入口见 [AI SDK](/sdk/ai/)。
+Qian 是能力提供方与业务主数据权威，Agent 运行时是下游智能体平台，模型与 MCP 流量走共用的 Higress；Qian 不写 Agent loop、沙箱、记忆与技能引擎（[ADR-016](/design/adr/adr-016-agent-boundary)）。组件的 skills、tools 等 Agent 原生表面在 S1 可用；每租户 MCP 能力门面在 S4。开发入口见 [AI SDK](/sdk/ai/)。
 
 ## 后端模式 {#backend}
 

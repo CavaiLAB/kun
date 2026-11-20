@@ -8,17 +8,19 @@ supersedes: none
 
 # ADR-009 审计
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 ## 1 背景与问题（Context）
 
-Kun 的审计能力分裂为多条并行路径：① 命令级 SHA-256 哈希链 `AuditEntry{PrevHash, ContentHash}`，但 `IAuditSink / IAuditChainState` **只有 InMemory 实现**、单实例；② `IAuditWriter / AuditLog` 通道（EF 表或 EventBus `kun.audit.record.v1`）+ `Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor`（SaveChanges 成功后写，**不同事务**）；③ `Kun.Auditing` 拦截器经 Outbox 同事务发 `kun.audit.event.v1`；`IAuditReader` 只有接口无实现；`AuditActorType` 无 `agent`；`TenantId / UserId` 在 Auditing 里写死 null（基线 K §1 Audit 行、附录 B-2/B-3）。基线 K 与 P 对「保留哪条路径」表述不同（K 以 `Kun.Auditing` 同事务 Outbox 为准；P 称弃用 `Kun.Auditing` 改用 `AuditLog` + iClaw 式拦截器），决策清单补充裁决「以语义定：实体级审计必须与业务同事务写入 `AuditLog` 并经 Outbox 发事件；命令级哈希链补 PostgreSQL 持久化；事后不同事务的拦截器弃用；具体落在哪个 Kun 包由 ADR 定」。
+Kun 的审计能力分裂为多条并行路径：① 命令级 SHA-256 哈希链 `AuditEntry{PrevHash, ContentHash}`，但 `IAuditSink / IAuditChainState` **只有 InMemory 实现**、单实例；② `IAuditWriter / AuditLog` 通道（EF 表或 EventBus `kun.audit.record.v1`）+ `Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor`（SaveChanges 成功后写，**不同事务**）；③ `Kun.Auditing` 拦截器经 Outbox 同事务发 `kun.audit.event.v1`；`IAuditReader` 只有接口无实现；`AuditActorType` 无 `agent`；`TenantId / UserId` 在 Auditing 里写死 null（基线 K §1 Audit 行、附录 B-2/B-3）。基线 K 与 P 对「保留哪条路径」表述不同（K 以 `Kun.Auditing` 同事务 Outbox 为准；P 称弃用 `Kun.Auditing` 改用 `AuditLog` + ［下游智能体平台］式拦截器），决策清单补充裁决「以语义定：实体级审计必须与业务同事务写入 `AuditLog` 并经 Outbox 发事件；命令级哈希链补 PostgreSQL 持久化；事后不同事务的拦截器弃用；具体落在哪个 Kun 包由 ADR 定」。
 
-iClaw 的 `AuditSaveChangesInterceptor` 在 `SavingChangesAsync` 阶段写审计，使审计行与业务事务同提交、事件进 Outbox，已生产使用，且 Q40 允许搬运该代码（基线 K §4.1）。Agent 时代的硬要求：审计必须回答「哪个 Agent 以谁的名义、经哪个通道、调用了哪个能力的哪个契约版本」（基线 P §8.3 第 7 条）。参考平台审计统计全表加载、请求日志落库一键清空（基线 D §6 第 13 条；基线 S 明确不做项）。
+［下游智能体平台］的 `AuditSaveChangesInterceptor` 在 `SavingChangesAsync` 阶段写审计，使审计行与业务事务同提交、事件进 Outbox，已生产使用，且 Q40 允许搬运该代码（基线 K §4.1）。Agent 时代的硬要求：审计必须回答「哪个 Agent 以谁的名义、经哪个通道、调用了哪个能力的哪个契约版本」（基线 P §8.3 第 7 条）。参考平台审计统计全表加载、请求日志落库一键清空（基线 D §6 第 13 条；基线 S 明确不做项）。
 
 ## 2 决策（Decision）
 
 - **D9.1 只保留一套审计实现**，由 `qian.audit`（`tier: system`）装配；其他路径标记废弃并在 TCK 中禁止引用。
 - **D9.2 命令 / 能力级审计**：`AuditEntry` 哈希链，由 Mediator Pipeline 行为（`AddAuditBehavior`）写入；`IAuditChainState` 与 `IAuditSink` 提供 **PostgreSQL 实现**（可串行化读 tip + `content_hash UNIQUE`），支持多副本。（2026-10-23 S1-AUD-009：同事务写入对平台链同样成立。审计端口除租户链的 `AppendEnlistedAsync` 外，为平台链提供同一约束的同事务入口 `AppendPlatformEnlistedAsync`：挂进调用方的 PostgreSQL 可串行化事务，不提交、不局部重试，冲突由调用方换会话重做；追加由 Audit 自有的 SECURITY DEFINER 函数以独立受限的 NOLOGIN 属主完成，调用方的应用登录只获执行权，函数只交回序号与哈希、不交出平台记录内容；平台登录的 RLS 分支不变，另加的属主分支只在无租户、调用方不是平台登录且属主无成员关系时放行平台行。D9.8 的插件生命周期平台级操作（安装、激活、回切、弃用、退役）改走这个入口，与状态变更同一事务入平台链，业务失败即无审计；独立事务入口 `AppendPlatformAsync` 保留给没有业务事务的平台生产方。口径见 `packages/Qian.Audit/README.md`「受控平台链与生命周期」。）
-- **D9.3 实体级审计**：`AuditLog` 由**同事务**拦截器写入（在 `SavingChangesAsync` 阶段，吸收 iClaw 写法并迁移为 `qian.audit` 的拦截器），并经 Outbox 同事务发出审计事件。
+- **D9.3 实体级审计**：`AuditLog` 由**同事务**拦截器写入（在 `SavingChangesAsync` 阶段，吸收［下游智能体平台］写法并迁移为 `qian.audit` 的拦截器），并经 Outbox 同事务发出审计事件。
 - **D9.4 弃用** `Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor`（事后、不同事务）及其 `kun.audit.record.v1` 事件 ID。
 - **D9.5 包归属**：以 `Kun.Auditing` 的同事务 Outbox 原语为基础扩展（而非另起一包），统一审计事件 ID 为一个（建议 `qian.audit.event.v1`，兼容期内保留 `kun.audit.event.v1` 别名）；`TenantId / UserId` 从 `ITenantContext / ICurrentUser` 填充而非写死 null。
 - **D9.6 审计字段扩展**：`actor_type ∈ {user, service, agent, system}`；`on_behalf_of`（委托链）；`capability_id`；`contract_version`；输入哈希；来源通道 `channel ∈ {ui, api, mcp, a2a, job, event}`；`trace_id` 贯通；`generatedBy / promptHash` 预留给 S4。
@@ -44,7 +46,7 @@ iClaw 的 `AuditSaveChangesInterceptor` 在 `SavingChangesAsync` 阶段写审计
 ## 5 后果与代价（Consequences）
 
 - 正面：一套 API、一个事件 ID；防篡改链可多副本运行；审计天然带主体链与来源通道，S4 无需返工。
-- 负面：哈希链串行读 tip 是写入吞吐瓶颈，需按租户或按时间分链 / 分区；同事务写入增加业务事务体积；统一事件 ID 需要与 iClaw 协调兼容期。
+- 负面：哈希链串行读 tip 是写入吞吐瓶颈，需按租户或按时间分链 / 分区；同事务写入增加业务事务体积；统一事件 ID 需要与［下游智能体平台］协调兼容期。
 - 配套：审计保留期与归档策略；审计查询权限点；TCK 用例「每个写命令必有审计条目」。
 
 ## 6 对各阶段的影响
@@ -57,7 +59,7 @@ iClaw 的 `AuditSaveChangesInterceptor` 在 `SavingChangesAsync` 阶段写审计
 ## 7 待确认事项
 
 - 哈希链分链 / 分区策略（按租户 / 按月）与吞吐基线需技术验证。
-- 审计事件 ID 统一方案及与 iClaw 的兼容期。
+- 审计事件 ID 统一方案及与［下游智能体平台］的兼容期。
 - 审计数据保留期（法规与客户要求）。
 
 ## 8 参考

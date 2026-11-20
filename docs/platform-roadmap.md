@@ -2,7 +2,7 @@
 
 > 状态：草案 v1 · 更新日期：2026-10-07 · 本文件是**阶段、里程碑与退出标准的唯一真相源**；PRD §15 只保留总览表与指针，决策理由见 `docs/adr/`（ADR-018 为阶段切分决策；ADR-020 组件模型 v2 已于 2026-10-07 Accepted、§7 待确认项全部拍板，S1 交付与退出标准已按其 §6 更新），可测的退出准则细化见 PRD §16。
 >
-> 命名约定：产品 = Qian · 底座 = Kun · 组件库 = yue · 插件前缀 = `qian.` · 阶段 = S1–S4 · 优先级 = P0 / P1 / P2。
+> 命名约定：产品 = Qian · 底座 = Kun · 组件库 = 前端框架 · 插件前缀 = `qian.` · 阶段 = S1–S4 · 优先级 = P0 / P1 / P2。
 >
 > 状态图例：✅ 已完成 · 🚧 进行中 · ⬜ 未开始。里程碑只用 M1 / M2 … 占位，不编日期；日期在阶段启动评审时填入。
 
@@ -53,7 +53,7 @@
 | 网关 | Traefik → `qian.gateway` → 服务；Higress 只管模型与 MCP；职责从 S1 画清 | P0 |
 | 组织与导航 | 组织树、岗位、责任岗位链查询契约、用户档案、菜单与资源模型、URN、偏好 KV、字典、i18n | P0 |
 | 消息与调度 | `qian.notify`（通知内核 + 站内信 / 邮件 / 短信渠道）、`qian.scheduler`（集群安全调度器 + 回调契约）、`qian.realtime`（实时推送）、凭证保管；三者在 `platform` profile 的 base 组合包内（原 ADR-003 的 18 个系统插件，R1） | P0（realtime P1） |
-| 前端 yue | `@yue/tokens`（三层、明暗）、`@yue/core`、`@yue/shell`（AppShell、MF2、插槽注册表、单一侧栏）、`@yue/data` DataTable 基础版、`@yue/form` SchemaForm、`@yue/biz` 选择器、认证页族、`@yue/sdk`、元数据契约草案 | P0 |
+| 前端框架 | `@cavailab/qian-tokens`（三层、明暗）、`@cavailab/qian-core`、`@cavailab/qian-shell`（AppShell、MF2、插槽注册表、单一侧栏）、`@cavailab/qian-data` DataTable 基础版、`@cavailab/qian-form` SchemaForm、`@cavailab/qian-biz` 选择器、认证页族、`@cavailab/qian-sdk`、元数据契约草案 | P0 |
 | 包与市场前置 | 包格式 v0 = 组件文件夹 + marketplace 条目（ADR-014 经 ADR-020 修订，原 bundle v0）、组合包格式、代码部分制品库（OCI → Harbor，仅代码部分）、安装 / 升级 / 卸载引擎（`qian add / remove`）、修订回切、强制验签、授权 v0（手工授予）与租户 scope patch 分离 | P0 |
 | 部署 | `qian-<env>` 命名空间、专属 PG / Redis、Argo CD app-of-apps、Kustomize、`/healthz /readyz`、default-deny NetworkPolicy、ResourceQuota、按 digest 发布事件、Alertmanager | P0（Alertmanager P1） |
 | Agent 防返工 | 带 Schema 的写命令（sideEffect / idempotencyKey / dryRun）、结构化错误、统一主体模型与委托链字段、`inputSchema` 禁租户字段 lint、审计含主体链与来源通道、trace + 计量标签贯通、事件契约化 | P0 |
@@ -66,7 +66,7 @@
 | `qian-platform` | profile `platform` |
 | `qian-gateway` | profile `gateway`（可 AOT） |
 | `qian-identity` | profile `identity` |
-| `qian-shell` | 不是 profile；yue 外壳为 `platform` profile 的 `shell` 组合包（静态前端制品，经 gateway 提供） |
+| `qian-shell` | 不是 profile；前端框架外壳为 `platform` profile 的 `shell` 组合包（静态前端制品，经 gateway 提供） |
 | `qian-model-gateway-adapter` | `model-gateway` 组合包，默认挂在 `platform`，可选独立 profile `model-gateway`（S1 · P1） |
 | S2 `qian-lowcode` | profile `lowcode` |
 | S2 `qian-workflow` | profile `workflow` |
@@ -82,7 +82,7 @@
 |---|---|---|
 | S1-M1 | ADR-001 … ADR-020 定稿（ADR-019 / ADR-020 已于 2026-10-07 转 Accepted，§7 待确认项全部拍板）；`plugin.json` 清单 Schema 与校验器、五种表面的解析器；`Qian.Runtime` 语义 TCK 首版；Kun 缺口修复 PR 提交；K3s 基线（Apollo、MySQL、RabbitMQ、NetworkPolicy）就绪 | ⬜ |
 | S1-M2 | `Qian.Runtime` + profile / 组合包 / patch 装载器 + `qian.tenancy / identity / authz / data / config / events / audit` 可运行；`qian add identity authz files` 可在空白项目装入并跑通；`identity` profile 通过 OIDC 基本一致性测试；TCK 首版 | ⬜ |
-| S1-M3 | `platform` profile base 组合包内全部插件过 TCK；`qian` CLI 与官方市场仓库可用，五种表面热重载；租户 scope patch 替代数据库开关；文档生成与 CI 门禁上线；yue 令牌层 + 核心组件 + 后台壳；§06 S1 Demo 由运行时外的开发者走通 | ⬜ |
+| S1-M3 | `platform` profile base 组合包内全部插件过 TCK；`qian` CLI 与官方市场仓库可用，五种表面热重载；租户 scope patch 替代数据库开关；文档生成与 CI 门禁上线；前端框架令牌层 + 核心组件 + 后台壳；§06 S1 Demo 由运行时外的开发者走通 | ⬜ |
 | S1-M4 | 跨租户渗透测试、多副本消费集成测试、修订回切演练通过；退出评审 | ⬜ |
 
 ### 依赖与风险
@@ -124,7 +124,7 @@
 | 声明式表面（低代码，ADR-020） | 表单 / 列表 / 流程 / 页面作为声明式表面（`forms/ lists/ flows/ pages/`）进入组件目录；设计器的保存即产出组件文件夹（可进 git、进市场、被 patch）；profile `lowcode` / `workflow` 新增（R31）；官方代码插件热装卸不进 S2 核心交付：RT 领域 5 天时间盒 spike 验证 collectible `AssemblyLoadContext` 与 Kun 约束、结论写回 ADR-020，生产默认滚动重启（R27；ADR-020 §7 第 5 条已拍板） | P0（热装卸 spike P2） |
 | 数据与集成 | 数据建模、接口设计器、API 接口与日志、短信通道 UI、群机器人、监控与任务管理 UI、打印全套（模板、版本、绑定、浏览器打印）、文件预览提供者、模型目录与按用途路由 | P0（打印设计器 S2 后期） |
 | 身份连接器 | 钉钉、飞书连接器（P0）；微信网站扫码连接器（P1，R4） | P0 / P1 |
-| 前端 yue | DataTable 进阶、ImportWizard / ExportDialog、SuperQuery、ConditionBuilder、CodeEditor / Cron、业务选择器扩展、三大设计器基础设施、组件 manifest 全量、视觉回归 | P0 |
+| 前端框架 | DataTable 进阶、ImportWizard / ExportDialog、SuperQuery、ConditionBuilder、CodeEditor / Cron、业务选择器扩展、三大设计器基础设施、组件 manifest 全量、视觉回归 | P0 |
 | 表达式与脚本 | JSON AST 表达式解释器 + 函数注册表；服务端 before / after Hook；前端 QuickJS 沙箱兜底（可选） | P0 / P1 |
 | 可选 | Wasm `function` 运行时（P2，ABI 中期拍板；服务端公式与规则先用 JSON AST 解释器）、`connector` 运行时、自动化（任务流程）、配置路径型门户、报表子集（列表 + 分组汇总 + XLSX）、视图（只读数据源）、加签 / 减签、自由画布视图、H5 渲染器（不做，预留端覆盖）、代码生成薄壳（后期）、富文本 / Markdown 选型调研（S2 前） | P1 / P2 |
 
@@ -174,7 +174,7 @@
 | 呈现 | 门户设计型全套、表格报表（实体、版本、数据集、XLSX）、开放 API、分享链接内核、工作台、通知抽屉、多布局与偏好抽屉（可选）、服务端 PDF（可选）、大屏（可选，不复用参考源码） | P0（可选项 P2） |
 | 流程 | 拒绝 `continue`、归档、签收、委托 / 代理、撤销申请、暂停 / 恢复、协办、超时自动处置、决策流程（调用式）、自由流程、批量审批、自由画布视图、BPMN 导出器 | 按评审分 P1 / P2 |
 | 安全 | 不可信 UI 沙箱（Worker 远程渲染 / iframe）、第三方 `service` 独立工作负载身份（私有化运维行为）、授权服务器对齐 MCP（RFC 9728 / 8414 / 8707）、成本与配额、租户自助 Agent 授权管理页（可选） | P0 / P1 |
-| 前端 yue | 门户 / 报表 / 打印设计器与运行时、移动 H5、UI 沙箱、shadcn 私有 registry（可选） | P0 / P1 |
+| 前端框架 | 门户 / 报表 / 打印设计器与运行时、移动 H5、UI 沙箱、shadcn 私有 registry（可选） | P0 / P1 |
 | S4 启动前置 | Higress 升级到 ≥ 2.2.4 并开启 MCP 托管（第一批 MCP Server 在 Higress 注册），放在 S3 末；未完成不启动 S4-M1（PRD §10 10.2 / 10.5.8，R14） | P0（S3 末） |
 
 ### 里程碑占位
@@ -215,7 +215,7 @@ Agent 能发现、调用、编排乃至生成平台能力与应用；Qian 作为
 | Agent 主体 | `agent` 主体类型、`act` 委托链、令牌交换（RFC 8693）、Agent 有效权限 = 委托人 ∩ scope、`humanOnly` 强制、CIMD | P0 |
 | 元数据生成闭环 | Agent 提交 patch → 校验 → 预览 → 人工批准 → 发布 → 回滚；Agent 生成 `package`；`generatedBy / promptHash`；代码只落 `function` 沙箱 | P0 |
 | 长任务 | Operation ↔ MCP Tasks；`input_required` ↔ MRTR；监督收件箱 | P1 |
-| 技能与应用 | 插件包内 `skills/` 目录（agentskills.io；skills 表面本身 S1 已支持，ADR-020，此处只剩提供方式）经 Skills over MCP 提供；MCP Apps 视图（yue 表单 / 列表作为 `ui://` 资源）；`@yue/agent`；shadcn MCP Server | P1 |
+| 技能与应用 | 插件包内 `skills/` 目录（agentskills.io；skills 表面本身 S1 已支持，ADR-020，此处只剩提供方式）经 Skills over MCP 提供；MCP Apps 视图（前端框架表单 / 列表作为 `ui://` 资源）；`智能体交互组件`；shadcn MCP Server | P1 |
 | 市场 M4 | 市场兼任私有 MCP registry（参照官方 Registry OpenAPI）；Agent 可检索的市场 API；agent-kit 包类型；Agent 生成应用的自动审核门禁 | P1 |
 | extensions（ADR-020） | 模型在策略下挂载与卸载插件（运行时自修改），建立在 S1 同一套装载器上（S1 只开放给人类 CLI）；Agent 生成的组件落为草稿组件文件夹并经同一校验器；每租户 MCP 门面由 `ctx.Tools` 的 scope 视图派生 | P0 |
 | 对接 | 与外部 Agent 运行时（MCP / HTTP）与沙箱（CubeSandbox 类）对接；A2A 端点（可选）；急停开关（可选） | P1 / P2 |

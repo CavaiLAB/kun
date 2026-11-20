@@ -1,6 +1,6 @@
 # Kun 框架架构
 
-> 状态：规划稿（2026-11-17）。本文描述归并之后的 Kun，依据是合并蓝图（本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受）。「已有」指在原仓库里已经实现。
+> 状态：规划稿（2026-11-17）。本文描述归并之后的 Kun，依据是合并蓝图（本仓库里的 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受）。「已有」指在原仓库里已经实现。
 >
 > 2026-11-19 补：加一种 Agent 一级的范围、人审两道、`agent` 主体在路线的里程碑 M1 启用（已定，[2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md) P29、P28、P31），见第 3、8 节。这批裁定与过渡目录里决策记录的出入登记在 `_import/qian/pm/tasks/S1-DEC-038.md`（D22–D26），决策记录的原文没有改。
 
@@ -88,8 +88,8 @@ flowchart LR
 
 两边各有一套实现的地方，留哪一套看谁在用、谁有测试：
 
-- 留仓库根上 Kun 框架的：身份协议客户端与会话存储、存储后端、令牌签发、命令与查询调度、缓存。
-- 留 `_import/qian/` 下平台代码的：错误模型、审计链、事件的投递循环、消息的发布与订阅、权限的强制执行点。
+- 沿用框架侧的实现：身份协议客户端与会话存储、存储后端、令牌签发、命令与查询调度、缓存。
+- 沿用平台侧的实现：错误模型、审计链、事件投递循环、消息发布与订阅、权限强制执行点。
 
 归档的模块有五个：`Kun.Saga`、`Kun.Sandbox`、`Kun.Dapper`、`Kun.Infrastructure`、旧线的 `Kun.Storage`（已定）。归档指移出解决方案和发版清单，源码留在历史里，已经发布的版本不动。仓储接口与规约随 `Kun.Infrastructure` 归档。业务写入通过 `KunDbContext` 和 `Kun.EntityFrameworkCore.IUnitOfWork` 完成。`Kun.Dapper` 已归档，读侧的写法见[读侧模式](guides/read-side-patterns.md)。`Kun.Sandbox` 已归档，没有替代的包。`Kun.Saga` 已归档，没有替代的包，Order 样例改成不带编排的命令流程。旧线的 `Kun.Storage` 已归档，对象存储用 `Kun.Storage.Abstractions` 加一个 `Kun.Storage.*` 后端包。
 

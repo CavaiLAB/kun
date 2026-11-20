@@ -10,6 +10,8 @@ amended_by: ADR-023
 
 # ADR-020 组件模型 v2
 
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
 > **2026-11-17 经 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) 修订。** §7 第 6 条的许可证由 Apache-2.0 改为 MIT（ADR-023 D23.11），公开 feed 的安排按 D23.12；D20.4 的 seam 三角色原样保留，适用于平台档（D23.7）。其余条目不变。
 
 ## 1 背景与问题（Context）
@@ -25,7 +27,7 @@ amended_by: ADR-023
 ## 2 决策（Decision）
 
 - **D20.1 一切皆插件，没有特权内核。** Qian 的运行时只剩一个极小的 `Qian.Runtime`：上下文（`ctx`）、服务注册、类型化事件、可逆副作用、加载器。租户、身份、鉴权、文件、配置、网关、事件、审计、低代码运行时、Agent 门面全部是插件，向共享上下文贡献服务（`ctx.Tenancy`、`ctx.Identity`、`ctx.Authz`、`ctx.Files`、`ctx.Config`、`ctx.Events`…）、事件与可撤销的注册。原 `qian.kernel` 承担的注册表、生命周期控制器、能力目录、契约仓库改为普通插件（`qian.registry`、`qian.lifecycle`、`qian.capabilities`），每一项都能从配置替换。扩展 Qian 的方式是把插件挂到其他插件旁边，而不是修改内核。
-- **D20.2 插件的最小接口是 `Inject` + `Apply`。** 插件声明所依赖的服务键（`Inject`），依赖就绪才启动，装载顺序由依赖关系表达；`Apply(ctx, config)` 在上下文里注册服务、监听器与效果。所有注册都是副作用，经 `ctx.Effect()` 返回释放函数，在卸载、重载与 teardown 时按注册的逆序撤销。.NET 落地为 `IQianPlugin`（基于 .NET DI keyed services 与 `Kun.Mediator`），TypeScript 落地为 `@qian/runtime`（yue 外壳也是一棵插件树），两侧语义相同。
+- **D20.2 插件的最小接口是 `Inject` + `Apply`。** 插件声明所依赖的服务键（`Inject`），依赖就绪才启动，装载顺序由依赖关系表达；`Apply(ctx, config)` 在上下文里注册服务、监听器与效果。所有注册都是副作用，经 `ctx.Effect()` 返回释放函数，在卸载、重载与 teardown 时按注册的逆序撤销。.NET 落地为 `IQianPlugin`（基于 .NET DI keyed services 与 `Kun.Mediator`），TypeScript 落地为 `@qian/runtime`（［前端框架］外壳也是一棵插件树），两侧语义相同。
 - **D20.3 事件即扩展点，五种分发模式。** `emit`（观察）、`waterfall`（环绕中间件，监听器必须调用 `next()` 才委托）、`parallel`（并行扇出）、`serial`（按序）、`bail`（停在首个返回值）。每个事件在定义处标注模式，CI 校验声明与调用点一致，并生成「事件生产方与消费方」映射。拦截与策略优先用事件，直接能力调用优先用服务方法。
 - **D20.4 能力按 seam 三角色拆分。** 一项能力 = Service Definition（拥有 `ctx.<key>` 与词汇类型，放在 `Qian.<X>.Abstractions`）+ 一个或多个 Service Provider（`Qian.<X>.<Provider>`）+ 一个或多个 Consumer（含面向模型的工具）。扩展插件只依赖 Definition，绝不依赖具体 Provider。例：`ctx.Files` 的 Provider 从本地盘换成 OSS，所有消费者不变；`ctx.Identity` 的 Provider 从嵌入式 OpenIddict 换成外部 IdP 连接器，登录页与会话中心不变。ADR-019 的 Abstractions / 实现分层据此落位。
 - **D20.5 作用域两层扁平。** 任一注册（服务、工具、提示词片段、表单、流程、菜单、监听器）要么是全局的，要么归属恰好一个 scope key；S1 的 scope 种类为租户、应用、Agent 会话。带作用域的注册在该 scope 内遮蔽（shadow）同名全局项；`restrict` 为某个 scope 过滤全局集合，多个 restriction 取交集；被过滤掉的项既不出现在目录与提示词里，也拒绝执行，与不存在无法区分。scope 不继承：子 scope 的行为用 lineage 数据表达，从不用 scope 层级。这取代 ADR-002 D2.9 的租户级生命周期：**租户启用一个插件 = 在租户 scope 挂载它的配置条目；租户定制 = 带作用域的遮蔽注册**。
@@ -40,7 +42,7 @@ amended_by: ADR-023
     hooks/hooks.json              钩子：Qian 事件与 Agent 宿主事件（PreToolUse 等）的桥接
     .mcp.json                     MCP 服务器声明
     tools/                        面向模型的工具描述（由代码派生或手写声明）
-    ui/                           yue 远程模块、页面、控件、设置卡
+    ui/                           ［前端框架］远程模块、页面、控件、设置卡
     forms/ lists/ flows/ pages/   低代码元数据（S2 起）
     schemas/                      JSON Schema
     config/qian.patch.yml         对其他条目的 patch（组合包用）
@@ -68,11 +70,11 @@ amended_by: ADR-023
 - **保留 ADR-002/003，只补一个 CLI。** 安装体验改善，但内核仍是特权层、租户开关仍在数据库、Agent 表面仍在 S4，与方向修正的「不要传统设计」不符。
 - **直接采用 Cordis 作为 .NET 侧的运行时（经 Node 侧车或 JS 引擎）。** 与 ADR-002 D2.12「不引入进程共享的服务端 JS 引擎」冲突，也让 Kun 的 .NET 组件要跨进程调用。放弃；TypeScript 侧可单独评估。
 - **用 .NET 现有的模块框架（ABP、Orchard Core 模块系统）。** 都是「模块 + 特权内核」的传统形态，没有 scope、可逆副作用与 patch 分层。放弃。
-- **声明式表面全部交给 iClaw 托管，Qian 只做数据与权限。** 与 ADR-016 的边界一致，但组件无法在不部署 iClaw 的宿主里独立使用，违反 D19 库优先。放弃；Qian 的 skill / agent / command 表面是组件的一部分，iClaw 仍是运行这些表面的 Agent 运行时。
+- **声明式表面全部交给［下游智能体平台］托管，Qian 只做数据与权限。** 与 ADR-016 的边界一致，但组件无法在不部署［下游智能体平台］的宿主里独立使用，违反 D19 库优先。放弃；Qian 的 skill / agent / command 表面是组件的一部分，［下游智能体平台］仍是运行这些表面的 Agent 运行时。
 
 ## 5 后果与代价（Consequences）
 
-- **文档修订面大。** ADR-002 的 D2.1/D2.9/D2.10、ADR-003 的 D3.1–D3.4 被取代；ADR-014 的包格式、ADR-019 的装配表述被修订；PRD §03 概念、§07 的 7.0 与 7.2、§08 设计器产出物、§09 市场形态、§10 Agent 表面、§12 边界、specs/plugin-manifest.md 需按 §6 的清单修订。其余 ADR（身份、鉴权、数据、事件、审计、网关、流程、yue、模型网关、iClaw、部署）的技术结论不变，只是落位从「系统插件」变为「`platform` profile 的 base 组合包里的插件」。
+- **文档修订面大。** ADR-002 的 D2.1/D2.9/D2.10、ADR-003 的 D3.1–D3.4 被取代；ADR-014 的包格式、ADR-019 的装配表述被修订；PRD §03 概念、§07 的 7.0 与 7.2、§08 设计器产出物、§09 市场形态、§10 Agent 表面、§12 边界、specs/plugin-manifest.md 需按 §6 的清单修订。其余 ADR（身份、鉴权、数据、事件、审计、网关、流程、［前端框架］、模型网关、［下游智能体平台］、部署）的技术结论不变，只是落位从「系统插件」变为「`platform` profile 的 base 组合包里的插件」。
 - **S1 新增交付。** `Qian.Runtime`（.NET）与 `@qian/runtime`（TS）、`qian` CLI、官方市场仓库与 marketplace.json、五种声明式表面的解析器与校验器、profile / 组合包 / patch 装载器、`dump-config`、文档生成器与 CI 门禁。这些替换掉原 `qian.kernel` 与 `qian.plugin-sdk` 的大部分工作量，净增工作量集中在 CLI 与装载器。
 - **自研运行时的风险。** .NET 没有现成的「可逆副作用 + scope 过滤分发」运行时，需要在 S1 第一波写出并用 TCK 固化语义；语义以本 ADR 与 specs/component-model.md 为准，不以某个实现为准。
 - **热重载受限。** 代码插件在 .NET 里无法像 Node 一样轻量重载；S1 明确只对声明式表面承诺热重载，代码部分走滚动重启，避免对开发者许诺做不到的事。
@@ -107,10 +109,10 @@ amended_by: ADR-023
 
 1. **TypeScript 侧运行时：`@qian/runtime` 作为公共 API 包，S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现，薄适配层对齐本 ADR 与 specs/component-model.md 的语义；TCK 以我们的语义为准。** 理由：Cordis 已实现 ctx / inject / 可逆副作用 / 五种分发 / scope / loader 与 HMR 的全部语义并经大规模使用验证，自研只是复刻一遍；对外只暴露 `@qian/runtime`，若 TCK 对不上或上游演进不可控，可换为自研实现而不改任何组件代码。.NET 侧自研不变。
 2. **清单文件：`.qian-plugin/plugin.json`（JSON）。** profile 与 patch 继续用 YAML（人手编辑、需要注释）。理由：JSON Schema 校验与源生成器合并最直接，对齐对标生态；`qian doctor --migrate-manifest` 负责从 v1 YAML 迁移。
-3. **`qian` CLI：单一 Node / TypeScript 实现，发布到 npm，`npx qian@latest` 为一键入口；Node ≥ 22 为前置。** `dotnet qian` 薄包装（只负责定位并调用 Node 版 CLI、缺 Node 时给出安装提示）为 S1 可选 P2。理由：与 `@qian/runtime`、yue 工具链同栈；`pack / sign / publish / dev` 本就需要 dotnet SDK，再维护一套 .NET CLI 不值。
+3. **`qian` CLI：单一 Node / TypeScript 实现，发布到 npm，`npx qian@latest` 为一键入口；Node ≥ 22 为前置。** `dotnet qian` 薄包装（只负责定位并调用 Node 版 CLI、缺 Node 时给出安装提示）为 S1 可选 P2。理由：与 `@qian/runtime`、［前端框架］工具链同栈；`pack / sign / publish / dev` 本就需要 dotnet SDK，再维护一套 .NET CLI 不值。
 4. **官方市场仓库：与 Qian 同组织下的独立仓库 `qian-plugins`，根目录 `.qian/marketplace.json`；S1 私有，S3 随许可证评估公开；社区发现用 GitHub topic `qian-plugin`。**
 5. **代码插件热装卸不进 S2 核心交付；S2 内由 RT 领域做一个时间盒 5 天的 spike，验证 collectible `AssemblyLoadContext` 与 Kun 约束，结论写回本 ADR。** 生产默认滚动重启；声明式表面热重载 S1 不变。理由：收益集中在开发态，而开发态已有 `qian dev --watch`；生产可靠性优先。
-6. 【经 ADR-023 修订：许可证全部改 MIT，发布渠道按 D23.12】**许可证：Qian 包族、`qian` CLI、yue 一律 Apache-2.0；S3 商业市场与计费组件的许可证到 S3 再定。公开 feed：S1 GitHub Packages（.NET 包公开可见、安装需令牌，TS 包私有，R93）；S2 末或首个外部宿主试用时公开到 nuget.org 与 npm，前提是 PublicApiAnalyzers 门禁与 0.x → 1.0 的 SemVer 策略就位。** 理由：Apache-2.0 含专利授权、对企业采用友好、与 Kun 的 MIT 兼容，与「别人装一个包就能用」的定位一致。可回退条件：首个公开发布前可改为源码可见类许可证；一旦公开发布不再收回。
+6. 【经 ADR-023 修订：许可证全部改 MIT，发布渠道按 D23.12】**许可证：Qian 包族、`qian` CLI、［前端框架］一律 Apache-2.0；S3 商业市场与计费组件的许可证到 S3 再定。公开 feed：S1 GitHub Packages（.NET 包公开可见、安装需令牌，TS 包私有，R93）；S2 末或首个外部宿主试用时公开到 nuget.org 与 npm，前提是 PublicApiAnalyzers 门禁与 0.x → 1.0 的 SemVer 策略就位。** 理由：Apache-2.0 含专利授权、对企业采用友好、与 Kun 的 MIT 兼容，与「别人装一个包就能用」的定位一致。可回退条件：首个公开发布前可改为源码可见类许可证；一旦公开发布不再收回。
 7. **CLI 遥测：默认不采集；S2 提供 opt-in `qian telemetry on`，只采集命令名、CLI 版本、操作系统与匿名安装 id，不含路径、租户与代码；私有化部署可在 profile 中禁用。** 外部宿主安装数在 S1 只用 feed 下载统计。
 8. `qian init --template` 模板名已统一为 specs/component-model.md §9.1 的集合（R42）；后续新增模板在 spec 登记。
 
@@ -122,16 +124,16 @@ amended_by: ADR-023
 
 ### 7.2 组件入口与程序集边界澄清（2026-10-22）
 
-产品负责人在 [S1-DEC-028](../../pm/tasks/S1-DEC-028.md) 确认方案 A：一个组件 ID 对应一份清单、一个 `runtime.entry`；同一程序集可声明多个不同 ID 的组件，工具按目标清单 ID 选择其派生元数据，重复 ID 或跨组件归属失败。契约包装器、运行时快照适配器和宿主组合子插件是实现构件，不因为实现 `IQianPlugin` 就各自新增组件清单；其归属必须显式记录并被 CI 分类检查。真正需要多个实现协作的组件使用明确的单一组合入口，不把程序集内全部依赖和提供项合并成一个虚假入口。详见[决策记录](../decisions/component-entry-metadata.md)与组件规格 §3.7，实现由 S1-RT-033 交付。
+产品负责人在 [S1-DEC-028](../../_import/qian/pm/tasks/S1-DEC-028.md) 确认方案 A：一个组件 ID 对应一份清单、一个 `runtime.entry`；同一程序集可声明多个不同 ID 的组件，工具按目标清单 ID 选择其派生元数据，重复 ID 或跨组件归属失败。契约包装器、运行时快照适配器和宿主组合子插件是实现构件，不因为实现 `IQianPlugin` 就各自新增组件清单；其归属必须显式记录并被 CI 分类检查。真正需要多个实现协作的组件使用明确的单一组合入口，不把程序集内全部依赖和提供项合并成一个虚假入口。详见[决策记录](../decisions/component-entry-metadata.md)与组件规格 §3.7，实现由 S1-RT-033 交付。
 
 ### 7.3 真实组件依赖与 gateway 开发模板分期（2026-10-22）
 
-产品负责人在 [S1-DEC-029](../../pm/tasks/S1-DEC-029.md) 确认：当前 gateway 开发模板使用 JIT（`build.aot: false`），不把尚无 NativeAOT 发布运行证据的 Apollo、Audit 等组件标为兼容。gateway 与 standalone 的组合包补齐真实入口必需的 Data，连接仍由宿主提供；identity 模板补齐 issuer、OIDC 客户端和 secretRef 示例，minimal 保持空组合包。详见[决策与证据](../decisions/runtime-profile-metadata.md)。
+产品负责人在 [S1-DEC-029](../../_import/qian/pm/tasks/S1-DEC-029.md) 确认：当前 gateway 开发模板使用 JIT（`build.aot: false`），不把尚无 NativeAOT 发布运行证据的 Apollo、Audit 等组件标为兼容。gateway 与 standalone 的组合包补齐真实入口必需的 Data，连接仍由宿主提供；identity 模板补齐 issuer、OIDC 客户端和 secretRef 示例，minimal 保持空组合包。详见[决策与证据](../decisions/runtime-profile-metadata.md)。
 
 D20.10 的边缘 AOT 目标与 S1-DEP-008 的 gateway AOT distroless 验收继续有效。S1-GW-001 / S1-DEP-008 必须对完整 Config / Audit / Data 等依赖组合完成 Linux NativeAOT 发布与运行验证，再恢复默认 `build.aot: true` 和相应兼容声明；开发模板的 JIT 校验、工具链自检镜像都不能替代这道门。AOT profile 拒绝未验证代码组件的通用规则保持不变。
 
 ## 8 参考
 
 - 对标项目的公开仓库与文档（组件目录与 CLI 一键安装；插件清单 `plugin.json` 与 `marketplace.json`；「一切皆插件」运行时、能力 seam、作用域、profile 与 patch 分层、文档生成与 CI 门禁）。
-- ADR-001 Qian 与 Kun 的关系；ADR-002 插件模型；ADR-003 内核边界与 S1 服务拆分；ADR-014 应用市场形态；ADR-016 与 iClaw 的边界；ADR-019 库优先与 Qian 包族。
+- ADR-001 Qian 与 Kun 的关系；ADR-002 插件模型；ADR-003 内核边界与 S1 服务拆分；ADR-014 应用市场形态；ADR-016 与［下游智能体平台］的边界；ADR-019 库优先与 Qian 包族。
 - PRD §03 核心概念模型、§07 S1 技术底座功能规格、specs/plugin-manifest.md（v1，待被 specs/component-model.md 取代）。

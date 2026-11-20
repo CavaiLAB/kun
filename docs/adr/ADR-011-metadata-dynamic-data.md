@@ -24,7 +24,7 @@ Kun 的世界观是「编译期已知、显式注册、AOT 零反射、强类型
 - **D11.6 发布拆成可重放幂等步骤**：编译 → 迁移 → 切流 → 挂载，记发布日志；功能状态机 未发布 → 已发布 → 已修改 → 已发布；记录生命周期：新建 = 权限裁剪 → 必填 → 唯一 / 业务主键 → 系统字段 → 主副子表同事务 → created 事件。
 - **D11.7 Filter AST 在 S1 定义**：`{logic, groups[{logic, conditions[{field, op, value|sysVar}]}]}`，13 个运算符 × 字段类型矩阵，系统变量目录；数据过滤、高级查询、数据权限、启用规则、流程条件五处共用；与 ORM 无关。
 - **D11.8 鉴权在数据引擎唯一入口**做「资源 + 动作 + 行级」三段式（见 ADR-006）；外链为服务端签发的能力令牌（功能 + 动作 + 版本 + 过滤 + 有效期），不照搬匿名外链。
-- **D11.9 控件注册表与 Field Type Catalog 是单一事实源**：每控件一次声明 `edit / readonly / cell` 三种呈现 + Field Type Provider（类型映射、值转换、查询转换、显示转换）；`GET /registry/widgets` 一份元数据两用；控件目录是数据不是代码。Field Type Catalog 的版本策略与 specs/yue.md D16 一致：控件包与后端 Field Type Provider 同名同版本发布（控件 `type` 即字段类型编码，前后端同一 SemVer，CI 校验配对），Catalog 按 `type@version` 登记并按 SemVer 判定兼容。
+- **D11.9 控件注册表与 Field Type Catalog 是单一事实源**：每控件一次声明 `edit / readonly / cell` 三种呈现 + Field Type Provider（类型映射、值转换、查询转换、显示转换）；`GET /registry/widgets` 一份元数据两用；控件目录是数据不是代码。Field Type Catalog 的版本策略与 specs/frontend.md D16 一致：控件包与后端 Field Type Provider 同名同版本发布（控件 `type` 即字段类型编码，前后端同一 SemVer，CI 校验配对），Catalog 按 `type@version` 登记并按 SemVer 判定兼容。
 - **D11.10 代码生成退化为可选「调用运行时 SDK 的薄壳」**，不早于 S2 后期（Q11）；不做参考平台式完整 CRUD 源码生成。
 - **D11.11 视图**（数据集驱动的纯列表）S2 可选，归入列表引擎的「只读数据源」形态，不单独立项（Q17）。
 - **D11.12 脚本能力边界**（Q18）：S2 只做声明式规则 + 服务端 before / after Hook + 可序列化表达式 DSL（JSON AST）；前端 QuickJS 沙箱为 S2 可选兜底；自由 JS 按钮不做；不用 `eval`。

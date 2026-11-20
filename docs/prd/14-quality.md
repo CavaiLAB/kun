@@ -21,18 +21,18 @@
 | 单元测试 | 领域规则、权限求值、Filter AST 编译、表达式解释器、令牌对比度 | xUnit / Vitest；覆盖率阈值按包设定（`Qian.Runtime` 与 `qian.authz` ≥ 85%，其余 ≥ 70%；建议值，待研发负责人校准） | PR 阻断 | S1 |
 | 属性测试 | 流程逆向语义交叉（退回 / 撤回 / 撤销 / 拒绝续流 × 子流程 / 加签 / 计时器）、Schema Migrator 的「扩展 → 迁移 → 收缩」可重放性 | FsCheck / fast-check；只追加流转记录为不变量 | PR 阻断 | S2 |
 | 集成测试（Testcontainers） | PostgreSQL 16 + RLS、RabbitMQ、Redis、Apollo（mock server）；**多副本**（同一消费者 / Saga 执行器 / Outbox 发布器起 2–3 个实例）；**至少一次**（重投、乱序、重复）；**租户回灌**（消息 / Saga / 作业中的租户作用域） | 每个平台插件至少一组；跑真库而非 InMemory；断言含 `tenant_id` 行计数与审计条目 | PR 阻断 | S1 |
-| 契约测试 | OpenAPI 3.1 diff（additive-only，`x-status: draft` 期例外）、proto breaking（buf）、AsyncAPI diff、JSON Schema 2020-12 兼容性、yue 的 FormSchema / ListSchema / 控件 manifest 版本兼容 | 契约文件为真相源；前端类型从 OpenAPI 生成并作快照 | PR 阻断 | S1 |
+| 契约测试 | OpenAPI 3.1 diff（additive-only，`x-status: draft` 期例外）、proto breaking（buf）、AsyncAPI diff、JSON Schema 2020-12 兼容性、前端框架的 FormSchema / ListSchema / 控件 manifest 版本兼容 | 契约文件为真相源；前端类型从 OpenAPI 生成并作快照 | PR 阻断 | S1 |
 | 跨租户渗透测试样例 | HTTP / gRPC 流式 / 消息 / 文件票据 / 数据引擎 Filter AST / 直连 DB 角色六类通道的越权探测 | 作为集成测试的固定子集（§14.3 示例 1），每次 PR 跑；外部渗透测试每阶段至少一次 | PR 阻断 / 阶段阻断 | S1 |
 | TCK（三套，ADR-020） | ① 运行时语义套件：`Inject` / `Apply` 装载顺序与缺失键报错、可逆副作用按逆序撤销、scope 遮蔽与 `restrict` 交集、五种分发模式、profile / 组合包 / patch 层叠与 `dump-config` 一致性（.NET 与 TS 同一组 fixture，以 `minimal` profile 为基准宿主）；② 独立模式套件：组件在 `standalone` 宿主（消费者自己的 ASP.NET Core 项目，不装 `qian.registry` / `qian.lifecycle` / `qian.capabilities`）里 `qian add` 后可用，未显式选 `SingleTenant` 且无宿主 `ITenantContext` 即拒绝启动；③ 组件一致性套件：清单校验、契约一致性、生命周期钩子幂等性（重复调用 `tenantProvision / tenantUpgrade`）、跨租户越权探测、性能基线、「未挂载」三处拦截 | `qian` CLI 一键运行；上架闸门 = 三套 TCK 全绿 + can-i-deploy；官方与第三方同一套 | 发布阻断 | S1 |
 | OIDC 一致性 | `qian.identity` 的授权码 + PKCE、refresh、后通道登出、discovery、`resource` 参数 | OpenID 官方一致性套件（Basic / Back-Channel Logout profile） | 阶段阻断 | S1 |
 | E2E | 开发者写一个多租户应用的完整路径（S1）；建应用 → 表单 / 列表 → 审批 → 授权（S2）；市场选购 → 开通 → 自助配 IdP（S3） | Playwright，chromium + webkit；在 staging 跑；`data-testid` 寻址 | 阶段阻断（夜间） | S1 |
-| 无障碍 | yue 全部组件与关键页面 | 独立 Vitest 浏览器测试与 Rspress 静态页面 Playwright + axe，critical / serious = 0；令牌对比度单测 WCAG AA ≥ 4.5:1 | PR 阻断（组件）/ 夜间（页面） | S1 |
+| 无障碍 | 前端框架全部组件与关键页面 | 独立 Vitest 浏览器测试与 Rspress 静态页面 Playwright + axe，critical / serious = 0；令牌对比度单测 WCAG AA ≥ 4.5:1 | PR 阻断（组件）/ 夜间（页面） | S1 |
 | 性能预算 | 首屏 script 体积（error 级）、Lighthouse perf / a11y / bp；API p95 基线；Schema Migrator 单租户迁移时长 | Lighthouse CI；k6 基线脚本 | PR 阻断（体积）/ 阶段阻断（p95） | S1 |
-| 视觉回归 | 每个 yue 组件默认 / 悬停 / 禁用 / 错误 / 暗色 | Playwright 截图，固定字体与容器镜像，基线入库 | S1 可选 / S2 PR 阻断 | S1 / S2 |
+| 视觉回归 | 每个前端框架组件默认 / 悬停 / 禁用 / 错误 / 暗色 | Playwright 截图，固定字体与容器镜像，基线入库 | S1 可选 / S2 PR 阻断 | S1 / S2 |
 | 安全扫描 | 依赖漏洞、容器镜像、SAST、密钥形态扫描、许可证 | Trivy / CodeQL / gitleaks；许可证白名单（排除 AGPL 与不允许多租户 PaaS 的条款） | PR 阻断 | S1 |
 | 混沌与恢复 | Pod 驱逐、RabbitMQ 断连、PG 主从切换、Apollo 不可达时的降级矩阵；备份恢复演练 | staging 每阶段一次；记录 RTO / RPO | 阶段阻断 | S1 |
 
-首屏 script 体积预算（PR 阻断，error 级）：外壳首屏 script 压缩后传输体积 ≤ 250 KB，由 Lighthouse CI 的 `resource-summary:script:size` 断言；S1-YUE-003 的基线是验证门靶场 `apps/yue-playground`（React 19 + Base UI 五原语 + Tree）约 151 KB，`@yue/shell` 建立后改为对外壳首屏测。改预算先改这里，再改 `apps/yue-playground/lighthouserc.cjs`。
+首屏 script 体积预算（PR 阻断，error 级）：外壳首屏 script 压缩后传输体积 ≤ 250 KB，由 Lighthouse CI 的 `resource-summary:script:size` 断言；S1-YUE-003 的基线是验证门靶场 `apps/yue-playground`（React 19 + Base UI 五原语 + Tree）约 151 KB，`@cavailab/qian-shell` 建立后改为对外壳首屏测。改预算先改这里，再改 `apps/yue-playground/lighthouserc.cjs`。
 
 ---
 
@@ -203,7 +203,7 @@ judge:
 | # | 门禁 | 检查内容 | 失败即 | 阶段 |
 |---|---|---|---|---|
 | C1 | PublicAPI | Kun、`Qian.Runtime` 与各 `Qian.<X>.Abstractions` 公共 API 变更必须更新 `PublicAPI.Shipped/Unshipped.txt`；破坏性变更需 ADR 引用 | PR 阻断 | S1 |
-| C2 | 分层边界 lint | 后端四层依赖（Kun 约定）；yue 六层依赖方向（eslint-plugin-boundaries / dependency-cruiser）；横切包只被上层消费 | PR 阻断 | S1 |
+| C2 | 分层边界 lint | 后端四层依赖（Kun 约定）；前端框架六层依赖方向（eslint-plugin-boundaries / dependency-cruiser）；横切包只被上层消费 | PR 阻断 | S1 |
 | C3 | 清单与代码漂移 | 源生成器重新生成 `.qian-plugin/plugin.json` 的代码部分字段并与仓库中的清单比对（只有一份清单，不存在手写 YAML 与派生文件并存）；端点权限点声明与 OpenAPI `x-qian-*` 扩展一致 | PR 阻断 | S1 |
 | C4 | 契约 lint | 写入端点必须有 JSON Schema；`inputSchema` 禁止 `tenant_id / tenantId` 等租户字段；命令元数据必须含 `sideEffect`；事件必须有稳定 ID 与 Schema | PR 阻断 | S1 |
 | C5 | 品牌字样闸门 | 仓库文本（文档、注释、提交信息、i18n 文案）不得出现参考平台品牌名、公司名、域名或源码路径，不得出现已作废项目名 | PR 阻断 | S1 |
@@ -213,7 +213,7 @@ judge:
 | C9 | 迁移脚本检查 | 迁移脚本幂等（可重复执行）；收缩步骤单独标记；不出现 `DROP TABLE` 于非收缩步骤 | PR 阻断 | S1 |
 | C10 | 测试门禁 | 单测覆盖率阈值；集成测试（Testcontainers）必须跑；安全用例 `flaky_budget: 0` | PR 阻断 | S1 |
 | C11 | 契约兼容 | OpenAPI diff additive-only、proto breaking、AsyncAPI diff；前端类型快照 | PR 阻断 | S1 |
-| C12 | i18n 硬编码 | yue 与各前端面不得出现硬编码界面文案；i18n key 表作为契约发布 | PR 阻断 | S1 |
+| C12 | i18n 硬编码 | 前端框架与各前端面不得出现硬编码界面文案；i18n key 表作为契约发布 | PR 阻断 | S1 |
 | C13 | a11y 与对比度 | axe critical = 0；令牌对比度单测；jsx-a11y | PR 阻断 | S1 |
 | C14 | 性能预算 | Lighthouse script 体积 error 级；publint；循环依赖 | PR 阻断 | S1 |
 | C15 | 视觉回归 | 组件截图基线比对 | S2 起 PR 阻断 | S2 |
@@ -241,7 +241,7 @@ judge:
 | S1 | 组件机制 | 任一平台插件「出修订 → 逐租户迁移 → 回切」演示通过；`platform` profile base 组合包内全部平台插件三套 TCK 全绿；未签名安装失败；`qian --profile platform --dump-config` 打印整棵插件树且任一条目可被 patch 替换；文档新鲜度（C18）、依赖图断言（C19）、`dump-config` 漂移（C20）门禁启用 | TCK 报告、演示录屏、`dump-config` 基线快照 |
 | S1 | 可观测 | trace 覆盖 ≥ 95%（含消息与作业；建议值，待研发负责人校准）；每服务 `/healthz /readyz`；Alertmanager 告警可达 | 采样报告 |
 | S1 | 稳定性 | staging 7 天 crash（容器重启）≤ 3%（建议值，待研发负责人校准）；p95 基线记录 | 监控快照 |
-| S1 | 前端 | yue S1 最小集 Rspress 页面与共用状态示例覆盖 100%；axe critical / serious = 0；对比度单测通过；Lighthouse 预算通过 | CI 报告 |
+| S1 | 前端 | 前端框架 S1 最小集 Rspress 页面与共用状态示例覆盖 100%；axe critical / serious = 0；对比度单测通过；Lighthouse 预算通过 | CI 报告 |
 | S1 | 部署 | default-deny + ResourceQuota + Secret 加密已启用；备份恢复演练 1 次成功 | 集群配置快照、演练记录 |
 | S1 | 过渡态清零 | §13.14 的 G1–G14 全部关闭或有合入期限的补丁包 | 缺口跟踪表 |
 | **S2** | 跑通建应用 → 表单 / 列表 → 审批 → 授权 | E2E 100%；非开发人员按手册 ≤ 1 人日完成示范应用 | E2E 报告、可用性测试记录 |
@@ -328,7 +328,7 @@ judge:
 1. 覆盖率阈值（`Qian.Runtime` 与 `qian.authz` ≥ 85%、其余 ≥ 70%）为本章建议值，需研发负责人确认。
 2. S1「7 天 crash ≤ 3%」「trace ≥ 95%」借鉴了团队既有阶段准则的量级，需结合 Qian 的 staging 规模校准。
 3. 外部渗透测试的频次（每阶段一次）与供应商预算需产品负责人确认（ADR-001 风险 1 要求显式列安全预算）。
-4. 契约 lint 对「`x-status: draft` 期允许破坏性修订」的放行窗口长度需与 iClaw 对齐（ADR-016）。
+4. 契约 lint 对「`x-status: draft` 期允许破坏性修订」的放行窗口长度需与下游智能体平台对齐（ADR-016）。
 5. 品牌字样闸门（C5）的具体词表由本章维护但不写入正文，需确认存放位置（建议 CI 配置而非文档）。
 6. 示例 3 要求「回切后数据不丢」，前提是收缩步骤默认延后执行；与 ADR-011 的 Schema Migrator 收缩策略需核对。
 7. TCK 三套的归属与基准宿主（运行时语义套件以 `minimal` profile 为基准、独立模式套件以 `standalone` 为载体）需研发负责人确认；`dump-config` 基线快照（C20）的存放位置与更新纪律待定（建议随 profile 文件同目录入库）。

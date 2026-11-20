@@ -10,7 +10,7 @@ Kun 在本仓库提供 .NET 内核、平台组件和生产宿主。组件 ID 使
 
 | 目录 | 内容 | 入口 |
 |---|---|---|
-| `docs/` | 决策清单、21 份 ADR、PRD 17 章与四份专题规格、迁移方案、路线图 | [docs/README.md](docs/README.md) |
+| `docs/` | 决策清单、21 份 ADR、PRD 17 章与四份专题规格、迁移方案、路线图 | [docs/README.md](../../docs/platform-overview.md) |
 | `pm/` | 任务文件与看板模板（任务即文件，git 是唯一真相源；看板与进度表按需生成，不进 git） | [pm/README.md](pm/README.md) · [看板部署](deploy/pm-board/README.md) |
 | `scripts/` | `pm.py`（任务校验 / 生成 / 改状态）、`check_docs.py`（文档门禁）；.NET 依赖门禁在仓库根的 `scripts/check_deps.py` | — |
 | `tests/` | 集成测试共用的 Testcontainers fixture（PostgreSQL 16 / Redis 7 / RabbitMQ / Apollo 替身）、门禁自测 | [tests/README.md](../../tests/README.md) |
@@ -18,17 +18,17 @@ Kun 在本仓库提供 .NET 内核、平台组件和生产宿主。组件 ID 使
 | `website/` | 文档站（Rspress 2.0）：七个部分、首页、主题；设计文档在站内「设计与路线」镜像 | [website/README.md](../../website/README.md) |
 | `apps/` | 外壳应用 `qian-shell`（pnpm workspace + `catalog:` + Turborepo）；前端组件库由 `CavaiLAB/qian` 发布，这里装已发布的 `@cavailab/qian-*`，见下文「前端依赖与包源」 | [apps/qian-shell/README.md](../../apps/qian-shell/README.md) · [前端框架](https://github.com/CavaiLAB/qian/blob/main/packages/qian/README.md) |
 | `.github/` | CI：文档门禁 + 任务校验 + 生成看板（上传为产物）；.NET 构建、PublicAPI 与依赖图门禁、单元与集成测试；文档站构建、PR 预览与发布 | — |
-| `deploy/` | 开发期工具的 K3s 清单：`pm-board/` 把看板放进集群、`docs-site/` 托管文档站（都是 git-sync + nginx） | [deploy/pm-board/README.md](deploy/pm-board/README.md) · [deploy/docs-site/README.md](deploy/docs-site/README.md) |
+| `deploy/` | 开发期工具的 K3s 清单：`pm-board/` 把看板放进集群、`docs-site/` 托管文档站（都是 git-sync + nginx） | [deploy/pm-board/README.md](deploy/pm-board/README.md) · [deploy/docs-site/README.md](../../deploy/docs-site/README.md) |
 
-代码目录（`packages/`、`plugins/`、`profiles/`、`samples/`）由 S1 第一波任务建立，布局以 [组件模型规格](docs/prd/specs/component-model.md) 为准。
+代码目录（`packages/`、`plugins/`、`profiles/`、`samples/`）由 S1 第一波任务建立，布局以 [组件模型规格](../../docs/prd/specs/component-model.md) 为准。
 
 ## 从哪里开始读
 
-1. [ADR-020 组件模型 v2](docs/adr/ADR-020-component-model-v2.md)：一切皆插件、声明式表面、`qian add` 一键安装、目录市场、seam 三角色、scope、profile / patch。
-2. [组件模型规格](docs/prd/specs/component-model.md)：实现时以它为准（清单字段、表面格式、运行时 API、CLI、市场、TCK）。
-3. [S1 技术底座功能规格](docs/prd/07-s1-foundation.md)：每个组件的范围、技术落点、验收。
-4. [决策清单](docs/decisions/key-decisions-v0.md) 与 [ADR 索引](docs/adr/README.md)：为什么这么定。
-5. [路线图](docs/ROADMAP.md)：阶段退出标准与里程碑。
+1. [ADR-020 组件模型 v2](../../docs/adr/ADR-020-component-model-v2.md)：一切皆插件、声明式表面、`qian add` 一键安装、目录市场、seam 三角色、scope、profile / patch。
+2. [组件模型规格](../../docs/prd/specs/component-model.md)：实现时以它为准（清单字段、表面格式、运行时 API、CLI、市场、TCK）。
+3. [S1 技术底座功能规格](../../docs/prd/07-s1-foundation.md)：每个组件的范围、技术落点、验收。
+4. [决策清单](../../docs/decisions/key-decisions-v0.md) 与 [ADR 索引](../../docs/adr/decisions.md)：为什么这么定。
+5. [路线图](../../docs/platform-roadmap.md)：阶段退出标准与里程碑。
 
 ## 项目管理：怎么看进度、怎么维护
 
@@ -57,7 +57,7 @@ python3 _import/qian/scripts/pm.py build                              # 想在�
 
 ## 开发怎么开始
 
-S1 按四波推进（见 [迁移方案总览 §4.2](docs/migration/README.md) 与看板的「波次」筛选）：
+S1 按四波推进（见 [迁移方案总览 §4.2](../../docs/platform-migration/README.md) 与看板的「波次」筛选）：
 
 1. **第 1 波 可信计算基**：`Kun.Runtime` 与三个平台插件、Kun 缺口修复、租户、身份唯一 issuer、鉴权端口与 RBAC、网关、事件、审计、Apollo 配置。
 2. **第 2 波 开发者可用**：`qian` CLI 与 SDK、官方目录市场、文件、组织目录、消息、调度、实时、可观测、前端基础组件与外壳。
@@ -72,6 +72,6 @@ S1 按四波推进（见 [迁移方案总览 §4.2](docs/migration/README.md) �
 
 ## 约定
 
-- 文档一律中文；不出现参考平台品牌名，对标项目只写「对标项目」。`python3 _import/qian/scripts/check_docs.py` 会检查。
+- 文档一律中文；不出现参考平台品牌名，对标项目只写「对标项目」。`python3 scripts/check_docs.py` 会检查。
 - 提交信息带任务 id，例如 `feat(runtime): ctx.Effect 逆序释放 [S1-RT-001]`。
 - 通过 PR 向主干 `main` 提交修改。

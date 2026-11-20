@@ -11,8 +11,8 @@
 | 项目 | 许可证 | 借鉴内容 | 我们的态度 |
 |---|---|---|---|
 | Kun（自研 .NET 10 微服务框架） | MIT | 四层依赖、Result 错误模型、显式注册的 Mediator、Outbox 与稳定事件 ID、schema-per-service、RLS、PublicAPI 门禁 | 引入代码（NuGet + CalVer 锁版本）；S1 修关键缺口，上游 PR 优先 |
-| iClaw（同一所有者的 Agent 运行时项目） | 内部项目 | 文档体系与 PRD 体例、前端工程规范与令牌架构、S2S JWT claim 形状、事件信封、工具元数据、Higress 治理契约、部署三层范式 | 引入代码仅限四处：审计拦截器、租户主数据模型、OIDC 授权码实现、通知通道范式；其余只借鉴思路 |
-| 对标项目（见 ADR-020 §1）：三类 Agent 时代组件化设计 | 以引入时在仓库内核验为准（其中「一切皆插件」运行时为 MIT） | ① 文件即组件与一键安装：组件目录按领域分文件夹、每个组件是带 front matter 的 Markdown 或一份 JSON、`npx … --yes` 一条命令安装、健康检查与目录网站；② `plugin.json` 清单 + 若干声明式表面（skills / agents / commands / hooks / MCP）+ `marketplace.json` 目录市场（条目只写来源与策略）；③ 「一切皆插件」运行时：无特权内核、服务 / 类型化事件 / 可逆副作用、`inject` 声明依赖、能力 seam 三角色、scope 遮蔽与 restrict、profile / 组合包 / patch 层叠、文档由代码生成并设 CI 新鲜度门禁 | 只借鉴设计：.NET 侧自研同语义 `Qian.Runtime`、`qian` CLI 与 `.qian-plugin/plugin.json` / `.qian/marketplace.json` 格式；TypeScript 侧（yue 外壳、CLI）公共 API 为 `@qian/runtime`，S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现、薄适配层对齐我们的语义（已拍板，ADR-020 §7 第 1 条，见下一行） |
+| 下游智能体平台（同一所有者的 Agent 运行时项目） | 内部项目 | 文档体系与 PRD 体例、前端工程规范与令牌架构、S2S JWT claim 形状、事件信封、工具元数据、Higress 治理契约、部署三层范式 | 引入代码仅限四处：审计拦截器、租户主数据模型、OIDC 授权码实现、通知通道范式；其余只借鉴思路 |
+| 对标项目（见 ADR-020 §1）：三类 Agent 时代组件化设计 | 以引入时在仓库内核验为准（其中「一切皆插件」运行时为 MIT） | ① 文件即组件与一键安装：组件目录按领域分文件夹、每个组件是带 front matter 的 Markdown 或一份 JSON、`npx … --yes` 一条命令安装、健康检查与目录网站；② `plugin.json` 清单 + 若干声明式表面（skills / agents / commands / hooks / MCP）+ `marketplace.json` 目录市场（条目只写来源与策略）；③ 「一切皆插件」运行时：无特权内核、服务 / 类型化事件 / 可逆副作用、`inject` 声明依赖、能力 seam 三角色、scope 遮蔽与 restrict、profile / 组合包 / patch 层叠、文档由代码生成并设 CI 新鲜度门禁 | 只借鉴设计：.NET 侧自研同语义 `Qian.Runtime`、`qian` CLI 与 `.qian-plugin/plugin.json` / `.qian/marketplace.json` 格式；TypeScript 侧（前端框架外壳、CLI）公共 API 为 `@qian/runtime`，S1 内部以固定版本 vendor 的 Cordis（MIT）作为实现、薄适配层对齐我们的语义（已拍板，ADR-020 §7 第 1 条，见下一行） |
 | Rspress 2.0 | MIT | 文档站生成器：MDX、内置搜索、`llms.txt` 与 SSG-MD、组件预览 / 演练场 / API 生成插件 | 引入使用（ADR-013 D13.18）；配套 DocFX（MIT）生成 .NET API 参考、Scalar（MIT）渲染 OpenAPI |
 | Cordis | MIT | TS 侧「一切皆插件」运行时实现：ctx / inject / 可逆副作用 / 五种分发 / scope / loader 与 HMR | 引入代码：S1 以固定版本 vendor 为 `@qian/runtime` 的内部实现，对外只暴露 `@qian/runtime`，TCK 以我们的语义为准、可替换为自研（ADR-020 §7 第 1 条）；.NET 侧不引入 |
 | OpenIddict | Apache-2.0 | OIDC / OAuth 2.1 服务器实现 | 引入代码（`qian.identity` 的协议层） |
@@ -47,14 +47,14 @@
 | Casdoor | Apache-2.0 | — | 不采用（安全记录） |
 | Kubernetes Agent Sandbox（kubernetes-sigs） | Apache-2.0 | 沙箱 CRD（Sandbox / Template / Claim / WarmPool） | 只借鉴设计；S4 沙箱对接外部运行时 |
 
-## 17.2 前端与 yue
+## 17.2 前端与前端框架
 
 | 项目 | 许可证 | 借鉴内容 | 我们的态度 |
 |---|---|---|---|
 | React / Vite / TypeScript | MIT / MIT / Apache-2.0 | 基础栈 | 引入代码 |
 | Tailwind CSS v4 | MIT | 原子化样式与主题变量 | 引入代码 |
 | Base UI | MIT | 无样式原语 | 引入代码；首迭代验证门，不过则整体切 Radix（MIT），不混用 |
-| shadcn/ui | MIT | 源码自有化的组件起点 | 引入代码（拷贝进 `@yue/core` 后自有化维护） |
+| shadcn/ui | MIT | 源码自有化的组件起点 | 引入代码（拷贝进 `@cavailab/qian-core` 后自有化维护） |
 | TanStack Table / Virtual / Query | MIT | 数据表格、虚拟滚动、数据获取 | 引入代码（DataTable 基础） |
 | react-hook-form + Ajv | MIT / MIT | 表单状态与 JSON Schema 校验 | 引入代码（react-hook-form 是 SchemaForm 基础；S1-YUE-014 起 SchemaForm 校验解释执行，Ajv 对它只作差分对照；Ajv 运行期仍用于 qian-cli 与 qian-surfaces，构建期用于 plugin-sdk 预编译清单校验器） |
 | Zustand | MIT | 轻量状态 | 引入代码 |
@@ -63,7 +63,7 @@
 | dnd-kit | MIT | 设计器拖拽 | 引入代码（供应链关注） |
 | @xyflow/react（React Flow） | MIT | 自由画布（S3 可选流程视图） | 候选引入代码；S2 审批设计器用 DOM 节点树自绘 |
 | react-grid-layout | MIT | 门户栅格 | 候选引入代码（S3） |
-| ECharts | Apache-2.0 | 图表 | 候选引入代码（`@yue/charts`，S2 可选） |
+| ECharts | Apache-2.0 | 图表 | 候选引入代码（`图表组件`，S2 可选） |
 | Univer | Apache-2.0（开源核心；Pro 商业） | 表格 / 报表设计器 | 候选引入代码（S3 报表，仅开源核心；避免 Pro 水印路径） |
 | pdfme | MIT | 打印模板设计器 | 候选引入代码（S3 打印设计器） |
 | Monaco Editor / CodeMirror 6 | MIT / MIT | 代码与表达式编辑器 | 引入代码（S2） |
@@ -101,7 +101,7 @@
 
 - Kun：S1 修复的关键缺口以上游 PR 回合（设 1 个迭代的回合入期限，否则维护补丁包）。
 - OpenIddict / MCP C# SDK：使用中发现的 AOT 兼容与协议一致性问题以 issue / PR 回馈。
-- yue：以私有 npm 分发为主；S3 可选、S4 必做 shadcn 私有 registry + MCP Server 面向 ISV 与 Agent。
+- 前端框架：以私有 npm 分发为主；S3 可选、S4 必做 shadcn 私有 registry + MCP Server 面向 ISV 与 Agent。
 - 被替代或放弃的方案在本表保留记录而不删除，供后续复核。
 
 ## 修订历史

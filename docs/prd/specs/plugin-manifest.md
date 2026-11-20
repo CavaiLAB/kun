@@ -15,7 +15,7 @@
 | D3 | `id` 为反向域名、发布后不可改；插件 SemVer 与 Kun CalVer 独立；`engines.qian / kun / yue` 声明兼容范围 | ADR-001、ADR-002 |
 | D4 | 制品只接受 OCI `@sha256:` digest 引用；代码制品 cosign 分离签名，元数据包与 `SKILL.md` 用「文件 URI + SHA-256 + 字节数」清单 + Ed25519 分离签名；未签名或签名不符直接安装失败 | ADR-002；P 基线 §4.5 |
 | D5 | 清单从代码派生：源生成器与 CLI 生成片段，手写部分只限描述性字段；CI 比对清单与代码，漂移即失败 | P 基线原则 P4 |
-| D6 | `provides.capabilities[]` 是 Agent 可发现的最小单元；副作用枚举采 iClaw 四值 `read \| write \| external \| destructive` + `policyHint`；`schemaSha256` 进入授权（schema 变即旧授权失效）；Agent 字段 S1 全部落库、S4 才派生 MCP 工具 | ADR-016；P 基线裁决 A-9 |
+| D6 | `provides.capabilities[]` 是 Agent 可发现的最小单元；副作用枚举采下游智能体平台四值 `read \| write \| external \| destructive` + `policyHint`；`schemaSha256` 进入授权（schema 变即旧授权失效）；Agent 字段 S1 全部落库、S4 才派生 MCP 工具 | ADR-016；P 基线裁决 A-9 |
 | D7 | 两个方向的权限分开：`provides.permissions`（本插件定义的权限点，供授予他人）与反向 `permissions.platform / data / egress / secrets / ui`（插件向平台申请，租户管理员开通时逐项批准；升级新增即重批） | ADR-006；P 基线 §3.1 |
 | D8 | 租户字段永不进 `inputSchema`，契约 lint 强制；密钥只以 `secretRef` 名字出现，清单、事件、日志永不含明文 | ADR-018 防返工项 6；ADR-007 |
 | D9 | 两层生命周期分开建模：平台级 `Draft → Submitted → Verified → Published → Installed → Active → Deprecated → Retired`；租户级 `Available → Entitled → Provisioning → Enabled ⇄ Disabled → Upgrading / Uninstalled → Purged`；`Entitled`（授权库）与 `Enabled`（Apollo 开关 + 租户状态）分开存 | ADR-002、ADR-014 |
@@ -218,8 +218,8 @@ audit:
 | `capabilities[].version` | 整数 | 能力契约版本；破坏性变更递增并保留旧版一个弃用窗口 |
 | `capabilities[].contract` | `{ openapi, operationId }` 或 `{ grpc, method }` | 指向契约文件；pack 时据此抽取输入/输出 JSON Schema |
 | `capabilities[].description` | 字符串，必填，≥ 10 字 | **意图式**描述（何时用、何时不用），面向 Agent；TCK 检查非空 |
-| `capabilities[].sideEffect` | `read \| write \| external \| destructive` | 对齐 iClaw `ToolSpec.side_effect`；`destructive` 默认 `policyHint: confirm` |
-| `capabilities[].policyHint` | `allow \| confirm \| deny` | iClaw ToolPolicy 的默认值来源；运行时权威仍是调用方策略 |
+| `capabilities[].sideEffect` | `read \| write \| external \| destructive` | 对齐下游智能体平台 `ToolSpec.side_effect`；`destructive` 默认 `policyHint: confirm` |
+| `capabilities[].policyHint` | `allow \| confirm \| deny` | 下游智能体平台 ToolPolicy 的默认值来源；运行时权威仍是调用方策略 |
 | `capabilities[].idempotent` | 布尔 | `sideEffect ≠ read` 时必须为 `true` 且输入 Schema 含 `idempotencyKey`（分析器与 TCK 强制） |
 | `capabilities[].async` | `none \| task` | `task` 表示返回 Operation 资源；契约由 `qian.kernel` 在 S1 的 SDK 契约包中预留，`qian.operations` 实现可到 S2，S1 的导入导出等长操作即以此声明（§07 7.2.1，R8） |
 | `capabilities[].requiredScopes[]` | OAuth scope 串 | 调用所需 scope（`<plugin id>:<read\|write\|admin>` 约定） |
@@ -292,7 +292,7 @@ audit:
 ### 4.2 sign
 
 - 输入：pack 产物、签名身份（平台密钥 / 伙伴 cosign 身份 / 租户密钥，按 `tier`）。
-- 动作：代码制品 → cosign 分离签名 + 证明（SLSA provenance）；元数据包与 `SKILL.md` → 对「文件 URI + SHA-256 + 字节数」清单做 Ed25519 分离签名（与 iClaw Skill 签名载荷 `{ name, version, body_sha256 }` 同形）。
+- 动作：代码制品 → cosign 分离签名 + 证明（SLSA provenance）；元数据包与 `SKILL.md` → 对「文件 URI + SHA-256 + 字节数」清单做 Ed25519 分离签名（与下游智能体平台 Skill 签名载荷 `{ name, version, body_sha256 }` 同形）。
 - 产出：签名与证明对象，与制品一同推送；签名**不写回清单**。
 - 失败：签名身份与 `tier` 不匹配（如 `partner` 用平台密钥）即拒绝。
 
@@ -362,9 +362,9 @@ audit:
 **已选**
 
 - 清单格式 YAML（人读）+ JSON Schema 2020-12 校验；锁定产物 `manifest.lock.json` 为 JSON。理由：与契约格式（JSON Schema 2020-12、OpenAPI 3.1）同一套工具链。
-- 制品格式 OCI artifact（`application/vnd.qian.plugin.v1`）推 Harbor；签名 cosign（代码）+ Ed25519 分离签名（元数据包）。理由：复用现网供应链证据链路，与 iClaw Skill 签名同形。
-- 副作用枚举采 iClaw 四值 + `policyHint`，不押注 MCP 工具注解字段名，保留自有扩展 `x-qian-agent`。
-- 事件 ID 形如 `<domain>.<entity>.<verb>.vN`，与 iClaw envelope `subject` 约定一致。
+- 制品格式 OCI artifact（`application/vnd.qian.plugin.v1`）推 Harbor；签名 cosign（代码）+ Ed25519 分离签名（元数据包）。理由：复用现网供应链证据链路，与下游智能体平台 Skill 签名同形。
+- 副作用枚举采下游智能体平台四值 + `policyHint`，不押注 MCP 工具注解字段名，保留自有扩展 `x-qian-agent`。
+- 事件 ID 形如 `<domain>.<entity>.<verb>.vN`，与下游智能体平台 envelope `subject` 约定一致。
 - 扩展点与契约 ID 带 `/vN`，破坏性变更开新版并给弃用窗口（借鉴 MCP 12 个月弃用政策）。
 
 **待决策（需在 S1 内拍板）**
@@ -410,7 +410,7 @@ audit:
 | S2 | `distribution: template \| managed` | 元数据包分发模式（默认 `managed`，Q10） | `qian.metadata` 分层与同源导入升级 |
 | S2 | `components.packages[]` | 元数据文件集合（模型/表单/列表/流程/菜单/角色/种子数据），安装 = 写租户元数据 | 元数据注册表、Schema Migrator |
 | S2 | `components.functions[] { id, target, wasm@sha256, limits }` | Wasm 函数插件；`target` 指向函数型扩展点（如 `qian.form.compute/v1`） | ABI 拍板、`qian.wasm-runtime` |
-| S2 | `provides.extensionPoints[]`（业务插槽）、`contributes` 到 `qian.form.field-type/v1`、`qian.record.detail.tab/v1`、`qian.list.layout/v1`、`qian.action.type/v1` 等 | 控件、详情页签、列表布局、动作类型注册 | yue 控件注册表、设计器 |
+| S2 | `provides.extensionPoints[]`（业务插槽）、`contributes` 到 `qian.form.field-type/v1`、`qian.record.detail.tab/v1`、`qian.list.layout/v1`、`qian.action.type/v1` 等 | 控件、详情页签、列表布局、动作类型注册 | 前端框架控件注册表、设计器 |
 | S2 | `provides.resources[] { kind, name, schemaRef, sensitivity }` | Agent 可读元数据与字段敏感度标签 | 元数据注册表 |
 | S2 | `capabilities[].async: task` | 长任务返回 Operation 资源 | `qian.operations` |
 | S2 | `lifecycle.migrations.tenant` 的批次参数 `{ batchSize, concurrency, pauseOnFailure }` | 逐租户批量迁移 | `qian.kernel` 批量迁移器 |

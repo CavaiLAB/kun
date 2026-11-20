@@ -1,6 +1,6 @@
 # Qian 文档站
 
-> 对应任务 S1-DOCS-001（脚手架）、S1-DOCS-005（「Kun 框架」小节与 Kun API 参考）与 S1-DOCS-003（机器可读产物与 frontmatter 校验）。规范见 [docs/prd/specs/docs-site.md](../_import/qian/docs/prd/specs/docs-site.md)（七个部分、首页、组件页模板、frontmatter、机器可读产物），本文是它的实施说明：怎么本地运行、目录怎么分、内容从哪来、怎么发布。
+> 对应任务 S1-DOCS-001（脚手架）、S1-DOCS-005（「Kun 框架」小节与 Kun API 参考）与 S1-DOCS-003（机器可读产物与 frontmatter 校验）。规范见 [docs/prd/specs/docs-site.md](../docs/prd/specs/docs-site.md)（七个部分、首页、组件页模板、frontmatter、机器可读产物），本文是它的实施说明：怎么本地运行、目录怎么分、内容从哪来、怎么发布。
 
 Rspress 2.0（`@rspress/core` 2.0.23，React 19，MDX）。内置全文搜索（本地索引）与 Shiki 代码高亮，Mermaid 由 `rspress-plugin-mermaid` 渲染。站点只有中文，目录结构给英文预留 `/en/`（docs-site.md §5）。
 
@@ -128,7 +128,7 @@ docs-site.md §5.1 是契约，这里只说实现：
 - JSX 容器（`Card` 等）内部的 Markdown 里的行内组件不会被渲染，会原样进 `.md`（Rspress `remarkSplitMdx` 只处理顶层段落里的行内 JSX），所以首页卡片正文里的阶段标记写成文字，`Badge` 只放在 JSX 属性里。
 - `themeConfig.llmsUI` 在每个文档页标题下放「复制为 Markdown」与「复制 Markdown 链接」；首页是 `pageType: custom`，`HomeHero` 里手动放同一组按钮。`viewOptions` 只留 `markdownLink`，不放外部 AI 服务入口（站内「问 AI」是 S2-DOCS-001）。
 - `scripts/build-kb-index.ts` 在 `rspress build` 之后运行（`build` 脚本末尾）：遍历 `website/docs` 的页面源（含生成页），解析 frontmatter（`scripts/repo.ts` 的 `parseFrontmatter`，与 `scripts/check_docs.py` 同一套 YAML 子集），读对应 `.md` 算 sha256，写 `kb-index.json`；再按 frontmatter `updated` 写 `sitemap.xml`（绝对地址 = `DOCS_SITE_URL`（默认 `theme/site.ts` 的 `DEFAULT_SITE_URL`）+ `DOCS_BASE` + 路由）。缺 `.md`、frontmatter 不合法、产物里有没来源的 `.md` 都让构建失败。
-- 生成页的 frontmatter 由各生成器补齐：组件占位页与 CLI 页写 `project` / `audience` / `updated`（取源文件最后提交日期，`repoFileDate`），设计文档镜像页合成 `title`（源 frontmatter 或一级标题）、`description`（首段去标记截到 120 字）、`updated`、`source`（`CavaiLAB/kun@main:_import/qian/<路径>`）并保留源文件自带的其它字段（ADR 的 `status`、`date` 等）。
+- 生成页的 frontmatter 由各生成器补齐：组件占位页与 CLI 页写 `project` / `audience` / `updated`（取源文件最后提交日期，`repoFileDate`），设计文档镜像页合成 `title`（源 frontmatter 或一级标题）、`description`（首段去标记截到 120 字）、`updated`、`source`（`CavaiLAB/kun@main:<路径>`）并保留源文件自带的其它字段（ADR 的 `status`、`date` 等）。
 
 ## 5 主题与令牌
 
@@ -138,14 +138,14 @@ docs-site.md §5.1 是契约，这里只说实现：
 
 ## 6 托管与预览：K3s 静态托管
 
-验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选的是 **K3s 静态托管**：文档面向内部团队，入口与任务看板一致，不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同：CI 构建，git-sync 拉取，nginx 提供。文档站从 `CavaiLAB/kun` 的 `website/` 构建，细节见 [deploy/docs-site/README.md](../_import/qian/deploy/docs-site/README.md)。
+验收给了 Cloudflare Pages 与 K3s 静态托管两个选项，选的是 **K3s 静态托管**：文档面向内部团队，入口与任务看板一致，不需要外部账号与另一套访问控制。做法与 `deploy/pm-board` 相同：CI 构建，git-sync 拉取，nginx 提供。文档站从 `CavaiLAB/kun` 的 `website/` 构建，细节见 [deploy/docs-site/README.md](../deploy/docs-site/README.md)。
 
 - 仓库根 `ci.yml` 按 `scripts/ci_changes.py` 的 docs-site 区域调用 `.github/workflows/qian-docs-site.yml`。PR 和主干都运行类型检查、单测、断链与锚点检查、产物检查以及浏览器验收。
-- 发布：只在 `main` 上发布正式站点，把构建产物推到 `CavaiLAB/kun` 的 `docs-site` 分支的根目录（`_import/qian/deploy/docs-site/publish.sh`，分支只保留一个提交）。集群里 git-sync 每 60 秒经 HTTPS 匿名拉取该分支，nginx 提供访问。
-- 部署仓库的 Argo CD Application 指定 Kun 的版本和清单目录。当前版本的部署模板位于 `_import/qian/deploy/docs-site/`。
+- 发布：只在 `main` 上发布正式站点，把构建产物推到 `CavaiLAB/kun` 的 `docs-site` 分支的根目录（`deploy/docs-site/publish.sh`，分支只保留一个提交）。集群里 git-sync 每 60 秒经 HTTPS 匿名拉取该分支，nginx 提供访问。
+- 部署仓库的 Argo CD Application 指定 Kun 的版本和清单目录。当前版本的部署模板位于 `deploy/docs-site/`。
 - PR 预览：现在没有接，接不接由产品负责人定。原仓库的做法是同仓库分支的 PR 发布到 `pr-preview/pr-<n>/`、在 PR 里留访问链接、PR 关闭后删除预览；`CavaiLAB/kun` 是公开仓库，PR 评论人人可见，所以没有照搬。PR 上的构建仍带 `pr-preview/pr-<n>/` 前缀（`DOCS_BASE`），前缀检查照跑；nginx 与 `publish.sh` 仍支持这个路径，接回只改工作流。
 - 「Kun 框架」小节的来源：版本取仓库根 `CHANGELOG.md` 里 Kun 最新的发布版，它的 tag `v<版本>` 在本仓库（发版时打的，导入之前的随历史导入，提交号不变），工作流只从本仓库取这一个 tag 与它的历史，生成脚本直接读本仓库（`scripts/kun.ts`），不另外检出，也不要凭据。
-- 可通过集群查看站点地址或使用端口转发。命令见 `_import/qian/deploy/docs-site/README.md`。
+- 可通过集群查看站点地址或使用端口转发。命令见 `deploy/docs-site/README.md`。
 
 ## 7 门禁
 
@@ -164,7 +164,7 @@ CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内�
 
 - 手写页放在对应部分的目录下，用 `.md`；要用组件（`Badge`、卡片等）时才用 `.mdx`。
 - frontmatter 先写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`、`audience`、`updated`，`scripts/check_docs.py` 会查（docs-site.md §4）；只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串几种写法。手写页的 `project` 都是 `qian`（`kun` 属于 Kun 镜像页，`yue` 属于 qian 组件库的组件页）。规划中的能力加 `stage`，S2 及以后的再加 `tag: S2` 等，侧栏会显示阶段标记。完整字段见 docs-site.md §4（校验随 S1-DOCS-003 上线）。
-- 站内链接写绝对路由（`/start/hosts`、`/design/adr/adr-016-iclaw-boundary`），不带 `.md` 或 `.html`。
+- 站内链接写绝对路由（`/start/hosts`、`/design/adr/adr-016-agent-boundary`），不带 `.md` 或 `.html`。
 - 卡片等 JSX 容器内部的 Markdown 里不放行内组件（`Badge` 等），阶段标记写成「（S2）」这样的文字；否则 `.md` 产物里会原样残留，产物检查会拦（§4a）。
 - 设计文档、规格与变更日志只改仓库 `docs/`，不要改 `website/docs/design/`、`cli/`、`components/`。
 - Kun 的文档只改 kun 仓库（提 PR），站内随 Kun 的发布版更新；`website/docs/sdk/kun/` 只有 `with-qian.mdx` 是手写的，`sdk/api/` 全部生成。

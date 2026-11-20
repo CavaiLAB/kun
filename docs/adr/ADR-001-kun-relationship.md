@@ -10,7 +10,9 @@ superseded_by: ADR-023（部分）
 
 # ADR-001 Qian 与 Kun 的关系
 
-> 2026-10-07 经 [ADR-021](ADR-021-product-family-structure.md) 修订：补充 Kun / Qian / yue 三层口径、产品族的关联方式（组织、文档站、版本矩阵、看板）、`KunVersion` 单点钉版与 Kun 文档进文档站的规则；D1.1–D1.8 原文不变。
+> 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
+
+> 2026-10-07 经 [ADR-021](ADR-021-product-family-structure.md) 修订：补充 Kun / Qian / ［前端框架］三层口径、产品族的关联方式（组织、文档站、版本矩阵、看板）、`KunVersion` 单点钉版与 Kun 文档进文档站的规则；D1.1–D1.8 原文不变。
 
 > **2026-11-17 部分被 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) 取代。** 产品负责人裁定 Qian 并入 Kun。D1.2 的消费方式，以及 §4 里否决单仓、否决「把 Kun 扩展为平台内核」的两条被取代；D1.1 的定位改按 ADR-023 D23.6。取代按 ADR-023 D23.15 分阶段落地：阶段 2 构建并轨之前，Qian 仍以 NuGet 包钉版消费 Kun。其余条目不变。
 
@@ -20,7 +22,7 @@ Kun 是团队自研的 .NET 10 微服务开发框架：32 个 `Kun.*` 模块约 
 
 调研确认 Kun 的真实成熟度低于其文档：可生产级只有 `Kun.Core` 与 `Kun.Mediator`；关键路径存在正确性缺口——领域事件到集成事件的路径会静默丢消息、RabbitMQ 消费端实际是 at-most-once、Outbox 发布器/消费端/Saga 执行器都不恢复租户上下文、Saga 与 Outbox 无多副本锁、网关默认不强制认证且限流未挂路由、gRPC 流式调用绕过鉴权、OIDC 客户端链路未打通（基线 K §0.1、§2.1–§2.4；基线 P §10.1 第 5 条）。另外存在多组「双胞胎 API」：三套 S2S 签发器、两族存储接口、多条审计路径、两个同名 `AddKunMultiTenancy`（基线 K §5.4）。Kun 文档与代码多处不一致（源生成器、`/s2s/issue`、NetworkPolicy 在代码里不存在），基线裁定**一律以代码为准**（基线 K §0 口径、附录 B-13）。
 
-iClaw 以 `ProjectReference` 指向同级 `kun/` 目录并在 Docker 构建时复制源码，导致 Kun 破坏性变更直接打断构建、镜像构建依赖私有仓 PAT（基线 K §4.1）。Qian 需要在第一天就定下与 Kun 的关系，否则插件生态与第三方开发者无法依赖一个稳定的底座。
+［下游智能体平台］以 `ProjectReference` 指向同级 `kun/` 目录并在 Docker 构建时复制源码，导致 Kun 破坏性变更直接打断构建、镜像构建依赖私有仓 PAT（基线 K §4.1）。Qian 需要在第一天就定下与 Kun 的关系，否则插件生态与第三方开发者无法依赖一个稳定的底座。
 
 ## 2 决策（Decision）
 
@@ -38,11 +40,11 @@ iClaw 以 `ProjectReference` 指向同级 `kun/` 目录并在 Docker 构建时�
 - Kun 自己的 ADR 明确「不做 IdP、不做权限模型、不编排开户、不做反射式发现」，强行塞进 Kun 与其框架定位和单人维护带宽冲突（基线 K §5.2）。
 - 第三方插件开发者只能依赖包，源码引用会把破坏性变更变成构建失败（基线 K §5.3）。
 - 没有任何带 EF 的服务被 AOT 发布过，Kun 的 AOT 故事只覆盖网关、gRPC 无状态服务与纯 Mediator（基线 K §3.1 第 10 条）。
-- iClaw 的教训：RLS 拦截器、`Kun.MultiTenancy`、`Kun.RateLimit`、`Kun.Observability` 都「有而未被用上」，在线服务靠约 216 处手写 `TenantId ==` 谓词（基线 K §4.1 痛点清单）。
+- ［下游智能体平台］的教训：RLS 拦截器、`Kun.MultiTenancy`、`Kun.RateLimit`、`Kun.Observability` 都「有而未被用上」，在线服务靠约 216 处手写 `TenantId ==` 谓词（基线 K §4.1 痛点清单）。
 
 ## 4 备选方案与放弃原因（Alternatives）
 
-- 【已被 ADR-023 取代】**monorepo / ProjectReference 引用 Kun**（iClaw 现状）：破坏性变更直接打断 Qian 构建，镜像构建依赖私有仓，第三方无法依赖源码。放弃。
+- 【已被 ADR-023 取代】**monorepo / ProjectReference 引用 Kun**（［下游智能体平台］现状）：破坏性变更直接打断 Qian 构建，镜像构建依赖私有仓，第三方无法依赖源码。放弃。
 - **长期 fork Kun**：分叉后双方修复不再互通，加重单人维护问题。只作为 D1.7 的逾期退路，并设回合入期限。
 - 【已被 ADR-023 取代】**把 Kun 直接扩展为平台内核**：违背 Kun 的框架定位，插件、注册表、权限、元数据都不是框架职责。放弃。
 

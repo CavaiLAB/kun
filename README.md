@@ -26,8 +26,8 @@ Kun 由两部分归并而成：
 | 名字 | 层 | 是什么 | 仓库 | 版本 · 许可 | 文档在哪 |
 |---|---|---|---|---|---|
 | Kun | 内核 | .NET 10 的命令调度、租户上下文、数据访问、事件和可观测模块 | `CavaiLAB/kun` | CalVer · MIT | [架构](docs/architecture.md) |
-| Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台概览](_import/qian/README.md) |
-| Qian | 前端 | React 组件、外壳、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [前端框架](_import/qian/docs/prd/specs/yue.md) |
+| Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台概览](docs/platform-overview.md) |
+| Qian | 前端 | React 组件、外壳、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [前端框架](docs/prd/specs/frontend.md) |
 
 ## 两档
 
@@ -94,21 +94,11 @@ Kun 由两部分归并而成：
 - 任务与看板、新的决策记录放在哪个仓库（S1-DEC-038 Q2）；迁移期间任务与看板随本仓库的过渡目录。
 - `_import/` 这套迁移做法是[迁移执行计划](docs/migration-plan.md)里的提议。
 
-## 文档
-
-- [框架架构](docs/architecture.md)：两档分层、运行时模型、包的形态与命名、请求怎么走、能力域、对智能体的支撑。
-- [对智能体的支撑：Agent 接入与模型服务](docs/agent-support.md)：怎么接住集群里和设备上的 Agent，模型服务怎么提供，设备上的本机模型怎么算。
-- [迁移与归并](docs/migration.md)：两边各有什么，哪些已定、哪些待定，分几步并。
-- Kun 框架的文档（多数是英文）：[入门](docs/getting-started.md)、[模块地图](docs/design/module-map.md)、[设计白皮书](docs/design/whitepaper.md)；指南、安全与设计说明分别在 `docs/guides/`、`docs/security/`、`docs/design/`，Kun 框架的决策记录在 `docs/adr/kun/`，引用时写「Kun ADR-0xx」。
-- [平台总览](https://github.com/CavaiLAB/jiangxin)：理念、角色与产品形态、总体架构、插件模型、应用互通、历史系统接入、Agent 协同、路线、平台级裁定。
-
-合并蓝图的全文是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受；裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。详细的设计文档（决策记录、组件模型规格、各能力域的规格）：平台部分的随代码导入了过渡目录 `_import/qian/docs/`；Kun 框架的已整理进 `docs/`，见上面的列表。
-
 ## 前端依赖与包源
 
 前端框架由 [CavaiLAB/qian](https://github.com/CavaiLAB/qian) 开发与发布。本仓库的外壳应用、三个界面包、外壳接线、参考应用的远程模块、文档站与真实目录验收页装它发布在 GitHub Packages 上的 `@cavailab/qian-*`：版本只在 `pnpm-workspace.yaml` 的版本目录里钉一次（精确版本，升级走 PR）；命令行与校验库的测试用的 `@cavailab/qian-runtime` 写在它们各自的 `package.json` 里。
 
-GitHub Packages 的 npm 源连公开包也要令牌（有 `read:packages` 即可）。仓库里的 `.npmrc` 只写作用域 `@cavailab:registry=https://npm.pkg.github.com`；令牌行要放用户级配置，因为 10.34.2 起的 pnpm 10、11.5.3 起的 pnpm 11，以及 pnpm 12 不展开仓库 `.npmrc` 认证行里的环境变量（安全公告 GHSA-3qhv-2rgh-x77r；11.0.0–11.5.2 仍会展开），会提示 `Ignored project-level auth setting … environment variables are not expanded in repository-controlled registry credentials`，接着 401；详见 [CavaiLAB/qian 迁移说明第 2 节](https://github.com/CavaiLAB/qian/blob/main/docs/migrating-from-yue.md#2-包名与安装)。本机的一种做法：在 `~/.npmrc`（或 `NPM_CONFIG_USERCONFIG` 指向的文件）里写一行引用环境变量、不写令牌本身：
+GitHub Packages 的 npm 源连公开包也要令牌（有 `read:packages` 即可）。仓库里的 `.npmrc` 只写作用域 `@cavailab:registry=https://npm.pkg.github.com`；令牌行要放用户级配置，因为 10.34.2 起的 pnpm 10、11.5.3 起的 pnpm 11，以及 pnpm 12 不展开仓库 `.npmrc` 认证行里的环境变量（安全公告 GHSA-3qhv-2rgh-x77r；11.0.0–11.5.2 仍会展开），会提示 `Ignored project-level auth setting … environment variables are not expanded in repository-controlled registry credentials`，接着 401。本机的一种做法：在 `~/.npmrc`（或 `NPM_CONFIG_USERCONFIG` 指向的文件）里写一行引用环境变量、不写令牌本身：
 
 ```ini
 //npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
@@ -121,3 +111,13 @@ NODE_AUTH_TOKEN=$(gh auth token) pnpm install
 CI 里由 `actions/setup-node` 的 `registry-url` 写同样的用户级配置，`pnpm install` 带 `NODE_AUTH_TOKEN`（本次运行的 `GITHUB_TOKEN`），作业权限 `packages: read`。
 
 升级（比如 0.2.1 → 0.2.2）：版本目录的 9 条、`minimumReleaseAgeExclude` 里同名的 10 条、`packages/qian-cli` 与 `packages/qian-surfaces` 的 `@cavailab/qian-runtime` 一起改。pnpm 12 默认拦发布不满一天的包（`minimumReleaseAge`），刚发的版本靠 `minimumReleaseAgeExclude` 放行；`pnpm install` 会先按新的排除清单检查旧锁文件，旧版本发布也不满一天时报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`。这时解析期间先留着旧版本的排除条目，装完删掉，再跑 `pnpm install --frozen-lockfile` 确认新锁文件过策略。文档站读版本目录检出同名标签，不用另改。
+
+## 文档
+
+- [框架架构](docs/architecture.md)：两档分层、运行时模型、包的形态与命名、请求怎么走、能力域、对智能体的支撑。
+- [对智能体的支撑：Agent 接入与模型服务](docs/agent-support.md)：怎么接住集群里和设备上的 Agent，模型服务怎么提供，设备上的本机模型怎么算。
+- [迁移与归并](docs/migration.md)：两边各有什么，哪些已定、哪些待定，分几步并。
+- Kun 框架的文档（多数是英文）：[入门](docs/getting-started.md)、[模块地图](docs/design/module-map.md)、[设计白皮书](docs/design/whitepaper.md)；指南、安全与设计说明分别在 `docs/guides/`、`docs/security/`、`docs/design/`，Kun 框架的决策记录在 `docs/adr/kun/`，引用时写「Kun ADR-0xx」。
+- [平台总览](https://github.com/CavaiLAB/jiangxin)：理念、角色与产品形态、总体架构、插件模型、应用互通、历史系统接入、Agent 协同、路线、平台级裁定。
+
+合并蓝图的全文是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受；裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。详细的设计文档（决策记录、组件模型规格、各能力域的规格）：平台部分的随代码导入了过渡目录 `_import/qian/docs/`；Kun 框架的已整理进 `docs/`，见上面的列表。

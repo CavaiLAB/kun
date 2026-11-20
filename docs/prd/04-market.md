@@ -52,7 +52,7 @@
 │ profile workflow（S2 新增，自研审批内核，§08）                    │
 │   qian.workflow：定义 · 引擎 · 运行态 · 解析器 · 子流程           │
 ├───────────────────────────────────────────────────────────────────┤
-│ shell 组合包（挂在 platform；yue 外壳静态制品，经 gateway 提供）  │
+│ shell 组合包（挂在 platform；前端框架外壳静态制品，经 gateway 提供）  │
 │   AppShell · 插槽注册表 · 控制台 / 应用 上下文切换 · 认证页族     │
 │   S3：不可信 UI 走 Worker 远程渲染 / iframe 沙箱                  │
 └───────┬──────────┬──────────┬──────────┬──────────┬───────────────┘
@@ -71,7 +71,7 @@
 | 要点 | 说明 | 真相源 |
 |---|---|---|
 | 两套网关职责从 S1 画清 | Traefik 只做入口；`qian.gateway` 是业务 API 边界（强制认证、限流、换签）；Higress 只管模型与 MCP 流量、对租户无感。互不承担对方职责 | ADR-010、ADR-015 |
-| 可部署单元 = profile，S1 默认只出三个 .NET 镜像 | 可部署单元 = profile（ADR-020 D20.7，取代 ADR-003 固定 5 个单元）：S1 随发行版交付 `platform`（镜像 `qian-platform`）、`gateway`（镜像 `qian-gateway`，可 AOT）、`identity`（镜像 `qian-identity`）、`standalone`（消费者自己的宿主，不出镜像）、`minimal`（测试与 SDK 用最小树，不出镜像）；`shell`（yue 外壳静态制品，经 `gateway` 提供）与 `model-gateway`（可选，可拆为独立 profile，镜像 `qian-model-gateway-adapter`）是挂在 `platform` 的组合包（R31）；三节点 K3s 的现实不变。S2 以 profile 形式新增 `lowcode`（JIT 宿主，承载 metadata / dynamic-data / forms / lists 的服务端与动态 SQL 生成）与 `workflow`，另有挂在 `lowcode` 的 `file-preview` 组合包与可选 profile `wasm-runtime`，见 §08 8.0.3；新增一个可部署单元只是新增一个 profile 文件 | ADR-020、§07 7.0.4、§08 |
+| 可部署单元 = profile，S1 默认只出三个 .NET 镜像 | 可部署单元 = profile（ADR-020 D20.7，取代 ADR-003 固定 5 个单元）：S1 随发行版交付 `platform`（镜像 `qian-platform`）、`gateway`（镜像 `qian-gateway`，可 AOT）、`identity`（镜像 `qian-identity`）、`standalone`（消费者自己的宿主，不出镜像）、`minimal`（测试与 SDK 用最小树，不出镜像）；`shell`（前端框架外壳静态制品，经 `gateway` 提供）与 `model-gateway`（可选，可拆为独立 profile，镜像 `qian-model-gateway-adapter`）是挂在 `platform` 的组合包（R31）；三节点 K3s 的现实不变。S2 以 profile 形式新增 `lowcode`（JIT 宿主，承载 metadata / dynamic-data / forms / lists 的服务端与动态 SQL 生成）与 `workflow`，另有挂在 `lowcode` 的 `file-preview` 组合包与可选 profile `wasm-runtime`，见 §08 8.0.3；新增一个可部署单元只是新增一个 profile 文件 | ADR-020、§07 7.0.4、§08 |
 | S2 `workflow` 独立成 profile | `qian.workflow` 全部（定义、引擎、运行态、解析器、通知绑定、SLA、子流程）住独立 profile 而不进 `lowcode`：审批域体量大，计时器与令牌推进有自己的伸缩曲线，与表单运行时解耦便于单独回滚（R21） | §08 8.0.3、ADR-003 §6 |
 | 平台插件（原称系统插件）= `platform` profile 的 base 组合包 | 数量由组合包定义而不是决策（取代「18 个系统插件」，ADR-020 D20.7；规范术语 R30）。S1 默认内容：`qian.registry` / `qian.lifecycle` / `qian.capabilities`（原 `qian.kernel`；`qian.plugin-sdk` 的大部分并入 `Qian.Runtime` 与 `qian` CLI）、`qian.tenancy`、`qian.identity`（+ `connector.*`，为 `ctx.Identity` seam 提供 Provider）、`qian.authz`、`qian.data`、`qian.files`、`qian.config`、`qian.gateway`、`qian.events`、`qian.audit`、`qian.observability`、`qian.shell`、`qian.entitlement`、`qian.model-gateway`（P1，可选）、`qian.notify`（P0）、`qian.scheduler`（P0）、`qian.realtime`（P1）；各自按 seam 三角色拆包，每个都能被 patch 替换、被租户 scope 遮蔽。组织目录最小集是 `qian.identity` 的子模块（§07 7.4.3），不独立成插件 | ADR-020、§07 7.0.4 |
 | PostgreSQL 唯一一等库 | 默认共享库 + 行级 `tenant_id` + RLS；平台表 schema-per-service；动态表混合存储。本期不支持 MySQL / 国产库作业务库 | ADR-004 |

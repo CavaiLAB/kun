@@ -1,16 +1,18 @@
 # staging 首次部署：平台与身份同进程（S1-DEP-011）
 
+> 文中的部署域名和节点地址使用文档示例值，执行时请代入所在环境的配置。
+
 「初步可用」里程碑期间（S1-DEC-033 D2，R143），staging 按过渡形状部署：
 
-- 平台宿主 `hosts/Qian.Platform.Host` 以 `Identity:InProcess=true` 并入身份服务与开通申请组件；
+- 平台宿主 `hosts/Kun.Platform.Host` 以 `Identity:InProcess=true` 并入身份服务与开通申请组件；
 - 网关宿主 `hosts/Kun.Gateway.Host` 独立成进程，并托管外壳；
 - 清单在部署仓库手写（ADR-017 §10）。
 
 本手册覆盖构建、部署、回退与首个平台运营账号的引导，并列出相对 PRD 7.17 的已知差异。
 
 - 装配方式与取值的裁决：[关键决策](../decisions/key-decisions-v0.md) 的 R150（扩展登记与 overlay、主机名与证书、引导 Job、D4 只开运营开户）与 R151（系统组件修订的签名、授权与免批）。
-- 配置键：以 [平台宿主](../../../../hosts/Kun.Platform.Host/README.md) 与 [网关宿主](https://github.com/CavaiLAB/kun/blob/main/hosts/Kun.Gateway.Host/README.md) 的文档为准。
-- 清单与 Secret 引导脚本：在部署仓库（`idadawn/iclaw-deploy`）的 `2-qian/` 与 `env-ds/qian-staging/` 下，对象名以那里为准。
+- 配置键：以 [平台宿主](../../hosts/Kun.Platform.Host/README.md) 与 [网关宿主](https://github.com/CavaiLAB/kun/blob/main/hosts/Kun.Gateway.Host/README.md) 的文档为准。
+- 清单与 Secret 引导脚本：在部署仓库（`部署仓库`）的 `2-qian/` 与 `env-ds/qian-staging/` 下，对象名以那里为准。
 
 凡是改动集群状态的操作（apply 或同步、建角色、建 Secret、改网络策略、跑 Job），都要先经产品负责人确认；只读查询不需要。密钥只经 Secret 注入，不进 git。
 
@@ -18,23 +20,23 @@
 
 | 工作负载 | 镜像 | 说明 |
 |---|---|---|
-| `qian-platform`（Deployment，1 副本） | `192.168.1.201/qian/qian-platform@sha256:…`（JIT） | 平台插件树加身份分支。平台侧：平台表面与运营接口。身份侧：OIDC 协议面、账号接口、认证页族 `/login`、申请人接口与公开页 `/signup`。前端在镜像的 `/app/web/identity`、`/app/web/signup` |
-| `qian-gateway`（Deployment，1 副本） | `192.168.1.201/qian/qian-gateway@sha256:…`（NativeAOT） | BFF 会话、S2S 签发与路由：平台簇与运营簇都指向 `http://qian-platform:8080/`。另有原生审计、外壳与远程托管（`/app/web/shell`、`/app/web/remotes/<组件>`）。配置源 `Config:Source=host` |
+| `qian-platform`（Deployment，1 副本） | `192.0.2.21/qian/qian-platform@sha256:…`（JIT） | 平台插件树加身份分支。平台侧：平台表面与运营接口。身份侧：OIDC 协议面、账号接口、认证页族 `/login`、申请人接口与公开页 `/signup`。前端在镜像的 `/app/web/identity`、`/app/web/signup` |
+| `qian-gateway`（Deployment，1 副本） | `192.0.2.21/qian/qian-gateway@sha256:…`（NativeAOT） | BFF 会话、S2S 签发与路由：平台簇与运营簇都指向 `http://qian-platform:8080/`。另有原生审计、外壳与远程托管（`/app/web/shell`、`/app/web/remotes/<组件>`）。配置源 `Config:Source=host` |
 | 迁移、系统组件修订、首个运营引导（Job） | 与 `qian-platform` 同镜像、同配置 | `--migrate-only`、`--install-system-revisions`、`--bootstrap-operator`，见第 4 节 |
 | 建角色（Job） | PostgreSQL 客户端 | 用基线的管理员 Secret 建受限登录与 NOLOGIN 函数属主 |
 | `qian-postgres`、`qian-redis` | 基线（S1-DEP-001） | 已在 `qian-staging` 运行，钉在 worker01 |
 
 主机名（R150 ②）：
 
-- 外壳与网关：`https://qian-staging.deepsingularity.cn`
-- 身份发行方：`https://qian-staging-id.deepsingularity.cn/`
+- 外壳与网关：`https://gateway.staging.example`
+- 身份发行方：`https://identity.staging.example/`
 
-公网链路与现有站点相同：浏览器 → hub nginx（43.180.203.135，TLS 在此终止，Let's Encrypt 证书）→ WireGuard → qd → MetalLB `192.168.1.200` → Traefik（按 Host 分流）→ 两个 Service。
+公网链路与现有站点相同：浏览器 → hub nginx（203.0.113.10，TLS 在此终止，Let's Encrypt 证书）→ WireGuard → qd → MetalLB `192.0.2.20` → Traefik（按 Host 分流）→ 两个 Service。
 
 **转发头。** Traefik 对 web / websecure 入口信任节点网段与 Pod 网段的转发头（部署仓库 `0-cluster/traefik-helm-config.yaml`，2026-11-12 只读核对过运行参数），hub 设的 `X-Forwarded-Proto: https` 会原样到 Pod。
 
-- 平台宿主：身份服务只收 HTTPS，所以身份分支要从可信代理的转发头恢复原始 scheme 和客户端地址。staging 配 `Identity:TrustedProxyNetworks` = `10.42.0.0/16`（直连的 Traefik Pod）与 `192.168.1.0/24`（Traefik 看到的 WireGuard 一跳），`Identity:ForwardLimit=2`。
-- 网关：配 `Gateway:TrustedProxyNetworks=["10.42.0.0/16"]`。
+- 平台宿主：身份服务只收 HTTPS，所以身份分支要从可信代理的转发头恢复原始 scheme 和客户端地址。staging 配 `Identity:TrustedProxyNetworks` = `198.51.100.0/24`（直连的 Traefik Pod）与 `192.0.2.0/24`（Traefik 看到的 WireGuard 一跳），`Identity:ForwardLimit=2`。
+- 网关：配 `Gateway:TrustedProxyNetworks=["198.51.100.0/24"]`。
 
 **回环与依赖。**
 
@@ -44,17 +46,17 @@
 
 ## 2 一次性前置（产品负责人）
 
-1. DNS：两个主机名的 A 记录指向 43.180.203.135。
-2. Harbor（`http://192.168.1.201`）：
+1. DNS：两个主机名的 A 记录指向 203.0.113.10。
+2. Harbor（`http://192.0.2.21`）：
    - 建私有项目 `qian`。
-   - 推送：qd 上的 Docker 已登录 `192.168.1.201:80`，登录的是 Harbor 管理员，推得进 `qian`，不用另配账号。要收窄权限，可另建一个只对 `qian` 有推送权限的机器人账号，在 qd 上用它重新 `docker login 192.168.1.201:80`。
-   - 拉取用机器人账号加 Secret（产品负责人 2026-11-12 确认）。项目是私有的，而节点的 `registries.yaml` 对 192.168.1.201 只配了 HTTP 端点、没有凭据，这一点与公开的 `iclaw` 项目不同。
+   - 推送：qd 上的 Docker 已登录 `192.0.2.21:80`，登录的是 Harbor 管理员，推得进 `qian`，不用另配账号。要收窄权限，可另建一个只对 `qian` 有推送权限的机器人账号，在 qd 上用它重新 `docker login 192.0.2.21:80`。
+   - 拉取用机器人账号加 Secret（产品负责人 2026-11-12 确认）。项目是私有的，而节点的 `registries.yaml` 对 192.0.2.21 只配了 HTTP 端点、没有凭据，这一点与公开的 `下游智能体平台` 项目不同。
      1. 在项目 `qian` 的机器人账号页新建一个，权限只勾仓库的拉取。记下 Harbor 显示的完整名称（形如 `robot$qian+staging-pull`）和只显示一次的令牌。
      2. 在有集群 kubeconfig 的机器上（qd 即可）建 `qian-staging` 里的 `qian-harbor-pull`。执行下面这条后粘贴令牌、回车：`read -rs` 不回显，令牌也不进 shell 历史。用户名换成上一步记下的完整名称，单引号不能省，因为名称里有 `$`。
         ```bash
-        read -rs QIAN_PULL_TOKEN && kubectl --context <上下文> -n qian-staging create secret docker-registry qian-harbor-pull --docker-server=192.168.1.201 --docker-username='robot$qian+staging-pull' --docker-password="$QIAN_PULL_TOKEN"; unset QIAN_PULL_TOKEN
+        read -rs QIAN_PULL_TOKEN && kubectl --context <上下文> -n qian-staging create secret docker-registry qian-harbor-pull --docker-server=192.0.2.21 --docker-username='robot$qian+staging-pull' --docker-password="$QIAN_PULL_TOKEN"; unset QIAN_PULL_TOKEN
         ```
-     3. `--docker-server` 写不带端口的 `192.168.1.201`，与清单里的镜像引用一致。凭据对不对，要到首次同步、Pod 拉镜像时才见分晓：失败时 Pod 停在 `ImagePullBackOff`，`kubectl describe pod` 的事件里能看到 401。
+     3. `--docker-server` 写不带端口的 `192.0.2.21`，与清单里的镜像引用一致。凭据对不对，要到首次同步、Pod 拉镜像时才见分晓：失败时 Pod 停在 `ImagePullBackOff`，`kubectl describe pod` 的事件里能看到 401。
 3. hub 证书与 vhost，分两步（部署仓库 `2-qian/README.md` 上线顺序第 4 步）：
    1. DNS 生效后，在 hub 控制台按部署仓库 `env-ds/edge/README.md` 跑 `deploy.sh --apply`，发布两个 vhost 的 `:80` 段。这一段只服务 ACME 验证、其余跳转 https，不引用证书。
    2. 用 DNS-01 签发两个主机名的证书，各一条。腾讯云对未接入备案的域名，在 80 端口间歇返回拦截页（2026-11-15 从 qd 实测 24 次里 18 次），webroot 验证多半失败。证书仍由 certbot 管理，路径不变；验证改用部署仓库 `env-ds/edge/qdal/certbot/` 下的两个钩子，经阿里云解析 API 增删 `_acme-challenge` TXT 记录（部署仓库 PR #105）。一次性准备与签发命令见部署仓库 `env-ds/edge/README.md`「证书」：RAM 子账号只授本域名解析记录的增删查，AccessKey 只在 hub 上交互配置。
@@ -72,11 +74,11 @@
 
 ## 3 构建镜像与签名清单
 
-前端产物由开发机生成，镜像由具备 Docker 和仓库访问权限的 amd64 构建主机生成。构建入口是 [scripts/images.py](../../../../scripts/images.py) 的 `build`，模板与构建上下文见 [deploy/images](../../../../deploy/images/README.md)。
+前端产物由开发机生成，镜像由具备 Docker 和仓库访问权限的 amd64 构建主机生成。构建入口是 [scripts/images.py](../../scripts/images.py) 的 `build`，模板与构建上下文见 [deploy/images](../../deploy/images/README.md)。
 
 源码取本仓库 [CavaiLAB/kun](https://github.com/CavaiLAB/kun) 里要部署的提交。两个镜像从同一个提交构建、一起换：外壳与远程打在网关镜像里，界面清单在平台镜像的组件文件夹里，外壳按界面清单的 `engines.qian` 决定装不装远程，新旧两边混用时远程会被拒绝。在仓库根目录执行前端命令和镜像脚本。`--project` 相对仓库根目录，`--web` 指向组装好的前端产物目录。
 
-1. 前端（开发机，在本仓库根目录，检出要构建的提交）。前端框架的包 `@cavailab/qian-*` 装自 GitHub Packages，那里的 npm 源连公开包也要令牌（有 `read:packages` 即可）：照 [README「前端依赖与包源」](../../../../README.md#前端依赖与包源)，在用户级 npm 配置里写一行引用环境变量 `NODE_AUTH_TOKEN` 的令牌行；仓库里的 `.npmrc` 只写包源，不写令牌。
+1. 前端（开发机，在本仓库根目录，检出要构建的提交）。前端框架的包 `@cavailab/qian-*` 装自 GitHub Packages，那里的 npm 源连公开包也要令牌（有 `read:packages` 即可）：照 [README「前端依赖与包源」](../../README.md#前端依赖与包源)，在用户级 npm 配置里写一行引用环境变量 `NODE_AUTH_TOKEN` 的令牌行；仓库里的 `.npmrc` 只写包源，不写令牌。
    ```bash
    NODE_AUTH_TOKEN=$(gh auth token) pnpm install --frozen-lockfile
    ```
@@ -119,10 +121,10 @@
    - 清单只按 `ref` 里的 digest 引用镜像，标签只用来推送。部署仓库里 digest 只写在 `env-ds/qian-staging/kustomization.yaml` 的 `images` 段这一处。
 4. 签名清单（qd，同一目录）。对推送后的同一个 digest 生成签名清单并自查，结果放进部署仓库的签名清单 ConfigMap：
    ```bash
-   python3 scripts/sign-system-revisions.py sign --key ~/.qian/staging-system-revisions.pem --image 192.168.1.201:80/qian/qian-platform@sha256:<digest> --out system-revisions.json
+   python3 scripts/sign-system-revisions.py sign --key ~/.qian/staging-system-revisions.pem --image 192.0.2.21:80/qian/qian-platform@sha256:<digest> --out system-revisions.json
    ```
    ```bash
-   python3 scripts/sign-system-revisions.py verify --public-key ~/.qian/staging-system-revisions.pub.pem --signatures system-revisions.json --image 192.168.1.201:80/qian/qian-platform@sha256:<digest>
+   python3 scripts/sign-system-revisions.py verify --public-key ~/.qian/staging-system-revisions.pub.pem --signatures system-revisions.json --image 192.0.2.21:80/qian/qian-platform@sha256:<digest>
    ```
    签名清单是公开数据（组件标识、版本、目录摘要与签名），可以进 git。平台镜像里的组件文件夹一变，摘要就变，所以每换一次平台镜像都要重签。
 5. 部署前检查（qd，同一目录；第 2 步之后、构建之前就能跑）。拿部署仓库 main 上现用的签名清单（`env-ds/qian-staging/config/system-revisions.signatures.json`）核对新检出的组件文件夹：
@@ -176,7 +178,7 @@ kubectl -n qian-staging logs job/<Job 名>
 
    - 迁移 Job 只挂迁移属主与管理员的连接串。迁移模式下宿主把在线登录的连接一律改读迁移属主的连接串（`PlatformHostSettings.Connection`），在线登录的口令不给迁移 Job。
    - 在线副本不挂迁移属主与管理员的凭据。
-   - 离线 DDL 不做跨版本的表结构升级，详见[平台宿主的 Job](../../../../hosts/Kun.Platform.Host/README.md#job)。
+   - 离线 DDL 不做跨版本的表结构升级，详见[平台宿主的 Job](../../hosts/Kun.Platform.Host/README.md#job)。
 5. **系统组件修订 Job（钩子，-1，`--install-system-revisions`）。** 每次同步都跑，在迁移之后。
    - 它按签名清单把镜像预装的 system 级组件装成修订并激活：同摘要已激活则不动，新版本的新摘要安装后激活。
    - 同一版本换了摘要（组件文件夹变了、版本号没变）装不进去：Lifecycle 拒绝把同一版本装成另一个制品，authz 的权限目录也按组件版本不可变（内容不同返回 CONFLICT，平台插件树挂不起来）。在已有数据的库上，这时 Job 必然失败，处理见第 7 节「同版本换摘要」。
@@ -204,7 +206,7 @@ kubectl -n qian-staging logs job/<Job 名>
 
 引导后：
 
-1. 平台运营打开 `https://qian-staging.deepsingularity.cn`，跳到身份发行方的 `/login`，用初始密码登录，按提示改密；
+1. 平台运营打开 `https://gateway.staging.example`，跳到身份发行方的 `/login`，用初始密码登录，按提示改密；
 2. 回到外壳，进平台控制台（租户运营、开通申请）；
 3. 确认能登录后删除初始密码的 Secret 与引导 Job。之后的平台超管授予与撤销走平台运营流程。
    ```bash
@@ -217,9 +219,9 @@ kubectl -n qian-staging logs job/<Job 名>
 
 逐条对应任务验收，结果记进 `pm/tasks/S1-DEP-011.md` 的进度日志。
 
-E2E 部分由 [scripts/staging-e2e.py](../../../../scripts/staging-e2e.py) 经公网主机名、照外壳的真实路径跑一遍，在 qd 上执行。证据 JSON 进进度日志，测试账号与租户留在 staging，代码带运行后缀：
+E2E 部分由 [scripts/staging-e2e.py](../../scripts/staging-e2e.py) 经公网主机名、照外壳的真实路径跑一遍，在 qd 上执行。证据 JSON 进进度日志，测试账号与租户留在 staging，代码带运行后缀：
 ```bash
-python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn --issuer https://qian-staging-id.deepsingularity.cn --operator <平台运营用户名> --operator-password-file <当前密码文件> --operator-new-password-file ~/.qian/staging-operator-password --out staging-e2e.json
+python3 scripts/staging-e2e.py --shell https://gateway.staging.example --issuer https://identity.staging.example --operator <平台运营用户名> --operator-password-file <当前密码文件> --operator-new-password-file ~/.qian/staging-operator-password --out staging-e2e.json
 ```
 - 平台运营若还没首登，脚本按要求改密：新密码生成后写进 `--operator-new-password-file`（0600，不打印），之后用这个文件登录。
 - 首登完成后，删除初始密码的 Secret（第 5 节）。
@@ -293,7 +295,7 @@ python3 scripts/staging-e2e.py --shell https://qian-staging.deepsingularity.cn -
 
 - 平台与网关的数据保护密钥都放在临时卷：Pod 重建后，账号 Cookie 与网关会话解不开，用户要重新登录。多副本之前要改成共享目录。
 - 网关的转发头只回溯一跳（Kun 网关 `ForwardLimit` 固定为 1），按 IP 的限流把全部外部请求算在 WireGuard 那一跳的地址上。staging 用户少，暂不处理。
-- Traefik 信任节点网段与 Pod 网段（10.42.0.0/16）的转发头，平台身份分支也把 Pod 网段当可信的第二跳。LAN 内（192.168.1.x）的主机与集群里任何命名空间的 Pod，直连 Traefik 时都能伪造 `X-Forwarded-For` 与 `X-Forwarded-Proto`，影响登录限流与审计里的来源地址。现有配置收不窄，staging 接受这个暴露面。
+- Traefik 的代理信任清单包含节点与 Pod 网段。平台身份分支按两跳解析转发头，登录限流与审计的来源地址按该环境配置的代理清单核验。
 - 基线给 `qian-platform`、`qian-postgres`、`qian-redis` 都预置了 `minAvailable: 1` 的 PDB，而它们都只有一个副本：`kubectl drain` worker01 会一直等待。节点维护前先临时放宽或删除这三个 PDB，维护后恢复。
 - 网关的就绪依赖 hub 与身份发行方：hub 或身份服务故障时，网关被摘出 Service 端点，外壳整体不可用，连静态页也打不开。要改需要 Qian 侧调整就绪检查的口径。
 - 网关入口（`hosts/Kun.Gateway.Host/Program.cs`）没有像平台宿主那样拦截未处理异常：依赖挂载失败时，容器里的 PID 1 可能空转不退出，要等 90 秒启动探针超时才被重启。

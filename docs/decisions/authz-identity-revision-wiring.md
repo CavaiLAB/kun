@@ -1,6 +1,6 @@
 # 授权变更 → 身份修订递增的接线口径
 
-状态：已拍板。2026-10-22 产品负责人回复「按推荐，开始实现」，Q1–Q6 全部按推荐（[S1-DEC-027](../../pm/tasks/S1-DEC-027.md)），由 claude 代录。结论写入 [ADR-006](../adr/ADR-006-authorization-model.md) D6.7 与 PRD 7.5；同进程宿主部分由 [S1-AZ-009](../../pm/tasks/S1-AZ-009.md) 实现，拆分部署部分登记为 [S1-IDP-012](../../pm/tasks/S1-IDP-012.md)（随 S1-EVT-002）。
+状态：已拍板。2026-10-22 产品负责人回复「按推荐，开始实现」，Q1–Q6 全部按推荐（[S1-DEC-027](../../_import/qian/pm/tasks/S1-DEC-027.md)），由 claude 代录。结论写入 [ADR-006](../adr/ADR-006-authorization-model.md) D6.7 与 PRD 7.5；同进程宿主部分由 [S1-AZ-009](../../_import/qian/pm/tasks/S1-AZ-009.md) 实现，拆分部署部分登记为 [S1-IDP-012](../../_import/qian/pm/tasks/S1-IDP-012.md)（随 S1-EVT-002）。
 
 拍板结论：
 
@@ -32,12 +32,12 @@ R7（[§12.2](../prd/12-boundaries.md) 第 17 条）：权限不进令牌，令�
 
 ## 2 决定选项的几条事实
 
-1. **拓扑**：S1 默认 `platform`（含 `qian.authz`）与 `identity`（`Qian.Identity.Server`）是两个独立 Pod（PRD 7.0.4）；把两者装进同一进程的只有 standalone 宿主、参考宿主与测试宿主。生产拓扑里，授权侧要调到身份端口只有两条路：集成事件（等 [S1-EVT-002](../../pm/tasks/S1-EVT-002.md)），或新开 S2S 调用。
+1. **拓扑**：S1 默认 `platform`（含 `qian.authz`）与 `identity`（`Qian.Identity.Server`）是两个独立 Pod（PRD 7.0.4）；把两者装进同一进程的只有 standalone 宿主、参考宿主与测试宿主。生产拓扑里，授权侧要调到身份端口只有两条路：集成事件（等 [S1-EVT-002](../../_import/qian/pm/tasks/S1-EVT-002.md)），或新开 S2S 调用。
 2. **撤销入口**：授予的撤销目前没有对外入口。`RevokeAsync` 是内部 API，角色与授权 CRUD 归 S1-AZ-005；生产里的授权写入只有两处，一是开通编排授予 `tenant.owner`，二是开通时实例化默认策略。
 3. **主体解析**：求值器只匹配直接主体（user / service / agent），组织、岗位、用户组的绑定还不参与判定，目录解析归 S1-AZ-005。
 4. **主体标识**：user 主体的 `SubjectId` 与令牌 `sub` 同为 Person id（GUID `D` 格式），可直接作端口参数。`service` 没有 Person 与成员身份；`agent` 在 S1 的 PEP 一律拒绝。
 5. **时效**：访问令牌有效期 15 分钟。7.13 实时推送（S1-SCH-003，事件类型含 `identityRevisionChanged`）未开工。
-6. **客户端**：`@yue/sdk` 的 `PlatformClient` 只在 401 时 refresh（`packages/yue/sdk/src/client.ts`）。PEP 对陈旧修订回 403，不会触发 refresh。
+6. **客户端**：`前端 SDK 包` 的 `PlatformClient` 只在 401 时 refresh（前端仓库的 `packages/qian/sdk/src/client.ts`）。PEP 对陈旧修订回 403，不会触发 refresh。
 
 ## 3 待拍板
 
@@ -100,7 +100,7 @@ PRD 7.5 只写了 `authz.grant.changed.v1` 触发递增。
 
 ### Q6 陈旧令牌的响应码
 
-PEP 现在对 `identity_revision_stale` 回 403 `AUTHZ_DENIED`（gRPC PermissionDenied），身份侧 userinfo 对同一情形回 401 `invalid_token`，而 `@yue/sdk` 只在 401 时 refresh。这个问题现在就存在：用户在任一客户端换了新修订的令牌（比如改密之后），PEP 下限随之抬高，其余客户端就会持续收到 403。Q5 选 B 后，每次授权变更都会触发它。
+PEP 现在对 `identity_revision_stale` 回 403 `AUTHZ_DENIED`（gRPC PermissionDenied），身份侧 userinfo 对同一情形回 401 `invalid_token`，而 `前端 SDK 包` 只在 401 时 refresh。这个问题现在就存在：用户在任一客户端换了新修订的令牌（比如改密之后），PEP 下限随之抬高，其余客户端就会持续收到 403。Q5 选 B 后，每次授权变更都会触发它。
 
 | 选项 | 做法 | 后果 |
 |---|---|---|

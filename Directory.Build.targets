@@ -1,7 +1,7 @@
 <Project>
 
   <!--
-    仓库的构建守卫与门禁，仓库根与 _import/qian/ 下的项目共用（S1-KUN-020）。_import/qian/Directory.Build.targets 先导入本文件。
+    全仓 .NET 构建守卫与门禁（S1-KUN-020）。
     依次是：档位声明、公共 API、AOT、禁用符号与平台分析器的作用域。
   -->
 

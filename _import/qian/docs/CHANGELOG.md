@@ -109,7 +109,7 @@ Kun 升到 2026.10.25：数据约定与实体审计不再以匿名兜底占住�
 
 ## 2026-10-14 事件抽象拆包与 Definition 依赖门禁（S1-KUN-010）
 
-KunVersion 升为 2026.10.14，身份契约改用 `Kun.EventBus.Abstractions`。Definition 的 Kun 直接依赖新增门禁，既有数据基类/RLS 依赖按具体边记录例外，见 [测试规范](../tests/README.md#definition-的-kun-直接依赖s1-kun-010)；框架关系与 API 参考随同版本更新。
+KunVersion 升为 2026.10.14，身份契约改用 `Kun.EventBus.Abstractions`。Definition 的 Kun 直接依赖新增门禁，既有数据基类/RLS 依赖按具体边记录例外，见 [测试规范](../../../tests/README.md#definition-的-kun-直接依赖s1-kun-010)；框架关系与 API 参考随同版本更新。
 
 ## 2026-10-14 多副本迁移协调、雪花 ID 与序号服务（S1-DATA-002）
 

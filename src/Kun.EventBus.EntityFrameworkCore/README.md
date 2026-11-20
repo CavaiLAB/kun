@@ -42,7 +42,7 @@ builder.Services.AddKunOutboxRelay(); // 已登记的严格上下文
 - 类型未登记，或缺少 JsonTypeInfo；
 - 租户不是 UUID。
 
-编译期规则 KUNEVENT001 限定发布位置：只允许写命令 handler（Kun `ICommand`，或 `[Capability]` 中 SideEffect 不为 read）与领域事件通知 handler。在查询、后台服务等处调用 `Publish` / `Enqueue` 直接编译失败；直接向 `IntegrationEventBuffer.Add` 写入只允许出现在写入端实现里。规则与正反例见 [tests/README.md](../../_import/qian/tests/README.md#集成事件发布位置门禁s1-evt-001)。
+编译期规则 KUNEVENT001 限定发布位置：只允许写命令 handler（Kun `ICommand`，或 `[Capability]` 中 SideEffect 不为 read）与领域事件通知 handler。在查询、后台服务等处调用 `Publish` / `Enqueue` 直接编译失败；直接向 `IntegrationEventBuffer.Add` 写入只允许出现在写入端实现里。规则与正反例见 [tests/README.md](../../../../tests/README.md#集成事件发布位置门禁s1-evt-001)。
 
 ## 投递
 

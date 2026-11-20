@@ -825,7 +825,7 @@ export const filesHttp: QianPlugin<{ baseUrl: string }> = {
 | Service Provider | `Qian.<X>.<Provider>`（如 `Qian.Files`、`Qian.Identity.Server`、`Qian.Identity.Client`、`Qian.Authz`）/ `@qian/<x>-<provider>` | `IQianPlugin` 实现、`Provide` 该键、EF 迁移、组件文件夹（包内 `qian/`） | 自己与其它 seam 的 Definition、`Kun.*` 实现包、`Qian.Runtime` | 其它 seam 的 Provider；`qian.registry` / `qian.lifecycle` |
 | Consumer | 任何组件（含工具、UI、技能） | `inject` 该键，只经接口调用 | 所需 seam 的 Definition、`Qian.Runtime` | 任何 Provider 包 |
 
-S1-KUN-010 对 Definition 的 Kun 直接依赖设置门禁；因既有公开契约暂留的逐边例外及理由见 [测试规范](../../../tests/README.md#definition-的-kun-直接依赖s1-kun-010)，新增实现包不能自动沿用这些例外。
+S1-KUN-010 对 Definition 的 Kun 直接依赖设置门禁；因既有公开契约暂留的逐边例外及理由见 [测试规范](../../../../../tests/README.md#definition-的-kun-直接依赖s1-kun-010)，新增实现包不能自动沿用这些例外。
 
 - **seam 分两种风格**（已裁决 R38）：
   - (a) **单例 seam**：同 scope 内同键只能有一个 `Provide`，第二个即挂载失败；多实现靠 patch 替换条目或租户 scope 遮蔽。S1：`Tenancy`、`Identity`、`Authz`、`Files`、`Config`、`Events`、`Audit`、`Notify`、`Scheduler`…

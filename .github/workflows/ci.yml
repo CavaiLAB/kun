@@ -25,11 +25,9 @@ name: ci
 #   项目文件里写了 IsAotCompatible=true 的项目，由 scripts/aot_projects.py 列出）。runs-on 由自托管 runner 改为 ubuntu-24.04；
 #   测试运行器是 Microsoft.Testing.Platform，单元测试照 tests/kun-unit.slnf 跑，每个模块各写一份 TRX 与覆盖率，覆盖率核对份数、
 #   去掉文件名里的时间戳之后上传；推 develop 分支不再触发。
-# - _import/qian/.github/workflows/dotnet.yml：构建与门禁、测试分片 a/b/c、汇总核对、四个原生发布作业，命令照原件，在
-#   _import/qian 下运行。「构建与门禁」的还原与构建换成仓库根的 Kun.slnx，测试分片用 Qian.slnf；依赖图门禁换成仓库根
-#   按档位检查的依赖门禁，覆盖 Kun.slnx 里全部可打包项目，自测在仓库根的 tests/gates；runs-on 由 ubuntu-latest
-#   改为 ubuntu-24.04；汇总核对另核分片 k；触发过滤自检读区域表里的 dotnet 区域。分片与门禁作业的结果构件名带尝试号，
-#   汇总核对按尝试号取每个分片最新的一份，原件的合并构件改为上传取好的那份：「重跑失败的作业」之后汇总能按重跑的结果变绿。
+# - _import/qian/.github/workflows/dotnet.yml 的构建、四个测试分片、汇总及原生发布均从仓库根运行。
+#   a、b、c 按 tests/kun-platform.slnf 分配，k 按 tests/kun-unit.slnf 及集成测试名单分配。
+#   每次运行按分片、尝试号上传证据；汇总只取各分片最新的一份。
 # - _import/qian/.github/workflows/images.yml：镜像自检，构建上下文改为仓库根（只接自检，不接推送与正式签名）。
 # - _import/qian/.github/workflows/ 下其余 10 个：.github/workflows/qian-<名字>.yml，由本文件调用，改动写在各自的文件头。
 
@@ -96,6 +94,8 @@ jobs:
     if: needs.changes.outputs.dotnet == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      KUN_PACK_CHECK_VERSION: "9999.12.31"
     steps:
       - uses: actions/checkout@v4
 
@@ -111,12 +111,12 @@ jobs:
       - name: 发版脚本与制品校验自测
         run: python3 -m unittest discover -s scripts/tests -p 'test_release_*.py' -v
 
-      - name: 构建（Release；_import/qian 下 Qian 包未登记的公共 API 即编译失败）
-        run: dotnet build Kun.slnx -c Release --no-restore
+      - name: 构建 Release 并检查公共 API
+        run: dotnet build Kun.slnx -c Release --no-restore -p:Version="$KUN_PACK_CHECK_VERSION"
 
       - name: 网关打包冒烟
         run: |
-          dotnet pack src/Kun.Gateway -c Release --no-build --no-restore -o artifacts/gateway-package
+          dotnet pack src/Kun.Gateway -c Release --no-build --no-restore -p:Version="$KUN_PACK_CHECK_VERSION" -o artifacts/gateway-package
           test -f artifacts/gateway-package/Kun.Gateway.*.nupkg
           # Kun.Gateway 是类库：包里不能带宿主的配置与运行时配置（独立宿主在 hosts/Kun.Gateway.Standalone）。
           if unzip -Z1 artifacts/gateway-package/Kun.Gateway.*.nupkg | grep -E '(^|/)(appsettings[^/]*\.json|[^/]*\.runtimeconfig\.json)$'; then
@@ -124,18 +124,15 @@ jobs:
           fi
 
       - name: 打包核对（全部可打包项目按占位版本打包，核对名单与产物；不推送）
-        env:
-          KUN_PACK_CHECK_VERSION: "9999.12.31"
         run: |
-          # NU5104（稳定版带预发布依赖）先不挡打包，由 verify-packages 按项目的 NoWarn 判；过渡模式放行的几项见脚本开头。
+          # NU5104（稳定版带预发布依赖）先不挡打包，由 verify-packages 按项目的 NoWarn 判。
           dotnet pack Kun.slnx -c Release --no-build --no-restore -p:Version="$KUN_PACK_CHECK_VERSION" -p:WarningsNotAsErrors=NU5104 -o "$RUNNER_TEMP/release-packages"
-          python3 scripts/release_packages.py verify-packages --transitional --version "$KUN_PACK_CHECK_VERSION" --packages "$RUNNER_TEMP/release-packages"
+          python3 scripts/release_packages.py verify-packages --version "$KUN_PACK_CHECK_VERSION" --packages "$RUNNER_TEMP/release-packages"
 
       - name: 身份日志隐私与产品中立的缺省值
         run: python3 scripts/check-identity-boundaries.py
 
       - name: 动态发现全部代码入口并校验唯一清单与实现构件分类
-        working-directory: _import/qian
         run: python3 scripts/check_plugin_manifests.py
 
       - name: 仓库 profile 生效配置的明文密钥扫描（S1-CFG-002）
@@ -144,7 +141,7 @@ jobs:
 
       - name: 由组件 config.schema 推导各 profile 的 Apollo namespace 骨架（S1-CFG-003，随测试结果上传）
         working-directory: _import/qian
-        run: dotnet ../../tools/Kun.Configuration.Tool/bin/Release/net10.0/Kun.Configuration.Tool.dll . --out TestResults/evidence/apollo-namespaces
+        run: dotnet ../../tools/Kun.Configuration.Tool/bin/Release/net10.0/Kun.Configuration.Tool.dll . --out "${{ github.workspace }}/TestResults/evidence/apollo-namespaces"
 
       - name: 依赖门禁（Kun.slnx 里每个可打包项目按档位与角色检查）
         run: python3 scripts/check_deps.py --no-restore
@@ -152,16 +149,14 @@ jobs:
       - name: 依赖门禁自测（仓库根 tests/gates 的样例项目与真实依赖图）
         run: python3 -m unittest discover -s tests/gates -v
 
-      - name: 过渡目录的其余门禁自测
+      - name: 平台资源与非 .NET 门禁自测
         working-directory: _import/qian
         run: python3 -m unittest discover -s tests/gates -v
 
-      - name: 触发过滤自检（_import/qian 下测试读到的 pm/、docs/ 与 Markdown 改动仍落进 dotnet 区域）
-        working-directory: _import/qian
+      - name: 核对测试读取的仓库文件会触发 .NET 作业
         run: python3 scripts/dotnet_ci.py paths-check
 
-      - name: 测试项目都有着落（仓库根的在分片 k、专属作业或不进 CI 的表里，_import/qian 下的在 Qian.slnf 里或由专属作业运行）
-        working-directory: _import/qian
+      - name: 核对根测试项目的分片、专属作业及显式豁免
         run: python3 scripts/dotnet_ci.py registration
 
       - name: 上传 namespace 骨架（构件名带尝试号，见「测试分片汇总核对」）
@@ -169,7 +164,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results-gates-attempt-${{ github.run_attempt }}
-          path: _import/qian/TestResults/
+          path: TestResults/
           if-no-files-found: ignore
 
   dotnet-format:
@@ -186,8 +181,8 @@ jobs:
       - name: 还原
         run: dotnet restore Kun.slnx
 
-      - name: 核对格式（_import/qian 有自己的 .editorconfig，不在这道门禁里）
-        run: dotnet format Kun.slnx --verify-no-changes --no-restore --exclude _import/qian
+      - name: 核对 .NET 源码格式
+        run: dotnet format Kun.slnx --verify-no-changes --no-restore
 
   dotnet-test:
     name: 测试（分片 ${{ matrix.shard }}）
@@ -218,7 +213,6 @@ jobs:
       # 不接管道：缺省的 bash -e 不带 pipefail，接了 tee 就吞掉退出码。拉取本身的网络失败照旧只记录，由 Testcontainers 补拉。
       - name: 列出本分片用到的测试镜像（列不出即失败），再后台顺序预拉（与还原、构建并行，记录在 RUNNER_TEMP/prefetch）
         if: matrix.shard != 'k'
-        working-directory: _import/qian
         run: |
           mkdir -p "$RUNNER_TEMP/prefetch"
           python3 scripts/dotnet_ci.py images ${{ matrix.shard }}
@@ -247,14 +241,12 @@ jobs:
 
       - name: 还原
         if: matrix.shard != 'k'
-        working-directory: _import/qian
         run: |
           python3 scripts/dotnet_ci.py shard ${{ matrix.shard }} --out "$RUNNER_TEMP/tests.slnf"
           dotnet restore "$RUNNER_TEMP/tests.slnf"
 
       - name: 构建
         if: matrix.shard != 'k'
-        working-directory: _import/qian
         run: dotnet build "$RUNNER_TEMP/tests.slnf" -c Release --no-restore
 
       - name: 安装固定摘要的真实 OpenAPI 兼容检查器
@@ -264,24 +256,23 @@ jobs:
 
       - name: 等待镜像预拉结束（至多 120 秒，超时照常测试，没拉完的由 Testcontainers 补拉）
         if: matrix.shard != 'k'
-        working-directory: _import/qian
         run: python3 scripts/dotnet_ci.py wait-prefetch --state "$RUNNER_TEMP/prefetch" --timeout 120
 
       - name: 单元与集成测试（本分片的模块，共享容器与真实 Apollo）
         if: matrix.shard != 'k'
-        working-directory: _import/qian
         env:
           QIAN_BUF_PATH: ${{ runner.temp }}/qian-contract-tools/buf
           QIAN_OASDIFF_PATH: ${{ runner.temp }}/qian-contract-tools/oasdiff
-          QIAN_TEST_EVIDENCE_DIR: ${{ github.workspace }}/_import/qian/TestResults/evidence
-          QIAN_PRODUCT_FILTER_REPORT: ${{ github.workspace }}/_import/qian/TestResults/evidence/product-capability-filter.json
-          QIAN_PROFILE_EQUIVALENCE_REPORT: ${{ github.workspace }}/_import/qian/TestResults/evidence/profile-equivalence.json
-        run: dotnet test --solution "$RUNNER_TEMP/tests.slnf" -c Release --no-build --results-directory TestResults --report-xunit-trx -p:QianTrxPerModule=true
+          QIAN_TEST_EVIDENCE_DIR: ${{ github.workspace }}/TestResults/evidence
+          QIAN_PRODUCT_FILTER_REPORT: ${{ github.workspace }}/TestResults/evidence/product-capability-filter.json
+          QIAN_PROFILE_EQUIVALENCE_REPORT: ${{ github.workspace }}/TestResults/evidence/profile-equivalence.json
+        run: |
+          dotnet test --solution "$RUNNER_TEMP/tests.slnf" -c Release --no-build --results-directory TestResults --report-xunit-trx -p:KunTrxPerModule=true
 
       - name: 还原与构建分片 k 的测试项目
         if: matrix.shard == 'k'
         run: |
-          python3 _import/qian/scripts/dotnet_ci.py shard k --out "$RUNNER_TEMP/tests.slnf"
+          python3 scripts/dotnet_ci.py shard k --out "$RUNNER_TEMP/tests.slnf"
           dotnet restore "$RUNNER_TEMP/tests.slnf"
           dotnet build "$RUNNER_TEMP/tests.slnf" -c Release --no-restore
 
@@ -294,7 +285,7 @@ jobs:
           --no-build
           --results-directory TestResults/unit
           --report-xunit-trx
-          -p:QianTrxPerModule=true
+          -p:KunTrxPerModule=true
           --coverlet
           --coverlet-output-format cobertura
           -p:CoveragePerModule=true
@@ -309,11 +300,11 @@ jobs:
           --no-build
           --results-directory TestResults/integration
           --report-xunit-trx
-          -p:QianTrxPerModule=true
+          -p:KunTrxPerModule=true
 
       - name: 核对覆盖率份数（tests/kun-unit.slnf 里每个测试项目恰好一份），通过后文件名去掉时间戳
         if: matrix.shard == 'k'
-        run: python3 _import/qian/scripts/dotnet_ci.py coverage TestResults/unit
+        run: python3 scripts/dotnet_ci.py coverage TestResults/unit
 
       - name: 上传覆盖率
         if: matrix.shard == 'k'
@@ -332,7 +323,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.shard }}-attempt-${{ github.run_attempt }}
-          path: ${{ matrix.shard == 'k' && 'TestResults/' || '_import/qian/TestResults/' }}
+          path: TestResults/
           if-no-files-found: ignore
 
   dotnet-test-summary:
@@ -356,11 +347,9 @@ jobs:
           path: ${{ runner.temp }}/test-results-attempts
 
       - name: 每个分片只取最新一次尝试的结果（按构件名里的尝试号，不看构件 ID）
-        working-directory: _import/qian
         run: python3 scripts/dotnet_ci.py latest-attempts "$RUNNER_TEMP/test-results-attempts" "$RUNNER_TEMP/test-results"
 
-      - name: 每个测试项目恰好在所属分片跑过一次、没有失败（Qian.slnf 的测试项目与分片 k 的项目；少一个模块即失败）
-        working-directory: _import/qian
+      - name: 逐个核对四个分片中已运行的测试项目与结果
         run: python3 scripts/dotnet_ci.py verify "$RUNNER_TEMP/test-results"
 
       - name: 上传 test-results 构件（各分片最新一次尝试的 TRX、覆盖率与证据、门禁作业的 namespace 骨架，每个分片一个子目录）
@@ -611,13 +600,13 @@ jobs:
       - name: 准备 syft / grype / cosign（锁定版本，校验 sha256）
         run: python3 scripts/prepare_image_tools.py --destination "$RUNNER_TEMP/image-tools"
       - name: 构建自检镜像，跑 SBOM、扫描、签名验签、漂移与运行期门禁及反例
-        run: python3 scripts/images.py selfcheck --tools "$RUNNER_TEMP/image-tools" --out "$GITHUB_WORKSPACE/_import/qian/TestResults/images"
+        run: python3 scripts/images.py selfcheck --tools "$RUNNER_TEMP/image-tools" --out "$GITHUB_WORKSPACE/TestResults/images"
       - name: 上传证据（evidence.json、SBOM、扫描报告、命令日志）
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: image-selfcheck
-          path: _import/qian/TestResults/images/
+          path: TestResults/images/
           if-no-files-found: ignore
 
   docs-and-pm:

@@ -1,9 +1,0 @@
-<Project>
-
-  <!--
-    中央包版本只有仓库根上那一份（S1-KUN-020），这里只导入它。
-    原 Qian 已改为项目引用 Kun 源码，不再按包引用 Kun，本文件也就不再有 Kun.* 的版本条目。
-  -->
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Packages.props', '$(MSBuildThisFileDirectory)../'))" />
-
-</Project>

@@ -1,10 +1,8 @@
 <Project>
 
   <!--
-    仓库的 .NET 构建基线，仓库根与 _import/qian/ 下的项目共用（S1-KUN-020）。
-    这里只放两边都要的：目标框架、质量门槛、确定性构建。
-    src/ 下 Kun 包的版本、包元数据与 README 打包在 src/Directory.Build.props，只对这些包生效；
-    _import/qian/ 下的打包设置在 _import/qian/Directory.Build.props，它先导入本文件。
+    全仓 .NET 项目的目标框架、质量门槛与确定性构建设置。
+    src/Directory.Build.props 为可打包项目设置版本、元数据与 README。
   -->
 
   <PropertyGroup Label="Targeting">

@@ -13,10 +13,6 @@
 !.editorconfig
 !BannedSymbols.txt
 !src/**
-!_import/qian/Directory.Build.props
-!_import/qian/Directory.Build.targets
-!_import/qian/Directory.Packages.props
-!_import/qian/.editorconfig
 !hosts/Kun.Gateway.Host/**
 !tools/Kun.Build.Analyzers/**
 !tools/Kun.Image.SelfCheck/**

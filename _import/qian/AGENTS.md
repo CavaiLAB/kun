@@ -64,28 +64,21 @@
 ```text
 docs/        设计文档：decisions（决策清单）、adr、prd（含 specs）、migration、research、ROADMAP.md
 contracts/   冻结契约 v0：S2S claim、事件信封、ErrorDetail 与错误码目录、能力条目的 JSON Schema + fixture（见 contracts/v0/README.md）
-packages/    .NET 组件库（NuGet 包），如 Kun.Configuration；packages/qian-* 是 Node 包：命令行、声明式表面校验库、外壳接线与三个界面包。
+packages/    packages/qian-* 是 Node 包：命令行、声明式表面校验库、外壳接线与三个界面包。
              前端框架（原 yue，现名 qian）已迁到 CavaiLAB/qian，这里装已发布的 @cavailab/qian-*（见 README.md「前端依赖与包源」）
 apps/        外壳应用 qian-shell（模块联邦宿主，见 apps/qian-shell/README.md）
 pm/          任务与看板（见 pm/README.md）
-scripts/     pm.py、check_docs.py、dotnet_ci.py 等（依赖门禁在仓库根的 scripts/check_deps.py）
-tests/       Testcontainers fixture、集成测试、门禁自测（见 tests/README.md）；tests/gates/ui/ 是外壳与界面包的门禁自测，tests/directory-e2e/ 是真实目录验收页
+scripts/     pm.py、check_docs.py 等平台工具，.NET 构建及分片脚本在仓库根 scripts/
+tests/       平台资源门禁（见 tests/README.md）；tests/gates/ui/ 是外壳与界面包的门禁自测，tests/directory-e2e/ 是真实目录验收页
 website/     文档站（Rspress 2.0，见 website/README.md 与 website/AGENTS.md）；components/、cli/、design/、sdk/kun/（with-qian.mdx 除外）、sdk/api/ 为生成目录
 deploy/      开发期工具的 K3s 清单：pm-board/（看板）、docs-site/（文档站）；images/ 是 profile 镜像模板与供应链门禁（见 deploy/images/README.md）
 .github/     原 Qian 的工作流原件，在 CavaiLAB/kun 里 GitHub 不读：检查接在仓库根的 .github/workflows/qian-*.yml
              （文档门禁、任务校验与看板生成；dotnet 构建、门禁与测试；文档站构建与发布；本机租户运营手测环境冒烟等），
              在 _import/qian/ 下运行；文档站的 PR 预览、镜像供应链自检与 dotnet-release 发布工作流没有接（见根 AGENTS.md 与迁移执行计划）。
              yue 八项门禁与 TS 运行时、插件开发包的工作流随前端框架迁到 CavaiLAB/qian；外壳与界面包的门禁在仓库根的 qian-ui.yml（没有原件）
-Qian.slnf、Directory.Build.props / .targets、Directory.Packages.props
-             .NET 构建基线：net10.0、警告即错误、中央包版本。目标框架、质量门槛、中央包版本、NuGet.config、
-             公共 API 门禁、AOT 守卫、禁用符号清单与分析器作用域已并到 CavaiLAB/kun 仓库根（S1-KUN-020），
-             这里的 Directory.Build.props / .targets 与 Directory.Packages.props 先导入根上的，只留本目录的打包设置、
-             发版脚本读的包判定与网关引用的处理。解决方案是仓库根的 Kun.slnx，
-             Qian.slnf 是它的筛选文件：列出原 Qian 的项目，也是脚本与测试定位本目录的锚，新加项目要两处都加。
-             SDK 版本只钉在仓库根的 global.json，本目录没有另一份
 ```
 
-代码目录 `packages/` 已建立（一个包一个目录：`packages/<包名>/<包名>.csproj`，测试在 `tests/<包名>.Tests/`）；`plugins/`、`profiles/`、`samples/` 在 S1 第一波任务中建立，布局以 `docs/prd/specs/component-model.md` §2 与 §7 为准。
+组件清单在 `plugins/`，profile 在 `profiles/`。.NET 包、宿主、工具与测试在仓库根，见[构建约定](../../AGENTS.md)。
 
 ## 本地检查清单
 
@@ -106,11 +99,7 @@ pnpm ui:gates
 python3 scripts/check_docs.py website/docs/sdk/kun website/docs/sdk/api
 ```
 
-改了 .NET 代码时再跑（集成测试需要 Docker）：
-
-```bash
-dotnet build Qian.slnf -c Release && python3 ../../scripts/check_deps.py --no-restore && python3 -m unittest discover -s tests/gates && dotnet test --solution Qian.slnf -c Release --no-build
-```
+修改 .NET 代码时，按[仓库根测试说明](../../tests/README.md)构建与运行。
 
 <!-- BEGIN:turborepo-agent-rules -->
 

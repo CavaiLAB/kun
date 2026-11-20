@@ -18,40 +18,22 @@ def run(arguments: list[str]) -> str:
     return result.stdout
 
 
-def solution_root(root: Path) -> Path:
-    """Qian.slnf 筛选的解决方案（仓库根的 Kun.slnx）所在的目录，即仓库根。"""
-    document = json.loads((root / "Qian.slnf").read_text(encoding="utf-8-sig"))["solution"]
-    return (root / document["path"].replace("\\", "/")).resolve().parent
-
-
-def solution_projects(root: Path) -> list[str]:
-    """Qian.slnf 列出的项目，路径换算成相对 root；筛选文件里的路径相对它筛选的解决方案所在目录。"""
-    document = json.loads((root / "Qian.slnf").read_text(encoding="utf-8-sig"))["solution"]
-    base = solution_root(root)
-    resolved = root.resolve()
-    return [(base / project.replace("\\", "/")).resolve().relative_to(resolved).as_posix() for project in document["projects"]]
-
-
 def repository_projects(root: Path) -> list[Path]:
-    """仓库根 Kun.slnx 里 src/、samples/ 下的项目。组件包搬出过渡目录后在这里，入口与实现构件照同一规则发现与核对。"""
-    document = json.loads((root / "Qian.slnf").read_text(encoding="utf-8-sig"))["solution"]
-    solution = (root / document["path"].replace("\\", "/")).resolve()
+    """从解决方案读取源项目和示例项目，保持与实际构建相同的项目范围。"""
+    solution = root / "Kun.slnx"
     paths = [element.get("Path", "").replace("\\", "/") for element in ET.parse(solution).getroot().iter("Project")]
     return [solution.parent / path for path in paths if path.startswith(("src/", "samples/")) and path.endswith(".csproj")]
 
 
 def check(root: Path, sync: bool = False) -> tuple[int, int]:
     # 清单工具在仓库根的 tools/ 下，随 Kun.slnx 构建。
-    tool = solution_root(root) / "tools/Kun.Plugin.Tool/bin/Release/net10.0/Kun.Plugin.Tool.dll"
+    tool = root / "tools/Kun.Plugin.Tool/bin/Release/net10.0/Kun.Plugin.Tool.dll"
     if not tool.is_file():
         raise ValueError("先以 Release 构建 Kun.slnx（清单工具在仓库根的 tools/Kun.Plugin.Tool），再校验清单。")
     classifications = json.loads((root / "scripts/plugin-implementations.json").read_text())
     used: set[str] = set()
     components: dict[str, tuple[Path, str]] = {}
-    # 过渡目录里 packages/、samples/ 下的项目，加上仓库根 src/、samples/ 下的组件与样例。
-    projects = [root / relative for relative in solution_projects(root)
-                if relative.startswith(("packages/", "samples/")) and relative.endswith(".csproj")]
-    for path in projects + repository_projects(root):
+    for path in repository_projects(root):
         configuration = ET.parse(path).getroot()
         if configuration.findtext(".//TargetFramework", "").startswith("netstandard"):
             continue  # 分析器程序集不是可执行组件，不能实现 net10 的 IKunPlugin。
@@ -77,11 +59,7 @@ def check(root: Path, sync: bool = False) -> tuple[int, int]:
     if stale:
         raise ValueError("实现构件分类已失效：" + ", ".join(sorted(stale)))
     manifests: dict[str, list[Path]] = {}
-    directories = [root / "plugins", root / "samples"]
-    repository_samples = solution_root(root) / "samples"
-    if repository_samples != (root / "samples").resolve():
-        directories.append(repository_samples)
-    for base in directories:
+    for base in (root / "_import/qian/plugins", root / "samples"):
         for manifest in base.rglob(".qian-plugin/plugin.json"):
             if any(part in {"bin", "obj", "node_modules", ".git"} for part in manifest.relative_to(base).parts):
                 continue

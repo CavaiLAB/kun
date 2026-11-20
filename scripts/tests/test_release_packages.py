@@ -304,6 +304,15 @@ class VerifyTests(unittest.TestCase):
             self.assertEqual(1, len(problems), problems)
             self.assertIn("Other.Missing", problems[0])
 
+    def test_strict_packages_reject_retired_dependencies_even_when_none_are_listed(self):
+        packages = [kernel("Kun.Core")]
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            full_set(root, packages)
+            write(root, "Kun.Core", deps=[("qIaN.Legacy", VERSION), ("Unrelated.Library", "1.0")])
+            problems = self.verify(root, packages).problems
+            self.assertEqual(["Kun.Core 依赖已停止使用的包 qIaN.Legacy，请引用现行包"], problems)
+
     def test_kernel_must_not_depend_on_platform_unless_excepted(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

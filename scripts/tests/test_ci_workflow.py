@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import fnmatch
 import re
+import shlex
 import sys
 import unittest
 from pathlib import Path
@@ -128,7 +129,7 @@ class CiWorkflowTests(unittest.TestCase):
             if "npm.pkg.github.com" in text:
                 npm.add(area)
         self.assertEqual({name for name, area in ci_changes.AREAS.items() if area.builds_dotnet}, dotnet)
-        # 分片 b 装 doctor 客户端的 npm 包，但 dotnet 区域已含整个 _import/qian（.npmrc 在内），不另列标记。
+        # 分片 b 为 doctor 测试安装 npm 客户端，其余安装依赖的作业由 installs_npm 登记。
         self.assertEqual({name for name, area in ci_changes.AREAS.items() if area.installs_npm}, npm - {"dotnet"})
 
     def test_test_results_are_named_per_attempt_and_the_summary_takes_the_latest(self) -> None:
@@ -165,6 +166,22 @@ class CiWorkflowTests(unittest.TestCase):
                          "汇总上传的是取好的那份")
         self.assertFalse(fnmatch.fnmatchcase("test-results", downloads[0]["pattern"]), "汇总自己上传的构件不能被下一次尝试当成分片结果下载")
 
+    def test_package_check_build_and_pack_use_one_version(self) -> None:
+        job = self.jobs["dotnet-build"]
+        self.assertEqual("9999.12.31", job["env"]["KUN_PACK_CHECK_VERSION"])
+        commands = [step.get("run", "") for step in job["steps"]]
+        for command in ("dotnet build Kun.slnx", "dotnet pack src/Kun.Gateway", "dotnet pack Kun.slnx"):
+            line, = (line for script in commands for line in script.splitlines() if line.startswith(command))
+            self.assertIn('-p:Version="$KUN_PACK_CHECK_VERSION"', line)
+
+    def test_image_evidence_upload_uses_the_selfcheck_output(self) -> None:
+        steps = self.jobs["images-selfcheck"]["steps"]
+        command = next(step["run"] for step in steps if "images.py selfcheck " in step.get("run", ""))
+        arguments = shlex.split(command)
+        output = arguments[arguments.index("--out") + 1]
+        upload = next(step["with"] for step in steps if step.get("with", {}).get("name") == "image-selfcheck")
+        self.assertEqual("$GITHUB_WORKSPACE/" + upload["path"].rstrip("/"), output)
+
     def test_shards_list_their_images_in_the_foreground_before_the_background_prefetch(self) -> None:
         # 夹具搬走、镜像变量改名、扫描器漏看了引用夹具的项目时，dotnet_ci.py images 退出码 2。它要在前台跑、退出码不被吞掉，
         # 分片作业才会失败；后台的 prefetch 只记录拉取结果，网络失败不拦，由 Testcontainers 补拉。
@@ -183,10 +200,26 @@ class CiWorkflowTests(unittest.TestCase):
 
     def test_the_gates_job_checks_that_every_test_project_is_run_somewhere(self) -> None:
         steps = [step for step in self.jobs["dotnet-build"]["steps"] if "dotnet_ci.py registration" in str(step.get("run", ""))]
-        self.assertEqual([("_import/qian", "python3 scripts/dotnet_ci.py registration")],
+        self.assertEqual([(None, "python3 scripts/dotnet_ci.py registration")],
                          [(step.get("working-directory"), str(step["run"]).strip()) for step in steps],
-                         "门禁作业要核对每个测试项目都有着落（仓库根与 _import/qian 下的）")
+                         "门禁作业要核对每个测试项目都有着落")
         self.assertFalse({"if", "continue-on-error"} & set(steps[0]), "这一步不能有条件，失败不能放过")
+
+    def test_platform_shards_restore_build_and_test_the_same_filter(self) -> None:
+        steps = self.jobs["dotnet-test"]["steps"]
+        filtered = [step for step in steps if step.get("if") == "matrix.shard != 'k'"]
+        commands = [str(step.get("run", "")) for step in filtered]
+        generate = next(i for i, script in enumerate(commands) if "dotnet_ci.py shard" in script)
+        build = next(i for i, script in enumerate(commands) if "dotnet build" in script)
+        test = next(i for i, script in enumerate(commands) if "dotnet test" in script)
+        self.assertLess(generate, build)
+        self.assertLess(build, test)
+        for i in (generate, build, test):
+            self.assertNotIn("working-directory", filtered[i])
+            self.assertIn('"$RUNNER_TEMP/tests.slnf"', commands[i])
+        self.assertIn('dotnet restore "$RUNNER_TEMP/tests.slnf"', commands[generate])
+        self.assertIn("-p:KunTrxPerModule=true", commands[test])
+        self.assertEqual({"a", "b", "c", "k"}, {entry["shard"] for entry in self.jobs["dotnet-test"]["strategy"]["matrix"]["include"]})
 
     def test_dotnet_jobs_use_the_shared_sdk_action_and_ubuntu_24_04(self) -> None:
         for name, job in self.jobs.items():

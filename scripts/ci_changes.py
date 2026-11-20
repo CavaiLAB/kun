@@ -73,7 +73,7 @@ AREAS: Dict[str, Area] = {
             q("**", "!pm/**", "!docs/**", "!*.md", "docs/generated/**", "docs/ops/configuration-runbook.md"),
             # 仓库根的 .NET 代码、宿主、测试、样例、基准与脚本；Markdown 不算，打进网关包的 GATEWAY.md 除外。
             ("src/**", "hosts/**", "tests/**", "samples/**", "benchmarks/**", "tools/**", "scripts/**", "!**/*.md",
-             "src/Kun.Gateway/GATEWAY.md", "tools/Kun.Build.Analyzers/AnalyzerReleases.*.md", ".gitattributes"),
+             "src/Kun.Gateway/GATEWAY.md", "tools/**/*.md", "tests/**/*.md", "samples/Kun.Sample.Crm/**", "README.md", ".gitattributes"),
             DOTNET_BASE,
         ),
         original="dotnet.yml", builds_dotnet=True),
@@ -85,7 +85,7 @@ AREAS: Dict[str, Area] = {
               "scripts/prepare_image_tools.py", "scripts/image-tools.lock.json", "tests/gates/test_images.py",
               "profiles/**", "plugins/**",
               "schemas/**",
-              "contracts/v0/**", "*.props", "*.targets", ".editorconfig", ".github/workflows/images.yml"),
+              "contracts/v0/**", ".github/workflows/images.yml"),
             ("hosts/Kun.Gateway.Host/**", "tools/Kun.Image.SelfCheck*/**"),
             DOTNET_BASE,
         ),
@@ -98,7 +98,7 @@ AREAS: Dict[str, Area] = {
         "文档站",
         (
             q("website/**", "apps/qian-shell/e2e/settle.ts", "docs/**", "package.json", "pnpm-lock.yaml",
-              "pnpm-workspace.yaml", "deploy/docs-site/**", "Directory.Packages.props", ".github/workflows/docs-site.yml"),
+              "pnpm-workspace.yaml", "deploy/docs-site/**", ".github/workflows/docs-site.yml"),
             # 仓库根的 CHANGELOG.md：Kun 最新的发布版从这里取（_import/qian/website/scripts/kun.ts）。
             (".github/workflows/qian-docs-site.yml", "CHANGELOG.md"),
             DOTNET_BASE, NPMRC,
@@ -108,7 +108,7 @@ AREAS: Dict[str, Area] = {
         "派生文档与事件模式",
         (
             q("packages/**", "plugins/**", "profiles/**",
-              "schemas/**", "tck/runtime/**", "docs/generated/**", "*.props", "*.targets", "Qian.slnf",
+              "schemas/**", "tck/runtime/**", "docs/generated/**",
               "package.json", "pnpm*", ".github/workflows/documentation.yml"),
             (".github/workflows/qian-documentation.yml", "tests/Kun.Docs.Tests/**", "tests/Directory.Build.props"),
             ("tools/Kun.Docs.Tool/**",),
@@ -120,8 +120,8 @@ AREAS: Dict[str, Area] = {
         (
             ("tools/Kun.Build.Analyzers/**",),
             q("packages/**", "samples/**", "plugins/**", "schemas/**", "contracts/**",
-              "scripts/dev-tenant-ops.sh", "*.props", "*.targets",
-              ".editorconfig", ".github/workflows/dev-tenant-ops.yml"),
+              "scripts/dev-tenant-ops.sh",
+              ".github/workflows/dev-tenant-ops.yml"),
             (".github/workflows/qian-dev-tenant-ops.yml",),
             ("tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),
             DOTNET_BASE,
@@ -134,7 +134,7 @@ AREAS: Dict[str, Area] = {
             q("tests/directory-e2e/**", "tests/gates/ui/pins.test.ts",
               "plugins/**", "schemas/**", "contracts/**",
               "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
-              "Directory.*.props", "Directory.Build.targets", ".editorconfig",
+
               "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "turbo.json", ".github/workflows/directory-e2e.yml"),
             (".github/workflows/qian-directory-e2e.yml", "tests/Kun.Identity.Server.Tests/Contracts/biz.openapi.json"),
             ("tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),
@@ -149,8 +149,8 @@ AREAS: Dict[str, Area] = {
               "samples/qian-sample-crm-ui/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
               "plugins/**", "schemas/**",
               "contracts/**",
-              "scripts/dev-shell.sh", "Directory.*.props", "Directory.Build.targets",
-              ".editorconfig", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/shell-auth.yml"),
+              "scripts/dev-shell.sh",
+              "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/shell-auth.yml"),
             (".github/workflows/qian-shell-auth.yml",),
             ("tools/Kun.Dev.Shell/**", "tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),
             DOTNET_BASE, NPMRC,
@@ -161,7 +161,7 @@ AREAS: Dict[str, Area] = {
         (
             q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-tenancy-ui/**", "plugins/qian.shell/**",
               "plugins/qian.tenancy/ui/**",
-              "Directory.*", "pnpm-lock.yaml", "pnpm-workspace.yaml",
+              "pnpm-lock.yaml", "pnpm-workspace.yaml",
               "package.json", ".github/workflows/shell-federation.yml"),
             ("src/Kun.Audit*/**", ".github/workflows/qian-shell-federation.yml"),
             ("tests/Kun.Shell.TestHost/**", "tests/Shared/NativeAuditDatabase.cs", "tests/Directory.Build.props"),
@@ -175,7 +175,7 @@ AREAS: Dict[str, Area] = {
               "packages/qian-cli/**", "profiles/**", "plugins/**", "tck/profiles/**",
               "tck/registry-artifacts/**", "package.json", "schemas/v2/**",
               "tck/surfaces/**", "tck/runtime/**", "tck/marketplaces/**", "contracts/v0/**",
-              "scripts/generate_surface_fixtures.py", "pnpm*", "*.props", "*.targets", "Qian.slnf",
+              "scripts/generate_surface_fixtures.py", "pnpm*",
               ".github/workflows/surfaces.yml"),
             (".github/workflows/qian-surfaces.yml", "tests/Kun.Profiles.Tests/**", "tests/Kun.Surfaces.Tests/**", "tests/Directory.Build.props"),
             DOTNET_BASE, NPMRC,
@@ -188,7 +188,7 @@ AREAS: Dict[str, Area] = {
             q("packages/qian-tenancy-ui/**", "turbo.json",
               "plugins/**", "schemas/**", "contracts/**",
               "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
-              "Directory.*.props", "Directory.Build.targets", ".editorconfig",
+
               "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/tenant-ui.yml"),
             (".github/workflows/qian-tenant-ui.yml",),
             ("tools/Kun.Dev.TenantOps/**", "samples/Kun.Sample.Crm/**"),

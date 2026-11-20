@@ -1,0 +1,205 @@
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 日历版本（YYYY.M.D、-hotfix.N 或 -beta.N）
+        required: true
+        type: string
+      dry_run:
+        description: 演练（只验证和保存制品）
+        type: boolean
+        default: true
+      resume_run_id:
+        description: 复用已有制品的原发布运行号
+        type: string
+
+permissions:
+  contents: read
+concurrency:
+  group: release
+  cancel-in-progress: false
+env:
+  VERSION: ${{ inputs.version }}
+  BUNDLE: out/release
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: read
+      actions: read
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+      run_id: ${{ steps.source.outputs.run_id }}
+      kind: ${{ steps.source.outputs.kind }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 核对发布来源与主干 CI
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESUME: ${{ inputs.resume_run_id }}
+        run: python3 scripts/release_bundle.py resolve --version "$VERSION" --resume "$RESUME"
+      - uses: actions/checkout@v4
+        if: inputs.resume_run_id != ''
+        with:
+          ref: ${{ steps.source.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup-dotnet
+      - name: 确认真实推包所需的发布审批已配置
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/environments/release" --jq '.protection_rules[] | select(.type == "required_reviewers") | .reviewers | length' | awk '$1 > 0 { ok=1 } END { exit !ok }'
+      - name: 下载原运行的制品
+        if: inputs.resume_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: kun-release
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: out/release
+      - name: 核对版本、包名单和两个包源
+        if: inputs.resume_run_id == ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$BUNDLE/packages"
+          python3 scripts/release_packages.py list --expect kernel=42,platform=43 --json > "$BUNDLE/release-packages.json"
+          python3 scripts/release_packages.py check-version --version "$VERSION" --list "$BUNDLE/release-packages.json"
+      - name: 确认已有版本与当前主干仍允许恢复
+        if: inputs.resume_run_id != ''
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          SOURCE_RUN: ${{ steps.source.outputs.run_id }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/release_bundle.py verify --directory "$BUNDLE" --version "$VERSION" --commit "$SOURCE_SHA" --run-id "$SOURCE_RUN"
+          python3 scripts/release_packages.py check-version --version "$VERSION" --list "$BUNDLE/release-packages.json" --resume-commit "$SOURCE_SHA"
+      - name: 按发布版本构建并运行原生与 HTTP 契约门禁
+        if: inputs.resume_run_id == ''
+        run: |
+          dotnet restore Kun.slnx -p:Version="$VERSION"
+          dotnet build Kun.slnx -c Release --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true -warnaserror
+          dotnet test --solution tests/kun-unit.slnf -c Release --no-build
+          python3 scripts/aot_projects.py --check
+          dotnet publish tests/Kun.AotSmoke/Kun.AotSmoke.csproj -c Release -r linux-x64 -p:Version="$VERSION" -p:IlcTreatWarningsAsErrors=true -p:TrimmerSingleWarn=false -o "$RUNNER_TEMP/aot"
+          test ! -e "$RUNNER_TEMP/aot/Kun.AotSmoke.dll"
+          "$RUNNER_TEMP/aot/Kun.AotSmoke"
+          mapfile -t installers < <(git ls-files ':(glob)**/prepare_contract_tools.py')
+          test "${#installers[@]}" -eq 1
+          python3 "${installers[0]}" --destination "$RUNNER_TEMP/contract-tools"
+          export QIAN_OASDIFF_PATH="$RUNNER_TEMP/contract-tools/oasdiff" QIAN_BUF_PATH="$RUNNER_TEMP/contract-tools/buf"
+          dotnet test --project tests/Kun.Registry.Tests -c Release --no-build --minimum-expected-tests 1 --filter-class Kun.Registry.Tests.ScopeWriteContractTests
+          dotnet test --project tests/Kun.Sample.Crm.Tests -c Release --no-build --minimum-expected-tests 1 --filter-class Kun.Sample.Crm.Tests.TenantOperationsTests
+          dotnet test --project tests/Kun.Tenancy.Signup.Tests -c Release --no-build --minimum-expected-tests 1 --filter-class Kun.Tenancy.Signup.Tests.SignupContractTests
+          git diff --exit-code
+          dotnet pack Kun.slnx -c Release --no-build -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true -o "$BUNDLE/packages"
+      - name: 从变更日志生成版本说明和包源映射
+        if: inputs.resume_run_id == ''
+        run: |
+          python3 scripts/release_packages.py notes --version "$VERSION" --list "$BUNDLE/release-packages.json" > "$BUNDLE/release-notes.md"
+          python3 scripts/release_packages.py nuget-config --version "$VERSION" --list "$BUNDLE/release-packages.json" > "$BUNDLE/NuGet.config"
+      - name: 验证全部制品与本地消费者
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          SOURCE_RUN: ${{ steps.source.outputs.run_id }}
+          RESUME: ${{ inputs.resume_run_id }}
+        run: |
+          args=(--directory "$BUNDLE" --commit "$SOURCE_SHA" --version "$VERSION" --run-id "$SOURCE_RUN")
+          python3 scripts/release_packages.py verify-packages --list "$BUNDLE/release-packages.json" --version "$VERSION" --packages "$BUNDLE/packages" --commit "$SOURCE_SHA"
+          python3 scripts/release_packages.py verify-consumer --list "$BUNDLE/release-packages.json" --version "$VERSION" --packages "$BUNDLE/packages" --stage local
+          if [[ -z "$RESUME" ]]; then python3 scripts/release_bundle.py seal "${args[@]}"; fi
+      - name: 保存本次已验证的发布制品
+        if: inputs.resume_run_id == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: kun-release
+          path: out/release
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    needs: prepare
+    if: github.ref == 'refs/heads/main' && !inputs.dry_run
+    environment: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      actions: read
+      packages: write
+      id-token: write
+    env:
+      SOURCE_SHA: ${{ needs.prepare.outputs.sha }}
+      SOURCE_RUN: ${{ needs.prepare.outputs.run_id }}
+      KUN_PLATFORM_FEED_USER: ${{ github.actor }}
+      KUN_PLATFORM_FEED_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-dotnet
+      - uses: actions/download-artifact@v4
+        with:
+          name: kun-release
+          run-id: ${{ needs.prepare.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: out/release
+      - name: 核验制品的来源与摘要
+        run: python3 scripts/release_bundle.py verify --directory "$BUNDLE" --version "$VERSION" --commit "$SOURCE_SHA" --run-id "$SOURCE_RUN"
+      - name: 正式发布前确认 NuGet 用户已配置
+        if: needs.prepare.outputs.kind != 'beta'
+        env:
+          NUGET_USER: ${{ vars.NUGET_USER }}
+        run: test -n "$NUGET_USER"
+      - name: 补推前逐包比对各目标源已有的同版本制品
+        env:
+          RELEASE_KIND: ${{ needs.prepare.outputs.kind }}
+        run: |
+          python3 scripts/release_push.py compare-existing --feed github --version "$VERSION" --directory "$BUNDLE"
+          if [[ "$RELEASE_KIND" != beta ]]; then
+            python3 scripts/release_push.py compare-existing --feed nuget --version "$VERSION" --directory "$BUNDLE"
+          fi
+      - name: 推送 GitHub Packages，核对仓库、公开可见性和中间阶段的消费者
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/release_push.py push --feed github --version "$VERSION" --directory "$BUNDLE"
+          python3 scripts/release_packages.py verify-feed --feed github --version "$VERSION" --list "$BUNDLE/release-packages.json"
+          python3 scripts/release_push.py compare --feed github --version "$VERSION" --directory "$BUNDLE"
+          python3 scripts/release_packages.py verify-consumer --stage github --version "$VERSION" --list "$BUNDLE/release-packages.json" --packages "$BUNDLE/packages"
+      - name: 使用可信发布交换短期 NuGet 凭据
+        if: needs.prepare.outputs.kind != 'beta'
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+      - name: 推送内核包与符号包并核对 nuget.org
+        if: needs.prepare.outputs.kind != 'beta'
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          python3 scripts/release_push.py push --feed nuget --version "$VERSION" --directory "$BUNDLE"
+          python3 scripts/release_packages.py verify-feed --feed nuget --version "$VERSION" --list "$BUNDLE/release-packages.json"
+          python3 scripts/release_push.py compare --feed nuget --version "$VERSION" --directory "$BUNDLE"
+      - name: 验证真实包源消费者
+        run: python3 scripts/release_packages.py verify-consumer --stage published --version "$VERSION" --list "$BUNDLE/release-packages.json"
+      - name: 发布标签、说明、包源映射与版本日志分支
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: python3 scripts/release_finish.py --version "$VERSION" --commit "$SOURCE_SHA" --directory "$BUNDLE"

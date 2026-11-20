@@ -83,6 +83,7 @@ AREAS: Dict[str, Area] = {
         (
             PLATFORM_ASSETS,
             DOCS_SOURCE,
+            (".github/workflows/release.yml", "CHANGELOG.md", "docs/guides/package-migration.md"),
             ("docs/generated/**", "docs/ops/configuration-runbook.md", "deploy/docs-site/**", "deploy/pm-board/**"),
             # 仓库根的 .NET 代码、宿主、测试、样例、基准与脚本；Markdown 不算，打进网关包的 GATEWAY.md 除外。
             ("src/**", "hosts/**", "tests/**", "samples/**", "benchmarks/**", "tools/**", "scripts/**", "!**/*.md",

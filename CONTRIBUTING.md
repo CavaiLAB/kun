@@ -1,6 +1,6 @@
 # 贡献指南
 
-> 本指南写的是仓库根上的 Kun 框架。开发环境、分层原则、AOT 约定与提交规范照旧适用；分支策略、发布与版本规范、Pull Request 流程三节记的是原仓库的做法，在本仓库以根 [AGENTS.md](AGENTS.md) 与[迁移执行计划](docs/migration-plan.md)为准：PR 一律用合并提交合入，合并由产品负责人发话；发版工作流接不接、怎么接在 B12 之前由产品负责人定。
+> 本指南写的是仓库根上的 Kun 框架。开发环境、分层原则、AOT 约定与提交规范照旧适用；分支策略和 Pull Request 流程两节保留此前的做法，在本仓库以根 [AGENTS.md](AGENTS.md) 与[迁移执行计划](docs/migration-plan.md)为准：PR 一律用合并提交合入，合并由产品负责人发话；发布规范见下文的发布工作流。
 
 感谢您对 **Kun Framework** 的关注！
 
@@ -113,7 +113,7 @@ Closes #42
 | CI | `build` / `test` / `dotnet format` / AOT publish / layering 全部绿 |
 | 维护者 | 至少一位 Approve |
 | 维护者 | Squash / rebase merge 到 `main`，随手删除短命分支 |
-| 维护者（发版时） | 在 `main` 上打 CalVer tag（见下节），tag push 触发 Release workflow |
+| 维护者（发版时） | 在 `main` 上运行发布工作流，见下节 |
 
 **为什么**：下游服务及其 CI 经 `ProjectReference` 直接消费 `main`，`main` 必须始终可构建。该策略同时是将来要开启的 GitHub 分支保护（PR-required + status-checks-required）的编码契约：**规则先于工具落地**，工具开启前也不得违反。
 
@@ -121,7 +121,17 @@ Closes #42
 
 ## 🏷️ 发布与版本规范
 
-> 这一节记的是原仓库的发版做法。本仓库的发版工作流还没接，接不接、怎么接在 B12 之前由产品负责人定（迁移执行计划第 4、8 节）。
+在 GitHub Actions 的 `release` 工作流从 `main` 选择版本。默认的 `dry_run=true` 校验该提交的主干 CI、全量包与符号包、发布版本的 HTTP 契约及独立消费者，并保存制品 30 天。本地可用 `bash scripts/release.sh <版本>` 做构建和测试预检。
+
+首个合并版包含 42 个内核包和 43 个平台包。工作流在打包前核对两个档位的数量。以后新增、停发或调整包的档位时，在同一个 PR 更新发布工作流的 `list --expect`。
+
+开始实际发布时填写演练的 `resume_run_id` 和相同版本，选 `dry_run=false`。发布环境 `release` 只允许主干并要求审批。nuget.org 的可信发布策略使用此仓库、`release.yml` 与 `release` 环境，`NUGET_USER` 填已获包发布权的用户名。正式版和同日修复版先发布公开的 GitHub Packages 平台包，再使用 OIDC 发布 nuget.org 内核包。beta 的全部包发往 GitHub Packages。GitHub Packages 中的包均关联本仓库。
+
+首个稳定版既含已有包的新版本，也含首次注册的内核包 ID。在 nuget.org 建立可信发布策略时，选择有权发布已有内核包的所有者，启用发布新包和发布现有包新版本两种权限。包名匹配范围须覆盖该版本 `release-packages.json` 中的内核档 ID。策略绑定 GitHub 的 `CavaiLAB/kun`、工作流文件 `release.yml` 和环境 `release`，分支限制填写 `main`。[NuGet 可信发布的作用域与归属说明](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing#select-scopes)
+
+组织首次推送的 NuGet 包默认为私有。首次推送后，包管理员打开各包的 **Package settings**，核对已关联 `CavaiLAB/kun`，在 **Change visibility** 选择 **Public** 并确认包名。GitHub 的公开设置不可撤销。若工作流在核验可见性时停止，完成这些设置后，用同一份演练制品的 `resume_run_id` 重新运行。已推送的包会逐项核对内容。[GitHub Packages 的组织包可见性说明](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#configuring-visibility-of-packages-for-an-organization)
+
+补推前，工作流先从本版本涉及的全部包源下载已经可见的同版本包，逐个比对已保存制品的内容。任何一个包出现差异都会终止本次推送。包源核对与干净消费者验收通过后，工作流创建标签和 Release。正式版的运行摘要给出版本日志分支的比较链接，建立 PR 并通过 CI 合入，文档站随后从标签和已发布的内核包生成参考页。若推送途中失败，使用首次保存制品的运行号恢复。
 
 **使用 CalVer 日期，tag 一律在 `main` 上打；同日补丁使用 NuGet 兼容的 `hotfix.N` 后缀**。CLI 与 CI 共用 `scripts/release_version.py` 校验（需要 Python 3.9+，见 `.github/workflows/release.yml`）：
 
@@ -136,8 +146,8 @@ Closes #42
 - 月、日**不补零**，日期必须有效，后缀序号为无前导零的正整数。
 - 所有 tag 必须指向 `main` 上可达的 commit；其它形式（含旧的 `vX.Y.Z`、`-alpha`、`-rc`）一律被 Release workflow 拒绝。
 - 旧版本紧急修复：在独立分支完成修复与 CI，经 PR 合入 `main` 后，从已验证提交打补丁 tag，随后清理分支。
-- **NuGet 排序注意**：`-hotfix.N` 在项目语义中是正式修复版、推送 nuget.org，但 NuGet 按带后缀版本排序，低于同日无后缀版本。NuGet 消费端必须显式钉定修复版，不能依赖最新版排序；日期递进的版本继续使用无后缀格式。
-- **修复版之后补发正式版**：发布 `-hotfix.N` 之后，下一个工作日补发无后缀正式版，即使没有其他变更，让 nuget.org 的最新稳定版包含该修复；钉在修复版上的消费端在正式版发布后升级回无后缀版本。首例：`2026.10.12-hotfix.3` 之后补发 `2026.10.13`。
+- **NuGet 排序注意**：`-hotfix.N` 是正式修复版，内核与平台沿用正式版各自的包源。按 NuGet 版本优先级，它低于同日无后缀版本。NuGet 消费端必须显式钉定修复版，不能依赖最新版排序；日期递进的版本继续使用无后缀格式。
+- **修复版之后补发正式版**：发布 `-hotfix.N` 之后，下一个工作日补发无后缀正式版。若期间没有其他业务变更，在 `CHANGELOG.md` 的 `[Unreleased]` 中写明此次正式版纳入的修复及其版本号，再运行发布演练。钉在修复版上的消费端可升级到该无后缀版本。首例：`2026.10.12-hotfix.3` 之后补发 `2026.10.13`。
 - `v2026.10.12-2` 的纯数字后缀已被 nuget.org 包清单校验拒绝。该失败标签保留历史，禁止重写或继续发布同类标签。字母加点分段后缀遵循 [NuGet 版本规则](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#semantic-versioning-200)。
 - 推送前校验全部发行包和符号包的实际版本、Kun 内部依赖版本及发行物闭包；缺包或混入其它版本即停止。beta 仅推送 GitHub Packages，GitHub Release 标记为 prerelease。
 - 历史 SemVer tag（`v0.1.0` 等）保留不动，仅作存档；2026-06-11 前的「`main`→稳定 / `develop`→`-beta`」策略作废。

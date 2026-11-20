@@ -44,11 +44,13 @@ def platform(name, role="provider", symbols=True, legacy=False, **kw):
 
 def write(root, name, version=VERSION, deps=(), *, license="MIT", repository=EXPECTED["RepositoryUrl"], commit=COMMIT,
           authors=EXPECTED["Authors"], copyright=EXPECTED["Copyright"], project_url=EXPECTED["PackageProjectUrl"],
-          description="Fixture", suffix=".nupkg", filename=None, nuspec=None, files=()):
+          description="Fixture", suffix=".nupkg", filename=None, nuspec=None, files=(), development=False, placeholder=True):
     """在 root 里拼一个包：根 nuspec、lib/ 下一个占位文件（不是 PE 文件），另加 files 里列的空文件；
     元数据默认与仓库的 src/Directory.Build.props 一致。"""
     meta = (f"<id>{name}</id><version>{version}</version><authors>{authors}</authors><description>{description}</description>"
             + (f"<copyright>{copyright}</copyright>" if copyright else "") + (f"<projectUrl>{project_url}</projectUrl>" if project_url else ""))
+    if development:
+        meta += "<developmentDependency>true</developmentDependency>"
     if license:
         meta += f'<license type="expression">{license}</license>'
     if repository is not None:
@@ -58,7 +60,8 @@ def write(root, name, version=VERSION, deps=(), *, license="MIT", repository=EXP
     text = nuspec or f'<?xml version="1.0" encoding="utf-8"?><package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd"><metadata>{meta}</metadata></package>'
     with zipfile.ZipFile(root / (filename or f"{name}.{version}{suffix}"), "w") as archive:
         archive.writestr(f"{name}.nuspec", text)
-        archive.writestr("lib/net10.0/placeholder.txt", "")
+        if placeholder:
+            archive.writestr("lib/net10.0/placeholder.txt", "")
         for entry in files:
             archive.writestr(entry, "")
 
@@ -105,6 +108,14 @@ class ReleaseDocumentsTests(unittest.TestCase):
         beta = release.release_notes(self.packages, VERSION + "-beta.1", changelog)
         self.assertIn("| `Kun.Data.Native` | 内核 | GitHub Packages |", beta)
         self.assertIn(release.nuget_config(self.packages, VERSION + "-beta.1"), beta)
+
+    def test_first_merged_release_includes_each_documented_package_replacement(self):
+        notes = release.release_notes(self.packages, VERSION, "## [Unreleased]\n\n<!-- package-migration-table -->")
+        guide = (release.ROOT / "docs/guides/package-migration.md").read_text()
+        rows = [line for line in guide.splitlines() if line.startswith("| `Qian.")]
+        self.assertEqual(54, len(rows))
+        self.assertTrue(all(row in notes for row in rows))
+        self.assertNotIn("<!-- package-migration-table -->", notes)
 
     def test_missing_or_placeholder_notes_and_invalid_lists_fail_without_emitting_a_document(self):
         for changelog in ["", "## [Unreleased]\n\n（尚无新变更。）\n\n## [2026.10.25] - 2026-10-25\nolder\n"]:
@@ -154,13 +165,19 @@ class ListTests(unittest.TestCase):
         api = kernel("Kun.Api", aot=True, assembly="Api", declared_friends=("Api.Tests",))
         files = {"api.nupkg": api}
         first = dict(package="api.nupkg", entry="lib/net10.0/Api.dll", assembly="Api",
-                     friends=["Api.Tests"], trimmable=True)
-        self.assertEqual([], release.compare_assembly_metadata(files, [first]))
+                     friends=["Api.Tests"], trimmable=True, version=VERSION + ".0")
+        self.assertEqual([], release.compare_assembly_metadata(files, [first], VERSION))
+        prerelease = VERSION + "-beta.1"
+        self.assertEqual([], release.compare_assembly_metadata(files, [first], prerelease))
+        stale = dict(first, version="0.1.0.0")
+        self.assertIn("AssemblyVersion", release.compare_assembly_metadata(files, [stale], prerelease)[0])
+        dependency = dict(stale, assembly="Bundled.Dependency")
+        self.assertEqual([], release.compare_assembly_metadata(files, [first, dependency], prerelease))
         other = dict(first, entry="lib/net9.0/Api.dll", friends=["Api.Tests", "Manual"], trimmable=False)
-        problems = release.compare_assembly_metadata(files, [first, other])
+        problems = release.compare_assembly_metadata(files, [first, other], VERSION)
         self.assertEqual(2, len(problems))
         self.assertTrue(all("lib/net9.0/Api.dll" in p for p in problems))
-        self.assertIn("缺少项目的程序集", release.compare_assembly_metadata(files, [dict(first, assembly="Other")])[0])
+        self.assertIn("缺少项目的程序集", release.compare_assembly_metadata(files, [dict(first, assembly="Other")], VERSION)[0])
 
     def test_reads_project_properties(self):
         data = {"Properties": {"IsPackable": "true", "PackageId": "Kun.Data", "KunTier": "platform", "KunRole": "provider",
@@ -202,6 +219,27 @@ class ListTests(unittest.TestCase):
         # 档位例外不分位置，都只报数
         self.assertEqual({"Other.Thing → Kun.Core（规则 D）", "Kun.Edge → Kun.Core（规则 K）"}, set(relaxed.allowed["exception"]))
         self.assertEqual(["解决方案里没有可打包的项目"], release.check_list([], transitional=True).problems)
+
+    def test_final_inventory_refuses_retired_package_ids_even_with_different_casing(self):
+        packages = [kernel("Kun.aUdiT"), kernel("Kun.Audit.Abstractions")]
+        self.assertEqual(["Kun.aUdiT 已停发，不能出现在合并版中"], release.check_list(packages, False).problems)
+        self.assertEqual([], release.check_list(packages, True).problems)
+
+    def test_list_checks_both_expected_tier_counts_in_text_and_json(self):
+        packages = [kernel("Kun.Core"), platform("Kun.Registry")]
+        with mock.patch.object(release, "discover", return_value=packages):
+            for flags in ([], ["--json"]):
+                with self.subTest(flags=flags), contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()) as err:
+                    self.assertEqual(0, release.main(["list", *flags, "--expect", "platform=1,kernel=1"]))
+                    self.assertEqual(1, release.main(["list", *flags, "--expect", "kernel=0,platform=2"]))
+                    result = err.getvalue() if flags else out.getvalue()
+                    self.assertIn("kernel 档有 1 个包，预期 0 个", result)
+                    self.assertIn("platform 档有 1 个包，预期 2 个", result)
+
+    def test_list_rejects_missing_duplicate_unknown_or_invalid_tier_counts(self):
+        for spec in ["kernel=1", "kernel=1,kernel=2", "kernel=1,build=2", "kernel=-1,platform=2", ""]:
+            with self.subTest(spec=spec), self.assertRaises(release.argparse.ArgumentTypeError):
+                release.tier_counts(spec)
 
     def test_list_round_trips_through_json(self):
         packages = [kernel("Kun.Core", aot=True, exceptions=(("Kun.X", "K"),)),
@@ -349,6 +387,25 @@ class VerifyTests(unittest.TestCase):
     # 只带分析器的包：项目不带编译输出（IncludeBuildOutput=false），包里 lib/、runtimes/ 下也没有 dll、exe
     # （每个拼出来的包 lib/ 下都有个占位文件，不是 PE 文件，不算）。
     ANALYZER = ("analyzers/dotnet/cs/Kun.Gen.dll",)
+
+    def test_shipped_generator_payload_and_development_dependency(self):
+        generator = kernel("Kun.Plugin.Sdk.Generators", role="provider", symbols=False, build_output=False)
+        analyzer = f"analyzers/dotnet/cs/{generator.id}.dll"
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            for files, development, deps, expected in [
+                ([analyzer, "README.md", "package/services/metadata/core-properties/nuget.psmdcp"], True, (), []),
+                ([analyzer], False, (), ["developmentDependency"]),
+                ([], True, (), ["只能分发"]),
+                ([analyzer, "build/extra.targets"], True, (), ["只能分发"]),
+                ([analyzer], True, [("Roslyn", "4.0")], ["只能分发"]),
+            ]:
+                with self.subTest(files=files, development=development, deps=deps):
+                    write(root, generator.id, files=files, deps=deps, development=development, placeholder=False)
+                    problems = self.verify(root, [generator]).problems
+                    self.assertEqual(len(expected), len(problems), problems)
+                    for message, problem in zip(expected, problems):
+                        self.assertIn(message, problem)
 
     def test_analyzer_only_package_without_symbols_passes(self):
         for legacy in (False, True):

@@ -90,23 +90,26 @@ def release_order(version):
     return (*map(int, date.split(".")), {"beta": 0, "stable": 1, "hotfix": 2}[kind], number)
 
 
-def check_unpublished(packages, version, token):
+def check_unpublished(packages, version, token, *, resume=False):
     if not token:
         raise FeedError("包源预检需要具有 packages:read 权限的 GITHUB_TOKEN")
     candidate = release_order(version)
     def read(url):
-        try:
-            return _read(url, token if url.startswith(GITHUB_API) else None, 30)
-        except (ConnectionError, TimeoutError) as error:
-            raise FeedError(f"无法完成版本预检：{error}") from error
+        for attempt in range(3):
+            try:
+                return _read(url, token if url.startswith(GITHUB_API) else None, 30)
+            except (ConnectionError, TimeoutError) as error:
+                if attempt == 2:
+                    raise FeedError(f"无法完成版本预检：{error}") from error
+                time.sleep(2 ** attempt)
 
     for package in packages:
-        if version in _github_versions(package.id, read):
+        if not resume and version in _github_versions(package.id, read):
             raise FeedError(f"{package.id} 的 {version} 已在 GitHub Packages 发布")
         if package.tier != "kernel":
             continue
         for existing in _nuget_versions(package.id, read):
-            if existing == version:
+            if existing == version and not resume:
                 raise FeedError(f"{package.id} 的 {version} 已在 nuget.org 发布")
             try:
                 order = release_order(existing)

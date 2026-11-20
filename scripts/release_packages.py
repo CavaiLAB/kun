@@ -6,7 +6,7 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
 
 用法（仓库根运行，不需要先还原）：
 
-  python3 scripts/release_packages.py list [--transitional] [--json]
+  python3 scripts/release_packages.py list [--transitional] [--json] [--expect kernel=K,platform=P]
       列出包名单并核对：档位与角色写全、包名不重复；--json 输出名单（verify-packages 可用 --list 读回）。
   python3 scripts/release_packages.py nuget-config --version V [--list release-packages.json]
       向标准输出写入消费者的 NuGet.config。凭据用环境变量占位，包源按档位与发布版本选择。
@@ -72,6 +72,11 @@ METADATA_PROPS = ROOT / "src" / "Directory.Build.props"
 METADATA = ("Authors", "Copyright", "PackageProjectUrl", "RepositoryUrl")
 LEGACY_ROOT = ROOT / "_import"
 PREFIX = "Kun."
+# 停发的包名仍可能存在于包源历史版本中，合并版清单不能再次使用。
+RETIRED_IDS = frozenset(name.casefold() for name in (
+    "Kun.Audit", "Kun.Auditing", "Kun.Dapper", "Kun.Infrastructure",
+    "Kun.MultiTenancy.EntityFrameworkCore", "Kun.Saga", "Kun.Sandbox", "Kun.Storage",
+))
 LICENSE = "MIT"
 DEFAULT_DESCRIPTION = "Package Description"  # SDK 在项目没写 Description 时填的
 PROPERTIES = ("IsPackable", "PackageId", "AssemblyName", "KunTier", "KunRole", "IsAotCompatible", "IncludeSymbols", "IncludeBuildOutput", "NoWarn")
@@ -203,15 +208,33 @@ def in_legacy(package: Package, root: Path = LEGACY_ROOT) -> bool:
     return True
 
 
-def check_list(packages: List[Package], transitional: bool) -> Report:
+def tier_counts(text: str) -> Dict[str, int]:
+    counts: Dict[str, int] = {}
+    for field in text.split(","):
+        tier, sep, number = field.partition("=")
+        if not sep or tier not in TIERS or tier in counts or not re.fullmatch(r"[0-9]+", number):
+            raise argparse.ArgumentTypeError("请给出各档包数，如 kernel=41,platform=44")
+        counts[tier] = int(number)
+    if counts.keys() != set(TIERS):
+        raise argparse.ArgumentTypeError("期望包数须包含 kernel 与 platform 两档")
+    return counts
+
+
+def check_list(packages: List[Package], transitional: bool, expected: Optional[Dict[str, int]] = None) -> Report:
     report = Report()
     if not packages:
         report.problems.append("解决方案里没有可打包的项目")
+    for tier, wanted in (expected or {}).items():
+        actual = sum(p.tier == tier for p in packages)
+        if actual != wanted:
+            report.problems.append(f"{tier} 档有 {actual} 个包，预期 {wanted} 个")
     owners: Dict[str, str] = {}
     for p in packages:
         if p.id.lower() in owners:
             report.problems.append(f"两个项目的包名都是 {p.id}：{owners[p.id.lower()]}、{p.project}")
         owners[p.id.lower()] = p.project
+        if not transitional and p.id.casefold() in RETIRED_IDS:
+            report.problems.append(f"{p.id} 已停发，不能出现在合并版中")
         if p.tier not in TIERS or p.role not in ROLES:
             report.problems.append(f"{p.id}（{p.project}）的档位或角色没写对：KunTier=「{p.tier}」、KunRole=「{p.role}」")
         if not p.id.startswith(PREFIX):
@@ -265,7 +288,8 @@ def read_nuspec(path: Path) -> dict:
             if len(entries) != 1 or entries[0].file_size > NUSPEC_LIMIT:
                 raise Failure(f"{path.name} 里应恰有一个大小受限的根 nuspec")
             raw = archive.read(entries[0])
-            binaries = pe_files(archive.namelist())
+            files = [entry.filename for entry in archive.infolist() if not entry.is_dir()]
+            binaries = pe_files(files)
         if b"<!DOCTYPE" in raw or b"<!ENTITY" in raw:
             raise Failure(f"{path.name} 的 nuspec 不许有 DTD 或实体声明")
         root = ET.fromstring(raw)
@@ -295,6 +319,8 @@ def read_nuspec(path: Path) -> dict:
         "dependencies": sorted({(node.get("id", ""), re.sub(r"\s+", "", node.get("version", "")))
                                 for node in metadata.iter() if _local(node.tag) == "dependency"}),
         "binaries": binaries,
+        "files": files,
+        "developmentDependency": text("developmentDependency").casefold() == "true",
     }
 
 
@@ -305,10 +331,11 @@ def check_assembly_metadata(packages: List[Package], directory: Path, version: s
                          cwd=ROOT, input=json.dumps(paths), text=True, capture_output=True, env=_env())
     if run.returncode:
         raise Failure(f"读取制品的程序集元数据失败：{run.stdout}{run.stderr}")
-    return compare_assembly_metadata(files, json.loads(run.stdout))
+    return compare_assembly_metadata(files, json.loads(run.stdout), version)
 
 
-def compare_assembly_metadata(files: Dict[str, Package], assemblies: List[dict]) -> List[str]:
+def compare_assembly_metadata(files: Dict[str, Package], assemblies: List[dict], version: str) -> List[str]:
+    expected_version = version.split("-", 1)[0] + ".0"
     problems = []
     found = set()
     for item in assemblies:
@@ -317,6 +344,8 @@ def compare_assembly_metadata(files: Dict[str, Package], assemblies: List[dict])
             continue
         found.add(package.id)
         location = f"{package.id}/{item['entry']}"
+        if item["version"] != expected_version:
+            problems.append(f"{location} 的 AssemblyVersion 为 {item['version']}，发布版本要求 {expected_version}")
         if package.aot and not item["trimmable"]:
             problems.append(f"{location} 缺少 IsTrimmable=True 程序集元数据")
         # CLR 的朋友名可在逗号后附公钥；精确依赖按包所属的程序集名匹配。
@@ -384,6 +413,15 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str, 
     for key in sorted(set(found) & set(listed)):
         package, spec = listed[key], found[key][1]
         relax = transitional and in_legacy(package)
+        if package.id == "Kun.Plugin.Sdk.Generators":
+            analyzer = f"analyzers/dotnet/cs/{package.assembly or package.id}.dll"
+            metadata_files = {f"{package.id}.nuspec", "_rels/.rels", "[Content_Types].xml", "README.md"}
+            payload = [name for name in spec["files"] if name not in metadata_files
+                       and not re.fullmatch(r"package/services/metadata/core-properties/[A-Za-z0-9_-]+\.psmdcp", name)]
+            if payload != [analyzer] or package.build_output or spec["dependencies"]:
+                report.problems.append(f"{package.id} 只能分发 {analyzer}，项目须关闭编译输出且制品不能声明依赖")
+            if not spec["developmentDependency"]:
+                report.problems.append(f"{package.id} 的 nuspec 须声明 developmentDependency=true")
         if not package.build_output and not spec["binaries"]:
             # 只带分析器的包（项目不带编译输出，包里 lib/、runtimes/ 下也没有 PE 文件）免符号包，也不能出符号包；
             # 项目写了 IncludeSymbols=true 也报，名单就不会说要、核对却说免。两种模式、不分位置都这么判。
@@ -503,13 +541,22 @@ def release_notes(packages: List[Package], version: str, changelog: str) -> str:
     body = section.group(1).strip() if section else ""
     if not any(line.strip() and line.strip() != "（尚无新变更。）" for line in body.splitlines()):
         raise Failure("CHANGELOG.md 的 [Unreleased] 需要至少一条变更")
+    marker = "<!-- package-migration-table -->"
+    if marker in body:
+        guide = (ROOT / "docs/guides/package-migration.md").read_text(encoding="utf-8")
+        section = re.search(r"^## 平台 0\.x 的包\n.*?(?=^## |\Z)", guide, re.MULTILINE | re.DOTALL)
+        if not section or "| `Qian." not in section.group():
+            raise Failure("迁移指南缺少旧平台包对照表")
+        body = body.replace(marker, section.group().strip(), 1)
     github = set(github_packages(packages, version))
     rows = ["| 包 | 档位 | 包源 |", "|---|---|---|"]
     for package in sorted(packages, key=lambda p: p.id.casefold()):
         tier = "平台" if package.tier == "platform" else "内核"
         feed = "GitHub Packages" if package.id in github else "nuget.org"
         rows.append(f"| `{package.id}` | {tier} | {feed} |")
-    return (f"# Kun {version}\n\n{body}\n\n## 本版本的包\n\n" + "\n".join(rows)
+    return (f"# Kun {version}\n\n{body}\n\n"
+            + f"升级已有项目请参阅[该版本的 NuGet 包迁移指南](https://github.com/CavaiLAB/kun/blob/v{version}/docs/guides/package-migration.md)。\n\n"
+            + "## 本版本的包\n\n" + "\n".join(rows)
             + "\n\n## NuGet 包源\n\n还原前请设置 `KUN_PLATFORM_FEED_USER` 与 `KUN_PLATFORM_FEED_TOKEN`。\n\n"
             + "```xml\n" + nuget_config(packages, version) + "```\n")
 
@@ -551,6 +598,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     listing = sub.add_parser("list", help="列出包名单并核对")
     listing.add_argument("--json", action="store_true", help="以 JSON 输出名单")
+    listing.add_argument("--expect", type=tier_counts, metavar="kernel=K,platform=P", help="核对两个档位的发布包数")
     verifying = sub.add_parser("verify-packages", help="核对 dotnet pack 的产物")
     verifying.add_argument("--version", required=True, help="打包时 -p:Version= 传入的版本（日历版本）")
     verifying.add_argument("--packages", required=True, type=Path, help="dotnet pack -o 的目录")
@@ -565,6 +613,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     feed = sub.add_parser("verify-feed", help="在指定包源核对本次发布的包")
     feed.add_argument("--feed", choices=("github", "nuget"), required=True)
     feed.add_argument("--wait-seconds", type=int, default=2700, help="最多等待索引的秒数，0 表示只核对一轮")
+    preflight.add_argument("--resume-commit", help="复用当前已验证运行的提交；核对已存在的同名标签")
     for p in (config, notes, feed, preflight, consumer):
         p.add_argument("--version", required=True, help="日历版本")
         p.add_argument("--list", type=Path, help="list --json 的输出；不给就现读项目文件")
@@ -575,14 +624,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     try:
         if args.command == "list":
             packages = discover()
+            report = check_list(packages, args.transitional, args.expect)
             if args.json:
-                report = check_list(packages, args.transitional)
                 print(json.dumps([asdict(p) for p in packages], ensure_ascii=False, indent=2))
                 for problem in report.problems:
                     print(f"包名单核对不通过：{problem}", file=sys.stderr)
                 return 1 if report.problems else 0
             print(f"包名单：{_summary(packages)}")
-            return _print(check_list(packages, args.transitional), "包名单核对", args.transitional)
+            return _print(report, "包名单核对", args.transitional)
         release_info(args.version)
         packages = _load_list(args.list) if args.list else discover()
         if args.command in ("nuget-config", "notes", "verify-feed", "check-version", "verify-consumer"):
@@ -596,8 +645,33 @@ def main(argv: Optional[List[str]] = None) -> int:
                 result = subprocess.run(["git", "tag", "--list", "v*"], cwd=ROOT, capture_output=True, text=True)
                 if result.returncode:
                     raise Failure("无法读取仓库的发布标签")
-                check_release_tags(args.version, result.stdout.splitlines(), (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"))
-                check_unpublished(packages, args.version, os.environ.get("GITHUB_TOKEN"))
+                tags = result.stdout.splitlines()
+                changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+                if args.resume_commit:
+                    if git_head() != args.resume_commit:
+                        raise Failure("恢复核对所用提交与检出不一致")
+                    changelog = subprocess.check_output(["git", "show", "origin/main:CHANGELOG.md"], cwd=ROOT, text=True)
+                    target = "v" + args.version
+                    if target in tags:
+                        commit = subprocess.check_output(["git", "rev-list", "-n1", target], cwd=ROOT, text=True).strip()
+                        if commit != args.resume_commit:
+                            raise Failure("此版本已关联其他提交")
+                        tags.remove(target)
+                        # 该版本的日志 PR 已合入时，完整复核其余标签与上一个发布段。
+                        changelog = re.sub(r"^## \[" + re.escape(args.version) + r"\] - \d{4}-\d{2}-\d{2}[^\n]*$",
+                                           "", changelog, count=1, flags=re.M)
+                    for tag in tags:
+                        try:
+                            tagged = release_info(tag, tag=True)
+                        except ValueError:
+                            continue
+                        if release_order(tagged["version"]) > release_order(args.version):
+                            raise Failure("已有更新的发布标签，不能恢复旧版本")
+                check_release_tags(args.version, tags, changelog)
+                if args.resume_commit:
+                    check_unpublished(packages, args.version, os.environ.get("GITHUB_TOKEN"), resume=True)
+                else:
+                    check_unpublished(packages, args.version, os.environ.get("GITHUB_TOKEN"))
                 print(f"发布版本预检通过：{args.version}，{len(packages)} 个包")
             elif args.command == "verify-feed":
                 github = set(github_packages(packages, args.version))

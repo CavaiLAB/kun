@@ -56,7 +56,15 @@ foreach (var path in packages)
                     trimmable = true;
             }
         }
-        results.Add(new { package = Path.GetFileName(path), entry = name, assembly = metadata.GetString(assembly.Name), friends, trimmable });
+        results.Add(new
+        {
+            package = Path.GetFileName(path),
+            entry = name,
+            assembly = metadata.GetString(assembly.Name),
+            version = assembly.Version.ToString(),
+            friends,
+            trimmable
+        });
     }
 }
 Console.WriteLine(JsonSerializer.Serialize(results));

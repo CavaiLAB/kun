@@ -166,6 +166,14 @@ class CiWorkflowTests(unittest.TestCase):
                          "汇总上传的是取好的那份")
         self.assertFalse(fnmatch.fnmatchcase("test-results", downloads[0]["pattern"]), "汇总自己上传的构件不能被下一次尝试当成分片结果下载")
 
+    def test_package_check_build_and_pack_use_one_version(self) -> None:
+        job = self.jobs["dotnet-build"]
+        self.assertEqual("9999.12.31", job["env"]["KUN_PACK_CHECK_VERSION"])
+        commands = [step.get("run", "") for step in job["steps"]]
+        for command in ("dotnet build Kun.slnx", "dotnet pack src/Kun.Gateway", "dotnet pack Kun.slnx"):
+            line, = (line for script in commands for line in script.splitlines() if line.startswith(command))
+            self.assertIn('-p:Version="$KUN_PACK_CHECK_VERSION"', line)
+
     def test_image_evidence_upload_uses_the_selfcheck_output(self) -> None:
         steps = self.jobs["images-selfcheck"]["steps"]
         command = next(step["run"] for step in steps if "images.py selfcheck " in step.get("run", ""))

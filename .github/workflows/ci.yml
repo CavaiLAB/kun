@@ -94,6 +94,8 @@ jobs:
     if: needs.changes.outputs.dotnet == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      KUN_PACK_CHECK_VERSION: "9999.12.31"
     steps:
       - uses: actions/checkout@v4
 
@@ -110,11 +112,11 @@ jobs:
         run: python3 -m unittest discover -s scripts/tests -p 'test_release_*.py' -v
 
       - name: 构建 Release 并检查公共 API
-        run: dotnet build Kun.slnx -c Release --no-restore
+        run: dotnet build Kun.slnx -c Release --no-restore -p:Version="$KUN_PACK_CHECK_VERSION"
 
       - name: 网关打包冒烟
         run: |
-          dotnet pack src/Kun.Gateway -c Release --no-build --no-restore -o artifacts/gateway-package
+          dotnet pack src/Kun.Gateway -c Release --no-build --no-restore -p:Version="$KUN_PACK_CHECK_VERSION" -o artifacts/gateway-package
           test -f artifacts/gateway-package/Kun.Gateway.*.nupkg
           # Kun.Gateway 是类库：包里不能带宿主的配置与运行时配置（独立宿主在 hosts/Kun.Gateway.Standalone）。
           if unzip -Z1 artifacts/gateway-package/Kun.Gateway.*.nupkg | grep -E '(^|/)(appsettings[^/]*\.json|[^/]*\.runtimeconfig\.json)$'; then
@@ -122,8 +124,6 @@ jobs:
           fi
 
       - name: 打包核对（全部可打包项目按占位版本打包，核对名单与产物；不推送）
-        env:
-          KUN_PACK_CHECK_VERSION: "9999.12.31"
         run: |
           # NU5104（稳定版带预发布依赖）先不挡打包，由 verify-packages 按项目的 NoWarn 判。
           dotnet pack Kun.slnx -c Release --no-build --no-restore -p:Version="$KUN_PACK_CHECK_VERSION" -p:WarningsNotAsErrors=NU5104 -o "$RUNNER_TEMP/release-packages"

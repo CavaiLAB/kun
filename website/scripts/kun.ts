@@ -41,6 +41,8 @@ export interface KunCheckout {
   commit: string;
   /** 该提交的日期 YYYY-MM-DD。 */
   date: string;
+  /** 正文经过同仓整理时指向编辑提交；发行版本与标签仍按原包记录。 */
+  editorialRef?: string;
 }
 
 function git(dir: string, args: string[]): string {
@@ -132,6 +134,21 @@ export function openKun(version: string, env: NodeJS.ProcessEnv = process.env, r
   return { dir, version, tag, commit, date };
 }
 
+/** 首次合并前的最后一个正式标签；其文档的同仓整理版经 Kun #17 审核。 */
+export const LAST_SEPARATE_RELEASE = 'abad3ccfd8d7dfb670eee416efb76ee7dc75498c';
+const REVIEWED_GUIDES = '97503ce39963fa7f34d95e332e093d6564ebe4b6';
+
+export function guideEdition(release: KunCheckout): KunCheckout {
+  if (release.commit !== LAST_SEPARATE_RELEASE) return release;
+  try {
+    git(release.dir, ['cat-file', '-e', REVIEWED_GUIDES + '^{commit}']);
+  } catch {
+    git(release.dir, ['fetch', '--quiet', '--no-tags', 'origin', REVIEWED_GUIDES]);
+  }
+  assertFullHistory(release.dir, REVIEWED_GUIDES, REVIEWED_GUIDES);
+  return { ...release, commit: REVIEWED_GUIDES, editorialRef: REVIEWED_GUIDES };
+}
+
 /** tag 上的全部文件路径（/ 分隔）。 */
 export function listKunFiles(kun: KunCheckout): string[] {
   return git(kun.dir, ['ls-tree', '-r', '--name-only', kun.commit]).split('\n').filter(Boolean);
@@ -141,18 +158,18 @@ export function readKunFile(kun: KunCheckout, file: string): string {
   return git(kun.dir, ['show', `${kun.commit}:${file}`]);
 }
 
-/** 文件在该 tag 上的最后提交日期（frontmatter 的 updated，docs-site.md §2b.3）。 */
+/** 文件在该来源版本上的最后提交日期（frontmatter 的 updated，docs-site.md §2b.3）。 */
 export function kunFileDate(kun: KunCheckout, file: string): string {
   return git(kun.dir, ['log', '-1', '--format=%cs', kun.commit, '--', file]).trim() || kun.date;
 }
 
-/** 该 tag 上的文件或目录地址（路径按 tag 指向的那个提交里的布局）。 */
+/** 标明实际来源版本的文件或目录地址。 */
 export function kunGithubUrl(kun: KunCheckout, file: string, isDir = false): string {
   const rel = file.replace(/\/$/, '');
-  return `${KUN_REPO_URL}/${isDir ? 'tree' : 'blob'}/${kun.tag}${rel === '' || rel === '.' ? '' : `/${rel}`}`;
+  return `${KUN_REPO_URL}/${isDir ? 'tree' : 'blob'}/${kun.editorialRef ?? kun.tag}${rel === '' || rel === '.' ? '' : `/${rel}`}`;
 }
 
-/** frontmatter 的 source：<owner>/<repo>@<tag>:<path>（docs-site.md §4）。 */
+/** frontmatter 的 source：<owner>/<repo>@<来源版本>:<path>（docs-site.md §4）。 */
 export function kunSource(kun: KunCheckout, file: string): string {
-  return `${KUN_OWNER_REPO}@${kun.tag}:${file}`;
+  return `${KUN_OWNER_REPO}@${kun.editorialRef ?? kun.tag}:${file}`;
 }

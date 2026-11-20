@@ -155,6 +155,9 @@ describe('白名单、slug 与路由', () => {
   it('按 §2b.2 的白名单映射，slug 小写并把 . 换成 -', () => {
     assert.equal(kunSlug('docs/architecture/ADR-003-Kun.Audit-module.md'), 'adr-003-kun-audit-module');
     assert.equal(kunPagePath('docs/architecture/ADR-003-Kun.Audit-module.md'), 'architecture/adr-003-kun-audit-module.md');
+    assert.equal(kunPagePath('docs/adr/kun/ADR-003-Kun.Audit-module.md'), 'architecture/adr-003-kun-audit-module.md');
+    assert.equal(kunPagePath('docs/design/module-map.md'), 'modules.md');
+    assert.equal(kunPagePath('docs/design/why-outbox.md'), 'architecture/why-outbox.md');
     assert.equal(kunPagePath('docs/observability/tracing-tour.md'), 'guides/tracing-tour.md');
     assert.equal(kunPagePath('docs/schema-per-service.md'), 'guides/schema-per-service.md');
     assert.equal(kunPagePath('docs/releases/v0.1.0-phase1.md'), 'releases/v0-1-0-phase1.md');
@@ -174,7 +177,7 @@ describe('白名单、slug 与路由', () => {
   });
 
   it('白名单外的文件不进站：路线图、差距分析、AOT 审计、各级 AGENTS.md', () => {
-    for (const file of ['docs/roadmap.md', 'docs/neuroagent-phase1-gap.md', 'docs/AGENTS.md', 'docs/guides/AGENTS.md', 'docs/architecture/AGENTS.md', 'docs/architecture/AOT-audit-2026-04-23.md', 'src/Kun.Core/README.md']) {
+    for (const file of ['docs/roadmap.md', 'docs/example-phase1-gap.md', 'docs/AGENTS.md', 'docs/guides/AGENTS.md', 'docs/architecture/AGENTS.md', 'docs/architecture/AOT-audit-2026-04-23.md', 'src/Kun.Core/README.md']) {
       assert.equal(kunPagePath(file), null, file);
     }
   });
@@ -227,6 +230,15 @@ describe('同步样例 kun 仓库', () => {
     assert.equal(makeKunResolver(kun, 'CHANGELOG.md', files, (m) => warnings.push(m))('../docs/guides/table.md'), '/sdk/kun/guides/table');
     assert.equal(resolve('../nope.md'), 'https://github.com/CavaiLAB/kun/blob/v2026.9.13/docs/nope.md');
     assert.equal(warnings.length, 2, warnings.join('\n'));
+  });
+
+  it('审核后的指南同时注明适用发布标签和确切的正文提交', () => {
+    const source = 'docs/guides/table.md';
+    const result = mirrorPage({ ...kun, editorialRef: kun.commit }, source, new Set([source]), () => {});
+    assert.ok(result.content.includes('https://github.com/CavaiLAB/kun/releases/tag/' + kun.tag));
+    assert.ok(result.content.includes('https://github.com/CavaiLAB/kun/blob/' + kun.commit + '/' + source));
+    assert.ok(result.content.includes('CavaiLAB/kun@' + kun.commit + ':' + source));
+    assert.ok(result.content.includes('version: "' + kun.version + '"'));
   });
 
   it('白名单外的文件不能镜像', () => {

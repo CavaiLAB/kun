@@ -11,6 +11,7 @@ Rspress 2.0（`@rspress/core` 2.0.23，React 19，MDX）。内置全文搜索（
 「Kun 框架」小节与 Kun API 参考（§3）另外需要：
 
 - **Kun 的 tag `v<版本>`**：版本是 Kun 最新的发布版，取仓库根 `CHANGELOG.md` 里第一个不是 `[Unreleased]` 的版本段（稳定版或正式修复版创建标签后，由版本日志 PR 更新记录；beta 不更新主干版本段）。tag 在本仓库里，脚本默认读本仓库；本仓库缺这个 tag（浅克隆、没取标签）时从 `origin` 只取这一个 tag 与它的历史。浅克隆里 tag 的历史不全时直接失败（页面的 `updated` 会算错），先 `git fetch --unshallow`。也可以用环境变量 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆，这时缺 tag 直接失败、不去取。
+- **合并前的发布指南**：v2026.10.25 的包与 API 版本取其原标签，指南取同仓 [Kun #17 的审定文本](https://github.com/CavaiLAB/kun/pull/17)。两者分别显示在页面来源中；浅检出缺少该编辑提交时，生成器从 origin 按提交号取回。后续合并版直接从各自标签的正式目录取文档。
 - **.NET SDK**（版本见仓库根的 `global.json`）：DocFX 是 `website/.config/dotnet-tools.json` 锁定的本地工具，首次构建时自动 `dotnet tool restore`，并从 nuget.org 还原同版本的 `Kun.*` 包。
 
 两者缺一构建即失败，不跳过、不回退 `main`（docs-site.md §2b.1）。

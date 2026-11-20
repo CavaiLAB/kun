@@ -32,6 +32,12 @@ interface WhitelistRule {
 export const KUN_WHITELIST: readonly WhitelistRule[] = [
   { pattern: 'README.md', dir: '', name: 'index' },
   { pattern: 'docs/architecture/module-map.md', dir: '', name: 'modules' },
+  { pattern: 'docs/design/module-map.md', dir: '', name: 'modules' },
+  { pattern: 'docs/design/whitepaper.md', dir: '', name: 'whitepaper' },
+  { pattern: 'docs/design/why-*.md', dir: 'architecture' },
+  { pattern: 'docs/design/when-to-use-*.md', dir: 'architecture' },
+  { pattern: 'docs/adr/kun/ADR-*.md', dir: 'architecture' },
+  { pattern: 'docs/adr/kun/adr-*.md', dir: 'architecture' },
   { pattern: 'docs/getting-started.md', dir: '', name: 'getting-started' },
   { pattern: 'docs/guides/*.md', dir: 'guides' },
   { pattern: 'docs/observability/*.md', dir: 'guides' },
@@ -300,6 +306,7 @@ export function makeKunResolver(kun: KunCheckout, source: string, files: Readonl
 function banner(kun: KunCheckout, source: string, lead: string): string {
   return [
     ':::info 发布版本来源',
+    ...(kun.editorialRef ? [`本页适用 [${kun.tag}](${KUN_REPO_URL}/releases/tag/${kun.tag})；正文取自同仓 [Kun #17 审核的文档](${KUN_REPO_URL}/pull/17)。`] : []),
     `${lead} [\`${source}\`](${kunGithubUrl(kun, source)})（\`${kun.tag}\`）。` +
       'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；' +
       '平台集成方式见[内核与平台组件](/sdk/kun/with-qian)。',
@@ -342,13 +349,19 @@ export function mirrorPage(kun: KunCheckout, source: string, files: ReadonlySet<
   if (page === null || source === 'README.md') {
     throw new Error(`${source} 不在 Kun 镜像白名单里（docs-site.md §2b.2），不能进站；要收录先改规范的白名单表`);
   }
-  const body = processBody(kun, source, readKunFile(kun, source), files, warn);
+  let markdown = readKunFile(kun, source);
+  if (kun.editorialRef && source === 'CHANGELOG.md') {
+    const start = markdown.indexOf(`\n## [${kun.version}] - `);
+    if (start < 0) throw new Error(`整理后的变更记录缺少 ${kun.version} 的正式发布段`);
+    markdown = '# Kun 版本记录\n' + markdown.slice(start);
+  }
+  const body = processBody(kun, source, markdown, files, warn);
   const h1 = findH1(body);
   const title = h1 ? plainText(h1.heading.slice(2)) : kunSlug(source);
   const rest = h1 ? h1.after : body;
   const description = plainText(firstParagraph(rest));
   const head = h1 ? `${h1.before ? `${h1.before}\n` : ''}${h1.heading}` : `# ${title}`;
-  const content = `${frontmatter(kun, source, title, description)}\n${head}\n\n${banner(kun, source, '本页由本仓库的发布标签生成，源文件为')}\n${rest}`;
+  const content = `${frontmatter(kun, source, title, description)}\n${head}\n\n${banner(kun, source, kun.editorialRef ? '本页由审核后的源文件生成' : '本页由本仓库的发布标签生成，源文件为')}\n${rest}`;
   return { source, page, title, content: content.endsWith('\n') ? content : `${content}\n` };
 }
 
@@ -360,14 +373,12 @@ export function kunLabel(title: string): string {
 /** 概览页由 README 的一句话定位与模块矩阵拼装（docs-site.md §2b.2 第一行），加上版本与本节目录。 */
 function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: MirroredPage[], packages: number, warn: (m: string) => void): string {
   const readme = readKunFile(kun, 'README.md');
-  const tagline = /^\*([^*\s][^*]*?)\*\s*$/m.exec(readme)?.[1]?.trim() ?? '';
-  if (tagline === '') warn('README.md：没找到斜体的一句话定位，概览页不写定位');
+  const historicalIntro = kun.editorialRef ? /^- \*\*原 Kun\*\*：(.+)$/m.exec(readme)?.[1] : undefined;
+  const tagline = historicalIntro ?? /^\*([^*\s][^*]*?)\*\s*$/m.exec(readme)?.[1]?.trim() ?? plainText(firstParagraph(findH1(readme)?.after ?? ''));
   const lines = readme.split('\n');
   const start = lines.findIndex((l) => /^##\s.*模块矩阵/.test(l));
   let matrix = '';
-  if (start === -1) {
-    warn('README.md：没找到「模块矩阵」一节，概览页只列本节目录');
-  } else {
+  if (start !== -1) {
     const end = lines.findIndex((l, i) => i > start && /^##\s/.test(l));
     matrix = processBody(kun, 'README.md', lines.slice(start + 1, end === -1 ? undefined : end).join('\n').trim(), files, warn);
   }
@@ -397,11 +408,11 @@ function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: Mirro
     frontmatter(kun, 'README.md', 'Kun 框架', description),
     '# Kun 框架',
     '',
-    banner(kun, 'README.md', '本页由本仓库发布标签下的 README 和模块矩阵生成，入口为'),
+    banner(kun, 'README.md', '本页由本仓库的指南与模块目录生成，源码入口为'),
     '',
     ...(tagline ? [`> ${tagline}`, ''] : []),
     'Kun 提供 .NET 内核与平台组件，Qian 提供前端框架。[产品族](/start/family)列出两者的仓库与版本来源。' +
-      `本节读取本仓库 **${kun.tag}** 标签下的文档。版本取根目录 \`CHANGELOG.md\` 里最新的正式发布段。` +
+      `本节说明本仓库的 **${kun.tag}** 正式版本。版本取根目录 \`CHANGELOG.md\` 里最新的正式发布段。` +
       `[Kun 源码与文档](${KUN_REPO_URL})由同一仓库维护。`,
     '',
     '## 本节内容',
@@ -441,6 +452,15 @@ export function syncKunDocs(kun: KunCheckout, packages: number): KunDocsResult {
   for (const source of all) {
     if (kunPagePath(source) === null || source === 'README.md') continue;
     pages.push(mirrorPage(kun, source, files, warn));
+  }
+  if (files.has('docs/design/module-map.md') && !files.has('docs/releases/v0.1.0-phase1.md')) {
+    const source = 'CHANGELOG.md';
+    const page = 'releases/v0-1-0-phase1.md';
+    const title = 'Kun 0.1.0 历史发布说明';
+    const content = [frontmatter(kun, source, title, '原始发布说明和同仓版本记录的入口。'), '# ' + title, '',
+      banner(kun, source, '本页由同仓变更记录生成'),
+      '', `[原始发布说明](${KUN_REPO_URL}/blob/v2026.10.25/docs/releases/v0.1.0-phase1.md)保留在对应的历史源码中。完整版本序列见[同仓变更记录](/sdk/kun/releases/)。`, ''].join('\n');
+    pages.push({ source, page, title, content });
   }
   if (!files.has('README.md')) throw new Error(`kun 仓库 ${kun.tag} 没有 README.md，无法拼装概览页`);
   const seen = new Map<string, string>();

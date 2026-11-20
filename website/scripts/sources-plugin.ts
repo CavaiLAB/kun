@@ -3,7 +3,7 @@ import type { RspressPlugin } from '@rspress/core';
 import { apiReferenceFiles, buildKunApi } from './build-kun-api.ts';
 import { VERSIONS_PAGE, buildVersions } from './build-versions.ts';
 import { collectComponents } from './collect-components.ts';
-import { openKun, readKunVersion } from './kun.ts';
+import { guideEdition, openKun, readKunVersion } from './kun.ts';
 import { SITE_DOCS, writeGenerated, writeGeneratedFile, type GeneratedPart, type WriteResult } from './repo.ts';
 import { KUN_HANDWRITTEN, syncKunDocs } from './sync-kun-docs.ts';
 import { syncCli, syncDesign } from './sync-specs.ts';
@@ -21,7 +21,7 @@ export function generateAll(siteDocs: string = SITE_DOCS): GenerateReport {
   // Kun 小节：版本缺失、tag 不存在都在这里失败（docs-site.md §2b.1）
   const kun = openKun(readKunVersion());
   const api = buildKunApi(kun);
-  const docs = syncKunDocs(kun, api.packages.length);
+  const docs = syncKunDocs(guideEdition(kun), api.packages.length);
   return {
     results: {
       components: writeGenerated('components', collectComponents(), siteDocs),

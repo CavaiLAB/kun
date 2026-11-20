@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WEBSITE_ROOT, yamlString, type GeneratedFile } from './repo.ts';
-import { CACHE_DIR, KUN_OWNER_REPO, kunGithubUrl, kunSource, listKunFiles, readKunFile, type KunCheckout } from './kun.ts';
+import { CACHE_DIR, KUN_OWNER_REPO, LAST_SEPARATE_RELEASE, kunGithubUrl, kunSource, listKunFiles, readKunFile, type KunCheckout } from './kun.ts';
 import { firstParagraph, plainText, truncate } from './sync-kun-docs.ts';
 
 export const KUN_API_ROUTE = '/sdk/api/kun/';
@@ -398,11 +398,41 @@ export interface KunApiResult {
   warnings: number;
 }
 
+// 已归档的沙箱契约中，下列八种通用类型可以完整展示；配置类型的签名与原始扩展载荷保留在历史制品。
+const ARCHIVED_CONTRACTS = new Set(['FileEntry', 'IFiles', 'IProcesses', 'ISandboxHandle', 'ISandboxProvider',
+  'ProcessResult', 'ProcessRunOptions', 'SandboxState']);
+const ARCHIVED_CONFIG = new Set(['BrowserSessionConfig', 'SandboxCreateOptions', 'SecretScopeConfig']);
+
+function archivedContract(kun: KunCheckout, page: ApiPage): boolean {
+  return kun.commit === LAST_SEPARATE_RELEASE && page.namespace === 'Kun.Sandbox.Abstractions';
+}
+
+function archivePage(kun: KunCheckout, page: ApiPage, visible: readonly ApiPage[]): string {
+  const ns = page.kind === 'Namespace';
+  const title = ns ? page.namespace : page.display;
+  const description = `${title} 的历史归属、原始源码和已发布包。`;
+  const items = ns
+    ? visible.filter(p => p.namespace === page.namespace && p.kind !== 'Namespace').map(p => `- [${p.display}](${p.route})`)
+    : [];
+  return [
+    apiFrontmatter(kun, title, description, 'src/Kun.Sandbox', false),
+    `# ${title}`, '',':::info 发布版本来源',
+    `本页由归档包 [Kun.Sandbox ${kun.version}](https://www.nuget.org/packages/Kun.Sandbox/${kun.version}) 的历史版本生成。该版本的完整类型和签名见[固定源码](${kunGithubUrl(kun, 'src/Kun.Sandbox', true)})（\`${kun.tag}\`）。`, ':::','',
+    'Kun.Sandbox 已从合并版的解决方案和发行清单中移出。旧版本的包与源码保留原有 API。', '', ...items, '',
+  ].join('\n');
+}
+
 /** DocFX 输出 → sdk/api/kun/ 下的页面与概览（不生成侧栏）。纯函数，单测直接喂 DocFX 样例。 */
 export function convertDocfx(kun: KunCheckout, output: DocfxOutput, packages: readonly string[]): KunApiResult {
-  const pages = parseDocfxPages(output.pages);
+  const published = parseDocfxPages(output.pages);
+  const pages = published.filter(p => !archivedContract(kun, p) || p.kind === 'Namespace' ||
+    ARCHIVED_CONTRACTS.has(p.display) || ARCHIVED_CONFIG.has(p.display));
   const ctx = convertContext(kun, pages);
-  const files: GeneratedFile[] = pages.map((p) => ({ path: p.path, content: convertPage(p, ctx) }));
+  const files: GeneratedFile[] = pages.map(p => ({
+    path: p.path,
+    content: archivedContract(kun, p) && (p.kind === 'Namespace' || ARCHIVED_CONFIG.has(p.display))
+      ? archivePage(kun, p, pages) : convertPage(p, ctx),
+  }));
 
   // API 页不进侧栏：Rspress 每页都渲染整棵侧栏，四百多个 API 页面进侧栏会让每页多出约 250 KB（产物从 57 MB 涨到 170 MB）。
   // 导航靠本节概览（包 → 命名空间）、命名空间页（→ 类型）、类型页顶部的命名空间链接与全文搜索。
@@ -431,7 +461,7 @@ export function convertDocfx(kun: KunCheckout, output: DocfxOutput, packages: re
         'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；Kun 的文档见 [Kun 框架](/sdk/kun/)。',
       ':::',
       '',
-      `共 ${packages.length} 个包、${namespaces.length} 个命名空间、${typeCount} 个公开类型。包与 kun 仓库 \`src/\` 下发布到 nuget.org 的项目一一对应，说明取自包的 nuspec。`,
+      `共 ${packages.length} 个包、${namespaces.length} 个命名空间、${typeCount} 个收录的公开类型。包与 kun 仓库 \`src/\` 下发布到 nuget.org 的项目一一对应，说明取自包的 nuspec。`,
       '',
       '| 包 | 说明 | 命名空间 |',
       '|---|---|---|',

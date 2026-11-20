@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { apiReferenceFiles, convertDocfx, docfxAnchor, htmlToMarkdown, kunPackages, parseDocfxPages, verifyKunPackageVersions, type DocfxOutput } from './build-kun-api.ts';
 import { checkKunPages } from './check-site.ts';
-import type { KunCheckout } from './kun.ts';
+import { LAST_SEPARATE_RELEASE, type KunCheckout } from './kun.ts';
 import { splitFrontmatter } from './repo.ts';
 
 const kun: KunCheckout = { dir: '/tmp/kun', version: '2026.9.13', tag: 'v2026.9.13', commit: 'abc', date: '2026-09-13' };
@@ -115,6 +115,29 @@ describe('Kun API 参考', () => {
         ['Kun.Core.Results.Result-1', 'Kun.Core.Results.Result`1', 'kun-core-results/result-1.md', '/sdk/api/kun/kun-core-results/result-1'],
       ],
     );
+  });
+
+  it('归档包保留原版来源与通用类型，其他发布版沿用完整 DocFX 契约', () => {
+    const ns = 'Kun.Sandbox.Abstractions';
+    const names = ['FileEntry', 'SandboxCreateOptions', 'ExampleExtension'];
+    const pages: Record<string, string> = { [ns]: '# Namespace ' + ns };
+    for (const name of names) {
+      pages[ns + '.' + name] = '# Class ' + name + '\n\nNamespace: [' + ns + '](' + ns + '.md)\nAssembly: Kun.Sandbox.dll\n\nExampleExtension sample member.';
+    }
+    const docfx = { pages, descriptions: {}, warnings: 0 };
+    const archived = { ...kun, tag: 'v2026.10.25', version: '2026.10.25', commit: LAST_SEPARATE_RELEASE };
+    const result = convertDocfx(archived, docfx, ['Kun.Sandbox']);
+    assert.equal(result.types, 2);
+    const lookup = (name: string) => result.files.find(f => f.path === 'kun-sandbox-abstractions/' + name + '.md')?.content;
+    assert.ok(lookup('fileentry')?.includes('sample member'));
+    assert.equal(lookup('exampleextension'), undefined);
+    for (const name of ['index', 'sandboxcreateoptions']) {
+      const page = lookup(name) ?? '';
+      assert.doesNotMatch(page, /ExampleExtension/);
+      assert.match(page, /nuget\.org\/packages\/Kun\.Sandbox\/2026\.10\.25/);
+      assert.match(page, /github\.com\/CavaiLAB\/kun\/tree\/v2026\.10\.25\/src\/Kun\.Sandbox/);
+    }
+    assert.equal(convertDocfx(kun, docfx, ['Kun.Sandbox']).types, 3);
   });
 
   it('成员锚点与 DocFX 一致', () => {

@@ -22,8 +22,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import dotnet_ci  # noqa: E402
 
-# 与仓库根的 ci.yml 同形：dotnet 区域的作业带 needs.changes.outputs.dotnet == 'true'，有的在 _import/qian 运行，有的在仓库根运行；
-# 别的区域的作业运行的脚本不归 dotnet 区域管。
+# 两个 .NET 作业都在仓库根运行。镜像作业读取的文件只由镜像区域负责。
 WORKFLOW = """\
 name: ci
 on:
@@ -60,7 +59,7 @@ jobs:
       - run: python3 scripts/images_gate.py
 """
 
-# 与仓库根的区域表同形：dotnet 区域管 _import/qian/ 的一组以 ** 开头、排除 pm/、docs/ 与根目录 Markdown，另有仓库根路径的一组。
+# 样例接受多组独立的路径匹配式，以便检查排除、重新纳入和区域之间的边界。
 AREAS = """\
 from typing import NamedTuple, Tuple
 
@@ -73,14 +72,14 @@ class Area(NamedTuple):
 EVERYTHING = (".github/workflows/ci.yml",)
 AREAS = {{
     "dotnet": Area("构建", ({groups})),
-    "images": Area("镜像", (("_import/qian/deploy/**",),)),
+    "images": Area("镜像", (("deploy/**",),)),
 }}
 """
 
 KUN_UNIT = '{"solution": {"path": "../Kun.slnx", "projects": ["tests/Kun.Sample.Tests/Kun.Sample.Tests.csproj"]}}\n'
 KUN_INTEGRATION = "tests/Kun.Sample.IntegrationTests/Kun.Sample.IntegrationTests.csproj"
 
-# 照仓库里测试的写法从 AppContext.BaseDirectory 向上找 kun-platform.slnf：根目录文件名只在这样定位了仓库根的文件里算引用。
+# 只在通过 Kun.slnx 定位到仓库根的文件中识别根目录引用。
 LOCATOR = """\
     private static string RepositoryRoot()
     {
@@ -156,7 +155,7 @@ class Sandbox:
         target.write_text(text, encoding="utf-8")
 
     def workflow(self, *reincluded: str) -> None:
-        """dotnet 区域管 _import/qian/ 的一组：排除 pm/、docs/ 与根目录 Markdown，再重新纳入 reincluded。"""
+        """样例的第一组排除 pm/、docs/ 和根目录 Markdown，再纳入 reincluded 指定的路径。"""
         groups = [("**", "!pm/**", "!docs/**", "!*.md", *reincluded), ("src/**", "tests/**", "!**/*.md")]
         self.areas(*groups)
 
@@ -390,7 +389,7 @@ class PythonReferenceTests(unittest.TestCase):
         reader = "from pathlib import Path\n\nprint((Path(__file__).resolve().parents[1] / 'docs/prd/14-quality.md').read_text())\n"
         self.box.write("scripts/images_gate.py", reader)  # 只由镜像自检作业运行，不归 dotnet 区域管
         self.assertEqual(0, self.box.passes()["重新纳入"])
-        self.box.write("scripts/root_gate.py", reader)  # dotnet 区域的作业在仓库根运行，写成 _import/qian/scripts/root_gate.py
+        self.box.write("scripts/root_gate.py", reader)
         self.assertIn("scripts/root_gate.py:3 读取 docs/prd/14-quality.md，", self.box.blocked())
         self.box.workflow("docs/prd/14-quality.md")
         self.assertEqual(1, self.box.passes()["重新纳入"])
@@ -437,7 +436,7 @@ class PythonReferenceTests(unittest.TestCase):
 
 
 class AreaTableTests(unittest.TestCase):
-    """paths-check 的匹配式取自仓库根区域表里 dotnet 区域管 _import/qian/ 的那一组，去掉前缀。"""
+    """paths-check 从仓库根区域表读取各组匹配式，按组核对 .NET 作业的输入。"""
 
     def setUp(self) -> None:
         self.box = Sandbox(self)
@@ -469,7 +468,7 @@ class AreaTableTests(unittest.TestCase):
 
 
 class VerifyTests(unittest.TestCase):
-    """verify 核对各分片（含分片 k）的 TRX，并对 _import/qian/ 下不在 kun-platform.slnf 里的测试项目告警（门禁样例与专属作业运行的项目除外）。"""
+    """verify 按分片登记核对每个模块的 TRX，报告失败、缺失和跳过的用例。"""
 
     TRX = ('<?xml version="1.0" encoding="utf-8"?>\n'
            '<TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">\n'
@@ -779,8 +778,7 @@ class ImagesTests(unittest.TestCase):
 
 
 class RegistrationTests(unittest.TestCase):
-    """registration：仓库根（_import/ 之外，tests/gates 除外）的测试项目在 kun-unit.slnf、KUN_INTEGRATION、dotnet 区域的作业
-    dotnet test --project 或 NOT_IN_CI 里；_import/qian/ 下的在 kun-platform.slnf 里或由专属作业运行。NOT_IN_CI 过期即失败。"""
+    """所有测试项目必须登记在根分片、集成清单、专属作业或显式豁免里。过期豁免和过渡目录中的 .NET 工程都会报错。"""
 
     def setUp(self) -> None:
         self.box = Sandbox(self)

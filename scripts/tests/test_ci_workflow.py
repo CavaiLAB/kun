@@ -129,7 +129,7 @@ class CiWorkflowTests(unittest.TestCase):
             if "npm.pkg.github.com" in text:
                 npm.add(area)
         self.assertEqual({name for name, area in ci_changes.AREAS.items() if area.builds_dotnet}, dotnet)
-        # 分片 b 装 doctor 客户端的 npm 包，但 dotnet 区域已含整个 _import/qian（.npmrc 在内），不另列标记。
+        # 分片 b 为 doctor 测试安装 npm 客户端，其余安装依赖的作业由 installs_npm 登记。
         self.assertEqual({name for name, area in ci_changes.AREAS.items() if area.installs_npm}, npm - {"dotnet"})
 
     def test_test_results_are_named_per_attempt_and_the_summary_takes_the_latest(self) -> None:

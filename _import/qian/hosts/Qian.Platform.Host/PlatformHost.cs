@@ -9,7 +9,7 @@ using Kun.Core.MultiTenancy;
 using Kun.Audit;
 using Kun.Authorization.AspNetCore;
 using Qian.Capabilities.AspNetCore;
-using Qian.Config;
+using Kun.Configuration;
 using Kun.Data;
 using Kun.Plugin.Sdk.AspNetCore;
 using Kun.Runtime;

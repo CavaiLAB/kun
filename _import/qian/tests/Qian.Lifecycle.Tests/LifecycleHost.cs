@@ -19,9 +19,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Kun.Audit;
-using Qian.Config;
-using Qian.Config.Apollo;
-using Qian.Config.Secrets;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
+using Kun.Configuration.Secrets;
 using Kun.Data;
 using Kun.Plugin.Sdk;
 using Qian.Profiles;
@@ -31,7 +31,7 @@ using Kun.Runtime;
 using Kun.Errors;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Qian.Lifecycle.Tests;
 
@@ -98,7 +98,7 @@ internal sealed class LifecycleHost : IAsyncDisposable
         builder.Services.AddKunMediator(mediator => mediator.AddQianRegistryEvents().AddQianLifecycleEvents());
         builder.Services.AddKunEvents();
         builder.Services.AddSingleton<ISecretAccessObserver>(secrets);
-        builder.Services.AddQianSecrets(new SecretResolverOptions
+        builder.Services.AddKunSecrets(new SecretResolverOptions
         {
             MountRoot = Path.Combine(directory, "secrets"),
             Bindings = [.. TrustKeys.Select(key => new SecretBinding("secretRef://platform/trust/" + key, new KubernetesSecretLocation("qian", "trust-" + key, "public-key"))),
@@ -106,7 +106,7 @@ internal sealed class LifecycleHost : IAsyncDisposable
                 new SecretBinding("secretRef://platform/lifecycle/k8s-ca", new KubernetesSecretLocation("qian", "lifecycle-k8s", "ca"))],
             Policies = [new SecretAccessPolicy("qian.lifecycle", [new("trust/*", "platform"), new("lifecycle/*", "platform")], [new("trust/*", "platform"), new("lifecycle/*", "platform")])]
         });
-        builder.Services.AddQianConfiguration(configuration);
+        builder.Services.AddKunConfiguration(configuration);
         services?.Invoke(builder.Services);
         Directory.CreateDirectory(Path.Combine(directory, "secrets"));
         var host = builder.Build();

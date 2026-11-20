@@ -1,6 +1,6 @@
 using Kun.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Config;
+using Kun.Configuration;
 using Kun.Plugin.Sdk;
 using Qian.Registry;
 using Kun.Runtime;

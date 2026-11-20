@@ -28,7 +28,7 @@
   "x-aot": true,
   "runtime": {
     "form": "module",
-    "entry": "Qian.Config.Apollo.ApolloConfigurationPlugin, Qian.Config.Apollo",
+    "entry": "Kun.Configuration.Platform.ApolloConfigurationPlugin, Kun.Configuration.Platform",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -45,8 +45,8 @@
       "metadata/events.json": {
         "$generated": true,
         "component": "qian.config.apollo",
-        "source": "Qian.Config.Apollo.ApolloConfigurationPlugin, Qian.Config.Apollo",
-        "sha256": "29e18d84ad191d035566d3f4535b4dc74fc3359787351a7358d8cb9396bafe58",
+        "source": "Kun.Configuration.Platform.ApolloConfigurationPlugin, Kun.Configuration.Platform",
+        "sha256": "512f0ea761fde0e24f8d0234c7bbf8b2779a5d5c26e4ee80be62d1336f89b2cd",
         "fields": [
           ""
         ]
@@ -54,7 +54,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.config.apollo",
-        "source": "Qian.Config.Apollo.ApolloConfigurationPlugin, Qian.Config.Apollo",
+        "source": "Kun.Configuration.Platform.ApolloConfigurationPlugin, Kun.Configuration.Platform",
         "sha256": "189fc207387664c362e112482fc38d8c87e2f725d04caf37346ace6dab0aa513",
         "fields": [
           ""

@@ -12,9 +12,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Qian.Config;
-using Qian.Config.Apollo;
-using Qian.Config.Secrets;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
+using Kun.Configuration.Secrets;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
 using Qian.Testing;
@@ -77,13 +77,13 @@ internal sealed class RelyingParty : IAsyncDisposable
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redis));
         builder.Services.AddSingleton<ISecretAccessObserver>(new SecretAudit());
-        builder.Services.AddQianSecrets(new SecretResolverOptions
+        builder.Services.AddKunSecrets(new SecretResolverOptions
         {
             MountRoot = secrets,
             Bindings = [new(SecretReference, new KubernetesSecretLocation("qian", "identity", "client-secret"))],
             Policies = [new("qian.identity.client", [new("identity/*", "platform")], [new("identity/*", "platform")])]
         });
-        builder.Services.AddQianConfiguration(new ConfigurationRoot([]));
+        builder.Services.AddKunConfiguration(new ConfigurationRoot([]));
         builder.Services.AddKunIdentityClient(new IdentityClientOptions
         {
             Authority = new Uri(identity.Issuer), ClientId = IdentityServerHost.ClientId, Scopes = ["openid", "offline_access", "qian.api"],

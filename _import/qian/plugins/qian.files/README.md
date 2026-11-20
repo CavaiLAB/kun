@@ -1,6 +1,6 @@
 # qian.files
 
-文件组件的 Provider 位于 [packages/Qian.Files](../../packages/Qian.Files/README.md)，Definition 在 [Qian.Files.Abstractions](../../packages/Qian.Files.Abstractions/README.md)，HTTP 表面在 [Qian.Files.AspNetCore](../../packages/Qian.Files.AspNetCore/README.md)（S1-FILE-001）。已提供租户前缀存储键、用途上传策略、租户配额、local 后端的签名直传 / 直下、完成时服务端校验与隔离、附件下载、审计与 `files.object.created/deleted.v1` 事件。
+文件组件的 Provider 位于 [Kun.Files](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Files/README.md)，Definition 在 [Kun.Files.Abstractions](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Files.Abstractions/README.md)，HTTP 表面在 [Kun.Files.AspNetCore](https://github.com/CavaiLAB/kun/blob/main/src/Kun.Files.AspNetCore/README.md)（S1-FILE-001）。已提供租户前缀存储键、用途上传策略、租户配额、local 后端的签名直传 / 直下、完成时服务端校验与隔离、附件下载、审计与 `files.object.created/deleted.v1` 事件。
 
 清单的 inject、provides 与 runtime 字段，以及 `tools/*.json`（六个能力 `qian.files/presign-upload`、`complete-upload`、`get`、`download-url`、`delete`、`quota`）由 Kun.Plugin.Tool 从实际程序集同步，CI 的 `scripts/check_plugin_manifests.py` 发现入口后核对不漂移；`provides` 含 local 后端的具名贡献 `Files.Backends:local`（入口上的 `[Contributes]` 声明）。`runtime.nuget` 钉 `Qian.Files.Abstractions` 与 `Qian.Files` 的锁步版本和归档摘要，发布后人工同步（发布链给出待同步清单归 S1-RT-034）。
 

@@ -479,7 +479,7 @@ Kun.Data.IDataConnectionRegistry.TestAsync(System.Guid id, System.Threading.Canc
 Kun.Data.IDataConnectionRegistry.UpdateAsync(System.Guid id, Kun.Data.DataConnectionDraft! draft, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Data.DataConnectionProfile!>!
 Kun.Data.IDataDialect
 Kun.Data.IDataDialect.Descriptor.get -> Kun.Data.DbDialect!
-Kun.Data.IDataDialect.ProbeAsync(Kun.Data.DataConnectionTarget! target, Qian.Config.SecretValue! password, System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.DataConnectionProbe!>
+Kun.Data.IDataDialect.ProbeAsync(Kun.Data.DataConnectionTarget! target, Kun.Configuration.SecretValue! password, System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.DataConnectionProbe!>
 Kun.Data.IDataDialectRegistry
 Kun.Data.IDataDialectRegistry.Find(string! name) -> Kun.Data.IDataDialect?
 Kun.Data.IDataDialectRegistry.List() -> System.Collections.Generic.IReadOnlyList<Kun.Data.DbDialect!>!

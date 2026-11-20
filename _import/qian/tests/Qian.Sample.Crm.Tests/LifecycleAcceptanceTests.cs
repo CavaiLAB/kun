@@ -20,9 +20,9 @@ using Org.BouncyCastle.Security;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
-using Qian.Config;
-using Qian.Config.Apollo;
-using Qian.Config.Secrets;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
+using Kun.Configuration.Secrets;
 using Kun.Data;
 using Qian.Lifecycle;
 using Qian.Lifecycle.AspNetCore;
@@ -36,7 +36,7 @@ using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Kun.Tenancy;
 using Kun.Tenancy.Signup;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Kun.Audit;
 using Npgsql;
 
@@ -339,7 +339,7 @@ public abstract partial class CustomerCommandTests
         builder.Services.AddKunData<PlatformAuditDbContext>((_, options) => options.UseNpgsql(platform.AuditConnection).UseKunSchema(AuditDbContext.Schema));
         builder.Services.AddKunData<LifecycleDbContext>((_, options) => options.UseNpgsql(connection).UseKunSchema(LifecycleDbContext.Schema));
         builder.Services.AddSingleton<ISecretAccessObserver>(platform);
-        builder.Services.AddQianSecrets(new SecretResolverOptions
+        builder.Services.AddKunSecrets(new SecretResolverOptions
         {
             MountRoot = platform.SecretRoot,
             Bindings = [new SecretBinding("secretRef://platform/trust/platform", new KubernetesSecretLocation("qian", "trust-platform", "public-key"))],

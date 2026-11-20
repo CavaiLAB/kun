@@ -14,11 +14,11 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Kun.Audit;
-using Qian.Config;
+using Kun.Configuration;
 using Kun.Identity.Client;
 using Kun.Identity.Client.Tests;
 using Qian.Testing;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Qian.Testing.NativeAudit;
 using StackExchange.Redis;
 

@@ -17,7 +17,7 @@ using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Runtime;
 using Qian.Testing;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Qian.Testing.Gateway;
 
 namespace Qian.Sample.Crm.Tests;

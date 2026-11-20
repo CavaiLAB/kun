@@ -8,7 +8,7 @@
     <ProjectReference Include="../../../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../../../src/Kun.EventBus/Kun.EventBus.csproj" />
-    <ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" />
+    <ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <ProjectReference Include="../../../../src/Kun.Security/Kun.Security.csproj" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />

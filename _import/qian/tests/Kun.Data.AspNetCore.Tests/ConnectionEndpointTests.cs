@@ -12,10 +12,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Qian.Config;
-using Qian.Config.Secrets;
+using Kun.Configuration;
+using Kun.Configuration.Secrets;
 using Kun.Data.Dialect.Pg;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Kun.Authorization.AspNetCore;
 
 namespace Kun.Data.AspNetCore.Tests;
@@ -80,7 +80,7 @@ public sealed class ConnectionEndpointTests(PostgresFixture postgres) : IClassFi
         });
         builder.Services.AddKunDataMigrations(options => options.ResolveConnection = (_, _) => _owner);
         builder.Services.AddSingleton<ISecretAccessObserver>(_observer);
-        builder.Services.AddQianSecrets(new SecretResolverOptions
+        builder.Services.AddKunSecrets(new SecretResolverOptions
         {
             MountRoot = _mount,
             Bindings =

@@ -27,7 +27,7 @@ builder.Services.AddKunData<LifecycleDbContext>((_, options) => options.UseNpgsq
 builder.Services.AddKunEventBus(events => events.RegisterRegistryEvents().RegisterLifecycleEvents());
 builder.Services.AddKunMediator(mediator => mediator.AddQianRegistryEvents().AddQianLifecycleEvents());
 builder.Services.AddQianEvents();
-builder.Services.AddQianSecrets(new SecretResolverOptions
+builder.Services.AddKunSecrets(new SecretResolverOptions
 {
     MountRoot = "/var/run/secrets/qian",
     Bindings = [new SecretBinding("secretRef://platform/trust/k1", new KubernetesSecretLocation("qian", "trust-k1", "public-key"))],

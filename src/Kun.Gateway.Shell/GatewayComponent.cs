@@ -1,9 +1,9 @@
 using System.Text.Json;
+using Kun.Configuration;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Config;
 
 namespace Kun.Gateway.Shell;
 

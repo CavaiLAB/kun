@@ -17,7 +17,7 @@ using Npgsql;
 using Kun.Data;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Kun.Tenancy.Tests;
 

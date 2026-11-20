@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
-using Qian.Config;
+using Kun.Configuration;
 using Kun.Runtime;
 using Kun.Errors;
 

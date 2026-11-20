@@ -2,9 +2,9 @@
   {
     "name": "config/reload-failed",
     "mode": "emit",
-    "payload": "Qian.Config.ConfigReloadFailed",
+    "payload": "Kun.Configuration.ConfigReloadFailed",
     "result": "System.Object",
-    "source": "Qian.Config.ConfigRuntimeEvents.ReloadFailed",
+    "source": "Kun.Configuration.ConfigRuntimeEvents.ReloadFailed",
     "definitionComponent": "qian.config"
   }
 ]

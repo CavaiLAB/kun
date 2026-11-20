@@ -27,7 +27,7 @@ using Kun.Runtime;
 using Qian.Surfaces;
 using Qian.Surfaces.Abstractions;
 using Kun.Tenancy;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Qian.Sample.Crm.Tests;
 

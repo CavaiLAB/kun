@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
 using Kun.Errors;
 using Kun.Identity.Abstractions;
 using Kun.Plugin.Sdk;
@@ -7,8 +9,6 @@ using Kun.Runtime;
 using Kun.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Config;
-using Qian.Config.Apollo;
 
 namespace Kun.Identity.Connector.Oidc.Tests;
 
@@ -120,7 +120,7 @@ public sealed class OidcComponentTests
     [Fact]
     public async Task 组件按scope注册_租户项遮蔽全局项_卸载即撤销()
     {
-        await using var services = new ServiceCollection().AddQianConfiguration(new ConfigurationBuilder().Build()).BuildServiceProvider();
+        await using var services = new ServiceCollection().AddKunConfiguration(new ConfigurationBuilder().Build()).BuildServiceProvider();
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "plugins/qian.identity.connector.oidc/.qian-plugin/plugin.json")));
         var code = ((IComponentCodeMetadataFactory)Activator.CreateInstance(typeof(OidcConnectorComponent).Assembly.GetCustomAttribute<KunCodeMetadataAttribute>()!.FactoryType)!).Create();
         var entry = Type.GetType(manifest.RootElement.GetProperty("runtime").GetProperty("entry").GetString()!, throwOnError: true)!;

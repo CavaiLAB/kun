@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
-using Qian.Config;
+using Kun.Configuration;
 using Kun.Runtime;
 using Kun.Errors;
 

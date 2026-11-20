@@ -20,7 +20,7 @@ using Kun.Data;
 using Kun.Plugin.Sdk;
 using Kun.Runtime;
 using Kun.Errors;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 
 namespace Qian.Sample.Crm.Tests;
 

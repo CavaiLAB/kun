@@ -1,0 +1,16 @@
+#nullable enable
+const Kun.Files.FilesDbContext.Schema = "plugin_qian_files" -> string!
+Kun.Files.FilesDbContext
+Kun.Files.FilesDbContext.FilesDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Files.FilesDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Files.FilesPlugin
+Kun.Files.FilesPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Files.FilesPlugin.FilesPlugin() -> void
+Kun.Files.FilesPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Files.KunFilesExtensions
+Kun.Files.KunFilesOptions
+Kun.Files.KunFilesOptions.Clock.get -> System.TimeProvider!
+Kun.Files.KunFilesOptions.Clock.set -> void
+Kun.Files.KunFilesOptions.LocalSigningKey.get -> System.ReadOnlyMemory<byte>
+Kun.Files.KunFilesOptions.LocalSigningKey.set -> void
+Kun.Files.KunFilesOptions.KunFilesOptions() -> void
+static Kun.Files.KunFilesExtensions.AddKunFiles(this Kun.Mediator.KunMediatorBuilder! builder, System.Func<System.IServiceProvider!, Kun.Runtime.IPluginContext!>! source, System.Action<Kun.Files.KunFilesOptions!>? configure = null, string! channel = "api") -> Kun.Mediator.KunMediatorBuilder!

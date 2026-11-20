@@ -4,7 +4,7 @@
   <ItemGroup>
     <ProjectReference Include="../Kun.Identity/Kun.Identity.csproj" />
     <ProjectReference Include="../Kun.Identity.Abstractions/Kun.Identity.Abstractions.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Abstractions/Qian.Config.Abstractions.csproj" />
+    <ProjectReference Include="../Kun.Configuration.Abstractions/Kun.Configuration.Abstractions.csproj" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
     <InternalsVisibleTo Include="Kun.Identity.Connector.Oidc.Tests" />
   </ItemGroup>

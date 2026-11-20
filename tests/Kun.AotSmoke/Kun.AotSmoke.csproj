@@ -47,7 +47,7 @@
 
   <!-- 清单里 _import/qian/ 下的项目。 -->
   <ItemGroup>
-    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
     <ProjectReference Include="../../src/Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" />
     <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../src/Kun.Gateway.Abstractions/Kun.Gateway.Abstractions.csproj" />

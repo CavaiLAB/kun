@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using static Kun.Identity.Server.Tests.AccountSupport;
 
 namespace Kun.Identity.Server.Tests;

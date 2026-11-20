@@ -3,7 +3,7 @@ using System.Diagnostics;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using Npgsql;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using Qian.Testing.NativeData;
 
 namespace Kun.Data.Native.Postgres.AotTests;

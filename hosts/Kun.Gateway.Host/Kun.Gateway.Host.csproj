@@ -11,8 +11,8 @@
     <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
     <ProjectReference Include="../../src/Kun.Gateway.Shell/Kun.Gateway.Shell.csproj" />
     <ProjectReference Include="../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Apollo/Qian.Config.Apollo.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Config.Secrets/Qian.Config.Secrets.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
+    <ProjectReference Include="../../src/Kun.Configuration.Secrets/Kun.Configuration.Secrets.csproj" />
     <ProjectReference Include="../../src/Kun.Data.Native.Postgres/Kun.Data.Native.Postgres.csproj" />
     <ProjectReference Include="../../src/Kun.Audit.Postgres/Kun.Audit.Postgres.csproj" />
     <PackageReference Include="StackExchange.Redis" />

@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text.Json;
+using Kun.Configuration;
 using Kun.Identity.Abstractions;
 using Kun.Runtime;
-using Qian.Config;
 
 namespace Kun.Identity.Connector.Oidc;
 

@@ -34,7 +34,7 @@ using Kun.Identity.Server;
 using Kun.Runtime;
 using Kun.Errors;
 using Kun.Tenancy;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Qian.Sample.Crm.Tests;

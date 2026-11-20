@@ -9,7 +9,7 @@ using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Capabilities;
-using Qian.Config.Apollo;
+using Kun.Configuration.Platform;
 using Kun.Data;
 using Qian.Lifecycle;
 using Qian.Profiles.Abstractions;
@@ -133,7 +133,7 @@ public static class PlatformComponents
             services.AddAppData<AuditDbContext>(AuditDbContext.Schema);
             if (services.ConfigString("chain", "platformRole") is not null) services.AddData<PlatformAuditDbContext>(AuditDbContext.Schema, "PlatformAudit");
         }),
-        new("qian.config", "Qian.Config.Apollo.ConfigurationPlugin, Qian.Config.Apollo", _ => new ConfigurationPlugin()),
+        new("qian.config", "Kun.Configuration.Platform.ConfigurationPlugin, Kun.Configuration.Platform", _ => new ConfigurationPlugin()),
         new("qian.registry", "Qian.Registry.RegistryComponent, Qian.Registry", _ => new RegistryComponent(), services =>
         {
             services.AddAppData<RegistryDbContext>(RegistryDbContext.Schema);

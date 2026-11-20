@@ -1,6 +1,6 @@
 using Kun.EventBus.RabbitMQ;
 using System.Text;
-using Qian.Testing.Containers;
+using Kun.Testing.Containers;
 using RabbitMQ.Client;
 
 namespace Kun.EventBus.IntegrationTests;

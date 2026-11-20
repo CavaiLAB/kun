@@ -100,11 +100,11 @@ LOCATOR = """\
 
 XUNIT_PROJECT = '<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="xunit.v3" /></ItemGroup></Project>\n'
 
-# 与 tests/Qian.Testing.Containers 同形的容器夹具：只引断言库与扩展点（不是测试项目），镜像写在 ContainerImages 里，夹具类型按属性取镜像。
+# 与 tests/Kun.Testing.Containers 同形的容器夹具：只引断言库与扩展点（不是测试项目），镜像写在 ContainerImages 里，夹具类型按属性取镜像。
 CONTAINERS_PROJECT = ('<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="xunit.v3.assert" />'
                       '<PackageReference Include="xunit.v3.extensibility.core" /></ItemGroup></Project>\n')
 CONTAINER_IMAGES = """\
-namespace Qian.Testing.Containers;
+namespace Kun.Testing.Containers;
 
 public static class ContainerImages
 {
@@ -115,9 +115,9 @@ public static class ContainerImages
     private static string FromEnvironment(string variable, string fallback) => Environment.GetEnvironmentVariable(variable) ?? fallback;
 }
 """
-POSTGRES_FIXTURE = "namespace Qian.Testing.Containers;\n\npublic sealed class PostgresFixture\n{\n    public string Image => ContainerImages.Postgres;\n}\n"
+POSTGRES_FIXTURE = "namespace Kun.Testing.Containers;\n\npublic sealed class PostgresFixture\n{\n    public string Image => ContainerImages.Postgres;\n}\n"
 # 照仓库里的写法用反斜杠引用夹具项目
-FIXTURE_USER = XUNIT_PROJECT.replace("</ItemGroup>", '<ProjectReference Include="..\\Qian.Testing.Containers\\Qian.Testing.Containers.csproj" /></ItemGroup>')
+FIXTURE_USER = XUNIT_PROJECT.replace("</ItemGroup>", '<ProjectReference Include="..\\Kun.Testing.Containers\\Kun.Testing.Containers.csproj" /></ItemGroup>')
 
 
 def csharp(*statements: str, locator: bool = True) -> str:
@@ -181,7 +181,7 @@ class Sandbox:
                                    WORKFLOW=self.repo / ".github" / "workflows" / "ci.yml",
                                    CI_CHANGES=self.repo / "scripts" / "ci_changes.py",
                                    KUN_UNIT=self.repo / "tests" / "kun-unit.slnf", KUN_INTEGRATION=[KUN_INTEGRATION],
-                                   CONTAINERS=self.root / "tests" / "Qian.Testing.Containers", NOT_IN_CI=dict(self.not_in_ci))
+                                   CONTAINERS=self.root / "tests" / "Kun.Testing.Containers", NOT_IN_CI=dict(self.not_in_ci))
 
     def passes(self):
         with self.patched():
@@ -684,9 +684,9 @@ class ImagesTests(unittest.TestCase):
         self.box = Sandbox(self)
         self.box.write("Qian.slnf", json.dumps({"solution": {"path": "Kun.slnx", "projects": [
             "tests/Sample.Tests/Sample.Tests.csproj", "tests/Plain.Tests/Plain.Tests.csproj"]}}) + "\n")
-        self.box.write("tests/Qian.Testing.Containers/Qian.Testing.Containers.csproj", CONTAINERS_PROJECT)
-        self.box.write("tests/Qian.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES)
-        self.box.write("tests/Qian.Testing.Containers/PostgresFixture.cs", POSTGRES_FIXTURE)
+        self.box.write("tests/Kun.Testing.Containers/Kun.Testing.Containers.csproj", CONTAINERS_PROJECT)
+        self.box.write("tests/Kun.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES)
+        self.box.write("tests/Kun.Testing.Containers/PostgresFixture.cs", POSTGRES_FIXTURE)
         self.box.write("tests/Sample.Tests/Sample.Tests.csproj", FIXTURE_USER)
         self.box.write("tests/Sample.Tests/Probe.cs", "namespace Sample;\n\npublic sealed class Probe(PostgresFixture fixture);\n")
         self.box.write("tests/Plain.Tests/Plain.Tests.csproj", XUNIT_PROJECT)
@@ -710,26 +710,26 @@ class ImagesTests(unittest.TestCase):
         self.assertEqual((0, "postgres:16-alpine\nredis:7-alpine\n", ""), self.run_main("images"))
 
     def test_missing_fixture_directory_fails_naming_the_path(self) -> None:
-        shutil.rmtree(self.box.root / "tests" / "Qian.Testing.Containers")
+        shutil.rmtree(self.box.root / "tests" / "Kun.Testing.Containers")
         code, output, errors = self.run_main("images", "a")
         self.assertEqual((2, ""), (code, output))
-        self.assertIn("容器夹具目录 _import/qian/tests/Qian.Testing.Containers 不在", errors)
+        self.assertIn("容器夹具目录 _import/qian/tests/Kun.Testing.Containers 不在", errors)
 
     def test_fixture_without_image_defaults_fails(self) -> None:
-        self.box.write("tests/Qian.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES.replace("QIAN_TEST_IMAGE_", "TEST_IMAGE_"))
+        self.box.write("tests/Kun.Testing.Containers/ContainerImages.cs", CONTAINER_IMAGES.replace("QIAN_TEST_IMAGE_", "TEST_IMAGE_"))
         code, _, errors = self.run_main("images", "a")
         self.assertEqual(2, code)
-        self.assertIn("_import/qian/tests/Qian.Testing.Containers 里没有解析出 QIAN_TEST_IMAGE_* 缺省镜像", errors)
+        self.assertIn("_import/qian/tests/Kun.Testing.Containers 里没有解析出 QIAN_TEST_IMAGE_* 缺省镜像", errors)
 
     def test_shard_whose_fixture_users_resolve_no_image_fails_naming_them(self) -> None:
         # 夹具类型改了名，测试源码里的旧名字对不上：分片 a 引用了夹具项目，却一个镜像也解析不出来
-        self.box.write("tests/Qian.Testing.Containers/PostgresFixture.cs", POSTGRES_FIXTURE.replace("PostgresFixture", "DatabaseFixture"))
+        self.box.write("tests/Kun.Testing.Containers/PostgresFixture.cs", POSTGRES_FIXTURE.replace("PostgresFixture", "DatabaseFixture"))
         code, output, errors = self.run_main("images", "a")
         self.assertEqual((2, ""), (code, output))
-        self.assertIn("分片 a 里 Sample.Tests 引用了容器夹具项目（_import/qian/tests/Qian.Testing.Containers），却一个镜像也没解析出来", errors)
+        self.assertIn("分片 a 里 Sample.Tests 引用了容器夹具项目（_import/qian/tests/Kun.Testing.Containers），却一个镜像也没解析出来", errors)
         # 经 tests/ 下的测试宿主项目间接引用夹具项目的也算
         self.box.write("tests/Plain.Host/Plain.Host.csproj", '<Project Sdk="Microsoft.NET.Sdk"><ItemGroup>'
-                       '<ProjectReference Include="../Qian.Testing.Containers/Qian.Testing.Containers.csproj" /></ItemGroup></Project>\n')
+                       '<ProjectReference Include="../Kun.Testing.Containers/Kun.Testing.Containers.csproj" /></ItemGroup></Project>\n')
         self.box.write("tests/Plain.Tests/Plain.Tests.csproj",
                        XUNIT_PROJECT.replace("</ItemGroup>", '<ProjectReference Include="..\\Plain.Host\\Plain.Host.csproj" /></ItemGroup>'))
         code, _, errors = self.run_main("images", "b")
@@ -748,7 +748,7 @@ class ImagesTests(unittest.TestCase):
         self.assertIn("拉取失败 postgres:16-alpine", log)
         self.assertIn("toomanyrequests", log)
         # 后台预拉列不出镜像也只记录：拦下来的是工作流在它前面同步跑的 images
-        shutil.rmtree(self.box.root / "tests" / "Qian.Testing.Containers")
+        shutil.rmtree(self.box.root / "tests" / "Kun.Testing.Containers")
         state = self.box.repo / "prefetch-again"
         with self.box.patched(), mock.patch.object(dotnet_ci, "SHARDS", self.SHARDS):
             self.assertEqual(0, dotnet_ci.main(["prefetch", "a", "--state", str(state)]))

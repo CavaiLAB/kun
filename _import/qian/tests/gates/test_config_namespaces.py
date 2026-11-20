@@ -11,8 +11,8 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TOOL = ROOT / "tools/Qian.Config.Tool/bin/Release/net10.0/Qian.Config.Tool.dll"
-MOCK = ROOT / "tests/Qian.Testing.Containers/ApolloMock/apollo_mock.py"
+TOOL = ROOT / "../../tools/Kun.Configuration.Tool/bin/Release/net10.0/Kun.Configuration.Tool.dll"
+MOCK = ROOT / "tests/Kun.Testing.Containers/ApolloMock/apollo_mock.py"
 NAMESPACE = "qian.plugin.test.sample"
 LITERAL = "synthetic-online-value"
 # 本机可能配置了系统代理；回环地址的协议替身不经代理。

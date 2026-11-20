@@ -66,17 +66,17 @@ internal sealed class FakeConnector(string id = FakeConnector.DefaultId, string 
 }
 
 /// <summary>只认一个 secretRef 的密钥解析替身；记录解析次数。</summary>
-internal sealed class StaticSecrets(string reference, string value) : Qian.Config.ISecretResolver
+internal sealed class StaticSecrets(string reference, string value) : Kun.Configuration.ISecretResolver
 {
     private int _resolved;
     internal string Reference => reference;
     internal int Resolved => Volatile.Read(ref _resolved);
 
-    public ValueTask<Qian.Config.SecretValue> ResolveAsync(string requested, CancellationToken cancellationToken = default)
+    public ValueTask<Kun.Configuration.SecretValue> ResolveAsync(string requested, CancellationToken cancellationToken = default)
     {
         Interlocked.Increment(ref _resolved);
-        if (requested != reference) throw new ErrorException(new Error(Qian.Config.SecretErrors.AccessDenied));
-        return ValueTask.FromResult(new Qian.Config.SecretValue(System.Text.Encoding.UTF8.GetBytes(value)));
+        if (requested != reference) throw new ErrorException(new Error(Kun.Configuration.SecretErrors.AccessDenied));
+        return ValueTask.FromResult(new Kun.Configuration.SecretValue(System.Text.Encoding.UTF8.GetBytes(value)));
     }
 }
 
@@ -92,7 +92,7 @@ internal sealed class ConnectorsPlugin(params IIdentityConnector[] connectors) :
     }
 
     /// <summary>真实的通用 OIDC 连接器组件条目（注册名取配置的 name，缺省 oidc）。</summary>
-    internal static PluginDefinition Oidc(string id, object config, Qian.Config.ISecretResolver secrets, HttpMessageHandler handler, string name = "oidc", ScopeKey? scope = null) =>
+    internal static PluginDefinition Oidc(string id, object config, Kun.Configuration.ISecretResolver secrets, HttpMessageHandler handler, string name = "oidc", ScopeKey? scope = null) =>
         new(new PluginEntry(id, "qian.identity.connector.oidc", "1.0.0", scope ?? ScopeKey.Global, 1, JsonSerializer.SerializeToElement(config)),
             new Kun.Identity.Connector.Oidc.OidcConnectorPlugin(secrets, handler), [new ServiceKey("Identity.Connectors:" + name)]);
 

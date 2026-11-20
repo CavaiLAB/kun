@@ -172,11 +172,11 @@ test('真实 Config Provider 制成临时 NuGet 包后经签名市场安装，�
   // 原 Qian 改为项目引用 Kun 源码之后（S1-KUN-020），宿主里的 Kun 是下面与 Qian 的包同一版本打进临时源的那份，
   // 不再是 nuget.org 上按 KunVersion 钉的正式版，组件对 kun 的要求按这个版本写。
   const kunRange='>='+version;
-  const extra={version,engines:{kun:kunRange},provides:['Config'],runtime:{form:'module',entry:'Qian.Config.Apollo.ConfigurationPlugin, Qian.Config.Apollo',nuget:[{id:'Qian.Config.Apollo',version}]}};
+  const extra={version,engines:{kun:kunRange},provides:['Config'],runtime:{form:'module',entry:'Kun.Configuration.Platform.ConfigurationPlugin, Kun.Configuration.Platform',nuget:[{id:'Kun.Configuration.Platform',version}]}};
   const packageComponent=path.join(f.root,'package-component');component(packageComponent,'qian.config','official',extra);
   const packTargets=path.join(f.root,'pack-components.targets');
-  writeFileSync(packTargets,`<Project><ItemGroup Condition="'$(MSBuildProjectName)' == 'Qian.Config.Apollo'"><None Include="${xml(packageComponent)}/**/*" Pack="true" PackagePath="qian/%(RecursiveDir)%(Filename)%(Extension)" /></ItemGroup></Project>`);
-  // 按项目引用求 Qian.Config.Apollo 的依赖闭包（依赖在前）全部打进临时源；只在编译期使用的生成器引用不成为包依赖。
+  writeFileSync(packTargets,`<Project><ItemGroup Condition="'$(MSBuildProjectName)' == 'Kun.Configuration.Platform'"><None Include="${xml(packageComponent)}/**/*" Pack="true" PackagePath="qian/%(RecursiveDir)%(Filename)%(Extension)" /></ItemGroup></Project>`);
+  // 按项目引用求 Kun.Configuration.Platform 的依赖闭包（依赖在前）全部打进临时源；只在编译期使用的生成器引用不成为包依赖。
   // 原 Qian 改为项目引用 Kun 源码之后（S1-KUN-020），闭包里还有仓库根 src/ 下的 Kun 项目：按引用路径解析，与 Qian 的包同一版本打进临时源。
   const closure=(project,order=[])=>{
    if(order.includes(project))return order;
@@ -184,7 +184,7 @@ test('真实 Config Provider 制成临时 NuGet 包后经签名市场安装，�
     if(!match[2].includes('ReferenceOutputAssembly="false"'))closure(path.resolve(path.dirname(project),match[1].replaceAll('\\','/')),order);
    order.push(project);return order;
   };
-  for(const project of closure(path.join(repo,'packages','Qian.Config.Apollo','Qian.Config.Apollo.csproj'))){
+  for(const project of closure(path.join(repo,'..','..','src','Kun.Configuration.Platform','Kun.Configuration.Platform.csproj'))){
    const packed=spawnSync('dotnet',['pack',project,'-c','Release','-p:Version='+version,'-p:CustomAfterMicrosoftCommonTargets='+packTargets,'-o',feed,'--artifacts-path',path.join(f.root,'build'),'--disable-build-servers','-m:1'],{cwd:repo,encoding:'utf8',timeout:120000});
    assert.equal(packed.status,0,packed.stdout+packed.stderr);
   }
@@ -195,7 +195,7 @@ test('真实 Config Provider 制成临时 NuGet 包后经签名市场安装，�
   created.data.plugins.push({...created.data.plugins[0],name:'consumer',source:{type:'local',path:'./plugins/test.consumer'}});created.persist();
   configure(f,[{name:'catalog',source:location,priority:10}],[created.publicPem]);
   const installed=run(f.project,'--no-home','add','consumer','guide','--yes');assert.equal(installed.status,0,installed.stderr);
-  const result=JSON.parse(installed.stdout).plugins.find(item=>item.id==='qian.config');assert.equal(result.status,'installed');assert.deepEqual(result.packages.nuget,['Qian.Config.Apollo@'+version]);
+  const result=JSON.parse(installed.stdout).plugins.find(item=>item.id==='qian.config');assert.equal(result.status,'installed');assert.deepEqual(result.packages.nuget,['Kun.Configuration.Platform@'+version]);
   const lockFile=path.join(f.project,'.qian/lock.json'),projectFile=path.join(f.project,'Host.csproj');
   const locked=readFileSync(lockFile,'utf8'),project=readFileSync(projectFile,'utf8');
   assert.equal(JSON.parse(locked).packageState[0].managed,true);
@@ -204,11 +204,11 @@ test('真实 Config Provider 制成临时 NuGet 包后经签名市场安装，�
   write(f.project,'Program.cs',`using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Config;
-using Qian.Config.Apollo;
+using Kun.Configuration;
+using Kun.Configuration.Platform;
 using Kun.Runtime;
 using var configuration = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> { ["Marker"]="installed" }).Build();
-using var services = new ServiceCollection().AddQianConfiguration(configuration).BuildServiceProvider();
+using var services = new ServiceCollection().AddKunConfiguration(configuration).BuildServiceProvider();
 await using var runtime = new PluginLoader(services);
 await runtime.MountAsync([new PluginDefinition(new PluginEntry("config","qian.config","${version}",ScopeKey.Global,0,JsonSerializer.SerializeToElement(new {})),new ConfigurationPlugin(),[ConfigDefinition.Key])]);
 if(runtime.GetContext("config",ScopeKey.Global).Config().GetRequiredValue("Marker")!="installed")throw new Exception();
@@ -230,15 +230,15 @@ Console.WriteLine("real-provider-ready");
   const consumerRemoval=run(f.project,'--no-home','remove','consumer','--purge');assert.equal(consumerRemoval.status,0,consumerRemoval.stderr);
   const removed=run(f.project,'--no-home','remove','guide');assert.equal(removed.status,0,removed.stderr);
   assert.equal(existsSync(path.join(f.project,'.qian/plugins/qian.config')),false);
-  assert.ok(!readFileSync(projectFile,'utf8').includes('Qian.Config.Apollo'));
+  assert.ok(!readFileSync(projectFile,'utf8').includes('Kun.Configuration.Platform'));
   assert.deepEqual(JSON.parse(run(f.project,'--no-home','list').stdout).plugins,[]);
   const reinstalled=run(f.project,'--no-home','add','guide','--yes');assert.equal(reinstalled.status,0,reinstalled.stderr);
   const purged=run(f.project,'--no-home','remove','catalog/guide','--purge');assert.equal(purged.status,0,purged.stderr);
   assert.equal(readFileSync(path.join(f.project,'profiles/minimal/qian.patch.yml'),'utf8'),'[]\n');
   const bundle=path.join(location,'plugins/qian.bundle.fixture');
-  const providerArchive=readFileSync(path.join(feed,readdirSync(feed).find(name=>name.toLowerCase()===('Qian.Config.Apollo.'+version+'.nupkg').toLowerCase())));
+  const providerArchive=readFileSync(path.join(feed,readdirSync(feed).find(name=>name.toLowerCase()===('Kun.Configuration.Platform.'+version+'.nupkg').toLowerCase())));
   const providerDigest='sha256:'+createHash('sha256').update(providerArchive).digest('hex');
-  const bundleExtra={engines:{kun:kunRange},runtime:{nuget:[{id:'Qian.Config.Apollo',version,digest:providerDigest}]},surfaces:{patch:'./config/qian.patch.yml'}};
+  const bundleExtra={engines:{kun:kunRange},runtime:{nuget:[{id:'Kun.Configuration.Platform',version,digest:providerDigest}]},surfaces:{patch:'./config/qian.patch.yml'}};
   component(bundle,'qian.bundle.fixture','official',bundleExtra);
   component(path.join(bundle,'components/qian.config'),'qian.config','official',extra);
   component(path.join(bundle,'components/test.consumer'),'test.consumer','private',{inject:['Config']});
@@ -267,7 +267,7 @@ Console.WriteLine("real-provider-ready");
   write(packageBundle,'config/qian.patch.yml',stringify([{id:'config',plugin:'qian.config@'+version,config:{}}]));
   created.data.plugins.push({...created.data.plugins[0],name:'from-package',source:{type:'local',path:'./plugins/qian.bundle.package'}});created.persist();
   const beforePlan=readFileSync(projectFile,'utf8'),beforePlanLock=readFileSync(lockFile,'utf8');
-  component(packageBundle,'qian.bundle.package','official',{...bundleExtra,runtime:{nuget:[{id:'Qian.Config.Apollo',version,digest:'sha256:'+'0'.repeat(64)}]}});
+  component(packageBundle,'qian.bundle.package','official',{...bundleExtra,runtime:{nuget:[{id:'Kun.Configuration.Platform',version,digest:'sha256:'+'0'.repeat(64)}]}});
   const wrongDigest=run(f.project,'--no-home','add','from-package','--force','--yes');assert.equal(wrongDigest.status,1);assert.match(wrongDigest.stderr,/digest 不一致/);
   assert.equal(readFileSync(projectFile,'utf8'),beforePlan);assert.equal(readFileSync(lockFile,'utf8'),beforePlanLock);
   assert.equal(existsSync(path.join(f.project,'.qian/plugins/qian.bundle.package')),false);
@@ -288,8 +288,8 @@ Console.WriteLine("real-provider-ready");
   const packageInstalled=run(f.project,'--no-home','add','from-package','--yes');assert.equal(packageInstalled.status,0,packageInstalled.stderr);
   assert.ok(existsSync(path.join(f.project,'.qian/plugins/qian.bundle.package/components/qian.config/.qian-plugin/plugin.json')));
   const packageRecord=JSON.parse(readFileSync(lockFile,'utf8')).plugins.find(item=>item.id==='qian.bundle.package');
-  assert.ok(packageRecord.packageArtifacts.some(item=>item.name==='Qian.Config.Apollo'&&item.componentId==='qian.config'&&/^sha256:/.test(item.digest)));
-  assert.equal(packageRecord.packageArtifacts.find(item=>item.name==='Qian.Config.Apollo').digest,providerDigest);
+  assert.ok(packageRecord.packageArtifacts.some(item=>item.name==='Kun.Configuration.Platform'&&item.componentId==='qian.config'&&/^sha256:/.test(item.digest)));
+  assert.equal(packageRecord.packageArtifacts.find(item=>item.name==='Kun.Configuration.Platform').digest,providerDigest);
   assert.notEqual(packageRecord.deliveryDigest,packageRecord.digest);
   const packageTree=run(f.project,'--no-home','dump-config');assert.equal(packageTree.status,0,packageTree.stderr);assert.equal(JSON.parse(packageTree.stdout).entries[0].plugin,'qian.config@'+version);
   const lockedPackage=readFileSync(lockFile,'utf8'),installedProject=readFileSync(projectFile,'utf8');

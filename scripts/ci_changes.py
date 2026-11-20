@@ -127,7 +127,6 @@ AREAS: Dict[str, Area] = {
         "目录选择器验收",
         (
             q("tests/directory-e2e/**", "tests/gates/ui/pins.test.ts",
-              "packages/Qian.*/**",
               "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
               "Directory.*.props", "Directory.Build.targets", ".editorconfig",
@@ -141,7 +140,7 @@ AREAS: Dict[str, Area] = {
         (
             q("apps/qian-shell/**", "packages/qian-shell-kit/**", "packages/qian-identity-ui/**",
               "samples/qian-sample-crm-ui/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
-              "packages/Qian.*/**", "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**",
+              "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**",
               "contracts/**", "tools/Qian.Dev.Shell/**", "tools/Qian.Dev.TenantOps/**", "tools/Qian.Build.Analyzers/**",
               "scripts/dev-shell.sh", "Directory.*.props", "Directory.Build.targets",
               ".editorconfig", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".github/workflows/shell-auth.yml"),
@@ -177,7 +176,7 @@ AREAS: Dict[str, Area] = {
     "tenant-ui": Area(
         "租户运营页面验收",
         (
-            q("packages/qian-tenancy-ui/**", "turbo.json", "packages/Qian.*/**",
+            q("packages/qian-tenancy-ui/**", "turbo.json",
               "samples/Qian.Sample.Crm/**", "plugins/**", "schemas/**", "contracts/**", "tools/Qian.Dev.TenantOps/**",
               "tools/Qian.Build.Analyzers/**", "tools/openapi-codegen/**", "scripts/dev-tenant-ops.sh",
               "Directory.*.props", "Directory.Build.targets", ".editorconfig",

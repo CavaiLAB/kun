@@ -139,7 +139,7 @@ DataScopeComposition.ForResource 只建立逻辑计划：同角色 AND（重复�
 
 ### 授权变更 → 身份修订递增（S1-AZ-009）
 
-口径见 S1-DEC-027 与 [决策说明](../../_import/qian/docs/decisions/authz-identity-revision-wiring.md)。`AuthzPlugin.RoleStore` 组装的角色存储在授予的增、改、撤（`authz.grant.changed.v1` 的 assigned / updated / revoked）提交并释放数据会话之后，在同一调用内对每个受影响的 user 主体：
+口径见 S1-DEC-027 与 [决策说明](../../docs/decisions/authz-identity-revision-wiring.md)。`AuthzPlugin.RoleStore` 组装的角色存储在授予的增、改、撤（`authz.grant.changed.v1` 的 assigned / updated / revoked）提交并释放数据会话之后，在同一调用内对每个受影响的 user 主体：
 
 1. 经 `ctx` 解析的 `IIdentityAccounts.BumpIdentityRevisionAsync(personId, "authz.grant.<change>")` 在当前租户递增修订：身份侧随即在 userinfo / 会话校验拒绝旧令牌，refresh 换到新修订；
 2. 用返回的新修订抬高本组件的下限（`IdentityRevisionGuard.RaiseAsync`：条件更新或插入，并发首写时重试，返回时下限一定不低于该值）。

@@ -1,6 +1,6 @@
 # AGENTS.md — 文档站（website/）
 
-仓库级约定见根目录 [AGENTS.md](../AGENTS.md)，本文件只补文档站的部分。站点怎么分、内容从哪来、怎么发布见 [README.md](README.md)；规范是 [docs/prd/specs/docs-site.md](../_import/qian/docs/prd/specs/docs-site.md)。
+仓库级约定见根目录 [AGENTS.md](../AGENTS.md)，本文件只补文档站的部分。站点怎么分、内容从哪来、怎么发布见 [README.md](README.md)；规范是 [docs/prd/specs/docs-site.md](../docs/prd/specs/docs-site.md)。
 
 ## 改哪里
 

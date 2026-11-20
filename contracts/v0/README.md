@@ -1,6 +1,6 @@
 # contracts/v0：Qian 的冻结契约（frozen）
 
-> 依据：[PRD §07 7.18](../../_import/qian/docs/prd/07-s1-foundation.md) 第 2、3、5、9 项与技术落点；[ADR-016](../../_import/qian/docs/adr/ADR-016-iclaw-boundary.md) D16.3 / D16.12；[ADR-018](../../_import/qian/docs/adr/ADR-018-stages-s1-scope.md) D18.6。任务 S1-AGT-001。
+> 依据：[PRD §07 7.18](../../docs/prd/07-s1-foundation.md) 第 2、3、5、9 项与技术落点；[ADR-016](../../docs/adr/ADR-016-agent-boundary.md) D16.3 / D16.12；[ADR-018](../../docs/adr/ADR-018-stages-s1-scope.md) D18.6。任务 S1-AGT-001。
 >
 > 真相源是本目录的 JSON Schema 2020-12、数据文件与 fixture；PRD 与 ADR 里的字段列表是摘要，二者不一致时以本目录为准，并回头修正文档。与 iClaw 的差异见 [iclaw-alignment.md](iclaw-alignment.md)。
 

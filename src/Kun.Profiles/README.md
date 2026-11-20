@@ -1,6 +1,6 @@
 # Kun.Profiles
 
-依据 [组件规格 §7](../../_import/qian/docs/prd/specs/component-model.md#7-profile组合包与-patch) 与 [S1-RT-002](../../_import/qian/pm/tasks/S1-RT-002.md)。`Kun.Profiles.Abstractions` 定义装配端口与快照；本包提供本地 profile、组合包及 patch 的静态装配，不依赖平台注册表、生命周期或数据库。
+依据 [组件规格 §7](../../docs/prd/specs/component-model.md#7-profile组合包与-patch) 与 [S1-RT-002](../../_import/qian/pm/tasks/S1-RT-002.md)。`Kun.Profiles.Abstractions` 定义装配端口与快照；本包提供本地 profile、组合包及 patch 的静态装配，不依赖平台注册表、生命周期或数据库。
 
 ## 装配位置与使用
 

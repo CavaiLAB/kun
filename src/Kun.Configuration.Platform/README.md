@@ -96,7 +96,7 @@ app.MapKunConfig(http => configContext); // global 配置组件上下文，须�
 
 ## 运维边界
 
-L0–L4 降级矩阵、排查顺序与证据见 [配置运维手册](../../_import/qian/docs/ops/configuration-runbook.md)。
+L0–L4 降级矩阵、排查顺序与证据见 [配置运维手册](../../docs/ops/configuration-runbook.md)。
 
 ## 验证与边界
 

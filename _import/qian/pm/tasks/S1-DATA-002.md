@@ -11,8 +11,8 @@ owner: "claude"
 estimate: 3d
 depends: [S1-DATA-001]
 refs:
-  - docs/prd/07-s1-foundation.md#7.6
-  - docs/prd/07-s1-foundation.md#7.17
+  - ../../docs/prd/07-s1-foundation.md#7.6
+  - ../../docs/prd/07-s1-foundation.md#7.17
 updated: 2026-10-14
 ---
 

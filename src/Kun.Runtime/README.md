@@ -1,6 +1,6 @@
 # Kun.Runtime
 
-依据：[组件模型规格 §5](../../_import/qian/docs/prd/specs/component-model.md#5-运行时模型)。此包提供 .NET 10 的上下文、服务键、事件、效果栈与装载器，引用已有的 `Kun.Errors`。
+依据：[组件模型规格 §5](../../docs/prd/specs/component-model.md#5-运行时模型)。此包提供 .NET 10 的上下文、服务键、事件、效果栈与装载器，引用已有的 `Kun.Errors`。
 
 ## 类型化配置
 

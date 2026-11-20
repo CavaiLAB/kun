@@ -1,3 +1,31 @@
 [
-  { "type": "dir", "name": "kun", "label": "原 Kun 的决策记录" }
+  "decisions",
+  "ADR-001-kun-relationship",
+  "ADR-002-plugin-model",
+  "ADR-003-kernel-boundary-s1-services",
+  "ADR-004-database-tenant-isolation",
+  "ADR-005-identity-sso",
+  "ADR-006-authorization-model",
+  "ADR-007-config-center-apollo",
+  "ADR-008-events-messaging",
+  "ADR-009-audit",
+  "ADR-010-gateway-layers",
+  "ADR-011-metadata-dynamic-data",
+  "ADR-012-workflow-engine",
+  "ADR-013-frontend-framework",
+  "ADR-014-marketplace",
+  "ADR-015-model-gateway",
+  "ADR-016-agent-boundary",
+  "ADR-017-deployment",
+  "ADR-018-stages-s1-scope",
+  "ADR-019-library-first-packages",
+  "ADR-020-component-model-v2",
+  "ADR-021-product-family-structure",
+  "ADR-022-rspress-unified-component-docs",
+  "ADR-023-kun-qian-merge-blueprint",
+  {
+    "type": "dir",
+    "name": "kun",
+    "label": "框架决策记录"
+  }
 ]

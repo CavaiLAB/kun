@@ -9,7 +9,7 @@
 ```bash
 pnpm install
 pnpm --filter qian... build
-pnpm exec qian docs generate --profile platform --source-root . --source packages --source plugins --source src --out _import/qian/docs/generated --json
+pnpm exec qian docs generate --profile platform --source-root . --source packages --source plugins --source src --out docs/generated --json
 ```
 
 命令输出 `docs/generated/config-catalog.md`、`module-graph.md`、`event-graph.md`、`seam-graph.md`。配置、来源层、模块顺序与服务键连接都来自实际 profile/patch 解析；可重复 `--patch`。文档生成默认关闭 home 层，显式 `--home` 才启用，避免个人环境悄悄改变仓库文档。`--out` 只能指向工作区内的目录。
@@ -20,7 +20,7 @@ pnpm exec qian docs generate --profile platform --source-root . --source package
 
 ## 事件代码分析
 
-事件值使用 `KunEvent.Define<TPayload,TResult>(name, mode)` 或构造器；可用 `[KunEvent(Mode = DispatchMode.Emit)]` 标注字段/属性，特性与初始化值必须一致。生成器默认扫描 `packages`、`plugins`、`src` 中的 C# 文件，排除 tests、bin、obj、node_modules、dist；可重复 `--source <目录>` 指定扫描范围。`--source-root <目录>` 指定源码根：源码目录相对它解析、不能越出它，事件图与事件分析诊断里的位置也相对它书写（装配诊断与配置目录里的位置仍相对工作区）；它本身相对工作区解析，只能是工作区或工作区的上级目录，缺省为工作区。本仓库在根目录执行上述命令，读取 `packages/`、`plugins/` 和 `src/`，将结果写入 `_import/qian/docs/generated/`。documentation 工作流用同一组参数。源码目录与文件不能是符号链接，源码根到工作区的路径上也不能有。
+事件值使用 `KunEvent.Define<TPayload,TResult>(name, mode)` 或构造器；可用 `[KunEvent(Mode = DispatchMode.Emit)]` 标注字段/属性，特性与初始化值必须一致。生成器默认扫描 `packages`、`plugins`、`src` 中的 C# 文件，排除 tests、bin、obj、node_modules、dist；可重复 `--source <目录>` 指定扫描范围。`--source-root <目录>` 指定源码根：源码目录相对它解析、不能越出它，事件图与事件分析诊断里的位置也相对它书写（装配诊断与配置目录里的位置仍相对工作区）；它本身相对工作区解析，只能是工作区或工作区的上级目录，缺省为工作区。本仓库在根目录执行上述命令，读取 `packages/`、`plugins/` 和 `src/`，将结果写入 `docs/generated/`。documentation 工作流用同一组参数。源码目录与文件不能是符号链接，源码根到工作区的路径上也不能有。
 
 Roslyn 语义模型绑定真实 `IPluginContext.On` / `DispatchAsync`，支持 namespace/type alias、命名参数、只读字段/属性别名和未被改写的局部变量。声明重复、静态事件注册模式不一致、静态事件的 mode 无法确定、源码语法错误均使 CLI 退出 1；返回 ErrorDetail 与已解析的生产方/消费方映射，不覆盖上一份有效文档。字符串、注释与其它类型的同名方法不当成事件调用。
 

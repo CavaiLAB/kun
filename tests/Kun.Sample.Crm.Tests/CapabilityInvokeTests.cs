@@ -593,7 +593,7 @@ public sealed partial class CapabilityTests(PostgresFixture postgres) : Customer
         Assert.Equal(0L, await BusinessCount(host, null)); Assert.Equal(0L, await BusinessCount(host, B)); Assert.Equal(1L, await BusinessCount(host, A));
 
         // docs/ops/configuration-runbook.md 给运维的过期回执清理 SQL 原样执行。A、B 各添一条已过期的回执，A 原有的回执未过期。
-        var runbook = File.ReadAllText(Path.Combine(RepositoryRoot(), "_import/qian/docs/ops/configuration-runbook.md"));
+        var runbook = File.ReadAllText(Path.Combine(RepositoryRoot(), "docs/ops/configuration-runbook.md"));
         var cleanup = runbook.Split("```").Where(block => block.StartsWith("sql", StringComparison.Ordinal) && block.Contains("invoke_receipts", StringComparison.Ordinal))
             .Select(block => block[3..]).ToArray();
         var perTenant = Assert.Single(cleanup, block => block.Contains("set_config", StringComparison.Ordinal));

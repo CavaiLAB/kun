@@ -62,6 +62,9 @@ PLATFORM_ASSETS: Tuple[str, ...] = ("apps/**", "contracts/**", "deploy/baseline.
      "scripts/proto-tools.lock.json", "scripts/sign-system-revisions.py", "scripts/staging-e2e.py",
      "scripts/ui-tokens.mjs", "tsconfig.base.json", "turbo.json", "vitest.config.ts")
 
+PLATFORM_DOCUMENTATION: Tuple[str, ...] = ("docs/**", "deploy/docs-site/**", "scripts/check_docs.py",
+                                           "tests/gates/test_check_docs.py")
+
 # 这些文件一改，全部区域都算改动：作业的定义、区域表本身或共用的复合动作变了。
 EVERYTHING: Tuple[str, ...] = (".github/workflows/ci.yml", ".github/actions/**", "scripts/ci_changes.py")
 # 不落进任何区域、改了不跑检查的文件。
@@ -83,7 +86,9 @@ AREAS: Dict[str, Area] = {
     "dotnet": Area(
         "构建、门禁、测试与原生发布",
         (
-            q("**", "!pm/**", "!docs/**", "!*.md", "docs/generated/**", "docs/ops/configuration-runbook.md"), PLATFORM_ASSETS,
+            q("**", "!pm/**", "!*.md"), PLATFORM_ASSETS,
+            ("_import/qian/deploy/docs-site/kustomization.yaml",),
+            ("docs/generated/**", "docs/ops/configuration-runbook.md", "deploy/docs-site/**"),
             # 仓库根的 .NET 代码、宿主、测试、样例、基准与脚本；Markdown 不算，打进网关包的 GATEWAY.md 除外。
             ("src/**", "hosts/**", "tests/**", "samples/**", "benchmarks/**", "tools/**", "scripts/**", "!**/*.md",
              "src/Kun.Gateway/GATEWAY.md", "tools/**/*.md", "tests/**/*.md", "samples/Kun.Sample.Crm/**", "README.md", ".gitattributes"),
@@ -104,13 +109,14 @@ AREAS: Dict[str, Area] = {
         original="images.yml", builds_dotnet=True),
     "docs-and-pm": Area(
         "文档门禁、任务文件与看板",
-        (q("**"), PLATFORM_ASSETS, (".github/workflows/qian-docs-and-pm.yml",)),
+        (q("**"), PLATFORM_ASSETS, PLATFORM_DOCUMENTATION, (".github/workflows/qian-docs-and-pm.yml",)),
         original="docs-and-pm.yml"),
     "docs-site": Area(
         "文档站",
         (
-            q("docs/**", "deploy/docs-site/**", ".github/workflows/docs-site.yml"),
-            ("website/**", "apps/qian-shell/e2e/settle.ts", "package.json", "pnpm-lock.yaml",
+            q(".github/workflows/docs-site.yml"),
+            ("_import/qian/deploy/docs-site/kustomization.yaml",),
+            ("docs/**", "deploy/docs-site/**", "website/**", "apps/qian-shell/e2e/settle.ts", "package.json", "pnpm-lock.yaml",
              "pnpm-workspace.yaml"),
             # 仓库根的 CHANGELOG.md：Kun 最新的发布版从这里取（_import/qian/website/scripts/kun.ts）。
             (".github/workflows/qian-docs-site.yml", "CHANGELOG.md", "README.md"),
@@ -120,8 +126,8 @@ AREAS: Dict[str, Area] = {
     "documentation": Area(
         "派生文档与事件模式",
         (
-            q("docs/generated/**", ".github/workflows/documentation.yml"),
-            ("packages/**", "plugins/**", "profiles/**", "schemas/**", "tck/runtime/**", "package.json",
+            q(".github/workflows/documentation.yml"),
+            ("docs/generated/**", "packages/**", "plugins/**", "profiles/**", "schemas/**", "tck/runtime/**", "package.json",
              "pnpm*"),
             (".github/workflows/qian-documentation.yml", "tests/Kun.Docs.Tests/**", "tests/Directory.Build.props"),
             ("tools/Kun.Docs.Tool/**",),

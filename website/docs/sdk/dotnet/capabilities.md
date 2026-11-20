@@ -18,7 +18,7 @@ updated: 2026-10-22
 - `GET /api/capabilities?kind=command|query|event|entity&q=` 按调用者权限与当前 scope 的 restrict 过滤，被过滤的项不出现；响应信封 `{ items, ttlMs, cacheScope: "private" }` 的冻结 Schema 是 `contracts/v0/capability-catalog.schema.json`。
 - `POST /api/capabilities/{plugin}/{name}/invoke` 是通用执行入口，规则见下节。
 - `GET /api/capabilities/openapi.json` 聚合全部已挂载组件的 OpenAPI 3.1（需认证，不等于公开 OpenAPI）；写类能力的路径列出 `Idempotency-Key` 参数、`Idempotent-Replayed` 响应头与两种 409（`CONFLICT`、`CAPABILITY_REPLAY_UNAVAILABLE`）。
-- Agent 用的工具**定义**由能力目录机械生成，保证 schema 不漂移；**暴露**哪些、怎么描述，经 `agent.expose` 单独策划（[ADR-016 D16.10](/design/adr/adr-016-iclaw-boundary)）。
+- Agent 用的工具**定义**由能力目录机械生成，保证 schema 不漂移；**暴露**哪些、怎么描述，经 `agent.expose` 单独策划（[ADR-016 D16.10](/design/adr/adr-016-agent-boundary)）。
 
 ## 代码与唯一清单
 

@@ -1,6 +1,6 @@
 # 运行时场景格式 v1
 
-权威语义见 [规格 §10.2](../../_import/qian/docs/prd/specs/component-model.md#102-运行时语义-tck)。场景数据不包含 .NET 类型名或代码。`.NET harness` 位于 [RuntimeScenarioTests.cs](../../tests/Kun.Runtime.Tests/RuntimeScenarioTests.cs)，TS 适配器为 `harness-ts.mjs`（由测试入口传入真实运行时和解析器：本仓库是 `packages/qian-cli/test/runtime-tck.test.mjs`，对包源上的 `@cavailab/qian-runtime` 跑；CavaiLAB/qian 的运行时 CI 也检出本仓库读同一组数据）。两侧从相同的 YAML 读取断言，不复制另一份预期数据；每个核心场景先解析交付的 minimal profile 与其空组合包。
+权威语义见 [规格 §10.2](../../docs/prd/specs/component-model.md#102-运行时语义-tck)。场景数据不包含 .NET 类型名或代码。`.NET harness` 位于 [RuntimeScenarioTests.cs](../../tests/Kun.Runtime.Tests/RuntimeScenarioTests.cs)，TS 适配器为 `harness-ts.mjs`（由测试入口传入真实运行时和解析器：本仓库是 `packages/qian-cli/test/runtime-tck.test.mjs`，对包源上的 `@cavailab/qian-runtime` 跑；CavaiLAB/qian 的运行时 CI 也检出本仓库读同一组数据）。两侧从相同的 YAML 读取断言，不复制另一份预期数据；每个核心场景先解析交付的 minimal profile 与其空组合包。
 
 每个 `*.scenario.yml` 是独立场景；YAML 标量保留 string / number / boolean / null 类型，UTF-8。未知版本或操作必须报错。
 

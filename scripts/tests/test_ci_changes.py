@@ -63,6 +63,11 @@ class MatchingTests(unittest.TestCase):
         self.assertTrue(ci_changes.area_matches(area, "src/Kun.Core/README.md"))
         self.assertFalse(ci_changes.area_matches(area, "src/Kun.Mediator/README.md"))
 
+    def test_docs_deployment_source_runs_rendering_checks(self) -> None:
+        changed = ci_changes.changed_areas(["_import/qian/deploy/docs-site/kustomization.yaml"])
+        selected = {area for area, paths in changed.items() if paths}
+        self.assertTrue({"docs-and-pm", "docs-site", "dotnet"} <= selected)
+
     def test_everything_files_mark_every_area(self) -> None:
         hits = ci_changes.changed_areas([".github/workflows/ci.yml"])
         self.assertEqual(set(ci_changes.AREAS), {name for name, files in hits.items() if files})
@@ -77,7 +82,9 @@ class AreaTableTests(unittest.TestCase):
 
     def test_1_each_area_covers_the_filter_it_was_moved_from(self) -> None:
         def original_path(path):
-            return ci_changes.Q + path if ci_changes.group_matches(ci_changes.PLATFORM_ASSETS, path) else path
+            if any(ci_changes.group_matches(group, path) for group in (ci_changes.PLATFORM_ASSETS, ci_changes.PLATFORM_DOCUMENTATION)):
+                return ci_changes.Q + path
+            return path
 
         problems = []
         for name, area in ci_changes.AREAS.items():

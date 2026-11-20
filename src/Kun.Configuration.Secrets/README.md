@@ -30,4 +30,4 @@
 
 即使没有 Schema，敏感键名、JWT/私钥形状、含凭据的 URL/连接字符串、疑似高熵值也会拒绝；诊断仅含规则与位置。启发式扫描不能证明任意字符串都不含秘密，插件仍须正确标注敏感属性。普通参数、无凭据 URL、规范引用和带 `sha256:` 前缀的摘要可以通过。Apollo 的默认检查不能由额外宿主校验回调关闭；K8s Secret 文件作为高优先级秘密来源，不纳入 Apollo 非敏感快照。
 
-配置分工见 [配置开发与运行手册](../../_import/qian/docs/ops/configuration-runbook.md)。本任务不替代后续审计链、审批持久化、Schema 自动收集或完整 platform 的联调验收。
+配置分工见 [配置开发与运行手册](../../docs/ops/configuration-runbook.md)。本任务不替代后续审计链、审批持久化、Schema 自动收集或完整 platform 的联调验收。

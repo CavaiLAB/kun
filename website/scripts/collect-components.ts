@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { collectYuePages, readYueDocs } from './yue-docs.ts';
 import path from 'node:path';
 import { QIAN_REPO_URL, openQian, qianPackageDir, qianSource, type QianCheckout } from './qian.ts';
-import { PLATFORM_DOCS_ROOT, REPO_ROOT, repoFileDate, yamlString, type GeneratedFile } from './repo.ts';
+import { PLATFORM_DOCS_ROOT, REPO_ROOT, repoFileDate, rewriteLinks, yamlString, type GeneratedFile } from './repo.ts';
 import { designRoute } from './sync-specs.ts';
 
 type Stage = 'S1' | 'S2' | 'S3' | 'S4';
@@ -45,7 +45,7 @@ export const PLATFORM_COMPONENTS: PlannedComponent[] = [
   { id: 'qian.scheduler', name: '调度', stage: 'S1', summary: 'PG 持久化的作业与触发器、集群安全领取、按业务键可取消。', refs: [{ text: 'PRD §7.13', doc: S1_PRD }] },
   { id: 'qian.realtime', name: '实时推送', stage: 'S1', summary: '可选（P1）：WebSocket / SSE 会话、一次性握手票据、Redis 背板扇出与在线状态。', refs: [{ text: 'PRD §7.13', doc: S1_PRD }] },
   { id: 'qian.entitlement', name: '授权 v0', stage: 'S1', summary: '「租户 × 插件 × 计划」授权表、运营手工授予与权益查询 API。', refs: [{ text: 'PRD §7.14', doc: S1_PRD }, { text: 'ADR-014 D14.5', doc: 'docs/adr/ADR-014-marketplace.md' }] },
-  { id: 'qian.shell', name: '前端外壳', stage: 'S1', summary: '外壳静态制品与外壳 API：MF2 宿主、共享依赖与版本化插槽注册表。', refs: [{ text: 'PRD §7.15', doc: S1_PRD }, { text: 'ADR-013', doc: 'docs/adr/ADR-013-frontend-yue.md' }] },
+  { id: 'qian.shell', name: '前端外壳', stage: 'S1', summary: '外壳静态制品与外壳 API：MF2 宿主、共享依赖与版本化插槽注册表。', refs: [{ text: 'PRD §7.15', doc: S1_PRD }, { text: 'ADR-013', doc: 'docs/adr/ADR-013-frontend-framework.md' }] },
   { id: 'qian.model-gateway', name: '模型服务网关底座', stage: 'S1', summary: '可选（P1）：GPUStack 注册为 Higress 上游、Provider Adapter、逻辑模型目录。', refs: [{ text: 'PRD §7.16', doc: S1_PRD }, { text: 'ADR-015', doc: 'docs/adr/ADR-015-model-gateway.md' }] },
   { id: 'qian.docs', name: '文档生成器', stage: 'S1', summary: '开发态组件：qian docs generate 从代码生成配置目录、模块图与事件图。', refs: [{ text: '组件模型规格 §7.7', doc: SPEC }, { text: 'ADR-020 D20.9', doc: 'docs/adr/ADR-020-component-model-v2.md' }] },
   { id: 'qian.workflow', name: '流程与自动化', stage: 'S2', summary: '审批内核与触发器：一套 JSON 定义、节点树视图设计器。', refs: [{ text: 'ADR-012', doc: 'docs/adr/ADR-012-workflow-engine.md' }, { text: 'PRD §8', doc: 'docs/prd/08-s2-lowcode.md' }] },
@@ -75,7 +75,9 @@ function packagePage(qian: QianCheckout, name: 'form' | 'data' | 'shell' | 'biz'
   if (!text.startsWith('---\n') || end < 0) throw new Error(`${file} 缺 frontmatter`);
   const front = text.slice(0, end).replace(/^project: qian$/m, 'project: yue');
   if (!/^project: yue$/m.test(front)) throw new Error(`${file} 的 frontmatter 没有 project`);
-  return `${front}\nsource: ${yamlString(qianSource(qian, file))}${text.slice(end)}`;
+  const body = rewriteLinks(text.slice(end), (href) =>
+    href === '/design/prd/specs/yue' ? designRoute('docs/prd/specs/frontend.md') : null);
+  return `${front}\nsource: ${yamlString(qianSource(qian, file))}${body}`;
 }
 
 function refLinks(refs: PlannedComponent['refs'], repoRoot: string): string {
@@ -175,7 +177,7 @@ export function collectComponents(repoRoot: string = REPO_ROOT, docsRoot: string
       '',
       '# qian 组件库',
       '',
-      `qian 组件库是 Qian 的前端组件库（[ADR-013](${designRoute('docs/adr/ADR-013-frontend-yue.md')})、[组件库专题规格](${designRoute('docs/prd/specs/yue.md')})），源码在 [CavaiLAB/qian](${QIAN_REPO_URL})；本小节由它的标签 \`${qian.tag}\` 生成（版本钉在 \`pnpm-workspace.yaml\` 的版本目录）。包发在 GitHub Packages，包名 \`@cavailab/qian-<包>\`；设计文档里沿用旧包名，对应关系见 [CavaiLAB/qian 迁移说明第 2 节](${QIAN_REPO_URL}/blob/main/docs/migrating-from-yue.md#2-包名与安装)。core 提供 ${readYueDocs().docs.length} 个组件入口，每页包含真实交互演示、源码与完整 Props。`,
+      `qian 组件库是 Qian 的前端组件库（[ADR-013](${designRoute('docs/adr/ADR-013-frontend-framework.md')})、[组件库专题规格](${designRoute('docs/prd/specs/frontend.md')})），源码在 [CavaiLAB/qian](${QIAN_REPO_URL})；本小节由它的标签 \`${qian.tag}\` 生成（版本钉在 \`pnpm-workspace.yaml\` 的版本目录）。包发在 GitHub Packages，包名 \`@cavailab/qian-<包>\`；设计文档里沿用旧包名，对应关系见 [CavaiLAB/qian 迁移说明第 2 节](${QIAN_REPO_URL}/blob/main/docs/migrating-from-yue.md#2-包名与安装)。core 提供 ${readYueDocs().docs.length} 个组件入口，每页包含真实交互演示、源码与完整 Props。`,
       '',
       '安装前在项目的 `.npmrc` 写 `@cavailab:registry=https://npm.pkg.github.com`；令牌行 `//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}` 写进用户级配置（`~/.npmrc`）——10.34.2 起的 pnpm 10、11.5.3 起的 pnpm 11，以及 pnpm 12 不展开仓库里 `.npmrc` 认证行的环境变量（安全公告 GHSA-3qhv-2rgh-x77r；11.0.0–11.5.2 仍会展开）——再把有 `read:packages` 权限的个人访问令牌（classic）放进环境变量 `NODE_AUTH_TOKEN`。从这个包源安装公开包也要令牌，详见 [CavaiLAB/qian 迁移说明第 2 节](' + QIAN_REPO_URL + '/blob/main/docs/migrating-from-yue.md#2-包名与安装)。下表是 S1 各包的范围。',
       '',

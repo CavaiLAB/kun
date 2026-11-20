@@ -27,6 +27,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: 文档门禁（禁用词 / 表格 / 链接）
+        working-directory: .
         run: python3 scripts/check_docs.py
       - name: 任务文件校验
         run: python3 scripts/pm.py validate

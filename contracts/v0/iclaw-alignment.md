@@ -1,6 +1,6 @@
 # contracts/v0 与 iClaw 冻结契约的差异说明
 
-> 依据：[ADR-016](../../_import/qian/docs/adr/ADR-016-iclaw-boundary.md) D16.3（六个对齐项）、D16.5（S2S 各签各的但 claim 同形）、D16.12（以 iClaw 冻结契约与代码为准）。
+> 依据：[ADR-016](../../docs/adr/ADR-016-agent-boundary.md) D16.3（六个对齐项）、D16.5（S2S 各签各的但 claim 同形）、D16.12（以 iClaw 冻结契约与代码为准）。
 >
 > 对照基准：iClaw 仓库 `7099a1b`（2026-09-28）的 `docs/contracts/v0/`——`s2s-jwt-claims.md`（2026-07-23）、`events-schema.json`（2026-07-14）、`openapi-gateway.yaml` 的 `ErrorDetail` / `ErrorResponse` / `ProblemDetails`（2026-07-30）、`browser-operator/confirm.schema.json` 的扩展 `ErrorDetail`；工具元数据取 `docs/services/python/tools/tool-protocol.md` 的 `ToolSpec` 与 `unified-content/run-grants.schema.json` 的 `ToolGrant`。iClaw 契约更新后按本表逐项复核。
 

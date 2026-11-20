@@ -58,7 +58,7 @@
 
 登记后、写完成前进程崩溃时，租约到期后的重试会再执行一次，写类能力仍须按 `inputSchema` 中的 `idempotencyKey` 做业务幂等（tool/v2 的强制要求）。回放前照样重做第 1 步的判定（可见性、OAuth scope、RBAC），撤权后不能靠旧回执取回结果。
 
-回执存 `plugin_qian_capabilities.invoke_receipts`（租户 RLS，保存请求指纹，以及按回执策略保存的首次响应原文）。回执过期后不再回放；物理删除靠本租户后续带键写调用登记时的惰性清理，每次最多 100 行，用 `FOR UPDATE SKIP LOCKED` 跳过其他请求正在清理的行。长期没有带键写调用的租户，过期回执会一直留在表里，由运维按[运维手册](../../_import/qian/docs/ops/configuration-runbook.md)「过期幂等回执清理」一节的 SQL 清理。没有用 R63 的 Redis 幂等键：Kun 的 `IProcessedMessageStore` 只记录「已处理」标记，HTTP 重放要原样返回首次响应，且回执要和租户行级隔离同库。未修改 Kun，不需要 KUN 任务。
+回执存 `plugin_qian_capabilities.invoke_receipts`（租户 RLS，保存请求指纹，以及按回执策略保存的首次响应原文）。回执过期后不再回放；物理删除靠本租户后续带键写调用登记时的惰性清理，每次最多 100 行，用 `FOR UPDATE SKIP LOCKED` 跳过其他请求正在清理的行。长期没有带键写调用的租户，过期回执会一直留在表里，由运维按[运维手册](../../docs/ops/configuration-runbook.md)「过期幂等回执清理」一节的 SQL 清理。没有用 R63 的 Redis 幂等键：Kun 的 `IProcessedMessageStore` 只记录「已处理」标记，HTTP 重放要原样返回首次响应，且回执要和租户行级隔离同库。未修改 Kun，不需要 KUN 任务。
 
 ApiExplorer 不列这条通用模板：它只能描述静态、与调用者无关的路由，而这里的请求与响应形状随能力而变，可见集合随调用者而变。`/api/capabilities/openapi.json` 按同一判定为每个可见能力列出具体路径（`/api/capabilities/<plugin>/<name>/invoke`）、真实输入 / 输出 Schema；写类能力另列 `Idempotency-Key` 参数与 `Idempotent-Replayed` 响应头，只读能力不列。
 
@@ -78,7 +78,7 @@ ApiExplorer 不列这条通用模板：它只能描述静态、与调用者无�
 
 SDK 生成的契约由 System.Text.Json 导出 Schema，不会出现后四类问题，这几条是兜底。
 
-**platform profile 宿主必须调用 `AddKunCapabilities()`**，[运维手册](../../_import/qian/docs/ops/configuration-runbook.md)的部署步骤同样要求。漏掉时 `CapabilitiesComponent` / `CapabilitiesPlugin` 在挂载阶段拒绝，异常明确指出缺失的装配；不再退化为首次请求才检查。独立宿主没有通用执行入口时不需要调用。TCK 平台组合包宿主断言容器里的 `ICapabilityContractCheck` 是宿主单例，不合格契约在登记期被拒。
+**platform profile 宿主必须调用 `AddKunCapabilities()`**，[运维手册](../../docs/ops/configuration-runbook.md)的部署步骤同样要求。漏掉时 `CapabilitiesComponent` / `CapabilitiesPlugin` 在挂载阶段拒绝，异常明确指出缺失的装配；不再退化为首次请求才检查。独立宿主没有通用执行入口时不需要调用。TCK 平台组合包宿主断言容器里的 `ICapabilityContractCheck` 是宿主单例，不合格契约在登记期被拒。
 
 ## 验收与保留项
 

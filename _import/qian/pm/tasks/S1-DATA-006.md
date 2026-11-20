@@ -11,8 +11,8 @@ owner: "cody"
 estimate: 1d
 depends: [S1-DATA-003, S1-RT-014, S1-RT-033]
 refs:
-  - docs/prd/07-s1-foundation.md#7.6
-  - docs/prd/specs/component-model.md#6.1
+  - ../../docs/prd/07-s1-foundation.md#7.6
+  - ../../docs/prd/specs/component-model.md#6.1
 updated: 2026-10-24
 ---
 

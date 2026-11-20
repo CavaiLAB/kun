@@ -82,7 +82,7 @@ profile 的合成顺序是：platform profile 的组合包（base / shell / mode
 | `Identity:SigningCertificate` / `Identity:SigningKey`、`Identity:EncryptionCertificate` / `Identity:EncryptionKey` | 身份服务签名与加密证书、私钥的 PEM Secret 文件（RSA，绝对路径）。 |
 | `Identity:Clients:N:{ClientId,SecretFile,RedirectUri,Resource,DisplayName,Scopes}` | 官方客户端（网关 BFF）：机密客户端，授权码 + PKCE 与 refresh，密钥只从 Secret 文件读，回调与 resource 精确登记。 |
 | `Identity:DataProtectionKeysDirectory` | 账号 Cookie 与防伪令牌的数据保护密钥目录。只读根文件系统下必须给出可写目录；多副本时须共享。 |
-| `Identity:TrustedProxyNetworks`、`Identity:ForwardLimit` | 身份分支信任的反向代理网段（CIDR 数组，前缀长度不能为 0）与从右往左回溯的跳数上限（1–5，缺省 1；每回溯一跳，上一跳都必须在这些网段里）。恢复出的 scheme 与客户端地址供 OIDC 的 HTTPS 要求、Secure Cookie、登录审计、会话与申请人限流使用。staging 的取值与理由见[运维手册](../../_import/qian/docs/ops/staging-first-deploy.md)。 |
+| `Identity:TrustedProxyNetworks`、`Identity:ForwardLimit` | 身份分支信任的反向代理网段（CIDR 数组，前缀长度不能为 0）与从右往左回溯的跳数上限（1–5，缺省 1；每回溯一跳，上一跳都必须在这些网段里）。恢复出的 scheme 与客户端地址供 OIDC 的 HTTPS 要求、Secure Cookie、登录审计、会话与申请人限流使用。staging 的取值与理由见[运维手册](../../docs/ops/staging-first-deploy.md)。 |
 | `Identity:Overlay` | 替换内置扩展 overlay 的路径（缺省为程序目录下的 `identity.overlay.yml`）。 |
 | `Bootstrap:Username`、`Bootstrap:DisplayName`、`Bootstrap:PasswordFile` | 只在 `--bootstrap-operator` 时读：首个平台运营账号的用户名、显示名与初始密码 Secret 文件。 |
 | `SystemRevisions:SignaturesFile` | 只在 `--install-system-revisions` 时读：系统组件修订的签名清单（ConfigMap 挂载）。 |

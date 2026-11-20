@@ -48,7 +48,7 @@ python3 scripts/images.py build --kind jit --project <csproj> --assembly <程序
 - profile 与组件目录随镜像发布到 `/app/qian`（`QIAN_ROOT`），环境级 overlay 由 ConfigMap 挂载后经 `--patch` 传入；
 - 部署时 `readOnlyRootFilesystem: true`，只为标签 `io.qian.writable-paths` 列出的目录（目前只有 `/tmp`）挂临时卷；
 - 标签记录源码 SHA（`org.opencontainers.image.revision`）、Kun 的源码提交（`io.qian.kun-version`，Kun 与本目录同仓同提交编译，值与源码 SHA 相同）、profile 与组件目录修订和镜像角色（`io.qian.image-role`：`product` 或 `selfcheck`）；
-- 前端构建产物（S1-DEP-011）经 `--web <目录>` 以命名构建上下文 `web` 送入 `/app/web`，构建证据记该目录的 D4 摘要（`webDigest`）；不给 `--web` 时送空目录。平台镜像的目录里是 `identity/`（`packages/qian-identity-ui/dist`）与 `signup/`（`packages/qian-tenancy-signup-ui/dist/public`），网关镜像是 `shell/`（`apps/qian-shell/dist/host`）与 `remotes/qian.tenancy/`、`remotes/qian.tenancy.signup/`（两个 UI 包的 `dist/remote`）。前端在构建机之外先用 pnpm 构建好再拷过去，组装与构建命令见 [staging 运维手册](../../_import/qian/docs/ops/staging-first-deploy.md)。
+- 前端构建产物（S1-DEP-011）经 `--web <目录>` 以命名构建上下文 `web` 送入 `/app/web`，构建证据记该目录的 D4 摘要（`webDigest`）；不给 `--web` 时送空目录。平台镜像的目录里是 `identity/`（`packages/qian-identity-ui/dist`）与 `signup/`（`packages/qian-tenancy-signup-ui/dist/public`），网关镜像是 `shell/`（`apps/qian-shell/dist/host`）与 `remotes/qian.tenancy/`、`remotes/qian.tenancy.signup/`（两个 UI 包的 `dist/remote`）。前端在构建机之外先用 pnpm 构建好再拷过去，组装与构建命令见 [staging 运维手册](../../docs/ops/staging-first-deploy.md)。
 
 AOT 模板的构建上下文白名单放行了网关宿主（`hosts/Kun.Gateway.Host`）与全部 `contracts/`（S1-DEP-011），`--kind aot --project hosts/Kun.Gateway.Host/Qian.Gateway.Host.csproj --assembly Kun.Gateway.Host` 可以直接构建 qian-gateway；JIT 模板早已放行平台宿主（S1-DEP-009）。
 
@@ -83,4 +83,4 @@ macOS 的 Docker Desktop 守护进程运行在虚拟机里，推不到宿主机�
 
 前置任务完成后，重新核对三件事：有效 profile 中每个必需叶节点的交付状态、三个宿主的发布入口、shell 制品路径；核对无误后再认领 S1-DEP-008。三项验收保持 DEP-003 的原文，只有真实镜像及其验证证据全部齐全，才可勾选和关闭。
 
-S1-DEP-011 在预发环境构建了平台与网关镜像，按摘要部署。构建记录见该任务及[运维手册](../../_import/qian/docs/ops/staging-first-deploy.md)。三个产品镜像的 SBOM、扫描、签名与运行验收由 S1-DEP-008 登记。
+S1-DEP-011 在预发环境构建了平台与网关镜像，按摘要部署。构建记录见该任务及[运维手册](../../docs/ops/staging-first-deploy.md)。三个产品镜像的 SBOM、扫描、签名与运行验收由 S1-DEP-008 登记。

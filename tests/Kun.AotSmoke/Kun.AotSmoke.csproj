@@ -46,7 +46,7 @@
     <ProjectReference Include="../../src/Kun.Validation/Kun.Validation.csproj" />
   </ItemGroup>
 
-  <!-- 清单里 _import/qian/ 下的项目。 -->
+  <!-- 清单中的平台组件和宿主依赖。 -->
   <ItemGroup>
     <ProjectReference Include="../../src/Kun.Configuration.Platform/Kun.Configuration.Platform.csproj" />
     <ProjectReference Include="../../src/Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" />

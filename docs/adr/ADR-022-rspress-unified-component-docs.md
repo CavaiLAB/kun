@@ -65,4 +65,4 @@ S1-YUE-005 按原验收交付了 51 个组件入口、manifest 和 Storybook；�
 - [Rspress 官方 playground](https://rspress.rs/zh/plugin/official-plugins/playground)：编辑器、模块限制及 Babel/Monaco 配置。
 - [Rspress 官方 api-docgen](https://rspress.rs/zh/plugin/official-plugins/api-docgen)：解析入口与 TypeScript 配置。
 - [Rspress api-docgen 2.0.23 发布源码](https://unpkg.com/@rspress/plugin-api-docgen@2.0.23/dist/index.js)：本次验证的过滤行为。
-- [原前端决策](ADR-013-frontend-framework.md)、[文档站规范](../prd/specs/docs-site.md)、[YUE-005](../../_import/qian/pm/tasks/S1-YUE-005.md)、[DOCS-002](../../_import/qian/pm/tasks/S1-DOCS-002.md)。
+- [原前端决策](ADR-013-frontend-framework.md)、[文档站规范](../prd/specs/docs-site.md)、[YUE-005](../../pm/tasks/S1-YUE-005.md)、[DOCS-002](../../pm/tasks/S1-DOCS-002.md)。

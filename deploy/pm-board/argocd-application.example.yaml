@@ -1,0 +1,22 @@
+# 交给 ArgoCD 托管时放进部署仓库（命名沿用 <app>-application.yaml）；实际生效的以部署仓库里的为准
+# CavaiLAB/kun 是公开仓库，ArgoCD 经 HTTPS 匿名读取，不需要仓库凭据
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qian-pm-board
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CavaiLAB/kun.git
+    path: deploy/pm-board
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: qian-tools
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

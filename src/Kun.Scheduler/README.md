@@ -1,6 +1,6 @@
 # Kun.Scheduler
 
-[S1-SCH-001](../../_import/qian/pm/tasks/S1-SCH-001.md) 的 PostgreSQL 持久调度 Provider。Definition 为 `Kun.Scheduler.Abstractions`，服务键为 `Scheduler`；代码只依赖 Runtime、SDK 与各 Definition，不依赖 Registry、Capabilities 或 Data Provider。
+[S1-SCH-001](../../pm/tasks/S1-SCH-001.md) 的 PostgreSQL 持久调度 Provider。Definition 为 `Kun.Scheduler.Abstractions`，服务键为 `Scheduler`；代码只依赖 Runtime、SDK 与各 Definition，不依赖 Registry、Capabilities 或 Data Provider。
 
 ## 组件与安装边界
 

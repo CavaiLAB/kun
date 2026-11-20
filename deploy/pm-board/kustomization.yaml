@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: qian-tools
+
+resources:
+  - namespace.yaml
+  - nginx-configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - networkpolicy.yaml
+
+configMapGenerator:
+  - name: qian-pm-board-builder
+    files:
+      - builder.py
+    # 改 builder.py 会生成带新哈希后缀的 ConfigMap，旧的不在 git 里了；ArgoCD 应用没开 prune，不会删它。
+    # 带上这个注解，留下的旧 ConfigMap 不再让应用一直显示 OutOfSync（S1-PM-005）。
+    options:
+      annotations:
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: qian-pm-board
+      app.kubernetes.io/part-of: qian

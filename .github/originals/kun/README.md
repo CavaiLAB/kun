@@ -14,4 +14,4 @@
 | `RELEASE_TEMPLATE.md` | 手写版本说明的模板 | GitHub 不认这个文件 | 随发版一起定 |
 | `ISSUE_TEMPLATE/bug_report.md`、`ISSUE_TEMPLATE/feature_request.md`、`PULL_REQUEST_TEMPLATE.md` | 问题与 PR 模板 | 没启用：放进 `.github/` 会改变本仓库新建问题与 PR 时的表单 | 要不要启用、启用哪一份，由产品负责人定；原 Qian 没有这类模板 |
 
-`_import/qian/.github/` 下的原件接到仓库根的情况，写在 `ci.yml` 与 `qian-*.yml` 的文件头。
+平台项目的构建、文档与部署检查由仓库根的 [CI 工作流](../../workflows/ci.yml) 及其调用的工作流执行。

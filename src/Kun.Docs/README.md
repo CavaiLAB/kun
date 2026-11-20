@@ -1,6 +1,6 @@
 # Kun.Docs
 
-[S1-RT-010](../../_import/qian/pm/tasks/S1-RT-010.md) 的构建期文档生成 Provider。Definition 在 `Kun.Docs.Abstractions`；本包只依赖 Runtime 与 Definition，通过 `IProfileLoader` 消费装配结果，不引用装配 Provider、不执行目标代码。
+[S1-RT-010](../../pm/tasks/S1-RT-010.md) 的构建期文档生成 Provider。Definition 在 `Kun.Docs.Abstractions`；本包只依赖 Runtime 与 Definition，通过 `IProfileLoader` 消费装配结果，不引用装配 Provider、不执行目标代码。
 
 ## 装配契约
 

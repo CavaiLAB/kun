@@ -1,22 +1,6 @@
 name: qian-documentation
 
-# 派生文档与事件模式校验：语义绑定与错误反例、CLI 与文档模板验收、源码声明与调用模式一致，
-# docs/generated 与重新生成的结果一致。由 ci.yml 调用，在仓库根目录运行。
-# 原件在 _import/qian/.github/workflows/documentation.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
-# - 触发：只留 workflow_call；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
-#   路径过滤在区域表 scripts/ci_changes.py 的 documentation 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
-#   Kun.slnx、src/ 与 _import/qian/.npmrc。
-# - 位置：run 步骤的工作目录、package.json 与上传路径加 _import/qian/ 前缀；setup-dotnet 读仓库根的 global.json。
-#   派生文档新鲜度用 git status 看 docs/generated，pathspec 相对工作目录，看的仍是 docs/generated。
-# - 前端框架迁出（B11，见迁移执行计划）之后：TypeScript 运行时装 CavaiLAB/qian 发布在 GitHub Packages 上的
-#   @cavailab/qian-runtime，去掉构建 packages/qian-runtime 一步；命令行测试里有运行时一致性用例的 TS 一侧，区域含
-#   tck/runtime/。装依赖要读 GitHub Packages 上的公开包，
-#   用本次运行的 GITHUB_TOKEN 只读安装：权限加 packages: read，setup-node 写用户级的包源认证，
-#   pnpm install 带 NODE_AUTH_TOKEN。
-# - 事件图的源码根取仓库根（S1-KUN-029）：生成命令带 --source-root ../..，源码目录相对仓库根写成 _import/qian/packages、
-#   _import/qian/plugins 与 src，搬出过渡目录、进了仓库根 src/ 的包仍在扫描范围内；事件图里的位置相对仓库根书写。
-#   命令写在作业的 DOCS_SOURCES 里，生成一步与漂移提示共用。
-# 除了扫描范围，检查本身不变。
+# 检查事件声明与调用、CLI 文档模板，并核对 docs/generated 与当前源码的派生输出。
 
 on:
   # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 documentation），并发组由 ci.yml 统一管（S1-KUN-020）。

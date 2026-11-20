@@ -1,6 +1,6 @@
 # Kun.Data.AspNetCore
 
-qian.data 的 HTTP 表面：基准类型目录（全局元数据）与数据连接档案（按租户）。服务实现与装配见 [Kun.Data](../Kun.Data/README.md)，任务见 [S1-DATA-003](../../_import/qian/pm/tasks/S1-DATA-003.md)。
+qian.data 的 HTTP 表面：基准类型目录（全局元数据）与数据连接档案（按租户）。服务实现与装配见 [Kun.Data](../Kun.Data/README.md)，任务见 [S1-DATA-003](../../pm/tasks/S1-DATA-003.md)。
 
 ## 宿主装配
 

@@ -1,34 +1,6 @@
 name: qian-docs-site
 
-# _import/qian/ 的文档站：构建、检查与发布。B1 历史导入时接到仓库根（迁移执行计划 B1，S1-KUN-019），B2 切换时接上正式站点的发布。
-# 原件在 _import/qian/.github/workflows/docs-site.yml，不动；GitHub 只读仓库根的 .github/workflows/。
-# 相对原件改了这些：
-# - 位置：run 步骤的工作目录、缓存键、package.json、github.workspace 下的路径、浏览器验收容器挂载的目录、
-#   上传路径都加了 _import/qian/ 前缀；路径过滤见最后「触发」一条。
-# - 「Kun 框架」小节按 Kun 最新的发布版取 Kun 的 tag：原件读 Directory.Packages.props 的 KunVersion，B3 之后它已删除，
-#   改读仓库根 CHANGELOG.md 里最新的发布段（发版脚本 scripts/release.sh 写入，同一提交打 v<版本> 标签）。不再另外检出
-#   kun 仓库：版本标签在本仓库里，所以只从本仓库取这一个 tag 与它的历史，生成脚本（website/scripts/kun.ts）
-#   直接读本仓库，不设 KUN_DOCS_PATH。原件的 deploy key 与「检查 kun 仓库只读凭据」一步都用不上，没有接。
-# - 发布（B2 接上）：与原件一样只在 main 上发布正式站点（push 到 main，或在 main 上手动触发），用
-#   deploy/docs-site/publish.sh main 把构建产物推到本仓库的 docs-site 分支，集群里的 git-sync 拉这个分支
-#  （deploy/docs-site/）。作业权限只要 contents: write（原件另有 pull-requests: write，只给 PR 评论用）。
-#   运行摘要只写发布的路径与来源提交，不写访问入口：原件的 DOCS_ORIGIN_WG、DOCS_ORIGIN_LAN 是内网地址，本仓库公开，
-#   这两个环境变量不接。
-# - PR 预览暂不发布：原件对同仓库分支的 PR 发布 /pr-preview/pr-<n>/、在 PR 里留带内网入口的评论、PR 关闭时删除预览。
-#   公开仓库的 PR 评论人人可见，要不要接、评论里写什么由产品负责人定，所以原件发布作业里预览的分支、PR 评论一步与
-#   「删除预览」作业都没有接，触发类型里也就没有只为删除预览而设的 closed，构建作业也不用跳过 closed。
-#   PR 上的构建仍带 /pr-preview/pr-<n>/ 前缀，前缀检查照跑。接回时照原件补齐这几处即可。
-# - 组件目录：qian 组件库的源码在 CavaiLAB/qian（B11 迁出，见迁移执行计划）。构建按 pnpm-workspace.yaml 版本目录里
-#   @cavailab/qian-core 的版本，检出 CavaiLAB/qian 的同名标签 @cavailab/qian-core@<版本> 到 .qian（公开仓库，
-#   缺省的 GITHUB_TOKEN 经 HTTPS 只读检出；要完整历史，组件页的 updated 取文件在该标签上的最后提交日期），在检出里按它自己的
-#   锁文件装 packages/qian/* 的依赖（公共 npm 源），QIAN_DOCS_PATH 指向它（website/README.md §1）。本仓库的依赖里有 GitHub Packages
-#   上的公开包 @cavailab/qian-*：工作流权限加 packages: read，setup-node 写用户级的包源认证，pnpm install 带 NODE_AUTH_TOKEN。
-#   路径过滤去掉迁走的组件库目录，加上浏览器验收引用的外壳 e2e/settle.ts。
-# - 触发（S1-KUN-020）：只留 workflow_call 与 workflow_dispatch；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管。
-#   路径过滤在区域表 scripts/ci_changes.py 的 docs-site 区域：原件的过滤逐条加 _import/qian/ 前缀（去掉迁走的组件库目录、
-#   加上外壳 e2e/settle.ts，见上一条），另加本文件、仓库根的 .NET 构建基线、Kun.slnx、src/、_import/qian/.npmrc 与
-#   仓库根的 CHANGELOG.md（Kun 最新发布版的来源）。setup-dotnet 与版本矩阵都读仓库根的 global.json。
-#   推 main 时的发布作业照旧：被调用时 github.event_name 与 github.ref 是 ci.yml 这次运行的，调用作业给 contents: write。
+# 从钉住的框架源码构建文档站、检查页面和锚点，并在主干发布构建产物。
 
 on:
   # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 docs-site），并发组由 ci.yml 统一管（S1-KUN-020）。
@@ -148,7 +120,7 @@ jobs:
       - name: 产物检查（离线、前缀、搜索索引、代码高亮、Kun 版本）
         run: pnpm --filter website check
 
-      # Kun 镜像页与 API 参考的源不在 _import/qian/ 里，生成后单独过文档门禁（禁用词、表格、断链）
+      # Kun 镜像页与 API 参考生成后单独过文档门禁（禁用词、表格、断链）
       - name: 生成页过文档门禁（frontmatter、禁用词、链接；源不在本仓库的 Kun 页也在内）
         run: python3 scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api website/docs/start/versions.md
 

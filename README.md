@@ -2,22 +2,11 @@
 
 [匠心智能体平台](https://github.com/CavaiLAB/jiangxin)的企业级后端框架：为 Agent 时代构建的多租户平台框架，.NET 10。
 
-> **状态：迁移进行中（2026-11-17 起）。两个原仓库已带历史迁入本仓库：Kun 框架已提到仓库根，平台代码与工具在过渡目录 `_import/qian/`。接下来按[迁移执行计划](docs/migration-plan.md)整理、并轨，再按域归并到 `Kun.*` 名下。**
->
-> 两个原仓库 2026-11-17 冻结，同日归档为只读，归档时的最终头已由最后一次同步带进本仓库。两边的源码、文档与任务文件从此以本仓库为准，改动在本仓库提 PR；过渡目录里的内容先在原处改，按计划的批次逐步搬出。
-
 ## 定位
 
 已定的表述（2026-11-17）：
 
 > Kun 是为 Agent 时代构建的多租户平台框架（.NET 10）。它由三部分组成：一组不带产品语义、可以单独安装的内核包；一组以组件形式装配的平台组件（租户、身份、权限、数据、文件、配置、事件、审计、能力目录）；以及组件运行时、命令行与目录市场。
-
-Kun 由两部分归并而成：
-
-- **仓库根上的 Kun 框架**：.NET 10 的云原生微服务框架。领域建模、命令与查询分离、可靠事件、网关与服务间认证、多租户、存储、缓存、可观测。
-- **`_import/qian/` 下的平台后端**：建在 Kun 框架之上的多租户平台。组件运行时、租户、身份、权限、数据、事件、审计、配置、文件、调度、注册表、能力目录。
-
-两者合成一个框架、一个包族 `Kun.*`、一条日历版本线。合并不是原样搬运：两边重叠的职责合成一份。
 
 在平台的理念「三元全智生命体」里，Kun 是「三元」的后端一半，也就是躯体。它为智能体提供身份与能力目录；模型服务也由它提供（已定）；Agent 之间的协同与人审提议也由它承担。人审的规则已定：发给 Agent 的内容、Agent 发出去的内容都要由人审核，起步出站、入站两道都必审，见平台总览的 [Agent 协同](https://github.com/CavaiLAB/jiangxin/blob/main/docs/04-agent-collaboration.md)第 4.2 节。它不写智能体的推理循环，那是 [SanYuanAgent](https://github.com/CavaiLAB/sanyuan-agent) 的事。
 
@@ -28,6 +17,8 @@ Kun 由两部分归并而成：
 | Kun | 内核 | .NET 10 的命令调度、租户上下文、数据访问、事件和可观测模块 | `CavaiLAB/kun` | CalVer · MIT | [架构](docs/architecture.md) |
 | Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台概览](docs/platform-overview.md) |
 | Qian | 前端 | React 组件、外壳、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [前端框架](docs/prd/specs/frontend.md) |
+
+本仓库的 `qian` 命令行、外壳应用、组件清单与契约共同组成平台开发工作区。任务、看板构建方法与维护流程见[任务说明](pm/README.md)。
 
 ## 两档
 
@@ -73,8 +64,8 @@ Kun 由两部分归并而成：
 
 已定（产品负责人，2026-11-17 起）：
 
-- 合并蓝图已接受，按阶段落地；两个原仓库 2026-11-17 冻结并归档为只读。
-- `_import/qian/` 下的平台后端并入 Kun；包名并为 `Kun.*`，一个包族，一条日历版本线；合并时归并重叠；Kun 重新定位，表述见上。
+- 合并蓝图和分阶段记录见 [ADR-023](docs/adr/ADR-023-kun-qian-merge-blueprint.md)。
+- 内核与平台的 .NET 包均使用 `Kun.*` 包名与日历版本。
 - 租户号统一用 Guid，去掉缺省租户的回落；租户上下文端口里租户号的属性类型也改成 Guid。
 - 许可：.NET 包族、命令行与前端包全部用 MIT。
 - 发布：内核档照旧发 nuget.org；平台档在正式对外发布之前只发 GitHub Packages，之后全族上 nuget.org。
@@ -120,4 +111,4 @@ CI 里由 `actions/setup-node` 的 `registry-url` 写同样的用户级配置，
 - Kun 框架的文档（多数是英文）：[入门](docs/getting-started.md)、[模块地图](docs/design/module-map.md)、[设计白皮书](docs/design/whitepaper.md)；指南、安全与设计说明分别在 `docs/guides/`、`docs/security/`、`docs/design/`，Kun 框架的决策记录在 `docs/adr/kun/`，引用时写「Kun ADR-0xx」。
 - [平台总览](https://github.com/CavaiLAB/jiangxin)：理念、角色与产品形态、总体架构、插件模型、应用互通、历史系统接入、Agent 协同、路线、平台级裁定。
 
-合并蓝图的全文是本仓库里的 `_import/qian/docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受；裁定记在 `_import/qian/pm/tasks/S1-DEC-036.md`（D1–D14）。详细的设计文档（决策记录、组件模型规格、各能力域的规格）：平台部分的随代码导入了过渡目录 `_import/qian/docs/`；Kun 框架的已整理进 `docs/`，见上面的列表。
+合并蓝图见 [ADR-023](docs/adr/ADR-023-kun-qian-merge-blueprint.md)，裁定见 [S1-DEC-036](pm/tasks/S1-DEC-036.md)。[平台决策目录](docs/adr/decisions.md)列出各能力域的设计与规范。

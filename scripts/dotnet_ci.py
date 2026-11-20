@@ -1374,10 +1374,6 @@ def paths_check() -> Counter:
     groups = dotnet_paths()
     excluded = [glob_regex(pattern[1:]) for group in groups for pattern in group if pattern.startswith("!")]
     repository = Repository(tracked())
-    # 平台资源暂由部分根测试宿主从这个目录读取。目录锚本身没有说明读了其中哪个文件。
-    assets = "_import/qian"
-    prefix = assets + "/"
-    asset_files = Repository(path[len(prefix):] for path in repository.files if path.startswith(prefix))
     problems: List[str] = []
     counts: Counter = Counter()
 
@@ -1394,21 +1390,13 @@ def paths_check() -> Counter:
             problems.append(f"{place} 读取 {shown}，其中 {len(missed)} 个文件只改它们的 PR 不触发 dotnet 区域的作业（如 "
                             f"{'、'.join(missed[:3])}）；{ADD_TO_AREA.format(what='它们')}")
 
-    def covered(path: str, complete: bool) -> List[str]:
-        if path.rstrip("/") == assets:
-            return []
-        return repository.covered(path, complete)
-
     def shown(path: str, complete: bool) -> str:
         return path if complete else path + "…"
 
     for source in tracked("*.cs"):
         text = (ROOT / source).read_text(encoding="utf-8", errors="replace")
         for line, path, complete in csharp_references(text, repository.top):
-            check(".NET 源码", f"{source}:{line}", shown(path, complete), covered(path, complete))
-        for line, path, complete in csharp_references(text, asset_files.top):
-            files = [prefix + name for name in asset_files.covered(path, complete)]
-            check(".NET 源码", f"{source}:{line}", shown(prefix + path, complete), files)
+            check(".NET 源码", f"{source}:{line}", shown(path, complete), repository.covered(path, complete))
     for source in tracked("*.csproj", "*.props", "*.targets"):
         text = (ROOT / source).read_text(encoding="utf-8", errors="replace")
         for line, path in msbuild_references(source, text):
@@ -1417,7 +1405,7 @@ def paths_check() -> Counter:
     for source, references in python_references(repository):
         counts["Python 文件"] += 1
         for line, path, complete in references:
-            check("Python", f"{source}:{line}", shown(path, complete), covered(path, complete))
+            check("Python", f"{source}:{line}", shown(path, complete), repository.covered(path, complete))
     if counts[".NET 源码"] < 1:
         problems.append("没有找到读取仓库文件的 .NET 源码，请核对扫描范围。")
     if problems:

@@ -1,21 +1,6 @@
 name: qian-surfaces
 
-# 声明式表面：TypeScript 与 .NET 两侧一致性（样例、JCS、诊断、市场规则、profile 的构建与装载），
-# 另有私有源已发布组件的 qian add E2E。由 ci.yml 调用，在仓库根目录运行。
-# 原件在 _import/qian/.github/workflows/surfaces.yml，B1 历史导入时带来，不动，GitHub 不读。相对原件的改动：
-# - 触发：只留 workflow_call；推送与拉取请求的触发、路径过滤与并发组都由 ci.yml 管（S1-KUN-020）。
-#   路径过滤在区域表 scripts/ci_changes.py 的 surfaces 区域：原件的过滤逐条加 _import/qian/ 前缀，另加仓库根的 .NET 构建基线、
-#   Kun.slnx、src/ 与 _import/qian/.npmrc。
-# - 位置：run 步骤的工作目录、package.json 与 GITHUB_WORKSPACE 下的报告路径加 _import/qian/ 前缀（比较步骤按工作目录
-#   读 TestResults/，报告必须写进 TestResults/）；setup-dotnet 读仓库根的 global.json。
-# - 「私有源已发布组件的 qian add E2E」照原件用本次运行的 GITHUB_TOKEN（packages: read）读 GitHub Packages 上
-#   已发布的公开 Qian.* 包；包源地址写在 _import/qian/ 的测试代码里，没有改。
-# - 前端框架迁出（B11，见迁移执行计划）之后：TypeScript 运行时装 CavaiLAB/qian 发布在 GitHub Packages 上的
-#   @cavailab/qian-runtime（命令行与校验库测试的开发依赖），运行时一致性用例的 TS 一侧随命令行测试跑：去掉构建
-#   packages/qian-runtime 一步，区域里改看整个 tck/runtime/。两个作业都要装 GitHub Packages 上的公开包，
-#   用本次运行的 GITHUB_TOKEN 只读安装：权限加 packages: read，setup-node 写用户级的包源认证，
-#   pnpm install 带 NODE_AUTH_TOKEN。
-# 检查本身不变。
+# 用共用样例检查 TypeScript 和 .NET 的表面契约、诊断、市场规则与 profile 装载。
 
 on:
   # 由 ci.yml 调用：路径过滤在 scripts/ci_changes.py 的区域表（区域 surfaces），并发组由 ci.yml 统一管（S1-KUN-020）。

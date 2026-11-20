@@ -1,6 +1,6 @@
 # 本机租户运营手测环境
 
-一条命令在本机起 PostgreSQL、租户运营宿主与真实 qian.identity，再用开发令牌按顺序调用 S1-TEN-006 / 002 / 004 / 010 交付的运营 HTTP。不用写代码，也不用等页面、staging 或真实登录。任务见 [S1-QA-012](../../_import/qian/pm/tasks/S1-QA-012.md)。
+一条命令在本机起 PostgreSQL、租户运营宿主与真实 qian.identity，再用开发令牌按顺序调用 S1-TEN-006 / 002 / 004 / 010 交付的运营 HTTP。不用写代码，也不用等页面、staging 或真实登录。任务见 [S1-QA-012](../../pm/tasks/S1-QA-012.md)。
 
 ## 这是什么，不是什么
 

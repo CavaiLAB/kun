@@ -94,4 +94,4 @@ superseded_by: ADR-023（部分）
 
 - 相关 ADR：ADR-001（Kun 关系）、ADR-013 D13.18（文档站）、ADR-016（［下游智能体平台］边界）、ADR-017（部署）、ADR-019 §7（许可与 feed）、ADR-020 §7 第 4 条（`qian-plugins`）。
 - PRD：[§01 愿景](../prd/01-vision.md) 1.1、[§07](../prd/07-s1-foundation.md) 7.1 与 7.15.2；[specs/docs-site.md](../prd/specs/docs-site.md) §2b。
-- 流程：[pm/README.md](../../_import/qian/pm/README.md)、[deploy/pm-board/README.md](../../_import/qian/deploy/pm-board/README.md)、[仓库 README](../../_import/qian/README.md)「产品族」一节。
+- 流程：[pm/README.md](../../pm/README.md)、[deploy/pm-board/README.md](../../deploy/pm-board/README.md)、[仓库 README](../../README.md)「产品族」一节。

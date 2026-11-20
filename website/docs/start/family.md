@@ -17,4 +17,4 @@ Kun 在一个 .NET 源码树中提供内核与平台组件。前端宿主和插�
 | Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台设计](/design/) |
 | Qian | 前端 | React 组件、外壳、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [组件目录](/components/yue/)与[前端 SDK](/sdk/frontend/) |
 
-正式版内核包发布到 nuget.org，平台包的可用渠道见[版本矩阵](/start/versions)。本站从发布标签构建 Kun 框架和前端组件参考，从后端仓库的当前文档构建[设计与路线](/design/)。开发任务在 [Kun 任务目录](https://github.com/CavaiLAB/kun/tree/main/_import/qian/pm/tasks)中维护。
+正式版内核包发布到 nuget.org，平台包的可用渠道见[版本矩阵](/start/versions)。本站从发布标签构建 Kun 框架和前端组件参考，从后端仓库的当前文档构建[设计与路线](/design/)。开发任务在 [Kun 任务目录](https://github.com/CavaiLAB/kun/tree/main/pm/tasks)中维护。

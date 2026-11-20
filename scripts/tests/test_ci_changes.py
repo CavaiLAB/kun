@@ -2,9 +2,8 @@
 
 运行：python3 -m unittest discover -s scripts/tests -p 'test_ci_*.py' -v
 ci.yml 的变更检测作业每次都先跑它。四项核对：
-  1. 搬来的过滤与来源等价：每个区域在被跟踪文件上覆盖它来源工作流（_import/qian/.github/workflows/ 下）的 pull_request 过滤，
-     逐条加 _import/qian/ 前缀后算；
-  2. 要构建 .NET 的区域都含 .NET 基础（DOTNET_BASE），装 GitHub Packages 上 npm 包的区域都含 _import/qian/.npmrc；
+  1. 逐项核对任务、构建、镜像、组件与界面资产应触发和应跳过的区域；
+  2. 要构建 .NET 的区域都含 .NET 基础（DOTNET_BASE），装 GitHub Packages 上 npm 包的区域都含 .npmrc；
   3. 每个被跟踪的文件至少落进一个区域，或者在明列的「无检查」名单里；
   4. 每个匹配式至少命中一个被跟踪的文件，没有死规则。
 另有匹配语义、变更检测与「CI 汇总」判定的用例。
@@ -25,19 +24,14 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 
 import ci_changes  # noqa: E402
-import ci_yaml  # noqa: E402
 
 ROOT = ci_changes.ROOT
-ORIGINALS = ROOT / "_import" / "qian" / ".github" / "workflows"
 
 
 def tracked():
     output = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
     return [name for name in output.split("\0") if name]
 
-
-def prefixed(patterns):
-    return [("!" + ci_changes.Q + pattern[1:]) if pattern.startswith("!") else ci_changes.Q + pattern for pattern in patterns]
 
 
 class MatchingTests(unittest.TestCase):
@@ -63,16 +57,11 @@ class MatchingTests(unittest.TestCase):
         self.assertTrue(ci_changes.area_matches(area, "src/Kun.Core/README.md"))
         self.assertFalse(ci_changes.area_matches(area, "src/Kun.Mediator/README.md"))
 
-    def test_docs_deployment_source_runs_rendering_checks(self) -> None:
-        changed = ci_changes.changed_areas(["_import/qian/deploy/docs-site/kustomization.yaml"])
-        selected = {area for area, paths in changed.items() if paths}
-        self.assertTrue({"docs-and-pm", "docs-site", "dotnet"} <= selected)
-
     def test_everything_files_mark_every_area(self) -> None:
         hits = ci_changes.changed_areas([".github/workflows/ci.yml"])
         self.assertEqual(set(ci_changes.AREAS), {name for name, files in hits.items() if files})
         hits = ci_changes.changed_areas(["README.md"])
-        self.assertEqual({"dotnet", "docs-site"}, {name for name, files in hits.items() if files})
+        self.assertEqual({"dotnet", "docs-and-pm", "docs-site"}, {name for name, files in hits.items() if files})
 
 
 class AreaTableTests(unittest.TestCase):
@@ -80,23 +69,32 @@ class AreaTableTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.files = tracked()
 
-    def test_1_each_area_covers_the_filter_it_was_moved_from(self) -> None:
-        def original_path(path):
-            if any(ci_changes.group_matches(group, path) for group in (ci_changes.PLATFORM_ASSETS, ci_changes.PLATFORM_DOCUMENTATION)):
-                return ci_changes.Q + path
-            return path
-
-        problems = []
-        for name, area in ci_changes.AREAS.items():
-            if area.original is None:
-                continue
-            document = ci_yaml.load((ORIGINALS / area.original).read_text(encoding="utf-8"))
-            original = ci_yaml.pull_request_paths(document)
-            patterns = prefixed(original if original is not None else ["**"])
-            missed = [path for path in self.files if ci_changes.group_matches(patterns, original_path(path)) and not ci_changes.area_matches(area, path)]
-            if missed:
-                problems.append(f"区域 {name} 漏了 {area.original} 的过滤覆盖的 {len(missed)} 个文件，如 {'、'.join(missed[:3])}")
-        self.assertEqual([], problems)
+    def test_workflow_areas_cover_their_inputs(self) -> None:
+        cases = {
+            "_import/qian/deploy/docs-site/kustomization.yaml": ({"dotnet", "docs-site", "docs-and-pm"}, {"images"}),
+            "_import/qian/deploy/pm-board/kustomization.yaml": ({"docs-and-pm"}, {"docs-site", "images"}),
+            "_import/qian/scripts/pm.py": ({"docs-and-pm"}, {"images"}),
+            "_import/qian/pm/tasks": ({"docs-and-pm"}, {"images"}),
+            "pm/tasks/S1-KUN-030.md": ({"docs-and-pm"}, {"dotnet", "docs-site"}),
+            "docs/prd/specs/frontend.md": ({"docs-and-pm", "docs-site"}, {"dotnet", "images"}),
+            "docs/generated/event-graph.md": ({"dotnet", "docs-and-pm", "docs-site", "documentation"}, {"images"}),
+            "deploy/pm-board/builder.py": ({"dotnet", "docs-and-pm"}, {"images", "docs-site"}),
+            "deploy/images/jit.Dockerfile": ({"dotnet", "images"}, {"shell-auth"}),
+            "apps/qian-shell/package.json": ({"shell-auth", "shell-federation", "ui"}, {"images"}),
+            "packages/qian-surfaces/package.json": ({"surfaces", "documentation"}, {"shell-federation"}),
+            "tests/directory-e2e/package.json": ({"directory-e2e", "ui"}, {"tenant-ui"}),
+            "tck/runtime/harness-ts.mjs": ({"documentation", "surfaces"}, {"shell-auth"}),
+            "tools/openapi-codegen/package.json": ({"directory-e2e", "tenant-ui", "ui"}, {"images"}),
+            "samples/qian-sample-crm-ui/package.json": ({"ui", "shell-auth", "dev-tenant-ops"}, {"images"}),
+            "plugins/qian.shell/.qian-plugin/plugin.json": ({"shell-federation", "documentation", "surfaces"}, {"ui"}),
+            ".npmrc": ({"docs-site", "documentation", "directory-e2e", "shell-auth", "shell-federation", "surfaces", "tenant-ui", "ui"}, {"images"}),
+        }
+        for path, (required, excluded) in cases.items():
+            with self.subTest(path=path):
+                self.assertIn(path, self.files)
+                actual = {name for name, files in ci_changes.changed_areas([path]).items() if files}
+                self.assertFalse(required - actual, required - actual)
+                self.assertFalse(excluded & actual, excluded & actual)
 
     def test_2_dotnet_areas_include_the_dotnet_base_and_npm_areas_include_npmrc(self) -> None:
         problems = []
@@ -150,7 +148,7 @@ class DetectTests(unittest.TestCase):
         self.assertIn("全部区域都跑", summary)
 
     def test_diff_selects_areas_by_changed_files(self) -> None:
-        with mock.patch.object(ci_changes, "diff", return_value=["_import/qian/pm/tasks/S1-KUN-020.md", "CONTRIBUTING.md"]):
+        with mock.patch.object(ci_changes, "diff", return_value=["pm/tasks/S1-KUN-020.md", "CONTRIBUTING.md"]):
             code, values, summary = self.run_detect("--base", "a", "--head", "b")
         self.assertEqual(0, code)
         self.assertEqual({"docs-and-pm"}, {name for name, value in values.items() if value == "true"})

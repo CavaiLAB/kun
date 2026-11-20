@@ -804,6 +804,18 @@ class RegistrationTests(unittest.TestCase):
         for way in ("tests/kun-unit.slnf", "KUN_INTEGRATION", "dotnet test --project", "NOT_IN_CI"):
             self.assertIn(way, problems[0])
 
+    def test_empty_transitional_filter_reads_tests_from_the_root_filter(self) -> None:
+        self.box.write("Qian.slnf", json.dumps({"solution": {"path": "../../Kun.slnx", "projects": []}}))
+        project = "tests/Moved.Tests/Moved.Tests.csproj"
+        self.box.write_repo(project, XUNIT_PROJECT)
+        with self.box.patched():
+            with self.assertRaisesRegex(dotnet_ci.ToolError, "都没有列出测试项目"):
+                dotnet_ci.test_projects()
+            self.box.write_repo("tests/kun-platform.slnf", json.dumps({
+                "solution": {"path": "../Kun.slnx", "projects": [project]},
+            }))
+            self.assertEqual({"Moved.Tests": "../../" + project}, dotnet_ci.test_projects())
+
     def test_platform_projects_keep_their_shard_across_the_repository_boundary(self) -> None:
         self.box.write("Qian.slnf", json.dumps({"solution": {"path": "../../Kun.slnx", "projects": [
             "_import/qian/tests/Sample.Tests/Sample.Tests.csproj"]}}))

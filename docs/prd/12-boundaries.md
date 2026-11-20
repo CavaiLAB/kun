@@ -22,7 +22,7 @@
 
 ## 12.2 S1 技术底座：明确支持
 
-S1 退出标准（ADR-018；ADR-020 §6 新增末句）：开发人员用代码在 Qian 上写出一个多租户应用，登录/SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移、回切；在空白项目里 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传。
+S1 退出标准（ADR-018；ADR-020 §6 新增末句）：开发人员用代码在平台上写出一个多租户应用，登录/SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移、回切；在空白项目里 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传。
 
 **租户与隔离（ADR-004、ADR-003）**
 1. 运营人员能在运营后台创建租户、选择隔离策略（默认共享库 + `tenant_id` 行过滤 + PostgreSQL RLS 双保险）、设置有效期与用户配额、指定单个租户管理员；租户号与隔离策略创建后不可修改。
@@ -73,7 +73,7 @@ S1 退出标准（ADR-018；ADR-020 §6 新增末句）：开发人员用代码�
 36. 所有写操作走带 JSON Schema 的命令，命令元数据含 `sideEffect`、`idempotencyKey`、`dryRun`；`inputSchema` 中不出现租户字段。
 
 **组件模型 v2（ADR-020，Accepted；对上一块第 29–31、34 条的修订，条目编号 C 以别于 B / T / N）**
-- C1. 组件库只依赖 `Qian.Runtime`（.NET）/ `@qian/runtime`（TS），不依赖 `qian.registry` / `qian.lifecycle` 等插件；CI 断言依赖图（取代 ADR-019 的「不依赖 `Qian.Kernel`」断言）。
+- C1. 组件库只依赖 `Kun.Runtime`（.NET）/ `@cavailab/qian-runtime`（TS），不依赖 `qian.registry` / `qian.lifecycle` 等插件；CI 断言依赖图（取代 ADR-019 的「不依赖 `Qian.Kernel`」断言）。
 - C2. 可部署单元 = profile：S1 随发行版交付 `platform` / `gateway` / `identity` / `standalone` / `minimal`；原 18 个系统插件成为 `platform` profile 的 base 组合包内容（规范术语「平台插件」，R30），各自按 seam 三角色拆包，数量由组合包定义而不是决策；`qian --profile platform --dump-config` 能打印整棵插件树，打印出的任何条目都能被 patch 替换。原可部署单元 ↔ profile / 组合包的定稿映射见 ROADMAP S1 核心交付与 prd/README 命名约定（R31：`qian-shell` 不是 profile，为 `platform` 的 `shell` 组合包；`qian-model-gateway-adapter` 为 `model-gateway` 组合包，默认挂 `platform`、可选独立 profile）。
 - C3. 租户启用一个插件 = 在租户 scope 挂载其配置条目（patch，存数据库、与文件 patch 同格式同校验器）；`qian.entitlement` 的授权状态机只管「买没买」；二者分开存、分开审计（§11.1.6「授权与开关分开可见」不变）。
 - C4. 声明式表面（skills / agents / commands / hooks / MCP、元数据、patch）S1 支持运行中重载；代码插件 S1 不承诺热装卸，走滚动重启（collectible `AssemblyLoadContext` 不进 S2 核心交付、S2 内 RT 领域 5 天 spike，ADR-020 §7 第 5 条已拍板）。
@@ -81,13 +81,13 @@ S1 退出标准（ADR-018；ADR-020 §6 新增末句）：开发人员用代码�
 - C6. 一键安装与目录市场：`qian add / remove / list / doctor / dump-config / init --template` 可用；官方市场仓库与 `.qian/marketplace.json` 就绪；空白项目 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传。
 - C7. skill / agent / command / hook / MCP 五种表面的解析器与校验器 S1 交付；模型可见的一切注册在 `ctx.Tools` 等注册表并受 scope 过滤；配置目录、模块图、事件图、seam 图由代码生成并设 CI 新鲜度门禁。
 
-**前端框架与外壳（ADR-013；详见专题 spec《前端框架组件库》）**
+**Qian 前端框架与外壳（ADR-013；详见专题 spec《前端框架组件库》）**
 37. `@cavailab/qian-tokens` 三层令牌、明暗两态、WCAG AA 对比度单测；`@cavailab/qian-core` 52 个基础组件；`@cavailab/qian-shell` 单一侧栏布局外壳（后端菜单 → 路由、`menuTypeRegistry`、租户切换器、兜底页）；DataTable 基础版、SchemaForm 基础版、Upload、组织 / 用户 / 角色选择器、认证页族可用。
 38. 外壳以 Module Federation 2 运行时加载官方插件 UI，带版本号的插槽注册表；共享依赖 singleton。
 39. 元数据契约草案（FormSchema / ListSchema，含 `device`、`auth` 字段）、控件注册表契约、SSE 事件 JSON Schema、权限码目录格式发布；分层依赖 lint 进 CI。
 
 **部署（ADR-017）**
-40. Qian 运行在独立命名空间 `qian-<env>`，专属 PostgreSQL / Redis；业务命名空间带 default-deny NetworkPolicy 与 ResourceQuota；Argo CD app-of-apps + Kustomize，按 digest 写回，迁移 Job 先行；K3s 开启 Secret 静态加密。
+40. 平台运行在独立命名空间 `qian-<env>`，专属 PostgreSQL / Redis；业务命名空间带 default-deny NetworkPolicy 与 ResourceQuota；Argo CD app-of-apps + Kustomize，按 digest 写回，迁移 Job 先行；K3s 开启 Secret 静态加密。
 41. 生产与下游智能体平台共用集群但独立节点池（Q16）；多租户拓扑默认共享，高隔离与私有化为可选档。
 
 **模型服务网关（ADR-015，S1 可选）**
@@ -140,7 +140,7 @@ S2 退出标准：跑通「建应用 → 建表单与列表 → 走审批 → �
 28. 钉钉、飞书连接器 S2 必做（P0），微信网站扫码连接器 S2 可选（P1，R4）；数据建模、接口设计器、短信通道 UI、群机器人、监控 UI、任务管理 UI、文件预览提供者可替换（首选 .NET 方案，Q34）、模型目录与按用途路由。
 29. 自动化（任务流程）S2 可选，S3 必做；集合语义显式声明 `cardinality: single | each | batch`；破坏性动作声明 `destructive` 并提供试运行。
 
-**前端框架（ADR-013）**
+**Qian 前端框架（ADR-013）**
 30. DataTable 进阶（树表、列权限、行内编辑、复杂表头）、ImportWizard / ExportDialog、SuperQuery、ConditionBuilder、CodeEditor / Cron、PosSelect / GroupSelect、PopupSelect 族、RelationForm、授权树族；设计器基础设施（dnd-kit 封装、schema 驱动属性面板、撤销重做、校验定位）；表单 / 列表 / 审批流三大设计器；校验器与设计器共用；视觉回归进 CI。
 
 ---
@@ -171,7 +171,7 @@ S4 退出标准：Agent 能发现、调用、编排乃至生成平台能力与�
 1. 每租户一个 MCP 逻辑门面（Higress 托管），工具定义由插件清单 `capabilities` 机械生成，暴露经 `agent.expose` 策划，按调用者权限过滤工具列表。
 2. Agent 主体（有归属人、可吊销）与委托链：RFC 8693 令牌交换带 `act`；有效权限 = 委托人权限 ∩ 授予 scope；`Check / ListAllowedActions / Explain` 以工具形式暴露。
 3. Agent 生成应用 = 生成 `package`，经校验 + TCK + 差异审阅 + 人工确认后落库；代码只落 `function` 沙箱；记录 `generatedBy / promptHash`。
-4. 与下游智能体平台运行时经 MCP / HTTP 对接（ADR-016）；Qian 不写 Agent loop、沙箱、记忆、技能引擎；沙箱对接 CubeSandbox。
+4. 与下游智能体平台运行时经 MCP / HTTP 对接（ADR-016）；平台不写 Agent loop、沙箱、记忆、技能引擎；沙箱对接 CubeSandbox。
 5. 元数据生成闭环：AI 建表 / 建流程只产出「设计中」草稿并走同一校验器；元数据操作 API 化并暴露状态机。
 6. `智能体交互组件`（ToolCallCard、ThinkingTimeline、Composer 等，只消费 S1 定义的 SSE 事件契约）；shadcn MCP Server；市场兼任私有 MCP registry。
 7. 可选：A2A 端点与急停、MCP Apps 视图、WebMCP。
@@ -180,7 +180,7 @@ S4 退出标准：Agent 能发现、调用、编排乃至生成平台能力与�
 
 ## 12.6 安全底线（从后期提前到 S1）
 
-下列设计原本在参考平台或多数低代码产品中属于「上线后再补」，Qian 把它们**全部提前到 S1 生效**。理由只有一个：多租户隔离与可信计算基的缺陷无法事后修补——数据一旦串读、审计一旦断链、令牌一旦被当作权限载体，后续所有插件与应用都会建立在错误假设上。细则见 §13。
+下列设计原本在参考平台或多数低代码产品中属于「上线后再补」，平台把它们**全部提前到 S1 生效**。理由只有一个：多租户隔离与可信计算基的缺陷无法事后修补——数据一旦串读、审计一旦断链、令牌一旦被当作权限载体，后续所有插件与应用都会建立在错误假设上。细则见 §13。
 
 | # | 底线 | 原本阶段 | 提前理由 |
 |---|---|---|---|
@@ -213,8 +213,8 @@ S4 退出标准：Agent 能发现、调用、编排乃至生成平台能力与�
 | N2 | 第三方代码进入任何共享进程 | 信任等级（`policy.tier`）决定允许的 `runtime.form` 与 `policy.sandbox`：`partner / private / community` 只允许声明式表面、`package`、`function`、受限 `ui`，以及为某个 seam 提供 Provider 的组件（原 connector：`provides[]` 写服务键 + `policy.egress` 声明出网目标；其 `runtime.form` 不得为 `module`，按实现取进程外 `service` 或由平台连接器运行时托管）；`service` 即便允许也必须独立工作负载身份（R28 口径，字段细节以 specs/component-model.md 为准） | ADR-002、ADR-020 |
 | N3 | 参考平台式匿名外链（读草稿、不校验开关 / 密码 / 条件、无有效期） | 匿名上下文只能访问「匿名可用」能力；外链一律经网关匿名路由 + 服务端签发的能力令牌（功能 + 动作 + 版本 + 过滤 + 有效期，S3） | ADR-010、§13 |
 | N4 | 进程共享的服务端 JS 引擎（全局单例 V8 / 任意脚本） | 无锁、无超时、无沙箱、可拼 SQL 到租户库；用 JSON AST 表达式解释器 + Wasm `function` 替代 | ADR-002、ADR-012 |
-| N5 | 自建 Agent 推理引擎、沙箱、记忆、技能引擎 | 复用下游智能体平台运行时；Qian 只做能力提供方与业务主数据权威 | ADR-016 |
-| N6 | 自研模型代理层（绕过 Higress） | 并入团队 MaaS / Higress 基础设施；Qian 只做 Provider Adapter 与契约 | ADR-015 |
+| N5 | 自建 Agent 推理引擎、沙箱、记忆、技能引擎 | 复用下游智能体平台运行时；平台只做能力提供方与业务主数据权威 | ADR-016 |
+| N6 | 自研模型代理层（绕过 Higress） | 并入团队 MaaS / Higress 基础设施；平台只做 Provider Adapter 与契约 | ADR-015 |
 | N7 | Dapr sidecar 作为默认依赖 | 三节点 K3s 每 Pod 一个 sidecar 代价高；与 Kun EventBus / Outbox、S2S、YARP 大面积重叠；只借鉴其组件声明方式 | ADR-002、ADR-017 |
 | N8 | bpmn-js 作为流程画布 | 许可证要求水印始终可见；审批流用 DOM 节点树或 React Flow；BPMN 只在客户强制要求时做导出器，不作内部模型 | ADR-012、ADR-013 |
 | N9 | Nacos 作为配置中心 | Apollo 是硬性要求；Nacos 收窄为 AI 资产 / MCP 注册投影，不再承担配置职责 | ADR-007 |

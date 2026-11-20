@@ -19,11 +19,11 @@ export default defineConfig({
   root: path.join(here, 'docs'),
   base,
   lang: 'zh',
-  title: 'Qian 文档',
-  description: 'Qian 平台基于 Kun 框架构建，前端使用 qian 组件库。这里是它的组件、SDK、CLI、运维与设计文档。',
+  title: 'Kun 与 Qian 开发文档',
+  description: 'Kun 提供 .NET 内核和平台组件，Qian 提供前端框架。本站收录组件、SDK、CLI、运维与设计文档。',
   icon: '/logo.svg',
   logo: '/logo.svg',
-  logoText: 'Qian 文档',
+  logoText: 'Kun 与 Qian 开发文档',
   // 机器可读（docs-site.md §2a.1、S1-DOCS-003）：SSG-MD 在构建期把每页渲染成 .md，并产出 llms.txt 与 llms-full.txt；
   // kb-index.json 与 sitemap.xml 由 scripts/build-kb-index.ts 在构建后产出；llms.txt 先按 project 分（scripts/llms.ts 的 PROJECT_ORDER）再按部分分节（ADR-021 D21.5）。
   llms: { llmsTxt: renderLlmsTxt },

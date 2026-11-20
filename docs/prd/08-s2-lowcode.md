@@ -2,6 +2,8 @@
 
 > 本章粒度：范围清楚、关键模型与契约定型，比 §07（S1 技术底座）粗一级，但功能清单必须完整。决策引用写 `ADR-0xx`（ADR-011 元数据与动态数据、ADR-012 流程、ADR-013 前端与前端框架、ADR-014 市场、ADR-006 鉴权、ADR-002 插件模型、ADR-018 阶段），基线与参考平台只作依据不作规范。决策清单主表的待拍板问题写 `Q1–Q18`，补充裁决（基线汇编编号）写 `补充裁决 Qxx`，两套编号互不混用。被借鉴的商业低代码产品一律称「参考平台」。
 >
+本章是 S2 设计。元数据、动态数据、表单、流程、设计器及其示意包名是待交付能力。现有基础库为 `Kun.Data.Abstractions`、`Kun.Authorization.Rbac.Abstractions` 和 Qian 已发布的组件，见[前端包范围](specs/frontend.md)。
+
 > 优先级口径：**P0** = S2 退出标准关键路径，不做则 S2 不能验收；**P1** = S2 必做但不在关键路径，可在 S2 内后置；**P2** = S2 可选，可滑到 S3。阶段归属以 ADR-018 与补充裁决为准，与基线冲突处在 8.16 注明。
 >
 > 功能项固定小节：设计理念 / 范围与边界 / 技术落点 / 插件化定位 / Agent 契约 / 验收标准。验收标准写可观察行为与测法，供 TCK 与验收脚本直接引用。
@@ -31,14 +33,14 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 |---|---|---|---|---|
 | `lowcode`（`qian-lowcode`） | service，JIT 宿主（Kun 允许的「非 AOT 孤岛」） | `qian.metadata`、`qian.dynamic-data`、`qian.schema-migrator`、`qian.expression`、`qian.forms`（服务端部分）、`qian.lists`（服务端部分）、`qian.widgets`（Field Type Provider 部分）、`qian.data-model`、`qian.data-api`、`qian.print`（服务端数据组装） | 动态 SQL 生成、反射式 JSON、运行时元数据编译都不能进 `qian-platform` 的 AOT 边界；低代码查询是热点，需要独立水平扩展与故障域 | P0 |
 | `workflow`（`qian-workflow`） | service | `qian.workflow` 全部（定义、引擎、运行态、解析器、通知绑定、SLA、子流程） | 审批域体量大（基线估 12–15k 行）、计时器与令牌推进有自己的伸缩曲线；与表单运行时解耦便于单独回滚 | P0 |
-| `file-preview` 组合包（挂在 `lowcode`，非 profile；预览进程镜像 `qian-file-preview`） | service（第三方预览进程 + Qian 薄插件） | `qian.file-preview` 的提供者实现 | 预览后端是可替换的外部进程，Helm 子 chart 钉版本随组件安装（补充裁决 Q34）；Qian 侧薄插件随 `lowcode` 装载（R31） | P1 |
+| `file-preview` 组合包（挂在 `lowcode`，非 profile；预览进程镜像 `qian-file-preview`） | service（第三方预览进程 + 平台薄插件） | `qian.file-preview` 的提供者实现 | 预览后端是可替换的外部进程，Helm 子 chart 钉版本随组件安装（补充裁决 Q34）；平台侧薄插件随 `lowcode` 装载（R31） | P1 |
 | `wasm-runtime`（`qian-wasm-runtime`） | service（可选） | `runtime.form: function` 组件宿主 | ABI（Extism 或 WIT 组件）在 S2 中期拍板，之前公式与规则先用 JSON AST 解释器（补充裁决「Wasm function 运行时」） | P2 |
 
-前端不新增 profile：`shell` 组合包（`platform` 的静态前端制品，`@qian/runtime` 上的 TS 插件树，经 `gateway` 提供）以 Module Federation 2 远程模块形式新增 `@qian/designer`（三大设计器）、`@qian/lowcode-runtime`（表单/列表渲染器与控件集）、`@qian/workflow-ui`（工作台与审批详情），静态制品随 `platform` 的 `shell` 组合包发布（R31）。
+前端不新增 profile：`shell` 组合包（`platform` 的静态前端制品，`@cavailab/qian-runtime` 上的 TS 插件树，经 `gateway` 提供）以 Module Federation 2 远程模块形式新增 `@qian/designer`（三大设计器）、`@qian/lowcode-runtime`（表单/列表渲染器与控件集）、`@qian/workflow-ui`（工作台与审批详情），静态制品随 `platform` 的 `shell` 组合包发布（R31）。
 
 #### 8.0.4 S2 新增与升级的插件
 
-命名以 ADR-003 的 `qian.` 前缀与决策清单用名为准（决策写 `qian.dynamic-data`，P 基线附录 B 中的 `qian.data-engine` 视为同一插件的别名）。全部 `policy.tier: system`；表中「形态」为 `runtime.form`（ADR-020 后 `kind` 退为实现细节），`module@<镜像>` 读作「默认进该 profile 的组合包」；每个有代码的组件按 ADR-019 拆 `Qian.<X>.Abstractions`（服务键 `ctx.<X>`）+ Provider 包（`Qian.Metadata`、`Qian.DynamicData`、`Qian.Forms`、`Qian.Workflow` 等），可独立安装但设计器与低代码运行时需要 `lowcode` profile（ADR-019 D19.9）；清单统一为 `.qian-plugin/plugin.json`。
+命名以 ADR-003 的 `qian.` 前缀与决策清单用名为准（决策写 `qian.dynamic-data`，P 基线附录 B 中的 `qian.data-engine` 视为同一插件的别名）。全部 `policy.tier: system`；表中「形态」为 `runtime.form`（ADR-020 后 `kind` 退为实现细节），`module@<镜像>` 读作「默认进该 profile 的组合包」；每个有代码的组件按 ADR-019 拆 `Kun.<X>.Abstractions`（服务键 `ctx.<X>`）+ Provider 包（`Qian.Metadata`、`Qian.DynamicData`、`Qian.Forms`、`Qian.Workflow` 等），可独立安装但设计器与低代码运行时需要 `lowcode` profile（ADR-019 D19.9）；清单统一为 `.qian-plugin/plugin.json`。
 
 | 插件 | 形态 | S2 职责一句话 | 级别 | 详见 |
 |---|---|---|---|---|
@@ -70,9 +72,9 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 | `qian.portal`（配置路径型） / `qian.report`（子集） | module + ui | 固定模板 + 配置的应用首页；列表 + 分组汇总 + 导出 XLSX | P2（补充裁决 Q29） | 8.11 |
 | `qian.codegen` | 开发者工具 | 调用运行时 SDK 的薄壳脚手架导出 | P2，不早于 S2 后期（Q11） | 8.15 |
 | `qian.script-runtime` | ui | QuickJS 前端沙箱（白名单 API、超时、内存上限、不暴露令牌） | P2（补充裁决 Q18） | 8.5 |
-| `Qian.Runtime` 官方代码插件热装卸（S2 可选） | 运行时 | 仅限 `platform` / `lowcode` 等 JIT profile 内的官方代码插件，collectible `AssemblyLoadContext` 装卸，默认仍走进程重启；第三方代码与可 AOT 的边缘 profile 永不热插（R27）；S1 只对声明式表面承诺热重载；不进 S2 核心交付，S2 内由 RT 领域做 5 天时间盒 spike 验证与 Kun 约束的兼容、结论写回 ADR-020（ADR-020 §7 第 5 条已拍板） | P2 | §07 7.2.1 |
+| `Kun.Runtime` 官方代码插件热装卸（S2 可选） | 运行时 | 仅限 `platform` / `lowcode` 等 JIT profile 内的官方代码插件，collectible `AssemblyLoadContext` 装卸，默认仍走进程重启；第三方代码与可 AOT 的边缘 profile 永不热插（R27）；S1 只对声明式表面承诺热重载；不进 S2 核心交付，S2 内由 RT 领域做 5 天时间盒 spike 验证与 Kun 约束的兼容、结论写回 ADR-020（ADR-020 §7 第 5 条已拍板） | P2 | §07 7.2.1 |
 
-同期交付、但不属于低代码域的 S2 增量（归 §07 各插件，本章只列不展开）：`qian.gateway` 多 Pod 共享限流计数与密钥热轮换（P 基线 B.2 标 S2 必做）；`qian.files` 分片上传与用途目录；`qian.identity` 个人中心扩展（我的组织/身份/偏好/消息接收）；`qian.i18n` 在线翻译管理（可选）；`qian` CLI / `Qian.Plugin.Sdk` 开发者租户与远程调试通道（可选）；`qian init --template package` 模板与 `forms/` `lists/` `flows/` `pages/` 四种表面的校验器接入 `qian doctor`（必做，随 8.1 / 8.5 / 8.6 / 8.8 交付）。
+同期交付、但不属于低代码域的 S2 增量（归 §07 各插件，本章只列不展开）：`qian.gateway` 多 Pod 共享限流计数与密钥热轮换（P 基线 B.2 标 S2 必做）；`qian.files` 分片上传与用途目录；`qian.identity` 个人中心扩展（我的组织/身份/偏好/消息接收）；`qian.i18n` 在线翻译管理（可选）；`qian` CLI / `Kun.Plugin.Sdk` 开发者租户与远程调试通道（可选）；`qian init --template package` 模板与 `forms/` `lists/` `flows/` `pages/` 四种表面的校验器接入 `qian doctor`（必做，随 8.1 / 8.5 / 8.6 / 8.8 交付）。
 
 #### 8.0.5 S2 的横切约束（从 S1 继承、在 S2 首次被低代码运行时大规模消费）
 
@@ -86,7 +88,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 
 #### 设计理念
 
-元数据是 Qian 的一等资产：版本化、可校验、可 diff、可回滚的**文档**，而不是散落在若干 JSON 文本列里的隐式契约（参考平台 77 个无 Schema 的 JSON 列是反例）。注册表是所有 `package` 型插件的地基（ADR-002、ADR-011），表单、列表、流程、打印、菜单、数据模型全部走同一套「草稿 → 不可变发布快照 → 当前生效指针」心智；S4 让 Agent 改元数据时，校验、预览、回滚必须已经存在（ADR-018 防返工第 12 条）。
+元数据是平台的一等资产：版本化、可校验、可 diff、可回滚的**文档**，而不是散落在若干 JSON 文本列里的隐式契约（参考平台 77 个无 Schema 的 JSON 列是反例）。注册表是所有 `package` 型插件的地基（ADR-002、ADR-011），表单、列表、流程、打印、菜单、数据模型全部走同一套「草稿 → 不可变发布快照 → 当前生效指针」心智；S4 让 Agent 改元数据时，校验、预览、回滚必须已经存在（ADR-018 防返工第 12 条）。
 
 #### 范围与边界
 
@@ -161,7 +163,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 
 #### 插件化定位
 
-`qian.dynamic-data`（module@`qian-lowcode`，`tier: system`）。扩展点：Field Type Provider（8.4）、Hook 实现（能力引用）、数据源提供者（静态/字典/数据集/组织树）。Definition 层（`Qian.Data.Abstractions` / `Qian.Authz.Abstractions`，§07 7.5、7.6）只持有 Filter AST Schema、运算符矩阵、系统变量目录与鉴权判定端口，实现全部在本组件。
+`qian.dynamic-data`（module@`qian-lowcode`，`tier: system`）。扩展点：Field Type Provider（8.4）、Hook 实现（能力引用）、数据源提供者（静态/字典/数据集/组织树）。Definition 层（`Kun.Data.Abstractions` / `Kun.Authorization.Rbac.Abstractions`，§07 7.5、7.6）只持有 Filter AST Schema、运算符矩阵、系统变量目录与鉴权判定端口，实现全部在本组件。
 
 #### Agent 契约
 
@@ -184,7 +186,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 
 #### 设计理念
 
-参考平台「改表 = 删表重建、只允许空表、业务列不迁移」是本领域最大实现差距的来源。Qian 的迁移是正式管道：**元数据 diff → 迁移计划 → 审核 → 逐租户分批执行 → 记录**，遵守「扩展 → 迁移数据 → 收缩」且不承诺自动回滚（ADR-011、P 基线 §4.3）。
+参考平台「改表 = 删表重建、只允许空表、业务列不迁移」是本领域最大实现差距的来源。平台的迁移是正式管道：**元数据 diff → 迁移计划 → 审核 → 逐租户分批执行 → 记录**，遵守「扩展 → 迁移数据 → 收缩」且不承诺自动回滚（ADR-011、P 基线 §4.3）。
 
 #### 范围与边界
 
@@ -575,13 +577,13 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 #### 8.11.1 打印（P1，模板与浏览器打印；打印设计器 S2 后期）
 
 - **范围** ✅ 打印模板实体（名称/分类/编码 `DY+日期+序列`、应用内唯一名、全局唯一编码）、版本生命周期（设计中 → 已发布锁定 → 新版本复制 → 旧版归档可启用）、模板 Schema（辅助线/矩形/圆、文本/长文本/二维码/条码/图片/图片组/表格、系统元素：打印时间/人员/审批记录/多联页码；纸型 A3–B5）、数据绑定（数据接口 + 查询设置把当前记录 id/当前用户传入；数据集名称模板内唯一）、数据转换（消费 §07 值翻译）、组件声明「可接受字段类型」、挂载扩展点（列表「批量打印」多模板、表单打印按钮、流程节点打印条件 S3）、预览 → 浏览器打印/导出 PDF（浏览器端）。多联 ≤2 P2。❌ 服务端 HTML→PDF（S3 可选，补充裁决 Q33）；打印文件与发布范围（S3）。
-- **技术落点** 模板 Schema 由 Qian 定义（声明式格式化，禁函数字符串），前端设计器取开源 JSON 打印设计器的核心库或自研（React 栈，许可宽松者优先），条码/二维码用 MIT 库；服务端只组装数据。
+- **技术落点** 模板 Schema 由平台定义（声明式格式化，禁函数字符串），前端设计器取开源 JSON 打印设计器的核心库或自研（React 栈，许可宽松者优先），条码/二维码用 MIT 库；服务端只组装数据。
 - **Agent 契约** `print.validate(template)`、`print.render(templateId, recordIds) → html`、`print.explain`；模板 Schema 公开。
 - **验收** - [ ] 为请假单建打印模板（文本 + 表格绑子表 + 审批记录），从列表勾选 3 行批量打印得到 3 页；模板发布新版本后旧版仍可启用。**测法**：UI + 快照比对。 - [ ] 绑定的数据接口未配查询条件时保存被拒。**测法**：接口测试。
 
 #### 8.11.2 文件预览（P1）
 
-- **范围** ✅ 预览票据（`qian.file-preview` 的 Qian 侧薄插件签发：单文件、单用户、短时效、签名；预览服务验签或经网关校验；禁止 URL 带登录令牌）、提供者接口（自建开源预览服务 / 文档服务器 / 商业云预览三选一可替换；首选 .NET 生态，Java 进程只作可选 sidecar——补充裁决 Q34）、`qian-file-preview` Helm 子 chart 随插件安装、配置入 Apollo、钉版本跟随上游、来源主机白名单、支持格式清单机器可读、按许可裁剪（关闭 CAD 与可能含 GPL 组件的视频转码）。❌ 在线编辑（本期不做）。
+- **范围** ✅ 预览票据（`qian.file-preview` 的平台侧薄插件签发：单文件、单用户、短时效、签名；预览服务验签或经网关校验；禁止 URL 带登录令牌）、提供者接口（自建开源预览服务 / 文档服务器 / 商业云预览三选一可替换；首选 .NET 生态，Java 进程只作可选 sidecar——补充裁决 Q34）、`qian-file-preview` Helm 子 chart 随插件安装、配置入 Apollo、钉版本跟随上游、来源主机白名单、支持格式清单机器可读、按许可裁剪（关闭 CAD 与可能含 GPL 组件的视频转码）。❌ 在线编辑（本期不做）。
 - **验收** - [ ] 上传控件的文件在详情页可预览，预览 URL 中无登录令牌，票据过期后 401。**测法**：抓包 + 时钟。 - [ ] 替换提供者实现（配置切换）后预览功能不变。**测法**：两提供者回归。
 
 #### 8.11.3 数据建模（P1）
@@ -675,7 +677,7 @@ S2 不做任何 Agent 功能（§10），但以下四项必须在 S2 做对，�
 | **元数据生成闭环（人用版）** | patch → 校验 → 预览 → 人工批准 → 发布 → 可回滚（8.1、8.7）；设计器与导入都走它 | Agent 提交 patch 走同一门禁；生成产物记 `generatedBy / promptHash / 审核人` | `qian.metadata` |
 | **字段敏感度标签** | `dataClassification` 进字段元数据，驱动 8.9 脱敏与导出策略 | 工具返回按敏感度脱敏；对外发送类工具默认需确认 | `qian.metadata` + `qian.authz` |
 | **工作流即能力** | 已发布流程自动登记为意图级能力；`actions` 契约带 `inputSchema / preconditions / humanOnly`；待办 = Operation `input_required`（8.8、8.12） | 流程发起与审批动作直接成为 MCP 工具；人工节点映射 MCP Tasks | `qian.workflow` + `qian.operations` |
-| **出网 SSRF 基线** | §13.8 已把平台自有出网点（OIDC 发现、企业微信、SMTP、短信、Apollo、对象存储）的出口代理与 SSRF 基线定为 S1 必做（R10）；S2 把低代码新增的出网点（数据接口 API 执行器、群机器人 Webhook、流程外部节点、第三方 `connector`）全部接入同一出口代理：私网与云元数据地址默认阻断、按插件清单 `permissions.egress` 白名单放行、不携带用户令牌外发、出网审计 | 连接器与 Agent 工具的出网走同一基线 | `Qian.Runtime` 装载器对 `plugin.json` `permissions.egress` 的校验 + K3s 基础设施（NetworkPolicy / 出口网关），规范见 §13.8 |
+| **出网 SSRF 基线** | §13.8 已把平台自有出网点（OIDC 发现、企业微信、SMTP、短信、Apollo、对象存储）的出口代理与 SSRF 基线定为 S1 必做（R10）；S2 把低代码新增的出网点（数据接口 API 执行器、群机器人 Webhook、流程外部节点、第三方 `connector`）全部接入同一出口代理：私网与云元数据地址默认阻断、按插件清单 `permissions.egress` 白名单放行、不携带用户令牌外发、出网审计 | 连接器与 Agent 工具的出网走同一基线 | `Kun.Runtime` 装载器对 `plugin.json` `permissions.egress` 的校验 + K3s 基础设施（NetworkPolicy / 出口网关），规范见 §13.8 |
 
 此外 S2 继续遵守 S1 起生效的防返工清单（8.0.5），并把控件目录、Field Type Catalog、运算符矩阵、系统变量目录、流程节点 Schema、布局能力矩阵全部以元数据接口发布（「目录是数据不是代码」）。
 
@@ -713,4 +715,4 @@ S2 不做任何 Agent 功能（§10），但以下四项必须在 S2 做对，�
 6. **门户配置路径型与报表子集**：已裁决（R16）——保持 S2 可选（P2）；S2 验收演示的「可用首页」由应用默认首页（菜单 + 功能列表）满足，不依赖门户；`图表组件` 维持 S2 可选。
 7. **富文本 / Markdown 编辑器选型**（补充裁决 Q39）：S2 前补选型调研，结论决定 8.4 富文本控件能否进 P1。
 8. **S2 示例自营应用的选题**（本章假定「请假与考勤」）与其是否随 S2 对外交付，待产品负责人确认。
-9. **组件模型 v2 对本章的影响（ADR-020）**：(a) 已裁决（R35）——`forms/` `lists/` `flows/` `pages/` 组件文件夹是分发形态、注册表是运行态真相源、同一校验器；git 修订是分发版本，8.1 的 Release / Pointer 不改；(b) `lowcode` / `workflow` profile 的组合包边界与是否允许租户私有市场分发 `package` 组件（S3）；(c) 已拍板（ADR-020 §7 第 5 条）：官方代码插件热装卸不进 S2 核心交付，S2 内由 RT 领域做 5 天时间盒 spike 验证 collectible `AssemblyLoadContext` 与 Kun 约束、结论写回 ADR-020，生产默认滚动重启（R27；8.0.4 列为 P2 spike）；(d) 已拍板（ADR-020 §7 第 2 条）：清单为 `.qian-plugin/plugin.json`（JSON），8.10 bundle 定义的字段按此落位；(e) 已拍板（ADR-020 §7 第 1 条）：TS 侧公共 API 为 `@qian/runtime`、S1 内部 vendor Cordis 实现，`@qian/designer` 与 `@qian/lowcode-runtime` 作为 `@qian/runtime` 插件树成员交付，不依赖实现选择。
+9. **组件模型 v2 对本章的影响（ADR-020）**：(a) 已裁决（R35）——`forms/` `lists/` `flows/` `pages/` 组件文件夹是分发形态、注册表是运行态真相源、同一校验器；git 修订是分发版本，8.1 的 Release / Pointer 不改；(b) `lowcode` / `workflow` profile 的组合包边界与是否允许租户私有市场分发 `package` 组件（S3）；(c) 已拍板（ADR-020 §7 第 5 条）：官方代码插件热装卸不进 S2 核心交付，S2 内由 RT 领域做 5 天时间盒 spike 验证 collectible `AssemblyLoadContext` 与 Kun 约束、结论写回 ADR-020，生产默认滚动重启（R27；8.0.4 列为 P2 spike）；(d) 已拍板（ADR-020 §7 第 2 条）：清单为 `.qian-plugin/plugin.json`（JSON），8.10 bundle 定义的字段按此落位；(e) 已拍板（ADR-020 §7 第 1 条）：TS 侧公共 API 为 `@cavailab/qian-runtime`、S1 内部 vendor Cordis 实现，`@qian/designer` 与 `@qian/lowcode-runtime` 作为 `@cavailab/qian-runtime` 插件树成员交付，不依赖实现选择。

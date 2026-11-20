@@ -1,14 +1,14 @@
 // Kun API 参考（docs-site.md §2b.2，S1-DOCS-005）：DocFX 从 Kun 最新发布版的 Kun.* 包（nuget.org）的 XML 注释生成，挂 /sdk/api/kun/。
 // 版本取仓库根 CHANGELOG.md 里最新的发布段（scripts/kun.ts 的 readKunVersion）。
 // 流程：缓存目录里生成一个引用全部 Kun.* 包的空工程 → dotnet build 取 DLL 与 XML → docfx metadata 输出 Markdown → 转成 Rspress 页面。
-// 结果按（版本与提交、包、DocFX 版本、转换脚本内容）缓存，dev 重启不重复跑 .NET。/sdk/api/ 是一个生成目录，S1-DOCS-002 往这里加 Qian.* 与前端。
+// 结果按（版本与提交、包、DocFX 版本、转换脚本内容）缓存，dev 重启不重复跑 .NET。/sdk/api/ 是一个生成目录，平台包与前端的 API 参考由 S1-DOCS-002 接入。
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WEBSITE_ROOT, yamlString, type GeneratedFile } from './repo.ts';
-import { CACHE_DIR, KUN_OWNER_REPO, kunGithubUrl, kunSource, listKunFiles, readKunFile, type KunCheckout } from './kun.ts';
+import { CACHE_DIR, KUN_OWNER_REPO, LAST_SEPARATE_RELEASE, kunGithubUrl, kunSource, listKunFiles, readKunFile, type KunCheckout } from './kun.ts';
 import { firstParagraph, plainText, truncate } from './sync-kun-docs.ts';
 
 export const KUN_API_ROUTE = '/sdk/api/kun/';
@@ -302,7 +302,7 @@ function apiBanner(kun: KunCheckout, assembly: string): string {
     ':::info 生成页',
     `本页由 DocFX 从 nuget.org 上 \`${assembly}\` ${kun.version} 的 XML 注释生成，源码在 kun 仓库 [\`${source}\`](${kunGithubUrl(kun, source, true)})（\`${kun.tag}\`）。` +
       'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；' +
-      'Qian 对 Kun 的选用与约束见[与 Qian 的关系](/sdk/kun/with-qian)。',
+      '平台集成方式见[内核与平台组件](/sdk/kun/with-qian)。',
     ':::',
   ].join('\n');
 }
@@ -398,11 +398,41 @@ export interface KunApiResult {
   warnings: number;
 }
 
+// 已归档的沙箱契约中，下列八种通用类型可以完整展示；配置类型的签名与原始扩展载荷保留在历史制品。
+const ARCHIVED_CONTRACTS = new Set(['FileEntry', 'IFiles', 'IProcesses', 'ISandboxHandle', 'ISandboxProvider',
+  'ProcessResult', 'ProcessRunOptions', 'SandboxState']);
+const ARCHIVED_CONFIG = new Set(['BrowserSessionConfig', 'SandboxCreateOptions', 'SecretScopeConfig']);
+
+function archivedContract(kun: KunCheckout, page: ApiPage): boolean {
+  return kun.commit === LAST_SEPARATE_RELEASE && page.namespace === 'Kun.Sandbox.Abstractions';
+}
+
+function archivePage(kun: KunCheckout, page: ApiPage, visible: readonly ApiPage[]): string {
+  const ns = page.kind === 'Namespace';
+  const title = ns ? page.namespace : page.display;
+  const description = `${title} 的历史归属、原始源码和已发布包。`;
+  const items = ns
+    ? visible.filter(p => p.namespace === page.namespace && p.kind !== 'Namespace').map(p => `- [${p.display}](${p.route})`)
+    : [];
+  return [
+    apiFrontmatter(kun, title, description, 'src/Kun.Sandbox', false),
+    `# ${title}`, '',':::info 发布版本来源',
+    `本页由归档包 [Kun.Sandbox ${kun.version}](https://www.nuget.org/packages/Kun.Sandbox/${kun.version}) 的历史版本生成。该版本的完整类型和签名见[固定源码](${kunGithubUrl(kun, 'src/Kun.Sandbox', true)})（\`${kun.tag}\`）。`, ':::','',
+    'Kun.Sandbox 已从合并版的解决方案和发行清单中移出。旧版本的包与源码保留原有 API。', '', ...items, '',
+  ].join('\n');
+}
+
 /** DocFX 输出 → sdk/api/kun/ 下的页面与概览（不生成侧栏）。纯函数，单测直接喂 DocFX 样例。 */
 export function convertDocfx(kun: KunCheckout, output: DocfxOutput, packages: readonly string[]): KunApiResult {
-  const pages = parseDocfxPages(output.pages);
+  const published = parseDocfxPages(output.pages);
+  const pages = published.filter(p => !archivedContract(kun, p) || p.kind === 'Namespace' ||
+    ARCHIVED_CONTRACTS.has(p.display) || ARCHIVED_CONFIG.has(p.display));
   const ctx = convertContext(kun, pages);
-  const files: GeneratedFile[] = pages.map((p) => ({ path: p.path, content: convertPage(p, ctx) }));
+  const files: GeneratedFile[] = pages.map(p => ({
+    path: p.path,
+    content: archivedContract(kun, p) && (p.kind === 'Namespace' || ARCHIVED_CONFIG.has(p.display))
+      ? archivePage(kun, p, pages) : convertPage(p, ctx),
+  }));
 
   // API 页不进侧栏：Rspress 每页都渲染整棵侧栏，四百多个 API 页面进侧栏会让每页多出约 250 KB（产物从 57 MB 涨到 170 MB）。
   // 导航靠本节概览（包 → 命名空间）、命名空间页（→ 类型）、类型页顶部的命名空间链接与全文搜索。
@@ -431,7 +461,7 @@ export function convertDocfx(kun: KunCheckout, output: DocfxOutput, packages: re
         'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；Kun 的文档见 [Kun 框架](/sdk/kun/)。',
       ':::',
       '',
-      `共 ${packages.length} 个包、${namespaces.length} 个命名空间、${typeCount} 个公开类型。包与 kun 仓库 \`src/\` 下发布到 nuget.org 的项目一一对应，说明取自包的 nuspec。`,
+      `共 ${packages.length} 个包、${namespaces.length} 个命名空间、${typeCount} 个收录的公开类型。包与 kun 仓库 \`src/\` 下发布到 nuget.org 的项目一一对应，说明取自包的 nuspec。`,
       '',
       '| 包 | 说明 | 命名空间 |',
       '|---|---|---|',
@@ -464,7 +494,7 @@ export function buildKunApi(kun: KunCheckout, cacheDir: string = CACHE_DIR): Kun
 
 /**
  * sdk/api/ 整个生成目录：落地页与 Kun 的 API 参考（不进侧栏，入口是 SDK 侧栏的「API 参考」链接，R54）。
- * 全部 API 参考都在 /sdk/api/ 下（R56）：Qian.*、前端包与平台 HTTP API 随 S1-DOCS-002 加入。
+ * 全部 API 参考都在 /sdk/api/ 下（R56）：平台档 NuGet 包、前端包与平台 HTTP API 另按 S1-DOCS-002 交付。
  */
 export function apiReferenceFiles(kun: KunCheckout, kunApi: KunApiResult): GeneratedFile[] {
   return [
@@ -474,7 +504,7 @@ export function apiReferenceFiles(kun: KunCheckout, kunApi: KunApiResult): Gener
       content: [
         '---',
         'title: API 参考',
-        `description: ${yamlString('由工具生成的 API 参考：Kun.* 已上线，Qian.*、前端包与平台 HTTP API 随 S1-DOCS-002 加入。')}`,
+        `description: ${yamlString('由工具生成的 API 参考：Kun.* 已上线，平台档 NuGet 包、前端包与平台 HTTP API 另按 S1-DOCS-002 交付。')}`,
         'part: sdk',
         'project: qian',
         'audience: [developer, agent]',
@@ -487,9 +517,9 @@ export function apiReferenceFiles(kun: KunCheckout, kunApi: KunApiResult): Gener
         '',
         '| 范围 | 位置 | 状态 |',
         '|---|---|---|',
-        `| Kun（\`Kun.*\`，最新的发布版） | [Kun API 参考](${KUN_API_ROUTE}) | 已生成：${kunApi.packages.length} 个包、${kunApi.types} 个类型，${kun.tag}（${KUN_OWNER_REPO}） |`,
-        '| Qian 后端（`Qian.*`） | `/sdk/api/dotnet/` | 随 S1-DOCS-002 |',
-        '| 前端（`@qian/*`、`@cavailab/qian-*`） | `/sdk/api/frontend/` | 随 S1-DOCS-002 |',
+        `| Kun 内核（\`Kun.*\`，最新的发布版） | [Kun API 参考](${KUN_API_ROUTE}) | 已生成：${kunApi.packages.length} 个包、${kunApi.types} 个类型，${kun.tag}（${KUN_OWNER_REPO}） |`,
+        '| Kun 平台档（`Kun.*`） | `/sdk/api/dotnet/` | 随 S1-DOCS-002 |',
+        '| Qian 前端框架（`@cavailab/qian-*`） | `/sdk/api/frontend/` | 随 S1-DOCS-002 |',
         '| 平台 HTTP API（OpenAPI） | `/sdk/api/http/` | 随 S1-DOCS-002 |',
         '',
       ].join('\n'),

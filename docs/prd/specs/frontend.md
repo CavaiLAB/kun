@@ -2,7 +2,9 @@
 
 > 状态：Draft v1（2026-10-06）。依据：ADR-013（前端与前端框架）为主，兼引 ADR-002（插件模型与 MF2）、ADR-010（网关与令牌）、ADR-014（市场与 registry）、ADR-018（阶段）及补充裁决 Q12 / Q13 / Q37 / Q38 / Q39 / Q41。本 spec 规定前端框架的范围、分层、契约、流程与验收；安全规则以 §13 为准，验收方法以 §14 为准。
 >
-> 前端框架是 Qian 全部前端面（平台控制台、应用运行时、设计器、移动 H5、S4 Agent 界面）共用的唯一组件库与运行时契约包。它不是「又一个 UI 库」，而是把参考平台「两套并存、三处呈现、控件无 Schema」的教训反过来写成约束。
+> Qian 为匠心平台的 React 前端框架，当前服务于外壳、平台控制台与组件界面。低代码运行时与设计器、移动 H5、Agent 界面按后续阶段规划。
+
+Qian 当前发布十个框架包：`@cavailab/qian-tokens`、`@cavailab/qian-contracts`、`@cavailab/qian-sdk`、`@cavailab/qian-core`、`@cavailab/qian-form`、`@cavailab/qian-data`、`@cavailab/qian-biz`、`@cavailab/qian-shell`、`@cavailab/qian-runtime`、`@cavailab/qian-plugin-sdk`。Kun 仓库在 `apps/qian-shell` 和私有界面包中装配它们。下文的设计器、渲染器、移动端与 Agent 包按阶段规划，版本目录只列已经采用的包。[工作区版本目录](../../../pnpm-workspace.yaml)
 
 ---
 
@@ -127,8 +129,8 @@
 | `@cavailab/qian-tokens` | CSS 变量、TS `Tone` 类型、主题注入、DTCG 导出 | 无 | S1 |
 | `@cavailab/qian-contracts` | FormSchema / ListSchema / PortalLayout / FlowNodes 的 JSON Schema 与生成的 TS 类型；控件 manifest Schema；SSE 事件 Schema；权限码目录格式；Filter AST 类型 | 无 | S1 草案 / S2 定稿 |
 | `@cavailab/qian-core` | Base UI + shadcn 自有化的基础组件 | tokens、contracts（底层 Schema） | S1 |
-| `@cavailab/qian-sdk` | 注册表（导航 / 设置 / 命令 / 快捷键 / 预览器 / 客户端动作 / 控件 / 菜单类型）、`PlatformClient`、request 拦截器链、i18n、mock；配置由宿主经构造参数注入（Qian 外壳的运行时配置是同源 `/app-config.json`，由私有包 `@qian/shell-kit` 读取与校验，S1-YUE-012） | tokens, contracts | S1 |
-| `@cavailab/qian-shell` | AppShell、菜单 → 路由（最小历史路由）、偏好、认证页族组件与契约（登录、租户选择与切换器、SSO 回调、改密）、会话过期对话框、站内信、兜底页；MF2 宿主与插槽在前端插件 SDK（`@cavailab/qian-plugin-sdk` 的 ShellHost），Qian 专有接线（运行时配置、网关 BFF 会话、bootstrap、能力导航）在私有包 `@qian/shell-kit`（S1-YUE-012） | core, sdk, form（登录表单） | S1 |
+| `@cavailab/qian-sdk` | 注册表（导航 / 设置 / 命令 / 快捷键 / 预览器 / 客户端动作 / 控件 / 菜单类型）、`PlatformClient`、request 拦截器链、i18n、mock；配置由宿主经构造参数注入（本仓库外壳的运行时配置是同源 `/app-config.json`，由私有包 `@qian/shell-kit` 读取与校验，S1-YUE-012） | tokens, contracts | S1 |
+| `@cavailab/qian-shell` | AppShell、菜单 → 路由（最小历史路由）、偏好、认证页族组件与契约（登录、租户选择与切换器、SSO 回调、改密）、会话过期对话框、站内信、兜底页；MF2 宿主与插槽在前端插件 SDK（`@cavailab/qian-plugin-sdk` 的 ShellHost），平台专有接线（运行时配置、网关 BFF 会话、bootstrap、能力导航）在私有包 `@qian/shell-kit`（S1-YUE-012） | core, sdk, form（登录表单） | S1 |
 | `@cavailab/qian-data` | DataTable、Tree 族、日期族、Upload、ImportWizard、ConditionBuilder | core, sdk | S1 / S2 |
 | `@cavailab/qian-form` | Field、SchemaForm、FormApi、联动、校验与脱敏规则目录、弹层 API、消息出口 | core, sdk, contracts | S1 |
 | `@cavailab/qian-charts` | ECharts 封装与令牌桥接 | core, tokens | S2 可选 |
@@ -142,7 +144,7 @@
 
 规则：下层不得 import 上层；同层之间 shell / data / form / charts / code-editor 互不依赖（shell 对 form 的登录表单依赖是唯一例外，经 ADR 记录）；横切包不得依赖除 tokens / contracts 以外的任何包。
 
-平台前端 SDK `@cavailab/qian-plugin-sdk` 位于上述前端框架分层之外的上层：只消费 `@cavailab/qian-sdk`、`tokens`、`contracts` 与 TypeScript 运行时 `@cavailab/qian-runtime`，不得依赖前端框架控件或应用。`apps/*` 与官方租户 UI 可消费它；所有前端框架包不得反向依赖平台 SDK 或 Qian Runtime。该方向由同一 `boundaries.config.mjs` 校验，前端 SDK 纳入 lint、类型、单测、包形状和循环依赖门禁。
+平台前端 SDK `@cavailab/qian-plugin-sdk` 位于上述前端框架分层之外的上层：只消费 `@cavailab/qian-sdk`、`tokens`、`contracts` 与 TypeScript 运行时 `@cavailab/qian-runtime`，不得依赖前端框架控件或应用。`apps/*` 与官方租户 UI 可消费它；所有前端框架包不得反向依赖平台 SDK 或 TypeScript 运行时。该方向由同一 `boundaries.config.mjs` 校验，前端 SDK 纳入 lint、类型、单测、包形状和循环依赖门禁。
 
 **归层判定题**（新组件进哪一层，按顺序回答）：
 1. 它是否需要知道「平台」的存在（组织、用户、字典、数据接口）？是 → 至少是 `@cavailab/qian-biz`；否 → 继续。
@@ -388,7 +390,7 @@ export function listWidgets(filter?: { device?: Device; category?: string }): Wi
 
 ### 5.1 插件 / 服务 ↔ 前端框架包
 
-| Qian 插件 / 服务 | 消费的前端框架部分 | 向前端框架注册的内容 |
+| 平台插件 / 服务 | 消费的前端框架部分 | 向前端框架注册的内容 |
 |---|---|---|
 | `qian.shell`（前端外壳静态站） | `@cavailab/qian-shell`、`@cavailab/qian-tokens`、`@cavailab/qian-sdk` | 宿主：MF2 远程清单、插槽注册表、菜单类型注册表、运行时配置注入 |
 | `qian.identity` + `connector.*` | 认证页族、`@cavailab/qian-form` | 登录方式插件（`AuthProvider` 契约）、第三方登录按钮、多租户选择 |

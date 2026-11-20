@@ -1,4 +1,4 @@
-# Qian 文档站
+# Kun 与 Qian 开发文档站
 
 > 对应任务 S1-DOCS-001（脚手架）、S1-DOCS-005（「Kun 框架」小节与 Kun API 参考）与 S1-DOCS-003（机器可读产物与 frontmatter 校验）。规范见 [docs/prd/specs/docs-site.md](../docs/prd/specs/docs-site.md)（七个部分、首页、组件页模板、frontmatter、机器可读产物），本文是它的实施说明：怎么本地运行、目录怎么分、内容从哪来、怎么发布。
 
@@ -10,7 +10,8 @@ Rspress 2.0（`@rspress/core` 2.0.23，React 19，MDX）。内置全文搜索（
 
 「Kun 框架」小节与 Kun API 参考（§3）另外需要：
 
-- **Kun 的 tag `v<版本>`**：版本是 Kun 最新的发布版，取仓库根 `CHANGELOG.md` 里第一个不是 `[Unreleased]` 的版本段（发版脚本 `scripts/release.sh` 写入，同一提交打这个 tag）。tag 在本仓库里，脚本默认读本仓库；本仓库缺这个 tag（浅克隆、没取标签）时从 `origin` 只取这一个 tag 与它的历史。浅克隆里 tag 的历史不全时直接失败（页面的 `updated` 会算错），先 `git fetch --unshallow`。也可以用环境变量 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆，这时缺 tag 直接失败、不去取。
+- **Kun 的 tag `v<版本>`**：版本是 Kun 最新的发布版，取仓库根 `CHANGELOG.md` 里第一个不是 `[Unreleased]` 的版本段（稳定版或正式修复版创建标签后，由版本日志 PR 更新记录；beta 不更新主干版本段）。tag 在本仓库里，脚本默认读本仓库；本仓库缺这个 tag（浅克隆、没取标签）时从 `origin` 只取这一个 tag 与它的历史。浅克隆里 tag 的历史不全时直接失败（页面的 `updated` 会算错），先 `git fetch --unshallow`。也可以用环境变量 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆，这时缺 tag 直接失败、不去取。
+- **合并前的发布指南**：v2026.10.25 的包与 API 版本取其原标签，指南取同仓 [Kun #17 的审定文本](https://github.com/CavaiLAB/kun/pull/17)。两者分别显示在页面来源中；浅检出缺少该编辑提交时，生成器从 origin 按提交号取回。后续合并版直接从各自标签的正式目录取文档。
 - **.NET SDK**（版本见仓库根的 `global.json`）：DocFX 是 `website/.config/dotnet-tools.json` 锁定的本地工具，首次构建时自动 `dotnet tool restore`，并从 nuget.org 还原同版本的 `Kun.*` 包。
 
 两者缺一构建即失败，不跳过、不回退 `main`（docs-site.md §2b.1）。
@@ -58,7 +59,7 @@ website/
       yue/
     sdk/                       3 SDK：dotnet/  frontend/  ai/
       kun/                     「Kun 框架」小节（生成：scripts/sync-kun-docs.ts，按 Kun 最新的发布版镜像 kun 仓库）
-        with-qian.mdx          唯一的手写页：Qian 对 Kun 的选用与约束
+        with-qian.mdx          唯一的手写页：内核与平台组件的装配关系
       api/                     API 参考（生成，不进侧栏）：index.md 落地页、kun/（scripts/build-kun-api.ts，DocFX）；
                                后续：dotnet/  frontend/（S1-DOCS-002）
     cli/                       4 CLI 与规格（生成：scripts/sync-specs.ts，来自 component-model.md）
@@ -93,7 +94,7 @@ website/
 |---|---|---|---|---|---|
 | 1 | 开始 | `/start/` | 手写；版本矩阵 `/start/versions` 由 `scripts/build-versions.ts` 从钉版文件生成（不进 Git） | 是（`versions.md` 除外） | 否 |
 | 2 | 组件目录 | `/components/` | `scripts/collect-components.ts` 生成 | 否 | 是 |
-| 3 | SDK | `/sdk/` | 手写；「Kun 框架」小节 `/sdk/kun/` 按 Kun 最新的发布版从 kun 仓库镜像（`with-qian` 手写）；API 参考 `/sdk/api/` 生成（Kun 已有，`Qian.*` 与前端随 S1-DOCS-002） | 手写页是；`sdk/kun/`（`with-qian.mdx` 除外）与 `sdk/api/` 否 | 是（Kun 小节随 Kun 最新的发布版） |
+| 3 | SDK | `/sdk/` | 手写；「Kun 框架」小节 `/sdk/kun/` 按 Kun 最新的发布版从 kun 仓库镜像（`with-qian` 手写）；API 参考 `/sdk/api/` 生成（内核 API 已生成，平台档与前端 API 按 S1-DOCS-002 交付） | 手写页是；`sdk/kun/`（`with-qian.mdx` 除外）与 `sdk/api/` 否 | 是（Kun 小节随 Kun 最新的发布版） |
 | 4 | CLI 与规格 | `/cli/` | 从 `docs/prd/specs/component-model.md` 第 2、3、4、7、8、9、10 节同步 | 否 | 是 |
 | 5 | 运维 | `/ops/` | 手写 | 是 | 否 |
 | 6 | 市场与 ISV | `/marketplace/` | 手写（S3 前只放规则） | 是 | 否 |
@@ -106,8 +107,8 @@ website/
 - `design/`：`docs/` 下每个 `.md` 一页，文件名转小写、`README.md` 转 `index.md`（`docs/adr/ADR-015-model-gateway.md` → `/design/adr/adr-015-model-gateway`）。正文里指向 `docs/` 内的相对链接改写为站内路由，指向仓库其他位置的改写为 GitHub 地址；每页开头注明源文件。侧栏顺序与名称由脚本生成的 `_meta.json` 决定。
 - `cli/`：按 `component-model.md` 的二级标题拆页，标题整体升一级；章节与页面的对应写在 `CLI_PAGES`，规格改了章节编号要同步这里（找不到章节时构建失败）。
 - `components/`：S1-DOCS-002 之前仓库里还没有组件文件夹，脚本按 PRD §7 与组件模型规格 §7.7 的规划清单生成占位页，让首页与其他部分的链接有落点；S1-DOCS-002 把数据源换成各组件文件夹，页面改为 docs-site.md §3 的九节模板。
-- `sdk/kun/`（docs-site.md §2b、ADR-021）：读仓库根 `CHANGELOG.md` 里 Kun 最新的发布版（没有已发布的版本段、或不是 CalVer 都直接失败），从 kun 仓库的 tag `v<版本>` 按白名单（`sync-kun-docs.ts` 的 `KUN_WHITELIST`，即 §2b.2 的表）取文件（Kun 的 ADR 文件名大小写不统一，`ADR-*.md` 与 `adr-*.md` 都收，R58），`AGENTS.md`、`CLAUDE.md` 永不进站。**只镜像、不改写**：每页加镜像横幅（源文件与 tag、「Kun 文档与代码不一致处以代码为准」、改动提到 kun 仓库）与 frontmatter（`project: kun`、`source: CavaiLAB/kun@v<版本>:<路径>`、`updated` 取源文件在该 tag 上的最后提交日期）；slug 一律小写、`.` 与空格转短横线；指向白名单内文件的相对链接改写为站内路由，其余改写为该 tag 的 GitHub 地址。为让 MDX 能编译只做两处机械处理并打警告：正文里不是 HTML 标签的尖括号（`Result<T>`）转义，列数不足的表格行补空单元格。上游问题只告警不失败，源头修复提到 kun 仓库（R59）。侧栏顺序与名称写在脚本里（概览 → 与 Qian 的关系 → 上手 → 模块地图 → 指南 → 安全 → 设计说明与 ADR → 白皮书 → 变更日志与发布说明 → API 参考）。白名单要改，docs-site.md §2b.2 与脚本两处一起改。
-- `sdk/api/`：DocFX 从 nuget.org 上同版本的 `Kun.*` 包（tag 上 `src/<名>/<名>.csproj` 的全部项目）的 DLL 与 XML 注释生成 Markdown（`docfx metadata`，`outputFormat: markdown`），脚本再转成站内页面：每个命名空间一页、每个类型一页，xref 改写为站内路由与成员锚点，BCL 类型链到 learn.microsoft.com。DocFX 在 `website/.cache/kun-api/build` 的隔离目录里构建，用存根的 `Directory.Build.*` 与关掉中央包管理的 `Directory.Packages.props` 隔开仓库根的 .NET 构建基线（`NuGet.config` 与 `global.json` 仍用仓库根的）。API 页**不进侧栏**，命名空间页与类型页也不渲染侧栏（frontmatter `sidebar: false`），只有 `/sdk/api/` 与 `/sdk/api/kun/` 两个概览页保留侧栏（R54）：Rspress 把整棵侧栏渲染进每一页，几百个类型进侧栏会让产物膨胀数倍；入口是 SDK 侧栏末尾的「API 参考」、Kun 小节概览与各页之间的链接。将来的 `Qian.*`、前端包与平台 HTTP API 的参考同样放在 `/sdk/api/` 下（R56）。
+- `sdk/kun/`（docs-site.md §2b、ADR-021）：读仓库根 `CHANGELOG.md` 里 Kun 最新的发布版（没有已发布的版本段、或不是 CalVer 都直接失败），从 kun 仓库的 tag `v<版本>` 按白名单（`sync-kun-docs.ts` 的 `KUN_WHITELIST`，即 §2b.2 的表）取文件（Kun 的 ADR 文件名大小写不统一，`ADR-*.md` 与 `adr-*.md` 都收，R58），`AGENTS.md`、`CLAUDE.md` 永不进站。**只镜像、不改写**：每页加镜像横幅（源文件与 tag、「Kun 文档与代码不一致处以代码为准」、改动提到 kun 仓库）与 frontmatter（`project: kun`、`source: CavaiLAB/kun@v<版本>:<路径>`、`updated` 取源文件在该 tag 上的最后提交日期）；slug 一律小写、`.` 与空格转短横线；指向白名单内文件的相对链接改写为站内路由，其余改写为该 tag 的 GitHub 地址。为让 MDX 能编译只做两处机械处理并打警告：正文里不是 HTML 标签的尖括号（`Result<T>`）转义，列数不足的表格行补空单元格。上游问题只告警不失败，源头修复提到 kun 仓库（R59）。侧栏顺序与名称写在脚本里（概览 → 内核与平台组件 → 上手 → 模块地图 → 指南 → 安全 → 设计说明与 ADR → 白皮书 → 变更日志与发布说明 → API 参考）。白名单要改，docs-site.md §2b.2 与脚本两处一起改。
+- `sdk/api/`：DocFX 从 nuget.org 上同版本的 `Kun.*` 包（标签中可打包的内核档项目）的 DLL 与 XML 注释生成 Markdown（`docfx metadata`，`outputFormat: markdown`），脚本再转成站内页面：每个命名空间一页、每个类型一页，xref 改写为站内路由与成员锚点，BCL 类型链到 learn.microsoft.com。DocFX 在 `website/.cache/kun-api/build` 的隔离目录里构建，用存根的 `Directory.Build.*` 与关掉中央包管理的 `Directory.Packages.props` 隔开仓库根的 .NET 构建基线（`NuGet.config` 与 `global.json` 仍用仓库根的）。API 页**不进侧栏**，命名空间页与类型页也不渲染侧栏（frontmatter `sidebar: false`），只有 `/sdk/api/` 与 `/sdk/api/kun/` 两个概览页保留侧栏（R54）：Rspress 把整棵侧栏渲染进每一页，几百个类型进侧栏会让产物膨胀数倍；入口是 SDK 侧栏末尾的「API 参考」、Kun 小节概览与各页之间的链接。平台档 NuGet 包、前端包与平台 HTTP API 的参考同样放在 `/sdk/api/` 下（R56）。
 - 只重写内容有变化的文件、删除多余的旧文件，`dev` 不会因重新生成而反复重启。
 
 **变更日志**：仓库 `docs/CHANGELOG.md` 是唯一来源，镜像为 `/design/changelog`；首页「最新动态」直接读它，取最近 4 条。每条一个二级标题 `## YYYY-MM-DD 标题`，下面一两行说明。
@@ -117,7 +118,7 @@ website/
 docs-site.md §5：第 2、3、4 部分随 Qian 包族的 SemVer 锁步版本多版本发布，第 1、5、6、7 部分只有当前版。
 
 - 现在还没有发布任何包，三部分都只有开发版（`main`）；这三部分每页顶部显示版本说明（`theme/components/PartNotice.tsx`），其余部分没有。
-- 第 3 部分的「Kun 框架」小节与 Kun API 参考不单独选版本：每个 Qian 文档版本内嵌构建时 Kun 最新发布版的文档（docs-site.md §5）。这些页面（`project: kun`）不显示版本说明，版本写在每页横幅里（`v<版本>`），产物检查核对它与 Kun 最新的发布版一致。Kun 发版后，文档随下一次构建切换。
+- 第 3 部分的「Kun 框架」小节与 Kun API 参考不单独选版本：每个 Kun 与 Qian 开发文档版本内嵌构建时 Kun 最新发布版的文档（docs-site.md §5）。这些页面（`project: kun`）不显示版本说明，版本写在每页横幅里（`v<版本>`），产物检查核对它与 Kun 最新的发布版一致。Kun 发版后，文档随下一次构建切换。
 - Rspress 的 `multiVersion` 是整站多版本，不能只给三个部分分版本。首个包族版本发布时再定实现方式（候选：三部分各自按版本目录生成 + 版本切换组件），届时一并改本节与 PartNotice。
 
 ## 4a 机器可读产物（S1-DOCS-003）

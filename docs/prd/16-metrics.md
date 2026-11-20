@@ -8,7 +8,7 @@
 
 ### S1 技术底座
 
-> ADR-018 表述：开发人员用代码在 Qian 上写出一个多租户应用：登录 / SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移、回切。ADR-020 §6 新增末句：在空白项目里 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传。
+> ADR-018 表述：开发人员用代码在平台上写出一个多租户应用：登录 / SSO、鉴权、数据存储、文件上传、配置、网关、事件、审计全部由平台提供；一个官方 module 插件能独立出修订、逐租户迁移、回切。ADR-020 §6 新增末句：在空白项目里 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传。
 
 | # | 可测项 | 测法 / 环境 | PASS 条件 |
 |---|---|---|---|
@@ -26,7 +26,7 @@
 | E1-12 | 平台插件 TCK | `platform` profile base 组合包内全部平台插件（原「18 个系统插件」口径，ADR-020） | 三套 TCK（运行时语义 / 独立模式 / 组件一致性）通过率 100%；清单与代码一致性、文档新鲜度、依赖图断言、`dump-config` 漂移 CI 门禁启用（§14 C3 / C18–C20） |
 | E1-13 | 追踪与计量 | 一条跨网关 → 服务 → 事件总线的请求 | trace 完整可见；带 `tenant / plugin / principal-kind` 标签；覆盖率 ≥ 95% |
 | E1-14 | Kun 关键缺口修复实证 | 针对 ADR-001 列出的每一项缺口的回归测试 | 每项缺口对应至少一个失败→通过的测试 |
-| E1-15 | 一键安装（独立模式，ADR-020 §6） | 空白 ASP.NET Core 项目；`qian add identity authz files`；由未参与运行时开发的开发者按各包 README 操作并计时；不部署 Qian 平台 | 从 `qian add` 到首个登录 / 权限检查 / 上传请求成功的中位时长 ≤ 30 分钟（建议值）；独立模式 TCK 通过；`dump-config` 不含 `qian.registry` / `qian.lifecycle` / `qian.capabilities` |
+| E1-15 | 一键安装（独立模式，ADR-020 §6） | 空白 ASP.NET Core 项目；`qian add identity authz files`；由未参与运行时开发的开发者按各包 README 操作并计时；不部署平台 | 从 `qian add` 到首个登录 / 权限检查 / 上传请求成功的中位时长 ≤ 30 分钟（建议值）；独立模式 TCK 通过；`dump-config` 不含 `qian.registry` / `qian.lifecycle` / `qian.capabilities` |
 
 ### S2 低代码构建
 

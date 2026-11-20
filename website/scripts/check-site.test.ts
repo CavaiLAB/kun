@@ -95,7 +95,7 @@ describe('机器可读产物与源文档同步（docs-site.md §4a、§7）', ()
     'start/hosts.html': '',
     'start/hosts.md': hostsMd,
     'kb-index.json': JSON.stringify(index),
-    'llms.txt': '# Qian 文档\n\n## 开始\n\n- [宿主](/start/hosts.md): 一句话\n',
+    'llms.txt': '# Kun 与 Qian 开发文档\n\n## 开始\n\n- [宿主](/start/hosts.md): 一句话\n',
     'llms-full.txt': '---\nurl: /index.md\n---\n# 首页\n\n---\nurl: /start/hosts.md\n---\n# 宿主\n',
     'sitemap.xml': '<urlset><url><loc>http://docs.example/</loc></url><url><loc>http://docs.example/start/hosts</loc></url></urlset>',
   };
@@ -116,7 +116,7 @@ describe('机器可读产物与源文档同步（docs-site.md §4a、§7）', ()
     assert.ok(run({ 'kb-index.json': '{' }).some((e) => e.includes('不是合法的 JSON')));
     assert.ok(run({ 'start/hosts.md': '# 改过的宿主\n' }).some((e) => e.includes('sha256 不一致')));
     assert.ok(run({ 'start/hosts.html': null }).some((e) => e.includes('缺少 start/hosts.html')));
-    assert.ok(run({ 'llms.txt': '# Qian 文档\n' }).some((e) => e.includes('llms.txt 没有列出 /start/hosts.md')));
+    assert.ok(run({ 'llms.txt': '# Kun 与 Qian 开发文档\n' }).some((e) => e.includes('llms.txt 没有列出 /start/hosts.md')));
     assert.ok(run({ 'llms-full.txt': '---\nurl: /index.md\n---\n' }).some((e) => e.includes('llms-full.txt 没有收录 /start/hosts.md')));
     assert.ok(run({ 'sitemap.xml': '<urlset></urlset>' }).some((e) => e.includes('sitemap.xml 没有 /start/hosts')));
     assert.ok(run({ 'extra.md': '# 多余\n' }).some((e) => e.includes('extra.md 不在 kb-index.json 里')));

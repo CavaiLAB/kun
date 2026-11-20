@@ -6,9 +6,9 @@
 
 ## 6.1 角色
 
-**平台运营（Platform Operator）。** 本团队中负责运行 Qian 本身的人：建租户、授权插件、审核市场商品、处理挂起与注销、看集群与计量。他们在「平台控制台」工作，对租户数据不可见（审计可见），所有操作进审计。关心的是：一个租户出问题时能否不影响其他租户；一个插件升级失败时能否回切。
+**平台运营（Platform Operator）。** 本团队中负责运行平台本身的人：建租户、授权插件、审核市场商品、处理挂起与注销、看集群与计量。他们在「平台控制台」工作，对租户数据不可见（审计可见），所有操作进审计。关心的是：一个租户出问题时能否不影响其他租户；一个插件升级失败时能否回切。
 
-**平台开发者（Platform Developer）。** 开发 `Qian.Runtime`、`qian` CLI 与平台插件（原称系统插件）的人，以及开发官方 `module` 组件与 seam Provider 组件（原 connector）的人。他们用 Kun 与 SDK 写 .NET 代码，受 TCK 与清单校验器约束，产出 `policy.tier: system / official` 的组件。关心的是：契约改动是否破坏兼容；修订能否逐租户迁移与回切。
+**平台开发者（Platform Developer）。** 开发 `Kun.Runtime`、`qian` CLI 与平台插件（原称系统插件）的人，以及开发官方 `module` 组件与 seam Provider 组件（原 connector）的人。他们用 Kun 与 SDK 写 .NET 代码，受 TCK 与清单校验器约束，产出 `policy.tier: system / official` 的组件。关心的是：契约改动是否破坏兼容；修订能否逐租户迁移与回切。
 
 **ISV 开发者 / 实施伙伴（ISV Developer）。** 用 SDK 与设计器为多个租户交付应用的外部团队。S1 他们用 SDK 写声明式表面、`package` / `ui` / `function` 与 seam Provider 组件（原 connector）；S2 用设计器搭应用并打包（组合包 + marketplace 条目）；S3 在市场上架、定价、升级。他们只能产出 `policy.tier: partner / private / community` 的组件，代码不进共享进程。关心的是：包能否在不同租户独立升级；租户定制与新版本冲突时如何处理；收入与安装分析。
 
@@ -25,10 +25,10 @@
 ## 6.2 S1 Demo：开发者半天写出一个多租户应用并开通给两个租户
 
 **指令原文 / 操作。**
-> 「用 Qian SDK 建一个『设备台账』应用：一张设备表、一个录入表单、一个列表，带附件上传；开通给租户 A 和租户 B，两个租户各自的管理员登录后只能看到自己的设备。」
+> 「用 Kun SDK 建一个『设备台账』应用：一张设备表、一个录入表单、一个列表，带附件上传；开通给租户 A 和租户 B，两个租户各自的管理员登录后只能看到自己的设备。」
 
 **编号执行流。**
-1. 开发者运行 `qian init --template component-dotnet --id com.example.asset`，得到带 `.qian-plugin/plugin.json`（代码部分字段由源生成器派生并合并）、契约目录、`MapCommand` 端点骨架、`skills/` 示例与测试工程的仓库；再 `qian add files` 把文件组件装进项目（表面复制进 `.qian/`，`Qian.Files` 包加为依赖，配置条目写进当前 profile 的 patch）。
+1. 开发者运行 `qian init --template component-dotnet --id com.example.asset`，得到带 `.qian-plugin/plugin.json`（代码部分字段由源生成器派生并合并）、契约目录、`MapCommand` 端点骨架、`skills/` 示例与测试工程的仓库；再 `qian add files` 把文件组件装进项目（表面复制进 `.qian/`，`Kun.Files` 包加为依赖，配置条目写进当前 profile 的 patch）。
 2. 开发者定义 `Asset` 实体与 `CreateAsset / UpdateAsset / QueryAssets` 命令 / 查询契约（含输入输出 Schema、`sideEffect`、`requiredScopes`），并声明权限点 `asset:read / asset:write` 与默认角色模板「设备管理员」。附件字段使用 `qian.files` 的文件引用类型。
 3. 运行 `qian doctor`：源生成器派生清单的代码部分字段与 JSON Schema，校验器检查「inputSchema 不含租户字段」「所有写命令有 Schema 与副作用等级」；运行 TCK（组件一致性套件）：多租户隔离、权限强制、审计完整、事件至少一次用例通过。
 4. 运行 `qian pack && qian sign && qian publish`：代码部分产出 OCI artifact（按 digest）并签名、推送制品库，marketplace 条目同步更新；声明式表面不进 OCI，随 git / 市场分发；GitOps 执行器把修订激活到开发集群。
@@ -47,19 +47,19 @@
 ## 6.2a S1 Demo（独立模式）：在空白项目里 `qian add identity authz files`，30 分钟跑通
 
 **指令原文 / 操作。**
-> 「我有一个现成的 ASP.NET Core 项目，不想部署 Qian 平台。给它加上登录、权限检查和文件上传，半小时内能跑。」
+> 「我有一个现成的 ASP.NET Core 项目，不想部署平台。给它加上登录、权限检查和文件上传，半小时内能跑。」
 
 **编号执行流。**
-1. 开发者在空白（或既有）项目里运行 `qian add identity authz files`：CLI 从官方市场（`.qian/marketplace.json`）解析三个条目，过校验器与验签，把各组件的声明式表面（`skills/`、`commands/`、`hooks/`）复制进项目 `.qian/`，把 `Qian.Identity.*` / `Qian.Authz` / `Qian.Files` 加为 NuGet 依赖，把配置条目写进 `standalone` profile 的 patch。
-2. 开发者在组合根装配 `Qian.Runtime` 并选择 `standalone` profile；未选 `SingleTenant` 且宿主没有 `ITenantContext` 时应用拒绝启动，开发者按 README 显式选择单租户。
+1. 开发者在空白（或既有）项目里运行 `qian add identity authz files`：CLI 从官方市场（`.qian/marketplace.json`）解析三个条目，过校验器与验签，把各组件的声明式表面（`skills/`、`commands/`、`hooks/`）复制进项目 `.qian/`，把 `Kun.Identity.Client` / `Kun.Authorization.Rbac` / `Kun.Files` 加为 NuGet 依赖，把配置条目写进 `standalone` profile 的 patch。
+2. 开发者在组合根装配 `Kun.Runtime` 并选择 `standalone` profile；未选 `SingleTenant` 且宿主没有 `ITenantContext` 时应用拒绝启动，开发者按 README 显式选择单租户。
 3. 照各包 README 的「模型体验」节与示例，为一个端点加 `[Permission("asset:read")]`、为一个字段用文件引用类型；`qian doctor` 报告依赖图与配置就绪。
 4. `qian dev` 拉起本地依赖与宿主；浏览器打开登录页登录，调用受保护端点得到 403 / 200 两种结果，上传一份文件并取回预览票据。
-5. 事后 `qian dump-config` 打印这棵最小插件树：`Qian.Runtime` + 三个组件及其 Provider，不含 `qian.registry` / `qian.lifecycle` / `qian.capabilities`。
+5. 事后 `qian dump-config` 打印这棵最小插件树：`Kun.Runtime` + 三个组件及其 Provider，不含 `qian.registry` / `qian.lifecycle` / `qian.capabilities`。
 
 **体验要点。**
-- 没有 Helm values、DI 扩展方法与 Apollo namespace；安装入口是一条命令，组件库唯一必需的 Qian 依赖是 `Qian.Runtime`（ADR-020 D20.10）。
-- 同一组包在 `standalone` 与 `platform` 两种模式下过同一套 TCK；日后接入 Qian 平台只是换 profile。
-- 退出标准对照：空白项目 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传，不部署 Qian 平台（ADR-020 §6）。
+- 没有 Helm values、DI 扩展方法与 Apollo namespace；安装入口是一条命令，组件库唯一必需的运行时依赖是 `Kun.Runtime`（ADR-020 D20.10）。
+- 同一组包在 `standalone` 与 `platform` 两种模式下过同一套 TCK；日后接入平台只是换 profile。
+- 退出标准对照：空白项目 `qian add identity authz files` 后 30 分钟内跑通登录、权限检查与上传，不部署平台（ADR-020 §6）。
 
 ## 6.3 S2 Demo：业务搭建者建表单与审批并授权
 
@@ -87,7 +87,7 @@
 ## 6.4 S3 Demo：租户从市场安装应用并自助配置
 
 **指令原文 / 操作。**
-> 「我们公司刚开通 Qian 租户。请从应用市场安装『合同管理』应用，试用 30 天；登录用我们的企业微信；把品牌换成我们的 Logo 和主色。」
+> 「我们公司刚开通平台租户。请从应用市场安装『合同管理』应用，试用 30 天；登录用我们的企业微信；把品牌换成我们的 Logo 和主色。」
 
 **编号执行流。**
 1. 租户管理员在自助申请页提交企业信息，运营审核通过（或按套餐自动通过）；租户进入「试用」状态，收到邀请链接；首个管理员完成 Person 注册与 Membership 绑定。

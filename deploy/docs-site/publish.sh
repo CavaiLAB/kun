@@ -67,6 +67,24 @@ for attempt in $(seq 1 "$ATTEMPTS"); do
     fi
     rmdir "$work/pr-preview" 2>/dev/null || true
   fi
+  # 归档沙箱原有书签只提供历史包与固定源码入口。按上一版公开路径补齐，在新的知识库、检索与 API 清单中不登记旧别名。
+  if [[ -n "$lease" && -n "$src" ]]; then
+    historical_source="https://github.com/CavaiLAB/kun/tree/v2026.10.25/src/Kun.Sandbox"
+    historical_package="https://www.nuget.org/packages/Kun.Sandbox/2026.10.25"
+    while IFS= read -r old_path; do
+      [[ ! -f "$dest/$old_path" ]] || continue
+      case "$old_path" in
+        *.html)
+          mkdir -p "$(dirname "$dest/$old_path")"
+          printf '<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="robots" content="noindex"><title>Kun.Sandbox 历史 API</title><h1>Kun.Sandbox 历史 API</h1><p>该书签对应合并前的沙箱契约。完整类型与签名见 <a href="%s">Kun.Sandbox 2026.10.25</a> 和<a href="%s">该版本的固定源码</a>。</p></html>\n' "$historical_package" "$historical_source" > "$dest/$old_path"
+          ;;
+        *.md)
+          mkdir -p "$(dirname "$dest/$old_path")"
+          printf '# Kun.Sandbox 历史 API\n\n该书签对应合并前的沙箱契约。完整类型与签名见 [Kun.Sandbox 2026.10.25](%s) 和[该版本的固定源码](%s)。\n' "$historical_package" "$historical_source" > "$dest/$old_path"
+          ;;
+      esac
+    done < <(git ls-tree -r --name-only "$lease" -- sdk/api/kun/kun-sandbox-abstractions sdk/api/kun/kun-sandbox-extensions sdk/api/kun/kun-sandbox-implementations)
+  fi
   if [[ -n "$src" ]]; then
     printf '{"commit":"%s","ref":"%s","publishedAt":"%s"}\n' \
       "$source_sha" "${GITHUB_REF:-local}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$dest/build-info.json"
@@ -83,7 +101,7 @@ for attempt in $(seq 1 "$ATTEMPTS"); do
   commit="$(git commit-tree "$tree" -m "docs-site: $mode ${target:-/} @ ${source_sha:0:12}" -m "当前预览：${previews:-无}")"
 
   if git push --quiet --force-with-lease="refs/heads/$BRANCH:$lease" "$REMOTE" "$commit:refs/heads/$BRANCH"; then
-    echo "已发布到 $BRANCH（$mode ${target:-/}），提交 ${commit:0:12}；当前预览：${previews:-无}"
+    echo "已发布到 ${BRANCH}（$mode ${target:-/}），提交 ${commit:0:12}；当前预览：${previews:-无}"
     exit 0
   fi
   echo "第 $attempt 次推送被拒（分支已被其他发布更新），重新取最新内容再试" >&2

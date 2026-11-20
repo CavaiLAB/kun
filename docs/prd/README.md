@@ -1,20 +1,22 @@
-# Qian（乾）产品需求文档（PRD）— 索引
+# 匠心智能体平台产品需求文档（PRD）
 
 > 状态：**草案 v1（组件模型 v2 已定稿，2026-10-07）** · 更新日期：2026-10-07 · 决策真相源：`docs/adr/`（拍板前为 `docs/decisions/key-decisions-v0.md`，D1–D18 与补充裁决已于 2026-10-06 全部获认可；D19 库优先、D20 组件模型 v2 为同日方向修正新增，ADR-019 / ADR-020 已于 2026-10-07 Accepted、待确认项全部拍板） · 路线真相源：[`docs/ROADMAP.md`](../platform-roadmap.md) · 研究基线：`docs/research/baseline-digest.md`
+
+本 PRD 的 S1–S4 是产品需求。已实现的后端包查[迁移对照](../guides/package-migration.md)，组件装配与骨架状态查[组件目录](../../plugins/README.md)，前端已发布包查[工作区版本目录](../../pnpm-workspace.yaml)。
 
 ## 命名约定
 
 | 项 | 约定 |
 |---|---|
-| 产品 | **Qian**（乾） |
-| 底座框架 | **Kun**（自研 .NET 10 微服务框架，NuGet + CalVer 消费；版本以 `KunVersion` 单点钉死，文档镜像进文档站第 3 部分「Kun 框架」小节，ADR-021） |
-| 前端组件库 | **前端框架**（React；包前缀 `@cavailab/qian-`） |
+| 产品 | **匠心智能体平台**。本 PRD 记录面向开发者、搭建者、租户与 Agent 的阶段目标。 |
+| 后端 | **Kun**（.NET 10），同一仓库的内核档与平台档采用 CalVer。旧包与现有包逐项对照见[NuGet 包迁移指南](../guides/package-migration.md)。 |
+| 前端 | **Qian**（React），由 [CavaiLAB/qian](https://github.com/CavaiLAB/qian) 发布 `@cavailab/qian-*`。本仓库的外壳应用及界面接线消费这些包。 |
 | 插件 ID 前缀 | `qian.`（反向域名风格，发布后不可改；第三方以自有域名前缀） |
-| 可部署单元 | `qian-<name>`（S1：`qian-gateway`、`qian-identity`、`qian-platform`、`qian-model-gateway-adapter`、`qian-shell`）；经 ADR-020：可部署单元 = profile（S1 交付 `platform` / `gateway` / `identity` / `standalone` / `minimal`）；`qian-<name>` ↔ profile / 组合包的定稿映射见下表（R31） |
-| 运行时 / CLI | `Qian.Runtime`（.NET）/ `@qian/runtime`（TS）；`qian` CLI（`qian add <component>[@version]`）；清单 `.qian-plugin/plugin.json`（JSON）；市场 `.qian/marketplace.json`（官方市场仓库 `qian-plugins`，S1 私有）；CLI 为 Node / TS 实现、`npx qian@latest` 一键入口（ADR-020，Accepted） |
+| 可部署单元 | `qian-<name>`（原设计中的部署单元名称见下表）；经 ADR-020：可部署单元 = profile（S1 交付 `platform` / `gateway` / `identity` / `standalone` / `minimal`）；`qian-<name>` ↔ profile / 组合包的定稿映射见下表（R31） |
+| 运行时 / CLI | .NET 为 `Kun.Runtime`，TypeScript 为 `@cavailab/qian-runtime`。在本仓库安装工作区依赖后用 `pnpm exec qian` 调用命令行。组件清单为 `.qian-plugin/plugin.json`，目录市场索引为 `.qian/marketplace.json`。 |
 | 阶段 | **S1** 技术底座 → **S2** 低代码构建 → **S3** 面向客户 → **S4** AI 原生 Agent 平台 |
 | 优先级 | **P0** 当期退出标准关键路径 · **P1** 当期必做非关键路径 · **P2** 可选 / 可滑到下一阶段；功能项标题写成 `（P0 · S1）` |
-| 决策引用 | `ADR-0xx`（001 Kun 关系、002 插件模型、003 内核边界、004 数据库与隔离、005 身份、006 鉴权、007 Apollo、008 事件、009 审计、010 网关、011 元数据与动态数据、012 流程、013 前端框架、014 市场、015 模型网关、016 与兄弟系统边界、017 部署、018 阶段、019 库优先、020 组件模型 v2、021 产品族结构） |
+| 决策引用 | `ADR-0xx`（001 Kun 关系、002 插件模型、003 内核边界、004 数据库与隔离、005 身份、006 鉴权、007 Apollo、008 事件、009 审计、010 网关、011 元数据与动态数据、012 流程、013 Qian 前端框架、014 市场、015 模型网关、016 与兄弟系统边界、017 部署、018 阶段、019 库优先、020 组件模型 v2、021 产品族结构） |
 | 章节引用 | `§07`、`§13.2` 等；专题 spec 引用 `specs/component-model.md`（权威）、`specs/plugin-manifest.md`（v1，迁移对照）、`specs/frontend.md` |
 | 参照来源 | 被借鉴的商业低代码产品一律称「参考平台」，全文不出现其品牌、公司、域名与源码路径 |
 | 状态符号 | ✅ 已完成 / 可做 · 🚧 进行中 · ⬜ 未开始 · ❌ 不可做 · ⚠️ 有条件 · 🔒 保留与隔离 |
@@ -52,11 +54,11 @@
 | 04 | 形态与目标市场 | [04-market.md](04-market.md) | ASCII 架构总图（Traefik → qian.gateway → 内核与系统插件 / Higress → GPUStack；Apollo、PostgreSQL、Redis、RabbitMQ、对象存储；前端框架外壳）；按阶段客群画像；共享 SaaS / 高隔离 / 私有化三档交付；目标数量级（待定 / 区间） |
 | 05 | 核心差异化 | [05-differentiators.md](05-differentiators.md) | 六支柱：一切皆插件且吃自己的狗粮；Agent 就绪的契约层；开发者优先的 SDK / CLI / TCK；多租户与鉴权不可绕过；市场从 S1 包格式起步；一套前端引擎 |
 | 06 | 用户与场景 | [06-users-scenarios.md](06-users-scenarios.md) | 七角色（平台运营、平台开发者、ISV 开发者、租户管理员、业务搭建者、终端用户、Agent）；四阶段 Demo（S1 开发者半天多租户应用、S2 搭建者表单与审批、S3 租户市场安装、S4 Agent 生成草稿经人审批） |
-| 07 | S1 技术底座功能规格 | [07-s1-foundation.md](07-s1-foundation.md) | Kun 缺口修复；`Qian.Runtime` + `qian.registry` / `lifecycle` / `capabilities`（原 `qian.kernel`）/ `qian` CLI 与 `plugin-sdk` / `tenancy` / `identity` / `authz` / `data` / `files` / `config` / `gateway` / `events` / `audit` / `observability` / `notify` / `scheduler` / `realtime` / `entitlement` / `shell` / `model-gateway`；每项含设计理念、边界、技术落点、过渡态、插件化定位、Agent 契约、验收 |
+| 07 | S1 技术底座功能规格 | [07-s1-foundation.md](07-s1-foundation.md) | Kun 缺口修复；`Kun.Runtime` + `qian.registry` / `lifecycle` / `capabilities`（原 `qian.kernel`）/ `qian` CLI 与 `plugin-sdk` / `tenancy` / `identity` / `authz` / `data` / `files` / `config` / `gateway` / `events` / `audit` / `observability` / `notify` / `scheduler` / `realtime` / `entitlement` / `shell` / `model-gateway`；每项含设计理念、边界、技术落点、过渡态、插件化定位、Agent 契约、验收 |
 | 08 | S2 低代码构建 | [08-s2-lowcode.md](08-s2-lowcode.md) | 元数据注册表与版本化、动态数据引擎、Schema Migrator、Field Type Catalog、控件注册表、表单 / 列表设计器与运行时、发布向导、审批内核最小集与节点树设计器、数据 / 字段权限编译、package 与 bundle、Operation/Task |
 | 09 | S3 面向客户 | [09-s3-customer.md](09-s3-customer.md) | 私有目录型市场 → 开放 ISV；安装向导、试用、升级中心、审核台；权益（Plan / Seat / Meter / Trial）；租户自助（IdP、品牌、套餐、SCIM）；高隔离档；不可信 UI 沙箱；门户、报表、开放 API |
 | 10 | S4 AI 原生 Agent 平台与模型服务网关 | [10-s4-agent.md](10-s4-agent.md) | 模型服务网关（GPUStack + Higress，本期唯一详细规划的 AI 范围）；每租户 MCP 门面；Agent 主体与委托链；元数据生成闭环；与外部 Agent 运行时的边界 |
-| 11 | 体验原则与产品词表 | [11-ux-glossary.md](11-ux-glossary.md) | 渐进披露、一套表单/表格/弹层体验、无端差异的元数据、可解释的拒绝、可预览与可回滚、授权与开关分开可见、一个收件箱；产品词表（术语 / 定义 / 标识 / 状态；含 v2 术语：表面、作用域、遮蔽、restrict、seam、profile、组合包、patch、市场条目、`qian add`、`Qian.Runtime`） |
+| 11 | 体验原则与产品词表 | [11-ux-glossary.md](11-ux-glossary.md) | 渐进披露、一套表单/表格/弹层体验、无端差异的元数据、可解释的拒绝、可预览与可回滚、授权与开关分开可见、一个收件箱；产品词表（术语 / 定义 / 标识 / 状态；含 v2 术语：表面、作用域、遮蔽、restrict、seam、profile、组合包、patch、市场条目、`qian add`、`Kun.Runtime`） |
 | 12 | 能力边界 | [12-boundaries.md](12-boundaries.md) | 按阶段「明确支持」清单（含组件模型 v2 边界 C1–C7）；安全底线（从后期提前到 S1）；明确不支持（长期承诺）；本期不规划的 AI 功能；待确认中引用 ADR-020 §7 的条目已改写为「已拍板」（2026-10-07） |
 | 13 | 权限与安全 | [13-security.md](13-security.md) | 角色与主体模型；权限七层 L0–L6；令牌与会话；纵深防御分层；需二次确认场景；插件安全；密钥与配置；数据安全；审计；前端安全硬线；Agent 威胁与防线；DDL 示意；过渡态 |
 | 14 | 质量与评估 | [14-quality.md](14-quality.md) | 测试金字塔与门禁；机器可执行用例格式；CI 门禁清单；阶段退出准则；「合并 ≠ 完成」验收纪律；缺陷与安全事件分级 |
@@ -77,7 +79,7 @@
 | 决策清单（过渡） | `docs/decisions/key-decisions-v0.md` | 拍板前把牵动整体的决策摆到一处；拍板后逐条转为 ADR | ADR 定稿后只作历史记录 |
 | 阶段路线 | `docs/ROADMAP.md` | 阶段、退出标准、核心交付、里程碑占位、依赖与风险的唯一真相源 | 任务状态、功能细节 |
 | 研究基线 | `docs/research/baseline-digest.md`（全文在仓库外） | 七领域调研的全貌、分级结论、难点与待拍板问题 | 不作为规范；只作依据 |
-| 迁移方案 | `docs/migration/`（草案 v1） | 从参考平台功能集到 Qian 的映射、取舍与迁移路径 | 不复制 PRD 功能规格 |
+| 迁移方案 | `docs/migration/`（草案 v1） | 从参考平台功能集到平台的映射、取舍与迁移路径 | 不复制 PRD 功能规格 |
 | 专题 spec | `docs/prd/specs/*.md` | 单一能力的完整规格（范围 → 非目标 → 数据模型 → 流程 → 职责映射 → 选型 → 安全 → 验收 → 后续），顶部列 D1…Dn | — |
 
 纪律：规范描述预期行为，与当前实现有差异时用带日期的过渡态块记录；非破坏性修订在稳定文件中更新正文与修订历史，不新增 v2 / v3 文件；章节间用 `§x.y`、`ADR-0xx` 互链而不复制内容；所有「已完成」判定附证据（命令、环境、结果）。

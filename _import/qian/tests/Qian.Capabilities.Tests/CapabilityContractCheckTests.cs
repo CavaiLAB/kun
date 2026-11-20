@@ -95,6 +95,16 @@ public sealed class CapabilityContractCheckTests
     }
 
     [Fact]
+    public void 目录编译拒绝两个声明使用同一能力标识()
+    {
+        var first = Contract("probe.plain", ProbeJson.Default.PlainProbe);
+        var second = Contract("probe.plain", ProbeJson.Default.PlainProbe);
+        var error = Assert.Throws<ErrorException>(() =>
+            CapabilityContractCompiler.CreateOpenApi([first, second], new SurfaceValidator(), new ToolContractHasher()));
+        Assert.Equal(PlatformErrors.InputInvalid, error.Error.Code);
+    }
+
+    [Fact]
     public void 名称表里叫default的属性照常往下查_其中的租户字段同样拒绝()
     {
         // S1-AGT-004 之前能力契约跳过所有叫 default、enum 的成员，连属性名也跳过，这里的租户字段会漏到目录里；表面校验器一直会拒绝。

@@ -16,6 +16,9 @@ public sealed class GeneratedContractTests
         Assert.Equal("qian.sdk-tests:write", Assert.Single(metadata.GetProperty("requiredScopes").EnumerateArray()).GetString());
         Assert.True(metadata.GetProperty("audit").GetBoolean()); Assert.False(metadata.GetProperty("agent").GetProperty("expose").GetBoolean());
         Assert.Equal(typeof(CreateRequest), contract.RequestTypeInfo.Type); Assert.Equal(typeof(CustomerResponse), contract.ResponseTypeInfo.Type);
+        const string dialect = "https://json-schema.org/draft/2020-12/schema";
+        Assert.Equal(dialect, contract.InputSchema["$schema"]!.GetValue<string>());
+        Assert.Equal(dialect, contract.OutputSchema["$schema"]!.GetValue<string>());
         Assert.Equal("object", contract.InputSchema["type"]!.GetValue<string>());
         Assert.False(contract.InputSchema["additionalProperties"]!.GetValue<bool>());
         Assert.True(contract.InputSchema["properties"]!["name"]!["sensitive"]!.GetValue<bool>());
@@ -39,8 +42,11 @@ public sealed class GeneratedContractTests
     {
         Assert.False(ReadRequest.KunCapability.Metadata.GetProperty("audit").GetBoolean());
         Assert.True(AuditedReadRequest.KunCapability.Metadata.GetProperty("audit").GetBoolean());
-        var schema = CreateRequest.KunCapability.InputSchema; schema["properties"]!["name"] = null;
-        Assert.NotNull(CreateRequest.KunCapability.InputSchema["properties"]!["name"]);
+        var contract = CreateRequest.KunCapability;
+        contract.InputSchema["properties"]!["name"] = null;
+        contract.OutputSchema["properties"]!["id"] = null;
+        Assert.NotNull(contract.InputSchema["properties"]!["name"]);
+        Assert.NotNull(contract.OutputSchema["properties"]!["id"]);
     }
 }
 

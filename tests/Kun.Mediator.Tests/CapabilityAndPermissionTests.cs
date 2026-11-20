@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using FluentAssertions;
 using Kun.Authorization;
 using Kun.Core.Cqrs;
@@ -31,26 +30,14 @@ internal sealed class ProtectedHandler(List<string> calls) : IRequestHandler<Pro
         return ValueTask.FromResult(Result<int>.Ok(42));
     }
 }
-[JsonSerializable(typeof(DirectoryCommand))]
-[JsonSerializable(typeof(int))]
-internal sealed partial class DirectoryJsonContext : JsonSerializerContext;
-
 public sealed class CapabilityAndPermissionTests
 {
     [Fact]
-    public async Task RegisteredHandler_EnumeratesStableIdAndSchemas_AndStillDispatches()
+    public async Task RegisteredHandler_DispatchesTheRequest()
     {
         var services = new ServiceCollection();
-        services.AddKunMediator(builder => builder.AddRequestHandler<DirectoryCommand, int, DirectoryHandler>(
-            "sample:count", DirectoryJsonContext.Default.DirectoryCommand, DirectoryJsonContext.Default.Int32));
+        services.AddKunMediator(builder => builder.AddRequestHandler<DirectoryCommand, int, DirectoryHandler>());
         await using var provider = services.BuildServiceProvider();
-        var registry = provider.GetRequiredService<ICapabilityRegistry>();
-        var entry = Assert.Single(registry.GetAll());
-        Assert.Same(entry, registry.Find("sample:count"));
-        Assert.Equal("object", (string?)entry.RequestSchema["type"]);
-        Assert.Equal("string", (string?)entry.RequestSchema["properties"]?["Name"]?["type"]);
-        Assert.Equal("integer", (string?)entry.ResponseSchema["type"]);
-        Assert.Equal("https://json-schema.org/draft/2020-12/schema", (string?)entry.RequestSchema["$schema"]);
         Assert.Equal(4, await provider.GetRequiredService<ISender>().Send(new DirectoryCommand("test"), TestContext.Current.CancellationToken));
     }
 

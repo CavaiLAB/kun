@@ -11,7 +11,7 @@
 
 `CapabilitiesPlugin` 在 global scope 提供 `ctx.Capabilities()`。它依赖实际 Registry、租户主档和租户/授权/审计策略服务键；装载器撤销必要依赖后，该服务随生命周期撤销。
 
-**目录怎么枚举**：不是收集 Kun Mediator 的 `AddRequestHandler` 注册（Kun 的 `ICapabilityRegistry` 只描述进程内处理器，不知道组件、scope 与挂载状态）。来源是两个集合的交集：一是 SDK 具名绑定——组件在 Apply 中调用 `ctx.ProvideCapability<TRequest, TResponse>()`，以可逆注册把 `IExecutableCapability` 登记到 `ExecutableCapabilities` 具名集合，绑定携带源生成的 `CapabilityContract`；二是 Registry 的 scope 视图——`GetScopeEntriesAsync` 返回当前租户 scope 中处于 Ready、且属于已安装制品的条目。只有两边都有的能力才出现，预装声明不当成可调用代码，卸载、禁用或 restrict 后的绑定也不会因为 Mediator 里还有处理器而出现。
+**目录怎么枚举**：来源是两个集合的交集。一是 SDK 具名绑定——组件在 Apply 中调用 `ctx.ProvideCapability<TRequest, TResponse>()`，以可逆注册把 `IExecutableCapability` 登记到 `ExecutableCapabilities` 具名集合，绑定携带源生成的 `CapabilityContract`；二是 Registry 的 scope 视图——`GetScopeEntriesAsync` 返回当前租户 scope 中处于 Ready、且属于已安装制品的条目。只有两边都有的能力才出现，预装声明不当成可调用代码，卸载、禁用或 restrict 后的绑定也不会因为 Mediator 里还有处理器而出现。
 
 目录、提示词和调用每次共享同一个判定：已认证主体与当前租户一致、主档为 active/trial、scope 中的组件可见、OAuth scope 满足、真实 RBAC 允许该权限。令牌中的 roles 不授予权限。被隐藏、禁用、撤权或不存在的能力在调用表面统一为 `NOT_FOUND`，不会返回 Registry 的管理原因。
 

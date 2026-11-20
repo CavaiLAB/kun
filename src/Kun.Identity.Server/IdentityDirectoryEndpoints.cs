@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Kun.Audit;
 using Kun.Core.MultiTenancy;
 using Kun.Errors;
 using Kun.Errors.AspNetCore;
@@ -11,7 +12,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Audit;
 
 namespace Kun.Identity.Server;
 

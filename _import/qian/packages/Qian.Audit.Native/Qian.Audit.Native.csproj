@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><IsPackable>true</IsPackable><Description>原生 PostgreSQL 审计 Provider：共享 v1 协议、受限追加函数与 NativeData 事务。</Description></PropertyGroup>
-  <PropertyGroup Label="档位"><KunTier>kernel</KunTier><KunRole>provider</KunRole></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" /><ProjectReference Include="../../../../src/Kun.Core/Kun.Core.csproj" /><ProjectReference Include="../../../../src/Kun.Data.Native.Abstractions/Kun.Data.Native.Abstractions.csproj" /><ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /><ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" /></ItemGroup>
-  <ItemGroup><EmbeddedResource Include="Sql/*.sql" LogicalName="audit-native/%(Filename)%(Extension)" /><InternalsVisibleTo Include="Qian.Audit.Native.Tests" /></ItemGroup>
-  <ItemGroup><None Include="../../plugins/qian.audit.native/**/*" Pack="true" PackagePath="qian/%(RecursiveDir)%(Filename)%(Extension)" /></ItemGroup>
-</Project>

@@ -12,7 +12,7 @@
     <ProjectReference Include="../../src/Kun.Identity.Client/Kun.Identity.Client.csproj" />
     <ProjectReference Include="../../src/Kun.Data/Kun.Data.csproj" />
     <ProjectReference Include="../../src/Kun.EventBus/Kun.EventBus.csproj" />
-    <ProjectReference Include="../../_import/qian/packages/Qian.Audit/Qian.Audit.csproj" />
+    <ProjectReference Include="../../src/Kun.Audit.EntityFrameworkCore/Kun.Audit.EntityFrameworkCore.csproj" />
     <ProjectReference Include="../../src/Kun.Gateway/Kun.Gateway.csproj" />
     <ProjectReference Include="../../src/Kun.MultiTenancy/Kun.MultiTenancy.csproj" />
   </ItemGroup>

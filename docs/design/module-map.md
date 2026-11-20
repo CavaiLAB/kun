@@ -113,8 +113,9 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.Tenancy.AspNetCore` | 租户目录 HTTP 端点 | 查询和管理租户 | `MapKunTenancy()` | — | — |
 | `Kun.Tenancy.Signup.Abstractions` | 自助注册契约 | 提交及审核租户申请 | `ITenantSignup` / `ISignupMessenger` | — | — |
 | `Kun.Tenancy.Signup` | 自助注册流程 | 装配申请与运营端点 | `MapKunTenancySignupApplicant()` / `MapKunTenancySignupOperations()` | — | 10 |
-| `Kun.Audit` | 审计写入器抽象 + `NullAuditWriter` / `EventBusAuditWriter` | 下游服务的操作审计；通过 Outbox 异步记录 | `AddKunAudit()` / `.UseEventBus()` | ✅ | 13 |
-| `Kun.Audit.EntityFrameworkCore` | EF 持久化后端 | 需要审计 on-box 持久化时的可选后端 | `AddKunAuditEntityFrameworkCore()` | ⚠️ trim-safe | — |
+| `Kun.Audit.Abstractions` | 命令审计记录、追加、分页与验链契约 | 需要读写命令链的宿主 | `IAuditWriter` / `IAuditReader` | — | — |
+| `Kun.Audit.EntityFrameworkCore` | PostgreSQL 命令链、同事务实体日志 | EF 宿主 | `AuditComponent` / `AddKunAuditing<TContext>()` | — | — |
+| `Kun.Audit.Postgres` | 原生 PostgreSQL 命令链提供者 | Native AOT 宿主 | `NativeAuditComponent` | 专属探针 | — |
 | `Kun.RateLimit` | 按租户分区限流、Redis 原子固定窗口计数 | Gateway 与业务服务的请求级别保护 | `AddKunRateLimit(...)` | ✅ | 6 |
 
 租户过滤器、字段拦截器和模型缓存键由 `Kun.EntityFrameworkCore.MultiTenancy` 提供。HTTP 与 gRPC 的请求范围共享 `Kun.MultiTenancy` 的入口规则。
@@ -140,7 +141,7 @@ Mediator、ASP.NET Core 和 gRPC 增加对 Authorization 的依赖；具体语�
 | `Kun.EntityFrameworkCore` | `DbContext.Set<T>()` / `MakeGenericMethod` / 非 typed JSON 序列化 |
 | `Kun.Audit.EntityFrameworkCore` | 透传 EF Core |
 | `Kun.Saga` | `Persistence/Ef/` 透传 EF Core；Phase 2 跟进拆分 |
-| `Kun.Auditing` | EF 的 SaveChanges 拦截器带出 IL2091；按合并蓝图 D23.9 在 B6 并入平台档的 `Kun.Audit.EntityFrameworkCore` |
+
 
 ## 依赖关系图
 
@@ -156,7 +157,7 @@ graph TD
     Authorization --> AspNet
     Authorization --> Grpc
     Apollo[Kun.Configuration.Apollo<br/>HTTP 配置源]
-    Core --> Audit[Kun.Audit<br/>操作审计/哈希链]
+    Core --> Audit[Kun.Audit.Abstractions<br/>命令审计契约]
 
     Core --> EfCore[Kun.EntityFrameworkCore<br/>写侧持久化/Outbox 实现]
 
@@ -192,7 +193,7 @@ graph TD
 ├─────────────────────────────────────────────────────────┤
 │  Abstraction Layer                                      │
 │  Kun.Mediator                                           │
-│  Kun.EventBus / Kun.Security / Kun.Validation / Kun.Audit│
+│  Kun.EventBus / Kun.Security / Kun.Validation / Kun.Audit.Abstractions│
 ├─────────────────────────────────────────────────────────┤
 │  Core Layer                                             │
 │  Kun.Core (zero dependencies)                           │

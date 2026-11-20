@@ -22,7 +22,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Kun.Authorization.AspNetCore;
 using Kun.Data;

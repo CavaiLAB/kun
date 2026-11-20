@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.audit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "提供 qian.audit 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
@@ -30,7 +30,7 @@
   ],
   "runtime": {
     "form": "module",
-    "entry": "Qian.Audit.AuditComponent, Qian.Audit",
+    "entry": "Kun.Audit.AuditComponent, Kun.Audit.EntityFrameworkCore",
     "configSchema": "./schemas/config.schema.json"
   },
   "x-qian-generated": {
@@ -47,7 +47,7 @@
       "schemas/config.schema.json": {
         "$generated": true,
         "component": "qian.audit",
-        "source": "Qian.Audit.AuditComponent, Qian.Audit",
+        "source": "Kun.Audit.AuditComponent, Kun.Audit.EntityFrameworkCore",
         "sha256": "0edafc766c33850433e8d18c470aacc21575905f7c6cec48818f1c2825e8a28e",
         "fields": [
           ""

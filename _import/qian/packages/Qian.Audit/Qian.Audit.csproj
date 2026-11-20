@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-<PropertyGroup><IsPackable>true</IsPackable><Description>审计规范化与 PostgreSQL 原子链存储。</Description></PropertyGroup>
-  <PropertyGroup Label="档位"><KunTier>platform</KunTier><KunRole>provider</KunRole></PropertyGroup>
-<ItemGroup><ProjectReference Include="../Qian.Audit.Abstractions/Qian.Audit.Abstractions.csproj" /><ProjectReference Include="../../../../src/Kun.Data.Abstractions/Kun.Data.Abstractions.csproj" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" /><InternalsVisibleTo Include="Qian.Audit.Tests" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="../../../../src/Kun.Plugin.Sdk/Kun.Plugin.Sdk.csproj" /></ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="../../../../src/Kun.Plugin.Sdk.Generators/Kun.Plugin.Sdk.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
-</Project>

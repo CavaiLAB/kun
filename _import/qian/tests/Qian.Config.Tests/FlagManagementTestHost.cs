@@ -8,7 +8,7 @@ using Kun.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac.Abstractions;
 using Qian.Config.Apollo;
 using Kun.Data.Native;

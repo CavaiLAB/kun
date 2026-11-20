@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Data.Native;
 using Kun.Authorization.Rbac.Abstractions;
 using Kun.Plugin.Sdk;

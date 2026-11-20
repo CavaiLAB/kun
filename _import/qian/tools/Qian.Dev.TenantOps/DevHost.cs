@@ -2,7 +2,7 @@ using Kun.EntityFrameworkCore.Extensions;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.EntityFrameworkCore;
-using Qian.Audit;
+using Kun.Audit;
 using Kun.Authorization.Rbac;
 using Qian.Capabilities;
 using Qian.Capabilities.AspNetCore;

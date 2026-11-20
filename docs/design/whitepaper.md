@@ -757,7 +757,7 @@ CI 流水线中对所有应当走 AOT 的服务执行 `dotnet publish -p:Publish
 
 `Kun.Sandbox` 与旧线的 `Kun.Storage`（上表第一行）已归档（S1-KUN-028），上表与测试计数按 `0.1.0-phase1` 的交付原样保留。对象存储现在用 `Kun.Storage.Abstractions` 加 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`。
 
-### 13.2 最小集成示例：Audit + Security 组合根
+### 13.2 Phase 1 的 Audit 与 Security 组合根
 
 这是 Phase 1 下游 C# 服务最常见的组合：外部 JWT 由网关校验，内部 S2S JWT 由下游 `Kun.Security` 认证，业务操作记入 `Kun.Audit`。
 
@@ -792,7 +792,7 @@ app.UseAuthorization();
 app.Run();
 ```
 
-> 完整示例请见 `samples/Kun.Sample.Catalog/Program.cs`（已演示 `AddKunAudit()`）。
+> 上面的装配记录了 Phase 1 的 API。当前宿主通过 `qian.audit` 组件写入命令审计链，实体审计由 `Kun.Audit.EntityFrameworkCore` 提供。装配示例和读取方式见[命令审计与实体审计](../security/audit-log.md)。
 
 ### 13.3 AOT 一致性状态
 

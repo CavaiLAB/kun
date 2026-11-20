@@ -20,7 +20,6 @@
 
   <!-- 清单里仓库根 src/ 下的项目。 -->
   <ItemGroup>
-    <ProjectReference Include="../../src/Kun.Audit/Kun.Audit.csproj" />
     <ProjectReference Include="../../src/Kun.Authorization/Kun.Authorization.csproj" />
     <ProjectReference Include="../../src/Kun.Caching/Kun.Caching.csproj" />
     <ProjectReference Include="../../src/Kun.Configuration.Apollo/Kun.Configuration.Apollo.csproj" />

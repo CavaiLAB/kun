@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Qian.Audit;
+using Kun.Audit;
 using Qian.Config.Apollo;
 using Kun.Data;
 using Kun.Runtime;
@@ -23,7 +23,7 @@ using Qian.Testing.Containers;
 namespace Qian.Config.Tests;
 
 // S1-CFG-003 验收 3 后半句：真实 Apollo 2.5.2（AdminService 编辑并发布）一次发布 → 平台审计链多一条记录、链校验通过、记录不含配置值。
-// 平台链按 Qian.Audit.Tests 的 AuditPlatformTests 装配：受限 NOINHERIT 登录角色、两条独立凭据、global AuditPlugin 显式配置 chain.platformRole。
+// 平台链按 Kun.Audit.EntityFrameworkCore.IntegrationTests 的 AuditPlatformTests 装配：受限 NOINHERIT 登录角色、两条独立凭据、global AuditPlugin 显式配置 chain.platformRole。
 // 与另外三个真实 Apollo 类同一集合、共用一套栈（RealApolloGroup）：计数只取本用例 appId 的配置发布记录，平台链在本类自己的 PostgreSQL 里。
 [Collection(RealApolloGroup.Name)]
 public sealed class RealApolloReleaseAuditTests(RealApolloPortalFixture apollo, PostgresFixture postgres) : IClassFixture<PostgresFixture>
@@ -121,7 +121,7 @@ public sealed class RealApolloReleaseAuditTests(RealApolloPortalFixture apollo, 
         await using var command = new NpgsqlCommand(sql, connection); await command.ExecuteNonQueryAsync(Ct);
     }
 
-    // 与 Qian.Audit.Tests 相同：按 EF 模型建出审计 schema，再把表权限授予受限应用角色。
+    // 与 Kun.Audit.EntityFrameworkCore.IntegrationTests 相同：按 EF 模型建出审计 schema，再把表权限授予受限应用角色。
     private async Task Prepare(IHost host)
     {
         using var scope = host.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<AuditDbContext>();

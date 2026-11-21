@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm demos:build && rspress dev",
-    "build": "pnpm demos:build && rspress build && node scripts/compact-yue-markdown.ts && node scripts/build-kb-index.ts",
+    "build": "pnpm demos:build && rspress build && node scripts/compact-yue-markdown.ts && node scripts/build-kb-index.ts && node scripts/component-redirects.ts",
     "kb-index": "node scripts/build-kb-index.ts",
     "preview": "rspress preview",
     "generate": "node scripts/generate.ts",
     "typecheck": "node scripts/prepare-qian.ts && tsc -p tsconfig.check.json",
     "qian:prepare": "node scripts/prepare-qian.ts",
-    "test": "node --test \"scripts/**/*.test.ts\"",
+    "test": "node scripts/prepare-qian.ts && node --test \"scripts/**/*.test.ts\"",
     "check": "node scripts/check-site.ts",
     "demos:build": "node scripts/build-yue-demos.ts",
     "e2e": "playwright test"

@@ -67,7 +67,7 @@ function page(route: string, md: string, extra: Partial<KbPage> = {}): KbPage {
     sourceFile: `${rel}.md`,
     title: rel,
     description: '',
-    project: 'qian',
+    project: 'platform',
     part: 'start',
     audience: ['developer'],
     updated: '2026-10-09',

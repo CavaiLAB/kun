@@ -2,7 +2,7 @@
 title: 后端 SDK（.NET）
 description: Kun.Runtime 的编程模型：插件、共享上下文 ctx、服务注册与注入、类型化事件、可逆副作用与 scope。
 part: sdk
-project: qian
+project: platform
 audience: [developer]
 updated: 2026-11-20
 ---

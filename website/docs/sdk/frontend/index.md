@@ -2,14 +2,16 @@
 title: 前端 SDK
 description: "@cavailab/qian-runtime 与 @cavailab/qian-plugin-sdk 的编程模型：外壳是一棵插件树，插件界面以 MF2 远程模块加载并挂到版本化插槽。"
 part: sdk
-project: qian
+project: platform
 audience: [developer]
-updated: 2026-11-19
+updated: 2026-11-21
 ---
 
 # 前端 SDK
 
-前端外壳自身也是一棵由 `@cavailab/qian-runtime` 装载的插件树，与后端同一套语义：上下文、服务注册、类型化事件、可逆副作用、scope。
+本页说明 Kun 旧应用外壳归档源码使用的 Qian 0.2.1 SDK。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。[产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
+
+旧外壳是一棵由 `@cavailab/qian-runtime` 装载的插件树，与后端同一套语义：上下文、服务注册、类型化事件、可逆副作用、scope。
 
 | 包 | 内容 |
 |---|---|
@@ -45,4 +47,4 @@ export interface Context {
 }
 ```
 
-组件的界面怎么写、组件怎么演示，见 [qian 组件库](/components/yue/)；API 参考（TypeDoc 生成）随 S1-DOCS-002 上线。
+组件的界面怎么写、组件怎么演示，见 [qian 组件库](/components/qian/)；API 参考（TypeDoc 生成）随 S1-DOCS-002 上线。

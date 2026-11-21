@@ -70,7 +70,7 @@ describe('版本矩阵（docs-site.md §2b.4）', () => {
     const { frontmatter, body } = splitFrontmatter(file.content);
     assert.match(frontmatter, /^title: "版本矩阵"$/m);
     assert.match(frontmatter, /^part: start$/m);
-    assert.match(frontmatter, /^project: qian$/m);
+    assert.match(frontmatter, /^project: platform$/m);
     assert.match(frontmatter, /^audience: \[developer, operator\]$/m);
     assert.match(frontmatter, /^updated: \d{4}-\d{2}-\d{2}$/m);
     assert.match(body, /^# 版本矩阵$/m);
@@ -78,6 +78,8 @@ describe('版本矩阵（docs-site.md §2b.4）', () => {
     assert.match(body, /平台包（源码开发版本）/);
     assert.match(body, /release-packages\.json/);
     assert.match(body, /@cavailab\/qian-runtime.*单独钉住/);
+    assert.match(body, /旧应用外壳按 Qian 0\.2\.1 归档.*业务预发保留原有部署和数据/);
+    assert.match(body, /8 个层包统一定版本.*@cavailab\/qian-runtime.*@cavailab\/qian-plugin-sdk.*各自定版本/);
     assert.ok(body.includes('| main（开发版） | 2026.10.8 | 未发布，开发版 main（2 个包） | 版本目录里没有 | 10.0.100（rollForward latestFeature） | ^20.19.0 \\|\\| >=22.12.0 / 12.9.1 | v1.35 |'), body);
     assert.match(body, /\| Kun \| 仓库根的 `CHANGELOG\.md` \|/);
     assert.match(body, /\| \.NET SDK \| 仓库根的 `global\.json` \|/);

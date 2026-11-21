@@ -13,7 +13,7 @@ export function compactTables(markdown: string): string {
   }).join('\n');
 }
 export function compactYueMarkdown(root = path.join(WEBSITE_ROOT, 'doc_build')) {
-  const yue = path.join(root, 'components/yue');
+  const yue = path.join(root, 'components/qian');
   for (const rel of listFiles(yue).filter(file => file.endsWith('.md'))) {
     const file = path.join(yue, rel); fs.writeFileSync(file, compactTables(fs.readFileSync(file, 'utf8')));
   }

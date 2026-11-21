@@ -28,7 +28,7 @@ for (const scenario of scenarios) for (const theme of ['light', 'dark']) test(`$
 });
 
 test('静态 Rspress 外壳文档可发现，三个 iframe 使用同源示例且交互通过', async ({ page }) => {
-  await page.goto('components/yue/shell.html'); await expect(page.getByRole('heading', { level: 1 })).toContainText('外壳、页面与认证');
+  await page.goto('components/qian/shell.html'); await expect(page.getByRole('heading', { level: 1 })).toContainText('外壳、页面与认证');
   const shell = page.frameLocator('iframe[title="AppShell 交互预览"]');
   await shell.getByRole('link', { name: '应用设置', exact: true }).click(); await expect(shell.getByRole('heading', { name: '应用设置', exact: true })).toBeVisible();
   const auth = page.frameLocator('iframe[title="Authentication 交互预览"]');
@@ -43,12 +43,12 @@ test('静态 Rspress 外壳文档可发现，三个 iframe 使用同源示例且
 });
 
 test('SchemaForm 可信 iframe 可实际提交，其他示例不扩大 sandbox 权限', async ({ page }) => {
-  await page.goto('components/yue/form.html');
+  await page.goto('components/qian/form.html');
   const form = page.frameLocator('iframe[title="SchemaForm 交互预览"]');
   await form.getByRole('button', { name: '新建客户', exact: true }).click();
   await form.getByRole('textbox', { name: /客户号/ }).fill('doc1'); await form.getByRole('textbox', { name: /客户名称/ }).fill('文档客户');
   await form.getByRole('button', { name: '保存', exact: true }).click(); await expect(form.getByRole('status').filter({ hasText: '已保存：文档客户' })).toBeVisible();
-  await page.goto('components/yue/core/button.html'); await expect(page.locator('iframe[title="Button 交互预览"]')).toHaveAttribute('sandbox', 'allow-scripts allow-same-origin');
+  await page.goto('components/qian/core/button.html'); await expect(page.locator('iframe[title="Button 交互预览"]')).toHaveAttribute('sandbox', 'allow-scripts allow-same-origin');
 });
 
 test('外壳示例断外网后可编辑并运行', async ({ page, baseURL }) => {
@@ -57,4 +57,16 @@ test('外壳示例断外网后可编辑并运行', async ({ page, baseURL }) => 
   await expect(page.getByRole('button', { name: '运行', exact: true })).toBeEnabled(); await page.getByRole('button', { name: '运行', exact: true }).click();
   await expect(page.getByRole('heading', { name: '工作台', exact: true })).toBeVisible(); await expect(page.locator('.demo-error')).toHaveCount(0);
   await page.getByRole('button', { name: '读取受保护数据' }).click(); await expect(page.getByText('请求租户：tenant-a', { exact: true })).toBeVisible();
+});
+
+
+test('已有组件书签与规格书签跳转到同一页并保留定位', async ({ page }) => {
+  await page.goto('components/yue/core/button.html?from=bookmark#api');
+  await expect(page).toHaveURL(/components\/qian\/core\/button\.html\?from=bookmark#api$/);
+  await expect(page.locator('h2[id="api"]')).toBeInViewport();
+  const section = '0-定位与阅读方式';
+  await page.goto(`design/prd/specs/yue.html#${encodeURIComponent(section)}`);
+  await expect(page).toHaveURL((url) =>
+    url.pathname.endsWith('/design/prd/specs/frontend.html') && decodeURIComponent(url.hash.slice(1)) === section);
+  await expect(page.locator(`h2[id="${section}"]`)).toBeInViewport();
 });

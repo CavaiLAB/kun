@@ -20,17 +20,16 @@ export interface LlmsTxtInput {
   sections: LlmsSection[];
 }
 
-/** 项目顺序与显示名；frontmatter 没写 project 的页归入平台（手写页默认 qian，docs-site.md §4）。 */
+/** 项目顺序与显示名；frontmatter 没写 project 的页归入平台（手写页默认 platform，docs-site.md §4）。 */
 export const PROJECT_ORDER: ReadonlyArray<{ id: string; label: string }> = [
-  { id: 'qian', label: '平台' },
+  { id: 'platform', label: '平台' },
   { id: 'kun', label: 'Kun' },
-  // 这个 project 的 id 与 /components/yue/ 的路由一样，组件页来源定下来之前不改；显示名用组件库现在的名字。
-  { id: 'yue', label: 'qian 组件库' },
+  { id: 'qian', label: 'qian 组件库' },
 ];
 
 function projectOf(page: LlmsPage): string {
   const project = page.frontmatter?.project;
-  return typeof project === 'string' && PROJECT_ORDER.some((p) => p.id === project) ? project : 'qian';
+  return typeof project === 'string' && PROJECT_ORDER.some((p) => p.id === project) ? project : 'platform';
 }
 
 function line(page: LlmsPage): string {

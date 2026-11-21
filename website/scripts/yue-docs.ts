@@ -110,12 +110,12 @@ function nativeId(api: ComponentApi): string {
 }
 function apiTable(api: ComponentApi): string {
   const native = api.props.filter(p => p.native);
-  return `### ${api.name}\n\n${rows(api.props.filter(p => !p.native))}\n\n${native.length ? `[继承的 DOM / ARIA / 事件属性（${native.length} 项）](/components/yue/api/native-${nativeId(api)})：从相同的 TypeScript 声明提取，完整类型与说明只存一份。` : ''}\n`;
+  return `### ${api.name}\n\n${rows(api.props.filter(p => !p.native))}\n\n${native.length ? `[继承的 DOM / ARIA / 事件属性（${native.length} 项）](/components/qian/api/native-${nativeId(api)})：从相同的 TypeScript 声明提取，完整类型与说明只存一份。` : ''}\n`;
 }
 export function collectYuePages(qian: QianCheckout = openQian()): GeneratedFile[] {
   const data = readYueDocs(qian);
-  const front = (title: string, description: string, component = '@cavailab/qian-core') => `---\ntitle: ${yamlString(title)}\ndescription: ${yamlString(description)}\npart: components\nproject: yue\naudience: [developer]\nupdated: ${qianFileDate(qian, 'packages/qian/core/docs/catalog.json')}\nversion: ${data.version}\ncomponent: ${yamlString(component)}\nsource: ${yamlString(qianSource(qian, component === '@cavailab/qian-tokens' ? 'packages/qian/tokens' : 'packages/qian/core'))}\n---\n`;
-  const files = data.docs.map(doc => ({ path: `yue/core/${doc.name.toLowerCase()}.mdx`, content: `${front(`${doc.name} ${doc.label}`, doc.description, doc.name)}
+  const front = (title: string, description: string, component = '@cavailab/qian-core') => `---\ntitle: ${yamlString(title)}\ndescription: ${yamlString(description)}\npart: components\nproject: qian\naudience: [developer]\nupdated: ${qianFileDate(qian, 'packages/qian/core/docs/catalog.json')}\nversion: ${data.version}\ncomponent: ${yamlString(component)}\nsource: ${yamlString(qianSource(qian, component === '@cavailab/qian-tokens' ? 'packages/qian/tokens' : 'packages/qian/core'))}\n---\n`;
+  const files = data.docs.map(doc => ({ path: `qian/core/${doc.name.toLowerCase()}.mdx`, content: `${front(`${doc.name} ${doc.label}`, doc.description, doc.name)}
 import { ComponentDemo } from '@theme';
 
 # ${doc.name} ${doc.label}
@@ -130,7 +130,7 @@ ${doc.description}
 pnpm add @cavailab/qian-core @cavailab/qian-tokens
 \`\`\`
 
-包发在 GitHub Packages 上，包源与令牌的配置见 [qian 组件库](/components/yue/)。宿主导入 \`@cavailab/qian-tokens/theme.css\`，并用 Tailwind v4 的 \`@source\` 扫描安装目录里组件包的 \`dist\`；React 19 为 peer 依赖。
+包发在 GitHub Packages 上，包源与令牌的配置见 [qian 组件库](/components/qian/)。宿主导入 \`@cavailab/qian-tokens/theme.css\`，并用 Tailwind v4 的 \`@source\` 扫描安装目录里组件包的 \`dist\`；React 19 为 peer 依赖。
 
 ## 用法与源码
 
@@ -173,13 +173,13 @@ ${doc.keyboard.map(key => `- ${key}`).join('\n') || '展示内容不接管键盘
 本页对应 \`@cavailab/qian-core@${data.version}\`，由 CavaiLAB/qian 该版本标签上的源码生成；组件行为与示例以该版本为准。
 ` }));
   const shared = data.apis.filter(api => !data.docs.some(doc => doc.parts.includes(api.name)));
-  files.push({ path: 'yue/core/shared-api.mdx', content: `${front('通用上下文 API', '组件共用的上下文与公开属性。')}\n# 通用上下文 API\n\n${shared.map(apiTable).join('\n')}` });
+  files.push({ path: 'qian/core/shared-api.mdx', content: `${front('通用上下文 API', '组件共用的上下文与公开属性。')}\n# 通用上下文 API\n\n${shared.map(apiTable).join('\n')}` });
   const nativeGroups = new Map(data.apis.filter(a => a.props.some(p => p.native)).map(a => [nativeId(a), a]));
   for (const [id, api] of nativeGroups) {
     const consumers = data.apis.filter(a => nativeId(a) === id).map(a => a.name);
-    files.push({ path: `yue/api/native-${id}.mdx`, content: `${front('通用 DOM 属性 ' + api.name, '从真实 React TypeScript 声明提取的继承属性、回调与完整类型。').replace('\n---\n', '\nsidebar: false\n---\n')}\n# 通用 DOM 属性\n\n以下组件共享完全相同的继承属性与实例类型：${consumers.map(n => '`' + n + '`').join('、')}。\n\n${rows(api.props.filter(p => p.native))}\n` });
+    files.push({ path: `qian/api/native-${id}.mdx`, content: `${front('通用 DOM 属性 ' + api.name, '从真实 React TypeScript 声明提取的继承属性、回调与完整类型。').replace('\n---\n', '\nsidebar: false\n---\n')}\n# 通用 DOM 属性\n\n以下组件共享完全相同的继承属性与实例类型：${consumers.map(n => '`' + n + '`').join('、')}。\n\n${rows(api.props.filter(p => p.native))}\n` });
   }
-  files.push({ path: 'yue/core/_meta.json', content: JSON.stringify([...data.docs.map(d => d.name.toLowerCase()), 'shared-api'], null, 2) });
-  files.push({ path: 'yue/tokens.mdx', content: `${front('设计令牌', '查看 qian 三层设计令牌及明暗主题。', '@cavailab/qian-tokens')}\nimport { ComponentDemo } from '@theme';\n\n# 设计令牌\n\n三层令牌共用一个目录，切换明暗主题可查看语义色与组件令牌。\n\n<ComponentDemo name="Tokens" />\n\n## 模型体验\n\n引用语义令牌实现主题一致性。\n\n## 已知限制与延期项\n\n品牌值由宿主提供，组件不自行更换品牌。\n` });
+  files.push({ path: 'qian/core/_meta.json', content: JSON.stringify([...data.docs.map(d => d.name.toLowerCase()), 'shared-api'], null, 2) });
+  files.push({ path: 'qian/tokens.mdx', content: `${front('设计令牌', '查看 qian 三层设计令牌及明暗主题。', '@cavailab/qian-tokens')}\nimport { ComponentDemo } from '@theme';\n\n# 设计令牌\n\n三层令牌共用一个目录，切换明暗主题可查看语义色与组件令牌。\n\n<ComponentDemo name="Tokens" />\n\n## 模型体验\n\n引用语义令牌实现主题一致性。\n\n## 已知限制与延期项\n\n品牌值由宿主提供，组件不自行更换品牌。\n` });
   return files;
 }

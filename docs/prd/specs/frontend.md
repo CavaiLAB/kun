@@ -2,9 +2,9 @@
 
 > 状态：Draft v1（2026-10-06）。依据：ADR-013（前端与前端框架）为主，兼引 ADR-002（插件模型与 MF2）、ADR-010（网关与令牌）、ADR-014（市场与 registry）、ADR-018（阶段）及补充裁决 Q12 / Q13 / Q37 / Q38 / Q39 / Q41。本 spec 规定前端框架的范围、分层、契约、流程与验收；安全规则以 §13 为准，验收方法以 §14 为准。
 >
-> Qian 为匠心平台的 React 前端框架，当前服务于外壳、平台控制台与组件界面。低代码运行时与设计器、移动 H5、Agent 界面按后续阶段规划。
+> Kun 旧应用外壳按 Qian 0.2.1 归档。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。下文保留旧外壳的设计与阶段规划。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
 
-Qian 当前发布十个框架包：`@cavailab/qian-tokens`、`@cavailab/qian-contracts`、`@cavailab/qian-sdk`、`@cavailab/qian-core`、`@cavailab/qian-form`、`@cavailab/qian-data`、`@cavailab/qian-biz`、`@cavailab/qian-shell`、`@cavailab/qian-runtime`、`@cavailab/qian-plugin-sdk`。Kun 仓库在 `apps/qian-shell` 和私有界面包中装配它们。下文的设计器、渲染器、移动端与 Agent 包按阶段规划，版本目录只列已经采用的包。[工作区版本目录](../../../pnpm-workspace.yaml)
+Qian 0.2.1 已发布十个框架包：`@cavailab/qian-tokens`、`@cavailab/qian-contracts`、`@cavailab/qian-sdk`、`@cavailab/qian-core`、`@cavailab/qian-form`、`@cavailab/qian-data`、`@cavailab/qian-biz`、`@cavailab/qian-shell`、`@cavailab/qian-runtime`、`@cavailab/qian-plugin-sdk`。Kun 仓库在 `apps/qian-shell` 和私有界面包中装配它们。版本目录只列已经采用的包。[工作区版本目录](../../../pnpm-workspace.yaml)
 
 ---
 
@@ -344,7 +344,7 @@ export function listWidgets(filter?: { device?: Device; category?: string }): Wi
 
 1. **令牌**：在 `@cavailab/qian-tokens` 修改 → 对比度单测与冲突单测 → 生成 CSS 变量与 TS 类型 →（可选）DTCG 导出。
 2. **组件**：shadcn CLI 生成源码进 `@cavailab/qian-core` 后品牌化；每个组件必须带可供 Rspress 与测试共用的 React 示例（由 `docs/scenarios.json` 登记适用状态，在预览工具栏切换；交互在示例内实际操作）、manifest、`data-slot / data-testid`、i18n key。
-3. **文档站**：统一接入现有 Rspress 2 的 `/components/yue/`，提供源码示例、活演示、完整 props 表与令牌页；示例源在组件目录，测试由独立 Vitest / Playwright + axe 执行。移除 Storybook 应用、CSF、依赖、脚本和 CI 作业；Props 完整性、离线编辑器与迁移验收见 [文档站规范 §3.1](docs-site.md#31-前端框架组件文档与演示)。
+3. **文档站**：统一接入现有 Rspress 2 的 `/components/qian/`，提供源码示例、活演示、完整 props 表与令牌页；示例源在组件目录，测试由独立 Vitest / Playwright + axe 执行。移除 Storybook 应用、CSF、依赖、脚本和 CI 作业；Props 完整性、离线编辑器与迁移验收见 [文档站规范 §3.1](docs-site.md#31-前端框架组件文档与演示)。
 4. **视觉回归**：Playwright 截图比对，CI 固定字体与容器镜像，基线入库；自 S1-YUE-011 起为 PR 阻断门禁：`maxDiffPixels: 0`、刷新须显式 `--update-snapshots=all`、基线须与改动提交一致并有反例测试（R118）。
 5. **发包**：Changesets；SemVer（0.x 每个 minor 可破坏；1.0 后只在大版本破坏，废弃至少保留一个 minor 并附 codemod）；tsdown / Rslib 输出 ESM + d.ts，CSS 单独导出；重型物料（Monaco、富文本、ECharts、地图）独立包懒加载；publint；私有 npm。
 

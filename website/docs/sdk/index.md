@@ -2,7 +2,7 @@
 title: SDK
 description: 写组件的编程模型与 API：底座 Kun 框架、后端 .NET、前端 TypeScript 与 AI SDK；组件怎么用见组件目录。
 part: sdk
-project: qian
+project: platform
 audience: [developer, agent]
 updated: 2026-11-20
 ---

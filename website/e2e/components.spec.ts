@@ -8,7 +8,7 @@ for (const scenario of scenarios) {
     const errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
     await page.emulateMedia({ colorScheme: scenario.theme === 'dark' ? 'dark' : 'light' });
-    await page.goto(`components/yue/${scenario.component === 'Tokens' ? 'tokens' : `core/${scenario.component.toLowerCase()}`}.html`);
+    await page.goto(`components/qian/${scenario.component === 'Tokens' ? 'tokens' : `core/${scenario.component.toLowerCase()}`}.html`);
     if (scenario.theme === 'dark') await expect(page.locator('html')).toHaveClass(/dark/);
     else await expect(page.locator('html')).not.toHaveClass(/dark/);
     const frame = page.frameLocator(`iframe[title="${scenario.component} 交互预览"]`);
@@ -26,10 +26,10 @@ for (const scenario of scenarios) {
 }
 test('代表性组件正式页面交互 smoke', async ({ page }, testInfo) => {
   for (const name of ['Button', 'Input', 'Select', 'Dialog', 'Tabs', 'Toast']) {
-    await page.goto(`components/yue/core/${name.toLowerCase()}.html`);
+    await page.goto(`components/qian/core/${name.toLowerCase()}.html`);
     await exercise(name, page.frameLocator(`iframe[title="${name} 交互预览"]`));
   }
-  await page.goto('components/yue/core/dialog.html');
+  await page.goto('components/qian/core/dialog.html');
   await page.frameLocator('iframe').getByRole('button', { name: '打开对话框' }).click();
   await page.screenshot({ path: testInfo.outputPath('rspress-dialog.png') });
 });

@@ -55,7 +55,7 @@ PAGE_SUFFIXES = (".md", ".mdx")
 # core 的组件页由文档站按前端框架的组件目录生成；组件名取文档站安装的 @cavailab/qian-core 自带的组件清单（版本钉在
 # pnpm-workspace.yaml 的版本目录）。只跑文档门禁、不装 Node 依赖的作业里没有这份清单，core 组件路由交给文档站构建时的断链检查。
 CORE_MANIFEST = Path("website/node_modules/@cavailab/qian-core/dist/qian-manifest.json")
-CORE_COMPONENT_ROUTE = re.compile(r"/components/yue/core/[a-z0-9-]+")
+CORE_COMPONENT_ROUTE = re.compile(r"/components/qian/core/[a-z0-9-]+")
 
 
 def generated_part(path: Path) -> str | None:
@@ -145,6 +145,8 @@ def design_routes() -> frozenset[str]:
         parts = [part.lower() for part in Path(relative).parts]
         name = parts.pop()
         page = "/".join(parts + ["index" if name == "readme.md" else name[: -len(".md")]])
+        if page == "prd/specs/yue":
+            page = "prd/specs/qian"
         routes.add("/design/" + page)
         if page == "index" or page.endswith("/index"):
             routes.add("/design/" + page[: -len("index")])
@@ -156,17 +158,17 @@ def generated_routes() -> frozenset[str]:
     """生成器源码里登记的 /cli/ 与 /components/ 页面（CLI_PAGES 的 slug、PLATFORM_COMPONENTS 的 id）。"""
     scripts = ROOT / "website" / "scripts"
     routes = {"/cli/", "/cli/index", "/components/", "/components/index", "/components/platform/",
-              "/components/platform/index", "/components/yue/", "/components/yue/index"}
+              "/components/platform/index", "/components/qian/", "/components/qian/index"}
     sync = (scripts / "sync-specs.ts").read_text(encoding="utf-8")
     routes |= {f"/cli/{slug}" for slug in re.findall(r"\bslug: '([a-z0-9-]+)'", sync)}
     collect = (scripts / "collect-components.ts").read_text(encoding="utf-8")
     routes |= {f"/components/platform/{cid}" for cid in re.findall(r"\bid: '(qian\.[a-z0-9.-]+)'", collect)}
     # 非 core 包的文档源由收集器显式登记；预生成检查也只接受这些已声明的路由。
-    routes |= {f"/components/{slug}" for slug in re.findall(r"\bpath: '(yue/[a-z0-9-]+)\.(?:md|mdx)'", collect)}
-    routes |= {"/components/yue/tokens", "/components/yue/core/shared-api"}
+    routes |= {f"/components/{slug}" for slug in re.findall(r"\bpath: '(qian/[a-z0-9-]+)\.(?:md|mdx)'", collect)}
+    routes |= {"/components/qian/tokens", "/components/qian/core/shared-api"}
     manifest = ROOT / CORE_MANIFEST
     if manifest.is_file():
-        routes |= {f"/components/yue/core/{item['name'].lower()}" for item in json.loads(manifest.read_text(encoding="utf-8"))}
+        routes |= {f"/components/qian/core/{item['name'].lower()}" for item in json.loads(manifest.read_text(encoding="utf-8"))}
     return frozenset(routes)
 
 
@@ -194,7 +196,7 @@ def route_exists(route: str) -> bool:
     if route.startswith("/design/"):
         return route in design_routes()
     # TypeScript 实际声明内容决定的去重属性页只接受构建后确实存在的文件。
-    if re.fullmatch(r"/components/yue/api/native-[0-9a-f]{12}", route):
+    if re.fullmatch(r"/components/qian/api/native-[0-9a-f]{12}", route):
         return site_page_exists(SITE_DOCS / route.lstrip("/"))
     if route.startswith(("/cli/", "/components/")):
         if CORE_COMPONENT_ROUTE.fullmatch(route) and not core_components_known():
@@ -227,7 +229,7 @@ def link_exists(path: Path, target: str) -> bool:
 # 只解析生成器与手写页实际用到的 YAML 子集：`key: 标量`、`key: [a, b]`、`key:` + 缩进的 `- 项` 列表、双引号（JSON）与单引号字符串、# 注释。
 # 其它写法（嵌套映射、多行标量、锚点）一律报「无法解析」，提示改成上述形式。
 FM_PARTS = ("start", "components", "sdk", "cli", "ops", "marketplace", "design")
-FM_PROJECTS = ("qian", "kun", "yue")
+FM_PROJECTS = ("platform", "kun", "qian")
 FM_AUDIENCES = ("developer", "operator", "isv", "agent", "decision-maker")
 FM_SURFACES = ("skill", "agent", "command", "hook", "mcp", "tool", "ui")
 FM_STAGES = ("S1", "S2", "S3", "S4")
@@ -440,8 +442,8 @@ def check_frontmatter(path: Path, text: str) -> list[str]:
             errs.append(f"{label}: Kun 镜像页必须写 version（等于镜像的 Kun 版本）")
         if part is not None and part != "sdk":
             errs.append(f"{label}: Kun 镜像页只在 sdk/ 下（part: sdk）")
-    # 组件页（components/platform/<id>、components/yue/<name>）要 component
-    if re.match(r"^components/(platform|yue)/(?!index\.)[^/]+\.(md|mdx)$", rel) and "component" not in data:
+    # 组件页（components/platform/<id>、components/qian/<name>）要 component
+    if re.match(r"^components/(platform|qian)/(?!index\.)[^/]+\.(md|mdx)$", rel) and "component" not in data:
         errs.append(f"{label}: 组件页必须写 component（组件 id）")
     return errs
 

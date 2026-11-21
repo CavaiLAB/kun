@@ -149,7 +149,7 @@
 [ADR-022](../../adr/ADR-022-rspress-unified-component-docs.md) 将现有 Rspress 站点确定为唯一文档与演示体系，Storybook 全部退出；选型证据与默认插件限制见该 ADR。S1-YUE-005 先交付 core 接入，S1-DOCS-002 复用接线继续收集其它组件与 API，避免循环依赖。
 
 - **页面编排**：参考产品负责人提供的 [组件页](https://ui.shadcn.com/docs/components/aria/alert-dialog)：标题与用途、首屏可交互预览及源码展开/复制、安装、基本用法、组合结构、可切换状态的共用示例、API 与键盘/无障碍说明；保留模型体验、已知限制和变更。每个组件的普通 React 示例均可运行并查看对应源码；预览工具栏按 `docs/scenarios.json` 切换适用状态，弹层开关等交互在示例内操作，悬停需实际移入指针，右侧目录可定位章节，左侧按组件导航。采用本仓库真实 API 与令牌，功能说明以已实现能力为准。安装、预览、代码和 API 均留在现有 Rspress 页面中，用户无需访问独立演示站。
-- **内容源**：README、`docs/*.mdx`、普通 React 示例保留在组件目录，由收集脚本生成 `/components/yue/` 页面；示例与 Vitest/Playwright 共用，不复制两套组件实现。core 的 51 个入口及配套部件由清单校验覆盖。
+- **内容源**：README、`docs/*.mdx`、普通 React 示例保留在组件目录，由收集脚本生成 `/components/qian/` 页面；示例与 Vitest/Playwright 共用，不复制两套组件实现。core 0.2.1 标签中的 52 个入口及配套部件由清单校验覆盖。
 - **展示与样式**：站点内 Rsbuild 预构建编译本地 TSX，以同源 iframe 隔离弹层/Portal 和主题；独立构建显式加载 Tailwind v4、令牌与字体，并同步明暗主题。每页有使用说明、源码、适用状态示例、完整 props 表；令牌页同站可访问。
 - **交互必过验收**：每个可交互组件提供可直接操作的真实示例，并登记「操作 → 可观察结果」：输入/校验反馈，选择器选中与值回写，Dialog/AlertDialog 打开、确认/取消和关闭回焦，Tabs 切换，Toast/Notification 触发与关闭，以及各组件适用的键盘路径。对静态构建的 Rspress 页面执行 Playwright 操作与结果断言，覆盖明暗两态和预览 iframe；不得以仅渲染、截图、代码片段或外站链接替代。展示型组件验证实际渲染和适用状态，不虚构交互；全量入口与示例清单相互校验，缺交互场景或断言即 CI 失败。合并后在正式站点再次实测代表性输入、选择、弹层、切换和通知交互。
 - **Props**：以真实 TypeScript 为源；api-docgen 的默认过滤不足以直接验收，当前直接用 TypeScript checker 提取完整表并补源码 JSDoc；相同 DOM 属性按完整声明去重并在站内链接。继承属性、组合部件、函数/回调、必填、联合类型与默认值不得静默丢失。Button 的 variant/size/loading/disabled、Dialog 的 open/defaultOpen/onOpenChange 为回归探针；51 入口及部件的完整性由门禁检查。manifest 的 JSON Schema 不代替完整 API。
@@ -167,7 +167,7 @@
 | `title` | 是 | 文本 | 页面标题 |
 | `description` | 是 | ≤ 120 字 | 列表摘要、`llms.txt` 条目、知识库摘要 |
 | `part` | 是 | `start` / `components` / `sdk` / `cli` / `ops` / `marketplace` / `design` | 所属部分 |
-| `project` | 是 | `qian` / `kun` / `yue` | 三个兼容标识对应「平台」「Kun」「qian 组件库」。知识库与 `llms.txt` 按标识分组。前端组件页位于 `/components/yue/`。 |
+| `project` | 是 | `platform` / `kun` / `qian` | 分别对应平台、Kun 和 Qian 前端组件库。知识库与 `llms.txt` 按标识分组。组件页位于 `/components/qian/`，已有的 `/components/yue/` 书签继续打开对应页面并保留锚点。 |
 | `audience` | 是 | 数组：`developer` / `operator` / `isv` / `agent` / `decision-maker` | 知识库与「问 AI」按读者过滤 |
 | `component` | 组件页必填 | 组件 id，如 `qian.files` | 关联组件 |
 | `version` | 有发布版本时 | 组件版本、Kun CalVer 或前端包 SemVer | 定位对应发行版本 |
@@ -178,11 +178,11 @@
 | `updated` | 是 | `YYYY-MM-DD` | 新鲜度 |
 | `tags` | 否 | 数组 | 站内分类 |
 
-校验器（`scripts/check_docs.py`，S1-DOCS-003）：`title`、`description`（≤ 120 字）、`part`（须与所在目录一致，根目录的首页与站点地图记作 `start`）、`project`、`audience`、`updated`（有效日期）必填；镜像页（`project: kun` 或 `part: design`）必填 `source`，Kun 镜像页还必填 `version` 且只在 `sdk/` 下；`components/platform/<id>`、`components/yue/<name>` 页必填 `component`；`stage`、`surface`、`version`、`source` 写了就查枚举或格式。`version` 对组件页与 SDK 页的强制等首个包族版本发布、多版本开启时再启用。frontmatter 只用 YAML 子集：`key: 值`、`key: [a, b]`、缩进的 `- 项` 列表、双引号或单引号字符串；生成器与校验器用同一套规则（`website/scripts/repo.ts` 的 `parseFrontmatter`），嵌套映射、多行标量一律不收。手写页默认只检查进 Git 的源，生成页在 CI 里构建后显式检查（§7）。
+校验器（`scripts/check_docs.py`，S1-DOCS-003）：`title`、`description`（≤ 120 字）、`part`（须与所在目录一致，根目录的首页与站点地图记作 `start`）、`project`、`audience`、`updated`（有效日期）必填；镜像页（`project: kun` 或 `part: design`）必填 `source`，Kun 镜像页还必填 `version` 且只在 `sdk/` 下；`components/platform/<id>`、`components/qian/<name>` 页必填 `component`；`stage`、`surface`、`version`、`source` 写了就查枚举或格式。组件页与 SDK 页的 `version` 字段按现行规则校验。frontmatter 只用 YAML 子集：`key: 值`、`key: [a, b]`、缩进的 `- 项` 列表、双引号或单引号字符串；生成器与校验器用同一套规则（`website/scripts/repo.ts` 的 `parseFrontmatter`），嵌套映射、多行标量一律不收。手写页默认只检查进 Git 的源，生成页在 CI 里构建后显式检查（§7）。
 
 ## 5 版本、语言与机器可读产物
 
-- **版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包独立使用 SemVer。多版本站点属于后续目标。
+- **版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包使用 SemVer，已冻结在 0.2.1。旧外壳按 Qian 0.2.1 归档，组件文档从相应发布标签生成。业务预发保留原有部署和数据。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
 - **语言**：中文为唯一一等语言；英文在 S3 评估，目录结构预留 `/en/` 前缀，不提前翻译。
 - **机器可读**：开启 `llms: true`，构建产出 `llms.txt`、`llms-full.txt`、每页 `.md`（SSG-MD），加 `sitemap.xml` 与 `kb-index.json`（每页 url、md url、标题、frontmatter 含 `project` / `version` / `source`、内容 sha256、更新时间），契约见 §5.1；`llms.txt` 按 `project` 分节（平台 / 内核 / 前端，S1-DOCS-006；S1-DOCS-003 先按七个部分分节）。知识库只读这些产物，不解析 MDX 源。每页标题下与首页有「复制为 Markdown」「复制 Markdown 链接」入口（Rspress `themeConfig.llmsUI`，不放外部 AI 服务入口）。
 - **站内「问 AI」**。S2 规划的 `<AskDocs>` 组件检索站点生成的文档与索引，模型调用经模型网关（S2-DOCS-001）。
@@ -221,7 +221,7 @@ website/
     index.mdx                  首页
     start/                     1 开始（family.md 产品族地图；versions.md 由 build-versions.ts 生成，不进 Git）
     components/                2 组件目录（生成，勿手改；收集脚本输出）
-      yue/core/<name>.mdx       52 个 core 入口；yue/api/ 共享继承属性表
+      qian/core/<name>.mdx      52 个 core 入口；qian/api/ 共享继承属性表
       platform/<id>.mdx
     sdk/                       3 SDK
       kun/                     按 Kun 最近的发布标签镜像文档；with-qian.mdx 为手写页

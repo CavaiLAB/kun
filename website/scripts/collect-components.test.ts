@@ -19,6 +19,11 @@ describe('collectComponents（S1-DOCS-002 之前的占位目录）', () => {
     assert.doesNotMatch(byPath.get('platform/qian.files.md') ?? '', /^tag:/m);
   });
 
+  it('组件目录标明 Qian 冻结版本与标签来源', () => {
+    assert.match(byPath.get('index.md') ?? '', /冻结在 0\.2\.1.*发布标签生成/);
+    assert.match(byPath.get('qian/index.md') ?? '', /旧应用外壳按 Qian 0\.2\.1 归档，业务预发保留原有部署和数据/);
+  });
+
   it('首页与其他部分链接到的组件页都存在', () => {
     for (const id of ['qian.gateway', 'qian.audit', 'qian.observability', 'qian.workflow', 'qian.identity', 'qian.authz', 'qian.files']) {
       assert.ok(byPath.has(`platform/${id}.md`), id);
@@ -37,17 +42,17 @@ describe('collectComponents（S1-DOCS-002 之前的占位目录）', () => {
   });
 
   it('外壳页来自包目录且在索引、侧栏与三个共用示例中可发现', () => {
-    const shell = byPath.get('yue/shell.mdx') ?? '';
+    const shell = byPath.get('qian/shell.mdx') ?? '';
     for (const name of ['AppShell', 'Authentication', 'FallbackPage']) assert.ok(shell.includes(`name="${name}"`));
-    assert.ok(byPath.get('yue/index.md')?.includes('/components/yue/shell'));
-    assert.ok(JSON.parse(byPath.get('yue/_meta.json') ?? '[]').includes('shell'));
+    assert.ok(byPath.get('qian/index.md')?.includes('/components/qian/shell'));
+    assert.ok(JSON.parse(byPath.get('qian/_meta.json') ?? '[]').includes('shell'));
   });
 
   it('业务选择器页来自包目录且在索引、侧栏与七个共用示例中可发现', () => {
-    const biz = byPath.get('yue/biz.mdx') ?? '';
+    const biz = byPath.get('qian/biz.mdx') ?? '';
     for (const name of ['ApiSelect', 'DictSelect', 'OrganizeSelect', 'UserSelect', 'RoleSelect', 'AuthorizationTree', 'IconPicker']) assert.ok(biz.includes(`name="${name}"`));
     assert.ok(biz.includes('(/design/prd/specs/frontend)'));
-    assert.ok(byPath.get('yue/index.md')?.includes('/components/yue/biz'));
-    assert.ok(JSON.parse(byPath.get('yue/_meta.json') ?? '[]').includes('biz'));
+    assert.ok(byPath.get('qian/index.md')?.includes('/components/qian/biz'));
+    assert.ok(JSON.parse(byPath.get('qian/_meta.json') ?? '[]').includes('biz'));
   });
 });

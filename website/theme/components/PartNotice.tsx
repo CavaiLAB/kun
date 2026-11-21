@@ -1,4 +1,4 @@
-// 第 2、3、4 部分每页顶部的版本说明（docs-site.md §5）。首个包族版本发布后改为版本切换。
+// 第 2、3、4 部分每页顶部显示站点和组件参考的版本来源（docs-site.md §5）。
 // Kun 小节与 Kun API 参考（frontmatter project: kun）不显示：它们按 Kun 最新的发布版镜像，各页横幅已写明版本（§2b）。
 import { usePage } from '@rspress/core/runtime';
 import { Link } from '@rspress/core/theme';
@@ -12,8 +12,8 @@ export function PartNotice() {
   if (!part || page.frontmatter?.project === 'kun') return null;
   return (
     <div className="qian-part-notice">
-      版本：开发版（main）。「{part.name}」随 Qian 包族的 SemVer 多版本发布，首个版本发布后在此切换版本（
-      <Link href="/design/prd/specs/docs-site">文档站规范 §5</Link>）。
+      {part.name} · main 文档。{page.frontmatter?.project === 'qian' && '旧外壳按 Qian 0.2.1 归档，组件参考按发布标签生成。'}
+      <Link href="/start/versions">查看版本矩阵</Link>。
     </div>
   );
 }

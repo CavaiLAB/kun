@@ -2,7 +2,7 @@
 title: 表面
 description: 表面是组件对外暴露的一类声明式内容：skills、agents、commands、hooks、MCP、tools、ui、metadata、schemas、patch 与 S2 的低代码表面。
 part: start
-project: qian
+project: platform
 audience: [developer, agent]
 updated: 2026-11-19
 ---

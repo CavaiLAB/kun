@@ -61,29 +61,29 @@ class SiteContentTests(unittest.TestCase):
         good = [
             "/", "/start/", "/start/hosts", "/start/hosts.html", "/start/hosts#anchor", "./hosts", "hosts.md",
             "../index.mdx", "/logo.svg", "/design/", "/design/adr/", "/design/adr/adr-001-kun",
-            "/cli/", "/cli/commands", "/components/platform/qian.files", "/components/yue/",
+            "/cli/", "/cli/commands", "/components/platform/qian.files", "/components/qian/",
             "https://example.com/x", "#local",
         ]
         self.assertEqual(self.errors_for(good), [])
 
     def test_core_routes_come_from_installed_manifest_and_api_files_must_exist(self) -> None:
         write(self.tmp / "website/node_modules/@cavailab/qian-core/dist/qian-manifest.json", '[{"name": "Button", "props": {}}]')
-        write(self.tmp / "website/docs/components/yue/api/native-123456abcdef.mdx", "# 属性")
-        self.assertEqual(self.errors_for(["/components/yue/core/button", "/components/yue/tokens", "/components/yue/core/shared-api",
-                                          "/components/yue/api/native-123456abcdef"]), [])
-        for route in ["/components/yue/core/invented", "/components/yue/api/native-000000000000"]:
+        write(self.tmp / "website/docs/components/qian/api/native-123456abcdef.mdx", "# 属性")
+        self.assertEqual(self.errors_for(["/components/qian/core/button", "/components/qian/tokens", "/components/qian/core/shared-api",
+                                          "/components/qian/api/native-123456abcdef"]), [])
+        for route in ["/components/qian/core/invented", "/components/qian/api/native-000000000000"]:
             self.assertTrue(self.errors_for([route]), route)
 
     def test_core_routes_deferred_without_installed_manifest(self) -> None:
         # 只跑文档门禁的作业不装文档站依赖：core 组件路由交给构建时的断链检查，其它生成路由照样要登记过。
-        self.assertEqual(self.errors_for(["/components/yue/core/button", "/components/yue/core/invented", "/components/yue/tokens"]), [])
-        for route in ["/components/yue/core/Button", "/components/yue/core/a/b", "/components/yue/undeclared", "/components/platform/qian.nope"]:
+        self.assertEqual(self.errors_for(["/components/qian/core/button", "/components/qian/core/invented", "/components/qian/tokens"]), [])
+        for route in ["/components/qian/core/Button", "/components/qian/core/a/b", "/components/qian/undeclared", "/components/platform/qian.nope"]:
             self.assertTrue(self.errors_for([route]), route)
 
-    def test_yue_package_routes_must_be_declared_by_collector(self) -> None:
-        write(self.tmp / "website/scripts/collect-components.ts", "{ path: 'yue/form.mdx' }, { path: 'yue/data.md' }\n")
-        self.assertEqual(self.errors_for(["/components/yue/form", "/components/yue/data"]), [])
-        self.assertTrue(self.errors_for(["/components/yue/undeclared"]))
+    def test_qian_package_routes_must_be_declared_by_collector(self) -> None:
+        write(self.tmp / "website/scripts/collect-components.ts", "{ path: 'qian/form.mdx' }, { path: 'qian/data.md' }\n")
+        self.assertEqual(self.errors_for(["/components/qian/form", "/components/qian/data"]), [])
+        self.assertTrue(self.errors_for(["/components/qian/undeclared"]))
 
     def test_missing_routes_fail(self) -> None:
         bad = ["/start/missing", "./nope", "/design/adr/adr-999", "/design/adr/ADR-001-kun", "/cli/nope", "/components/platform/qian.nope"]
@@ -198,7 +198,7 @@ class FrontmatterTests(SiteContentTests):
         self.assertTrue(any("缺少必填字段 description, part, project, audience, updated" in e for e in missing), missing)
         cases = {
             "part: start": ("part: ops", "但页面在 start/ 目录下"),
-            "project: qian": ("project: yue2", "project 取值"),
+            "project: qian": ("project: qian2", "project 取值"),
             "audience: [developer, operator]": ("audience: [developer, boss]", "audience 取值"),
             "updated: 2026-10-09": ("updated: 2026-13-01", "updated 应为"),
             "description: 一句话。": ("description: " + "长" * 121, "超过 120 字"),

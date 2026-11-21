@@ -506,7 +506,7 @@ export function apiReferenceFiles(kun: KunCheckout, kunApi: KunApiResult): Gener
         'title: API 参考',
         `description: ${yamlString('由工具生成的 API 参考：Kun.* 已上线，平台档 NuGet 包、前端包与平台 HTTP API 另按 S1-DOCS-002 交付。')}`,
         'part: sdk',
-        'project: qian',
+        'project: platform',
         'audience: [developer, agent]',
         `updated: ${kun.date}`,
         '---',

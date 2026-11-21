@@ -195,7 +195,7 @@ describe('Kun API 参考', () => {
   it('sdk/api/ 落地页列出内核档，平台档、前端与 HTTP API 都在 /sdk/api/ 下（R56）', () => {
     const files = apiReferenceFiles(kun, convertDocfx(kun, output, ['Kun.Core']));
     const landing = files.find((f) => f.path === 'index.md')?.content ?? '';
-    assert.match(landing, /^project: qian$/m);
+    assert.match(landing, /^project: platform$/m);
     assert.doesNotMatch(landing, /^sidebar:/m);
     assert.match(landing, /\[Kun API 参考\]\(\/sdk\/api\/kun\/\)/);
     for (const route of ['/sdk/api/dotnet/', '/sdk/api/frontend/', '/sdk/api/http/']) assert.ok(landing.includes(`\`${route}\``), route);

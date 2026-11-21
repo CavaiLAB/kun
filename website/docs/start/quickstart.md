@@ -2,7 +2,7 @@
 title: 30 分钟上手
 description: 构建 Kun 命令行，在独立 ASP.NET Core 宿主验收组件的还原、挂载和卸载。
 part: start
-project: qian
+project: platform
 audience: [developer]
 updated: 2026-11-20
 ---

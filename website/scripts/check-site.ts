@@ -8,6 +8,7 @@
 // 8. 产物总大小不超过预算（R55），挡住「同一块内容被重复渲染进每一页」这类结构性膨胀；
 // 9. 机器可读产物（docs-site.md §4a）：llms.txt、llms-full.txt、每页 .md、kb-index.json、sitemap.xml 齐全且与源文档同步，
 //    .md 里没有 JSX / ESM 残留与空标题空列表项，代码块不少于源页。
+import { previousComponentPath, redirectContents } from './component-redirects.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { KB_INDEX_FILE, KB_INDEX_VERSION, SITEMAP_FILE, absoluteUrl, sha256, type KbIndex } from './build-kb-index.ts';
@@ -162,6 +163,17 @@ export function checkMachineReadable(files: readonly string[], read: (rel: strin
     if (page.route !== '/' && !llmsTxt.includes(`](${page.md})`)) errors.push(`llms.txt 没有列出 ${page.md}`);
     if (!llmsFull.includes(`url: ${page.md}\n`)) errors.push(`llms-full.txt 没有收录 ${page.md}`);
     if (!sitemap.includes(`<loc>${xmlEscape(absoluteUrl(index, page.route))}</loc>`)) errors.push(`sitemap.xml 没有 ${page.route}`);
+  }
+  // 跳转文件不进知识库；其内容和目标都必须对应索引内的真实页面。
+  for (const current of [...listed]) {
+    for (const target of [current, current.replace(/\.md$/, '.html')]) {
+      const previous = previousComponentPath(target);
+      if (!previous) continue;
+      if (!files.includes(previous) || read(previous) !== redirectContents(previous, target)) {
+        errors.push(`${previous} 未正确指向 ${target}`);
+      }
+      listed.add(previous);
+    }
   }
   for (const rel of files) {
     if (rel.endsWith('.md') && !listed.has(rel)) errors.push(`${rel} 不在 ${KB_INDEX_FILE} 里（产物里多出来的 Markdown）`);

@@ -18,7 +18,7 @@ export const LICENSES = [
   { project: 'Qian', name: 'MIT', url: 'https://github.com/CavaiLAB/qian/blob/main/LICENSE' },
 ] as const;
 
-/** 第 2、3、4 部分随 Qian 包族的 SemVer 多版本发布，其余部分只有当前版（docs-site.md §5）。 */
+/** 第 2、3、4 部分显示版本来源提示（docs-site.md §5）。 */
 export const VERSIONED_PARTS = [
   { prefix: '/components/', name: '组件目录' },
   { prefix: '/sdk/', name: 'SDK' },

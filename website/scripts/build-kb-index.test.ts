@@ -12,7 +12,7 @@ function write(root: string, rel: string, content: string): void {
 }
 
 const PAGE = (title: string, extra = '') =>
-  `---\ntitle: ${title}\ndescription: 一句话。\npart: start\nproject: qian\naudience: [developer]\nupdated: 2026-10-09\n${extra}---\n\n# ${title}\n`;
+  `---\ntitle: ${title}\ndescription: 一句话。\npart: start\nproject: platform\naudience: [developer]\nupdated: 2026-10-09\n${extra}---\n\n# ${title}\n`;
 
 describe('路由与产物路径', () => {
   it('index 文件对应目录路由，其余去掉扩展名', () => {
@@ -59,7 +59,7 @@ describe('知识库索引（docs-site.md §4a）', () => {
     assert.equal(hosts.md, '/start/hosts.md');
     assert.equal(hosts.sourceFile, 'start/hosts.md');
     assert.equal(hosts.title, '宿主');
-    assert.equal(hosts.project, 'qian');
+    assert.equal(hosts.project, 'platform');
     assert.deepEqual(hosts.audience, ['developer']);
     assert.equal(hosts.version, '1.2.3');
     assert.equal(hosts.source, 'CavaiLAB/kun@main:docs/x.md');
@@ -86,8 +86,8 @@ describe('知识库索引（docs-site.md §4a）', () => {
       siteUrl: 'http://docs.example',
       kunVersion: '2026.10.8',
       pages: [
-        { route: '/', url: '/pr-preview/pr-6/index.html', md: '/pr-preview/pr-6/index.md', sourceFile: 'index.mdx', title: '首页', description: '', project: 'qian', part: 'start', audience: [], updated: '2026-10-09', sha256: '', bytes: 0, frontmatter: {} },
-        { route: '/a&b/', url: '', md: '', sourceFile: 'a&b/index.md', title: '', description: '', project: 'qian', part: 'start', audience: [], updated: '2026-10-01', sha256: '', bytes: 0, frontmatter: {} },
+        { route: '/', url: '/pr-preview/pr-6/index.html', md: '/pr-preview/pr-6/index.md', sourceFile: 'index.mdx', title: '首页', description: '', project: 'platform', part: 'start', audience: [], updated: '2026-10-09', sha256: '', bytes: 0, frontmatter: {} },
+        { route: '/a&b/', url: '', md: '', sourceFile: 'a&b/index.md', title: '', description: '', project: 'platform', part: 'start', audience: [], updated: '2026-10-01', sha256: '', bytes: 0, frontmatter: {} },
       ],
     });
     assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>\n<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">\n/);

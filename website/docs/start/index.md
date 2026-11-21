@@ -2,7 +2,7 @@
 title: 开始
 description: 从空白 ASP.NET Core 项目开始使用 Kun 组件，了解组件、表面、scope、seam 与 profile。
 part: start
-project: qian
+project: platform
 audience: [developer]
 updated: 2026-11-20
 ---

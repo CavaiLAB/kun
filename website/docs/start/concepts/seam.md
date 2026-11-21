@@ -2,7 +2,7 @@
 title: seam
 description: 一项能力的缝合点：Service Definition + Provider + Consumer；换 Provider 不改调用方，组件之间只经 Abstractions 引用。
 part: start
-project: qian
+project: platform
 audience: [developer]
 updated: 2026-10-07
 ---

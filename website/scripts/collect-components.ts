@@ -45,7 +45,7 @@ export const PLATFORM_COMPONENTS: PlannedComponent[] = [
   { id: 'qian.scheduler', name: '调度', stage: 'S1', summary: 'PG 持久化的作业与触发器、集群安全领取、按业务键可取消。', refs: [{ text: 'PRD §7.13', doc: S1_PRD }] },
   { id: 'qian.realtime', name: '实时推送', stage: 'S1', summary: '可选（P1）：WebSocket / SSE 会话、一次性握手票据、Redis 背板扇出与在线状态。', refs: [{ text: 'PRD §7.13', doc: S1_PRD }] },
   { id: 'qian.entitlement', name: '授权 v0', stage: 'S1', summary: '「租户 × 插件 × 计划」授权表、运营手工授予与权益查询 API。', refs: [{ text: 'PRD §7.14', doc: S1_PRD }, { text: 'ADR-014 D14.5', doc: 'docs/adr/ADR-014-marketplace.md' }] },
-  { id: 'qian.shell', name: '前端外壳', stage: 'S1', summary: '外壳静态制品与外壳 API：MF2 宿主、共享依赖与版本化插槽注册表。', refs: [{ text: 'PRD §7.15', doc: S1_PRD }, { text: 'ADR-013', doc: 'docs/adr/ADR-013-frontend-framework.md' }] },
+  { id: 'qian.shell', name: '前端外壳', stage: 'S1', summary: 'Kun 旧应用外壳的静态制品与 API，包括 MF2 宿主、共享依赖和版本化插槽注册表。', refs: [{ text: 'PRD §7.15', doc: S1_PRD }, { text: 'ADR-013', doc: 'docs/adr/ADR-013-frontend-framework.md' }] },
   { id: 'qian.model-gateway', name: '模型服务网关底座', stage: 'S1', summary: '可选（P1）：GPUStack 注册为 Higress 上游、Provider Adapter、逻辑模型目录。', refs: [{ text: 'PRD §7.16', doc: S1_PRD }, { text: 'ADR-015', doc: 'docs/adr/ADR-015-model-gateway.md' }] },
   { id: 'qian.docs', name: '文档生成器', stage: 'S1', summary: '开发态组件：qian docs generate 从代码生成配置目录、模块图与事件图。', refs: [{ text: '组件模型规格 §7.7', doc: SPEC }, { text: 'ADR-020 D20.9', doc: 'docs/adr/ADR-020-component-model-v2.md' }] },
   { id: 'qian.workflow', name: '流程与自动化', stage: 'S2', summary: '审批内核与触发器：一套 JSON 定义、节点树视图设计器。', refs: [{ text: 'ADR-012', doc: 'docs/adr/ADR-012-workflow-engine.md' }, { text: 'PRD §8', doc: 'docs/prd/08-s2-lowcode.md' }] },
@@ -64,19 +64,19 @@ export const YUE_PACKAGES: Array<{ name: string; stage: Stage; summary: string }
 const PLACEHOLDER_NOTE =
   '> 占位页：组件文件夹尚未建立。S1-DOCS-002 起本页由收集脚本从组件文件夹生成，按[组件页模板](/design/prd/specs/docs-site)固定九节：用途、安装、配置、表面、API、示例、模型体验、已知限制与延期项、变更。';
 
-/**
- * form、data、shell、biz 的包级文档页取自 CavaiLAB/qian 检出里的 docs/index.mdx，那边 frontmatter 的 project 写的是 qian；
- * 本站的 /components/yue/ 小节在组件页来源定下来之前（F5）仍归 project: yue，这里改回，并补上来源。
- */
+/** 从核心包对应的前端标签读取包级页面，保留源 project 并登记来源。 */
 function packagePage(qian: QianCheckout, name: 'form' | 'data' | 'shell' | 'biz'): string {
   const file = `packages/qian/${name}/docs/index.mdx`;
   const text = fs.readFileSync(path.join(qianPackageDir(qian.dir, name), 'docs/index.mdx'), 'utf8');
   const end = text.indexOf('\n---\n', 4);
   if (!text.startsWith('---\n') || end < 0) throw new Error(`${file} 缺 frontmatter`);
-  const front = text.slice(0, end).replace(/^project: qian$/m, 'project: yue');
-  if (!/^project: yue$/m.test(front)) throw new Error(`${file} 的 frontmatter 没有 project`);
-  const body = rewriteLinks(text.slice(end), (href) =>
-    href === '/design/prd/specs/yue' ? designRoute('docs/prd/specs/frontend.md') : null);
+  const front = text.slice(0, end);
+  if (!/^project: qian$/m.test(front)) throw new Error(`${file} 的 frontmatter 没有 project`);
+  const body = rewriteLinks(text.slice(end), href => {
+    const current = href.replace(/^\/components\/yue(?=[/#?.]|$)/, '/components/qian')
+      .replace(/^\/design\/prd\/specs\/yue(?=[#?.]|$)/, designRoute('docs/prd/specs/frontend.md'));
+    return current === href ? null : current;
+  });
   return `${front}\nsource: ${yamlString(qianSource(qian, file))}${body}`;
 }
 
@@ -95,7 +95,7 @@ function componentPage(c: PlannedComponent, repoRoot: string, docsRoot: string):
     `title: ${yamlString(`${c.id} ${c.name}`)}`,
     `description: ${yamlString(c.summary)}`,
     'part: components',
-    'project: qian',
+    'project: platform',
     'audience: [developer, operator]',
     `updated: ${repoFileDate(SELF, repoRoot)}`,
     `component: ${c.id}`,
@@ -135,7 +135,7 @@ export function collectComponents(repoRoot: string = REPO_ROOT, docsRoot: string
       `title: ${yamlString('平台插件')}`,
       `description: ${yamlString('身份、鉴权、租户、文件、配置、事件、审计等平台插件的目录。')}`,
       'part: components',
-      'project: qian',
+      'project: platform',
       'audience: [developer, operator]',
       `updated: ${repoFileDate(SELF, repoRoot)}`,
       '---',
@@ -154,30 +154,30 @@ export function collectComponents(repoRoot: string = REPO_ROOT, docsRoot: string
   });
 
   const qian = openQian();
-  files.push({ path: 'yue/form.mdx', content: packagePage(qian, 'form') });
+  files.push({ path: 'qian/form.mdx', content: packagePage(qian, 'form') });
 
-  files.push({ path: 'yue/data.mdx', content: packagePage(qian, 'data') });
+  files.push({ path: 'qian/data.mdx', content: packagePage(qian, 'data') });
 
-  files.push({ path: 'yue/shell.mdx', content: packagePage(qian, 'shell') });
+  files.push({ path: 'qian/shell.mdx', content: packagePage(qian, 'shell') });
 
-  files.push({ path: 'yue/biz.mdx', content: packagePage(qian, 'biz') });
+  files.push({ path: 'qian/biz.mdx', content: packagePage(qian, 'biz') });
 
   const yueRows = YUE_PACKAGES.map((p) => `| \`${p.name}\` | ${p.stage} | ${p.summary} |`).join('\n');
   files.push({
-    path: 'yue/index.md',
+    path: 'qian/index.md',
     content: [
       '---',
       `title: ${yamlString('qian 组件库')}`,
       `description: ${yamlString('qian 组件库各包的目录；组件页带活演示与 props 表。')}`,
       'part: components',
-      'project: yue',
+      'project: qian',
       'audience: [developer]',
       `updated: ${repoFileDate(SELF, repoRoot)}`,
       '---',
       '',
       '# qian 组件库',
       '',
-      `Qian 提供 React 组件、TypeScript 运行时和前端插件 SDK（[ADR-013](${designRoute('docs/adr/ADR-013-frontend-framework.md')})、[组件库专题规格](${designRoute('docs/prd/specs/frontend.md')})），源码在 [CavaiLAB/qian](${QIAN_REPO_URL})；本小节由它的标签 \`${qian.tag}\` 生成（版本钉在 \`pnpm-workspace.yaml\` 的版本目录）。包发在 GitHub Packages，包名 \`@cavailab/qian-<包>\`；设计文档里沿用旧包名，对应关系见 [CavaiLAB/qian 迁移说明第 2 节](${QIAN_REPO_URL}/blob/main/docs/migrating-from-yue.md#2-包名与安装)。core 提供 ${readYueDocs().docs.length} 个组件入口，每页包含真实交互演示、源码与完整 Props。`,
+      `Kun 旧应用外壳按 Qian 0.2.1 归档，业务预发保留原有部署和数据。归档源码使用 Qian 的 React 组件、TypeScript 运行时和前端插件 SDK（[ADR-013](${designRoute('docs/adr/ADR-013-frontend-framework.md')})、[组件库专题规格](${designRoute('docs/prd/specs/frontend.md')})），源码在 [CavaiLAB/qian](${QIAN_REPO_URL})；本小节由它的标签 \`${qian.tag}\` 生成（版本钉在 \`pnpm-workspace.yaml\` 的版本目录）。包发在 GitHub Packages，包名 \`@cavailab/qian-<包>\`；设计文档里沿用旧包名，对应关系见 [CavaiLAB/qian 迁移说明第 2 节](${QIAN_REPO_URL}/blob/main/docs/migrating-from-yue.md#2-包名与安装)。core 提供 ${readYueDocs().docs.length} 个组件入口，每页包含真实交互演示、源码与完整 Props。`,
       '',
       '安装前在项目的 `.npmrc` 写 `@cavailab:registry=https://npm.pkg.github.com`；令牌行 `//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}` 写进用户级配置（`~/.npmrc`）——10.34.2 起的 pnpm 10、11.5.3 起的 pnpm 11，以及 pnpm 12 不展开仓库里 `.npmrc` 认证行的环境变量（安全公告 GHSA-3qhv-2rgh-x77r；11.0.0–11.5.2 仍会展开）——再把有 `read:packages` 权限的个人访问令牌（classic）放进环境变量 `NODE_AUTH_TOKEN`。从这个包源安装公开包也要令牌，详见 [CavaiLAB/qian 迁移说明第 2 节](' + QIAN_REPO_URL + '/blob/main/docs/migrating-from-yue.md#2-包名与安装)。下表是 S1 各包的范围。',
       '',
@@ -187,13 +187,13 @@ export function collectComponents(repoRoot: string = REPO_ROOT, docsRoot: string
       '',
       '## 基础组件',
       '',
-      ...readYueDocs().docs.map(d => `- [${d.name} ${d.label}](/components/yue/core/${d.name.toLowerCase()})：${d.description}`),
+      ...readYueDocs().docs.map(d => `- [${d.name} ${d.label}](/components/qian/core/${d.name.toLowerCase()})：${d.description}`),
       '',
-      '- [设计令牌](/components/yue/tokens)',
-      '- [SchemaForm 表单与弹层](/components/yue/form)',
-      '- [数据组件](/components/yue/data)',
-      '- [外壳与认证](/components/yue/shell)',
-      '- [业务选择器](/components/yue/biz)',
+      '- [设计令牌](/components/qian/tokens)',
+      '- [SchemaForm 表单与弹层](/components/qian/form)',
+      '- [数据组件](/components/qian/data)',
+      '- [外壳与认证](/components/qian/shell)',
+      '- [业务选择器](/components/qian/biz)',
       '',
     ].join('\n'),
   });
@@ -205,7 +205,7 @@ export function collectComponents(repoRoot: string = REPO_ROOT, docsRoot: string
       `title: ${yamlString('组件目录')}`,
       `description: ${yamlString('每个组件一页：怎么装、怎么配、暴露了什么；平台插件与 qian 组件库用同一模板。')}`,
       'part: components',
-      'project: qian',
+      'project: platform',
       'audience: [developer, operator, isv]',
       `updated: ${repoFileDate(SELF, repoRoot)}`,
       '---',
@@ -215,15 +215,15 @@ export function collectComponents(repoRoot: string = REPO_ROOT, docsRoot: string
       '「组件怎么用」只写在这一部分：每个组件一页，讲用途、安装（`qian add <id>`）、配置、表面、API、示例、模型体验与已知限制。编程模型与 API 原理在 [SDK](/sdk/)，命令与清单字段在 [CLI 与规格](/cli/)。',
       '',
       `- [平台插件](/components/platform/)：${PLATFORM_COMPONENTS.length} 个规划中的组件`,
-      '- [qian 组件库](/components/yue/)：前端组件与外壳',
+      '- [qian 组件库](/components/qian/)：前端组件与外壳',
       '',
-      '本部分随 Qian 包族的 SemVer 多版本发布；首个版本发布前只有开发版。',
+      'Qian 已冻结在 0.2.1。旧应用外壳的归档组件文档按前端发布标签生成。',
       '',
     ].join('\n'),
   });
 
-  files.push({ path: '_meta.json', content: `${JSON.stringify(['index', { type: 'dir', name: 'platform', label: '平台插件' }, { type: 'dir', name: 'yue', label: 'qian 组件库' }], null, 2)}\n` });
+  files.push({ path: '_meta.json', content: `${JSON.stringify(['index', { type: 'dir', name: 'platform', label: '平台插件' }, { type: 'dir', name: 'qian', label: 'qian 组件库' }], null, 2)}\n` });
   files.push({ path: 'platform/_meta.json', content: `${JSON.stringify(['index', ...PLATFORM_COMPONENTS.map((c) => c.id)], null, 2)}\n` });
-  files.push({ path: 'yue/_meta.json', content: `${JSON.stringify(['index', 'tokens', 'form', 'data', 'shell', 'biz', { type: 'dir', name: 'core', label: '基础组件' }], null, 2)}\n` });
+  files.push({ path: 'qian/_meta.json', content: `${JSON.stringify(['index', 'tokens', 'form', 'data', 'shell', 'biz', { type: 'dir', name: 'core', label: '基础组件' }], null, 2)}\n` });
   return [...files, ...collectYuePages(qian)];
 }

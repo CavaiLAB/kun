@@ -10,7 +10,7 @@ test('断外网后加载本地编辑器、修改代码并真实运行', async ({
   });
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto('components/yue/core/button.html');
+  await page.goto('components/qian/core/button.html');
   const frame = page.frameLocator('iframe');
   await frame.getByRole('button', { name: '编辑代码' }).click();
   const editor = frame.locator('.monaco-editor textarea');
@@ -26,7 +26,7 @@ test('断外网后加载本地编辑器、修改代码并真实运行', async ({
 
 test('属性表、继承回调、源码和 Markdown 同步', async ({ page, request }) => {
   for (const [component, props] of Object.entries({ Button: ['variant', 'size', 'loading', 'disabled'], Dialog: ['open', 'defaultOpen', 'onOpenChange'] })) {
-    const route = `components/yue/core/${component.toLowerCase()}`;
+    const route = `components/qian/core/${component.toLowerCase()}`;
     await page.goto(`${route}.html`);
     for (const details of await page.locator('details').all()) await details.locator('summary').click();
     for (const prop of props) await expect(page.getByRole('cell', { name: prop, exact: true }).first()).toBeVisible();
@@ -40,7 +40,7 @@ test('属性表、继承回调、源码和 Markdown 同步', async ({ page, requ
 });
 
 test('iframe 无障碍门禁能拒绝真实隐藏焦点缺陷', async ({ page }) => {
-  await page.goto('components/yue/core/button.html');
+  await page.goto('components/qian/core/button.html');
   const body = page.frameLocator('iframe').locator('body');
   await body.evaluate(element => element.insertAdjacentHTML('beforeend', '<div aria-hidden="true"><button>负例：隐藏的可聚焦按钮</button></div>'));
   const { default: AxeBuilder } = await import('@axe-core/playwright');
@@ -51,7 +51,7 @@ test('iframe 无障碍门禁能拒绝真实隐藏焦点缺陷', async ({ page })
 
 test('站点主题支持键盘切换，iframe 保留交互状态', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('components/yue/core/button.html');
+  await page.goto('components/qian/core/button.html');
   const frame = page.frameLocator('iframe');
   await frame.getByRole('button', { name: '保存更改', exact: true }).click();
   await expect(page.getByRole('button', { name: '切换主题', exact: true }).locator('svg:visible')).toHaveCount(1);
@@ -70,7 +70,7 @@ test('桌面快捷键文字在明暗主题均有足够对比度', async ({ page 
   const { default: AxeBuilder } = await import('@axe-core/playwright');
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme });
-    await page.goto('components/yue/core/button.html');
+    await page.goto('components/qian/core/button.html');
     await expect(page.locator('.rp-search-button__hotkey')).toBeVisible();
     await expect(page.locator('.rp-search-button__hotkey')).toContainText('Ctrl');
     await settleVisuals(page);

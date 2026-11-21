@@ -9,7 +9,9 @@ http.createServer((req, res) => {
   if (!url.pathname.startsWith(base)) { res.writeHead(404).end(); return; }
   const name = path.resolve(root, decodeURIComponent(url.pathname.slice(base.length) || 'index.html'));
   if (!name.startsWith(`${root}${path.sep}`)) { res.writeHead(403).end(); return; }
-  const file = name.endsWith(path.sep) ? `${name}index.html` : name;
+  let file = name;
+  if (fs.statSync(name, { throwIfNoEntry: false })?.isDirectory()) file = path.join(name, 'index.html');
+  else if (!path.extname(name) && fs.existsSync(name + '.html')) file = name + '.html';
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404).end(); return; }
   res.writeHead(200, { 'Content-Type': types[path.extname(file)] ?? 'application/octet-stream' });
   fs.createReadStream(file).pipe(res);

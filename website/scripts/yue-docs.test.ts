@@ -13,7 +13,7 @@ describe('真实组件文档契约', () => {
     assert.equal(data.docs.length, 52); assert.equal(data.scenarios.length, 128);
     assert.equal(fs.existsSync(path.join(REPO_ROOT, 'apps/yue-storybook')), false);
     assert.doesNotMatch(fs.readFileSync(path.join(REPO_ROOT, 'pnpm-lock.yaml'), 'utf8'), /@storybook\/|^\s+storybook@/m);
-    for (const doc of data.docs) assert.ok(pages.some(p => p.path === `yue/core/${doc.name.toLowerCase()}.mdx`));
+    for (const doc of data.docs) assert.ok(pages.some(p => p.path === `qian/core/${doc.name.toLowerCase()}.mdx`));
     for (const api of data.apis) assert.ok(pages.some(p => p.content.includes(`### ${api.name}\n`)), api.name);
   });
   it('解析真实属性、默认值、继承属性、泛型和必填回调', () => {
@@ -27,9 +27,9 @@ describe('真实组件文档契约', () => {
     assert.ok(props('Combobox').some(p => p.name === 'items'));
   });
   it('复用相同 DOM 属性而不删属性，HTML 与 Markdown 来源相同', () => {
-    const button = pages.find(p => p.path === 'yue/core/button.mdx')!.content;
-    assert.match(button, /disabled/); assert.match(button, /\/components\/yue\/api\/native-/);
-    for (const name of ['onClick', 'aria-label', 'tabIndex']) assert.ok(pages.some(p => p.path.startsWith('yue/api/') && p.content.includes(`| ${name} |`)), name);
+    const button = pages.find(p => p.path === 'qian/core/button.mdx')!.content;
+    assert.match(button, /disabled/); assert.match(button, /\/components\/qian\/api\/native-/);
+    for (const name of ['onClick', 'aria-label', 'tabIndex']) assert.ok(pages.some(p => p.path.startsWith('qian/api/') && p.content.includes(`| ${name} |`)), name);
   });
 });
 

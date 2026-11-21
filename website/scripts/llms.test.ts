@@ -11,19 +11,19 @@ describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
         {
           title: '开始',
           pages: [
-            { routePath: '/start/', link: '/start/index.md', title: '开始', description: '  两行\n摘要 ', frontmatter: { project: 'qian' } },
+            { routePath: '/start/', link: '/start/index.md', title: '开始', description: '  两行\n摘要 ', frontmatter: { project: 'platform' } },
             { routePath: '/start/hosts', link: '/start/hosts.md', title: '宿主', frontmatter: {} },
           ],
         },
         {
           title: '组件目录',
-          pages: [{ routePath: '/components/yue/', link: '/components/yue/index.md', title: 'qian 组件库', frontmatter: { project: 'yue' } }],
+          pages: [{ routePath: '/components/qian/', link: '/components/qian/index.md', title: 'qian 组件库', frontmatter: { project: 'qian' } }],
         },
         {
           title: 'SDK',
           pages: [
             { routePath: '/sdk/kun/', link: '/sdk/kun/index.md', title: 'Kun 框架', description: '镜像', frontmatter: { project: 'kun' } },
-            { routePath: '/sdk/dotnet/', link: '/sdk/dotnet/index.md', title: '后端 SDK', frontmatter: { project: 'qian' } },
+            { routePath: '/sdk/dotnet/', link: '/sdk/dotnet/index.md', title: '后端 SDK', frontmatter: { project: 'platform' } },
             { routePath: '/sdk/x', link: '/sdk/x.md', frontmatter: { project: 'unknown' } },
           ],
         },
@@ -53,7 +53,7 @@ describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
         '',
         '## qian 组件库 · 组件目录',
         '',
-        '- [qian 组件库](/components/yue/index.md)',
+        '- [qian 组件库](/components/qian/index.md)',
         '',
       ].join('\n'),
     );

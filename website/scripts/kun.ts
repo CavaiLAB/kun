@@ -2,7 +2,7 @@
 // 版本取仓库根 CHANGELOG.md 里最新的发布段：发布工作流先创建 v<版本> 标签，
 // 随后合入版本日志 PR。标签在本仓库里，所以默认就读本仓库：本地开发与 CI 都不用另外克隆；
 // 本仓库缺这个标签时（如浅克隆）从 origin 只取这一个标签与它的历史。也可以用 KUN_DOCS_PATH 指向另一个有该标签的克隆。
-// 只读标签上的对象，不读工作区，所以检出停在哪个分支都不影响结果。
+// 指南与 API 读取标签上的 Git 对象。发布历史以已提交的正式版本段为准。
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -43,6 +43,8 @@ export interface KunCheckout {
   date: string;
   /** 正文经过同仓整理时指向编辑提交；发行版本与标签仍按原包记录。 */
   editorialRef?: string;
+  /** 标签创建后另行合入的正式版本日志提交，仅用于发布历史页。 */
+  changelogRef?: string;
 }
 
 function git(dir: string, args: string[]): string {
@@ -103,7 +105,7 @@ function assertFullHistory(dir: string, commit: string, tag: string): void {
       truncated = false;
     }
     if (truncated) {
-      throw new Error(`${dir} 是浅克隆，tag ${tag} 的历史不全（镜像页的 updated 会算错）；先取完整历史：git -C ${dir} fetch --unshallow`);
+      throw new Error(`${dir} 是浅克隆，${tag} 的历史不全（镜像页的 updated 会算错）；先取完整历史：git -C ${dir} fetch --unshallow`);
     }
   }
 }
@@ -149,6 +151,30 @@ export function guideEdition(release: KunCheckout): KunCheckout {
   return { ...release, commit: REVIEWED_GUIDES, editorialRef: REVIEWED_GUIDES };
 }
 
+/** 发布工作流先打标签，再合入正式版本段。其他指南仍从标签或原审核版本读取。 */
+export function releaseNotes(kun: KunCheckout, repoRoot: string): { source: KunCheckout; markdown: string } {
+  const file = 'CHANGELOG.md';
+  const heading = (text: string) => [...text.matchAll(RELEASE_HEADING_RE)].find((m) => m[1] === kun.version);
+  let source = kun;
+  let markdown = readKunFile(kun, file);
+  let start = heading(markdown);
+  if (!start && !kun.editorialRef) {
+    const dir = topLevel(repoRoot);
+    // 浅克隆会把早已有的行归给边界提交，来源地址和日期都会错。
+    assertFullHistory(dir, 'HEAD', 'HEAD');
+    const current = git(dir, ['show', 'HEAD:' + file]);
+    const currentHeading = heading(current);
+    if (!currentHeading) throw new Error(`站点提交的 ${file} 缺少 ${kun.version} 的正式发布段`);
+    const line = current.slice(0, currentHeading.index).split('\n').length;
+    const commit = git(dir, ['blame', '--porcelain', '-L', `${line},${line}`, 'HEAD', '--', file]).split(' ')[0]!;
+    source = { ...kun, dir, commit, changelogRef: commit };
+    markdown = readKunFile(source, file);
+    start = heading(markdown);
+  }
+  if (!start) throw new Error(`变更记录缺少 ${kun.version} 的正式发布段`);
+  return { source, markdown: '# Kun 版本记录\n\n' + markdown.slice(start.index) };
+}
+
 /** tag 上的全部文件路径（/ 分隔）。 */
 export function listKunFiles(kun: KunCheckout): string[] {
   return git(kun.dir, ['ls-tree', '-r', '--name-only', kun.commit]).split('\n').filter(Boolean);
@@ -166,10 +192,10 @@ export function kunFileDate(kun: KunCheckout, file: string): string {
 /** 标明实际来源版本的文件或目录地址。 */
 export function kunGithubUrl(kun: KunCheckout, file: string, isDir = false): string {
   const rel = file.replace(/\/$/, '');
-  return `${KUN_REPO_URL}/${isDir ? 'tree' : 'blob'}/${kun.editorialRef ?? kun.tag}${rel === '' || rel === '.' ? '' : `/${rel}`}`;
+  return `${KUN_REPO_URL}/${isDir ? 'tree' : 'blob'}/${kun.changelogRef ?? kun.editorialRef ?? kun.tag}${rel === '' || rel === '.' ? '' : `/${rel}`}`;
 }
 
 /** frontmatter 的 source：<owner>/<repo>@<来源版本>:<path>（docs-site.md §4）。 */
 export function kunSource(kun: KunCheckout, file: string): string {
-  return `${KUN_OWNER_REPO}@${kun.editorialRef ?? kun.tag}:${file}`;
+  return `${KUN_OWNER_REPO}@${kun.changelogRef ?? kun.editorialRef ?? kun.tag}:${file}`;
 }

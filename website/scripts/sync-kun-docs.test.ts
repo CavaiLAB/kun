@@ -76,7 +76,7 @@ function fixture(): string {
     {
       date: '2026-09-13',
       files: {
-        'CHANGELOG.md': '# Changelog\n\nSee [schema](../docs/guides/table.md).\n',
+        'CHANGELOG.md': '# Changelog\n\n## [2026.9.13] - 2026-09-13\n\nSee [schema](../docs/guides/table.md).\n',
         'docs/guides/table.md': '# 表格\n\n> 一段说明。\n\n| a | b | c |\n|---|---|---|\n| 1 | 2 |\n| 1 | 2 | 3 |\n',
         'docs/architecture/module-map.md': '# 模块地图\n\n> 版本说明。\n',
       },
@@ -148,6 +148,71 @@ describe('不设 KUN_DOCS_PATH：读本仓库的 tag', () => {
 
   it('不在 git 仓库里时失败', () => {
     assert.throws(() => openKun('2026.9.13', {}, makeRepoRoot('')), /不在 git 仓库里/);
+  });
+});
+
+describe('发布历史页的正文来源', () => {
+  const file = 'CHANGELOG.md';
+  const old = '## [2026.6.12] - 2026-06-12\n\n上一个版本。\n';
+  const frozen = '# 版本记录\n\n## [Unreleased]\n\n标签保留的待封版条目。\n\n' + old;
+  const section = '## [2026.9.13] - 2026-09-13\n\n正式条目 [回执](docs/guides/release-receipt.md) [目录](receipts/) [指南](docs/guides/frozen.md)。\n\n';
+  const sealed = '# 版本记录\n\n## [Unreleased]\n\n' + section + old;
+  const full = makeKunRepo([{ date: '2026-09-12', files: { [file]: frozen, 'README.md': README, 'docs/guides/frozen.md': '# 冻结指南\n' } }], 'v2026.9.13', [
+    { date: '2026-09-14', files: { [file]: sealed, 'docs/guides/release-receipt.md': '# 正式发布收据\n', 'receipts/release.txt': '发布收据' } },
+    { date: '2026-09-15', files: { [file]: sealed.replace('## [Unreleased]', '## [Unreleased]\n\n下一个版本尚未发布。') } },
+  ]);
+  const tagged = cloneRepo(full);
+  const kun = openKun('2026.9.13', { KUN_DOCS_PATH: tagged });
+  const commit = execFileSync('git', ['-C', full, 'rev-parse', 'HEAD^'], { encoding: 'utf8' }).trim();
+  const render = (release: KunCheckout, siteRepo: string) => mirrorPage(release, file, new Set(listKunFiles(release)), () => {}, siteRepo).content;
+
+  it('标签早于封版时，从站点仓库读取正式段和先前历史，来源、链接和日期固定在封版提交', () => {
+    const result = syncKunDocs(kun, 2, full).pages.find((p) => p.page === 'releases/index.md')!.content;
+    assert.ok(result.includes(`[回执](https://github.com/CavaiLAB/kun/blob/${commit}/docs/guides/release-receipt.md)`));
+    assert.ok(result.includes(`[目录](https://github.com/CavaiLAB/kun/tree/${commit}/receipts)`));
+    assert.ok(result.includes('[指南](/sdk/kun/guides/frozen)'));
+    assert.ok(result.includes('[v2026.9.13](https://github.com/CavaiLAB/kun/releases/tag/v2026.9.13)'));
+    assert.ok(result.includes(old));
+    assert.doesNotMatch(result, /\(\/sdk\/kun\/guides\/release-receipt\)/);
+    assert.ok(result.includes(`CavaiLAB/kun@${commit}:CHANGELOG.md`));
+    assert.match(result, /^updated: 2026-09-14$/m);
+    assert.doesNotMatch(result, /Unreleased|标签保留的待封版条目|下一个版本尚未发布/);
+    const overview = syncKunDocs(kun, 2, full).files.find((page) => page.path === 'index.md')!.content;
+    assert.ok(overview.includes('CavaiLAB/kun@v2026.9.13:README.md'));
+  });
+
+  it('封版前与站点浅克隆报错，补全历史后指向原封版提交', () => {
+    const shallow = cloneRepo(full, ['--depth', '1', '--no-tags']);
+    try {
+      assert.throws(() => render(kun, shallow), /历史不全/);
+      execFileSync('git', ['-C', shallow, 'fetch', '-q', '--unshallow']);
+      assert.ok(render(kun, shallow).includes(`CavaiLAB/kun@${commit}:CHANGELOG.md`));
+      execFileSync('git', ['-C', shallow, 'checkout', '-q', kun.commit]);
+      assert.throws(() => render(kun, shallow), /缺少 2026.9.13 的正式发布段/);
+    } finally {
+      fs.rmSync(path.dirname(shallow), { recursive: true, force: true });
+    }
+  });
+
+  it('已封版的标签和同仓审核版沿用各自来源，并保留既有版本历史', () => {
+    const historical = makeKunRepo([{ date: '2026-09-13', files: { [file]: sealed } }]);
+    try {
+      const tag = openKun('2026.9.13', { KUN_DOCS_PATH: historical });
+      for (const release of [tag, { ...tag, editorialRef: tag.commit }]) {
+        const result = render(release, historical);
+        assert.ok(result.includes(`CavaiLAB/kun@${release.editorialRef ?? release.tag}:CHANGELOG.md`));
+        assert.ok(result.includes(old));
+        assert.doesNotMatch(result, /Unreleased/);
+        assert.equal(result.includes('Kun #17'), Boolean(release.editorialRef));
+      }
+    } finally {
+      fs.rmSync(historical, { recursive: true, force: true });
+    }
+  });
+
+  after(() => {
+    fs.rmSync(full, { recursive: true, force: true });
+    fs.rmSync(path.dirname(tagged), { recursive: true, force: true });
   });
 });
 

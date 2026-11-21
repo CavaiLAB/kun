@@ -1,0 +1,60 @@
+> For AI agents: the complete documentation index is available at /llms.txt, the full documentation bundle is available at /llms-full.txt.
+
+# 内核与平台组件
+
+Kun 同时提供内核包和平台组件。组件运行时、命令行与目录市场负责装配，Qian 提供前端框架。两档的依赖边界和前端归属见 [ADR-023](/design/adr/adr-023-kun-qian-merge-blueprint.md)。
+
+## 定位
+
+库内的 `ProjectReference` 指向同一解决方案的源码。首个合并版发布后，外部宿主可按该版本的发布清单安装所需 NuGet 包。组件 ID、CLI 命令与部署 profile 可在[组件目录](/components/platform/index.md)与[宿主说明](/start/hosts.md)查阅。
+
+## 模块与平台插件、seam 的对应
+
+| 能力          | 通用机制                                                                                        | 平台集成                                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 组件装载        | `Kun.Runtime`、`Kun.Plugin.Sdk`                                                              | 注册表、生命周期与能力目录在宿主内装配组件                                                                                      |
+| 租户与数据       | `Kun.MultiTenancy`、`Kun.EntityFrameworkCore`、`Kun.EntityFrameworkCore.PostgreSQL`           | [租户](/components/platform/qian.tenancy.md)与[数据](/components/platform/qian.data.md)共享租户上下文和 PostgreSQL 行级策略 |
+| 身份与网关       | `Kun.Identity.AspNetCore`、`Kun.Security`、`Kun.Gateway`                                      | `Kun.Identity.Client`、`Kun.Identity.Server` 与 `Kun.Gateway.Shell` 分别承接依赖方、签发方和外壳入口                         |
+| 权限          | `Kun.Authorization`                                                                         | `Kun.Authorization.Rbac` 负责权限判定，`Kun.Authorization.AspNetCore` 接入 HTTP 与 gRPC                              |
+| 事件与审计       | `Kun.EventBus.Abstractions`、`Kun.EventBus`、`Kun.EventBus.RabbitMQ`、`Kun.Audit.Abstractions` | [事件](/components/platform/qian.events.md)与[审计](/components/platform/qian.audit.md)使用事务内记录和后台投递             |
+| 配置与文件       | `Kun.Configuration.Abstractions`、`Kun.Configuration.Apollo`、`Kun.Storage.Abstractions`      | `Kun.Configuration.Platform` 提供平台配置，`Kun.Files` 装配 Local、S3 或 OSS 存储后端                                     |
+| 命令与查询       | `Kun.Core`、`Kun.Mediator`                                                                   | 平台命令通过 `Kun.Plugin.Sdk.Commands` 接入调度管道                                                                    |
+| HTTP 与 gRPC | `Kun.AspNetCore`、`Kun.Errors.AspNetCore`、`Kun.Grpc`                                         | 宿主映射端点，同一套错误契约用于平台调用方                                                                                      |
+| 可观测、缓存与限流   | `Kun.Observability`、`Kun.Caching`、`Kun.RateLimit`                                           | 宿主通过 `AddKunObservability()` 接入追踪、日志与指标；网关按路由选择限流策略                                                        |
+| 验证与测试       | `Kun.Validation`、`Kun.Testing`、`Kun.Testing.Containers`、`Kun.Testing.EntityFrameworkCore`   | 测试从对应的包取得断言、容器夹具与 EF Core 支持                                                                               |
+
+## canonical API
+
+组件通过 `Kun.Runtime` 的服务键取得依赖。租户上下文来自 `Kun.MultiTenancy`，写侧使用 EF Core 的上下文和事务。网关的服务间令牌由 `Kun.Gateway.S2sTokenIssuer` 签发。文件组件选用 `Kun.Storage.Local`、`Kun.Storage.S3` 或 `Kun.Storage.Oss`。命令审计由 `Kun.Audit.EntityFrameworkCore` 装配，实体审计拦截器用于非严格上下文。[包迁移指南](https://github.com/CavaiLAB/kun/blob/main/docs/guides/package-migration.md)
+
+## 强制装配与禁用项
+
+平台档项目和生产宿主按归属接入平台分析器与禁用符号。授权、数据边界与事件发布规则各有正例与反例。严格租户上下文同时装配 RLS 拦截器和租户模型缓存键。生产宿主从已验证身份取得租户，网关在路由上执行认证与限流。网关支持 NativeAOT，平台宿主使用 JIT。[构建门禁](https://github.com/CavaiLAB/kun/tree/main/tests/gates)
+
+## 缺口修复与补丁包
+
+下表记录合并版之前的版本与验收结果，供维护既有项目时查阅。
+
+| 任务         | 修复项（§07 7.1）                                                                      | 状态                                                                                                                                                                                                                                                                                                                          | 补丁包 |
+| ---------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| S1-KUN-001 | 第 1 项 多租户后台链路                                                                     | 已完成：上游合并提交 [c939f2e9](https://github.com/CavaiLAB/kun/commit/c939f2e9f645d5e603c91f040e7a91188505fdba) 随 Kun 2026.10.8 发布，Qian 已升级（S1-KUN-008）；Qian 侧的最小安全装配 `AddQianData` 随 S1-KUN-001 交付                                                                                                                                  | 无   |
+| S1-KUN-002 | 第 2 项 Outbox 与事件语义                                                                | 已完成：上游合并提交 [411eaf3e](https://github.com/CavaiLAB/kun/commit/411eaf3e9c3e055c52b247500a51328516d2e57b) 随 Kun 2026.10.9 发布，Qian 已升级（S1-KUN-009）；消费端幂等默认 Redis 幂等键（S1-DEC-013 R63），「集成事件只能在命令 handler 同 scope 发出」分析器由 S1-EVT-001 落地                                                                                           | 无   |
+| S1-KUN-003 | 第 4 项 网关加固、第 5 项 gRPC 流式拦截器                                                       | 已完成：上游合并提交 [9e131d75](https://github.com/CavaiLAB/kun/commit/9e131d75506d289952375673c107b88ad7ead504) 随 Kun 2026.10.11 发布，Qian 已升级（随 S1-AZ-001 消费）；第 4 项里的 `client_credentials` / 机器身份签发端点按 ADR-010 D10.5 移交 `qian.identity`（S1-IDP-002）                                                                                   | 无   |
+| S1-KUN-004 | 第 6 项 Identity 客户端链路、第 7 项 S2S 签发器收敛                                              | 已完成：上游合并提交 [ee2f3666](https://github.com/CavaiLAB/kun/commit/ee2f36662e65e7c79b9cbca16f8bdb9ea6123dba) 随 Kun 2026.10.11 发布；废弃的 S2S 签发器经 Banned API 与 `KUNS2S001` 在 Qian 全仓升为编译错误；真实 `qian-identity` 的 PKCE 联调按 S1-DEC-015 留在 S1-IDP-002                                                                                     | 无   |
+| S1-KUN-005 | 第 8 项 审计收敛、第 9 项 数据约定                                                             | 已完成：上游合并提交 [d7b92e8c](https://github.com/CavaiLAB/kun/commit/d7b92e8cc8cb5201eb756d51d2f0bc0bd30ab6ff) 随 Kun 2026.10.9 发布，Qian 已升级（S1-KUN-009）；snake_case / Guid v7 / `xmin` 约定为显式 opt-in，由 S1-DATA-001 装配                                                                                                                  | 无   |
+| S1-KUN-006 | 第 10–13 项 配置、鉴权端口、能力目录、废弃 API；另含 `KunExceptionHandler` 走 `IProblemDetailsService` | 已完成：上游合并提交 [e0093f93](https://github.com/CavaiLAB/kun/commit/e0093f935f274a3994d5769c1cec459908ef46bd) 随 Kun 2026.10.9 发布，Qian 已升级（S1-KUN-009）；Qian 侧 Banned API 分析器与门禁样例随合并提交 [5d8b115d](https://github.com/CavaiLAB/kun/commit/5d8b115dce2af1cfaa6c097cb9be5f4b5587eb3d) 交付；`PermissionBehavior` 须逐命令或全局注册，由 S1-AZ-001 装配 | 无   |
+| S1-KUN-007 | 第 3 项 Saga 其余修补（P1）                                                               | 已完成：上游合并提交 [6ec714e3](https://github.com/CavaiLAB/kun/commit/6ec714e3b3c2659ea815dcbd5ed005690f38c1c6) 随 Kun 2026.10.11 发布；Qian 不引用 `Kun.Saga`（开通编排由 `qian.lifecycle` 承担）                                                                                                                                                   | 无   |
+| S1-KUN-010 | 7.1 之外：事件总线抽象拆包与 Definition 包依赖门禁                                                 | 已完成：上游合并提交 [7b0995c3](https://github.com/CavaiLAB/kun/commit/7b0995c3e65013ab1c8359874c45dc8e65e6c566) 随 Kun 2026.10.14 发布；Qian 已升级并验证仅依赖抽象的消费方                                                                                                                                                                             | 无   |
+| S1-KUN-011 | 7.1 之外：EF 租户过滤器读当前 DbContext                                                      | 已完成：上游合并提交 [f262ca7b](https://github.com/CavaiLAB/kun/commit/f262ca7b966a17f17b2e58237220206214f13553) 随 Kun 2026.10.12-hotfix.2 发布，Qian 已升级并补跨宿主回归                                                                                                                                                                         | 无   |
+| S1-KUN-012 | 7.1 之外：同日修复版的 NuGet 版本格式与发布校验                                                     | 已完成：上游合并提交 [12f4c13b](https://github.com/CavaiLAB/kun/commit/12f4c13bcc12b6f72a2c53b7ca5c06cba7e226fe)，只改发布工具                                                                                                                                                                                                               | 无   |
+| S1-KUN-013 | 7.1 之外：鉴权保留主体类型                                                                   | 已完成：上游合并提交 [2f290820](https://github.com/CavaiLAB/kun/commit/2f29082050e279c08e68c4febc046c60e2f3def7) 随 Kun 2026.10.12-hotfix.3 发布，Qian 已升级                                                                                                                                                                                | 无   |
+| S1-KUN-014 | 7.1 之外：受保护请求的运行期兜底                                                                | 已完成：上游合并提交 [0f64718d](https://github.com/CavaiLAB/kun/commit/0f64718d8e776374a3f0c4535d0bba5c91c775ac) 随 Kun 2026.10.13 发布，Qian 已升级（S1-DEC-019 复核发现）                                                                                                                                                                        | 无   |
+| S1-KUN-016 | 7.1 之外：普通网关包的 JWKS NativeAOT 消费                                                   | 已完成：上游合并提交 [2aa8e0eb](https://github.com/CavaiLAB/kun/commit/2aa8e0eb4a70bcc65cccbbc9421092e1e19c6a2e) 随 Kun 2026.10.23 发布，Qian 已升级                                                                                                                                                                                         | 无   |
+| S1-KUN-017 | 7.1 之外：数据约定与实体审计不再占当前主体 / 租户端口                                                    | 已完成：上游合并提交 [abad3ccf](https://github.com/CavaiLAB/kun/commit/abad3ccfd8d7dfb670eee416efb76ee7dc75498c) 随 Kun 2026.10.25 发布，Qian 已升级；身份适配器与数据组件的登记先后不再影响结果，框架当前主体端口解析为匿名兜底的能力宿主启动即失败（R132 ③）                                                                                                                                 | 无   |
+
+## 版本与升级
+
+- 每份指南顶部都标明适用的发布标签。v2026.10.25 的正文链接同仓 [Kun #17 审定的文本](https://github.com/CavaiLAB/kun/pull/17)，后续合并版直接链接标签下的源文件。Kun 文档和 DocFX 内核 API 使用根 `CHANGELOG.md` 里最新的正式版本；CI 比对二者，不一致即构建失败。
+- 稳定版或正式修复版的包与标签发布、版本日志 PR 合入主干后，本小节和 API 参考在下次构建时更新。beta 提供独立的预发布说明，站点继续使用版本日志中最新的正式版本。
+- 内核和平台代码、文档与任务都在 Kun 仓库维护，前端框架代码在 Qian 仓库维护。
+- Kun 的同日修复版 `-hotfix.N` 是推送 nuget.org 的正式修复，但 NuGet 按预发布排序、低于同日无后缀版本；最新的发布版按 `CHANGELOG.md` 里的先后算，不按 NuGet 的排序。

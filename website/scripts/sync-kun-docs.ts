@@ -4,7 +4,7 @@
 // 把正文里形如 <T> 的非 HTML 尖括号转义（否则会被当成 HTML 标签吞掉）、按 GFM 规则给少列的表格行补空单元格。
 // 唯一的手写页 with-qian.mdx 不由这里生成，写入时保留。
 import path from 'node:path';
-import { rewriteLinks, withInlineCodeMasked, yamlString, type GeneratedFile, type LinkResolver } from './repo.ts';
+import { REPO_ROOT, rewriteLinks, withInlineCodeMasked, yamlString, type GeneratedFile, type LinkResolver } from './repo.ts';
 import {
   KUN_REPO_URL,
   kunFileDate,
@@ -12,6 +12,7 @@ import {
   kunSource,
   listKunFiles,
   readKunFile,
+  releaseNotes,
   type KunCheckout,
 } from './kun.ts';
 
@@ -270,10 +271,10 @@ function findH1(markdown: string): { before: string; heading: string; after: str
 // ---------------------------------------------------------------- 链接
 
 /**
- * kun 文档里的相对链接：目标在白名单内改写为站内路径，否则改写为 kun 仓库该 tag 上的文件地址（docs-site.md §2b.3）。
- * 越出仓库根目录的相对路径（上游笔误）去掉多余的 ../ 再找；找不到的仍指向该 tag 上的地址，并给出告警。
+ * 已镜像的目标使用站内路径，其余链接指向正文来源中的文件或目录（docs-site.md §2b.3）。
+ * 越出仓库根目录的相对路径去掉多余的 ../ 再查找。缺少对应文件时仍给出源码地址并告警。
  */
-export function makeKunResolver(kun: KunCheckout, source: string, files: ReadonlySet<string>, warn: (m: string) => void): LinkResolver {
+export function makeKunResolver(kun: KunCheckout, source: string, files: ReadonlySet<string>, warn: (m: string) => void, mirroredFiles = files): LinkResolver {
   const dirs = new Set<string>();
   for (const f of files) {
     for (let d = path.posix.dirname(f); d !== '.'; d = path.posix.dirname(d)) dirs.add(d);
@@ -291,12 +292,11 @@ export function makeKunResolver(kun: KunCheckout, source: string, files: Readonl
       resolved = clamped;
     }
     if (resolved === '' || resolved === '.') return kunGithubUrl(kun, '', true) + anchor;
-    if (files.has(resolved)) {
-      const page = kunPagePath(resolved);
-      return (page ? kunRoute(page) : kunGithubUrl(kun, resolved)) + anchor;
-    }
+    const page = mirroredFiles.has(resolved) ? kunPagePath(resolved) : null;
+    if (page) return kunRoute(page) + anchor;
+    if (files.has(resolved)) return kunGithubUrl(kun, resolved) + anchor;
     if (dirs.has(resolved)) return kunGithubUrl(kun, resolved, true) + anchor;
-    warn(`${source}：链接 ${href} 指向 ${kun.tag} 上不存在的文件`);
+    warn(`${source}：链接 ${href} 指向不存在的文件 ${kunSource(kun, resolved)}`);
     return kunGithubUrl(kun, resolved) + anchor;
   };
 }
@@ -306,6 +306,7 @@ export function makeKunResolver(kun: KunCheckout, source: string, files: Readonl
 function banner(kun: KunCheckout, source: string, lead: string): string {
   return [
     ':::info 发布版本来源',
+    ...(kun.changelogRef ? [`本页适用 [${kun.tag}](${KUN_REPO_URL}/releases/tag/${kun.tag})。`] : []),
     ...(kun.editorialRef ? [`本页适用 [${kun.tag}](${KUN_REPO_URL}/releases/tag/${kun.tag})；正文取自同仓 [Kun #17 审核的文档](${KUN_REPO_URL}/pull/17)。`] : []),
     `${lead} [\`${source}\`](${kunGithubUrl(kun, source)})（\`${kun.tag}\`）。` +
       'Kun 文档与代码不一致处以代码为准（[ADR-001 D1.8](/design/adr/adr-001-kun-relationship)）；' +
@@ -331,8 +332,8 @@ function frontmatter(kun: KunCheckout, source: string, title: string, descriptio
 }
 
 /** 镜像正文的机械处理：链接、表格补列、尖括号转义。 */
-function processBody(kun: KunCheckout, source: string, markdown: string, files: ReadonlySet<string>, warn: (m: string) => void): string {
-  const linked = rewriteLinks(markdown, makeKunResolver(kun, source, files, warn));
+function processBody(kun: KunCheckout, source: string, markdown: string, files: ReadonlySet<string>, warn: (m: string) => void, mirroredFiles = files): string {
+  const linked = rewriteLinks(markdown, makeKunResolver(kun, source, files, warn, mirroredFiles));
   return escapeStrayTags(padShortTableRows(linked, source, warn));
 }
 
@@ -344,24 +345,23 @@ export interface MirroredPage {
 }
 
 /** 镜像一个源文件；不在白名单里的文件不进站，直接报错（docs-site.md §2b.2）。 */
-export function mirrorPage(kun: KunCheckout, source: string, files: ReadonlySet<string>, warn: (m: string) => void): MirroredPage {
+export function mirrorPage(release: KunCheckout, source: string, mirroredFiles: ReadonlySet<string>, warn: (m: string) => void, repoRoot = REPO_ROOT): MirroredPage {
   const page = kunPagePath(source);
   if (page === null || source === 'README.md') {
     throw new Error(`${source} 不在 Kun 镜像白名单里（docs-site.md §2b.2），不能进站；要收录先改规范的白名单表`);
   }
-  let markdown = readKunFile(kun, source);
-  if (kun.editorialRef && source === 'CHANGELOG.md') {
-    const start = markdown.indexOf(`\n## [${kun.version}] - `);
-    if (start < 0) throw new Error(`整理后的变更记录缺少 ${kun.version} 的正式发布段`);
-    markdown = '# Kun 版本记录\n' + markdown.slice(start);
-  }
-  const body = processBody(kun, source, markdown, files, warn);
+  const notes = source === 'CHANGELOG.md' ? releaseNotes(release, repoRoot) : undefined;
+  const kun = notes?.source ?? release;
+  const markdown = notes?.markdown ?? readKunFile(kun, source);
+  const files = kun.changelogRef ? new Set(listKunFiles(kun)) : mirroredFiles;
+  const body = processBody(kun, source, markdown, files, warn, mirroredFiles);
   const h1 = findH1(body);
   const title = h1 ? plainText(h1.heading.slice(2)) : kunSlug(source);
   const rest = h1 ? h1.after : body;
   const description = plainText(firstParagraph(rest));
   const head = h1 ? `${h1.before ? `${h1.before}\n` : ''}${h1.heading}` : `# ${title}`;
-  const content = `${frontmatter(kun, source, title, description)}\n${head}\n\n${banner(kun, source, kun.editorialRef ? '本页由审核后的源文件生成' : '本页由本仓库的发布标签生成，源文件为')}\n${rest}`;
+  const lead = kun.changelogRef ? '本页镜像自正式发布段所在提交的' : kun.editorialRef ? '本页由审核后的源文件生成' : '本页由本仓库的发布标签生成，源文件为';
+  const content = `${frontmatter(kun, source, title, description)}\n${head}\n\n${banner(kun, source, lead)}\n${rest}`;
   return { source, page, title, content: content.endsWith('\n') ? content : `${content}\n` };
 }
 
@@ -443,7 +443,7 @@ export interface KunDocsResult {
 }
 
 /** 生成 docs/sdk/kun/ 的全部文件（with-qian.mdx 除外）。packages 是 API 参考覆盖的包数，写进概览。 */
-export function syncKunDocs(kun: KunCheckout, packages: number): KunDocsResult {
+export function syncKunDocs(kun: KunCheckout, packages: number, repoRoot = REPO_ROOT): KunDocsResult {
   const warnings: string[] = [];
   const warn = (m: string) => warnings.push(m);
   const all = listKunFiles(kun);
@@ -451,7 +451,7 @@ export function syncKunDocs(kun: KunCheckout, packages: number): KunDocsResult {
   const pages: MirroredPage[] = [];
   for (const source of all) {
     if (kunPagePath(source) === null || source === 'README.md') continue;
-    pages.push(mirrorPage(kun, source, files, warn));
+    pages.push(mirrorPage(kun, source, files, warn, repoRoot));
   }
   if (files.has('docs/design/module-map.md') && !files.has('docs/releases/v0.1.0-phase1.md')) {
     const source = 'CHANGELOG.md';

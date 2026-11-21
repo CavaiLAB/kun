@@ -26,6 +26,9 @@ jobs:
       QIAN_DOCS_PATH: ${{ github.workspace }}/.qian
     steps:
       - uses: actions/checkout@v4
+        with:
+          # 正式版本段可能在标签之后合入，发布历史页需要该行的原始提交和日期。
+          fetch-depth: 0
 
       # 与 website/scripts/kun.ts 的 readKunVersion 同一规则：第一个不是 [Unreleased] 的「## [版本]」段
       - name: 验证文档站部署入口
@@ -41,11 +44,10 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      # 全部历史：镜像页的 updated 取源文件在该 tag 上的最后提交日期。不带 --depth，浅检出里取到的也是这个 tag 的完整历史
-      - name: 取本仓库的 Kun 标签 v${{ steps.kun.outputs.version }}
+      - name: 确认当前发布版本的标签存在
         env:
           KUN_TAG: v${{ steps.kun.outputs.version }}
-        run: git fetch --no-tags origin "+refs/tags/$KUN_TAG:refs/tags/$KUN_TAG"
+        run: git rev-parse --verify "refs/tags/$KUN_TAG^{commit}"
 
       - name: 读前端框架版本（版本目录里的 @cavailab/qian-core）
         id: qian

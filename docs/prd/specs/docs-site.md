@@ -94,6 +94,7 @@
 ### 2b.1 版本与来源
 
 - `website/scripts/kun.ts` 从根 `CHANGELOG.md` 读取最新稳定版或正式修复版，并打开对应的 `v<版本>` 标签。缺少版本段或找不到标签时构建失败。
+- 发布历史页从本版正式标题起列出本版和此前版本。合并版先打标签，再由版本日志 PR 登记正式标题。标签中还没有本版标题时，发布历史使用站点检出中已登记该版本的 `CHANGELOG.md`，并标明正文来源提交与适用的发布标签。
 - 合并前最后一个正式版本 v2026.10.25 的指南正文取自 [Kun #17 的同仓整理版](https://github.com/CavaiLAB/kun/pull/17)，页面分别标明适用的发布标签与编辑提交。旧沙箱契约中的配置扩展通过原版本包和固定源码查阅，原有页面书签继续提供历史入口。合并版标签直接读取其中的 `docs/guides/`、`docs/design/` 和 `docs/adr/kun/` 等目录。
 - 默认从本仓库读取 Git 对象；`KUN_DOCS_PATH` 可指定含所需发布标签的本地检出。
 - 构建需要 .NET SDK 与 DocFX，检出方式和 CI 触发条件由站点工作流控制。
@@ -102,7 +103,7 @@
 
 ### 2b.2 镜像范围（白名单）
 
-| 本仓库发布标签中的源文件（历史整理版见 §2b.1） | 站内路径 | 说明 |
+| 源文件（版本与来源见 §2b.1） | 站内路径 | 说明 |
 |---|---|---|
 | `README.md` 的定位段与模块矩阵、`docs/design/module-map.md`（旧布局为 `docs/architecture/module-map.md`） | `/sdk/kun/`、`/sdk/kun/modules` | 概览页由脚本拼装：一句话定位、版本、模块矩阵、链接「内核与平台组件」 |
 | `docs/getting-started.md` | `/sdk/kun/getting-started` | 上手 |
@@ -110,7 +111,8 @@
 | `docs/security/*.md` | `/sdk/kun/security/<slug>` | 安全 |
 | `docs/architecture/why-*.md`、`docs/architecture/when-to-use-*.md`、`docs/architecture/ADR-*.md`、`docs/architecture/adr-*.md` | `/sdk/kun/architecture/<slug>` | 合并布局取 `docs/design/` 中的同名设计说明及 `docs/adr/kun/` 中的 ADR。不与第 7 部分平台的 ADR 混放。Kun 的 ADR 文件名大小写不统一，大写、小写都收（已裁决 R58） |
 | `docs/design/whitepaper.md`（旧布局为 `docs/whitepaper.md`） | `/sdk/kun/whitepaper` | 白皮书 |
-| `CHANGELOG.md`、`docs/releases/*.md` | `/sdk/kun/releases` | 变更日志与发布说明 |
+| 根 `CHANGELOG.md` | `/sdk/kun/releases/` | 已发布版本的变更历史。 |
+| 标签中的 `docs/releases/*.md` | `/sdk/kun/releases/<slug>` | 该标签收录的发布说明。 |
 | 发布标签内核包的 DocFX XML 注释 | `/sdk/api/kun/` | 显示该版内核程序集的命名空间与类型。其它 SDK、平台 HTTP 契约与前端接口有各自入口。 |
 | 本仓库手写 `website/docs/sdk/kun/with-qian.mdx` | `/sdk/kun/with-qian` | 解释 Kun 两档、平台组件与 Qian 前端的关系。 |
 
@@ -120,7 +122,7 @@
 
 - slug 取源文件名小写并把 `.` 与空格换成 `-`（`ADR-003-Kun.Audit-module.md` 变为 `adr-003-kun-audit-module`）。
 - 版本页顶部链接本仓库中的源文件并标明发布标签，并链接站内的框架使用说明。
-- frontmatter：`project: kun`、`part: sdk`、`version: <发布版本>`、`source: <owner>/kun@v<发布版本>:<path>`（§2b.1 的审核版用编辑提交代替标签）、`updated` 取源文件在对应提交的最后修改日期；`title` 取首个一级标题，`description` 取首段（截到 120 字）；`audience: [developer]`。
+- frontmatter 使用 `project: kun`、`part: sdk`、`version: <发布版本>` 与 `audience: [developer]`。`source` 记录源文件的标签或提交，格式见 §4。`updated` 取该文件在来源提交上的最后修改日期。`title` 取首个一级标题，`description` 取首段，最多 120 字。
 - 站内相对链接：目标在白名单内改写为站内路径，否则链接同仓对应来源提交的文件。
 - 镜像页同样过 `scripts/check_docs.py`（禁用词、表格、断链）。
 - 上游文档的问题（越出仓库根的相对链接、比表头少列的表格行）由脚本机械处理并告警，不让构建失败；源头修复提到 kun 仓库，随下一个 Kun 版本进站。DocFX 的 `InvalidCref` 告警若来自继承的第三方 XML 文档（如 `<inheritdoc/>` 带进来的 EF Core `O:DbContext.SaveChanges*`），不处理，页面显示为代码文本（已裁决 R59）。

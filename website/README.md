@@ -11,7 +11,8 @@ Rspress 2.0（`@rspress/core` 2.0.23，React 19，MDX）。内置全文搜索（
 「Kun 框架」小节与 Kun API 参考（§3）另外需要：
 
 - **Kun 的 tag `v<版本>`**：版本是 Kun 最新的发布版，取仓库根 `CHANGELOG.md` 里第一个不是 `[Unreleased]` 的版本段（稳定版或正式修复版创建标签后，由版本日志 PR 更新记录；beta 不更新主干版本段）。tag 在本仓库里，脚本默认读本仓库；本仓库缺这个 tag（浅克隆、没取标签）时从 `origin` 只取这一个 tag 与它的历史。浅克隆里 tag 的历史不全时直接失败（页面的 `updated` 会算错），先 `git fetch --unshallow`。也可以用环境变量 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆，这时缺 tag 直接失败、不去取。
-- **合并前的发布指南**：v2026.10.25 的包与 API 版本取其原标签，指南取同仓 [Kun #17 的审定文本](https://github.com/CavaiLAB/kun/pull/17)。两者分别显示在页面来源中；浅检出缺少该编辑提交时，生成器从 origin 按提交号取回。后续合并版直接从各自标签的正式目录取文档。
+- **合并前的发布指南**：v2026.10.25 的包与 API 版本取其原标签，指南取同仓 [Kun #17 的审定文本](https://github.com/CavaiLAB/kun/pull/17)。两者分别显示在页面来源中；浅检出缺少该编辑提交时，生成器从 origin 按提交号取回。合并版的指南从各自标签的正式目录读取。
+- **Kun 发布历史**记录本版及此前版本。合并版的版本日志 PR 在打标签后登记正式版号。标签中尚缺该版标题时，`/sdk/kun/releases/` 从站点检出中已提交的根 `CHANGELOG.md` 生成，页面同时给出日志来源和发布标签。本地构建需要站点检出的完整历史，以便定位写入正式版本标题的提交。
 - **.NET SDK**（版本见仓库根的 `global.json`）：DocFX 是 `website/.config/dotnet-tools.json` 锁定的本地工具，首次构建时自动 `dotnet tool restore`，并从 nuget.org 还原同版本的 `Kun.*` 包。
 
 两者缺一构建即失败，不跳过、不回退 `main`（docs-site.md §2b.1）。
@@ -107,7 +108,7 @@ website/
 - `design/`：`docs/` 下每个 `.md` 一页，文件名转小写、`README.md` 转 `index.md`（`docs/adr/ADR-015-model-gateway.md` → `/design/adr/adr-015-model-gateway`）。正文里指向 `docs/` 内的相对链接改写为站内路由，指向仓库其他位置的改写为 GitHub 地址；每页开头注明源文件。侧栏顺序与名称由脚本生成的 `_meta.json` 决定。
 - `cli/`：按 `component-model.md` 的二级标题拆页，标题整体升一级；章节与页面的对应写在 `CLI_PAGES`，规格改了章节编号要同步这里（找不到章节时构建失败）。
 - `components/`：S1-DOCS-002 之前仓库里还没有组件文件夹，脚本按 PRD §7 与组件模型规格 §7.7 的规划清单生成占位页，让首页与其他部分的链接有落点；S1-DOCS-002 把数据源换成各组件文件夹，页面改为 docs-site.md §3 的九节模板。
-- `sdk/kun/`（docs-site.md §2b、ADR-021）：读仓库根 `CHANGELOG.md` 里 Kun 最新的发布版（没有已发布的版本段、或不是 CalVer 都直接失败），从 kun 仓库的 tag `v<版本>` 按白名单（`sync-kun-docs.ts` 的 `KUN_WHITELIST`，即 §2b.2 的表）取文件（Kun 的 ADR 文件名大小写不统一，`ADR-*.md` 与 `adr-*.md` 都收，R58），`AGENTS.md`、`CLAUDE.md` 永不进站。**只镜像、不改写**：每页加镜像横幅（源文件与 tag、「Kun 文档与代码不一致处以代码为准」、改动提到 kun 仓库）与 frontmatter（`project: kun`、`source: CavaiLAB/kun@v<版本>:<路径>`、`updated` 取源文件在该 tag 上的最后提交日期）；slug 一律小写、`.` 与空格转短横线；指向白名单内文件的相对链接改写为站内路由，其余改写为该 tag 的 GitHub 地址。为让 MDX 能编译只做两处机械处理并打警告：正文里不是 HTML 标签的尖括号（`Result<T>`）转义，列数不足的表格行补空单元格。上游问题只告警不失败，源头修复提到 kun 仓库（R59）。侧栏顺序与名称写在脚本里（概览 → 内核与平台组件 → 上手 → 模块地图 → 指南 → 安全 → 设计说明与 ADR → 白皮书 → 变更日志与发布说明 → API 参考）。白名单要改，docs-site.md §2b.2 与脚本两处一起改。
+- `sdk/kun/`（docs-site.md §2b、ADR-021）：读仓库根 `CHANGELOG.md` 里 Kun 最新的发布版（没有已发布的版本段、或不是 CalVer 都直接失败），从 kun 仓库的 tag `v<版本>` 按白名单（`sync-kun-docs.ts` 的 `KUN_WHITELIST`，即 §2b.2 的表）取指南与发布说明（Kun 的 ADR 文件名大小写不统一，`ADR-*.md` 与 `adr-*.md` 都收，R58），`AGENTS.md`、`CLAUDE.md` 永不进站。发布历史的日志来源见 §1。**只镜像、不改写**：每页加镜像横幅（源文件与适用的发布标签、「Kun 文档与代码不一致处以代码为准」、改动提到 kun 仓库）与 frontmatter（`project: kun`、`source: CavaiLAB/kun@<标签或提交>:<路径>`、`updated` 取源文件在对应提交上的最后修改日期）；slug 一律小写、`.` 与空格转短横线；指向白名单内文件的相对链接改写为站内路由，其余改写为源文件对应版本的 GitHub 地址。为让 MDX 能编译只做两处机械处理并打警告：正文里不是 HTML 标签的尖括号（`Result<T>`）转义，列数不足的表格行补空单元格。上游问题只告警不失败，源头修复提到 kun 仓库（R59）。侧栏顺序与名称写在脚本里（概览 → 内核与平台组件 → 上手 → 模块地图 → 指南 → 安全 → 设计说明与 ADR → 白皮书 → 变更日志与发布说明 → API 参考）。白名单要改，docs-site.md §2b.2 与脚本两处一起改。
 - `sdk/api/`：DocFX 从 nuget.org 上同版本的 `Kun.*` 包（标签中可打包的内核档项目）的 DLL 与 XML 注释生成 Markdown（`docfx metadata`，`outputFormat: markdown`），脚本再转成站内页面：每个命名空间一页、每个类型一页，xref 改写为站内路由与成员锚点，BCL 类型链到 learn.microsoft.com。DocFX 在 `website/.cache/kun-api/build` 的隔离目录里构建，用存根的 `Directory.Build.*` 与关掉中央包管理的 `Directory.Packages.props` 隔开仓库根的 .NET 构建基线（`NuGet.config` 与 `global.json` 仍用仓库根的）。API 页**不进侧栏**，命名空间页与类型页也不渲染侧栏（frontmatter `sidebar: false`），只有 `/sdk/api/` 与 `/sdk/api/kun/` 两个概览页保留侧栏（R54）：Rspress 把整棵侧栏渲染进每一页，几百个类型进侧栏会让产物膨胀数倍；入口是 SDK 侧栏末尾的「API 参考」、Kun 小节概览与各页之间的链接。平台档 NuGet 包、前端包与平台 HTTP API 的参考同样放在 `/sdk/api/` 下（R56）。
 - 只重写内容有变化的文件、删除多余的旧文件，`dev` 不会因重新生成而反复重启。
 
@@ -144,7 +145,7 @@ docs-site.md §5.1 是契约，这里只说实现：
 - 发布：只在 `main` 上发布正式站点，把构建产物推到 `CavaiLAB/kun` 的 `docs-site` 分支的根目录（`deploy/docs-site/publish.sh`，分支只保留一个提交）。集群里 git-sync 每 60 秒经 HTTPS 匿名拉取该分支，nginx 提供访问。
 - 部署仓库的 Argo CD Application 指定 Kun 的版本和清单目录。当前版本的部署模板位于 `deploy/docs-site/`。
 - PR 预览：现在没有接，接不接由产品负责人定。原仓库的做法是同仓库分支的 PR 发布到 `pr-preview/pr-<n>/`、在 PR 里留访问链接、PR 关闭后删除预览；`CavaiLAB/kun` 是公开仓库，PR 评论人人可见，所以没有照搬。PR 上的构建仍带 `pr-preview/pr-<n>/` 前缀（`DOCS_BASE`），前缀检查照跑；nginx 与 `publish.sh` 仍支持这个路径，接回只改工作流。
-- 「Kun 框架」小节的来源：版本取仓库根 `CHANGELOG.md` 里 Kun 最新的发布版，它的 tag `v<版本>` 在本仓库（发版时打的，导入之前的随历史导入，提交号不变），工作流只从本仓库取这一个 tag 与它的历史，生成脚本直接读本仓库（`scripts/kun.ts`），不另外检出，也不要凭据。
+- 工作流检出 Kun 的完整历史和标签，从根 `CHANGELOG.md` 读取最新发布版，再确认对应的 `v<版本>` 标签存在。生成脚本从该检出读取指南与版本日志的固定来源。
 - 可通过集群查看站点地址或使用端口转发。命令见 `deploy/docs-site/README.md`。
 
 ## 7 门禁

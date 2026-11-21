@@ -1,6 +1,6 @@
-# Qian 项目管理（任务即文件）
+# Kun 任务看板
 
-> 一句话：**任务是 `pm/tasks/` 下的 Markdown 文件，git 是唯一真相源；看板与进度表由脚本按任务文件生成，不进 git。** 人和编码代理（Codex、Claude Code 等）都用同一套文件、同一套命令，没有第二个系统。
+本仓库的任务保存在根目录的 `pm/tasks/`。前端迁移期间登记的 `S1-YUE-*` 任务继续在这里按原编号查阅。维护者通过 Git 提交任务文件，看板和进度表由脚本生成。[任务目录](tasks/) · [Qian 迁移指南](https://github.com/CavaiLAB/qian/blob/819477ad6a18410342f4156ccf72288ae4580fb2/docs/migration.md)
 
 ## 1. 为什么这么做
 
@@ -27,7 +27,7 @@ scripts/
 
 ## 3. 一个任务长什么样
 
-文件名就是任务 id，例如 `pm/tasks/S1-RT-001.md`：
+文件名使用任务 id。下面以迁移前登记的 `pm/tasks/S1-RT-001.md` 为例。
 
 ```markdown
 ---
@@ -65,7 +65,7 @@ id 规则：`S<阶段>-<领域>-<三位序号>`。领域代码与 PRD §07 小�
 | KUN | Kun 缺口修复（7.1） | NTF | 消息通知（7.12） |
 | RT | 运行时 / CLI / 市场（7.2） | SCH | 调度与实时（7.13） |
 | TEN | 租户（7.3） | ENT | 权益（7.14） |
-| IDP | 身份与连接器（7.4） | YUE | 外壳与 yue（7.15） |
+| IDP | 身份与连接器（7.4） | YUE | 外壳与前端框架（沿用原编号，7.15） |
 | AZ | 鉴权（7.5） | MGW | 模型网关（7.16） |
 | DATA | 数据（7.6） | DEP | 部署物料（7.17） |
 | FILE | 文件（7.7） | AGT | Agent 就绪（7.18） |
@@ -167,7 +167,7 @@ python3 scripts/pm.py set <ID> --status doing --owner <你的代理名> --by <�
 
 看板页面不依赖任何外部资源（数据内嵌在 `index.html` 里），生成后放在哪里都能打开：
 
-- K3s（已部署，内网访问，入口见 [deploy/pm-board/README.md](../deploy/pm-board/README.md)）：原 Qian 仓库归档之后，看板 Pod 经 HTTPS 匿名拉取 `CavaiLAB/kun` 的 `main`，按其中 `_import/qian/pm/tasks/` 的任务文件自行生成，`main` 有新提交后一分钟左右更新。集群里的应用由 Argo CD 管：Application 登记在部署仓库，跟踪 `CavaiLAB/kun` 主干上的 `_import/qian/deploy/pm-board/`，清单的改动合入主干后自动同步。清单与说明见上面的 README；
-- 本地：`python3 scripts/pm.py build` 后双击 `pm/index.html`；
-- CI 产物：`CavaiLAB/kun` 仓库根的 `qian-docs-and-pm` 工作流（原件 `.github/workflows/docs-and-pm.yml` 留作对照，GitHub 不读它）每次运行都上传 `pm-board`，下载后离线打开；
-- 其他静态托管：`python3 scripts/pm.py build --out <目录>`，再发布该目录。
+- 集群看板从 `CavaiLAB/kun` 的 `main` 读取 `pm/tasks/`，执行根目录的 `scripts/pm.py` 生成页面。Argo CD 跟踪同一主干的 `deploy/pm-board/`。[集群部署与访问说明](../deploy/pm-board/README.md)
+- 本地运行 `python3 scripts/pm.py build` 后打开 `pm/index.html`。
+- 根 CI 的「文档门禁、任务文件与看板」作业上传 `pm-board`，下载并解压后即可离线打开。[CI 入口](../.github/workflows/ci.yml) · [看板作业](../.github/workflows/qian-docs-and-pm.yml)
+- 其他静态站点可发布 `python3 scripts/pm.py build --out <目录>` 生成的目录。

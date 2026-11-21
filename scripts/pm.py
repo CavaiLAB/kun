@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qian 项目管理工具：任务即文件（pm/tasks/*.md），本脚本负责校验、生成看板与改状态。
+"""Kun 任务看板工具，从 pm/tasks/*.md 校验和生成看板，并维护任务状态。
 
 用法：
   python3 scripts/pm.py validate                 # 校验全部任务文件

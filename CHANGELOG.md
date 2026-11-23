@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+（尚无新变更。）
+
+## [2026.11.21] - 2026-11-21
+
 本版停发 8 个旧包，包括 `Kun.Infrastructure`、`Kun.Dapper`、`Kun.Saga`、`Kun.Sandbox`、`Kun.Storage`、`Kun.Auditing`、`Kun.Audit` 和 `Kun.MultiTenancy.EntityFrameworkCore`。nuget.org 保留既有版本，各包的替代实现与升级步骤见下文。
 
 平台 0.x 的 54 个 NuGet 包停更并保留全部历史版本。当前升级路径见[包迁移指南](https://github.com/CavaiLAB/kun/blob/main/docs/guides/package-migration.md)。

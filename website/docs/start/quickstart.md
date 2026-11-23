@@ -25,7 +25,7 @@ pnpm exec qian --profile platform --dump-config --no-home
 
 ## 2. 在空白宿主验收安装
 
-仓库的安装验收为每个场景建立独立目录，从包源还原组件并运行消费者。它使用组件清单中已经发布的包和版本。首个合并版发布并更新清单后，这个入口才验收新 `Kun.*` 平台包。将 `QIAN_FEED_TOKEN` 设置为有读包权限的令牌后，在仓库根执行：
+仓库的安装验收为每个场景建立独立目录，从包源还原组件并运行消费者。六个组件的清单钉住同一稳定版本。内核包从 nuget.org 还原，平台包从 GitHub Packages 还原。设置 `KUN_PLATFORM_FEED_USER`（GitHub 用户名）和 `KUN_PLATFORM_FEED_TOKEN`（有读包权限的令牌），然后在仓库根运行以下命令。
 
 ```bash
 pnpm --filter qian test:feed

@@ -1,6 +1,6 @@
 # Kun.Plugin.Sdk
 
-本模块是 S1-RT-014 / S1-RT-033 的 SDK 与源生成器入口。开发者规格为组件模型 §3、§5 及 PRD §7.2.3；组件库只依赖 Runtime、SDK 与 Definition，SDK 自身不引用 Provider。当前交付代码声明、源生成能力契约、唯一清单校验、已在真实 CRM 命令中使用的 Mediator/事务/waterfall 管道，以及包族在 GitHub Packages 的 NuGet 锁步发布；组件的清单派生、真实安装与平台验收分别有各自的验证门。
+本模块是 S1-RT-014 / S1-RT-033 的 SDK 与源生成器入口。开发者规格为组件模型 §3、§5 及 PRD §7.2.3；组件库只依赖 Runtime、SDK 与 Definition，SDK 自身不引用 Provider。当前交付代码声明、源生成能力契约、唯一清单校验、已在真实 CRM 命令中使用的 Mediator/事务/waterfall 管道，以及同一发布版本的 NuGet 包；组件的清单派生、真实安装与平台验收分别有各自的验证门。
 
 ## 包的划分
 

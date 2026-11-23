@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.config.flags",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "可选平台特性开关管理组件；只编辑固定 Apollo namespace 草稿，需 Portal 人工发布。",
   "author": {
     "name": "Qian"
@@ -45,8 +45,9 @@
     "entry": "Kun.Configuration.Platform.FeatureFlagManagementPlugin, Kun.Configuration.Platform",
     "nuget": [
       {
-        "id": "Qian.Config.Apollo",
-        "version": "1.0.0"
+        "id": "Kun.Configuration.Platform",
+        "version": "2026.11.21",
+        "digest": "sha256:bd219b9ffaafa3658d26cb7046be8518eb19585e114cb448aff526c6da290f28"
       }
     ],
     "configSchema": "./schemas/config.schema.json"

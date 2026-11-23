@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.identity.client",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "身份依赖方组件：服务端授权码 + PKCE 换取、qian.sid Cookie 会话与刷新，下游 S2S 令牌按受众校验；可对接任意 OIDC 发行方",
   "author": {
     "name": "Qian"
@@ -46,9 +46,9 @@
     "configSchema": "./schemas/config.schema.json",
     "nuget": [
       {
-        "id": "Qian.Identity.Client",
-        "version": "0.3.0",
-        "digest": "sha256:9357d1356c21e8cf352e8754142c12737db469bb4c7c61b255613f5faf82e391"
+        "id": "Kun.Identity.Client",
+        "version": "2026.11.21",
+        "digest": "sha256:9f526ee6605c028c7e0ba4e3881d739dc1149296327144da29c7064b87b75a75"
       }
     ]
   },

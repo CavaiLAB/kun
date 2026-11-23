@@ -11,12 +11,12 @@
 | ` global/capabilities ` | ` qian.capabilities@1.1.1 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/hooks ` | ` qian.hooks@1.0.1 ` | 0（bundle） | 配置骨架 |
 | ` global/tenancy ` | ` qian.tenancy@2.3.1 ` | 0（bundle） | 已解析，尚未执行 |
-| ` global/identity ` | ` qian.identity.client@1.1.1 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/identity ` | ` qian.identity.client@1.2.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/authz ` | ` qian.authz@1.1.1 ` | 0（bundle） | 已解析，尚未执行 |
-| ` global/data ` | ` qian.data@1.1.1 ` | 0（bundle） | 已解析，尚未执行 |
-| ` global/files ` | ` qian.files@2.0.1 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/data ` | ` qian.data@1.2.0 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/files ` | ` qian.files@2.1.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/config ` | ` qian.config.apollo@1.0.1 ` | 0（bundle） | 配置骨架 |
-| ` global/events ` | ` qian.events@1.1.1 ` | 0（bundle） | 已解析，尚未执行 |
+| ` global/events ` | ` qian.events@1.2.0 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/audit ` | ` qian.audit@1.1.1 ` | 0（bundle） | 已解析，尚未执行 |
 | ` global/observability ` | ` qian.observability@1.0.1 ` | 0（bundle） | 配置骨架 |
 | ` global/notify ` | ` qian.notify@1.0.1 ` | 0（bundle） | 配置骨架 |

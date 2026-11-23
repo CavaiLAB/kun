@@ -6,9 +6,11 @@ S1-RT-011 已于 2026-10-16 验收（收口项见 [S1-RT-035](../../pm/tasks/S1-
 
 移除只处理所选 profile 的条目，默认保留 disabled 配置，`--purge` 删除条目；其它 profile 或组件仍引用的包不会删除，宿主原有依赖只借用。卸载记录只保留定位信息，允许随后按原安装名清理保留配置；被复用或改写的条目不会被删除。完成日志保留最近 20 次。
 
-测试使用正式 `Kun.Core` 包编译消费者、实际 npm 包验证导入/移除；另把仓库真实 Config Provider 制成临时 NuGet 包，经签名市场批量安装、消费者运行、重装和移除，并验证实际依赖安装失败时没有半批残留。临时包测试不等于私有包族发布，私有源上的真实安装见下一段。identity / authz / files 的完整组合归 S1-QA-005（R84）；租户 scope patch 已通过单条平台注册表端点接入（见下文）；组合层复杂边界、一键简写参数仍待完成；引擎版本比对、安装末检与崩溃恢复见下文。
+测试使用正式 `Kun.Core` 包编译消费者、实际 npm 包验证导入/移除；另把仓库真实 Config Provider 制成临时 NuGet 包，经签名市场批量安装、消费者运行、重装和移除，并验证实际依赖安装失败时没有半批残留。已发布组件的真实安装见下文。identity / authz / files 的完整组合归 S1-QA-005（R84）；租户 scope patch 已通过单条平台注册表端点接入（见下文）；组合层复杂边界、一键简写参数仍待完成；引擎版本比对、安装末检与崩溃恢复见下文。
 
-私有源 E2E（`test/private-feed.e2e.mjs`，`pnpm --filter qian test:feed`，需要读包令牌 `QIAN_FEED_TOKEN`）有三个场景；第三个独立执行 `qian add identity`：宿主预置必填 `issuer/clientId`，从私有源还原清单钉定的 Identity.Client，核对包源、版本、归档摘要及 lock；按清单入口挂载到 Ready 并取得真实 Identity 服务，卸载后旧上下文失效，`remove --purge` 清理组件、包引用和 patch。第二个把 `data files` 装进项目自带的 standalone profile（files 只允许 platform / standalone），先放一条 disabled 的 files 条目给出必填的存储配置，装后宿主补 `Kun.EventBus` 实现并挂载到就绪；`remove --purge` 后项目文件回到安装前，被沿用的预置条目随之删除、patch 清空。第一个场景：空白 ASP.NET Core 项目经 CLI 支持的签名本地市场执行 `qian add data events config --yes`，市场条目指向仓库里的真实组件文件夹。`Qian.Data`、`Qian.Events`、`Qian.Config.Apollo` 只从正式私有源（GitHub Packages）还原，宿主 csproj 写入精确版本区间（如 `[0.1.0]`），归档摘要等于清单 `runtime.nuget[].digest`，`.qian/lock.json` 记录来源市场、组件摘要与包归档摘要。宿主按 `dump-config` 解析出的条目和清单 `runtime.entry` 挂载三个 Provider，全部就绪（过渡期：清单入口在尚未发布的新包里的组件，宿主改在钉住的包里按组件 id 找入口并打一行标记，测试里的显式名单逐个核对，S1-KUN-022 发新包、清单改钉后去掉）；`qian list` 列出来源市场；`qian remove config events data --purge` 逆序撤销后，项目文件、profile patch 与文件集合回到安装前。保留的只有 `.qian/` 工作区本身、`.gitignore` 里两条 `.qian` 忽略规则。CLI 不再强制生成 `packages.lock.json`；以实际 assets 与包归档核验安装。宿主原有锁文件或 `RestorePackagesWithLockFile` 设置继续保留，自定义 `NuGetLockFilePath` 也不被擅自开启或删除。令牌只经环境变量传给 NuGet.Config 的 `%QIAN_FEED_TOKEN%`，不写文件、不回显。CI 的 surfaces 工作流以带 `packages: read` 的 `GITHUB_TOKEN` 运行此用例；发布新版本后要同步各组件清单的 `runtime.nuget` 版本与摘要。
+运行 `pnpm --filter qian test:feed` 前，设置 `KUN_PLATFORM_FEED_USER` 与 `KUN_PLATFORM_FEED_TOKEN`。三个空白 ASP.NET Core 宿主分别安装 `data events config`、`data files` 和 `identity`。测试核对实际还原源、精确版本、清单与锁文件中的下载包 SHA-256，按 `runtime.entry` 直接加载程序集并检查就绪与逆序移除。配置宿主另从共享包解析仅支持平台 profile 的特性开关入口与依赖。文件宿主选择事件总线、租户实现并提供存储配置。身份宿主传入发行方与客户端 ID，验证匿名会话以及卸载后端点与服务撤销。
+
+更新组件时使用所选稳定 [Release](https://github.com/CavaiLAB/kun/releases) 的包源映射。平台包来自 CavaiLAB 的 GitHub Packages，内核包来自 nuget.org。清单里的 `runtime.nuget[].digest` 取实际还原的完整包字节。nuget.org 添加仓库签名，核对冻结制品时另验签并逐项比对包内容。修改引用时同时递增组件版本，保持已发布的组件 ID、版本与目录摘要对应。
 
 未通过校验器或验签的组件 `add` 失败时退出 1、标准输出为空，标准错误是一行 `{diagnostics:[…]}`：每条带 ErrorDetail（含 trace_id），逐项错误给出 字段级错误码与 JSON Pointer；不留下锁、patch 或组件目录（`marketplaces.test.mjs`）。
 
@@ -53,7 +55,7 @@ qian doctor --fix --profile minimal --no-home --json
 
 错误分类由 `Qian.Surfaces.Abstractions/SurfaceErrors.cs` 与 `@qian/surfaces` 同步拥有：市场验签 `SURFACE_SIGNATURE_INVALID`、来源/归档摘要 `SURFACE_DIGEST_MISMATCH`、安装锁 `SURFACE_INSTALLATION_BUSY`、本地改写 `SURFACE_LOCAL_MODIFIED`、profile 不允许 `SURFACE_PROFILE_DENIED`、恢复证据不足 `SURFACE_RECOVERY_REQUIRED`、包操作失败 `SURFACE_PACKAGE_UNAVAILABLE`、版本不兼容 `SURFACE_ENGINE_INCOMPATIBLE`。它们是 ErrorDetail 的字段码；协议码只出现在顶层。旧 `SURFACE_HASH_MISMATCH` 继续仅表示工具契约哈希不一致；组件码不放进只属于 `qian.runtime` 的 v0 内置错误目录。`--json` 的错误统一一行，文件位置只输出相对路径。
 
-URL / Git 完整 CLI 安装、lock 和移除用例分别用替代 fetch 传输与 Git 本地来源重写提供确定性内容，真实 Git 提交与归档校验均照常执行；这些用例不声称验证了生产网络。真实私有 NuGet 源安装、Provider 运行与卸载由独立 E2E 提供。
+URL / Git 完整 CLI 安装、lock 和移除用例分别用替代 fetch 传输与 Git 本地来源重写提供确定性内容，真实 Git 提交与归档校验均照常执行；这些用例不声称验证了生产网络。独立的安装测试从 nuget.org 和 GitHub Packages 还原组件，启动 Provider 并验证卸载。
 
 ## 已交付命令
 

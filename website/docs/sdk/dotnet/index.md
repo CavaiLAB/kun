@@ -13,7 +13,7 @@ updated: 2026-11-20
 
 ## 安装
 
-首个合并版发布前，仓库内的组件和宿主使用同一解决方案的项目引用。合并版发布后，可从所选 [Kun Release](https://github.com/CavaiLAB/kun/releases) 下载该版本的 `NuGet.config` 和 `release-packages.json`。正式版的内核包从 nuget.org 还原，平台包逐个映射到 CavaiLAB 的 GitHub Packages。beta 的两档包均从 GitHub Packages 还原。将 `KUN_PLATFORM_FEED_USER` 与 `KUN_PLATFORM_FEED_TOKEN` 设为有读包权限的凭据。
+仓库内的组件和宿主使用同一解决方案的项目引用。外部宿主可从所选 [Kun Release](https://github.com/CavaiLAB/kun/releases) 下载该版本的 `NuGet.config` 和 `release-packages.json`。正式版的内核包从 nuget.org 还原，平台包逐个映射到 CavaiLAB 的 GitHub Packages。beta 的两档包均从 GitHub Packages 还原。将 `KUN_PLATFORM_FEED_USER` 与 `KUN_PLATFORM_FEED_TOKEN` 设为有读包权限的凭据。
 
 组件项目引用同一发布版本的 SDK 与源生成器。下面的 `KunReleaseVersion` 是消费项目自定义的 MSBuild 属性，填写所选 Release 的实际版本号。
 

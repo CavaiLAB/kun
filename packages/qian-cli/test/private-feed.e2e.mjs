@@ -4,16 +4,18 @@ import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,rmSync,realpathSync,exi
 import path from 'node:path';
 import os from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {spawnSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
 import {generateKeyPairSync,createHash,sign} from 'node:crypto';
 import {stringify,parse as parseYaml} from 'yaml';
 
-// 正式私有 NuGet 源（GitHub Packages）上已发布的组件经真实 CLI 安装进空白 ASP.NET Core 项目。
-// 市场是 CLI 已支持的签名本地目录，条目指向仓库里的真实组件文件夹；代码包只从私有源还原，不制作临时包。
-// 需要 QIAN_FEED_TOKEN（读包权限）；缺失即失败，不跳过。
+// 空白 ASP.NET Core 项目通过 CLI 安装已发布的 NuGet 组件。
+// 市场是 CLI 已支持的签名本地目录，条目指向仓库里的真实组件文件夹；按发布清单分别从平台源和公开源还原。
+// 平台源通过 KUN_PLATFORM_FEED_USER 和 KUN_PLATFORM_FEED_TOKEN 读取已发布包。
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
 const cli=path.join(repo,'packages/qian-cli/dist/main.js');
-const feed=process.env.QIAN_FEED??'https://nuget.pkg.github.com/idadawn/index.json';
+const publishedPlatform='https://nuget.pkg.github.com/CavaiLAB/index.json';
+const publishedPublic='https://api.nuget.org/v3/index.json';
+const releaseTool=path.join(repo,'scripts/release_packages.py');
 const market='qian-published';
 const components=[{name:'data',id:'qian.data'},{name:'events',id:'qian.events'},{name:'config',id:'qian.config'}];
 const xml=value=>value.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
@@ -24,9 +26,8 @@ function files(root,base=root){return readdirSync(root,{withFileTypes:true}).fla
 function manifest(id){return JSON.parse(readFileSync(path.join(repo,'plugins',id,'.qian-plugin/plugin.json'),'utf8'));}
 
 // 宿主程序：usings 与 services 是各组合的宿主装配，其余按 CLI 解析出的 profile 挂载已安装组件。
-const program=(usings,services,checks='')=>`using System.Reflection;
-using System.Text.Json;
-${usings}using Qian.Runtime;
+const program=(usings,services,checks='')=>`using System.Text.Json;
+${usings}using Kun.Runtime;
 
 // 按 CLI 解析出的 profile 挂载已安装组件：代码入口取自 .qian/plugins 里的组件清单，配置取自 profile 条目。
 var builder = WebApplication.CreateBuilder(args);
@@ -39,30 +40,17 @@ foreach (var item in resolved.RootElement.GetProperty("entries").EnumerateArray(
     var plugin = item.GetProperty("plugin").GetString()!;
     var id = plugin[..plugin.IndexOf('@')];
     using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(".qian", "plugins", id, ".qian-plugin", "plugin.json")));
-    // 入口类型只从私有源还原的程序集解析；缺入口或类型不存在即失败。
+    // 入口类型只从清单直接引用的程序集解析；缺入口或类型不存在即失败。
     var runtimeManifest = document.RootElement.GetProperty("runtime");
     var entry = runtimeManifest.GetProperty("entry").GetString()!;
-    var pinned = runtimeManifest.TryGetProperty("nuget", out var nuget) ? nuget.EnumerateArray().Select(reference => reference.GetProperty("id").GetString()!).ToArray() : Array.Empty<string>();
+    var pinned = runtimeManifest.GetProperty("nuget").EnumerateArray().Select(reference => reference.GetProperty("id").GetString()!).ToArray();
     var comma = entry.IndexOf(',');
-    Type type;
-    if (comma < 0 || pinned.Length == 0 || pinned.Contains(entry[(comma + 1)..].Trim(), StringComparer.OrdinalIgnoreCase))
-        type = Type.GetType(entry, throwOnError: true)!;
-    else
-    {
-        // 过渡期放宽（S1-KUN-022 发新包、清单改钉之后，连同 e2e 里的名单一起删掉）：清单入口已挪到还没发布的包里，
-        // 钉住的仍是私有源上的旧包。只在钉住的包的程序集里找带同一组件 id 特性的类型，必须恰好一个，并打一行标记。
-        var candidates = pinned.Select(name => Assembly.Load(new AssemblyName(name))).SelectMany(assembly => assembly.GetTypes())
-            .Where(candidate => candidate.GetCustomAttributesData().Any(attribute => attribute.AttributeType.FullName == "Qian.Plugin.Sdk.QianPluginAttribute"
-                && attribute.ConstructorArguments.Count == 1 && Equals(attribute.ConstructorArguments[0].Value, id)))
-            .ToArray();
-        if (candidates.Length != 1)
-            throw new InvalidOperationException(id + " 的入口 " + entry + " 不在钉住的包里，钉住的包里带同一组件 id 特性的类型有 " + candidates.Length + " 个，应恰好一个");
-        type = candidates[0];
-        Console.WriteLine("entry-fallback:" + id + "|" + entry + "|" + type.FullName + ", " + type.Assembly.GetName().Name);
-    }
+    if (comma < 1 || !pinned.Contains(entry[(comma + 1)..].Trim(), StringComparer.OrdinalIgnoreCase))
+        throw new InvalidOperationException(id + " 的清单必须直接钉住入口程序集所在的包：" + entry);
+    var type = Type.GetType(entry, throwOnError: true)!;
     var provides = item.GetProperty("provides").EnumerateArray().Select(key => new ServiceKey(key.GetString()!)).ToArray();
     definitions.Add(new PluginDefinition(new PluginEntry(item.GetProperty("id").GetString()!, id, plugin[(plugin.IndexOf('@') + 1)..], ScopeKey.Global, 0, item.GetProperty("config").Clone()),
-        (IQianPlugin)Activator.CreateInstance(type)!, provides));
+        (IKunPlugin)Activator.CreateInstance(type)!, provides));
 }
 loader = new PluginLoader(app.Services);
 await using var runtime = loader;
@@ -73,22 +61,30 @@ foreach (var definition in definitions)
 Console.WriteLine("installed-providers-ready:" + string.Join(',', definitions.Select(definition => definition.Entry.Plugin + "=" + definition.Plugin.GetType().Assembly.GetName().Version)));
 ${checks}
 `;
-const host=program('using Kun.EventBus.DependencyInjection;\nusing Qian.Events;\n','builder.Services.AddKunEventBus();\nbuilder.Services.AddQianEvents();\n');
-// qian.files 的宿主装配照组件 README：显式选择租户上下文（Kun 的 AsyncLocalTenantContext，随包传递带来，挂载就要它），
+// flags 只允许 platform profile。使用配置组件带入的同一程序集，直接验证它声明的入口与依赖。
+const flags=manifest('qian.config.flags');
+const flagsCheck=`var flagsType = Type.GetType(${JSON.stringify(flags.runtime.entry)}, throwOnError: true)!;
+var flagsPlugin = (IKunPlugin)Activator.CreateInstance(flagsType)!;
+var expectedKeys = new string[] { ${flags.inject.map(key=>JSON.stringify(key)).join(', ')} };
+if (!flagsPlugin.Inject.Select(key => key.Name).Order().SequenceEqual(expectedKeys.Order()) ||
+    flagsType.Assembly.GetName().Version!.ToString() != ${JSON.stringify(assemblyVersion(entryPackage('qian.config.flags').version))})
+    throw new InvalidOperationException("特性开关入口的程序集版本或服务依赖与清单不符");`;
+const host=program('using Kun.EventBus.DependencyInjection;\nusing Kun.EventBus;\n','builder.Services.AddKunEventBus();\nbuilder.Services.AddKunEvents();\n',flagsCheck);
+// qian.files 的宿主装配照组件 README：显式选择租户上下文（宿主直接引用的 Kun.MultiTenancy 提供 AsyncLocalTenantContext），
 // AddKunEventBus 登记文件事件，AddKunMediator 登记文件能力（能力源取 files 条目的上下文）。
 // 本门只验 Provider 挂载到 Ready（R100）；能力的命令管道还要当前主体与数据会话等宿主装配，归 S1-QA-005 的独立样例，
 // 所以这里不在构建时校验整棵依赖树。
-const filesHost=program('using Kun.Core.MultiTenancy;\nusing Kun.EventBus.DependencyInjection;\nusing Kun.Mediator.DependencyInjection;\nusing Kun.MultiTenancy;\nusing Qian.Files;\n',
+const filesHost=program('using Kun.Core.MultiTenancy;\nusing Kun.EventBus.DependencyInjection;\nusing Kun.Mediator.DependencyInjection;\nusing Kun.MultiTenancy;\nusing Kun.Files;\n',
  'builder.Host.UseDefaultServiceProvider(options => options.ValidateOnBuild = false);\nbuilder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());\n' +
- 'builder.Services.AddKunEventBus(registrar => registrar.RegisterFilesEvents());\nbuilder.Services.AddKunMediator(registry => registry.AddQianFiles(_ => loader!.GetContext("files", ScopeKey.Global)));\n');
+ 'builder.Services.AddKunEventBus(registrar => registrar.RegisterFilesEvents());\nbuilder.Services.AddKunMediator(registry => registry.AddKunFiles(_ => loader!.GetContext("files", ScopeKey.Global)));\n');
 // 公开客户端只需要 Identity.Client 的宿主装配；发行方和 clientId 与 profile 配置一致，不创建替身 Provider。
-const identityHost=program('using Qian.Identity.Abstractions;\nusing Qian.Identity.Client;\n',
- 'builder.Services.AddQianIdentityClient(new IdentityClientOptions { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-public", RedirectUri = new Uri("https://rp.qian.test/auth/callback"), UseInMemorySessionStore = true });\n',
+const identityHost=program('using Kun.Identity.Abstractions;\nusing Kun.Identity.Client;\n',
+ 'builder.Services.AddKunIdentityClient(new IdentityClientOptions { Authority = new Uri("https://id.qian.test/"), ClientId = "qian-public", RedirectUri = new Uri("https://rp.qian.test/auth/callback"), UseInMemorySessionStore = true });\n',
  `var context = runtime.GetContext("client", ScopeKey.Global);
 var identity = context.Inject<IIdentityService>(IdentityDefinition.Key);
 if (identity.CurrentPrincipal is not null) throw new InvalidOperationException("公开客户端的初始主体必须匿名");
-app.UseQianIdentityClient();
-app.MapQianIdentityClient();
+app.UseKunIdentityClient();
+app.MapKunIdentityClient();
 app.Urls.Clear();
 app.Urls.Add("http://127.0.0.1:0");
 await app.StartAsync();
@@ -108,47 +104,64 @@ try { _ = context.Inject<IIdentityService>(IdentityDefinition.Key); }
 catch (ObjectDisposedException) { revoked = true; }
 if (!revoked) throw new InvalidOperationException("身份服务旧上下文未撤销");
 Console.WriteLine("identity-service-revoked");`);
-// 组件 Provider 的程序集版本 = 清单钉的锁步版本（NuGet 包版本 x.y.z 对应程序集版本 x.y.z.0）。
-const ready=items=>items.map(item=>item.id+'='+manifest(item.id).runtime.nuget[0].version+'.0').sort();
-// 过渡期放宽（S1-KUN-022 发新包、清单改钉之后连同宿主里的那一支一起删掉）：清单入口已挪到还没发布的包里的组件。
-// 组件清单的 runtime.nuget[] 钉的是私有源上已发布的旧包，新包发布前不动；入口却随代码挪到了新包，宿主严格按入口解析必然失败。
-// 宿主对这些组件改在钉住的包里找带同一组件 id 特性的类型，并打一行 entry-fallback 标记。每个场景断言走了这一支的组件
-// 正好是名单里属于本场景的那些：名单之外的组件走了这一支（比如入口所在的包忘了钉），或新包发布、清单改钉后名单里的组件
-// 不再走这一支，测试都失败。之后各批挪了入口的组件往这里加。其余断言（钉版与摘要、表面逐字节、Ready、Provider 版本）不变。
-const entryInUnpublishedPackage=['qian.config','qian.data','qian.events','qian.files','qian.identity.client'];
-function assertEntryFallback(stdout,items){
- const marks=stdout.split(/\r?\n/).filter(text=>text.startsWith('entry-fallback:')).map(text=>text.slice('entry-fallback:'.length).split('|'));
- for(const [id,entry,mounted] of marks){
-  assert.equal(entry,manifest(id).runtime.entry,stdout);
-  assert.ok(manifest(id).runtime.nuget.some(reference=>mounted.endsWith(', '+reference.id)),stdout);
- }
- assert.deepEqual(marks.map(([id])=>id).sort(),items.map(item=>item.id).filter(id=>entryInUnpublishedPackage.includes(id)).sort(),stdout);
+// 六个组件的七条包引用须属于同一正式发布批次。
+const pinnedComponents=['qian.config','qian.config.flags','qian.data','qian.events','qian.files','qian.identity.client'];
+function entryPackage(id){
+ const {entry,nuget}=manifest(id).runtime;
+ const assembly=entry.split(',')[1]?.trim();
+ const reference=nuget.find(item=>item.id===assembly);
+ assert.ok(reference,id+' 的清单应直接引用入口程序集所在包 '+assembly);
+ return reference;
 }
+function assemblyVersion(version){return version.split('-')[0]+'.0';}
+const ready=items=>items.map(({id})=>id+'='+assemblyVersion(entryPackage(id).version)).sort();
+let releaseTiers;
+let sourceConfig;
 function nugetConfig(project,cache){
- // 只用私有源与 nuget.org；Qian.* 映射到私有源，凭据以环境变量引用，配置文件里不出现令牌。独立包目录、不设回退目录，证明包确实取自源。
- write(project,'NuGet.Config',`<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <packageSources><clear /><add key="qian" value="${xml(feed)}" /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources>
-  <packageSourceMapping><packageSource key="qian"><package pattern="Qian.*" /></packageSource><packageSource key="nuget.org"><package pattern="*" /></packageSource></packageSourceMapping>
-  <packageSourceCredentials><qian><add key="Username" value="${xml(process.env.GITHUB_ACTOR??'qian-e2e')}" /><add key="ClearTextPassword" value="%QIAN_FEED_TOKEN%" /></qian></packageSourceCredentials>
-  <config><add key="globalPackagesFolder" value="${xml(cache)}" /></config>
-</configuration>
-`);
+ assert.ok(process.env.KUN_PLATFORM_FEED_USER && process.env.KUN_PLATFORM_FEED_TOKEN,'需要 KUN_PLATFORM_FEED_USER 和有读包权限的 KUN_PLATFORM_FEED_TOKEN');
+ const pins=pinnedComponents.flatMap(id=>manifest(id).runtime.nuget);
+ assert.equal(pins.length,7);
+ for(const id of pinnedComponents)entryPackage(id);
+ const versions=[...new Set(pins.map(pin=>pin.version))];
+ assert.equal(versions.length,1,'六个组件应使用同一发布批次');
+ assert.ok(pins.every(pin=>/^sha256:[a-f0-9]{64}$/.test(pin.digest)),'每个包都须钉住归档摘要');
+ const shared=entryPackage('qian.config');
+ assert.deepEqual(entryPackage('qian.config.flags'),shared,'配置和特性开关应共享同一份已发布制品');
+ assert.match(versions[0],/^\d{4}\.\d{1,2}\.\d{1,2}(?:-hotfix\.[1-9]\d*)?$/,'组件安装验收使用正式发布版或修复版');
+ releaseTiers ??= new Map(JSON.parse(execFileSync('python3',[releaseTool,'list','--json'],{encoding:'utf8'})).map(pkg=>[pkg.id,pkg.tier]));
+ sourceConfig ??= execFileSync('python3',[releaseTool,'nuget-config','--version',versions[0]],{encoding:'utf8'});
+ const config=sourceConfig.replace('</configuration>',
+  '  <config><add key="globalPackagesFolder" value="'+xml(cache)+'" /></config>\n</configuration>');
+ write(project,'NuGet.Config',config);
 }
 // 签名本地市场：条目指向仓库里的真实组件文件夹，只允许装进给定 profile；公钥写进项目信任。
 function signedMarket(project,catalog,items,profile){
  for(const item of items)cpSync(path.join(repo,'plugins',item.id),path.join(catalog,'plugins',item.id),{recursive:true});
  const keys=generateKeyPairSync('ed25519'),publicPem=keys.publicKey.export({type:'spki',format:'pem'});
  write(catalog,'keys/publisher.pub',publicPem);
- const marketplace={name:market,interface:{displayName:'私有源已发布组件'},owner:{name:'Qian',publicKeys:['./keys/publisher.pub']},categories:['platform'],
+ const marketplace={name:market,interface:{displayName:'已发布组件'},owner:{name:'Qian',publicKeys:['./keys/publisher.pub']},categories:['platform'],
   plugins:items.map(item=>({name:item.name,source:{type:'local',path:'./plugins/'+item.id},category:'platform',policy:{installation:'auto',authentication:'ON_INSTALL',profiles:[profile]}}))};
  const document=Buffer.from(JSON.stringify(marketplace,null,2)+'\n');
  write(catalog,'.qian/marketplace.json',document);write(catalog,'.qian/marketplace.json.sig',sign(null,createHash('sha256').update(document).digest(),keys.privateKey));
  write(project,'.qian/config.yml',stringify({defaultProfile:profile,marketplaces:[{name:market,source:catalog,priority:10}],trust:{keys:[publicPem]}}));
 }
-// 组件清单里的每个 NuGet 包：按确切版本钉进项目（精确区间 [x]），由私有源还原，归档摘要与清单、lock 三方一致；表面逐字节等于仓库组件文件夹。
+// 组件清单里的每个 NuGet 包：按确切版本钉进项目（精确区间 [x]），按该版本发布映射还原，归档摘要与清单、lock 三方一致；表面逐字节等于仓库组件文件夹。
 function assertInstalled(project,cache,plugins,lock,items){
  const projectXml=readFileSync(path.join(project,'Shop.csproj'),'utf8');
+ const assets=JSON.parse(readFileSync(path.join(project,'obj/project.assets.json'),'utf8'));
+ assert.deepEqual(Object.keys(assets.packageFolders).map(folder=>path.resolve(folder)),[path.resolve(cache)],'应使用该空白宿主的独立包目录');
+ for(const [identity,library] of Object.entries(assets.libraries)){
+  assert.equal(library.type,'package');
+  const [id,version]=identity.split('/');
+  const tier=releaseTiers.get(id);
+  if(id.startsWith('Kun.')){
+   assert.ok(tier,id+' 须在正式发包清单中');
+   assert.equal(version,entryPackage(items[0].id).version,id+' 须属于本次装配批次');
+  }
+  const directory=path.join(cache,id.toLowerCase(),version.toLowerCase());
+  const actual=JSON.parse(readFileSync(path.join(directory,'.nupkg.metadata'),'utf8')).source;
+  assert.equal(actual,tier==='platform'?publishedPlatform:publishedPublic,id+' 包源');
+ }
  for(const item of items){
   const declared=manifest(item.id).runtime.nuget,reported=plugins.find(plugin=>plugin.id===item.id),record=lock.plugins.find(plugin=>plugin.id===item.id);
   // CLI 按包 ID 排列 NuGet 引用，与清单顺序无关。
@@ -160,15 +173,13 @@ function assertInstalled(project,cache,plugins,lock,items){
   for(const reference of declared){
    assert.ok(projectXml.includes('<PackageReference Include="'+reference.id+'" Version="['+reference.version+']" />'),projectXml);
    const restored=path.join(cache,reference.id.toLowerCase(),reference.version);
-   assert.equal(JSON.parse(readFileSync(path.join(restored,'.nupkg.metadata'),'utf8')).source,feed);
    assert.equal('sha256:'+createHash('sha256').update(readFileSync(path.join(restored,reference.id.toLowerCase()+'.'+reference.version+'.nupkg'))).digest('hex'),reference.digest);
    assert.equal(record.packageArtifacts.find(artifact=>artifact.name===reference.id).digest,reference.digest);
   }
  }
 }
 
-test('空白 ASP.NET Core 项目经签名市场安装私有源已发布的 data / events / config：表面进 .qian、NuGet 按清单钉版并自私有源还原、patch 与 lock 记录来源和 digest，真实 Provider 运行，remove 逆序撤销',()=>{
- assert.ok(process.env.QIAN_FEED_TOKEN,'需要 QIAN_FEED_TOKEN：私有 NuGet 源的读包令牌（CI 使用带 packages: read 的 GITHUB_TOKEN）。');
+test('空白 ASP.NET Core 项目经签名市场安装已发布的 data / events / config：表面进 .qian、NuGet 按清单钉版并从指定源还原、patch 与 lock 记录来源和 digest，真实 Provider 运行，remove 逆序撤销',()=>{
  const root=mkdtempSync(path.join(realpathSync(os.tmpdir()),'qian-feed-e2e-')),project=path.join(root,'shop'),catalog=path.join(root,'catalog'),cache=path.join(root,'nuget-packages');
  try{
   const created=dotnet(root,'new','web','--name','Shop','--output',project,'--framework','net10.0','--no-restore');
@@ -183,11 +194,11 @@ test('空白 ASP.NET Core 项目经签名市场安装私有源已发布的 data 
 
   const installed=qian(project,'add','data','events','config','--yes');
   assert.equal(installed.status,0,installed.stderr);
-  assert.doesNotMatch(installed.stdout+installed.stderr,new RegExp(process.env.QIAN_FEED_TOKEN.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  assert.ok(!(installed.stdout+installed.stderr).includes(process.env.KUN_PLATFORM_FEED_TOKEN),'安装输出不得包含读包令牌');
   assertInstalled(project,cache,JSON.parse(installed.stdout).plugins,JSON.parse(readFileSync(path.join(project,'.qian/lock.json'),'utf8')),components);
   assert.deepEqual(parseYaml(readFileSync(patchFile,'utf8')).map(entry=>[entry.id,entry.plugin]).sort(),components.map(item=>[item.name,item.id+'@'+manifest(item.id).version]).sort());
 
-  // 宿主用 CLI 解析出的 profile 挂载已安装组件：三个 Provider 都由私有源还原的程序集真实运行。
+  // 宿主用 CLI 解析出的 profile 挂载已安装组件：三个 Provider 都以从指定发布源还原的程序集运行。
   const resolved=qian(project,'dump-config');assert.equal(resolved.status,0,resolved.stderr);
   const programFile=path.join(project,'Program.cs'),original=readFileSync(programFile,'utf8');
   write(root,'resolved.json',resolved.stdout);writeFileSync(programFile,host);
@@ -195,7 +206,6 @@ test('空白 ASP.NET Core 项目经签名市场安装私有源已发布的 data 
   assert.equal(started.status,0,started.stdout+started.stderr);
   const line=started.stdout.split('\n').find(text=>text.startsWith('installed-providers-ready:'));
   assert.ok(line,started.stdout);assert.deepEqual(line.slice('installed-providers-ready:'.length).split(',').sort(),ready(components));
-  assertEntryFallback(started.stdout,components);
   writeFileSync(programFile,original);
 
   const listed=qian(project,'list');assert.equal(listed.status,0,listed.stderr);
@@ -215,18 +225,23 @@ test('空白 ASP.NET Core 项目经签名市场安装私有源已发布的 data 
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
-test('空白 ASP.NET Core 项目经签名市场把私有源已发布的 data / files 装进 standalone profile：files 的每个 NuGet 包按清单钉版并自私有源还原，预置的存储配置随条目沿用，真实 Provider 运行，remove 逆序撤销',()=>{
- assert.ok(process.env.QIAN_FEED_TOKEN,'需要 QIAN_FEED_TOKEN：私有 NuGet 源的读包令牌（CI 使用带 packages: read 的 GITHUB_TOKEN）。');
+test('空白 ASP.NET Core 项目经签名市场把已发布的 data / files 装进 standalone profile：files 的每个 NuGet 包按清单钉版并从指定源还原，预置的存储配置随条目沿用，真实 Provider 运行，remove 逆序撤销',()=>{
  const selected=[{name:'data',id:'qian.data'},{name:'files',id:'qian.files'}];
  const root=mkdtempSync(path.join(realpathSync(os.tmpdir()),'qian-feed-files-')),project=path.join(root,'shop'),catalog=path.join(root,'catalog'),cache=path.join(root,'nuget-packages'),objects=path.join(root,'objects');
  try{
   const created=dotnet(root,'new','web','--name','Shop','--output',project,'--framework','net10.0','--no-restore');
   assert.equal(created.status,0,created.stdout+created.stderr);
   nugetConfig(project,cache);
+  // 文件宿主选择事件总线和租户上下文的实现，并按同一发布版本登记。
+  const hostVersion='['+entryPackage('qian.files').version+']';
+  for(const dependency of ['Kun.EventBus','Kun.MultiTenancy']){
+   const added=dotnet(project,'add','Shop.csproj','package',dependency,'--version',hostVersion,'--no-restore');
+   assert.equal(added.status,0,added.stdout+added.stderr);
+  }
   // files 的 policy.profiles 只允许 platform / standalone：项目自带一个名为 standalone、只引用空组合包的 profile，不带仓库 standalone 组合包里的其它组件。
   // qian add 只按 configSchema 缺省值合成条目配置，而 storage 必填：先放一条 disabled 的 files 条目写好存储配置，安装时沿用它。
   const storage={kind:'local',root:objects,endpoint:'http://127.0.0.1:5080/files/blobs/'};
-  write(project,'profiles/standalone/qian.profile.yml',stringify({name:'standalone',description:'私有源 E2E 的空 standalone profile',bundles:['qian.bundle.minimal@^1'],patch:'./qian.patch.yml'}));
+  write(project,'profiles/standalone/qian.profile.yml',stringify({name:'standalone',description:'发布包验收的 standalone profile',bundles:['qian.bundle.minimal@^1'],patch:'./qian.patch.yml'}));
   write(project,'profiles/standalone/qian.patch.yml',stringify([{id:'files',plugin:'qian.files',disabled:true,config:{storage}}]));
   cpSync(path.join(repo,'plugins/qian.bundle.minimal'),path.join(project,'plugins/qian.bundle.minimal'),{recursive:true});
   signedMarket(project,catalog,selected,'standalone');
@@ -235,14 +250,14 @@ test('空白 ASP.NET Core 项目经签名市场把私有源已发布的 data / f
 
   const installed=qian(project,'add','data','files','--yes');
   assert.equal(installed.status,0,installed.stderr);
-  assert.doesNotMatch(installed.stdout+installed.stderr,new RegExp(process.env.QIAN_FEED_TOKEN.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  assert.ok(!(installed.stdout+installed.stderr).includes(process.env.KUN_PLATFORM_FEED_TOKEN),'安装输出不得包含读包令牌');
   assertInstalled(project,cache,JSON.parse(installed.stdout).plugins,JSON.parse(readFileSync(path.join(project,'.qian/lock.json'),'utf8')),selected);
   const entries=parseYaml(readFileSync(patchFile,'utf8'));
   assert.deepEqual(entries.map(entry=>[entry.id,entry.plugin,entry.disabled===true]).sort(),selected.map(item=>[item.name,item.id+'@'+manifest(item.id).version,false]).sort());
   // 预置的存储配置原样沿用，其余键补 configSchema 缺省值（平台默认配额 10 GiB）。
   assert.deepEqual(entries.find(entry=>entry.id==='files').config,{storage,quota:{perTenantBytes:10*1024**3}});
 
-  // 已发布组件已经传递带来 EventBus 实现；消费其实际还原的同批契约，不从源码 KunVersion 注入另一版本。
+  // 宿主选用的事件总线与组件使用的契约须来自同一发布批次。
   const libraries=JSON.parse(readFileSync(path.join(project,'obj/project.assets.json'),'utf8')).libraries;
   const restoredVersions=id=>Object.entries(libraries).filter(([name,library])=>library.type==='package'&&name.startsWith(id+'/')).map(([name])=>name.slice(id.length+1));
   const contracts=restoredVersions('Kun.EventBus.Abstractions');
@@ -255,7 +270,6 @@ test('空白 ASP.NET Core 项目经签名市场把私有源已发布的 data / f
   assert.equal(started.status,0,started.stdout+started.stderr);
   const line=started.stdout.split('\n').find(text=>text.startsWith('installed-providers-ready:'));
   assert.ok(line,started.stdout);assert.deepEqual(line.slice('installed-providers-ready:'.length).split(',').sort(),ready(selected));
-  assertEntryFallback(started.stdout,selected);
   // local 后端按沿用的存储配置建好了对象根目录。
   assert.ok(existsSync(objects));
   writeFileSync(programFile,original);
@@ -272,8 +286,7 @@ test('空白 ASP.NET Core 项目经签名市场把私有源已发布的 data / f
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
-test('空白宿主从私有源安装 identity：精确版本与归档摘要、声明式配置沿用、真实 Identity seam 就绪并撤销，remove 清理组件与包引用',()=>{
- assert.ok(process.env.QIAN_FEED_TOKEN,'需要 QIAN_FEED_TOKEN：私有 NuGet 源的读包令牌（CI 使用带 packages: read 的 GITHUB_TOKEN）。');
+test('空白宿主从平台源安装 identity：精确版本与归档摘要、声明式配置沿用、真实 Identity seam 就绪并撤销，remove 清理组件与包引用',()=>{
  const selected=[{name:'identity',id:'qian.identity.client'}];
  const root=mkdtempSync(path.join(realpathSync(os.tmpdir()),'qian-feed-identity-')),project=path.join(root,'shop'),catalog=path.join(root,'catalog'),cache=path.join(root,'nuget-packages');
  try{
@@ -292,7 +305,7 @@ test('空白宿主从私有源安装 identity：精确版本与归档摘要、�
 
   const installed=qian(project,'add','identity','--yes');
   assert.equal(installed.status,0,installed.stderr);
-  assert.ok(!(installed.stdout+installed.stderr).includes(process.env.QIAN_FEED_TOKEN),'安装输出不得包含读包令牌');
+  assert.ok(!(installed.stdout+installed.stderr).includes(process.env.KUN_PLATFORM_FEED_TOKEN),'安装输出不得包含读包令牌');
   assertInstalled(project,cache,[JSON.parse(installed.stdout)],JSON.parse(readFileSync(path.join(project,'.qian/lock.json'),'utf8')),selected);
   assert.deepEqual(parseYaml(readFileSync(patchFile,'utf8')),[{id:'client',scope:'global',plugin:'qian.identity.client@'+manifest('qian.identity.client').version,config:configuration,disabled:false}]);
 
@@ -303,7 +316,6 @@ test('空白宿主从私有源安装 identity：精确版本与归档摘要、�
   assert.equal(started.status,0,started.stdout+started.stderr);
   const line=started.stdout.split('\n').find(text=>text.startsWith('installed-providers-ready:'));
   assert.ok(line,started.stdout);assert.deepEqual(line.slice('installed-providers-ready:'.length).split(','),ready(selected));
-  assertEntryFallback(started.stdout,selected);
   assert.ok(started.stdout.split(/\r?\n/).includes('identity-service-revoked'),started.stdout);
   writeFileSync(programFile,original);
 

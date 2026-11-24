@@ -1,4 +1,4 @@
-# 匠心智能体平台产品需求文档（PRD）
+# 匠心工业智能体平台产品需求文档（PRD）
 
 > 状态：**草案 v1（组件模型 v2 已定稿，2026-10-07）** · 更新日期：2026-10-07 · 决策真相源：`docs/adr/`（拍板前为 `docs/decisions/key-decisions-v0.md`，D1–D18 与补充裁决已于 2026-10-06 全部获认可；D19 库优先、D20 组件模型 v2 为同日方向修正新增，ADR-019 / ADR-020 已于 2026-10-07 Accepted、待确认项全部拍板） · 路线真相源：[`docs/ROADMAP.md`](../platform-roadmap.md) · 研究基线：`docs/research/baseline-digest.md`
 
@@ -8,7 +8,7 @@
 
 | 项 | 约定 |
 |---|---|
-| 产品 | **匠心智能体平台**。本 PRD 记录面向开发者、搭建者、租户与 Agent 的阶段目标。 |
+| 产品 | **匠心工业智能体平台**。本 PRD 记录面向开发者、搭建者、租户与 Agent 的阶段目标。 |
 | 后端 | **Kun**（.NET 10），同一仓库的内核档与平台档采用 CalVer。旧包与现有包逐项对照见[NuGet 包迁移指南](../guides/package-migration.md)。 |
 | 前端 | **Qian**（React），由 [CavaiLAB/qian](https://github.com/CavaiLAB/qian) 发布 `@cavailab/qian-*`。本仓库的外壳应用及界面接线消费这些包。 |
 | 插件 ID 前缀 | `qian.`（反向域名风格，发布后不可改；第三方以自有域名前缀） |

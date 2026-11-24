@@ -16,6 +16,8 @@ superseded_by: ADR-023（部分）
 
 > **2026-11-17 部分被 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) 取代。** D21.1 的三层口径改为「Kun 是框架，内部分内核档与平台档；qian 是前端层（原名［前端框架］）」；D21.2 的不建大单仓改为 Qian 并入 `idadawn/kun`；D21.3 的 `KunVersion` 单点钉版与包源映射在合并阶段 2 构建并轨时作废；D21.4 的 Kun 文档镜像小节在阶段 1 导入后撤销，改为同仓来源。对应阶段落地之前照旧执行。D21.5、D21.6 不变。
 
+> 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D40、D44）：产品负责人 2026-11-24 定产品族的所有者是 CavaiLAB（D40），前端包的作用域是 `@cavailab`（D44），标在 D21.2 第 1 点、D21.6 与 §7「仓库归属」之前。正文未改。
+
 ## 1 背景与问题（Context）
 
 三个名字已经在用：**Kun**（底座框架）、**Qian**（平台）、**［前端框架］**（前端组件库），周边还有官方市场仓库 `qian-plugins`、兄弟系统［下游智能体平台］、部署仓库与模型服务仓库。它们之间的层次关系、仓库怎么关联、Kun 文档从哪来，此前只在 ADR-001 讲了「Kun 是底座 SDK、以 NuGet + CalVer 锁版本消费」，没有统一口径。现状事实：
@@ -40,7 +42,7 @@ superseded_by: ADR-023（部分）
 
   对外一句话：「**Qian 平台基于 Kun 框架构建，前端使用［前端框架］组件库**」。不说「Kun 是 Qian 的子项目」（Kun 有独立下游与发布节奏），也不说「Qian 是 Kun 的扩展」（Qian 有自己的运行时与产品语义）。归属判据沿用决策清单 D19 的分界：无产品观点的通用基础设施上游进 Kun，带多租户 / 业务语义的是 Qian 包。ADR-001 D1.1–D1.8 不变。
 - 【已被 ADR-023 D23.1 取代，阶段 1 导入之前照旧执行】**D21.2 不建大单仓、不建 submodule 元仓库**（ADR-001 §4 已否决单仓）。「大项目」= **产品族**，用四样东西关联：
-  1. **一个 GitHub 所有者：`idadawn`**（产品负责人 2026-10-07 拍板）。［下游智能体平台］源码、部署仓库、MaaS、Qian 都已在 `idadawn`，只有 Kun 还在公司级、内容驳杂的 CavaiLAB 组织，所以是 **Kun 迁回 `idadawn`**，而不是 Qian 迁出。迁后产品族全部仓库同一所有者：一个 GitHub Packages 命名空间（`Qian.*` 的 S1 包、Kun 的镜像与预发布包；`Qian.*` 包公开可见但安装需令牌，R93）、一段源配置加一份 `packageSourceMapping`；官方市场仓库定名 `idadawn/qian-plugins`。Kun 正式版的主渠道是公开的 nuget.org，迁移不影响任何消费者。执行与核验见 S1-PM-003。
+  1. 【经 S1-DEC-038 D40 修订：产品族的所有者是 CavaiLAB，四个仓库都在它之下】**一个 GitHub 所有者：`idadawn`**（产品负责人 2026-10-07 拍板）。［下游智能体平台］源码、部署仓库、MaaS、Qian 都已在 `idadawn`，只有 Kun 还在公司级、内容驳杂的 CavaiLAB 组织，所以是 **Kun 迁回 `idadawn`**，而不是 Qian 迁出。迁后产品族全部仓库同一所有者：一个 GitHub Packages 命名空间（`Qian.*` 的 S1 包、Kun 的镜像与预发布包；`Qian.*` 包公开可见但安装需令牌，R93）、一段源配置加一份 `packageSourceMapping`；官方市场仓库定名 `idadawn/qian-plugins`。Kun 正式版的主渠道是公开的 nuget.org，迁移不影响任何消费者。执行与核验见 S1-PM-003。
   2. **一个文档站**：「Qian 文档」覆盖整个产品族。Kun 为第 3 部分 SDK 的第一节 `/sdk/kun/`（导航名「Kun 框架」），内容按 Qian 锁定的 Kun 版本从 kun 仓库镜像并经 DocFX 生成 API（D21.4）。站名不改，首页一句话定位点明基于 Kun、［前端框架］。
   3. **一张版本矩阵**：`/start/versions` 自动生成：每个 Qian 版本对应的 Kun CalVer、`Qian.*`、`［前端包系列］`、.NET SDK、Node、K3s 基线；来源是仓库内的钉版文件（`Directory.Packages.props`、`global.json`、pnpm catalog）。
   4. **一个看板**：跨仓库工作在 Qian 的 `pm/` 跟踪（KUN 领域），kun 仓库的 PR 写进任务 `refs` 与进度日志回链；不另建 GitHub Project。
@@ -53,7 +55,7 @@ superseded_by: ADR-023（部分）
   - 门禁：`sdk/kun/` 为生成目录不接受手改；镜像 tag 与 `KunVersion` 不一致、白名单外文件进站、`KunVersion` 缺失，均构建失败。
   - 公开时点耦合：文档站公开（ADR-019 §7：S2 末或首个外部宿主试用时）会连带公开 Kun 文档；届时 Kun 仓库须同步公开或 Kun 维护人书面同意，否则公开站的 Kun 小节降级为「版本矩阵 + 与 Qian 的关系」两页。
 - **D21.5 产品族可见性**。各仓库 README 开头放同一段「产品族地图」（Qian 立即落实；kun、`qian-plugins` 等在下次变更时补一行回链，不作 S1 退出条件）；文档站第 1 部分有 `/start/family` 产品族地图页；全站 frontmatter 增加 `project`（`qian` / `kun` / `yue`），`llms.txt` 按它分节、知识库按它过滤。
-- **D21.6 TS 运行时的物理发布名与逻辑名**（S1-DEC-014，产品负责人 2026-10-11 确认）。GitHub Packages 的物理包名为 `@idadawn/qian-runtime`，关联 `idadawn/qian`，S1 保持私有。公共逻辑导入名仍为 `@qian/runtime`，消费者通过 `"@qian/runtime": "npm:@idadawn/qian-runtime@<固定版本>"` 映射，不另发同功能的第二份包。发版必须完成私有源真实安装、别名导入与类型声明验收；不把本地打包代替已发布证明。
+- 【经 S1-DEC-038 D44 修订：物理包名的作用域是 `@cavailab`，即 `@cavailab/qian-runtime`】**D21.6 TS 运行时的物理发布名与逻辑名**（S1-DEC-014，产品负责人 2026-10-11 确认）。GitHub Packages 的物理包名为 `@idadawn/qian-runtime`，关联 `idadawn/qian`，S1 保持私有。公共逻辑导入名仍为 `@qian/runtime`，消费者通过 `"@qian/runtime": "npm:@idadawn/qian-runtime@<固定版本>"` 映射，不另发同功能的第二份包。发版必须完成私有源真实安装、别名导入与类型声明验收；不把本地打包代替已发布证明。
 
 ## 3 理由（Rationale）
 
@@ -86,7 +88,7 @@ superseded_by: ADR-023（部分）
 
 ## 7 待确认事项
 
-- **仓库归属**：已拍板（产品负责人，2026-10-07）：产品族所有者 = `idadawn`，Kun 从 CavaiLAB 迁入，理由是［下游智能体平台］源码与其余仓库都在 `idadawn`；specs 中的组织占位已替换为 `idadawn`。**已执行**（2026-10-08）：`idadawn/kun` 就位，旧地址重定向，runner / secrets / releases 完好；协作者邀请名单待产品负责人决定（S1-PM-003）。
+- 【经 S1-DEC-038 D40 修订：产品族的所有者是 CavaiLAB（产品负责人 2026-11-24 定）；Kun 的源码以 `CavaiLAB/kun` 为准（D17）】**仓库归属**：已拍板（产品负责人，2026-10-07）：产品族所有者 = `idadawn`，Kun 从 CavaiLAB 迁入，理由是［下游智能体平台］源码与其余仓库都在 `idadawn`；specs 中的组织占位已替换为 `idadawn`。**已执行**（2026-10-08）：`idadawn/kun` 就位，旧地址重定向，runner / secrets / releases 完好；协作者邀请名单待产品负责人决定（S1-PM-003）。
 - **Kun 仓库公开时点**：随文档站公开，需 Kun 维护人确认。
 - **［前端框架］是否拆独立仓库**：默认不拆，随 Qian 单仓；S3 公开时再议。
 

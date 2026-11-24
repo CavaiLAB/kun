@@ -4,13 +4,15 @@
 >
 > 2026-11-19 补：人审的两道关口与路线的里程碑已定（[2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md) P28、P31），见第 1、3 节。
 >
+> 2026-11-24 补：SanYuanAgent 暂缓开发，现在使用 DSH；设备上的本机模型只定了先后，等设备一侧用什么运行时定下来再定，排在路线里程碑 M8 之前（已定，[S1-DEC-038](../pm/tasks/S1-DEC-038.md) D45、D48）。第 1 节第 1 条据此加注。
+>
 > 本文只写 Kun 这一侧要提供什么。引擎一侧怎么用，见 SanYuanAgent 的[接入平台：与 Kun 的交互](https://github.com/CavaiLAB/sanyuan-agent/blob/main/docs/platform.md)与[与模型服务的交互](https://github.com/CavaiLAB/sanyuan-agent/blob/main/docs/models.md)。
 
 ## 1 已定
 
 产品负责人 2026-11-17 的裁定：
 
-1. SanYuanAgent 是独立运行的 SDK。每个端都要用到它，包括机器人这类边缘设备，装上就能用。
+1. SanYuanAgent 是独立运行的 SDK。每个端都要用到它，包括机器人这类边缘设备，装上就能用。（2026-11-24 起 SanYuanAgent 暂缓开发，现在使用 DSH，S1-DEC-038 D45。）
 2. 模型服务由 Kun 提供；机器人这类设备本地可能还有小模型。
 
 对 Kun 来说这意味着两件事：

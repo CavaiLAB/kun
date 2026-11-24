@@ -182,6 +182,15 @@ public sealed class OidcConnectorTests : IDisposable
     }
 
     [Fact]
+    public async Task 签发时间晚于当前时间超过容差被拒_两分钟内仍接受()
+    {
+        _op.Mint = grant => _op.Token(grant, issuedIn: TimeSpan.FromMinutes(3));
+        Assert.Equal(PlatformErrors.BadGateway, (await RoundTrip()).Error);
+        _op.Mint = grant => _op.Token(grant, issuedIn: TimeSpan.FromMinutes(1));
+        Assert.Null((await RoundTrip()).Error);
+    }
+
+    [Fact]
     public async Task 授权响应的iss按RFC9207核对()
     {
         Assert.Equal(IdentityErrors.ConnectorStateInvalid, (await RoundTrip(p => { p["iss"] = "https://evil.example.test/realms/corp"; return p; })).Error);

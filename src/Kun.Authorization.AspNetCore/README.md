@@ -1,6 +1,8 @@
 # Kun.Authorization.AspNetCore
 
-HTTP 与 gRPC 使用同一组权限点和授权执行端口。使用 `RequireKunPermission("sample.crm:customer:read")` 声明端点所需的每个权限。权限点为 `<plugin-id>:<resource>:<action>`，组件 ID 包含点；无效声明在映射时抛出 ArgumentException。
+HTTP 与 gRPC 使用同一组权限点和授权执行端口。使用 `RequireKunPermission("sample.crm:customer:read")` 声明端点所需的每个权限。权限点为 `<plugin-id>:<resource>:<action>`，组件 ID 包含点；HTTP 的无效声明在映射时抛出 ArgumentException。gRPC 方法上 `RequiresPermission` 的权限点在宿主启动时校验，不是全名即抛出 InvalidOperationException，消息列出方法与权限点。
+
+本包属于平台档，从 CavaiLAB 的 GitHub Packages 还原。`RequireKunPermission` 加上的授权要求实现 `Kun.Authorization.IPermissionEnforcementRequirement`；数据与文件端点的权限回调在构造端点时据此核对，自定义执行点让自己的授权要求实现这个接口。
 
 ## 普通宿主
 

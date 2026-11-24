@@ -84,6 +84,7 @@
 
 - `Kun.EventBus.RabbitMQ` 使用组件事件信封与相应拓扑。升级前核对发布端与订阅端的交换机、路由键、消息形状和消费者组，协调切换生产与消费。
 - `Kun.Audit.EntityFrameworkCore` 属于平台档，升级时将这个包的源映射指向 GitHub Packages。实体审计与业务事务的接线见该版本的包说明。
+- `Kun.AspNetCore` 与 `Kun.Grpc` 不再自带权限判定。HTTP 端点的 `RequireKunPermission` 与 gRPC 的授权拦截器（`AddKunAuthorizationInterceptor`）由 `Kun.Authorization.AspNetCore` 提供，它属于平台档，从 GitHub Packages 还原。原来用这两处权限判定的项目要引用它，只从 nuget.org 还原的项目要为它映射源。没有登记授权拦截器时，`Kun.Grpc` 拒绝执行标了 `[RequiresPermission]` 的方法。
 - `Kun.Gateway` 提供类库。把宿主的可执行入口切到网关宿主，使用平台外壳时再引用 `Kun.Gateway.Shell`。选项类型 `KunGatewayOptions` 换成 `Kun.Gateway.Abstractions` 里的 `GatewayConfiguration`，`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改名为 `IdentityIssuer`、`IdentityAudience`、`Issuer`。Redis 固定窗口计数器的类型（`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore`）改在 `Kun.RateLimit` 命名空间，注册扩展 `AddKunRedisRateLimitStore` 改在 `Kun.RateLimit.Extensions`。
 - 租户上下文使用 `Guid?` 表示租户或平台作用域。处理消息与网络输入时先验证租户标识，数据库与既有消息的文本按原有格式读写。
 - `IKunPlugin<TConfig>` 的实现通过 `ConfigTypeInfo` 提供源生成的 JSON 元数据。使用 `JsonSerializerDefaults.Web` 保持配置属性名匹配规则。

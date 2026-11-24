@@ -74,7 +74,7 @@ superseded_by: ADR-023（部分）
 
 - 正面：三层口径统一，README、PRD、文档站、AGENTS.md 同一说法；Kun 读者有站可读；版本矩阵让「哪个 Qian 配哪个 Kun」一眼可见；一个 feed、一处钉版。
 - 负面：CI 需要对私有 kun 仓库的只读访问（deploy key 或细粒度 token）；镜像页继承 Kun 文档的失真，只能靠横幅与 D1.8 兜底；文档站多版本构建时间增加（每个 Qian 版本一份 Kun 镜像）。
-- Kun 迁入 `idadawn` 的影响：git 与网页地址自动重定向；issues、PR、releases、secrets（`NUGET_API_KEY`）随仓库走；CavaiLAB 组织成员派生的权限（另两名管理员与 12 名只读成员）不随迁，需要的人要重新邀请为协作者、且个人账号仓库只有写权限一档；仓库级自托管 runner `qd-kun` 随仓库 id 一起迁移（已核验在线，无需重新注册）；CavaiLAB 名下的 Kun 镜像包不随迁也不删，下次发版自动发到 `idadawn` 名下，消费者走 nuget.org 不受影响；Kun 的 CHANGELOG 比较链接与［下游智能体平台］文档中的旧地址择机更新（旧地址仍重定向，不阻塞）。Qian 侧的看板与 ArgoCD 地址不变。
+- Kun 迁入 `idadawn` 的影响：git 与网页地址自动重定向；issues、PR、releases、secrets（`NUGET_API_KEY`）随仓库走；CavaiLAB 组织成员派生的权限（另两名管理员与 12 名只读成员）不随迁，需要的人要重新邀请为协作者、且个人账号仓库只有写权限一档；仓库级自托管 runner 随仓库 id 一起迁移（已核验在线，无需重新注册）；CavaiLAB 名下的 Kun 镜像包不随迁也不删，下次发版自动发到 `idadawn` 名下，消费者走 nuget.org 不受影响；Kun 的 CHANGELOG 比较链接与［下游智能体平台］文档中的旧地址择机更新（旧地址仍重定向，不阻塞）。Qian 侧的看板与 ArgoCD 地址不变。
 - 配套任务：S1-DOCS-005（Kun 小节镜像 + API）、S1-DOCS-006（产品族地图、版本矩阵、`project` 字段）、S1-DEC-009（仓库归属，已拍板关闭）、S1-PM-003（Kun 迁入 `idadawn` 的执行与核验）；S1-RT-001 验收补 `KunVersion`；AGENTS.md 硬规则两条。
 
 ## 6 对各阶段的影响

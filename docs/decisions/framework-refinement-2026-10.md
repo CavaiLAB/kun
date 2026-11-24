@@ -12,7 +12,7 @@
 
 > **入库说明（2026-11-15）** 本文写于 2026-10-20 至 10-22，此后一直是工作区里的未提交文件。2026-11-15 按产品负责人的指示删节后入库，仍是待拍板的草案，Q1–Q30 的拍板由 [S1-DEC-035](../../pm/tasks/S1-DEC-035.md) 跟踪。读正文前先看下面三点。
 >
-> **本文有删节。** 本仓库是公开仓库，入库时删去了两类内容：现网基础设施的运维细节；下游智能体平台私有仓库与部署仓库的内部细节。删节处标「〔已删节〕」，带这个标注的句子或表格单元格是删节后的改写，不是原文。另有少数地方只把名称、版本号、日期、数量、条目序号或文件位置换成概括说法或拿掉，或删掉一个分句，没有逐处标注。原文 625 行，入库时改动了其中 94 行，其余行逐字未改。待拍板项 Q12 的内容整条删节，拍板时要对照完整原文。完整原文不在本仓库，由产品负责人另行保存。
+> **本文有删节。** 本仓库是公开仓库，入库时删去了两类内容：现网基础设施的运维细节；下游智能体平台私有仓库与部署仓库的内部细节。删节处标「〔已删节〕」，带这个标注的句子或表格单元格是删节后的改写，不是原文。另有少数地方只把名称、版本号、日期、数量、条目序号或文件位置换成概括说法或拿掉，或删掉一个分句，没有逐处标注。原文 625 行，入库时改动了其中 94 行；后来又把现网的机器名换成角色说法、修正一处失效的引用，改了 11 行，其中有几行本来就在那 94 行里。其余行逐字未改。待拍板项 Q12 的内容整条删节，拍板时要对照完整原文。完整原文不在本仓库，由产品负责人另行保存。
 >
 > **文中的候选任务号已被别的任务占用。** §8 步 2 与 §12.4、§12.5 给拟新建的任务预取了编号，并注明是候选号、占号前要查重。到入库时，这些编号在看板上都已经是别的任务。正文里出现这些编号的地方（包括不带 `S1-` 的短写），指的仍是下表左边那件拟新建的事，不是看板上的同号任务。这些候选任务都还没有建档，拍板后建档时重新取号。
 >
@@ -46,8 +46,8 @@
 依据：Kun 2026.10.14 已完成 ADR-010 D10.3 的全部加固并过 Native AOT 门禁（`src/Kun.Gateway/GATEWAY.md` 第 5–19 行，`pm/tasks/S1-KUN-003.md`、`S1-KUN-004.md` done），GW-001 剩余工作只剩 Qian 会话 resolver、audience 映射与密钥接线；单进程方案被 ADR-003 §4 明文放弃，且安全评审指出它会把 IdP 私钥、S2S 签发与业务代码同驻并压扁 MCP 的受众绑定。
 
 **Q-B K3s 基础组件是否完善、缺什么？**
-L0 底座完善（Traefik、MetalLB、Harbor、Argo CD、Authentik、Infisical、LGTM、Higress、CubeSandbox、local-path），Qian 基线治理已验收（S1-DEP-001 done）。不完善的是 L1「有、但不是 PRD 要的那种」：RabbitMQ 单副本〔已删节〕、Apollo / MySQL 共享且三者都不在 GitOps 与 BOM；缺 Alertmanager；真正的硬约束是容量，不是组件（2026-10-20 采样：qd CPU 请求 99%、worker01 内存 99%、qian-prod01 仅 1.8 核可分配，连基线 ResourceQuota 都放不下）。2026-10-22 更新：pve01 扩到 156 GiB 后已按 §5.2 方案 B 执行，worker01 32 GiB / 6 vCPU、worker02 32 GiB、qian-prod01 16 GiB，worker01 CPU 请求降到 60%，staging D 档已放得下；qd CPU 请求 98%、单一宿主故障域、机械阵列 I/O 三条不变。另有一项集群级运维事项〔已删节〕。
-依据：事实快照 §5；`deploy/baseline/README.md`「staging 调度容量复核」；`pm/tasks/S1-DEP-007.md` 2026-10-14 采样（qd idle 约 70%，请求虚高）；〔已删节〕。
+L0 底座完善（Traefik、MetalLB、Harbor、Argo CD、Authentik、Infisical、LGTM、Higress、CubeSandbox、local-path），Qian 基线治理已验收（S1-DEP-001 done）。不完善的是 L1「有、但不是 PRD 要的那种」：RabbitMQ 单副本〔已删节〕、Apollo / MySQL 共享且三者都不在 GitOps 与 BOM；缺 Alertmanager；真正的硬约束是容量，不是组件（2026-10-20 采样：控制面节点 CPU 请求 99%、staging 所在的工作节点内存 99%、生产专用节点仅 1.8 核可分配，连基线 ResourceQuota 都放不下）。2026-10-22 更新：虚拟化宿主机扩到 156 GiB 后已按 §5.2 方案 B 执行，两台工作节点各 32 GiB（staging 所在的那台 6 vCPU）、生产专用节点 16 GiB，staging 所在的工作节点 CPU 请求降到 60%，staging D 档已放得下；控制面节点 CPU 请求 98%、单一宿主故障域、机械阵列 I/O 三条不变。另有一项集群级运维事项〔已删节〕。
+依据：事实快照 §5；`pm/tasks/S1-DEP-001.md` 进度日志里的容量记录；`pm/tasks/S1-DEP-007.md` 2026-10-15 的慢同步补证（控制面节点 CPU 大部分空闲，请求虚高）；〔已删节〕。
 
 **Q-C Kun 和 Qian 是否都需要？**
 都需要，但 Kun 的「需要」改一个含义：Kun 不是「面向任何 .NET 微服务的通用框架」，而是 Qian 与下游智能体平台共用的产品族内核包族；Qian 是唯一面向第三方的 API 面与 Agent 框架本体。推荐路径：第一步瘦身归档（Saga / Sandbox / Dapper / Testing(.EFC) / 旧线 Storage，约 4.5k 行）并修订定位文案；第二步在 S1 收口后做 e1（`Qian.*.Abstractions` 不再暴露 Kun 类型，Kun 退为传递依赖，Kun.Authorization 端口按 ADR-019 §7 例外再导出）。不合仓、不把 Kun 模块搬进 Qian、不「冻结 + 吸收即归档」。
@@ -237,7 +237,7 @@ flowchart LR
 | Harbor、Argo app-of-apps、Kustomize | 已部署并在用〔已删节〕 | 已有可复用 |
 | `qian-<env>` ns + 专属 PG 16 / Redis 7 | staging / prod 均 Ready | 已有（DEP-001 done） |
 | default-deny / Quota / LimitRange / PDB / secrets-encryption | 已验收 | 已有 |
-| 生产独立节点池（D17.7） | qian-prod01 1.8 核 / 14.3 GiB（2026-10-22 扩容后 allocatable 14,653 MiB），与两台 worker 同宿主 pve01 | 已有不达标：CPU 仅 1.8 核、非独立物理故障域；内存已不是瓶颈 |
+| 生产独立节点池（D17.7） | 生产专用节点 1.8 核 / 14.3 GiB（2026-10-22 扩容后 allocatable 14,653 MiB），与两台工作节点同在一台虚拟化宿主机上 | 已有不达标：CPU 仅 1.8 核、非独立物理故障域；内存已不是瓶颈 |
 | RabbitMQ quorum，prod 3 副本（D17.3） | ns rabbitmq 单副本，共享、不在 GitOps / BOM〔已删节〕 | 已有不达标 |
 | Apollo ≥2.5.2，Qian 专属 | 已部署，共享，不在本项目的 GitOps〔已删节〕 | 已有不达标（专属性、GitOps 归属） |
 | MySQL staging 集群内 / prod 托管、不与下游智能体平台共用（Q8） | ns mysql 共享〔已删节〕 | 已有不达标 |
@@ -250,10 +250,10 @@ flowchart LR
 
 | 方案 | 内容 | 推荐 |
 |---|---|---|
-| C：不加硬件 | 按实际利用率右调 qd 上 llm / 观测 / Harbor / gitlab 等 Pod 的 requests；清退确认不用的工作负载（参考平台试用实例、lab、mock、joyai-vl-test、ota、safe-ai、pdm 需各负责人确认）；两个 GitHub runner（4 核 / 48 GiB slice）与 cubemaster 迁出 qd | 2026-10-22 前是 staging 放下 v0 的唯一途径（当时 worker01 余约 400m / 600 MiB）；方案 B 执行后 worker01 余 2,370m / 约 21.5 GiB，staging 不再依赖 C。C 降为**按需做**：qd CPU 请求仍 98%，凡要落 qd 的新增负载仍受它约束；不在 Qian 控制范围，需集群所有者排期 |
+| C：不加硬件 | 按实际利用率右调控制面节点上 llm / 观测 / Harbor / gitlab 等 Pod 的 requests；清退确认不用的工作负载（参考平台试用实例、lab、mock、joyai-vl-test、ota、safe-ai、pdm 需各负责人确认）；两个 GitHub runner（4 核 / 48 GiB slice）与 cubemaster 迁出控制面节点 | 2026-10-22 前是 staging 放下 v0 的唯一途径（当时 staging 所在的工作节点余约 400m / 600 MiB）；方案 B 执行后该节点余 2,370m / 约 21.5 GiB，staging 不再依赖 C。C 降为**按需做**：控制面节点 CPU 请求仍 98%，凡要落在控制面节点上的新增负载仍受它约束；不在 Qian 控制范围，需集群所有者排期 |
 | D：S1 收缩拓扑（非 HA 过渡档） | staging：platform（含 gateway 库 + 门面）1 副本约 750m / 1.5 GiB + identity 250m / 512Mi + RabbitMQ 1 副本 500m / 1 GiB + 已有 PG/Redis 600m / 768Mi ≈ 2.1 CPU / 3.8 GiB；Apollo / MySQL 复用现网（Qian 专属 AppId + AccessKey + per-env OIDC client，NetworkPolicy 精确放行） | **S1-A staging 按此跑**；写进 ADR-017 新 D17.15，附退出条件 |
-| A：新物理宿主 | 一台不在 pve01 上的 ≥4 核 / 16 GiB 宿主承接 `qian.io/node-pool=prod` | **S1 生产门（DEP-005）前置**；到位前 qian-prod01 只承载 PG/Redis，v0 对外演示在 staging + 公网 nginx 完成 |
-| B：pve01 加内存扩 VM | **已执行（2026-10-22）**：pve01 加到 156 GiB 后 worker01 32 GiB / 6 vCPU + 整机 cpulimit 4、worker02 32 GiB / 4 vCPU + 根盘 100 GiB、qian-prod01 16 GiB、gpustack-cp 8 GiB；两台 worker 补 kubelet 预留（memory 1Gi + 1Gi、eviction-hard 512Mi）；运行 vCPU 16 / 8 物理核；方案与执行记录在运维工作区 `部署仓库的节点资源调整记录` 与 `pve01-worker-memory-execution-20261022.md` | 仍只作 A 到位前过渡：单一宿主故障域、机械阵列 I/O（iowait 周均 16%）、8 物理核三条不变；不改 DEP-005 生产门；staging 部署前 `env-ds/qian-staging` 要给 Deployment 补 worker01 nodeSelector、platform 用 Recreate |
+| A：新物理宿主 | 一台不在现有虚拟化宿主机上的 ≥4 核 / 16 GiB 宿主承接 `qian.io/node-pool=prod` | **S1 生产门（DEP-005）前置**；到位前生产专用节点只承载 PG/Redis，v0 对外演示在 staging + 公网 nginx 完成 |
+| B：宿主机加内存扩 VM | **已执行（2026-10-22）**：虚拟化宿主机加到 156 GiB 后，staging 所在的工作节点 32 GiB / 6 vCPU + 整机 cpulimit 4，另一台工作节点 32 GiB / 4 vCPU + 根盘 100 GiB，生产专用节点 16 GiB，另一台虚机 8 GiB；两台工作节点补 kubelet 预留（memory 1Gi + 1Gi、eviction-hard 512Mi）；运行 vCPU 16 / 8 物理核；方案与执行记录在运维工作区（不在本仓库） | 仍只作 A 到位前过渡：单一宿主故障域、机械阵列 I/O（iowait 周均 16%）、8 物理核三条不变；不改 DEP-005 生产门；staging 部署前，部署仓库的 staging 环境配置要给 Deployment 补节点选择（钉在 staging 所在的工作节点）、platform 用 Recreate |
 | ResourceQuota | 初值请求 4 CPU / 8 GiB，2026-10-22 前超过节点 | 维持请求 4 / 8 GiB、上限 8 / 16 GiB，不下调；DEP-004 清单须显式 limits ≥ requests，staging 内 limits 合计 ≤ 5 CPU / 13.5 GiB（PG / Redis 已占 3 / 2.5 GiB） |
 
 估值说明：仓库 `KustomizeFragment.cs` 与 `profiles/` 未声明 requests，以上为 .NET 10 JIT 经验值，DEP-004 落地前只作量级；GW-001 / DEP-004 验收须含一次容量实测。
@@ -263,7 +263,7 @@ flowchart LR
 | 项 | 推荐 | 否决项与原因 |
 |---|---|---|
 | RabbitMQ | Qian 用 Cluster Operator v2.23.1（2026-10-13，https://github.com/rabbitmq/cluster-operator/releases）自建 staging 1 副本并入 Argo L1，直接上 4.4 线（4.4.0 2026-10-20，社区支持至 2027-07-31；4.3 线 2027-01-31 止，https://www.rabbitmq.com/release-information）；prod 3 副本等容量 A（quorum queue 默认组大小 3 为「实际可用的 HA 最小值」，https://www.rabbitmq.com/docs/quorum-queues） | 不接管现网实例：无主、不在 GitOps〔已删节〕，会触碰下游智能体平台生产 |
-| Apollo / MySQL | S1 staging 复用现网〔已删节〕；prod 专属实例随容量 A 再建；3.0.0（2026-10-03，服务端 Java 基线升到 17、发布说明含数据库迁移段，https://github.com/apolloconfig/apollo/releases）按 PRD 7.19 第 8 条择机 | 不建第二套 L1 到 pve01 |
+| Apollo / MySQL | S1 staging 复用现网〔已删节〕；prod 专属实例随容量 A 再建；3.0.0（2026-10-03，服务端 Java 基线升到 17、发布说明含数据库迁移段，https://github.com/apolloconfig/apollo/releases）按 PRD 7.19 第 8 条择机 | 不在现有虚拟化宿主机上再建第二套 L1 |
 | 〔已删节〕 | 〔已删节〕 | 〔已删节〕 |
 | Alertmanager | S1-DEP-006 从 wave 4 提前到 DEP-005 之前（2d） | — |
 | Higress ≥2.2.4 | v0.1；先完成 S1-MGW-002 配置入 git 作为回滚基线；窗口由 MaaS 所有者拍 | 不在 v0 前升级 |
@@ -280,7 +280,7 @@ flowchart LR
 |---|---|---|---|---|---|
 | (i) 按需伸缩的无状态进程 / 队列 worker | 门面本身无状态（C# SDK v2.0.0 起 `Stateless` 默认 true，v2.2.0 加 `HttpServerSessionMode` 混合模式，https://github.com/modelcontextprotocol/csharp-sdk/releases）；KEDA v2.21.0 核心（RabbitMQ / PostgreSQL / cron scaler、ScaledJob） | KEDA 核心 300m / 300Mi；HTTP add-on 默认 interceptor 3 + scaler 3 副本约 1.75 核且请求路径多一跳 | 不装 | S2、容量 C 之后只装核心，用于 Outbox 消费者、计量 / 通知 / 文件 worker、逐租户迁移 ScaledJob；永不装 HTTP add-on | HTTP scale-to-zero 留 S3/S4 的 `runtime.form: service` |
 | (ii) 函数即插件 | 进程内 Wasm：Extism .NET SDK 1.10.0（2025-12-01，NuGet 显式目标 net8.0 / net9.0 / netstandard2.1，net10 仅为计算兼容，https://www.nuget.org/packages/Extism.Sdk；Qian 为 net10，`Directory.Build.props:9`）；不用 Knative Serving 1.23.0（2026-07-29，https://github.com/knative/serving/releases；需 Kourier 等第二网络层加每服务 queue-proxy，资源量级未从官方文档核出，只作定性否决）、OpenFaaS CE（不可商用、无缩零）、Fission（依赖 KEDA） | 零集群组件 | 不做 | 维持 ADR-002 D2.11：S2 可选 P2，ABI S2 中期拍板，先实测 net10 | S3 随审核台开放 partner |
-| (iii) Agent 工具按需沙箱 | CubeSandbox 经 E2B 兼容 API（现网 DaemonSet〔已删节〕；上游 v0.7.2 2026-09-24 起 K8s 部署的 cube-node 默认 host network，既有集群切换需 drain 计算节点并显式确认；v0.7.3 起 E2B 兼容的 `mcp` 创建参数；https://github.com/TencentCloud/CubeSandbox/releases） | 已在集群；cubemaster 占 qd 1 核 | 不做 | 不做 | S4 对接；Kun.Sandbox 归档不影响（E2B 兼容 REST 用 HttpClient 即可） |
+| (iii) Agent 工具按需沙箱 | CubeSandbox 经 E2B 兼容 API（现网 DaemonSet〔已删节〕；上游 v0.7.2 2026-09-24 起 K8s 部署的 cube-node 默认 host network，既有集群切换需 drain 计算节点并显式确认；v0.7.3 起 E2B 兼容的 `mcp` 创建参数；https://github.com/TencentCloud/CubeSandbox/releases） | 已在集群；cubemaster 占控制面节点 1 核 | 不做 | 不做 | S4 对接；Kun.Sandbox 归档不影响（E2B 兼容 REST 用 HttpClient 即可） |
 
 写法：ADR-017 新增 D17.16「Serverless 口径」一条，不另起 ADR；S1 / S2 不装 Knative / OpenFaaS / Fission / KEDA HTTP add-on。
 
@@ -373,10 +373,10 @@ flowchart LR
 
 | 串行点 | 阻塞什么 | 谁掌控 |
 |---|---|---|
-| Kun 发版 B（agent / act 签发） | IDP 新任务、门面委托调用 | 单人 + qd 单 runner 约 25 分钟 CI |
+| Kun 发版 B（agent / act 签发） | IDP 新任务、门面委托调用 | 单人 + 单个自托管 runner 约 25 分钟 CI |
 | 门面 PoC | GW-003、门面实现、QA-008 验收口径 | Qian |
 | 容量 B（已于 2026-10-22 执行） | 曾阻塞 staging 任何部署、DEP-005 staging 门，现已解除；仍为过渡 | 集群所有者（已完成） |
-| 容量 C（按需） | 落 qd 的新增负载（qd CPU 请求 98%） | 集群所有者与各负载负责人 |
+| 容量 C（按需） | 落在控制面节点上的新增负载（该节点 CPU 请求 98%） | 集群所有者与各负载负责人 |
 | Higress ≥2.2.4 升级窗口 | v0.1 生产入口 | MaaS 所有者 |
 | 容量 A 硬件 | DEP-005 生产门、gateway 独立 Pod、RabbitMQ 3 副本 | 采购 |
 
@@ -417,7 +417,7 @@ flowchart LR
 | Q8 | MCP 门面落点：自建 `qian.mcp-facade`（platform profile JIT，不进 AOT 门禁）而非 Higress REST→MCP 转换；门面同时实现 RFC 9728 PRM、MRTR confirm、`io.modelcontextprotocol/skills`；v0 staging 直通 Traefik → platform 不经 Higress（放宽 D16.9 为「生产一律经 Higress」）？ | 接受 | Higress 转换路线把租户可见性执行点放在对租户无感、配置未入 git 的共享组件上，默认 fail-open |
 | Q9 | 策略权威分层写入 `contracts/v0/mcp-facade.md`：Qian 只给默认值并经 MRTR 强制 confirm，宿主运行期策略只能更严且不计入 Qian 授权判定，审计以门面记录为准（修 D16.3(c)）？ | 接受 | 多宿主下 on_behalf_of 与确认记录对不上，QA-008 审计验收不可判定 |
 | Q10 | L1 口径：S1 staging 复用现网 Apollo + MySQL（Qian 专属 AppId / AccessKey / OIDC client）+ Qian 自建 RabbitMQ 1 副本入 GitOps，记为「S1 非 HA 过渡档」（ADR-017 新 D17.15，作废 Q8「MySQL 不与下游智能体平台共用」的 S1 部分）；prod 专属实例随容量 A；DEP-002 改写为接管 / 重建决策（3d）；谁是现网 RabbitMQ 与 Apollo 的责任人？ | 接受 | 不接受则 staging 发布链等硬件，2026 年内无 staging 门 |
-| Q11 | 容量组合：B 已于 2026-10-22 执行（仍只作过渡，不改 DEP-005）；C 改为按需（清退名单、runner / cubemaster 迁出目标机由集群所有者定）；D 作 staging 档；A 作生产门前置（采购时间）；ResourceQuota 维持 4 / 8 GiB 不下调？ | 接受 | staging 已不被容量卡住；C 不做则落 qd 的新增负载仍受 CPU 98% 约束 |
+| Q11 | 容量组合：B 已于 2026-10-22 执行（仍只作过渡，不改 DEP-005）；C 改为按需（清退名单、runner / cubemaster 迁出目标机由集群所有者定）；D 作 staging 档；A 作生产门前置（采购时间）；ResourceQuota 维持 4 / 8 GiB 不下调？ | 接受 | staging 已不被容量卡住；C 不做则落在控制面节点上的新增负载仍受 CPU 98% 约束 |
 | Q12 | 一项集群运维事项的处理方式与执行人〔已删节〕 | 接受 | 〔已删节〕 |
 | Q13 | Serverless 口径写入 ADR-017 新 D17.16：(i) KEDA 核心 S2、容量 C 后，不装 HTTP add-on；(ii) Wasm function 维持 ADR-002；(iii) CubeSandbox S4；S1 / S2 不装 Knative / OpenFaaS / Fission / Envoy Gateway？ | 接受 | 若期待下一里程碑有可见的 Serverless 平台件，本文不满足 |
 | Q14 | Apollo 版本：S1 首发 2.5.x（≥2.5.2）还是 3.0.0？〔已删节〕 | 2.5.x；3.0.x 按 PRD 7.19 第 8 条择机 | 3.0.0 需 Java 17 与 DB 迁移，触碰下游智能体平台 |

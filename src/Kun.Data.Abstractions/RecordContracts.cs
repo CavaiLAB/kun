@@ -27,7 +27,7 @@ public sealed record RecordActor(string Kind, string Id, [property: JsonProperty
     }
 }
 /// <summary>
-/// qian.record.changed.v1 的载荷，也是登记到事件目录的集成事件类型：经数据会话的 Outbox 写入端入队，信封由 Qian.Events 生成。
+/// qian.record.changed.v1 的载荷，也是登记到事件目录的集成事件类型：经数据会话的 Outbox 写入端入队，信封由 Kun.EventBus 生成。
 /// 快照必须按字段权限和敏感字段策略裁剪。
 /// </summary>
 [IntegrationEventId(EventType)]
@@ -49,7 +49,7 @@ public sealed record RecordChangedPayload(string EntityCode, string RecordId, st
 }
 /// <summary>
 /// after Hook 的输入：由解析后的 v1 信封与按 RecordChangedPayload 反序列化的载荷派生，只能经 FromEnvelope 构造。
-/// 它不是集成事件类型，也不单独序列化；线上只有 Qian.Events 生成的一层信封。
+/// 它不是集成事件类型，也不单独序列化；线上只有 Kun.EventBus 生成的一层信封。
 /// </summary>
 public sealed class RecordChangedEvent
 {
@@ -132,7 +132,7 @@ public interface IRecordHook
 /// <summary>记录事件的显式源生成元数据登记入口。</summary>
 public static class RecordEventRegistration
 {
-    /// <summary>以载荷类型及其源生成元数据登记 qian.record.changed.v1，不启动发布器或数据库；信封由 Qian.Events 写入端生成。</summary>
+    /// <summary>以载荷类型及其源生成元数据登记 qian.record.changed.v1，不启动发布器或数据库；信封由 Kun.EventBus 写入端生成。</summary>
     public static IEventTypeRegistrar RegisterRecordEvents(this IEventTypeRegistrar registrar)
     {
         ArgumentNullException.ThrowIfNull(registrar);

@@ -10,7 +10,7 @@ namespace Kun.Audit;
 /// <summary>审计 v1 的确定性 JSON：键按 ordinal 排序，精确十进制数规整，数组顺序保留，重复键拒绝。</summary>
 public static class AuditProtocol
 {
-    /// <summary>计算 SHA256(prev_hash 的 UTF-8 文本 || canonical_json(entry))，包含全部 Qian 审计字段和序号。</summary>
+    /// <summary>计算 SHA256(prev_hash 的 UTF-8 文本 || canonical_json(entry))，包含审计记录的全部字段和序号。</summary>
     public static string Hash(AuditRecord record, long sequence, string? previousHash)
     {
         ArgumentNullException.ThrowIfNull(record);

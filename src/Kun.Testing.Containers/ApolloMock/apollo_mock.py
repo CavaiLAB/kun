@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apollo 配置服务的协议替身，供 Qian 集成测试使用（S1-QA-001）。只依赖 Python 标准库。
+"""Apollo 配置服务的协议替身，供 Kun 集成测试使用（S1-QA-001）。只依赖 Python 标准库。
 
 覆盖 Apollo「其它语言客户端接入」公开 HTTP 协议中客户端会用到的部分：
 

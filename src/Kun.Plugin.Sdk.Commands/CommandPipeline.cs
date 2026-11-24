@@ -51,7 +51,7 @@ public static class KunCommandRegistration
 internal sealed record CommandRegistration<TRequest, TResponse>(Func<IServiceProvider, IPluginContext> Source, string Channel)
     where TRequest : ICapabilityRequest<TResponse>;
 
-// 命令管道要求框架当前主体（Kun 的 ICurrentUser）与 Qian 主体一致；它解析成匿名兜底时每次执行都在权限引擎之前被判拒（403、无决策审计），改为启动即失败。
+// 命令管道要求框架当前主体（Kun.Core 的 ICurrentUser）与身份契约的主体（Kun.Identity.Abstractions 的 ICurrentUser）一致；它解析成匿名兜底时每次执行都在权限引擎之前被判拒（403、无决策审计），改为启动即失败。
 internal sealed class FrameworkPrincipalPortCheck(IServiceScopeFactory scopes) : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)

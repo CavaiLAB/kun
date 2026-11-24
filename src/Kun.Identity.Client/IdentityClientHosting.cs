@@ -156,7 +156,7 @@ public static class IdentityClientHosting
         return endpoints;
     }
 
-    // Qian 与 Kun 的当前用户端口都落到同一个实现；先于 Kun.Identity.AspNetCore 的 TryAdd 登记。
+    // 身份契约（Kun.Identity.Abstractions）与 Kun.Core 的当前用户端口都落到同一个实现；先于 Kun.Identity.AspNetCore 的 TryAdd 登记。
     private static void AddCurrentUser(IServiceCollection services)
     {
         services.TryAddScoped<ICurrentUser, IdentityClientCurrentUser>();

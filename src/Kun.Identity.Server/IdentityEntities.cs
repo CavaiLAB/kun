@@ -95,7 +95,7 @@ internal sealed class ExternalIdentityRow : IMultiTenant, ISoftDelete
     public DateTime? DeletedAt { get; set; }
 }
 
-/// <summary>客户端登记镜像：与 OpenIddict 应用同源于宿主可信配置，另记 Qian 的类型、端类型与归属。</summary>
+/// <summary>客户端登记镜像：与 OpenIddict 应用同源于宿主可信配置，另记 Kun 的类型、端类型与归属。</summary>
 internal sealed class ClientRow
 {
     public string ClientId { get; set; } = "";

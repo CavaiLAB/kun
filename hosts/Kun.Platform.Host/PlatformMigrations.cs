@@ -13,7 +13,7 @@ namespace Kun.Platform.Host;
 /// 迁移 Job（<c>--migrate-only</c>，S1-DEP-011）：在线副本启动之前执行，跑完退出。分三步：
 /// <list type="number">
 /// <item>离线 DDL（配置了 <c>ConnectionFiles:MigrationAdmin</c> 才做，用数据库管理员连接）：没有包内迁移的上下文（Tenancy、Authz、Audit、Registry）按 EF 模型建 schema 与表
-/// （含 Qian 迁移生成器补出的 RLS），schema 已在时只核对表都在；再执行两个平台登录与审计同事务函数的授权脚本（<see cref="AuditTransactionAccess"/>、
+/// （含 Kun 迁移生成器补出的 RLS），schema 已在时只核对表都在；再执行两个平台登录与审计同事务函数的授权脚本（<see cref="AuditTransactionAccess"/>、
 /// <see cref="AuthzPlatformAccess"/>、<see cref="AuditPlatformAccess"/>），配置了网关审计角色时执行网关原生审计的离线迁移（<see cref="NativeAuditStorage"/>）。
 /// 审计函数的属主必须是没有任何成员关系的 NOLOGIN 角色，改函数属主只能由管理员做，所以这一步不能交给迁移属主。</item>
 /// <item>包内迁移（迁移属主登录，<see cref="IDataMigrator"/>）：Capabilities、Lifecycle、身份与开通申请等随包带迁移的上下文。</item>

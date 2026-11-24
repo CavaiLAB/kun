@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+（尚无新变更。）
+
+## [2026.11.24] - 2026-11-24
+
 ### Changed — 端点权限回调的校验
 
 - `MapKunData`、`MapKunDataTypes`、`MapKunDataConnections` 与 `MapKunFiles` 的权限回调须给端点加上执行同一权限点的授权要求，`RequireKunPermission` 即如此。构造端点时核对三项：端点带该权限点的 `RequiresPermissionAttribute`；授权策略里有权限点相同的 `Kun.Authorization.IPermissionEnforcementRequirement`；端点没有匿名放行标记，外层分组上的也算。任一项不满足即抛出 `InvalidOperationException`。按名字引用的策略在构造端点时看不到其中的要求，不算接上。自定义执行点让自己的授权要求实现 `IPermissionEnforcementRequirement`。

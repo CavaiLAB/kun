@@ -6,10 +6,13 @@ namespace Kun.Auditing;
 /// <see cref="AuditingSaveChangesInterceptor"/>.
 /// </summary>
 /// <remarks>
-/// 字段都可为空；中间件（或其他调用方）在命令处理器打开工作单元之前填好，没有 HTTP 上下文的宿主可以不填。
-/// 主体例外：不在 <see cref="Kun.EventBus.EventEnvelopeScope"/> 内保存时，<see cref="ActorId"/> 为空且当前用户未认证，
-/// 拦截器拒绝这次保存，抛出错误码为 <c>EVENTS_PUBLISH_REJECTED</c> 的 <see cref="Kun.EventBus.KunEventsException"/>。
-/// 后台作业与匿名请求要先以服务主体打开 <see cref="Kun.EventBus.EventEnvelopeScope"/>。
+/// All fields are nullable; the middleware (or any caller) populates them before the command
+/// handler opens its unit of work, and hosts without an HTTP context may leave them unset.
+/// The actor is the exception: when a save happens outside an <see cref="Kun.EventBus.EventEnvelopeScope"/>,
+/// <see cref="ActorId"/> is empty and the current user is not authenticated, the interceptor rejects
+/// the save with a <see cref="Kun.EventBus.KunEventsException"/> carrying the error code
+/// <c>EVENTS_PUBLISH_REJECTED</c>. Background jobs and anonymous requests must first open an
+/// <see cref="Kun.EventBus.EventEnvelopeScope"/> with a service actor.
 /// </remarks>
 public sealed class AuditContext
 {
@@ -26,9 +29,11 @@ public sealed class AuditContext
     public string? ActorId { get; set; }
 
     /// <summary>
-    /// 主体类型：<c>"user"</c>、<c>"agent"</c>、<c>"service"</c> 或 <c>"system"</c>，缺省 <c>"system"</c>；
-    /// 当前用户已认证且仍是缺省值时按 <c>"user"</c> 记。缺省值不能代替主体：<see cref="ActorId"/> 为空、当前用户未认证、
-    /// 又不在 <see cref="Kun.EventBus.EventEnvelopeScope"/> 内时，保存会被拒绝。
+    /// Kind of actor: <c>"user"</c>, <c>"agent"</c>, <c>"service"</c> or <c>"system"</c>; defaults to
+    /// <c>"system"</c>, and is recorded as <c>"user"</c> when the current user is authenticated and the value
+    /// is still the default. The default does not stand in for an actor: when <see cref="ActorId"/> is empty,
+    /// the current user is not authenticated and the save happens outside an
+    /// <see cref="Kun.EventBus.EventEnvelopeScope"/>, the save is rejected.
     /// </summary>
     public string ActorType { get; set; } = "system";
 }

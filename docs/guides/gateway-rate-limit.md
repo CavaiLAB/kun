@@ -1,9 +1,42 @@
 # Gateway 限流策略指南
 
 > `Kun.Gateway.RateLimiting` 把 ASP.NET Core 内置的 RateLimiter 包装成**策略 × 分区**的两维组合：
-> 三种分区解析（partition resolver）× 三种限流策略（limiter policy）= 九种可选配置，配合 Redis 后端做跨 Pod 计数共享。
+> 三种分区解析（partition resolver）× 三种限流策略（limiter policy）= 九种可选配置，计数在进程内。限流一共有三套入口，对照见下一节。
 >
 > 参考：`docs/design/why-cqrs.md` · 白皮书 §12.2
+
+## 三套入口
+
+限流有三套入口，都登记在 ASP.NET Core 的限流中间件上，超出额度时返回 429。
+
+| 入口 | 包 | 计数放在哪里 | 多副本之间 |
+|---|---|---|---|
+| `AddKunRateLimit` | `Kun.RateLimit` | 进程内，固定窗口 | 不共享，每个进程各自计数 |
+| `AddKunRateLimiter`、`AddKunSlidingWindowRateLimiter`、`AddKunTokenBucketRateLimiter` | `Kun.Gateway` | 进程内，固定窗口、滑动窗口或令牌桶 | 不共享，每个进程各自计数 |
+| 网关代理路由的限流 | `Kun.Gateway` | Redis，固定窗口 | 连同一个 Redis、网关配置相同时共用额度 |
+
+### `AddKunRateLimit`（`Kun.RateLimit`）
+
+- 登记：`services.AddKunRateLimit(o => o.AddWindow("api", w => { w.PermitLimit = 100; w.Period = TimeSpan.FromMinutes(1); }))`，命名空间 `Kun.RateLimit.Extensions`。每个窗口登记为一个同名的策略，端点写 `RequireRateLimiting("api")`。
+- 计数：用 `System.Threading.RateLimiting` 的固定窗口限流器，在进程内计数。
+- 分区：每个窗口按 `WindowRule.PartitionKey` 分区，取 `Tenant`（默认）、`User` 或 `Ip`。
+- 超限：返回 429 和 `Retry-After`，再调用 `KunRateLimitOptions.OnRejected`（设置了的话）。
+- 用在：宿主自己的端点，一次登记几个命名窗口，各自设额度、窗口长度与分区键。
+
+### `AddKunRateLimiter` 一组（`Kun.Gateway`）
+
+- 登记：命名空间 `Kun.Gateway.RateLimiting`。`AddKunRateLimiter()` 登记 `kun-default`（固定窗口，每分钟 100 次），`AddKunSlidingWindowRateLimiter()` 登记 `kun-sliding-window`，`AddKunTokenBucketRateLimiter()` 登记 `kun-token-bucket`；端点写 `RequireRateLimiting(策略名)`。
+- 计数：用 `System.Threading.RateLimiting` 的固定窗口、滑动窗口或令牌桶限流器，在进程内计数。
+- 分区：由 `IRateLimitPartitionResolver` 决定，宿主没有登记时按租户，见「分区解析」。
+- 用在：宿主自己的端点，算法可选固定窗口、滑动窗口或令牌桶。`AddKunGateway()` 总会调用 `AddKunRateLimiter()`，并给没写 `RateLimiterPolicy` 的 YARP 路由补上 `kun-default`，见「网关默认边界」。
+
+### 网关代理路由的限流（`Kun.Gateway`）
+
+- 登记：没有单独的扩展方法。`AddKunGateway(configuration, …)` 传入带路由与集群的 `GatewayConfiguration` 时启用，`MapKunGateway()` 把它绑到全部代理端点。每条路由必须写 `RateLimiterPolicy`，取 `kun-default`、`tenant` 或 `user`，否则装配时拒绝。
+- 计数：在 Redis 里计数，用 `Kun.RateLimit` 的 `IRedisRateLimitStore`（固定窗口）；宿主要登记 `IConnectionMultiplexer`。
+- 多副本：副本连同一个 Redis，且键前缀、`Issuer` 与路由配置相同时，共用额度。
+- 分区与额度：`kun-default` 按可信客户端 IP；`tenant` 按租户，`user` 按租户内主体，匿名或身份不完整时都按 IP。额度、窗口与键前缀取 `Gateway:RateLimits`，见「声明式网关路由」。
+- 用在：声明式配置路由的网关（如组件网关），代理路由的额度在多个副本之间共用。
 
 ## 分区解析 (IRateLimitPartitionResolver)
 

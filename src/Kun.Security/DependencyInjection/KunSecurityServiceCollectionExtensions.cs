@@ -17,8 +17,9 @@ public static class KunSecurityServiceCollectionExtensions
     ///   <item><see cref="IHttpContextAccessor"/> (if not already registered)</item>
     ///   <item>Scoped <see cref="ICurrentUser"/> → <see cref="JwtCurrentUser"/></item>
     /// </list>
-    /// Call <c>AddAuthentication().AddKunServiceAuthentication(...)</c> separately to configure
-    /// JWT Bearer validation.
+    /// Call <c>AddAuthentication().AddKunServiceAuthentication(...)</c> separately to validate the
+    /// signature, issuer, audience and lifetime of S2S tokens; use <c>AddKunIdentityS2s</c> from
+    /// Kun.Identity.Client when the full S2S contract check is needed.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <returns>The same <see cref="IServiceCollection"/> for chaining.</returns>

@@ -83,7 +83,7 @@ internal sealed class KunStrictModelCustomizer(ModelCustomizerDependencies depen
     {
         base.Customize(modelBuilder, context);
         if (context is not KunStrictDbContext qian)
-            throw new KunDataMisconfiguredException("Qian 模型约定只能用于 KunStrictDbContext。");
+            throw new KunDataMisconfiguredException("Kun 模型约定只能用于 KunStrictDbContext。");
         qian.CompleteDataModel(modelBuilder);
     }
 }

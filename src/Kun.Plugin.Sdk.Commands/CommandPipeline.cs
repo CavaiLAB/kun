@@ -58,8 +58,8 @@ internal sealed class FrameworkPrincipalPortCheck(IServiceScopeFactory scopes) :
     {
         using var scope = scopes.CreateScope();
         if (scope.ServiceProvider.GetService<Kun.Core.Security.ICurrentUser>() is Kun.Core.Security.AnonymousCurrentUser)
-            throw new InvalidOperationException("宿主登记了 Qian 能力，但框架当前主体端口（Kun.Core.Security.ICurrentUser）解析为匿名兜底 AnonymousCurrentUser：" +
-                "命令管道要求它与 Qian 主体一致，会对一切能力执行判拒（403 AUTHZ_DENIED）。请登记真实的身份适配器（如 AddKunSecurity、AddKunIdentityS2s），" +
+            throw new InvalidOperationException("宿主登记了能力（AddKunCapability），但框架当前主体端口（Kun.Core.Security.ICurrentUser）解析为匿名兜底 AnonymousCurrentUser：" +
+                "命令管道要求它与身份契约的当前主体（Kun.Identity.Abstractions.ICurrentUser）一致，会对一切能力执行判拒（403 AUTHZ_DENIED）。请登记真实的身份适配器（如 AddKunSecurity、AddKunIdentityS2s），" +
                 "或去掉把这个端口绑定为匿名的登记。");
         return Task.CompletedTask;
     }

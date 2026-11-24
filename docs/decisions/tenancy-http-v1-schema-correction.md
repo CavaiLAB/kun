@@ -39,7 +39,7 @@
 
 ## 发布窗口观测
 
-2026-10-16 17:18–17:19 UTC，只读检查 qd 集群：qian-prod 和 qian-staging 仅有 PostgreSQL/Redis 基础设施，qian 数据库 `pg_tables` 除系统 schema 外均为空；没有平台契约表、qian-platform 工作负载或对应 Argo Application。仅有 Qian 文档站、看板和两个 baseline Application。CLI 当前无 publish 动词实现，RT-013/DEP-005 均为 todo，仓库工作流列表没有该发布链。
+2026-10-16 17:18–17:19 UTC，只读检查试点集群：qian-prod 和 qian-staging 仅有 PostgreSQL/Redis 基础设施，qian 数据库 `pg_tables` 除系统 schema 外均为空；没有平台契约表、qian-platform 工作负载或对应 Argo Application。仅有 Qian 文档站、看板和两个 baseline Application。CLI 当前无 publish 动词实现，RT-013/DEP-005 均为 todo，仓库工作流列表没有该发布链。
 
 存在 [2026-10-14 的 NuGet 包族发布](https://github.com/idadawn/qian/actions/runs/38646939291)，因此不能声称所有 Qian 包从未发布。该流程推送 NuGet 包并做干净消费者还原，不登记平台契约、不执行 RT-013 publish 或 DEP-005 发布链；本次依据的是上面的平台契约仓库与执行链检查。GitHub Releases 为空也只作辅助证据，不单独据此推断未发布。
 

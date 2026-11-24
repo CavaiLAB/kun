@@ -10,7 +10,7 @@ main 的 CI ──构建──> 推到 CavaiLAB/kun 的 docs-site 分支 ──g
 - PR 预览：迁到 `CavaiLAB/kun` 之后暂不发布，见下面「迁到 CavaiLAB/kun」。nginx 与 `publish.sh` 仍支持 `pr-preview/pr-<n>/`，接回只改工作流。
 - `docs-site` 分支只有一个提交，每次发布在当前内容上改完后强推（`--force-with-lease` 防并发覆盖，冲突自动重试），构建产物不在仓库里累积历史。
 
-`repo` 检出缓存固定在 qd，使用上限 4Gi 的内存 `emptyDir`；git-sync 请求 2Gi、上限 5Gi，CPU 预算保持 10m / 300m。2026-10-15 实测原缓存约 990Mi，qd 可用内存约 332Gi。该隔离用于减少与 etcd 共用根盘的批量检出写入，是否消除慢请求仍按 S1-DEP-007 的实际采样验收。内存卷占用计入写入容器的内存额度，见 [Kubernetes emptyDir 文档](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)。Pod 重建后从 `docs-site` 分支重新拉取，沿用现有 `Recreate` 策略，文档站会在首次同步期间短暂不可用。
+`repo` 检出缓存固定在控制面节点，使用上限 4Gi 的内存 `emptyDir`；git-sync 请求 2Gi、上限 5Gi，CPU 预算保持 10m / 300m。2026-10-15 实测原缓存约 990Mi，控制面节点的可用内存足够。该隔离用于减少与 etcd 共用根盘的批量检出写入，是否消除慢请求仍按 S1-DEP-007 的实际采样验收。内存卷占用计入写入容器的内存额度，见 [Kubernetes emptyDir 文档](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)。Pod 重建后从 `docs-site` 分支重新拉取，沿用现有 `Recreate` 策略，文档站会在首次同步期间短暂不可用。
 
 git-sync 经 HTTPS（`github.com:443`）匿名拉取公开仓库 `CavaiLAB/kun` 的 `docs-site` 分支，不挂 deploy key。原来经 SSH 拉 `idadawn/qian` 时，2026-10-15 现场 22 端口多次下载超时、检出目录被重置，改走过 `ssh.github.com:443`；HTTPS 同样只用 443。
 

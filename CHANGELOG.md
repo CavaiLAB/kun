@@ -28,6 +28,26 @@
 - `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
 - 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
+### Fixed — 按配置绑定租户连接串（S1-KUN-024）
+
+- Database 隔离策略用 `Configure<TenantsConnectionOptions>(configuration.GetSection(TenantsConnectionOptions.SectionName))` 绑定的连接串现在会生效。配置绑定器不支持以 `Guid` 为键的字典，2026.11.21 中这一节的配置进不了 `ConnectionStrings`，按租户解析连接串时报未配置。`TenantsConnectionOptions` 新增 `ConfiguredConnectionStrings`，承接配置里的 `ConnectionStrings` 节；`AddKunMultiTenancy<TContext>` 选 `TenantIsolation.Database` 时，宿主启动阶段校验每个键并把它们并入 `ConnectionStrings`。配置的写法不变。
+- 键须是非空 UUID 的小写 D 格式。键不合法，或同一租户在代码与配置里的连接串不一致时，宿主启动失败，错误信息里写出那个键。开启配置绑定源生成器的项目，生成的代码按 `Guid.Parse` 解析键：大写、带花括号的键原先能绑定，现在启动即失败；完全不是 UUID 的键在绑定时由生成的代码报错。
+
+### Changed — 补记 2026.11.21 删除的租户入口类型与行为变化（S1-KUN-024）
+
+2026.11.21 一节没有列出下面这些变化，在此补记：
+
+- `Kun.MultiTenancy.DefaultTenantResolver`、`Kun.MultiTenancy.Abstractions.ITenantResolver`、`Kun.MultiTenancy.Abstractions.ITenantIdSource` 已删除。租户由 `UseKunMultiTenancy()` 从已认证主身份唯一的 `tenant_id` 读取，不再提供可替换的解析器。
+- `Kun.MultiTenancy.Configuration.KunMultiTenancyOptions`（含 `Production`、`JwtClaimNames`、`HttpHeaderNames`、`FallbackTenantId`、`UseJwtClaim`、`UseHttpHeader`）与 `AddKunMultiTenancy(Action<KunMultiTenancyOptions>)` 重载已删除，改用无参的 `AddKunMultiTenancy()`。声明名固定为 `tenant_id`，请求头不再作为租户来源，没有缺省租户回落。平台入口使用 `UseKunMultiTenancy(TenantRequestMode.PlatformPrincipalAllowed)`。
+- `AsyncLocalTenantContext(ITenantIdSource)` 构造函数与 `Kun.Security.MultiTenancy.JwtTenantContext` 已删除。`AddKunMultiTenancy()` 把 `AsyncLocalTenantContext` 登记为 `ITenantContext`，请求范围由中间件建立。
+- `Kun.Core.MultiTenancy.TenantIdValidation` 与 `Kun.EntityFrameworkCore.Interceptors.TenantRlsConnectionInterceptor.SafeTenantIdPattern` 已删除。租户标识是 `Guid`，文本按 D 格式解析。
+- `TenantContextMiddleware` 的构造函数增加了 `TenantRequestMode` 参数，`InvokeAsync` 改为从参数取得 `ITenantContext`。直接 `UseMiddleware<TenantContextMiddleware>()` 的宿主改用 `UseKunMultiTenancy(mode)`。`UseKunMultiTenancy` 增加了可选参数 `mode`，源码不用改，已编译的程序集需要重新编译。
+- `AddKunSecurity()` 不再登记 `ITenantContext`。需要租户上下文的宿主另调 `AddKunMultiTenancy()`。
+
+### Changed — 更正 2026.11.21 关于显式租户标识检查的说法（S1-KUN-024）
+
+- 2026.11.21「租户上下文使用 UUID」一节说宽松和严格的 EF 上下文在插入多租户实体时都会检查显式租户标识。准确的说法是：装了 `KunTenantSaveChangesInterceptor` 的上下文才做这项检查。`KunStrictDbContext` 构造时要求装配它，`AddKunData` 自动装配；`KunDbContext` 需要使用方自行 `AddInterceptors`，服务由 `AddKunMultiTenancyEntityFrameworkCore()` 登记。
+
 ## [2026.11.21] - 2026-11-21
 
 本版停发 8 个旧包，包括 `Kun.Infrastructure`、`Kun.Dapper`、`Kun.Saga`、`Kun.Sandbox`、`Kun.Storage`、`Kun.Auditing`、`Kun.Audit` 和 `Kun.MultiTenancy.EntityFrameworkCore`。nuget.org 保留既有版本，各包的替代实现与升级步骤见下文。

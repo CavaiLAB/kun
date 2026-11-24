@@ -3,6 +3,7 @@ using Kun.EntityFrameworkCore.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Kun.EntityFrameworkCore.MultiTenancy;
 
@@ -47,7 +48,10 @@ public static class KunMultiTenancyServiceCollectionExtensions
     /// <see cref="DatabasePerTenantProvisioner{TContext}"/>. Consumers are still responsible
     /// for registering their own <see cref="ITenantDbContextFactory{TContext}"/> that
     /// resolves the tenant's connection string via <see cref="IDbConnectionResolver"/> and
-    /// constructs a DbContext bound to that connection.
+    /// constructs a DbContext bound to that connection. Entries bound from configuration
+    /// (<see cref="TenantsConnectionOptions.ConfiguredConnectionStrings"/>) are merged into
+    /// <see cref="TenantsConnectionOptions.ConnectionStrings"/>. Host start fails when a key is not
+    /// a non-empty UUID in lowercase D format, or when code and configuration disagree for a tenant.
     /// </para>
     /// <para>
     /// <strong>Strategy snapshotting</strong>: the <see cref="KunMultiTenancyOptions.Strategy"/>
@@ -90,6 +94,11 @@ public static class KunMultiTenancyServiceCollectionExtensions
                 // replace it with their own IDbConnectionResolver before/after this call.
                 services.TryAddSingleton<IDbConnectionResolver, OptionsBasedTenantConnectionResolver>();
                 services.TryAddSingleton<ITenantProvisioner, DatabasePerTenantProvisioner<TContext>>();
+                // Configuration binds tenant keys as text. Merge them into the Guid-keyed map,
+                // and fail host start on malformed keys or code/configuration conflicts.
+                services.AddOptions<TenantsConnectionOptions>().ValidateOnStart();
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<TenantsConnectionOptions>, TenantsConnectionOptionsSetup>());
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<TenantsConnectionOptions>, TenantsConnectionOptionsSetup>());
                 break;
 
             default:

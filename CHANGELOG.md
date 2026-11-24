@@ -8,6 +8,23 @@
 
 ## [Unreleased]
 
+### Changed — 端点权限回调的校验
+
+- `MapKunData`、`MapKunDataTypes`、`MapKunDataConnections` 与 `MapKunFiles` 的权限回调须给端点加上执行同一权限点的授权要求，`RequireKunPermission` 即如此。构造端点时核对三项：端点带该权限点的 `RequiresPermissionAttribute`；授权策略里有权限点相同的 `Kun.Authorization.IPermissionEnforcementRequirement`；端点没有匿名放行标记，外层分组上的也算。任一项不满足即抛出 `InvalidOperationException`。按名字引用的策略在构造端点时看不到其中的要求，不算接上。自定义执行点让自己的授权要求实现 `IPermissionEnforcementRequirement`。
+
+### Added — 权限执行要求的标记接口
+
+- 内核契约 `Kun.Authorization` 新增 `IPermissionEnforcementRequirement`，由执行权限点的授权要求实现。`RequireKunPermission` 加上的要求已实现它。
+
+### Changed — gRPC 权限点在启动时校验
+
+- 登记了 `AddKunAuthorization` 的宿主在启动时核对 gRPC 方法上 `RequiresPermissionAttribute` 的权限点。不是 `<plugin-id>:<resource>:<action>` 全名的，宿主启动即抛出 `InvalidOperationException`，消息列出方法与权限点。
+- 补充 2026.11.21 一节「HTTP 和 gRPC 授权执行点」：其中「在端点声明时抛出」只适用于 HTTP 的 `RequireKunPermission`。在该版里，gRPC 方法上不是全名的权限点要到调用时才被拒绝。
+
+### Changed — 授权包的来源
+
+- 补充 2026.11.21 一节「HTTP 和 gRPC 授权执行点」：`Kun.Authorization.AspNetCore` 属于平台档，从 CavaiLAB 的 GitHub Packages 还原。原来用 `Kun.AspNetCore` 的 `RequireKunPermission`，或在 `Kun.Grpc` 的服务方法上标 `[RequiresPermission]` 的项目，升级后要引用这个包；只从 nuget.org 还原的项目要为它映射 GitHub Packages 的源。没有登记授权拦截器时，`Kun.Grpc` 拒绝执行标了 `[RequiresPermission]` 的方法。
+
 ### Changed — 异常信息
 
 - 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。
@@ -27,23 +44,6 @@
 - `AddKunServiceAuthentication`（`Kun.Security`）校验签名（只收 RS256、ES256）、签发方、受众与有效期，时钟容差 30 秒；签发方与受众须是配置的 `Issuer`、`AdditionalValidIssuers` 与 `Audience`、`AdditionalValidAudiences` 之一。
 - `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
 - 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
-
-### Changed — 端点权限回调的校验
-
-- `MapKunData`、`MapKunDataTypes`、`MapKunDataConnections` 与 `MapKunFiles` 的权限回调须给端点加上执行同一权限点的授权要求，`RequireKunPermission` 即如此。构造端点时核对三项：端点带该权限点的 `RequiresPermissionAttribute`；授权策略里有权限点相同的 `Kun.Authorization.IPermissionEnforcementRequirement`；端点没有匿名放行标记，外层分组上的也算。任一项不满足即抛出 `InvalidOperationException`。按名字引用的策略在构造端点时看不到其中的要求，不算接上。自定义执行点让自己的授权要求实现 `IPermissionEnforcementRequirement`。
-
-### Added — 权限执行要求的标记接口
-
-- 内核契约 `Kun.Authorization` 新增 `IPermissionEnforcementRequirement`，由执行权限点的授权要求实现。`RequireKunPermission` 加上的要求已实现它。
-
-### Changed — gRPC 权限点在启动时校验
-
-- 登记了 `AddKunAuthorization` 的宿主在启动时核对 gRPC 方法上 `RequiresPermissionAttribute` 的权限点。不是 `<plugin-id>:<resource>:<action>` 全名的，宿主启动即抛出 `InvalidOperationException`，消息列出方法与权限点。
-- 补充 2026.11.21 一节「HTTP 和 gRPC 授权执行点」：其中「在端点声明时抛出」只适用于 HTTP 的 `RequireKunPermission`。在该版里，gRPC 方法上不是全名的权限点要到调用时才被拒绝。
-
-### Changed — 授权包的来源
-
-- 补充 2026.11.21 一节「HTTP 和 gRPC 授权执行点」：`Kun.Authorization.AspNetCore` 属于平台档，从 CavaiLAB 的 GitHub Packages 还原。原来用 `Kun.AspNetCore` 的 `RequireKunPermission`，或在 `Kun.Grpc` 的服务方法上标 `[RequiresPermission]` 的项目，升级后要引用这个包；只从 nuget.org 还原的项目要为它映射 GitHub Packages 的源。没有登记授权拦截器时，`Kun.Grpc` 拒绝执行标了 `[RequiresPermission]` 的方法。
 
 ## [2026.11.21] - 2026-11-21
 

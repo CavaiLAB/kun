@@ -21,7 +21,7 @@ app.MapKunFiles(
 | `GET /api/files/quota` | `qian.files/quota` | `qian.files:file:read` | 200 `FileQuota` |
 
 - 每个端点带 `PluginEndpointBinding`（条目 ID 缺省 `files`）；`RequirePlugin = true` 时改用 `RequireKunPlugin`，要求条目在请求租户 scope 已挂载（平台宿主须装 `AddKunPluginEndpoints` / `UseKunPluginEndpoints`）。
-- `requirePermission` 回调必须真的接上授权管道：构建端点时核对权限元数据与授权要求都在，只加元数据的回调直接抛出，避免生产模式的缺省拒绝被「声明了却没判定」绕过。
+- `requirePermission` 回调要给端点加上执行该权限点的授权要求，例如 `RequireKunPermission`。构建端点时核对：端点带该权限点的 `RequiresPermissionAttribute`，授权策略里有权限点相同的 `Kun.Authorization.IPermissionEnforcementRequirement`，端点（含外层分组）没有匿名放行标记；任一项不满足即抛出。
 - 申请只收 JSON（其他类型 415），请求体上限 16 KiB，未知字段 `INPUT_INVALID`。完成与删除可带 `Idempotency-Key` 头（GUID），缺省由端点生成；两者都按状态幂等。
 - 响应一律 `Cache-Control: private, no-store`。
 

@@ -4,6 +4,7 @@ using Kun.Authorization;
 using Kun.Authorization.AspNetCore;
 using Kun.Data.Dialect.Pg;
 using Kun.Files.AspNetCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
@@ -17,24 +18,73 @@ public sealed class DataPermissionMetadataTests
 {
     private static readonly string Root = FindRoot();
 
+    public static TheoryData<string, string> CallbacksWithoutEnforcement()
+    {
+        var data = new TheoryData<string, string>();
+        foreach (var component in new[] { "files", "data" })
+        {
+            foreach (var callback in new[] { "metadata-only", "metadata-with-generic-policy", "requirement-for-another-permission", "anonymous" })
+                data.Add(component, callback);
+        }
+        return data;
+    }
+
     [Theory]
-    [InlineData("files")]
-    [InlineData("data")]
-    public async Task 权限回调只写元数据时端点构造失败(string component)
+    [MemberData(nameof(CallbacksWithoutEnforcement))]
+    public async Task 权限回调没有接上同一权限点的执行要求或端点匿名放行时端点构造失败(string component, string callback)
     {
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddKunDataTypes().AddKunPgDialect();
         await using var app = builder.Build();
-        if (component == "files")
-            app.MapKunFiles(_ => throw new InvalidOperationException(), DeclarePermission);
-        else
-            app.MapKunDataTypes(DeclarePermission);
+        Action<RouteHandlerBuilder, string> requirePermission = callback switch
+        {
+            "metadata-only" => (route, permission) => route.WithMetadata(new RequiresPermissionAttribute(permission)),
+            "metadata-with-generic-policy" => (route, permission) => route.WithMetadata(new RequiresPermissionAttribute(permission)).RequireAuthorization(),
+            "requirement-for-another-permission" => (route, permission) =>
+                route.WithMetadata(new RequiresPermissionAttribute(permission)).RequireKunPermission("sample.other:item:read"),
+            _ => (route, permission) => route.RequireKunPermission(permission).AllowAnonymous(),
+        };
+        Map(app, component, requirePermission);
         var error = Assert.Throws<InvalidOperationException>(() => ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).ToArray());
         Assert.Contains("没有接到 PEP", error.Message, StringComparison.Ordinal);
-
-        static void DeclarePermission(RouteHandlerBuilder route, string permission) =>
-            route.WithMetadata(new RequiresPermissionAttribute(permission));
     }
+
+    [Theory]
+    [InlineData("files")]
+    [InlineData("data")]
+    public async Task 外层分组带匿名放行标记时端点构造失败(string component)
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.Services.AddKunDataTypes().AddKunPgDialect();
+        await using var app = builder.Build();
+        Map(app.MapGroup("/host").AllowAnonymous(), component, (route, permission) => route.RequireKunPermission(permission));
+        var error = Assert.Throws<InvalidOperationException>(() => ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).ToArray());
+        Assert.Contains("匿名放行", error.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("files")]
+    [InlineData("data")]
+    public async Task 权限回调以实现执行要求接口的自定义要求接入时端点可以构造(string component)
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.Services.AddKunDataTypes().AddKunPgDialect();
+        await using var app = builder.Build();
+        Map(app, component, (route, permission) => route.WithMetadata(new RequiresPermissionAttribute(permission))
+            .RequireAuthorization(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().AddRequirements(new HostPermissionRequirement(permission)).Build()));
+        var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).OfType<RouteEndpoint>().ToArray();
+        Assert.NotEmpty(endpoints);
+        Assert.All(endpoints, endpoint => Assert.Contains(endpoint.Metadata.GetOrderedMetadata<AuthorizationPolicy>().SelectMany(policy => policy.Requirements),
+            requirement => requirement is HostPermissionRequirement host && host.Permission == Assert.Single(endpoint.Metadata.GetOrderedMetadata<RequiresPermissionAttribute>()).Permission));
+    }
+
+    private static void Map(IEndpointRouteBuilder endpoints, string component, Action<RouteHandlerBuilder, string> requirePermission)
+    {
+        if (component == "files") endpoints.MapKunFiles(_ => throw new InvalidOperationException(), requirePermission);
+        else endpoints.MapKunDataTypes(requirePermission);
+    }
+
+    private sealed record HostPermissionRequirement(string Permission) : IAuthorizationRequirement, IPermissionEnforcementRequirement;
 
     [Fact]
     public async Task 每个数据端点都要求已声明的权限点_默认角色只授予租户内权限()

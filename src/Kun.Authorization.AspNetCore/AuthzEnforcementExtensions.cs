@@ -56,6 +56,8 @@ public static class AuthzEnforcementExtensions
         services.TryAddSingleton<AuthorizationMiddlewareResultHandler>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, KunAuthorizationResultHandler>();
         services.TryAddSingleton<AuthzGrpcServerInterceptor>();
+        // gRPC 的权限点写在特性或元数据上，启动时统一校验格式。
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<Microsoft.AspNetCore.Hosting.IStartupFilter, GrpcPermissionDeclarationStartup>());
         return services;
     }
 
@@ -124,4 +126,4 @@ public sealed class AuthzEnforcementSource
     internal bool IsProduction(IServiceProvider services) => Options.Production ?? services.GetService<IHostEnvironment>()?.IsProduction() ?? true;
 }
 
-internal sealed record KunPermissionRequirement(string Permission) : IAuthorizationRequirement;
+internal sealed record KunPermissionRequirement(string Permission) : IAuthorizationRequirement, IPermissionEnforcementRequirement;

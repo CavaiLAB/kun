@@ -11,20 +11,37 @@ namespace Kun.Plugin.Sdk.AspNetCore;
 /// <summary>HTTP 组合根的显式装配，不在 SDK 内创建另一棵运行时或替身注册表。</summary>
 public static class PluginEndpointExtensions
 {
-    /// <summary>调用宿主的授权配置，并在构造端点时核对权限声明与授权策略。</summary>
+    /// <summary>
+    /// 调用宿主的权限回调，并在构造端点时核对它给端点接上了执行点：端点带该权限点的 <see cref="RequiresPermissionAttribute"/>，
+    /// 授权策略里有执行同一权限点的 <see cref="IPermissionEnforcementRequirement"/>（例如 Kun.Authorization.AspNetCore 的 <c>RequireKunPermission</c>），
+    /// 且端点没有匿名放行标记。按名字引用的策略在构造端点时看不到其中的要求，不算接上。任一项不满足即抛出 <see cref="InvalidOperationException"/>。
+    /// </summary>
     public static RouteHandlerBuilder RequirePluginPermission(this RouteHandlerBuilder route, string permission,
         Action<RouteHandlerBuilder, string> requirePermission)
     {
         ArgumentNullException.ThrowIfNull(route);
         ArgumentNullException.ThrowIfNull(requirePermission);
         requirePermission(route, permission);
-        route.Add(endpoint =>
+        // 放在 Finally：回调之后才追加的约定（包括分组上的匿名放行）也在核对范围内。
+        route.Finally(endpoint =>
         {
-            if (!endpoint.Metadata.OfType<RequiresPermissionAttribute>().Any(item => item.Permission == permission) ||
-                (!endpoint.Metadata.OfType<IAuthorizeData>().Any() && !endpoint.Metadata.OfType<AuthorizationPolicy>().Any()))
-                throw new InvalidOperationException("端点 " + endpoint.DisplayName + " 的权限点 " + permission + " 没有接到 PEP。");
+            if (MissingEnforcement(endpoint.Metadata, permission) is { } reason)
+                throw new InvalidOperationException("端点 " + endpoint.DisplayName + " 的权限点 " + permission + " 没有接到 PEP：" + reason);
         });
         return route;
+    }
+
+    private static string? MissingEnforcement(IList<object> metadata, string permission)
+    {
+        if (!metadata.OfType<RequiresPermissionAttribute>().Any(item => item.Permission == permission))
+            return "缺少该权限点的 RequiresPermissionAttribute。";
+        if (metadata.OfType<IAllowAnonymous>().Any())
+            return "端点带匿名放行标记。";
+        var requirements = metadata.OfType<AuthorizationPolicy>().SelectMany(policy => policy.Requirements)
+            .Concat(metadata.OfType<IAuthorizationRequirementData>().SelectMany(data => data.GetRequirements()));
+        return requirements.OfType<IPermissionEnforcementRequirement>().Any(item => item.Permission == permission)
+            ? null
+            : "授权策略里没有执行该权限点的要求（IPermissionEnforcementRequirement）。";
     }
 
     /// <summary>登记当前平台宿主的 Registry 上下文工厂。</summary>

@@ -1,6 +1,6 @@
 # qian-shell（Qian 外壳）
 
-Qian 唯一可部署的外壳入口（S1-YUE-012 把 S1-YUE-001 的 MF2 静态宿主与 S1-YUE-002 的薄入口融合于此，`apps/qian-shell-auth` 已撤销）。通用 UI 来自前端框架的 [`@cavailab/qian-shell`](https://github.com/CavaiLAB/qian/blob/main/packages/qian/shell/README.md)（CavaiLAB/qian 发布的包），Qian 专有接线来自私有包 [`@qian/shell-kit`](../../packages/qian-shell-kit/README.md)，远程模块的加载、插槽与桥接来自 [前端插件 SDK](https://github.com/CavaiLAB/qian/blob/main/packages/qian-plugin-sdk/README.md)（`@cavailab/qian-plugin-sdk`）的 `ShellHost`。属于 `platform` 的 shell 组合包，由网关进程以产品扩展同源提供（[Qian.Gateway](../../packages/Qian.Gateway/README.md) 的 `UseQianShell` / `MapQianShell`）；不是独立 profile。
+Qian 唯一可部署的外壳入口（S1-YUE-012 把 S1-YUE-001 的 MF2 静态宿主与 S1-YUE-002 的薄入口融合于此，`apps/qian-shell-auth` 已撤销）。通用 UI 来自前端框架的 [`@cavailab/qian-shell`](https://github.com/CavaiLAB/qian/blob/main/packages/qian/shell/README.md)（CavaiLAB/qian 发布的包），Qian 专有接线来自私有包 [`@qian/shell-kit`](../../packages/qian-shell-kit/README.md)，远程模块的加载、插槽与桥接来自 [前端插件 SDK](https://github.com/CavaiLAB/qian/blob/main/packages/qian-plugin-sdk/README.md)（`@cavailab/qian-plugin-sdk`）的 `ShellHost`。属于 `platform` 的 shell 组合包，由网关进程以产品扩展同源提供（[Kun.Gateway.Shell](../../src/Kun.Gateway.Shell/README.md) 的 `UseKunShell` / `MapKunShell`）；不是独立 profile。
 
 ## 启动顺序
 

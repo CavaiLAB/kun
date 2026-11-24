@@ -19,7 +19,7 @@
 | `prd/specs/frontend.md` | 前端框架组件库专题 spec：关键决策 D1–D16、六层分层、控件注册表契约、MF2 外壳与插槽、S1 最小集验收 | 草案 v1 |
 | [`prd/specs/auth-pages.md`](prd/specs/auth-pages.md) | 认证页族设计规格（2026-10-21）：登录 / 第二因子 / 租户选择与切换 / 强制改密 / 确认绑定 / 回调态 / 会话弹窗族 / 登出 / 设备码 / 授权同意的逐页版式、状态表、文案、安全与无障碍要点、验收映射；配套设计画板链接见文首。2026-11-15 入库，正文只删去一处括注；认证页此前已按各任务实现，本文没有与实现逐条核对 | 草案，待产品负责人确认（§8 D1–D14，S1-DEC-035） |
 | `prd/specs/docs-site.md` | 文档站信息架构与规范：七个部分（第 3 部分含「Kun 框架」镜像小节，§2b）、产品族地图与版本矩阵、组件页模板、frontmatter（含 `project`）、llms 产物、`website/` 骨架 | 已确认（2026-10-07；Kun 进站经 ADR-021 补充） |
-| `generated/` | `qian docs generate` 从实际 profile、配置 Schema 与 C# 事件代码派生的配置目录、模块图、事件图、seam 图，CI 重新生成并比对、漂移即失败；实现说明见 `../packages/Qian.Docs/README.md` | 生成物 |
+| `generated/` | `qian docs generate` 从实际 profile、配置 Schema 与 C# 事件代码派生的配置目录、模块图、事件图、seam 图，CI 重新生成并比对、漂移即失败；实现说明见 `../src/Kun.Docs/README.md` | 生成物 |
 | `CHANGELOG.md` | 变更日志：对读者可见的变化（新文档与规格、新组件与命令、破坏性变更），按日期倒序；文档站首页「最新动态」取最近 4 条 | 持续更新 |
 | `ROADMAP.md` | 阶段路线唯一真相源：S1–S4 目标、退出标准、核心交付、里程碑占位、依赖与风险、跨阶段约束 | 草案 v1（S1 交付已按 ADR-020 更新） |
 | [`../contracts/v0/`](../contracts/v0/README.md) | 冻结契约 v0（仓库根目录，不在 docs 下）：ErrorDetail 与错误码目录、S2S claim、事件信封、能力条目四类 JSON Schema 2020-12 + fixture，及[契约索引中的下游对齐说明](../contracts/v0/README.md)；字段以此为准 | frozen（S1-AGT-005，2026-10-24；后续仅兼容增量） |

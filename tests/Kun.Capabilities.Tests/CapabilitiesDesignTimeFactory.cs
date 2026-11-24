@@ -11,7 +11,7 @@ namespace Kun.Capabilities.Tests;
 
 // dotnet ef 的设计时入口：经 AddKunData 的同一装配取上下文（命名约定、租户过滤、Qian 迁移生成器），迁移模型与运行时一致。
 // 不连接数据库；连接串只用于选定 Npgsql 提供程序。用法见仓库根 src/Kun.Data/README.md「迁移执行与 RLS 核查」：
-//   dotnet ef migrations has-pending-model-changes --project packages/Qian.Capabilities --startup-project tests/Qian.Capabilities.Tests --context CapabilitiesDbContext
+//   dotnet ef migrations has-pending-model-changes --project src/Kun.Capabilities --startup-project tests/Kun.Capabilities.Tests --context CapabilitiesDbContext
 internal sealed class CapabilitiesDesignTimeFactory : IDesignTimeDbContextFactory<CapabilitiesDbContext>
 {
     public CapabilitiesDbContext CreateDbContext(string[] args)

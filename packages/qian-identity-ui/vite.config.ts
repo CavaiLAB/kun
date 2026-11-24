@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// 认证页族与 qian.identity 同源：构建产物以 /login/ 为基路径，由身份宿主静态托管（本机联调见 tools/Qian.Dev.Shell）。
+// 认证页族与 qian.identity 同源：构建产物以 /login/ 为基路径，由身份宿主静态托管（本机联调见 tools/Kun.Dev.Shell）。
 // 开发服务器只把账号接口与协议端点代理到本机身份宿主；页面本身不持有令牌，也没有任何环境值进入构建产物。
 const api = process.env.QIAN_DEV_SHELL_API_URL ?? 'http://127.0.0.1:5090';
 if (!['127.0.0.1', 'localhost', '::1', '[::1]'].includes(new URL(api).hostname)) throw new Error('开发代理仅允许本机身份宿主');

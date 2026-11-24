@@ -53,13 +53,13 @@ qian doctor --fix --profile minimal --no-home --json
 
 活动安装、仍能写文件的后代、PID 身份冲突、损坏或旧版缺少归属证据的日志、越界路径和不安全符号链接都会拒绝自动恢复并保留锁、日志和备份。POSIX 的 Linux/macOS 提供跨进程身份与组核验；Windows 保留普通安装和原有终止流程，但不能证明安全的崩溃恢复会明确拒绝。工作区仍须由当前操作者管理，恢复不是隔离原生代码的沙箱。
 
-错误分类由 `Qian.Surfaces.Abstractions/SurfaceErrors.cs` 与 `@qian/surfaces` 同步拥有：市场验签 `SURFACE_SIGNATURE_INVALID`、来源/归档摘要 `SURFACE_DIGEST_MISMATCH`、安装锁 `SURFACE_INSTALLATION_BUSY`、本地改写 `SURFACE_LOCAL_MODIFIED`、profile 不允许 `SURFACE_PROFILE_DENIED`、恢复证据不足 `SURFACE_RECOVERY_REQUIRED`、包操作失败 `SURFACE_PACKAGE_UNAVAILABLE`、版本不兼容 `SURFACE_ENGINE_INCOMPATIBLE`。它们是 ErrorDetail 的字段码；协议码只出现在顶层。旧 `SURFACE_HASH_MISMATCH` 继续仅表示工具契约哈希不一致；组件码不放进只属于 `qian.runtime` 的 v0 内置错误目录。`--json` 的错误统一一行，文件位置只输出相对路径。
+错误分类由 `src/Kun.Surfaces.Abstractions/SurfaceErrors.cs` 与 `@qian/surfaces` 同步拥有：市场验签 `SURFACE_SIGNATURE_INVALID`、来源/归档摘要 `SURFACE_DIGEST_MISMATCH`、安装锁 `SURFACE_INSTALLATION_BUSY`、本地改写 `SURFACE_LOCAL_MODIFIED`、profile 不允许 `SURFACE_PROFILE_DENIED`、恢复证据不足 `SURFACE_RECOVERY_REQUIRED`、包操作失败 `SURFACE_PACKAGE_UNAVAILABLE`、版本不兼容 `SURFACE_ENGINE_INCOMPATIBLE`。它们是 ErrorDetail 的字段码；协议码只出现在顶层。旧 `SURFACE_HASH_MISMATCH` 继续仅表示工具契约哈希不一致；组件码不放进只属于 `qian.runtime` 的 v0 内置错误目录。`--json` 的错误统一一行，文件位置只输出相对路径。
 
 URL / Git 完整 CLI 安装、lock 和移除用例分别用替代 fetch 传输与 Git 本地来源重写提供确定性内容，真实 Git 提交与归档校验均照常执行；这些用例不声称验证了生产网络。独立的安装测试从 nuget.org 和 GitHub Packages 还原组件，启动 Provider 并验证卸载。
 
 ## 已交付命令
 
-当前实现 [S1-RT-002](../../pm/tasks/S1-RT-002.md) 的 `dump-config`，以及 [S1-RT-010](../../pm/tasks/S1-RT-010.md) 的文档生成与 skill-only 文档模板初始化。共享表面解析与 Schema 包为 `@qian/surfaces`，profile 合成规则以 [Qian.Profiles](../../src/Kun.Profiles/README.md) 为唯一说明。
+当前实现 [S1-RT-002](../../pm/tasks/S1-RT-002.md) 的 `dump-config`，以及 [S1-RT-010](../../pm/tasks/S1-RT-010.md) 的文档生成与 skill-only 文档模板初始化。共享表面解析与 Schema 包为 `@qian/surfaces`，profile 合成规则以 [Kun.Profiles](../../src/Kun.Profiles/README.md) 为唯一说明。
 
 在仓库根目录执行：
 

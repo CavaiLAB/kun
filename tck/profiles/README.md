@@ -18,12 +18,12 @@ S1-CFG-009 再加三组，约束两个验证器的其余语义与 Schema 的写�
 - 14 个 `schema-rule-*`：两端解释不同的写法在 Schema 文件的对应指针处失败：不符合 2020-12 元 Schema、`$schema` 不是 2020-12、`$id` 等标识、`nullable`、`unevaluatedItems` 与 `unevaluatedProperties`、空 enum、无法解析或不指向子 Schema 位置的 `$ref`（含 `#/`、元 Schema 校验不到的位置、末尾的换行与百分号编码的换行）、不经属性或数组项的循环引用、以 `__proto__` 为键名的 properties。
 - 5 个 `schema-file-*`：Schema 文件含重复键、超出双精度范围的数值或残缺代理项、以 UTF-16 的 BOM 开头时按无法解析处理，以 UTF-8 的 BOM 开头时照常读取。
 
-`key-vectors.json` 由 `tests/Qian.Common.Tests` 按 .NET 的模式翻译器与 OrdinalIgnoreCase 生成，CLI 的模式移植逐条比对，生成方法见 [共享内部源文件](../../src/Common/README.md#cli-的-ts-移植)。
+`key-vectors.json` 由 `tests/Kun.Common.Tests` 按 .NET 的模式翻译器与 OrdinalIgnoreCase 生成，CLI 的模式移植逐条比对，生成方法见 [共享内部源文件](../../src/Common/README.md#cli-的-ts-移植)。
 
 ```bash
 pnpm --filter qian... build
 QIAN_PROFILE_REPORT=/tmp/profiles-ts.json pnpm --filter qian test
-QIAN_PROFILE_REPORT=/tmp/profiles-dotnet.json dotnet run --project tests/Qian.Profiles.Tests -c Release
+QIAN_PROFILE_REPORT=/tmp/profiles-dotnet.json dotnet run --project tests/Kun.Profiles.Tests -c Release
 node packages/qian-surfaces/scripts/compare-fixtures.mjs /tmp/profiles-dotnet.json /tmp/profiles-ts.json
 ```
 

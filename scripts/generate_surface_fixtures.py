@@ -174,7 +174,7 @@ bad('patch-double-high-surrogate',base({pf:'- id: files\n  config:\n    title: "
 bad('patch-unclosed-flow',base({pf:'- id: files\n  config: [\n'}),pf,'','SYNTAX_INVALID')
 bad('skill-unpaired-surrogate',base({sf:'---\nname: guide\ndescription: "'+DESC+U+'d800"\n---\n\n正文\n'}),sf,'','SYNTAX_INVALID')
 case('escaped-surrogate-pairs',base({sf:'---\nname: guide\ndescription: "'+DESC+U+'d83d'+U+'de00"\n---\n\n正文\n','metadata/roles.json':'[\n  {\n    "name": "reader'+U+'d83d'+U+'de00"\n  }\n]\n'}))
-# 解析诊断（S1-RT-025）：期望写明行号，约定见 packages/Qian.Surfaces/README.md；文案由 syntax-vectors.json 逐字比较。
+# 解析诊断（S1-RT-025）：期望写明行号，约定见 src/Kun.Surfaces/README.md；文案由 syntax-vectors.json 逐字比较。
 bad('patch-tab-indentation',base({pf:'- id: files\n  config:\n\tquota: 100\n'}),pf,'','SYNTAX_INVALID',line=3)
 bad('patch-unclosed-quote',base({pf:'- id: files\n  config:\n    title: "x\n    quota: 100\n'}),pf,'','SYNTAX_INVALID',line=3)
 bad('patch-second-document',base({pf:'- id: files\n  config: {}\n---\n- id: other\n  config: {}\n'}),pf,'','SYNTAX_INVALID',line=3)

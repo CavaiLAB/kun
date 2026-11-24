@@ -40,7 +40,7 @@ using Npgsql;
 
 namespace Kun.Sample.Crm.Tests;
 
-// 生产平台宿主（S1-DEP-009）：hosts/Qian.Platform.Host 的同一装配入口（PlatformHost.Build），按仓库交付的 platform profile、宿主 overlay 与一份环境 overlay
+// 生产平台宿主（S1-DEP-009）：hosts/Kun.Platform.Host 的同一装配入口（PlatformHost.Build），按仓库交付的 platform profile、宿主 overlay 与一份环境 overlay
 // 装配平台插件树；参考应用作为 module 应用，经组合的扩展登记并进同一插件树。身份服务由参考宿主（同进程身份）充当，数据库与它共用。
 public sealed class PlatformHostTests(PostgresFixture postgres) : CustomerCommandTests(postgres), IClassFixture<PostgresFixture>
 {

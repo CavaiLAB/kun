@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Kun.Lifecycle.Tests;
 
 // dotnet ef 的设计时入口：经 AddKunData 的同一装配取上下文（命名约定、租户过滤、Qian 迁移生成器），迁移模型与运行时一致。不连接数据库：
-//   dotnet ef migrations has-pending-model-changes --project packages/Qian.Lifecycle --startup-project tests/Qian.Lifecycle.Tests --context LifecycleDbContext
+//   dotnet ef migrations has-pending-model-changes --project src/Kun.Lifecycle --startup-project tests/Kun.Lifecycle.Tests --context LifecycleDbContext
 internal sealed class LifecycleDesignTimeFactory : IDesignTimeDbContextFactory<LifecycleDbContext>
 {
     public LifecycleDbContext CreateDbContext(string[] args)

@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {compilePattern,translatePattern,isStable,sameKey,maxSize,cachedPatterns,UnsupportedPattern,KeyPattern} from '../dist/schema-pattern.js';
-// 向量由 tests/Qian.Common.Tests 按 .NET 的 SchemaPattern 与 OrdinalIgnoreCase 生成；这里逐条比对 TS 移植。
+// 向量由 tests/Kun.Common.Tests 按 .NET 的 SchemaPattern 与 OrdinalIgnoreCase 生成；这里逐条比对 TS 移植。
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
 const vectors=JSON.parse(readFileSync(path.join(root,'tck/profiles/key-vectors.json'),'utf8'));
 const bits=pattern=>vectors.keys.map(key=>pattern.test(key)?'1':'0').join('');

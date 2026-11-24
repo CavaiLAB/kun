@@ -50,7 +50,7 @@ IScheduler 提供 ScheduleOnce、ScheduleCron、ScheduleInterval、Cancel。call
 
 ```bash
 QIAN_REQUIRE_DOCKER=1 dotnet run --project tests/Kun.Scheduler.Tests -c Release
-dotnet run --project ../../tests/Kun.Plugin.Sdk.Tests -c Release
+dotnet run --project tests/Kun.Plugin.Sdk.Tests -c Release
 ```
 
 ## 模型体验

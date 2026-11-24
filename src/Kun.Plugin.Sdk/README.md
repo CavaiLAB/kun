@@ -40,7 +40,7 @@ CapabilityAttribute 标注顶层非泛型 partial 请求，并指定响应类型
 
 Kun 每次 Send 建立新的 DI scope。SDK 在这个 scope 中通过 IDataService 打开业务数据会话，把它绑定到 CommandDataSession，handler 只消费这份上下文与 Outbox。外层开启 SERIALIZABLE，实际 command/dispatching 事件包裹 handler 和保存步骤，审计追加完成后才提交。代理延迟构造真正的 handler，且转交基础组件卸载与请求共同控制的取消令牌。
 
-写命令的 handler、领域通知与保存都运行在 SDK 开启的事件来源作用域（Kun.EventBus.Abstractions 的 EventEnvelopeScope）内：producer 是能力所属组件，actor 是已验证主体（有委托时 actor 为代理、on_behalf_of 为被代表人），causation_id 是本次调用 id，traceparent 与调用的 trace 一致。这样经 Outbox 发出的集成事件都带完整的 v1 信封；作用域外发布在运行时被拒绝，编译期另有 KUNEVENT001 拦截（见 [Qian.Events](../Kun.EventBus.EntityFrameworkCore/README.md)）。
+写命令的 handler、领域通知与保存都运行在 SDK 开启的事件来源作用域（Kun.EventBus.Abstractions 的 EventEnvelopeScope）内：producer 是能力所属组件，actor 是已验证主体（有委托时 actor 为代理、on_behalf_of 为被代表人），causation_id 是本次调用 id，traceparent 与调用的 trace 一致。这样经 Outbox 发出的集成事件都带完整的 v1 信封；作用域外发布在运行时被拒绝，编译期另有 KUNEVENT001 拦截（见 [Kun.EventBus.EntityFrameworkCore](../Kun.EventBus.EntityFrameworkCore/README.md)）。
 
 CommandPolicies 只允许对应的 qian.tenancy、qian.authz、qian.audit 生产方登记监听器；服务键、监听器和取消资源归属同一 Effect 生命周期。执行前要求三种存活登记，进入链尾前要求三种监听器实际参与；重复调用 next 不能再次执行业务。卸载撤销后新请求拒绝，进行中的数据库操作可取消并回滚。租户策略读取真实主档，RBAC 策略读取真实授权并核对 OAuth scope，AuditPlugin 根据真实生成 Schema 写同事务审计。RBAC 策略由 Kun.Authorization.Rbac 的 `AuthzPlugin` 在 Apply 中登记（只含命令 PEP 的子插件为 `RbacCommandPolicyPlugin`）；完整 Authz 数据/字段策略与管理服务仍待完成。
 

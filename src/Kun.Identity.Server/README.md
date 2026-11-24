@@ -7,11 +7,11 @@
 - **内置账号模型（默认）**：`new IdentityServerPlugin()`，需要 Data 与 Tenancy 两个组件。身份组件自己提供 `IIdentityAccounts`（账号管理）、`IIdentityDirectory`（组织目录）、`ISignInPipeline`（统一登录流水线）、`IAuthenticatorFactorRegistry`（认证因子注册表），并向 Tenancy 提供 `ITenantMembershipProvisioner`（开通编排第 5 步）与 `ITenantUserCounter`（配额用量）。
 - **宿主自带账号服务**：`new IdentityServerPlugin(accounts)`，本组件只承担协议面，账号流水线由宿主负责；此时不提供上面几个端口。
 
-两种方式都只允许 global scope、每环境唯一 issuer；`plugins/qian.identity.server` 的代码字段与配置 Schema 已派生。清单已去掉 `x-skeleton`（R150 ①，R144 ③ 的限定例外）：安装路径是平台镜像预装，平台宿主（`hosts/Qian.Platform.Host`）以 `Identity:InProcess=true` 把本组件并进同一插件树，启动证据是该宿主的装配与同进程集成测试 `PlatformIdentityHostTests`；`qian add identity` 的独立安装验收仍未完成，完整产品入口待外壳接入后再发布。
+两种方式都只允许 global scope、每环境唯一 issuer；`plugins/qian.identity.server` 的代码字段与配置 Schema 已派生。清单已去掉 `x-skeleton`（R150 ①，R144 ③ 的限定例外）：安装路径是平台镜像预装，平台宿主（`hosts/Kun.Platform.Host`）以 `Identity:InProcess=true` 把本组件并进同一插件树，启动证据是该宿主的装配与同进程集成测试 `PlatformIdentityHostTests`；`qian add identity` 的独立安装验收仍未完成，完整产品入口待外壳接入后再发布。
 
 ## 宿主装配顺序（内置账号模型）
 
-1. 注册 Kun 的 `ITenantContext`，`AddKunEventBus(r => r.RegisterIdentityEvents())`、`AddKunMediator(m => m.AddKunIdentityEvents())`、`AddQianEvents()`；登录、锁定、改密事件在账号写入的同一事务里入 Outbox，漏装时保存回滚，不会静默丢事件。
+1. 注册 Kun 的 `ITenantContext`，`AddKunEventBus(r => r.RegisterIdentityEvents())`、`AddKunMediator(m => m.AddKunIdentityEvents())`、`AddKunEvents()`；登录、锁定、改密事件在账号写入的同一事务里入 Outbox，漏装时保存回滚，不会静默丢事件。
 2. 经 `AddKunData` 注册 `IdentityDbContext`（schema `plugin_qian_identity`）。在线角色必须 NOSUPERUSER / NOBYPASSRLS，仅获该 schema 的 DML 权限；迁移由部署迁移任务先运行，在线副本不建表。
 3. 建立受信账号 Cookie scheme（默认名 `qian.identity.signin`）和 DataProtection；多副本须共享受保护的密钥。调用 `AddKunIdentityServer(options, environment)`。`options` 里的证书私钥与客户端密钥由宿主从密钥引用加载，不进 profile、日志或仓库。账号策略放在 `options.Accounts`（见下）。
 4. 构建应用后先 `UseKunIdentityServer()`，再 `UseAuthentication()`，最后 `MapKunIdentityServer()` 与 `MapKunIdentityAccounts()`。前者含 Qian 错误映射、安全响应头（no-store / nosniff / frame-ancestors none）与组件挂载门禁，卸载后账号接口与协议路径都是 404。托管认证页族时在 `UseKunIdentityServer()` 之后、`UseRouting()` 之前调用 `UseKunIdentityPages(dist)`（S1-YUE-012）：`/login` 下同源托管 `packages/qian-identity-ui` 的构建产物，不带扩展名的页面路由回落入口，HTML `no-store`、`/login/assets/` 带哈希长缓存，全部响应带 `frame-ancestors 'none'`、`Referrer-Policy: no-referrer` 与 `nosniff`；账号 Cookie scheme 的 `LoginPath` 指向 `IdentityPagesHosting.PagesPath`，`Accounts.SelectionPath` 不在 `/login` 下时启动即抛错。生产镜像的接线归 S1-DEP-008。

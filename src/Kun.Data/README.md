@@ -32,7 +32,7 @@ await session.SaveChangesAsync(ct);
 
 事件类型必须由宿主显式通过 AddKunEventBus 登记，推荐使用源生成 JsonTypeInfo；Data 不暗中登记空目录。IOutboxWriter 与 IIntegrationEventBus 必须指向同一个 scoped 实例：默认是 Kun 累加器；装了事件组件时换成它的信封写入端，该写入端经 IOutboxBufferBinding 声明自己写入当前 scope 的缓冲器，否则拒绝开会话。领域通知走 Kun Mediator 的当前 scope，通知处理器与工作单元拿到同一业务上下文和缓冲；存在通知但未装配 Mediator、通知没有实现 INotification 时拒绝保存。
 
-保存失败后会话不可复用，调用方必须释放后新开；业务数据与 Outbox 在同一次 EF 保存中提交或回滚。会话创建后不可切换租户，混入其他租户的事件会被拒绝。卸载 Provider 会撤销入口并释放存活会话，已缓存的数据服务不能再开新会话。本组件负责 Outbox 入库，后台投递由 [Qian.Events](../Kun.EventBus.EntityFrameworkCore/README.md) 负责；AddKunData 同时登记 IDataContextCatalog，投递服务据此逐个处理各业务上下文的 Outbox 表。
+保存失败后会话不可复用，调用方必须释放后新开；业务数据与 Outbox 在同一次 EF 保存中提交或回滚。会话创建后不可切换租户，混入其他租户的事件会被拒绝。卸载 Provider 会撤销入口并释放存活会话，已缓存的数据服务不能再开新会话。本组件负责 Outbox 入库，后台投递由 [Kun.EventBus.EntityFrameworkCore](../Kun.EventBus.EntityFrameworkCore/README.md) 负责；AddKunData 同时登记 IDataContextCatalog，投递服务据此逐个处理各业务上下文的 Outbox 表。
 
 ## 多副本迁移协调
 
@@ -75,11 +75,11 @@ GROUP BY c.table_schema, c.table_name, k.relrowsecurity, k.relforcerowsecurity
 ORDER BY c.table_schema, c.table_name;
 ```
 
-`dotnet ef` 的设计时入口要经 `AddKunData<T>` 取上下文，模型才与运行时一致（命名约定、租户标记、Outbox 表）。组件包不能为此依赖本包（依赖门禁只允许 Abstractions），所以 `IDesignTimeDbContextFactory<T>` 放在组件的测试项目里，以它作启动项目。以能力上下文为例（`tests/Qian.Capabilities.Tests/CapabilitiesDesignTimeFactory.cs`）：
+`dotnet ef` 的设计时入口要经 `AddKunData<T>` 取上下文，模型才与运行时一致（命名约定、租户标记、Outbox 表）。组件包不能为此依赖本包（依赖门禁只允许 Abstractions），所以 `IDesignTimeDbContextFactory<T>` 放在组件的测试项目里，以它作启动项目。以能力上下文为例（`tests/Kun.Capabilities.Tests/CapabilitiesDesignTimeFactory.cs`）：
 
 ```bash
-dotnet ef migrations has-pending-model-changes --project packages/Qian.Capabilities --startup-project tests/Qian.Capabilities.Tests --context CapabilitiesDbContext
-dotnet ef migrations add <名称> --project packages/Qian.Capabilities --startup-project tests/Qian.Capabilities.Tests --context CapabilitiesDbContext --output-dir Migrations
+dotnet ef migrations has-pending-model-changes --project src/Kun.Capabilities --startup-project tests/Kun.Capabilities.Tests --context CapabilitiesDbContext
+dotnet ef migrations add <名称> --project src/Kun.Capabilities --startup-project tests/Kun.Capabilities.Tests --context CapabilitiesDbContext --output-dir Migrations
 ```
 
 生成的迁移类改为 `internal`，不进入组件的公开 API。

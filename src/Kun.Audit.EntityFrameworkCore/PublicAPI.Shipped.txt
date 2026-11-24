@@ -1,1 +1,174 @@
 #nullable enable
+Kun.Audit.AuditActorType
+Kun.Audit.AuditCanonicalizer
+Kun.Audit.AuditComponent
+Kun.Audit.AuditComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Audit.AuditComponent.AuditComponent() -> void
+Kun.Audit.AuditComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Audit.AuditDbContext
+Kun.Audit.AuditDbContext.AuditDbContext(Microsoft.EntityFrameworkCore.DbContextOptions! options, Kun.Core.MultiTenancy.ITenantContext! tenant, bool platform) -> void
+Kun.Audit.AuditDbContext.AuditDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Audit.AuditDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Audit.AuditInputPolicy
+Kun.Audit.AuditInputPolicy.AuditInputPolicy(System.Text.Json.JsonElement schema, bool isCommand, bool? audit = null) -> void
+Kun.Audit.AuditInputPolicy.InputHash(System.Text.Json.JsonElement input) -> string?
+Kun.Audit.AuditInputPolicy.Redact(System.Text.Json.JsonElement input) -> System.Text.Json.JsonElement
+Kun.Audit.AuditInputPolicy.ShouldRecord.get -> bool
+Kun.Audit.AuditLog
+Kun.Audit.AuditLog.Action.get -> string!
+Kun.Audit.AuditLog.Action.init -> void
+Kun.Audit.AuditLog.ActorId.get -> string?
+Kun.Audit.AuditLog.ActorId.init -> void
+Kun.Audit.AuditLog.ActorType.get -> string!
+Kun.Audit.AuditLog.ActorType.init -> void
+Kun.Audit.AuditLog.AuditLog() -> void
+Kun.Audit.AuditLog.Id.get -> System.Guid
+Kun.Audit.AuditLog.Id.init -> void
+Kun.Audit.AuditLog.IpAddress.get -> string?
+Kun.Audit.AuditLog.IpAddress.init -> void
+Kun.Audit.AuditLog.PayloadJson.get -> string?
+Kun.Audit.AuditLog.PayloadJson.init -> void
+Kun.Audit.AuditLog.ResourceId.get -> string?
+Kun.Audit.AuditLog.ResourceId.init -> void
+Kun.Audit.AuditLog.ResourceType.get -> string!
+Kun.Audit.AuditLog.ResourceType.init -> void
+Kun.Audit.AuditLog.TenantId.get -> string?
+Kun.Audit.AuditLog.TenantId.init -> void
+Kun.Audit.AuditLog.Timestamp.get -> System.DateTimeOffset
+Kun.Audit.AuditLog.Timestamp.init -> void
+Kun.Audit.AuditLog.TraceId.get -> string?
+Kun.Audit.AuditLog.TraceId.init -> void
+Kun.Audit.AuditPlatformAccess
+Kun.Audit.AuditPlugin
+Kun.Audit.AuditPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Audit.AuditPlugin.AuditPlugin() -> void
+Kun.Audit.AuditPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Audit.AuditTransactionAccess
+Kun.Audit.EntityFrameworkCore.AuditLogConfiguration
+Kun.Audit.EntityFrameworkCore.AuditLogConfiguration.AuditLogConfiguration() -> void
+Kun.Audit.EntityFrameworkCore.AuditLogConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Kun.Audit.AuditLog!>! builder) -> void
+Kun.Audit.PlatformAuditDbContext
+Kun.Audit.PlatformAuditDbContext.PlatformAuditDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Audit.PlatformAuditDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Auditing.AuditContext
+Kun.Auditing.AuditContext.ActorId.get -> string?
+Kun.Auditing.AuditContext.ActorId.set -> void
+Kun.Auditing.AuditContext.ActorType.get -> string!
+Kun.Auditing.AuditContext.ActorType.set -> void
+Kun.Auditing.AuditContext.AuditContext() -> void
+Kun.Auditing.AuditContext.IpAddress.get -> string?
+Kun.Auditing.AuditContext.IpAddress.set -> void
+Kun.Auditing.AuditContext.TraceId.get -> string?
+Kun.Auditing.AuditContext.TraceId.set -> void
+Kun.Auditing.AuditContext.UserAgent.get -> string?
+Kun.Auditing.AuditContext.UserAgent.set -> void
+Kun.Auditing.AuditableAttribute
+Kun.Auditing.AuditableAttribute.AuditableAttribute() -> void
+Kun.Auditing.AuditingSaveChangesInterceptor
+Kun.Auditing.AuditingSaveChangesInterceptor.AuditingSaveChangesInterceptor(Kun.Auditing.IAuditableEntityRegistry! registry, Kun.Auditing.IAuditSink! sink, Kun.Auditing.AuditContext! auditContext, System.TimeProvider! timeProvider, Microsoft.Extensions.Logging.ILogger<Kun.Auditing.AuditingSaveChangesInterceptor!>? logger = null) -> void
+Kun.Auditing.AuditingSaveChangesInterceptor.SavingChanges(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result) -> Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>
+Kun.Auditing.AuditingSaveChangesInterceptor.SavingChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>>
+Kun.Auditing.DependencyInjection.AuditingServiceCollectionExtensions
+Kun.Auditing.Events.AuditEventIntegrationEvent
+Kun.Auditing.Events.AuditEventIntegrationEvent.<Clone>$() -> Kun.Auditing.Events.AuditEventIntegrationEvent!
+Kun.Auditing.Events.AuditEventIntegrationEvent.Action.get -> string!
+Kun.Auditing.Events.AuditEventIntegrationEvent.Action.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.ActorId.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEvent.ActorId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.ActorType.get -> string!
+Kun.Auditing.Events.AuditEventIntegrationEvent.ActorType.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.AuditEventIntegrationEvent(System.Guid? TenantId, System.Guid? UserId, string! ActorType, string? ActorId, string! Action, string? ResourceType, string? ResourceId, string! Outcome, string? TraceId, System.Text.Json.JsonDocument? Metadata, string? IpAddress, string? UserAgent, System.DateTimeOffset CreatedAt) -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.CreatedAt.get -> System.DateTimeOffset
+Kun.Auditing.Events.AuditEventIntegrationEvent.CreatedAt.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.Deconstruct(out System.Guid? TenantId, out System.Guid? UserId, out string! ActorType, out string? ActorId, out string! Action, out string? ResourceType, out string? ResourceId, out string! Outcome, out string? TraceId, out System.Text.Json.JsonDocument? Metadata, out string? IpAddress, out string? UserAgent, out System.DateTimeOffset CreatedAt) -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.Equals(Kun.Auditing.Events.AuditEventIntegrationEvent? other) -> bool
+Kun.Auditing.Events.AuditEventIntegrationEvent.IpAddress.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEvent.IpAddress.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.Metadata.get -> System.Text.Json.JsonDocument?
+Kun.Auditing.Events.AuditEventIntegrationEvent.Metadata.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.Outcome.get -> string!
+Kun.Auditing.Events.AuditEventIntegrationEvent.Outcome.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.ResourceId.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEvent.ResourceId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.ResourceType.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEvent.ResourceType.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.TenantId.get -> System.Guid?
+Kun.Auditing.Events.AuditEventIntegrationEvent.TenantId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.TraceId.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEvent.TraceId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.UserAgent.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEvent.UserAgent.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEvent.UserId.get -> System.Guid?
+Kun.Auditing.Events.AuditEventIntegrationEvent.UserId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2
+Kun.Auditing.Events.AuditEventIntegrationEventV2.<Clone>$() -> Kun.Auditing.Events.AuditEventIntegrationEventV2!
+Kun.Auditing.Events.AuditEventIntegrationEventV2.Action.get -> string!
+Kun.Auditing.Events.AuditEventIntegrationEventV2.Action.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.ActorId.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEventV2.ActorId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.ActorType.get -> string!
+Kun.Auditing.Events.AuditEventIntegrationEventV2.ActorType.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.AuditEventIntegrationEventV2(System.Guid Id, string? TenantId, string? UserId, string! ActorType, string? ActorId, string! Action, string! ResourceType, string? ResourceId, string? TraceId, string? IpAddress, System.DateTimeOffset CreatedAt) -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.CreatedAt.get -> System.DateTimeOffset
+Kun.Auditing.Events.AuditEventIntegrationEventV2.CreatedAt.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.Deconstruct(out System.Guid Id, out string? TenantId, out string? UserId, out string! ActorType, out string? ActorId, out string! Action, out string! ResourceType, out string? ResourceId, out string? TraceId, out string? IpAddress, out System.DateTimeOffset CreatedAt) -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.Equals(Kun.Auditing.Events.AuditEventIntegrationEventV2? other) -> bool
+Kun.Auditing.Events.AuditEventIntegrationEventV2.Id.get -> System.Guid
+Kun.Auditing.Events.AuditEventIntegrationEventV2.Id.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.IpAddress.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEventV2.IpAddress.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.ResourceId.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEventV2.ResourceId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.ResourceType.get -> string!
+Kun.Auditing.Events.AuditEventIntegrationEventV2.ResourceType.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.TenantId.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEventV2.TenantId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.TraceId.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEventV2.TraceId.init -> void
+Kun.Auditing.Events.AuditEventIntegrationEventV2.UserId.get -> string?
+Kun.Auditing.Events.AuditEventIntegrationEventV2.UserId.init -> void
+Kun.Auditing.IAuditSink
+Kun.Auditing.IAuditSink.WriteAsync(Kun.Auditing.Events.AuditEventIntegrationEvent! event, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Kun.Auditing.IAuditableEntityRegistry
+Kun.Auditing.IAuditableEntityRegistry.RegisteredTypes.get -> System.Collections.Generic.IReadOnlySet<System.Type!>!
+Kun.Auditing.Middleware.AuditContextMiddleware
+Kun.Auditing.Middleware.AuditContextMiddleware.AuditContextMiddleware(Kun.Auditing.AuditContext! auditContext) -> void
+Kun.Auditing.Middleware.AuditContextMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext! context, Microsoft.AspNetCore.Http.RequestDelegate! next) -> System.Threading.Tasks.Task!
+Kun.Auditing.TransactionalAuditingSaveChangesInterceptor
+Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.TransactionalAuditingSaveChangesInterceptor(Kun.Auditing.IAuditableEntityRegistry! registry, Kun.Core.MultiTenancy.ITenantContext! tenant, Kun.Core.Security.ICurrentUser! user, Kun.Auditing.AuditContext! auditContext, System.TimeProvider! clock) -> void
+const Kun.Audit.AuditActorType.Agent = "agent" -> string!
+const Kun.Audit.AuditActorType.Service = "service" -> string!
+const Kun.Audit.AuditActorType.System = "system" -> string!
+const Kun.Audit.AuditActorType.Unknown = "unknown" -> string!
+const Kun.Audit.AuditActorType.User = "user" -> string!
+const Kun.Audit.AuditDbContext.Schema = "plugin_qian_audit" -> string!
+const Kun.Audit.AuditInputPolicy.Redacted = "[REDACTED]" -> string!
+const Kun.Auditing.DependencyInjection.AuditingServiceCollectionExtensions.AuditEventStableId = "kun.audit.event.v1" -> string!
+const Kun.Auditing.DependencyInjection.AuditingServiceCollectionExtensions.AuditEventV2StableId = "kun.audit.event.v2" -> string!
+override Kun.Audit.AuditDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder! modelBuilder) -> void
+override Kun.Auditing.Events.AuditEventIntegrationEvent.Equals(object? obj) -> bool
+override Kun.Auditing.Events.AuditEventIntegrationEvent.GetHashCode() -> int
+override Kun.Auditing.Events.AuditEventIntegrationEvent.ToString() -> string!
+override Kun.Auditing.Events.AuditEventIntegrationEventV2.Equals(object? obj) -> bool
+override Kun.Auditing.Events.AuditEventIntegrationEventV2.GetHashCode() -> int
+override Kun.Auditing.Events.AuditEventIntegrationEventV2.ToString() -> string!
+override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SaveChangesCanceled(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData) -> void
+override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SaveChangesCanceledAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SaveChangesFailed(Microsoft.EntityFrameworkCore.Diagnostics.DbContextErrorEventData! eventData) -> void
+override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SaveChangesFailedAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextErrorEventData! eventData, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SavedChanges(Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesCompletedEventData! eventData, int result) -> int
+override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SavedChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesCompletedEventData! eventData, int result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<int>
+override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SavingChanges(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result) -> Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>
+override Kun.Auditing.TransactionalAuditingSaveChangesInterceptor.SavingChangesAsync(Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData! eventData, Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>>
+static Kun.Audit.AuditCanonicalizer.Canonicalize(System.Text.Json.JsonElement value) -> string!
+static Kun.Audit.AuditCanonicalizer.Hash(Kun.Audit.AuditRecord! record, long sequence, string? previousHash) -> string!
+static Kun.Audit.AuditPlatformAccess.CreateMigrationSql(string! platformRole) -> string!
+static Kun.Audit.AuditPlatformAccess.CreateMigrationSql(string! platformRole, string! writerRole, string! producerRole) -> string!
+static Kun.Audit.AuditTransactionAccess.CreateMigrationSql(string! writerRole, string! producerRole) -> string!
+static Kun.Auditing.DependencyInjection.AuditingServiceCollectionExtensions.AddAuditable<TEntity>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Auditing.DependencyInjection.AuditingServiceCollectionExtensions.AddAuditingInterceptor(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! builder, System.IServiceProvider! serviceProvider) -> Microsoft.EntityFrameworkCore.DbContextOptionsBuilder!
+static Kun.Auditing.DependencyInjection.AuditingServiceCollectionExtensions.AddKunAuditing(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Auditing.DependencyInjection.AuditingServiceCollectionExtensions.AddKunAuditing<TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Auditing.DependencyInjection.AuditingServiceCollectionExtensions.RegisterAuditing(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
+static Kun.Auditing.Events.AuditEventIntegrationEvent.operator !=(Kun.Auditing.Events.AuditEventIntegrationEvent? left, Kun.Auditing.Events.AuditEventIntegrationEvent? right) -> bool
+static Kun.Auditing.Events.AuditEventIntegrationEvent.operator ==(Kun.Auditing.Events.AuditEventIntegrationEvent? left, Kun.Auditing.Events.AuditEventIntegrationEvent? right) -> bool
+static Kun.Auditing.Events.AuditEventIntegrationEventV2.operator !=(Kun.Auditing.Events.AuditEventIntegrationEventV2? left, Kun.Auditing.Events.AuditEventIntegrationEventV2? right) -> bool
+static Kun.Auditing.Events.AuditEventIntegrationEventV2.operator ==(Kun.Auditing.Events.AuditEventIntegrationEventV2? left, Kun.Auditing.Events.AuditEventIntegrationEventV2? right) -> bool

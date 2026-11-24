@@ -1,1 +1,38 @@
 #nullable enable
+Kun.Configuration.AspNetCore.ConfigEndpoints
+Kun.Configuration.AspNetCore.ConfigValueItem
+Kun.Configuration.AspNetCore.ConfigValueItem.<Clone>$() -> Kun.Configuration.AspNetCore.ConfigValueItem!
+Kun.Configuration.AspNetCore.ConfigValueItem.ConfigValueItem(string! Key, bool Sensitive, string? Value) -> void
+Kun.Configuration.AspNetCore.ConfigValueItem.Deconstruct(out string! Key, out bool Sensitive, out string? Value) -> void
+Kun.Configuration.AspNetCore.ConfigValueItem.Equals(Kun.Configuration.AspNetCore.ConfigValueItem? other) -> bool
+Kun.Configuration.AspNetCore.ConfigValueItem.Key.get -> string!
+Kun.Configuration.AspNetCore.ConfigValueItem.Key.init -> void
+Kun.Configuration.AspNetCore.ConfigValueItem.Sensitive.get -> bool
+Kun.Configuration.AspNetCore.ConfigValueItem.Sensitive.init -> void
+Kun.Configuration.AspNetCore.ConfigValueItem.Value.get -> string?
+Kun.Configuration.AspNetCore.ConfigValueItem.Value.init -> void
+Kun.Configuration.AspNetCore.ConfigValueList
+Kun.Configuration.AspNetCore.ConfigValueList.<Clone>$() -> Kun.Configuration.AspNetCore.ConfigValueList!
+Kun.Configuration.AspNetCore.ConfigValueList.ConfigValueList(string! Plugin, string! Section, System.Collections.Generic.IReadOnlyList<Kun.Configuration.AspNetCore.ConfigValueItem!>! Items) -> void
+Kun.Configuration.AspNetCore.ConfigValueList.Deconstruct(out string! Plugin, out string! Section, out System.Collections.Generic.IReadOnlyList<Kun.Configuration.AspNetCore.ConfigValueItem!>! Items) -> void
+Kun.Configuration.AspNetCore.ConfigValueList.Equals(Kun.Configuration.AspNetCore.ConfigValueList? other) -> bool
+Kun.Configuration.AspNetCore.ConfigValueList.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Configuration.AspNetCore.ConfigValueItem!>!
+Kun.Configuration.AspNetCore.ConfigValueList.Items.init -> void
+Kun.Configuration.AspNetCore.ConfigValueList.Plugin.get -> string!
+Kun.Configuration.AspNetCore.ConfigValueList.Plugin.init -> void
+Kun.Configuration.AspNetCore.ConfigValueList.Section.get -> string!
+Kun.Configuration.AspNetCore.ConfigValueList.Section.init -> void
+Kun.Configuration.AspNetCore.FeatureFlagEndpoints
+const Kun.Configuration.AspNetCore.ConfigEndpoints.SchemaMediaType = "application/schema+json" -> string!
+override Kun.Configuration.AspNetCore.ConfigValueItem.Equals(object? obj) -> bool
+override Kun.Configuration.AspNetCore.ConfigValueItem.GetHashCode() -> int
+override Kun.Configuration.AspNetCore.ConfigValueItem.ToString() -> string!
+override Kun.Configuration.AspNetCore.ConfigValueList.Equals(object? obj) -> bool
+override Kun.Configuration.AspNetCore.ConfigValueList.GetHashCode() -> int
+override Kun.Configuration.AspNetCore.ConfigValueList.ToString() -> string!
+static Kun.Configuration.AspNetCore.ConfigEndpoints.MapKunConfig(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Configuration.AspNetCore.ConfigValueItem.operator !=(Kun.Configuration.AspNetCore.ConfigValueItem? left, Kun.Configuration.AspNetCore.ConfigValueItem? right) -> bool
+static Kun.Configuration.AspNetCore.ConfigValueItem.operator ==(Kun.Configuration.AspNetCore.ConfigValueItem? left, Kun.Configuration.AspNetCore.ConfigValueItem? right) -> bool
+static Kun.Configuration.AspNetCore.ConfigValueList.operator !=(Kun.Configuration.AspNetCore.ConfigValueList? left, Kun.Configuration.AspNetCore.ConfigValueList? right) -> bool
+static Kun.Configuration.AspNetCore.ConfigValueList.operator ==(Kun.Configuration.AspNetCore.ConfigValueList? left, Kun.Configuration.AspNetCore.ConfigValueList? right) -> bool
+static Kun.Configuration.AspNetCore.FeatureFlagEndpoints.MapKunFeatureFlags(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!

@@ -1,4 +1,1 @@
 #nullable enable
-Kun.EntityFrameworkCore.PostgreSQL.KunTenantRlsMigrationsExtensions
-static Kun.EntityFrameworkCore.PostgreSQL.KunTenantRlsMigrationsExtensions.UseKunTenantRlsMigrations(this Microsoft.EntityFrameworkCore.DbContextOptionsBuilder! options) -> Microsoft.EntityFrameworkCore.DbContextOptionsBuilder!
-static Kun.EntityFrameworkCore.PostgreSQL.KunTenantRlsMigrationsExtensions.UsesKunTenantRlsMigrations(this Microsoft.EntityFrameworkCore.DbContext! context) -> bool

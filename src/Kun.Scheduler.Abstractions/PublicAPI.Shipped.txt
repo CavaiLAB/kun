@@ -1,1 +1,53 @@
 #nullable enable
+Kun.Scheduler.IScheduler
+Kun.Scheduler.IScheduler.Cancel(Kun.Runtime.IPluginContext! caller, string! businessKey, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+Kun.Scheduler.IScheduler.ScheduleCron(Kun.Runtime.IPluginContext! caller, string! businessKey, string! cron, string! target, System.Text.Json.JsonElement parameters, Kun.Scheduler.JobOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Scheduler.ScheduledJob!>
+Kun.Scheduler.IScheduler.ScheduleInterval(Kun.Runtime.IPluginContext! caller, string! businessKey, System.DateTimeOffset firstRunAt, System.TimeSpan interval, string! target, System.Text.Json.JsonElement parameters, Kun.Scheduler.JobOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Scheduler.ScheduledJob!>
+Kun.Scheduler.IScheduler.ScheduleOnce(Kun.Runtime.IPluginContext! caller, string! businessKey, System.DateTimeOffset runAt, string! target, System.Text.Json.JsonElement parameters, Kun.Scheduler.JobOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Scheduler.ScheduledJob!>
+Kun.Scheduler.JobConcurrency
+Kun.Scheduler.JobConcurrency.Queue = 0 -> Kun.Scheduler.JobConcurrency
+Kun.Scheduler.JobConcurrency.Skip = 1 -> Kun.Scheduler.JobConcurrency
+Kun.Scheduler.JobOptions
+Kun.Scheduler.JobOptions.<Clone>$() -> Kun.Scheduler.JobOptions!
+Kun.Scheduler.JobOptions.Concurrency.get -> Kun.Scheduler.JobConcurrency
+Kun.Scheduler.JobOptions.Concurrency.init -> void
+Kun.Scheduler.JobOptions.Equals(Kun.Scheduler.JobOptions? other) -> bool
+Kun.Scheduler.JobOptions.JobOptions() -> void
+Kun.Scheduler.JobOptions.MaxAttempts.get -> int
+Kun.Scheduler.JobOptions.MaxAttempts.init -> void
+Kun.Scheduler.JobOptions.Misfire.get -> Kun.Scheduler.MisfirePolicy
+Kun.Scheduler.JobOptions.Misfire.init -> void
+Kun.Scheduler.JobOptions.MisfireGrace.get -> System.TimeSpan
+Kun.Scheduler.JobOptions.MisfireGrace.init -> void
+Kun.Scheduler.JobOptions.RetryDelay.get -> System.TimeSpan
+Kun.Scheduler.JobOptions.RetryDelay.init -> void
+Kun.Scheduler.JobOptions.Timeout.get -> System.TimeSpan
+Kun.Scheduler.JobOptions.Timeout.init -> void
+Kun.Scheduler.MisfirePolicy
+Kun.Scheduler.MisfirePolicy.CatchUp = 2 -> Kun.Scheduler.MisfirePolicy
+Kun.Scheduler.MisfirePolicy.FireOnce = 1 -> Kun.Scheduler.MisfirePolicy
+Kun.Scheduler.MisfirePolicy.Skip = 0 -> Kun.Scheduler.MisfirePolicy
+Kun.Scheduler.ScheduledJob
+Kun.Scheduler.ScheduledJob.<Clone>$() -> Kun.Scheduler.ScheduledJob!
+Kun.Scheduler.ScheduledJob.BusinessKey.get -> string!
+Kun.Scheduler.ScheduledJob.BusinessKey.init -> void
+Kun.Scheduler.ScheduledJob.Deconstruct(out System.Guid Id, out string! BusinessKey) -> void
+Kun.Scheduler.ScheduledJob.Equals(Kun.Scheduler.ScheduledJob? other) -> bool
+Kun.Scheduler.ScheduledJob.Id.get -> System.Guid
+Kun.Scheduler.ScheduledJob.Id.init -> void
+Kun.Scheduler.ScheduledJob.ScheduledJob(System.Guid Id, string! BusinessKey) -> void
+Kun.Scheduler.SchedulerDefinition
+Kun.Scheduler.SchedulerErrors
+override Kun.Scheduler.JobOptions.Equals(object? obj) -> bool
+override Kun.Scheduler.JobOptions.GetHashCode() -> int
+override Kun.Scheduler.JobOptions.ToString() -> string!
+override Kun.Scheduler.ScheduledJob.Equals(object? obj) -> bool
+override Kun.Scheduler.ScheduledJob.GetHashCode() -> int
+override Kun.Scheduler.ScheduledJob.ToString() -> string!
+static Kun.Scheduler.JobOptions.operator !=(Kun.Scheduler.JobOptions? left, Kun.Scheduler.JobOptions? right) -> bool
+static Kun.Scheduler.JobOptions.operator ==(Kun.Scheduler.JobOptions? left, Kun.Scheduler.JobOptions? right) -> bool
+static Kun.Scheduler.ScheduledJob.operator !=(Kun.Scheduler.ScheduledJob? left, Kun.Scheduler.ScheduledJob? right) -> bool
+static Kun.Scheduler.ScheduledJob.operator ==(Kun.Scheduler.ScheduledJob? left, Kun.Scheduler.ScheduledJob? right) -> bool
+static Kun.Scheduler.SchedulerDefinition.Scheduler(this Kun.Runtime.IPluginContext! context) -> Kun.Scheduler.IScheduler!
+static readonly Kun.Scheduler.SchedulerDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Scheduler.SchedulerErrors.Misconfigured -> Kun.Errors.ErrorCode!

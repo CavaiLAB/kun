@@ -1,1 +1,8 @@
 #nullable enable
+Kun.Surfaces.Hosting.HookBridgePlugin
+Kun.Surfaces.Hosting.HookBridgePlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Surfaces.Hosting.HookBridgePlugin.HookBridgePlugin(Kun.Runtime.IKunPlugin! inner, Kun.Surfaces.Abstractions.SurfaceValidationResult! snapshot) -> void
+Kun.Surfaces.Hosting.HookBridgePlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Surfaces.Hosting.HookBridgePlugin.ValidateSurfaces(Kun.Runtime.IPluginContext! context, Kun.Surfaces.Abstractions.SurfaceValidationResult! candidate) -> void
+Kun.Surfaces.Hosting.SurfaceDiagnosticsEndpoints
+static Kun.Surfaces.Hosting.SurfaceDiagnosticsEndpoints.MapKunSurfaceDiagnostics(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source, string! authorizationPolicy) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!

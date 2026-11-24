@@ -1,11 +1,1 @@
 #nullable enable
-Kun.Errors.AspNetCore.KunErrorResult
-Kun.Errors.AspNetCore.KunErrorResult.ContentType.get -> string!
-Kun.Errors.AspNetCore.KunErrorResult.Error.get -> Kun.Errors.Error!
-Kun.Errors.AspNetCore.KunErrorResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext! httpContext) -> System.Threading.Tasks.Task!
-Kun.Errors.AspNetCore.KunErrorResult.StatusCode.get -> int?
-Kun.Errors.AspNetCore.KunErrorsExtensions
-static Kun.Errors.AspNetCore.KunErrorsExtensions.AddKunErrors(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Kun.Errors.ErrorCatalog!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-static Kun.Errors.AspNetCore.KunErrorsExtensions.UseKunErrors(this Microsoft.AspNetCore.Builder.IApplicationBuilder! app) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
-Kun.Errors.AspNetCore.KunResults
-static Kun.Errors.AspNetCore.KunResults.Error(Kun.Errors.Error! error) -> Kun.Errors.AspNetCore.KunErrorResult!

@@ -1,1 +1,291 @@
 #nullable enable
+Kun.Registry.IRegistryService
+Kun.Registry.IRegistryService.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Kun.Registry.IRegistryService.GetArtifactPermissionsAsync(string! digest, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Registry.RegistryArtifactPermissions?>
+Kun.Registry.IRegistryService.GetConfigurationViewAsync(Kun.Runtime.ScopeKey scope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryEntryView!>!>
+Kun.Registry.IRegistryService.GetGlobalEntriesAsync(Kun.Runtime.ServiceKey key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryScopeEntry!>!>
+Kun.Registry.IRegistryService.GetInstalledComponents() -> System.Collections.Generic.IReadOnlyList<Kun.Registry.InstalledComponentMetadata!>!
+Kun.Registry.IRegistryService.GetPluginPermissionsAsync(string! pluginId, string! version, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Registry.RegistryArtifactPermissions!>
+Kun.Registry.IRegistryService.GetScopeDiagnosticsAsync(Kun.Runtime.ScopeKey scope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryScopeDiagnostic!>!>
+Kun.Registry.IRegistryService.GetScopeEntriesAsync(Kun.Runtime.ScopeKey scope, Kun.Runtime.ServiceKey key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryScopeEntry!>!>
+Kun.Registry.IRegistryService.GetScopeEntryAsync(Kun.Runtime.ScopeKey scope, string! entryId, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Registry.RegistryEntryView!>
+Kun.Registry.IRegistryService.GetScopePatchAsync(Kun.Runtime.ScopeKey scope, string! entryId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Registry.ScopePatchSnapshot?>
+Kun.Registry.IRegistryService.GetScopePatchesAsync(Kun.Runtime.ScopeKey scope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Registry.ScopePatchSnapshot!>!>
+Kun.Registry.IRegistryService.GetScopeViewAsync(Kun.Runtime.ScopeKey scope, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryEntryView!>!>
+Kun.Registry.IRegistryService.MountAsync(Kun.Runtime.ScopeKey scope, System.Text.Json.JsonElement entry, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Registry.ScopePatchSnapshot!>
+Kun.Registry.IRegistryService.PutScopePatchAsync(string! tenantId, Kun.Runtime.ScopeKey scope, string! entryId, Kun.Registry.RegistryScopePatchRequest! request, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Registry.RegistryScopePatchResult!>
+Kun.Registry.IRegistryService.RecordArtifactStateAsync(string! digest, string! state, string! signedBy, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Registry.RegistryArtifactEntry!>
+Kun.Registry.IRegistryService.RestoreScopePatchAsync(Kun.Runtime.ScopeKey scope, string! entryId, System.Text.Json.JsonElement? previous, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<int>
+Kun.Registry.IRegistryService.StartAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Registry.IRegistryService.SubmitArtifactAsync(System.Collections.Generic.IReadOnlyDictionary<string!, System.ReadOnlyMemory<byte>>! files, string! digest, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Registry.RegistryArtifactEntry!>
+Kun.Registry.IRegistryService.SynchronizeAsync(Kun.Runtime.ScopeKey scope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Registry.IRegistryService.UnmountAsync(Kun.Runtime.ScopeKey scope, string! entryId, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<int>
+Kun.Registry.InstalledComponentMetadata
+Kun.Registry.InstalledComponentMetadata.ArtifactDigest.get -> string?
+Kun.Registry.InstalledComponentMetadata.FilePaths.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Registry.InstalledComponentMetadata.InstalledComponentMetadata(string! pluginId, string! version, System.Text.Json.JsonElement manifest, System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>! metadata) -> void
+Kun.Registry.InstalledComponentMetadata.InstalledComponentMetadata(string! pluginId, string! version, System.Text.Json.JsonElement manifest, System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>! metadata, string? artifactDigest, System.Collections.Generic.IReadOnlyDictionary<string!, System.ReadOnlyMemory<byte>>! files) -> void
+Kun.Registry.InstalledComponentMetadata.Manifest.get -> System.Text.Json.JsonElement
+Kun.Registry.InstalledComponentMetadata.Metadata.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>!
+Kun.Registry.InstalledComponentMetadata.PluginId.get -> string!
+Kun.Registry.InstalledComponentMetadata.ReadFile(string! path) -> byte[]?
+Kun.Registry.InstalledComponentMetadata.Version.get -> string!
+Kun.Registry.RegistryArtifactEntry
+Kun.Registry.RegistryArtifactEntry.<Clone>$() -> Kun.Registry.RegistryArtifactEntry!
+Kun.Registry.RegistryArtifactEntry.Deconstruct(out string! Digest, out string! PluginId, out string! Version, out string! State, out string! SubmittedBy, out System.DateTimeOffset SubmittedAt) -> void
+Kun.Registry.RegistryArtifactEntry.Digest.get -> string!
+Kun.Registry.RegistryArtifactEntry.Digest.init -> void
+Kun.Registry.RegistryArtifactEntry.Equals(Kun.Registry.RegistryArtifactEntry? other) -> bool
+Kun.Registry.RegistryArtifactEntry.PluginId.get -> string!
+Kun.Registry.RegistryArtifactEntry.PluginId.init -> void
+Kun.Registry.RegistryArtifactEntry.RegistryArtifactEntry(string! Digest, string! PluginId, string! Version, string! State, string! SubmittedBy, System.DateTimeOffset SubmittedAt) -> void
+Kun.Registry.RegistryArtifactEntry.State.get -> string!
+Kun.Registry.RegistryArtifactEntry.State.init -> void
+Kun.Registry.RegistryArtifactEntry.SubmittedAt.get -> System.DateTimeOffset
+Kun.Registry.RegistryArtifactEntry.SubmittedAt.init -> void
+Kun.Registry.RegistryArtifactEntry.SubmittedBy.get -> string!
+Kun.Registry.RegistryArtifactEntry.SubmittedBy.init -> void
+Kun.Registry.RegistryArtifactEntry.Version.get -> string!
+Kun.Registry.RegistryArtifactEntry.Version.init -> void
+Kun.Registry.RegistryArtifactPermissions
+Kun.Registry.RegistryArtifactPermissions.<Clone>$() -> Kun.Registry.RegistryArtifactPermissions!
+Kun.Registry.RegistryArtifactPermissions.ArtifactDigest.get -> string!
+Kun.Registry.RegistryArtifactPermissions.ArtifactDigest.init -> void
+Kun.Registry.RegistryArtifactPermissions.Data.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Registry.RegistryArtifactPermissions.Data.init -> void
+Kun.Registry.RegistryArtifactPermissions.Deconstruct(out string! PluginId, out string! Version, out string! ArtifactDigest, out System.Collections.Generic.IReadOnlyList<string!>! Platform, out System.Collections.Generic.IReadOnlyList<string!>! Data, out System.Collections.Generic.IReadOnlyList<string!>! Egress, out System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistrySecretAccess!>! Secrets, out Kun.Registry.RegistryUiPermissions! Ui) -> void
+Kun.Registry.RegistryArtifactPermissions.Egress.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Registry.RegistryArtifactPermissions.Egress.init -> void
+Kun.Registry.RegistryArtifactPermissions.Equals(Kun.Registry.RegistryArtifactPermissions? other) -> bool
+Kun.Registry.RegistryArtifactPermissions.Platform.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Registry.RegistryArtifactPermissions.Platform.init -> void
+Kun.Registry.RegistryArtifactPermissions.PluginId.get -> string!
+Kun.Registry.RegistryArtifactPermissions.PluginId.init -> void
+Kun.Registry.RegistryArtifactPermissions.RegistryArtifactPermissions(string! PluginId, string! Version, string! ArtifactDigest, System.Collections.Generic.IReadOnlyList<string!>! Platform, System.Collections.Generic.IReadOnlyList<string!>! Data, System.Collections.Generic.IReadOnlyList<string!>! Egress, System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistrySecretAccess!>! Secrets, Kun.Registry.RegistryUiPermissions! Ui) -> void
+Kun.Registry.RegistryArtifactPermissions.Secrets.get -> System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistrySecretAccess!>!
+Kun.Registry.RegistryArtifactPermissions.Secrets.init -> void
+Kun.Registry.RegistryArtifactPermissions.Ui.get -> Kun.Registry.RegistryUiPermissions!
+Kun.Registry.RegistryArtifactPermissions.Ui.init -> void
+Kun.Registry.RegistryArtifactPermissions.Version.get -> string!
+Kun.Registry.RegistryArtifactPermissions.Version.init -> void
+Kun.Registry.RegistryArtifactStates
+Kun.Registry.RegistryDefinition
+Kun.Registry.RegistryEntryView
+Kun.Registry.RegistryEntryView.<Clone>$() -> Kun.Registry.RegistryEntryView!
+Kun.Registry.RegistryEntryView.Config.get -> System.Text.Json.JsonElement?
+Kun.Registry.RegistryEntryView.Config.init -> void
+Kun.Registry.RegistryEntryView.Deconstruct(out string! EntryId, out string! PluginId, out string! Version, out string! Scope, out int Layer, out int? Revision) -> void
+Kun.Registry.RegistryEntryView.EntryId.get -> string!
+Kun.Registry.RegistryEntryView.EntryId.init -> void
+Kun.Registry.RegistryEntryView.Equals(Kun.Registry.RegistryEntryView? other) -> bool
+Kun.Registry.RegistryEntryView.Layer.get -> int
+Kun.Registry.RegistryEntryView.Layer.init -> void
+Kun.Registry.RegistryEntryView.PluginId.get -> string!
+Kun.Registry.RegistryEntryView.PluginId.init -> void
+Kun.Registry.RegistryEntryView.RegistryEntryView(string! EntryId, string! PluginId, string! Version, string! Scope, int Layer, int? Revision) -> void
+Kun.Registry.RegistryEntryView.Revision.get -> int?
+Kun.Registry.RegistryEntryView.Revision.init -> void
+Kun.Registry.RegistryEntryView.Scope.get -> string!
+Kun.Registry.RegistryEntryView.Scope.init -> void
+Kun.Registry.RegistryEntryView.Version.get -> string!
+Kun.Registry.RegistryEntryView.Version.init -> void
+Kun.Registry.RegistryErrors
+Kun.Registry.RegistryEvents
+Kun.Registry.RegistryScopeDiagnostic
+Kun.Registry.RegistryScopeDiagnostic.<Clone>$() -> Kun.Registry.RegistryScopeDiagnostic!
+Kun.Registry.RegistryScopeDiagnostic.Deconstruct(out string! Scope, out string? EntryId, out string? Plugin, out int? Revision, out string! ReasonCode, out System.DateTimeOffset OccurredAt) -> void
+Kun.Registry.RegistryScopeDiagnostic.EntryId.get -> string?
+Kun.Registry.RegistryScopeDiagnostic.EntryId.init -> void
+Kun.Registry.RegistryScopeDiagnostic.Equals(Kun.Registry.RegistryScopeDiagnostic? other) -> bool
+Kun.Registry.RegistryScopeDiagnostic.OccurredAt.get -> System.DateTimeOffset
+Kun.Registry.RegistryScopeDiagnostic.OccurredAt.init -> void
+Kun.Registry.RegistryScopeDiagnostic.Plugin.get -> string?
+Kun.Registry.RegistryScopeDiagnostic.Plugin.init -> void
+Kun.Registry.RegistryScopeDiagnostic.ReasonCode.get -> string!
+Kun.Registry.RegistryScopeDiagnostic.ReasonCode.init -> void
+Kun.Registry.RegistryScopeDiagnostic.RegistryScopeDiagnostic(string! Scope, string? EntryId, string? Plugin, int? Revision, string! ReasonCode, System.DateTimeOffset OccurredAt) -> void
+Kun.Registry.RegistryScopeDiagnostic.Revision.get -> int?
+Kun.Registry.RegistryScopeDiagnostic.Revision.init -> void
+Kun.Registry.RegistryScopeDiagnostic.Scope.get -> string!
+Kun.Registry.RegistryScopeDiagnostic.Scope.init -> void
+Kun.Registry.RegistryScopeEntry
+Kun.Registry.RegistryScopeEntry.<Clone>$() -> Kun.Registry.RegistryScopeEntry!
+Kun.Registry.RegistryScopeEntry.Deconstruct(out string! EntryId, out string! PluginId, out string! Version, out Kun.Runtime.ScopeKey Scope, out Kun.Runtime.ServiceKey Key, out string! Name) -> void
+Kun.Registry.RegistryScopeEntry.EntryId.get -> string!
+Kun.Registry.RegistryScopeEntry.EntryId.init -> void
+Kun.Registry.RegistryScopeEntry.Equals(Kun.Registry.RegistryScopeEntry? other) -> bool
+Kun.Registry.RegistryScopeEntry.Key.get -> Kun.Runtime.ServiceKey
+Kun.Registry.RegistryScopeEntry.Key.init -> void
+Kun.Registry.RegistryScopeEntry.Name.get -> string!
+Kun.Registry.RegistryScopeEntry.Name.init -> void
+Kun.Registry.RegistryScopeEntry.PluginId.get -> string!
+Kun.Registry.RegistryScopeEntry.PluginId.init -> void
+Kun.Registry.RegistryScopeEntry.RegistryScopeEntry(string! EntryId, string! PluginId, string! Version, Kun.Runtime.ScopeKey Scope, Kun.Runtime.ServiceKey Key, string! Name) -> void
+Kun.Registry.RegistryScopeEntry.Scope.get -> Kun.Runtime.ScopeKey
+Kun.Registry.RegistryScopeEntry.Scope.init -> void
+Kun.Registry.RegistryScopeEntry.Version.get -> string!
+Kun.Registry.RegistryScopeEntry.Version.init -> void
+Kun.Registry.RegistryScopeMounted
+Kun.Registry.RegistryScopeMounted.<Clone>$() -> Kun.Registry.RegistryScopeMounted!
+Kun.Registry.RegistryScopeMounted.Deconstruct(out string! Scope, out string! EntryId, out string? Plugin, out string? Version, out int Revision) -> void
+Kun.Registry.RegistryScopeMounted.EntryId.get -> string!
+Kun.Registry.RegistryScopeMounted.EntryId.init -> void
+Kun.Registry.RegistryScopeMounted.Equals(Kun.Registry.RegistryScopeMounted? other) -> bool
+Kun.Registry.RegistryScopeMounted.Plugin.get -> string?
+Kun.Registry.RegistryScopeMounted.Plugin.init -> void
+Kun.Registry.RegistryScopeMounted.RegistryScopeMounted(string! Scope, string! EntryId, string? Plugin, string? Version, int Revision) -> void
+Kun.Registry.RegistryScopeMounted.Revision.get -> int
+Kun.Registry.RegistryScopeMounted.Revision.init -> void
+Kun.Registry.RegistryScopeMounted.Scope.get -> string!
+Kun.Registry.RegistryScopeMounted.Scope.init -> void
+Kun.Registry.RegistryScopeMounted.Version.get -> string?
+Kun.Registry.RegistryScopeMounted.Version.init -> void
+Kun.Registry.RegistryScopePatchRequest
+Kun.Registry.RegistryScopePatchRequest.<Clone>$() -> Kun.Registry.RegistryScopePatchRequest!
+Kun.Registry.RegistryScopePatchRequest.Deconstruct(out int Revision, out System.Text.Json.JsonElement Patch) -> void
+Kun.Registry.RegistryScopePatchRequest.Equals(Kun.Registry.RegistryScopePatchRequest? other) -> bool
+Kun.Registry.RegistryScopePatchRequest.Patch.get -> System.Text.Json.JsonElement
+Kun.Registry.RegistryScopePatchRequest.Patch.init -> void
+Kun.Registry.RegistryScopePatchRequest.RegistryScopePatchRequest(int Revision, System.Text.Json.JsonElement Patch) -> void
+Kun.Registry.RegistryScopePatchRequest.Revision.get -> int
+Kun.Registry.RegistryScopePatchRequest.Revision.init -> void
+Kun.Registry.RegistryScopePatchResult
+Kun.Registry.RegistryScopePatchResult.<Clone>$() -> Kun.Registry.RegistryScopePatchResult!
+Kun.Registry.RegistryScopePatchResult.Deconstruct(out string! Scope, out string! EntryId, out int Revision, out string! State, out string? ReasonCode) -> void
+Kun.Registry.RegistryScopePatchResult.EntryId.get -> string!
+Kun.Registry.RegistryScopePatchResult.EntryId.init -> void
+Kun.Registry.RegistryScopePatchResult.Equals(Kun.Registry.RegistryScopePatchResult? other) -> bool
+Kun.Registry.RegistryScopePatchResult.ReasonCode.get -> string?
+Kun.Registry.RegistryScopePatchResult.ReasonCode.init -> void
+Kun.Registry.RegistryScopePatchResult.RegistryScopePatchResult(string! Scope, string! EntryId, int Revision, string! State, string? ReasonCode) -> void
+Kun.Registry.RegistryScopePatchResult.Revision.get -> int
+Kun.Registry.RegistryScopePatchResult.Revision.init -> void
+Kun.Registry.RegistryScopePatchResult.Scope.get -> string!
+Kun.Registry.RegistryScopePatchResult.Scope.init -> void
+Kun.Registry.RegistryScopePatchResult.State.get -> string!
+Kun.Registry.RegistryScopePatchResult.State.init -> void
+Kun.Registry.RegistryScopeUnmounted
+Kun.Registry.RegistryScopeUnmounted.<Clone>$() -> Kun.Registry.RegistryScopeUnmounted!
+Kun.Registry.RegistryScopeUnmounted.Deconstruct(out string! Scope, out string! EntryId, out int Revision) -> void
+Kun.Registry.RegistryScopeUnmounted.EntryId.get -> string!
+Kun.Registry.RegistryScopeUnmounted.EntryId.init -> void
+Kun.Registry.RegistryScopeUnmounted.Equals(Kun.Registry.RegistryScopeUnmounted? other) -> bool
+Kun.Registry.RegistryScopeUnmounted.RegistryScopeUnmounted(string! Scope, string! EntryId, int Revision) -> void
+Kun.Registry.RegistryScopeUnmounted.Revision.get -> int
+Kun.Registry.RegistryScopeUnmounted.Revision.init -> void
+Kun.Registry.RegistryScopeUnmounted.Scope.get -> string!
+Kun.Registry.RegistryScopeUnmounted.Scope.init -> void
+Kun.Registry.RegistrySecretAccess
+Kun.Registry.RegistrySecretAccess.<Clone>$() -> Kun.Registry.RegistrySecretAccess!
+Kun.Registry.RegistrySecretAccess.Deconstruct(out string! Name, out string! Scope) -> void
+Kun.Registry.RegistrySecretAccess.Equals(Kun.Registry.RegistrySecretAccess? other) -> bool
+Kun.Registry.RegistrySecretAccess.Name.get -> string!
+Kun.Registry.RegistrySecretAccess.Name.init -> void
+Kun.Registry.RegistrySecretAccess.RegistrySecretAccess(string! Name, string! Scope) -> void
+Kun.Registry.RegistrySecretAccess.Scope.get -> string!
+Kun.Registry.RegistrySecretAccess.Scope.init -> void
+Kun.Registry.RegistryUiPermissions
+Kun.Registry.RegistryUiPermissions.<Clone>$() -> Kun.Registry.RegistryUiPermissions!
+Kun.Registry.RegistryUiPermissions.ConnectSrc.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Registry.RegistryUiPermissions.ConnectSrc.init -> void
+Kun.Registry.RegistryUiPermissions.Deconstruct(out System.Collections.Generic.IReadOnlyList<string!>! ConnectSrc) -> void
+Kun.Registry.RegistryUiPermissions.Equals(Kun.Registry.RegistryUiPermissions? other) -> bool
+Kun.Registry.RegistryUiPermissions.RegistryUiPermissions(System.Collections.Generic.IReadOnlyList<string!>! ConnectSrc) -> void
+Kun.Registry.ScopePatchSnapshot
+Kun.Registry.ScopePatchSnapshot.<Clone>$() -> Kun.Registry.ScopePatchSnapshot!
+Kun.Registry.ScopePatchSnapshot.Deconstruct(out string! TenantId, out Kun.Runtime.ScopeKey Scope, out string! EntryId, out System.Text.Json.JsonElement Patch, out int Revision, out string! UpdatedBy, out System.DateTimeOffset UpdatedAt) -> void
+Kun.Registry.ScopePatchSnapshot.EntryId.get -> string!
+Kun.Registry.ScopePatchSnapshot.EntryId.init -> void
+Kun.Registry.ScopePatchSnapshot.Equals(Kun.Registry.ScopePatchSnapshot? other) -> bool
+Kun.Registry.ScopePatchSnapshot.Patch.get -> System.Text.Json.JsonElement
+Kun.Registry.ScopePatchSnapshot.Patch.init -> void
+Kun.Registry.ScopePatchSnapshot.Revision.get -> int
+Kun.Registry.ScopePatchSnapshot.Revision.init -> void
+Kun.Registry.ScopePatchSnapshot.Scope.get -> Kun.Runtime.ScopeKey
+Kun.Registry.ScopePatchSnapshot.Scope.init -> void
+Kun.Registry.ScopePatchSnapshot.ScopePatchSnapshot(string! TenantId, Kun.Runtime.ScopeKey Scope, string! EntryId, System.Text.Json.JsonElement Patch, int Revision, string! UpdatedBy, System.DateTimeOffset UpdatedAt) -> void
+Kun.Registry.ScopePatchSnapshot.TenantId.get -> string!
+Kun.Registry.ScopePatchSnapshot.TenantId.init -> void
+Kun.Registry.ScopePatchSnapshot.UpdatedAt.get -> System.DateTimeOffset
+Kun.Registry.ScopePatchSnapshot.UpdatedAt.init -> void
+Kun.Registry.ScopePatchSnapshot.UpdatedBy.get -> string!
+Kun.Registry.ScopePatchSnapshot.UpdatedBy.init -> void
+const Kun.Registry.RegistryArtifactStates.Healthy = "Healthy" -> string!
+const Kun.Registry.RegistryArtifactStates.Installed = "Installed" -> string!
+const Kun.Registry.RegistryArtifactStates.Progressing = "Progressing" -> string!
+const Kun.Registry.RegistryArtifactStates.Submitted = "Submitted" -> string!
+const Kun.Registry.RegistryDefinition.ScopeReadPermission = "qian.registry:scope:read" -> string!
+const Kun.Registry.RegistryDefinition.ScopeWritePermission = "qian.registry:scope:write" -> string!
+const Kun.Registry.RegistryEvents.ScopeMounted = "registry.scope.mounted.v1" -> string!
+const Kun.Registry.RegistryEvents.ScopeUnmounted = "registry.scope.unmounted.v1" -> string!
+override Kun.Registry.InstalledComponentMetadata.ToString() -> string!
+override Kun.Registry.RegistryArtifactEntry.Equals(object? obj) -> bool
+override Kun.Registry.RegistryArtifactEntry.GetHashCode() -> int
+override Kun.Registry.RegistryArtifactEntry.ToString() -> string!
+override Kun.Registry.RegistryArtifactPermissions.Equals(object? obj) -> bool
+override Kun.Registry.RegistryArtifactPermissions.GetHashCode() -> int
+override Kun.Registry.RegistryArtifactPermissions.ToString() -> string!
+override Kun.Registry.RegistryEntryView.Equals(object? obj) -> bool
+override Kun.Registry.RegistryEntryView.GetHashCode() -> int
+override Kun.Registry.RegistryEntryView.ToString() -> string!
+override Kun.Registry.RegistryScopeDiagnostic.Equals(object? obj) -> bool
+override Kun.Registry.RegistryScopeDiagnostic.GetHashCode() -> int
+override Kun.Registry.RegistryScopeDiagnostic.ToString() -> string!
+override Kun.Registry.RegistryScopeEntry.Equals(object? obj) -> bool
+override Kun.Registry.RegistryScopeEntry.GetHashCode() -> int
+override Kun.Registry.RegistryScopeEntry.ToString() -> string!
+override Kun.Registry.RegistryScopeMounted.Equals(object? obj) -> bool
+override Kun.Registry.RegistryScopeMounted.GetHashCode() -> int
+override Kun.Registry.RegistryScopeMounted.ToString() -> string!
+override Kun.Registry.RegistryScopePatchRequest.Equals(object? obj) -> bool
+override Kun.Registry.RegistryScopePatchRequest.GetHashCode() -> int
+override Kun.Registry.RegistryScopePatchRequest.ToString() -> string!
+override Kun.Registry.RegistryScopePatchResult.Equals(object? obj) -> bool
+override Kun.Registry.RegistryScopePatchResult.GetHashCode() -> int
+override Kun.Registry.RegistryScopePatchResult.ToString() -> string!
+override Kun.Registry.RegistryScopeUnmounted.Equals(object? obj) -> bool
+override Kun.Registry.RegistryScopeUnmounted.GetHashCode() -> int
+override Kun.Registry.RegistryScopeUnmounted.ToString() -> string!
+override Kun.Registry.RegistrySecretAccess.Equals(object? obj) -> bool
+override Kun.Registry.RegistrySecretAccess.GetHashCode() -> int
+override Kun.Registry.RegistrySecretAccess.ToString() -> string!
+override Kun.Registry.RegistryUiPermissions.Equals(object? obj) -> bool
+override Kun.Registry.RegistryUiPermissions.GetHashCode() -> int
+override Kun.Registry.RegistryUiPermissions.ToString() -> string!
+override Kun.Registry.ScopePatchSnapshot.Equals(object? obj) -> bool
+override Kun.Registry.ScopePatchSnapshot.GetHashCode() -> int
+override Kun.Registry.ScopePatchSnapshot.ToString() -> string!
+static Kun.Registry.RegistryArtifactEntry.operator !=(Kun.Registry.RegistryArtifactEntry? left, Kun.Registry.RegistryArtifactEntry? right) -> bool
+static Kun.Registry.RegistryArtifactEntry.operator ==(Kun.Registry.RegistryArtifactEntry? left, Kun.Registry.RegistryArtifactEntry? right) -> bool
+static Kun.Registry.RegistryArtifactPermissions.operator !=(Kun.Registry.RegistryArtifactPermissions? left, Kun.Registry.RegistryArtifactPermissions? right) -> bool
+static Kun.Registry.RegistryArtifactPermissions.operator ==(Kun.Registry.RegistryArtifactPermissions? left, Kun.Registry.RegistryArtifactPermissions? right) -> bool
+static Kun.Registry.RegistryDefinition.Registry(this Kun.Runtime.IPluginContext! context) -> Kun.Registry.IRegistryService!
+static Kun.Registry.RegistryEntryView.operator !=(Kun.Registry.RegistryEntryView? left, Kun.Registry.RegistryEntryView? right) -> bool
+static Kun.Registry.RegistryEntryView.operator ==(Kun.Registry.RegistryEntryView? left, Kun.Registry.RegistryEntryView? right) -> bool
+static Kun.Registry.RegistryErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Kun.Registry.RegistryEvents.RegisterRegistryEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
+static Kun.Registry.RegistryScopeDiagnostic.operator !=(Kun.Registry.RegistryScopeDiagnostic? left, Kun.Registry.RegistryScopeDiagnostic? right) -> bool
+static Kun.Registry.RegistryScopeDiagnostic.operator ==(Kun.Registry.RegistryScopeDiagnostic? left, Kun.Registry.RegistryScopeDiagnostic? right) -> bool
+static Kun.Registry.RegistryScopeEntry.operator !=(Kun.Registry.RegistryScopeEntry? left, Kun.Registry.RegistryScopeEntry? right) -> bool
+static Kun.Registry.RegistryScopeEntry.operator ==(Kun.Registry.RegistryScopeEntry? left, Kun.Registry.RegistryScopeEntry? right) -> bool
+static Kun.Registry.RegistryScopeMounted.operator !=(Kun.Registry.RegistryScopeMounted? left, Kun.Registry.RegistryScopeMounted? right) -> bool
+static Kun.Registry.RegistryScopeMounted.operator ==(Kun.Registry.RegistryScopeMounted? left, Kun.Registry.RegistryScopeMounted? right) -> bool
+static Kun.Registry.RegistryScopePatchRequest.operator !=(Kun.Registry.RegistryScopePatchRequest? left, Kun.Registry.RegistryScopePatchRequest? right) -> bool
+static Kun.Registry.RegistryScopePatchRequest.operator ==(Kun.Registry.RegistryScopePatchRequest? left, Kun.Registry.RegistryScopePatchRequest? right) -> bool
+static Kun.Registry.RegistryScopePatchResult.operator !=(Kun.Registry.RegistryScopePatchResult? left, Kun.Registry.RegistryScopePatchResult? right) -> bool
+static Kun.Registry.RegistryScopePatchResult.operator ==(Kun.Registry.RegistryScopePatchResult? left, Kun.Registry.RegistryScopePatchResult? right) -> bool
+static Kun.Registry.RegistryScopeUnmounted.operator !=(Kun.Registry.RegistryScopeUnmounted? left, Kun.Registry.RegistryScopeUnmounted? right) -> bool
+static Kun.Registry.RegistryScopeUnmounted.operator ==(Kun.Registry.RegistryScopeUnmounted? left, Kun.Registry.RegistryScopeUnmounted? right) -> bool
+static Kun.Registry.RegistrySecretAccess.operator !=(Kun.Registry.RegistrySecretAccess? left, Kun.Registry.RegistrySecretAccess? right) -> bool
+static Kun.Registry.RegistrySecretAccess.operator ==(Kun.Registry.RegistrySecretAccess? left, Kun.Registry.RegistrySecretAccess? right) -> bool
+static Kun.Registry.RegistryUiPermissions.operator !=(Kun.Registry.RegistryUiPermissions? left, Kun.Registry.RegistryUiPermissions? right) -> bool
+static Kun.Registry.RegistryUiPermissions.operator ==(Kun.Registry.RegistryUiPermissions? left, Kun.Registry.RegistryUiPermissions? right) -> bool
+static Kun.Registry.ScopePatchSnapshot.operator !=(Kun.Registry.ScopePatchSnapshot? left, Kun.Registry.ScopePatchSnapshot? right) -> bool
+static Kun.Registry.ScopePatchSnapshot.operator ==(Kun.Registry.ScopePatchSnapshot? left, Kun.Registry.ScopePatchSnapshot? right) -> bool
+static readonly Kun.Registry.RegistryDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Registry.RegistryErrors.DependencyPending -> Kun.Errors.ErrorCode!
+static readonly Kun.Registry.RegistryErrors.Invalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Registry.RegistryErrors.NotEntitled -> Kun.Errors.ErrorCode!
+static readonly Kun.Registry.RegistryErrors.NotMounted -> Kun.Errors.ErrorCode!
+static readonly Kun.Registry.RegistryErrors.Restricted -> Kun.Errors.ErrorCode!
+static readonly Kun.Registry.RegistryErrors.RevisionConflict -> Kun.Errors.ErrorCode!

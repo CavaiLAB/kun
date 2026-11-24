@@ -1,1 +1,43 @@
 #nullable enable
+Kun.Capabilities.BufProtoCompatibilityProbe
+Kun.Capabilities.BufProtoCompatibilityProbe.BufProtoCompatibilityProbe(string! executablePath, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+Kun.Capabilities.BufProtoCompatibilityProbe.CompareAsync(Kun.Capabilities.ProtoContractSet! baseline, Kun.Capabilities.ProtoContractSet! candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.BufProtoCompatibilityProbe.CompareDescriptorsAsync(System.ReadOnlyMemory<byte> baseline, System.ReadOnlyMemory<byte> candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.BufProtoCompatibilityProbe.CompareRuntimeDescriptorsAsync(System.ReadOnlyMemory<byte> baseline, System.ReadOnlyMemory<byte> candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.BufProtoCompatibilityProbe.CompileAsync(Kun.Capabilities.ProtoContractSet! source, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>
+Kun.Capabilities.CapabilitiesComponent
+Kun.Capabilities.CapabilitiesComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Capabilities.CapabilitiesComponent.CapabilitiesComponent() -> void
+Kun.Capabilities.CapabilitiesComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Capabilities.CapabilitiesDbContext
+Kun.Capabilities.CapabilitiesDbContext.CapabilitiesDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Capabilities.CapabilitiesDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Capabilities.CapabilitiesPlugin
+Kun.Capabilities.CapabilitiesPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Capabilities.CapabilitiesPlugin.CapabilitiesPlugin() -> void
+Kun.Capabilities.CapabilitiesPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Capabilities.CapabilityContractCompiler
+Kun.Capabilities.GrpcContractPlugin
+Kun.Capabilities.GrpcContractPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Capabilities.GrpcContractPlugin.GrpcContractPlugin(Kun.Runtime.IKunPlugin! inner, Kun.Capabilities.IContractRepository! repository, Kun.Capabilities.IGrpcContractProbe! peer, string! pluginId, string! baselineVersion, string! candidateVersion, string! contractId) -> void
+Kun.Capabilities.GrpcContractPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Capabilities.GrpcReflectionContractProbe
+Kun.Capabilities.GrpcReflectionContractProbe.CheckAsync(Kun.Capabilities.ProtoContractSet! expected, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.GrpcReflectionContractProbe.GrpcReflectionContractProbe(Kun.Capabilities.IProtoCompatibilityProbe! compiler, Grpc.Core.CallInvoker! invoker, Grpc.Core.Metadata? headers = null) -> void
+Kun.Capabilities.KunCapabilitiesExtensions
+Kun.Capabilities.NavigationManifestPlugin
+Kun.Capabilities.NavigationManifestPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Capabilities.NavigationManifestPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Capabilities.NavigationManifestPlugin.NavigationManifestPlugin(Kun.Runtime.IKunPlugin! inner, Kun.Registry.InstalledComponentMetadata! component, Kun.Surfaces.Abstractions.ISurfaceReader! reader) -> void
+Kun.Capabilities.OasDiffOpenApiProbe
+Kun.Capabilities.OasDiffOpenApiProbe.CompareAsync(System.Text.Json.JsonElement baseline, System.Text.Json.JsonElement candidate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Capabilities.ContractCompatibility!>
+Kun.Capabilities.OasDiffOpenApiProbe.OasDiffOpenApiProbe(string! executablePath) -> void
+Kun.Capabilities.OpenApiContractPlugin
+Kun.Capabilities.OpenApiContractPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Capabilities.OpenApiContractPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Capabilities.OpenApiContractPlugin.OpenApiContractPlugin(Kun.Runtime.IKunPlugin! inner, Kun.Capabilities.IOpenApiCompatibilityProbe! probe, string! contractId, System.Text.Json.JsonElement baseline, System.Text.Json.JsonElement candidate) -> void
+const Kun.Capabilities.CapabilitiesDbContext.Schema = "plugin_qian_capabilities" -> string!
+static Kun.Capabilities.CapabilitiesComponent.OptionalInject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+static Kun.Capabilities.CapabilitiesPlugin.OptionalInject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+static Kun.Capabilities.CapabilityContractCompiler.CreateOpenApi(System.Collections.Generic.IReadOnlyList<Kun.Plugin.Sdk.CapabilityContract!>! contracts, Kun.Surfaces.Abstractions.ISurfaceReader! schemas, Kun.Surfaces.Abstractions.IToolContractHasher! hasher) -> System.Text.Json.JsonElement
+static Kun.Capabilities.KunCapabilitiesExtensions.AddKunCapabilities(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Capabilities.OpenApiContractPlugin.FromRepository(Kun.Runtime.IKunPlugin! inner, Kun.Capabilities.IContractRepository! repository, string! pluginId, string! baselineVersion, string! candidateVersion, string! contractId) -> Kun.Capabilities.OpenApiContractPlugin!

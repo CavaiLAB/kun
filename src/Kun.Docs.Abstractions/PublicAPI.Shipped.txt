@@ -1,1 +1,70 @@
 #nullable enable
+Kun.Docs.Abstractions.DocumentErrors
+Kun.Docs.Abstractions.DocumentOptions
+Kun.Docs.Abstractions.DocumentOptions.DocumentOptions() -> void
+Kun.Docs.Abstractions.DocumentOptions.Profile.get -> Kun.Profiles.Abstractions.ProfileLoadOptions!
+Kun.Docs.Abstractions.DocumentOptions.Profile.init -> void
+Kun.Docs.Abstractions.DocumentOptions.SourceDirectories.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Docs.Abstractions.DocumentOptions.SourceDirectories.init -> void
+Kun.Docs.Abstractions.DocumentOptions.SourceRoot.get -> string?
+Kun.Docs.Abstractions.DocumentOptions.SourceRoot.init -> void
+Kun.Docs.Abstractions.DocumentResult
+Kun.Docs.Abstractions.DocumentResult.<Clone>$() -> Kun.Docs.Abstractions.DocumentResult!
+Kun.Docs.Abstractions.DocumentResult.Deconstruct(out System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Documents, out System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventMap!>! Events, out System.Collections.Generic.IReadOnlyList<Kun.Surfaces.Abstractions.SurfaceDiagnostic!>! Diagnostics) -> void
+Kun.Docs.Abstractions.DocumentResult.Diagnostics.get -> System.Collections.Generic.IReadOnlyList<Kun.Surfaces.Abstractions.SurfaceDiagnostic!>!
+Kun.Docs.Abstractions.DocumentResult.Diagnostics.init -> void
+Kun.Docs.Abstractions.DocumentResult.DocumentResult(System.Collections.Generic.IReadOnlyDictionary<string!, string!>! Documents, System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventMap!>! Events, System.Collections.Generic.IReadOnlyList<Kun.Surfaces.Abstractions.SurfaceDiagnostic!>! Diagnostics) -> void
+Kun.Docs.Abstractions.DocumentResult.Documents.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Docs.Abstractions.DocumentResult.Documents.init -> void
+Kun.Docs.Abstractions.DocumentResult.Equals(Kun.Docs.Abstractions.DocumentResult? other) -> bool
+Kun.Docs.Abstractions.DocumentResult.Events.get -> System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventMap!>!
+Kun.Docs.Abstractions.DocumentResult.Events.init -> void
+Kun.Docs.Abstractions.DocumentResult.IsValid.get -> bool
+Kun.Docs.Abstractions.EventMap
+Kun.Docs.Abstractions.EventMap.<Clone>$() -> Kun.Docs.Abstractions.EventMap!
+Kun.Docs.Abstractions.EventMap.Consumers.get -> System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventSite!>!
+Kun.Docs.Abstractions.EventMap.Consumers.init -> void
+Kun.Docs.Abstractions.EventMap.Declaration.get -> Kun.Docs.Abstractions.EventSite!
+Kun.Docs.Abstractions.EventMap.Declaration.init -> void
+Kun.Docs.Abstractions.EventMap.Deconstruct(out string! Name, out string! Mode, out Kun.Docs.Abstractions.EventSite! Declaration, out System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventSite!>! Producers, out System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventSite!>! Consumers) -> void
+Kun.Docs.Abstractions.EventMap.Equals(Kun.Docs.Abstractions.EventMap? other) -> bool
+Kun.Docs.Abstractions.EventMap.EventMap(string! Name, string! Mode, Kun.Docs.Abstractions.EventSite! Declaration, System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventSite!>! Producers, System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventSite!>! Consumers) -> void
+Kun.Docs.Abstractions.EventMap.Mode.get -> string!
+Kun.Docs.Abstractions.EventMap.Mode.init -> void
+Kun.Docs.Abstractions.EventMap.Name.get -> string!
+Kun.Docs.Abstractions.EventMap.Name.init -> void
+Kun.Docs.Abstractions.EventMap.Producers.get -> System.Collections.Generic.IReadOnlyList<Kun.Docs.Abstractions.EventSite!>!
+Kun.Docs.Abstractions.EventMap.Producers.init -> void
+Kun.Docs.Abstractions.EventSite
+Kun.Docs.Abstractions.EventSite.<Clone>$() -> Kun.Docs.Abstractions.EventSite!
+Kun.Docs.Abstractions.EventSite.Deconstruct(out string! File, out int Line, out string! Symbol) -> void
+Kun.Docs.Abstractions.EventSite.Equals(Kun.Docs.Abstractions.EventSite? other) -> bool
+Kun.Docs.Abstractions.EventSite.EventSite(string! File, int Line, string! Symbol) -> void
+Kun.Docs.Abstractions.EventSite.File.get -> string!
+Kun.Docs.Abstractions.EventSite.File.init -> void
+Kun.Docs.Abstractions.EventSite.Line.get -> int
+Kun.Docs.Abstractions.EventSite.Line.init -> void
+Kun.Docs.Abstractions.EventSite.Symbol.get -> string!
+Kun.Docs.Abstractions.EventSite.Symbol.init -> void
+Kun.Docs.Abstractions.IDocumentGenerator
+Kun.Docs.Abstractions.IDocumentGenerator.Generate(Kun.Docs.Abstractions.DocumentOptions! options) -> Kun.Docs.Abstractions.DocumentResult!
+override Kun.Docs.Abstractions.DocumentResult.Equals(object? obj) -> bool
+override Kun.Docs.Abstractions.DocumentResult.GetHashCode() -> int
+override Kun.Docs.Abstractions.DocumentResult.ToString() -> string!
+override Kun.Docs.Abstractions.EventMap.Equals(object? obj) -> bool
+override Kun.Docs.Abstractions.EventMap.GetHashCode() -> int
+override Kun.Docs.Abstractions.EventMap.ToString() -> string!
+override Kun.Docs.Abstractions.EventSite.Equals(object? obj) -> bool
+override Kun.Docs.Abstractions.EventSite.GetHashCode() -> int
+override Kun.Docs.Abstractions.EventSite.ToString() -> string!
+static Kun.Docs.Abstractions.DocumentErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
+static Kun.Docs.Abstractions.DocumentResult.operator !=(Kun.Docs.Abstractions.DocumentResult? left, Kun.Docs.Abstractions.DocumentResult? right) -> bool
+static Kun.Docs.Abstractions.DocumentResult.operator ==(Kun.Docs.Abstractions.DocumentResult? left, Kun.Docs.Abstractions.DocumentResult? right) -> bool
+static Kun.Docs.Abstractions.EventMap.operator !=(Kun.Docs.Abstractions.EventMap? left, Kun.Docs.Abstractions.EventMap? right) -> bool
+static Kun.Docs.Abstractions.EventMap.operator ==(Kun.Docs.Abstractions.EventMap? left, Kun.Docs.Abstractions.EventMap? right) -> bool
+static Kun.Docs.Abstractions.EventSite.operator !=(Kun.Docs.Abstractions.EventSite? left, Kun.Docs.Abstractions.EventSite? right) -> bool
+static Kun.Docs.Abstractions.EventSite.operator ==(Kun.Docs.Abstractions.EventSite? left, Kun.Docs.Abstractions.EventSite? right) -> bool
+static readonly Kun.Docs.Abstractions.DocumentErrors.Declaration -> Kun.Errors.ErrorCode!
+static readonly Kun.Docs.Abstractions.DocumentErrors.Dynamic -> Kun.Errors.ErrorCode!
+static readonly Kun.Docs.Abstractions.DocumentErrors.ModeMismatch -> Kun.Errors.ErrorCode!
+static readonly Kun.Docs.Abstractions.DocumentErrors.Source -> Kun.Errors.ErrorCode!

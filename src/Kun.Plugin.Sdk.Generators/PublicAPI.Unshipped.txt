@@ -1,10 +1,1 @@
 #nullable enable
-Kun.Plugin.Sdk.Generators.CapabilityGenerator
-Kun.Plugin.Sdk.Generators.CapabilityGenerator.CapabilityGenerator() -> void
-Kun.Plugin.Sdk.Generators.CapabilityGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
-Kun.Plugin.Sdk.Generators.ComponentMetadataGenerator
-Kun.Plugin.Sdk.Generators.ComponentMetadataGenerator.ComponentMetadataGenerator() -> void
-Kun.Plugin.Sdk.Generators.ComponentMetadataGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
-Kun.Plugin.Sdk.Generators.JobGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
-Kun.Plugin.Sdk.Generators.JobGenerator
-Kun.Plugin.Sdk.Generators.JobGenerator.JobGenerator() -> void

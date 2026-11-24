@@ -1,1 +1,418 @@
 #nullable enable
+Kun.Lifecycle.ArtifactSignature
+Kun.Lifecycle.ArtifactSignature.<Clone>$() -> Kun.Lifecycle.ArtifactSignature!
+Kun.Lifecycle.ArtifactSignature.ArtifactSignature(string! KeyId, System.ReadOnlyMemory<byte> Value) -> void
+Kun.Lifecycle.ArtifactSignature.Deconstruct(out string! KeyId, out System.ReadOnlyMemory<byte> Value) -> void
+Kun.Lifecycle.ArtifactSignature.Equals(Kun.Lifecycle.ArtifactSignature? other) -> bool
+Kun.Lifecycle.ArtifactSignature.KeyId.get -> string!
+Kun.Lifecycle.ArtifactSignature.KeyId.init -> void
+Kun.Lifecycle.ArtifactSignature.Value.get -> System.ReadOnlyMemory<byte>
+Kun.Lifecycle.ArtifactSignature.Value.init -> void
+Kun.Lifecycle.DeploymentHandle
+Kun.Lifecycle.DeploymentHandle.<Clone>$() -> Kun.Lifecycle.DeploymentHandle!
+Kun.Lifecycle.DeploymentHandle.Deconstruct(out string! Executor, out string! PluginId, out string! Version, out string! Workload, out string! Reference, out int Port, out string! HealthPath) -> void
+Kun.Lifecycle.DeploymentHandle.DeploymentHandle(string! Executor, string! PluginId, string! Version, string! Workload, string! Reference, int Port, string! HealthPath) -> void
+Kun.Lifecycle.DeploymentHandle.Equals(Kun.Lifecycle.DeploymentHandle? other) -> bool
+Kun.Lifecycle.DeploymentHandle.Executor.get -> string!
+Kun.Lifecycle.DeploymentHandle.Executor.init -> void
+Kun.Lifecycle.DeploymentHandle.HealthPath.get -> string!
+Kun.Lifecycle.DeploymentHandle.HealthPath.init -> void
+Kun.Lifecycle.DeploymentHandle.PluginId.get -> string!
+Kun.Lifecycle.DeploymentHandle.PluginId.init -> void
+Kun.Lifecycle.DeploymentHandle.Port.get -> int
+Kun.Lifecycle.DeploymentHandle.Port.init -> void
+Kun.Lifecycle.DeploymentHandle.Reference.get -> string!
+Kun.Lifecycle.DeploymentHandle.Reference.init -> void
+Kun.Lifecycle.DeploymentHandle.Version.get -> string!
+Kun.Lifecycle.DeploymentHandle.Version.init -> void
+Kun.Lifecycle.DeploymentHandle.Workload.get -> string!
+Kun.Lifecycle.DeploymentHandle.Workload.init -> void
+Kun.Lifecycle.DeploymentHealth
+Kun.Lifecycle.DeploymentHealth.<Clone>$() -> Kun.Lifecycle.DeploymentHealth!
+Kun.Lifecycle.DeploymentHealth.Deconstruct(out bool WorkloadReady, out bool HealthEndpointOk, out string! Detail) -> void
+Kun.Lifecycle.DeploymentHealth.DeploymentHealth(bool WorkloadReady, bool HealthEndpointOk, string! Detail) -> void
+Kun.Lifecycle.DeploymentHealth.Detail.get -> string!
+Kun.Lifecycle.DeploymentHealth.Detail.init -> void
+Kun.Lifecycle.DeploymentHealth.Equals(Kun.Lifecycle.DeploymentHealth? other) -> bool
+Kun.Lifecycle.DeploymentHealth.HealthEndpointOk.get -> bool
+Kun.Lifecycle.DeploymentHealth.HealthEndpointOk.init -> void
+Kun.Lifecycle.DeploymentHealth.Healthy.get -> bool
+Kun.Lifecycle.DeploymentHealth.WorkloadReady.get -> bool
+Kun.Lifecycle.DeploymentHealth.WorkloadReady.init -> void
+Kun.Lifecycle.DeploymentHealthStates
+Kun.Lifecycle.DeploymentRequest
+Kun.Lifecycle.DeploymentRequest.<Clone>$() -> Kun.Lifecycle.DeploymentRequest!
+Kun.Lifecycle.DeploymentRequest.ArtifactDigest.get -> string!
+Kun.Lifecycle.DeploymentRequest.ArtifactDigest.init -> void
+Kun.Lifecycle.DeploymentRequest.Deconstruct(out string! PluginId, out string! Version, out int Revision, out string! ArtifactDigest, out string! Image, out int Port, out string! HealthPath) -> void
+Kun.Lifecycle.DeploymentRequest.DeploymentRequest(string! PluginId, string! Version, int Revision, string! ArtifactDigest, string! Image, int Port, string! HealthPath) -> void
+Kun.Lifecycle.DeploymentRequest.Equals(Kun.Lifecycle.DeploymentRequest? other) -> bool
+Kun.Lifecycle.DeploymentRequest.HealthPath.get -> string!
+Kun.Lifecycle.DeploymentRequest.HealthPath.init -> void
+Kun.Lifecycle.DeploymentRequest.Image.get -> string!
+Kun.Lifecycle.DeploymentRequest.Image.init -> void
+Kun.Lifecycle.DeploymentRequest.PluginId.get -> string!
+Kun.Lifecycle.DeploymentRequest.PluginId.init -> void
+Kun.Lifecycle.DeploymentRequest.Port.get -> int
+Kun.Lifecycle.DeploymentRequest.Port.init -> void
+Kun.Lifecycle.DeploymentRequest.Revision.get -> int
+Kun.Lifecycle.DeploymentRequest.Revision.init -> void
+Kun.Lifecycle.DeploymentRequest.Version.get -> string!
+Kun.Lifecycle.DeploymentRequest.Version.init -> void
+Kun.Lifecycle.IDeploymentExecutor
+Kun.Lifecycle.IDeploymentExecutor.ApplyAsync(Kun.Lifecycle.DeploymentRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.DeploymentHandle!>
+Kun.Lifecycle.IDeploymentExecutor.Name.get -> string!
+Kun.Lifecycle.IDeploymentExecutor.ObserveAsync(Kun.Lifecycle.DeploymentHandle! handle, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.DeploymentHealth!>
+Kun.Lifecycle.IPluginLifecycleController
+Kun.Lifecycle.IPluginLifecycleController.ActivateAsync(string! pluginId, int revision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PluginRevisionView!>
+Kun.Lifecycle.IPluginLifecycleController.ApprovePermissionsAsync(string! tenantId, string! pluginId, string! version, Kun.Lifecycle.PermissionGrants? grants, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PermissionApprovalView!>
+Kun.Lifecycle.IPluginLifecycleController.DeprecateAsync(string! pluginId, int revision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PluginRevisionView!>
+Kun.Lifecycle.IPluginLifecycleController.EntitleAsync(string! tenantId, string! pluginId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.TenantPluginInstallView!>
+Kun.Lifecycle.IPluginLifecycleController.GetApprovedPermissionsAsync(string! tenantId, string! pluginId, string! version, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PermissionApprovalView?>
+Kun.Lifecycle.IPluginLifecycleController.GetDiagnosticsAsync(Kun.Runtime.ScopeKey scope, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.LifecycleDiagnosticView!>!>
+Kun.Lifecycle.IPluginLifecycleController.GetInstallAsync(string! tenantId, string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.TenantPluginInstallView?>
+Kun.Lifecycle.IPluginLifecycleController.GetPermissionApprovalAsync(string! tenantId, string! pluginId, string! version, Kun.Identity.Abstractions.ICurrentUser! user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PermissionApprovalView?>
+Kun.Lifecycle.IPluginLifecycleController.GetRevisionsAsync(string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.PluginRevisionView!>!>
+Kun.Lifecycle.IPluginLifecycleController.GetRunsAsync(string! tenantId, string! pluginId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.LifecycleRunView!>!>
+Kun.Lifecycle.IPluginLifecycleController.InstallAsync(Kun.Lifecycle.PluginArtifact! artifact, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PluginRevisionView!>
+Kun.Lifecycle.IPluginLifecycleController.MountAsync(Kun.Runtime.ScopeKey scope, System.Text.Json.JsonElement entry, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.MountResult!>
+Kun.Lifecycle.IPluginLifecycleController.MountAtRevisionAsync(Kun.Runtime.ScopeKey scope, System.Text.Json.JsonElement entry, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.MountResult!>
+Kun.Lifecycle.IPluginLifecycleController.ProvisionAsync(string! tenantId, string! pluginId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.TenantPluginInstallView!>
+Kun.Lifecycle.IPluginLifecycleController.PurgeAsync(string! tenantId, string! pluginId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.TenantPluginInstallView!>
+Kun.Lifecycle.IPluginLifecycleController.RefreshDeploymentAsync(string! pluginId, int revision, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PluginRevisionView!>
+Kun.Lifecycle.IPluginLifecycleController.RetireAsync(string! pluginId, int revision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PluginRevisionView!>
+Kun.Lifecycle.IPluginLifecycleController.RollbackAsync(string! pluginId, int toRevision, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.PluginRevisionView!>
+Kun.Lifecycle.IPluginLifecycleController.UninstallAsync(string! tenantId, string! pluginId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.TenantPluginInstallView!>
+Kun.Lifecycle.IPluginLifecycleController.UnmountAsync(Kun.Runtime.ScopeKey scope, string! entryId, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.MountResult!>
+Kun.Lifecycle.IPluginLifecycleController.UnmountAtRevisionAsync(Kun.Runtime.ScopeKey scope, string! entryId, int expectedRevision, string! actor, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.MountResult!>
+Kun.Lifecycle.IPluginLifecycleController.UpgradeAsync(string! tenantId, string! pluginId, string! fromVersion, string! toVersion, string! actor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Lifecycle.TenantPluginInstallView!>
+Kun.Lifecycle.IPluginLifecycleHooks
+Kun.Lifecycle.IPluginLifecycleHooks.InvokeAsync(Kun.Lifecycle.LifecycleHookContext! context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Text.Json.JsonElement?>
+Kun.Lifecycle.LifecycleDefinition
+Kun.Lifecycle.LifecycleDiagnosticView
+Kun.Lifecycle.LifecycleDiagnosticView.<Clone>$() -> Kun.Lifecycle.LifecycleDiagnosticView!
+Kun.Lifecycle.LifecycleDiagnosticView.Deconstruct(out string! Scope, out string? EntryId, out string? Plugin, out int? Revision, out string! ReasonCode, out System.DateTimeOffset OccurredAt) -> void
+Kun.Lifecycle.LifecycleDiagnosticView.EntryId.get -> string?
+Kun.Lifecycle.LifecycleDiagnosticView.EntryId.init -> void
+Kun.Lifecycle.LifecycleDiagnosticView.Equals(Kun.Lifecycle.LifecycleDiagnosticView? other) -> bool
+Kun.Lifecycle.LifecycleDiagnosticView.LifecycleDiagnosticView(string! Scope, string? EntryId, string? Plugin, int? Revision, string! ReasonCode, System.DateTimeOffset OccurredAt) -> void
+Kun.Lifecycle.LifecycleDiagnosticView.OccurredAt.get -> System.DateTimeOffset
+Kun.Lifecycle.LifecycleDiagnosticView.OccurredAt.init -> void
+Kun.Lifecycle.LifecycleDiagnosticView.Plugin.get -> string?
+Kun.Lifecycle.LifecycleDiagnosticView.Plugin.init -> void
+Kun.Lifecycle.LifecycleDiagnosticView.ReasonCode.get -> string!
+Kun.Lifecycle.LifecycleDiagnosticView.ReasonCode.init -> void
+Kun.Lifecycle.LifecycleDiagnosticView.Revision.get -> int?
+Kun.Lifecycle.LifecycleDiagnosticView.Revision.init -> void
+Kun.Lifecycle.LifecycleDiagnosticView.Scope.get -> string!
+Kun.Lifecycle.LifecycleDiagnosticView.Scope.init -> void
+Kun.Lifecycle.LifecycleErrors
+Kun.Lifecycle.LifecycleEvents
+Kun.Lifecycle.LifecycleHookContext
+Kun.Lifecycle.LifecycleHookContext.Context.get -> Kun.Runtime.IPluginContext!
+Kun.Lifecycle.LifecycleHookContext.Context.init -> void
+Kun.Lifecycle.LifecycleHookContext.FromVersion.get -> string?
+Kun.Lifecycle.LifecycleHookContext.FromVersion.init -> void
+Kun.Lifecycle.LifecycleHookContext.Hook.get -> string!
+Kun.Lifecycle.LifecycleHookContext.Hook.init -> void
+Kun.Lifecycle.LifecycleHookContext.IdempotencyKey.get -> System.Guid
+Kun.Lifecycle.LifecycleHookContext.IdempotencyKey.init -> void
+Kun.Lifecycle.LifecycleHookContext.LifecycleHookContext() -> void
+Kun.Lifecycle.LifecycleHookContext.PluginId.get -> string!
+Kun.Lifecycle.LifecycleHookContext.PluginId.init -> void
+Kun.Lifecycle.LifecycleHookContext.TenantId.get -> string!
+Kun.Lifecycle.LifecycleHookContext.TenantId.init -> void
+Kun.Lifecycle.LifecycleHookContext.ToVersion.get -> string!
+Kun.Lifecycle.LifecycleHookContext.ToVersion.init -> void
+Kun.Lifecycle.LifecycleHooks
+Kun.Lifecycle.LifecyclePluginActivated
+Kun.Lifecycle.LifecyclePluginActivated.<Clone>$() -> Kun.Lifecycle.LifecyclePluginActivated!
+Kun.Lifecycle.LifecyclePluginActivated.Deconstruct(out string! PluginId, out int Revision, out string! Version, out int? PreviousRevision) -> void
+Kun.Lifecycle.LifecyclePluginActivated.Equals(Kun.Lifecycle.LifecyclePluginActivated? other) -> bool
+Kun.Lifecycle.LifecyclePluginActivated.LifecyclePluginActivated(string! PluginId, int Revision, string! Version, int? PreviousRevision) -> void
+Kun.Lifecycle.LifecyclePluginActivated.PluginId.get -> string!
+Kun.Lifecycle.LifecyclePluginActivated.PluginId.init -> void
+Kun.Lifecycle.LifecyclePluginActivated.PreviousRevision.get -> int?
+Kun.Lifecycle.LifecyclePluginActivated.PreviousRevision.init -> void
+Kun.Lifecycle.LifecyclePluginActivated.Revision.get -> int
+Kun.Lifecycle.LifecyclePluginActivated.Revision.init -> void
+Kun.Lifecycle.LifecyclePluginActivated.Version.get -> string!
+Kun.Lifecycle.LifecyclePluginActivated.Version.init -> void
+Kun.Lifecycle.LifecycleRunStates
+Kun.Lifecycle.LifecycleRunView
+Kun.Lifecycle.LifecycleRunView.<Clone>$() -> Kun.Lifecycle.LifecycleRunView!
+Kun.Lifecycle.LifecycleRunView.Attempts.get -> int
+Kun.Lifecycle.LifecycleRunView.Attempts.init -> void
+Kun.Lifecycle.LifecycleRunView.Deconstruct(out string! TenantId, out string! PluginId, out string! Hook, out string? FromVersion, out string! ToVersion, out string! Status, out int Attempts, out string? ReasonCode, out System.DateTimeOffset StartedAt, out System.DateTimeOffset? FinishedAt) -> void
+Kun.Lifecycle.LifecycleRunView.Equals(Kun.Lifecycle.LifecycleRunView? other) -> bool
+Kun.Lifecycle.LifecycleRunView.FinishedAt.get -> System.DateTimeOffset?
+Kun.Lifecycle.LifecycleRunView.FinishedAt.init -> void
+Kun.Lifecycle.LifecycleRunView.FromVersion.get -> string?
+Kun.Lifecycle.LifecycleRunView.FromVersion.init -> void
+Kun.Lifecycle.LifecycleRunView.Hook.get -> string!
+Kun.Lifecycle.LifecycleRunView.Hook.init -> void
+Kun.Lifecycle.LifecycleRunView.LifecycleRunView(string! TenantId, string! PluginId, string! Hook, string? FromVersion, string! ToVersion, string! Status, int Attempts, string? ReasonCode, System.DateTimeOffset StartedAt, System.DateTimeOffset? FinishedAt) -> void
+Kun.Lifecycle.LifecycleRunView.PluginId.get -> string!
+Kun.Lifecycle.LifecycleRunView.PluginId.init -> void
+Kun.Lifecycle.LifecycleRunView.ReasonCode.get -> string?
+Kun.Lifecycle.LifecycleRunView.ReasonCode.init -> void
+Kun.Lifecycle.LifecycleRunView.StartedAt.get -> System.DateTimeOffset
+Kun.Lifecycle.LifecycleRunView.StartedAt.init -> void
+Kun.Lifecycle.LifecycleRunView.Status.get -> string!
+Kun.Lifecycle.LifecycleRunView.Status.init -> void
+Kun.Lifecycle.LifecycleRunView.TenantId.get -> string!
+Kun.Lifecycle.LifecycleRunView.TenantId.init -> void
+Kun.Lifecycle.LifecycleRunView.ToVersion.get -> string!
+Kun.Lifecycle.LifecycleRunView.ToVersion.init -> void
+Kun.Lifecycle.LifecycleTenantPluginUpgraded
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.<Clone>$() -> Kun.Lifecycle.LifecycleTenantPluginUpgraded!
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.Deconstruct(out string! PluginId, out string! FromVersion, out string! ToVersion) -> void
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.Equals(Kun.Lifecycle.LifecycleTenantPluginUpgraded? other) -> bool
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.FromVersion.get -> string!
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.FromVersion.init -> void
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.LifecycleTenantPluginUpgraded(string! PluginId, string! FromVersion, string! ToVersion) -> void
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.PluginId.get -> string!
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.PluginId.init -> void
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.ToVersion.get -> string!
+Kun.Lifecycle.LifecycleTenantPluginUpgraded.ToVersion.init -> void
+Kun.Lifecycle.MountResult
+Kun.Lifecycle.MountResult.<Clone>$() -> Kun.Lifecycle.MountResult!
+Kun.Lifecycle.MountResult.Deconstruct(out string! Scope, out string! EntryId, out int Revision, out string! State, out string? ReasonCode) -> void
+Kun.Lifecycle.MountResult.EntryId.get -> string!
+Kun.Lifecycle.MountResult.EntryId.init -> void
+Kun.Lifecycle.MountResult.Equals(Kun.Lifecycle.MountResult? other) -> bool
+Kun.Lifecycle.MountResult.MountResult(string! Scope, string! EntryId, int Revision, string! State, string? ReasonCode) -> void
+Kun.Lifecycle.MountResult.ReasonCode.get -> string?
+Kun.Lifecycle.MountResult.ReasonCode.init -> void
+Kun.Lifecycle.MountResult.Revision.get -> int
+Kun.Lifecycle.MountResult.Revision.init -> void
+Kun.Lifecycle.MountResult.Scope.get -> string!
+Kun.Lifecycle.MountResult.Scope.init -> void
+Kun.Lifecycle.MountResult.State.get -> string!
+Kun.Lifecycle.MountResult.State.init -> void
+Kun.Lifecycle.MountStates
+Kun.Lifecycle.PermissionApprovalChannels
+Kun.Lifecycle.PermissionApprovalView
+Kun.Lifecycle.PermissionApprovalView.<Clone>$() -> Kun.Lifecycle.PermissionApprovalView!
+Kun.Lifecycle.PermissionApprovalView.Approved.get -> Kun.Lifecycle.PermissionGrants!
+Kun.Lifecycle.PermissionApprovalView.Approved.init -> void
+Kun.Lifecycle.PermissionApprovalView.ApprovedAt.get -> System.DateTimeOffset
+Kun.Lifecycle.PermissionApprovalView.ApprovedAt.init -> void
+Kun.Lifecycle.PermissionApprovalView.ApprovedBy.get -> string!
+Kun.Lifecycle.PermissionApprovalView.ApprovedBy.init -> void
+Kun.Lifecycle.PermissionApprovalView.ApprovedVia.get -> string!
+Kun.Lifecycle.PermissionApprovalView.ApprovedVia.init -> void
+Kun.Lifecycle.PermissionApprovalView.Deconstruct(out string! TenantId, out string! PluginId, out string! Version, out Kun.Lifecycle.PermissionGrants! Approved, out string! ApprovedBy, out string! ApprovedVia, out System.DateTimeOffset ApprovedAt) -> void
+Kun.Lifecycle.PermissionApprovalView.Equals(Kun.Lifecycle.PermissionApprovalView? other) -> bool
+Kun.Lifecycle.PermissionApprovalView.PermissionApprovalView(string! TenantId, string! PluginId, string! Version, Kun.Lifecycle.PermissionGrants! Approved, string! ApprovedBy, string! ApprovedVia, System.DateTimeOffset ApprovedAt) -> void
+Kun.Lifecycle.PermissionApprovalView.PluginId.get -> string!
+Kun.Lifecycle.PermissionApprovalView.PluginId.init -> void
+Kun.Lifecycle.PermissionApprovalView.TenantId.get -> string!
+Kun.Lifecycle.PermissionApprovalView.TenantId.init -> void
+Kun.Lifecycle.PermissionApprovalView.Version.get -> string!
+Kun.Lifecycle.PermissionApprovalView.Version.init -> void
+Kun.Lifecycle.PermissionGrants
+Kun.Lifecycle.PermissionGrants.<Clone>$() -> Kun.Lifecycle.PermissionGrants!
+Kun.Lifecycle.PermissionGrants.Data.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Lifecycle.PermissionGrants.Data.init -> void
+Kun.Lifecycle.PermissionGrants.Deconstruct(out System.Collections.Generic.IReadOnlyList<string!>! Platform, out System.Collections.Generic.IReadOnlyList<string!>! Data, out System.Collections.Generic.IReadOnlyList<string!>! Egress, out System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.SecretGrant!>! Secrets, out Kun.Lifecycle.UiGrants! Ui) -> void
+Kun.Lifecycle.PermissionGrants.Egress.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Lifecycle.PermissionGrants.Egress.init -> void
+Kun.Lifecycle.PermissionGrants.Equals(Kun.Lifecycle.PermissionGrants? other) -> bool
+Kun.Lifecycle.PermissionGrants.PermissionGrants(System.Collections.Generic.IReadOnlyList<string!>! Platform, System.Collections.Generic.IReadOnlyList<string!>! Data, System.Collections.Generic.IReadOnlyList<string!>! Egress, System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.SecretGrant!>! Secrets, Kun.Lifecycle.UiGrants! Ui) -> void
+Kun.Lifecycle.PermissionGrants.Platform.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Lifecycle.PermissionGrants.Platform.init -> void
+Kun.Lifecycle.PermissionGrants.Secrets.get -> System.Collections.Generic.IReadOnlyList<Kun.Lifecycle.SecretGrant!>!
+Kun.Lifecycle.PermissionGrants.Secrets.init -> void
+Kun.Lifecycle.PermissionGrants.Ui.get -> Kun.Lifecycle.UiGrants!
+Kun.Lifecycle.PermissionGrants.Ui.init -> void
+Kun.Lifecycle.PluginArtifact
+Kun.Lifecycle.PluginArtifact.Digest.get -> string!
+Kun.Lifecycle.PluginArtifact.Files.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.ReadOnlyMemory<byte>>!
+Kun.Lifecycle.PluginArtifact.PluginArtifact(System.Collections.Generic.IReadOnlyDictionary<string!, System.ReadOnlyMemory<byte>>! files, string! digest, Kun.Lifecycle.ArtifactSignature? signature) -> void
+Kun.Lifecycle.PluginArtifact.Signature.get -> Kun.Lifecycle.ArtifactSignature?
+Kun.Lifecycle.PluginRevisionStates
+Kun.Lifecycle.PluginRevisionView
+Kun.Lifecycle.PluginRevisionView.<Clone>$() -> Kun.Lifecycle.PluginRevisionView!
+Kun.Lifecycle.PluginRevisionView.ActivatedAt.get -> System.DateTimeOffset?
+Kun.Lifecycle.PluginRevisionView.ActivatedAt.init -> void
+Kun.Lifecycle.PluginRevisionView.ArtifactDigest.get -> string!
+Kun.Lifecycle.PluginRevisionView.ArtifactDigest.init -> void
+Kun.Lifecycle.PluginRevisionView.Deconstruct(out string! PluginId, out int Revision, out string! Version, out string! ArtifactDigest, out string! Form, out string! State, out string! SignedBy, out string? Health, out string? DeploymentReference, out System.DateTimeOffset InstalledAt, out System.DateTimeOffset? ActivatedAt) -> void
+Kun.Lifecycle.PluginRevisionView.DeploymentReference.get -> string?
+Kun.Lifecycle.PluginRevisionView.DeploymentReference.init -> void
+Kun.Lifecycle.PluginRevisionView.Equals(Kun.Lifecycle.PluginRevisionView? other) -> bool
+Kun.Lifecycle.PluginRevisionView.Form.get -> string!
+Kun.Lifecycle.PluginRevisionView.Form.init -> void
+Kun.Lifecycle.PluginRevisionView.Health.get -> string?
+Kun.Lifecycle.PluginRevisionView.Health.init -> void
+Kun.Lifecycle.PluginRevisionView.InstalledAt.get -> System.DateTimeOffset
+Kun.Lifecycle.PluginRevisionView.InstalledAt.init -> void
+Kun.Lifecycle.PluginRevisionView.PluginId.get -> string!
+Kun.Lifecycle.PluginRevisionView.PluginId.init -> void
+Kun.Lifecycle.PluginRevisionView.PluginRevisionView(string! PluginId, int Revision, string! Version, string! ArtifactDigest, string! Form, string! State, string! SignedBy, string? Health, string? DeploymentReference, System.DateTimeOffset InstalledAt, System.DateTimeOffset? ActivatedAt) -> void
+Kun.Lifecycle.PluginRevisionView.Revision.get -> int
+Kun.Lifecycle.PluginRevisionView.Revision.init -> void
+Kun.Lifecycle.PluginRevisionView.SignedBy.get -> string!
+Kun.Lifecycle.PluginRevisionView.SignedBy.init -> void
+Kun.Lifecycle.PluginRevisionView.State.get -> string!
+Kun.Lifecycle.PluginRevisionView.State.init -> void
+Kun.Lifecycle.PluginRevisionView.Version.get -> string!
+Kun.Lifecycle.PluginRevisionView.Version.init -> void
+Kun.Lifecycle.SecretGrant
+Kun.Lifecycle.SecretGrant.<Clone>$() -> Kun.Lifecycle.SecretGrant!
+Kun.Lifecycle.SecretGrant.Deconstruct(out string! Name, out string! Scope) -> void
+Kun.Lifecycle.SecretGrant.Equals(Kun.Lifecycle.SecretGrant? other) -> bool
+Kun.Lifecycle.SecretGrant.Name.get -> string!
+Kun.Lifecycle.SecretGrant.Name.init -> void
+Kun.Lifecycle.SecretGrant.Scope.get -> string!
+Kun.Lifecycle.SecretGrant.Scope.init -> void
+Kun.Lifecycle.SecretGrant.SecretGrant(string! Name, string! Scope) -> void
+Kun.Lifecycle.TenantInstallStates
+Kun.Lifecycle.TenantPluginInstallView
+Kun.Lifecycle.TenantPluginInstallView.<Clone>$() -> Kun.Lifecycle.TenantPluginInstallView!
+Kun.Lifecycle.TenantPluginInstallView.Deconstruct(out string! TenantId, out string! PluginId, out string! State, out string? Version, out string? TargetVersion, out string! UpdatedBy, out System.DateTimeOffset UpdatedAt) -> void
+Kun.Lifecycle.TenantPluginInstallView.Equals(Kun.Lifecycle.TenantPluginInstallView? other) -> bool
+Kun.Lifecycle.TenantPluginInstallView.PluginId.get -> string!
+Kun.Lifecycle.TenantPluginInstallView.PluginId.init -> void
+Kun.Lifecycle.TenantPluginInstallView.State.get -> string!
+Kun.Lifecycle.TenantPluginInstallView.State.init -> void
+Kun.Lifecycle.TenantPluginInstallView.TargetVersion.get -> string?
+Kun.Lifecycle.TenantPluginInstallView.TargetVersion.init -> void
+Kun.Lifecycle.TenantPluginInstallView.TenantId.get -> string!
+Kun.Lifecycle.TenantPluginInstallView.TenantId.init -> void
+Kun.Lifecycle.TenantPluginInstallView.TenantPluginInstallView(string! TenantId, string! PluginId, string! State, string? Version, string? TargetVersion, string! UpdatedBy, System.DateTimeOffset UpdatedAt) -> void
+Kun.Lifecycle.TenantPluginInstallView.UpdatedAt.get -> System.DateTimeOffset
+Kun.Lifecycle.TenantPluginInstallView.UpdatedAt.init -> void
+Kun.Lifecycle.TenantPluginInstallView.UpdatedBy.get -> string!
+Kun.Lifecycle.TenantPluginInstallView.UpdatedBy.init -> void
+Kun.Lifecycle.TenantPluginInstallView.Version.get -> string?
+Kun.Lifecycle.TenantPluginInstallView.Version.init -> void
+Kun.Lifecycle.UiGrants
+Kun.Lifecycle.UiGrants.<Clone>$() -> Kun.Lifecycle.UiGrants!
+Kun.Lifecycle.UiGrants.ConnectSrc.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Lifecycle.UiGrants.ConnectSrc.init -> void
+Kun.Lifecycle.UiGrants.Deconstruct(out System.Collections.Generic.IReadOnlyList<string!>! ConnectSrc) -> void
+Kun.Lifecycle.UiGrants.Equals(Kun.Lifecycle.UiGrants? other) -> bool
+Kun.Lifecycle.UiGrants.UiGrants(System.Collections.Generic.IReadOnlyList<string!>! ConnectSrc) -> void
+const Kun.Lifecycle.DeploymentHealthStates.Healthy = "Healthy" -> string!
+const Kun.Lifecycle.DeploymentHealthStates.Progressing = "Progressing" -> string!
+const Kun.Lifecycle.LifecycleDefinition.DiagnosticsReadPermission = "qian.lifecycle:diagnostics:read" -> string!
+const Kun.Lifecycle.LifecycleDefinition.InstallApprovePermission = "qian.lifecycle:install:approve" -> string!
+const Kun.Lifecycle.LifecycleEvents.PluginActivated = "lifecycle.plugin.activated.v1" -> string!
+const Kun.Lifecycle.LifecycleEvents.TenantPluginUpgraded = "lifecycle.tenant-plugin.upgraded.v1" -> string!
+const Kun.Lifecycle.LifecycleHooks.TenantProvision = "tenant-provision" -> string!
+const Kun.Lifecycle.LifecycleHooks.TenantPurge = "tenant-purge" -> string!
+const Kun.Lifecycle.LifecycleHooks.TenantUninstall = "tenant-uninstall" -> string!
+const Kun.Lifecycle.LifecycleHooks.TenantUpgrade = "tenant-upgrade" -> string!
+const Kun.Lifecycle.LifecycleRunStates.Failed = "Failed" -> string!
+const Kun.Lifecycle.LifecycleRunStates.Running = "Running" -> string!
+const Kun.Lifecycle.LifecycleRunStates.Succeeded = "Succeeded" -> string!
+const Kun.Lifecycle.MountStates.Failed = "Failed" -> string!
+const Kun.Lifecycle.MountStates.Ready = "Ready" -> string!
+const Kun.Lifecycle.MountStates.Unmounted = "Unmounted" -> string!
+const Kun.Lifecycle.PermissionApprovalChannels.Superadmin = "superadmin" -> string!
+const Kun.Lifecycle.PermissionApprovalChannels.Tenant = "tenant" -> string!
+const Kun.Lifecycle.PluginRevisionStates.Active = "Active" -> string!
+const Kun.Lifecycle.PluginRevisionStates.Deprecated = "Deprecated" -> string!
+const Kun.Lifecycle.PluginRevisionStates.Installed = "Installed" -> string!
+const Kun.Lifecycle.PluginRevisionStates.Retired = "Retired" -> string!
+const Kun.Lifecycle.TenantInstallStates.Entitled = "Entitled" -> string!
+const Kun.Lifecycle.TenantInstallStates.Installed = "Installed" -> string!
+const Kun.Lifecycle.TenantInstallStates.Provisioning = "Provisioning" -> string!
+const Kun.Lifecycle.TenantInstallStates.Purged = "Purged" -> string!
+const Kun.Lifecycle.TenantInstallStates.Uninstalled = "Uninstalled" -> string!
+const Kun.Lifecycle.TenantInstallStates.Upgrading = "Upgrading" -> string!
+override Kun.Lifecycle.ArtifactSignature.Equals(object? obj) -> bool
+override Kun.Lifecycle.ArtifactSignature.GetHashCode() -> int
+override Kun.Lifecycle.ArtifactSignature.ToString() -> string!
+override Kun.Lifecycle.DeploymentHandle.Equals(object? obj) -> bool
+override Kun.Lifecycle.DeploymentHandle.GetHashCode() -> int
+override Kun.Lifecycle.DeploymentHandle.ToString() -> string!
+override Kun.Lifecycle.DeploymentHealth.Equals(object? obj) -> bool
+override Kun.Lifecycle.DeploymentHealth.GetHashCode() -> int
+override Kun.Lifecycle.DeploymentHealth.ToString() -> string!
+override Kun.Lifecycle.DeploymentRequest.Equals(object? obj) -> bool
+override Kun.Lifecycle.DeploymentRequest.GetHashCode() -> int
+override Kun.Lifecycle.DeploymentRequest.ToString() -> string!
+override Kun.Lifecycle.LifecycleDiagnosticView.Equals(object? obj) -> bool
+override Kun.Lifecycle.LifecycleDiagnosticView.GetHashCode() -> int
+override Kun.Lifecycle.LifecycleDiagnosticView.ToString() -> string!
+override Kun.Lifecycle.LifecycleHookContext.ToString() -> string!
+override Kun.Lifecycle.LifecyclePluginActivated.Equals(object? obj) -> bool
+override Kun.Lifecycle.LifecyclePluginActivated.GetHashCode() -> int
+override Kun.Lifecycle.LifecyclePluginActivated.ToString() -> string!
+override Kun.Lifecycle.LifecycleRunView.Equals(object? obj) -> bool
+override Kun.Lifecycle.LifecycleRunView.GetHashCode() -> int
+override Kun.Lifecycle.LifecycleRunView.ToString() -> string!
+override Kun.Lifecycle.LifecycleTenantPluginUpgraded.Equals(object? obj) -> bool
+override Kun.Lifecycle.LifecycleTenantPluginUpgraded.GetHashCode() -> int
+override Kun.Lifecycle.LifecycleTenantPluginUpgraded.ToString() -> string!
+override Kun.Lifecycle.MountResult.Equals(object? obj) -> bool
+override Kun.Lifecycle.MountResult.GetHashCode() -> int
+override Kun.Lifecycle.MountResult.ToString() -> string!
+override Kun.Lifecycle.PermissionApprovalView.Equals(object? obj) -> bool
+override Kun.Lifecycle.PermissionApprovalView.GetHashCode() -> int
+override Kun.Lifecycle.PermissionApprovalView.ToString() -> string!
+override Kun.Lifecycle.PermissionGrants.Equals(object? obj) -> bool
+override Kun.Lifecycle.PermissionGrants.GetHashCode() -> int
+override Kun.Lifecycle.PermissionGrants.ToString() -> string!
+override Kun.Lifecycle.PluginArtifact.ToString() -> string!
+override Kun.Lifecycle.PluginRevisionView.Equals(object? obj) -> bool
+override Kun.Lifecycle.PluginRevisionView.GetHashCode() -> int
+override Kun.Lifecycle.PluginRevisionView.ToString() -> string!
+override Kun.Lifecycle.SecretGrant.Equals(object? obj) -> bool
+override Kun.Lifecycle.SecretGrant.GetHashCode() -> int
+override Kun.Lifecycle.SecretGrant.ToString() -> string!
+override Kun.Lifecycle.TenantPluginInstallView.Equals(object? obj) -> bool
+override Kun.Lifecycle.TenantPluginInstallView.GetHashCode() -> int
+override Kun.Lifecycle.TenantPluginInstallView.ToString() -> string!
+override Kun.Lifecycle.UiGrants.Equals(object? obj) -> bool
+override Kun.Lifecycle.UiGrants.GetHashCode() -> int
+override Kun.Lifecycle.UiGrants.ToString() -> string!
+static Kun.Lifecycle.ArtifactSignature.operator !=(Kun.Lifecycle.ArtifactSignature? left, Kun.Lifecycle.ArtifactSignature? right) -> bool
+static Kun.Lifecycle.ArtifactSignature.operator ==(Kun.Lifecycle.ArtifactSignature? left, Kun.Lifecycle.ArtifactSignature? right) -> bool
+static Kun.Lifecycle.DeploymentHandle.operator !=(Kun.Lifecycle.DeploymentHandle? left, Kun.Lifecycle.DeploymentHandle? right) -> bool
+static Kun.Lifecycle.DeploymentHandle.operator ==(Kun.Lifecycle.DeploymentHandle? left, Kun.Lifecycle.DeploymentHandle? right) -> bool
+static Kun.Lifecycle.DeploymentHealth.operator !=(Kun.Lifecycle.DeploymentHealth? left, Kun.Lifecycle.DeploymentHealth? right) -> bool
+static Kun.Lifecycle.DeploymentHealth.operator ==(Kun.Lifecycle.DeploymentHealth? left, Kun.Lifecycle.DeploymentHealth? right) -> bool
+static Kun.Lifecycle.DeploymentRequest.operator !=(Kun.Lifecycle.DeploymentRequest? left, Kun.Lifecycle.DeploymentRequest? right) -> bool
+static Kun.Lifecycle.DeploymentRequest.operator ==(Kun.Lifecycle.DeploymentRequest? left, Kun.Lifecycle.DeploymentRequest? right) -> bool
+static Kun.Lifecycle.LifecycleDefinition.Lifecycle(this Kun.Runtime.IPluginContext! context) -> Kun.Lifecycle.IPluginLifecycleController!
+static Kun.Lifecycle.LifecycleDiagnosticView.operator !=(Kun.Lifecycle.LifecycleDiagnosticView? left, Kun.Lifecycle.LifecycleDiagnosticView? right) -> bool
+static Kun.Lifecycle.LifecycleDiagnosticView.operator ==(Kun.Lifecycle.LifecycleDiagnosticView? left, Kun.Lifecycle.LifecycleDiagnosticView? right) -> bool
+static Kun.Lifecycle.LifecycleErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Kun.Lifecycle.LifecycleEvents.RegisterLifecycleEvents(this Kun.EventBus.IEventTypeRegistrar! registrar) -> Kun.EventBus.IEventTypeRegistrar!
+static Kun.Lifecycle.LifecyclePluginActivated.operator !=(Kun.Lifecycle.LifecyclePluginActivated? left, Kun.Lifecycle.LifecyclePluginActivated? right) -> bool
+static Kun.Lifecycle.LifecyclePluginActivated.operator ==(Kun.Lifecycle.LifecyclePluginActivated? left, Kun.Lifecycle.LifecyclePluginActivated? right) -> bool
+static Kun.Lifecycle.LifecycleRunView.operator !=(Kun.Lifecycle.LifecycleRunView? left, Kun.Lifecycle.LifecycleRunView? right) -> bool
+static Kun.Lifecycle.LifecycleRunView.operator ==(Kun.Lifecycle.LifecycleRunView? left, Kun.Lifecycle.LifecycleRunView? right) -> bool
+static Kun.Lifecycle.LifecycleTenantPluginUpgraded.operator !=(Kun.Lifecycle.LifecycleTenantPluginUpgraded? left, Kun.Lifecycle.LifecycleTenantPluginUpgraded? right) -> bool
+static Kun.Lifecycle.LifecycleTenantPluginUpgraded.operator ==(Kun.Lifecycle.LifecycleTenantPluginUpgraded? left, Kun.Lifecycle.LifecycleTenantPluginUpgraded? right) -> bool
+static Kun.Lifecycle.MountResult.operator !=(Kun.Lifecycle.MountResult? left, Kun.Lifecycle.MountResult? right) -> bool
+static Kun.Lifecycle.MountResult.operator ==(Kun.Lifecycle.MountResult? left, Kun.Lifecycle.MountResult? right) -> bool
+static Kun.Lifecycle.PermissionApprovalView.operator !=(Kun.Lifecycle.PermissionApprovalView? left, Kun.Lifecycle.PermissionApprovalView? right) -> bool
+static Kun.Lifecycle.PermissionApprovalView.operator ==(Kun.Lifecycle.PermissionApprovalView? left, Kun.Lifecycle.PermissionApprovalView? right) -> bool
+static Kun.Lifecycle.PermissionGrants.operator !=(Kun.Lifecycle.PermissionGrants? left, Kun.Lifecycle.PermissionGrants? right) -> bool
+static Kun.Lifecycle.PermissionGrants.operator ==(Kun.Lifecycle.PermissionGrants? left, Kun.Lifecycle.PermissionGrants? right) -> bool
+static Kun.Lifecycle.PluginRevisionView.operator !=(Kun.Lifecycle.PluginRevisionView? left, Kun.Lifecycle.PluginRevisionView? right) -> bool
+static Kun.Lifecycle.PluginRevisionView.operator ==(Kun.Lifecycle.PluginRevisionView? left, Kun.Lifecycle.PluginRevisionView? right) -> bool
+static Kun.Lifecycle.SecretGrant.operator !=(Kun.Lifecycle.SecretGrant? left, Kun.Lifecycle.SecretGrant? right) -> bool
+static Kun.Lifecycle.SecretGrant.operator ==(Kun.Lifecycle.SecretGrant? left, Kun.Lifecycle.SecretGrant? right) -> bool
+static Kun.Lifecycle.TenantPluginInstallView.operator !=(Kun.Lifecycle.TenantPluginInstallView? left, Kun.Lifecycle.TenantPluginInstallView? right) -> bool
+static Kun.Lifecycle.TenantPluginInstallView.operator ==(Kun.Lifecycle.TenantPluginInstallView? left, Kun.Lifecycle.TenantPluginInstallView? right) -> bool
+static Kun.Lifecycle.UiGrants.operator !=(Kun.Lifecycle.UiGrants? left, Kun.Lifecycle.UiGrants? right) -> bool
+static Kun.Lifecycle.UiGrants.operator ==(Kun.Lifecycle.UiGrants? left, Kun.Lifecycle.UiGrants? right) -> bool
+static readonly Kun.Lifecycle.LifecycleDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Lifecycle.LifecycleErrors.ArtifactUnsigned -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.AuditUnavailable -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.DeploymentUnavailable -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.HookFailed -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.InProgress -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.Invalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.MountFailed -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.NotEntitled -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.PermissionsUnapproved -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.RevisionNotDeployed -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.SignatureInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Lifecycle.LifecycleErrors.StateConflict -> Kun.Errors.ErrorCode!

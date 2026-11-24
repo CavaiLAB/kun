@@ -1,1 +1,14 @@
 #nullable enable
+Kun.Tenancy.TenancyComponent
+Kun.Tenancy.TenancyComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.TenancyComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Tenancy.TenancyComponent.TenancyComponent() -> void
+Kun.Tenancy.TenancyDbContext
+Kun.Tenancy.TenancyDbContext.TenancyDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Tenancy.TenancyDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Tenancy.TenancyEventHandlers
+Kun.Tenancy.TenancyPlugin
+Kun.Tenancy.TenancyPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Tenancy.TenancyPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Tenancy.TenancyPlugin.TenancyPlugin() -> void
+const Kun.Tenancy.TenancyDbContext.Schema = "plugin_qian_tenancy" -> string!
+static Kun.Tenancy.TenancyEventHandlers.AddKunTenancyEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!

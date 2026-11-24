@@ -1,1 +1,174 @@
 #nullable enable
+Kun.Configuration.ConfigDefinition
+Kun.Configuration.ConfigErrors
+Kun.Configuration.ConfigEvents
+Kun.Configuration.ConfigReloadFailed
+Kun.Configuration.ConfigReloadFailed.<Clone>$() -> Kun.Configuration.ConfigReloadFailed!
+Kun.Configuration.ConfigReloadFailed.Code.get -> string!
+Kun.Configuration.ConfigReloadFailed.Code.init -> void
+Kun.Configuration.ConfigReloadFailed.ConfigReloadFailed(string! OptionsType, string! OptionsName, string! Section, int Failures, string! Code) -> void
+Kun.Configuration.ConfigReloadFailed.Deconstruct(out string! OptionsType, out string! OptionsName, out string! Section, out int Failures, out string! Code) -> void
+Kun.Configuration.ConfigReloadFailed.Equals(Kun.Configuration.ConfigReloadFailed? other) -> bool
+Kun.Configuration.ConfigReloadFailed.Failures.get -> int
+Kun.Configuration.ConfigReloadFailed.Failures.init -> void
+Kun.Configuration.ConfigReloadFailed.OptionsName.get -> string!
+Kun.Configuration.ConfigReloadFailed.OptionsName.init -> void
+Kun.Configuration.ConfigReloadFailed.OptionsType.get -> string!
+Kun.Configuration.ConfigReloadFailed.OptionsType.init -> void
+Kun.Configuration.ConfigReloadFailed.Plugin.get -> string?
+Kun.Configuration.ConfigReloadFailed.Plugin.init -> void
+Kun.Configuration.ConfigReloadFailed.Section.get -> string!
+Kun.Configuration.ConfigReloadFailed.Section.init -> void
+Kun.Configuration.ConfigRuntimeEvents
+Kun.Configuration.FeatureFlagDraft
+Kun.Configuration.FeatureFlagDraft.Confirmed.get -> bool
+Kun.Configuration.FeatureFlagDraft.Confirmed.init -> void
+Kun.Configuration.FeatureFlagDraft.FeatureFlagDraft() -> void
+Kun.Configuration.FeatureFlagDraft.IdempotencyKey.get -> System.Guid
+Kun.Configuration.FeatureFlagDraft.IdempotencyKey.init -> void
+Kun.Configuration.FeatureFlagDraft.Name.get -> string!
+Kun.Configuration.FeatureFlagDraft.Name.init -> void
+Kun.Configuration.FeatureFlagDraft.Rule.get -> Kun.Configuration.FeatureFlagPolicy!
+Kun.Configuration.FeatureFlagDraft.Rule.init -> void
+Kun.Configuration.FeatureFlagDraftResult
+Kun.Configuration.FeatureFlagDraftResult.FeatureFlagDraftResult() -> void
+Kun.Configuration.FeatureFlagDraftResult.Name.get -> string!
+Kun.Configuration.FeatureFlagDraftResult.Name.init -> void
+Kun.Configuration.FeatureFlagDraftResult.RuleHash.get -> string!
+Kun.Configuration.FeatureFlagDraftResult.RuleHash.init -> void
+Kun.Configuration.FeatureFlagDraftResult.Status.get -> string!
+Kun.Configuration.FeatureFlagManagement
+Kun.Configuration.FeatureFlagPolicy
+Kun.Configuration.FeatureFlagPolicy.Default.get -> bool
+Kun.Configuration.FeatureFlagPolicy.Default.init -> void
+Kun.Configuration.FeatureFlagPolicy.FeatureFlagPolicy() -> void
+Kun.Configuration.FeatureFlagPolicy.Percentage.get -> int
+Kun.Configuration.FeatureFlagPolicy.Percentage.set -> void
+Kun.Configuration.FeatureFlagPolicy.Tenants.get -> System.Collections.Generic.IReadOnlyList<System.Guid>!
+Kun.Configuration.FeatureFlagPolicy.Tenants.set -> void
+Kun.Configuration.FeatureFlagRule
+Kun.Configuration.FeatureFlagRule.Default.get -> bool
+Kun.Configuration.FeatureFlagRule.Percentage.get -> int
+Kun.Configuration.FeatureFlagRule.Tenants.get -> System.Collections.Generic.IReadOnlySet<System.Guid>!
+Kun.Configuration.FeatureFlagRules
+Kun.Configuration.IConfigService
+Kun.Configuration.IConfigService.Flags.get -> Kun.Configuration.IFeatureFlags!
+Kun.Configuration.IConfigService.GetReloadToken() -> Microsoft.Extensions.Primitives.IChangeToken!
+Kun.Configuration.IConfigService.GetRequiredValue(string! key) -> string!
+Kun.Configuration.IConfigService.GetValue(string! key) -> string?
+Kun.Configuration.IConfigService.ReadSection(string! path) -> System.Collections.Generic.IReadOnlyDictionary<string!, string?>!
+Kun.Configuration.IConfigService.Secrets.get -> Kun.Configuration.ISecretResolverFactory?
+Kun.Configuration.IFeatureFlagDrafts
+Kun.Configuration.IFeatureFlagDrafts.SetAsync(Kun.Configuration.FeatureFlagDraft! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Configuration.FeatureFlagDraftResult!>
+Kun.Configuration.IFeatureFlags
+Kun.Configuration.IFeatureFlags.IsEnabled(string! name, System.Guid tenantId) -> bool
+Kun.Configuration.ISecretAccessObserver
+Kun.Configuration.ISecretAccessObserver.RecordAsync(Kun.Configuration.SecretAccessEvent! access, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Configuration.ISecretResolver
+Kun.Configuration.ISecretResolver.ResolveAsync(string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Configuration.SecretValue!>
+Kun.Configuration.ISecretResolverFactory
+Kun.Configuration.ISecretResolverFactory.ForHost(string! policyId, Kun.Core.MultiTenancy.ITenantContext? tenantContext = null) -> Kun.Configuration.ISecretResolver!
+Kun.Configuration.ISecretResolverFactory.ForPlugin(Kun.Runtime.IPluginContext! context) -> Kun.Configuration.ISecretResolver!
+Kun.Configuration.SecretAccessEvent
+Kun.Configuration.SecretAccessEvent.<Clone>$() -> Kun.Configuration.SecretAccessEvent!
+Kun.Configuration.SecretAccessEvent.Allowed.get -> bool
+Kun.Configuration.SecretAccessEvent.Allowed.init -> void
+Kun.Configuration.SecretAccessEvent.Caller.get -> string!
+Kun.Configuration.SecretAccessEvent.Caller.init -> void
+Kun.Configuration.SecretAccessEvent.Deconstruct(out string! Caller, out string! Reference, out string? TenantId, out bool Allowed, out string! Outcome) -> void
+Kun.Configuration.SecretAccessEvent.Equals(Kun.Configuration.SecretAccessEvent? other) -> bool
+Kun.Configuration.SecretAccessEvent.Outcome.get -> string!
+Kun.Configuration.SecretAccessEvent.Outcome.init -> void
+Kun.Configuration.SecretAccessEvent.Reference.get -> string!
+Kun.Configuration.SecretAccessEvent.Reference.init -> void
+Kun.Configuration.SecretAccessEvent.SecretAccessEvent(string! Caller, string! Reference, string? TenantId, bool Allowed, string! Outcome) -> void
+Kun.Configuration.SecretAccessEvent.TenantId.get -> string?
+Kun.Configuration.SecretAccessEvent.TenantId.init -> void
+Kun.Configuration.SecretDiagnostic
+Kun.Configuration.SecretDiagnostic.<Clone>$() -> Kun.Configuration.SecretDiagnostic!
+Kun.Configuration.SecretDiagnostic.Code.get -> string!
+Kun.Configuration.SecretDiagnostic.Code.init -> void
+Kun.Configuration.SecretDiagnostic.Deconstruct(out string! Code, out string! Location, out string! Reason) -> void
+Kun.Configuration.SecretDiagnostic.Equals(Kun.Configuration.SecretDiagnostic? other) -> bool
+Kun.Configuration.SecretDiagnostic.Location.get -> string!
+Kun.Configuration.SecretDiagnostic.Location.init -> void
+Kun.Configuration.SecretDiagnostic.Reason.get -> string!
+Kun.Configuration.SecretDiagnostic.Reason.init -> void
+Kun.Configuration.SecretDiagnostic.SecretDiagnostic(string! Code, string! Location, string! Reason) -> void
+Kun.Configuration.SecretErrors
+Kun.Configuration.SecretGrant
+Kun.Configuration.SecretGrant.<Clone>$() -> Kun.Configuration.SecretGrant!
+Kun.Configuration.SecretGrant.Deconstruct(out string! Name, out string! Scope) -> void
+Kun.Configuration.SecretGrant.Equals(Kun.Configuration.SecretGrant? other) -> bool
+Kun.Configuration.SecretGrant.Name.get -> string!
+Kun.Configuration.SecretGrant.Name.init -> void
+Kun.Configuration.SecretGrant.Scope.get -> string!
+Kun.Configuration.SecretGrant.Scope.init -> void
+Kun.Configuration.SecretGrant.SecretGrant(string! Name, string! Scope) -> void
+Kun.Configuration.SecretReference
+Kun.Configuration.SecretReference.Path.get -> string!
+Kun.Configuration.SecretReference.Scope.get -> string!
+Kun.Configuration.SecretSafety
+Kun.Configuration.SecretValue
+Kun.Configuration.SecretValue.Bytes.get -> System.ReadOnlyMemory<byte>
+Kun.Configuration.SecretValue.Dispose() -> void
+Kun.Configuration.SecretValue.RevealUtf8() -> string!
+Kun.Configuration.SecretValue.SecretValue(System.ReadOnlySpan<byte> value) -> void
+Kun.Configuration.SecretValueJsonConverter
+Kun.Configuration.SecretValueJsonConverter.SecretValueJsonConverter() -> void
+const Kun.Configuration.ConfigDefinition.ValuesReadPermission = "qian.config:values:read" -> string!
+const Kun.Configuration.ConfigEvents.ReleaseAppliedCapabilityId = "qian.config/release.applied" -> string!
+const Kun.Configuration.ConfigEvents.ReleaseRejectedCapabilityId = "qian.config/release.rejected" -> string!
+const Kun.Configuration.ConfigEvents.ReloadFailedType = "config.reload.failed.v1" -> string!
+const Kun.Configuration.FeatureFlagManagement.SetCapabilityId = "qian.config.flags/flags.set" -> string!
+const Kun.Configuration.FeatureFlagManagement.SetPermission = "qian.config.flags:flag:set" -> string!
+const Kun.Configuration.FeatureFlagRules.MaximumTenants = 256 -> int
+const Kun.Configuration.FeatureFlagRules.Namespace = "qian.common.flags" -> string!
+const Kun.Configuration.FeatureFlagRules.Prefix = "flag." -> string!
+override Kun.Configuration.ConfigReloadFailed.Equals(object? obj) -> bool
+override Kun.Configuration.ConfigReloadFailed.GetHashCode() -> int
+override Kun.Configuration.ConfigReloadFailed.ToString() -> string!
+override Kun.Configuration.SecretAccessEvent.Equals(object? obj) -> bool
+override Kun.Configuration.SecretAccessEvent.GetHashCode() -> int
+override Kun.Configuration.SecretAccessEvent.ToString() -> string!
+override Kun.Configuration.SecretDiagnostic.Equals(object? obj) -> bool
+override Kun.Configuration.SecretDiagnostic.GetHashCode() -> int
+override Kun.Configuration.SecretDiagnostic.ToString() -> string!
+override Kun.Configuration.SecretGrant.Equals(object? obj) -> bool
+override Kun.Configuration.SecretGrant.GetHashCode() -> int
+override Kun.Configuration.SecretGrant.ToString() -> string!
+override Kun.Configuration.SecretReference.ToString() -> string!
+override Kun.Configuration.SecretValue.ToString() -> string!
+override Kun.Configuration.SecretValueJsonConverter.Read(ref System.Text.Json.Utf8JsonReader reader, System.Type! typeToConvert, System.Text.Json.JsonSerializerOptions! options) -> Kun.Configuration.SecretValue!
+override Kun.Configuration.SecretValueJsonConverter.Write(System.Text.Json.Utf8JsonWriter! writer, Kun.Configuration.SecretValue! value, System.Text.Json.JsonSerializerOptions! options) -> void
+static Kun.Configuration.ConfigDefinition.Config(this Kun.Runtime.IPluginContext! context) -> Kun.Configuration.IConfigService!
+static Kun.Configuration.ConfigDefinition.ResolveSecretAsync(this Kun.Runtime.IPluginContext! context, string! reference, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Configuration.SecretValue!>
+static Kun.Configuration.ConfigErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Kun.Configuration.ConfigReloadFailed.operator !=(Kun.Configuration.ConfigReloadFailed? left, Kun.Configuration.ConfigReloadFailed? right) -> bool
+static Kun.Configuration.ConfigReloadFailed.operator ==(Kun.Configuration.ConfigReloadFailed? left, Kun.Configuration.ConfigReloadFailed? right) -> bool
+static Kun.Configuration.FeatureFlagRules.Read(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string?>>! values) -> System.Collections.Frozen.FrozenDictionary<string!, Kun.Configuration.FeatureFlagRule!>!
+static Kun.Configuration.FeatureFlagRules.ValidName(string? name) -> bool
+static Kun.Configuration.FeatureFlagRules.Validate(System.Collections.Generic.IReadOnlyDictionary<string!, string?>! values) -> bool
+static Kun.Configuration.SecretAccessEvent.operator !=(Kun.Configuration.SecretAccessEvent? left, Kun.Configuration.SecretAccessEvent? right) -> bool
+static Kun.Configuration.SecretAccessEvent.operator ==(Kun.Configuration.SecretAccessEvent? left, Kun.Configuration.SecretAccessEvent? right) -> bool
+static Kun.Configuration.SecretDiagnostic.operator !=(Kun.Configuration.SecretDiagnostic? left, Kun.Configuration.SecretDiagnostic? right) -> bool
+static Kun.Configuration.SecretDiagnostic.operator ==(Kun.Configuration.SecretDiagnostic? left, Kun.Configuration.SecretDiagnostic? right) -> bool
+static Kun.Configuration.SecretErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Kun.Configuration.SecretGrant.operator !=(Kun.Configuration.SecretGrant? left, Kun.Configuration.SecretGrant? right) -> bool
+static Kun.Configuration.SecretGrant.operator ==(Kun.Configuration.SecretGrant? left, Kun.Configuration.SecretGrant? right) -> bool
+static Kun.Configuration.SecretReference.IsValid(string? value) -> bool
+static Kun.Configuration.SecretReference.Parse(string! value) -> Kun.Configuration.SecretReference!
+static Kun.Configuration.SecretSafety.Scan(System.Text.Json.JsonElement value, System.Text.Json.JsonElement? schema = null) -> System.Collections.Generic.IReadOnlyList<Kun.Configuration.SecretDiagnostic!>!
+static Kun.Configuration.SecretSafety.ScanConfiguration(System.Collections.Generic.IReadOnlyDictionary<string!, string?>! values, System.Text.Json.JsonElement? schema = null) -> System.Collections.Generic.IReadOnlyList<Kun.Configuration.SecretDiagnostic!>!
+static readonly Kun.Configuration.ConfigDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Configuration.ConfigErrors.BootstrapInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.ConfigErrors.ReloadRejected -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.ConfigErrors.RequiredMissing -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.ConfigRuntimeEvents.ReloadFailed -> Kun.Runtime.KunEvent<Kun.Configuration.ConfigReloadFailed!, object?>!
+static readonly Kun.Configuration.FeatureFlagManagement.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Configuration.SecretErrors.AccessDenied -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.SecretErrors.Exposed -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.SecretErrors.InvalidReference -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.SecretErrors.NotFound -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.SecretErrors.SchemaInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Configuration.SecretErrors.Unavailable -> Kun.Errors.ErrorCode!

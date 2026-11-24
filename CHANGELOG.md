@@ -8,7 +8,9 @@
 
 ## [Unreleased]
 
-（尚无新变更。）
+### Changed — 异常信息
+
+- 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。
 
 ## [2026.11.21] - 2026-11-21
 

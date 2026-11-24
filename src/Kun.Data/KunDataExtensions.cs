@@ -94,7 +94,7 @@ public static class KunDataExtensions
             if (context.GetService<IModelCacheKeyFactory>() is not KunMultiTenantModelCacheKeyFactory)
                 throw new KunDataMisconfiguredException("生效的 EF 模型缓存键被替换。");
             if (!context.UsesKunTenantRlsMigrations())
-                throw new KunDataMisconfiguredException("必须使用自动生成租户 RLS 策略的 Qian 迁移生成器。");
+                throw new KunDataMisconfiguredException("必须使用自动生成租户 RLS 策略的 Kun 迁移生成器。");
             var model = context.Model;
             var schema = context.GetService<IDbContextOptions>().Extensions
                 .OfType<RelationalOptionsExtension>().Single().MigrationsHistoryTableSchema;

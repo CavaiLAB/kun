@@ -26,7 +26,7 @@ namespace Kun.Dev.Shell;
 internal sealed record DevDexConnector(Uri Issuer, string SecretFile);
 
 // 真实 qian.identity 挂进 CRM 参考宿主（照集成测试 CustomerCommandTests.Identity 的 ConfigureIdentity / MountIdentity）：
-// 内置账号模型 + OpenIddict 协议面 + 账号 HTTP 接口，身份请求走自己的分支，不经过业务管线；同一分支经产品扩展 UseQianIdentityPages 同源托管认证页族（/login，S1-YUE-012）。
+// 内置账号模型 + OpenIddict 协议面 + 账号 HTTP 接口，身份请求走自己的分支，不经过业务管线；同一分支经产品扩展 UseKunIdentityPages 同源托管认证页族（/login，S1-YUE-012）。
 // 给出上游 Dex 时再挂 S1-IDP-007 的通用 OIDC 连接器组件（注册名 dex），SSO 跳转回调走真实的发起 → 上游登录 → /connect/callback/dex → 落点流程。
 // 给出开通申请组件时（S1-TEN-019），它的申请人接口、公开页与开发期发件箱的读取路由也走身份的公开分支。
 internal sealed class DevIdentity(Uri issuer, Uri callback, string uiDist, string clientSecret, DevDexConnector? dex = null, DevSignup? signup = null) : IDisposable

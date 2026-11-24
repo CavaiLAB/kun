@@ -56,7 +56,7 @@ public static class IdentityServerHosting
                     .Select(permission => permission[Permissions.Prefixes.Scope.Length..]).Distinct(StringComparer.Ordinal).ToArray());
                 // RFC 8707 resource 的两层检查。OpenIddict 自带的第一层拿请求原文去比 RegisterResources 登记项的 AbsoluteUri：只有主机的标识
                 // （如 https://api.qian.test，也是 MCP 推荐的不带结尾斜杠写法）规范化后多一个 /，永远对不上（ID2190）。所以关掉它、不再登记，
-                // 由 Qian 在同一位置按该客户端的白名单逐字比较，越界报 invalid_target。第二层仍是 OpenIddict 的客户端 rsrc: 权限（ID2192），
+                // 由本包在同一位置按该客户端的白名单逐字比较，越界报 invalid_target。第二层仍是 OpenIddict 的客户端 rsrc: 权限（ID2192），
                 // 只由各自的 Resources 推导，随描述符镜像进 OpenIddict 应用。
                 server.DisableResourceValidation();
                 foreach (var client in options.Clients) client.Application.Permissions.UnionWith(client.Resources.Select(resource => Permissions.Prefixes.Resource + resource));
@@ -220,7 +220,7 @@ public sealed class IdentityServerPlugin : IKunPlugin
         gate.Active = true; ctx.Effect(() => { gate.Active = false; });
     }
 
-    // Client 实体是可信配置的镜像，另记 Qian 的类型、端类型与归属；OpenIddict 应用仍是协议侧的事实来源。
+    // Client 实体是可信配置的镜像，另记 Kun 的类型、端类型与归属；OpenIddict 应用仍是协议侧的事实来源。
     private static async Task MirrorClientsAsync(IdentityDbContext database, IdentityServerOptions options, CancellationToken ct)
     {
         var now = DateTimeOffset.UtcNow;

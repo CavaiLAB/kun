@@ -89,7 +89,7 @@ public abstract class KunStrictDbContext : KunDbContext, IKunMultiTenantDbContex
         var interceptors = core.Interceptors.ToList();
         var softDelete = interceptors.FindIndex(interceptor => interceptor is KunSoftDeleteInterceptor);
         if (softDelete < 0 || softDelete > interceptors.FindIndex(interceptor => interceptor is AuditFieldsSaveChangesInterceptor))
-            throw new KunDataMisconfiguredException("必须在 Kun 审计字段拦截器之前装配 Qian 软删除拦截器。");
+            throw new KunDataMisconfiguredException("必须在 Kun 审计字段拦截器之前装配 Kun 软删除拦截器。");
         if (!core.Interceptors.OfType<KunTenantSaveChangesInterceptor>().Any())
             throw new KunDataMisconfiguredException("必须装配 Kun 的租户字段拦截器。");
         if (!core.Interceptors.OfType<KunApplicationRoleInterceptor>().Any())
@@ -99,7 +99,7 @@ public abstract class KunStrictDbContext : KunDbContext, IKunMultiTenantDbContex
             throw new KunDataMisconfiguredException("必须使用 KunMultiTenantModelCacheKeyFactory。");
         if (core.ReplacedServices.TryGetValue((typeof(IModelCustomizer), null), out var customizer) != true ||
             customizer != typeof(KunStrictModelCustomizer))
-            throw new KunDataMisconfiguredException("必须装配 Qian 数据模型约定。");
+            throw new KunDataMisconfiguredException("必须装配 Kun 数据模型约定。");
         var relational = options.Extensions.OfType<RelationalOptionsExtension>().SingleOrDefault();
         // schema 规则：没有前缀时只要求合法的小写标识符；宿主用 RequireKunSchemaPrefix 加前缀（AddKunData 设 plugin_）。
         var prefix = options.FindExtension<KunSchemaPrefixOptionsExtension>()?.Prefix;

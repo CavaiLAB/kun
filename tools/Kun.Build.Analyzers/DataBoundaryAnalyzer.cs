@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Kun.Build.Analyzers;
 
-/// <summary>禁止在线上下文绕开 Qian 安全基类，也禁止直接或委托调用 EF 查询过滤器旁路。</summary>
+/// <summary>禁止在线上下文绕开 Kun 安全基类（KunStrictDbContext），也禁止直接或委托调用 EF 查询过滤器旁路。</summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DataBoundaryAnalyzer : DiagnosticAnalyzer
 {

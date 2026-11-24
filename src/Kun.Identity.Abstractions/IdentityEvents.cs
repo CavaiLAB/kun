@@ -23,7 +23,7 @@ public static class IdentityEventIds
 }
 /// <summary>
 /// 身份集成事件共用字段；日志只输出事件类型，不输出会话或凭据。
-/// event_id、occurred_at 与 tenant_id 只在 Qian.Events 写入端生成的信封上，载荷不重复（S1-DEC-020）。
+/// event_id、occurred_at 与 tenant_id 只在 Kun.EventBus 写入端生成的信封上，载荷不重复（S1-DEC-020）。
 /// </summary>
 public abstract record IdentityIntegrationEvent(Guid PersonId, long IdentityRevision)
 {

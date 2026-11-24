@@ -6,10 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Kun.EntityFrameworkCore;
 
-/// <summary>安装不可由派生上下文遗漏的 Qian 模型约定。</summary>
+/// <summary>安装不可由派生上下文遗漏的 Kun 模型约定。</summary>
 public static class KunDataModelExtensions
 {
-    /// <summary>在业务映射之后应用 Kun 数据约定与 Qian schema 安全检查。</summary>
+    /// <summary>在业务映射之后应用 Kun 数据约定与 schema 安全检查。</summary>
     public static DbContextOptionsBuilder UseKunDataModel(this DbContextOptionsBuilder options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -83,7 +83,7 @@ internal sealed class KunStrictModelCustomizer(ModelCustomizerDependencies depen
     {
         base.Customize(modelBuilder, context);
         if (context is not KunStrictDbContext qian)
-            throw new KunDataMisconfiguredException("Qian 模型约定只能用于 KunStrictDbContext。");
+            throw new KunDataMisconfiguredException("Kun 模型约定只能用于 KunStrictDbContext。");
         qian.CompleteDataModel(modelBuilder);
     }
 }

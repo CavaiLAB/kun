@@ -10,7 +10,7 @@ using Org.BouncyCastle.Crypto.Generators;
 namespace Kun.Testing.Containers;
 
 /// <summary>
-/// 独立实现的外部 OIDC 发行方（CNCF Dex），用来验证依赖方能对接 Qian 之外的任意发行方。内存存储、本地密码库里一个用户、一个启用 PKCE 的公开客户端，
+/// 独立实现的外部 OIDC 发行方（CNCF Dex），用来验证依赖方能对接 Kun 身份服务之外的任意发行方。内存存储、本地密码库里一个用户、一个启用 PKCE 的公开客户端，
 /// 跳过授权确认页。Dex 的 issuer 必须在启动前写进配置，所以宿主端口与 RP 回调端口都在启动前选定；口令每次运行随机生成，配置里只有 bcrypt 哈希。
 /// </summary>
 public sealed class DexFixture : ContainerFixture<IContainer>

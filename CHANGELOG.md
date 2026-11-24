@@ -33,6 +33,7 @@
 `2026.11.21` 的事件与审计各节没有写全的行为变化与删除项，补记如下：
 
 - 自 2026.11.21 起，普通事件经 RabbitMQ 发布时不要求路由到队列（`mandatory: false`）：没有队列绑定该事件的路由键时，broker 丢弃这条事件并照常确认，Outbox 行标为已发布。此前 `Kun.EventBus.RabbitMQ` 的发布器按 mandatory 发布，路由不到时发布报错、由 Outbox 重试；现在不报错也不重试。需要接收事件的宿主要先部署订阅、让队列完成绑定，再让生产方发送。
+- 自 2026.11.21 起，实体审计的保存需要主体：不在 `EventEnvelopeScope` 内（命令管道会打开它）、`AuditContext.ActorId` 为空、当前用户也未认证时，拦截器拒绝这次保存，抛出错误码为 `EVENTS_PUBLISH_REJECTED` 的 `KunEventsException`，业务实体、审计日志与 Outbox 都不写入。后台作业、匿名请求等没有已认证用户的保存，要先用 `EventEnvelopeScope.Begin` 以实际的服务主体打开作用域，打开后可用同一上下文重试。
 
 ## [2026.11.21] - 2026-11-21
 

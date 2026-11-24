@@ -24,7 +24,7 @@ services.AddKunEventBus(registry => registry.RegisterAuditing());
 
 每个已登记实体的变化生成本库的 `AuditLog` 与一个 `kun.audit.event.v2` Outbox 信封。日志、Outbox 行与信封使用相同 ID。业务实体、日志和 Outbox 在同一个数据库事务中提交。已有 v1 宿主通过 `AddAuditingInterceptor` 使用当前正在保存的上下文暂存 `kun.audit.event.v1`。默认写入端在保存失败或取消时撤回本次添加的审计行，保留同一上下文里其他业务消息以供重试。实体应使用保存前即可确定的主键。
 
-信封的 producer 为 `qian.audit`。命令内保留现有 actor、相关 ID 与 trace；没有命令时使用审计主体或已认证用户。后台保存要用 `EventEnvelopeScope.Begin` 指定实际服务主体。平台级事件的租户为 null。原有 v1、v2 业务字段均在信封的 `payload` 中。
+信封的 producer 为 `qian.audit`。在命令或其他 `EventEnvelopeScope` 内保存时，保留作用域里的 actor、相关 ID 与 trace；不在作用域内时，主体取 `AuditContext.ActorId`，没有就取已认证用户。两者都没有时保存被拒绝：抛出错误码为 `EVENTS_PUBLISH_REJECTED` 的 `KunEventsException`，业务实体、日志与 Outbox 都不写入。后台作业、匿名请求等没有已认证用户的保存，要先用 `EventEnvelopeScope.Begin` 以实际的服务主体打开作用域，打开后可用同一上下文重试。平台级事件的租户为 null。原有 v1、v2 业务字段均在信封的 `payload` 中。
 
 网关的内部令牌用 `sub` 标识当前主体，`principal_kind` 标识主体类型。业务审计可通过 `ICurrentUser` 取得已验证身份，需要记录委托关系时使用验证后的 `Principal.Actor`。链路关联使用当前 Activity 的 TraceId。
 

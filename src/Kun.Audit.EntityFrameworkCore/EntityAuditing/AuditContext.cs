@@ -6,11 +6,10 @@ namespace Kun.Auditing;
 /// <see cref="AuditingSaveChangesInterceptor"/>.
 /// </summary>
 /// <remarks>
-/// All fields are nullable and default to <see langword="null"/>; the middleware (or any
-/// caller) populates them before the command handler opens its unit of work. The
-/// interceptor does not fill in defaults — missing fields surface as <see langword="null"/>
-/// on the emitted <see cref="Events.AuditEventIntegrationEvent"/>, which is the expected
-/// behaviour for background jobs and other hosts without an HTTP context.
+/// 字段都可为空；中间件（或其他调用方）在命令处理器打开工作单元之前填好，没有 HTTP 上下文的宿主可以不填。
+/// 主体例外：不在 <see cref="Kun.EventBus.EventEnvelopeScope"/> 内保存时，<see cref="ActorId"/> 为空且当前用户未认证，
+/// 拦截器拒绝这次保存，抛出错误码为 <c>EVENTS_PUBLISH_REJECTED</c> 的 <see cref="Kun.EventBus.KunEventsException"/>。
+/// 后台作业与匿名请求要先以服务主体打开 <see cref="Kun.EventBus.EventEnvelopeScope"/>。
 /// </remarks>
 public sealed class AuditContext
 {
@@ -27,8 +26,9 @@ public sealed class AuditContext
     public string? ActorId { get; set; }
 
     /// <summary>
-    /// Kind of actor performing the action. Defaults to <c>"system"</c> for background-job /
-    /// uninitialized contexts; typical values are <c>"user"</c>, <c>"agent"</c>, <c>"system"</c>.
+    /// 主体类型：<c>"user"</c>、<c>"agent"</c>、<c>"service"</c> 或 <c>"system"</c>，缺省 <c>"system"</c>；
+    /// 当前用户已认证且仍是缺省值时按 <c>"user"</c> 记。缺省值不能代替主体：<see cref="ActorId"/> 为空、当前用户未认证、
+    /// 又不在 <see cref="Kun.EventBus.EventEnvelopeScope"/> 内时，保存会被拒绝。
     /// </summary>
     public string ActorType { get; set; } = "system";
 }

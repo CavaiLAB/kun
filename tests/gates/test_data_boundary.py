@@ -14,6 +14,7 @@ class DataBoundaryTests(unittest.TestCase):
             ("DirectContext", "KUNDATA001"),
             ("IndirectContext", "KUNDATA001"),
             ("FilterBypass", "KUNDATA002"),
+            ("FilterBypassDelegate", "KUNDATA002"),
             ("SafeContext", None),
             ("UnrelatedMethod", None),
         ]

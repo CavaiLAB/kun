@@ -258,7 +258,7 @@ S1-IDP-005 再禁用 Kun.Security 的令牌透传：`PropagateS2sTokenHandler` �
 
 `DataBoundaryAnalyzer` 对非测试项目中直接或间接继承 EF `DbContext`、却不继承 `KunStrictDbContext` 的上下文报 KUNDATA001。测试项目可定义验证用的上下文；编译样例显式设置 `IsTestProject=false` 模拟在线代码，不因位于 tests 目录而豁免。
 
-接入分析器的项目里，对 EF `IgnoreQueryFilters` 的调用和方法委托引用报 KUNDATA002，按语义符号识别，其他类的同名方法不误报。`test_data_boundary.py` 验证五组真实 EF 正反例，负例即使关闭 TreatWarningsAsErrors 也必须失败。真库隔离测试使用受限应用角色的原生 SQL，不调用过滤器旁路。
+接入分析器的项目里，对 EF `IgnoreQueryFilters` 的调用和方法委托引用报 KUNDATA002，按语义符号识别，其他类的同名方法不误报。`test_data_boundary.py` 验证六组真实 EF 正反例，调用与方法委托引用各用一组负例，负例即使关闭 TreatWarningsAsErrors 也必须失败。真库隔离测试使用受限应用角色的原生 SQL，不调用过滤器旁路。
 
 ### 受保护命令注册门禁（S1-AZ-001）
 

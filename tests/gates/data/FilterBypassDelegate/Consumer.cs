@@ -1,0 +1,1 @@
+using Microsoft.EntityFrameworkCore; public static class UnsafeQuery { public static Func<IQueryable<T>, IQueryable<T>> Delegate<T>() where T : class => EntityFrameworkQueryableExtensions.IgnoreQueryFilters<T>; }

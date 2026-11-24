@@ -15,6 +15,8 @@ amends: 修订 ADR-013、ADR-019、ADR-020
 > 状态：Accepted（2026-11-17）。方向与并入范围由产品负责人裁定（[S1-DEC-036](../../pm/tasks/S1-DEC-036.md) D1–D14，对应本文 D23.1–D23.5 与 D23.17 至 D23.20），§7 的十条待确认项已逐条确认，其余条目随本文确认。本文按 D23.15 分阶段落地：对应阶段的任务开工之前不动代码与仓库结构，`AGENTS.md` 里的现行规则照旧执行。ADR-001、ADR-021 已标部分取代，ADR-013、ADR-019、ADR-020 已标修订。
 >
 > 修订（2026-11-17，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D17、D18）：合并后的仓库由 `idadawn/kun` 改为 `CavaiLAB/kun`，改写 D23.1 与 D23.13 里的仓库地址，原 Kun 的历史 PR 号也要改写成带仓库名的形式；迁移现在开始，不再等「初步可用」里程碑收口，改写 D23.20 第 3 点与 D23.15 的时点；前端迁往 `CavaiLAB/qian` 并行进行，不再排在阶段 3 的最后一批，改写 D23.17、D23.18 第 5 点与 D23.15 的排期。包族并成 `Kun.*`、两档分层、归并对照、命名规则、许可、运行期字面不改、租户号用 Guid 都不受影响。正文未改；阶段怎样对应到批次，见 `CavaiLAB/kun` 的 `docs/migration-plan.md`。
+>
+> 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D27–D29、D31–D34）：S1-DEC-038 登记的执行中出入回写到受影响的条目前：D23.9 的包数与 Principal 契约包（D28）、身份客户端（D29）、权限端口（D31）、静态能力目录（D32）、配置契约的档位（D33），D23.14 第 4 点的分析器作用域（D27、D34，D27 的过渡期已结束）。D27 是产品负责人 2026-11-19 的决定，D28–D34 由各执行批次登记。首个合并版 2026.11.21 是 85 个包（内核档 42、平台档 43）。D23.9「当前用户」一项的现状与处理办法待产品负责人确认，见 S1-DEC-038 的 Q9。正文未改。
 
 ## 1 背景与问题（Context）
 
@@ -104,7 +106,7 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
   4. 类型名里的 `Qian` 与包名同批改，撞名处在各域批次里逐个定。
   5. 组件 id 与包名脱钩。组件 id 保持 `qian.<x>`，不再由包名机械派生，清单的 `runtime.nuget[]` 显式列包名（[specs/component-model.md](../prd/specs/component-model.md) §6.1 已允许不同名）。
 
-- **D23.9 逐模块归并对照**。按下表合计 84 个包（内核档 40、平台档 44），现在两边合计 91 个。「归档」指移出解决方案与发版清单，源码留在 git 历史里，nuget.org 上已发布的版本不动。档位在各批次开工时按依赖图复核。
+- 【经 S1-DEC-038 D28、D33 修订：首个合并版 2026.11.21 是 85 个包（内核档 42、平台档 43）。D28 新增内核契约包 `Kun.Security.Abstractions`，D33 把 `Kun.Configuration.Abstractions` 记为内核契约；其余包的名单与档位与下表一致】**D23.9 逐模块归并对照**。按下表合计 84 个包（内核档 40、平台档 44），现在两边合计 91 个。「归档」指移出解决方案与发版清单，源码留在 git 历史里，nuget.org 上已发布的版本不动。档位在各批次开工时按依赖图复核。
 
   **运行时基础与错误模型**
 
@@ -113,7 +115,7 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
   | Kun.Errors | Qian.Runtime.Errors | 内核 | 两边各有一套错误模型，留 Qian 的线上模型（错误码、目录、ErrorDetail），做成零依赖包，Kun.Core 引用它 |
   | Kun.Errors.AspNetCore | Qian.Runtime.Errors.AspNetCore | 内核 | 两边各有一套异常转 HTTP 响应，留 Qian 的；Kun.AspNetCore 里的异常处理器归档 |
   | Kun.Core | Kun.Core | 内核 | `Result<T>` 留作进程内返回类型，`Error` 改为携带错误码；两个异常合一，两边之间的桥删除；Kun 内置错误码改成大写下划线并登记进目录 |
-  | Kun.Mediator | Kun.Mediator | 内核 | 留 Kun 的；登记改为可叠加，给权限行为开正式扩展点，静态能力目录并入平台档的能力目录 |
+  | Kun.Mediator | Kun.Mediator | 内核 | 【经 S1-DEC-038 D32 修订：静态能力目录已移除，Mediator 只管请求调度；平台能力目录取 SDK 具名绑定与 Registry 的 scope 视图的交集，输入、输出 Schema 由 SDK 从 `JsonTypeInfo` 导出】留 Kun 的；登记改为可叠加，给权限行为开正式扩展点，静态能力目录并入平台档的能力目录 |
   | Kun.Validation | Kun.Validation | 内核 | 留 Kun 的；字段错误改用字段级错误码与 JSON Pointer |
   | Kun.AspNetCore | Kun.AspNetCore | 内核，非 AOT | 只留端点映射；权限扩展移到授权域 |
   | Kun.Runtime | Qian.Runtime | 内核 | 留 Qian 的组件运行时；表面键与 scope 种类带产品语义，上移平台档 |
@@ -137,8 +139,8 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
   | Kun.Data、Kun.Data.AspNetCore、Kun.Data.Dialect.Pg | 同名 Qian 包 | 平台 | 改名 |
   | Kun.Tenancy.Abstractions、Kun.Tenancy、Kun.Tenancy.AspNetCore | 同名 Qian 包 | 平台 | 改名；租户开通的步骤表留在这里 |
   | Kun.Tenancy.Signup.Abstractions、Kun.Tenancy.Signup | 同名 Qian 包 | 平台 | 改名 |
-  | Kun.Authorization | Kun.Authorization | 内核 | 端口原样 |
-  | Kun.Authorization.Rbac.Abstractions、Kun.Authorization.Rbac | Qian.Authz.Abstractions、Qian.Authz | 平台 | 改名；过滤表达式与判定主体两边各有一份类型，合一；引擎不再按类型名字符串挂接中介的内部类 |
+  | Kun.Authorization | Kun.Authorization | 内核 | 【经 S1-DEC-038 D31 修订：端口有两处改动：`IDataPermissionFilter` 只留进程内表达式 `GetExpressionAsync<T>`，`DataPermissionPredicate` 与 `GetPredicateAsync` 移除；新增 gRPC 权限拦截器的标记接口 `IPermissionEnforcementInterceptor`】端口原样 |
+  | Kun.Authorization.Rbac.Abstractions、Kun.Authorization.Rbac | Qian.Authz.Abstractions、Qian.Authz | 平台 | 【经 S1-DEC-038 D31 修订：判定主体合一为 `Kun.Authorization.AuthorizationSubject`，执行请求显式带身份修订与委托状态；过滤条件合一为数据契约的 Filter AST，按「同角色 AND、不同角色 OR」合成结构化计划】改名；过滤表达式与判定主体两边各有一份类型，合一；引擎不再按类型名字符串挂接中介的内部类 |
   | Kun.Authorization.AspNetCore | Qian.Authz.AspNetCore | 平台 | HTTP 与 gRPC 的强制执行点两边各有一套，留 Qian 的；`RequireKunPermission` 与 `RequireQianPermission` 并成一个 |
   | 归档：Kun.Dapper | — | — | Qian 没有使用方，职责与原生通道重叠；分页类型如仍需要，并入原生通道 |
 
@@ -146,11 +148,11 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
 
   | 合并后的包 | 来源 | 档位 | 归并动作 |
   |---|---|---|---|
-  | Kun.Security | Kun.Security，加 Qian 的 Principal、claim 词汇表与服务间令牌契约校验 | 内核 | 服务间令牌的契约规则现在在签发、校验、投影三处各写一遍，并成一份；「当前用户」的多个实现并成一个；已废弃的旧签发与校验目录归档 |
+  | Kun.Security | Kun.Security，加 Qian 的 Principal、claim 词汇表与服务间令牌契约校验 | 内核 | 【经 S1-DEC-038 D28 修订：Principal 一组（`Principal`、`DelegationActor`、`PrincipalKind` 与它的 JSON 转换器、`IdentityClaimNames`）进新的内核契约包 `Kun.Security.Abstractions`（零依赖、AOT 兼容，命名空间 `Kun.Security`）；`Kun.Security` 留服务间令牌的契约校验与从声明解析主体的规则（`S2sPrincipalContract`、`PrincipalClaims`），签发方与接收方共用。「当前用户」一项待确认，见 S1-DEC-038 的 Q9】服务间令牌的契约规则现在在签发、校验、投影三处各写一遍，并成一份；「当前用户」的多个实现并成一个；已废弃的旧签发与校验目录归档 |
   | Kun.Identity | Kun.Identity | 内核 | 留 Kun 的协议与会话存储；已废弃的签发类型删除；依赖方类型迁到根命名空间，给平台契约让出名字 |
   | Kun.Identity.AspNetCore | Kun.Identity.AspNetCore、Qian.Identity.Client 的逻辑 | 内核 | 现在是三层，并成两层，以 Qian.Identity.Client 的逻辑为主 |
-  | Kun.Identity.Abstractions | Qian.Identity.Abstractions 里的人员、成员、连接器契约 | 平台 | Principal 一组下沉到 Kun.Security 后的剩余部分 |
-  | Kun.Identity.Client | Qian.Identity.Client 的组件外壳 | 平台 | 只剩薄外壳；若外壳不再依赖平台契约，则并入 Kun.Identity.AspNetCore |
+  | Kun.Identity.Abstractions | Qian.Identity.Abstractions 里的人员、成员、连接器契约 | 平台 | 【经 S1-DEC-038 D28 修订：Principal 一组进的是 `Kun.Security.Abstractions`】Principal 一组下沉到 Kun.Security 后的剩余部分 |
+  | Kun.Identity.Client | Qian.Identity.Client 的组件外壳 | 平台 | 【经 S1-DEC-038 D29 修订：不是薄外壳，也不并入。主体、服务认证与会话的实现在内核适配 `Kun.Identity.AspNetCore`；本包依赖平台契约 `Kun.Identity.Abstractions`，作为平台提供者实现身份 seam 的依赖方一侧：`IIdentityService` 只回答当前主体，人员、成员、会话管理与连接器登记属于身份服务，在这里明确拒绝；另有浏览器端点、组件登记与配置。内核经依赖方身份与会话端口与它衔接】只剩薄外壳；若外壳不再依赖平台契约，则并入 Kun.Identity.AspNetCore |
   | Kun.Identity.Server | Qian.Identity.Server | 平台，非 AOT | 改名；迁移快照里写死的实体全名同步改，库表结构不变 |
   | Kun.Identity.Connector.Oidc | Qian.Identity.Connector.Oidc | 平台 | 改名；它与 Kun 的 OIDC 客户端是同一协议的两份实现，先逐条比对校验规则再合一 |
   | Kun.Gateway、Kun.Gateway.Abstractions | Kun.Gateway、Qian.Gateway、Qian.Gateway.Abstractions | 内核 | Kun.Gateway 由可执行程序改为纯库并吸收 Qian.Gateway；两个选项类型合一，以声明式的那份为准 |
@@ -180,7 +182,7 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
   | Kun.Configuration | Kun.Configuration、Qian 的强类型配置入口 | 内核 | 强类型配置两边各有一套；以 Qian 的委托绑定为主入口，Kun 的反射重载保留并标注；两个配置监视器合一 |
   | Kun.Configuration.Apollo | Kun.Configuration.Apollo，加 Qian.Config.Apollo 的源顺序、引导校验、密钥引用、快照扫描 | 内核 | 协议客户端留 Kun 的；Qian 的装饰层下沉后删除 |
   | Kun.Configuration.Secrets | Qian.Config.Secrets | 内核 | 改名 |
-  | Kun.Configuration.Abstractions、Kun.Configuration.Platform、Kun.Configuration.AspNetCore | Qian.Config.Abstractions、Qian.Config.Apollo 的平台部分、Qian.Config.AspNetCore | 平台 | 配置服务与开关的端口、发布记录入审计链、草稿管理、三个组件 |
+  | Kun.Configuration.Abstractions、Kun.Configuration.Platform、Kun.Configuration.AspNetCore | Qian.Config.Abstractions、Qian.Config.Apollo 的平台部分、Qian.Config.AspNetCore | 平台 | 【经 S1-DEC-038 D33 修订：`Kun.Configuration.Abstractions` 记内核契约，只依赖 `Kun.Runtime`、`Kun.Core` 与标准配置抽象；Apollo 引导、敏感快照检查与发布结果在内核提供者 `Kun.Configuration.Apollo`，租户放量求值、草稿管理与审计写入在平台提供者 `Kun.Configuration.Platform`，HTTP 端点在平台档的 `Kun.Configuration.AspNetCore`；包数不变】配置服务与开关的端口、发布记录入审计链、草稿管理、三个组件 |
   | Kun.Storage.Abstractions、Kun.Storage.Local、Kun.Storage.S3、Kun.Storage.Oss | Kun 存储新线 | 内核，S3 与 Oss 非 AOT | 留 Kun 的；本地后端的签名与校验从 Qian.Files 下沉 |
   | Kun.Files.Abstractions、Kun.Files、Kun.Files.AspNetCore | 同名 Qian 包 | 平台，非 AOT | 改名；Qian 自立的后端端口收敛到 Kun 的存储接口上 |
   | Kun.Testing、Kun.Testing.EntityFrameworkCore | 同名 Kun 包 | 内核 | 原样；它们是断言扩展 |
@@ -191,7 +193,7 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
 
   | 合并后的包 | 来源 | 档位 | 归并动作 |
   |---|---|---|---|
-  | Kun.Capabilities.Abstractions、Kun.Capabilities、Kun.Capabilities.AspNetCore | 同名 Qian 包 | 平台，非 AOT | 改名；Kun.Mediator 里已有的静态能力目录并入 |
+  | Kun.Capabilities.Abstractions、Kun.Capabilities、Kun.Capabilities.AspNetCore | 同名 Qian 包 | 平台，非 AOT | 【经 S1-DEC-038 D32 修订：静态能力目录没有并入，已从 Mediator 移除；平台能力目录取 SDK 具名绑定与 Registry 的 scope 视图的交集】改名；Kun.Mediator 里已有的静态能力目录并入 |
   | Kun.Registry.Abstractions、Kun.Registry、Kun.Registry.AspNetCore | 同名 Qian 包 | 平台 | 改名 |
   | Kun.Surfaces.Abstractions、Kun.Surfaces、Kun.Surfaces.Hosting | 同名 Qian 包 | 平台 | 改名 |
   | Kun.Profiles.Abstractions、Kun.Profiles | 同名 Qian 包 | 平台 | 改名 |
@@ -234,7 +236,7 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
   1. 依赖门禁改为显式的「包 → 档位与角色」表，写在项目属性里。现在的两道门禁按 `Qian.` 前缀和 `.Abstractions` 后缀判定，包名一改就会静默失效，所以这一步排在任何改名之前，并带自测。规则是 D23.7 的两条，加 Kun 现有的「Kun.Core 零依赖」检查；Kun 文档里的四层方向没有机器检查，由档位规则取代。
   2. 公共 API 门禁取 Qian 的做法：可打包的项目必须带两份清单，缺文件即报错。分析器升到 5.6.0。
   3. AOT：缺省不声明，逐项目显式打开；开关移到晚于项目文件求值的位置；是否兼容以宿主原生发布并运行的冒烟为准，不以标记为准。Kun 现有四份互不一致的 AOT 模块清单并成一份。
-  4. 禁用符号与数据层分析器现在对全部项目生效，直接套到 Kun 源码上会拦住被禁类型自己的定义。被禁的类型大多在归档名单里；其余的把规则作用域收到平台档与宿主。
+  4. 【经 S1-DEC-038 D27、D34 修订：过渡期（包还在 `_import/qian/` 下时）该目录下的项目全部接入，内核档也在内（D27，CavaiLAB/kun#35）；过渡目录搬空后按项目归属接入：平台档的包与声明 `KunHost` 的宿主接入，门禁样例用 `KunPlatformAnalyzers` 显式接入（D34，CavaiLAB/kun#99）。D27 的过渡期已结束，不再适用】禁用符号与数据层分析器现在对全部项目生效，直接套到 Kun 源码上会拦住被禁类型自己的定义。被禁的类型大多在归档名单里；其余的把规则作用域收到平台档与宿主。
   5. 中央包版本：两边同名不同版的 19 个包全部取高的一边。三处跨主版本（Microsoft.OpenApi、JsonSchema.Net、xunit.v3）要实测。测试运行器统一到 Microsoft.Testing.Platform，Kun 工作流里的过滤与覆盖率参数重写。
   6. CI 全部跑在 GitHub 托管 runner 上，自托管 runner 只留基准与对象存储实测。Kun 的格式门禁先不对并入的 Qian 代码打开。
 

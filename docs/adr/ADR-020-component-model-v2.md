@@ -14,6 +14,8 @@ amended_by: ADR-023
 
 > **2026-11-17 经 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) 修订。** §7 第 6 条的许可证由 Apache-2.0 改为 MIT（ADR-023 D23.11），公开 feed 的安排按 D23.12；D20.4 的 seam 三角色原样保留，适用于平台档（D23.7）。其余条目不变。
 
+> 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D22、D23、D30）：按 2026-11-19 平台级裁定 P29、P30，加一种 Agent 一级的范围（D20.5），组件里新增一种「知识库」内容（D20.6），两处的细则都待定；按执行批次 S1-KUN-022 的落地，.NET 的类型化组件改用源生成的配置契约（D20.2）。正文未改，受影响的条目前加了标注。
+
 ## 1 背景与问题（Context）
 
 2026-10-06 产品负责人给出两条连续的方向修正：第一，通用组件（登录、权限、文件上传等）要做到「别人安装一个包就能直接用」；第二，组件化设计要对标当代 Agent 生态里的三类做法，「不要再做传统设计」。所指的三类做法分别是：
@@ -27,11 +29,11 @@ amended_by: ADR-023
 ## 2 决策（Decision）
 
 - **D20.1 一切皆插件，没有特权内核。** Qian 的运行时只剩一个极小的 `Qian.Runtime`：上下文（`ctx`）、服务注册、类型化事件、可逆副作用、加载器。租户、身份、鉴权、文件、配置、网关、事件、审计、低代码运行时、Agent 门面全部是插件，向共享上下文贡献服务（`ctx.Tenancy`、`ctx.Identity`、`ctx.Authz`、`ctx.Files`、`ctx.Config`、`ctx.Events`…）、事件与可撤销的注册。原 `qian.kernel` 承担的注册表、生命周期控制器、能力目录、契约仓库改为普通插件（`qian.registry`、`qian.lifecycle`、`qian.capabilities`），每一项都能从配置替换。扩展 Qian 的方式是把插件挂到其他插件旁边，而不是修改内核。
-- **D20.2 插件的最小接口是 `Inject` + `Apply`。** 插件声明所依赖的服务键（`Inject`），依赖就绪才启动，装载顺序由依赖关系表达；`Apply(ctx, config)` 在上下文里注册服务、监听器与效果。所有注册都是副作用，经 `ctx.Effect()` 返回释放函数，在卸载、重载与 teardown 时按注册的逆序撤销。.NET 落地为 `IQianPlugin`（基于 .NET DI keyed services 与 `Kun.Mediator`），TypeScript 落地为 `@qian/runtime`（［前端框架］外壳也是一棵插件树），两侧语义相同。
+- 【经 S1-DEC-038 D30 补记：.NET 一侧的类型化组件 `IKunPlugin<TConfig>` 提供源生成的 `JsonTypeInfo<TConfig>`（Web 约定），装载器在进入组件之前完成配置绑定；非泛型组件照旧读 `JsonElement`；`Kun.Runtime` 标记为 AOT 兼容】**D20.2 插件的最小接口是 `Inject` + `Apply`。** 插件声明所依赖的服务键（`Inject`），依赖就绪才启动，装载顺序由依赖关系表达；`Apply(ctx, config)` 在上下文里注册服务、监听器与效果。所有注册都是副作用，经 `ctx.Effect()` 返回释放函数，在卸载、重载与 teardown 时按注册的逆序撤销。.NET 落地为 `IQianPlugin`（基于 .NET DI keyed services 与 `Kun.Mediator`），TypeScript 落地为 `@qian/runtime`（［前端框架］外壳也是一棵插件树），两侧语义相同。
 - **D20.3 事件即扩展点，五种分发模式。** `emit`（观察）、`waterfall`（环绕中间件，监听器必须调用 `next()` 才委托）、`parallel`（并行扇出）、`serial`（按序）、`bail`（停在首个返回值）。每个事件在定义处标注模式，CI 校验声明与调用点一致，并生成「事件生产方与消费方」映射。拦截与策略优先用事件，直接能力调用优先用服务方法。
 - **D20.4 能力按 seam 三角色拆分。** 一项能力 = Service Definition（拥有 `ctx.<key>` 与词汇类型，放在 `Qian.<X>.Abstractions`）+ 一个或多个 Service Provider（`Qian.<X>.<Provider>`）+ 一个或多个 Consumer（含面向模型的工具）。扩展插件只依赖 Definition，绝不依赖具体 Provider。例：`ctx.Files` 的 Provider 从本地盘换成 OSS，所有消费者不变；`ctx.Identity` 的 Provider 从嵌入式 OpenIddict 换成外部 IdP 连接器，登录页与会话中心不变。ADR-019 的 Abstractions / 实现分层据此落位。
-- **D20.5 作用域两层扁平。** 任一注册（服务、工具、提示词片段、表单、流程、菜单、监听器）要么是全局的，要么归属恰好一个 scope key；S1 的 scope 种类为租户、应用、Agent 会话。带作用域的注册在该 scope 内遮蔽（shadow）同名全局项；`restrict` 为某个 scope 过滤全局集合，多个 restriction 取交集；被过滤掉的项既不出现在目录与提示词里，也拒绝执行，与不存在无法区分。scope 不继承：子 scope 的行为用 lineage 数据表达，从不用 scope 层级。这取代 ADR-002 D2.9 的租户级生命周期：**租户启用一个插件 = 在租户 scope 挂载它的配置条目；租户定制 = 带作用域的遮蔽注册**。
-- **D20.6 组件 = 文件夹 + 清单 + 声明式表面 + 可选代码。** 目录约定如下；无代码的组件（只有 skill、只有配置）是常态而非例外。
+- 【经 S1-DEC-038 D22 修订：加一种 Agent 一级的范围，用来给某个 Agent 长期挂组件（平台级裁定 P29）。它与 S1 的三种范围谁遮蔽谁、授权范围变大时由谁确认，以及与本条的两层扁平、scope 不继承怎么相容，待定；清单 `scopes[]` 现在可取的值是 `global`、`tenant`、`app`、`agent-session`】**D20.5 作用域两层扁平。** 任一注册（服务、工具、提示词片段、表单、流程、菜单、监听器）要么是全局的，要么归属恰好一个 scope key；S1 的 scope 种类为租户、应用、Agent 会话。带作用域的注册在该 scope 内遮蔽（shadow）同名全局项；`restrict` 为某个 scope 过滤全局集合，多个 restriction 取交集；被过滤掉的项既不出现在目录与提示词里，也拒绝执行，与不存在无法区分。scope 不继承：子 scope 的行为用 lineage 数据表达，从不用 scope 层级。这取代 ADR-002 D2.9 的租户级生命周期：**租户启用一个插件 = 在租户 scope 挂载它的配置条目；租户定制 = 带作用域的遮蔽注册**。
+- 【经 S1-DEC-038 D23 修订：组件里新增一种「知识库」内容，即一批资料连同它的整理方式（平台级裁定 P30）。格式、由谁存放、整理与检索待定；下面的目录约定与清单的表面里还没有它】**D20.6 组件 = 文件夹 + 清单 + 声明式表面 + 可选代码。** 目录约定如下；无代码的组件（只有 skill、只有配置）是常态而非例外。
 
   ```text
   <plugin>/

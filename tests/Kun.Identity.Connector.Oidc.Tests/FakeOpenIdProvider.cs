@@ -62,8 +62,8 @@ internal sealed class FakeOpenIdProvider : HttpMessageHandler
         return (code, query["state"], query);
     }
 
-    /// <summary>按 OP 的规则签一张 id_token；claims 覆盖缺省值，值为 null 表示去掉该声明。</summary>
-    internal string Token(Grant grant, IDictionary<string, object?>? claims = null, SecurityKey? key = null, string algorithm = SecurityAlgorithms.RsaSha256, TimeSpan? expiresIn = null)
+    /// <summary>按 OP 的规则签一张 id_token；claims 覆盖缺省值，值为 null 表示去掉该声明；issuedIn 把签发时间设为当前时间加该偏移。</summary>
+    internal string Token(Grant grant, IDictionary<string, object?>? claims = null, SecurityKey? key = null, string algorithm = SecurityAlgorithms.RsaSha256, TimeSpan? expiresIn = null, TimeSpan? issuedIn = null)
     {
         var now = _clock.GetUtcNow().UtcDateTime;
         var payload = new Dictionary<string, object>
@@ -84,7 +84,7 @@ internal sealed class FakeOpenIdProvider : HttpMessageHandler
         var descriptor = new SecurityTokenDescriptor
         {
             Claims = payload,
-            IssuedAt = expires < now ? expires - TimeSpan.FromMinutes(10) : now,
+            IssuedAt = issuedIn is { } offset ? now + offset : expires < now ? expires - TimeSpan.FromMinutes(10) : now,
             NotBefore = expires < now ? expires - TimeSpan.FromMinutes(10) : now,
             Expires = expires,
             SigningCredentials = new SigningCredentials(key ?? SigningKey, algorithm)

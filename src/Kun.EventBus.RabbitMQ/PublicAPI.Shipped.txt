@@ -1,1 +1,19 @@
 #nullable enable
+Kun.EventBus.RabbitMQ.KunEventsRabbitMqExtensions
+Kun.EventBus.RabbitMQ.KunEventsSubscriberBuilder
+Kun.EventBus.RabbitMQ.KunEventsSubscriberBuilder.Service.get -> string!
+Kun.EventBus.RabbitMQ.KunEventsSubscriberBuilder.Subscribe<TEvent, THandler>(string! subscription, Kun.EventBus.EventSubscriptionMode mode = Kun.EventBus.EventSubscriptionMode.Competing, bool acceptPlatformEvents = false) -> Kun.EventBus.RabbitMQ.KunEventsSubscriberBuilder!
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.IdempotencyTtl.get -> System.TimeSpan
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.IdempotencyTtl.set -> void
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.Instance.get -> string!
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.Instance.set -> void
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.KunEventsSubscriberOptions() -> void
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.MaxRetries.get -> int
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.MaxRetries.set -> void
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.PrefetchCount.get -> ushort
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.PrefetchCount.set -> void
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.RetryBaseDelay.get -> System.TimeSpan
+Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions.RetryBaseDelay.set -> void
+static Kun.EventBus.RabbitMQ.KunEventsRabbitMqExtensions.AddKunEventsBroker(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<System.IServiceProvider!, string!>! resolveAmqpUri, string? brokerReference = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.EventBus.RabbitMQ.KunEventsRabbitMqExtensions.AddKunEventsSubscriber(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, string! service, System.Action<Kun.EventBus.RabbitMQ.KunEventsSubscriberBuilder!>! subscribe, System.Action<Kun.EventBus.RabbitMQ.KunEventsSubscriberOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

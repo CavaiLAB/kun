@@ -1,1 +1,13 @@
 #nullable enable
+Kun.Files.AspNetCore.FilesEndpointOptions
+Kun.Files.AspNetCore.FilesEndpointOptions.EntryId.get -> string!
+Kun.Files.AspNetCore.FilesEndpointOptions.EntryId.init -> void
+Kun.Files.AspNetCore.FilesEndpointOptions.FilesEndpointOptions() -> void
+Kun.Files.AspNetCore.FilesEndpointOptions.RequirePlugin.get -> bool
+Kun.Files.AspNetCore.FilesEndpointOptions.RequirePlugin.init -> void
+Kun.Files.AspNetCore.FilesEndpointOptions.TransferPath.get -> string!
+Kun.Files.AspNetCore.FilesEndpointOptions.TransferPath.init -> void
+Kun.Files.AspNetCore.FilesEndpointOptions.TransferSource.get -> System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>?
+Kun.Files.AspNetCore.FilesEndpointOptions.TransferSource.init -> void
+Kun.Files.AspNetCore.FilesEndpoints
+static Kun.Files.AspNetCore.FilesEndpoints.MapKunFiles(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source, System.Action<Microsoft.AspNetCore.Builder.RouteHandlerBuilder!, string!>! requirePermission, Kun.Files.AspNetCore.FilesEndpointOptions? options = null) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!

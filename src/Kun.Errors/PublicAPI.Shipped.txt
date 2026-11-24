@@ -1,1 +1,140 @@
 #nullable enable
+Kun.Errors.AllowedValues
+Kun.Errors.Error
+Kun.Errors.Error.Allowed.get -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>?
+Kun.Errors.Error.Allowed.init -> void
+Kun.Errors.Error.Args.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Errors.Error.Code.get -> Kun.Errors.ErrorCode!
+Kun.Errors.Error.Error(Kun.Errors.ErrorCode! code, System.Collections.Generic.IReadOnlyDictionary<string!, string!>? args = null) -> void
+Kun.Errors.Error.Errors.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.FieldError!>!
+Kun.Errors.Error.Errors.init -> void
+Kun.Errors.Error.Message.get -> string!
+Kun.Errors.Error.Pointer.get -> string?
+Kun.Errors.Error.Pointer.init -> void
+Kun.Errors.ErrorCatalog
+Kun.Errors.ErrorCatalog.Codes.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
+Kun.Errors.ErrorCatalog.Contains(Kun.Errors.ErrorCode! code) -> bool
+Kun.Errors.ErrorCatalog.CreateDetail(Kun.Errors.Error! error, string! traceId, System.Globalization.CultureInfo? culture = null, string? instance = null) -> Kun.Errors.ErrorDetail!
+Kun.Errors.ErrorCatalog.ErrorCatalog() -> void
+Kun.Errors.ErrorCatalog.ExportJson() -> string!
+Kun.Errors.ErrorCatalog.Register(Kun.Errors.ErrorCode! code) -> System.IDisposable!
+Kun.Errors.ErrorCatalog.TryGet(string! code, out Kun.Errors.ErrorCode? errorCode) -> bool
+Kun.Errors.ErrorCode
+Kun.Errors.ErrorCode.Code.get -> string!
+Kun.Errors.ErrorCode.EnsureArguments(System.Collections.Generic.IReadOnlyDictionary<string!, string!>? args) -> void
+Kun.Errors.ErrorCode.Equals(Kun.Errors.ErrorCode? other) -> bool
+Kun.Errors.ErrorCode.FormatMessage(System.Globalization.CultureInfo? culture = null, System.Collections.Generic.IReadOnlyDictionary<string!, string!>? args = null) -> string!
+Kun.Errors.ErrorCode.GetTitle(System.Globalization.CultureInfo? culture = null) -> string!
+Kun.Errors.ErrorCode.Kind.get -> Kun.Errors.ErrorKind
+Kun.Errors.ErrorCode.Message.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Errors.ErrorCode.Owner.get -> string!
+Kun.Errors.ErrorCode.Parameters.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Errors.ErrorCode.ResolveLocale(System.Globalization.CultureInfo? culture = null) -> string!
+Kun.Errors.ErrorCode.Retryable.get -> bool
+Kun.Errors.ErrorCode.Status.get -> int?
+Kun.Errors.ErrorCode.Title.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Errors.ErrorCode.Type.get -> string?
+Kun.Errors.ErrorDetail
+Kun.Errors.ErrorDetail.Allowed.get -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>?
+Kun.Errors.ErrorDetail.Allowed.init -> void
+Kun.Errors.ErrorDetail.Code.get -> string!
+Kun.Errors.ErrorDetail.Code.init -> void
+Kun.Errors.ErrorDetail.Detail.get -> string?
+Kun.Errors.ErrorDetail.Detail.init -> void
+Kun.Errors.ErrorDetail.ErrorDetail() -> void
+Kun.Errors.ErrorDetail.Errors.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.FieldErrorDetail!>?
+Kun.Errors.ErrorDetail.Errors.init -> void
+Kun.Errors.ErrorDetail.Instance.get -> string?
+Kun.Errors.ErrorDetail.Instance.init -> void
+Kun.Errors.ErrorDetail.Message.get -> string!
+Kun.Errors.ErrorDetail.Message.init -> void
+Kun.Errors.ErrorDetail.Pointer.get -> string?
+Kun.Errors.ErrorDetail.Pointer.init -> void
+Kun.Errors.ErrorDetail.Status.get -> int
+Kun.Errors.ErrorDetail.Status.init -> void
+Kun.Errors.ErrorDetail.Title.get -> string!
+Kun.Errors.ErrorDetail.Title.init -> void
+Kun.Errors.ErrorDetail.TraceId.get -> string!
+Kun.Errors.ErrorDetail.TraceId.init -> void
+Kun.Errors.ErrorDetail.Type.get -> string!
+Kun.Errors.ErrorDetail.Type.init -> void
+Kun.Errors.ErrorDetailJson
+Kun.Errors.ErrorException
+Kun.Errors.ErrorException.Error.get -> Kun.Errors.Error!
+Kun.Errors.ErrorException.ErrorException(Kun.Errors.Error! error) -> void
+Kun.Errors.ErrorException.ErrorException(Kun.Errors.Error! error, System.Exception? innerException) -> void
+Kun.Errors.ErrorKind
+Kun.Errors.ErrorKind.Business = 1 -> Kun.Errors.ErrorKind
+Kun.Errors.ErrorKind.Field = 2 -> Kun.Errors.ErrorKind
+Kun.Errors.ErrorKind.Protocol = 0 -> Kun.Errors.ErrorKind
+Kun.Errors.ErrorPointer
+Kun.Errors.FieldError
+Kun.Errors.FieldError.Allowed.get -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>?
+Kun.Errors.FieldError.Allowed.init -> void
+Kun.Errors.FieldError.Args.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Kun.Errors.FieldError.Code.get -> Kun.Errors.ErrorCode!
+Kun.Errors.FieldError.FieldError(Kun.Errors.ErrorCode! code, string! pointer, System.Collections.Generic.IReadOnlyDictionary<string!, string!>? args = null) -> void
+Kun.Errors.FieldError.Pointer.get -> string!
+Kun.Errors.FieldErrorDetail
+Kun.Errors.FieldErrorDetail.Allowed.get -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>?
+Kun.Errors.FieldErrorDetail.Allowed.init -> void
+Kun.Errors.FieldErrorDetail.Code.get -> string!
+Kun.Errors.FieldErrorDetail.Code.init -> void
+Kun.Errors.FieldErrorDetail.FieldErrorDetail() -> void
+Kun.Errors.FieldErrorDetail.Message.get -> string!
+Kun.Errors.FieldErrorDetail.Message.init -> void
+Kun.Errors.FieldErrorDetail.Pointer.get -> string!
+Kun.Errors.FieldErrorDetail.Pointer.init -> void
+Kun.Errors.PlatformErrors
+const Kun.Errors.AllowedValues.MaxCount = 100 -> int
+const Kun.Errors.ErrorCode.DefaultLocale = "zh-CN" -> string!
+const Kun.Errors.ErrorCode.TypeBaseUri = "https://qian.dev/problems/" -> string!
+const Kun.Errors.ErrorDetailJson.MediaType = "application/problem+json" -> string!
+const Kun.Errors.PlatformErrors.Owner = "qian.runtime" -> string!
+override Kun.Errors.ErrorCode.Equals(object? obj) -> bool
+override Kun.Errors.ErrorCode.GetHashCode() -> int
+override Kun.Errors.ErrorCode.ToString() -> string!
+static Kun.Errors.AllowedValues.Of(params System.ReadOnlySpan<long> values) -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>!
+static Kun.Errors.AllowedValues.Of(params System.ReadOnlySpan<string!> values) -> System.Collections.Generic.IReadOnlyList<System.Text.Json.JsonElement>!
+static Kun.Errors.ErrorCatalog.CreateDefault() -> Kun.Errors.ErrorCatalog!
+static Kun.Errors.ErrorCode.Business(string! code, int status, string! owner, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! title, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! message, bool retryable = false) -> Kun.Errors.ErrorCode!
+static Kun.Errors.ErrorCode.Field(string! code, string! owner, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! title, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! message) -> Kun.Errors.ErrorCode!
+static Kun.Errors.ErrorCode.IsBusinessStatus(int status) -> bool
+static Kun.Errors.ErrorCode.Protocol(string! code, int status, string! owner, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! title, System.Collections.Generic.IReadOnlyDictionary<string!, string!>! message, bool retryable = false) -> Kun.Errors.ErrorCode!
+static Kun.Errors.ErrorDetailJson.Deserialize(string! json) -> Kun.Errors.ErrorDetail?
+static Kun.Errors.ErrorDetailJson.Serialize(Kun.Errors.ErrorDetail! detail) -> string!
+static Kun.Errors.ErrorDetailJson.TypeInfo.get -> System.Text.Json.Serialization.Metadata.JsonTypeInfo<Kun.Errors.ErrorDetail!>!
+static Kun.Errors.ErrorPointer.InFile(string! relativePath, params System.ReadOnlySpan<object!> segments) -> string!
+static Kun.Errors.ErrorPointer.Input(params System.ReadOnlySpan<object!> segments) -> string!
+static Kun.Errors.ErrorPointer.IsValid(string? pointer) -> bool
+static Kun.Errors.PlatformErrors.All.get -> System.Collections.Generic.IReadOnlyList<Kun.Errors.ErrorCode!>!
+static Kun.Errors.PlatformErrors.ForStatus(int status) -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.AuthzDenied -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.BadGateway -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.BadRequest -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.BusinessRuleViolated -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.Conflict -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.DependencyCycle -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.DependencyMissing -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.FormatInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.GatewayTimeout -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.InputInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.InsufficientScope -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.Internal -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.MethodNotAllowed -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.NotAcceptable -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.NotFound -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.OutOfRange -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.PatternMismatch -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.PayloadTooLarge -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.PreconditionFailed -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.RateLimited -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.RegistrationConflict -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.RequestTimeout -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.Required -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.TypeMismatch -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.Unauthenticated -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.Unavailable -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.UnknownProperty -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.UnsupportedMediaType -> Kun.Errors.ErrorCode!
+static readonly Kun.Errors.PlatformErrors.ValueNotAllowed -> Kun.Errors.ErrorCode!

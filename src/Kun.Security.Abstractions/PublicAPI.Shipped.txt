@@ -1,1 +1,80 @@
 #nullable enable
+Kun.Security.DelegationActor
+Kun.Security.DelegationActor.Actor.get -> Kun.Security.DelegationActor?
+Kun.Security.DelegationActor.Actor.init -> void
+Kun.Security.DelegationActor.DelegationActor() -> void
+Kun.Security.DelegationActor.Kind.get -> Kun.Security.PrincipalKind
+Kun.Security.DelegationActor.Kind.init -> void
+Kun.Security.DelegationActor.Subject.get -> string!
+Kun.Security.DelegationActor.Subject.init -> void
+Kun.Security.IdentityClaimNames
+Kun.Security.Principal
+Kun.Security.Principal.Actor.get -> Kun.Security.DelegationActor?
+Kun.Security.Principal.Actor.init -> void
+Kun.Security.Principal.Audience.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Security.Principal.Audience.init -> void
+Kun.Security.Principal.ExpiresAt.get -> long
+Kun.Security.Principal.ExpiresAt.init -> void
+Kun.Security.Principal.IdentityRevision.get -> long?
+Kun.Security.Principal.IdentityRevision.init -> void
+Kun.Security.Principal.IssuedAt.get -> long
+Kun.Security.Principal.IssuedAt.init -> void
+Kun.Security.Principal.Issuer.get -> string!
+Kun.Security.Principal.Issuer.init -> void
+Kun.Security.Principal.Kind.get -> Kun.Security.PrincipalKind
+Kun.Security.Principal.Kind.init -> void
+Kun.Security.Principal.MembershipId.get -> string?
+Kun.Security.Principal.MembershipId.init -> void
+Kun.Security.Principal.NotBefore.get -> long
+Kun.Security.Principal.NotBefore.init -> void
+Kun.Security.Principal.PluginId.get -> string?
+Kun.Security.Principal.PluginId.init -> void
+Kun.Security.Principal.Principal() -> void
+Kun.Security.Principal.ProjectId.get -> string?
+Kun.Security.Principal.ProjectId.init -> void
+Kun.Security.Principal.Roles.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Security.Principal.Roles.init -> void
+Kun.Security.Principal.Scope.get -> string!
+Kun.Security.Principal.Scope.init -> void
+Kun.Security.Principal.SessionId.get -> string!
+Kun.Security.Principal.SessionId.init -> void
+Kun.Security.Principal.Subject.get -> string!
+Kun.Security.Principal.Subject.init -> void
+Kun.Security.Principal.TenantId.get -> string?
+Kun.Security.Principal.TenantId.init -> void
+Kun.Security.Principal.TokenId.get -> string!
+Kun.Security.Principal.TokenId.init -> void
+Kun.Security.PrincipalKind
+Kun.Security.PrincipalKind.Agent = 2 -> Kun.Security.PrincipalKind
+Kun.Security.PrincipalKind.Service = 1 -> Kun.Security.PrincipalKind
+Kun.Security.PrincipalKind.User = 0 -> Kun.Security.PrincipalKind
+Kun.Security.PrincipalKindConverter
+Kun.Security.PrincipalKindConverter.PrincipalKindConverter() -> void
+const Kun.Security.IdentityClaimNames.Actor = "act" -> string!
+const Kun.Security.IdentityClaimNames.Audience = "aud" -> string!
+const Kun.Security.IdentityClaimNames.AuthenticationContext = "acr" -> string!
+const Kun.Security.IdentityClaimNames.AuthenticationMethods = "amr" -> string!
+const Kun.Security.IdentityClaimNames.ExpiresAt = "exp" -> string!
+const Kun.Security.IdentityClaimNames.IdentityRevision = "identity_revision" -> string!
+const Kun.Security.IdentityClaimNames.IssuedAt = "iat" -> string!
+const Kun.Security.IdentityClaimNames.Issuer = "iss" -> string!
+const Kun.Security.IdentityClaimNames.MembershipId = "membership_id" -> string!
+const Kun.Security.IdentityClaimNames.NotBefore = "nbf" -> string!
+const Kun.Security.IdentityClaimNames.PluginId = "plugin_id" -> string!
+const Kun.Security.IdentityClaimNames.PrincipalKind = "principal_kind" -> string!
+const Kun.Security.IdentityClaimNames.Profile = "profile" -> string!
+const Kun.Security.IdentityClaimNames.ProjectId = "project_id" -> string!
+const Kun.Security.IdentityClaimNames.Roles = "roles" -> string!
+const Kun.Security.IdentityClaimNames.Scope = "scope" -> string!
+const Kun.Security.IdentityClaimNames.SessionId = "session_id" -> string!
+const Kun.Security.IdentityClaimNames.Sid = "sid" -> string!
+const Kun.Security.IdentityClaimNames.Subject = "sub" -> string!
+const Kun.Security.IdentityClaimNames.TenantId = "tenant_id" -> string!
+const Kun.Security.IdentityClaimNames.TokenId = "jti" -> string!
+override Kun.Security.DelegationActor.ToString() -> string!
+override Kun.Security.Principal.ToString() -> string!
+override Kun.Security.PrincipalKindConverter.Read(ref System.Text.Json.Utf8JsonReader reader, System.Type! typeToConvert, System.Text.Json.JsonSerializerOptions! options) -> Kun.Security.PrincipalKind
+override Kun.Security.PrincipalKindConverter.Write(System.Text.Json.Utf8JsonWriter! writer, Kun.Security.PrincipalKind value, System.Text.Json.JsonSerializerOptions! options) -> void
+static Kun.Security.IdentityClaimNames.IdentityToken.get -> System.Collections.Generic.IReadOnlyList<string!>!
+static Kun.Security.IdentityClaimNames.S2sOptional.get -> System.Collections.Generic.IReadOnlyList<string!>!
+static Kun.Security.IdentityClaimNames.S2sRequired.get -> System.Collections.Generic.IReadOnlyList<string!>!

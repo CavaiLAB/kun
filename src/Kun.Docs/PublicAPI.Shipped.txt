@@ -1,1 +1,4 @@
 #nullable enable
+Kun.Docs.DocumentGenerator
+Kun.Docs.DocumentGenerator.DocumentGenerator(Kun.Profiles.Abstractions.IProfileLoader! profiles) -> void
+Kun.Docs.DocumentGenerator.Generate(Kun.Docs.Abstractions.DocumentOptions! options) -> Kun.Docs.Abstractions.DocumentResult!

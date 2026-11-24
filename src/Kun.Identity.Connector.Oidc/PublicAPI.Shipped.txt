@@ -1,1 +1,45 @@
 #nullable enable
+Kun.Identity.Connector.Oidc.OidcConnectorComponent
+Kun.Identity.Connector.Oidc.OidcConnectorComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Identity.Connector.Oidc.OidcConnectorComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Identity.Connector.Oidc.OidcConnectorComponent.OidcConnectorComponent() -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.AllowAdditionalAudiences.get -> bool
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.AllowAdditionalAudiences.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.AllowedSigningAlgorithms.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.AllowedSigningAlgorithms.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Check() -> System.Collections.Generic.IReadOnlyList<Kun.Errors.FieldError!>!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.ClientId.get -> string!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.ClientId.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.ClientSecret.get -> string!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.ClientSecret.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.ClockSkew.get -> System.TimeSpan
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.ClockSkew.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.DisplayName.get -> string!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.DisplayName.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Issuer.get -> string!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Issuer.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Name.get -> string!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Name.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.OidcConnectorOptions() -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.RequireHttps.get -> bool
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.RequireHttps.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Scopes.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Scopes.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Terminals.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Terminals.init -> void
+Kun.Identity.Connector.Oidc.OidcConnectorOptions.Validate() -> void
+Kun.Identity.Connector.Oidc.OidcConnectorPlugin
+Kun.Identity.Connector.Oidc.OidcConnectorPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Identity.Connector.Oidc.OidcConnectorPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Identity.Connector.Oidc.OidcConnectorPlugin.OidcConnectorPlugin() -> void
+Kun.Identity.Connector.Oidc.OidcConnectorPlugin.OidcConnectorPlugin(Kun.Configuration.ISecretResolver! secrets, System.Net.Http.HttpMessageHandler? handler = null) -> void
+Kun.Identity.Connector.Oidc.OidcIdentityConnector
+Kun.Identity.Connector.Oidc.OidcIdentityConnector.BeginSignInAsync(Kun.Identity.Abstractions.ConnectorContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.ChallengeResult!>!
+Kun.Identity.Connector.Oidc.OidcIdentityConnector.CompleteSignInAsync(Kun.Identity.Abstractions.ConnectorCallback! callback, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Identity.Abstractions.ExternalAssertion!>!
+Kun.Identity.Connector.Oidc.OidcIdentityConnector.Descriptor.get -> Kun.Identity.Abstractions.ConnectorDescriptor!
+Kun.Identity.Connector.Oidc.OidcIdentityConnector.Dispose() -> void
+Kun.Identity.Connector.Oidc.OidcIdentityConnector.OidcIdentityConnector(Kun.Identity.Connector.Oidc.OidcConnectorOptions! options, Kun.Configuration.ISecretResolver! secrets, System.Net.Http.HttpMessageHandler! handler, System.TimeProvider? clock = null) -> void
+override Kun.Identity.Connector.Oidc.OidcConnectorOptions.ToString() -> string!
+override Kun.Identity.Connector.Oidc.OidcIdentityConnector.ToString() -> string!
+static Kun.Identity.Connector.Oidc.OidcConnectorOptions.FromConfig(System.Text.Json.JsonElement config) -> Kun.Identity.Connector.Oidc.OidcConnectorOptions!

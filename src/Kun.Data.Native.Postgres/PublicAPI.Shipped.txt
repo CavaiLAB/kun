@@ -1,1 +1,50 @@
 #nullable enable
+Kun.Data.Native.Postgres.NativeDataAccess
+Kun.Data.Native.Postgres.NativeDataAccess.Platform = 1 -> Kun.Data.Native.Postgres.NativeDataAccess
+Kun.Data.Native.Postgres.NativeDataAccess.Tenant = 0 -> Kun.Data.Native.Postgres.NativeDataAccess
+Kun.Data.Native.Postgres.NativeDataBinding
+Kun.Data.Native.Postgres.NativeDataBinding.<Clone>$() -> Kun.Data.Native.Postgres.NativeDataBinding!
+Kun.Data.Native.Postgres.NativeDataBinding.Access.get -> Kun.Data.Native.Postgres.NativeDataAccess
+Kun.Data.Native.Postgres.NativeDataBinding.Access.init -> void
+Kun.Data.Native.Postgres.NativeDataBinding.ConnectionString.get -> System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<string!>>!
+Kun.Data.Native.Postgres.NativeDataBinding.ConnectionString.init -> void
+Kun.Data.Native.Postgres.NativeDataBinding.Deconstruct(out string! Name, out string! Role, out Kun.Data.Native.Postgres.NativeDataAccess Access, out System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<string!>>! ConnectionString, out System.Collections.Generic.IReadOnlyList<Kun.Data.Native.Postgres.NativeDataTable!>! Tables) -> void
+Kun.Data.Native.Postgres.NativeDataBinding.Equals(Kun.Data.Native.Postgres.NativeDataBinding? other) -> bool
+Kun.Data.Native.Postgres.NativeDataBinding.Name.get -> string!
+Kun.Data.Native.Postgres.NativeDataBinding.Name.init -> void
+Kun.Data.Native.Postgres.NativeDataBinding.NativeDataBinding(string! Name, string! Role, Kun.Data.Native.Postgres.NativeDataAccess Access, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<string!>>! ConnectionString, System.Collections.Generic.IReadOnlyList<Kun.Data.Native.Postgres.NativeDataTable!>! Tables) -> void
+Kun.Data.Native.Postgres.NativeDataBinding.Role.get -> string!
+Kun.Data.Native.Postgres.NativeDataBinding.Role.init -> void
+Kun.Data.Native.Postgres.NativeDataBinding.Tables.get -> System.Collections.Generic.IReadOnlyList<Kun.Data.Native.Postgres.NativeDataTable!>!
+Kun.Data.Native.Postgres.NativeDataBinding.Tables.init -> void
+Kun.Data.Native.Postgres.NativeDataComponent
+Kun.Data.Native.Postgres.NativeDataComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Data.Native.Postgres.NativeDataComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Data.Native.Postgres.NativeDataComponent.NativeDataComponent() -> void
+Kun.Data.Native.Postgres.NativeDataHosting
+Kun.Data.Native.Postgres.NativeDataTable
+Kun.Data.Native.Postgres.NativeDataTable.<Clone>$() -> Kun.Data.Native.Postgres.NativeDataTable!
+Kun.Data.Native.Postgres.NativeDataTable.Deconstruct(out string! Schema, out string! Name, out string! GuardPolicy, out string! ExpectedUsing, out string! ExpectedCheck) -> void
+Kun.Data.Native.Postgres.NativeDataTable.Equals(Kun.Data.Native.Postgres.NativeDataTable? other) -> bool
+Kun.Data.Native.Postgres.NativeDataTable.ExpectedCheck.get -> string!
+Kun.Data.Native.Postgres.NativeDataTable.ExpectedCheck.init -> void
+Kun.Data.Native.Postgres.NativeDataTable.ExpectedUsing.get -> string!
+Kun.Data.Native.Postgres.NativeDataTable.ExpectedUsing.init -> void
+Kun.Data.Native.Postgres.NativeDataTable.GuardPolicy.get -> string!
+Kun.Data.Native.Postgres.NativeDataTable.GuardPolicy.init -> void
+Kun.Data.Native.Postgres.NativeDataTable.Name.get -> string!
+Kun.Data.Native.Postgres.NativeDataTable.Name.init -> void
+Kun.Data.Native.Postgres.NativeDataTable.NativeDataTable(string! Schema, string! Name, string! GuardPolicy, string! ExpectedUsing, string! ExpectedCheck) -> void
+Kun.Data.Native.Postgres.NativeDataTable.Schema.get -> string!
+Kun.Data.Native.Postgres.NativeDataTable.Schema.init -> void
+override Kun.Data.Native.Postgres.NativeDataBinding.Equals(object? obj) -> bool
+override Kun.Data.Native.Postgres.NativeDataBinding.GetHashCode() -> int
+override Kun.Data.Native.Postgres.NativeDataBinding.ToString() -> string!
+override Kun.Data.Native.Postgres.NativeDataTable.Equals(object? obj) -> bool
+override Kun.Data.Native.Postgres.NativeDataTable.GetHashCode() -> int
+override Kun.Data.Native.Postgres.NativeDataTable.ToString() -> string!
+static Kun.Data.Native.Postgres.NativeDataBinding.operator !=(Kun.Data.Native.Postgres.NativeDataBinding? left, Kun.Data.Native.Postgres.NativeDataBinding? right) -> bool
+static Kun.Data.Native.Postgres.NativeDataBinding.operator ==(Kun.Data.Native.Postgres.NativeDataBinding? left, Kun.Data.Native.Postgres.NativeDataBinding? right) -> bool
+static Kun.Data.Native.Postgres.NativeDataHosting.AddKunNativeData(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Kun.Data.Native.Postgres.NativeDataBinding! binding) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Kun.Data.Native.Postgres.NativeDataTable.operator !=(Kun.Data.Native.Postgres.NativeDataTable? left, Kun.Data.Native.Postgres.NativeDataTable? right) -> bool
+static Kun.Data.Native.Postgres.NativeDataTable.operator ==(Kun.Data.Native.Postgres.NativeDataTable? left, Kun.Data.Native.Postgres.NativeDataTable? right) -> bool

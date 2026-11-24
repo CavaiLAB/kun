@@ -1,1 +1,18 @@
 #nullable enable
+Kun.Data.Native.INativeDataService
+Kun.Data.Native.INativeDataService.OpenPlatformAsync(string! binding, Kun.Runtime.IPluginContext! caller, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.Native.INativeDataSession!>
+Kun.Data.Native.INativeDataService.OpenTenantAsync(string! binding, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Kun.Data.Native.INativeDataSession!>
+Kun.Data.Native.INativeDataService.ValidateTenantTransactionAsync(string! binding, System.Data.Common.DbTransaction! transaction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Data.Native.INativeDataSession
+Kun.Data.Native.INativeDataSession.BeginTransactionAsync(System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Data.Common.DbTransaction!>
+Kun.Data.Native.INativeDataSession.CommitAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Data.Native.INativeDataSession.Connection.get -> System.Data.Common.DbConnection!
+Kun.Data.Native.INativeDataSession.RollbackAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Data.Native.INativeDataSession.TenantId.get -> System.Guid?
+Kun.Data.Native.INativeDataSession.Transaction.get -> System.Data.Common.DbTransaction?
+Kun.Data.Native.INativeDataSession.ValidateAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+Kun.Data.Native.NativeDataDefinition
+Kun.Data.Native.NativeDataErrors
+static Kun.Data.Native.NativeDataDefinition.NativeData(this Kun.Runtime.IPluginContext! context) -> Kun.Data.Native.INativeDataService!
+static readonly Kun.Data.Native.NativeDataDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Data.Native.NativeDataErrors.Misconfigured -> Kun.Errors.ErrorCode!

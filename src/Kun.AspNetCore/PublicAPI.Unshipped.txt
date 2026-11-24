@@ -1,4 +1,1 @@
 #nullable enable
-Kun.AspNetCore.Endpoints.KunEndpointRouteBuilderExtensions
-static Kun.AspNetCore.Endpoints.KunEndpointRouteBuilderExtensions.MapCommand<TCommand, TResponse>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, string! pattern, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TCommand>! commandTypeInfo, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TResponse>! responseTypeInfo) -> Microsoft.AspNetCore.Builder.RouteHandlerBuilder!
-static Kun.AspNetCore.Endpoints.KunEndpointRouteBuilderExtensions.MapQuery<TQuery, TResponse>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, string! pattern, System.Text.Json.Serialization.Metadata.JsonTypeInfo<TResponse>! responseTypeInfo) -> Microsoft.AspNetCore.Builder.RouteHandlerBuilder!

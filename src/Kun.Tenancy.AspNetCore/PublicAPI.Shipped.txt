@@ -1,1 +1,19 @@
 #nullable enable
+Kun.Tenancy.AspNetCore.TenancyEndpoints
+Kun.Tenancy.AspNetCore.TenantList
+Kun.Tenancy.AspNetCore.TenantList.<Clone>$() -> Kun.Tenancy.AspNetCore.TenantList!
+Kun.Tenancy.AspNetCore.TenantList.Counts.get -> Kun.Tenancy.TenantStatusCounts!
+Kun.Tenancy.AspNetCore.TenantList.Counts.init -> void
+Kun.Tenancy.AspNetCore.TenantList.Deconstruct(out System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantOverview!>! Items) -> void
+Kun.Tenancy.AspNetCore.TenantList.Equals(Kun.Tenancy.AspNetCore.TenantList? other) -> bool
+Kun.Tenancy.AspNetCore.TenantList.Items.get -> System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantOverview!>!
+Kun.Tenancy.AspNetCore.TenantList.Items.init -> void
+Kun.Tenancy.AspNetCore.TenantList.TenantList(System.Collections.Generic.IReadOnlyList<Kun.Tenancy.TenantOverview!>! Items) -> void
+Kun.Tenancy.AspNetCore.TenantList.Total.get -> int
+Kun.Tenancy.AspNetCore.TenantList.Total.init -> void
+override Kun.Tenancy.AspNetCore.TenantList.Equals(object? obj) -> bool
+override Kun.Tenancy.AspNetCore.TenantList.GetHashCode() -> int
+override Kun.Tenancy.AspNetCore.TenantList.ToString() -> string!
+static Kun.Tenancy.AspNetCore.TenancyEndpoints.MapKunTenancy(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, System.Func<Microsoft.AspNetCore.Http.HttpContext!, Kun.Runtime.IPluginContext!>! source) -> Microsoft.AspNetCore.Routing.IEndpointRouteBuilder!
+static Kun.Tenancy.AspNetCore.TenantList.operator !=(Kun.Tenancy.AspNetCore.TenantList? left, Kun.Tenancy.AspNetCore.TenantList? right) -> bool
+static Kun.Tenancy.AspNetCore.TenantList.operator ==(Kun.Tenancy.AspNetCore.TenantList? left, Kun.Tenancy.AspNetCore.TenantList? right) -> bool

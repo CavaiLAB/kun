@@ -1,1 +1,33 @@
 #nullable enable
+Kun.Registry.RegistryComponent
+Kun.Registry.RegistryComponent.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Registry.RegistryComponent.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Registry.RegistryComponent.RegistryComponent() -> void
+Kun.Registry.RegistryComponentBinding
+Kun.Registry.RegistryComponentBinding.Definition.get -> Kun.Runtime.PluginDefinition!
+Kun.Registry.RegistryComponentBinding.Metadata.get -> Kun.Registry.InstalledComponentMetadata!
+Kun.Registry.RegistryComponentBinding.RegistryComponentBinding(Kun.Runtime.PluginDefinition! definition, Kun.Surfaces.Abstractions.SurfaceValidationResult! validation) -> void
+Kun.Registry.RegistryDbContext
+Kun.Registry.RegistryDbContext.RegistryDbContext(Microsoft.EntityFrameworkCore.DbContextOptions<Kun.Registry.RegistryDbContext!>! options, Kun.Core.MultiTenancy.ITenantContext! tenant) -> void
+Kun.Registry.RegistryEventHandlers
+Kun.Registry.RegistryPlugin
+Kun.Registry.RegistryPlugin.ApplyAsync(Kun.Runtime.IPluginContext! ctx, System.Text.Json.JsonElement config, System.Threading.CancellationToken ct) -> System.Threading.Tasks.ValueTask
+Kun.Registry.RegistryPlugin.Inject.get -> System.Collections.Generic.IReadOnlyList<Kun.Runtime.ServiceKey>!
+Kun.Registry.RegistryPlugin.RegistryPlugin(Kun.Registry.RegistryRuntimeOptions! options) -> void
+Kun.Registry.RegistryRuntimeOptions
+Kun.Registry.RegistryRuntimeOptions.InstalledComponents.get -> System.Collections.Generic.IReadOnlyList<Kun.Registry.RegistryComponentBinding!>!
+Kun.Registry.RegistryRuntimeOptions.InstalledComponents.init -> void
+Kun.Registry.RegistryRuntimeOptions.Profile.get -> Kun.Profiles.Abstractions.ProfileLoadOptions!
+Kun.Registry.RegistryRuntimeOptions.Profile.init -> void
+Kun.Registry.RegistryRuntimeOptions.Profiles.get -> Kun.Profiles.Abstractions.IProfileLoader!
+Kun.Registry.RegistryRuntimeOptions.Profiles.init -> void
+Kun.Registry.RegistryRuntimeOptions.RegistryRuntimeOptions() -> void
+Kun.Registry.RegistryRuntimeOptions.Resolve.get -> System.Func<Kun.Profiles.Abstractions.ResolvedProfileEntry!, Kun.Runtime.PluginDefinition!>!
+Kun.Registry.RegistryRuntimeOptions.Resolve.init -> void
+Kun.Registry.RegistryRuntimeOptions.Runtime.get -> Kun.Runtime.PluginLoader!
+Kun.Registry.RegistryRuntimeOptions.Runtime.init -> void
+Kun.Registry.RegistryRuntimeOptions.Surfaces.get -> Kun.Surfaces.Abstractions.ISurfaceValidator!
+Kun.Registry.RegistryRuntimeOptions.Surfaces.init -> void
+const Kun.Registry.RegistryDbContext.Schema = "plugin_qian_registry" -> string!
+static Kun.Registry.RegistryComponentBinding.FromArtifact(Kun.Runtime.PluginDefinition! definition, System.Collections.Generic.IReadOnlyDictionary<string!, System.ReadOnlyMemory<byte>>! files, string! expectedDigest, Kun.Surfaces.Abstractions.ISurfaceValidator! validator, Kun.Surfaces.Abstractions.SurfaceValidationOptions! options) -> Kun.Registry.RegistryComponentBinding!
+static Kun.Registry.RegistryEventHandlers.AddKunRegistryEvents(this Kun.Mediator.KunMediatorBuilder! builder) -> Kun.Mediator.KunMediatorBuilder!

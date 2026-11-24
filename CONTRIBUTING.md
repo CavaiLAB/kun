@@ -133,6 +133,8 @@ Closes #42
 
 补推前，工作流先从本版本涉及的全部包源下载已经可见的同版本包，逐个比对已保存制品的内容。任何一个包出现差异都会终止本次推送。包源核对与干净消费者验收通过后，工作流创建标签和 Release。正式版的运行摘要给出版本日志分支的比较链接，建立 PR 并通过 CI 合入，文档站随后从标签和已发布的内核包生成参考页。若推送途中失败，使用首次保存制品的运行号恢复。
 
+正式版与修复版发布后，另开一个 PR 归档公共 API 清单，以发布标签为界：标签上各可打包项目 `PublicAPI.Unshipped.txt` 的条目移进同目录的 `PublicAPI.Shipped.txt`，按序数排序，首行仍是 `#nullable enable`；其中的 `*REMOVED*` 行连同 `PublicAPI.Shipped.txt` 里对应的条目一起去掉；标签之后才加的条目留在 `PublicAPI.Unshipped.txt`。此后删改已发布的 API，在 `PublicAPI.Unshipped.txt` 里写 `*REMOVED*` 行，不直接删 `PublicAPI.Shipped.txt` 的条目。
+
 **使用 CalVer 日期，tag 一律在 `main` 上打；同日补丁使用 NuGet 兼容的 `hotfix.N` 后缀**。CLI 与 CI 共用 `scripts/release_version.py` 校验（需要 Python 3.9+，见 `.github/workflows/release.yml`）：
 
 | Tag 形式 | 语义 | 示例 |

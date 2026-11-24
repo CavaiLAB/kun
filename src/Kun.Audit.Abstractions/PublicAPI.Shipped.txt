@@ -1,1 +1,84 @@
 #nullable enable
+Kun.Audit.AuditChainEntry
+Kun.Audit.AuditChainEntry.<Clone>$() -> Kun.Audit.AuditChainEntry!
+Kun.Audit.AuditChainEntry.AuditChainEntry(long Sequence, string? PreviousHash, string! ContentHash, Kun.Audit.AuditRecord! Record) -> void
+Kun.Audit.AuditChainEntry.ContentHash.get -> string!
+Kun.Audit.AuditChainEntry.ContentHash.init -> void
+Kun.Audit.AuditChainEntry.Deconstruct(out long Sequence, out string? PreviousHash, out string! ContentHash, out Kun.Audit.AuditRecord! Record) -> void
+Kun.Audit.AuditChainEntry.Equals(Kun.Audit.AuditChainEntry? other) -> bool
+Kun.Audit.AuditChainEntry.PreviousHash.get -> string?
+Kun.Audit.AuditChainEntry.PreviousHash.init -> void
+Kun.Audit.AuditChainEntry.Record.get -> Kun.Audit.AuditRecord!
+Kun.Audit.AuditChainEntry.Record.init -> void
+Kun.Audit.AuditChainEntry.Sequence.get -> long
+Kun.Audit.AuditChainEntry.Sequence.init -> void
+Kun.Audit.AuditChainVerification
+Kun.Audit.AuditChainVerification.<Clone>$() -> Kun.Audit.AuditChainVerification!
+Kun.Audit.AuditChainVerification.AuditChainVerification(bool Valid, long CheckedEntries, long? BrokenAt, string? Reason) -> void
+Kun.Audit.AuditChainVerification.BrokenAt.get -> long?
+Kun.Audit.AuditChainVerification.BrokenAt.init -> void
+Kun.Audit.AuditChainVerification.CheckedEntries.get -> long
+Kun.Audit.AuditChainVerification.CheckedEntries.init -> void
+Kun.Audit.AuditChainVerification.Deconstruct(out bool Valid, out long CheckedEntries, out long? BrokenAt, out string? Reason) -> void
+Kun.Audit.AuditChainVerification.Equals(Kun.Audit.AuditChainVerification? other) -> bool
+Kun.Audit.AuditChainVerification.Reason.get -> string?
+Kun.Audit.AuditChainVerification.Reason.init -> void
+Kun.Audit.AuditChainVerification.Valid.get -> bool
+Kun.Audit.AuditChainVerification.Valid.init -> void
+Kun.Audit.AuditDefinition
+Kun.Audit.AuditErrors
+Kun.Audit.AuditInputProjection
+Kun.Audit.AuditInputProjection.AuditInputProjection(System.Text.Json.JsonElement schema, bool isCommand, bool? audit = null) -> void
+Kun.Audit.AuditInputProjection.InputHash(System.Text.Json.JsonElement input) -> string?
+Kun.Audit.AuditInputProjection.Redact(System.Text.Json.JsonElement input) -> System.Text.Json.JsonElement
+Kun.Audit.AuditInputProjection.ShouldRecord.get -> bool
+Kun.Audit.AuditProtocol
+Kun.Audit.AuditRecord
+Kun.Audit.AuditRecord.ActorId.get -> string!
+Kun.Audit.AuditRecord.ActorType.get -> string!
+Kun.Audit.AuditRecord.AuditRecord(System.Guid id, string? tenantId, string! actorType, string! actorId, string? onBehalfOf, string! capabilityId, string! contractVersion, string! inputHash, string! channel, string? resource, string! result, string! traceId, System.DateTimeOffset occurredAt, System.Text.Json.JsonElement payload) -> void
+Kun.Audit.AuditRecord.CapabilityId.get -> string!
+Kun.Audit.AuditRecord.Channel.get -> string!
+Kun.Audit.AuditRecord.ContractVersion.get -> string!
+Kun.Audit.AuditRecord.Id.get -> System.Guid
+Kun.Audit.AuditRecord.InputHash.get -> string!
+Kun.Audit.AuditRecord.OccurredAt.get -> System.DateTimeOffset
+Kun.Audit.AuditRecord.OnBehalfOf.get -> string?
+Kun.Audit.AuditRecord.Payload.get -> System.Text.Json.JsonElement
+Kun.Audit.AuditRecord.Resource.get -> string?
+Kun.Audit.AuditRecord.Result.get -> string!
+Kun.Audit.AuditRecord.TenantId.get -> string?
+Kun.Audit.AuditRecord.TraceId.get -> string!
+Kun.Audit.IAuditReader
+Kun.Audit.IAuditReader.ReadAsync(long afterSequence, int take, string? onBehalfOf = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Kun.Audit.AuditChainEntry!>!>!
+Kun.Audit.IAuditReader.ReadPlatformAsync(Kun.Runtime.IPluginContext! producer, long afterSequence, int take, string? onBehalfOf = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Kun.Audit.AuditChainEntry!>!>!
+Kun.Audit.IAuditReader.VerifyAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Audit.AuditChainVerification!>!
+Kun.Audit.IAuditReader.VerifyPlatformAsync(Kun.Runtime.IPluginContext! producer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Audit.AuditChainVerification!>!
+Kun.Audit.IAuditService
+Kun.Audit.IAuditWriter
+Kun.Audit.IAuditWriter.AppendAsync(Kun.Audit.AuditRecord! record, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Audit.AuditChainEntry!>!
+Kun.Audit.IAuditWriter.AppendEnlistedAsync(Kun.Audit.AuditRecord! record, System.Data.Common.DbTransaction! transaction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Audit.AuditChainEntry!>!
+Kun.Audit.IAuditWriter.AppendPlatformAsync(Kun.Runtime.IPluginContext! producer, Kun.Audit.AuditRecord! record, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Audit.AuditChainEntry!>!
+Kun.Audit.IAuditWriter.AppendPlatformEnlistedAsync(Kun.Runtime.IPluginContext! producer, Kun.Audit.AuditRecord! record, System.Data.Common.DbTransaction! transaction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Kun.Audit.AuditChainEntry!>!
+Kun.Audit.NativeAuditErrors
+const Kun.Audit.AuditInputProjection.Redacted = "[REDACTED]" -> string!
+override Kun.Audit.AuditChainEntry.Equals(object? obj) -> bool
+override Kun.Audit.AuditChainEntry.GetHashCode() -> int
+override Kun.Audit.AuditChainEntry.ToString() -> string!
+override Kun.Audit.AuditChainVerification.Equals(object? obj) -> bool
+override Kun.Audit.AuditChainVerification.GetHashCode() -> int
+override Kun.Audit.AuditChainVerification.ToString() -> string!
+override Kun.Audit.AuditRecord.ToString() -> string!
+static Kun.Audit.AuditChainEntry.operator !=(Kun.Audit.AuditChainEntry? left, Kun.Audit.AuditChainEntry? right) -> bool
+static Kun.Audit.AuditChainEntry.operator ==(Kun.Audit.AuditChainEntry? left, Kun.Audit.AuditChainEntry? right) -> bool
+static Kun.Audit.AuditChainVerification.operator !=(Kun.Audit.AuditChainVerification? left, Kun.Audit.AuditChainVerification? right) -> bool
+static Kun.Audit.AuditChainVerification.operator ==(Kun.Audit.AuditChainVerification? left, Kun.Audit.AuditChainVerification? right) -> bool
+static Kun.Audit.AuditDefinition.Audit(this Kun.Runtime.IPluginContext! context) -> Kun.Audit.IAuditService!
+static Kun.Audit.AuditErrors.Register(Kun.Errors.ErrorCatalog! catalog) -> System.IDisposable!
+static Kun.Audit.AuditProtocol.Canonicalize(System.Text.Json.JsonElement value) -> string!
+static Kun.Audit.AuditProtocol.Content(Kun.Audit.AuditRecord! record, long sequence) -> string!
+static Kun.Audit.AuditProtocol.Hash(Kun.Audit.AuditRecord! record, long sequence, string? previousHash) -> string!
+static Kun.Audit.AuditProtocol.ReadEntry(System.Text.Json.JsonElement row) -> Kun.Audit.AuditChainEntry!
+static readonly Kun.Audit.AuditDefinition.Key -> Kun.Runtime.ServiceKey
+static readonly Kun.Audit.AuditErrors.SchemaInvalid -> Kun.Errors.ErrorCode!
+static readonly Kun.Audit.NativeAuditErrors.Misconfigured -> Kun.Errors.ErrorCode!

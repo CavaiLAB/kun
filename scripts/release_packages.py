@@ -6,7 +6,7 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
 
 用法（仓库根运行，不需要先还原）：
 
-  python3 scripts/release_packages.py list [--json] [--expect kernel=K,platform=P]
+  python3 scripts/release_packages.py list [--transitional] [--json] [--expect kernel=K,platform=P]
       列出包名单并核对：档位与角色写全、包名不重复；--json 输出名单（verify-packages 可用 --list 读回）。
   python3 scripts/release_packages.py nuget-config --version V [--list release-packages.json]
       向标准输出写入消费者的 NuGet.config。凭据用环境变量占位，包源按档位与发布版本选择。
@@ -14,7 +14,7 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
       从 CHANGELOG.md 的 [Unreleased] 生成版本说明，附本版本的包清单与包源映射。
   python3 scripts/release_packages.py verify-feed --feed github|nuget --version V [--list release-packages.json]
       等待索引中出现本版本。GitHub Packages 同时核对公开状态与 CavaiLAB/kun 仓库关联；可用 GITHUB_TOKEN 只读访问。
-  python3 scripts/release_packages.py verify-packages --version V --packages <目录>
+  python3 scripts/release_packages.py verify-packages --version V --packages <目录> [--transitional]
       核对 dotnet pack 的产物（版本用 -p:Version=V 统一传入）：
       - 恰好是名单上的包，各一个，nuspec 的包名、版本与文件名对得上，版本都是 V（V 要合日历版本的写法）；
       - 名单里的包之间的依赖都在本次产物里，版本写成 V、[V] 或 [V,)（去掉空白后；与 release_version.py 一样
@@ -22,7 +22,7 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
       - 符号包（.snupkg）都有对应的包，项目写了 IncludeSymbols=true 的都出了符号包；只带分析器的包免符号包：
         项目求值 IncludeBuildOutput=false，并且打出来的包里 lib/、runtimes/ 下没有 PE 文件（.dll、.exe），两条都满足
         才免（不看包名）；免的包不能出符号包（空的或对不上的符号包推到 nuget.org 会被拒），项目也不能写
-        IncludeSymbols=true。名单里「要出符号包的」不算不带编译输出的包，它们按制品判；
+        IncludeSymbols=true。这条两种模式、不分位置都一样；名单里「要出符号包的」不算不带编译输出的包，它们按制品判；
       - 许可是 MIT 表达式；仓库地址是本仓库，带的提交号是本次检出的提交；
       - 作者、版权、项目地址与 src/Directory.Build.props 写的一致（仓库地址也照它）；描述不空，也不写过渡目录的名字
         （取 _import/ 下各子目录的名字，首字母大写后区分大小写地查，不写死；小写的运行期字面
@@ -31,11 +31,14 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
       - 稳定版不带预发布依赖，除非项目在 NoWarn 里写了 NU5104（有意为之，比如上游只发预发布版）。
         打包时要传 -p:WarningsNotAsErrors=NU5104，让 NU5104 先不挡打包，由这里按项目判。
 
-下面几类问题同样一律判失败，失败信息后面的括号里写着这一类的说明（CHECKS）：
+CI 和发布使用默认的严格模式，以下各项均会阻断有问题的制品。显式传入 --transitional 可核对过渡时期的项目清单，
+以下适用项目只报数，其余项目继续严格检查。
+放行只给项目在过渡目录（LEGACY_ROOT，即 _import/）下的包：src/ 等别处的包两种模式都按严格判，包一搬进
+src/，当次 CI 就查。只有 exception 不分位置、只报数：每条例外写着到期的批次，由依赖门禁那边管。
 
-  prefix       包名不以 Kun. 开头
-  exception    项目文件里记着档位例外 KunTierException，包括例外带来的内核档依赖平台档
-  repository   包里的仓库地址不是本仓库，或没带提交号
+  prefix       包名不以 Kun. 开头（还没归并进来的包）
+  exception    项目文件里记着档位例外 KunTierException，包括例外带来的内核档依赖平台档（不分位置）
+  repository   包里的仓库地址不是本仓库，或没带提交号（过渡子目录的打包设置还没跟上）
   symbols      没出符号包（只带分析器的包免，见上）
   metadata     作者、版权、项目地址与 src/Directory.Build.props 不一致
   description  描述是空的，或写着过渡目录的名字
@@ -81,7 +84,7 @@ PROPERTIES = ("IsPackable", "PackageId", "AssemblyName", "KunTier", "KunRole", "
 BINARY_ROOTS = ("lib/", "runtimes/")
 PE_SUFFIXES = (".dll", ".exe")
 EXCEPTION_ITEM = "KunTierException"
-CHECKS = {
+TRANSITIONAL = {
     "prefix": "包名不以 Kun. 开头",
     "exception": "项目文件里记着档位例外 KunTierException（含例外带来的内核档依赖平台档）",
     "repository": "包里的仓库地址不是本仓库，或没带提交号",
@@ -117,12 +120,16 @@ class Package:
 
 @dataclass
 class Report:
-    """核对结果：problems 里的每一项都判失败。"""
+    """核对结果：problems 判失败；allowed 是过渡模式放行的项（键见 TRANSITIONAL）。"""
     problems: List[str] = field(default_factory=list)
+    allowed: Dict[str, List[str]] = field(default_factory=dict)
 
-    def fail(self, key: str, message: str) -> None:
-        """记一项带类别的问题：信息后面的括号里写这一类的说明（键见 CHECKS）。"""
-        self.problems.append(f"{message}（{CHECKS[key]}）")
+    def strict_only(self, allow: bool, key: str, message: str) -> None:
+        """B10 之后才判失败的项：allow（过渡模式且这个包可以放行）时记进 allowed，否则记进 problems。"""
+        if allow:
+            self.allowed.setdefault(key, []).append(message)
+        else:
+            self.problems.append(f"{message}（{TRANSITIONAL[key]}）")
 
 
 # ---------- 名单 ----------
@@ -192,6 +199,15 @@ def with_friend_dependencies(entries: List[Tuple[Package, dict]]) -> List[Packag
     return sorted(packages, key=lambda p: p.id.casefold())
 
 
+def in_legacy(package: Package, root: Path = LEGACY_ROOT) -> bool:
+    """项目在过渡目录下：过渡模式只给这些包放行。"""
+    try:
+        (ROOT / package.project).resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
+
+
 def tier_counts(text: str) -> Dict[str, int]:
     counts: Dict[str, int] = {}
     for field in text.split(","):
@@ -204,7 +220,7 @@ def tier_counts(text: str) -> Dict[str, int]:
     return counts
 
 
-def check_list(packages: List[Package], expected: Optional[Dict[str, int]] = None) -> Report:
+def check_list(packages: List[Package], transitional: bool, expected: Optional[Dict[str, int]] = None) -> Report:
     report = Report()
     if not packages:
         report.problems.append("解决方案里没有可打包的项目")
@@ -217,14 +233,14 @@ def check_list(packages: List[Package], expected: Optional[Dict[str, int]] = Non
         if p.id.lower() in owners:
             report.problems.append(f"两个项目的包名都是 {p.id}：{owners[p.id.lower()]}、{p.project}")
         owners[p.id.lower()] = p.project
-        if p.id.casefold() in RETIRED_IDS:
+        if not transitional and p.id.casefold() in RETIRED_IDS:
             report.problems.append(f"{p.id} 已停发，不能出现在合并版中")
         if p.tier not in TIERS or p.role not in ROLES:
             report.problems.append(f"{p.id}（{p.project}）的档位或角色没写对：KunTier=「{p.tier}」、KunRole=「{p.role}」")
         if not p.id.startswith(PREFIX):
-            report.fail("prefix", p.id)
+            report.strict_only(transitional and in_legacy(p), "prefix", p.id)
         for target, rule in p.exceptions:
-            report.fail("exception", f"{p.id} → {target}（规则 {rule}）")
+            report.strict_only(transitional, "exception", f"{p.id} → {target}（规则 {rule}）")
     return report
 
 
@@ -351,11 +367,11 @@ def lower_bound(range_text: str) -> str:
     return text
 
 
-def verify(packages: List[Package], directory: Path, version: str, commit: str,
+def verify(packages: List[Package], directory: Path, version: str, commit: str, transitional: bool,
            expected: Optional[Dict[str, str]] = None, legacy: Optional[List[str]] = None) -> Report:
     expected = expected if expected is not None else expected_metadata()
     legacy = legacy if legacy is not None else legacy_names()
-    report = check_list(packages)
+    report = check_list(packages, transitional)
     listed = {p.id.lower(): p for p in packages}
     prefixes = {p.id.split(".", 1)[0].lower() + "." for p in packages}
     stable = "-" not in version
@@ -396,6 +412,7 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str,
 
     for key in sorted(set(found) & set(listed)):
         package, spec = listed[key], found[key][1]
+        relax = transitional and in_legacy(package)
         if package.id == "Kun.Plugin.Sdk.Generators":
             analyzer = f"analyzers/dotnet/cs/{package.assembly or package.id}.dll"
             metadata_files = {f"{package.id}.nuspec", "_rels/.rels", "[Content_Types].xml", "README.md"}
@@ -407,7 +424,7 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str,
                 report.problems.append(f"{package.id} 的 nuspec 须声明 developmentDependency=true")
         if not package.build_output and not spec["binaries"]:
             # 只带分析器的包（项目不带编译输出，包里 lib/、runtimes/ 下也没有 PE 文件）免符号包，也不能出符号包；
-            # 项目写了 IncludeSymbols=true 也报，名单就不会说要、核对却说免。
+            # 项目写了 IncludeSymbols=true 也报，名单就不会说要、核对却说免。两种模式、不分位置都这么判。
             if key in symbols:
                 report.problems.append(f"{package.id} 只带分析器、免符号包，却出了符号包 {symbols[key].name}："
                                        "空的或对不上的符号包推到 nuget.org 会被拒")
@@ -417,10 +434,10 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str,
             if package.symbols:
                 report.problems.append(f"{package.id} 的项目写了 IncludeSymbols=true，却没出符号包")
             elif not package.build_output:
-                report.fail("symbols", f"{package.id}（项目写了 IncludeBuildOutput=false，可包里有 "
-                                       f"{spec['binaries'][0]}，不算只带分析器的包）")
+                report.strict_only(relax, "symbols", f"{package.id}（项目写了 IncludeBuildOutput=false，可包里有 "
+                                                     f"{spec['binaries'][0]}，不算只带分析器的包）")
             else:
-                report.fail("symbols", package.id)
+                report.strict_only(relax, "symbols", package.id)
         if spec["license"] != ("expression", LICENSE):
             report.problems.append(f"{package.id} 的许可不是 {LICENSE} 表达式：{spec['license']}")
         repository = spec["repository"] or {}
@@ -429,23 +446,23 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str,
         if repository.get("url") != expected["RepositoryUrl"] or not repository.get("commit"):
             gaps = ([] if repository.get("url") == expected["RepositoryUrl"] else ["仓库地址不是本仓库" if repository.get("url") else "没有仓库地址"]) \
                 + ([] if repository.get("commit") else ["没带提交号"])
-            report.fail("repository", f"{package.id}（{'、'.join(gaps)}）")
+            report.strict_only(relax, "repository", f"{package.id}（{'、'.join(gaps)}）")
         wrong = [label for label, actual, wanted in (("作者", spec["authors"], expected["Authors"]),
                                                       ("版权", spec["copyright"], expected["Copyright"]),
                                                       ("项目地址", spec["projectUrl"], expected["PackageProjectUrl"])) if actual != wanted]
         if wrong:
-            report.fail("metadata", f"{package.id}（{'、'.join(wrong)}不对）")
+            report.strict_only(relax, "metadata", f"{package.id}（{'、'.join(wrong)}不对）")
         if spec["description"] in ("", DEFAULT_DESCRIPTION):
-            report.fail("description", f"{package.id}（描述是空的）")
+            report.strict_only(relax, "description", f"{package.id}（描述是空的）")
         elif any(name[:1].upper() + name[1:] in spec["description"] for name in legacy):
-            report.fail("description", f"{package.id}（描述里写着过渡目录的名字）")
+            report.strict_only(relax, "description", f"{package.id}（描述里写着过渡目录的名字）")
         exact = {name.casefold() for name in package.friend_dependencies}
         declared = {name.casefold() for name, _ in spec["dependencies"]}
         for missing in sorted(exact - declared):
             report.problems.append(f"{package.id} 缺少对朋友程序集所有者 {missing} 的精确依赖")
         for dependency, range_text in spec["dependencies"]:
             target = dependency.lower()
-            if target.startswith("qian."):
+            if not transitional and target.startswith("qian."):
                 report.problems.append(f"{package.id} 依赖已停止使用的包 {dependency}，请引用现行包")
             if target in listed:
                 if target in exact and range_text != f"[{version}]":
@@ -456,13 +473,13 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str,
                     report.problems.append(f"{package.id} 依赖的 {dependency} 不在本次产物里")
                 if package.tier == "kernel" and listed[target].tier == "platform":
                     if (listed[target].id.lower(), "K") in {(t.lower(), r) for t, r in package.exceptions}:
-                        report.fail("exception", f"内核档的 {package.id} 依赖平台档的 {dependency}")
+                        report.strict_only(transitional, "exception", f"内核档的 {package.id} 依赖平台档的 {dependency}")
                     else:
                         report.problems.append(f"内核档的 {package.id} 依赖平台档的 {dependency}，项目文件里没有记档位例外")
             elif any(target.startswith(prefix) for prefix in prefixes):
                 report.problems.append(f"{package.id} 依赖的 {dependency} {range_text} 不在名单里：使用方从包源还原不到同一版本")
             elif stable and "-" in lower_bound(range_text) and not package.prerelease_ok:
-                report.fail("prerelease", f"{package.id} → {dependency} {range_text}")
+                report.strict_only(relax, "prerelease", f"{package.id} → {dependency} {range_text}")
     return report
 
 
@@ -560,13 +577,19 @@ def _summary(packages: List[Package]) -> str:
             f"要出符号包的 {count(lambda p: p.symbols and p.build_output)}、不带编译输出的 {count(lambda p: not p.build_output)}）")
 
 
-def _print(report: Report, title: str) -> int:
+def _print(report: Report, title: str, transitional: bool) -> int:
+    mode = "（过渡模式）" if transitional else ""
     if report.problems:
-        print(f"{title}不通过：{len(report.problems)} 处")
+        print(f"{title}不通过{mode}：{len(report.problems)} 处")
         for problem in report.problems:
             print(f"  {problem}")
     else:
-        print(f"{title}通过")
+        print(f"{title}通过{mode}")
+    if report.allowed:
+        print("过渡期放行（只给过渡目录下的包，档位例外不分位置；B10 之后去掉 --transitional，下面这些都判失败）：")
+        for key, items in report.allowed.items():
+            shown = "、".join(items[:5]) + (f" 等 {len(items)} 项" if len(items) > 5 else "")
+            print(f"  [{key}] {TRANSITIONAL[key]}：{len(items)} 项（{shown}）")
     return 1 if report.problems else 0
 
 
@@ -594,22 +617,25 @@ def main(argv: Optional[List[str]] = None) -> int:
     for p in (config, notes, feed, preflight, consumer):
         p.add_argument("--version", required=True, help="日历版本")
         p.add_argument("--list", type=Path, help="list --json 的输出；不给就现读项目文件")
+    for p in (listing, verifying):
+        p.add_argument("--transitional", action="store_true",
+                       help="过渡模式：过渡目录下的包放行 TRANSITIONAL 里的几项，档位例外只报数（B10 之前用）")
     args = parser.parse_args(argv)
     try:
         if args.command == "list":
             packages = discover()
-            report = check_list(packages, args.expect)
+            report = check_list(packages, args.transitional, args.expect)
             if args.json:
                 print(json.dumps([asdict(p) for p in packages], ensure_ascii=False, indent=2))
                 for problem in report.problems:
                     print(f"包名单核对不通过：{problem}", file=sys.stderr)
                 return 1 if report.problems else 0
             print(f"包名单：{_summary(packages)}")
-            return _print(report, "包名单核对")
+            return _print(report, "包名单核对", args.transitional)
         release_info(args.version)
         packages = _load_list(args.list) if args.list else discover()
         if args.command in ("nuget-config", "notes", "verify-feed", "check-version", "verify-consumer"):
-            report = check_list(packages)
+            report = check_list(packages, transitional=False)
             if report.problems:
                 print("\n".join(report.problems), file=sys.stderr)
                 return 1
@@ -658,10 +684,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             else:
                 print(release_notes(packages, args.version, (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")), end="")
             return 0
-        report = verify(packages, args.packages, args.version, args.commit or git_head())
+        report = verify(packages, args.packages, args.version, args.commit or git_head(), args.transitional)
         report.problems.extend(check_assembly_metadata(packages, args.packages, args.version))
         print(f"包名单：{_summary(packages)}；版本 {args.version}")
-        return _print(report, "制品核对")
+        return _print(report, "制品核对", args.transitional)
     except ValueError as error:
         print(f"版本不合要求：{error}", file=sys.stderr)
         return 2

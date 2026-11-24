@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.data",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "提供 qian.data 的实际代码入口与配置契约；安装状态按组件验收门管理。",
   "author": {
     "name": "Qian"
@@ -42,8 +42,8 @@
     "nuget": [
       {
         "id": "Kun.Data",
-        "version": "2026.11.21",
-        "digest": "sha256:52125f5daaefe23d190ea365031382ffa7f0530c9bb9a881a61231f7e67fc559"
+        "version": "2026.11.24",
+        "digest": "sha256:75022d576916a5612a4ef2427f03fa8f3ac0eda1b70f70fbf85363816edda59e"
       }
     ],
     "configSchema": "./schemas/config.schema.json"

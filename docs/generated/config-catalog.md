@@ -296,7 +296,7 @@
 
 ## global/identity
 
-组件：` qian.identity.client@1.2.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.identity.client@1.2.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -392,7 +392,7 @@
 
 ## global/data
 
-组件：` qian.data@1.2.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.data@1.2.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -446,7 +446,7 @@
 
 ## global/files
 
-组件：` qian.files@2.1.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.files@2.1.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 
@@ -618,7 +618,7 @@
 
 ## global/events
 
-组件：` qian.events@1.2.0 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
+组件：` qian.events@1.2.1 `；来源：` bundle ` / ` plugins/qian.bundle.base/config/qian.patch.yml `。
 
 ### 生效配置
 

@@ -294,8 +294,8 @@ python3 scripts/staging-e2e.py --shell https://gateway.staging.example --issuer 
 ## 9 已知限制
 
 - 平台与网关的数据保护密钥都放在临时卷：Pod 重建后，账号 Cookie 与网关会话解不开，用户要重新登录。多副本之前要改成共享目录。
-- 网关的转发头只回溯一跳（Kun 网关 `ForwardLimit` 固定为 1），按 IP 的限流把全部外部请求算在 WireGuard 那一跳的地址上。staging 用户少，暂不处理。
-- Traefik 的代理信任清单包含节点与 Pod 网段。平台身份分支按两跳解析转发头，登录限流与审计的来源地址按该环境配置的代理清单核验。
+- 网关的转发头只回溯一跳（Kun 网关 `ForwardLimit` 固定为 1）。
+- Traefik 的代理信任清单包含节点网段与 Pod 网段；平台身份分支把直连的 Traefik Pod 与 WireGuard 一跳当作可信代理，按两跳解析转发头。
 - 基线给 `qian-platform`、`qian-postgres`、`qian-redis` 都预置了 `minAvailable: 1` 的 PDB，而它们都只有一个副本：`kubectl drain` 数据节点会一直等待。节点维护前先临时放宽或删除这三个 PDB，维护后恢复。
 - 网关的就绪依赖边缘主机与身份发行方：边缘主机或身份服务故障时，网关被摘出 Service 端点，外壳整体不可用，连静态页也打不开。要改需要 Qian 侧调整就绪检查的口径。
 - 网关入口（`hosts/Kun.Gateway.Host/Program.cs`）没有像平台宿主那样拦截未处理异常：依赖挂载失败时，容器里的 PID 1 可能空转不退出，要等 90 秒启动探针超时才被重启。

@@ -45,6 +45,10 @@
 
 - 补充 2026.11.21 一节「HTTP 和 gRPC 授权执行点」：`Kun.Authorization.AspNetCore` 属于平台档，从 CavaiLAB 的 GitHub Packages 还原。原来用 `Kun.AspNetCore` 的 `RequireKunPermission`，或在 `Kun.Grpc` 的服务方法上标 `[RequiresPermission]` 的项目，升级后要引用这个包；只从 nuget.org 还原的项目要为它映射 GitHub Packages 的源。没有登记授权拦截器时，`Kun.Grpc` 拒绝执行标了 `[RequiresPermission]` 的方法。
 
+### Changed — 文件组件的版本
+
+- 补充 2026.11.21 一节：文件组件 `qian.files` 在该节几处记下的 1.0.1、1.1.0、2.0.0 是逐次升版，随该版发布的最终版本是 2.0.1。
+
 ## [2026.11.21] - 2026-11-21
 
 本版停发 8 个旧包，包括 `Kun.Infrastructure`、`Kun.Dapper`、`Kun.Saga`、`Kun.Sandbox`、`Kun.Storage`、`Kun.Auditing`、`Kun.Audit` 和 `Kun.MultiTenancy.EntityFrameworkCore`。nuget.org 保留既有版本，各包的替代实现与升级步骤见下文。

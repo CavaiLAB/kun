@@ -25,7 +25,6 @@ SPEC.loader.exec_module(release)
 VERSION = "2026.11.30"
 COMMIT = "0123456789abcdef0123456789abcdef01234567"
 EXPECTED = release.expected_metadata()  # 仓库里 src/Directory.Build.props 写的作者、版权、项目地址、仓库地址
-LEGACY = ["legacy"]
 Package = release.Package
 
 
@@ -266,7 +265,7 @@ class VerifyTests(unittest.TestCase):
     packages = [kernel("Kun.Core"), kernel("Kun.Data.Native", role="provider"), platform("Kun.Data")]
 
     def verify(self, root, packages=None, version=VERSION):
-        return release.verify(packages or self.packages, root, version, COMMIT, EXPECTED, LEGACY)
+        return release.verify(packages or self.packages, root, version, COMMIT, EXPECTED)
 
     def test_only_packaged_friends_require_an_exact_dependency(self):
         packages = [kernel("Kun.Core"), kernel("Kun.Client", friend_dependencies=("Kun.Core",))]
@@ -449,21 +448,27 @@ class VerifyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             full_set(root, packages)
-            write(root, "Kun.Lib", authors="Someone Else", copyright="", project_url="", description="Wraps the Legacy runtime")
-            write(root, "Kun.Core", description="Reads the legacy.sid cookie")  # 小写的运行期字面不算
+            write(root, "Kun.Lib", authors="Someone Else", copyright="", project_url="", description="Wraps the Qian runtime")
+            write(root, "Kun.Core", description="Reads the qian.sid cookie")  # 小写的运行期字面不算
             write(root, "Kun.Bare", description="")
             write(root, "Kun.Default", description="Package Description")
-            write(root, "Kun.Moved", authors="Someone Else", description="Moved from the Legacy runtime")
+            write(root, "Kun.Moved", authors="Someone Else", description="Qian platform: moved here")
             strict = "\n".join(self.verify(root, packages).problems)
             self.assertIn("Kun.Lib（作者、版权、项目地址不对）", strict)
-            self.assertIn("Kun.Lib（描述里写着过渡目录的名字）", strict)
+            self.assertIn("Kun.Lib（描述里写着 Qian）", strict)
             self.assertIn("Kun.Bare（描述是空的）", strict)
             self.assertIn("Kun.Default（描述是空的）", strict)
             self.assertIn("Kun.Moved（作者不对）", strict)
-            self.assertIn("Kun.Moved（描述里写着过渡目录的名字）", strict)
+            self.assertIn("Kun.Moved（描述里写着 Qian）", strict)
             self.assertNotIn("Kun.Core", strict)
 
-    def test_expected_metadata_and_legacy_names_come_from_the_repository(self):
+    def test_legacy_names_in_descriptions_are_matched_case_sensitively(self):
+        self.assertEqual("Qian", release.legacy_name("Qian platform: configuration"))
+        for description in ("Reads the qian.sid cookie", "Dialect annotation qian.data.dialect/v1", "Platform configuration"):
+            with self.subTest(description=description):
+                self.assertIsNone(release.legacy_name(description))
+
+    def test_expected_metadata_comes_from_the_repository(self):
         self.assertTrue(EXPECTED["RepositoryUrl"].endswith(".git"))
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
@@ -476,11 +481,6 @@ class VerifyTests(unittest.TestCase):
             props.write_text("<Project><PropertyGroup><Authors>A</Authors></PropertyGroup></Project>", encoding="utf-8")
             with self.assertRaisesRegex(release.GateError, "Copyright"):
                 release.expected_metadata(props)
-            for name in ("kun", "old", "Kun"):
-                (root / "imports" / name).mkdir(parents=True, exist_ok=True)
-            (root / "imports" / "file.txt").write_text("", encoding="utf-8")
-            self.assertEqual(["old"], release.legacy_names(root / "imports"))
-            self.assertEqual([], release.legacy_names(root / "missing"))
 
     def test_prerelease_dependencies_of_a_stable_version(self):
         packages = [kernel("Kun.Core"), kernel("Kun.Observability", role="provider", prerelease_ok=True), platform("Kun.Gate")]

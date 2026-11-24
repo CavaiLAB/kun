@@ -24,9 +24,8 @@ KunTier、KunRole（与依赖门禁 scripts/check_deps.py 同一套属性）。�
         才免（不看包名）；免的包不能出符号包（空的或对不上的符号包推到 nuget.org 会被拒），项目也不能写
         IncludeSymbols=true。名单里「要出符号包的」不算不带编译输出的包，它们按制品判；
       - 许可是 MIT 表达式；仓库地址是本仓库，带的提交号是本次检出的提交；
-      - 作者、版权、项目地址与 src/Directory.Build.props 写的一致（仓库地址也照它）；描述不空，也不写过渡目录的名字
-        （取 _import/ 下各子目录的名字，首字母大写后区分大小写地查，不写死；小写的运行期字面
-        如组件 id、Cookie 名不算）；
+      - 作者、版权、项目地址与 src/Directory.Build.props 写的一致（仓库地址也照它）；描述不空，也不写停更包族的名字
+        （LEGACY_NAMES，区分大小写地查；小写的运行期字面如组件 id、Cookie 名不算）；
       - 内核档的包不依赖平台档的包；
       - 稳定版不带预发布依赖，除非项目在 NoWarn 里写了 NU5104（有意为之，比如上游只发预发布版）。
         打包时要传 -p:WarningsNotAsErrors=NU5104，让 NU5104 先不挡打包，由这里按项目判。
@@ -38,7 +37,7 @@ CI 和发布都按上面各条核对，有一处不符就不通过。下面几�
   repository   包里的仓库地址不是本仓库，或没带提交号
   symbols      没出符号包（只带分析器的包免，见上）
   metadata     作者、版权、项目地址与 src/Directory.Build.props 不一致
-  description  描述是空的，或写着过渡目录的名字
+  description  描述是空的，或写着停更包族的名字
   prerelease   稳定版带预发布依赖，项目却没写 NoWarn NU5104
 
 退出码：0 通过；1 核对不通过；2 工具出错。自测在 scripts/tests/test_release_packages.py。
@@ -67,8 +66,9 @@ from release_version import PACKAGE_ID, release_info  # noqa: E402
 SOLUTION = ROOT / "Kun.slnx"
 METADATA_PROPS = ROOT / "src" / "Directory.Build.props"
 METADATA = ("Authors", "Copyright", "PackageProjectUrl", "RepositoryUrl")
-LEGACY_ROOT = ROOT / "_import"
 PREFIX = "Kun."
+# 停更包族的名字（见 docs/guides/package-migration.md）。描述里区分大小写地查，小写的运行期字面（组件 id、Cookie 名）不算。
+LEGACY_NAMES = ("Qian",)
 # 停发的包名仍可能存在于包源历史版本中，合并版清单不能再次使用。
 RETIRED_IDS = frozenset(name.casefold() for name in (
     "Kun.Audit", "Kun.Auditing", "Kun.Dapper", "Kun.Infrastructure",
@@ -88,7 +88,7 @@ REASONS = {
     "repository": "包里的仓库地址不是本仓库，或没带提交号",
     "symbols": "没出符号包",
     "metadata": "作者、版权、项目地址与 src/Directory.Build.props 不一致",
-    "description": "描述是空的，或写着过渡目录的名字",
+    "description": "描述是空的，或写着停更包族的名字",
     "prerelease": "稳定版带预发布依赖，项目没写 NoWarn NU5104",
 }
 NUSPEC_LIMIT = 1_048_576
@@ -248,10 +248,9 @@ def expected_metadata(props: Path = METADATA_PROPS) -> Dict[str, str]:
     return found
 
 
-def legacy_names(root: Path = LEGACY_ROOT) -> List[str]:
-    """过渡目录下各子目录的名字（本仓库现在的名字除外），描述里不该再写它们。目录不在了就没有。"""
-    current = PREFIX.rstrip(".").lower()
-    return sorted(d.name for d in root.iterdir() if d.is_dir() and d.name.lower() != current) if root.is_dir() else []
+def legacy_name(description: str) -> Optional[str]:
+    """描述里写着的停更包族名（区分大小写，见 LEGACY_NAMES）；没写就是 None。"""
+    return next((name for name in LEGACY_NAMES if name in description), None)
 
 
 # ---------- 制品 ----------
@@ -353,9 +352,8 @@ def lower_bound(range_text: str) -> str:
 
 
 def verify(packages: List[Package], directory: Path, version: str, commit: str,
-           expected: Optional[Dict[str, str]] = None, legacy: Optional[List[str]] = None) -> Report:
+           expected: Optional[Dict[str, str]] = None) -> Report:
     expected = expected if expected is not None else expected_metadata()
-    legacy = legacy if legacy is not None else legacy_names()
     report = check_list(packages)
     listed = {p.id.lower(): p for p in packages}
     prefixes = {p.id.split(".", 1)[0].lower() + "." for p in packages}
@@ -438,8 +436,8 @@ def verify(packages: List[Package], directory: Path, version: str, commit: str,
             report.fail("metadata", f"{package.id}（{'、'.join(wrong)}不对）")
         if spec["description"] in ("", DEFAULT_DESCRIPTION):
             report.fail("description", f"{package.id}（描述是空的）")
-        elif any(name[:1].upper() + name[1:] in spec["description"] for name in legacy):
-            report.fail("description", f"{package.id}（描述里写着过渡目录的名字）")
+        elif (legacy := legacy_name(spec["description"])) is not None:
+            report.fail("description", f"{package.id}（描述里写着 {legacy}）")
         exact = {name.casefold() for name in package.friend_dependencies}
         declared = {name.casefold() for name, _ in spec["dependencies"]}
         for missing in sorted(exact - declared):

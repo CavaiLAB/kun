@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Kun 是匠心智能体平台的企业级后端框架。命令在仓库根运行。`Kun.slnx` 包含内核、平台组件和宿主；前端工作区使用根 `pnpm-workspace.yaml`，站点位于 `website/`。组件清单在 `plugins/`，约定在 `contracts/` 和 `schemas/`，开发工作按 [PM 说明](pm/README.md)跟踪。
+Kun 是匠心工业智能体平台的企业级后端框架。命令在仓库根运行。`Kun.slnx` 包含内核、平台组件和宿主；前端工作区使用根 `pnpm-workspace.yaml`，站点位于 `website/`。组件清单在 `plugins/`，约定在 `contracts/` 和 `schemas/`，开发工作按 [PM 说明](pm/README.md)跟踪。
 
 ## 仓库检查与合并
 

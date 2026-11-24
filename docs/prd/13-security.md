@@ -89,6 +89,8 @@
 
 缓存由实现负责：按主体缓存有效角色与权限点，以 `identity_revision` 作版本号；`Compile` 结果按（主体、资源、规则版本）缓存。端口调用必须带 `tenant_id` 作用域，跨租户判定（平台运营）走显式的平台作用域并审计。
 
+> 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D31）：`IDataPermissionFilter` 的方法是 `GetExpressionAsync<T>`，只输出进程内的 EF 表达式，在 S2 编译器交付之前恒拒绝；序列化的数据范围规则用数据契约的 Filter AST（`contracts/data/v1`、`contracts/authz/v1`），由 S2 编译器翻译后在数据引擎入口注入。上表 `IDataPermissionFilter.Compile` 一行与 13.2 表 L4 行的「EF / SQL 谓词」照此读。HTTP、gRPC、命令与配置四类执行入口以 `AuthorizationSubject` 判定，并显式传身份修订与委托状态。
+
 ---
 
 ## 13.3 令牌与会话

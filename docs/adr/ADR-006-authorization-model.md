@@ -10,6 +10,8 @@ supersedes: none
 
 > 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
 
+> 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D25、D31）：`agent` 主体的启用时点按 2026-11-19 平台级裁定 P31 提前到路线里程碑 M1（D6.12）；数据过滤端口与执行入口的判定主体以执行批次 S1-KUN-027 落地的为准（D6.1）。正文未改，受影响的条目前加了标注。
+
 ## 1 背景与问题（Context）
 
 Kun 对鉴权**全无**：`src/` 中没有任何 `IAuthorizationHandler`、策略或权限抽象；Mediator 没有授权行为；只有 `roles` claim 透传；`IPermissionChecker` 被 Kun 的 ADR 两次推迟（基线 K §2.3）。这是 S1 最大的单项工作量之一，且要同时服务 UI、API、MCP 三入口并与 RLS 协同（基线 P §10.1 第 4 条）。
@@ -20,7 +22,7 @@ Kun 对鉴权**全无**：`src/` 中没有任何 `IAuthorizationHandler`、策�
 
 ## 2 决策（Decision）
 
-- **D6.1 Kun 侧只新增 `Kun.Authorization` 端口**：`IPermissionChecker`（`Check / BatchCheck / ListAllowedActions / ListPermissions / Explain`）、`IDataPermissionFilter`（输出 EF 表达式或 SQL 谓词 AST）、`IFieldPolicy`，以及 ASP.NET Core 策略、Mediator Pipeline 行为、gRPC 拦截器集成；不放实现。
+- 【经 S1-DEC-038 D31 修订：`IDataPermissionFilter` 只提供进程内过滤表达式 `GetExpressionAsync<T>`，输出谓词 AST 的 `GetPredicateAsync` 与 `DataPermissionPredicate` 已移除，序列化的数据范围规则用数据契约的 Filter AST（`contracts/data/v1`、`contracts/authz/v1`）；HTTP、gRPC、命令与配置四类执行入口以 `AuthorizationSubject` 判定，并显式传身份修订与委托状态；gRPC 以内核标记接口 `Kun.Authorization.IPermissionEnforcementInterceptor` 识别权限拦截器】**D6.1 Kun 侧只新增 `Kun.Authorization` 端口**：`IPermissionChecker`（`Check / BatchCheck / ListAllowedActions / ListPermissions / Explain`）、`IDataPermissionFilter`（输出 EF 表达式或 SQL 谓词 AST）、`IFieldPolicy`，以及 ASP.NET Core 策略、Mediator Pipeline 行为、gRPC 拦截器集成；不放实现。
 - **D6.2 `qian.authz` 为内置实现**（`tier: system, alwaysEnabled`）：权限点与默认角色模板由插件清单 `provides.permissions` 声明并登记；资源类型（应用、菜单、按钮、API、流程、打印…）由插件注册。权限点编码统一为 `<plugin-id>:<resource>:<action>`（如 `qian.workflow:flow:launch`、`qian.crm:customer:read`）：清单只声明 `resource` 与 `actions`，插件 ID 前缀由 `qian.authz` 登记时拼接。
 - **D6.3 租户域 RBAC**：内置角色（平台超管；租户 Owner / Admin / 开发者 / 使用者）+ 自定义角色；主体可为用户、组织、岗位、用户组；有效角色 = 直接授予 ∪ 经组织 / 岗位 / 组获得；`Check` 缺省拒绝；平台超管旁路在策略中显式声明并审计。
 - **D6.4 数据权限（L4）**：条件树 + 系统变量（`@userId @userAndSub @organizeAndProgeny @positionAndSub` 等，每个带自然语言描述写进契约），**编译成 SQL / EF 谓词在本地执行**，RLS 永远兜底；合并语义固定为「同角色 AND / 跨角色 OR / 任一全部数据则放开」，不做可配置（Q19）；开了数据权限但主体无任何方案 = 查不到数据；行级策略覆盖所有读写路径，不只列表。
@@ -31,7 +33,7 @@ Kun 对鉴权**全无**：`src/` 中没有任何 `IAuthorizationHandler`、策�
 - **D6.9 S3 可选 OpenFGA 插件**（`qian.authz.openfga`）处理资源实例共享与市场授权（L3 ReBAC）；行级过滤不交给远程引擎（ListObjects 默认截断 1000 条 / 3 秒）；网关粗粒度 ABAC（OPA）S3 可选。
 - **D6.10 高级权限模式**（身份切换、组织角色、逐级递减、互斥 / 基数 / 先决约束）为 S3 可选；S1 在令牌预留 `profile` claim，权限模型按 L0–L6 分层留扩展位（Q10 补充裁决）。基数超限直接拒绝并返回结构化错误。
 - **D6.11 配额与可见性口径**：平台超管不计入租户用户配额，租户管理员计入；平台超管对租户不可见，但审计可见（Q12 补充裁决）。
-- **D6.12 统一主体模型** `user / service / agent` + 委托链字段（RFC 8693 `act`）S1 设计到位；S4 启用时 Agent 有效权限 = 委托人权限 ∩ 授予 scope；权限点带风险级别与 step-up 标记；危险操作 Agent 只能发起申请。
+- 【经 S1-DEC-038 D25 修订：启用时点由 S4 提前到路线里程碑 M1「能问能查」（平台级裁定 P31）；看板的四个阶段怎么对应到路线的里程碑，待定。现状：服务间令牌按冻结契约只接受 `user` 与 `service` 两类主体，带委托的主体拒绝】**D6.12 统一主体模型** `user / service / agent` + 委托链字段（RFC 8693 `act`）S1 设计到位；S4 启用时 Agent 有效权限 = 委托人权限 ∩ 授予 scope；权限点带风险级别与 step-up 标记；危险操作 Agent 只能发起申请。
 - **D6.13 MFA**：TOTP S1 必做（见 ADR-005 D5.3）；商密要求不做假设。
 
 ## 3 理由（Rationale）

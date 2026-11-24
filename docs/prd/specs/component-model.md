@@ -688,6 +688,8 @@ public interface IRegistrationHandle<TService> : IDisposable where TService : cl
 
 与 Kun 的衔接：`Provide` 底层是 .NET DI keyed services 的可撤销封装；进程内事件直接分发，需跨进程的集成事件由 `qian.events` 插件桥接到 `Kun.EventBus` 与 EF Outbox（运行时本身不依赖 RabbitMQ）。实现类用 `[KunPlugin("<component-id>")]` 标注，源生成器据此派生 `runtime.entry`、`inject[]`、`provides[]`（静态分析 `Provide` 调用）。
 
+> 修订（2026-11-24，[S1-DEC-038](../../../pm/tasks/S1-DEC-038.md) D30）：上面草图里的 `IKunPlugin<TConfig>` 还要提供 `JsonTypeInfo<TConfig> ConfigTypeInfo`，由使用 `JsonSerializerDefaults.Web` 的源生成上下文返回；装载器用它把配置反序列化之后再调用类型化的 `ApplyAsync`，非泛型的 `IKunPlugin` 照旧接收 `JsonElement`。`Kun.Runtime` 标记为 AOT 兼容。现行签名以 `src/Kun.Runtime` 的公共 API 清单为准。
+
 ### 5.3 `@cavailab/qian-runtime`（TypeScript）最小 API 草图
 
 从 GitHub Packages 安装 `@cavailab/qian-runtime`，并从同名包导入 TypeScript API，例如 `import type { QianPlugin } from "@cavailab/qian-runtime"`。工作区选择的版本见[依赖目录](../../../pnpm-workspace.yaml)，包的发布与所有权见 ADR-021 D21.6。早期渠道决议参见 [S1-DEC-014](../../../pm/tasks/S1-DEC-014.md)。

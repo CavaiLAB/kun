@@ -25,6 +25,10 @@
 
 - 补充 2026.11.21 一节「HTTP 和 gRPC 授权执行点」：`Kun.Authorization.AspNetCore` 属于平台档，从 CavaiLAB 的 GitHub Packages 还原。原来用 `Kun.AspNetCore` 的 `RequireKunPermission`，或在 `Kun.Grpc` 的服务方法上标 `[RequiresPermission]` 的项目，升级后要引用这个包；只从 nuget.org 还原的项目要为它映射 GitHub Packages 的源。没有登记授权拦截器时，`Kun.Grpc` 拒绝执行标了 `[RequiresPermission]` 的方法。
 
+### Changed — 文件组件的版本
+
+- 补充 2026.11.21 一节：文件组件 `qian.files` 在该节几处记下的 1.0.1、1.1.0、2.0.0 是逐次升版，随该版发布的最终版本是 2.0.1。
+
 ### Changed — 异常信息
 
 - 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。

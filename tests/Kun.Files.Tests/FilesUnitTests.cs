@@ -182,6 +182,23 @@ public sealed class FilesUnitTests
     }
 
     [Fact]
+    public async Task local挂载只为tenants下的键签发上传与下载地址()
+    {
+        var root = Directory.CreateTempSubdirectory("kun-files-keys-").FullName;
+        try
+        {
+            using var storage = JsonDocument.Parse(JsonSerializer.Serialize(new { kind = "local", root, endpoint = "http://127.0.0.1:5000/files/blobs" }));
+            var backend = FileStorageMount.Create("local", storage.RootElement, TimeProvider.System, new ServiceCollection().BuildServiceProvider(), new byte[32]);
+            await Assert.ThrowsAsync<ArgumentException>(async () => await backend.CreateUploadAsync("other/t1/a.upload", "text/plain", 3, TimeSpan.FromMinutes(15), Ct));
+            await Assert.ThrowsAsync<ArgumentException>(async () => await backend.CreateDownloadAsync("other/t1/a.txt", "a.txt", TimeSpan.FromMinutes(5), Ct));
+            // 同样的相对路径放在 tenants/ 下即可签发。
+            var upload = await backend.CreateUploadAsync("tenants/t1/a.upload", "text/plain", 3, TimeSpan.FromMinutes(15), Ct);
+            Assert.Equal("http://127.0.0.1:5000/files/blobs/tenants/t1/a.upload", upload.Url.GetLeftPart(UriPartial.Path));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
     public async Task 同一开发进程的挂载共享临时密钥_生产挂载需要显式密钥()
     {
         var directory = Directory.CreateTempSubdirectory("kun-files-mount-");

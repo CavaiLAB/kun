@@ -26,7 +26,7 @@ services.AddKunDataConnections(...); // 或连同数据连接档案
 
 ```bash
 dotnet run --project tests/Kun.Data.AspNetCore.Tests -c Release -- -class '*PgDialectComponentTests' -class '*MetaTypesEndpointTests'
-QIAN_REQUIRE_DOCKER=1 dotnet run --project _import/qian/tests/Qian.Registry.Tests -c Release -- -method '*平台类型端点随PG方言*'
+QIAN_REQUIRE_DOCKER=1 dotnet run --project tests/Kun.Registry.Tests -c Release -- -method '*平台类型端点随PG方言*'
 ```
 
 ## 方言数据

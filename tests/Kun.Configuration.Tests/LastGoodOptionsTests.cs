@@ -9,6 +9,7 @@ using Kun.Configuration.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -134,6 +135,39 @@ public sealed class LastGoodOptionsTests
         Assert.Equal(5, monitor.CurrentValue.Retries);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void RejectedReload_LogsOnlyTypeNameSectionAndFailureCount(bool useDelegate)
+    {
+        const string Candidate = "https://rejected-candidate.test/marker-7f3c";
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Service:Retries"] = "3",
+            ["Service:Endpoint"] = "https://config.test"
+        }).Build();
+        using var configOwner = (IDisposable)config;
+        var entries = new List<LogEntry>();
+        var services = new ServiceCollection().AddSingleton<IConfiguration>(config);
+        services.AddLogging(logging => logging.AddProvider(new CapturingLoggerProvider(entries)));
+        // 校验消息里带上候选值：日志仍然只能有元数据。
+        services.AddSingleton<IValidateOptions<ReloadOptions>>(new EndpointEchoingValidator());
+        RegisterOptions(services, useDelegate);
+        using var provider = services.BuildServiceProvider();
+        var monitor = provider.GetRequiredService<IOptionsMonitor<ReloadOptions>>();
+        var accepted = monitor.CurrentValue;
+
+        config["Service:Endpoint"] = Candidate;
+        config.Reload();
+
+        Assert.Same(accepted, monitor.CurrentValue);
+        var rejected = Assert.Single(entries, entry => entry.EventId == 2101);
+        Assert.Equal(["Failures", "OptionsName", "OptionsType", "Section", "{OriginalFormat}"], rejected.State.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(new object?[] { typeof(ReloadOptions).FullName, "", "Service", 1 },
+            new[] { rejected.State["OptionsType"], rejected.State["OptionsName"], rejected.State["Section"], rejected.State["Failures"] });
+        Assert.DoesNotContain(entries, entry => entry.Text.Contains("marker-7f3c", StringComparison.Ordinal));
+    }
+
     private static OptionsBuilder<ReloadOptions> RegisterOptions(IServiceCollection services, bool useDelegate)
     {
         if (!useDelegate) return services.AddKunOptions<ReloadOptions>("Service", critical: false);
@@ -151,21 +185,56 @@ public sealed class LastGoodOptionsTests
         public void OnError(Exception error) => throw error;
     }
 
+    private sealed class EndpointEchoingValidator : IValidateOptions<ReloadOptions>
+    {
+        public ValidateOptionsResult Validate(string? name, ReloadOptions options) =>
+            options.Endpoint.Contains("rejected", StringComparison.Ordinal) ? ValidateOptionsResult.Fail("Endpoint 不可用：" + options.Endpoint) : ValidateOptionsResult.Success;
+    }
+
+    private sealed record LogEntry(int EventId, string Text, IReadOnlyDictionary<string, object?> State);
+
+    private sealed class CapturingLoggerProvider(List<LogEntry> entries) : ILoggerProvider
+    {
+        public ILogger CreateLogger(string categoryName) => new CapturingLogger(entries);
+        public void Dispose() { }
+
+        private sealed class CapturingLogger(List<LogEntry> entries) : ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+            public bool IsEnabled(LogLevel logLevel) => true;
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            {
+                var values = state as IEnumerable<KeyValuePair<string, object?>> ?? [];
+                var pairs = values.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+                // 文本把消息、各字段的值与异常都算上，候选值从哪一处进日志都能查到。
+                var text = string.Join("\n", [formatter(state, exception), .. pairs.Values.Select(value => Convert.ToString(value, CultureInfo.InvariantCulture)), exception?.ToString()]);
+                lock (entries) entries.Add(new LogEntry(eventId.Id, text, pairs));
+            }
+        }
+    }
+
     private sealed class ChangeObservations(IOptionsMonitor<ReloadOptions> monitor) : IDisposable
     {
+        private static readonly TimeSpan ReadTimeout = TimeSpan.FromSeconds(5);
         private readonly List<Thread> _workers = [];
         public List<int?> ReadValues { get; } = [];
+        // 读不到值（超时或校验失败）记为 null，交给用例里的断言报告；异常不出线程，读线程也不拖住进程退出。
         public void ReadFromAnotherThread()
         {
             int? value = null;
-            var worker = new Thread(() => value = monitor.CurrentValue.Retries);
+            void Read()
+            {
+                try { value = monitor.CurrentValue.Retries; }
+                catch (OptionsValidationException) { }
+            }
+            var worker = new Thread(Read) { IsBackground = true };
             _workers.Add(worker);
             worker.Start();
-            ReadValues.Add(worker.Join(TimeSpan.FromSeconds(5)) ? value : null);
+            ReadValues.Add(worker.Join(ReadTimeout) ? value : null);
         }
         public void Dispose()
         {
-            foreach (var worker in _workers) worker.Join();
+            foreach (var worker in _workers) worker.Join(ReadTimeout);
         }
     }
 

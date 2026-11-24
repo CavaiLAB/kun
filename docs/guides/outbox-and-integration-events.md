@@ -271,7 +271,7 @@ Kun ADR-015 还有两个 follow-up 未 ship：
 - PostgreSQL 投递循环以 `FOR UPDATE SKIP LOCKED` 领取到期行并提交租约，在 broker 确认后逐条标记成功。停机交还本批未发的行，进程意外退出时其他副本等租约过期后接管。
 - 宿主可在 `AddKunEvents(options => …)` 配置 `OutboxLockMode.Redis`，通过共享 `IConnectionMultiplexer` 在行租约外增加按 schema 的互斥。
 - Outbox 新增可空 `NextAttemptAt` 列，首次运行前生成并应用宿主迁移。Catalog 与 Order 已附迁移。发布失败时按 `RetryBaseDelay × 2^(AttemptCount-1)` 退避，封顶一分钟；时间与失败原因一起持久化，重启后仍遵守。达到 `MaxAttempts` 后保留 Failed 行供运维处理。
-- RabbitMQ 发布等待 broker confirm。普通事件使用 `mandatory: false`；需要接收事件的宿主在生产方发送之前部署订阅，让队列完成绑定。
+- RabbitMQ 发布等待 broker confirm。普通事件使用 `mandatory: false`：没有队列绑定该事件的路由键时，broker 丢弃这条事件并照常确认，Outbox 行标为已发布，不报错也不重试。需要接收事件的宿主要在生产方发送之前部署订阅，让队列完成绑定。
 - 消费端先查成功记录，执行 handler，成功标记后才 ack；失败不留成功标记。默认 Redis `idemp:{consumer}:{messageId}` 对应任务所说的 processed_messages 成功记录语义，重试成功后只有一条；已有自定义存储需实现新增 `IsProcessedAsync` 才有预查去重，否则保留至少一次执行。
 - 消费失败通过持久化 quorum 重试队列做指数延迟，采用 at-least-once dead-letter 策略与 reject-publish；重试只回到原消费者组的队列，不向其他组重新广播。消息 `Type` 保留稳定事件 ID；达到上限后确认发布到 DLX。仅在重试／死信副本收到 publisher confirm 后 ack 原消息。配置依据 [RabbitMQ quorum 队列文档](https://www.rabbitmq.com/docs/quorum-queues#activating-at-least-once-dead-lettering)。
 - 发布与订阅各自持有连接。发布失败由持久化 Outbox 重试，消费会话中断后重连并重新声明订阅。

@@ -28,6 +28,12 @@
 - `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
 - 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
+### Fixed — 补记 2026.11.21 事件与审计的行为变化与删除项
+
+`2026.11.21` 的事件与审计各节没有写全的行为变化与删除项，补记如下：
+
+- 自 2026.11.21 起，普通事件经 RabbitMQ 发布时不要求路由到队列（`mandatory: false`）：没有队列绑定该事件的路由键时，broker 丢弃这条事件并照常确认，Outbox 行标为已发布。此前 `Kun.EventBus.RabbitMQ` 的发布器按 mandatory 发布，路由不到时发布报错、由 Outbox 重试；现在不报错也不重试。需要接收事件的宿主要先部署订阅、让队列完成绑定，再让生产方发送。
+
 ## [2026.11.21] - 2026-11-21
 
 本版停发 8 个旧包，包括 `Kun.Infrastructure`、`Kun.Dapper`、`Kun.Saga`、`Kun.Sandbox`、`Kun.Storage`、`Kun.Auditing`、`Kun.Audit` 和 `Kun.MultiTenancy.EntityFrameworkCore`。nuget.org 保留既有版本，各包的替代实现与升级步骤见下文。

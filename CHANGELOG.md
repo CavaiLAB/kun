@@ -25,26 +25,18 @@
 
 - 补充 2026.11.21 一节「HTTP 和 gRPC 授权执行点」：`Kun.Authorization.AspNetCore` 属于平台档，从 CavaiLAB 的 GitHub Packages 还原。原来用 `Kun.AspNetCore` 的 `RequireKunPermission`，或在 `Kun.Grpc` 的服务方法上标 `[RequiresPermission]` 的项目，升级后要引用这个包；只从 nuget.org 还原的项目要为它映射 GitHub Packages 的源。没有登记授权拦截器时，`Kun.Grpc` 拒绝执行标了 `[RequiresPermission]` 的方法。
 
-### Changed — 文件组件的版本
-
-- 补充 2026.11.21 一节：文件组件 `qian.files` 在该节几处记下的 1.0.1、1.1.0、2.0.0 是逐次升版，随该版发布的最终版本是 2.0.1。
-
 ### Changed — 异常信息
 
 - 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。
 
-### Fixed — 更正 2026.11.21 旧包的已发布版本
+### Fixed — 按配置绑定租户连接串（S1-KUN-024）
 
-`2026.11.21`「事件契约并进 Kun.EventBus.Abstractions」「错误模型合一到 Kun.Errors」「组件运行时统一到 Kun.Runtime」三节写的「已发布 0.2.0」应为已发布至 0.3.0：
+- Database 隔离策略用 `Configure<TenantsConnectionOptions>(configuration.GetSection(TenantsConnectionOptions.SectionName))` 绑定的连接串现在会生效。配置绑定器不支持以 `Guid` 为键的字典，2026.11.21 中这一节的配置进不了 `ConnectionStrings`，按租户解析连接串时报未配置。`TenantsConnectionOptions` 新增 `ConfiguredConnectionStrings`，承接配置里的 `ConnectionStrings` 节；`AddKunMultiTenancy<TContext>` 选 `TenantIsolation.Database` 时，宿主启动阶段校验每个键并把它们并入 `ConnectionStrings`。配置的写法不变。
+- 键须是非空 UUID 的小写 D 格式。键不合法，或同一租户在代码与配置里的连接串不一致时，宿主启动失败，错误信息里写出那个键。开启配置绑定源生成器的项目，生成的代码按 `Guid.Parse` 解析键：大写、带花括号的键原先能绑定，现在启动即失败；完全不是 UUID 的键在绑定时由生成的代码报错。
 
-- `Qian.Events.Abstractions`、`Qian.Runtime.Errors`、`Qian.Runtime.Errors.AspNetCore` 与 `Qian.Runtime` 在 GitHub Packages 上保留 0.1.0 至 0.3.0 的全部版本，最新版本为 0.3.0。替代包见 `docs/guides/package-migration.md`。
+### Fixed — 文件组件的版本
 
-### Fixed — 补记 2026.11.21 网关一节的类型迁移
-
-`2026.11.21`「网关装配与限流」一节列了配置节与键名的变化，代码里用到的类型补记如下：
-
-- `Kun.Gateway.Configuration.KunGatewayOptions` 不再提供，改用 `Kun.Gateway.Abstractions` 包里的 `Kun.Gateway.GatewayConfiguration`。`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`，其余属性同名；新类型是记录，属性在创建时赋值。**迁移**：原来用 `Configure<KunGatewayOptions>(…)` 或绑定 `KunGateway` 节的，把 `GatewayConfiguration` 传给 `AddKunGateway(configuration)`，或不传、由 `AddKunGateway()` 读取 `Gateway` 节；注入 `IOptions<KunGatewayOptions>` 的改为 `IOptions<GatewayConfiguration>`。
-- Redis 固定窗口计数器的类型从 `Kun.Gateway` 包的 `Kun.Gateway.RateLimiting` 命名空间挪到 `Kun.RateLimit` 包：`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore` 的命名空间改为 `Kun.RateLimit`，注册扩展 `AddKunRedisRateLimitStore` 改由 `Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions` 提供。**迁移**：加 `using Kun.RateLimit;`，调用注册扩展的再加 `using Kun.RateLimit.Extensions;`。配置节 `Kun:Gateway:RateLimit:Redis` 与缺省键前缀 `kun:rl` 不变，引用 `Kun.Gateway` 的项目经它传递拿到 `Kun.RateLimit`。
+- 补充 2026.11.21 一节：文件组件 `qian.files` 在该节几处记下的 1.0.1、1.1.0、2.0.0 是逐次升版，随该版发布的最终版本是 2.0.1。
 
 ### Fixed — 补记 2026.11.21 事件与审计的行为变化与删除项
 
@@ -58,6 +50,19 @@
   - `Kun.EventBus.RabbitMQ`：此前的公共类型全部删除，即 `RabbitMqConnectionProvider`、`Options.RabbitMqOptions`、`Publishing.RabbitMqIntegrationEventPublisher`、`Consuming.RabbitMqIntegrationEventSubscriber`、`DependencyInjection.KunRabbitMqBuilder` 与 `DependencyInjection.KunRabbitMqServiceCollectionExtensions`（命名空间都在 `Kun.EventBus.RabbitMQ` 下）。现在的公共类型是 `KunEventsRabbitMqExtensions`、`KunEventsSubscriberBuilder` 与 `KunEventsSubscriberOptions`。
   - `Kun.Audit.EntityFrameworkCore`：`AuditSaveChangesInterceptor`、`EfAuditWriter<TDbContext>`、`PostgresAuditChain` 与 `DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions`（`AddKunAuditEntityFrameworkCore`、`UseEntityFramework<TDbContext>`、`UsePostgresChain`），命名空间都在 `Kun.Audit.EntityFrameworkCore` 下。替代用法见前文「命令链与实体审计」。
 
+### Fixed — 补记 2026.11.21 网关一节的类型迁移
+
+`2026.11.21`「网关装配与限流」一节列了配置节与键名的变化，代码里用到的类型补记如下：
+
+- `Kun.Gateway.Configuration.KunGatewayOptions` 不再提供，改用 `Kun.Gateway.Abstractions` 包里的 `Kun.Gateway.GatewayConfiguration`。`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`，其余属性同名；新类型是记录，属性在创建时赋值。**迁移**：原来用 `Configure<KunGatewayOptions>(…)` 或绑定 `KunGateway` 节的，把 `GatewayConfiguration` 传给 `AddKunGateway(configuration)`，或不传、由 `AddKunGateway()` 读取 `Gateway` 节；注入 `IOptions<KunGatewayOptions>` 的改为 `IOptions<GatewayConfiguration>`。
+- Redis 固定窗口计数器的类型从 `Kun.Gateway` 包的 `Kun.Gateway.RateLimiting` 命名空间挪到 `Kun.RateLimit` 包：`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore` 的命名空间改为 `Kun.RateLimit`，注册扩展 `AddKunRedisRateLimitStore` 改由 `Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions` 提供。**迁移**：加 `using Kun.RateLimit;`，调用注册扩展的再加 `using Kun.RateLimit.Extensions;`。配置节 `Kun:Gateway:RateLimit:Redis` 与缺省键前缀 `kun:rl` 不变，引用 `Kun.Gateway` 的项目经它传递拿到 `Kun.RateLimit`。
+
+### Fixed — 更正 2026.11.21 旧包的已发布版本
+
+`2026.11.21`「事件契约并进 Kun.EventBus.Abstractions」「错误模型合一到 Kun.Errors」「组件运行时统一到 Kun.Runtime」三节写的「已发布 0.2.0」应为已发布至 0.3.0：
+
+- `Qian.Events.Abstractions`、`Qian.Runtime.Errors`、`Qian.Runtime.Errors.AspNetCore` 与 `Qian.Runtime` 在 GitHub Packages 上保留 0.1.0 至 0.3.0 的全部版本，最新版本为 0.3.0。替代包见 `docs/guides/package-migration.md`。
+
 ### Fixed — 更正服务间令牌各入口的核对说明
 
 `2026.11.21`「身份依赖方端口与服务间令牌」一节关于签发与接收时核对的写法，按入口更正如下：
@@ -67,12 +72,7 @@
 - `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
 - 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
-### Fixed — 按配置绑定租户连接串（S1-KUN-024）
-
-- Database 隔离策略用 `Configure<TenantsConnectionOptions>(configuration.GetSection(TenantsConnectionOptions.SectionName))` 绑定的连接串现在会生效。配置绑定器不支持以 `Guid` 为键的字典，2026.11.21 中这一节的配置进不了 `ConnectionStrings`，按租户解析连接串时报未配置。`TenantsConnectionOptions` 新增 `ConfiguredConnectionStrings`，承接配置里的 `ConnectionStrings` 节；`AddKunMultiTenancy<TContext>` 选 `TenantIsolation.Database` 时，宿主启动阶段校验每个键并把它们并入 `ConnectionStrings`。配置的写法不变。
-- 键须是非空 UUID 的小写 D 格式。键不合法，或同一租户在代码与配置里的连接串不一致时，宿主启动失败，错误信息里写出那个键。开启配置绑定源生成器的项目，生成的代码按 `Guid.Parse` 解析键：大写、带花括号的键原先能绑定，现在启动即失败；完全不是 UUID 的键在绑定时由生成的代码报错。
-
-### Changed — 补记 2026.11.21 删除的租户入口类型与行为变化（S1-KUN-024）
+### Fixed — 补记 2026.11.21 删除的租户入口类型与行为变化（S1-KUN-024）
 
 2026.11.21 一节没有列出下面这些变化，在此补记：
 
@@ -83,7 +83,7 @@
 - `TenantContextMiddleware` 的构造函数增加了 `TenantRequestMode` 参数，`InvokeAsync` 改为从参数取得 `ITenantContext`。直接 `UseMiddleware<TenantContextMiddleware>()` 的宿主改用 `UseKunMultiTenancy(mode)`。`UseKunMultiTenancy` 增加了可选参数 `mode`，源码不用改，已编译的程序集需要重新编译。
 - `AddKunSecurity()` 不再登记 `ITenantContext`。需要租户上下文的宿主另调 `AddKunMultiTenancy()`。
 
-### Changed — 更正 2026.11.21 关于显式租户标识检查的说法（S1-KUN-024）
+### Fixed — 更正 2026.11.21 关于显式租户标识检查的说法（S1-KUN-024）
 
 - 2026.11.21「租户上下文使用 UUID」一节说宽松和严格的 EF 上下文在插入多租户实体时都会检查显式租户标识。准确的说法是：装了 `KunTenantSaveChangesInterceptor` 的上下文才做这项检查。`KunStrictDbContext` 构造时要求装配它，`AddKunData` 自动装配；`KunDbContext` 需要使用方自行 `AddInterceptors`，服务由 `AddKunMultiTenancyEntityFrameworkCore()` 登记。
 

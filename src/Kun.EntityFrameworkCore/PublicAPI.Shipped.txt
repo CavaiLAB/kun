@@ -82,6 +82,8 @@ Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext>.Deprov
 Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext>.ProvisionAsync(Kun.Core.MultiTenancy.TenantInfo! tenant, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext>.SchemaPerTenantProvisioner(Kun.EntityFrameworkCore.MultiTenancy.ITenantDbContextFactory<TContext!>! factory, Microsoft.Extensions.Options.IOptions<Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions!>! options, Microsoft.Extensions.Logging.ILogger<Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext!>!>? logger = null) -> void
 Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions
+Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConfiguredConnectionStrings.get -> System.Collections.Generic.IDictionary<string!, string!>!
+Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConfiguredConnectionStrings.set -> void
 Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConnectionStrings.get -> System.Collections.Generic.IDictionary<System.Guid, string!>!
 Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConnectionStrings.set -> void
 Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.TenantsConnectionOptions() -> void

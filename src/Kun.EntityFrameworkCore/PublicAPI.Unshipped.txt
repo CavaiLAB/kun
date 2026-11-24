@@ -1,3 +1,1 @@
 #nullable enable
-Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConfiguredConnectionStrings.get -> System.Collections.Generic.IDictionary<string!, string!>!
-Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConfiguredConnectionStrings.set -> void

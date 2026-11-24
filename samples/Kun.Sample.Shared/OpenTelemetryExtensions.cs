@@ -22,7 +22,8 @@ public static class OpenTelemetryExtensions
             .ConfigureResource(r => r.AddService(serviceName))
             .WithTracing(t => t
                 .AddSource("Kun.Mediator")
-                .AddSource("Kun.EventBus.Outbox")
+                .AddSource("Kun.EventBus.EntityFrameworkCore")
+                .AddSource("Kun.EventBus.RabbitMQ")
                 .AddSource("Kun.Grpc")
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()

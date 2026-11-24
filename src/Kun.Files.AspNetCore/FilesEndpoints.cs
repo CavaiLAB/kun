@@ -35,7 +35,8 @@ public static class FilesEndpoints
     /// GET /api/files/quota，
     /// 以及 <see cref="FilesEndpointOptions.TransferSource"/> 非空时 local 后端的 PUT / GET {TransferPath}/{key}。
     /// <paramref name="source"/> 返回当前请求可注入 Files 的组件上下文（请求租户收窄）；<paramref name="requirePermission"/> 由宿主把权限点接到 PEP，
-    /// 例如 <c>(endpoint, permission) =&gt; endpoint.RequireKunPermission(permission)</c>（Kun.Authorization.AspNetCore）。只加元数据而不接 PEP 的回调在构建端点时即被拒绝。
+    /// 例如 <c>(endpoint, permission) =&gt; endpoint.RequireKunPermission(permission)</c>（Kun.Authorization.AspNetCore）。构建端点时按 <c>RequirePluginPermission</c>
+    /// 的规则核对：端点要有该权限点的元数据与执行同一权限点的授权要求，且没有匿名放行标记，不满足即抛出。
     /// 宿主须先装配认证、可信租户边界、PEP 与 ErrorDetail 中间件（AddKunErrors / UseKunErrors）。
     /// </summary>
     public static IEndpointRouteBuilder MapKunFiles(this IEndpointRouteBuilder endpoints, Func<HttpContext, IPluginContext> source,

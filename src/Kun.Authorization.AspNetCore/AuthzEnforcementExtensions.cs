@@ -124,4 +124,4 @@ public sealed class AuthzEnforcementSource
     internal bool IsProduction(IServiceProvider services) => Options.Production ?? services.GetService<IHostEnvironment>()?.IsProduction() ?? true;
 }
 
-internal sealed record KunPermissionRequirement(string Permission) : IAuthorizationRequirement;
+internal sealed record KunPermissionRequirement(string Permission) : IAuthorizationRequirement, IPermissionEnforcementRequirement;

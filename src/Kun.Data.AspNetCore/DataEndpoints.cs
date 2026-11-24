@@ -20,7 +20,9 @@ public static class DataEndpoints
 
     /// <summary>
     /// 登记全部数据端点：<see cref="MapKunDataTypes"/> 与 <see cref="MapKunDataConnections"/>。宿主须先装配认证、可信租户边界、
-    /// 权限执行和错误中间件。<paramref name="requirePermission"/> 将权限点接入宿主策略。带组件绑定时还要求当前 scope 已挂载该组件。
+    /// 权限执行和错误中间件。<paramref name="requirePermission"/> 给端点加上执行该权限点的授权要求，例如
+    /// <c>(route, permission) =&gt; route.RequireKunPermission(permission)</c>；构造端点时按 <c>RequirePluginPermission</c> 的规则核对，不满足即抛出。
+    /// 带组件绑定时还要求当前 scope 已挂载该组件。
     /// </summary>
     public static IEndpointRouteBuilder MapKunData(this IEndpointRouteBuilder endpoints, Action<RouteHandlerBuilder, string> requirePermission, PluginEndpointBinding? binding = null) =>
         endpoints.MapKunDataTypes(requirePermission, binding).MapKunDataConnections(requirePermission, binding);

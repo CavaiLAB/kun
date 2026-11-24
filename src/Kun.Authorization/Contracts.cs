@@ -54,3 +54,13 @@ public sealed class RequiresPermissionAttribute(string permission) : Attribute
 public interface IPermissionEnforcementInterceptor
 {
 }
+
+/// <summary>
+/// 标识端点授权策略里执行某个权限点的要求。宿主的权限回调给端点加上这样的要求，构造端点时据此核对权限点确实接上了执行点；
+/// 自定义执行点让自己的授权要求实现本接口。
+/// </summary>
+public interface IPermissionEnforcementRequirement
+{
+    /// <summary>这项要求执行的权限点。</summary>
+    string Permission { get; }
+}

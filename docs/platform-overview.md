@@ -25,6 +25,6 @@
 | [`../contracts/v0/`](../contracts/v0/README.md) | 冻结契约 v0（仓库根目录，不在 docs 下）：ErrorDetail 与错误码目录、S2S claim、事件信封、能力条目四类 JSON Schema 2020-12 + fixture，及[契约索引中的下游对齐说明](../contracts/v0/README.md)；字段以此为准 | frozen（S1-AGT-005，2026-10-24；后续仅兼容增量） |
 | `migration/` | 从参考平台到 Qian 的迁移方案 | 草案 v1 |
 | [`ops/configuration-runbook.md`](ops/configuration-runbook.md) | 配置分工、secretRef、扫描门禁、L0–L4 降级矩阵及真实 Apollo 验收证据 | 随 S1-CFG-001 / 002 实现维护 |
-| [`ops/k3s-control-plane-recovery.md`](ops/k3s-control-plane-recovery.md) | K3s 控制面崩溃循环的证据、根因、方案选择（推荐 qd 单控制面 + 三个 agent）与分阶段执行、回退、验收（S1-DEP-007） | 待产品负责人批准方案后执行，随 S1-DEP-007 维护 |
+| [`ops/k3s-control-plane-recovery.md`](ops/k3s-control-plane-recovery.md) | K3s 控制面崩溃循环的现象、根因判断、方案取舍（采用单控制面 + 三个 agent）、通用处置步骤与回退、文档站缓存隔离试验与结论（S1-DEP-007） | 已执行，S1-DEP-007 已关闭 |
 
 Kun 分内核档与平台档，.NET 运行时为 `Kun.Runtime`。Qian 的前端组件库和 TypeScript 运行时由 [CavaiLAB/qian](https://github.com/CavaiLAB/qian) 发布，运行时包是 `@cavailab/qian-runtime`。平台组件 ID 使用 `qian.` 前缀，命令行为 `qian`。本文将参照的商业低代码产品称为「参考平台」。

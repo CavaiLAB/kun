@@ -49,6 +49,8 @@ public sealed class KunOidcClientTests
     [InlineData("audience")]
     [InlineData("signature")]
     [InlineData("expiry")]
+    [InlineData("issued-in-future")]
+    [InlineData("additional-audience")]
     public async Task CodeExchange_RejectsInvalidIdToken(string fault)
     {
         using var provider = new ProtocolFixture();
@@ -130,7 +132,9 @@ public sealed class KunOidcClientTests
         {
             var now = Clock.GetUtcNow().UtcDateTime;
             var claims = new Dictionary<string, object> { ["sub"] = "user-a", ["sid"] = "provider-session", ["jti"] = Guid.NewGuid().ToString("N") };
-            if (_additionalAudience)
+            // additional-audience：客户端不允许额外受众时，带本客户端 azp 的多受众令牌也要被拒。
+            var multipleAudiences = _additionalAudience || fault == "additional-audience";
+            if (multipleAudiences)
             {
                 claims["aud"] = new[] { "test-client", "profile-api" };
                 claims["azp"] = "test-client";
@@ -141,10 +145,11 @@ public sealed class KunOidcClientTests
             return new JwtSecurityTokenHandler().CreateEncodedJwt(new SecurityTokenDescriptor
             {
                 Issuer = fault == "issuer" ? "https://other.test" : Authority,
-                Audience = _additionalAudience ? null : fault == "audience" ? "other-client" : "test-client",
-                IssuedAt = now.AddMinutes(-5),
+                Audience = multipleAudiences ? null : fault == "audience" ? "other-client" : "test-client",
+                // issued-in-future：签发时间比当前时间晚 3 分钟，超出缺省的 2 分钟时钟容差。
+                IssuedAt = fault == "issued-in-future" ? now.AddMinutes(3) : now.AddMinutes(-5),
                 NotBefore = now.AddMinutes(-5),
-                Expires = fault == "expiry" ? now.AddMinutes(-3) : now.AddMinutes(2),
+                Expires = fault switch { "expiry" => now.AddMinutes(-3), "issued-in-future" => now.AddMinutes(10), _ => now.AddMinutes(2) },
                 Claims = claims,
                 SigningCredentials = new SigningCredentials(new RsaSecurityKey(fault == "signature" ? other : _key) { KeyId = "test-key" }, _algorithm)
             });

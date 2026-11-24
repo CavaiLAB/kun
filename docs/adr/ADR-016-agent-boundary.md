@@ -10,6 +10,8 @@ supersedes: none
 
 > 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
 
+> 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D23、D25）：2026-11-19 平台级裁定 P30 在组件里新增「知识库」内容，与 D16.8 把知识库算作下游智能体平台的 AI 资产有出入，两边怎么分待定，随 S1-DEC-038 的 Q5（本文边界的改写）一起处理；P31 把 Agent 调用平台能力的启用时点由 S4 提前到路线里程碑 M1（D16.9），调用路径不变。正文未改，受影响的条目前加了标注。
+
 ## 1 背景与问题（Context）
 
 ［下游智能体平台］是团队基于 Kun 的 Agent 产品（C# 四服务 + Python Harness，React 19 前端）。其 Agent 运行时（Harness Agent loop、Sub-agent / Workflow、编排路由、四层记忆、Skills、工具协议 ToolSpec / ToolPolicy / RiskGate、运行授权快照）已落地；MCP 客户端只有 stdio、钉在 2025-03-26 且未接进运行中的 app；Nacos AI Registry / MCP Catalog / 插件市场 / 组织资源授权仍是设计态或 blocked；沙箱后端自 2026-07-14 起为 CubeSandbox（E2B 兼容），Supervisor 已退役（基线 P §8.1、§10.1 第 9 条、附录 A-5；基线 K §4.1）。［下游智能体平台］已有「两个 Tenant 实体」之痛，Qian 加入前必须先定唯一权威（基线 P §8.6）。［下游智能体平台］冻结了 S2S JWT claim 契约、事件 envelope、错误体 `ErrorDetail{code, message, trace_id}`、契约格式（OpenAPI 3.1 + JSON Schema 2020-12）（基线 K §4.1）。配置中心存在冲突：Qian 硬性 Apollo，［下游智能体平台］ `IConfigProvider` 定为 Nacos Config（仅设计、无代码）（基线 P 附录 A-2）。［下游智能体平台］文档为 CC BY 4.0，C# / 前端为内部项目，Python Harness 为 Apache-2.0（基线 K §4）。
@@ -23,8 +25,8 @@ supersedes: none
 - **D16.5 共用边界**（Q15）：租户主数据权威归 **Qian**；共用 Authentik（仅运维侧）与 Higress；S2S 各签各的但 claim 同形（若共用需规划内部服务自铸的密钥与 kid 管理）；Usage Ledger / 租户 API Key 是否共用待 S3。
 - **D16.6 代码复用授权**（Q40）：［下游智能体平台］与 Qian 同属一个所有者，允许搬代码，但只搬四处——审计拦截器、租户主数据模型（Tenant / TenantMember / Project，去掉 Agent 专属字段）、OIDC 授权码实现、通知通道（typed port）范式；其余只借鉴思路。
 - **D16.7 配置中心**：Qian 侧权威 = Apollo；可为［下游智能体平台］的 `IConfigProvider` 端口提供 Apollo 实现，或约定互不越界；Nacos 不进入 Qian 的配置依赖（见 ADR-007）。
-- **D16.8 AI 资产 / MCP 注册**：Qian 自身能力以 Qian 注册表为真相源，向［下游智能体平台］ Platform facade / Nacos AI Registry 的注册是经 adapter 的投影，对外形态兼容官方 Registry OpenAPI；［下游智能体平台］自有 AI 资产（智能体、提示词、知识库、Skills、工具策略）的权威归［下游智能体平台］，Qian 不复制、不改写；两个市场是否合并待拍板。
-- **D16.9 Agent 调用路径**（S4）：Agent 不直连 Qian 服务裸 URL，一律经 Higress MCP 路由；令牌受众绑定（RFC 8707）、禁止透传、最小 scope + 逐步提权；「知道 ID 不构成权限」，Qian RBAC 接受 S2S JWT 的 `sub + tenant_id + scope` 做用户态鉴权；写类工具必须幂等。
+- 【经 S1-DEC-038 D23 标注：组件里新增「知识库」内容（平台级裁定 P30），与本条知识库的归属有出入；怎么分待定，随 S1-DEC-038 的 Q5 处理】**D16.8 AI 资产 / MCP 注册**：Qian 自身能力以 Qian 注册表为真相源，向［下游智能体平台］ Platform facade / Nacos AI Registry 的注册是经 adapter 的投影，对外形态兼容官方 Registry OpenAPI；［下游智能体平台］自有 AI 资产（智能体、提示词、知识库、Skills、工具策略）的权威归［下游智能体平台］，Qian 不复制、不改写；两个市场是否合并待拍板。
+- 【经 S1-DEC-038 D25 修订：启用时点由 S4 提前到路线里程碑 M1（平台级裁定 P31）；经 Higress MCP 路由的调用路径不变】**D16.9 Agent 调用路径**（S4）：Agent 不直连 Qian 服务裸 URL，一律经 Higress MCP 路由；令牌受众绑定（RFC 8707）、禁止透传、最小 scope + 逐步提权；「知道 ID 不构成权限」，Qian RBAC 接受 S2S JWT 的 `sub + tenant_id + scope` 做用户态鉴权；写类工具必须幂等。
 - **D16.10 发现与暴露**：工具**定义**由能力目录机械生成（保证 schema 不漂移），**暴露**经 `agent.expose` 与意图式 description 策划；平台另提供能力目录搜索工具与代码模式；MCP 服务器按租户逻辑门面托管在 Higress，而非每插件一个进程。
 - **D16.11 生成**：Agent 生成应用 = 生成 `package`，经 schema 校验 + TCK + 差异审阅 + 人工确认；Agent 生成的代码只落 `function` 沙箱；记录 `generatedBy / promptHash / 审核人` 并按生成内容标识要求标识。
 - **D16.12 对接以［下游智能体平台］冻结契约（`docs/contracts/v0`）与代码为准**，不依赖其设计态能力；Qian 可作为首个批量注册方推动［下游智能体平台］的 MCP Catalog 落地。

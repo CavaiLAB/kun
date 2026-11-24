@@ -84,7 +84,7 @@
 
 - `Kun.EventBus.RabbitMQ` 使用组件事件信封与相应拓扑。升级前核对发布端与订阅端的交换机、路由键、消息形状和消费者组，协调切换生产与消费。
 - `Kun.Audit.EntityFrameworkCore` 属于平台档，升级时将这个包的源映射指向 GitHub Packages。实体审计与业务事务的接线见该版本的包说明。
-- `Kun.Gateway` 提供类库。把宿主的可执行入口切到网关宿主，使用平台外壳时再引用 `Kun.Gateway.Shell`。
+- `Kun.Gateway` 提供类库。把宿主的可执行入口切到网关宿主，使用平台外壳时再引用 `Kun.Gateway.Shell`。选项类型 `KunGatewayOptions` 换成 `Kun.Gateway.Abstractions` 里的 `GatewayConfiguration`，`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改名为 `IdentityIssuer`、`IdentityAudience`、`Issuer`。Redis 固定窗口计数器的类型（`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore`）改在 `Kun.RateLimit` 命名空间，注册扩展 `AddKunRedisRateLimitStore` 改在 `Kun.RateLimit.Extensions`。
 - 租户上下文使用 `Guid?` 表示租户或平台作用域。处理消息与网络输入时先验证租户标识，数据库与既有消息的文本按原有格式读写。
 - `Kun.MultiTenancy` 不再提供可替换的租户解析器与选项：`DefaultTenantResolver`、`ITenantResolver`、`ITenantIdSource`、`KunMultiTenancyOptions` 与 `AddKunMultiTenancy(Action<KunMultiTenancyOptions>)` 已删除。宿主登记 `AddKunMultiTenancy()`，在认证之后挂载 `UseKunMultiTenancy()`。租户只从已认证主身份唯一的 `tenant_id` 读取，请求头不再作为来源，没有缺省租户回落。
 - `Kun.Security` 的 `AddKunSecurity()` 不再登记 `ITenantContext`，`JwtTenantContext` 已删除。需要租户上下文的宿主另调 `AddKunMultiTenancy()`。

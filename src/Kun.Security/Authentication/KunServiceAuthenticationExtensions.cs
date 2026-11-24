@@ -13,9 +13,17 @@ namespace Kun.Security.Authentication;
 public static class KunServiceAuthenticationExtensions
 {
     /// <summary>
-    /// Adds Kun S2S JWT Bearer authentication. Rejects HS256 tokens — only asymmetric
-    /// algorithms (RS256, ES256) are accepted, consistent with the zero-trust policy.
+    /// Adds JWT Bearer authentication for gateway-issued S2S tokens. It validates the signature
+    /// (asymmetric RS256 or ES256 only; HS256 is rejected, consistent with the zero-trust policy),
+    /// the issuer, the audience and the lifetime with a 30-second clock skew. The issuer and the
+    /// audience must be one of the configured values.
     /// </summary>
+    /// <remarks>
+    /// For the full S2S contract check (closed claim set, exactly this service as the audience,
+    /// identity, roles, scope and the 300-second lifetime limit), register <c>AddKunIdentityS2s</c>
+    /// from Kun.Identity.Client, or call <see cref="PrincipalClaims.ReadS2s"/> from the scheme's
+    /// <c>OnTokenValidated</c> event and then compare the expected issuer and audience.
+    /// </remarks>
     /// <param name="builder">The authentication builder.</param>
     /// <param name="configure">Delegate to configure <see cref="KunServiceAuthenticationOptions"/>.</param>
     /// <returns>The authentication builder for chaining.</returns>

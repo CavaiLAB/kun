@@ -41,7 +41,7 @@ A compromised component on the internal network cannot forge a valid S2S JWT wit
 the Gateway's RSA private key. The private key lives only on the Gateway host, loaded at startup
 from `GatewayConfiguration.SigningKeyPath` as a PEM file. The public JWKS contains only verification keys.
 
-Before a handler runs, the downstream service checks the token's signature, issuer, audience, lifetime and required identity claims. Each service configures its own audience.
+Before a handler runs, `AddKunServiceAuthentication` checks the token's signature (RS256 or ES256), issuer, audience and lifetime. The issuer and audience must match the service's configured values. `AddKunIdentityS2s` in `Kun.Identity.Client` builds on it and also checks the S2S contract: the `JWT` token type, the closed claim set, exactly this service as the audience, the identity, roles and scope, and a lifetime of at most 300 seconds. It then exposes the verified principal snapshot. Use `AddKunIdentityS2s` when a service needs the full contract check. A service that configures its own JWT scheme can call `PrincipalClaims.ReadS2s` from `OnTokenValidated`, then compare the expected issuer and audience.
 
 ---
 
@@ -226,6 +226,7 @@ builder.Services
 
 `AddKunSecurity` is in `src/Kun.Security/DependencyInjection/KunSecurityServiceCollectionExtensions.cs`.
 `AddKunServiceAuthentication` is in `src/Kun.Security/Authentication/KunServiceAuthenticationExtensions.cs`.
+This registration checks the signature, issuer, audience and lifetime. Register `AddKunIdentityS2s` from `Kun.Identity.Client` instead when the service needs the full S2S contract check.
 
 Run the middleware in the order `UseAuthentication()`, `UseKunMultiTenancy()`, `UseAuthorization()`.
 
@@ -233,6 +234,6 @@ Run the middleware in the order `UseAuthentication()`, `UseKunMultiTenancy()`, `
 
 ## Retired issuer APIs
 
-Issue service tokens with the gateway's shared signing key ring. Use Kun.Security service authentication on the receiving service. The legacy Identity and S2SJwt issuer, verifier and JWKS registration APIs were removed in S1-KUN-026. Each hop needs a token issued for its own audience.
+Issue service tokens with the gateway's shared signing key ring. On the receiving service, use `AddKunIdentityS2s` for the full contract check, or `AddKunServiceAuthentication` for signature, issuer, audience and lifetime checks. The legacy Identity and S2SJwt issuer, verifier and JWKS registration APIs were removed in S1-KUN-026. Each hop needs a token issued for its own audience.
 
 Migrate callers to authoritative canonical principal projection, per-service audience selection, and the closed payload described above. Do not copy old permission/email/trace fields or inherit an old long token lifetime. The identity browser client, atomic session registry and back-channel logout setup are covered in [the identity client guide](../guides/identity-client.md).

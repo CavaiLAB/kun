@@ -12,6 +12,12 @@
 
 - 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。
 
+### Fixed — 更正 2026.11.21 旧包的已发布版本
+
+`2026.11.21`「事件契约并进 Kun.EventBus.Abstractions」「错误模型合一到 Kun.Errors」「组件运行时统一到 Kun.Runtime」三节写的「已发布 0.2.0」应为已发布至 0.3.0：
+
+- `Qian.Events.Abstractions`、`Qian.Runtime.Errors`、`Qian.Runtime.Errors.AspNetCore` 与 `Qian.Runtime` 在 GitHub Packages 上保留 0.1.0 至 0.3.0 的全部版本，最新版本为 0.3.0。替代包见 `docs/guides/package-migration.md`。
+
 ### Fixed — 补记 2026.11.21 网关一节的类型迁移
 
 `2026.11.21`「网关装配与限流」一节列了配置节与键名的变化，代码里用到的类型补记如下：

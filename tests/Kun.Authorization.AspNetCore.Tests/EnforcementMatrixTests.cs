@@ -163,6 +163,28 @@ public sealed class EnforcementMatrixTests
         Assert.Equal(configuredForMappedService ? 1 : 0, state.Executions);
     }
 
+    [Theory]
+    [InlineData("library", "sample:item:read")]
+    [InlineData("platform", "sample:item:read")]
+    [InlineData("library", "items.read")]
+    public async Task GrpcPermissionThatIsNotAFullNameFailsHostStartup(string mode, string permission)
+    {
+        var state = new MatrixState("granted");
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseTestServer();
+        builder.Services.AddSingleton(state);
+        if (mode == "platform") state.RegisterPlatform(builder.Services);
+        else state.RegisterLibrary(builder.Services);
+        builder.Services.AddKunGrpc(options => options.AddKunAuthorizationInterceptor());
+
+        await using var app = builder.Build();
+        app.MapGrpcService<EchoService>().WithMetadata(new RequiresPermissionAttribute(permission));
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => app.StartAsync(TestContext.Current.CancellationToken));
+        Assert.Contains("/matrix.Service/Echo", error.Message, StringComparison.Ordinal);
+        Assert.Contains("\"" + permission + "\"", error.Message, StringComparison.Ordinal);
+        Assert.Equal(0, state.Executions);
+    }
+
     private sealed class OtherService { }
 
     private static string ErrorCodeFor(int status) => status switch { 401 => "UNAUTHENTICATED", 403 => "AUTHZ_DENIED", 404 => "NOT_FOUND", _ => throw new ArgumentOutOfRangeException(nameof(status)) };

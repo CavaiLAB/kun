@@ -6,11 +6,13 @@ namespace Kun.Auditing;
 /// <see cref="AuditingSaveChangesInterceptor"/>.
 /// </summary>
 /// <remarks>
-/// All fields are nullable and default to <see langword="null"/>; the middleware (or any
-/// caller) populates them before the command handler opens its unit of work. The
-/// interceptor does not fill in defaults — missing fields surface as <see langword="null"/>
-/// on the emitted <see cref="Events.AuditEventIntegrationEvent"/>, which is the expected
-/// behaviour for background jobs and other hosts without an HTTP context.
+/// All fields are nullable; the middleware (or any caller) populates them before the command
+/// handler opens its unit of work, and hosts without an HTTP context may leave them unset.
+/// The actor is the exception: when a save happens outside an <see cref="Kun.EventBus.EventEnvelopeScope"/>,
+/// <see cref="ActorId"/> is empty and the current user is not authenticated, the interceptor rejects
+/// the save with a <see cref="Kun.EventBus.KunEventsException"/> carrying the error code
+/// <c>EVENTS_PUBLISH_REJECTED</c>. Background jobs and anonymous requests must first open an
+/// <see cref="Kun.EventBus.EventEnvelopeScope"/> with a service actor.
 /// </remarks>
 public sealed class AuditContext
 {
@@ -27,8 +29,11 @@ public sealed class AuditContext
     public string? ActorId { get; set; }
 
     /// <summary>
-    /// Kind of actor performing the action. Defaults to <c>"system"</c> for background-job /
-    /// uninitialized contexts; typical values are <c>"user"</c>, <c>"agent"</c>, <c>"system"</c>.
+    /// Kind of actor: <c>"user"</c>, <c>"agent"</c>, <c>"service"</c> or <c>"system"</c>; defaults to
+    /// <c>"system"</c>, and is recorded as <c>"user"</c> when the current user is authenticated and the value
+    /// is still the default. The default does not stand in for an actor: when <see cref="ActorId"/> is empty,
+    /// the current user is not authenticated and the save happens outside an
+    /// <see cref="Kun.EventBus.EventEnvelopeScope"/>, the save is rejected.
     /// </summary>
     public string ActorType { get; set; } = "system";
 }

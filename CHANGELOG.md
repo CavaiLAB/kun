@@ -19,6 +19,18 @@
 - `Kun.Gateway.Configuration.KunGatewayOptions` 不再提供，改用 `Kun.Gateway.Abstractions` 包里的 `Kun.Gateway.GatewayConfiguration`。`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`，其余属性同名；新类型是记录，属性在创建时赋值。**迁移**：原来用 `Configure<KunGatewayOptions>(…)` 或绑定 `KunGateway` 节的，把 `GatewayConfiguration` 传给 `AddKunGateway(configuration)`，或不传、由 `AddKunGateway()` 读取 `Gateway` 节；注入 `IOptions<KunGatewayOptions>` 的改为 `IOptions<GatewayConfiguration>`。
 - Redis 固定窗口计数器的类型从 `Kun.Gateway` 包的 `Kun.Gateway.RateLimiting` 命名空间挪到 `Kun.RateLimit` 包：`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore` 的命名空间改为 `Kun.RateLimit`，注册扩展 `AddKunRedisRateLimitStore` 改由 `Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions` 提供。**迁移**：加 `using Kun.RateLimit;`，调用注册扩展的再加 `using Kun.RateLimit.Extensions;`。配置节 `Kun:Gateway:RateLimit:Redis` 与缺省键前缀 `kun:rl` 不变，引用 `Kun.Gateway` 的项目经它传递拿到 `Kun.RateLimit`。
 
+### Fixed — 补记 2026.11.21 事件与审计的行为变化与删除项
+
+`2026.11.21` 的事件与审计各节没有写全的行为变化与删除项，补记如下：
+
+- 自 2026.11.21 起，普通事件经 RabbitMQ 发布时不要求路由到队列（`mandatory: false`）：没有队列绑定该事件的路由键时，broker 丢弃这条事件并照常确认，Outbox 行标为已发布。此前 `Kun.EventBus.RabbitMQ` 的发布器按 mandatory 发布，路由不到时发布报错、由 Outbox 重试；现在不报错也不重试。需要接收事件的宿主要先部署订阅、让队列完成绑定，再让生产方发送。
+- 自 2026.11.21 起，实体审计的保存需要主体：不在 `EventEnvelopeScope` 内（命令管道会打开它）、`AuditContext.ActorId` 为空、当前用户也未认证时，拦截器拒绝这次保存，抛出错误码为 `EVENTS_PUBLISH_REJECTED` 的 `KunEventsException`，业务实体、审计日志与 Outbox 都不写入。后台作业、匿名请求等没有已认证用户的保存，要先用 `EventEnvelopeScope.Begin` 以实际的服务主体打开作用域，打开后可用同一上下文重试。
+- 2026.11.21 的两节 Fixed（RabbitMQ 连接已被对端关掉时的释放、订阅端停止时的确认）写的是 `RabbitMqConnectionProvider` 与当时的订阅端，这两样在同一版里已经删除，2026.11.21 的包里没有。现在的订阅端（由 `AddKunEventsSubscriber` 登记）停止时同样不在正在关的通道上确认或拒绝，关通道遇到连接已被对端关掉时照常释放通道。
+- 2026.11.21 还删除了下列公共类型，前文没有逐个列出：
+  - `Kun.EventBus`：`Kun.EventBus.Background` 下除 `IOutboxLockProvider`、`RedisOutboxLockProvider` 以外的类型，即 `IOutboxMessageStore`、`IOutboxBatchStore`、`NullOutboxLockProvider`、`OutboxPublisherOptions` 与前文列过的 `OutboxPublisherBackgroundService`；以及 `Kun.EventBus.DependencyInjection.KunOutboxPublisherExtensions`。
+  - `Kun.EventBus.RabbitMQ`：此前的公共类型全部删除，即 `RabbitMqConnectionProvider`、`Options.RabbitMqOptions`、`Publishing.RabbitMqIntegrationEventPublisher`、`Consuming.RabbitMqIntegrationEventSubscriber`、`DependencyInjection.KunRabbitMqBuilder` 与 `DependencyInjection.KunRabbitMqServiceCollectionExtensions`（命名空间都在 `Kun.EventBus.RabbitMQ` 下）。现在的公共类型是 `KunEventsRabbitMqExtensions`、`KunEventsSubscriberBuilder` 与 `KunEventsSubscriberOptions`。
+  - `Kun.Audit.EntityFrameworkCore`：`AuditSaveChangesInterceptor`、`EfAuditWriter<TDbContext>`、`PostgresAuditChain` 与 `DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions`（`AddKunAuditEntityFrameworkCore`、`UseEntityFramework<TDbContext>`、`UsePostgresChain`），命名空间都在 `Kun.Audit.EntityFrameworkCore` 下。替代用法见前文「命令链与实体审计」。
+
 ### Fixed — 更正服务间令牌各入口的核对说明
 
 `2026.11.21`「身份依赖方端口与服务间令牌」一节关于签发与接收时核对的写法，按入口更正如下：

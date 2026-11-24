@@ -17,11 +17,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using RabbitMQ.Client;
+using StackExchange.Redis;
 
 namespace Kun.EventBus.IntegrationTests;
 
-/// <summary>真实 PostgreSQL 与 RabbitMQ：多副本按租约领取、停掉一个副本由另一副本接管、崩溃持有的租约到期后被接管，确认数始终等于 Outbox 行数。</summary>
-public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture rabbit) : IClassFixture<PostgresFixture>, IClassFixture<RabbitMqFixture>
+/// <summary>
+/// 真实 PostgreSQL、RabbitMQ 与 Redis：多副本按租约领取、停掉一个副本由另一副本接管、崩溃持有的租约到期后被接管、
+/// Redis 锁下同一时刻只有持锁的副本投递，确认数始终等于 Outbox 行数；发布失败按次数上限与指数退避处理。
+/// </summary>
+public sealed partial class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture rabbit, RedisFixture redis)
+    : IClassFixture<PostgresFixture>, IClassFixture<RabbitMqFixture>, IClassFixture<RedisFixture>
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
     private const string Tenant = "01900000-0000-7000-8000-0000000000e1";
@@ -112,6 +117,35 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
     }
 
     [Fact]
+    public async Task Redis锁由其他副本持有时本副本不领取_锁释放后接手且每条只发布一次()
+    {
+        const int total = 20;
+        var schema = await PrepareAsync();
+        var queue = await BindQueueAsync();
+        await SeedAsync(schema, total);
+        using var multiplexer = await ConnectionMultiplexer.ConnectAsync(redis.ConnectionString);
+        // 同一张 Outbox 表的各副本共用这把锁，键为 outbox-lock:qian-outbox: 加上下文 schema；这里替另一个副本占住它。
+        RedisKey key = "outbox-lock:qian-outbox:" + schema;
+        Assert.True(await multiplexer.GetDatabase().StringSetAsync(key, "other-replica", TimeSpan.FromMinutes(1), When.NotExists));
+        var counter = new Counter(TimeSpan.Zero);
+        using var replica = Replica(schema, "redis-lock", counter, batch: 10, redisLock: multiplexer);
+        await replica.StartAsync(Ct);
+        // 轮询间隔 50 毫秒，一秒内约二十轮都拿不到锁：既不发布，也不领取（行上没有租约）。
+        await Task.Delay(TimeSpan.FromSeconds(1), Ct);
+        Assert.Equal(0, counter.Confirmed);
+        Assert.Equal(total, await ScalarAsync($"SELECT count(*) FROM {schema}.outbox_messages WHERE status = 0 AND next_attempt_at IS NULL"));
+        Assert.True(await multiplexer.GetDatabase().KeyDeleteAsync(key));
+        await Until(async () => await PendingAsync(schema) == 0, "锁释放后本副本没有接手");
+        await replica.StopAsync(Ct);
+        Assert.Equal(total, counter.Confirmed);
+        var received = await DrainAsync(queue);
+        Assert.Equal(total, received.Count);
+        Assert.Equal(total, received.Select(item => item.EventId).Distinct().Count());
+        // 每轮投递结束都交还锁，停机后不留下挡住其他副本的键。
+        Assert.False(await multiplexer.GetDatabase().KeyExistsAsync(key));
+    }
+
+    [Fact]
     public async Task 信封与行不一致时直接标记失败_broker不可达时按退避重试且不丢消息()
     {
         var schema = await PrepareAsync();
@@ -173,7 +207,8 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
         Assert.Contains("qian.dlx\ttopic\ttrue", exchanges.Stdout, StringComparison.Ordinal);
     }
 
-    private IHost Replica(string schema, string name, Counter counter, int batch, string? amqp = null, TimeSpan? lease = null, TimeSpan? publishTimeout = null)
+    private IHost Replica(string schema, string name, Counter counter, int batch, string? amqp = null, TimeSpan? lease = null, TimeSpan? publishTimeout = null,
+        Action<KunEventsOptions>? configure = null, IIntegrationEventPublisher? publisher = null, IConnectionMultiplexer? redisLock = null)
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddSingleton<ITenantContext>(new AsyncLocalTenantContext());
@@ -187,11 +222,14 @@ public sealed class OutboxRelayTests(PostgresFixture postgres, RabbitMqFixture r
             options.LeaseDuration = lease ?? TimeSpan.FromSeconds(15);
             options.PublishTimeout = publishTimeout ?? TimeSpan.FromSeconds(5);
             options.RetryBaseDelay = TimeSpan.FromMinutes(1);
+            if (redisLock is not null) options.OutboxLock = OutboxLockMode.Redis;
+            configure?.Invoke(options);
         });
+        if (redisLock is not null) builder.Services.AddSingleton(redisLock);
         builder.Services.AddKunEventsBroker(_ => amqp ?? rabbit.ConnectionString);
         builder.Services.AddKunOutboxRelay();
         builder.Services.Replace(ServiceDescriptor.Singleton<IIntegrationEventPublisher>(sp =>
-            new CountingPublisher(new KunEnvelopePublisher(sp.GetRequiredService<RabbitMqBroker>()), counter)));
+            publisher ?? new CountingPublisher(new KunEnvelopePublisher(sp.GetRequiredService<RabbitMqBroker>()), counter)));
         builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(20));
         return builder.Build();
     }

@@ -10,4 +10,4 @@
 - 刷新必须保持单飞（进程内 + 跨副本的一次性标记），改动刷新路径要配并发测试：发行方的 refresh 轮换零容忍复用。
 - 公共 API 变更同步 `PublicAPI.Unshipped.txt`；错误码登记在 `IdentityErrors`（Abstractions），对外一律 ErrorDetail。
 - 唯一清单以 IdentityClientComponent 为稳定入口，委托现有 IdentityClientPlugin；configSchema 从 ComponentConfiguration.Schema 派生。独立宿主闭包保持精确白名单，公开客户端不依赖或启动其他 Provider。
-- 不搬 iClaw 或其他产品的身份代码。
+- 不搬其他产品的身份代码。

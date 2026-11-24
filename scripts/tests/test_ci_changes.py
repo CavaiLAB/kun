@@ -88,6 +88,13 @@ class AreaTableTests(unittest.TestCase):
             "samples/qian-sample-crm-ui/package.json": ({"ui", "shell-auth", "dev-tenant-ops"}, {"images"}),
             "plugins/qian.shell/.qian-plugin/plugin.json": ({"shell-federation", "documentation", "surfaces"}, {"ui"}),
             ".npmrc": ({"docs-site", "documentation", "directory-e2e", "shell-auth", "shell-federation", "surfaces", "tenant-ui", "ui"}, {"images"}),
+            # 文档的相对链接指向代码目录下的说明、源码、测试与脚本：这些文件重命名或删除，文档门禁要跑。
+            "src/Kun.Capabilities/README.md": ({"dotnet", "docs-and-pm"}, set()),
+            "hosts/Kun.Platform.Host/README.md": ({"docs-and-pm"}, {"images"}),
+            "tests/Kun.Sample.Crm.Tests/CustomerCommandTests.cs": ({"dotnet", "docs-and-pm"}, {"docs-site", "images"}),
+            "tools/Kun.Configuration.Secrets.Tool/README.md": ({"docs-and-pm"}, {"docs-site"}),
+            "samples/Kun.Sample.Catalog/README.md": ({"docs-and-pm"}, {"images"}),
+            "scripts/check_deps.py": ({"dotnet", "docs-and-pm"}, {"docs-site"}),
         }
         for path, (required, excluded) in cases.items():
             with self.subTest(path=path):
@@ -140,6 +147,20 @@ class DetectTests(unittest.TestCase):
         self.assertEqual(0, code)
         self.assertEqual("true", values["images"])
         self.assertEqual("true", values["dotnet"])
+
+    def test_renamed_or_deleted_code_files_run_the_documentation_gate(self) -> None:
+        # diff 用 --no-renames：重命名是旧路径加新路径，删除只有旧路径。文档里的相对链接可能正指向它们。
+        cases = (
+            ["src/Kun.Capabilities/CapabilityService.cs", "src/Kun.Capabilities/Catalog/CapabilityService.cs"],
+            ["hosts/Kun.Platform.Host/README.md"],
+            ["tools/Kun.Configuration.Secrets.Tool/README.md", "tools/Kun.Configuration.Secrets.Tool/docs/README.md"],
+        )
+        for paths in cases:
+            with self.subTest(paths=paths):
+                with mock.patch.object(ci_changes, "diff", return_value=paths):
+                    code, values, _ = self.run_detect("--base", "a", "--head", "b")
+                self.assertEqual(0, code)
+                self.assertEqual("true", values["docs-and-pm"])
 
     def test_all_marks_every_area(self) -> None:
         code, values, summary = self.run_detect("--all")

@@ -8,26 +8,6 @@
 
 ## [Unreleased]
 
-### Changed — 异常信息
-
-- 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。
-
-### Fixed — 补记 2026.11.21 网关一节的类型迁移
-
-`2026.11.21`「网关装配与限流」一节列了配置节与键名的变化，代码里用到的类型补记如下：
-
-- `Kun.Gateway.Configuration.KunGatewayOptions` 不再提供，改用 `Kun.Gateway.Abstractions` 包里的 `Kun.Gateway.GatewayConfiguration`。`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`，其余属性同名；新类型是记录，属性在创建时赋值。**迁移**：原来用 `Configure<KunGatewayOptions>(…)` 或绑定 `KunGateway` 节的，把 `GatewayConfiguration` 传给 `AddKunGateway(configuration)`，或不传、由 `AddKunGateway()` 读取 `Gateway` 节；注入 `IOptions<KunGatewayOptions>` 的改为 `IOptions<GatewayConfiguration>`。
-- Redis 固定窗口计数器的类型从 `Kun.Gateway` 包的 `Kun.Gateway.RateLimiting` 命名空间挪到 `Kun.RateLimit` 包：`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore` 的命名空间改为 `Kun.RateLimit`，注册扩展 `AddKunRedisRateLimitStore` 改由 `Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions` 提供。**迁移**：加 `using Kun.RateLimit;`，调用注册扩展的再加 `using Kun.RateLimit.Extensions;`。配置节 `Kun:Gateway:RateLimit:Redis` 与缺省键前缀 `kun:rl` 不变，引用 `Kun.Gateway` 的项目经它传递拿到 `Kun.RateLimit`。
-
-### Fixed — 更正服务间令牌各入口的核对说明
-
-`2026.11.21`「身份依赖方端口与服务间令牌」一节关于签发与接收时核对的写法，按入口更正如下：
-
-- 网关的 `S2sTokenIssuer` 按服务间令牌契约核对主体快照后再签发。
-- `AddKunServiceAuthentication`（`Kun.Security`）校验签名（只收 RS256、ES256）、签发方、受众与有效期，时钟容差 30 秒；签发方与受众须是配置的 `Issuer`、`AdditionalValidIssuers` 与 `Audience`、`AdditionalValidAudiences` 之一。
-- `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
-- 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
-
 ### Changed — 端点权限回调的校验
 
 - `MapKunData`、`MapKunDataTypes`、`MapKunDataConnections` 与 `MapKunFiles` 的权限回调须给端点加上执行同一权限点的授权要求，`RequireKunPermission` 即如此。构造端点时核对三项：端点带该权限点的 `RequiresPermissionAttribute`；授权策略里有权限点相同的 `Kun.Authorization.IPermissionEnforcementRequirement`；端点没有匿名放行标记，外层分组上的也算。任一项不满足即抛出 `InvalidOperationException`。按名字引用的策略在构造端点时看不到其中的要求，不算接上。自定义执行点让自己的授权要求实现 `IPermissionEnforcementRequirement`。
@@ -48,6 +28,26 @@
 ### Changed — 文件组件的版本
 
 - 补充 2026.11.21 一节：文件组件 `qian.files` 在该节几处记下的 1.0.1、1.1.0、2.0.0 是逐次升版，随该版发布的最终版本是 2.0.1。
+
+### Changed — 异常信息
+
+- 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。
+
+### Fixed — 补记 2026.11.21 网关一节的类型迁移
+
+`2026.11.21`「网关装配与限流」一节列了配置节与键名的变化，代码里用到的类型补记如下：
+
+- `Kun.Gateway.Configuration.KunGatewayOptions` 不再提供，改用 `Kun.Gateway.Abstractions` 包里的 `Kun.Gateway.GatewayConfiguration`。`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`，其余属性同名；新类型是记录，属性在创建时赋值。**迁移**：原来用 `Configure<KunGatewayOptions>(…)` 或绑定 `KunGateway` 节的，把 `GatewayConfiguration` 传给 `AddKunGateway(configuration)`，或不传、由 `AddKunGateway()` 读取 `Gateway` 节；注入 `IOptions<KunGatewayOptions>` 的改为 `IOptions<GatewayConfiguration>`。
+- Redis 固定窗口计数器的类型从 `Kun.Gateway` 包的 `Kun.Gateway.RateLimiting` 命名空间挪到 `Kun.RateLimit` 包：`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore` 的命名空间改为 `Kun.RateLimit`，注册扩展 `AddKunRedisRateLimitStore` 改由 `Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions` 提供。**迁移**：加 `using Kun.RateLimit;`，调用注册扩展的再加 `using Kun.RateLimit.Extensions;`。配置节 `Kun:Gateway:RateLimit:Redis` 与缺省键前缀 `kun:rl` 不变，引用 `Kun.Gateway` 的项目经它传递拿到 `Kun.RateLimit`。
+
+### Fixed — 更正服务间令牌各入口的核对说明
+
+`2026.11.21`「身份依赖方端口与服务间令牌」一节关于签发与接收时核对的写法，按入口更正如下：
+
+- 网关的 `S2sTokenIssuer` 按服务间令牌契约核对主体快照后再签发。
+- `AddKunServiceAuthentication`（`Kun.Security`）校验签名（只收 RS256、ES256）、签发方、受众与有效期，时钟容差 30 秒；签发方与受众须是配置的 `Issuer`、`AdditionalValidIssuers` 与 `Audience`、`AdditionalValidAudiences` 之一。
+- `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
+- 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
 ## [2026.11.21] - 2026-11-21
 

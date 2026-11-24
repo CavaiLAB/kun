@@ -315,7 +315,11 @@ def check_assembly_metadata(packages: List[Package], directory: Path, version: s
                          cwd=ROOT, input=json.dumps(paths), text=True, capture_output=True, env=_env())
     if run.returncode:
         raise Failure(f"读取制品的程序集元数据失败：{run.stdout}{run.stderr}")
-    return compare_assembly_metadata(files, json.loads(run.stdout), version)
+    try:
+        assemblies = json.loads(run.stdout)
+    except ValueError as error:
+        raise Failure(f"读取制品的程序集元数据失败：输出不是 JSON（{error}）") from error
+    return compare_assembly_metadata(files, assemblies, version)
 
 
 def compare_assembly_metadata(files: Dict[str, Package], assemblies: List[dict], version: str) -> List[str]:
@@ -324,7 +328,15 @@ def compare_assembly_metadata(files: Dict[str, Package], assemblies: List[dict],
     found = set()
     for item in assemblies:
         package = files[item["package"]]
-        if item["assembly"].casefold() != (package.assembly or Path(package.project).stem).casefold():
+        own = (package.assembly or Path(package.project).stem).casefold()
+        if "error" in item:
+            # 读不出的包或程序集记为问题；整个包或项目的程序集读不出时，不再另报缺少项目的程序集。
+            location = f"{package.id}/{item['entry']}" if item["entry"] else package.id
+            problems.append(f"{location} 读不出程序集元数据：{item['error']}")
+            if not item["entry"] or Path(item["entry"]).stem.casefold() == own:
+                found.add(package.id)
+            continue
+        if item["assembly"].casefold() != own:
             continue
         found.add(package.id)
         location = f"{package.id}/{item['entry']}"
@@ -658,8 +670,14 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print(release_notes(packages, args.version, (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")), end="")
             return 0
         report = verify(packages, args.packages, args.version, args.commit or git_head())
-        report.problems.extend(check_assembly_metadata(packages, args.packages, args.version))
         print(f"包名单：{_summary(packages)}；版本 {args.version}")
+        try:
+            report.problems.extend(check_assembly_metadata(packages, args.packages, args.version))
+        except Failure as error:
+            # 读程序集元数据的工具本身出错：已有的核对结果照常输出，退出码仍按工具出错。
+            report.problems.append(str(error))
+            _print(report, "制品核对")
+            return 2
         return _print(report, "制品核对")
     except ValueError as error:
         print(f"版本不合要求：{error}", file=sys.stderr)

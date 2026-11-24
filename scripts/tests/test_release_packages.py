@@ -177,6 +177,29 @@ class ListTests(unittest.TestCase):
         self.assertTrue(all("lib/net9.0/Api.dll" in p for p in problems))
         self.assertIn("缺少项目的程序集", release.compare_assembly_metadata(files, [dict(first, assembly="Other")], VERSION)[0])
 
+    def test_unreadable_assemblies_are_problems_and_other_entries_are_still_checked(self):
+        api = kernel("Kun.Api", aot=True, assembly="Api", declared_friends=("Api.Tests",))
+        files = {"api.nupkg": api}
+        own = dict(package="api.nupkg", entry="lib/net10.0/Api.dll", assembly="Api",
+                   friends=["Api.Tests"], trimmable=False, version=VERSION + ".0")
+        broken = dict(package="api.nupkg", entry="lib/netstandard2.0/Extra.dll", error="BadImageFormatException: Unknown file format.")
+        problems = release.compare_assembly_metadata(files, [broken, own], VERSION)
+        self.assertEqual(["Kun.Api/lib/netstandard2.0/Extra.dll 读不出程序集元数据：BadImageFormatException: Unknown file format.",
+                          "Kun.Api/lib/net10.0/Api.dll 缺少 IsTrimmable=True 程序集元数据"], problems)
+        # 项目的程序集或整个包读不出时，只报读不出，不另报缺少项目的程序集
+        unreadable = dict(broken, entry="lib/net10.0/Api.dll")
+        self.assertEqual(["Kun.Api/lib/net10.0/Api.dll 读不出程序集元数据：BadImageFormatException: Unknown file format."],
+                         release.compare_assembly_metadata(files, [unreadable], VERSION))
+        archive = dict(package="api.nupkg", entry="", error="InvalidDataException: Central directory corrupt.")
+        self.assertEqual(["Kun.Api 读不出程序集元数据：InvalidDataException: Central directory corrupt."],
+                         release.compare_assembly_metadata(files, [archive], VERSION))
+
+    def test_assembly_metadata_output_must_be_json(self):
+        result = subprocess.CompletedProcess([], 0, "not json", "")
+        with mock.patch.object(release.subprocess, "run", return_value=result), \
+                self.assertRaisesRegex(release.Failure, "输出不是 JSON"):
+            release.check_assembly_metadata([kernel("Kun.Core")], Path("."), VERSION)
+
     def test_reads_project_properties(self):
         data = {"Properties": {"IsPackable": "true", "PackageId": "Kun.Data", "KunTier": "platform", "KunRole": "provider",
                                "IsAotCompatible": "false", "IncludeSymbols": "true", "NoWarn": "1701;1702;NU5104"},
@@ -545,6 +568,13 @@ class CommandLineTests(unittest.TestCase):
             self.assertEqual(1, failing.returncode, failing.stdout + failing.stderr)
             self.assertIn("Other.Thing（包名不以 Kun. 开头）", failing.stdout)
             self.assertIn("Other.Thing（没出符号包）", failing.stdout)
+            # 读程序集元数据的工具出错时退出码按工具出错，前面已核出的问题照常输出
+            with mock.patch.object(release, "check_assembly_metadata", side_effect=release.Failure("读取制品的程序集元数据失败：工具退出")), \
+                    contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(2, release.main(common))
+            self.assertIn("制品核对不通过：3 处", stdout.getvalue())
+            self.assertIn("Other.Thing（包名不以 Kun. 开头）", stdout.getvalue())
+            self.assertIn("读取制品的程序集元数据失败：工具退出", stdout.getvalue())
             bad_version = self.run_cli("verify-packages", "--version", "2026.11.31", "--packages", str(out), "--list", str(listing))
             self.assertEqual(2, bad_version.returncode)
             missing_dir = self.run_cli(*[a if a != str(out) else str(root / "nope") for a in common])

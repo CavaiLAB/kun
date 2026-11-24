@@ -16,7 +16,7 @@ amends: 修订 ADR-013、ADR-019、ADR-020
 >
 > 修订（2026-11-17，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D17、D18）：合并后的仓库由 `idadawn/kun` 改为 `CavaiLAB/kun`，改写 D23.1 与 D23.13 里的仓库地址，原 Kun 的历史 PR 号也要改写成带仓库名的形式；迁移现在开始，不再等「初步可用」里程碑收口，改写 D23.20 第 3 点与 D23.15 的时点；前端迁往 `CavaiLAB/qian` 并行进行，不再排在阶段 3 的最后一批，改写 D23.17、D23.18 第 5 点与 D23.15 的排期。包族并成 `Kun.*`、两档分层、归并对照、命名规则、许可、运行期字面不改、租户号用 Guid 都不受影响。正文未改；阶段怎样对应到批次，见 `CavaiLAB/kun` 的 `docs/migration-plan.md`。
 >
-> 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D27–D29、D31–D34）：S1-DEC-038 登记的执行中出入回写到受影响的条目前：D23.9 的包数与 Principal 契约包（D28）、身份客户端（D29）、权限端口（D31）、静态能力目录（D32）、配置契约的档位（D33），D23.14 第 4 点的分析器作用域（D27、D34，D27 的过渡期已结束）。D27 是产品负责人 2026-11-19 的决定，D28–D34 由各执行批次登记。首个合并版 2026.11.21 是 85 个包（内核档 42、平台档 43）。D23.9「当前用户」一项的现状与处理办法待产品负责人确认，见 S1-DEC-038 的 Q9。正文未改。
+> 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D27–D29、D31–D34）：S1-DEC-038 登记的执行中出入回写到受影响的条目前：D23.9 的包数与 Principal 契约包（D28）、身份客户端（D29）、权限端口（D31）、静态能力目录（D32）、配置契约的档位（D33），D23.14 第 4 点的分析器作用域（D27、D34，D27 的过渡期已结束）。D27 是产品负责人 2026-11-19 的决定，D28–D34 由各执行批次登记。首个合并版 2026.11.21 是 85 个包（内核档 42、平台档 43）。D23.9「当前用户」与限流两项的现状与处理办法待产品负责人确认，见 S1-DEC-038 的 Q9、Q10。正文未改。
 
 ## 1 背景与问题（Context）
 
@@ -157,7 +157,7 @@ Qian 的 56 个包项目里 23 个直接引用 Kun 包，全仓库 317 个源文
   | Kun.Identity.Connector.Oidc | Qian.Identity.Connector.Oidc | 平台 | 改名；它与 Kun 的 OIDC 客户端是同一协议的两份实现，先逐条比对校验规则再合一 |
   | Kun.Gateway、Kun.Gateway.Abstractions | Kun.Gateway、Qian.Gateway、Qian.Gateway.Abstractions | 内核 | Kun.Gateway 由可执行程序改为纯库并吸收 Qian.Gateway；两个选项类型合一，以声明式的那份为准 |
   | Kun.Gateway.Shell | Qian.Gateway 里的外壳接口与静态托管 | 平台 | 拆出 |
-  | Kun.RateLimit | Kun.RateLimit、Kun.Gateway 的限流、Qian.Gateway 的限流 | 内核 | 限流现有三套，留一套：端口取 Kun.Gateway 的，Redis 实现取 Qian 的 |
+  | Kun.RateLimit | Kun.RateLimit、Kun.Gateway 的限流、Qian.Gateway 的限流 | 内核 | 【经 S1-DEC-038 标注：限流一项的现状与处理办法待产品负责人确认，见 S1-DEC-038 的 Q10】限流现有三套，留一套：端口取 Kun.Gateway 的，Redis 实现取 Qian 的 |
   | Kun.Grpc | Kun.Grpc | 内核 | 留结果映射与追踪；认证与权限拦截器以 Qian 的为准，并支持租户为空的平台主体 |
 
   **事件、审计、编排与调度**

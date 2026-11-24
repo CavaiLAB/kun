@@ -187,6 +187,7 @@ appsettings.json：
 ```
 
 ### 关键约束
+- **连接串表的键是租户 UUID 的小写 D 格式**：配置里的 `ConnectionStrings` 节先绑定到 `TenantsConnectionOptions.ConfiguredConnectionStrings`，宿主启动时校验每个键并并入 `ConnectionStrings`，默认 resolver 从后者读。键不是非空的小写 D 格式 UUID（大写、带花括号、不带连字符的都不行），或同一租户在代码与配置里给了不同的连接串，宿主启动失败，错误信息里写出那个键。代码里直接写 `ConnectionStrings`。
 - **数据库 *创建* 不在框架责任范围**：`DatabasePerTenantProvisioner.ProvisionAsync` 假设数据库已由运维流水线（Terraform / K8s Operator / 云 API）创建好，只跑 `Database.MigrateAsync` 拉齐 schema。如需自动 `CREATE DATABASE`，继承 `DatabasePerTenantProvisioner<T>` 覆盖 `ProvisionAsync`。
 - **`DeprovisionAsync` 默认 no-op**：删除租户数据库的决策需要运维流程（连接池、复制、备份），框架不越权。
 - **跨租户查询反模式**：禁止在 Command handler 里遍历所有连接做聚合查询。如需租户级管理视图，单独建一个 `AdminDbContext` 显式枚举连接池，并用不同的 `ICurrentUser` 角色守卫。

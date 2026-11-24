@@ -12,6 +12,11 @@
 
 - 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。
 
+### Fixed — 按配置绑定租户连接串（S1-KUN-024）
+
+- Database 隔离策略用 `Configure<TenantsConnectionOptions>(configuration.GetSection(TenantsConnectionOptions.SectionName))` 绑定的连接串现在会生效。配置绑定器不支持以 `Guid` 为键的字典，2026.11.21 中这一节的配置进不了 `ConnectionStrings`，按租户解析连接串时报未配置。`TenantsConnectionOptions` 新增 `ConfiguredConnectionStrings`，承接配置里的 `ConnectionStrings` 节；`AddKunMultiTenancy<TContext>` 选 `TenantIsolation.Database` 时，宿主启动阶段校验每个键并把它们并入 `ConnectionStrings`。配置的写法不变。
+- 键须是非空 UUID 的小写 D 格式。键不合法，或同一租户在代码与配置里的连接串不一致时，宿主启动失败，错误信息里写出那个键。开启配置绑定源生成器的项目，生成的代码按 `Guid.Parse` 解析键：大写、带花括号的键原先能绑定，现在启动即失败；完全不是 UUID 的键在绑定时由生成的代码报错。
+
 ## [2026.11.21] - 2026-11-21
 
 本版停发 8 个旧包，包括 `Kun.Infrastructure`、`Kun.Dapper`、`Kun.Saga`、`Kun.Sandbox`、`Kun.Storage`、`Kun.Auditing`、`Kun.Audit` 和 `Kun.MultiTenancy.EntityFrameworkCore`。nuget.org 保留既有版本，各包的替代实现与升级步骤见下文。

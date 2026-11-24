@@ -134,4 +134,6 @@ Kun.EntityFrameworkCore.MultiTenancy.KunMultiTenancyOptions.SchemaPrefix.set -> 
 Kun.EntityFrameworkCore.MultiTenancy.OptionsBasedTenantConnectionResolver.ResolveConnectionString(System.Guid tenantId) -> string!
 Kun.EntityFrameworkCore.MultiTenancy.SchemaPerTenantProvisioner<TContext>.DeprovisionAsync(System.Guid tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConnectionStrings.get -> System.Collections.Generic.IDictionary<System.Guid, string!>!
+Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConfiguredConnectionStrings.get -> System.Collections.Generic.IDictionary<string!, string!>!
+Kun.EntityFrameworkCore.MultiTenancy.TenantsConnectionOptions.ConfiguredConnectionStrings.set -> void
 virtual Kun.EntityFrameworkCore.MultiTenancy.DatabasePerTenantProvisioner<TContext>.DeprovisionAsync(System.Guid tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!

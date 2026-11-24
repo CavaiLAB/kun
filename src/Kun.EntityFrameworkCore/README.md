@@ -41,6 +41,7 @@ schema 规则：`UseKunSchema` 指定的 schema 默认只须是合法的小写�
 
 - `ApplyKunMultiTenantFilters<TContext>(ModelBuilder, TContext)`：给实现 `Kun.Core.Domain.IMultiTenant` 的实体加租户过滤，条件绑定到当前执行查询的 DbContext 的租户号（`IKunMultiTenantDbContext.TenantIdForModelCacheKey`），不把第一次建模时的租户固定进共享模型。`KunDbContext` 已实现 `IKunMultiTenantDbContext` 并自动应用。
 - `KunTenantSaveChangesInterceptor`：新增实体没写租户号时按当前租户补上，显式写了的保留。`AddKunMultiTenancyEntityFrameworkCore()`（命名空间 `Kun.EntityFrameworkCore.DependencyInjection`）把它登记为 scoped 服务，由上下文自己 `AddInterceptors`。
+- `TenantsConnectionOptions`：Database 策略的租户连接串表。配置里 `ConnectionStrings` 节的键是租户 UUID 的小写 D 格式，先绑定到 `ConfiguredConnectionStrings`；`AddKunMultiTenancy<TContext>` 选 `TenantIsolation.Database` 时在宿主启动阶段校验这些键并并入 `ConnectionStrings`。代码里直接写 `ConnectionStrings`。
 - `KunMultiTenantModelCacheKeyFactory`：模型缓存键由上下文类型、租户号与设计时标记组成，共享表与 SchemaPerTenant 都用它。
 
 ## Requirements

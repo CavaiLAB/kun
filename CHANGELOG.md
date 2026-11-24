@@ -12,6 +12,13 @@
 
 - 以下异常的消息文字有调整，异常类型、错误码与触发条件不变：`KunDataMisconfiguredException` 的四条装配错误（迁移生成器、软删除拦截器、数据模型约定、模型约定只用于 `KunStrictDbContext`），以及 `AddKunCapability` 在框架当前主体端口解析为匿名兜底时的启动检查（`InvalidOperationException`）。按消息原文匹配的代码请改为按异常类型或错误码判断。
 
+### Fixed — 补记 2026.11.21 网关一节的类型迁移
+
+`2026.11.21`「网关装配与限流」一节列了配置节与键名的变化，代码里用到的类型补记如下：
+
+- `Kun.Gateway.Configuration.KunGatewayOptions` 不再提供，改用 `Kun.Gateway.Abstractions` 包里的 `Kun.Gateway.GatewayConfiguration`。`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`，其余属性同名；新类型是记录，属性在创建时赋值。**迁移**：原来用 `Configure<KunGatewayOptions>(…)` 或绑定 `KunGateway` 节的，把 `GatewayConfiguration` 传给 `AddKunGateway(configuration)`，或不传、由 `AddKunGateway()` 读取 `Gateway` 节；注入 `IOptions<KunGatewayOptions>` 的改为 `IOptions<GatewayConfiguration>`。
+- Redis 固定窗口计数器的类型从 `Kun.Gateway` 包的 `Kun.Gateway.RateLimiting` 命名空间挪到 `Kun.RateLimit` 包：`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore` 的命名空间改为 `Kun.RateLimit`，注册扩展 `AddKunRedisRateLimitStore` 改由 `Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions` 提供。**迁移**：加 `using Kun.RateLimit;`，调用注册扩展的再加 `using Kun.RateLimit.Extensions;`。配置节 `Kun:Gateway:RateLimit:Redis` 与缺省键前缀 `kun:rl` 不变，引用 `Kun.Gateway` 的项目经它传递拿到 `Kun.RateLimit`。
+
 ## [2026.11.21] - 2026-11-21
 
 本版停发 8 个旧包，包括 `Kun.Infrastructure`、`Kun.Dapper`、`Kun.Saga`、`Kun.Sandbox`、`Kun.Storage`、`Kun.Auditing`、`Kun.Audit` 和 `Kun.MultiTenancy.EntityFrameworkCore`。nuget.org 保留既有版本，各包的替代实现与升级步骤见下文。

@@ -1,7 +1,7 @@
 {
   "$schema": "https://qian.dev/schemas/plugin/v2",
   "id": "qian.files",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "多租户文件组件：服务端生成租户前缀存储键，按租户配额与用途上传策略签发短时直传与附件下载地址，完成时服务端校验大小、SHA-256 与类型；S1 只接 local 后端",
   "author": {
     "name": "Qian"
@@ -47,13 +47,13 @@
     "nuget": [
       {
         "id": "Kun.Files.Abstractions",
-        "version": "2026.11.21",
-        "digest": "sha256:03896f3a8e43f2feec397f7a82fe5dd4c07b7eba2feb283b5018fea235558d0b"
+        "version": "2026.11.24",
+        "digest": "sha256:a3bf073ffa52fbde9e77e958da16eb7a615291e0400519794b2e38d1e5d6c25c"
       },
       {
         "id": "Kun.Files",
-        "version": "2026.11.21",
-        "digest": "sha256:29d82b048915199f4d81eb24dcb6f468b13f94470c3b91d24abb52f05b009a6b"
+        "version": "2026.11.24",
+        "digest": "sha256:5783a4b42966f5e7e668d6962d14ea57a5db484aca214fa41c023c96285d0c1f"
       }
     ]
   },

@@ -38,7 +38,7 @@
 - 2026.11.21 还删除了下列公共类型，前文没有逐个列出：
   - `Kun.EventBus`：`Kun.EventBus.Background` 下除 `IOutboxLockProvider`、`RedisOutboxLockProvider` 以外的类型，即 `IOutboxMessageStore`、`IOutboxBatchStore`、`NullOutboxLockProvider`、`OutboxPublisherOptions` 与前文列过的 `OutboxPublisherBackgroundService`；以及 `Kun.EventBus.DependencyInjection.KunOutboxPublisherExtensions`。
   - `Kun.EventBus.RabbitMQ`：此前的公共类型全部删除，即 `RabbitMqConnectionProvider`、`Options.RabbitMqOptions`、`Publishing.RabbitMqIntegrationEventPublisher`、`Consuming.RabbitMqIntegrationEventSubscriber`、`DependencyInjection.KunRabbitMqBuilder` 与 `DependencyInjection.KunRabbitMqServiceCollectionExtensions`（命名空间都在 `Kun.EventBus.RabbitMQ` 下）。现在的公共类型是 `KunEventsRabbitMqExtensions`、`KunEventsSubscriberBuilder` 与 `KunEventsSubscriberOptions`。
-  - `Kun.Audit.EntityFrameworkCore`：`AuditSaveChangesInterceptor`、`PostgresAuditChain` 与 `DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions`（`AddKunAuditEntityFrameworkCore`、`UseEntityFramework<TDbContext>`、`UsePostgresChain`），命名空间都在 `Kun.Audit.EntityFrameworkCore` 下。替代用法见前文「命令链与实体审计」。
+  - `Kun.Audit.EntityFrameworkCore`：`AuditSaveChangesInterceptor`、`EfAuditWriter<TDbContext>`、`PostgresAuditChain` 与 `DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions`（`AddKunAuditEntityFrameworkCore`、`UseEntityFramework<TDbContext>`、`UsePostgresChain`），命名空间都在 `Kun.Audit.EntityFrameworkCore` 下。替代用法见前文「命令链与实体审计」。
 
 ## [2026.11.21] - 2026-11-21
 

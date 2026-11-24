@@ -28,6 +28,12 @@
 - `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
 - 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
+### Fixed — 更正 2026.11.21 旧包的已发布版本
+
+`2026.11.21`「事件契约并进 Kun.EventBus.Abstractions」「错误模型合一到 Kun.Errors」「组件运行时统一到 Kun.Runtime」三节写的「已发布 0.2.0」应为已发布至 0.3.0：
+
+- `Qian.Events.Abstractions`、`Qian.Runtime.Errors`、`Qian.Runtime.Errors.AspNetCore` 与 `Qian.Runtime` 在 GitHub Packages 上保留 0.1.0 至 0.3.0 的全部版本，最新版本为 0.3.0。替代包见 `docs/guides/package-migration.md`。
+
 ## [2026.11.21] - 2026-11-21
 
 本版停发 8 个旧包，包括 `Kun.Infrastructure`、`Kun.Dapper`、`Kun.Saga`、`Kun.Sandbox`、`Kun.Storage`、`Kun.Auditing`、`Kun.Audit` 和 `Kun.MultiTenancy.EntityFrameworkCore`。nuget.org 保留既有版本，各包的替代实现与升级步骤见下文。

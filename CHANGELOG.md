@@ -19,15 +19,6 @@
 - `Kun.Gateway.Configuration.KunGatewayOptions` 不再提供，改用 `Kun.Gateway.Abstractions` 包里的 `Kun.Gateway.GatewayConfiguration`。`ExternalIssuer`、`ExternalAudience`、`InternalIssuer` 依次改为 `IdentityIssuer`、`IdentityAudience`、`Issuer`，其余属性同名；新类型是记录，属性在创建时赋值。**迁移**：原来用 `Configure<KunGatewayOptions>(…)` 或绑定 `KunGateway` 节的，把 `GatewayConfiguration` 传给 `AddKunGateway(configuration)`，或不传、由 `AddKunGateway()` 读取 `Gateway` 节；注入 `IOptions<KunGatewayOptions>` 的改为 `IOptions<GatewayConfiguration>`。
 - Redis 固定窗口计数器的类型从 `Kun.Gateway` 包的 `Kun.Gateway.RateLimiting` 命名空间挪到 `Kun.RateLimit` 包：`IRedisRateLimitStore`、`RateLimitHitResult`、`RedisRateLimitStoreOptions`、`RedisFixedWindowRateLimitStore` 的命名空间改为 `Kun.RateLimit`，注册扩展 `AddKunRedisRateLimitStore` 改由 `Kun.RateLimit.Extensions.KunRateLimitServiceCollectionExtensions` 提供。**迁移**：加 `using Kun.RateLimit;`，调用注册扩展的再加 `using Kun.RateLimit.Extensions;`。配置节 `Kun:Gateway:RateLimit:Redis` 与缺省键前缀 `kun:rl` 不变，引用 `Kun.Gateway` 的项目经它传递拿到 `Kun.RateLimit`。
 
-### Fixed — 更正服务间令牌各入口的核对说明
-
-`2026.11.21`「身份依赖方端口与服务间令牌」一节关于签发与接收时核对的写法，按入口更正如下：
-
-- 网关的 `S2sTokenIssuer` 按服务间令牌契约核对主体快照后再签发。
-- `AddKunServiceAuthentication`（`Kun.Security`）校验签名（只收 RS256、ES256）、签发方、受众与有效期，时钟容差 30 秒；签发方与受众须是配置的 `Issuer`、`AdditionalValidIssuers` 与 `Audience`、`AdditionalValidAudiences` 之一。
-- `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
-- 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
-
 ### Fixed — 补记 2026.11.21 事件与审计的行为变化与删除项
 
 `2026.11.21` 的事件与审计各节没有写全的行为变化与删除项，补记如下：
@@ -39,6 +30,15 @@
   - `Kun.EventBus`：`Kun.EventBus.Background` 下除 `IOutboxLockProvider`、`RedisOutboxLockProvider` 以外的类型，即 `IOutboxMessageStore`、`IOutboxBatchStore`、`NullOutboxLockProvider`、`OutboxPublisherOptions` 与前文列过的 `OutboxPublisherBackgroundService`；以及 `Kun.EventBus.DependencyInjection.KunOutboxPublisherExtensions`。
   - `Kun.EventBus.RabbitMQ`：此前的公共类型全部删除，即 `RabbitMqConnectionProvider`、`Options.RabbitMqOptions`、`Publishing.RabbitMqIntegrationEventPublisher`、`Consuming.RabbitMqIntegrationEventSubscriber`、`DependencyInjection.KunRabbitMqBuilder` 与 `DependencyInjection.KunRabbitMqServiceCollectionExtensions`（命名空间都在 `Kun.EventBus.RabbitMQ` 下）。现在的公共类型是 `KunEventsRabbitMqExtensions`、`KunEventsSubscriberBuilder` 与 `KunEventsSubscriberOptions`。
   - `Kun.Audit.EntityFrameworkCore`：`AuditSaveChangesInterceptor`、`EfAuditWriter<TDbContext>`、`PostgresAuditChain` 与 `DependencyInjection.KunAuditEntityFrameworkCoreServiceCollectionExtensions`（`AddKunAuditEntityFrameworkCore`、`UseEntityFramework<TDbContext>`、`UsePostgresChain`），命名空间都在 `Kun.Audit.EntityFrameworkCore` 下。替代用法见前文「命令链与实体审计」。
+
+### Fixed — 更正服务间令牌各入口的核对说明
+
+`2026.11.21`「身份依赖方端口与服务间令牌」一节关于签发与接收时核对的写法，按入口更正如下：
+
+- 网关的 `S2sTokenIssuer` 按服务间令牌契约核对主体快照后再签发。
+- `AddKunServiceAuthentication`（`Kun.Security`）校验签名（只收 RS256、ES256）、签发方、受众与有效期，时钟容差 30 秒；签发方与受众须是配置的 `Issuer`、`AdditionalValidIssuers` 与 `Audience`、`AdditionalValidAudiences` 之一。
+- `AddKunIdentityS2s`（`Kun.Identity.Client`）在 `AddKunServiceAuthentication` 的基础上要求令牌类型为 `JWT`，并按契约核对字段闭合、受众恰好是本服务、身份、角色、scope 与有效期（不超过 300 秒），通过后把主体快照交给当前用户适配器。下游要做完整的契约核对时用这个入口；自己配置 JWT 方案的，在 `OnTokenValidated` 里调用 `PrincipalClaims.ReadS2s`，再核对目标签发方与受众。
+- 外部访问令牌投影复用其中的身份字段核对。字段形状见 `contracts/v0/s2s-claims.schema.json`。
 
 ## [2026.11.21] - 2026-11-21
 

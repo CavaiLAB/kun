@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// 申请人公开页与申请人接口同源：构建产物以 /signup/ 为基路径，由身份宿主静态托管（本机联调见 tools/Qian.Dev.Shell 的 QIAN_DEV_SIGNUP_UI_DIST）。
+// 申请人公开页与申请人接口同源：构建产物以 /signup/ 为基路径，由身份宿主静态托管（本机联调见 tools/Kun.Dev.Shell 的 QIAN_DEV_SIGNUP_UI_DIST）。
 // 开发服务器只把申请人接口代理到本机身份宿主；页面不持有令牌，申请人会话只在宿主写的 HttpOnly Cookie 里。
 const api = process.env.QIAN_DEV_SHELL_API_URL ?? 'http://127.0.0.1:5090';
 if (!['127.0.0.1', 'localhost', '::1', '[::1]'].includes(new URL(api).hostname)) throw new Error('开发代理仅允许本机身份宿主');

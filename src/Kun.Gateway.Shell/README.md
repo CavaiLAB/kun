@@ -58,7 +58,7 @@ YARP 选定 cluster 后，Kun.Gateway 的请求变换按其 id 调用一次 S2sT
 
 ```csharp
 app.UseForwardedHeaders();
-app.UseQianShell(shell);          // 可选：外壳静态托管（S1-YUE-012），放在 UseRouting 之前
+app.UseKunShell(shell);           // 可选：外壳静态托管（S1-YUE-012），放在 UseRouting 之前
 app.UseRouting();
 app.UseKunIdentityClient();
 app.UseKunGateway();
@@ -76,7 +76,7 @@ app.MapKunShell(shell);          // 可选：/app-config.json 与外壳入口兜
 
 - **`UseKunShell(ShellStaticOptions)`**：`Root` 是外壳构建产物（含 `index.html`），`Remotes` 把已部署组件的远程制品目录挂在 `/remotes/{组件 id}/`。HTML `no-store`，`/assets/` 下带哈希的资源长缓存，其余与远程制品 `no-cache`；全部响应带 `nosniff`、`Referrer-Policy: no-referrer` 与 `Content-Security-Policy: frame-ancestors 'none'`（脚本来源由构建产物 `index.html` 的 meta CSP 声明）。目录缺入口、远程键不是组件 id 或目录不存在时启动即抛错。
 - **`MapKunShell(ShellStaticOptions)`**：`ConfigFile`（K8s 里 ConfigMap 挂成的 JSON 文件）以同源 `GET /app-config.json` 提供，每次现读、`no-store`，文件不在即 404。没有命中任何端点、不带扩展名、接受 `text/html` 的 GET / HEAD 回 `index.html`（页面导航与深链接）；API 前缀下打错的路径、脚本请求与其它方法一律 404，不拿 HTML 冒充 JSON。
-- **`MapQianShellBootstrap(path = "/api/shell/bootstrap")`**：会话取自 Identity.Client 的 Cookie 会话，`session` 与 `GET /auth/session` 同形，未认证 401。平台身份（没有租户，S1-YUE-018）：人类用户按同一方式只调平台控制台目录 `GET /api/capabilities/console`，持平台超管时交出平台组件（清单 `scopes` 只含 `global`，如租户管理、开通申请）的远程、菜单与可用权限码，`managed` 为 `false`；目录为空（不持角色）、下游 404 或没有路由时回代管上下文（`managed: true`），401 / 403 / 其余失败与租户成员同一映射；平台服务主体不调下游，直接代管。租户成员：网关按自己的路由表为平台表面的三条路径（`GET /api/capabilities/shell`、`/api/capabilities/navigation`、`/api/authz/me/permissions`）选 cluster，签该 cluster 受众的 60 秒 S2S 后并发调用并组合，与浏览器直调同一路由、同一受众。任一下游 401 即 401（客户端刷新会话后重放），外壳目录或有效权限 403 即 403，其余失败 502，能力导航失败降级为 `null`，下游 404（未挂载或未部署）按空处理。响应 `private, no-store`，不含任何令牌：`{ session, context, remotes, mounted, entitled, permissions, navigation, managed }`；`mounted` / `entitled` 的键是 `scope|组件 id`，权益（entitled）的真实来源归 S1-ENT-002，此前与 mounted 等价。
+- **`MapKunShellBootstrap(path = "/api/shell/bootstrap")`**：会话取自 Identity.Client 的 Cookie 会话，`session` 与 `GET /auth/session` 同形，未认证 401。平台身份（没有租户，S1-YUE-018）：人类用户按同一方式只调平台控制台目录 `GET /api/capabilities/console`，持平台超管时交出平台组件（清单 `scopes` 只含 `global`，如租户管理、开通申请）的远程、菜单与可用权限码，`managed` 为 `false`；目录为空（不持角色）、下游 404 或没有路由时回代管上下文（`managed: true`），401 / 403 / 其余失败与租户成员同一映射；平台服务主体不调下游，直接代管。租户成员：网关按自己的路由表为平台表面的三条路径（`GET /api/capabilities/shell`、`/api/capabilities/navigation`、`/api/authz/me/permissions`）选 cluster，签该 cluster 受众的 60 秒 S2S 后并发调用并组合，与浏览器直调同一路由、同一受众。任一下游 401 即 401（客户端刷新会话后重放），外壳目录或有效权限 403 即 403，其余失败 502，能力导航失败降级为 `null`，下游 404（未挂载或未部署）按空处理。响应 `private, no-store`，不含任何令牌：`{ session, context, remotes, mounted, entitled, permissions, navigation, managed }`；`mounted` / `entitled` 的键是 `scope|组件 id`，权益（entitled）的真实来源归 S1-ENT-002，此前与 mounted 等价。
 
 平台表面（用户主体的能力目录、导航、外壳目录与有效权限）在生产里由 platform profile 的平台宿主提供，网关路由表把 `/api/capabilities/**`、`/api/authz/**` 分簇给它（受众 `qian-platform`）；参考宿主是 `samples/Kun.Sample.Crm` 的 `PlatformSurfaceHost`，生产宿主归 S1-DEP-009，镜像接线（外壳与远程制品进网关 Pod、实测响应头）归 S1-DEP-008。
 

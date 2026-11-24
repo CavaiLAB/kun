@@ -28,7 +28,7 @@ using Org.BouncyCastle.Security;
 
 namespace Kun.Sample.Crm.Tests;
 
-// staging 首次部署的同进程形状（S1-DEP-011，R143；装配方式 R150 ①）：生产平台宿主 hosts/Qian.Platform.Host 并入身份分支（Identity:InProcess=true），网关是独立进程，
+// staging 首次部署的同进程形状（S1-DEP-011，R143；装配方式 R150 ①）：生产平台宿主 hosts/Kun.Platform.Host 并入身份分支（Identity:InProcess=true），网关是独立进程，
 // 用网关宿主 appsettings.json 的生产路由表。数据库从空库开始，角色照部署侧的建角色脚本建好（应用登录沿用基线的 qian_app，库的 CONNECT 收回 PUBLIC 后逐个授予），
 // 之后的一切都走生产入口：迁移 Job（--migrate-only，管理员连接做离线 DDL，迁移属主执行包内迁移）→ 首个平台运营账号的引导 Job（--bootstrap-operator）→ 在线副本。
 // 没有开发路由、开发种子与开发期发件箱；只有开通申请审核那一段为了拿到验证码，在宿主起来之后另挂一个测试发件端口（生产在 D4 下没有发件端口，R150 ④）。

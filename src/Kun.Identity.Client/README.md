@@ -121,6 +121,6 @@ app.UseKunErrors(); app.UseAuthentication(); app.UseAuthorization();
 
 ## 测试
 
-`tests/Kun.Identity.Client.Tests`：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码、篡改 nonce / iss / state 重放、刷新单飞与轮换、登出防伪、卸载、后通道登出，以及会话主体经 Kun 网关签发器铸 S2S 后下游接受、透传被拒；S2S 契约逐条违约。`tests/Kun.Identity.Client.Standalone.Tests`：只引用本包的独立宿主对接 Dex（独立实现的 CNCF OIDC 发行方，见 [tests/README.md](../../../../tests/README.md) 的 `DexFixture`）完成登录与登出，并断言依赖闭包里没有其他 Qian 组件。`ClientManifestTests` 核对清单与生成元数据、配置 Schema 一致，公开客户端能挂载和卸载，并确认清单声明了 `x-aot`；NativeAOT 冒烟见上文。选 Dex 而不是第二个 qian-identity，是因为后者证明不了「任意 OIDC 发行方」。
+`tests/Kun.Identity.Client.Tests`：真实 qian-identity（内置账号模型、强制 PKCE）上的服务端换码、篡改 nonce / iss / state 重放、刷新单飞与轮换、登出防伪、卸载、后通道登出，以及会话主体经 Kun 网关签发器铸 S2S 后下游接受、透传被拒；S2S 契约逐条违约。`tests/Kun.Identity.Client.Standalone.Tests`：只引用本包的独立宿主对接 Dex（独立实现的 CNCF OIDC 发行方，见 [tests/README.md](../../tests/README.md) 的 `DexFixture`）完成登录与登出，并断言依赖闭包里没有其他 Qian 组件。`ClientManifestTests` 核对清单与生成元数据、配置 Schema 一致，公开客户端能挂载和卸载，并确认清单声明了 `x-aot`；NativeAOT 冒烟见上文。选 Dex 而不是第二个 qian-identity，是因为后者证明不了「任意 OIDC 发行方」。
 
 S1-IDP-015 的私有源安装门在 `packages/qian-cli/test/private-feed.e2e.mjs`：从干净 ASP.NET Core 项目执行 `qian add identity`，核对版本、实际包源与归档摘要，由清单入口挂载已发布的 Provider；匿名 `/auth/session` 返回 401，卸载后同端点返回 404，旧上下文无法再取得 Identity 服务。最后经 `qian remove identity --purge` 撤销包引用、组件文件与 patch。完整登录协议仍由上述身份客户端测试覆盖。

@@ -60,6 +60,11 @@ PLATFORM_DOCUMENTATION: Tuple[str, ...] = ("docs/**", "deploy/docs-site/**", "sc
                                            "tests/gates/test_check_docs.py", ".gitignore", "AGENTS.md", "CLAUDE.md",
                                            "README.md", "tests/README.md")
 
+# 文档里的相对链接也指向代码目录下的文件（包与宿主的说明、源码、测试、脚本）。这些文件重命名或删除，链接就失效，
+# 所以它们的改动也跑文档门禁。detect 用 git diff --no-renames，重命名会同时列出旧路径与新路径。
+DOCUMENTATION_LINK_TARGETS: Tuple[str, ...] = ("src/**", "hosts/**", "tools/**", "tests/**", "samples/**",
+                                               "benchmarks/**", "scripts/**")
+
 # 这些文件一改，全部区域都算改动：作业的定义、区域表本身或共用的复合动作变了。
 EVERYTHING: Tuple[str, ...] = (".github/workflows/ci.yml", ".github/actions/**", "scripts/ci_changes.py")
 # 不落进任何区域、改了不跑检查的文件。
@@ -102,7 +107,8 @@ AREAS: Dict[str, Area] = {
         builds_dotnet=True),
     "docs-and-pm": Area(
         "文档门禁、任务文件与看板",
-        (PLATFORM_ASSETS, PLATFORM_DOCUMENTATION, PLATFORM_BOARD, (".github/workflows/qian-docs-and-pm.yml",)),),
+        (PLATFORM_ASSETS, PLATFORM_DOCUMENTATION, PLATFORM_BOARD, DOCUMENTATION_LINK_TARGETS,
+         (".github/workflows/qian-docs-and-pm.yml",)),),
     "docs-site": Area(
         "文档站",
         (

@@ -10,6 +10,8 @@
 
 > 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D24、D31）：2026-11-19 平台级裁定 P32 定拖拽设计器缓做，先让 Agent 写，设计器以后作为第二种编写方式。8.0.4 表里列为 P0 的 `qian.designer`（表单、列表、审批流三大设计器），以及 8.5、8.6、8.8、8.13 里依赖设计器的部分怎么调整，产品负责人 2026-11-24 说这一问先移除；本章原文不改。8.9 数据权限编译器所依赖的端口与契约，现状见该节的注（D31）。
 
+> 修订（2026-11-25，[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D8、D7）：产品负责人 2026-11-25 定：等人点头的任务上的动作缺省只能人做；Agent 代办不是缺省，以后要用再单独放开，怎么放开没有定（D8，见 ADR-012 §9）。8.8 节「Agent 契约」里 Agent 代办的一条与验收的末一条、8.12 节的「Agent 契约」受影响。同一天还定了：能力条目上标了要人确认的能力，调用方不是人本人时，平台自己不执行，生成一条等人输入的任务（D7，见 ADR-016 §9）；这类任务也是 8.12 节的 Operation。两条都还没有实现。本章原文不改，受影响的条目前加了标注。
+
 ### 8.0 目标与退出标准
 
 #### 8.0.1 S2 的一句话目标
@@ -473,7 +475,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 - 定义层：`GET/POST /workflow/definitions`、`:validate / :publish / :enable / :disable`；注册表 `GET /workflow/node-types | assignee-strategies | gateway-types | actions`；`POST /workflow/assignees:resolve`（试算审批人，返回来源链）。
 - 运行层：`GET /workflow/workitems/{id}/actions → [{id, label, inputSchema, preconditions, humanOnly}]`（动作即工具）；`POST …/actions/{key}`（带 `idempotencyKey`）；`GET …/{id}/progress`（会签票数、是否可能停滞）；`GET /workflows?launchable=true` + `startFormSchema`。
 - 「工作流即能力」：已发布流程自动登记为意图级能力（发起 = 一个工具；人工节点 = Operation `input_required`，见 8.12）。
-- Agent 代办（补充裁决 Q26）：actor 三类；Agent 有效权限 = 委托人权限 ∩ 授予 scope；签名类动作 `humanOnly`；转审、协办、撤销对 Agent 禁止（S4 前）；生成的定义只能落 `designing` 并经 `:validate`。
+- 【经 S1-DEC-041 D8 修订：等人点头的任务上的动作缺省只能人做，不止签名类；Agent 代办不是缺省，以后要用再单独放开，放开以后本条的有效权限算法才适用，见 ADR-012 §9】Agent 代办（补充裁决 Q26）：actor 三类；Agent 有效权限 = 委托人权限 ∩ 授予 scope；签名类动作 `humanOnly`；转审、协办、撤销对 Agent 禁止（S4 前）；生成的定义只能落 `designing` 并经 `:validate`。
 
 #### 验收标准
 
@@ -485,7 +487,7 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 - [ ] 转审后流转记录保留原处理人与接收人两条，原记录不被改写。**测法**：记录比对。
 - [ ] 节点限时 10 分钟、提醒 5 分钟：到点收到提醒与超时站内信各一次；多副本（3 个 `qian-workflow` 实例）下不重复发送；发起人催办后审批人收到催办站内信。**测法**：时钟注入 + 多副本。
 - [ ] 子流程结束后父流程自动推进；子流程被停用时父流程上节点提交被拒并提示。**测法**：接口测试。
-- [ ] 以 Agent 主体（委托某用户）调用 `actions/approve` 成功且记录 `actor=agent, onBehalfOf=user`；调用 `transfer` 返回 `ACTION_HUMAN_ONLY`。**测法**：S2S 令牌模拟。
+- [ ] 【经 S1-DEC-041 D8 修订：按 2026-11-25 的裁定，Agent 代办不是缺省。本条前半句在 Agent 代办单独放开以后才适用；放开以前，这个动作只能人做】以 Agent 主体（委托某用户）调用 `actions/approve` 成功且记录 `actor=agent, onBehalfOf=user`；调用 `transfer` 返回 `ACTION_HUMAN_ONLY`。**测法**：S2S 令牌模拟。
 
 ### 8.9 数据权限与字段权限（P0 · S2）
 
@@ -639,6 +641,8 @@ S2 结束时，以下两条必须在预发环境被第三方按脚本复现：
 #### Agent 契约
 
 Operation 是 Agent 感知长任务与审批中断的唯一方式：`async: task` 的能力返回 `operationId`；`input_required` 的 `inputRequest.schema` 即 Agent 需要补充的输入；`humanOnly` 的输入动作对 Agent 不可用。
+
+> 修订（2026-11-25，S1-DEC-041 D7、D8）：等人点头的任务有两种来路，都是本节的 Operation，状态 `input_required`：流程的工作项（8.8），以及 Agent 调标了要人确认的能力时平台自己停下来生成的任务（D7，见 ADR-016 §9）。这些任务上的输入动作缺省只能人做，Agent 代办以后要用再单独放开（D8，见 ADR-012 §9）。上面「`humanOnly` 的输入动作对 Agent 不可用」一句照旧，这次定的是缺省。Agent 给自己的长任务补充输入不是等人点头的任务，这次没有说到。接口的形状没有定，随契约定稿。
 
 #### 验收标准
 

@@ -6,6 +6,8 @@
 
 > 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D23、D25）：2026-11-19 平台级裁定 P31 重排路线，最小的一圈提前：`agent` 主体与给 Agent 用的能力目录（先只读）在路线里程碑 M1 启用，不再等 S4，10.3 等节里 Agent 主体的「S4」时点照此读；流量路径不变；看板的四个阶段怎么对应到路线的里程碑，产品负责人 2026-11-24 说这一问先移除。P30 在组件里新增「知识库」内容，与 10.6 表里知识库归下游智能体平台的写法有出入，怎么分待定，随 S1-DEC-038 的 Q5 处理。正文未改。
 
+> 修订（2026-11-25，[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D7、D8）：产品负责人 2026-11-25 定两条。能力条目上标了要人确认的能力（`agent.requiresConfirmation` 为真），调用方不是人本人时，平台自己不执行，生成一条 `input_required` 的 Operation，等人点，人点了平台才执行（D7，见 ADR-016 §9）；10.1.2 节表的第一行、10.3 节「范围与边界」的末一条与 10.6 节表的第二行把工具门禁的运行时权威整个归下游智能体平台，在这一件上受影响，其余不变。等人点头的任务上的动作缺省只能人做，Agent 代办以后要用再单独放开（D8，见 ADR-012 §9）；10.3 节「签名类动作 `humanOnly`」一句照此读。两条都还没有实现，接口的形状没有定。正文未改，受影响的条目前加了标注。
+
 ### 10.1 目标与边界
 
 **组件模型 v2 口径（ADR-020 D20.9）**。Agent 表面从 S1 起即是一等公民：skills / agents / commands / hooks / MCP / tools 是组件文件夹里的声明式表面（§07 7.2.2），所有模型可见的东西注册在 `ctx.Tools` 等注册表里并受 scope 过滤。S4 增加的是三件事：`extensions`（模型在策略下挂载与卸载插件、运行时自修改，建立在 S1 同一套装载器上，S1 只开放给人类 CLI）、每租户 MCP 门面（由 `ctx.Tools` 的租户 scope 视图派生，不是另一套注册表）、Agent 生成组件（产物落为草稿组件文件夹，经与人工相同的校验器与 TCK）。本章凡写「能力目录」「工具」处，均指 S1 已有注册表的 scope 视图。
@@ -23,7 +25,7 @@ S4 退出标准：**Agent 能发现、调用、编排乃至生成平台能力与
 
 | 能力 | 归属 | 说明 |
 |---|---|---|
-| Agent 推理引擎、Sub-agent、Workflow 编排、路由器、记忆四层、Execution Trace、Skills 引擎、工具协议与门禁（ToolSpec / ToolPolicy / RiskGate / confirm） | **下游智能体平台** | 平台不写任何 Agent loop |
+| 【经 S1-DEC-041 D7 修订：标了要人确认的能力由平台自己停下来等人点，是本行的例外，见 10.3 与 ADR-016 §9】Agent 推理引擎、Sub-agent、Workflow 编排、路由器、记忆四层、Execution Trace、Skills 引擎、工具协议与门禁（ToolSpec / ToolPolicy / RiskGate / confirm） | **下游智能体平台** | 平台不写任何 Agent loop |
 | 沙箱 | 下游智能体平台已接的 CubeSandbox（E2B 兼容 API） | 平台只做对接层 `qian.sandbox` |
 | 模型数据面 | **Higress**（共用，10.5） | Higress 对租户无感；租户/配额/计量在平台侧 |
 | 身份/审计/Outbox 基座 | **Kun**（共用） | S2S claim 同形、事件信封同形 |
@@ -90,12 +92,12 @@ S4 退出标准：**Agent 能发现、调用、编排乃至生成平台能力与
 #### 范围与边界
 
 - ✅ **统一主体模型**（S1 设计、S4 启用）：`user / service / agent` 三类 actor；Agent 是客户端注册表中的一种客户端类型（有归属人、可吊销、可审计）；代表用户执行用 RFC 8693 令牌交换，令牌带 `act` 委托链；客户端注册优先 CIMD，DCR 兼容保留。
-- ✅ **有效权限 = 委托人权限 ∩ 授予 Agent 的 scope**；权限点带风险级别与 step-up；危险操作 Agent 只能发起申请（「待确认票据」契约）；签名类动作 `humanOnly`；转审、协办、撤销对 Agent 禁止（补充裁决 Q26）。
+- 【经 S1-DEC-041 D7、D8 标注：「危险操作 Agent 只能发起申请」与 D7 同向，标了要人确认的能力由平台自己停下来等人点，见 ADR-016 §9；等人点头的任务上的动作缺省只能人做，不止签名类，Agent 代办以后要用再单独放开，见 ADR-012 §9】✅ **有效权限 = 委托人权限 ∩ 授予 Agent 的 scope**；权限点带风险级别与 step-up；危险操作 Agent 只能发起申请（「待确认票据」契约）；签名类动作 `humanOnly`；转审、协办、撤销对 Agent 禁止（补充裁决 Q26）。
 - ✅ **运行授权快照**：工具 schema 哈希进入 `ToolGrant`，schema 变即授权失效；工具描述哈希钉死（§09）是其供给侧。
 - ✅ **审计**：`actor_type=agent`、`on_behalf_of`、`capability_id`、`contract_version`、输入哈希、来源通道（UI / API / MCP / A2A），接入 ADR-009 哈希链；`trace_id` 与下游智能体平台 Execution Trace 贯通。
 - ✅ **授权服务器对齐 MCP**（S3 必做、S4 前验证）：RFC 8414 / OIDC 发现、PKCE、`resource` 参数、RFC 9728 受保护资源元数据、`iss` 回传。
 - ✅ `Check / ListAllowedActions / Explain` 以工具形式暴露；结构化错误码与多语言文案导出为 JSON。
-- ❌ 平台侧实现 ToolPolicy / RiskGate 运行时权威（归下游智能体平台；平台只提供 `sideEffect / policyHint` 默认值）。
+- 【经 S1-DEC-041 D7 修订：标了要人确认的能力，调用方不是人本人时，由平台自己停下来等人点，这一件不归下游智能体平台；其余不变，见 ADR-016 §9】❌ 平台侧实现 ToolPolicy / RiskGate 运行时权威（归下游智能体平台；平台只提供 `sideEffect / policyHint` 默认值）。
 
 #### 安全防线表（确定性控制优先）
 
@@ -360,7 +362,7 @@ openrouter/*:        { markup: 1.1 }
 | 不做 | 理由 | 替代 |
 |---|---|---|
 | 自建 Agent 运行时（推理引擎、Sub-agent、Workflow 编排、路由器） | ADR-016：复用下游智能体平台 | S4 经 MCP/HTTP 对接下游智能体平台 |
-| 自建沙箱、记忆、技能引擎、工具门禁运行时 | 同上 | CubeSandbox、下游智能体平台记忆四层、Skills、ToolPolicy/RiskGate |
+| 【经 S1-DEC-041 D7 修订：标了要人确认的能力由平台自己停下来等人点，是本行的例外，见 10.3 与 ADR-016 §9】自建沙箱、记忆、技能引擎、工具门禁运行时 | 同上 | CubeSandbox、下游智能体平台记忆四层、Skills、ToolPolicy/RiskGate |
 | 自写模型代理层（绕过 Higress） | ADR-015 | Higress 是唯一模型与 MCP chokepoint |
 | 把 SSO / S2S 交给 Higress | ADR-015 / ADR-010 | 业务鉴权在 `qian.gateway` 与 `qian.identity` |
 | 视频/3D/音乐生成任务服务、HiMarket 开发者门户 | 本期范围外（Q17 先 LLM + Embedding） | 第 3–4 阶段按需 |

@@ -59,7 +59,7 @@ supersedes: none
 - **S1**：D10.2–D10.5、D10.9、D10.10；OpenAPI 聚合与能力目录端点。
 - **S2**：Redis 共享限流；低代码数据引擎 API 经网关统一鉴权；外链能力令牌经网关匿名路由 + 服务端校验。
 - **S3**：动态路由 provider；按租户选 IdP 多 issuer（如需）；OPA 粗粒度 ABAC 可选。
-- **S4**：Higress 托管每租户 MCP 逻辑门面；Agent 一律经 Higress MCP 路由，令牌受众绑定、禁透传。
+- 【经 S1-DEC-042 D1 标注：M1 之前，确认卡的最小一圈先用替身演示，不经 MCP 路由，是过渡，M1 做好以后撤掉，见 ADR-016 §10；本行不改】**S4**：Higress 托管每租户 MCP 逻辑门面；Agent 一律经 Higress MCP 路由，令牌受众绑定、禁透传。
 
 ## 7 待确认事项
 

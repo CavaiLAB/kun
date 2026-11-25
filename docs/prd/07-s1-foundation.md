@@ -491,7 +491,7 @@ S1 的 profile 与组合包落位（R31；三节点 K3s 的现实仍然成立：
 
 **插件化定位**。Inject 7.4 JWKS、`ctx.Entitlement`（7.14 授权缓存）、`ctx.Registry` scope 视图与 `ctx.Capabilities`（7.2.1）、`ctx.Config`、7.11.2 观测；向外提供路由片段生成器（供 `qian pack`）、`IS2sPrincipalResolver` 扩展位、S3 的动态路由 provider 扩展点 `qian.gateway.route-provider/v1`。
 
-**Agent 契约**。S4 的 Agent 不直连业务 URL，一律经 Higress MCP 路由到 `qian-gateway`；S1 保证令牌受众绑定、禁透传、最小 scope + `403 insufficient_scope` 逐步提权三件事就位。网关自身不暴露工具。
+**Agent 契约**。【经 S1-DEC-042 D1 标注：M1 之前，确认卡的最小一圈先用替身演示，不经 MCP 路由，是过渡，M1 做好以后撤掉，见 ADR-016 §10；本段不改】S4 的 Agent 不直连业务 URL，一律经 Higress MCP 路由到 `qian-gateway`；S1 保证令牌受众绑定、禁透传、最小 scope + `403 insufficient_scope` 逐步提权三件事就位。网关自身不暴露工具。
 
 **验收标准**
 - [ ] E2E：未带凭据访问 `/api/tenancy/tenants` 返回 401；带外壳 Cookie 访问同一路由，下游收到 60s S2S 且 `aud = qian-platform`、`tenant_id` 正确。

@@ -16,9 +16,8 @@ Kun 为智能体提供身份与能力目录；模型服务也由它提供（已�
 |---|---|---|---|---|---|
 | Kun | 内核 | .NET 10 的命令调度、租户上下文、数据访问、事件和可观测模块 | `CavaiLAB/kun` | CalVer · MIT | [架构](docs/architecture.md) |
 | Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台概览](docs/platform-overview.md) |
-| Qian | 前端 | React 组件和外壳库、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [前端框架](docs/prd/specs/frontend.md)。仓库已归档 |
 
-Qian 的仓库 2026-11-25 已归档，只读；已发布的包留着，不再发新版（[S1-DEC-043](pm/tasks/S1-DEC-043.md) D1）。现在在用、在维护的项目是匠心与 Kun 两个（D2）。这张表与文档站的产品族页逐行对应，文档站随 Kun 单独的网站一起改，所以表里 Qian 一行先留着。
+前端框架 Qian 的仓库（`CavaiLAB/qian`）2026-11-25 已归档，只读；已发布的包留着，不再发新版，这张表不再列它（[S1-DEC-043](pm/tasks/S1-DEC-043.md) D1）；它在本仓库的规格见[前端框架](docs/prd/specs/frontend.md)。现在在用、在维护的项目是匠心与 Kun 两个（D2）。
 
 Kun 仓库的 `qian` 命令行、外壳应用、组件清单与契约共同组成平台开发工作区。任务、看板构建方法与维护流程见[任务说明](pm/README.md)。
 

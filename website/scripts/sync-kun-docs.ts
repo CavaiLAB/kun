@@ -411,7 +411,7 @@ function overviewPage(kun: KunCheckout, files: ReadonlySet<string>, pages: Mirro
     banner(kun, 'README.md', '本页由本仓库的指南与模块目录生成，源码入口为'),
     '',
     ...(tagline ? [`> ${tagline}`, ''] : []),
-    'Kun 提供 .NET 内核与平台组件，Qian 提供前端框架。[产品族](/start/family)列出两者的仓库与版本来源。' +
+    'Kun 提供 .NET 内核与平台组件。[产品族](/start/family)列出这两档的仓库与版本来源。' +
       `本节说明本仓库的 **${kun.tag}** 正式版本。版本取根目录 \`CHANGELOG.md\` 里最新的正式发布段。` +
       `[Kun 源码与文档](${KUN_REPO_URL})由同一仓库维护。`,
     '',

@@ -10,6 +10,8 @@ supersedes: none
 
 > 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
 
+> 修订（2026-11-25，[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D1）：交付给客户的产品里，运维侧的登录也接本文的身份服务，不带 Authentik，见 [ADR-017](ADR-017-deployment.md) §12。正文未改，D5.7 前加了标注。
+
 ## 1 背景与问题（Context）
 
 Kun 只做依赖方（RP）一侧：OIDC 发现 + 授权码 + PKCE 跳转、id_token 验签、Cookie 不透明会话、外部 Bearer 校验、网关换发 S2S（基线 K §2.2）。已确认缺口 G1–G8：无鉴权抽象；外部 issuer 只能配一个；`ExchangeCodeAsync` 不发 `code_verifier`、nonce 不校验、无 refresh / client_credentials；会话无 user→sessions 索引、无后通道登出、日志打印明文 sid；CSRF 推迟；三套 S2S 签发器；claim 名不统一且请求头兜底 fail-open；`SessionData` 只有单 TenantId、无一人多租户模型（基线 S §6.1）。
@@ -24,7 +26,7 @@ Kun 只做依赖方（RP）一侧：OIDC 发现 + 授权码 + PKCE 跳转、id_t
 - **D5.4 会话中心（S1 必做）**：refresh 轮换、后通道登出双向、user→sessions 索引、强制下线、单端 / 并发上限（默认 5）、`identity_revision` 递增失效、CSRF；日志只记 sid 哈希。会话失效触发：改密、停用、锁定、租户冻结 / 到期、强制下线、权限变更。
 - **D5.5 客户端注册表**：平台与官方插件 client S1 建立；`client_credentials` S1 必做；S3「应用安装即建 client」。
 - **D5.6 上游联邦全部做成连接器插件 `qian.identity.connector.*`**：S1 只做通用 OIDC + 企业微信（扫码与工作台免登）；钉钉、飞书 S2 必做（P0）；微信网站扫码 S2 可选（P1）；S3 加 SAML / CAS / LDAP（先代理 IdP 连接器过渡）、租户自助配 IdP、域名验证与 HRD、Passkey、SCIM、ISV 第三方应用模式。登录流水线统一：所有方式构造同一「登录输入」走同一签发路径。
-- **D5.7 Authentik 退居运维侧**：升级后只服务 Apollo Portal、Headlamp、Argo，可作为一个上游连接器；客户 CIAM 不用它；与［下游智能体平台］共用运维侧 Authentik（Q15）。
+- 【经 S1-DEC-041 D1 修订：交付给客户的产品里，运维侧的登录也接身份服务，不带 Authentik，见 ADR-017 §12】**D5.7 Authentik 退居运维侧**：升级后只服务 Apollo Portal、Headlamp、Argo，可作为一个上游连接器；客户 CIAM 不用它；与［下游智能体平台］共用运维侧 Authentik（Q15）。
 - **D5.8 同时修复 Kun.Identity G2–G8**：`codeVerifier`、nonce、refresh、discovery 刷新、会话索引、后通道登出、CSRF、签发器收敛、claim 统一、`membership_id`。
 - **D5.9 令牌只含身份**：`sub`、`tenant_id`、`membership_id`、`scope`、`identity_revision`、预留 `profile`；权限不进令牌（见 ADR-006）。
 - **D5.10 交付形态假定有私有化 / 离线交付**（Q3），因此不使用 AGPL 与商业许可的身份组件。

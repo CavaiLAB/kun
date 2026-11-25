@@ -10,6 +10,8 @@ supersedes: none
 
 > 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
 
+> 修订（2026-11-25，[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D1、D2）：单机版默认不装 Apollo，读配置文件；企业版照旧（§9）。交付给客户的产品里，Portal 的登录接身份服务，不带 Authentik（[ADR-017](ADR-017-deployment.md) §12）。正文未改，D7.1 前加了标注。
+
 ## 1 背景与问题（Context）
 
 Apollo 是硬性要求。Kun 的 `Kun.Configuration` 只做 `AddKunOptions<T>` 绑定 + 校验，**无任何配置源**，全仓无 `apollo`；现网没有 Apollo、没有 MySQL、没有任何配置中心被应用消费；Nacos 3.0.1 standalone 已部署但只作 AI Registry PoC，且既有边界 ADR 把「动态非敏感配置」权威划给了 Nacos Config，［下游智能体平台］的 `IConfigProvider` 设计也定为 Nacos（基线 K §2.6；基线 P 附录 A-2）。
@@ -18,7 +20,7 @@ Apollo 的隐性成本：MySQL 是其唯一官方生产库（PostgreSQL 不受�
 
 ## 2 决策（Decision）
 
-- **D7.1 Apollo 作为 L1 共享平台组件**，按现有「vendor chart + 离线渲染入 git」范式部署：configservice + adminservice（每 Apollo 环境一组，2 副本 + podAntiAffinity + PDB）+ portal（2 副本，OIDC + JDBC session）；`JAVA_OPTS=-XX:MaxRAMPercentage=70`；Portal 接 Authentik OIDC、不公网。
+- 【经 S1-DEC-041 D2 修订：单机版默认不装 Apollo，见 §9】【经 S1-DEC-041 D1 修订：交付给客户的产品里 Portal 的登录接身份服务，见 ADR-017 §12】**D7.1 Apollo 作为 L1 共享平台组件**，按现有「vendor chart + 离线渲染入 git」范式部署：configservice + adminservice（每 Apollo 环境一组，2 副本 + podAntiAffinity + PDB）+ portal（2 副本，OIDC + JDBC session）；`JAVA_OPTS=-XX:MaxRAMPercentage=70`；Portal 接 Authentik OIDC、不公网。
 - **D7.2 版本**：首发 2.5.x（≥2.5.2）；3.0.x 待首个补丁后评估升级（Q8）。
 - **D7.3 MySQL**：staging 先用集群内 operator，生产用托管 RDS（Q8）。
 - **D7.4 不与［下游智能体平台］共用一套 Apollo**（Q8）。
@@ -72,3 +74,14 @@ Apollo 的隐性成本：MySQL 是其唯一官方生产库（PostgreSQL 不受�
 - 相关 ADR：ADR-001、ADR-002、ADR-014、ADR-016、ADR-017。
 - PRD：`PRD §07`、`PRD §12`、`PRD §13`。
 - 基线：K §2.6、§6.2 配置 / 密钥行、§6.3、§7.1 第 4 条、附录 B-7/B-8；P §5 配置绑定行、附录 A-2；S §6.2 第 9 条、§11 第 7 条。
+
+## 9 单机版默认不装 Apollo（2026-11-25）
+
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D2；平台级裁定 P58，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：单机版默认不装 Apollo，读配置文件；要在运行期改配置的客户可以加装。企业版照旧装。问的是「与旧决策有出入的甲 1 至甲 3，都按提议定吗？」，答「都按提议定」，这是其中的甲 2。
+
+- 单机版指给小企业的、一台服务器上能跑的部署，企业版指跑在集群上的全套部署，见 [ADR-017](ADR-017-deployment.md) §13。
+- 修订的是 §1 开头的「Apollo 是硬性要求」与 §2 D7.1：对企业版不变；对单机版，Apollo 由必装改为可选。ADR-017 D17.3 的 L1 清单随之按本节读。其余条目不变，装了 Apollo 就照 D7.5 至 D7.13 办。
+- 单机版读什么：D7.10 的顺序去掉 Apollo 一层，即 appsettings、K8s Secret 文件、环境变量、命令行。两个宿主现在都能这样启动（已有）：网关宿主的配置源设为 `host` 时只读宿主配置；平台宿主的 config 条目现在读的就是宿主配置根。
+- 理由：单机版少装一套组件，即 Apollo 连同它用的 MySQL；少备份一个库。
+- 代价：单机版没有运行期的配置推送、配置灰度和配置发布的审计。改配置靠改文件，一般要重启服务。§4 放弃「只用 K8s ConfigMap + GitOps」时列的就是这几条，单机版接受它们。
+- 更正：裁定时给的理由里还有省内存一条，估的是约 3 GB。这个数是按内存的请求量估的，偏高；裁定之后核对，省下的内存比当时说的少。上面两条理由不变。

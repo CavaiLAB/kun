@@ -10,6 +10,8 @@ supersedes: none
 
 > 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
 
+> 修订（2026-11-25，[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D1、D3）：交付给客户的产品里，运维侧的登录也接身份服务，不带 Authentik（§12）；单机版作为写明的例外采用身份与平台同进程的形状（§13）。正文未改，D17.11 与 §10 受影响的一条前加了标注。
+
 ## 1 背景与问题（Context）
 
 Kun 仓库没有 Dockerfile、compose、Helm、manifest、健康端点映射或镜像构建脚本；K8s 只出现在文档假设（基线 K §2.5）。团队另有成熟的部署约定（［部署仓库］）：单集群 K3s v1.35 三节点全 control-plane（embedded etcd），只跨两台物理宿主；几乎所有有状态与共享服务 `nodeSelector` 钉首节点（同时是唯一 GPU 节点与 CI runner）；唯一 StorageClass `local-path`；同集群按 ns 分环境（prod / staging / mock）；Argo CD app-of-apps（根 Application `selfHeal:true`，业务 Application `automated{prune:false, selfHeal:false}`）；Kustomize base / overlay；L0 / L1 / L2 三层 + 三个互斥 Argo Application + 静态边界门；不可变发布事件（40 位 SHA、CalVer）→ 验签 → 镜像推 Harbor → DB 迁移 Job 先行 → `kustomize edit set image` 按 digest 写回 → Argo 收敛 → smoke；Syft / Grype / Trivy / Cosign 供应链证据；「vendor chart + 离线渲染入 git」范式；秘密只存模板 / 键名 / secretRef（基线 K §4.2、§6.1）。
@@ -28,7 +30,7 @@ Kun 仓库没有 Dockerfile、compose、Helm、manifest、健康端点映射或�
 - **D17.8 第二类制品「插件包（OCI artifact）」推 Harbor**，清单只允许 digest 引用；代码制品 = 清单 + 文件摘要 + SBOM，cosign 签名与证明；插件制品走同一发布链路。
 - **D17.9 发布节奏**：内核随 CalVer 发布；插件独立灰度（Apollo Label 灰度只按实例，租户灰度靠 `qian.tenancy` 开关）；`prune:false` 起步。
 - **D17.10 配置与密钥注入**：Kustomize 只注入引导项（`Apollo__*`、Secret 文件）；配置源顺序见 ADR-007；仓库只存模板 / 键名 / secretRef；bootstrap 脚本「只建缺失、不覆盖、不打印」。
-- **D17.11 身份提供方部署**：客户 CIAM = `qian.identity`；运维侧 = Authentik（升级到当前版本，注意跨 Redis 移除等破坏性变更）；per-env 至少独立 OIDC client；Apollo Portal / Headlamp / Argo 走 Authentik blueprint。
+- 【经 S1-DEC-041 D1 修订：交付给客户的产品里，运维侧的登录也接身份服务，不带 Authentik，见 §12】**D17.11 身份提供方部署**：客户 CIAM = `qian.identity`；运维侧 = Authentik（升级到当前版本，注意跨 Redis 移除等破坏性变更）；per-env 至少独立 OIDC client；Apollo Portal / Headlamp / Argo 走 Authentik blueprint。
 - **D17.12 镜像**：业务服务 JIT 镜像；网关 / gRPC 边缘可 AOT distroless；`qian plugin pack` 从清单产出 Dockerfile / chart / NetworkPolicy 片段；`service` 型插件由生命周期控制器生成 Kustomize / Helm 片段写入 GitOps 仓库、Argo 收敛，健康 = K8s 状态 + 插件 `/health` 双条件回写注册表。
 - **D17.13 租户接线**：每个租户 / 应用在共享网关、IdP、Apollo 上的配置单独一个 Argo Application（沿用 `*-integrations` 模式）；S3 接线 Application 生成器（开通 = 写 Git → Argo 收敛）。
 - **D17.14 入口**：两个 IngressClass（`traefik` 业务 / `higress` AI）各有 MetalLB VIP；公网 nginx 终结 TLS；Traefik `trustedIPs` 必配；cert-manager 按需引入。
@@ -90,7 +92,7 @@ DEP-002/003 的基线前置保持，DEP-005 显式依赖 DEP-002 与 DEP-008（�
 
 - 这是只用于 staging 的过渡形状。§2 的三镜像形状、拆分部署与发布链仍是目标；§9 的应用阶段发布门不变，同进程部署的结果不能当作 S1-DEP-005 的验收证据。
 - 原因：拆分部署下运营开户与审核通过还缺一段跨宿主的开通编排接力（S1-TEN-023），授权变更的身份修订同步（S1-IDP-012）要经 RabbitMQ 投递。同进程形状不依赖这两项就能跑通登录、开户与审核。
-- 代价：staging 暂不满足 ADR-005 的身份独立安全边界。生产不采用这个形状。
+- 【经 S1-DEC-041 D3 修订：单机版作为写明的例外采用这个形状，见 §13】代价：staging 暂不满足 ADR-005 的身份独立安全边界。生产不采用这个形状。
 
 ## 11 system 级预装组件的版本与升级（2026-11-17）
 
@@ -100,3 +102,23 @@ DEP-002/003 的基线前置保持，DEP-005 显式依赖 DEP-002 与 DEP-008（�
 - 升级：系统组件修订 Job 激活新版本后，把开通在别的版本上的租户对齐到镜像里的版本，Lifecycle 的开通记录与 Authz 的默认策略一起换；镜像回切时反向对齐（S1-DEP-013）。在那之前，Job 遇到这种情况拒绝激活，staging 按运维手册第 7 节清库重来，每次先经产品负责人确认。
 - 不取同版本替换：它让版本号不再对应权限内容，也与 §2 D17.1 的不可变发布事件相冲突。
 - 契约兼容比较与滚动发布期间的旧版本目录登记并入 S1-DEP-005。
+
+## 12 运维侧的登录也接身份服务（2026-11-25）
+
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D1；平台级裁定 P57，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：交付给客户的产品里，运维侧各个控制台的登录也接 Kun 的身份服务，不带 Authentik；每个控制台保留一个本地的应急管理员。问的是「与旧决策有出入的甲 1 至甲 3，都按提议定吗？」，答「都按提议定」，这是其中的甲 1。
+
+- 修订的是 §2 D17.11 里的「运维侧 = Authentik」与「Apollo Portal / Headlamp / Argo 走 Authentik blueprint」。D17.3 的「Authentik 升级并仅服务运维侧」、ADR-005 D5.7、ADR-007 D7.1 里 Portal 的登录是同一口径，随之按本节读。D17.11 的其余部分不变：客户 CIAM 用身份服务，每个环境至少有独立的 OIDC client。
+- 理由：产品负责人 2026-11-24 说「所有涉及到权限的这些，后面我都会接入到 PaaS 服务上。统一使用 C# 进行提供。」交付给客户的东西里少一个组件，单机版尤其需要。不这样做，客户现场要维护两套身份系统，权限有一半不在 C# 里。
+- 应急管理员：身份服务自己依赖 PostgreSQL 与 Redis。它不可用的时候，要能登进控制台去修，所以每个控制台留一个本地的应急管理员，平时不用。口令怎么保管是提议：放在 Secret 里，生成它的脚本照 D17.10，只建缺失、不覆盖、不打印。
+- 范围：交付给客户的产品。现有环境运维侧的身份提供方先不动，等身份服务稳定以后再换。
+- 不变的：D17.4 的控制台不公网。
+
+## 13 单机版采用身份与平台同进程的形状（2026-11-25）
+
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D3；平台级裁定 P59，出处同 §12）：单机版里身份服务与平台服务同一个进程，网关仍独立成进程。这是同一句答复里的甲 3。
+
+- 单机版指给小企业的、一台服务器上能跑的部署，企业版指跑在集群上的全套部署。产品负责人 2026-11-24 的原话是「有些企业可能比较小，能不能同时适配一个小型的企业在单机上可以跑的，大模型通过 API 进行调用。」两个版本各装什么，除本节与 ADR-007 §9 以外都是提议，没有定。
+- 修订的是 §10 的「生产不采用这个形状」：单机版作为写明的例外采用它。企业版不变，仍是 §2 的三个镜像、三个进程分开。§10 说的 staging 过渡形状不变。§9 的发布门管的是三进程的部署，照旧；单机版自己的发布怎么验收，没有定。
+- 理由：这个形状验收过（§10）。一台机器上，分进程换来的隔离有限。
+- 代价：单机版不满足 ADR-005 的身份独立安全边界，身份服务与平台服务的故障、漏洞连在一起。单机版升到企业版时要拆开；数据不用迁，换装配。
+- 现状：单机版的装配是规划，还没有清单。§10 说的拆分部署还缺的两项（S1-TEN-023、S1-IDP-012）到 2026-11-25 仍是待办；拆分部署下的开户与审核要等这两项，单机版不依赖它们。

@@ -10,6 +10,8 @@ supersedes: none
 
 > 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
 
+> 修订（2026-11-25，[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D4）：匠心工业智能体平台 Web 端里 Agent 工作区的域名，由匠心的工作区服务直接接，不经过 `qian.gateway`。这是对 D10.1 的一处有意的偏离，范围与原因见 §9。正文未改，D10.1 前加了标注。
+
 ## 1 背景与问题（Context）
 
 现网有两个 IngressClass：`traefik`（业务北向）与 `higress`（AI 南向），各有 MetalLB VIP；集群不直接暴露公网，公网 nginx 终结 TLS 后经 WireGuard 直连；集群内无 cert-manager，Ingress 全 HTTP；Traefik `forwardedHeaders.trustedIPs` 必须配置否则 OIDC issuer 变成 http（基线 K §6.1）。Higress 2.2.3 两副本 + PDB，是模型流量的 chokepoint，对租户无感（基线 K §6.4）。
@@ -18,7 +20,7 @@ supersedes: none
 
 ## 2 决策（Decision）
 
-- **D10.1 三层网关，职责从 S1 画清、不互相承担**：Traefik（北向公网入口）→ `qian.gateway`（业务 API 边界）→ Higress（模型与 MCP 流量）。
+- 【经 S1-DEC-041 D4 标注：匠心 Web 端的工作区域名由匠心的工作区服务直接接，不经过 `qian.gateway`，是有意的偏离，见 §9；三层的分工不变】**D10.1 三层网关，职责从 S1 画清、不互相承担**：Traefik（北向公网入口）→ `qian.gateway`（业务 API 边界）→ Higress（模型与 MCP 流量）。
 - **D10.2 Traefik 不做鉴权**，只做入口路由与 TLS 终结衔接；`trustedIPs` 必配；ingress 全 HTTP 直到引入 cert-manager。
 - **D10.3 `qian.gateway` 以库方式引用 `Kun.Gateway` 并加固**：认证回退策略（默认拒绝匿名）；路由级 `RateLimiterPolicy` 与全局限流器；可信代理网段；私钥热轮换（JWKS 双钥重叠）；Cookie 会话换 S2S（`IS2sPrincipalResolver` 注入租户 / 应用上下文）；按上游 cluster 铸造 per-service audience；`AddKunObservability`；`/healthz /readyz`；OpenAPI 聚合与能力目录端点（生产不公开 OpenAPI）。
 - **D10.4 S2S 签发器收敛为一套**：保留网关 `S2sTokenIssuer`（短 TTL、JWKS），吸收 `scope / session_id / membership_id / project_id` claim；claim 形状对齐［下游智能体平台］契约 `iss / aud[] / sub / tenant_id / project_id? / roles[] / scope 串 / session_id / iat,nbf,exp,jti`，`exp − iat ≤ 300s`；「新能力授权 = 加 scope 串，不加 claim」；`roles[]` 作为与［下游智能体平台］同形的例外保留，但限定为粗粒度角色代码而非权限点集合，Qian 自身服务不得仅凭 `roles[]` 放行、必须调用 `Kun.Authorization` 决策端口，时效性由 `identity_revision` 管；`project_id` 保留为可选 claim（［下游智能体平台］侧语义，Qian 只透传不解释）（R24）；`Kun.Identity.KunJwtIssuer` 与 `Kun.Security.S2SJwt` 标记废弃；去产品化（issuer 默认值等约 30 处）。
@@ -70,3 +72,32 @@ supersedes: none
 - 相关 ADR：ADR-001、ADR-003、ADR-005、ADR-006、ADR-015、ADR-016、ADR-017。
 - PRD：`PRD §07`、`PRD §10`、`PRD §12`、`PRD §13`。
 - 基线：K §1 Gateway / Security 行、§2.4 ④⑤⑥、§5.1 第 4/5/7 条、§6.1、§6.4、附录 B-11/B-13；P §5 主体身份行、§6 `qian.gateway` 行、§8.2 调用、§8.6；D §9.1 第 8 条。
+
+## 9 匠心的工作区域名不经过 `qian.gateway`（2026-11-25）
+
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D4；平台级裁定 P64，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：匠心工业智能体平台的 Web 端里，Agent 工作区的域名由匠心自己的工作区服务直接接，不经过 `qian.gateway`。问的是「工作区这个域名的入口，由谁来接？」，答「工作区服务直接接」。这是对 §2 D10.1 的一处有意的偏离。工作区服务还没有实现。
+
+是什么：
+
+- 匠心的 Web 端分成两块，放在两个域名上（平台级裁定 P63）。管理系统是多用户的网页应用，它的域名照旧过 `qian.gateway`，D10.3 的 Cookie 会话换 S2S 照旧。
+- Agent 工作区后面是托管的 DSH 实例，每个正在用的人一个。Traefik 按域名把工作区的流量直接交给工作区服务，由它认人，按登录的人找到他的实例并转发，WebSocket 一并转发。
+- 工作区服务装本仓库发布的登录组件 `Kun.Identity.Client` 认人，在工作区的域名下建立自己的会话；登录仍然到身份服务。这个包的说明写明，独立的宿主只装它就能对接任意 OIDC 发行方。本仓库不用为此改代码。
+
+偏离的范围：
+
+- 只有工作区这一个域名上浏览器到 Agent 实例的流量。
+- 三层的分工不变：Traefik 不鉴权（D10.2）；管理系统与平台的业务接口仍以 `qian.gateway` 为边界；Higress 只管模型与 MCP 流量（D10.10）。
+
+原因：
+
+- 现有的网关宿主接不了这条流量。2026-11-25 对着主干（提交 `2ba5eb82e`）实测并读了代码，卡在四处：
+  1. 路由只按路径匹配，接不了第二个域名。
+  2. 一个宿主只有一个登录回调地址，会话 Cookie 只限本主机名，第二个域名登录不了。
+  3. 带着会话 Cookie 的非 GET 请求必须带防伪令牌的请求头，宿主的配置里关不掉，也不能按路由关。DSH 的客户端调用都是 POST，不带这个头，会全部被拒。这一条和域名无关，退回到一个域名、按路径分流也过不去。
+  4. 长连接空闲满 100 秒被掐断，宿主里配不了。DSH 的长连接约半分钟有一次心跳，撑得住，但没有余量。
+- 实测的边界：测的是照测试宿主的办法装起来的同一条网关管线，会话是预置的；没有走真实的登录，也没有经过 Traefik。
+- 定位：Kun 是通用的组件，不负责任何业务（S1-DEC-041 D6）。「把登录的人送到他自己的 Agent 实例」是匠心的业务逻辑，不该写进本仓库的网关。
+
+没有选的另一条路：先给网关宿主补上按主机名路由、多个主机名各自登录、按路由选择防伪的方式、空闲超时可配这几项通用的能力，再让工作区走它。这几项以后做 D10.7 的域名到租户解析时也要补；补完以后要不要把工作区并回来，可以再议。
+
+代价：工作区服务成了直接面向浏览器的入口。可信代理网段、限流、会话存储要它自己装配，可以用本仓库的包。这条流量不经过 `qian.gateway` 的限流与审计。

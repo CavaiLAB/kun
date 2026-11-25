@@ -18,6 +18,8 @@ supersedes: none
 
 > 修订（2026-11-25，[S1-DEC-042](../../pm/tasks/S1-DEC-042.md) D1）：确认卡的最小一圈不等 M1 的 `agent` 主体与 MCP 路由，先用替身演示，和 M1 并行；M1 做好以后替身撤掉。这是 M1 之前的过渡，对 D16.9「一律经 Higress MCP 路由」是一处有意的偏离，范围见 §10；D16.9 本身不改。正文未改，D16.9 前加了标注。
 
+> 修订（2026-11-26，[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D2）：产品负责人 2026-11-26 说 SanYuanAgent 保留、先不维护，现在只剩匠心与 Kun 两个项目（平台级裁定 P78）。Agent 运行时用 DSH，没有变。本文的边界怎么改写（S1-DEC-038 的 Q5）仍待定。正文未改。
+
 ## 1 背景与问题（Context）
 
 ［下游智能体平台］是团队基于 Kun 的 Agent 产品（C# 四服务 + Python Harness，React 19 前端）。其 Agent 运行时（Harness Agent loop、Sub-agent / Workflow、编排路由、四层记忆、Skills、工具协议 ToolSpec / ToolPolicy / RiskGate、运行授权快照）已落地；MCP 客户端只有 stdio、钉在 2025-03-26 且未接进运行中的 app；Nacos AI Registry / MCP Catalog / 插件市场 / 组织资源授权仍是设计态或 blocked；沙箱后端自 2026-07-14 起为 CubeSandbox（E2B 兼容），Supervisor 已退役（基线 P §8.1、§10.1 第 9 条、附录 A-5；基线 K §4.1）。［下游智能体平台］已有「两个 Tenant 实体」之痛，Qian 加入前必须先定唯一权威（基线 P §8.6）。［下游智能体平台］冻结了 S2S JWT claim 契约、事件 envelope、错误体 `ErrorDetail{code, message, trace_id}`、契约格式（OpenAPI 3.1 + JSON Schema 2020-12）（基线 K §4.1）。配置中心存在冲突：Qian 硬性 Apollo，［下游智能体平台］ `IConfigProvider` 定为 Nacos Config（仅设计、无代码）（基线 P 附录 A-2）。［下游智能体平台］文档为 CC BY 4.0，C# / 前端为内部项目，Python Harness 为 Apache-2.0（基线 K §4）。

@@ -18,6 +18,8 @@ superseded_by: ADR-023（部分）
 
 > 修订（2026-11-24，[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D40、D44）：产品负责人 2026-11-24 定产品族的所有者是 CavaiLAB（D40），前端包的作用域是 `@cavailab`（D44），标在 D21.2 第 1 点、D21.6 与 §7「仓库归属」之前。正文未改。
 
+> 修订（2026-11-26，[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D1、D2、D4）：前端框架 Qian 的仓库 2026-11-25 归档（D1）；产品负责人 2026-11-26 说现在只剩匠心与 Kun 两个项目，SanYuanAgent 保留、先不维护（D2）；Kun 要增加单独的网站（D4）。产品族现在怎么读，见 §9。正文未改，D21.2 第 2 点与 D21.5 前加了标注。
+
 ## 1 背景与问题（Context）
 
 三个名字已经在用：**Kun**（底座框架）、**Qian**（平台）、**［前端框架］**（前端组件库），周边还有官方市场仓库 `qian-plugins`、兄弟系统［下游智能体平台］、部署仓库与模型服务仓库。它们之间的层次关系、仓库怎么关联、Kun 文档从哪来，此前只在 ADR-001 讲了「Kun 是底座 SDK、以 NuGet + CalVer 锁版本消费」，没有统一口径。现状事实：
@@ -43,7 +45,7 @@ superseded_by: ADR-023（部分）
   对外一句话：「**Qian 平台基于 Kun 框架构建，前端使用［前端框架］组件库**」。不说「Kun 是 Qian 的子项目」（Kun 有独立下游与发布节奏），也不说「Qian 是 Kun 的扩展」（Qian 有自己的运行时与产品语义）。归属判据沿用决策清单 D19 的分界：无产品观点的通用基础设施上游进 Kun，带多租户 / 业务语义的是 Qian 包。ADR-001 D1.1–D1.8 不变。
 - 【已被 ADR-023 D23.1 取代，阶段 1 导入之前照旧执行】**D21.2 不建大单仓、不建 submodule 元仓库**（ADR-001 §4 已否决单仓）。「大项目」= **产品族**，用四样东西关联：
   1. 【经 S1-DEC-038 D40 修订：产品族的所有者是 CavaiLAB，四个仓库都在它之下】**一个 GitHub 所有者：`idadawn`**（产品负责人 2026-10-07 拍板）。［下游智能体平台］源码、部署仓库、MaaS、Qian 都已在 `idadawn`，只有 Kun 还在公司级、内容驳杂的 CavaiLAB 组织，所以是 **Kun 迁回 `idadawn`**，而不是 Qian 迁出。迁后产品族全部仓库同一所有者：一个 GitHub Packages 命名空间（`Qian.*` 的 S1 包、Kun 的镜像与预发布包；`Qian.*` 包公开可见但安装需令牌，R93）、一段源配置加一份 `packageSourceMapping`；官方市场仓库定名 `idadawn/qian-plugins`。Kun 正式版的主渠道是公开的 nuget.org，迁移不影响任何消费者。执行与核验见 S1-PM-003。
-  2. **一个文档站**：「Qian 文档」覆盖整个产品族。Kun 为第 3 部分 SDK 的第一节 `/sdk/kun/`（导航名「Kun 框架」），内容按 Qian 锁定的 Kun 版本从 kun 仓库镜像并经 DocFX 生成 API（D21.4）。站名不改，首页一句话定位点明基于 Kun、［前端框架］。
+  2. 【经 S1-DEC-043 D4 标注：Kun 要增加单独的网站，放使用文档与给大模型用的文档，见 §9】**一个文档站**：「Qian 文档」覆盖整个产品族。Kun 为第 3 部分 SDK 的第一节 `/sdk/kun/`（导航名「Kun 框架」），内容按 Qian 锁定的 Kun 版本从 kun 仓库镜像并经 DocFX 生成 API（D21.4）。站名不改，首页一句话定位点明基于 Kun、［前端框架］。
   3. **一张版本矩阵**：`/start/versions` 自动生成：每个 Qian 版本对应的 Kun CalVer、`Qian.*`、`［前端包系列］`、.NET SDK、Node、K3s 基线；来源是仓库内的钉版文件（`Directory.Packages.props`、`global.json`、pnpm catalog）。
   4. **一个看板**：跨仓库工作在 Qian 的 `pm/` 跟踪（KUN 领域），kun 仓库的 PR 写进任务 `refs` 与进度日志回链；不另建 GitHub Project。
 - 【已被 ADR-023 D23.12 取代，阶段 2 构建并轨之前照旧执行】**D21.3 Kun 版本单点钉死**。`Directory.Packages.props` 定义 `<KunVersion>`，全部 `Kun.*` 的 PackageVersion 引用 `$(KunVersion)`；`NuGet.config` 的 Kun 源与 `packageSourceMapping` 在首个引用 `Kun.*` 的任务加入（既有约定）；文档同步脚本与版本矩阵读同一属性。升级 Kun = 改这一处 → TCK 两种模式通过 → Kun 文档镜像自动跟随（CI 比对 tag）。补注（S1-DEC-019 R65，2026-10-13）：Kun 的同日修复版 `-hotfix.N` 是推送 nuget.org 的正式修复，NuGet 按预发布排序；`Kun.*` 一律以 `[$(KunVersion)]` 精确钉定，不依赖最新稳定版排序，钉在修复版上时于 Kun 下一个无后缀正式版发布后升级回来。
@@ -54,7 +56,7 @@ superseded_by: ADR-023（部分）
   - API 参考由 DocFX 从锁定版本的 `Kun.*` 包生成，挂 `/sdk/api/kun/`，与 `Qian.*` 的 `/sdk/api/dotnet/` 并列。
   - 门禁：`sdk/kun/` 为生成目录不接受手改；镜像 tag 与 `KunVersion` 不一致、白名单外文件进站、`KunVersion` 缺失，均构建失败。
   - 公开时点耦合：文档站公开（ADR-019 §7：S2 末或首个外部宿主试用时）会连带公开 Kun 文档；届时 Kun 仓库须同步公开或 Kun 维护人书面同意，否则公开站的 Kun 小节降级为「版本矩阵 + 与 Qian 的关系」两页。
-- **D21.5 产品族可见性**。各仓库 README 开头放同一段「产品族地图」（Qian 立即落实；kun、`qian-plugins` 等在下次变更时补一行回链，不作 S1 退出条件）；文档站第 1 部分有 `/start/family` 产品族地图页；全站 frontmatter 增加 `project`（`qian` / `kun` / `yue`），`llms.txt` 按它分节、知识库按它过滤。
+- 【经 S1-DEC-043 D1、D2 标注：在用的项目只剩匠心与 Kun，前端框架的仓库已归档；各仓库 README 里的产品族一段这次没有改，见 §9】**D21.5 产品族可见性**。各仓库 README 开头放同一段「产品族地图」（Qian 立即落实；kun、`qian-plugins` 等在下次变更时补一行回链，不作 S1 退出条件）；文档站第 1 部分有 `/start/family` 产品族地图页；全站 frontmatter 增加 `project`（`qian` / `kun` / `yue`），`llms.txt` 按它分节、知识库按它过滤。
 - 【经 S1-DEC-038 D44 修订：物理包名的作用域是 `@cavailab`，即 `@cavailab/qian-runtime`】**D21.6 TS 运行时的物理发布名与逻辑名**（S1-DEC-014，产品负责人 2026-10-11 确认）。GitHub Packages 的物理包名为 `@idadawn/qian-runtime`，关联 `idadawn/qian`，S1 保持私有。公共逻辑导入名仍为 `@qian/runtime`，消费者通过 `"@qian/runtime": "npm:@idadawn/qian-runtime@<固定版本>"` 映射，不另发同功能的第二份包。发版必须完成私有源真实安装、别名导入与类型声明验收；不把本地打包代替已发布证明。
 
 ## 3 理由（Rationale）
@@ -97,3 +99,13 @@ superseded_by: ADR-023（部分）
 - 相关 ADR：ADR-001（Kun 关系）、ADR-013 D13.18（文档站）、ADR-016（［下游智能体平台］边界）、ADR-017（部署）、ADR-019 §7（许可与 feed）、ADR-020 §7 第 4 条（`qian-plugins`）。
 - PRD：[§01 愿景](../prd/01-vision.md) 1.1、[§07](../prd/07-s1-foundation.md) 7.1 与 7.15.2；[specs/docs-site.md](../prd/specs/docs-site.md) §2b。
 - 流程：[pm/README.md](../../pm/README.md)、[deploy/pm-board/README.md](../../deploy/pm-board/README.md)、[仓库 README](../../README.md)「产品族」一节。
+
+## 9 现在只剩匠心与 Kun 两个项目（2026-11-26）
+
+产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D2；平台级裁定 P78，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)）：「经过一段考虑，前端 Qian 归档，SanyuanAgent 保留先不维护，现在只剩下  Jiangxin 和 Kun」。
+
+- 「前端 Qian 归档」说的是 2026-11-25 已经定下并做完的一件（S1-DEC-043 D1；平台级裁定 P77）：前端框架的仓库归档，只读，已发布的包留着，不再发新版。
+- 读法（整理者的读法，产品负责人没有逐句确认）：在用、在维护的项目是匠心（`CavaiLAB/jiangxin`）与 Kun 两个。SanYuanAgent 的仓库留着、不归档，代码和文档停在现在的样子。四个仓库都还在。
+- 产品族的口径：本文 D21.1 的三层口径已被 [ADR-023](ADR-023-kun-qian-merge-blueprint.md) D23.6 取代；那里说的前端层，仓库已归档，D23.6 前加了标注。Kun 自己的定位不变。平台怎么描述、各项目之间的关系，以 `CavaiLAB/jiangxin` 的平台级裁定为准，本仓库只引用。
+- D21.5 的产品族说明：各仓库 README 开头的那一段与文档站的产品族页，这次没有改。本仓库的 README 只删了一句（S1-DEC-043 D3）。
+- 文档站（D21.2 第 2 点）：他同一天说「Kun 增加单独网站增加使用文档和说明。方便后续其他人使用，增加给大模型使用的类似 llm.txt 这种文档。方便进行调用。」（S1-DEC-043 D4；平台级裁定 P82）。范围与没有定的见 [ADR-022](ADR-022-rspress-unified-component-docs.md) §9。

@@ -5,13 +5,15 @@
 > 2026-11-19 补：加一种 Agent 一级的范围、人审两道、`agent` 主体在路线的里程碑 M1 启用（已定，[2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md) P29、P28、P31），见第 3、8 节。这批裁定与过渡目录里决策记录的出入登记在 `pm/tasks/S1-DEC-038.md`（D22–D26），决策记录的原文没有改。
 >
 > 2026-11-25 补：Kun 是通用的组件，提供登录这类组件，不负责任何业务；最终的界面放在匠心，也可以放到另一个仓库（已定，[2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md) P60），见第 1 节。同一天的裁定与本仓库决策记录的出入登记在 [S1-DEC-041](../pm/tasks/S1-DEC-041.md)，回写在 ADR-017、ADR-007、ADR-010、ADR-020 的末尾。
+>
+> 2026-11-26 补：现在只剩匠心与 Kun 两个项目；前端框架 Qian 的仓库已归档，SanYuanAgent 保留、暂不维护，匠心工业智能体平台的 Agent 运行时用 DSH（已定，[2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md) P78，连同 2026-11-25 的 P77），见第 1、8 节。平台上不论做什么系统，权限都走 Kun 这一套（P86）；模型服务要有标准的接口（P83）。这批裁定登记在 [S1-DEC-043](../pm/tasks/S1-DEC-043.md)，回写在 ADR-013、ADR-021、ADR-022、ADR-015、ADR-017、ADR-006。
 
 ## 1 边界
 
 Kun 负责后端的一切平台能力，以及对智能体的支撑。它不负责三件事：
 
-- 不写智能体的推理循环，由 SanYuanAgent 负责（SanYuanAgent 2026-11-24 起暂缓开发，现在使用 DSH，[S1-DEC-038](../pm/tasks/S1-DEC-038.md) D45）。
-- 不做界面，由 Qian 负责。
+- 不写智能体的推理循环。匠心工业智能体平台的 Agent 运行时用 DSH；SanYuanAgent 保留、暂不维护（[S1-DEC-043](../pm/tasks/S1-DEC-043.md) D2）。
+- 不做产品最终的界面。它在匠心，或者另一个仓库（见下一段）；前端框架 Qian 的仓库已归档（S1-DEC-043 D1）。
 - 不规定业务。业务功能是装在 Kun 上的组件。
 
 2026-11-25 产品负责人对这条边界的说法（已定，[S1-DEC-041](../pm/tasks/S1-DEC-041.md) D6）：「我想 Kun 是一个通用的组件，Jiangxin 首先是一套企业级的管理系统+Agent」「例如，Kun 提供一些登录等组件，但是不负责任何业务，最终的界面肯定是要放到Jiangxin 也可以放到另外一个库。」也就是：Kun 提供登录这类通用的组件，不负责任何业务；产品的管理系统与最终的界面在匠心，或者另一个仓库。本仓库里现有的应用外壳与界面包以后怎么用，没有定。
@@ -129,7 +131,7 @@ flowchart LR
 
 Agent 相关的表面与能力目录在平台档，内核档不加 AI 语义。
 
-2026-11-17 已定：SanYuanAgent 是独立运行的 SDK，每个端都要用到它，包括机器人这类边缘设备；模型服务由 Kun 提供，设备本地可能还有小模型。所以智能体不只跑在集群里，Kun 要接得住从设备上连进来的 Agent。最后两行的展开见[对智能体的支撑：Agent 接入与模型服务](agent-support.md)。2026-11-24 补：SanYuanAgent 暂缓开发，现在使用 DSH（S1-DEC-038 D45）。
+2026-11-17 已定：SanYuanAgent 是独立运行的 SDK，每个端都要用到它，包括机器人这类边缘设备；模型服务由 Kun 提供，设备本地可能还有小模型。所以智能体不只跑在集群里，Kun 要接得住从设备上连进来的 Agent。最后两行的展开见[对智能体的支撑：Agent 接入与模型服务](agent-support.md)。2026-11-24 补：SanYuanAgent 暂缓开发，现在使用 DSH（S1-DEC-038 D45）。2026-11-26 补：SanYuanAgent 保留、暂不维护（S1-DEC-043 D2）。
 
 ## 9 AOT 口径
 

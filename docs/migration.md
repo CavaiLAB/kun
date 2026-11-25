@@ -91,7 +91,7 @@
 
 2026-11-24 补：产品负责人当天对其余各项作答（[S1-DEC-038](../pm/tasks/S1-DEC-038.md) D37–D44）：产品族的所有者是 CavaiLAB（D40）；新的决策记录，影响多个框架的记在平台总览仓库的 `docs/decisions/`，本仓库自己的登记成决策任务（D41）；任务跟代码走，各仓库各有一份任务目录，平台总览仓库放汇总看板（D42）；组件站其余的 API 参考与示例先不并进平台站，平台站链接过去（D43）；前端包的作用域是 `@cavailab`（D44）；平台统一叫「匠心工业智能体平台」，总名 Yi 作废（D37、D38）。上表里写「待定」「提议」的几处，以这几条为准。
 
-逐项的说明见平台总览的[仓库与归属](https://github.com/CavaiLAB/jiangxin/blob/main/docs/05-repositories.md)第 4 节。
+逐项的说明见平台总览的[仓库与归属](https://github.com/CavaiLAB/jiangxin/blob/3bd268be01e535989872ac17ed0614e8f6c91255/docs/05-repositories.md)第 4 节。
 
 ## 7 旧地址
 

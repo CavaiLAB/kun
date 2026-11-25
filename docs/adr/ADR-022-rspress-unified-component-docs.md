@@ -10,13 +10,17 @@ supersedes: ADR-013 D13.1 的 Storybook 选型；修订 D13.18
 
 > 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
 
+> 修订（2026-11-26，[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D1、D4）：前端框架 Qian 的仓库 2026-11-25 归档（D1）；产品负责人 2026-11-26 说 Kun 要增加单独的网站，放使用文档与给大模型用的文档（D4）。D22.1 的「唯一文档与演示体系」受影响，范围与没有定的见 §9。正文未改，D22.1 前加了标注。
+
+> 修订（2026-11-26，[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D8）：平台文档站（`CavaiLAB/jiangxin`）照同一天的平台级裁定 P87 改成只放匠心自己的文档，不再聚本仓库的文档；本仓库的文档只在本仓库和本仓库的文档站里，见 §9 的最后一条。正文未改。
+
 ## 1 背景与问题（Context）
 
 S1-YUE-005 按原验收交付了 51 个组件入口、manifest 和 Storybook；平台文档已使用 Rspress 2.0.23。两套文档入口使使用者需要切换导航、搜索和预览。2026-10-14 产品负责人明确要求「统一使用 Rspress，不再 Storybook」，并要求先评估能力。本 ADR 记录这次已授权修订，不重新讨论其它前端选型。
 
 ## 2 决策（Decision）
 
-- **D22.1 唯一文档与演示体系**：Qian、Kun、［前端框架］使用现有 `website/` Rspress 站点。［前端框架］页面归 `/components/yue/`；按产品负责人补充的组件页参考组织预览、源码、安装、用法、组合结构、场景示例与 API，全部在现有 Rspress 一个入口中完成；移除 Storybook 应用、CSF、依赖、命令与 CI 入口，不保留内部 Storybook。组件文档源仍在组件目录，不手写生成目录。
+- 【经 S1-DEC-043 D1、D4 标注：前端框架的仓库已归档；Kun 要增加单独的网站。站里前端框架的组件页怎么办没有定，见 §9】**D22.1 唯一文档与演示体系**：Qian、Kun、［前端框架］使用现有 `website/` Rspress 站点。［前端框架］页面归 `/components/yue/`；按产品负责人补充的组件页参考组织预览、源码、安装、用法、组合结构、场景示例与 API，全部在现有 Rspress 一个入口中完成；移除 Storybook 应用、CSF、依赖、命令与 CI 入口，不保留内部 Storybook。组件文档源仍在组件目录，不手写生成目录。
 - **D22.2 测试独立**：Rspress 承担文档和演示；Vitest 浏览器模式、SSR 测试、Playwright、axe 与 Lighthouse 承担原有质量门禁。共用普通 React 示例，迁移 Storybook 状态与交互覆盖；可交互组件必须在 Rspress 实际构建页面上完成操作与结果断言，发布后复验代表性交互，不把删除测试或仅渲染视为完成替换。
 - **D22.3 完整 API**：React Props 从真实 TypeScript 类型生成，清单的 JSON Schema 继续负责机器可序列化契约。使用插件或底层解析器时都必须有属性完整性检查，缺失函数、继承属性或组合部件即失败。配置、示例与迁移验收以 [文档站规范 §3.1](../prd/specs/docs-site.md#31-前端框架组件文档与演示) 为准。
 - **D22.4 任务边界**：重新打开 S1-YUE-005，负责 core 文档接入、测试迁移与 Storybook 清理。S1-DOCS-002 继续依赖它，复用接线并完成通用收集器及平台、TS、.NET、HTTP API 文档；不得反向新增依赖造成循环。本 ADR 初次交付为评估与任务/规格修订；替换已于 2026-10-14 随 PR idadawn/qian#88、idadawn/qian#90、idadawn/qian#91 完成，S1-YUE-005 已完成正式站交互、离线编辑与 API 验收。
@@ -66,3 +70,15 @@ S1-YUE-005 按原验收交付了 51 个组件入口、manifest 和 Storybook；�
 - [Rspress 官方 api-docgen](https://rspress.rs/zh/plugin/official-plugins/api-docgen)：解析入口与 TypeScript 配置。
 - [Rspress api-docgen 2.0.23 发布源码](https://unpkg.com/@rspress/plugin-api-docgen@2.0.23/dist/index.js)：本次验证的过滤行为。
 - [原前端决策](ADR-013-frontend-framework.md)、[文档站规范](../prd/specs/docs-site.md)、[YUE-005](../../pm/tasks/S1-YUE-005.md)、[DOCS-002](../../pm/tasks/S1-DOCS-002.md)。
+
+## 9 Kun 增加单独的网站（2026-11-26）
+
+产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D4；平台级裁定 P82，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)）：「Kun 增加单独网站增加使用文档和说明。方便后续其他人使用，增加给大模型使用的类似 llm.txt 这种文档。方便进行调用。」
+
+- 已有：本仓库的 `website/` 就是 D22.1 说的那个站，构建时产出 llms.txt 与 llms-full.txt（[S1-DOCS-003](../../pm/tasks/S1-DOCS-003.md)）。它只部署在内部，Kun 的文档和前端框架的组件页放在一起。
+- 读法（整理者的读法，产品负责人没有逐句确认）：「增加单独网站」读作把这个站做成 Kun 自己的、别人打得开的站，补上讲怎么使用的文档；「类似 llm.txt 这种文档」读作 llms.txt 这一类给大模型读的入口。
+- 与 D22.1 的关系：D22.1 让 Kun 与前端框架共用一个站。前端框架的仓库 2026-11-25 已归档，不再发新版（S1-DEC-043 D1；平台级裁定 P77）；站里它的组件页留着、移走还是撤掉，没有定。D22.2 至 D22.4 讲的测试、API 生成与任务边界不变。
+- 没有定的：网站对外放在哪；已有的 llms.txt 够不够、还要补什么；使用文档先写哪些。
+- 不变的：平台文档站在 `CavaiLAB/jiangxin`（[S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D8），组件站其余的 API 参考与示例先不并进平台站（D43）。那个站以后还聚不聚本仓库的文档，是那边的提议，没有定。
+- 看板上相关的任务（[S1-DOCS-002](../../pm/tasks/S1-DOCS-002.md)、[S1-QA-006](../../pm/tasks/S1-QA-006.md)）没有动，没有新建任务。
+- 平台文档站还聚不聚本仓库的文档，同一天稍后有了答案（S1-DEC-043 D8；平台级裁定 P87）：那个站改成只放匠心自己的文档，不再聚本仓库的文档，导航里的「Kun」先指向本仓库，等本仓库的网站有了对外的地址再改。本仓库的文档只在本仓库和本仓库的文档站里。上面「没有定」的那一句由这一条回答；网站对外放在哪，仍没有定。

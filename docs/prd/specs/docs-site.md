@@ -3,7 +3,9 @@
 > 状态：已确认（产品负责人 2026-10-07；Kun 进站与产品族页同日经 ADR-021 补充） · 决策引用：ADR-013 D13.18、ADR-020 D20.9、ADR-015、ADR-016、ADR-021 · 实施任务：S1-DOCS-001 / 002 / 003 / 005 / 006、S2-DOCS-001
 > 本文回答三件事：文档站分几部分、每部分给谁看从哪来、页面与元数据长什么样。站点源码在仓库 `website/`，文档内容的真相源仍是各组件文件夹与 `docs/`。
 
-本站是 Kun 的组件文档站。产品总览和跨仓文档由 [CavaiLAB/jiangxin](https://github.com/CavaiLAB/jiangxin) 汇集。
+> 修订（2026-11-26，[S1-DEC-043](../../../pm/tasks/S1-DEC-043.md) D1、D8）：前端框架 Qian 的仓库已归档，仓库 README 的产品族表与本站产品族页的表里去掉了它的一行（D1）；平台总览的文档站改成只放匠心自己的文档，不再汇集本仓库的文档（D8）。正文未改，开头一句、§2 第 1 部分一行与 §2b.4 第一条前加了标注。
+
+本站是 Kun 的组件文档站。【经 S1-DEC-043 D8 标注：平台总览的文档站 2026-11-26 起只放匠心自己的文档，不再汇集别的仓库的文档；本仓库的文档只在本仓库和本站。本句不改】产品总览和跨仓文档由 [CavaiLAB/jiangxin](https://github.com/CavaiLAB/jiangxin) 汇集。
 
 ## 1 读者与目标
 
@@ -22,7 +24,7 @@
 
 | # | 部分 | 路径 | 内容 | 来源 | 版本化 |
 |---|---|---|---|---|---|
-| 1 | 开始 | `/start/` | 30 分钟跑通 `qian add identity authz files`；核心概念五页：组件、表面、scope、seam、profile / patch；产品族地图 `/start/family`（Kun 后端 / Qian 前端与周边仓库的层次与关系）与版本矩阵 `/start/versions`（§2b.4） | 手写 MDX（版本矩阵生成） | 否 |
+| 1 | 开始 | `/start/` | 30 分钟跑通 `qian add identity authz files`；核心概念五页：组件、表面、scope、seam、profile / patch；【经 S1-DEC-043 D1 标注：产品族页的表里前端框架一行 2026-11-26 去掉了，页面在表下面用一句话交代它的仓库已归档；本格不改】产品族地图 `/start/family`（Kun 后端 / Qian 前端与周边仓库的层次与关系）与版本矩阵 `/start/versions`（§2b.4） | 手写 MDX（版本矩阵生成） | 否 |
 | 2 | 组件目录 | `/components/` | 每个组件一页（模板见 §3）：Qian UI 组件带活演示与 props 表；平台插件（身份、鉴权、文件、配置、事件…）同一模板 | 从各组件文件夹自动收集（S1-DOCS-002），**生成目录勿手改** | 是，随包版本 |
 | 3 | SDK | `/sdk/` | Kun 后端框架、平台组件与 .NET SDK；Qian 前端 SDK；AI SDK 与声明式表面。已发布内核版的指南与 API 见 §2b。 | 本仓库的说明、发布标签与 API 生成物 | 是 |
 | 4 | CLI 与规格 | `/cli/` | `qian` 十个命令；`plugin.json`、`marketplace.json`、profile / patch 字段参考 | 从 `docs/prd/specs/component-model.md` 同步，不另写 | 是 |
@@ -129,7 +131,7 @@
 
 ### 2b.4 产品族页
 
-- `/start/family`（手写）说明 Kun 两档、Qian 前端及相关仓库的职责、版本与许可，和根 README 的产品族表对应。
+- 【经 S1-DEC-043 D1 标注：两张产品族表里前端框架一行 2026-11-26 去掉了，页面在表下面用一句话交代它的仓库已归档、文档在站里哪里；两张表仍逐行对应。本条不改】`/start/family`（手写）说明 Kun 两档、Qian 前端及相关仓库的职责、版本与许可，和根 README 的产品族表对应。
 - `/start/versions` 由 `website/scripts/build-versions.ts` 生成。Kun 发布版取自根 `CHANGELOG.md`；平台档包取自 `src/*/*.csproj`，Qian 前端版本取自 `pnpm-workspace.yaml` 的依赖目录。.NET SDK、Node / pnpm 与 K3s 的来源分别为 `global.json`、根 `package.json` 和 `deploy/baseline.json`。
 
 ## 3 组件页模板
@@ -267,6 +269,7 @@ S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整�
 
 ## 修订历史
 
+- 2026-11-26：S1-DEC-043：文首加修订说明；开头一句（D8）、§2 第 1 部分一行与 §2b.4 第一条（D1）前加标注。原文未改。
 - 2026-10-15：S1-RT-021：§7 注明 96.2 MB / 756 页是 idadawn/qian#95 合并时的实测口径。
 - 2026-10-15：S1-QA-010：§3 共用示例改为预览工具栏切换 scenarios.json 状态；§6 自研 iframe 预览与 TypeScript checker、页面路径 `yue/core/<name>.mdx`；§7 预算按 R55 调为 120 MB。
 - 2026-10-07：首版。信息架构（七个部分）由产品负责人确认；frontmatter 字段与 S1-DOCS-003 对齐。

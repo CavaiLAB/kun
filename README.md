@@ -1,6 +1,6 @@
 # Kun
 
-[匠心工业智能体平台](https://github.com/CavaiLAB/jiangxin)的企业级后端框架：为 Agent 时代构建的多租户平台框架，.NET 10。
+[匠心工业智能体平台](https://github.com/CavaiLAB/jiangxin)的企业级框架，.NET 10。登录、权限、多租户、数据、事件、审计、模型服务的接口，都以插件的形式装配；在它上面做的每一个系统，权限都走同一套。
 
 ## 定位
 
@@ -8,7 +8,7 @@
 
 > Kun 是为 Agent 时代构建的多租户平台框架（.NET 10）。它由三部分组成：一组不带产品语义、可以单独安装的内核包；一组以组件形式装配的平台组件（租户、身份、权限、数据、文件、配置、事件、审计、能力目录）；以及组件运行时、命令行与目录市场。
 
-Kun 为智能体提供身份与能力目录；模型服务也由它提供（已定）；Agent 之间的协同与人审提议也由它承担。人审的规则已定：发给 Agent 的内容、Agent 发出去的内容都要由人审核，起步出站、入站两道都必审，见平台总览的 [Agent 协同](https://github.com/CavaiLAB/jiangxin/blob/main/docs/04-agent-collaboration.md)第 4.2 节。它不写智能体的推理循环，那是 [SanYuanAgent](https://github.com/CavaiLAB/sanyuan-agent) 的事（SanYuanAgent 2026-11-24 起暂缓开发，现在使用 DSH，S1-DEC-038 D45）。
+Kun 为智能体提供身份与能力目录；模型服务也由它提供（已定）；Agent 之间的协同与人审提议也由它承担。人审的规则已定：发给 Agent 的内容、Agent 发出去的内容都要由人审核，起步出站、入站两道都必审，见平台总览的 [Agent 协同](https://github.com/CavaiLAB/jiangxin/blob/main/docs/04-agent-collaboration.md)第 4.2 节。它不写智能体的推理循环：匠心工业智能体平台的 Agent 运行时用 DSH；[SanYuanAgent](https://github.com/CavaiLAB/sanyuan-agent) 保留、暂不维护（[S1-DEC-043](pm/tasks/S1-DEC-043.md) D2）。
 
 ## 产品族
 
@@ -16,7 +16,9 @@ Kun 为智能体提供身份与能力目录；模型服务也由它提供（已�
 |---|---|---|---|---|---|
 | Kun | 内核 | .NET 10 的命令调度、租户上下文、数据访问、事件和可观测模块 | `CavaiLAB/kun` | CalVer · MIT | [架构](docs/architecture.md) |
 | Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台概览](docs/platform-overview.md) |
-| Qian | 前端 | React 组件和外壳库、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [前端框架](docs/prd/specs/frontend.md) |
+| Qian | 前端 | React 组件和外壳库、TypeScript 运行时与前端插件 SDK | `CavaiLAB/qian` | SemVer · MIT | [前端框架](docs/prd/specs/frontend.md)。仓库已归档 |
+
+Qian 的仓库 2026-11-25 已归档，只读；已发布的包留着，不再发新版（[S1-DEC-043](pm/tasks/S1-DEC-043.md) D1）。现在在用、在维护的项目是匠心与 Kun 两个（D2）。这张表与文档站的产品族页逐行对应，文档站随 Kun 单独的网站一起改，所以表里 Qian 一行先留着。
 
 Kun 仓库的 `qian` 命令行、外壳应用、组件清单与契约共同组成平台开发工作区。任务、看板构建方法与维护流程见[任务说明](pm/README.md)。
 
@@ -75,9 +77,10 @@ Kun 仓库的 `qian` 命令行、外壳应用、组件清单与契约共同组�
 - 用源码引用 Kun 的下游，在归并开始之前先钉住合并前的最后一个 Kun 版本。
 - 合并后的 Kun 放在本仓库：Kun 框架与平台后端都迁入这里，取代蓝图里写的目标仓库（S1-DEC-038 D17）。先建仓库写文档，代码已带历史导入（B1，CavaiLAB/kun#3）。
 - 前端框架库迁往 `CavaiLAB/qian`，只迁框架库（S1-DEC-038 D18）：TypeScript 运行时与前端插件开发包随前端仓库；外壳应用与外壳工具包、三个组件界面包、参考应用的远程模块、文档站、命令行与声明式表面的校验库留在本仓库。
-- 模型服务由 Kun 提供。SanYuanAgent 是独立运行的 SDK，每个端都要用到它，包括机器人这类边缘设备；机器人本地可能还有小模型。SanYuanAgent 2026-11-24 起暂缓开发，现在使用 DSH（S1-DEC-038 D45）。
+- 模型服务由 Kun 提供。SanYuanAgent 是独立运行的 SDK，每个端都要用到它，包括机器人这类边缘设备；机器人本地可能还有小模型。SanYuanAgent 2026-11-24 起暂缓开发，现在使用 DSH（S1-DEC-038 D45）；2026-11-26 起保留、暂不维护（S1-DEC-043 D2）。
 - 2026-11-19 的平台级裁定（P22–P33，全文见平台总览的 [2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md)）里与 Kun 直接相关的：应用之间可以互相通讯，缺省是目录里看得到、调用与订阅按声明经批准放行（P26）；历史系统经连接器接进企业级框架，在企业内网的，连接器的执行部分装在内网、只向外连（P27）；每个 Agent 发出去的内容与发给 Agent 的内容都要人审，起步两道都必审（P28）；加一种 Agent 一级的范围（P29）；组件里新增「知识库」内容（P30）；路线重排，`agent` 主体在里程碑 M1 启用（P31）；交付给客户的可以是多租户的版本，也可以是单租户的版本（P33）。与平台原决策记录的出入登记在 S1-DEC-038 D22–D26。
 - 2026-11-24 的平台级裁定（P45–P56，全文见平台总览的 [2026-11-24 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-24-platform.md)，本仓库记为 S1-DEC-038 D37–D48）里与 Kun 直接相关的：平台统一叫「匠心工业智能体平台」，总名 Yi 作废；产品族的所有者是 CavaiLAB；任务跟代码走，各仓库各有一份任务目录，平台总览仓库放汇总看板；新的决策记录，影响多个框架的记在平台总览仓库的 `docs/decisions/`，本仓库自己的登记成决策任务；前端包的作用域是 `@cavailab`。
+- 2026-11-26 的平台级裁定（P78–P86，全文见平台总览的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)，本仓库记为 [S1-DEC-043](pm/tasks/S1-DEC-043.md) D1–D7，连同 2026-11-25 的 P77）里与 Kun 直接相关的：现在只剩匠心与 Kun 两个项目，前端框架 Qian 的仓库已归档，SanYuanAgent 保留、暂不维护；Kun 增加单独的网站，放使用文档与给大模型用的文档；企业级框架分带模型推理的集群与通过 API 接第三方模型服务两种，提供多租户与单租户两个版本，统一由管理端管理，尽量做成插件，模型服务留标准的接口；代码要符合 ISO 等国际相关标准；平台上不论做什么系统，权限都走这一套。读法与没有定的见那份任务。
 
 待定：
 

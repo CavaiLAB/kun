@@ -6,13 +6,15 @@
 >
 > 2026-11-24 补：SanYuanAgent 暂缓开发，现在使用 DSH；设备上的本机模型只定了先后，等设备一侧用什么运行时定下来再定，排在路线里程碑 M8 之前（已定，[S1-DEC-038](../pm/tasks/S1-DEC-038.md) D45、D48）。第 1 节第 1 条据此加注。
 >
-> 本文只写 Kun 这一侧要提供什么。引擎一侧怎么用，见 SanYuanAgent 的[接入平台：与 Kun 的交互](https://github.com/CavaiLAB/sanyuan-agent/blob/main/docs/platform.md)与[与模型服务的交互](https://github.com/CavaiLAB/sanyuan-agent/blob/main/docs/models.md)。
+> 2026-11-26 补：SanYuanAgent 保留、暂不维护，匠心工业智能体平台的 Agent 运行时用 DSH（已定，[S1-DEC-043](../pm/tasks/S1-DEC-043.md) D2）。本文讲引擎一侧的地方是照 SanYuanAgent 写的规划稿，哪些对 DSH 仍然适用，没有重看。模型服务这次加了两种形态与标准的接口（D5），见 [ADR-015](adr/ADR-015-model-gateway.md) §9。第 1 节第 1 条据此加注。
+>
+> 本文只写 Kun 这一侧要提供什么。引擎一侧怎么用，见 SanYuanAgent 的[接入平台：与 Kun 的交互](https://github.com/CavaiLAB/sanyuan-agent/blob/main/docs/platform.md)与[与模型服务的交互](https://github.com/CavaiLAB/sanyuan-agent/blob/main/docs/models.md)；那个仓库保留、暂不维护，这两篇不再更新。
 
 ## 1 已定
 
 产品负责人 2026-11-17 的裁定：
 
-1. SanYuanAgent 是独立运行的 SDK。每个端都要用到它，包括机器人这类边缘设备，装上就能用。（2026-11-24 起 SanYuanAgent 暂缓开发，现在使用 DSH，S1-DEC-038 D45。）
+1. SanYuanAgent 是独立运行的 SDK。每个端都要用到它，包括机器人这类边缘设备，装上就能用。（2026-11-24 起 SanYuanAgent 暂缓开发，现在使用 DSH，S1-DEC-038 D45；2026-11-26 起保留、暂不维护，S1-DEC-043 D2。）
 2. 模型服务由 Kun 提供；机器人这类设备本地可能还有小模型。
 
 对 Kun 来说这意味着两件事：

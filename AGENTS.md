@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Kun 是匠心工业智能体平台的企业级后端框架。命令在仓库根运行。`Kun.slnx` 包含内核、平台组件和宿主；前端工作区使用根 `pnpm-workspace.yaml`，站点位于 `website/`。组件清单在 `plugins/`，约定在 `contracts/` 和 `schemas/`，开发工作按 [PM 说明](pm/README.md)跟踪。
+Kun 是匠心工业智能体平台的企业级框架。命令在仓库根运行。`Kun.slnx` 包含内核、平台组件和宿主；前端工作区使用根 `pnpm-workspace.yaml`，站点位于 `website/`。组件清单在 `plugins/`，约定在 `contracts/` 和 `schemas/`，开发工作按 [PM 说明](pm/README.md)跟踪。
 
 ## 仓库检查与合并
 
@@ -33,7 +33,7 @@ PR 的必需检查是「CI 汇总」。相关作业全部通过后，以合并�
 - Markdown 表格单元格里的反引号内若有竖线，写成 `\|`。
 - 组件设计先回答四个问题：文件夹里有哪些表面、装进哪个 profile、属于哪个 seam 的哪个角色、能否 `qian add`。凡是把能力绑死在特权内核、DI 扩展方法或数据库开关上的写法都是倒退。
 - 术语：平台插件（不是「系统插件」）、运行时 `Kun.Runtime`（不是「内核」）、profile（不是「可部署单元」）、`.qian-plugin/plugin.json`（不是 `qian-plugin.yaml`）、租户 scope patch（不是「租户开关」）。
-- Kun 的 .NET 包分内核档和平台档；Qian 为前端框架。站点的 `website/docs/sdk/kun/` 根据根 `CHANGELOG.md` 的正式发布版生成，手写说明为 `with-qian.mdx`。
+- Kun 的 .NET 包分内核档和平台档；Qian 是前端框架的名字，它的仓库已归档（S1-DEC-043 D1）。站点的 `website/docs/sdk/kun/` 根据根 `CHANGELOG.md` 的正式发布版生成，手写说明为 `with-qian.mdx`。
 - 仓库内 .NET 项目使用项目引用。包版本集中在 `Directory.Packages.props`，包源在根 `NuGet.config`。
 - 组件的公共端口与提供者按[组件包依赖约定](docs/adr/ADR-019-library-first-packages.md)分包。组件声明使用宿主提供的能力端口。
 - 三道 .NET 门禁会自动拦截（细节见 `tests/README.md`，都在仓库根的 `Directory.Build.targets` 与 `scripts/` 下，不看包名）：
@@ -145,7 +145,7 @@ dotnet format Kun.slnx --verify-no-changes
 2. 合并蓝图是本仓库里的 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `pm/tasks/S1-DEC-036.md`（D1–D14）。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
 3. 文档用中文，不写参考平台和对标项目的名字。
 4. 分清「已定」「提议」「待定」。说现状的时候写清是「已有」（在原仓库里已经实现）还是「规划」。
-5. 平台级的口径（名称、三个框架的分工、Agent 协同）在 [jiangxin](https://github.com/CavaiLAB/jiangxin) 里改，这里只引用。
+5. 平台级的口径（名称、平台怎么描述、各项目的分工、Agent 协同）在 [jiangxin](https://github.com/CavaiLAB/jiangxin) 里改，这里只引用。现在的说法（S1-DEC-043 D2、D3）：产品是匠心，企业级框架是 Kun，Agent 运行时用 DSH；前端框架 Qian 的仓库已归档，SanYuanAgent 保留、暂不维护。不写「三个框架」「两种角色」「组合体」，也不写平台此前那条理念的名字。
 6. 在 `docs/` 下新增文档，要在 `docs/_meta.json` 里加上它的文件名（不带扩展名）。这个文件定这些文档在平台文档站侧栏里的顺序；漏列的话，文档站升级到这个版本时构建会报错。子目录在 `docs/_meta.json` 里写成对象，如 `{ "type": "dir", "name": "guides", "label": "指南" }`，label 用中文；在子目录里加文档不用改顶层这一份。子目录自己的 `_meta.json` 可以不写，不写就按文件名排；写了就要列全，漏列的页面会从侧栏里消失，构建不报错。
 7. 改动走分支和 PR，不直接推 `main`。建仓期间的初始文档除外，见平台总览的[协作约定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/07-governance.md)第 2 节。
 

@@ -8,6 +8,8 @@
 
 > 修订（2026-11-25，[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D7、D8）：产品负责人 2026-11-25 定两条。能力条目上标了要人确认的能力（`agent.requiresConfirmation` 为真），调用方不是人本人时，平台自己不执行，生成一条 `input_required` 的 Operation，等人点，人点了平台才执行（D7，见 ADR-016 §9）；10.1.2 节表的第一行、10.3 节「范围与边界」的末一条与 10.6 节表的第二行把工具门禁的运行时权威整个归下游智能体平台，在这一件上受影响，其余不变。等人点头的任务上的动作缺省只能人做，Agent 代办以后要用再单独放开（D8，见 ADR-012 §9）；10.3 节「签名类动作 `humanOnly`」一句照此读。两条都还没有实现，接口的形状没有定。正文未改，受影响的条目前加了标注。
 
+> 修订（2026-11-25，[S1-DEC-042](../../pm/tasks/S1-DEC-042.md) D1）：产品负责人 2026-11-25 定：确认卡的最小一圈不等 M1 的 `agent` 主体与 MCP 路由，先用替身演示，和 M1 并行；M1 做好以后替身撤掉（见 ADR-016 §10）。替身期间这一圈的请求由匠心的工作区服务用服务身份提出，不经 MCP 路由。10.2 节「调用」的第一条在这段过渡里有一处有意的偏离，本身不改。还没有实现，接口的形状是提议。正文未改，受影响的条目前加了标注。
+
 ### 10.1 目标与边界
 
 **组件模型 v2 口径（ADR-020 D20.9）**。Agent 表面从 S1 起即是一等公民：skills / agents / commands / hooks / MCP / tools 是组件文件夹里的声明式表面（§07 7.2.2），所有模型可见的东西注册在 `ctx.Tools` 等注册表里并受 scope 过滤。S4 增加的是三件事：`extensions`（模型在策略下挂载与卸载插件、运行时自修改，建立在 S1 同一套装载器上，S1 只开放给人类 CLI）、每租户 MCP 门面（由 `ctx.Tools` 的租户 scope 视图派生，不是另一套注册表）、Agent 生成组件（产物落为草稿组件文件夹，经与人工相同的校验器与 TCK）。本章凡写「能力目录」「工具」处，均指 S1 已有注册表的 scope 视图。
@@ -63,7 +65,7 @@ S4 退出标准：**Agent 能发现、调用、编排乃至生成平台能力与
 - ✅ 市场兼任私有 MCP registry（`server.json` 兼容，§09）。
 
 **调用**
-- ✅ Agent 不直连平台服务裸 URL，一律经 Higress MCP 路由（chokepoint、出网 deny-by-default、consumer 头计量）。
+- 【经 S1-DEC-042 D1 标注：M1 之前，确认卡的最小一圈先用替身演示，不经 MCP 路由，是过渡，M1 做好以后撤掉，见 ADR-016 §10；本条不改】✅ Agent 不直连平台服务裸 URL，一律经 Higress MCP 路由（chokepoint、出网 deny-by-default、consumer 头计量）。
 - ✅ 「知道 ID 不构成权限」：授权来自「发起用户的委托 + 本 run 的授权快照」；平台 RBAC 接受 S2S JWT 的 `sub + tenant_id + scope` 做用户态鉴权（10.3）。
 - ✅ 令牌受众绑定（RFC 8707）、禁止令牌透传、最小 scope + 逐步提权（403，`WWW-Authenticate` 的 `error="insufficient_scope"`，响应体 `code = INSUFFICIENT_SCOPE`，R45）；网关按 `Mcp-Method / Mcp-Name` 头鉴权限流（配置方式需 PoC，敏感参数不得映射到头）。
 - ✅ 写类工具必须幂等（`idempotencyKey`）：2026-07-28 删除了 SSE 断点续传，断流重发会重复执行。

@@ -146,7 +146,7 @@ dotnet format Kun.slnx --verify-no-changes
 3. 文档用中文，不写参考平台和对标项目的名字。
 4. 分清「已定」「提议」「待定」。说现状的时候写清是「已有」（在原仓库里已经实现）还是「规划」。
 5. 平台级的口径（名称、平台怎么描述、各项目的分工、Agent 协同）在 [jiangxin](https://github.com/CavaiLAB/jiangxin) 里改，这里只引用。现在的说法（S1-DEC-043 D2、D3）：产品是匠心，企业级框架是 Kun，Agent 运行时用 DSH；前端框架 Qian 的仓库已归档，SanYuanAgent 保留、暂不维护。不写「三个框架」「两种角色」「组合体」，也不写平台此前那条理念的名字。
-6. 在 `docs/` 下新增文档，要在 `docs/_meta.json` 里加上它的文件名（不带扩展名）。这个文件定这些文档在平台文档站侧栏里的顺序；漏列的话，文档站升级到这个版本时构建会报错。子目录在 `docs/_meta.json` 里写成对象，如 `{ "type": "dir", "name": "guides", "label": "指南" }`，label 用中文；在子目录里加文档不用改顶层这一份。子目录自己的 `_meta.json` 可以不写，不写就按文件名排；写了就要列全，漏列的页面会从侧栏里消失，构建不报错。
+6. 在 `docs/` 下新增文档，要在 `docs/_meta.json` 里加上它的文件名（不带扩展名）。这个文件原来定这些文档在平台文档站侧栏里的顺序；平台文档站照 2026-11-26 的平台级裁定 P87 改成只放匠心自己的文档，不再取本仓库的文档（[S1-DEC-043](pm/tasks/S1-DEC-043.md) D8），现在没有读这个文件的地方。本仓库的网站（D4）定下来以前，新增文档照旧列进去。子目录在 `docs/_meta.json` 里写成对象，如 `{ "type": "dir", "name": "guides", "label": "指南" }`，label 用中文；在子目录里加文档不用改顶层这一份。子目录自己的 `_meta.json` 可以不写，不写就按文件名排；写了就要列全，漏列的页面会从侧栏里消失，构建不报错。
 7. 改动走分支和 PR，不直接推 `main`。建仓期间的初始文档除外，见平台总览的[协作约定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/07-governance.md)第 2 节。
 
 <!-- BEGIN:turborepo-agent-rules -->

@@ -25,7 +25,7 @@
 2026-11-19 的平台级裁定里与本文有关的两条（[2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md)）：
 
 3. 每个 Agent 发出去的内容都要由人审核，发给 Agent 的内容也是；起步出站、入站两道都必审。「发出去」包括发给别的 Agent、发给别人、写外部系统三类。（P28）
-4. 路线重排，最小的一圈提前。里程碑的顺序见平台总览的[路线与迁移](https://github.com/CavaiLAB/jiangxin/blob/main/docs/06-roadmap.md)第 2.1 节；与本文有关的是：M1 启用智能体主体，能力目录给 Agent 用，先只读；M2 加写类能力与对话里的确认卡；M7 是协同与人审；M8 是设备接入。（P31）
+4. 路线重排，最小的一圈提前。里程碑的顺序见平台总览的[路线](https://github.com/CavaiLAB/jiangxin/blob/main/docs/06-roadmap.md)第 2.1 节；与本文有关的是：M1 启用智能体主体，能力目录给 Agent 用，先只读；M2 加写类能力与对话里的确认卡；M7 是协同与人审；M8 是设备接入。（P31）
 
 对 Kun 来说，`agent` 主体与委托链、把能力目录派生成工具不再排在最后，要在 M1 先打通；协同服务的审核流程要管出站、入站两道；设备一侧的接口随 M8。
 

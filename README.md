@@ -79,7 +79,7 @@ Kun 仓库的 `qian` 命令行、外壳应用、组件清单与契约共同组�
 - 模型服务由 Kun 提供。SanYuanAgent 是独立运行的 SDK，每个端都要用到它，包括机器人这类边缘设备；机器人本地可能还有小模型。SanYuanAgent 2026-11-24 起暂缓开发，现在使用 DSH（S1-DEC-038 D45）；2026-11-26 起保留、暂不维护（S1-DEC-043 D2）。
 - 2026-11-19 的平台级裁定（P22–P33，全文见平台总览的 [2026-11-19 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-19-platform.md)）里与 Kun 直接相关的：应用之间可以互相通讯，缺省是目录里看得到、调用与订阅按声明经批准放行（P26）；历史系统经连接器接进企业级框架，在企业内网的，连接器的执行部分装在内网、只向外连（P27）；每个 Agent 发出去的内容与发给 Agent 的内容都要人审，起步两道都必审（P28）；加一种 Agent 一级的范围（P29）；组件里新增「知识库」内容（P30）；路线重排，`agent` 主体在里程碑 M1 启用（P31）；交付给客户的可以是多租户的版本，也可以是单租户的版本（P33）。与平台原决策记录的出入登记在 S1-DEC-038 D22–D26。
 - 2026-11-24 的平台级裁定（P45–P56，全文见平台总览的 [2026-11-24 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-24-platform.md)，本仓库记为 S1-DEC-038 D37–D48）里与 Kun 直接相关的：平台统一叫「匠心工业智能体平台」，总名 Yi 作废；产品族的所有者是 CavaiLAB；任务跟代码走，各仓库各有一份任务目录，平台总览仓库放汇总看板；新的决策记录，影响多个框架的记在平台总览仓库的 `docs/decisions/`，本仓库自己的登记成决策任务；前端包的作用域是 `@cavailab`。
-- 2026-11-26 的平台级裁定（P78–P86，全文见平台总览的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)，本仓库记为 [S1-DEC-043](pm/tasks/S1-DEC-043.md) D1–D7，连同 2026-11-25 的 P77）里与 Kun 直接相关的：现在只剩匠心与 Kun 两个项目，前端框架 Qian 的仓库已归档，SanYuanAgent 保留、暂不维护；Kun 增加单独的网站，放使用文档与给大模型用的文档；企业级框架分带模型推理的集群与通过 API 接第三方模型服务两种，提供多租户与单租户两个版本，统一由管理端管理，尽量做成插件，模型服务留标准的接口；代码要符合 ISO 等国际相关标准；平台上不论做什么系统，权限都走这一套。读法与没有定的见那份任务。
+- 2026-11-26 的平台级裁定（P78–P87，全文见平台总览的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)，本仓库记为 [S1-DEC-043](pm/tasks/S1-DEC-043.md) D1–D8，连同 2026-11-25 的 P77）里与 Kun 直接相关的：现在只剩匠心与 Kun 两个项目，前端框架 Qian 的仓库已归档，SanYuanAgent 保留、暂不维护；Kun 增加单独的网站，放使用文档与给大模型用的文档；企业级框架分带模型推理的集群与通过 API 接第三方模型服务两种，提供多租户与单租户两个版本，统一由管理端管理，尽量做成插件，模型服务留标准的接口；代码要符合 ISO 等国际相关标准；平台上不论做什么系统，权限都走这一套；平台总览的文档站不再聚本仓库的文档，本仓库的文档只在本仓库和本仓库的文档站里。读法与没有定的见那份任务。
 
 待定：
 
@@ -111,6 +111,6 @@ CI 里由 `actions/setup-node` 的 `registry-url` 写同样的用户级配置，
 - [对智能体的支撑：Agent 接入与模型服务](docs/agent-support.md)：怎么接住集群里和设备上的 Agent，模型服务怎么提供，设备上的本机模型怎么算。
 - [迁移与归并](docs/migration.md)：两边各有什么，哪些已定、哪些待定，分几步并。
 - Kun 框架的文档（多数是英文）：[入门](docs/getting-started.md)、[模块地图](docs/design/module-map.md)、[设计白皮书](docs/design/whitepaper.md)；指南、安全与设计说明分别在 `docs/guides/`、`docs/security/`、`docs/design/`，Kun 框架的决策记录在 `docs/adr/kun/`，引用时写「Kun ADR-0xx」。
-- [平台总览](https://github.com/CavaiLAB/jiangxin)：理念、角色与产品形态、总体架构、插件模型、应用互通、历史系统接入、Agent 协同、路线、平台级裁定。
+- [平台总览](https://github.com/CavaiLAB/jiangxin)：平台做什么与设计理念、总体架构、一切皆插件、Agent 协同、路线、协作约定、工业智能制造、产品形态、应用互通、历史系统接入、DSH 与企业级平台的对接、DSH 更新之后做什么、在平台上做开发、遵循的标准、平台级裁定。
 
 合并蓝图见 [ADR-023](docs/adr/ADR-023-kun-qian-merge-blueprint.md)，裁定见 [S1-DEC-036](pm/tasks/S1-DEC-036.md)。[平台决策目录](docs/adr/decisions.md)列出各能力域的设计与规范。

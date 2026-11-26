@@ -83,7 +83,7 @@ website/
     *.test.ts  fixtures.ts     生成脚本单测；fixtures.ts 在临时目录里搭样例 kun 仓库
     build-kb-index.ts          后续：产出 kb-index.json（S1-DOCS-003）
     build-versions.ts          钉版文件（仓库根的 CHANGELOG.md 与 global.json，本目录的 csproj、package.json、pnpm 版本目录、deploy/baseline.json）→ docs/start/versions.md
-    llms.ts                    llms.txt 的排版：先按 project（PROJECT_ORDER）再按部分分节
+    llms.ts                    llms.txt 的排版：给大模型的读法与「从这里开始」（LLMS_GUIDE、START_HERE），再先按 project（PROJECT_ORDER）后按部分分节
   theme/
     index.tsx  index.css       主题覆盖：令牌映射、建设期横幅、版本说明、首页组件
     components/                首页区块、最新动态、版本说明、站点地图
@@ -125,7 +125,7 @@ website/
 
 docs-site.md §5.1 是契约，这里只说实现：
 
-- `rspress.config.ts` 的 `llms: true` 开启 Rspress 的 SSG-MD：构建时多跑一遍 `node_md` 环境，用 `react-render-to-markdown` 把每个路由渲染成 Markdown（`<路由>.md`，目录首页为 `index.md`），再按顶部导航分组写出 `llms.txt`（每页一行，摘要取 frontmatter `description`）与 `llms-full.txt`（每页正文）。这不是 HTML 回转，也不是 remark 转换：组件在 `import.meta.env.SSG_MD` 为 true 时可以返回另一份输出，我们的主题组件（首页卡片与页脚、最新动态、站点地图、版本说明）都带这个分支，只输出标题、段落、列表与链接；站内链接指向 `.md`。
+- `rspress.config.ts` 的 `llms: true` 开启 Rspress 的 SSG-MD：构建时多跑一遍 `node_md` 环境，用 `react-render-to-markdown` 把每个路由渲染成 Markdown（`<路由>.md`，目录首页为 `index.md`），再按顶部导航分组写出 `llms.txt`（每页一行，摘要取 frontmatter `description`）与 `llms-full.txt`（每页正文）。这不是 HTML 回转，也不是 remark 转换：组件在 `import.meta.env.SSG_MD` 为 true 时可以返回另一份输出，我们的主题组件（首页卡片与页脚、最新动态、站点地图、版本说明）都带这个分支，只输出标题、段落、列表与链接；站内链接指向 `.md`。`llms.txt` 的排版由 `scripts/llms.ts` 接管（`llms.llmsTxt`）：标题与一句话定位之后是给大模型的读法与「从这里开始」一节（`LLMS_GUIDE`、`START_HERE`，后者列的页站里没有即构建失败），然后先按 project 再按部分分节（docs-site.md §5.2）。
 - JSX 容器（`Card` 等）内部的 Markdown 里的行内组件不会被渲染，会原样进 `.md`（Rspress `remarkSplitMdx` 只处理顶层段落里的行内 JSX），所以首页卡片正文里的阶段标记写成文字，`Badge` 只放在 JSX 属性里。
 - `themeConfig.llmsUI` 在每个文档页标题下放「复制为 Markdown」与「复制 Markdown 链接」；首页是 `pageType: custom`，`HomeHero` 里手动放同一组按钮。`viewOptions` 只留 `markdownLink`，不放外部 AI 服务入口（站内「问 AI」是 S2-DOCS-001）。
 - `scripts/build-kb-index.ts` 在 `rspress build` 之后运行（`build` 脚本末尾）：遍历 `website/docs` 的页面源（含生成页），解析 frontmatter（`scripts/repo.ts` 的 `parseFrontmatter`，与 `scripts/check_docs.py` 同一套 YAML 子集），读对应 `.md` 算 sha256，写 `kb-index.json`；再按 frontmatter `updated` 写 `sitemap.xml`（绝对地址 = `DOCS_SITE_URL`（默认 `theme/site.ts` 的 `DEFAULT_SITE_URL`）+ `DOCS_BASE` + 路由）。缺 `.md`、frontmatter 不合法、产物里有没来源的 `.md` 都让构建失败。

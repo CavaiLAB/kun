@@ -213,7 +213,7 @@ AREAS: Dict[str, Area] = {
             ("apps/**", "packages/qian-tenancy-ui/**", "packages/qian-tenancy-signup-ui/**",
              "packages/qian-identity-ui/**", "packages/qian-shell-kit/**", "samples/qian-sample-crm-ui/**",
              "tests/directory-e2e/**", "tests/gates/ui/**", "plugins/qian.tenancy/contracts/**",
-             "plugins/qian.tenancy.signup/contracts/**", "tools/openapi-codegen/**", "website/demo/**",
+             "plugins/qian.tenancy.signup/contracts/**", "tools/openapi-codegen/**",
              "scripts/ui-tokens.mjs", "eslint.config.mjs", "eslint.boundaries.config.mjs",
              "eslint.i18n.mjs", ".dependency-cruiser.cjs", "vitest.config.ts", "tsconfig.base.json",
              "turbo.json", ".npmrc", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"),

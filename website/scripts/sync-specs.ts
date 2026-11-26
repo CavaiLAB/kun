@@ -13,8 +13,6 @@ export const COMPONENT_MODEL_SPEC = 'docs/prd/specs/component-model.md';
 const DESIGN_DIRS: Array<{ name: string; label: string }> = [
   { name: 'adr', label: '架构决策（ADR）' },
   { name: 'prd', label: '产品需求（PRD）' },
-  { name: 'migration', label: '迁移方案' },
-  { name: 'decisions', label: '决策清单' },
   { name: 'research', label: '调研基线' },
 ];
 
@@ -22,7 +20,6 @@ const DESIGN_DIRS: Array<{ name: string; label: string }> = [
 const DESIGN_ROOT_FILES: Array<{ file: string; label: string }> = [
   { file: 'README.md', label: '文档索引' },
   { file: 'ROADMAP.md', label: '路线图' },
-  { file: 'CHANGELOG.md', label: '变更日志' },
 ];
 
 /** component-model.md 的哪些二级标题成为 /cli/ 下的哪一页；其余章节（运行时、seam、安全等）只在设计镜像里。 */
@@ -42,16 +39,15 @@ export const CLI_PAGES: Array<{ section: number; slug: string; title: string; de
 const platformAliases: Record<string, string> = {
   'docs/platform-overview.md': 'docs/README.md',
   'docs/platform-roadmap.md': 'docs/ROADMAP.md',
-  'docs/platform-history.md': 'docs/CHANGELOG.md',
   'docs/adr/decisions.md': 'docs/adr/README.md',
 };
 
 function designSource(repoRelPath: string): string {
-  return platformAliases[repoRelPath] ?? repoRelPath.replace(/^docs\/platform-migration\//, 'docs/migration/');
+  return platformAliases[repoRelPath] ?? repoRelPath;
 }
 
 function isPlatformSource(rel: string): boolean {
-  return !/^docs\/(?:adr\/kun\/|(?:guides|security|design)\/|(?:architecture|agent-support|getting-started|migration-plan|migration)\.md$)/.test(rel);
+  return !/^docs\/(?:adr\/kun\/|(?:guides|security|design)\/|(?:architecture|agent-support|getting-started)\.md$)/.test(rel);
 }
 
 /** docs/ 下的源文件 → design/ 下的页面路径，如 docs/adr/ADR-015-x.md → adr/adr-015-x.md。 */

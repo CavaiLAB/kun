@@ -142,12 +142,12 @@ dotnet format Kun.slnx --verify-no-changes
 ## 要改文档
 
 1. 先读 [README.md](README.md) 与平台总览仓库的[术语表](https://github.com/CavaiLAB/jiangxin/blob/main/docs/glossary.md)。「Qian」只作前端框架的名字，Kun 提供平台组件。组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留；`qian` 命令行与 `@qian/*` 导入名本次不改。
-2. 合并蓝图是本仓库里的 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `pm/tasks/S1-DEC-036.md`（D1–D14）。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项（目标仓库、仓库划分、包的作用域、总名）见[迁移与归并](docs/migration.md)第 6 节。
+2. 合并蓝图是本仓库里的 `docs/adr/ADR-023-kun-qian-merge-blueprint.md`，2026-11-17 接受，裁定记在 `pm/tasks/S1-DEC-036.md`（D1–D14）。写到归并的细节时以它为准，蓝图里的条目按已定写。被之后的裁定改写的几项登记在 `pm/tasks/S1-DEC-038.md`：合并后的 Kun 放在本仓库（D17），前端框架库单独一个仓库 `CavaiLAB/qian`（D18），前端包的作用域是 `@cavailab`（D44），整个平台叫「匠心工业智能体平台」（D37）。
 3. 文档用中文，不写参考平台和对标项目的名字。
 4. 分清「已定」「提议」「待定」。说现状的时候写清是「已有」（在原仓库里已经实现）还是「规划」。
 5. 平台级的口径（名称、平台怎么描述、各项目的分工、Agent 协同）在 [jiangxin](https://github.com/CavaiLAB/jiangxin) 里改，这里只引用。现在的说法（S1-DEC-043 D2、D3）：产品是匠心，企业级框架是 Kun，Agent 运行时用 DSH；前端框架 Qian 的仓库已归档，SanYuanAgent 保留、暂不维护。不写「三个框架」「两种角色」「组合体」，也不写平台此前那条理念的名字。
-6. 在 `docs/` 下新增文档，要在 `docs/_meta.json` 里加上它的文件名（不带扩展名）。这个文件原来定这些文档在平台文档站侧栏里的顺序；平台文档站照 2026-11-26 的平台级裁定 P87 改成只放匠心自己的文档，不再取本仓库的文档（[S1-DEC-043](pm/tasks/S1-DEC-043.md) D8），现在没有读这个文件的地方。本仓库的网站（D4）定下来以前，新增文档照旧列进去。子目录在 `docs/_meta.json` 里写成对象，如 `{ "type": "dir", "name": "guides", "label": "指南" }`，label 用中文；在子目录里加文档不用改顶层这一份。子目录自己的 `_meta.json` 可以不写，不写就按文件名排；写了就要列全，漏列的页面会从侧栏里消失，构建不报错。
-7. 改动走分支和 PR，不直接推 `main`。建仓期间的初始文档除外，见平台总览的[协作约定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/07-governance.md)第 2 节。
+6. 在 `docs/` 下新增文档，要在 `docs/_meta.json` 里加上它的文件名（不带扩展名）。这个文件原来定这些文档在平台文档站侧栏里的顺序；平台文档站 2026-11-26 起只放匠心自己的文档，不再取本仓库的文档（[S1-DEC-043](pm/tasks/S1-DEC-043.md) D8），现在没有读这个文件的地方。本仓库的网站（D4）定下来以前，新增文档照旧列进去。子目录在 `docs/_meta.json` 里写成对象，如 `{ "type": "dir", "name": "guides", "label": "指南" }`，label 用中文；在子目录里加文档不用改顶层这一份。子目录自己的 `_meta.json` 可以不写，不写就按文件名排；写了就要列全，漏列的页面会从侧栏里消失，构建不报错。
+7. 改动走分支和 PR，不直接推 `main`。建仓期间的初始文档除外，见平台总览的[协作约定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/14-governance.md)第 2 节。
 
 <!-- BEGIN:turborepo-agent-rules -->
 

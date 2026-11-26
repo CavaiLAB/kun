@@ -4,7 +4,7 @@ description: 从空白 ASP.NET Core 项目开始使用 Kun 组件，了解组件
 part: start
 project: platform
 audience: [developer]
-updated: 2026-11-20
+updated: 2026-11-26
 ---
 
 # 开始
@@ -28,5 +28,5 @@ Kun 平台以**组件**交付能力。组件目录包含清单、声明式表面
 
 ## 再往后
 
-- [指南](/start/guides/)：Agent 栈、后端模式、多 profile 组合、安全、连接器与集成、从参考平台迁移。
+- [指南](/start/guides/)：Agent 栈、后端模式、多 profile 组合、安全、连接器与集成。
 - 组件怎么装、怎么配：[组件目录](/components/)；编程模型与 API：[SDK](/sdk/)；命令与清单字段：[CLI 与规格](/cli/)。

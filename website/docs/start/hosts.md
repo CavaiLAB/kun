@@ -4,7 +4,7 @@ description: 在独立宿主或平台宿主中装配 Kun 组件，了解旧 Kun 
 part: start
 project: platform
 audience: [developer, operator]
-updated: 2026-11-21
+updated: 2026-11-26
 ---
 
 # 宿主与框架
@@ -34,7 +34,7 @@ updated: 2026-11-21
 
 ## 前端
 
-Kun 旧应用外壳的归档源码使用 React 和 [Qian 0.2.1 组件库](/components/qian/)。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。[产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
+Kun 旧应用外壳的归档源码使用 React 和 [Qian 0.2.1 组件库](/components/qian/)。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。
 
 归档外壳 [qian.shell](/components/platform/qian.shell) 是 MF2 宿主：插件的界面以远程模块按需加载，挂到版本化插槽上（[ADR-013](/design/adr/adr-013-frontend-framework)）。前端外壳自身也是一棵由 `@cavailab/qian-runtime` 装载的插件树，编程模型见 [前端 SDK](/sdk/frontend/)。
 

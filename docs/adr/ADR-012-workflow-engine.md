@@ -81,7 +81,7 @@ supersedes: none
 
 ## 9 等人点头的任务上的动作，缺省只能人做（2026-11-25）
 
-产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D8；平台级裁定 P74，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：等人点头的任务上的动作，缺省只能人做；Agent 代办不是缺省，以后要用再单独放开。问的是「与 Kun 现行写法对不上的两处，都按提议定吗？」，答「都按提议定」；这是其中一处，另一处见 ADR-016 §9。这是对 §2 D12.7 的修订。流程与 Operation 都还没有实现。
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D8；平台级裁定 P74，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)）：等人点头的任务上的动作，缺省只能人做；Agent 代办不是缺省，以后要用再单独放开。问的是「与 Kun 现行写法对不上的两处，都按提议定吗？」，答「都按提议定」；这是其中一处，另一处见 ADR-016 §9。这是对 §2 D12.7 的修订。流程与 Operation 都还没有实现。
 
 是什么：
 

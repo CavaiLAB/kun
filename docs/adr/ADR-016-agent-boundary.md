@@ -83,7 +83,7 @@ supersedes: none
 
 ## 9 标了要人确认的能力，平台自己停下来等人点（2026-11-25）
 
-产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D7；平台级裁定 P73，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：能力条目上标了要人确认的能力，调用方不是人本人时，平台自己不执行，生成一条等人输入的任务，等人点；人点了平台才执行。问的是「与 Kun 现行写法对不上的两处，都按提议定吗？」，答「都按提议定」；这是其中一处，另一处见 ADR-012 §9。这是对 §2 D16.3 (c) 的修订，只在这一件上。还没有实现。
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D7；平台级裁定 P73，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)）：能力条目上标了要人确认的能力，调用方不是人本人时，平台自己不执行，生成一条等人输入的任务，等人点；人点了平台才执行。问的是「与 Kun 现行写法对不上的两处，都按提议定吗？」，答「都按提议定」；这是其中一处，另一处见 ADR-012 §9。这是对 §2 D16.3 (c) 的修订，只在这一件上。还没有实现。
 
 是什么：
 
@@ -112,7 +112,7 @@ supersedes: none
 
 ## 10 确认卡的最小一圈先用替身演示，不等 M1（2026-11-25）
 
-产品负责人 2026-11-25 定（[S1-DEC-042](../../pm/tasks/S1-DEC-042.md) D1；平台级裁定 P75，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：确认卡的最小一圈不等 M1 的 `agent` 主体与 MCP 路由，先用替身演示，和 M1 并行；M1 做好以后替身撤掉。问的是「确认卡这一圈先用替身演示、不等 M1，这样定吗？」，两个选项是「先用替身」「等 M1」，答「先用替身」。这是 M1 之前的过渡，对 §2 D16.9 是一处有意的偏离；D16.9 本身不改。还没有实现。
+产品负责人 2026-11-25 定（[S1-DEC-042](../../pm/tasks/S1-DEC-042.md) D1；平台级裁定 P75，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)）：确认卡的最小一圈不等 M1 的 `agent` 主体与 MCP 路由，先用替身演示，和 M1 并行；M1 做好以后替身撤掉。问的是「确认卡这一圈先用替身演示、不等 M1，这样定吗？」，两个选项是「先用替身」「等 M1」，答「先用替身」。这是 M1 之前的过渡，对 §2 D16.9 是一处有意的偏离；D16.9 本身不改。还没有实现。
 
 是什么：
 

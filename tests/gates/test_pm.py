@@ -4,7 +4,8 @@
 看板上任务文件与 refs 的链接指向 CavaiLAB/kun 的 main，按 pm.py 所在工作区在检出中的相对位置生成，仓库根使用空前缀。
 前缀由 pm.py 从自己的位置往上找第一个有 .git 的目录得出。这里在临时目录里搭出几种检出逐个核对：普通克隆（.git 是目录）、
 看板 Pod 里 git-sync 的检出（/git/.worktrees/<提交>，.git 是文件，上面还有 /git/.git 目录）、pm.py 就在仓库根、不在 git 检出里；
-再在 git-sync 的布局与仓库根的布局里各生成一次看板，核对 tasks.json 与看板页里的地址。只依赖标准库。
+再在 git-sync 的布局与仓库根的布局里各生成一次看板，核对 tasks.json 与看板页里的地址。refs 也可以写本仓库某个提交上的
+文件地址（文件已从主干删除时用）：校验不查存在，看板照这个地址链过去，看板 Pod 里没有 PyYAML 时的简易解析也要读对。只依赖标准库。
 
 不读仓库里 pm/ 下的文件：tests/gates 由仓库根 ci.yml 的 dotnet 区域跑，只改 pm/ 的 PR 不跑这个区域，读了会被它的
 触发过滤自检（scripts/dotnet_ci.py paths-check）拦下。所以 pm.py 的路径常量在用例里都换成临时目录。
@@ -115,17 +116,49 @@ class RepoPrefixTests(unittest.TestCase):
         self.assertEqual(pm.blob_url("", "pm/tasks/S1-KUN-001.md"), BLOB + "pm/tasks/S1-KUN-001.md")
 
 
+class PinnedRefTests(unittest.TestCase):
+    """已从主干删除的文件，refs 写成本仓库某个提交上的地址：校验不查存在，看板照这个地址链过去（去掉 # 之后的小节）。"""
+
+    PINNED = f"https://github.com/CavaiLAB/kun/blob/{REV}/docs/gone.md"
+
+    def ref_errors(self, ref: str) -> list[str]:
+        root = temporary_directory(self)
+        path = root / "S1-KUN-001.md"
+        path.write_text(TASK.replace("  - docs/a.md#3.1", f"  - {ref}"), encoding="utf-8")
+        task, body = pm.parse_task(path)
+        task["_file"], task["_body"] = path.name, body
+        with mock.patch.object(pm, "ROOT", root):
+            return [e for e in pm.validate([task]) if "refs" in e]
+
+    def test_pinned_ref_skips_existence_check(self) -> None:
+        self.assertEqual(self.ref_errors(self.PINNED + "#4.2"), [])
+
+    def test_branch_urls_other_repos_and_missing_files_still_fail(self) -> None:
+        for ref in ("https://github.com/CavaiLAB/kun/blob/main/docs/gone.md",
+                    f"https://github.com/CavaiLAB/qian/blob/{REV}/docs/gone.md", "docs/gone.md"):
+            self.assertTrue(self.ref_errors(ref), ref)
+
+    def test_ref_url(self) -> None:
+        self.assertEqual(pm.ref_url("fixtures/workspace", self.PINNED + "#4.2"), self.PINNED)
+        self.assertEqual(pm.ref_url("fixtures/workspace", "docs/a.md#3.1"), BLOB + "fixtures/workspace/docs/a.md")
+
+    def test_mini_yaml_keeps_pinned_ref_with_section(self) -> None:
+        """看板 Pod 的 python 镜像里没有 PyYAML，pm.py 用自带的简易解析：地址里的 # 前面没有空格，不能当成注释切掉。"""
+        data = pm._mini_yaml(f"refs:\n  - {self.PINNED}#4.2\n  - docs/a.md#3.1  # 注释\n")
+        self.assertEqual(data["refs"], [self.PINNED + "#4.2", "docs/a.md#3.1"])
+
+
 class BoardLinkTests(unittest.TestCase):
     """在临时检出里生成一次看板（validate → export → 看板页、tasks.json、STATUS.md），核对链接。"""
 
     def setUp(self) -> None:
         self.tmp = temporary_directory(self)
 
-    def build(self, root: Path) -> tuple[list[dict], str]:
+    def build(self, root: Path, task: str = TASK) -> tuple[list[dict], str]:
         (root / "pm" / "tasks").mkdir(parents=True)
         (root / "docs").mkdir()
         (root / "docs" / "a.md").write_text("# a\n", encoding="utf-8")
-        (root / "pm" / "tasks" / "S1-KUN-001.md").write_text(TASK, encoding="utf-8")
+        (root / "pm" / "tasks" / "S1-KUN-001.md").write_text(task, encoding="utf-8")
         (root / "pm" / "_template.html").write_text("<script>const TASKS = /*__TASKS_JSON__*/[];</script>\n", encoding="utf-8")
         out = self.tmp / "site"
         # 名字照字面写：触发过滤自检按字面认出被换掉的模块级名字，写成循环就认不出了
@@ -164,6 +197,16 @@ class BoardLinkTests(unittest.TestCase):
         rows, _ = self.build(self.tmp / "repo")
         self.assertEqual(rows[0]["fileUrl"], BLOB + "pm/tasks/S1-KUN-001.md")
         self.assertEqual(rows[0]["refs"][0]["url"], BLOB + "docs/a.md")
+
+    def test_pinned_ref_links_to_its_commit_and_relative_ref_to_main(self) -> None:
+        """refs 里本仓库固定提交上的地址照原样链过去（去掉小节），文件不在检出里也能生成；相对路径照旧链到 main。"""
+        pinned = f"https://github.com/CavaiLAB/kun/blob/{REV}/docs/gone.md"
+        task = TASK.replace("  - docs/a.md#3.1", f"  - {pinned}#4.2\n  - docs/a.md#3.1")
+        (self.tmp / "repo" / ".git").mkdir(parents=True)
+        rows, page = self.build(self.tmp / "repo", task)
+        self.assertEqual(rows[0]["refs"], [{"path": pinned + "#4.2", "url": pinned},
+                                           {"path": "docs/a.md#3.1", "url": BLOB + "docs/a.md"}])
+        self.assertIn(f'"url":"{pinned}"', page)
 
 
 if __name__ == "__main__":

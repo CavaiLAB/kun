@@ -47,4 +47,4 @@ export interface Context {
 }
 ```
 
-组件的界面怎么写、组件怎么演示，见 [qian 组件库](/components/qian/)；API 参考（TypeDoc 生成）随 S1-DOCS-002 上线。
+组件的界面怎么写，见前端框架 Qian 的组件文档（在归档仓库的标签里，本站只有一页[说明](/components/qian/)）；API 参考（TypeDoc 生成）随 S1-DOCS-002 上线。

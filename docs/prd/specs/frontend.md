@@ -543,6 +543,8 @@ S1 起预留三件事：机器可读 manifest、带版本的 Schema 与校验器
 
 ## 待确认
 
+> 2026-11-27 补记：下面没有裁的六条（第 1、2、4 至 7 条）列在成批的戊批里，过时，关闭：前端框架已归档，界面归匠心（[S1-DEC-049](../../../pm/tasks/S1-DEC-049.md)）。各条原文不改。
+
 1. `@cavailab/qian-contracts` 作为独立无 UI 包是本 spec 的拆分建议（基线把契约放在「前端框架内核」），需 ADR-013 确认包边界。
 2. `@cavailab/qian-shell` 对 `@cavailab/qian-form` 的同层依赖（登录表单）是分层规则的唯一例外，需 ADR-013 记录；否则认证页族应下沉为独立包。
 3. 已裁决（R17）：D16「控件包与 Field Type Provider 同名同版本发布」保留；ADR-011 D11.9 已补 Field Type Catalog 版本策略（按 `type@version` 登记、SemVer 判兼容），与本 spec 一致。

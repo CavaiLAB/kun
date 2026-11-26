@@ -10,6 +10,8 @@ supersedes: none
 
 > 本文保留当时的决策。方括号中的能力描述用于标出整理时替换的引擎或下游名称。
 
+> 修订（2026-11-27，[S1-DEC-049](../../pm/tasks/S1-DEC-049.md)）：产品负责人 2026-11-27 答复《决策表》。§7 后两项：审计事件 ID 与下游的兼容期过时，关闭（成批的戊批）；审计记录缺省保留 180 天、可配，按提议推进（成批的丙批）。正文未改，这几项前加了标注。
+
 ## 1 背景与问题（Context）
 
 Kun 的审计能力分裂为多条并行路径：① 命令级 SHA-256 哈希链 `AuditEntry{PrevHash, ContentHash}`，但 `IAuditSink / IAuditChainState` **只有 InMemory 实现**、单实例；② `IAuditWriter / AuditLog` 通道（EF 表或 EventBus `kun.audit.record.v1`）+ `Kun.Audit.EntityFrameworkCore.AuditSaveChangesInterceptor`（SaveChanges 成功后写，**不同事务**）；③ `Kun.Auditing` 拦截器经 Outbox 同事务发 `kun.audit.event.v1`；`IAuditReader` 只有接口无实现；`AuditActorType` 无 `agent`；`TenantId / UserId` 在 Auditing 里写死 null（基线 K §1 Audit 行、附录 B-2/B-3）。基线 K 与 P 对「保留哪条路径」表述不同（K 以 `Kun.Auditing` 同事务 Outbox 为准；P 称弃用 `Kun.Auditing` 改用 `AuditLog` + ［下游智能体平台］式拦截器），决策清单补充裁决「以语义定：实体级审计必须与业务同事务写入 `AuditLog` 并经 Outbox 发事件；命令级哈希链补 PostgreSQL 持久化；事后不同事务的拦截器弃用；具体落在哪个 Kun 包由 ADR 定」。
@@ -59,8 +61,8 @@ Kun 的审计能力分裂为多条并行路径：① 命令级 SHA-256 哈希链
 ## 7 待确认事项
 
 - 哈希链分链 / 分区策略（按租户 / 按月）与吞吐基线需技术验证。
-- 审计事件 ID 统一方案及与［下游智能体平台］的兼容期。
-- 审计数据保留期（法规与客户要求）。
+- 【S1-DEC-049（2026-11-27）：过时，关闭（成批的戊批）：下游智能体平台不在范围内；本项不改】审计事件 ID 统一方案及与［下游智能体平台］的兼容期。
+- 【S1-DEC-049（2026-11-27）：审计记录缺省保留 180 天、可配，产品负责人 2026-11-27 答复《决策表》时列在成批的丙批里，按提议推进；等保二级对保留期的要求随安全设计核（S1-QA-031）；本项不改】审计数据保留期（法规与客户要求）。
 
 ## 8 参考
 

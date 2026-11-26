@@ -12,7 +12,7 @@ export function PartNotice() {
   if (!part || page.frontmatter?.project === 'kun') return null;
   return (
     <div className="qian-part-notice">
-      {part.name} · main 文档。{page.frontmatter?.project === 'qian' && '旧外壳按 Qian 0.2.1 归档，组件参考按发布标签生成。'}
+      {part.name} · main 文档。
       <Link href="/start/versions">查看版本矩阵</Link>。
     </div>
   );

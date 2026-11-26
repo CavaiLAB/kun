@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { sha256, type KbIndex, type KbPage } from './build-kb-index.ts';
-import { SITE_SIZE_BUDGET_MB, checkMachineReadable, checkMarkdownOutput, checkSizeBudget, countFences, stripCode } from './check-site.ts';
+import { SITE_SIZE_BUDGET_MB, checkMachineReadable, checkMarkdownOutput, checkRemovedPages, checkSizeBudget, countFences, stripCode } from './check-site.ts';
+import { removedPageContents, removedPageFiles } from './component-redirects.ts';
 
 describe('产物体积预算（R55）', () => {
   it('当前默认预算在边界内通过，超出一个字节仍拒绝', () => {
     const limit = SITE_SIZE_BUDGET_MB * 1e6;
-    assert.deepEqual(checkSizeBudget([['yue-vendor/editor.js', limit]]), []);
-    assert.equal(checkSizeBudget([['yue-vendor/editor.js', limit + 1]]).length, 1);
+    assert.deepEqual(checkSizeBudget([['static/js/a.js', limit]]), []);
+    assert.equal(checkSizeBudget([['static/js/a.js', limit + 1]]).length, 1);
   });
   it('预算内不报错', () => {
     assert.deepEqual(checkSizeBudget([['index.html', 1_000_000], ['sdk/api/kun/a.html', 2_000_000]], 10), []);
@@ -95,7 +96,7 @@ describe('机器可读产物与源文档同步（docs-site.md §4a、§7）', ()
     'start/hosts.html': '',
     'start/hosts.md': hostsMd,
     'kb-index.json': JSON.stringify(index),
-    'llms.txt': '# Kun 与 Qian 开发文档\n\n## 开始\n\n- [宿主](/start/hosts.md): 一句话\n',
+    'llms.txt': '# Kun 开发文档\n\n## 开始\n\n- [宿主](/start/hosts.md): 一句话\n',
     'llms-full.txt': '---\nurl: /index.md\n---\n# 首页\n\n---\nurl: /start/hosts.md\n---\n# 宿主\n',
     'sitemap.xml': '<urlset><url><loc>http://docs.example/</loc></url><url><loc>http://docs.example/start/hosts</loc></url></urlset>',
   };
@@ -116,7 +117,7 @@ describe('机器可读产物与源文档同步（docs-site.md §4a、§7）', ()
     assert.ok(run({ 'kb-index.json': '{' }).some((e) => e.includes('不是合法的 JSON')));
     assert.ok(run({ 'start/hosts.md': '# 改过的宿主\n' }).some((e) => e.includes('sha256 不一致')));
     assert.ok(run({ 'start/hosts.html': null }).some((e) => e.includes('缺少 start/hosts.html')));
-    assert.ok(run({ 'llms.txt': '# Kun 与 Qian 开发文档\n' }).some((e) => e.includes('llms.txt 没有列出 /start/hosts.md')));
+    assert.ok(run({ 'llms.txt': '# Kun 开发文档\n' }).some((e) => e.includes('llms.txt 没有列出 /start/hosts.md')));
     assert.ok(run({ 'llms-full.txt': '---\nurl: /index.md\n---\n' }).some((e) => e.includes('llms-full.txt 没有收录 /start/hosts.md')));
     assert.ok(run({ 'sitemap.xml': '<urlset></urlset>' }).some((e) => e.includes('sitemap.xml 没有 /start/hosts')));
     assert.ok(run({ 'extra.md': '# 多余\n' }).some((e) => e.includes('extra.md 不在 kb-index.json 里')));
@@ -130,5 +131,46 @@ describe('机器可读产物与源文档同步（docs-site.md §4a、§7）', ()
     const errors = run({ 'start/hosts.md': broken, 'kb-index.json': JSON.stringify(stale) });
     assert.ok(errors.some((e) => e.startsWith('start/hosts.md：') && e.includes('组件残留')), errors.join(' | '));
     assert.ok(errors.some((e) => e.includes('代码围栏 0 行，少于源页的 2 行')), errors.join(' | '));
+  });
+});
+
+describe('拿掉的前端框架组件页（S1-DOCS-011）', () => {
+  const expected = ['components/qian/core/button.html', 'components/qian/core/button.md', 'components/yue/index.html', 'components/yue/index.md'];
+  const stubs = Object.fromEntries(expected.map((rel) => [rel, removedPageContents(rel)]));
+
+  it('跳转页的目标是说明页：HTML 不带原来的锚点，Markdown 链到说明页的 .md', () => {
+    assert.match(stubs['components/qian/core/button.html'] ?? '', /location\.replace\("\.\.\/index\.html"\)/);
+    assert.match(stubs['components/qian/core/button.html'] ?? '', /<html lang="zh">/);
+    assert.match(stubs['components/yue/index.md'] ?? '', /\]\(\.\.\/qian\/index\.md\)/);
+    assert.equal(removedPageFiles().length, (90 + 91) * 2, '90 页与 91 个旧书签，HTML 与 Markdown 各一个');
+  });
+
+  it('齐全且内容对时通过', () => {
+    assert.deepEqual(checkRemovedPages(Object.keys(stubs), (rel) => stubs[rel] ?? '', expected), []);
+  });
+
+  it('缺跳转页、旧地址上又有了页面、产物里还有演示资源，各报一条', () => {
+    const without = Object.keys(stubs).filter((rel) => rel !== 'components/yue/index.md');
+    assert.ok(checkRemovedPages(without, (rel) => stubs[rel] ?? '', expected).some((e) => e.startsWith('components/yue/index.md：') && e.includes('缺少')));
+    const replaced: Record<string, string> = { ...stubs, 'components/qian/core/button.html': '<html lang="zh"><h1>Button</h1></html>' };
+    assert.ok(checkRemovedPages(Object.keys(replaced), (rel) => replaced[rel] ?? '', expected).some((e) => e.startsWith('components/qian/core/button.html：') && e.includes('不是落到说明页的跳转页')));
+    const assets = [...Object.keys(stubs), 'yue-vendor/babel.min.js', 'yue-demo/index.html'];
+    assert.ok(checkRemovedPages(assets, (rel) => stubs[rel] ?? '', expected).some((e) => e.includes('组件演示或离线编辑器的资源（2 个文件')));
+  });
+
+  it('跳转页的 .md 不算产物里多出来的 Markdown', () => {
+    const md = 'components/qian/core/button.md';
+    const homeMd = '# 首页\n';
+    const index: KbIndex = { version: 1, generatedAt: '', base: '/', siteUrl: 'http://docs.example', kunVersion: '2026.10.8', pages: [page('/', homeMd)] };
+    const files: Record<string, string> = {
+      'index.html': '',
+      'index.md': homeMd,
+      [md]: removedPageContents(md),
+      'kb-index.json': JSON.stringify(index),
+      'llms.txt': '# 站名\n',
+      'llms-full.txt': '---\nurl: /index.md\n---\n# 首页\n',
+      'sitemap.xml': '<urlset><url><loc>http://docs.example/</loc></url></urlset>',
+    };
+    assert.deepEqual(checkMachineReadable(Object.keys(files), (rel) => files[rel] ?? '', () => null), []);
   });
 });

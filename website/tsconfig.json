@@ -29,7 +29,6 @@
     "theme",
     "scripts",
     "rspress.config.ts",
-    "demo",
     "e2e",
     "playwright.config.ts"
   ],

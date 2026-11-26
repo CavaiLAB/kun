@@ -32,7 +32,8 @@ export interface LlmsTxtOptions {
 export const PROJECT_ORDER: ReadonlyArray<{ id: string; label: string }> = [
   { id: 'platform', label: '平台' },
   { id: 'kun', label: 'Kun' },
-  { id: 'qian', label: 'qian 组件库' },
+  // 前端框架的组件页 2026-11-26 起不再生成（S1-DOCS-011）：这一组只剩 /components/qian/ 的说明页与「设计与路线」里前端框架规格的镜像。
+  { id: 'qian', label: '前端框架 Qian（已归档）' },
 ];
 
 /** 给大模型的读法（docs-site.md §5.2）。说的是各节是什么、先读哪里，不替页面许诺能力。 */
@@ -41,7 +42,7 @@ export const LLMS_GUIDE = [
   '每一行的链接就是该页的 Markdown，全站正文合在同一目录的 llms-full.txt 里。',
   '接口的精确签名查「Kun · SDK」一节里的 API 参考，它只收内核档的包。',
   '「平台 · 设计与路线」是需求与决策记录，讲为什么这样设计，里面有不少规划，不是用法；哪些能力已有、哪些还是规划，看「指南」一页的表。',
-  '「qian 组件库」开头的几节是前端框架 Qian 的组件文档，它的仓库已归档。',
+  '前端框架 Qian 的仓库已归档，它的组件页不在本站；「前端框架 Qian（已归档）」开头的几节只有一页说明（组件文档在归档仓库的哪个标签里）与它的设计规格。',
 ].join('\n');
 
 /** 「从这里开始」一节的页面，按顺序（docs-site.md §5.2）：使用文档在前，再是清单、命令行、API 与版本的入口。 */

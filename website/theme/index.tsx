@@ -37,8 +37,6 @@ export { Card, CardGrid, HomeFooter, HomeHero, HomeSection } from './components/
 export { LatestChanges } from './components/LatestChanges';
 export { SiteMap } from './components/SiteMap';
 
-export { ComponentDemo } from './components/ComponentDemo';
-
 export { LlmsViewOptions, SocialLinks, SwitchAppearance } from './components/AccessibleLinks';
 
 export { useThemeState } from './useThemeState';

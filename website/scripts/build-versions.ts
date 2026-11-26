@@ -147,7 +147,7 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '',
     '## 前端版本目录中的框架包',
     '',
-    'Kun 旧应用外壳按 Qian 0.2.1 归档，组件文档取对应发布标签。业务预发保留原有部署和数据。\n\nQian 的 8 个层包统一定版本。TypeScript 运行时 `@cavailab/qian-runtime` 与前端插件开发包 `@cavailab/qian-plugin-sdk` 各自定版本。见 [Qian 的版本策略](https://github.com/CavaiLAB/qian#现状)。',
+    'Kun 旧应用外壳按 Qian 0.2.1 归档，业务预发保留原有部署和数据。前端框架 Qian 的仓库已归档，它的组件页不在本站，组件文档在哪里见[说明](/components/qian/)。\n\nQian 的 8 个层包统一定版本。TypeScript 运行时 `@cavailab/qian-runtime` 与前端插件开发包 `@cavailab/qian-plugin-sdk` 各自定版本。见 [Qian 的版本策略](https://github.com/CavaiLAB/qian#现状)。',
     '',
     '下列项目来自根版本目录。`@cavailab/qian-runtime` 的版本由 CLI 与声明式表面校验库的 `package.json` 单独钉住，见[仓库的前端依赖说明](https://github.com/CavaiLAB/kun#前端依赖与包源)。',
     '',

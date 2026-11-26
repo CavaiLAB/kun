@@ -1,6 +1,6 @@
 // 外壳与界面包的令牌门禁（pnpm ui:lint 的第一步；自测在 tests/gates/ui/tokens.test.ts）。
 // apps/* 的样式表不得重新定义令牌角色：用已发布的 @cavailab/qian-tokens 导出的 lintTokenCss 查，令牌目录跟版本目录钉的版本走。
-// 其余消费方（界面包、外壳接线、参考远程、真实目录验收页、文档站演示）只查不强制灰阶抗锯齿。
+// 其余消费方（界面包、外壳接线、参考远程、真实目录验收页）只查不强制灰阶抗锯齿。文档站的组件演示 2026-11-26 起拿掉了（S1-DOCS-011）。
 // 令牌本身的生成结果、对比度与首帧脚本由 CavaiLAB/qian 查，这里不重复。
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
@@ -10,7 +10,7 @@ import { lintTokenCss } from '@cavailab/qian-tokens';
 /** 跑令牌角色检查的目录（同时查抗锯齿）。 */
 export const TOKEN_ROOTS = ['apps'];
 /** 只查抗锯齿的消费方。 */
-export const SMOOTHING_ROOTS = ['packages/qian-tenancy-ui', 'packages/qian-tenancy-signup-ui', 'packages/qian-identity-ui', 'packages/qian-shell-kit', 'samples/qian-sample-crm-ui', 'tests/directory-e2e', 'website/demo'];
+export const SMOOTHING_ROOTS = ['packages/qian-tenancy-ui', 'packages/qian-tenancy-signup-ui', 'packages/qian-identity-ui', 'packages/qian-shell-kit', 'samples/qian-sample-crm-ui', 'tests/directory-e2e'];
 
 const SKIP = new Set(['node_modules', 'dist', '.turbo', 'test-results', 'playwright-report', '.lighthouseci']);
 // 正文字形按原型走浏览器缺省：令牌层不强制灰阶抗锯齿，应用与示例的样式表也不能再加回来（S1-YUE-019 验收发现过一次）。

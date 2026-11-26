@@ -18,7 +18,7 @@ allowBuilds:
 # typescript 钉 6.0.x：typescript-eslint 8 只支持 < 6.1。
 catalog:
   # 前端框架（CavaiLAB/qian 发布在 GitHub Packages，包源见 .npmrc）：写精确版本，不写范围，升级走 PR、这几行一起改（S1-YUE-025）。
-  # 文档站按 @cavailab/qian-core 的版本检出 CavaiLAB/qian 的同名标签取组件文档源；版本矩阵页也从这里读。
+  # 文档站的版本矩阵页从这里读（组件页 2026-11-26 起不在文档站，构建不再检出 CavaiLAB/qian，S1-DOCS-011）。
   # 命令行与校验库的测试另在各自的 package.json 里直接写 @cavailab/qian-runtime 的版本。
   "@cavailab/qian-tokens": 0.2.1
   "@cavailab/qian-contracts": 0.2.1
@@ -51,11 +51,6 @@ catalog:
   openapi-fetch: 0.17.0
   openapi-typescript: 7.13.0
   "@rspress/shared": 2.0.23
-  "@rsbuild/core": 2.2.10
-  "@rsbuild/plugin-react": 2.1.0
-  "@rsbuild/plugin-tailwindcss": 2.0.3
-  "@babel/standalone": 7.28.5
-  monaco-editor: 0.52.2
   "@module-federation/enhanced": 2.9.2
   "@module-federation/vite": 1.23.5
 

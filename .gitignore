@@ -91,7 +91,8 @@ website/docs/sdk/kun/*
 !website/docs/sdk/kun/with-qian.mdx
 website/docs/sdk/api/
 website/.cache/
-# 文档站 CI 把 CavaiLAB/qian 的组件文档源检出到这里（website/scripts/qian.ts）；本机用 QIAN_DOCS_PATH 或 website/.cache/qian-repo
+# 文档站原来把 CavaiLAB/qian 的组件文档源检出到这里；组件页 2026-11-26 起不在文档站（S1-DOCS-011），不再检出。
+# 规则留着，免得本机以前的检出被误提交
 /.qian/
 
 # 前端工作区：外壳构建产物、Turborepo 缓存与测试报告
@@ -100,7 +101,7 @@ apps/*/dist/
 test-results/
 playwright-report/
 
-# Rspress 组件演示与离线编辑器资源，由 website 构建生成
+# 文档站原来构建出的组件演示与离线编辑器资源；2026-11-26 起不再生成（S1-DOCS-011），规则留着，免得本机旧产物被误提交
 website/docs/public/yue-demo/
 website/docs/public/yue-vendor/
 

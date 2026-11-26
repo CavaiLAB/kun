@@ -7,8 +7,9 @@
 //    sdk/kun/ 下除手写页外都是镜像页（白名单外的文件进站即失败）；
 // 8. 产物总大小不超过预算（R55），挡住「同一块内容被重复渲染进每一页」这类结构性膨胀；
 // 9. 机器可读产物（docs-site.md §4a）：llms.txt、llms-full.txt、每页 .md、kb-index.json、sitemap.xml 齐全且与源文档同步，
-//    .md 里没有 JSX / ESM 残留与空标题空列表项，代码块不少于源页。
-import { previousComponentPath, redirectContents } from './component-redirects.ts';
+//    .md 里没有 JSX / ESM 残留与空标题空列表项，代码块不少于源页；
+// 10. 拿掉的前端框架组件页（S1-DOCS-011）：原来的地址都有落到说明页的跳转页，产物里不再有组件演示与离线编辑器的资源。
+import { previousPath, redirectContents, removedPageContents, removedPageFiles } from './component-redirects.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { KB_INDEX_FILE, KB_INDEX_VERSION, SITEMAP_FILE, absoluteUrl, sha256, type KbIndex } from './build-kb-index.ts';
@@ -26,6 +27,8 @@ const REQUIRED_PAGES = [
   'start/family.html',
   'start/versions.html',
   'components/index.html',
+  // 前端框架组件页拿掉之后的说明页（S1-DOCS-011），原来的地址都落到这里
+  'components/qian/index.html',
   'sdk/index.html',
   'cli/index.html',
   'ops/index.html',
@@ -52,7 +55,8 @@ export interface SiteReport {
  * 产物总大小预算（R55，docs-site.md §7）。S1-QA-010 实测 96.2 MB（756 个页面，含完整 API/Markdown 与 15.6 MB 离线编辑器）；
  * 按 R55 从 100 MB 调整为 120 MB，保留约 24 MB 增长空间，挡住的是结构性膨胀——
  * 例如整棵侧栏被渲染进几百个 API 页，曾让产物从 57 MB 涨到 170 MB——而不是正常增长。超出时先看报出的最大目录，
- * 确属正常增长再调高预算，并在 PR 里写明原因。
+ * 确属正常增长再调高预算，并在 PR 里写明原因。2026-11-26 拿掉前端框架的组件页、演示与离线编辑器之后（S1-DOCS-011），
+ * 产物从 103.7 MB 降到 69.2 MB；预算没有跟着调低。
  */
 export const SITE_SIZE_BUDGET_MB = 120;
 
@@ -164,10 +168,11 @@ export function checkMachineReadable(files: readonly string[], read: (rel: strin
     if (!llmsFull.includes(`url: ${page.md}\n`)) errors.push(`llms-full.txt 没有收录 ${page.md}`);
     if (!sitemap.includes(`<loc>${xmlEscape(absoluteUrl(index, page.route))}</loc>`)) errors.push(`sitemap.xml 没有 ${page.route}`);
   }
-  // 跳转文件不进知识库；其内容和目标都必须对应索引内的真实页面。
+  // 跳转文件不进知识库；其内容和目标都必须对应索引内的真实页面。拿掉的组件页的跳转页由 checkRemovedPages 核对，这里只认它们的 .md 不算多余。
+  for (const rel of removedPageFiles()) if (rel.endsWith('.md')) listed.add(rel);
   for (const current of [...listed]) {
     for (const target of [current, current.replace(/\.md$/, '.html')]) {
-      const previous = previousComponentPath(target);
+      const previous = previousPath(target);
       if (!previous) continue;
       if (!files.includes(previous) || read(previous) !== redirectContents(previous, target)) {
         errors.push(`${previous} 未正确指向 ${target}`);
@@ -178,6 +183,22 @@ export function checkMachineReadable(files: readonly string[], read: (rel: strin
   for (const rel of files) {
     if (rel.endsWith('.md') && !listed.has(rel)) errors.push(`${rel} 不在 ${KB_INDEX_FILE} 里（产物里多出来的 Markdown）`);
   }
+  return errors;
+}
+
+/**
+ * 拿掉的前端框架组件页（S1-DOCS-011）：expected 里每个旧地址（HTML 与 Markdown）都在，内容正是落到说明页的跳转页；
+ * 组件演示与离线编辑器的资源（yue-demo/、yue-vendor/）不能再进产物——本机旧构建留下的 website/docs/public/yue-* 会被原样拷进来，删掉即可。
+ */
+export function checkRemovedPages(files: readonly string[], read: (rel: string) => string, expected: readonly string[] = removedPageFiles()): string[] {
+  const errors: string[] = [];
+  const present = new Set(files);
+  for (const rel of expected) {
+    if (!present.has(rel)) errors.push(`${rel}：拿掉的组件页原来的地址，缺少落到说明页的跳转页`);
+    else if (read(rel) !== removedPageContents(rel)) errors.push(`${rel}：不是落到说明页的跳转页（旧地址上又有了页面，或跳转页过期）`);
+  }
+  const assets = files.filter((f) => /^(?:yue-demo|yue-vendor)\//.test(f));
+  if (assets.length > 0) errors.push(`产物里还有组件演示或离线编辑器的资源（${assets.length} 个文件，如 ${assets[0]}）：删掉本机的 website/docs/public/yue-demo/ 与 yue-vendor/ 后重新构建`);
   return errors;
 }
 
@@ -246,6 +267,7 @@ export function checkSite(dir: string = outDir, basePath: string = base): SiteRe
   }
 
   errors.push(...checkKunPages(files, (rel) => fs.readFileSync(path.join(dir, rel), 'utf8'), readKunVersion()));
+  errors.push(...checkRemovedPages(files, (rel) => fs.readFileSync(path.join(dir, rel), 'utf8')));
   errors.push(
     ...checkMachineReadable(
       files,

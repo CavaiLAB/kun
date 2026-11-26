@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { LLMS_GUIDE, START_HERE, normalizeRoute, renderLlmsTxt } from './llms.ts';
+import { LLMS_GUIDE, PROJECT_ORDER, START_HERE, normalizeRoute, renderLlmsTxt } from './llms.ts';
 
 describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
-  it('先平台再 Kun 再 qian 组件库，每个项目下按部分分节；没写 project 的页归平台', () => {
+  it('先平台再 Kun 再前端框架 Qian，每个项目下按部分分节；没写 project 的页归平台', () => {
     const txt = renderLlmsTxt({
-      title: 'Kun 与 Qian 开发文档',
+      title: 'Kun 开发文档',
       description: '一句话。',
       sections: [
         {
@@ -17,7 +17,7 @@ describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
         },
         {
           title: '组件目录',
-          pages: [{ routePath: '/components/qian/', link: '/components/qian/index.md', title: 'qian 组件库', frontmatter: { project: 'qian' } }],
+          pages: [{ routePath: '/components/qian/', link: '/components/qian/index.md', title: '前端框架 Qian 的组件页已从本站拿掉', frontmatter: { project: 'qian' } }],
         },
         {
           title: 'SDK',
@@ -33,7 +33,7 @@ describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
     assert.equal(
       txt,
       [
-        '# Kun 与 Qian 开发文档',
+        '# Kun 开发文档',
         '',
         '> 一句话。',
         '',
@@ -51,9 +51,9 @@ describe('llms.txt 按 project 分节（ADR-021 D21.5）', () => {
         '',
         '- [Kun 框架](/sdk/kun/index.md): 镜像',
         '',
-        '## qian 组件库 · 组件目录',
+        '## 前端框架 Qian（已归档） · 组件目录',
         '',
-        '- [qian 组件库](/components/qian/index.md)',
+        '- [前端框架 Qian 的组件页已从本站拿掉](/components/qian/index.md)',
         '',
       ].join('\n'),
     );
@@ -129,5 +129,13 @@ describe('llms.txt 的读法与「从这里开始」（docs-site.md §5.2、S1-D
   it('站点用的清单不重复，读法里提到了「从这里开始」', () => {
     assert.equal(new Set(START_HERE.map(normalizeRoute)).size, START_HERE.length);
     assert.match(LLMS_GUIDE, /「从这里开始」/);
+  });
+
+  it('读法里前端框架那一组的名字与分节用的组名一致，并说明组件页不在本站（S1-DOCS-011）', () => {
+    const label = PROJECT_ORDER.find((p) => p.id === 'qian')?.label ?? '';
+    assert.equal(label, '前端框架 Qian（已归档）');
+    assert.ok(LLMS_GUIDE.includes(`「${label}」`));
+    assert.match(LLMS_GUIDE, /组件页不在本站/);
+    assert.doesNotMatch(LLMS_GUIDE, /qian 组件库/);
   });
 });

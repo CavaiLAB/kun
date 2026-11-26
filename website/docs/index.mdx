@@ -1,7 +1,7 @@
 ---
 pageType: custom
-title: Kun 与 Qian 开发文档
-description: Kun 的内核包、平台组件与 Qian 前端框架的安装、开发和运维文档。
+title: Kun 开发文档
+description: Kun 的内核包与平台组件的安装、开发和运维文档。
 part: start
 project: platform
 audience: [developer, operator, isv, agent, decision-maker]
@@ -17,8 +17,8 @@ import { Badge, Card, CardGrid, HomeFooter, HomeHero, HomeSection, LatestChanges
 <div className="qian-home rp-doc">
 
 <HomeHero
-  title="Kun 与 Qian 开发文档"
-  tagline="Kun 是为 Agent 时代构建的多租户平台框架。本站收录 Kun 的 .NET 包，以及旧应用外壳按 Qian 0.2.1 归档的组件文档。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。"
+  title="Kun 开发文档"
+  tagline="Kun 是为 Agent 时代构建的多租户平台框架。本站收录 Kun 的 .NET 包与平台组件的文档；前端框架 Qian 的仓库已归档，它的组件页不在本站。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。"
 />
 
 <HomeSection id="get-started" title="三条起步命令" lead="构建 Kun 命令行后，可按需安装组件、创建技能；模型调用需先配置网关。">
@@ -109,7 +109,7 @@ curl "$MODEL_GATEWAY/v1/chat/completions" \
 - [能力与函数](/sdk/dotnet/capabilities)：能力目录；`function` 表面（S2）
 - [事件与中间件](/sdk/dotnet/events)：五种分发模式，`waterfall` 即环绕中间件
 - [profile 与 patch](/start/concepts/profile)：环境 = profile + 分层 patch
-- [qian 组件库与微前端](/sdk/frontend/)：组件库、外壳与远程模块
+- [前端 SDK 与微前端](/sdk/frontend/)：旧外壳的插件树与远程模块
 - [存储](/components/platform/qian.files)：文件与数据，租户隔离默认开启
 - [低代码](/design/prd/08-s2-lowcode)：表单与列表（S2）
 

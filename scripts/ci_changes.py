@@ -120,6 +120,18 @@ AREAS: Dict[str, Area] = {
             DOTNET_BASE, NPMRC,
         ),
         builds_dotnet=True, installs_npm=True),
+    "docs-examples": Area(
+        "使用文档的示例",
+        (
+            # 网站「开始」里三篇使用文档、它们在 samples/docs/ 的示例与脚本（S1-DOCS-012）。示例装的包从 src/ 打出来（DOTNET_BASE），
+            # 清单工具从源码构建（写一个组件第 4 步）；在 .NET 里接权限第 6 节节选了客户参考应用的权限点与角色。
+            ("samples/docs/**", "scripts/docs_examples.py", "scripts/tests/test_docs_examples.py",
+             "website/docs/start/getting-started.md", "website/docs/start/guides/write-a-component.md",
+             "website/docs/start/guides/authorization-dotnet.md", "tools/Kun.Plugin.Tool/**",
+             "samples/Kun.Sample.Crm/metadata/permissions.json", "samples/Kun.Sample.Crm/metadata/roles.json"),
+            DOTNET_BASE,
+        ),
+        builds_dotnet=True),
     "documentation": Area(
         "派生文档与事件模式",
         (

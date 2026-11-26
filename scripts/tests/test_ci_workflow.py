@@ -10,7 +10,9 @@ ci.yml 的变更检测作业每次都先跑它。核对的是「CI 汇总」能�
   - 调用前端与文档工作流的作业给 packages: read；被调用方有要写权限的作业时，调用方给 contents: write；
   - 区域表里「要构建 .NET」「装 GitHub Packages 上的 npm 包」两个标记与作业实际做的事一致；
   - 测试结果构件名带尝试号，测试分片汇总核对按尝试号取每个分片最新的一份：「重跑失败的作业」之后汇总能按重跑的结果变绿；
-  - 分片作业在后台预拉镜像之前，先在前台列出本分片的镜像，列不出这一步就失败；门禁作业核对每个测试项目都有着落。
+  - 分片作业在后台预拉镜像之前，先在前台列出本分片的镜像，列不出这一步就失败；门禁作业核对每个测试项目都有着落；
+  - 使用文档的示例：ci.yml 里先核对页面再打本地包、照页面跑，版本与包源前后一致；release.yml 在发布之后用刚发布的版本
+    照页面跑，排在最后、不挡发布，只读权限，读包令牌照 publish 的做法取（S1-DOCS-012）。
 """
 from __future__ import annotations
 
@@ -237,6 +239,52 @@ class CiWorkflowTests(unittest.TestCase):
             for step in steps:
                 uses = str(step.get("uses", ""))
                 self.assertFalse(uses.startswith("actions/setup-dotnet"), f"作业 {name} 要用 ./.github/actions/setup-dotnet")
+
+    def test_docs_examples_check_the_pages_before_packing_and_running_them(self) -> None:
+        job = self.jobs["docs-examples"]
+        version = job["env"]["KUN_DOCS_EXAMPLES_VERSION"]
+        self.assertEqual(self.jobs["dotnet-build"]["env"]["KUN_PACK_CHECK_VERSION"], version, "与打包核对用同一个占位版本")
+        commands = [str(step.get("run", "")) for step in job["steps"]]
+        check = next(index for index, run in enumerate(commands) if "docs_examples.py check" in run)
+        feed = next(index for index, run in enumerate(commands) if "docs_examples.py feed" in run)
+        run = next(index for index, script in enumerate(commands) if "docs_examples.py run" in script)
+        self.assertIn("test_docs_examples.py", commands[check], "先跑示例脚本的自测")
+        self.assertLess(check, feed, "页面与示例对不上时不用打包")
+        self.assertLess(feed, run)
+        feeding, running = shlex.split(commands[feed]), shlex.split(commands[run])
+        self.assertEqual(feeding[feeding.index("--out") + 1], running[running.index("--packages") + 1], "照页面跑用的就是刚打的本地包源")
+        self.assertEqual("local", running[running.index("--feed") + 1])
+        for words in (feeding, running):
+            self.assertEqual("$KUN_DOCS_EXAMPLES_VERSION", words[words.index("--version") + 1])
+        self.assertTrue(running[running.index("--work") + 1].startswith("$RUNNER_TEMP/"), "工作目录在仓库外")
+        for step in job["steps"][:run + 1]:
+            self.assertFalse({"if", "continue-on-error"} & set(step), "核对与运行的步骤不能有条件，失败不能放过")
+
+    def test_release_runs_the_docs_examples_after_publishing_without_holding_it_up(self) -> None:
+        release = load(WORKFLOWS / "release.yml")
+        jobs = release["jobs"]
+        job = jobs["docs-examples"]
+        self.assertEqual(["prepare", "publish"], sorted(job["needs"]))
+        for condition in ("github.ref == 'refs/heads/main'", "!inputs.dry_run", "needs.prepare.outputs.kind != 'beta'"):
+            self.assertIn(condition, job["if"])
+        self.assertNotRegex(job["if"], r"always\(\)|failure\(\)|cancelled\(\)", "发布成功了才跑")
+        others = [name for name, other in jobs.items() if name != "docs-examples"]
+        self.assertFalse([name for name in others if "docs-examples" in str(jobs[name].get("needs", ""))],
+                         "没有作业依赖它：它失败不挡发布")
+        self.assertEqual({"contents": "read", "packages": "read"}, job["permissions"])
+        self.assertNotIn("environment", job, "不再走一次发布审批")
+        self.assertNotIn("continue-on-error", job, "失败要在运行里看得见")
+        checkout = job["steps"][0]
+        self.assertTrue(str(checkout["uses"]).startswith("actions/checkout@"))
+        self.assertEqual("${{ needs.prepare.outputs.sha }}", checkout["with"]["ref"], "核对的是发布的那个提交")
+        step = next(step for step in job["steps"] if "docs_examples.py run" in str(step.get("run", "")))
+        words = shlex.split(step["run"])
+        self.assertEqual(("published", "$VERSION"), (words[words.index("--feed") + 1], words[words.index("--version") + 1]))
+        publish = jobs["publish"]["env"]
+        for name in ("KUN_PLATFORM_FEED_USER", "KUN_PLATFORM_FEED_TOKEN"):
+            self.assertEqual(publish[name], step["env"][name], "读包令牌照 publish 的做法取")
+        self.assertNotIn("secrets.", str(job), "不用另外的密钥")
+        self.assertLess(list(jobs).index("publish"), list(jobs).index("docs-examples"))
 
 
 if __name__ == "__main__":

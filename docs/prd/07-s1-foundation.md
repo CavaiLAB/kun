@@ -348,7 +348,7 @@ S1 的 profile 与组合包落位（R31；三节点 K3s 的现实仍然成立：
 
 **设计理念**。Kun 侧只新增 `Kun.Authorization` 端口，平台自建权限引擎（ADR-006）：权限点由插件清单声明、租户域 RBAC、决策可解释并入审计、权限不进令牌靠 `identity_revision` 失效；UI、API、MCP 三入口同一个判定服务。参考平台接口层权限校验被注释恒 `true`、鉴权散在控制器且可被客户端 `menuId / flowIds` 绕过，是最大的反面教训。判定接口（PDP）是 Definition `Kun.Authorization.Rbac.Abstractions` 暴露的服务键 `ctx.Authz`（再导出 `Kun.Authorization` 端口），强制执行点（PEP）是 base 组合包注册的 `waterfall` 监听器（ADR-020 对 ADR-003 的修订：鉴权、租户、审计三个强制执行点保留为 waterfall 监听器），策略模型、存储、管理 API 在 Provider `Kun.Authorization.Rbac`（P 基线裁决 A-4）。
 
-**范围与边界**。✅ 做：权限点注册表（组件 `metadata/permissions.json`，即原清单 `provides.permissions`（R37 / R101）→ `PermissionDefinition`，含资源类型、动作、风险级别、是否需 step-up、终端）；资源类型由插件注册；租户域 RBAC（内置角色：平台超管、租户 Owner / Admin / 开发者 / 使用者 + 自定义角色；主体可为用户、组织、岗位、用户组）；插件默认角色模板（策略包，安装即可用）；决策端口 `Check / BatchCheck / ListAllowedActions / ListPermissions / Explain`；API 层强制校验（端点 → 权限点写进 OpenAPI 扩展 `x-qian-permission`）；Mediator 行为 PEP；超管旁路显式声明并审计；决策审计入哈希链；`identity_revision` 失效与按主体缓存；结构化错误码目录；最小角色授权页（P1，菜单/按钮级）。❌ 不做：数据权限编译器（条件树 → SQL/EF 谓词，S2；S1 只定 `IDataPermissionFilter` 端口与 Filter AST 契约，见 7.6）；字段权限（S2，`IFieldPolicy` 端口占位）；资源实例 ACL（S2 可选）；组织角色/逐级递减/身份切换/约束（S3 可选，令牌 `profile` 位 S1 预留）；OpenFGA / OPA 适配（S3 可选）；完整授权向导（S2）。
+**范围与边界**。✅ 做：权限点注册表（组件 `metadata/permissions.json`，即原清单 `provides.permissions`（R37 / R101）→ `PermissionDefinition`，含资源类型、动作、风险级别、是否需 step-up、终端）；资源类型由插件注册；租户域 RBAC（内置角色：平台超管、租户 Owner / Admin / 开发者 / 使用者 + 自定义角色；主体可为用户、组织、岗位、用户组）；插件默认角色模板（策略包，安装即可用）；决策端口 `Check / BatchCheck / ListAllowedActions / ListPermissions / Explain`；API 层强制校验（端点 → 权限点写进 OpenAPI 扩展 `x-qian-permission`）；Mediator 行为 PEP；超管旁路显式声明并审计；决策审计入哈希链；`identity_revision` 失效与按主体缓存；结构化错误码目录；最小角色授权页（P1，菜单/按钮级）。❌ 不做：数据权限编译器（条件树 → SQL/EF 谓词，S2；S1 只定 `IDataPermissionFilter` 端口与 Filter AST 契约，见 7.6）；字段权限（S2，`IFieldPolicy` 端口占位）；资源实例 ACL（S2 可选）；组织角色/逐级递减/身份切换/约束（S3 可选，令牌 `profile` 位 S1 预留）；OpenFGA / OPA 适配（S3 可选）；完整授权向导（S2）。【经 S1-DEC-048 D2 标注：上面「最小角色授权页（P1，菜单/按钮级）」一项不在本仓库里做，本仓库只交付接口，页面放匠心的管理端；本段不改】
 
 **技术落点**。组件 `qian.authz`：Definition `Kun.Authorization.Rbac.Abstractions`（服务键 `ctx.Authz`）+ Provider `Kun.Authorization.Rbac`，默认进 `platform` profile 的 base 组合包，可独立安装（`qian add authz`；独立模式下权限点经 `[Permission]` 特性登记，角色与授权用库自带表与 API，ADR-019 D19.4）；schema `authz`；依赖 `Kun.Authorization`（7.1 第 11 项新增端口）、`Kun.Caching`、`Kun.Audit.Abstractions`、7.4.3 目录。
 
@@ -706,7 +706,7 @@ S1 的 profile 与组合包落位（R31；三节点 K3s 的现实仍然成立：
 - [ ] CI：`@cavailab/qian-core` 组件在独立 Vitest 浏览器测试与 Rspress 静态页面 Playwright + axe E2E 下 critical / serious = 0；每个组件有 `data-slot` 与 `data-testid`。
 - [ ] CI：`@cavailab/qian-biz` 引用 `设计器组件` 之类的向上依赖被 boundaries 规则拒绝。
 - [ ] E2E：用 SchemaForm + DataTable 实现参考应用的客户 CRUD（新增/编辑弹窗、只读详情、服务端分页排序筛选、列显隐），不出现第二套表单或表格实现。
-- [ ] E2E：租户管理页用 OrganizeSelect / UserSelect / RoleSelect / 授权树完成角色授予；Upload 分片上传经 7.7 成功。
+- [ ] E2E：租户管理页用 OrganizeSelect / UserSelect / RoleSelect / 授权树完成角色授予；Upload 分片上传经 7.7 成功。【经 S1-DEC-048 D2 标注：最小角色授权页不在本仓库里做，本仓库只交付接口，页面放匠心的管理端。照此，本条里「完成角色授予」这半条随页面走，是整理时的读法；Upload 分片上传那半条不动。本条不改】
 - [ ] 文档：Base UI 验证门结论（通过/切 Radix）记录在前端框架仓库 ADR；Lighthouse 首屏 script 体积在预算内。
 - [ ] UT：控件 manifest 与 FormSchema/ListSchema 草案通过各自 JSON Schema 校验，`device`、`auth` 字段存在。
 

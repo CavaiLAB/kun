@@ -128,7 +128,7 @@ export function renderVersionsPage(m: VersionMatrix, updated: string): string {
     '|---|---|---|---|---|---|---|',
     `| ${m.docVersion}（开发版） | ${cell(m.kun)} | ${cell(platformSummary)} | ${cell(frontendSummary)} | ${cell(m.dotnetSdk)}${m.dotnetRollForward ? `（rollForward ${cell(m.dotnetRollForward)}）` : ''} | ${cell(m.node || '未钉版')} / ${cell(m.pnpm || '未钉版')} | ${m.k3s ? cell(m.k3s) : '未钉版'} |`,
     '',
-    '本站当前展示 `main` 文档。Qian 组件参考从前端仓库对应的发布标签生成。',
+    '本站当前展示 `main` 文档。',
     '',
     '## 来源',
     '',

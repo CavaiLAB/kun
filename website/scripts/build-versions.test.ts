@@ -79,7 +79,9 @@ describe('版本矩阵（docs-site.md §2b.4）', () => {
     assert.match(body, /release-packages\.json/);
     assert.match(body, /@cavailab\/qian-runtime.*单独钉住/);
     assert.match(body, /旧应用外壳按 Qian 0\.2\.1 归档.*业务预发保留原有部署和数据/);
-    // 组件页 2026-11-26 起不在本站（S1-DOCS-011）：不再说组件文档取发布标签，改指说明页
+    // 组件页 2026-11-26 起不在本站（S1-DOCS-011）：不再说组件参考或组件文档取发布标签，改指说明页
+    assert.match(body, /^本站当前展示 `main` 文档。$/m);
+    assert.doesNotMatch(body, /Qian 组件参考/);
     assert.doesNotMatch(body, /组件文档取对应发布标签/);
     assert.ok(body.includes('[说明](/components/qian/)'));
     assert.match(body, /8 个层包统一定版本.*@cavailab\/qian-runtime.*@cavailab\/qian-plugin-sdk.*各自定版本/);

@@ -8,6 +8,10 @@
 - **Kun.Sample.Order**: 订单服务，演示命令流程（下单 → 经 gRPC 预留库存 → 经 Outbox 发集成事件）
 - **Kun.Sample.AppHost**: .NET Aspire 编排入口，一键拉起全部服务
 
+## 使用文档的示例
+
+`docs/` 收着网站「开始」里三篇使用文档（上手、写一个组件、在 .NET 里接权限）让读者整段写进文件的代码。它们不进 `Kun.slnx`，由 CI 的「使用文档示例」照页面建项目、装包、运行并核对输出，说明见 [docs/README.md](docs/README.md)。
+
 ## 运行示例（待实现）
 
 ```bash

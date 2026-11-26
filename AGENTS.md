@@ -11,6 +11,7 @@ PR 的必需检查是「CI 汇总」。相关作业全部通过后，以合并�
 - 「CI 汇总」这个检查名不改。分支保护按名字认必需检查，改了名，PR 会一直等一个不会出现的检查。
 - 提交说明里不写跳过 CI 的标记（`[skip ci]`、`[ci skip]`、`[no ci]`、`[skip actions]`、`[actions skip]`），PR 标题也不写，合并提交会带上它。带了标记，整次运行不触发，「CI 汇总」没有结果，PR 合不进去，`main` 上也不跑。
 - 加文件、挪目录时，让它落进区域表里合适的区域（要构建 .NET 的区域都含仓库根的构建基线、`Kun.slnx` 与 `src/`），或者明列进不跑检查的名单。区域表的自测与 `ci.yml` 的结构自测在 `scripts/tests/`，变更检测作业每次先跑，本机跑法 `python3 -m unittest discover -s scripts/tests -p 'test_ci_*.py' -v`；查一个区域管哪些文件用 `python3 scripts/ci_changes.py files <区域>`。
+- 改网站「开始」里三篇使用文档（上手、写一个组件、在 .NET 里接权限）的代码，同时改 `samples/docs/` 里对应的文件，跑 `python3 scripts/docs_examples.py check`；CI 的「使用文档示例」照页面跑一遍，说明见 [samples/docs/README.md](samples/docs/README.md)。
 
 ## 任务流程（必须遵守）
 

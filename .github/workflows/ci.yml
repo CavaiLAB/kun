@@ -4,7 +4,7 @@ name: ci
 #
 # - 变更检测（changes）按 scripts/ci_changes.py 的区域表算出哪些区域改动了；推 main 与手动触发时全部区域都跑。
 #   区域表与本文件的结构各有自测（scripts/tests/test_ci_changes.py、test_ci_workflow.py），变更检测每次都先跑它们。
-# - 其余作业都依赖变更检测，按所属区域决定跑不跑：.NET 的构建、门禁、格式、测试分片、原生发布在本文件里；
+# - 其余作业都依赖变更检测，按所属区域决定跑不跑：.NET 的构建、门禁、格式、测试分片、原生发布与使用文档的示例在本文件里；
 #   镜像自检也在本文件里；前端与文档的 10 个工作流由本文件调用（uses），它们的触发只剩 workflow_call 与 workflow_dispatch。
 # - 最后一个作业「CI 汇总」等全部作业结束：变更检测没有成功、或任一作业失败或取消，就失败；跳过算通过。
 #   它的作业 id（summary）与名字（「CI 汇总」）固定不改：规则集里的必需检查按名字认它。
@@ -51,6 +51,7 @@ jobs:
       images: ${{ steps.detect.outputs.images }}
       docs-and-pm: ${{ steps.detect.outputs.docs-and-pm }}
       docs-site: ${{ steps.detect.outputs.docs-site }}
+      docs-examples: ${{ steps.detect.outputs.docs-examples }}
       documentation: ${{ steps.detect.outputs.documentation }}
       dev-tenant-ops: ${{ steps.detect.outputs.dev-tenant-ops }}
       directory-e2e: ${{ steps.detect.outputs.directory-e2e }}
@@ -554,6 +555,44 @@ jobs:
           name: native-audit-aot-results
           path: TestResults/native-audit-aot/
 
+  # 使用文档的示例（S1-DOCS-012）：网站「开始」里三篇使用文档（上手、写一个组件、在 .NET 里接权限）让读者写进文件的代码
+  # 收在 samples/docs/。先核对页面与示例逐字一致（scripts/docs_examples.py check，不要 .NET），再用当前源码按占位版本
+  # 打出页面上要装的包与它们依赖的 Kun 包放进本地包源，然后像读者那样照页面建项目、装包、编译、运行，核对页面贴出的
+  # 状态码、响应体与错误码：接口改了、页面上的代码或输出与实际对不上，这个作业就失败。
+  # 发版时 release.yml 在包发布之后，用刚发布的版本、照页面的装包方式再跑一遍。说明见 samples/docs/README.md。
+  docs-examples:
+    name: 使用文档示例
+    needs: changes
+    if: needs.changes.outputs.docs-examples == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      KUN_DOCS_EXAMPLES_VERSION: "9999.12.31"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-dotnet
+
+      - name: 示例脚本自测；页面上的代码块与 samples/docs/ 逐字一致
+        run: |
+          python3 -m unittest discover -s scripts/tests -p 'test_docs_examples.py' -v
+          python3 scripts/docs_examples.py check
+
+      - name: 用当前源码按占位版本打出页面上要装的包（本地包源）
+        run: python3 scripts/docs_examples.py feed --version "$KUN_DOCS_EXAMPLES_VERSION" --out "$RUNNER_TEMP/docs-feed"
+
+      - name: 照页面建项目、装包、编译、运行，核对页面贴出的输出
+        run: python3 scripts/docs_examples.py run --feed local --packages "$RUNNER_TEMP/docs-feed" --version "$KUN_DOCS_EXAMPLES_VERSION" --work "$RUNNER_TEMP/docs-examples"
+
+      # 卡住到作业超时是「取消」，不算失败，取消时也要上传。
+      - name: 上传示例的终端与 dotnet run 日志（失败或卡住时排查）
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-examples-logs-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/docs-examples/logs/
+          if-no-files-found: ignore
+
   # profile 镜像构建与供应链门禁自检（S1-DEP-003 / R106）。
   # JIT 与 NativeAOT 两个自检镜像以仓库根为构建上下文，只推到本作业里的临时 registry，不发布任何镜像；
   # 签名用本作业临时签发的 CA，不申请 OIDC 令牌，也不写公共透明日志。
@@ -685,6 +724,7 @@ jobs:
       - native-data-aot
       - gateway-host-aot
       - native-audit-aot
+      - docs-examples
       - images-selfcheck
       - docs-and-pm
       - docs-site

@@ -13,6 +13,8 @@ updated: 2026-11-26
 
 下面的命令与输出在 2026-11-26 用 .NET SDK 10.0.404、Kun 2026.11.24 照着跑过一遍。
 
+这一页让你写进文件的代码，在 Kun 仓库的 [samples/docs/getting-started](https://github.com/CavaiLAB/kun/tree/main/samples/docs/getting-started) 里有一份。仓库的 CI 照这一页从建项目做到发请求：平时用当前源码打的包，每次发版用刚发布的包，页面上贴的状态码、响应体和错误码都要对得上。
+
 ## 先准备
 
 - .NET SDK 10：`dotnet --version` 显示 10.0.100 或更新。
@@ -126,6 +128,8 @@ curl -i http://127.0.0.1:5199/notes --json '{"title":"周报"}'
 ```json
 {"type":"https://qian.dev/problems/business/NOTE_TITLE_TAKEN","title":"标题已存在","status":409,"detail":"已有标题为 周报 的笔记。","instance":"/notes","code":"NOTE_TITLE_TAKEN","message":"已有标题为 周报 的笔记。","trace_id":"ab3bbb4b5c1ae95af67a42a7f6a9cdfc"}
 ```
+
+这里和下面贴的是中文界面语言下的文案。`title`、`detail`、`message` 按服务进程的界面语言取，界面语言来自运行环境的语言设置（`LANG`、`LC_ALL` 等）；在英文环境里启动，这几项是英文，`code` 与状态码不变。按请求切换语言见下面的「文案的语言」。
 
 请求一个不存在的路径，`UseKunErrors()` 把空响应体的 404 也写成同样的格式：
 

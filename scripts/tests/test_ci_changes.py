@@ -95,6 +95,20 @@ class AreaTableTests(unittest.TestCase):
             "tools/Kun.Configuration.Secrets.Tool/README.md": ({"docs-and-pm"}, {"docs-site"}),
             "samples/Kun.Sample.Catalog/README.md": ({"docs-and-pm"}, {"images"}),
             "scripts/check_deps.py": ({"dotnet", "docs-and-pm"}, {"docs-site"}),
+            # 使用文档的示例（S1-DOCS-012）：三篇页面、示例、脚本、示例装的包的源码与清单工具都跑它；别的页面、前端与任务文件不跑。
+            "website/docs/start/getting-started.md": ({"docs-examples", "docs-site", "docs-and-pm"}, {"images"}),
+            "website/docs/start/guides/authorization-dotnet.md": ({"docs-examples", "docs-site"}, {"images"}),
+            "samples/docs/write-a-component/notes-demo/Acme.Notes/NotesPlugin.cs": ({"docs-examples", "dotnet", "docs-and-pm"}, {"docs-site"}),
+            "samples/docs/README.md": ({"docs-examples", "docs-and-pm"}, {"docs-site"}),
+            "scripts/docs_examples.py": ({"docs-examples", "dotnet", "docs-and-pm"}, {"docs-site"}),
+            "src/Kun.Mediator/Kun.Mediator.csproj": ({"docs-examples", "dotnet"}, set()),
+            "tools/Kun.Plugin.Tool/Kun.Plugin.Tool.csproj": ({"docs-examples", "dotnet"}, {"docs-site"}),
+            "samples/Kun.Sample.Crm/metadata/roles.json": ({"docs-examples", "dotnet"}, {"docs-site"}),
+            "scripts/release_finish.py": ({"docs-examples", "dotnet"}, {"docs-site"}),
+            "scripts/release_feed.py": ({"docs-examples", "dotnet"}, {"docs-site"}),
+            "website/docs/start/index.md": ({"docs-site"}, {"docs-examples"}),
+            "packages/qian-cli/package.json": ({"surfaces"}, {"docs-examples"}),
+            "pm/tasks/S1-DOCS-010.md": ({"docs-and-pm"}, {"docs-examples"}),
         }
         for path, (required, excluded) in cases.items():
             with self.subTest(path=path):

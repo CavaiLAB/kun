@@ -1,0 +1,13 @@
+{
+  "id": "com.example.notes",
+  "version": "0.1.0",
+  "description": "示例组件：提供一个笔记服务和一项新建笔记的能力。",
+  "author": { "name": "Example" },
+  "license": "MIT",
+  "interface": { "displayName": "示例笔记", "category": "productivity" },
+  "inject": [],
+  "provides": [],
+  "scopes": ["global", "tenant"],
+  "surfaces": { "tools": "./tools" },
+  "policy": { "tier": "official", "sandbox": "none", "authentication": "ON_INSTALL" }
+}

@@ -203,3 +203,32 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: python3 scripts/release_finish.py --version "$VERSION" --commit "$SOURCE_SHA" --directory "$BUNDLE"
+
+  # 使用文档的示例（S1-DOCS-012）：包、标签与发布页都发布以后，用刚发布的版本、照网站三篇使用文档写的装包方式
+  # （内核档从 nuget.org；平台档用发布页附带的 NuGet.config 和读包令牌，令牌照 publish 的做法取 github.token；
+  # 清单工具从发布标签构建）把示例建出来、编译、运行，核对页面贴出的状态码、响应体与错误码。说明见 samples/docs/README.md。
+  # 它排在发布之后，没有作业依赖它：失败不撤回已经完成的发布，只把这次运行标成失败、摘要里写明哪一步没过，
+  # 按那一步改页面与示例，或者出补丁版本；不要因为它重跑整个发布。通过且这次的版本比页面上写的新时，摘要里给出
+  # 把页面改到这个版本的命令，改动由人提 PR，这里不推送。beta 不发 nuget.org，不跑。
+  docs-examples:
+    name: 发布后照使用文档跑示例
+    needs: [prepare, publish]
+    if: github.ref == 'refs/heads/main' && !inputs.dry_run && needs.prepare.outputs.kind != 'beta'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup-dotnet
+      - name: 页面上的代码块与示例文件逐字一致
+        run: python3 scripts/docs_examples.py check
+      - name: 用刚发布的版本照页面装包、编译、运行，核对页面贴出的输出
+        env:
+          KUN_PLATFORM_FEED_USER: ${{ github.actor }}
+          KUN_PLATFORM_FEED_TOKEN: ${{ github.token }}
+        run: python3 scripts/docs_examples.py run --feed published --version "$VERSION" --work "$RUNNER_TEMP/docs-examples"

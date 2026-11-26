@@ -283,10 +283,10 @@ public override Task<NoteReply> GetNote(NoteRequest request, ServerCallContext c
 
 | 想做的 | 现状 |
 |---|---|
-| Kun 宿主以外的系统来问权限：管理端、工作区服务、页面插件、别的语言写的服务 | 远程的授权接口与客户端包是规划，[S1-AZ-005](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-AZ-005.md) 没有开始。现在 HTTP 上只有上面两个只读端点 |
+| Kun 宿主以外的系统来问权限：管理端、工作区服务、页面插件、别的语言写的服务 | 远程的授权接口与客户端包是规划，还没有实现。要定的十个问题 2026-11-26 已定（[S1-DEC-045](https://github.com/CavaiLAB/kun/blob/main/pm/tasks/S1-DEC-045.md)），任务已建，都没有开始：契约定稿 S1-AZ-011，登记机器身份的入口 S1-AZ-024，端点 S1-AZ-012、S1-AZ-013、S1-AZ-020，客户端包 S1-AZ-014、S1-AZ-015。现在 HTTP 上只有上面两个只读端点 |
 | 数据权限与字段权限，比如按部门、按人过滤数据 | 端口已有（`IDataPermissionFilter`、`IFieldPolicy`），求值没有做；平台模式下现在一律拒绝：数据过滤给恒假条件，字段一个也不给 |
 | Agent 主体与委托 | 没有启用：带委托链的请求在三种入口都被拒绝 |
-| 角色管理接口，组织、岗位、组的继承 | 规划（S1-AZ-005） |
+| 角色管理接口，组织、岗位、组的继承 | 规划，都没有开始：角色管理接口归 S1-AZ-021，组织、岗位、组的继承归 S1-AZ-022 |
 | 用 `qian add authz` 单独安装权限组件 | 没有收口（S1-RT-040） |
 
 ## 再往后

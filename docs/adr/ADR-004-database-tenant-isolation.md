@@ -8,6 +8,8 @@ supersedes: none
 
 # ADR-004 数据库与租户隔离
 
+> 修订（2026-11-27，[S1-DEC-049](../../pm/tasks/S1-DEC-049.md)）：产品负责人 2026-11-27 答复《决策表》。§7 第 1 项按提议推进（成批的丙批）：这一期不支持租户自带数据库连接。正文未改，这几项前加了标注。
+
 ## 1 背景与问题（Context）
 
 Kun 的多租户数据层由 EF 全局过滤（`IMultiTenant` 自动过滤、新增行自动填 `TenantId`、租户模型缓存键）与 PostgreSQL RLS 双拦截器（连接版 + 事务版，PgBouncer 事务池可用）组成，支持 Shared / SchemaPerTenant / DatabasePerTenant 三种策略与幂等的 `ITenantProvisioner`（基线 K §2.1）。测试成熟度不均：只有共享库 + RLS 有真库集成测试，Schema / Database 策略只有单元测试；`ITenantDbContextFactory` 无框架实现；`DatabasePerTenantProvisioner` 不建库、`DeprovisionAsync` 为 no-op（基线 K 附录 B-1；基线 P §4.2）。
@@ -56,7 +58,7 @@ MySQL 只是纸面支持：Pomelo 只钉版本、无引用无测试，RLS 无等
 
 ## 7 待确认事项
 
-- **是否允许业务库由租户自带连接**（决策清单 D4 / D11 需拍板项，Q1–Q18 未给默认）。本 ADR 暂按「本期不支持，S3 独立库档由平台托管」写入，需复核。
+- 【S1-DEC-049（2026-11-27）：这一期不支持租户自带数据库连接，产品负责人 2026-11-27 答复《决策表》时列在成批的丙批里，按提议推进；本项不改】**是否允许业务库由租户自带连接**（决策清单 D4 / D11 需拍板项，Q1–Q18 未给默认）。本 ADR 暂按「本期不支持，S3 独立库档由平台托管」写入，需复核。
 - 是否承诺隔离策略付费迁移服务（基线 S §11 第 6 条）。
 - SchemaPerTenant / DatabasePerTenant 的真库成熟度需 Qian 自补集成测试后才能对外承诺。
 

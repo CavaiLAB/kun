@@ -10,7 +10,7 @@
 
 本手册覆盖构建、部署、回退与首个平台运营账号的引导，并列出相对 PRD 7.17 的已知差异。
 
-- 装配方式与取值的裁决：[关键决策](../decisions/key-decisions-v0.md) 的 R150（扩展登记与 overlay、主机名与证书、引导 Job、D4 只开运营开户）与 R151（系统组件修订的签名、授权与免批）。
+- 装配方式与取值：产品负责人 2026-11-11 的裁决 R150 与 R151。R150 定扩展登记与 overlay、主机名与证书、引导 Job，以及 D4 只开运营开户，做法见下文各节；R151 定 staging 的系统组件修订在构建主机上签名、每次部署由 Job 安装并激活，宿主预装的 system 级组件视为已授权，开通时也不要反向权限批准。
 - 配置键：以 [平台宿主](../../hosts/Kun.Platform.Host/README.md) 与 [网关宿主](https://github.com/CavaiLAB/kun/blob/main/hosts/Kun.Gateway.Host/README.md) 的文档为准。
 - 清单与 Secret 引导脚本：在部署仓库里（应用层清单与 staging 环境配置），对象名以那里为准。
 

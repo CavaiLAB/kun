@@ -73,7 +73,7 @@ S1-YUE-005 按原验收交付了 51 个组件入口、manifest 和 Storybook；�
 
 ## 9 Kun 增加单独的网站（2026-11-26）
 
-产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D4；平台级裁定 P82，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)）：「Kun 增加单独网站增加使用文档和说明。方便后续其他人使用，增加给大模型使用的类似 llm.txt 这种文档。方便进行调用。」
+产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D4；平台级裁定 P82，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-26-platform.md)）：「Kun 增加单独网站增加使用文档和说明。方便后续其他人使用，增加给大模型使用的类似 llm.txt 这种文档。方便进行调用。」
 
 - 已有：本仓库的 `website/` 就是 D22.1 说的那个站，构建时产出 llms.txt 与 llms-full.txt（[S1-DOCS-003](../../pm/tasks/S1-DOCS-003.md)）。它只部署在内部，Kun 的文档和前端框架的组件页放在一起。
 - 读法（整理者的读法，产品负责人没有逐句确认）：「增加单独网站」读作把这个站做成 Kun 自己的、别人打得开的站，补上讲怎么使用的文档；「类似 llm.txt 这种文档」读作 llms.txt 这一类给大模型读的入口。

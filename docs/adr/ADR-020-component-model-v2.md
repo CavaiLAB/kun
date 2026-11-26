@@ -128,11 +128,11 @@ amended_by: ADR-023
 
 ### 7.2 组件入口与程序集边界澄清（2026-10-22）
 
-产品负责人在 [S1-DEC-028](../../pm/tasks/S1-DEC-028.md) 确认方案 A：一个组件 ID 对应一份清单、一个 `runtime.entry`；同一程序集可声明多个不同 ID 的组件，工具按目标清单 ID 选择其派生元数据，重复 ID 或跨组件归属失败。契约包装器、运行时快照适配器和宿主组合子插件是实现构件，不因为实现 `IQianPlugin` 就各自新增组件清单；其归属必须显式记录并被 CI 分类检查。真正需要多个实现协作的组件使用明确的单一组合入口，不把程序集内全部依赖和提供项合并成一个虚假入口。详见[决策记录](../decisions/component-entry-metadata.md)与组件规格 §3.7，实现由 S1-RT-033 交付。
+产品负责人在 [S1-DEC-028](../../pm/tasks/S1-DEC-028.md) 确认方案 A：一个组件 ID 对应一份清单、一个 `runtime.entry`；同一程序集可声明多个不同 ID 的组件，工具按目标清单 ID 选择其派生元数据，重复 ID 或跨组件归属失败。契约包装器、运行时快照适配器和宿主组合子插件是实现构件，不因为实现 `IQianPlugin` 就各自新增组件清单；其归属必须显式记录并被 CI 分类检查。真正需要多个实现协作的组件使用明确的单一组合入口，不把程序集内全部依赖和提供项合并成一个虚假入口。详见[决策记录](https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/component-entry-metadata.md)与组件规格 §3.7，实现由 S1-RT-033 交付。
 
 ### 7.3 真实组件依赖与 gateway 开发模板分期（2026-10-22）
 
-产品负责人在 [S1-DEC-029](../../pm/tasks/S1-DEC-029.md) 确认：当前 gateway 开发模板使用 JIT（`build.aot: false`），不把尚无 NativeAOT 发布运行证据的 Apollo、Audit 等组件标为兼容。gateway 与 standalone 的组合包补齐真实入口必需的 Data，连接仍由宿主提供；identity 模板补齐 issuer、OIDC 客户端和 secretRef 示例，minimal 保持空组合包。详见[决策与证据](../decisions/runtime-profile-metadata.md)。
+产品负责人在 [S1-DEC-029](../../pm/tasks/S1-DEC-029.md) 确认：当前 gateway 开发模板使用 JIT（`build.aot: false`），不把尚无 NativeAOT 发布运行证据的 Apollo、Audit 等组件标为兼容。gateway 与 standalone 的组合包补齐真实入口必需的 Data，连接仍由宿主提供；identity 模板补齐 issuer、OIDC 客户端和 secretRef 示例，minimal 保持空组合包。详见[决策与证据](https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/runtime-profile-metadata.md)。
 
 D20.10 的边缘 AOT 目标与 S1-DEP-008 的 gateway AOT distroless 验收继续有效。S1-GW-001 / S1-DEP-008 必须对完整 Config / Audit / Data 等依赖组合完成 Linux NativeAOT 发布与运行验证，再恢复默认 `build.aot: true` 和相应兼容声明；开发模板的 JIT 校验、工具链自检镜像都不能替代这道门。AOT profile 拒绝未验证代码组件的通用规则保持不变。
 
@@ -144,7 +144,7 @@ D20.10 的边缘 AOT 目标与 S1-DEP-008 的 gateway AOT distroless 验收继�
 
 ## 9 匠心的管理端在浏览器一侧用 Cordis（2026-11-25）
 
-产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D5；平台级裁定 P65、P66，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：匠心工业智能体平台的管理端也要支持 Cordis，管理端的内容要能显示在 DSH 右侧的页签里；管理端只要浏览器一侧。对「管理端只要浏览器一侧，这样定吗？」，答的是「这样定」。记在这里，是因为本文 §4 放弃过一条带 Cordis 的路；两者不冲突。管理端还没有开始做。
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D5；平台级裁定 P65、P66，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)）：匠心工业智能体平台的管理端也要支持 Cordis，管理端的内容要能显示在 DSH 右侧的页签里；管理端只要浏览器一侧。对「管理端只要浏览器一侧，这样定吗？」，答的是「这样定」。记在这里，是因为本文 §4 放弃过一条带 Cordis 的路；两者不冲突。管理端还没有开始做。
 
 - 定下的是：管理端的界面是浏览器里的 Cordis 应用，页面是只有浏览器一半的 Cordis 插件。管理端里不设多人共用的 Node 运行环境；带后端一半（Node）的插件只在各人自己的 DSH 实例里跑。另一个选项是插件的后端一半也要能在管理端跑，没有选。
 - 与 §4 不冲突：§4 放弃的是「直接采用 Cordis 作为 .NET 侧的运行时（经 Node 侧车或 JS 引擎）」，理由是 ADR-002 D2.12 不引入进程共享的服务端 JS 引擎；D20.11 写的是不把 Cordis 的 TypeScript 源码搬进 .NET。两处说的都是服务端。匠心的管理端只在浏览器里用 Cordis，后端仍是平台的 C# 服务，没有服务端的 JS 运行时。

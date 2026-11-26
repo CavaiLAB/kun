@@ -1,6 +1,6 @@
 ---
 title: 指南
-description: Kun 的使用文档：哪些已经能照着做、哪些还写不了（依赖的能力没有实现），以及后端模式、安全、集成等要点与权威来源。
+description: Kun 使用文档的现状（哪些已经能照着做，哪些因依赖的能力没有实现还写不了），以及 Agent 栈、后端模式、多 profile 组合、安全、连接器与集成：每篇的要点与权威来源。
 part: start
 project: platform
 audience: [developer, operator, decision-maker, agent]

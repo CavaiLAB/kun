@@ -30,7 +30,7 @@
 | 4 | CLI 与规格 | `/cli/` | `qian` 十个命令；`plugin.json`、`marketplace.json`、profile / patch 字段参考 | 从 `docs/prd/specs/component-model.md` 同步，不另写 | 是 |
 | 5 | 运维 | `/ops/` | profile 部署到 K3s、Apollo、升级与回切、模型网关接线（GPUStack → Higress）、监控与审计 | 手写 MDX | 否 |
 | 6 | 市场与 ISV | `/marketplace/` | 组件上架流程、信任等级、签名、租户私有市场；S3 前只放规则 | 手写 MDX | 否 |
-| 7 | 设计与路线 | `/design/` | ADR、PRD、路线图、变更日志 | 直接镜像 `docs/` | 否 |
+| 7 | 设计与路线 | `/design/` | ADR、PRD、路线图、【经 S1-DEC-046 D2 标注：平台变更日志 `docs/platform-history.md` 2026-11-26 移除了，本部分不再有「变更日志」一页（原来镜像为 `/design/changelog`）；Kun 已发布版本的变更历史是仓库根 `CHANGELOG.md`，镜像在第 3 部分的 `/sdk/kun/releases/`（§2b.2）；本格不改】变更日志 | 直接镜像 `docs/` | 否 |
 
 两条命名约定：导航上用中文名；路径用上表的英文段，页面 slug 用小写短横线。「组件怎么用」只写在第 2 部分，SDK 部分只写编程模型与 API，两边互相链接而不重复。
 
@@ -188,7 +188,7 @@
 
 ## 5 版本、语言与机器可读产物
 
-- **版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包使用 SemVer，已冻结在 0.2.1。旧外壳按 Qian 0.2.1 归档，组件文档从相应发布标签生成。业务预发保留原有部署和数据。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
+- **版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包使用 SemVer，已冻结在 0.2.1。旧外壳按 Qian 0.2.1 归档，组件文档从相应发布标签生成。业务预发保留原有部署和数据。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-20-product.md)
 - **语言**：中文为唯一一等语言；英文在 S3 评估，目录结构预留 `/en/` 前缀，不提前翻译。
 - **机器可读**：开启 `llms: true`，构建产出 `llms.txt`、`llms-full.txt`、每页 `.md`（SSG-MD），加 `sitemap.xml` 与 `kb-index.json`（每页 url、md url、标题、frontmatter 含 `project` / `version` / `source`、内容 sha256、更新时间），契约见 §5.1；`llms.txt` 按 `project` 分节（平台 / 内核 / 前端，S1-DOCS-006；S1-DOCS-003 先按七个部分分节）。知识库只读这些产物，不解析 MDX 源。每页标题下与首页有「复制为 Markdown」「复制 Markdown 链接」入口（Rspress `themeConfig.llmsUI`，不放外部 AI 服务入口）。
 - **站内「问 AI」**。S2 规划的 `<AskDocs>` 组件检索站点生成的文档与索引，模型调用经模型网关（S2-DOCS-001）。
@@ -279,7 +279,9 @@ S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整�
 
 ## 修订历史
 
-- 2026-11-26：S1-DOCS-010：追加 §5.2：`llms.txt` 在各节之前加给大模型的读法与「从这里开始」一节；§2a.1 前加标注：首页「最新动态」改读仓库根 `CHANGELOG.md` 的发布段，「指南与教程」去掉「从参考平台迁移」。原文未改。
+- 2026-11-26：S1-DOCS-010：追加 §5.2：`llms.txt` 在各节之前加给大模型的读法与「从这里开始」一节。原文未改。
+- 2026-11-26：S1-DEC-046：§2 第 7 部分一行的「变更日志」前加标注（D2）。原文未改。
+- 2026-11-26：S1-DOCS-010：§2a.1 前加标注：首页「最新动态」改读仓库根 `CHANGELOG.md` 的发布段，「指南与教程」去掉「从参考平台迁移」。原文未改。
 - 2026-11-26：S1-DEC-043：文首加修订说明；开头一句（D8）、§2 第 1 部分一行与 §2b.4 第一条（D1）前加标注。原文未改。
 - 2026-10-15：S1-RT-021：§7 注明 96.2 MB / 756 页是 idadawn/qian#95 合并时的实测口径。
 - 2026-10-15：S1-QA-010：§3 共用示例改为预览工具栏切换 scenarios.json 状态；§6 自研 iframe 预览与 TypeScript checker、页面路径 `yue/core/<name>.mdx`；§7 预算按 R55 调为 120 MB。

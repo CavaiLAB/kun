@@ -2,7 +2,7 @@
 
 > 状态：Draft v1（2026-10-06）。依据：ADR-013（前端与前端框架）为主，兼引 ADR-002（插件模型与 MF2）、ADR-010（网关与令牌）、ADR-014（市场与 registry）、ADR-018（阶段）及补充裁决 Q12 / Q13 / Q37 / Q38 / Q39 / Q41。本 spec 规定前端框架的范围、分层、契约、流程与验收；安全规则以 §13 为准，验收方法以 §14 为准。
 >
-> Kun 旧应用外壳按 Qian 0.2.1 归档。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。下文保留旧外壳的设计与阶段规划。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
+> Kun 旧应用外壳按 Qian 0.2.1 归档。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。下文保留旧外壳的设计与阶段规划。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-20-product.md)
 
 Qian 0.2.1 已发布十个框架包：`@cavailab/qian-tokens`、`@cavailab/qian-contracts`、`@cavailab/qian-sdk`、`@cavailab/qian-core`、`@cavailab/qian-form`、`@cavailab/qian-data`、`@cavailab/qian-biz`、`@cavailab/qian-shell`、`@cavailab/qian-runtime`、`@cavailab/qian-plugin-sdk`。Kun 仓库在 `apps/qian-shell` 和私有界面包中装配它们。版本目录只列已经采用的包。[工作区版本目录](../../../pnpm-workspace.yaml)
 

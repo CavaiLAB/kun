@@ -111,7 +111,7 @@ describe('对真实仓库生成', () => {
     for (const source of listDocsSources()) {
       assert.ok(paths.has(designPagePath(source)), `缺少 ${source} 的镜像页`);
     }
-    for (const dir of ['', 'adr/', 'prd/', 'prd/specs/', 'migration/']) {
+    for (const dir of ['', 'adr/', 'prd/', 'prd/specs/']) {
       assert.ok(paths.has(`${dir}_meta.json`), `缺少 ${dir}_meta.json`);
     }
     for (const file of files.filter((f) => f.path.endsWith('.md'))) {

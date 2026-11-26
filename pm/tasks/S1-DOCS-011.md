@@ -38,3 +38,4 @@ updated: 2026-11-26
 - 2026-11-26 claude：创建任务
 - 2026-11-26 claude：开始：先构建一遍拿掉之前的站点，记下页数、产物大小、构建耗时与 91 个旧地址
 - 2026-11-26 claude：转 review：组件页、同源演示、离线编辑器与组件交互的浏览器用例不再生成，构建、类型检查与单测不再检出 CavaiLAB/qian；/components/qian/ 留一页说明，原来的 90 页与 /components/yue/ 的 91 个旧书签（HTML、Markdown 各一）都落到说明页，产物检查与浏览器用例核对；站名改成「Kun 开发文档」，首页、组件目录、产品族页、llms.txt 的读法、版本矩阵的说明跟着改；说明文档照实改，docs-site.md 只加标注。拿掉前后：知识库 780 → 690 页，产物 103.7 → 69.2 MB，热构建约 15 → 8 秒，浏览器用例 210 → 8。check_docs（含生成目录）、pm validate、门禁自测 191 个、站点 typecheck、test 97 个、build、check、e2e 本地通过，带 PR 前缀的构建也通过。另有一处：scripts/ci_changes.py 的 ui 区域还列着已删掉的 website/demo/**，区域表自测会报它，不在本任务改的文件里，合并前要删掉这一项
+- 2026-11-26 claude：写交接说明前复查，补改一处：版本矩阵页开头还写着「Qian 组件参考从前端仓库对应的发布标签生成」，删掉这一句，单测加断言；站点 typecheck、test 97 个、build、check、e2e 与 check_docs（含生成目录）、pm validate 重跑通过

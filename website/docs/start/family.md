@@ -16,6 +16,6 @@ Kun 在一个 .NET 源码树中提供内核与平台组件。Kun 旧应用外壳
 | Kun | 内核 | .NET 10 的命令调度、租户上下文、数据访问、事件和可观测模块 | `CavaiLAB/kun` | CalVer · MIT | [框架文档](/sdk/kun/) |
 | Kun | 平台组件 | 组件运行时、宿主、租户、身份、授权、事件、审计与能力目录 | `CavaiLAB/kun` | CalVer · MIT | [平台设计](/design/) |
 
-前端框架 Qian 的仓库 `CavaiLAB/qian` 2026-11-25 已归档，只读；已发布的包（SemVer · MIT）留着，不再发新版，这张表不再列它。它的文档还在本站：[组件目录](/components/qian/)与[前端 SDK](/sdk/frontend/)。
+前端框架 Qian 的仓库 `CavaiLAB/qian` 2026-11-25 已归档，只读；已发布的包（SemVer · MIT）留着，不再发新版，这张表不再列它。它的组件页 2026-11-26 起不在本站，组件文档在归档仓库的标签里，见[说明](/components/qian/)；讲旧外壳的[前端 SDK](/sdk/frontend/)还在本站。
 
-首个合并版发布后，beta 两档均从 CavaiLAB 的 GitHub Packages 还原。稳定版内核包从 nuget.org 还原，平台包从 GitHub Packages 还原。逐包清单随该版本的 GitHub Release 发布；站点收录的版本见[版本矩阵](/start/versions)。本站从发布标签构建 Kun 框架和前端组件参考，从后端仓库的当前文档构建[设计与路线](/design/)。开发任务在 [Kun 任务目录](https://github.com/CavaiLAB/kun/tree/main/pm/tasks)中维护。
+首个合并版发布后，beta 两档均从 CavaiLAB 的 GitHub Packages 还原。稳定版内核包从 nuget.org 还原，平台包从 GitHub Packages 还原。逐包清单随该版本的 GitHub Release 发布；站点收录的版本见[版本矩阵](/start/versions)。本站从发布标签构建 Kun 框架参考，从后端仓库的当前文档构建[设计与路线](/design/)。开发任务在 [Kun 任务目录](https://github.com/CavaiLAB/kun/tree/main/pm/tasks)中维护。

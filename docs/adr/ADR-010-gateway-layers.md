@@ -4,6 +4,7 @@ status: Accepted
 date: 2026-10-06
 decision_id: D10
 supersedes: none
+amended_by: ADR-024
 ---
 
 # ADR-010 网关分层
@@ -14,6 +15,8 @@ supersedes: none
 
 > 修订（2026-11-26，[S1-DEC-045](../../pm/tasks/S1-DEC-045.md) D2、D8）：远程授权接口的裁定带出认证上的两处改动：别的系统替人问时交来的本人令牌要由平台自己核对；网关与平台宿主要分得出登录会话与访问令牌。两处都是「要有」已定、怎么做仍是提议，见 §10。正文未改。
 
+> 修订（2026-11-27，[ADR-024](ADR-024-model-entry-no-gateway.md)）：产品负责人 2026-11-26 说到 Higress，原话是「评估一下，不需要就不安装了吧。你觉得有这个必要吗？因为它安装起来还是挺复杂的。」评估是整理者做的，结论是不需要；照他这句话里的条件，平台不装 Higress，第三层不再是必装的。模型流量改由平台自己的模型入口接，是 ADR-024 的提议。D10.10 里「不在 S1 把 SSO / S2S 交给 Higress」那一句，对象换成登记成上游的模型网关与推理服务，同 ADR-015 D15.6，是整理者的换法，随 ADR-024 的提议二、四；平台发的调用方凭据由模型入口验，也是提议。MCP 流量那一半随 ADR-016 D16.9、D16.10 的标注：改走平台自己的网关是提议，随 M1 的设计定。正文未改，D10.1、D10.10 前加了标注，§9 末尾加了补记。
+
 ## 1 背景与问题（Context）
 
 现网有两个 IngressClass：`traefik`（业务北向）与 `higress`（AI 南向），各有 MetalLB VIP；集群不直接暴露公网，公网 nginx 终结 TLS 后经 WireGuard 直连；集群内无 cert-manager，Ingress 全 HTTP；Traefik `forwardedHeaders.trustedIPs` 必须配置否则 OIDC issuer 变成 http（基线 K §6.1）。Higress 2.2.3 两副本 + PDB，是模型流量的 chokepoint，对租户无感（基线 K §6.4）。
@@ -22,7 +25,7 @@ supersedes: none
 
 ## 2 决策（Decision）
 
-- 【经 S1-DEC-041 D4 标注：匠心 Web 端的工作区域名由匠心的工作区服务直接接，不经过 `qian.gateway`，是有意的偏离，见 §9；三层的分工不变】**D10.1 三层网关，职责从 S1 画清、不互相承担**：Traefik（北向公网入口）→ `qian.gateway`（业务 API 边界）→ Higress（模型与 MCP 流量）。
+- 【经 S1-DEC-041 D4 标注：匠心 Web 端的工作区域名由匠心的工作区服务直接接，不经过 `qian.gateway`，是有意的偏离，见 §9；三层的分工不变】【经 ADR-024 修订（2026-11-27）：平台不装 Higress，模型流量由平台自己的模型入口接，第三层不再是必装的；模型入口与 MCP 流量的新路都是提议，见 ADR-024；本条不改】**D10.1 三层网关，职责从 S1 画清、不互相承担**：Traefik（北向公网入口）→ `qian.gateway`（业务 API 边界）→ Higress（模型与 MCP 流量）。
 - **D10.2 Traefik 不做鉴权**，只做入口路由与 TLS 终结衔接；`trustedIPs` 必配；ingress 全 HTTP 直到引入 cert-manager。
 - **D10.3 `qian.gateway` 以库方式引用 `Kun.Gateway` 并加固**：认证回退策略（默认拒绝匿名）；路由级 `RateLimiterPolicy` 与全局限流器；可信代理网段；私钥热轮换（JWKS 双钥重叠）；Cookie 会话换 S2S（`IS2sPrincipalResolver` 注入租户 / 应用上下文）；按上游 cluster 铸造 per-service audience；`AddKunObservability`；`/healthz /readyz`；OpenAPI 聚合与能力目录端点（生产不公开 OpenAPI）。
 - **D10.4 S2S 签发器收敛为一套**：保留网关 `S2sTokenIssuer`（短 TTL、JWKS），吸收 `scope / session_id / membership_id / project_id` claim；claim 形状对齐［下游智能体平台］契约 `iss / aud[] / sub / tenant_id / project_id? / roles[] / scope 串 / session_id / iat,nbf,exp,jti`，`exp − iat ≤ 300s`；「新能力授权 = 加 scope 串，不加 claim」；`roles[]` 作为与［下游智能体平台］同形的例外保留，但限定为粗粒度角色代码而非权限点集合，Qian 自身服务不得仅凭 `roles[]` 放行、必须调用 `Kun.Authorization` 决策端口，时效性由 `identity_revision` 管；`project_id` 保留为可选 claim（［下游智能体平台］侧语义，Qian 只透传不解释）（R24）；`Kun.Identity.KunJwtIssuer` 与 `Kun.Security.S2SJwt` 标记废弃；去产品化（issuer 默认值等约 30 处）。
@@ -31,7 +34,7 @@ supersedes: none
 - **D10.7 S3 动态路由 provider**：租户目录 × 已安装应用 → YARP routes / clusters，由插件清单 `components.service.protocols` 与 `tenancy` 派生；「未启用」在网关路由、SDK 入口、前端外壳三处同时拦截；域名 → 租户解析 S1 可选 / S3 必做。
 - **D10.8 开放接口凭据**（Q35）：废弃用户级 AppSecret，统一为网关的应用级客户端凭据（`client_credentials` / API Key，经 `qian.identity` 客户端注册表）；取消「公有」免鉴权。
 - **D10.9 gRPC 流式拦截器补齐**（server / client / duplex streaming），`service` 型插件用流式 RPC 前必须完成。
-- **D10.10 Higress 只管模型与 MCP 流量**，对租户无感；不在 S1 把 SSO / S2S 交给 Higress；网关策略类插件直接用 Higress `WasmPlugin` CRD，不自造。
+- 【经 ADR-024 修订（2026-11-27）：平台不装 Higress，本条说的第三层不再是必装的。「不在 S1 把 SSO / S2S 交给 Higress」那一句，对象换成登记成上游的模型网关与推理服务，同 ADR-015 D15.6，是整理者的换法，随 ADR-024 的提议二、四。末句「网关策略类插件直接用 Higress `WasmPlugin` CRD，不自造」随平台不装 Higress 没有了对象。平台发的调用方凭据由模型入口验，是提议，见 ADR-024；本条不改】**D10.10 Higress 只管模型与 MCP 流量**，对租户无感；不在 S1 把 SSO / S2S 交给 Higress；网关策略类插件直接用 Higress `WasmPlugin` CRD，不自造。
 - **D10.11 不做**：接口体 AES 加密中间件（下沉网关 TLS）；网关解析 JSON 体做鉴权（MCP 按 `Mcp-Method / Mcp-Name` 头路由，敏感参数不入头）。
 - **D10.12 gateway 的原生持久化组合**（S1-DEC-030，2026-10-23 负责人确认 A）：完整 Linux NativeAOT 探针已暴露现有 EF Data/Audit 的动态模型与查询阻塞。新增 `NativeData` 连接/事务 Definition 与 `qian.data.native` PostgreSQL Provider，并以 `qian.audit.native` 实现现有 `Audit` 契约；gateway 采用这组原生 Provider，platform / scheduler 保持原 EF/RLS 路径。审计 Schema、规范化哈希、幂等、平台专用角色与事务语义保持一致，在线宿主不执行迁移。完整 Apollo、Redis、受限 PostgreSQL 和网关安全路径通过 Linux 原生运行前，开发模板继续 JIT，GW-001 / DEP-008 的 AOT 门不关闭。证据及拆分边界见 [实施路径](https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/gateway-native-aot-options.md)。
 
@@ -103,6 +106,8 @@ supersedes: none
 没有选的另一条路：先给网关宿主补上按主机名路由、多个主机名各自登录、按路由选择防伪的方式、空闲超时可配这几项通用的能力，再让工作区走它。这几项以后做 D10.7 的域名到租户解析时也要补；补完以后要不要把工作区并回来，可以再议。
 
 代价：工作区服务成了直接面向浏览器的入口。可信代理网段、限流、会话存储要它自己装配，可以用本仓库的包。这条流量不经过 `qian.gateway` 的限流与审计。
+
+> 补记（2026-11-27，[ADR-024](ADR-024-model-entry-no-gateway.md)）：上面「偏离的范围」写三层的分工不变、Higress 只管模型与 MCP 流量（D10.10）。照 ADR-024，平台不装 Higress；模型流量由平台自己的模型入口接，是提议。工作区域名的这一处偏离本身不受影响。本节上面的句子没有改。
 
 ## 10 远程授权接口的裁定带出的两处认证改动（2026-11-26）
 

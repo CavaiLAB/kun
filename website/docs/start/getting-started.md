@@ -13,6 +13,8 @@ updated: 2026-11-26
 
 下面的命令与输出在 2026-11-26 用 .NET SDK 10.0.404、Kun 2026.11.24 照着跑过一遍。
 
+这一页让你写进文件的代码，在 Kun 仓库的 [samples/docs/getting-started](https://github.com/CavaiLAB/kun/tree/main/samples/docs/getting-started) 里有一份。仓库的 CI 照这一页从建项目做到发请求：平时用当前源码打的包，每次发版用刚发布的包，页面上贴的状态码、响应体和错误码都要对得上。
+
 ## 先准备
 
 - .NET SDK 10：`dotnet --version` 显示 10.0.100 或更新。

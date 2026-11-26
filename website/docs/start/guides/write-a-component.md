@@ -15,6 +15,8 @@ updated: 2026-11-26
 
 下面的命令与输出在 2026-11-26 用 .NET SDK 10.0.404、Kun 2026.11.24 照着跑过一遍。
 
+这一页让你写进文件的代码，在 Kun 仓库的 [samples/docs/write-a-component](https://github.com/CavaiLAB/kun/tree/main/samples/docs/write-a-component) 里有一份。仓库的 CI 照第 1 至 5 步做一遍：平时用当前源码打的包和当前源码构建的清单工具，每次发版用刚发布的包和发布标签，清单工具的输出与宿主的输出都要和页面上的对得上。
+
 名字里带 `qian` 的地方（清单目录 `.qian-plugin/`、命令行 `qian`、平台组件 id 的前缀 `qian.`）是保留下来的运行期字面，不表示产品名。
 
 ## 先准备

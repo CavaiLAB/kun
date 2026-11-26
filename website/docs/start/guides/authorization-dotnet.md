@@ -13,6 +13,8 @@ updated: 2026-11-26
 
 第 1 至 5 步在 2026-11-26 用 .NET SDK 10.0.404、Kun 2026.11.24 照着跑过一遍；第 6 节讲的平台模式，对照的是仓库里客户参考应用的测试。
 
+第 2 步的代码在 Kun 仓库的 [samples/docs/authorization-dotnet](https://github.com/CavaiLAB/kun/tree/main/samples/docs/authorization-dotnet) 里有一份。仓库的 CI 照第 1 至 5 步做一遍：平时用当前源码打的包，每次发版用刚发布的包，页面上贴的状态码、响应体、错误码和第 5 步的表都要对得上。
+
 ## 先认几个词
 
 - **权限点**：`<组件 id>:<资源>:<动作>`，例如 `com.example.notes:note:read`。组件 id 里有点号，按冒号分三段。

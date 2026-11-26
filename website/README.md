@@ -164,7 +164,7 @@ CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内�
 ## 8 写页面
 
 - 手写页放在对应部分的目录下，用 `.md`；要用组件（`Badge`、卡片等）时才用 `.mdx`。
-- frontmatter 先写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`、`audience`、`updated`，`scripts/check_docs.py` 会查（docs-site.md §4）；只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串几种写法。手写页的 `project` 都是 `qian`（`kun` 属于 Kun 镜像页，`yue` 属于 qian 组件库的组件页）。规划中的能力加 `stage`，S2 及以后的再加 `tag: S2` 等，侧栏会显示阶段标记。完整字段见 docs-site.md §4（校验随 S1-DOCS-003 上线）。
+- frontmatter 先写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`、`audience`、`updated`，`scripts/check_docs.py` 会查（docs-site.md §4）；只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串几种写法。手写页的 `project` 都是 `platform`（`kun` 属于 Kun 镜像页，`qian` 属于 qian 组件库的组件页）；`llms.txt` 按它分节，写错了页面会进错节。规划中的能力加 `stage`，S2 及以后的再加 `tag: S2` 等，侧栏会显示阶段标记。完整字段见 docs-site.md §4（校验随 S1-DOCS-003 上线）。
 - 站内链接写绝对路由（`/start/hosts`、`/design/adr/adr-016-agent-boundary`），不带 `.md` 或 `.html`。
 - 卡片等 JSX 容器内部的 Markdown 里不放行内组件（`Badge` 等），阶段标记写成「（S2）」这样的文字；否则 `.md` 产物里会原样残留，产物检查会拦（§4a）。
 - 设计文档、规格与变更日志只改仓库 `docs/`，不要改 `website/docs/design/`、`cli/`、`components/`。

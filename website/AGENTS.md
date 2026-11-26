@@ -24,7 +24,7 @@
 
 - 中文；不写参考平台与对标项目的名字。
 - 站内链接写绝对路由，如 `/start/hosts`、`/design/adr/adr-020-component-model-v2`，不带扩展名。
-- frontmatter 至少写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`（手写页为 `qian`）、`audience`、`updated`；规划中的能力写 `stage`，S2 及以后再加 `tag`。字段与枚举由 `scripts/check_docs.py` 校验（docs-site.md §4），只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串这几种写法。
+- frontmatter 至少写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`（手写页为 `platform`；`kun` 属于 Kun 镜像页，`qian` 属于前端框架 Qian 的组件页；`llms.txt` 按它分节）、`audience`、`updated`；规划中的能力写 `stage`，S2 及以后再加 `tag`。字段与枚举由 `scripts/check_docs.py` 校验（docs-site.md §4），只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串这几种写法。
 - 卡片等 JSX 容器内部的 Markdown 里不要放行内组件（`Badge` 等）：SSG-MD 产出的 `.md` 会原样残留，产物检查会拦；阶段标记写成「（S2）」这样的文字，组件只放在 JSX 属性里（如 `Card` 的 `title`）。
 - 没有的能力不写成已有；S1 建设期的命令按目标形态写，并注明尚未可用。
 

@@ -1,43 +1,21 @@
-// 首页「最新动态」：直接读仓库 docs/platform-history.md，取最近几条（docs-site.md §2a.1），不另维护一份。
+// 首页「最新动态」：读仓库根 CHANGELOG.md 里已发布的版本段，取最近几个版本（docs-site.md §2a.1 的 2026-11-26 标注），
+// 链接到由发布段所在提交镜像的「Kun 版本记录」，不另维护一份。解析见 theme/releases.ts。
 import { withBase } from '@rspress/core/runtime';
 import { Link } from '@rspress/core/theme';
-import changelog from '../../../docs/platform-history.md?raw';
+import changelog from '../../../CHANGELOG.md?raw';
+import { parseReleases } from '../releases';
 
-export interface ChangeEntry {
-  date: string;
-  title: string;
-  summary: string;
-}
-
-/** 解析 `## YYYY-MM-DD 标题` 形式的条目，摘要取标题下第一行正文（去掉列表符与链接语法）。 */
-export function parseChangelog(markdown: string): ChangeEntry[] {
-  const entries: ChangeEntry[] = [];
-  let current: ChangeEntry | null = null;
-  for (const line of markdown.split('\n')) {
-    const heading = /^##\s+(\d{4}-\d{2}-\d{2})\s+(.+)$/.exec(line);
-    if (heading) {
-      current = { date: heading[1] ?? '', title: (heading[2] ?? '').trim(), summary: '' };
-      entries.push(current);
-      continue;
-    }
-    if (current && !current.summary) {
-      const text = line.replace(/^\s*[-*]\s+/, '').trim();
-      if (text && !text.startsWith('#')) {
-        current.summary = text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/`([^`]*)`/g, '$1');
-      }
-    }
-  }
-  return entries;
-}
+/** 「Kun 版本记录」：scripts/kun.ts 从发布段所在提交的 CHANGELOG.md 生成。 */
+export const RELEASES_ROUTE = '/sdk/kun/releases/';
 
 export function LatestChanges({ count = 4 }: { count?: number }) {
-  const entries = parseChangelog(changelog).slice(0, count);
+  const entries = parseReleases(changelog).slice(0, count);
   if (import.meta.env.SSG_MD) {
     return (
       <ul>
         {entries.map((entry) => (
-          <li key={`${entry.date}-${entry.title}`}>
-            {entry.date} <a href={withBase('/design/changelog.md')}>{entry.title}</a>
+          <li key={entry.version}>
+            {entry.date} <a href={withBase(`${RELEASES_ROUTE}index.md`)}>Kun {entry.version}</a>
             {entry.summary ? `：${entry.summary}` : ''}
           </li>
         ))}
@@ -47,10 +25,10 @@ export function LatestChanges({ count = 4 }: { count?: number }) {
   return (
     <ul className="qian-latest rp-not-doc">
       {entries.map((entry) => (
-        <li key={`${entry.date}-${entry.title}`}>
+        <li key={entry.version}>
           <time dateTime={entry.date}>{entry.date}</time>
           <div>
-            <Link href="/design/changelog">{entry.title}</Link>
+            <Link href={RELEASES_ROUTE}>Kun {entry.version}</Link>
             {entry.summary ? <p>{entry.summary}</p> : null}
           </div>
         </li>

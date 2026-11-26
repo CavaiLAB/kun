@@ -4,12 +4,12 @@ description: "@cavailab/qian-runtime 与 @cavailab/qian-plugin-sdk 的编程模�
 part: sdk
 project: platform
 audience: [developer]
-updated: 2026-11-21
+updated: 2026-11-26
 ---
 
 # 前端 SDK
 
-本页说明 Kun 旧应用外壳归档源码使用的 Qian 0.2.1 SDK。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。[产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
+本页说明 Kun 旧应用外壳归档源码使用的 Qian 0.2.1 SDK。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳。
 
 旧外壳是一棵由 `@cavailab/qian-runtime` 装载的插件树，与后端同一套语义：上下文、服务注册、类型化事件、可逆副作用、scope。
 

@@ -112,11 +112,11 @@ website/
 - `sdk/api/`：DocFX 从 nuget.org 上同版本的 `Kun.*` 包（标签中可打包的内核档项目）的 DLL 与 XML 注释生成 Markdown（`docfx metadata`，`outputFormat: markdown`），脚本再转成站内页面：每个命名空间一页、每个类型一页，xref 改写为站内路由与成员锚点，BCL 类型链到 learn.microsoft.com。DocFX 在 `website/.cache/kun-api/build` 的隔离目录里构建，用存根的 `Directory.Build.*` 与关掉中央包管理的 `Directory.Packages.props` 隔开仓库根的 .NET 构建基线（`NuGet.config` 与 `global.json` 仍用仓库根的）。API 页**不进侧栏**，命名空间页与类型页也不渲染侧栏（frontmatter `sidebar: false`），只有 `/sdk/api/` 与 `/sdk/api/kun/` 两个概览页保留侧栏（R54）：Rspress 把整棵侧栏渲染进每一页，几百个类型进侧栏会让产物膨胀数倍；入口是 SDK 侧栏末尾的「API 参考」、Kun 小节概览与各页之间的链接。平台档 NuGet 包、前端包与平台 HTTP API 的参考同样放在 `/sdk/api/` 下（R56）。
 - 只重写内容有变化的文件、删除多余的旧文件，`dev` 不会因重新生成而反复重启。
 
-**变更日志**：仓库 `docs/CHANGELOG.md` 是唯一来源，镜像为 `/design/changelog`；首页「最新动态」直接读它，取最近 4 条。每条一个二级标题 `## YYYY-MM-DD 标题`，下面一两行说明。
+**最新动态**：首页「最新动态」读仓库根 `CHANGELOG.md` 里已发布的版本段（跳过 `[Unreleased]` 与没写日期的段），取最近 4 个版本，摘要是每段前三个小节的标题（`theme/releases.ts`）；链接到「Kun 版本记录」`/sdk/kun/releases/`，它由 `scripts/kun.ts` 从发布段所在提交的 `CHANGELOG.md` 生成。
 
 ## 4 版本策略
 
-站点当前展示 `main` 文档。Qian 冻结在 0.2.1，旧外壳按此版本归档，组件文档按对应发布标签生成。业务预发保留原有部署和数据。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
+站点当前展示 `main` 文档。Qian 冻结在 0.2.1，旧外壳按此版本归档，组件文档按对应发布标签生成。业务预发保留原有部署和数据。
 
 - 组件目录、SDK、CLI 的页面顶部提供版本矩阵入口（`theme/components/PartNotice.tsx`）。
 - 第 3 部分的「Kun 框架」小节与 Kun API 参考不单独选版本：每个 Kun 与 Qian 开发文档版本内嵌构建时 Kun 最新发布版的文档（docs-site.md §5）。这些页面（`project: kun`）不显示版本说明，版本写在每页横幅里（`v<版本>`），产物检查核对它与 Kun 最新的发布版一致。Kun 发版后，文档随下一次构建切换。

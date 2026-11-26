@@ -49,7 +49,3 @@ Qian 是能力提供方与业务主数据权威，Agent 运行时是下游智能
 ### 连接器与集成 {#integrations}
 
 连接器是为某个 seam 提供 Provider、且需要出网的组件，例如身份 seam 的 `oidc`、`wecom` 连接器：向注册表子服务按名称注册，并在清单 `policy.egress[]` 声明允许的出网目标。见 [组件清单 plugin.json](/cli/plugin-json)。
-
-### 从参考平台迁移 {#migration}
-
-迁移方案按租户 / 身份 / 权限、应用表单与列表、流程、数据集成与展示、前端五个领域组织，见 [迁移方案](/design/migration/)。

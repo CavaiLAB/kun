@@ -6,8 +6,8 @@
 |---|---|
 | 状态 | 提议，待产品负责人裁定 |
 | 日期 | 2026-11-26 |
-| 跟踪 | 草案本身是 [S1-MGW-004](../../pm/tasks/S1-MGW-004.md)；要裁定的九个问题是 [S1-DEC-044](../../pm/tasks/S1-DEC-044.md) |
-| 依据 | 平台级裁定 P14（本仓库登记在 [S1-DEC-038](../../pm/tasks/S1-DEC-038.md) D11）、P83（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D5）；[ADR-015](../adr/ADR-015-model-gateway.md)；[ADR-010](../adr/ADR-010-gateway-layers.md)；[组件模型规格](../prd/specs/component-model.md) |
+| 跟踪 | 草案本身是 [S1-MGW-004](../../../pm/tasks/S1-MGW-004.md)；要裁定的九个问题是 [S1-DEC-044](../../../pm/tasks/S1-DEC-044.md) |
+| 依据 | 平台级裁定 P14（本仓库登记在 [S1-DEC-038](../../../pm/tasks/S1-DEC-038.md) D11）、P83（[S1-DEC-043](../../../pm/tasks/S1-DEC-043.md) D5）；[ADR-015](../../adr/ADR-015-model-gateway.md)；[ADR-010](../../adr/ADR-010-gateway-layers.md)；[组件模型规格](component-model.md) |
 | 本文不做的事 | 不写实现；不改 ADR 与需求文档的原文；不动冻结的契约；不改现有任务的内容；不替产品负责人定第 11 节的任何一个问题 |
 
 本文的标法：
@@ -74,7 +74,7 @@
 
 ### 2.2 读法
 
-下面是登记 P83 时整理者的读法，产品负责人没有逐句确认。出处是 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)第 3.6 节，本仓库的同一份读法在 S1-DEC-043 的「读法」里。
+下面是登记 P83 时整理者的读法，产品负责人没有逐句确认。出处是 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-26-platform.md)第 3.6 节，本仓库的同一份读法在 S1-DEC-043 的「读法」里。
 
 - 第二种形态是不带模型推理、通过 API 接第三方的模型服务。
 - 两种形态（带不带模型推理）、企业版与单机版（集群还是一台服务器）、多租户与单租户，是三条不同的线。
@@ -105,27 +105,27 @@
 
 | 名字 | 出处 | 现状 |
 |---|---|---|
-| 组件 `qian.model-gateway` | `plugins/qian.model-gateway/`，见[它的说明](../../plugins/qian.model-gateway/README.md) | 已有骨架：清单标了 `x-skeleton`，`inject` 与 `provides` 都是空的，配置 Schema 只有一个字符串属性。没有代码 |
+| 组件 `qian.model-gateway` | `plugins/qian.model-gateway/`，见[它的说明](../../../plugins/qian.model-gateway/README.md) | 已有骨架：清单标了 `x-skeleton`，`inject` 与 `provides` 都是空的，配置 Schema 只有一个字符串属性。没有代码 |
 | 组合包 `qian.bundle.model-gateway` | `plugins/qian.bundle.model-gateway/`；`platform` 这个 profile 引用了它 | 已有骨架：只插入一个停用的条目 |
-| 包 `Qian.ModelGateway.Abstractions` 与 `Qian.ModelGateway`，服务键 `ctx.ModelGateway` | [需求文档第 7 章](../prd/07-s1-foundation.md) 7.16 节 | 规划，没有项目。照合并蓝图，包名的前缀应当是 `Kun.` |
+| 包 `Qian.ModelGateway.Abstractions` 与 `Qian.ModelGateway`，服务键 `ctx.ModelGateway` | [需求文档第 7 章](../07-s1-foundation.md) 7.16 节 | 规划，没有项目。照合并蓝图，包名的前缀应当是 `Kun.` |
 | 接口 `IModelCatalog`、`IModelProviderAdapter`；扩展点 `qian.model-gateway.provider/v1`；事件 `model.catalog.changed.v1` | 同上 | 规划：只有名字，没有方法 |
 | 契约 `model-capabilities`、`model-governance` | ADR-015 D15.12；7.16 节 | 规划：写的是直接用［下游智能体平台］的，本仓库里没有这两份 Schema |
 | 管理接口 `GET /api/models`、`GET /api/models/{id}/health`、`POST /api/models:sync` | 7.16 节 | 规划 |
-| 目录接口 `GET /model-gateway/catalog` | [需求文档第 10 章](../prd/10-s4-agent.md) 10.5.11 节 | 规划。与上一行的路径不一致 |
+| 目录接口 `GET /model-gateway/catalog` | [需求文档第 10 章](../10-s4-agent.md) 10.5.11 节 | 规划。与上一行的路径不一致 |
 | 调用端点 `/v1/chat/completions`、`/v1/embeddings`，另有第二种消息协议的端点 | 7.16 节；10.5.1 节 | 规划：由模型网关提供 |
 | 逻辑模型名 `chat-default`、`embedding-default` 等；用途槽位 `form-generation` 等 | 7.16 节；10.5.1、10.5.11 节 | 规划。嵌入的缺省名两处写法不一致：7.16 节是 `embedding-default`，10.5 节是 `embed-default` |
 | Agent 表面里的 `model` 字段，取模型别名 `default`、`fast`、`reasoning` | 组件模型规格 4.2 节 | 已有：只校验结构，不解析 |
 | 限流桶的请求头 `x-qian-consumer`；模型网关上的消费者 | 7.16 节；10.5.3 节 | 规划 |
-| 计量事件 `qian.meter.v1` 与 `IMeter` | 7.11.2 节；任务 [S1-AUD-004](../../pm/tasks/S1-AUD-004.md) | 规划，没有代码 |
+| 计量事件 `qian.meter.v1` 与 `IMeter` | 7.11.2 节；任务 [S1-AUD-004](../../../pm/tasks/S1-AUD-004.md) | 规划，没有代码 |
 | 错误码 `MODEL_BUDGET_EXCEEDED` | 10.5.11 节 | 规划：错误码目录里没有 |
-| 密钥引用 `secretRef://…` 与解析 | `src/Kun.Configuration.Abstractions`；[密钥解析的说明](../../src/Kun.Configuration.Secrets/README.md) | 已有：只有解析这一侧，密钥从挂载的文件读。没有写入口 |
+| 密钥引用 `secretRef://…` 与解析 | `src/Kun.Configuration.Abstractions`；[密钥解析的说明](../../../src/Kun.Configuration.Secrets/README.md) | 已有：只有解析这一侧，密钥从挂载的文件读。没有写入口 |
 | 注册表 seam 的写法，如 `Identity.Connectors:oidc` | 组件模型规格 6.1 节；`src/Kun.Identity.Abstractions` | 已有：身份连接器照这个写法实现了，模型的适配可以照它写 |
-| 服务身份的令牌（`client_credentials`）；访问令牌按受众收窄 | [身份服务的说明](../../src/Kun.Identity.Server/README.md) | 已有。固定密钥形态的凭据（ADR-010 D10.8 的 API Key）与代人签发是规划 |
-| 三个任务 [S1-MGW-001](../../pm/tasks/S1-MGW-001.md)、[S1-MGW-002](../../pm/tasks/S1-MGW-002.md)、[S1-MGW-003](../../pm/tasks/S1-MGW-003.md) | 看板 | 都没有开始。照一种推理服务写的。拆分的口径（[S1-DEC-033](../../pm/tasks/S1-DEC-033.md) D6）还等产品负责人确认 |
+| 服务身份的令牌（`client_credentials`）；访问令牌按受众收窄 | [身份服务的说明](../../../src/Kun.Identity.Server/README.md) | 已有。固定密钥形态的凭据（ADR-010 D10.8 的 API Key）与代人签发是规划 |
+| 三个任务 [S1-MGW-001](../../../pm/tasks/S1-MGW-001.md)、[S1-MGW-002](../../../pm/tasks/S1-MGW-002.md)、[S1-MGW-003](../../../pm/tasks/S1-MGW-003.md) | 看板 | 都没有开始。照一种推理服务写的。拆分的口径（[S1-DEC-033](../../../pm/tasks/S1-DEC-033.md) D6）还等产品负责人确认 |
 
 ### 3.2 与三个面对照
 
-三个面的提纲在 `CavaiLAB/jiangxin` 的[总体架构](https://github.com/CavaiLAB/jiangxin/blob/main/docs/02-architecture.md)第 2.2 节，是提议。
+三个面的提纲在 `CavaiLAB/jiangxin` 的[总体架构](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/02-architecture.md)第 2.2 节，是提议。
 
 | 面 | 提纲里说的 | 现有的名字里对得上的 | 要改的，缺的 |
 |---|---|---|---|
@@ -983,12 +983,12 @@ public sealed record ModelDataPlaneChange(IReadOnlyList<string> Applied, IReadOn
 | 草案里的 | 落到哪里 | 靠什么把关 |
 |---|---|---|
 | 能力描述与治理的字段（第 6.7、7.3 节） | `contracts/` 下模型服务自己的一个目录：JSON Schema 加正例与反例。冻结的 `contracts/v0` 不动 | 契约测试 |
-| 调用面（第 6 节） | `docs/prd/specs/` 下一份成文的规格：端点、错误与流式的语义 | 一致性测试，上表第 10 项 |
+| 调用面（第 6 节） | 从本文拆出一份成文的规格，放在同一个目录：端点、错误与流式的语义 | 一致性测试，上表第 10 项 |
 | 适配与数据面绑定的接口（第 7 节） | Definition 包 `Kun.ModelGateway.Abstractions` 的公共 API | 公共 API 的基线文件 |
 | 管理面的接口（第 8.1 节） | OpenAPI 文档，放进同一个契约目录；每个操作的能力条目由代码派生到组件的 `tools/` | 生成物与代码的比对 |
 | 权限点、默认角色、事件（第 8.2、8.4 节） | 组件的 `metadata/` 目录 | 清单的 Schema 校验 |
 | 新增的错误码（第 6.4 节） | 模型组件自己的错误码目录 | 错误码目录的导出与比对 |
-| 用量记录（第 8.3 节） | 随计量事件的契约定，依赖 [S1-AUD-004](../../pm/tasks/S1-AUD-004.md) | 契约测试 |
+| 用量记录（第 8.3 节） | 随计量事件的契约定，依赖 [S1-AUD-004](../../../pm/tasks/S1-AUD-004.md) | 契约测试 |
 
 ## 11 要产品负责人裁定的问题
 

@@ -132,16 +132,13 @@ def source_files() -> list[Path]:
 def design_routes() -> frozenset[str]:
     """docs/ 下每个 .md 在文档站「设计与路线」的路由，规则同 website/scripts/sync-specs.ts 的 designRoute。"""
     routes = set()
-    framework_pages = {"architecture.md", "agent-support.md", "getting-started.md", "migration-plan.md", "migration.md"}
-    aliases = {"platform-overview.md": "README.md", "platform-roadmap.md": "ROADMAP.md",
-               "platform-history.md": "CHANGELOG.md", "adr/decisions.md": "adr/README.md"}
+    framework_pages = {"architecture.md", "agent-support.md", "getting-started.md"}
+    aliases = {"platform-overview.md": "README.md", "platform-roadmap.md": "ROADMAP.md", "adr/decisions.md": "adr/README.md"}
     for f in (ROOT / "docs").rglob("*.md"):
         relative = f.relative_to(ROOT / "docs").as_posix()
         if relative.startswith(("adr/kun/", "guides/", "security/", "design/")) or relative in framework_pages:
             continue
         relative = aliases.get(relative, relative)
-        if relative.startswith("platform-migration/"):
-            relative = "migration/" + relative.removeprefix("platform-migration/")
         parts = [part.lower() for part in Path(relative).parts]
         name = parts.pop()
         page = "/".join(parts + ["index" if name == "readme.md" else name[: -len(".md")]])

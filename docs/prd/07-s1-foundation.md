@@ -712,7 +712,7 @@ S1 的 profile 与组合包落位（R31；三节点 K3s 的现实仍然成立：
 
 ### 7.16 qian.model-gateway 模型服务网关底座（P1 · S1）
 
-**设计理念**。本期唯一的 AI 范围（ADR-015）：不另起一套，并入团队现有 Higress / MaaS 基础设施；GPUStack 作为 OpenAI 兼容上游注册进 Higress + 一个 Provider Adapter；租户/配额/计量在平台侧，Higress 对租户无感；不自写模型代理层；不在 S1 把 SSO/S2S 交给 Higress。接入范围先 LLM + Embedding（Q17）。
+**设计理念**。【经 ADR-024 标注（2026-11-27）：本节照 ADR-015 的 Higress 方案写。平台不装 Higress（ADR-024 D24.4）；额度的单位用积分，积分系统可以选择启用或不启用，周期可以选择（D24.1 至 D24.3）。随之不成立的有：本段与「范围与边界」里注册进 Higress、Higress consumer 与 `x-qian-consumer`；「规划与现状」里对 Higress 的依赖与控制面产物；验收第 1 条里「在 Higress 上可经逻辑名调用」与 Higress 上的路由摘除、第 2 条的 `ai-token-ratelimit`、第 3 条的「Higress 配置变更全部经部署仓库 PR 合入」。本段与「范围与边界」里不自写、不自研模型代理的写法，放不放开随 ADR-024 的提议一，没有裁定。模型请求由平台自己的模型入口转发等新的写法是提议，以模型服务的契约草案为准。本节原文不改】本期唯一的 AI 范围（ADR-015）：不另起一套，并入团队现有 Higress / MaaS 基础设施；GPUStack 作为 OpenAI 兼容上游注册进 Higress + 一个 Provider Adapter；租户/配额/计量在平台侧，Higress 对租户无感；不自写模型代理层；不在 S1 把 SSO/S2S 交给 Higress。接入范围先 LLM + Embedding（Q17）。
 
 **范围与边界**。✅ 做：`model-gateway` 组合包的 adapter 服务（GPUStack 模型发现 `/v1/models`、健康探测、生命周期：上下线）；把 GPUStack 注册为 Higress 上游（`ai-proxy` 供应商与逻辑模型名映射入 git，经部署仓库 PR 而非直改线上）；填写 `model-capabilities` 契约（模态、工具调用、上下文长度、数据驻留、隐私、时延、成本档）与逻辑模型目录（`chat-default`、`embedding-default` 等用途槽位）；为平台租户生成 Higress consumer（key-auth）并由服务端生成 `x-qian-consumer` 头作限流桶键；从响应回流 usage 落 7.11.2 计量事件；密钥 secretRef；模型目录查询 API。❌ 不做：自研模型代理（不做）；租户可见的模型中心与按用途路由 UI（S2/S3）；ASR/TTS/Rerank 接入（待拍板）；SSO/S2S 经 Higress（不做）；Usage Ledger 与下游智能体平台合并（S3 再议，Q15）；MCP 流量治理（S4）；价格表与账单脚本（MaaS 侧，平台只消费）。
 

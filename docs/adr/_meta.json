@@ -23,6 +23,7 @@
   "ADR-021-product-family-structure",
   "ADR-022-rspress-unified-component-docs",
   "ADR-023-kun-qian-merge-blueprint",
+  "ADR-024-model-entry-no-gateway",
   {
     "type": "dir",
     "name": "kun",

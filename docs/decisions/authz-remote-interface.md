@@ -4,7 +4,7 @@
 
 本文答一件事：不在平台宿主里的系统，怎么问 Kun「这个主体能不能对这个资源做这个动作」。「平台宿主」指 Kun 的平台进程（`hosts/Kun.Platform.Host`），下同。照 P86 的整理读法（第 1.2 节），这样的系统包括匠心的管理端、工作区服务、页面插件、DSH 插件在各人实例里跑的那一半，以后还有别的语言写的系统。它们都还是规划。
 
-平台级的口径在匠心的仓库里，本文只引用：[总体架构](https://github.com/CavaiLAB/jiangxin/blob/main/docs/02-architecture.md)第 2.1 节有一张「谁怎么问 Kun」的提议表，[DSH 与企业级平台的对接](https://github.com/CavaiLAB/jiangxin/blob/main/docs/12-dsh-integration.md)第 6、8 节写了 DSH 一侧怎么用。本文第 3 节的几种接法是那张表在 Kun 一侧的展开。
+平台级的口径在匠心的仓库里，本文只引用：[总体架构](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/02-architecture.md)第 2.1 节有一张「谁怎么问 Kun」的提议表，[DSH 与企业级平台的对接](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/12-dsh-integration.md)第 6、8 节写了 DSH 一侧怎么用。本文第 3 节的几种接法是那张表在 Kun 一侧的展开。
 
 文中四种标记：
 
@@ -26,8 +26,8 @@
 
 | 裁定 | 内容 | 原话或答复 | 出处 |
 |---|---|---|---|
-| P86 | 平台以后不论做什么系统，权限都走这一套，要在 Kun 上做好 | 「另外，这个企业级平台后续不论做什么系统，权限都是要走这一套的，所以要在  Kun 框架上做好这部分。」 | [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)；本仓库 [S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D7，ADR-006 第 9 节 |
-| P73 | 能力条目上标了要人确认的能力（`agent.requiresConfirmation` 为真），调用方不是人本人时，平台自己不执行，先生成一条等人输入的任务，等人点；人点了，平台才执行。「不是人本人」指调用方是 Agent，或者带着委托链。人自己在界面上直接调同一个能力，不拦 | 「都按提议定」。问的是「与 Kun 现行写法对不上的两处，都按提议定吗？」，这是其中一处 | [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)；本仓库 [S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D7，[ADR-016](../adr/ADR-016-agent-boundary.md) 第 9 节 |
+| P86 | 平台以后不论做什么系统，权限都走这一套，要在 Kun 上做好 | 「另外，这个企业级平台后续不论做什么系统，权限都是要走这一套的，所以要在  Kun 框架上做好这部分。」 | [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-26-platform.md)；本仓库 [S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D7，ADR-006 第 9 节 |
+| P73 | 能力条目上标了要人确认的能力（`agent.requiresConfirmation` 为真），调用方不是人本人时，平台自己不执行，先生成一条等人输入的任务，等人点；人点了，平台才执行。「不是人本人」指调用方是 Agent，或者带着委托链。人自己在界面上直接调同一个能力，不拦 | 「都按提议定」。问的是「与 Kun 现行写法对不上的两处，都按提议定吗？」，这是其中一处 | [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)；本仓库 [S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D7，[ADR-016](../adr/ADR-016-agent-boundary.md) 第 9 节 |
 | P74 | 等人点头的任务上的动作，缺省只能人做。Agent 代办不是缺省，以后要用再单独放开，怎么放开没有定 | 同上，是另一处 | 同上；S1-DEC-041 D8，[ADR-012](../adr/ADR-012-workflow-engine.md) 第 9 节 |
 | P68 | 等人点头的事记在平台。确认卡的点击由浏览器带着本人的登录直接交给平台 | 见那份平台级裁定第 1 节 P68 一行 | 同上，第 1 节与第 3.7 节。本仓库没有登记成 D 项，见 S1-DEC-041「没有出入的与没有定的」 |
 | P75 | 确认卡的最小一圈不等里程碑 M1 的智能体主体与 MCP 路由，先用替身演示；M1 做好以后替身撤掉 | 「先用替身」 | 同上；本仓库 [S1-DEC-042](../../pm/tasks/S1-DEC-042.md) D1，ADR-016 第 10 节 |

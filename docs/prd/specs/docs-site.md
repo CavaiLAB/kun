@@ -5,6 +5,8 @@
 
 > 修订（2026-11-26，[S1-DEC-043](../../../pm/tasks/S1-DEC-043.md) D1、D8）：前端框架 Qian 的仓库已归档，仓库 README 的产品族表与本站产品族页的表里去掉了它的一行（D1）；平台总览的文档站改成只放匠心自己的文档，不再汇集本仓库的文档（D8）。正文未改，开头一句、§2 第 1 部分一行与 §2b.4 第一条前加了标注。
 
+> 修订（2026-11-26，[S1-DEC-047](../../../pm/tasks/S1-DEC-047.md) D2、[S1-DOCS-011](../../../pm/tasks/S1-DOCS-011.md)）：产品负责人定前端框架 Qian 的组件页从站里拿掉。组件页、同源演示、离线编辑器与组件交互的浏览器用例不再生成，构建不再检出前端框架的仓库；`/components/qian/` 只留一页说明，原来的地址都落到这一页；站名改成「Kun 开发文档」。正文未改，§2 第 2 部分一行、§2a.1、§3.1、§4 的 `project` 一行、§5 的版本一条、§6、§7、§8 第 5 条前加了标注，§5.2 末尾追加一条。
+
 本站是 Kun 的组件文档站。【经 S1-DEC-043 D8 标注：平台总览的文档站 2026-11-26 起只放匠心自己的文档，不再汇集别的仓库的文档；本仓库的文档只在本仓库和本站。本句不改】产品总览和跨仓文档由 [CavaiLAB/jiangxin](https://github.com/CavaiLAB/jiangxin) 汇集。
 
 ## 1 读者与目标
@@ -25,7 +27,7 @@
 | # | 部分 | 路径 | 内容 | 来源 | 版本化 |
 |---|---|---|---|---|---|
 | 1 | 开始 | `/start/` | 30 分钟跑通 `qian add identity authz files`；核心概念五页：组件、表面、scope、seam、profile / patch；【经 S1-DEC-043 D1 标注：产品族页的表里前端框架一行 2026-11-26 去掉了，页面在表下面用一句话交代它的仓库已归档；本格不改】产品族地图 `/start/family`（Kun 后端 / Qian 前端与周边仓库的层次与关系）与版本矩阵 `/start/versions`（§2b.4） | 手写 MDX（版本矩阵生成） | 否 |
-| 2 | 组件目录 | `/components/` | 每个组件一页（模板见 §3）：Qian UI 组件带活演示与 props 表；平台插件（身份、鉴权、文件、配置、事件…）同一模板 | 从各组件文件夹自动收集（S1-DOCS-002），**生成目录勿手改** | 是，随包版本 |
+| 2 | 组件目录 | `/components/` | 【经 S1-DEC-047 D2 标注：前端框架 Qian 的组件页 2026-11-26 起从站里拿掉，`/components/qian/` 只留一页说明，原来的地址都落到这一页；本部分现在只有平台插件；本格不改】每个组件一页（模板见 §3）：Qian UI 组件带活演示与 props 表；平台插件（身份、鉴权、文件、配置、事件…）同一模板 | 从各组件文件夹自动收集（S1-DOCS-002），**生成目录勿手改** | 是，随包版本 |
 | 3 | SDK | `/sdk/` | Kun 后端框架、平台组件与 .NET SDK；Qian 前端 SDK；AI SDK 与声明式表面。已发布内核版的指南与 API 见 §2b。 | 本仓库的说明、发布标签与 API 生成物 | 是 |
 | 4 | CLI 与规格 | `/cli/` | `qian` 十个命令；`plugin.json`、`marketplace.json`、profile / patch 字段参考 | 从 `docs/prd/specs/component-model.md` 同步，不另写 | 是 |
 | 5 | 运维 | `/ops/` | profile 部署到 K3s、Apollo、升级与回切、模型网关接线（GPUStack → Higress）、监控与审计 | 手写 MDX | 否 |
@@ -41,6 +43,8 @@
 ### 2a.1 首页区块（自上而下）
 
 > 标注（2026-11-26，S1-DOCS-010）：产品负责人 2026-11-26 定「整理 docs 文档目录，移除历史决策」，平台变更日志（`docs/platform-history.md`，镜像为 `/design/changelog`）与迁移方案随之移除。首页「最新动态」改读仓库根 `CHANGELOG.md` 里已发布的版本段，链接到「Kun 版本记录」`/sdk/kun/releases/`；「指南与教程」一栏与 §2a.2 表「指南」一行去掉「从参考平台迁移」。两张表的原文未改。
+
+> 标注（2026-11-26，S1-DOCS-011）：前端框架 Qian 的组件页从站里拿掉以后（S1-DEC-047 D2），首页标题改成「Kun 开发文档」，一句话定位不再提前端框架的组件文档；下表「标题与搜索」一行说的「Kun 后端与 Qian 前端的位置」随之只讲 Kun。页脚的 Qian 仓库与许可链接没有动。两张表的原文未改。
 
 | 区块 | 内容 | 来源 |
 |---|---|---|
@@ -152,6 +156,8 @@
 
 ### 3.1 前端框架组件文档与演示
 
+> 标注（2026-11-26，S1-DOCS-011）：产品负责人定前端框架 Qian 的组件页从站里拿掉（S1-DEC-047 D2）。本节，连同 §3 引言与第 5 条里讲前端框架组件的部分，在本站没有了对应的页面：组件页、演示、属性表、在线编辑与组件交互的浏览器用例都不再生成，构建不再检出前端框架的仓库。旧地址落到 `/components/qian/` 的说明页，说明页写明组件文档在归档仓库的标签 `@cavailab/qian-core@0.2.1` 里。本节原文未改。
+
 [ADR-022](../../adr/ADR-022-rspress-unified-component-docs.md) 将现有 Rspress 站点确定为唯一文档与演示体系，Storybook 全部退出；选型证据与默认插件限制见该 ADR。S1-YUE-005 先交付 core 接入，S1-DOCS-002 复用接线继续收集其它组件与 API，避免循环依赖。
 
 - **页面编排**：参考产品负责人提供的 [组件页](https://ui.shadcn.com/docs/components/aria/alert-dialog)：标题与用途、首屏可交互预览及源码展开/复制、安装、基本用法、组合结构、可切换状态的共用示例、API 与键盘/无障碍说明；保留模型体验、已知限制和变更。每个组件的普通 React 示例均可运行并查看对应源码；预览工具栏按 `docs/scenarios.json` 切换适用状态，弹层开关等交互在示例内操作，悬停需实际移入指针，右侧目录可定位章节，左侧按组件导航。采用本仓库真实 API 与令牌，功能说明以已实现能力为准。安装、预览、代码和 API 均留在现有 Rspress 页面中，用户无需访问独立演示站。
@@ -173,7 +179,7 @@
 | `title` | 是 | 文本 | 页面标题 |
 | `description` | 是 | ≤ 120 字 | 列表摘要、`llms.txt` 条目、知识库摘要 |
 | `part` | 是 | `start` / `components` / `sdk` / `cli` / `ops` / `marketplace` / `design` | 所属部分 |
-| `project` | 是 | `platform` / `kun` / `qian` | 分别对应平台、Kun 和 Qian 前端组件库。知识库与 `llms.txt` 按标识分组。组件页位于 `/components/qian/`，已有的 `/components/yue/` 书签继续打开对应页面并保留锚点。 |
+| `project` | 是 | `platform` / `kun` / `qian` | 【经 S1-DEC-047 D2 标注：组件页 2026-11-26 起拿掉，`qian` 现在只用于 `/components/qian/` 的说明页与「设计与路线」里前端框架规格的镜像，`llms.txt` 里这一组叫「前端框架 Qian（已归档）」；`/components/qian/` 与 `/components/yue/` 下原来的地址都落到说明页；本格不改】分别对应平台、Kun 和 Qian 前端组件库。知识库与 `llms.txt` 按标识分组。组件页位于 `/components/qian/`，已有的 `/components/yue/` 书签继续打开对应页面并保留锚点。 |
 | `audience` | 是 | 数组：`developer` / `operator` / `isv` / `agent` / `decision-maker` | 知识库与「问 AI」按读者过滤 |
 | `component` | 组件页必填 | 组件 id，如 `qian.files` | 关联组件 |
 | `version` | 有发布版本时 | 组件版本、Kun CalVer 或前端包 SemVer | 定位对应发行版本 |
@@ -188,7 +194,7 @@
 
 ## 5 版本、语言与机器可读产物
 
-- **版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包使用 SemVer，已冻结在 0.2.1。旧外壳按 Qian 0.2.1 归档，组件文档从相应发布标签生成。业务预发保留原有部署和数据。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-20-product.md)
+- 【经 S1-DEC-047 D2 标注：前端框架的组件文档 2026-11-26 起不再生成，见 §3.1 前的标注；本条不改】**版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包使用 SemVer，已冻结在 0.2.1。旧外壳按 Qian 0.2.1 归档，组件文档从相应发布标签生成。业务预发保留原有部署和数据。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-20-product.md)
 - **语言**：中文为唯一一等语言；英文在 S3 评估，目录结构预留 `/en/` 前缀，不提前翻译。
 - **机器可读**：开启 `llms: true`，构建产出 `llms.txt`、`llms-full.txt`、每页 `.md`（SSG-MD），加 `sitemap.xml` 与 `kb-index.json`（每页 url、md url、标题、frontmatter 含 `project` / `version` / `source`、内容 sha256、更新时间），契约见 §5.1；`llms.txt` 按 `project` 分节（平台 / 内核 / 前端，S1-DOCS-006；S1-DOCS-003 先按七个部分分节）。知识库只读这些产物，不解析 MDX 源。每页标题下与首页有「复制为 Markdown」「复制 Markdown 链接」入口（Rspress `themeConfig.llmsUI`，不放外部 AI 服务入口）。
 - **站内「问 AI」**。S2 规划的 `<AskDocs>` 组件检索站点生成的文档与索引，模型调用经模型网关（S2-DOCS-001）。
@@ -223,8 +229,11 @@
 - `llms.txt` 在标题与一句话定位之后、各节之前，多两样东西。一是给大模型的读法，说明各节是什么、先读哪里：API 参考只收内核档的包；「设计与路线」是需求与决策记录，不是用法；「qian 组件库」各节是已归档的前端框架。二是「从这里开始」一节，按顺序列使用文档，以及组件、清单、命令行、API 参考、Kun 框架与版本的入口页。
 - 两样都写在 `website/scripts/llms.ts`（`LLMS_GUIDE`、`START_HERE`），由 `rspress.config.ts` 传给 `renderLlmsTxt`。「从这里开始」列的页在原来的节里照旧出现，§7「`llms.txt` 收录每页」的检查不变；列了站里没有的页时构建失败。
 - §5.1 表里 `llms.txt` 一行写于 S1-DOCS-003（按七个部分分节）。S1-DOCS-006 起改成先按 project 再按部分分节（见 §5「机器可读」一条），本节在前面再加上述两样。原文未改。
+- 标注（2026-11-26，S1-DOCS-011）：前端框架 Qian 的组件页从站里拿掉以后（S1-DEC-047 D2），读法里讲前端框架的一句改成：它的仓库已归档、组件页不在本站，「前端框架 Qian（已归档）」开头的几节只有一页说明与它的设计规格；分节的组名「qian 组件库」改成「前端框架 Qian（已归档）」。上面第一条原文未改。
 
 ## 6 `website/` 目录骨架
+
+> 标注（2026-11-26，S1-DOCS-011）：下面骨架里的 `components/qian/core/<name>.mdx` 与 `qian/api/`、`scripts/yue-docs.ts`、`scripts/build-yue-demos.ts`、`demo/` 都已拿掉（S1-DEC-047 D2）。`components/qian/` 下只有说明页 `index.md`；原来的地址清单与归档标签在 `scripts/qian-archive.ts`，跳转页由 `scripts/component-redirects.ts` 在构建末尾写出。骨架原文未改。
 
 ```text
 website/
@@ -259,6 +268,8 @@ website/
 
 ## 7 门禁
 
+> 标注（2026-11-26，S1-DOCS-011）：组件页、演示与离线编辑器拿掉以后（S1-DEC-047 D2），完整站点实测 69.2 MB（拿掉之前 103.7 MB；知识库 690 页，之前 780 页），预算仍是 120 MB，没有调低。组件交互的浏览器用例（原来 210 条）随组件页拿掉，换成站点级用例；产物检查另核对 `/components/qian/` 与 `/components/yue/` 下原来的地址都有落到说明页的跳转页，产物里没有组件演示与离线编辑器的资源（`yue-demo/`、`yue-vendor/`）。下面的原文未改。
+
 S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整站点实测 96.2 MB / 756 个页面（idadawn/qian#95 合并时口径）（知识库收录 754 页），其中离线 Monaco / Babel 15.6 MB、API 参考目录 20.1 MB、前端框架页面与完整属性表 7.7 MB；保留约 24 MB 的后续收集空间。编辑器继续点击后按需加载、全量同源，完整 TypeScript worker 约 5.75 MB，删除其余语言并不足以降到 90 MB，故本次选用预算调整路线，保留现有编辑能力。共享继承属性表已经去重，预算仍校验全部未压缩文件且超限必败；S1-DOCS-002 开工前须完成此整改，后续正常增长仍需逐次说明，不能自动放宽。
 
 - `scripts/check_docs.py` 覆盖 `website/docs`：禁用词、表格、断链、frontmatter 必填与枚举（§4）；生成目录在 CI 里构建后显式检查（`scripts/check_docs.py website/docs/components website/docs/cli website/docs/design website/docs/sdk/kun website/docs/sdk/api`）。
@@ -273,12 +284,13 @@ S1-QA-010 于 2026-10-15 按 R55 将预算从 100 MB 调整为 120 MB：完整�
 - [ ] 任一组件页满足 §3 九节顺序；缺节组件构建失败
 - [x] 全站页面 frontmatter 通过 §4 校验（S1-DOCS-003）
 - [x] §5 的四类机器可读产物齐全并经 CI 新鲜度校验（S1-DOCS-003，§5.1）
-- [ ] 第 2 部分前端框架页有活演示与 props 表，平台插件页有配置字段表与最小 patch 示例
+- [ ] 【经 S1-DEC-047 D2 标注：前端框架的组件页 2026-11-26 起从站里拿掉，本条前半句在本站不再适用；本条不改】第 2 部分前端框架页有活演示与 props 表，平台插件页有配置字段表与最小 patch 示例
 - [ ] 第 3 部分按 §2b 生成。版本与发布标签一致，镜像页有来源与 `project: kun`，内核 API 和 `/sdk/kun/with-qian` 手写页可达。
 - [x] `/start/family` 与 `/start/versions` 存在，后者由脚本生成并与仓库钉版一致（S1-DOCS-006）
 
 ## 修订历史
 
+- 2026-11-26：S1-DOCS-011：前端框架 Qian 的组件页从站里拿掉（S1-DEC-047 D2）：文首加修订说明；§2 第 2 部分一行、§2a.1、§3.1、§4 的 `project` 一行、§5 的版本一条、§6、§7、§8 第 5 条前加标注，§5.2 末尾追加一条。原文未改。
 - 2026-11-26：S1-DOCS-010：追加 §5.2：`llms.txt` 在各节之前加给大模型的读法与「从这里开始」一节。原文未改。
 - 2026-11-26：S1-DEC-046：§2 第 7 部分一行的「变更日志」前加标注（D2）。原文未改。
 - 2026-11-26：S1-DOCS-010：§2a.1 前加标注：首页「最新动态」改读仓库根 `CHANGELOG.md` 的发布段，「指南与教程」去掉「从参考平台迁移」。原文未改。

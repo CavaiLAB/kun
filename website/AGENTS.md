@@ -13,7 +13,7 @@
 | 内核与平台组件的装配关系 | `website/docs/sdk/kun/with-qian.mdx`（按 ADR-023 和现行项目公开 API 核对，旧版本记录按对应标签查阅） | — |
 | Kun 镜像的白名单、侧栏与横幅 | `docs/prd/specs/docs-site.md` §2b 与 `website/scripts/sync-kun-docs.ts` 一起改 | 生成出来的页面 |
 | CLI 命令与清单字段 | `docs/prd/specs/component-model.md`（站内 `/cli/` 自动同步） | `website/docs/cli/` |
-| 组件页 | qian 组件库：源码与文档在 CavaiLAB/qian（提 PR），站内按版本目录里 `@cavailab/qian-core` 的版本检出同名标签生成，生成规则在 `website/scripts/yue-docs.ts`、`qian.ts`；其它组件：`collect-components.ts` 的规划清单，S1-DOCS-002 后改为组件目录 | `website/docs/components/` |
+| 组件页 | 平台插件：`collect-components.ts` 的规划清单，S1-DOCS-002 后改为组件目录。前端框架 Qian 的组件页 2026-11-26 起不在本站（S1-DEC-047 D2）：`/components/qian/` 的说明页由 `collect-components.ts` 生成，原来的地址清单与归档标签在 `qian-archive.ts`；组件页要加回来，先要有新的裁定 | `website/docs/components/` |
 | 首页 | `website/docs/index.mdx`（结构按 docs-site.md §2a） | — |
 | 产品族地图 | `website/docs/start/family.md` 与仓库 `README.md` 的「产品族」表一起改（单测核对前五列一致） | — |
 | 版本矩阵 | 对应的钉版文件（仓库根的 `CHANGELOG.md` 与 `global.json`，本目录的 `package.json`、`deploy/baseline.json` 等） | `website/docs/start/versions.md`（生成，不进 Git） |
@@ -25,7 +25,7 @@
 
 - 中文；不写参考平台与对标项目的名字。
 - 站内链接写绝对路由，如 `/start/hosts`、`/design/adr/adr-020-component-model-v2`，不带扩展名。
-- frontmatter 至少写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`（手写页为 `platform`；`kun` 属于 Kun 镜像页，`qian` 属于前端框架 Qian 的组件页；`llms.txt` 按它分节）、`audience`、`updated`；规划中的能力写 `stage`，S2 及以后再加 `tag`。字段与枚举由 `scripts/check_docs.py` 校验（docs-site.md §4），只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串这几种写法。
+- frontmatter 至少写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`（手写页为 `platform`；`kun` 属于 Kun 镜像页，`qian` 原来属于前端框架 Qian 的组件页，现在只用于组件目录里那页说明与前端框架规格的镜像；`llms.txt` 按它分节）、`audience`、`updated`；规划中的能力写 `stage`，S2 及以后再加 `tag`。字段与枚举由 `scripts/check_docs.py` 校验（docs-site.md §4），只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串这几种写法。
 - 卡片等 JSX 容器内部的 Markdown 里不要放行内组件（`Badge` 等）：SSG-MD 产出的 `.md` 会原样残留，产物检查会拦；阶段标记写成「（S2）」这样的文字，组件只放在 JSX 属性里（如 `Card` 的 `title`）。
 - 没有的能力不写成已有；S1 建设期的命令按目标形态写，并注明尚未可用。
 
@@ -37,7 +37,7 @@
 
 ## 提交前
 
-构建要读 Kun 最新发布版的 tag `v<版本>`（版本取仓库根 `CHANGELOG.md`）并跑 DocFX：需要 .NET SDK；tag 在本仓库里，脚本默认读本仓库（缺了从 `origin` 取），也可以让 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆；还要读 CavaiLAB/qian 的检出：`QIAN_DOCS_PATH` 指向停在对应标签、装好依赖的检出（或能用 HTTPS 克隆），见 [README.md](README.md) §1。
+构建要读 Kun 最新发布版的 tag `v<版本>`（版本取仓库根 `CHANGELOG.md`）并跑 DocFX：需要 .NET SDK；tag 在本仓库里，脚本默认读本仓库（缺了从 `origin` 取），也可以让 `KUN_DOCS_PATH` 指向另一个有该 tag 的克隆，见 [README.md](README.md) §1。不再需要前端框架 Qian 的检出：它的组件页 2026-11-26 起不在本站。
 
 ```bash
 python3 scripts/check_docs.py

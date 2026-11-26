@@ -87,7 +87,7 @@ Kun 仓库的 `qian` 命令行、外壳应用、组件清单与契约共同组�
 
 ## 前端依赖与包源
 
-Kun 旧应用外壳按 [Qian](https://github.com/CavaiLAB/qian) 0.2.1 归档，组件文档从 Qian 的对应发布标签生成。业务预发保留原有部署和数据。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳（[S1-DEC-039](pm/tasks/S1-DEC-039.md)）。
+Kun 旧应用外壳按 [Qian](https://github.com/CavaiLAB/qian) 0.2.1 归档，业务预发保留原有部署和数据；文档站 2026-11-26 起不再收录它的组件页（[S1-DEC-047](pm/tasks/S1-DEC-047.md) D2）。匠心工业智能体平台的 Web 与桌面端采用 DSH 外壳（[S1-DEC-039](pm/tasks/S1-DEC-039.md)）。
 
 本仓库的旧外壳源码、三个界面包、外壳接线、参考应用的远程模块、文档站与真实目录验收页引用 Qian 发布在 GitHub Packages 上的 `@cavailab/qian-*`：版本只在 `pnpm-workspace.yaml` 的版本目录里钉一次（精确版本，升级走 PR）；命令行与校验库的测试用的 `@cavailab/qian-runtime` 写在它们各自的 `package.json` 里。
 
@@ -103,7 +103,7 @@ NODE_AUTH_TOKEN=$(gh auth token) pnpm install
 
 CI 里由 `actions/setup-node` 的 `registry-url` 写同样的用户级配置，`pnpm install` 带 `NODE_AUTH_TOKEN`（本次运行的 `GITHUB_TOKEN`），作业权限 `packages: read`。
 
-钉版涉及版本目录中的 9 条、`minimumReleaseAgeExclude` 里同名的 10 条、`packages/qian-cli` 与 `packages/qian-surfaces` 的 `@cavailab/qian-runtime`。pnpm 12 默认拦发布不满一天的包（`minimumReleaseAge`），刚发的版本靠 `minimumReleaseAgeExclude` 放行；`pnpm install` 会先按新的排除清单检查旧锁文件，旧版本发布也不满一天时报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`。这时解析期间先留着旧版本的排除条目，装完删掉，再跑 `pnpm install --frozen-lockfile` 确认新锁文件过策略。文档站读版本目录检出同名标签，不用另改。
+钉版涉及版本目录中的 9 条、`minimumReleaseAgeExclude` 里同名的 10 条、`packages/qian-cli` 与 `packages/qian-surfaces` 的 `@cavailab/qian-runtime`。pnpm 12 默认拦发布不满一天的包（`minimumReleaseAge`），刚发的版本靠 `minimumReleaseAgeExclude` 放行；`pnpm install` 会先按新的排除清单检查旧锁文件，旧版本发布也不满一天时报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`。这时解析期间先留着旧版本的排除条目，装完删掉，再跑 `pnpm install --frozen-lockfile` 确认新锁文件过策略。文档站的版本矩阵读版本目录，不用另改。
 
 ## 文档
 

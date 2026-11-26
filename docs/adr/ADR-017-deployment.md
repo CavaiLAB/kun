@@ -98,7 +98,7 @@ DEP-002/003 的基线前置保持，DEP-005 显式依赖 DEP-002 与 DEP-008（�
 
 ## 11 system 级预装组件的版本与升级（2026-11-17）
 
-产品负责人通过 [S1-DEC-037](../../pm/tasks/S1-DEC-037.md) 选定（R167）：组件文件夹即制品，版本号唯一对应文件夹的内容；system 级预装组件的内容变了就升版本，升版本要能在有数据的库上原地完成。事实与备选做法见[决策文档](../decisions/system-component-same-version.md)。
+产品负责人通过 [S1-DEC-037](../../pm/tasks/S1-DEC-037.md) 选定（R167）：组件文件夹即制品，版本号唯一对应文件夹的内容；system 级预装组件的内容变了就升版本，升版本要能在有数据的库上原地完成。事实与备选做法见[决策文档](https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/system-component-same-version.md)。
 
 - 门禁：system 级 module 组件的目录摘要相对上次发布变了而 `plugin.json` 的版本没变，CI 失败。上次发布的基线是仓库里的基线文件，随部署登记更新（S1-DEP-012）。
 - 升级：系统组件修订 Job 激活新版本后，把开通在别的版本上的租户对齐到镜像里的版本，Lifecycle 的开通记录与 Authz 的默认策略一起换；镜像回切时反向对齐（S1-DEP-013）。在那之前，Job 遇到这种情况拒绝激活，staging 按运维手册第 7 节清库重来，每次先经产品负责人确认。
@@ -107,7 +107,7 @@ DEP-002/003 的基线前置保持，DEP-005 显式依赖 DEP-002 与 DEP-008（�
 
 ## 12 运维侧的登录也接身份服务（2026-11-25）
 
-产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D1；平台级裁定 P57，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：交付给客户的产品里，运维侧各个控制台的登录也接 Kun 的身份服务，不带 Authentik；每个控制台保留一个本地的应急管理员。问的是「与旧决策有出入的甲 1 至甲 3，都按提议定吗？」，答「都按提议定」，这是其中的甲 1。
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D1；平台级裁定 P57，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)）：交付给客户的产品里，运维侧各个控制台的登录也接 Kun 的身份服务，不带 Authentik；每个控制台保留一个本地的应急管理员。问的是「与旧决策有出入的甲 1 至甲 3，都按提议定吗？」，答「都按提议定」，这是其中的甲 1。
 
 - 修订的是 §2 D17.11 里的「运维侧 = Authentik」与「Apollo Portal / Headlamp / Argo 走 Authentik blueprint」。D17.3 的「Authentik 升级并仅服务运维侧」、ADR-005 D5.7、ADR-007 D7.1 里 Portal 的登录是同一口径，随之按本节读。D17.11 的其余部分不变：客户 CIAM 用身份服务，每个环境至少有独立的 OIDC client。
 - 理由：产品负责人 2026-11-24 说「所有涉及到权限的这些，后面我都会接入到 PaaS 服务上。统一使用 C# 进行提供。」交付给客户的东西里少一个组件，单机版尤其需要。不这样做，客户现场要维护两套身份系统，权限有一半不在 C# 里。
@@ -127,7 +127,7 @@ DEP-002/003 的基线前置保持，DEP-005 显式依赖 DEP-002 与 DEP-008（�
 
 ## 14 两种形态与两个版本（2026-11-26）
 
-产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D5；平台级裁定 P83，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)）：「企业级框架分为两种 1.K8s集群，包括模型推理服务， GPU Stack 等 2.不包括直接接入第三方模型服务，通过 API 方式，可以参考框架。 3.提供多租户和单租户两个版本。 但是不管哪种方式 统一由管理端进行管理。以上尽量使用插件的形式进行实现。所以你要设计一些标准的接口，方便我对接后面的模型推理服务，因为我只想提供一套。」模型服务的部分见 [ADR-015](ADR-015-model-gateway.md) §9。
+产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D5；平台级裁定 P83，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-26-platform.md)）：「企业级框架分为两种 1.K8s集群，包括模型推理服务， GPU Stack 等 2.不包括直接接入第三方模型服务，通过 API 方式，可以参考框架。 3.提供多租户和单租户两个版本。 但是不管哪种方式 统一由管理端进行管理。以上尽量使用插件的形式进行实现。所以你要设计一些标准的接口，方便我对接后面的模型推理服务，因为我只想提供一套。」模型服务的部分见 [ADR-015](ADR-015-model-gateway.md) §9。
 
 - 读法（整理者的读法，产品负责人没有逐句确认）：
   - 两种形态按带不带模型推理分；第二种读作不包括模型推理，通过 API 直接接入第三方的模型服务。

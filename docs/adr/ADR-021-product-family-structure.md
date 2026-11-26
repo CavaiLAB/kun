@@ -102,7 +102,7 @@ superseded_by: ADR-023（部分）
 
 ## 9 现在只剩匠心与 Kun 两个项目（2026-11-26）
 
-产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D2；平台级裁定 P78，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)）：「经过一段考虑，前端 Qian 归档，SanyuanAgent 保留先不维护，现在只剩下  Jiangxin 和 Kun」。
+产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D2；平台级裁定 P78，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-26-platform.md)）：「经过一段考虑，前端 Qian 归档，SanyuanAgent 保留先不维护，现在只剩下  Jiangxin 和 Kun」。
 
 - 「前端 Qian 归档」说的是 2026-11-25 已经定下并做完的一件（S1-DEC-043 D1；平台级裁定 P77）：前端框架的仓库归档，只读，已发布的包留着，不再发新版。
 - 读法（整理者的读法，产品负责人没有逐句确认）：在用、在维护的项目是匠心（`CavaiLAB/jiangxin`）与 Kun 两个。SanYuanAgent 的仓库留着、不归档，代码和文档停在现在的样子。四个仓库都还在。

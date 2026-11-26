@@ -186,7 +186,7 @@
 
 ## 5 版本、语言与机器可读产物
 
-- **版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包使用 SemVer，已冻结在 0.2.1。旧外壳按 Qian 0.2.1 归档，组件文档从相应发布标签生成。业务预发保留原有部署和数据。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-20-product.md)
+- **版本**。当前矩阵列出开发分支和镜像采用的 Kun 发布版本。两档后端使用 CalVer，Qian 前端包使用 SemVer，已冻结在 0.2.1。旧外壳按 Qian 0.2.1 归档，组件文档从相应发布标签生成。业务预发保留原有部署和数据。[外壳归档裁定 P42](https://github.com/CavaiLAB/jiangxin/blob/5ca1442b04eb7c4812314664ab06a9d7feba6a22/docs/decisions/2026-11-21-shell-migration.md) · [产品裁定 P38](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-20-product.md)
 - **语言**：中文为唯一一等语言；英文在 S3 评估，目录结构预留 `/en/` 前缀，不提前翻译。
 - **机器可读**：开启 `llms: true`，构建产出 `llms.txt`、`llms-full.txt`、每页 `.md`（SSG-MD），加 `sitemap.xml` 与 `kb-index.json`（每页 url、md url、标题、frontmatter 含 `project` / `version` / `source`、内容 sha256、更新时间），契约见 §5.1；`llms.txt` 按 `project` 分节（平台 / 内核 / 前端，S1-DOCS-006；S1-DOCS-003 先按七个部分分节）。知识库只读这些产物，不解析 MDX 源。每页标题下与首页有「复制为 Markdown」「复制 Markdown 链接」入口（Rspress `themeConfig.llmsUI`，不放外部 AI 服务入口）。
 - **站内「问 AI」**。S2 规划的 `<AskDocs>` 组件检索站点生成的文档与索引，模型调用经模型网关（S2-DOCS-001）。

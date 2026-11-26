@@ -1,4 +1,4 @@
-"""任务看板 scripts/pm.py 生成的链接的自测（S1-KUN-019，迁移执行计划 B2）。
+"""任务看板 scripts/pm.py 生成的链接的自测（S1-KUN-019）。
 
 运行：python3 -m unittest discover -s tests/gates -v
 看板上任务文件与 refs 的链接指向 CavaiLAB/kun 的 main，按 pm.py 所在工作区在检出中的相对位置生成，仓库根使用空前缀。

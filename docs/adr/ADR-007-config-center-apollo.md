@@ -77,7 +77,7 @@ Apollo 的隐性成本：MySQL 是其唯一官方生产库（PostgreSQL 不受�
 
 ## 9 单机版默认不装 Apollo（2026-11-25）
 
-产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D2；平台级裁定 P58，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-25-platform.md)）：单机版默认不装 Apollo，读配置文件；要在运行期改配置的客户可以加装。企业版照旧装。问的是「与旧决策有出入的甲 1 至甲 3，都按提议定吗？」，答「都按提议定」，这是其中的甲 2。
+产品负责人 2026-11-25 定（[S1-DEC-041](../../pm/tasks/S1-DEC-041.md) D2；平台级裁定 P58，原文在 `CavaiLAB/jiangxin` 的 [2026-11-25 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-25-platform.md)）：单机版默认不装 Apollo，读配置文件；要在运行期改配置的客户可以加装。企业版照旧装。问的是「与旧决策有出入的甲 1 至甲 3，都按提议定吗？」，答「都按提议定」，这是其中的甲 2。
 
 - 单机版指给小企业的、一台服务器上能跑的部署，企业版指跑在集群上的全套部署，见 [ADR-017](ADR-017-deployment.md) §13。
 - 修订的是 §1 开头的「Apollo 是硬性要求」与 §2 D7.1：对企业版不变；对单机版，Apollo 由必装改为可选。ADR-017 D17.3 的 L1 清单随之按本节读。其余条目不变，装了 Apollo 就照 D7.5 至 D7.13 办。

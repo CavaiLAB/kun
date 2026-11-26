@@ -129,6 +129,8 @@ curl -i http://127.0.0.1:5199/notes --json '{"title":"周报"}'
 {"type":"https://qian.dev/problems/business/NOTE_TITLE_TAKEN","title":"标题已存在","status":409,"detail":"已有标题为 周报 的笔记。","instance":"/notes","code":"NOTE_TITLE_TAKEN","message":"已有标题为 周报 的笔记。","trace_id":"ab3bbb4b5c1ae95af67a42a7f6a9cdfc"}
 ```
 
+这里和下面贴的是中文界面语言下的文案。`title`、`detail`、`message` 按服务进程的界面语言取，界面语言来自运行环境的语言设置（`LANG`、`LC_ALL` 等）；在英文环境里启动，这几项是英文，`code` 与状态码不变。按请求切换语言见下面的「文案的语言」。
+
 请求一个不存在的路径，`UseKunErrors()` 把空响应体的 404 也写成同样的格式：
 
 ```bash

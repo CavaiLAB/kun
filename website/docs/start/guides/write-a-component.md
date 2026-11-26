@@ -252,7 +252,7 @@ dotnet run -- ../notes/.qian-plugin/plugin.json
 卸载后挂载树里的条目数：0
 ```
 
-清单里的 `provides` 不是摆设。装载器在调用任何 `ApplyAsync` 之前，按各条目的 `Inject` 与清单的 `provides` 检查依赖、排挂载顺序：另一个组件的 `Inject` 写了 `ExampleNotes` 时，清单写全了，装载器先挂 `notes` 再挂它；清单少了 `provides`，`MountAsync` 直接报 `DEPENDENCY_MISSING`（「请求的服务键 ExampleNotes 无人提供」）。这也是改了代码要重新 `sync` 的原因。
+清单里的 `provides` 不是摆设。装载器在调用任何 `ApplyAsync` 之前，按各条目的 `Inject` 与清单的 `provides` 检查依赖、排挂载顺序：另一个组件的 `Inject` 写了 `ExampleNotes` 时，清单写全了，装载器先挂 `notes` 再挂它；清单少了 `provides`，`MountAsync` 直接报 `DEPENDENCY_MISSING`（中文界面语言下的文案是「请求的服务键 ExampleNotes 无人提供」，别的语言环境下文案不同，错误码不变）。这也是改了代码要重新 `sync` 的原因。
 
 平台宿主不用这样手写：它按 profile 与补丁解析出条目，从清单读入口与 `provides`，再交给同一个装载器，见[profile 与 patch](/start/concepts/profile)。
 

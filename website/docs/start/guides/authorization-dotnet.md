@@ -187,6 +187,8 @@ curl -s -X POST "${BASE}/notes/export" -H "Authorization: Bearer ${ALICE}" -w '\
 {"count":3}
 ```
 
+401、403 贴的是中文界面语言下的文案；在英文等别的语言环境里启动，`title`、`detail`、`message` 是那种语言的，`code` 与状态码不变。
+
 **忘了接执行点会怎样。** 把 `AddPermissionBehavior` 那一行删掉再请求，命令不会执行：第一次 `Send` 就抛出 `InvalidOperationException`（「受保护请求未装配权限行为：ExportNotesCommand」），响应是 500 的 `INTERNAL`。实现了 `IPermissionProtectedRequest` 的命令不会因为漏装而被放行。
 
 ## 5 再接 HTTP 端点

@@ -31,6 +31,8 @@ PM_DIR = ROOT / "pm"
 TEMPLATE = PM_DIR / "_template.html"
 # 看板上任务文件与 refs 的链接指向本仓库 main 上的文件；ROOT 在仓库里的前缀由 repo_prefix() 算出，不在别处写
 REPO_BLOB = "https://github.com/CavaiLAB/kun/blob/main/"
+# refs 也可以写本仓库某个提交上的文件地址（40 位提交号），用于已从主干删除的文件：校验不查存在，看板照这个地址链过去
+PINNED_REF = re.compile(r"^https://github\.com/CavaiLAB/kun/blob/[0-9a-f]{40}/[^\s#]+(?:#\S*)?$")
 
 STATUSES = ["todo", "doing", "review", "done", "blocked"]
 STAGES = ["S1", "S2", "S3", "S4"]
@@ -158,6 +160,8 @@ def validate(tasks: list[dict]) -> list[str]:
         if not isinstance(t.get("depends"), list) or not isinstance(t.get("refs"), list):
             errors.append(f"{f}: depends / refs 应为列表")
         for r in t.get("refs", []):
+            if PINNED_REF.match(str(r)):
+                continue
             rel = str(r).split("#")[0]
             if rel and not (ROOT / rel).exists():
                 errors.append(f"{f}: refs 指向不存在的文件 {rel}")
@@ -281,6 +285,11 @@ def blob_url(prefix: str, rel: str) -> str:
     return REPO_BLOB + ("" if path == "." else path)
 
 
+def ref_url(prefix: str, ref: str) -> str:
+    """refs 一项的看板地址：本仓库某个提交上的文件地址照原样（去掉 # 之后的小节），其余按 blob_url 指向 main。"""
+    return ref.split("#")[0] if PINNED_REF.match(ref) else blob_url(prefix, ref)
+
+
 def export(tasks: list[dict]) -> list[dict]:
     done_ids = {t["id"] for t in tasks if t["status"] == "done"}
     ranks = _order_ranks(tasks)
@@ -298,7 +307,7 @@ def export(tasks: list[dict]) -> list[dict]:
             "blockedBy": [d for d in t["depends"] if d not in done_ids],
             "order": ranks[t["id"]],
             "readyNow": t["status"] == "todo" and not [d for d in t["depends"] if d not in done_ids],
-            "refs": [{"path": str(r), "url": blob_url(prefix, str(r))} for r in t["refs"]],
+            "refs": [{"path": str(r), "url": ref_url(prefix, str(r))} for r in t["refs"]],
             "updated": str(t["updated"]), "acceptance": {"done": acc_done, "total": acc_total},
             "bodyHtml": _md_to_html(t["_body"]), "file": task_file, "fileUrl": blob_url(prefix, task_file),
         })

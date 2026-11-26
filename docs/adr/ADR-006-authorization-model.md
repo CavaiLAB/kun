@@ -79,7 +79,7 @@ Kun 对鉴权**全无**：`src/` 中没有任何 `IAuthorizationHandler`、策�
 
 ## 9 平台上不论做什么系统，权限都走这一套（2026-11-26）
 
-产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D7；平台级裁定 P86，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/main/docs/decisions/2026-11-26-platform.md)）：「另外，这个企业级平台后续不论做什么系统，权限都是要走这一套的，所以要在  Kun 框架上做好这部分。」
+产品负责人 2026-11-26 说（[S1-DEC-043](../../pm/tasks/S1-DEC-043.md) D7；平台级裁定 P86，原文在 `CavaiLAB/jiangxin` 的 [2026-11-26 平台级裁定](https://github.com/CavaiLAB/jiangxin/blob/c7b32a4dea2d1455fd2b9835e1cc0848c9d036c2/docs/decisions/2026-11-26-platform.md)）：「另外，这个企业级平台后续不论做什么系统，权限都是要走这一套的，所以要在  Kun 框架上做好这部分。」
 
 - 读法（整理者的读法，产品负责人没有逐句确认）：平台上做的任何系统，判权限只问 Kun，不各做一套。管理端、应用、插件、Agent、DSH 一侧的服务都算。
 - 与本文的关系：没有出入，同向。D6.8 定的是界面、接口、MCP 三个入口用同一个判定服务；这次把范围说到平台上做的所有系统，其中有不在本仓库里的。它与他 2026-11-24 的一句也同向：「所有涉及到权限的这些，后面我都会接入到 PaaS 服务上。统一使用 C# 进行提供。」（见 [ADR-017](ADR-017-deployment.md) §12）

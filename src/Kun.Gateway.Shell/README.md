@@ -96,6 +96,6 @@ app.MapKunShell(shell);          // 可选：/app-config.json 与外壳入口兜
 
 ## 已知限制与延期项
 
-DEC-030 的原生 Data / Audit 已接入完整生产宿主，默认 profile 恢复 `build.aot: true`，Gateway / Apollo 清单登记实际验证后的 `x-aot`。原 EF 探针失败与后续执行证据保留在 [AOT 实施路径](../../docs/decisions/gateway-native-aot-options.md)。平台与 Scheduler 继续使用 EF；distroless、供应链签名、只读非 root 与业务镜像发布继续由 DEP-008 验收。
+DEC-030 的原生 Data / Audit 已接入完整生产宿主，默认 profile 恢复 `build.aot: true`，Gateway / Apollo 清单登记实际验证后的 `x-aot`。原 EF 探针失败的经过见 [S1-DEC-030](../../pm/tasks/S1-DEC-030.md) 与 [S1-GW-001](../../pm/tasks/S1-GW-001.md) 的任务记录。平台与 Scheduler 继续使用 EF；distroless、供应链签名、只读非 root 与业务镜像发布继续由 DEP-008 验收。
 
 三策略与共享计数已由 GW-002 交付；从组件表面生成完整路由、可用性过滤、通用聚合端点、完整就绪聚合与 gRPC-Web 归 GW-003（外壳专用的 bootstrap 聚合已由 S1-YUE-012 交付），平台观测组件归 AUD-003。GW-003 与 AUD-003 的上述范围仍待交付。

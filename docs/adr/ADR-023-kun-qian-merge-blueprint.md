@@ -24,7 +24,7 @@ amends: 修订 ADR-013、ADR-019、ADR-020
 
 ## 1 背景与问题（Context）
 
-2026-11-17 产品负责人提问「Kun 和 Qian 是否可以合并为一个框架」。合仓此前被否决过三次：[ADR-001](ADR-001-kun-relationship.md) §4、[ADR-021](ADR-021-product-family-structure.md) D21.2、[框架细化备忘录](../decisions/framework-refinement-2026-10.md) §3.3 (d)。按当日代码重核，当时的理由大多已不成立（对照表见 S1-DEC-036）。产品负责人随后裁定：
+2026-11-17 产品负责人提问「Kun 和 Qian 是否可以合并为一个框架」。合仓此前被否决过三次：[ADR-001](ADR-001-kun-relationship.md) §4、[ADR-021](ADR-021-product-family-structure.md) D21.2、[框架细化备忘录](https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/framework-refinement-2026-10.md) §3.3 (d)。按当日代码重核，当时的理由大多已不成立（对照表见 S1-DEC-036）。产品负责人随后裁定：
 
 1. 「那就 Qian 并入 Kun 这个框架。」
 2. 并入范围选「包名也并成 Kun.*」。

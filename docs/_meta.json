@@ -22,16 +22,8 @@
     "name": "adr",
     "label": "决策记录"
   },
-  "migration",
-  "migration-plan",
   "platform-overview",
   "platform-roadmap",
-  "platform-history",
-  {
-    "type": "dir",
-    "name": "decisions",
-    "label": "平台决策"
-  },
   {
     "type": "dir",
     "name": "generated",
@@ -41,11 +33,6 @@
     "type": "dir",
     "name": "ops",
     "label": "运维"
-  },
-  {
-    "type": "dir",
-    "name": "platform-migration",
-    "label": "迁移指南"
   },
   {
     "type": "dir",

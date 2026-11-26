@@ -3,7 +3,7 @@ import { rehypeAccessibleAnchors } from './scripts/rehype-a11y.ts';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@rspress/core';
 import mermaid from 'rspress-plugin-mermaid';
-import { renderLlmsTxt } from './scripts/llms.ts';
+import { LLMS_GUIDE, START_HERE, renderLlmsTxt } from './scripts/llms.ts';
 import { qianDocsSources } from './scripts/sources-plugin.ts';
 import { REPO_URL } from './scripts/repo.ts';
 
@@ -25,8 +25,9 @@ export default defineConfig({
   logo: '/logo.svg',
   logoText: 'Kun 与 Qian 开发文档',
   // 机器可读（docs-site.md §2a.1、S1-DOCS-003）：SSG-MD 在构建期把每页渲染成 .md，并产出 llms.txt 与 llms-full.txt；
-  // kb-index.json 与 sitemap.xml 由 scripts/build-kb-index.ts 在构建后产出；llms.txt 先按 project 分（scripts/llms.ts 的 PROJECT_ORDER）再按部分分节（ADR-021 D21.5）。
-  llms: { llmsTxt: renderLlmsTxt },
+  // kb-index.json 与 sitemap.xml 由 scripts/build-kb-index.ts 在构建后产出；llms.txt 先按 project 分（scripts/llms.ts 的 PROJECT_ORDER）再按部分分节（ADR-021 D21.5），
+  // 分节之前是给大模型的读法与「从这里开始」一节（docs-site.md §5.2、S1-DOCS-010）。
+  llms: { llmsTxt: (context) => renderLlmsTxt(context, { guide: LLMS_GUIDE, startHere: START_HERE }) },
   route: {
     // 不用 cleanUrls：产物里的链接带 .html，任何静态服务器（含 python3 -m http.server）都能直接打开。
     cleanUrls: false,

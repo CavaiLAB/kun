@@ -13,7 +13,11 @@ Kun 平台以**组件**交付能力。组件目录包含清单、声明式表面
 
 ## 从这里开始
 
-- [30 分钟上手](/start/quickstart)：在空白 ASP.NET Core 项目里 `qian add identity authz files`，跑通文件上传与权限检查。
+- [上手](/start/getting-started)：空的 ASP.NET Core 项目里装两个 nuget.org 上的内核包，写一个命令，出错时返回统一的 ErrorDetail；不需要令牌。
+- [写一个组件](/start/guides/write-a-component)：声明服务与能力，用清单工具从代码派生清单，再装进宿主。
+- [在 .NET 里接权限](/start/guides/authorization-dotnet)：给命令与 HTTP 端点声明权限点，在业务代码之前判定。
+- 哪些使用文档已经能照着做、哪些还写不了：[指南](/start/guides/#usage)。
+- [30 分钟上手](/start/quickstart)：从源码构建 `qian` 命令行，用仓库的安装验收从包源装组件；要 GitHub Packages 的读包令牌。
 - [宿主与框架](/start/hosts)：独立模式与平台模式、五个 profile、前端外壳、与 Kun 的关系。
 
 ## 核心概念
@@ -28,5 +32,5 @@ Kun 平台以**组件**交付能力。组件目录包含清单、声明式表面
 
 ## 再往后
 
-- [指南](/start/guides/)：Agent 栈、后端模式、多 profile 组合、安全、连接器与集成。
+- [指南](/start/guides/)：使用文档的现状，以及 Agent 栈、后端模式、多 profile 组合、安全、连接器与集成。
 - 组件怎么装、怎么配：[组件目录](/components/)；编程模型与 API：[SDK](/sdk/)；命令与清单字段：[CLI 与规格](/cli/)。

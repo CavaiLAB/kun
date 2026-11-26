@@ -4,10 +4,14 @@ description: 构建 Kun 命令行，在独立 ASP.NET Core 宿主验收组件的
 part: start
 project: platform
 audience: [developer]
-updated: 2026-11-20
+updated: 2026-11-26
 ---
 
 # 30 分钟上手
+
+:::tip 想先在自己的项目里用上 Kun 的包
+从[上手](/start/getting-started)开始：只用 nuget.org 上的内核包，不需要令牌。本页讲的是从源码构建命令行、用仓库的安装验收从包源装组件，要 GitHub Packages 的读包令牌。
+:::
 
 在自己的 ASP.NET Core 宿主中安装身份、授权和文件组件是独立模式的目标。CLI 随 Kun 源码提供，本页按仓库中可运行的安装验收说明准备环境。[CLI 说明](https://github.com/CavaiLAB/kun/tree/main/packages/qian-cli)
 

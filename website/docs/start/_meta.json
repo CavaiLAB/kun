@@ -6,6 +6,11 @@
   },
   {
     "type": "file",
+    "name": "getting-started",
+    "label": "上手"
+  },
+  {
+    "type": "file",
     "name": "quickstart",
     "label": "30 分钟上手"
   },

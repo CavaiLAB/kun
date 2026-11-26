@@ -1,1 +1,5 @@
-[{ "type": "file", "name": "index", "label": "指南总览" }]
+[
+  { "type": "file", "name": "index", "label": "指南总览" },
+  { "type": "file", "name": "write-a-component", "label": "写一个组件" },
+  { "type": "file", "name": "authorization-dotnet", "label": "在 .NET 里接权限" }
+]

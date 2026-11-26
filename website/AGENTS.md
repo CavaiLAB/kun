@@ -7,7 +7,8 @@
 | 想改的内容 | 改这里 | 不要改 |
 |---|---|---|
 | 开始、SDK、运维、市场的页面 | `website/docs/{start,sdk,ops,marketplace}/` | — |
-| ADR、PRD、规格、路线图、变更日志 | 仓库 `docs/`（站内 `/design/` 自动镜像） | `website/docs/design/` |
+| ADR、PRD、规格、路线图 | 仓库 `docs/`（站内 `/design/` 自动镜像） | `website/docs/design/` |
+| 变更日志 | 仓库根 `CHANGELOG.md`：首页「最新动态」读其中已发布的版本段，链接到由它生成的「Kun 版本记录」`/sdk/kun/releases/` | `website/docs/sdk/kun/` |
 | Kun 的文档 | kun 仓库（提 PR）；站内「Kun 框架」小节与 Kun API 参考按仓库根 `CHANGELOG.md` 里最新的正式发布段生成；稳定版或正式修复版的版本日志 PR 合入后跟随，beta 沿用原版本 | `website/docs/sdk/kun/`（`with-qian.mdx` 除外）、`website/docs/sdk/api/` |
 | 内核与平台组件的装配关系 | `website/docs/sdk/kun/with-qian.mdx`（按 ADR-023 和现行项目公开 API 核对，旧版本记录按对应标签查阅） | — |
 | Kun 镜像的白名单、侧栏与横幅 | `docs/prd/specs/docs-site.md` §2b 与 `website/scripts/sync-kun-docs.ts` 一起改 | 生成出来的页面 |
@@ -24,7 +25,7 @@
 
 - 中文；不写参考平台与对标项目的名字。
 - 站内链接写绝对路由，如 `/start/hosts`、`/design/adr/adr-020-component-model-v2`，不带扩展名。
-- frontmatter 至少写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`（手写页为 `qian`）、`audience`、`updated`；规划中的能力写 `stage`，S2 及以后再加 `tag`。字段与枚举由 `scripts/check_docs.py` 校验（docs-site.md §4），只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串这几种写法。
+- frontmatter 至少写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`（手写页为 `platform`；`kun` 属于 Kun 镜像页，`qian` 属于前端框架 Qian 的组件页；`llms.txt` 按它分节）、`audience`、`updated`；规划中的能力写 `stage`，S2 及以后再加 `tag`。字段与枚举由 `scripts/check_docs.py` 校验（docs-site.md §4），只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串这几种写法。
 - 卡片等 JSX 容器内部的 Markdown 里不要放行内组件（`Badge` 等）：SSG-MD 产出的 `.md` 会原样残留，产物检查会拦；阶段标记写成「（S2）」这样的文字，组件只放在 JSX 属性里（如 `Card` 的 `title`）。
 - 没有的能力不写成已有；S1 建设期的命令按目标形态写，并注明尚未可用。
 

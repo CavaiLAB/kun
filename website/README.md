@@ -83,7 +83,7 @@ website/
     *.test.ts  fixtures.ts     生成脚本单测；fixtures.ts 在临时目录里搭样例 kun 仓库
     build-kb-index.ts          后续：产出 kb-index.json（S1-DOCS-003）
     build-versions.ts          钉版文件（仓库根的 CHANGELOG.md 与 global.json，本目录的 csproj、package.json、pnpm 版本目录、deploy/baseline.json）→ docs/start/versions.md
-    llms.ts                    llms.txt 的排版：先按 project（PROJECT_ORDER）再按部分分节
+    llms.ts                    llms.txt 的排版：给大模型的读法与「从这里开始」（LLMS_GUIDE、START_HERE），再先按 project（PROJECT_ORDER）后按部分分节
   theme/
     index.tsx  index.css       主题覆盖：令牌映射、建设期横幅、版本说明、首页组件
     components/                首页区块、最新动态、版本说明、站点地图
@@ -99,7 +99,7 @@ website/
 | 4 | CLI 与规格 | `/cli/` | 从 `docs/prd/specs/component-model.md` 第 2、3、4、7、8、9、10 节同步 | 否 | 是 |
 | 5 | 运维 | `/ops/` | 手写 | 是 | 否 |
 | 6 | 市场与 ISV | `/marketplace/` | 手写（S3 前只放规则） | 是 | 否 |
-| 7 | 设计与路线 | `/design/` | 镜像仓库 `docs/`（ADR、PRD、路线图、变更日志等） | 否 | 否 |
+| 7 | 设计与路线 | `/design/` | 镜像仓库 `docs/`（ADR、PRD、路线图等） | 否 | 否 |
 
 导航用中文名，路径用英文段，页面 slug 用小写短横线。「组件怎么用」只写在第 2 部分，SDK 只写编程模型与 API，两边互相链接。
 
@@ -125,7 +125,7 @@ website/
 
 docs-site.md §5.1 是契约，这里只说实现：
 
-- `rspress.config.ts` 的 `llms: true` 开启 Rspress 的 SSG-MD：构建时多跑一遍 `node_md` 环境，用 `react-render-to-markdown` 把每个路由渲染成 Markdown（`<路由>.md`，目录首页为 `index.md`），再按顶部导航分组写出 `llms.txt`（每页一行，摘要取 frontmatter `description`）与 `llms-full.txt`（每页正文）。这不是 HTML 回转，也不是 remark 转换：组件在 `import.meta.env.SSG_MD` 为 true 时可以返回另一份输出，我们的主题组件（首页卡片与页脚、最新动态、站点地图、版本说明）都带这个分支，只输出标题、段落、列表与链接；站内链接指向 `.md`。
+- `rspress.config.ts` 的 `llms: true` 开启 Rspress 的 SSG-MD：构建时多跑一遍 `node_md` 环境，用 `react-render-to-markdown` 把每个路由渲染成 Markdown（`<路由>.md`，目录首页为 `index.md`），再按顶部导航分组写出 `llms.txt`（每页一行，摘要取 frontmatter `description`）与 `llms-full.txt`（每页正文）。这不是 HTML 回转，也不是 remark 转换：组件在 `import.meta.env.SSG_MD` 为 true 时可以返回另一份输出，我们的主题组件（首页卡片与页脚、最新动态、站点地图、版本说明）都带这个分支，只输出标题、段落、列表与链接；站内链接指向 `.md`。`llms.txt` 的排版由 `scripts/llms.ts` 接管（`llms.llmsTxt`）：标题与一句话定位之后是给大模型的读法与「从这里开始」一节（`LLMS_GUIDE`、`START_HERE`，后者列的页站里没有即构建失败），然后先按 project 再按部分分节（docs-site.md §5.2）。
 - JSX 容器（`Card` 等）内部的 Markdown 里的行内组件不会被渲染，会原样进 `.md`（Rspress `remarkSplitMdx` 只处理顶层段落里的行内 JSX），所以首页卡片正文里的阶段标记写成文字，`Badge` 只放在 JSX 属性里。
 - `themeConfig.llmsUI` 在每个文档页标题下放「复制为 Markdown」与「复制 Markdown 链接」；首页是 `pageType: custom`，`HomeHero` 里手动放同一组按钮。`viewOptions` 只留 `markdownLink`，不放外部 AI 服务入口（站内「问 AI」是 S2-DOCS-001）。
 - `scripts/build-kb-index.ts` 在 `rspress build` 之后运行（`build` 脚本末尾）：遍历 `website/docs` 的页面源（含生成页），解析 frontmatter（`scripts/repo.ts` 的 `parseFrontmatter`，与 `scripts/check_docs.py` 同一套 YAML 子集），读对应 `.md` 算 sha256，写 `kb-index.json`；再按 frontmatter `updated` 写 `sitemap.xml`（绝对地址 = `DOCS_SITE_URL`（默认 `theme/site.ts` 的 `DEFAULT_SITE_URL`）+ `DOCS_BASE` + 路由）。缺 `.md`、frontmatter 不合法、产物里有没来源的 `.md` 都让构建失败。
@@ -164,10 +164,10 @@ CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内�
 ## 8 写页面
 
 - 手写页放在对应部分的目录下，用 `.md`；要用组件（`Badge`、卡片等）时才用 `.mdx`。
-- frontmatter 先写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`、`audience`、`updated`，`scripts/check_docs.py` 会查（docs-site.md §4）；只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串几种写法。手写页的 `project` 都是 `qian`（`kun` 属于 Kun 镜像页，`yue` 属于 qian 组件库的组件页）。规划中的能力加 `stage`，S2 及以后的再加 `tag: S2` 等，侧栏会显示阶段标记。完整字段见 docs-site.md §4（校验随 S1-DOCS-003 上线）。
+- frontmatter 先写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`、`audience`、`updated`，`scripts/check_docs.py` 会查（docs-site.md §4）；只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串几种写法。手写页的 `project` 都是 `platform`（`kun` 属于 Kun 镜像页，`qian` 属于 qian 组件库的组件页）；`llms.txt` 按它分节，写错了页面会进错节。规划中的能力加 `stage`，S2 及以后的再加 `tag: S2` 等，侧栏会显示阶段标记。完整字段见 docs-site.md §4（校验随 S1-DOCS-003 上线）。
 - 站内链接写绝对路由（`/start/hosts`、`/design/adr/adr-016-agent-boundary`），不带 `.md` 或 `.html`。
 - 卡片等 JSX 容器内部的 Markdown 里不放行内组件（`Badge` 等），阶段标记写成「（S2）」这样的文字；否则 `.md` 产物里会原样残留，产物检查会拦（§4a）。
-- 设计文档、规格与变更日志只改仓库 `docs/`，不要改 `website/docs/design/`、`cli/`、`components/`。
+- 设计文档与规格只改仓库 `docs/`，不要改 `website/docs/design/`、`cli/`、`components/`。变更日志是仓库根 `CHANGELOG.md`：首页「最新动态」读其中已发布的版本段，链接到由它生成的「Kun 版本记录」`/sdk/kun/releases/`。
 - Kun 的文档只改 kun 仓库（提 PR），站内随 Kun 的发布版更新；`website/docs/sdk/kun/` 只有 `with-qian.mdx` 是手写的，`sdk/api/` 全部生成。
 - 没有的能力不写成已有：S1 建设期的命令与组件按目标形态写，并在页面里说明尚未可用。
 

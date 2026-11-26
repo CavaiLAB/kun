@@ -99,7 +99,7 @@ website/
 | 4 | CLI 与规格 | `/cli/` | 从 `docs/prd/specs/component-model.md` 第 2、3、4、7、8、9、10 节同步 | 否 | 是 |
 | 5 | 运维 | `/ops/` | 手写 | 是 | 否 |
 | 6 | 市场与 ISV | `/marketplace/` | 手写（S3 前只放规则） | 是 | 否 |
-| 7 | 设计与路线 | `/design/` | 镜像仓库 `docs/`（ADR、PRD、路线图、变更日志等） | 否 | 否 |
+| 7 | 设计与路线 | `/design/` | 镜像仓库 `docs/`（ADR、PRD、路线图等） | 否 | 否 |
 
 导航用中文名，路径用英文段，页面 slug 用小写短横线。「组件怎么用」只写在第 2 部分，SDK 只写编程模型与 API，两边互相链接。
 
@@ -167,7 +167,7 @@ CI 的真实浏览器用例在固定摘要的官方 Playwright Linux 镜像内�
 - frontmatter 先写 `title`、`description`（≤ 120 字）、`part`（与目录一致）、`project`、`audience`、`updated`，`scripts/check_docs.py` 会查（docs-site.md §4）；只用 `key: 值`、`key: [a, b]`、缩进 `- 项` 与引号字符串几种写法。手写页的 `project` 都是 `platform`（`kun` 属于 Kun 镜像页，`qian` 属于 qian 组件库的组件页）；`llms.txt` 按它分节，写错了页面会进错节。规划中的能力加 `stage`，S2 及以后的再加 `tag: S2` 等，侧栏会显示阶段标记。完整字段见 docs-site.md §4（校验随 S1-DOCS-003 上线）。
 - 站内链接写绝对路由（`/start/hosts`、`/design/adr/adr-016-agent-boundary`），不带 `.md` 或 `.html`。
 - 卡片等 JSX 容器内部的 Markdown 里不放行内组件（`Badge` 等），阶段标记写成「（S2）」这样的文字；否则 `.md` 产物里会原样残留，产物检查会拦（§4a）。
-- 设计文档、规格与变更日志只改仓库 `docs/`，不要改 `website/docs/design/`、`cli/`、`components/`。
+- 设计文档与规格只改仓库 `docs/`，不要改 `website/docs/design/`、`cli/`、`components/`。变更日志是仓库根 `CHANGELOG.md`：首页「最新动态」读其中已发布的版本段，链接到由它生成的「Kun 版本记录」`/sdk/kun/releases/`。
 - Kun 的文档只改 kun 仓库（提 PR），站内随 Kun 的发布版更新；`website/docs/sdk/kun/` 只有 `with-qian.mdx` 是手写的，`sdk/api/` 全部生成。
 - 没有的能力不写成已有：S1 建设期的命令与组件按目标形态写，并在页面里说明尚未可用。
 

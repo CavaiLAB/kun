@@ -7,7 +7,8 @@
 | 想改的内容 | 改这里 | 不要改 |
 |---|---|---|
 | 开始、SDK、运维、市场的页面 | `website/docs/{start,sdk,ops,marketplace}/` | — |
-| ADR、PRD、规格、路线图、变更日志 | 仓库 `docs/`（站内 `/design/` 自动镜像） | `website/docs/design/` |
+| ADR、PRD、规格、路线图 | 仓库 `docs/`（站内 `/design/` 自动镜像） | `website/docs/design/` |
+| 变更日志 | 仓库根 `CHANGELOG.md`：首页「最新动态」读其中已发布的版本段，链接到由它生成的「Kun 版本记录」`/sdk/kun/releases/` | `website/docs/sdk/kun/` |
 | Kun 的文档 | kun 仓库（提 PR）；站内「Kun 框架」小节与 Kun API 参考按仓库根 `CHANGELOG.md` 里最新的正式发布段生成；稳定版或正式修复版的版本日志 PR 合入后跟随，beta 沿用原版本 | `website/docs/sdk/kun/`（`with-qian.mdx` 除外）、`website/docs/sdk/api/` |
 | 内核与平台组件的装配关系 | `website/docs/sdk/kun/with-qian.mdx`（按 ADR-023 和现行项目公开 API 核对，旧版本记录按对应标签查阅） | — |
 | Kun 镜像的白名单、侧栏与横幅 | `docs/prd/specs/docs-site.md` §2b 与 `website/scripts/sync-kun-docs.ts` 一起改 | 生成出来的页面 |

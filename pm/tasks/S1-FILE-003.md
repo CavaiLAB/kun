@@ -13,7 +13,7 @@ depends: [S1-FILE-001, S1-SCH-001, S1-YUE-008]
 refs:
   - docs/prd/07-s1-foundation.md#7.7
   - docs/prd/07-s1-foundation.md#7.15.2
-  - docs/decisions/key-decisions-v0.md
+  - https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/key-decisions-v0.md
 updated: 2026-10-22
 ---
 

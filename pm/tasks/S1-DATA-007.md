@@ -11,7 +11,7 @@ owner: "claude"
 estimate: 0.5d
 depends: [S1-DATA-005]
 refs:
-  - docs/decisions/key-decisions-v0.md
+  - https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/key-decisions-v0.md
   - src/Kun.Data/README.md
 updated: 2026-10-16
 ---

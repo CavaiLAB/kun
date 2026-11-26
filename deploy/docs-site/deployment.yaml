@@ -29,7 +29,7 @@ spec:
         - name: git-sync
           image: registry.k8s.io/git-sync/git-sync:v4.4.0
           env:
-            # 迁移执行计划 B2：文档站由 CavaiLAB/kun 根上的 qian-docs-site 工作流发布到本仓库的 docs-site 分支。
+            # 文档站由 CavaiLAB/kun 根上的 qian-docs-site 工作流发布到本仓库的 docs-site 分支。
             # 公开仓库，经 HTTPS 匿名拉取，不需要 deploy key 与 Secret。
             - name: GITSYNC_REPO
               value: https://github.com/CavaiLAB/kun.git

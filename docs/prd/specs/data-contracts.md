@@ -10,7 +10,7 @@
 
 ### 冻结与修订
 
-data/v1 的冻结标记于 2026-10-15 随 PR idadawn/qian#95 落盘，按 [R80](../../decisions/key-decisions-v0.md#验收复核裁决-r80s1-qa-010-复核2026-10-15) 显式使用 `x-status: frozen`；`$id` 统一为 `https://qian.dev/contracts/data/v1/<文件名>`。冻结后只允许兼容增量，破坏性变更新开 v2，并同步 Schema、fixture、C# 契约与已知消费方。零代码消费方即冻结以及引用 v0 草稿信封的两条例外、结构门禁和复核时点，以 [data/v1 冻结与修订](../../../contracts/data/v1/README.md#冻结与修订) 为准；本轮不提前冻结 v0。
+data/v1 的冻结标记于 2026-10-15 随 PR idadawn/qian#95 落盘，按 [R80](https://github.com/CavaiLAB/kun/blob/97d521b6df237b092990d7bed8586bda18aebbbc/docs/decisions/key-decisions-v0.md#验收复核裁决-r80s1-qa-010-复核2026-10-15) 显式使用 `x-status: frozen`；`$id` 统一为 `https://qian.dev/contracts/data/v1/<文件名>`。冻结后只允许兼容增量，破坏性变更新开 v2，并同步 Schema、fixture、C# 契约与已知消费方。零代码消费方即冻结以及引用 v0 草稿信封的两条例外、结构门禁和复核时点，以 [data/v1 冻结与修订](../../../contracts/data/v1/README.md#冻结与修订) 为准；本轮不提前冻结 v0。
 
 ## 2. Filter AST 与检查顺序
 

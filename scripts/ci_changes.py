@@ -129,6 +129,9 @@ AREAS: Dict[str, Area] = {
              "website/docs/start/getting-started.md", "website/docs/start/guides/write-a-component.md",
              "website/docs/start/guides/authorization-dotnet.md", "tools/Kun.Plugin.Tool/**",
              "samples/Kun.Sample.Crm/metadata/permissions.json", "samples/Kun.Sample.Crm/metadata/roles.json"),
+            # check 按发版脚本核对只在发版后执行的两行：release_feed.py 的仓库名（连同它引入的 release_version.py），
+            # release_finish.py 打的 v<版本> 标签与发布页附带的 NuGet.config。
+            ("scripts/release_feed.py", "scripts/release_version.py", "scripts/release_finish.py"),
             DOTNET_BASE,
         ),
         builds_dotnet=True),

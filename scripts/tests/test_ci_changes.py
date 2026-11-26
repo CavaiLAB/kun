@@ -104,6 +104,8 @@ class AreaTableTests(unittest.TestCase):
             "src/Kun.Mediator/Kun.Mediator.csproj": ({"docs-examples", "dotnet"}, set()),
             "tools/Kun.Plugin.Tool/Kun.Plugin.Tool.csproj": ({"docs-examples", "dotnet"}, {"docs-site"}),
             "samples/Kun.Sample.Crm/metadata/roles.json": ({"docs-examples", "dotnet"}, {"docs-site"}),
+            "scripts/release_finish.py": ({"docs-examples", "dotnet"}, {"docs-site"}),
+            "scripts/release_feed.py": ({"docs-examples", "dotnet"}, {"docs-site"}),
             "website/docs/start/index.md": ({"docs-site"}, {"docs-examples"}),
             "packages/qian-cli/package.json": ({"surfaces"}, {"docs-examples"}),
             "pm/tasks/S1-DOCS-010.md": ({"docs-and-pm"}, {"docs-examples"}),

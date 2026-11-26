@@ -11,7 +11,8 @@ ci.yml 的变更检测作业每次都先跑它。核对的是「CI 汇总」能�
   - 区域表里「要构建 .NET」「装 GitHub Packages 上的 npm 包」两个标记与作业实际做的事一致；
   - 测试结果构件名带尝试号，测试分片汇总核对按尝试号取每个分片最新的一份：「重跑失败的作业」之后汇总能按重跑的结果变绿；
   - 分片作业在后台预拉镜像之前，先在前台列出本分片的镜像，列不出这一步就失败；门禁作业核对每个测试项目都有着落；
-  - 使用文档的示例：ci.yml 里先核对页面再打本地包、照页面跑，版本与包源前后一致；release.yml 在发布之后用刚发布的版本
+  - 使用文档的示例：ci.yml 里先核对页面再打本地包、照页面跑，版本与包源前后一致，失败或卡住都上传日志，
+    脚本里单步的超时远小于作业的超时；release.yml 在发布之后用刚发布的版本
     照页面跑，排在最后、不挡发布，只读权限，读包令牌照 publish 的做法取（S1-DOCS-012）。
 """
 from __future__ import annotations
@@ -259,6 +260,14 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertTrue(running[running.index("--work") + 1].startswith("$RUNNER_TEMP/"), "工作目录在仓库外")
         for step in job["steps"][:run + 1]:
             self.assertFalse({"if", "continue-on-error"} & set(step), "核对与运行的步骤不能有条件，失败不能放过")
+        upload = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("actions/upload-artifact@"))
+        self.assertEqual("failure() || cancelled()", upload["if"], "卡住到作业超时算取消，取消时也要上传日志")
+        work = running[running.index("--work") + 1].replace("$RUNNER_TEMP", "${{ runner.temp }}")
+        self.assertEqual(work + "/logs/", upload["with"]["path"])
+        import docs_examples
+        limit = int(job["timeout-minutes"]) * 60
+        for name in ("COMMAND_TIMEOUT", "SERVER_TIMEOUT", "PACK_TIMEOUT"):
+            self.assertLessEqual(getattr(docs_examples, name) * 3, limit, f"{name} 要远小于作业的超时：卡住时这一步先失败，日志来得及上传")
 
     def test_release_runs_the_docs_examples_after_publishing_without_holding_it_up(self) -> None:
         release = load(WORKFLOWS / "release.yml")

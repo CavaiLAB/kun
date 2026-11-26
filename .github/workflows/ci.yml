@@ -584,8 +584,9 @@ jobs:
       - name: 照页面建项目、装包、编译、运行，核对页面贴出的输出
         run: python3 scripts/docs_examples.py run --feed local --packages "$RUNNER_TEMP/docs-feed" --version "$KUN_DOCS_EXAMPLES_VERSION" --work "$RUNNER_TEMP/docs-examples"
 
-      - name: 上传示例的终端与 dotnet run 日志（失败时排查）
-        if: failure()
+      # 卡住到作业超时是「取消」，不算失败，取消时也要上传。
+      - name: 上传示例的终端与 dotnet run 日志（失败或卡住时排查）
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: docs-examples-logs-attempt-${{ github.run_attempt }}

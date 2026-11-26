@@ -8,7 +8,8 @@
 
   python3 scripts/docs_examples.py check
       不要 .NET。页面上整段的代码块与 samples/docs/ 里的文件逐字一致；页面上节选的 JSON 是仓库里对应文件的子集；
-      页面上的每个代码块要么有示例的步骤用到，要么在本文件里写明不跑的原因；三篇页面里的 Kun 版本号处处相同；
+      页面上的每个代码块（顶格的、列表里缩进的，``` 与 ~~~ 围栏都算）要么有示例的步骤用到，要么在本文件里写明不跑的原因；
+      三篇页面里的 Kun 版本号处处相同；只在发版后执行的两行（克隆发布标签、下载发布页的 NuGet.config）按版本号核对写法；
       run 要找的命令块、输出块、表格、插入片段的位置与说明里的字面都在。
   python3 scripts/docs_examples.py feed --version <版本> --out <目录>
       用当前源码按 <版本> 打出页面上 dotnet add package 装的包，以及它们依赖的 Kun 包，放进 <目录> 当本地包源。
@@ -20,6 +21,8 @@
       published：照页面写的，内核档从 nuget.org，平台档用发布页附带的 NuGet.config，读包令牌从环境变量
       KUN_PLATFORM_FEED_USER、KUN_PLATFORM_FEED_TOKEN 取，只在页面上 export 它们的那一步交给终端；清单工具从发布标签构建。
       HOME 与 NuGet 缓存都指向工作目录：用户机密、开发令牌与包缓存不落进本机的用户目录。
+      照页面跑的进程一律用中文界面语言（LANG、LC_ALL 设为 zh_CN.UTF-8）：页面上贴的错误文案是中文界面语言下的，
+      结果不随机器的语言设置变。
   python3 scripts/docs_examples.py bump --version <版本> --sdk <SDK 版本> [--date <YYYY-MM-DD>]
       把三篇页面里的 Kun 版本号，以及「照着跑过一遍」那句里的日期与 SDK 版本改成给定值。发版后示例跑通了再改。
 
@@ -50,6 +53,8 @@ import zipfile
 from pathlib import Path
 from typing import Callable, Dict, Iterator, List, NamedTuple, Optional, Sequence, Tuple
 
+import release_feed
+
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = Path("samples/docs")
 SOLUTION = Path("Kun.slnx")
@@ -64,6 +69,15 @@ RAN = re.compile(r"在 (\d{4}-\d{2}-\d{2}) 用 \.NET SDK (\d+\.\d+\.\d+)、Kun (
 GUID_V7 = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")
 TRACE_ID = re.compile(r"[0-9a-f]{32}")
 JWT = re.compile(r"[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*")
+# 发布页在这个仓库：发版后照页面克隆它的发布标签（release_finish.py 打的 v<版本>）、下载发布页附带的 NuGet.config。
+REPOSITORY = "https://github.com/" + release_feed.REPOSITORY
+# 照页面跑的进程一律用的界面语言。页面上贴的错误文案是中文界面语言下的；.NET 按 LC_ALL、LC_MESSAGES、LANG 定界面语言，
+# 没设或是 C、C.UTF-8 时，Linux 上落到固定区域（Kun 的文案回退到 zh-CN），macOS 上跟着系统语言走，英文环境下文案就是英文。
+READER_LOCALE = "zh_CN.UTF-8"
+# 单条命令、等服务启动、打本地包源的上限，都远小于 CI 作业的超时：卡住时这一步先失败，摘要与日志还来得及留下。
+COMMAND_TIMEOUT = 600
+SERVER_TIMEOUT = 600
+PACK_TIMEOUT = 600
 
 
 class ToolError(Exception):
@@ -118,8 +132,21 @@ def split_row(line: str) -> List[str]:
     return cells
 
 
+FENCE = re.compile(r"(?P<indent>[ \t>]*)(?P<marker>`{3,}|~{3,})(?P<info>.*)")
+
+
+def dedent(line: str, width: int) -> str:
+    """列表里缩进的代码块：每行去掉围栏前那么多的空格，不够就去掉有的。"""
+    spaces = len(line) - len(line.lstrip(" "))
+    return line[min(width, spaces):]
+
+
 class Page:
-    """一篇页面：按二级标题分节的代码块与表格。"""
+    """一篇页面：按二级标题分节的代码块与表格。
+
+    代码块认顶格的与列表里用空格缩进的，``` 与 ~~~ 两种围栏都认（围栏长度不限，收尾的围栏不短于开头的）。
+    引用块里的、用 Tab 缩进的认不出来，记进 problems，由 check 报出来，免得网站照常显示、示例却看不见它。
+    """
 
     def __init__(self, path: Path, root: Path = ROOT) -> None:
         self.path = path
@@ -128,6 +155,7 @@ class Page:
         self.blocks: List[Block] = []
         self.tables: Dict[str, List[List[List[str]]]] = {}
         self.sections: List[str] = []
+        self.problems: List[str] = []
         lines = self.text.split("\n")
         index, section, table = 0, "", []  # type: Tuple[int, str, List[List[str]]]
         if lines and lines[0] == "---":
@@ -137,16 +165,24 @@ class Page:
             if table and not line.startswith("|"):
                 self.tables.setdefault(section, []).append(table)
                 table = []
-            fence = re.match(r"^(`{3,})([^`\s]*)", line)
+            fence = FENCE.fullmatch(line)
+            if fence and fence.group("marker")[0] == "`" and "`" in fence.group("info"):
+                fence = None  # 一行里的行内代码，不是围栏
             if fence:
-                marker, start, body = fence.group(1), index + 1, []
+                indent, marker, start, body = fence.group("indent"), fence.group("marker"), index + 1, []
+                quoted = bool(indent.strip(" "))
+                if quoted:
+                    self.problems.append(f"{self.name}:{start} 的代码块在引用块里或用了 Tab 缩进，示例认不出来："
+                                         "改成顶格的围栏，在列表里就用空格缩进。")
+                closing = re.compile((r"[ \t>]*" if quoted else r" *") + re.escape(marker[0]) + "{%d,}[ \t]*" % len(marker))
                 index += 1
-                while index < len(lines) and not lines[index].startswith(marker):
-                    body.append(lines[index])
+                while index < len(lines) and not closing.fullmatch(lines[index]):
+                    body.append(dedent(lines[index], len(indent)))
                     index += 1
                 if index == len(lines):
                     raise ToolError(f"{self.name}:{start}：代码块没有收尾")
-                self.blocks.append(Block(section, fence.group(2), "\n".join(body), start))
+                words = fence.group("info").split()
+                self.blocks.append(Block(section, words[0] if words else "", "\n".join(body), start))
             elif line.startswith("|"):
                 table.append(split_row(line))
             else:
@@ -324,6 +360,88 @@ def documented_version(pages: Sequence[Page]) -> str:
     return documented
 
 
+# ---------- 只在发版后执行的两行 ----------
+
+# 平时用本地包源跑，这两行不执行（清单工具用当前检出构建，包源映射用工作目录里的）；check 按页面上的版本号核对写法，
+# 免得地址写错、标签漏了 v、目录名对不上，要等包发布以后才发现。
+RELEASE_LINES = {WRITE_A_COMPONENT.slug: "克隆发布标签", AUTHORIZATION.slug: "下载发布页的 NuGet.config"}
+
+
+def clones_release(words: Sequence[str]) -> bool:
+    return list(words[:2]) == ["git", "clone"]
+
+
+def downloads_release_config(words: Sequence[str]) -> bool:
+    return words[:1] == ["curl"] and any(word.startswith("https://") and word.endswith("/NuGet.config") for word in words)
+
+
+def clone_arguments(words: Sequence[str]) -> Tuple[Optional[str], List[str]]:
+    """git clone 后面的参数：--branch 的值，与位置参数（仓库地址、目录）。"""
+    branch, positional, index = None, [], 0
+    while index < len(words):
+        word = words[index]
+        if word in ("--branch", "-b", "--depth", "--origin", "-o", "--filter", "--reference", "--config", "-c", "--jobs", "-j"):
+            if word in ("--branch", "-b") and index + 1 < len(words):
+                branch = words[index + 1]
+            index += 2
+            continue
+        if word.startswith("--branch="):
+            branch = word.split("=", 1)[1]
+        elif not word.startswith("-"):
+            positional.append(word)
+        index += 1
+    return branch, positional
+
+
+def release_line_problems(example: Example, page: Page, documented: str) -> List[str]:
+    """克隆发布标签、下载发布页 NuGet.config 的写法，与后面的命令找清单工具用的目录。"""
+    problems: List[str] = []
+    tag = "v" + documented
+    folder = "kun-" + tag
+    found = set()
+    for block in page.blocks:
+        if block.lang != "bash":
+            continue
+        for line in command_lines(block.text):
+            try:
+                words = shlex.split(line)
+            except ValueError:
+                continue
+            where = f"{page.name}:{block.line} 的 `{line}`"
+            if clones_release(words):
+                found.add("克隆发布标签")
+                branch, positional = clone_arguments(words[2:])
+                if branch != tag:
+                    now = f"现在是 {branch}" if branch else "现在没写，克隆的是缺省分支"
+                    problems.append(f"{where}：要克隆发布标签 {tag}（--branch {tag}），{now}。")
+                if positional[:1] != [REPOSITORY + ".git"]:
+                    problems.append(f"{where}：仓库地址应是 {REPOSITORY}.git。")
+                if positional[1:] != [folder]:
+                    problems.append(f"{where}：要写明克隆到 {folder}，后面的命令按这个目录找清单工具。")
+            elif downloads_release_config(words):
+                found.add("下载发布页的 NuGet.config")
+                url = next(word for word in words if word.startswith("https://"))
+                expected = f"{REPOSITORY}/releases/download/{tag}/NuGet.config"
+                if url != expected:
+                    problems.append(f"{where}：下载地址应是 {expected}。")
+                flags = "".join(word[1:] for word in words if re.fullmatch(r"-[A-Za-z]+", word))
+                if "f" not in flags and "--fail" not in words:
+                    problems.append(f"{where}：要带 -f，下载失败时报错，不然 404 的页面会被存成 NuGet.config。")
+                option = next((word for word in ("-o", "--output") if word in words[:-1]), None)
+                saved = words[words.index(option) + 1] if option else ("NuGet.config" if "O" in flags or "--remote-name" in words else None)
+                if saved != "NuGet.config":
+                    problems.append(f"{where}：要存成项目目录里的 NuGet.config（-o NuGet.config）。")
+        for match in re.finditer(r"(?:^|[\s=\"'])([^\s=\"']+)/tools/Kun\.Plugin\.Tool\b", block.text, re.MULTILINE):
+            if match.group(1) != folder:
+                problems.append(f"{page.name}:{block.line} 按 {match.group(1)}/ 找清单工具，克隆发布标签的目录是 {folder}。")
+            elif "克隆发布标签" not in found:
+                problems.append(f"{page.name}:{block.line} 按 {folder}/ 找清单工具，在这之前却没有克隆发布标签的那一行。")
+    wanted = RELEASE_LINES.get(example.slug)
+    if wanted and wanted not in found:
+        problems.append(f"{page.name} 里应有一行{wanted}：发版后照页面跑要用它。")
+    return problems
+
+
 # ---------- JSON 比对 ----------
 
 def compact(value: object) -> str:
@@ -452,6 +570,8 @@ def check(root: Path = ROOT) -> List[str]:
     mapped = set()
     for example in ALL:
         page = pages[example.slug]
+        problems.extend(page.problems)
+        problems.extend(release_line_problems(example, page, documented))
         used = set()
 
         def find(ref: Ref) -> Optional[Block]:
@@ -606,7 +726,10 @@ def feed(version: str, out: Path, root: Path = ROOT) -> List[str]:
         command = ["dotnet", "pack", str(solution_filter), "-c", "Release", f"-p:Version={version}",
                    "-p:WarningsNotAsErrors=NU5104", "--disable-build-servers", "-o", str(out)]
         say("$ " + " ".join(shlex.quote(word) for word in command))
-        result = subprocess.run(command, cwd=root)
+        try:
+            result = subprocess.run(command, cwd=root, timeout=PACK_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            raise ToolError(f"dotnet pack 超过 {PACK_TIMEOUT} 秒没有结束。") from None
         if result.returncode:
             raise ToolError(f"dotnet pack 失败（退出码 {result.returncode}）。")
     produced: Dict[str, List[str]] = {}
@@ -625,18 +748,37 @@ def feed(version: str, out: Path, root: Path = ROOT) -> List[str]:
 
 # ---------- 终端、服务、请求 ----------
 
+def without_locale(env: Dict[str, str]) -> Dict[str, str]:
+    """去掉机器的语言设置（LANG、LANGUAGE、LC_*）；照页面跑的进程用的语言由 locale_setup 在 bash 里设。"""
+    return {key: value for key, value in env.items() if key not in ("LANG", "LANGUAGE") and not key.startswith("LC_")}
+
+
+def locale_setup() -> str:
+    """在读者的 bash 里设界面语言，标准错误丢掉。
+
+    机器上没有这个区域时（比如 CI 的 runner 没生成 zh_CN），bash 从环境变量继承它会往标准错误打 cannot change locale 的警告，
+    混进要比对的输出；在 bash 里设、把这一句的标准错误丢掉就不会。.NET 不靠系统的区域数据，照样按这个名字定界面语言。
+    """
+    return f"{{ export LANG={READER_LOCALE} LC_ALL={READER_LOCALE}; }} 2>/dev/null"
+
+
 class Terminal:
-    """读者的终端：一直开着的 bash，cd 与变量在命令之间保留；标准错误并进标准输出；每条命令的标准输入是 /dev/null。"""
+    """读者的终端：一直开着的 bash，cd 与变量在命令之间保留；标准错误并进标准输出；每条命令的标准输入是 /dev/null。
+    界面语言固定为 READER_LOCALE，不随机器的语言设置变。"""
 
     MARK = "__KUN_DOCS_EXAMPLES_EXIT__"
 
     def __init__(self, cwd: Path, env: Dict[str, str], log: Path) -> None:
         log.parent.mkdir(parents=True, exist_ok=True)
         self.log = log.open("w", encoding="utf-8")
-        self.process = subprocess.Popen(["bash", "--noprofile", "--norc"], cwd=str(cwd), env=env,
+        self.process = subprocess.Popen(["bash", "--noprofile", "--norc"], cwd=str(cwd), env=without_locale(env),
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         start_new_session=True)
         self.pending = b""
+        code, output = self.run(locale_setup(), 30)
+        if code:
+            self.close()
+            raise ToolError(f"读者的终端设不了界面语言（退出码 {code}）：{output}")
 
     def run(self, command: str, timeout: float) -> Tuple[int, str]:
         self.log.write(f"$ {command}\n")
@@ -690,7 +832,7 @@ class Terminal:
 
 
 class Server:
-    """页面上的 dotnet run：另起的进程，等它打印监听地址。"""
+    """页面上的 dotnet run：另起的进程（界面语言与读者的终端相同），等它打印监听地址。"""
 
     READY = re.compile(r"Now listening on: (https?://\S+)")
 
@@ -699,7 +841,8 @@ class Server:
         self.lines: List[str] = []
         self.lock = threading.Lock()
         self.log_path = log
-        self.process = subprocess.Popen(["bash", "--noprofile", "--norc", "-c", "exec " + command], cwd=str(cwd), env=env,
+        self.process = subprocess.Popen(["bash", "--noprofile", "--norc", "-c", locale_setup() + "\nexec " + command],
+                                        cwd=str(cwd), env=without_locale(env),
                                         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         start_new_session=True)
         self.thread = threading.Thread(target=self._pump, daemon=True)
@@ -733,7 +876,7 @@ class Server:
                 raise Failed(f"`{self.command}` 等了 {int(timeout)} 秒没有输出「{pattern.pattern}」：\n{tail(self.output())}")
             time.sleep(0.2)
 
-    def start(self, timeout: float = 900) -> None:
+    def start(self, timeout: float = SERVER_TIMEOUT) -> None:
         self.url = self.wait_for(self.READY, timeout).group(1)
 
     def stop(self) -> None:
@@ -922,10 +1065,10 @@ class Reader:
             line = line.replace(old, new)
         words = shlex.split(line)
         local = self.settings.feed == "local"
-        if local and words[:2] == ["git", "clone"]:
+        if local and clones_release(words):
             say(f"  （本地包源：不克隆发布标签，清单工具用当前检出构建）{line}")
             return None
-        if local and words[:1] == ["curl"] and line.endswith("/NuGet.config"):
+        if local and downloads_release_config(words):
             say(f"  （本地包源：不下载发布页的包源映射，用工作目录的 NuGet.config）{line}")
             return None
         if local:
@@ -951,7 +1094,7 @@ class Reader:
             time.sleep(30)
         raise AssertionError("unreachable")
 
-    def commands(self, name: str, expect_codes: Optional[Dict[int, int]] = None, timeout: float = 1800) -> List[Result]:
+    def commands(self, name: str, expect_codes: Optional[Dict[int, int]] = None, timeout: float = COMMAND_TIMEOUT) -> List[Result]:
         """按顺序执行页面上一块命令；expect_codes 按命令的序号给出不为 0 的退出码。"""
         block = self.block(name)
         results: List[Result] = []
@@ -1075,7 +1218,7 @@ def run_write_a_component(reader: Reader) -> None:
     reader.write(manifest, json.dumps(changed, ensure_ascii=False, indent=2) + "\n")
     command = first[2].command
     assert command is not None
-    code, output = reader.terminal.run(command, 600)
+    code, output = reader.terminal.run(command, COMMAND_TIMEOUT)
     if code != 2 or WAC_TIER_POINTER not in output:
         raise Failed(f"信任等级写成 private 时 `{command}` 应退出 2 并报 {WAC_TIER_POINTER}，实际退出码 {code}：\n{tail(output)}")
     reader.write(manifest, original)
@@ -1162,9 +1305,11 @@ FLOWS: Dict[str, Callable[[Reader], None]] = {
 # ---------- run ----------
 
 def reader_environment(work: Path) -> Dict[str, str]:
-    """读者的环境：HOME 与 NuGet 的目录都在工作目录里；不带读包令牌；构建完不留常驻进程。"""
-    dropped = ("MSBUILD", "MSBuild", "NUGET_", "ASPNETCORE_", "DOTNET_ENVIRONMENT", "DOTNET_USER_SECRETS", "APPDATA")
-    env = {key: value for key, value in os.environ.items() if key not in SECRETS and not key.startswith(dropped)}
+    """读者的环境：HOME 与 NuGet 的目录都在工作目录里；不带读包令牌；构建完不留常驻进程；
+    不带机器的语言设置与 .NET 的全球化开关（界面语言由终端与服务进程固定，页面假定 ICU 正常可用）。"""
+    dropped = ("MSBUILD", "MSBuild", "NUGET_", "ASPNETCORE_", "DOTNET_ENVIRONMENT", "DOTNET_USER_SECRETS", "APPDATA",
+               "DOTNET_SYSTEM_GLOBALIZATION_")
+    env = without_locale({key: value for key, value in os.environ.items() if key not in SECRETS and not key.startswith(dropped)})
     nuget = work / ".nuget"
     env.update({
         "HOME": str(work / "home"),
@@ -1247,6 +1392,26 @@ def summary(lines: Sequence[str]) -> None:
             handle.write("\n".join(lines) + "\n")
 
 
+def version_key(version: str) -> Tuple[int, int, int, int, int]:
+    """发布版本的先后：按日期；同一天 beta 在前、正式版居中、hotfix 在后，编号按数字比。"""
+    match = re.fullmatch(r"(\d{4})\.(\d{1,2})\.(\d{1,2})(?:-(beta|hotfix)\.(\d+))?", version)
+    if not match:
+        raise ToolError(f"版本 {version} 不是发布版本的写法。")
+    stage = {"beta": 0, None: 1, "hotfix": 2}[match.group(4)]
+    return int(match.group(1)), int(match.group(2)), int(match.group(3)), stage, int(match.group(5) or 0)
+
+
+def bump_hint(version: str, documented: str, sdk: str, today: str) -> List[str]:
+    """发版后照页面跑通了：这次的版本比页面上写的新，给出把页面改过去的命令；更旧的不建议往回改；相同的什么也不说。"""
+    if version_key(version) > version_key(documented):
+        return ["", f"示例用 {version} 照页面跑通了，页面上写的还是 {documented}。把页面改到 {version}：", "",
+                f"`python3 scripts/docs_examples.py bump --version {version} --sdk {sdk} --date {today}`", "",
+                "再跑一遍 check，提 PR。"]
+    if version_key(version) < version_key(documented):
+        return ["", f"这次的版本 {version} 比页面上写的 {documented} 旧，页面不用改。"]
+    return []
+
+
 def run(selected: Sequence[Example], feed_kind: str, version: Optional[str], packages: Optional[Path],
         work: Optional[Path], keep: bool) -> int:
     problems = check()
@@ -1317,12 +1482,10 @@ def run(selected: Sequence[Example], feed_kind: str, version: Optional[str], pac
     if failed and feed_kind == "published":
         lines += ["", "发布已经完成，这一步不撤回它，也不要因此重跑整个发布。按上面失败的那一步改页面与示例（samples/docs/），"
                       "或者出补丁版本。"]
-    elif not failed and feed_kind == "published" and version != documented:
-        today = datetime.date.today().isoformat()
-        lines += ["", f"示例用 {version} 照页面跑通了，页面上写的还是 {documented}。把页面改到 {version}：",
-                  "", f"`python3 scripts/docs_examples.py bump --version {version} --sdk {sdk} --date {today}`", "",
-                  "再跑一遍 check，提 PR。"]
-        if os.environ.get("GITHUB_ACTIONS"):
+    elif not failed and feed_kind == "published":
+        hint = bump_hint(version, documented, sdk, datetime.date.today().isoformat())
+        lines += hint
+        if version_key(version) > version_key(documented) and os.environ.get("GITHUB_ACTIONS"):
             annotate("notice", "使用文档示例", f"示例用 {version} 照页面跑通了，页面上写的还是 {documented}；运行摘要里有把页面改过去的命令。")
     say()
     for line in lines:

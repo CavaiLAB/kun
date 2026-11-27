@@ -8,7 +8,7 @@
 
 每一项写：它是什么；现在谁在用；去向；仍在使用、要保持兼容的名字；去向的依据。
 
-「谁在用」是对着 2026-11-27 的主干用 `git grep` 核的本仓库里的引用（不算 `pnpm-lock.yaml`、任务文件、决策记录、需求文档与 `CHANGELOG.md` 里的提及），括号里是那个目录里引用它的文件数。对着匠心的主干（提交 `d5ce990`）核过：匠心没有依赖本仓库的前端包，也不装 `@cavailab/qian-*`，这个名字只在几处讲从哪里迁来的说明与注释里出现。
+「谁在用」是对着 2026-11-27 的主干用 `git grep` 核的本仓库里的引用（不算 `pnpm-lock.yaml`、任务文件、决策记录、需求文档与 `CHANGELOG.md` 里的提及；第 4 节的示例与第 6 节的文档另把文档之间的引用也算上），括号里是那个目录里引用它的文件数。对着匠心的主干（提交 `d5ce990`）核过：匠心没有依赖本仓库的前端包，也不装 `@cavailab/qian-*`，这个名字只在几处讲从哪里迁来的说明与注释里出现。
 
 去向只用下面六种：
 
@@ -26,7 +26,7 @@
 | 写法 | 指的是 |
 |---|---|
 | 一表 29 | 第一张《决策表》第 29 条，产品负责人 2026-11-27 答：其余逐条采用原表建议（[S1-DEC-049](../pm/tasks/S1-DEC-049.md)） |
-| 二表 2、二表 3、二表 5 | 第二张表第 2、3、5 条，产品负责人 2026-11-27 答：都按建议（[S1-DEC-050](../pm/tasks/S1-DEC-050.md)） |
+| 二表 3、二表 5 | 第二张表第 3、5 条，产品负责人 2026-11-27 答：都按建议（[S1-DEC-050](../pm/tasks/S1-DEC-050.md)） |
 | 新方向 | 产品负责人 2026-11-27 发来的新方向（[S1-DEC-051](../pm/tasks/S1-DEC-051.md)） |
 | 归档 D1 | [S1-DEC-043](../pm/tasks/S1-DEC-043.md) D1：前端框架 Qian 的仓库归档，已发布的包留着、能装，不再发新版 |
 | 字面保留 | 组件 id 前缀 `qian.`、清单文件名这些运行期字面当作历史字面保留，`qian` 命令行与 `@qian/*` 导入名不改（`AGENTS.md`「要改文档」第 1 条；ADR-023 D23.18；第一张表成批的丙批里「`qian.` 开头的运行期字面量不改」，按提议推进） |
@@ -51,8 +51,8 @@ pnpm 工作区（`pnpm-workspace.yaml`）收的是下面前 11 项。都标了 `
 | `tools/openapi-codegen`（`@qian/openapi-codegen`） | 从 OpenAPI 契约生成 TypeScript 客户端 | 根 `package.json` 的 `openapi:generate`；`@qian/tenancy-ui`、`@qian/tenancy-signup-ui` 的 `contracts:generate`；工作流 `qian-ui.yml`、`qian-tenant-ui.yml`、`qian-directory-e2e.yml` 的区域 | 留在 Kun 照旧维护。匠心照本仓库的契约生成客户端时可以用 | — | 提议 |
 | `tests/directory-e2e`（`@qian/directory-e2e`） | 目录选择器的浏览器验收：用前端框架业务包的组织与人员选择器，经真实身份宿主的目录接口 | 工作流 `qian-directory-e2e.yml`、`qian-ui.yml`；`tests/README.md` | 留在 Kun 冻结；工作流停掉（S1-QA-033） | — | 二表 5；归到「成员一类页面的检查」是读法 |
 | `website`（`website`） | Kun 网站（Rspress），内容见第 7 节 | 工作流 `qian-docs-site.yml`；`deploy/docs-site/` | 留在 Kun 照旧维护；页面照第 7 节更新 | 站内拿掉的组件页的旧地址（`/components/qian/*`，加上更早一批的 91 个旧书签，清单在 `website/scripts/qian-archive.ts`）都落到说明页 | S1-DEC-047；新方向 |
-| 根 `package.json`（`qian-workspace`）的前端脚本 | `ui:*`、`shell:federation`、`shell:auth`、`docs:site`、`openapi:generate` | 工作流 `qian-ui.yml`、`qian-shell-auth.yml`、`qian-shell-federation.yml` | 文字更新：`ui:*` 收窄到认证页与注册页，`shell:federation` 随工作流停掉（S1-QA-033） | 脚本名 | 二表 5 |
-| `pnpm-workspace.yaml` 的版本目录 | 前端依赖的版本只钉一次：9 个 `@cavailab/qian-*` 在 `catalog:` 里钉 `0.2.1`；`@cavailab/qian-runtime` 不在版本目录里，由 `packages/qian-cli` 与 `packages/qian-surfaces` 的 `package.json` 直接写 `0.2.1` | 上面各前端项目的 `package.json` 写 `catalog:`；网站的版本矩阵页从这里读 | 留在 Kun 照旧维护。旧外壳与界面包退出检查以后，要让版本目录里只剩认证页、注册页与网站用到的几个，得先把冻结的项目移出 pnpm 工作区（`packages:` 一节），不然它们照样要装这些包；这样做是提议，pnpm 的行为没有实测 | `@cavailab/qian-*` 的包名与 `0.2.1` | 归档 D1；收窄是提议 |
+| 根 `package.json`（`qian-workspace`）的前端脚本 | `ui:*`、`shell:federation`、`shell:auth`、`docs:site`、`openapi:generate` | 工作流 `qian-ui.yml`、`qian-shell-auth.yml`、`qian-shell-federation.yml` | 文字更新：`ui:*` 收窄到认证页与注册页，`shell:federation` 随工作流停掉（S1-QA-033） | 脚本名 | 二表 5；注册页一起留是读法 |
+| `pnpm-workspace.yaml` 的版本目录 | 前端依赖的版本只钉一次：9 个 `@cavailab/qian-*` 在 `catalog:` 里钉 `0.2.1`；`@cavailab/qian-runtime` 不在版本目录里，由 `packages/qian-cli` 与 `packages/qian-surfaces` 的 `package.json` 直接写 `0.2.1` | 上面各前端项目的 `package.json` 写 `catalog:`；网站的版本矩阵页从这里读 | 留在 Kun 照旧维护。旧外壳与界面包退出检查以后，要让版本目录里只剩认证页、注册页与网站用到的几个，得先把冻结的项目移出 pnpm 工作区（`packages:` 一节），不然它们照样要装这些包；旧页面退掉、`qian-shell-auth.yml` 换掉以前移不了，它的验收照样要构建外壳与几个远程模块（`apps/qian-shell/scripts/e2e-auth.mjs`）。这样做是提议，pnpm 的行为没有实测 | `@cavailab/qian-*` 的包名与 `0.2.1` | 归档 D1；收窄是提议 |
 | `eslint.config.mjs` | 前端项目的 lint 规则 | 根 `package.json` 的 `ui:lint` | 文字更新：随 S1-QA-033 收窄范围 | — | 二表 5 |
 | `eslint.boundaries.config.mjs` | 前端分层的依赖边界 | `ui:boundaries` | 文字更新：同上 | — | 二表 5 |
 | `eslint.i18n.mjs` | 界面文字的国际化检查 | `eslint.config.mjs` | 文字更新：同上 | — | 二表 5 |
@@ -73,9 +73,9 @@ pnpm 工作区（`pnpm-workspace.yaml`）收的是下面前 11 项。都标了 `
 | `src/Kun.Capabilities.AspNetCore` 的 `GET /api/capabilities/shell`、`/navigation`、`/navigation/item`、`/console` 与 `PUT /api/capabilities/navigation/preference` | 给外壳与平台控制台的目录与导航接口 | 平台宿主映射它们（`hosts/Kun.Platform.Host/PlatformHost.cs`）；`packages/qian-shell-kit`（`navigation.ts`）、`apps/qian-shell` 的验收、`samples/Kun.Sample.Crm/PlatformSurfaceHost.cs` | 留在 Kun 照旧维护（接口）。匠心的管理端与工作区要不要照它取导航，随匠心的设计 | 路径 | 新方向（Kun 保持现有基础框架和接口）；匠心那一侧用不用是提议 |
 | `plugins/qian.shell`（组件 ID `qian.shell`） | 外壳组件的清单 | shell 组合包；`apps/qian-shell/scripts/package-static.mjs` 打包外壳的静态制品时读它；`scripts/ci_changes.py` 的 `shell-federation` 区域；`docs/generated/config-catalog.md` | 留在 Kun 冻结 | `qian.shell` | 二表 5；字面保留 |
 | `plugins/qian.bundle.shell`（组件 ID `qian.bundle.shell`） | shell 组合包：把外壳的静态制品交给网关 | `profiles/platform/qian.profile.yml`、`docs/generated`、`tests/Kun.Sample.Crm.Tests` | 留在 Kun 冻结。要不要从 platform profile 的缺省装配里拿掉，S1-QA-033 开工时核对影响再定 | `qian.bundle.shell` | 二表 5 |
-| `plugins/qian.tenancy/ui/manifest.json`、`plugins/qian.tenancy.signup/ui/manifest.json` | 租户运营与开通申请两个远程模块的界面清单：路由 `/tenants`、`/tenant-applications` 与导航项，指到网关上的 `/remotes/…/mf-manifest.json` | 能力目录的导航与外壳目录（`src/Kun.Capabilities/NavigationManifestPlugin.cs` 读组件的 `ui/manifest.json`） | 留在 Kun 冻结。远程模块不再进镜像以后这两份清单还在，平台控制台的导航里会不会留下打不开的项，S1-QA-033 开工时核对 | 清单文件名 `ui/manifest.json`；组件 ID `qian.tenancy`、`qian.tenancy.signup` | 二表 5；核对的做法是提议 |
+| `plugins/qian.tenancy/ui/manifest.json`、`plugins/qian.tenancy.signup/ui/manifest.json` | 租户运营与开通申请两个远程模块的界面清单：路由 `/tenants`、`/tenant-applications` 与导航项，指到网关上的 `/remotes/…/mf-manifest.json` | 平台控制台目录（`GET /api/capabilities/console`，`src/Kun.Capabilities/NavigationManifestPlugin.cs` 读组件的 `ui/manifest.json`；这两个是平台组件，不进租户的菜单与外壳目录），网关给平台身份的 bootstrap 以它为来源；另有 `apps/qian-shell/scripts/package-static.mjs`、`serve-acceptance.mjs`，`tools/Kun.Dev.TenantOps/DevPlatform.cs`，`tests/Kun.Sample.Crm.Tests`（`PlatformConsoleTests`、`LifecycleAcceptanceTests`），`tests/Kun.Tenancy.Signup.Tests`，`scripts/ci_changes.py` 的 `shell-federation` 区域 | 留在 Kun 冻结。远程模块不再进镜像以后这两份清单还在，控制台目录与 bootstrap 照样交出 `/remotes/…/mf-manifest.json`，要不要处理，S1-QA-033 开工时核对 | 清单文件名 `ui/manifest.json`；组件 ID `qian.tenancy`、`qian.tenancy.signup` | 二表 5；核对的做法是提议 |
 | `hosts/Kun.Gateway.Host` 的外壳托管 | 给了 `Shell:Root` 才托管外壳，不给就不托管 | 网关镜像 | 留在 Kun 照旧维护（宿主）；镜像不再送外壳的制品（S1-QA-033） | 配置键 `Shell:Root` | 二表 5 |
-| `tools/Kun.Dev.Shell` 与 `scripts/dev-shell.sh` | 本机起外壳、身份服务与参考应用的手测与验收宿主 | `apps/qian-shell` 的登录验收（`pnpm shell:auth`）、工作流 `qian-shell-auth.yml` 的区域 | 留在 Kun 冻结。旧登录页的验收还用它，留到旧登录页退掉为止 | — | 二表 5 |
+| `tools/Kun.Dev.Shell` 与 `scripts/dev-shell.sh` | 本机起外壳、身份服务与参考应用的手测与验收宿主 | `apps/qian-shell` 的登录验收（`pnpm shell:auth`）、工作流 `qian-shell-auth.yml` 的区域 | 留在 Kun 冻结。旧登录页的验收还用它，留到旧登录页退掉为止 | — | 二表 5；留到旧登录页退掉为止是读法 |
 | `tests/Kun.Shell.TestHost` | 外壳联邦验收的测试宿主 | 工作流 `qian-shell-federation.yml` | 留在 Kun 冻结；工作流停掉（S1-QA-033） | — | 二表 5 |
 | `tools/Kun.Dev.TenantOps` 与 `scripts/dev-tenant-ops.sh` | 本机的租户运营宿主，用开发令牌调运营接口，不起页面 | `tools/Kun.Dev.Shell`（项目引用）；`scripts/ci_changes.py` 的 `dev-tenant-ops`、`directory-e2e`、`shell-auth`、`tenant-ui` 四个区域 | 留在 Kun 照旧维护（是后端） | — | 二表 5（后端照做） |
 
@@ -86,7 +86,7 @@ pnpm 工作区（`pnpm-workspace.yaml`）收的是下面前 11 项。都标了 `
 | `samples/Kun.Sample.AppHost` | Aspire 编排入口，拉起目录与订单两个示例服务 | `Kun.slnx`、`docs/getting-started.md`、`docs/guides`（2）、`docs/adr/kun`、`samples/README.md`、`samples/Kun.Sample.Catalog/README.md` | 留在 Kun 照旧维护 | — | 提议 |
 | `samples/Kun.Sample.Catalog` | 商品目录服务：领域模型、命令查询分离、Outbox、gRPC | `samples/Kun.Sample.Order`（3）、`samples/Kun.Sample.Tests`（2）、`tests/Kun.IntegrationTests`（3）、`docs/guides`（3） | 留在 Kun 照旧维护 | — | 提议 |
 | `samples/Kun.Sample.Order` | 订单服务：下单、经 gRPC 预留库存、经 Outbox 发集成事件 | `samples/Kun.Sample.AppHost`、`samples/Kun.Sample.Tests`（2）、`docs/guides` | 留在 Kun 照旧维护 | — | 提议 |
-| `samples/Kun.Sample.Shared` | 两个示例服务共用的类型 | `samples/Kun.Sample.Order`（2）、`samples/Kun.Sample.Tests`、`docs/adr/kun`、`docs/design`、`docs/guides` | 留在 Kun 照旧维护 | — | 提议 |
+| `samples/Kun.Sample.Shared` | 两个示例服务共用的类型 | `Kun.slnx`、`samples/Kun.Sample.Order`（2）、`samples/Kun.Sample.Tests`、`docs/adr/kun`、`docs/design`、`docs/guides` | 留在 Kun 照旧维护 | — | 提议 |
 | `samples/Kun.Sample.Tests` | 示例的测试，要 Aspire 的服务发现环境变量，CI 不跑 | `scripts/dotnet_ci.py` 的 `NOT_IN_CI`、`tests/gates` | 留在 Kun 照旧维护 | — | 提议 |
 | `samples/Kun.Sample.Minimal` | 最小宿主，用来做 NativeAOT 发布与运行 | `tests/Kun.Integration.AotTests`（2）、工作流 `ci.yml` 的 `sample-aot` 作业 | 留在 Kun 照旧维护 | — | 提议 |
 | `samples/Kun.Sample.Storage` | 对象存储的示例宿主 | 只有 `Kun.slnx` 引用 | 留在 Kun 照旧维护；没有文档指到它，补一句说明是文字更新 | — | 提议 |
@@ -122,7 +122,7 @@ pnpm 工作区（`pnpm-workspace.yaml`）收的是下面前 11 项。都标了 `
 | `@cavailab/qian-plugin-sdk` | `packages/qian-shell-kit`、`packages/qian-tenancy-signup-ui`、`packages/qian-tenancy-ui`、`apps/qian-shell`、`samples/qian-sample-crm-ui` | 同上 | 归档 D1 |
 | `@cavailab/qian-runtime` | `packages/qian-cli` 与 `packages/qian-surfaces` 的测试（开发依赖） | 同上 | 归档 D1 |
 
-旧外壳与界面包冻结以后，还在检查里用到这些包的是认证页、注册页、网站（`qian-tokens`）与命令行、校验库的测试（`qian-runtime`）；冻结的项目只要还在 pnpm 工作区里，装依赖时照样会装它们用的包（见第 2 节版本目录一行）。删包、取消归档、给包标弃用，都不在这里定（第 10 节）。
+旧外壳与界面包冻结以后，还在检查里用到这些包的是认证页、注册页、网站（`qian-tokens`）与命令行、校验库的测试（`qian-runtime`），旧登录页的验收（`qian-shell-auth.yml`）留着的时候还有外壳与几个远程模块；冻结的项目只要还在 pnpm 工作区里，装依赖时照样会装它们用的包（见第 2 节版本目录一行）。删包、取消归档、给包标弃用，都不在这里定（第 10 节）。
 
 ### 5.2 NuGet：Kun 的包
 
@@ -370,8 +370,8 @@ nuget.org 上停发的 8 个旧线 `Kun.*`：
 | `qian-directory-e2e.yml` | 目录选择器的浏览器验收 | 留在 Kun 冻结，不再由 `ci.yml` 调用 | 二表 5 |
 | `qian-tenant-ui.yml` | 租户运营页面的七步验收 | 留在 Kun 冻结，不再由 `ci.yml` 调用 | 二表 5 |
 | `qian-shell-federation.yml` | 外壳挂载远程模块 | 留在 Kun 冻结，不再由 `ci.yml` 调用 | 二表 5 |
-| `qian-shell-auth.yml` | 真实身份服务上的登录、选择租户、连接器登录、注册主线，加上外壳与平台控制台的用例 | 文字更新：只留登录与注册的用例，留到旧页面退掉为止 | 二表 5；新方向 |
-| `qian-ui.yml` | 外壳与界面包的 lint、类型、单测、边界、构建 | 文字更新：只查认证页、注册页与它们的依赖 | 二表 5 |
+| `qian-shell-auth.yml` | 真实身份服务上的登录、选择租户、连接器登录、注册主线，加上外壳与平台控制台的用例 | 文字更新：只留登录与注册的用例，留到旧页面退掉为止 | 二表 5；新方向；注册的用例一起留、留到旧页面退掉为止是读法 |
+| `qian-ui.yml` | 外壳与界面包的 lint、类型、单测、边界、构建 | 文字更新：只查认证页、注册页与它们的依赖 | 二表 5；注册页一起查是读法 |
 
 除 `ci.yml`、`release.yml`，工作流的文件名都带 `qian-` 前缀；改名会动「CI 汇总」以外的检查名，这次不改，要改另提。
 
@@ -391,14 +391,14 @@ nuget.org 上停发的 8 个旧线 `Kun.*`：
 
 ## 10 要产品负责人定的
 
-下面几件动了会改变对外承诺，或者现有的裁定没有说到，整理时不定，攒进下一张要产品负责人定的表：
+下面几件动了会改变对外承诺，或者现有的裁定没有说到、照现在的代码做不到，整理时不定，攒进下一张要产品负责人定的表：
 
 1. **NuGet 包 `Kun.Gateway.Shell` 停不停发新版。** 它托管的是旧外壳，第二张表第 5 条定了旧外壳不再进镜像和发布链；可它是一个已经发布过的包（GitHub Packages 上有 `2026.11.20-beta.1`、`2026.11.21`、`2026.11.24` 三个版本），停发会让照它装的宿主拿不到新版。整理时的建议：从下一个版本起停发，已发布的版本不动，在 `CHANGELOG.md` 里写明。
 2. **10 个 `@cavailab/qian-*` 要不要在包源上标弃用。** S1-DEC-043 D1 定的是包留着、能装、不再发新版，没有说标不标弃用。标了，装的时候会出提示，本仓库的认证页与网站照样能装。整理时的建议：先不标，等匠心的新登录页跑通、本仓库不再装它们时再问。GitHub Packages 的 npm 源支不支持给包标弃用，没有核实，问之前先查清。
 3. **合并以前在别的包源位置发过的旧包删不删。** 本仓库已经不引用它们，删是不可逆的；其中平台 0.x 的 54 个 NuGet 包，`CHANGELOG.md` 2026.11.21 对外写过「停更并保留全部历史版本」，删了就违背这句。整理时的建议：先不删。
-4. **nuget.org 上停发的 8 个旧线 `Kun.*` 包要不要标弃用。** 它们最后一个版本是 `2026.10.25`，此前的做法是「nuget.org 上已发布的版本不动」（`CHANGELOG.md`）。整理时的建议：标弃用并指到取代它的包，不下架。同一问里一并问 `Kun.Audit.EntityFrameworkCore`：包名还在用，新版只发 GitHub Packages，nuget.org 上只有旧线的 12 个版本（最后一个 `2026.10.25`），`CHANGELOG.md` 已经写明从 nuget.org 引用它的项目要改到 GitHub Packages；要不要在 nuget.org 上给这些旧版本标弃用、指到 GitHub Packages。
+4. **nuget.org 上停发的 8 个旧线 `Kun.*` 包要不要标弃用。** 它们最后一个版本是 `2026.10.25`，此前的做法是「nuget.org 上已发布的版本不动」（`CHANGELOG.md`）。整理时的建议：标弃用并指到取代它的包，不下架。同一问里一并问 `Kun.Audit.EntityFrameworkCore`：包名还在用，新版只发 GitHub Packages，nuget.org 上只有旧线的 12 个版本（最后一个 `2026.10.25`），`CHANGELOG.md` 已经写明从 nuget.org 引用它的项目要改到 GitHub Packages；要不要在 nuget.org 上给这些旧版本标弃用、指到 GitHub Packages；整理时的建议：一并标，弃用说明里写新版在 GitHub Packages。
 5. **旧登录页与旧注册页什么时候退。** 新方向说旧布局和样式可以淘汰；第二张表第 3 条说冻结的那一版留作缺省、新页面上线以前照冻结的样子用。整理时读作新页面跑通以前旧页面照旧用，跑通以后退不退、什么时候退，到时再报。
-6. **冻结的登录页怎么换品牌。** 第二张表第 2 条照建议定的是页面不动、在匠心的部署配置里把品牌配成匠心的，表上说认证页的规格里已经有这个配置项。规格里有，现在的登录页没有实现它：品牌与版权行写死在 `packages/qian-identity-ui/src/i18n.ts`，照这条做要改冻结的页面，与第二张表第 5 条的「不再改」冲突。可选：（1）只改品牌与版权行的取值，让旧页面从配置里读；（2）不改，等匠心的新登录页，旧页面先照旧显示前端框架的名称。整理时的建议：新登录页跑通以前旧页面还要给客户看，就做（1）；不给客户看，就（2）。
+6. **冻结的登录页怎么换品牌。** 第二张表第 2 条照建议定的是页面不动、在匠心的部署配置里把品牌配成匠心的，表上说认证页的规格里已经有这个配置项。规格里有，现在的登录页没有实现它：品牌与版权行写死在 `packages/qian-identity-ui/src/i18n.ts`，照这条做要改冻结的页面，与这条自己的「页面不动」、第 3 条的「新页面上线以前照冻结的样子用」都对不上。可选：（1）只改品牌与版权行的取值，让旧页面从配置里读；（2）不改，等匠心的新登录页，旧页面先照旧显示前端框架的名称。整理时的建议：新登录页跑通以前旧页面还要给客户看，就做（1）；不给客户看，就（2）。
 
 ## 11 接下来的任务
 

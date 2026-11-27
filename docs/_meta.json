@@ -2,6 +2,7 @@
   "architecture",
   "agent-support",
   "getting-started",
+  "package-and-docs-disposition",
   {
     "type": "dir",
     "name": "guides",

@@ -109,6 +109,7 @@ CI 里由 `actions/setup-node` 的 `registry-url` 写同样的用户级配置，
 
 - [框架架构](docs/architecture.md)：两档分层、运行时模型、包的形态与命名、请求怎么走、能力域、对智能体的支撑。
 - [对智能体的支撑：Agent 接入与模型服务](docs/agent-support.md)：怎么接住集群里和设备上的 Agent，模型服务怎么提供，设备上的本机模型怎么算。
+- [包、文档、示例与站点导航的去向](docs/package-and-docs-disposition.md)：本仓库每个前端包、外壳、示例、已发布的包、文档组、网站导航项与相关工作流各自留着维护、冻结、归档、去匠心重新设计还是改写文字，依据哪条裁定；哪几件要产品负责人定。
 - Kun 框架的文档（多数是英文）：[入门](docs/getting-started.md)、[模块地图](docs/design/module-map.md)、[设计白皮书](docs/design/whitepaper.md)；指南、安全与设计说明分别在 `docs/guides/`、`docs/security/`、`docs/design/`，Kun 框架的决策记录在 `docs/adr/kun/`，引用时写「Kun ADR-0xx」。
 - [平台总览](https://github.com/CavaiLAB/jiangxin)：平台做什么与设计理念、总体架构、一切皆插件、Agent 协同、路线、协作约定、工业智能制造、产品形态、应用互通、历史系统接入、DSH 与企业级平台的对接、DSH 更新之后做什么、在平台上做开发、遵循的标准。
 

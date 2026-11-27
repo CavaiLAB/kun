@@ -301,7 +301,7 @@ nuget.org 上停发的 8 个旧线 `Kun.*`：
 | `sitemap.mdx` | 站点地图 | 留在 Kun 照旧维护 | 提议 |
 | `marketplace/index.md` | 上架规则 | 文字更新（见 7.1） | 第二张表第 4 条 |
 | `ops/index.md` | 运维概览，写「Qian 沿用现有 K3s……」与模型网关接线 | 文字更新 | ADR-024；提议 |
-| `ops/deploy.md` | GitOps 部署，写「Qian 用独立的命名空间」 | 文字更新 | 提议 |
+| `ops/deploy.md` | GitOps 部署，写「Qian 用独立的 `qian-<env>` 命名空间」 | 文字更新 | 提议 |
 | `ops/release.md` | 发布、灰度与回切 | 留在 Kun 照旧维护 | 提议 |
 | `ops/secrets.md` | 密钥 | 留在 Kun 照旧维护 | 提议 |
 | `ops/model-gateway.md` | 模型网关接线（推理服务经 Higress） | 文字更新：照 ADR-024 重写 | ADR-024；S1-DEC-049「后续」第 11 项 |
